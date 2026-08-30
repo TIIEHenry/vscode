@@ -228,6 +228,9 @@ import './contrib/notebook/browser/notebook.contribution.js';
 // Speech
 import './contrib/speech/browser/speech.contribution.js';
 
+// Conversation lens (fills ConversationPart slots; not ChatEditor)
+import './contrib/conversation/browser/conversation.contribution.js';
+
 // Chat
 import './contrib/chat/browser/chat.shared.contribution.js';
 import './contrib/chat/browser/chat.contribution.js';
