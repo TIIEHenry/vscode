@@ -78,7 +78,7 @@ Desktop 合同：窗口壳 = Singularity/IDEA；Conversation 内 = 时间线 + I
 
 `ChatViewPane` 还嵌 `AgentSessionsControl`、welcome、entitlement、mic/TTS——体量远超「一个列表 + Dock」。把它整块搬进新 Part 会把 Copilot 设置流一起搬进来。
 
-**产品中心透镜（M1）：** `workbench/contrib/conversation` 把 SessionBar（活动 stub 会话标题 + 内存会话切换器 + Inbox 徽标列表）、多回合 stub 时间线（user / assistant / tool 卡 + donor 形 confirmation 座位）与可编辑本地 dock（内存草稿、Enter/Send 追加 user 回合）填进 `ConversationPart` 槽；中心仍不是 `ChatEditorInput` / `ChatViewPane`，也不走 Copilot setup 或 `IChatModel`。
+**产品中心透镜（M1 首波 + M2 切片 1 已落）：** `workbench/contrib/conversation` 把 SessionBar（活动 stub 会话标题 + 内存会话切换器）、多回合 stub 时间线（user / assistant / tool 卡）与可编辑本地 dock（内存草稿、Enter/Send 追加 user 回合）填进 `ConversationPart` 槽；中心仍不是 `ChatEditorInput` / `ChatViewPane`，也不走 Copilot setup 或 `IChatModel`。M2 **剩余**（未做完、本文不宣称已落地）：Dock 内 Inbox 按 Desktop §8.3 **诚实空** Queue/Tasks（HEAD 仍有假 Inbox 列表）；confirmation 座位 **本地** Allow/Skip 状态机（HEAD 仍是静态 donor chrome）。
 
 ## 4. Sessions / Agents Window 宿主（更接近透镜，但不是文档壳）
 

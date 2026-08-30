@@ -115,4 +115,4 @@ summary: "代码事实已落：Conversation 中心、End Editor/Sources、四钮
 - [desktop-shell-mapping](../../docs/reference/code-oss-b2/desktop-shell-mapping.md)
 - [spike-t1-t3-code-facts](../../docs/reference/code-oss-b2/spike-t1-t3-code-facts.md)
 - 外仓 ADR-061（只读决策 SSOT）
-- 后续壳切片：[m1-shell-followon.md](m1-shell-followon.md)（`proposed`）
+- 后续壳切片：[m1-shell-followon.md](m1-shell-followon.md)（`implemented`）· [m2-product-shell.md](m2-product-shell.md)（`in_progress`）

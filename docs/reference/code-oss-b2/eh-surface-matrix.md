@@ -3,7 +3,7 @@ title: "Extension Host 表面矩阵（推定 / 待实测）"
 type: reference
 status: accepted
 phase: N/A
-updated: 2026-08-30
+updated: 2026-08-31
 summary: "贡献点 → Part 落点 → 改壳后 → 承诺分级；本轮无 EH 探针，全部标推定或待实测"
 ---
 
@@ -34,10 +34,10 @@ summary: "贡献点 → Part 落点 → 改壳后 → 承诺分级；本轮无 E
 | `viewsContainers.panel` | `PANEL_PART` | 底栏仍在；与 ADR-047 Diff 策略并存 | **冲突**（顺序/默认开） | **待实测** |
 | `views`（sidebar） | `SIDEBAR_PART` 内 View | 不变 | **冲突**（与产品 tab roster） | **待实测** |
 | `views`（panel） | `PANEL_PART` 内 View | 不变 | **冲突**（有限承诺） | **待实测** |
-| `views`（auxiliary / `ViewContainerLocation.AuxiliaryBar`） | `AUXILIARYBAR_PART` | Aux **默认关**（INV-052-NO-RIGHT-RAIL）→ 视图无处去或被塞进 Sidebar | **不承诺** | **推定** |
+| `views`（auxiliary / `ViewContainerLocation.AuxiliaryBar`） | `AUXILIARYBAR_PART` | Aux **默认关**靠配置/布局（INV-052-NO-RIGHT-RAIL；M2 切片 2 改 `workbench.secondarySideBar.defaultVisibility` 出厂默认，**本 pass 不断言已 `'hidden'`**）→ 视图无处去或被塞进 Sidebar | **不承诺** | **推定** |
 | `customEditors` | `EDITOR_PART` tab | End Preview 内打开；**合法**（文件类） | **承诺**「能开」；**不承诺**占中心 | **推定** |
 | `editor/*` 装饰 / actions | editor 文本（`EDITOR_PART`） | 随 Editor 挪到 End 列仍有效 | **承诺** | **推定** |
-| `chatParticipants` / `languageModelTools` | Chat 贡献 → 常进 Sidebar `ChatViewPane` 或 `ChatEditor` tab | 产品 Conversation **不用** VS Code chat 贡献点作中心 | **不承诺**为产品对话面 | **推定** |
+| `chatParticipants` / `languageModelTools` | Chat 贡献 → `ChatViewPane` 容器在 `AUXILIARYBAR_PART`（HEAD `isDefault: false`）；亦可 `ChatEditor` tab | 产品中心 = `contrib/conversation` 透镜；Aux Chat **不是** default 容器、**不是**产品 Conversation | **不承诺**为产品对话面 | **推定** |
 | `menus`（`activity` / `view/title`） | Activity / 视图标题 chrome | titlebar 四钮与 Activity 菜单易撞 | **不承诺**（布局菜单） | **推定** |
 | `walkthroughs` / `welcome` | 常进 `EDITOR_PART` 或空窗欢迎 | 中心不再是 editor 欢迎页 | **不承诺** | **推定** |
 | `commands`（不绑 Part 槽） | 命令 palette / 键绑 | 与 grid 拓扑无关 | **承诺** | **推定** |

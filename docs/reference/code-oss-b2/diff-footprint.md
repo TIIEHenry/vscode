@@ -45,10 +45,12 @@ M0 拓扑手术的直接代码面：
 | 文件 | 角色 |
 |------|------|
 | `browser/layout.ts` | grid 描述符、End 列 Editor+Sources、`enforceAgentShellVisible`、neighbor、maximize |
-| `browser/parts/conversation/conversationPart.ts` | 中心 Part（M0 占位） |
-| `browser/parts/conversation/media/conversationPart.css` | 占位样式 |
-| `browser/parts/sources/sourcesPart.ts` | End 下格 Sources 占位 Part |
-| `browser/parts/sources/media/sourcesPart.css` | 占位样式 |
+| `browser/parts/conversation/conversationPart.ts` | 中心 Part 三槽宿主；产品面在 `contrib/conversation` 透镜 |
+| `browser/parts/conversation/media/conversationPart.css` | 中心 Part chrome |
+| `browser/parts/sources/sourcesPart.ts` | End 下格 Sources Part 宿主 |
+| `browser/parts/sources/media/sourcesPart.css` | Sources Part chrome |
+| `contrib/conversation/browser/*` | M1+ 透镜（SessionBar / stub 时间线 / 本地 dock）；**不在** M0 `b5631393` 统计内 |
+| `contrib/sources/browser/*` | M1+ Files 列表投影；**不在** M0 `b5631393` 统计内 |
 | `services/layout/browser/layoutService.ts` | `Parts.CONVERSATION_PART` / `SOURCES_PART`；`forceShownAgentShellPart` |
 | `browser/actions/layoutActions.ts` · `navigationActions.ts` | toggle / 四钮 `LayoutControlMenu` 注册 |
 | `browser/contextkeys.ts` · `common/contextkeys.ts` | 上下文键（含 Sources 可见性） |
@@ -56,6 +58,8 @@ M0 拓扑手术的直接代码面：
 | `layout/test/browser/layoutService.test.ts` | 布局服务单测（含 agent shell 互斥） |
 
 **仍 deferred**（不在 footprint 内）：`npm run compile`、启动 T1–T3 演示、EH 探针冒烟 → [deferred-gaps](../../../dev/progress/deferred-gaps.md) D3–D5。
+
+> **M1+ 不重测（D6 已闭）**：上表数字仍锚 M0 `b5631393`；`contrib/conversation` 透镜与 `contrib/sources` Files 列表见 [agent-ui](../../systems/chat/agent-ui.md) · [parts-and-grid](../../systems/workbench/parts-and-grid.md)。本波 **不** 重跑 `git diff --stat`。
 
 ## 相关文档
 

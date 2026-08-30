@@ -3,7 +3,7 @@ title: "工具与编辑会话"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-08-30
+updated: 2026-08-31
 summary: "ILanguageModelToolsService / confirmation / builtin tool sets；IChatEditingSession accept/reject/snapshot；映射 Desktop Changes/Diff/File 配套面；标出 CopilotToolId 与 INV-NO-COPILOT"
 ---
 
@@ -153,7 +153,7 @@ Snapshot（实现里 checkpoint timeline，不是 `IChatModel` 的对话 checkpo
 
 | Desktop 配套 | 本仓最接近物 | 落点 | 改造含义 |
 |--------------|--------------|------|----------|
-| **Changes** | `IChatEditingSession.entries`、`WorkingSetDisplayMetadata`、`getDiffsForFilesInSession` | Sources / 改动清单（今天常在 Sidebar SCM 或聊天附属条） | 文件级 accept/reject 的名单；**不是** Timeline。应对 End 下格 Sources 占位或产品 Changes，而不是 ChatWidget 列表 |
+| **Changes** | `IChatEditingSession.entries`、`WorkingSetDisplayMetadata`、`getDiffsForFilesInSession` | End 下格 `SOURCES_PART`：**Files** 列表已落（`contrib/sources`）；**Changes** tab 仍不在 End（ADR-051 / M2 未做） | 文件级 accept/reject 的名单；**不是** Timeline。产品 Changes 应对 End Sources，而不是 ChatWidget 列表 |
 | **Diff** | `ChatEditingSession.show()` → `MultiDiffEditor`；`IEditSessionEntryDiff`；`IModifiedFileEntry.diffInfo`；editor hunk 装饰 | `EDITOR_PART` 的 multi-diff / `IDiffEditor`；深查看也可落 `PANEL_PART`（ADR-047） | 同构应保留：原生 diff 控件。打开路径不要绑成 Conversation tab |
 | **File** | 被改 `URI` + `EDITOR_PART` tabs；`IModifiedFileEntry.getEditorIntegration` | Preview File tabs（与 Desktop Preview **同构**） | 打开/保存/tab 仍走 `IEditorService`。编辑会话只提供 snapshot URI 与 keep/undo |
 
