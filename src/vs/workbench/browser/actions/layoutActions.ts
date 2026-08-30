@@ -478,7 +478,7 @@ MenuRegistry.appendMenuItems([
 					ContextKeyExpr.equals('config.workbench.layoutControl.type', 'both')),
 				ContextKeyExpr.equals('config.workbench.sideBar.location', 'right')
 			),
-			order: 2
+			order: 0
 		}
 	}, {
 		id: MenuId.LayoutControlMenu,
