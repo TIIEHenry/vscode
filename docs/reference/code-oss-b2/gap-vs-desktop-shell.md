@@ -15,14 +15,14 @@ summary: "对照 Desktop B2/S1 spike：首波分层导航不够；必须补 UI �
 
 | 问题 | 为何必须 | 首波文档 | 本簇补齐 |
 |------|----------|----------|----------|
-| 默认窗口 grid 的锚点是不是 `EDITOR_PART`？ | spike T1：非 editor 中心 Part | overview 一笔带过 | [parts-and-grid](../../systems/workbench/parts-and-grid.md) |
+| 默认窗口 grid 的锚点是不是 `EDITOR_PART`？ | spike T1：非 editor 中心 Part | overview 一笔带过 | [parts-and-grid](../../systems/workbench/parts-and-grid.md) — **M0 已答**：中心 = `CONVERSATION_PART` |
 | `EditorPart` 能不能整体隐藏？约束是什么？ | T2；spike 写「传统不可藏」需用代码核验 | 无 | [parts-and-grid](../../systems/workbench/parts-and-grid.md) §显隐 · [T1–T3](spike-t1-t3-code-facts.md) |
 | 有没有现成的非 Editor 中心 Part？ | 避免把 Conversation 做成 `ChatEditor`/`EditorInput` | sessions 导航未对照 B2 | [agent-ui](../../systems/chat/agent-ui.md) · [映射](desktop-shell-mapping.md) |
 | Chat 有哪些宿主？哪个违反 INV-TOPO？ | 禁止 Conversation = Custom Editor / editor tab | chat overview 列了宿主未标红线 | [agent-ui](../../systems/chat/agent-ui.md) |
 | 哪段 UI 绑 Copilot / entitlement？ | INV-NO-COPILOT | 无 | [agent-ui](../../systems/chat/agent-ui.md) §Copilot |
 | 四钮 `RegionId` 怎么投影到 Parts？ | INV-052-MAP | 无 | [desktop-shell-mapping](desktop-shell-mapping.md) |
 | Activity 通高 / Panel 不钻 Activity 是否已成立？ | ADR-052 几何 | 无 | [parts-and-grid](../../systems/workbench/parts-and-grid.md) §几何 |
-| 布局类 EH 贡献点会打在哪几个 Part？ | INV-EH-SURFACE | extension-api 总览 | [eh-surface-notes](eh-surface-notes.md) |
+| 布局类 EH 贡献点会打在哪几个 Part？ | INV-EH-SURFACE | extension-api 总览 | [eh-surface-notes](eh-surface-notes.md) · [eh-surface-matrix](eh-surface-matrix.md) |
 | Agents Window 与默认 Code 窗口是不是两套壳？ | 选错宿主会假通过 | sessions/workbench 分述未对比 | [映射](desktop-shell-mapping.md) §两套窗口 |
 
 ## 2. 本仓已有、不要再抄的 SSOT

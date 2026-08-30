@@ -5,7 +5,7 @@ status: accepted
 phase: M0
 created: 2026-08-30
 updated: 2026-08-30
-summary: "仓外 vscode-WorkTrees 工位表；集成分支 agent-ide；首建 merge+A–D 五槽；扩容见文末。"
+summary: "仓外 vscode-WorkTrees 工位表；A=M0 剩余代码 B=M0 docs；merge idle 待集成"
 ---
 
 # Loop 并行工位池（本仓）
@@ -20,36 +20,33 @@ summary: "仓外 vscode-WorkTrees 工位表；集成分支 agent-ide；首建 me
 | 主仓 | `/home/clarence/Projects/Agents/vscode` |
 | 工位根 `$WT_ROOT` | `/home/clarence/Projects/Agents/vscode-WorkTrees` |
 | 集成分支（当前） | **`agent-ide`**（merge 槽对齐此分支；非上游 `main`） |
-| 人类工位 | 主仓根目录；M0 在途时常驻 **`agent-ide`**（日后可切 `edit`，见套件 §人类工位） |
+| 拓扑基线 commit | **`fc6089a3`**（T1–T3 Conversation+Editor；pin `004a1fbb` = fork main） |
 
-## 槽位表（2026-08-30 初建）
+## 槽位表（2026-08-30 M0 remaining）
 
 | 槽 | 路径 | 分支 | 状态 | 备注 |
 |:---|:-----|:-----|:-----|:-----|
-| merge | `vscode-WorkTrees/merge` | `loop/merge` | `idle` | 集成合并轨；须随时对齐 `agent-ide` |
-| A | `vscode-WorkTrees/A` | `loop/A` | `idle` | 字母槽 |
-| B | `vscode-WorkTrees/B` | `loop/B` | `idle` | 字母槽 |
-| C | `vscode-WorkTrees/C` | `loop/C` | `idle` | 字母槽 |
-| D | `vscode-WorkTrees/D` | `loop/D` | `idle` | 字母槽 |
+| merge | `vscode-WorkTrees/merge` | `loop/merge` | `idle` | 待 A+B 合入后集成；须对齐 `agent-ide` |
+| A | `vscode-WorkTrees/A` | `loop/A` | **occupied** | M0 剩余 **代码**：Sources Part + titlebar 四钮 |
+| B | `vscode-WorkTrees/B` | `loop/B` | **occupied** | M0 剩余 **文档**：EH 矩阵、footprint、诚实化 |
+| C | `vscode-WorkTrees/C` | `loop/C` | `idle` | |
+| D | `vscode-WorkTrees/D` | `loop/D` | `idle` | |
 
-并行 slice 归属记在 `status.md` 或 parallel board；**槽字母不绑定模块**。
+并行 slice 归属记在 `status.md` 或 parallel board；**槽字母不绑定模块**（上表为当前 M0 tick 快照）。
 
 ## 扩容（E–J）
 
-套件上限为 **1 merge + 10 字母槽**（`A`…`J`）。本仓首建仅 **A–D**（磁盘考虑）。需扩容时，在基线绿且 `git worktree list` 确认无重复路径后：
+套件上限为 **1 merge + 10 字母槽**（`A`…`J`）。本仓首建仅 **A–D**。需扩容时，在基线绿且 `git worktree list` 确认无重复路径后：
 
 ```bash
 REPO_ROOT="/home/clarence/Projects/Agents/vscode"
 WT_ROOT="/home/clarence/Projects/Agents/vscode-WorkTrees"
-BASE="agent-ide"   # 或当时的集成分支
-SLOT=E             # E … J
+BASE="agent-ide"
+SLOT=E
 
 git -C "$REPO_ROOT" worktree add "$WT_ROOT/$SLOT" -b "loop/$SLOT" "$BASE"
 ```
 
-扩容后更新上表并（若需要）在 `status.md` 记一笔。
-
 ## 相关
 
-- [health-gates.md](health-gates.md) — 占槽前集成编译命令  
-- [status.md](status.md) — 当前 tick / slice 与槽占用（Loop 主读路径）
+- [health-gates.md](health-gates.md) · [status.md](status.md) · [deferred-gaps.md](deferred-gaps.md)

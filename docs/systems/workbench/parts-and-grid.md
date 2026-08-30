@@ -103,11 +103,13 @@ CSS class：`LayoutClasses.MAIN_EDITOR_AREA_HIDDEN` / `CONVERSATION_HIDDEN` 等�
 5. **storage keys** — `workbench.conversation.hidden`（runtime）、`workbench.editor.size`（End 列宽）。Workbench grid 每次启动从描述符重建，不读旧 grid JSON。
 6. **辅助窗口** — 仍复用 `EDITOR_PART`；Conversation 只在主窗口。
 
+**M0 仍缺（slot A，HEAD `fc6089a3` 无）：** End 下格 Sources 占位 Part；titlebar layout controls 四钮。合入后 [diff-footprint](../../reference/code-oss-b2/diff-footprint.md) 须 TBD@merge 刷新。
+
 ## 7. Modern UI / floating panels
 
 `LayoutSettings.MODERN_UI`（`workbench.experimental.modernUI`）给 part 加 margin/card（`FLOATING_PANEL_MARGIN`）。这是视觉实验，**不是**拓扑。B2 壳合同走 Desktop token（ADR-003），不要把 Modern UI 当文档壳。
 
 ## 8. 相关文档
 
-- [Workbench 概览](overview.md) · [壳映射](../../reference/code-oss-b2/desktop-shell-mapping.md) · [T1–T3](../../reference/code-oss-b2/spike-t1-t3-code-facts.md)
+- [Workbench 概览](overview.md) · [壳映射](../../reference/code-oss-b2/desktop-shell-mapping.md) · [T1–T3](../../reference/code-oss-b2/spike-t1-t3-code-facts.md) · [footprint](../../reference/code-oss-b2/diff-footprint.md)
 - `src/vs/workbench/browser/parts/{activitybar,sidebar,conversation,editor,panel,statusbar}/`

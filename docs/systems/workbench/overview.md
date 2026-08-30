@@ -43,7 +43,7 @@ flowchart TB
 
 ## 布局契约（跨层可见）
 
-窗口结构由 `IWorkbenchLayoutService` + `Parts` 定义，实现落在 `Layout`。默认 Code 窗口创建 titlebar、banner、activitybar、sidebar、editor、panel、auxiliarybar、statusbar。`base` 的 `SerializableGrid` 负责分割与持久化；`platform` 的 configuration / storage 记住可见性、侧栏左右、panel 位置、Zen Mode。
+窗口结构由 `IWorkbenchLayoutService` + `Parts` 定义，实现落在 `Layout`。默认 Code 窗口创建 titlebar、banner、activitybar、sidebar、**conversation**、editor、panel、auxiliarybar、statusbar。M0 中心叶为 `CONVERSATION_PART`，`EDITOR_PART` 在 End 列。`base` 的 `SerializableGrid` 负责分割与持久化；`platform` 的 configuration / storage 记住可见性、侧栏左右、panel 位置、Zen Mode。
 
 功能层（contrib 或扩展）**不直接 new Part**。它们注册：
 

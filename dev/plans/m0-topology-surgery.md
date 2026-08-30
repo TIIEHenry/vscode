@@ -91,12 +91,23 @@ summary: "默认 workbench 窗口：ConversationPart 占中心、EditorPart 挪 
 
 ## 验证方式
 
-| 阶段 | 命令 / 动作 |
-|------|-------------|
-| 编译 | `npm run compile`（或 fork 等价 compile 目标） |
-| 分层 | `npm run valid-layers-check` |
-| 启动演示 | 默认窗口启动后目视确认布局与 T1–T3；**待拓扑 PR 合入后补**截图或勾选 |
-| 文档 | `python3 scripts/check-docs-health.py` → 0 error |
+| 阶段 | 命令 / 动作 | M0 状态 |
+|------|-------------|---------|
+| 编译 | `npm run compile`（或 fork 等价 compile 目标） | **deferred** — 本轮未跑 |
+| 分层 | `npm run valid-layers-check` | **deferred** — 拓扑 PR 合入后 |
+| 启动演示 | 默认窗口启动后目视确认布局与 T1–T3 | **deferred** — 待 Sources/四钮 + compile 后补 |
+| EH 冒烟 | 装扩展探针；更新 [eh-surface-matrix](../../docs/reference/code-oss-b2/eh-surface-matrix.md) | **deferred** — 无探针本轮 |
+| 文档 | `python3 scripts/check-docs-health.py` → 0 error | slot B 本 pass |
+
+### 验收勾选（勿提前通过）
+
+- [ ] **编译** — `npm run compile` 绿
+- [ ] **启动 T1–T3** — 中心 Conversation、End Editor tabs、互斥无脏 Panel
+- [ ] **EH 探针** — 至少 layout 类 + LSP 类各一（矩阵「待实测」→「已实测」）
+- [x] **T1–T3 代码拓扑** — `fc6089a3`：Conversation 中心 + Editor End + `Conversation∨Editor`（**未** 含 Sources/四钮）
+- [ ] **Sources + 四钮** — slot A 合入后勾选
+
+> `status: in_progress` — fable review 与 merge 集成在后续；本计划 **不得** 在此标 `done`/`completed`。
 
 ## 相关文档
 

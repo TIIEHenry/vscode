@@ -10,7 +10,7 @@ summary: "INV-EH-SURFACE：按贡献点落到哪个 Part；布局/Activity 槽�
 # EH 表面 vs 改壳
 
 父方案：语言/调试可先承诺；**布局 / Activity / Editor 槽位类默认不承诺**。  
-本页是 **贡献点 → Part** 地图，供 spike 填 `eh-surface-matrix.md`。装扩展实测后才能改「冲突」列。
+本页是 **贡献点 → Part** 地图与冲突原则。结构化矩阵见 **[eh-surface-matrix.md](eh-surface-matrix.md)**（本轮行均标 **推定** 或 **待实测**，无探针）。装扩展实测后才能改矩阵「冲突」列。
 
 ## 1. 贡献点落点
 
@@ -44,4 +44,4 @@ Agents Window **没有** Activity Bar：`viewsContainers.activitybar` 在该窗 
 ## 4. 相关文档
 
 - [extension-api](../../systems/extension-api/INDEX.md)
-- [desktop-shell-mapping](desktop-shell-mapping.md)
+- [eh-surface-matrix](eh-surface-matrix.md) · [desktop-shell-mapping](desktop-shell-mapping.md)

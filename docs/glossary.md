@@ -42,7 +42,8 @@ summary: "本仓库核心术语的单一事实源：分层、Parts、Agent UI �
 | **nls** | 用户可见字符串的本地化模块 `vs/nls`；禁止拼接，用 `{0}` 占位。 | [Copilot Instructions](../.github/copilot-instructions.md) |
 | **INDEX** | 导航入口：链接、表格、一句话上下文；不承载大段设计正文。 | [文体指南](guides/doc-style-guide.md) |
 | **Part** | workbench grid 上的一个视图单元（`Parts` 枚举）。功能往 Part 里注册，不直接 new 布局。 | [Parts/Grid](systems/workbench/parts-and-grid.md) |
-| **EDITOR_PART** | 默认窗口的中心锚点：EditorGroup + tabs + `EditorInput`。B2 目标是把它挪到 End（Preview）。 | [Parts/Grid](systems/workbench/parts-and-grid.md) |
+| **CONVERSATION_PART** | 默认 Code 窗口的 **中心锚点**（M0 `ConversationPart` 占位）；非 `EditorInput`。 | [Parts/Grid](systems/workbench/parts-and-grid.md) |
+| **EDITOR_PART** | End 列 Preview：`EditorGroup` + tabs + `EditorInput`（M0 已从中心叶挪到 End）。 | [Parts/Grid](systems/workbench/parts-and-grid.md) |
 | **SESSIONS_PART** | Agents Window 的非 editor 中心 Part；默认 Code 窗口 grid 不装配。 | [agent-ui](systems/chat/agent-ui.md) · [LAYOUT.md](../src/vs/sessions/LAYOUT.md) |
 | **ChatWidget** | contrib/chat 的对话列表+输入零件；可被多种宿主嵌套。 | [agent-ui](systems/chat/agent-ui.md) |
 | **ChatEditor / ChatEditorInput** | 把对话做成 `EDITOR_PART` 的 tab。B2 **INV-TOPO 禁止**以此当 Conversation 中心。 | [agent-ui](systems/chat/agent-ui.md) |

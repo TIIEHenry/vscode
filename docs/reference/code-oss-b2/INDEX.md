@@ -22,7 +22,9 @@ summary: "对照 UniverseAgentDesktop B2 方案：本仓 UI 框架、Agent UI、
 4. [Desktop 壳映射](desktop-shell-mapping.md) — IA / ADR-052 四钮 ↔ 本仓 Parts
 5. [Spike T1–T3 代码事实](spike-t1-t3-code-facts.md) — 对照 spike 硬测试点
 6. [EH 表面笔记](eh-surface-notes.md) — 贡献点 vs 改壳冲突（矩阵草案，非探针结果）
-7. 零件深潜：[Activity/Sidebar](../../systems/workbench/activity-and-sidebar.md) · [Editor tabs](../../systems/workbench/editor-part-tabs.md) · [Panel/Aux](../../systems/workbench/panel-and-auxiliary-bar.md) · [Widget 零件](../../systems/chat/widget-parts.md) · [Agent Host](../../systems/agent-host/INDEX.md)
+7. [EH 表面矩阵](eh-surface-matrix.md) — 贡献点 × Part × 承诺分级（推定 / 待实测，无探针）
+8. [Diff footprint](diff-footprint.md) — vs pin `004a1fbb` 的文件数与 LOC（ConversationPart 基线）
+9. 零件深潜：[Activity/Sidebar](../../systems/workbench/activity-and-sidebar.md) · [Editor tabs](../../systems/workbench/editor-part-tabs.md) · [Panel/Aux](../../systems/workbench/panel-and-auxiliary-bar.md) · [Widget 零件](../../systems/chat/widget-parts.md) · [Agent Host](../../systems/agent-host/INDEX.md)
 
 ## 对照合同（外仓，勿复制正文）
 

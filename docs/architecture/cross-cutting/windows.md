@@ -36,9 +36,9 @@ summary: "四种宿主：默认 Code 主窗、辅助编辑器窗、Agents Window
 
 | 有 | 无 |
 |----|----|
-| `TITLEBAR` · `BANNER` · `ACTIVITYBAR` · `SIDEBAR` · `EDITOR` · `PANEL` · `AUXILIARYBAR` · `STATUSBAR` | `SESSIONS_PART` · `CUSTOM_VIEW_GRID_PART` |
+| `TITLEBAR` · `BANNER` · `ACTIVITYBAR` · `SIDEBAR` · **`CONVERSATION`** · `EDITOR` · `PANEL` · `AUXILIARYBAR` · `STATUSBAR` | `SESSIONS_PART` · `CUSTOM_VIEW_GRID_PART` |
 
-中心叶是 `EDITOR_PART`。Grid 形状、`setPartHidden` 互斥、功能如何挂上 Part，只读 [parts-and-grid](../../systems/workbench/parts-and-grid.md)。
+中心叶是 **`CONVERSATION_PART`**（M0）；`EDITOR_PART` 在 End 列（Preview）。Grid 形状、`setPartHidden` 互斥、功能如何挂上 Part，只读 [parts-and-grid](../../systems/workbench/parts-and-grid.md)。
 
 视图容器默认 `WindowEnablement.Editor`：只在这种主窗出现，除非标了 `Sessions` / `Both`。
 
@@ -76,7 +76,7 @@ LAYOUT 对 chrome 的合同（此处只记省略，不抄拓扑）：**不装标
 
 Embedder 是 **宿主**，不是第四种 Part 拓扑。`src/vs/code/browser/workbench/workbench.ts` 调稳定 `create(domElement, options)`（`workbench.web.main.internal` / `IWorkbenchConstructionOptions`）。vscode-server 在磁盘上有该 `workbench.html` 时挂 `WebClientServer`；`scripts/code-web.sh` 用 `@vscode/test-web` 喂同一入口，不经 `src/vs/server/`。
 
-默认 Web 工作台与 §2 **同一套 Part**（Title → Status，中心仍是 Editor）。没有 Electron `ICodeWindow`，也没有 `INativeHostService`。辅助编辑器窗仍可开（浏览器弹窗 + 同一套 `IAuxiliaryWindowService`），Part 仍是 Editor ± Title / Status。产品用 `productService.embedderIdentifier`（context key `embedderIdentifier`）区分 vscode.dev 等壳，**不**另开一套 grid。
+默认 Web 工作台与 §2 **同一套 Part**（Title → Status，中心 **Conversation**、End **Editor**）。没有 Electron `ICodeWindow`，也没有 `INativeHostService`。辅助编辑器窗仍可开（浏览器弹窗 + 同一套 `IAuxiliaryWindowService`），Part 仍是 Editor ± Title / Status。产品用 `productService.embedderIdentifier`（context key `embedderIdentifier`）区分 vscode.dev 等壳，**不**另开一套 grid。
 
 远程桌面窗是「桌面主窗 + `remoteAuthority`」，不是 embedder。
 

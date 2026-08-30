@@ -13,7 +13,7 @@ summary: "PANEL_PART 默认底栏（可左右）与 alignment/maximize；AUXILIA
 > Desktop 投影：[壳映射](../../reference/code-oss-b2/desktop-shell-mapping.md)。EH 落点：[eh-surface-notes](../../reference/code-oss-b2/eh-surface-notes.md)。  
 > 实现：`src/vs/workbench/browser/parts/panel/panelPart.ts`（`PanelPart`）· `src/vs/workbench/browser/parts/auxiliarybar/auxiliaryBarPart.ts`（`AuxiliaryBarPart`）· `src/vs/workbench/browser/layout.ts`（`setPanelHidden` / `setAuxiliaryBarHidden` / `setPanelAlignment` / maximize）。
 
-本页只写默认 Code 窗口里 **底栏 Panel** 与 **对侧栏 Auxiliary Bar** 的职责、几何和 Desktop/EH 合同。Grid 根拓扑、Part 枚举、以及 **Editor ↔ Panel 互斥** 见 [parts-and-grid](parts-and-grid.md) §2 / §4，此处不复述。
+本页只写默认 Code 窗口里 **底栏 Panel** 与 **对侧栏 Auxiliary Bar** 的职责、几何和 Desktop/EH 合同。Grid 根拓扑、Part 枚举、以及 **Conversation ↔ Editor 互斥** 见 [parts-and-grid](parts-and-grid.md) §2 / §4，此处不复述。
 
 ## 1. `PANEL_PART`：底栏（默认可左右）
 
@@ -27,18 +27,18 @@ summary: "PANEL_PART 默认底栏（可左右）与 alignment/maximize；AUXILIA
 | 运行时 hidden | `PANEL_HIDDEN`（CSS `LayoutClasses.PANEL_HIDDEN`） |
 | 用户面 | `TogglePanelAction`；标题条 composite bar 常开（`CompositeBarPosition.TITLE`） |
 
-水平位置（底/顶）时，中间枝是纵向 `[editorNodes, PANEL]`（或 panel 在上）。竖放（左/右）时 Panel 与 Editor 变成 **水平邻居**，与 Sidebar / Aux / Activity 同一排。
+水平位置（底/顶）时，中心枝是纵向 `[ ConversationPart, PANEL ]`（或 panel 在上）。`EDITOR_PART` 在 End 列，与 Sidebar / Aux / Activity 同一 middle 水平串。竖放（左/右）时 Panel 与中心枝 / End Editor 变成 **水平邻居**。
 
 ## 2. Panel alignment 与 Activity
 
 `PanelAlignment` = `'left' | 'center' | 'right' | 'justify'`（`LayoutStateKeys.PANEL_ALIGNMENT`，默认 `'center'`）。**只对水平 Panel 生效**；竖放时 `setPanelAlignment` 会先把位置打回 `BOTTOM`。
 
-`arrangeMiddleSectionNodes` / `adjustPartPositions` 用 alignment 决定 Sidebar / Aux **是 Editor 的兄弟**（与 Panel 同宽、不撑满 middle 高）还是 **通高叶**（Panel 只在 Editor 底下，侧栏绕开 Panel）：
+`arrangeMiddleSectionNodes` / `adjustPartPositions` 用 alignment 决定 Sidebar / Aux **是 End Editor 的兄弟**（与 Panel 同宽、不撑满 middle 高）还是 **通高叶**（Panel 只在 Conversation 中心枝底下，侧栏绕开 Panel）：
 
-- `center`：两侧栏都贴 Editor → Panel 横跨 Editor 宽度，**不钻到 Activity 底下**。
+- `center`：两侧栏都贴 End Editor → Panel 横跨中心 + End 宽度，**不钻到 Activity 底下**。
 - `left` / `right` / `justify`：Panel 可伸到某一侧栏底下；Activity 仍是 middleSection **更外层**水平邻居。
 
-这与 [parts-and-grid](parts-and-grid.md) §3、ADR-052「Bottom Panel 不钻 Activity」同几何：Activity 上接 TitleBar、下接 StatusBar；默认底 Panel 与 Editor 同枝，不是 Activity 的孩子。
+这与 [parts-and-grid](parts-and-grid.md) §3、ADR-052「Bottom Panel 不钻 Activity」同几何：Activity 上接 TitleBar、下接 StatusBar；默认底 Panel 与 **Conversation 中心枝** 同枝，不是 Activity 的孩子。
 
 对齐变更会 `setAuxiliaryBarMaximized(false)`——alignment 需要 Editor 可见。
 
@@ -48,12 +48,12 @@ summary: "PANEL_PART 默认底栏（可左右）与 alignment/maximize；AUXILIA
 
 | API | 效果 | 限制 |
 |-----|------|------|
-| `toggleMaximizedPanel` / `isPanelMaximized` | 藏 `EDITOR_PART`，Panel 吃掉中心面积；藏 Panel 前会先 unmaximize（避免与 `setEditorHidden` 互斥打架） | 水平 Panel **仅** `alignment === 'center'`；非 center 时 grid **不支持** maximize（`setPanelAlignment` 会先关掉） |
-| `setAuxiliaryBarMaximized` / `toggleMaximizedAuxiliaryBar` | 记下 Sidebar / Editor / Panel 可见性后全部藏掉，Aux 独占；退出时按记下的状态恢复 | 改 Panel alignment 会强制退出 |
+| `toggleMaximizedPanel` / `isPanelMaximized` | 藏 **`CONVERSATION_PART`**（中心叶），Panel 吃掉中心面积；藏 Panel 前会先 unmaximize | 水平 Panel **仅** `alignment === 'center'`；非 center 时 grid **不支持** maximize（`setPanelAlignment` 会先关掉） |
+| `setAuxiliaryBarMaximized` / `toggleMaximizedAuxiliaryBar` | 记下 Sidebar / Editor / Panel / Conversation 可见性后全部藏掉，Aux 独占；退出时按记下的状态恢复 | 改 Panel alignment 会强制退出 |
 
 `workbench.panel.opensMaximized`（always / never / remember last）只在「允许 maximize」时生效。
 
-Editor ↔ Panel「不能同时藏」（aux maximize 例外）的不变量与 `setEditorHidden` / `setPanelHidden` 对称顶开，已写在 [parts-and-grid](parts-and-grid.md) §4，S1 改绑对象时读那里。
+**Conversation ∨ Editor** 不变量（aux maximize 例外）与 `setEditorHidden` / `setConversationHidden` 对称顶开，见 [parts-and-grid](parts-and-grid.md) §4。
 
 ## 4. `AUXILIARYBAR_PART` = Secondary Side Bar
 
