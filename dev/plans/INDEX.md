@@ -3,7 +3,7 @@ title: "方案索引"
 type: index
 status: accepted
 phase: N/A
-updated: 2026-08-30
+updated: 2026-08-31
 summary: "dev/plans 导航"
 ---
 
@@ -13,4 +13,4 @@ summary: "dev/plans 导航"
 
 | 方案 | 状态 | 摘要 |
 |------|------|------|
-| [m0-topology-surgery.md](m0-topology-surgery.md) | `in_progress` | M0：默认窗口 Conversation 中心 + Editor End 列；T1–T3 验收 |
+| [m0-topology-surgery.md](m0-topology-surgery.md) | `implemented` | M0 壳代码已落；compile/演示/EH deferred |

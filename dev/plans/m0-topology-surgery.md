@@ -1,10 +1,10 @@
 ---
 title: "M0 拓扑手术：默认编辑器窗口壳"
 type: plan
-status: in_progress
+status: implemented
 phase: M0
 updated: 2026-08-31
-summary: "默认 workbench 窗口：ConversationPart 占中心、End 列 Editor/Sources；T1–T3 代码已落 b5631393；compile/演示/EH deferred"
+summary: "代码事实已落：Conversation 中心、End Editor/Sources、四钮、NO-DUAL-HIDE；compile/演示/EH 仍 deferred"
 ---
 
 # M0 拓扑手术
@@ -107,7 +107,7 @@ summary: "默认 workbench 窗口：ConversationPart 占中心、End 列 Editor/
 - [x] **T1–T3 代码拓扑** — `b5631393`：Conversation 中心 + End Editor/Sources + `Conversation∨(Editor∨Sources)` + titlebar 四钮
 - [x] **Sources + 四钮** — `b5631393` A+B merge
 
-> `status: in_progress` — fable review 与 merge 集成在后续；本计划 **不得** 在此标 `done`/`completed`。
+> `status: implemented` — 代码事实（Parts、grid、互斥、四钮、单测文件）已在树（fable PASS-with-docs-refresh）。compile / 启动演示 / EH 探针仍 deferred（D3–D5），**不**勾上面三项。
 
 ## 相关文档
 

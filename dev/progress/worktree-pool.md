@@ -4,8 +4,8 @@ type: progress
 status: accepted
 phase: M0
 created: 2026-08-30
-updated: 2026-08-30
-summary: "仓外 vscode-WorkTrees 工位表；A=M0 剩余代码 B=M0 docs；merge idle 待集成"
+updated: 2026-08-31
+summary: "仓外 vscode-WorkTrees 工位表；M0 壳合入后 A–D idle；集成分支 agent-ide"
 ---
 
 # Loop 并行工位池（本仓）
@@ -20,16 +20,16 @@ summary: "仓外 vscode-WorkTrees 工位表；A=M0 剩余代码 B=M0 docs；merg
 | 主仓 | `/home/clarence/Projects/Agents/vscode` |
 | 工位根 `$WT_ROOT` | `/home/clarence/Projects/Agents/vscode-WorkTrees` |
 | 集成分支（当前） | **`agent-ide`**（merge 槽对齐此分支；非上游 `main`） |
-| 拓扑基线 commit | **`fc6089a3`**（T1–T3 Conversation+Editor；pin `004a1fbb` = fork main） |
+| 集成本次 HEAD | **`b283fe19`**（Sources+四钮 + 文档刷新；pin `004a1fbb`） |
 
-## 槽位表（2026-08-30 M0 remaining）
+## 槽位表（2026-08-31 M0 合入后）
 
 | 槽 | 路径 | 分支 | 状态 | 备注 |
 |:---|:-----|:-----|:-----|:-----|
-| merge | `vscode-WorkTrees/merge` | `loop/merge` | `idle` | 待 A+B 合入后集成；须对齐 `agent-ide` |
-| A | `vscode-WorkTrees/A` | `loop/A` | **occupied** | M0 剩余 **代码**：Sources Part + titlebar 四钮 |
-| B | `vscode-WorkTrees/B` | `loop/B` | **occupied** | M0 剩余 **文档**：EH 矩阵、footprint、诚实化 |
-| C | `vscode-WorkTrees/C` | `loop/C` | `idle` | |
+| merge | `vscode-WorkTrees/merge` | `loop/merge` | `idle` | 已对齐 `agent-ide` |
+| A | `vscode-WorkTrees/A` | `loop/A` | `idle` | 已合入 |
+| B | `vscode-WorkTrees/B` | `loop/B` | `idle` | 已合入 |
+| C | `vscode-WorkTrees/C` | `loop/C` | `idle` | 文档刷新已合入 |
 | D | `vscode-WorkTrees/D` | `loop/D` | `idle` | |
 
 并行 slice 归属记在 `status.md` 或 parallel board；**槽字母不绑定模块**（上表为当前 M0 tick 快照）。

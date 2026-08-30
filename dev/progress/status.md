@@ -4,19 +4,19 @@ type: progress
 status: active
 phase: M0
 updated: 2026-08-31
-summary: "M0 A+B 于 b5631393 合入（Conversation + End Editor/Sources + 四钮）；compile/演示/EH deferred"
+summary: "M0 壳 implemented（b283fe19）：Conversation + End Editor/Sources + 四钮；compile/演示/EH deferred"
 ---
 
 # Development Progress
 
 ## Current Session
 
-- **M0 拓扑手术**（2026-08-31，`loop/C` @ `b5631393`）
-  - 外仓 ADR-061 `accepted`；方案 [m0-topology-surgery.md](../plans/m0-topology-surgery.md) 仍 `in_progress`。
-  - **A+B 已合入**（merge @ `b5631393`）：`ConversationPart` 中心；End 列 `EditorPart`（上）+ `SourcesPart`（下）；`Conversation∨(Editor∨Sources)` 互斥；titlebar `LayoutControlMenu` 四钮（Nav / Conversation / Preview / Sources）。
-  - **本 pass（slot C 文档）**：刷新 footprint、映射、parts-and-grid、进度；**未**改 `src/`；**未** compile。
-  - **deferred** → [deferred-gaps.md](deferred-gaps.md) D3–D5：compile、`valid-layers-check`、启动 T1–T3 演示、EH 探针。
-  - **工位池**：A–D **idle**（本 docs commit 后）；见 [worktree-pool.md](worktree-pool.md)。
+- **M0 拓扑手术**（2026-08-31）fable **PASS-with-docs-refresh**。
+  - 方案 [m0-topology-surgery.md](../plans/m0-topology-surgery.md) **`implemented`**（代码事实）；compile/启动/EH 仍 deferred。
+  - 合入：`fc6089a3` Conversation 中心 → `d6b45573` Sources+四钮 → `b5631393` A+B merge → `b283fe19` footprint/映射刷新。
+  - 布局：中心 `ConversationPart`；End 列 Editor（Preview）+ `SourcesPart`；互斥 `Conversation∨(Editor∨Sources)`；titlebar 四钮 Nav/Conversation/Preview/Sources。
+  - **未** compile（调度约定）。剩余 → [deferred-gaps.md](deferred-gaps.md) D3–D5；D6 footprint 已闭。
+  - 工位池 A–D **idle**。
 
 ## Loop 基础设施（2026-08-30）
 
