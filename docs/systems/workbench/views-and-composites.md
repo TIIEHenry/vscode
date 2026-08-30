@@ -3,7 +3,7 @@ title: "Views 与 Composites：容器、视图、插入面"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-08-30
+updated: 2026-08-31
 summary: "ViewContainer / View / PaneComposite 分层与 Sidebar·Panel·AuxiliaryBar 落点；扩展只注册视图、不造 Part；B2 Conversation 是 Part 不是 ViewContainer"
 ---
 
@@ -103,6 +103,8 @@ Sessions 窗口的 `SESSIONS_PART` 证明「非 Editor 中心 Part」可行，�
 > `ChatViewPane extends ViewPane` → 它吃的是 §1–§3 的插入面。把它（或任何新 `ViewContainer`）当 Conversation，等于把对话留在插件位，而非中心 `CONVERSATION_PART`。
 
 改造期可以对照现有 `ChatViewPane` 看 Widget 怎么嵌；产品壳必须走新 Part。整块搬进 `ConversationPart` 会把 entitlement / setup 一并带入，见 agent-ui §3、§5。
+
+**Auxiliary Bar 默认（2026-08-31，M2 切片 2）**：默认编辑器窗口出厂 `workbench.secondarySideBar.defaultVisibility = 'hidden'`，Chat 容器（`workbench.panel.chat`）仍挂在 `ViewContainerLocation.AuxiliaryBar` 作 donor，但 **`isDefault: false`**，不再是该 location 的默认 composite。Command Palette / Views 仍可打开 `ChatViewPane` 对照 Copilot 行为。Agents Window 的 `agentsWindow` 覆盖仍为 `visibleInWorkspace`（只读），与产品壳默认无关。
 
 ## 6. 相关文档
 

@@ -3,7 +3,7 @@ title: "Panel 与 Auxiliary Bar"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-08-30
+updated: 2026-08-31
 summary: "PANEL_PART 默认底栏（可左右）与 alignment/maximize；AUXILIARYBAR_PART = Secondary Side Bar；Desktop 不进四钮、INV-052-NO-RIGHT-RAIL 默认关、EH aux 冲突"
 ---
 
@@ -61,7 +61,7 @@ summary: "PANEL_PART 默认底栏（可左右）与 alignment/maximize；AUXILIA
 
 - **对侧**：Sidebar 在左则 Aux 在右，反之亦然（`setSideBarPosition` 给 Aux 容器打相反的 `left`/`right` class）。
 - **可独立藏**：`setAuxiliaryBarHidden` 不顶开 Editor/Panel（与 Sidebar 同类）；maximize 才会挤掉 Editor。
-- **本仓出厂**：`AUXILIARYBAR_HIDDEN` 运行时默认 `true`，再被 `workbench.secondarySideBar.defaultVisibility`（出厂 `visibleInWorkspace`）覆盖——工作区首开常会亮。这是 **Code OSS 默认**，不是 Desktop 合同。
+- **本仓出厂（默认编辑器窗口）**：`workbench.secondarySideBar.defaultVisibility` 出厂 `'hidden'`（`workbench.contribution.ts` + main splash `themeMainServiceImpl.ts`），与 **INV-052-NO-RIGHT-RAIL** 对齐；`AUXILIARYBAR_HIDDEN` 运行时默认亦为 `true`。Copilot `ChatViewContainer` 仍注册在 `AUXILIARYBAR_PART` 作 donor，但 **`isDefault: false`**，不会在工作区首开自动占满右栏。Agents Window 仍用 `agentsWindow: { default: 'visibleInWorkspace', readOnly: true }`，不受产品壳默认影响。
 - 尺寸按 Sidebar 量级（最小宽 170）；composite bar 样式跟 `workbench.activityBar.location` 走。
 
 **禁止的偷换：** 把 Aux 当 Conversation。壳映射已标为选项 C：右栏配套，语义反了。
@@ -73,7 +73,7 @@ summary: "PANEL_PART 默认底栏（可左右）与 alignment/maximize；AUXILIA
 | Desktop | 本仓 | 合同 |
 |---------|------|------|
 | Bottom Panel | `PANEL_PART` | **保留**；Diff 深查看按 ADR-047。**不进四钮**（ADR-047 / ADR-052 决策 3）。四钮是 Nav / Conv / Prev / Src，没有 Panel 钮 |
-| 右缘 rail | `AUXILIARYBAR_PART` | **INV-052-NO-RIGHT-RAIL → 产品壳默认关**。本仓出厂可能按 `visibleInWorkspace` 打开；B2 改壳要把默认打成关，并接受扩展仍往这里注册 |
+| 右缘 rail | `AUXILIARYBAR_PART` | **INV-052-NO-RIGHT-RAIL → 产品壳默认关**（出厂 `hidden`）。扩展仍可往 Aux 注册；用户或命令显式打开 Chat 时右栏才出现 |
 
 Panel 与四钮正交：用户仍可用 View 菜单 / 快捷键开终端，但不占用 Activity 底栏四钮槽。
 

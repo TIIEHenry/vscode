@@ -6,6 +6,9 @@
 import assert from 'assert';
 import { mainWindow } from '../../../../../base/browser/window.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { Extensions as ConfigurationExtensions, IConfigurationRegistry } from '../../../../../platform/configuration/common/configurationRegistry.js';
+import { Registry } from '../../../../../platform/registry/common/platform.js';
+import '../../../browser/workbench.contribution.js';
 import { COMPACT_FLOATING_PANEL_MARGIN, COMPACT_FLOATING_PANEL_OUTER_MARGIN, FLOATING_PANEL_INNER_MARGIN, FLOATING_PANEL_MARGIN, forceShownAgentShellPart, getFloatingEditorVerticalMargins, getFloatingOuterEdgeOwners, getFloatingPaneCompositeHorizontalMargins, getFloatingPaneCompositeVerticalMargins, getFloatingPanelMargin, getFloatingPanelOuterMargin, getFloatingSidebarSiblingToEditorStatus, isFloatingTopEdgeExposed, type PanelAlignment, Parts, Position } from '../../browser/layoutService.js';
 import { TestLayoutService } from '../../../../test/browser/workbenchTestServices.js';
 
@@ -534,16 +537,25 @@ suite('LayoutService - INV-052-NO-RIGHT-RAIL auxiliary bar fresh layout', () => 
 	test('fresh layout keeps auxiliary bar hidden unless explicitly configured visible', () => {
 		assert.deepStrictEqual({
 			runtimeKeyDefault: true,
+			editorWindowDefault: freshLayoutAuxiliaryBarHidden('hidden', false),
 			visibleInWorkspace: freshLayoutAuxiliaryBarHidden('visibleInWorkspace', false),
 			unsetConfiguration: freshLayoutAuxiliaryBarHidden(undefined, false),
 			explicitVisible: freshLayoutAuxiliaryBarHidden('visible', false),
 			forceMaximized: freshLayoutAuxiliaryBarHidden(undefined, true),
 		}, {
 			runtimeKeyDefault: true,
+			editorWindowDefault: true,
 			visibleInWorkspace: true,
 			unsetConfiguration: true,
 			explicitVisible: false,
 			forceMaximized: false,
 		});
+	});
+
+	test('editor window secondarySideBar.defaultVisibility defaults to hidden (INV-052-NO-RIGHT-RAIL)', () => {
+		const configurationRegistry = Registry.as<IConfigurationRegistry>(ConfigurationExtensions.Configuration);
+		const property = configurationRegistry.getConfigurationProperties()['workbench.secondarySideBar.defaultVisibility'];
+		assert.strictEqual(property.default, 'hidden');
+		assert.deepStrictEqual(property.agentsWindow, { default: 'visibleInWorkspace', readOnly: true });
 	});
 });
