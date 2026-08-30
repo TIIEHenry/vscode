@@ -35,6 +35,8 @@ summary: "三切片已落地：D7 四钮、Conversation 透镜骨架、Sources F
 |----|-----------|
 | Conversation 中心 Part | `ConversationPart`：标题 + 假时间线 + 假 dock；非 `ChatEditor` |
 | End 列 | 上 `EDITOR_PART`（Preview / 原生 tabs），下 `SOURCES_PART` 占位 |
+
+> **M1 落地后：** Conversation 由 `contrib/conversation` 填透镜骨架（SessionBar / stub 时间线 / stub dock）；Sources 下格为 `contrib/sources` Files 列表投影；titlebar 主簇四钮 D7 已收敛（Panel / Aux 退 submenu）。
 | 互斥 | `Conversation ∨ (Editor ∨ Sources)`；`enforceAgentShellVisible` |
 | 四钮命令 | titlebar `LayoutControlMenu`：Nav(=Sidebar) / Conversation / Preview / Sources |
 | 存储 | `conversation.hidden`、`sources.hidden`、`editor.size` / `sources.size` |

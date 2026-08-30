@@ -4,7 +4,7 @@ type: architecture
 status: accepted
 phase: N/A
 updated: 2026-08-31
-summary: "默认 Code 窗口的 Part 枚举、SerializableGrid 描述符、Conversation∨(Editor∨Sources) 显隐不变量；B2 S1 M0 拓扑锚点"
+summary: "默认 Code 窗口的 Part 枚举、SerializableGrid 描述符、Conversation∨(Editor∨Sources) 显隐不变量；M1 透镜骨架 + Sources Files 列表"
 ---
 
 # Workbench UI 框架：Parts、Grid、显隐
@@ -29,7 +29,7 @@ summary: "默认 Code 窗口的 Part 枚举、SerializableGrid 描述符、Conve
 | `SIDEBAR_PART` | `workbench.parts.sidebar` | 主侧栏 ViewContainer（资源管理器等） |
 | `CONVERSATION_PART` | `workbench.parts.conversation` | **中心锚点**（Part 只做槽：SessionBar / timeline / dock；透镜在 `contrib/conversation`，非 `EditorInput`） |
 | `EDITOR_PART` | `workbench.parts.editor` | **End 列上格**：EditorGroup + tabs + `EditorInput`（`IEditorService.openEditor` 仍落这里） |
-| `SOURCES_PART` | `workbench.parts.sources` | **End 列下格**：Sources 占位 Part（M0 无真实语义） |
+| `SOURCES_PART` | `workbench.parts.sources` | **End 列下格**：`contrib/sources` Files 列表投影（树权威仍在 Sidebar Explorer） |
 | `PANEL_PART` | `workbench.parts.panel` | 底（可左右）面板：终端、问题、输出 |
 | `AUXILIARYBAR_PART` | `workbench.parts.auxiliarybar` | 对侧栏（Secondary Side Bar）；默认仍可关 |
 | `STATUSBAR_PART` | `workbench.parts.statusbar` | 底栏 |
@@ -52,7 +52,7 @@ VERTICAL
 
 水平 Panel（默认底栏）时：中心枝是纵向 `[ ConversationPart, PANEL ]`；End 列是纵向 `[ EDITOR_PART, SOURCES_PART ]`（auxiliary bar 同侧、更靠内）。Aux 仍是最外侧叶，默认可关。
 
-**锚点事实：** 中间枝的「主面积」叶子是 `{ type: Parts.CONVERSATION_PART }`。Editor 仍走 `IEditorService.openEditor`，出现在 End 列上格原生 tabs；Sources 占 End 下格占位。
+**锚点事实：** 中间枝的「主面积」叶子是 `{ type: Parts.CONVERSATION_PART }`。Editor 仍走 `IEditorService.openEditor`，出现在 End 列上格原生 tabs；Sources 占 End 下格，`contrib/sources` 提供只读 Files 列表投影。
 
 `arrangeCenterSectionNodes` 在 Conversation 没有水平兄弟时直接返回 conversation 叶。Sidebar / Editor / Aux 是 Conversation 的水平兄弟或更外层邻居，取决于 panel alignment。
 
@@ -96,17 +96,19 @@ CSS class：`LayoutClasses.MAIN_EDITOR_AREA_HIDDEN` / `CONVERSATION_HIDDEN` 等�
 
 **推论（INV-TOPO）：** 任何 `EditorInput`（含 `ChatEditorInput`、Custom Editor）都落在 `EDITOR_PART` 的 tab 模型里。把 Conversation 做成 editor pane = 中心仍是 EditorPart。S0 在框架层就被这条插入面锁死。
 
-## 6. M0 已落地的代码面
+## 6. M0 拓扑 + M1 内容（已落地代码面）
 
 1. **`createGridDescriptor` / `arrangeMiddleSectionNodes` / `arrangeCenterSectionNodes` / `arrangeEndColumnNode`** — 中心叶 = `CONVERSATION_PART`，End 列 = `EDITOR_PART`（上）+ `SOURCES_PART`（下）。
 2. **`getVisibleNeighborPart`** — 白名单已含 `CONVERSATION_PART`。
 3. **互斥** — `setEditorHidden` / `setConversationHidden` / `setSourcesHidden` / `enforceAgentShellVisible`：Conversation ∨ (Editor ∨ Sources)。Panel 不再被强制弹出。
 4. **注册** — `Parts.CONVERSATION_PART` / `SOURCES_PART`；`ConversationPart` / `SourcesPart` eager singleton；`createWorkbenchLayout` view map；`workbench.ts` `createPart` 循环。
-5. **四钮** — `layoutActions.ts`：Nav / Conversation / Preview / Sources 注册 `LayoutControlMenu`（`workbench.layoutControl.type` = `toggles` 或 `both`）。
-6. **storage keys** — `workbench.conversation.hidden`、`workbench.sources.hidden`（runtime）、`workbench.editor.size` / `workbench.sources.size`（End 列）。Workbench grid 每次启动从描述符重建，不读旧 grid JSON。
-7. **辅助窗口** — 仍复用 `EDITOR_PART`；Conversation / Sources 只在主窗口。
+5. **四钮（D7）** — `layoutActions.ts`：主簇 `LayoutControlMenu` 仅 Nav / Conversation / Preview / Sources；Panel / Aux 退到 `LayoutControlMenuSubmenu`。
+6. **Conversation 透镜** — `contrib/conversation`：`ConversationLens` 填 SessionBar / stub 时间线 / stub dock 槽；非 `ChatEditor` / `ChatViewPane`。
+7. **Sources Files** — `contrib/sources`：`SourcesFilesList` 只读列表投影；点击 `IEditorService.openEditor` 落 End 上格 Preview。
+8. **storage keys** — `workbench.conversation.hidden`、`workbench.sources.hidden`（runtime）、`workbench.editor.size` / `workbench.sources.size`（End 列）。Workbench grid 每次启动从描述符重建，不读旧 grid JSON。
+9. **辅助窗口** — 仍复用 `EDITOR_PART`；Conversation / Sources 只在主窗口。
 
-**M0 仍 deferred（非代码）：** compile、启动 T1–T3 演示、EH 探针 → [deferred-gaps](../../../dev/progress/deferred-gaps.md) D3–D5。代码面见 [diff-footprint](../../reference/code-oss-b2/diff-footprint.md) @ `b5631393`。
+**仍 deferred（非代码）：** compile、启动 T1–T3 演示、EH 探针 → [deferred-gaps](../../../dev/progress/deferred-gaps.md) D3–D5。代码面见 [diff-footprint](../../reference/code-oss-b2/diff-footprint.md) 与 [m1-shell-followon](../../../dev/plans/m1-shell-followon.md)。
 
 ## 7. Modern UI / floating panels
 
