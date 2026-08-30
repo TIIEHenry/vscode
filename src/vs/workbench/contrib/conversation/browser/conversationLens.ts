@@ -11,12 +11,7 @@ import { localize } from '../../../../../nls.js';
 import { defaultButtonStyles } from '../../../../../platform/theme/browser/defaultStyles.js';
 import { IConversationLensSlots } from '../../../browser/parts/conversation/conversationPart.js';
 import { ConversationConfirmationSeat } from './conversationConfirmationSeat.js';
-import {
-	CONVERSATION_STUB_INBOX_ITEMS,
-	CONVERSATION_STUB_SESSIONS,
-	IConversationStubSession,
-	IConversationStubTurn,
-} from './conversationStubSessions.js';
+import { ConversationStubModel, ConversationStubTurn } from './conversationStubModel.js';
 
 /**
  * Product Conversation lens: SessionBar + stub timeline + local dock, mounted
@@ -26,27 +21,18 @@ export class ConversationLens extends Disposable {
 
 	private readonly sessionTitle: HTMLElement;
 	private readonly sessionSelect: HTMLSelectElement;
-	private readonly inboxButton: Button;
-	private readonly inboxBadge: HTMLElement;
+	private readonly timelineScroller: HTMLElement;
 	private readonly timelineContent: HTMLElement;
-	private readonly confirmationSeat: ConversationConfirmationSeat;
+	private readonly inboxStatus: HTMLElement;
 	private readonly dockTextarea: HTMLTextAreaElement;
 	private readonly sendButton: Button;
 
-	private readonly sessionTurns = new Map<string, IConversationStubTurn[]>();
+	private readonly model = new ConversationStubModel();
 	private readonly drafts = new Map<string, string>();
-
-	private activeSessionId: string;
-	private inboxOpen = false;
+	private readonly confirmationSeats = new Map<string, ConversationConfirmationSeat>();
 
 	constructor(slots: IConversationLensSlots) {
 		super();
-
-		const defaultSession = CONVERSATION_STUB_SESSIONS[0];
-		this.activeSessionId = defaultSession.id;
-		for (const session of CONVERSATION_STUB_SESSIONS) {
-			this.sessionTurns.set(session.id, [...session.turns]);
-		}
 
 		this.mountSessionBar(slots.sessionBar);
 		this.mountTimeline(slots.timeline);
@@ -54,8 +40,13 @@ export class ConversationLens extends Disposable {
 
 		this.renderTimeline();
 		this.updateSessionTitle();
+		this.renderInboxStatus();
 
 		this._register(toDisposable(() => {
+			for (const seat of this.confirmationSeats.values()) {
+				seat.dispose();
+			}
+			this.confirmationSeats.clear();
 			reset(slots.sessionBar);
 			reset(slots.timeline);
 			reset(slots.dock);
@@ -72,27 +63,13 @@ export class ConversationLens extends Disposable {
 
 		this.sessionSelect = append(controls, $('select.conversation-lens-session-select')) as HTMLSelectElement;
 		this.sessionSelect.setAttribute('aria-label', localize('conversationLens.sessionSwitcher', "Switch session"));
-		for (const session of CONVERSATION_STUB_SESSIONS) {
+		for (const session of this.model.getSessions()) {
 			const option = append(this.sessionSelect, $('option')) as HTMLOptionElement;
 			option.value = session.id;
 			option.textContent = session.title;
 		}
 		this._register(addDisposableListener(this.sessionSelect, 'change', () => {
 			this.switchSession(this.sessionSelect.value);
-		}));
-
-		const inboxHost = append(controls, $('.conversation-lens-inbox-host'));
-		this.inboxButton = this._register(new Button(inboxHost, defaultButtonStyles));
-		this.inboxButton.label = localize('conversationLens.inbox', "Inbox");
-		this.inboxBadge = append(inboxHost, $('span.conversation-lens-inbox-badge'));
-		this.inboxBadge.textContent = String(CONVERSATION_STUB_INBOX_ITEMS.length);
-		this.inboxBadge.setAttribute('aria-label', localize('conversationLens.inboxUnread', "{0} unread", CONVERSATION_STUB_INBOX_ITEMS.length));
-		this._register(this.inboxButton.onDidClick(() => {
-			if (this.inboxOpen) {
-				this.closeInbox();
-			} else {
-				this.openInbox();
-			}
 		}));
 	}
 
@@ -101,13 +78,22 @@ export class ConversationLens extends Disposable {
 		timeline.setAttribute('role', 'log');
 		timeline.setAttribute('aria-label', localize('conversationLens.timeline', "Conversation timeline"));
 
+		this.timelineScroller = timeline;
 		this.timelineContent = append(timeline, $('.conversation-lens-timeline-content'));
-		this.confirmationSeat = this._register(new ConversationConfirmationSeat());
-		timeline.appendChild(this.confirmationSeat.element);
 	}
 
 	private mountDock(host: HTMLElement): void {
 		const dock = append(host, $('.conversation-lens-dock'));
+
+		const inboxRow = append(dock, $('.conversation-lens-inbox-row'));
+		inboxRow.setAttribute('role', 'status');
+		inboxRow.setAttribute('aria-label', localize('conversationLens.inbox', "Inbox"));
+		append(inboxRow, $('span.conversation-lens-inbox-queue')).textContent = localize('conversationLens.inboxNoQueue', "No queue");
+		this.inboxStatus = append(inboxRow, $('button.conversation-lens-inbox-pending')) as HTMLButtonElement;
+		this.inboxStatus.type = 'button';
+		this.inboxStatus.hidden = true;
+		this._register(addDisposableListener(this.inboxStatus, 'click', () => this.scrollToFirstPendingConfirmation()));
+
 		const inputRow = append(dock, $('.conversation-lens-dock-row'));
 
 		this.dockTextarea = append(inputRow, $('textarea.conversation-lens-dock-input')) as HTMLTextAreaElement;
@@ -126,91 +112,95 @@ export class ConversationLens extends Disposable {
 		}));
 		this._register(this.sendButton.onDidClick(() => this.submitDraft()));
 		this._register(addDisposableListener(this.dockTextarea, 'input', () => {
-			this.drafts.set(this.activeSessionId, this.dockTextarea.value);
+			this.drafts.set(this.model.getActiveSessionId(), this.dockTextarea.value);
 		}));
 	}
 
-	private getActiveSession(): IConversationStubSession {
-		return CONVERSATION_STUB_SESSIONS.find(s => s.id === this.activeSessionId) ?? CONVERSATION_STUB_SESSIONS[0];
-	}
-
 	private switchSession(sessionId: string): void {
-		if (this.activeSessionId === sessionId) {
+		if (this.model.getActiveSessionId() === sessionId) {
 			return;
 		}
-		this.drafts.set(this.activeSessionId, this.dockTextarea.value);
-		this.activeSessionId = sessionId;
+		this.drafts.set(this.model.getActiveSessionId(), this.dockTextarea.value);
+		this.model.switchSession(sessionId);
 		this.sessionSelect.value = sessionId;
 		this.updateSessionTitle();
 		this.dockTextarea.value = this.drafts.get(sessionId) ?? '';
-		if (this.inboxOpen) {
-			this.closeInbox();
-		} else {
-			this.renderTimeline();
-		}
+		this.renderTimeline();
+		this.renderInboxStatus();
 	}
 
 	private updateSessionTitle(): void {
-		this.sessionTitle.textContent = this.getActiveSession().title;
+		this.sessionTitle.textContent = this.model.getActiveSession().title;
 	}
 
-	private openInbox(): void {
-		if (this.inboxOpen) {
-			return;
+	private renderInboxStatus(): void {
+		const pending = this.model.countPendingConfirmations(this.model.getActiveSessionId());
+		if (pending > 0) {
+			this.inboxStatus.hidden = false;
+			this.inboxStatus.textContent = pending === 1
+				? localize('conversationLens.inboxOnePending', "1 confirmation pending")
+				: localize('conversationLens.inboxManyPending', "{0} confirmations pending", pending);
+		} else {
+			this.inboxStatus.hidden = true;
+			this.inboxStatus.textContent = '';
 		}
-		this.inboxOpen = true;
-		this.renderInbox();
-		this.confirmationSeat.element.hidden = true;
 	}
 
-	private closeInbox(): void {
-		if (!this.inboxOpen) {
+	private scrollToFirstPendingConfirmation(): void {
+		const pending = this.model.getTurns(this.model.getActiveSessionId())
+			.find(t => t.kind === 'confirmation' && t.status === 'pending');
+		if (!pending) {
 			return;
 		}
-		this.inboxOpen = false;
-		this.renderTimeline();
-		this.confirmationSeat.element.hidden = false;
+		const seat = this.confirmationSeats.get(pending.id);
+		seat?.element.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 	}
 
 	private renderTimeline(): void {
+		for (const seat of this.confirmationSeats.values()) {
+			seat.dispose();
+		}
+		this.confirmationSeats.clear();
 		clearNode(this.timelineContent);
-		const turns = this.sessionTurns.get(this.activeSessionId) ?? [];
-		for (const turn of turns) {
+
+		for (const turn of this.model.getTurns(this.model.getActiveSessionId())) {
 			this.timelineContent.appendChild(this.createTurnElement(turn));
 		}
 	}
 
-	private renderInbox(): void {
-		clearNode(this.timelineContent);
-		const panel = append(this.timelineContent, $('.conversation-lens-inbox-panel'));
-		panel.setAttribute('role', 'region');
-		panel.setAttribute('aria-label', localize('conversationLens.inboxPanel', "Inbox"));
-
-		const header = append(panel, $('.conversation-lens-inbox-header'));
-		append(header, $('h3.conversation-lens-inbox-title')).textContent = localize('conversationLens.inbox', "Inbox");
-		const closeButton = append(header, $('button.conversation-lens-inbox-close')) as HTMLButtonElement;
-		closeButton.type = 'button';
-		closeButton.textContent = localize('conversationLens.inboxClose', "Close");
-		addDisposableListener(closeButton, 'click', () => this.closeInbox());
-
-		const list = append(panel, $('ul.conversation-lens-inbox-list'));
-		for (const item of CONVERSATION_STUB_INBOX_ITEMS) {
-			const row = append(list, $('li.conversation-lens-inbox-item'));
-			row.textContent = item.title;
+	private createTurnElement(turn: ConversationStubTurn): HTMLElement {
+		if (turn.kind === 'confirmation') {
+			const seat = new ConversationConfirmationSeat({
+				message: turn.text,
+				status: turn.status ?? 'pending',
+				onAllow: turn.status === 'pending'
+					? () => this.resolveConfirmation(turn.id, 'allowed')
+					: undefined,
+				onSkip: turn.status === 'pending'
+					? () => this.resolveConfirmation(turn.id, 'skipped')
+					: undefined,
+			});
+			seat.element.setAttribute('data-turn-id', turn.id);
+			seat.element.classList.add('conversation-lens-turn');
+			seat.element.setAttribute('data-kind', turn.kind);
+			this.confirmationSeats.set(turn.id, seat);
+			return seat.element;
 		}
+
+		const el = $('div.conversation-lens-turn');
+		el.setAttribute('data-kind', turn.kind);
+		el.setAttribute('data-turn-id', turn.id);
+		if (turn.stubEcho) {
+			el.setAttribute('data-stub', 'true');
+		}
+		el.textContent = turn.text;
+		return el;
 	}
 
-	private createTurnElement(turn: IConversationStubTurn): HTMLElement {
-		const el = $('div.conversation-lens-turn');
-		el.setAttribute('data-role', turn.role);
-		if (turn.role === 'tool') {
-			const label = append(el, $('span.conversation-lens-tool-label'));
-			label.textContent = localize('conversationLens.toolTurn', "Tool");
-			append(el, $('span.conversation-lens-turn-text')).textContent = turn.text;
-		} else {
-			el.textContent = turn.text;
-		}
-		return el;
+	private resolveConfirmation(turnId: string, status: 'allowed' | 'skipped'): void {
+		this.model.resolveConfirmation(this.model.getActiveSessionId(), turnId, status);
+		this.renderTimeline();
+		this.renderInboxStatus();
 	}
 
 	private submitDraft(): void {
@@ -218,15 +208,11 @@ export class ConversationLens extends Disposable {
 		if (!text) {
 			return;
 		}
-		const turns = this.sessionTurns.get(this.activeSessionId);
-		if (!turns) {
-			return;
-		}
-		turns.push({ role: 'user', text });
-		this.drafts.set(this.activeSessionId, '');
+		const sessionId = this.model.getActiveSessionId();
+		this.model.appendUserTurn(sessionId, text);
+		this.model.appendStubEchoAssistant(sessionId, localize('conversationLens.stubEcho', "Stub echo — no engine connected."));
+		this.drafts.set(sessionId, '');
 		this.dockTextarea.value = '';
-		if (!this.inboxOpen) {
-			this.renderTimeline();
-		}
+		this.renderTimeline();
 	}
 }

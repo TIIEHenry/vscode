@@ -78,7 +78,7 @@ Desktop 合同：窗口壳 = Singularity/IDEA；Conversation 内 = 时间线 + I
 
 `ChatViewPane` 还嵌 `AgentSessionsControl`、welcome、entitlement、mic/TTS——体量远超「一个列表 + Dock」。把它整块搬进新 Part 会把 Copilot 设置流一起搬进来。
 
-**产品中心透镜（M1）：** `workbench/contrib/conversation` 把 SessionBar（活动 stub 会话标题 + 内存会话切换器 + Inbox 徽标列表）、多回合 stub 时间线（user / assistant / tool 卡 + donor 形 confirmation 座位）与可编辑本地 dock（内存草稿、Enter/Send 追加 user 回合）填进 `ConversationPart` 槽；中心仍不是 `ChatEditorInput` / `ChatViewPane`，也不走 Copilot setup 或 `IChatModel`。
+**产品中心透镜（M2 slice 1）：** `workbench/contrib/conversation` 在 `ConversationPart` 三槽内提供本地 stub 产品面：SessionBar 切换 `untitled` / `tour` / `blank` 等内存会话；时间线按 `ConversationStubTurn`（`user` / `assistant` / `confirmation`，稳定 `id`）全量渲染，confirmation 为列表项且 Allow/Skip 只改本地 `pending → allowed/skipped`；Dock 顶 Inbox 状态行诚实显示「No queue」，有 pending 时才出现「N confirmation pending」并滚到座位；可编辑 dock 用 Enter/Send 向当前会话 append user 回合（可选 stub echo）。中心仍不是 `ChatEditorInput` / `ChatViewPane`，也不走 Copilot setup 或 `IChatModel`。
 
 ## 4. Sessions / Agents Window 宿主（更接近透镜，但不是文档壳）
 
