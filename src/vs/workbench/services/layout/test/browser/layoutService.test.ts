@@ -6,7 +6,7 @@
 import assert from 'assert';
 import { mainWindow } from '../../../../../base/browser/window.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
-import { COMPACT_FLOATING_PANEL_MARGIN, COMPACT_FLOATING_PANEL_OUTER_MARGIN, FLOATING_PANEL_INNER_MARGIN, FLOATING_PANEL_MARGIN, getFloatingEditorVerticalMargins, getFloatingOuterEdgeOwners, getFloatingPaneCompositeHorizontalMargins, getFloatingPaneCompositeVerticalMargins, getFloatingPanelMargin, getFloatingPanelOuterMargin, getFloatingSidebarSiblingToEditorStatus, isFloatingTopEdgeExposed, type PanelAlignment, Parts, Position } from '../../browser/layoutService.js';
+import { COMPACT_FLOATING_PANEL_MARGIN, COMPACT_FLOATING_PANEL_OUTER_MARGIN, FLOATING_PANEL_INNER_MARGIN, FLOATING_PANEL_MARGIN, forceShownAgentShellPart, getFloatingEditorVerticalMargins, getFloatingOuterEdgeOwners, getFloatingPaneCompositeHorizontalMargins, getFloatingPaneCompositeVerticalMargins, getFloatingPanelMargin, getFloatingPanelOuterMargin, getFloatingSidebarSiblingToEditorStatus, isFloatingTopEdgeExposed, type PanelAlignment, Parts, Position } from '../../browser/layoutService.js';
 import { TestLayoutService } from '../../../../test/browser/workbenchTestServices.js';
 
 suite('LayoutService - isFloatingTopEdgeExposed', () => {
@@ -119,6 +119,9 @@ suite('LayoutService - getFloatingOuterEdgeOwners', () => {
 			// and owns both edges.
 			editorOnly: owners(s => { s.visibleParts = new Set([Parts.EDITOR_PART]); }),
 
+			// End column with Preview hidden: Sources occupies the same horizontal slot.
+			sourcesOnly: owners(s => { s.visibleParts = new Set([Parts.SOURCES_PART]); }),
+
 			// Full layout with a visible left vertical panel: the panel sits between the editor
 			// and the side bar, so it never reaches an edge.
 			verticalPanelFull: owners(s => { s.panelPosition = Position.LEFT; s.visibleParts = new Set([Parts.ACTIVITYBAR_PART, Parts.SIDEBAR_PART, Parts.PANEL_PART, Parts.EDITOR_PART, Parts.AUXILIARYBAR_PART]); }),
@@ -142,6 +145,7 @@ suite('LayoutService - getFloatingOuterEdgeOwners', () => {
 			maximizedAuxNoActivityBar: { left: Parts.AUXILIARYBAR_PART, right: Parts.AUXILIARYBAR_PART },
 			maximizedAuxNoActivityBarSideBarRight: { left: Parts.AUXILIARYBAR_PART, right: Parts.AUXILIARYBAR_PART },
 			editorOnly: { left: Parts.EDITOR_PART, right: Parts.EDITOR_PART },
+			sourcesOnly: { left: Parts.SOURCES_PART, right: Parts.SOURCES_PART },
 			verticalPanelFull: { left: Parts.ACTIVITYBAR_PART, right: Parts.AUXILIARYBAR_PART },
 			maximizedVerticalPanel: { left: Parts.PANEL_PART, right: Parts.PANEL_PART },
 			horizontalPanelVisible: { left: Parts.SIDEBAR_PART, right: Parts.AUXILIARYBAR_PART },
@@ -420,6 +424,9 @@ suite('LayoutService - getFloatingEditorVerticalMargins', () => {
 			// Editor is in the End column, so a bottom panel is not stacked below it.
 			bottomPanelStatusBarHidden: margins(s => { s.visibleParts.add(Parts.PANEL_PART); s.visibleParts.delete(Parts.STATUSBAR_PART); }),
 
+			// Sources below Preview: the editor's bottom faces Sources, not the window.
+			sourcesBelowEditor: margins(s => { s.visibleParts.add(Parts.SOURCES_PART); s.visibleParts.delete(Parts.STATUSBAR_PART); }),
+
 			// Experiment off.
 			disabled: margins(s => { s.floatingPanelsEnabled = false; s.visibleParts.clear(); }),
 		};
@@ -431,6 +438,7 @@ suite('LayoutService - getFloatingEditorVerticalMargins', () => {
 			topPanelAtTopEdge: { top: outer, bottom: margin },
 			statusBarHidden: { top: inner, bottom: outer },
 			bottomPanelStatusBarHidden: { top: inner, bottom: outer },
+			sourcesBelowEditor: { top: inner, bottom: inner },
 			disabled: { top: 0, bottom: 0 },
 		});
 	});
@@ -448,6 +456,50 @@ suite('LayoutService - getFloatingEditorVerticalMargins', () => {
 		}, {
 			betweenTitleAndStatusBars: { top: FLOATING_PANEL_INNER_MARGIN, bottom: COMPACT_FLOATING_PANEL_OUTER_MARGIN },
 			atWindowEdges: { top: COMPACT_FLOATING_PANEL_OUTER_MARGIN, bottom: COMPACT_FLOATING_PANEL_OUTER_MARGIN },
+		});
+	});
+});
+
+suite('LayoutService - INV-052-NO-DUAL-HIDE', () => {
+
+	ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('Conversation ∨ (Editor ∨ Sources) stays at least one visible', () => {
+		const allVisible = { conversation: true, editor: true, sources: true };
+		const conversationOnly = { conversation: true, editor: false, sources: false };
+		const editorOnly = { conversation: false, editor: true, sources: false };
+		const sourcesOnly = { conversation: false, editor: false, sources: true };
+		const editorAndSources = { conversation: false, editor: true, sources: true };
+		const none = { conversation: false, editor: false, sources: false };
+
+		assert.deepStrictEqual({
+			hideConversationWhileEditorVisible: forceShownAgentShellPart(Parts.CONVERSATION_PART, { ...allVisible, conversation: false }),
+			hideEditorWhileConversationVisible: forceShownAgentShellPart(Parts.EDITOR_PART, { ...allVisible, editor: false }),
+			hideSourcesWhileConversationVisible: forceShownAgentShellPart(Parts.SOURCES_PART, { conversation: true, editor: false, sources: false }),
+			hideLastEndPartEditor: forceShownAgentShellPart(Parts.EDITOR_PART, none),
+			hideLastEndPartSources: forceShownAgentShellPart(Parts.SOURCES_PART, none),
+			hideConversationLast: forceShownAgentShellPart(Parts.CONVERSATION_PART, none),
+			hideConversationSourcesRemain: forceShownAgentShellPart(Parts.CONVERSATION_PART, sourcesOnly),
+			hideEditorSourcesRemain: forceShownAgentShellPart(Parts.EDITOR_PART, sourcesOnly),
+			hideSourcesEditorRemain: forceShownAgentShellPart(Parts.SOURCES_PART, editorOnly),
+			hideConversationEditorRemain: forceShownAgentShellPart(Parts.CONVERSATION_PART, editorOnly),
+			hideEditorAndSourcesRemain: forceShownAgentShellPart(Parts.CONVERSATION_PART, editorAndSources),
+			conversationOnlyStillValid: forceShownAgentShellPart(Parts.EDITOR_PART, conversationOnly),
+		}, {
+			hideConversationWhileEditorVisible: undefined,
+			hideEditorWhileConversationVisible: undefined,
+			hideSourcesWhileConversationVisible: undefined,
+			// Prefer Conversation when hiding both End parts.
+			hideLastEndPartEditor: Parts.CONVERSATION_PART,
+			hideLastEndPartSources: Parts.CONVERSATION_PART,
+			// Prefer Editor when hiding Conversation and Sources is also hidden.
+			hideConversationLast: Parts.EDITOR_PART,
+			hideConversationSourcesRemain: undefined,
+			hideEditorSourcesRemain: undefined,
+			hideSourcesEditorRemain: undefined,
+			hideConversationEditorRemain: undefined,
+			hideEditorAndSourcesRemain: undefined,
+			conversationOnlyStillValid: undefined,
 		});
 	});
 });

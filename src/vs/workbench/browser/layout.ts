@@ -12,7 +12,7 @@ import { isWindows, isLinux, isMacintosh, isWeb, isIOS } from '../../base/common
 import { EditorInputCapabilities, GroupIdentifier, isResourceEditorInput, IUntypedEditorInput, pathsToEditors } from '../common/editor.js';
 import { SidebarPart } from './parts/sidebar/sidebarPart.js';
 import { PanelPart } from './parts/panel/panelPart.js';
-import { Position, Parts, PartOpensMaximizedOptions, IWorkbenchLayoutService, positionFromString, positionToString, partOpensMaximizedFromString, PanelAlignment, ActivityBarPosition, LayoutSettings, MULTI_WINDOW_PARTS, SINGLE_WINDOW_PARTS, ZenModeSettings, EditorTabsMode, EditorActionsLocation, shouldShowCustomTitleBar, isHorizontal, isMultiWindowPart, IPartVisibilityChangeEvent, isFloatingTopEdgeExposed, ModernUIDensity } from '../services/layout/browser/layoutService.js';
+import { Position, Parts, PartOpensMaximizedOptions, IWorkbenchLayoutService, positionFromString, positionToString, partOpensMaximizedFromString, PanelAlignment, ActivityBarPosition, LayoutSettings, MULTI_WINDOW_PARTS, SINGLE_WINDOW_PARTS, ZenModeSettings, EditorTabsMode, EditorActionsLocation, shouldShowCustomTitleBar, isHorizontal, isMultiWindowPart, IPartVisibilityChangeEvent, isFloatingTopEdgeExposed, ModernUIDensity, forceShownAgentShellPart, AgentShellPart } from '../services/layout/browser/layoutService.js';
 import { isTemporaryWorkspace, IWorkspaceContextService, WorkbenchState } from '../../platform/workspace/common/workspace.js';
 import { IStorageService, StorageScope, StorageTarget } from '../../platform/storage/common/storage.js';
 import { IConfigurationChangeEvent, IConfigurationService, isConfigured } from '../../platform/configuration/common/configuration.js';
@@ -28,6 +28,7 @@ import { EditorGroupLayout, GroupActivationReason, GroupOrientation, GroupsOrder
 import { SerializableGrid, ISerializableView, ISerializedGrid, Orientation, ISerializedNode, ISerializedLeafNode, Direction, IViewSize, Sizing } from '../../base/browser/ui/grid/grid.js';
 import { Part } from './part.js';
 import { IConversationPartService } from './parts/conversation/conversationPart.js';
+import { ISourcesPartService } from './parts/sources/sourcesPart.js';
 import { IStatusbarService } from '../services/statusbar/browser/statusbar.js';
 import { IFileService } from '../../platform/files/common/files.js';
 import { isCodeEditor } from '../../editor/browser/editorBrowser.js';
@@ -101,6 +102,7 @@ enum LayoutClasses {
 	SIDEBAR_HIDDEN = 'nosidebar',
 	MAIN_EDITOR_AREA_HIDDEN = 'nomaineditorarea',
 	CONVERSATION_HIDDEN = 'noconversation',
+	SOURCES_HIDDEN = 'nosources',
 	PANEL_HIDDEN = 'nopanel',
 	AUXILIARYBAR_HIDDEN = 'noauxiliarybar',
 	ACTIVITYBAR_HIDDEN = 'noactivitybar',
@@ -291,6 +293,7 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 	private panelPartView!: ISerializableView;
 	private auxiliaryBarPartView!: ISerializableView;
 	private conversationPartView!: ISerializableView;
+	private sourcesPartView!: ISerializableView;
 	private editorPartView!: ISerializableView;
 	private statusBarPartView!: ISerializableView;
 
@@ -350,6 +353,7 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 		this.statusBarService = accessor.get(IStatusbarService);
 		accessor.get(IBannerService);
 		accessor.get(IConversationPartService);
+		accessor.get(ISourcesPartService);
 
 		// Listeners
 		this.registerLayoutListeners();
@@ -1390,6 +1394,8 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 				return !this.stateModel.getRuntimeValue(LayoutStateKeys.EDITOR_HIDDEN);
 			case Parts.CONVERSATION_PART:
 				return !this.stateModel.getRuntimeValue(LayoutStateKeys.CONVERSATION_HIDDEN);
+			case Parts.SOURCES_PART:
+				return !this.stateModel.getRuntimeValue(LayoutStateKeys.SOURCES_HIDDEN);
 			case Parts.BANNER_PART:
 				return this.initialized ? this.workbenchGrid.isViewVisible(this.bannerPartView) : false;
 			default:
@@ -1408,6 +1414,8 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 			this.focusPart(Parts.AUXILIARYBAR_PART);
 		} else if (this.isVisible(Parts.CONVERSATION_PART)) {
 			this.focusPart(Parts.CONVERSATION_PART);
+		} else if (this.isVisible(Parts.SOURCES_PART)) {
+			this.focusPart(Parts.SOURCES_PART);
 		} else {
 			this.focusPart(Parts.EDITOR_PART, getWindow(this.activeContainer));
 		}
@@ -1437,7 +1445,8 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 
 			const takenHeight =
 				(this.isVisible(Parts.TITLEBAR_PART, targetWindow) ? this.titleBarPartView.minimumHeight : 0) +
-				(this.isVisible(Parts.STATUSBAR_PART, targetWindow) ? this.statusBarPartView.minimumHeight : 0);
+				(this.isVisible(Parts.STATUSBAR_PART, targetWindow) ? this.statusBarPartView.minimumHeight : 0) +
+				(this.isVisible(Parts.SOURCES_PART) ? this.sourcesPartView.minimumHeight : 0);
 
 			const availableWidth = containerDimension.width - takenWidth;
 			const availableHeight = containerDimension.height - takenHeight;
@@ -1657,6 +1666,7 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 		const panelPart = this.getPart(Parts.PANEL_PART);
 		const auxiliaryBarPart = this.getPart(Parts.AUXILIARYBAR_PART);
 		const conversationPart = this.getPart(Parts.CONVERSATION_PART);
+		const sourcesPart = this.getPart(Parts.SOURCES_PART);
 		const sideBar = this.getPart(Parts.SIDEBAR_PART);
 		const statusBar = this.getPart(Parts.STATUSBAR_PART);
 
@@ -1667,6 +1677,7 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 		this.activityBarPartView = activityBar;
 		this.editorPartView = editorPart;
 		this.conversationPartView = conversationPart;
+		this.sourcesPartView = sourcesPart;
 		this.panelPartView = panelPart;
 		this.auxiliaryBarPartView = auxiliaryBarPart;
 		this.statusBarPartView = statusBar;
@@ -1677,6 +1688,7 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 			[Parts.TITLEBAR_PART]: this.titleBarPartView,
 			[Parts.EDITOR_PART]: this.editorPartView,
 			[Parts.CONVERSATION_PART]: this.conversationPartView,
+			[Parts.SOURCES_PART]: this.sourcesPartView,
 			[Parts.PANEL_PART]: this.panelPartView,
 			[Parts.SIDEBAR_PART]: this.sideBarPartView,
 			[Parts.STATUSBAR_PART]: this.statusBarPartView,
@@ -1695,7 +1707,7 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 		this.workbenchGrid = workbenchGrid;
 		this.workbenchGrid.edgeSnapping = this.state.runtime.mainWindowFullscreen;
 
-		for (const part of [titleBar, editorPart, conversationPart, activityBar, panelPart, sideBar, statusBar, auxiliaryBarPart, bannerPart]) {
+		for (const part of [titleBar, editorPart, conversationPart, sourcesPart, activityBar, panelPart, sideBar, statusBar, auxiliaryBarPart, bannerPart]) {
 			this._register(part.onDidVisibilityChange(visible => {
 				if (!this.inMaximizedAuxiliaryBarTransition) {
 
@@ -1715,6 +1727,8 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 						this.setEditorHidden(!visible);
 					} else if (part === conversationPart) {
 						this.setConversationHidden(!visible);
+					} else if (part === sourcesPart) {
+						this.setSourcesHidden(!visible);
 					}
 				}
 
@@ -1753,11 +1767,25 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 				: this.workbenchGrid.getViewSize(this.auxiliaryBarPartView).width;
 			this.stateModel.setInitializationValue(LayoutStateKeys.AUXILIARYBAR_SIZE, auxiliaryBarSize as number);
 
-			// Editor column size (End column)
-			const editorSize = this.stateModel.getRuntimeValue(LayoutStateKeys.EDITOR_HIDDEN)
-				? this.workbenchGrid.getViewCachedVisibleSize(this.editorPartView)
-				: this.workbenchGrid.getViewSize(this.editorPartView).width;
+			// Editor column size (End column width; shared with Sources)
+			const editorHidden = this.stateModel.getRuntimeValue(LayoutStateKeys.EDITOR_HIDDEN);
+			const sourcesHidden = this.stateModel.getRuntimeValue(LayoutStateKeys.SOURCES_HIDDEN);
+			const endColumnHidden = editorHidden && sourcesHidden;
+			const endColumnView = editorHidden ? this.sourcesPartView : this.editorPartView;
+			const editorSize = endColumnHidden
+				? this.workbenchGrid.getViewCachedVisibleSize(endColumnView)
+				: this.workbenchGrid.getViewSize(endColumnView).width;
 			this.stateModel.setInitializationValue(LayoutStateKeys.EDITOR_SIZE, editorSize as number);
+
+			// Sources height inside the End column (only persist the split size, not a solo fill)
+			if (!sourcesHidden && !editorHidden) {
+				this.stateModel.setInitializationValue(LayoutStateKeys.SOURCES_SIZE, this.workbenchGrid.getViewSize(this.sourcesPartView).height);
+			} else if (sourcesHidden) {
+				const cachedSourcesSize = this.workbenchGrid.getViewCachedVisibleSize(this.sourcesPartView);
+				if (typeof cachedSourcesSize === 'number') {
+					this.stateModel.setInitializationValue(LayoutStateKeys.SOURCES_SIZE, cachedSourcesSize);
+				}
+			}
 
 			this.stateModel.save(true, true);
 		}));
@@ -1883,6 +1911,13 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 					height: viewSize.height + sizeChangePxHeight
 				});
 				break;
+			case Parts.SOURCES_PART:
+				viewSize = this.workbenchGrid.getViewSize(this.sourcesPartView);
+				this.workbenchGrid.resizeView(this.sourcesPartView, {
+					width: viewSize.width + sizeChangePxWidth,
+					height: viewSize.height + sizeChangePxHeight
+				});
+				break;
 			case Parts.EDITOR_PART:
 				viewSize = this.workbenchGrid.getViewSize(this.editorPartView);
 
@@ -1943,9 +1978,9 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 		// Propagate to grid
 		this.workbenchGrid.setViewVisible(this.editorPartView, !hidden);
 
-		// INV-052-NO-DUAL-HIDE: Conversation ∨ Editor at least one visible
-		if (hidden && !this.isVisible(Parts.CONVERSATION_PART) && !this.isAuxiliaryBarMaximized()) {
-			this.setConversationHidden(false);
+		// INV-052-NO-DUAL-HIDE: Conversation ∨ (Editor ∨ Sources) ≥ 1
+		if (hidden) {
+			this.enforceAgentShellVisible(Parts.EDITOR_PART);
 		}
 	}
 
@@ -1964,9 +1999,50 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 
 		this.workbenchGrid.setViewVisible(this.conversationPartView, !hidden);
 
-		// INV-052-NO-DUAL-HIDE: Conversation ∨ Editor at least one visible
-		if (hidden && !this.isVisible(Parts.EDITOR_PART, mainWindow) && !this.isAuxiliaryBarMaximized()) {
+		// INV-052-NO-DUAL-HIDE: Conversation ∨ (Editor ∨ Sources) ≥ 1
+		if (hidden) {
+			this.enforceAgentShellVisible(Parts.CONVERSATION_PART);
+		}
+	}
+
+	private setSourcesHidden(hidden: boolean): void {
+		if (!this.workbenchGrid) {
+			return;
+		}
+
+		this.stateModel.setRuntimeValue(LayoutStateKeys.SOURCES_HIDDEN, hidden);
+
+		if (hidden) {
+			this.mainContainer.classList.add(LayoutClasses.SOURCES_HIDDEN);
+		} else {
+			this.mainContainer.classList.remove(LayoutClasses.SOURCES_HIDDEN);
+		}
+
+		this.workbenchGrid.setViewVisible(this.sourcesPartView, !hidden);
+
+		// INV-052-NO-DUAL-HIDE: Conversation ∨ (Editor ∨ Sources) ≥ 1
+		if (hidden) {
+			this.enforceAgentShellVisible(Parts.SOURCES_PART);
+		}
+	}
+
+	private enforceAgentShellVisible(justHid: AgentShellPart): void {
+		if (this.inMaximizedAuxiliaryBarTransition || this.isAuxiliaryBarMaximized()) {
+			return;
+		}
+
+		const show = forceShownAgentShellPart(justHid, {
+			conversation: this.isVisible(Parts.CONVERSATION_PART),
+			editor: this.isVisible(Parts.EDITOR_PART, mainWindow),
+			sources: this.isVisible(Parts.SOURCES_PART),
+		});
+
+		if (show === Parts.CONVERSATION_PART) {
+			this.setConversationHidden(false);
+		} else if (show === Parts.EDITOR_PART) {
 			this.setEditorHidden(false);
+		} else if (show === Parts.SOURCES_PART) {
+			this.setSourcesHidden(false);
 		}
 	}
 
@@ -1975,6 +2051,7 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 			!this.isVisible(Parts.SIDEBAR_PART) ? LayoutClasses.SIDEBAR_HIDDEN : undefined,
 			!this.isVisible(Parts.EDITOR_PART, mainWindow) ? LayoutClasses.MAIN_EDITOR_AREA_HIDDEN : undefined,
 			!this.isVisible(Parts.CONVERSATION_PART) ? LayoutClasses.CONVERSATION_HIDDEN : undefined,
+			!this.isVisible(Parts.SOURCES_PART) ? LayoutClasses.SOURCES_HIDDEN : undefined,
 			!this.isVisible(Parts.PANEL_PART) ? LayoutClasses.PANEL_HIDDEN : undefined,
 			!this.isVisible(Parts.AUXILIARYBAR_PART) ? LayoutClasses.AUXILIARYBAR_HIDDEN : undefined,
 			!this.isVisible(Parts.ACTIVITYBAR_PART) ? LayoutClasses.ACTIVITYBAR_HIDDEN : undefined,
@@ -2052,9 +2129,10 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 		const preMovePanelHeight = !this.isVisible(Parts.PANEL_PART) ? Sizing.Invisible(this.workbenchGrid.getViewCachedVisibleSize(this.panelPartView) ?? this.panelPartView.minimumHeight) : this.workbenchGrid.getViewSize(this.panelPartView).height;
 		const preMoveSideBarSize = !this.isVisible(Parts.SIDEBAR_PART) ? Sizing.Invisible(this.workbenchGrid.getViewCachedVisibleSize(this.sideBarPartView) ?? this.sideBarPartView.minimumWidth) : this.workbenchGrid.getViewSize(this.sideBarPartView).width;
 		const preMoveEditorSize = !this.isVisible(Parts.EDITOR_PART, mainWindow) ? Sizing.Invisible(this.workbenchGrid.getViewCachedVisibleSize(this.editorPartView) ?? this.editorPartView.minimumWidth) : this.workbenchGrid.getViewSize(this.editorPartView).width;
+		const preMoveSourcesSize = !this.isVisible(Parts.SOURCES_PART) ? Sizing.Invisible(this.workbenchGrid.getViewCachedVisibleSize(this.sourcesPartView) ?? this.sourcesPartView.minimumHeight) : this.workbenchGrid.getViewSize(this.sourcesPartView).height;
 		const preMoveAuxiliaryBarSize = !this.isVisible(Parts.AUXILIARYBAR_PART) ? Sizing.Invisible(this.workbenchGrid.getViewCachedVisibleSize(this.auxiliaryBarPartView) ?? this.auxiliaryBarPartView.minimumWidth) : this.workbenchGrid.getViewSize(this.auxiliaryBarPartView).width;
 
-		const focusedPart = [Parts.PANEL_PART, Parts.SIDEBAR_PART, Parts.AUXILIARYBAR_PART, Parts.CONVERSATION_PART].find(part => this.hasFocus(part)) as SINGLE_WINDOW_PARTS | undefined;
+		const focusedPart = [Parts.PANEL_PART, Parts.SIDEBAR_PART, Parts.AUXILIARYBAR_PART, Parts.CONVERSATION_PART, Parts.SOURCES_PART].find(part => this.hasFocus(part)) as SINGLE_WINDOW_PARTS | undefined;
 
 		if (sideBarPosition === Position.LEFT) {
 			this.workbenchGrid.moveViewTo(this.activityBarPartView, [2, 0]);
@@ -2064,6 +2142,7 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 			} else {
 				this.workbenchGrid.moveViewTo(this.editorPartView, [2, -1]);
 			}
+			this.workbenchGrid.moveView(this.sourcesPartView, preMoveSourcesSize, this.editorPartView, Direction.Down);
 			if (auxiliaryBarSiblingToCenter) {
 				this.workbenchGrid.moveView(this.auxiliaryBarPartView, preMoveAuxiliaryBarSize, this.editorPartView, Direction.Right);
 			} else {
@@ -2077,6 +2156,7 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 			} else {
 				this.workbenchGrid.moveViewTo(this.editorPartView, [2, 0]);
 			}
+			this.workbenchGrid.moveView(this.sourcesPartView, preMoveSourcesSize, this.editorPartView, Direction.Down);
 			if (auxiliaryBarSiblingToCenter) {
 				this.workbenchGrid.moveView(this.auxiliaryBarPartView, preMoveAuxiliaryBarSize, this.editorPartView, Direction.Left);
 			} else {
@@ -2112,6 +2192,13 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 			this.workbenchGrid.resizeView(this.editorPartView, {
 				height: this.workbenchGrid.getViewSize(this.editorPartView).height,
 				width: preMoveEditorSize as number
+			});
+		}
+
+		if (this.isVisible(Parts.SOURCES_PART)) {
+			this.workbenchGrid.resizeView(this.sourcesPartView, {
+				height: preMoveSourcesSize as number,
+				width: this.workbenchGrid.getViewSize(this.sourcesPartView).width
 			});
 		}
 
@@ -2254,6 +2341,7 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 				sideBarVisible: this.isVisible(Parts.SIDEBAR_PART),
 				conversationVisible: this.isVisible(Parts.CONVERSATION_PART),
 				editorVisible: this.isVisible(Parts.EDITOR_PART),
+				sourcesVisible: this.isVisible(Parts.SOURCES_PART),
 				panelVisible: this.isVisible(Parts.PANEL_PART),
 				auxiliaryBarVisible: this.isVisible(Parts.AUXILIARYBAR_PART)
 			};
@@ -2280,6 +2368,9 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 				if (state.editorVisible) {
 					this.setEditorHidden(true);
 				}
+				if (state.sourcesVisible) {
+					this.setSourcesHidden(true);
+				}
 
 				this.stateModel.setRuntimeValue(LayoutStateKeys.AUXILIARYBAR_LAST_NON_MAXIMIZED_VISIBILITY, state);
 			} finally {
@@ -2292,6 +2383,7 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 			this.inMaximizedAuxiliaryBarTransition = true;
 			try {
 				this.setEditorHidden(!state?.editorVisible);	// this order of updating view visibility
+				this.setSourcesHidden(!(state?.sourcesVisible ?? true));
 				this.setConversationHidden(!(state?.conversationVisible ?? true));
 				this.setPanelHidden(!state?.panelVisible);		// helps in restoring the previous view
 				this.setSideBarHidden(!state?.sideBarVisible);	// sizes we had
@@ -2408,6 +2500,8 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 				return this.setEditorHidden(hidden);
 			case Parts.CONVERSATION_PART:
 				return this.setConversationHidden(hidden);
+			case Parts.SOURCES_PART:
+				return this.setSourcesHidden(hidden);
 			case Parts.BANNER_PART:
 				return this.setBannerHidden(hidden);
 			case Parts.AUXILIARYBAR_PART:
@@ -2606,7 +2700,7 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 
 		for (const neighborView of neighborViews) {
 			const neighborPart =
-				[Parts.ACTIVITYBAR_PART, Parts.CONVERSATION_PART, Parts.EDITOR_PART, Parts.PANEL_PART, Parts.AUXILIARYBAR_PART, Parts.SIDEBAR_PART, Parts.STATUSBAR_PART, Parts.TITLEBAR_PART]
+				[Parts.ACTIVITYBAR_PART, Parts.CONVERSATION_PART, Parts.EDITOR_PART, Parts.SOURCES_PART, Parts.PANEL_PART, Parts.AUXILIARYBAR_PART, Parts.SIDEBAR_PART, Parts.STATUSBAR_PART, Parts.TITLEBAR_PART]
 					.find(partId => this.getPart(partId) === neighborView && this.isVisible(partId, mainWindow));
 
 			if (neighborPart !== undefined) {
@@ -2626,6 +2720,26 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 		}
 
 		this.workbenchGrid.setViewVisible(this.titleBarPartView, shouldShowCustomTitleBar(this.configurationService, mainWindow, this.state.runtime.menuBar.toggled));
+	}
+
+	private arrangeEndColumnNode(editor: ISerializedNode, sources: ISerializedNode, availableHeight: number, width: number): ISerializedNode {
+		const editorHidden = this.stateModel.getRuntimeValue(LayoutStateKeys.EDITOR_HIDDEN);
+		const sourcesHidden = this.stateModel.getRuntimeValue(LayoutStateKeys.SOURCES_HIDDEN);
+		const sourcesSize = this.stateModel.getInitializationValue(LayoutStateKeys.SOURCES_SIZE);
+
+		editor.size = sourcesHidden ? availableHeight : Math.max(availableHeight - sourcesSize, 0);
+		sources.size = editorHidden ? availableHeight : sourcesSize;
+
+		return {
+			type: 'branch',
+			data: [editor, sources],
+			size: width,
+			visible: !editorHidden || !sourcesHidden
+		};
+	}
+
+	private isEndColumnHidden(): boolean {
+		return this.stateModel.getRuntimeValue(LayoutStateKeys.EDITOR_HIDDEN) && this.stateModel.getRuntimeValue(LayoutStateKeys.SOURCES_HIDDEN);
 	}
 
 	private arrangeCenterSectionNodes(nodes: { conversation: ISerializedNode; editor?: ISerializedNode; sideBar?: ISerializedNode; auxiliaryBar?: ISerializedNode }, availableHeight: number, availableWidth: number): ISerializedNode {
@@ -2655,7 +2769,7 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 				result.push(nodes.editor);
 			}
 
-			nodes.conversation.size -= this.stateModel.getRuntimeValue(LayoutStateKeys.EDITOR_HIDDEN) ? 0 : nodes.editor.size;
+			nodes.conversation.size -= this.isEndColumnHidden() ? 0 : nodes.editor.size;
 		}
 
 		if (nodes.auxiliaryBar) {
@@ -2676,11 +2790,11 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 		};
 	}
 
-	private arrangeMiddleSectionNodes(nodes: { conversation: ISerializedNode; editor: ISerializedNode; panel: ISerializedNode; activityBar: ISerializedNode; sideBar: ISerializedNode; auxiliaryBar: ISerializedNode }, availableWidth: number, availableHeight: number): ISerializedNode[] {
+	private arrangeMiddleSectionNodes(nodes: { conversation: ISerializedNode; editor: ISerializedNode; sources: ISerializedNode; panel: ISerializedNode; activityBar: ISerializedNode; sideBar: ISerializedNode; auxiliaryBar: ISerializedNode }, availableWidth: number, availableHeight: number): ISerializedNode[] {
 		const activityBarSize = this.stateModel.getRuntimeValue(LayoutStateKeys.ACTIVITYBAR_HIDDEN) ? 0 : nodes.activityBar.size;
 		const sideBarSize = this.stateModel.getRuntimeValue(LayoutStateKeys.SIDEBAR_HIDDEN) ? 0 : nodes.sideBar.size;
 		const auxiliaryBarSize = this.stateModel.getRuntimeValue(LayoutStateKeys.AUXILIARYBAR_HIDDEN) ? 0 : nodes.auxiliaryBar.size;
-		const editorSize = this.stateModel.getRuntimeValue(LayoutStateKeys.EDITOR_HIDDEN) ? 0 : nodes.editor.size;
+		const editorSize = this.isEndColumnHidden() ? 0 : nodes.editor.size;
 		const panelSize = this.stateModel.getInitializationValue(LayoutStateKeys.PANEL_SIZE) ? 0 : nodes.panel.size;
 
 		const panelPostion = this.stateModel.getRuntimeValue(LayoutStateKeys.PANEL_POSITION);
@@ -2688,6 +2802,7 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 
 		const result = [] as ISerializedNode[];
 		if (!isHorizontal(panelPostion)) {
+			const endColumn = this.arrangeEndColumnNode(nodes.editor, nodes.sources, availableHeight, nodes.editor.size);
 			result.push(nodes.conversation);
 			nodes.conversation.size = availableWidth - activityBarSize - sideBarSize - panelSize - editorSize - auxiliaryBarSize;
 			if (panelPostion === Position.RIGHT) {
@@ -2697,12 +2812,12 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 			}
 
 			if (sideBarPosition === Position.LEFT) {
-				result.push(nodes.editor);
+				result.push(endColumn);
 				result.push(nodes.auxiliaryBar);
 				result.splice(0, 0, nodes.sideBar);
 				result.splice(0, 0, nodes.activityBar);
 			} else {
-				result.splice(0, 0, nodes.editor);
+				result.splice(0, 0, endColumn);
 				result.splice(0, 0, nodes.auxiliaryBar);
 				result.push(nodes.sideBar);
 				result.push(nodes.activityBar);
@@ -2712,12 +2827,14 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 			const sideBarNextToCenter = !(panelAlignment === 'center' || (sideBarPosition === Position.LEFT && panelAlignment === 'right') || (sideBarPosition === Position.RIGHT && panelAlignment === 'left'));
 			const auxiliaryBarNextToCenter = !(panelAlignment === 'center' || (sideBarPosition === Position.RIGHT && panelAlignment === 'right') || (sideBarPosition === Position.LEFT && panelAlignment === 'left'));
 			const editorNextToCenter = auxiliaryBarNextToCenter;
+			const endColumnHeight = editorNextToCenter ? availableHeight - panelSize : availableHeight;
+			const endColumn = this.arrangeEndColumnNode(nodes.editor, nodes.sources, endColumnHeight, nodes.editor.size);
 
 			const centerSectionWidth = availableWidth - activityBarSize - (sideBarNextToCenter ? 0 : sideBarSize) - (editorNextToCenter ? 0 : editorSize) - (auxiliaryBarNextToCenter ? 0 : auxiliaryBarSize);
 
 			const centerNodes = this.arrangeCenterSectionNodes({
 				conversation: nodes.conversation,
-				editor: editorNextToCenter ? nodes.editor : undefined,
+				editor: editorNextToCenter ? endColumn : undefined,
 				sideBar: sideBarNextToCenter ? nodes.sideBar : undefined,
 				auxiliaryBar: auxiliaryBarNextToCenter ? nodes.auxiliaryBar : undefined
 			}, availableHeight - panelSize, centerSectionWidth);
@@ -2740,9 +2857,9 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 
 			if (!editorNextToCenter) {
 				if (sideBarPosition === Position.RIGHT) {
-					result.splice(0, 0, nodes.editor);
+					result.splice(0, 0, endColumn);
 				} else {
-					result.push(nodes.editor);
+					result.push(endColumn);
 				}
 			}
 
@@ -2827,6 +2944,13 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 			visible: !this.stateModel.getRuntimeValue(LayoutStateKeys.EDITOR_HIDDEN)
 		};
 
+		const sourcesNode: ISerializedLeafNode = {
+			type: 'leaf',
+			data: { type: Parts.SOURCES_PART },
+			size: this.stateModel.getInitializationValue(LayoutStateKeys.SOURCES_SIZE),
+			visible: !this.stateModel.getRuntimeValue(LayoutStateKeys.SOURCES_HIDDEN)
+		};
+
 		const panelNode: ISerializedLeafNode = {
 			type: 'leaf',
 			data: { type: Parts.PANEL_PART },
@@ -2839,6 +2963,7 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 			auxiliaryBar: auxiliaryBarNode,
 			conversation: conversationNode,
 			editor: editorNode,
+			sources: sourcesNode,
 			panel: panelNode,
 			sideBar: sideBarNode
 		}, width, middleSectionHeight);
@@ -2985,6 +3110,7 @@ const LayoutStateKeys = {
 	SIDEBAR_SIZE: new InitializationStateKey<number>('sideBar.size', StorageScope.PROFILE, StorageTarget.MACHINE, 300),
 	AUXILIARYBAR_SIZE: new InitializationStateKey<number>('auxiliaryBar.size', StorageScope.PROFILE, StorageTarget.MACHINE, 300),
 	EDITOR_SIZE: new InitializationStateKey<number>('editor.size', StorageScope.PROFILE, StorageTarget.MACHINE, 480),
+	SOURCES_SIZE: new InitializationStateKey<number>('sources.size', StorageScope.PROFILE, StorageTarget.MACHINE, 240),
 	PANEL_SIZE: new InitializationStateKey<number>('panel.size', StorageScope.PROFILE, StorageTarget.MACHINE, 300),
 
 	// Part State
@@ -2998,6 +3124,7 @@ const LayoutStateKeys = {
 		sideBarVisible: false,
 		conversationVisible: true,
 		editorVisible: false,
+		sourcesVisible: true,
 		panelVisible: false,
 		auxiliaryBarVisible: false
 	}),
@@ -3013,6 +3140,7 @@ const LayoutStateKeys = {
 	SIDEBAR_HIDDEN: new RuntimeStateKey<boolean>('sideBar.hidden', StorageScope.WORKSPACE, StorageTarget.MACHINE, false),
 	EDITOR_HIDDEN: new RuntimeStateKey<boolean>('editor.hidden', StorageScope.WORKSPACE, StorageTarget.MACHINE, false),
 	CONVERSATION_HIDDEN: new RuntimeStateKey<boolean>('conversation.hidden', StorageScope.WORKSPACE, StorageTarget.MACHINE, false),
+	SOURCES_HIDDEN: new RuntimeStateKey<boolean>('sources.hidden', StorageScope.WORKSPACE, StorageTarget.MACHINE, false),
 	PANEL_HIDDEN: new RuntimeStateKey<boolean>('panel.hidden', StorageScope.WORKSPACE, StorageTarget.MACHINE, true),
 	AUXILIARYBAR_HIDDEN: new RuntimeStateKey<boolean>('auxiliaryBar.hidden', StorageScope.WORKSPACE, StorageTarget.MACHINE, true),
 	STATUSBAR_HIDDEN: new RuntimeStateKey<boolean>('statusBar.hidden', StorageScope.WORKSPACE, StorageTarget.MACHINE, false, true)
@@ -3136,6 +3264,7 @@ class LayoutStateModel extends Disposable {
 		LayoutStateKeys.SIDEBAR_HIDDEN.defaultValue = workbenchState === WorkbenchState.EMPTY || auxiliaryBarForceMaximized === true;
 		LayoutStateKeys.AUXILIARYBAR_SIZE.defaultValue = auxiliaryBarForceMaximized ? Math.max(300, mainContainerDimension.width / 2) : Math.min(300, mainContainerDimension.width / 4);
 		LayoutStateKeys.EDITOR_SIZE.defaultValue = Math.min(640, Math.max(360, mainContainerDimension.width / 3));
+		LayoutStateKeys.SOURCES_SIZE.defaultValue = Math.min(280, Math.max(160, mainContainerDimension.height / 4));
 		LayoutStateKeys.AUXILIARYBAR_HIDDEN.defaultValue = (() => {
 			if (isWeb && !this.environmentService.remoteAuthority) {
 				return true; // not required in web if unsupported
@@ -3221,10 +3350,11 @@ class LayoutStateModel extends Disposable {
 			}
 		}
 
-		// Conversation ∨ Editor must not both be hidden on startup unless auxiliary bar is maximized
+		// Conversation ∨ (Editor ∨ Sources) must not all be hidden on startup unless auxiliary bar is maximized
 		if (
 			this.getRuntimeValue(LayoutStateKeys.CONVERSATION_HIDDEN) &&
 			this.getRuntimeValue(LayoutStateKeys.EDITOR_HIDDEN) &&
+			this.getRuntimeValue(LayoutStateKeys.SOURCES_HIDDEN) &&
 			!this.getRuntimeValue(LayoutStateKeys.AUXILIARYBAR_WAS_LAST_MAXIMIZED)
 		) {
 			this.setRuntimeValue(LayoutStateKeys.CONVERSATION_HIDDEN, false);
@@ -3235,6 +3365,7 @@ class LayoutStateModel extends Disposable {
 			this.setInitializationValue(LayoutStateKeys.SIDEBAR_SIZE, Math.min(300, configuration.mainContainerDimension.width / 4));
 			this.setInitializationValue(LayoutStateKeys.AUXILIARYBAR_SIZE, Math.min(300, configuration.mainContainerDimension.width / 4));
 			this.setInitializationValue(LayoutStateKeys.EDITOR_SIZE, Math.min(640, Math.max(360, configuration.mainContainerDimension.width / 3)));
+			this.setInitializationValue(LayoutStateKeys.SOURCES_SIZE, Math.min(280, Math.max(160, configuration.mainContainerDimension.height / 4)));
 		}
 	}
 
@@ -3244,6 +3375,7 @@ class LayoutStateModel extends Disposable {
 			conversationVisible: !this.getRuntimeValue(LayoutStateKeys.CONVERSATION_HIDDEN),
 			panelVisible: !this.getRuntimeValue(LayoutStateKeys.PANEL_HIDDEN),
 			editorVisible: !this.getRuntimeValue(LayoutStateKeys.EDITOR_HIDDEN),
+			sourcesVisible: !this.getRuntimeValue(LayoutStateKeys.SOURCES_HIDDEN),
 			auxiliaryBarVisible: !this.getRuntimeValue(LayoutStateKeys.AUXILIARYBAR_HIDDEN)
 		});
 
@@ -3251,6 +3383,7 @@ class LayoutStateModel extends Disposable {
 		this.setRuntimeValue(LayoutStateKeys.CONVERSATION_HIDDEN, true);
 		this.setRuntimeValue(LayoutStateKeys.PANEL_HIDDEN, true);
 		this.setRuntimeValue(LayoutStateKeys.EDITOR_HIDDEN, true);
+		this.setRuntimeValue(LayoutStateKeys.SOURCES_HIDDEN, true);
 		this.setRuntimeValue(LayoutStateKeys.AUXILIARYBAR_HIDDEN, false);
 
 		this.setRuntimeValue(LayoutStateKeys.AUXILIARYBAR_LAST_NON_MAXIMIZED_SIZE, this.getInitializationValue(LayoutStateKeys.AUXILIARYBAR_SIZE));

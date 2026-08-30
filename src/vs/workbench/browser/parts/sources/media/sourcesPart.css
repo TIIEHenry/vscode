@@ -1,0 +1,41 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+.monaco-workbench.nosources > .part.sources {
+	display: none !important;
+	visibility: hidden !important;
+}
+
+.monaco-workbench .part.sources {
+	display: flex;
+	flex-direction: column;
+	background-color: var(--vscode-sideBar-background);
+}
+
+.monaco-workbench .part.sources > .title {
+	background-color: var(--vscode-sideBarTitle-background);
+	border-bottom: 1px solid var(--vscode-sideBarTitle-border, var(--vscode-contrastBorder, transparent));
+}
+
+.monaco-workbench .part.sources > .title > .title-label h2 {
+	text-transform: uppercase;
+}
+
+.monaco-workbench .part.sources > .content {
+	display: flex;
+	flex-direction: column;
+	flex: 1;
+	min-height: 0;
+	overflow: hidden;
+}
+
+.monaco-workbench .part.sources .sources-placeholder {
+	flex: 1;
+	min-height: 0;
+	overflow: auto;
+	padding: 16px;
+	color: var(--vscode-descriptionForeground);
+	font-size: 13px;
+}

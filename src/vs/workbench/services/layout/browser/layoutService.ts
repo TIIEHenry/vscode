@@ -29,7 +29,40 @@ export const enum Parts {
 	SESSIONS_PART = 'workbench.parts.sessions',
 	CUSTOM_VIEW_GRID_PART = 'workbench.parts.customViewGrid',
 	EDITOR_PART = 'workbench.parts.editor',
+	SOURCES_PART = 'workbench.parts.sources',
 	STATUSBAR_PART = 'workbench.parts.statusbar'
+}
+
+/**
+ * Shell parts that participate in INV-052-NO-DUAL-HIDE:
+ * Conversation ∨ (Editor ∨ Sources) ≥ 1.
+ */
+export type AgentShellPart = Parts.CONVERSATION_PART | Parts.EDITOR_PART | Parts.SOURCES_PART;
+
+export interface IAgentShellVisibility {
+	conversation: boolean;
+	editor: boolean;
+	sources: boolean;
+}
+
+/**
+ * After hiding `justHid`, return the shell part that must be force-shown so that
+ * Conversation ∨ (Editor ∨ Sources) stays at least one visible.
+ * Auxiliary-bar maximize is an exception and must skip this helper.
+ *
+ * Preference: Conversation when hiding an End-column part; Editor when hiding
+ * Conversation while Sources is also hidden.
+ */
+export function forceShownAgentShellPart(justHid: AgentShellPart, visible: IAgentShellVisibility): AgentShellPart | undefined {
+	if (visible.conversation || visible.editor || visible.sources) {
+		return undefined;
+	}
+
+	if (justHid === Parts.CONVERSATION_PART) {
+		return Parts.EDITOR_PART;
+	}
+
+	return Parts.CONVERSATION_PART;
 }
 
 export const enum ZenModeSettings {
@@ -199,18 +232,24 @@ export function getFloatingOuterEdgeOwners(layoutService: IWorkbenchLayoutServic
 	// both edges.
 	const sideBarGroup: Parts[] = [Parts.ACTIVITYBAR_PART, Parts.SIDEBAR_PART];
 	const panelGroup: Parts[] = [Parts.PANEL_PART];
+	// Preview and Sources share the End column. When both are visible, Editor
+	// represents the column for horizontal edge ownership (it is the part that
+	// applies floating gutters). Sources takes the slot only when Preview is hidden.
+	const endColumnGroup: Parts[] = layoutService.isVisible(Parts.EDITOR_PART, mainWindow)
+		? [Parts.EDITOR_PART]
+		: [Parts.SOURCES_PART];
 	const fullOrder: Parts[] = sideBarLeft
 		? [
 			...sideBarGroup,
 			...(panelInLeftSequence ? panelGroup : []),
 			Parts.CONVERSATION_PART,
 			...(panelInRightSequence ? panelGroup : []),
-			Parts.EDITOR_PART,
+			...endColumnGroup,
 			Parts.AUXILIARYBAR_PART
 		]
 		: [
 			Parts.AUXILIARYBAR_PART,
-			Parts.EDITOR_PART,
+			...endColumnGroup,
 			...(panelInLeftSequence ? panelGroup : []),
 			Parts.CONVERSATION_PART,
 			...(panelInRightSequence ? panelGroup : []),
@@ -396,10 +435,11 @@ export function getFloatingEditorVerticalOuterEdges(layoutService: IWorkbenchLay
 		return { top: false, bottom: false };
 	}
 
-	// Editor lives in the End column; it is not stacked with the bottom/top panel.
+	// Editor lives in the End column (Preview above Sources); it is not stacked
+	// with the bottom/top panel. Sources, when visible, owns the column bottom.
 	return {
 		top: true,
-		bottom: true,
+		bottom: !layoutService.isVisible(Parts.SOURCES_PART),
 	};
 }
 
@@ -422,6 +462,7 @@ function getFloatingHorizontalPanelOuterEdges(layoutService: IWorkbenchLayoutSer
 		&& (!layoutService.isVisible(Parts.SIDEBAR_PART) || sideBarSiblingToEditor);
 	const auxSideReached = (
 		!layoutService.isVisible(Parts.EDITOR_PART, mainWindow) &&
+		!layoutService.isVisible(Parts.SOURCES_PART) &&
 		!layoutService.isVisible(Parts.AUXILIARYBAR_PART)
 	) || auxSiblingToEditor;
 

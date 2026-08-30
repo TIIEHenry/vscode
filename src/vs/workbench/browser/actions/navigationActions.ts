@@ -270,7 +270,10 @@ abstract class BaseFocusAction extends Action2 {
 		} else {
 			switch (part) {
 				case Parts.EDITOR_PART:
-					neighbour = next ? Parts.PANEL_PART : Parts.CONVERSATION_PART;
+					neighbour = next ? Parts.SOURCES_PART : Parts.CONVERSATION_PART;
+					break;
+				case Parts.SOURCES_PART:
+					neighbour = next ? Parts.PANEL_PART : Parts.EDITOR_PART;
 					break;
 				case Parts.CONVERSATION_PART:
 					neighbour = next ? Parts.EDITOR_PART : Parts.SIDEBAR_PART;
@@ -295,7 +298,7 @@ abstract class BaseFocusAction extends Action2 {
 			}
 		}
 
-		if (layoutService.isVisible(neighbour, activeWindow) || neighbour === Parts.EDITOR_PART || neighbour === Parts.CONVERSATION_PART) {
+		if (layoutService.isVisible(neighbour, activeWindow) || neighbour === Parts.EDITOR_PART || neighbour === Parts.CONVERSATION_PART || neighbour === Parts.SOURCES_PART) {
 			return neighbour;
 		}
 
@@ -308,6 +311,8 @@ abstract class BaseFocusAction extends Action2 {
 			currentlyFocusedPart = Parts.EDITOR_PART;
 		} else if (layoutService.hasFocus(Parts.CONVERSATION_PART)) {
 			currentlyFocusedPart = Parts.CONVERSATION_PART;
+		} else if (layoutService.hasFocus(Parts.SOURCES_PART)) {
+			currentlyFocusedPart = Parts.SOURCES_PART;
 		} else if (layoutService.hasFocus(Parts.ACTIVITYBAR_PART)) {
 			currentlyFocusedPart = Parts.ACTIVITYBAR_PART;
 		} else if (layoutService.hasFocus(Parts.STATUSBAR_PART)) {

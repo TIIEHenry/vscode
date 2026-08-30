@@ -22,7 +22,7 @@ import { IPaneCompositePartService } from '../../services/panecomposite/browser/
 import { ToggleAuxiliaryBarAction } from '../parts/auxiliarybar/auxiliaryBarActions.js';
 import { TogglePanelAction } from '../parts/panel/panelActions.js';
 import { ICommandService } from '../../../platform/commands/common/commands.js';
-import { AuxiliaryBarVisibleContext, PanelAlignmentContext, PanelVisibleContext, SideBarVisibleContext, FocusedViewContext, InEditorZenModeContext, IsMainEditorCenteredLayoutContext, MainEditorAreaVisibleContext, ConversationVisibleContext, IsMainWindowFullscreenContext, PanelPositionContext, IsAuxiliaryWindowFocusedContext, IsSessionsWindowContext, TitleBarStyleContext, IsAuxiliaryWindowContext, CustomMenuBarVisibleContext } from '../../common/contextkeys.js';
+import { AuxiliaryBarVisibleContext, PanelAlignmentContext, PanelVisibleContext, SideBarVisibleContext, FocusedViewContext, InEditorZenModeContext, IsMainEditorCenteredLayoutContext, MainEditorAreaVisibleContext, ConversationVisibleContext, SourcesVisibleContext, IsMainWindowFullscreenContext, PanelPositionContext, IsAuxiliaryWindowFocusedContext, IsSessionsWindowContext, TitleBarStyleContext, IsAuxiliaryWindowContext, CustomMenuBarVisibleContext } from '../../common/contextkeys.js';
 import { Codicon } from '../../../base/common/codicons.js';
 import { ThemeIcon } from '../../../base/common/themables.js';
 import { DisposableStore } from '../../../base/common/lifecycle.js';
@@ -57,6 +57,9 @@ const quickInputAlignmentCenterIcon = registerIcon('quickInputAlignmentCenter', 
 const fullscreenIcon = registerIcon('fullscreen', Codicon.screenFull, localize('fullScreenIcon', "Represents full screen"));
 const centerLayoutIcon = registerIcon('centerLayoutIcon', Codicon.layoutCentered, localize('centerLayoutIcon', "Represents centered layout mode"));
 const zenModeIcon = registerIcon('zenMode', Codicon.target, localize('zenModeIcon', "Represents zen mode"));
+const conversationLayoutIcon = registerIcon('layout-conversation', Codicon.commentDiscussion, localize('conversationLayoutIcon', "Represents the conversation part"));
+const previewLayoutIcon = registerIcon('layout-preview', Codicon.preview, localize('previewLayoutIcon', "Represents the preview (editor) part"));
+const sourcesLayoutIcon = registerIcon('layout-sources', Codicon.files, localize('sourcesLayoutIcon', "Represents the sources part"));
 
 export const ToggleActivityBarVisibilityActionId = 'workbench.action.toggleActivityBarVisibility';
 
@@ -274,6 +277,15 @@ registerAction2(class extends Action2 {
 	}
 });
 
+MenuRegistry.appendMenuItem(MenuId.LayoutControlMenuSubmenu, {
+	group: '0_workbench_layout',
+	command: {
+		id: ToggleEditorVisibilityActionId,
+		title: localize('togglePreview', "Toggle Preview")
+	},
+	order: 2
+});
+
 export const ToggleConversationVisibilityActionId = 'workbench.action.toggleConversation';
 
 registerAction2(class extends Action2 {
@@ -288,7 +300,19 @@ registerAction2(class extends Action2 {
 			category: Categories.View,
 			f1: true,
 			toggled: ConversationVisibleContext,
-			precondition: ContextKeyExpr.and(IsAuxiliaryWindowFocusedContext.toNegated(), IsSessionsWindowContext.negate())
+			precondition: ContextKeyExpr.and(IsAuxiliaryWindowFocusedContext.toNegated(), IsSessionsWindowContext.negate()),
+			menu: [
+				{
+					id: MenuId.LayoutControlMenuSubmenu,
+					group: '0_workbench_layout',
+					order: 1
+				},
+				{
+					id: MenuId.MenubarAppearanceMenu,
+					group: '2_workbench_layout',
+					order: 2
+				}
+			]
 		});
 	}
 
@@ -299,6 +323,46 @@ registerAction2(class extends Action2 {
 		alert(hidden
 			? localize('conversationHidden', "Conversation hidden")
 			: localize('conversationShown', "Conversation shown"));
+	}
+});
+
+export const ToggleSourcesVisibilityActionId = 'workbench.action.toggleSources';
+
+registerAction2(class extends Action2 {
+
+	constructor() {
+		super({
+			id: ToggleSourcesVisibilityActionId,
+			title: {
+				...localize2('toggleSources', "Toggle Sources Visibility"),
+				mnemonicTitle: localize({ key: 'miToggleSources', comment: ['&& denotes a mnemonic'] }, "&&Sources"),
+			},
+			category: Categories.View,
+			f1: true,
+			toggled: SourcesVisibleContext,
+			precondition: ContextKeyExpr.and(IsAuxiliaryWindowFocusedContext.toNegated(), IsSessionsWindowContext.negate()),
+			menu: [
+				{
+					id: MenuId.LayoutControlMenuSubmenu,
+					group: '0_workbench_layout',
+					order: 3
+				},
+				{
+					id: MenuId.MenubarAppearanceMenu,
+					group: '2_workbench_layout',
+					order: 3
+				}
+			]
+		});
+	}
+
+	run(accessor: ServicesAccessor): void {
+		const layoutService = accessor.get(IWorkbenchLayoutService);
+		const hidden = layoutService.isVisible(Parts.SOURCES_PART);
+		layoutService.setPartHidden(hidden, Parts.SOURCES_PART);
+		alert(hidden
+			? localize('sourcesHidden', "Sources hidden")
+			: localize('sourcesShown', "Sources shown"));
 	}
 });
 
@@ -415,6 +479,60 @@ MenuRegistry.appendMenuItems([
 				ContextKeyExpr.equals('config.workbench.sideBar.location', 'right')
 			),
 			order: 2
+		}
+	}, {
+		id: MenuId.LayoutControlMenu,
+		item: {
+			group: 'navigation',
+			command: {
+				id: ToggleConversationVisibilityActionId,
+				title: localize('toggleConversationLayout', "Toggle Conversation"),
+				icon: conversationLayoutIcon,
+				toggled: { condition: ConversationVisibleContext, icon: conversationLayoutIcon }
+			},
+			when: ContextKeyExpr.and(
+				IsAuxiliaryWindowContext.negate(),
+				ContextKeyExpr.or(
+					ContextKeyExpr.equals('config.workbench.layoutControl.type', 'toggles'),
+					ContextKeyExpr.equals('config.workbench.layoutControl.type', 'both'))
+			),
+			order: 1
+		}
+	}, {
+		id: MenuId.LayoutControlMenu,
+		item: {
+			group: 'navigation',
+			command: {
+				id: ToggleEditorVisibilityActionId,
+				title: localize('togglePreviewLayout', "Toggle Preview"),
+				icon: previewLayoutIcon,
+				toggled: { condition: MainEditorAreaVisibleContext, icon: previewLayoutIcon }
+			},
+			when: ContextKeyExpr.and(
+				IsAuxiliaryWindowContext.negate(),
+				ContextKeyExpr.or(
+					ContextKeyExpr.equals('config.workbench.layoutControl.type', 'toggles'),
+					ContextKeyExpr.equals('config.workbench.layoutControl.type', 'both'))
+			),
+			order: 2
+		}
+	}, {
+		id: MenuId.LayoutControlMenu,
+		item: {
+			group: 'navigation',
+			command: {
+				id: ToggleSourcesVisibilityActionId,
+				title: localize('toggleSourcesLayout', "Toggle Sources"),
+				icon: sourcesLayoutIcon,
+				toggled: { condition: SourcesVisibleContext, icon: sourcesLayoutIcon }
+			},
+			when: ContextKeyExpr.and(
+				IsAuxiliaryWindowContext.negate(),
+				ContextKeyExpr.or(
+					ContextKeyExpr.equals('config.workbench.layoutControl.type', 'toggles'),
+					ContextKeyExpr.equals('config.workbench.layoutControl.type', 'both'))
+			),
+			order: 3
 		}
 	}
 ]);
@@ -1393,6 +1511,9 @@ if (!isMacintosh || !isNative) {
 ToggleVisibilityActions.push(...[
 	CreateToggleLayoutItem(ToggleActivityBarVisibilityActionId, ContextKeyExpr.notEquals('config.workbench.activityBar.location', 'hidden'), localize('activityBar', "Activity Bar"), { whenA: ContextKeyExpr.equals('config.workbench.sideBar.location', 'left'), iconA: activityBarLeftIcon, iconB: activityBarRightIcon }),
 	CreateToggleLayoutItem(ToggleSidebarVisibilityAction.ID, SideBarVisibleContext, localize('sideBar', "Primary Side Bar"), { whenA: ContextKeyExpr.equals('config.workbench.sideBar.location', 'left'), iconA: panelLeftIcon, iconB: panelRightIcon }),
+	CreateToggleLayoutItem(ToggleConversationVisibilityActionId, ConversationVisibleContext, localize('conversation', "Conversation"), conversationLayoutIcon),
+	CreateToggleLayoutItem(ToggleEditorVisibilityActionId, MainEditorAreaVisibleContext, localize('preview', "Preview"), previewLayoutIcon),
+	CreateToggleLayoutItem(ToggleSourcesVisibilityActionId, SourcesVisibleContext, localize('sources', "Sources"), sourcesLayoutIcon),
 	CreateToggleLayoutItem(ToggleAuxiliaryBarAction.ID, AuxiliaryBarVisibleContext, localize('secondarySideBar', "Secondary Side Bar"), { whenA: ContextKeyExpr.equals('config.workbench.sideBar.location', 'left'), iconA: panelRightIcon, iconB: panelLeftIcon }),
 	CreateToggleLayoutItem(TogglePanelAction.ID, PanelVisibleContext, localize('panel', "Panel"), panelIcon),
 	CreateToggleLayoutItem(ToggleStatusbarVisibilityAction.ID, ContextKeyExpr.equals('config.workbench.statusBar.visible', true), localize('statusBar', "Status Bar"), statusBarIcon),
