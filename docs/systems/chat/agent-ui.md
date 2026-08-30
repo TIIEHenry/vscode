@@ -3,8 +3,8 @@ title: "Agent UI 清单：宿主、Widget、Copilot 边界"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-08-30
-summary: "本仓对话 UI 的三层：ChatWidget 零件、workbench 宿主（含违反 INV-TOPO 的 ChatEditor）、Sessions Part；标明 Copilot/entitlement 不可复用面"
+updated: 2026-08-31
+summary: "本仓对话 UI 的三层：ChatWidget 零件、workbench 宿主（含违反 INV-TOPO 的 ChatEditor）、Sessions Part；M0 壳 SourcesPart + titlebar 四钮已落 eb3ab146"
 ---
 
 # Agent UI 清单
@@ -19,10 +19,10 @@ summary: "本仓对话 UI 的三层：ChatWidget 零件、workbench 宿主（含
 
 ```text
 ┌─ 窗口壳（Parts / Grid）─────────────────────────────────────┐
-│  默认 Code（M0 @ fc6089a3）：CONVERSATION_PART 中心          │
-│              EDITOR_PART 在 End 列（Preview）                 │
+│  默认 Code（M0 @ eb3ab146）：CONVERSATION_PART 中心          │
+│              End 列 EDITOR_PART（Preview）+ SOURCES_PART     │
+│              titlebar 四钮 Nav/Conv/Preview/Sources          │
 │  Agents Window：SESSIONS_PART 中心 + 可选 EDITOR_PART       │
-│  Desktop 合同：End 下格 Sources 占位 — slot A 实现中        │
 └─────────────────────────────────────────────────────────────┘
         │ 嵌
 ┌─ 宿主（把 Widget 装进某个 Part / View / Editor）────────────┐
@@ -99,7 +99,7 @@ Desktop 合同：窗口壳 = Singularity/IDEA；Conversation 内 = 时间线 + I
 **对 B2 的含义：**
 
 - 拓扑上，Agents Window **已经证明**「非 Editor 中心 Part + Editor 可藏」在本仓可行。
-- 默认 Code 窗口在 **`fc6089a3` 亦已落地** 同构拓扑（`ConversationPart` 中心 + Editor End）；T1–T3 **验证**（compile/启动）仍 deferred。
+- 默认 Code 窗口在 **`eb3ab146` 亦已落地** 同构拓扑（`ConversationPart` 中心 + End Editor/Sources + titlebar 四钮）；compile/启动/EH **验证**仍 deferred（D3–D5）。
 - 壳合同上，它 **缺** Activity 通高与四钮，**多**了 session 多开网格 / Custom View Grid，**不能**拿来当文档壳交差（选项 C）。
 - S1 主路径仍是改 **默认 Code `Layout`**，而不是把生产入口改成 Agents Window。Sessions 是 **算法与 Part 样例**，不是产品壳。
 
@@ -139,7 +139,7 @@ adapter 是唯一反腐层。UI 可以暂时显示假时间线（spike 允许）
 | Input Dock / MessageQueue | `ChatInputPart` | **例外合同**在 spec §8.3，不能用 VS Code picker 顶替 |
 | 权限 CTA | 无对等（有 confirmation service） | 自研 ResponseSeat |
 | Preview File tabs | `EDITOR_PART` tabs | **同构**，应保留 |
-| Sources | Aux bar / SCM view / 无独立 Part | 需占位 Part 或 Aux 映射 |
+| Sources | `SOURCES_PART`（End 下格占位，M0 无真实语义） | 占位已落；ADR-051 展开语义仍 deferred |
 
 ## 8. 相关文档
 

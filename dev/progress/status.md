@@ -4,19 +4,14 @@ type: progress
 status: active
 phase: M0
 updated: 2026-08-31
-summary: "M0 壳 implemented（b283fe19）：Conversation + End Editor/Sources + 四钮；compile/演示/EH deferred"
+summary: "M0 壳 implemented（eb3ab146）：Conversation + End Editor/Sources + 四钮；compile/演示/EH deferred"
 ---
 
 # Development Progress
 
 ## Current Session
 
-- **M0 拓扑手术**（2026-08-31）fable **PASS-with-docs-refresh**。
-  - 方案 [m0-topology-surgery.md](../plans/m0-topology-surgery.md) **`implemented`**（代码事实）；compile/启动/EH 仍 deferred。
-  - 合入：`fc6089a3` Conversation 中心 → `d6b45573` Sources+四钮 → `b5631393` A+B merge → `b283fe19` footprint/映射刷新。
-  - 布局：中心 `ConversationPart`；End 列 Editor（Preview）+ `SourcesPart`；互斥 `Conversation∨(Editor∨Sources)`；titlebar 四钮 Nav/Conversation/Preview/Sources。
-  - **未** compile（调度约定）。剩余 → [deferred-gaps.md](deferred-gaps.md) D3–D5；D6 footprint 已闭。
-  - 工位池 A–D **idle**。
+- **并行**：A（D7 代码）、B（文档 stale 措辞）、C（grok M1 plan）；D/merge **idle**；compile/启动/EH deferred（D3–D5）。
 
 ## Loop 基础设施（2026-08-30）
 
