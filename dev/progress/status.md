@@ -11,6 +11,7 @@ summary: "M0 壳已落；D7 四钮 chrome 已收；M1 方案 proposed（Conversa
 
 ## Current Session
 
+- **M1 切片 2 Conversation 透镜骨架**：`ConversationPart` 槽 + `contrib/conversation` stub SessionBar / 时间线 / dock（confirmation 座位，无引擎）。
 - **D7 四钮 chrome**（`2dcd5a0a`）：默认窗 `LayoutControlMenu` 只留 Nav / Conversation / Preview / Sources；Panel/Aux 仍在 submenu。
 - **文档**（`c386d6bd`）：agent-ui / layout-state 去掉「slot A 未合入」。
 - **M1 方案** [m1-shell-followon.md](../plans/m1-shell-followon.md) **`proposed`**：下一波 Conversation 透镜（无引擎）→ Sources Files 列表。UA 引擎不进。Diff 深查看落点标 **FORK**（本波不选，未叫 fable）。

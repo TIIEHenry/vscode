@@ -27,7 +27,7 @@ summary: "默认 Code 窗口的 Part 枚举、SerializableGrid 描述符、Conve
 | `BANNER_PART` | `workbench.parts.banner` | 横幅 |
 | `ACTIVITYBAR_PART` | `workbench.parts.activitybar` | 左（或右）图标 rail；切换 Sidebar 容器 |
 | `SIDEBAR_PART` | `workbench.parts.sidebar` | 主侧栏 ViewContainer（资源管理器等） |
-| `CONVERSATION_PART` | `workbench.parts.conversation` | **中心锚点**（M0 占位 Part：标题 + 假时间线 + 假输入 dock） |
+| `CONVERSATION_PART` | `workbench.parts.conversation` | **中心锚点**（Part 只做槽：SessionBar / timeline / dock；透镜在 `contrib/conversation`，非 `EditorInput`） |
 | `EDITOR_PART` | `workbench.parts.editor` | **End 列上格**：EditorGroup + tabs + `EditorInput`（`IEditorService.openEditor` 仍落这里） |
 | `SOURCES_PART` | `workbench.parts.sources` | **End 列下格**：Sources 占位 Part（M0 无真实语义） |
 | `PANEL_PART` | `workbench.parts.panel` | 底（可左右）面板：终端、问题、输出 |
@@ -36,7 +36,7 @@ summary: "默认 Code 窗口的 Part 枚举、SerializableGrid 描述符、Conve
 | `SESSIONS_PART` | `workbench.parts.sessions` | **Agents Window 才装配**；默认 Code 窗口 grid **不出现** |
 | `CUSTOM_VIEW_GRID_PART` | `workbench.parts.customViewGrid` | Agents Window 全幅自定义视图 |
 
-`ConversationPart` 实现：`src/vs/workbench/browser/parts/conversation/conversationPart.ts`。它 **不是** `EditorInput` / Custom Editor / Sidebar ViewPane。
+`ConversationPart` 实现：`src/vs/workbench/browser/parts/conversation/conversationPart.ts`。它 **不是** `EditorInput` / Custom Editor / Sidebar ViewPane。产品透镜（SessionBar、stub 时间线、stub dock）由 `src/vs/workbench/contrib/conversation/` 填槽，`browser/parts` 不 import contrib。
 
 ## 2. 默认 grid 拓扑（M0）
 

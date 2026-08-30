@@ -1,0 +1,44 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+import assert from 'assert';
+import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { EditorInput } from '../../../../common/editor/editorInput.js';
+import { ConversationPart } from '../../../../browser/parts/conversation/conversationPart.js';
+import { Parts } from '../../../../services/layout/browser/layoutService.js';
+import { workbenchInstantiationService } from '../../workbenchTestServices.js';
+
+suite('ConversationPart', () => {
+
+	const store = ensureNoDisposablesAreLeakedInTestSuite();
+
+	function createPart(): ConversationPart {
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		const part = store.add(instantiationService.createInstance(ConversationPart));
+		const parent = document.createElement('div');
+		part.create(parent);
+		return part;
+	}
+
+	test('exposes SessionBar, timeline, and dock slots that can host content', () => {
+		const part = createPart();
+		const slots = part.getSlots();
+		assert.ok(slots);
+		assert.ok(slots.sessionBar);
+		assert.ok(slots.timeline);
+		assert.ok(slots.dock);
+
+		const fill = document.createElement('div');
+		fill.className = 'test-slot-fill';
+		slots.timeline.appendChild(fill);
+		assert.strictEqual(slots.timeline.querySelector('.test-slot-fill'), fill);
+	});
+
+	test('is the conversation Part, not an EditorInput', () => {
+		const part = createPart();
+		assert.ok(!(part instanceof EditorInput));
+		assert.deepStrictEqual(part.toJSON(), { type: Parts.CONVERSATION_PART });
+	});
+});
