@@ -21,7 +21,7 @@ summary: "P2/P3 延期缺口 SSOT；M0 compile/演示/EH 仍开；footprint 已�
 | D4 | P2 | **启动 T1–T3 演示**（目视：Conversation 中心、End Editor/Sources、互斥、四钮） | 本轮禁编译、无启动冒烟 | 集成 HEAD 启动后勾选 [m0-topology-surgery](../plans/m0-topology-surgery.md) 编译外三项 | M0 | open |
 | D5 | P2 | **EH 探针冒烟**（LSP + layout 类扩展） | 无 running EH probes；矩阵全为推定/待实测 | [eh-surface-matrix](../../docs/reference/code-oss-b2/eh-surface-matrix.md) 关键行标已实测 | M0 | open |
 | D6 | P3 | **Diff footprint 刷新** | slot C 已于 `b283fe19` 重测 `b5631393` | 页已更新 | docs | closed |
-| D7 | P3 | titlebar LayoutControlMenu 产品四钮与原生 Panel/Aux 共存（最多 6–7 钮） | M0 不编译不 demo；fable 判非 must-fix | when 条件或配置门收掉原生三钮，只留 Nav/Conv/Preview/Sources | M0 | open |
+| D7 | P3 | titlebar LayoutControlMenu 产品四钮与原生 Panel/Aux 共存 | `2dcd5a0a` 已从 LayoutControlMenu 去掉 Panel/Aux；留 submenu | 默认窗只见四钮 | M0 | closed |
 
 ## 维护规则
 
