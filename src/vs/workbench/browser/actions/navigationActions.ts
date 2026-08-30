@@ -270,7 +270,10 @@ abstract class BaseFocusAction extends Action2 {
 		} else {
 			switch (part) {
 				case Parts.EDITOR_PART:
-					neighbour = next ? Parts.PANEL_PART : Parts.SIDEBAR_PART;
+					neighbour = next ? Parts.PANEL_PART : Parts.CONVERSATION_PART;
+					break;
+				case Parts.CONVERSATION_PART:
+					neighbour = next ? Parts.EDITOR_PART : Parts.SIDEBAR_PART;
 					break;
 				case Parts.PANEL_PART:
 					neighbour = next ? Parts.AUXILIARYBAR_PART : Parts.EDITOR_PART;
@@ -285,14 +288,14 @@ abstract class BaseFocusAction extends Action2 {
 					neighbour = next ? Parts.SIDEBAR_PART : Parts.STATUSBAR_PART;
 					break;
 				case Parts.SIDEBAR_PART:
-					neighbour = next ? Parts.EDITOR_PART : Parts.ACTIVITYBAR_PART;
+					neighbour = next ? Parts.CONVERSATION_PART : Parts.ACTIVITYBAR_PART;
 					break;
 				default:
-					neighbour = Parts.EDITOR_PART;
+					neighbour = Parts.CONVERSATION_PART;
 			}
 		}
 
-		if (layoutService.isVisible(neighbour, activeWindow) || neighbour === Parts.EDITOR_PART) {
+		if (layoutService.isVisible(neighbour, activeWindow) || neighbour === Parts.EDITOR_PART || neighbour === Parts.CONVERSATION_PART) {
 			return neighbour;
 		}
 
@@ -303,6 +306,8 @@ abstract class BaseFocusAction extends Action2 {
 		let currentlyFocusedPart: Parts | undefined;
 		if (editorService.activeEditorPane?.hasFocus() || layoutService.hasFocus(Parts.EDITOR_PART)) {
 			currentlyFocusedPart = Parts.EDITOR_PART;
+		} else if (layoutService.hasFocus(Parts.CONVERSATION_PART)) {
+			currentlyFocusedPart = Parts.CONVERSATION_PART;
 		} else if (layoutService.hasFocus(Parts.ACTIVITYBAR_PART)) {
 			currentlyFocusedPart = Parts.ACTIVITYBAR_PART;
 		} else if (layoutService.hasFocus(Parts.STATUSBAR_PART)) {
@@ -315,7 +320,7 @@ abstract class BaseFocusAction extends Action2 {
 			currentlyFocusedPart = Parts.PANEL_PART;
 		}
 
-		layoutService.focusPart(currentlyFocusedPart ? this.findVisibleNeighbour(layoutService, currentlyFocusedPart, next) : Parts.EDITOR_PART, getActiveWindow());
+		layoutService.focusPart(currentlyFocusedPart ? this.findVisibleNeighbour(layoutService, currentlyFocusedPart, next) : Parts.CONVERSATION_PART, getActiveWindow());
 	}
 }
 

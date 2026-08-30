@@ -20,6 +20,8 @@
 | [B2 壳 / Agent UI 分析](docs/reference/code-oss-b2/INDEX.md) | 对照 Desktop 文档壳的本仓实现真相 |
 | [编码/校验](.github/copilot-instructions.md) | TypeScript、测试、分层 |
 | [源码组织](.github/instructions/source-code-organization.instructions.md) | 层、目标环境、DI |
+| [开发自动化 Loop](dev/loop/INDEX.md) | `/loop @dev/loop/loop-prompt.txt`（AgenticLoopDev submodule） |
+| [dev/loop/worktrees.md](dev/loop/worktrees.md) | 仓外并行 worktree 工位（`$REPO-WorkTrees`） |
 
 ## 架构摘要
 

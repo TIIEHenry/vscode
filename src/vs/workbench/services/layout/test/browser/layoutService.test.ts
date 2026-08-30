@@ -271,7 +271,7 @@ class VerticalMarginLayoutService extends TestLayoutService {
 	modernUICompact = false;
 	panelPosition = Position.BOTTOM;
 	panelAlignment: PanelAlignment = 'center';
-	visibleParts = new Set<Parts>([Parts.TITLEBAR_PART, Parts.STATUSBAR_PART, Parts.EDITOR_PART]);
+	visibleParts = new Set<Parts>([Parts.TITLEBAR_PART, Parts.STATUSBAR_PART, Parts.EDITOR_PART, Parts.CONVERSATION_PART]);
 
 	override isFloatingPanelsEnabled(): boolean { return this.floatingPanelsEnabled; }
 	override isModernUICompact(): boolean { return this.modernUICompact; }
@@ -298,17 +298,17 @@ suite('LayoutService - getFloatingPaneCompositeVerticalMargins', () => {
 	test('bottom panel top margin across editor visibility and top edge', () => {
 		const bottomPanel = (configure: (s: VerticalMarginLayoutService) => void) => margins(Parts.PANEL_PART, s => { s.visibleParts.add(Parts.PANEL_PART); configure(s); });
 		const actual = {
-			// Editor above the panel: the gap is between two cards.
+			// Conversation (center) above the panel: the gap is between two cards.
 			editorVisible: bottomPanel(() => { }),
 
-			// Maximized panel (editor hidden) below a title bar: it takes over that row.
-			maximizedUnderTitleBar: bottomPanel(s => { s.visibleParts.delete(Parts.EDITOR_PART); }),
+			// Maximized panel (conversation hidden) below a title bar: it takes over that row.
+			maximizedUnderTitleBar: bottomPanel(s => { s.visibleParts.delete(Parts.CONVERSATION_PART); }),
 
 			// Maximized panel with nothing above it: the top is now a window edge.
-			maximizedAtTopEdge: bottomPanel(s => { s.visibleParts.delete(Parts.EDITOR_PART); s.visibleParts.delete(Parts.TITLEBAR_PART); }),
+			maximizedAtTopEdge: bottomPanel(s => { s.visibleParts.delete(Parts.CONVERSATION_PART); s.visibleParts.delete(Parts.TITLEBAR_PART); }),
 
 			// Maximized panel with a banner above it: still not a window edge.
-			maximizedUnderBanner: bottomPanel(s => { s.visibleParts.delete(Parts.EDITOR_PART); s.visibleParts.delete(Parts.TITLEBAR_PART); s.visibleParts.add(Parts.BANNER_PART); }),
+			maximizedUnderBanner: bottomPanel(s => { s.visibleParts.delete(Parts.CONVERSATION_PART); s.visibleParts.delete(Parts.TITLEBAR_PART); s.visibleParts.add(Parts.BANNER_PART); }),
 		};
 
 		assert.deepStrictEqual(actual, {
@@ -339,9 +339,9 @@ suite('LayoutService - getFloatingPaneCompositeVerticalMargins', () => {
 			// Full-height bar with the status bar hidden: it does reach the window bottom.
 			sideBarBottomPanelCentered: margins(Parts.SIDEBAR_PART, s => { s.visibleParts.add(Parts.PANEL_PART); s.visibleParts.delete(Parts.STATUSBAR_PART); }),
 
-			// Maximized top panel: the editor it normally faces is hidden, so the panel now owns
+			// Maximized top panel: the conversation it normally faces is hidden, so the panel now owns
 			// the cluster's bottom edge and takes the perimeter gutter there.
-			topPanelMaximized: margins(Parts.PANEL_PART, s => { s.panelPosition = Position.TOP; s.visibleParts.add(Parts.PANEL_PART); s.visibleParts.delete(Parts.EDITOR_PART); s.visibleParts.delete(Parts.STATUSBAR_PART); }),
+			topPanelMaximized: margins(Parts.PANEL_PART, s => { s.panelPosition = Position.TOP; s.visibleParts.add(Parts.PANEL_PART); s.visibleParts.delete(Parts.CONVERSATION_PART); s.visibleParts.delete(Parts.STATUSBAR_PART); }),
 
 			// Experiment off: the parts are not cards at all.
 			disabled: margins(Parts.SIDEBAR_PART, s => { s.floatingPanelsEnabled = false; s.visibleParts.clear(); }),
@@ -411,13 +411,13 @@ suite('LayoutService - getFloatingEditorVerticalMargins', () => {
 			// A banner keeps the editor off the window edge.
 			bannerInsteadOfTitleBar: margins(s => { s.visibleParts.delete(Parts.TITLEBAR_PART); s.visibleParts.add(Parts.BANNER_PART); }),
 
-			// A top panel takes the place of the title bar, so the gap stays an inter-card one.
+			// Editor is in the End column, so a top panel is not stacked above it.
 			topPanelAtTopEdge: margins(s => { s.panelPosition = Position.TOP; s.visibleParts.add(Parts.PANEL_PART); s.visibleParts.delete(Parts.TITLEBAR_PART); }),
 
 			// Status bar hidden: the editor reaches the window bottom.
 			statusBarHidden: margins(s => { s.visibleParts.delete(Parts.STATUSBAR_PART); }),
 
-			// A bottom panel takes the place of the status bar.
+			// Editor is in the End column, so a bottom panel is not stacked below it.
 			bottomPanelStatusBarHidden: margins(s => { s.visibleParts.add(Parts.PANEL_PART); s.visibleParts.delete(Parts.STATUSBAR_PART); }),
 
 			// Experiment off.
@@ -428,9 +428,9 @@ suite('LayoutService - getFloatingEditorVerticalMargins', () => {
 			titleAndStatusBarVisible: { top: inner, bottom: margin },
 			titleBarHidden: { top: outer, bottom: margin },
 			bannerInsteadOfTitleBar: { top: inner, bottom: margin },
-			topPanelAtTopEdge: { top: margin, bottom: margin },
+			topPanelAtTopEdge: { top: outer, bottom: margin },
 			statusBarHidden: { top: inner, bottom: outer },
-			bottomPanelStatusBarHidden: { top: inner, bottom: inner },
+			bottomPanelStatusBarHidden: { top: inner, bottom: outer },
 			disabled: { top: 0, bottom: 0 },
 		});
 	});

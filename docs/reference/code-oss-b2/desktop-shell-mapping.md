@@ -18,10 +18,10 @@ summary: "ADR-052 四钮与 IA 区域投影到默认 workbench / Agents Window�
 | | 默认 Code 窗口 | Agents Window（`vs/sessions`） |
 |--|----------------|--------------------------------|
 | 入口 | `workbench.desktop.main` | `sessions.desktop.main` / `sessions.web.main` |
-| 中心 | `EDITOR_PART` | `SESSIONS_PART`（非 EditorInput） |
+| 中心 | `CONVERSATION_PART` | `SESSIONS_PART`（非 EditorInput） |
 | Activity | 有 | **省略** |
 | StatusBar | 有 | **省略** |
-| Editor 显隐 | 与 Panel 互斥（aux maximize 例外） | 可独立于 Sessions Part |
+| Editor 显隐 | 与 Conversation 互斥（aux maximize 例外） | 可独立于 Sessions Part |
 | 产品壳（四钮 + IDEA End） | 无 | 无 |
 | 对 B2 S1 | **手术对象** | **样例 / 禁止当成品壳** |
 
@@ -43,8 +43,8 @@ StatusBar
 |---------------------------|--------------|-------------|------|
 | Activity rail | `ACTIVITYBAR_PART` | **保留原生；不加四钮 chrome**（2026-08-30 拍板：四钮宿主改 titlebar 右上） | 通高已近似成立 |
 | Navigator body | `SIDEBAR_PART` | 保留；roster 换成产品 tab | `toggleRegion('navigatorBody')` ≙ `setSideBarHidden` + 记宽 |
-| Conversation | **无**。最近似：`ChatViewPane`（插件形）或 `ChatEditor`（违法） | **新 `ConversationPart`** | Sessions 的 `SESSIONS_PART` 是样例不是成品 |
-| Preview | `EDITOR_PART`（但在中心） | **同一 `EDITOR_PART` 挪到 End 上格** | 与 File tabs **同构**（spike §3.1） |
+| Conversation | **`CONVERSATION_PART`**（M0 占位） | 独立中心 Part | 无引擎接线；不是 ChatEditor |
+| Preview | `EDITOR_PART`（End 列） | **同一 `EDITOR_PART` 已挪到 End** | 与 File tabs **同构**（spike §3.1） |
 | Sources | 无独立格。SCM/Changes 常在 Sidebar 或 Panel | End **下格新占位 Part** 或临时 `PANEL`/`AUX` | spike：占位即可，不解决 ADR-051 展开语义 |
 | Bottom Panel | `PANEL_PART` | 保留；**不进四钮** | 对齐 ADR-047 / ADR-052 决策 3 |
 | StatusBar | `STATUSBAR_PART` | 保留 | |
@@ -59,12 +59,12 @@ StatusBar
 | 钮 | Desktop | 本仓现成 | 缺口 |
 |----|---------|----------|------|
 | Nav | `toggleRegion('navigatorBody')` | `setPartHidden(SIDEBAR)` + Activity 再点收起近 `setNavigatorPref` | 无 persist 宽的单一 `toggleRegion` |
-| Conv | `toggleRegion('conversation')` | **无 Part** | T3：新 Part + hidden key；INV-052-NO-DUAL-HIDE |
-| Prev | `toggleRegion('preview')` | `setEditorHidden` | T2 能藏，但会 **强制开 Panel** |
+| Conv | `toggleRegion('conversation')` | `setPartHidden(CONVERSATION_PART)` / `workbench.action.toggleConversation` | titlebar 四钮尚未接入 |
+| Prev | `toggleRegion('preview')` | `setPartHidden(EDITOR_PART)` / `workbench.action.toggleEditorVisibility` | 不再强制开 Panel |
 | Src | `toggleRegion('sources')` | 无 | 占位 Part；不能用底边细条（ADR-052 已废） |
 
 `INV-052-NO-DUAL-HIDE`：Conversation ∨ Workbench(Preview∨Sources) 至少一个可见。  
-本仓默认：Editor ∨ Panel 至少一个可见。 **两套不变量对象不同**，S1 必须改 `setEditorHidden` 互斥，改绑到 Conversation∨End，而不是继续绑 Panel。
+本仓默认（M0）：Conversation ∨ Editor 至少一个可见。Panel 不进此公式。Sources 下格仍缺，故 End 列暂以 Editor 代表 Workbench。
 
 ## 4. 禁止的偷换（选项 C）
 

@@ -59,7 +59,9 @@ Desktop 合同：窗口壳 = Singularity/IDEA；Conversation 内 = 时间线 + I
 
 **复用建议（分析，非正式决策）：** 列表虚拟化、markdown/code block content parts、输入编辑器补全基础设施值得当 donor。SessionBar、四钮、权限座位、Inbox 按 Desktop 自研。
 
-**复用姿态拍板（人类，2026-08-30，外仓父方案 §3）：** sessions / agent-host **配套功能面默认保留绝大部分**（Customizations 中心：Agents / Skills / Instructions / Hooks / MCP Servers / Plugins / Tools；Tasks / worktree 运行面；含功能，不只 UI）。姿态 = 默认保留、例外才换。例外：Copilot provider / entitlement / setup（§5 不可复用面不变）、会话真相归属（§6 不变）、Task ↔ client-tool 双执行面 owner（Go 后 ADR）、产品自研面（上句四项不变）。
+**复用姿态拍板（人类，2026-08-30，外仓父方案 §3 / ADR-061 决策 5）：** sessions / agent-host **配套功能面默认保留绝大部分**（Customizations 中心：Agents / Skills / Instructions / Hooks / MCP Servers / Plugins / Tools；Tasks / worktree 运行面；含功能，不只 UI）。姿态 = 默认保留、例外才换。例外：Copilot provider / entitlement / setup（§5 不可复用面不变）、会话真相归属（§6 不变）、Task ↔ client-tool 双执行面 owner（后续切片）。
+
+**明确进复用清单（人类补充 2026-08-30）：** 会话列表侧边栏（sessions viewlet / `agentSessions` 控件族）、对话列表、**权限确认弹框组件**（chat confirmation 零件：Allow/Skip 按钮、「N confirmation pending」摘要行、Input needed 徽标）。权限交互为**半自研**：座位位置与语义按 Desktop spec（权限座位在时间线内），实现零件优先复用本仓 confirmation 组件；SessionBar / Inbox / Conversation 透镜仍自研。
 
 ## 3. Workbench 宿主（默认 Code 窗口）
 

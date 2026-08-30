@@ -23,6 +23,7 @@ export const enum Parts {
 	BANNER_PART = 'workbench.parts.banner',
 	ACTIVITYBAR_PART = 'workbench.parts.activitybar',
 	SIDEBAR_PART = 'workbench.parts.sidebar',
+	CONVERSATION_PART = 'workbench.parts.conversation',
 	PANEL_PART = 'workbench.parts.panel',
 	AUXILIARYBAR_PART = 'workbench.parts.auxiliarybar',
 	SESSIONS_PART = 'workbench.parts.sessions',
@@ -202,14 +203,16 @@ export function getFloatingOuterEdgeOwners(layoutService: IWorkbenchLayoutServic
 		? [
 			...sideBarGroup,
 			...(panelInLeftSequence ? panelGroup : []),
-			Parts.EDITOR_PART,
+			Parts.CONVERSATION_PART,
 			...(panelInRightSequence ? panelGroup : []),
+			Parts.EDITOR_PART,
 			Parts.AUXILIARYBAR_PART
 		]
 		: [
 			Parts.AUXILIARYBAR_PART,
-			...(panelInLeftSequence ? panelGroup : []),
 			Parts.EDITOR_PART,
+			...(panelInLeftSequence ? panelGroup : []),
+			Parts.CONVERSATION_PART,
 			...(panelInRightSequence ? panelGroup : []),
 			...[...sideBarGroup].reverse() // activity bar is outermost on the right edge
 		];
@@ -352,8 +355,8 @@ export function getFloatingPaneCompositeVerticalOuterEdges(
 	const siblingStatus = getFloatingSidebarSiblingToEditorStatus(layoutService);
 	const isSiblingToEditor = partId === Parts.SIDEBAR_PART ? siblingStatus.sideBar : siblingStatus.auxBar;
 	const facesPanelAbove = panelVisible && panelPosition === Position.TOP && isSideBar && isSiblingToEditor;
-	const facesEditorAbove = partId === Parts.PANEL_PART && panelPosition === Position.BOTTOM && layoutService.isVisible(Parts.EDITOR_PART, targetWindow);
-	const facesEditorBelow = partId === Parts.PANEL_PART && panelPosition === Position.TOP && layoutService.isVisible(Parts.EDITOR_PART, targetWindow);
+	const facesEditorAbove = partId === Parts.PANEL_PART && panelPosition === Position.BOTTOM && layoutService.isVisible(Parts.CONVERSATION_PART);
+	const facesEditorBelow = partId === Parts.PANEL_PART && panelPosition === Position.TOP && layoutService.isVisible(Parts.CONVERSATION_PART);
 	const facesPanelBelow = panelVisible && panelPosition === Position.BOTTOM && isSideBar && isSiblingToEditor;
 
 	return {
@@ -393,11 +396,10 @@ export function getFloatingEditorVerticalOuterEdges(layoutService: IWorkbenchLay
 		return { top: false, bottom: false };
 	}
 
-	const panelVisible = layoutService.isVisible(Parts.PANEL_PART);
-	const panelPosition = layoutService.getPanelPosition();
+	// Editor lives in the End column; it is not stacked with the bottom/top panel.
 	return {
-		top: !(panelVisible && panelPosition === Position.TOP),
-		bottom: !(panelVisible && panelPosition === Position.BOTTOM),
+		top: true,
+		bottom: true,
 	};
 }
 
@@ -418,7 +420,10 @@ function getFloatingHorizontalPanelOuterEdges(layoutService: IWorkbenchLayoutSer
 
 	const sideBarSideReached = !layoutService.isVisible(Parts.ACTIVITYBAR_PART)
 		&& (!layoutService.isVisible(Parts.SIDEBAR_PART) || sideBarSiblingToEditor);
-	const auxSideReached = !layoutService.isVisible(Parts.AUXILIARYBAR_PART) || auxSiblingToEditor;
+	const auxSideReached = (
+		!layoutService.isVisible(Parts.EDITOR_PART, mainWindow) &&
+		!layoutService.isVisible(Parts.AUXILIARYBAR_PART)
+	) || auxSiblingToEditor;
 
 	return sideBarLeft
 		? { left: sideBarSideReached, right: auxSideReached }

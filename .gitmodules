@@ -1,0 +1,3 @@
+[submodule "dev/loop"]
+	path = dev/loop
+	url = git@github.com:TIIEHenry/AgenticLoopDev.git

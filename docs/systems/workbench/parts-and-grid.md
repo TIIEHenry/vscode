@@ -4,7 +4,7 @@ type: architecture
 status: accepted
 phase: N/A
 updated: 2026-08-30
-summary: "默认 Code 窗口的 Part 枚举、SerializableGrid 描述符、setPartHidden/setEditorHidden 约束；B2 S1 手术的代码锚点"
+summary: "默认 Code 窗口的 Part 枚举、SerializableGrid 描述符、Conversation∨Editor 显隐不变量；B2 S1 M0 拓扑锚点"
 ---
 
 # Workbench UI 框架：Parts、Grid、显隐
@@ -27,16 +27,17 @@ summary: "默认 Code 窗口的 Part 枚举、SerializableGrid 描述符、setPa
 | `BANNER_PART` | `workbench.parts.banner` | 横幅 |
 | `ACTIVITYBAR_PART` | `workbench.parts.activitybar` | 左（或右）图标 rail；切换 Sidebar 容器 |
 | `SIDEBAR_PART` | `workbench.parts.sidebar` | 主侧栏 ViewContainer（资源管理器等） |
-| `EDITOR_PART` | `workbench.parts.editor` | **中心锚点**：EditorGroup + tabs + `EditorInput` |
+| `CONVERSATION_PART` | `workbench.parts.conversation` | **中心锚点**（M0 占位 Part：标题 + 假时间线 + 假输入 dock） |
+| `EDITOR_PART` | `workbench.parts.editor` | **End 列**：EditorGroup + tabs + `EditorInput`（`IEditorService.openEditor` 仍落这里） |
 | `PANEL_PART` | `workbench.parts.panel` | 底（可左右）面板：终端、问题、输出 |
-| `AUXILIARYBAR_PART` | `workbench.parts.auxiliarybar` | 对侧栏（Secondary Side Bar） |
+| `AUXILIARYBAR_PART` | `workbench.parts.auxiliarybar` | 对侧栏（Secondary Side Bar）；默认仍可关 |
 | `STATUSBAR_PART` | `workbench.parts.statusbar` | 底栏 |
 | `SESSIONS_PART` | `workbench.parts.sessions` | **Agents Window 才装配**；默认 Code 窗口 grid **不出现** |
 | `CUSTOM_VIEW_GRID_PART` | `workbench.parts.customViewGrid` | Agents Window 全幅自定义视图 |
 
-B2 要新增的 `ConversationPart` **今天不存在**。最接近的现成非 editor 中心面是 `SESSIONS_PART`，但只挂在 Sessions 窗口。
+`ConversationPart` 实现：`src/vs/workbench/browser/parts/conversation/conversationPart.ts`。它 **不是** `EditorInput` / Custom Editor / Sidebar ViewPane。
 
-## 2. 默认 grid 拓扑（T1 的现状）
+## 2. 默认 grid 拓扑（M0）
 
 `Layout.createGridDescriptor()` 生成垂直根：
 
@@ -44,45 +45,42 @@ B2 要新增的 `ConversationPart` **今天不存在**。最接近的现成非 e
 VERTICAL
 ├── TITLEBAR
 ├── BANNER（常 hidden）
-├── middleSection（水平串：Activity | Sidebar | editor+panel 枝 | AuxiliaryBar）
+├── middleSection（水平串：Activity | Sidebar | conversation+panel 枝 | EditorPart | AuxiliaryBar）
 └── STATUSBAR
 ```
 
-`arrangeMiddleSectionNodes` 在 **水平 Panel**（默认底栏）时：
+水平 Panel（默认底栏）时：中心枝是纵向 `[ ConversationPart, PANEL ]`；`EDITOR_PART` 在 End 列（auxiliary bar 同侧、更靠内）。Aux 仍是最外侧叶，默认可关。
 
-- 中间一枝是 **纵向** `[ editorNodes, PANEL ]`（或 panel 在上）
-- `editorNodes` 再水平切 Sidebar / Editor / AuxiliaryBar（视 panel alignment）
-- ActivityBar 插在最左或最右（跟 `sideBar.location`）
+**锚点事实：** 中间枝的「主面积」叶子是 `{ type: Parts.CONVERSATION_PART }`。Editor 仍走 `IEditorService.openEditor`，出现在 End 列原生 tabs。
 
-**锚点事实：** 中间枝的「主面积」叶子是 `{ type: Parts.EDITOR_PART }`。没有第三种中心叶子。这就是 spike T1：「布局默认 editor 是 grid 锚点」。
-
-`arrangeEditorNodes` 在只有 editor 时直接返回 editor 叶，`size = availableHeight`。Sidebar / Aux 是 editor 的兄弟，不是替代中心。
+`arrangeCenterSectionNodes` 在 Conversation 没有水平兄弟时直接返回 conversation 叶。Sidebar / Editor / Aux 是 Conversation 的水平兄弟或更外层邻居，取决于 panel alignment。
 
 ## 3. 几何 vs ADR-052「Activity 通高」
 
 - Activity 在 **middleSection**，上接 TitleBar、下接 StatusBar → **rail 碰到 StatusBar**，与 ADR-052「通高到 StatusBar」同几何量级。
-- 默认 **底 Panel 与 Editor 同枝**，不钻到 Activity 底下（Activity 是更外层水平邻居）。这与 ADR-052「Bottom Panel 不钻 Activity」一致。
+- 默认 **底 Panel 与 Conversation 同枝**，不钻到 Activity 底下（Activity 是更外层水平邻居）。这与 ADR-052「Bottom Panel 不钻 Activity」一致。
 - Activity **不是** 第四 root；它仍是 middle 的一个叶。
 - Activity **默认没有**「底栏四钮」。四钮是 Desktop chrome，本仓只有 ViewContainer 图标 + 账户/管理齿轮（`activitybarPart` / `globalCompositeBar`）。
 
 `workbench.activityBar.location` 可把 Activity 藏进 Sidebar 顶或关：改壳时这是 EH/`viewsContainers` 的冲突面，见 [eh-surface-notes](../../reference/code-oss-b2/eh-surface-notes.md)。
 
-## 4. 显隐 API（T2 / T3 相关）
+## 4. 显隐 API（T2 / T3）
 
 `IWorkbenchLayoutService.setPartHidden(hidden, part)` → `Layout` 分发：
 
 | Part | 私有实现 | 关键约束（读自 `layout.ts`） |
 |------|----------|------------------------------|
-| `EDITOR_PART` | `setEditorHidden` | 写入 `EDITOR_HIDDEN`；`workbenchGrid.setViewVisible(editorPartView, !hidden)`。**若隐藏 editor 且 panel 也不可见且 aux 未 maximize → 强制 `setPanelHidden(false)`**（「editor 与 panel 不能同时藏」） |
-| `PANEL_PART` | `setPanelHidden` | 对称：藏 panel 时若 editor 已藏会顶开 editor（aux maximize 例外） |
+| `CONVERSATION_PART` | `setConversationHidden` | 写入 `conversation.hidden`；CSS `noconversation`。**若隐藏 Conversation 且 Editor 也不可见且 aux 未 maximize → 强制显示 Editor** |
+| `EDITOR_PART` | `setEditorHidden` | 写入 `EDITOR_HIDDEN`。**不再**强制弹出 Panel。**若隐藏 Editor 且 Conversation 也不可见且 aux 未 maximize → 强制显示 Conversation** |
+| `PANEL_PART` | `setPanelHidden` | 可独立藏；maximize panel = 藏 Conversation（中心叶） |
 | `SIDEBAR_PART` | `setSideBarHidden` | 可独立藏 |
-| `AUXILIARYBAR_PART` | `setAuxiliaryBarHidden` | 可独立藏；maximize aux 会挤掉 editor |
+| `AUXILIARYBAR_PART` | `setAuxiliaryBarMaximized` / `setAuxiliaryBarHidden` | 可独立藏；maximize aux 会挤掉 Conversation + Editor + Panel + Sidebar |
 | `ACTIVITYBAR_PART` | `setActivityBarHidden` | 可独立藏 |
 | `STATUSBAR_PART` | 对应 hidden key | 可独立藏 |
 
-**对 spike 的纠正：** 「vscode 传统上 editor part 不可藏」**不成立**。`EDITOR_HIDDEN` 与 `setEditorHidden` 是一等运行时状态；Zen Mode 只是常见「只留 editor」的产品预设，不是 API 禁藏。T2（整体隐藏 EditorPart）在 **默认窗口已经能做**，但必须接受 **「Preview 关且 Sources/Panel 也关」时框架会把 Panel 顶开**——这正好撞上 INV-052-NO-DUAL-HIDE 的另一面：本仓不变量是 **Editor ∨ Panel**，Desktop 是 **Conversation ∨ Workbench**。映射时不能直接复用这条。
+不变量是 **Conversation ∨ Editor**（INV-052-NO-DUAL-HIDE）。命令：`workbench.action.toggleConversation`、`workbench.action.toggleEditorVisibility`。
 
-CSS class：`LayoutClasses.MAIN_EDITOR_AREA_HIDDEN` 等，随 `getLayoutClasses()` 打在 `mainContainer`。
+CSS class：`LayoutClasses.MAIN_EDITOR_AREA_HIDDEN` / `CONVERSATION_HIDDEN` 等，随 `getLayoutClasses()` 打在 `mainContainer`。
 
 ## 5. 功能如何挂上 Part（不是改 Layout）
 
@@ -96,23 +94,14 @@ CSS class：`LayoutClasses.MAIN_EDITOR_AREA_HIDDEN` 等，随 `getLayoutClasses(
 
 **推论（INV-TOPO）：** 任何 `EditorInput`（含 `ChatEditorInput`、Custom Editor）都落在 `EDITOR_PART` 的 tab 模型里。把 Conversation 做成 editor pane = 中心仍是 EditorPart。S0 在框架层就被这条插入面锁死。
 
-## 6. S1 手术会碰到的代码面
+## 6. M0 已落地的代码面
 
-按风险（与 spike §4.1 一致）：
-
-1. **`createGridDescriptor` / `arrangeMiddleSectionNodes` / `arrangeEditorNodes`**  
-   必须能描述：中心叶 = 新 Part，End 列 = `EDITOR_PART`（可再竖切占位 Sources）。  
-   `SerializableGrid` 本身支持任意排列；**硬的是**所有假定「中间 = editor」的邻居计算、focus、maximize、panel alignment。
-2. **`getVisibleNeighborPart`**  
-   邻居白名单目前是 Activity/Editor/Panel/Aux/Sidebar/Status/Title，**不含** `SESSIONS_PART`，将来也不含未登记的 ConversationPart。
-3. **`setEditorHidden` 与 panel 互斥**  
-   End 列 Preview 关闭时，若 Sources 不是 Panel、又不能同时藏 editor+panel，会和四钮「只关 Preview」打架。S1 必须改这条互斥，或把 Sources 做成独立 Part（spike 已倾向占位 Part）。
-4. **Part 注册与 `getPart`**  
-   新 Part 要进 `Layout` 的 part 表、`createWorkbenchLayout` 的 view map（约 `layout.ts` 1668 行附近 `[Parts.EDITOR_PART]: this.editorPartView`）。
-5. **序列化 / 工作区 layout 状态**  
-   `LayoutStateKeys.EDITOR_HIDDEN` 等；新中心叶要有自己的 hidden key，否则重启丢拓扑。
-6. **辅助窗口**  
-   `IAuxiliaryWindowService` 复用 editor part；挪位后 aux window 仍应是「配套编辑器」，不要变成第二 Conversation。
+1. **`createGridDescriptor` / `arrangeMiddleSectionNodes` / `arrangeCenterSectionNodes`** — 中心叶 = `CONVERSATION_PART`，End 列 = `EDITOR_PART`。Sources 下格仍未做。
+2. **`getVisibleNeighborPart`** — 白名单已含 `CONVERSATION_PART`。
+3. **互斥** — `setEditorHidden` / `setConversationHidden` / `LayoutStateModel.applyOverrides`：Conversation ∨ Editor。Panel 不再被强制弹出。
+4. **注册** — `Parts.CONVERSATION_PART`；`ConversationPart` eager singleton（`IConversationPartService`）；`createWorkbenchLayout` view map；`workbench.ts` `createPart` 循环。
+5. **storage keys** — `workbench.conversation.hidden`（runtime）、`workbench.editor.size`（End 列宽）。Workbench grid 每次启动从描述符重建，不读旧 grid JSON。
+6. **辅助窗口** — 仍复用 `EDITOR_PART`；Conversation 只在主窗口。
 
 ## 7. Modern UI / floating panels
 
@@ -121,4 +110,4 @@ CSS class：`LayoutClasses.MAIN_EDITOR_AREA_HIDDEN` 等，随 `getLayoutClasses(
 ## 8. 相关文档
 
 - [Workbench 概览](overview.md) · [壳映射](../../reference/code-oss-b2/desktop-shell-mapping.md) · [T1–T3](../../reference/code-oss-b2/spike-t1-t3-code-facts.md)
-- `src/vs/workbench/browser/parts/{activitybar,sidebar,editor,panel,statusbar}/`
+- `src/vs/workbench/browser/parts/{activitybar,sidebar,conversation,editor,panel,statusbar}/`
