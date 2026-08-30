@@ -6,6 +6,7 @@
 import './media/sourcesPart.css';
 import { $, append } from '../../../../base/browser/dom.js';
 import { LayoutPriority } from '../../../../base/browser/ui/splitview/splitview.js';
+import { Emitter, Event } from '../../../../base/common/event.js';
 import { localize } from '../../../../nls.js';
 import { InstantiationType, registerSingleton } from '../../../../platform/instantiation/common/extensions.js';
 import { createDecorator } from '../../../../platform/instantiation/common/instantiation.js';
@@ -19,16 +20,28 @@ export const ISourcesPartService = createDecorator<ISourcesPartService>('sources
 export interface ISourcesPartService {
 	readonly _serviceBrand: undefined;
 
+	readonly onDidRegisterContentHost: Event<HTMLElement>;
+	readonly contentHost: HTMLElement | undefined;
+
 	focus(): void;
 }
 
 /**
  * End-column workbench part for the Agent IDE shell (below Preview / Editor).
- * Placeholder chrome only in M0: no SCM, no engine, no EditorInput.
+ * Browser-layer slot only; Files list UI is contributed from `workbench/contrib/sources`.
  */
 export class SourcesPart extends Part implements ISourcesPartService {
 
 	declare readonly _serviceBrand: undefined;
+
+	private readonly _onDidRegisterContentHost = this._register(new Emitter<HTMLElement>());
+	readonly onDidRegisterContentHost = this._onDidRegisterContentHost.event;
+
+	private _contentHost: HTMLElement | undefined;
+
+	get contentHost(): HTMLElement | undefined {
+		return this._contentHost;
+	}
 
 	//#region IView
 
@@ -69,9 +82,9 @@ export class SourcesPart extends Part implements ISourcesPartService {
 
 	protected override createContentArea(parent: HTMLElement): HTMLElement {
 		const content = append(parent, $('.content'));
-
-		const body = append(content, $('.sources-placeholder'));
-		body.textContent = localize('sourcesPart.bodyPlaceholder', "Sources");
+		const host = append(content, $('.sources-content-host'));
+		this._contentHost = host;
+		this._onDidRegisterContentHost.fire(host);
 
 		return content;
 	}

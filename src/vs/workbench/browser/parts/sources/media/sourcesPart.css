@@ -31,11 +31,8 @@
 	overflow: hidden;
 }
 
-.monaco-workbench .part.sources .sources-placeholder {
+.monaco-workbench .part.sources .sources-content-host {
 	flex: 1;
 	min-height: 0;
-	overflow: auto;
-	padding: 16px;
-	color: var(--vscode-descriptionForeground);
-	font-size: 13px;
+	overflow: hidden;
 }

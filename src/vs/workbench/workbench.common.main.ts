@@ -263,6 +263,9 @@ import './contrib/files/browser/explorerViewlet.js';
 import './contrib/files/browser/fileActions.contribution.js';
 import './contrib/files/browser/files.contribution.js';
 
+// Sources (End column Files list projection)
+import './contrib/sources/browser/sources.contribution.js';
+
 // Bulk Edit
 import './contrib/bulkEdit/browser/bulkEditService.js';
 import './contrib/bulkEdit/browser/preview/bulkEdit.contribution.js';
