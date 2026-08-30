@@ -4,7 +4,7 @@ type: reference
 status: accepted
 phase: N/A
 updated: 2026-08-31
-summary: "ADR-052 四钮与 IA 区域投影到默认 workbench / Agents Window；M0 拓扑与四钮 wiring 已落 b5631393"
+summary: "ADR-052 四钮与 IA 区域投影到默认 workbench / Agents Window；M1 透镜骨架 + Sources Files 列表 + D7 四钮已落"
 ---
 
 # Desktop 壳合同 ↔ 本仓 Parts 映射
@@ -43,12 +43,12 @@ StatusBar
 |---------------------------|--------------|-------------|------|
 | Activity rail | `ACTIVITYBAR_PART` | **保留原生；不加四钮 chrome**（2026-08-30 拍板：四钮宿主改 titlebar 右上） | 通高已近似成立 |
 | Navigator body | `SIDEBAR_PART` | 保留；roster 换成产品 tab | `toggleRegion('navigatorBody')` ≙ `setSideBarHidden` + 记宽 |
-| Conversation | **`CONVERSATION_PART`**（M0 占位） | 独立中心 Part | 无引擎接线；不是 ChatEditor |
+| Conversation | **`CONVERSATION_PART`**（`contrib/conversation` 透镜骨架：SessionBar / stub 时间线 / stub dock） | 独立中心 Part | 无引擎接线；不是 ChatEditor |
 | Preview | `EDITOR_PART`（End 列） | **同一 `EDITOR_PART` 已挪到 End** | 与 File tabs **同构**（spike §3.1） |
-| Sources | 无独立格。SCM/Changes 常在 Sidebar 或 Panel | **`SOURCES_PART`**（End 下格占位） | spike：占位即可，不解决 ADR-051 展开语义。**已落** `b5631393` |
+| Sources | 无独立格。SCM/Changes 常在 Sidebar 或 Panel | **`SOURCES_PART`**（End 下格；`contrib/sources` Files 列表投影） | Files 列表已落；ADR-051 Changes/Diff 仍 deferred |
 | Bottom Panel | `PANEL_PART` | 保留；**不进四钮** | 对齐 ADR-047 / ADR-052 决策 3 |
 | StatusBar | `STATUSBAR_PART` | 保留 | |
-| 右缘 rail | `AUXILIARYBAR_PART` | **默认关**（INV-052-NO-RIGHT-RAIL） | 布局类扩展爱往这里打，记入 EH 矩阵 |
+| 右缘 rail | `AUXILIARYBAR_PART` | **合同默认关**（INV-052-NO-RIGHT-RAIL） | 布局类扩展爱往这里打，记入 EH 矩阵；**HEAD 仍可能被 Chat 容器**（`ViewContainerLocation.AuxiliaryBar` + `isDefault: true`）**拉开关** |
 | Titlebar | `TITLEBAR_PART`（菜单 + command center + 右上 layout controls） | **按 vscode 原生来**（2026-08-30 拍板）；四钮宿主 = 右上 layout controls 簇（原生 Sidebar/Panel/Aux 三钮同族扩展） | 不再自研顶部 chrome |
 | SessionBar | Chat 标题条 / sessions `sessionHeader` | Conversation 透镜内自研 chrome | ADR-052 NO-SUBLAYOUT |
 
@@ -61,9 +61,9 @@ StatusBar
 | Nav | `toggleRegion('navigatorBody')` | `workbench.action.toggleSidebarVisibility` → `setPartHidden(SIDEBAR)`；**已注册** `LayoutControlMenu` | 无 persist 宽的单一 `toggleRegion` |
 | Conv | `toggleRegion('conversation')` | `workbench.action.toggleConversation` → `setPartHidden(CONVERSATION_PART)`；**已注册** `LayoutControlMenu` | — |
 | Prev | `toggleRegion('preview')` | `workbench.action.toggleEditorVisibility` → `setPartHidden(EDITOR_PART)`；**已注册** `LayoutControlMenu` | 不再强制开 Panel |
-| Src | `toggleRegion('sources')` | `workbench.action.toggleSources` → `setPartHidden(SOURCES_PART)`；**已注册** `LayoutControlMenu` | 占位 Part；不能用底边细条（ADR-052 已废） |
+| Src | `toggleRegion('sources')` | `workbench.action.toggleSources` → `setPartHidden(SOURCES_PART)`；**已注册** `LayoutControlMenu` | Files 列表已落；Changes tab 未做；不能用底边细条（ADR-052 已废） |
 
-> **HEAD `b5631393`（A+B merge）**：默认窗口已有 Conversation 中心 + End 列（Editor 上 / Sources 下）+ titlebar 四钮 wiring。**compile / 启动演示 / EH 探针仍 deferred** → [deferred-gaps](../../../dev/progress/deferred-gaps.md)。
+> **HEAD（M1）**：默认窗口已有 Conversation 透镜骨架 + End 列（Editor 上 / Sources Files 列表下）+ titlebar 产品四钮（D7：主簇仅 Nav / Conversation / Preview / Sources）。**compile / 启动演示 / EH 探针仍 deferred** → [deferred-gaps](../../../dev/progress/deferred-gaps.md)。
 
 `INV-052-NO-DUAL-HIDE`：Conversation ∨ Workbench(Preview∨Sources) 至少一个可见。  
 本仓默认（M0）：**Conversation ∨ (Editor ∨ Sources)** 至少一个可见（`forceShownAgentShellPart`）。Panel 不进此公式。

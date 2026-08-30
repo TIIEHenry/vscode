@@ -3,8 +3,8 @@ title: "配套 IDE 设施：files / SCM / terminal / debug"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-08-30
-summary: "Explorer、SCM/git、Terminal、Debug 是配套设施不是 Conversation；默认落点与 Desktop Sources/Diff 映射张力"
+updated: 2026-08-31
+summary: "Explorer、SCM/git、Terminal、Debug 是配套设施不是 Conversation；Sources Files 列表已在 contrib/sources；Changes/Diff FORK 仍 parked"
 ---
 
 # 配套 IDE 设施：files / SCM / terminal / debug
@@ -23,7 +23,7 @@ experience-principles §2 把产品拆成两层合同：
 
 | 层 | 本仓对应 |
 |----|----------|
-| **主工作流程** | Conversation（今天无 Part；禁止用 `ChatEditor` / Copilot 侧栏冒充） |
+| **主工作流程** | Conversation（`CONVERSATION_PART` + `contrib/conversation` 透镜；禁止用 `ChatEditor` / Copilot 侧栏冒充） |
 | **配套设施** | 导航、文件编辑/预览、终端、Changes、Diff、底 Panel、StatusBar |
 
 `files` / `scm`（+ `git`）/ `terminal` / `debug` 落在第二层。它们走与扩展相同的插入面：`ViewContainer` → Sidebar / Panel / AuxiliaryBar；`EditorPane` + `EditorInput` → `EDITOR_PART`。功能代码 **不 new Part**。
@@ -87,9 +87,9 @@ Desktop IA §4：
 | 在 Sources 再挂一棵同步树当「第二 Explorer」 | 双权威；与 IA「权威仍在 Navigator Files」冲突 |
 | 用 Open Editors 冒充 Sources Files | Open Editors 是 `EDITOR_PART` 打开集，不是工作区投影 |
 
-S1 合法路径：树继续由 Sidebar Explorer 拥有；若 End 需要 Files tab，做 **只读/点击打开** 的列表投影，打开目标仍是 Preview（`EDITOR_PART`），不复制 `IExplorerService` 真相。
+S1 合法路径：树继续由 Sidebar Explorer 拥有；End Sources 做 **只读/点击打开** 的列表投影，打开目标仍是 Preview（`EDITOR_PART`），不复制 `IExplorerService` 真相。
 
-`desktop-shell-mapping`：Sources 今日无独立格，SCM/Changes 常在 Sidebar 或 Panel。占位 Part 解决的是 **槽**，不是把 Explorer 或 SCM 树塞进下格就算 Files。
+**M1 已落：** `contrib/sources`（`SourcesFilesList`）在 `SOURCES_PART` 槽内提供 Files 列表投影；树权威仍在 Sidebar Explorer。Changes / Diff 路由仍按 §5 FORK，未搬进 End 下格。
 
 ## 5. Diff 深查看 ↔ Changes 清单（映射张力）
 

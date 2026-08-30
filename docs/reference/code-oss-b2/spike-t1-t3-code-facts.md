@@ -4,7 +4,7 @@ type: reference
 status: accepted
 phase: N/A
 updated: 2026-08-31
-summary: "S1 三个硬测试点：M0 代码面已落 b5631393（Conversation 中心 + End Editor/Sources + 四钮）；compile/启动/EH 仍 deferred"
+summary: "S1 三个硬测试点：M1 已落（透镜骨架 + Sources Files 列表 + D7 四钮）；compile/启动/EH 仍 deferred"
 ---
 
 # Spike T1–T3：代码事实
@@ -39,7 +39,7 @@ S1 最小证明：默认 Code 窗口启动后，中心 DOM 对应新 Part，文�
 | 来源 | 事实 |
 |------|------|
 | 默认窗口 | `ConversationPart` + `setConversationHidden`；命令 `workbench.action.toggleConversation` |
-| `SourcesPart` | End 下格占位；`workbench.action.toggleSources` |
+| `SourcesPart` | End 下格；`contrib/sources` Files 列表投影；`workbench.action.toggleSources` |
 | `SessionsPart` | 自有 `_visible` / grid；LAYOUT 写明 Sessions 与 Editor 可独立显隐 |
 | `INV-052-NO-DUAL-HIDE` | Desktop：Conversation ∨ Workbench ≥ 1 |
 | 本仓默认 | **Conversation ∨ (Editor ∨ Sources) ≥ 1**（`forceShownAgentShellPart`） |
@@ -48,20 +48,21 @@ S1 最小证明：默认 Code 窗口启动后，中心 DOM 对应新 Part，文�
 
 ## M0 剩余（验证，非代码）
 
-| 项 | HEAD `b5631393` | 负责 |
+| 项 | HEAD（M1） | 负责 |
 |----|-----------------|------|
-| Sources 占位 Part（End 下格） | **已合入** | — |
-| titlebar layout controls 四钮 | **已合入** | — |
+| Sources Files 列表（End 下格） | **已合入**（M1） | — |
+| titlebar layout controls 四钮（D7） | **已合入**（M1） | — |
+| Conversation 透镜骨架 | **已合入**（M1） | — |
 | 编译 / 启动 T1–T3 演示 | **未跑** | deferred → [deferred-gaps](../../../dev/progress/deferred-gaps.md) D3–D4 |
 | EH 探针冒烟 | **未跑** | deferred → D5；矩阵见 [eh-surface-matrix](eh-surface-matrix.md) |
 
 ## 建议的 spike 验证顺序（与代码硬度一致）
 
-**代码面（T1–T3 拓扑 + Sources + 四钮）已在 `b5631393` 落地**；下列为 **验证** 顺序，本轮 defer：
+**代码面（T1–T3 拓扑 + M1 内容 + D7 四钮）已落地**；下列为 **验证** 顺序，本轮 defer：
 
 1. ~~在隔离 fork 改 `createGridDescriptor`~~ — **已做**（Conversation 中心 + End Editor/Sources）。
 2. ~~接 `setPartHidden` + Conversation∨(Editor∨Sources) 互斥~~ — **已做**。
-3. ~~Sources 占位 Part + titlebar 四钮~~ — **已做**（`b5631393`）。
+3. ~~Sources Files 列表 + Conversation 透镜 + titlebar 四钮（D7）~~ — **已做**（M1）。
 4. **待验证**：Preview 单独关、Conversation 单独关（启动演示；compile 未跑）。
 5. EH 冒烟放在拓扑稳定之后（[eh-surface-matrix](eh-surface-matrix.md)，全部待实测）。
 
