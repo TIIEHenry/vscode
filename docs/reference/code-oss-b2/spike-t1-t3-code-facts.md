@@ -4,7 +4,7 @@ type: reference
 status: accepted
 phase: N/A
 updated: 2026-08-30
-summary: "S1 三个硬测试点：M0 已在默认 Layout 落地 Conversation 中心叶 + Editor End 列 + Conversation∨Editor 互斥"
+summary: "S1 三个硬测试点：M0 已在默认 Layout 落地 Conversation 中心叶 + Editor End 列 + Conversation∨Editor 互斥；Sources/四钮仍缺"
 ---
 
 # Spike T1–T3：代码事实
@@ -43,16 +43,28 @@ S1 最小证明：默认 Code 窗口启动后，中心 DOM 对应新 Part，文�
 | `INV-052-NO-DUAL-HIDE` | Desktop：Conversation ∨ Workbench ≥ 1 |
 | 本仓默认 | Conversation ∨ Editor ≥ 1 |
 
-**结论：** T3 公式已改绑。Panel 最大化改为藏 Conversation（中心叶），不再藏 Editor。四钮 chrome 尚未接入 titlebar。
+**结论：** T3 公式已改绑。Panel 最大化改为藏 Conversation（中心叶），不再藏 Editor。四钮 chrome 尚未接入 titlebar；Sources 下格 Part **slot A 实现中**（HEAD `fc6089a3` 无）。
+
+## M0 剩余（代码 + 验证）
+
+| 项 | HEAD `fc6089a3` | 负责 |
+|----|-----------------|------|
+| Sources 占位 Part（End 下格） | 未合入 | slot A |
+| titlebar layout controls 四钮 | 未合入 | slot A |
+| 编译 / 启动 T1–T3 演示 | **未跑** | merge 后 |
+| EH 探针冒烟 | **未跑** | merge 后；矩阵见 [eh-surface-matrix](eh-surface-matrix.md) |
 
 ## 建议的 spike 验证顺序（与代码硬度一致）
 
-1. 在隔离 fork 改 `createGridDescriptor`：中心叶换新 Part，editor 叶放到 End（T1）。先不要做四钮。
-2. 接 `setPartHidden` 到新 Part；改 editor↔panel 互斥为 Conversation∨End（T3 公式）。
-3. 再演示 Preview 单独关（T2）与 Conversation 单独关（T3）。
-4. EH 冒烟放在拓扑之后（spike 原文：便宜活）。
+**代码面（T1–T3 拓扑）已在 `fc6089a3` 落地**；下列为 **验证** 顺序，本轮 defer：
+
+1. ~~在隔离 fork 改 `createGridDescriptor`~~ — **已做**（Conversation 中心 + Editor End）。
+2. ~~接 `setPartHidden` + Conversation∨Editor 互斥~~ — **已做**。
+3. **待做**：Sources 占位 Part（slot A）+ titlebar 四钮（slot A）。
+4. **待验证**：Preview 单独关、Conversation 单独关（启动演示；compile 未跑）。
+5. EH 冒烟放在拓扑 + Sources/四钮稳定之后（[eh-surface-matrix](eh-surface-matrix.md)，全部待实测）。
 
 ## 相关文档
 
 - [parts-and-grid](../../systems/workbench/parts-and-grid.md)
-- [desktop-shell-mapping](desktop-shell-mapping.md)
+- [desktop-shell-mapping](desktop-shell-mapping.md) · [diff-footprint](diff-footprint.md)

@@ -101,7 +101,7 @@ Desktop（IA §4 + ADR-047）：
 本仓现行习惯：
 
 - Changes **列表** = scm Sidebar（或用户拖到 Panel）
-- Diff **深查看** = `EDITOR_PART`（中心编辑器 / 将来的 Preview），外加编辑器内 QuickDiff
+- Diff **深查看** = End 列 `EDITOR_PART`（Preview），外加编辑器内 QuickDiff
 
 | | Desktop 目标 | 本仓今天 |
 |--|--------------|----------|

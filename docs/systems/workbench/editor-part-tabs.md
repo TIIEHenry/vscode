@@ -82,7 +82,7 @@ B2 S1 **保留 `EditorPart`，只挪位**：从默认 grid 的中心叶，搬到
 
 `ChatEditorInput`（`contrib/chat/.../chatEditorInput.ts`）`extends EditorInput`。打开路径与文件相同：`IEditorService` → 某 `EditorGroup` → 一枚 editor tab。
 
-INV-TOPO 禁止的是：**把 Conversation 做成 editor pane / Custom Editor / 普通 EditorGroup tab**。框架插入面锁死了这件事——任何 `EditorInput` 都进 `EDITOR_PART` 的 tab 模型，中心仍然是 EditorPart。S0 因此拒绝 `ChatEditor` 当 Conversation。
+INV-TOPO 禁止的是：**把 Conversation 做成 editor pane / Custom Editor / 普通 EditorGroup tab**。框架插入面锁死了这件事——任何 `EditorInput` 都进 End 列 `EDITOR_PART` 的 tab 模型，**不能**占中心 `CONVERSATION_PART`。S0 因此拒绝 `ChatEditor` 当 Conversation。
 
 本页只钉这条拓扑事实。宿主清单、Copilot 边界、Sessions Part 对照见 [agent-ui](../chat/agent-ui.md)，此处不改写。
 

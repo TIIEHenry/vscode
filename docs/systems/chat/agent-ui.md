@@ -19,9 +19,10 @@ summary: "本仓对话 UI 的三层：ChatWidget 零件、workbench 宿主（含
 
 ```text
 ┌─ 窗口壳（Parts / Grid）─────────────────────────────────────┐
-│  默认 Code：EDITOR_PART 中心                                │
+│  默认 Code（M0 @ fc6089a3）：CONVERSATION_PART 中心          │
+│              EDITOR_PART 在 End 列（Preview）                 │
 │  Agents Window：SESSIONS_PART 中心 + 可选 EDITOR_PART       │
-│  B2 目标：ConversationPart 中心 + EDITOR_PART 在 End        │
+│  Desktop 合同：End 下格 Sources 占位 — slot A 实现中        │
 └─────────────────────────────────────────────────────────────┘
         │ 嵌
 ┌─ 宿主（把 Widget 装进某个 Part / View / Editor）────────────┐
@@ -97,7 +98,8 @@ Desktop 合同：窗口壳 = Singularity/IDEA；Conversation 内 = 时间线 + I
 
 **对 B2 的含义：**
 
-- 拓扑上，Agents Window **已经证明**「非 Editor 中心 Part + Editor 可藏」在本仓可行（T1/T3 的存在性证明在 sessions，不在默认 `Layout`）。
+- 拓扑上，Agents Window **已经证明**「非 Editor 中心 Part + Editor 可藏」在本仓可行。
+- 默认 Code 窗口在 **`fc6089a3` 亦已落地** 同构拓扑（`ConversationPart` 中心 + Editor End）；T1–T3 **验证**（compile/启动）仍 deferred。
 - 壳合同上，它 **缺** Activity 通高与四钮，**多**了 session 多开网格 / Custom View Grid，**不能**拿来当文档壳交差（选项 C）。
 - S1 主路径仍是改 **默认 Code `Layout`**，而不是把生产入口改成 Agents Window。Sessions 是 **算法与 Part 样例**，不是产品壳。
 

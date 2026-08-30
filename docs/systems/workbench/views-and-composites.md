@@ -81,16 +81,16 @@ SidebarPart / PanelPart / AuxiliaryBarPart   ← AbstractPaneCompositePart（已
 
 ## 4. 为何 B2 不得为 Conversation 发明 ViewContainer
 
-[parts-and-grid](parts-and-grid.md) 的插入面已经锁死：**ViewContainer 只能进 Sidebar / Panel / AuxiliaryBar**。B2 的 Conversation 合同是 **窗口中心 Part**（对标今天默认窗的 `EDITOR_PART`、Agents Window 的 `SESSIONS_PART`），不是这三个槽里的又一个容器。
+[parts-and-grid](parts-and-grid.md) 的插入面已经锁死：**ViewContainer 只能进 Sidebar / Panel / AuxiliaryBar**。B2 的 Conversation 合同是 **窗口中心 Part**（M0 为 `CONVERSATION_PART`；Agents Window 为 `SESSIONS_PART`），不是这三个槽里的又一个容器。
 
 若把 Conversation 做成新 `ViewContainer`：
 
-1. **拓扑错位。** 中心叶仍是 `EDITOR_PART`。对话面变成侧栏/底栏插件，与 INV-TOPO、经验原则「Agent 不是聊天插件」直接相反。S1 要改的是 `createGridDescriptor` 的中心叶，不是 `ViewContainersRegistry`。
+1. **拓扑错位。** 中心叶须为 `CONVERSATION_PART`（M0 已改）；若仍走 ViewContainer，对话面变成侧栏/底栏插件，与 INV-TOPO 相反。
 2. **EH 表面被污染。** 新产品容器会进 Activity roster 或 Panel bar，和 Navigator / 四钮、扩展 `viewsContainers.activitybar` 抢同一槽。布局类贡献默认 **不承诺**（eh-surface-notes）；自己再占一个容器等于把冲突写进产品。
 3. **搬家语义错误。** 用户或 `moveViewContainerToLocation` 可以把容器拖到 Panel / Aux。中心透镜不能被拖成底栏 tab。
 4. **已有反例就在树上。** 本仓已经用 View 体系装过对话——那就是下一节的 `ChatViewPane`。再注册一个「产品 Conversation」容器，只是重复这条侧栏路径。
 
-`ConversationPart` **今天不存在**（parts-and-grid §1）。正确手术是：新 Part 进 `Layout` 的 part 表与 grid 描述符，对话 UI **嵌进该 Part**，而不是 `registerViewContainer(..., ViewContainerLocation.Sidebar)`。
+`ConversationPart` **已在 M0 落地**（[parts-and-grid](parts-and-grid.md) §1）。正确手术是：Part 进 `Layout` 的 part 表与 grid 描述符，对话 UI **嵌进该 Part**，而不是 `registerViewContainer(..., ViewContainerLocation.Sidebar)`。
 
 Sessions 窗口的 `SESSIONS_PART` 证明「非 Editor 中心 Part」可行，但它内部是 `SerializableGrid<SessionView>`，**不是** `ViewContainerLocation`。不要把 Sessions 的透镜误读成「再挂一个 view container」。
 
@@ -100,7 +100,7 @@ Sessions 窗口的 `SESSIONS_PART` 证明「非 Editor 中心 Part」可行，�
 
 分层、与 `ChatEditor` / Sessions 宿主的对比、Copilot 边界，以 [agent-ui](../chat/agent-ui.md) 为准。本页只固定一条框架事实：
 
-> `ChatViewPane extends ViewPane` → 它吃的是 §1–§3 的插入面。把它（或任何新 `ViewContainer`）当 Conversation，等于承认中心仍是 Editor、对话仍是插件。
+> `ChatViewPane extends ViewPane` → 它吃的是 §1–§3 的插入面。把它（或任何新 `ViewContainer`）当 Conversation，等于把对话留在插件位，而非中心 `CONVERSATION_PART`。
 
 改造期可以对照现有 `ChatViewPane` 看 Widget 怎么嵌；产品壳必须走新 Part。整块搬进 `ConversationPart` 会把 entitlement / setup 一并带入，见 agent-ui §3、§5。
 
