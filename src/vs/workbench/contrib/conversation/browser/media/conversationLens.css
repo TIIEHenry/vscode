@@ -42,24 +42,6 @@
 	border-radius: 4px;
 }
 
-.monaco-workbench .part.conversation .conversation-lens-inbox-host {
-	display: flex;
-	align-items: center;
-	gap: 4px;
-}
-
-.monaco-workbench .part.conversation .conversation-lens-inbox-badge {
-	min-width: 16px;
-	padding: 0 5px;
-	border-radius: 10px;
-	font-size: 11px;
-	font-weight: 600;
-	line-height: 16px;
-	text-align: center;
-	background-color: var(--vscode-badge-background);
-	color: var(--vscode-badge-foreground);
-}
-
 .monaco-workbench .part.conversation .conversation-lens-timeline {
 	display: flex;
 	flex-direction: column;
@@ -83,72 +65,13 @@
 	color: var(--vscode-foreground);
 }
 
-.monaco-workbench .part.conversation .conversation-lens-turn[data-role="user"] {
+.monaco-workbench .part.conversation .conversation-lens-turn[data-kind="user"] {
 	color: var(--vscode-descriptionForeground);
 }
 
-.monaco-workbench .part.conversation .conversation-lens-turn[data-role="tool"] {
-	display: flex;
-	align-items: baseline;
-	gap: 8px;
-	padding: 8px 10px;
-	border: 1px dashed var(--vscode-widget-border, var(--vscode-contrastBorder, transparent));
-	border-radius: 4px;
-	font-family: var(--monaco-monospace-font);
-	font-size: 12px;
-}
-
-.monaco-workbench .part.conversation .conversation-lens-tool-label {
-	flex-shrink: 0;
-	padding: 1px 6px;
-	border-radius: 3px;
-	font-size: 11px;
-	font-weight: 600;
-	font-family: var(--vscode-font-family);
-	background-color: var(--vscode-badge-background);
-	color: var(--vscode-badge-foreground);
-}
-
-.monaco-workbench .part.conversation .conversation-lens-inbox-panel {
-	display: flex;
-	flex-direction: column;
-	gap: 12px;
-}
-
-.monaco-workbench .part.conversation .conversation-lens-inbox-header {
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	gap: 8px;
-}
-
-.monaco-workbench .part.conversation .conversation-lens-inbox-title {
-	margin: 0;
-	font-size: 14px;
-	font-weight: 600;
-}
-
-.monaco-workbench .part.conversation .conversation-lens-inbox-close {
-	padding: 4px 10px;
-	font-size: 12px;
-	border: 1px solid var(--vscode-button-border, var(--vscode-contrastBorder, transparent));
-	border-radius: 4px;
-	background-color: var(--vscode-button-secondaryBackground);
-	color: var(--vscode-button-secondaryForeground);
-	cursor: pointer;
-}
-
-.monaco-workbench .part.conversation .conversation-lens-inbox-list {
-	margin: 0;
-	padding: 0;
-	list-style: none;
-}
-
-.monaco-workbench .part.conversation .conversation-lens-inbox-item {
-	padding: 10px 12px;
-	border-bottom: 1px solid var(--vscode-sideBar-border, var(--vscode-contrastBorder, transparent));
-	font-size: 13px;
-	color: var(--vscode-foreground);
+.monaco-workbench .part.conversation .conversation-lens-turn[data-kind="assistant"][data-stub="true"] {
+	font-style: italic;
+	color: var(--vscode-descriptionForeground);
 }
 
 .monaco-workbench .part.conversation .conversation-lens-confirmation-seat {
@@ -191,6 +114,37 @@
 .monaco-workbench .part.conversation .conversation-lens-dock {
 	padding: 12px;
 	border-top: 1px solid var(--vscode-sideBar-border, var(--vscode-contrastBorder, transparent));
+}
+
+.monaco-workbench .part.conversation .conversation-lens-inbox-row {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px;
+	margin-bottom: 10px;
+	padding-bottom: 10px;
+	border-bottom: 1px solid var(--vscode-sideBar-border, var(--vscode-contrastBorder, transparent));
+	font-size: 12px;
+	color: var(--vscode-descriptionForeground);
+}
+
+.monaco-workbench .part.conversation .conversation-lens-inbox-queue {
+	flex-shrink: 0;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-inbox-pending {
+	padding: 0;
+	border: none;
+	background: none;
+	font-size: 12px;
+	font-weight: 600;
+	color: var(--vscode-textLink-foreground);
+	cursor: pointer;
+	text-decoration: underline;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-inbox-pending:hover {
+	color: var(--vscode-textLink-activeForeground);
 }
 
 .monaco-workbench .part.conversation .conversation-lens-dock-row {
