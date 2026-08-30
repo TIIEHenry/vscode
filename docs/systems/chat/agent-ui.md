@@ -1,0 +1,143 @@
+---
+title: "Agent UI 清单：宿主、Widget、Copilot 边界"
+type: architecture
+status: accepted
+phase: N/A
+updated: 2026-08-30
+summary: "本仓对话 UI 的三层：ChatWidget 零件、workbench 宿主（含违反 INV-TOPO 的 ChatEditor）、Sessions Part；标明 Copilot/entitlement 不可复用面"
+---
+
+# Agent UI 清单
+
+> 导航：[Chat 索引](INDEX.md)。文件夹地图 SSOT：[chatCodeOrganization.md](../../../src/vs/workbench/contrib/chat/chatCodeOrganization.md)。  
+> B2：Conversation **不是** Editor tab（INV-TOPO）；**0×** 依赖 GitHub Copilot（INV-NO-COPILOT）。  
+> Sessions 窗口契约：[LAYOUT.md](../../../src/vs/sessions/LAYOUT.md)、[SESSIONS.md](../../../src/vs/sessions/SESSIONS.md)。
+
+本页回答：改造时 **哪些 UI 是 MIT 开源零件、哪些宿主违反产品壳、哪些状态机不能当会话真相**。
+
+## 1. 三层，不要混谈
+
+```text
+┌─ 窗口壳（Parts / Grid）─────────────────────────────────────┐
+│  默认 Code：EDITOR_PART 中心                                │
+│  Agents Window：SESSIONS_PART 中心 + 可选 EDITOR_PART       │
+│  B2 目标：ConversationPart 中心 + EDITOR_PART 在 End        │
+└─────────────────────────────────────────────────────────────┘
+        │ 嵌
+┌─ 宿主（把 Widget 装进某个 Part / View / Editor）────────────┐
+│  ChatViewPane（Sidebar/Panel 视图）                          │
+│  ChatEditor + ChatEditorInput（EDITOR_PART tab）← 违反 TOPO │
+│  chatQuick（Quick Chat）                                     │
+│  SessionView / AbstractChatView（SESSIONS_PART 内叶）        │
+└─────────────────────────────────────────────────────────────┘
+        │ 嵌
+┌─ ChatWidget 零件（列表、输入、content parts）───────────────┐
+│  browser/widget/  — 必须被 ChatWidget 直接引用的零件         │
+│  会话模型 IChatService / IChatModel（VS Code chat 真相）     │
+└─────────────────────────────────────────────────────────────┘
+```
+
+Desktop 合同：窗口壳 = Singularity/IDEA；Conversation 内 = 时间线 + Input Dock；引擎真相 = UniverseAgent。  
+因此：**壳要改 Part；对话产品面要自研接线；Widget 零件最多当 donor。** 不能把 `IChatModel` 或 Copilot provider 提成权威。
+
+## 2. ChatWidget 零件（可评估复用的 MIT 面）
+
+根：`src/vs/workbench/contrib/chat/browser/widget/chatWidget.ts`（`ChatWidget`）。  
+组织规则：`widget/` 内核心零件必须被 `ChatWidget` **直接**引用。
+
+| 区域 | 路径（均在 `browser/widget/`） | 改造含义 |
+|------|-------------------------------|----------|
+| 列表 / 回合 | `chatListWidget.ts`、content parts（`chatContentParts/` 在 browser 根） | 时间线 donor；产品阅读层级以 Desktop spec §8.6 为准，不要像素抄 Copilot |
+| 输入 | `input/chatInputPart.ts`、`chatInputStack.ts`、input/editor/* | 最接近 Input Dock 的现成块；**不得**把 Desktop §8.3 合同换成这套 picker 布局 |
+| 模型/模式/工具条 | `input/modelPicker/*`、`modePickerActionItem.ts`、`chatSelectedTools.ts` | 绑 VS Code participant/model；B2 接线 UA 后这些选择器要换或旁路 |
+| 附件 | `browser/attachments/`（contrib 根，非 widget 内） | 上下文附件；与 UA 附件模型需 adapter |
+| 欢迎 / setup | `viewsWelcome/`、`chatSetup/` | **高 Copilot/账号耦合**，见 §5 |
+| 编辑会话 UI | `browser/chatEditing/` | workspace edits/diff；配套面，不是 Conversation 中心 |
+| Agent sessions 控件 | `browser/agentSessions/` | 工作台内「会话列表」另一套，勿与 `vs/sessions` 服务混淆 |
+
+`IChatWidget` / `IChatWidgetService`：`browser/chat.ts`。按 `sessionResource`（`URI`）查找 Widget。
+
+**复用建议（分析，非正式决策）：** 列表虚拟化、markdown/code block content parts、输入编辑器补全基础设施值得当 donor。SessionBar、四钮、权限座位、Inbox 按 Desktop 自研。
+
+**复用姿态拍板（人类，2026-08-30，外仓父方案 §3）：** sessions / agent-host **配套功能面默认保留绝大部分**（Customizations 中心：Agents / Skills / Instructions / Hooks / MCP Servers / Plugins / Tools；Tasks / worktree 运行面；含功能，不只 UI）。姿态 = 默认保留、例外才换。例外：Copilot provider / entitlement / setup（§5 不可复用面不变）、会话真相归属（§6 不变）、Task ↔ client-tool 双执行面 owner（Go 后 ADR）、产品自研面（上句四项不变）。
+
+## 3. Workbench 宿主（默认 Code 窗口）
+
+均在 `browser/widgetHosts/`：
+
+| 宿主 | 文件 | 落在哪 | INV-TOPO |
+|------|------|--------|----------|
+| **ChatViewPane** | `viewPane/chatViewPane.ts` | Sidebar / Panel 的 `ViewPane` | 不占 editor tab，但是 **侧栏插件形**（经验原则明确拒绝「Agent 当聊天插件」）。可作开发期对照，**不能**当 B2 中心透镜 |
+| **ChatEditor** | `editor/chatEditor.ts` | `EDITOR_PART` | **违反**。`ChatEditorInput` 是 `EditorInput`；打开即 editor tab |
+| **Quick Chat** | `chatQuick.ts` | 浮层 | 不是主流程 |
+
+`ChatEditor` 继承 `AbstractEditorWithViewState`，走 `IEditorService`。spike **S0 拒绝**的就是这条路径。代码里已存在，改造时要 **避免默认打开 chat 走 editor**，而不是「复用 ChatEditor 当 Conversation」。
+
+`ChatViewPane` 还嵌 `AgentSessionsControl`、welcome、entitlement、mic/TTS——体量远超「一个列表 + Dock」。把它整块搬进新 Part 会把 Copilot 设置流一起搬进来。
+
+## 4. Sessions / Agents Window 宿主（更接近透镜，但不是文档壳）
+
+| 对象 | 路径 | 说明 |
+|------|------|------|
+| `SessionsPart` | `src/vs/sessions/browser/parts/sessionsPart.ts` | **非 Editor** 的中心 Part；内部再 `SerializableGrid<SessionView>` |
+| `SessionView` | `parts/sessionView.ts` | 一个可见 session 的槽 |
+| `AbstractChatView` | `parts/chatView.ts` | Part 内叶的抽象；具体实现在 `sessions/contrib/chat/`，避免 core import contrib |
+| 内部 chat 实现 | `src/vs/sessions/contrib/chat/` | 窗口特有 composer / side chat |
+| 布局控制器 | `LAYOUT_CONTROLLER.md` | 按 session 恢复工作集 |
+| 单 pane | `SINGLE_PANE_SCENARIOS.md` | Editor+Aux 合成侧栏；**Sessions Part 仍是主表面** |
+
+[LAYOUT.md](../../../src/vs/sessions/LAYOUT.md) 要点（不复制全文）：
+
+- 省略默认 **Activity Bar、Status Bar、Banner**
+- 主区：`Sessions Part | Editor | Auxiliary Bar | Custom View Grid` + Panel
+- **Editor 可独立于 Sessions Part 隐藏**（比默认窗口的 editor↔panel 互斥更接近 T2/T3）
+- Sessions Part 的叶 **不是** workbench editor group
+
+**对 B2 的含义：**
+
+- 拓扑上，Agents Window **已经证明**「非 Editor 中心 Part + Editor 可藏」在本仓可行（T1/T3 的存在性证明在 sessions，不在默认 `Layout`）。
+- 壳合同上，它 **缺** Activity 通高与四钮，**多**了 session 多开网格 / Custom View Grid，**不能**拿来当文档壳交差（选项 C）。
+- S1 主路径仍是改 **默认 Code `Layout`**，而不是把生产入口改成 Agents Window。Sessions 是 **算法与 Part 样例**，不是产品壳。
+
+三类 provider（`agentHost` / `copilotChatSessions` / `remoteAgentHost`）是 **计算后端**，见 [SESSIONS.md](../../../src/vs/sessions/SESSIONS.md)。B2 引擎权威是 UniverseAgent；`copilotChatSessions` **不可**当默认真相。
+
+## 5. Copilot / 账号边界（INV-NO-COPILOT）
+
+开源树里的 chat **已经织进** GitHub Copilot 设置流，即使没装闭源扩展：
+
+| 面 | 位置 | 改造态度 |
+|----|------|----------|
+| `chatSetup/` | 安装/升级 Copilot Chat、`GitHub.copilot-chat` URI | **不进复用清单** |
+| `IChatEntitlementService` | `workbench/services/chat` | 账号/额度门闩；UA 不用这套 |
+| `CopilotChatSettingId` / `CopilotToolId` | `common/tools/copilotToolIds.ts` | 工具过滤绑 Copilot 模型族 |
+| `extensions/copilot/` | 本仓另有 copilot 扩展文档 | 闭源产品面；spike 禁止依赖 |
+| Chat participant 名 `agent` | `IChatAgentService` | VS Code 的 participant，≠ UA Agent |
+
+**可复用（需剥皮）：** Widget 渲染、list、部分 builtin tools 机制、`ILanguageModelToolsService` 的「工具注册」形状。  
+**不可复用：** setup 对话框、entitlement、Copilot session provider、ChatEditor 当壳。
+
+## 6. 状态机：两套「会话」不要当一个
+
+| 名称 | Owner | B2 |
+|------|-------|-----|
+| `IChatModel` / `sessionResource` | `workbench/contrib/chat` | VS Code chat 持久化；**禁止**当 UA session-core |
+| `ISession` / `ISessionsService` | `vs/sessions` | Agents Window 目录；provider-neutral facade |
+| UniverseAgent session | 外仓 desktop-domain | **唯一权威**（父方案 §5.1） |
+
+adapter 是唯一反腐层。UI 可以暂时显示假时间线（spike 允许），但知识层必须把这三套画开。
+
+## 7. 与 Desktop Conversation 的零件对照
+
+| Desktop（IA / spec） | 本仓最接近物 | 差距 |
+|----------------------|--------------|------|
+| SessionBar | `ChatViewTitleControl` / sessions `sessionHeader` | 合同不同（无 maximize 等，见 spec §6.4） |
+| Timeline | `ChatWidget` 列表 + content parts | 阅读层级、权限座位、工具卡路由按 Desktop |
+| Input Dock / MessageQueue | `ChatInputPart` | **例外合同**在 spec §8.3，不能用 VS Code picker 顶替 |
+| 权限 CTA | 无对等（有 confirmation service） | 自研 ResponseSeat |
+| Preview File tabs | `EDITOR_PART` tabs | **同构**，应保留 |
+| Sources | Aux bar / SCM view / 无独立 Part | 需占位 Part 或 Aux 映射 |
+
+## 8. 相关文档
+
+- [Chat 概览](overview.md) · [Parts/Grid](../workbench/parts-and-grid.md) · [壳映射](../../reference/code-oss-b2/desktop-shell-mapping.md)
+- [Sessions 概览](../sessions/overview.md)
