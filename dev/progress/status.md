@@ -11,6 +11,7 @@ summary: "M1 切片 2+3 已合入：Conversation 透镜骨架 + Sources Files �
 
 ## Current Session
 
+- **M2 方案** [m2-product-shell.md](../plans/m2-product-shell.md) **`proposed`**：无引擎产品壳剩余面（透镜产品化 / Chat-Aux 卫生 / 文档诚实）。
 - **M1 切片 2 Conversation 透镜**（`4f3fef65`）：`ConversationPart` 槽 + `contrib/conversation` stub SessionBar / 时间线 / dock（confirmation 座位，无引擎）。
 - **M1 切片 3 Sources Files**（`156f0fe5`）：只读列表投影，点击开 End Preview。
 - **D7 四钮 chrome**（`2dcd5a0a`）：默认窗 `LayoutControlMenu` 只留 Nav / Conversation / Preview / Sources；Panel/Aux 仍在 submenu。
