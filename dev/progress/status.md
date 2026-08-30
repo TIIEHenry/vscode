@@ -2,17 +2,17 @@
 title: "Development Progress"
 type: progress
 status: active
-phase: M1
+phase: M2
 updated: 2026-08-31
-summary: "M1 切片 2+3 已合入：Conversation 透镜骨架 + Sources Files 列表；Diff FORK 未选"
+summary: "M2 方案已合；透镜/Aux/文档首波已落，对照方案仍有缺口（Inbox 诚实、confirmation 状态、setting 默认、其余 docs）"
 ---
 
 # Development Progress
 
 ## Current Session
 
-- **M2 方案** [m2-product-shell.md](../plans/m2-product-shell.md) **`proposed`**：无引擎产品壳剩余面（透镜产品化 / Chat-Aux 卫生 / 文档诚实）。
-- **M1 切片 2 Conversation 透镜**（`4f3fef65`）：`ConversationPart` 槽 + `contrib/conversation` stub SessionBar / 时间线 / dock（confirmation 座位，无引擎）。
+- **M2 方案** [m2-product-shell.md](../plans/m2-product-shell.md) **`in_progress`**：三切片与首波代码并行；对照方案仍缺：Inbox 须为 Dock 顶诚实空行（现 overlay 假列表）、Allow/Skip 本地状态、`secondarySideBar.defaultVisibility`+splash、切片 3 其余文档。
+- **M2 首波已合**：透镜产品化 `0f5d4c00`；映射诚实 `4f9975a5`；Chat 非 Aux default + layout 默认藏右栏 `e9507ba0`。
 - **M1 切片 3 Sources Files**（`156f0fe5`）：只读列表投影，点击开 End Preview。
 - **D7 四钮 chrome**（`2dcd5a0a`）：默认窗 `LayoutControlMenu` 只留 Nav / Conversation / Preview / Sources；Panel/Aux 仍在 submenu。
 - **文档**（`c386d6bd`）：agent-ui / layout-state 去掉「slot A 未合入」。

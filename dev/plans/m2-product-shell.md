@@ -1,7 +1,7 @@
 ---
 title: "M2 产品壳：无引擎的剩余 vscode-fork chrome"
 type: plan
-status: proposed
+status: in_progress
 phase: M2
 updated: 2026-08-31
 summary: "三切片：Conversation 透镜产品化、Chat/Aux 卫生、文档诚实；无引擎；Diff FORK 不选"
@@ -17,7 +17,7 @@ summary: "三切片：Conversation 透镜产品化、Chat/Aux 卫生、文档诚
 
 **Architecture：** 继续改 **默认 Code 窗口**（`workbench.desktop.main`）。`ConversationPart` 仍只做三槽（SessionBar / timeline / dock）；产品面全部在 `workbench/contrib/conversation`。Inbox 按 Desktop spec §8.3 住在 **Dock 槽内**，不新开 Part、不加第四槽、不改 `layout.ts` grid。`IChatModel` / Copilot / `vs/sessions` 仍不是权威。引擎接线不进本波。
 
-> `status: proposed` — 本文件是方案。实施另 commit。compile / 启动 / EH 仍 deferred（D3–D5），**不是** M2 出口。
+> `status: in_progress` — 方案已合；切片 1–3 有首波代码/文档，对照本文仍有缺口（见 status）。compile / 启动 / EH 仍 deferred（D3–D5），**不是** M2 出口。
 
 ## 全局约束
 
