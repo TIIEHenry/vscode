@@ -1,10 +1,10 @@
 ---
 title: "M1 壳后续切片（M0 拓扑之后）"
 type: plan
-status: proposed
+status: implemented
 phase: M1
 updated: 2026-08-31
-summary: "M0 壳已落后的 vscode-fork 下一波：四钮 chrome、Conversation 透镜（无引擎）、Sources Files 列表投影；最多三切片"
+summary: "三切片已落地：D7 四钮、Conversation 透镜骨架、Sources Files 列表；Diff FORK 未选；D3–D5 仍开"
 ---
 
 # M1 壳后续切片
@@ -15,7 +15,9 @@ summary: "M0 壳已落后的 vscode-fork 下一波：四钮 chrome、Conversatio
 
 **Goal：** 在 **不接** UniverseAgent 引擎 / gRPC / adapter 的前提下，把默认编辑器窗口从「拓扑已齐、中心与 Sources 仍是占位」推进到可读的产品壳：四钮 chrome 收敛、Conversation 透镜可装 donor、Sources 有 Files 列表投影。
 
-**Architecture：** 继续改 **默认 Code 窗口**（`workbench.desktop.main`）。`vs/sessions` 仍只作 donor，禁止当产品壳、禁止 workbench 反向 import sessions。Conversation 仍不是 `EditorInput`。引擎接线不进本波。
+**Architecture：** 继续改 **默认 Code 窗口**（`workbench.desktop.main`）。`vs/sessions` 仍只作 donor，禁止当产品壳，禁止 workbench 反向 import sessions。Conversation 仍不是 `EditorInput`。引擎接线不进本波。
+
+> `status: implemented` — 三切片代码已在树（D7 `2dcd5a0a` · 透镜 `4f3fef65` · Files `156f0fe5`）。Diff FORK 未选。compile / 启动 / EH 仍 deferred（D3–D5）。
 
 ## 全局约束
 

@@ -5,7 +5,7 @@ status: accepted
 phase: M0
 created: 2026-08-30
 updated: 2026-08-31
-summary: "仓外 vscode-WorkTrees 工位表；A–D idle；M1 方案 + D7 已合入"
+summary: "仓外 vscode-WorkTrees 工位表；A–D idle；M1 三切片已合入"
 ---
 
 # Loop 并行工位池（本仓）
@@ -20,7 +20,7 @@ summary: "仓外 vscode-WorkTrees 工位表；A–D idle；M1 方案 + D7 已合
 | 主仓 | `/home/clarence/Projects/Agents/vscode` |
 | 工位根 `$WT_ROOT` | `/home/clarence/Projects/Agents/vscode-WorkTrees` |
 | 集成分支（当前） | **`agent-ide`**（merge 槽对齐此分支；非上游 `main`） |
-| 集成本次 HEAD | **merge 中**（D7 + M1 方案合入后对齐 `agent-ide`） |
+| 集成本次 HEAD | 对齐 `agent-ide`（含 Conversation 透镜 + Sources Files） |
 
 ## 槽位表（2026-08-31 合入后）
 

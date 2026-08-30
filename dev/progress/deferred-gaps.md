@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-08-31
-summary: "P2/P3 延期缺口 SSOT；M0 compile/演示/EH 仍开；footprint 已闭"
+summary: "P2/P3 延期缺口 SSOT；D7 已闭；compile/演示/EH 仍开"
 ---
 
 # Deferred Gaps
