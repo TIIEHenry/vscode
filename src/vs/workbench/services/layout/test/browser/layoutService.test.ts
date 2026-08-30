@@ -503,3 +503,47 @@ suite('LayoutService - INV-052-NO-DUAL-HIDE', () => {
 		});
 	});
 });
+
+/**
+ * Mirrors {@link LayoutStateModel.load} auxiliary-bar hidden default for fresh layouts
+ * (see layout.ts LayoutStateKeys.AUXILIARYBAR_HIDDEN IIFE).
+ */
+function freshLayoutAuxiliaryBarHidden(configurationValue: string | undefined, auxiliaryBarForceMaximized: boolean): boolean {
+	if (auxiliaryBarForceMaximized) {
+		return false;
+	}
+
+	switch (configurationValue) {
+		case 'hidden':
+			return true;
+		case 'visible':
+		case 'maximized':
+			return false;
+		case 'visibleInWorkspace':
+		case 'maximizedInWorkspace':
+			return true;
+		default:
+			return true;
+	}
+}
+
+suite('LayoutService - INV-052-NO-RIGHT-RAIL auxiliary bar fresh layout', () => {
+
+	ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('fresh layout keeps auxiliary bar hidden unless explicitly configured visible', () => {
+		assert.deepStrictEqual({
+			runtimeKeyDefault: true,
+			visibleInWorkspace: freshLayoutAuxiliaryBarHidden('visibleInWorkspace', false),
+			unsetConfiguration: freshLayoutAuxiliaryBarHidden(undefined, false),
+			explicitVisible: freshLayoutAuxiliaryBarHidden('visible', false),
+			forceMaximized: freshLayoutAuxiliaryBarHidden(undefined, true),
+		}, {
+			runtimeKeyDefault: true,
+			visibleInWorkspace: true,
+			unsetConfiguration: true,
+			explicitVisible: false,
+			forceMaximized: false,
+		});
+	});
+});
