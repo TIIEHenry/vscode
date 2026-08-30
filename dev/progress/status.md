@@ -4,13 +4,14 @@ type: progress
 status: active
 phase: M0
 updated: 2026-08-31
-summary: "M0 壳 implemented（b283fe19）：Conversation + End Editor/Sources + 四钮；compile/演示/EH deferred"
+summary: "M1 壳后续方案 proposed；M0 壳已落；compile/演示/EH 仍 deferred"
 ---
 
 # Development Progress
 
 ## Current Session
 
+- **M1 壳后续方案**（2026-08-31）[m1-shell-followon.md](../plans/m1-shell-followon.md) **`proposed`**。M0 之后至多三切片：四钮 chrome（D7）→ Conversation 透镜（无引擎）→ Sources Files 列表投影。UA 引擎/gRPC/adapter 不进；D3–D5 仍 deferred。Diff 落点标 **FORK**。
 - **M0 拓扑手术**（2026-08-31）fable **PASS-with-docs-refresh**。
   - 方案 [m0-topology-surgery.md](../plans/m0-topology-surgery.md) **`implemented`**（代码事实）；compile/启动/EH 仍 deferred。
   - 合入：`fc6089a3` Conversation 中心 → `d6b45573` Sources+四钮 → `b5631393` A+B merge → `b283fe19` footprint/映射刷新。
