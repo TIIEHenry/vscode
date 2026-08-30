@@ -3,8 +3,8 @@ title: "Desktop 壳合同 ↔ 本仓 Parts 映射"
 type: reference
 status: accepted
 phase: N/A
-updated: 2026-08-30
-summary: "ADR-052 四钮与 IA 区域投影到默认 workbench / Agents Window；标出同构、缺维、禁止偷换"
+updated: 2026-08-31
+summary: "ADR-052 四钮与 IA 区域投影到默认 workbench / Agents Window；M0 拓扑与四钮 wiring 已落 b5631393"
 ---
 
 # Desktop 壳合同 ↔ 本仓 Parts 映射
@@ -45,7 +45,7 @@ StatusBar
 | Navigator body | `SIDEBAR_PART` | 保留；roster 换成产品 tab | `toggleRegion('navigatorBody')` ≙ `setSideBarHidden` + 记宽 |
 | Conversation | **`CONVERSATION_PART`**（M0 占位） | 独立中心 Part | 无引擎接线；不是 ChatEditor |
 | Preview | `EDITOR_PART`（End 列） | **同一 `EDITOR_PART` 已挪到 End** | 与 File tabs **同构**（spike §3.1） |
-| Sources | 无独立格。SCM/Changes 常在 Sidebar 或 Panel | End **下格新占位 Part** 或临时 `PANEL`/`AUX` | spike：占位即可，不解决 ADR-051 展开语义。**slot A 实现中**；HEAD `fc6089a3` 尚无 Sources Part |
+| Sources | 无独立格。SCM/Changes 常在 Sidebar 或 Panel | **`SOURCES_PART`**（End 下格占位） | spike：占位即可，不解决 ADR-051 展开语义。**已落** `b5631393` |
 | Bottom Panel | `PANEL_PART` | 保留；**不进四钮** | 对齐 ADR-047 / ADR-052 决策 3 |
 | StatusBar | `STATUSBAR_PART` | 保留 | |
 | 右缘 rail | `AUXILIARYBAR_PART` | **默认关**（INV-052-NO-RIGHT-RAIL） | 布局类扩展爱往这里打，记入 EH 矩阵 |
@@ -58,15 +58,15 @@ StatusBar
 
 | 钮 | Desktop | 本仓现成 | 缺口 |
 |----|---------|----------|------|
-| Nav | `toggleRegion('navigatorBody')` | `setPartHidden(SIDEBAR)` + Activity 再点收起近 `setNavigatorPref` | 无 persist 宽的单一 `toggleRegion` |
-| Conv | `toggleRegion('conversation')` | `setPartHidden(CONVERSATION_PART)` / `workbench.action.toggleConversation` | titlebar 四钮尚未接入 |
-| Prev | `toggleRegion('preview')` | `setPartHidden(EDITOR_PART)` / `workbench.action.toggleEditorVisibility` | 不再强制开 Panel |
-| Src | `toggleRegion('sources')` | 无 | 占位 Part；不能用底边细条（ADR-052 已废）。**slot A 实现中** |
+| Nav | `toggleRegion('navigatorBody')` | `workbench.action.toggleSidebarVisibility` → `setPartHidden(SIDEBAR)`；**已注册** `LayoutControlMenu` | 无 persist 宽的单一 `toggleRegion` |
+| Conv | `toggleRegion('conversation')` | `workbench.action.toggleConversation` → `setPartHidden(CONVERSATION_PART)`；**已注册** `LayoutControlMenu` | — |
+| Prev | `toggleRegion('preview')` | `workbench.action.toggleEditorVisibility` → `setPartHidden(EDITOR_PART)`；**已注册** `LayoutControlMenu` | 不再强制开 Panel |
+| Src | `toggleRegion('sources')` | `workbench.action.toggleSources` → `setPartHidden(SOURCES_PART)`；**已注册** `LayoutControlMenu` | 占位 Part；不能用底边细条（ADR-052 已废） |
 
-> **HEAD `fc6089a3`（ConversationPart 基线）**：默认窗口已有 Conversation 中心 + Editor End 列 + `Conversation∨Editor` 互斥。**尚无** Sources 下格 Part 与 titlebar 四钮 wiring——见 [diff-footprint](diff-footprint.md) TBD@merge。
+> **HEAD `b5631393`（A+B merge）**：默认窗口已有 Conversation 中心 + End 列（Editor 上 / Sources 下）+ titlebar 四钮 wiring。**compile / 启动演示 / EH 探针仍 deferred** → [deferred-gaps](../../../dev/progress/deferred-gaps.md)。
 
 `INV-052-NO-DUAL-HIDE`：Conversation ∨ Workbench(Preview∨Sources) 至少一个可见。  
-本仓默认（M0）：Conversation ∨ Editor 至少一个可见。Panel 不进此公式。Sources 下格仍缺，故 End 列暂以 Editor 代表 Workbench。
+本仓默认（M0）：**Conversation ∨ (Editor ∨ Sources)** 至少一个可见（`forceShownAgentShellPart`）。Panel 不进此公式。
 
 ## 4. 禁止的偷换（选项 C）
 

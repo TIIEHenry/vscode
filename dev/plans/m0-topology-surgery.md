@@ -3,8 +3,8 @@ title: "M0 拓扑手术：默认编辑器窗口壳"
 type: plan
 status: in_progress
 phase: M0
-updated: 2026-08-30
-summary: "默认 workbench 窗口：ConversationPart 占中心、EditorPart 挪 End 列；T1–T3 验收；四钮宿主在 titlebar layout controls"
+updated: 2026-08-31
+summary: "默认 workbench 窗口：ConversationPart 占中心、End 列 Editor/Sources；T1–T3 代码已落 b5631393；compile/演示/EH deferred"
 ---
 
 # M0 拓扑手术
@@ -95,17 +95,17 @@ summary: "默认 workbench 窗口：ConversationPart 占中心、EditorPart 挪 
 |------|-------------|---------|
 | 编译 | `npm run compile`（或 fork 等价 compile 目标） | **deferred** — 本轮未跑 |
 | 分层 | `npm run valid-layers-check` | **deferred** — 拓扑 PR 合入后 |
-| 启动演示 | 默认窗口启动后目视确认布局与 T1–T3 | **deferred** — 待 Sources/四钮 + compile 后补 |
+| 启动演示 | 默认窗口启动后目视确认布局与 T1–T3 | **deferred** — 代码已齐（`b5631393`）；待 compile 后补 |
 | EH 冒烟 | 装扩展探针；更新 [eh-surface-matrix](../../docs/reference/code-oss-b2/eh-surface-matrix.md) | **deferred** — 无探针本轮 |
-| 文档 | `python3 scripts/check-docs-health.py` → 0 error | slot B 本 pass |
+| 文档 | `python3 scripts/check-docs-health.py` → 0 error | slot C 本 pass（footprint + 映射刷新） |
 
 ### 验收勾选（勿提前通过）
 
-- [ ] **编译** — `npm run compile` 绿
-- [ ] **启动 T1–T3** — 中心 Conversation、End Editor tabs、互斥无脏 Panel
-- [ ] **EH 探针** — 至少 layout 类 + LSP 类各一（矩阵「待实测」→「已实测」）
-- [x] **T1–T3 代码拓扑** — `fc6089a3`：Conversation 中心 + Editor End + `Conversation∨Editor`（**未** 含 Sources/四钮）
-- [ ] **Sources + 四钮** — slot A 合入后勾选
+- [ ] **编译** — `npm run compile` 绿（deferred）
+- [ ] **启动 T1–T3** — 中心 Conversation、End Editor tabs、互斥无脏 Panel（deferred）
+- [ ] **EH 探针** — 至少 layout 类 + LSP 类各一（矩阵「待实测」→「已实测」；deferred）
+- [x] **T1–T3 代码拓扑** — `b5631393`：Conversation 中心 + End Editor/Sources + `Conversation∨(Editor∨Sources)` + titlebar 四钮
+- [x] **Sources + 四钮** — `b5631393` A+B merge
 
 > `status: in_progress` — fable review 与 merge 集成在后续；本计划 **不得** 在此标 `done`/`completed`。
 

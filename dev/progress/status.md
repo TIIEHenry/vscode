@@ -3,20 +3,20 @@ title: "Development Progress"
 type: progress
 status: active
 phase: M0
-updated: 2026-08-30
-summary: "M0 T1–T3 Conversation/Editor 拓扑于 fc6089a3；Sources/四钮 slot A 待合；slot B 文档 pass"
+updated: 2026-08-31
+summary: "M0 A+B 于 b5631393 合入（Conversation + End Editor/Sources + 四钮）；compile/演示/EH deferred"
 ---
 
 # Development Progress
 
 ## Current Session
 
-- **M0 拓扑手术**（2026-08-30，`loop/B` @ `fc6089a3`）
+- **M0 拓扑手术**（2026-08-31，`loop/C` @ `b5631393`）
   - 外仓 ADR-061 `accepted`；方案 [m0-topology-surgery.md](../plans/m0-topology-surgery.md) 仍 `in_progress`。
-  - **已落（T1–T3 代码）**：默认 `Layout` 中心叶 `ConversationPart`；`EditorPart` End 列；`Conversation∨Editor` 互斥；`toggleConversation`。
-  - **slot A（代码）**：Sources 占位 Part + titlebar 四钮 — 并行实现中，**未**在 `fc6089a3`。
-  - **slot B（本 pass）**：`eh-surface-matrix.md`、`diff-footprint.md`、映射/进度诚实化；**未**改 `src/`。
-  - **deferred**：compile、启动 T1–T3 演示、EH 探针、footprint 刷新（A merge 后）→ [deferred-gaps.md](deferred-gaps.md) D3–D6。
+  - **A+B 已合入**（merge @ `b5631393`）：`ConversationPart` 中心；End 列 `EditorPart`（上）+ `SourcesPart`（下）；`Conversation∨(Editor∨Sources)` 互斥；titlebar `LayoutControlMenu` 四钮（Nav / Conversation / Preview / Sources）。
+  - **本 pass（slot C 文档）**：刷新 footprint、映射、parts-and-grid、进度；**未**改 `src/`；**未** compile。
+  - **deferred** → [deferred-gaps.md](deferred-gaps.md) D3–D5：compile、`valid-layers-check`、启动 T1–T3 演示、EH 探针。
+  - **工位池**：A–D **idle**（本 docs commit 后）；见 [worktree-pool.md](worktree-pool.md)。
 
 ## Loop 基础设施（2026-08-30）
 
@@ -31,7 +31,9 @@ summary: "M0 T1–T3 Conversation/Editor 拓扑于 fc6089a3；Sources/四钮 slo
 - 文档系统骨架 + 首波分层导航。
 - B2 分析簇：`docs/reference/code-oss-b2/` · Parts/Grid · Agent UI。
 - M0 T1–T3 拓扑 commit `fc6089a3`（Conversation 中心 + Editor End）。
+- M0 Sources + 四钮合入 `b5631393`（A+B merge）。
 - 第三波：IPC / DI / 贡献 / 启动 / 窗口 / 内置扩展；sessions / chat / workbench-api overview。
+- Diff footprint 刷新 @ `b5631393`（本 pass）。
 
 ## Blockers
 
