@@ -16,7 +16,6 @@ import { Position, Parts, PartOpensMaximizedOptions, IWorkbenchLayoutService, po
 import { isTemporaryWorkspace, IWorkspaceContextService, WorkbenchState } from '../../platform/workspace/common/workspace.js';
 import { IStorageService, StorageScope, StorageTarget } from '../../platform/storage/common/storage.js';
 import { IConfigurationChangeEvent, IConfigurationService, isConfigured } from '../../platform/configuration/common/configuration.js';
-import { ChatAIDisabledSettingId } from '../../platform/chat/common/chatSettings.js';
 import { ITitleService } from '../services/title/browser/titleService.js';
 import { ServicesAccessor } from '../../platform/instantiation/common/instantiation.js';
 import { StartupKind, ILifecycleService } from '../services/lifecycle/common/lifecycle.js';
@@ -3281,25 +3280,19 @@ class LayoutStateModel extends Disposable {
 				return true;
 			}
 
-			// New users: Show auxiliary bar even in empty workspaces,
-			// but not if the user explicitly hides it or AI features are disabled.
-			if (
-				this.isNew[StorageScope.APPLICATION] &&
-				configuration.value !== 'hidden' &&
-				!this.configurationService.getValue<boolean>(ChatAIDisabledSettingId)
-			) {
-				return false;
-			}
-
-			// Existing users: respect visibility setting
+			// INV-052-NO-RIGHT-RAIL: fresh layouts keep the auxiliary bar hidden;
+			// persisted workspace storage overrides via loadKeyFromStorage above.
 			switch (configuration.value) {
 				case 'hidden':
 					return true;
+				case 'visible':
+				case 'maximized':
+					return false;
 				case 'visibleInWorkspace':
 				case 'maximizedInWorkspace':
-					return workbenchState === WorkbenchState.EMPTY;
+					return true;
 				default:
-					return false;
+					return true;
 			}
 		})();
 		LayoutStateKeys.PANEL_SIZE.defaultValue = (this.stateCache.get(LayoutStateKeys.PANEL_POSITION.name) ?? isHorizontal(LayoutStateKeys.PANEL_POSITION.defaultValue)) ? mainContainerDimension.height / 3 : mainContainerDimension.width / 4;

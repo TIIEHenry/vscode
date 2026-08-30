@@ -52,6 +52,8 @@ StatusBar
 | Titlebar | `TITLEBAR_PART`（菜单 + command center + 右上 layout controls） | **按 vscode 原生来**（2026-08-30 拍板）；四钮宿主 = 右上 layout controls 簇（原生 Sidebar/Panel/Aux 三钮同族扩展） | 不再自研顶部 chrome |
 | SessionBar | Chat 标题条 / sessions `sessionHeader` | Conversation 透镜内自研 chrome | ADR-052 NO-SUBLAYOUT |
 
+**默认窗口 vs Agents Window（右缘 rail，2026-08-31）**：产品 Conversation 宿主是 `CONVERSATION_PART`，不是 Copilot `contrib/chat` 的 Auxiliary Bar 视图。`workbench.panel.chat` 仍以 donor 身份注册在 `AUXILIARYBAR_PART`，但 **`isDefault: false`**，且 `LayoutStateKeys.AUXILIARYBAR_HIDDEN`（`auxiliaryBar.hidden`，出厂 `true`）在 fresh layout 下不再因 Copilot「新用户 / visibleInWorkspace」逻辑自动展开右栏；用户显式打开或 workspace 持久化可见时才显示。Command Palette / Views 仍可打开 Chat 调试。
+
 ## 3. 四钮 ↔ 本仓 API
 
 > **宿主（2026-08-30 拍板）**：titlebar 右上原生 layout controls 位（`workbench.layoutControl.*` 一族），不是 Activity 底部。四向语义与 NO-DUAL-HIDE 不变。
