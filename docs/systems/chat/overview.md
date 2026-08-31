@@ -88,6 +88,8 @@ platform/chat                   设置与 AI_AGENT 约定
 
 默认 Code 窗口编辑器右键与子系统 **Generate Code / Tips / Voice simulate / Agent Plugins refresh** 等 Chat 输入 chrome 亦经 `IsSessionsWindowContext` 门闩隐藏（Agents Window 保留）。
 
+默认 Code 窗口 Notebook 单元格 **Generate / Start Chat** 插入 chrome（`notebook.cell.chat.start` 等）亦经 `IsSessionsWindowContext` 门闩隐藏；显式开启 `notebook.experimental.cellChat` / `notebook.experimental.generate` 时 Agents Window 保留。
+
 ## 相关文档
 
 - [Chat 系统索引](INDEX.md) · [chat 模块索引](../../modules/chat/INDEX.md)

@@ -22,6 +22,7 @@ import { NOTEBOOK_EDITOR_EDITABLE, NOTEBOOK_EDITOR_FOCUSED } from '../../../comm
 import { Iterable } from '../../../../../../base/common/iterator.js';
 import { ICodeEditor } from '../../../../../../editor/browser/editorBrowser.js';
 import { IEditorService } from '../../../../../services/editor/common/editorService.js';
+import { IsSessionsWindowContext } from '../../../../../common/contextkeys.js';
 import { ChatContextKeys } from '../../../../chat/common/actions/chatContextKeys.js';
 import { InlineChatController } from '../../../../inlineChat/browser/inlineChatController.js';
 import { EditorAction2 } from '../../../../../../editor/browser/editorExtensions.js';
@@ -92,6 +93,7 @@ registerAction2(class extends NotebookAction {
 						NOTEBOOK_EDITOR_EDITABLE.isEqualTo(true),
 						ContextKeyExpr.not(InputFocusedContextKey),
 						CTX_NOTEBOOK_CHAT_HAS_AGENT,
+						IsSessionsWindowContext,
 						ContextKeyExpr.or(
 							ContextKeyExpr.equals(`config.${NotebookSetting.cellChat}`, true),
 							ContextKeyExpr.equals(`config.${NotebookSetting.cellGenerate}`, true)
@@ -109,6 +111,7 @@ registerAction2(class extends NotebookAction {
 						when: ContextKeyExpr.and(
 							NOTEBOOK_EDITOR_EDITABLE.isEqualTo(true),
 							CTX_NOTEBOOK_CHAT_HAS_AGENT,
+							IsSessionsWindowContext,
 							ContextKeyExpr.or(
 								ContextKeyExpr.equals(`config.${NotebookSetting.cellChat}`, true),
 								ContextKeyExpr.equals(`config.${NotebookSetting.cellGenerate}`, true)
@@ -184,6 +187,7 @@ registerAction2(class extends NotebookAction {
 						when: ContextKeyExpr.and(
 							NOTEBOOK_EDITOR_EDITABLE.isEqualTo(true),
 							CTX_NOTEBOOK_CHAT_HAS_AGENT,
+							IsSessionsWindowContext,
 							ContextKeyExpr.or(
 								ContextKeyExpr.equals(`config.${NotebookSetting.cellChat}`, true),
 								ContextKeyExpr.equals(`config.${NotebookSetting.cellGenerate}`, true)
@@ -213,6 +217,7 @@ MenuRegistry.appendMenuItem(MenuId.NotebookToolbar, {
 		ContextKeyExpr.notEquals('config.notebook.insertToolbarLocation', 'betweenCells'),
 		ContextKeyExpr.notEquals('config.notebook.insertToolbarLocation', 'hidden'),
 		CTX_NOTEBOOK_CHAT_HAS_AGENT,
+		IsSessionsWindowContext,
 		ContextKeyExpr.or(
 			ContextKeyExpr.equals(`config.${NotebookSetting.cellChat}`, true),
 			ContextKeyExpr.equals(`config.${NotebookSetting.cellGenerate}`, true)
