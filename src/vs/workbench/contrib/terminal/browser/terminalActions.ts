@@ -62,7 +62,7 @@ import { getColorClass, getIconId, getUriClasses } from './terminalIcon.js';
 import { killTerminalIcon, newTerminalIcon } from './terminalIcons.js';
 import { ITerminalQuickPickItem } from './terminalProfileQuickpick.js';
 import { TerminalTabList } from './terminalTabsList.js';
-import { ResourceContextKey } from '../../../common/contextkeys.js';
+import { IsSessionsWindowContext, ResourceContextKey } from '../../../common/contextkeys.js';
 import { SeparatorSelectOption } from '../../../../base/browser/ui/selectBox/selectBox.js';
 
 export const switchTerminalShowTabsTitle = localize('showTerminalTabs', "Show Tabs");
@@ -1213,12 +1213,16 @@ export function registerTerminalActions() {
 	registerTerminalAction({
 		id: TerminalCommandId.New,
 		title: localize2('workbench.action.terminal.new', 'Create New Terminal'),
-		precondition: ContextKeyExpr.or(TerminalContextKeys.processSupported, TerminalContextKeys.webExtensionContributedProfile),
+		precondition: ContextKeyExpr.and(
+			IsSessionsWindowContext,
+			ContextKeyExpr.or(TerminalContextKeys.processSupported, TerminalContextKeys.webExtensionContributedProfile),
+		),
 		icon: newTerminalIcon,
 		keybinding: {
 			primary: KeyMod.CtrlCmd | KeyMod.Shift | KeyCode.Backquote,
 			mac: { primary: KeyMod.WinCtrl | KeyMod.Shift | KeyCode.Backquote },
-			weight: KeybindingWeight.WorkbenchContrib
+			weight: KeybindingWeight.WorkbenchContrib,
+			when: IsSessionsWindowContext,
 		},
 		run: async (c, accessor, args) => {
 			let eventOrOptions = isObject(args) ? args as MouseEvent | ICreateTerminalOptions : undefined;
