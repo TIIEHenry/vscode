@@ -1150,7 +1150,7 @@ export class AddConfigurationAction extends Action2 {
 				when: ContextKeyExpr.and(
 					ContextKeyExpr.regex(ResourceContextKey.Path.key, /\.vscode[/\\]mcp\.json$/),
 					ActiveEditorContext.isEqualTo(TEXT_FILE_EDITOR_ID),
-					MCP_SETUP_NOT_HIDDEN,
+					MCP_SESSIONS_WINDOW_SETUP,
 				)
 			}
 		});

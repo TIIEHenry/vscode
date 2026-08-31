@@ -14,6 +14,7 @@ import { IQuickInputService, IQuickPickItem } from '../../../../../platform/quic
 import { ISecretStorageService } from '../../../../../platform/secrets/common/secrets.js';
 import { AuthenticationSessionInfo, getCurrentAuthenticationSessionInfo } from '../../../../services/authentication/browser/authenticationService.js';
 import { IAuthenticationProvider, IAuthenticationService } from '../../../../services/authentication/common/authentication.js';
+import { IWorkbenchEnvironmentService } from '../../../../services/environment/common/environmentService.js';
 
 export class ManageAccountsAction extends Action2 {
 	constructor() {
@@ -48,6 +49,7 @@ class ManageAccountsActionImpl {
 		@ICommandService private readonly commandService: ICommandService,
 		@ISecretStorageService private readonly secretStorageService: ISecretStorageService,
 		@IProductService private readonly productService: IProductService,
+		@IWorkbenchEnvironmentService private readonly environmentService: IWorkbenchEnvironmentService,
 	) { }
 
 	public async run() {
@@ -108,7 +110,7 @@ class ManageAccountsActionImpl {
 			action: () => this.commandService.executeCommand('_manageTrustedExtensionsForAccount', { providerId, accountLabel })
 		}];
 
-		if (canUseMcp) {
+		if (canUseMcp && this.environmentService.isSessionsWindow) {
 			items.push({
 				label: localize('manageTrustedMCPServers', "Manage Trusted MCP Servers"),
 				action: () => this.commandService.executeCommand('_manageTrustedMCPServersForAccount', { providerId, accountLabel })

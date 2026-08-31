@@ -7,14 +7,20 @@ import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { isIMenuItem, MenuId, MenuRegistry } from '../../../../../platform/actions/common/actions.js';
 import type { ContextKeyExpression, ContextKeyValue } from '../../../../../platform/contextkey/common/contextkey.js';
-import { IsSessionsWindowContext, RemoteNameContext, WorkbenchStateContext, WorkspaceFolderCountContext } from '../../../../common/contextkeys.js';
+import { IContextKeyService } from '../../../../../platform/contextkey/common/contextkey.js';
+import { Extensions as QuickAccessExtensions, IQuickAccessRegistry } from '../../../../../platform/quickinput/common/quickAccess.js';
+import { Registry } from '../../../../../platform/registry/common/platform.js';
+import { ActiveEditorContext, IsSessionsWindowContext, RemoteNameContext, ResourceContextKey, WorkbenchStateContext, WorkspaceFolderCountContext } from '../../../../common/contextkeys.js';
 import { extensionsFilterSubMenu } from '../../../extensions/common/extensions.js';
 import { ChatContextKeys } from '../../../chat/common/actions/chatContextKeys.js';
+import { TEXT_FILE_EDITOR_ID } from '../../../files/common/files.js';
 import { McpCommandIds } from '../../common/mcpCommandIds.js';
 import { McpContextKeys } from '../../common/mcpContextKeys.js';
 import { HasInstalledMcpServersContext } from '../../common/mcpTypes.js';
+import { McpResourceQuickAccess } from '../../browser/mcpResourceQuickAccess.js';
 
 import '../../browser/mcp.contribution.js';
+import '../../../authentication/browser/authentication.contribution.js';
 import '../../../chat/browser/agentPluginsView.js';
 
 function evalWhen(when: ContextKeyExpression | undefined, values: Record<string, ContextKeyValue>): boolean {
@@ -36,9 +42,25 @@ function findExtensionsFilterItem(commandId: string) {
 		.find(item => item.command.id === commandId);
 }
 
+function findEditorContentItem(commandId: string) {
+	return MenuRegistry.getMenuItems(MenuId.EditorContent)
+		.filter(isIMenuItem)
+		.find(item => item.command.id === commandId);
+}
+
 const chatSetupReady: Record<string, ContextKeyValue> = {
 	[ChatContextKeys.Setup.hidden.key]: false,
 	[ChatContextKeys.Setup.disabledInWorkspace.key]: false,
+};
+
+const chatEnabled: Record<string, ContextKeyValue> = {
+	...chatSetupReady,
+	[ChatContextKeys.enabled.key]: true,
+};
+
+const mcpJsonEditor: Record<string, ContextKeyValue> = {
+	[ResourceContextKey.Path.key]: '/project/.vscode/mcp.json',
+	[ActiveEditorContext.key]: TEXT_FILE_EDITOR_ID,
 };
 
 const defaultWindow: Record<string, ContextKeyValue> = {
@@ -74,6 +96,7 @@ const sessionsWindowOnlyPaletteCommandIds = [
 	McpCommandIds.OpenWorkspaceFolderMcp,
 	McpCommandIds.OpenWorkspaceMcp,
 	McpCommandIds.BrowseResources,
+	'_manageTrustedMCPServersForAccount',
 ];
 
 suite('McpCommands - default window Command Palette and Extensions filters', () => {
@@ -123,5 +146,46 @@ suite('McpCommands - default window Command Palette and Extensions filters', () 
 				`Agents Window may show ${label} Extensions filter`
 			);
 		}
+	});
+
+	test('MCP Server Resources quick access stays gated to Agents Window', () => {
+		const quickAccessRegistry = Registry.as<IQuickAccessRegistry>(QuickAccessExtensions.Quickaccess);
+		const mockContextKeyService = { contextMatchesRules: () => true } as unknown as IContextKeyService;
+		const provider = quickAccessRegistry.getQuickAccessProvider(McpResourceQuickAccess.PREFIX, mockContextKeyService);
+
+		assert.ok(provider, 'MCP Server Resources quick access provider should remain registered');
+		assert.ok(provider.when, 'MCP Server Resources quick access provider should have a when clause');
+
+		assert.strictEqual(
+			evalWhen(provider.when, { ...chatEnabled, [IsSessionsWindowContext.key]: false }),
+			false,
+			'default Code window must hide MCP Server Resources from quick access'
+		);
+		assert.strictEqual(
+			evalWhen(provider.when, { ...chatEnabled, [IsSessionsWindowContext.key]: true }),
+			true,
+			'Agents Window may show MCP Server Resources in quick access'
+		);
+	});
+
+	test('mcp.json Add Server editor action stays gated to Agents Window', () => {
+		const item = findEditorContentItem(McpCommandIds.AddConfiguration);
+
+		assert.ok(item, 'Add Server editor action should remain registered');
+		assert.ok(item.when, 'Add Server editor action should have a when clause');
+
+		const defaultWindowMcpJson = { ...defaultWindow, ...mcpJsonEditor };
+		const agentsWindowMcpJson = { ...agentsWindow, ...mcpJsonEditor };
+
+		assert.strictEqual(
+			evalWhen(item.when, defaultWindowMcpJson),
+			false,
+			'default Code window must hide Add Server in mcp.json editor'
+		);
+		assert.strictEqual(
+			evalWhen(item.when, agentsWindowMcpJson),
+			true,
+			'Agents Window may show Add Server in mcp.json editor'
+		);
 	});
 });
