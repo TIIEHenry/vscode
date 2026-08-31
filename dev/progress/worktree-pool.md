@@ -22,15 +22,15 @@ summary: "仓外 vscode-WorkTrees 工位表；A–D + merge 全 idle；M3 关仓
 | 集成分支（当前） | **`agent-ide`**（merge 槽对齐此分支；非上游 `main`） |
 | 集成本次 HEAD | 对齐 `agent-ide` `61ded6e2` — M4 验证波 `in_progress` |
 
-## 槽位表（2026-08-31 M4 验证波）
+## 槽位表（2026-08-31 M4 验证波 · 并发）
 
-| 槽 | 路径 | 分支 | 状态 | 备注 |
-|:---|:-----|:-----|:-----|:-----|
-| merge | `vscode-WorkTrees/merge` | `loop/merge` | **busy** | M4 切片 1 D3 compile/单测 |
-| A | `vscode-WorkTrees/A` | `loop/A` | **busy** | M4 切片 2 D4 启动冒烟 |
-| B | `vscode-WorkTrees/B` | `loop/B` | `idle` | 对齐 `agent-ide` `61ded6e2` |
-| C | `vscode-WorkTrees/C` | `loop/C` | `idle` | 对齐 `agent-ide` |
-| D | `vscode-WorkTrees/D` | `loop/D` | `idle` | 对齐 `agent-ide` |
+| 槽 | 路径 | 分支 | 状态 | 切片 | 互斥域 |
+|:---|:-----|:-----|:-----|:-----|--------|
+| merge | `vscode-WorkTrees/merge` | `loop/merge` | **busy** | M4-1 D3 compile/单测 | `src/**` chat/conversation/sources |
+| A | `vscode-WorkTrees/A` | `loop/A` | **queued** | M4-2 D4 启动冒烟 | 待 merge 编译绿后复跑 |
+| B | `vscode-WorkTrees/B` | `loop/B` | **busy** | M4-3 D5 EH 探针计划 | `docs/**` EH 矩阵 |
+| C | `vscode-WorkTrees/C` | `loop/C` | **busy** | M4-4 D1 工作流指南 | `docs/guides/**` |
+| D | `vscode-WorkTrees/D` | `loop/D` | `idle` | 备用 / D4 截图 | — |
 
 并行 slice 归属记在 `status.md` 或 parallel board；**槽字母不绑定模块**。
 
