@@ -45,7 +45,7 @@ StatusBar
 | Navigator body | `SIDEBAR_PART`（Activity 图标：Files=Explorer default + 非 default 容器 Sessions / Projects / Agents / Team） | 保留 Explorer 权威；roster = Files + Sessions + Projects/Agents/Team honest stub | `toggleRegion('navigatorBody')` ≙ `setSideBarHidden` + 记宽 |
 | Conversation | **`CONVERSATION_PART`**（`contrib/conversation` 透镜骨架：SessionBar / stub 时间线 / stub dock） | 独立中心 Part | 无引擎接线；不是 ChatEditor |
 | Preview | `EDITOR_PART`（End 列） | **同一 `EDITOR_PART` 已挪到 End** | 与 File tabs **同构**（spike §3.1）；出厂 **`workbench.startupEditor` = `none`**，Preview 不自动打开 VS Code Welcome（Command Palette 仍可打开）；空 Preview watermark 无 Open Chat，空 untitled 编辑器 hint 不走 Copilot/inline-chat 引导 |
-| Sources | 无独立格。SCM/Changes 常在 Sidebar 或 Panel | **`SOURCES_PART`**（End 下格；`contrib/sources` **Files \| Changes \| Review** tab strip） | Files 列表已落；Changes / Review 为 honest stub；Diff 深查看仍 **EDITOR_PART** FORK（ADR-047） |
+| Sources | 无独立格。SCM/Changes 常在 Sidebar 或 Panel | **`SOURCES_PART`**（End 下格；`contrib/sources` **Files \| Changes \| Review** tab strip） | Files 列表已落；Changes = SCM 资源列表 → Preview（`openEditor`，非 Diff）；Review 为 stub；Diff 深查看仍 **EDITOR_PART** FORK（ADR-047） |
 | Bottom Panel | `PANEL_PART` | 保留；**不进四钮** | 对齐 ADR-047 / ADR-052 决策 3 |
 | StatusBar | `STATUSBAR_PART` | 保留 | |
 | 右缘 rail | `AUXILIARYBAR_PART` | **合同默认关**（INV-052-NO-RIGHT-RAIL） | 布局类扩展爱往这里打，记入 EH 矩阵；Chat 容器仍挂 Aux 但 **`isDefault: false`**，出厂 hidden（M2） |
@@ -63,9 +63,9 @@ StatusBar
 | Nav | `toggleRegion('navigatorBody')` | `workbench.action.toggleSidebarVisibility` → `setPartHidden(SIDEBAR)`；**已注册** `LayoutControlMenu` | 无 persist 宽的单一 `toggleRegion` |
 | Conv | `toggleRegion('conversation')` | `workbench.action.toggleConversation` → `setPartHidden(CONVERSATION_PART)`；**已注册** `LayoutControlMenu` | — |
 | Prev | `toggleRegion('preview')` | `workbench.action.toggleEditorVisibility` → `setPartHidden(EDITOR_PART)`；**已注册** `LayoutControlMenu` | 不再强制开 Panel |
-| Src | `toggleRegion('sources')` | `workbench.action.toggleSources` → `setPartHidden(SOURCES_PART)`；**已注册** `LayoutControlMenu` | Files / Changes / Review tab strip 已落（Changes·Review stub）；Diff 路由未改 |
+| Src | `toggleRegion('sources')` | `workbench.action.toggleSources` → `setPartHidden(SOURCES_PART)`；**已注册** `LayoutControlMenu` | Files / Changes / Review tab strip 已落（Changes = SCM 列表；Review stub）；Diff 路由未改 |
 
-> **HEAD**：默认窗口已有 Conversation 透镜 + End 列（Editor 上 / Sources **Files \| Changes \| Review** 下）+ titlebar 产品四钮（主簇仅 **Navigator / Conversation / Preview / Sources**；Panel / Aux 退 submenu）。Changes / Review tab 为 stub；Diff 仍 **EDITOR_PART** FORK。**compile / 启动演示 / EH 探针仍 deferred** → [deferred-gaps](../../../dev/progress/deferred-gaps.md)。
+> **HEAD**：默认窗口已有 Conversation 透镜 + End 列（Editor 上 / Sources **Files \| Changes \| Review** 下）+ titlebar 产品四钮（主簇仅 **Navigator / Conversation / Preview / Sources**；Panel / Aux 退 submenu）。Changes = SCM 资源列表打开 Preview；Review 为 stub；Diff 仍 **EDITOR_PART** FORK。**compile / 启动演示 / EH 探针仍 deferred** → [deferred-gaps](../../../dev/progress/deferred-gaps.md)。
 
 `INV-052-NO-DUAL-HIDE`：Conversation ∨ Workbench(Preview∨Sources) 至少一个可见。  
 本仓默认（M0）：**Conversation ∨ (Editor ∨ Sources)** 至少一个可见（`forceShownAgentShellPart`）。Panel 不进此公式。
