@@ -19,7 +19,7 @@ import { IProgressService } from '../../../../platform/progress/common/progress.
 import { Registry } from '../../../../platform/registry/common/platform.js';
 import { ViewPaneContainer } from '../../../browser/parts/views/viewPaneContainer.js';
 import { registerWorkbenchContribution2, WorkbenchPhase } from '../../../common/contributions.js';
-import { IViewContainersRegistry, IViewsRegistry, Extensions as ViewContainerExtensions, ViewContainerLocation } from '../../../common/views.js';
+import { IViewContainersRegistry, IViewsRegistry, Extensions as ViewContainerExtensions, ViewContainerLocation, WindowEnablement } from '../../../common/views.js';
 import { IViewsService } from '../../../services/views/common/viewsService.js';
 import { IsSessionsWindowContext } from '../../../common/contextkeys.js';
 import { REVEAL_IN_EXPLORER_COMMAND_ID } from '../../files/browser/fileConstants.js';
@@ -87,6 +87,7 @@ const testResultsViewContainer = Registry.as<IViewContainersRegistry>(ViewContai
 	ctorDescriptor: new SyncDescriptor(ViewPaneContainer, [Testing.ResultsPanelId, { mergeViewWithContainerWhenSingleView: true }]),
 	hideIfEmpty: true,
 	order: 3,
+	windowEnablement: WindowEnablement.Sessions
 }, ViewContainerLocation.Panel, { doNotRegisterOpenCommand: true });
 
 const viewsRegistry = Registry.as<IViewsRegistry>(ViewContainerExtensions.ViewsRegistry);
@@ -100,6 +101,7 @@ viewsRegistry.registerViews([{
 	canMoveView: true,
 	when: TestingContextKeys.hasAnyResults.isEqualTo(true),
 	ctorDescriptor: new SyncDescriptor(TestResultsView),
+	windowEnablement: WindowEnablement.Sessions
 }], testResultsViewContainer);
 
 viewsRegistry.registerViewWelcomeContent(Testing.ExplorerViewId, {

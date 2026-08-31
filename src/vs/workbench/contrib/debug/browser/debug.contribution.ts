@@ -23,7 +23,7 @@ import { ViewPaneContainer } from '../../../browser/parts/views/viewPaneContaine
 import { FocusedViewContext, IsSessionsWindowContext } from '../../../common/contextkeys.js';
 import { IWorkbenchContributionsRegistry, Extensions as WorkbenchExtensions, WorkbenchPhase, registerWorkbenchContribution2 } from '../../../common/contributions.js';
 import { EditorExtensions } from '../../../common/editor.js';
-import { IViewContainersRegistry, IViewsRegistry, ViewContainer, ViewContainerLocation, Extensions as ViewExtensions } from '../../../common/views.js';
+import { IViewContainersRegistry, IViewsRegistry, ViewContainer, ViewContainerLocation, Extensions as ViewExtensions, WindowEnablement } from '../../../common/views.js';
 import { launchSchemaId } from '../../../services/configuration/common/configuration.js';
 import { LifecyclePhase } from '../../../services/lifecycle/common/lifecycle.js';
 import { COPY_NOTEBOOK_VARIABLE_VALUE_ID, COPY_NOTEBOOK_VARIABLE_VALUE_LABEL } from '../../notebook/browser/contrib/notebookVariables/notebookVariableCommands.js';
@@ -89,6 +89,7 @@ Registry.as<IQuickAccessRegistry>(QuickAccessExtensions.Quickaccess).registerQui
 	ctor: StartDebugQuickAccessProvider,
 	prefix: DEBUG_QUICK_ACCESS_PREFIX,
 	contextKey: 'inLaunchConfigurationsPicker',
+	when: IsSessionsWindowContext,
 	placeholder: nls.localize('startDebugPlaceholder', "Type the name of a launch configuration to run."),
 	helpEntries: [{
 		description: nls.localize('startDebuggingHelp', "Start Debugging"),
@@ -431,6 +432,7 @@ const VIEW_CONTAINER: ViewContainer = Registry.as<IViewContainersRegistry>(ViewE
 	storageId: DEBUG_PANEL_ID,
 	hideIfEmpty: true,
 	order: 2,
+	windowEnablement: WindowEnablement.Sessions
 }, ViewContainerLocation.Panel, { doNotRegisterOpenCommand: true });
 
 Registry.as<IViewsRegistry>(ViewExtensions.ViewsRegistry).registerViews([{
@@ -444,9 +446,13 @@ Registry.as<IViewsRegistry>(ViewExtensions.ViewsRegistry).registerViews([{
 	openCommandActionDescriptor: {
 		id: 'workbench.debug.action.toggleRepl',
 		mnemonicTitle: nls.localize({ key: 'miToggleDebugConsole', comment: ['&& denotes a mnemonic'] }, "De&&bug Console"),
-		keybindings: { primary: KeyMod.CtrlCmd | KeyMod.Shift | KeyCode.KeyY },
+		keybindings: {
+			primary: KeyMod.CtrlCmd | KeyMod.Shift | KeyCode.KeyY,
+			when: IsSessionsWindowContext,
+		},
 		order: 2
-	}
+	},
+	windowEnablement: WindowEnablement.Sessions
 }], VIEW_CONTAINER);
 
 

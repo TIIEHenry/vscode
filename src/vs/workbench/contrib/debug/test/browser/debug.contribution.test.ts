@@ -8,9 +8,12 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/tes
 import { isISubmenuItem, MenuId, MenuRegistry } from '../../../../../platform/actions/common/actions.js';
 import { Registry } from '../../../../../platform/registry/common/platform.js';
 import type { ContextKeyExpression, ContextKeyValue } from '../../../../../platform/contextkey/common/contextkey.js';
-import { Extensions as ViewExtensions, IViewContainersRegistry, IViewsRegistry, ViewContainerLocation } from '../../../../common/views.js';
+import { Extensions as ViewExtensions, IViewContainersRegistry, IViewsRegistry, ViewContainerLocation, WindowEnablement } from '../../../../common/views.js';
 import { IsSessionsWindowContext } from '../../../../common/contextkeys.js';
+import { IContextKeyService } from '../../../../../platform/contextkey/common/contextkey.js';
+import { Extensions as QuickAccessExtensions, IQuickAccessRegistry } from '../../../../../platform/quickinput/common/quickAccess.js';
 import { BREAKPOINTS_VIEW_ID, CALLSTACK_VIEW_ID, CONTEXT_DEBUG_UX, DEBUG_PANEL_ID, REPL_VIEW_ID, VARIABLES_VIEW_ID, VIEWLET_ID, WATCH_VIEW_ID } from '../../common/debug.js';
+import { DEBUG_QUICK_ACCESS_PREFIX } from '../../browser/debugCommands.js';
 import { WelcomeView } from '../../browser/welcomeView.js';
 
 import '../../browser/debug.contribution.js';
@@ -125,7 +128,7 @@ suite('DebugContribution - default window Activity', () => {
 		}
 	});
 
-	test('Debug Console panel remains available in default window', () => {
+	test('Debug Console panel is gated to Agents Window', () => {
 		const viewsRegistry = Registry.as<IViewsRegistry>(ViewExtensions.ViewsRegistry);
 		const viewContainersRegistry = Registry.as<IViewContainersRegistry>(ViewExtensions.ViewContainersRegistry);
 
@@ -136,22 +139,48 @@ suite('DebugContribution - default window Activity', () => {
 			ViewContainerLocation.Panel,
 			'Debug Console should remain a Panel container'
 		);
+		assert.strictEqual(panelContainer.windowEnablement, WindowEnablement.Sessions, 'Debug Console panel container should be Agents Window only');
 
 		const replView = viewsRegistry.getView(REPL_VIEW_ID);
 		assert.ok(replView, 'Debug Console view should remain registered');
-		assert.ok(replView.when, 'Debug Console view should have a when clause');
+		assert.strictEqual(replView.windowEnablement, WindowEnablement.Sessions, 'Debug Console view should be Agents Window only');
 
-		const defaultWindowWithDebuggers = { [IsSessionsWindowContext.key]: false, debuggersAvailable: true };
-		const agentsWindowWithDebuggers = { [IsSessionsWindowContext.key]: true, debuggersAvailable: true };
+		const defaultWindow = { [IsSessionsWindowContext.key]: false };
+		const agentsWindow = { [IsSessionsWindowContext.key]: true };
+
+		assert.ok(replView.openCommandActionDescriptor?.keybindings?.when, 'Debug Console toggle keybinding should have a when clause');
 		assert.strictEqual(
-			evalWhen(replView.when, defaultWindowWithDebuggers),
-			true,
-			'default Code window must keep Debug Console panel view available'
+			evalWhen(replView.openCommandActionDescriptor!.keybindings!.when, defaultWindow),
+			false,
+			'default Code window must hide Debug Console toggle keybinding'
 		);
 		assert.strictEqual(
-			evalWhen(replView.when, agentsWindowWithDebuggers),
+			evalWhen(replView.openCommandActionDescriptor!.keybindings!.when, agentsWindow),
 			true,
-			'Agents Window must keep Debug Console panel view available'
+			'Agents Window may keep Debug Console toggle keybinding'
+		);
+	});
+
+	test('Start Debugging command center quick access is gated to Agents Window', () => {
+		const quickAccessRegistry = Registry.as<IQuickAccessRegistry>(QuickAccessExtensions.Quickaccess);
+		const mockContextKeyService = { contextMatchesRules: () => true } as IContextKeyService;
+		const startDebugProvider = quickAccessRegistry.getQuickAccessProvider(DEBUG_QUICK_ACCESS_PREFIX, mockContextKeyService);
+
+		assert.ok(startDebugProvider, 'Start Debugging quick access provider should remain registered');
+		assert.ok(startDebugProvider.when, 'Start Debugging quick access provider should have a when clause');
+
+		const defaultWindow = { [IsSessionsWindowContext.key]: false };
+		const agentsWindow = { [IsSessionsWindowContext.key]: true };
+
+		assert.strictEqual(
+			evalWhen(startDebugProvider.when, defaultWindow),
+			false,
+			'default Code window must hide Start Debugging from Command Center'
+		);
+		assert.strictEqual(
+			evalWhen(startDebugProvider.when, agentsWindow),
+			true,
+			'Agents Window may keep Start Debugging in Command Center'
 		);
 	});
 });

@@ -7,7 +7,7 @@ import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { Registry } from '../../../../../platform/registry/common/platform.js';
 import type { ContextKeyExpression, ContextKeyValue } from '../../../../../platform/contextkey/common/contextkey.js';
-import { Extensions as ViewExtensions, IViewContainersRegistry, IViewsRegistry, ViewContainerLocation } from '../../../../common/views.js';
+import { Extensions as ViewExtensions, IViewContainersRegistry, IViewsRegistry, ViewContainerLocation, WindowEnablement } from '../../../../common/views.js';
 import { IsSessionsWindowContext } from '../../../../common/contextkeys.js';
 import { Testing } from '../../common/constants.js';
 import { TestingContextKeys } from '../../common/testingContextKeys.js';
@@ -104,7 +104,7 @@ suite('TestingContribution - default window Activity', () => {
 		);
 	});
 
-	test('Test Results panel remains available in default window', () => {
+	test('Test Results panel is gated to Agents Window', () => {
 		const viewsRegistry = Registry.as<IViewsRegistry>(ViewExtensions.ViewsRegistry);
 		const viewContainersRegistry = Registry.as<IViewContainersRegistry>(ViewExtensions.ViewContainersRegistry);
 
@@ -115,16 +115,10 @@ suite('TestingContribution - default window Activity', () => {
 			ViewContainerLocation.Panel,
 			'Test Results should remain a Panel container'
 		);
+		assert.strictEqual(panelContainer.windowEnablement, WindowEnablement.Sessions, 'Test Results panel container should be Agents Window only');
 
 		const resultsView = viewsRegistry.getView(Testing.ResultsViewId);
 		assert.ok(resultsView, 'Test Results view should remain registered');
-		assert.strictEqual(
-			evalWhen(resultsView.when, {
-				[IsSessionsWindowContext.key]: false,
-				[TestingContextKeys.hasAnyResults.key]: true,
-			}),
-			true,
-			'default Code window must keep Test Results panel view available when results exist'
-		);
+		assert.strictEqual(resultsView.windowEnablement, WindowEnablement.Sessions, 'Test Results view should be Agents Window only');
 	});
 });
