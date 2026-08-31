@@ -10,3 +10,26 @@
 	padding: 8px 20px;
 	user-select: none;
 }
+
+.monaco-workbench .navigator-agents-view {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+}
+
+.monaco-workbench .navigator-agents-subview {
+	display: none;
+	flex: 1;
+	min-height: 0;
+}
+
+.monaco-workbench .navigator-agents-subview.active {
+	display: flex;
+	flex-direction: column;
+}
+
+.monaco-workbench .navigator-agents-hierarchy-tree,
+.monaco-workbench .navigator-agents-activity-list {
+	flex: 1;
+	min-height: 0;
+}
