@@ -23,6 +23,7 @@ import { IInstantiationService } from '../../../../../platform/instantiation/com
 import { KeybindingWeight } from '../../../../../platform/keybinding/common/keybindingsRegistry.js';
 import { ILabelService } from '../../../../../platform/label/common/label.js';
 import { TerminalLocation } from '../../../../../platform/terminal/common/terminal.js';
+import { IsSessionsWindowContext } from '../../../../common/contextkeys.js';
 import { IWorkbenchContribution } from '../../../../common/contributions.js';
 import { IUntitledTextResourceEditorInput } from '../../../../common/editor.js';
 import { IEditorService } from '../../../../services/editor/common/editorService.js';
@@ -335,7 +336,7 @@ export function registerChatCodeBlockActions() {
 			super({
 				id: 'workbench.action.chat.insertCodeBlock',
 				title: localize2('interactive.insertCodeBlock.label', "Insert At Cursor"),
-				precondition: ChatContextKeys.enabled,
+				precondition: ContextKeyExpr.and(ChatContextKeys.enabled, IsSessionsWindowContext),
 				f1: true,
 				category: CHAT_CATEGORY,
 				icon: Codicon.insert,
@@ -371,7 +372,7 @@ export function registerChatCodeBlockActions() {
 			super({
 				id: 'workbench.action.chat.insertIntoNewFile',
 				title: localize2('interactive.insertIntoNewFile.label', "Insert into New File"),
-				precondition: ChatContextKeys.enabled,
+				precondition: ContextKeyExpr.and(ChatContextKeys.enabled, IsSessionsWindowContext),
 				f1: true,
 				category: CHAT_CATEGORY,
 				icon: Codicon.newFile,
@@ -441,7 +442,7 @@ export function registerChatCodeBlockActions() {
 			super({
 				id: 'workbench.action.chat.runInTerminal',
 				title: localize2('interactive.runInTerminal.label', "Insert into Terminal"),
-				precondition: ChatContextKeys.enabled,
+				precondition: ContextKeyExpr.and(ChatContextKeys.enabled, IsSessionsWindowContext),
 				f1: true,
 				category: CHAT_CATEGORY,
 				icon: Codicon.terminal,
@@ -562,7 +563,7 @@ export function registerChatCodeBlockActions() {
 					weight: KeybindingWeight.WorkbenchContrib,
 					when: ChatContextKeys.inChatSession,
 				},
-				precondition: ChatContextKeys.enabled,
+				precondition: ContextKeyExpr.and(ChatContextKeys.enabled, IsSessionsWindowContext),
 				f1: true,
 				category: CHAT_CATEGORY,
 			});
@@ -584,7 +585,7 @@ export function registerChatCodeBlockActions() {
 					weight: KeybindingWeight.WorkbenchContrib,
 					when: ChatContextKeys.inChatSession,
 				},
-				precondition: ChatContextKeys.enabled,
+				precondition: ContextKeyExpr.and(ChatContextKeys.enabled, IsSessionsWindowContext),
 				f1: true,
 				category: CHAT_CATEGORY,
 			});

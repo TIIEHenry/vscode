@@ -32,7 +32,7 @@ import { ILogService } from '../../../../../platform/log/common/log.js';
 import { AnythingQuickAccessProviderRunOptions } from '../../../../../platform/quickinput/common/quickAccess.js';
 import { IQuickInputService, IQuickPickItem, IQuickPickItemWithResource, QuickPickItem } from '../../../../../platform/quickinput/common/quickInput.js';
 import { resolveCommandsContext } from '../../../../browser/parts/editor/editorCommandsContext.js';
-import { ResourceContextKey } from '../../../../common/contextkeys.js';
+import { IsSessionsWindowContext, ResourceContextKey } from '../../../../common/contextkeys.js';
 import { EditorResourceAccessor, isEditorCommandsContext, isEditorInput, SideBySideEditor } from '../../../../common/editor.js';
 import { IEditorGroupsService } from '../../../../services/editor/common/editorGroupsService.js';
 import { IEditorService } from '../../../../services/editor/common/editorService.js';
@@ -137,7 +137,7 @@ class AttachFileToChatAction extends AttachResourceAction {
 			title: localize2('workbench.action.chat.attachFile.label', "Add File to Chat"),
 			category: CHAT_CATEGORY,
 			icon: Codicon.attach,
-			precondition: ChatContextKeys.enabled,
+			precondition: ContextKeyExpr.and(ChatContextKeys.enabled, IsSessionsWindowContext),
 			f1: true,
 			menu: [{
 				id: MenuId.SearchContext,
@@ -258,7 +258,7 @@ class AttachPinnedEditorsToChatAction extends Action2 {
 			id: AttachPinnedEditorsToChatAction.ID,
 			title: localize2('workbench.action.chat.attachPinnedEditors.label', "Add Pinned Editors to Chat"),
 			category: CHAT_CATEGORY,
-			precondition: ChatContextKeys.enabled,
+			precondition: ContextKeyExpr.and(ChatContextKeys.enabled, IsSessionsWindowContext),
 			f1: true,
 		});
 	}
@@ -306,7 +306,7 @@ class AttachSelectionToChatAction extends Action2 {
 			category: CHAT_CATEGORY,
 			icon: Codicon.attach,
 			f1: true,
-			precondition: ChatContextKeys.enabled,
+			precondition: ContextKeyExpr.and(ChatContextKeys.enabled, IsSessionsWindowContext),
 			menu: [{
 				id: MenuId.EditorContext,
 				group: '1_chat',

@@ -11,6 +11,7 @@ import { KeybindingWeight } from '../../../../../platform/keybinding/common/keyb
 import { KeyCode, KeyMod } from '../../../../../base/common/keyCodes.js';
 import { IStorageService, StorageScope, StorageTarget } from '../../../../../platform/storage/common/storage.js';
 import { ContextKeyExpr } from '../../../../../platform/contextkey/common/contextkey.js';
+import { IsSessionsWindowContext } from '../../../../common/contextkeys.js';
 import { IChatWidgetService } from '../chat.js';
 import { ChatContextKeys } from '../../common/actions/chatContextKeys.js';
 import { isResponseVM } from '../../common/model/chatViewModel.js';
@@ -28,7 +29,7 @@ class AnnounceChatConfirmationAction extends Action2 {
 			id: ACTION_ID_FOCUS_CHAT_CONFIRMATION,
 			title: { value: localize('focusChatConfirmation', 'Focus Chat Confirmation'), original: 'Focus Chat Confirmation' },
 			category: { value: localize('chat.category', 'Chat'), original: 'Chat' },
-			precondition: ChatContextKeys.enabled,
+			precondition: ContextKeyExpr.and(ChatContextKeys.enabled, IsSessionsWindowContext),
 			f1: true,
 			keybinding: {
 				weight: KeybindingWeight.WorkbenchContrib,
@@ -93,7 +94,7 @@ class ToggleThinkingContentAccessibleViewAction extends Action2 {
 			id: ACTION_ID_TOGGLE_THINKING_CONTENT_ACCESSIBLE_VIEW,
 			title: { value: localize('toggleThinkingContentAccessibleView', 'Toggle Thinking Content in Accessible View'), original: 'Toggle Thinking Content in Accessible View' },
 			category: { value: localize('chat.category', 'Chat'), original: 'Chat' },
-			precondition: ChatContextKeys.enabled,
+			precondition: ContextKeyExpr.and(ChatContextKeys.enabled, IsSessionsWindowContext),
 			f1: true,
 			keybinding: {
 				primary: KeyMod.Alt | KeyCode.KeyT,

@@ -7,7 +7,9 @@ import { KeyCode, KeyMod } from '../../../../../base/common/keyCodes.js';
 import { ServicesAccessor } from '../../../../../editor/browser/editorExtensions.js';
 import { localize2 } from '../../../../../nls.js';
 import { Action2, registerAction2 } from '../../../../../platform/actions/common/actions.js';
+import { ContextKeyExpr } from '../../../../../platform/contextkey/common/contextkey.js';
 import { KeybindingWeight } from '../../../../../platform/keybinding/common/keybindingsRegistry.js';
+import { IsSessionsWindowContext } from '../../../../common/contextkeys.js';
 import { CHAT_CATEGORY } from './chatActions.js';
 import { IChatWidgetService } from '../chat.js';
 import { ChatContextKeys } from '../../common/actions/chatContextKeys.js';
@@ -24,7 +26,7 @@ export function registerChatFileTreeActions() {
 					weight: KeybindingWeight.WorkbenchContrib,
 					when: ChatContextKeys.inChatSession,
 				},
-				precondition: ChatContextKeys.enabled,
+				precondition: ContextKeyExpr.and(ChatContextKeys.enabled, IsSessionsWindowContext),
 				f1: true,
 				category: CHAT_CATEGORY,
 			});
@@ -45,7 +47,7 @@ export function registerChatFileTreeActions() {
 					weight: KeybindingWeight.WorkbenchContrib,
 					when: ChatContextKeys.inChatSession,
 				},
-				precondition: ChatContextKeys.enabled,
+				precondition: ContextKeyExpr.and(ChatContextKeys.enabled, IsSessionsWindowContext),
 				f1: true,
 				category: CHAT_CATEGORY,
 			});

@@ -13,6 +13,7 @@ import { Action2, registerAction2 } from '../../../../../platform/actions/common
 import { ContextKeyExpr } from '../../../../../platform/contextkey/common/contextkey.js';
 import { ServicesAccessor } from '../../../../../platform/instantiation/common/instantiation.js';
 import { KeybindingWeight } from '../../../../../platform/keybinding/common/keybindingsRegistry.js';
+import { IsSessionsWindowContext } from '../../../../common/contextkeys.js';
 import { ChatContextKeys } from '../../common/actions/chatContextKeys.js';
 import { IChatFindController, IChatWidget, IChatWidgetService } from '../chat.js';
 import { ChatFindCommandId } from '../widget/chatFind/chatFindCommandIds.js';
@@ -58,7 +59,7 @@ export function registerChatFindActions(): void {
 				title: localize2('chat.find', "Find in Chat"),
 				category: CHAT_CATEGORY,
 				f1: true,
-				precondition: ContextKeyExpr.and(ChatContextKeys.enabled, ChatContextKeys.findSupported),
+				precondition: ContextKeyExpr.and(ChatContextKeys.enabled, ChatContextKeys.findSupported, IsSessionsWindowContext),
 				keybinding: {
 					when: ContextKeyExpr.and(ChatContextKeys.findSupported, ChatContextKeys.inChatSession, EditorContextKeys.focus.toNegated()),
 					primary: KeyMod.CtrlCmd | KeyCode.KeyF,
