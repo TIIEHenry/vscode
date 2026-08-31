@@ -106,6 +106,8 @@ Sessions 窗口的 `SESSIONS_PART` 证明「非 Editor 中心 Part」可行，�
 
 **Auxiliary Bar 默认（2026-08-31，M2 切片 2）**：默认编辑器窗口出厂 `workbench.secondarySideBar.defaultVisibility = 'hidden'`，Chat 容器（`workbench.panel.chat`）仍挂在 `ViewContainerLocation.AuxiliaryBar` 作 donor，但 **`isDefault: false`**，不再是该 location 的默认 composite。Command Palette / Views 仍可打开 `ChatViewPane` 对照 Copilot 行为。Agents Window 的 `agentsWindow` 覆盖仍为 `visibleInWorkspace`（只读），与产品壳默认无关。
 
+**产品会话列表（2026-08-31，M3 切片 2）**：`workbench.view.conversationSessions` 是 **Sidebar 内一叶 `ViewPane`**（注册在 Explorer `VIEW_CONTAINER`，`order: 3`），与 `ChatViewPane` 同类插入面，**不是** `CONVERSATION_PART` 中心透镜。Explorer 容器仍是 Sidebar 出厂默认 composite；Sessions roster 只列 stub 会话标题，与 SessionBar 共用 `IConversationStubService`。
+
 ## 6. 相关文档
 
 - [Parts、Grid、显隐](parts-and-grid.md) · [Workbench 概览](overview.md)

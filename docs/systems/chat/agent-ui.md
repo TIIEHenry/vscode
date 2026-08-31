@@ -64,6 +64,8 @@ Desktop 合同：窗口壳 = Singularity/IDEA；Conversation 内 = 时间线 + I
 
 **明确进复用清单（人类补充 2026-08-30）：** 会话列表侧边栏（sessions viewlet / `agentSessions` 控件族）、对话列表、**权限确认弹框组件**（chat confirmation 零件：Allow/Skip 按钮、「N confirmation pending」摘要行、Input needed 徽标）。权限交互为**半自研**：座位位置与语义按 Desktop spec（权限座位在时间线内），实现零件优先复用本仓 confirmation 组件；SessionBar / Inbox / Conversation 透镜仍自研。
 
+**Navigator stub roster（M3 切片 2，HEAD）：** `workbench.view.conversationSessions`（`contrib/conversation`）已作为 **Sidebar `ViewPane`** 挂在 Explorer 容器（`VIEW_CONTAINER`）内，与 SessionBar 共用 `IConversationStubService` 内存会话；点击切 `CONVERSATION_PART` 当前 stub，**不走** `IChatModel` / `IChatService` / `ChatEditorInput`。Explorer 仍是 Sidebar 默认 composite；产品 roster 是配套列表，不是中心透镜。
+
 ## 3. Workbench 宿主（默认 Code 窗口）
 
 均在 `browser/widgetHosts/`：
@@ -74,7 +76,7 @@ Desktop 合同：窗口壳 = Singularity/IDEA；Conversation 内 = 时间线 + I
 | **ChatEditor** | `editor/chatEditor.ts` | `EDITOR_PART` | **违反**。`ChatEditorInput` 是 `EditorInput`；打开即 editor tab |
 | **Quick Chat** | `chatQuick.ts` | 浮层 | 不是主流程 |
 
-`ChatEditor` 继承 `AbstractEditorWithViewState`，走 `IEditorService`。spike **S0 拒绝**的就是这条路径。代码里已存在，改造时要 **避免默认打开 chat 走 editor**，而不是「复用 ChatEditor 当 Conversation」。
+`ChatEditor` 继承 `AbstractEditorWithViewState`，走 `IEditorService`。spike **S0 拒绝**的就是这条路径。代码里已存在；**M3 切片 1** 起「New Chat」/「Open Chat in Editor」等入口命令已 **重定向** 到 `CONVERSATION_PART` 透镜，不再默认 `openEditor(ChatEditorInput)`。`ChatEditorInput` 类与 donor 调试路径仍留在树上；**serializer 工作区还原**与 **URI resolver 不再把 chat scheme 送进 `EDITOR_PART`** 仍可能在途——知识层勿写成已完成。产品中心仍不是「复用 ChatEditor 当 Conversation」。
 
 `ChatViewPane` 还嵌 `AgentSessionsControl`、welcome、entitlement、mic/TTS——体量远超「一个列表 + Dock」。把它整块搬进新 Part 会把 Copilot 设置流一起搬进来。
 
