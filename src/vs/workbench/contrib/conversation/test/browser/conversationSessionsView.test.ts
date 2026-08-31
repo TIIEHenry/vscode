@@ -125,4 +125,16 @@ suite('ConversationSessionsView', () => {
 	test('New session action title matches SessionBar copy', () => {
 		assert.strictEqual(conversationLensSessionBarNewSession, 'New session');
 	});
+
+	test('list labels refresh when a stub session is renamed', () => {
+		const { view, stubService } = mountView();
+		const sessionId = stubService.getActiveSessionId();
+		const renamedTitle = 'Sidebar roster rename sync';
+
+		stubService.renameSession(sessionId, renamedTitle);
+
+		const label = view.element.querySelector('.conversation-sessions-item-active .conversation-sessions-item-label');
+		assert.strictEqual(label?.textContent, renamedTitle);
+		assert.ok([...view.element.querySelectorAll('.conversation-sessions-item-label')].some(el => el.textContent === renamedTitle));
+	});
 });

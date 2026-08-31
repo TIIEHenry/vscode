@@ -93,6 +93,9 @@ export class ConversationStubService extends Disposable implements IConversation
 			this._onDidChangeActiveSession.fire(currentActive);
 		}
 		this._onDidChangeSession.fire(sessionId);
+		if (previousActive !== currentActive && currentActive !== sessionId) {
+			this._onDidChangeSession.fire(currentActive);
+		}
 		return true;
 	}
 

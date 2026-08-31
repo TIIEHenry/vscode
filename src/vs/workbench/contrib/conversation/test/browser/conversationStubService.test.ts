@@ -116,6 +116,25 @@ suite('ConversationStubService', () => {
 		assert.strictEqual(service.getTurns(service.getActiveSessionId()).length, 0);
 	});
 
+	test('deleteSession on last session fires onDidChangeSession for the new active stub', () => {
+		const service = store.add(new ConversationStubService());
+		const sessions = [...service.getSessions()];
+		for (const session of sessions.slice(0, -1)) {
+			service.deleteSession(session.id);
+		}
+		const lastId = service.getActiveSessionId();
+		const changedIds: string[] = [];
+		store.add(service.onDidChangeSession(id => changedIds.push(id)));
+
+		service.deleteSession(lastId);
+
+		assert.strictEqual(service.getSessions().length, 1);
+		assert.strictEqual(changedIds.length, 2);
+		assert.strictEqual(changedIds[0], lastId);
+		assert.strictEqual(changedIds[1], service.getActiveSessionId());
+		assert.notStrictEqual(changedIds[1], lastId);
+	});
+
 	test('deleteSession returns false for unknown id', () => {
 		const service = store.add(new ConversationStubService());
 		const initialCount = service.getSessions().length;
