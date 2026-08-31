@@ -145,6 +145,7 @@ export class ContinueChatInSessionAction extends Action2 {
 				id: MenuId.EditorContent,
 				group: 'continueIn',
 				when: ContextKeyExpr.and(
+					IsSessionsWindowContext,
 					ContextKeyExpr.equals(ResourceContextKey.Scheme.key, Schemas.untitled),
 					ContextKeyExpr.equals(ResourceContextKey.LangId.key, PROMPT_LANGUAGE_ID),
 					ContextKeyExpr.notEquals(chatEditingWidgetFileStateContextKey.key, ModifiedFileEntryState.Modified),
@@ -594,7 +595,7 @@ export class CreateRemoteAgentJobAction {
 							{
 								type: continuationTargetType,
 								displayName: continuationTarget.displayName,
-								position: isSidebar ? ChatSessionPosition.Sidebar : ChatSessionPosition.Editor,
+								position: isSidebar || !isSessionsWindow ? ChatSessionPosition.Sidebar : ChatSessionPosition.Editor,
 								// Replace the source chat editor in place so switching harness
 								// feels like the same chat continues rather than opening a new
 								// tab. The source (local) session stays in chat history and is
@@ -602,7 +603,7 @@ export class CreateRemoteAgentJobAction {
 								// `loadSession`, so it needs no replacement. Pass the source
 								// resource (not a bare flag) so the correct editor is resolved
 								// at replace time even if the active editor changed meanwhile.
-								replaceEditorForResource: isSidebar ? undefined : sessionResource,
+								replaceEditorForResource: isSessionsWindow && !isSidebar ? sessionResource : undefined,
 							},
 							{
 								prompt: handoffPrompt,
