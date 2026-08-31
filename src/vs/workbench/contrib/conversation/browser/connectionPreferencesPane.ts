@@ -5,12 +5,10 @@
 
 import * as DOM from '../../../../base/browser/dom.js';
 import { Button } from '../../../../base/browser/ui/button/button.js';
-import { Checkbox } from '../../../../base/browser/ui/toggle/toggle.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
-import { defaultButtonStyles, defaultCheckboxStyles, getInputBoxStyle } from '../../../../platform/theme/browser/defaultStyles.js';
+import { defaultButtonStyles } from '../../../../platform/theme/browser/defaultStyles.js';
 import { IPreferencesEditorPane } from '../../preferences/browser/preferencesEditorRegistry.js';
-import { InputBox } from '../../../../base/browser/ui/inputbox/inputBox.js';
 
 /** Honest Test Connection result — no engine probe, no fake success. */
 export function getConnectionTestStatusText(): string {
@@ -20,9 +18,6 @@ export function getConnectionTestStatusText(): string {
 export class ConnectionPreferencesPane extends Disposable implements IPreferencesEditorPane {
 
 	private readonly container: HTMLElement;
-	private readonly hostInput: InputBox;
-	private readonly portInput: InputBox;
-	private readonly tlsCheckbox: Checkbox;
 
 	constructor() {
 		super();
@@ -33,20 +28,9 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		const title = DOM.append(this.container, DOM.$('h2'));
 		title.textContent = localize('ua.connectionPaneTitle', "Connection");
 
-		const hostRow = DOM.append(this.container, DOM.$('.connection-field-row'));
-		DOM.append(hostRow, DOM.$('label')).textContent = localize('ua.connectionHost', "Host");
-		this.hostInput = this._register(new InputBox(DOM.append(hostRow, DOM.$('.connection-field-input')), undefined, getInputBoxStyle({})));
-		this.hostInput.onDidChange(value => this.hostValue = value);
-
-		const portRow = DOM.append(this.container, DOM.$('.connection-field-row'));
-		DOM.append(portRow, DOM.$('label')).textContent = localize('ua.connectionPort', "Port");
-		this.portInput = this._register(new InputBox(DOM.append(portRow, DOM.$('.connection-field-input')), undefined, getInputBoxStyle({})));
-		this.portInput.onDidChange(value => this.portValue = value);
-
-		const tlsRow = DOM.append(this.container, DOM.$('.connection-field-row'));
-		this.tlsCheckbox = this._register(new Checkbox(localize('ua.connectionTls', "Use TLS"), false, defaultCheckboxStyles));
-		tlsRow.appendChild(this.tlsCheckbox.domNode);
-		this._register(this.tlsCheckbox.onChange(checked => this.useTls = checked));
+		const emptyState = DOM.append(this.container, DOM.$('.connection-empty-state'));
+		emptyState.textContent = localize('ua.connectionEmptyState', "Connection not connected — no engine.");
+		emptyState.style.opacity = '0.8';
 
 		const testRow = DOM.append(this.container, DOM.$('.connection-test-row'));
 		const testButton = this._register(new Button(testRow, defaultButtonStyles));
@@ -58,10 +42,6 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 			testStatus.textContent = getConnectionTestStatusText();
 		}));
 	}
-
-	private hostValue = '';
-	private portValue = '';
-	private useTls = false;
 
 	getDomNode(): HTMLElement {
 		return this.container;
