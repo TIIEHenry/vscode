@@ -26,6 +26,7 @@ import { SessionsNavigation } from './sessionNavigation.js';
 import { SessionsRecencyHistory } from './sessionsRecencyHistory.js';
 import { VisibleSessions } from './visibleSessions.js';
 import { IContextKey, IContextKeyService } from '../../../../platform/contextkey/common/contextkey.js';
+import type { IOpenChatBesideOptions } from '../../../browser/parts/chatGroupsView.js';
 import { ISessionsPartService } from './sessionsPartService.js';
 import { ICustomViewService } from '../../customView/browser/customViewService.js';
 import { IsNewChatSessionContext } from '../../../common/contextkeys.js';
@@ -186,7 +187,7 @@ export interface ISessionsService {
 	openSessionToSide(session: ISession, options?: IOpenSessionOptions & { chatResource?: URI }): Promise<void>;
 
 	/** Open a chat to the side of its session view, redirecting a superseded resource first. */
-	openChatToSide(session: ISession, chatResource: URI, options?: { preserveFocus?: boolean }): Promise<void>;
+	openChatToSide(session: ISession, chatResource: URI, options?: { preserveFocus?: boolean } & IOpenChatBesideOptions): Promise<void>;
 
 	/**
 	 * Whether the given session may be opened, honoring workspace trust. Prompts
@@ -954,7 +955,7 @@ export class SessionsService extends Disposable implements ISessionsService {
 	 * rather than the old facade. Provider-neutral: the redirect is the
 	 * `resolveSessionResource` hook, not a scheme check.
 	 */
-	async openChatToSide(session: ISession, chatResource: URI, options?: { preserveFocus?: boolean }): Promise<void> {
+	async openChatToSide(session: ISession, chatResource: URI, options?: { preserveFocus?: boolean } & IOpenChatBesideOptions): Promise<void> {
 		const token = this._startOpenSession();
 		const resolved = await this._resolveSessionForOpen(session, chatResource);
 		if (token.isCancellationRequested) {
@@ -967,7 +968,7 @@ export class SessionsService extends Disposable implements ISessionsService {
 		if (!sessionView) {
 			throw new Error(`Unable to open chat to the side because session view '${session.sessionId}' is not mounted`);
 		}
-		await sessionView.openChatToSide(chatResource);
+		await sessionView.openChatToSide(chatResource, options?.maxGroups !== undefined ? { maxGroups: options.maxGroups } : undefined);
 	}
 
 	/**

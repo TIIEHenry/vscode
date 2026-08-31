@@ -15,7 +15,7 @@ import { IContextKey, IContextKeyService } from '../../../platform/contextkey/co
 import { IThemeService } from '../../../platform/theme/common/themeService.js';
 import { IActiveSession } from '../../services/sessions/common/sessionsManagement.js';
 import { AbstractChatView, IChatViewOptions } from './chatView.js';
-import { ChatGroupsView } from './chatGroupsView.js';
+import { ChatGroupsView, IOpenChatBesideOptions } from './chatGroupsView.js';
 import { SessionHeader, SessionViewFloatingToolbar } from './sessionHeader.js';
 import { ISessionContext, SessionContext } from '../../services/sessions/browser/sessionContext.js';
 import { autorun, observableValue } from '../../../base/common/observable.js';
@@ -290,8 +290,8 @@ export class SessionView extends Disposable implements ISerializableView {
 	}
 
 	/** Opens the given chat in a group beside the active one ("open to the side"). */
-	openChatToSide(resource: URI): Promise<void> {
-		return this._groupsView.openChatInNewGroup(resource);
+	openChatToSide(resource: URI, options?: IOpenChatBesideOptions): Promise<void> {
+		return this._groupsView.openChatInNewGroup(resource, options);
 	}
 
 	/** Places a freshly created chat (e.g. a side chat) into its own group beside the current one. */

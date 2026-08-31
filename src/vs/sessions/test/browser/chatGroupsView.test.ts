@@ -171,6 +171,11 @@ function createHarness(disposables: Pick<DisposableStore, 'add'>, tabsReplaceHea
 	return { instantiationService, sessionsService, chatViewFactory, view };
 }
 
+function getGroupTabs(view: ChatGroupsView): string[][] {
+	return Array.from(view.element.querySelectorAll('.chat-group-view'))
+		.map(group => Array.from(group.querySelectorAll<HTMLElement>('.chat-composite-bar-tab')).map(tab => tab.dataset.chatResource!));
+}
+
 suite('Sessions - ChatGroupsView', () => {
 	const disposables = ensureNoDisposablesAreLeakedInTestSuite();
 	const options = {};
@@ -534,6 +539,163 @@ suite('Sessions - ChatGroupsView', () => {
 		view.setSession(new TestActiveSession([main, secondary]), options);
 
 		assert.strictEqual(view.element.querySelector<HTMLElement>('.session-chat-tabs-actions')?.classList.contains('hidden'), true);
+	});
+
+	test('maxGroups 2 opens an unassigned chat in a new group from a single group', async () => {
+		const { view } = createHarness(disposables);
+		const main = createChat('main');
+		const hidden = createChat('hidden');
+		const session = new TestActiveSession([main, hidden], [main]);
+		view.setSession(session, options);
+		view.layout(800, 600, 0, 0);
+
+		await view.openChatInNewGroup(hidden.resource, { maxGroups: 2 });
+
+		assert.deepStrictEqual({
+			groupCount: view.groupCount.get(),
+			groupTabs: getGroupTabs(view),
+			activeChat: session.activeChat.get().resource.toString(),
+		}, {
+			groupCount: 2,
+			groupTabs: [[main.resource.toString()], [hidden.resource.toString()]],
+			activeChat: hidden.resource.toString(),
+		});
+	});
+
+	test('maxGroups 2 reuses the non-active neighbor when parent is in the active group', async () => {
+		const { view } = createHarness(disposables);
+		const main = createChat('main');
+		const secondary = createChat('secondary');
+		const child = createChat('child', SessionStatus.Completed, main.resource);
+		const session = new TestActiveSession([main, secondary, child], [main, secondary]);
+		view.setSession(session, options);
+		view.layout(800, 600, 0, 0);
+		view.splitChatToSide(secondary.resource);
+		view.focusAdjacentGroup('previous');
+
+		await view.openChatInNewGroup(child.resource, { maxGroups: 2 });
+
+		assert.deepStrictEqual({
+			groupCount: view.groupCount.get(),
+			groupTabs: getGroupTabs(view),
+			activeChat: session.activeChat.get().resource.toString(),
+		}, {
+			groupCount: 2,
+			groupTabs: [[main.resource.toString()], [secondary.resource.toString(), child.resource.toString()]],
+			activeChat: child.resource.toString(),
+		});
+	});
+
+	test('maxGroups 2 reuses the focused neighbor when parent is in the non-active group', async () => {
+		const { view } = createHarness(disposables);
+		const main = createChat('main');
+		const secondary = createChat('secondary');
+		const child = createChat('child', SessionStatus.Completed, main.resource);
+		const session = new TestActiveSession([main, secondary, child], [main, secondary]);
+		view.setSession(session, options);
+		view.layout(800, 600, 0, 0);
+		view.splitChatToSide(secondary.resource);
+
+		await view.openChatInNewGroup(child.resource, { maxGroups: 2 });
+
+		assert.deepStrictEqual({
+			groupCount: view.groupCount.get(),
+			groupTabs: getGroupTabs(view),
+			activeChat: session.activeChat.get().resource.toString(),
+		}, {
+			groupCount: 2,
+			groupTabs: [[main.resource.toString()], [secondary.resource.toString(), child.resource.toString()]],
+			activeChat: child.resource.toString(),
+		});
+	});
+
+	test('maxGroups 2 reuses the first non-active group when chat has no parent', async () => {
+		const { view } = createHarness(disposables);
+		const main = createChat('main');
+		const secondary = createChat('secondary');
+		const tertiary = createChat('tertiary');
+		const session = new TestActiveSession([main, secondary, tertiary], [main, secondary]);
+		view.setSession(session, options);
+		view.layout(800, 600, 0, 0);
+		view.splitChatToSide(secondary.resource);
+
+		await view.openChatInNewGroup(tertiary.resource, { maxGroups: 2 });
+
+		assert.deepStrictEqual({
+			groupCount: view.groupCount.get(),
+			groupTabs: getGroupTabs(view),
+			activeChat: session.activeChat.get().resource.toString(),
+		}, {
+			groupCount: 2,
+			groupTabs: [[main.resource.toString(), tertiary.resource.toString()], [secondary.resource.toString()]],
+			activeChat: tertiary.resource.toString(),
+		});
+	});
+
+	test('opening an unassigned chat without maxGroups still creates a third group', async () => {
+		const { view } = createHarness(disposables);
+		const main = createChat('main');
+		const secondary = createChat('secondary');
+		const tertiary = createChat('tertiary');
+		const session = new TestActiveSession([main, secondary, tertiary], [main, secondary]);
+		view.setSession(session, options);
+		view.layout(800, 600, 0, 0);
+		view.splitChatToSide(secondary.resource);
+
+		await view.openChatInNewGroup(tertiary.resource);
+
+		assert.strictEqual(view.groupCount.get(), 3);
+	});
+
+	test('maxGroups 2 activates an in-group tab instead of splitting when at capacity', async () => {
+		const { view } = createHarness(disposables);
+		const main = createChat('main');
+		const secondary = createChat('secondary');
+		const other = createChat('other');
+		const session = new TestActiveSession([main, secondary, other], [main, secondary]);
+		view.setSession(session, options);
+		view.layout(800, 600, 0, 0);
+		view.splitChatToSide(other.resource);
+
+		await view.openChatInNewGroup(secondary.resource, { maxGroups: 2 });
+
+		assert.deepStrictEqual({
+			groupCount: view.groupCount.get(),
+			groupTabs: getGroupTabs(view),
+			activeChat: session.activeChat.get().resource.toString(),
+		}, {
+			groupCount: 2,
+			groupTabs: [[main.resource.toString(), secondary.resource.toString()], [other.resource.toString()]],
+			activeChat: secondary.resource.toString(),
+		});
+	});
+
+	test('maxGroups 2 reuse placement survives layout round-trip restore', async () => {
+		const { view } = createHarness(disposables);
+		const main = createChat('main');
+		const secondary = createChat('secondary');
+		const tertiary = createChat('tertiary');
+		const session = new TestActiveSession([main, secondary, tertiary], [main, secondary]);
+		view.setSession(session, options);
+		view.layout(800, 600, 0, 0);
+		view.splitChatToSide(secondary.resource);
+		await view.openChatInNewGroup(tertiary.resource, { maxGroups: 2 });
+		const beforeRoundTrip = {
+			groupCount: view.groupCount.get(),
+			groupTabs: getGroupTabs(view),
+			activeChat: session.activeChat.get().resource.toString(),
+		};
+
+		view.setSession(undefined, options);
+		const restoredSession = new TestActiveSession([main, secondary, tertiary], [main, secondary, tertiary]);
+		restoredSession.activeChat.set(tertiary, undefined);
+		view.setSession(restoredSession, options);
+
+		assert.deepStrictEqual({
+			groupCount: view.groupCount.get(),
+			groupTabs: getGroupTabs(view),
+			activeChat: restoredSession.activeChat.get().resource.toString(),
+		}, beforeRoundTrip);
 	});
 
 });
