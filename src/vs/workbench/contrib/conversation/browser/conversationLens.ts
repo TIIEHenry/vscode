@@ -3,24 +3,22 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { $, addDisposableListener, append, clearNode, reset } from '../../../../base/browser/dom.js';
+import { $, addDisposableListener, append, reset } from '../../../../base/browser/dom.js';
 import { Button } from '../../../../base/browser/ui/button/button.js';
 import { AnchorAlignment } from '../../../../base/browser/ui/contextview/contextview.js';
 import { SelectBox } from '../../../../base/browser/ui/selectBox/selectBox.js';
 import { KeyCode } from '../../../../base/common/keyCodes.js';
 import { Codicon } from '../../../../base/common/codicons.js';
-import { MarkdownString } from '../../../../base/common/htmlContent.js';
 import { AnchorPosition } from '../../../../base/common/layout.js';
 import { Disposable, DisposableStore, toDisposable } from '../../../../base/common/lifecycle.js';
 import { ThemeIcon } from '../../../../base/common/themables.js';
 import { localize } from '../../../../nls.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { IContextViewService, IOpenContextView } from '../../../../platform/contextview/browser/contextView.js';
-import { IMarkdownRendererService } from '../../../../platform/markdown/browser/markdownRenderer.js';
 import { defaultButtonStyles, defaultSelectBoxStyles } from '../../../../platform/theme/browser/defaultStyles.js';
 import { hasNativeContextMenu } from '../../../../platform/window/common/window.js';
 import { IConversationLensSlots } from '../../../browser/parts/conversation/conversationPart.js';
-import { ConversationConfirmationSeat } from './conversationConfirmationSeat.js';
+import { ConversationTimelineTree } from './conversationTimelineTree.js';
 import {
 	conversationLensDockAttachTitle,
 	conversationLensDockEngineNotConnected,
@@ -38,10 +36,8 @@ import {
 } from './conversationLensDockStrings.js';
 import { conversationLensSessionBarDeleteSession, conversationLensSessionBarHistoryListAria, conversationLensSessionBarHistoryTitle, conversationLensSessionBarNewSession, conversationLensSessionBarNoHistory, conversationLensSessionBarRenameInputAria, conversationLensSessionBarRenameTitle } from './conversationLensSessionBarStrings.js';
 import { showConversationPart } from './conversationSessionStatus.js';
-import { ConversationStubTurn } from './conversationStubModel.js';
 import { IConversationStubService } from './conversationStubService.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
-import { shouldRenderTurnAsMarkdown } from './conversationTurnMarkdown.js';
 
 /**
  * Product Conversation lens: SessionBar + stub timeline + local dock, mounted
@@ -60,8 +56,7 @@ export class ConversationLens extends Disposable {
 	private deleteSessionButton!: Button;
 	private historyButton!: Button;
 	private historyContextView: IOpenContextView | undefined;
-	private timelineScroll!: HTMLElement;
-	private timelineContent!: HTMLElement;
+	private timelineTree!: ConversationTimelineTree;
 	private inboxStatus!: HTMLButtonElement;
 	private stopButton!: Button;
 	private dockTextarea!: HTMLTextAreaElement;
@@ -74,8 +69,6 @@ export class ConversationLens extends Disposable {
 	private inputMaximized = false;
 
 	private readonly drafts = new Map<string, string>();
-	private readonly confirmationSeats = new Map<string, ConversationConfirmationSeat>();
-	private readonly turnBodyDisposables = this._register(new DisposableStore());
 	private suppressSessionSelect = false;
 
 	constructor(
@@ -83,7 +76,6 @@ export class ConversationLens extends Disposable {
 		@IConversationStubService private readonly stubService: IConversationStubService,
 		@IContextViewService private readonly contextViewService: IContextViewService,
 		@IConfigurationService private readonly configurationService: IConfigurationService,
-		@IMarkdownRendererService private readonly markdownRendererService: IMarkdownRendererService,
 		@IInstantiationService private readonly instantiationService: IInstantiationService,
 	) {
 		super();
@@ -113,10 +105,6 @@ export class ConversationLens extends Disposable {
 		this._register(toDisposable(() => {
 			this.historyContextView?.close();
 			this.attachContextView?.close();
-			for (const seat of this.confirmationSeats.values()) {
-				seat.dispose();
-			}
-			this.confirmationSeats.clear();
 			reset(slots.sessionBar);
 			reset(slots.timeline);
 			reset(slots.dock);
@@ -267,12 +255,9 @@ export class ConversationLens extends Disposable {
 	}
 
 	private mountTimeline(host: HTMLElement): void {
-		const timeline = append(host, $('.conversation-lens-timeline'));
-		timeline.setAttribute('role', 'log');
-		timeline.setAttribute('aria-label', localize('conversationLens.timeline', "Conversation timeline"));
-
-		this.timelineScroll = append(timeline, $('.conversation-lens-timeline-scroll'));
-		this.timelineContent = append(this.timelineScroll, $('.conversation-lens-timeline-content'));
+		this.timelineTree = this._register(this.instantiationService.createInstance(ConversationTimelineTree, host, {
+			onResolveConfirmation: (turnId, status) => this.resolveConfirmation(turnId, status),
+		}));
 	}
 
 	private mountDock(host: HTMLElement): void {
@@ -550,76 +535,12 @@ export class ConversationLens extends Disposable {
 		if (!pending) {
 			return;
 		}
-		const seat = this.confirmationSeats.get(pending.id);
-		seat?.element.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+		const seat = this.timelineTree.getConfirmationElement(pending.id);
+		seat?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 	}
 
 	private renderTimeline(): void {
-		for (const seat of this.confirmationSeats.values()) {
-			seat.dispose();
-		}
-		this.confirmationSeats.clear();
-		this.turnBodyDisposables.clear();
-		clearNode(this.timelineContent);
-
-		const turns = this.stubService.getTurns(this.stubService.getActiveSessionId());
-		if (turns.length === 0) {
-			const empty = append(this.timelineContent, $('.conversation-lens-timeline-empty'));
-			append(empty, $('p.conversation-lens-timeline-empty-title')).textContent =
-				localize('conversationLens.timelineEmptyTitle', "No messages yet");
-			append(empty, $('p.conversation-lens-timeline-empty-hint')).textContent =
-				localize('conversationLens.timelineEmptyHint', "Send a message below to start this session.");
-			return;
-		}
-
-		for (const turn of turns) {
-			this.timelineContent.appendChild(this.createTurnElement(turn));
-		}
-	}
-
-	private createTurnElement(turn: ConversationStubTurn): HTMLElement {
-		if (turn.kind === 'confirmation') {
-			const seat = new ConversationConfirmationSeat({
-				message: turn.text,
-				status: turn.status ?? 'pending',
-				onAllow: turn.status === 'pending'
-					? () => this.resolveConfirmation(turn.id, 'allowed')
-					: undefined,
-				onSkip: turn.status === 'pending'
-					? () => this.resolveConfirmation(turn.id, 'skipped')
-					: undefined,
-			});
-			seat.element.setAttribute('data-turn-id', turn.id);
-			seat.element.classList.add('conversation-lens-turn');
-			seat.element.setAttribute('data-kind', turn.kind);
-			this.confirmationSeats.set(turn.id, seat);
-			return seat.element;
-		}
-
-		const el = $('div.conversation-lens-turn');
-		el.setAttribute('data-kind', turn.kind);
-		el.setAttribute('data-turn-id', turn.id);
-		if (turn.stubEcho) {
-			el.setAttribute('data-stub', 'true');
-		}
-
-		const header = append(el, $('.conversation-lens-turn-header'));
-		header.textContent = turn.kind === 'user'
-			? localize('conversationLens.turnYou', "You")
-			: localize('conversationLens.turnAgent', "Agent");
-
-		const body = append(el, $('.conversation-lens-turn-body'));
-		if (shouldRenderTurnAsMarkdown(turn.kind)) {
-			this.turnBodyDisposables.add(this.markdownRendererService.render(
-				new MarkdownString(turn.text),
-				undefined,
-				body,
-			));
-		} else {
-			body.textContent = turn.text;
-		}
-
-		return el;
+		this.timelineTree.setTurns(this.stubService.getTurns(this.stubService.getActiveSessionId()));
 	}
 
 	private resolveConfirmation(turnId: string, status: 'allowed' | 'skipped'): void {
