@@ -880,7 +880,7 @@ export class ChatTeardownContribution extends Disposable implements IWorkbenchCo
 				super({
 					id: ChatSetupHideAction.ID,
 					title: ChatSetupHideAction.TITLE,
-					f1: true,
+					f1: false,
 					category: CHAT_CATEGORY,
 					precondition: ContextKeyExpr.and(ChatContextKeys.Setup.hidden.negate(), ChatContextKeys.Setup.disabledInWorkspace.negate()),
 					menu: {
