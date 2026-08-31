@@ -12,7 +12,7 @@ import { ADVANCED_SETTING_TAG } from '../../common/preferences.js';
 import { getSettingsTocFilter, getTocDataForWindow, ITOCEntry, tocData } from '../../browser/settingsLayout.js';
 import { resolveSettingsTree } from '../../browser/settingsTree.js';
 
-function childIds(entry: ITOCEntry<string> | undefined): string[] {
+function childIds<T>(entry: ITOCEntry<T> | undefined): string[] {
 	return entry?.children?.map(child => child.id) ?? [];
 }
 
