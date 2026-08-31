@@ -34,7 +34,7 @@ import { IViewsService } from '../../../services/views/common/viewsService.js';
 import { IListService, WorkbenchList } from '../../../../platform/list/browser/listService.js';
 import { isSCMRepository } from './util.js';
 import { SCMHistoryViewPane } from './scmHistoryViewPane.js';
-import { RemoteNameContext, ResourceContextKey } from '../../../common/contextkeys.js';
+import { IsSessionsWindowContext, RemoteNameContext, ResourceContextKey } from '../../../common/contextkeys.js';
 import { AccessibleViewRegistry } from '../../../../platform/accessibility/browser/accessibleViewRegistry.js';
 import { SCMAccessibilityHelp } from './scmAccessibilityHelp.js';
 import { EditorContextKeys } from '../../../../editor/common/editorContextKeys.js';
@@ -98,7 +98,7 @@ viewsRegistry.registerViews([{
 	canMoveView: true,
 	weight: 20,
 	order: 0,
-	when: ContextKeyExpr.and(ContextKeyExpr.has('scm.providerCount'), ContextKeyExpr.notEquals('scm.providerCount', 0)),
+	when: ContextKeyExpr.and(IsSessionsWindowContext, ContextKeyExpr.has('scm.providerCount'), ContextKeyExpr.notEquals('scm.providerCount', 0)),
 	// readonly when = ContextKeyExpr.or(ContextKeyExpr.equals('config.scm.alwaysShowProviders', true), ContextKeyExpr.and(ContextKeyExpr.notEquals('scm.providerCount', 0), ContextKeyExpr.notEquals('scm.providerCount', 1)));
 	containerIcon: sourceControlViewIcon
 }], viewContainer);
@@ -113,6 +113,7 @@ viewsRegistry.registerViews([{
 	canMoveView: true,
 	weight: 40,
 	order: 1,
+	when: IsSessionsWindowContext,
 	containerIcon: sourceControlViewIcon,
 	openCommandActionDescriptor: {
 		id: viewContainer.id,
@@ -122,6 +123,7 @@ viewsRegistry.registerViews([{
 			win: { primary: KeyMod.CtrlCmd | KeyMod.Shift | KeyCode.KeyG },
 			linux: { primary: KeyMod.CtrlCmd | KeyMod.Shift | KeyCode.KeyG },
 			mac: { primary: KeyMod.WinCtrl | KeyMod.Shift | KeyCode.KeyG },
+			when: IsSessionsWindowContext,
 		},
 		order: 2,
 	}
@@ -138,6 +140,7 @@ viewsRegistry.registerViews([{
 	weight: 40,
 	order: 2,
 	when: ContextKeyExpr.and(
+		IsSessionsWindowContext,
 		ContextKeyExpr.has('scm.historyProviderCount'),
 		ContextKeyExpr.notEquals('scm.historyProviderCount', 0),
 	),
