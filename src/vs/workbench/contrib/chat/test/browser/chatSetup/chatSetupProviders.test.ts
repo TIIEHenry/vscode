@@ -15,7 +15,7 @@ import { ILanguageFeaturesService } from '../../../../../../editor/common/servic
 import { TestInstantiationService } from '../../../../../../platform/instantiation/test/common/instantiationServiceMock.js';
 import { IMarker, IMarkerService, MarkerSeverity } from '../../../../../../platform/markers/common/markers.js';
 import { IWorkbenchEnvironmentService } from '../../../../../services/environment/common/environmentService.js';
-import { ChatEntitlementContext, ChatEntitlementRequests, ChatEntitlementService } from '../../../../../services/chat/common/chatEntitlementService.js';
+import { ChatEntitlementContext, ChatEntitlementRequests, ChatEntitlementService, IChatEntitlementService } from '../../../../../services/chat/common/chatEntitlementService.js';
 import { IChatAgentService } from '../../../common/participants/chatAgents.js';
 import { ChatSetupContribution } from '../../../browser/chatSetup/chatSetupContributions.js';
 import { ChatCodeActionsProvider } from '../../../browser/chatSetup/chatSetupProviders.js';
@@ -37,15 +37,6 @@ suite('ChatSetupProviders - default window gating (INV-NO-COPILOT)', () => {
 	function createSetupContext() {
 		return testDisposables.add(new class extends mock<ChatEntitlementContext>() {
 			override readonly onDidChange = Event.None;
-			override readonly state = {
-				completed: false,
-				hidden: false,
-				disabledInWorkspace: false,
-				disabled: false,
-				untrusted: false,
-				installed: false,
-				entitlement: 0,
-			};
 			override update(): Promise<void> { return Promise.resolve(); }
 		}());
 	}
@@ -54,7 +45,7 @@ suite('ChatSetupProviders - default window gating (INV-NO-COPILOT)', () => {
 		instantiationService: TestInstantiationService,
 		options: { isSessionsWindow: boolean },
 	): LanguageFeaturesService {
-		const languageFeaturesService = testDisposables.add(new LanguageFeaturesService());
+		const languageFeaturesService = new LanguageFeaturesService();
 		const context = createSetupContext();
 		const requests = testDisposables.add(new class extends mock<ChatEntitlementRequests>() { }());
 

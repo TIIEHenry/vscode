@@ -40,7 +40,7 @@ export class ConversationSessionStatusBarContribution extends Disposable impleme
 	) {
 		super();
 
-		if (environmentService.isSessionsWindow) {
+		if (this.environmentService.isSessionsWindow) {
 			return;
 		}
 

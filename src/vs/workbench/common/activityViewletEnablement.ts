@@ -20,6 +20,6 @@ export function activityViewletWhen(settingKey: ActivityBarVisibleViewletSetting
 	const base = ContextKeyExpr.or(
 		IsSessionsWindowContext,
 		ContextKeyExpr.equals(`config.${settingKey}`, true),
-	);
-	return extra ? ContextKeyExpr.and(base, extra) : base;
+	)!;
+	return extra ? ContextKeyExpr.and(base, extra)! : base;
 }
