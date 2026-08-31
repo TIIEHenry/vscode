@@ -112,6 +112,8 @@ Sessions 窗口的 `SESSIONS_PART` 证明「非 Editor 中心 Part」可行，�
 
 **Navigator Activity 默认标签（2026-08-31）**：Sidebar 出厂默认 composite 仍是 Explorer `VIEW_CONTAINER`（`workbench.view.explorer`，`isDefault: true`）；用户可见容器标题 / Activity tooltip / View 菜单 open command 显示 **Files**（`exploreFiles`），与 Desktop IA Navigator body 对齐。`VIEWLET_ID`、storage、图标、视图实现不变。
 
+**默认窗口 Activity 门闩（2026-08-31）**：Run and Debug（`workbench.view.debug` / `VIEWLET_ID`）Sidebar 容器与 Variables / Watch / Call Stack / Breakpoints / Welcome 视图在默认 Code 窗口以 `IsSessionsWindowContext` 门闩隐藏（`hideIfEmpty: true`；`Ctrl+Shift+D` 与 View 菜单 open command 同步门闩）；Debug Console（`workbench.panel.repl`）仍留在 Panel。Agents Window 保留 Run and Debug Sidebar 与快捷键。
+
 ## 6. 相关文档
 
 - [Parts、Grid、显隐](parts-and-grid.md) · [Workbench 概览](overview.md)

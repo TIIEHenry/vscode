@@ -1,0 +1,124 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+import assert from 'assert';
+import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { Registry } from '../../../../../platform/registry/common/platform.js';
+import type { ContextKeyExpression, ContextKeyValue } from '../../../../../platform/contextkey/common/contextkey.js';
+import { Extensions as ViewExtensions, IViewContainersRegistry, IViewsRegistry, ViewContainerLocation } from '../../../../common/views.js';
+import { IsSessionsWindowContext } from '../../../../common/contextkeys.js';
+import { BREAKPOINTS_VIEW_ID, CALLSTACK_VIEW_ID, CONTEXT_DEBUG_UX, DEBUG_PANEL_ID, REPL_VIEW_ID, VARIABLES_VIEW_ID, VIEWLET_ID, WATCH_VIEW_ID } from '../../common/debug.js';
+import { WelcomeView } from '../../browser/welcomeView.js';
+
+import '../../browser/debug.contribution.js';
+
+function evalWhen(when: ContextKeyExpression | undefined, values: Record<string, ContextKeyValue>): boolean {
+	if (!when) {
+		return true;
+	}
+	return when.evaluate({ getValue: <T extends ContextKeyValue = ContextKeyValue>(key: string) => values[key] as T });
+}
+
+suite('DebugContribution - default window Activity', () => {
+
+	ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('Run and Debug sidebar views are gated to Agents Window', () => {
+		const viewsRegistry = Registry.as<IViewsRegistry>(ViewExtensions.ViewsRegistry);
+		const viewContainersRegistry = Registry.as<IViewContainersRegistry>(ViewExtensions.ViewContainersRegistry);
+
+		const viewContainer = viewContainersRegistry.get(VIEWLET_ID);
+		assert.ok(viewContainer, 'Run and Debug view container should remain registered');
+		assert.strictEqual(viewContainer.hideIfEmpty, true, 'Run and Debug sidebar container should hide when empty');
+
+		const variablesView = viewsRegistry.getView(VARIABLES_VIEW_ID);
+		const watchView = viewsRegistry.getView(WATCH_VIEW_ID);
+		const callStackView = viewsRegistry.getView(CALLSTACK_VIEW_ID);
+		const breakpointsView = viewsRegistry.getView(BREAKPOINTS_VIEW_ID);
+		const welcomeView = viewsRegistry.getView(WelcomeView.ID);
+
+		assert.ok(variablesView, 'Variables view should remain registered');
+		assert.ok(watchView, 'Watch view should remain registered');
+		assert.ok(callStackView, 'Call Stack view should remain registered');
+		assert.ok(breakpointsView, 'Breakpoints view should remain registered');
+		assert.ok(welcomeView, 'Welcome view should remain registered');
+
+		assert.ok(variablesView.when, 'Variables view should have a when clause');
+		assert.ok(watchView.when, 'Watch view should have a when clause');
+		assert.ok(callStackView.when, 'Call Stack view should have a when clause');
+		assert.ok(breakpointsView.when, 'Breakpoints view should have a when clause');
+		assert.ok(welcomeView.when, 'Welcome view should have a when clause');
+
+		const defaultWindow = { [IsSessionsWindowContext.key]: false, [CONTEXT_DEBUG_UX.key]: 'default' };
+		const agentsWindow = { [IsSessionsWindowContext.key]: true, [CONTEXT_DEBUG_UX.key]: 'default' };
+		const agentsWindowSimple = { [IsSessionsWindowContext.key]: true, [CONTEXT_DEBUG_UX.key]: 'simple' };
+
+		for (const view of [variablesView, watchView, callStackView, breakpointsView]) {
+			assert.strictEqual(
+				evalWhen(view.when, defaultWindow),
+				false,
+				`${view.id} must hide from default Code window Activity sidebar`
+			);
+			assert.strictEqual(
+				evalWhen(view.when, agentsWindow),
+				true,
+				`${view.id} may show in Agents Window Activity sidebar`
+			);
+		}
+
+		assert.strictEqual(
+			evalWhen(welcomeView.when, defaultWindow),
+			false,
+			'default Code window must hide Run and Debug welcome view from Activity sidebar'
+		);
+		assert.strictEqual(
+			evalWhen(welcomeView.when, agentsWindowSimple),
+			true,
+			'Agents Window may show Run and Debug welcome view in Activity sidebar'
+		);
+
+		assert.ok(viewContainer.openCommandActionDescriptor?.keybindings?.when, 'Run and Debug open command keybinding should have a when clause');
+		assert.strictEqual(
+			evalWhen(viewContainer.openCommandActionDescriptor!.keybindings!.when, { [IsSessionsWindowContext.key]: false }),
+			false,
+			'default Code window must hide Run and Debug keybinding'
+		);
+		assert.strictEqual(
+			evalWhen(viewContainer.openCommandActionDescriptor!.keybindings!.when, { [IsSessionsWindowContext.key]: true }),
+			true,
+			'Agents Window may keep Run and Debug keybinding'
+		);
+	});
+
+	test('Debug Console panel remains available in default window', () => {
+		const viewsRegistry = Registry.as<IViewsRegistry>(ViewExtensions.ViewsRegistry);
+		const viewContainersRegistry = Registry.as<IViewContainersRegistry>(ViewExtensions.ViewContainersRegistry);
+
+		const panelContainer = viewContainersRegistry.get(DEBUG_PANEL_ID);
+		assert.ok(panelContainer, 'Debug Console panel container should remain registered');
+		assert.strictEqual(
+			viewContainersRegistry.getViewContainerLocation(panelContainer),
+			ViewContainerLocation.Panel,
+			'Debug Console should remain a Panel container'
+		);
+
+		const replView = viewsRegistry.getView(REPL_VIEW_ID);
+		assert.ok(replView, 'Debug Console view should remain registered');
+		assert.ok(replView.when, 'Debug Console view should have a when clause');
+
+		const defaultWindowWithDebuggers = { [IsSessionsWindowContext.key]: false, debuggersAvailable: true };
+		const agentsWindowWithDebuggers = { [IsSessionsWindowContext.key]: true, debuggersAvailable: true };
+		assert.strictEqual(
+			evalWhen(replView.when, defaultWindowWithDebuggers),
+			true,
+			'default Code window must keep Debug Console panel view available'
+		);
+		assert.strictEqual(
+			evalWhen(replView.when, agentsWindowWithDebuggers),
+			true,
+			'Agents Window must keep Debug Console panel view available'
+		);
+	});
+});

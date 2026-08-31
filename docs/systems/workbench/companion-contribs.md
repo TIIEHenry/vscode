@@ -38,7 +38,7 @@ Agents Window 可以复用同一套视图（`WindowEnablement`），**不能**�
 | **scm** | `contrib/scm/browser/scm.contribution.ts` | **默认** Source Control：Repositories / Changes / Graph（`canMoveView`） | 习惯上不默认在此；History 等可拖进 Panel | 点变更走 `IEditorService`：单文件 Diff / multi-diff，**在 `EDITOR_PART`** |
 | **git** | `contrib/git` 只注册 `IGitService`；UI/provider 在内置扩展 `extensions/git` | 填 scm 容器，不另开 viewlet | 同 scm | 同 scm（git 资源命令打开 Diff 编辑器） |
 | **terminal** | `contrib/terminal/browser/terminal.contribution.ts` | 可拖入 | **默认**（`isDefault: true`）`TERMINAL_VIEW_ID` | 可选：`TerminalEditor` + `TerminalEditorInput`（编辑器组里的终端 tab） |
-| **debug** | `contrib/debug/browser/debug.contribution.ts` | Run and Debug：Variables / Watch / Call Stack / Breakpoints | Debug Console（`DEBUG_PANEL_ID` / `REPL_VIEW_ID`） | `DisassemblyView`；源码停在已打开的 `FileEditorInput` |
+| **debug** | `contrib/debug/browser/debug.contribution.ts` | Run and Debug：Variables / Watch / Call Stack / Breakpoints（**默认 Code 窗口** `IsSessionsWindowContext` 门闩隐藏 Sidebar 容器；Agents Window 保留） | Debug Console（`DEBUG_PANEL_ID` / `REPL_VIEW_ID`） | `DisassemblyView`；源码停在已打开的 `FileEditorInput` |
 
 Activity rail 只切换 Sidebar 容器图标，不是第三套宿主。Auxiliary Bar 今天可被用户或扩展拿去放上述视图；Desktop 合同默认关右缘 rail（`INV-052-NO-RIGHT-RAIL`），S1 不要把这些配套默认打到 `AUXILIARYBAR_PART`。
 
