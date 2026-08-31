@@ -122,7 +122,7 @@ Desktop 合同：窗口壳 = Singularity/IDEA；Conversation 内 = 时间线 + I
 | Chat participant 名 `agent` | `IChatAgentService` | VS Code 的 participant，≠ UA Agent |
 
 **可复用（需剥皮）：** Widget 渲染、list、部分 builtin tools 机制、`ILanguageModelToolsService` 的「工具注册」形状。  
-**不可复用：** setup 对话框、entitlement、Copilot session provider、ChatEditor 当壳。空 Preview watermark 与 untitled 编辑器 empty hint 亦不得再作 Copilot Chat 入口（INV-NO-COPILOT chrome）。
+**不可复用：** setup 对话框、entitlement、Copilot session provider、ChatEditor 当壳。空 Preview watermark 与 untitled 编辑器 empty hint 亦不得再作 Copilot Chat 入口（INV-NO-COPILOT chrome）。默认窗口不显示 Copilot StatusBar 条目（`chat.statusBarEntry`）。
 
 ## 6. 状态机：两套「会话」不要当一个
 

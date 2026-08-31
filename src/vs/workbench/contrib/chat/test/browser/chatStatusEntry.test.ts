@@ -4,9 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { CancellationToken, CancellationTokenSource } from '../../../../../base/common/cancellation.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
-import { isWeb } from '../../../../../base/common/platform.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { IInlineCompletionsService } from '../../../../../editor/browser/services/inlineCompletionsService.js';
 import { ContextKeyExpression, IContextKeyService } from '../../../../../platform/contextkey/common/contextkey.js';
@@ -96,6 +94,9 @@ suite('ChatStatusBarEntry - computeQuotaResumeState', () => {
 
 suite('ChatStatusBarEntry', () => {
 
+	// INV-NO-COPILOT: default window must not show the Copilot StatusBar entry.
+	// Quota resume state logic still runs; UI assertions below expect no status bar entry.
+
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
 	function createEntitlement(opts: { quotas?: Quotas; entitlement?: ChatEntitlement; sentiment?: IChatSentiment }) {
@@ -182,52 +183,25 @@ suite('ChatStatusBarEntry', () => {
 		return new Promise<void>(resolve => setTimeout(resolve, 0));
 	}
 
-	test('renders the blocked quota state and persists it', () => {
-		const { statusbar, storageService } = createEntry({ entitlement: ChatEntitlement.Free, quotas: { premiumChat: exhausted } });
+	function assertNoStatusBarEntry(statusbar: { current: IStatusbarEntry | undefined }): void {
+		assert.strictEqual(statusbar.current, undefined);
+	}
 
-		assert.strictEqual(statusbar.current?.text, '$(copilot-warning) Quota reached');
-		assert.strictEqual(persistedState(storageService), 'blocked');
+	test('does not add Copilot status bar entry', () => {
+		const blocked = createEntry({ entitlement: ChatEntitlement.Free, quotas: { premiumChat: exhausted } });
+		const signedOut = createEntry({ entitlement: ChatEntitlement.Unknown });
+		const resumed = createEntry({ entitlement: ChatEntitlement.Free, quotas: { premiumChat: available }, persisted: 'resumed' });
+
+		assertNoStatusBarEntry(blocked.statusbar);
+		assertNoStatusBarEntry(signedOut.statusbar);
+		assertNoStatusBarEntry(resumed.statusbar);
 	});
 
-	test('keeps Sign In visible in the status bar only while Update owns the title bar', () => {
-		const withoutUpdate = createEntry({ entitlement: ChatEntitlement.Unknown });
-		const withUpdate = createEntry({ entitlement: ChatEntitlement.Unknown, updateTitleBar: true });
-		const whileDebugging = createEntry({ entitlement: ChatEntitlement.Unknown, updateTitleBar: true, inDebugMode: true });
-		const whileChatInProgress = createEntry({ entitlement: ChatEntitlement.Unknown, updateTitleBar: true, updateTitleBarChatInProgress: true });
-		const inZenMode = createEntry({ entitlement: ChatEntitlement.Unknown, updateTitleBar: true, inZenMode: true });
-		const defaultStatusText = isWeb ? '$(copilot) Sign In' : '$(copilot)';
+	test('tracks blocked quota state without showing status bar entry', () => {
+		const { statusbar, storageService } = createEntry({ entitlement: ChatEntitlement.Free, quotas: { premiumChat: exhausted } });
 
-		assert.deepStrictEqual({
-			text: {
-				withoutUpdate: withoutUpdate.statusbar.current?.text,
-				withUpdate: withUpdate.statusbar.current?.text,
-				whileDebugging: whileDebugging.statusbar.current?.text,
-				whileChatInProgress: whileChatInProgress.statusbar.current?.text,
-				inZenMode: inZenMode.statusbar.current?.text,
-			},
-			visibility: {
-				withoutUpdate: withoutUpdate.updateTitleBarVisible,
-				withUpdate: withUpdate.updateTitleBarVisible,
-				whileDebugging: whileDebugging.updateTitleBarVisible,
-				whileChatInProgress: whileChatInProgress.updateTitleBarVisible,
-				inZenMode: inZenMode.updateTitleBarVisible,
-			},
-		}, {
-			text: {
-				withoutUpdate: defaultStatusText,
-				withUpdate: '$(copilot) Sign In',
-				whileDebugging: defaultStatusText,
-				whileChatInProgress: defaultStatusText,
-				inZenMode: '$(copilot) Sign In',
-			},
-			visibility: {
-				withoutUpdate: false,
-				withUpdate: true,
-				whileDebugging: false,
-				whileChatInProgress: false,
-				inZenMode: false,
-			},
-		});
+		assertNoStatusBarEntry(statusbar);
+		assert.strictEqual(persistedState(storageService), 'blocked');
 	});
 
 	test('transitions to resumed when the limit resets while running', () => {
@@ -237,7 +211,7 @@ suite('ChatStatusBarEntry', () => {
 		svc.quotas = { premiumChat: available };
 		svc.fireQuotaExceeded();
 
-		assert.strictEqual(statusbar.current?.text, '$(copilot) Copilot Resumed');
+		assertNoStatusBarEntry(statusbar);
 		assert.strictEqual(persistedState(storageService), 'resumed');
 	});
 
@@ -246,7 +220,7 @@ suite('ChatStatusBarEntry', () => {
 
 		await flushTimers();
 
-		assert.strictEqual(statusbar.current?.text, '$(copilot) Copilot Resumed');
+		assertNoStatusBarEntry(statusbar);
 		assert.strictEqual(persistedState(storageService), 'resumed');
 	});
 
@@ -255,34 +229,22 @@ suite('ChatStatusBarEntry', () => {
 
 		await flushTimers();
 
-		assert.notStrictEqual(statusbar.current?.text, '$(copilot) Copilot Resumed');
+		assertNoStatusBarEntry(statusbar);
 		assert.strictEqual(persistedState(storageService), undefined);
 	});
 
-	test('clears resumed when the dashboard is opened', async () => {
-		const { statusbar, storageService } = createEntry({ entitlement: ChatEntitlement.Free, quotas: { premiumChat: available }, persisted: 'blocked' });
-		await flushTimers();
-		assert.strictEqual(statusbar.current?.text, '$(copilot) Copilot Resumed');
-
-		// Opening the dashboard happens through the status entry tooltip element factory.
-		const tooltip = statusbar.current?.tooltip as { element: (token: CancellationToken) => HTMLElement };
-		const cts = new CancellationTokenSource();
-		tooltip.element(cts.token);
-		await flushTimers();
-		cts.dispose(true);
-
-		assert.strictEqual(statusbar.current?.text, '$(copilot)');
-		assert.strictEqual(persistedState(storageService), undefined);
+	test.skip('clears resumed when the dashboard is opened', async () => {
+		// INV-NO-COPILOT: no status bar entry means the dashboard tooltip is unreachable.
 	});
 
 	test('resumed is overridden when the user becomes blocked again', () => {
 		const { svc, statusbar, storageService } = createEntry({ entitlement: ChatEntitlement.Free, quotas: { premiumChat: available }, persisted: 'resumed' });
-		assert.strictEqual(statusbar.current?.text, '$(copilot) Copilot Resumed');
+		assert.strictEqual(persistedState(storageService), 'resumed');
 
 		svc.quotas = { premiumChat: exhausted };
 		svc.fireQuotaExceeded();
 
-		assert.strictEqual(statusbar.current?.text, '$(copilot-warning) Quota reached');
+		assertNoStatusBarEntry(statusbar);
 		assert.strictEqual(persistedState(storageService), 'blocked');
 	});
 });
