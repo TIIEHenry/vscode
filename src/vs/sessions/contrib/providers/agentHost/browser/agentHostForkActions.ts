@@ -13,6 +13,7 @@ import { ForkConversationAction } from '../../../../../workbench/contrib/chat/br
 import { IChatService } from '../../../../../workbench/contrib/chat/common/chatService/chatService.js';
 import { IChatSessionRequestHistoryItem } from '../../../../../workbench/contrib/chat/common/chatSessionsService.js';
 import { isAgentHostProviderId } from '../../../../common/agentHostSessionsProvider.js';
+import { COMPARE_MAX_GROUPS } from './compareMaxGroups.js';
 import { ISessionsService } from '../../../../services/sessions/browser/sessionsService.js';
 import { ISessionsManagementService } from '../../../../services/sessions/common/sessionsManagement.js';
 
@@ -46,7 +47,12 @@ registerAction2(class extends ForkConversationAction {
 			}
 
 			const newChat = await sessionsManagementService.forkChatInSession(session, sourceSessionResource, turnId);
-			await sessionsService.openChat(session, newChat.resource);
+			try {
+				await sessionsService.openChatToSide(session, newChat.resource, { maxGroups: COMPARE_MAX_GROUPS });
+			} catch (err) {
+				logService.warn(`[AgentHostSessions] openChatToSide failed, falling back to openChat`, err);
+				await sessionsService.openChat(session, newChat.resource);
+			}
 			logService.trace(`[AgentHostSessions] Forked conversation into new chat ${newChat.resource.toString()} in session ${session.sessionId}`);
 			return true;
 		});
