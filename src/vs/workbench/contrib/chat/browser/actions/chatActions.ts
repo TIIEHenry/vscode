@@ -575,7 +575,8 @@ class PrimaryOpenChatGlobalAction extends OpenChatGlobalAction {
 			menu: [{
 				id: MenuId.ChatTitleBarMenu,
 				group: 'a_open',
-				order: 1
+				order: 1,
+				when: IsSessionsWindowContext,
 			}]
 		});
 	}
@@ -706,7 +707,8 @@ export function registerChatActions() {
 				menu: [{
 					id: MenuId.ChatTitleBarMenu,
 					group: 'b_new',
-					order: 0
+					order: 0,
+					when: IsSessionsWindowContext,
 				}, {
 					id: MenuId.ChatNewMenu,
 					group: '2_new',
@@ -825,7 +827,8 @@ export function registerChatActions() {
 				menu: [{
 					id: MenuId.ChatTitleBarMenu,
 					group: 'b_new',
-					order: 1
+					order: 1,
+					when: IsSessionsWindowContext,
 				}, {
 					id: MenuId.ChatNewMenu,
 					group: '2_new',
@@ -1215,7 +1218,7 @@ export function registerChatActions() {
 					id: MenuId.ChatTitleBarMenu,
 					group: 'y_manage',
 					order: 1,
-					when: nonEnterpriseCopilotUsers
+					when: ContextKeyExpr.and(nonEnterpriseCopilotUsers, IsSessionsWindowContext)
 				}
 			});
 		}
@@ -1260,6 +1263,7 @@ export function registerChatActions() {
 					id: MenuId.ChatTitleBarMenu,
 					group: 'f_completions',
 					order: 10,
+					when: IsSessionsWindowContext,
 				}
 			});
 		}

@@ -11,6 +11,7 @@ import { IsSessionsWindowContext } from '../../../../../common/contextkeys.js';
 import { ChatContextKeys } from '../../../common/actions/chatContextKeys.js';
 import { ChatModeKind } from '../../../common/constants.js';
 import {
+	ACTION_ID_OPEN_CHAT,
 	CHAT_OPEN_ACTION_ID,
 	GENERATE_AGENT_COMMAND_ID,
 	GENERATE_AGENT_INSTRUCTIONS_COMMAND_ID,
@@ -33,6 +34,12 @@ function evalWhen(when: ContextKeyExpression | undefined, values: Record<string,
 
 function findCommandPaletteItem(commandId: string) {
 	return MenuRegistry.getMenuItems(MenuId.CommandPalette)
+		.filter(isIMenuItem)
+		.find(item => item.command.id === commandId);
+}
+
+function findTitleBarMenuItem(commandId: string) {
+	return MenuRegistry.getMenuItems(MenuId.ChatTitleBarMenu)
 		.filter(isIMenuItem)
 		.find(item => item.command.id === commandId);
 }
@@ -82,6 +89,14 @@ const sessionsWindowOnlyCommandIds = [
 	'workbench.action.chat.focusTip',
 ];
 
+const titleBarMenuSessionsWindowOnlyCommandIds = [
+	CHAT_OPEN_ACTION_ID,
+	ACTION_ID_OPEN_CHAT,
+	'workbench.action.newChatWindow',
+	'workbench.action.chat.manageSettings',
+	'workbench.action.chat.configureCodeCompletions',
+];
+
 suite('ChatActions - default window Command Palette (INV-NO-COPILOT)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
@@ -108,6 +123,25 @@ suite('ChatActions - default window Command Palette (INV-NO-COPILOT)', () => {
 				evalWhen(item.when, agentsWindowChatReady),
 				true,
 				`Agents Window may list ${commandId} in Command Palette`
+			);
+		}
+	});
+
+	test('Chat title bar menu items stay registered for Agents Window only', () => {
+		for (const commandId of titleBarMenuSessionsWindowOnlyCommandIds) {
+			const item = findTitleBarMenuItem(commandId);
+			assert.ok(item, `${commandId} should remain registered in Chat title bar menu for Agents Window`);
+			assert.ok(item.when, `${commandId} Chat title bar menu item should have a when clause`);
+
+			assert.strictEqual(
+				evalWhen(item.when, defaultWindow),
+				false,
+				`default Code window must hide ${commandId} in Chat title bar menu`
+			);
+			assert.strictEqual(
+				evalWhen(item.when, agentsWindowChatReady),
+				true,
+				`Agents Window may show ${commandId} in Chat title bar menu`
 			);
 		}
 	});
