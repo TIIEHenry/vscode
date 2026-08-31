@@ -25,7 +25,7 @@ import {
 	conversationLensDockStopNotGenerating,
 	conversationLensInputMaximizedClass,
 } from '../../browser/conversationLensDockStrings.js';
-import { conversationLensSessionBarDeleteSession, conversationLensSessionBarHistoryTitle, conversationLensSessionBarNewSession, conversationLensSessionBarNoHistory, conversationLensSessionBarRenameTitle } from '../../browser/conversationLensSessionBarStrings.js';
+import { conversationLensSessionBarDeleteSession, conversationLensSessionBarHistoryTitle, conversationLensSessionBarNewSession, conversationLensSessionBarRenameTitle } from '../../browser/conversationLensSessionBarStrings.js';
 import { CONVERSATION_STUB_SEED_SESSIONS } from '../../browser/conversationStubModel.js';
 import { ConversationStubService, IConversationStubService } from '../../browser/conversationStubService.js';
 import { getConversationSessionStatusText } from '../../browser/conversationSessionStatus.js';
@@ -344,14 +344,15 @@ suite('ConversationLens', () => {
 		assert.ok(slots.timeline.querySelector('.conversation-lens-timeline-empty'));
 	});
 
-	test('SessionBar history control is honest: no fake list or Copilot history', () => {
-		const { part } = mountLens();
+	test('SessionBar history lists stub sessions and switches active session on select', () => {
+		const { part, stubService } = mountLens();
 		const slots = part.getSlots()!;
 		const historyButton = slots.sessionBar.querySelector('.conversation-lens-session-history .monaco-button') as HTMLButtonElement;
+		const title = slots.sessionBar.querySelector('.conversation-lens-session-title')!;
+		const tour = CONVERSATION_STUB_SEED_SESSIONS.find(s => s.id === 'tour')!;
 
 		assert.ok(historyButton);
 		assert.strictEqual(historyButton.getAttribute('aria-label'), conversationLensSessionBarHistoryTitle);
-		assert.strictEqual(slots.sessionBar.querySelector('.conversation-lens-session-history-list'), null);
 		assert.strictEqual(slots.sessionBar.querySelector('.agent-sessions'), null);
 		assert.strictEqual(slots.sessionBar.querySelector('.chat-setup'), null);
 
@@ -359,11 +360,42 @@ suite('ConversationLens', () => {
 
 		const popup = document.querySelector('.conversation-lens-session-history-popup');
 		assert.ok(popup);
-		assert.strictEqual(popup!.textContent, conversationLensSessionBarNoHistory);
-		assert.strictEqual(popup!.querySelectorAll('[role="option"], .monaco-list-row, .conversation-lens-session-history-item').length, 0);
+		const list = popup!.querySelector('.conversation-lens-session-history-list');
+		assert.ok(list);
+		const items = popup!.querySelectorAll('.conversation-lens-session-history-item');
+		assert.strictEqual(items.length, stubService.getSessions().length);
+
+		const tourItem = [...items].find(el => el.textContent === tour.title) as HTMLButtonElement;
+		assert.ok(tourItem);
+		tourItem.click();
+
+		assert.strictEqual(stubService.getActiveSessionId(), tour.id);
+		assert.strictEqual(title.textContent, tour.title);
+		assert.strictEqual(document.querySelector('.conversation-lens-session-history-popup'), null);
 
 		historyButton.click();
 		assert.strictEqual(document.querySelector('.conversation-lens-session-history-popup'), null);
+	});
+
+	test('ConversationPart.focus lands on dock textarea when lens is mounted', () => {
+		const { part } = mountLens();
+		const slots = part.getSlots()!;
+		const textarea = slots.dock.querySelector('textarea.conversation-lens-dock-input') as HTMLTextAreaElement;
+
+		part.focus();
+
+		assert.strictEqual(document.activeElement, textarea);
+	});
+
+	test('ConversationPart.focus falls back to part element without lens', () => {
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		const part = store.add(instantiationService.createInstance(ConversationPart));
+		const parent = document.createElement('div');
+		part.create(parent);
+
+		part.focus();
+
+		assert.strictEqual(document.activeElement, parent);
 	});
 
 	test('inbox status row is honest: no fake queue list, pending summary in dock', () => {

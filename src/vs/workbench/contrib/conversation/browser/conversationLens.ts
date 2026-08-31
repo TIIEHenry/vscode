@@ -35,7 +35,7 @@ import {
 	conversationLensDockStopNotGenerating,
 	conversationLensInputMaximizedClass,
 } from './conversationLensDockStrings.js';
-import { conversationLensSessionBarDeleteSession, conversationLensSessionBarHistoryTitle, conversationLensSessionBarNewSession, conversationLensSessionBarNoHistory, conversationLensSessionBarRenameInputAria, conversationLensSessionBarRenameTitle } from './conversationLensSessionBarStrings.js';
+import { conversationLensSessionBarDeleteSession, conversationLensSessionBarHistoryListAria, conversationLensSessionBarHistoryTitle, conversationLensSessionBarNewSession, conversationLensSessionBarNoHistory, conversationLensSessionBarRenameInputAria, conversationLensSessionBarRenameTitle } from './conversationLensSessionBarStrings.js';
 import { ConversationStubTurn } from './conversationStubModel.js';
 import { IConversationStubService } from './conversationStubService.js';
 import { shouldRenderTurnAsMarkdown } from './conversationTurnMarkdown.js';
@@ -226,11 +226,7 @@ export class ConversationLens extends Disposable {
 			if (!session) {
 				return;
 			}
-			const previousId = this.stubService.getActiveSessionId();
-			if (previousId !== session.id) {
-				this.drafts.set(previousId, this.dockTextarea.value);
-				this.stubService.switchSession(session.id);
-			}
+			this.switchToSession(session.id);
 		}));
 	}
 
@@ -395,6 +391,14 @@ export class ConversationLens extends Disposable {
 		});
 	}
 
+	private switchToSession(sessionId: string): void {
+		const previousId = this.stubService.getActiveSessionId();
+		if (previousId !== sessionId) {
+			this.drafts.set(previousId, this.dockTextarea.value);
+			this.stubService.switchSession(sessionId);
+		}
+	}
+
 	private toggleHistoryContextView(): void {
 		if (this.historyContextView) {
 			this.historyContextView.close();
@@ -405,10 +409,34 @@ export class ConversationLens extends Disposable {
 			anchorAlignment: AnchorAlignment.RIGHT,
 			anchorPosition: AnchorPosition.BELOW,
 			render: container => {
-				append(container, $('.conversation-lens-session-history-popup')).textContent = conversationLensSessionBarNoHistory;
-				return toDisposable(() => {
+				const localDisposables = new DisposableStore();
+				const popup = append(container, $('.conversation-lens-session-history-popup'));
+				const sessions = this.stubService.getSessions();
+				if (sessions.length === 0) {
+					popup.textContent = conversationLensSessionBarNoHistory;
+				} else {
+					const list = append(popup, $('.conversation-lens-session-history-list'));
+					list.setAttribute('role', 'listbox');
+					list.setAttribute('aria-label', conversationLensSessionBarHistoryListAria);
+					const activeId = this.stubService.getActiveSessionId();
+					for (const session of sessions) {
+						const item = append(list, $('button.conversation-lens-session-history-item')) as HTMLButtonElement;
+						item.type = 'button';
+						item.textContent = session.title;
+						item.setAttribute('role', 'option');
+						const isActive = session.id === activeId;
+						item.setAttribute('aria-selected', String(isActive));
+						item.classList.toggle('conversation-lens-session-history-item-active', isActive);
+						localDisposables.add(addDisposableListener(item, 'click', () => {
+							this.switchToSession(session.id);
+							this.historyContextView?.close();
+						}));
+					}
+				}
+				localDisposables.add(toDisposable(() => {
 					this.historyContextView = undefined;
-				});
+				}));
+				return localDisposables;
 			},
 			onDOMEvent: e => {
 				if (e.type === 'click') {
@@ -425,8 +453,7 @@ export class ConversationLens extends Disposable {
 	}
 
 	private createNewSession(): void {
-		const previousId = this.stubService.getActiveSessionId();
-		this.drafts.set(previousId, this.dockTextarea.value);
+		this.drafts.set(this.stubService.getActiveSessionId(), this.dockTextarea.value);
 		this.stubService.createSession();
 	}
 
