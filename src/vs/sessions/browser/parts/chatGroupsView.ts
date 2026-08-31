@@ -24,6 +24,15 @@ import { ChatGroupView, IChatGroupContext } from './chatGroupView.js';
 import { ChatDropZone, ChatGroupDropTarget, IChatGroupDropTargetDelegate } from './chatGroupDropTarget.js';
 import { IDraggedSessionChat, isSessionChatDrag } from '../dnd.js';
 
+/** Options for {@link ChatGroupsView.openChatInNewGroup}. */
+export interface IOpenChatBesideOptions {
+	/**
+	 * When the grid already has this many groups, compare-style opens reuse an
+	 * existing group instead of splitting out a new one. Omitted = no limit.
+	 */
+	readonly maxGroups?: number;
+}
+
 interface IGroupEntry {
 	readonly id: number;
 	readonly view: ChatGroupView;
@@ -527,15 +536,16 @@ export class ChatGroupsView extends Themable {
 	 * chat already sharing a group is moved into a new group to its right. A chat
 	 * already alone in its own group is focused without creating a duplicate.
 	 */
-	async openChatInNewGroup(resource: URI): Promise<void> {
+	async openChatInNewGroup(resource: URI, options?: IOpenChatBesideOptions): Promise<void> {
 		if (!this._session || !this._grid || !this._currentSessionStore) {
 			return;
 		}
 		const id = resource.toString();
+		const atCapacity = this._groups.length >= (options?.maxGroups ?? Infinity);
 
 		const existing = this._groups.find(g => g.resourceIds.get().includes(id));
 		if (existing) {
-			if (existing.resourceIds.get().length > 1) {
+			if (!atCapacity && existing.resourceIds.get().length > 1) {
 				await this._splitChatIntoNewGroup(resource, existing, existing, 'right');
 				return;
 			}
@@ -552,6 +562,30 @@ export class ChatGroupsView extends Themable {
 		const session = this._session;
 		await this._sessionsService.openChat(session, resource);
 		if (this._session !== session || !session.visibleChatTabs.get().some(chat => chat.resource.toString() === id)) {
+			return;
+		}
+
+		if (atCapacity) {
+			const chat = session.visibleChatTabs.get().find(candidate => candidate.resource.toString() === id);
+			const parentResource = chat?.origin?.parentChat;
+			const target = this._pickCompareTargetGroup(parentResource);
+			if (!target) {
+				return;
+			}
+			transaction(tx => {
+				const assignedGroup = this._groups.find(group => group !== target && group.resourceIds.get().includes(id));
+				if (assignedGroup) {
+					this._detachChatFromGroup(assignedGroup, id, tx);
+				}
+				if (!target.resourceIds.get().includes(id)) {
+					target.resourceIds.set([...target.resourceIds.get(), id], tx);
+				}
+				target.activeResourceId.set(id, tx);
+			});
+			this._setActiveGroup(target);
+			this._removeEmptyGroups();
+			this._applyLayout();
+			this._persistLayout();
 			return;
 		}
 
@@ -573,6 +607,23 @@ export class ChatGroupsView extends Themable {
 		this._removeEmptyGroups();
 		this._applyLayout();
 		this._persistLayout();
+	}
+
+	/**
+	 * Picks the group that should host a compare open once {@link IOpenChatBesideOptions.maxGroups}
+	 * is reached. Prefer the neighbor of the parent chat's group; otherwise the first non-active group.
+	 */
+	private _pickCompareTargetGroup(parentResource?: URI): IGroupEntry | undefined {
+		if (parentResource) {
+			const parentGroup = this._groups.find(group => group.resourceIds.get().includes(parentResource.toString()));
+			if (parentGroup) {
+				const adjacent = this._findAdjacentGroup(parentGroup);
+				if (adjacent) {
+					return adjacent;
+				}
+			}
+		}
+		return this._groups.find(group => group !== this._activeGroup);
 	}
 
 	private _findAdjacentGroup(reference: IGroupEntry): IGroupEntry | undefined {
