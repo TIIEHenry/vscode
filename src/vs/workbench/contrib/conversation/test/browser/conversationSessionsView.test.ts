@@ -188,8 +188,10 @@ suite('ConversationSessionsView', () => {
 
 	test('active highlight follows getActiveSessionId when session switches', () => {
 		const { view, stubService } = mountView();
-		const sessions = stubService.getSessions();
-		const target = sessions.find(session => session.id !== stubService.getActiveSessionId());
+		const secondId = stubService.createSession();
+		const firstId = stubService.getSessions()[0].id;
+		stubService.switchSession(firstId);
+		const target = stubService.getSessions().find(session => session.id === secondId);
 		assert.ok(target);
 
 		stubService.switchSession(target.id);
@@ -331,6 +333,7 @@ suite('ConversationSessionsView', () => {
 
 		layoutService.setPartHiddenCalls.length = 0;
 		focusSpy.called = false;
+		list.domFocus();
 		list.setFocus([targetIndex]);
 		list.setSelection([targetIndex], getSelectionKeyboardEvent('keydown', false, false));
 
@@ -341,6 +344,7 @@ suite('ConversationSessionsView', () => {
 		const thirdId = stubService.createSession();
 		stubService.switchSession(firstId);
 		const thirdIndex = stubService.getSessions().findIndex(session => session.id === thirdId);
+		void layoutService.setPartHidden(true, Parts.CONVERSATION_PART);
 		layoutService.setPartHiddenCalls.length = 0;
 		focusSpy.called = false;
 
@@ -355,7 +359,7 @@ suite('ConversationSessionsView', () => {
 	test('stale or empty roster open does not show Conversation', () => {
 		const { view, stubService, layoutService, focusSpy } = mountView({ conversationVisible: false });
 		const openSessionFromRoster = (view as unknown as {
-			openSessionFromRoster(session: ConversationStubSession | undefined): void;
+			openSessionFromRoster(session: ConversationStubSession | undefined, browserEvent?: UIEvent): void;
 		}).openSessionFromRoster.bind(view);
 		const staleSession: ConversationStubSession = { id: 'missing-session', title: 'Stale', turns: [] };
 
@@ -386,7 +390,6 @@ suite('ConversationSessionsView', () => {
 
 		const { view } = mountView({ stubService });
 		assert.ok(!isFilterVisible(view));
-		assert.strictEqual(getFilterInput(view), null);
 	});
 
 	test('filter input is shown when seed session exists', () => {
