@@ -14,7 +14,7 @@ import { IEditorPane } from '../../../../../../common/editor.js';
 import { PreferredGroup } from '../../../../../../services/editor/common/editorService.js';
 import { workbenchInstantiationService, TestEditorService, TestEnvironmentService } from '../../../../../../test/browser/workbenchTestServices.js';
 import { focusConversationPart } from '../../../../browser/actions/chatActions.js';
-import { OpenAgentSessionInEditorGroupAction, OpenAgentSessionInNewEditorGroupAction } from '../../../../browser/agentSessions/agentSessionsActions.js';
+import { OpenAgentSessionInEditorGroupAction, OpenAgentSessionInNewEditorGroupAction, OpenAgentSessionInNewWindowAction } from '../../../../browser/agentSessions/agentSessionsActions.js';
 import { IAgentSession } from '../../../../browser/agentSessions/agentSessionsModel.js';
 import { IChatWidgetService } from '../../../../browser/chat.js';
 import { ChatEditor } from '../../../../browser/widgetHosts/editor/chatEditor.js';
@@ -99,6 +99,15 @@ suite('default-window ChatEditor shell paths', () => {
 	test('workbench.action.chat.openSessionInNewEditorGroup does not open ChatEditorInput as active editor', async () => {
 		const { instantiationService, editorService, openSessionTracker } = setup();
 		const action = instantiationService.createInstance(OpenAgentSessionInNewEditorGroupAction);
+		await instantiationService.invokeFunction(accessor => action.runWithSessions([mockSession], accessor));
+
+		assert.strictEqual(editorService.activeEditor instanceof ChatEditorInput, false);
+		assert.strictEqual(openSessionTracker.called, false);
+	});
+
+	test('workbench.action.chat.openSessionInNewWindow does not open ChatEditorInput as active editor', async () => {
+		const { instantiationService, editorService, openSessionTracker } = setup();
+		const action = instantiationService.createInstance(OpenAgentSessionInNewWindowAction);
 		await instantiationService.invokeFunction(accessor => action.runWithSessions([mockSession], accessor));
 
 		assert.strictEqual(editorService.activeEditor instanceof ChatEditorInput, false);
