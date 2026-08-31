@@ -7,14 +7,18 @@ import assert from 'assert';
 import { Event } from '../../../../../base/common/event.js';
 import { mock } from '../../../../../base/test/common/mock.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { getSelectionKeyboardEvent, WorkbenchList } from '../../../../../platform/list/browser/listService.js';
 import { Registry } from '../../../../../platform/registry/common/platform.js';
+import { ConversationPart, IConversationPartService } from '../../../../browser/parts/conversation/conversationPart.js';
 import { Extensions as ViewContainerExtensions, Extensions as ViewExtensions, IViewContainersRegistry, IViewDescriptorService, IViewsRegistry, ViewContainerLocation } from '../../../../common/views.js';
+import { IWorkbenchLayoutService, Parts } from '../../../../services/layout/browser/layoutService.js';
 import { ChatEditorInput } from '../../../chat/browser/widgetHosts/editor/chatEditorInput.js';
 import { CONVERSATION_SESSIONS_CONTAINER_ID } from '../../browser/conversation.contribution.js';
 import { CONVERSATION_SESSIONS_VIEW_ID, ConversationSessionsView } from '../../browser/conversationSessionsView.js';
+import { ConversationStubSession } from '../../browser/conversationStubModel.js';
 import { conversationLensSessionBarNewSession } from '../../browser/conversationLensSessionBarStrings.js';
 import { ConversationStubService, IConversationStubService } from '../../browser/conversationStubService.js';
-import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
+import { TestLayoutService, workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import '../../../conversation/browser/conversation.contribution.js';
 
 suite('ConversationSessionsView', () => {
@@ -24,15 +28,66 @@ suite('ConversationSessionsView', () => {
 	const viewContainersRegistry = Registry.as<IViewContainersRegistry>(ViewContainerExtensions.ViewContainersRegistry);
 	const viewsRegistry = Registry.as<IViewsRegistry>(ViewExtensions.ViewsRegistry);
 
-	function mountView(stubService?: ConversationStubService): { view: ConversationSessionsView; stubService: ConversationStubService } {
-		const service = stubService ?? store.add(new ConversationStubService());
+	class RosterNavigationLayoutService extends TestLayoutService {
+		private conversationVisible = true;
+		readonly setPartHiddenCalls: { hidden: boolean; part: Parts }[] = [];
+
+		constructor(conversationVisible = true) {
+			super();
+			this.conversationVisible = conversationVisible;
+		}
+
+		override isVisible(part: Parts): boolean {
+			if (part === Parts.CONVERSATION_PART) {
+				return this.conversationVisible;
+			}
+			return super.isVisible(part);
+		}
+
+		override async setPartHidden(hidden: boolean, part: Parts): Promise<void> {
+			this.setPartHiddenCalls.push({ hidden, part });
+			if (part === Parts.CONVERSATION_PART) {
+				this.conversationVisible = !hidden;
+			}
+		}
+	}
+
+	function getViewList(view: ConversationSessionsView): WorkbenchList<ConversationStubSession> {
+		return (view as unknown as { list: WorkbenchList<ConversationStubSession> }).list;
+	}
+
+	function mountView(options?: {
+		stubService?: ConversationStubService;
+		conversationVisible?: boolean;
+	}): {
+		view: ConversationSessionsView;
+		stubService: ConversationStubService;
+		layoutService: RosterNavigationLayoutService;
+		conversationPart: ConversationPart;
+		focusSpy: { called: boolean };
+	} {
+		const service = options?.stubService ?? store.add(new ConversationStubService());
+		const layoutService = new RosterNavigationLayoutService(options?.conversationVisible ?? true);
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		instantiationService.stub(IConversationStubService, service);
+		instantiationService.stub(IWorkbenchLayoutService, layoutService);
 		instantiationService.stub(IViewDescriptorService, new class extends mock<IViewDescriptorService>() {
+			override onDidChangeLocation = Event.None;
 			override getViewLocationById(): ViewContainerLocation {
 				return ViewContainerLocation.Sidebar;
 			}
 		}());
+
+		const conversationPart = store.add(instantiationService.createInstance(ConversationPart));
+		const partParent = document.createElement('div');
+		conversationPart.create(partParent);
+		const focusSpy = { called: false };
+		const originalFocus = conversationPart.focus.bind(conversationPart);
+		conversationPart.focus = () => {
+			focusSpy.called = true;
+			originalFocus();
+		};
+		instantiationService.stub(IConversationPartService, conversationPart);
 
 		const view = store.add(instantiationService.createInstance(ConversationSessionsView, {
 			id: CONVERSATION_SESSIONS_VIEW_ID,
@@ -43,7 +98,7 @@ suite('ConversationSessionsView', () => {
 		container.appendChild(view.element);
 		view.setExpanded(true);
 		view.setVisible(true);
-		return { view, stubService: service };
+		return { view, stubService: service, layoutService, conversationPart, focusSpy };
 	}
 
 	test('registers on dedicated Sidebar ViewContainer that is not default', () => {
@@ -116,7 +171,7 @@ suite('ConversationSessionsView', () => {
 			override createSession() { return 'new'; }
 		}() as unknown as ConversationStubService;
 
-		const { view } = mountView(stubService);
+		const { view } = mountView({ stubService });
 		const empty = view.element.querySelector('.conversation-sessions-empty') as HTMLElement | undefined;
 		assert.ok(empty);
 		assert.ok(empty.textContent?.includes('in-memory'));
@@ -139,5 +194,80 @@ suite('ConversationSessionsView', () => {
 		const label = view.element.querySelector('.conversation-sessions-item-active .conversation-sessions-item-label');
 		assert.strictEqual(label?.textContent, renamedTitle);
 		assert.ok([...view.element.querySelectorAll('.conversation-sessions-item-label')].some(el => el.textContent === renamedTitle));
+	});
+
+	test('opening a roster item while Conversation is hidden switches session, shows, and focuses', () => {
+		const { view, stubService, layoutService, focusSpy } = mountView({ conversationVisible: false });
+		const secondId = stubService.createSession();
+		const firstId = stubService.getSessions()[0].id;
+		stubService.switchSession(firstId);
+		layoutService.setPartHiddenCalls.length = 0;
+		focusSpy.called = false;
+
+		const targetIndex = stubService.getSessions().findIndex(session => session.id === secondId);
+		assert.ok(targetIndex >= 0);
+		const label = view.element.querySelectorAll('.conversation-sessions-item-label')[targetIndex] as HTMLElement;
+		label.click();
+
+		assert.strictEqual(stubService.getActiveSessionId(), secondId);
+		assert.ok(layoutService.setPartHiddenCalls.some(call => call.part === Parts.CONVERSATION_PART && call.hidden === false));
+		assert.strictEqual(layoutService.isVisible(Parts.CONVERSATION_PART), true);
+		assert.strictEqual(focusSpy.called, true);
+		assert.notStrictEqual(document.activeElement, label);
+	});
+
+	test('keyboard open and click share the same onDidOpen navigation path', () => {
+		const { view, stubService, layoutService, focusSpy } = mountView({ conversationVisible: false });
+		const secondId = stubService.createSession();
+		const firstId = stubService.getSessions()[0].id;
+		stubService.switchSession(firstId);
+		const list = getViewList(view);
+		const targetIndex = stubService.getSessions().findIndex(session => session.id === secondId);
+		assert.ok(targetIndex >= 0);
+
+		layoutService.setPartHiddenCalls.length = 0;
+		focusSpy.called = false;
+		list.setFocus([targetIndex]);
+		list.setSelection([targetIndex], getSelectionKeyboardEvent('keydown', false, false));
+
+		assert.strictEqual(stubService.getActiveSessionId(), secondId);
+		assert.ok(layoutService.setPartHiddenCalls.some(call => call.part === Parts.CONVERSATION_PART && call.hidden === false));
+		assert.strictEqual(focusSpy.called, true);
+
+		const thirdId = stubService.createSession();
+		stubService.switchSession(firstId);
+		const thirdIndex = stubService.getSessions().findIndex(session => session.id === thirdId);
+		layoutService.setPartHiddenCalls.length = 0;
+		focusSpy.called = false;
+
+		const label = view.element.querySelectorAll('.conversation-sessions-item-label')[thirdIndex] as HTMLElement;
+		label.click();
+
+		assert.strictEqual(stubService.getActiveSessionId(), thirdId);
+		assert.ok(layoutService.setPartHiddenCalls.some(call => call.part === Parts.CONVERSATION_PART && call.hidden === false));
+		assert.strictEqual(focusSpy.called, true);
+	});
+
+	test('stale or empty roster open does not show Conversation', () => {
+		const { view, stubService, layoutService, focusSpy } = mountView({ conversationVisible: false });
+		const openSessionFromRoster = (view as unknown as {
+			openSessionFromRoster(session: ConversationStubSession | undefined): void;
+		}).openSessionFromRoster.bind(view);
+		const staleSession: ConversationStubSession = { id: 'missing-session', title: 'Stale', turns: [] };
+
+		layoutService.setPartHiddenCalls.length = 0;
+		focusSpy.called = false;
+		openSessionFromRoster(staleSession);
+
+		assert.strictEqual(layoutService.setPartHiddenCalls.length, 0);
+		assert.strictEqual(focusSpy.called, false);
+		assert.strictEqual(layoutService.isVisible(Parts.CONVERSATION_PART), false);
+
+		const activeBefore = stubService.getActiveSessionId();
+		focusSpy.called = false;
+		openSessionFromRoster(undefined);
+
+		assert.strictEqual(stubService.getActiveSessionId(), activeBefore);
+		assert.strictEqual(focusSpy.called, false);
 	});
 });
