@@ -29,7 +29,7 @@ suite('Conversation Session StatusBar', () => {
 				entries.set(id, entry);
 				return { update: () => { }, dispose: () => { } };
 			},
-		} as IStatusbarService;
+		} as unknown as IStatusbarService;
 
 		const stubService = {
 			_serviceBrand: undefined,
@@ -37,13 +37,13 @@ suite('Conversation Session StatusBar', () => {
 			onDidChangeSession: () => ({ dispose: () => { } }),
 			getActiveSessionId: () => undefined,
 			getActiveSession: () => undefined,
-		} as IConversationRosterService;
+		} as unknown as IConversationRosterService;
 
 		const layoutService = {
 			_serviceBrand: undefined,
 			isVisible: () => false,
 			onDidChangePartVisibility: () => ({ dispose: () => { } }),
-		} as IWorkbenchLayoutService;
+		} as unknown as IWorkbenchLayoutService;
 
 		const environmentService = {
 			_serviceBrand: undefined,

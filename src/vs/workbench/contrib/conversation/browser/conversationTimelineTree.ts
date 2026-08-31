@@ -7,7 +7,7 @@ import { $, addDisposableListener, append, clearNode, getWindow } from '../../..
 import { Button } from '../../../../base/browser/ui/button/button.js';
 import { IListVirtualDelegate } from '../../../../base/browser/ui/list/list.js';
 import { RenderIndentGuides } from '../../../../base/browser/ui/tree/abstractTree.js';
-import { ITreeNode, ITreeRenderer } from '../../../../base/browser/ui/tree/tree.js';
+import { ITreeElementRenderDetails, ITreeNode, ITreeRenderer } from '../../../../base/browser/ui/tree/tree.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { Disposable, DisposableStore, IDisposable } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
@@ -121,7 +121,7 @@ class ConversationTimelineRenderer implements ITreeRenderer<ConversationTimeline
 		this.scheduleHeightUpdate(item, templateData.container);
 	}
 
-	disposeElement(_item: ConversationTimelineItem, _index: number, templateData: ITurnTemplateData): void {
+	disposeElement(_element: ITreeNode<ConversationTimelineItem, void>, _index: number, templateData: ITurnTemplateData, _details?: ITreeElementRenderDetails): void {
 		templateData.disposables.clear();
 	}
 

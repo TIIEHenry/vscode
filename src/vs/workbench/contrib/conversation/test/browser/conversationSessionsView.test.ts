@@ -14,7 +14,7 @@ import { Extensions as ViewContainerExtensions, Extensions as ViewExtensions, IV
 import { IWorkbenchLayoutService, Parts } from '../../../../services/layout/browser/layoutService.js';
 import { EditorInput } from '../../../../common/editor/editorInput.js';
 import { IEditorPane, IUntypedEditorInput } from '../../../../common/editor.js';
-import { IEditorOptions } from '../../../../platform/editor/common/editor.js';
+import { IEditorOptions } from '../../../../../platform/editor/common/editor.js';
 import { IEditorService, PreferredGroup } from '../../../../services/editor/common/editorService.js';
 import { ChatEditorInput } from '../../../chat/browser/widgetHosts/editor/chatEditorInput.js';
 import { CONVERSATION_SESSIONS_CONTAINER_ID } from '../../browser/conversation.contribution.js';
@@ -207,7 +207,7 @@ suite('ConversationSessionsView', () => {
 		const originalOpenEditor = editorService.openEditor.bind(editorService);
 		editorService.openEditor = (async (editor: EditorInput | IUntypedEditorInput, optionsOrGroup?: IEditorOptions | PreferredGroup, group?: PreferredGroup): Promise<IEditorPane | undefined> => {
 			openEditorCalled = true;
-			return originalOpenEditor(editor, optionsOrGroup, group);
+			return originalOpenEditor(editor as EditorInput, optionsOrGroup as never, group);
 		}) as typeof editorService.openEditor;
 
 		let switchSessionCalled = false;
