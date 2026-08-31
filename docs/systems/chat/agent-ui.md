@@ -4,7 +4,7 @@ type: architecture
 status: accepted
 phase: N/A
 updated: 2026-08-31
-summary: "本仓对话 UI 的三层：ChatWidget 零件、workbench 宿主（含违反 INV-TOPO 的 ChatEditor）、Sessions Part；M1 透镜骨架 + Sources Files 列表 + D7 四钮已落"
+summary: "本仓对话 UI 的三层：ChatWidget 零件、workbench 宿主（含违反 INV-TOPO 的 ChatEditor）、Sessions Part；Conversation 列 SessionBar/Timeline/Dock chrome + Sources Files 列表 + D7 四钮已落"
 ---
 
 # Agent UI 清单
@@ -19,7 +19,7 @@ summary: "本仓对话 UI 的三层：ChatWidget 零件、workbench 宿主（含
 
 ```text
 ┌─ 窗口壳（Parts / Grid）─────────────────────────────────────┐
-│  默认 Code（M1）：CONVERSATION_PART 中心（contrib 透镜骨架）   │
+│  默认 Code（M1）：CONVERSATION_PART 中心（contrib 透镜 chrome）   │
 │              End 列 EDITOR_PART（Preview）+ SOURCES Files    │
 │              titlebar 四钮 Nav/Conv/Preview/Sources（D7）    │
 │  Agents Window：SESSIONS_PART 中心 + 可选 EDITOR_PART       │
@@ -80,7 +80,7 @@ Desktop 合同：窗口壳 = Singularity/IDEA；Conversation 内 = 时间线 + I
 
 `ChatViewPane` 还嵌 `AgentSessionsControl`、welcome、entitlement、mic/TTS——体量远超「一个列表 + Dock」。把它整块搬进新 Part 会把 Copilot 设置流一起搬进来。
 
-**产品中心透镜（M2 切片 1）：** `workbench/contrib/conversation` 在 `ConversationPart` 三槽内提供本地 stub 产品面：SessionBar 切换 `untitled` / `tour` / `blank` 等内存会话；时间线按 `ConversationStubTurn`（`user` / `assistant` / `confirmation`，稳定 `id`）全量渲染，confirmation 为列表项且 Allow/Skip 只改本地 `pending → allowed/skipped`；Dock 顶 Inbox 状态行诚实显示「No queue」，有 pending 时才出现「N confirmation pending」并滚到座位；可编辑 dock 用 Enter/Send 向当前会话 append user 回合（可选 stub echo）。中心仍不是 `ChatEditorInput` / `ChatViewPane`，也不走 Copilot setup 或 `IChatModel`。
+**产品中心透镜（M2 切片 1 + chrome）：** `workbench/contrib/conversation` 在 `ConversationPart` 三槽内提供本地 stub 产品面：SessionBar 用 workbench 标题 chrome（图标、当前标题、SelectBox 会话切换器）并与 Sidebar roster 共用 `IConversationStubService`；Timeline 为可滚动阅读列（回合间距、空态、You/Agent 头），confirmation 座位仍在列表内且 Allow/Skip 只改本地 `pending → allowed/skipped`；Dock 顶 Inbox 状态行诚实显示「No queue」，有 pending 时才出现「N confirmation pending」并滚到座位；底部 sticky composer（textarea + Send）用 Enter/Send append user 回合（可选 stub echo）。样式仅用 workbench token（foreground/background/border/input），无 Copilot 品牌色。中心仍不是 `ChatEditorInput` / `ChatViewPane`，也不走 Copilot setup 或 `IChatModel`。
 
 ## 4. Sessions / Agents Window 宿主（更接近透镜，但不是文档壳）
 
