@@ -5646,13 +5646,14 @@
       "chat/newSession": [
         {
           "command": "github.copilot.cli.newSession",
+          "when": "isSessionsWindow",
           "group": "4_recommendations@0"
         }
       ],
       "testing/item/result": [
         {
           "command": "github.copilot.tests.fixTestFailure.fromInline",
-          "when": "testResultState == failed && !testResultOutdated",
+          "when": "testResultState == failed && !testResultOutdated && isSessionsWindow",
           "group": "inline@2"
         }
       ],
@@ -6300,7 +6301,7 @@
         {
           "command": "github.copilot.git.resolveMergeConflicts",
           "group": "z_chat@1",
-          "when": "config.git.enabled && !git.missing && !isInDiffEditor && !isMergeEditor && resource in git.mergeChanges && git.activeResourceHasMergeConflicts && chatSetupCompleted"
+          "when": "config.git.enabled && !git.missing && !isInDiffEditor && !isMergeEditor && resource in git.mergeChanges && git.activeResourceHasMergeConflicts && chatSetupCompleted && isSessionsWindow"
         }
       ],
       "multiDiffEditor/content": [
