@@ -27,12 +27,12 @@ suite('NavigatorTeamView', () => {
 	const viewContainersRegistry = Registry.as<IViewContainersRegistry>(ViewContainerExtensions.ViewContainersRegistry);
 	const viewsRegistry = Registry.as<IViewsRegistry>(ViewExtensions.ViewsRegistry);
 
-	function getViewList(view: NavigatorTeamView): WorkbenchList<INavigatorTeamMember> {
-		return (view as unknown as { list: WorkbenchList<INavigatorTeamMember> }).list;
+	function getMembersList(view: NavigatorTeamView): WorkbenchList<INavigatorTeamMember> {
+		return (view as unknown as { membersList: WorkbenchList<INavigatorTeamMember> }).membersList;
 	}
 
-	function getViewEntries(view: NavigatorTeamView): INavigatorTeamMember[] {
-		return (view as unknown as { entries: INavigatorTeamMember[] }).entries;
+	function getMemberEntries(view: NavigatorTeamView): INavigatorTeamMember[] {
+		return (view as unknown as { memberEntries: INavigatorTeamMember[] }).memberEntries;
 	}
 
 	async function mountView(): Promise<NavigatorTeamView> {
@@ -91,11 +91,18 @@ suite('NavigatorTeamView', () => {
 		assert.notStrictEqual(descriptor.ctorDescriptor.ctor, ChatEditorInput);
 	});
 
-	test('empty roster shows welcome with no members', async () => {
+	test('empty members subview shows welcome with no members', async () => {
 		const view = await mountView();
+		assert.strictEqual(view.getActiveSubview(), 'members');
 		assert.strictEqual(view.shouldShowWelcome(), true);
-		assert.deepStrictEqual(getViewEntries(view), []);
-		assert.strictEqual(getViewList(view).length, 0);
+		assert.deepStrictEqual(getMemberEntries(view), []);
+		assert.strictEqual(getMembersList(view).length, 0);
+	});
+
+	test('tasks subview does not show members welcome', async () => {
+		const view = await mountView();
+		view.showTasks();
+		assert.strictEqual(view.shouldShowWelcome(), false);
 	});
 
 	test('welcome content uses roster-empty copy without service-disconnected wording', () => {
@@ -111,23 +118,23 @@ suite('NavigatorTeamView', () => {
 
 	test('mounted view has WorkbenchList and no chat widgets', async () => {
 		const view = await mountView();
-		const list = getViewList(view);
+		const list = getMembersList(view);
 		assert.ok(list instanceof WorkbenchList, 'Team view must construct WorkbenchList');
 		assert.ok(view.element.querySelector('.navigator-team-list'));
+		assert.ok(view.element.querySelector('.navigator-team-subview.active .navigator-stub-empty'));
 		assert.strictEqual(view.element.querySelector('.chat-widget'), null);
 		assert.strictEqual(view.element.querySelector('.chat-setup'), null);
-		assert.strictEqual(view.element.querySelector('.navigator-stub-empty'), null);
 	});
 
 	test('roster does not seed conversation session ids or demo members', async () => {
 		const view = await mountView();
-		const entries = getViewEntries(view);
+		const entries = getMemberEntries(view);
 		const sessionIds = new Set(CONVERSATION_STUB_SEED_SESSIONS.map(session => session.id));
 		for (const entry of entries) {
 			assert.ok(!sessionIds.has(entry.id), `team entry must not use conversation session id ${entry.id}`);
 			assert.ok(!entry.id.startsWith('session-'), `team entry must not look like a session id: ${entry.id}`);
 		}
 		assert.strictEqual(entries.length, 0);
-		assert.strictEqual(getViewList(view).length, 0);
+		assert.strictEqual(getMembersList(view).length, 0);
 	});
 });

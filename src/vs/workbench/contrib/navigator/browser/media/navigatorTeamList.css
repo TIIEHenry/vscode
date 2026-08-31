@@ -3,10 +3,30 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-.monaco-workbench .navigator-team-list {
+.monaco-workbench .navigator-team-view {
+	display: flex;
+	flex-direction: column;
 	height: 100%;
 }
 
-.monaco-workbench .navigator-team-list .monaco-list-row .navigator-team-member-label {
+.monaco-workbench .navigator-team-subview {
+	display: none;
+	flex: 1;
+	min-height: 0;
+}
+
+.monaco-workbench .navigator-team-subview.active {
+	display: flex;
+	flex-direction: column;
+}
+
+.monaco-workbench .navigator-team-list,
+.monaco-workbench .navigator-team-tasks-list {
+	flex: 1;
+	min-height: 0;
+}
+
+.monaco-workbench .navigator-team-list .monaco-list-row .navigator-team-member-label,
+.monaco-workbench .navigator-team-tasks-list .monaco-list-row .navigator-team-task-label {
 	padding-left: 8px;
 }
