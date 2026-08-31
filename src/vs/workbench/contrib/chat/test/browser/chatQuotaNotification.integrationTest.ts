@@ -20,6 +20,7 @@ import { TelemetryService } from '../../../../../platform/telemetry/common/telem
 import { ITelemetryAppender } from '../../../../../platform/telemetry/common/telemetryUtils.js';
 import { ChatEntitlement, IChatEntitlementService, IChatSentiment, IQuotaSnapshot } from '../../../../services/chat/common/chatEntitlementService.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
+import { IWorkbenchEnvironmentService } from '../../../../services/environment/common/environmentService.js';
 import { ChatQuotaNotificationContribution } from '../../browser/chatQuotaNotification.js';
 import { ChatInputNotificationSeverity, IChatInputNotificationService } from '../../browser/widget/input/chatInputNotificationService.js';
 import { ChatInputNotificationWidget } from '../../browser/widget/input/chatInputNotificationWidget.js';
@@ -114,6 +115,11 @@ suite('ChatQuotaNotificationContribution integration', () => {
 
 	function createHarness(opts?: Parameters<typeof createEntitlementService>[0]) {
 		const instantiationService = store.add(workbenchInstantiationService(undefined, store));
+		const environmentService = instantiationService.get(IWorkbenchEnvironmentService);
+		instantiationService.stub(IWorkbenchEnvironmentService, {
+			...environmentService,
+			isSessionsWindow: true,
+		});
 		const telemetryAppender = new TestTelemetryAppender();
 		const telemetryService = store.add(instantiationService.createInstance(TelemetryService, { appenders: [telemetryAppender] }));
 		const entitlementService = createEntitlementService(opts);

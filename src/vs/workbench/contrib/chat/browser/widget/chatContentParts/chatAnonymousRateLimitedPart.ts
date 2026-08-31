@@ -13,9 +13,15 @@ import { localize } from '../../../../../../nls.js';
 import { ICommandService } from '../../../../../../platform/commands/common/commands.js';
 import { ITelemetryService } from '../../../../../../platform/telemetry/common/telemetry.js';
 import { defaultButtonStyles } from '../../../../../../platform/theme/browser/defaultStyles.js';
+import { IWorkbenchEnvironmentService } from '../../../../../services/environment/common/environmentService.js';
 import { IChatEntitlementService } from '../../../../../services/chat/common/chatEntitlementService.js';
+import { shouldShowCopilotQuotaChrome } from '../../../common/copilotQuotaChrome.js';
 import { IChatErrorDetailsPart, IChatRendererContent } from '../../../common/model/chatViewModel.js';
 import { IChatContentPart } from './chatContentParts.js';
+
+export function shouldShowChatAnonymousRateLimitedPart(isSessionsWindow: boolean): boolean {
+	return shouldShowCopilotQuotaChrome(isSessionsWindow);
+}
 
 export class ChatAnonymousRateLimitedPart extends Disposable implements IChatContentPart {
 
@@ -25,11 +31,16 @@ export class ChatAnonymousRateLimitedPart extends Disposable implements IChatCon
 		private readonly content: IChatErrorDetailsPart,
 		@ICommandService commandService: ICommandService,
 		@ITelemetryService telemetryService: ITelemetryService,
-		@IChatEntitlementService chatEntitlementService: IChatEntitlementService
+		@IChatEntitlementService chatEntitlementService: IChatEntitlementService,
+		@IWorkbenchEnvironmentService environmentService: IWorkbenchEnvironmentService,
 	) {
 		super();
 
 		this.domNode = $('.chat-rate-limited-widget');
+
+		if (!shouldShowChatAnonymousRateLimitedPart(environmentService.isSessionsWindow)) {
+			return;
+		}
 
 		const icon = append(this.domNode, $('span'));
 		icon.classList.add(...ThemeIcon.asClassNameArray(Codicon.info));
