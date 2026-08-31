@@ -251,7 +251,7 @@ suite('ChatStatusDashboard', () => {
 		const configurationService = options.configurationService;
 		const isSessionsWindow = options.isSessionsWindow ?? true;
 		const instantiationService = workbenchInstantiationService({
-			configurationService: configurationService ? () => configurationService } : undefined,
+			configurationService: configurationService ? () => configurationService : undefined,
 			environmentService: () => ({
 				isSessionsWindow,
 			} as IWorkbenchEnvironmentService),

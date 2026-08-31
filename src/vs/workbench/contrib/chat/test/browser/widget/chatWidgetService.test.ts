@@ -9,7 +9,7 @@ import { ILogService, NullLogService } from '../../../../../../platform/log/comm
 import { ILayoutService } from '../../../../../../platform/layout/browser/layoutService.js';
 import { IViewsService } from '../../../../../services/views/common/viewsService.js';
 import { IWorkbenchEnvironmentService } from '../../../../../services/environment/common/environmentService.js';
-import { workbenchInstantiationService, TestEditorService, TestEditorGroupsService, TestViewsService } from '../../../../../test/browser/workbenchTestServices.js';
+import { workbenchInstantiationService, TestEditorService, TestViewsService } from '../../../../../test/browser/workbenchTestServices.js';
 import { ChatViewId, IQuickChatService } from '../../../browser/chat.js';
 import { IChatService } from '../../../common/chatService/chatService.js';
 import { LocalChatSessionUri } from '../../../common/model/chatUri.js';
@@ -26,24 +26,26 @@ suite('ChatWidgetService - default window gating (INV-NO-COPILOT)', () => {
 		editorService: TestEditorService & { openEditorCalls: number };
 	} {
 		const openViewCalls: string[] = [];
-		const viewsService = store.add(new class extends TestViewsService {
+		const viewsService = new class extends TestViewsService {
+			dispose(): void { }
 			override openView<T>(id: string): Promise<T | null> {
 				openViewCalls.push(id);
 				return Promise.resolve(null);
 			}
-		}());
+		}();
+		store.add(viewsService);
 
-		const editorService = store.add(new class extends TestEditorService {
+		const editorService = new class extends TestEditorService {
 			openEditorCalls = 0;
 			override openEditor(): Promise<undefined> {
 				this.openEditorCalls++;
 				return Promise.resolve(undefined);
 			}
-		}());
+		}();
+		store.add(editorService);
 
 		const instantiationService = workbenchInstantiationService({
 			editorService: () => editorService,
-			editorGroupService: () => store.add(new TestEditorGroupsService()),
 		}, store);
 
 		instantiationService.stub(IViewsService, viewsService);

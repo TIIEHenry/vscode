@@ -4,30 +4,19 @@
  *--------------------------------------------------------------------------------------------*/
 
 import './media/chatStatus.css';
-import { Disposable, DisposableStore, MutableDisposable, toDisposable } from '../../../../../base/common/lifecycle.js';
-import { localize } from '../../../../../nls.js';
+import { Disposable, MutableDisposable, toDisposable } from '../../../../../base/common/lifecycle.js';
 import { IWorkbenchContribution } from '../../../../common/contributions.js';
-import { IStatusbarEntry, IStatusbarEntryAccessor, IStatusbarService, ShowTooltipCommand, StatusbarEntryKind } from '../../../../services/statusbar/browser/statusbar.js';
-import { ChatEntitlement, ChatEntitlementContextKeys, ChatEntitlementService, getQuotaReset, IChatEntitlementService, isProUser } from '../../../../services/chat/common/chatEntitlementService.js';
-import { CancellationToken, CancellationTokenSource } from '../../../../../base/common/cancellation.js';
-import { disposableLongTimeout, disposableTimeout } from '../../../../../base/common/async.js';
+import { IStatusbarEntryAccessor } from '../../../../services/statusbar/browser/statusbar.js';
+import { ChatEntitlement, ChatEntitlementContextKeys, ChatEntitlementService, getQuotaReset, IChatEntitlementService } from '../../../../services/chat/common/chatEntitlementService.js';
+import { CancellationTokenSource } from '../../../../../base/common/cancellation.js';
+import { disposableLongTimeout } from '../../../../../base/common/async.js';
 import { IStorageService, StorageScope, StorageTarget } from '../../../../../platform/storage/common/storage.js';
 import { IConfigurationService } from '../../../../../platform/configuration/common/configuration.js';
 import { IEditorService } from '../../../../services/editor/common/editorService.js';
-import { IInstantiationService } from '../../../../../platform/instantiation/common/instantiation.js';
 import { getCodeEditor } from '../../../../../editor/browser/editorBrowser.js';
 import { IInlineCompletionsService } from '../../../../../editor/browser/services/inlineCompletionsService.js';
-
-import { ChatStatusDashboard } from './chatStatusDashboard.js';
-import { mainWindow } from '../../../../../base/browser/window.js';
-import { $ as h, disposableWindowInterval } from '../../../../../base/browser/dom.js';
-import { isNewUser } from './chatStatus.js';
-import product from '../../../../../platform/product/common/product.js';
-import { isCompletionsEnabled } from '../../../../../editor/common/services/completionsEnablement.js';
-import { CHAT_SETUP_ACTION_ID } from '../actions/chatActions.js';
 import { IContextKeyService } from '../../../../../platform/contextkey/common/contextkey.js';
-import { isWeb } from '../../../../../base/common/platform.js';
-import { InEditorZenModeContext } from '../../../../common/contextkeys.js';
+import product from '../../../../../platform/product/common/product.js';
 import { UpdateTitleBarEditorVisibleContext } from '../../../update/common/update.js';
 import { ChatConfiguration } from '../../common/constants.js';
 
@@ -115,18 +104,13 @@ export class ChatStatusBarEntry extends Disposable implements IWorkbenchContribu
 	private entry: IStatusbarEntryAccessor | undefined = undefined;
 
 	private readonly activeCodeEditorListener = this._register(new MutableDisposable());
-	private readonly entryAnchor = h('span');
-	private readonly dashboardTooltip: IStatusbarEntry['tooltip'];
 
 	private quotaResumeState: ChatQuotaResumeState;
 	private readonly quotaResetTimer = this._register(new MutableDisposable());
 	private readonly quotaRefresh = this._register(new MutableDisposable());
-	private readonly clearResumedScheduler = this._register(new MutableDisposable());
 
 	constructor(
 		@IChatEntitlementService private readonly chatEntitlementService: ChatEntitlementService,
-		@IInstantiationService private readonly instantiationService: IInstantiationService,
-		@IStatusbarService private readonly statusbarService: IStatusbarService,
 		@IEditorService private readonly editorService: IEditorService,
 		@IConfigurationService private readonly configurationService: IConfigurationService,
 		@IInlineCompletionsService private readonly completionsService: IInlineCompletionsService,
@@ -136,27 +120,6 @@ export class ChatStatusBarEntry extends Disposable implements IWorkbenchContribu
 		super();
 
 		this.quotaResumeState = this.readPersistedQuotaResumeState();
-
-		this.dashboardTooltip = {
-			element: (token: CancellationToken) => {
-				this.onDashboardOpened();
-
-				const store = new DisposableStore();
-				store.add(token.onCancellationRequested(() => {
-					store.dispose();
-				}));
-				const elem = ChatStatusDashboard.instantiateInContents(this.instantiationService, store, undefined);
-
-				// todo@connor4312/@benibenj: workaround for #257923
-				store.add(disposableWindowInterval(mainWindow, () => {
-					if (!elem.isConnected) {
-						store.dispose();
-					}
-				}, 2000));
-
-				return elem;
-			}
-		};
 
 		this.update();
 
@@ -293,136 +256,7 @@ export class ChatStatusBarEntry extends Disposable implements IWorkbenchContribu
 		}
 	}
 
-	private onDashboardOpened(): void {
-		if (this.quotaResumeState !== 'resumed') {
-			return;
-		}
-
-		// Defer clearing to avoid re-entrant status bar updates while the dashboard
-		// tooltip is being built.
-		this.clearResumedScheduler.value = disposableTimeout(() => {
-			this.setQuotaResumeState('none');
-			this.update();
-		}, 0);
-	}
-
 	//#endregion
-
-	private getEntryProps(): IStatusbarEntry {
-		let text = '$(copilot)';
-		let ariaLabel = localize('chatStatusAria', "Copilot status");
-		let kind: StatusbarEntryKind | undefined;
-
-		if (isNewUser(this.chatEntitlementService)) {
-			const entitlement = this.chatEntitlementService.entitlement;
-
-			// Sign In
-			if (
-				this.chatEntitlementService.sentiment.later ||	// user skipped setup
-				entitlement === ChatEntitlement.Available ||	// user is entitled
-				isProUser(entitlement) ||						// user is already pro
-				entitlement === ChatEntitlement.Free			// user is already free
-			) {
-				return this.getSetupEntryProps();
-			}
-		} else {
-			const quotas = this.chatEntitlementService.quotas;
-
-			// Disabled
-			if (this.chatEntitlementService.sentiment.disabled || this.chatEntitlementService.sentiment.untrusted) {
-				text = '$(copilot-unavailable)';
-				ariaLabel = localize('copilotDisabledStatus', "Copilot disabled");
-			}
-
-			// Signed out — keep showing Sign-in affordance even when BYOK models are present
-			// so air-gapped users can still authenticate to unlock the full Copilot experience.
-			else if (this.chatEntitlementService.entitlement === ChatEntitlement.Unknown) {
-				return this.getSetupEntryProps();
-			}
-
-			// Quota Exceeded (all tracked plans share the premium chat quota)
-			else if (isTrackedEntitlement(this.chatEntitlementService.entitlement) && isQuotaBlocked(quotas)) {
-				const quotaWarning = localize('chatQuotaExceededStatus', "Quota reached");
-				text = `$(copilot-warning) ${quotaWarning}`;
-				ariaLabel = quotaWarning;
-				kind = 'prominent';
-			}
-
-			// Copilot Resumed (limit reset after the user was previously blocked)
-			else if (this.quotaResumeState === 'resumed') {
-				const resumedLabel = localize('chatResumedStatus', "Copilot Resumed");
-				text = `$(copilot) ${resumedLabel}`;
-				ariaLabel = resumedLabel;
-				kind = 'prominent';
-			}
-
-			// Completions Disabled
-			else if (this.editorService.activeTextEditorLanguageId && !isCompletionsEnabled(this.configurationService, this.editorService.activeTextEditorLanguageId)) {
-				text = '$(copilot-unavailable)';
-				ariaLabel = localize('completionsDisabledStatus', "Inline suggestions disabled");
-			}
-
-			// Completions Snoozed
-			else if (this.completionsService.isSnoozing()) {
-				text = '$(copilot-snooze)';
-				ariaLabel = localize('completionsSnoozedStatus', "Inline suggestions snoozed");
-			}
-		}
-
-		const baseResult = {
-			name: localize('chatStatus', "Copilot Status"),
-			text,
-			ariaLabel,
-			command: ShowTooltipCommand,
-			showInAllWindows: true,
-			kind,
-			content: this.entryAnchor,
-			tooltip: this.dashboardTooltip
-		} satisfies IStatusbarEntry;
-
-		return baseResult;
-	}
-
-	private getSetupEntryProps(): IStatusbarEntry {
-		const showSignInLabel = !this.isSignInTitleBarAffordanceVisible();
-		const signInLabel = localize('signIn', "Sign In");
-		return {
-			name: localize('chatStatus', "Copilot Status"),
-			text: showSignInLabel ? `$(copilot) ${signInLabel}` : '$(copilot)',
-			ariaLabel: showSignInLabel ? signInLabel : localize('chatStatusAria', "Copilot status"),
-			command: CHAT_SETUP_ACTION_ID,
-			showInAllWindows: true,
-			kind: undefined,
-			content: this.entryAnchor,
-		};
-	}
-
-	private isSignInTitleBarAffordanceVisible(): boolean {
-		if (isWeb) {
-			return false;
-		}
-
-		// Title bar sign-in button only shows when user is signed out
-		if (this.chatEntitlementService.entitlement !== ChatEntitlement.Unknown) {
-			return false;
-		}
-
-		if (this.chatEntitlementService.sentiment.hidden || this.chatEntitlementService.sentiment.disabledInWorkspace) {
-			return false;
-		}
-
-		if (this.contextKeyService.contextMatchesRules(UpdateTitleBarEditorVisibleContext)) {
-			return false;
-		}
-
-		const inZenMode = Boolean(this.contextKeyService.getContextKeyValue(InEditorZenModeContext.key));
-		if (inZenMode) {
-			return false;
-		}
-
-		const signInTitleBarEnabled = this.configurationService.getValue<boolean>(ChatConfiguration.TitleBarSignInEnabled) !== false;
-		return signInTitleBarEnabled;
-	}
 
 	override dispose(): void {
 		super.dispose();

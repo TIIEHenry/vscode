@@ -33,7 +33,6 @@ export class SourcesTabsHost extends Disposable {
 	private selectedTab: SourcesTabId = DEFAULT_SOURCES_TAB;
 	private readonly tabButtons = new Map<SourcesTabId, HTMLElement>();
 	private readonly tabPanels = new Map<SourcesTabId, HTMLElement>();
-	private tabList: HTMLElement | undefined;
 
 	constructor(
 		private readonly tabHost: HTMLElement,
@@ -53,10 +52,9 @@ export class SourcesTabsHost extends Disposable {
 		const tabList = dom.append(this.tabHost, $('.sources-tab-list'));
 		tabList.setAttribute('role', 'tablist');
 		tabList.setAttribute('aria-label', localize('sourcesTabList.ariaLabel', "Sources tabs"));
-		this.tabList = tabList;
 
 		for (const descriptor of TAB_DESCRIPTORS) {
-			const tab = dom.append(tabList, $('button.sources-tab'));
+			const tab = dom.append(tabList, $('button.sources-tab')) as HTMLButtonElement;
 			tab.type = 'button';
 			tab.setAttribute('role', 'tab');
 			tab.setAttribute('data-tab-id', descriptor.id);
@@ -159,7 +157,9 @@ export class SourcesTabsHost extends Disposable {
 
 			tab?.classList.toggle('selected', selected);
 			tab?.setAttribute('aria-selected', String(selected));
-			tab?.tabIndex = selected ? 0 : -1;
+			if (tab) {
+				tab.tabIndex = selected ? 0 : -1;
+			}
 
 			panel?.classList.toggle('visible', selected);
 			panel?.toggleAttribute('hidden', !selected);

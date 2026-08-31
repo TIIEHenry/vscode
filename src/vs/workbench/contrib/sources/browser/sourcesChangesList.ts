@@ -12,7 +12,8 @@ import { RunOnceScheduler } from '../../../../base/common/async.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { Event } from '../../../../base/common/event.js';
 import { Disposable, DisposableMap, DisposableStore } from '../../../../base/common/lifecycle.js';
-import { ThemeIcon } from '../../../../base/common/themables.js';
+import { StandardKeyboardEvent } from '../../../../base/browser/keyboardEvent.js';
+import { KeyCode } from '../../../../base/common/keyCodes.js';
 import { localize } from '../../../../nls.js';
 import { CommandsRegistry } from '../../../../platform/commands/common/commands.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
@@ -107,7 +108,7 @@ class SourcesChangesRenderer implements IListRenderer<ISourcesChangeEntry, ISour
 
 		if (canStage) {
 			templateData.actionButton.element.style.display = '';
-			templateData.actionButton.label = ThemeIcon.asClassNameArray(Codicon.add);
+			templateData.actionButton.icon = Codicon.add;
 			templateData.actionButton.enabled = true;
 			templateData.actionButton.element.setAttribute('aria-label', localize('sourcesChangesList.stage', "Stage"));
 			templateData.elementDisposables.add(templateData.actionButton.onDidClick(e => {
@@ -119,7 +120,7 @@ class SourcesChangesRenderer implements IListRenderer<ISourcesChangeEntry, ISour
 
 		if (canUnstage) {
 			templateData.actionButton.element.style.display = '';
-			templateData.actionButton.label = ThemeIcon.asClassNameArray(Codicon.remove);
+			templateData.actionButton.icon = Codicon.remove;
 			templateData.actionButton.enabled = true;
 			templateData.actionButton.element.setAttribute('aria-label', localize('sourcesChangesList.unstage', "Unstage"));
 			templateData.elementDisposables.add(templateData.actionButton.onDidClick(e => {
@@ -197,13 +198,13 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 			title: localize('sourcesChangesList.stageSelected', "Stage Selected"),
 			...defaultButtonStyles,
 		}));
-		this.stageSelectedButton.label = ThemeIcon.asClassNameArray(Codicon.add);
+		this.stageSelectedButton.icon = Codicon.add;
 		this.unstageSelectedButton = this._register(new Button(this.toolbar, {
 			supportIcons: true,
 			title: localize('sourcesChangesList.unstageSelected', "Unstage Selected"),
 			...defaultButtonStyles,
 		}));
-		this.unstageSelectedButton.label = ThemeIcon.asClassNameArray(Codicon.remove);
+		this.unstageSelectedButton.icon = Codicon.remove;
 
 		this.listContainer = dom.append(this.contentContainer, $('.sources-changes-list'));
 		this.emptyMessage = dom.append(this.contentContainer, $('.sources-changes-empty'));
@@ -231,12 +232,13 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 			}
 			this.updateCommitRow();
 		}));
-		this._register(dom.addStandardDisposableListener(this.commitInput, 'keydown', e => {
-			if (e.key === 'Enter' && !this.commitButton.enabled) {
+		this._register(dom.addDisposableListener(this.commitInput, 'keydown', (e: KeyboardEvent) => {
+			const event = new StandardKeyboardEvent(e);
+			if (event.keyCode === KeyCode.Enter && !this.commitButton.enabled) {
 				return;
 			}
-			if (e.key === 'Enter') {
-				e.preventDefault();
+			if (event.keyCode === KeyCode.Enter) {
+				event.preventDefault();
 				void this.runCommit();
 			}
 		}));

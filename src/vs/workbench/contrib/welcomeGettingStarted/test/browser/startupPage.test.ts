@@ -7,11 +7,11 @@ import assert from 'assert';
 import { Event } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { TestConfigurationService } from '../../../../../platform/configuration/test/common/testConfigurationService.js';
-import { IContextKeyService } from '../../../../../platform/contextkey/common/contextkey.js';
 import { MockContextKeyService } from '../../../../../platform/keybinding/test/common/mockKeybindingService.js';
 import { IS_NEW_KEY, IStorageService, StorageScope, StorageTarget } from '../../../../../platform/storage/common/storage.js';
 import { IsSessionsWindowContext } from '../../../../common/contextkeys.js';
-import { TestStorageService, workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
+import { TestStorageService } from '../../../../test/common/workbenchTestServices.js';
+import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { IOnboardingService } from '../../../welcomeOnboarding/common/onboardingService.js';
 import { StartupPageRunnerContribution } from '../../browser/startupPage.js';
 

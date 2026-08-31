@@ -93,8 +93,8 @@ export const ExtensionsSearchValueContext = new RawContextKey<string>('extension
 
 const REMOTE_CATEGORY: ILocalizedString = localize2({ key: 'remote', comment: ['Remote as in remote machine'] }, "Remote");
 
-function whenInSessionsWindow(when: ContextKeyExpression): ContextKeyExpression {
-	return ContextKeyExpr.and(IsSessionsWindowContext, when);
+function whenInSessionsWindow(when: ContextKeyExpression | undefined): ContextKeyExpression {
+	return ContextKeyExpr.and(IsSessionsWindowContext, when) ?? IsSessionsWindowContext;
 }
 
 interface IExtensionsViewletState {

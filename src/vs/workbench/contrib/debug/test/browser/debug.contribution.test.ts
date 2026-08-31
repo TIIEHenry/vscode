@@ -163,7 +163,7 @@ suite('DebugContribution - default window Activity', () => {
 
 	test('Start Debugging command center quick access is gated to Agents Window', () => {
 		const quickAccessRegistry = Registry.as<IQuickAccessRegistry>(QuickAccessExtensions.Quickaccess);
-		const mockContextKeyService = { contextMatchesRules: () => true } as IContextKeyService;
+		const mockContextKeyService = { contextMatchesRules: () => true } as unknown as IContextKeyService;
 		const startDebugProvider = quickAccessRegistry.getQuickAccessProvider(DEBUG_QUICK_ACCESS_PREFIX, mockContextKeyService);
 
 		assert.ok(startDebugProvider, 'Start Debugging quick access provider should remain registered');

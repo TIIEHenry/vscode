@@ -14,9 +14,10 @@ import { TestConfigurationService } from '../../../../../../platform/configurati
 import type { ContextKeyExpression, ContextKeyValue } from '../../../../../../platform/contextkey/common/contextkey.js';
 import { IContextKeyService } from '../../../../../../platform/contextkey/common/contextkey.js';
 import { ContextKeyService } from '../../../../../../platform/contextkey/browser/contextKeyService.js';
-import { IEnvironmentService } from '../../../../../../platform/environment/common/environment.js';
+import { IWorkbenchEnvironmentService } from '../../../../../services/environment/common/environmentService.js';
+import { IChatEntitlementService } from '../../../../../services/chat/common/chatEntitlementService.js';
 import { TestInstantiationService } from '../../../../../../platform/instantiation/test/common/instantiationServiceMock.js';
-import { NullLogService } from '../../../../../../platform/log/common/log.js';
+import { NullLogService, ILogService } from '../../../../../../platform/log/common/log.js';
 import { IActionViewItemService } from '../../../../../../platform/actions/browser/actionViewItemService.js';
 import { IsSessionsWindowContext } from '../../../../../common/contextkeys.js';
 import { ChatEntitlementContext, ChatEntitlementRequests, ChatEntitlementService } from '../../../../../services/chat/common/chatEntitlementService.js';
@@ -83,42 +84,44 @@ suite('ChatSetupContributions - default window chrome (INV-NO-COPILOT)', () => {
 
 	suiteSetup(() => {
 		const instantiationService = testDisposables.add(new TestInstantiationService());
-		const contextKeyService = testDisposables.add(new ContextKeyService(instantiationService));
+		instantiationService.stub(IConfigurationService, new TestConfigurationService());
+		const contextKeyService = testDisposables.add(new ContextKeyService(new TestConfigurationService()));
 
 		const context = testDisposables.add(new class extends mock<ChatEntitlementContext>() {
 			override readonly onDidChange = Event.None;
-			override update() { }
+			override update(): Promise<void> { return Promise.resolve(); }
 		}());
 		const requests = testDisposables.add(new class extends mock<ChatEntitlementRequests>() { }());
 
 		const chatEntitlementService = testDisposables.add(new class extends mock<ChatEntitlementService>() {
-			override readonly context = { value: context };
-			override readonly requests = { value: requests };
+			override readonly context = { value: context } as unknown as ChatEntitlementService['context'];
+			override readonly requests = { value: requests } as unknown as ChatEntitlementService['requests'];
 			override readonly onDidChangeSentiment = Event.None;
 			override get sentiment() { return { completed: true }; }
 		}());
 
-		instantiationService.stub(IActionViewItemService, testDisposables.add(new class extends mock<IActionViewItemService>() {
+		instantiationService.stub(IActionViewItemService, new class extends mock<IActionViewItemService>() {
 			override register() { return Disposable.None; }
-		}()));
-		instantiationService.stub(IChatSessionsService, testDisposables.add(new class extends mock<IChatSessionsService>() { }()));
+		}());
+		instantiationService.stub(IChatSessionsService, new class extends mock<IChatSessionsService>() { }());
 		instantiationService.stub(IContextKeyService, contextKeyService);
 		instantiationService.stub(IChatEntitlementService, chatEntitlementService);
-		instantiationService.stub(IWorkbenchExtensionEnablementService, testDisposables.add(new class extends mock<IWorkbenchExtensionEnablementService>() { }()));
-		instantiationService.stub(IExtensionsWorkbenchService, testDisposables.add(new class extends mock<IExtensionsWorkbenchService>() {
+		instantiationService.stub(IWorkbenchExtensionEnablementService, new class extends mock<IWorkbenchExtensionEnablementService>() { }());
+		instantiationService.stub(IExtensionsWorkbenchService, new class extends mock<IExtensionsWorkbenchService>() {
 			override queryLocal() { return Promise.resolve([]); }
 			override get onChange() { return Event.None; }
 			override get local() { return []; }
-		}()));
-		instantiationService.stub(IExtensionService, testDisposables.add(new class extends mock<IExtensionService>() {
-			override whenInstalledExtensionsRegistered() { return Promise.resolve(); }
-			override get extensions() { return []; }
-		}()));
-		instantiationService.stub(IEnvironmentService, testDisposables.add(new class extends mock<IEnvironmentService>() {
+		}());
+		instantiationService.stub(IExtensionService, {
+			whenInstalledExtensionsRegistered: () => Promise.resolve(true),
+			extensions: [],
+		});
+		instantiationService.stub(IWorkbenchEnvironmentService, new class extends mock<IWorkbenchEnvironmentService>() {
 			override get isExtensionDevelopment() { return false; }
 			override get isSessionsWindow() { return false; }
-		}()));
-		instantiationService.stub(IConfigurationService, testDisposables.add(new TestConfigurationService()));
+		}());
+		instantiationService.stub(IConfigurationService, new TestConfigurationService());
+		instantiationService.stub(ILogService, new NullLogService());
 
 		testDisposables.add(instantiationService.createInstance(ChatSetupContribution));
 	});

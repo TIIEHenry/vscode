@@ -108,13 +108,13 @@ suite('ConversationSessionsView', () => {
 	});
 
 	test('shows honest empty state without Open Chat copy', () => {
-		const stubService = store.add(new class extends mock<IConversationStubService>() {
+		const stubService = new class extends mock<IConversationStubService>() {
 			override onDidChangeActiveSession = Event.None;
 			override onDidChangeSession = Event.None;
 			override getSessions() { return []; }
 			override getActiveSessionId() { return ''; }
 			override createSession() { return 'new'; }
-		}());
+		}() as unknown as ConversationStubService;
 
 		const { view } = mountView(stubService);
 		const empty = view.element.querySelector('.conversation-sessions-empty') as HTMLElement | undefined;

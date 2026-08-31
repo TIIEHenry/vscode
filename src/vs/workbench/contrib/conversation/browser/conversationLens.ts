@@ -152,7 +152,8 @@ export class ConversationLens extends Disposable {
 		bar.setAttribute('role', 'banner');
 
 		const leading = append(bar, $('.conversation-lens-session-bar-leading'));
-		append(leading, ThemeIcon.asCSSSelector(Codicon.commentDiscussion)).classList.add('conversation-lens-session-icon');
+		const icon = append(leading, $('span.conversation-lens-session-icon'));
+		icon.classList.add(...ThemeIcon.asClassNameArray(Codicon.commentDiscussion));
 		const titleWrap = append(leading, $('.conversation-lens-session-title-wrap'));
 		this.sessionTitleButton = append(titleWrap, $('button.conversation-lens-session-title')) as HTMLButtonElement;
 		this.sessionTitleButton.type = 'button';

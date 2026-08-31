@@ -11,10 +11,10 @@ import { ContextKeyValue as ContextKeyValueType, IContext } from '../../../../..
 import { IsSessionsWindowContext } from '../../../../../common/contextkeys.js';
 import { ChatContextKeys } from '../../../../chat/common/actions/chatContextKeys.js';
 import '../../browser/terminalChatActions.js';
-import '../../../scm/browser/scm.contribution.js';
-import '../../../scm/browser/scmInput.js';
-import '../../../scm/browser/scmHistoryChatContext.js';
-import '../../../inlineChat/browser/inlineChat.contribution.js';
+import '../../../../scm/browser/scm.contribution.js';
+import '../../../../scm/browser/scmInput.js';
+import '../../../../scm/browser/scmHistoryChatContext.js';
+import '../../../../inlineChat/browser/inlineChat.contribution.js';
 import { MENU_TERMINAL_CHAT_WIDGET_STATUS, TerminalChatCommandId, TerminalChatContextKeys } from '../../browser/terminalChat.js';
 
 function evalWhen(when: ContextKeyExpression | undefined, values: Record<string, ContextKeyValue>): boolean {

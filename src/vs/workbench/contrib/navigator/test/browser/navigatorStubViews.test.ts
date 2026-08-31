@@ -114,7 +114,7 @@ suite('Navigator stub views', () => {
 			}
 		}());
 
-		const cases: Array<{ id: string; ctor: typeof NavigatorProjectsView; label: string }> = [
+		const cases: Array<{ id: string; ctor: typeof NavigatorProjectsView | typeof NavigatorAgentsView | typeof NavigatorTeamView; label: string }> = [
 			{ id: NAVIGATOR_PROJECTS_VIEW_ID, ctor: NavigatorProjectsView, label: 'Projects' },
 			{ id: NAVIGATOR_AGENTS_VIEW_ID, ctor: NavigatorAgentsView, label: 'Agents' },
 			{ id: NAVIGATOR_TEAM_VIEW_ID, ctor: NavigatorTeamView, label: 'Team' },

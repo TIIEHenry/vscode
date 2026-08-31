@@ -88,15 +88,16 @@ suite('TerminalContribution - default window chrome', () => {
 		const agentsWindow = { [IsSessionsWindowContext.key]: true, terminalProcessSupported: true };
 
 		for (const item of [terminalMenubarItem, newTerminalMenuItem, newTerminalPaletteItem]) {
+			const label = isIMenuItem(item) ? item.command.id : isISubmenuItem(item) ? String(item.submenu) : 'menu item';
 			assert.strictEqual(
 				evalWhen(item.when, defaultWindow),
 				false,
-				`${item.command?.id ?? item.submenu?.id ?? 'menu item'} must hide from default Code window`
+				`${label} must hide from default Code window`
 			);
 			assert.strictEqual(
 				evalWhen(item.when, agentsWindow),
 				true,
-				`${item.command?.id ?? item.submenu?.id ?? 'menu item'} may show in Agents Window`
+				`${label} may show in Agents Window`
 			);
 		}
 	});

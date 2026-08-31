@@ -4,7 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { ensureNoDisposablesAreLeakedInTestSuite, toResource } from '../../../../../base/test/common/utils.js';
+import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { URI } from '../../../../../base/common/uri.js';
 import { filterSourcesEntries, ISourcesFilterableEntry } from '../../common/sourcesFilterModel.js';
 
 suite('Sources - filter model', () => {
@@ -13,7 +14,7 @@ suite('Sources - filter model', () => {
 
 	function entry(path: string, name: string, description: string): ISourcesFilterableEntry {
 		return {
-			resource: toResource.call(this, path),
+			resource: URI.file(path),
 			name,
 			description,
 		};
@@ -21,8 +22,8 @@ suite('Sources - filter model', () => {
 
 	test('filterSourcesEntries returns all entries when query is empty', function () {
 		const entries = [
-			entry.call(this, '/project/src/index.ts', 'index.ts', 'src/index.ts'),
-			entry.call(this, '/project/README.md', 'README.md', 'README.md'),
+			entry('/project/src/index.ts', 'index.ts', 'src/index.ts'),
+			entry('/project/README.md', 'README.md', 'README.md'),
 		];
 
 		assert.deepStrictEqual(filterSourcesEntries(entries, ''), entries);
@@ -31,9 +32,9 @@ suite('Sources - filter model', () => {
 
 	test('filterSourcesEntries matches name, description, and path case-insensitively', function () {
 		const entries = [
-			entry.call(this, '/project/src/index.ts', 'index.ts', 'src/index.ts'),
-			entry.call(this, '/project/README.md', 'README.md', 'README.md'),
-			entry.call(this, '/project/lib/util.ts', 'util.ts', 'lib/util.ts'),
+			entry('/project/src/index.ts', 'index.ts', 'src/index.ts'),
+			entry('/project/README.md', 'README.md', 'README.md'),
+			entry('/project/lib/util.ts', 'util.ts', 'lib/util.ts'),
 		];
 
 		assert.strictEqual(filterSourcesEntries(entries, 'INDEX').length, 1);

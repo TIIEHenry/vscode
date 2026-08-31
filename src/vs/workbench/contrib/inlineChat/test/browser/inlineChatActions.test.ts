@@ -53,7 +53,6 @@ suite('InlineChatActions - default window Copilot chrome', () => {
 		assert.ok(editorContextItem.when, 'Editor context item should have a when clause');
 
 		const defaultWindow = { [IsSessionsWindowContext.key]: false };
-		const agentsWindow = { [IsSessionsWindowContext.key]: true };
 
 		assert.strictEqual(
 			evalWhen(commandPaletteItem.when, defaultWindow),
@@ -93,7 +92,6 @@ suite('InlineChatActions - default window Copilot chrome', () => {
 		assert.ok(editorContextItem.when, 'Editor context item should have a when clause');
 
 		const defaultWindow = { [IsSessionsWindowContext.key]: false };
-		const agentsWindow = { [IsSessionsWindowContext.key]: true };
 
 		assert.strictEqual(
 			evalWhen(commandPaletteItem.when, defaultWindow),

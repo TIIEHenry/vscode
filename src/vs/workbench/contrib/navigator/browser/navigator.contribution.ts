@@ -5,7 +5,7 @@
 
 import './media/navigatorStub.css';
 import { Codicon } from '../../../../base/common/codicons.js';
-import { localize, localize2 } from '../../../../nls.js';
+import { localize, localize2, ILocalizedString } from '../../../../nls.js';
 import { SyncDescriptor } from '../../../../platform/instantiation/common/descriptors.js';
 import { Registry } from '../../../../platform/registry/common/platform.js';
 import { registerIcon } from '../../../../platform/theme/common/iconRegistry.js';
@@ -45,7 +45,7 @@ const navigatorTeamViewIcon = registerIcon(
 const viewContainersRegistry = Registry.as<IViewContainersRegistry>(ViewContainerExtensions.ViewContainersRegistry);
 const viewsRegistry = Registry.as<IViewsRegistry>(ViewExtensions.ViewsRegistry);
 
-function registerNavigatorStubContainer(id: string, title: string, icon: typeof navigatorProjectsViewIcon, order: number, isDefault: boolean = false): ViewContainer {
+function registerNavigatorStubContainer(id: string, title: ILocalizedString, icon: typeof navigatorProjectsViewIcon, order: number, isDefault: boolean = false): ViewContainer {
 	return viewContainersRegistry.registerViewContainer({
 		id,
 		title,
