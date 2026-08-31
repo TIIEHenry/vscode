@@ -9,7 +9,7 @@ import { NullLogService } from '../../../../../platform/log/common/log.js';
 import { ISetting, ISettingsGroup } from '../../../../services/preferences/common/preferences.js';
 import { nullRange } from '../../../../services/preferences/common/preferencesModels.js';
 import { ADVANCED_SETTING_TAG } from '../../common/preferences.js';
-import { getSettingsTocFilter, getTocDataForWindow, ITOCEntry, tocData } from '../../browser/settingsLayout.js';
+import { filterExtensionSettingsGroupsForWindow, getSettingsTocFilter, getTocDataForWindow, ITOCEntry, tocData } from '../../browser/settingsLayout.js';
 import { resolveSettingsTree } from '../../browser/settingsTree.js';
 
 function childIds<T>(entry: ITOCEntry<T> | undefined): string[] {
@@ -39,6 +39,17 @@ function mockGroups(keys: Array<string | { key: string; tags?: string[] }>): ISe
 			settings: keys.map(entry => typeof entry === 'string' ? mockSetting(entry) : mockSetting(entry.key, entry.tags))
 		}]
 	}];
+}
+
+function mockExtensionGroup(extensionId: string, keys: string[]): ISettingsGroup {
+	return {
+		id: extensionId,
+		range: nullRange,
+		title: extensionId,
+		titleRange: nullRange,
+		sections: [{ settings: keys.map(key => mockSetting(key)) }],
+		extensionInfo: { id: extensionId, displayName: extensionId }
+	};
 }
 
 suite('Settings TOC by window', () => {
@@ -118,5 +129,25 @@ suite('Settings TOC by window', () => {
 		);
 		assert.ok(childIds(result.tree).includes('chat'));
 		assert.ok(childIds(result.tree.children?.find(child => child.id === 'chat')).includes('chat/agent'));
+	});
+
+	test('default Code window omits Copilot extension settings groups from Extensions TOC input', () => {
+		const groups = [
+			mockExtensionGroup('GitHub.copilot-chat', ['github.copilot.chat.setting']),
+			mockExtensionGroup('GitHub.copilot', ['github.copilot.setting']),
+			mockExtensionGroup('ms-python.python', ['python.setting']),
+		];
+		const filtered = filterExtensionSettingsGroupsForWindow(groups, false);
+		assert.strictEqual(filtered.length, 1);
+		assert.strictEqual(filtered[0].extensionInfo!.id, 'ms-python.python');
+	});
+
+	test('Agents Window keeps Copilot extension settings groups for Extensions TOC', () => {
+		const groups = [
+			mockExtensionGroup('GitHub.copilot-chat', ['github.copilot.chat.setting']),
+			mockExtensionGroup('ms-python.python', ['python.setting']),
+		];
+		const filtered = filterExtensionSettingsGroupsForWindow(groups, true);
+		assert.strictEqual(filtered.length, 2);
 	});
 });
