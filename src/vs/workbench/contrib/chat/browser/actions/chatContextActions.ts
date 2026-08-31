@@ -143,13 +143,14 @@ class AttachFileToChatAction extends AttachResourceAction {
 				id: MenuId.SearchContext,
 				group: 'z_chat',
 				order: 1,
-				when: ContextKeyExpr.and(ChatContextKeys.enabled, SearchContext.FileMatchOrMatchFocusKey, SearchContext.SearchResultHeaderFocused.negate()),
+				when: ContextKeyExpr.and(ChatContextKeys.enabled, IsSessionsWindowContext, SearchContext.FileMatchOrMatchFocusKey, SearchContext.SearchResultHeaderFocused.negate()),
 			}, {
 				id: MenuId.ExplorerContext,
 				group: '5_chat',
 				order: 1,
 				when: ContextKeyExpr.and(
 					ChatContextKeys.enabled,
+					IsSessionsWindowContext,
 					ExplorerFolderContext.negate(),
 					ContextKeyExpr.or(
 						ResourceContextKey.Scheme.isEqualTo(Schemas.file),
@@ -162,6 +163,7 @@ class AttachFileToChatAction extends AttachResourceAction {
 				order: 1,
 				when: ContextKeyExpr.and(
 					ChatContextKeys.enabled,
+					IsSessionsWindowContext,
 					ContextKeyExpr.or(
 						ResourceContextKey.Scheme.isEqualTo(Schemas.file),
 						ResourceContextKey.Scheme.isEqualTo(Schemas.vscodeRemote)
@@ -173,6 +175,7 @@ class AttachFileToChatAction extends AttachResourceAction {
 				order: 2,
 				when: ContextKeyExpr.and(
 					ChatContextKeys.enabled,
+					IsSessionsWindowContext,
 					EditorContextKeys.hasNonEmptySelection.negate(),
 					ContextKeyExpr.or(
 						ResourceContextKey.Scheme.isEqualTo(Schemas.file),
@@ -225,6 +228,7 @@ class AttachFolderToChatAction extends AttachResourceAction {
 				order: 1,
 				when: ContextKeyExpr.and(
 					ChatContextKeys.enabled,
+					IsSessionsWindowContext,
 					ExplorerFolderContext,
 					ContextKeyExpr.or(
 						ResourceContextKey.Scheme.isEqualTo(Schemas.file),
@@ -313,6 +317,7 @@ class AttachSelectionToChatAction extends Action2 {
 				order: 1,
 				when: ContextKeyExpr.and(
 					ChatContextKeys.enabled,
+					IsSessionsWindowContext,
 					EditorContextKeys.hasNonEmptySelection,
 					ContextKeyExpr.or(
 						ResourceContextKey.Scheme.isEqualTo(Schemas.file),

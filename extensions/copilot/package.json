@@ -5523,17 +5523,17 @@
       "editor/context": [
         {
           "command": "github.copilot.chat.fix",
-          "when": "!github.copilot.interactiveSession.disabled && chatSetupCompleted && !editorReadonly && editorSelectionHasDiagnostics",
+          "when": "!github.copilot.interactiveSession.disabled && chatSetupCompleted && !editorReadonly && editorSelectionHasDiagnostics && isSessionsWindow",
           "group": "1_chat@4"
         },
         {
           "command": "github.copilot.chat.explain",
-          "when": "!github.copilot.interactiveSession.disabled && chatSetupCompleted",
+          "when": "!github.copilot.interactiveSession.disabled && chatSetupCompleted && isSessionsWindow",
           "group": "1_chat@5"
         },
         {
           "command": "github.copilot.chat.review",
-          "when": "config.github.copilot.chat.reviewSelection.enabled && !github.copilot.interactiveSession.disabled && chatSetupCompleted && resourceScheme != 'vscode-chat-code-block'",
+          "when": "config.github.copilot.chat.reviewSelection.enabled && !github.copilot.interactiveSession.disabled && chatSetupCompleted && resourceScheme != 'vscode-chat-code-block' && isSessionsWindow",
           "group": "1_chat@6"
         },
         {
@@ -5550,12 +5550,12 @@
       "chat/editor/inlineGutter": [
         {
           "command": "github.copilot.chat.explain",
-          "when": "!github.copilot.interactiveSession.disabled && editor.hasSelection && !inlineChatFileBelongsToChat",
+          "when": "!github.copilot.interactiveSession.disabled && editor.hasSelection && !inlineChatFileBelongsToChat && isSessionsWindow",
           "group": "2_chat@2"
         },
         {
           "command": "github.copilot.chat.review",
-          "when": "!github.copilot.interactiveSession.disabled && editor.hasSelection && config.github.copilot.chat.reviewSelection.enabled && !inlineChatFileBelongsToChat",
+          "when": "!github.copilot.interactiveSession.disabled && editor.hasSelection && config.github.copilot.chat.reviewSelection.enabled && !inlineChatFileBelongsToChat && isSessionsWindow",
           "group": "2_chat@3"
         }
       ],
