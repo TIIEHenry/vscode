@@ -7,6 +7,9 @@ import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../../base/test/common/utils.js';
 import { parseNextChatResponseChunk } from '../../../electron-browser/actions/voiceChatActions.js';
 
+// INV-NO-COPILOT: Voice Chat in Chat View / Inline / Quick Chat palette entries are gated with
+// IsSessionsWindowContext on their preconditions in voiceChatActions.ts (electron-browser).
+
 suite('VoiceChatActions', function () {
 
 	function assertChunk(text: string, expected: string | undefined, offset: number): { chunk: string | undefined; offset: number } {

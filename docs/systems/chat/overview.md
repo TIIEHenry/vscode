@@ -3,7 +3,7 @@ title: "Chat 系统概览"
 type: overview
 status: accepted
 phase: N/A
-updated: 2026-08-30
+updated: 2026-08-31
 summary: "ChatWidget、IChatService/IChatModel、工具、ChatEditingSession、participants 的跨层协作"
 ---
 
@@ -79,6 +79,10 @@ platform/chat                   设置与 AI_AGENT 约定
 - **Workbench**：本 contrib 的分层归属，见 [workbench 模块](../../modules/workbench/INDEX.md)。`workbench/services/chat` 只做 entitlement，不持有 `IChatModel`。
 - **Platform**：[`platform` 模块](../../modules/platform/INDEX.md) 的 `src/vs/platform/chat/` 只有设置与约定（`chatSettings.ts`、`aiAgentEnv.ts`、`sessionArchiveActions.ts`），供 contrib 与 entitlement 共用。
 - **Sessions**：Agents Window 高于 workbench，复用同一套 `IChatService` / Widget，并在 `src/vs/sessions/contrib/chat/` 做窗口宿主（新会话 composer、side chat、voice bridge 等）。**不要**在本树复制 sessions 正文；分层与会话域契约见 [Sessions 系统](../sessions/INDEX.md) 及其就近 SSOT（`src/vs/sessions/LAYERS.md`、`SESSIONS.md`）。
+
+## INV-NO-COPILOT：默认窗口 Command Palette
+
+默认 Code 窗口 Command Palette 不列出 Copilot Chat 宿主遗留的 Move / Voice 命令（`IsSessionsWindowContext` 门闩；Agents Window 保留）：`workbench.action.chat.openInNewWindow`、`workbench.action.chat.openInSidebar`、`workbench.action.chat.voiceChatInChatView`、`workbench.action.chat.inlineVoiceChat`、`workbench.action.chat.quickVoiceChat`（`workbench.action.chat.openInEditor` 已为 `f1: false`）。
 
 ## 相关文档
 
