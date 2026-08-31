@@ -52,6 +52,17 @@ export const ONBOARDING_STEPS: readonly OnboardingStepId[] = [
 ];
 
 /**
+ * Returns onboarding steps for the current window kind.
+ * Sign-in (Copilot setup) is Agents Window only (INV-NO-COPILOT).
+ */
+export function getOnboardingStepsForWindow(isSessionsWindow: boolean): readonly OnboardingStepId[] {
+	if (isSessionsWindow) {
+		return ONBOARDING_STEPS;
+	}
+	return ONBOARDING_STEPS.filter(step => step !== OnboardingStepId.SignIn);
+}
+
+/**
  * Theme option for the onboarding personalization step.
  * Sourced from product.json via `onboardingThemes`.
  */

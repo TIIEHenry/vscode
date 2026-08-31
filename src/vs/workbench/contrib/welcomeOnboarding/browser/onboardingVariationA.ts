@@ -35,10 +35,12 @@ import { ITelemetryService } from '../../../../platform/telemetry/common/telemet
 import { InstallChatEvent, InstallChatClassification, ChatSetupStrategy } from '../../chat/browser/chatSetup/chatSetup.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
 import { IAccessibilityService } from '../../../../platform/accessibility/common/accessibility.js';
+import { IContextKeyService } from '../../../../platform/contextkey/common/contextkey.js';
+import { IsSessionsWindowContext } from '../../../common/contextkeys.js';
 import {
 	OnboardingStepId,
-	ONBOARDING_STEPS,
 	ONBOARDING_AI_PREFERENCE_OPTIONS,
+	getOnboardingStepsForWindow,
 	AiCollaborationMode,
 	IOnboardingThemeOption,
 	getOnboardingStepTitle,
@@ -116,7 +118,6 @@ export class OnboardingVariationA extends Disposable implements IOnboardingServi
 	private _footerSignInBtn: HTMLButtonElement | undefined;
 
 	private currentStepIndex = 0;
-	private readonly steps = ONBOARDING_STEPS;
 	private readonly disposables = this._register(new DisposableStore());
 	private readonly stepDisposables = this._register(new DisposableStore());
 	private previouslyFocusedElement: HTMLElement | undefined;
@@ -146,6 +147,7 @@ export class OnboardingVariationA extends Disposable implements IOnboardingServi
 		@ITelemetryService private readonly telemetryService: ITelemetryService,
 		@ICommandService private readonly commandService: ICommandService,
 		@IAccessibilityService private readonly accessibilityService: IAccessibilityService,
+		@IContextKeyService private readonly contextKeyService: IContextKeyService,
 	) {
 		super();
 
@@ -163,6 +165,14 @@ export class OnboardingVariationA extends Disposable implements IOnboardingServi
 
 	get isShowing(): boolean {
 		return this._isShowing;
+	}
+
+	private get steps(): readonly OnboardingStepId[] {
+		return getOnboardingStepsForWindow(IsSessionsWindowContext.getValue(this.contextKeyService) ?? false);
+	}
+
+	private _shouldRunCopilotSetup(): boolean {
+		return IsSessionsWindowContext.getValue(this.contextKeyService) ?? false;
 	}
 
 	show(): void {
@@ -227,7 +237,7 @@ export class OnboardingVariationA extends Disposable implements IOnboardingServi
 			this._dismiss('skip');
 		}));
 		this.disposables.add(addDisposableListener(this.backButton, EventType.CLICK, () => {
-			if (this.currentStepIndex === 0 && this.enterpriseSignInUiState === 'instance') {
+			if (this.steps[this.currentStepIndex] === OnboardingStepId.SignIn && this.enterpriseSignInUiState === 'instance') {
 				this._logAction('cancelEnterpriseInstancePrompt');
 				this.enterpriseSignInWatch = undefined;
 				this._setEnterpriseSignInUiState('options');
@@ -242,7 +252,7 @@ export class OnboardingVariationA extends Disposable implements IOnboardingServi
 				this._applyStepSelections(this.steps[this.currentStepIndex]);
 				this._logAction('complete');
 				this._dismiss('complete');
-			} else if (this.currentStepIndex === 0) {
+			} else if (this.steps[this.currentStepIndex] === OnboardingStepId.SignIn) {
 				this._logAction('continueWithoutSignIn');
 				this._nextStep();
 			} else {
@@ -422,12 +432,15 @@ export class OnboardingVariationA extends Disposable implements IOnboardingServi
 	}
 
 	private _updateButtonStates(): void {
+		const currentStepId = this.steps[this.currentStepIndex];
+		const isSignInStep = currentStepId === OnboardingStepId.SignIn;
+
 		if (this.backButton) {
-			const showEnterpriseBack = this.currentStepIndex === 0 && this.enterpriseSignInUiState === 'instance';
+			const showEnterpriseBack = isSignInStep && this.enterpriseSignInUiState === 'instance';
 			this.backButton.style.display = (this.currentStepIndex === 0 && !showEnterpriseBack) ? 'none' : '';
 		}
 		if (this.nextButton) {
-			if (this.currentStepIndex === 0) {
+			if (isSignInStep) {
 				if (this._userSignedIn) {
 					this.nextButton.className = 'onboarding-a-btn onboarding-a-btn-primary';
 					this.nextButton.textContent = localize('onboarding.continue', "Continue");
@@ -445,7 +458,7 @@ export class OnboardingVariationA extends Disposable implements IOnboardingServi
 			}
 		}
 		if (this.footerLeft) {
-			if (this._isLastStep()) {
+			if (this._isLastStep() && this._shouldRunCopilotSetup()) {
 				// Show sign-in nudge in footer
 				if (!this._footerSignInBtn && !this._userSignedIn) {
 					this._footerSignInBtn = append(this.footerLeft, $<HTMLButtonElement>('button.onboarding-a-signin-nudge-btn'));
@@ -717,11 +730,13 @@ export class OnboardingVariationA extends Disposable implements IOnboardingServi
 			if (account) {
 				this._userSignedIn = true;
 				this.telemetryService.publicLog2<InstallChatEvent, InstallChatClassification>('commandCenter.chatInstall', { installResult: 'installed', installDuration: watch.elapsed(), signUpErrorCode: undefined, provider });
-				// Run chat setup in the background (sign-up, extension install, entitlement resolution)
-				this.commandService.executeCommand('workbench.action.chat.triggerSetup', undefined, {
-					disableChatViewReveal: true,
-					setupStrategy: ChatSetupStrategy.DefaultSetup,
-				});
+				if (this._shouldRunCopilotSetup()) {
+					// Run chat setup in the background (sign-up, extension install, entitlement resolution)
+					this.commandService.executeCommand('workbench.action.chat.triggerSetup', undefined, {
+						disableChatViewReveal: true,
+						setupStrategy: ChatSetupStrategy.DefaultSetup,
+					});
+				}
 				this._nextStep();
 			}
 		} catch (error) {
@@ -764,6 +779,10 @@ export class OnboardingVariationA extends Disposable implements IOnboardingServi
 	}
 
 	private async _runEnterpriseSignInSetup(): Promise<void> {
+		if (!this._shouldRunCopilotSetup()) {
+			return;
+		}
+
 		const watch = this.enterpriseSignInWatch ?? StopWatch.create();
 		const provider = defaultChat.provider.enterprise.id;
 		this._setEnterpriseSignInUiState('progress');

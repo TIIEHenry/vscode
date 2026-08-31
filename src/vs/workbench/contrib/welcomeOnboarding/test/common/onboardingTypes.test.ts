@@ -5,7 +5,7 @@
 
 import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
-import { GheParseResultKind, parseGheInstanceInput } from '../../common/onboardingTypes.js';
+import { GheParseResultKind, getOnboardingStepsForWindow, OnboardingStepId, ONBOARDING_STEPS, parseGheInstanceInput } from '../../common/onboardingTypes.js';
 
 suite('parseGheInstanceInput', () => {
 	ensureNoDisposablesAreLeakedInTestSuite();
@@ -68,5 +68,20 @@ suite('parseGheInstanceInput', () => {
 
 	test('URI with path segments is invalid', () => {
 		assert.deepStrictEqual(parseGheInstanceInput('https://octocat.ghe.com/api/v3'), { kind: GheParseResultKind.Invalid });
+	});
+});
+
+suite('Welcome onboarding steps (INV-NO-COPILOT)', () => {
+	ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('default Code window omits Copilot sign-in step', () => {
+		const steps = getOnboardingStepsForWindow(false);
+		assert.ok(!steps.includes(OnboardingStepId.SignIn), 'default window must not show Copilot sign-in onboarding step');
+		assert.ok(steps.includes(OnboardingStepId.Personalize));
+	});
+
+	test('Agents Window retains Copilot sign-in step', () => {
+		const steps = getOnboardingStepsForWindow(true);
+		assert.deepStrictEqual(steps, ONBOARDING_STEPS);
 	});
 });
