@@ -386,6 +386,19 @@
 	color: var(--vscode-descriptionForeground);
 }
 
+.monaco-workbench .part.conversation .conversation-lens-inbox-goal {
+	flex-shrink: 0;
+	margin-left: 2px;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-inbox-goal-button {
+	min-width: 0;
+	padding: 0 6px;
+	height: 20px;
+	font-size: 11px;
+	line-height: 18px;
+}
+
 .monaco-workbench .part.conversation .conversation-lens-inbox-stop {
 	flex-shrink: 0;
 	margin-left: 2px;

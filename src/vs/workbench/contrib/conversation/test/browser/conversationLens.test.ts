@@ -14,9 +14,11 @@ import { ConversationLens } from '../../browser/conversationLens.js';
 import {
 	conversationLensDockAttachTitle,
 	conversationLensDockEngineNotConnected,
+	conversationLensDockGoal,
 	conversationLensDockInboxNoQueue,
 	conversationLensDockMaximizeInput,
 	conversationLensDockNoAttachments,
+	conversationLensDockNoGoal,
 	conversationLensDockNoModel,
 	conversationLensDockRestoreTimeline,
 	conversationLensDockStop,
@@ -115,8 +117,26 @@ suite('ConversationLens', () => {
 
 		assert.ok(inboxRow.querySelector('.conversation-lens-inbox-label'));
 		assert.ok(inboxRow.querySelector('.conversation-lens-inbox-queue'));
+		assert.ok(inboxRow.querySelector('.conversation-lens-inbox-goal'));
 		assert.ok(inboxRow.querySelector('.conversation-lens-inbox-stop'));
 		assert.ok(inboxRow.textContent?.includes(conversationLensDockInboxNoQueue));
+		assert.ok(inboxRow.textContent?.includes(conversationLensDockNoGoal));
+	});
+
+	test('inbox goal is honest: disabled without engine, no goal field', () => {
+		const { part } = mountLens();
+		const inboxRow = part.getSlots()!.dock.querySelector('.conversation-lens-inbox-row')!;
+		const goalButton = inboxRow.querySelector('.conversation-lens-inbox-goal .monaco-button') as HTMLButtonElement;
+
+		assert.ok(goalButton);
+		assert.ok(goalButton.classList.contains('disabled'));
+		assert.strictEqual(goalButton.getAttribute('aria-disabled'), 'true');
+		assert.strictEqual(goalButton.getAttribute('aria-label'), `${conversationLensDockGoal}, ${conversationLensDockNoGoal}`);
+		assert.strictEqual(goalButton.textContent?.trim(), conversationLensDockNoGoal);
+		assert.strictEqual(goalButton.title, conversationLensDockNoGoal);
+
+		goalButton.click();
+		assert.ok(goalButton.classList.contains('disabled'));
 	});
 
 	test('inbox stop is honest: disabled without engine, no stopLoop side effects', () => {
