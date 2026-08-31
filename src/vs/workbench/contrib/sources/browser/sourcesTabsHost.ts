@@ -11,7 +11,7 @@ import { Disposable } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { DEFAULT_SOURCES_TAB, nextSourcesTab, SOURCES_TAB_ORDER, SourcesTabId } from '../common/sourcesTabs.js';
-import { SourcesChangesStub } from './sourcesChangesStub.js';
+import { SourcesChangesList } from './sourcesChangesList.js';
 import { SourcesFilesList } from './sourcesFilesList.js';
 import { SourcesReviewStub } from './sourcesReviewStub.js';
 
@@ -92,7 +92,7 @@ export class SourcesTabsHost extends Disposable {
 		this._register(this.instantiationService.createInstance(SourcesFilesList, filesPanel));
 
 		const changesPanel = this.tabPanels.get(SourcesTabId.Changes)!;
-		this._register(this.instantiationService.createInstance(SourcesChangesStub, changesPanel));
+		this._register(this.instantiationService.createInstance(SourcesChangesList, changesPanel));
 
 		const reviewPanel = this.tabPanels.get(SourcesTabId.Review)!;
 		this._register(this.instantiationService.createInstance(SourcesReviewStub, reviewPanel));

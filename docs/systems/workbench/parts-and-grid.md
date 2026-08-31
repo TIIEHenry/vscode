@@ -29,7 +29,7 @@ summary: "默认 Code 窗口的 Part 枚举、SerializableGrid 描述符、Conve
 | `SIDEBAR_PART` | `workbench.parts.sidebar` | 主侧栏 ViewContainer（资源管理器等） |
 | `CONVERSATION_PART` | `workbench.parts.conversation` | **中心锚点**（Part 只做槽：SessionBar / timeline / dock；透镜在 `contrib/conversation`，非 `EditorInput`） |
 | `EDITOR_PART` | `workbench.parts.editor` | **End 列上格**：EditorGroup + tabs + `EditorInput`（`IEditorService.openEditor` 仍落这里） |
-| `SOURCES_PART` | `workbench.parts.sources` | **End 列下格**：`contrib/sources` **Files \| Changes \| Review** tab strip（Files = 只读列表投影；Changes / Review = stub；树权威仍在 Sidebar Explorer） |
+| `SOURCES_PART` | `workbench.parts.sources` | **End 列下格**：`contrib/sources` **Files \| Changes \| Review** tab strip（Files = 只读列表投影；Changes = SCM 变更资源列表 → Preview；Review = stub；树权威仍在 Sidebar Explorer） |
 | `PANEL_PART` | `workbench.parts.panel` | 底（可左右）面板：终端、问题、输出 |
 | `AUXILIARYBAR_PART` | `workbench.parts.auxiliarybar` | 对侧栏（Secondary Side Bar）；默认仍可关 |
 | `STATUSBAR_PART` | `workbench.parts.statusbar` | 底栏 |
@@ -104,7 +104,7 @@ CSS class：`LayoutClasses.MAIN_EDITOR_AREA_HIDDEN` / `CONVERSATION_HIDDEN` 等�
 4. **注册** — `Parts.CONVERSATION_PART` / `SOURCES_PART`；`ConversationPart` / `SourcesPart` eager singleton；`createWorkbenchLayout` view map；`workbench.ts` `createPart` 循环。
 5. **四钮（D7）** — `layoutActions.ts`：主簇 `LayoutControlMenu` 仅 **Navigator / Conversation / Preview / Sources**（产品名标签）；Panel / Aux 退到 `LayoutControlMenuSubmenu`。
 6. **Conversation 透镜** — `contrib/conversation`：`ConversationLens` 填 SessionBar / stub 时间线 / stub dock 槽；非 `ChatEditor` / `ChatViewPane`。
-7. **Sources tabs** — `contrib/sources`：title 区 **Files \| Changes \| Review** tab strip；Files = `SourcesFilesList` 只读列表投影（点击 `IEditorService.openEditor` 落 End 上格 Preview）；Changes / Review = honest stub（无 SCM / 无 openDiff）；Diff 深查看仍 **EDITOR_PART** FORK。
+7. **Sources tabs** — `contrib/sources`：title 区 **Files \| Changes \| Review** tab strip；Files = `SourcesFilesList` 只读列表投影（点击 `IEditorService.openEditor` 落 End 上格 Preview）；Changes = `SourcesChangesList` SCM 变更资源列表（同样 `openEditor` 打开文件，**不**走 Diff / `openDiff`）；Review = honest stub；Diff 深查看仍 **EDITOR_PART** FORK。
 8. **storage keys** — `workbench.conversation.hidden`、`workbench.sources.hidden`（runtime）、`workbench.editor.size` / `workbench.sources.size`（End 列）。Workbench grid 每次启动从描述符重建，不读旧 grid JSON。
 9. **辅助窗口** — 仍复用 `EDITOR_PART`；Conversation / Sources 只在主窗口。
 
