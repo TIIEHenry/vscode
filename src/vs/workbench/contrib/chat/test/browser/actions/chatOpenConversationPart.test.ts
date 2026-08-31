@@ -87,7 +87,6 @@ suite('default-window chat open redirects to ConversationPart', () => {
 		const instantiationService = workbenchInstantiationService({
 			editorService: () => editorService,
 			environmentService: () => TestEnvironmentService,
-			layoutService: () => layoutService,
 		}, store);
 
 		const conversationPart = store.add(instantiationService.createInstance(ConversationPart));

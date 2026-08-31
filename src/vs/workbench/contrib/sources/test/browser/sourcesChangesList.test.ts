@@ -6,7 +6,7 @@
 import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite, toResource } from '../../../../../base/test/common/utils.js';
 import { URI } from '../../../../../base/common/uri.js';
-import { EditorOpenSource } from '../../../../../platform/editor/common/editor.js';
+import { EditorOpenSource, IResourceEditorInput } from '../../../../../platform/editor/common/editor.js';
 import { ISCMResource } from '../../../scm/common/scm.js';
 import { IEditorService } from '../../../../services/editor/common/editorService.js';
 import { openSourcesChangeEntry } from '../../browser/sourcesChangesList.js';
@@ -49,7 +49,7 @@ suite('Sources - Changes list open', () => {
 		let openedResource: URI | undefined;
 
 		await openSourcesChangeEntry(createEntry(resource), {
-			openEditor: async input => {
+			openEditor: async (input: IResourceEditorInput) => {
 				openedResource = input.resource;
 				return undefined;
 			},
@@ -63,7 +63,7 @@ suite('Sources - Changes list open', () => {
 		let capturedOptions: { preserveFocus?: boolean; pinned?: boolean; source?: EditorOpenSource } | undefined;
 
 		await openSourcesChangeEntry(createEntry(resource), {
-			openEditor: async input => {
+			openEditor: async (input: IResourceEditorInput) => {
 				capturedOptions = input.options;
 				return undefined;
 			},

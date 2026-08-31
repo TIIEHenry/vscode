@@ -67,6 +67,7 @@ suite('Agent inspect panel', () => {
 				openViewCalls.push({ id, focus });
 				return Promise.resolve(null);
 			}
+			dispose(): void { }
 		}
 
 		const instantiationService = workbenchInstantiationService(undefined, store);
@@ -82,12 +83,12 @@ suite('Agent inspect panel', () => {
 
 	test('Agents and Team ViewTitle Inspect actions are registered on product-four views', () => {
 		const viewTitleItems = MenuRegistry.getMenuItems(MenuId.ViewTitle);
-		const agentsInspectItem = viewTitleItems.find(item => isIMenuItem(item) && item.command.id === OPEN_NAVIGATOR_AGENTS_INSPECT_COMMAND_ID);
-		const teamInspectItem = viewTitleItems.find(item => isIMenuItem(item) && item.command.id === OPEN_NAVIGATOR_TEAM_INSPECT_COMMAND_ID);
+		const agentsInspectItem = viewTitleItems.filter(isIMenuItem).find(item => item.command.id === OPEN_NAVIGATOR_AGENTS_INSPECT_COMMAND_ID);
+		const teamInspectItem = viewTitleItems.filter(isIMenuItem).find(item => item.command.id === OPEN_NAVIGATOR_TEAM_INSPECT_COMMAND_ID);
 		assert.ok(agentsInspectItem, 'Agents ViewTitle must expose an Inspect action');
 		assert.ok(teamInspectItem, 'Team ViewTitle must expose an Inspect action');
-		assert.strictEqual(agentsInspectItem?.command?.id, OPEN_NAVIGATOR_AGENTS_INSPECT_COMMAND_ID);
-		assert.strictEqual(teamInspectItem?.command?.id, OPEN_NAVIGATOR_TEAM_INSPECT_COMMAND_ID);
+		assert.strictEqual(agentsInspectItem.command.id, OPEN_NAVIGATOR_AGENTS_INSPECT_COMMAND_ID);
+		assert.strictEqual(teamInspectItem.command.id, OPEN_NAVIGATOR_TEAM_INSPECT_COMMAND_ID);
 	});
 
 	test('Agents ViewTitle Inspect action opens inspect panel view via ViewsService', async () => {
@@ -100,6 +101,7 @@ suite('Agent inspect panel', () => {
 			override getActiveViewWithId<T>(id: string): T | null {
 				return id === NAVIGATOR_AGENTS_VIEW_ID ? {} as T : null;
 			}
+			dispose(): void { }
 		}
 
 		const instantiationService = workbenchInstantiationService(undefined, store);
@@ -123,6 +125,7 @@ suite('Agent inspect panel', () => {
 			override getActiveViewWithId<T>(id: string): T | null {
 				return id === NAVIGATOR_TEAM_VIEW_ID ? {} as T : null;
 			}
+			dispose(): void { }
 		}
 
 		const instantiationService = workbenchInstantiationService(undefined, store);

@@ -11,7 +11,8 @@ import type { ContextKeyExpression, ContextKeyValue } from '../../../../../platf
 import { ICommandService } from '../../../../../platform/commands/common/commands.js';
 import { IsSessionsWindowContext } from '../../../../common/contextkeys.js';
 import { BrowserWorkbenchEnvironmentService } from '../../../../services/environment/browser/environmentService.js';
-import { workbenchInstantiationService, TestEditorService, TestProductService } from '../../../../test/browser/workbenchTestServices.js';
+import { workbenchInstantiationService, TestEditorService } from '../../../../test/browser/workbenchTestServices.js';
+import { TestProductService } from '../../../../test/common/workbenchTestServices.js';
 import { ChatContextKeys } from '../../../chat/common/actions/chatContextKeys.js';
 import { AgentSessionsWelcomeInput } from '../../browser/agentSessionsWelcomeInput.js';
 import { AgentSessionsWelcomePage, AgentSessionsWelcomeInputWorkbenchSerializer } from '../../browser/agentSessionsWelcome.js';
