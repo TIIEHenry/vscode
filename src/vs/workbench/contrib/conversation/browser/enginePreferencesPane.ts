@@ -22,7 +22,7 @@ export class EnginePreferencesPane extends Disposable implements IPreferencesEdi
 		title.textContent = localize('ua.enginePaneTitle', "Engine");
 
 		const emptyState = DOM.append(this.container, DOM.$('.engine-empty-state'));
-		emptyState.textContent = localize('ua.engineEmptyState', "No engine connected. Configure connection settings first.");
+		emptyState.textContent = localize('ua.engineEmptyState', "Engine not connected — no engine.");
 		emptyState.style.opacity = '0.8';
 	}
 
