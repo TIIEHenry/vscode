@@ -2375,7 +2375,7 @@
     "viewsWelcome": [
       {
         "view": "debug",
-        "when": "github.copilot-chat.activated",
+        "when": "github.copilot-chat.activated && isSessionsWindow",
         "contents": "%github.copilot.viewsWelcome.debug%"
       }
     ],
@@ -6000,27 +6000,219 @@
         {
           "command": "github.copilot.sessions.initializeRepository",
           "when": "false"
+        },
+        {
+          "command": "agents.github.copilot.cli.deleteSessions",
+          "when": "isSessionsWindow"
+        },
+        {
+          "command": "github.copilot.buildRemoteWorkspaceIndex",
+          "when": "isSessionsWindow"
+        },
+        {
+          "command": "github.copilot.chat.attachFile",
+          "when": "isSessionsWindow"
+        },
+        {
+          "command": "github.copilot.chat.attachSelection",
+          "when": "isSessionsWindow"
+        },
+        {
+          "command": "github.copilot.chat.clearTemporalContext",
+          "when": "isSessionsWindow"
+        },
+        {
+          "command": "github.copilot.chat.cloudSessions.clearCaches",
+          "when": "isSessionsWindow"
+        },
+        {
+          "command": "github.copilot.chat.codeReview.run",
+          "when": "isSessionsWindow"
+        },
+        {
+          "command": "github.copilot.chat.compact",
+          "when": "isSessionsWindow"
+        },
+        {
+          "command": "github.copilot.chat.completions.disable",
+          "when": "isSessionsWindow"
+        },
+        {
+          "command": "github.copilot.chat.completions.enable",
+          "when": "isSessionsWindow"
+        },
+        {
+          "command": "github.copilot.chat.completions.toggle",
+          "when": "isSessionsWindow"
+        },
+        {
+          "command": "github.copilot.chat.copilotCLI.acceptDiff",
+          "when": "isSessionsWindow"
+        },
+        {
+          "command": "github.copilot.chat.copilotCLI.addFileReference",
+          "when": "isSessionsWindow"
+        },
+        {
+          "command": "github.copilot.chat.copilotCLI.addSelection",
+          "when": "isSessionsWindow"
+        },
+        {
+          "command": "github.copilot.chat.copilotCLI.rejectDiff",
+          "when": "isSessionsWindow"
+        },
+        {
+          "command": "github.copilot.chat.fix",
+          "when": "isSessionsWindow"
+        },
+        {
+          "command": "github.copilot.chat.generate",
+          "when": "isSessionsWindow"
+        },
+        {
+          "command": "github.copilot.chat.generateAltText",
+          "when": "isSessionsWindow"
+        },
+        {
+          "command": "github.copilot.chat.notebook.disableFollowCellExecution",
+          "when": "isSessionsWindow"
+        },
+        {
+          "command": "github.copilot.chat.notebook.enableFollowCellExecution",
+          "when": "isSessionsWindow"
+        },
+        {
+          "command": "github.copilot.chat.openModelPicker",
+          "when": "isSessionsWindow"
+        },
+        {
+          "command": "github.copilot.chat.openSuggestionsPanel",
+          "when": "isSessionsWindow"
+        },
+        {
+          "command": "github.copilot.chat.openUserPreferences",
+          "when": "isSessionsWindow"
+        },
+        {
+          "command": "github.copilot.chat.otel.exportAgentTracesDB",
+          "when": "isSessionsWindow"
+        },
+        {
+          "command": "github.copilot.chat.toggleStatusMenu",
+          "when": "isSessionsWindow"
+        },
+        {
+          "command": "github.copilot.chat.tools.memory.clearMemories",
+          "when": "isSessionsWindow"
+        },
+        {
+          "command": "github.copilot.chat.tools.memory.showMemories",
+          "when": "isSessionsWindow"
+        },
+        {
+          "command": "github.copilot.chronicle.reindex",
+          "when": "isSessionsWindow"
+        },
+        {
+          "command": "github.copilot.cli.newSessionToSide",
+          "when": "isSessionsWindow"
+        },
+        {
+          "command": "github.copilot.cloud.resetWorkspaceConfirmations",
+          "when": "isSessionsWindow"
+        },
+        {
+          "command": "github.copilot.debug.collectDiagnostics",
+          "when": "isSessionsWindow"
+        },
+        {
+          "command": "github.copilot.debug.collectWorkspaceIndexDiagnostics",
+          "when": "isSessionsWindow"
+        },
+        {
+          "command": "github.copilot.debug.generateInlineEditTests",
+          "when": "isSessionsWindow"
+        },
+        {
+          "command": "github.copilot.debug.generateSTest",
+          "when": "isSessionsWindow"
+        },
+        {
+          "command": "github.copilot.debug.inlineEdit.clearCache",
+          "when": "isSessionsWindow"
+        },
+        {
+          "command": "github.copilot.debug.inlineEdit.reportNotebookNESIssue",
+          "when": "isSessionsWindow"
+        },
+        {
+          "command": "github.copilot.debug.resetVirtualToolGroups",
+          "when": "isSessionsWindow"
+        },
+        {
+          "command": "github.copilot.debug.showChatLogView",
+          "when": "isSessionsWindow"
+        },
+        {
+          "command": "github.copilot.debug.showContextInspectorView",
+          "when": "isSessionsWindow"
+        },
+        {
+          "command": "github.copilot.debug.togglePowerSaveBlocker",
+          "when": "isSessionsWindow"
+        },
+        {
+          "command": "github.copilot.debug.validateNesRename",
+          "when": "isSessionsWindow"
+        },
+        {
+          "command": "github.copilot.deleteExternalIngestWorkspaceIndex",
+          "when": "isSessionsWindow"
+        },
+        {
+          "command": "github.copilot.nes.captureExpected.abort",
+          "when": "isSessionsWindow"
+        },
+        {
+          "command": "github.copilot.nes.captureExpected.confirm",
+          "when": "isSessionsWindow"
+        },
+        {
+          "command": "github.copilot.open.walkthrough",
+          "when": "isSessionsWindow"
+        },
+        {
+          "command": "github.copilot.report",
+          "when": "isSessionsWindow"
+        },
+        {
+          "command": "github.copilot.sessionSync.deleteSessions",
+          "when": "isSessionsWindow"
+        },
+        {
+          "command": "github.copilot.terminal.explainTerminalLastCommand",
+          "when": "isSessionsWindow"
         }
       ],
       "view/title": [
         {
           "submenu": "github.copilot.chat.debug.filter",
-          "when": "view == copilot-chat",
+          "when": "view == copilot-chat && isSessionsWindow",
           "group": "navigation"
         },
         {
           "command": "github.copilot.chat.debug.exportAllPromptLogsAsJson",
-          "when": "view == copilot-chat",
+          "when": "view == copilot-chat && isSessionsWindow",
           "group": "export@1"
         },
         {
           "command": "workbench.action.chat.openAgentDebugPanel",
-          "when": "view == copilot-chat",
+          "when": "view == copilot-chat && isSessionsWindow",
           "group": "3_show@0"
         },
         {
           "command": "github.copilot.debug.showOutputChannel",
-          "when": "view == copilot-chat",
+          "when": "view == copilot-chat && isSessionsWindow",
           "group": "3_show@1"
         },
         {
@@ -6032,22 +6224,22 @@
       "view/item/context": [
         {
           "command": "github.copilot.chat.debug.showRawRequestBody",
-          "when": "view == copilot-chat && viewItem == request",
+          "when": "view == copilot-chat && viewItem == request && isSessionsWindow",
           "group": "export@0"
         },
         {
           "command": "github.copilot.chat.debug.exportLogItem",
-          "when": "view == copilot-chat && (viewItem == toolcall || viewItem == request)",
+          "when": "view == copilot-chat && (viewItem == toolcall || viewItem == request) && isSessionsWindow",
           "group": "export@1"
         },
         {
           "command": "github.copilot.chat.debug.exportPromptArchive",
-          "when": "view == copilot-chat && viewItem == chatprompt",
+          "when": "view == copilot-chat && viewItem == chatprompt && isSessionsWindow",
           "group": "export@2"
         },
         {
           "command": "github.copilot.chat.debug.exportPromptLogsAsJson",
-          "when": "view == copilot-chat && viewItem == chatprompt",
+          "when": "view == copilot-chat && viewItem == chatprompt && isSessionsWindow",
           "group": "export@3"
         }
       ],
@@ -6240,48 +6432,49 @@
       ],
       "issue/reporter": [
         {
-          "command": "github.copilot.report"
+          "command": "github.copilot.report",
+          "when": "isSessionsWindow"
         }
       ],
       "github.copilot.chat.debug.filter": [
         {
           "command": "github.copilot.chat.debug.showElements",
-          "when": "github.copilot.chat.debug.elementsHidden",
+          "when": "github.copilot.chat.debug.elementsHidden && isSessionsWindow",
           "group": "commands@0"
         },
         {
           "command": "github.copilot.chat.debug.hideElements",
-          "when": "!github.copilot.chat.debug.elementsHidden",
+          "when": "!github.copilot.chat.debug.elementsHidden && isSessionsWindow",
           "group": "commands@0"
         },
         {
           "command": "github.copilot.chat.debug.showTools",
-          "when": "github.copilot.chat.debug.toolsHidden",
+          "when": "github.copilot.chat.debug.toolsHidden && isSessionsWindow",
           "group": "commands@1"
         },
         {
           "command": "github.copilot.chat.debug.hideTools",
-          "when": "!github.copilot.chat.debug.toolsHidden",
+          "when": "!github.copilot.chat.debug.toolsHidden && isSessionsWindow",
           "group": "commands@1"
         },
         {
           "command": "github.copilot.chat.debug.showNesRequests",
-          "when": "github.copilot.chat.debug.nesRequestsHidden",
+          "when": "github.copilot.chat.debug.nesRequestsHidden && isSessionsWindow",
           "group": "commands@2"
         },
         {
           "command": "github.copilot.chat.debug.hideNesRequests",
-          "when": "!github.copilot.chat.debug.nesRequestsHidden",
+          "when": "!github.copilot.chat.debug.nesRequestsHidden && isSessionsWindow",
           "group": "commands@2"
         },
         {
           "command": "github.copilot.chat.debug.showGhostRequests",
-          "when": "github.copilot.chat.debug.ghostRequestsHidden",
+          "when": "github.copilot.chat.debug.ghostRequestsHidden && isSessionsWindow",
           "group": "commands@3"
         },
         {
           "command": "github.copilot.chat.debug.hideGhostRequests",
-          "when": "!github.copilot.chat.debug.ghostRequestsHidden",
+          "when": "!github.copilot.chat.debug.ghostRequestsHidden && isSessionsWindow",
           "group": "commands@3"
         }
       ],
@@ -6484,7 +6677,7 @@
           "id": "copilot-chat",
           "name": "Chat Debug",
           "icon": "assets/debug-icon.svg",
-          "when": "github.copilot.chat.showLogView"
+          "when": "github.copilot.chat.showLogView && isSessionsWindow"
         }
       ],
       "context-inspector": [
@@ -6501,7 +6694,8 @@
         {
           "id": "copilot-chat",
           "title": "Chat Debug",
-          "icon": "assets/debug-icon.svg"
+          "icon": "assets/debug-icon.svg",
+          "when": "isSessionsWindow"
         },
         {
           "id": "context-inspector",
