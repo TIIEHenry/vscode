@@ -46,7 +46,7 @@ suite('ConversationLens', () => {
 	}
 
 	async function flushAnimationFrames(): Promise<void> {
-		await new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+		await new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
 	}
 
 	teardown(async () => {
