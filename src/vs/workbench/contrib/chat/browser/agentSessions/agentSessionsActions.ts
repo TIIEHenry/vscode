@@ -131,7 +131,7 @@ abstract class BaseArchiveAllAgentSessionsAction extends Action2 {
 			id: 'workbench.action.chat.archiveAllAgentSessions',
 			title: action.title,
 			icon: action.icon,
-			precondition: ChatContextKeys.enabled,
+			precondition: ContextKeyExpr.and(ChatContextKeys.enabled, IsSessionsWindowContext),
 			category: AGENT_SESSIONS_CATEGORY,
 			f1: true,
 		});
@@ -187,7 +187,7 @@ export class MarkAllAgentSessionsReadAction extends Action2 {
 		super({
 			id: 'workbench.action.chat.markAllAgentSessionsRead',
 			title: localize2('markAllRead.label', "Mark All as Read"),
-			precondition: ChatContextKeys.enabled,
+			precondition: ContextKeyExpr.and(ChatContextKeys.enabled, IsSessionsWindowContext),
 			category: AGENT_SESSIONS_CATEGORY,
 			f1: true,
 			menu: {
@@ -866,7 +866,7 @@ export class DeleteAllLocalSessionsAction extends Action2 {
 		super({
 			id: 'workbench.action.chat.clearHistory',
 			title: localize2('agentSessions.deleteAll', "Delete All Local Workspace Chat Sessions"),
-			precondition: ChatContextKeys.enabled,
+			precondition: ContextKeyExpr.and(ChatContextKeys.enabled, IsSessionsWindowContext),
 			category: AGENT_SESSIONS_CATEGORY,
 			f1: true,
 		});
@@ -1201,6 +1201,7 @@ export class ShowAgentSessionsSidebar extends UpdateChatViewWidthAction {
 			precondition: ContextKeyExpr.and(
 				ChatContextKeys.enabled,
 				ChatContextKeys.agentSessionsViewerOrientation.isEqualTo(AgentSessionsViewerOrientation.Stacked),
+				IsSessionsWindowContext,
 			),
 			f1: true,
 			category: AGENT_SESSIONS_CATEGORY,
@@ -1224,6 +1225,7 @@ export class HideAgentSessionsSidebar extends UpdateChatViewWidthAction {
 			precondition: ContextKeyExpr.and(
 				ChatContextKeys.enabled,
 				ChatContextKeys.agentSessionsViewerOrientation.isEqualTo(AgentSessionsViewerOrientation.SideBySide),
+				IsSessionsWindowContext,
 			),
 			f1: true,
 			category: AGENT_SESSIONS_CATEGORY,
@@ -1244,7 +1246,7 @@ export class ToggleAgentSessionsSidebar extends Action2 {
 		super({
 			id: ToggleAgentSessionsSidebar.ID,
 			title: ToggleAgentSessionsSidebar.TITLE,
-			precondition: ChatContextKeys.enabled,
+			precondition: ContextKeyExpr.and(ChatContextKeys.enabled, IsSessionsWindowContext),
 			f1: true,
 			category: AGENT_SESSIONS_CATEGORY,
 		});
@@ -1275,7 +1277,8 @@ export class FocusAgentSessionsAction extends Action2 {
 			title: localize2('chat.focusAgentSessionsViewer.label', "Focus Agent Sessions"),
 			precondition: ContextKeyExpr.and(
 				ChatContextKeys.enabled,
-				ContextKeyExpr.equals(`config.${ChatConfiguration.ChatViewSessionsEnabled}`, true)
+				ContextKeyExpr.equals(`config.${ChatConfiguration.ChatViewSessionsEnabled}`, true),
+				IsSessionsWindowContext,
 			),
 			category: AGENT_SESSIONS_CATEGORY,
 			f1: true,

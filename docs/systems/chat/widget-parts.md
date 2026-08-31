@@ -3,7 +3,7 @@ title: "ChatWidget 零件：列表、输入栈、content parts"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-08-30
+updated: 2026-08-31
 summary: "ChatWidget 内部清单（列表、输入栈、picker、content parts 分组）；标 donor 与必须按 Desktop Conversation / Input Dock 重写的面；不是产品 Conversation"
 ---
 
@@ -183,6 +183,10 @@ B2 接到 UniverseAgent 后，这些选择器要 **换或旁路**。不得用这
 | 会话真相 | `IChatModel` | **禁止**当 UA session-core |
 
 **复用建议（分析，非正式决策）：** 列表虚拟化、markdown/code block、输入编辑器补全值得当 donor。`ChatInputPart` 当对照实现，按 §8.3 重做 Dock。SessionBar、四钮、权限座位、Inbox 按 Desktop 自研。
+
+## 8.1 Agent Sessions 命令面板
+
+`IAgentSessionsService` 侧栏的批量管理命令（Archive All、Mark All Read、Delete All Local Sessions、Show/Hide/Toggle Agent Sessions Sidebar、Focus Agent Sessions 等）仅在 **Agents Window**（`IsSessionsWindowContext`）的 Command Palette 中列出；默认 Code 窗口不暴露这些 F1 入口，产品会话列表走 `IConversationStubService` / Conversation Navigator，而非 Copilot Agent Sessions 管理面。
 
 ## 9. 相关文档
 
