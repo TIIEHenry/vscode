@@ -44,17 +44,17 @@ suite('ConversationLens', () => {
 	function getReadingColumn(slots: IConversationLensSlots): HTMLElement {
 		const column = slots.timeline.querySelector('.conversation-lens-reading-column');
 		assert.ok(column);
-		return column;
+		return column as HTMLElement;
 	}
 
 	function getTimelineScroll(slots: IConversationLensSlots): HTMLElement {
 		const scroll = slots.timeline.querySelector('.conversation-lens-timeline-scroll');
 		assert.ok(scroll);
-		return scroll;
+		return scroll as HTMLElement;
 	}
 
 	function getTimelineEmpty(slots: IConversationLensSlots): HTMLElement | null {
-		return getTimelineScroll(slots).querySelector('.conversation-lens-timeline-empty');
+		return getTimelineScroll(slots).querySelector<HTMLElement>('.conversation-lens-timeline-empty');
 	}
 
 	function queryTimeline(slots: IConversationLensSlots, selector: string): Element | null {
@@ -75,13 +75,13 @@ suite('ConversationLens', () => {
 	function getInboxGoalButton(slots: IConversationLensSlots): HTMLElement {
 		const button = slots.dock.querySelector('.conversation-lens-inbox-goal-button');
 		assert.ok(button);
-		return button;
+		return button as HTMLElement;
 	}
 
 	function getInboxStopButton(slots: IConversationLensSlots): HTMLElement {
 		const button = slots.dock.querySelector('.conversation-lens-inbox-stop-button');
 		assert.ok(button);
-		return button;
+		return button as HTMLElement;
 	}
 
 	function getSessionSelectLabel(slots: NonNullable<ReturnType<ConversationPart['getSlots']>>): string | undefined {
