@@ -29,9 +29,6 @@ interface WatermarkEntry {
 	};
 }
 
-const showChatContextKey = ContextKeyExpr.and(ContextKeyExpr.equals('chatSetupHidden', false), ContextKeyExpr.equals('chatSetupDisabledInWorkspace', false));
-
-const openChat: WatermarkEntry = { text: localize('watermark.openChat', "Open Chat"), id: 'workbench.action.chat.open', when: { native: showChatContextKey, web: showChatContextKey } };
 const showCommands: WatermarkEntry = { text: localize('watermark.showCommands', "Show All Commands"), id: 'workbench.action.showCommands' };
 const gotoFile: WatermarkEntry = { text: localize('watermark.quickAccess', "Go to File"), id: 'workbench.action.quickOpen' };
 const openFile: WatermarkEntry = { text: localize('watermark.openFile', "Open File"), id: 'workbench.action.files.openFile' };
@@ -45,7 +42,6 @@ const startDebugging: WatermarkEntry = { text: localize('watermark.startDebuggin
 const openSettings: WatermarkEntry = { text: localize('watermark.openSettings', "Open Settings"), id: 'workbench.action.openSettings' };
 
 const baseEntries: WatermarkEntry[] = [
-	openChat,
 	showCommands,
 ];
 
@@ -67,6 +63,12 @@ const otherEntries: WatermarkEntry[] = [
 	toggleTerminal,
 	openSettings,
 ];
+
+/** @internal Exported for unit tests — primary watermark action ids (no Copilot Chat). */
+export function getEditorGroupWatermarkEntryActionIds(): readonly string[] {
+	const entries = [...emptyWindowEntries, ...workspaceEntries, ...otherEntries];
+	return entries.map(entry => entry.id);
+}
 
 export class EditorGroupWatermark extends Disposable {
 
