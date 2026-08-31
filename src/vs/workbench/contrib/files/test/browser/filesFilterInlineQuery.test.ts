@@ -43,7 +43,19 @@ suite('Files - FilesFilter inline query', () => {
 		src.addChild(index);
 		root.addChild(readme);
 
-		instantiationService = workbenchInstantiationService(undefined, disposables);
+		instantiationService = workbenchInstantiationService({
+			configurationService: () => new TestConfigurationService({
+				files: {
+					exclude: {},
+					participants: {
+						timeout: 60000
+					}
+				},
+				explorer: {
+					excludeGitIgnore: false
+				}
+			}),
+		}, disposables);
 		instantiationService.stub(IExplorerService, {
 			roots: [root],
 			findClosestRoot: () => root,
