@@ -15,6 +15,7 @@ import { IInstantiationService, ServicesAccessor } from '../../../../../platform
 import { ServiceCollection } from '../../../../../platform/instantiation/common/serviceCollection.js';
 import { EditorGroupView } from '../../../../browser/parts/editor/editorGroupView.js';
 import { IWorkbenchContribution, registerWorkbenchContribution2, WorkbenchPhase } from '../../../../common/contributions.js';
+import { IsSessionsWindowContext } from '../../../../common/contextkeys.js';
 import { EditorResourceAccessor, SideBySideEditor } from '../../../../common/editor.js';
 import { AgentEditorCommentsOverlayWidget } from '../../../../services/agentEditorComments/browser/agentEditorCommentsOverlayWidget.js';
 import { IEditorGroup, IEditorGroupsService } from '../../../../services/editor/common/editorGroupsService.js';
@@ -95,7 +96,7 @@ class NavigatePlanReviewFeedbackAction extends Action2 {
 			icon: _next ? Codicon.arrowDown : Codicon.arrowUp,
 			category: CHAT_CATEGORY,
 			f1: true,
-			precondition: ContextKeyExpr.and(ChatContextKeys.enabled, hasPlanReviewFeedback),
+			precondition: ContextKeyExpr.and(ChatContextKeys.enabled, hasPlanReviewFeedback, IsSessionsWindowContext),
 			menu: {
 				id: PlanReviewFeedbackEditorMenu,
 				group: 'navigate',
@@ -133,7 +134,7 @@ class ClearAllPlanReviewFeedbackAction extends Action2 {
 			icon: Codicon.clearAll,
 			category: CHAT_CATEGORY,
 			f1: true,
-			precondition: ContextKeyExpr.and(ChatContextKeys.enabled, hasPlanReviewFeedback),
+			precondition: ContextKeyExpr.and(ChatContextKeys.enabled, hasPlanReviewFeedback, IsSessionsWindowContext),
 			menu: {
 				id: PlanReviewFeedbackEditorMenu,
 				group: 'a_submit',

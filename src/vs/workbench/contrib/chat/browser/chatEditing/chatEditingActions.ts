@@ -25,6 +25,7 @@ import { ContextKeyExpr } from '../../../../../platform/contextkey/common/contex
 import { IDialogService } from '../../../../../platform/dialogs/common/dialogs.js';
 import { EditorActivation } from '../../../../../platform/editor/common/editor.js';
 import { KeybindingWeight } from '../../../../../platform/keybinding/common/keybindingsRegistry.js';
+import { IsSessionsWindowContext } from '../../../../common/contextkeys.js';
 import { IEditorService } from '../../../../services/editor/common/editorService.js';
 import { IChatRequestVariableEntry, isImplicitVariableEntry, isPromptFileVariableEntry, isPromptTextVariableEntry, isStringVariableEntry, isWorkspaceVariableEntry } from '../../common/attachments/chatVariableEntries.js';
 import { isChatViewTitleActionContext } from '../../common/actions/chatActions.js';
@@ -320,7 +321,7 @@ export class ChatEditingShowChangesAction extends EditingSessionAction {
 			tooltip: ChatEditingShowChangesAction.LABEL,
 			f1: true,
 			icon: Codicon.diffMultiple,
-			precondition: hasUndecidedChatEditingResourceContextKey,
+			precondition: ContextKeyExpr.and(hasUndecidedChatEditingResourceContextKey, IsSessionsWindowContext),
 			menu: [
 				{
 					id: MenuId.ChatEditingWidgetToolbar,
@@ -615,7 +616,8 @@ registerAction2(class RestoreLastCheckpoint extends Action2 {
 				ChatContextKeys.inChatSession,
 				ContextKeyExpr.equals(`config.${ChatConfiguration.CheckpointsEnabled}`, true),
 				ContextKeyExpr.or(ChatContextKeys.lockedToCodingAgent.negate(), ChatContextKeyExprs.isAgentHostSession),
-				ChatContextKeys.readOnly.negate()
+				ChatContextKeys.readOnly.negate(),
+				IsSessionsWindowContext
 			)
 		});
 	}
@@ -863,7 +865,7 @@ export class ViewPreviousEditsAction extends EditingSessionAction {
 			tooltip: ViewPreviousEditsAction.Label,
 			f1: true,
 			icon: Codicon.diffMultiple,
-			precondition: ContextKeyExpr.and(ChatContextKeys.enabled, hasUndecidedChatEditingResourceContextKey.negate()),
+			precondition: ContextKeyExpr.and(ChatContextKeys.enabled, hasUndecidedChatEditingResourceContextKey.negate(), IsSessionsWindowContext),
 			menu: [
 				{
 					id: MenuId.ChatEditingWidgetToolbar,

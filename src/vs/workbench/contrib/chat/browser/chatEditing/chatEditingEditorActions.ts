@@ -19,7 +19,7 @@ import { KeybindingWeight } from '../../../../../platform/keybinding/common/keyb
 import { IListService } from '../../../../../platform/list/browser/listService.js';
 import { IConfigurationService } from '../../../../../platform/configuration/common/configuration.js';
 import { resolveCommandsContext } from '../../../../browser/parts/editor/editorCommandsContext.js';
-import { ActiveEditorContext } from '../../../../common/contextkeys.js';
+import { ActiveEditorContext, IsSessionsWindowContext } from '../../../../common/contextkeys.js';
 import { EditorResourceAccessor, SideBySideEditor, TEXT_DIFF_EDITOR_ID } from '../../../../common/editor.js';
 import { EditorInput } from '../../../../common/editor/editorInput.js';
 import { IEditorGroupsService } from '../../../../services/editor/common/editorGroupsService.js';
@@ -90,7 +90,7 @@ abstract class NavigateAction extends ChatEditingEditorAction {
 				? localize2('next', 'Go to Next Chat Edit')
 				: localize2('prev', 'Go to Previous Chat Edit'),
 			icon: next ? Codicon.arrowDown : Codicon.arrowUp,
-			precondition: ContextKeyExpr.and(ChatContextKeys.enabled, ctxHasEditorModification),
+			precondition: ContextKeyExpr.and(ChatContextKeys.enabled, ctxHasEditorModification, IsSessionsWindowContext),
 			keybinding: {
 				primary: next
 					? KeyMod.Alt | KeyCode.F5
@@ -187,7 +187,7 @@ abstract class KeepOrUndoAction extends ChatEditingEditorAction {
 			tooltip: _keep
 				? localize2('accept3', 'Keep Chat Edits in this File')
 				: localize2('discard3', 'Undo Chat Edits in this File'),
-			precondition: ContextKeyExpr.and(ctxHasEditorModification, ctxIsCurrentlyBeingModified.negate()),
+			precondition: ContextKeyExpr.and(ctxHasEditorModification, ctxIsCurrentlyBeingModified.negate(), IsSessionsWindowContext),
 			icon: _keep
 				? Codicon.check
 				: Codicon.discard,
@@ -253,7 +253,7 @@ abstract class AcceptRejectHunkAction extends ChatEditingEditorAction {
 				id: _accept ? acceptHunkId : undoHunkId,
 				title: _accept ? localize2('acceptHunk', 'Keep this Change') : localize2('undo', 'Undo this Change'),
 				shortTitle: _accept ? localize2('acceptHunkShort', 'Keep') : localize2('undoShort', 'Undo'),
-				precondition: ContextKeyExpr.and(ctxHasEditorModification, ctxIsCurrentlyBeingModified.negate()),
+				precondition: ContextKeyExpr.and(ctxHasEditorModification, ctxIsCurrentlyBeingModified.negate(), IsSessionsWindowContext),
 				f1: true,
 				keybinding: {
 					when: ContextKeyExpr.and(ctxCursorInChangeRange, ContextKeyExpr.or(EditorContextKeys.focus, NOTEBOOK_CELL_LIST_FOCUSED)),
@@ -346,7 +346,7 @@ class ToggleAccessibleDiffViewAction extends ChatEditingEditorAction {
 			id: 'chatEditor.action.showAccessibleDiffView',
 			title: localize2('accessibleDiff', 'Show Accessible Diff View for Chat Edits'),
 			f1: true,
-			precondition: ContextKeyExpr.and(ctxHasEditorModification, ctxIsCurrentlyBeingModified.negate()),
+			precondition: ContextKeyExpr.and(ctxHasEditorModification, ctxIsCurrentlyBeingModified.negate(), IsSessionsWindowContext),
 			keybinding: {
 				when: ContextKeyExpr.and(EditorContextKeys.focus, CONTEXT_ACCESSIBILITY_MODE_ENABLED),
 				weight: KeybindingWeight.WorkbenchContrib,
@@ -390,7 +390,7 @@ export class AcceptAllEditsAction extends ChatEditingEditorAction {
 			id: AcceptAllEditsAction.ID,
 			title: localize2('acceptAllEdits', 'Keep All Chat Edits'),
 			tooltip: localize2('acceptAllEditsTooltip', 'Keep All Chat Edits in this Session'),
-			precondition: ContextKeyExpr.and(ctxHasEditorModification, ctxIsCurrentlyBeingModified.negate()),
+			precondition: ContextKeyExpr.and(ctxHasEditorModification, ctxIsCurrentlyBeingModified.negate(), IsSessionsWindowContext),
 			icon: Codicon.checkAll,
 			f1: true,
 			keybinding: {

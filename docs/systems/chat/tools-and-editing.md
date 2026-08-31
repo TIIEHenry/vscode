@@ -122,6 +122,8 @@ INV-NO-COPILOT：B2 **不得**把 `CopilotToolId` / `CopilotChatSettingId` / ent
 
 `IChatEditingService` 按 `ChatModel` / `sessionResource` 创建、续上、转移会话；也可 `registerEditingSessionProvider(scheme, …)` 换实现。`editingSessionsObs` 暴露可评审会话给编辑器级 UI。
 
+INV-NO-COPILOT：默认 Code 窗口 Command Palette 亦不列出 chat editing 相关命令（`IsSessionsWindowContext` 门闩；Agents Window 保留）；`run` 与菜单注册保留。
+
 分层：
 
 | 接口 | 最小面 |
