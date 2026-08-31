@@ -11,7 +11,7 @@ import { WorkbenchList } from '../../../../../platform/list/browser/listService.
 import { IRecentlyOpened, IWorkspacesService } from '../../../../../platform/workspaces/common/workspaces.js';
 import { IWorkspaceContextService, WorkbenchState } from '../../../../../platform/workspace/common/workspace.js';
 import { testWorkspace, Workspace } from '../../../../../platform/workspace/test/common/testWorkspace.js';
-import { IViewDescriptorService } from '../../../../common/views.js';
+import { IViewContainerModel, IViewDescriptorService, ViewContainer, ViewContainerLocation } from '../../../../common/views.js';
 import { TestContextService } from '../../../../test/common/workbenchTestServices.js';
 import { TestWorkspacesService, workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { NAVIGATOR_PROJECTS_VIEW_ID } from '../../browser/navigatorStubView.js';
@@ -49,10 +49,29 @@ suite('NavigatorProjectsView', () => {
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		instantiationService.stub(IWorkspaceContextService, contextService);
 		instantiationService.stub(IWorkspacesService, workspacesService);
+		const stubViewContainer = {
+			id: 'navigator-projects-test-container',
+			title: { value: 'Projects', original: 'Projects' },
+		} as ViewContainer;
 		instantiationService.stub(IViewDescriptorService, {
 			onDidChangeLocation: Event.None,
-			getViewLocationById(): number {
-				return 0;
+			getViewLocationById(_id: string): ViewContainerLocation {
+				return ViewContainerLocation.Sidebar;
+			},
+			getViewDescriptorById(_id: string): null {
+				return null;
+			},
+			getViewContainerByViewId(_id: string): ViewContainer | null {
+				return stubViewContainer;
+			},
+			getViewContainerModel(_viewContainer: ViewContainer): IViewContainerModel {
+				return {
+					title: stubViewContainer.title.value,
+					onDidChangeContainerInfo: Event.None,
+				} as IViewContainerModel;
+			},
+			getDefaultContainerById(_id: string): ViewContainer | null {
+				return stubViewContainer;
 			},
 		});
 
