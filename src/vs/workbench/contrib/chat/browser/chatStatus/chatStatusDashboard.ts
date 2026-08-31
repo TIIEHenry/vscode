@@ -149,17 +149,18 @@ export class ChatStatusDashboard extends DomWidget {
 
 	private render(): void {
 		const token = cancelOnDispose(this._store);
+		const showCopilotChrome = shouldShowCopilotQuotaChrome(this.environmentService.isSessionsWindow);
 
 		const { chat, premiumChat, completions } = this.chatEntitlementService.quotas;
 		const hasQuotas = !!(chat || premiumChat);
 		const isAnonymousWithSentiment = this.chatEntitlementService.anonymous && this.chatEntitlementService.sentiment.completed;
 		const isPooledQuotaDepleted = premiumChat?.unlimited && premiumChat.hasQuota === false;
-		const hasUsageSection = hasQuotas || isAnonymousWithSentiment;
-		const hasVisibleUsageContent = chat?.unlimited === false ||
+		const hasUsageSection = showCopilotChrome && (hasQuotas || isAnonymousWithSentiment);
+		const hasVisibleUsageContent = showCopilotChrome && (chat?.unlimited === false ||
 			premiumChat?.unlimited === false ||
 			(!this.options?.compactQuotaLayout && completions?.unlimited === false) ||
 			isAnonymousWithSentiment ||
-			isPooledQuotaDepleted;
+			isPooledQuotaDepleted);
 		const contributedEntries = [...this.chatStatusItemService.getEntries()];
 		const hasQuickSettingsContent =
 			!this.options?.disableInlineSuggestionsSettings ||
@@ -247,7 +248,7 @@ export class ChatStatusDashboard extends DomWidget {
 		}
 
 		// Premium chat included indicator (shown when premium chat is unlimited)
-		const hasPremiumUnlimited = !!premiumChat?.unlimited;
+		const hasPremiumUnlimited = showCopilotChrome && !!premiumChat?.unlimited;
 		const premiumChatUsage = getQuotaUsage(premiumChat);
 		if (premiumChatUsage?.kind === QuotaUsageKind.CreditsUsed) {
 			this.createCreditsUsedIndicator(this.element, premiumChatUsage.creditsUsed, this.formatQuotaResetLabel(premiumChat));
