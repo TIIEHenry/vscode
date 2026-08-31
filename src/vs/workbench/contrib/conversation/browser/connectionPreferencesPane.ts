@@ -12,6 +12,11 @@ import { defaultButtonStyles, defaultCheckboxStyles, getInputBoxStyle } from '..
 import { IPreferencesEditorPane } from '../../preferences/browser/preferencesEditorRegistry.js';
 import { InputBox } from '../../../../base/browser/ui/inputbox/inputBox.js';
 
+/** Honest Test Connection result — no engine probe, no fake success. */
+export function getConnectionTestStatusText(): string {
+	return localize('ua.connectionTestNotConnected', "Not connected — no engine.");
+}
+
 export class ConnectionPreferencesPane extends Disposable implements IPreferencesEditorPane {
 
 	private readonly container: HTMLElement;
@@ -43,10 +48,14 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		tlsRow.appendChild(this.tlsCheckbox.domNode);
 		this._register(this.tlsCheckbox.onChange(checked => this.useTls = checked));
 
-		const testButton = this._register(new Button(this.container, defaultButtonStyles));
+		const testRow = DOM.append(this.container, DOM.$('.connection-test-row'));
+		const testButton = this._register(new Button(testRow, defaultButtonStyles));
 		testButton.label = localize('ua.connectionTest', "Test Connection");
+		const testStatus = DOM.append(testRow, DOM.$('.connection-test-status'));
+		testStatus.setAttribute('role', 'status');
+		testStatus.setAttribute('aria-live', 'polite');
 		this._register(testButton.onDidClick(() => {
-			// Placeholder: in-memory only; no persistence.
+			testStatus.textContent = getConnectionTestStatusText();
 		}));
 	}
 
