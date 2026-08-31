@@ -109,3 +109,34 @@ suite('AgentSessionsActions - default window Command Palette', () => {
 		);
 	});
 });
+
+suite('AgentSessionsActions - default window context menu', () => {
+
+	ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('Open as Editor hides from default Code window Agent Sessions context menu', () => {
+		const defaultWindow = {
+			[IsSessionsWindowContext.key]: false,
+		};
+		const agentsWindow = {
+			[IsSessionsWindowContext.key]: true,
+		};
+
+		const item = MenuRegistry.getMenuItems(MenuId.AgentSessionsContext)
+			.filter(isIMenuItem)
+			.find(entry => entry.command.id === 'workbench.action.chat.openSessionInEditorGroup');
+		assert.ok(item, 'Open as Editor should remain registered for Agents Window');
+		assert.ok(item.when, 'Open as Editor context menu item should have a when clause');
+
+		assert.strictEqual(
+			evalWhen(item.when, defaultWindow),
+			false,
+			'default Code window must hide Open as Editor in Agent Sessions context menu'
+		);
+		assert.strictEqual(
+			evalWhen(item.when, agentsWindow),
+			true,
+			'Agents Window may show Open as Editor in Agent Sessions context menu'
+		);
+	});
+});

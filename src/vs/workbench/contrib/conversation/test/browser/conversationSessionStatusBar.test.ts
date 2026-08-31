@@ -12,7 +12,7 @@ import {
 	ConversationSessionStatusBarContribution,
 	registerConversationSessionStatusBar,
 } from '../../browser/conversationSessionStatusBar.js';
-import { IConversationStubService } from '../../browser/conversationStubService.js';
+import { IConversationRosterService } from '../../browser/conversationStubService.js';
 import { OPEN_CONNECTION_PREFERENCES_COMMAND_ID } from '../../common/uaPreferencesPanes.js';
 
 suite('Conversation Session StatusBar', () => {
@@ -34,7 +34,7 @@ suite('Conversation Session StatusBar', () => {
 			onDidChangeSession: () => ({ dispose: () => { } }),
 			getActiveSessionId: () => undefined,
 			getActiveSession: () => undefined,
-		} as IConversationStubService;
+		} as IConversationRosterService;
 
 		const layoutService = {
 			isVisible: () => false,

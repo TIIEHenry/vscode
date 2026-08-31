@@ -39,7 +39,7 @@ import {
 import { conversationLensSessionBarDeleteSession, conversationLensSessionBarHistoryListAria, conversationLensSessionBarHistoryTitle, conversationLensSessionBarNewSession, conversationLensSessionBarNoHistory, conversationLensSessionBarRenameInputAria, conversationLensSessionBarRenameTitle } from './conversationLensSessionBarStrings.js';
 import { showConversationPart } from './conversationSessionStatus.js';
 import { ConversationStubTurn } from './conversationStubModel.js';
-import { IConversationStubService } from './conversationStubService.js';
+import { IConversationRosterService } from './conversationStubService.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { shouldRenderTurnAsMarkdown } from './conversationTurnMarkdown.js';
 
@@ -80,7 +80,7 @@ export class ConversationLens extends Disposable {
 
 	constructor(
 		slots: IConversationLensSlots,
-		@IConversationStubService private readonly stubService: IConversationStubService,
+		@IConversationRosterService private readonly stubService: IConversationRosterService,
 		@IContextViewService private readonly contextViewService: IContextViewService,
 		@IConfigurationService private readonly configurationService: IConfigurationService,
 		@IMarkdownRendererService private readonly markdownRendererService: IMarkdownRendererService,

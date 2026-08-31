@@ -12,13 +12,14 @@ import { Registry } from '../../../../../platform/registry/common/platform.js';
 import { ConversationPart, IConversationPartService } from '../../../../browser/parts/conversation/conversationPart.js';
 import { Extensions as ViewContainerExtensions, Extensions as ViewExtensions, IViewContainersRegistry, IViewDescriptorService, IViewsRegistry, ViewContainerLocation } from '../../../../common/views.js';
 import { IWorkbenchLayoutService, Parts } from '../../../../services/layout/browser/layoutService.js';
+import { IEditorService } from '../../../../services/editor/common/editorService.js';
 import { ChatEditorInput } from '../../../chat/browser/widgetHosts/editor/chatEditorInput.js';
 import { CONVERSATION_SESSIONS_CONTAINER_ID } from '../../browser/conversation.contribution.js';
 import { CONVERSATION_SESSIONS_VIEW_ID, ConversationSessionsView } from '../../browser/conversationSessionsView.js';
 import { ConversationStubSession } from '../../browser/conversationStubModel.js';
 import { conversationLensSessionBarNewSession } from '../../browser/conversationLensSessionBarStrings.js';
-import { ConversationStubService, IConversationStubService } from '../../browser/conversationStubService.js';
-import { TestLayoutService, workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
+import { ConversationStubService, IConversationRosterService } from '../../browser/conversationStubService.js';
+import { TestLayoutService, TestEditorService, workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import '../../../conversation/browser/conversation.contribution.js';
 
 suite('ConversationSessionsView', () => {
@@ -69,7 +70,7 @@ suite('ConversationSessionsView', () => {
 		const service = options?.stubService ?? store.add(new ConversationStubService());
 		const layoutService = new RosterNavigationLayoutService(options?.conversationVisible ?? true);
 		const instantiationService = workbenchInstantiationService(undefined, store);
-		instantiationService.stub(IConversationStubService, service);
+		instantiationService.stub(IConversationRosterService, service);
 		instantiationService.stub(IWorkbenchLayoutService, layoutService);
 		instantiationService.stub(IViewDescriptorService, new class extends mock<IViewDescriptorService>() {
 			override onDidChangeLocation = Event.None;
@@ -163,7 +164,7 @@ suite('ConversationSessionsView', () => {
 	});
 
 	test('shows honest empty state without Open Chat copy', () => {
-		const stubService = new class extends mock<IConversationStubService>() {
+		const stubService = new class extends mock<IConversationRosterService>() {
 			override onDidChangeActiveSession = Event.None;
 			override onDidChangeSession = Event.None;
 			override getSessions() { return []; }
@@ -194,6 +195,65 @@ suite('ConversationSessionsView', () => {
 		const label = view.element.querySelector('.conversation-sessions-item-active .conversation-sessions-item-label');
 		assert.strictEqual(label?.textContent, renamedTitle);
 		assert.ok([...view.element.querySelectorAll('.conversation-sessions-item-label')].some(el => el.textContent === renamedTitle));
+	});
+
+	test('roster row click switches session without opening an editor', () => {
+		const service = store.add(new ConversationStubService());
+		const editorService = store.add(new TestEditorService());
+		let openEditorCalled = false;
+		const originalOpenEditor = editorService.openEditor.bind(editorService);
+		(editorService as { openEditor: typeof editorService.openEditor }).openEditor = async (...args) => {
+			openEditorCalled = true;
+			return originalOpenEditor(...args);
+		};
+
+		let switchSessionCalled = false;
+		const originalSwitchSession = service.switchSession.bind(service);
+		service.switchSession = (sessionId: string) => {
+			switchSessionCalled = true;
+			originalSwitchSession(sessionId);
+		};
+
+		const layoutService = new RosterNavigationLayoutService(true);
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IConversationRosterService, service);
+		instantiationService.stub(IWorkbenchLayoutService, layoutService);
+		instantiationService.stub(IEditorService, editorService);
+		instantiationService.stub(IViewDescriptorService, new class extends mock<IViewDescriptorService>() {
+			override onDidChangeLocation = Event.None;
+			override getViewLocationById(): ViewContainerLocation {
+				return ViewContainerLocation.Sidebar;
+			}
+		}());
+
+		const conversationPart = store.add(instantiationService.createInstance(ConversationPart));
+		conversationPart.create(document.createElement('div'));
+		instantiationService.stub(IConversationPartService, conversationPart);
+
+		const view = store.add(instantiationService.createInstance(ConversationSessionsView, {
+			id: CONVERSATION_SESSIONS_VIEW_ID,
+			title: 'Sessions',
+		}));
+		const container = document.createElement('div');
+		view.render();
+		container.appendChild(view.element);
+		view.setExpanded(true);
+		view.setVisible(true);
+
+		const secondId = service.createSession();
+		const firstId = service.getSessions()[0].id;
+		service.switchSession(firstId);
+		switchSessionCalled = false;
+		openEditorCalled = false;
+
+		const targetIndex = service.getSessions().findIndex(session => session.id === secondId);
+		const label = view.element.querySelectorAll('.conversation-sessions-item-label')[targetIndex] as HTMLElement;
+		label.click();
+
+		assert.strictEqual(switchSessionCalled, true);
+		assert.strictEqual(service.getActiveSessionId(), secondId);
+		assert.strictEqual(openEditorCalled, false);
+		assert.notStrictEqual(editorService.activeEditor instanceof ChatEditorInput, true);
 	});
 
 	test('opening a roster item while Conversation is hidden switches session, shows, and focuses', () => {

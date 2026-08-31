@@ -942,7 +942,7 @@ export class OpenAgentSessionInEditorGroupAction extends BaseOpenAgentSessionAct
 			},
 			menu: {
 				id: MenuId.AgentSessionsContext,
-				when: IsSessionsWindowContext.negate(),
+				when: IsSessionsWindowContext,
 				order: 1,
 				group: 'navigation'
 			}

@@ -27,7 +27,7 @@ import {
 	conversationLensInputMaximizedClass,
 } from '../../browser/conversationLensDockStrings.js';
 import { conversationLensSessionBarDeleteSession, conversationLensSessionBarHistoryTitle, conversationLensSessionBarNewSession, conversationLensSessionBarRenameTitle } from '../../browser/conversationLensSessionBarStrings.js';
-import { ConversationStubService, IConversationStubService } from '../../browser/conversationStubService.js';
+import { ConversationStubService, IConversationRosterService } from '../../browser/conversationStubService.js';
 import { getConversationSessionStatusText } from '../../browser/conversationSessionStatus.js';
 import { shouldRenderTurnAsMarkdown } from '../../browser/conversationTurnMarkdown.js';
 
@@ -46,7 +46,7 @@ suite('ConversationLens', () => {
 	function mountLens(): { part: ConversationPart; lens: ConversationLens; stubService: ConversationStubService } {
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		const stubService = store.add(new ConversationStubService());
-		instantiationService.stub(IConversationStubService, stubService);
+		instantiationService.stub(IConversationRosterService, stubService);
 		const part = store.add(instantiationService.createInstance(ConversationPart));
 		const parent = document.createElement('div');
 		part.create(parent);

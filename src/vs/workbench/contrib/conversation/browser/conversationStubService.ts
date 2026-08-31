@@ -8,9 +8,9 @@ import { Disposable } from '../../../../base/common/lifecycle.js';
 import { createDecorator } from '../../../../platform/instantiation/common/instantiation.js';
 import { ConversationStubModel, ConversationStubSession, ConversationStubTurn } from './conversationStubModel.js';
 
-export const IConversationStubService = createDecorator<IConversationStubService>('conversationStubService');
+export const IConversationRosterService = createDecorator<IConversationRosterService>('conversationStubService');
 
-export interface IConversationStubService {
+export interface IConversationRosterService {
 	readonly _serviceBrand: undefined;
 
 	readonly onDidChangeActiveSession: Event<string>;
@@ -31,7 +31,10 @@ export interface IConversationStubService {
 	countPendingConfirmations(sessionId: string): number;
 }
 
-export class ConversationStubService extends Disposable implements IConversationStubService {
+export type IConversationStubService = IConversationRosterService;
+export const IConversationStubService = IConversationRosterService;
+
+export class ConversationStubService extends Disposable implements IConversationRosterService {
 
 	declare readonly _serviceBrand: undefined;
 

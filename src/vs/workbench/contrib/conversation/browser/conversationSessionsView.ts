@@ -24,7 +24,7 @@ import { IViewPaneOptions, ViewAction, ViewPane } from '../../../browser/parts/v
 import { IViewDescriptorService } from '../../../common/views.js';
 import { IWorkbenchLayoutService, Parts } from '../../../services/layout/browser/layoutService.js';
 import { ConversationStubSession } from './conversationStubModel.js';
-import { IConversationStubService } from './conversationStubService.js';
+import { IConversationRosterService } from './conversationStubService.js';
 
 export const CONVERSATION_SESSIONS_VIEW_ID = 'workbench.view.conversationSessions';
 
@@ -93,7 +93,7 @@ export class ConversationSessionsView extends ViewPane {
 
 	constructor(
 		options: IViewPaneOptions,
-		@IConversationStubService private readonly stubService: IConversationStubService,
+		@IConversationRosterService private readonly stubService: IConversationRosterService,
 		@IWorkbenchLayoutService private readonly layoutService: IWorkbenchLayoutService,
 		@IConversationPartService private readonly conversationPartService: IConversationPartService,
 		@IKeybindingService keybindingService: IKeybindingService,

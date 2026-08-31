@@ -19,7 +19,7 @@ import {
 	shouldShowConversationModelEchoInStatusBar,
 	showConversationPart,
 } from './conversationSessionStatus.js';
-import { IConversationStubService } from './conversationStubService.js';
+import { IConversationRosterService } from './conversationStubService.js';
 import { OPEN_CONNECTION_PREFERENCES_COMMAND_ID } from '../common/uaPreferencesPanes.js';
 
 export class ConversationSessionStatusBarContribution extends Disposable implements IWorkbenchContribution {
@@ -34,7 +34,7 @@ export class ConversationSessionStatusBarContribution extends Disposable impleme
 	private readonly modelEntryAccessor = this._register(new MutableDisposable<IStatusbarEntryAccessor>());
 
 	constructor(
-		@IConversationStubService private readonly stubService: IConversationStubService,
+		@IConversationRosterService private readonly stubService: IConversationRosterService,
 		@IStatusbarService private readonly statusbarService: IStatusbarService,
 		@IWorkbenchLayoutService private readonly layoutService: IWorkbenchLayoutService,
 		@IWorkbenchEnvironmentService private readonly environmentService: IWorkbenchEnvironmentService,
