@@ -53,7 +53,7 @@ suite('NavigatorProjectsView', () => {
 		const input = getFilterInput(view);
 		assert.ok(input, 'filter input must exist');
 		input.value = query;
-		input.dispatchEvent(new Event('input'));
+		input.dispatchEvent(new globalThis.Event('input'));
 		await new Promise<void>(resolve => setTimeout(resolve, 0));
 	}
 
@@ -186,7 +186,7 @@ suite('NavigatorProjectsView', () => {
 
 		await setFilterQuery(view, 'my-projects');
 		assert.strictEqual(getViewList(view).length, 1);
-		assert.strictEqual(getViewList(view).getFocus()[0]?.name, 'alpha');
+		assert.strictEqual(getViewList(view).element(0).name, 'alpha');
 	});
 
 	test('non-match yields empty list and keeps welcome hidden when recents exist', async () => {
