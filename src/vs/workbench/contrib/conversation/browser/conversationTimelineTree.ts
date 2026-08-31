@@ -569,6 +569,13 @@ export class ConversationTimelineTree extends Disposable {
 
 	scrollToEnd(): void {
 		this.tree.scrollTop = this.tree.scrollHeight;
+		this.refreshScrollChrome();
+	}
+
+	/** Sync scroll affordances after programmatic scrollTop changes (ObjectTree may not emit onDidScroll). */
+	refreshScrollChrome(): void {
+		this.updateScrollDownButtonVisibility();
+		this.updatePinnedUserPromptVisibility();
 	}
 
 	isScrolledToBottom(): boolean {

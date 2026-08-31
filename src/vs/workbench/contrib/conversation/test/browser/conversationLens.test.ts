@@ -111,6 +111,7 @@ suite('ConversationLens', () => {
 
 		const maxScrollTop = Math.max(0, tree.scrollHeight - tree.renderHeight - offsetFromBottom);
 		tree.scrollTop = Math.min(maxScrollTop, Math.max(scrollPastUser, 0));
+		timelineTree.refreshScrollChrome();
 	}
 
 	function getPinnedUserPrompt(slots: IConversationLensSlots): HTMLElement | null {
