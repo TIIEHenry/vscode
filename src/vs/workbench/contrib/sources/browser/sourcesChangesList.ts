@@ -37,6 +37,36 @@ import { SourcesListFilterBox } from './sourcesListFilterBox.js';
 
 const $ = dom.$;
 
+export interface ISourcesChangeEntryOpenOptions {
+	readonly preserveFocus?: boolean;
+	readonly pinned?: boolean;
+}
+
+/** Open a Changes/Review row via SCM working-tree diff when possible (same as SCM view). */
+export async function openSourcesChangeEntry(
+	entry: ISourcesChangeEntry,
+	editorService: IEditorService,
+	options: ISourcesChangeEntryOpenOptions,
+): Promise<void> {
+	if (entry.scmResource) {
+		await entry.scmResource.open(!!options.preserveFocus);
+		if (options.pinned) {
+			const activeEditorPane = editorService.activeEditorPane;
+			activeEditorPane?.group.pinEditor(activeEditorPane.input);
+		}
+		return;
+	}
+
+	await editorService.openEditor({
+		resource: entry.resource,
+		options: {
+			preserveFocus: options.preserveFocus,
+			pinned: options.pinned,
+			source: EditorOpenSource.USER,
+		},
+	}, ACTIVE_GROUP);
+}
+
 type SourcesChangeRowAction = 'stage' | 'unstage';
 
 class SourcesChangesDelegate implements IListVirtualDelegate<ISourcesChangeEntry> {
@@ -338,14 +368,10 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 				return;
 			}
 
-			await this.editorService.openEditor({
-				resource: element.resource,
-				options: {
-					preserveFocus: e.editorOptions.preserveFocus,
-					pinned: e.editorOptions.pinned,
-					source: EditorOpenSource.USER,
-				},
-			}, ACTIVE_GROUP);
+			await openSourcesChangeEntry(element, this.editorService, {
+				preserveFocus: e.editorOptions.preserveFocus,
+				pinned: e.editorOptions.pinned,
+			});
 		}));
 
 		this._register(this.list.onDidChangeSelection(() => this.updateSelectionToolbar()));

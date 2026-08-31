@@ -5,8 +5,8 @@
 
 import { localize } from '../../../../nls.js';
 
-/** Compact Review tab chrome — read-only SCM list; Preview not Diff; no review engine. */
+/** Compact Review tab chrome — read-only SCM list; no review engine. */
 export const sourcesReviewListHeaderHint = localize(
 	'sourcesReviewList.headerHint',
-	"Read-only list. Opens Preview, not Diff (FORK). Review engine not connected.",
+	"Read-only list. Review engine not connected.",
 );

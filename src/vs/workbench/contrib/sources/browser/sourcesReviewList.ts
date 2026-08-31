@@ -11,14 +11,14 @@ import { RunOnceScheduler } from '../../../../base/common/async.js';
 import { Event } from '../../../../base/common/event.js';
 import { Disposable, DisposableMap, DisposableStore } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
-import { EditorOpenSource } from '../../../../platform/editor/common/editor.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { WorkbenchList } from '../../../../platform/list/browser/listService.js';
 import { ResourceLabels, IResourceLabel } from '../../../browser/labels.js';
-import { ACTIVE_GROUP, IEditorService } from '../../../services/editor/common/editorService.js';
+import { IEditorService } from '../../../services/editor/common/editorService.js';
 import { ISCMRepository, ISCMService } from '../../scm/common/scm.js';
 import { filterSourcesEntries } from '../common/sourcesFilterModel.js';
 import { collectSourcesReviewEntries, ISourcesReviewEntry } from '../common/sourcesReviewModel.js';
+import { openSourcesChangeEntry } from './sourcesChangesList.js';
 import { SourcesListFilterBox } from './sourcesListFilterBox.js';
 import { sourcesReviewListHeaderHint } from './sourcesReviewListStrings.js';
 
@@ -176,14 +176,10 @@ export class SourcesReviewList extends Disposable {
 				return;
 			}
 
-			await this.editorService.openEditor({
-				resource: element.resource,
-				options: {
-					preserveFocus: e.editorOptions.preserveFocus,
-					pinned: false,
-					source: EditorOpenSource.USER,
-				},
-			}, ACTIVE_GROUP);
+			await openSourcesChangeEntry(element, this.editorService, {
+				preserveFocus: e.editorOptions.preserveFocus,
+				pinned: false,
+			});
 		}));
 
 		return this.list;
