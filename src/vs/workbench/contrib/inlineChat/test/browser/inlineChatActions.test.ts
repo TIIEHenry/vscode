@@ -37,7 +37,7 @@ suite('InlineChatActions - default window Copilot chrome', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('default Code window hides Open Inline Chat from Command Palette, editor context, and Ctrl+I', () => {
+	test('default Code window hides Open Inline Chat from Command Palette, editor context, Chat title bar, and Ctrl+I', () => {
 		const commandPaletteItem = MenuRegistry.getMenuItems(MenuId.CommandPalette)
 			.filter(isIMenuItem)
 			.find(item => item.command.id === ACTION_START);
@@ -51,6 +51,13 @@ suite('InlineChatActions - default window Copilot chrome', () => {
 
 		assert.ok(editorContextItem, 'Open Inline Chat should remain registered on editor context for Agents Window');
 		assert.ok(editorContextItem.when, 'Editor context item should have a when clause');
+
+		const chatTitleBarItem = MenuRegistry.getMenuItems(MenuId.ChatTitleBarMenu)
+			.filter(isIMenuItem)
+			.find(item => item.command.id === ACTION_START);
+
+		assert.ok(chatTitleBarItem, 'Open Inline Chat should remain registered on Chat title bar for Agents Window');
+		assert.ok(chatTitleBarItem.when, 'Chat title bar item should have a when clause');
 
 		const defaultWindow = { [IsSessionsWindowContext.key]: false };
 
@@ -73,6 +80,16 @@ suite('InlineChatActions - default window Copilot chrome', () => {
 			evalWhen(editorContextItem.when, agentsWindowInlineChatReady),
 			true,
 			'Agents Window may show Open Inline Chat in editor context menu'
+		);
+		assert.strictEqual(
+			evalWhen(chatTitleBarItem.when, defaultWindow),
+			false,
+			'default Code window must hide Open Inline Chat in Chat title bar menu'
+		);
+		assert.strictEqual(
+			evalWhen(chatTitleBarItem.when, agentsWindowInlineChatReady),
+			true,
+			'Agents Window may show Open Inline Chat in Chat title bar menu'
 		);
 	});
 

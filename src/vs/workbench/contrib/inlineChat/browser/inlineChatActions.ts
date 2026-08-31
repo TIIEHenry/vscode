@@ -84,6 +84,7 @@ export class StartSessionAction extends Action2 {
 				id: MenuId.ChatTitleBarMenu,
 				group: 'a_open',
 				order: 3,
+				when: startInlineChatWhen
 			}]
 		});
 	}
