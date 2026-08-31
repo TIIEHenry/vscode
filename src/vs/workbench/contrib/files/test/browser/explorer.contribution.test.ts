@@ -11,8 +11,6 @@ import { Extensions as ViewExtensions, IViewContainersRegistry, IViewsRegistry }
 import { IsSessionsWindowContext } from '../../../../common/contextkeys.js';
 import { VIEWLET_ID } from '../../common/files.js';
 import { explorerSidebarViewsWhen } from '../../browser/explorerViewlet.js';
-import { IOutlinePane } from '../../../outline/browser/outline.js';
-import { TimelinePaneId } from '../../../timeline/common/timeline.js';
 import { TimelineHasProviderContext } from '../../../timeline/common/timelineService.js';
 
 import '../../browser/explorerViewlet.js';
@@ -66,40 +64,36 @@ suite('ExplorerContribution - default window Activity', () => {
 
 		const viewsRegistry = Registry.as<IViewsRegistry>(ViewExtensions.ViewsRegistry);
 		const sidebarViews = viewsRegistry.getViews(viewContainer);
+		assert.ok(sidebarViews.length > 0, 'Files container should expose registered sidebar occupants');
 
-		const outlineView = sidebarViews.find(v => v.id === IOutlinePane.Id);
-		assert.ok(outlineView, 'Outline should remain registered in Files container');
-		assert.ok(outlineView.when, 'Outline should have a when clause');
-		assert.strictEqual(
-			evalWhen(outlineView.when, defaultWindow),
-			false,
-			'default Code window must hide Outline from Files sidebar'
-		);
-		assert.strictEqual(
-			evalWhen(outlineView.when, agentsWindow),
-			true,
-			'Agents Window may show Outline in Files sidebar'
-		);
-
-		const timelineView = sidebarViews.find(v => v.id === TimelinePaneId);
-		assert.ok(timelineView, 'Timeline should remain registered in Files container');
-		assert.ok(timelineView.when, 'Timeline should have a when clause');
 		const defaultWindowWithTimelineProvider = { ...defaultWindow, [TimelineHasProviderContext.key]: true };
 		const agentsWindowWithTimelineProvider = { ...agentsWindow, [TimelineHasProviderContext.key]: true };
-		assert.strictEqual(
-			evalWhen(timelineView.when, defaultWindowWithTimelineProvider),
-			false,
-			'default Code window must hide Timeline from Files sidebar even when a provider exists'
-		);
-		assert.strictEqual(
-			evalWhen(timelineView.when, agentsWindow),
-			false,
-			'Agents Window must hide Timeline without a provider'
-		);
-		assert.strictEqual(
-			evalWhen(timelineView.when, agentsWindowWithTimelineProvider),
-			true,
-			'Agents Window may show Timeline when a provider exists'
-		);
+
+		for (const view of sidebarViews) {
+			assert.ok(view.when, `${view.id} should have a when clause`);
+			assert.strictEqual(
+				evalWhen(view.when, view.id.includes('timeline') ? defaultWindowWithTimelineProvider : defaultWindow),
+				false,
+				`${view.id} must hide from default Code window Activity sidebar`
+			);
+			if (view.id.includes('timeline')) {
+				assert.strictEqual(
+					evalWhen(view.when, agentsWindow),
+					false,
+					'Agents Window must hide Timeline without a provider'
+				);
+				assert.strictEqual(
+					evalWhen(view.when, agentsWindowWithTimelineProvider),
+					true,
+					'Agents Window may show Timeline when a provider exists'
+				);
+			} else {
+				assert.strictEqual(
+					evalWhen(view.when, agentsWindow),
+					true,
+					`${view.id} may show in Agents Window Activity sidebar`
+				);
+			}
+		}
 	});
 });

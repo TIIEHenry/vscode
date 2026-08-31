@@ -18,6 +18,7 @@ import { ThemeIcon } from '../../../../base/common/themables.js';
 import { IContextMenuService } from '../../../../platform/contextview/browser/contextView.js';
 import { IExtensionService, isProposedApiEnabled } from '../../../services/extensions/common/extensions.js';
 import { FilterViewPaneContainer } from '../../../browser/parts/views/viewsViewlet.js';
+import { IsSessionsWindowContext } from '../../../common/contextkeys.js';
 import { VIEWLET_ID } from './remoteExplorer.js';
 import { IContextKeyService } from '../../../../platform/contextkey/common/contextkey.js';
 import { IViewDescriptor, IViewsRegistry, Extensions, ViewContainerLocation, IViewContainersRegistry, IViewDescriptorService } from '../../../common/views.js';
@@ -508,12 +509,15 @@ class HelpPanel extends ViewPane {
 	}
 }
 
+export const remoteHelpPanelWhen = IsSessionsWindowContext;
+
 class HelpPanelDescriptor implements IViewDescriptor {
 	readonly id = HelpPanel.ID;
 	readonly name = HelpPanel.TITLE;
 	readonly ctorDescriptor: SyncDescriptor<HelpPanel>;
 	readonly canToggleVisibility = true;
 	readonly hideByDefault = false;
+	readonly when = remoteHelpPanelWhen;
 	readonly group = 'help@50';
 	readonly order = -10;
 
