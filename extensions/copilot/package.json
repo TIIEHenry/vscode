@@ -6685,7 +6685,7 @@
           "id": "context-inspector",
           "name": "Language Context Inspector",
           "icon": "$(inspect)",
-          "when": "github.copilot.chat.showContextInspectorView"
+          "when": "github.copilot.chat.showContextInspectorView && isSessionsWindow"
         }
       ]
     },
@@ -6700,7 +6700,8 @@
         {
           "id": "context-inspector",
           "title": "Language Context Inspector",
-          "icon": "$(inspect)"
+          "icon": "$(inspect)",
+          "when": "isSessionsWindow"
         }
       ]
     },
@@ -6739,7 +6740,7 @@
         "id": "copilotWelcome",
         "title": "%github.copilot.walkthrough.title%",
         "description": "%github.copilot.walkthrough.description%",
-        "when": "!isWeb",
+        "when": "!isWeb && isSessionsWindow",
         "steps": [
           {
             "id": "copilot.setup.signIn",
