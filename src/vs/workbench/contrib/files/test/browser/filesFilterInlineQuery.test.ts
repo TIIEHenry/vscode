@@ -11,6 +11,7 @@ import { TestConfigurationService } from '../../../../../platform/configuration/
 import { TestInstantiationService } from '../../../../../platform/instantiation/test/common/instantiationServiceMock.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { NullFilesConfigurationService, TestFileService } from '../../../../test/common/workbenchTestServices.js';
+import { IEditableData } from '../../../../common/views.js';
 import { IExplorerService } from '../../browser/files.js';
 import { FilesFilter } from '../../browser/views/explorerViewer.js';
 import { ExplorerItem } from '../../common/explorerModel.js';
@@ -26,14 +27,17 @@ suite('Files - FilesFilter inline query', () => {
 	}
 
 	let root: ExplorerItem;
+	let src: ExplorerItem;
+	let index: ExplorerItem;
+	let readme: ExplorerItem;
 	let filter: FilesFilter;
 	let instantiationService: TestInstantiationService;
 
 	setup(() => {
 		root = createStat('/root', true, 'root');
-		const src = createStat('/root/src', true, 'src');
-		const index = createStat('/root/src/index.ts', false, 'index.ts');
-		const readme = createStat('/root/README.md', false, 'README.md');
+		src = createStat('/root/src', true, 'src');
+		index = createStat('/root/src/index.ts', false, 'index.ts');
+		readme = createStat('/root/README.md', false, 'README.md');
 
 		root.addChild(src);
 		src.addChild(index);
@@ -79,7 +83,10 @@ suite('Files - FilesFilter inline query', () => {
 		instantiationService.stub(IExplorerService, {
 			roots: [root],
 			findClosestRoot: () => root,
-			getEditableData: (stat: ExplorerItem | undefined) => stat === readme ? {} : undefined,
+			getEditableData: (stat: ExplorerItem): IEditableData | undefined => stat === readme ? {
+				validationMessage: () => null,
+				onFinish: async () => { },
+			} : undefined,
 		});
 		filter = instantiationService.createInstance(FilesFilter);
 		disposables.add(filter);
