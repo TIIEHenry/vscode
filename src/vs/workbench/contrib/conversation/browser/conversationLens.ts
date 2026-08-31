@@ -36,8 +36,10 @@ import {
 	conversationLensInputMaximizedClass,
 } from './conversationLensDockStrings.js';
 import { conversationLensSessionBarDeleteSession, conversationLensSessionBarHistoryListAria, conversationLensSessionBarHistoryTitle, conversationLensSessionBarNewSession, conversationLensSessionBarNoHistory, conversationLensSessionBarRenameInputAria, conversationLensSessionBarRenameTitle } from './conversationLensSessionBarStrings.js';
+import { showConversationPart } from './conversationSessionStatus.js';
 import { ConversationStubTurn } from './conversationStubModel.js';
 import { IConversationStubService } from './conversationStubService.js';
+import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { shouldRenderTurnAsMarkdown } from './conversationTurnMarkdown.js';
 
 /**
@@ -81,6 +83,7 @@ export class ConversationLens extends Disposable {
 		@IContextViewService private readonly contextViewService: IContextViewService,
 		@IConfigurationService private readonly configurationService: IConfigurationService,
 		@IMarkdownRendererService private readonly markdownRendererService: IMarkdownRendererService,
+		@IInstantiationService private readonly instantiationService: IInstantiationService,
 	) {
 		super();
 
@@ -397,6 +400,7 @@ export class ConversationLens extends Disposable {
 			this.drafts.set(previousId, this.dockTextarea.value);
 			this.stubService.switchSession(sessionId);
 		}
+		this.instantiationService.invokeFunction(showConversationPart);
 	}
 
 	private toggleHistoryContextView(): void {

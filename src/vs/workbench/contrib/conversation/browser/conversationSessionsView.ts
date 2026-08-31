@@ -22,6 +22,7 @@ import { IThemeService } from '../../../../platform/theme/common/themeService.js
 import { IViewPaneOptions, ViewAction, ViewPane } from '../../../browser/parts/views/viewPane.js';
 import { IViewDescriptorService } from '../../../common/views.js';
 import { ConversationStubSession } from './conversationStubModel.js';
+import { showConversationPart } from './conversationSessionStatus.js';
 import { IConversationStubService } from './conversationStubService.js';
 
 export const CONVERSATION_SESSIONS_VIEW_ID = 'workbench.view.conversationSessions';
@@ -161,6 +162,7 @@ export class ConversationSessionsView extends ViewPane {
 			const session = e.element;
 			if (session) {
 				this.stubService.switchSession(session.id);
+				this.instantiationService.invokeFunction(showConversationPart);
 			}
 		}));
 
