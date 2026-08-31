@@ -6,10 +6,31 @@
 import assert from 'assert';
 import { Delayer } from '../../../../../base/common/async.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
-import { isSettingsSearchUpToDate } from '../../browser/settingsEditor2.js';
+import { AGENTS_WINDOW_SETTING_TAG, FEATURE_SETTING_TAG } from '../../common/preferences.js';
+import { getSettingsSearchSuggestions, isSettingsSearchUpToDate } from '../../browser/settingsEditor2.js';
 
 suite('SettingsEditor2', () => {
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
+
+	suite('getSettingsSearchSuggestions', () => {
+		const chatSuggestion = `@${FEATURE_SETTING_TAG}chat`;
+		const searchSuggestion = `@${FEATURE_SETTING_TAG}search`;
+		const agentsWindowSuggestion = `@${AGENTS_WINDOW_SETTING_TAG}`;
+
+		test('default Code window omits @feature:chat and keeps @feature:search', () => {
+			const suggestions = getSettingsSearchSuggestions(false);
+			assert.ok(!suggestions.includes(chatSuggestion), 'default Code window must not suggest @feature:chat');
+			assert.ok(suggestions.includes(searchSuggestion), 'default Code window must keep @feature:search');
+			assert.ok(!suggestions.includes(agentsWindowSuggestion));
+		});
+
+		test('Agents window keeps @feature:chat and @feature:search', () => {
+			const suggestions = getSettingsSearchSuggestions(true);
+			assert.ok(suggestions.includes(chatSuggestion), 'Agents window must keep @feature:chat');
+			assert.ok(suggestions.includes(searchSuggestion), 'Agents window must keep @feature:search');
+			assert.ok(suggestions.includes(agentsWindowSuggestion));
+		});
+	});
 
 	suite('isSettingsSearchUpToDate', () => {
 		test('allows focus when search is idle and query matches rendered results', () => {

@@ -101,35 +101,12 @@ export function isSettingsSearchUpToDate(searchPending: boolean, renderedSearchQ
 	return !searchPending && renderedSearchQuery === currentSearchValue.trim();
 }
 
-const $ = DOM.$;
-
-const searchBoxLabel = localize('SearchSettings.AriaLabel', "Search settings");
-const searchBoxPlaceholderWithHistory = localize({
-	key: 'SearchSettings.PlaceholderWithHistory',
-	comment: ['Placeholder for the settings search input hinting that the up and down arrow keys navigate the search history. The character inserted for {0} is \u21C5 to represent the up and down arrow keys.']
-}, "Search settings ({0} for history)", '\u21C5');
-const SEARCH_TOC_BEHAVIOR_KEY = 'workbench.settings.settingsSearchTocBehavior';
-
-const SHOW_AI_RESULTS_ENABLED_LABEL = localize('showAiResultsEnabled', "Show AI-recommended results");
-const SHOW_AI_RESULTS_DISABLED_LABEL = localize('showAiResultsDisabled', "No AI results available at this time...");
-
-const SETTINGS_EDITOR_STATE_KEY = 'settingsEditorState';
-
-export class SettingsEditor2 extends EditorPane {
-
-	static readonly ID: string = 'workbench.editor.settings2';
-	private static NUM_INSTANCES: number = 0;
-	private static SEARCH_DEBOUNCE: number = 200;
-	private static SETTING_UPDATE_FAST_DEBOUNCE: number = 200;
-	private static SETTING_UPDATE_SLOW_DEBOUNCE: number = 1000;
-	private static CONFIG_SCHEMA_UPDATE_DELAYER = 500;
-	private static TOC_MIN_WIDTH: number = 100;
-	private static TOC_RESET_WIDTH: number = 200;
-	private static EDITOR_MIN_WIDTH: number = 500;
-	// Below NARROW_TOTAL_WIDTH, we only render the editor rather than the ToC.
-	private static NARROW_TOTAL_WIDTH: number = this.TOC_RESET_WIDTH + this.EDITOR_MIN_WIDTH;
-
-	private static SUGGESTIONS: string[] = [
+/**
+ * Settings search @-filter suggestions, assembled per window.
+ * Default Code window omits `@feature:chat`; Agents window keeps it.
+ */
+export function getSettingsSearchSuggestions(isSessionsWindow: boolean): string[] {
+	const suggestions: string[] = [
 		`@${MODIFIED_SETTING_TAG}`,
 		'@tag:notebookLayout',
 		'@tag:notebookOutputLayout',
@@ -158,9 +135,47 @@ export class SettingsEditor2 extends EditorPane {
 		`@${FEATURE_SETTING_TAG}remote`,
 		`@${FEATURE_SETTING_TAG}timeline`,
 		`@${FEATURE_SETTING_TAG}notebook`,
-		`@${FEATURE_SETTING_TAG}chat`,
-		`@${POLICY_SETTING_TAG}`
 	];
+	if (isSessionsWindow) {
+		suggestions.push(`@${FEATURE_SETTING_TAG}chat`);
+	}
+	suggestions.push(`@${POLICY_SETTING_TAG}`);
+	if (ENABLE_LANGUAGE_FILTER) {
+		suggestions.push(`@${LANGUAGE_SETTING_TAG}`);
+	}
+	if (isSessionsWindow) {
+		suggestions.push(`@${AGENTS_WINDOW_SETTING_TAG}`);
+	}
+	return suggestions;
+}
+
+const $ = DOM.$;
+
+const searchBoxLabel = localize('SearchSettings.AriaLabel', "Search settings");
+const searchBoxPlaceholderWithHistory = localize({
+	key: 'SearchSettings.PlaceholderWithHistory',
+	comment: ['Placeholder for the settings search input hinting that the up and down arrow keys navigate the search history. The character inserted for {0} is \u21C5 to represent the up and down arrow keys.']
+}, "Search settings ({0} for history)", '\u21C5');
+const SEARCH_TOC_BEHAVIOR_KEY = 'workbench.settings.settingsSearchTocBehavior';
+
+const SHOW_AI_RESULTS_ENABLED_LABEL = localize('showAiResultsEnabled', "Show AI-recommended results");
+const SHOW_AI_RESULTS_DISABLED_LABEL = localize('showAiResultsDisabled', "No AI results available at this time...");
+
+const SETTINGS_EDITOR_STATE_KEY = 'settingsEditorState';
+
+export class SettingsEditor2 extends EditorPane {
+
+	static readonly ID: string = 'workbench.editor.settings2';
+	private static NUM_INSTANCES: number = 0;
+	private static SEARCH_DEBOUNCE: number = 200;
+	private static SETTING_UPDATE_FAST_DEBOUNCE: number = 200;
+	private static SETTING_UPDATE_SLOW_DEBOUNCE: number = 1000;
+	private static CONFIG_SCHEMA_UPDATE_DELAYER = 500;
+	private static TOC_MIN_WIDTH: number = 100;
+	private static TOC_RESET_WIDTH: number = 200;
+	private static EDITOR_MIN_WIDTH: number = 500;
+	// Below NARROW_TOTAL_WIDTH, we only render the editor rather than the ToC.
+	private static NARROW_TOTAL_WIDTH: number = this.TOC_RESET_WIDTH + this.EDITOR_MIN_WIDTH;
 
 	private static shouldSettingUpdateFast(type: SettingValueType | SettingValueType[]): boolean {
 		if (Array.isArray(type)) {
@@ -261,6 +276,8 @@ export class SettingsEditor2 extends EditorPane {
 
 	private readonly inputChangeListener: MutableDisposable<IDisposable>;
 
+	private readonly suggestions: string[];
+
 	private searchInputActionBar: ActionBar | null = null;
 
 	constructor(
@@ -360,12 +377,7 @@ export class SettingsEditor2 extends EditorPane {
 
 		this.modelDisposables = this._register(new DisposableStore());
 
-		if (ENABLE_LANGUAGE_FILTER && !SettingsEditor2.SUGGESTIONS.includes(`@${LANGUAGE_SETTING_TAG}`)) {
-			SettingsEditor2.SUGGESTIONS.push(`@${LANGUAGE_SETTING_TAG}`);
-		}
-		if (this.environmentService.isSessionsWindow && !SettingsEditor2.SUGGESTIONS.includes(`@${AGENTS_WINDOW_SETTING_TAG}`)) {
-			SettingsEditor2.SUGGESTIONS.push(`@${AGENTS_WINDOW_SETTING_TAG}`);
-		}
+		this.suggestions = getSettingsSearchSuggestions(this.environmentService.isSessionsWindow);
 		this.inputChangeListener = this._register(new MutableDisposable());
 	}
 
@@ -762,7 +774,7 @@ export class SettingsEditor2 extends EditorPane {
 		const query = this.searchWidget.getValue();
 
 		const splitQuery = query.split(' ').filter(word => {
-			return word.length && !SettingsEditor2.SUGGESTIONS.some(suggestion => word.startsWith(suggestion));
+			return word.length && !this.suggestions.some(suggestion => word.startsWith(suggestion));
 		});
 
 		this.searchWidget.setValue(splitQuery.join(' '));
@@ -837,7 +849,7 @@ export class SettingsEditor2 extends EditorPane {
 						}).sort();
 						return installedExtensionsTags.filter(extFilter => !query.includes(extFilter));
 					} else if (query === '' || queryParts[queryParts.length - 1].startsWith('@')) {
-						return SettingsEditor2.SUGGESTIONS.filter(tag => !query.includes(tag)).map(tag => tag.endsWith(':') ? tag : tag + ' ');
+						return this.suggestions.filter(tag => !query.includes(tag)).map(tag => tag.endsWith(':') ? tag : tag + ' ');
 					}
 					return [];
 				}
