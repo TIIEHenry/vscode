@@ -29,7 +29,9 @@ import { editorBackground } from '../../../../platform/theme/common/colorRegistr
 import { getListStyles, getToggleStyles } from '../../../../platform/theme/browser/defaultStyles.js';
 import { IThemeService } from '../../../../platform/theme/common/themeService.js';
 import { EditorPane } from '../../../browser/parts/editor/editorPane.js';
+import { EditorInput } from '../../../common/editor/editorInput.js';
 import { IEditorOpenContext, IEditorSerializer } from '../../../common/editor.js';
+import { IWorkbenchEnvironmentService } from '../../../services/environment/common/environmentService.js';
 import { SIDE_BAR_FOREGROUND } from '../../../common/theme.js';
 import { IEditorGroup } from '../../../services/editor/common/editorGroupsService.js';
 import { IEditorService } from '../../../services/editor/common/editorService.js';
@@ -930,5 +932,33 @@ export class AgentSessionsWelcomeInputSerializer implements IEditorSerializer {
 
 	deserialize(instantiationService: IInstantiationService, serializedEditorInput: string): AgentSessionsWelcomeInput {
 		return new AgentSessionsWelcomeInput({});
+	}
+}
+
+/** Workbench registration: skip workspace restore of Agent Sessions Welcome in the default Code window. */
+export class AgentSessionsWelcomeInputWorkbenchSerializer implements IEditorSerializer {
+
+	private readonly _delegate = new AgentSessionsWelcomeInputSerializer();
+
+	constructor(
+		@IWorkbenchEnvironmentService private readonly environmentService: IWorkbenchEnvironmentService,
+	) { }
+
+	canSerialize(input: EditorInput): input is AgentSessionsWelcomeInput {
+		if (!this.environmentService.isSessionsWindow) {
+			return false;
+		}
+		return this._delegate.canSerialize(input as AgentSessionsWelcomeInput);
+	}
+
+	serialize(input: EditorInput): string | undefined {
+		return this._delegate.serialize(input as AgentSessionsWelcomeInput);
+	}
+
+	deserialize(instantiationService: IInstantiationService, serializedEditor: string): EditorInput | undefined {
+		if (!this.environmentService.isSessionsWindow) {
+			return undefined;
+		}
+		return this._delegate.deserialize(instantiationService, serializedEditor);
 	}
 }

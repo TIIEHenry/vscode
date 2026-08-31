@@ -36,6 +36,7 @@ import { AgentSessionsWelcomePage } from '../../welcomeAgentSessions/browser/age
 import { IChatEntitlementService } from '../../../services/chat/common/chatEntitlementService.js';
 import { focusConversationPart } from '../../chat/browser/actions/chatActions.js';
 import { IsSessionsWindowContext } from '../../../common/contextkeys.js';
+import { IWorkbenchEnvironmentService } from '../../../services/environment/common/environmentService.js';
 
 export * as icons from './gettingStartedIcons.js';
 
@@ -68,13 +69,14 @@ registerAction2(class extends Action2 {
 		const commandService = accessor.get(ICommandService);
 		const configurationService = accessor.get(IConfigurationService);
 		const chatEntitlementService = accessor.get(IChatEntitlementService);
+		const environmentService = accessor.get(IWorkbenchEnvironmentService);
 
 		const toSide = typeof optionsOrToSide === 'object' ? optionsOrToSide.toSide : optionsOrToSide;
 		const inactive = typeof optionsOrToSide === 'object' ? optionsOrToSide.inactive : false;
 		const activeEditor = editorService.activeEditor;
 
 		// If no specific walkthrough is requested and agent sessions welcome is preferred, open that instead
-		if (!walkthroughID && !chatEntitlementService.sentiment.hidden && configurationService.getValue<string>('workbench.startupEditor') === 'agentSessionsWelcomePage') {
+		if (!walkthroughID && environmentService.isSessionsWindow && !chatEntitlementService.sentiment.hidden && configurationService.getValue<string>('workbench.startupEditor') === 'agentSessionsWelcomePage') {
 			commandService.executeCommand(AgentSessionsWelcomePage.COMMAND_ID);
 			return;
 		} else {
