@@ -17,18 +17,27 @@ import { TestJSONEditingService } from '../../../configuration/test/common/testS
 import { IEditorService, MODAL_GROUP, PreferredGroup } from '../../../editor/common/editorService.js';
 import { IEditorGroupsService, IModalEditorPart } from '../../../editor/common/editorGroupsService.js';
 import { PreferencesService } from '../../browser/preferencesService.js';
-import { IPreferencesService, ISettingsEditorOptions } from '../../common/preferences.js';
+import { IPreferencesService, IPreferencesEditorOptions, ISettingsEditorOptions } from '../../common/preferences.js';
+import { PreferencesEditorInput, SettingsEditor2Input } from '../../common/preferencesEditorInput.js';
 import { IRemoteAgentService } from '../../../remote/common/remoteAgentService.js';
 import { TestRemoteAgentService, ITestInstantiationService, workbenchInstantiationService, TestEditorService, TestEditorGroupsService, TestEditorGroupView } from '../../../../test/browser/workbenchTestServices.js';
 import { IEditorOptions } from '../../../../../platform/editor/common/editor.js';
 import { TestConfigurationService } from '../../../../../platform/configuration/test/common/testConfigurationService.js';
+import { Registry } from '../../../../../platform/registry/common/platform.js';
+import { Extensions, IPreferencesEditorPaneRegistry } from '../../browser/preferencesEditorPaneRegistry.js';
+import { DisposableStore } from '../../../../../base/common/lifecycle.js';
+
+const TEST_CONNECTION_PANE_ID = 'ua.connection';
+const TEST_ENGINE_PANE_ID = 'ua.engine';
 
 suite('PreferencesService', () => {
+	let lastOpenEditorInput: EditorInput | IUntypedEditorInput | undefined;
 	let lastOpenEditorOptions: IEditorOptions | undefined;
 	let lastOpenEditorGroup: PreferredGroup | undefined;
 	const disposables = ensureNoDisposablesAreLeakedInTestSuite();
 
 	function createTestObject(editorGroupsService?: IEditorGroupsService, configurationService?: TestConfigurationService): PreferencesService {
+		lastOpenEditorInput = undefined;
 		lastOpenEditorOptions = undefined;
 		lastOpenEditorGroup = undefined;
 
@@ -39,8 +48,14 @@ suite('PreferencesService', () => {
 
 		class TestPreferencesEditorService extends TestEditorService {
 			override async openEditor(editor: EditorInput | IUntypedEditorInput, optionsOrGroup?: IEditorOptions | PreferredGroup, group?: PreferredGroup): Promise<undefined> {
-				lastOpenEditorOptions = optionsOrGroup as IEditorOptions;
-				lastOpenEditorGroup = group;
+				lastOpenEditorInput = editor;
+				if (group !== undefined) {
+					lastOpenEditorOptions = optionsOrGroup as IEditorOptions;
+					lastOpenEditorGroup = group;
+				} else {
+					lastOpenEditorOptions = undefined;
+					lastOpenEditorGroup = optionsOrGroup as PreferredGroup;
+				}
 				// openEditor takes ownership of the input
 				if (isEditorInput(editor)) {
 					editor.dispose();
@@ -63,6 +78,23 @@ suite('PreferencesService', () => {
 		collection.set(IPreferencesService, new SyncDescriptor(PreferencesService));
 		const instantiationService = disposables.add(testInstantiationService.createChild(collection));
 		return disposables.add(instantiationService.createInstance(PreferencesService));
+	}
+
+	function registerTestPane(id: string, order: number): DisposableStore {
+		const registry = Registry.as<IPreferencesEditorPaneRegistry>(Extensions.PreferencesEditorPane);
+		const store = new DisposableStore();
+		store.add(registry.registerPreferencesEditorPane({
+			id,
+			title: id,
+			order,
+			ctorDescriptor: new SyncDescriptor(class {
+				getDomNode() { return document.createElement('div'); }
+				layout() { }
+				search() { }
+				dispose() { }
+			}),
+		}));
+		return store;
 	}
 
 	test('options are preserved when calling openEditor', async () => {
@@ -98,5 +130,55 @@ suite('PreferencesService', () => {
 		await testObject.openUserSettings({ jsonEditor: false, groupId: modalGroup.id });
 
 		assert.strictEqual(lastOpenEditorGroup, MODAL_GROUP);
+	});
+
+	test('openPreferences with known paneId opens PreferencesEditorInput in MODAL_GROUP', async () => {
+		const paneRegistration = registerTestPane(TEST_CONNECTION_PANE_ID, 10);
+		disposables.add(paneRegistration);
+
+		const testObject = createTestObject();
+		await testObject.openPreferences({ paneId: TEST_CONNECTION_PANE_ID });
+
+		assert.ok(isEditorInput(lastOpenEditorInput));
+		assert.strictEqual((lastOpenEditorInput as EditorInput).typeId, PreferencesEditorInput.ID);
+		assert.strictEqual((lastOpenEditorOptions as IPreferencesEditorOptions).paneId, TEST_CONNECTION_PANE_ID);
+		assert.strictEqual(lastOpenEditorGroup, MODAL_GROUP);
+	});
+
+	test('openPreferences with engine paneId opens PreferencesEditorInput with paneId', async () => {
+		const paneRegistration = registerTestPane(TEST_ENGINE_PANE_ID, 20);
+		disposables.add(paneRegistration);
+
+		const testObject = createTestObject();
+		await testObject.openPreferences({ paneId: TEST_ENGINE_PANE_ID });
+
+		assert.ok(isEditorInput(lastOpenEditorInput));
+		assert.strictEqual((lastOpenEditorInput as EditorInput).typeId, PreferencesEditorInput.ID);
+		assert.strictEqual((lastOpenEditorOptions as IPreferencesEditorOptions).paneId, TEST_ENGINE_PANE_ID);
+		assert.strictEqual(lastOpenEditorGroup, MODAL_GROUP);
+	});
+
+	test('openPreferences without paneId opens PreferencesEditorInput in MODAL_GROUP', async () => {
+		const paneRegistration = registerTestPane(TEST_CONNECTION_PANE_ID, 10);
+		disposables.add(paneRegistration);
+
+		const testObject = createTestObject();
+		await testObject.openPreferences();
+
+		assert.ok(isEditorInput(lastOpenEditorInput));
+		assert.strictEqual((lastOpenEditorInput as EditorInput).typeId, PreferencesEditorInput.ID);
+		assert.strictEqual(lastOpenEditorGroup, MODAL_GROUP);
+	});
+
+	test('openPreferences with unknown paneId opens Settings without query or revealSetting', async () => {
+		const testObject = createTestObject();
+		await testObject.openPreferences({ paneId: 'ua.unknown' });
+
+		assert.ok(isEditorInput(lastOpenEditorInput));
+		assert.strictEqual((lastOpenEditorInput as EditorInput).typeId, SettingsEditor2Input.ID);
+		const options = lastOpenEditorOptions as ISettingsEditorOptions;
+		assert.strictEqual(options.query, undefined);
+		assert.strictEqual(options.revealSetting, undefined);
+		assert.notStrictEqual((lastOpenEditorInput as EditorInput).typeId, PreferencesEditorInput.ID);
 	});
 });
