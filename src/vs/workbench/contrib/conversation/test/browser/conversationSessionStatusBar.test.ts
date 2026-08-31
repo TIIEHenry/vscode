@@ -5,9 +5,10 @@
 
 import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
-import { IStatusbarEntry, IStatusbarService } from '../../../../services/statusbar/browser/statusbar.js';
-import { TestEnvironmentService, workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
+import { IWorkbenchEnvironmentService } from '../../../../services/environment/common/environmentService.js';
+import { IStatusbarEntry, IStatusbarService, StatusbarAlignment } from '../../../../services/statusbar/browser/statusbar.js';
 import { IWorkbenchLayoutService } from '../../../../services/layout/browser/layoutService.js';
+import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import {
 	ConversationSessionStatusBarContribution,
 	registerConversationSessionStatusBar,
@@ -23,13 +24,15 @@ suite('Conversation Session StatusBar', () => {
 
 		const entries = new Map<string, IStatusbarEntry>();
 		const statusbarService = {
-			addEntry: (entry: IStatusbarEntry, id: string) => {
+			_serviceBrand: undefined,
+			addEntry: (entry: IStatusbarEntry, id: string, _alignment: StatusbarAlignment, _priority?: number) => {
 				entries.set(id, entry);
 				return { update: () => { }, dispose: () => { } };
 			},
 		} as IStatusbarService;
 
 		const stubService = {
+			_serviceBrand: undefined,
 			onDidChangeActiveSession: () => ({ dispose: () => { } }),
 			onDidChangeSession: () => ({ dispose: () => { } }),
 			getActiveSessionId: () => undefined,
@@ -37,22 +40,29 @@ suite('Conversation Session StatusBar', () => {
 		} as IConversationRosterService;
 
 		const layoutService = {
+			_serviceBrand: undefined,
 			isVisible: () => false,
 			onDidChangePartVisibility: () => ({ dispose: () => { } }),
 		} as IWorkbenchLayoutService;
 
-		const instantiationService = workbenchInstantiationService(undefined, store);
+		const environmentService = {
+			_serviceBrand: undefined,
+			isSessionsWindow: false,
+		} as IWorkbenchEnvironmentService;
 
-		store.add(instantiationService.createInstance(
-			ConversationSessionStatusBarContribution,
-			stubService,
-			statusbarService,
-			layoutService,
-			TestEnvironmentService,
-		));
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IConversationRosterService, stubService);
+		instantiationService.stub(IStatusbarService, statusbarService);
+		instantiationService.stub(IWorkbenchLayoutService, layoutService);
+		instantiationService.stub(IWorkbenchEnvironmentService, environmentService);
+
+		store.add(instantiationService.createInstance(ConversationSessionStatusBarContribution));
 
 		const engineEntry = entries.get(ConversationSessionStatusBarContribution.ENGINE_ENTRY_ID);
 		assert.ok(engineEntry?.command);
-		assert.strictEqual(engineEntry.command!.id, OPEN_CONNECTION_PREFERENCES_COMMAND_ID);
+		const commandId = typeof engineEntry.command === 'string'
+			? engineEntry.command
+			: engineEntry.command.id;
+		assert.strictEqual(commandId, OPEN_CONNECTION_PREFERENCES_COMMAND_ID);
 	});
 });
