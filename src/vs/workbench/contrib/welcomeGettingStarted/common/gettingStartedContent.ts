@@ -14,6 +14,7 @@ import { NotebookSetting } from '../../notebook/common/notebookCommon.js';
 import { CONTEXT_ACCESSIBILITY_MODE_ENABLED } from '../../../../platform/accessibility/common/accessibility.js';
 import { URI } from '../../../../base/common/uri.js';
 import product from '../../../../platform/product/common/product.js';
+import { IsSessionsWindowContext } from '../../../common/contextkeys.js';
 
 interface IGettingStartedContentProvider {
 	(): string;
@@ -242,7 +243,7 @@ function createCopilotSetupStep(id: string, button: string, when: string, includ
 		id,
 		title: CopilotStepTitle,
 		description,
-		when: `${when} && !chatSetupHidden && !chatSetupDisabledInWorkspace`,
+		when: `${when} && !chatSetupHidden && !chatSetupDisabledInWorkspace && ${IsSessionsWindowContext.key}`,
 		media: {
 			type: 'svg', altText: 'VS Code Copilot multi file edits', path: 'multi-file-edits.svg'
 		},
