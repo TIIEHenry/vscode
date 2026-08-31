@@ -38,10 +38,6 @@ export interface ITOCEntry<T> {
 	hide?: boolean;
 }
 
-function uaClientGroupNotConnected(label: string): string {
-	return localize({ key: 'uaClientGroupNotConnected', comment: ['{0} is a Client settings group name such as Display'] }, "{0} is not connected — no engine.", label);
-}
-
 export function uaClientLocalGroupEmptyCopy(scope: string): string {
 	return localize({ key: 'uaClientLocalGroupEmptyCopy', comment: ['{0} is a lowercase client settings scope such as display or chat input'] }, "No {0} settings yet", scope);
 }
@@ -513,13 +509,13 @@ export const tocData: ITOCEntry<string> = {
 					id: 'ua/permissions',
 					label: localize('uaPermissions', "Permissions"),
 					settings: ['ua.client.permissions.*'],
-					emptyCopy: uaClientGroupNotConnected(localize('uaPermissions', "Permissions")),
+					emptyCopy: uaClientLocalGroupEmptyCopy(localize('uaPermissionsScope', "permissions")),
 				},
 				{
 					id: 'ua/clientTools',
 					label: localize('uaClientTools', "Client Tools"),
 					settings: ['ua.client.clientTools.*'],
-					emptyCopy: uaClientGroupNotConnected(localize('uaClientTools', "Client Tools")),
+					emptyCopy: uaClientLocalGroupEmptyCopy(localize('uaClientToolsScope', "client tools")),
 				},
 				{
 					id: 'ua/connection',
