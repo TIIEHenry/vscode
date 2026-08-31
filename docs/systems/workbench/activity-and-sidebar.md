@@ -3,7 +3,7 @@ title: "ActivityBar 与 Sidebar：容器绑定与显隐"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-08-30
+updated: 2026-08-31
 summary: "ACTIVITYBAR_PART 与 SIDEBAR_PART 的从属与 grid 关系、ViewContainer 如何变成图标、显隐 API 与 activityBar.location；对照 Desktop Navigator"
 ---
 
@@ -94,4 +94,5 @@ Sidebar 显隐 **不** 自动藏 Activity；点已激活图标收起的是 Sideb
 ## 6. 相关文档
 
 - [parts-and-grid](parts-and-grid.md) · [Workbench 概览](overview.md) · [壳映射](../../reference/code-oss-b2/desktop-shell-mapping.md)
+- [navigator-tabs-access](../../reference/code-oss-b2/navigator-tabs-access.md) — 各 tab 子页重设计（draft）
 - `src/vs/workbench/browser/parts/{activitybar,sidebar,globalCompositeBar.ts}` · `common/views.ts`

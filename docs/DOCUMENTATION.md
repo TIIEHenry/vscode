@@ -3,7 +3,7 @@ title: "Documentation System — LLM Maintenance Rules"
 type: concept
 status: accepted
 phase: N/A
-updated: 2026-08-30
+updated: 2026-08-31
 summary: "本仓库 LLM 文档维护规则；结构见 DOCS-SPEC.md"
 ---
 
@@ -19,12 +19,13 @@ summary: "本仓库 LLM 文档维护规则；结构见 DOCS-SPEC.md"
 | 区域 | 路径 | 职责 |
 |:-----|:-----|:-----|
 | 知识库 | `docs/` | 相对稳定的设计 spec 与导航 |
+| 产品需求 | `docs/product/` | Agent IDE 产品愿景、`PRD-NNN`、追踪；知识库的产品层 |
 | 就近 SSOT | `src/vs/sessions/*.md` 等既有规格 | 不迁走、不复制正文 |
 | 行动层 | `dev/` | status、plan、ADR、iteration |
 | 归档 | `dev/archive/` | 过时文档只移入、不删除 |
 | 根指令 | `AGENTS.md`、`.github/copilot-instructions.md` | 项目向导（豁免 docs frontmatter） |
 
-**四层定位**：`docs/modules/` 分层导航 · `docs/systems/` 跨层协作 · `docs/architecture/` 全景横切 · `dev/` 行动层。
+**五类职责**：`docs/product/` 产品需求 · `docs/modules/` 分层导航 · `docs/systems/` 跨层协作 · `docs/architecture/` 全景横切 · `dev/` 行动层。
 
 **LLM 新会话必读顺序**：`AGENTS.md` → 本文件 → `dev/progress/status.md`
 
@@ -135,6 +136,21 @@ summary: "一行描述"
 
 先搜已有文档与就近 SSOT，用链接引用。
 
+### 规则 10a：产品需求变更顺序
+
+用户可见产品行为变化按此顺序，禁止倒过来：
+
+1. 更新 `docs/product/requirements.md` 对应 `PRD-NNN`（必要时先改 `vision.md`）
+2. 更新 `docs/product/traceability.md`
+3. 更新相关 `docs/systems/` / `docs/architecture/` / B2 实现真相
+4. 更新或新增 `dev/plans/` 实施方案
+
+需求 ID 格式为 `PRD-NNN`（三位数字，首批 `PRD-001` 起）。状态为 `proposed` | `accepted` | `implemented` | `blocked`。没有验证证据不得标 `implemented`。
+
+权威边界：本仓 `docs/product/` 是 Agent IDE 产品需求 SSOT。UniverseAgentDesktop 相关文档只能作为 `source` 或历史链接。不得通过整篇外仓链接隐式继承规范。外仓冲突在 `traceability.md` 留出处，不静默覆盖。
+
+产品层 frontmatter type：`INDEX.md` 用 `index`，`vision.md` 用 `concept`，`requirements.md` 用 `demand`，`traceability.md` 用 `reference`。
+
 ### 规则 11：索引随结构变更
 
 更新 `docs/INDEX.md`、相关模块/系统 INDEX、`dev/*/INDEX.md`，然后跑健康检查。
@@ -145,7 +161,18 @@ summary: "一行描述"
 
 ### 规则 13：方案与实施分离
 
-方案 commit 与实施 commit 分开；各自提交前满足规则 3a，提交时满足 3b。禁止跳过方案直接编码（trivial bugfix 除外）。
+方案 commit 与实施 commit 分开；各自提交前满足规则 3a，提交时满足 3b。禁止跳过方案直接编码（trivial bugfix 除外）。方案正文写完后须先满足 **规则 16**，再进入实施。
+
+### 规则 16：方案写完必须经 Opus 5.0 审查再改稿
+
+对 `dev/plans/` 新方案或实质改写、以及 `docs/reference/code-oss-b2/` 页面接入 / 映射方案：
+
+1. **写完即审**：同一会话内派只读 reviewer（Cursor Task：`generalPurpose` + **`claude-opus-5-thinking-high`** = Opus 5.0）。一篇方案一个 reviewer；多篇并行。
+2. Reviewer **不改文件**。产出 Strengths / Critical / Important / Minor / Assessment。
+3. 父 agent **核验后改稿**：Critical 与 Important 当轮改入方案；与 HEAD 或已拍板合同冲突的意见写明不采纳原因。Minor 可记父方案，不阻塞。
+4. 未走本门禁不得把方案标成可签收完成，也不得开实施切片。
+
+Cursor 侧提醒见 `.cursor/rules/scheme-opus-review.mdc`。流程见 [multi-agent-design-workflow](guides/multi-agent-design-workflow.md)。
 
 ### 规则 14：会话结束自检
 
@@ -160,6 +187,7 @@ summary: "一行描述"
 ## 4. 检索提示
 
 ```
+了解产品目标 → docs/product/INDEX.md
 了解分层     → docs/modules/<layer>/INDEX.md
 了解跨层协作 → docs/systems/<system>/INDEX.md
 了解决策     → dev/decisions/
@@ -174,6 +202,7 @@ summary: "一行描述"
 | 我想... | 去哪里 |
 |:--------|:-------|
 | 项目全貌 | `AGENTS.md` |
+| 产品需求 | docs/product/INDEX.md |
 | 文档规则 | 本文件 |
 | 当前状态 | `dev/progress/status.md` |
 | 分层设计 | `docs/modules/<layer>/INDEX.md` |

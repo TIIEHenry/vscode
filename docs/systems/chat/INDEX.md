@@ -3,8 +3,8 @@ title: "Chat 系统索引"
 type: index
 status: accepted
 phase: N/A
-updated: 2026-08-30
-summary: "跨层 Chat：contrib 模型/UI、宿主清单、Copilot 边界、sessions 窗口消费"
+updated: 2026-08-31
+summary: "跨层 Chat：contrib 模型/UI、宿主清单、Copilot 边界、sessions 窗口消费、页面接入草案"
 ---
 
 # Chat
@@ -40,6 +40,7 @@ chat **不是** `vs/` 层；import 方向仍是 workbench contrib ← sessions�
 - [Agent UI 清单](agent-ui.md) — Widget / 宿主 / Sessions Part / INV-TOPO / Copilot 边界
 - [Widget 零件](widget-parts.md) — 列表、输入、content parts（Input Dock donor）
 - [工具与编辑会话](tools-and-editing.md) — tools / ChatEditingSession
+- [会话列表复用](../../reference/code-oss-b2/session-roster-reuse.md) · [透镜组装](../../reference/code-oss-b2/conversation-lens-assembly.md) — 页面接入（draft）
 
 ## 相关文档
 

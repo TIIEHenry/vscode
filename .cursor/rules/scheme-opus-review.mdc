@@ -1,0 +1,23 @@
+---
+description: 方案写完必须用 Opus 5.0 审查并按可核验意见改稿
+globs: dev/plans/**/*.md,docs/reference/code-oss-b2/**/*.md
+alwaysApply: false
+---
+
+# 方案 Opus 5.0 审查门禁
+
+写完或实质改写 **方案**（`dev/plans/*.md`、`docs/reference/code-oss-b2/` 接入/映射稿）后，**同一轮必须**走完审查再宣称方案完成。细节：[DOCUMENTATION.md 规则 16](../../docs/DOCUMENTATION.md)。
+
+## 必做
+
+1. 用 Task 派 **只读** reviewer：`subagent_type=generalPurpose`，`model=claude-opus-5-thinking-high`（Opus 5.0）。
+2. **一篇方案一个 reviewer**；多篇则同一条消息里并行派出。
+3. 审查范围：HEAD 代码事实、非正式 vs 已拍板、偷换、外仓合同有无被发明、跨文矛盾、缺锚点。
+4. 核验后再改：Critical / Important 当轮改；Minor 可记入文末或父方案。审查错了要写清反驳，禁止表演性全盘接受。
+5. 改稿后更新 `updated`，必要时补一句「已经 Opus 5.0 审查」。
+
+## 禁止
+
+- 写完方案直接说「已落盘 / 完成」而不派审查。
+- 让 reviewer **改文件**（只出 Strengths / Issues / Assessment）。
+- 用非 Opus 5.0 模型顶替本门禁。

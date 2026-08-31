@@ -188,6 +188,8 @@ B2 接到 UniverseAgent 后，这些选择器要 **换或旁路**。不得用这
 
 `IAgentSessionsService` 侧栏的批量管理命令（Archive All、Mark All Read、Delete All Local Sessions、Show/Hide/Toggle Agent Sessions Sidebar、Focus Agent Sessions 等）仅在 **Agents Window**（`IsSessionsWindowContext`）的 Command Palette 中列出；默认 Code 窗口不暴露这些 F1 入口，产品会话列表走 `IConversationStubService` / Conversation Navigator，而非 Copilot Agent Sessions 管理面。
 
+`workbench.action.chat.openSessionInEditorGroup`（Open as Editor）**不在**上述 F1 门闩集合：`when` 是 `IsSessionsWindowContext.negate()`（默认窗启用）。默认窗未挂 agentSessions viewer，故当前不可达；属未闭合 INV-TOPO 项，见 [session-roster-reuse](../../reference/code-oss-b2/session-roster-reuse.md) §3。
+
 ## 8.2 Chat widget chrome 命令面板（INV-NO-COPILOT）
 
 默认 Code 窗口 Command Palette 不列出 Copilot **Chat widget 内导航 / 上下文 / 代码块 / 查找 / 文件树 / 无障碍 / 提示导航** 捐赠命令（`IsSessionsWindowContext` 门闩；Agents Window 保留）：`workbench.action.chat.attachFile`、`workbench.action.chat.attachPinnedEditors`、`workbench.action.chat.attachSelection`、`workbench.action.chat.insertCodeBlock`、`workbench.action.chat.insertIntoNewFile`、`workbench.action.chat.runInTerminal`、`workbench.action.chat.nextCodeBlock`、`workbench.action.chat.previousCodeBlock`、`workbench.action.chat.find`、`workbench.action.chat.nextFileTree`、`workbench.action.chat.previousFileTree`、`workbench.action.chat.focusConfirmation`、`workbench.action.chat.toggleThinkingContentAccessibleView`、`workbench.action.chat.nextUserPrompt`、`workbench.action.chat.previousUserPrompt`。各命令在 Chat widget 内的 **keybinding** 与上下文菜单保留；仅 F1 入口受门闩。
@@ -197,4 +199,5 @@ B2 接到 UniverseAgent 后，这些选择器要 **换或旁路**。不得用这
 - [Agent UI 清单](agent-ui.md) — 宿主、INV-TOPO、Copilot 边界
 - [Chat 概览](overview.md) — `IChatService` / 工具 / 编辑会话协作
 - [壳映射](../../reference/code-oss-b2/desktop-shell-mapping.md) — Conversation Part 与 Widget 的壳层差
+- [透镜组装](../../reference/code-oss-b2/conversation-lens-assembly.md) — 三槽怎么装（draft）；本文只盘零件
 - 文件夹地图 SSOT：[chatCodeOrganization.md](../../../src/vs/workbench/contrib/chat/chatCodeOrganization.md)

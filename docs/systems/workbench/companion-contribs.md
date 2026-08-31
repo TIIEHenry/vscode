@@ -117,5 +117,6 @@ B2 不要把「SCM 已能出 Diff」读成 ADR-047 已满足：出 Diff 的 **�
 
 - [Workbench 概览](overview.md) · [Parts / Grid](parts-and-grid.md)
 - [Desktop 壳映射](../../reference/code-oss-b2/desktop-shell-mapping.md)
+- [Navigator tab 适配](../../reference/code-oss-b2/navigator-tabs-access.md) — Files 留 Explorer，不搬进 Sources
 - [modules/workbench 贡献规则](../../modules/workbench/overview.md)
 - 外仓：experience-principles §2 · IA §4 · ADR-047 · ADR-051

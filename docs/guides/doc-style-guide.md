@@ -3,7 +3,7 @@ title: "文档文体指南"
 type: guide
 status: accepted
 phase: N/A
-updated: 2026-08-30
+updated: 2026-08-31
 summary: "本仓库 docs/ 与 dev/ 的写作约定：frontmatter、INDEX 与概览、禁止在 src/vs 建文档树、用链接引用不复制"
 ---
 
@@ -51,10 +51,11 @@ summary: "一行描述"
 - 上游或源码旁的介绍仍可能叫 `README.md`。
 - `docs/` 里新增指南不要再额外建 `README.md`（已有 `docs/README.md`、`dev/README.md` 除外）。
 
-四层定位（不要写错目录）：
+五类职责（不要写错目录）：
 
 | 区域 | 写什么 |
 |------|--------|
+| `docs/product/` | 产品需求（为什么、给谁、怎样算成功） |
 | `docs/modules/` | 单层导航 |
 | `docs/systems/` | 跨层协作 |
 | `docs/architecture/` | 全景与横切 |

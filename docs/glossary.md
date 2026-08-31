@@ -4,7 +4,7 @@ type: concept
 status: accepted
 phase: N/A
 updated: 2026-08-31
-summary: "本仓库核心术语的单一事实源：分层、Parts、Agent UI 宿主与文档约定；长规格用链接，不在此复述"
+summary: "本仓库核心术语的单一事实源：分层、Parts、Agent UI 宿主、页面接入与文档约定；长规格用链接，不在此复述"
 ---
 
 # 术语表
@@ -14,6 +14,8 @@ summary: "本仓库核心术语的单一事实源：分层、Parts、Agent UI �
 | 术语 | 定义 | 详见 |
 |------|------|------|
 | **Code - OSS** | 本仓库开发的开源编辑器产品；Visual Studio Code 是带 Microsoft 定制的发行版。 | [README.md](../README.md) |
+| **Agent IDE** | 本仓产品：主流程在 Conversation，配套按完整 IDE 配齐。 | [vision.md](product/vision.md) |
+| **PRD-NNN** | 本仓产品需求稳定 ID。 | [requirements.md](product/requirements.md) |
 | **layer** | `src/vs/` 下按依赖方向排序的源码层。低层不得依赖高层。 | [分层规则](architecture/cross-cutting/layers.md) · [source-code-organization](../.github/instructions/source-code-organization.instructions.md) |
 | **base** | 最底层：无服务依赖的工具与 UI 积木，路径 `src/vs/base/`。 | [modules/base](modules/base/INDEX.md) |
 | **platform** | DI 基础设施与跨层基础服务，路径 `src/vs/platform/`。 | [modules/platform](modules/platform/INDEX.md) |
@@ -48,5 +50,9 @@ summary: "本仓库核心术语的单一事实源：分层、Parts、Agent UI �
 | **ChatWidget** | contrib/chat 的对话列表+输入零件；可被多种宿主嵌套。 | [agent-ui](systems/chat/agent-ui.md) |
 | **ChatEditor / ChatEditorInput** | 把对话做成 `EDITOR_PART` 的 tab。B2 **INV-TOPO 禁止**以此当 Conversation 中心。 | [agent-ui](systems/chat/agent-ui.md) |
 | **INV-TOPO** | Desktop B2：Conversation 不是 `EditorInput` / Custom Editor / 普通 EditorGroup tab。 | [code-oss-b2](reference/code-oss-b2/INDEX.md) |
+| **SettingsEditor2** | vscode Preferences UI（`EDITOR_PART` tab）。B2 推荐作默认窗 Settings 宿主，非正式决策。 | [settings-ua-access](reference/code-oss-b2/settings-ua-access.md) |
+| **ConversationSessionsView** | Navigator 产品会话 roster（Explorer `ViewPane` + `WorkbenchList`）；数据今天是 stub。 | [session-roster-reuse](reference/code-oss-b2/session-roster-reuse.md) |
+| **ConversationLens** | 填进 `CONVERSATION_PART` 三槽的产品面：SessionBar / Timeline / Dock。 | [透镜组装](reference/code-oss-b2/conversation-lens-assembly.md) |
+| **Navigator tab** | Activity 上一段 = Sidebar 一个 `ViewContainer`（Files / Sessions / Projects / Agents / Team）。子页按 vscode 列表/树重设计，不抄 Compose panel。 | [navigator-tabs-access](reference/code-oss-b2/navigator-tabs-access.md) |
 
 上游产品与贡献流程不在本表展开，见 [How to Contribute](https://github.com/microsoft/vscode/wiki/How-to-Contribute) 与 [快速开始](guides/getting-started.md)。

@@ -3,8 +3,8 @@ title: "B2 改造前：本仓分析文档缺口"
 type: reference
 status: accepted
 phase: N/A
-updated: 2026-08-30
-summary: "对照 Desktop B2/S1 spike：首波分层导航不够；必须补 UI 框架、Agent UI 宿主、壳映射与 T1–T3 代码事实"
+updated: 2026-08-31
+summary: "对照 Desktop B2/S1 spike：首波分层导航不够；必须补 UI 框架、Agent UI 宿主、壳映射、页面接入与 T1–T3 代码事实"
 ---
 
 # B2 改造前：本仓分析文档缺口
@@ -34,14 +34,28 @@ summary: "对照 Desktop B2/S1 spike：首波分层导航不够；必须补 UI �
 | 编码/校验 | `.github/copilot-instructions.md` | 只链 |
 | Desktop 产品壳 | UniverseAgentDesktop IA / spec / ADR-052 | 只映射，不改外仓合同 |
 
-## 3. 仍须外仓/spike 交付、不在本簇伪造的
+## 3. 页面接入（2026-08-31 已补草案）
+
+壳映射只回答 Parts / 四钮。Singularity **页面**怎么接到 vscode 宿主，原不在本簇。现已落 **draft**（非正式决策，须签收）：
+
+| 问题 | 方案 |
+|------|------|
+| Settings 怎么接 UA 三层、是否自研 Overlay？ | [settings-ua-access](settings-ua-access.md) — 推荐 `SettingsEditor2` |
+| 会话列表复用哪个类、数据从哪来？ | [session-roster-reuse](session-roster-reuse.md) — 保持 `ConversationSessionsView`，换服务不换 View |
+| ChatWidget 零件怎么装进三槽？ | [conversation-lens-assembly](conversation-lens-assembly.md) — 禁止整块 `ChatWidget.render()` |
+| Navigator 各 tab 怎么按 vscode 零件重设计？ | [navigator-tabs-access](navigator-tabs-access.md) — 一段一容器；Files 留 Explorer；Projects/Agents/Team 换树/列表，不抄 Compose |
+
+父方案：[page-access-schemes](../../../dev/plans/page-access-schemes.md)。Welcome / Palette Overlay / AppTabBar 多会话 tab 仍次优先，本簇不伪造。
+
+## 4. 仍须外仓/spike 交付、不在本簇伪造的
 
 - `eh-surface-matrix.md` 的 **探针实测**（装 2–3 枚扩展）— 本文只有贡献点地图
 - 四钮演示录屏、diff footprint、Go/Kill
 - UniverseAgent adapter / session-core（spike §4.2 明确不做）
 - ADR-003 token 全量迁 workbench CSS
+- 页面接入三页的 **人类签收**（现为 draft）
 
-## 4. 结论（改造顺序）
+## 5. 结论（改造顺序）
 
 1. **先读** Parts/Grid + 两套窗口差异，再动 `Layout.createGridDescriptor`。
 2. **Conversation 宿主**只能是新 Part 或（经论证后）Sessions Part 语义移植；**禁止** `ChatEditor` / `ChatEditorInput` 占中心。

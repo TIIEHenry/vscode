@@ -9,6 +9,8 @@ summary: "三切片已落地：透镜 stub 产品面、Chat/Aux 卫生、文档�
 
 # M2 产品壳（无引擎）
 
+> **产品需求层回链（后补，不改本方案历史正文）**：现行产品陈述以 [docs/product/requirements.md](../../docs/product/requirements.md) 为准；本文件「产品完成线」只是 M2 当时记录。入口：[docs/product/INDEX.md](../../docs/product/INDEX.md)。
+
 > **前置**：[m0-topology-surgery.md](m0-topology-surgery.md) · [m1-shell-followon.md](m1-shell-followon.md)（均 `implemented`，代码事实）。  
 > **决策**：外仓 [ADR-061](https://github.com/TIIEHenry/UniverseAgentDesktop/blob/main/dev/decisions/061-code-oss-base-and-editor-window-shell.md)（`accepted`，只读）。  
 > **本仓事实**：[parts-and-grid](../../docs/systems/workbench/parts-and-grid.md) · [desktop-shell-mapping](../../docs/reference/code-oss-b2/desktop-shell-mapping.md) · [agent-ui](../../docs/systems/chat/agent-ui.md) · [panel-and-auxiliary-bar](../../docs/systems/workbench/panel-and-auxiliary-bar.md) · [companion-contribs](../../docs/systems/workbench/companion-contribs.md) · [views-and-composites](../../docs/systems/workbench/views-and-composites.md)

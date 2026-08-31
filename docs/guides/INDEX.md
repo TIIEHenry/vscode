@@ -3,8 +3,8 @@ title: "指南索引"
 type: index
 status: accepted
 phase: N/A
-updated: 2026-08-30
-summary: "辅助指南导航：从本仓库构建运行、以及 docs/ 写作约定"
+updated: 2026-08-31
+summary: "辅助指南导航：构建运行、docs 写作、方案 Opus 5.0 审查"
 ---
 
 # 指南索引
@@ -17,7 +17,7 @@ summary: "辅助指南导航：从本仓库构建运行、以及 docs/ 写作约
 |------|------|
 | [快速开始](getting-started.md) | 从本仓库安装、构建、启动 Code - OSS；完整贡献流程指向上游 wiki |
 | [文体指南](doc-style-guide.md) | frontmatter、INDEX 与概览、禁止 `src/vs/` 文档树、链接不复制 |
-| [多 Agent 方案设计](multi-agent-design-workflow.md) | 方案定稿前探索；worktree 池、并行 slice、文件互斥、merge 槽合入 |
+| [多 Agent 方案设计](multi-agent-design-workflow.md) | 方案定稿前探索；写完须 Opus 5.0 审查改稿；worktree 池与文件互斥 |
 
 ## 相关文档
 

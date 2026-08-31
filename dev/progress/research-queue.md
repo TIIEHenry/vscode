@@ -4,8 +4,8 @@ type: progress
 status: accepted
 phase: N/A
 created: 2026-08-30
-updated: 2026-08-30
-summary: "待研究队列 SSOT；格式见套件 subagent-loop-startup；当前无 open 行。"
+updated: 2026-08-31
+summary: "待研究队列 SSOT；R1–R4 页面接入已闭合为 draft 方案；当前无 open 行。"
 ---
 
 # Research Queue
@@ -16,6 +16,10 @@ summary: "待研究队列 SSOT；格式见套件 subagent-loop-startup；当前�
 
 | ID | Topic | Why It Matters | Discovery Needed | Expected Output | Status |
 |:---|:------|:---------------|:-----------------|:----------------|:-------|
+| R1 | Settings 接入 UA | 壳映射不覆盖 Preferences 宿主 / 三层键 / Customizations 切分 | 对照 Singularity Settings + `SettingsEditor2` + Customizations | [settings-ua-access](../../docs/reference/code-oss-b2/settings-ua-access.md) · [page-access-schemes](../plans/page-access-schemes.md) | closed |
+| R2 | 会话列表复用零件 | ADR-061 只写姿态；stub roster 无「复用哪个类」 | 对照 `ConversationSessionsView` vs `agentSessions` | [session-roster-reuse](../../docs/reference/code-oss-b2/session-roster-reuse.md) | closed |
+| R3 | Conversation 透镜组装 | widget-parts 有零件无三槽装法 | 对照 `ConversationLens` vs `ChatWidget` | [conversation-lens-assembly](../../docs/reference/code-oss-b2/conversation-lens-assembly.md) | closed |
+| R4 | Navigator tab 子页重设计 | 壳映射只写 stub；Singularity panel 不能原样搬 | 对照五段 ViewContainer vs Explorer/树/列表 | [navigator-tabs-access](../../docs/reference/code-oss-b2/navigator-tabs-access.md) | closed |
 
 ## 维护规则
 

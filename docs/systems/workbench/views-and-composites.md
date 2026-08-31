@@ -4,7 +4,7 @@ type: architecture
 status: accepted
 phase: N/A
 updated: 2026-08-31
-summary: "ViewContainer / View / PaneComposite 分层与 Sidebar·Panel·AuxiliaryBar 落点；扩展只注册视图、不造 Part；B2 Conversation 是 Part 不是 ViewContainer"
+summary: "ViewContainer / View / PaneComposite 分层与 Sidebar·Panel·AuxiliaryBar 落点；扩展只注册视图、不造 Part；B2 Conversation 是 Part 不是 ViewContainer；Navigator 各段为独立容器"
 ---
 
 # Views 与 Composites
@@ -106,9 +106,9 @@ Sessions 窗口的 `SESSIONS_PART` 证明「非 Editor 中心 Part」可行，�
 
 **Auxiliary Bar 默认（2026-08-31，M2 切片 2）**：默认编辑器窗口出厂 `workbench.secondarySideBar.defaultVisibility = 'hidden'`，Chat 容器（`workbench.panel.chat`）仍挂在 `ViewContainerLocation.AuxiliaryBar` 作 donor，但 **`isDefault: false`**，不再是该 location 的默认 composite。Command Palette / Views 仍可打开 `ChatViewPane` 对照 Copilot 行为。Agents Window 的 `agentsWindow` 覆盖仍为 `visibleInWorkspace`（只读），与产品壳默认无关。
 
-**产品会话列表（2026-08-31，M3 切片 2）**：`workbench.view.conversationSessions` 是 **Sidebar 内一叶 `ViewPane`**（注册在 Explorer `VIEW_CONTAINER`，`order: 3`），与 `ChatViewPane` 同类插入面，**不是** `CONVERSATION_PART` 中心透镜。Explorer 容器仍是 Sidebar 出厂默认 composite；Sessions roster 只列 stub 会话标题，与 SessionBar 共用 `IConversationStubService`。
+**产品会话列表（HEAD）**：`workbench.view.conversationSessions` 是 Sidebar **独立** `ViewContainer` `workbench.view.sessions`（`isDefault: false`，order 10）里的一叶 `ViewPane`，**不是** Explorer 内叶，也不是 `CONVERSATION_PART`。与 SessionBar 共用 `IConversationStubService`。零件复用见 [session-roster-reuse](../../reference/code-oss-b2/session-roster-reuse.md)。
 
-**Navigator 产品 roster stub（2026-08-31）**：`workbench.view.navigatorProjects` / `workbench.view.navigatorAgents` / `workbench.view.navigatorTeam`（`contrib/navigator`）同为 Explorer 容器内可切换 `ViewPane`，出厂 honest empty（not wired — no engine），不构造 `ChatEditorInput`，Explorer `isDefault` 不变。
+**Navigator 其余段（HEAD）**：Projects / Agents / Team 各为独立 Sidebar 容器（`workbench.view.navigator.*`，order 11–13）+ honest empty `ViewPane`。Explorer 仍是出厂默认 composite。各 tab 如何按 vscode 零件重设计见 [navigator-tabs-access](../../reference/code-oss-b2/navigator-tabs-access.md)（draft）。
 
 **Navigator Activity 默认标签（2026-08-31）**：Sidebar 出厂默认 composite 仍是 Explorer `VIEW_CONTAINER`（`workbench.view.explorer`，`isDefault: true`）；用户可见容器标题 / Activity tooltip / View 菜单 open command 显示 **Files**（`exploreFiles`），与 Desktop IA Navigator body 对齐。`VIEWLET_ID`、storage、图标、视图实现不变。
 
@@ -118,5 +118,6 @@ Sessions 窗口的 `SESSIONS_PART` 证明「非 Editor 中心 Part」可行，�
 
 - [Parts、Grid、显隐](parts-and-grid.md) · [Workbench 概览](overview.md)
 - [Agent UI 清单](../chat/agent-ui.md) · [EH 表面](../../reference/code-oss-b2/eh-surface-notes.md)
+- [navigator-tabs-access](../../reference/code-oss-b2/navigator-tabs-access.md) · [session-roster-reuse](../../reference/code-oss-b2/session-roster-reuse.md)
 - `src/vs/workbench/browser/parts/{sidebar,panel,auxiliarybar}/`
 - `src/vs/workbench/api/browser/viewsExtensionPoint.ts`
