@@ -102,6 +102,9 @@ suite('ConversationSessionsView', () => {
 			override getViewLocationById(): ViewContainerLocation {
 				return ViewContainerLocation.Sidebar;
 			}
+			override getViewDescriptorById(_id: string) {
+				return null;
+			}
 		}());
 
 		const conversationPart = store.add(instantiationService.createInstance(ConversationPart));
@@ -248,6 +251,9 @@ suite('ConversationSessionsView', () => {
 			override onDidChangeLocation = Event.None;
 			override getViewLocationById(): ViewContainerLocation {
 				return ViewContainerLocation.Sidebar;
+			}
+			override getViewDescriptorById(_id: string) {
+				return null;
 			}
 		}());
 
