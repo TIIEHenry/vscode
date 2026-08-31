@@ -33,6 +33,7 @@ import { registerThemingParticipant } from '../../../../../platform/theme/common
 import { ActiveEditorContext, IsSessionsWindowContext } from '../../../../common/contextkeys.js';
 import { IWorkbenchContribution } from '../../../../common/contributions.js';
 import { IEditorService } from '../../../../services/editor/common/editorService.js';
+import { IWorkbenchEnvironmentService } from '../../../../services/environment/common/environmentService.js';
 import { IHostService } from '../../../../services/host/browser/host.js';
 import { IWorkbenchLayoutService, Parts } from '../../../../services/layout/browser/layoutService.js';
 import { IStatusbarEntry, IStatusbarEntryAccessor, IStatusbarService, StatusbarAlignment } from '../../../../services/statusbar/browser/statusbar.js';
@@ -129,6 +130,9 @@ class VoiceChatSessionControllerFactory {
 				break;
 			}
 			case 'quick': {
+				if (!accessor.get(IWorkbenchEnvironmentService).isSessionsWindow) {
+					return undefined;
+				}
 				quickChatService.open(); // this will populate focused chat widget in the chat widget service
 				return VoiceChatSessionControllerFactory.create(accessor, 'focused');
 			}

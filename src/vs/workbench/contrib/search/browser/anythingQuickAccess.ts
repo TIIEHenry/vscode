@@ -860,7 +860,7 @@ export class AnythingQuickAccessProvider extends PickerQuickAccessProvider<IAnyt
 
 		// TODO: There has to be a better place for this, but it's the first time we are adding a non-quick access provider
 		// to the command center, so for now, let's do this.
-		if (this.quickChatService.enabled) {
+		if (this.environmentService.isSessionsWindow && this.quickChatService.enabled) {
 			providers.push({
 				label: localize('chat', "Open Quick Chat"),
 				commandCenterOrder: 30,
