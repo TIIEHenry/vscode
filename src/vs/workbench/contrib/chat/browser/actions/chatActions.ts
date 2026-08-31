@@ -36,7 +36,7 @@ import { IOpenerService } from '../../../../../platform/opener/common/opener.js'
 import product from '../../../../../platform/product/common/product.js';
 import { GitHubPaths, IDefaultAccountService } from '../../../../../platform/defaultAccount/common/defaultAccount.js';
 import { ITelemetryService } from '../../../../../platform/telemetry/common/telemetry.js';
-import { ActiveEditorContext } from '../../../../common/contextkeys.js';
+import { ActiveEditorContext, IsSessionsWindowContext } from '../../../../common/contextkeys.js';
 import { IViewDescriptorService, ViewContainerLocation } from '../../../../common/views.js';
 import { ChatEntitlement, IChatEntitlementService } from '../../../../services/chat/common/chatEntitlementService.js';
 import { ACTIVE_GROUP, AUX_WINDOW_GROUP, IEditorService, SIDE_GROUP } from '../../../../services/editor/common/editorService.js';
@@ -862,7 +862,7 @@ export function registerChatActions() {
 			super({
 				id: 'workbench.action.chat.clearInputHistory',
 				title: localize2('interactiveSession.clearHistory.label', "Clear Input History"),
-				precondition: ChatContextKeys.enabled,
+				precondition: ContextKeyExpr.and(ChatContextKeys.enabled, IsSessionsWindowContext),
 				category: CHAT_CATEGORY,
 				f1: true,
 			});
@@ -984,7 +984,7 @@ export function registerChatActions() {
 				title: localize2('interactiveSession.focusTodosView.label', "Toggle Focus Between TODOs and Input"),
 				category: CHAT_CATEGORY,
 				f1: true,
-				precondition: ChatContextKeys.chatModeKind.isEqualTo(ChatModeKind.Agent),
+				precondition: ContextKeyExpr.and(ChatContextKeys.chatModeKind.isEqualTo(ChatModeKind.Agent), IsSessionsWindowContext),
 				keybinding: [{
 					weight: KeybindingWeight.WorkbenchContrib + 1,
 					primary: KeyMod.CtrlCmd | KeyMod.Shift | KeyCode.KeyT,
@@ -1015,7 +1015,7 @@ export function registerChatActions() {
 				title: localize2('interactiveSession.focusQuestionCarousel.label', "Chat: Toggle Focus Between Question and Input"),
 				category: CHAT_CATEGORY,
 				f1: true,
-				precondition: ChatContextKeys.inChatSession,
+				precondition: ContextKeyExpr.and(ChatContextKeys.inChatSession, IsSessionsWindowContext),
 				keybinding: [{
 					weight: KeybindingWeight.WorkbenchContrib,
 					primary: KeyMod.CtrlCmd | KeyMod.Shift | KeyCode.KeyA,
@@ -1043,7 +1043,7 @@ export function registerChatActions() {
 				title: localize2('interactiveSession.previousQuestion.label', "Chat: Previous Question"),
 				category: CHAT_CATEGORY,
 				f1: true,
-				precondition: ContextKeyExpr.and(ChatContextKeys.inChatSession, ChatContextKeys.Editing.hasQuestionCarousel),
+				precondition: ContextKeyExpr.and(ChatContextKeys.inChatSession, ChatContextKeys.Editing.hasQuestionCarousel, IsSessionsWindowContext),
 				keybinding: [{
 					weight: KeybindingWeight.WorkbenchContrib,
 					primary: KeyMod.Alt | KeyCode.KeyP,
@@ -1067,7 +1067,7 @@ export function registerChatActions() {
 				title: localize2('interactiveSession.nextQuestion.label', "Chat: Next Question"),
 				category: CHAT_CATEGORY,
 				f1: true,
-				precondition: ContextKeyExpr.and(ChatContextKeys.inChatSession, ChatContextKeys.Editing.hasQuestionCarousel),
+				precondition: ContextKeyExpr.and(ChatContextKeys.inChatSession, ChatContextKeys.Editing.hasQuestionCarousel, IsSessionsWindowContext),
 				keybinding: [{
 					weight: KeybindingWeight.WorkbenchContrib,
 					primary: KeyMod.Alt | KeyCode.KeyN,
@@ -1091,7 +1091,7 @@ export function registerChatActions() {
 				title: localize2('interactiveSession.focusQuestionCarouselTerminal.label', "Chat: Focus Terminal from Question Carousel"),
 				category: CHAT_CATEGORY,
 				f1: true,
-				precondition: ContextKeyExpr.and(ChatContextKeys.inChatSession, ChatContextKeys.Editing.hasQuestionCarousel, ChatContextKeys.chatQuestionCarouselHasTerminal),
+				precondition: ContextKeyExpr.and(ChatContextKeys.inChatSession, ChatContextKeys.Editing.hasQuestionCarousel, ChatContextKeys.chatQuestionCarouselHasTerminal, IsSessionsWindowContext),
 				keybinding: [{
 					weight: KeybindingWeight.WorkbenchContrib,
 					primary: KeyMod.Alt | KeyCode.KeyT,
@@ -1118,7 +1118,7 @@ export function registerChatActions() {
 				f1: true,
 				// The Agents composer is not a chat widget, so it never sets
 				// `inChatSession`; it reports its own focus instead.
-				precondition: ContextKeyExpr.or(ChatContextKeys.inChatSession, ChatContextKeys.inChatComposer),
+				precondition: ContextKeyExpr.and(ContextKeyExpr.or(ChatContextKeys.inChatSession, ChatContextKeys.inChatComposer), IsSessionsWindowContext),
 				keybinding: [{
 					weight: KeybindingWeight.WorkbenchContrib,
 					primary: KeyMod.CtrlCmd | KeyMod.Shift | KeyCode.Slash,
@@ -1351,7 +1351,7 @@ export function registerChatActions() {
 				id: 'workbench.action.chat.resetTrustedTools',
 				title: localize2('resetTrustedTools', "Reset Tool Confirmations"),
 				category: CHAT_CATEGORY,
-				f1: true,
+				f1: false,
 				precondition: ChatContextKeys.enabled
 			});
 		}
@@ -1368,7 +1368,7 @@ export function registerChatActions() {
 				title: localize2('generateInstructions', "Generate Agent Instructions"),
 				category: CHAT_CATEGORY,
 				icon: Codicon.sparkle,
-				f1: true,
+				f1: false,
 				precondition: ChatContextKeys.enabled
 			});
 		}
@@ -1390,7 +1390,7 @@ export function registerChatActions() {
 				title: localize2('generateOnDemandInstructions', "Generate On-Demand Instructions"),
 				category: CHAT_CATEGORY,
 				icon: Codicon.sparkle,
-				f1: true,
+				f1: false,
 				precondition: ChatContextKeys.enabled
 			});
 		}
@@ -1413,7 +1413,7 @@ export function registerChatActions() {
 				shortTitle: localize2('generatePrompt.short', "Generate Prompt"),
 				category: CHAT_CATEGORY,
 				icon: Codicon.sparkle,
-				f1: true,
+				f1: false,
 				precondition: ChatContextKeys.enabled
 			});
 		}
@@ -1436,7 +1436,7 @@ export function registerChatActions() {
 				shortTitle: localize2('generateSkill.short', "Generate Skill"),
 				category: CHAT_CATEGORY,
 				icon: Codicon.sparkle,
-				f1: true,
+				f1: false,
 				precondition: ChatContextKeys.enabled
 			});
 		}
@@ -1459,7 +1459,7 @@ export function registerChatActions() {
 				shortTitle: localize2('generateAgent.short', "Generate Agent"),
 				category: CHAT_CATEGORY,
 				icon: Codicon.sparkle,
-				f1: true,
+				f1: false,
 				precondition: ChatContextKeys.enabled
 			});
 		}
@@ -1482,7 +1482,7 @@ export function registerChatActions() {
 				shortTitle: localize2('generateHook.short', "Generate Hook"),
 				category: CHAT_CATEGORY,
 				icon: Codicon.sparkle,
-				f1: true,
+				f1: false,
 				precondition: ChatContextKeys.enabled
 			});
 		}
@@ -1505,7 +1505,7 @@ export function registerChatActions() {
 				shortTitle: localize2('insertForkConversationSlashCommand.short', "Insert /fork"),
 				category: CHAT_CATEGORY,
 				icon: Codicon.repoForked,
-				f1: true,
+				f1: false,
 				precondition: ChatContextKeys.enabled
 			});
 		}
@@ -1526,7 +1526,7 @@ export function registerChatActions() {
 				title: localize2('insertTroubleshootSlashCommand', "Insert Troubleshoot Command"),
 				shortTitle: localize2('insertTroubleshootSlashCommand.short', "Insert /troubleshoot"),
 				category: CHAT_CATEGORY,
-				f1: true,
+				f1: false,
 				precondition: ChatContextKeys.enabled
 			});
 		}
@@ -1547,7 +1547,7 @@ export function registerChatActions() {
 				title: localize2('openChatFeatureSettings', "Chat Settings"),
 				shortTitle: localize('openChatFeatureSettings.short', "Chat Settings"),
 				category: CHAT_CATEGORY,
-				f1: true,
+				f1: false,
 				precondition: ChatContextKeys.enabled,
 				menu: [{
 					id: MenuId.ChatWelcomeContext,
@@ -1896,7 +1896,7 @@ registerAction2(class EditToolApproval extends Action2 {
 				description: localize2('chat.editToolApproval.description', "Edit/manage the tool approval and confirmation preferences for AI chat agents."),
 			},
 			precondition: ChatContextKeys.enabled,
-			f1: true,
+			f1: false,
 			category: CHAT_CATEGORY,
 		});
 	}
