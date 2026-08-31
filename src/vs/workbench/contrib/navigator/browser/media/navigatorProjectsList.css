@@ -7,6 +7,10 @@
 	height: 100%;
 }
 
+.monaco-workbench .navigator-projects-body .navigator-projects-list {
+	height: auto;
+}
+
 .monaco-workbench .navigator-projects-list .monaco-list-row .monaco-icon-label {
 	padding-left: 8px;
 }

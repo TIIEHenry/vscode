@@ -27,6 +27,8 @@ import { ResourceLabels, IResourceLabel } from '../../../browser/labels.js';
 import { IViewPaneOptions, ViewPane } from '../../../browser/parts/views/viewPane.js';
 import { IViewDescriptorService } from '../../../common/views.js';
 import { IHostService } from '../../../services/host/browser/host.js';
+import { matchesNavigatorProjectsInlineFilter } from '../common/navigatorProjectsInlineFilter.js';
+import { NavigatorProjectsInlineFilterBox } from './navigatorProjectsInlineFilterBox.js';
 import { NAVIGATOR_PROJECTS_VIEW_ID } from './navigatorStubView.js';
 
 const $ = dom.$;
@@ -96,6 +98,8 @@ export class NavigatorProjectsView extends ViewPane {
 
 	private list: WorkbenchList<INavigatorProjectEntry> | undefined;
 	private listContainer: HTMLElement | undefined;
+	private filterBox: NavigatorProjectsInlineFilterBox | undefined;
+	private filterQuery = '';
 	private entries: INavigatorProjectEntry[] = [];
 
 	constructor(
@@ -129,7 +133,20 @@ export class NavigatorProjectsView extends ViewPane {
 	protected override renderBody(container: HTMLElement): void {
 		super.renderBody(container);
 
-		container.classList.add('show-file-icons');
+		container.classList.add('show-file-icons', 'navigator-projects-body');
+
+		const filterPlaceholder = localize('navigatorProjectsFilterPlaceholder', "Filter projects");
+		this.filterBox = this._register(new NavigatorProjectsInlineFilterBox(
+			container,
+			filterPlaceholder,
+			filterPlaceholder,
+		));
+		this.filterBox.setVisible(false);
+		this._register(this.filterBox.onDidChange(query => {
+			this.filterQuery = query;
+			this.applyFilterToList();
+		}));
+
 		this.listContainer = dom.append(container, $('.navigator-projects-list'));
 		this.ensureList();
 		this.refresh();
@@ -137,7 +154,8 @@ export class NavigatorProjectsView extends ViewPane {
 
 	protected override layoutBody(height: number, width: number): void {
 		super.layoutBody(height, width);
-		this.list?.layout(height, width);
+		const filterHeight = this.entries.length > 0 ? NavigatorProjectsInlineFilterBox.HEIGHT : 0;
+		this.list?.layout(height - filterHeight, width);
 	}
 
 	private ensureList(): WorkbenchList<INavigatorProjectEntry> {
@@ -194,14 +212,30 @@ export class NavigatorProjectsView extends ViewPane {
 	private setEntries(entries: INavigatorProjectEntry[]): void {
 		const hadEntries = this.entries.length > 0;
 		this.entries = entries;
+		const hasEntries = entries.length > 0;
+
+		this.filterBox?.setVisible(hasEntries);
 
 		if (this.list) {
-			this.list.splice(0, this.list.length, entries);
+			this.applyFilterToList();
 		}
 
-		if (hadEntries !== (entries.length > 0)) {
+		if (hadEntries !== hasEntries) {
 			this._onDidChangeViewWelcomeState.fire();
 		}
+	}
+
+	private applyFilterToList(): void {
+		if (!this.list) {
+			return;
+		}
+
+		const filtered = this.getFilteredEntries();
+		this.list.splice(0, this.list.length, filtered);
+	}
+
+	private getFilteredEntries(): INavigatorProjectEntry[] {
+		return this.entries.filter(entry => matchesNavigatorProjectsInlineFilter(entry.name, entry.description, this.filterQuery));
 	}
 
 	private getCurrentFolderEntries(): INavigatorProjectEntry[] {
