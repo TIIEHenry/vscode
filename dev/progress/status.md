@@ -19,7 +19,7 @@ summary: "M4 验证波开工：D3 compile/单测 + D4 启动冒烟"
 - **文档**（`c386d6bd`）：agent-ui / layout-state 去掉「slot A 未合入」。
 - **M1 方案** [m1-shell-followon.md](../plans/m1-shell-followon.md) **`implemented`**（三切片代码已合入）。UA 引擎不进。Diff 深查看落点仍 **FORK**（未选，未叫 fable）。
 - M0 [m0-topology-surgery.md](../plans/m0-topology-surgery.md) **`implemented`**。compile/启动/EH → D3–D5。D7 **closed**。
-- 工位 A–D **idle**。
+- 工位 merge → M4 切片 1 D3；工位 A → M4 切片 2 D4；B–D **idle**。
 
 ## Loop 基础设施（2026-08-30）
 

@@ -20,15 +20,15 @@ summary: "仓外 vscode-WorkTrees 工位表；A–D + merge 全 idle；M3 关仓
 | 主仓 | `/home/clarence/Projects/Agents/vscode` |
 | 工位根 `$WT_ROOT` | `/home/clarence/Projects/Agents/vscode-WorkTrees` |
 | 集成分支（当前） | **`agent-ide`**（merge 槽对齐此分支；非上游 `main`） |
-| 集成本次 HEAD | 对齐 `agent-ide` — M0–M3 无引擎产品壳已 `implemented`；工位池已关仓 |
+| 集成本次 HEAD | 对齐 `agent-ide` `61ded6e2` — M4 验证波 `in_progress` |
 
-## 槽位表（2026-08-31 M3 关仓）
+## 槽位表（2026-08-31 M4 验证波）
 
 | 槽 | 路径 | 分支 | 状态 | 备注 |
 |:---|:-----|:-----|:-----|:-----|
-| merge | `vscode-WorkTrees/merge` | `loop/merge` | `idle` | 对齐 `agent-ide` |
-| A | `vscode-WorkTrees/A` | `loop/A` | `idle` | 对齐 `agent-ide` |
-| B | `vscode-WorkTrees/B` | `loop/B` | `idle` | 对齐 `agent-ide` |
+| merge | `vscode-WorkTrees/merge` | `loop/merge` | **busy** | M4 切片 1 D3 compile/单测 |
+| A | `vscode-WorkTrees/A` | `loop/A` | **busy** | M4 切片 2 D4 启动冒烟 |
+| B | `vscode-WorkTrees/B` | `loop/B` | `idle` | 对齐 `agent-ide` `61ded6e2` |
 | C | `vscode-WorkTrees/C` | `loop/C` | `idle` | 对齐 `agent-ide` |
 | D | `vscode-WorkTrees/D` | `loop/D` | `idle` | 对齐 `agent-ide` |
 
