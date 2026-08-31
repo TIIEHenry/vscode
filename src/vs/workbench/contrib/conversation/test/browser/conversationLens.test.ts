@@ -29,6 +29,14 @@ suite('ConversationLens', () => {
 
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
+	function getSessionSelectLabel(slots: NonNullable<ReturnType<ConversationPart['getSlots']>>): string | undefined {
+		const select = slots.sessionBar.querySelector('select.monaco-select-box') as HTMLSelectElement | null;
+		if (!select || select.options.length === 0) {
+			return undefined;
+		}
+		return select.options[select.selectedIndex]?.text;
+	}
+
 	function mountLens(): { part: ConversationPart; lens: ConversationLens; stubService: ConversationStubService } {
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		const stubService = store.add(new ConversationStubService());
@@ -444,5 +452,47 @@ suite('ConversationLens', () => {
 		assert.strictEqual(titleButton.textContent, previousTitle);
 		assert.ok(!titleButton.hidden);
 		assert.ok(titleInput.hidden);
+	});
+
+	test('SessionBar select and aria-live stay in sync after rename', () => {
+		const { part, stubService } = mountLens();
+		const slots = part.getSlots()!;
+		const titleButton = slots.sessionBar.querySelector('button.conversation-lens-session-title') as HTMLButtonElement;
+		const titleInput = slots.sessionBar.querySelector('input.conversation-lens-session-title-input') as HTMLInputElement;
+		const titleLive = slots.sessionBar.querySelector('.conversation-lens-session-title-live') as HTMLElement;
+		const sessionId = stubService.getActiveSessionId();
+
+		assert.ok(titleLive);
+		assert.strictEqual(titleLive.getAttribute('aria-live'), 'polite');
+
+		titleButton.click();
+		titleInput.value = 'Renamed for select sync';
+		titleInput.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', keyCode: KeyCode.Enter, bubbles: true }));
+
+		assert.strictEqual(titleButton.textContent, 'Renamed for select sync');
+		assert.strictEqual(titleLive.textContent, 'Renamed for select sync');
+		assert.strictEqual(getSessionSelectLabel(slots), 'Renamed for select sync');
+		assert.strictEqual(stubService.getSessions().find(s => s.id === sessionId)?.title, 'Renamed for select sync');
+	});
+
+	test('SessionBar select refreshes after deleting the last stub session', () => {
+		const { part, stubService } = mountLens();
+		const slots = part.getSlots()!;
+		const deleteButton = slots.sessionBar.querySelector('.conversation-lens-session-delete .monaco-button') as HTMLButtonElement;
+		const titleLive = slots.sessionBar.querySelector('.conversation-lens-session-title-live') as HTMLElement;
+		const sessions = [...stubService.getSessions()];
+
+		for (const session of sessions) {
+			if (stubService.getActiveSessionId() !== session.id) {
+				stubService.switchSession(session.id);
+			}
+			deleteButton.click();
+		}
+
+		assert.strictEqual(stubService.getSessions().length, 1);
+		assert.ok(stubService.getActiveSession().title.includes('Untitled'));
+		assert.strictEqual(getSessionSelectLabel(slots), stubService.getActiveSession().title);
+		assert.strictEqual(titleLive.textContent, stubService.getActiveSession().title);
+		assert.strictEqual(slots.sessionBar.querySelector('select.monaco-select-box option')?.textContent, stubService.getActiveSession().title);
 	});
 });

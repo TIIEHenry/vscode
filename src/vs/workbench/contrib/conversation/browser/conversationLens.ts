@@ -41,6 +41,7 @@ import { shouldRenderTurnAsMarkdown } from './conversationTurnMarkdown.js';
 export class ConversationLens extends Disposable {
 
 	private sessionTitleButton!: HTMLButtonElement;
+	private sessionTitleLive!: HTMLElement;
 	private sessionTitleInput!: HTMLInputElement;
 	private sessionTitleEditing = false;
 	private sessionTitleEditSnapshot = '';
@@ -87,7 +88,7 @@ export class ConversationLens extends Disposable {
 		this._register(this.stubService.onDidChangeActiveSession(sessionId => this.applyActiveSession(sessionId)));
 		this._register(this.stubService.onDidChangeSession(sessionId => {
 			this.refreshSessionSelectOptions();
-			if (sessionId === this.stubService.getActiveSessionId()) {
+			if (this.shouldRefreshActiveSessionChrome(sessionId)) {
 				if (!this.sessionTitleEditing) {
 					this.updateSessionTitle();
 				}
@@ -147,6 +148,9 @@ export class ConversationLens extends Disposable {
 		this.sessionTitleInput.type = 'text';
 		this.sessionTitleInput.hidden = true;
 		this.sessionTitleInput.setAttribute('aria-label', conversationLensSessionBarRenameInputAria);
+		this.sessionTitleLive = append(titleWrap, $('span.conversation-lens-session-title-live'));
+		this.sessionTitleLive.setAttribute('aria-live', 'polite');
+		this.sessionTitleLive.setAttribute('aria-atomic', 'true');
 		this._register(addDisposableListener(this.sessionTitleButton, 'click', () => this.beginSessionTitleEdit()));
 		this._register(addDisposableListener(this.sessionTitleInput, 'keydown', e => {
 			if (e.keyCode === KeyCode.Enter) {
@@ -241,6 +245,14 @@ export class ConversationLens extends Disposable {
 		this.suppressSessionSelect = true;
 		this.sessionSelectBox.setOptions(sessions.map(s => ({ text: s.title })), selectedIndex);
 		this.suppressSessionSelect = false;
+	}
+
+	private shouldRefreshActiveSessionChrome(sessionId: string): boolean {
+		const activeId = this.stubService.getActiveSessionId();
+		if (sessionId === activeId) {
+			return true;
+		}
+		return !this.stubService.getSessions().some(session => session.id === sessionId);
 	}
 
 	private mountTimeline(host: HTMLElement): void {
@@ -361,7 +373,9 @@ export class ConversationLens extends Disposable {
 	}
 
 	private updateSessionTitle(): void {
-		this.sessionTitleButton.textContent = this.stubService.getActiveSession().title;
+		const title = this.stubService.getActiveSession().title;
+		this.sessionTitleButton.textContent = title;
+		this.sessionTitleLive.textContent = title;
 	}
 
 	private beginSessionTitleEdit(): void {
