@@ -1855,6 +1855,7 @@ MenuRegistry.appendMenuItem(MenuId.EditorContext, {
 	when: ContextKeyExpr.and(
 		ChatContextKeys.Setup.hidden.negate(),
 		ChatContextKeys.Setup.disabledInWorkspace.negate(),
+		IsSessionsWindowContext,
 	)
 });
 

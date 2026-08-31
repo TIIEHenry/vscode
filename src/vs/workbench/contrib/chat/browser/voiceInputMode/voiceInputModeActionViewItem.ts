@@ -23,6 +23,7 @@ import { IConfigurationService } from '../../../../../platform/configuration/com
 import { IContextMenuService } from '../../../../../platform/contextview/browser/contextView.js';
 import { ContextKeyExpr } from '../../../../../platform/contextkey/common/contextkey.js';
 import { IsDevelopmentContext } from '../../../../../platform/contextkey/common/contextkeys.js';
+import { IsSessionsWindowContext } from '../../../../common/contextkeys.js';
 import { IAccessibilityService } from '../../../../../platform/accessibility/common/accessibility.js';
 import { IThemeService } from '../../../../../platform/theme/common/themeService.js';
 import { resolveVoiceGlowColors } from '../voiceClient/voiceGlow.js';
@@ -237,7 +238,7 @@ export function registerVoiceInputModeSimulateActions(): void {
 					id: `workbench.action.chat.voiceInputMode.simulate.walkthrough.${version}`,
 					title: { value: `Voice Input Mode: Prototype Walkthrough \u2014 ${label}`, original: `Voice Input Mode: Prototype Walkthrough \u2014 ${label}` },
 					category: { value: 'Developer', original: 'Developer' },
-					precondition: IsDevelopmentContext,
+					precondition: ContextKeyExpr.and(IsDevelopmentContext, IsSessionsWindowContext),
 					f1: true,
 				});
 			}
@@ -254,7 +255,7 @@ export function registerVoiceInputModeSimulateActions(): void {
 				id: 'workbench.action.chat.voiceInputMode.simulate.step',
 				title: { value: 'Voice Input Mode: Prototype Step (Next State)', original: 'Voice Input Mode: Prototype Step (Next State)' },
 				category: { value: 'Developer', original: 'Developer' },
-				precondition: IsDevelopmentContext,
+				precondition: ContextKeyExpr.and(IsDevelopmentContext, IsSessionsWindowContext),
 				f1: true,
 			});
 		}
@@ -270,7 +271,7 @@ export function registerVoiceInputModeSimulateActions(): void {
 				id: 'workbench.action.chat.voiceInputMode.simulate.clear',
 				title: { value: 'Voice Input Mode: Simulate \u2014 Clear', original: 'Voice Input Mode: Simulate \u2014 Clear' },
 				category: { value: 'Developer', original: 'Developer' },
-				precondition: IsDevelopmentContext,
+				precondition: ContextKeyExpr.and(IsDevelopmentContext, IsSessionsWindowContext),
 				f1: true,
 			});
 		}
@@ -287,7 +288,7 @@ export function registerVoiceInputModeSimulateActions(): void {
 					// Dev-only utility — not localized.
 					title: { value: `Voice Input Mode: Simulate \u2014 ${label}`, original: `Voice Input Mode: Simulate \u2014 ${label}` },
 					category: { value: 'Developer', original: 'Developer' },
-					precondition: IsDevelopmentContext,
+					precondition: ContextKeyExpr.and(IsDevelopmentContext, IsSessionsWindowContext),
 					f1: true,
 				});
 			}
