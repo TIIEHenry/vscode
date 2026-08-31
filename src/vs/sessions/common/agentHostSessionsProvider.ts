@@ -11,8 +11,8 @@ import { URI } from '../../base/common/uri.js';
 import { AuthenticateParams, AuthenticateResult, IAgentConnection } from '../../platform/agentHost/common/agentService.js';
 import { RemoteAgentHostConnectionStatus } from '../../platform/agentHost/common/remoteAgentHostService.js';
 import { ResolveSessionConfigResult, SessionConfigValueItem } from '../../platform/agentHost/common/state/protocol/commands.js';
-import { AgentCustomization, Customization, McpServerStatus, RootConfigState, type CustomizationEnablement, type McpServerState, type RootState, type TextRange } from '../../platform/agentHost/common/state/protocol/state.js';
-import { type CustomizationDisabledReason } from '../../platform/agentHost/common/customizationEnablement.js';
+import { IAgentHostMcpServer } from '../../platform/agentHost/common/agentHostMcpServer.js';
+import { AgentCustomization, Customization, RootConfigState, type CustomizationEnablement, type RootState } from '../../platform/agentHost/common/state/protocol/state.js';
 import { ISessionsProvider } from '../services/sessions/common/sessionsProvider.js';
 import { ISessionAgentRef } from '../services/sessions/common/session.js';
 import type { AgentMergeSessionOverrides, AgentMergeSessionState } from '../../platform/agentHost/common/agentMerge.js';
@@ -50,31 +50,7 @@ export interface IAgentHostGroup {
 	readonly connectable?: boolean;
 }
 
-/**
- * A rich view of a single MCP server exposed by an agent host session.
- * Encapsulates the dispatch plumbing so consumers can present and toggle
- * servers without depending on the low-level protocol action surface.
- */
-export interface IAgentHostMcpServer {
-	readonly id: string;
-	readonly name: string;
-	readonly enabled: boolean;
-	readonly enablement?: readonly CustomizationEnablement[];
-	readonly isPluginProvided?: boolean;
-	readonly isClientBundled?: boolean;
-	readonly owningPluginClientId?: string;
-	readonly disabledReason?: CustomizationDisabledReason;
-	readonly status: McpServerStatus;
-	readonly state: McpServerState;
-	readonly sourceUri?: URI;
-	readonly sourceRange?: TextRange;
-	readonly logOutputChannelId?: string;
-	/** Starts or restarts the server. Providers that cannot control lifecycle may no-op. */
-	start(): Promise<void>;
-	/** Stops the server. Providers that cannot control lifecycle may no-op. */
-	stop(): Promise<void>;
-	setEnabled(enabled: boolean): void;
-}
+export { IAgentHostMcpServer };
 
 /**
  * Extended sessions provider for agent host providers (local and remote).

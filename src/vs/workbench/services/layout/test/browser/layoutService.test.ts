@@ -489,6 +489,10 @@ suite('LayoutService - INV-052-NO-DUAL-HIDE', () => {
 			hideConversationEditorRemain: forceShownAgentShellPart(Parts.CONVERSATION_PART, editorOnly),
 			hideEditorAndSourcesRemain: forceShownAgentShellPart(Parts.CONVERSATION_PART, editorAndSources),
 			conversationOnlyStillValid: forceShownAgentShellPart(Parts.EDITOR_PART, conversationOnly),
+			hideEditorWhileConversationVisibleNoSources: forceShownAgentShellPart(Parts.EDITOR_PART, conversationOnly),
+			hideSourcesWhileConversationVisibleNoEditor: forceShownAgentShellPart(Parts.SOURCES_PART, conversationOnly),
+			hideSourcesWhileEditorAndConversationVisible: forceShownAgentShellPart(Parts.SOURCES_PART, { conversation: true, editor: true, sources: false }),
+			hideEditorWhileConversationAndSourcesVisible: forceShownAgentShellPart(Parts.EDITOR_PART, { conversation: true, editor: false, sources: true }),
 		}, {
 			hideConversationWhileEditorVisible: undefined,
 			hideEditorWhileConversationVisible: undefined,
@@ -504,6 +508,10 @@ suite('LayoutService - INV-052-NO-DUAL-HIDE', () => {
 			hideConversationEditorRemain: undefined,
 			hideEditorAndSourcesRemain: undefined,
 			conversationOnlyStillValid: undefined,
+			hideEditorWhileConversationVisibleNoSources: undefined,
+			hideSourcesWhileConversationVisibleNoEditor: undefined,
+			hideSourcesWhileEditorAndConversationVisible: undefined,
+			hideEditorWhileConversationAndSourcesVisible: undefined,
 		});
 	});
 });
