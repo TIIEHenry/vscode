@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { commands, languages, window } from 'vscode';
+import { commands, languages, window, workspace } from 'vscode';
 import { IAuthenticationService } from '../../../platform/authentication/common/authentication';
 import { ConfigKey, IConfigurationService } from '../../../platform/configuration/common/configurationService';
 import { IEnvService } from '../../../platform/env/common/envService';
@@ -114,8 +114,10 @@ export class InlineEditProviderFeature {
 
 	public registerProvider(): IDisposable {
 		const unificationState = unificationStateObservable(this);
-
 		return autorun(reader => {
+			if (!workspace.isAgentSessionsWorkspace) {
+				return;
+			}
 			if (!this.inlineEditsEnabled.read(reader)) { return; }
 
 			const logger = reader.store.add(this._instantiationService.createInstance(InlineEditLogger));

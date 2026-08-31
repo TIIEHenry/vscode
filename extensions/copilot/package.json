@@ -2363,7 +2363,7 @@
         "label": "GitHub Copilot",
         "id": "copilot",
         "icon": "",
-        "when": "!github.copilot.interactiveSession.disabled"
+        "when": "!github.copilot.interactiveSession.disabled && isSessionsWindow"
       }
     ],
     "mcpServerDefinitionProviders": [
@@ -2384,55 +2384,55 @@
         "icon": "$(chat-sparkle)",
         "title": "%copilot.title%",
         "content": "%github.copilot.viewsWelcome.individual.expired%",
-        "when": "github.copilot.interactiveSession.individual.expired && !github.copilot.hasByokModels"
+        "when": "github.copilot.interactiveSession.individual.expired && !github.copilot.hasByokModels && isSessionsWindow"
       },
       {
         "icon": "$(chat-sparkle)",
         "title": "%copilot.title%",
         "content": "%github.copilot.viewsWelcome.enterprise%",
-        "when": "github.copilot.interactiveSession.enterprise.disabled && !github.copilot.hasByokModels"
+        "when": "github.copilot.interactiveSession.enterprise.disabled && !github.copilot.hasByokModels && isSessionsWindow"
       },
       {
         "icon": "$(chat-sparkle)",
         "title": "%copilot.title%",
         "content": "%github.copilot.viewsWelcome.offline%",
-        "when": "github.copilot.offline && !github.copilot.hasByokModels"
+        "when": "github.copilot.offline && !github.copilot.hasByokModels && isSessionsWindow"
       },
       {
         "icon": "$(chat-sparkle)",
         "title": "%copilot.title%",
         "content": "%github.copilot.viewsWelcome.invalidToken%",
-        "when": "github.copilot.interactiveSession.invalidToken && !github.copilot.hasByokModels"
+        "when": "github.copilot.interactiveSession.invalidToken && !github.copilot.hasByokModels && isSessionsWindow"
       },
       {
         "icon": "$(chat-sparkle)",
         "title": "%copilot.title%",
         "content": "%github.copilot.viewsWelcome.rateLimited%",
-        "when": "github.copilot.interactiveSession.rateLimited && !github.copilot.hasByokModels"
+        "when": "github.copilot.interactiveSession.rateLimited && !github.copilot.hasByokModels && isSessionsWindow"
       },
       {
         "icon": "$(chat-sparkle)",
         "title": "%copilot.title%",
         "content": "%github.copilot.viewsWelcome.gitHubLoginFailed%",
-        "when": "github.copilot.interactiveSession.gitHubLoginFailed && !github.copilot.hasByokModels"
+        "when": "github.copilot.interactiveSession.gitHubLoginFailed && !github.copilot.hasByokModels && isSessionsWindow"
       },
       {
         "icon": "$(chat-sparkle)",
         "title": "%copilot.title%",
         "content": "%github.copilot.viewsWelcome.contactSupport%",
-        "when": "github.copilot.interactiveSession.contactSupport && !github.copilot.hasByokModels"
+        "when": "github.copilot.interactiveSession.contactSupport && !github.copilot.hasByokModels && isSessionsWindow"
       },
       {
         "icon": "$(chat-sparkle)",
         "title": "%copilot.title%",
         "content": "%github.copilot.viewsWelcome.chatDisabled%",
-        "when": "github.copilot.interactiveSession.chatDisabled && !github.copilot.hasByokModels"
+        "when": "github.copilot.interactiveSession.chatDisabled && !github.copilot.hasByokModels && isSessionsWindow"
       },
       {
         "icon": "$(chat-sparkle)",
         "title": "%copilot.title%",
         "content": "%github.copilot.viewsWelcome.switchToReleaseChannel%",
-        "when": "github.copilot.interactiveSession.switchToReleaseChannel"
+        "when": "github.copilot.interactiveSession.switchToReleaseChannel && isSessionsWindow"
       }
     ],
     "commands": [
@@ -3120,26 +3120,26 @@
       {
         "command": "github.copilot.chat.copilotCLI.addFileReference",
         "title": "%github.copilot.command.chat.copilotCLI.addFileReference%",
-        "enablement": "github.copilot.chat.copilotCLI.hasSession",
+        "enablement": "github.copilot.chat.copilotCLI.hasSession && isSessionsWindow",
         "category": "Copilot CLI"
       },
       {
         "command": "github.copilot.chat.copilotCLI.addSelection",
         "title": "%github.copilot.command.chat.copilotCLI.addSelection%",
-        "enablement": "github.copilot.chat.copilotCLI.hasSession",
+        "enablement": "github.copilot.chat.copilotCLI.hasSession && isSessionsWindow",
         "category": "Copilot CLI"
       },
       {
         "command": "github.copilot.chat.copilotCLI.acceptDiff",
         "title": "%github.copilot.command.chat.copilotCLI.acceptDiff%",
-        "enablement": "github.copilot.chat.copilotCLI.hasActiveDiff",
+        "enablement": "github.copilot.chat.copilotCLI.hasActiveDiff && isSessionsWindow",
         "icon": "$(check)",
         "category": "Copilot CLI"
       },
       {
         "command": "github.copilot.chat.copilotCLI.rejectDiff",
         "title": "%github.copilot.command.chat.copilotCLI.rejectDiff%",
-        "enablement": "github.copilot.chat.copilotCLI.hasActiveDiff",
+        "enablement": "github.copilot.chat.copilotCLI.hasActiveDiff && isSessionsWindow",
         "icon": "$(close)",
         "category": "Copilot CLI"
       },
@@ -5487,37 +5487,37 @@
         },
         {
           "command": "github.copilot.chat.notebook.enableFollowCellExecution",
-          "when": "config.github.copilot.chat.notebook.followCellExecution.enabled && !github.copilot.notebookFollowInSessionEnabled && github.copilot.notebookAgentModeUsage && !config.notebook.globalToolbar",
+          "when": "config.github.copilot.chat.notebook.followCellExecution.enabled && !github.copilot.notebookFollowInSessionEnabled && github.copilot.notebookAgentModeUsage && !config.notebook.globalToolbar && isSessionsWindow",
           "group": "navigation@10"
         },
         {
           "command": "github.copilot.chat.notebook.disableFollowCellExecution",
-          "when": "config.github.copilot.chat.notebook.followCellExecution.enabled && github.copilot.notebookFollowInSessionEnabled && github.copilot.notebookAgentModeUsage && !config.notebook.globalToolbar",
+          "when": "config.github.copilot.chat.notebook.followCellExecution.enabled && github.copilot.notebookFollowInSessionEnabled && github.copilot.notebookAgentModeUsage && !config.notebook.globalToolbar && isSessionsWindow",
           "group": "navigation@10"
         },
         {
           "command": "github.copilot.chat.copilotCLI.acceptDiff",
           "group": "navigation@1",
-          "when": "github.copilot.chat.copilotCLI.hasActiveDiff"
+          "when": "github.copilot.chat.copilotCLI.hasActiveDiff && isSessionsWindow"
         },
         {
           "command": "github.copilot.chat.copilotCLI.rejectDiff",
           "group": "navigation@2",
-          "when": "github.copilot.chat.copilotCLI.hasActiveDiff"
+          "when": "github.copilot.chat.copilotCLI.hasActiveDiff && isSessionsWindow"
         }
       ],
       "editor/title/context": [
         {
           "command": "github.copilot.chat.copilotCLI.addFileReference",
           "group": "copilot",
-          "when": "github.copilot.chat.copilotCLI.hasSession && !inOutput && resourceScheme != 'vscode-webview' && resourceScheme != 'webview-panel'"
+          "when": "github.copilot.chat.copilotCLI.hasSession && !inOutput && resourceScheme != 'vscode-webview' && resourceScheme != 'webview-panel' && isSessionsWindow"
         }
       ],
       "explorer/context": [
         {
           "command": "github.copilot.chat.copilotCLI.addFileReference",
           "group": "copilot",
-          "when": "github.copilot.chat.copilotCLI.hasSession && !explorerResourceIsFolder"
+          "when": "github.copilot.chat.copilotCLI.hasSession && !explorerResourceIsFolder && isSessionsWindow"
         }
       ],
       "editor/context": [
@@ -5539,12 +5539,12 @@
         {
           "command": "github.copilot.chat.copilotCLI.addFileReference",
           "group": "copilot",
-          "when": "github.copilot.chat.copilotCLI.hasSession && !inOutput && resourceScheme != 'vscode-webview' && resourceScheme != 'webview-panel'"
+          "when": "github.copilot.chat.copilotCLI.hasSession && !inOutput && resourceScheme != 'vscode-webview' && resourceScheme != 'webview-panel' && isSessionsWindow"
         },
         {
           "command": "github.copilot.chat.copilotCLI.addSelection",
           "group": "copilot",
-          "when": "github.copilot.chat.copilotCLI.hasSession && editorHasSelection && !inOutput && resourceScheme != 'vscode-webview' && resourceScheme != 'webview-panel'"
+          "when": "github.copilot.chat.copilotCLI.hasSession && editorHasSelection && !inOutput && resourceScheme != 'vscode-webview' && resourceScheme != 'webview-panel' && isSessionsWindow"
         }
       ],
       "chat/editor/inlineGutter": [
@@ -5562,7 +5562,7 @@
       "chat/input/editing/sessionToolbar": [
         {
           "command": "github.copilot.chat.applyCopilotCLIAgentSessionChanges.apply",
-          "when": "chatSessionType == copilotcli && workbenchState != empty && !isSessionsWindow",
+          "when": "chatSessionType == copilotcli && workbenchState != empty && isSessionsWindow",
           "group": "navigation@0"
         },
         {
@@ -5572,12 +5572,12 @@
         },
         {
           "command": "github.copilot.chat.cloudSessions.createPullRequestForTask",
-          "when": "chatSessionType == copilot-cloud-agent && github.copilot.chat.cloudTaskCanCreatePullRequest && !isSessionsWindow",
+          "when": "chatSessionType == copilot-cloud-agent && github.copilot.chat.cloudTaskCanCreatePullRequest && isSessionsWindow",
           "group": "navigation@0"
         },
         {
           "command": "github.copilot.chat.cloudSessions.openPullRequestForTask",
-          "when": "chatSessionType == copilot-cloud-agent && github.copilot.chat.cloudTaskCanOpenPullRequest && !isSessionsWindow",
+          "when": "chatSessionType == copilot-cloud-agent && github.copilot.chat.cloudTaskCanOpenPullRequest && isSessionsWindow",
           "group": "navigation@0"
         }
       ],
@@ -6217,7 +6217,7 @@
         },
         {
           "command": "github.copilot.debug.showChatLogView",
-          "when": "view == workbench.panel.chat.view.copilot",
+          "when": "view == workbench.panel.chat.view.copilot && isSessionsWindow",
           "group": "3_show"
         }
       ],
@@ -6264,114 +6264,114 @@
         {
           "command": "github.copilot.chat.review.markHelpful",
           "group": "inline@0",
-          "when": "commentController == github-copilot-review"
+          "when": "commentController == github-copilot-review && isSessionsWindow"
         },
         {
           "command": "github.copilot.chat.review.markUnhelpful",
           "group": "inline@1",
-          "when": "commentController == github-copilot-review"
+          "when": "commentController == github-copilot-review && isSessionsWindow"
         }
       ],
       "commentsView/commentThread/context": [
         {
           "command": "github.copilot.chat.review.apply",
           "group": "context@1",
-          "when": "commentController == github-copilot-review"
+          "when": "commentController == github-copilot-review && isSessionsWindow"
         },
         {
           "command": "github.copilot.chat.review.discard",
           "group": "context@2",
-          "when": "commentController == github-copilot-review"
+          "when": "commentController == github-copilot-review && isSessionsWindow"
         },
         {
           "command": "github.copilot.chat.review.discardAll",
           "group": "context@3",
-          "when": "commentController == github-copilot-review"
+          "when": "commentController == github-copilot-review && isSessionsWindow"
         }
       ],
       "comments/commentThread/additionalActions": [
         {
           "submenu": "copilot/reviewComment/additionalActions/applyAndNext",
           "group": "inline@1",
-          "when": "commentController == github-copilot-review && github.copilot.chat.review.numberOfComments > 1"
+          "when": "commentController == github-copilot-review && github.copilot.chat.review.numberOfComments > 1 && isSessionsWindow"
         },
         {
           "command": "github.copilot.chat.review.apply",
           "group": "inline@1",
-          "when": "commentController == github-copilot-review && github.copilot.chat.review.numberOfComments == 1"
+          "when": "commentController == github-copilot-review && github.copilot.chat.review.numberOfComments == 1 && isSessionsWindow"
         },
         {
           "submenu": "copilot/reviewComment/additionalActions/discardAndNext",
           "group": "inline@2",
-          "when": "commentController == github-copilot-review && github.copilot.chat.review.numberOfComments > 1"
+          "when": "commentController == github-copilot-review && github.copilot.chat.review.numberOfComments > 1 && isSessionsWindow"
         },
         {
           "submenu": "copilot/reviewComment/additionalActions/discard",
           "group": "inline@2",
-          "when": "commentController == github-copilot-review && github.copilot.chat.review.numberOfComments == 1"
+          "when": "commentController == github-copilot-review && github.copilot.chat.review.numberOfComments == 1 && isSessionsWindow"
         }
       ],
       "copilot/reviewComment/additionalActions/applyAndNext": [
         {
           "command": "github.copilot.chat.review.applyAndNext",
           "group": "inline@1",
-          "when": "commentController == github-copilot-review"
+          "when": "commentController == github-copilot-review && isSessionsWindow"
         },
         {
           "command": "github.copilot.chat.review.apply",
           "group": "inline@2",
-          "when": "commentController == github-copilot-review"
+          "when": "commentController == github-copilot-review && isSessionsWindow"
         }
       ],
       "copilot/reviewComment/additionalActions/discardAndNext": [
         {
           "command": "github.copilot.chat.review.discardAndNext",
           "group": "inline@1",
-          "when": "commentController == github-copilot-review"
+          "when": "commentController == github-copilot-review && isSessionsWindow"
         },
         {
           "command": "github.copilot.chat.review.discard",
           "group": "inline@2",
-          "when": "commentController == github-copilot-review"
+          "when": "commentController == github-copilot-review && isSessionsWindow"
         },
         {
           "command": "github.copilot.chat.review.continueInInlineChat",
           "group": "inline@3",
-          "when": "commentController == github-copilot-review"
+          "when": "commentController == github-copilot-review && isSessionsWindow"
         }
       ],
       "copilot/reviewComment/additionalActions/discard": [
         {
           "command": "github.copilot.chat.review.discard",
           "group": "inline@2",
-          "when": "commentController == github-copilot-review"
+          "when": "commentController == github-copilot-review && isSessionsWindow"
         },
         {
           "command": "github.copilot.chat.review.continueInInlineChat",
           "group": "inline@3",
-          "when": "commentController == github-copilot-review"
+          "when": "commentController == github-copilot-review && isSessionsWindow"
         }
       ],
       "comments/commentThread/title": [
         {
           "command": "github.copilot.chat.review.previous",
           "group": "inline@1",
-          "when": "commentController == github-copilot-review"
+          "when": "commentController == github-copilot-review && isSessionsWindow"
         },
         {
           "command": "github.copilot.chat.review.next",
           "group": "inline@2",
-          "when": "commentController == github-copilot-review"
+          "when": "commentController == github-copilot-review && isSessionsWindow"
         },
         {
           "command": "github.copilot.chat.review.continueInChat",
           "group": "inline@3",
-          "when": "commentController == github-copilot-review"
+          "when": "commentController == github-copilot-review && isSessionsWindow"
         },
         {
           "command": "github.copilot.chat.review.discardAll",
           "group": "inline@4",
-          "when": "commentController == github-copilot-review"
+          "when": "commentController == github-copilot-review && isSessionsWindow"
         }
       ],
       "scm/title": [
@@ -6481,12 +6481,12 @@
       "notebook/toolbar": [
         {
           "command": "github.copilot.chat.notebook.enableFollowCellExecution",
-          "when": "config.github.copilot.chat.notebook.followCellExecution.enabled && !github.copilot.notebookFollowInSessionEnabled && github.copilot.notebookAgentModeUsage && config.notebook.globalToolbar",
+          "when": "config.github.copilot.chat.notebook.followCellExecution.enabled && !github.copilot.notebookFollowInSessionEnabled && github.copilot.notebookAgentModeUsage && config.notebook.globalToolbar && isSessionsWindow",
           "group": "navigation/execute@15"
         },
         {
           "command": "github.copilot.chat.notebook.disableFollowCellExecution",
-          "when": "config.github.copilot.chat.notebook.followCellExecution.enabled && github.copilot.notebookFollowInSessionEnabled && github.copilot.notebookAgentModeUsage && config.notebook.globalToolbar",
+          "when": "config.github.copilot.chat.notebook.followCellExecution.enabled && github.copilot.notebookFollowInSessionEnabled && github.copilot.notebookAgentModeUsage && config.notebook.globalToolbar && isSessionsWindow",
           "group": "navigation/execute@15"
         }
       ],
@@ -6536,7 +6536,7 @@
         },
         {
           "command": "github.copilot.chat.applyCopilotCLIAgentSessionChanges",
-          "when": "chatSessionType == copilotcli && workbenchState != empty && !isSessionsWindow",
+          "when": "chatSessionType == copilotcli && workbenchState != empty && isSessionsWindow",
           "group": "3_apply@0"
         },
         {
@@ -6715,7 +6715,7 @@
         "command": "github.copilot.chat.copilotCLI.addFileReference",
         "key": "ctrl+shift+.",
         "mac": "cmd+shift+.",
-        "when": "github.copilot.chat.copilotCLI.hasSession && editorTextFocus"
+        "when": "github.copilot.chat.copilotCLI.hasSession && editorTextFocus && isSessionsWindow"
       },
       {
         "command": "github.copilot.chat.rerunWithCopilotDebug",
