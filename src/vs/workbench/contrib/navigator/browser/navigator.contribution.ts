@@ -14,12 +14,12 @@ import { OpenFolderAction } from '../../../browser/actions/workspaceActions.js';
 import { OpenRecentAction } from '../../../browser/actions/windowActions.js';
 import { ViewPaneContainer } from '../../../browser/parts/views/viewPaneContainer.js';
 import { Extensions as ViewContainerExtensions, Extensions as ViewExtensions, IViewContainersRegistry, IViewsRegistry, ViewContainer, ViewContainerLocation, ViewContentGroups } from '../../../common/views.js';
+import { NavigatorProjectsView } from './navigatorProjectsList.js';
 import {
 	NAVIGATOR_AGENTS_VIEW_ID,
 	NAVIGATOR_PROJECTS_VIEW_ID,
 	NAVIGATOR_TEAM_VIEW_ID,
 	NavigatorAgentsView,
-	NavigatorProjectsView,
 	NavigatorTeamView,
 } from './navigatorStubView.js';
 
