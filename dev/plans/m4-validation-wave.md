@@ -39,10 +39,14 @@ summary: "闭合 M0 遗留 D3–D5：compile-client、分层检查、M0–M3 域
 
 ## 文件互斥
 
-| 切片 | 独占 |
-|------|------|
-| 1 compile/tests | `src/**` 修编译/测；`deferred-gaps` D3 |
-| 2 launch smoke | `deferred-gaps` D4、`status.md`、可选 `docs/reference/code-oss-b2/` 实测注记 |
+| 切片 | 独占 | 工位 |
+|------|------|------|
+| 1 compile/tests | `src/**` 修编译/测；`deferred-gaps` D3 | **merge**（运行中） |
+| 2 launch smoke | `deferred-gaps` D4、`status.md` | **A**（已完成，待 D3 后复跑） |
+| 3 EH 探针准备 | `eh-surface-matrix.md`、`eh-surface-notes.md`、`deferred-gaps` D5 | **B** |
+| 4 文档债 D1 | `docs/guides/multi-agent-design-workflow.md`、`dev/loop` 断链修复 | **C** |
+
+**并发规则**：切片 1 占用 `contrib/chat|conversation|sources` 时，切片 3–4 **禁止**改 `src/**`。D4 复跑须在 merge 槽 `compile-client` 绿后，**复用 merge 工位 `node_modules`/`out`**，不在无依赖工位空跑 launch。
 
 ## 验收
 
