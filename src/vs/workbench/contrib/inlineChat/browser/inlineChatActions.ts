@@ -246,17 +246,17 @@ export class FixDiagnosticsAction extends AbstractInlineChatAction {
 				id: MenuId.InlineChatEditorAffordance,
 				group: '1_quickfix',
 				order: 100,
-				when: ContextKeyExpr.and(CTX_FIX_DIAGNOSTICS_ENABLED, EditorContextKeys.selectionHasDiagnostics, CTX_INLINE_CHAT_FILE_BELONGS_TO_CHAT.negate()),
+				when: ContextKeyExpr.and(CTX_FIX_DIAGNOSTICS_ENABLED, EditorContextKeys.selectionHasDiagnostics, CTX_INLINE_CHAT_FILE_BELONGS_TO_CHAT.negate(), IsSessionsWindowContext),
 			}, {
 				id: MenuId.ChatEditorInlineMenu,
 				group: '2_chat',
 				order: 1,
-				when: ContextKeyExpr.and(CTX_FIX_DIAGNOSTICS_ENABLED, EditorContextKeys.selectionHasDiagnostics, CTX_INLINE_CHAT_FILE_BELONGS_TO_CHAT.negate()),
+				when: ContextKeyExpr.and(CTX_FIX_DIAGNOSTICS_ENABLED, EditorContextKeys.selectionHasDiagnostics, CTX_INLINE_CHAT_FILE_BELONGS_TO_CHAT.negate(), IsSessionsWindowContext),
 			}, {
 				id: MenuId.MarkerHoverStatusBar,
 				group: '1_fix',
 				order: 1,
-				when: ContextKeyExpr.and(CTX_FIX_DIAGNOSTICS_ENABLED, CTX_INLINE_CHAT_FILE_BELONGS_TO_CHAT.negate()),
+				when: ContextKeyExpr.and(CTX_FIX_DIAGNOSTICS_ENABLED, CTX_INLINE_CHAT_FILE_BELONGS_TO_CHAT.negate(), IsSessionsWindowContext),
 				precondition: null,
 			}]
 		});
