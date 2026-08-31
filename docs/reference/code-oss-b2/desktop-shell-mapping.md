@@ -42,7 +42,7 @@ StatusBar
 | Desktop `RegionId` / 区域 | 默认窗口今天 | S1 目标投影 | 备注 |
 |---------------------------|--------------|-------------|------|
 | Activity rail | `ACTIVITYBAR_PART` | **保留原生；不加四钮 chrome**（2026-08-30 拍板：四钮宿主改 titlebar 右上） | 通高已近似成立 |
-| Navigator body | `SIDEBAR_PART`（Explorer 仍树权威；`workbench.view.conversationSessions` stub roster 为 Sidebar View，非 default） | 保留 Explorer 权威；roster = 产品 Sessions 列表 View | `toggleRegion('navigatorBody')` ≙ `setSideBarHidden` + 记宽 |
+| Navigator body | `SIDEBAR_PART`（Explorer 仍树权威；`workbench.view.conversationSessions` + `workbench.view.navigator{Projects,Agents,Team}` 为 Sidebar View，非 default） | 保留 Explorer 权威；roster = Files + Sessions + Projects/Agents/Team honest stub | `toggleRegion('navigatorBody')` ≙ `setSideBarHidden` + 记宽 |
 | Conversation | **`CONVERSATION_PART`**（`contrib/conversation` 透镜骨架：SessionBar / stub 时间线 / stub dock） | 独立中心 Part | 无引擎接线；不是 ChatEditor |
 | Preview | `EDITOR_PART`（End 列） | **同一 `EDITOR_PART` 已挪到 End** | 与 File tabs **同构**（spike §3.1） |
 | Sources | 无独立格。SCM/Changes 常在 Sidebar 或 Panel | **`SOURCES_PART`**（End 下格；`contrib/sources` **Files \| Changes \| Review** tab strip） | Files 列表已落；Changes / Review 为 honest stub；Diff 深查看仍 **EDITOR_PART** FORK（ADR-047） |

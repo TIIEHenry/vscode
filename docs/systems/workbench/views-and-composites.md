@@ -108,6 +108,8 @@ Sessions 窗口的 `SESSIONS_PART` 证明「非 Editor 中心 Part」可行，�
 
 **产品会话列表（2026-08-31，M3 切片 2）**：`workbench.view.conversationSessions` 是 **Sidebar 内一叶 `ViewPane`**（注册在 Explorer `VIEW_CONTAINER`，`order: 3`），与 `ChatViewPane` 同类插入面，**不是** `CONVERSATION_PART` 中心透镜。Explorer 容器仍是 Sidebar 出厂默认 composite；Sessions roster 只列 stub 会话标题，与 SessionBar 共用 `IConversationStubService`。
 
+**Navigator 产品 roster stub（2026-08-31）**：`workbench.view.navigatorProjects` / `workbench.view.navigatorAgents` / `workbench.view.navigatorTeam`（`contrib/navigator`）同为 Explorer 容器内可切换 `ViewPane`，出厂 honest empty（not wired — no engine），不构造 `ChatEditorInput`，Explorer `isDefault` 不变。
+
 ## 6. 相关文档
 
 - [Parts、Grid、显隐](parts-and-grid.md) · [Workbench 概览](overview.md)
