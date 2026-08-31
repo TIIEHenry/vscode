@@ -938,7 +938,7 @@ export class OpenAgentSessionInEditorGroupAction extends BaseOpenAgentSessionAct
 					primary: KeyMod.WinCtrl | KeyCode.Enter
 				},
 				weight: KeybindingWeight.WorkbenchContrib + 1,
-				when: ContextKeyExpr.and(ChatContextKeys.agentSessionsViewerFocused, IsSessionsWindowContext.negate()),
+				when: ContextKeyExpr.and(ChatContextKeys.agentSessionsViewerFocused, IsSessionsWindowContext),
 			},
 			menu: {
 				id: MenuId.AgentSessionsContext,
@@ -980,7 +980,7 @@ export class OpenAgentSessionInNewEditorGroupAction extends BaseOpenAgentSession
 					primary: KeyMod.WinCtrl | KeyMod.Alt | KeyCode.Enter
 				},
 				weight: KeybindingWeight.WorkbenchContrib + 1,
-				when: ContextKeyExpr.and(ChatContextKeys.agentSessionsViewerFocused, IsSessionsWindowContext.negate()),
+				when: ContextKeyExpr.and(ChatContextKeys.agentSessionsViewerFocused, IsSessionsWindowContext),
 			},
 			menu: {
 				id: MenuId.AgentSessionsContext,

@@ -7,9 +7,11 @@ import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../../base/test/common/utils.js';
 import { isIMenuItem, MenuId, MenuRegistry } from '../../../../../../platform/actions/common/actions.js';
 import type { ContextKeyExpression, ContextKeyValue } from '../../../../../../platform/contextkey/common/contextkey.js';
+import { OS } from '../../../../../../base/common/platform.js';
+import { KeybindingsRegistry } from '../../../../../../platform/keybinding/common/keybindingsRegistry.js';
 import { IsSessionsWindowContext } from '../../../../../common/contextkeys.js';
 import { AgentSessionsViewerOrientation } from '../../../browser/agentSessions/agentSessions.js';
-import { HideAgentSessionsSidebar, ShowAgentSessionsSidebar, ToggleAgentSessionsSidebar, FocusAgentSessionsAction } from '../../../browser/agentSessions/agentSessionsActions.js';
+import { HideAgentSessionsSidebar, ShowAgentSessionsSidebar, ToggleAgentSessionsSidebar, FocusAgentSessionsAction, OpenAgentSessionInEditorGroupAction, OpenAgentSessionInNewEditorGroupAction } from '../../../browser/agentSessions/agentSessionsActions.js';
 import { ChatContextKeys } from '../../../common/actions/chatContextKeys.js';
 import { ChatConfiguration } from '../../../common/constants.js';
 
@@ -167,6 +169,43 @@ suite('AgentSessionsActions - default window context menu', () => {
 				evalWhen(item.when, agentsWindow),
 				true,
 				`Agents Window may show ${commandId} in Agent Sessions context menu`
+			);
+		}
+	});
+});
+
+suite('AgentSessionsActions - default window session opener keybindings', () => {
+
+	ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('Open as Editor and Open to the Side keybindings are Agents Window only', () => {
+		const defaultWindow = {
+			[IsSessionsWindowContext.key]: false,
+			[ChatContextKeys.agentSessionsViewerFocused.key]: true,
+		};
+		const agentsWindow = {
+			[IsSessionsWindowContext.key]: true,
+			[ChatContextKeys.agentSessionsViewerFocused.key]: true,
+		};
+
+		for (const commandId of [
+			OpenAgentSessionInEditorGroupAction.id,
+			OpenAgentSessionInNewEditorGroupAction.id,
+		] as const) {
+			const keybinding = KeybindingsRegistry.getDefaultKeybindingsForOS(OS)
+				.find(item => item.command === commandId);
+			assert.ok(keybinding, `${commandId} keybinding should be registered`);
+			assert.ok(keybinding.when, `${commandId} keybinding should have a when clause`);
+
+			assert.strictEqual(
+				evalWhen(keybinding.when, defaultWindow),
+				false,
+				`default Code window must disable ${commandId} keybinding`
+			);
+			assert.strictEqual(
+				evalWhen(keybinding.when, agentsWindow),
+				true,
+				`Agents Window may enable ${commandId} keybinding`
 			);
 		}
 	});

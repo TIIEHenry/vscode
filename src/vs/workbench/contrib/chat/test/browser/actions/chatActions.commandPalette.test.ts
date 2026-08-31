@@ -68,6 +68,11 @@ const f1FalseCommandIds = [
 ];
 
 const sessionsWindowOnlyCommandIds = [
+	CHAT_OPEN_ACTION_ID,
+	'workbench.action.chat.openask',
+	'workbench.action.chat.openedit',
+	'workbench.action.chat.openagent',
+	'workbench.action.chat.showContextUsage',
 	'workbench.action.chat.clearInputHistory',
 	'workbench.action.chat.focusTodosView',
 	'workbench.action.chat.focusQuestionCarousel',
@@ -81,16 +86,6 @@ suite('ChatActions - default window Command Palette (INV-NO-COPILOT)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('Open Conversation remains available in the default Code window Command Palette', () => {
-		const item = findCommandPaletteItem(CHAT_OPEN_ACTION_ID);
-		assert.ok(item, 'Open Conversation should remain registered in Command Palette');
-		assert.strictEqual(
-			evalWhen(item.when, defaultWindow),
-			true,
-			'default Code window must list Open Conversation in Command Palette'
-		);
-	});
-
 	test('Copilot factory and tool-approval commands are not registered in Command Palette', () => {
 		for (const commandId of f1FalseCommandIds) {
 			const item = findCommandPaletteItem(commandId);
@@ -98,7 +93,7 @@ suite('ChatActions - default window Command Palette (INV-NO-COPILOT)', () => {
 		}
 	});
 
-	test('Chat widget chrome commands stay in Command Palette for Agents Window only', () => {
+	test('Chat F1 commands stay in Command Palette for Agents Window only', () => {
 		for (const commandId of sessionsWindowOnlyCommandIds) {
 			const item = findCommandPaletteItem(commandId);
 			assert.ok(item, `${commandId} should remain registered for Agents Window`);

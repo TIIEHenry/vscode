@@ -222,6 +222,7 @@ abstract class OpenChatGlobalAction extends Action2 {
 			precondition: ContextKeyExpr.and(
 				ChatContextKeys.Setup.hidden.negate(),
 				ChatContextKeys.Setup.disabledInWorkspace.negate(),
+				IsSessionsWindowContext,
 			)
 		});
 	}
@@ -1134,7 +1135,7 @@ export function registerChatActions() {
 				title: localize2('interactiveSession.showContextUsage.label', "Show Context Window Usage"),
 				category: CHAT_CATEGORY,
 				f1: true,
-				precondition: ChatContextKeys.enabled,
+				precondition: ContextKeyExpr.and(ChatContextKeys.enabled, IsSessionsWindowContext),
 			});
 		}
 
