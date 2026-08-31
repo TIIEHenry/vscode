@@ -85,11 +85,32 @@ suite('ConversationLens', () => {
 		return (lens as unknown as { timelineTree: ConversationTimelineTree }).timelineTree;
 	}
 
-	function scrollTimelineAwayFromBottom(lens: ConversationLens, offsetFromBottom = 200): void {
+	function scrollTimelineAwayFromBottom(lens: ConversationLens, slots: IConversationLensSlots, offsetFromBottom = 200): void {
 		const timelineTree = getTimelineTree(lens);
 		timelineTree.setScrollLock(false);
-		const tree = (timelineTree as unknown as { tree: { scrollTop: number; scrollHeight: number; renderHeight: number } }).tree;
-		tree.scrollTop = Math.max(0, tree.scrollHeight - tree.renderHeight - offsetFromBottom);
+		const tree = (timelineTree as unknown as {
+			tree: {
+				scrollTop: number;
+				scrollHeight: number;
+				renderHeight: number;
+				view: {
+					length: number;
+					getElementTop: (index: number) => number;
+				};
+			};
+		}).tree;
+		const view = tree.view;
+
+		let scrollPastUser = 0;
+		if (view.length > 1) {
+			scrollPastUser = view.getElementTop(1);
+		} else {
+			const userRow = queryTimeline(slots, '.conversation-lens-turn[data-kind="user"]')?.closest('.conversation-lens-timeline-row') as HTMLElement | null;
+			scrollPastUser = (userRow?.offsetHeight ?? 72) + 4;
+		}
+
+		const maxScrollTop = Math.max(0, tree.scrollHeight - tree.renderHeight - offsetFromBottom);
+		tree.scrollTop = Math.min(maxScrollTop, Math.max(scrollPastUser, 0));
 	}
 
 	function getPinnedUserPrompt(slots: IConversationLensSlots): HTMLElement | null {
@@ -1193,7 +1214,7 @@ suite('ConversationLens', () => {
 
 		assert.ok(!getPinnedUserPrompt(slots)?.classList.contains('conversation-timeline-pinned-user--visible'));
 
-		scrollTimelineAwayFromBottom(lens);
+		scrollTimelineAwayFromBottom(lens, slots);
 		layoutReadingColumn();
 		await flushTimelineHeightUpdates();
 		await flushAnimationFrames();
@@ -1219,7 +1240,7 @@ suite('ConversationLens', () => {
 		layoutReadingColumn();
 		await flushTimelineHeightUpdates();
 
-		scrollTimelineAwayFromBottom(lens);
+		scrollTimelineAwayFromBottom(lens, slots);
 		layoutReadingColumn();
 		await flushTimelineHeightUpdates();
 		await flushAnimationFrames();
@@ -1251,7 +1272,7 @@ suite('ConversationLens', () => {
 		layoutReadingColumn();
 		await flushTimelineHeightUpdates();
 
-		scrollTimelineAwayFromBottom(lens);
+		scrollTimelineAwayFromBottom(lens, slots);
 		layoutReadingColumn();
 		await flushTimelineHeightUpdates();
 		await flushAnimationFrames();
