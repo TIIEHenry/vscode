@@ -4,17 +4,17 @@ type: progress
 status: active
 phase: M4
 updated: 2026-09-01
-summary: "PRD-012/013 轨迹与过程折已签收；三份壳方案已签收；M4 D4 仍阻塞于 compile 产物"
+summary: "PRD-012/013/014 轨迹/过程折/visualize 已签收；三份壳方案已签收；M4 D4 仍阻塞于 compile 产物"
 ---
 
 # Development Progress
 
 ## Current Session
 
-- **visualize 卡** [thinkrail-visualize-port.md](../plans/thinkrail-visualize-port.md) **`draft`**：Grok×2 并行 + 多视角 refine。ThinkRail `visualize`；VS Code Chat 有 mermaid、Conversation 无；选定自研 webview 借扩展 bundle + overlay 全屏（拒 ChatOutputRenderer / Open-in-Editor）。**未签收、未改 `src/`**。
+- **visualize 卡** [thinkrail-visualize-port.md](../plans/thinkrail-visualize-port.md) **`accepted`**：[PRD-014](../../docs/product/requirements.md#prd-014-conversation-图示卡visualize) 已签收；Grok xhigh 规则 16 审查（Opus 不可用）Approve with changes 已改入。**T1–T3 ReadyToImplement**；未改 `src/`。
 - **过程折** [conversation-process-fold.md](../plans/conversation-process-fold.md) **`accepted`**：显示 overlay，对话默认收起、轨迹默认展开（P3t）。**P1–P3/P3t ReadyToImplement**；未改 `src/`。
 - **轨迹透镜** [conversation-trajectory-lens.md](../plans/conversation-trajectory-lens.md) **`accepted`**：详细列表 + 强制显示压缩相关项；T3 复用过程折 overlay。**T1–T3 ReadyToImplement**；未改 `src/`。
-- **产品需求层** [product-requirements-layer.md](../plans/product-requirements-layer.md) **`implemented`**：`docs/product/` 已建立；PRD-001–PRD-013 已编号（012/013 为 `accepted`）；入口、DOCS-SPEC、文体指南、DOCUMENTATION 已同步；M2 仅回链。未改产品代码，未升 PRD-001–007 为 `implemented`（D4 仍待验证）。严格模式基线：`--strict-frontmatter` 退出 0；`--strict-links` 退出 1（`dev/loop/INDEX.md` 两条既有断链，不修）。
+- **产品需求层** [product-requirements-layer.md](../plans/product-requirements-layer.md) **`implemented`**：`docs/product/` 已建立；PRD-001–PRD-014 已编号；入口、DOCS-SPEC、文体指南、DOCUMENTATION 已同步；M2 仅回链。未改产品代码，未升 PRD-001–007 为 `implemented`（D4 仍待验证）。严格模式基线：`--strict-frontmatter` 退出 0；`--strict-links` 退出 1（`dev/loop/INDEX.md` 两条既有断链，不修）。
 - **页面接入方案** [page-access-schemes.md](../plans/page-access-schemes.md) **`accepted`**：并行只读审查后改入 Important（Back 命令链、1a 加载图、pane wait、丢掉 `tocData` `id:chat`、entitlement 三路径、撤回 M5 误拥有 `agentSessionsActions`）。切片 **1a ReadyToImplement**；实施另开会话。知识层四页选定设计仍待 §12。R1–R4 已闭。
 - **Chat 并排比对** [chat-compare-split.md](../plans/chat-compare-split.md) **`accepted`**：[ADR-001](../decisions/001-chat-compare-form.md) 已接受；上限复用目标已钉死（`_pickCompareTargetGroup` 两组不等价）。**未实施**。
 - **M5** [m5-ui-shell-hardening.md](../plans/m5-ui-shell-hardening.md) **`accepted`**：H7 钉死 `platform/agentHost/common` + eslint 去 `vs/sessions/~`；D4 唯一 closer = M5 切片 4 V1–V8。切片 1–3 ReadyToImplement；4–5 等 compile 产物。**未实施**。
@@ -44,7 +44,7 @@ summary: "PRD-012/013 轨迹与过程折已签收；三份壳方案已签收；M
 - M2 透镜 stub 产品面 `7822d430`；Aux hidden `9b34c1b6`。
 - M3 ChatEditor 默认路径 `8ca89e3a`；Navigator stub roster `80b3f76c`；合入 `98522c4b`。
 - Diff footprint @ `b283fe19`。
-- 页面接入 / M5 / Chat 并排：三份方案 `accepted`（2026-08-31 签收审查改稿）。
+- 页面接入 / M5 / Chat 并排 / 轨迹 / 过程折 / visualize：六份方案 `accepted`（2026-09-01 visualize 签收）。
 
 ## Blockers
 

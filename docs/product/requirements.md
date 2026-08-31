@@ -4,7 +4,7 @@ type: demand
 status: accepted
 phase: N/A
 updated: 2026-09-01
-summary: "PRD-001–PRD-013：默认窗产品壳已接受；轨迹透镜与过程折已接受；Agents 窗口 Chat 并排已接受；引擎、Diff、产品身份未决或阻塞"
+summary: "PRD-001–PRD-014：默认窗产品壳已接受；轨迹透镜/过程折/visualize 卡已接受；Agents 窗口 Chat 并排已接受；引擎、Diff、产品身份未决或阻塞"
 ---
 
 # Agent IDE 产品需求
@@ -143,7 +143,20 @@ PRD-001 至 PRD-007 的代码已在 M0–M3 合入，但 D4 启动冒烟（T1–
   3. 用户消息、助手散文、权限座位、轨迹上的 context/SYSTEM/compacted 都在折外。
   4. 无引擎时折内文案带 Stub，不出现假耗时。
   5. 折壳不是 Copilot Chat 列表行，也不是 `groupIdentity`。
-- **依赖或未决**：活数据连续段依赖 PRD-008。分组按 Desktop ADR-046（平行 span overlay）。视觉对照 ThinkRail，不搬 React。两页共用 overlay 辅助函数，宿主 DOM 可以两套。
+- **依赖或未决**：活数据连续段依赖 PRD-008。分组按 Desktop ADR-046（平行 span overlay）。视觉对照 ThinkRail，不搬 React。两页共用 overlay 辅助函数，宿主 DOM 可以两套。`visualization` 折外，见 [PRD-014](#prd-014-conversation-图示卡visualize)。
+
+### PRD-014 Conversation 图示卡（visualize）
+
+- **状态**：`accepted`
+- **用户价值**：用户能在对话时间线直接阅读架构图、路线图和方案对比，而不只是看 mermaid 源码或打开编辑器预览。
+- **用户可观察陈述**：`visualize` 工具结果在 Conversation 时间线以图示卡呈现：`type=diagram` 为主题感知的 mermaid 图（可全屏 overlay 查看）；`type=comparison` 为并排方案卡（pros / cons / Recommended）。卡是折外主阅读面，不是过程折里的工具行，也不是轨迹检查表行。
+- **产品验收标准**：
+  1. 种子会话可见路线图卡（如冻结 / 进行中 / 未立项 flowchart）和至少一张 comparison 卡；标题/选项含 Stub，不冒充引擎。
+  2. 图示卡无 You/Agent 气泡头；不是 Copilot Chat 列表行。
+  3. 全屏为 Conversation overlay（Close + Reset），不是 mermaid preview editor tab。
+  4. 扩展缺失时诚实降级为 fence + Stub 文案。
+  5. 过程折（PRD-013）不把 `visualization` 收进 span；轨迹（PRD-012）不投影 `visualization`。
+- **依赖或未决**：活数据依赖 PRD-008。引擎 admitted `visualize` **只**映射为 `visualization` kind，不进 `tool`/`reasoning` span。方案见 [thinkrail-visualize-port](../../dev/plans/thinkrail-visualize-port.md)。
 
 ## 未决或阻塞
 

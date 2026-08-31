@@ -4,7 +4,7 @@ type: index
 status: accepted
 phase: N/A
 updated: 2026-09-01
-summary: "dev/plans 导航：产品需求层建设与 M0–M5；页面接入 / M5 / 并排比对 / 轨迹透镜 / 过程折已签收；visualize 卡 draft"
+summary: "dev/plans 导航：产品需求层建设与 M0–M5；页面接入 / M5 / 并排比对 / 轨迹 / 过程折 / visualize 已签收"
 ---
 
 # 方案
@@ -24,4 +24,4 @@ summary: "dev/plans 导航：产品需求层建设与 M0–M5；页面接入 / M
 | [product-requirements-layer.md](product-requirements-layer.md) | `implemented` | 建立本仓产品需求 SSOT，并迁入当前 Agent IDE 壳需求 |
 | [conversation-trajectory-lens.md](conversation-trajectory-lens.md) | `accepted` | PRD-012：Conversation 闭集「对话 \| 轨迹」；轨迹 = harness 检查记录表（注入 / chip / 环境）；T1–T3 ReadyToImplement |
 | [conversation-process-fold.md](conversation-process-fold.md) | `accepted` | PRD-013：对话/轨迹共用过程折 overlay（ADR-046）；对话默认收起、轨迹默认展开；P1–P3/P3t ReadyToImplement |
-| [thinkrail-visualize-port.md](thinkrail-visualize-port.md) | `draft` | PRD-014（拟）：ThinkRail visualize 图示卡（mermaid + comparison）；inline 借 ChatOutputRenderer；全屏 overlay；本波不接引擎 |
+| [thinkrail-visualize-port.md](thinkrail-visualize-port.md) | `accepted` | PRD-014：ThinkRail visualize 图示卡；T1–T3 ReadyToImplement；本波不接引擎 |

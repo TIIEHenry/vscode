@@ -4,7 +4,7 @@ type: reference
 status: accepted
 phase: N/A
 updated: 2026-09-01
-summary: "PRD-001–PRD-013 到规格、方案与证据的轻量追踪；轨迹/过程折已签收"
+summary: "PRD-001–PRD-014 到规格、方案与证据的轻量追踪；轨迹/过程折/visualize 已签收"
 ---
 
 # 产品需求追踪
@@ -12,7 +12,8 @@ summary: "PRD-001–PRD-013 到规格、方案与证据的轻量追踪；轨迹/
 > 只链接事实来源，不复制 [requirements.md](requirements.md) 或方案正文。没有验证证据的需求标「待验证」，不以产品状态 `accepted` 代替验证结论。  
 > **页面接入 precedence：** Settings / roster / 透镜 / Navigator 的结构性决策以 [page-access-schemes.md](../../dev/plans/page-access-schemes.md)（`accepted`）为准；知识层四页为细节锚点，冲突见该方案 §12。  
 > **轨迹透镜：** 对话 | 轨迹闭集与检查表内容以 [conversation-trajectory-lens.md](../../dev/plans/conversation-trajectory-lens.md)（`accepted`）为准；外仓 ADR-047 只约束宿主闭集，不约束记录表内容。  
-> **过程折：** 对话页思考/工具缩进折叠以 [conversation-process-fold.md](../../dev/plans/conversation-process-fold.md)（`accepted`）为准；外仓 ADR-046 约束 span overlay，不约束 ThinkRail 视觉。
+> **过程折：** 对话页思考/工具缩进折叠以 [conversation-process-fold.md](../../dev/plans/conversation-process-fold.md)（`accepted`）为准；外仓 ADR-046 约束 span overlay，不约束 ThinkRail 视觉。  
+> **图示卡：** ThinkRail `visualize` 折外主卡以 [thinkrail-visualize-port.md](../../dev/plans/thinkrail-visualize-port.md)（`accepted`）为准；`visualization` 不进过程折 span、不进轨迹投影。
 
 | PRD-ID | 产品状态 | 系统/架构规格 | 实施方案 | 测试或验证证据 |
 |--------|----------|---------------|----------|----------------|
@@ -29,13 +30,14 @@ summary: "PRD-001–PRD-013 到规格、方案与证据的轻量追踪；轨迹/
 | [PRD-011](requirements.md#prd-011-chat-并排比对) | `accepted` | 就近 SSOT：`src/vs/sessions/LAYOUT.md`（Sessions Part / chat grid）· `src/vs/sessions/SESSIONS.md`（多 chat 能力）· [ADR-001](../../dev/decisions/001-chat-compare-form.md)（承载形态） | [chat-compare-split](../../dev/plans/chat-compare-split.md) (`accepted`) | 待验证：方案未实施 |
 | [PRD-012](requirements.md#prd-012-conversation-轨迹透镜) | `accepted` | 待实施后写 [agent-ui](../systems/chat/agent-ui.md) · [conversation-lens-assembly](../reference/code-oss-b2/conversation-lens-assembly.md) | [conversation-trajectory-lens](../../dev/plans/conversation-trajectory-lens.md) (`accepted`) | 待验证：方案未实施 |
 | [PRD-013](requirements.md#prd-013-conversation-过程折) | `accepted` | 待实施后写 [conversation-lens-assembly](../reference/code-oss-b2/conversation-lens-assembly.md) · [agent-ui](../systems/chat/agent-ui.md) | [conversation-process-fold](../../dev/plans/conversation-process-fold.md) (`accepted`) | 待验证：方案未实施 |
+| [PRD-014](requirements.md#prd-014-conversation-图示卡visualize) | `accepted` | 待实施后写 [agent-ui](../systems/chat/agent-ui.md) · [conversation-lens-assembly](../reference/code-oss-b2/conversation-lens-assembly.md) | [thinkrail-visualize-port](../../dev/plans/thinkrail-visualize-port.md) (`accepted`) | 待验证：方案未实施 |
 
 ## 外仓冲突与出处
 
 | 主题 | 外仓历史出处 | 本仓决定 |
 |------|--------------|----------|
 | Agent IDE 主流程在 Conversation | UniverseAgentDesktop `docs/product/experience-principles.md` §2 | 已迁入 [vision.md](vision.md)；外仓不再是持续权威 |
-| 外仓 F1–F11 现行交付表 | UniverseAgentDesktop `docs/product/requirements.md` | **不迁入**。本仓只用 `PRD-001`–`PRD-013` |
+| 外仓 F1–F11 现行交付表 | UniverseAgentDesktop `docs/product/requirements.md` | **不迁入**。本仓只用 `PRD-001`–`PRD-014` |
 | 编辑器窗口作为产品壳 | UniverseAgentDesktop ADR-061 | 壳拓扑已由本仓 M0–M3 落地；产品陈述以本目录为准 |
 | Diff 落点 | 外仓合同要底部面板，本仓现状在编辑器区域 | 冲突保留为 PRD-009 `blocked`，表述为「编辑器区域 vs 底部面板」，不静默覆盖 |
 | Conversation 轨迹页内容 | Desktop ADR-047：轨迹 = 当前活动/运行监视 | **宿主**对齐闭集 `conversation \| trajectory`；**内容**对齐 DeepSeek harness 检查记录表（注入 / chip / 环境），不把「当前活动监视」当本仓轨迹定义 |
@@ -46,7 +48,7 @@ summary: "PRD-001–PRD-013 到规格、方案与证据的轻量追踪；轨迹/
 | 分桶 | PRD |
 |------|-----|
 | 已接受、代码已落、启动待验证 | PRD-001–PRD-007 |
-| 已接受、方案已立、未实施 | PRD-011、PRD-012、PRD-013；页面接入 / M5 切片 |
+| 已接受、方案已立、未实施 | PRD-011、PRD-012、PRD-013、PRD-014；页面接入 / M5 切片 |
 | 阻塞 / 未决 | PRD-008、PRD-009 |
 | 仅提议 | PRD-010 |
 | 明确排除 | 见 [requirements.md](requirements.md)「明确排除」，不进入上表当待办 |
