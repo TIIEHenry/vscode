@@ -256,6 +256,7 @@ MenuRegistry.appendMenuItem(MenuId.CommandCenter, {
 	title: localize('agentsControl', "Agents"),
 	icon: Codicon.chatSparkle,
 	when: ContextKeyExpr.and(
+		IsSessionsWindowContext,
 		ChatContextKeys.enabled,
 		ContextKeyExpr.notEquals(`config.${ChatConfiguration.AgentStatusEnabled}`, 'hidden'),
 		ContextKeyExpr.notEquals(`config.${ChatConfiguration.AgentStatusEnabled}`, false),

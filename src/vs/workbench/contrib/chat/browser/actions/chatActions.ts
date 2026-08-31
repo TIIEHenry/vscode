@@ -665,6 +665,11 @@ export function registerChatActions() {
 		}
 
 		async run(accessor: ServicesAccessor) {
+			if (isDefaultCodeWindow(accessor)) {
+				focusConversationPart(accessor);
+				return;
+			}
+
 			const layoutService = accessor.get(IWorkbenchLayoutService);
 			const viewsService = accessor.get(IViewsService);
 			const viewDescriptorService = accessor.get(IViewDescriptorService);
