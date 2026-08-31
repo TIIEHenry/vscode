@@ -92,7 +92,7 @@ platform/chat                   设置与 AI_AGENT 约定
 
 默认 Code 窗口 **Terminal Inline Chat**（`workbench.action.terminal.chat.start` 等）、**SCM Generate Commit Message / Resolve Conflicts with AI / Graph Add to Chat** 与 **Inline Chat Fix diagnostics** marker hover 亦经 `IsSessionsWindowContext` 门闩隐藏（Agents Window 保留）。
 
-默认 Code 窗口 Command Palette 与编辑器右键亦不列出 Chat setup 命令（`workbench.action.chat.triggerSetup`、`workbench.action.chat.triggerSetupForceSignIn`、`workbench.action.chat.triggerSetupAnonymousWithoutDialog` 等，`f1: false` + `IsSessionsWindowContext` 门闩；Agents Window 保留）。
+默认 Code 窗口 Command Palette 与编辑器右键亦不列出 Chat setup 命令（`workbench.action.chat.triggerSetup`、`workbench.action.chat.triggerSetupForceSignIn`、`workbench.action.chat.triggerSetupAnonymousWithoutDialog` 等，`f1: false` + `IsSessionsWindowContext` 门闩；Agents Window 保留）。默认 Code 窗口 Agent Host SDK 的 GitHub 登录（`AgentSdkSetupService.signInToGitHub` → `workbench.action.chat.triggerSetup`）亦经 `IsSessionsWindowContext` 门闩跳过（Agents Window 保留）。
 
 ## 相关文档
 

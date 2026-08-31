@@ -17,6 +17,8 @@ import { ILogService } from '../../../../platform/log/common/log.js';
 import { IOpenerService } from '../../../../platform/opener/common/opener.js';
 import { IStorageService, StorageScope, StorageTarget } from '../../../../platform/storage/common/storage.js';
 import { ITelemetryService } from '../../../../platform/telemetry/common/telemetry.js';
+import { IContextKeyService } from '../../../../platform/contextkey/common/contextkey.js';
+import { IsSessionsWindowContext } from '../../../common/contextkeys.js';
 import { ICodexAccountService } from './codexAccountService.js';
 
 /**
@@ -29,6 +31,13 @@ const AGENT_SDK_DOWNLOAD_CONSENT_KEY = 'agentHost.agentSdkDownloadConsent';
 
 /** The Copilot sign-in flow, shared with `AgentHostSignedOutModelsNotification`. */
 const CHAT_SETUP_COMMAND_ID = 'workbench.action.chat.triggerSetup';
+
+/**
+ * INV-NO-COPILOT: Copilot setup via Agent Host SDK sign-in is Agents Window only.
+ */
+export function shouldTriggerAgentHostChatSetup(isSessionsWindow: boolean): boolean {
+	return isSessionsWindow;
+}
 
 export const IAgentSdkSetupService = createDecorator<IAgentSdkSetupService>('agentSdkSetupService');
 
@@ -142,6 +151,7 @@ class AgentSdkSetupService extends Disposable implements IAgentSdkSetupService {
 		@IOpenerService private readonly _openerService: IOpenerService,
 		@ICommandService private readonly _commandService: ICommandService,
 		@ICodexAccountService private readonly _codexAccountService: ICodexAccountService,
+		@IContextKeyService private readonly _contextKeyService: IContextKeyService,
 	) {
 		super();
 		// `rootState` is a getter over a protocol client the host replaces on every
@@ -189,6 +199,9 @@ class AgentSdkSetupService extends Disposable implements IAgentSdkSetupService {
 	}
 
 	signInToGitHub(agent: string): void {
+		if (!shouldTriggerAgentHostChatSetup(IsSessionsWindowContext.getValue(this._contextKeyService) ?? false)) {
+			return;
+		}
 		// A thin wrapper over the ordinary Copilot sign-in, taking the agent id only
 		// to attribute the click — which is the funnel's most telling drop.
 		this._reportStep(agent, 'gitHubSignInClicked');
