@@ -22,7 +22,7 @@ import { ChatViewId, IChatWidgetService } from '../chat.js';
 import { ChatEditor, IChatEditorOptions } from '../widgetHosts/editor/chatEditor.js';
 import { ChatEditorInput } from '../widgetHosts/editor/chatEditorInput.js';
 import { ChatViewPane } from '../widgetHosts/viewPane/chatViewPane.js';
-import { CHAT_CATEGORY } from './chatActions.js';
+import { CHAT_CATEGORY, focusConversationPart, isDefaultCodeWindow } from './chatActions.js';
 
 enum MoveToNewLocation {
 	Editor = 'Editor',
@@ -37,7 +37,7 @@ export function registerMoveActions() {
 				title: localize2('chat.openInEditor.label', "Move Chat into Editor Area"),
 				category: CHAT_CATEGORY,
 				precondition: ChatContextKeys.enabled,
-				f1: true,
+				f1: false,
 				menu: {
 					id: MenuId.ViewTitle,
 					when: ContextKeyExpr.equals('view', ChatViewId),
@@ -48,6 +48,10 @@ export function registerMoveActions() {
 		}
 
 		async run(accessor: ServicesAccessor, ...args: unknown[]) {
+			if (isDefaultCodeWindow(accessor)) {
+				focusConversationPart(accessor);
+				return;
+			}
 			const context = args[0];
 			executeMoveToAction(accessor, MoveToNewLocation.Editor, isChatViewTitleActionContext(context) ? context.sessionResource : undefined);
 		}

@@ -74,7 +74,7 @@ Desktop 合同：窗口壳 = Singularity/IDEA；Conversation 内 = 时间线 + I
 | **ChatEditor** | `editor/chatEditor.ts` | `EDITOR_PART` | **违反**。`ChatEditorInput` 是 `EditorInput`；打开即 editor tab |
 | **Quick Chat** | `chatQuick.ts` | 浮层 | 不是主流程 |
 
-`ChatEditor` 继承 `AbstractEditorWithViewState`，走 `IEditorService`。spike **S0 拒绝**的就是这条路径。代码里已存在，改造时要 **避免默认打开 chat 走 editor**，而不是「复用 ChatEditor 当 Conversation」。
+`ChatEditor` 继承 `AbstractEditorWithViewState`，走 `IEditorService`。spike **S0 拒绝**的就是这条路径。源码与 `registerEditorPane(ChatEditor, ChatEditorInput)` **仍保留**（donor / EH 对照）；默认 Code 窗口里，Command Palette /「Move into Editor Area」/ agentSessions「Open as Editor」/ `workbench.action.openChat` 等路径已 **藏或转** 到 `CONVERSATION_PART`，`ChatEditorInputWorkbenchSerializer` 对默认窗 `canSerialize === false`，`ChatResolverContribution` 不再把 `vscodeChatEditor` / `vscodeLocalChatSession` URI 送进 `EDITOR_PART`。`ChatWidget` 仍作 donor，**不是**「从注册表删除 ChatEditor」。
 
 `ChatViewPane` 还嵌 `AgentSessionsControl`、welcome、entitlement、mic/TTS——体量远超「一个列表 + Dock」。把它整块搬进新 Part 会把 Copilot 设置流一起搬进来。
 
