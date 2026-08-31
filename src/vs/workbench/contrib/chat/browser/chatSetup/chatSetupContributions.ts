@@ -116,10 +116,11 @@ export class ChatSetupContribution extends Disposable implements IWorkbenchContr
 		const codeActionsProviderDisposables = markAsSingleton(new MutableDisposable());
 
 		const updateRegistration = () => {
+			const isSessionsWindow = this.environmentService.isSessionsWindow;
 
 			// Agent + Tools
 			{
-				if (!context.state.hidden && !context.state.disabledInWorkspace) {
+				if (isSessionsWindow && !context.state.hidden && !context.state.disabledInWorkspace) {
 
 					// Default Agents (always, even if installed to allow for speedy requests right on startup)
 					if (!defaultAgentDisposables.value) {
@@ -167,7 +168,7 @@ export class ChatSetupContribution extends Disposable implements IWorkbenchContr
 
 			// Rename Provider
 			{
-				if (!context.state.completed && !context.state.hidden && !context.state.disabledInWorkspace) {
+				if (isSessionsWindow && !context.state.completed && !context.state.hidden && !context.state.disabledInWorkspace) {
 					if (!renameProviderDisposables.value) {
 						renameProviderDisposables.value = AINewSymbolNamesProvider.registerProvider(this.instantiationService, context, controller);
 					}
@@ -178,7 +179,7 @@ export class ChatSetupContribution extends Disposable implements IWorkbenchContr
 
 			// Code Actions Provider
 			{
-				if (!context.state.completed && !context.state.hidden && !context.state.disabledInWorkspace) {
+				if (isSessionsWindow && !context.state.completed && !context.state.hidden && !context.state.disabledInWorkspace) {
 					if (!codeActionsProviderDisposables.value) {
 						codeActionsProviderDisposables.value = ChatCodeActionsProvider.registerProvider(this.instantiationService);
 					}

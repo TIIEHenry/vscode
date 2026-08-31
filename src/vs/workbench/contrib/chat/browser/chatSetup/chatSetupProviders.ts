@@ -907,10 +907,15 @@ export class ChatCodeActionsProvider {
 
 	constructor(
 		@IMarkerService private readonly markerService: IMarkerService,
+		@IWorkbenchEnvironmentService private readonly environmentService: IWorkbenchEnvironmentService,
 	) {
 	}
 
 	async provideCodeActions(model: ITextModel, range: Range | Selection): Promise<CodeActionList | undefined> {
+		if (!this.environmentService.isSessionsWindow) {
+			return { actions: [], dispose() { } };
+		}
+
 		const actions: CodeAction[] = [];
 
 		// "Generate" if the line is whitespace only
