@@ -4,14 +4,14 @@ type: reference
 status: accepted
 phase: N/A
 updated: 2026-08-31
-summary: "贡献点 → Part 落点 → 改壳后 → 承诺分级；本轮无 EH 探针，全部标推定或待实测"
+summary: "贡献点 → Part 落点 → 改壳后 → 承诺分级；D5 探针已选、尚未运行"
 ---
 
 # EH 表面矩阵
 
 > 父页：[eh-surface-notes](eh-surface-notes.md)（冲突原则与探针建议）。  
-> **本轮无运行中的 Extension Host 探针**——表中 **不得** 写「已实测」或声称探针已跑。  
-> 装扩展冒烟后，把对应行的证据列改为「已实测 @\<date\>」并更新「冲突」列。
+> **探针已选、尚未运行**（2026-08-31，见 §Probe plan）——表中 **不得** 写「已实测」或声称探针已跑。  
+> 装扩展冒烟后，把对应行的证据列由「探针已选」改为「已实测 @\<date\>」并更新「冲突」列。
 
 列说明：
 
@@ -29,10 +29,10 @@ summary: "贡献点 → Part 落点 → 改壳后 → 承诺分级；本轮无 E
 |--------|----------|-------------------|------------------------|------|
 | `languages` / `grammars` / `semanticToken*` | editor 语言层（`EDITOR_PART` 内 Monaco） | 仍在 End 列 `EDITOR_PART` | **承诺** | **推定** |
 | `debuggers` / `breakpoints`（适配器协议） | 调试服务 + EH；不占 chrome 槽 | 协议层不变 | **承诺**（适配器） | **推定** |
-| `debuggers` / `breakpoints`（调试视图） | 常用 `SIDEBAR_PART` / `PANEL_PART` ViewContainer | 视图仍在 Sidebar/Panel；End 列 Editor 独立 | **冲突**（视图容器顺序/默认开） | **待实测** |
+| `debuggers` / `breakpoints`（调试视图） | 常用 `SIDEBAR_PART` / `PANEL_PART` ViewContainer | 视图仍在 Sidebar/Panel；End 列 Editor 独立 | **冲突**（视图容器顺序/默认开） | **探针已选 @2026-08-31** |
 | `viewsContainers.activitybar` | 新 Activity 图标 + `SIDEBAR_PART` 容器 | 与产品 Navigator roster / titlebar 四钮 **抢 Activity 槽** | **不承诺** | **推定** |
 | `viewsContainers.panel` | `PANEL_PART` | 底栏仍在；与 ADR-047 Diff 策略并存 | **冲突**（顺序/默认开） | **待实测** |
-| `views`（sidebar） | `SIDEBAR_PART` 内 View | 不变 | **冲突**（与产品 tab roster） | **待实测** |
+| `views`（sidebar） | `SIDEBAR_PART` 内 View | 不变 | **冲突**（与产品 tab roster） | **探针已选 @2026-08-31** |
 | `views`（panel） | `PANEL_PART` 内 View | 不变 | **冲突**（有限承诺） | **待实测** |
 | `views`（auxiliary / `ViewContainerLocation.AuxiliaryBar`） | `AUXILIARYBAR_PART` | Aux **默认关**（`workbench.secondarySideBar.defaultVisibility` 出厂 `'hidden'`；splash 同值；Chat 容器 `isDefault: false`）→ 视图无处去或被塞进 Sidebar | **不承诺** | **推定** |
 | `customEditors` | `EDITOR_PART` tab | End Preview 内打开；**合法**（文件类） | **承诺**「能开」；**不承诺**占中心 | **推定** |
@@ -47,17 +47,27 @@ summary: "贡献点 → Part 落点 → 改壳后 → 承诺分级；本轮无 E
 | `notebook` renderers / `notebookKernelProvider` | Notebook editor → `EDITOR_PART` | End 列 Preview tabs | **承诺**开 notebook；**不承诺**占中心 | **推定** |
 | `authentication` | 账号会话（无固定 Part） | 不变 | **承诺** | **推定** |
 
-## 探针建议（尚未执行）
+## Probe plan
 
-与 [eh-surface-notes §2](eh-surface-notes.md) 对齐；**本轮未跑**。
+与 [eh-surface-notes §2](eh-surface-notes.md) 对齐。以下为 **D5 最小探针集**（1 LSP + 2 layout，共 3 个扩展）；**尚未安装或运行**。
+
+| 扩展 | Marketplace ID | 验证行 / 探针 | 看什么 |
+|------|----------------|---------------|--------|
+| YAML | `redhat.vscode-yaml` | 探针「纯 LSP / language」 | End 列 `EDITOR_PART` 内：语法高亮、hover、schema 诊断（语言层不依赖中心 Conversation） |
+| Todo Tree | `gruntfuggly.todo-tree` | `views`（sidebar）；探针「`viewsContainers` + tree view」 | Sidebar 树视图是否落槽；Activity 是否多出产品外图标、四钮位是否被挤 |
+| JavaScript Debugger | `ms-vscode.js-debug` | `debuggers` / `breakpoints`（调试视图） | F5 启动调试后 Run and Debug / 断点视图在 Sidebar/Panel 的显隐与默认开 |
+
+**本轮不覆盖**（仍为 **待实测**，需后续探针或手工）：`viewsContainers.panel`、`views`（panel）、`terminal` profiles / `onStartup`、探针「命令 + `editor/decoration`」。
+
+只装纯 LSP 会得到空矩阵的假安慰——须至少跑 layout 类探针后再收紧「冲突」列。
+
+## 探针建议（对照表）
 
 | 探针 | 目的 | 预期看什么 | 证据 |
 |------|------|------------|------|
-| 纯 LSP / language | 语言承诺是否还在 | End 列 editor 高亮、转到定义 | **待实测** |
-| `viewsContainers` + tree view | 布局不承诺是否属实 | Activity 是否多出产品外图标；四钮位是否被挤 | **待实测** |
+| 纯 LSP / language | 语言承诺是否还在 | End 列 editor 高亮、转到定义 | **探针已选 @2026-08-31** |
+| `viewsContainers` + tree view | 布局不承诺是否属实 | Activity 是否多出产品外图标；四钮位是否被挤 | **探针已选 @2026-08-31** |
 | 命令 + `editor/decoration` | 非槽位贡献 | 不依赖 Activity 仍生效 | **待实测** |
-
-只装纯 LSP 会得到空矩阵的假安慰——须至少跑 layout 类探针后再收紧「冲突」列。
 
 ## Agents Window 外推限制
 
