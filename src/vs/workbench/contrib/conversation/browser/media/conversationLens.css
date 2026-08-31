@@ -454,6 +454,36 @@
 	flex: 1;
 	min-width: 0;
 	min-height: 0;
+	display: flex;
+	align-items: center;
+	gap: 4px;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-dock-attach {
+	flex-shrink: 0;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-dock-attach .monaco-button {
+	height: 20px;
+	min-width: 20px;
+	padding: 0 4px;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-dock-attach .monaco-button .codicon {
+	margin: 0;
+}
+
+.monaco-workbench .conversation-lens-dock-attach-popup {
+	padding: 4px 8px;
+	font-size: 12px;
+	font-weight: 400;
+	text-transform: none;
+	letter-spacing: normal;
+	color: var(--vscode-descriptionForeground);
+	background-color: var(--vscode-menu-background);
+	border: 1px solid var(--vscode-menu-border, var(--vscode-contrastBorder, transparent));
+	border-radius: 2px;
+	box-shadow: 0 2px 8px var(--vscode-widget-shadow, rgba(0, 0, 0, 0.16));
 }
 
 .monaco-workbench .part.conversation .conversation-lens-dock-bottom-trailing {

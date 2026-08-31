@@ -9,6 +9,8 @@ import { localize } from '../../../../nls.js';
 export const conversationLensDockEngineNotConnected = localize('conversationLens.dockEngineNotConnected', "Engine not connected");
 export const conversationLensDockInboxNoQueue = localize('conversationLens.inboxNoQueue', "No queue");
 export const conversationLensDockNoModel = localize('conversationLens.dockNoModel', "No model");
+export const conversationLensDockAttachTitle = localize('conversationLens.dockAttachTitle', "Attach");
+export const conversationLensDockNoAttachments = localize('conversationLens.dockNoAttachments', "No attachments");
 export const conversationLensDockMaximizeInput = localize('conversationLens.dockMaximizeInput', "Maximize input");
 export const conversationLensDockRestoreTimeline = localize('conversationLens.dockRestoreTimeline', "Restore timeline");
 

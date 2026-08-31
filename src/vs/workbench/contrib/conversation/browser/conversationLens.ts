@@ -22,9 +22,11 @@ import { hasNativeContextMenu } from '../../../../platform/window/common/window.
 import { IConversationLensSlots } from '../../../browser/parts/conversation/conversationPart.js';
 import { ConversationConfirmationSeat } from './conversationConfirmationSeat.js';
 import {
+	conversationLensDockAttachTitle,
 	conversationLensDockEngineNotConnected,
 	conversationLensDockInboxNoQueue,
 	conversationLensDockMaximizeInput,
+	conversationLensDockNoAttachments,
 	conversationLensDockNoModel,
 	conversationLensDockRestoreTimeline,
 	conversationLensInputMaximizedClass,
@@ -56,6 +58,8 @@ export class ConversationLens extends Disposable {
 	private inboxStatus!: HTMLButtonElement;
 	private dockTextarea!: HTMLTextAreaElement;
 	private sendButton!: Button;
+	private attachButton!: Button;
+	private attachContextView: IOpenContextView | undefined;
 	private maximizeInputButton!: Button;
 
 	private readonly slotHosts: IConversationLensSlots;
@@ -99,6 +103,7 @@ export class ConversationLens extends Disposable {
 
 		this._register(toDisposable(() => {
 			this.historyContextView?.close();
+			this.attachContextView?.close();
 			for (const seat of this.confirmationSeats.values()) {
 				seat.dispose();
 			}
@@ -292,6 +297,17 @@ export class ConversationLens extends Disposable {
 
 		const bottomBar = append(composer, $('.conversation-lens-dock-bottom-bar'));
 		const bottomLeading = append(bottomBar, $('.conversation-lens-dock-bottom-leading'));
+		const attachContainer = append(bottomLeading, $('.conversation-lens-dock-attach'));
+		this.attachButton = this._register(new Button(attachContainer, {
+			...defaultButtonStyles,
+			supportIcons: true,
+			small: true,
+			secondary: true,
+			title: conversationLensDockAttachTitle,
+		}));
+		this.attachButton.icon = Codicon.attach;
+		this._register(this.attachButton.onDidClick(() => this.toggleAttachContextView()));
+
 		const maximizeInputContainer = append(bottomLeading, $('.conversation-lens-dock-maximize-input'));
 		this.maximizeInputButton = this._register(new Button(maximizeInputContainer, {
 			...defaultButtonStyles,
@@ -321,6 +337,35 @@ export class ConversationLens extends Disposable {
 		this._register(addDisposableListener(this.dockTextarea, 'input', () => {
 			this.drafts.set(this.stubService.getActiveSessionId(), this.dockTextarea.value);
 		}));
+	}
+
+	private toggleAttachContextView(): void {
+		if (this.attachContextView) {
+			this.attachContextView.close();
+			return;
+		}
+		this.attachContextView = this.contextViewService.showContextView({
+			getAnchor: () => this.attachButton.element,
+			anchorAlignment: AnchorAlignment.RIGHT,
+			anchorPosition: AnchorPosition.ABOVE,
+			render: container => {
+				append(container, $('.conversation-lens-dock-attach-popup')).textContent = conversationLensDockNoAttachments;
+				return toDisposable(() => {
+					this.attachContextView = undefined;
+				});
+			},
+			onDOMEvent: e => {
+				if (e.type === 'click') {
+					const target = e.target as HTMLElement | null;
+					if (target && !this.attachButton.element.contains(target)) {
+						this.attachContextView?.close();
+					}
+				}
+			},
+			onHide: () => {
+				this.attachContextView = undefined;
+			},
+		});
 	}
 
 	private toggleHistoryContextView(): void {
