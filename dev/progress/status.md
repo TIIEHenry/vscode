@@ -11,7 +11,7 @@ summary: "M3 两切片已落地并合入 agent-ide：ChatEditor 默认路径藏/
 
 ## Current Session
 
-- **M3 方案** [m3-shell-closeout.md](../plans/m3-shell-closeout.md) **`implemented`**（可选 follow-on）：切片 1 ChatEditor 默认路径 `fd549855` + serializer/resolver/move `8ca89e3a`；切片 2 Navigator stub roster `80b3f76c`。合入 `agent-ide` `98522c4b`。无引擎。compile/启动/EH 仍 D3–D5。
+- **M3 方案** [m3-shell-closeout.md](../plans/m3-shell-closeout.md) **`implemented`**（可选 follow-on）：切片 1 + 2 已合入 `agent-ide`（关仓）。无引擎。compile/启动/EH 仍 D3–D5。
 - **M2 方案** [m2-product-shell.md](../plans/m2-product-shell.md) **`implemented`**（无引擎产品壳完成线；M3 不阻塞）。
 - **M1 切片 3 Sources Files**（`156f0fe5`）：只读列表投影，点击开 End Preview。
 - **D7 四钮 chrome**（`2dcd5a0a`）：默认窗 `LayoutControlMenu` 只留 Nav / Conversation / Preview / Sources；Panel/Aux 仍在 submenu。
