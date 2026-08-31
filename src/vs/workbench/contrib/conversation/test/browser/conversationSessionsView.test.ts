@@ -12,7 +12,10 @@ import { Registry } from '../../../../../platform/registry/common/platform.js';
 import { ConversationPart, IConversationPartService } from '../../../../browser/parts/conversation/conversationPart.js';
 import { Extensions as ViewContainerExtensions, Extensions as ViewExtensions, IViewContainersRegistry, IViewDescriptorService, IViewsRegistry, ViewContainerLocation } from '../../../../common/views.js';
 import { IWorkbenchLayoutService, Parts } from '../../../../services/layout/browser/layoutService.js';
-import { IEditorService } from '../../../../services/editor/common/editorService.js';
+import { EditorInput } from '../../../../common/editor/editorInput.js';
+import { IEditorPane, IUntypedEditorInput } from '../../../../common/editor.js';
+import { IEditorOptions } from '../../../../platform/editor/common/editor.js';
+import { IEditorService, PreferredGroup } from '../../../../services/editor/common/editorService.js';
 import { ChatEditorInput } from '../../../chat/browser/widgetHosts/editor/chatEditorInput.js';
 import { CONVERSATION_SESSIONS_CONTAINER_ID } from '../../browser/conversation.contribution.js';
 import { CONVERSATION_SESSIONS_VIEW_ID, ConversationSessionsView } from '../../browser/conversationSessionsView.js';
@@ -202,10 +205,10 @@ suite('ConversationSessionsView', () => {
 		const editorService = store.add(new TestEditorService());
 		let openEditorCalled = false;
 		const originalOpenEditor = editorService.openEditor.bind(editorService);
-		(editorService as { openEditor: typeof editorService.openEditor }).openEditor = async (...args) => {
+		editorService.openEditor = (async (editor: EditorInput | IUntypedEditorInput, optionsOrGroup?: IEditorOptions | PreferredGroup, group?: PreferredGroup): Promise<IEditorPane | undefined> => {
 			openEditorCalled = true;
-			return originalOpenEditor(...args);
-		};
+			return originalOpenEditor(editor, optionsOrGroup, group);
+		}) as typeof editorService.openEditor;
 
 		let switchSessionCalled = false;
 		const originalSwitchSession = service.switchSession.bind(service);

@@ -5,8 +5,9 @@
 
 import { $, addDisposableListener, append, clearNode, getWindow } from '../../../../base/browser/dom.js';
 import { Button } from '../../../../base/browser/ui/button/button.js';
-import { IListRenderer, IListVirtualDelegate } from '../../../../base/browser/ui/list/list.js';
-import { RenderIndentGuides } from '../../../../base/browser/ui/tree/tree.js';
+import { IListVirtualDelegate } from '../../../../base/browser/ui/list/list.js';
+import { RenderIndentGuides } from '../../../../base/browser/ui/tree/abstractTree.js';
+import { ITreeNode, ITreeRenderer } from '../../../../base/browser/ui/tree/tree.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { Disposable, DisposableStore, IDisposable } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
@@ -45,7 +46,7 @@ class ConversationTimelineDelegate implements IListVirtualDelegate<ConversationT
 		return this.heights.get(element.turn.id) ?? 72;
 	}
 
-	getTemplateId(): string {
+	getTemplateId(_element: ConversationTimelineItem): string {
 		return 'conversationTimelineTurn';
 	}
 
@@ -58,7 +59,7 @@ class ConversationTimelineDelegate implements IListVirtualDelegate<ConversationT
 	}
 }
 
-class ConversationTimelineRenderer implements IListRenderer<ConversationTimelineItem, ITurnTemplateData> {
+class ConversationTimelineRenderer implements ITreeRenderer<ConversationTimelineItem, void, ITurnTemplateData> {
 
 	static readonly TEMPLATE_ID = 'conversationTimelineTurn';
 
@@ -77,10 +78,11 @@ class ConversationTimelineRenderer implements IListRenderer<ConversationTimeline
 		return { container, disposables: new DisposableStore() };
 	}
 
-	renderElement(item: ConversationTimelineItem, _index: number, templateData: ITurnTemplateData): void {
+	renderElement(node: ITreeNode<ConversationTimelineItem, void>, _index: number, templateData: ITurnTemplateData): void {
 		templateData.disposables.clear();
 		clearNode(templateData.container);
 
+		const item = node.element;
 		const turn = item.turn;
 		if (turn.kind === 'confirmation') {
 			const seat = templateData.disposables.add(new ConversationConfirmationSeat({
@@ -164,7 +166,6 @@ export class ConversationTimelineTree extends Disposable {
 	private readonly autoScrollHolds = new ConversationAutoScrollHolds();
 
 	private _scrollLock = true;
-	private turns: readonly ConversationStubTurn[] = [];
 
 	constructor(
 		parent: HTMLElement,
@@ -288,7 +289,6 @@ export class ConversationTimelineTree extends Disposable {
 	setTurns(turns: readonly ConversationStubTurn[]): void {
 		this.withPersistedAutoScroll(() => {
 			this.renderer.clearConfirmationSeats();
-			this.turns = turns;
 			const items = turns.map(turn => ({ turn }));
 			this.tree.setChildren(null, items.map(item => ({ element: item })));
 			this.renderEmptyState(turns.length === 0);
