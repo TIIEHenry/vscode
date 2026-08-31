@@ -37,6 +37,14 @@ import {
 	conversationLensInputMaximizedClass,
 } from './conversationLensDockStrings.js';
 import { conversationLensSessionBarDeleteSession, conversationLensSessionBarHistoryTitle, conversationLensSessionBarNewSession, conversationLensSessionBarRenameInputAria, conversationLensSessionBarRenameTitle } from './conversationLensSessionBarStrings.js';
+import {
+	buildSessionUserInputHistory,
+	createInputHistoryBrowseState,
+	exitInputHistoryBrowse,
+	InputHistoryBrowseState,
+	InputHistoryDirection,
+	navigateInputHistoryBrowse,
+} from './conversationInputHistory.js';
 import { showConversationPart } from './conversationSessionStatus.js';
 import { IConversationRosterService } from './conversationStubService.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
@@ -72,6 +80,7 @@ export class ConversationLens extends Disposable {
 	private inputMaximized = false;
 
 	private readonly drafts = new Map<string, string>();
+	private inputHistoryBrowse: InputHistoryBrowseState = createInputHistoryBrowseState();
 	private suppressSessionSelect = false;
 
 	constructor(
@@ -351,6 +360,23 @@ export class ConversationLens extends Disposable {
 		this.sendButton.label = localize('conversationLens.send', "Send");
 
 		this._register(addDisposableListener(this.dockTextarea, 'keydown', e => {
+			if (e.keyCode === KeyCode.UpArrow) {
+				if (this.navigateInputHistory('older')) {
+					e.preventDefault();
+				}
+				return;
+			}
+			if (e.keyCode === KeyCode.DownArrow) {
+				if (this.navigateInputHistory('newer')) {
+					e.preventDefault();
+				}
+				return;
+			}
+			if (e.keyCode === KeyCode.Escape && this.inputHistoryBrowse.browseIndex >= 0) {
+				e.preventDefault();
+				this.exitInputHistoryBrowse();
+				return;
+			}
 			if (e.keyCode === KeyCode.Enter && !e.shiftKey) {
 				e.preventDefault();
 				this.submitDraft();
@@ -358,6 +384,9 @@ export class ConversationLens extends Disposable {
 		}));
 		this._register(this.sendButton.onDidClick(() => this.submitDraft()));
 		this._register(addDisposableListener(this.dockTextarea, 'input', () => {
+			if (this.inputHistoryBrowse.browseIndex >= 0) {
+				this.inputHistoryBrowse = createInputHistoryBrowseState();
+			}
 			this.drafts.set(this.stubService.getActiveSessionId(), this.dockTextarea.value);
 		}));
 	}
@@ -444,6 +473,7 @@ export class ConversationLens extends Disposable {
 	}
 
 	private applyActiveSession(sessionId: string): void {
+		this.resetInputHistoryBrowse();
 		this.refreshSessionSelectOptions();
 		this.updateSessionTitle();
 		this.dockTextarea.value = this.drafts.get(sessionId) ?? '';
@@ -551,6 +581,40 @@ export class ConversationLens extends Disposable {
 		this.stubService.deleteTurn(this.stubService.getActiveSessionId(), turnId);
 	}
 
+	private resetInputHistoryBrowse(): void {
+		this.inputHistoryBrowse = createInputHistoryBrowseState();
+	}
+
+	private getSessionInputHistory(): readonly string[] {
+		return buildSessionUserInputHistory(this.stubService.getTurns(this.stubService.getActiveSessionId()));
+	}
+
+	private navigateInputHistory(direction: InputHistoryDirection): boolean {
+		const result = navigateInputHistoryBrowse(
+			this.getSessionInputHistory(),
+			this.inputHistoryBrowse,
+			direction,
+			this.dockTextarea.value,
+		);
+		if (!result.handled || result.textareaValue === undefined) {
+			return result.handled;
+		}
+		this.inputHistoryBrowse = result.state;
+		this.dockTextarea.value = result.textareaValue;
+		this.drafts.set(this.stubService.getActiveSessionId(), result.textareaValue);
+		return true;
+	}
+
+	private exitInputHistoryBrowse(): void {
+		const result = exitInputHistoryBrowse(this.inputHistoryBrowse);
+		if (!result.handled || result.textareaValue === undefined) {
+			return;
+		}
+		this.inputHistoryBrowse = result.state;
+		this.dockTextarea.value = result.textareaValue;
+		this.drafts.set(this.stubService.getActiveSessionId(), result.textareaValue);
+	}
+
 	private submitDraft(): void {
 		const text = this.dockTextarea.value.trim();
 		if (!text) {
@@ -561,5 +625,6 @@ export class ConversationLens extends Disposable {
 		this.stubService.appendStubEchoAssistant(sessionId, localize('conversationLens.stubEcho', "Stub echo — no engine connected."));
 		this.drafts.set(sessionId, '');
 		this.dockTextarea.value = '';
+		this.resetInputHistoryBrowse();
 	}
 }

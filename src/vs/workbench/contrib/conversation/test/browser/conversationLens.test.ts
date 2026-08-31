@@ -129,6 +129,23 @@ suite('ConversationLens', () => {
 		return null;
 	}
 
+	function getDockTextarea(slots: IConversationLensSlots): HTMLTextAreaElement {
+		const textarea = slots.dock.querySelector('textarea.conversation-lens-dock-input') as HTMLTextAreaElement | null;
+		assert.ok(textarea);
+		return textarea;
+	}
+
+	function sendDockDraft(slots: IConversationLensSlots, message: string): void {
+		const textarea = getDockTextarea(slots);
+		const sendButton = slots.dock.querySelector('.conversation-lens-dock-actions .monaco-button') as HTMLElement;
+		textarea.value = message;
+		sendButton.click();
+	}
+
+	function dispatchDockKeydown(textarea: HTMLTextAreaElement, keyCode: KeyCode): void {
+		textarea.dispatchEvent(new KeyboardEvent('keydown', { keyCode, bubbles: true, cancelable: true }));
+	}
+
 	function getSessionSelectLabel(slots: NonNullable<ReturnType<ConversationPart['getSlots']>>): string | undefined {
 		const select = slots.sessionBar.querySelector('select.monaco-select-box') as HTMLSelectElement | null;
 		if (!select || select.options.length === 0) {
@@ -949,5 +966,106 @@ suite('ConversationLens', () => {
 
 		assert.strictEqual(queryTimeline(slots, '.conversation-lens-turn[data-kind="user"]'), null);
 		assert.ok(queryTimeline(slots, '.conversation-lens-turn[data-kind="assistant"]'));
+	});
+
+	test('dock input history recalls sent user drafts with ArrowUp and ArrowDown on empty composer', () => {
+		const { part } = mountLens();
+		const slots = part.getSlots()!;
+		const textarea = getDockTextarea(slots);
+
+		sendDockDraft(slots, 'first message');
+		sendDockDraft(slots, 'second message');
+		assert.strictEqual(textarea.value, '');
+
+		dispatchDockKeydown(textarea, KeyCode.UpArrow);
+		assert.strictEqual(textarea.value, 'second message');
+
+		dispatchDockKeydown(textarea, KeyCode.UpArrow);
+		assert.strictEqual(textarea.value, 'first message');
+
+		dispatchDockKeydown(textarea, KeyCode.DownArrow);
+		assert.strictEqual(textarea.value, 'second message');
+	});
+
+	test('dock input history is isolated per session', () => {
+		const { part, stubService } = mountLens();
+		const slots = part.getSlots()!;
+		const textarea = getDockTextarea(slots);
+
+		sendDockDraft(slots, 'session A only');
+		const sessionBId = stubService.createSession();
+		assert.strictEqual(stubService.getActiveSessionId(), sessionBId);
+
+		dispatchDockKeydown(textarea, KeyCode.UpArrow);
+		assert.strictEqual(textarea.value, '');
+
+		stubService.switchSession(stubService.getSessions()[0].id);
+		dispatchDockKeydown(textarea, KeyCode.UpArrow);
+		assert.strictEqual(textarea.value, 'session A only');
+	});
+
+	test('dock input history Escape restores unsent draft snapshot', () => {
+		const { part } = mountLens();
+		const slots = part.getSlots()!;
+		const textarea = getDockTextarea(slots);
+
+		sendDockDraft(slots, 'sent message');
+		textarea.value = '  ';
+		dispatchDockKeydown(textarea, KeyCode.UpArrow);
+		assert.strictEqual(textarea.value, 'sent message');
+
+		dispatchDockKeydown(textarea, KeyCode.Escape);
+		assert.strictEqual(textarea.value, '  ');
+	});
+
+	test('dock input history typing exits browse and keeps edited text', () => {
+		const { part } = mountLens();
+		const slots = part.getSlots()!;
+		const textarea = getDockTextarea(slots);
+
+		sendDockDraft(slots, 'sent message');
+		dispatchDockKeydown(textarea, KeyCode.UpArrow);
+		assert.strictEqual(textarea.value, 'sent message');
+
+		textarea.value = `${textarea.value}a`;
+		textarea.dispatchEvent(new Event('input', { bubbles: true }));
+		assert.strictEqual(textarea.value, 'sent messagea');
+
+		dispatchDockKeydown(textarea, KeyCode.UpArrow);
+		assert.strictEqual(textarea.value, 'sent messagea');
+	});
+
+	test('dock input history ignores deleted user turns', async () => {
+		const { part, layoutReadingColumn } = mountLens();
+		const slots = part.getSlots()!;
+		const textarea = getDockTextarea(slots);
+
+		sendDockDraft(slots, 'delete me');
+		sendDockDraft(slots, 'keep me');
+		layoutReadingColumn();
+		await flushTimelineHeightUpdates();
+
+		const userTurn = queryTimeline(slots, '.conversation-lens-turn[data-kind="user"]')!;
+		const deleteButton = userTurn.querySelector('.conversation-lens-turn-action-delete .monaco-button') as HTMLElement;
+		deleteButton.click();
+		layoutReadingColumn();
+		await flushTimelineHeightUpdates();
+
+		dispatchDockKeydown(textarea, KeyCode.UpArrow);
+		assert.strictEqual(textarea.value, 'keep me');
+
+		dispatchDockKeydown(textarea, KeyCode.UpArrow);
+		assert.strictEqual(textarea.value, 'keep me');
+	});
+
+	test('dock input history ignores ArrowUp when composer is not trim-empty', () => {
+		const { part } = mountLens();
+		const slots = part.getSlots()!;
+		const textarea = getDockTextarea(slots);
+
+		sendDockDraft(slots, 'sent message');
+		textarea.value = 'typing now';
+		dispatchDockKeydown(textarea, KeyCode.UpArrow);
+		assert.strictEqual(textarea.value, 'typing now');
 	});
 });
