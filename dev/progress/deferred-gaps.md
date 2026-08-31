@@ -15,7 +15,7 @@ summary: "P2/P3 延期缺口 SSOT；D7 已闭；D4 启动被 compile 阻塞"
 
 | ID | Priority | Gap | Why Deferred | Exit Condition | Track | Status |
 |:---|:---------|:----|:-------------|:---------------|:------|:-------|
-| D1 | P3 | 套件 `dev/loop/overview.md` 引用的 `docs/guides/multi-agent-design-workflow.md` 缺失 | 门禁仅 warning 不阻塞 | 指南落盘且 `check-docs-health` 0 warning | docs | open |
+| D1 | P3 | 套件 `dev/loop/overview.md` 引用的 `docs/guides/multi-agent-design-workflow.md` 缺失 | 门禁仅 warning 不阻塞 | 指南落盘且 `check-docs-health` 0 warning | docs | closed |
 | D2 | P2 | 工位池基线未编译验绿 | 编译耗时长；建槽时未跑 | M0 集成编译绿后在 `worktree-pool.md` 标注基线已验 | infra | open |
 | D3 | P2 | **M0 compile 验证**（`npm run compile` + `valid-layers-check`） | 并行 slice 进行中；本 tick 禁止 compile | merge 槽集成后编译与分层检查绿 | M0 | open |
 | D4 | P2 | **启动 T1–T3 演示**（目视：Conversation 中心、End Editor/Sources、互斥、四钮；M3 无 ChatEditor 默认路径、Sidebar stub Sessions） | **阻塞**：工位 A 无 `out/`、无 `.build/electron/code-oss`、无 `node_modules/`；`launch.sh --skip-prelaunch` 于 2026-08-31 失败（PID 退出，CDP 未起） | `npm run compile`（或 `preLaunch`）绿后隔离 profile 启动；T1–T3 + M3 目视勾选或记 gap | M4 | open |
