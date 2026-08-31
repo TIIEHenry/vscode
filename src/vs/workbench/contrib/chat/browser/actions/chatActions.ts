@@ -581,7 +581,7 @@ class PrimaryOpenChatGlobalAction extends OpenChatGlobalAction {
 	constructor() {
 		super({
 			id: CHAT_OPEN_ACTION_ID,
-			title: localize2('openChat', "Open Chat"),
+			title: localize2('openConversation', "Open Conversation"),
 			keybinding: {
 				weight: KeybindingWeight.WorkbenchContrib,
 				primary: KeyMod.CtrlCmd | KeyMod.Alt | KeyCode.KeyI,
@@ -707,7 +707,7 @@ export function registerChatActions() {
 				id: ACTION_ID_OPEN_CHAT,
 				title: localize2('interactiveSession.open', "New Chat Editor"),
 				icon: Codicon.plus,
-				f1: true,
+				f1: false,
 				category: CHAT_CATEGORY,
 				precondition: ChatContextKeys.enabled,
 				keybinding: {
