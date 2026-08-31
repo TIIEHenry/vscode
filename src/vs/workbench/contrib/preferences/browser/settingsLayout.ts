@@ -7,6 +7,7 @@ import { isWeb, isWindows } from '../../../../base/common/platform.js';
 import { localize } from '../../../../nls.js';
 import { ISetting, ISettingsGroup } from '../../../services/preferences/common/preferences.js';
 import { ChatAIDisabledSettingId } from '../../../../platform/chat/common/chatSettings.js';
+import { ADVANCED_SETTING_TAG } from '../common/preferences.js';
 
 export interface ITOCFilter {
 	include?: {
@@ -440,3 +441,31 @@ export const tocData: ITOCEntry<string> = {
 		}
 	]
 };
+
+function getChatTocKeyPatterns(): string[] {
+	const chat = tocData.children?.find(child => child.id === 'chat');
+	return chat?.children?.flatMap(child => child.settings ?? []) ?? [];
+}
+
+export function getTocDataForWindow(isSessionsWindow: boolean): ITOCEntry<string> {
+	if (isSessionsWindow) {
+		return tocData;
+	}
+	return {
+		...tocData,
+		children: tocData.children?.filter(child => child.id !== 'chat')
+	};
+}
+
+export function getSettingsTocFilter(isSessionsWindow: boolean, showAdvanced: boolean): ITOCFilter | undefined {
+	const advancedTags = showAdvanced ? undefined : [ADVANCED_SETTING_TAG];
+	if (isSessionsWindow) {
+		return advancedTags ? { exclude: { tags: advancedTags } } : undefined;
+	}
+	return {
+		exclude: {
+			...(advancedTags ? { tags: advancedTags } : {}),
+			keyPatterns: getChatTocKeyPatterns()
+		}
+	};
+}
