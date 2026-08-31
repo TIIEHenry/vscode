@@ -102,6 +102,19 @@ export class ConversationStubModel {
 		return id;
 	}
 
+	renameSession(sessionId: string, title: string): boolean {
+		const trimmed = title.trim();
+		if (!trimmed) {
+			return false;
+		}
+		const session = this.sessions.find(s => s.id === sessionId);
+		if (!session || session.title === trimmed) {
+			return false;
+		}
+		session.title = trimmed;
+		return true;
+	}
+
 	private createUniqueNewSessionTitle(): string {
 		const base = localize('conversationLens.sessionNew', "New session");
 		if (!this.sessions.some(s => s.title === base)) {

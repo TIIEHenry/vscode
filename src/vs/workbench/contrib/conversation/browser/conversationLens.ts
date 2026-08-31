@@ -27,7 +27,7 @@ import {
 	conversationLensDockRestoreTimeline,
 	conversationLensInputMaximizedClass,
 } from './conversationLensDockStrings.js';
-import { conversationLensSessionBarNewSession } from './conversationLensSessionBarStrings.js';
+import { conversationLensSessionBarNewSession, conversationLensSessionBarRenameInputAria, conversationLensSessionBarRenameTitle } from './conversationLensSessionBarStrings.js';
 import { ConversationStubTurn } from './conversationStubModel.js';
 import { IConversationStubService } from './conversationStubService.js';
 import { shouldRenderTurnAsMarkdown } from './conversationTurnMarkdown.js';
@@ -38,7 +38,10 @@ import { shouldRenderTurnAsMarkdown } from './conversationTurnMarkdown.js';
  */
 export class ConversationLens extends Disposable {
 
-	private sessionTitle!: HTMLElement;
+	private sessionTitleButton!: HTMLButtonElement;
+	private sessionTitleInput!: HTMLInputElement;
+	private sessionTitleEditing = false;
+	private sessionTitleEditSnapshot = '';
 	private sessionSelectBox!: SelectBox;
 	private sessionSelectContainer!: HTMLElement;
 	private newSessionButton!: Button;
@@ -79,6 +82,10 @@ export class ConversationLens extends Disposable {
 		this._register(this.stubService.onDidChangeActiveSession(sessionId => this.applyActiveSession(sessionId)));
 		this._register(this.stubService.onDidChangeSession(sessionId => {
 			if (sessionId === this.stubService.getActiveSessionId()) {
+				if (!this.sessionTitleEditing) {
+					this.updateSessionTitle();
+					this.refreshSessionSelectOptions();
+				}
 				this.renderTimeline();
 				this.renderInboxStatus();
 			}
@@ -126,7 +133,29 @@ export class ConversationLens extends Disposable {
 
 		const leading = append(bar, $('.conversation-lens-session-bar-leading'));
 		append(leading, ThemeIcon.asCSSSelector(Codicon.commentDiscussion)).classList.add('conversation-lens-session-icon');
-		this.sessionTitle = append(leading, $('span.conversation-lens-session-title'));
+		const titleWrap = append(leading, $('.conversation-lens-session-title-wrap'));
+		this.sessionTitleButton = append(titleWrap, $('button.conversation-lens-session-title')) as HTMLButtonElement;
+		this.sessionTitleButton.type = 'button';
+		this.sessionTitleButton.title = conversationLensSessionBarRenameTitle;
+		this.sessionTitleInput = append(titleWrap, $('input.conversation-lens-session-title-input')) as HTMLInputElement;
+		this.sessionTitleInput.type = 'text';
+		this.sessionTitleInput.hidden = true;
+		this.sessionTitleInput.setAttribute('aria-label', conversationLensSessionBarRenameInputAria);
+		this._register(addDisposableListener(this.sessionTitleButton, 'click', () => this.beginSessionTitleEdit()));
+		this._register(addDisposableListener(this.sessionTitleInput, 'keydown', e => {
+			if (e.keyCode === KeyCode.Enter) {
+				e.preventDefault();
+				this.commitSessionTitleEdit();
+			} else if (e.keyCode === KeyCode.Escape) {
+				e.preventDefault();
+				this.cancelSessionTitleEdit();
+			}
+		}));
+		this._register(addDisposableListener(this.sessionTitleInput, 'blur', () => {
+			if (this.sessionTitleEditing) {
+				this.commitSessionTitleEdit();
+			}
+		}));
 
 		const controls = append(bar, $('.conversation-lens-session-controls'));
 		const switcherLabel = append(controls, $('span.conversation-lens-session-switcher-label'));
@@ -269,7 +298,52 @@ export class ConversationLens extends Disposable {
 	}
 
 	private updateSessionTitle(): void {
-		this.sessionTitle.textContent = this.stubService.getActiveSession().title;
+		this.sessionTitleButton.textContent = this.stubService.getActiveSession().title;
+	}
+
+	private beginSessionTitleEdit(): void {
+		if (this.sessionTitleEditing) {
+			return;
+		}
+		this.sessionTitleEditing = true;
+		this.sessionTitleEditSnapshot = this.stubService.getActiveSession().title;
+		this.sessionTitleInput.value = this.sessionTitleEditSnapshot;
+		this.sessionTitleButton.hidden = true;
+		this.sessionTitleInput.hidden = false;
+		this.sessionTitleInput.focus();
+		this.sessionTitleInput.select();
+	}
+
+	private cancelSessionTitleEdit(): void {
+		if (!this.sessionTitleEditing) {
+			return;
+		}
+		this.sessionTitleEditing = false;
+		this.sessionTitleInput.value = this.sessionTitleEditSnapshot;
+		this.sessionTitleInput.hidden = true;
+		this.sessionTitleButton.hidden = false;
+		this.updateSessionTitle();
+	}
+
+	private commitSessionTitleEdit(): void {
+		if (!this.sessionTitleEditing) {
+			return;
+		}
+		const sessionId = this.stubService.getActiveSessionId();
+		const trimmed = this.sessionTitleInput.value.trim();
+
+		this.sessionTitleEditing = false;
+		this.sessionTitleInput.hidden = true;
+		this.sessionTitleButton.hidden = false;
+
+		if (!trimmed) {
+			this.updateSessionTitle();
+			return;
+		}
+
+		this.stubService.renameSession(sessionId, trimmed);
+		this.updateSessionTitle();
+		this.refreshSessionSelectOptions();
 	}
 
 	private renderInboxStatus(): void {

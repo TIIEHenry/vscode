@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { KeyCode } from '../../../../../base/common/keyCodes.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { ConversationPart } from '../../../../browser/parts/conversation/conversationPart.js';
 import { Parts } from '../../../../services/layout/browser/layoutService.js';
@@ -18,9 +19,10 @@ import {
 	conversationLensDockRestoreTimeline,
 	conversationLensInputMaximizedClass,
 } from '../../browser/conversationLensDockStrings.js';
-import { conversationLensSessionBarNewSession } from '../../browser/conversationLensSessionBarStrings.js';
+import { conversationLensSessionBarNewSession, conversationLensSessionBarRenameTitle } from '../../browser/conversationLensSessionBarStrings.js';
 import { CONVERSATION_STUB_SEED_SESSIONS } from '../../browser/conversationStubModel.js';
 import { ConversationStubService, IConversationStubService } from '../../browser/conversationStubService.js';
+import { getConversationSessionStatusText } from '../../browser/conversationSessionStatus.js';
 import { shouldRenderTurnAsMarkdown } from '../../browser/conversationTurnMarkdown.js';
 
 suite('ConversationLens', () => {
@@ -330,5 +332,58 @@ suite('ConversationLens', () => {
 
 		assert.strictEqual(lens.isInputMaximized(), false);
 		assert.ok(timelineContent.querySelector('.conversation-lens-confirmation-seat'));
+	});
+
+	test('SessionBar title button enters rename mode and commits on Enter', () => {
+		const { part, stubService } = mountLens();
+		const slots = part.getSlots()!;
+		const titleButton = slots.sessionBar.querySelector('button.conversation-lens-session-title') as HTMLButtonElement;
+		const titleInput = slots.sessionBar.querySelector('input.conversation-lens-session-title-input') as HTMLInputElement;
+		const sessionId = stubService.getActiveSessionId();
+		const previousTitle = stubService.getActiveSession().title;
+
+		assert.ok(titleButton);
+		assert.strictEqual(titleButton.title, conversationLensSessionBarRenameTitle);
+		assert.ok(titleInput.hidden);
+
+		titleButton.click();
+
+		assert.ok(titleButton.hidden);
+		assert.ok(!titleInput.hidden);
+		assert.strictEqual(titleInput.value, previousTitle);
+
+		titleInput.value = 'Renamed from test';
+		titleInput.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', keyCode: KeyCode.Enter, bubbles: true }));
+
+		assert.ok(!titleButton.hidden);
+		assert.ok(titleInput.hidden);
+		assert.strictEqual(titleButton.textContent, 'Renamed from test');
+		assert.strictEqual(stubService.getActiveSession().title, 'Renamed from test');
+		assert.strictEqual(stubService.getSessions().find(s => s.id === sessionId)?.title, 'Renamed from test');
+		assert.strictEqual(getConversationSessionStatusText(stubService.getActiveSession()), 'Renamed from test');
+	});
+
+	test('SessionBar rename rejects empty title and Escape cancels edit', () => {
+		const { part, stubService } = mountLens();
+		const slots = part.getSlots()!;
+		const titleButton = slots.sessionBar.querySelector('button.conversation-lens-session-title') as HTMLButtonElement;
+		const titleInput = slots.sessionBar.querySelector('input.conversation-lens-session-title-input') as HTMLInputElement;
+		const previousTitle = stubService.getActiveSession().title;
+
+		titleButton.click();
+		titleInput.value = '   ';
+		titleInput.dispatchEvent(new Event('blur', { bubbles: true }));
+
+		assert.strictEqual(stubService.getActiveSession().title, previousTitle);
+		assert.strictEqual(titleButton.textContent, previousTitle);
+
+		titleButton.click();
+		titleInput.value = 'Temporary edit';
+		titleInput.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', keyCode: KeyCode.Escape, bubbles: true }));
+
+		assert.strictEqual(stubService.getActiveSession().title, previousTitle);
+		assert.strictEqual(titleButton.textContent, previousTitle);
+		assert.ok(!titleButton.hidden);
+		assert.ok(titleInput.hidden);
 	});
 });

@@ -21,6 +21,7 @@ export interface IConversationStubService {
 	getActiveSession(): ConversationStubSession;
 	switchSession(sessionId: string): void;
 	createSession(): string;
+	renameSession(sessionId: string, title: string): boolean;
 	getTurns(sessionId: string): readonly ConversationStubTurn[];
 	appendUserTurn(sessionId: string, text: string): ConversationStubTurn | undefined;
 	appendStubEchoAssistant(sessionId: string, text: string): ConversationStubTurn | undefined;
@@ -70,6 +71,14 @@ export class ConversationStubService extends Disposable implements IConversation
 		}
 		this._onDidChangeSession.fire(sessionId);
 		return sessionId;
+	}
+
+	renameSession(sessionId: string, title: string): boolean {
+		const changed = this.model.renameSession(sessionId, title);
+		if (changed) {
+			this._onDidChangeSession.fire(sessionId);
+		}
+		return changed;
 	}
 
 	getTurns(sessionId: string): readonly ConversationStubTurn[] {
