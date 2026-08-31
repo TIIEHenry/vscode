@@ -53,7 +53,7 @@ abstract class NavigatorStubView extends ViewPane {
 		super.renderBody(container);
 
 		const empty = dom.append(container, $('.navigator-stub-empty'));
-		empty.textContent = localize('navigatorStub.notWired', "{0} is not wired — no engine.", this.getProductLabel());
+		empty.textContent = localize('navigatorStub.notConnected', "{0} is not connected — no engine.", this.getProductLabel());
 	}
 }
 
