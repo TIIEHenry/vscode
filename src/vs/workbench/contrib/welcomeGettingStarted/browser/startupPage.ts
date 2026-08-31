@@ -39,6 +39,25 @@ import { IChatEntitlementService } from '../../../services/chat/common/chatEntit
 export const restoreWalkthroughsConfigurationKey = 'workbench.welcomePage.restorableWalkthroughs';
 export type RestoreWalkthroughsConfigurationValue = { folder: string; category?: string; step?: string };
 
+export function isCopilotWalkthroughCategory(category: string | undefined): boolean {
+	if (!category) {
+		return false;
+	}
+	const lower = category.toLowerCase();
+	if (lower === 'copilotwelcome' || lower.endsWith('#copilotwelcome')) {
+		return true;
+	}
+	const hashIndex = lower.indexOf('#');
+	if (hashIndex >= 0) {
+		const extensionId = lower.substring(0, hashIndex);
+		const walkthroughId = lower.substring(hashIndex + 1);
+		if ((extensionId === 'github.copilot-chat' || extensionId === 'github.copilot') && walkthroughId.includes('copilot')) {
+			return true;
+		}
+	}
+	return false;
+}
+
 const configurationKey = 'workbench.startupEditor';
 const oldConfigurationKey = 'workbench.welcome.enabled';
 const telemetryOptOutStorageKey = 'workbench.telemetryOptOutShown';
@@ -162,6 +181,10 @@ export class StartupPageRunnerContribution extends Disposable implements IWorkbe
 			const restoreData: RestoreWalkthroughsConfigurationValue = JSON.parse(toRestore);
 			const currentWorkspace = this.contextService.getWorkspace();
 			if (restoreData.folder === UNKNOWN_EMPTY_WINDOW_WORKSPACE.id || restoreData.folder === currentWorkspace.folders[0].uri.toString()) {
+				if (!this.environmentService.isSessionsWindow && isCopilotWalkthroughCategory(restoreData.category)) {
+					this.storageService.remove(restoreWalkthroughsConfigurationKey, StorageScope.PROFILE);
+					return false;
+				}
 				const options: GettingStartedEditorOptions = { selectedCategory: restoreData.category, selectedStep: restoreData.step, pinned: false, preserveFocus: this.shouldPreserveFocus() };
 				this.editorService.openEditor({
 					resource: GettingStartedInput.RESOURCE,
