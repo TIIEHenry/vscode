@@ -5659,7 +5659,7 @@
       "testing/item/context": [
         {
           "command": "github.copilot.tests.fixTestFailure.fromInline",
-          "when": "testResultState == failed && !testResultOutdated",
+          "when": "testResultState == failed && !testResultOutdated && isSessionsWindow",
           "group": "inline@2"
         }
       ],
@@ -5690,11 +5690,11 @@
         },
         {
           "command": "github.copilot.interactiveSession.feedback",
-          "when": "github.copilot-chat.activated && !github.copilot.interactiveSession.disabled"
+          "when": "github.copilot-chat.activated && !github.copilot.interactiveSession.disabled && isSessionsWindow"
         },
         {
           "command": "github.copilot.debug.workbenchState",
-          "when": "true"
+          "when": "isSessionsWindow"
         },
         {
           "command": "github.copilot.chat.rerunWithCopilotDebug",
@@ -5717,8 +5717,16 @@
           "when": "false"
         },
         {
+          "command": "github.copilot.chat.explain.palette",
+          "when": "isSessionsWindow"
+        },
+        {
+          "command": "github.copilot.cli.newSession",
+          "when": "isSessionsWindow"
+        },
+        {
           "command": "github.copilot.chat.review",
-          "when": "!github.copilot.interactiveSession.disabled"
+          "when": "!github.copilot.interactiveSession.disabled && isSessionsWindow"
         },
         {
           "command": "github.copilot.chat.review.apply",
@@ -5962,11 +5970,11 @@
         },
         {
           "command": "github.copilot.nes.captureExpected.start",
-          "when": "github.copilot.inlineEditsEnabled"
+          "when": "github.copilot.inlineEditsEnabled && isSessionsWindow"
         },
         {
           "command": "github.copilot.nes.captureExpected.submit",
-          "when": "github.copilot.inlineEditsEnabled"
+          "when": "github.copilot.inlineEditsEnabled && isSessionsWindow"
         },
         {
           "command": "github.copilot.sessions.commit",
@@ -6046,17 +6054,17 @@
         {
           "command": "github.copilot.search.markHelpful",
           "group": "inline@0",
-          "when": "aiResultsTitle && aiResultsRequested"
+          "when": "aiResultsTitle && aiResultsRequested && isSessionsWindow"
         },
         {
           "command": "github.copilot.search.markUnhelpful",
           "group": "inline@1",
-          "when": "aiResultsTitle && aiResultsRequested"
+          "when": "aiResultsTitle && aiResultsRequested && isSessionsWindow"
         },
         {
           "command": "github.copilot.search.feedback",
           "group": "inline@2",
-          "when": "aiResultsTitle && aiResultsRequested && github.copilot.debugReportFeedback"
+          "when": "aiResultsTitle && aiResultsRequested && github.copilot.debugReportFeedback && isSessionsWindow"
         }
       ],
       "comments/comment/title": [
@@ -6177,55 +6185,55 @@
         {
           "command": "github.copilot.chat.review.changes",
           "group": "navigation",
-          "when": "config.github.copilot.chat.reviewAgent.enabled && github.copilot.chat.reviewDiff.enabled && scmProvider == git && scmProviderRootUri in github.copilot.chat.reviewDiff.enabledRootUris"
+          "when": "config.github.copilot.chat.reviewAgent.enabled && github.copilot.chat.reviewDiff.enabled && scmProvider == git && scmProviderRootUri in github.copilot.chat.reviewDiff.enabledRootUris && isSessionsWindow"
         }
       ],
       "scm/sourceControl": [
         {
           "command": "github.copilot.cli.openInCopilotCLI",
           "group": "3_worktree@1",
-          "when": "scmProvider == git"
+          "when": "scmProvider == git && isSessionsWindow"
         }
       ],
       "scm/resourceGroup/context": [
         {
           "command": "github.copilot.chat.review.stagedChanges",
-          "when": "config.github.copilot.chat.reviewAgent.enabled && github.copilot.chat.reviewDiff.enabled && scmProvider == git && scmResourceGroup == index",
+          "when": "config.github.copilot.chat.reviewAgent.enabled && github.copilot.chat.reviewDiff.enabled && scmProvider == git && scmResourceGroup == index && isSessionsWindow",
           "group": "inline@-3"
         },
         {
           "command": "github.copilot.chat.review.unstagedChanges",
-          "when": "config.github.copilot.chat.reviewAgent.enabled && github.copilot.chat.reviewDiff.enabled && scmProvider == git && scmResourceGroup == workingTree",
+          "when": "config.github.copilot.chat.reviewAgent.enabled && github.copilot.chat.reviewDiff.enabled && scmProvider == git && scmResourceGroup == workingTree && isSessionsWindow",
           "group": "inline@-3"
         }
       ],
       "scm/resourceState/context": [
         {
           "command": "github.copilot.git.resolveMergeConflicts",
-          "when": "scmProvider == git && scmResourceGroup == merge && git.activeResourceHasMergeConflicts",
+          "when": "scmProvider == git && scmResourceGroup == merge && git.activeResourceHasMergeConflicts && isSessionsWindow",
           "group": "z_chat@1"
         },
         {
           "command": "github.copilot.chat.review.stagedFileChange",
           "group": "3_copilot",
-          "when": "config.github.copilot.chat.reviewAgent.enabled && github.copilot.chat.reviewDiff.enabled && scmProvider == git && scmResourceGroup == index"
+          "when": "config.github.copilot.chat.reviewAgent.enabled && github.copilot.chat.reviewDiff.enabled && scmProvider == git && scmResourceGroup == index && isSessionsWindow"
         },
         {
           "command": "github.copilot.chat.review.unstagedFileChange",
           "group": "3_copilot",
-          "when": "config.github.copilot.chat.reviewAgent.enabled && github.copilot.chat.reviewDiff.enabled && scmProvider == git && scmResourceGroup == workingTree"
+          "when": "config.github.copilot.chat.reviewAgent.enabled && github.copilot.chat.reviewDiff.enabled && scmProvider == git && scmResourceGroup == workingTree && isSessionsWindow"
         }
       ],
       "scm/inputBox": [
         {
           "command": "github.copilot.git.generateCommitMessage",
-          "when": "scmProvider == git && chatSetupCompleted"
+          "when": "scmProvider == git && chatSetupCompleted && isSessionsWindow"
         }
       ],
       "testing/message/context": [
         {
           "command": "github.copilot.tests.fixTestFailure",
-          "when": "testing.testItemHasUri",
+          "when": "testing.testItemHasUri && isSessionsWindow",
           "group": "inline@1"
         }
       ],
