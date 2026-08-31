@@ -9,7 +9,7 @@ import { SyncDescriptor } from '../../../../platform/instantiation/common/descri
 import { Registry } from '../../../../platform/registry/common/platform.js';
 import { registerIcon } from '../../../../platform/theme/common/iconRegistry.js';
 import { ViewPaneContainer } from '../../../browser/parts/views/viewPaneContainer.js';
-import { Extensions as ViewContainerExtensions, Extensions as ViewExtensions, IViewContainersRegistry, IViewsRegistry, ViewContainer, ViewContainerLocation } from '../../../common/views.js';
+import { Extensions as ViewContainerExtensions, Extensions as ViewExtensions, IViewContainersRegistry, IViewsRegistry, ViewContainer, ViewContainerLocation, ViewContentGroups } from '../../../common/views.js';
 import { AGENT_INSPECT_CONTAINER_ID, AGENT_INSPECT_VIEW_ID, OPEN_AGENT_INSPECT_VIEW_COMMAND_ID } from './agentInspectIds.js';
 import { AgentInspectView } from './agentInspectView.js';
 
@@ -49,3 +49,9 @@ viewsRegistry.registerViews([{
 		order: 50,
 	},
 }], AGENT_INSPECT_VIEW_CONTAINER);
+
+viewsRegistry.registerViewWelcomeContent(AGENT_INSPECT_VIEW_ID, {
+	content: localize('agentInspectWelcome', "No inspect target yet"),
+	group: ViewContentGroups.Open,
+	order: 1,
+});

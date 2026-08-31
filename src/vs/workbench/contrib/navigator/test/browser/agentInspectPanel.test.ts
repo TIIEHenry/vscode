@@ -4,12 +4,14 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { Event } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { isIMenuItem, MenuId, MenuRegistry } from '../../../../../platform/actions/common/actions.js';
 import { CommandsRegistry } from '../../../../../platform/commands/common/commands.js';
+import { WorkbenchList } from '../../../../../platform/list/browser/listService.js';
 import { Registry } from '../../../../../platform/registry/common/platform.js';
 import { EditorInput } from '../../../../common/editor/editorInput.js';
-import { Extensions as ViewContainerExtensions, Extensions as ViewExtensions, IViewContainersRegistry, IViewsRegistry, ViewContainerLocation } from '../../../../common/views.js';
+import { Extensions as ViewContainerExtensions, Extensions as ViewExtensions, IViewContainerModel, IViewContainersRegistry, IViewDescriptorService, IViewsRegistry, ViewContainer, ViewContainerLocation } from '../../../../common/views.js';
 import { IViewsService } from '../../../../services/views/common/viewsService.js';
 import { workbenchInstantiationService, TestViewsService } from '../../../../test/browser/workbenchTestServices.js';
 import {
@@ -21,8 +23,11 @@ import {
 } from '../../browser/agentInspectIds.js';
 import { AGENT_INSPECT_VIEW_CONTAINER } from '../../browser/agentInspect.contribution.js';
 import '../../browser/agentInspect.contribution.js';
+import { AgentInspectView, IAgentInspectEntry } from '../../browser/agentInspectView.js';
 import '../../browser/navigator.contribution.js';
 import { NAVIGATOR_AGENTS_VIEW_ID, NAVIGATOR_TEAM_VIEW_ID } from '../../browser/navigatorStubView.js';
+
+const INSPECT_EMPTY_COPY = 'No inspect target yet';
 
 suite('Agent inspect panel', () => {
 
@@ -30,6 +35,57 @@ suite('Agent inspect panel', () => {
 
 	const viewContainersRegistry = Registry.as<IViewContainersRegistry>(ViewContainerExtensions.ViewContainersRegistry);
 	const viewsRegistry = Registry.as<IViewsRegistry>(ViewExtensions.ViewsRegistry);
+
+	function getViewList(view: AgentInspectView): WorkbenchList<IAgentInspectEntry> {
+		return (view as unknown as { list: WorkbenchList<IAgentInspectEntry> }).list;
+	}
+
+	function getViewEntries(view: AgentInspectView): IAgentInspectEntry[] {
+		return (view as unknown as { entries: IAgentInspectEntry[] }).entries;
+	}
+
+	async function mountView(): Promise<AgentInspectView> {
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		const stubViewContainer = {
+			id: 'agent-inspect-test-container',
+			title: { value: 'Inspect', original: 'Inspect' },
+		} as ViewContainer;
+		instantiationService.stub(IViewDescriptorService, {
+			onDidChangeLocation: Event.None,
+			getViewLocationById(_id: string): ViewContainerLocation {
+				return ViewContainerLocation.Panel;
+			},
+			getViewDescriptorById(_id: string): null {
+				return null;
+			},
+			getViewContainerByViewId(_id: string): ViewContainer | null {
+				return stubViewContainer;
+			},
+			getViewContainerModel(_viewContainer: ViewContainer): IViewContainerModel {
+				return {
+					title: stubViewContainer.title.value,
+					onDidChangeContainerInfo: Event.None,
+				} as IViewContainerModel;
+			},
+			getDefaultContainerById(_id: string): ViewContainer | null {
+				return stubViewContainer;
+			},
+		});
+
+		const view = store.add(instantiationService.createInstance(AgentInspectView, {
+			id: AGENT_INSPECT_VIEW_ID,
+			title: 'Inspect',
+		}));
+		const container = document.createElement('div');
+		view.render();
+		container.appendChild(view.element);
+		view.setExpanded(true);
+		view.setVisible(true);
+
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+		return view;
+	}
 
 	test('Inspect container and view register on Panel', () => {
 		const container = viewContainersRegistry.get(AGENT_INSPECT_CONTAINER_ID);
@@ -113,6 +169,35 @@ suite('Agent inspect panel', () => {
 
 		await instantiationService.invokeFunction(accessor => command!.handler(accessor));
 		assert.deepStrictEqual(openViewCalls, [{ id: AGENT_INSPECT_VIEW_ID, focus: true }]);
+	});
+
+	test('empty inspect list shows welcome with no targets', async () => {
+		const view = await mountView();
+		assert.strictEqual(view.shouldShowWelcome(), true);
+		assert.deepStrictEqual(getViewEntries(view), []);
+		assert.strictEqual(getViewList(view).length, 0);
+	});
+
+	test('welcome content uses inspect-empty copy without service-disconnected wording', () => {
+		const welcomeContents = viewsRegistry.getViewWelcomeContent(AGENT_INSPECT_VIEW_ID);
+		assert.ok(welcomeContents.length > 0, 'Inspect view must register welcome content');
+		const combined = welcomeContents.map(item => item.content).join('\n');
+		assert.ok(combined.includes(INSPECT_EMPTY_COPY), `welcome must include "${INSPECT_EMPTY_COPY}"`);
+		assert.ok(!/not connected/i.test(combined), 'welcome must not say not connected');
+		assert.ok(!/copilot/i.test(combined), 'welcome must not mention Copilot');
+		assert.ok(!/open chat/i.test(combined), 'welcome must not mention Open Chat');
+		assert.ok(!/\(command:/.test(combined), 'welcome must not include command buttons');
+	});
+
+	test('mounted view has WorkbenchList and no stub or chat widgets', async () => {
+		const view = await mountView();
+		const list = getViewList(view);
+		assert.ok(list instanceof WorkbenchList, 'Inspect view must construct WorkbenchList');
+		assert.ok(view.element.querySelector('.agent-inspect-list'));
+		assert.strictEqual(view.element.querySelector('.agent-inspect-empty'), null);
+		assert.strictEqual(view.element.querySelector('.navigator-stub-empty'), null);
+		assert.strictEqual(view.element.querySelector('.chat-widget'), null);
+		assert.strictEqual(view.element.querySelector('.chat-setup'), null);
 	});
 
 	test('Team ViewTitle Inspect action opens inspect panel view via ViewsService', async () => {
