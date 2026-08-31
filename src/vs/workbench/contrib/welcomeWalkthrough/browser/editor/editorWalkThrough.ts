@@ -14,6 +14,7 @@ import { EditorInput } from '../../../../common/editor/editorInput.js';
 import { Action2 } from '../../../../../platform/actions/common/actions.js';
 import { Categories } from '../../../../../platform/action/common/actionCommonCategories.js';
 import { walkThroughContentRegistry } from '../../common/walkThroughContentProvider.js';
+import { IsSessionsWindowContext } from '../../../../common/contextkeys.js';
 
 walkThroughContentRegistry.registerProvider('vs/workbench/contrib/welcomeWalkthrough/browser/editor/vs_code_editor_walkthrough', content);
 
@@ -40,6 +41,7 @@ export class EditorWalkThroughAction extends Action2 {
 			title: EditorWalkThroughAction.LABEL,
 			category: Categories.Help,
 			f1: true,
+			precondition: IsSessionsWindowContext,
 			metadata: {
 				description: localize2('editorWalkThroughMetadata', "Opens an interactive playground for learning about the editor.")
 			}
