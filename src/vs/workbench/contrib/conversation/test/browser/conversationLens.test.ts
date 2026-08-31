@@ -11,6 +11,7 @@ import { ChatEditorInput } from '../../../chat/browser/widgetHosts/editor/chatEd
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { ConversationLens } from '../../browser/conversationLens.js';
 import { CONVERSATION_STUB_SEED_SESSIONS } from '../../browser/conversationStubModel.js';
+import { ConversationStubService, IConversationStubService } from '../../browser/conversationStubService.js';
 
 suite('ConversationLens', () => {
 
@@ -18,12 +19,14 @@ suite('ConversationLens', () => {
 
 	function mountLens(): { part: ConversationPart; lens: ConversationLens } {
 		const instantiationService = workbenchInstantiationService(undefined, store);
+		const stubService = store.add(new ConversationStubService());
+		instantiationService.stub(IConversationStubService, stubService);
 		const part = store.add(instantiationService.createInstance(ConversationPart));
 		const parent = document.createElement('div');
 		part.create(parent);
 		const slots = part.getSlots();
 		assert.ok(slots);
-		const lens = store.add(new ConversationLens(slots));
+		const lens = store.add(instantiationService.createInstance(ConversationLens, slots));
 		return { part, lens };
 	}
 

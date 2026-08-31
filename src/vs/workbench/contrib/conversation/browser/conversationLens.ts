@@ -11,7 +11,8 @@ import { localize } from '../../../../../nls.js';
 import { defaultButtonStyles } from '../../../../../platform/theme/browser/defaultStyles.js';
 import { IConversationLensSlots } from '../../../browser/parts/conversation/conversationPart.js';
 import { ConversationConfirmationSeat } from './conversationConfirmationSeat.js';
-import { ConversationStubModel, ConversationStubTurn } from './conversationStubModel.js';
+import { ConversationStubTurn } from './conversationStubModel.js';
+import { IConversationStubService } from './conversationStubService.js';
 
 /**
  * Product Conversation lens: SessionBar + stub timeline + local dock, mounted
@@ -27,11 +28,13 @@ export class ConversationLens extends Disposable {
 	private readonly dockTextarea: HTMLTextAreaElement;
 	private readonly sendButton: Button;
 
-	private readonly model = new ConversationStubModel();
 	private readonly drafts = new Map<string, string>();
 	private readonly confirmationSeats = new Map<string, ConversationConfirmationSeat>();
 
-	constructor(slots: IConversationLensSlots) {
+	constructor(
+		private readonly slots: IConversationLensSlots,
+		@IConversationStubService private readonly stubService: IConversationStubService,
+	) {
 		super();
 
 		this.mountSessionBar(slots.sessionBar);
@@ -41,6 +44,14 @@ export class ConversationLens extends Disposable {
 		this.renderTimeline();
 		this.updateSessionTitle();
 		this.renderInboxStatus();
+
+		this._register(this.stubService.onDidChangeActiveSession(sessionId => this.applyActiveSession(sessionId)));
+		this._register(this.stubService.onDidChangeSession(sessionId => {
+			if (sessionId === this.stubService.getActiveSessionId()) {
+				this.renderTimeline();
+				this.renderInboxStatus();
+			}
+		}));
 
 		this._register(toDisposable(() => {
 			for (const seat of this.confirmationSeats.values()) {
@@ -63,13 +74,18 @@ export class ConversationLens extends Disposable {
 
 		this.sessionSelect = append(controls, $('select.conversation-lens-session-select')) as HTMLSelectElement;
 		this.sessionSelect.setAttribute('aria-label', localize('conversationLens.sessionSwitcher', "Switch session"));
-		for (const session of this.model.getSessions()) {
+		for (const session of this.stubService.getSessions()) {
 			const option = append(this.sessionSelect, $('option')) as HTMLOptionElement;
 			option.value = session.id;
 			option.textContent = session.title;
 		}
 		this._register(addDisposableListener(this.sessionSelect, 'change', () => {
-			this.switchSession(this.sessionSelect.value);
+			const previousId = this.stubService.getActiveSessionId();
+			const nextId = this.sessionSelect.value;
+			if (previousId !== nextId) {
+				this.drafts.set(previousId, this.dockTextarea.value);
+				this.stubService.switchSession(nextId);
+			}
 		}));
 	}
 
@@ -112,16 +128,11 @@ export class ConversationLens extends Disposable {
 		}));
 		this._register(this.sendButton.onDidClick(() => this.submitDraft()));
 		this._register(addDisposableListener(this.dockTextarea, 'input', () => {
-			this.drafts.set(this.model.getActiveSessionId(), this.dockTextarea.value);
+			this.drafts.set(this.stubService.getActiveSessionId(), this.dockTextarea.value);
 		}));
 	}
 
-	private switchSession(sessionId: string): void {
-		if (this.model.getActiveSessionId() === sessionId) {
-			return;
-		}
-		this.drafts.set(this.model.getActiveSessionId(), this.dockTextarea.value);
-		this.model.switchSession(sessionId);
+	private applyActiveSession(sessionId: string): void {
 		this.sessionSelect.value = sessionId;
 		this.updateSessionTitle();
 		this.dockTextarea.value = this.drafts.get(sessionId) ?? '';
@@ -130,11 +141,11 @@ export class ConversationLens extends Disposable {
 	}
 
 	private updateSessionTitle(): void {
-		this.sessionTitle.textContent = this.model.getActiveSession().title;
+		this.sessionTitle.textContent = this.stubService.getActiveSession().title;
 	}
 
 	private renderInboxStatus(): void {
-		const pending = this.model.countPendingConfirmations(this.model.getActiveSessionId());
+		const pending = this.stubService.countPendingConfirmations(this.stubService.getActiveSessionId());
 		if (pending > 0) {
 			this.inboxStatus.hidden = false;
 			this.inboxStatus.textContent = pending === 1
@@ -147,7 +158,7 @@ export class ConversationLens extends Disposable {
 	}
 
 	private scrollToFirstPendingConfirmation(): void {
-		const pending = this.model.getTurns(this.model.getActiveSessionId())
+		const pending = this.stubService.getTurns(this.stubService.getActiveSessionId())
 			.find(t => t.kind === 'confirmation' && t.status === 'pending');
 		if (!pending) {
 			return;
@@ -163,7 +174,7 @@ export class ConversationLens extends Disposable {
 		this.confirmationSeats.clear();
 		clearNode(this.timelineContent);
 
-		for (const turn of this.model.getTurns(this.model.getActiveSessionId())) {
+		for (const turn of this.stubService.getTurns(this.stubService.getActiveSessionId())) {
 			this.timelineContent.appendChild(this.createTurnElement(turn));
 		}
 	}
@@ -198,9 +209,7 @@ export class ConversationLens extends Disposable {
 	}
 
 	private resolveConfirmation(turnId: string, status: 'allowed' | 'skipped'): void {
-		this.model.resolveConfirmation(this.model.getActiveSessionId(), turnId, status);
-		this.renderTimeline();
-		this.renderInboxStatus();
+		this.stubService.resolveConfirmation(this.stubService.getActiveSessionId(), turnId, status);
 	}
 
 	private submitDraft(): void {
@@ -208,11 +217,10 @@ export class ConversationLens extends Disposable {
 		if (!text) {
 			return;
 		}
-		const sessionId = this.model.getActiveSessionId();
-		this.model.appendUserTurn(sessionId, text);
-		this.model.appendStubEchoAssistant(sessionId, localize('conversationLens.stubEcho', "Stub echo — no engine connected."));
+		const sessionId = this.stubService.getActiveSessionId();
+		this.stubService.appendUserTurn(sessionId, text);
+		this.stubService.appendStubEchoAssistant(sessionId, localize('conversationLens.stubEcho', "Stub echo — no engine connected."));
 		this.drafts.set(sessionId, '');
 		this.dockTextarea.value = '';
-		this.renderTimeline();
 	}
 }
