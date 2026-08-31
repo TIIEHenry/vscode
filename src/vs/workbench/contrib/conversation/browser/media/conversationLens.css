@@ -114,6 +114,20 @@
 	margin: 0;
 }
 
+.monaco-workbench .part.conversation .conversation-lens-session-delete {
+	flex-shrink: 0;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-session-delete .monaco-button {
+	height: 20px;
+	min-width: 20px;
+	padding: 0 4px;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-session-delete .monaco-button .codicon {
+	margin: 0;
+}
+
 .monaco-workbench .part.conversation .conversation-lens-session-history {
 	flex-shrink: 0;
 }

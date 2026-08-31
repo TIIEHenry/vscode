@@ -115,6 +115,31 @@ export class ConversationStubModel {
 		return true;
 	}
 
+	deleteSession(sessionId: string): boolean {
+		const index = this.sessions.findIndex(s => s.id === sessionId);
+		if (index < 0) {
+			return false;
+		}
+
+		const wasActive = this.activeSessionId === sessionId;
+		this.sessions.splice(index, 1);
+
+		if (this.sessions.length === 0) {
+			const id = nextId('session');
+			this.sessions.push({
+				id,
+				title: localize('conversationLens.sessionUntitled', "Untitled session"),
+				turns: [],
+			});
+			this.activeSessionId = id;
+		} else if (wasActive) {
+			const newIndex = Math.min(index, this.sessions.length - 1);
+			this.activeSessionId = this.sessions[newIndex].id;
+		}
+
+		return true;
+	}
+
 	private createUniqueNewSessionTitle(): string {
 		const base = localize('conversationLens.sessionNew', "New session");
 		if (!this.sessions.some(s => s.title === base)) {
