@@ -3,15 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-.monaco-workbench .part.sources .sources-content-host {
-	display: flex;
-	flex-direction: column;
-	flex: 1;
-	min-height: 0;
-	overflow: hidden;
-}
-
-.monaco-workbench .part.sources .sources-files-list {
+.monaco-workbench .part.sources .sources-tab-panel .sources-files-list {
 	flex: 1;
 	min-height: 0;
 }
