@@ -151,7 +151,6 @@ export class NavigatorTeamView extends ViewPane {
 	private tasksEmpty: HTMLElement | undefined;
 	private tasksListContainer: HTMLElement | undefined;
 	private tasksList: WorkbenchList<INavigatorTeamTask> | undefined;
-	private taskEntries: INavigatorTeamTask[] = [];
 
 	constructor(
 		options: IViewPaneOptions,
@@ -296,8 +295,6 @@ export class NavigatorTeamView extends ViewPane {
 	}
 
 	private setTaskEntries(entries: INavigatorTeamTask[]): void {
-		this.taskEntries = entries;
-
 		if (this.tasksList) {
 			this.tasksList.splice(0, this.tasksList.length, entries);
 		}
