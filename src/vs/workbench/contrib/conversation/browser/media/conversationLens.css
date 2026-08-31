@@ -403,6 +403,18 @@
 	margin-bottom: 0;
 }
 
+.monaco-workbench .part.conversation .conversation-lens-turn-actions {
+	display: flex;
+	flex-direction: row;
+	gap: 2px;
+	opacity: 0;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-turn:hover .conversation-lens-turn-actions,
+.monaco-workbench .part.conversation .conversation-lens-turn:focus-within .conversation-lens-turn-actions {
+	opacity: 1;
+}
+
 /* Confirmation seat — in-timeline */
 .monaco-workbench .part.conversation .conversation-lens-confirmation-seat {
 	display: flex;

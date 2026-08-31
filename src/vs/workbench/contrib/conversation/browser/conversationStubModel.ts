@@ -198,4 +198,17 @@ export class ConversationStubModel {
 	countPendingConfirmations(sessionId: string): number {
 		return this.getTurns(sessionId).filter(t => t.kind === 'confirmation' && t.status === 'pending').length;
 	}
+
+	deleteTurn(sessionId: string, turnId: string): boolean {
+		const session = this.sessions.find(s => s.id === sessionId);
+		if (!session) {
+			return false;
+		}
+		const index = session.turns.findIndex(t => t.id === turnId);
+		if (index < 0) {
+			return false;
+		}
+		session.turns.splice(index, 1);
+		return true;
+	}
 }

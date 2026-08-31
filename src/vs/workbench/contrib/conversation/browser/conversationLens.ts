@@ -14,6 +14,7 @@ import { Disposable, toDisposable } from '../../../../base/common/lifecycle.js';
 import { ThemeIcon } from '../../../../base/common/themables.js';
 import { localize } from '../../../../nls.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
+import { IClipboardService } from '../../../../platform/clipboard/common/clipboardService.js';
 import { IContextViewService, IOpenContextView } from '../../../../platform/contextview/browser/contextView.js';
 import { defaultButtonStyles, defaultSelectBoxStyles } from '../../../../platform/theme/browser/defaultStyles.js';
 import { hasNativeContextMenu } from '../../../../platform/window/common/window.js';
@@ -76,6 +77,7 @@ export class ConversationLens extends Disposable {
 	constructor(
 		slots: IConversationLensSlots,
 		@IConversationRosterService private readonly stubService: IConversationRosterService,
+		@IClipboardService private readonly clipboardService: IClipboardService,
 		@IContextViewService private readonly contextViewService: IContextViewService,
 		@IConfigurationService private readonly configurationService: IConfigurationService,
 		@IInstantiationService private readonly instantiationService: IInstantiationService,
@@ -260,6 +262,8 @@ export class ConversationLens extends Disposable {
 		const readingColumn = append(host, $('.conversation-lens-reading-column'));
 		this.timelineTree = this._register(this.instantiationService.createInstance(ConversationTimelineTree, readingColumn, {
 			onResolveConfirmation: (turnId, status) => this.resolveConfirmation(turnId, status),
+			onCopyTurn: (_turnId, text) => this.copyTurn(text),
+			onDeleteTurn: turnId => this.deleteTurn(turnId),
 		}));
 		this.trajectoryList = this._register(this.instantiationService.createInstance(ConversationTrajectoryList, readingColumn, {
 			onDidSelectTurn: turnId => this.onTrajectoryTurnSelected(turnId),
@@ -537,6 +541,14 @@ export class ConversationLens extends Disposable {
 
 	private resolveConfirmation(turnId: string, status: 'allowed' | 'skipped'): void {
 		this.stubService.resolveConfirmation(this.stubService.getActiveSessionId(), turnId, status);
+	}
+
+	private copyTurn(text: string): void {
+		this.clipboardService.writeText(text);
+	}
+
+	private deleteTurn(turnId: string): void {
+		this.stubService.deleteTurn(this.stubService.getActiveSessionId(), turnId);
 	}
 
 	private submitDraft(): void {

@@ -13,9 +13,10 @@ import { Disposable, DisposableStore, IDisposable } from '../../../../base/commo
 import { localize } from '../../../../nls.js';
 import { WorkbenchObjectTree } from '../../../../platform/list/browser/listService.js';
 import { asCssVariable, asCssVariableWithDefault, buttonSecondaryBackground, buttonSecondaryForeground } from '../../../../platform/theme/common/colorRegistry.js';
+import { defaultButtonStyles } from '../../../../platform/theme/browser/defaultStyles.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { ConversationConfirmationSeat } from './conversationConfirmationSeat.js';
-import { conversationLensThinkingNotConnected, conversationLensToolNotConnected } from './conversationLensSessionBarStrings.js';
+import { conversationLensThinkingNotConnected, conversationLensToolNotConnected, conversationLensTurnCopy, conversationLensTurnDelete } from './conversationLensSessionBarStrings.js';
 import { ConversationStubTurn } from './conversationStubModel.js';
 import {
 	computeConversationScrollDownState,
@@ -34,6 +35,8 @@ export interface ConversationTimelineItem {
 
 export interface IConversationTimelineTreeOptions {
 	readonly onResolveConfirmation?: (turnId: string, status: 'allowed' | 'skipped') => void;
+	readonly onCopyTurn?: (turnId: string, text: string) => void;
+	readonly onDeleteTurn?: (turnId: string) => void;
 	readonly contentAdapter?: IConversationTurnContentAdapter;
 	readonly paddingBottom?: number;
 }
@@ -85,6 +88,8 @@ class ConversationTimelineRenderer implements ITreeRenderer<ConversationTimeline
 	constructor(
 		private readonly contentAdapter: IConversationTurnContentAdapter,
 		private readonly onResolveConfirmation: ((turnId: string, status: 'allowed' | 'skipped') => void) | undefined,
+		private readonly onCopyTurn: ((turnId: string, text: string) => void) | undefined,
+		private readonly onDeleteTurn: ((turnId: string) => void) | undefined,
 		private readonly onHeightChange: (item: ConversationTimelineItem, height: number) => void,
 	) { }
 
@@ -159,6 +164,38 @@ class ConversationTimelineRenderer implements ITreeRenderer<ConversationTimeline
 				body.classList.add('conversation-lens-turn-body--reading-text');
 			}
 			templateData.disposables.add(this.contentAdapter.renderTurnBody(turn, body));
+
+			if (turn.kind === 'user' || turn.kind === 'assistant') {
+				const actions = append(el, $('.conversation-lens-turn-actions'));
+				const copyContainer = append(actions, $('span.conversation-lens-turn-action-copy'));
+				const copyButton = templateData.disposables.add(new Button(copyContainer, {
+					...defaultButtonStyles,
+					supportIcons: true,
+					small: true,
+					secondary: true,
+					title: conversationLensTurnCopy,
+					ariaLabel: conversationLensTurnCopy,
+				}));
+				copyButton.icon = Codicon.copy;
+				if (this.onCopyTurn) {
+					templateData.disposables.add(copyButton.onDidClick(() => this.onCopyTurn!(turn.id, turn.text)));
+				}
+
+				const deleteContainer = append(actions, $('span.conversation-lens-turn-action-delete'));
+				const deleteButton = templateData.disposables.add(new Button(deleteContainer, {
+					...defaultButtonStyles,
+					supportIcons: true,
+					small: true,
+					secondary: true,
+					title: conversationLensTurnDelete,
+					ariaLabel: conversationLensTurnDelete,
+				}));
+				deleteButton.icon = Codicon.trash;
+				if (this.onDeleteTurn) {
+					templateData.disposables.add(deleteButton.onDidClick(() => this.onDeleteTurn!(turn.id)));
+				}
+			}
+
 			templateData.container.appendChild(el);
 		}
 
@@ -265,6 +302,8 @@ export class ConversationTimelineTree extends Disposable {
 		this.renderer = new ConversationTimelineRenderer(
 			contentAdapter,
 			options.onResolveConfirmation,
+			options.onCopyTurn,
+			options.onDeleteTurn,
 			(item, height) => this.safeUpdateElementHeight(item, height),
 		);
 		const processBodyRenderer = new ConversationTimelineProcessBodyRenderer(this.renderer);

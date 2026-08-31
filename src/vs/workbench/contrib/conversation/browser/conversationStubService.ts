@@ -31,6 +31,7 @@ export interface IConversationRosterService {
 	appendToolTurn(sessionId: string, text: string): ConversationStubTurn | undefined;
 	resolveConfirmation(sessionId: string, turnId: string, status: 'allowed' | 'skipped'): void;
 	countPendingConfirmations(sessionId: string): number;
+	deleteTurn(sessionId: string, turnId: string): boolean;
 }
 
 export type IConversationStubService = IConversationRosterService;
@@ -156,5 +157,13 @@ export class ConversationStubService extends Disposable implements IConversation
 
 	countPendingConfirmations(sessionId: string): number {
 		return this.model.countPendingConfirmations(sessionId);
+	}
+
+	deleteTurn(sessionId: string, turnId: string): boolean {
+		const deleted = this.model.deleteTurn(sessionId, turnId);
+		if (deleted) {
+			this._onDidChangeSession.fire(sessionId);
+		}
+		return deleted;
 	}
 }

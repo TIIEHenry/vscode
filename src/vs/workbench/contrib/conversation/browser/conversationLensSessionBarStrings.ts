@@ -15,3 +15,5 @@ export const conversationLensToolNotConnected = localize('conversationLens.toolN
 export const conversationLensSessionBarRenameTitle = localize('conversationLens.renameSessionTitle', "Rename session");
 export const conversationLensSessionBarRenameInputAria = localize('conversationLens.renameSessionInput', "Session title");
 export const conversationLensSessionBarDeleteSession = localize('conversationLens.deleteSession', "Delete session");
+export const conversationLensTurnCopy = localize('conversationLens.copyTurn', "Copy message");
+export const conversationLensTurnDelete = localize('conversationLens.deleteTurn', "Delete message");

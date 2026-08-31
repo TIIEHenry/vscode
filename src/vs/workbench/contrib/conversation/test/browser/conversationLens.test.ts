@@ -33,6 +33,9 @@ import { conversationLensSessionBarDeleteSession, conversationLensSessionBarHist
 import { ConversationStubService, IConversationRosterService } from '../../browser/conversationStubService.js';
 import { getConversationSessionStatusText } from '../../browser/conversationSessionStatus.js';
 import { shouldRenderTurnAsMarkdown } from '../../browser/conversationTurnMarkdown.js';
+import { conversationLensTurnCopy, conversationLensTurnDelete } from '../../browser/conversationLensSessionBarStrings.js';
+import { IClipboardService } from '../../../../../platform/clipboard/common/clipboardService.js';
+import { TestClipboardService } from '../../../../../platform/clipboard/test/common/testClipboardService.js';
 
 suite('ConversationLens', () => {
 
@@ -129,10 +132,12 @@ suite('ConversationLens', () => {
 		return select.options[select.selectedIndex]?.text;
 	}
 
-	function mountLens(): { part: ConversationPart; lens: ConversationLens; stubService: ConversationStubService; layoutReadingColumn: () => void } {
+	function mountLens(): { part: ConversationPart; lens: ConversationLens; stubService: ConversationStubService; clipboardService: TestClipboardService; layoutReadingColumn: () => void } {
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		const stubService = store.add(new ConversationStubService());
+		const clipboardService = store.add(new TestClipboardService());
 		instantiationService.stub(IConversationRosterService, stubService);
+		instantiationService.stub(IClipboardService, clipboardService);
 		const part = store.add(instantiationService.createInstance(ConversationPart));
 		const parent = document.createElement('div');
 		parent.classList.add('monaco-workbench');
@@ -162,7 +167,7 @@ suite('ConversationLens', () => {
 			contentHost.style.display = '';
 		}
 		layout();
-		return { part, lens, stubService, layoutReadingColumn: layout };
+		return { part, lens, stubService, clipboardService, layoutReadingColumn: layout };
 	}
 
 	async function seedPendingConfirmation(stubService: ConversationStubService, layoutReadingColumn: () => void, message = 'Write README.md?'): Promise<void> {
@@ -838,5 +843,93 @@ suite('ConversationLens', () => {
 		assert.strictEqual(getSessionSelectLabel(slots), stubService.getActiveSession().title);
 		assert.strictEqual(titleLive.textContent, stubService.getActiveSession().title);
 		assert.strictEqual(slots.sessionBar.querySelector('select.monaco-select-box option')?.textContent, stubService.getActiveSession().title);
+	});
+
+	test('user and assistant turns expose Copy and Delete action bars; process and confirmation rows do not', async () => {
+		const { part, stubService, layoutReadingColumn } = mountLens();
+		const slots = part.getSlots()!;
+		const sessionId = stubService.getActiveSessionId();
+
+		stubService.appendUserTurn(sessionId, 'Copy me user');
+		stubService.appendStubEchoAssistant(sessionId, 'Copy me assistant');
+		stubService.appendThinkingTurn(sessionId, 'Thinking summary');
+		stubService.appendToolTurn(sessionId, 'Tool summary');
+		stubService.appendConfirmationTurn(sessionId, 'Confirm this?');
+		layoutReadingColumn();
+		await flushTimelineHeightUpdates();
+
+		const userTurn = queryTimeline(slots, '.conversation-lens-turn[data-kind="user"]')!;
+		const assistantTurn = queryTimeline(slots, '.conversation-lens-turn[data-kind="assistant"]')!;
+
+		assert.ok(userTurn.classList.contains('conversation-lens-turn--user-align-end'));
+		assert.strictEqual(assistantTurn.classList.contains('conversation-lens-turn--user-align-end'), false);
+
+		const userActions = userTurn.querySelector('.conversation-lens-turn-actions')!;
+		const assistantActions = assistantTurn.querySelector('.conversation-lens-turn-actions')!;
+		assert.ok(userActions);
+		assert.ok(assistantActions);
+
+		const userCopy = userActions.querySelector('.conversation-lens-turn-action-copy .monaco-button') as HTMLElement;
+		const userDelete = userActions.querySelector('.conversation-lens-turn-action-delete .monaco-button') as HTMLElement;
+		const assistantCopy = assistantActions.querySelector('.conversation-lens-turn-action-copy .monaco-button') as HTMLElement;
+		const assistantDelete = assistantActions.querySelector('.conversation-lens-turn-action-delete .monaco-button') as HTMLElement;
+
+		assert.strictEqual(userCopy.getAttribute('aria-label'), conversationLensTurnCopy);
+		assert.strictEqual(userDelete.getAttribute('aria-label'), conversationLensTurnDelete);
+		assert.strictEqual(assistantCopy.getAttribute('aria-label'), conversationLensTurnCopy);
+		assert.strictEqual(assistantDelete.getAttribute('aria-label'), conversationLensTurnDelete);
+
+		assert.strictEqual(queryTimeline(slots, '.conversation-lens-turn-process[data-kind="thinking"] .conversation-lens-turn-actions'), null);
+		assert.strictEqual(queryTimeline(slots, '.conversation-lens-turn-process[data-kind="tool"] .conversation-lens-turn-actions'), null);
+		assert.strictEqual(queryTimeline(slots, '.conversation-lens-confirmation-seat .conversation-lens-turn-actions'), null);
+
+		assert.strictEqual(queryTimeline(slots, '[aria-label*="Regenerate"]'), null);
+		assert.strictEqual(queryTimeline(slots, '[aria-label*="Quote"]'), null);
+		assert.strictEqual(queryTimeline(slots, '[aria-label*="Edit"]'), null);
+	});
+
+	test('Delete turn removes it from timeline and trajectory; Copy writes turn text to clipboard', async () => {
+		const { part, stubService, clipboardService, layoutReadingColumn } = mountLens();
+		const slots = part.getSlots()!;
+		const sessionId = stubService.getActiveSessionId();
+		const userText = 'Delete and copy user text';
+		const assistantText = 'Delete and copy assistant text';
+
+		stubService.appendUserTurn(sessionId, userText);
+		stubService.appendStubEchoAssistant(sessionId, assistantText);
+		layoutReadingColumn();
+		await flushTimelineHeightUpdates();
+
+		const userTurn = queryTimeline(slots, '.conversation-lens-turn[data-kind="user"]')!;
+		const userCopy = userTurn.querySelector('.conversation-lens-turn-action-copy .monaco-button') as HTMLElement;
+		userCopy.click();
+		assert.strictEqual(await clipboardService.readText(), userText);
+
+		const historyButton = slots.sessionBar.querySelector('.conversation-lens-session-history .monaco-button') as HTMLButtonElement;
+		historyButton.click();
+		layoutReadingColumn();
+		await flushTimelineHeightUpdates();
+
+		let trajectory = slots.timeline.querySelector('.conversation-lens-trajectory')!;
+		assert.strictEqual(trajectory.querySelectorAll('.monaco-list-row').length, 2);
+
+		const userDelete = userTurn.querySelector('.conversation-lens-turn-action-delete .monaco-button') as HTMLElement;
+		userDelete.click();
+		layoutReadingColumn();
+		await flushTimelineHeightUpdates();
+
+		assert.strictEqual(stubService.getTurns(sessionId).length, 1);
+		assert.strictEqual(stubService.getTurns(sessionId)[0].text, assistantText);
+		trajectory = slots.timeline.querySelector('.conversation-lens-trajectory')!;
+		assert.strictEqual(trajectory.querySelectorAll('.monaco-list-row').length, 1);
+		assert.ok(trajectory.textContent?.includes(assistantText));
+		assert.ok(!trajectory.textContent?.includes(userText));
+
+		historyButton.click();
+		layoutReadingColumn();
+		await flushTimelineHeightUpdates();
+
+		assert.strictEqual(queryTimeline(slots, '.conversation-lens-turn[data-kind="user"]'), null);
+		assert.ok(queryTimeline(slots, '.conversation-lens-turn[data-kind="assistant"]'));
 	});
 });

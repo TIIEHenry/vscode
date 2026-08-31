@@ -157,4 +157,39 @@ suite('ConversationStubService', () => {
 		assert.strictEqual(tool!.kind, 'tool');
 		assert.strictEqual(service.getTurns(sessionId).length, 2);
 	});
+
+	test('deleteTurn removes one turn and returns false for unknown id', () => {
+		const service = store.add(new ConversationStubService());
+		const sessionId = service.getActiveSessionId();
+		const user = service.appendUserTurn(sessionId, 'Hello');
+		const assistant = service.appendStubEchoAssistant(sessionId, 'Echo');
+		assert.ok(user);
+		assert.ok(assistant);
+
+		let changedSessionId: string | undefined;
+		store.add(service.onDidChangeSession(id => {
+			changedSessionId = id;
+		}));
+
+		assert.strictEqual(service.deleteTurn(sessionId, user!.id), true);
+		assert.strictEqual(changedSessionId, sessionId);
+		assert.strictEqual(service.getTurns(sessionId).length, 1);
+		assert.strictEqual(service.getTurns(sessionId)[0].id, assistant!.id);
+
+		assert.strictEqual(service.deleteTurn(sessionId, 'missing-turn'), false);
+		assert.strictEqual(service.deleteTurn('missing-session', assistant!.id), false);
+	});
+
+	test('deleteTurn on last turn does not create a session', () => {
+		const service = store.add(new ConversationStubService());
+		const sessionId = service.getActiveSessionId();
+		const initialSessionCount = service.getSessions().length;
+		const user = service.appendUserTurn(sessionId, 'Only message');
+		assert.ok(user);
+
+		assert.strictEqual(service.deleteTurn(sessionId, user!.id), true);
+		assert.strictEqual(service.getSessions().length, initialSessionCount);
+		assert.strictEqual(service.getActiveSessionId(), sessionId);
+		assert.strictEqual(service.getTurns(sessionId).length, 0);
+	});
 });
