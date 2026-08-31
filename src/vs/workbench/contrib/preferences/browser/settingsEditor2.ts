@@ -68,7 +68,7 @@ import './media/settingsEditor2.css';
 import { preferencesAiResultsIcon, preferencesClearInputIcon, preferencesFilterIcon } from './preferencesIcons.js';
 import { SettingsTarget, SettingsTargetsWidget } from './preferencesWidgets.js';
 import { ISettingOverrideClickEvent } from './settingsEditorSettingIndicators.js';
-import { getCommonlyUsedData, DEFAULT_COMMONLY_USED_EXCLUDE_KEY_PATTERNS, filterExtensionSettingsGroupsForWindow, getSettingsTocFilter, getTocDataForWindow, ITOCEntry } from './settingsLayout.js';
+import { getCommonlyUsedData, DEFAULT_COMMONLY_USED_EXCLUDE_KEY_PATTERNS, filterExtensionSettingsGroupsForWindow, getSettingsTocFilter, getTocDataForWindow, ITOCEntry, shouldIncludeSettingInWindowSearch } from './settingsLayout.js';
 import { SettingsSearchFilterDropdownMenuActionViewItem } from './settingsSearchMenu.js';
 import { AbstractSettingRenderer, createSettingMatchRegExp, createTocTreeForExtensionSettings, HeightChangeParams, ISettingLinkClickEvent, resolveConfiguredUntrustedSettings, resolveSettingsTree, SettingsTree, SettingTreeRenderers } from './settingsTree.js';
 import { ISettingsEditorViewState, parseQuery, SearchResultIdx, SearchResultModel, SettingsTreeElement, SettingsTreeGroupChild, SettingsTreeGroupElement, SettingsTreeModel, SettingsTreeSettingElement } from './settingsTreeModels.js';
@@ -2001,6 +2001,9 @@ export class SettingsEditor2 extends EditorPane {
 		for (const g of this.defaultSettingsEditorModel.settingsGroups.slice(1)) {
 			for (const sect of g.sections) {
 				for (const setting of sect.settings) {
+					if (!shouldIncludeSettingInWindowSearch(setting, this.environmentService.isSessionsWindow)) {
+						continue;
+					}
 					if (!shouldShowAdvanced && !this.shouldShowSetting(setting)) {
 						continue;
 					}
@@ -2162,9 +2165,15 @@ export class SettingsEditor2 extends EditorPane {
 			return null;
 		}
 
-		// Filter out advanced settings unless the advanced tag is explicitly set or setting matches an ID filter
-		if (result && !this.canShowAdvancedSettings()) {
-			result.filterMatches = result.filterMatches.filter(match => this.shouldShowSetting(match.setting));
+		if (result) {
+			const isSessionsWindow = this.environmentService.isSessionsWindow;
+			const showAdvanced = this.canShowAdvancedSettings();
+			result.filterMatches = result.filterMatches.filter(match => {
+				if (!shouldIncludeSettingInWindowSearch(match.setting, isSessionsWindow)) {
+					return false;
+				}
+				return showAdvanced || this.shouldShowSetting(match.setting);
+			});
 		}
 
 		// Only log the elapsed time if there are actual results.

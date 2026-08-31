@@ -577,3 +577,21 @@ export function filterExtensionSettingsGroupsForWindow(groups: ISettingsGroup[],
 		return !EXTENSION_UNIFICATION_EXTENSION_IDS.has(extensionId.toLowerCase());
 	});
 }
+
+export function shouldIncludeSettingInWindowSearch(setting: ISetting, isSessionsWindow: boolean): boolean {
+	if (isSessionsWindow) {
+		return true;
+	}
+
+	const excludeKeyPatterns = getSettingsTocFilter(false, true)?.exclude?.keyPatterns;
+	if (excludeKeyPatterns?.length && settingMatchesExcludePatterns(setting.key, excludeKeyPatterns)) {
+		return false;
+	}
+
+	const extensionId = setting.extensionInfo?.id ?? setting.displayExtensionId;
+	if (extensionId && EXTENSION_UNIFICATION_EXTENSION_IDS.has(extensionId.toLowerCase())) {
+		return false;
+	}
+
+	return true;
+}
