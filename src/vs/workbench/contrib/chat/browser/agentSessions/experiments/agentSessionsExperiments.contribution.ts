@@ -288,7 +288,7 @@ MenuRegistry.appendMenuItem(MenuId.AgentsTitleBarControlMenu, {
 		id: 'workbench.action.chat.toggle',
 		title: localize('openChat', "Open Chat"),
 	},
-	when: ChatContextKeys.enabled,
+	when: ContextKeyExpr.and(ChatContextKeys.enabled, IsSessionsWindowContext),
 	group: 'a_open',
 	order: 1
 });

@@ -11,6 +11,7 @@ import { IsSessionsWindowContext } from '../../../../../common/contextkeys.js';
 import { ChatContextKeys } from '../../../common/actions/chatContextKeys.js';
 import { ChatModeKind } from '../../../common/constants.js';
 import {
+	ACTION_ID_NEW_CHAT,
 	ACTION_ID_OPEN_CHAT,
 	CHAT_OPEN_ACTION_ID,
 	GENERATE_AGENT_COMMAND_ID,
@@ -90,6 +91,7 @@ const sessionsWindowOnlyCommandIds = [
 ];
 
 const titleBarMenuSessionsWindowOnlyCommandIds = [
+	ACTION_ID_NEW_CHAT,
 	CHAT_OPEN_ACTION_ID,
 	ACTION_ID_OPEN_CHAT,
 	'workbench.action.newChatWindow',
