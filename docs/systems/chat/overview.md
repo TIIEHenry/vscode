@@ -96,6 +96,8 @@ platform/chat                   设置与 AI_AGENT 约定
 
 默认 Code 窗口不显示 Copilot 额度 / 限速输入通知、匿名限速响应块与 Status Dashboard 的 **Use AI Features** setup 区（`shouldShowCopilotQuotaChrome`；Agents Window 保留）。
 
+默认 Code 窗口亦不执行 Chat setup runner 的 **Use AI Features** 对话框与 `DefaultSetup` 策略（`shouldRunChatSetupRunner` / `IsSessionsWindowContext`；Agents Window 保留）。
+
 ## 相关文档
 
 - [Chat 系统索引](INDEX.md) · [chat 模块索引](../../modules/chat/INDEX.md)

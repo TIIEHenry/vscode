@@ -34,6 +34,7 @@ import { ChatSetupController } from './chatSetupController.js';
 import { IChatSetupResult, ChatSetupAnonymous, ChatSetupDialogVisibleContext, ChatSetupError, InstallChatEvent, InstallChatClassification, ChatSetupStrategy, ChatSetupResultValue, IChatSetupRunOptions } from './chatSetup.js';
 import { GitHubPaths, IDefaultAccountService } from '../../../../../platform/defaultAccount/common/defaultAccount.js';
 import { IHostService } from '../../../../services/host/browser/host.js';
+import { IWorkbenchEnvironmentService } from '../../../../services/environment/common/environmentService.js';
 import { IExtensionService } from '../../../../services/extensions/common/extensions.js';
 import { ExtensionIdentifier } from '../../../../../platform/extensions/common/extensions.js';
 import { raceTimeout } from '../../../../../base/common/async.js';
@@ -183,7 +184,18 @@ export function shouldShowMicrosoftProvider(configurationService: IConfiguration
 	return configurationService.getValue<boolean>(ChatMicrosoftAuthenticationEnabledSettingId) === true;
 }
 
-export function getChatSetupDialogButtons(entitlement: ChatEntitlement, options: IChatSetupRunOptions | undefined, enterpriseAuthentication: boolean, showMicrosoftProvider: boolean, providers: IChatSetupDialogProviders = defaultChat.provider): IChatSetupDialogButton[] {
+/**
+ * INV-NO-COPILOT: Chat setup runner dialogs and DefaultSetup strategy are Agents Window only.
+ */
+export function shouldRunChatSetupRunner(isSessionsWindow: boolean): boolean {
+	return isSessionsWindow;
+}
+
+export function getChatSetupDialogButtons(entitlement: ChatEntitlement, options: IChatSetupRunOptions | undefined, enterpriseAuthentication: boolean, showMicrosoftProvider: boolean, providers: IChatSetupDialogProviders = defaultChat.provider, isSessionsWindow = true): IChatSetupDialogButton[] {
+	if (!shouldRunChatSetupRunner(isSessionsWindow)) {
+		return [];
+	}
+
 	const button = (label: string, strategy: ChatSetupStrategy, ...classes: string[]): IChatSetupDialogButton => ({ label, strategy, classes });
 
 	if (!options?.forceAnonymous && (entitlement === ChatEntitlement.Unknown || options?.forceSignInDialog)) {
@@ -255,6 +267,7 @@ export class ChatSetup {
 		@IWorkspaceTrustManagementService private readonly workspaceTrustManagementService: IWorkspaceTrustManagementService,
 		@IInstantiationService private readonly instantiationService: IInstantiationService,
 		@IConfigurationService private readonly configurationService: IConfigurationService,
+		@IWorkbenchEnvironmentService private readonly environmentService: IWorkbenchEnvironmentService,
 	) { }
 
 	skipDialog(): void {
@@ -276,6 +289,10 @@ export class ChatSetup {
 	}
 
 	private async doRun(options?: IChatSetupRunOptions): Promise<IChatSetupResult> {
+		if (!shouldRunChatSetupRunner(this.environmentService.isSessionsWindow)) {
+			return { dialogSkipped: false, success: undefined };
+		}
+
 		this.context.update({ later: false });
 
 		const dialogSkipped = this.skipDialogOnce;
@@ -427,7 +444,7 @@ export class ChatSetup {
 		}
 		const enterpriseAuthentication = this.defaultAccountService.getDefaultAccountAuthenticationProvider().enterprise;
 		const showMicrosoftProvider = shouldShowMicrosoftProvider(this.configurationService);
-		const buttons = getChatSetupDialogButtons(this.context.state.entitlement, options, enterpriseAuthentication, showMicrosoftProvider);
+		const buttons = getChatSetupDialogButtons(this.context.state.entitlement, options, enterpriseAuthentication, showMicrosoftProvider, defaultChat.provider, this.environmentService.isSessionsWindow);
 		const dialog = this.instantiationService.createInstance(ChatSetupDialog, this.layoutService.activeContainer, {
 			title: this.getDialogTitle(options),
 			buttons,

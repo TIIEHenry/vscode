@@ -13,7 +13,7 @@ import { TestConfigurationService } from '../../../../../../platform/configurati
 import { TelemetryLevel } from '../../../../../../platform/telemetry/common/telemetry.js';
 import { ChatEntitlement } from '../../../../../services/chat/common/chatEntitlementService.js';
 import { buildUpgradeUrlWithRedirect, ChatSetupStrategy, IChatSetupRunOptions } from '../../../browser/chatSetup/chatSetup.js';
-import { ChatSetup, getChatSetupDialogButtons, getChatSetupDialogFooter, IChatSetupDialogProviders, shouldShowMicrosoftProvider, showChatSetupDialogWithCancellation } from '../../../browser/chatSetup/chatSetupRunner.js';
+import { ChatSetup, getChatSetupDialogButtons, getChatSetupDialogFooter, IChatSetupDialogProviders, shouldRunChatSetupRunner, shouldShowMicrosoftProvider, showChatSetupDialogWithCancellation } from '../../../browser/chatSetup/chatSetupRunner.js';
 
 /**
  * Parses the final URL and extracts the decoded return_to value,
@@ -163,6 +163,33 @@ suite('Chat setup dialog presentation', () => {
 	});
 });
 
+suite('shouldRunChatSetupRunner', () => {
+
+	ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('runs in Agents Window only', () => {
+		assert.deepStrictEqual({
+			defaultWindow: shouldRunChatSetupRunner(false),
+			agentsWindow: shouldRunChatSetupRunner(true),
+		}, {
+			defaultWindow: false,
+			agentsWindow: true,
+		});
+	});
+
+	test('builds no setup dialog buttons in default Code window', () => {
+		const buttons = getChatSetupDialogButtons(ChatEntitlement.Unknown, undefined, false, false, {
+			default: { name: 'GitHub' },
+			enterprise: { name: 'GHE' },
+			google: { name: 'Google' },
+			apple: { name: 'Apple' },
+			microsoft: { name: 'Microsoft' },
+		}, false);
+
+		assert.deepStrictEqual(buttons, []);
+	});
+});
+
 suite('Chat setup strategy', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
@@ -190,6 +217,7 @@ suite('Chat setup strategy', () => {
 			{ isWorkspaceTrusted: () => true } as never,
 			undefined as never,
 			new TestConfigurationService(),
+			{ isSessionsWindow: true } as never,
 		);
 
 		const result = await setup.run({ setupStrategy: ChatSetupStrategy.SetupWithMicrosoftProvider, additionalScopes: ['repo'] });
@@ -288,6 +316,7 @@ suite('Chat setup dialog cancellation', () => {
 			{ isWorkspaceTrusted: () => true } as never,
 			undefined as never,
 			new TestConfigurationService(),
+			{ isSessionsWindow: true } as never,
 		);
 
 		const result = setup.run({ setupStrategy: ChatSetupStrategy.DefaultSetup, cancellationToken: cancellation.token });
@@ -297,5 +326,39 @@ suite('Chat setup dialog cancellation', () => {
 		assert.strictEqual((await result).success, undefined);
 		assert.strictEqual(setupToken?.isCancellationRequested, true);
 		cancellation.dispose();
+	});
+
+	test('skips setup runner in default Code window', async () => {
+		let setupCalled = false;
+		const setup = new ChatSetup(
+			{ update() { } } as never,
+			{
+				value: {
+					setup: () => {
+						setupCalled = true;
+						return Promise.resolve(true);
+					},
+				},
+			} as never,
+			undefined as never,
+			undefined as never,
+			undefined as never,
+			undefined as never,
+			undefined as never,
+			undefined as never,
+			undefined as never,
+			undefined as never,
+			undefined as never,
+			undefined as never,
+			new TestConfigurationService(),
+			{ isSessionsWindow: false } as never,
+		);
+
+		const result = await setup.run({ setupStrategy: ChatSetupStrategy.DefaultSetup });
+
+		assert.deepStrictEqual({ result, setupCalled }, {
+			result: { dialogSkipped: false, success: undefined },
+			setupCalled: false,
+		});
 	});
 });
