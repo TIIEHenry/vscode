@@ -119,7 +119,10 @@ export const VIEW_CONTAINER = Registry.as<IViewContainersRegistry>(ViewContainer
 		openCommandActionDescriptor: {
 			id: VIEWLET_ID,
 			mnemonicTitle: localize({ key: 'miViewExtensions', comment: ['&& denotes a mnemonic'] }, "E&&xtensions"),
-			keybindings: { primary: KeyMod.CtrlCmd | KeyMod.Shift | KeyCode.KeyX },
+			keybindings: {
+				primary: KeyMod.CtrlCmd | KeyMod.Shift | KeyCode.KeyX,
+				when: IsSessionsWindowContext,
+			},
 			order: 4,
 		},
 		ctorDescriptor: new SyncDescriptor(ExtensionsViewPaneContainer),
@@ -127,6 +130,7 @@ export const VIEW_CONTAINER = Registry.as<IViewContainersRegistry>(ViewContainer
 		order: 4,
 		rejectAddedViews: true,
 		alwaysUseContainerInfo: true,
+		hideIfEmpty: true,
 	}, ViewContainerLocation.Sidebar);
 
 Registry.as<IConfigurationRegistry>(ConfigurationExtensions.Configuration)
