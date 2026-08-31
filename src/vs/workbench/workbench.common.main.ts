@@ -231,6 +231,9 @@ import './contrib/speech/browser/speech.contribution.js';
 // Conversation lens (fills ConversationPart slots; not ChatEditor)
 import './contrib/conversation/browser/conversation.contribution.js';
 
+// Navigator product roster stub views (Projects / Agents / Team)
+import './contrib/navigator/browser/navigator.contribution.js';
+
 // Chat
 import './contrib/chat/browser/chat.shared.contribution.js';
 import './contrib/chat/browser/chat.contribution.js';
