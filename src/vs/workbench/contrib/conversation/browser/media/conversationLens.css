@@ -390,3 +390,57 @@
 	flex-shrink: 0;
 	align-items: center;
 }
+
+.monaco-workbench .part.conversation .conversation-lens-dock-maximize-input {
+	flex-shrink: 0;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-dock-maximize-input .monaco-button {
+	height: 20px;
+	padding: 0 6px;
+	font-size: 11px;
+}
+
+/* Input Maximize — stays inside Conversation column (Desktop §8.3.11) */
+.monaco-workbench .part.conversation .conversation-timeline.conversation-lens-input-maximized {
+	display: none;
+}
+
+.monaco-workbench .part.conversation .conversation-dock.conversation-lens-input-maximized {
+	flex: 1 1 auto;
+	min-height: 0;
+}
+
+.monaco-workbench .part.conversation .conversation-dock.conversation-lens-input-maximized .conversation-lens-dock {
+	flex: 1;
+	min-height: 0;
+	display: flex;
+	flex-direction: column;
+}
+
+.monaco-workbench .part.conversation .conversation-dock.conversation-lens-input-maximized .conversation-lens-dock-gate-row {
+	display: none;
+}
+
+.monaco-workbench .part.conversation .conversation-dock.conversation-lens-input-maximized .conversation-lens-inbox-row:not(:has(.conversation-lens-inbox-pending:not([hidden]))) {
+	display: none;
+}
+
+.monaco-workbench .part.conversation .conversation-dock.conversation-lens-input-maximized .conversation-lens-composer {
+	flex: 1;
+	min-height: 0;
+	display: flex;
+	flex-direction: column;
+	padding-top: 8px;
+}
+
+.monaco-workbench .part.conversation .conversation-dock.conversation-lens-input-maximized .conversation-lens-dock-input-row {
+	flex: 1;
+	min-height: 0;
+}
+
+.monaco-workbench .part.conversation .conversation-dock.conversation-lens-input-maximized .conversation-lens-dock-input {
+	max-height: none;
+	flex: 1;
+	min-height: 80px;
+}

@@ -13,7 +13,10 @@ import { ConversationLens } from '../../browser/conversationLens.js';
 import {
 	conversationLensDockEngineNotConnected,
 	conversationLensDockInboxNoQueue,
+	conversationLensDockMaximizeInput,
 	conversationLensDockNoModel,
+	conversationLensDockRestoreTimeline,
+	conversationLensInputMaximizedClass,
 } from '../../browser/conversationLensDockStrings.js';
 import { conversationLensSessionBarNewSession } from '../../browser/conversationLensSessionBarStrings.js';
 import { CONVERSATION_STUB_SEED_SESSIONS } from '../../browser/conversationStubModel.js';
@@ -276,5 +279,56 @@ suite('ConversationLens', () => {
 		assert.ok(timelineContent.textContent?.includes(message));
 		assert.ok(timelineContent.querySelector('[data-stub="true"]'));
 		assert.strictEqual(textarea.value, '');
+	});
+
+	test('dock maximize input toggles conversation-lens-input-maximized on slot hosts', () => {
+		const { part, lens } = mountLens();
+		const slots = part.getSlots()!;
+		const maximizeButton = slots.dock.querySelector('.conversation-lens-dock-maximize-input-button') as HTMLButtonElement;
+
+		assert.ok(maximizeButton);
+		assert.strictEqual(maximizeButton.textContent?.trim(), conversationLensDockMaximizeInput);
+		assert.strictEqual(lens.isInputMaximized(), false);
+		assert.strictEqual(slots.timeline.classList.contains(conversationLensInputMaximizedClass), false);
+		assert.strictEqual(slots.dock.classList.contains(conversationLensInputMaximizedClass), false);
+		assert.strictEqual(slots.sessionBar.classList.contains(conversationLensInputMaximizedClass), false);
+		assert.strictEqual(slots.sessionBar.querySelector('.conversation-lens-session-maximize'), null);
+
+		maximizeButton.click();
+
+		assert.strictEqual(lens.isInputMaximized(), true);
+		assert.strictEqual(maximizeButton.textContent?.trim(), conversationLensDockRestoreTimeline);
+		assert.strictEqual(maximizeButton.getAttribute('aria-pressed'), 'true');
+		assert.strictEqual(slots.timeline.classList.contains(conversationLensInputMaximizedClass), true);
+		assert.strictEqual(slots.dock.classList.contains(conversationLensInputMaximizedClass), true);
+
+		maximizeButton.click();
+
+		assert.strictEqual(lens.isInputMaximized(), false);
+		assert.strictEqual(maximizeButton.textContent?.trim(), conversationLensDockMaximizeInput);
+		assert.strictEqual(maximizeButton.getAttribute('aria-pressed'), 'false');
+		assert.strictEqual(slots.timeline.classList.contains(conversationLensInputMaximizedClass), false);
+		assert.strictEqual(slots.dock.classList.contains(conversationLensInputMaximizedClass), false);
+	});
+
+	test('input maximize keeps pending confirmation reachable via dock inbox row', () => {
+		const { part, lens } = mountLens();
+		const slots = part.getSlots()!;
+		const maximizeButton = slots.dock.querySelector('.conversation-lens-dock-maximize-input-button') as HTMLButtonElement;
+		const pendingButton = slots.dock.querySelector('.conversation-lens-inbox-pending') as HTMLButtonElement;
+		const timelineContent = slots.timeline.querySelector('.conversation-lens-timeline-content')!;
+
+		assert.ok(pendingButton);
+		assert.ok(!pendingButton.hidden);
+
+		maximizeButton.click();
+		assert.strictEqual(lens.isInputMaximized(), true);
+		assert.ok(!pendingButton.hidden);
+		assert.ok(pendingButton.textContent?.includes('confirmation pending'));
+
+		pendingButton.click();
+
+		assert.strictEqual(lens.isInputMaximized(), false);
+		assert.ok(timelineContent.querySelector('.conversation-lens-confirmation-seat'));
 	});
 });

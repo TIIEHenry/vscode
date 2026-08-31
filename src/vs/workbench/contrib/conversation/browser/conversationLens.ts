@@ -22,7 +22,10 @@ import { ConversationConfirmationSeat } from './conversationConfirmationSeat.js'
 import {
 	conversationLensDockEngineNotConnected,
 	conversationLensDockInboxNoQueue,
+	conversationLensDockMaximizeInput,
 	conversationLensDockNoModel,
+	conversationLensDockRestoreTimeline,
+	conversationLensInputMaximizedClass,
 } from './conversationLensDockStrings.js';
 import { conversationLensSessionBarNewSession } from './conversationLensSessionBarStrings.js';
 import { ConversationStubTurn } from './conversationStubModel.js';
@@ -44,6 +47,10 @@ export class ConversationLens extends Disposable {
 	private inboxStatus!: HTMLButtonElement;
 	private dockTextarea!: HTMLTextAreaElement;
 	private sendButton!: Button;
+	private maximizeInputButton!: Button;
+
+	private readonly slotHosts: IConversationLensSlots;
+	private inputMaximized = false;
 
 	private readonly drafts = new Map<string, string>();
 	private readonly confirmationSeats = new Map<string, ConversationConfirmationSeat>();
@@ -51,7 +58,7 @@ export class ConversationLens extends Disposable {
 	private suppressSessionSelect = false;
 
 	constructor(
-		_slots: IConversationLensSlots,
+		slots: IConversationLensSlots,
 		@IConversationStubService private readonly stubService: IConversationStubService,
 		@IContextViewService private readonly contextViewService: IContextViewService,
 		@IConfigurationService private readonly configurationService: IConfigurationService,
@@ -59,9 +66,11 @@ export class ConversationLens extends Disposable {
 	) {
 		super();
 
-		this.mountSessionBar(_slots.sessionBar);
-		this.mountTimeline(_slots.timeline);
-		this.mountDock(_slots.dock);
+		this.slotHosts = slots;
+
+		this.mountSessionBar(slots.sessionBar);
+		this.mountTimeline(slots.timeline);
+		this.mountDock(slots.dock);
 
 		this.renderTimeline();
 		this.updateSessionTitle();
@@ -80,10 +89,35 @@ export class ConversationLens extends Disposable {
 				seat.dispose();
 			}
 			this.confirmationSeats.clear();
-			reset(_slots.sessionBar);
-			reset(_slots.timeline);
-			reset(_slots.dock);
+			reset(slots.sessionBar);
+			reset(slots.timeline);
+			reset(slots.dock);
 		}));
+	}
+
+	isInputMaximized(): boolean {
+		return this.inputMaximized;
+	}
+
+	setInputMaximized(maximized: boolean): void {
+		if (this.inputMaximized === maximized) {
+			return;
+		}
+		this.inputMaximized = maximized;
+		for (const host of [this.slotHosts.timeline, this.slotHosts.dock]) {
+			host.classList.toggle(conversationLensInputMaximizedClass, maximized);
+		}
+		this.updateMaximizeInputButton();
+	}
+
+	private toggleInputMaximized(): void {
+		this.setInputMaximized(!this.inputMaximized);
+	}
+
+	private updateMaximizeInputButton(): void {
+		const label = this.inputMaximized ? conversationLensDockRestoreTimeline : conversationLensDockMaximizeInput;
+		this.maximizeInputButton.label = label;
+		this.maximizeInputButton.element.setAttribute('aria-pressed', String(this.inputMaximized));
 	}
 
 	private mountSessionBar(host: HTMLElement): void {
@@ -188,7 +222,18 @@ export class ConversationLens extends Disposable {
 		this.dockTextarea.rows = 1;
 
 		const bottomBar = append(composer, $('.conversation-lens-dock-bottom-bar'));
-		append(bottomBar, $('.conversation-lens-dock-bottom-leading'));
+		const bottomLeading = append(bottomBar, $('.conversation-lens-dock-bottom-leading'));
+		const maximizeInputContainer = append(bottomLeading, $('.conversation-lens-dock-maximize-input'));
+		this.maximizeInputButton = this._register(new Button(maximizeInputContainer, {
+			...defaultButtonStyles,
+			small: true,
+			secondary: true,
+			title: conversationLensDockMaximizeInput,
+		}));
+		this.maximizeInputButton.label = conversationLensDockMaximizeInput;
+		this.maximizeInputButton.element.classList.add('conversation-lens-dock-maximize-input-button');
+		this.maximizeInputButton.element.setAttribute('aria-pressed', 'false');
+		this._register(this.maximizeInputButton.onDidClick(() => this.toggleInputMaximized()));
 
 		const bottomTrailing = append(bottomBar, $('.conversation-lens-dock-bottom-trailing'));
 		append(bottomTrailing, $('span.conversation-lens-dock-model')).textContent = conversationLensDockNoModel;
@@ -241,6 +286,9 @@ export class ConversationLens extends Disposable {
 	}
 
 	private scrollToFirstPendingConfirmation(): void {
+		if (this.inputMaximized) {
+			this.setInputMaximized(false);
+		}
 		const pending = this.stubService.getTurns(this.stubService.getActiveSessionId())
 			.find(t => t.kind === 'confirmation' && t.status === 'pending');
 		if (!pending) {
