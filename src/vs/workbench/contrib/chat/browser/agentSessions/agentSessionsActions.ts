@@ -984,7 +984,7 @@ export class OpenAgentSessionInNewEditorGroupAction extends BaseOpenAgentSession
 			},
 			menu: {
 				id: MenuId.AgentSessionsContext,
-				when: IsSessionsWindowContext.negate(),
+				when: IsSessionsWindowContext,
 				order: 2,
 				group: 'navigation'
 			}
@@ -1018,6 +1018,7 @@ export class OpenAgentSessionInNewWindowAction extends BaseOpenAgentSessionActio
 			title: localize2('chat.openSessionInNewWindow.label', "Open in New Window"),
 			menu: {
 				id: MenuId.AgentSessionsContext,
+				when: IsSessionsWindowContext,
 				order: 3,
 				group: 'navigation'
 			}

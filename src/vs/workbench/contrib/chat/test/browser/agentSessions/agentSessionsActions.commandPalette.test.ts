@@ -139,4 +139,35 @@ suite('AgentSessionsActions - default window context menu', () => {
 			'Agents Window may show Open as Editor in Agent Sessions context menu'
 		);
 	});
+
+	test('Open to the Side and Open in New Window hide from default Code window Agent Sessions context menu', () => {
+		const defaultWindow = {
+			[IsSessionsWindowContext.key]: false,
+		};
+		const agentsWindow = {
+			[IsSessionsWindowContext.key]: true,
+		};
+
+		for (const commandId of [
+			'workbench.action.chat.openSessionInNewEditorGroup',
+			'workbench.action.chat.openSessionInNewWindow',
+		] as const) {
+			const item = MenuRegistry.getMenuItems(MenuId.AgentSessionsContext)
+				.filter(isIMenuItem)
+				.find(entry => entry.command.id === commandId);
+			assert.ok(item, `${commandId} should remain registered for Agents Window`);
+			assert.ok(item.when, `${commandId} context menu item should have a when clause`);
+
+			assert.strictEqual(
+				evalWhen(item.when, defaultWindow),
+				false,
+				`default Code window must hide ${commandId} in Agent Sessions context menu`
+			);
+			assert.strictEqual(
+				evalWhen(item.when, agentsWindow),
+				true,
+				`Agents Window may show ${commandId} in Agent Sessions context menu`
+			);
+		}
+	});
 });
