@@ -20,8 +20,8 @@ import {
 	NAVIGATOR_STUB_VIEW_IDS,
 	NAVIGATOR_TEAM_VIEW_ID,
 	NavigatorProjectsView,
-	NavigatorTeamView,
 } from '../../browser/navigatorStubView.js';
+import { NavigatorTeamView } from '../../browser/navigatorTeamList.js';
 import {
 	NAVIGATOR_AGENTS_CONTAINER_ID,
 	NAVIGATOR_AGENTS_VIEW_CONTAINER,
@@ -111,7 +111,7 @@ suite('Navigator stub views', () => {
 		}
 	});
 
-	test('Projects and Team stub views render honest empty state without ChatEditorInput', () => {
+	test('Projects leftover stub view renders service-disconnected empty state without ChatEditorInput', () => {
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		const stubViewContainer = {
 			id: 'navigator-stub-test-container',
@@ -139,27 +139,30 @@ suite('Navigator stub views', () => {
 			},
 		});
 
-		const cases: Array<{ id: string; ctor: typeof NavigatorProjectsView | typeof NavigatorTeamView; label: string }> = [
-			{ id: NAVIGATOR_PROJECTS_VIEW_ID, ctor: NavigatorProjectsView, label: 'Projects' },
-			{ id: NAVIGATOR_TEAM_VIEW_ID, ctor: NavigatorTeamView, label: 'Team' },
-		];
+		const view = store.add(instantiationService.createInstance(NavigatorProjectsView, {
+			id: NAVIGATOR_PROJECTS_VIEW_ID,
+			title: 'Projects',
+		}));
+		const container = document.createElement('div');
+		view.render();
+		container.appendChild(view.element);
+		view.setExpanded(true);
+		view.setVisible(true);
 
-		for (const { id, ctor, label } of cases) {
-			const view = store.add(instantiationService.createInstance(ctor, { id, title: label }));
-			const container = document.createElement('div');
-			view.render();
-			container.appendChild(view.element);
-			view.setExpanded(true);
-			view.setVisible(true);
+		const empty = view.element.querySelector('.navigator-stub-empty');
+		assert.ok(empty, `expected empty stub body for ${NAVIGATOR_PROJECTS_VIEW_ID}`);
+		assert.ok(empty.textContent?.includes('not connected'));
+		assert.ok(empty.textContent?.includes('no engine'));
+		assert.ok(!empty.textContent?.match(/copilot/i), 'stub body must not mention Copilot');
+		assert.ok(!empty.textContent?.match(/open chat/i), 'stub body must not mention Open Chat');
+		assert.strictEqual(view.element.querySelector('.chat-widget'), null);
+		assert.strictEqual(view.element.querySelector('.chat-setup'), null);
+	});
 
-			const empty = view.element.querySelector('.navigator-stub-empty');
-			assert.ok(empty, `expected empty stub body for ${id}`);
-			assert.ok(empty.textContent?.includes('not connected'));
-			assert.ok(empty.textContent?.includes('no engine'));
-			assert.ok(!empty.textContent?.match(/copilot/i), `stub body must not mention Copilot (${id})`);
-			assert.ok(!empty.textContent?.match(/open chat/i), `stub body must not mention Open Chat (${id})`);
-			assert.strictEqual(view.element.querySelector('.chat-widget'), null);
-			assert.strictEqual(view.element.querySelector('.chat-setup'), null);
-		}
+	test('Team view descriptor registers graduated NavigatorTeamView ctor', () => {
+		const descriptor = viewsRegistry.getView(NAVIGATOR_TEAM_VIEW_ID);
+		assert.ok(descriptor);
+		assert.strictEqual(descriptor.ctorDescriptor.ctor, NavigatorTeamView);
+		assert.notStrictEqual(descriptor.ctorDescriptor.ctor, NavigatorProjectsView);
 	});
 });

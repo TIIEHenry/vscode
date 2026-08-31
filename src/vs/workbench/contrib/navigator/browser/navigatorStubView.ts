@@ -27,7 +27,6 @@ import { IViewsService } from '../../../services/views/common/viewsService.js';
 import {
 	AGENT_INSPECT_VIEW_ID,
 	OPEN_NAVIGATOR_AGENTS_INSPECT_COMMAND_ID,
-	OPEN_NAVIGATOR_TEAM_INSPECT_COMMAND_ID,
 } from './agentInspectIds.js';
 
 const $ = dom.$;
@@ -332,15 +331,6 @@ export class NavigatorAgentsView extends ViewPane {
 	}
 }
 
-export class NavigatorTeamView extends NavigatorStubView {
-
-	static readonly ID = NAVIGATOR_TEAM_VIEW_ID;
-
-	protected override getProductLabel(): string {
-		return localize('navigatorTeam', "Team");
-	}
-}
-
 registerAction2(class NavigatorAgentsShowHierarchyAction extends ViewAction<NavigatorAgentsView> {
 	constructor() {
 		super({
@@ -406,23 +396,3 @@ registerAction2(class NavigatorAgentsOpenInspectAction extends ViewAction<Naviga
 	}
 });
 
-registerAction2(class NavigatorTeamOpenInspectAction extends ViewAction<NavigatorTeamView> {
-	constructor() {
-		super({
-			id: OPEN_NAVIGATOR_TEAM_INSPECT_COMMAND_ID,
-			viewId: NAVIGATOR_TEAM_VIEW_ID,
-			title: localize2('navigatorTeamView.openInspect', "Inspect"),
-			icon: Codicon.inspect,
-			menu: {
-				id: MenuId.ViewTitle,
-				group: 'navigation',
-				order: 1,
-				when: ContextKeyExpr.equals('view', NAVIGATOR_TEAM_VIEW_ID),
-			},
-		});
-	}
-
-	override runInView(accessor: ServicesAccessor): void {
-		void accessor.get(IViewsService).openView(AGENT_INSPECT_VIEW_ID, true);
-	}
-});
