@@ -91,10 +91,10 @@ suite('NavigatorTeamView', () => {
 		assert.notStrictEqual(descriptor.ctorDescriptor.ctor, ChatEditorInput);
 	});
 
-	test('empty members subview shows welcome with no members', async () => {
+	test('empty members subview does not show welcome so body-top filter stays visible', async () => {
 		const view = await mountView();
 		assert.strictEqual(view.getActiveSubview(), 'members');
-		assert.strictEqual(view.shouldShowWelcome(), true);
+		assert.strictEqual(view.shouldShowWelcome(), false);
 		assert.deepStrictEqual(getMemberEntries(view), []);
 		assert.strictEqual(getMembersList(view).length, 0);
 	});
