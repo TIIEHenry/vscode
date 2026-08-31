@@ -199,7 +199,7 @@ suite('Navigator Agents subviews', () => {
 
 		assert.strictEqual(hierarchyTree.getNode(null)?.children.length ?? 0, 1);
 		assert.strictEqual(activityList.length, 1);
-		assert.strictEqual(hierarchyTree.getNode(null)?.children[0]?.element.label, 'Alpha Agent');
+		assert.strictEqual(hierarchyTree.getNode(null)?.children[0]?.element?.label, 'Alpha Agent');
 		assert.strictEqual(activityList.element(0)?.label, 'Alpha Tool Run');
 
 		view.showActivity();
