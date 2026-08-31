@@ -34,6 +34,7 @@ class ManageLanguageModelAuthenticationAction extends Action2 {
 			menu: [{
 				id: MenuId.AccountsContext,
 				order: 100,
+				when: IsSessionsWindowContext,
 			}],
 			f1: true
 		});
