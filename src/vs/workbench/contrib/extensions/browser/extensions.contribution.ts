@@ -676,7 +676,7 @@ class ExtensionsContributions extends Disposable implements IWorkbenchContributi
 			},
 			group: '2_configuration',
 			order: 3,
-			when: IsSessionsWindowContext.negate()
+			when: IsSessionsWindowContext
 		}));
 		this._register(MenuRegistry.appendMenuItem(MenuId.GlobalActivity, {
 			command: {
@@ -684,7 +684,8 @@ class ExtensionsContributions extends Disposable implements IWorkbenchContributi
 				title: localize('showExtensions', "Extensions")
 			},
 			group: '2_configuration',
-			order: 3
+			order: 3,
+			when: IsSessionsWindowContext
 		}));
 
 		this.registerExtensionAction({

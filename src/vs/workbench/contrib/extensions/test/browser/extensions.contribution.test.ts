@@ -5,6 +5,7 @@
 
 import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { isIMenuItem, MenuId, MenuRegistry } from '../../../../../platform/actions/common/actions.js';
 import { Registry } from '../../../../../platform/registry/common/platform.js';
 import type { ContextKeyExpression, ContextKeyValue } from '../../../../../platform/contextkey/common/contextkey.js';
 import { Extensions as ViewExtensions, IViewContainersRegistry, IViewsRegistry } from '../../../../common/views.js';
@@ -90,5 +91,36 @@ suite('ExtensionsContribution - default window Activity', () => {
 			true,
 			'Agents Window may keep Extensions keybinding'
 		);
+	});
+
+	test('Extensions gear and Preferences menu items are gated to Agents Window', () => {
+		const globalActivityItem = MenuRegistry.getMenuItems(MenuId.GlobalActivity)
+			.filter(isIMenuItem)
+			.find(item => item.command.id === VIEWLET_ID);
+
+		const preferencesMenuItem = MenuRegistry.getMenuItems(MenuId.MenubarPreferencesMenu)
+			.filter(isIMenuItem)
+			.find(item => item.command.id === VIEWLET_ID);
+
+		assert.ok(globalActivityItem, 'Extensions gear menu item should remain registered');
+		assert.ok(preferencesMenuItem, 'Extensions preferences menu item should remain registered');
+		assert.ok(globalActivityItem.when, 'Extensions gear menu item should have a when clause');
+		assert.ok(preferencesMenuItem.when, 'Extensions preferences menu item should have a when clause');
+
+		const defaultWindow = { [IsSessionsWindowContext.key]: false };
+		const agentsWindow = { [IsSessionsWindowContext.key]: true };
+
+		for (const item of [globalActivityItem, preferencesMenuItem]) {
+			assert.strictEqual(
+				evalWhen(item.when, defaultWindow),
+				false,
+				`${item.command.id} must hide from default Code window gear/preferences`
+			);
+			assert.strictEqual(
+				evalWhen(item.when, agentsWindow),
+				true,
+				`${item.command.id} may show in Agents Window gear/preferences`
+			);
+		}
 	});
 });

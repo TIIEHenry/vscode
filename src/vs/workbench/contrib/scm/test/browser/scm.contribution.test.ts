@@ -10,6 +10,7 @@ import type { ContextKeyExpression, ContextKeyValue } from '../../../../../platf
 import { Extensions as ViewExtensions, IViewsRegistry } from '../../../../common/views.js';
 import { IsSessionsWindowContext } from '../../../../common/contextkeys.js';
 import { HISTORY_VIEW_PANE_ID, REPOSITORIES_VIEW_PANE_ID, VIEW_PANE_ID } from '../../common/scm.js';
+import { scmStatusBarWhen } from '../../browser/activity.js';
 
 import '../../browser/scm.contribution.js';
 
@@ -83,6 +84,24 @@ suite('SCMContribution - default window Activity', () => {
 			evalWhen(changesView.openCommandActionDescriptor!.keybindings!.when, agentsWindow),
 			true,
 			'Agents Window may keep Source Control keybinding'
+		);
+	});
+
+	test('Source Control status bar entries are gated to Agents Window', () => {
+		assert.ok(scmStatusBarWhen, 'SCM status bar should have a when clause');
+
+		const defaultWindow = { [IsSessionsWindowContext.key]: false };
+		const agentsWindow = { [IsSessionsWindowContext.key]: true };
+
+		assert.strictEqual(
+			evalWhen(scmStatusBarWhen, defaultWindow),
+			false,
+			'default Code window must hide Git status bar entries'
+		);
+		assert.strictEqual(
+			evalWhen(scmStatusBarWhen, agentsWindow),
+			true,
+			'Agents Window may show Git status bar entries'
 		);
 	});
 });
