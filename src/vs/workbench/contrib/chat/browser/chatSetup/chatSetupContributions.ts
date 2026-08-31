@@ -69,6 +69,8 @@ const defaultChat = {
 
 const SIGN_IN_TITLE_BAR_ACTION_ID = 'workbench.action.chat.signInIndicator';
 
+const chatSetupSessionsWindowPrecondition = (precondition: ContextKeyExpression) => ContextKeyExpr.and(IsSessionsWindowContext, precondition);
+
 export class ChatSetupContribution extends Disposable implements IWorkbenchContribution {
 
 	static readonly ID = 'workbench.contrib.chatSetup';
@@ -232,13 +234,13 @@ export class ChatSetupContribution extends Disposable implements IWorkbenchContr
 					title: ChatSetupTriggerAction.CHAT_SETUP_ACTION_LABEL,
 					category: CHAT_CATEGORY,
 					f1: false,
-					precondition: ContextKeyExpr.or(
+					precondition: chatSetupSessionsWindowPrecondition(ContextKeyExpr.or(
 						ChatContextKeys.Setup.hidden,
 						ChatContextKeys.Setup.disabledInWorkspace,
 						ChatContextKeys.Setup.untrusted,
 						ChatContextKeys.Setup.completed.negate(),
 						ChatContextKeys.Entitlement.canSignUp
-					)
+					))
 				});
 			}
 
@@ -308,7 +310,9 @@ export class ChatSetupContribution extends Disposable implements IWorkbenchContr
 			constructor() {
 				super({
 					id: CHAT_SETUP_SUPPORT_ANONYMOUS_ACTION_ID,
-					title: ChatSetupTriggerAction.CHAT_SETUP_ACTION_LABEL
+					title: ChatSetupTriggerAction.CHAT_SETUP_ACTION_LABEL,
+					f1: false,
+					precondition: IsSessionsWindowContext,
 				});
 			}
 
@@ -331,7 +335,9 @@ export class ChatSetupContribution extends Disposable implements IWorkbenchContr
 			constructor() {
 				super({
 					id: 'workbench.action.chat.triggerSetupForceSignIn',
-					title: localize2('forceSignIn', "Sign in to use GitHub Copilot")
+					title: localize2('forceSignIn', "Sign in to use GitHub Copilot"),
+					f1: false,
+					precondition: IsSessionsWindowContext,
 				});
 			}
 
@@ -350,7 +356,9 @@ export class ChatSetupContribution extends Disposable implements IWorkbenchContr
 			constructor() {
 				super({
 					id: 'workbench.action.chat.triggerSetupAnonymousWithoutDialog',
-					title: ChatSetupTriggerAction.CHAT_SETUP_ACTION_LABEL
+					title: ChatSetupTriggerAction.CHAT_SETUP_ACTION_LABEL,
+					f1: false,
+					precondition: IsSessionsWindowContext,
 				});
 			}
 
@@ -408,6 +416,7 @@ export class ChatSetupContribution extends Disposable implements IWorkbenchContr
 						id: MenuId.TitleBarAdjacentCenter,
 						order: 0,
 						when: ContextKeyExpr.and(
+							IsSessionsWindowContext,
 							IsWebContext.negate(),
 							ChatContextKeys.Entitlement.signedOut,
 							CONTEXT_DEFAULT_ACCOUNT_STATE.notEqualsTo(DefaultAccountStatus.Available), // hide only when signed in (a default GitHub account is present); still shown while signed out or before the account state resolves, incl. untrusted workspaces — no auth prompt
@@ -440,6 +449,7 @@ export class ChatSetupContribution extends Disposable implements IWorkbenchContr
 					localize('toggle.chatSignInDescription', "Toggle visibility of the Copilot Sign In button in title bar"),
 					3,
 					ContextKeyExpr.and(
+						IsSessionsWindowContext,
 						IsWebContext.negate(),
 						ChatContextKeys.Entitlement.signedOut,
 						ChatContextKeys.Setup.hidden.negate(),
@@ -617,6 +627,7 @@ export class ChatSetupContribution extends Disposable implements IWorkbenchContr
 		registerGenerateCodeCommand('chat.internal.review', 'github.copilot.chat.review');
 
 		const internalGenerateCodeContext = ContextKeyExpr.and(
+			IsSessionsWindowContext,
 			ChatContextKeys.Setup.hidden.negate(),
 			ChatContextKeys.Setup.disabledInWorkspace.negate(),
 			ChatContextKeys.Setup.completed.negate(),
@@ -882,12 +893,12 @@ export class ChatTeardownContribution extends Disposable implements IWorkbenchCo
 					title: ChatSetupHideAction.TITLE,
 					f1: false,
 					category: CHAT_CATEGORY,
-					precondition: ContextKeyExpr.and(ChatContextKeys.Setup.hidden.negate(), ChatContextKeys.Setup.disabledInWorkspace.negate()),
+					precondition: chatSetupSessionsWindowPrecondition(ContextKeyExpr.and(ChatContextKeys.Setup.hidden.negate(), ChatContextKeys.Setup.disabledInWorkspace.negate())),
 					menu: {
 						id: MenuId.ChatTitleBarMenu,
 						group: 'z_hide',
 						order: 1,
-						when: ChatContextKeys.Setup.completed.negate()
+						when: ContextKeyExpr.and(IsSessionsWindowContext, ChatContextKeys.Setup.completed.negate())
 					}
 				});
 			}
