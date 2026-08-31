@@ -10,6 +10,8 @@ import { URI } from '../../../../../base/common/uri.js';
 import { ServicesAccessor } from '../../../../../editor/browser/editorExtensions.js';
 import { localize, localize2 } from '../../../../../nls.js';
 import { Action2, registerAction2 } from '../../../../../platform/actions/common/actions.js';
+import { ContextKeyExpr } from '../../../../../platform/contextkey/common/contextkey.js';
+import { IsSessionsWindowContext } from '../../../../common/contextkeys.js';
 import { ICommandService } from '../../../../../platform/commands/common/commands.js';
 import { ILogService } from '../../../../../platform/log/common/log.js';
 import { IStorageService, StorageScope, StorageTarget } from '../../../../../platform/storage/common/storage.js';
@@ -163,6 +165,7 @@ registerAction2(class ResetGrowthSessionAction extends Action2 {
 			title: localize2('resetGrowthSession', "Reset Growth Session Notification"),
 			category: localize2('developer', "Developer"),
 			f1: true,
+			precondition: IsSessionsWindowContext,
 		});
 	}
 

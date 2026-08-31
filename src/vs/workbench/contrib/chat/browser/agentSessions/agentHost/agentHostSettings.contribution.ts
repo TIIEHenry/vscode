@@ -12,6 +12,7 @@ import { IFileService } from '../../../../../../platform/files/common/files.js';
 import { IInstantiationService, ServicesAccessor } from '../../../../../../platform/instantiation/common/instantiation.js';
 import { ILabelService } from '../../../../../../platform/label/common/label.js';
 import { IWorkbenchContribution, registerWorkbenchContribution2, WorkbenchPhase } from '../../../../../common/contributions.js';
+import { IsSessionsWindowContext } from '../../../../../common/contextkeys.js';
 import { IEditorService } from '../../../../../services/editor/common/editorService.js';
 import { ChatContextKeys } from '../../../common/actions/chatContextKeys.js';
 import { agentHostSettingsUri, AGENT_HOST_SETTINGS_SCHEME, AgentHostSettingsFileSystemProvider, AgentHostSettingsSchemaRegistrar } from './agentHostSettingsFileSystemProvider.js';
@@ -56,6 +57,7 @@ const LOCAL_AGENT_HOST_SESSION_TYPE_RE = /^agent-host-/;
 const agentHostSettingsPrecondition = ContextKeyExpr.and(
 	ChatContextKeys.enabled,
 	AGENT_HOST_ENABLED_CONTEXT_KEY,
+	IsSessionsWindowContext,
 );
 
 registerAction2(class OpenAgentHostSettingsAction extends Action2 {

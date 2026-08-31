@@ -12,6 +12,7 @@ import { EditorContextKeys } from '../../../../../editor/common/editorContextKey
 import { localize, localize2 } from '../../../../../nls.js';
 import { Action2, MenuId, registerAction2 } from '../../../../../platform/actions/common/actions.js';
 import { ContextKeyExpr } from '../../../../../platform/contextkey/common/contextkey.js';
+import { IsSessionsWindowContext } from '../../../../common/contextkeys.js';
 import { ServicesAccessor } from '../../../../../platform/instantiation/common/instantiation.js';
 import { IKeybindingService } from '../../../../../platform/keybinding/common/keybinding.js';
 import { KeybindingWeight } from '../../../../../platform/keybinding/common/keybindingsRegistry.js';
@@ -304,7 +305,7 @@ class SelectSpeechToTextMicrophoneAction extends Action2 {
 			f1: true,
 			// Shared by dictation and Voice Mode (both persist to the same
 			// device), so stay available whenever either feature is enabled.
-			precondition: ContextKeyExpr.or(ChatSpeechToTextConfigured, AGENTS_VOICE_ENABLED),
+			precondition: ContextKeyExpr.and(ContextKeyExpr.or(ChatSpeechToTextConfigured, AGENTS_VOICE_ENABLED), IsSessionsWindowContext),
 		});
 	}
 
@@ -353,7 +354,7 @@ class ShowChatSpeechToTextIntroductionAction extends Action2 {
 			title: localize2('chat.speechToText.showIntroduction', "Dictate: Show Introduction"),
 			category: CHAT_CATEGORY,
 			f1: true,
-			precondition: ChatSpeechToTextConfigured,
+			precondition: ContextKeyExpr.and(ChatSpeechToTextConfigured, IsSessionsWindowContext),
 		});
 	}
 
@@ -376,7 +377,7 @@ class ResetChatSpeechToTextIntroductionAction extends Action2 {
 			title: localize2('chat.speechToText.resetIntroduction', "Dictate: Reset Onboarding"),
 			category: CHAT_CATEGORY,
 			f1: true,
-			precondition: ChatSpeechToTextConfigured,
+			precondition: ContextKeyExpr.and(ChatSpeechToTextConfigured, IsSessionsWindowContext),
 		});
 	}
 

@@ -4,6 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Action2, MenuId, registerAction2 } from '../../../../../platform/actions/common/actions.js';
+import { ContextKeyExpr } from '../../../../../platform/contextkey/common/contextkey.js';
+import { IsSessionsWindowContext } from '../../../../common/contextkeys.js';
 import { ServicesAccessor } from '../../../../../platform/instantiation/common/instantiation.js';
 import { IQuickInputService, IQuickPickItem, QuickPickInput } from '../../../../../platform/quickinput/common/quickInput.js';
 import { ILanguageModelsService } from '../../common/languageModels.js';
@@ -28,7 +30,7 @@ class ManageLanguageModelAuthenticationAction extends Action2 {
 			id: ManageLanguageModelAuthenticationAction.ID,
 			title: localize2('manageLanguageModelAuthentication', 'Manage Language Model Access...'),
 			category: CHAT_CATEGORY,
-			precondition: ChatContextKeys.enabled,
+			precondition: ContextKeyExpr.and(ChatContextKeys.enabled, IsSessionsWindowContext),
 			menu: [{
 				id: MenuId.AccountsContext,
 				order: 100,

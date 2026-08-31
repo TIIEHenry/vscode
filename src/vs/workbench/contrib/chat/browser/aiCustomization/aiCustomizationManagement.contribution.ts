@@ -28,6 +28,7 @@ import { Registry } from '../../../../../platform/registry/common/platform.js';
 import { IStorageService, StorageScope, StorageTarget } from '../../../../../platform/storage/common/storage.js';
 import { ITelemetryService } from '../../../../../platform/telemetry/common/telemetry.js';
 import { EditorPaneDescriptor, IEditorPaneRegistry } from '../../../../browser/editor.js';
+import { IsSessionsWindowContext } from '../../../../common/contextkeys.js';
 import { IWorkbenchContribution, registerWorkbenchContribution2, WorkbenchPhase } from '../../../../common/contributions.js';
 import { EditorExtensions, IEditorFactoryRegistry, IEditorSerializer } from '../../../../common/editor.js';
 import { EditorInput } from '../../../../common/editor/editorInput.js';
@@ -781,7 +782,7 @@ class AICustomizationManagementActionsContribution extends Disposable implements
 					title: localize2('openAICustomizations', "Open Customizations"),
 					shortTitle: localize2('aiCustomizations', "Customizations"),
 					category: CHAT_CATEGORY,
-					precondition: ChatContextKeys.enabled,
+					precondition: ContextKeyExpr.and(ChatContextKeys.enabled, IsSessionsWindowContext),
 					f1: true,
 				});
 			}
@@ -842,7 +843,7 @@ class AICustomizationManagementActionsContribution extends Disposable implements
 					id: AICustomizationManagementCommands.GenerateDebugReport,
 					title: localize2('generateDebugReport', "Generate Customization Debug Report"),
 					category: Categories.Developer,
-					precondition: ChatContextKeys.enabled,
+					precondition: ContextKeyExpr.and(ChatContextKeys.enabled, IsSessionsWindowContext),
 					f1: true,
 				});
 			}
