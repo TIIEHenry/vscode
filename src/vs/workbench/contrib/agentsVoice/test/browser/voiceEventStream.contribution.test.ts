@@ -5,6 +5,7 @@
 
 import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { isIMenuItem, MenuId, MenuRegistry } from '../../../../../platform/actions/common/actions.js';
 import { Registry } from '../../../../../platform/registry/common/platform.js';
 import type { ContextKeyExpression, ContextKeyValue } from '../../../../../platform/contextkey/common/contextkey.js';
 import { Extensions as ViewExtensions, IViewContainersRegistry, IViewsRegistry } from '../../../../common/views.js';
@@ -14,6 +15,7 @@ import { VoiceEventStreamViewPane } from '../../browser/transcriptsView/voiceEve
 import '../../browser/transcriptsView/voiceEventStream.contribution.js';
 
 const CONTAINER_ID = 'workbench.view.voiceEventStreamContainer';
+const SHOW_VIEW_COMMAND_ID = 'agentsVoice.showEventStream';
 
 function evalWhen(when: ContextKeyExpression | undefined, values: Record<string, ContextKeyValue>): boolean {
 	if (!when) {
@@ -21,6 +23,20 @@ function evalWhen(when: ContextKeyExpression | undefined, values: Record<string,
 	}
 	return when.evaluate({ getValue: <T extends ContextKeyValue = ContextKeyValue>(key: string) => values[key] as T });
 }
+
+function findCommandPaletteItem(commandId: string) {
+	return MenuRegistry.getMenuItems(MenuId.CommandPalette)
+		.filter(isIMenuItem)
+		.find(item => item.command.id === commandId);
+}
+
+const defaultWindow: Record<string, ContextKeyValue> = {
+	[IsSessionsWindowContext.key]: false,
+};
+
+const agentsWindow: Record<string, ContextKeyValue> = {
+	[IsSessionsWindowContext.key]: true,
+};
 
 suite('VoiceEventStreamContribution - default window Activity', () => {
 
@@ -66,6 +82,23 @@ suite('VoiceEventStreamContribution - default window Activity', () => {
 			evalWhen(view.when, agentsWindowShowRequested),
 			true,
 			'Agents Window may show Voice Event Stream in Activity sidebar when showView is true'
+		);
+	});
+
+	test('Show Voice Event Stream F1 command stays in Command Palette for Agents Window only', () => {
+		const item = findCommandPaletteItem(SHOW_VIEW_COMMAND_ID);
+		assert.ok(item, `${SHOW_VIEW_COMMAND_ID} should remain registered for Agents Window`);
+		assert.ok(item.when, `${SHOW_VIEW_COMMAND_ID} Command Palette item should have a when clause`);
+
+		assert.strictEqual(
+			evalWhen(item.when, defaultWindow),
+			false,
+			'default Code window must hide Show Voice Event Stream in Command Palette'
+		);
+		assert.strictEqual(
+			evalWhen(item.when, agentsWindow),
+			true,
+			'Agents Window may list Show Voice Event Stream in Command Palette'
 		);
 	});
 });

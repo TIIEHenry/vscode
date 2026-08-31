@@ -167,6 +167,7 @@ suite('Settings search by window', () => {
 		assert.strictEqual(shouldIncludeSettingInWindowSearch(mockSetting('search.exclude'), false), true);
 		assert.strictEqual(shouldIncludeSettingInWindowSearch(mockSetting('chat.agent.maxRequests'), false), false);
 		assert.strictEqual(shouldIncludeSettingInWindowSearch(mockSetting('inlineChat.mode'), false), false);
+		assert.strictEqual(shouldIncludeSettingInWindowSearch(mockSetting('agents.voice.enabled'), false), false);
 	});
 
 	test('default Code window search omits Copilot extension settings', () => {
@@ -180,6 +181,7 @@ suite('Settings search by window', () => {
 
 	test('Agents Window search keeps chat and Copilot settings', () => {
 		assert.strictEqual(shouldIncludeSettingInWindowSearch(mockSetting('chat.agent.maxRequests'), true), true);
+		assert.strictEqual(shouldIncludeSettingInWindowSearch(mockSetting('agents.voice.enabled'), true), true);
 		assert.strictEqual(shouldIncludeSettingInWindowSearch(mockExtensionSetting('github.copilot.enable', 'GitHub.copilot'), true), true);
 	});
 });

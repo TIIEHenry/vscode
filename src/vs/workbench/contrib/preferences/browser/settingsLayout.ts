@@ -572,7 +572,7 @@ export function getSettingsTocFilter(isSessionsWindow: boolean, showAdvanced: bo
 	return {
 		exclude: {
 			...(advancedTags ? { tags: advancedTags } : {}),
-			keyPatterns: getChatTocKeyPatterns()
+			keyPatterns: [...getChatTocKeyPatterns(), 'agents.voice.*']
 		}
 	};
 }
