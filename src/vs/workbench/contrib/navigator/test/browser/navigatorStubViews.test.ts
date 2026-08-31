@@ -7,7 +7,7 @@ import assert from 'assert';
 import { Event } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { Registry } from '../../../../../platform/registry/common/platform.js';
-import { Extensions as ViewContainerExtensions, Extensions as ViewExtensions, IViewContainersRegistry, IViewDescriptorService, IViewsRegistry, ViewContainerLocation } from '../../../../common/views.js';
+import { Extensions as ViewContainerExtensions, Extensions as ViewExtensions, IViewContainerModel, IViewContainersRegistry, IViewDescriptorService, IViewsRegistry, ViewContainer, ViewContainerLocation } from '../../../../common/views.js';
 import { VIEWLET_ID } from '../../../files/common/files.js';
 import { VIEW_CONTAINER as EXPLORER_VIEW_CONTAINER } from '../../../files/browser/explorerViewlet.js';
 import { ChatEditorInput } from '../../../chat/browser/widgetHosts/editor/chatEditorInput.js';
@@ -115,25 +115,25 @@ suite('Navigator stub views', () => {
 		const stubViewContainer = {
 			id: 'navigator-stub-test-container',
 			title: { value: 'Navigator', original: 'Navigator' },
-		};
+		} as ViewContainer;
 		instantiationService.stub(IViewDescriptorService, {
 			onDidChangeLocation: Event.None,
-			getViewLocationById(): ViewContainerLocation {
+			getViewLocationById(_id: string): ViewContainerLocation {
 				return ViewContainerLocation.Sidebar;
 			},
-			getViewDescriptorById(): null {
+			getViewDescriptorById(_id: string): null {
 				return null;
 			},
-			getViewContainerByViewId() {
+			getViewContainerByViewId(_id: string): ViewContainer | null {
 				return stubViewContainer;
 			},
-			getViewContainerModel() {
+			getViewContainerModel(_viewContainer: ViewContainer): IViewContainerModel {
 				return {
 					title: stubViewContainer.title.value,
 					onDidChangeContainerInfo: Event.None,
-				};
+				} as IViewContainerModel;
 			},
-			getDefaultContainerById() {
+			getDefaultContainerById(_id: string): ViewContainer | null {
 				return stubViewContainer;
 			},
 		});
