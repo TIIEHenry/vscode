@@ -113,7 +113,7 @@ Desktop 合同：窗口壳 = Singularity/IDEA；Conversation 内 = 时间线 + I
 
 `extensions/copilot` 有同名 `ReadFile = 'copilot_readFile'`。测试与 terminal 侧也用该 id 当「其他工具」开关。这是 **产品面耦合**，不是中立工具登记。
 
-INV-NO-COPILOT：B2 **不得**把 `CopilotToolId` / `CopilotChatSettingId` / entitlement / `chatSetup/` 当默认工具策略。剥皮后留下的是 `ILanguageModelToolsService` 的注册形状；过滤规则与工具 id 要换 UA / 本产品自己的。
+INV-NO-COPILOT：B2 **不得**把 `CopilotToolId` / `CopilotChatSettingId` / entitlement / `chatSetup/` 当默认工具策略。默认 Code 窗口 Command Palette 亦不列出 Copilot prompt / skill / hook / plugin 工厂与管理命令（`IsSessionsWindowContext` 门闩；Agents Window 保留）。剥皮后留下的是 `ILanguageModelToolsService` 的注册形状；过滤规则与工具 id 要换 UA / 本产品自己的。
 
 ## 6. `IChatEditingSession`：accept / reject / snapshot
 

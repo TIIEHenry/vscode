@@ -20,6 +20,7 @@ import { ContextKeyExpr } from '../../../../../platform/contextkey/common/contex
 import { ServicesAccessor } from '../../../../../platform/instantiation/common/instantiation.js';
 import { INotificationService } from '../../../../../platform/notification/common/notification.js';
 import { IQuickInputButton, IQuickInputService, IQuickTreeItem } from '../../../../../platform/quickinput/common/quickInput.js';
+import { IsSessionsWindowContext } from '../../../../common/contextkeys.js';
 import { InstalledAgentPluginsViewId } from '../chat.js';
 import { ChatContextKeys } from '../../common/actions/chatContextKeys.js';
 import { PromptsType } from '../../common/promptSyntax/promptTypes.js';
@@ -106,7 +107,7 @@ class CreatePluginAction extends Action2 {
 			title: localize2('chat.createPlugin', "Create Plugin"),
 			category: CHAT_CATEGORY,
 			f1: true,
-			precondition: ChatContextKeys.enabled,
+			precondition: ContextKeyExpr.and(ChatContextKeys.enabled, IsSessionsWindowContext),
 			icon: Codicon.save,
 			menu: [{
 				id: MenuId.ViewTitle,

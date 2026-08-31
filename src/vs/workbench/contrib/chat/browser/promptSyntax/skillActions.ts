@@ -9,6 +9,8 @@ import { ChatContextKeys } from '../../common/actions/chatContextKeys.js';
 import { PromptFilePickers } from './pickers/promptFilePickers.js';
 import { ServicesAccessor } from '../../../../../editor/browser/editorExtensions.js';
 import { Action2, registerAction2 } from '../../../../../platform/actions/common/actions.js';
+import { ContextKeyExpr } from '../../../../../platform/contextkey/common/contextkey.js';
+import { IsSessionsWindowContext } from '../../../../common/contextkeys.js';
 import { IInstantiationService } from '../../../../../platform/instantiation/common/instantiation.js';
 import { Codicon } from '../../../../../base/common/codicons.js';
 import { PromptsType } from '../../common/promptSyntax/promptTypes.js';
@@ -28,7 +30,7 @@ class ManageSkillsAction extends Action2 {
 			shortTitle: localize2('configure-skills.short', "Skills"),
 			icon: Codicon.lightbulb,
 			f1: true,
-			precondition: ChatContextKeys.enabled,
+			precondition: ContextKeyExpr.and(ChatContextKeys.enabled, IsSessionsWindowContext),
 			category: CHAT_CATEGORY
 		});
 	}
