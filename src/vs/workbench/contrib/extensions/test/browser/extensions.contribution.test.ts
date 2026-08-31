@@ -106,8 +106,8 @@ suite('ExtensionsContribution - default window Activity', () => {
 				hasInstalledAgentPlugins: true,
 				[ChatContextKeys.Setup.hidden.key]: false,
 			}),
-			true,
-			'Agent Plugins installed view may show in default Code window when setting is on'
+			false,
+			'Agent Plugins installed view must hide from default Code window when setting is on'
 		);
 		assert.strictEqual(
 			evalWhen(mcpInstalledView.when, {
@@ -117,8 +117,29 @@ suite('ExtensionsContribution - default window Activity', () => {
 				[ChatContextKeys.Setup.hidden.key]: false,
 				[ChatContextKeys.Setup.disabledInWorkspace.key]: false,
 			}),
+			false,
+			'MCP Servers installed view must hide from default Code window when setting is on'
+		);
+		assert.strictEqual(
+			evalWhen(agentPluginsInstalledView.when, {
+				...agentsWindow,
+				defaultExtensionViews: true,
+				hasInstalledAgentPlugins: true,
+				[ChatContextKeys.Setup.hidden.key]: false,
+			}),
 			true,
-			'MCP Servers installed view may show in default Code window when setting is on'
+			'Agent Plugins installed view may show in Agents Window when setting is on'
+		);
+		assert.strictEqual(
+			evalWhen(mcpInstalledView.when, {
+				...agentsWindow,
+				defaultExtensionViews: true,
+				hasInstalledMcpServers: true,
+				[ChatContextKeys.Setup.hidden.key]: false,
+				[ChatContextKeys.Setup.disabledInWorkspace.key]: false,
+			}),
+			true,
+			'MCP Servers installed view may show in Agents Window when setting is on'
 		);
 
 		assert.strictEqual(
