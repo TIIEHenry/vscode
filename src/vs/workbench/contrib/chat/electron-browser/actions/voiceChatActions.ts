@@ -30,7 +30,7 @@ import { editorInfoForeground } from '../../../../../platform/theme/common/color
 import { spinningLoading, syncing } from '../../../../../platform/theme/common/iconRegistry.js';
 import { isHighContrast } from '../../../../../platform/theme/common/theme.js';
 import { registerThemingParticipant } from '../../../../../platform/theme/common/themeService.js';
-import { ActiveEditorContext } from '../../../../common/contextkeys.js';
+import { ActiveEditorContext, IsSessionsWindowContext } from '../../../../common/contextkeys.js';
 import { IWorkbenchContribution } from '../../../../common/contributions.js';
 import { IEditorService } from '../../../../services/editor/common/editorService.js';
 import { IHostService } from '../../../../services/host/browser/host.js';
@@ -432,7 +432,7 @@ export class VoiceChatInChatViewAction extends VoiceChatWithHoldModeAction {
 			id: VoiceChatInChatViewAction.ID,
 			title: localize2('workbench.action.chat.voiceChatInView.label', "Voice Chat in Chat View"),
 			category: CHAT_CATEGORY,
-			precondition: CanVoiceChat,
+			precondition: ContextKeyExpr.and(CanVoiceChat, IsSessionsWindowContext),
 			f1: true
 		}, 'view');
 	}
@@ -506,6 +506,7 @@ export class InlineVoiceChatAction extends VoiceChatWithHoldModeAction {
 			precondition: ContextKeyExpr.and(
 				CanVoiceChat,
 				ActiveEditorContext,
+				IsSessionsWindowContext,
 			),
 			f1: true
 		}, 'inline');
@@ -521,7 +522,7 @@ export class QuickVoiceChatAction extends VoiceChatWithHoldModeAction {
 			id: QuickVoiceChatAction.ID,
 			title: localize2('workbench.action.chat.quickVoiceChat.label', "Quick Voice Chat"),
 			category: CHAT_CATEGORY,
-			precondition: CanVoiceChat,
+			precondition: ContextKeyExpr.and(CanVoiceChat, IsSessionsWindowContext),
 			f1: true
 		}, 'quick');
 	}
