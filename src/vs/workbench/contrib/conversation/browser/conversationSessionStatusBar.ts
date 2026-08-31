@@ -36,7 +36,7 @@ export class ConversationSessionStatusBarContribution extends Disposable impleme
 		@IConversationStubService private readonly stubService: IConversationStubService,
 		@IStatusbarService private readonly statusbarService: IStatusbarService,
 		@IWorkbenchLayoutService private readonly layoutService: IWorkbenchLayoutService,
-		environmentService: IWorkbenchEnvironmentService,
+		@IWorkbenchEnvironmentService private readonly environmentService: IWorkbenchEnvironmentService,
 	) {
 		super();
 

@@ -16,6 +16,7 @@ import { VSCodeWorkspace } from './helpers/vscodeObservableWorkspace.js';
 import { AiStatsFeature } from './editStats/aiStatsFeature.js';
 import { AI_STATS_SETTING_ID, EDIT_TELEMETRY_SETTING_ID } from './settingIds.js';
 import { IChatEntitlementService } from '../../../services/chat/common/chatEntitlementService.js';
+import { IWorkbenchEnvironmentService } from '../../../services/environment/common/environmentService.js';
 import { AiContributionFeature } from './aiContributionFeature.js';
 
 export class EditTelemetryContribution extends Disposable {
@@ -23,7 +24,8 @@ export class EditTelemetryContribution extends Disposable {
 		@IInstantiationService instantiationService: IInstantiationService,
 		@IConfigurationService configurationService: IConfigurationService,
 		@ITelemetryService telemetryService: ITelemetryService,
-		@IChatEntitlementService chatEntitlementService: IChatEntitlementService
+		@IChatEntitlementService chatEntitlementService: IChatEntitlementService,
+		@IWorkbenchEnvironmentService private readonly environmentService: IWorkbenchEnvironmentService,
 	) {
 		super();
 
@@ -41,6 +43,10 @@ export class EditTelemetryContribution extends Disposable {
 
 		const aiStatsEnabled = observableConfigValue(AI_STATS_SETTING_ID, true, configurationService);
 		this._register(autorun(r => {
+			if (!this.environmentService.isSessionsWindow) {
+				return;
+			}
+
 			const enabled = aiStatsEnabled.read(r);
 			const aiDisabled = chatEntitlementService.sentimentObs.read(r).hidden;
 			if (!enabled || aiDisabled) {
