@@ -6,11 +6,14 @@
 import { compareFileNamesDefault } from '../../../../base/common/comparers.js';
 import { basename } from '../../../../base/common/resources.js';
 import { URI } from '../../../../base/common/uri.js';
+import { ISCMResource } from '../../scm/common/scm.js';
 
 export interface ISourcesChangeEntry {
 	readonly resource: URI;
 	readonly name: string;
 	readonly description: string;
+	readonly groupId: string;
+	readonly scmResource?: ISCMResource;
 }
 
 export interface ISourcesChangeResourceLike {
@@ -18,6 +21,7 @@ export interface ISourcesChangeResourceLike {
 }
 
 export interface ISourcesChangeGroupLike {
+	readonly id: string;
 	readonly label: string;
 	readonly resources: readonly ISourcesChangeResourceLike[];
 }
@@ -26,6 +30,10 @@ export interface ISourcesChangeRepositoryLike {
 	readonly provider: {
 		readonly groups: readonly ISourcesChangeGroupLike[];
 	};
+}
+
+function isISCMResource(resource: ISourcesChangeResourceLike): resource is ISCMResource {
+	return typeof (resource as ISCMResource).resourceGroup !== 'undefined';
 }
 
 export function collectSourcesChangeEntries(repos: Iterable<ISourcesChangeRepositoryLike>): ISourcesChangeEntry[] {
@@ -38,6 +46,8 @@ export function collectSourcesChangeEntries(repos: Iterable<ISourcesChangeReposi
 					resource: resource.sourceUri,
 					name: basename(resource.sourceUri),
 					description: group.label,
+					groupId: group.id,
+					scmResource: isISCMResource(resource) ? resource : undefined,
 				});
 			}
 		}
