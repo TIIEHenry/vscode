@@ -26,7 +26,6 @@ import {
 	conversationLensInputMaximizedClass,
 } from '../../browser/conversationLensDockStrings.js';
 import { conversationLensSessionBarDeleteSession, conversationLensSessionBarHistoryTitle, conversationLensSessionBarNewSession, conversationLensSessionBarRenameTitle } from '../../browser/conversationLensSessionBarStrings.js';
-import { CONVERSATION_STUB_SEED_SESSIONS } from '../../browser/conversationStubModel.js';
 import { ConversationStubService, IConversationStubService } from '../../browser/conversationStubService.js';
 import { getConversationSessionStatusText } from '../../browser/conversationSessionStatus.js';
 import { shouldRenderTurnAsMarkdown } from '../../browser/conversationTurnMarkdown.js';
@@ -55,6 +54,27 @@ suite('ConversationLens', () => {
 		const lens = store.add(instantiationService.createInstance(ConversationLens, slots));
 		return { part, lens, stubService };
 	}
+
+	function seedPendingConfirmation(stubService: ConversationStubService, message = 'Write README.md?'): void {
+		const sessionId = stubService.getActiveSessionId();
+		stubService.appendUserTurn(sessionId, 'Help me scaffold the project README.');
+		stubService.appendConfirmationTurn(sessionId, message);
+	}
+
+	test('default session shows honest empty timeline without fake history', () => {
+		const { part, stubService } = mountLens();
+		const slots = part.getSlots()!;
+		const timelineContent = slots.timeline.querySelector('.conversation-lens-timeline-content')!;
+		const pendingButton = slots.dock.querySelector('.conversation-lens-inbox-pending') as HTMLButtonElement;
+
+		assert.strictEqual(stubService.getSessions().length, 1);
+		assert.strictEqual(stubService.getTurns(stubService.getActiveSessionId()).length, 0);
+		assert.ok(timelineContent.querySelector('.conversation-lens-timeline-empty'));
+		assert.ok(timelineContent.textContent?.includes('No messages yet'));
+		assert.strictEqual(timelineContent.querySelector('.conversation-lens-turn'), null);
+		assert.strictEqual(timelineContent.querySelector('.conversation-lens-confirmation-seat'), null);
+		assert.strictEqual(pendingButton.hidden, true);
+	});
 
 	test('fills SessionBar, stub timeline, and stub dock slots', () => {
 		const { part } = mountLens();
@@ -145,6 +165,7 @@ suite('ConversationLens', () => {
 		const stopButton = inboxRow.querySelector('.conversation-lens-inbox-stop .monaco-button') as HTMLButtonElement;
 		const timelineContent = part.getSlots()!.timeline.querySelector('.conversation-lens-timeline-content')!;
 		const turnCountBefore = timelineContent.querySelectorAll('.conversation-lens-turn').length;
+		const pendingButton = inboxRow.querySelector('.conversation-lens-inbox-pending') as HTMLButtonElement;
 
 		assert.ok(stopButton);
 		assert.ok(stopButton.classList.contains('disabled'));
@@ -156,7 +177,7 @@ suite('ConversationLens', () => {
 
 		assert.strictEqual(timelineContent.querySelectorAll('.conversation-lens-turn').length, turnCountBefore);
 		assert.ok(inboxRow.textContent?.includes(conversationLensDockInboxNoQueue));
-		assert.ok(inboxRow.querySelector('.conversation-lens-inbox-pending')!.textContent?.includes('confirmation pending'));
+		assert.strictEqual(pendingButton.hidden, true);
 	});
 
 	test('honest dock gate and model labels without Copilot CTAs', () => {
@@ -195,16 +216,17 @@ suite('ConversationLens', () => {
 		assert.strictEqual(document.querySelector('.conversation-lens-dock-attach-popup'), null);
 	});
 
-	test('blank session shows timeline empty state', () => {
+	test('empty session shows timeline empty state', () => {
 		const { part, stubService } = mountLens();
-		stubService.switchSession('blank');
 		const empty = part.getSlots()!.timeline.querySelector('.conversation-lens-timeline-empty');
 		assert.ok(empty);
 		assert.ok(empty.textContent?.includes('No messages yet'));
+		assert.strictEqual(stubService.getTurns(stubService.getActiveSessionId()).length, 0);
 	});
 
 	test('renders confirmation as a timeline list item with Allow and Skip', () => {
-		const { part } = mountLens();
+		const { part, stubService } = mountLens();
+		seedPendingConfirmation(stubService);
 		const timelineContent = part.getSlots()!.timeline.querySelector('.conversation-lens-timeline-content')!;
 		const seat = timelineContent.querySelector('.conversation-lens-confirmation-seat');
 		assert.ok(seat);
@@ -214,11 +236,14 @@ suite('ConversationLens', () => {
 		const buttons = [...seat.querySelectorAll('button, .monaco-button')].map(el => el.textContent?.trim());
 		assert.ok(buttons.some(label => label === 'Allow'));
 		assert.ok(buttons.some(label => label === 'Skip'));
-		assert.strictEqual(timelineContent.querySelectorAll('.conversation-lens-turn').length >= 3, true);
+		assert.strictEqual(timelineContent.querySelectorAll('.conversation-lens-turn').length >= 2, true);
 	});
 
 	test('renders user and assistant turns with role headers', () => {
-		const { part } = mountLens();
+		const { part, stubService } = mountLens();
+		const sessionId = stubService.getActiveSessionId();
+		stubService.appendUserTurn(sessionId, 'What lives in the center lens?');
+		stubService.appendStubEchoAssistant(sessionId, 'SessionBar, timeline, and dock — not ChatEditor.');
 		const timelineContent = part.getSlots()!.timeline.querySelector('.conversation-lens-timeline-content')!;
 		const userTurn = timelineContent.querySelector('.conversation-lens-turn[data-kind="user"]');
 		const assistantTurn = timelineContent.querySelector('.conversation-lens-turn[data-kind="assistant"]');
@@ -232,9 +257,9 @@ suite('ConversationLens', () => {
 
 	test('renders assistant turns as markdown, user turns as plain text', () => {
 		const { part, stubService } = mountLens();
-		stubService.switchSession('blank');
+		const sessionId = stubService.getActiveSessionId();
 		const markdownEcho = '**bold** stub echo';
-		stubService.appendStubEchoAssistant('blank', markdownEcho);
+		stubService.appendStubEchoAssistant(sessionId, markdownEcho);
 
 		const timelineContent = part.getSlots()!.timeline.querySelector('.conversation-lens-timeline-content')!;
 		const assistantBody = timelineContent.querySelector('.conversation-lens-turn[data-kind="assistant"] .conversation-lens-turn-body')!;
@@ -249,9 +274,9 @@ suite('ConversationLens', () => {
 
 	test('keeps user turn body as plain text without markdown rendering', () => {
 		const { part, stubService } = mountLens();
-		stubService.switchSession('blank');
+		const sessionId = stubService.getActiveSessionId();
 		const userMessage = 'plain **not bold** text';
-		stubService.appendUserTurn('blank', userMessage);
+		stubService.appendUserTurn(sessionId, userMessage);
 
 		const userBody = part.getSlots()!.timeline.querySelector('.conversation-lens-turn[data-kind="user"] .conversation-lens-turn-body')!;
 		assert.strictEqual(userBody.textContent, userMessage);
@@ -273,16 +298,21 @@ suite('ConversationLens', () => {
 		const title = slots.sessionBar.querySelector('.conversation-lens-session-title')!;
 		const timelineContent = slots.timeline.querySelector('.conversation-lens-timeline-content')!;
 
-		const untitled = CONVERSATION_STUB_SEED_SESSIONS.find(s => s.id === 'untitled')!;
-		const tour = CONVERSATION_STUB_SEED_SESSIONS.find(s => s.id === 'tour')!;
-		assert.strictEqual(title.textContent, untitled.title);
-		assert.ok(timelineContent.textContent?.includes(untitled.turns[0].text));
+		const first = stubService.getActiveSession();
+		const secondId = stubService.createSession();
+		stubService.switchSession(first.id);
+		stubService.appendUserTurn(first.id, 'First session message');
+		const second = stubService.getSessions().find(s => s.id === secondId)!;
+		stubService.appendUserTurn(secondId, 'Second session message');
 
-		stubService.switchSession(tour.id);
+		assert.strictEqual(title.textContent, first.title);
+		assert.ok(timelineContent.textContent?.includes('First session message'));
 
-		assert.strictEqual(title.textContent, tour.title);
-		assert.ok(timelineContent.textContent?.includes(tour.turns[0].text));
-		assert.ok(!timelineContent.textContent?.includes(untitled.turns[0].text));
+		stubService.switchSession(second.id);
+
+		assert.strictEqual(title.textContent, second.title);
+		assert.ok(timelineContent.textContent?.includes('Second session message'));
+		assert.ok(!timelineContent.textContent?.includes('First session message'));
 	});
 
 	test('SessionBar new session button creates an empty stub session', () => {
@@ -349,7 +379,10 @@ suite('ConversationLens', () => {
 		const slots = part.getSlots()!;
 		const historyButton = slots.sessionBar.querySelector('.conversation-lens-session-history .monaco-button') as HTMLButtonElement;
 		const title = slots.sessionBar.querySelector('.conversation-lens-session-title')!;
-		const tour = CONVERSATION_STUB_SEED_SESSIONS.find(s => s.id === 'tour')!;
+		const first = stubService.getActiveSession();
+		const secondId = stubService.createSession();
+		stubService.renameSession(secondId, 'Product tour');
+		stubService.switchSession(first.id);
 
 		assert.ok(historyButton);
 		assert.strictEqual(historyButton.getAttribute('aria-label'), conversationLensSessionBarHistoryTitle);
@@ -365,12 +398,12 @@ suite('ConversationLens', () => {
 		const items = popup!.querySelectorAll('.conversation-lens-session-history-item');
 		assert.strictEqual(items.length, stubService.getSessions().length);
 
-		const tourItem = [...items].find(el => el.textContent === tour.title) as HTMLButtonElement;
+		const tourItem = [...items].find(el => el.textContent === 'Product tour') as HTMLButtonElement;
 		assert.ok(tourItem);
 		tourItem.click();
 
-		assert.strictEqual(stubService.getActiveSessionId(), tour.id);
-		assert.strictEqual(title.textContent, tour.title);
+		assert.strictEqual(stubService.getActiveSessionId(), secondId);
+		assert.strictEqual(title.textContent, 'Product tour');
 		assert.strictEqual(document.querySelector('.conversation-lens-session-history-popup'), null);
 
 		historyButton.click();
@@ -398,7 +431,7 @@ suite('ConversationLens', () => {
 		assert.strictEqual(document.activeElement, parent);
 	});
 
-	test('inbox status row is honest: no fake queue list, pending summary in dock', () => {
+	test('inbox status row is honest: no fake queue list, pending hidden without confirmations', () => {
 		const { part } = mountLens();
 		const slots = part.getSlots()!;
 		const inboxRow = slots.dock.querySelector('.conversation-lens-inbox-row')!;
@@ -408,11 +441,12 @@ suite('ConversationLens', () => {
 		assert.strictEqual(inboxRow.querySelector('.conversation-lens-inbox-list'), null);
 		assert.strictEqual(inboxRow.querySelector('.conversation-lens-inbox-item'), null);
 		assert.strictEqual(slots.sessionBar.querySelector('.conversation-lens-inbox-badge'), null);
-		assert.ok(pendingButton.textContent?.includes('confirmation pending'));
+		assert.strictEqual(pendingButton.hidden, true);
 	});
 
 	test('allow on confirmation hides CTAs and updates inbox pending count', () => {
-		const { part } = mountLens();
+		const { part, stubService } = mountLens();
+		seedPendingConfirmation(stubService);
 		const slots = part.getSlots()!;
 		const timelineContent = slots.timeline.querySelector('.conversation-lens-timeline-content')!;
 		const seat = timelineContent.querySelector('.conversation-lens-confirmation-seat')!;
@@ -480,7 +514,8 @@ suite('ConversationLens', () => {
 	});
 
 	test('input maximize keeps pending confirmation reachable via dock inbox row', () => {
-		const { part, lens } = mountLens();
+		const { part, lens, stubService } = mountLens();
+		seedPendingConfirmation(stubService);
 		const slots = part.getSlots()!;
 		const maximizeButton = slots.dock.querySelector('.conversation-lens-dock-maximize-input-button') as HTMLButtonElement;
 		const pendingButton = slots.dock.querySelector('.conversation-lens-inbox-pending') as HTMLButtonElement;

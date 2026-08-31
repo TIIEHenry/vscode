@@ -63,8 +63,10 @@ suite('ConversationSessionsView', () => {
 
 	test('lists stub session titles and highlights the active session', () => {
 		const { view, stubService } = mountView();
+		const secondId = stubService.createSession();
+		stubService.switchSession(stubService.getSessions()[0].id);
 		const sessions = stubService.getSessions();
-		assert.ok(sessions.length >= 3);
+		assert.strictEqual(sessions.length, 2);
 
 		const labels = [...view.element.querySelectorAll('.conversation-sessions-item-label')];
 		assert.strictEqual(labels.length, sessions.length);
@@ -76,6 +78,7 @@ suite('ConversationSessionsView', () => {
 		const activeRow = view.element.querySelector('.conversation-sessions-item-active');
 		assert.ok(activeRow);
 		assert.strictEqual(activeRow?.querySelector('.conversation-sessions-item-label')?.textContent, sessions[activeIndex].title);
+		assert.strictEqual(secondId, sessions[1].id);
 	});
 
 	test('active highlight follows getActiveSessionId when session switches', () => {
