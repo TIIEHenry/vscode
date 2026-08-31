@@ -112,7 +112,7 @@ export class ConversationSessionsView extends ViewPane {
 	) {
 		super(options, keybindingService, contextMenuService, configurationService, contextKeyService, viewDescriptorService, instantiationService, openerService, themeService, hoverService);
 
-		this._register(this.stubService.onDidChangeActiveSession(() => this.updateActiveSession()));
+		this._register(this.stubService.onDidChangeActiveSession(() => this.refreshList()));
 		this._register(this.stubService.onDidChangeSession(() => this.refreshList()));
 	}
 
@@ -229,7 +229,22 @@ export class ConversationSessionsView extends ViewPane {
 
 		const filtered = this.getFilteredSessions();
 		this.list.splice(0, this.list.length, filtered);
+		this.layoutList(filtered.length);
 		this.updateActiveSession();
+	}
+
+	private layoutList(filteredCount: number): void {
+		if (!this.list || !this.listContainer) {
+			return;
+		}
+
+		const width = this.listContainer.clientWidth;
+		const height = this.listContainer.clientHeight;
+		if (width > 0 && height > 0) {
+			this.list.layout(height, width);
+		} else if (filteredCount > 0) {
+			this.list.layout(Math.max(filteredCount, 1) * 22, 300);
+		}
 	}
 
 	private updateActiveSession(): void {
@@ -239,7 +254,7 @@ export class ConversationSessionsView extends ViewPane {
 
 		const activeId = this.stubService.getActiveSessionId();
 		const index = this.getFilteredSessions().findIndex(session => session.id === activeId);
-		if (index >= 0) {
+		if (index >= 0 && index < this.list.length) {
 			this.list.setSelection([index]);
 			this.list.reveal(index);
 		} else {
