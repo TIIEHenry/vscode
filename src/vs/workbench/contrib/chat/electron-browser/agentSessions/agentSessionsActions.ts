@@ -104,10 +104,7 @@ export class OpenWorkspaceInAgentsWindowTitleBarAction extends Action2 {
 			menu: {
 				id: MenuId.TitleBarAdjacentCenter,
 				order: -1000,
-				when: ContextKeyExpr.and(
-					IsSessionsWindowContext,
-					ContextKeyExpr.notEquals(`config.${ChatConfiguration.TitleBarOpenInAgentsWindowEnabled}`, false),
-				),
+				when: ContextKeyExpr.false(),
 			},
 		});
 	}
@@ -124,7 +121,7 @@ export class ToggleOpenInAgentsWindowTitleBarAction extends ToggleTitleBarConfig
 			localize('toggle.openInAgentsWindow', 'Open in Agents Window'),
 			localize('toggle.openInAgentsWindowDescription', "Toggle visibility of the Open in Agents Window button in title bar"),
 			6,
-			IsSessionsWindowContext,
+			ContextKeyExpr.false(),
 		);
 	}
 }
