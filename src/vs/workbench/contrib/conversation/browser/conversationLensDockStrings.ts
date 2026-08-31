@@ -8,6 +8,8 @@ import { localize } from '../../../../nls.js';
 /** Honest Input Dock copy — no engine, no Copilot entitlement CTAs. */
 export const conversationLensDockEngineNotConnected = localize('conversationLens.dockEngineNotConnected', "Engine not connected");
 export const conversationLensDockInboxNoQueue = localize('conversationLens.inboxNoQueue', "No queue");
+export const conversationLensDockGoal = localize('conversationLens.dockGoal', "Goal");
+export const conversationLensDockNoGoal = localize('conversationLens.dockNoGoal', "No goal");
 export const conversationLensDockNoModel = localize('conversationLens.dockNoModel', "No model");
 export const conversationLensDockAttachTitle = localize('conversationLens.dockAttachTitle', "Attach");
 export const conversationLensDockNoAttachments = localize('conversationLens.dockNoAttachments', "No attachments");

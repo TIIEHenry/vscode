@@ -24,8 +24,10 @@ import { ConversationConfirmationSeat } from './conversationConfirmationSeat.js'
 import {
 	conversationLensDockAttachTitle,
 	conversationLensDockEngineNotConnected,
+	conversationLensDockGoal,
 	conversationLensDockInboxNoQueue,
 	conversationLensDockMaximizeInput,
+	conversationLensDockNoGoal,
 	conversationLensDockNoAttachments,
 	conversationLensDockNoModel,
 	conversationLensDockRestoreTimeline,
@@ -285,6 +287,17 @@ export class ConversationLens extends Disposable {
 		inboxRow.setAttribute('aria-label', localize('conversationLens.inbox', "Inbox"));
 		append(inboxRow, $('span.conversation-lens-inbox-label')).textContent = localize('conversationLens.inboxLabel', "Inbox");
 		append(inboxRow, $('span.conversation-lens-inbox-queue')).textContent = conversationLensDockInboxNoQueue;
+		const goalContainer = append(inboxRow, $('.conversation-lens-inbox-goal'));
+		const goalButton = this._register(new Button(goalContainer, {
+			...defaultButtonStyles,
+			small: true,
+			secondary: true,
+			disabled: true,
+			title: conversationLensDockNoGoal,
+		}));
+		goalButton.label = conversationLensDockNoGoal;
+		goalButton.element.classList.add('conversation-lens-inbox-goal-button');
+		goalButton.setAriaLabel(`${conversationLensDockGoal}, ${conversationLensDockNoGoal}`);
 		const stopContainer = append(inboxRow, $('.conversation-lens-inbox-stop'));
 		this.stopButton = this._register(new Button(stopContainer, {
 			...defaultButtonStyles,
