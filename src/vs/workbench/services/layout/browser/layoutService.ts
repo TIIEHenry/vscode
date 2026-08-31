@@ -65,6 +65,36 @@ export function forceShownAgentShellPart(justHid: AgentShellPart, visible: IAgen
 	return Parts.CONVERSATION_PART;
 }
 
+export interface IZenModeExitInfoWasVisible {
+	auxiliaryBar: boolean;
+	panel: boolean;
+	sideBar: boolean;
+	editor: boolean;
+	sources: boolean;
+}
+
+export interface IZenModeExitInfo {
+	transitionedToCenteredEditorLayout: boolean;
+	transitionedToFullScreen: boolean;
+	handleNotificationsDoNotDisturbMode: boolean;
+	wasVisible: IZenModeExitInfoWasVisible;
+}
+
+export function createDefaultZenModeExitInfo(): IZenModeExitInfo {
+	return {
+		transitionedToCenteredEditorLayout: false,
+		transitionedToFullScreen: false,
+		handleNotificationsDoNotDisturbMode: false,
+		wasVisible: {
+			auxiliaryBar: false,
+			panel: false,
+			sideBar: false,
+			editor: false,
+			sources: false,
+		},
+	};
+}
+
 export const enum ZenModeSettings {
 	SHOW_TABS = 'zenMode.showTabs',
 	HIDE_LINENUMBERS = 'zenMode.hideLineNumbers',

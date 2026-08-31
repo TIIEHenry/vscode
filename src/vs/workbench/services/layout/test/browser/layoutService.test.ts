@@ -10,7 +10,7 @@ import { Extensions as ConfigurationExtensions, IConfigurationRegistry } from '.
 import { Registry } from '../../../../../platform/registry/common/platform.js';
 import '../../../../browser/workbench.contribution.js';
 import '../../../../contrib/welcomeGettingStarted/browser/gettingStarted.contribution.js';
-import { COMPACT_FLOATING_PANEL_MARGIN, COMPACT_FLOATING_PANEL_OUTER_MARGIN, FLOATING_PANEL_INNER_MARGIN, FLOATING_PANEL_MARGIN, forceShownAgentShellPart, getFloatingEditorVerticalMargins, getFloatingOuterEdgeOwners, getFloatingPaneCompositeHorizontalMargins, getFloatingPaneCompositeVerticalMargins, getFloatingPanelMargin, getFloatingPanelOuterMargin, getFloatingSidebarSiblingToEditorStatus, isFloatingTopEdgeExposed, isHorizontal, type PanelAlignment, Parts, Position } from '../../browser/layoutService.js';
+import { COMPACT_FLOATING_PANEL_MARGIN, COMPACT_FLOATING_PANEL_OUTER_MARGIN, FLOATING_PANEL_INNER_MARGIN, FLOATING_PANEL_MARGIN, createDefaultZenModeExitInfo, forceShownAgentShellPart, getFloatingEditorVerticalMargins, getFloatingOuterEdgeOwners, getFloatingPaneCompositeHorizontalMargins, getFloatingPaneCompositeVerticalMargins, getFloatingPanelMargin, getFloatingPanelOuterMargin, getFloatingSidebarSiblingToEditorStatus, isFloatingTopEdgeExposed, isHorizontal, type PanelAlignment, Parts, Position } from '../../browser/layoutService.js';
 import { TestLayoutService } from '../../../../test/browser/workbenchTestServices.js';
 
 suite('LayoutService - isFloatingTopEdgeExposed', () => {
@@ -549,6 +549,33 @@ suite('LayoutService - auxiliary bar maximize End column', () => {
 		assert.strictEqual(forceShownAgentShellPart(Parts.EDITOR_PART, auxMaximizeVisibility), undefined);
 		assert.strictEqual(forceShownAgentShellPart(Parts.SOURCES_PART, auxMaximizeVisibility), undefined);
 		assert.strictEqual(forceShownAgentShellPart(Parts.CONVERSATION_PART, auxMaximizeVisibility), undefined);
+	});
+});
+
+suite('LayoutService - zen mode End column', () => {
+
+	ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('zen mode keeps Conversation visible and hides End column under INV-052', () => {
+		const zenModeVisibility = { conversation: true, editor: false, sources: false };
+		assert.strictEqual(forceShownAgentShellPart(Parts.EDITOR_PART, zenModeVisibility), undefined);
+		assert.strictEqual(forceShownAgentShellPart(Parts.SOURCES_PART, zenModeVisibility), undefined);
+		assert.strictEqual(forceShownAgentShellPart(Parts.CONVERSATION_PART, zenModeVisibility), undefined);
+	});
+
+	test('createDefaultZenModeExitInfo includes End column visibility snapshot defaults', () => {
+		assert.deepStrictEqual(createDefaultZenModeExitInfo(), {
+			transitionedToCenteredEditorLayout: false,
+			transitionedToFullScreen: false,
+			handleNotificationsDoNotDisturbMode: false,
+			wasVisible: {
+				auxiliaryBar: false,
+				panel: false,
+				sideBar: false,
+				editor: false,
+				sources: false,
+			},
+		});
 	});
 });
 

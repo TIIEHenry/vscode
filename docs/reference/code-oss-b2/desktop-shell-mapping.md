@@ -77,7 +77,7 @@ StatusBar
 | 中心继续 `EDITOR_PART`，Conversation 用 `ChatEditor` | INV-TOPO |
 | 主窗改成 Agents Window，无四钮 | 缺 ADR-052 维 |
 | Auxiliary Bar 当 Conversation | 右栏配套，语义反了 |
-| Zen Mode / 只留 Editor 当 `pureEditor` | 没 Conversation Part，藏的是「整 IDE」不是透镜 |
+| Zen Mode / 只留 Editor 当 `pureEditor` | 没 Conversation Part，藏的是「整 IDE」不是透镜；**本仓 Zen 藏 End 列、保留 Conversation** |
 | Copilot Chat 视图当主流程 | INV-NO-COPILOT + 插件形 |
 
 ## 4a. 复用姿态（2026-08-30 拍板）

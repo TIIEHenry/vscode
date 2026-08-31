@@ -12,7 +12,7 @@ import { isWindows, isLinux, isMacintosh, isWeb, isIOS } from '../../base/common
 import { EditorInputCapabilities, GroupIdentifier, isResourceEditorInput, IUntypedEditorInput, pathsToEditors } from '../common/editor.js';
 import { SidebarPart } from './parts/sidebar/sidebarPart.js';
 import { PanelPart } from './parts/panel/panelPart.js';
-import { Position, Parts, PartOpensMaximizedOptions, IWorkbenchLayoutService, positionFromString, positionToString, partOpensMaximizedFromString, PanelAlignment, ActivityBarPosition, LayoutSettings, MULTI_WINDOW_PARTS, SINGLE_WINDOW_PARTS, ZenModeSettings, EditorTabsMode, EditorActionsLocation, shouldShowCustomTitleBar, isHorizontal, isMultiWindowPart, IPartVisibilityChangeEvent, isFloatingTopEdgeExposed, ModernUIDensity, forceShownAgentShellPart, AgentShellPart } from '../services/layout/browser/layoutService.js';
+import { Position, Parts, PartOpensMaximizedOptions, IWorkbenchLayoutService, positionFromString, positionToString, partOpensMaximizedFromString, PanelAlignment, ActivityBarPosition, LayoutSettings, MULTI_WINDOW_PARTS, SINGLE_WINDOW_PARTS, ZenModeSettings, EditorTabsMode, EditorActionsLocation, shouldShowCustomTitleBar, isHorizontal, isMultiWindowPart, IPartVisibilityChangeEvent, isFloatingTopEdgeExposed, ModernUIDensity, forceShownAgentShellPart, AgentShellPart, createDefaultZenModeExitInfo } from '../services/layout/browser/layoutService.js';
 import { isTemporaryWorkspace, IWorkspaceContextService, WorkbenchState } from '../../platform/workspace/common/workspace.js';
 import { IStorageService, StorageScope, StorageTarget } from '../../platform/storage/common/storage.js';
 import { IConfigurationChangeEvent, IConfigurationService, isConfigured } from '../../platform/configuration/common/configuration.js';
@@ -1503,17 +1503,22 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 
 			if (!restoring) {
 				zenModeExitInfo.transitionedToFullScreen = toggleMainWindowFullScreen;
-				zenModeExitInfo.transitionedToCenteredEditorLayout = !this.isMainEditorLayoutCentered() && config.centerLayout;
 				zenModeExitInfo.handleNotificationsDoNotDisturbMode = this.notificationService.getFilter() === NotificationsFilter.OFF;
 				zenModeExitInfo.wasVisible.sideBar = this.isVisible(Parts.SIDEBAR_PART);
 				zenModeExitInfo.wasVisible.panel = this.isVisible(Parts.PANEL_PART);
 				zenModeExitInfo.wasVisible.auxiliaryBar = this.isVisible(Parts.AUXILIARYBAR_PART);
+				zenModeExitInfo.wasVisible.editor = this.isVisible(Parts.EDITOR_PART);
+				zenModeExitInfo.wasVisible.sources = this.isVisible(Parts.SOURCES_PART);
 				this.stateModel.setRuntimeValue(LayoutStateKeys.ZEN_MODE_EXIT_INFO, zenModeExitInfo);
 			}
 
 			this.setPanelHidden(true, true);
 			this.setAuxiliaryBarHidden(true, true);
 			this.setSideBarHidden(true);
+
+			this.setConversationHidden(false);
+			this.setEditorHidden(true);
+			this.setSourcesHidden(true);
 
 			if (config.hideActivityBar) {
 				this.setActivityBarHidden(true);
@@ -1536,10 +1541,6 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 				this.notificationService.setFilter(NotificationsFilter.ERROR);
 			}
 
-			if (config.centerLayout) {
-				this.centerMainEditorLayout(true, true);
-			}
-
 			// Zen Mode Configuration Changes
 			this.state.runtime.zenMode.transitionDisposables.set('configurationChange', this.configurationService.onDidChangeConfiguration(e => {
 
@@ -1554,12 +1555,6 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 				if (e.affectsConfiguration(ZenModeSettings.HIDE_STATUSBAR)) {
 					const zenModeHideStatusBar = this.configurationService.getValue<boolean>(ZenModeSettings.HIDE_STATUSBAR);
 					this.setStatusBarHidden(zenModeHideStatusBar);
-				}
-
-				// Center Layout
-				if (e.affectsConfiguration(ZenModeSettings.CENTER_LAYOUT)) {
-					const zenModeCenterLayout = this.configurationService.getValue<boolean>(ZenModeSettings.CENTER_LAYOUT);
-					this.centerMainEditorLayout(zenModeCenterLayout, true);
 				}
 
 				// Show Tabs
@@ -1597,6 +1592,14 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 
 			if (zenModeExitInfo.wasVisible.sideBar) {
 				this.setSideBarHidden(false);
+			}
+
+			if (zenModeExitInfo.wasVisible.editor) {
+				this.setEditorHidden(false);
+			}
+
+			if (zenModeExitInfo.wasVisible.sources) {
+				this.setSourcesHidden(false);
 			}
 
 			if (!this.stateModel.getRuntimeValue(LayoutStateKeys.ACTIVITYBAR_HIDDEN, true)) {
@@ -3123,16 +3126,7 @@ const LayoutStateKeys = {
 
 	// Zen Mode
 	ZEN_MODE_ACTIVE: new RuntimeStateKey<boolean>('zenMode.active', StorageScope.WORKSPACE, StorageTarget.MACHINE, false),
-	ZEN_MODE_EXIT_INFO: new RuntimeStateKey('zenMode.exitInfo', StorageScope.WORKSPACE, StorageTarget.MACHINE, {
-		transitionedToCenteredEditorLayout: false,
-		transitionedToFullScreen: false,
-		handleNotificationsDoNotDisturbMode: false,
-		wasVisible: {
-			auxiliaryBar: false,
-			panel: false,
-			sideBar: false,
-		},
-	}),
+	ZEN_MODE_EXIT_INFO: new RuntimeStateKey('zenMode.exitInfo', StorageScope.WORKSPACE, StorageTarget.MACHINE, createDefaultZenModeExitInfo()),
 
 	// Part Sizing
 	SIDEBAR_SIZE: new InitializationStateKey<number>('sideBar.size', StorageScope.PROFILE, StorageTarget.MACHINE, 300),
