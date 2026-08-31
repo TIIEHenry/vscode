@@ -7,5 +7,7 @@ import { localize } from '../../../../nls.js';
 
 /** SessionBar chrome copy — product session actions, not Copilot New Chat. */
 export const conversationLensSessionBarNewSession = localize('conversationLens.newSession', "New session");
+export const conversationLensSessionBarHistoryTitle = localize('conversationLens.historyTitle', "History");
+export const conversationLensSessionBarNoHistory = localize('conversationLens.noHistory', "No history");
 export const conversationLensSessionBarRenameTitle = localize('conversationLens.renameSessionTitle', "Rename session");
 export const conversationLensSessionBarRenameInputAria = localize('conversationLens.renameSessionInput', "Session title");

@@ -5,15 +5,17 @@
 
 import { $, addDisposableListener, append, clearNode, reset } from '../../../../base/browser/dom.js';
 import { Button } from '../../../../base/browser/ui/button/button.js';
+import { AnchorAlignment } from '../../../../base/browser/ui/contextview/contextview.js';
 import { SelectBox } from '../../../../base/browser/ui/selectBox/selectBox.js';
 import { KeyCode } from '../../../../base/common/keyCodes.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { MarkdownString } from '../../../../base/common/htmlContent.js';
+import { AnchorPosition } from '../../../../base/common/layout.js';
 import { Disposable, DisposableStore, toDisposable } from '../../../../base/common/lifecycle.js';
 import { ThemeIcon } from '../../../../base/common/themables.js';
 import { localize } from '../../../../nls.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
-import { IContextViewService } from '../../../../platform/contextview/browser/contextView.js';
+import { IContextViewService, IOpenContextView } from '../../../../platform/contextview/browser/contextView.js';
 import { IMarkdownRendererService } from '../../../../platform/markdown/browser/markdownRenderer.js';
 import { defaultButtonStyles, defaultSelectBoxStyles } from '../../../../platform/theme/browser/defaultStyles.js';
 import { hasNativeContextMenu } from '../../../../platform/window/common/window.js';
@@ -27,7 +29,7 @@ import {
 	conversationLensDockRestoreTimeline,
 	conversationLensInputMaximizedClass,
 } from './conversationLensDockStrings.js';
-import { conversationLensSessionBarNewSession, conversationLensSessionBarRenameInputAria, conversationLensSessionBarRenameTitle } from './conversationLensSessionBarStrings.js';
+import { conversationLensSessionBarHistoryTitle, conversationLensSessionBarNewSession, conversationLensSessionBarNoHistory, conversationLensSessionBarRenameInputAria, conversationLensSessionBarRenameTitle } from './conversationLensSessionBarStrings.js';
 import { ConversationStubTurn } from './conversationStubModel.js';
 import { IConversationStubService } from './conversationStubService.js';
 import { shouldRenderTurnAsMarkdown } from './conversationTurnMarkdown.js';
@@ -45,6 +47,8 @@ export class ConversationLens extends Disposable {
 	private sessionSelectBox!: SelectBox;
 	private sessionSelectContainer!: HTMLElement;
 	private newSessionButton!: Button;
+	private historyButton!: Button;
+	private historyContextView: IOpenContextView | undefined;
 	private timelineScroll!: HTMLElement;
 	private timelineContent!: HTMLElement;
 	private inboxStatus!: HTMLButtonElement;
@@ -92,6 +96,7 @@ export class ConversationLens extends Disposable {
 		}));
 
 		this._register(toDisposable(() => {
+			this.historyContextView?.close();
 			for (const seat of this.confirmationSeats.values()) {
 				seat.dispose();
 			}
@@ -175,6 +180,17 @@ export class ConversationLens extends Disposable {
 		}));
 		this.newSessionButton.icon = Codicon.add;
 		this._register(this.newSessionButton.onDidClick(() => this.createNewSession()));
+
+		const historyContainer = append(controls, $('.conversation-lens-session-history'));
+		this.historyButton = this._register(new Button(historyContainer, {
+			...defaultButtonStyles,
+			supportIcons: true,
+			small: true,
+			secondary: true,
+			title: conversationLensSessionBarHistoryTitle,
+		}));
+		this.historyButton.icon = Codicon.history;
+		this._register(this.historyButton.onDidClick(() => this.toggleHistoryContextView()));
 
 		this._register(this.sessionSelectBox.onDidSelect(e => {
 			if (this.suppressSessionSelect) {
@@ -281,6 +297,35 @@ export class ConversationLens extends Disposable {
 		this._register(addDisposableListener(this.dockTextarea, 'input', () => {
 			this.drafts.set(this.stubService.getActiveSessionId(), this.dockTextarea.value);
 		}));
+	}
+
+	private toggleHistoryContextView(): void {
+		if (this.historyContextView) {
+			this.historyContextView.close();
+			return;
+		}
+		this.historyContextView = this.contextViewService.showContextView({
+			getAnchor: () => this.historyButton.element,
+			anchorAlignment: AnchorAlignment.RIGHT,
+			anchorPosition: AnchorPosition.BELOW,
+			render: container => {
+				append(container, $('.conversation-lens-session-history-popup')).textContent = conversationLensSessionBarNoHistory;
+				return toDisposable(() => {
+					this.historyContextView = undefined;
+				});
+			},
+			onDOMEvent: e => {
+				if (e.type === 'click') {
+					const target = e.target as HTMLElement | null;
+					if (target && !this.historyButton.element.contains(target)) {
+						this.historyContextView?.close();
+					}
+				}
+			},
+			onHide: () => {
+				this.historyContextView = undefined;
+			},
+		});
 	}
 
 	private createNewSession(): void {
