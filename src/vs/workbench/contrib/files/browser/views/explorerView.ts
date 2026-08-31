@@ -55,6 +55,7 @@ import { AbstractTreePart } from '../../../../../base/browser/ui/tree/abstractTr
 import { IHoverService } from '../../../../../platform/hover/browser/hover.js';
 import { IAccessibilityService } from '../../../../../platform/accessibility/common/accessibility.js';
 import { IEnvironmentService } from '../../../../../platform/environment/common/environment.js';
+import { ExplorerInlineFilterBox } from '../explorerInlineFilterBox.js';
 
 
 function hasExpandedRootChild(tree: WorkbenchCompressibleAsyncDataTree<ExplorerItem | ExplorerItem[], ExplorerItem, FuzzyScore>, treeInput: ExplorerItem[]): boolean {
@@ -195,6 +196,7 @@ export class ExplorerView extends ViewPane implements IExplorerView {
 
 	private treeContainer!: HTMLElement;
 	private container!: HTMLElement;
+	private inlineFilterBox!: ExplorerInlineFilterBox;
 	private compressedFocusContext: IContextKey<boolean>;
 	private compressedFocusFirstContext: IContextKey<boolean>;
 	private compressedFocusLastContext: IContextKey<boolean>;
@@ -359,16 +361,26 @@ export class ExplorerView extends ViewPane implements IExplorerView {
 
 	protected override layoutBody(height: number, width: number): void {
 		super.layoutBody(height, width);
-		this.tree.layout(height, width);
+		this.tree.layout(height - ExplorerInlineFilterBox.HEIGHT, width);
 	}
 
 	protected override renderBody(container: HTMLElement): void {
 		super.renderBody(container);
 
 		this.container = container;
+		container.classList.add('explorer-view-body');
+
+		this.inlineFilterBox = this._register(new ExplorerInlineFilterBox(
+			container,
+			nls.localize('explorerFilterPlaceholder', "Filter files"),
+			nls.localize('explorerFilterAriaLabel', "Filter files"),
+		));
+
 		this.treeContainer = DOM.append(container, DOM.$('.explorer-folders-view'));
 
 		this.createTree(this.treeContainer);
+
+		this._register(this.inlineFilterBox.onDidChange(query => this.filter.setInlineQuery(query)));
 
 		this._register(this.labelService.onDidChangeFormatters(() => {
 			this._onDidChangeTitleArea.fire();
