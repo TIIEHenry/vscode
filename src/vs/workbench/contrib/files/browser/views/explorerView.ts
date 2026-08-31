@@ -56,6 +56,8 @@ import { IHoverService } from '../../../../../platform/hover/browser/hover.js';
 import { IAccessibilityService } from '../../../../../platform/accessibility/common/accessibility.js';
 import { IEnvironmentService } from '../../../../../platform/environment/common/environment.js';
 import { ExplorerInlineFilterBox } from '../explorerInlineFilterBox.js';
+import { EXPLORER_LOCATION_ROOT_ID, getExplorerLocationBreadcrumbItems } from '../../common/explorerLocationBreadcrumb.js';
+import { ExplorerLocationBreadcrumbBox } from '../explorerLocationBreadcrumbBox.js';
 
 
 function hasExpandedRootChild(tree: WorkbenchCompressibleAsyncDataTree<ExplorerItem | ExplorerItem[], ExplorerItem, FuzzyScore>, treeInput: ExplorerItem[]): boolean {
@@ -197,6 +199,9 @@ export class ExplorerView extends ViewPane implements IExplorerView {
 	private treeContainer!: HTMLElement;
 	private container!: HTMLElement;
 	private inlineFilterBox!: ExplorerInlineFilterBox;
+	private locationBreadcrumbBox!: ExplorerLocationBreadcrumbBox;
+	private bodyHeight = 0;
+	private bodyWidth = 0;
 	private compressedFocusContext: IContextKey<boolean>;
 	private compressedFocusFirstContext: IContextKey<boolean>;
 	private compressedFocusLastContext: IContextKey<boolean>;
@@ -361,7 +366,39 @@ export class ExplorerView extends ViewPane implements IExplorerView {
 
 	protected override layoutBody(height: number, width: number): void {
 		super.layoutBody(height, width);
-		this.tree.layout(height - ExplorerInlineFilterBox.HEIGHT, width);
+		this.bodyHeight = height;
+		this.bodyWidth = width;
+		this.layoutExplorerBody();
+	}
+
+	private layoutExplorerBody(): void {
+		let chromeHeight = ExplorerInlineFilterBox.HEIGHT;
+		if (this.locationBreadcrumbBox?.isVisible) {
+			chromeHeight += ExplorerLocationBreadcrumbBox.HEIGHT;
+			this.locationBreadcrumbBox.layout(this.bodyWidth);
+		}
+		if (this.tree) {
+			this.tree.layout(this.bodyHeight - chromeHeight, this.bodyWidth);
+		}
+	}
+
+	private updateLocationBreadcrumb(): void {
+		const folders = this.contextService.getWorkspace().folders;
+		const folderUri = folders.length > 0 ? folders[0].uri : undefined;
+		const items = getExplorerLocationBreadcrumbItems(folderUri, nls.localize('explorerLocationRoot', "Root"));
+		this.locationBreadcrumbBox.setItems(items);
+		this.layoutExplorerBody();
+	}
+
+	private onLocationBreadcrumbSelect(id: string): void {
+		const folders = this.contextService.getWorkspace().folders;
+		const folderUri = folders.length > 0 ? folders[0].uri : undefined;
+		if (!folderUri) {
+			return;
+		}
+
+		const resource = id === EXPLORER_LOCATION_ROOT_ID ? folderUri : URI.parse(id);
+		this.explorerService.select(resource, 'force');
 	}
 
 	protected override renderBody(container: HTMLElement): void {
@@ -370,11 +407,18 @@ export class ExplorerView extends ViewPane implements IExplorerView {
 		this.container = container;
 		container.classList.add('explorer-view-body');
 
+		this.locationBreadcrumbBox = this._register(new ExplorerLocationBreadcrumbBox(container));
+		this._register(this.locationBreadcrumbBox.onDidSelect(id => this.onLocationBreadcrumbSelect(id)));
+
 		this.inlineFilterBox = this._register(new ExplorerInlineFilterBox(
 			container,
 			nls.localize('explorerFilterPlaceholder', "Filter files"),
 			nls.localize('explorerFilterAriaLabel', "Filter files"),
 		));
+
+		this.updateLocationBreadcrumb();
+		this._register(this.contextService.onDidChangeWorkspaceFolders(() => this.updateLocationBreadcrumb()));
+		this._register(this.contextService.onDidChangeWorkbenchState(() => this.updateLocationBreadcrumb()));
 
 		this.treeContainer = DOM.append(container, DOM.$('.explorer-folders-view'));
 
