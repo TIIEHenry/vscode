@@ -19,7 +19,7 @@ import {
 	conversationLensDockRestoreTimeline,
 	conversationLensInputMaximizedClass,
 } from '../../browser/conversationLensDockStrings.js';
-import { conversationLensSessionBarNewSession, conversationLensSessionBarRenameTitle } from '../../browser/conversationLensSessionBarStrings.js';
+import { conversationLensSessionBarHistoryTitle, conversationLensSessionBarNewSession, conversationLensSessionBarNoHistory, conversationLensSessionBarRenameTitle } from '../../browser/conversationLensSessionBarStrings.js';
 import { CONVERSATION_STUB_SEED_SESSIONS } from '../../browser/conversationStubModel.js';
 import { ConversationStubService, IConversationStubService } from '../../browser/conversationStubService.js';
 import { getConversationSessionStatusText } from '../../browser/conversationSessionStatus.js';
@@ -230,6 +230,28 @@ suite('ConversationLens', () => {
 		assert.ok(title.textContent?.includes('New session'));
 		assert.ok(timelineContent.querySelector('.conversation-lens-timeline-empty'));
 		assert.ok(timelineContent.textContent?.includes('No messages yet'));
+	});
+
+	test('SessionBar history control is honest: no fake list or Copilot history', () => {
+		const { part } = mountLens();
+		const slots = part.getSlots()!;
+		const historyButton = slots.sessionBar.querySelector('.conversation-lens-session-history .monaco-button') as HTMLButtonElement;
+
+		assert.ok(historyButton);
+		assert.strictEqual(historyButton.getAttribute('aria-label'), conversationLensSessionBarHistoryTitle);
+		assert.strictEqual(slots.sessionBar.querySelector('.conversation-lens-session-history-list'), null);
+		assert.strictEqual(slots.sessionBar.querySelector('.agent-sessions'), null);
+		assert.strictEqual(slots.sessionBar.querySelector('.chat-setup'), null);
+
+		historyButton.click();
+
+		const popup = document.querySelector('.conversation-lens-session-history-popup');
+		assert.ok(popup);
+		assert.strictEqual(popup!.textContent, conversationLensSessionBarNoHistory);
+		assert.strictEqual(popup!.querySelectorAll('[role="option"], .monaco-list-row, .conversation-lens-session-history-item').length, 0);
+
+		historyButton.click();
+		assert.strictEqual(document.querySelector('.conversation-lens-session-history-popup'), null);
 	});
 
 	test('inbox status row is honest: no fake queue list, pending summary in dock', () => {

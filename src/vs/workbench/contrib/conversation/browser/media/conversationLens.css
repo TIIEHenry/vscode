@@ -114,6 +114,33 @@
 	margin: 0;
 }
 
+.monaco-workbench .part.conversation .conversation-lens-session-history {
+	flex-shrink: 0;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-session-history .monaco-button {
+	height: 20px;
+	min-width: 20px;
+	padding: 0 4px;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-session-history .monaco-button .codicon {
+	margin: 0;
+}
+
+.monaco-workbench .conversation-lens-session-history-popup {
+	padding: 4px 8px;
+	font-size: 12px;
+	font-weight: 400;
+	text-transform: none;
+	letter-spacing: normal;
+	color: var(--vscode-descriptionForeground);
+	background-color: var(--vscode-menu-background);
+	border: 1px solid var(--vscode-menu-border, var(--vscode-contrastBorder, transparent));
+	border-radius: 2px;
+	box-shadow: 0 2px 8px var(--vscode-widget-shadow, rgba(0, 0, 0, 0.16));
+}
+
 .monaco-workbench .part.conversation .conversation-lens-session-select {
 	min-width: 120px;
 	max-width: 180px;
