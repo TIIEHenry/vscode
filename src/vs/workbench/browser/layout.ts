@@ -1422,8 +1422,8 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 
 	private focusPanelOrEditor(): void {
 		const activePanel = this.paneCompositeService.getActivePaneComposite(ViewContainerLocation.Panel);
-		if ((this.hasFocus(Parts.PANEL_PART) || !this.isVisible(Parts.CONVERSATION_PART)) && activePanel) {
-			activePanel.focus(); // prefer panel if it has focus or conversation is hidden
+		if ((this.hasFocus(Parts.PANEL_PART) || this.isPanelMaximized() || !this.isVisible(Parts.CONVERSATION_PART)) && activePanel) {
+			activePanel.focus(); // prefer panel if it has focus, panel is maximized, or conversation is hidden
 		} else {
 			this.focus(); // otherwise focus conversation (or editor)
 		}
@@ -2026,7 +2026,7 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 	}
 
 	private enforceAgentShellVisible(justHid: AgentShellPart): void {
-		if (this.inMaximizedAuxiliaryBarTransition || this.isAuxiliaryBarMaximized()) {
+		if (this.inMaximizedAuxiliaryBarTransition || this.isAuxiliaryBarMaximized() || this.inMaximizedPanelTransition || this.isPanelMaximized()) {
 			return;
 		}
 
@@ -2260,7 +2260,7 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 		}
 
 		// If maximized and in process of hiding, unmaximize FIRST before
-		// changing visibility so Conversation (the center) is restored first.
+		// changing visibility so the End column (Editor/Sources) is restored first.
 		if (hidden && isPanelMaximized) {
 			this.toggleMaximizedPanel();
 		}
@@ -2318,6 +2318,7 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 	}
 
 	private inMaximizedAuxiliaryBarTransition = false;
+	private inMaximizedPanelTransition = false;
 
 	isAuxiliaryBarMaximized(): boolean {
 		return this.stateModel.getRuntimeValue(LayoutStateKeys.AUXILIARYBAR_WAS_LAST_MAXIMIZED);
@@ -2408,7 +2409,7 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 		return (
 			this.getPanelAlignment() === 'center' || 	// the workbench grid currently prevents us from supporting panel
 			!isHorizontal(this.getPanelPosition())		// maximization with non-center panel alignment
-		) && !this.isVisible(Parts.CONVERSATION_PART) && !this.isAuxiliaryBarMaximized();
+		) && this.isEndColumnHidden() && !this.isAuxiliaryBarMaximized();
 	}
 
 	toggleMaximizedPanel(): void {
@@ -2424,9 +2425,37 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 				}
 			}
 
-			this.setConversationHidden(true);
+			const state = {
+				editorVisible: this.isVisible(Parts.EDITOR_PART, mainWindow),
+				sourcesVisible: this.isVisible(Parts.SOURCES_PART),
+			};
+			this.stateModel.setRuntimeValue(LayoutStateKeys.PANEL_LAST_NON_MAXIMIZED_VISIBILITY, state);
+
+			this.inMaximizedPanelTransition = true;
+			try {
+				if (state.editorVisible) {
+					this.setEditorHidden(true);
+				}
+				if (state.sourcesVisible) {
+					this.setSourcesHidden(true);
+				}
+				if (!state.editorVisible && !state.sourcesVisible) {
+					this.setEditorHidden(true);
+					this.setSourcesHidden(true);
+				}
+			} finally {
+				this.inMaximizedPanelTransition = false;
+			}
 		} else {
-			this.setConversationHidden(false);
+			const state = this.stateModel.getRuntimeValue(LayoutStateKeys.PANEL_LAST_NON_MAXIMIZED_VISIBILITY);
+
+			this.inMaximizedPanelTransition = true;
+			try {
+				this.setEditorHidden(!(state?.editorVisible ?? true));
+				this.setSourcesHidden(!(state?.sourcesVisible ?? true));
+			} finally {
+				this.inMaximizedPanelTransition = false;
+			}
 
 			this.workbenchGrid.resizeView(this.panelPartView, {
 				width: isHorizontal(panelPosition) ? size.width : this.stateModel.getRuntimeValue(LayoutStateKeys.PANEL_LAST_NON_MAXIMIZED_WIDTH),
@@ -2601,10 +2630,10 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 		const sideBarSize = this.workbenchGrid.getViewSize(this.sideBarPartView);
 		const auxiliaryBarSize = this.workbenchGrid.getViewSize(this.auxiliaryBarPartView);
 
-		let conversationHidden = !this.isVisible(Parts.CONVERSATION_PART);
+		let endColumnHidden = this.isEndColumnHidden();
 
 		// Save last non-maximized size for panel before move
-		if (newPositionValue !== oldPositionValue && !conversationHidden) {
+		if (newPositionValue !== oldPositionValue && !endColumnHidden) {
 
 			// Save the current size of the panel for the new orthogonal direction
 			// If moving down, save the width of the panel
@@ -2616,9 +2645,9 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 			}
 		}
 
-		if (isHorizontal(position) && this.getPanelAlignment() !== 'center' && conversationHidden) {
+		if (isHorizontal(position) && this.getPanelAlignment() !== 'center' && endColumnHidden) {
 			this.toggleMaximizedPanel();
-			conversationHidden = false;
+			endColumnHidden = false;
 		}
 
 		this.stateModel.setRuntimeValue(LayoutStateKeys.PANEL_POSITION, position);
@@ -2629,13 +2658,13 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 		const hadFocus = this.hasFocus(Parts.PANEL_PART);
 
 		if (position === Position.BOTTOM) {
-			this.workbenchGrid.moveView(this.panelPartView, conversationHidden ? size.height : this.stateModel.getRuntimeValue(LayoutStateKeys.PANEL_LAST_NON_MAXIMIZED_HEIGHT), this.conversationPartView, Direction.Down);
+			this.workbenchGrid.moveView(this.panelPartView, endColumnHidden ? size.height : this.stateModel.getRuntimeValue(LayoutStateKeys.PANEL_LAST_NON_MAXIMIZED_HEIGHT), this.conversationPartView, Direction.Down);
 		} else if (position === Position.TOP) {
-			this.workbenchGrid.moveView(this.panelPartView, conversationHidden ? size.height : this.stateModel.getRuntimeValue(LayoutStateKeys.PANEL_LAST_NON_MAXIMIZED_HEIGHT), this.conversationPartView, Direction.Up);
+			this.workbenchGrid.moveView(this.panelPartView, endColumnHidden ? size.height : this.stateModel.getRuntimeValue(LayoutStateKeys.PANEL_LAST_NON_MAXIMIZED_HEIGHT), this.conversationPartView, Direction.Up);
 		} else if (position === Position.RIGHT) {
-			this.workbenchGrid.moveView(this.panelPartView, conversationHidden ? size.width : this.stateModel.getRuntimeValue(LayoutStateKeys.PANEL_LAST_NON_MAXIMIZED_WIDTH), this.conversationPartView, Direction.Right);
+			this.workbenchGrid.moveView(this.panelPartView, endColumnHidden ? size.width : this.stateModel.getRuntimeValue(LayoutStateKeys.PANEL_LAST_NON_MAXIMIZED_WIDTH), this.conversationPartView, Direction.Right);
 		} else {
-			this.workbenchGrid.moveView(this.panelPartView, conversationHidden ? size.width : this.stateModel.getRuntimeValue(LayoutStateKeys.PANEL_LAST_NON_MAXIMIZED_WIDTH), this.conversationPartView, Direction.Left);
+			this.workbenchGrid.moveView(this.panelPartView, endColumnHidden ? size.width : this.stateModel.getRuntimeValue(LayoutStateKeys.PANEL_LAST_NON_MAXIMIZED_WIDTH), this.conversationPartView, Direction.Left);
 		}
 
 		if (hadFocus) {
@@ -3116,6 +3145,10 @@ const LayoutStateKeys = {
 	PANEL_LAST_NON_MAXIMIZED_HEIGHT: new RuntimeStateKey<number>('panel.lastNonMaximizedHeight', StorageScope.PROFILE, StorageTarget.MACHINE, 300),
 	PANEL_LAST_NON_MAXIMIZED_WIDTH: new RuntimeStateKey<number>('panel.lastNonMaximizedWidth', StorageScope.PROFILE, StorageTarget.MACHINE, 300),
 	PANEL_WAS_LAST_MAXIMIZED: new RuntimeStateKey<boolean>('panel.wasLastMaximized', StorageScope.WORKSPACE, StorageTarget.MACHINE, false),
+	PANEL_LAST_NON_MAXIMIZED_VISIBILITY: new RuntimeStateKey('panel.lastNonMaximizedVisibility', StorageScope.WORKSPACE, StorageTarget.MACHINE, {
+		editorVisible: true,
+		sourcesVisible: true,
+	}),
 
 	AUXILIARYBAR_WAS_LAST_MAXIMIZED: new RuntimeStateKey<boolean>('auxiliaryBar.wasLastMaximized', StorageScope.WORKSPACE, StorageTarget.MACHINE, false),
 	AUXILIARYBAR_LAST_NON_MAXIMIZED_SIZE: new RuntimeStateKey<number>('auxiliaryBar.lastNonMaximizedSize', StorageScope.PROFILE, StorageTarget.MACHINE, 300),

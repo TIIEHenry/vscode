@@ -9,7 +9,7 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/tes
 import { Extensions as ConfigurationExtensions, IConfigurationRegistry } from '../../../../../platform/configuration/common/configurationRegistry.js';
 import { Registry } from '../../../../../platform/registry/common/platform.js';
 import '../../../../browser/workbench.contribution.js';
-import { COMPACT_FLOATING_PANEL_MARGIN, COMPACT_FLOATING_PANEL_OUTER_MARGIN, FLOATING_PANEL_INNER_MARGIN, FLOATING_PANEL_MARGIN, forceShownAgentShellPart, getFloatingEditorVerticalMargins, getFloatingOuterEdgeOwners, getFloatingPaneCompositeHorizontalMargins, getFloatingPaneCompositeVerticalMargins, getFloatingPanelMargin, getFloatingPanelOuterMargin, getFloatingSidebarSiblingToEditorStatus, isFloatingTopEdgeExposed, type PanelAlignment, Parts, Position } from '../../browser/layoutService.js';
+import { COMPACT_FLOATING_PANEL_MARGIN, COMPACT_FLOATING_PANEL_OUTER_MARGIN, FLOATING_PANEL_INNER_MARGIN, FLOATING_PANEL_MARGIN, forceShownAgentShellPart, getFloatingEditorVerticalMargins, getFloatingOuterEdgeOwners, getFloatingPaneCompositeHorizontalMargins, getFloatingPaneCompositeVerticalMargins, getFloatingPanelMargin, getFloatingPanelOuterMargin, getFloatingSidebarSiblingToEditorStatus, isFloatingTopEdgeExposed, isHorizontal, type PanelAlignment, Parts, Position } from '../../browser/layoutService.js';
 import { TestLayoutService } from '../../../../test/browser/workbenchTestServices.js';
 
 suite('LayoutService - isFloatingTopEdgeExposed', () => {
@@ -507,8 +507,39 @@ suite('LayoutService - INV-052-NO-DUAL-HIDE', () => {
 	});
 });
 
+suite('LayoutService - panel maximize End column', () => {
+
+	ensureNoDisposablesAreLeakedInTestSuite();
+
+	/** Mirrors {@link Layout.isPanelMaximized}: End column hidden, not Conversation. */
+	function isPanelMaximizedEndColumn(endColumnHidden: boolean, panelAlignment: PanelAlignment, panelPosition: Position, auxMaximized: boolean): boolean {
+		return (panelAlignment === 'center' || !isHorizontal(panelPosition)) && endColumnHidden && !auxMaximized;
+	}
+
+	test('maximized when End column hidden, not when only Conversation is hidden', () => {
+		assert.deepStrictEqual({
+			endHiddenCenterBottom: isPanelMaximizedEndColumn(true, 'center', Position.BOTTOM, false),
+			endVisibleCenterBottom: isPanelMaximizedEndColumn(false, 'center', Position.BOTTOM, false),
+			endHiddenNonCenterBottom: isPanelMaximizedEndColumn(true, 'left', Position.BOTTOM, false),
+			endHiddenVerticalPanel: isPanelMaximizedEndColumn(true, 'center', Position.LEFT, false),
+			endHiddenAuxMaximized: isPanelMaximizedEndColumn(true, 'center', Position.BOTTOM, true),
+		}, {
+			endHiddenCenterBottom: true,
+			endVisibleCenterBottom: false,
+			endHiddenNonCenterBottom: false,
+			endHiddenVerticalPanel: true,
+			endHiddenAuxMaximized: false,
+		});
+	});
+
+	test('panel maximize keeps Conversation visible under INV-052', () => {
+		const panelMaximizeVisibility = { conversation: true, editor: false, sources: false };
+		assert.strictEqual(forceShownAgentShellPart(Parts.EDITOR_PART, panelMaximizeVisibility), undefined);
+		assert.strictEqual(forceShownAgentShellPart(Parts.SOURCES_PART, panelMaximizeVisibility), undefined);
+	});
+});
+
 /**
- * Mirrors {@link LayoutStateModel.load} auxiliary-bar hidden default for fresh layouts
  * (see layout.ts LayoutStateKeys.AUXILIARYBAR_HIDDEN IIFE).
  */
 function freshLayoutAuxiliaryBarHidden(configurationValue: string | undefined, auxiliaryBarForceMaximized: boolean): boolean {

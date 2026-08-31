@@ -74,13 +74,13 @@ VERTICAL
 | `CONVERSATION_PART` | `setConversationHidden` | 写入 `conversation.hidden`；CSS `noconversation`。**若隐藏 Conversation 且 Editor 与 Sources 均不可见且 aux 未 maximize → 强制显示 Editor** |
 | `EDITOR_PART` | `setEditorHidden` | 写入 `EDITOR_HIDDEN`。**不再**强制弹出 Panel。**若隐藏 Editor 且 Conversation 与 Sources 均不可见且 aux 未 maximize → 强制显示 Conversation** |
 | `SOURCES_PART` | `setSourcesHidden` | 写入 `SOURCES_HIDDEN`；CSS `nosources`。**若隐藏 Sources 且 Conversation 与 Editor 均不可见且 aux 未 maximize → 强制显示 Conversation** |
-| `PANEL_PART` | `setPanelHidden` | 可独立藏；maximize panel = 藏 Conversation（中心叶） |
+| `PANEL_PART` | `setPanelHidden` | 可独立藏；maximize panel = 藏 End 列（Editor + Sources），Conversation 保持可见 |
 | `SIDEBAR_PART` | `setSideBarHidden` | 可独立藏 |
 | `AUXILIARYBAR_PART` | `setAuxiliaryBarMaximized` / `setAuxiliaryBarHidden` | 可独立藏；maximize aux 会挤掉 Conversation + Editor + Panel + Sidebar |
 | `ACTIVITYBAR_PART` | `setActivityBarHidden` | 可独立藏 |
 | `STATUSBAR_PART` | 对应 hidden key | 可独立藏 |
 
-不变量是 **Conversation ∨ (Editor ∨ Sources)**（INV-052-NO-DUAL-HIDE；`forceShownAgentShellPart`）。命令：`workbench.action.toggleConversation`、`workbench.action.toggleEditorVisibility`、`workbench.action.toggleSources`；四钮经 `LayoutControlMenu` 注册。各 Agent shell 区域另有本地 **hide (−)**：Conversation / Sources 为 part 内 − 控件；Preview（`EDITOR_PART`）无原生 part chrome，本地 hide 为 editor title 上的 `MenuId.EditorTitle` / `EditorTitleContext` 动作（`Hide Preview` / `Show Preview`），均经 `setPartHidden` 走同一 layout 路径。
+不变量是 **Conversation ∨ (Editor ∨ Sources)**（INV-052-NO-DUAL-HIDE；`forceShownAgentShellPart`）。Panel maximize 藏 End 列（Editor + Sources）而非 Conversation，un-maximize 时从 `PANEL_LAST_NON_MAXIMIZED_VISIBILITY` 恢复 End 显隐。命令：`workbench.action.toggleConversation`、`workbench.action.toggleEditorVisibility`、`workbench.action.toggleSources`；四钮经 `LayoutControlMenu` 注册。各 Agent shell 区域另有本地 **hide (−)**：Conversation / Sources 为 part 内 − 控件；Preview（`EDITOR_PART`）无原生 part chrome，本地 hide 为 editor title 上的 `MenuId.EditorTitle` / `EditorTitleContext` 动作（`Hide Preview` / `Show Preview`），均经 `setPartHidden` 走同一 layout 路径。
 
 CSS class：`LayoutClasses.MAIN_EDITOR_AREA_HIDDEN` / `CONVERSATION_HIDDEN` 等，随 `getLayoutClasses()` 打在 `mainContainer`。
 
