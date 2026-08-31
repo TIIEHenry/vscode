@@ -101,17 +101,18 @@ suite('ConversationLens', () => {
 		const slots = part.getSlots()!;
 		const timelineContent = slots.timeline.querySelector('.conversation-lens-timeline-content')!;
 		const seat = timelineContent.querySelector('.conversation-lens-confirmation-seat')!;
-		const allowButton = [...seat.querySelectorAll('button, .monaco-button')].find(el => el.textContent?.trim() === 'Allow') as HTMLElement;
+		const allowButton = seat.querySelector('.conversation-lens-confirmation-actions .monaco-button') as HTMLElement | null;
 		const pendingButton = slots.dock.querySelector('.conversation-lens-inbox-pending') as HTMLButtonElement;
 
 		assert.ok(allowButton);
 		allowButton.click();
 
-		const buttonsAfter = [...seat.querySelectorAll('button, .monaco-button')].map(el => el.textContent?.trim());
+		const seatAfter = timelineContent.querySelector('.conversation-lens-confirmation-seat')!;
+		const buttonsAfter = [...seatAfter.querySelectorAll('button, .monaco-button')].map(el => el.textContent?.trim());
 		assert.ok(!buttonsAfter.includes('Allow'));
 		assert.ok(!buttonsAfter.includes('Skip'));
-		assert.ok(seat.textContent?.includes('Allowed'));
-		assert.ok(seat.textContent?.includes('Write README.md?'));
+		assert.ok(seatAfter.textContent?.includes('Allowed'));
+		assert.ok(seatAfter.textContent?.includes('Write README.md?'));
 		assert.strictEqual(pendingButton.hidden, true);
 	});
 
@@ -119,7 +120,7 @@ suite('ConversationLens', () => {
 		const { part } = mountLens();
 		const slots = part.getSlots()!;
 		const textarea = slots.dock.querySelector('textarea.conversation-lens-dock-input') as HTMLTextAreaElement;
-		const sendButton = slots.dock.querySelector('.conversation-lens-dock-row button') as HTMLButtonElement;
+		const sendButton = slots.dock.querySelector('.conversation-lens-dock-row .monaco-button') as HTMLElement;
 		const timelineContent = slots.timeline.querySelector('.conversation-lens-timeline-content')!;
 
 		const message = 'Local stub message from test';

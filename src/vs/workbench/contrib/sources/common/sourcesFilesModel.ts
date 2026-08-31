@@ -48,10 +48,14 @@ async function collectFromItem(item: ExplorerItem, sortOrder: SortOrder, entries
 	}
 
 	let children: ExplorerItem[];
-	try {
-		children = await item.fetchChildren(sortOrder);
-	} catch {
-		return;
+	if (item._isDirectoryResolved) {
+		children = [...item.children.values()];
+	} else {
+		try {
+			children = await item.fetchChildren(sortOrder);
+		} catch {
+			return;
+		}
 	}
 
 	for (const child of children) {

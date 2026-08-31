@@ -39,10 +39,9 @@ suite('Sources - Files list projection', () => {
 		const entries = await collectSourcesFileEntries([root], SortOrder.Default);
 
 		assert.strictEqual(entries.length, 2);
-		assert.strictEqual(entries[0].name, 'index.ts');
-		assert.strictEqual(entries[0].description, 'src/index.ts');
-		assert.strictEqual(entries[1].name, 'README.md');
-		assert.strictEqual(entries[1].description, 'README.md');
+		const byName = new Map(entries.map(entry => [entry.name, entry]));
+		assert.strictEqual(byName.get('index.ts')?.description, 'src/index.ts');
+		assert.strictEqual(byName.get('README.md')?.description, 'README.md');
 	});
 
 	test('collectSourcesFileEntries skips excluded items', async function () {

@@ -8,7 +8,7 @@ import { mainWindow } from '../../../../../base/browser/window.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { Extensions as ConfigurationExtensions, IConfigurationRegistry } from '../../../../../platform/configuration/common/configurationRegistry.js';
 import { Registry } from '../../../../../platform/registry/common/platform.js';
-import '../../../browser/workbench.contribution.js';
+import '../../../../browser/workbench.contribution.js';
 import { COMPACT_FLOATING_PANEL_MARGIN, COMPACT_FLOATING_PANEL_OUTER_MARGIN, FLOATING_PANEL_INNER_MARGIN, FLOATING_PANEL_MARGIN, forceShownAgentShellPart, getFloatingEditorVerticalMargins, getFloatingOuterEdgeOwners, getFloatingPaneCompositeHorizontalMargins, getFloatingPaneCompositeVerticalMargins, getFloatingPanelMargin, getFloatingPanelOuterMargin, getFloatingSidebarSiblingToEditorStatus, isFloatingTopEdgeExposed, type PanelAlignment, Parts, Position } from '../../browser/layoutService.js';
 import { TestLayoutService } from '../../../../test/browser/workbenchTestServices.js';
 

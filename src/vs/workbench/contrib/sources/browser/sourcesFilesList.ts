@@ -5,8 +5,8 @@
 
 import './media/sourcesFilesList.css';
 import * as dom from '../../../../base/browser/dom.js';
-import { IListAccessibilityProvider, IListVirtualDelegate } from '../../../../base/browser/ui/list/list.js';
-import { IListRenderer } from '../../../../base/browser/ui/list/list.js';
+import { IListRenderer, IListVirtualDelegate } from '../../../../base/browser/ui/list/list.js';
+import { IListAccessibilityProvider } from '../../../../base/browser/ui/list/listWidget.js';
 import { RunOnceScheduler } from '../../../../base/common/async.js';
 import { Event } from '../../../../base/common/event.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
@@ -82,7 +82,7 @@ export class SourcesFilesList extends Disposable {
 	private readonly refreshScheduler: RunOnceScheduler;
 
 	constructor(
-		private readonly host: HTMLElement,
+		host: HTMLElement,
 		@IExplorerService private readonly explorerService: IExplorerService,
 		@IEditorService private readonly editorService: IEditorService,
 		@IFileService private readonly fileService: IFileService,

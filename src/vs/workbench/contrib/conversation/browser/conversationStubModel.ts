@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { localize } from '../../../../../nls.js';
+import { localize } from '../../../../nls.js';
 
 export type StubTurnKind = 'user' | 'assistant' | 'confirmation';
 export type ConfirmationStatus = 'pending' | 'allowed' | 'skipped';

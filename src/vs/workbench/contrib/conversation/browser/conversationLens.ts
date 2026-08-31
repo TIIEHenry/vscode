@@ -3,12 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { $, addDisposableListener, append, clearNode, reset } from '../../../../../base/browser/dom.js';
-import { Button } from '../../../../../base/browser/ui/button/button.js';
-import { KeyCode } from '../../../../../base/common/keyCodes.js';
-import { Disposable, toDisposable } from '../../../../../base/common/lifecycle.js';
-import { localize } from '../../../../../nls.js';
-import { defaultButtonStyles } from '../../../../../platform/theme/browser/defaultStyles.js';
+import { $, addDisposableListener, append, clearNode, reset } from '../../../../base/browser/dom.js';
+import { Button } from '../../../../base/browser/ui/button/button.js';
+import { KeyCode } from '../../../../base/common/keyCodes.js';
+import { Disposable, toDisposable } from '../../../../base/common/lifecycle.js';
+import { localize } from '../../../../nls.js';
+import { defaultButtonStyles } from '../../../../platform/theme/browser/defaultStyles.js';
 import { IConversationLensSlots } from '../../../browser/parts/conversation/conversationPart.js';
 import { ConversationConfirmationSeat } from './conversationConfirmationSeat.js';
 import { ConversationStubTurn } from './conversationStubModel.js';
@@ -20,26 +20,25 @@ import { IConversationStubService } from './conversationStubService.js';
  */
 export class ConversationLens extends Disposable {
 
-	private readonly sessionTitle: HTMLElement;
-	private readonly sessionSelect: HTMLSelectElement;
-	private readonly timelineScroller: HTMLElement;
-	private readonly timelineContent: HTMLElement;
-	private readonly inboxStatus: HTMLElement;
-	private readonly dockTextarea: HTMLTextAreaElement;
-	private readonly sendButton: Button;
+	private sessionTitle!: HTMLElement;
+	private sessionSelect!: HTMLSelectElement;
+	private timelineContent!: HTMLElement;
+	private inboxStatus!: HTMLButtonElement;
+	private dockTextarea!: HTMLTextAreaElement;
+	private sendButton!: Button;
 
 	private readonly drafts = new Map<string, string>();
 	private readonly confirmationSeats = new Map<string, ConversationConfirmationSeat>();
 
 	constructor(
-		private readonly slots: IConversationLensSlots,
+		_slots: IConversationLensSlots,
 		@IConversationStubService private readonly stubService: IConversationStubService,
 	) {
 		super();
 
-		this.mountSessionBar(slots.sessionBar);
-		this.mountTimeline(slots.timeline);
-		this.mountDock(slots.dock);
+		this.mountSessionBar(_slots.sessionBar);
+		this.mountTimeline(_slots.timeline);
+		this.mountDock(_slots.dock);
 
 		this.renderTimeline();
 		this.updateSessionTitle();
@@ -58,9 +57,9 @@ export class ConversationLens extends Disposable {
 				seat.dispose();
 			}
 			this.confirmationSeats.clear();
-			reset(slots.sessionBar);
-			reset(slots.timeline);
-			reset(slots.dock);
+			reset(_slots.sessionBar);
+			reset(_slots.timeline);
+			reset(_slots.dock);
 		}));
 	}
 
@@ -94,7 +93,6 @@ export class ConversationLens extends Disposable {
 		timeline.setAttribute('role', 'log');
 		timeline.setAttribute('aria-label', localize('conversationLens.timeline', "Conversation timeline"));
 
-		this.timelineScroller = timeline;
 		this.timelineContent = append(timeline, $('.conversation-lens-timeline-content'));
 	}
 
