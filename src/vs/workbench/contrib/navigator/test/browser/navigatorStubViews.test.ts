@@ -19,7 +19,6 @@ import {
 	NAVIGATOR_PROJECTS_VIEW_ID,
 	NAVIGATOR_STUB_VIEW_IDS,
 	NAVIGATOR_TEAM_VIEW_ID,
-	NavigatorAgentsView,
 	NavigatorProjectsView,
 	NavigatorTeamView,
 } from '../../browser/navigatorStubView.js';
@@ -112,7 +111,7 @@ suite('Navigator stub views', () => {
 		}
 	});
 
-	test('stub views render honest empty state without ChatEditorInput', () => {
+	test('Projects and Team stub views render honest empty state without ChatEditorInput', () => {
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		const stubViewContainer = {
 			id: 'navigator-stub-test-container',
@@ -140,9 +139,8 @@ suite('Navigator stub views', () => {
 			},
 		});
 
-		const cases: Array<{ id: string; ctor: typeof NavigatorProjectsView | typeof NavigatorAgentsView | typeof NavigatorTeamView; label: string }> = [
+		const cases: Array<{ id: string; ctor: typeof NavigatorProjectsView | typeof NavigatorTeamView; label: string }> = [
 			{ id: NAVIGATOR_PROJECTS_VIEW_ID, ctor: NavigatorProjectsView, label: 'Projects' },
-			{ id: NAVIGATOR_AGENTS_VIEW_ID, ctor: NavigatorAgentsView, label: 'Agents' },
 			{ id: NAVIGATOR_TEAM_VIEW_ID, ctor: NavigatorTeamView, label: 'Team' },
 		];
 
