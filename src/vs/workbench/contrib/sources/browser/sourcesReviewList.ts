@@ -20,6 +20,7 @@ import { ISCMRepository, ISCMService } from '../../scm/common/scm.js';
 import { filterSourcesEntries } from '../common/sourcesFilterModel.js';
 import { collectSourcesReviewEntries, ISourcesReviewEntry } from '../common/sourcesReviewModel.js';
 import { SourcesListFilterBox } from './sourcesListFilterBox.js';
+import { sourcesReviewListHeaderHint } from './sourcesReviewListStrings.js';
 
 const $ = dom.$;
 
@@ -76,6 +77,7 @@ class SourcesReviewAccessibilityProvider implements IListAccessibilityProvider<I
 export class SourcesReviewList extends Disposable {
 
 	private readonly filterBox: SourcesListFilterBox;
+	private readonly headerHint: HTMLElement;
 	private readonly listContainer: HTMLElement;
 	private readonly emptyMessage: HTMLElement;
 	private list: WorkbenchList<ISourcesReviewEntry> | undefined;
@@ -99,6 +101,10 @@ export class SourcesReviewList extends Disposable {
 			localize('sourcesReviewList.filterAriaLabel', "Filter changes"),
 		));
 		this._register(this.filterBox.onDidChange(() => this.scheduleRefresh()));
+
+		this.headerHint = dom.append(host, $('.sources-review-header-hint'));
+		this.headerHint.setAttribute('role', 'note');
+		this.headerHint.textContent = sourcesReviewListHeaderHint;
 
 		this.listContainer = dom.append(host, $('.sources-review-list'));
 		this.emptyMessage = dom.append(host, $('.sources-review-empty'));
