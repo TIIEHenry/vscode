@@ -27,7 +27,6 @@ import { IsSessionsWindowContext } from '../../../../common/contextkeys.js';
 import { IStatusbarEntryAccessor, IStatusbarService, StatusbarAlignment } from '../../../../services/statusbar/browser/statusbar.js';
 import { IEditorService, SIDE_GROUP } from '../../../../services/editor/common/editorService.js';
 import { IWorkbenchEnvironmentService } from '../../../../services/environment/common/environmentService.js';
-import { ChatContextKeys } from '../../common/actions/chatContextKeys.js';
 
 const enum AgentHostProfileState {
 	None = 'none',
@@ -249,13 +248,8 @@ export class ProfileAgentHostAction extends Action2 {
 			f1: true,
 			icon: Codicon.circleFilled,
 			precondition: ContextKeyExpr.and(
-				ContextKeyExpr.or(
-					IsSessionsWindowContext,
-					ContextKeyExpr.and(
-						ChatContextKeys.enabled,
-						AGENT_HOST_ENABLED_CONTEXT_KEY,
-					),
-				),
+				IsSessionsWindowContext,
+				AGENT_HOST_ENABLED_CONTEXT_KEY,
 				CONTEXT_AGENT_HOST_PROFILE_STATE.notEqualsTo(AgentHostProfileState.Starting),
 				CONTEXT_AGENT_HOST_PROFILE_STATE.notEqualsTo(AgentHostProfileState.Running),
 				CONTEXT_AGENT_HOST_PROFILE_STATE.notEqualsTo(AgentHostProfileState.Stopping),
@@ -278,7 +272,10 @@ export class StopAgentHostProfileAction extends Action2 {
 			category: Categories.Developer,
 			f1: true,
 			icon: Codicon.debugStop,
-			precondition: CONTEXT_AGENT_HOST_PROFILE_STATE.isEqualTo(AgentHostProfileState.Running),
+			precondition: ContextKeyExpr.and(
+				IsSessionsWindowContext,
+				CONTEXT_AGENT_HOST_PROFILE_STATE.isEqualTo(AgentHostProfileState.Running),
+			),
 		});
 	}
 

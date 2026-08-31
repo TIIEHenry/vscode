@@ -26,6 +26,7 @@ import { INotificationService, Severity } from '../../../../../platform/notifica
 import { IProgressService, ProgressLocation } from '../../../../../platform/progress/common/progress.js';
 import { IChatEntitlementService } from '../../../../services/chat/common/chatEntitlementService.js';
 import { IWorkbenchEnvironmentService } from '../../../../services/environment/common/environmentService.js';
+import { IsSessionsWindowContext } from '../../../../common/contextkeys.js';
 import { IChatWidgetService } from '../chat.js';
 import { ChatContextKeys } from '../../common/actions/chatContextKeys.js';
 import { COPILOT_CLI_LOCAL_AH_SCHEME, getCopilotCliSessionRawId, parseRemoteAuthorityFromScheme } from '../copilotCliEventsUri.js';
@@ -405,6 +406,7 @@ export class ExportAgentHostDebugLogsAction extends Action2 {
 			category: Categories.Developer,
 			precondition: ContextKeyExpr.and(
 				ChatContextKeys.enabled,
+				IsSessionsWindowContext,
 				IsWebContext.negate(),
 				AGENT_HOST_ENABLED_CONTEXT_KEY,
 			),

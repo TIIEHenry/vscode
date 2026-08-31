@@ -11,6 +11,7 @@ import { Action2 } from '../../../../../platform/actions/common/actions.js';
 import { AGENT_HOST_ENABLED_CONTEXT_KEY } from '../../../../../platform/agentHost/common/agentHostEnablementService.js';
 import { IAgentHostService } from '../../../../../platform/agentHost/common/agentService.js';
 import { ContextKeyExpr } from '../../../../../platform/contextkey/common/contextkey.js';
+import { IsSessionsWindowContext } from '../../../../common/contextkeys.js';
 import { INativeHostService } from '../../../../../platform/native/common/native.js';
 import { INotificationService } from '../../../../../platform/notification/common/notification.js';
 import { ChatContextKeys } from '../../common/actions/chatContextKeys.js';
@@ -27,6 +28,7 @@ export class DebugAgentHostInDevToolsAction extends Action2 {
 			icon: Codicon.debugStart,
 			precondition: ContextKeyExpr.and(
 				ChatContextKeys.enabled,
+				IsSessionsWindowContext,
 				AGENT_HOST_ENABLED_CONTEXT_KEY,
 			),
 		});

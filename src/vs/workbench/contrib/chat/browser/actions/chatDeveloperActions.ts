@@ -10,6 +10,8 @@ import { ServicesAccessor } from '../../../../../editor/browser/editorExtensions
 import { localize2 } from '../../../../../nls.js';
 import { Categories } from '../../../../../platform/action/common/actionCommonCategories.js';
 import { Action2, registerAction2 } from '../../../../../platform/actions/common/actions.js';
+import { ContextKeyExpr } from '../../../../../platform/contextkey/common/contextkey.js';
+import { IsSessionsWindowContext } from '../../../../common/contextkeys.js';
 import { IInstantiationService } from '../../../../../platform/instantiation/common/instantiation.js';
 import { IEditorService } from '../../../../services/editor/common/editorService.js';
 import { IAgentSessionsService } from '../agentSessions/agentSessionsService.js';
@@ -113,7 +115,7 @@ class LogChatInputHistoryAction extends Action2 {
 			icon: Codicon.attach,
 			category: Categories.Developer,
 			f1: true,
-			precondition: ChatContextKeys.enabled
+			precondition: ContextKeyExpr.and(ChatContextKeys.enabled, IsSessionsWindowContext)
 		});
 	}
 
@@ -133,7 +135,7 @@ class LogChatIndexAction extends Action2 {
 			icon: Codicon.attach,
 			category: Categories.Developer,
 			f1: true,
-			precondition: ChatContextKeys.enabled
+			precondition: ContextKeyExpr.and(ChatContextKeys.enabled, IsSessionsWindowContext)
 		});
 	}
 
@@ -153,7 +155,7 @@ class InspectChatModelAction extends Action2 {
 			icon: Codicon.inspect,
 			category: Categories.Developer,
 			f1: true,
-			precondition: ChatContextKeys.enabled
+			precondition: ContextKeyExpr.and(ChatContextKeys.enabled, IsSessionsWindowContext)
 		});
 	}
 
@@ -207,7 +209,7 @@ class InspectChatModelReferencesAction extends Action2 {
 			icon: Codicon.inspect,
 			category: Categories.Developer,
 			f1: true,
-			precondition: ChatContextKeys.enabled
+			precondition: ContextKeyExpr.and(ChatContextKeys.enabled, IsSessionsWindowContext)
 		});
 	}
 
@@ -318,7 +320,7 @@ class InspectAgentHostSubscriptionsAction extends Action2 {
 			icon: Codicon.inspect,
 			category: Categories.Developer,
 			f1: true,
-			precondition: ChatContextKeys.enabled
+			precondition: ContextKeyExpr.and(ChatContextKeys.enabled, IsSessionsWindowContext)
 		});
 	}
 
@@ -346,7 +348,7 @@ class ClearRecentlyUsedLanguageModelsAction extends Action2 {
 			title: localize2('workbench.action.chat.clearRecentlyUsedLanguageModels.label', "Clear Recently Used Language Models"),
 			category: Categories.Developer,
 			f1: true,
-			precondition: ChatContextKeys.enabled
+			precondition: ContextKeyExpr.and(ChatContextKeys.enabled, IsSessionsWindowContext)
 		});
 	}
 
@@ -364,7 +366,7 @@ class ResetChatPermissionWarningDialogsAction extends Action2 {
 			title: localize2('workbench.action.chat.resetPermissionWarningDialogs.label', "Reset Permission Warning Dialogs (Autopilot, Bypass Approvals)"),
 			category: Categories.Developer,
 			f1: true,
-			precondition: ChatContextKeys.enabled
+			precondition: ContextKeyExpr.and(ChatContextKeys.enabled, IsSessionsWindowContext)
 		});
 	}
 
