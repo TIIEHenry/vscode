@@ -601,7 +601,9 @@ suite('ConversationLens', () => {
 
 		const twisties = queryAllTimeline(slots, '.monaco-tl-twistie');
 		assert.ok(twisties.length >= 2);
-		(twisties[0] as HTMLElement).click();
+		for (const twistie of twisties) {
+			(twistie as HTMLElement).click();
+		}
 
 		const bodies = queryAllTimeline(slots, '.conversation-lens-turn-process-body');
 		assert.ok([...bodies].some(body => body.textContent === conversationLensThinkingNotConnected));
@@ -622,6 +624,8 @@ suite('ConversationLens', () => {
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		const part = store.add(instantiationService.createInstance(ConversationPart));
 		const parent = document.createElement('div');
+		document.body.appendChild(parent);
+		store.add(toDisposable(() => parent.remove()));
 		part.create(parent);
 
 		part.focus();

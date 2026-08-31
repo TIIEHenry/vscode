@@ -257,7 +257,7 @@ export class ConversationTimelineTree extends Disposable {
 		this.renderer = new ConversationTimelineRenderer(
 			contentAdapter,
 			options.onResolveConfirmation,
-			(item, height) => this.tree.updateElementHeight(item, height),
+			(item, height) => this.safeUpdateElementHeight(item, height),
 		);
 		const processBodyRenderer = new ConversationTimelineProcessBodyRenderer(this.renderer);
 
@@ -386,6 +386,12 @@ export class ConversationTimelineTree extends Disposable {
 	}
 
 	private revealTurnElement(item: ConversationTimelineItem, attempt = 0): void {
+		if (!this.tree.hasElement(item)) {
+			if (attempt < 3) {
+				scheduleAtNextAnimationFrame(getWindow(this.domNode), () => this.revealTurnElement(item, attempt + 1));
+			}
+			return;
+		}
 		try {
 			this.tree.reveal(item, 0.5);
 		} catch {
@@ -393,6 +399,14 @@ export class ConversationTimelineTree extends Disposable {
 				scheduleAtNextAnimationFrame(getWindow(this.domNode), () => this.revealTurnElement(item, attempt + 1));
 			}
 		}
+	}
+
+	private safeUpdateElementHeight(item: ConversationTimelineItem, height: number): void {
+		if (!this.tree.hasElement(item)) {
+			return;
+		}
+		this.delegate.setDynamicHeight(item, height);
+		this.tree.updateElementHeight(item, height);
 	}
 
 	acquireAutoScrollHold(): IDisposable {

@@ -121,7 +121,7 @@ export class ConversationPart extends Part implements IConversationPartService {
 			dockInput.focus();
 			return;
 		}
-		this.element?.focus();
+		this.getContainer()?.focus();
 	}
 
 	toJSON(): object {
