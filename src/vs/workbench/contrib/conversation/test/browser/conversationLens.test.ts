@@ -51,8 +51,41 @@ suite('ConversationLens', () => {
 		assert.ok(slots.timeline.querySelector('.conversation-lens-timeline-scroll'));
 		assert.ok(slots.timeline.querySelector('.conversation-lens-timeline-content'));
 		assert.ok(slots.dock.querySelector('.conversation-lens-composer'));
+		assert.ok(slots.dock.querySelector('.conversation-lens-dock-input-row'));
 		assert.ok(slots.dock.querySelector('.conversation-lens-dock-actions'));
 		assert.ok(slots.dock.querySelector('.conversation-lens-inbox-label'));
+	});
+
+	test('compact chrome: scroll region is timeline inner scroll only', () => {
+		const { part } = mountLens();
+		const slots = part.getSlots()!;
+		const timelineSlot = slots.timeline;
+
+		assert.ok(timelineSlot.querySelector('.conversation-lens-timeline-scroll'));
+		assert.strictEqual(timelineSlot.classList.contains('conversation-timeline'), true);
+		assert.ok(!timelineSlot.querySelector('.conversation-lens-dock'));
+	});
+
+	test('compact chrome: dock composer is single-row with min textarea rows', () => {
+		const { part } = mountLens();
+		const slots = part.getSlots()!;
+		const textarea = slots.dock.querySelector('textarea.conversation-lens-dock-input') as HTMLTextAreaElement;
+		const inputRow = slots.dock.querySelector('.conversation-lens-dock-input-row')!;
+		const sendButton = inputRow.querySelector('.conversation-lens-dock-actions .monaco-button');
+
+		assert.strictEqual(textarea.rows, 1);
+		assert.ok(inputRow.contains(textarea));
+		assert.ok(sendButton);
+		assert.ok(inputRow.contains(sendButton.parentElement!));
+	});
+
+	test('compact chrome: inbox status stays on one row', () => {
+		const { part } = mountLens();
+		const inboxRow = part.getSlots()!.dock.querySelector('.conversation-lens-inbox-row')!;
+
+		assert.ok(inboxRow.querySelector('.conversation-lens-inbox-label'));
+		assert.ok(inboxRow.querySelector('.conversation-lens-inbox-queue'));
+		assert.ok(inboxRow.textContent?.includes('No queue'));
 	});
 
 	test('blank session shows timeline empty state', () => {

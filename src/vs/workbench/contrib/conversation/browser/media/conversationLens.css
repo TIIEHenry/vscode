@@ -3,15 +3,16 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-/* SessionBar — workbench title chrome */
+/* SessionBar — single-row workbench title chrome, no stacked gutters */
 .monaco-workbench .part.conversation .conversation-lens-session-bar {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
-	gap: 12px;
+	gap: 8px;
 	flex: 1;
-	min-height: 35px;
-	padding: 0 12px;
+	height: 22px;
+	min-height: 22px;
+	padding: 0 8px;
 	border-bottom: 1px solid var(--vscode-sideBar-border, var(--vscode-contrastBorder, transparent));
 	background-color: var(--vscode-sideBar-background);
 	color: var(--vscode-sideBarTitle-foreground, var(--vscode-foreground));
@@ -19,19 +20,20 @@
 	font-weight: 600;
 	text-transform: uppercase;
 	letter-spacing: 0.04em;
+	box-sizing: border-box;
 }
 
 .monaco-workbench .part.conversation .conversation-lens-session-bar-leading {
 	display: flex;
 	align-items: center;
-	gap: 8px;
+	gap: 6px;
 	flex: 1;
 	min-width: 0;
 }
 
 .monaco-workbench .part.conversation .conversation-lens-session-icon {
 	flex-shrink: 0;
-	font-size: 16px;
+	font-size: 14px;
 	color: var(--vscode-foreground);
 	opacity: 0.85;
 }
@@ -42,7 +44,7 @@
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
-	font-size: 13px;
+	font-size: 12px;
 	font-weight: 600;
 	text-transform: none;
 	letter-spacing: normal;
@@ -52,7 +54,7 @@
 .monaco-workbench .part.conversation .conversation-lens-session-controls {
 	display: flex;
 	align-items: center;
-	gap: 6px;
+	gap: 4px;
 	flex-shrink: 0;
 }
 
@@ -65,12 +67,13 @@
 }
 
 .monaco-workbench .part.conversation .conversation-lens-session-select {
-	min-width: 140px;
-	max-width: 200px;
+	min-width: 120px;
+	max-width: 180px;
 }
 
 .monaco-workbench .part.conversation .conversation-lens-session-select .monaco-select-box {
 	width: 100%;
+	height: 20px;
 	font-size: 12px;
 	font-weight: 400;
 	text-transform: none;
@@ -81,7 +84,7 @@
 	border-radius: 2px;
 }
 
-/* Timeline — reading column with scroll region */
+/* Timeline — reading column; scroll only the inner region (Part slot is overflow:hidden) */
 .monaco-workbench .part.conversation .conversation-lens-timeline {
 	display: flex;
 	flex-direction: column;
@@ -100,10 +103,10 @@
 .monaco-workbench .part.conversation .conversation-lens-timeline-content {
 	display: flex;
 	flex-direction: column;
-	gap: 20px;
+	gap: 10px;
 	max-width: 720px;
 	margin: 0 auto;
-	padding: 20px 24px 32px;
+	padding: 8px;
 	width: 100%;
 	box-sizing: border-box;
 }
@@ -113,32 +116,32 @@
 	flex-direction: column;
 	align-items: center;
 	justify-content: center;
-	gap: 8px;
-	min-height: 160px;
-	padding: 32px 16px;
+	gap: 6px;
+	min-height: 120px;
+	padding: 16px 8px;
 	text-align: center;
 	color: var(--vscode-descriptionForeground);
 }
 
 .monaco-workbench .part.conversation .conversation-lens-timeline-empty-title {
 	margin: 0;
-	font-size: 14px;
+	font-size: 13px;
 	font-weight: 600;
 	color: var(--vscode-foreground);
 }
 
 .monaco-workbench .part.conversation .conversation-lens-timeline-empty-hint {
 	margin: 0;
-	font-size: 13px;
-	line-height: 1.5;
-	max-width: 320px;
+	font-size: 12px;
+	line-height: 1.4;
+	max-width: 280px;
 }
 
-/* Turns */
+/* Turns — tighter reading rhythm */
 .monaco-workbench .part.conversation .conversation-lens-turn {
 	display: flex;
 	flex-direction: column;
-	gap: 6px;
+	gap: 4px;
 }
 
 .monaco-workbench .part.conversation .conversation-lens-turn-header {
@@ -151,10 +154,10 @@
 
 .monaco-workbench .part.conversation .conversation-lens-turn-body {
 	font-size: 13px;
-	line-height: 1.55;
+	line-height: 1.5;
 	color: var(--vscode-foreground);
-	padding: 10px 12px;
-	border-radius: 4px;
+	padding: 6px 8px;
+	border-radius: 2px;
 	border: 1px solid var(--vscode-widget-border, var(--vscode-contrastBorder, transparent));
 	background-color: var(--vscode-input-background);
 }
@@ -177,17 +180,17 @@
 .monaco-workbench .part.conversation .conversation-lens-confirmation-seat {
 	display: flex;
 	flex-direction: column;
-	gap: 8px;
-	padding: 12px;
+	gap: 6px;
+	padding: 8px;
 	border: 1px solid var(--vscode-widget-border, var(--vscode-contrastBorder, transparent));
-	border-radius: 4px;
+	border-radius: 2px;
 	background-color: var(--vscode-input-background);
 }
 
 .monaco-workbench .part.conversation .conversation-lens-confirmation-summary {
 	display: flex;
-	flex-wrap: wrap;
-	gap: 8px;
+	flex-wrap: nowrap;
+	gap: 6px;
 	align-items: center;
 	font-size: 12px;
 	color: var(--vscode-descriptionForeground);
@@ -205,16 +208,16 @@
 .monaco-workbench .part.conversation .conversation-lens-confirmation-message {
 	margin: 0;
 	font-size: 13px;
-	line-height: 1.5;
+	line-height: 1.45;
 	color: var(--vscode-foreground);
 }
 
 .monaco-workbench .part.conversation .conversation-lens-confirmation-actions {
 	display: flex;
-	gap: 8px;
+	gap: 6px;
 }
 
-/* Dock — sticky composer */
+/* Dock — sticky compact composer */
 .monaco-workbench .part.conversation .conversation-lens-dock {
 	flex-shrink: 0;
 	display: flex;
@@ -225,13 +228,17 @@
 
 .monaco-workbench .part.conversation .conversation-lens-inbox-row {
 	display: flex;
-	flex-wrap: wrap;
+	flex-wrap: nowrap;
 	align-items: center;
-	gap: 8px;
-	padding: 8px 16px;
+	gap: 6px;
+	padding: 4px 8px;
 	border-bottom: 1px solid var(--vscode-sideBar-border, var(--vscode-contrastBorder, transparent));
 	font-size: 12px;
+	line-height: 16px;
 	color: var(--vscode-descriptionForeground);
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
 }
 
 .monaco-workbench .part.conversation .conversation-lens-inbox-label {
@@ -257,6 +264,11 @@
 	color: var(--vscode-textLink-foreground);
 	cursor: pointer;
 	text-decoration: underline;
+	flex-shrink: 1;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 }
 
 .monaco-workbench .part.conversation .conversation-lens-inbox-pending:hover {
@@ -264,31 +276,31 @@
 }
 
 .monaco-workbench .part.conversation .conversation-lens-composer {
-	padding: 12px 16px 16px;
+	padding: 6px 8px 8px;
 }
 
 .monaco-workbench .part.conversation .conversation-lens-dock-input-row {
 	display: flex;
-	align-items: flex-end;
-	gap: 8px;
-	padding: 8px;
+	align-items: center;
+	gap: 6px;
+	padding: 4px 6px;
 	border: 1px solid var(--vscode-input-border, var(--vscode-contrastBorder, transparent));
-	border-radius: 4px;
+	border-radius: 2px;
 	background-color: var(--vscode-input-background);
 }
 
 .monaco-workbench .part.conversation .conversation-lens-dock-input {
 	flex: 1;
-	min-height: 56px;
-	max-height: 200px;
+	min-height: 20px;
+	max-height: 160px;
 	padding: 0;
 	border: none;
 	background: transparent;
 	color: var(--vscode-input-foreground);
 	font-size: 13px;
 	font-family: var(--vscode-font-family);
-	line-height: 1.5;
-	resize: vertical;
+	line-height: 20px;
+	resize: none;
 	outline: none;
 }
 
@@ -299,6 +311,5 @@
 .monaco-workbench .part.conversation .conversation-lens-dock-actions {
 	display: flex;
 	flex-shrink: 0;
-	align-items: flex-end;
-	padding-bottom: 2px;
+	align-items: center;
 }
