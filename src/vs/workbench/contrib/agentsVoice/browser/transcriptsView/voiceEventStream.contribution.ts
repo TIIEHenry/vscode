@@ -12,6 +12,7 @@ import { ServicesAccessor } from '../../../../../platform/instantiation/common/i
 import { Registry } from '../../../../../platform/registry/common/platform.js';
 import { registerIcon } from '../../../../../platform/theme/common/iconRegistry.js';
 import { ViewPaneContainer } from '../../../../browser/parts/views/viewPaneContainer.js';
+import { IsSessionsWindowContext } from '../../../../common/contextkeys.js';
 import {
 	Extensions as ViewContainerExtensions,
 	IViewContainersRegistry,
@@ -56,7 +57,7 @@ const viewDescriptor: IViewDescriptor = {
 	ctorDescriptor: new SyncDescriptor(VoiceEventStreamViewPane),
 	canToggleVisibility: true,
 	canMoveView: true,
-	when: SHOW_VIEW_CONTEXT_KEY,
+	when: ContextKeyExpr.and(IsSessionsWindowContext, SHOW_VIEW_CONTEXT_KEY),
 	openCommandActionDescriptor: {
 		id: 'voiceEventStream.focus',
 		title: localize2('voiceEventStream.focus', "Focus Voice Event Stream View"),

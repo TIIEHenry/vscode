@@ -35,7 +35,7 @@ Agents Window 可以复用同一套视图（`WindowEnablement`），**不能**�
 | 贡献 | 入口 | Sidebar | Panel | Editor |
 |------|------|---------|-------|--------|
 | **files**（Explorer） | `contrib/files/browser/files.contribution.ts` · `explorerViewlet.ts` | **默认** `ViewContainer`（`isDefault: true`）：Folders 树 + Open Editors | 无自有容器；视图可被用户挪走 | `TextFileEditor` / `BinaryFileEditor` + `FileEditorInput` → 打开文件 |
-| **scm** | `contrib/scm/browser/scm.contribution.ts` | **默认** Source Control：Repositories / Changes / Graph（`canMoveView`） | 习惯上不默认在此；History 等可拖进 Panel | 点变更走 `IEditorService`：单文件 Diff / multi-diff，**在 `EDITOR_PART`** |
+| **scm** | `contrib/scm/browser/scm.contribution.ts` | Source Control 容器仍注册（Repositories / Changes / Graph，`canMoveView`）；**默认 Code 窗口** `IsSessionsWindowContext` 门闩隐藏 Sidebar Activity；Agents Window 保留 | 习惯上不默认在此；History 等可拖进 Panel | 点变更走 `IEditorService`：单文件 Diff / multi-diff，**在 `EDITOR_PART`** |
 | **git** | `contrib/git` 只注册 `IGitService`；UI/provider 在内置扩展 `extensions/git` | 填 scm 容器，不另开 viewlet | 同 scm | 同 scm（git 资源命令打开 Diff 编辑器） |
 | **terminal** | `contrib/terminal/browser/terminal.contribution.ts` | 可拖入 | **默认**（`isDefault: true`）`TERMINAL_VIEW_ID` | 可选：`TerminalEditor` + `TerminalEditorInput`（编辑器组里的终端 tab） |
 | **debug** | `contrib/debug/browser/debug.contribution.ts` | Run and Debug：Variables / Watch / Call Stack / Breakpoints（**默认 Code 窗口** `IsSessionsWindowContext` 门闩隐藏 Sidebar 容器；Agents Window 保留） | Debug Console（`DEBUG_PANEL_ID` / `REPL_VIEW_ID`） | `DisassemblyView`；源码停在已打开的 `FileEditorInput` |
@@ -54,9 +54,11 @@ Activity rail 只切换 Sidebar 容器图标，不是第三套宿主。Auxiliary
 
 `scm` 拥有 Source Control **容器与 Changes 列表**（`SCMViewPane`，视图名 Changes）。`git` contrib 几乎只有 `IGitService`；真正的 `ISCMProvider`、stage/commit、资源命令在 **`extensions/git`**。两边合起来才是用户看到的 Git SCM。
 
+**默认 Code 窗口**：Sidebar SCM Activity 经 `IsSessionsWindowContext` 门闩隐藏；Changes **清单 + stage/unstage/commit** 落在 End **`SOURCES_PART`** 的 Changes tab（`contrib/sources` / `SourcesChangesList`），经 `git.stage` / `git.unstage` / `git.commit` / `acceptInputCommand`。Sidebar SCM 容器仍注册，Agents Window 可保留 Activity 图标。
+
 现行习惯（与 Desktop 目标对照见 §5）：
 
-- 清单住在 **Sidebar**（可整容器或单视图挪到 Panel）
+- 默认 Code 窗口：Changes 清单与 Git 操作在 **End Sources tab**；Sidebar SCM 仅 Agents Window 或用户显式恢复
 - 点文件级变更：**打开 `EDITOR_PART` 里的 Diff / multi-diff**，不是底栏临时 tab
 - 编辑器内 gutter 还有 QuickDiff（`quickDiffWidget`），嵌在文本编辑器里，不是独立深查看面
 
@@ -100,12 +102,12 @@ Desktop（IA §4 + ADR-047）：
 
 本仓现行习惯：
 
-- Changes **列表** = scm Sidebar（或用户拖到 Panel）
+- Changes **列表 + stage/unstage/commit** = End **`SOURCES_PART`** Changes tab（默认 Code 窗口）；Sidebar scm 容器仍注册，Agents Window 保留 Activity
 - Diff **深查看** = End 列 `EDITOR_PART`（Preview），外加编辑器内 QuickDiff
 
 | | Desktop 目标 | 本仓今天 |
 |--|--------------|----------|
-| Changes 清单 | End Sources tab | Sidebar scm |
+| Changes 清单 | End Sources tab | End Sources tab（默认 Code 窗口；Sidebar scm 门闩隐藏） |
 | 文件级 Diff | `PANEL_PART` 临时 tab | `EDITOR_PART` Diff 编辑器 |
 | 开 Diff 是否撑开 Sources | 不得自动撑开已收起的下格 | 无下格；打开 Diff 占用中心编辑器 |
 
