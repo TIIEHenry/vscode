@@ -8,7 +8,7 @@ import { IViewsRegistry, Extensions as ViewExtensions } from '../../../common/vi
 import { OutlinePane } from './outlinePane.js';
 import { Registry } from '../../../../platform/registry/common/platform.js';
 import { IConfigurationRegistry, Extensions as ConfigurationExtensions, ConfigurationScope } from '../../../../platform/configuration/common/configurationRegistry.js';
-import { VIEW_CONTAINER } from '../../files/browser/explorerViewlet.js';
+import { explorerSidebarViewsWhen, VIEW_CONTAINER } from '../../files/browser/explorerViewlet.js';
 import { SyncDescriptor } from '../../../../platform/instantiation/common/descriptors.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { registerIcon } from '../../../../platform/theme/common/iconRegistry.js';
@@ -30,6 +30,7 @@ Registry.as<IViewsRegistry>(ViewExtensions.ViewsRegistry).registerViews([{
 	ctorDescriptor: new SyncDescriptor(OutlinePane),
 	canToggleVisibility: true,
 	canMoveView: true,
+	when: explorerSidebarViewsWhen,
 	hideByDefault: false,
 	collapsed: true,
 	order: 2,

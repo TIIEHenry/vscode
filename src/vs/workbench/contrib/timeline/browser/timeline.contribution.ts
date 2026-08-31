@@ -7,7 +7,7 @@ import { localize } from '../../../../nls.js';
 import { SyncDescriptor } from '../../../../platform/instantiation/common/descriptors.js';
 import { Registry } from '../../../../platform/registry/common/platform.js';
 import { IViewsRegistry, IViewDescriptor, Extensions as ViewExtensions } from '../../../common/views.js';
-import { VIEW_CONTAINER } from '../../files/browser/explorerViewlet.js';
+import { explorerSidebarViewsWhen, VIEW_CONTAINER } from '../../files/browser/explorerViewlet.js';
 import { ITimelineService, TimelinePaneId } from '../common/timeline.js';
 import { TimelineHasProviderContext } from '../common/timelineService.js';
 import { TimelinePane } from './timelinePane.js';
@@ -36,7 +36,7 @@ export class TimelinePaneDescriptor implements IViewDescriptor {
 	readonly canToggleVisibility = true;
 	readonly hideByDefault = false;
 	readonly canMoveView = true;
-	readonly when = TimelineHasProviderContext;
+	readonly when = ContextKeyExpr.and(explorerSidebarViewsWhen, TimelineHasProviderContext);
 
 	focusCommand = { id: 'timeline.focus' };
 }
