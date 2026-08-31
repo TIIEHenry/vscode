@@ -637,7 +637,7 @@ export class FocusFilesExplorer extends Action2 {
 			title: FocusFilesExplorer.LABEL,
 			f1: true,
 			category: Categories.File,
-			precondition: IsSessionsWindowContext.negate(),
+			precondition: IsSessionsWindowContext,
 			metadata: {
 				description: nls.localize2('focusFilesExplorerMetadata', "Moves focus to the file explorer view container.")
 			}
@@ -661,7 +661,7 @@ export class ShowActiveFileInExplorer extends Action2 {
 			title: ShowActiveFileInExplorer.LABEL,
 			f1: true,
 			category: Categories.File,
-			precondition: IsSessionsWindowContext.negate(),
+			precondition: IsSessionsWindowContext,
 			metadata: {
 				description: nls.localize2('showInExplorerMetadata', "Reveals and selects the active file within the explorer view.")
 			}
