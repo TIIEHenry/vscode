@@ -9,7 +9,7 @@ import { NullLogService } from '../../../../../platform/log/common/log.js';
 import { ISetting, ISettingsGroup } from '../../../../services/preferences/common/preferences.js';
 import { nullRange } from '../../../../services/preferences/common/preferencesModels.js';
 import { ADVANCED_SETTING_TAG } from '../../common/preferences.js';
-import { filterExtensionSettingsGroupsForWindow, getSettingsTocFilter, getTocDataForWindow, ITOCEntry, tocData } from '../../browser/settingsLayout.js';
+import { filterExtensionSettingsGroupsForWindow, getSettingsTocFilter, getTocDataForWindow, ITOCEntry, shouldIncludeSettingInWindowSearch, tocData } from '../../browser/settingsLayout.js';
 import { resolveSettingsTree } from '../../browser/settingsTree.js';
 
 function childIds<T>(entry: ITOCEntry<T> | undefined): string[] {
@@ -49,6 +49,13 @@ function mockExtensionGroup(extensionId: string, keys: string[]): ISettingsGroup
 		titleRange: nullRange,
 		sections: [{ settings: keys.map(key => mockSetting(key)) }],
 		extensionInfo: { id: extensionId, displayName: extensionId }
+	};
+}
+
+function mockExtensionSetting(key: string, extensionId: string): ISetting {
+	return {
+		...mockSetting(key),
+		extensionInfo: { id: extensionId, displayName: extensionId },
 	};
 }
 
@@ -149,5 +156,30 @@ suite('Settings TOC by window', () => {
 		];
 		const filtered = filterExtensionSettingsGroupsForWindow(groups, true);
 		assert.strictEqual(filtered.length, 2);
+	});
+});
+
+suite('Settings search by window', () => {
+	ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('default Code window search omits chat.* keys', () => {
+		assert.strictEqual(shouldIncludeSettingInWindowSearch(mockSetting('editor.fontSize'), false), true);
+		assert.strictEqual(shouldIncludeSettingInWindowSearch(mockSetting('search.exclude'), false), true);
+		assert.strictEqual(shouldIncludeSettingInWindowSearch(mockSetting('chat.agent.maxRequests'), false), false);
+		assert.strictEqual(shouldIncludeSettingInWindowSearch(mockSetting('inlineChat.mode'), false), false);
+	});
+
+	test('default Code window search omits Copilot extension settings', () => {
+		assert.strictEqual(shouldIncludeSettingInWindowSearch(mockExtensionSetting('github.copilot.enable', 'GitHub.copilot'), false), false);
+		assert.strictEqual(shouldIncludeSettingInWindowSearch(mockExtensionSetting('github.copilot.chat.setting', 'GitHub.copilot-chat'), false), false);
+		assert.strictEqual(shouldIncludeSettingInWindowSearch(mockExtensionSetting('python.linting.enabled', 'ms-python.python'), false), true);
+		const entitlementSetting = mockSetting('GitHub.copilot-chat.manageExtension');
+		entitlementSetting.displayExtensionId = 'GitHub.copilot-chat';
+		assert.strictEqual(shouldIncludeSettingInWindowSearch(entitlementSetting, false), false);
+	});
+
+	test('Agents Window search keeps chat and Copilot settings', () => {
+		assert.strictEqual(shouldIncludeSettingInWindowSearch(mockSetting('chat.agent.maxRequests'), true), true);
+		assert.strictEqual(shouldIncludeSettingInWindowSearch(mockExtensionSetting('github.copilot.enable', 'GitHub.copilot'), true), true);
 	});
 });
