@@ -66,6 +66,12 @@ suite('Navigator stub views', () => {
 		assert.notStrictEqual(viewsRegistry.getViewContainer(CONVERSATION_SESSIONS_VIEW_ID), EXPLORER_VIEW_CONTAINER);
 	});
 
+	test('Navigator stub ViewContainers use hideIfEmpty and are non-default', () => {
+		for (const { containerId, container } of navigatorContainerCases) {
+			assert.strictEqual(container.hideIfEmpty, true, `${containerId} must keep hideIfEmpty`);
+		}
+	});
+
 	test('Navigator ViewContainers are Sidebar non-default composites', () => {
 		const defaultSidebarContainers = viewContainersRegistry.getDefaultViewContainers(ViewContainerLocation.Sidebar);
 		const nonDefaultContainerIds = [
@@ -125,8 +131,10 @@ suite('Navigator stub views', () => {
 
 			const empty = view.element.querySelector('.navigator-stub-empty');
 			assert.ok(empty, `expected empty stub body for ${id}`);
-			assert.ok(empty.textContent?.includes('not wired'));
+			assert.ok(empty.textContent?.includes('not connected'));
 			assert.ok(empty.textContent?.includes('no engine'));
+			assert.ok(!empty.textContent?.match(/copilot/i), `stub body must not mention Copilot (${id})`);
+			assert.ok(!empty.textContent?.match(/open chat/i), `stub body must not mention Open Chat (${id})`);
 			assert.strictEqual(view.element.querySelector('.chat-widget'), null);
 			assert.strictEqual(view.element.querySelector('.chat-setup'), null);
 		}
