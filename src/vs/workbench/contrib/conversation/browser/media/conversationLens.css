@@ -217,6 +217,71 @@
 	padding: 8px;
 	width: 100%;
 	box-sizing: border-box;
+	position: relative;
+}
+
+.monaco-workbench .part.conversation .conversation-timeline-pinned-user {
+	position: absolute;
+	top: 8px;
+	left: 8px;
+	right: 8px;
+	z-index: 2;
+	display: none;
+	justify-content: flex-end;
+	pointer-events: none;
+}
+
+.monaco-workbench .part.conversation .conversation-timeline-pinned-user--visible {
+	display: flex;
+}
+
+.monaco-workbench .part.conversation .conversation-timeline-pinned-user-inner {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	max-width: 92%;
+	min-width: 0;
+	pointer-events: auto;
+}
+
+.monaco-workbench .part.conversation .conversation-timeline-pinned-user-bubble {
+	display: flex;
+	align-items: center;
+	flex: 1;
+	min-width: 0;
+	margin: 0;
+	padding: 0;
+	border: none;
+	background: transparent;
+	box-shadow: none;
+	color: inherit;
+	font: inherit;
+	line-height: inherit;
+	cursor: pointer;
+	text-align: start;
+}
+
+.monaco-workbench .part.conversation .conversation-timeline-pinned-user-text {
+	flex: 1;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.monaco-workbench .part.conversation .conversation-timeline-pinned-user-copy {
+	flex-shrink: 0;
+	pointer-events: auto;
+}
+
+.monaco-workbench .part.conversation .conversation-timeline-pinned-user-copy .monaco-button {
+	height: 20px;
+	min-width: 20px;
+	padding: 0 4px;
+}
+
+.monaco-workbench .part.conversation .conversation-timeline-pinned-user-copy .monaco-button .codicon {
+	margin: 0;
 }
 
 .monaco-workbench .part.conversation .conversation-timeline-tree {

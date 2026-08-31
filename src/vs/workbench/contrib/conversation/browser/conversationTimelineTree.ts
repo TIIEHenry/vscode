@@ -16,8 +16,16 @@ import { asCssVariable, asCssVariableWithDefault, buttonSecondaryBackground, but
 import { defaultButtonStyles } from '../../../../platform/theme/browser/defaultStyles.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { ConversationConfirmationSeat } from './conversationConfirmationSeat.js';
-import { conversationLensThinkingNotConnected, conversationLensToolNotConnected, conversationLensTurnCopy, conversationLensTurnDelete } from './conversationLensSessionBarStrings.js';
+import { conversationLensThinkingNotConnected, conversationLensToolNotConnected, conversationLensTurnCopy, conversationLensTurnDelete, conversationLensPinnedUserPromptAria, conversationLensPinnedUserPromptCopyAria } from './conversationLensSessionBarStrings.js';
 import { ConversationStubTurn } from './conversationStubModel.js';
+import {
+	ConversationTimelineFlatItem,
+	flattenConversationTimelineItems,
+	indexOfConversationTimelineFlatItem,
+	PinnedUserPromptState,
+	rangeVisibleTimelineIndices,
+	resolvePinnedUserPromptState,
+} from './conversationPinnedUserPrompt.js';
 import {
 	computeConversationScrollDownState,
 	ConversationAutoScrollHolds,
@@ -311,6 +319,10 @@ export class ConversationTimelineTree extends Disposable {
 	private readonly contentHost: HTMLElement;
 	private readonly treeContainer: HTMLElement;
 	private readonly scrollDownButton: Button;
+	private readonly pinnedUserHost: HTMLElement;
+	private readonly pinnedUserBubble: HTMLButtonElement;
+	private readonly pinnedUserText: HTMLElement;
+	private readonly pinnedUserCopyButton: Button;
 	private readonly tree: WorkbenchObjectTree<ConversationTimelineItem, void>;
 	private readonly renderer: ConversationTimelineRenderer;
 	private readonly delegate: ConversationTimelineDelegate;
@@ -318,6 +330,8 @@ export class ConversationTimelineTree extends Disposable {
 	private readonly turnItems = new Map<string, ConversationTimelineItem>();
 
 	private _scrollLock = true;
+	private flatItems: readonly ConversationTimelineFlatItem[] = [];
+	private pinnedUserState: PinnedUserPromptState | undefined;
 
 	constructor(
 		parent: HTMLElement,
@@ -338,6 +352,34 @@ export class ConversationTimelineTree extends Disposable {
 			localize('conversationLens.timelineEmptyHint', "Send a message below to start this session.");
 
 		this.contentHost = append(this.scrollHost, $('.conversation-lens-timeline-content'));
+		this.pinnedUserHost = append(this.contentHost, $('.conversation-timeline-pinned-user'));
+		const pinnedUserInner = append(this.pinnedUserHost, $('.conversation-timeline-pinned-user-inner.conversation-lens-turn-body--user-bubble'));
+		this.pinnedUserBubble = append(pinnedUserInner, $('button.conversation-timeline-pinned-user-bubble')) as HTMLButtonElement;
+		this.pinnedUserBubble.type = 'button';
+		this.pinnedUserBubble.setAttribute('aria-label', conversationLensPinnedUserPromptAria);
+		this.pinnedUserText = append(this.pinnedUserBubble, $('span.conversation-timeline-pinned-user-text'));
+		const pinnedUserCopyContainer = append(pinnedUserInner, $('span.conversation-timeline-pinned-user-copy'));
+		this.pinnedUserCopyButton = this._register(new Button(pinnedUserCopyContainer, {
+			...defaultButtonStyles,
+			supportIcons: true,
+			small: true,
+			secondary: true,
+			title: conversationLensPinnedUserPromptCopyAria,
+			ariaLabel: conversationLensPinnedUserPromptCopyAria,
+		}));
+		this.pinnedUserCopyButton.icon = Codicon.copy;
+		this._register(this.pinnedUserCopyButton.onDidClick((e) => {
+			e?.stopPropagation();
+			if (this.pinnedUserState && options.onCopyTurn) {
+				options.onCopyTurn(this.pinnedUserState.turnId, this.pinnedUserState.fullText);
+			}
+		}));
+		this._register(addDisposableListener(this.pinnedUserBubble, 'click', () => {
+			if (this.pinnedUserState) {
+				this.revealTurn(this.pinnedUserState.turnId);
+			}
+		}));
+
 		this.treeContainer = append(this.contentHost, $('.conversation-timeline-tree'));
 
 		const contentAdapter = options.contentAdapter
@@ -425,6 +467,7 @@ export class ConversationTimelineTree extends Disposable {
 				this.setScrollLock(false);
 			}
 			this.updateScrollDownButtonVisibility();
+			this.updatePinnedUserPromptVisibility();
 		}));
 
 		this._register(this.tree.onDidChangeContentHeight(() => {
@@ -432,6 +475,7 @@ export class ConversationTimelineTree extends Disposable {
 				this.scrollToEnd();
 			}
 			this.updateScrollDownButtonVisibility();
+			this.updatePinnedUserPromptVisibility();
 		}));
 
 		this._register(addDisposableListener(this.treeContainer, 'wheel', () => {
@@ -441,6 +485,7 @@ export class ConversationTimelineTree extends Disposable {
 		}));
 
 		this.updateScrollDownButtonVisibility();
+		this.updatePinnedUserPromptVisibility();
 		this.renderEmptyState(true);
 	}
 
@@ -461,12 +506,14 @@ export class ConversationTimelineTree extends Disposable {
 			this.renderer.clearConfirmationSeats();
 			this.renderer.clearUserBubbleExpanded();
 			this.turnItems.clear();
+			this.flatItems = flattenConversationTimelineItems(turns);
 			const items = turns.map(turn => this.toTreeElement(turn));
 			for (const treeElement of items) {
 				this.turnItems.set(treeElement.element.turn.id, treeElement.element);
 			}
 			this.tree.setChildren(null, items);
 			this.renderEmptyState(turns.length === 0);
+			this.updatePinnedUserPromptVisibility();
 		});
 	}
 
@@ -517,6 +564,7 @@ export class ConversationTimelineTree extends Disposable {
 	setScrollLock(value: boolean): void {
 		this._scrollLock = value;
 		this.updateScrollDownButtonVisibility();
+		this.updatePinnedUserPromptVisibility();
 	}
 
 	scrollToEnd(): void {
@@ -557,6 +605,31 @@ export class ConversationTimelineTree extends Disposable {
 		const { showButton, atBottom } = computeConversationScrollDownState(this.isScrolledToBottom(), this._scrollLock);
 		this.scrollDownButton.element.style.display = showButton ? 'flex' : 'none';
 		this.scrollHost.classList.toggle('conversation-timeline-at-bottom', atBottom);
+	}
+
+	private updatePinnedUserPromptVisibility(): void {
+		const visibleIndices = this.getVisibleTimelineIndices();
+		const state = resolvePinnedUserPromptState(this.flatItems, visibleIndices, this.isScrolledToBottom());
+		this.pinnedUserState = state;
+		if (!state) {
+			this.pinnedUserHost.classList.remove('conversation-timeline-pinned-user--visible');
+			this.pinnedUserText.textContent = '';
+			return;
+		}
+
+		this.pinnedUserHost.classList.add('conversation-timeline-pinned-user--visible');
+		this.pinnedUserText.textContent = state.previewText;
+	}
+
+	private getVisibleTimelineIndices(): number[] {
+		const firstVisible = this.tree.firstVisibleElement;
+		if (!firstVisible) {
+			return [];
+		}
+		const lastVisible = this.tree.lastVisibleElement;
+		const firstIndex = indexOfConversationTimelineFlatItem(this.flatItems, firstVisible);
+		const lastIndex = indexOfConversationTimelineFlatItem(this.flatItems, lastVisible);
+		return rangeVisibleTimelineIndices(firstIndex, lastIndex);
 	}
 
 	private withPersistedAutoScroll(fn: () => void): void {

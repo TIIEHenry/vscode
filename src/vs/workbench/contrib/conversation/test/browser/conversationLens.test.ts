@@ -29,7 +29,7 @@ import {
 	conversationLensDockStopNotGenerating,
 	conversationLensInputMaximizedClass,
 } from '../../browser/conversationLensDockStrings.js';
-import { conversationLensSessionBarDeleteSession, conversationLensSessionBarHistoryTitle, conversationLensSessionBarNewSession, conversationLensSessionBarNoTrajectory, conversationLensSessionBarRenameTitle, conversationLensThinkingNotConnected, conversationLensToolNotConnected } from '../../browser/conversationLensSessionBarStrings.js';
+import { conversationLensSessionBarDeleteSession, conversationLensSessionBarHistoryTitle, conversationLensSessionBarNewSession, conversationLensSessionBarNoTrajectory, conversationLensSessionBarRenameTitle, conversationLensThinkingNotConnected, conversationLensToolNotConnected, conversationLensPinnedUserPromptAria, conversationLensPinnedUserPromptCopyAria } from '../../browser/conversationLensSessionBarStrings.js';
 import { ConversationStubService, IConversationRosterService } from '../../browser/conversationStubService.js';
 import { getConversationSessionStatusText } from '../../browser/conversationSessionStatus.js';
 import { shouldRenderTurnAsMarkdown } from '../../browser/conversationTurnMarkdown.js';
@@ -79,6 +79,25 @@ suite('ConversationLens', () => {
 
 	function queryAllTimeline(slots: IConversationLensSlots, selector: string): NodeListOf<Element> {
 		return slots.timeline.querySelectorAll(selector);
+	}
+
+	function getTimelineTree(lens: ConversationLens): ConversationTimelineTree {
+		return (lens as unknown as { timelineTree: ConversationTimelineTree }).timelineTree;
+	}
+
+	function scrollTimelineAwayFromBottom(lens: ConversationLens, offsetFromBottom = 200): void {
+		const timelineTree = getTimelineTree(lens);
+		timelineTree.setScrollLock(false);
+		const tree = (timelineTree as unknown as { tree: { scrollTop: number; scrollHeight: number; renderHeight: number } }).tree;
+		tree.scrollTop = Math.max(0, tree.scrollHeight - tree.renderHeight - offsetFromBottom);
+	}
+
+	function getPinnedUserPrompt(slots: IConversationLensSlots): HTMLElement | null {
+		return queryTimeline(slots, '.conversation-timeline-pinned-user');
+	}
+
+	function getPinnedUserPromptBubble(slots: IConversationLensSlots): HTMLButtonElement | null {
+		return queryTimeline(slots, '.conversation-timeline-pinned-user-bubble') as HTMLButtonElement | null;
 	}
 
 	function layoutReadingColumn(lens: ConversationLens, slots: IConversationLensSlots): void {
@@ -1158,5 +1177,96 @@ suite('ConversationLens', () => {
 		textarea.value = 'typing now';
 		dispatchDockKeydown(textarea, KeyCode.UpArrow);
 		assert.strictEqual(textarea.value, 'typing now');
+	});
+
+	test('pinned user prompt is hidden at bottom and on empty session', async () => {
+		const { part, lens, stubService, layoutReadingColumn } = mountLens();
+		const slots = part.getSlots()!;
+		const sessionId = stubService.getActiveSessionId();
+
+		assert.notStrictEqual(getPinnedUserPrompt(slots)?.classList.contains('conversation-timeline-pinned-user--visible'), true);
+
+		stubService.appendUserTurn(sessionId, 'What is pinned?');
+		stubService.appendStubEchoAssistant(sessionId, userMessageLines(40));
+		layoutReadingColumn();
+		await flushTimelineHeightUpdates();
+
+		assert.ok(!getPinnedUserPrompt(slots)?.classList.contains('conversation-timeline-pinned-user--visible'));
+
+		scrollTimelineAwayFromBottom(lens);
+		layoutReadingColumn();
+		await flushTimelineHeightUpdates();
+		await flushAnimationFrames();
+
+		assert.ok(getPinnedUserPrompt(slots)?.classList.contains('conversation-timeline-pinned-user--visible'));
+
+		getTimelineTree(lens).scrollToEnd();
+		layoutReadingColumn();
+		await flushTimelineHeightUpdates();
+		await flushAnimationFrames();
+
+		assert.ok(!getPinnedUserPrompt(slots)?.classList.contains('conversation-timeline-pinned-user--visible'));
+	});
+
+	test('pinned user prompt shows one-line preview and reveals user turn on click', async () => {
+		const { part, lens, stubService, layoutReadingColumn } = mountLens();
+		const slots = part.getSlots()!;
+		const sessionId = stubService.getActiveSessionId();
+		const userText = 'Scroll target user prompt';
+
+		stubService.appendUserTurn(sessionId, userText);
+		stubService.appendStubEchoAssistant(sessionId, userMessageLines(40));
+		layoutReadingColumn();
+		await flushTimelineHeightUpdates();
+
+		scrollTimelineAwayFromBottom(lens);
+		layoutReadingColumn();
+		await flushTimelineHeightUpdates();
+		await flushAnimationFrames();
+
+		const bubble = getPinnedUserPromptBubble(slots);
+		assert.ok(bubble);
+		assert.strictEqual(bubble!.getAttribute('aria-label'), conversationLensPinnedUserPromptAria);
+		assert.strictEqual(bubble!.querySelector('.conversation-timeline-pinned-user-text')?.textContent, userText);
+		assert.strictEqual(bubble!.textContent?.includes('Pinned prompt'), false);
+
+		bubble!.click();
+		layoutReadingColumn();
+		await flushTimelineHeightUpdates();
+		await flushAnimationFrames();
+
+		const userTurn = queryTimeline(slots, '.conversation-lens-turn[data-kind="user"]');
+		assert.ok(userTurn);
+		assert.ok(!getPinnedUserPrompt(slots)?.classList.contains('conversation-timeline-pinned-user--visible'));
+	});
+
+	test('pinned user prompt copy writes full text and exposes no Quote Edit or Regenerate', async () => {
+		const { part, lens, stubService, clipboardService, layoutReadingColumn } = mountLens();
+		const slots = part.getSlots()!;
+		const sessionId = stubService.getActiveSessionId();
+		const userText = userMessageLines(8);
+
+		stubService.appendUserTurn(sessionId, userText);
+		stubService.appendStubEchoAssistant(sessionId, userMessageLines(40));
+		layoutReadingColumn();
+		await flushTimelineHeightUpdates();
+
+		scrollTimelineAwayFromBottom(lens);
+		layoutReadingColumn();
+		await flushTimelineHeightUpdates();
+		await flushAnimationFrames();
+
+		const pinnedHost = getPinnedUserPrompt(slots);
+		assert.ok(pinnedHost?.classList.contains('conversation-timeline-pinned-user--visible'));
+
+		const copyButton = pinnedHost!.querySelector('.conversation-timeline-pinned-user-copy .monaco-button') as HTMLElement;
+		assert.strictEqual(copyButton.getAttribute('aria-label'), conversationLensPinnedUserPromptCopyAria);
+		copyButton.click();
+		assert.strictEqual(await clipboardService.readText(), userText.replace(/\n/g, ' ').replace(/\s+/g, ' ').trim());
+
+		assert.strictEqual(pinnedHost!.querySelector('[aria-label*="Quote"]'), null);
+		assert.strictEqual(pinnedHost!.querySelector('[aria-label*="Edit"]'), null);
+		assert.strictEqual(pinnedHost!.querySelector('[aria-label*="Regenerate"]'), null);
+		assert.strictEqual(pinnedHost!.querySelector('.conversation-lens-turn-actions'), null);
 	});
 });
