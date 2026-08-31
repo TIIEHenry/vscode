@@ -4,11 +4,7 @@ type: architecture
 status: accepted
 phase: N/A
 updated: 2026-08-31
-<<<<<<< HEAD
-summary: "本仓对话 UI 的三层：ChatWidget 零件、workbench 宿主（含违反 INV-TOPO 的 ChatEditor）、Sessions Part；M1 透镜骨架 + Sources 三 tab + D7 四钮已落"
-=======
-summary: "本仓对话 UI 的三层：ChatWidget 零件、workbench 宿主（含违反 INV-TOPO 的 ChatEditor）、Sessions Part；Conversation 列 SessionBar/Timeline/Dock chrome + Sources Files 列表 + D7 四钮已落"
->>>>>>> loop/C
+summary: "本仓对话 UI 的三层：ChatWidget 零件、workbench 宿主（含违反 INV-TOPO 的 ChatEditor）、Sessions Part；Conversation 列 SessionBar/Timeline/Dock chrome + Sources Files/Changes/Review tab + D7 四钮已落"
 ---
 
 # Agent UI 清单
