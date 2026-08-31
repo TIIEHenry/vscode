@@ -49,7 +49,6 @@ suite('ConversationStubService', () => {
 	test('renameSession trims title and fires onDidChangeSession', () => {
 		const service = store.add(new ConversationStubService());
 		const sessionId = service.getActiveSessionId();
-		const previousTitle = service.getActiveSession().title;
 		let changedSessionId: string | undefined;
 
 		store.add(service.onDidChangeSession(id => {
@@ -64,7 +63,7 @@ suite('ConversationStubService', () => {
 		assert.strictEqual(service.renameSession(sessionId, '   '), false);
 		assert.strictEqual(service.getActiveSession().title, 'My renamed session');
 
-		assert.strictEqual(service.renameSession(sessionId, previousTitle), false);
+		assert.strictEqual(service.renameSession(sessionId, 'My renamed session'), false);
 		assert.strictEqual(service.getActiveSession().title, 'My renamed session');
 
 		assert.strictEqual(service.renameSession('missing', 'Nope'), false);
