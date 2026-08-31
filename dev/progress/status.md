@@ -2,16 +2,17 @@
 title: "Development Progress"
 type: progress
 status: active
-phase: M3
+phase: M4
 updated: 2026-08-31
-summary: "M3 两切片已落地并合入 agent-ide：ChatEditor 默认路径藏/转 + Navigator stub roster"
+summary: "M4 验证波开工：D3 compile/单测 + D4 启动冒烟"
 ---
 
 # Development Progress
 
 ## Current Session
 
-- **M3 方案** [m3-shell-closeout.md](../plans/m3-shell-closeout.md) **`implemented`**（可选 follow-on）：切片 1 + 2 已合入 `agent-ide`（关仓）。无引擎。compile/启动/EH 仍 D3–D5。
+- **M4 方案** [m4-validation-wave.md](../plans/m4-validation-wave.md) **`in_progress`**：切片 1 D3 compile/分层/域单测（工位 merge）；切片 2 D4 启动 T1–T3 冒烟（工位 A）。基线 `agent-ide` `b6d1b265` 已 push `origin/agent-ide`。
+- **M3 方案** [m3-shell-closeout.md](../plans/m3-shell-closeout.md) **`implemented`**（关仓 `b6d1b265`）。
 - **M2 方案** [m2-product-shell.md](../plans/m2-product-shell.md) **`implemented`**（无引擎产品壳完成线；M3 不阻塞）。
 - **M1 切片 3 Sources Files**（`156f0fe5`）：只读列表投影，点击开 End Preview。
 - **D7 四钮 chrome**（`2dcd5a0a`）：默认窗 `LayoutControlMenu` 只留 Nav / Conversation / Preview / Sources；Panel/Aux 仍在 submenu。

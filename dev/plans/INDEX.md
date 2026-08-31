@@ -17,3 +17,4 @@ summary: "dev/plans 导航：M0 / M1 / M2 / M3 implemented"
 | [m1-shell-followon.md](m1-shell-followon.md) | `implemented` | M0 之后三切片：四钮 chrome、Conversation 透镜、Sources Files 投影 |
 | [m2-product-shell.md](m2-product-shell.md) | `implemented` | 无引擎产品壳剩余面：透镜产品化、Chat/Aux 卫生、文档诚实 |
 | [m3-shell-closeout.md](m3-shell-closeout.md) | `implemented` | 可选壳收尾已落：ChatEditor 默认路径藏/转、Navigator stub 会话列表；不阻塞无引擎完成线 |
+| [m4-validation-wave.md](m4-validation-wave.md) | `in_progress` | D3 compile/分层/域单测 + D4 启动 T1–T3 冒烟 |
