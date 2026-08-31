@@ -1033,6 +1033,14 @@ export class OpenAgentSessionInNewWindowAction extends BaseOpenAgentSessionActio
 			auxiliary: { compact: true, bounds: { width: 800, height: 640 } }
 		};
 	}
+
+	override async runWithSessions(_sessions: IAgentSession[], accessor: ServicesAccessor): Promise<void> {
+		if (isDefaultCodeWindow(accessor)) {
+			focusConversationPart(accessor);
+			return;
+		}
+		await super.runWithSessions(_sessions, accessor);
+	}
 }
 
 //#endregion

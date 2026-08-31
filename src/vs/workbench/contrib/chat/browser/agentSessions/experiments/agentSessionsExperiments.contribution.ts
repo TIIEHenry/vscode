@@ -14,7 +14,7 @@ import { Codicon } from '../../../../../../base/common/codicons.js';
 import { localize } from '../../../../../../nls.js';
 import { ContextKeyExpr } from '../../../../../../platform/contextkey/common/contextkey.js';
 import { ProductQualityContext } from '../../../../../../platform/contextkey/common/contextkeys.js';
-import { InEditorZenModeContext } from '../../../../../common/contextkeys.js';
+import { InEditorZenModeContext, IsSessionsWindowContext } from '../../../../../common/contextkeys.js';
 import { ChatAgentLocation, ChatConfiguration } from '../../../common/constants.js';
 import { ChatContextKeys } from '../../../common/actions/chatContextKeys.js';
 import { Disposable, DisposableStore, IDisposable } from '../../../../../../base/common/lifecycle.js';
@@ -271,6 +271,7 @@ MenuRegistry.appendMenuItem(MenuId.TitleBar, {
 	group: 'navigation',
 	icon: Codicon.chatSparkle,
 	when: ContextKeyExpr.and(
+		IsSessionsWindowContext,
 		ChatContextKeys.supported,
 		ContextKeyExpr.and(
 			ChatContextKeys.Setup.hidden.negate(),

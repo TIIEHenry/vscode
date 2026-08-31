@@ -48,6 +48,7 @@ import { EditorExtensions, IEditorFactoryRegistry } from '../../../common/editor
 import { IWorkbenchAssignmentService } from '../../../services/assignment/common/assignmentService.js';
 import { ChatEntitlement, IChatEntitlementService } from '../../../services/chat/common/chatEntitlementService.js';
 import { IEditorResolverService, RegisteredEditorPriority } from '../../../services/editor/common/editorResolverService.js';
+import { IWorkbenchEnvironmentService } from '../../../services/environment/common/environmentService.js';
 import { IPathService } from '../../../services/path/common/pathService.js';
 import { IViewsService } from '../../../services/views/common/viewsService.js';
 import { AddConfigurationType, AssistedTypes } from '../../mcp/browser/mcpCommandsAddConfiguration.js';
@@ -2664,6 +2665,11 @@ Registry.as<IConfigurationMigrationRegistry>(Extensions.ConfigurationMigration).
 	},
 ]);
 
+/** INV-NO-COPILOT: Chat session URI → ChatEditor resolver is Agents Window only. */
+export function shouldRegisterChatEditorResolver(isSessionsWindow: boolean): boolean {
+	return isSessionsWindow;
+}
+
 class ChatResolverContribution extends Disposable {
 
 	static readonly ID = 'workbench.contrib.chatResolver';
@@ -2674,8 +2680,13 @@ class ChatResolverContribution extends Disposable {
 		@IChatSessionsService chatSessionsService: IChatSessionsService,
 		@IEditorResolverService private readonly editorResolverService: IEditorResolverService,
 		@IInstantiationService private readonly instantiationService: IInstantiationService,
+		@IWorkbenchEnvironmentService private readonly environmentService: IWorkbenchEnvironmentService,
 	) {
 		super();
+
+		if (!shouldRegisterChatEditorResolver(this.environmentService.isSessionsWindow)) {
+			return;
+		}
 
 		this._register(chatSessionsService.onDidChangeContentProviderSchemes((e) => {
 			for (const scheme of e.added) {
