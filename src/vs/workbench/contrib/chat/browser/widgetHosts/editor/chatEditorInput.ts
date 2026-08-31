@@ -36,6 +36,7 @@ import { adoptLegacyCopilotCliResource, LEGACY_MIGRATION_RESTORE_TIMEOUT_MS } fr
 import { migratedCopilotCliResource } from '../../copilotCliEventsUri.js';
 import { IClearEditingSessionConfirmationOptions } from '../../actions/chatActions.js';
 import type { IChatEditorOptions } from './chatEditor.js';
+import { IWorkbenchEnvironmentService } from '../../../../../services/environment/common/environmentService.js';
 
 const ChatEditorIcon = registerIcon('chat-editor-label-icon', Codicon.chatSparkle, nls.localize('chatEditorLabelIcon', 'Icon of the chat editor label.'));
 
@@ -488,6 +489,34 @@ export class ChatEditorInputSerializer implements IEditorSerializer {
 		} catch (err) {
 			return undefined;
 		}
+	}
+}
+
+/** Workbench registration: skip workspace restore of Chat tabs in the default Code window (INV-TOPO). */
+export class ChatEditorInputWorkbenchSerializer implements IEditorSerializer {
+
+	private readonly _delegate = new ChatEditorInputSerializer();
+
+	constructor(
+		@IWorkbenchEnvironmentService private readonly environmentService: IWorkbenchEnvironmentService,
+	) { }
+
+	canSerialize(input: EditorInput): input is ChatEditorInput {
+		if (!this.environmentService.isSessionsWindow) {
+			return false;
+		}
+		return this._delegate.canSerialize(input);
+	}
+
+	serialize(input: EditorInput): string | undefined {
+		return this._delegate.serialize(input);
+	}
+
+	deserialize(instantiationService: IInstantiationService, serializedEditor: string): EditorInput | undefined {
+		if (!this.environmentService.isSessionsWindow) {
+			return undefined;
+		}
+		return this._delegate.deserialize(instantiationService, serializedEditor);
 	}
 }
 

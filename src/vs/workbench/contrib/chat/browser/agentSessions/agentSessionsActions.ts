@@ -26,7 +26,7 @@ import { showClearEditingSessionConfirmation } from '../widgetHosts/editor/chatE
 import { IDialogService } from '../../../../../platform/dialogs/common/dialogs.js';
 import { IConfigurationService } from '../../../../../platform/configuration/common/configuration.js';
 import { ChatConfiguration } from '../../common/constants.js';
-import { ACTION_ID_NEW_CHAT } from '../actions/chatActions.js';
+import { ACTION_ID_NEW_CHAT, focusConversationPart, isDefaultCodeWindow } from '../actions/chatActions.js';
 import { IViewsService } from '../../../../services/views/common/viewsService.js';
 import { ChatViewPane } from '../widgetHosts/viewPane/chatViewPane.js';
 import { ICommandService } from '../../../../../platform/commands/common/commands.js';
@@ -956,6 +956,14 @@ export class OpenAgentSessionInEditorGroupAction extends BaseOpenAgentSessionAct
 	protected getOptions(): IChatEditorOptions {
 		return {};
 	}
+
+	override async runWithSessions(_sessions: IAgentSession[], accessor: ServicesAccessor): Promise<void> {
+		if (isDefaultCodeWindow(accessor)) {
+			focusConversationPart(accessor);
+			return;
+		}
+		await super.runWithSessions(_sessions, accessor);
+	}
 }
 
 export class OpenAgentSessionInNewEditorGroupAction extends BaseOpenAgentSessionAction {
@@ -989,6 +997,14 @@ export class OpenAgentSessionInNewEditorGroupAction extends BaseOpenAgentSession
 
 	protected getOptions(): IChatEditorOptions {
 		return {};
+	}
+
+	override async runWithSessions(_sessions: IAgentSession[], accessor: ServicesAccessor): Promise<void> {
+		if (isDefaultCodeWindow(accessor)) {
+			focusConversationPart(accessor);
+			return;
+		}
+		await super.runWithSessions(_sessions, accessor);
 	}
 }
 
