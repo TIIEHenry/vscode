@@ -10,7 +10,7 @@ import { Registry } from '../../../../platform/registry/common/platform.js';
 import { registerIcon } from '../../../../platform/theme/common/iconRegistry.js';
 import { ViewPaneContainer } from '../../../browser/parts/views/viewPaneContainer.js';
 import { Extensions as ViewContainerExtensions, Extensions as ViewExtensions, IViewContainersRegistry, IViewsRegistry, ViewContainer, ViewContainerLocation } from '../../../common/views.js';
-import { AGENT_INSPECT_CONTAINER_ID, AGENT_INSPECT_VIEW_ID } from './agentInspectIds.js';
+import { AGENT_INSPECT_CONTAINER_ID, AGENT_INSPECT_VIEW_ID, OPEN_AGENT_INSPECT_VIEW_COMMAND_ID } from './agentInspectIds.js';
 import { AgentInspectView } from './agentInspectView.js';
 
 const agentInspectViewIcon = registerIcon(
@@ -44,4 +44,8 @@ viewsRegistry.registerViews([{
 	canMoveView: true,
 	order: 1,
 	weight: 100,
+	openCommandActionDescriptor: {
+		id: OPEN_AGENT_INSPECT_VIEW_COMMAND_ID,
+		order: 50,
+	},
 }], AGENT_INSPECT_VIEW_CONTAINER);
