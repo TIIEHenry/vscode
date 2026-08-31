@@ -707,6 +707,31 @@ const registry = Registry.as<IConfigurationRegistry>(ConfigurationExtensions.Con
 				],
 				agentsWindow: { default: 'toggle', readOnly: true },
 			},
+			'workbench.activityBar.visibleViewlets.scm': {
+				'type': 'boolean',
+				'default': false,
+				'description': localize('activityBarVisibleViewletsScm', "Show Source Control in the Activity Bar.")
+			},
+			'workbench.activityBar.visibleViewlets.debug': {
+				'type': 'boolean',
+				'default': false,
+				'description': localize('activityBarVisibleViewletsDebug', "Show Run and Debug in the Activity Bar.")
+			},
+			'workbench.activityBar.visibleViewlets.testing': {
+				'type': 'boolean',
+				'default': false,
+				'description': localize('activityBarVisibleViewletsTesting', "Show Testing in the Activity Bar.")
+			},
+			'workbench.activityBar.visibleViewlets.extensions': {
+				'type': 'boolean',
+				'default': false,
+				'description': localize('activityBarVisibleViewletsExtensions', "Show Extensions in the Activity Bar.")
+			},
+			'workbench.activityBar.visibleViewlets.remote': {
+				'type': 'boolean',
+				'default': false,
+				'description': localize('activityBarVisibleViewletsRemote', "Show Remote Explorer in the Activity Bar.")
+			},
 			'workbench.view.alwaysShowHeaderActions': {
 				'type': 'boolean',
 				'default': false,

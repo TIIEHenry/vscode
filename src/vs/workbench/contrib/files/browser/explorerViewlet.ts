@@ -30,7 +30,7 @@ import { KeyChord, KeyMod, KeyCode } from '../../../../base/common/keyCodes.js';
 import { Registry } from '../../../../platform/registry/common/platform.js';
 import { IProgressService, ProgressLocation } from '../../../../platform/progress/common/progress.js';
 import { SyncDescriptor } from '../../../../platform/instantiation/common/descriptors.js';
-import { IsSessionsWindowContext, WorkbenchStateContext, RemoteNameContext, OpenFolderWorkspaceSupportContext } from '../../../common/contextkeys.js';
+import { WorkbenchStateContext, RemoteNameContext, OpenFolderWorkspaceSupportContext } from '../../../common/contextkeys.js';
 import { IsWebContext } from '../../../../platform/contextkey/common/contextkeys.js';
 import { AddRootFolderAction, OpenFolderAction, OpenFolderViaWorkspaceAction } from '../../../browser/actions/workspaceActions.js';
 import { OpenRecentAction } from '../../../browser/actions/windowActions.js';
@@ -42,8 +42,8 @@ import { ILogService } from '../../../../platform/log/common/log.js';
 const explorerViewIcon = registerIcon('explorer-view-icon', Codicon.files, localize('explorerViewIcon', 'View icon of the explorer view.'));
 const openEditorsViewIcon = registerIcon('open-editors-view-icon', Codicon.book, localize('openEditorsIcon', 'View icon of the open editors view.'));
 
-/** Sidebar file-tree views (Folders / Open Editors / empty state) are Agents Window only; default Code window uses End Sources. */
-export const explorerSidebarViewsWhen = IsSessionsWindowContext;
+/** Files sidebar views are available whenever the Files container is enabled (default Code window). */
+export const explorerSidebarViewsWhen = undefined;
 
 export class ExplorerViewletViewsContribution extends Disposable implements IWorkbenchContribution {
 
@@ -275,11 +275,10 @@ export const VIEW_CONTAINER: ViewContainer = viewContainerRegistry.registerViewC
 		mnemonicTitle: localize({ key: 'miViewFiles', comment: ['&& denotes a mnemonic'] }, "&&Files"),
 		keybindings: {
 			primary: KeyMod.CtrlCmd | KeyMod.Shift | KeyCode.KeyE,
-			when: IsSessionsWindowContext,
 		},
 		order: 0
 	},
-}, ViewContainerLocation.Sidebar, { isDefault: false });
+}, ViewContainerLocation.Sidebar, { isDefault: true });
 
 const openFolder = localize('openFolder', "Open Folder");
 const addAFolder = localize('addAFolder', "add a folder");

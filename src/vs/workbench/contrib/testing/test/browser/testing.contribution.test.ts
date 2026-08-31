@@ -8,6 +8,7 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/tes
 import { Registry } from '../../../../../platform/registry/common/platform.js';
 import type { ContextKeyExpression, ContextKeyValue } from '../../../../../platform/contextkey/common/contextkey.js';
 import { Extensions as ViewExtensions, IViewContainersRegistry, IViewsRegistry, ViewContainerLocation, WindowEnablement } from '../../../../common/views.js';
+import { ActivityBarVisibleViewlets } from '../../../../common/activityViewletEnablement.js';
 import { IsSessionsWindowContext } from '../../../../common/contextkeys.js';
 import { Testing } from '../../common/constants.js';
 import { TestingContextKeys } from '../../common/testingContextKeys.js';
@@ -25,7 +26,7 @@ suite('TestingContribution - default window Activity', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('Testing sidebar views are gated to Agents Window', () => {
+	test('Testing sidebar views respect optional Activity setting', () => {
 		const viewsRegistry = Registry.as<IViewsRegistry>(ViewExtensions.ViewsRegistry);
 		const viewContainersRegistry = Registry.as<IViewContainersRegistry>(ViewExtensions.ViewContainersRegistry);
 
@@ -43,26 +44,40 @@ suite('TestingContribution - default window Activity', () => {
 		assert.ok(explorerView.when, 'Test Explorer view should have a when clause');
 		assert.ok(coverageView.when, 'Test Coverage view should have a when clause');
 
-		const defaultWindow = {
+		const defaultWindowHidden = {
 			[IsSessionsWindowContext.key]: false,
+			[`config.${ActivityBarVisibleViewlets.testing}`]: false,
+			[TestingContextKeys.providerCount.key]: 1,
+			[TestingContextKeys.isTestCoverageOpen.key]: true,
+		};
+		const defaultWindowShown = {
+			[IsSessionsWindowContext.key]: false,
+			[`config.${ActivityBarVisibleViewlets.testing}`]: true,
 			[TestingContextKeys.providerCount.key]: 1,
 			[TestingContextKeys.isTestCoverageOpen.key]: true,
 		};
 		const agentsWindowWithProviders = {
 			[IsSessionsWindowContext.key]: true,
+			[`config.${ActivityBarVisibleViewlets.testing}`]: false,
 			[TestingContextKeys.providerCount.key]: 1,
 			[TestingContextKeys.isTestCoverageOpen.key]: true,
 		};
 		const agentsWindowWithoutProviders = {
 			[IsSessionsWindowContext.key]: true,
+			[`config.${ActivityBarVisibleViewlets.testing}`]: false,
 			[TestingContextKeys.providerCount.key]: 0,
 			[TestingContextKeys.isTestCoverageOpen.key]: false,
 		};
 
 		assert.strictEqual(
-			evalWhen(explorerView.when, defaultWindow),
+			evalWhen(explorerView.when, defaultWindowHidden),
 			false,
-			'default Code window must hide Test Explorer from Activity sidebar'
+			'default Code window must hide Test Explorer when setting is off'
+		);
+		assert.strictEqual(
+			evalWhen(explorerView.when, defaultWindowShown),
+			true,
+			'default Code window may show Test Explorer when setting is on'
 		);
 		assert.strictEqual(
 			evalWhen(explorerView.when, agentsWindowWithProviders),
@@ -76,14 +91,14 @@ suite('TestingContribution - default window Activity', () => {
 		);
 
 		assert.strictEqual(
-			evalWhen(coverageView.when, defaultWindow),
+			evalWhen(coverageView.when, defaultWindowHidden),
 			false,
-			'default Code window must hide Test Coverage from Activity sidebar'
+			'default Code window must hide Test Coverage when setting is off'
 		);
 		assert.strictEqual(
-			evalWhen(coverageView.when, agentsWindowWithProviders),
+			evalWhen(coverageView.when, defaultWindowShown),
 			true,
-			'Agents Window may show Test Coverage in Activity sidebar when coverage is open'
+			'default Code window may show Test Coverage when setting is on'
 		);
 		assert.strictEqual(
 			evalWhen(coverageView.when, agentsWindowWithoutProviders),
@@ -93,12 +108,17 @@ suite('TestingContribution - default window Activity', () => {
 
 		assert.ok(viewContainer.openCommandActionDescriptor?.keybindings?.when, 'Testing open command keybinding should have a when clause');
 		assert.strictEqual(
-			evalWhen(viewContainer.openCommandActionDescriptor!.keybindings!.when, { [IsSessionsWindowContext.key]: false }),
+			evalWhen(viewContainer.openCommandActionDescriptor!.keybindings!.when, defaultWindowHidden),
 			false,
-			'default Code window must hide Testing keybinding'
+			'default Code window must hide Testing keybinding when setting is off'
 		);
 		assert.strictEqual(
-			evalWhen(viewContainer.openCommandActionDescriptor!.keybindings!.when, { [IsSessionsWindowContext.key]: true }),
+			evalWhen(viewContainer.openCommandActionDescriptor!.keybindings!.when, defaultWindowShown),
+			true,
+			'default Code window may keep Testing keybinding when setting is on'
+		);
+		assert.strictEqual(
+			evalWhen(viewContainer.openCommandActionDescriptor!.keybindings!.when, agentsWindowWithProviders),
 			true,
 			'Agents Window may keep Testing keybinding'
 		);

@@ -63,7 +63,7 @@ export const NAVIGATOR_PROJECTS_VIEW_CONTAINER = registerNavigatorStubContainer(
 	localize2('navigatorProjects', "Projects"),
 	navigatorProjectsViewIcon,
 	11,
-	true,
+	false,
 );
 
 export const NAVIGATOR_AGENTS_VIEW_CONTAINER = registerNavigatorStubContainer(

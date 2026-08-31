@@ -47,6 +47,7 @@ import { IUserDataProfilesService } from '../../../../platform/userDataProfile/c
 import { EditorPaneDescriptor, IEditorPaneRegistry } from '../../../browser/editor.js';
 import { Extensions as ConfigurationMigrationExtensions, IConfigurationMigrationRegistry } from '../../../common/configuration.js';
 import { IsSessionsWindowContext, ResourceContextKey, WorkbenchStateContext } from '../../../common/contextkeys.js';
+import { activityViewletWhen, ActivityBarVisibleViewlets } from '../../../common/activityViewletEnablement.js';
 import { IWorkbenchContribution, IWorkbenchContributionsRegistry, registerWorkbenchContribution2, Extensions as WorkbenchExtensions, WorkbenchPhase } from '../../../common/contributions.js';
 import { EditorExtensions } from '../../../common/editor.js';
 import { IViewContainersRegistry, Extensions as ViewContainerExtensions, ViewContainerLocation } from '../../../common/views.js';
@@ -121,7 +122,7 @@ export const VIEW_CONTAINER = Registry.as<IViewContainersRegistry>(ViewContainer
 			mnemonicTitle: localize({ key: 'miViewExtensions', comment: ['&& denotes a mnemonic'] }, "E&&xtensions"),
 			keybindings: {
 				primary: KeyMod.CtrlCmd | KeyMod.Shift | KeyCode.KeyX,
-				when: IsSessionsWindowContext,
+				when: activityViewletWhen(ActivityBarVisibleViewlets.extensions),
 			},
 			order: 4,
 		},

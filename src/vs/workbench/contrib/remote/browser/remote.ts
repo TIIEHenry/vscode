@@ -18,7 +18,7 @@ import { ThemeIcon } from '../../../../base/common/themables.js';
 import { IContextMenuService } from '../../../../platform/contextview/browser/contextView.js';
 import { IExtensionService, isProposedApiEnabled } from '../../../services/extensions/common/extensions.js';
 import { FilterViewPaneContainer } from '../../../browser/parts/views/viewsViewlet.js';
-import { IsSessionsWindowContext } from '../../../common/contextkeys.js';
+import { activityViewletWhen, ActivityBarVisibleViewlets } from '../../../common/activityViewletEnablement.js';
 import { VIEWLET_ID } from './remoteExplorer.js';
 import { IContextKeyService } from '../../../../platform/contextkey/common/contextkey.js';
 import { IViewDescriptor, IViewsRegistry, Extensions, ViewContainerLocation, IViewContainersRegistry, IViewDescriptorService } from '../../../common/views.js';
@@ -509,7 +509,7 @@ class HelpPanel extends ViewPane {
 	}
 }
 
-export const remoteHelpPanelWhen = IsSessionsWindowContext;
+export const remoteHelpPanelWhen = activityViewletWhen(ActivityBarVisibleViewlets.remote);
 
 class HelpPanelDescriptor implements IViewDescriptor {
 	readonly id = HelpPanel.ID;

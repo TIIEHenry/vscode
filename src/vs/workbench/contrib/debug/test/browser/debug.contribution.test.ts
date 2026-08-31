@@ -9,6 +9,7 @@ import { isISubmenuItem, MenuId, MenuRegistry } from '../../../../../platform/ac
 import { Registry } from '../../../../../platform/registry/common/platform.js';
 import type { ContextKeyExpression, ContextKeyValue } from '../../../../../platform/contextkey/common/contextkey.js';
 import { Extensions as ViewExtensions, IViewContainersRegistry, IViewsRegistry, ViewContainerLocation, WindowEnablement } from '../../../../common/views.js';
+import { ActivityBarVisibleViewlets } from '../../../../common/activityViewletEnablement.js';
 import { IsSessionsWindowContext } from '../../../../common/contextkeys.js';
 import { IContextKeyService } from '../../../../../platform/contextkey/common/contextkey.js';
 import { Extensions as QuickAccessExtensions, IQuickAccessRegistry } from '../../../../../platform/quickinput/common/quickAccess.js';
@@ -29,7 +30,7 @@ suite('DebugContribution - default window Activity', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('Run and Debug sidebar views are gated to Agents Window', () => {
+	test('Run and Debug sidebar views respect optional Activity setting', () => {
 		const viewsRegistry = Registry.as<IViewsRegistry>(ViewExtensions.ViewsRegistry);
 		const viewContainersRegistry = Registry.as<IViewContainersRegistry>(ViewExtensions.ViewContainersRegistry);
 
@@ -49,21 +50,37 @@ suite('DebugContribution - default window Activity', () => {
 		assert.ok(breakpointsView, 'Breakpoints view should remain registered');
 		assert.ok(welcomeView, 'Welcome view should remain registered');
 
-		assert.ok(variablesView.when, 'Variables view should have a when clause');
-		assert.ok(watchView.when, 'Watch view should have a when clause');
-		assert.ok(callStackView.when, 'Call Stack view should have a when clause');
-		assert.ok(breakpointsView.when, 'Breakpoints view should have a when clause');
-		assert.ok(welcomeView.when, 'Welcome view should have a when clause');
-
-		const defaultWindow = { [IsSessionsWindowContext.key]: false, [CONTEXT_DEBUG_UX.key]: 'default' };
-		const agentsWindow = { [IsSessionsWindowContext.key]: true, [CONTEXT_DEBUG_UX.key]: 'default' };
-		const agentsWindowSimple = { [IsSessionsWindowContext.key]: true, [CONTEXT_DEBUG_UX.key]: 'simple' };
+		const defaultWindowHidden = {
+			[IsSessionsWindowContext.key]: false,
+			[`config.${ActivityBarVisibleViewlets.debug}`]: false,
+			[CONTEXT_DEBUG_UX.key]: 'default',
+		};
+		const defaultWindowShown = {
+			[IsSessionsWindowContext.key]: false,
+			[`config.${ActivityBarVisibleViewlets.debug}`]: true,
+			[CONTEXT_DEBUG_UX.key]: 'default',
+		};
+		const agentsWindow = {
+			[IsSessionsWindowContext.key]: true,
+			[`config.${ActivityBarVisibleViewlets.debug}`]: false,
+			[CONTEXT_DEBUG_UX.key]: 'default',
+		};
+		const agentsWindowSimple = {
+			[IsSessionsWindowContext.key]: true,
+			[`config.${ActivityBarVisibleViewlets.debug}`]: false,
+			[CONTEXT_DEBUG_UX.key]: 'simple',
+		};
 
 		for (const view of [variablesView, watchView, callStackView, breakpointsView]) {
 			assert.strictEqual(
-				evalWhen(view.when, defaultWindow),
+				evalWhen(view.when, defaultWindowHidden),
 				false,
-				`${view.id} must hide from default Code window Activity sidebar`
+				`${view.id} must hide from default Code window when setting is off`
+			);
+			assert.strictEqual(
+				evalWhen(view.when, defaultWindowShown),
+				true,
+				`${view.id} may show in default Code window when setting is on`
 			);
 			assert.strictEqual(
 				evalWhen(view.when, agentsWindow),
@@ -73,9 +90,9 @@ suite('DebugContribution - default window Activity', () => {
 		}
 
 		assert.strictEqual(
-			evalWhen(welcomeView.when, defaultWindow),
+			evalWhen(welcomeView.when, defaultWindowHidden),
 			false,
-			'default Code window must hide Run and Debug welcome view from Activity sidebar'
+			'default Code window must hide Run and Debug welcome view when setting is off'
 		);
 		assert.strictEqual(
 			evalWhen(welcomeView.when, agentsWindowSimple),
@@ -85,12 +102,17 @@ suite('DebugContribution - default window Activity', () => {
 
 		assert.ok(viewContainer.openCommandActionDescriptor?.keybindings?.when, 'Run and Debug open command keybinding should have a when clause');
 		assert.strictEqual(
-			evalWhen(viewContainer.openCommandActionDescriptor!.keybindings!.when, { [IsSessionsWindowContext.key]: false }),
+			evalWhen(viewContainer.openCommandActionDescriptor!.keybindings!.when, defaultWindowHidden),
 			false,
-			'default Code window must hide Run and Debug keybinding'
+			'default Code window must hide Run and Debug keybinding when setting is off'
 		);
 		assert.strictEqual(
-			evalWhen(viewContainer.openCommandActionDescriptor!.keybindings!.when, { [IsSessionsWindowContext.key]: true }),
+			evalWhen(viewContainer.openCommandActionDescriptor!.keybindings!.when, defaultWindowShown),
+			true,
+			'default Code window may keep Run and Debug keybinding when setting is on'
+		);
+		assert.strictEqual(
+			evalWhen(viewContainer.openCommandActionDescriptor!.keybindings!.when, agentsWindow),
 			true,
 			'Agents Window may keep Run and Debug keybinding'
 		);

@@ -9,6 +9,7 @@ import { isIMenuItem, MenuId, MenuRegistry } from '../../../../../platform/actio
 import { Registry } from '../../../../../platform/registry/common/platform.js';
 import type { ContextKeyExpression, ContextKeyValue } from '../../../../../platform/contextkey/common/contextkey.js';
 import { Extensions as ViewExtensions, IViewContainersRegistry, IViewsRegistry } from '../../../../common/views.js';
+import { ActivityBarVisibleViewlets } from '../../../../common/activityViewletEnablement.js';
 import { IsSessionsWindowContext } from '../../../../common/contextkeys.js';
 import { registerAgentPluginsViews } from '../../../chat/browser/agentPluginsView.js';
 import { ChatContextKeys } from '../../../chat/common/actions/chatContextKeys.js';
@@ -31,7 +32,7 @@ suite('ExtensionsContribution - default window Activity', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('Extensions sidebar views are gated to Agents Window', () => {
+	test('Extensions sidebar views respect optional Activity setting', () => {
 		const viewsRegistry = Registry.as<IViewsRegistry>(ViewExtensions.ViewsRegistry);
 		const viewContainersRegistry = Registry.as<IViewContainersRegistry>(ViewExtensions.ViewContainersRegistry);
 
@@ -42,15 +43,25 @@ suite('ExtensionsContribution - default window Activity', () => {
 		const sidebarViews = viewsRegistry.getViews(viewContainer);
 		assert.ok(sidebarViews.length > 0, 'Extensions container should expose registered sidebar occupants');
 
-		const defaultWindow = { [IsSessionsWindowContext.key]: false };
-		const agentsWindow = { [IsSessionsWindowContext.key]: true };
+		const defaultWindowHidden = {
+			[IsSessionsWindowContext.key]: false,
+			[`config.${ActivityBarVisibleViewlets.extensions}`]: false,
+		};
+		const defaultWindowShown = {
+			[IsSessionsWindowContext.key]: false,
+			[`config.${ActivityBarVisibleViewlets.extensions}`]: true,
+		};
+		const agentsWindow = {
+			[IsSessionsWindowContext.key]: true,
+			[`config.${ActivityBarVisibleViewlets.extensions}`]: false,
+		};
 
 		for (const view of sidebarViews) {
 			assert.ok(view.when, `${view.id} should have a when clause`);
 			assert.strictEqual(
-				evalWhen(view.when, defaultWindow),
+				evalWhen(view.when, defaultWindowHidden),
 				false,
-				`${view.id} must hide from default Code window Activity sidebar`
+				`${view.id} must hide from default Code window when setting is off`
 			);
 		}
 
@@ -69,55 +80,66 @@ suite('ExtensionsContribution - default window Activity', () => {
 		assert.ok(mcpInstalledView, 'MCP Servers installed view should remain registered');
 
 		assert.strictEqual(
-			evalWhen(installedView.when, agentsWindow),
+			evalWhen(installedView.when, defaultWindowShown),
 			true,
-			'Installed view may show in Agents Window Activity sidebar'
+			'Installed view may show in default Code window when setting is on'
 		);
 		assert.strictEqual(
-			evalWhen(popularView.when, { [IsSessionsWindowContext.key]: true, hasInstalledExtensions: false, hasGallery: true }),
+			evalWhen(popularView.when, { ...defaultWindowShown, hasInstalledExtensions: false, hasGallery: true }),
 			true,
-			'Popular view may show in Agents Window Activity sidebar'
+			'Popular view may show in default Code window when setting is on'
 		);
 		assert.strictEqual(
-			evalWhen(recommendedView.when, { [IsSessionsWindowContext.key]: true, hasGallery: true }),
+			evalWhen(recommendedView.when, { ...defaultWindowShown, hasGallery: true }),
 			true,
-			'Recommended view may show in Agents Window Activity sidebar'
+			'Recommended view may show in default Code window when setting is on'
 		);
 		assert.strictEqual(
-			evalWhen(marketplaceView.when, { [IsSessionsWindowContext.key]: true, searchMarketplaceExtensions: true, hasGallery: true }),
+			evalWhen(marketplaceView.when, { ...defaultWindowShown, searchMarketplaceExtensions: true, hasGallery: true }),
 			true,
-			'Marketplace view may show in Agents Window Activity sidebar'
+			'Marketplace view may show in default Code window when setting is on'
 		);
 		assert.strictEqual(
 			evalWhen(agentPluginsInstalledView.when, {
-				[IsSessionsWindowContext.key]: true,
+				...defaultWindowShown,
 				defaultExtensionViews: true,
 				hasInstalledAgentPlugins: true,
 				[ChatContextKeys.Setup.hidden.key]: false,
 			}),
 			true,
-			'Agent Plugins installed view may show in Agents Window Activity sidebar'
+			'Agent Plugins installed view may show in default Code window when setting is on'
 		);
 		assert.strictEqual(
 			evalWhen(mcpInstalledView.when, {
-				[IsSessionsWindowContext.key]: true,
+				...defaultWindowShown,
 				defaultExtensionViews: true,
 				hasInstalledMcpServers: true,
 				[ChatContextKeys.Setup.hidden.key]: false,
 				[ChatContextKeys.Setup.disabledInWorkspace.key]: false,
 			}),
 			true,
-			'MCP Servers installed view may show in Agents Window Activity sidebar'
+			'MCP Servers installed view may show in default Code window when setting is on'
+		);
+
+		assert.strictEqual(
+			evalWhen(installedView.when, agentsWindow),
+			true,
+			'Installed view may show in Agents Window Activity sidebar'
 		);
 
 		assert.ok(viewContainer.openCommandActionDescriptor?.keybindings?.when, 'Extensions open command keybinding should have a when clause');
 		assert.strictEqual(
-			evalWhen(viewContainer.openCommandActionDescriptor!.keybindings!.when, { [IsSessionsWindowContext.key]: false }),
+			evalWhen(viewContainer.openCommandActionDescriptor!.keybindings!.when, defaultWindowHidden),
 			false,
-			'default Code window must hide Extensions keybinding'
+			'default Code window must hide Extensions keybinding when setting is off'
 		);
 		assert.strictEqual(
-			evalWhen(viewContainer.openCommandActionDescriptor!.keybindings!.when, { [IsSessionsWindowContext.key]: true }),
+			evalWhen(viewContainer.openCommandActionDescriptor!.keybindings!.when, defaultWindowShown),
+			true,
+			'default Code window may keep Extensions keybinding when setting is on'
+		);
+		assert.strictEqual(
+			evalWhen(viewContainer.openCommandActionDescriptor!.keybindings!.when, agentsWindow),
 			true,
 			'Agents Window may keep Extensions keybinding'
 		);
