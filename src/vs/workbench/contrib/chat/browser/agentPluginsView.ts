@@ -53,6 +53,7 @@ import { hasSourceChanged, IMarketplacePlugin, IPluginMarketplaceService } from 
 import { AgentPluginEditorInput } from './agentPluginEditor/agentPluginEditorInput.js';
 import { AgentPluginItemKind, IAgentPluginItem, IInstalledPluginItem, IMarketplacePluginItem } from './agentPluginEditor/agentPluginItems.js';
 import { getInstalledPluginContextMenuActions, InstallPluginAction, OpenPluginReadmeAction } from './agentPluginActions.js';
+import { IsSessionsWindowContext } from '../../../common/contextkeys.js';
 import { HasInstalledAgentPluginsContext, InstalledAgentPluginsViewId, RefreshAgentPluginMarketplacesCommandId } from './chat.js';
 
 //#region Item model
@@ -593,7 +594,7 @@ class RefreshPluginMarketplacesCommand extends Action2 {
 			title: localize2('agentPlugins.refreshMarketplaces', "Refresh Plugin Marketplaces"),
 			category: localize2('chat.category', "Chat"),
 			icon: Codicon.refresh,
-			precondition: ChatContextKeys.enabled,
+			precondition: ContextKeyExpr.and(ChatContextKeys.enabled, IsSessionsWindowContext),
 			f1: true,
 		});
 	}
@@ -641,6 +642,9 @@ class RefreshPluginMarketplacesCommand extends Action2 {
 	}
 }
 
+registerAction2(AgentPluginsBrowseCommand);
+registerAction2(RefreshPluginMarketplacesCommand);
+
 //#endregion
 //#region Views contribution
 
@@ -658,9 +662,6 @@ export class AgentPluginsViewsContribution extends Disposable implements IWorkbe
 		this._register(autorun(reader => {
 			hasInstalledKey.set(agentPluginService.plugins.read(reader).length > 0);
 		}));
-
-		registerAction2(AgentPluginsBrowseCommand);
-		registerAction2(RefreshPluginMarketplacesCommand);
 
 		Registry.as<IViewsRegistry>(ViewExtensions.ViewsRegistry).registerViews([
 			{
