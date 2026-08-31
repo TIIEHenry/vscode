@@ -68,6 +68,26 @@ suite('Navigator Team subviews', () => {
 		return view;
 	}
 
+	function getFilterInput(view: NavigatorTeamView): HTMLInputElement | null {
+		return view.element.querySelector('.navigator-team-inline-filter-input');
+	}
+
+	function setMemberEntries(view: NavigatorTeamView, entries: { id: string; label: string }[]): void {
+		(view as unknown as { setMemberEntries: (entries: { id: string; label: string }[]) => void }).setMemberEntries(entries);
+	}
+
+	function setTaskEntries(view: NavigatorTeamView, entries: { id: string; label: string }[]): void {
+		(view as unknown as { setTaskEntries: (entries: { id: string; label: string }[]) => void }).setTaskEntries(entries);
+	}
+
+	async function setFilterQuery(view: NavigatorTeamView, query: string): Promise<void> {
+		const input = getFilterInput(view);
+		assert.ok(input, 'filter input must exist');
+		input.value = query;
+		input.dispatchEvent(new globalThis.Event('input'));
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+	}
+
 	test('ViewTitle registers Members, Tasks, and Inspect actions for Team', () => {
 		const viewTitleItems = MenuRegistry.getMenuItems(MenuId.ViewTitle).filter(isIMenuItem);
 		const membersItem = viewTitleItems.find(item => item.command.id === NAVIGATOR_TEAM_SHOW_MEMBERS_COMMAND_ID);
@@ -145,7 +165,86 @@ suite('Navigator Team subviews', () => {
 		assert.strictEqual(tasksList.length, 0);
 		assert.strictEqual(view.element.querySelector('.chat-widget'), null);
 		assert.strictEqual(view.element.querySelector('.chat-setup'), null);
-		assert.strictEqual(view.element.querySelector('.navigator-team-filter'), null);
+		assert.strictEqual(view.element.querySelector('.navigator-team-type-filter'), null);
+		assert.strictEqual(view.element.querySelector('.navigator-panel-body-filter-status'), null);
+	});
+
+	test('body-top filter sits above subview content with Filter team placeholder', () => {
+		const view = mountTeamView();
+
+		const filter = view.element.querySelector('.navigator-team-inline-filter');
+		assert.ok(filter, 'expected body-top filter chrome');
+
+		const input = getFilterInput(view);
+		assert.ok(input);
+		assert.strictEqual(input?.placeholder, 'Filter team');
+		assert.strictEqual(input?.getAttribute('aria-label'), 'Filter team');
+
+		const body = view.element.querySelector('.navigator-team-view');
+		assert.ok(body);
+		const children = Array.from(body!.children);
+		assert.strictEqual(children[0], filter, 'filter must be first in body');
+		assert.ok(children[1]?.classList.contains('navigator-team-subview'));
+
+		const clearButton = view.element.querySelector('.navigator-team-inline-filter-clear') as HTMLElement | null;
+		assert.ok(clearButton);
+		assert.strictEqual(filter?.classList.contains('has-text'), false);
+
+		assert.strictEqual(view.element.querySelector('.navigator-team-type-filter'), null);
+		assert.strictEqual(view.element.querySelector('.navigator-panel-body-filter-status'), null);
+	});
+
+	test('shouldShowWelcome is false so filter is not covered by welcome overlay', () => {
+		const view = mountTeamView();
+		assert.strictEqual(view.shouldShowWelcome(), false);
+	});
+
+	test('shared filter query live-filters members and tasks lists', async () => {
+		const view = mountTeamView();
+
+		setMemberEntries(view, [
+			{ id: 'm1', label: 'Alpha Member' },
+			{ id: 'm2', label: 'Beta Member' },
+		]);
+		setTaskEntries(view, [
+			{ id: 't1', label: 'Alpha Task' },
+			{ id: 't2', label: 'Gamma Task' },
+		]);
+
+		const membersList = (view as unknown as { membersList: WorkbenchList<INavigatorTeamMember> }).membersList;
+		const tasksList = (view as unknown as { tasksList: WorkbenchList<{ id: string; label: string }> }).tasksList;
+
+		assert.strictEqual(membersList.length, 2);
+		assert.strictEqual(tasksList.length, 2);
+
+		await setFilterQuery(view, 'alpha');
+
+		assert.strictEqual(membersList.length, 1);
+		assert.strictEqual(tasksList.length, 1);
+		assert.strictEqual(membersList.element(0)?.label, 'Alpha Member');
+		assert.strictEqual(tasksList.element(0)?.label, 'Alpha Task');
+
+		view.showTasks();
+		assert.strictEqual(view.getActiveSubview(), 'tasks');
+		assert.strictEqual(getFilterInput(view)?.value, 'alpha');
+		assert.strictEqual(tasksList.length, 1);
+
+		const filter = view.element.querySelector('.navigator-team-inline-filter');
+		const activeSubview = view.element.querySelector('.navigator-team-subview.active');
+		assert.ok(filter && activeSubview);
+		assert.ok(filter!.compareDocumentPosition(activeSubview!) & Node.DOCUMENT_POSITION_FOLLOWING);
+	});
+
+	test('unfiltered empty keeps honest empty copy and hides list', () => {
+		const view = mountTeamView();
+
+		const membersEmpty = view.element.querySelector('.navigator-team-subview.active .navigator-stub-empty') as HTMLElement | null;
+		const membersList = view.element.querySelector('.navigator-team-list') as HTMLElement | null;
+		assert.ok(membersEmpty);
+		assert.ok(membersList);
+		assert.strictEqual(membersEmpty.style.display, 'block');
+		assert.strictEqual(membersList.style.display, 'none');
+		assert.strictEqual(membersEmpty.textContent, TEAM_MEMBERS_EMPTY_COPY);
 	});
 
 	test('Team view descriptor registers NavigatorTeamView ctor', () => {

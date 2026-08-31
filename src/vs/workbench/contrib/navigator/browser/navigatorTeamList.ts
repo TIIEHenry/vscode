@@ -23,10 +23,12 @@ import { IThemeService } from '../../../../platform/theme/common/themeService.js
 import { IViewPaneOptions, ViewAction, ViewPane } from '../../../browser/parts/views/viewPane.js';
 import { IViewDescriptorService } from '../../../common/views.js';
 import { IViewsService } from '../../../services/views/common/viewsService.js';
+import { matchesNavigatorTeamInlineFilter } from '../common/navigatorTeamInlineFilter.js';
 import {
 	AGENT_INSPECT_VIEW_ID,
 	OPEN_NAVIGATOR_TEAM_INSPECT_COMMAND_ID,
 } from './agentInspectIds.js';
+import { NavigatorTeamInlineFilterBox } from './navigatorTeamInlineFilterBox.js';
 import { NAVIGATOR_TEAM_VIEW_ID } from './navigatorStubView.js';
 
 const $ = dom.$;
@@ -141,6 +143,9 @@ export class NavigatorTeamView extends ViewPane {
 	private readonly membersContextKey: IContextKey<boolean>;
 	private readonly tasksContextKey: IContextKey<boolean>;
 
+	private filterBox: NavigatorTeamInlineFilterBox | undefined;
+	private filterQuery = '';
+
 	private membersBody: HTMLElement | undefined;
 	private membersEmpty: HTMLElement | undefined;
 	private membersListContainer: HTMLElement | undefined;
@@ -151,6 +156,7 @@ export class NavigatorTeamView extends ViewPane {
 	private tasksEmpty: HTMLElement | undefined;
 	private tasksListContainer: HTMLElement | undefined;
 	private tasksList: WorkbenchList<INavigatorTeamTask> | undefined;
+	private taskEntries: INavigatorTeamTask[] = [];
 
 	constructor(
 		options: IViewPaneOptions,
@@ -196,12 +202,23 @@ export class NavigatorTeamView extends ViewPane {
 	}
 
 	override shouldShowWelcome(): boolean {
-		return this.subview === 'members' && this.memberEntries.length === 0;
+		return false;
 	}
 
 	protected override renderBody(container: HTMLElement): void {
 		super.renderBody(container);
 		container.classList.add('navigator-team-view');
+
+		const filterPlaceholder = localize('navigatorTeamFilterPlaceholder', "Filter team");
+		this.filterBox = this._register(new NavigatorTeamInlineFilterBox(
+			container,
+			filterPlaceholder,
+			filterPlaceholder,
+		));
+		this._register(this.filterBox.onDidChange(query => {
+			this.filterQuery = query;
+			this.applyFilter();
+		}));
 
 		this.membersBody = dom.append(container, $('.navigator-team-subview'));
 		this.membersEmpty = dom.append(this.membersBody, $('.navigator-stub-empty'));
@@ -222,10 +239,11 @@ export class NavigatorTeamView extends ViewPane {
 
 	protected override layoutBody(height: number, width: number): void {
 		super.layoutBody(height, width);
+		const contentHeight = height - NavigatorTeamInlineFilterBox.HEIGHT;
 		if (this.subview === 'members') {
-			this.membersList?.layout(height, width);
+			this.membersList?.layout(contentHeight, width);
 		} else {
-			this.tasksList?.layout(height, width);
+			this.tasksList?.layout(contentHeight, width);
 		}
 	}
 
@@ -276,34 +294,60 @@ export class NavigatorTeamView extends ViewPane {
 	}
 
 	private setMemberEntries(entries: INavigatorTeamMember[]): void {
-		const hadEntries = this.memberEntries.length > 0;
 		this.memberEntries = entries;
-
-		if (this.membersList) {
-			this.membersList.splice(0, this.membersList.length, entries);
-		}
-
-		if (this.membersEmpty && this.membersListContainer) {
-			const isEmpty = entries.length === 0;
-			this.membersEmpty.style.display = isEmpty ? 'block' : 'none';
-			this.membersListContainer.style.display = isEmpty ? 'none' : 'block';
-		}
-
-		if (hadEntries !== (entries.length > 0)) {
-			this._onDidChangeViewWelcomeState.fire();
-		}
+		this.applyFilterToMembers();
+		this.updateMembersDisplay();
 	}
 
 	private setTaskEntries(entries: INavigatorTeamTask[]): void {
-		if (this.tasksList) {
-			this.tasksList.splice(0, this.tasksList.length, entries);
+		this.taskEntries = entries;
+		this.applyFilterToTasks();
+		this.updateTasksDisplay();
+	}
+
+	private applyFilter(): void {
+		this.applyFilterToMembers();
+		this.applyFilterToTasks();
+	}
+
+	private applyFilterToMembers(): void {
+		const list = this.membersList;
+		if (!list) {
+			return;
 		}
 
-		if (this.tasksEmpty && this.tasksListContainer) {
-			const isEmpty = entries.length === 0;
-			this.tasksEmpty.style.display = isEmpty ? 'block' : 'none';
-			this.tasksListContainer.style.display = isEmpty ? 'none' : 'block';
+		const filtered = this.memberEntries.filter(entry => matchesNavigatorTeamInlineFilter(entry.label, this.filterQuery));
+		list.splice(0, list.length, filtered);
+	}
+
+	private applyFilterToTasks(): void {
+		const list = this.tasksList;
+		if (!list) {
+			return;
 		}
+
+		const filtered = this.taskEntries.filter(entry => matchesNavigatorTeamInlineFilter(entry.label, this.filterQuery));
+		list.splice(0, list.length, filtered);
+	}
+
+	private updateMembersDisplay(): void {
+		if (!this.membersEmpty || !this.membersListContainer) {
+			return;
+		}
+
+		const isEmpty = this.memberEntries.length === 0;
+		this.membersEmpty.style.display = isEmpty ? 'block' : 'none';
+		this.membersListContainer.style.display = isEmpty ? 'none' : 'block';
+	}
+
+	private updateTasksDisplay(): void {
+		if (!this.tasksEmpty || !this.tasksListContainer) {
+			return;
+		}
+
+		const isEmpty = this.taskEntries.length === 0;
+		this.tasksEmpty.style.display = isEmpty ? 'block' : 'none';
+		this.tasksListContainer.style.display = isEmpty ? 'none' : 'block';
 	}
 
 	private updateSubviewContextKeys(): void {
