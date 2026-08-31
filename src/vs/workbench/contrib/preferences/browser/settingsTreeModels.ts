@@ -61,7 +61,7 @@ export abstract class SettingsTreeElement extends Disposable {
 	}
 }
 
-export type SettingsTreeGroupChild = (SettingsTreeGroupElement | SettingsTreeSettingElement | SettingsTreeNewExtensionsElement);
+export type SettingsTreeGroupChild = (SettingsTreeGroupElement | SettingsTreeSettingElement | SettingsTreeNewExtensionsElement | SettingsTreeNavigationLinkElement);
 
 export class SettingsTreeGroupElement extends SettingsTreeElement {
 	count?: number;
@@ -106,6 +106,12 @@ export class SettingsTreeGroupElement extends SettingsTreeElement {
 
 export class SettingsTreeNewExtensionsElement extends SettingsTreeElement {
 	constructor(_id: string, public readonly extensionIds: string[]) {
+		super(_id);
+	}
+}
+
+export class SettingsTreeNavigationLinkElement extends SettingsTreeElement {
+	constructor(_id: string, public readonly label: string, public readonly commandId: string) {
 		super(_id);
 	}
 }
@@ -682,6 +688,12 @@ export class SettingsTreeModel implements IDisposable {
 		if (tocEntry.children) {
 			const groupChildren = tocEntry.children.map(child => this.createSettingsTreeGroupElement(child, element));
 			children.push(...groupChildren);
+		}
+
+		if (tocEntry.navigationLinks) {
+			for (const link of tocEntry.navigationLinks) {
+				children.push(new SettingsTreeNavigationLinkElement(link.id, link.label, link.commandId));
+			}
 		}
 
 		element.children = children;

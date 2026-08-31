@@ -10,3 +10,5 @@ export const UA_CONNECTION_PANE_ORDER = 10;
 export const UA_ENGINE_PANE_ORDER = 20;
 
 export const BACK_TO_CLIENT_SETTINGS_COMMAND_ID = 'workbench.action.backToClientSettings';
+export const OPEN_CONNECTION_PREFERENCES_COMMAND_ID = 'workbench.action.openConnectionPreferences';
+export const OPEN_ENGINE_PREFERENCES_COMMAND_ID = 'workbench.action.openEnginePreferences';

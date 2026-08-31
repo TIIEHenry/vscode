@@ -4,7 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 import './media/conversationLens.css';
+import './uaClientSettings.contribution.js';
 import './uaPreferencesPanes.contribution.js';
+import './universeAgentDeepLink.contribution.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { localize, localize2 } from '../../../../nls.js';
@@ -20,6 +22,7 @@ import { IConversationLensSlots, IConversationPartService } from '../../../brows
 import { ConversationLens } from './conversationLens.js';
 import { CONVERSATION_SESSIONS_VIEW_ID, ConversationSessionsView } from './conversationSessionsView.js';
 import { ConversationSessionStatusBarContribution, registerConversationSessionStatusBar } from './conversationSessionStatusBar.js';
+import { registerUaPreferencesNavigationActions } from './uaPreferencesNavigation.js';
 import { ConversationStubService, IConversationStubService } from './conversationStubService.js';
 
 registerSingleton(IConversationStubService, ConversationStubService, InstantiationType.Delayed);
@@ -86,4 +89,5 @@ class ConversationLensContribution extends Disposable implements IWorkbenchContr
 registerWorkbenchContribution2(ConversationLensContribution.ID, ConversationLensContribution, WorkbenchPhase.AfterRestored);
 
 registerConversationSessionStatusBar();
+registerUaPreferencesNavigationActions();
 registerWorkbenchContribution2(ConversationSessionStatusBarContribution.ID, ConversationSessionStatusBarContribution, WorkbenchPhase.AfterRestored);

@@ -20,6 +20,7 @@ import {
 	showConversationPart,
 } from './conversationSessionStatus.js';
 import { IConversationStubService } from './conversationStubService.js';
+import { OPEN_CONNECTION_PREFERENCES_COMMAND_ID } from '../common/uaPreferencesPanes.js';
 
 export class ConversationSessionStatusBarContribution extends Disposable implements IWorkbenchContribution {
 
@@ -117,6 +118,10 @@ export class ConversationSessionStatusBarContribution extends Disposable impleme
 			text,
 			ariaLabel: localize('conversationStatus.engineAriaLabel', "Engine: {0}", text),
 			tooltip: text,
+			command: {
+				id: OPEN_CONNECTION_PREFERENCES_COMMAND_ID,
+				title: '',
+			},
 			role: 'status',
 			kind: 'standard',
 		};

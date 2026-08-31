@@ -20,14 +20,27 @@ export interface ITOCFilter {
 	};
 }
 
+export interface ITOCNavigationLink {
+	id: string;
+	label: string;
+	commandId: string;
+}
+
 export interface ITOCEntry<T> {
 	id: string;
 	label: string;
 	order?: number;
 	children?: ITOCEntry<T>[];
 	settings?: Array<T>;
+	navigationLinks?: ITOCNavigationLink[];
 	hide?: boolean;
 }
+
+export const DEFAULT_COMMONLY_USED_EXCLUDE_KEY_PATTERNS: readonly string[] = [
+	'GitHub.copilot-chat.manageExtension',
+	'chat.agent.maxRequests',
+	'chat.*',
+];
 
 const COMMONLY_USED_SETTINGS: readonly string[] = [
 	'editor.fontSize',
@@ -43,7 +56,17 @@ const COMMONLY_USED_SETTINGS: readonly string[] = [
 	'editor.formatOnPaste'
 ];
 
-export function getCommonlyUsedData(settingGroups: ISettingsGroup[]): ITOCEntry<ISetting> {
+function settingMatchesExcludePatterns(key: string, excludeKeyPatterns: readonly string[]): boolean {
+	for (const pattern of excludeKeyPatterns) {
+		const regexp = new RegExp('^' + pattern.replace(/\./g, '\\.').replace(/\*/g, '.*') + '$');
+		if (regexp.test(key)) {
+			return true;
+		}
+	}
+	return false;
+}
+
+export function getCommonlyUsedData(settingGroups: ISettingsGroup[], excludeKeyPatterns?: readonly string[]): ITOCEntry<ISetting> {
 	const allSettings = new Map<string, ISetting>();
 	for (const group of settingGroups) {
 		for (const section of group.sections) {
@@ -54,6 +77,9 @@ export function getCommonlyUsedData(settingGroups: ISettingsGroup[]): ITOCEntry<
 	}
 	const settings: ISetting[] = [];
 	for (const id of COMMONLY_USED_SETTINGS) {
+		if (excludeKeyPatterns?.length && settingMatchesExcludePatterns(id, excludeKeyPatterns)) {
+			continue;
+		}
 		const setting = allSettings.get(id);
 		if (setting) {
 			settings.push(setting);
@@ -436,6 +462,74 @@ export const tocData: ITOCEntry<string> = {
 					id: 'security/workspace',
 					label: localize('workspace', "Workspace"),
 					settings: ['security.workspace.*']
+				}
+			]
+		},
+		{
+			id: 'ua',
+			label: localize('uaSettings', "Client"),
+			children: [
+				{
+					id: 'ua/display',
+					label: localize('uaDisplay', "Display"),
+					settings: ['ua.client.display.*']
+				},
+				{
+					id: 'ua/chatInput',
+					label: localize('uaChatInput', "Chat Input"),
+					settings: ['ua.client.chatInput.*']
+				},
+				{
+					id: 'ua/startup',
+					label: localize('uaStartup', "Startup"),
+					settings: ['ua.client.startup.*']
+				},
+				{
+					id: 'ua/keyboardEnter',
+					label: localize('uaKeyboardEnter', "Keyboard Enter"),
+					settings: ['ua.client.keyboardEnter.*']
+				},
+				{
+					id: 'ua/notifications',
+					label: localize('uaNotifications', "Notifications"),
+					settings: ['ua.client.notifications.*']
+				},
+				{
+					id: 'ua/permissions',
+					label: localize('uaPermissions', "Permissions"),
+					settings: ['ua.client.permissions.*']
+				},
+				{
+					id: 'ua/clientTools',
+					label: localize('uaClientTools', "Client Tools"),
+					settings: ['ua.client.clientTools.*']
+				},
+				{
+					id: 'ua/connection',
+					label: localize('uaConnection', "Connection"),
+					navigationLinks: [{
+						id: 'ua/connection/open',
+						label: localize('uaOpenConnection', "Open Connection…"),
+						commandId: 'workbench.action.openConnectionPreferences'
+					}]
+				},
+				{
+					id: 'ua/engine',
+					label: localize('uaEngine', "Engine"),
+					navigationLinks: [{
+						id: 'ua/engine/open',
+						label: localize('uaOpenEngine', "Open Engine…"),
+						commandId: 'workbench.action.openEnginePreferences'
+					}]
+				},
+				{
+					id: 'ua/customizations',
+					label: localize('uaCustomizations', "Customizations"),
+					navigationLinks: [{
+						id: 'ua/customizations/open',
+						label: localize('uaOpenCustomizations', "Open Customizations…"),
+						commandId: 'aiCustomization.openManagementEditor'
+					}]
 				}
 			]
 		}
