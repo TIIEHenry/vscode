@@ -811,7 +811,7 @@ export function registerChatActions() {
 			super({
 				id: 'workbench.action.openChatToSide',
 				title: localize2('interactiveSession.openToSide', "New Chat Editor to the Side"),
-				f1: true,
+				f1: false,
 				category: CHAT_CATEGORY,
 				precondition: ChatContextKeys.enabled,
 			});
@@ -831,7 +831,7 @@ export function registerChatActions() {
 			super({
 				id: `workbench.action.newChatWindow`,
 				title: localize2('interactiveSession.newChatWindow', "New Chat Window"),
-				f1: true,
+				f1: false,
 				category: CHAT_CATEGORY,
 				precondition: ChatContextKeys.enabled,
 				menu: [{
