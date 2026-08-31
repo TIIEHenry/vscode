@@ -17,6 +17,11 @@ import { defaultButtonStyles, defaultSelectBoxStyles } from '../../../../platfor
 import { hasNativeContextMenu } from '../../../../platform/window/common/window.js';
 import { IConversationLensSlots } from '../../../browser/parts/conversation/conversationPart.js';
 import { ConversationConfirmationSeat } from './conversationConfirmationSeat.js';
+import {
+	conversationLensDockEngineNotConnected,
+	conversationLensDockInboxNoQueue,
+	conversationLensDockNoModel,
+} from './conversationLensDockStrings.js';
 import { ConversationStubTurn } from './conversationStubModel.js';
 import { IConversationStubService } from './conversationStubService.js';
 
@@ -141,11 +146,16 @@ export class ConversationLens extends Disposable {
 	private mountDock(host: HTMLElement): void {
 		const dock = append(host, $('.conversation-lens-dock'));
 
+		const gateRow = append(dock, $('.conversation-lens-dock-gate-row'));
+		gateRow.setAttribute('role', 'status');
+		gateRow.setAttribute('aria-label', conversationLensDockEngineNotConnected);
+		append(gateRow, $('span.conversation-lens-dock-gate-label')).textContent = conversationLensDockEngineNotConnected;
+
 		const inboxRow = append(dock, $('.conversation-lens-inbox-row'));
 		inboxRow.setAttribute('role', 'status');
 		inboxRow.setAttribute('aria-label', localize('conversationLens.inbox', "Inbox"));
 		append(inboxRow, $('span.conversation-lens-inbox-label')).textContent = localize('conversationLens.inboxLabel', "Inbox");
-		append(inboxRow, $('span.conversation-lens-inbox-queue')).textContent = localize('conversationLens.inboxNoQueue', "No queue");
+		append(inboxRow, $('span.conversation-lens-inbox-queue')).textContent = conversationLensDockInboxNoQueue;
 		this.inboxStatus = append(inboxRow, $('button.conversation-lens-inbox-pending')) as HTMLButtonElement;
 		this.inboxStatus.type = 'button';
 		this.inboxStatus.hidden = true;
@@ -159,7 +169,13 @@ export class ConversationLens extends Disposable {
 		this.dockTextarea.placeholder = localize('conversationLens.dockPlaceholder', "Ask anything…");
 		this.dockTextarea.rows = 1;
 
-		const actions = append(inputRow, $('.conversation-lens-dock-actions'));
+		const bottomBar = append(composer, $('.conversation-lens-dock-bottom-bar'));
+		append(bottomBar, $('.conversation-lens-dock-bottom-leading'));
+
+		const bottomTrailing = append(bottomBar, $('.conversation-lens-dock-bottom-trailing'));
+		append(bottomTrailing, $('span.conversation-lens-dock-model')).textContent = conversationLensDockNoModel;
+
+		const actions = append(bottomTrailing, $('.conversation-lens-dock-actions'));
 		this.sendButton = this._register(new Button(actions, defaultButtonStyles));
 		this.sendButton.label = localize('conversationLens.send', "Send");
 
