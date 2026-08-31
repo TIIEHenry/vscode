@@ -60,6 +60,28 @@ suite('ConversationSessionsView', () => {
 		return (view as unknown as { list: WorkbenchList<ConversationStubSession> }).list;
 	}
 
+	function getFilterInput(view: ConversationSessionsView): HTMLInputElement | null {
+		return view.element.querySelector('.conversation-sessions-inline-filter-input');
+	}
+
+	function isFilterVisible(view: ConversationSessionsView): boolean {
+		const filter = view.element.querySelector('.conversation-sessions-inline-filter') as HTMLElement | null;
+		return filter !== null && filter.style.display !== 'none';
+	}
+
+	async function setFilterQuery(view: ConversationSessionsView, query: string): Promise<void> {
+		const input = getFilterInput(view);
+		assert.ok(input, 'filter input must exist');
+		input.value = query;
+		input.dispatchEvent(new globalThis.Event('input'));
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+	}
+
+	function getVisibleSessionTitles(view: ConversationSessionsView): string[] {
+		return [...view.element.querySelectorAll('.conversation-sessions-item-label')]
+			.map(label => label.textContent ?? '');
+	}
+
 	function mountView(options?: {
 		stubService?: ConversationStubService;
 		conversationVisible?: boolean;
@@ -332,5 +354,97 @@ suite('ConversationSessionsView', () => {
 
 		assert.strictEqual(stubService.getActiveSessionId(), activeBefore);
 		assert.strictEqual(focusSpy.called, false);
+	});
+
+	test('filter input is hidden when roster is empty', () => {
+		const stubService = new class extends mock<IConversationRosterService>() {
+			override onDidChangeActiveSession = Event.None;
+			override onDidChangeSession = Event.None;
+			override getSessions() { return []; }
+			override getActiveSessionId() { return ''; }
+			override createSession() { return 'new'; }
+		}() as unknown as ConversationStubService;
+
+		const { view } = mountView({ stubService });
+		assert.ok(!isFilterVisible(view));
+		assert.strictEqual(getFilterInput(view), null);
+	});
+
+	test('filter input is shown when seed session exists', () => {
+		const { view } = mountView();
+		assert.ok(isFilterVisible(view));
+		const input = getFilterInput(view);
+		assert.ok(input);
+		assert.strictEqual(input.placeholder, 'Filter sessions');
+	});
+
+	test('filter input stays visible after New session', () => {
+		const { view } = mountView();
+		assert.ok(isFilterVisible(view));
+		view.createNewSession();
+		assert.ok(isFilterVisible(view));
+	});
+
+	test('filter query hides non-matching session titles', async () => {
+		const { view, stubService } = mountView();
+		const alphaId = stubService.getActiveSessionId();
+		stubService.renameSession(alphaId, 'Alpha roster item');
+		const betaId = stubService.createSession();
+		stubService.renameSession(betaId, 'Beta roster item');
+
+		await setFilterQuery(view, 'alpha');
+
+		const titles = getVisibleSessionTitles(view);
+		assert.strictEqual(titles.length, 1);
+		assert.strictEqual(titles[0], 'Alpha roster item');
+		assert.ok(stubService.getSessions().some(session => session.title === 'Beta roster item'));
+	});
+
+	test('filter clear restores the full roster list', async () => {
+		const { view, stubService } = mountView();
+		const alphaId = stubService.getActiveSessionId();
+		stubService.renameSession(alphaId, 'Alpha roster item');
+		const betaId = stubService.createSession();
+		stubService.renameSession(betaId, 'Beta roster item');
+		const fullCount = stubService.getSessions().length;
+
+		await setFilterQuery(view, 'alpha');
+		assert.strictEqual(getVisibleSessionTitles(view).length, 1);
+
+		await setFilterQuery(view, '');
+		assert.strictEqual(getVisibleSessionTitles(view).length, fullCount);
+	});
+
+	test('filter does not reorder sessions in the roster', async () => {
+		const { view, stubService } = mountView();
+		const firstId = stubService.getActiveSessionId();
+		stubService.renameSession(firstId, 'Zulu session');
+		const secondId = stubService.createSession();
+		stubService.renameSession(secondId, 'Alpha session');
+		const thirdId = stubService.createSession();
+		stubService.renameSession(thirdId, 'Mike session');
+		const rosterOrder = stubService.getSessions().map(session => session.title);
+
+		await setFilterQuery(view, 'session');
+
+		assert.deepStrictEqual(getVisibleSessionTitles(view), rosterOrder);
+	});
+
+	test('click still switches session for a visible filtered row', async () => {
+		const { view, stubService } = mountView();
+		const firstId = stubService.getActiveSessionId();
+		stubService.renameSession(firstId, 'Alpha roster item');
+		const secondId = stubService.createSession();
+		stubService.renameSession(secondId, 'Beta roster item');
+		stubService.switchSession(firstId);
+
+		await setFilterQuery(view, 'beta');
+
+		const label = view.element.querySelector('.conversation-sessions-item-label') as HTMLElement;
+		assert.ok(label);
+		assert.strictEqual(label.textContent, 'Beta roster item');
+		label.click();
+
+		assert.strictEqual(stubService.getActiveSessionId(), secondId);
 	});
 });

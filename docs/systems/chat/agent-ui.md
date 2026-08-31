@@ -65,7 +65,7 @@ Desktop 合同：窗口壳 = Singularity/IDEA；Conversation 内 = 时间线 + I
 
 **明确进复用清单（人类补充 2026-08-30）：** 会话列表侧边栏（sessions viewlet / `agentSessions` 控件族）、对话列表、**权限确认弹框组件**（chat confirmation 零件：Allow/Skip 按钮、「N confirmation pending」摘要行、Input needed 徽标）。权限交互为**半自研**：座位位置与语义按 Desktop spec（权限座位在时间线内），实现零件优先复用本仓 confirmation 组件；SessionBar / Inbox / Conversation 透镜仍自研。
 
-**Navigator stub roster（M3 切片 2，HEAD）：** `workbench.view.conversationSessions`（`contrib/conversation`）已作为 **Sidebar `ViewPane`** 挂在 Explorer 容器（`VIEW_CONTAINER`）内，与 SessionBar 共用 `IConversationStubService` 内存会话；点击切 `CONVERSATION_PART` 当前 stub，**Delete session** 标题动作与 SessionBar 紧凑删除控件均调用 `deleteSession`（仅内存，无 Copilot archive/cloud），**不走** `IChatModel` / `IChatService` / `ChatEditorInput`。Explorer 仍是 Sidebar 默认 composite；产品 roster 是配套列表，不是中心透镜。
+**Navigator stub roster（M3 切片 2，HEAD）：** `workbench.view.conversationSessions`（`contrib/conversation`）已作为 **Sidebar `ViewPane`** 挂在 Explorer 容器（`VIEW_CONTAINER`）内，与 SessionBar 共用 `IConversationStubService` 内存会话；有会话时 Body 顶展示 IDE inline 文本 filter（`Filter sessions`）按标题即时筛行；点击切 `CONVERSATION_PART` 当前 stub，**Delete session** 标题动作与 SessionBar 紧凑删除控件均调用 `deleteSession`（仅内存，无 Copilot archive/cloud），**不走** `IChatModel` / `IChatService` / `ChatEditorInput`。Explorer 仍是 Sidebar 默认 composite；产品 roster 是配套列表，不是中心透镜。
 
 ## 3. Workbench 宿主（默认 Code 窗口）
 

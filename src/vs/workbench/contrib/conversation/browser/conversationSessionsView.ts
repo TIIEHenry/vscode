@@ -23,6 +23,8 @@ import { IConversationPartService } from '../../../browser/parts/conversation/co
 import { IViewPaneOptions, ViewAction, ViewPane } from '../../../browser/parts/views/viewPane.js';
 import { IViewDescriptorService } from '../../../common/views.js';
 import { IWorkbenchLayoutService, Parts } from '../../../services/layout/browser/layoutService.js';
+import { matchesConversationSessionsInlineFilter } from '../common/conversationSessionsInlineFilter.js';
+import { ConversationSessionsInlineFilterBox } from './conversationSessionsInlineFilterBox.js';
 import { ConversationStubSession } from './conversationStubModel.js';
 import { IConversationRosterService } from './conversationStubService.js';
 
@@ -90,6 +92,8 @@ export class ConversationSessionsView extends ViewPane {
 	private list: WorkbenchList<ConversationStubSession> | undefined;
 	private listContainer: HTMLElement | undefined;
 	private emptyMessage: HTMLElement | undefined;
+	private filterBox: ConversationSessionsInlineFilterBox | undefined;
+	private filterQuery = '';
 
 	constructor(
 		options: IViewPaneOptions,
@@ -123,11 +127,25 @@ export class ConversationSessionsView extends ViewPane {
 	protected override renderBody(container: HTMLElement): void {
 		super.renderBody(container);
 
+		container.classList.add('conversation-sessions-body');
+
 		this.emptyMessage = dom.append(container, $('.conversation-sessions-empty'));
 		this.emptyMessage.textContent = localize(
 			'conversationSessionsView.empty',
 			"No in-memory sessions — use New session to create a stub conversation.",
 		);
+
+		const filterPlaceholder = localize('conversationSessionsFilterPlaceholder', "Filter sessions");
+		this.filterBox = this._register(new ConversationSessionsInlineFilterBox(
+			container,
+			filterPlaceholder,
+			filterPlaceholder,
+		));
+		this.filterBox.setVisible(false);
+		this._register(this.filterBox.onDidChange(query => {
+			this.filterQuery = query;
+			this.applyFilterToList();
+		}));
 
 		this.listContainer = dom.append(container, $('.conversation-sessions-list'));
 		this.ensureList();
@@ -136,7 +154,9 @@ export class ConversationSessionsView extends ViewPane {
 
 	protected override layoutBody(height: number, width: number): void {
 		super.layoutBody(height, width);
-		this.list?.layout(height, width);
+		const hasSessions = this.stubService.getSessions().length > 0;
+		const filterHeight = hasSessions ? ConversationSessionsInlineFilterBox.HEIGHT : 0;
+		this.list?.layout(height - filterHeight, width);
 	}
 
 	private ensureList(): WorkbenchList<ConversationStubSession> {
@@ -185,17 +205,30 @@ export class ConversationSessionsView extends ViewPane {
 			return;
 		}
 
-		const sessions = [...this.stubService.getSessions()];
-		const hasSessions = sessions.length > 0;
+		const hasSessions = this.stubService.getSessions().length > 0;
 		this.emptyMessage.style.display = hasSessions ? 'none' : 'block';
 		this.listContainer.style.display = hasSessions ? 'block' : 'none';
+		this.filterBox?.setVisible(hasSessions);
 
 		if (!hasSessions) {
 			return;
 		}
 
-		const list = this.ensureList();
-		list.splice(0, list.length, sessions);
+		this.applyFilterToList();
+	}
+
+	private getFilteredSessions(): ConversationStubSession[] {
+		return [...this.stubService.getSessions()].filter(session =>
+			matchesConversationSessionsInlineFilter(session.title, this.filterQuery));
+	}
+
+	private applyFilterToList(): void {
+		if (!this.list) {
+			return;
+		}
+
+		const filtered = this.getFilteredSessions();
+		this.list.splice(0, this.list.length, filtered);
 		this.updateActiveSession();
 	}
 
@@ -205,7 +238,7 @@ export class ConversationSessionsView extends ViewPane {
 		}
 
 		const activeId = this.stubService.getActiveSessionId();
-		const index = this.stubService.getSessions().findIndex(session => session.id === activeId);
+		const index = this.getFilteredSessions().findIndex(session => session.id === activeId);
 		if (index >= 0) {
 			this.list.setSelection([index]);
 			this.list.reveal(index);
