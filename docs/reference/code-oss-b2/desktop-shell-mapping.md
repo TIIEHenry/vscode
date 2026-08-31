@@ -44,7 +44,7 @@ StatusBar
 | Activity rail | `ACTIVITYBAR_PART` | **保留原生；不加四钮 chrome**（2026-08-30 拍板：四钮宿主改 titlebar 右上） | 通高已近似成立 |
 | Navigator body | `SIDEBAR_PART`（Activity 默认标签 **Files**（同一 Explorer `VIEW_CONTAINER`，`isDefault: true`）+ 非 default 容器 Sessions / Projects / Agents / Team） | 保留 Explorer 权威；roster = Files + Sessions + Projects/Agents/Team honest stub | `toggleRegion('navigatorBody')` ≙ `setSideBarHidden` + 记宽 |
 | Conversation | **`CONVERSATION_PART`**（`contrib/conversation` 透镜骨架：SessionBar / stub 时间线 / stub dock） | 独立中心 Part | 无引擎接线；不是 ChatEditor |
-| Preview | `EDITOR_PART`（End 列） | **同一 `EDITOR_PART` 已挪到 End** | 与 File tabs **同构**（spike §3.1）；出厂 **`workbench.startupEditor` = `none`**，Preview 不自动打开 VS Code Welcome（Command Palette 仍可打开）；空 Preview watermark 无 Open Chat，空 untitled 编辑器 hint 不走 Copilot/inline-chat 引导 |
+| Preview | `EDITOR_PART`（End 列） | **同一 `EDITOR_PART` 已挪到 End** | 与 File tabs **同构**（spike §3.1）；出厂 **`workbench.startupEditor` = `none`**，Preview 不自动打开 VS Code Welcome（Command Palette 仍可打开）；空 Preview watermark 无 Open Chat，空 untitled 编辑器 hint 不走 Copilot/inline-chat 引导；出厂 **`editor.inlineSuggest.enabled` = `false`**（Preview 内不自动显示 Copilot 式 ghost-text 补全，用户可开启） |
 | Sources | 无独立格。SCM/Changes 常在 Sidebar 或 Panel | **`SOURCES_PART`**（End 下格；`contrib/sources` **Files \| Changes \| Review** tab strip） | Files 列表已落；Changes = SCM 资源列表 → Preview（`openEditor`，非 Diff）；Review = SCM 资源只读列表 → Preview（`SourcesReviewList`）；Diff 深查看仍 **EDITOR_PART** FORK（ADR-047） |
 | Bottom Panel | `PANEL_PART` | 保留；**不进四钮** | 对齐 ADR-047 / ADR-052 决策 3 |
 | StatusBar | `STATUSBAR_PART` | 保留 | 保留 Part；默认窗口不显示 Copilot StatusBar 条目（INV-NO-COPILOT）；**Conversation stub chip** `status.conversation.session`（stub 会话标题 / No session，非 Copilot） |

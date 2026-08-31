@@ -145,7 +145,7 @@ adapter 是唯一反腐层。M1 透镜仍用 stub 时间线（spike 允许），
 | Timeline | `ChatWidget` 列表 + content parts | 阅读层级、权限座位、工具卡路由按 Desktop |
 | Input Dock / MessageQueue | `ChatInputPart` | **例外合同**在 spec §8.3，不能用 VS Code picker 顶替 |
 | 权限 CTA | 无对等（有 confirmation service） | 自研 ResponseSeat |
-| Preview File tabs | `EDITOR_PART` tabs | **同构**，应保留 |
+| Preview File tabs | `EDITOR_PART` tabs | **同构**，应保留；出厂 **`editor.inlineSuggest.enabled` = `false`**（Preview 内不自动显示 Copilot 式 ghost-text 补全；用户可在设置中开启） |
 | Sources | `SOURCES_PART` + `contrib/sources` **Files \| Changes \| Review** tab strip | Files 已落；Changes / Review = SCM 资源列表 → Preview（`SourcesChangesList` / `SourcesReviewList`）；Diff 深查看（ADR-051 / ADR-047 FORK）仍 **EDITOR_PART**，未接线 |
 
 ## 8. 相关文档
