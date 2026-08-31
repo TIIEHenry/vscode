@@ -39,8 +39,10 @@ import { ITelemetryService } from '../../../../../platform/telemetry/common/tele
 import { ActiveEditorContext } from '../../../../common/contextkeys.js';
 import { IViewDescriptorService, ViewContainerLocation } from '../../../../common/views.js';
 import { ChatEntitlement, IChatEntitlementService } from '../../../../services/chat/common/chatEntitlementService.js';
-import { ACTIVE_GROUP, AUX_WINDOW_GROUP, SIDE_GROUP } from '../../../../services/editor/common/editorService.js';
+import { ACTIVE_GROUP, AUX_WINDOW_GROUP, IEditorService, SIDE_GROUP } from '../../../../services/editor/common/editorService.js';
+import { IWorkbenchEnvironmentService } from '../../../../services/environment/common/environmentService.js';
 import { IHostService } from '../../../../services/host/browser/host.js';
+import { IConversationPartService } from '../../../../browser/parts/conversation/conversationPart.js';
 import { IWorkbenchLayoutService, Parts } from '../../../../services/layout/browser/layoutService.js';
 import { IPreferencesService } from '../../../../services/preferences/common/preferences.js';
 import { IViewsService } from '../../../../services/views/common/viewsService.js';
@@ -207,6 +209,25 @@ export interface IChatViewOpenRequestEntry {
 	response: string;
 }
 
+/** Default Code window (not Agents Window). */
+export function isDefaultCodeWindow(accessor: ServicesAccessor): boolean {
+	return !accessor.get(IWorkbenchEnvironmentService).isSessionsWindow;
+}
+
+/** Show and focus the center ConversationPart (INV-TOPO product shell). */
+export function focusConversationPart(accessor: ServicesAccessor): void {
+	const layoutService = accessor.get(IWorkbenchLayoutService);
+	const conversationPartService = accessor.get(IConversationPartService);
+	if (!layoutService.isVisible(Parts.CONVERSATION_PART)) {
+		layoutService.setPartHidden(false, Parts.CONVERSATION_PART);
+	}
+	conversationPartService.focus();
+}
+
+function shouldFocusConversationPartInsteadOfChatEditor(accessor: ServicesAccessor): boolean {
+	return isDefaultCodeWindow(accessor) && !(accessor.get(IEditorService).activeEditor instanceof ChatEditorInput);
+}
+
 const OPEN_CHAT_QUOTA_EXCEEDED_DIALOG = 'workbench.action.chat.openQuotaExceededDialog';
 
 abstract class OpenChatGlobalAction extends Action2 {
@@ -225,6 +246,11 @@ abstract class OpenChatGlobalAction extends Action2 {
 
 	override async run(accessor: ServicesAccessor, opts?: string | IChatViewOpenOptions): Promise<IChatAgentResult & { type?: 'confirmation' } | undefined> {
 		opts = typeof opts === 'string' ? { query: opts } : opts;
+
+		if (isDefaultCodeWindow(accessor)) {
+			focusConversationPart(accessor);
+			return undefined;
+		}
 
 		const chatService = accessor.get(IChatService);
 		const widgetService = accessor.get(IChatWidgetService);
@@ -599,6 +625,16 @@ export function registerChatActions() {
 		};
 	}
 
+	async function openNewChatEditorSession(accessor: ServicesAccessor, target: typeof ACTIVE_GROUP | typeof SIDE_GROUP | typeof AUX_WINDOW_GROUP, options?: IChatEditorOptions): Promise<void> {
+		if (shouldFocusConversationPartInsteadOfChatEditor(accessor)) {
+			focusConversationPart(accessor);
+			return;
+		}
+		const widgetService = accessor.get(IChatWidgetService);
+		const input = getNewChatEditorInput(accessor);
+		await widgetService.openSession(input.resource, target, { ...input.options, ...options });
+	}
+
 	registerAction2(PrimaryOpenChatGlobalAction);
 	registerAction2(class extends ModeOpenChatGlobalAction {
 		constructor() { super(ChatMode.Ask); }
@@ -697,9 +733,7 @@ export function registerChatActions() {
 		}
 
 		async run(accessor: ServicesAccessor) {
-			const widgetService = accessor.get(IChatWidgetService);
-			const input = getNewChatEditorInput(accessor);
-			await widgetService.openSession(input.resource, ACTIVE_GROUP, input.options);
+			await openNewChatEditorSession(accessor, ACTIVE_GROUP);
 		}
 	});
 
@@ -722,9 +756,7 @@ export function registerChatActions() {
 		}
 
 		async run(accessor: ServicesAccessor) {
-			const widgetService = accessor.get(IChatWidgetService);
-			const input = getNewChatEditorInput(accessor);
-			await widgetService.openSession(input.resource, ACTIVE_GROUP, input.options);
+			await openNewChatEditorSession(accessor, ACTIVE_GROUP);
 		}
 	});
 
@@ -747,9 +779,7 @@ export function registerChatActions() {
 		}
 
 		async run(accessor: ServicesAccessor) {
-			const widgetService = accessor.get(IChatWidgetService);
-			const input = getNewChatEditorInput(accessor);
-			await widgetService.openSession(input.resource, ACTIVE_GROUP, input.options);
+			await openNewChatEditorSession(accessor, ACTIVE_GROUP);
 		}
 	});
 
@@ -772,9 +802,7 @@ export function registerChatActions() {
 		}
 
 		async run(accessor: ServicesAccessor) {
-			const widgetService = accessor.get(IChatWidgetService);
-			const input = getNewChatEditorInput(accessor);
-			await widgetService.openSession(input.resource, ACTIVE_GROUP, input.options);
+			await openNewChatEditorSession(accessor, ACTIVE_GROUP);
 		}
 	});
 
@@ -790,9 +818,11 @@ export function registerChatActions() {
 		}
 
 		async run(accessor: ServicesAccessor) {
-			const widgetService = accessor.get(IChatWidgetService);
-			const input = getNewChatEditorInput(accessor);
-			await widgetService.openSession(input.resource, SIDE_GROUP, input.options);
+			if (isDefaultCodeWindow(accessor)) {
+				focusConversationPart(accessor);
+				return;
+			}
+			await openNewChatEditorSession(accessor, SIDE_GROUP);
 		}
 	});
 
@@ -817,6 +847,10 @@ export function registerChatActions() {
 		}
 
 		async run(accessor: ServicesAccessor) {
+			if (isDefaultCodeWindow(accessor)) {
+				focusConversationPart(accessor);
+				return;
+			}
 			const widgetService = accessor.get(IChatWidgetService);
 			const input = getNewChatEditorInput(accessor);
 			await widgetService.openSession(input.resource, AUX_WINDOW_GROUP, { ...input.options, auxiliary: { compact: true, bounds: { width: 640, height: 640 } } });
