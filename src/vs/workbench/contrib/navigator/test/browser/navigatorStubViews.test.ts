@@ -67,15 +67,18 @@ suite('Navigator stub views', () => {
 	});
 
 	test('Navigator stub ViewContainers use hideIfEmpty and are non-default', () => {
+		const defaultSidebarContainers = viewContainersRegistry.getDefaultViewContainers(ViewContainerLocation.Sidebar);
 		for (const { containerId, container } of navigatorContainerCases) {
 			assert.strictEqual(container.hideIfEmpty, true, `${containerId} must keep hideIfEmpty`);
+			assert.ok(!defaultSidebarContainers.some(c => c.id === containerId), `${containerId} must not be default`);
 		}
 	});
 
-	test('Navigator Agents and Team ViewContainers are Sidebar non-default composites', () => {
+	test('Navigator stub and Sessions ViewContainers are Sidebar non-default composites', () => {
 		const defaultSidebarContainers = viewContainersRegistry.getDefaultViewContainers(ViewContainerLocation.Sidebar);
 		const nonDefaultContainerIds = [
 			CONVERSATION_SESSIONS_CONTAINER_ID,
+			NAVIGATOR_PROJECTS_CONTAINER_ID,
 			NAVIGATOR_AGENTS_CONTAINER_ID,
 			NAVIGATOR_TEAM_CONTAINER_ID,
 		];
@@ -85,10 +88,11 @@ suite('Navigator stub views', () => {
 		}
 	});
 
-	test('Navigator Projects is the default Sidebar composite', () => {
+	test('Files explorer is the default Sidebar composite', () => {
 		const defaultSidebarContainers = viewContainersRegistry.getDefaultViewContainers(ViewContainerLocation.Sidebar);
-		assert.ok(defaultSidebarContainers.some(container => container.id === NAVIGATOR_PROJECTS_CONTAINER_ID));
-		assert.ok(!defaultSidebarContainers.some(container => container.id === VIEWLET_ID));
+		assert.ok(defaultSidebarContainers.some(container => container.id === VIEWLET_ID));
+		assert.ok(defaultSidebarContainers.some(container => container.id === EXPLORER_VIEW_CONTAINER.id));
+		assert.ok(!defaultSidebarContainers.some(container => container.id === NAVIGATOR_PROJECTS_CONTAINER_ID));
 		assert.ok(!defaultSidebarContainers.some(container => container.id === NAVIGATOR_AGENTS_CONTAINER_ID));
 		assert.ok(!defaultSidebarContainers.some(container => container.id === NAVIGATOR_TEAM_CONTAINER_ID));
 		assert.ok(!defaultSidebarContainers.some(container => container.id === CONVERSATION_SESSIONS_CONTAINER_ID));
