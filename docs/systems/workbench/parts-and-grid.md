@@ -76,7 +76,7 @@ VERTICAL
 | `SOURCES_PART` | `setSourcesHidden` | 写入 `SOURCES_HIDDEN`；CSS `nosources`。**若隐藏 Sources 且 Conversation 与 Editor 均不可见且 aux 未 maximize → 强制显示 Conversation** |
 | `PANEL_PART` | `setPanelHidden` | 可独立藏；maximize panel = 藏 End 列（Editor + Sources），Conversation 保持可见 |
 | `SIDEBAR_PART` | `setSideBarHidden` | 可独立藏 |
-| `AUXILIARYBAR_PART` | `setAuxiliaryBarMaximized` / `setAuxiliaryBarHidden` | 可独立藏；maximize aux 会挤掉 Conversation + Editor + Panel + Sidebar |
+| `AUXILIARYBAR_PART` | `setAuxiliaryBarMaximized` / `setAuxiliaryBarHidden` | 可独立藏；maximize aux 藏 End 列（Editor + Sources）与 Sidebar/Panel，Conversation 保持可见 |
 | `ACTIVITYBAR_PART` | `setActivityBarHidden` | 可独立藏 |
 | `STATUSBAR_PART` | 对应 hidden key | 可独立藏 |
 

@@ -539,6 +539,18 @@ suite('LayoutService - panel maximize End column', () => {
 	});
 });
 
+suite('LayoutService - auxiliary bar maximize End column', () => {
+
+	ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('auxiliary bar maximize keeps Conversation visible under INV-052', () => {
+		const auxMaximizeVisibility = { conversation: true, editor: false, sources: false };
+		assert.strictEqual(forceShownAgentShellPart(Parts.EDITOR_PART, auxMaximizeVisibility), undefined);
+		assert.strictEqual(forceShownAgentShellPart(Parts.SOURCES_PART, auxMaximizeVisibility), undefined);
+		assert.strictEqual(forceShownAgentShellPart(Parts.CONVERSATION_PART, auxMaximizeVisibility), undefined);
+	});
+});
+
 /**
  * (see layout.ts LayoutStateKeys.AUXILIARYBAR_HIDDEN IIFE).
  */

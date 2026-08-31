@@ -2362,13 +2362,14 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 				if (state.panelVisible) {
 					this.setPanelHidden(true);
 				}
-				if (state.conversationVisible) {
-					this.setConversationHidden(true);
-				}
 				if (state.editorVisible) {
 					this.setEditorHidden(true);
 				}
 				if (state.sourcesVisible) {
+					this.setSourcesHidden(true);
+				}
+				if (!state.editorVisible && !state.sourcesVisible) {
+					this.setEditorHidden(true);
 					this.setSourcesHidden(true);
 				}
 
@@ -2384,7 +2385,6 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 			try {
 				this.setEditorHidden(!state?.editorVisible);	// this order of updating view visibility
 				this.setSourcesHidden(!(state?.sourcesVisible ?? true));
-				this.setConversationHidden(!(state?.conversationVisible ?? true));
 				this.setPanelHidden(!state?.panelVisible);		// helps in restoring the previous view
 				this.setSideBarHidden(!state?.sideBarVisible);	// sizes we had
 
@@ -3406,7 +3406,6 @@ class LayoutStateModel extends Disposable {
 		});
 
 		this.setRuntimeValue(LayoutStateKeys.SIDEBAR_HIDDEN, true);
-		this.setRuntimeValue(LayoutStateKeys.CONVERSATION_HIDDEN, true);
 		this.setRuntimeValue(LayoutStateKeys.PANEL_HIDDEN, true);
 		this.setRuntimeValue(LayoutStateKeys.EDITOR_HIDDEN, true);
 		this.setRuntimeValue(LayoutStateKeys.SOURCES_HIDDEN, true);
