@@ -1,7 +1,7 @@
 ---
 title: "M3 壳收尾：ChatEditor 默认路径与 Navigator 会话列表"
 type: plan
-status: proposed
+status: in_progress
 phase: M3
 updated: 2026-08-31
 summary: "可选 follow-on：藏/转 ChatEditor 默认打开路径；Navigator stub 会话列表。无引擎。不阻塞无引擎产品壳。"
@@ -18,6 +18,8 @@ summary: "可选 follow-on：藏/转 ChatEditor 默认打开路径；Navigator s
 **Architecture：** 继续只动默认 Code 窗口 chrome / 打开路径。中心透镜仍是 `ConversationPart` + `contrib/conversation` stub 产品面。`ChatWidget` / `ChatEditor` **源码保留**（donor）。会话列表是 Sidebar 里的 **roster**，不是第二块 Conversation，也不是 `IChatModel`。
 
 > **相对 M2 的地位（本方案拍板）：** [M2 产品完成线](m2-product-shell.md) 已经把「没有引擎」前提下的 ADR-061 编辑器窗口产品壳写完整：中心透镜可操作、Aux 出厂 hidden、Chat 非 Aux default、知识层诚实。本 M3 **不是** 无引擎方案的阻塞出口，只是 **chrome / INV-TOPO 卫生 follow-on**。两切片可独立落地，也可整波搁置；不验收、不排期也不等于壳没做完。compile / 启动 / EH 仍是 D3–D5，本波不勾。
+
+> `status: in_progress` — 切片 2 roster 已落 `80b3f76c`；切片 1 命令转 Conversation 已落 `fd549855`。仍缺 serializer / resolver / `openInEditor`。
 
 ## 全局约束
 
