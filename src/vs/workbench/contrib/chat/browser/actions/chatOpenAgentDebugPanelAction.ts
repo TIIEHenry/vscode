@@ -16,7 +16,7 @@ import { IFileService } from '../../../../../platform/files/common/files.js';
 import { INotificationService, Severity } from '../../../../../platform/notification/common/notification.js';
 import { IOpenerService } from '../../../../../platform/opener/common/opener.js';
 import { ITelemetryService } from '../../../../../platform/telemetry/common/telemetry.js';
-import { ActiveEditorContext } from '../../../../common/contextkeys.js';
+import { ActiveEditorContext, IsSessionsWindowContext } from '../../../../common/contextkeys.js';
 import { IEditorService } from '../../../../services/editor/common/editorService.js';
 import { isChatViewTitleActionContext } from '../../common/actions/chatActions.js';
 import { ChatContextKeys } from '../../common/actions/chatContextKeys.js';
@@ -39,7 +39,7 @@ export function registerChatOpenAgentDebugPanelAction() {
 				title: localize2('chat.openAgentDebugPanel.label', "Open Agent Debug Logs"),
 				f1: true,
 				category: Categories.Developer,
-				precondition: ChatContextKeys.enabled,
+				precondition: ContextKeyExpr.and(ChatContextKeys.enabled, IsSessionsWindowContext),
 			});
 		}
 
@@ -116,6 +116,7 @@ export function registerChatOpenAgentDebugPanelAction() {
 				category: Categories.Developer,
 				precondition: ContextKeyExpr.and(
 					ChatContextKeys.enabled,
+					IsSessionsWindowContext,
 					CHAT_DEBUG_HAS_ACTIVE_SESSION,
 					CHAT_DEBUG_ACTIVE_SESSION_IS_AGENT_HOST.negate(),
 				),
@@ -187,7 +188,7 @@ export function registerChatOpenAgentDebugPanelAction() {
 				icon: Codicon.chatImport,
 				f1: true,
 				category: Categories.Developer,
-				precondition: ChatContextKeys.enabled,
+				precondition: ContextKeyExpr.and(ChatContextKeys.enabled, IsSessionsWindowContext),
 				menu: [{
 					id: MenuId.EditorTitle,
 					group: 'navigation',

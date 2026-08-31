@@ -14,6 +14,7 @@ import { IFileDialogService } from '../../../../../platform/dialogs/common/dialo
 import { IFileService } from '../../../../../platform/files/common/files.js';
 import { INotificationService, Severity } from '../../../../../platform/notification/common/notification.js';
 import { INativeWorkbenchEnvironmentService } from '../../../../services/environment/electron-browser/environmentService.js';
+import { IsSessionsWindowContext } from '../../../../common/contextkeys.js';
 import { CHAT_CATEGORY } from '../../browser/actions/chatActions.js';
 
 /**
@@ -40,7 +41,10 @@ export function registerExportAgentTracesDbAction() {
 				id: 'workbench.action.chat.agentHost.otel.exportAgentTracesDB',
 				category: CHAT_CATEGORY,
 				title: localize2('exportAgentTracesDB.label', "Export Agent Host Traces Database..."),
-				precondition: ContextKeyExpr.equals(`config.${AgentHostOTelDbSpanExporterEnabledSettingId}`, true),
+				precondition: ContextKeyExpr.and(
+					ContextKeyExpr.equals(`config.${AgentHostOTelDbSpanExporterEnabledSettingId}`, true),
+					IsSessionsWindowContext,
+				),
 				f1: true,
 			});
 		}

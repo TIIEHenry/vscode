@@ -13,6 +13,7 @@ import { IFileService } from '../../../../../platform/files/common/files.js';
 import { INativeHostService } from '../../../../../platform/native/common/native.js';
 import { INotificationService, Severity } from '../../../../../platform/notification/common/notification.js';
 import { ChatEntitlementContextKeys } from '../../../../services/chat/common/chatEntitlementService.js';
+import { IsSessionsWindowContext } from '../../../../common/contextkeys.js';
 import { CHAT_CATEGORY } from '../../browser/actions/chatActions.js';
 import { IChatWidgetService } from '../../browser/chat.js';
 import { captureRepoInfo } from '../../browser/chatRepoInfo.js';
@@ -27,7 +28,7 @@ export function registerChatExportZipAction() {
 				id: 'workbench.action.chat.exportAsZip',
 				category: CHAT_CATEGORY,
 				title: localize2('chat.exportAsZip.label', "Export Chat as Zip..."),
-				precondition: ContextKeyExpr.and(ChatContextKeys.enabled, ChatEntitlementContextKeys.Entitlement.internal),
+				precondition: ContextKeyExpr.and(ChatContextKeys.enabled, ChatEntitlementContextKeys.Entitlement.internal, IsSessionsWindowContext),
 				f1: true,
 			});
 		}

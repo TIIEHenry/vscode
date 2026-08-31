@@ -11,7 +11,9 @@ import { IAgentConnection, IAgentHostDnsResult, IAgentHostNetworkEndpoint, IAgen
 import { IAgentHostConnectionsService } from '../../../../../platform/agentHost/common/agentHostConnectionsService.js';
 import { Categories } from '../../../../../platform/action/common/actionCommonCategories.js';
 import { Action2, registerAction2 } from '../../../../../platform/actions/common/actions.js';
+import { ContextKeyExpr } from '../../../../../platform/contextkey/common/contextkey.js';
 import { INativeHostService, IOSProxy, IOSProxyConfig } from '../../../../../platform/native/common/native.js';
+import { IsSessionsWindowContext } from '../../../../common/contextkeys.js';
 import { IEditorService } from '../../../../services/editor/common/editorService.js';
 import { ChatContextKeys } from '../../common/actions/chatContextKeys.js';
 
@@ -213,7 +215,7 @@ class NetworkDiagnosticsAction extends Action2 {
 			icon: Codicon.plug,
 			category: Categories.Developer,
 			f1: true,
-			precondition: ChatContextKeys.enabled
+			precondition: ContextKeyExpr.and(ChatContextKeys.enabled, IsSessionsWindowContext)
 		});
 	}
 

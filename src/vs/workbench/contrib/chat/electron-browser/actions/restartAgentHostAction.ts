@@ -10,7 +10,7 @@ import { Action2 } from '../../../../../platform/actions/common/actions.js';
 import { AGENT_HOST_ENABLED_CONTEXT_KEY } from '../../../../../platform/agentHost/common/agentHostEnablementService.js';
 import { IAgentHostService } from '../../../../../platform/agentHost/common/agentService.js';
 import { ContextKeyExpr } from '../../../../../platform/contextkey/common/contextkey.js';
-import { RemoteNameContext } from '../../../../common/contextkeys.js';
+import { IsSessionsWindowContext, RemoteNameContext } from '../../../../common/contextkeys.js';
 import { ChatContextKeys } from '../../common/actions/chatContextKeys.js';
 
 export class RestartLocalAgentHostAction extends Action2 {
@@ -24,6 +24,7 @@ export class RestartLocalAgentHostAction extends Action2 {
 			f1: true,
 			precondition: ContextKeyExpr.and(
 				ChatContextKeys.enabled,
+				IsSessionsWindowContext,
 				AGENT_HOST_ENABLED_CONTEXT_KEY,
 				RemoteNameContext.isEqualTo(''),
 			),
