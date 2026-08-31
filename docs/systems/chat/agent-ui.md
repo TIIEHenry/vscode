@@ -4,6 +4,7 @@ type: architecture
 status: accepted
 phase: N/A
 updated: 2026-08-31
+summary: "本仓对话 UI 的三层：ChatWidget 零件、workbench 宿主（含违反 INV-TOPO 的 ChatEditor）、Sessions Part；Conversation 列 SessionBar/Timeline/Dock chrome + Sources Files/Changes/Review tab + D7 四钮 + StatusBar stub chip 已落"
 summary: "本仓对话 UI 的三层：ChatWidget 零件、workbench 宿主（含违反 INV-TOPO 的 ChatEditor）、Sessions Part；Conversation 列 SessionBar/Timeline/Dock chrome + Sources Files/Changes/Review tab + D7 四钮已落"
 ---
 
@@ -123,6 +124,8 @@ Desktop 合同：窗口壳 = Singularity/IDEA；Conversation 内 = 时间线 + I
 
 **可复用（需剥皮）：** Widget 渲染、list、部分 builtin tools 机制、`ILanguageModelToolsService` 的「工具注册」形状。  
 **不可复用：** setup 对话框、entitlement、Copilot session provider、ChatEditor 当壳。空 Preview watermark 与 untitled 编辑器 empty hint 亦不得再作 Copilot Chat 入口（INV-NO-COPILOT chrome）。默认窗口不显示 Copilot StatusBar 条目（`chat.statusBarEntry`）。Titlebar 出厂不显示 Copilot Sign In（`chat.titleBar.signIn.enabled` = `false`）与 Agent Status compact 命令中心 chrome（`chat.agentsControl.enabled` = `hidden`）。
+
+**StatusBar（默认 Code 窗口）：** `contrib/conversation` 注册 `status.conversation.session`（右对齐、低权重）。文案来自 `IConversationStubService` 当前会话标题；无标题时显示 **No session**（诚实 stub，无引擎 / 额度 / Sign In）。点击执行 `workbench.action.showConversationPart` → `setPartHidden(false, CONVERSATION_PART)` + `IConversationPartService.focus()`；不打开 ChatEditor 或 Aux Chat。
 
 ## 6. 状态机：两套「会话」不要当一个
 

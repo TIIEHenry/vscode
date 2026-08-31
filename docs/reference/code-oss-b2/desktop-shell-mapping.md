@@ -47,7 +47,7 @@ StatusBar
 | Preview | `EDITOR_PART`（End 列） | **同一 `EDITOR_PART` 已挪到 End** | 与 File tabs **同构**（spike §3.1）；出厂 **`workbench.startupEditor` = `none`**，Preview 不自动打开 VS Code Welcome（Command Palette 仍可打开）；空 Preview watermark 无 Open Chat，空 untitled 编辑器 hint 不走 Copilot/inline-chat 引导 |
 | Sources | 无独立格。SCM/Changes 常在 Sidebar 或 Panel | **`SOURCES_PART`**（End 下格；`contrib/sources` **Files \| Changes \| Review** tab strip） | Files 列表已落；Changes = SCM 资源列表 → Preview（`openEditor`，非 Diff）；Review 为 stub；Diff 深查看仍 **EDITOR_PART** FORK（ADR-047） |
 | Bottom Panel | `PANEL_PART` | 保留；**不进四钮** | 对齐 ADR-047 / ADR-052 决策 3 |
-| StatusBar | `STATUSBAR_PART` | 保留 | 保留 Part；默认窗口不显示 Copilot StatusBar 条目（INV-NO-COPILOT） |
+| StatusBar | `STATUSBAR_PART` | 保留 | 保留 Part；默认窗口不显示 Copilot StatusBar 条目（INV-NO-COPILOT）；**Conversation stub chip** `status.conversation.session`（stub 会话标题 / No session，非 Copilot） |
 | 右缘 rail | `AUXILIARYBAR_PART` | **合同默认关**（INV-052-NO-RIGHT-RAIL） | 布局类扩展爱往这里打，记入 EH 矩阵；Chat 容器仍挂 Aux 但 **`isDefault: false`**，出厂 hidden（M2） |
 | Titlebar | `TITLEBAR_PART`（菜单 + command center + 右上 layout controls） | **按 vscode 原生来**（2026-08-30 拍板）；四钮宿主 = 右上 layout controls 簇（**Navigator / Conversation / Preview / Sources** 产品名；Panel / Aux 仅在 submenu）；出厂无 Copilot Sign In / Agent Status compact chrome（`chat.titleBar.signIn.enabled` = `false`，`chat.agentsControl.enabled` = `hidden`） | 不再自研顶部 chrome |
 | SessionBar | Chat 标题条 / sessions `sessionHeader` | Conversation 透镜内自研 chrome | ADR-052 NO-SUBLAYOUT |

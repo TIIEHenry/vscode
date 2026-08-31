@@ -18,6 +18,7 @@ import { Extensions as ViewContainerExtensions, IViewContainersRegistry, IViewsR
 import { IConversationLensSlots, IConversationPartService } from '../../../browser/parts/conversation/conversationPart.js';
 import { ConversationLens } from './conversationLens.js';
 import { CONVERSATION_SESSIONS_VIEW_ID, ConversationSessionsView } from './conversationSessionsView.js';
+import { ConversationSessionStatusBarContribution, registerConversationSessionStatusBar } from './conversationSessionStatusBar.js';
 import { ConversationStubService, IConversationStubService } from './conversationStubService.js';
 
 registerSingleton(IConversationStubService, ConversationStubService, InstantiationType.Delayed);
@@ -82,3 +83,6 @@ class ConversationLensContribution extends Disposable implements IWorkbenchContr
 }
 
 registerWorkbenchContribution2(ConversationLensContribution.ID, ConversationLensContribution, WorkbenchPhase.AfterRestored);
+
+registerConversationSessionStatusBar();
+registerWorkbenchContribution2(ConversationSessionStatusBarContribution.ID, ConversationSessionStatusBarContribution, WorkbenchPhase.AfterRestored);
