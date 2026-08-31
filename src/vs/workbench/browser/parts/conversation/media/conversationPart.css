@@ -11,7 +11,7 @@
 .monaco-workbench .part.conversation {
 	display: flex;
 	flex-direction: column;
-	background-color: var(--vscode-sideBar-background);
+	background-color: var(--vscode-editor-background);
 }
 
 .monaco-workbench .part.conversation > .content {
