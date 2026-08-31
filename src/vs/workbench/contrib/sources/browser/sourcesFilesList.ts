@@ -19,7 +19,9 @@ import { EditorOpenSource } from '../../../../platform/editor/common/editor.js';
 import { ResourceLabels, IResourceLabel } from '../../../browser/labels.js';
 import { ACTIVE_GROUP, IEditorService } from '../../../services/editor/common/editorService.js';
 import { IExplorerService } from '../../files/browser/files.js';
+import { filterSourcesEntries } from '../common/sourcesFilterModel.js';
 import { collectSourcesFileEntries, ISourcesFileEntry } from '../common/sourcesFilesModel.js';
+import { SourcesListFilterBox } from './sourcesListFilterBox.js';
 
 const $ = dom.$;
 
@@ -77,6 +79,7 @@ export class SourcesFilesList extends Disposable {
 
 	private readonly listContainer: HTMLElement;
 	private readonly emptyMessage: HTMLElement;
+	private readonly filterBox: SourcesListFilterBox;
 	private list: WorkbenchList<ISourcesFileEntry> | undefined;
 	private labels: ResourceLabels | undefined;
 	private readonly refreshScheduler: RunOnceScheduler;
@@ -93,9 +96,15 @@ export class SourcesFilesList extends Disposable {
 
 		host.classList.add('show-file-icons');
 
+		this.filterBox = this._register(new SourcesListFilterBox(
+			host,
+			localize('sourcesFilesList.filterPlaceholder', "Filter files"),
+			localize('sourcesFilesList.filterAriaLabel', "Filter files"),
+		));
+		this._register(this.filterBox.onDidChange(() => this.scheduleRefresh()));
+
 		this.listContainer = dom.append(host, $('.sources-files-list'));
 		this.emptyMessage = dom.append(host, $('.sources-files-empty'));
-		this.emptyMessage.textContent = localize('sourcesFilesList.empty', "No workspace files to show.");
 		this.emptyMessage.style.display = 'none';
 
 		this.refreshScheduler = this._register(new RunOnceScheduler(() => this.refresh(), 250));
@@ -158,13 +167,23 @@ export class SourcesFilesList extends Disposable {
 
 	private async refresh(): Promise<void> {
 		const sortOrder = this.explorerService.sortOrderConfiguration.sortOrder;
-		const entries = await collectSourcesFileEntries(this.explorerService.roots, sortOrder);
+		const allEntries = await collectSourcesFileEntries(this.explorerService.roots, sortOrder);
+		const entries = filterSourcesEntries(allEntries, this.filterBox.value);
 
-		const hasEntries = entries.length > 0;
-		this.emptyMessage.style.display = hasEntries ? 'none' : 'block';
-		this.listContainer.style.display = hasEntries ? 'block' : 'none';
+		const hasAnyEntries = allEntries.length > 0;
+		const hasVisibleEntries = entries.length > 0;
 
-		if (!hasEntries) {
+		if (!hasAnyEntries) {
+			this.emptyMessage.textContent = localize('sourcesFilesList.empty', "No workspace files to show.");
+		} else if (!hasVisibleEntries) {
+			this.emptyMessage.textContent = localize('sourcesFilesList.noMatching', "No matching files.");
+		}
+
+		this.emptyMessage.style.display = hasVisibleEntries ? 'none' : 'block';
+		this.listContainer.style.display = hasVisibleEntries ? 'block' : 'none';
+		this.filterBox.element.style.display = hasAnyEntries ? 'block' : 'none';
+
+		if (!hasVisibleEntries) {
 			return;
 		}
 

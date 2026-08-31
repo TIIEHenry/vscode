@@ -30,7 +30,9 @@ import {
 	isSourcesChangeStageable,
 	isSourcesChangeUnstageable,
 } from '../common/sourcesChangesGit.js';
+import { filterSourcesEntries } from '../common/sourcesFilterModel.js';
 import { collectSourcesChangeEntries, ISourcesChangeEntry } from '../common/sourcesChangesModel.js';
+import { SourcesListFilterBox } from './sourcesListFilterBox.js';
 
 const $ = dom.$;
 
@@ -152,6 +154,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 
 	private readonly contentContainer: HTMLElement;
 	private readonly toolbar: HTMLElement;
+	private readonly filterBox: SourcesListFilterBox;
 	private readonly stageSelectedButton: Button;
 	private readonly unstageSelectedButton: Button;
 	private readonly listContainer: HTMLElement;
@@ -179,6 +182,13 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		super();
 
 		host.classList.add('show-file-icons', 'sources-changes-host');
+
+		this.filterBox = this._register(new SourcesListFilterBox(
+			host,
+			localize('sourcesChangesList.filterPlaceholder', "Filter changes"),
+			localize('sourcesChangesList.filterAriaLabel', "Filter changes"),
+		));
+		this._register(this.filterBox.onDidChange(() => this.scheduleRefresh()));
 
 		this.contentContainer = dom.append(host, $('.sources-changes-content'));
 		this.toolbar = dom.append(host, $('.sources-changes-toolbar'));
@@ -344,8 +354,10 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 	private refresh(): void {
 		const hasRepository = this.scmService.repositoryCount > 0;
 		this.activeRepository = this.getPrimaryRepository();
-		const entries = collectSourcesChangeEntries(this.scmService.repositories);
-		const hasEntries = entries.length > 0;
+		const allEntries = collectSourcesChangeEntries(this.scmService.repositories);
+		const entries = filterSourcesEntries(allEntries, this.filterBox.value);
+		const hasAnyEntries = allEntries.length > 0;
+		const hasVisibleEntries = entries.length > 0;
 
 		this.gitCommandsAvailable = this.isGitCommandAvailable(SOURCES_GIT_STAGE_COMMAND)
 			|| this.isGitCommandAvailable(SOURCES_GIT_UNSTAGE_COMMAND)
@@ -353,13 +365,16 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 
 		if (!hasRepository) {
 			this.emptyMessage.textContent = localize('sourcesChangesList.noRepository', "No source control repository.");
-		} else if (!hasEntries) {
+		} else if (!hasAnyEntries) {
 			this.emptyMessage.textContent = localize('sourcesChangesList.noChanges', "No changes.");
+		} else if (!hasVisibleEntries) {
+			this.emptyMessage.textContent = localize('sourcesChangesList.noMatching', "No matching changes.");
 		}
 
-		this.emptyMessage.style.display = hasEntries ? 'none' : 'block';
-		this.listContainer.style.display = hasEntries ? 'block' : 'none';
-		this.toolbar.style.display = hasEntries ? 'flex' : 'none';
+		this.emptyMessage.style.display = hasVisibleEntries ? 'none' : 'block';
+		this.listContainer.style.display = hasVisibleEntries ? 'block' : 'none';
+		this.toolbar.style.display = hasVisibleEntries ? 'flex' : 'none';
+		this.filterBox.element.style.display = hasAnyEntries ? 'block' : 'none';
 		this.commitRow.style.display = hasRepository ? 'flex' : 'none';
 
 		if (hasRepository && !this.gitCommandsAvailable) {
@@ -372,7 +387,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		this.syncCommitInputFromRepository();
 		this.updateCommitRow();
 
-		if (hasEntries) {
+		if (hasVisibleEntries) {
 			const list = this.ensureList();
 			list.splice(0, list.length, entries);
 			this.updateSelectionToolbar();

@@ -1,0 +1,31 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+.monaco-workbench .part.sources .sources-list-filter {
+	flex-shrink: 0;
+	padding: 4px 8px;
+	border-bottom: 1px solid var(--vscode-sideBarSectionHeader-border, transparent);
+}
+
+.monaco-workbench .part.sources .sources-list-filter-input {
+	box-sizing: border-box;
+	width: 100%;
+	background: var(--vscode-input-background);
+	color: var(--vscode-input-foreground);
+	border: 1px solid var(--vscode-input-border, transparent);
+	border-radius: 2px;
+	font-size: 12px;
+	line-height: 20px;
+	padding: 0 6px;
+}
+
+.monaco-workbench .part.sources .sources-list-filter-input::placeholder {
+	color: var(--vscode-input-placeholderForeground);
+}
+
+.monaco-workbench .part.sources .sources-list-filter-input:focus {
+	outline: 1px solid var(--vscode-focusBorder);
+	outline-offset: -1px;
+}
