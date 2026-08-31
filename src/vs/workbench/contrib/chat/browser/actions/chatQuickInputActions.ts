@@ -8,8 +8,10 @@ import { KeyCode, KeyMod } from '../../../../../base/common/keyCodes.js';
 import { Selection } from '../../../../../editor/common/core/selection.js';
 import { localize, localize2 } from '../../../../../nls.js';
 import { Action2, MenuId, registerAction2 } from '../../../../../platform/actions/common/actions.js';
+import { ContextKeyExpr } from '../../../../../platform/contextkey/common/contextkey.js';
 import { ServicesAccessor } from '../../../../../platform/instantiation/common/instantiation.js';
 import { KeybindingWeight } from '../../../../../platform/keybinding/common/keybindingsRegistry.js';
+import { IsSessionsWindowContext } from '../../../../common/contextkeys.js';
 import { CHAT_CATEGORY } from './chatActions.js';
 import { IQuickChatOpenOptions, IQuickChatService } from '../chat.js';
 import { ChatContextKeys } from '../../common/actions/chatContextKeys.js';
@@ -134,7 +136,7 @@ class AskQuickChatAction extends Action2 {
 			id: `workbench.action.openQuickChat`,
 			category: CHAT_CATEGORY,
 			title: localize2('interactiveSession.open', "Open Quick Chat"),
-			precondition: ChatContextKeys.enabled,
+			precondition: ContextKeyExpr.and(ChatContextKeys.enabled, IsSessionsWindowContext),
 			f1: true
 		});
 	}

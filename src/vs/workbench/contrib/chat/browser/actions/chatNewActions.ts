@@ -15,6 +15,7 @@ import { ContextKeyExpr } from '../../../../../platform/contextkey/common/contex
 import { IDialogService } from '../../../../../platform/dialogs/common/dialogs.js';
 import { IInstantiationService } from '../../../../../platform/instantiation/common/instantiation.js';
 import { KeybindingWeight } from '../../../../../platform/keybinding/common/keybindingsRegistry.js';
+import { IsSessionsWindowContext } from '../../../../common/contextkeys.js';
 import { IViewsService } from '../../../../services/views/common/viewsService.js';
 import { ChatContextKeyExprs, ChatContextKeys } from '../../common/actions/chatContextKeys.js';
 import { IChatEditingSession } from '../../common/editing/chatEditingService.js';
@@ -72,7 +73,7 @@ export class NewChatAction extends Action2 {
 			title: localize2('chat.newEdits.label', "New Chat"),
 			category: CHAT_CATEGORY,
 			icon: Codicon.plus,
-			precondition: ContextKeyExpr.and(ChatContextKeys.enabled, ChatContextKeys.location.isEqualTo(ChatAgentLocation.Chat)),
+			precondition: ContextKeyExpr.and(ChatContextKeys.enabled, ChatContextKeys.location.isEqualTo(ChatAgentLocation.Chat), IsSessionsWindowContext),
 			f1: true,
 			menu: [
 				{
@@ -239,7 +240,7 @@ export function registerNewChatActions() {
 				title: localize2('chat.undoEdit.label', "Undo Last Edit"),
 				category: CHAT_CATEGORY,
 				icon: Codicon.discard,
-				precondition: ContextKeyExpr.and(ChatContextKeys.chatEditingCanUndo, ChatContextKeys.enabled),
+				precondition: ContextKeyExpr.and(ChatContextKeys.chatEditingCanUndo, ChatContextKeys.enabled, IsSessionsWindowContext),
 				f1: true,
 				menu: [{
 					id: MenuId.ViewTitle,
@@ -263,7 +264,7 @@ export function registerNewChatActions() {
 				title: localize2('chat.redoEdit.label', "Redo Last Edit"),
 				category: CHAT_CATEGORY,
 				icon: Codicon.redo,
-				precondition: ContextKeyExpr.and(ChatContextKeys.chatEditingCanRedo, ChatContextKeys.enabled),
+				precondition: ContextKeyExpr.and(ChatContextKeys.chatEditingCanRedo, ChatContextKeys.enabled, IsSessionsWindowContext),
 				f1: true,
 				menu: [
 					{
@@ -291,7 +292,7 @@ export function registerNewChatActions() {
 				title: localize2('chat.redoEdit.label2', "Redo"),
 				tooltip: localize2('chat.redoEdit.tooltip', "Reapply discarded workspace changes and chat"),
 				category: CHAT_CATEGORY,
-				precondition: ContextKeyExpr.and(ChatContextKeys.chatEditingCanRedo, ChatContextKeys.enabled),
+				precondition: ContextKeyExpr.and(ChatContextKeys.chatEditingCanRedo, ChatContextKeys.enabled, IsSessionsWindowContext),
 				f1: true,
 				menu: [{
 					id: MenuId.ChatMessageRestoreCheckpoint,

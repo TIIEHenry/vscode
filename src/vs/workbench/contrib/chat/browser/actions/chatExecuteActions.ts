@@ -265,7 +265,8 @@ class ToggleChatModeAction extends Action2 {
 			category: CHAT_CATEGORY,
 			precondition: ContextKeyExpr.and(
 				ChatContextKeys.enabled,
-				ChatContextKeys.requestInProgress.negate())
+				ChatContextKeys.requestInProgress.negate(),
+				IsSessionsWindowContext)
 		});
 	}
 
@@ -334,7 +335,7 @@ class SwitchToNextModelAction extends Action2 {
 			title: localize2('interactive.switchToNextModel.label', "Switch to Next Model"),
 			category: CHAT_CATEGORY,
 			f1: true,
-			precondition: ChatContextKeys.enabled,
+			precondition: ContextKeyExpr.and(ChatContextKeys.enabled, IsSessionsWindowContext),
 		});
 	}
 
@@ -354,7 +355,7 @@ class SwitchToNextPinnedModelAction extends Action2 {
 			title: localize2('interactive.switchToNextPinnedModel.label', "Switch to Next Pinned Model"),
 			category: CHAT_CATEGORY,
 			f1: true,
-			precondition: ChatContextKeys.enabled,
+			precondition: ContextKeyExpr.and(ChatContextKeys.enabled, IsSessionsWindowContext),
 		});
 	}
 

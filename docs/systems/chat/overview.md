@@ -84,6 +84,8 @@ platform/chat                   设置与 AI_AGENT 约定
 
 默认 Code 窗口 Command Palette 不列出 Copilot Chat 宿主遗留的 Move / Voice 命令（`IsSessionsWindowContext` 门闩；Agents Window 保留）：`workbench.action.chat.openInNewWindow`、`workbench.action.chat.openInSidebar`、`workbench.action.chat.voiceChatInChatView`、`workbench.action.chat.inlineVoiceChat`、`workbench.action.chat.quickVoiceChat`（`workbench.action.chat.openInEditor` 已为 `f1: false`）。
 
+默认 Code 窗口 Command Palette 亦不列出 Copilot **New Chat / Quick Chat / Execute** 捐赠命令（`IsSessionsWindowContext` 门闩；Agents Window 保留）：`workbench.action.chat.newChat`、`workbench.action.openQuickChat`、`workbench.action.chat.undoEdit`、`workbench.action.chat.redoEdit`、`workbench.action.chat.redoEdit2`、`workbench.action.chat.toggleAgentMode`、`workbench.action.chat.switchToNextModel`、`workbench.action.chat.switchToNextPinnedModel`（`workbench.action.quickchat.toggle` 已为 `f1: false`；Cancel / Send 等 Execute 菜单命令已为 `f1: false`）。产品入口为 Open Conversation（`workbench.action.chat.open`）。
+
 ## 相关文档
 
 - [Chat 系统索引](INDEX.md) · [chat 模块索引](../../modules/chat/INDEX.md)
