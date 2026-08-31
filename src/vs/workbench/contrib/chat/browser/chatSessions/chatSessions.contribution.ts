@@ -27,7 +27,6 @@ import { Registry } from '../../../../../platform/registry/common/platform.js';
 import { isDark } from '../../../../../platform/theme/common/theme.js';
 import { IThemeService } from '../../../../../platform/theme/common/themeService.js';
 import { IEditorService } from '../../../../services/editor/common/editorService.js';
-import { IWorkbenchEnvironmentService } from '../../../../services/environment/common/environmentService.js';
 import { IExtensionService, isProposedApiEnabled } from '../../../../services/extensions/common/extensions.js';
 import { ExtensionsRegistry } from '../../../../services/extensions/common/extensionsRegistry.js';
 import { ChatEditorInput } from '../widgetHosts/editor/chatEditorInput.js';
@@ -35,7 +34,8 @@ import { IChatAgentAttachmentCapabilities, IChatAgentData, IChatAgentService } f
 import { ChatContextKeys } from '../../common/actions/chatContextKeys.js';
 import { ChatSessionOptionsMap, ChatSessionStatus, ChatSessionsExtensions, IAsyncChatSessionActivationRegistry, IChatNewSessionRequest, IChatSession, IChatSessionCommitEvent, IChatSessionContentProvider, IChatSessionCustomizationItemGroup, IChatSessionCustomizationsProvider, IChatSessionHistoryItem, IChatSessionItem, IChatSessionItemController, IChatSessionItemsDelta, IChatSessionOptionsChangeEvent, IChatSessionProviderOptionGroup, IChatSessionProviderOptionItem, IChatSessionRequestHistoryItem, IChatSessionsExtensionPoint, IChatSessionsService, IChatInputCompletionsParams, IChatInputCompletionsResult, isSessionInProgressStatus, localChatSessionType, ReadonlyChatSessionOptionsMap, ResolvedChatSessionsExtensionPoint, SessionType } from '../../common/chatSessionsService.js';
 import { ChatAgentLocation, ChatModeKind } from '../../common/constants.js';
-import { CHAT_CATEGORY, focusConversationPart } from '../actions/chatActions.js';
+import { CHAT_CATEGORY } from '../actions/chatActions.js';
+import { focusConversationPart, isDefaultCodeWindow } from '../chatShellRouting.js';
 import { IChatEditorOptions } from '../widgetHosts/editor/chatEditor.js';
 import { IChatService, ResponseModelState } from '../../common/chatService/chatService.js';
 import { autorun, observableFromEvent } from '../../../../../base/common/observable.js';
@@ -1731,7 +1731,11 @@ export type NewChatSessionOpenOptions = {
 };
 
 export async function openChatSession(accessor: ServicesAccessor, openOptions: NewChatSessionOpenOptions, chatSendOptions?: NewChatSessionSendOptions): Promise<void> {
-	if (!accessor.get(IWorkbenchEnvironmentService).isSessionsWindow) {
+	if (isDefaultCodeWindow(accessor) && openOptions.position === ChatSessionPosition.Editor) {
+		throw new BugIndicatingError('Default Code window must not open ChatEditorInput sessions');
+	}
+
+	if (isDefaultCodeWindow(accessor)) {
 		focusConversationPart(accessor);
 		return;
 	}

@@ -40,10 +40,9 @@ import { ActiveEditorContext, IsSessionsWindowContext } from '../../../../common
 import { IViewDescriptorService, ViewContainerLocation } from '../../../../common/views.js';
 import { ChatEntitlement, IChatEntitlementService } from '../../../../services/chat/common/chatEntitlementService.js';
 import { ACTIVE_GROUP, AUX_WINDOW_GROUP, IEditorService, SIDE_GROUP } from '../../../../services/editor/common/editorService.js';
-import { IWorkbenchEnvironmentService } from '../../../../services/environment/common/environmentService.js';
 import { IHostService } from '../../../../services/host/browser/host.js';
-import { IConversationPartService } from '../../../../browser/parts/conversation/conversationPart.js';
 import { IWorkbenchLayoutService, Parts } from '../../../../services/layout/browser/layoutService.js';
+import { focusConversationPart, isDefaultCodeWindow } from '../chatShellRouting.js';
 import { IPreferencesService } from '../../../../services/preferences/common/preferences.js';
 import { IViewsService } from '../../../../services/views/common/viewsService.js';
 import { EXTENSIONS_CATEGORY, IExtensionsWorkbenchService } from '../../../extensions/common/extensions.js';
@@ -209,24 +208,7 @@ export interface IChatViewOpenRequestEntry {
 	response: string;
 }
 
-/** Default Code window (not Agents Window). */
-export function isDefaultCodeWindow(accessor: ServicesAccessor): boolean {
-	return !accessor.get(IWorkbenchEnvironmentService).isSessionsWindow;
-}
-
-/** Show and focus the center ConversationPart (INV-TOPO product shell). */
-export function focusConversationPart(accessor: ServicesAccessor): void {
-	const layoutService = accessor.get(IWorkbenchLayoutService);
-	const conversationPartService = accessor.get(IConversationPartService);
-	if (!layoutService.isVisible(Parts.CONVERSATION_PART)) {
-		layoutService.setPartHidden(false, Parts.CONVERSATION_PART);
-	}
-	conversationPartService.focus();
-}
-
-function shouldFocusConversationPartInsteadOfChatEditor(accessor: ServicesAccessor): boolean {
-	return isDefaultCodeWindow(accessor) && !(accessor.get(IEditorService).activeEditor instanceof ChatEditorInput);
-}
+export { focusConversationPart, isDefaultCodeWindow, shouldRouteChatEditorToConversation } from '../chatShellRouting.js';
 
 const OPEN_CHAT_QUOTA_EXCEEDED_DIALOG = 'workbench.action.chat.openQuotaExceededDialog';
 
@@ -626,7 +608,7 @@ export function registerChatActions() {
 	}
 
 	async function openNewChatEditorSession(accessor: ServicesAccessor, target: typeof ACTIVE_GROUP | typeof SIDE_GROUP | typeof AUX_WINDOW_GROUP, options?: IChatEditorOptions): Promise<void> {
-		if (shouldFocusConversationPartInsteadOfChatEditor(accessor)) {
+		if (isDefaultCodeWindow(accessor)) {
 			focusConversationPart(accessor);
 			return;
 		}
