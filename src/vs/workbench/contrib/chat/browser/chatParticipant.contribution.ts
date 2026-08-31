@@ -8,7 +8,6 @@ import { Codicon } from '../../../../base/common/codicons.js';
 import { toErrorMessage } from '../../../../base/common/errorMessage.js';
 import { Event } from '../../../../base/common/event.js';
 import { createCommandUri, MarkdownString } from '../../../../base/common/htmlContent.js';
-import { KeyCode, KeyMod } from '../../../../base/common/keyCodes.js';
 import { Disposable, DisposableMap, DisposableStore } from '../../../../base/common/lifecycle.js';
 import * as strings from '../../../../base/common/strings.js';
 import { localize, localize2 } from '../../../../nls.js';
@@ -55,18 +54,6 @@ const chatViewDescriptor: IViewDescriptor = {
 	name: localize2('chat.viewContainer.label', "Chat"),
 	canToggleVisibility: false,
 	canMoveView: true,
-	openCommandActionDescriptor: {
-		id: ChatViewContainerId,
-		title: chatViewContainer.title,
-		mnemonicTitle: localize({ key: 'miToggleChat', comment: ['&& denotes a mnemonic'] }, "&&Chat"),
-		keybindings: {
-			primary: KeyMod.CtrlCmd | KeyMod.Alt | KeyCode.KeyI,
-			mac: {
-				primary: KeyMod.CtrlCmd | KeyMod.WinCtrl | KeyCode.KeyI
-			}
-		},
-		order: 1
-	},
 	ctorDescriptor: new SyncDescriptor(ChatViewPane),
 	when: ContextKeyExpr.and(
 		ChatContextKeys.accountPolicyGateActive.negate(),

@@ -73,7 +73,7 @@ Desktop 合同：窗口壳 = Singularity/IDEA；Conversation 内 = 时间线 + I
 
 | 宿主 | 文件 | 落在哪 | INV-TOPO |
 |------|------|--------|----------|
-| **ChatViewPane** | `viewPane/chatViewPane.ts` | Sidebar / Panel 的 `ViewPane` | 不占 editor tab，但是 **侧栏插件形**（经验原则明确拒绝「Agent 当聊天插件」）。可作开发期对照，**不能**当 B2 中心透镜 |
+| **ChatViewPane** | `viewPane/chatViewPane.ts` | Sidebar / Panel 的 `ViewPane` | 不占 editor tab，但是 **侧栏插件形**（经验原则明确拒绝「Agent 当聊天插件」）。可作开发期对照，**不能**当 B2 中心透镜；Aux donor 仍注册，但默认窗口 **无** View 菜单 open command / `Ctrl+Cmd+Alt+I`（与 Open Conversation 键位不冲突） |
 | **ChatEditor** | `editor/chatEditor.ts` | `EDITOR_PART` | **违反**。`ChatEditorInput` 是 `EditorInput`；打开即 editor tab |
 | **Quick Chat** | `chatQuick.ts` | 浮层 | 不是主流程 |
 
