@@ -13,15 +13,15 @@ import { KeybindingsRegistry } from '../../../../../platform/keybinding/common/k
 import { IsSessionsWindowContext } from '../../../../common/contextkeys.js';
 import { BrowserWorkbenchEnvironmentService } from '../../../../services/environment/browser/environmentService.js';
 import { IWorkbenchEnvironmentService } from '../../../../services/environment/common/environmentService.js';
-import { workbenchInstantiationService, TestProductService } from '../../../../test/browser/workbenchTestServices.js';
+import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
+import { TestProductService } from '../../../../test/common/workbenchTestServices.js';
 import { ASK_QUICK_QUESTION_ACTION_ID } from '../../browser/actions/chatQuickInputActions.js';
 import { shouldRegisterChatEditorResolver } from '../../browser/chat.shared.contribution.js';
 import { focusConversationPart, isDefaultCodeWindow, shouldRouteChatEditorToConversation } from '../../browser/chatShellRouting.js';
 import { ChatSessionPosition, openChatSession } from '../../browser/chatSessions/chatSessions.contribution.js';
 import { IAgentHostImportConversationStore } from '../../browser/agentSessions/agentHost/agentHostImportConversationStore.js';
 import { ChatContextKeys } from '../../common/actions/chatContextKeys.js';
-import { IConversationPartService } from '../../../browser/parts/conversation/conversationPart.js';
-import { ConversationPart } from '../../../browser/parts/conversation/conversationPart.js';
+import { ConversationPart, IConversationPartService } from '../../../../browser/parts/conversation/conversationPart.js';
 import type { Turn } from '../../../../../platform/agentHost/common/state/sessionState.js';
 import { URI } from '../../../../../base/common/uri.js';
 
