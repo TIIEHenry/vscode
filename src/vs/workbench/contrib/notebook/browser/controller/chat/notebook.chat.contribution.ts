@@ -19,6 +19,7 @@ import { Action2, MenuId, registerAction2 } from '../../../../../../platform/act
 import { ContextKeyExpr, IContextKey, IContextKeyService } from '../../../../../../platform/contextkey/common/contextkey.js';
 import { ServicesAccessor } from '../../../../../../platform/instantiation/common/instantiation.js';
 import { IQuickInputService, IQuickPickItem } from '../../../../../../platform/quickinput/common/quickInput.js';
+import { IsSessionsWindowContext } from '../../../../../common/contextkeys.js';
 import { IWorkbenchContribution, registerWorkbenchContribution2, WorkbenchPhase } from '../../../../../common/contributions.js';
 import { IEditorService } from '../../../../../services/editor/common/editorService.js';
 import { IChatWidget, IChatWidgetService } from '../../../../chat/browser/chat.js';
@@ -156,7 +157,8 @@ export class SelectAndInsertKernelVariableAction extends Action2 {
 	constructor() {
 		super({
 			id: SelectAndInsertKernelVariableAction.ID,
-			title: '' // not displayed
+			title: '', // not displayed
+			precondition: IsSessionsWindowContext,
 		});
 	}
 
@@ -317,13 +319,17 @@ registerAction2(class AddCellOutputToChatAction extends Action2 {
 			title: localize('notebookActions.addOutputToChat', "Add Cell Output to Chat"),
 			menu: {
 				id: MenuId.NotebookOutputToolbar,
-				when: ContextKeyExpr.and(NOTEBOOK_CELL_HAS_OUTPUTS, ContextKeyExpr.in(NOTEBOOK_CELL_OUTPUT_MIMETYPE.key, NOTEBOOK_CELL_OUTPUT_MIME_TYPE_LIST_FOR_CHAT.key)),
+				when: ContextKeyExpr.and(
+					NOTEBOOK_CELL_HAS_OUTPUTS,
+					ContextKeyExpr.in(NOTEBOOK_CELL_OUTPUT_MIMETYPE.key, NOTEBOOK_CELL_OUTPUT_MIME_TYPE_LIST_FOR_CHAT.key),
+					IsSessionsWindowContext,
+				),
 				order: 10,
 				group: 'notebook_chat_actions'
 			},
 			category: NOTEBOOK_ACTIONS_CATEGORY,
 			icon: icons.copyIcon,
-			precondition: ChatContextKeys.enabled
+			precondition: ContextKeyExpr.and(ChatContextKeys.enabled, IsSessionsWindowContext)
 		});
 	}
 
