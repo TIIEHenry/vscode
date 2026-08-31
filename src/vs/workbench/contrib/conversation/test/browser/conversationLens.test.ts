@@ -45,8 +45,13 @@ suite('ConversationLens', () => {
 		await new Promise<void>(resolve => setTimeout(resolve, 20));
 	}
 
+	async function flushAnimationFrames(): Promise<void> {
+		await new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+	}
+
 	teardown(async () => {
 		await flushTimelineHeightUpdates();
+		await flushAnimationFrames();
 	});
 
 	const LENS_LAYOUT_WIDTH = 640;
@@ -896,11 +901,14 @@ suite('ConversationLens', () => {
 		const assistantText = 'Delete and copy assistant text';
 
 		stubService.appendUserTurn(sessionId, userText);
+		layoutReadingColumn();
+		await flushTimelineHeightUpdates();
 		stubService.appendStubEchoAssistant(sessionId, assistantText);
 		layoutReadingColumn();
 		await flushTimelineHeightUpdates();
 
 		const userTurn = queryTimeline(slots, '.conversation-lens-turn[data-kind="user"]')!;
+		assert.ok(queryTimeline(slots, '.conversation-lens-turn[data-kind="assistant"]'));
 		const userCopy = userTurn.querySelector('.conversation-lens-turn-action-copy .monaco-button') as HTMLElement;
 		userCopy.click();
 		assert.strictEqual(await clipboardService.readText(), userText);
@@ -913,6 +921,10 @@ suite('ConversationLens', () => {
 		let trajectory = slots.timeline.querySelector('.conversation-lens-trajectory')!;
 		assert.strictEqual(trajectory.querySelectorAll('.monaco-list-row').length, 2);
 
+		historyButton.click();
+		layoutReadingColumn();
+		await flushTimelineHeightUpdates();
+
 		const userDelete = userTurn.querySelector('.conversation-lens-turn-action-delete .monaco-button') as HTMLElement;
 		userDelete.click();
 		layoutReadingColumn();
@@ -920,6 +932,11 @@ suite('ConversationLens', () => {
 
 		assert.strictEqual(stubService.getTurns(sessionId).length, 1);
 		assert.strictEqual(stubService.getTurns(sessionId)[0].text, assistantText);
+
+		historyButton.click();
+		layoutReadingColumn();
+		await flushTimelineHeightUpdates();
+
 		trajectory = slots.timeline.querySelector('.conversation-lens-trajectory')!;
 		assert.strictEqual(trajectory.querySelectorAll('.monaco-list-row').length, 1);
 		assert.ok(trajectory.textContent?.includes(assistantText));
@@ -928,6 +945,7 @@ suite('ConversationLens', () => {
 		historyButton.click();
 		layoutReadingColumn();
 		await flushTimelineHeightUpdates();
+		await flushAnimationFrames();
 
 		assert.strictEqual(queryTimeline(slots, '.conversation-lens-turn[data-kind="user"]'), null);
 		assert.ok(queryTimeline(slots, '.conversation-lens-turn[data-kind="assistant"]'));
