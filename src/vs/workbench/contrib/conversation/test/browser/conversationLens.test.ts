@@ -375,12 +375,22 @@ suite('ConversationLens', () => {
 		stubService.appendStubEchoAssistant(sessionId, 'SessionBar, timeline, and dock — not ChatEditor.');
 		const userTurn = queryTimeline(slots, '.conversation-lens-turn[data-kind="user"]');
 		const assistantTurn = queryTimeline(slots, '.conversation-lens-turn[data-kind="assistant"]');
+		assert.ok(userTurn?.classList.contains('conversation-lens-turn--user-align-end'));
+		const userBody = userTurn?.querySelector('.conversation-lens-turn-body');
+		assert.ok(userBody?.classList.contains('conversation-lens-turn-body--user-bubble'));
+		assert.strictEqual(userBody?.classList.contains('conversation-lens-turn-body--reading-text'), false);
 		assert.ok(userTurn?.querySelector('.conversation-lens-turn-header')?.textContent?.includes('You'));
-		assert.ok(userTurn?.querySelector('.conversation-lens-turn-body'));
+		assert.ok(userBody);
+		assert.strictEqual(assistantTurn?.classList.contains('conversation-lens-turn--user-align-end'), false);
+		const assistantBody = assistantTurn?.querySelector('.conversation-lens-turn-body');
+		assert.ok(assistantBody?.classList.contains('conversation-lens-turn-body--reading-text'));
+		assert.strictEqual(assistantBody?.classList.contains('conversation-lens-turn-body--user-bubble'), false);
 		assert.ok(assistantTurn?.querySelector('.conversation-lens-turn-header')?.textContent?.includes('Agent'));
-		assert.ok(assistantTurn?.querySelector('.conversation-lens-turn-body'));
+		assert.ok(assistantBody);
 		assert.strictEqual(shouldRenderTurnAsMarkdown('assistant'), true);
 		assert.strictEqual(shouldRenderTurnAsMarkdown('user'), false);
+		assert.strictEqual(userBody?.classList.contains('rendered-markdown'), false);
+		assert.ok(assistantBody?.classList.contains('rendered-markdown'));
 	});
 
 	test('renders assistant turns as markdown, user turns as plain text', () => {

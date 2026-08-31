@@ -344,11 +344,15 @@
 	max-width: 280px;
 }
 
-/* Turns — tighter reading rhythm */
+/* Turns — chat column rhythm (user bubble vs assistant reading text) */
 .monaco-workbench .part.conversation .conversation-lens-turn {
 	display: flex;
 	flex-direction: column;
 	gap: 4px;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-turn--user-align-end {
+	align-items: flex-end;
 }
 
 .monaco-workbench .part.conversation .conversation-lens-turn-header {
@@ -363,22 +367,26 @@
 	font-size: 13px;
 	line-height: 1.5;
 	color: var(--vscode-foreground);
-	padding: 6px 8px;
-	border-radius: 2px;
-	border: 1px solid var(--vscode-widget-border, var(--vscode-contrastBorder, transparent));
-	background-color: var(--vscode-input-background);
 }
 
-.monaco-workbench .part.conversation .conversation-lens-turn[data-kind="user"] .conversation-lens-turn-body {
+.monaco-workbench .part.conversation .conversation-lens-turn-body--user-bubble {
+	max-width: 92%;
+	padding: 6px 12px;
+	border-radius: 8px;
+	border: none;
 	background-color: var(--vscode-sideBar-background);
-	border-color: var(--vscode-sideBar-border, var(--vscode-contrastBorder, transparent));
+	box-shadow: 0 1px 2px var(--vscode-widget-shadow, rgba(0, 0, 0, 0.16));
 }
 
-.monaco-workbench .part.conversation .conversation-lens-turn[data-kind="assistant"] .conversation-lens-turn-body {
-	background-color: var(--vscode-editor-background);
+.monaco-workbench .part.conversation .conversation-lens-turn-body--reading-text {
+	padding: 2px 0;
+	border: none;
+	background: transparent;
+	border-radius: 0;
+	box-shadow: none;
 }
 
-.monaco-workbench .part.conversation .conversation-lens-turn[data-kind="assistant"][data-stub="true"] .conversation-lens-turn-body {
+.monaco-workbench .part.conversation .conversation-lens-turn[data-kind="assistant"][data-stub="true"] .conversation-lens-turn-body--reading-text {
 	font-style: italic;
 	color: var(--vscode-descriptionForeground);
 }

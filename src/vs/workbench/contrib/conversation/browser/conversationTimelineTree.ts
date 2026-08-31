@@ -145,11 +145,19 @@ class ConversationTimelineRenderer implements ITreeRenderer<ConversationTimeline
 			if (turn.stubEcho) {
 				el.setAttribute('data-stub', 'true');
 			}
+			if (turn.kind === 'user') {
+				el.classList.add('conversation-lens-turn--user-align-end');
+			}
 
 			const header = append(el, $('.conversation-lens-turn-header'));
 			header.textContent = getConversationTurnRoleLabel(turn.kind);
 
 			const body = append(el, $('.conversation-lens-turn-body'));
+			if (turn.kind === 'user') {
+				body.classList.add('conversation-lens-turn-body--user-bubble');
+			} else if (turn.kind === 'assistant') {
+				body.classList.add('conversation-lens-turn-body--reading-text');
+			}
 			templateData.disposables.add(this.contentAdapter.renderTurnBody(turn, body));
 			templateData.container.appendChild(el);
 		}
