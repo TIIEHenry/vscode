@@ -33,7 +33,7 @@ import { KeybindingsRegistry, KeybindingWeight } from '../../../../platform/keyb
 import { EditorContextKeys } from '../../../../editor/common/editorContextKeys.js';
 import { CONTEXT_ACCESSIBILITY_MODE_ENABLED } from '../../../../platform/accessibility/common/accessibility.js';
 import { IsWindowsContext } from '../../../../platform/contextkey/common/contextkeys.js';
-import { FocusedViewContext } from '../../../common/contextkeys.js';
+import { FocusedViewContext, IsSessionsWindowContext } from '../../../common/contextkeys.js';
 import { localize, localize2 } from '../../../../nls.js';
 import { viewFilterSubmenu } from '../../../browser/parts/views/viewFilter.js';
 import { ViewAction } from '../../../browser/parts/views/viewPane.js';
@@ -78,7 +78,7 @@ const VIEW_CONTAINER: ViewContainer = Registry.as<IViewContainersRegistry>(ViewC
 	ctorDescriptor: new SyncDescriptor(ViewPaneContainer, [OUTPUT_VIEW_ID, { mergeViewWithContainerWhenSingleView: true }]),
 	storageId: OUTPUT_VIEW_ID,
 	hideIfEmpty: true,
-	windowEnablement: WindowEnablement.Both
+	windowEnablement: WindowEnablement.Sessions
 }, ViewContainerLocation.Panel, { doNotRegisterOpenCommand: true });
 
 Registry.as<IViewsRegistry>(ViewContainerExtensions.ViewsRegistry).registerViews([{
@@ -95,11 +95,12 @@ Registry.as<IViewsRegistry>(ViewContainerExtensions.ViewsRegistry).registerViews
 			primary: KeyMod.CtrlCmd | KeyMod.Shift | KeyCode.KeyU,
 			linux: {
 				primary: KeyChord(KeyMod.CtrlCmd | KeyCode.KeyK, KeyMod.CtrlCmd | KeyCode.KeyH)  // On Ubuntu Ctrl+Shift+U is taken by some global OS command
-			}
+			},
+			when: IsSessionsWindowContext,
 		},
 		order: 1,
 	},
-	windowEnablement: WindowEnablement.Both
+	windowEnablement: WindowEnablement.Sessions
 }], VIEW_CONTAINER);
 
 class OutputContribution extends Disposable implements IWorkbenchContribution {
