@@ -12,6 +12,23 @@
 	display: flex;
 	flex-direction: column;
 	background-color: var(--vscode-editor-background);
+	position: relative;
+}
+
+.monaco-workbench .part.conversation > .conversation-region-chrome {
+	position: absolute;
+	top: 0;
+	right: 0;
+	z-index: 5;
+	height: 35px;
+	display: flex;
+	align-items: center;
+	pointer-events: none;
+}
+
+.monaco-workbench .part.conversation > .conversation-region-chrome .title-actions {
+	pointer-events: auto;
+	height: 35px;
 }
 
 .monaco-workbench .part.conversation > .content {

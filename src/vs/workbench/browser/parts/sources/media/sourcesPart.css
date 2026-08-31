@@ -22,6 +22,16 @@
 	border-bottom: 1px solid var(--vscode-sideBarTitle-border, var(--vscode-contrastBorder, transparent));
 }
 
+.monaco-workbench .part.sources > .title > .sources-tab-host {
+	flex: 1;
+	min-width: 0;
+}
+
+.monaco-workbench .part.sources > .title > .title-actions {
+	flex-shrink: 0;
+	height: 35px;
+}
+
 .monaco-workbench .part.sources > .content {
 	display: flex;
 	flex-direction: column;

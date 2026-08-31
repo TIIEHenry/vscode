@@ -7,12 +7,14 @@ import './media/conversationPart.css';
 import { $, append } from '../../../../base/browser/dom.js';
 import { LayoutPriority } from '../../../../base/browser/ui/splitview/splitview.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
+import { localize } from '../../../../nls.js';
 import { InstantiationType, registerSingleton } from '../../../../platform/instantiation/common/extensions.js';
 import { createDecorator } from '../../../../platform/instantiation/common/instantiation.js';
 import { IStorageService } from '../../../../platform/storage/common/storage.js';
 import { IThemeService } from '../../../../platform/theme/common/themeService.js';
 import { Part } from '../../part.js';
 import { IWorkbenchLayoutService, Parts } from '../../../services/layout/browser/layoutService.js';
+import { appendPartRegionHideControl } from './partRegionHideControl.js';
 
 export const IConversationPartService = createDecorator<IConversationPartService>('conversationPartService');
 
@@ -80,6 +82,15 @@ export class ConversationPart extends Part implements IConversationPartService {
 	}
 
 	protected override createContentArea(parent: HTMLElement): HTMLElement {
+		const regionChrome = append(parent, $('.conversation-region-chrome'));
+		appendPartRegionHideControl(
+			regionChrome,
+			this.layoutService,
+			Parts.CONVERSATION_PART,
+			localize('hideConversation', "Hide Conversation"),
+			disposable => this._register(disposable),
+		);
+
 		const content = append(parent, $('.content'));
 
 		const sessionBar = append(content, $('.conversation-session-bar'));

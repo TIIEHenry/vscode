@@ -41,4 +41,11 @@ suite('ConversationPart', () => {
 		assert.ok(!(part instanceof EditorInput));
 		assert.deepStrictEqual(part.toJSON(), { type: Parts.CONVERSATION_PART });
 	});
+
+	test('exposes a region hide control with accessible name', () => {
+		const part = createPart();
+		const hideControl = part.getContainer()?.querySelector('.part-region-hide-actions .action-label');
+		assert.ok(hideControl);
+		assert.strictEqual(hideControl.getAttribute('aria-label'), 'Hide Conversation');
+	});
 });

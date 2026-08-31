@@ -7,12 +7,14 @@ import './media/sourcesPart.css';
 import { $, append } from '../../../../base/browser/dom.js';
 import { LayoutPriority } from '../../../../base/browser/ui/splitview/splitview.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
+import { localize } from '../../../../nls.js';
 import { InstantiationType, registerSingleton } from '../../../../platform/instantiation/common/extensions.js';
 import { createDecorator } from '../../../../platform/instantiation/common/instantiation.js';
 import { IStorageService } from '../../../../platform/storage/common/storage.js';
 import { IThemeService } from '../../../../platform/theme/common/themeService.js';
 import { Part } from '../../part.js';
 import { IWorkbenchLayoutService, Parts } from '../../../services/layout/browser/layoutService.js';
+import { appendPartRegionHideControl } from '../conversation/partRegionHideControl.js';
 
 export const ISourcesPartService = createDecorator<ISourcesPartService>('sourcesPartService');
 
@@ -86,6 +88,14 @@ export class SourcesPart extends Part implements ISourcesPartService {
 		const tabHost = append(titleArea, $('.sources-tab-host'));
 		this._tabHost = tabHost;
 		this._onDidRegisterTabHost.fire(tabHost);
+
+		appendPartRegionHideControl(
+			titleArea,
+			this.layoutService,
+			Parts.SOURCES_PART,
+			localize('hideSources', "Hide Sources"),
+			disposable => this._register(disposable),
+		);
 
 		return titleArea;
 	}
