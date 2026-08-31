@@ -10,6 +10,11 @@ import { Parts } from '../../../../services/layout/browser/layoutService.js';
 import { ChatEditorInput } from '../../../chat/browser/widgetHosts/editor/chatEditorInput.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { ConversationLens } from '../../browser/conversationLens.js';
+import {
+	conversationLensDockEngineNotConnected,
+	conversationLensDockInboxNoQueue,
+	conversationLensDockNoModel,
+} from '../../browser/conversationLensDockStrings.js';
 import { CONVERSATION_STUB_SEED_SESSIONS } from '../../browser/conversationStubModel.js';
 import { ConversationStubService, IConversationStubService } from '../../browser/conversationStubService.js';
 
@@ -37,6 +42,7 @@ suite('ConversationLens', () => {
 		assert.ok(slots.timeline.querySelector('.conversation-lens-timeline'));
 		assert.ok(slots.dock.querySelector('.conversation-lens-dock'));
 		assert.ok(slots.sessionBar.querySelector('.conversation-lens-session-select'));
+		assert.ok(slots.dock.querySelector('.conversation-lens-dock-gate-row'));
 		assert.ok(slots.dock.querySelector('.conversation-lens-inbox-row'));
 		assert.ok(slots.dock.querySelector('textarea.conversation-lens-dock-input'));
 	});
@@ -52,7 +58,10 @@ suite('ConversationLens', () => {
 		assert.ok(slots.timeline.querySelector('.conversation-lens-timeline-content'));
 		assert.ok(slots.dock.querySelector('.conversation-lens-composer'));
 		assert.ok(slots.dock.querySelector('.conversation-lens-dock-input-row'));
+		assert.ok(slots.dock.querySelector('.conversation-lens-dock-bottom-bar'));
 		assert.ok(slots.dock.querySelector('.conversation-lens-dock-actions'));
+		assert.ok(slots.dock.querySelector('.conversation-lens-dock-gate-row'));
+		assert.ok(slots.dock.querySelector('.conversation-lens-dock-model'));
 		assert.ok(slots.dock.querySelector('.conversation-lens-inbox-label'));
 	});
 
@@ -66,17 +75,19 @@ suite('ConversationLens', () => {
 		assert.ok(!timelineSlot.querySelector('.conversation-lens-dock'));
 	});
 
-	test('compact chrome: dock composer is single-row with min textarea rows', () => {
+	test('compact chrome: dock composer textarea with bottom bar send', () => {
 		const { part } = mountLens();
 		const slots = part.getSlots()!;
 		const textarea = slots.dock.querySelector('textarea.conversation-lens-dock-input') as HTMLTextAreaElement;
 		const inputRow = slots.dock.querySelector('.conversation-lens-dock-input-row')!;
-		const sendButton = inputRow.querySelector('.conversation-lens-dock-actions .monaco-button');
+		const bottomBar = slots.dock.querySelector('.conversation-lens-dock-bottom-bar')!;
+		const sendButton = bottomBar.querySelector('.conversation-lens-dock-actions .monaco-button');
 
 		assert.strictEqual(textarea.rows, 1);
 		assert.ok(inputRow.contains(textarea));
 		assert.ok(sendButton);
-		assert.ok(inputRow.contains(sendButton.parentElement!));
+		assert.ok(bottomBar.contains(sendButton!.parentElement!));
+		assert.ok(!inputRow.querySelector('.conversation-lens-dock-actions'));
 	});
 
 	test('compact chrome: inbox status stays on one row', () => {
@@ -85,7 +96,21 @@ suite('ConversationLens', () => {
 
 		assert.ok(inboxRow.querySelector('.conversation-lens-inbox-label'));
 		assert.ok(inboxRow.querySelector('.conversation-lens-inbox-queue'));
-		assert.ok(inboxRow.textContent?.includes('No queue'));
+		assert.ok(inboxRow.textContent?.includes(conversationLensDockInboxNoQueue));
+	});
+
+	test('honest dock gate and model labels without Copilot CTAs', () => {
+		const { part } = mountLens();
+		const slots = part.getSlots()!;
+		const gateRow = slots.dock.querySelector('.conversation-lens-dock-gate-row')!;
+		const modelLabel = slots.dock.querySelector('.conversation-lens-dock-model')!;
+		const sendButton = slots.dock.querySelector('.conversation-lens-dock-bottom-bar .monaco-button')!;
+
+		assert.ok(gateRow.textContent?.includes(conversationLensDockEngineNotConnected));
+		assert.strictEqual(modelLabel.textContent, conversationLensDockNoModel);
+		assert.ok(sendButton.textContent?.includes('Send'));
+		assert.strictEqual(slots.dock.querySelector('.chat-setup'), null);
+		assert.strictEqual(slots.dock.querySelector('.monaco-button[aria-label*="Sign in"]'), null);
 	});
 
 	test('blank session shows timeline empty state', () => {
@@ -153,7 +178,7 @@ suite('ConversationLens', () => {
 		const inboxRow = slots.dock.querySelector('.conversation-lens-inbox-row')!;
 		const pendingButton = inboxRow.querySelector('.conversation-lens-inbox-pending') as HTMLButtonElement;
 
-		assert.ok(inboxRow.textContent?.includes('No queue'));
+		assert.ok(inboxRow.textContent?.includes(conversationLensDockInboxNoQueue));
 		assert.strictEqual(inboxRow.querySelector('.conversation-lens-inbox-list'), null);
 		assert.strictEqual(inboxRow.querySelector('.conversation-lens-inbox-item'), null);
 		assert.strictEqual(slots.sessionBar.querySelector('.conversation-lens-inbox-badge'), null);
