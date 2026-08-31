@@ -41,17 +41,18 @@ suite('Navigator stub views', () => {
 	const viewContainersRegistry = Registry.as<IViewContainersRegistry>(ViewContainerExtensions.ViewContainersRegistry);
 	const viewsRegistry = Registry.as<IViewsRegistry>(ViewExtensions.ViewsRegistry);
 
-	const navigatorContainerCases = [
+	const productFourSegments = [
 		{ viewId: NAVIGATOR_PROJECTS_VIEW_ID, containerId: NAVIGATOR_PROJECTS_CONTAINER_ID, container: NAVIGATOR_PROJECTS_VIEW_CONTAINER },
 		{ viewId: NAVIGATOR_AGENTS_VIEW_ID, containerId: NAVIGATOR_AGENTS_CONTAINER_ID, container: NAVIGATOR_AGENTS_VIEW_CONTAINER },
 		{ viewId: NAVIGATOR_TEAM_VIEW_ID, containerId: NAVIGATOR_TEAM_CONTAINER_ID, container: NAVIGATOR_TEAM_VIEW_CONTAINER },
+		{ viewId: CONVERSATION_SESSIONS_VIEW_ID, containerId: CONVERSATION_SESSIONS_CONTAINER_ID, container: viewContainersRegistry.get(CONVERSATION_SESSIONS_CONTAINER_ID)! },
 	] as const;
 
-	test('Projects, Agents, and Team views register on dedicated Sidebar ViewContainers', () => {
-		for (const { viewId, containerId, container } of navigatorContainerCases) {
+	test('Projects, Agents, Team, and Sessions views register on dedicated Sidebar ViewContainers', () => {
+		for (const { viewId, containerId, container } of productFourSegments) {
 			const descriptor = viewsRegistry.getView(viewId);
 			assert.ok(descriptor, `expected view descriptor for ${viewId}`);
-			assert.strictEqual(descriptor.canToggleVisibility, true);
+			assert.strictEqual(descriptor.canToggleVisibility, false, `${viewId} must keep canToggleVisibility false`);
 			assert.strictEqual(viewsRegistry.getViewContainer(viewId), container);
 			assert.strictEqual(container.id, containerId);
 			assert.strictEqual(viewContainersRegistry.getViewContainerLocation(container), ViewContainerLocation.Sidebar);
@@ -66,12 +67,13 @@ suite('Navigator stub views', () => {
 		assert.notStrictEqual(viewsRegistry.getViewContainer(CONVERSATION_SESSIONS_VIEW_ID), EXPLORER_VIEW_CONTAINER);
 	});
 
-	test('Navigator stub ViewContainers use hideIfEmpty and are non-default', () => {
+	test('Product four segments use hideIfEmpty false and Explorer keeps hideIfEmpty true', () => {
 		const defaultSidebarContainers = viewContainersRegistry.getDefaultViewContainers(ViewContainerLocation.Sidebar);
-		for (const { containerId, container } of navigatorContainerCases) {
-			assert.strictEqual(container.hideIfEmpty, true, `${containerId} must keep hideIfEmpty`);
+		for (const { containerId, container } of productFourSegments) {
+			assert.strictEqual(container.hideIfEmpty, false, `${containerId} must keep hideIfEmpty false`);
 			assert.ok(!defaultSidebarContainers.some(c => c.id === containerId), `${containerId} must not be default`);
 		}
+		assert.strictEqual(EXPLORER_VIEW_CONTAINER.hideIfEmpty, true, 'Explorer must keep hideIfEmpty true');
 	});
 
 	test('Navigator stub and Sessions ViewContainers are Sidebar non-default composites', () => {
