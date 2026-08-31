@@ -8,9 +8,10 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../../base/
 import { isIMenuItem, isISubmenuItem, MenuId, MenuRegistry } from '../../../../../../platform/actions/common/actions.js';
 import { IsDevelopmentContext } from '../../../../../../platform/contextkey/common/contextkeys.js';
 import type { ContextKeyExpression, ContextKeyValue } from '../../../../../../platform/contextkey/common/contextkey.js';
-import { IsSessionsWindowContext } from '../../../../../common/contextkeys.js';
+import { IsSessionsWindowContext, ResourceContextKey } from '../../../../../common/contextkeys.js';
 import { RefreshAgentPluginMarketplacesCommandId } from '../../../browser/chat.js';
 import { ChatContextKeys } from '../../../common/actions/chatContextKeys.js';
+import { PROMPT_LANGUAGE_ID } from '../../../common/promptSyntax/promptTypes.js';
 
 import '../../../browser/chat.shared.contribution.js';
 import '../../../browser/agentPluginsView.js';
@@ -35,6 +36,12 @@ function getEditorContextGenerateCodeSubmenu() {
 		.find(item => item.submenu === MenuId.ChatTextEditorMenu);
 }
 
+function getEditorTitleRunItem(commandId: string) {
+	return MenuRegistry.getMenuItems(MenuId.EditorTitleRun)
+		.filter(isIMenuItem)
+		.find(item => item.command.id === commandId);
+}
+
 const chatReady: Record<string, ContextKeyValue> = {
 	[ChatContextKeys.enabled.key]: true,
 	[ChatContextKeys.Setup.hidden.key]: false,
@@ -55,6 +62,16 @@ const agentsWindowDev: Record<string, ContextKeyValue> = {
 	...agentsWindow,
 	[IsDevelopmentContext.key]: true,
 };
+
+const promptFileEditor: Record<string, ContextKeyValue> = {
+	[ResourceContextKey.HasResource.key]: true,
+	[ResourceContextKey.LangId.key]: PROMPT_LANGUAGE_ID,
+};
+
+const editorTitleRunPromptCommandIds = [
+	'workbench.action.chat.run.prompt.current',
+	'workbench.action.chat.run-in-new-chat.prompt.current',
+] as const;
 
 const sessionsWindowOnlyCommandIds = [
 	'workbench.action.chat.resetDismissedTips',
@@ -92,6 +109,25 @@ suite('ChatEditorChrome - default window editor/input chrome (INV-NO-COPILOT)', 
 			true,
 			'Agents Window may show Generate Code in editor context menu'
 		);
+	});
+
+	test('Run Prompt editor title actions stay registered for Agents Window only', () => {
+		for (const commandId of editorTitleRunPromptCommandIds) {
+			const item = getEditorTitleRunItem(commandId);
+			assert.ok(item, `${commandId} should remain registered for Agents Window`);
+			assert.ok(item.when, `${commandId} EditorTitleRun item should have a when clause`);
+
+			assert.strictEqual(
+				evalWhen(item.when, { ...defaultWindow, ...promptFileEditor }),
+				false,
+				`default Code window must hide ${commandId} in editor title Run menu`
+			);
+			assert.strictEqual(
+				evalWhen(item.when, { ...agentsWindow, ...promptFileEditor }),
+				true,
+				`Agents Window may show ${commandId} in editor title Run menu`
+			);
+		}
 	});
 
 	test('Chat editor/input chrome commands stay in Command Palette for Agents Window only', () => {
