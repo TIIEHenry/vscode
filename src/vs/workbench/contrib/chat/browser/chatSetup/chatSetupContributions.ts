@@ -45,7 +45,7 @@ import { IExtensionService } from '../../../../services/extensions/common/extens
 import { CONTEXT_DEFAULT_ACCOUNT_STATE, DefaultAccountStatus } from '../../../../services/accounts/browser/defaultAccount.js';
 import { IHostService } from '../../../../services/host/browser/host.js';
 import { IWorkbenchLayoutService, Parts } from '../../../../services/layout/browser/layoutService.js';
-import { InEditorZenModeContext } from '../../../../common/contextkeys.js';
+import { InEditorZenModeContext, IsSessionsWindowContext } from '../../../../common/contextkeys.js';
 import { ILifecycleService } from '../../../../services/lifecycle/common/lifecycle.js';
 import { IPreferencesService } from '../../../../services/preferences/common/preferences.js';
 import { IExtension, IExtensionsWorkbenchService } from '../../../extensions/common/extensions.js';
@@ -374,6 +374,7 @@ export class ChatSetupContribution extends Disposable implements IWorkbenchContr
 						id: MenuId.AccountsContext,
 						group: '2_copilot',
 						when: ContextKeyExpr.and(
+							IsSessionsWindowContext,
 							ChatContextKeys.Setup.hidden.negate(),
 							ChatContextKeys.Setup.disabledInWorkspace.negate(),
 							CONTEXT_DEFAULT_ACCOUNT_STATE.notEqualsTo(DefaultAccountStatus.Available), // hide only when signed in (a default GitHub account is present); still shown while signed out or before the account state resolves, incl. untrusted workspaces — no auth prompt

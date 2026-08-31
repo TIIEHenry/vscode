@@ -123,7 +123,7 @@ Desktop 合同：窗口壳 = Singularity/IDEA；Conversation 内 = 时间线 + I
 | Chat participant 名 `agent` | `IChatAgentService` | VS Code 的 participant，≠ UA Agent |
 
 **可复用（需剥皮）：** Widget 渲染、list、部分 builtin tools 机制、`ILanguageModelToolsService` 的「工具注册」形状。  
-**不可复用：** setup 对话框、entitlement、Copilot session provider、ChatEditor 当壳。空 Preview watermark 与 untitled 编辑器 empty hint 亦不得再作 Copilot Chat 入口（INV-NO-COPILOT chrome）。默认窗口不显示 Copilot StatusBar 条目（`chat.statusBarEntry`）、Help 菜单与 Command Palette 中的 Ask @vscode（`workbench.action.askVScode`，`f1: false` + `IsSessionsWindowContext` 门闩）。Titlebar 出厂不显示 Copilot Sign In（`chat.titleBar.signIn.enabled` = `false`）与 Agent Status compact 命令中心 chrome（`chat.agentsControl.enabled` = `hidden`）。
+**不可复用：** setup 对话框、entitlement、Copilot session provider、ChatEditor 当壳。空 Preview watermark 与 untitled 编辑器 empty hint 亦不得再作 Copilot Chat 入口（INV-NO-COPILOT chrome）。默认窗口不显示 Copilot StatusBar 条目（`chat.statusBarEntry`）、Accounts 菜单中的 Copilot Sign In（`workbench.action.chat.triggerSetupFromAccounts`，`IsSessionsWindowContext` 门闩）、Help 菜单与 Command Palette 中的 Ask @vscode（`workbench.action.askVScode`，`f1: false` + `IsSessionsWindowContext` 门闩）。Titlebar 出厂不显示 Copilot Sign In（`chat.titleBar.signIn.enabled` = `false`）与 Agent Status compact 命令中心 chrome（`chat.agentsControl.enabled` = `hidden`）。
 
 **StatusBar（默认 Code 窗口）：** `contrib/conversation` 注册 `status.conversation.session`（右对齐、低权重）。文案来自 `IConversationStubService` 当前会话标题；无标题时显示 **No session**（诚实 stub，无引擎 / 额度 / Sign In）。点击执行 `workbench.action.showConversationPart` → `setPartHidden(false, CONVERSATION_PART)` + `IConversationPartService.focus()`；不打开 ChatEditor 或 Aux Chat。
 
