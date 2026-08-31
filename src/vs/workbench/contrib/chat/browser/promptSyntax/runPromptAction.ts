@@ -23,7 +23,7 @@ import { ICommandService } from '../../../../../platform/commands/common/command
 import { ICodeEditorService } from '../../../../../editor/browser/services/codeEditorService.js';
 import { KeybindingWeight } from '../../../../../platform/keybinding/common/keybindingsRegistry.js';
 import { ContextKeyExpr } from '../../../../../platform/contextkey/common/contextkey.js';
-import { ResourceContextKey } from '../../../../common/contextkeys.js';
+import { IsSessionsWindowContext, ResourceContextKey } from '../../../../common/contextkeys.js';
 import { Action2, MenuId, registerAction2 } from '../../../../../platform/actions/common/actions.js';
 import { IInstantiationService } from '../../../../../platform/instantiation/common/instantiation.js';
 import { IOpenerService } from '../../../../../platform/opener/common/opener.js';
@@ -193,7 +193,7 @@ class RunSelectedPromptAction extends Action2 {
 			title: localize2('run-prompt.capitalized.ellipses', "Run Prompt..."),
 			icon: Codicon.bookmark,
 			f1: true,
-			precondition: ChatContextKeys.enabled,
+			precondition: ContextKeyExpr.and(ChatContextKeys.enabled, IsSessionsWindowContext),
 			keybinding: {
 				when: ChatContextKeys.enabled,
 				weight: KeybindingWeight.WorkbenchContrib,
@@ -249,7 +249,7 @@ class ManagePromptFilesAction extends Action2 {
 			shortTitle: localize2('configure-prompts.short', "Prompt Files"),
 			icon: Codicon.bookmark,
 			f1: true,
-			precondition: ChatContextKeys.enabled,
+			precondition: ContextKeyExpr.and(ChatContextKeys.enabled, IsSessionsWindowContext),
 			category: CHAT_CATEGORY
 		});
 	}

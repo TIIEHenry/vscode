@@ -11,6 +11,8 @@ import { IPromptsService } from '../../common/promptSyntax/service/promptsServic
 import { PromptFilePickers } from './pickers/promptFilePickers.js';
 import { ServicesAccessor } from '../../../../../editor/browser/editorExtensions.js';
 import { Action2, registerAction2 } from '../../../../../platform/actions/common/actions.js';
+import { ContextKeyExpr } from '../../../../../platform/contextkey/common/contextkey.js';
+import { IsSessionsWindowContext } from '../../../../common/contextkeys.js';
 import { IInstantiationService } from '../../../../../platform/instantiation/common/instantiation.js';
 import { IChatContextPickerItem, IChatContextPickerPickItem, IChatContextPicker } from '../attachments/chatContextPickService.js';
 import { IQuickPickSeparator } from '../../../../../platform/quickinput/common/quickInput.js';
@@ -41,7 +43,7 @@ class ManageInstructionsFilesAction extends Action2 {
 			shortTitle: localize2('configure-instructions.short', "Instructions & Rules"),
 			icon: Codicon.bookmark,
 			f1: true,
-			precondition: ChatContextKeys.enabled,
+			precondition: ContextKeyExpr.and(ChatContextKeys.enabled, IsSessionsWindowContext),
 			category: CHAT_CATEGORY
 		});
 	}

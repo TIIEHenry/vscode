@@ -20,6 +20,7 @@ import { ChatConfiguration } from '../../common/constants.js';
 import { IAgentPluginRepositoryService } from '../../common/plugins/agentPluginRepositoryService.js';
 import { IPluginInstallService } from '../../common/plugins/pluginInstallService.js';
 import { type IMarketplaceReference, MarketplaceReferenceKind, parseMarketplaceReference, parseMarketplaceReferences, readConfiguredMarketplaces } from '../../common/plugins/pluginMarketplaceService.js';
+import { IsSessionsWindowContext } from '../../../../common/contextkeys.js';
 import { InstalledAgentPluginsViewId } from '../chat.js';
 import { CHAT_CATEGORY } from './chatActions.js';
 
@@ -31,7 +32,7 @@ export class ManagePluginsAction extends Action2 {
 			id: ManagePluginsAction.ID,
 			title: localize2('plugins', 'Plugins'),
 			category: CHAT_CATEGORY,
-			precondition: ChatContextKeys.enabled,
+			precondition: ContextKeyExpr.and(ChatContextKeys.enabled, IsSessionsWindowContext),
 			f1: true
 		});
 	}
@@ -55,7 +56,7 @@ class InstallFromSourceAction extends Action2 {
 			title: localize2('installPluginFromSource', 'Install Plugin from Source'),
 			category: CHAT_CATEGORY,
 			icon: Codicon.add,
-			precondition: ChatContextKeys.enabled,
+			precondition: ContextKeyExpr.and(ChatContextKeys.enabled, IsSessionsWindowContext),
 			f1: true,
 			menu: [{
 				id: MenuId.ViewTitle,
@@ -168,7 +169,7 @@ class ManagePluginMarketplacesAction extends Action2 {
 			title: localize2('managePluginMarketplaces', 'Manage Plugin Marketplaces'),
 			icon: Codicon.globe,
 			category: CHAT_CATEGORY,
-			precondition: ChatContextKeys.enabled,
+			precondition: ContextKeyExpr.and(ChatContextKeys.enabled, IsSessionsWindowContext),
 			f1: true,
 			menu: [{
 				id: MenuId.ViewTitle,

@@ -11,6 +11,7 @@ import { Action2, MenuId, registerAction2 } from '../../../../platform/actions/c
 import { ContextKeyExpr, IContextKey, IContextKeyService } from '../../../../platform/contextkey/common/contextkey.js';
 import { ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js';
 import { INotificationService } from '../../../../platform/notification/common/notification.js';
+import { IsSessionsWindowContext } from '../../../common/contextkeys.js';
 import { IWorkbenchContribution } from '../../../common/contributions.js';
 import { ChatContextKeys } from '../common/actions/chatContextKeys.js';
 import { IPluginInstallService } from '../common/plugins/pluginInstallService.js';
@@ -53,7 +54,7 @@ class CheckForPluginUpdatesCommand extends Action2 {
 			title: localize2('agentPlugins.checkForUpdates', "Update Plugins"),
 			category: localize2('chat.category', "Chat"),
 			icon: Codicon.refresh,
-			precondition: ContextKeyExpr.and(ChatContextKeys.enabled, UpdatingAgentPluginsContext.negate()),
+			precondition: ContextKeyExpr.and(ChatContextKeys.enabled, UpdatingAgentPluginsContext.negate(), IsSessionsWindowContext),
 			f1: true,
 			menu: [{
 				id: MenuId.ViewTitle,
@@ -85,7 +86,7 @@ class ForceUpdatePluginsCommand extends Action2 {
 			title: localize2('agentPlugins.forceUpdate', "Update Plugins (Force)"),
 			category: localize2('chat.category', "Chat"),
 			icon: Codicon.refresh,
-			precondition: ContextKeyExpr.and(ChatContextKeys.enabled, UpdatingAgentPluginsContext.negate()),
+			precondition: ContextKeyExpr.and(ChatContextKeys.enabled, UpdatingAgentPluginsContext.negate(), IsSessionsWindowContext),
 			f1: true,
 		});
 	}

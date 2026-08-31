@@ -15,6 +15,8 @@ import { localize, localize2 } from '../../../../../nls.js';
 import { ChatContextKeys } from '../../common/actions/chatContextKeys.js';
 import { ServicesAccessor } from '../../../../../editor/browser/editorExtensions.js';
 import { Action2, registerAction2 } from '../../../../../platform/actions/common/actions.js';
+import { ContextKeyExpr } from '../../../../../platform/contextkey/common/contextkey.js';
+import { IsSessionsWindowContext } from '../../../../common/contextkeys.js';
 import { Codicon } from '../../../../../base/common/codicons.js';
 import { IPromptsService, PromptsStorage } from '../../common/promptSyntax/service/promptsService.js';
 import { PromptsType, Target, getSourceDescription } from '../../common/promptSyntax/promptTypes.js';
@@ -840,7 +842,7 @@ class ManageHooksAction extends Action2 {
 			shortTitle: localize2('configure-hooks.short', "Hooks"),
 			icon: Codicon.zap,
 			f1: true,
-			precondition: ChatContextKeys.enabled,
+			precondition: ContextKeyExpr.and(ChatContextKeys.enabled, IsSessionsWindowContext),
 			category: CHAT_CATEGORY
 		});
 	}
