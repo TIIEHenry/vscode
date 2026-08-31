@@ -20,6 +20,7 @@ export interface IConversationStubService {
 	getActiveSessionId(): string;
 	getActiveSession(): ConversationStubSession;
 	switchSession(sessionId: string): void;
+	createSession(): string;
 	getTurns(sessionId: string): readonly ConversationStubTurn[];
 	appendUserTurn(sessionId: string, text: string): ConversationStubTurn | undefined;
 	appendStubEchoAssistant(sessionId: string, text: string): ConversationStubTurn | undefined;
@@ -58,6 +59,17 @@ export class ConversationStubService extends Disposable implements IConversation
 		if (previous !== current) {
 			this._onDidChangeActiveSession.fire(current);
 		}
+	}
+
+	createSession(): string {
+		const previous = this.model.getActiveSessionId();
+		const sessionId = this.model.createSession();
+		const current = this.model.getActiveSessionId();
+		if (previous !== current) {
+			this._onDidChangeActiveSession.fire(current);
+		}
+		this._onDidChangeSession.fire(sessionId);
+		return sessionId;
 	}
 
 	getTurns(sessionId: string): readonly ConversationStubTurn[] {

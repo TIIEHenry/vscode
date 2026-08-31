@@ -28,4 +28,18 @@ suite('ConversationStubService', () => {
 		service.switchSession(target.id);
 		assert.strictEqual(service.getActiveSessionId(), target.id);
 	});
+
+	test('createSession increases session count and switches active', () => {
+		const service = store.add(new ConversationStubService());
+		const initialCount = service.getSessions().length;
+		const initialId = service.getActiveSessionId();
+
+		const newId = service.createSession();
+
+		assert.strictEqual(service.getSessions().length, initialCount + 1);
+		assert.strictEqual(service.getActiveSessionId(), newId);
+		assert.notStrictEqual(newId, initialId);
+		assert.strictEqual(service.getTurns(newId).length, 0);
+		assert.ok(service.getActiveSession().title.includes('New session'));
+	});
 });
