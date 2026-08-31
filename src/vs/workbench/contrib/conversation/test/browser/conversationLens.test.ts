@@ -12,9 +12,11 @@ import { ChatEditorInput } from '../../../chat/browser/widgetHosts/editor/chatEd
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { ConversationLens } from '../../browser/conversationLens.js';
 import {
+	conversationLensDockAttachTitle,
 	conversationLensDockEngineNotConnected,
 	conversationLensDockInboxNoQueue,
 	conversationLensDockMaximizeInput,
+	conversationLensDockNoAttachments,
 	conversationLensDockNoModel,
 	conversationLensDockRestoreTimeline,
 	conversationLensInputMaximizedClass,
@@ -119,13 +121,35 @@ suite('ConversationLens', () => {
 		const slots = part.getSlots()!;
 		const gateRow = slots.dock.querySelector('.conversation-lens-dock-gate-row')!;
 		const modelLabel = slots.dock.querySelector('.conversation-lens-dock-model')!;
-		const sendButton = slots.dock.querySelector('.conversation-lens-dock-bottom-bar .monaco-button')!;
+		const sendButton = slots.dock.querySelector('.conversation-lens-dock-actions .monaco-button')!;
 
 		assert.ok(gateRow.textContent?.includes(conversationLensDockEngineNotConnected));
 		assert.strictEqual(modelLabel.textContent, conversationLensDockNoModel);
 		assert.ok(sendButton.textContent?.includes('Send'));
 		assert.strictEqual(slots.dock.querySelector('.chat-setup'), null);
 		assert.strictEqual(slots.dock.querySelector('.monaco-button[aria-label*="Sign in"]'), null);
+	});
+
+	test('dock attach control is honest: no file picker or attachment list', () => {
+		const { part } = mountLens();
+		const slots = part.getSlots()!;
+		const attachButton = slots.dock.querySelector('.conversation-lens-dock-attach .monaco-button') as HTMLButtonElement;
+
+		assert.ok(attachButton);
+		assert.strictEqual(attachButton.getAttribute('aria-label'), conversationLensDockAttachTitle);
+		assert.strictEqual(slots.dock.querySelector('.conversation-lens-dock-attachment-list'), null);
+		assert.strictEqual(slots.dock.querySelector('.chat-attachments'), null);
+		assert.strictEqual(slots.dock.querySelector('.chat-setup'), null);
+
+		attachButton.click();
+
+		const popup = document.querySelector('.conversation-lens-dock-attach-popup');
+		assert.ok(popup);
+		assert.strictEqual(popup!.textContent, conversationLensDockNoAttachments);
+		assert.strictEqual(popup!.querySelectorAll('[role="option"], .monaco-list-row, .conversation-lens-dock-attachment-item').length, 0);
+
+		attachButton.click();
+		assert.strictEqual(document.querySelector('.conversation-lens-dock-attach-popup'), null);
 	});
 
 	test('blank session shows timeline empty state', () => {
