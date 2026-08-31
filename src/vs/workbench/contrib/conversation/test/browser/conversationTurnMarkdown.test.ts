@@ -12,5 +12,7 @@ suite('ConversationTurnMarkdown', () => {
 		assert.strictEqual(shouldRenderTurnAsMarkdown('assistant'), true);
 		assert.strictEqual(shouldRenderTurnAsMarkdown('user'), false);
 		assert.strictEqual(shouldRenderTurnAsMarkdown('confirmation'), false);
+		assert.strictEqual(shouldRenderTurnAsMarkdown('thinking'), false);
+		assert.strictEqual(shouldRenderTurnAsMarkdown('tool'), false);
 	});
 });

@@ -10,7 +10,7 @@ import { SelectBox } from '../../../../base/browser/ui/selectBox/selectBox.js';
 import { KeyCode } from '../../../../base/common/keyCodes.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { AnchorPosition } from '../../../../base/common/layout.js';
-import { Disposable, DisposableStore, toDisposable } from '../../../../base/common/lifecycle.js';
+import { Disposable, toDisposable } from '../../../../base/common/lifecycle.js';
 import { ThemeIcon } from '../../../../base/common/themables.js';
 import { localize } from '../../../../nls.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
@@ -19,6 +19,7 @@ import { defaultButtonStyles, defaultSelectBoxStyles } from '../../../../platfor
 import { hasNativeContextMenu } from '../../../../platform/window/common/window.js';
 import { IConversationLensSlots } from '../../../browser/parts/conversation/conversationPart.js';
 import { ConversationTimelineTree } from './conversationTimelineTree.js';
+import { ConversationTrajectoryList } from './conversationTrajectoryList.js';
 import {
 	conversationLensDockAttachTitle,
 	conversationLensDockEngineNotConnected,
@@ -34,7 +35,7 @@ import {
 	conversationLensDockStopNotGenerating,
 	conversationLensInputMaximizedClass,
 } from './conversationLensDockStrings.js';
-import { conversationLensSessionBarDeleteSession, conversationLensSessionBarHistoryListAria, conversationLensSessionBarHistoryTitle, conversationLensSessionBarNewSession, conversationLensSessionBarNoHistory, conversationLensSessionBarRenameInputAria, conversationLensSessionBarRenameTitle } from './conversationLensSessionBarStrings.js';
+import { conversationLensSessionBarDeleteSession, conversationLensSessionBarHistoryTitle, conversationLensSessionBarNewSession, conversationLensSessionBarRenameInputAria, conversationLensSessionBarRenameTitle } from './conversationLensSessionBarStrings.js';
 import { showConversationPart } from './conversationSessionStatus.js';
 import { IConversationRosterService } from './conversationStubService.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
@@ -55,8 +56,9 @@ export class ConversationLens extends Disposable {
 	private newSessionButton!: Button;
 	private deleteSessionButton!: Button;
 	private historyButton!: Button;
-	private historyContextView: IOpenContextView | undefined;
+	private showTrajectory = false;
 	private timelineTree!: ConversationTimelineTree;
+	private trajectoryList!: ConversationTrajectoryList;
 	private inboxStatus!: HTMLButtonElement;
 	private stopButton!: Button;
 	private dockTextarea!: HTMLTextAreaElement;
@@ -103,7 +105,6 @@ export class ConversationLens extends Disposable {
 		}));
 
 		this._register(toDisposable(() => {
-			this.historyContextView?.close();
 			this.attachContextView?.close();
 			reset(slots.sessionBar);
 			reset(slots.timeline);
@@ -209,7 +210,8 @@ export class ConversationLens extends Disposable {
 			title: conversationLensSessionBarHistoryTitle,
 		}));
 		this.historyButton.icon = Codicon.history;
-		this._register(this.historyButton.onDidClick(() => this.toggleHistoryContextView()));
+		this.historyButton.element.setAttribute('aria-pressed', 'false');
+		this._register(this.historyButton.onDidClick(() => this.toggleTrajectoryView()));
 
 		this._register(this.sessionSelectBox.onDidSelect(e => {
 			if (this.suppressSessionSelect) {
@@ -255,8 +257,12 @@ export class ConversationLens extends Disposable {
 	}
 
 	private mountTimeline(host: HTMLElement): void {
-		this.timelineTree = this._register(this.instantiationService.createInstance(ConversationTimelineTree, host, {
+		const readingColumn = append(host, $('.conversation-lens-reading-column'));
+		this.timelineTree = this._register(this.instantiationService.createInstance(ConversationTimelineTree, readingColumn, {
 			onResolveConfirmation: (turnId, status) => this.resolveConfirmation(turnId, status),
+		}));
+		this.trajectoryList = this._register(this.instantiationService.createInstance(ConversationTrajectoryList, readingColumn, {
+			onDidSelectTurn: turnId => this.onTrajectoryTurnSelected(turnId),
 		}));
 	}
 
@@ -390,57 +396,35 @@ export class ConversationLens extends Disposable {
 		this.instantiationService.invokeFunction(showConversationPart);
 	}
 
-	private toggleHistoryContextView(): void {
-		if (this.historyContextView) {
-			this.historyContextView.close();
-			return;
+	private toggleTrajectoryView(): void {
+		this.showTrajectory = !this.showTrajectory;
+		this.historyButton.element.setAttribute('aria-pressed', String(this.showTrajectory));
+		this.updateReadingColumn();
+	}
+
+	private onTrajectoryTurnSelected(turnId: string): void {
+		if (this.showTrajectory) {
+			this.showTrajectory = false;
+			this.historyButton.element.setAttribute('aria-pressed', 'false');
 		}
-		this.historyContextView = this.contextViewService.showContextView({
-			getAnchor: () => this.historyButton.element,
-			anchorAlignment: AnchorAlignment.RIGHT,
-			anchorPosition: AnchorPosition.BELOW,
-			render: container => {
-				const localDisposables = new DisposableStore();
-				const popup = append(container, $('.conversation-lens-session-history-popup'));
-				const sessions = this.stubService.getSessions();
-				if (sessions.length === 0) {
-					popup.textContent = conversationLensSessionBarNoHistory;
-				} else {
-					const list = append(popup, $('.conversation-lens-session-history-list'));
-					list.setAttribute('role', 'listbox');
-					list.setAttribute('aria-label', conversationLensSessionBarHistoryListAria);
-					const activeId = this.stubService.getActiveSessionId();
-					for (const session of sessions) {
-						const item = append(list, $('button.conversation-lens-session-history-item')) as HTMLButtonElement;
-						item.type = 'button';
-						item.textContent = session.title;
-						item.setAttribute('role', 'option');
-						const isActive = session.id === activeId;
-						item.setAttribute('aria-selected', String(isActive));
-						item.classList.toggle('conversation-lens-session-history-item-active', isActive);
-						localDisposables.add(addDisposableListener(item, 'click', () => {
-							this.switchToSession(session.id);
-							this.historyContextView?.close();
-						}));
-					}
-				}
-				localDisposables.add(toDisposable(() => {
-					this.historyContextView = undefined;
-				}));
-				return localDisposables;
-			},
-			onDOMEvent: e => {
-				if (e.type === 'click') {
-					const target = e.target as HTMLElement | null;
-					if (target && !this.historyButton.element.contains(target)) {
-						this.historyContextView?.close();
-					}
-				}
-			},
-			onHide: () => {
-				this.historyContextView = undefined;
-			},
-		});
+		this.updateReadingColumn();
+		if (this.inputMaximized) {
+			this.setInputMaximized(false);
+		}
+		this.timelineTree.revealTurn(turnId);
+	}
+
+	private updateReadingColumn(): void {
+		const sessionId = this.stubService.getActiveSessionId();
+		const turns = this.stubService.getTurns(sessionId);
+		if (this.showTrajectory) {
+			this.timelineTree.hide();
+			this.trajectoryList.setTurns(turns);
+			this.trajectoryList.show();
+		} else {
+			this.trajectoryList.hide();
+			this.timelineTree.show();
+		}
 	}
 
 	private createNewSession(): void {
@@ -458,6 +442,9 @@ export class ConversationLens extends Disposable {
 		this.refreshSessionSelectOptions();
 		this.updateSessionTitle();
 		this.dockTextarea.value = this.drafts.get(sessionId) ?? '';
+		if (this.showTrajectory) {
+			this.trajectoryList.setTurns(this.stubService.getTurns(sessionId));
+		}
 		this.renderTimeline();
 		this.renderInboxStatus();
 	}
@@ -540,7 +527,11 @@ export class ConversationLens extends Disposable {
 	}
 
 	private renderTimeline(): void {
-		this.timelineTree.setTurns(this.stubService.getTurns(this.stubService.getActiveSessionId()));
+		const turns = this.stubService.getTurns(this.stubService.getActiveSessionId());
+		this.timelineTree.setTurns(turns);
+		if (this.showTrajectory) {
+			this.trajectoryList.setTurns(turns);
+		}
 	}
 
 	private resolveConfirmation(turnId: string, status: 'allowed' | 'skipped'): void {

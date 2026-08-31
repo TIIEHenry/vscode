@@ -5,7 +5,7 @@
 
 import { localize } from '../../../../nls.js';
 
-export type StubTurnKind = 'user' | 'assistant' | 'confirmation';
+export type StubTurnKind = 'user' | 'assistant' | 'confirmation' | 'thinking' | 'tool';
 export type ConfirmationStatus = 'pending' | 'allowed' | 'skipped';
 
 export interface ConversationStubTurn {
@@ -163,6 +163,26 @@ export class ConversationStubModel {
 			return undefined;
 		}
 		const turn: ConversationStubTurn = { id: nextId(sessionId), kind: 'confirmation', text, status: 'pending' };
+		session.turns.push(turn);
+		return turn;
+	}
+
+	appendThinkingTurn(sessionId: string, text: string): ConversationStubTurn | undefined {
+		const session = this.sessions.find(s => s.id === sessionId);
+		if (!session) {
+			return undefined;
+		}
+		const turn: ConversationStubTurn = { id: nextId(sessionId), kind: 'thinking', text };
+		session.turns.push(turn);
+		return turn;
+	}
+
+	appendToolTurn(sessionId: string, text: string): ConversationStubTurn | undefined {
+		const session = this.sessions.find(s => s.id === sessionId);
+		if (!session) {
+			return undefined;
+		}
+		const turn: ConversationStubTurn = { id: nextId(sessionId), kind: 'tool', text };
 		session.turns.push(turn);
 		return turn;
 	}

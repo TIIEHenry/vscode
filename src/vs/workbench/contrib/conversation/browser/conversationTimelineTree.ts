@@ -7,7 +7,7 @@ import { $, addDisposableListener, append, clearNode, getWindow } from '../../..
 import { Button } from '../../../../base/browser/ui/button/button.js';
 import { IListVirtualDelegate } from '../../../../base/browser/ui/list/list.js';
 import { RenderIndentGuides } from '../../../../base/browser/ui/tree/abstractTree.js';
-import { ITreeElementRenderDetails, ITreeNode, ITreeRenderer } from '../../../../base/browser/ui/tree/tree.js';
+import { IObjectTreeElement, ITreeElementRenderDetails, ITreeNode, ITreeRenderer, ObjectTreeElementCollapseState } from '../../../../base/browser/ui/tree/tree.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { Disposable, DisposableStore, IDisposable } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
@@ -15,6 +15,7 @@ import { WorkbenchObjectTree } from '../../../../platform/list/browser/listServi
 import { asCssVariable, asCssVariableWithDefault, buttonSecondaryBackground, buttonSecondaryForeground } from '../../../../platform/theme/common/colorRegistry.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { ConversationConfirmationSeat } from './conversationConfirmationSeat.js';
+import { conversationLensThinkingNotConnected, conversationLensToolNotConnected } from './conversationLensSessionBarStrings.js';
 import { ConversationStubTurn } from './conversationStubModel.js';
 import {
 	computeConversationScrollDownState,
@@ -22,9 +23,13 @@ import {
 	isConversationTimelineScrolledToBottom,
 } from './conversationTimelineScroll.js';
 import { ConversationTurnContentAdapter, IConversationTurnContentAdapter } from './conversationTurnContentAdapter.js';
+import { getConversationTurnRoleLabel } from './conversationTrajectoryList.js';
+
+export type ConversationTimelineItemVariant = 'turn' | 'process-body';
 
 export interface ConversationTimelineItem {
 	readonly turn: ConversationStubTurn;
+	readonly variant: ConversationTimelineItemVariant;
 }
 
 export interface IConversationTimelineTreeOptions {
@@ -43,11 +48,14 @@ class ConversationTimelineDelegate implements IListVirtualDelegate<ConversationT
 	private readonly heights = new Map<string, number>();
 
 	getHeight(element: ConversationTimelineItem): number {
-		return this.heights.get(element.turn.id) ?? 72;
+		const key = this.heightKey(element);
+		return this.heights.get(key) ?? (element.variant === 'process-body' ? 40 : 72);
 	}
 
-	getTemplateId(_element: ConversationTimelineItem): string {
-		return 'conversationTimelineTurn';
+	getTemplateId(element: ConversationTimelineItem): string {
+		return element.variant === 'process-body'
+			? ConversationTimelineRenderer.PROCESS_BODY_TEMPLATE_ID
+			: ConversationTimelineRenderer.TEMPLATE_ID;
 	}
 
 	hasDynamicHeight(): boolean {
@@ -55,13 +63,20 @@ class ConversationTimelineDelegate implements IListVirtualDelegate<ConversationT
 	}
 
 	setDynamicHeight(element: ConversationTimelineItem, height: number): void {
-		this.heights.set(element.turn.id, height);
+		this.heights.set(this.heightKey(element), height);
+	}
+
+	private heightKey(element: ConversationTimelineItem): string {
+		return element.variant === 'process-body'
+			? `${element.turn.id}:body`
+			: element.turn.id;
 	}
 }
 
 class ConversationTimelineRenderer implements ITreeRenderer<ConversationTimelineItem, void, ITurnTemplateData> {
 
 	static readonly TEMPLATE_ID = 'conversationTimelineTurn';
+	static readonly PROCESS_BODY_TEMPLATE_ID = 'conversationTimelineProcessBody';
 
 	readonly templateId = ConversationTimelineRenderer.TEMPLATE_ID;
 
@@ -84,6 +99,18 @@ class ConversationTimelineRenderer implements ITreeRenderer<ConversationTimeline
 
 		const item = node.element;
 		const turn = item.turn;
+
+		if (item.variant === 'process-body') {
+			const el = append(templateData.container, $('.conversation-lens-turn-process-body'));
+			el.setAttribute('data-turn-id', turn.id);
+			el.setAttribute('data-kind', turn.kind);
+			el.textContent = turn.kind === 'thinking'
+				? conversationLensThinkingNotConnected
+				: conversationLensToolNotConnected;
+			this.scheduleHeightUpdate(item, templateData.container);
+			return;
+		}
+
 		if (turn.kind === 'confirmation') {
 			const seat = templateData.disposables.add(new ConversationConfirmationSeat({
 				message: turn.text,
@@ -100,6 +127,17 @@ class ConversationTimelineRenderer implements ITreeRenderer<ConversationTimeline
 			seat.element.setAttribute('data-kind', turn.kind);
 			this.confirmationSeats.set(turn.id, seat);
 			templateData.container.appendChild(seat.element);
+		} else if (turn.kind === 'thinking' || turn.kind === 'tool') {
+			const el = append(templateData.container, $('div.conversation-lens-turn.conversation-lens-turn-process'));
+			el.setAttribute('data-kind', turn.kind);
+			el.setAttribute('data-turn-id', turn.id);
+
+			const header = append(el, $('.conversation-lens-turn-header'));
+			header.textContent = getConversationTurnRoleLabel(turn.kind);
+
+			const summary = append(el, $('.conversation-lens-turn-summary'));
+			summary.textContent = turn.text;
+			templateData.container.appendChild(el);
 		} else {
 			const el = $('div.conversation-lens-turn');
 			el.setAttribute('data-kind', turn.kind);
@@ -109,9 +147,7 @@ class ConversationTimelineRenderer implements ITreeRenderer<ConversationTimeline
 			}
 
 			const header = append(el, $('.conversation-lens-turn-header'));
-			header.textContent = turn.kind === 'user'
-				? localize('conversationLens.turnYou', "You")
-				: localize('conversationLens.turnAgent', "Agent");
+			header.textContent = getConversationTurnRoleLabel(turn.kind);
 
 			const body = append(el, $('.conversation-lens-turn-body'));
 			templateData.disposables.add(this.contentAdapter.renderTurnBody(turn, body));
@@ -149,6 +185,31 @@ class ConversationTimelineRenderer implements ITreeRenderer<ConversationTimeline
 	}
 }
 
+class ConversationTimelineProcessBodyRenderer implements ITreeRenderer<ConversationTimelineItem, void, ITurnTemplateData> {
+
+	readonly templateId = ConversationTimelineRenderer.PROCESS_BODY_TEMPLATE_ID;
+
+	constructor(
+		private readonly inner: ConversationTimelineRenderer,
+	) { }
+
+	renderTemplate(container: HTMLElement): ITurnTemplateData {
+		return this.inner.renderTemplate(container);
+	}
+
+	renderElement(node: ITreeNode<ConversationTimelineItem, void>, index: number, templateData: ITurnTemplateData): void {
+		this.inner.renderElement(node, index, templateData);
+	}
+
+	disposeElement(_node: ITreeNode<ConversationTimelineItem, void>, _index: number, templateData: ITurnTemplateData): void {
+		templateData.disposables.clear();
+	}
+
+	disposeTemplate(templateData: ITurnTemplateData): void {
+		this.inner.disposeTemplate(templateData);
+	}
+}
+
 /**
  * Greenfield conversation timeline list. WorkbenchObjectTree-based; zero import of
  * ChatListWidget / ChatListItemRenderer (see conversationImportBoundaries.test.ts).
@@ -164,6 +225,7 @@ export class ConversationTimelineTree extends Disposable {
 	private readonly renderer: ConversationTimelineRenderer;
 	private readonly delegate: ConversationTimelineDelegate;
 	private readonly autoScrollHolds = new ConversationAutoScrollHolds();
+	private readonly turnItems = new Map<string, ConversationTimelineItem>();
 
 	private _scrollLock = true;
 
@@ -197,35 +259,43 @@ export class ConversationTimelineTree extends Disposable {
 			options.onResolveConfirmation,
 			(item, height) => this.tree.updateElementHeight(item, height),
 		);
+		const processBodyRenderer = new ConversationTimelineProcessBodyRenderer(this.renderer);
 
 		this.tree = this._register(this.instantiationService.createInstance(
 			WorkbenchObjectTree<ConversationTimelineItem, void>,
 			'ConversationTimeline',
 			this.treeContainer,
 			this.delegate,
-			[this.renderer],
+			[this.renderer, processBodyRenderer],
 			{
-				identityProvider: { getId: (e: ConversationTimelineItem) => e.turn.id },
+				identityProvider: {
+					getId: (e: ConversationTimelineItem) => e.variant === 'process-body'
+						? `${e.turn.id}:body`
+						: e.turn.id,
+				},
 				horizontalScrolling: false,
 				alwaysConsumeMouseWheel: false,
 				supportDynamicHeights: true,
 				paddingBottom: options.paddingBottom ?? 30,
 				hideTwistiesOfChildlessElements: true,
 				enableStickyScroll: false,
-				indent: 0,
+				indent: 12,
 				expandOnDoubleClick: false,
 				renderIndentGuides: RenderIndentGuides.None,
 				multipleSelectionSupport: false,
 				setRowLineHeight: false,
 				accessibilityProvider: {
 					getAriaLabel: (item: ConversationTimelineItem) => {
+						if (item.variant === 'process-body') {
+							return item.turn.kind === 'thinking'
+								? conversationLensThinkingNotConnected
+								: conversationLensToolNotConnected;
+						}
 						const turn = item.turn;
 						if (turn.kind === 'confirmation') {
 							return localize('conversationLens.confirmationSeat', "Confirmation");
 						}
-						return turn.kind === 'user'
-							? localize('conversationLens.turnYou', "You")
-							: localize('conversationLens.turnAgent', "Agent");
+						return getConversationTurnRoleLabel(turn.kind);
 					},
 					getWidgetAriaLabel: () => localize('conversationLens.timeline', "Conversation timeline"),
 				},
@@ -286,13 +356,33 @@ export class ConversationTimelineTree extends Disposable {
 		return this.scrollHost.parentElement!;
 	}
 
+	show(): void {
+		this.domNode.hidden = false;
+	}
+
+	hide(): void {
+		this.domNode.hidden = true;
+	}
+
 	setTurns(turns: readonly ConversationStubTurn[]): void {
 		this.withPersistedAutoScroll(() => {
 			this.renderer.clearConfirmationSeats();
-			const items = turns.map(turn => ({ turn }));
-			this.tree.setChildren(null, items.map(item => ({ element: item })));
+			this.turnItems.clear();
+			const items = turns.map(turn => this.toTreeElement(turn));
+			for (const turn of turns) {
+				this.turnItems.set(turn.id, { turn, variant: 'turn' });
+			}
+			this.tree.setChildren(null, items);
 			this.renderEmptyState(turns.length === 0);
 		});
+	}
+
+	revealTurn(turnId: string): void {
+		const item = this.turnItems.get(turnId);
+		if (!item) {
+			return;
+		}
+		this.tree.reveal(item, 0.5);
 	}
 
 	acquireAutoScrollHold(): IDisposable {
@@ -326,6 +416,19 @@ export class ConversationTimelineTree extends Disposable {
 
 	layout(height: number, width: number): void {
 		this.tree.layout(height, width);
+	}
+
+	private toTreeElement(turn: ConversationStubTurn): IObjectTreeElement<ConversationTimelineItem> {
+		const element: ConversationTimelineItem = { turn, variant: 'turn' };
+		if (turn.kind === 'thinking' || turn.kind === 'tool') {
+			return {
+				element,
+				collapsible: true,
+				collapsed: ObjectTreeElementCollapseState.PreserveOrCollapsed,
+				children: [{ element: { turn, variant: 'process-body' } }],
+			};
+		}
+		return { element };
 	}
 
 	private renderEmptyState(empty: boolean): void {
