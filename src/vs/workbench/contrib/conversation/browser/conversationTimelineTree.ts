@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { $, addDisposableListener, append, clearNode, getWindow } from '../../../../base/browser/dom.js';
+import { $, addDisposableListener, append, clearNode, getWindow, scheduleAtNextAnimationFrame } from '../../../../base/browser/dom.js';
 import { Button } from '../../../../base/browser/ui/button/button.js';
 import { IListVirtualDelegate } from '../../../../base/browser/ui/list/list.js';
 import { RenderIndentGuides } from '../../../../base/browser/ui/tree/abstractTree.js';
@@ -369,8 +369,8 @@ export class ConversationTimelineTree extends Disposable {
 			this.renderer.clearConfirmationSeats();
 			this.turnItems.clear();
 			const items = turns.map(turn => this.toTreeElement(turn));
-			for (const turn of turns) {
-				this.turnItems.set(turn.id, { turn, variant: 'turn' });
+			for (const treeElement of items) {
+				this.turnItems.set(treeElement.element.turn.id, treeElement.element);
 			}
 			this.tree.setChildren(null, items);
 			this.renderEmptyState(turns.length === 0);
@@ -382,7 +382,17 @@ export class ConversationTimelineTree extends Disposable {
 		if (!item) {
 			return;
 		}
-		this.tree.reveal(item, 0.5);
+		this.revealTurnElement(item);
+	}
+
+	private revealTurnElement(item: ConversationTimelineItem, attempt = 0): void {
+		try {
+			this.tree.reveal(item, 0.5);
+		} catch {
+			if (attempt < 3) {
+				scheduleAtNextAnimationFrame(getWindow(this.domNode), () => this.revealTurnElement(item, attempt + 1));
+			}
+		}
 	}
 
 	acquireAutoScrollHold(): IDisposable {

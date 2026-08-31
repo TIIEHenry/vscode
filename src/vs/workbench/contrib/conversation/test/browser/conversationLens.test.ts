@@ -481,9 +481,11 @@ suite('ConversationLens', () => {
 		deleteButton.click();
 		await flushTimelineHeightUpdates();
 
-		assert.strictEqual(stubService.getSessions().length, initialCount - 1);
+		// Last-delete respawns a fresh untitled stub instead of leaving zero sessions.
+		assert.strictEqual(stubService.getSessions().length, initialCount);
 		assert.notStrictEqual(stubService.getActiveSessionId(), deletedId);
 		assert.strictEqual(stubService.getSessions().some(s => s.id === deletedId), false);
+		assert.ok(getTimelineEmpty(slots));
 	});
 
 	test('SessionBar delete on last session creates fresh untitled stub', () => {
@@ -561,6 +563,7 @@ suite('ConversationLens', () => {
 		const firstRow = trajectory.querySelector('.monaco-list-row') as HTMLElement;
 		assert.ok(firstRow);
 		firstRow.click();
+		layoutReadingColumn();
 		await flushTimelineHeightUpdates();
 
 		assert.strictEqual(historyButton.getAttribute('aria-pressed'), 'false');

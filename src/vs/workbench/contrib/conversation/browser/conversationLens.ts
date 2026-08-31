@@ -411,6 +411,7 @@ export class ConversationLens extends Disposable {
 		if (this.inputMaximized) {
 			this.setInputMaximized(false);
 		}
+		this.renderTimeline();
 		this.timelineTree.revealTurn(turnId);
 	}
 
