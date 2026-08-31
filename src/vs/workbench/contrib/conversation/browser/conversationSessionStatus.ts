@@ -18,6 +18,24 @@ export function getConversationSessionStatusText(session: ConversationStubSessio
 	return title;
 }
 
+/** Honest engine StatusBar copy — no Copilot setup, no fake connected state (matches Dock phrasing). */
+export function getConversationEngineStatusText(): string {
+	return localize('conversationStatus.engineNotConnected', "Engine not connected");
+}
+
+/** Honest session-model echo when Conversation seat is hidden (matches Dock phrasing). */
+export function getConversationModelEchoStatusText(): string {
+	return localize('conversationStatus.noModel', "No model");
+}
+
+/**
+ * UI-INV-14: StatusBar `session-model` echo only when Conversation part is hidden;
+ * Dock owns model while the seat is visible.
+ */
+export function shouldShowConversationModelEchoInStatusBar(isConversationPartVisible: boolean): boolean {
+	return !isConversationPartVisible;
+}
+
 /** Show and focus the center ConversationPart (default Code window shell). */
 export function showConversationPart(accessor: ServicesAccessor): void {
 	const layoutService = accessor.get(IWorkbenchLayoutService);

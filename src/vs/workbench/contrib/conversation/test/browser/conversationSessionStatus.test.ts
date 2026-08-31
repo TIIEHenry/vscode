@@ -5,8 +5,14 @@
 
 import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
-import { getConversationSessionStatusText } from '../../browser/conversationSessionStatus.js';
+import {
+	getConversationEngineStatusText,
+	getConversationModelEchoStatusText,
+	getConversationSessionStatusText,
+	shouldShowConversationModelEchoInStatusBar,
+} from '../../browser/conversationSessionStatus.js';
 import { ConversationStubSession } from '../../browser/conversationStubModel.js';
+import * as conversationSessionStatus from '../../browser/conversationSessionStatus.js';
 
 suite('ConversationSessionStatus', () => {
 
@@ -32,5 +38,25 @@ suite('ConversationSessionStatus', () => {
 			turns: [],
 		};
 		assert.strictEqual(getConversationSessionStatusText(session), 'No session');
+	});
+
+	test('getConversationEngineStatusText returns honest not-connected copy', () => {
+		assert.strictEqual(getConversationEngineStatusText(), 'Engine not connected');
+	});
+
+	test('getConversationModelEchoStatusText returns honest no-model copy', () => {
+		assert.strictEqual(getConversationModelEchoStatusText(), 'No model');
+	});
+
+	test('shouldShowConversationModelEchoInStatusBar is true only when Conversation part is hidden', () => {
+		assert.strictEqual(shouldShowConversationModelEchoInStatusBar(true), false);
+		assert.strictEqual(shouldShowConversationModelEchoInStatusBar(false), true);
+	});
+
+	test('does not export session usage helpers that paint zero placeholders', () => {
+		const exports = Object.keys(conversationSessionStatus);
+		for (const key of exports) {
+			assert.ok(!/usage|turns|tok/i.test(key), `unexpected usage-like export: ${key}`);
+		}
 	});
 });
