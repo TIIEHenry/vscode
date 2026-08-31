@@ -18,7 +18,7 @@ import { IEditorPaneRegistry, EditorPaneDescriptor } from '../../../../browser/e
 import { EditorExtensions, IEditorFactoryRegistry, IEditorSerializer } from '../../../../common/editor.js';
 import { EditorInput } from '../../../../common/editor/editorInput.js';
 import { IEditorService } from '../../../../services/editor/common/editorService.js';
-import { ResourceContextKey } from '../../../../common/contextkeys.js';
+import { IsSessionsWindowContext, ResourceContextKey } from '../../../../common/contextkeys.js';
 import { ChatContextKeys } from '../../common/actions/chatContextKeys.js';
 import { ChatEntitlementContextKeys } from '../../../../services/chat/common/chatEntitlementService.js';
 import { CONTEXT_MODELS_EDITOR, CONTEXT_MODELS_SEARCH_FOCUS, MANAGE_CHAT_COMMAND_ID } from '../../common/constants.js';
@@ -122,7 +122,7 @@ class ChatManagementActionsContribution extends Disposable implements IWorkbench
 					id: MANAGE_CHAT_COMMAND_ID,
 					title: localize2('openAiManagement', "Manage Language Models"),
 					category: CHAT_CATEGORY,
-					precondition: LANGUAGE_MODELS_ENTITLEMENT_PRECONDITION,
+					precondition: ContextKeyExpr.and(LANGUAGE_MODELS_ENTITLEMENT_PRECONDITION, IsSessionsWindowContext),
 					f1: true,
 				});
 			}
@@ -170,7 +170,7 @@ class ChatManagementActionsContribution extends Disposable implements IWorkbench
 					id: 'workbench.action.openLanguageModelsJson',
 					title: localize2('openLanguageModelsJson', "Open Language Models (JSON)"),
 					category: CHAT_CATEGORY,
-					precondition: LANGUAGE_MODELS_ENTITLEMENT_PRECONDITION,
+					precondition: ContextKeyExpr.and(LANGUAGE_MODELS_ENTITLEMENT_PRECONDITION, IsSessionsWindowContext),
 					icon: languageModelsOpenSettingsIcon,
 					f1: true,
 					menu: [{

@@ -9,6 +9,7 @@ import { localize2 } from '../../../../../../nls.js';
 import { ChatContextKeys } from '../../../common/actions/chatContextKeys.js';
 import { ChatConfiguration } from '../../../common/constants.js';
 import { ContextKeyExpr } from '../../../../../../platform/contextkey/common/contextkey.js';
+import { IsSessionsWindowContext } from '../../../../../common/contextkeys.js';
 import { UnifiedQuickAccess, DEFAULT_UNIFIED_QUICK_ACCESS_TABS } from './unifiedQuickAccess.js';
 
 // Singleton instance for the unified quick access
@@ -40,7 +41,8 @@ export class ShowUnifiedQuickAccessAction extends Action2 {
 			f1: true,
 			precondition: ContextKeyExpr.and(
 				ChatContextKeys.enabled,
-				ContextKeyExpr.has(`config.${ChatConfiguration.UnifiedAgentsBar}`)
+				ContextKeyExpr.has(`config.${ChatConfiguration.UnifiedAgentsBar}`),
+				IsSessionsWindowContext,
 			),
 		});
 	}
@@ -66,7 +68,8 @@ export class ShowAgentSessionsQuickAccessAction extends Action2 {
 			f1: true,
 			precondition: ContextKeyExpr.and(
 				ChatContextKeys.enabled,
-				ContextKeyExpr.has(`config.${ChatConfiguration.UnifiedAgentsBar}`)
+				ContextKeyExpr.has(`config.${ChatConfiguration.UnifiedAgentsBar}`),
+				IsSessionsWindowContext,
 			),
 		});
 	}
@@ -92,7 +95,8 @@ export class ShowCommandsQuickAccessAction extends Action2 {
 			f1: true,
 			precondition: ContextKeyExpr.and(
 				ChatContextKeys.enabled,
-				ContextKeyExpr.has(`config.${ChatConfiguration.UnifiedAgentsBar}`)
+				ContextKeyExpr.has(`config.${ChatConfiguration.UnifiedAgentsBar}`),
+				IsSessionsWindowContext,
 			),
 		});
 	}
@@ -118,7 +122,8 @@ export class ShowFilesQuickAccessAction extends Action2 {
 			f1: true,
 			precondition: ContextKeyExpr.and(
 				ChatContextKeys.enabled,
-				ContextKeyExpr.has(`config.${ChatConfiguration.UnifiedAgentsBar}`)
+				ContextKeyExpr.has(`config.${ChatConfiguration.UnifiedAgentsBar}`),
+				IsSessionsWindowContext,
 			),
 		});
 	}

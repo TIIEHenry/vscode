@@ -8,6 +8,8 @@ import { joinPath } from '../../../../../base/common/resources.js';
 import { ServicesAccessor } from '../../../../../editor/browser/editorExtensions.js';
 import { localize, localize2 } from '../../../../../nls.js';
 import { Action2, registerAction2 } from '../../../../../platform/actions/common/actions.js';
+import { ContextKeyExpr } from '../../../../../platform/contextkey/common/contextkey.js';
+import { IsSessionsWindowContext } from '../../../../common/contextkeys.js';
 import { IFileDialogService } from '../../../../../platform/dialogs/common/dialogs.js';
 import { IFileService } from '../../../../../platform/files/common/files.js';
 import { CHAT_CATEGORY } from './chatActions.js';
@@ -43,7 +45,7 @@ export function registerChatExportActions() {
 				id: 'workbench.action.chat.export',
 				category: CHAT_CATEGORY,
 				title: localize2('chat.export.label', "Export Chat..."),
-				precondition: ChatContextKeys.enabled,
+				precondition: ContextKeyExpr.and(ChatContextKeys.enabled, IsSessionsWindowContext),
 				f1: true,
 			});
 		}
@@ -87,7 +89,7 @@ export function registerChatExportActions() {
 				id: 'workbench.action.chat.import',
 				title: localize2('chat.import.label', "Import Chat..."),
 				category: CHAT_CATEGORY,
-				precondition: ChatContextKeys.enabled,
+				precondition: ContextKeyExpr.and(ChatContextKeys.enabled, IsSessionsWindowContext),
 				f1: true,
 			});
 		}

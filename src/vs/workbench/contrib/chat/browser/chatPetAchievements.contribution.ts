@@ -19,6 +19,7 @@ import { SyncDescriptor } from '../../../../platform/instantiation/common/descri
 import { ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js';
 import { ILogService } from '../../../../platform/log/common/log.js';
 import { Registry } from '../../../../platform/registry/common/platform.js';
+import { IsSessionsWindowContext } from '../../../common/contextkeys.js';
 import { AccessibilityVerbositySettingId } from '../../accessibility/browser/accessibilityConfiguration.js';
 import { IMcpWorkbenchService } from '../../mcp/common/mcpTypes.js';
 import { EditorPaneDescriptor, IEditorPaneRegistry } from '../../../browser/editor.js';
@@ -58,7 +59,7 @@ registerAction2(class extends Action2 {
 					id: 'chat.pet.developer.unlockAllAchievements',
 					title: localize2('chatPet.achievements.developer.unlockAll', "Unlock All Pet Achievements"),
 					category: Categories.Developer,
-					precondition: ContextKeyExpr.and(ChatContextKeys.enabled, ChatPetContextKeys.enabled),
+					precondition: ContextKeyExpr.and(ChatContextKeys.enabled, ChatPetContextKeys.enabled, IsSessionsWindowContext),
 					f1: true,
 				});
 			}
@@ -78,7 +79,7 @@ registerAction2(class extends Action2 {
 					id: 'chat.pet.developer.resetAchievements',
 					title: localize2('chatPet.achievements.developer.reset', "Reset Pet Achievements"),
 					category: Categories.Developer,
-					precondition: ChatContextKeys.enabled,
+					precondition: ContextKeyExpr.and(ChatContextKeys.enabled, IsSessionsWindowContext),
 					f1: true,
 				});
 			}
@@ -104,7 +105,7 @@ registerAction2(class extends Action2 {
 			id: 'chat.pet.developer.resetSize',
 			title: localize2('chatPet.developer.resetSize', "Reset Pet Size"),
 			category: Categories.Developer,
-			precondition: ChatContextKeys.enabled,
+			precondition: ContextKeyExpr.and(ChatContextKeys.enabled, IsSessionsWindowContext),
 			f1: true,
 		});
 	}

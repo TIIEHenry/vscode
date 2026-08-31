@@ -36,6 +36,7 @@ import { IJSONSchema } from '../../../../../base/common/jsonSchema.js';
 import * as JSONContributionRegistry from '../../../../../platform/jsonschemas/common/jsonContributionRegistry.js';
 import { Registry } from '../../../../../platform/registry/common/platform.js';
 import { ContextKeyExpr } from '../../../../../platform/contextkey/common/contextkey.js';
+import { IsSessionsWindowContext } from '../../../../common/contextkeys.js';
 import { ChatViewId, IChatWidgetService } from '../chat.js';
 import { ChatContextKeys } from '../../common/actions/chatContextKeys.js';
 
@@ -444,7 +445,7 @@ export class ConfigureToolSets extends Action2 {
 			shortTitle: localize('chat.configureToolSets.short', "Tool Sets"),
 			category: CHAT_CATEGORY,
 			f1: true,
-			precondition: ContextKeyExpr.and(ChatContextKeys.enabled, ChatContextKeys.Tools.toolsCount.greater(0)),
+			precondition: ContextKeyExpr.and(ChatContextKeys.enabled, ChatContextKeys.Tools.toolsCount.greater(0), IsSessionsWindowContext),
 			menu: [{
 				id: MenuId.ViewTitle,
 				when: ContextKeyExpr.and(ChatContextKeys.enabled, ContextKeyExpr.equals('view', ChatViewId)),

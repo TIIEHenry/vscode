@@ -15,7 +15,7 @@ import { IAgentSession, isMarshalledAgentSessionContext, IMarshalledAgentSession
 import { IAgentSessionsService } from '../agentSessionsService.js';
 import { CHAT_CATEGORY } from '../../actions/chatActions.js';
 import { ToggleTitleBarConfigAction } from '../../../../../browser/parts/titlebar/titlebarActions.js';
-import { IsCompactTitleBarContext } from '../../../../../common/contextkeys.js';
+import { IsCompactTitleBarContext, IsSessionsWindowContext } from '../../../../../common/contextkeys.js';
 import { inAgentSessionProjection } from './agentSessionProjection.js';
 import { ChatConfiguration } from '../../../common/constants.js';
 
@@ -72,7 +72,8 @@ export class ExitAgentSessionProjectionAction extends Action2 {
 			f1: true,
 			precondition: ContextKeyExpr.and(
 				ChatContextKeys.enabled,
-				inAgentSessionProjection
+				inAgentSessionProjection,
+				IsSessionsWindowContext,
 			),
 			keybinding: {
 				weight: KeybindingWeight.WorkbenchContrib,
