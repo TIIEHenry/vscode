@@ -66,4 +66,60 @@ suite('ConversationStubService', () => {
 
 		assert.strictEqual(service.renameSession('missing', 'Nope'), false);
 	});
+
+	test('deleteSession removes a non-active session without changing active', () => {
+		const service = store.add(new ConversationStubService());
+		const activeId = service.getActiveSessionId();
+		const target = service.getSessions().find(s => s.id !== activeId);
+		assert.ok(target);
+		const initialCount = service.getSessions().length;
+		let activeChanged = false;
+
+		store.add(service.onDidChangeActiveSession(() => {
+			activeChanged = true;
+		}));
+
+		assert.strictEqual(service.deleteSession(target.id), true);
+		assert.strictEqual(service.getSessions().length, initialCount - 1);
+		assert.strictEqual(service.getActiveSessionId(), activeId);
+		assert.strictEqual(activeChanged, false);
+		assert.strictEqual(service.getSessions().some(s => s.id === target.id), false);
+	});
+
+	test('deleteSession on active session switches to another session', () => {
+		const service = store.add(new ConversationStubService());
+		const sessions = service.getSessions();
+		const activeId = service.getActiveSessionId();
+		const remaining = sessions.filter(s => s.id !== activeId);
+		assert.ok(remaining.length >= 1);
+		let newActiveId: string | undefined;
+
+		store.add(service.onDidChangeActiveSession(id => {
+			newActiveId = id;
+		}));
+
+		assert.strictEqual(service.deleteSession(activeId), true);
+		assert.notStrictEqual(service.getActiveSessionId(), activeId);
+		assert.strictEqual(newActiveId, service.getActiveSessionId());
+		assert.ok(remaining.some(s => s.id === service.getActiveSessionId()));
+	});
+
+	test('deleteSession on last session creates a fresh untitled stub', () => {
+		const service = store.add(new ConversationStubService());
+		const sessions = [...service.getSessions()];
+		for (const session of sessions) {
+			assert.strictEqual(service.deleteSession(session.id), true);
+		}
+
+		assert.strictEqual(service.getSessions().length, 1);
+		assert.ok(service.getActiveSession().title.includes('Untitled'));
+		assert.strictEqual(service.getTurns(service.getActiveSessionId()).length, 0);
+	});
+
+	test('deleteSession returns false for unknown id', () => {
+		const service = store.add(new ConversationStubService());
+		const initialCount = service.getSessions().length;
+		assert.strictEqual(service.deleteSession('missing'), false);
+		assert.strictEqual(service.getSessions().length, initialCount);
+	});
 });

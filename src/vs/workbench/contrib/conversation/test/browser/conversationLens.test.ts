@@ -19,7 +19,7 @@ import {
 	conversationLensDockRestoreTimeline,
 	conversationLensInputMaximizedClass,
 } from '../../browser/conversationLensDockStrings.js';
-import { conversationLensSessionBarHistoryTitle, conversationLensSessionBarNewSession, conversationLensSessionBarNoHistory, conversationLensSessionBarRenameTitle } from '../../browser/conversationLensSessionBarStrings.js';
+import { conversationLensSessionBarDeleteSession, conversationLensSessionBarHistoryTitle, conversationLensSessionBarNewSession, conversationLensSessionBarNoHistory, conversationLensSessionBarRenameTitle } from '../../browser/conversationLensSessionBarStrings.js';
 import { CONVERSATION_STUB_SEED_SESSIONS } from '../../browser/conversationStubModel.js';
 import { ConversationStubService, IConversationStubService } from '../../browser/conversationStubService.js';
 import { getConversationSessionStatusText } from '../../browser/conversationSessionStatus.js';
@@ -230,6 +230,43 @@ suite('ConversationLens', () => {
 		assert.ok(title.textContent?.includes('New session'));
 		assert.ok(timelineContent.querySelector('.conversation-lens-timeline-empty'));
 		assert.ok(timelineContent.textContent?.includes('No messages yet'));
+	});
+
+	test('SessionBar delete button removes active stub session', () => {
+		const { part, stubService } = mountLens();
+		const slots = part.getSlots()!;
+		const deleteButton = slots.sessionBar.querySelector('.conversation-lens-session-delete .monaco-button') as HTMLButtonElement;
+		const initialCount = stubService.getSessions().length;
+		const deletedId = stubService.getActiveSessionId();
+
+		assert.ok(deleteButton);
+		assert.strictEqual(deleteButton.getAttribute('aria-label'), conversationLensSessionBarDeleteSession);
+		assert.strictEqual(deleteButton.getAttribute('aria-label'), 'Delete session');
+
+		deleteButton.click();
+
+		assert.strictEqual(stubService.getSessions().length, initialCount - 1);
+		assert.notStrictEqual(stubService.getActiveSessionId(), deletedId);
+		assert.strictEqual(stubService.getSessions().some(s => s.id === deletedId), false);
+	});
+
+	test('SessionBar delete on last session creates fresh untitled stub', () => {
+		const { part, stubService } = mountLens();
+		const slots = part.getSlots()!;
+		const deleteButton = slots.sessionBar.querySelector('.conversation-lens-session-delete .monaco-button') as HTMLButtonElement;
+		const title = slots.sessionBar.querySelector('.conversation-lens-session-title')!;
+		const sessions = [...stubService.getSessions()];
+
+		for (const session of sessions) {
+			if (stubService.getActiveSessionId() !== session.id) {
+				stubService.switchSession(session.id);
+			}
+			deleteButton.click();
+		}
+
+		assert.strictEqual(stubService.getSessions().length, 1);
+		assert.ok(title.textContent?.includes('Untitled'));
+		assert.ok(slots.timeline.querySelector('.conversation-lens-timeline-empty'));
 	});
 
 	test('SessionBar history control is honest: no fake list or Copilot history', () => {

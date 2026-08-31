@@ -65,7 +65,7 @@ Desktop 合同：窗口壳 = Singularity/IDEA；Conversation 内 = 时间线 + I
 
 **明确进复用清单（人类补充 2026-08-30）：** 会话列表侧边栏（sessions viewlet / `agentSessions` 控件族）、对话列表、**权限确认弹框组件**（chat confirmation 零件：Allow/Skip 按钮、「N confirmation pending」摘要行、Input needed 徽标）。权限交互为**半自研**：座位位置与语义按 Desktop spec（权限座位在时间线内），实现零件优先复用本仓 confirmation 组件；SessionBar / Inbox / Conversation 透镜仍自研。
 
-**Navigator stub roster（M3 切片 2，HEAD）：** `workbench.view.conversationSessions`（`contrib/conversation`）已作为 **Sidebar `ViewPane`** 挂在 Explorer 容器（`VIEW_CONTAINER`）内，与 SessionBar 共用 `IConversationStubService` 内存会话；点击切 `CONVERSATION_PART` 当前 stub，**不走** `IChatModel` / `IChatService` / `ChatEditorInput`。Explorer 仍是 Sidebar 默认 composite；产品 roster 是配套列表，不是中心透镜。
+**Navigator stub roster（M3 切片 2，HEAD）：** `workbench.view.conversationSessions`（`contrib/conversation`）已作为 **Sidebar `ViewPane`** 挂在 Explorer 容器（`VIEW_CONTAINER`）内，与 SessionBar 共用 `IConversationStubService` 内存会话；点击切 `CONVERSATION_PART` 当前 stub，**Delete session** 标题动作与 SessionBar 紧凑删除控件均调用 `deleteSession`（仅内存，无 Copilot archive/cloud），**不走** `IChatModel` / `IChatService` / `ChatEditorInput`。Explorer 仍是 Sidebar 默认 composite；产品 roster 是配套列表，不是中心透镜。
 
 ## 3. Workbench 宿主（默认 Code 窗口）
 
@@ -81,7 +81,7 @@ Desktop 合同：窗口壳 = Singularity/IDEA；Conversation 内 = 时间线 + I
 
 `ChatViewPane` 还嵌 `AgentSessionsControl`、welcome、entitlement、mic/TTS——体量远超「一个列表 + Dock」。把它整块搬进新 Part 会把 Copilot 设置流一起搬进来。
 
-**产品中心透镜（M2 切片 1 + chrome）：** `workbench/contrib/conversation` 在 `ConversationPart` 三槽内提供本地 stub 产品面：SessionBar 用 workbench 标题 chrome（图标、可点击重命名的当前标题、SelectBox 会话切换器、紧凑 **New session** 按钮创建内存 stub 并切换、紧凑 **History** 控件点击仅提示 No history——无引擎历史列表）并与 Sidebar roster 共用 `IConversationStubService`；Timeline 为可滚动阅读列（回合间距、空态、You/Agent 头），confirmation 座位仍在列表内且 Allow/Skip 只改本地 `pending → allowed/skipped`；Dock 顶 Inbox 状态行诚实显示「No queue」，有 pending 时才出现「N confirmation pending」并滚到座位；底部 sticky composer（textarea + Send）用 Enter/Send append user 回合（可选 stub echo）；Dock bottom bar 含紧凑 **Maximize input** / **Restore timeline** 切换（Desktop §8.3.11：列内隐藏 Timeline、Dock 扩展，不走 Workbench slotMaximize，SessionBar 无 maximize）。Conversation 列现已采用 **紧凑 chrome（NoSpacing）**：单行 SessionBar、Timeline 内层独占滚动、单行 Inbox 与同行 composer，无 Copilot 式额外 gutter；样式仅用 workbench token（foreground/background/border/input），无 Copilot 品牌色。中心仍不是 `ChatEditorInput` / `ChatViewPane`，也不走 Copilot setup 或 `IChatModel`。
+**产品中心透镜（M2 切片 1 + chrome）：** `workbench/contrib/conversation` 在 `ConversationPart` 三槽内提供本地 stub 产品面：SessionBar 用 workbench 标题 chrome（图标、可点击重命名的当前标题、SelectBox 会话切换器、紧凑 **New session** 按钮创建内存 stub 并切换、紧凑 **Delete session** 按钮删除当前内存 stub（删最后一项时自动新建 Untitled，无确认）、紧凑 **History** 控件点击仅提示 No history——无引擎历史列表）并与 Sidebar roster 共用 `IConversationStubService`；Timeline 为可滚动阅读列（回合间距、空态、You/Agent 头），confirmation 座位仍在列表内且 Allow/Skip 只改本地 `pending → allowed/skipped`；Dock 顶 Inbox 状态行诚实显示「No queue」，有 pending 时才出现「N confirmation pending」并滚到座位；底部 sticky composer（textarea + Send）用 Enter/Send append user 回合（可选 stub echo）；Dock bottom bar 含紧凑 **Maximize input** / **Restore timeline** 切换（Desktop §8.3.11：列内隐藏 Timeline、Dock 扩展，不走 Workbench slotMaximize，SessionBar 无 maximize）。Conversation 列现已采用 **紧凑 chrome（NoSpacing）**：单行 SessionBar、Timeline 内层独占滚动、单行 Inbox 与同行 composer，无 Copilot 式额外 gutter；样式仅用 workbench token（foreground/background/border/input），无 Copilot 品牌色。中心仍不是 `ChatEditorInput` / `ChatViewPane`，也不走 Copilot setup 或 `IChatModel`。
 
 ## 4. Sessions / Agents Window 宿主（更接近透镜，但不是文档壳）
 

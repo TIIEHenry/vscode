@@ -112,6 +112,10 @@ export class ConversationSessionsView extends ViewPane {
 		this.stubService.createSession();
 	}
 
+	deleteActiveSession(): void {
+		this.stubService.deleteSession(this.stubService.getActiveSessionId());
+	}
+
 	protected override renderBody(container: HTMLElement): void {
 		super.renderBody(container);
 
@@ -217,5 +221,26 @@ registerAction2(class ConversationSessionsNewSessionAction extends ViewAction<Co
 
 	override runInView(_accessor: ServicesAccessor, view: ConversationSessionsView): void {
 		view.createNewSession();
+	}
+});
+
+registerAction2(class ConversationSessionsDeleteSessionAction extends ViewAction<ConversationSessionsView> {
+	constructor() {
+		super({
+			id: 'workbench.action.conversationSessions.deleteSession',
+			viewId: CONVERSATION_SESSIONS_VIEW_ID,
+			title: localize2('conversationSessionsView.deleteSession', "Delete session"),
+			icon: Codicon.trash,
+			menu: {
+				id: MenuId.ViewTitle,
+				group: 'navigation',
+				order: 2,
+				when: ContextKeyExpr.equals('view', CONVERSATION_SESSIONS_VIEW_ID),
+			},
+		});
+	}
+
+	override runInView(_accessor: ServicesAccessor, view: ConversationSessionsView): void {
+		view.deleteActiveSession();
 	}
 });

@@ -11,3 +11,4 @@ export const conversationLensSessionBarHistoryTitle = localize('conversationLens
 export const conversationLensSessionBarNoHistory = localize('conversationLens.noHistory', "No history");
 export const conversationLensSessionBarRenameTitle = localize('conversationLens.renameSessionTitle', "Rename session");
 export const conversationLensSessionBarRenameInputAria = localize('conversationLens.renameSessionInput', "Session title");
+export const conversationLensSessionBarDeleteSession = localize('conversationLens.deleteSession', "Delete session");

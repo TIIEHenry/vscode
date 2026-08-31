@@ -29,7 +29,7 @@ import {
 	conversationLensDockRestoreTimeline,
 	conversationLensInputMaximizedClass,
 } from './conversationLensDockStrings.js';
-import { conversationLensSessionBarHistoryTitle, conversationLensSessionBarNewSession, conversationLensSessionBarNoHistory, conversationLensSessionBarRenameInputAria, conversationLensSessionBarRenameTitle } from './conversationLensSessionBarStrings.js';
+import { conversationLensSessionBarDeleteSession, conversationLensSessionBarHistoryTitle, conversationLensSessionBarNewSession, conversationLensSessionBarNoHistory, conversationLensSessionBarRenameInputAria, conversationLensSessionBarRenameTitle } from './conversationLensSessionBarStrings.js';
 import { ConversationStubTurn } from './conversationStubModel.js';
 import { IConversationStubService } from './conversationStubService.js';
 import { shouldRenderTurnAsMarkdown } from './conversationTurnMarkdown.js';
@@ -47,6 +47,7 @@ export class ConversationLens extends Disposable {
 	private sessionSelectBox!: SelectBox;
 	private sessionSelectContainer!: HTMLElement;
 	private newSessionButton!: Button;
+	private deleteSessionButton!: Button;
 	private historyButton!: Button;
 	private historyContextView: IOpenContextView | undefined;
 	private timelineScroll!: HTMLElement;
@@ -85,10 +86,10 @@ export class ConversationLens extends Disposable {
 
 		this._register(this.stubService.onDidChangeActiveSession(sessionId => this.applyActiveSession(sessionId)));
 		this._register(this.stubService.onDidChangeSession(sessionId => {
+			this.refreshSessionSelectOptions();
 			if (sessionId === this.stubService.getActiveSessionId()) {
 				if (!this.sessionTitleEditing) {
 					this.updateSessionTitle();
-					this.refreshSessionSelectOptions();
 				}
 				this.renderTimeline();
 				this.renderInboxStatus();
@@ -180,6 +181,17 @@ export class ConversationLens extends Disposable {
 		}));
 		this.newSessionButton.icon = Codicon.add;
 		this._register(this.newSessionButton.onDidClick(() => this.createNewSession()));
+
+		const deleteSessionContainer = append(controls, $('.conversation-lens-session-delete'));
+		this.deleteSessionButton = this._register(new Button(deleteSessionContainer, {
+			...defaultButtonStyles,
+			supportIcons: true,
+			small: true,
+			secondary: true,
+			title: conversationLensSessionBarDeleteSession,
+		}));
+		this.deleteSessionButton.icon = Codicon.trash;
+		this._register(this.deleteSessionButton.onDidClick(() => this.deleteActiveSession()));
 
 		const historyContainer = append(controls, $('.conversation-lens-session-history'));
 		this.historyButton = this._register(new Button(historyContainer, {
@@ -332,6 +344,12 @@ export class ConversationLens extends Disposable {
 		const previousId = this.stubService.getActiveSessionId();
 		this.drafts.set(previousId, this.dockTextarea.value);
 		this.stubService.createSession();
+	}
+
+	private deleteActiveSession(): void {
+		const sessionId = this.stubService.getActiveSessionId();
+		this.drafts.delete(sessionId);
+		this.stubService.deleteSession(sessionId);
 	}
 
 	private applyActiveSession(sessionId: string): void {
