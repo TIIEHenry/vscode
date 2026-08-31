@@ -135,7 +135,7 @@ suite('ConversationLens', () => {
 	function mountLens(): { part: ConversationPart; lens: ConversationLens; stubService: ConversationStubService; clipboardService: TestClipboardService; layoutReadingColumn: () => void } {
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		const stubService = store.add(new ConversationStubService());
-		const clipboardService = store.add(new TestClipboardService());
+		const clipboardService = new TestClipboardService();
 		instantiationService.stub(IConversationRosterService, stubService);
 		instantiationService.stub(IClipboardService, clipboardService);
 		const part = store.add(instantiationService.createInstance(ConversationPart));
