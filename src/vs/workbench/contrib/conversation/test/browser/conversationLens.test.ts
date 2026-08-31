@@ -93,7 +93,7 @@ suite('ConversationLens', () => {
 	}
 
 	function getPinnedUserPrompt(slots: IConversationLensSlots): HTMLElement | null {
-		return queryTimeline(slots, '.conversation-timeline-pinned-user');
+		return queryTimeline(slots, '.conversation-timeline-pinned-user') as HTMLElement | null;
 	}
 
 	function getPinnedUserPromptBubble(slots: IConversationLensSlots): HTMLButtonElement | null {

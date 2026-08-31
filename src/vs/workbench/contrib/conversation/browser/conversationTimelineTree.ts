@@ -627,6 +627,9 @@ export class ConversationTimelineTree extends Disposable {
 			return [];
 		}
 		const lastVisible = this.tree.lastVisibleElement;
+		if (!lastVisible) {
+			return [];
+		}
 		const firstIndex = indexOfConversationTimelineFlatItem(this.flatItems, firstVisible);
 		const lastIndex = indexOfConversationTimelineFlatItem(this.flatItems, lastVisible);
 		return rangeVisibleTimelineIndices(firstIndex, lastIndex);
