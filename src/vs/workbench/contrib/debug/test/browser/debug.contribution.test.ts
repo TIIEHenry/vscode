@@ -5,6 +5,7 @@
 
 import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { isISubmenuItem, MenuId, MenuRegistry } from '../../../../../platform/actions/common/actions.js';
 import { Registry } from '../../../../../platform/registry/common/platform.js';
 import type { ContextKeyExpression, ContextKeyValue } from '../../../../../platform/contextkey/common/contextkey.js';
 import { Extensions as ViewExtensions, IViewContainersRegistry, IViewsRegistry, ViewContainerLocation } from '../../../../common/views.js';
@@ -90,6 +91,38 @@ suite('DebugContribution - default window Activity', () => {
 			true,
 			'Agents Window may keep Run and Debug keybinding'
 		);
+	});
+
+	test('Run menubar and editor Run/Debug split button are gated to Agents Window', () => {
+		const runMenubarItem = MenuRegistry.getMenuItems(MenuId.MenubarMainMenu)
+			.filter(isISubmenuItem)
+			.find(item => item.submenu === MenuId.MenubarDebugMenu);
+
+		assert.ok(runMenubarItem, 'Run menubar submenu should remain registered');
+		assert.ok(runMenubarItem.when, 'Run menubar submenu should have a when clause');
+
+		const editorTitleRunItem = MenuRegistry.getMenuItems(MenuId.EditorTitle)
+			.filter(isISubmenuItem)
+			.find(item => item.submenu === MenuId.EditorTitleRun);
+
+		assert.ok(editorTitleRunItem, 'Editor title Run or Debug split button should remain registered');
+		assert.ok(editorTitleRunItem.when, 'Editor title Run or Debug split button should have a when clause');
+
+		const defaultWindow = { [IsSessionsWindowContext.key]: false };
+		const agentsWindow = { [IsSessionsWindowContext.key]: true };
+
+		for (const item of [runMenubarItem, editorTitleRunItem]) {
+			assert.strictEqual(
+				evalWhen(item.when, defaultWindow),
+				false,
+				`${item.submenu?.id ?? 'menu item'} must hide from default Code window`
+			);
+			assert.strictEqual(
+				evalWhen(item.when, agentsWindow),
+				true,
+				`${item.submenu?.id ?? 'menu item'} may show in Agents Window`
+			);
+		}
 	});
 
 	test('Debug Console panel remains available in default window', () => {

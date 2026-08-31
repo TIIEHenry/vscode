@@ -254,7 +254,7 @@ if (isMacintosh) {
 
 // Editor Title Menu's "Run/Debug" dropdown item
 
-MenuRegistry.appendMenuItem(MenuId.EditorTitle, { submenu: MenuId.EditorTitleRun, isSplitButton: { togglePrimaryAction: true }, title: nls.localize2('run', "Run or Debug..."), icon: icons.debugRun, group: 'navigation', order: -1 });
+MenuRegistry.appendMenuItem(MenuId.EditorTitle, { submenu: MenuId.EditorTitleRun, isSplitButton: { togglePrimaryAction: true }, title: nls.localize2('run', "Run or Debug..."), icon: icons.debugRun, group: 'navigation', order: -1, when: IsSessionsWindowContext });
 
 // Debug menu
 
@@ -265,7 +265,7 @@ MenuRegistry.appendMenuItem(MenuId.MenubarMainMenu, {
 		mnemonicTitle: nls.localize({ key: 'mRun', comment: ['&& denotes a mnemonic'] }, "&&Run")
 	},
 	order: 6,
-	when: IsSessionsWindowContext.negate()
+	when: IsSessionsWindowContext
 });
 
 MenuRegistry.appendMenuItem(MenuId.MenubarDebugMenu, {
