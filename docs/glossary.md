@@ -3,7 +3,7 @@ title: "术语表"
 type: concept
 status: accepted
 phase: N/A
-updated: 2026-08-31
+updated: 2026-09-01
 summary: "本仓库核心术语的单一事实源：分层、Parts、Agent UI 宿主、页面接入与文档约定；长规格用链接，不在此复述"
 ---
 
@@ -53,6 +53,8 @@ summary: "本仓库核心术语的单一事实源：分层、Parts、Agent UI �
 | **SettingsEditor2** | vscode Preferences UI（`EDITOR_PART` tab）。B2 推荐作默认窗 Settings 宿主，非正式决策。 | [settings-ua-access](reference/code-oss-b2/settings-ua-access.md) |
 | **ConversationSessionsView** | Navigator 产品会话 roster（Explorer `ViewPane` + `WorkbenchList`）；数据今天是 stub。 | [session-roster-reuse](reference/code-oss-b2/session-roster-reuse.md) |
 | **ConversationLens** | 填进 `CONVERSATION_PART` 三槽的产品面：SessionBar / Timeline / Dock。 | [透镜组装](reference/code-oss-b2/conversation-lens-assembly.md) |
+| **轨迹透镜** | 详细对话列表：强制显示注入/chip/环境/压缩相关；长工具段可过程折（默认展开）。 | [PRD-012](product/requirements.md#prd-012-conversation-轨迹透镜) · [方案](../dev/plans/conversation-trajectory-lens.md) |
+| **过程折** | 连续思考与工具上的显示 overlay（外层摘要 → Thinking → 工具）。对话默认收起，轨迹可复用且默认展开。不是列表身份，也不是 Copilot thinking 设置。 | [PRD-013](product/requirements.md#prd-013-conversation-过程折) · [方案](../dev/plans/conversation-process-fold.md) |
 | **Navigator tab** | Activity 上一段 = Sidebar 一个 `ViewContainer`（Files / Sessions / Projects / Agents / Team）。子页按 vscode 列表/树重设计，不抄 Compose panel。 | [navigator-tabs-access](reference/code-oss-b2/navigator-tabs-access.md) |
 
 上游产品与贡献流程不在本表展开，见 [How to Contribute](https://github.com/microsoft/vscode/wiki/How-to-Contribute) 与 [快速开始](guides/getting-started.md)。

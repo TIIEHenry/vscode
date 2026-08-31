@@ -3,18 +3,21 @@ title: "Development Progress"
 type: progress
 status: active
 phase: M4
-updated: 2026-08-31
-summary: "M4 D4 启动冒烟阻塞于 compile；产品需求层与页面接入/比对方案已落盘"
+updated: 2026-09-01
+summary: "PRD-012/013 轨迹与过程折已签收；三份壳方案已签收；M4 D4 仍阻塞于 compile 产物"
 ---
 
 # Development Progress
 
 ## Current Session
 
-- **产品需求层** [product-requirements-layer.md](../plans/product-requirements-layer.md) **`implemented`**：`docs/product/` 已建立；PRD-001–PRD-011 已落；入口、DOCS-SPEC、文体指南、DOCUMENTATION 已同步；M2 仅回链。未改产品代码，未升 PRD-001–007 为 `implemented`（D4 仍待验证）。严格模式基线：`--strict-frontmatter` 退出 0；`--strict-links` 退出 1（`dev/loop/INDEX.md` 两条既有断链，不修）。
-- **页面接入方案** [page-access-schemes.md](../plans/page-access-schemes.md) **`draft`**：多方架构评审已收口（综合 Grok → 4 视角 Composer → 审查另一 Grok → 执行方 2 轮；`ReadyToImplement: yes` 限切片 1a）。知识层四页已 Opus 5.0；**父综合稿待 Opus 5.0**（本轮未授权贵价，不派）。签收前须另开会话走 [DOCUMENTATION 规则 16](../../docs/DOCUMENTATION.md)。非正式，**不实施**。R1–R4 已闭。
-- **Chat 并排比对** [chat-compare-split.md](../plans/chat-compare-split.md) **`draft`**：[ADR-001](../decisions/001-chat-compare-form.md) 已接受（同 session 多 chat）；方案已经 Opus 5.0。**不实施**。
-- **M5** [m5-ui-shell-hardening.md](../plans/m5-ui-shell-hardening.md) **`proposed`**：默认窗 Chat 路由、roster 导航、关键测试、D4/D5 实测收口。未实施。
+- **visualize 卡** [thinkrail-visualize-port.md](../plans/thinkrail-visualize-port.md) **`draft`**：Grok×2 并行 + 多视角 refine。ThinkRail `visualize`；VS Code Chat 有 mermaid、Conversation 无；选定自研 webview 借扩展 bundle + overlay 全屏（拒 ChatOutputRenderer / Open-in-Editor）。**未签收、未改 `src/`**。
+- **过程折** [conversation-process-fold.md](../plans/conversation-process-fold.md) **`accepted`**：显示 overlay，对话默认收起、轨迹默认展开（P3t）。**P1–P3/P3t ReadyToImplement**；未改 `src/`。
+- **轨迹透镜** [conversation-trajectory-lens.md](../plans/conversation-trajectory-lens.md) **`accepted`**：详细列表 + 强制显示压缩相关项；T3 复用过程折 overlay。**T1–T3 ReadyToImplement**；未改 `src/`。
+- **产品需求层** [product-requirements-layer.md](../plans/product-requirements-layer.md) **`implemented`**：`docs/product/` 已建立；PRD-001–PRD-013 已编号（012/013 为 `accepted`）；入口、DOCS-SPEC、文体指南、DOCUMENTATION 已同步；M2 仅回链。未改产品代码，未升 PRD-001–007 为 `implemented`（D4 仍待验证）。严格模式基线：`--strict-frontmatter` 退出 0；`--strict-links` 退出 1（`dev/loop/INDEX.md` 两条既有断链，不修）。
+- **页面接入方案** [page-access-schemes.md](../plans/page-access-schemes.md) **`accepted`**：并行只读审查后改入 Important（Back 命令链、1a 加载图、pane wait、丢掉 `tocData` `id:chat`、entitlement 三路径、撤回 M5 误拥有 `agentSessionsActions`）。切片 **1a ReadyToImplement**；实施另开会话。知识层四页选定设计仍待 §12。R1–R4 已闭。
+- **Chat 并排比对** [chat-compare-split.md](../plans/chat-compare-split.md) **`accepted`**：[ADR-001](../decisions/001-chat-compare-form.md) 已接受；上限复用目标已钉死（`_pickCompareTargetGroup` 两组不等价）。**未实施**。
+- **M5** [m5-ui-shell-hardening.md](../plans/m5-ui-shell-hardening.md) **`accepted`**：H7 钉死 `platform/agentHost/common` + eslint 去 `vs/sessions/~`；D4 唯一 closer = M5 切片 4 V1–V8。切片 1–3 ReadyToImplement；4–5 等 compile 产物。**未实施**。
 - **M4 方案** [m4-validation-wave.md](../plans/m4-validation-wave.md) **`in_progress`**：切片 4 **D1** — [multi-agent-design-workflow.md](../../docs/guides/multi-agent-design-workflow.md) 已落盘（`loop/C`）；切片 1 D3 compile/分层/域单测（工位 merge）；切片 2 **D4 启动冒烟（工位 A）— 阻塞**：`launch.sh --skip-prelaunch` 失败，缺 `.build/electron/code-oss` / `out/` / `node_modules`；T1–T3 与 M3 目视未做。详见 [deferred-gaps.md](deferred-gaps.md) D4 记录。基线 `agent-ide` `b6d1b265`。
 - **M3 方案** [m3-shell-closeout.md](../plans/m3-shell-closeout.md) **`implemented`**（关仓 `b6d1b265`）。
 - **M2 方案** [m2-product-shell.md](../plans/m2-product-shell.md) **`implemented`**（无引擎产品壳完成线；M3 不阻塞）。
@@ -41,8 +44,8 @@ summary: "M4 D4 启动冒烟阻塞于 compile；产品需求层与页面接入/�
 - M2 透镜 stub 产品面 `7822d430`；Aux hidden `9b34c1b6`。
 - M3 ChatEditor 默认路径 `8ca89e3a`；Navigator stub roster `80b3f76c`；合入 `98522c4b`。
 - Diff footprint @ `b283fe19`。
-- 页面接入：知识层四页 Opus 5.0 已审改；父综合稿 `page-access-schemes.md` draft（MPDR 步骤 5 Approve with changes；**父稿待 Opus**）。
+- 页面接入 / M5 / Chat 并排：三份方案 `accepted`（2026-08-31 签收审查改稿）。
 
 ## Blockers
 
-- **D4**：工位 A 无编译产物，无法隔离 profile 启动 Code OSS；待 D3 compile 后重试 T1–T3 + M3 目视。
+- **D4**：工位 A 无编译产物。M4 切片 2 只做环境探测；D4 closer 是 M5 切片 4 V1–V8。

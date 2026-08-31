@@ -1,17 +1,17 @@
 ---
 title: "Chat 并排比对：fork / 子 agent 落位到侧边"
 type: plan
-status: draft
+status: accepted
 phase: N/A
 updated: 2026-08-31
-summary: "同一会话内两个 chat 并排比对：落位上限策略（2，可放开 N）与既有落位启发式的次序，fork 与子 agent 两个入口收敛；已经 Opus 5.0 审查并改稿"
+summary: "同一会话内两个 chat 并排比对：落位上限策略（2，可放开 N）与既有落位启发式的次序，fork 与子 agent 两个入口收敛；已签收"
 ---
 
 # Chat 并排比对方案
 
 > 需求：[PRD-011](../../docs/product/requirements.md#prd-011-chat-并排比对)。形态决策：[ADR-001](../decisions/001-chat-compare-form.md)（同 session 多 chat；双 session 孪生延后）。
 > 就近 SSOT：`src/vs/sessions/LAYOUT.md`、`src/vs/sessions/SESSIONS.md`、`src/vs/sessions/LAYERS.md`。
-> 本方案已经 Opus 5.0 审查（规则 16），Critical / Important 已当轮改入，见文末审查记录。
+> 本方案已经 Opus 5.0 审查（规则 16），Critical / Important 已当轮改入，见文末审查记录。2026-08-31 签收复查已改入上限复用目标澄清；`status: accepted`。
 
 ## 1. 目标与范围
 
@@ -75,14 +75,25 @@ async openChatInNewGroup(resource: URI, options?: IOpenChatBesideOptions): Promi
 
 ```ts
 /**
- * 到达上限时选择承接比对对象的组。次序与 _reconcile 的既有启发式同向：
- * ① 父 chat 所在组的相邻组（_findAdjacentGroup）② 第一个非 active 组。
- * maxGroups=2 时两者等价；N>2 时以本函数为权威（reconcile 的临时分配已被 detach）。
+ * 到达上限时选择承接比对对象的组。次序：
+ * ① 若有 parentChat：父 chat 所在组的相邻组（_findAdjacentGroup）
+ * ② 否则：第一个非 active 组。
+ * 权威是本函数（reconcile 的临时分配已被 detach）。maxGroups=2 时 ① 与 ② **不等价**（见下表）。
  */
 private _pickCompareTargetGroup(parentResource?: URI): IGroupEntry | undefined
 ```
 
-**两套落位规则的次序（明确约定）**：未带 `maxGroups` 时，一切维持 `_reconcile` 既有启发式与 `openChatInNewGroup` 现行为；带 `maxGroups` 且到达上限时，落位以 `_pickCompareTargetGroup` 为权威，reconcile 的临时分配被 detach 覆盖。将来放开 N 时需要同时审视这两处策略（不是一处）。
+**两组（maxGroups=2）选择表**（勿写成「两者等价」）：
+
+| 前置 | ① `_findAdjacentGroup(parentGroup)` | ② 第一个非 active 组 |
+|------|--------------------------------------|----------------------|
+| parent 在 `_activeGroup` | 邻居 = 非聚焦侧 | 同左 |
+| parent 在另一组（首次 toSide 后 `_setActiveGroup(newGroup)`，HEAD L572） | **聚焦侧**邻居（父组保持可见） | 非聚焦的父组 |
+| 无 `parentChat` | 不适用 | 覆盖 reconcile 的 `_activeGroup` 回落 |
+
+PRD-011 验收 3 的「非聚焦一侧」按 **`_pickCompareTargetGroup` 结果**验收，不是字面「没有 focus 的那一组」。有 parent 且 parent 不在 active 组时，① 会选聚焦邻居，父对话保持可见。
+
+**两套落位规则的次序（明确约定）**：未带 `maxGroups` 时，一切维持 `_reconcile` 既有启发式与 `openChatInNewGroup` 现行为；带 `maxGroups` 且到达上限时，落位以 `_pickCompareTargetGroup` 为权威，reconcile 的临时分配被 detach 覆盖。分支 C 在 `openChat` 之后，用已打开 chat 的 `origin?.parentChat` 作为 `parentResource`（与 `_reconcile` L359 同源）。将来放开 N 时需要同时审视这两处策略（不是一处）。
 
 **边界结论（写明，勿留给实现者猜）**：
 
@@ -143,7 +154,7 @@ S1 与 S2/S3 分 commit；每个实施 commit 满足 DOCUMENTATION 规则 3a/3b�
 `chatGroupsView.test.ts` 新增（fixture 注意：`createChat(id, status, parentChat?)` 固定生成 Tool origin；新用例须**显式控制 `parentChat` 有无**，避免无意命中父组相邻启发式导致断言的是既有行为；覆盖 fork origin 需小改 fixture）：
 
 1. 单组时带 `maxGroups: 2` 打开未分配 chat（无 parentChat）→ 组数变 2，新组 active。
-2. 两组时带 `maxGroups: 2` 打开未分配 chat → 组数仍 2，chat 落 `_pickCompareTargetGroup` 选中组并激活该组，被替换 chat 仍在该组 tabs 中（分别覆盖有 / 无 parentChat 两种选择路径）。
+2. 两组时带 `maxGroups: 2` 打开未分配 chat → 组数仍 2，chat 落 `_pickCompareTargetGroup` 选中组并激活该组，被替换 chat 仍在该组 tabs 中。分别覆盖：(a) parent 在 `_activeGroup`（落邻居 = 非聚焦）；(b) parent 在非 active 组（落 ① = 聚焦邻居）；(c) 无 parent（落 ②）。
 3. 两组时**不带** options 打开未分配 chat → 组数变 3（缺省行为不回归；本方案最重要的一道锁）。
 4. 两组时带 `maxGroups: 2`，目标 chat 已在某组且该组多 tab → **不拆出第三组**，在原组内激活（分支 A2，锁 PRD-011 验收 3）。
 5. 布局往返恢复：两组 + 复用落位后 `setSession(undefined)` → 重新 `setSession` 往返，分配与 active 组恢复（沿用既有 restore 用例基建；注意 `_persistLayout` 在组数 ≤1 时会清除条目，断言须在两组状态下做）。
@@ -162,7 +173,7 @@ S1 与 S2/S3 分 commit；每个实施 commit 满足 DOCUMENTATION 规则 3a/3b�
 | 复用分支产生空组 / 与 `_removeEmptyGroups` 竞态 | 不成立：分支 C 不会让任何组变空（§3.1 边界结论），不触发 `_removeGroups` |
 | 上限常量放 contrib，将来多入口分散 | 常量单点定义；放开 N 时升级为配置项 |
 
-**开放点（不阻塞本方案）**：到达上限且两组都在流式输出时是否提示用户？当前方案静默复用非聚焦侧（与 preview editor 心智一致），如需提示留待实施后按反馈补。
+**开放点（不阻塞本方案）**：到达上限且两组都在流式输出时是否提示用户？当前方案静默复用 `_pickCompareTargetGroup` 选中组（有 parent 时可能是聚焦邻居），如需提示留待实施后按反馈补。
 
 ## 7. 验收对照
 
@@ -170,7 +181,7 @@ S1 与 S2/S3 分 commit；每个实施 commit 满足 DOCUMENTATION 规则 3a/3b�
 |--------------|----------|
 | 1 fork 并排 | S2 |
 | 2 子 agent 并排 | S3（现有 toSide 基础上收敛策略） |
-| 3 上限 2、复用非聚焦侧、被替换对话可回切、不出第三面板 | S1 分支 C + 分支 A2（§5 用例 2、4） |
+| 3 上限 2、复用 `_pickCompareTargetGroup`（非字面「无 focus 的组」）、被替换对话可回切、不出第三面板 | S1 分支 C + 分支 A2（§5 用例 2、4） |
 | 4 focus 联动 | 现有能力，冒烟确认 |
 | 5 布局恢复 | 现有持久化（§5 用例 5）+ 冒烟确认 |
 | 6 手动拖拽不受限 | S1 缺省行为保留（§5 用例 3） |
@@ -185,3 +196,6 @@ S1 与 S2/S3 分 commit；每个实施 commit 满足 DOCUMENTATION 规则 3a/3b�
   - **I3**：补「不新增组≠收敛」语义、手动 3 组混合态、restore pending 时序结论、superseded 重定向风险、空组竞态排除。
   - **I4**：补 [ADR-001](../decisions/001-chat-compare-form.md)。
   - Minor 已吸收：每组为 `AbstractChatView` 而非 `ChatWidget`；`SplitChatGroupRight/Down` 从受影响清单移出；用例 5 改往返恢复断言；fixture origin 注意事项;§3.4 增加不改就近 SSOT 的理由；S2/S3 验证改为手动冒烟。
+- 2026-08-31 签收审查（并行只读 / inherit Grok 4.6；Opus 5.0 因账单未付未派）。HEAD 与上次 C1/C2/I1–I4 无漂移。已当轮改入：
+  - **I1**：删掉「maxGroups=2 时两者等价」；补两组选择表；验收 3 改为复用 `_pickCompareTargetGroup`；分支 C 的 `parentResource` 取自 `origin?.parentChat`；§5 用例 2 分 (a)(b)(c)。
+  - Minor 未改（不阻塞）：`IOpenChatBesideOptions` 建议放在 `ISessionsService` 旁以免循环 import。

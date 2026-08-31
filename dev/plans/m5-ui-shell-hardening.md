@@ -1,10 +1,10 @@
 ---
 title: "M5 UI 壳加固与交付收口"
 type: plan
-status: proposed
+status: accepted
 phase: M5
 updated: 2026-08-31
-summary: "承接 M0–M4：封堵默认窗 ChatEditor/Copilot 旁路、补齐导航与关键测试，并用启动及 EH 实测闭合 UI 壳交付证据"
+summary: "承接 M0–M4：封堵默认窗 ChatEditor/Copilot 旁路、补齐导航与关键测试，并用启动及 EH 实测闭合 UI 壳交付证据；已签收；切片 1–3 ReadyToImplement，切片 4–5 等 D4 产物"
 ---
 
 # M5 UI 壳加固与交付收口
@@ -51,13 +51,13 @@ summary: "承接 M0–M4：封堵默认窗 ChatEditor/Copilot 旁路、补齐导
 | ID | 当前事实 | 风险 | M5 处理 |
 |:---|:---------|:-----|:--------|
 | H1 | `openChatSession(..., Editor)` 仍直接 `openEditor` | 默认窗仍可出现 ChatEditor tab | 在公共路由入口按窗口类型 fail-fast；用户入口在注册层隐藏或转 Conversation |
-| H2 | Chat URI resolver 在默认窗仍注册 `ChatEditorInput` | URI / 扩展可绕过命令门闩 | 默认 Code 窗口不注册 ChatEditor resolver |
+| H2 | Chat URI resolver 在默认窗仍为 **所有** `getContentProviderSchemes()` 注册 `ChatEditorInput`（含 agent-host 与 EH `$registerChatSessionContentProvider`；**不是**只重做 M3 的 `vscodeChatEditor` / `vscodeLocalChatSession` 注销） | URI / 扩展可绕过命令门闩 | 默认 Code 窗口不注册任何 content-provider scheme → `ChatEditorInput`；Agents Window 保留；`ChatDebugEditor` 保留 |
 | H3 | 当前 editor 已是 ChatEditor 时，New Chat Editor 继续放行 | 可连续堆叠 ChatEditor tabs | 默认 Code 窗口无条件转 Conversation，不看 active editor 类型 |
-| H4 | Quick Chat 全局快捷键在默认窗仍有效 | 绕过产品 Conversation，进入 Copilot 浮层 | 默认窗不注册快捷键/菜单入口；Agents Window 保留 |
+| H4 | Quick Chat 全局快捷键在默认窗仍有效（`QuickChatGlobalAction` 无 `IsSessionsWindowContext`；F1 `workbench.action.openQuickChat` 已 gated） | 绕过产品 Conversation，进入 Copilot 浮层 | **保留一个** `QuickChatGlobalAction`；keybinding 与 `ChatTitleBarMenu` 的 `when: IsSessionsWindowContext`（对照 `AskQuickChatAction`）。禁止「默认窗不注册该类」——`registerAction2` 是进程全局，跳过注册会连 Agents Window 一起丢掉 |
 | H5 | roster 打开事件只 `switchSession` | Conversation 隐藏时“选了但没看到” | 切会话后显示并聚焦 `CONVERSATION_PART` |
-| H6 | ChatEditor 测试只调用 helper，Resolver/T1 无直接覆盖 | 绿测不能证明验收 | 改为执行 Action/Resolver/路由；T1–T3 用自动化 + 启动证据双锁 |
-| H7 | `workbench/contrib/chat` 直接 import `vs/sessions/common` | 与分层 SSOT 冲突 | 类型下沉至 `platform` 或 `workbench` 公共层；不得新增例外 |
-| H8 | D4/D5 未实测，进度文件对 D3 状态漂移 | `implemented` 易被误读为已交付 | M5 统一状态语义并以实测证据关门 |
+| H6 | `workbench.action.openChat` / `openInEditor` 测试只调 helper；`chatEditorShellPaths.test.ts` 已跑 `OpenAgentSessionInEditorGroupAction.runWithSessions`（H6 不可写成「全部 ChatEditor 测试只调 helper」） | 绿测不能证明默认窗路由验收 | 用 `ICommandService.executeCommand` 跑已注册命令；T1–T3 用自动化 + 启动证据双锁 |
+| H7 | `agentHostCustomizationService.ts:30` 相对路径 import `sessions/common/agentHostSessionsProvider.js`（`IAgentHostMcpServer`）。`valid-layers-check` **不**查 workbench→sessions（只禁 native types）。真实允许名单是 `eslint.config.js` `src/vs/workbench/contrib/*/~` 含 `vs/sessions/~` | 与分层 SSOT 冲突 | 类型下沉到 **`src/vs/platform/agentHost/common/`**（`platform/agentHost/common/` 已存在；禁止下沉到 `workbench/contrib/chat/common`，否则 `sessions/common` 会 import contrib）。从 eslint workbench/contrib allow-list **删除** `vs/sessions/~`，不新增例外 |
+| H8 | D4/D5 未实测；M4 与 M5 都写 D4 出口 | `implemented` 易被误读；T1–T3 过了会提前关 D4 | **唯一 closer：M5 切片 4** 用 V1–V8 关 D4。M4 切片 2 只做环境探测，**不得**把 D4 标 `closed` |
 
 ## 5. 路由策略
 
@@ -76,9 +76,9 @@ shouldRouteChatEditorToConversation(environmentService): boolean
 | 入口 | 默认 Code 窗口 | Agents Window |
 |------|-----------------|---------------|
 | New/Open Chat，无待发送 payload | 显示并聚焦 Conversation | 保持上游 Chat 行为 |
-| Quick Chat | 不注册默认窗快捷键/菜单入口 | 保留 |
-| Continue-in / Agent Host Editor 等带 payload 路径 | 注册层不可见；低层若仍收到 `Editor` 请求则在副作用前抛出 `BugIndicatingError`，禁止静默丢 payload | 保留 |
-| Chat session URI resolver | 不注册 `ChatEditorInput` resolver | 保留 |
+| Quick Chat | 同一 `QuickChatGlobalAction`；keybinding / `ChatTitleBarMenu` `when: IsSessionsWindowContext` | 保留 |
+| Continue-in / Agent Host Editor 等带 payload 路径 | 注册层不可见；`openChatSession` **第一句**：默认窗 && `position === Editor` → `BugIndicatingError`（在 URI mint、`importConversationStore.set`、`openEditor` 之前）。HEAD 约 1747–1752 先 stash importConversation 再 switch Editor | 保留 |
+| Chat session URI resolver | 默认窗不为 **任何** content-provider scheme 注册 `ChatEditorInput` resolver | 保留（含 EH 动态 scheme） |
 | 工作区 ChatEditor 恢复 | `canSerialize === false` 保持 | 保留上游语义 |
 
 **禁止的实现：**
@@ -104,9 +104,9 @@ shouldRouteChatEditorToConversation(environmentService): boolean
   - 删除“active editor 已是 ChatEditor 则放行”的例外。
   - New Chat Editor 族在默认窗无条件 focus Conversation。
 - `src/vs/workbench/contrib/chat/browser/actions/chatQuickInputActions.ts`
-  - Quick Chat 快捷键和菜单只在 Agents Window 生效。
+  - 保留一个 `QuickChatGlobalAction`；keybinding 与 `ChatTitleBarMenu` 加 `when: IsSessionsWindowContext`。
 - `src/vs/workbench/contrib/chat/browser/chatSessions/chatSessions.contribution.ts`
-  - `ChatSessionPosition.Editor` 在默认窗、任何 session side effect 前 fail-fast。
+  - `openChatSession` **第一句**：默认 Code 窗口 && `position === Editor` → `BugIndicatingError`；不得先 `importConversationStore.set` / mint URI / `openEditor`。
   - 动态 New Session Editor action 只在 Agents Window 可见。
 - `src/vs/workbench/contrib/chat/browser/actions/chatContinueInAction.ts`
   - 默认窗不提供 Editor continuation target。
@@ -119,15 +119,15 @@ shouldRouteChatEditorToConversation(environmentService): boolean
 **测试：**
 
 - 改 `src/vs/workbench/contrib/chat/test/browser/actions/chatOpenConversationPart.test.ts`
-  - 实例化并运行实际 Action；断言 `CONVERSATION_PART` 显示、focus 被调用、`openSession` 未调用。
-  - active editor 预置为 `ChatEditorInput` 后重复运行，结果仍不得打开新 ChatEditor。
+  - 在 `registerChatActions()` 之后用 `ICommandService.executeCommand('workbench.action.openChat')`（或实际命令 id）；断言 `CONVERSATION_PART` 显示、focus 被调用、`openSession` 未调用。
+  - active editor 预置为 `ChatEditorInput` 后重复，结果仍不得打开新 ChatEditor（H3）。
 - 改 `src/vs/workbench/contrib/chat/test/browser/widgetHosts/editor/chatEditorShellPaths.test.ts`
-  - 实际运行 `OpenChatInEditorAction`，不再直接调用 `focusConversationPart` 冒充 action。
+  - **没有**名为 `OpenChatInEditorAction` 的导出类（HEAD：New Chat Editor 是 `registerChatActions()` 内匿名类，约 704；`workbench.action.chat.openInEditor` 是匿名 `GlobalMoveToEditorAction`）。经 `ICommandService.executeCommand` 驱动已注册命令，或调用已导出的 `openChatSession(...)`。禁止为测试导出生产接口。
 - 新增 `src/vs/workbench/contrib/chat/test/browser/chatShellRouting.test.ts`
   - 默认窗与 Agents Window 两套分支。
-  - 带 payload 的默认窗 Editor 请求在 session side effect 前以 `BugIndicatingError` 失败，并断言 session 创建、迁移、发送均未发生。
-  - Resolver 默认窗不注册、Agents Window 注册。
-  - Quick Chat 默认窗无快捷键/菜单可达面。
+  - 带 payload 的默认窗 Editor 请求（`chatSendOptions.prompt` / `importConversation`）在 session side effect 前以 `BugIndicatingError` 失败，spies 显示零 session create/migrate/send。
+  - Resolver：通过 `IEditorResolverService` 按窗口断言注册；`ChatResolverContribution` 不是测试用 façade——要么作为真实 contribution 类导出，要么走公共 register 缝。默认窗不注册任何 content-provider scheme。
+  - Quick Chat：断言 `workbench.action.quickchat.toggle`（`ASK_QUICK_QUESTION_ACTION_ID`）的 keybinding / 菜单 `when`，不是再写一条 F1 测。
 
 **退出条件：**
 
@@ -158,6 +158,13 @@ shouldRouteChatEditorToConversation(environmentService): boolean
 
 **退出条件：** “隐藏 Conversation → 打开 Sessions → 选会话”形成可自动测试、可目视复验的完整路径。
 
+**与页面接入互斥：**
+
+- M5 **不**改 `agentSessionsActions.ts` 的 `when`（page-access 切片 2）也 **不**改其 `runWithSessions`（HEAD 已 guard）。
+- M5 切片 2 拥有 `conversationSessionsView.ts` `onDidOpen` 的 show+focus；page-access 不得回退该行为。
+- M5 **不**把 `IConversationStubService` 改名为 `IConversationRosterService`（page-access B11）。
+- 切片 2 **禁止**从 `contrib/conversation` import `chatShellRouting.ts`。show+focus 经 `IWorkbenchLayoutService` + `IConversationPartService`（对照 `conversationSessionStatus.ts`）。
+
 ### 切片 3 — 分层与回归门禁
 
 **目标：** 清掉与本方案架构承诺直接冲突的依赖，并补关键回归检测。
@@ -165,26 +172,26 @@ shouldRouteChatEditorToConversation(environmentService): boolean
 **修改：**
 
 - `src/vs/workbench/contrib/chat/browser/agentSessions/agentHost/agentHostCustomizationService.ts`
-  - 去掉对 `src/vs/sessions/common/agentHostSessionsProvider.ts` 中 `IAgentHostMcpServer` 的直接 import。
-- 选定的公共类型落点：
-  - 若类型属于 agent host 协议：下沉到 `src/vs/platform/agentHost/common/`。
-  - 若只属于 workbench chat facade：放到 `src/vs/workbench/contrib/chat/common/`。
-  - `src/vs/sessions/` 与 `workbench/contrib/chat` 同时依赖新落点，不互相 import。
+  - 去掉对 `src/vs/sessions/common/agentHostSessionsProvider.ts` 中 `IAgentHostMcpServer` 的直接 import（HEAD 相对路径 `../../../../../../sessions/common/agentHostSessionsProvider.js`）。
+- **钉死落点：** `src/vs/platform/agentHost/common/`（已有 agent-host 协议层）。`IAgentHostMcpServer` 是 agent-host 协议（status / enablement / start/stop），不是 chat facade。**禁止**放到 `workbench/contrib/chat/common/`——`LAYERS.md` 不允许 `sessions/common` import `workbench/contrib`。
+- `src/vs/sessions/` 与 `workbench/contrib/chat` 同时依赖新落点，不互相 import。测试 import `agentHostChatContribution.test.ts:103` 随类型迁移。
+- `eslint.config.js`：从 `src/vs/workbench/contrib/*/~`（约 1851 行）以及其它 workbench 目标的 restrictions **删除** `vs/sessions/~`；不新增例外。
 
 **布局回归：**
 
 - 扩 `src/vs/workbench/services/layout/test/browser/layoutService.test.ts`
-  - 锁定 `Conversation ∨ (Editor ∨ Sources)` 的所有常态组合。
-  - 明确 maximize 是临时例外；退出 maximize 后恢复到合法组合。
-- 不为访问 `Layout` 私有函数而扩大 API。T1 Grid 实例结构固定由切片 4 的启动自动化验证，不在 M5 为此新增生产导出。
+  - HEAD 约 471–563 已锁 `forceShownAgentShellPart` 组合与 maximize 例外。切片 3 = **补洞**，不重写已有测。
+  - maximize **恢复**走 `Layout` 私有路径；不为测试扩大 API。V4（切片 4）才是 restore 运行证据，单测不能替代 V4。
 
 **退出条件：**
 
-- `npm run valid-layers-check` 通过。
-- `workbench` 不再直接 import `vs/sessions`。
-- 常态互斥和 maximize 恢复语义均有证据。
+- `npm run valid-layers-check` 通过（**只**是 native-type 门；**不**作为 H7 关闭证明）。
+- H7 关闭 = eslint `code-import-patterns` 在 workbench 绿，且 `src/vs/workbench/**` 生产文件无 `sessions/common` / `vs/sessions` import。
+- 常态互斥有单测；maximize 恢复语义由切片 4 V4 证明。
 
 ### 切片 4 — D4 启动与恢复验收
+
+**D4 唯一 closer。** [M4](m4-validation-wave.md) 切片 2 只做环境探测（有无 `.build/electron`）；**不得**在 T1–T3 目视后把 D4 标 `closed`。D4 Exit Condition 以本切片 V1–V8 为准，见 [deferred-gaps.md](../progress/deferred-gaps.md)。
 
 **前置：** 切片 1–3 合入集成工位；使用有 `node_modules`、`out`、`.build/electron` 的 merge 工位。
 
@@ -254,7 +261,7 @@ M5 完成时要求本方案相关 warning 为 0；`dev/loop/` 子模块自身断
 | 切片 | 依赖 | 独占文件面 | 可并行性 |
 |------|------|------------|----------|
 | 1 Chat 路由 | 无 | `contrib/chat` actions、sessions、resolver、对应测试 | 不与其他 Chat 路由改动并行 |
-| 2 roster | 无 | `contrib/conversation` Sessions View + 测试 | 可与 1 并行 |
+| 2 roster | 无 | `contrib/conversation` Sessions View + 测试；**不**改 `agentSessionsActions.ts` `when` | 可与 1 并行；page-access 切片 2 只改 `when` |
 | 3 分层/布局 | 先确认 1 的 helper 落点 | agentHost 公共类型、layout test | 类型迁移不与 Agent Host 其他改动并行 |
 | 4 D4 | 1–3 已集成且 compile 绿 | 运行环境 + D4 记录 | 不与会改变 `src/**` 的切片并行验收 |
 | 5 D5/文档 | D4 可启动；D5 可在 D4 后执行 | EH 矩阵、progress、知识层 | 文档单写者 |
@@ -270,7 +277,7 @@ M5 完成时要求本方案相关 warning 为 0；`dev/loop/` 子模块自身断
 - [ ] 默认窗 Quick Chat 快捷键/菜单不可达；Open Conversation 可达。
 - [ ] 带 payload 的 Editor 路径在副作用前失败，不静默丢 prompt。
 - [ ] roster 选择会话会显示并聚焦 Conversation。
-- [ ] `workbench` 无直接 `vs/sessions` import。
+- [ ] `workbench` 生产文件无 `vs/sessions` / `sessions/common` import（eslint `code-import-patterns`，不是 `valid-layers-check`）。
 - [ ] 路由、Action、Resolver、roster、互斥测试通过。
 
 ### 构建与运行
@@ -304,3 +311,16 @@ M5 完成时要求本方案相关 warning 为 0；`dev/loop/` 子模块自身断
 - [Agent UI](../../docs/systems/chat/agent-ui.md)
 - [Parts/Grid](../../docs/systems/workbench/parts-and-grid.md)
 - [Desktop 壳映射](../../docs/reference/code-oss-b2/desktop-shell-mapping.md)
+- [页面接入](page-access-schemes.md)（Settings/Navigator/lens；本方案不改其 `when` / B11 token）
+
+## 11. 审查记录（规则 16）
+
+- 2026-08-31 签收审查。Opus 5.0 因账单未付失败；并行只读 reviewer（inherit / Cursor Grok 4.6）。人类本会话要求审查后签收。父 agent 已对 HEAD 核验。已当轮改入：
+  - **C1**：H7 钉死下沉 `platform/agentHost/common/`；H7 关闭靠 eslint allow-list 删除 `vs/sessions/~`，不靠 `valid-layers-check`。
+  - **C2**：M5 切片 4 为 D4 唯一 closer；M4 不得以 T1–T3 关 D4。
+  - **I1**：测试经 `ICommandService.executeCommand` / 已导出 `openChatSession`；不发明 `OpenChatInEditorAction`。
+  - **I2**：`openChatSession` 第一句 fail-fast，先于 `importConversationStore.set`。
+  - **I3**：H2 = 全部 content-provider scheme，不是重做 M3 两 scheme。
+  - **I4**：与 page-access 文件互斥写明。
+  - **I5**：Quick Chat 保留一个 Action2，用 `when` 而不是不注册。
+  - **I6**：切片 3 布局测补洞；V4 才是 maximize restore 证据。

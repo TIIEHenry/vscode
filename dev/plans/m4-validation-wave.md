@@ -35,7 +35,8 @@ summary: "闭合 M0 遗留 D3–D5：compile-client、分层检查、M0–M3 域
 | M3 | Command Palette 不开 ChatEditor；Sidebar 有 stub Sessions 列表 |
 
 用 `.agents/skills/launch/SKILL.md` 隔离 profile 启动；结果写入 `deferred-gaps.md` D4 与 `status.md`。  
-**禁止**：改产品行为（只验证 + 记 gap）。
+**禁止**：改产品行为（只验证 + 记 gap）。  
+**禁止把 D4 标 closed：** 本切片只做环境探测与 T1–T3 记录。D4 的 closer 是 [M5 切片 4](m5-ui-shell-hardening.md) 的 V1–V8（含路由与 roster 导航）。T1–T3 通过而 M5 未跑 V5–V8 时 D4 保持 `open`。
 
 ## 文件互斥
 
