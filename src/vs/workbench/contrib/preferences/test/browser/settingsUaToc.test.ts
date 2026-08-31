@@ -20,6 +20,7 @@ import {
 	getTocDataForWindow,
 	ITOCEntry,
 	tocData,
+	uaClientLocalGroupEmptyCopy,
 } from '../../browser/settingsLayout.js';
 import { resolveSettingsTree } from '../../browser/settingsTree.js';
 import {
@@ -91,6 +92,14 @@ function mockGroups(keys: string[]): ISettingsGroup[] {
 suite('Settings UA TOC', () => {
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
+	const clientLocalEmptyCopyByGroupId: Record<string, string> = {
+		'ua/display': uaClientLocalGroupEmptyCopy('display'),
+		'ua/chatInput': uaClientLocalGroupEmptyCopy('chat input'),
+		'ua/startup': uaClientLocalGroupEmptyCopy('startup'),
+		'ua/keyboardEnter': uaClientLocalGroupEmptyCopy('keyboard enter'),
+		'ua/notifications': uaClientLocalGroupEmptyCopy('notification'),
+	};
+
 	const expectedUaGroupIds = [
 		'ua/display',
 		'ua/chatInput',
@@ -143,7 +152,9 @@ suite('Settings UA TOC', () => {
 		assert.ok(customizations?.navigationLinks?.length === 1);
 		assert.strictEqual(customizations.navigationLinks![0].commandId, 'workbench.action.openCustomizationsPreferences');
 		const display = findTocEntry(result.tree, 'ua/display');
-		assert.ok(display?.emptyCopy?.includes('not connected'));
+		assert.strictEqual(display?.emptyCopy, clientLocalEmptyCopyByGroupId['ua/display']);
+		assert.ok(!display?.emptyCopy?.includes('not connected'));
+		assert.ok(!display?.emptyCopy?.includes('no engine'));
 	});
 
 	test('SettingsTreeModel maps navigation links to SettingsTreeNavigationLinkElement', () => {
@@ -181,7 +192,17 @@ suite('Settings UA TOC', () => {
 		const model = store.add(instantiationService.createInstance(SettingsTreeModel, { settingsTarget: ConfigurationTarget.USER_LOCAL }, true));
 		model.update(resolved);
 
-		for (const groupId of ['ua/display', 'ua/chatInput', 'ua/startup', 'ua/keyboardEnter', 'ua/notifications', 'ua/permissions', 'ua/clientTools']) {
+		for (const groupId of ['ua/display', 'ua/chatInput', 'ua/startup', 'ua/keyboardEnter', 'ua/notifications']) {
+			const children = collectGroupChildren(model.root, groupId);
+			assert.strictEqual(children.length, 1, `${groupId} must have one empty-copy row`);
+			const emptyCopy = children[0];
+			assert.ok(emptyCopy instanceof SettingsTreeEmptyCopyElement, `${groupId} must use SettingsTreeEmptyCopyElement`);
+			assert.strictEqual(emptyCopy.message, clientLocalEmptyCopyByGroupId[groupId]);
+			assert.ok(!emptyCopy.message.includes('not connected'));
+			assert.ok(!emptyCopy.message.includes('no engine'));
+		}
+
+		for (const groupId of ['ua/permissions', 'ua/clientTools']) {
 			const children = collectGroupChildren(model.root, groupId);
 			assert.strictEqual(children.length, 1, `${groupId} must have one empty-copy row`);
 			const emptyCopy = children[0];

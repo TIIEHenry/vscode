@@ -42,6 +42,10 @@ function uaClientGroupNotConnected(label: string): string {
 	return localize({ key: 'uaClientGroupNotConnected', comment: ['{0} is a Client settings group name such as Display'] }, "{0} is not connected — no engine.", label);
 }
 
+export function uaClientLocalGroupEmptyCopy(scope: string): string {
+	return localize({ key: 'uaClientLocalGroupEmptyCopy', comment: ['{0} is a lowercase client settings scope such as display or chat input'] }, "No {0} settings yet", scope);
+}
+
 export const DEFAULT_COMMONLY_USED_EXCLUDE_KEY_PATTERNS: readonly string[] = [
 	'GitHub.copilot-chat.manageExtension',
 	'chat.agent.maxRequests',
@@ -479,31 +483,31 @@ export const tocData: ITOCEntry<string> = {
 					id: 'ua/display',
 					label: localize('uaDisplay', "Display"),
 					settings: ['ua.client.display.*'],
-					emptyCopy: uaClientGroupNotConnected(localize('uaDisplay', "Display")),
+					emptyCopy: uaClientLocalGroupEmptyCopy(localize('uaDisplayScope', "display")),
 				},
 				{
 					id: 'ua/chatInput',
 					label: localize('uaChatInput', "Chat Input"),
 					settings: ['ua.client.chatInput.*'],
-					emptyCopy: uaClientGroupNotConnected(localize('uaChatInput', "Chat Input")),
+					emptyCopy: uaClientLocalGroupEmptyCopy(localize('uaChatInputScope', "chat input")),
 				},
 				{
 					id: 'ua/startup',
 					label: localize('uaStartup', "Startup"),
 					settings: ['ua.client.startup.*'],
-					emptyCopy: uaClientGroupNotConnected(localize('uaStartup', "Startup")),
+					emptyCopy: uaClientLocalGroupEmptyCopy(localize('uaStartupScope', "startup")),
 				},
 				{
 					id: 'ua/keyboardEnter',
 					label: localize('uaKeyboardEnter', "Keyboard Enter"),
 					settings: ['ua.client.keyboardEnter.*'],
-					emptyCopy: uaClientGroupNotConnected(localize('uaKeyboardEnter', "Keyboard Enter")),
+					emptyCopy: uaClientLocalGroupEmptyCopy(localize('uaKeyboardEnterScope', "keyboard enter")),
 				},
 				{
 					id: 'ua/notifications',
 					label: localize('uaNotifications', "Notifications"),
 					settings: ['ua.client.notifications.*'],
-					emptyCopy: uaClientGroupNotConnected(localize('uaNotifications', "Notifications")),
+					emptyCopy: uaClientLocalGroupEmptyCopy(localize('uaNotificationsScope', "notification")),
 				},
 				{
 					id: 'ua/permissions',
