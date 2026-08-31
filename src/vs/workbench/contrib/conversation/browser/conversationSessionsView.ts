@@ -19,10 +19,11 @@ import { IKeybindingService } from '../../../../platform/keybinding/common/keybi
 import { WorkbenchList } from '../../../../platform/list/browser/listService.js';
 import { IOpenerService } from '../../../../platform/opener/common/opener.js';
 import { IThemeService } from '../../../../platform/theme/common/themeService.js';
+import { IConversationPartService } from '../../../browser/parts/conversation/conversationPart.js';
 import { IViewPaneOptions, ViewAction, ViewPane } from '../../../browser/parts/views/viewPane.js';
 import { IViewDescriptorService } from '../../../common/views.js';
+import { IWorkbenchLayoutService, Parts } from '../../../services/layout/browser/layoutService.js';
 import { ConversationStubSession } from './conversationStubModel.js';
-import { showConversationPart } from './conversationSessionStatus.js';
 import { IConversationStubService } from './conversationStubService.js';
 
 export const CONVERSATION_SESSIONS_VIEW_ID = 'workbench.view.conversationSessions';
@@ -93,6 +94,8 @@ export class ConversationSessionsView extends ViewPane {
 	constructor(
 		options: IViewPaneOptions,
 		@IConversationStubService private readonly stubService: IConversationStubService,
+		@IWorkbenchLayoutService private readonly layoutService: IWorkbenchLayoutService,
+		@IConversationPartService private readonly conversationPartService: IConversationPartService,
 		@IKeybindingService keybindingService: IKeybindingService,
 		@IContextMenuService contextMenuService: IContextMenuService,
 		@IConfigurationService configurationService: IConfigurationService,
@@ -158,15 +161,23 @@ export class ConversationSessionsView extends ViewPane {
 			}
 		)) as WorkbenchList<ConversationStubSession>;
 
-		this._register(this.list.onDidOpen(e => {
-			const session = e.element;
-			if (session) {
-				this.stubService.switchSession(session.id);
-				this.instantiationService.invokeFunction(showConversationPart);
-			}
-		}));
+		this._register(this.list.onDidOpen(e => this.openSessionFromRoster(e.element)));
 
 		return this.list;
+	}
+
+	private openSessionFromRoster(session: ConversationStubSession | undefined): void {
+		if (!session) {
+			return;
+		}
+		if (!this.stubService.getSessions().some(s => s.id === session.id)) {
+			return;
+		}
+		this.stubService.switchSession(session.id);
+		if (!this.layoutService.isVisible(Parts.CONVERSATION_PART)) {
+			this.layoutService.setPartHidden(false, Parts.CONVERSATION_PART);
+		}
+		this.conversationPartService.focus();
 	}
 
 	private refreshList(): void {

@@ -17,6 +17,7 @@ export const conversationLensDockMaximizeInput = localize('conversationLens.dock
 export const conversationLensDockRestoreTimeline = localize('conversationLens.dockRestoreTimeline', "Restore timeline");
 export const conversationLensDockStop = localize('conversationLens.dockStop', "Stop");
 export const conversationLensDockStopNotGenerating = localize('conversationLens.dockStopNotGenerating', "Not generating");
+export const conversationLensDockPlaceholder = localize('conversationLens.dockPlaceholder', "Message");
 
 /** Toggled on ConversationPart slot hosts when Input Maximize is active (Desktop §8.3.11). */
 export const conversationLensInputMaximizedClass = 'conversation-lens-input-maximized';

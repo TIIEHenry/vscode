@@ -20,6 +20,7 @@ import {
 	conversationLensDockNoAttachments,
 	conversationLensDockNoGoal,
 	conversationLensDockNoModel,
+	conversationLensDockPlaceholder,
 	conversationLensDockRestoreTimeline,
 	conversationLensDockStop,
 	conversationLensDockStopNotGenerating,
@@ -125,6 +126,7 @@ suite('ConversationLens', () => {
 		const sendButton = bottomBar.querySelector('.conversation-lens-dock-actions .monaco-button');
 
 		assert.strictEqual(textarea.rows, 1);
+		assert.strictEqual(textarea.placeholder, conversationLensDockPlaceholder);
 		assert.ok(inputRow.contains(textarea));
 		assert.ok(sendButton);
 		assert.ok(bottomBar.contains(sendButton!.parentElement!));
@@ -192,6 +194,17 @@ suite('ConversationLens', () => {
 		assert.ok(sendButton.textContent?.includes('Send'));
 		assert.strictEqual(slots.dock.querySelector('.chat-setup'), null);
 		assert.strictEqual(slots.dock.querySelector('.monaco-button[aria-label*="Sign in"]'), null);
+	});
+
+	test('dock input placeholder is product Message copy, not Ask anything', () => {
+		assert.strictEqual(conversationLensDockPlaceholder, 'Message');
+		assert.ok(!conversationLensDockPlaceholder.toLowerCase().includes('ask anything'));
+		assert.ok(!conversationLensDockPlaceholder.toLowerCase().includes('copilot'));
+
+		const { part } = mountLens();
+		const textarea = part.getSlots()!.dock.querySelector('textarea.conversation-lens-dock-input') as HTMLTextAreaElement;
+		assert.strictEqual(textarea.placeholder, conversationLensDockPlaceholder);
+		assert.strictEqual(textarea.getAttribute('aria-label'), 'Message');
 	});
 
 	test('dock attach control is honest: no file picker or attachment list', () => {
