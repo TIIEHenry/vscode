@@ -16,7 +16,7 @@ import { IModelService } from '../../../../editor/common/services/model.js';
 import { ITextModelService } from '../../../../editor/common/services/resolverService.js';
 import * as nls from '../../../../nls.js';
 import { ConfigurationTarget, IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
-import { Extensions, getDefaultValue, IConfigurationRegistry, OVERRIDE_PROPERTY_REGEX } from '../../../../platform/configuration/common/configurationRegistry.js';
+import { Extensions as ConfigurationExtensions, getDefaultValue, IConfigurationRegistry, OVERRIDE_PROPERTY_REGEX } from '../../../../platform/configuration/common/configurationRegistry.js';
 import { FileOperationError, FileOperationResult } from '../../../../platform/files/common/files.js';
 import { InstantiationType, registerSingleton } from '../../../../platform/instantiation/common/extensions.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
@@ -33,7 +33,7 @@ import { GroupDirection, IEditorGroupsService } from '../../editor/common/editor
 import { ACTIVE_GROUP, IEditorService, MODAL_GROUP, PreferredGroup, SIDE_GROUP } from '../../editor/common/editorService.js';
 import { KeybindingsEditorInput } from './keybindingsEditorInput.js';
 import { DEFAULT_SETTINGS_EDITOR_SETTING, FOLDER_SETTINGS_PATH, IKeybindingsEditorPane, IOpenKeybindingsEditorOptions, IOpenPreferencesOptions, IOpenSettingsOptions, IPreferencesEditorModel, IPreferencesEditorOptions, IPreferencesService, ISetting, ISettingsEditorOptions, ISettingsGroup, SETTINGS_AUTHORITY, USE_SPLIT_JSON_SETTING, validateSettingsEditorOptions } from '../common/preferences.js';
-import { Extensions, IPreferencesEditorPaneRegistry } from './preferencesEditorPaneRegistry.js';
+import { Extensions as PreferencesEditorPaneExtensions, IPreferencesEditorPaneRegistry } from './preferencesEditorPaneRegistry.js';
 import { PreferencesEditorInput, SettingsEditor2Input } from '../common/preferencesEditorInput.js';
 import { defaultKeybindingsContents, DefaultKeybindingsEditorModel, DefaultRawSettingsEditorModel, DefaultSettings, DefaultSettingsEditorModel, Settings2EditorModel, SettingsEditorModel, WorkspaceConfigurationEditorModel } from '../common/preferencesModels.js';
 import { IRemoteAgentService } from '../../remote/common/remoteAgentService.js';
@@ -218,7 +218,7 @@ export class PreferencesService extends Disposable implements IPreferencesServic
 
 	async openPreferences(options?: IOpenPreferencesOptions): Promise<void> {
 		const paneId = options?.paneId;
-		const registry = Registry.as<IPreferencesEditorPaneRegistry>(Extensions.PreferencesEditorPane);
+		const registry = Registry.as<IPreferencesEditorPaneRegistry>(PreferencesEditorPaneExtensions.PreferencesEditorPane);
 
 		if (paneId && !registry.getPreferencesEditorPanes().some(p => p.id === paneId)) {
 			const becameKnown = await this.waitForPreferencesEditorPaneRegistration(registry, paneId);
@@ -289,7 +289,7 @@ export class PreferencesService extends Disposable implements IPreferencesServic
 			let key: string | undefined;
 			if (idMatch) {
 				key = idMatch[1].trim();
-			} else if (Registry.as<IConfigurationRegistry>(Extensions.Configuration).getConfigurationProperties()[query.trim()]) {
+			} else if (Registry.as<IConfigurationRegistry>(ConfigurationExtensions.Configuration).getConfigurationProperties()[query.trim()]) {
 				key = query.trim();
 			}
 			options.query = undefined;
@@ -647,7 +647,7 @@ export class PreferencesService extends Disposable implements IPreferencesServic
 		if (!model) {
 			return null;
 		}
-		const schema = Registry.as<IConfigurationRegistry>(Extensions.Configuration).getConfigurationProperties()[settingKey];
+		const schema = Registry.as<IConfigurationRegistry>(ConfigurationExtensions.Configuration).getConfigurationProperties()[settingKey];
 		const isOverrideProperty = OVERRIDE_PROPERTY_REGEX.test(settingKey);
 		if (!schema && !isOverrideProperty) {
 			return null;

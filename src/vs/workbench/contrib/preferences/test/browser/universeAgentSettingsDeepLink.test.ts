@@ -95,15 +95,13 @@ suite('Open Connection Preferences action', () => {
 		registerUaPreferencesNavigationActions();
 
 		let openPreferencesPaneId: string | undefined;
-		const instantiationService = workbenchInstantiationService({
-			preferencesService: () => ({
-				openPreferences: async (options?: { paneId?: string }) => {
-					openPreferencesPaneId = options?.paneId;
-				},
-				openSettings: async () => undefined,
-			} as IPreferencesService),
-			editorGroupsService: () => new TestEditorGroupsService([]),
-		}, store);
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IPreferencesService, {
+			openPreferences: async (options?: { paneId?: string }) => {
+				openPreferencesPaneId = options?.paneId;
+			},
+			openSettings: async () => undefined,
+		} as IPreferencesService);
 
 		const command = CommandsRegistry.getCommand('workbench.action.openConnectionPreferences');
 		assert.ok(command);

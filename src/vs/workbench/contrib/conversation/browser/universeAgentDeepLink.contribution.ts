@@ -10,7 +10,7 @@ import { IURLHandler, IURLService } from '../../../../platform/url/common/url.js
 import { IEditorGroupsService } from '../../../services/editor/common/editorGroupsService.js';
 import { IPreferencesService } from '../../../services/preferences/common/preferences.js';
 import { UA_CONNECTION_PANE_ID, UA_ENGINE_PANE_ID } from '../common/uaPreferencesPanes.js';
-import { closeAllSettingsEditor2ForService, openUaPaneReplacingClientSettings } from './uaPreferencesNavigation.js';
+import { closeAllSettingsEditor2ForService } from './uaPreferencesNavigation.js';
 
 export const UNIVERSE_AGENT_SCHEME = 'universe-agent';
 

@@ -1274,15 +1274,15 @@ export class SettingEmptyCopyRenderer implements ITreeRenderer<SettingsTreeEmpty
 		const message = DOM.append(container, DOM.$('.settings-empty-copy-message'));
 		message.style.opacity = '0.8';
 
-		return { message };
+		return { message, toDispose: new DisposableStore() };
 	}
 
 	renderElement(element: ITreeNode<SettingsTreeEmptyCopyElement, never>, index: number, templateData: ISettingEmptyCopyTemplate): void {
 		templateData.message.textContent = element.element.message;
 	}
 
-	disposeTemplate(_template: ISettingEmptyCopyTemplate): void {
-		// Static template — nothing to dispose.
+	disposeTemplate(template: ISettingEmptyCopyTemplate): void {
+		template.toDispose.dispose();
 	}
 }
 
