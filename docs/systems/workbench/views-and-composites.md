@@ -110,6 +110,8 @@ Sessions 窗口的 `SESSIONS_PART` 证明「非 Editor 中心 Part」可行，�
 
 **Navigator 产品 roster stub（2026-08-31）**：`workbench.view.navigatorProjects` / `workbench.view.navigatorAgents` / `workbench.view.navigatorTeam`（`contrib/navigator`）同为 Explorer 容器内可切换 `ViewPane`，出厂 honest empty（not wired — no engine），不构造 `ChatEditorInput`，Explorer `isDefault` 不变。
 
+**Navigator Activity 默认标签（2026-08-31）**：Sidebar 出厂默认 composite 仍是 Explorer `VIEW_CONTAINER`（`workbench.view.explorer`，`isDefault: true`）；用户可见容器标题 / Activity tooltip / View 菜单 open command 显示 **Files**（`exploreFiles`），与 Desktop IA Navigator body 对齐。`VIEWLET_ID`、storage、图标、视图实现不变。
+
 ## 6. 相关文档
 
 - [Parts、Grid、显隐](parts-and-grid.md) · [Workbench 概览](overview.md)
