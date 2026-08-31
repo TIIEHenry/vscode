@@ -15,6 +15,7 @@ import {
 	conversationLensDockInboxNoQueue,
 	conversationLensDockNoModel,
 } from '../../browser/conversationLensDockStrings.js';
+import { conversationLensSessionBarNewSession } from '../../browser/conversationLensSessionBarStrings.js';
 import { CONVERSATION_STUB_SEED_SESSIONS } from '../../browser/conversationStubModel.js';
 import { ConversationStubService, IConversationStubService } from '../../browser/conversationStubService.js';
 
@@ -170,6 +171,28 @@ suite('ConversationLens', () => {
 		assert.strictEqual(title.textContent, tour.title);
 		assert.ok(timelineContent.textContent?.includes(tour.turns[0].text));
 		assert.ok(!timelineContent.textContent?.includes(untitled.turns[0].text));
+	});
+
+	test('SessionBar new session button creates an empty stub session', () => {
+		const { part, stubService } = mountLens();
+		const slots = part.getSlots()!;
+		const newButton = slots.sessionBar.querySelector('.conversation-lens-session-new .monaco-button') as HTMLButtonElement;
+		const title = slots.sessionBar.querySelector('.conversation-lens-session-title')!;
+		const timelineContent = slots.timeline.querySelector('.conversation-lens-timeline-content')!;
+		const initialCount = stubService.getSessions().length;
+
+		assert.ok(newButton);
+		assert.strictEqual(newButton.getAttribute('aria-label'), conversationLensSessionBarNewSession);
+		assert.strictEqual(slots.sessionBar.querySelector('.conversation-lens-session-maximize'), null);
+		assert.strictEqual(slots.sessionBar.querySelector('.conversation-lens-session-drawer'), null);
+
+		newButton.click();
+
+		assert.strictEqual(stubService.getSessions().length, initialCount + 1);
+		assert.strictEqual(stubService.getTurns(stubService.getActiveSessionId()).length, 0);
+		assert.ok(title.textContent?.includes('New session'));
+		assert.ok(timelineContent.querySelector('.conversation-lens-timeline-empty'));
+		assert.ok(timelineContent.textContent?.includes('No messages yet'));
 	});
 
 	test('inbox status row is honest: no fake queue list, pending summary in dock', () => {

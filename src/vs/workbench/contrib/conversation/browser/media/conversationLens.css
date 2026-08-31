@@ -66,6 +66,20 @@
 	letter-spacing: 0.04em;
 }
 
+.monaco-workbench .part.conversation .conversation-lens-session-new {
+	flex-shrink: 0;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-session-new .monaco-button {
+	height: 20px;
+	min-width: 20px;
+	padding: 0 4px;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-session-new .monaco-button .codicon {
+	margin: 0;
+}
+
 .monaco-workbench .part.conversation .conversation-lens-session-select {
 	min-width: 120px;
 	max-width: 180px;

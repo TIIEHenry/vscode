@@ -22,6 +22,7 @@ import {
 	conversationLensDockInboxNoQueue,
 	conversationLensDockNoModel,
 } from './conversationLensDockStrings.js';
+import { conversationLensSessionBarNewSession } from './conversationLensSessionBarStrings.js';
 import { ConversationStubTurn } from './conversationStubModel.js';
 import { IConversationStubService } from './conversationStubService.js';
 
@@ -34,6 +35,7 @@ export class ConversationLens extends Disposable {
 	private sessionTitle!: HTMLElement;
 	private sessionSelectBox!: SelectBox;
 	private sessionSelectContainer!: HTMLElement;
+	private newSessionButton!: Button;
 	private timelineScroll!: HTMLElement;
 	private timelineContent!: HTMLElement;
 	private inboxStatus!: HTMLButtonElement;
@@ -94,6 +96,17 @@ export class ConversationLens extends Disposable {
 		this.sessionSelectContainer = append(controls, $('.conversation-lens-session-select'));
 		this.sessionSelectBox = this._register(this.createSessionSelectBox());
 		this.sessionSelectBox.render(this.sessionSelectContainer);
+
+		const newSessionContainer = append(controls, $('.conversation-lens-session-new'));
+		this.newSessionButton = this._register(new Button(newSessionContainer, {
+			...defaultButtonStyles,
+			supportIcons: true,
+			small: true,
+			secondary: true,
+			title: conversationLensSessionBarNewSession,
+		}));
+		this.newSessionButton.icon = Codicon.add;
+		this._register(this.newSessionButton.onDidClick(() => this.createNewSession()));
 
 		this._register(this.sessionSelectBox.onDidSelect(e => {
 			if (this.suppressSessionSelect) {
@@ -189,6 +202,12 @@ export class ConversationLens extends Disposable {
 		this._register(addDisposableListener(this.dockTextarea, 'input', () => {
 			this.drafts.set(this.stubService.getActiveSessionId(), this.dockTextarea.value);
 		}));
+	}
+
+	private createNewSession(): void {
+		const previousId = this.stubService.getActiveSessionId();
+		this.drafts.set(previousId, this.dockTextarea.value);
+		this.stubService.createSession();
 	}
 
 	private applyActiveSession(sessionId: string): void {

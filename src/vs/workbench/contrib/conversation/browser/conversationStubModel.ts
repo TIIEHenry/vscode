@@ -94,6 +94,26 @@ export class ConversationStubModel {
 		}
 	}
 
+	createSession(): string {
+		const id = nextId('session');
+		const title = this.createUniqueNewSessionTitle();
+		this.sessions.push({ id, title, turns: [] });
+		this.activeSessionId = id;
+		return id;
+	}
+
+	private createUniqueNewSessionTitle(): string {
+		const base = localize('conversationLens.sessionNew', "New session");
+		if (!this.sessions.some(s => s.title === base)) {
+			return base;
+		}
+		let n = 2;
+		while (this.sessions.some(s => s.title === `${base} ${n}`)) {
+			n++;
+		}
+		return `${base} ${n}`;
+	}
+
 	getTurns(sessionId: string): readonly ConversationStubTurn[] {
 		return this.sessions.find(s => s.id === sessionId)?.turns ?? [];
 	}
