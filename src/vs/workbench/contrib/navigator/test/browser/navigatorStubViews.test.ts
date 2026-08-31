@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { mock } from '../../../../../base/test/common/mock.js';
+import { Event } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { Registry } from '../../../../../platform/registry/common/platform.js';
 import { Extensions as ViewContainerExtensions, Extensions as ViewExtensions, IViewContainersRegistry, IViewDescriptorService, IViewsRegistry, ViewContainerLocation } from '../../../../common/views.js';
@@ -112,11 +112,31 @@ suite('Navigator stub views', () => {
 
 	test('stub views render honest empty state without ChatEditorInput', () => {
 		const instantiationService = workbenchInstantiationService(undefined, store);
-		instantiationService.stub(IViewDescriptorService, new class extends mock<IViewDescriptorService>() {
-			override getViewLocationById(): ViewContainerLocation {
+		const stubViewContainer = {
+			id: 'navigator-stub-test-container',
+			title: { value: 'Navigator', original: 'Navigator' },
+		};
+		instantiationService.stub(IViewDescriptorService, {
+			onDidChangeLocation: Event.None,
+			getViewLocationById(): ViewContainerLocation {
 				return ViewContainerLocation.Sidebar;
-			}
-		}());
+			},
+			getViewDescriptorById(): null {
+				return null;
+			},
+			getViewContainerByViewId() {
+				return stubViewContainer;
+			},
+			getViewContainerModel() {
+				return {
+					title: stubViewContainer.title.value,
+					onDidChangeContainerInfo: Event.None,
+				};
+			},
+			getDefaultContainerById() {
+				return stubViewContainer;
+			},
+		});
 
 		const cases: Array<{ id: string; ctor: typeof NavigatorProjectsView | typeof NavigatorAgentsView | typeof NavigatorTeamView; label: string }> = [
 			{ id: NAVIGATOR_PROJECTS_VIEW_ID, ctor: NavigatorProjectsView, label: 'Projects' },
