@@ -181,16 +181,19 @@ export class ConversationSessionsView extends ViewPane {
 			}
 		)) as WorkbenchList<ConversationStubSession>;
 
-		this._register(this.list.onDidOpen(e => this.openSessionFromRoster(e.element)));
+		this._register(this.list.onDidOpen(e => this.openSessionFromRoster(e.element, e.browserEvent)));
 
 		return this.list;
 	}
 
-	private openSessionFromRoster(session: ConversationStubSession | undefined): void {
+	private openSessionFromRoster(session: ConversationStubSession | undefined, browserEvent?: UIEvent): void {
 		if (!session) {
 			return;
 		}
 		if (!this.stubService.getSessions().some(s => s.id === session.id)) {
+			return;
+		}
+		if (!browserEvent) {
 			return;
 		}
 		this.stubService.switchSession(session.id);
