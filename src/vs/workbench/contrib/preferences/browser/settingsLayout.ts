@@ -5,6 +5,7 @@
 
 import { isWeb, isWindows } from '../../../../base/common/platform.js';
 import { localize } from '../../../../nls.js';
+import { EXTENSION_UNIFICATION_EXTENSION_IDS } from '../../../../platform/configuration/common/configurationRegistry.js';
 import { ISetting, ISettingsGroup } from '../../../services/preferences/common/preferences.js';
 import { ChatAIDisabledSettingId } from '../../../../platform/chat/common/chatSettings.js';
 import { ADVANCED_SETTING_TAG } from '../common/preferences.js';
@@ -562,4 +563,17 @@ export function getSettingsTocFilter(isSessionsWindow: boolean, showAdvanced: bo
 			keyPatterns: getChatTocKeyPatterns()
 		}
 	};
+}
+
+export function filterExtensionSettingsGroupsForWindow(groups: ISettingsGroup[], isSessionsWindow: boolean): ISettingsGroup[] {
+	if (isSessionsWindow) {
+		return groups;
+	}
+	return groups.filter(group => {
+		const extensionId = group.extensionInfo?.id;
+		if (!extensionId) {
+			return true;
+		}
+		return !EXTENSION_UNIFICATION_EXTENSION_IDS.has(extensionId.toLowerCase());
+	});
 }

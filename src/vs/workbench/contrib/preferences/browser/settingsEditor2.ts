@@ -68,7 +68,7 @@ import './media/settingsEditor2.css';
 import { preferencesAiResultsIcon, preferencesClearInputIcon, preferencesFilterIcon } from './preferencesIcons.js';
 import { SettingsTarget, SettingsTargetsWidget } from './preferencesWidgets.js';
 import { ISettingOverrideClickEvent } from './settingsEditorSettingIndicators.js';
-import { getCommonlyUsedData, DEFAULT_COMMONLY_USED_EXCLUDE_KEY_PATTERNS, getSettingsTocFilter, getTocDataForWindow, ITOCEntry } from './settingsLayout.js';
+import { getCommonlyUsedData, DEFAULT_COMMONLY_USED_EXCLUDE_KEY_PATTERNS, filterExtensionSettingsGroupsForWindow, getSettingsTocFilter, getTocDataForWindow, ITOCEntry } from './settingsLayout.js';
 import { SettingsSearchFilterDropdownMenuActionViewItem } from './settingsSearchMenu.js';
 import { AbstractSettingRenderer, createSettingMatchRegExp, createTocTreeForExtensionSettings, HeightChangeParams, ISettingLinkClickEvent, resolveConfiguredUntrustedSettings, resolveSettingsTree, SettingsTree, SettingTreeRenderers } from './settingsTree.js';
 import { ISettingsEditorViewState, parseQuery, SearchResultIdx, SearchResultModel, SettingsTreeElement, SettingsTreeGroupChild, SettingsTreeGroupElement, SettingsTreeModel, SettingsTreeSettingElement } from './settingsTreeModels.js';
@@ -1627,7 +1627,10 @@ export class SettingsEditor2 extends EditorPane {
 			}
 		}
 
-		resolvedSettingsRoot.children!.push(await createTocTreeForExtensionSettings(this.extensionService, extensionSettingsGroups, filter));
+		const extensionGroupsForToc = filterExtensionSettingsGroupsForWindow(extensionSettingsGroups, isSessionsWindow);
+		if (extensionGroupsForToc.length) {
+			resolvedSettingsRoot.children!.push(await createTocTreeForExtensionSettings(this.extensionService, extensionGroupsForToc, filter));
+		}
 
 		const commonlyUsedExclude = isSessionsWindow ? undefined : DEFAULT_COMMONLY_USED_EXCLUDE_KEY_PATTERNS;
 		resolvedSettingsRoot.children!.unshift(getCommonlyUsedData(groups, commonlyUsedExclude));
