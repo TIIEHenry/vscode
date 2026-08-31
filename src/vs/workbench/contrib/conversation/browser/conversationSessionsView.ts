@@ -3,20 +3,23 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import './media/conversationSessions.css';
 import * as dom from '../../../../base/browser/dom.js';
 import { IListRenderer, IListVirtualDelegate } from '../../../../base/browser/ui/list/list.js';
 import { IListAccessibilityProvider } from '../../../../base/browser/ui/list/listWidget.js';
-import { localize } from '../../../../nls.js';
+import { Codicon } from '../../../../base/common/codicons.js';
+import { localize, localize2 } from '../../../../nls.js';
+import { MenuId, registerAction2 } from '../../../../platform/actions/common/actions.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
-import { IContextKeyService } from '../../../../platform/contextkey/common/contextkey.js';
+import { ContextKeyExpr, IContextKeyService } from '../../../../platform/contextkey/common/contextkey.js';
 import { IContextMenuService } from '../../../../platform/contextview/browser/contextView.js';
 import { IHoverService } from '../../../../platform/hover/browser/hover.js';
-import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
+import { IInstantiationService, ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js';
 import { IKeybindingService } from '../../../../platform/keybinding/common/keybinding.js';
 import { WorkbenchList } from '../../../../platform/list/browser/listService.js';
 import { IOpenerService } from '../../../../platform/opener/common/opener.js';
 import { IThemeService } from '../../../../platform/theme/common/themeService.js';
-import { IViewPaneOptions, ViewPane } from '../../../browser/parts/views/viewPane.js';
+import { IViewPaneOptions, ViewAction, ViewPane } from '../../../browser/parts/views/viewPane.js';
 import { IViewDescriptorService } from '../../../common/views.js';
 import { ConversationStubSession } from './conversationStubModel.js';
 import { IConversationStubService } from './conversationStubService.js';
@@ -45,6 +48,8 @@ class SessionsRenderer implements IListRenderer<ConversationStubSession, ISessio
 
 	readonly templateId = SessionsRenderer.TEMPLATE_ID;
 
+	constructor(private readonly getActiveSessionId: () => string) { }
+
 	renderTemplate(container: HTMLElement): ISessionTemplateData {
 		const label = dom.append(container, $('.conversation-sessions-item-label'));
 		return { container, label };
@@ -52,6 +57,8 @@ class SessionsRenderer implements IListRenderer<ConversationStubSession, ISessio
 
 	renderElement(session: ConversationStubSession, _index: number, templateData: ISessionTemplateData): void {
 		templateData.label.textContent = session.title;
+		const active = session.id === this.getActiveSessionId();
+		templateData.container.classList.toggle('conversation-sessions-item-active', active);
 	}
 
 	disposeTemplate(): void {
@@ -60,12 +67,17 @@ class SessionsRenderer implements IListRenderer<ConversationStubSession, ISessio
 }
 
 class SessionsAccessibilityProvider implements IListAccessibilityProvider<ConversationStubSession> {
+	constructor(private readonly getActiveSessionId: () => string) { }
+
 	getWidgetAriaLabel(): string {
 		return localize('conversationSessionsView.ariaLabel', "Conversation Sessions");
 	}
 
 	getAriaLabel(session: ConversationStubSession): string {
-		return session.title;
+		const active = session.id === this.getActiveSessionId();
+		return active
+			? localize('conversationSessionsView.activeSession', "{0}, active session", session.title)
+			: session.title;
 	}
 }
 
@@ -75,6 +87,7 @@ export class ConversationSessionsView extends ViewPane {
 
 	private list: WorkbenchList<ConversationStubSession> | undefined;
 	private listContainer: HTMLElement | undefined;
+	private emptyMessage: HTMLElement | undefined;
 
 	constructor(
 		options: IViewPaneOptions,
@@ -91,12 +104,22 @@ export class ConversationSessionsView extends ViewPane {
 	) {
 		super(options, keybindingService, contextMenuService, configurationService, contextKeyService, viewDescriptorService, instantiationService, openerService, themeService, hoverService);
 
-		this._register(this.stubService.onDidChangeActiveSession(() => this.updateSelection()));
+		this._register(this.stubService.onDidChangeActiveSession(() => this.updateActiveSession()));
 		this._register(this.stubService.onDidChangeSession(() => this.refreshList()));
+	}
+
+	createNewSession(): void {
+		this.stubService.createSession();
 	}
 
 	protected override renderBody(container: HTMLElement): void {
 		super.renderBody(container);
+
+		this.emptyMessage = dom.append(container, $('.conversation-sessions-empty'));
+		this.emptyMessage.textContent = localize(
+			'conversationSessionsView.empty',
+			"No in-memory sessions — use New session to create a stub conversation.",
+		);
 
 		this.listContainer = dom.append(container, $('.conversation-sessions-list'));
 		this.ensureList();
@@ -113,8 +136,9 @@ export class ConversationSessionsView extends ViewPane {
 			return this.list;
 		}
 
+		const getActiveSessionId = () => this.stubService.getActiveSessionId();
 		const delegate = new SessionsDelegate();
-		const renderer = new SessionsRenderer();
+		const renderer = new SessionsRenderer(getActiveSessionId);
 
 		this.list = this._register(this.instantiationService.createInstance(
 			WorkbenchList,
@@ -124,7 +148,7 @@ export class ConversationSessionsView extends ViewPane {
 			[renderer],
 			{
 				identityProvider: { getId: (session: ConversationStubSession) => session.id },
-				accessibilityProvider: new SessionsAccessibilityProvider(),
+				accessibilityProvider: new SessionsAccessibilityProvider(getActiveSessionId),
 				openOnSingleClick: true,
 			}
 		)) as WorkbenchList<ConversationStubSession>;
@@ -140,17 +164,25 @@ export class ConversationSessionsView extends ViewPane {
 	}
 
 	private refreshList(): void {
-		if (!this.listContainer) {
+		if (!this.listContainer || !this.emptyMessage) {
+			return;
+		}
+
+		const sessions = [...this.stubService.getSessions()];
+		const hasSessions = sessions.length > 0;
+		this.emptyMessage.style.display = hasSessions ? 'none' : 'block';
+		this.listContainer.style.display = hasSessions ? 'block' : 'none';
+
+		if (!hasSessions) {
 			return;
 		}
 
 		const list = this.ensureList();
-		const sessions = [...this.stubService.getSessions()];
 		list.splice(0, list.length, sessions);
-		this.updateSelection();
+		this.updateActiveSession();
 	}
 
-	private updateSelection(): void {
+	private updateActiveSession(): void {
 		if (!this.list) {
 			return;
 		}
@@ -160,6 +192,30 @@ export class ConversationSessionsView extends ViewPane {
 		if (index >= 0) {
 			this.list.setSelection([index]);
 			this.list.reveal(index);
+		} else {
+			this.list.setSelection([]);
 		}
+		this.list.rerender();
 	}
 }
+
+registerAction2(class ConversationSessionsNewSessionAction extends ViewAction<ConversationSessionsView> {
+	constructor() {
+		super({
+			id: 'workbench.action.conversationSessions.newSession',
+			viewId: CONVERSATION_SESSIONS_VIEW_ID,
+			title: localize2('conversationSessionsView.newSession', "New session"),
+			icon: Codicon.add,
+			menu: {
+				id: MenuId.ViewTitle,
+				group: 'navigation',
+				order: 1,
+				when: ContextKeyExpr.equals('view', CONVERSATION_SESSIONS_VIEW_ID),
+			},
+		});
+	}
+
+	override runInView(_accessor: ServicesAccessor, view: ConversationSessionsView): void {
+		view.createNewSession();
+	}
+});
