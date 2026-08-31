@@ -47,6 +47,8 @@ import { IChatStatusItemService, ChatStatusEntry } from './chatStatusItemService
 import { GitHubPaths, IDefaultAccountService } from '../../../../../platform/defaultAccount/common/defaultAccount.js';
 import product from '../../../../../platform/product/common/product.js';
 import { isCompletionsEnabled } from '../../../../../editor/common/services/completionsEnablement.js';
+import { IWorkbenchEnvironmentService } from '../../../../services/environment/common/environmentService.js';
+import { shouldShowCopilotQuotaChrome } from '../../common/copilotQuotaChrome.js';
 
 const defaultChat = product.defaultChatAgent;
 const completionsConfigurationTargets = [
@@ -138,6 +140,7 @@ export class ChatStatusDashboard extends DomWidget {
 		@IStorageService private readonly storageService: IStorageService,
 		@IDefaultAccountService private readonly defaultAccountService: IDefaultAccountService,
 		@INotificationService private readonly notificationService: INotificationService,
+		@IWorkbenchEnvironmentService private readonly environmentService: IWorkbenchEnvironmentService,
 	) {
 		super();
 
@@ -580,6 +583,10 @@ export class ChatStatusDashboard extends DomWidget {
 	}
 
 	private renderSetupSection(): void {
+		if (!shouldShowCopilotQuotaChrome(this.environmentService.isSessionsWindow)) {
+			return;
+		}
+
 		const hasByokModels = this.chatEntitlementService.hasByokModels;
 		const newUser = isNewUser(this.chatEntitlementService) && !hasByokModels;
 		const anonymousUser = this.chatEntitlementService.anonymous;

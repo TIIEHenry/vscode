@@ -94,6 +94,8 @@ platform/chat                   设置与 AI_AGENT 约定
 
 默认 Code 窗口 Command Palette 与编辑器右键亦不列出 Chat setup 命令（`workbench.action.chat.triggerSetup`、`workbench.action.chat.triggerSetupForceSignIn`、`workbench.action.chat.triggerSetupAnonymousWithoutDialog` 等，`f1: false` + `IsSessionsWindowContext` 门闩；Agents Window 保留）。默认 Code 窗口 Agent Host SDK 的 GitHub 登录（`AgentSdkSetupService.signInToGitHub` → `workbench.action.chat.triggerSetup`）亦经 `IsSessionsWindowContext` 门闩跳过（Agents Window 保留）。
 
+默认 Code 窗口不显示 Copilot 额度 / 限速输入通知、匿名限速响应块与 Status Dashboard 的 **Use AI Features** setup 区（`shouldShowCopilotQuotaChrome`；Agents Window 保留）。
+
 ## 相关文档
 
 - [Chat 系统索引](INDEX.md) · [chat 模块索引](../../modules/chat/INDEX.md)

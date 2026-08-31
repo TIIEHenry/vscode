@@ -10,6 +10,7 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/tes
 import { NullLogService } from '../../../../../platform/log/common/log.js';
 import { InMemoryStorageService } from '../../../../../platform/storage/common/storage.js';
 import { IAssignmentFilter, IWorkbenchAssignmentService } from '../../../../services/assignment/common/assignmentService.js';
+import { IWorkbenchEnvironmentService } from '../../../../services/environment/common/environmentService.js';
 import { ChatEntitlement, IChatEntitlementService, IChatSentiment, IQuotaSnapshot, IRateLimitSnapshot } from '../../../../services/chat/common/chatEntitlementService.js';
 import { ChatQuotaNotificationContribution } from '../../browser/chatQuotaNotification.js';
 import { ILanguageModelChatMetadata, ILanguageModelChatMetadataAndIdentifier } from '../../common/languageModels.js';
@@ -231,6 +232,7 @@ suite('ChatQuotaNotificationContribution', () => {
 		entitlementOpts?: Parameters<typeof createMockEntitlementService>[0],
 		modelOpts?: { switchToAutoTreatment?: boolean | Promise<boolean | undefined> },
 		sharedStorageService?: InMemoryStorageService,
+		isSessionsWindow = true,
 	) {
 		const entitlementMock = createMockEntitlementService(entitlementOpts);
 		const notificationMock = createMockNotificationService();
@@ -248,6 +250,7 @@ suite('ChatQuotaNotificationContribution', () => {
 			storageService,
 			assignmentMock.service,
 			new NullLogService(),
+			{ isSessionsWindow } as IWorkbenchEnvironmentService,
 		));
 
 		return { contribution, entitlementMock, notificationMock, storageService, assignmentMock };
@@ -952,6 +955,29 @@ suite('ChatQuotaNotificationContribution', () => {
 				message: 'Credit Limit Reached',
 				visible: true,
 			});
+		});
+	});
+
+	// --- Default window gating (INV-NO-COPILOT) -----------------------------
+
+	suite('default window gating (INV-NO-COPILOT)', () => {
+		test('does not show quota notifications in default Code window', () => {
+			const { notificationMock } = createContribution({
+				quotas: { usageBasedBilling: true, premiumChat: makeQuotaSnapshot(0) },
+			}, undefined, undefined, false);
+
+			assert.strictEqual(notificationMock.getNotification(), undefined);
+		});
+
+		test('does not show rate-limit notifications in default Code window', async () => {
+			const { entitlementMock, notificationMock } = createContribution({
+				quotas: { usageBasedBilling: true, sessionRateLimit: makeRateLimitSnapshot(60) },
+			}, undefined, undefined, false);
+
+			await flushPromises();
+			updateQuotas(entitlementMock, { sessionRateLimit: makeRateLimitSnapshot(25) });
+
+			assert.strictEqual(notificationMock.getNotification(), undefined);
 		});
 	});
 });

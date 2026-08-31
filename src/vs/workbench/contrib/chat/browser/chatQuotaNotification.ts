@@ -10,6 +10,8 @@ import { ILogService } from '../../../../platform/log/common/log.js';
 import { IStorageService, StorageScope, StorageTarget } from '../../../../platform/storage/common/storage.js';
 import { IWorkbenchContribution } from '../../../common/contributions.js';
 import { IWorkbenchAssignmentService } from '../../../services/assignment/common/assignmentService.js';
+import { IWorkbenchEnvironmentService } from '../../../services/environment/common/environmentService.js';
+import { shouldShowCopilotQuotaChrome } from '../common/copilotQuotaChrome.js';
 import { ChatEntitlement, IChatEntitlementService, IQuotaSnapshot, IRateLimitSnapshot } from '../../../services/chat/common/chatEntitlementService.js';
 import { isByokModel } from '../common/chatSelectedModel.js';
 import { isAutoLanguageModel } from '../common/languageModels.js';
@@ -73,6 +75,7 @@ export class ChatQuotaNotificationContribution extends Disposable implements IWo
 		@IStorageService private readonly _storageService: IStorageService,
 		@IWorkbenchAssignmentService private readonly _assignmentService: IWorkbenchAssignmentService,
 		@ILogService private readonly _logService: ILogService,
+		@IWorkbenchEnvironmentService private readonly _environmentService: IWorkbenchEnvironmentService,
 	) {
 		super();
 
@@ -139,6 +142,11 @@ export class ChatQuotaNotificationContribution extends Disposable implements IWo
 	}
 
 	private _update(): void {
+		if (!shouldShowCopilotQuotaChrome(this._environmentService.isSessionsWindow)) {
+			this._hideNotification();
+			return;
+		}
+
 		const entitlement = this._chatEntitlementService.entitlement;
 
 		// Drop the persisted dismissal once quota recovers, so the banner can show again.
