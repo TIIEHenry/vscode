@@ -6,6 +6,7 @@
 import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import type { ContextKeyExpression, ContextKeyValue } from '../../../../../platform/contextkey/common/contextkey.js';
+import { ActivityBarVisibleViewlets } from '../../../../common/activityViewletEnablement.js';
 import { IsSessionsWindowContext } from '../../../../common/contextkeys.js';
 import { remoteHelpPanelWhen } from '../../browser/remote.js';
 
@@ -20,16 +21,31 @@ suite('RemoteContribution - default window Activity', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('Remote Help panel is gated to Agents Window', () => {
+	test('Remote Help panel respects optional Activity setting', () => {
 		assert.ok(remoteHelpPanelWhen, 'Remote Help panel should have a when clause');
 
-		const defaultWindow = { [IsSessionsWindowContext.key]: false };
-		const agentsWindow = { [IsSessionsWindowContext.key]: true };
+		const defaultWindowHidden = {
+			[IsSessionsWindowContext.key]: false,
+			[`config.${ActivityBarVisibleViewlets.remote}`]: false,
+		};
+		const defaultWindowShown = {
+			[IsSessionsWindowContext.key]: false,
+			[`config.${ActivityBarVisibleViewlets.remote}`]: true,
+		};
+		const agentsWindow = {
+			[IsSessionsWindowContext.key]: true,
+			[`config.${ActivityBarVisibleViewlets.remote}`]: false,
+		};
 
 		assert.strictEqual(
-			evalWhen(remoteHelpPanelWhen, defaultWindow),
+			evalWhen(remoteHelpPanelWhen, defaultWindowHidden),
 			false,
-			'default Code window must hide Remote Help from Activity sidebar'
+			'default Code window must hide Remote Help when setting is off'
+		);
+		assert.strictEqual(
+			evalWhen(remoteHelpPanelWhen, defaultWindowShown),
+			true,
+			'default Code window may show Remote Help when setting is on'
 		);
 		assert.strictEqual(
 			evalWhen(remoteHelpPanelWhen, agentsWindow),

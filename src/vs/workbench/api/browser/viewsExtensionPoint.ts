@@ -22,7 +22,7 @@ import { CustomTreeView, TreeViewPane } from '../../browser/parts/views/treeView
 import { ViewPaneContainer } from '../../browser/parts/views/viewPaneContainer.js';
 import { IWorkbenchContribution, WorkbenchPhase, registerWorkbenchContribution2 } from '../../common/contributions.js';
 import { ICustomViewDescriptor, IViewContainersRegistry, IViewDescriptor, IViewsRegistry, ViewContainer, Extensions as ViewContainerExtensions, ViewContainerLocation } from '../../common/views.js';
-import { IsSessionsWindowContext } from '../../common/contextkeys.js';
+import { activityViewletWhen, ActivityBarVisibleViewlets } from '../../common/activityViewletEnablement.js';
 import { VIEWLET_ID as DEBUG } from '../../contrib/debug/common/debug.js';
 import { VIEWLET_ID as EXPLORER } from '../../contrib/files/common/files.js';
 import { VIEWLET_ID as REMOTE } from '../../contrib/remote/browser/remoteExplorer.js';
@@ -38,14 +38,17 @@ export interface IUserFriendlyViewsContainerDescriptor {
 	icon: string;
 }
 
-/** Extension views in Activity-bar containers must not keep hideIfEmpty containers active in the default Code window. */
+/** Extension views in Activity-bar containers respect optional viewlet settings in the default Code window. */
 export function gateActivityExtensionViewWhen(containerId: string, when: ContextKeyExpression | undefined): ContextKeyExpression | undefined {
 	switch (containerId) {
 		case EXPLORER:
+			return when;
 		case SCM:
+			return when ? activityViewletWhen(ActivityBarVisibleViewlets.scm, when) : activityViewletWhen(ActivityBarVisibleViewlets.scm);
 		case DEBUG:
+			return when ? activityViewletWhen(ActivityBarVisibleViewlets.debug, when) : activityViewletWhen(ActivityBarVisibleViewlets.debug);
 		case REMOTE:
-			return when ? ContextKeyExpr.and(IsSessionsWindowContext, when) : IsSessionsWindowContext;
+			return when ? activityViewletWhen(ActivityBarVisibleViewlets.remote, when) : activityViewletWhen(ActivityBarVisibleViewlets.remote);
 		default:
 			return when;
 	}
