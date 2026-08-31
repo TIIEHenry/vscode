@@ -8,11 +8,13 @@ import { Button } from '../../../../base/browser/ui/button/button.js';
 import { SelectBox } from '../../../../base/browser/ui/selectBox/selectBox.js';
 import { KeyCode } from '../../../../base/common/keyCodes.js';
 import { Codicon } from '../../../../base/common/codicons.js';
-import { Disposable, toDisposable } from '../../../../base/common/lifecycle.js';
+import { MarkdownString } from '../../../../base/common/htmlContent.js';
+import { Disposable, DisposableStore, toDisposable } from '../../../../base/common/lifecycle.js';
 import { ThemeIcon } from '../../../../base/common/themables.js';
 import { localize } from '../../../../nls.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { IContextViewService } from '../../../../platform/contextview/browser/contextView.js';
+import { IMarkdownRendererService } from '../../../../platform/markdown/browser/markdownRenderer.js';
 import { defaultButtonStyles, defaultSelectBoxStyles } from '../../../../platform/theme/browser/defaultStyles.js';
 import { hasNativeContextMenu } from '../../../../platform/window/common/window.js';
 import { IConversationLensSlots } from '../../../browser/parts/conversation/conversationPart.js';
@@ -25,6 +27,7 @@ import {
 import { conversationLensSessionBarNewSession } from './conversationLensSessionBarStrings.js';
 import { ConversationStubTurn } from './conversationStubModel.js';
 import { IConversationStubService } from './conversationStubService.js';
+import { shouldRenderTurnAsMarkdown } from './conversationTurnMarkdown.js';
 
 /**
  * Product Conversation lens: SessionBar + stub timeline + local dock, mounted
@@ -44,6 +47,7 @@ export class ConversationLens extends Disposable {
 
 	private readonly drafts = new Map<string, string>();
 	private readonly confirmationSeats = new Map<string, ConversationConfirmationSeat>();
+	private readonly turnBodyDisposables = this._register(new DisposableStore());
 	private suppressSessionSelect = false;
 
 	constructor(
@@ -51,6 +55,7 @@ export class ConversationLens extends Disposable {
 		@IConversationStubService private readonly stubService: IConversationStubService,
 		@IContextViewService private readonly contextViewService: IContextViewService,
 		@IConfigurationService private readonly configurationService: IConfigurationService,
+		@IMarkdownRendererService private readonly markdownRendererService: IMarkdownRendererService,
 	) {
 		super();
 
@@ -250,6 +255,7 @@ export class ConversationLens extends Disposable {
 			seat.dispose();
 		}
 		this.confirmationSeats.clear();
+		this.turnBodyDisposables.clear();
 		clearNode(this.timelineContent);
 
 		const turns = this.stubService.getTurns(this.stubService.getActiveSessionId());
@@ -299,7 +305,15 @@ export class ConversationLens extends Disposable {
 			: localize('conversationLens.turnAgent', "Agent");
 
 		const body = append(el, $('.conversation-lens-turn-body'));
-		body.textContent = turn.text;
+		if (shouldRenderTurnAsMarkdown(turn.kind)) {
+			this.turnBodyDisposables.add(this.markdownRendererService.render(
+				new MarkdownString(turn.text),
+				undefined,
+				body,
+			));
+		} else {
+			body.textContent = turn.text;
+		}
 
 		return el;
 	}

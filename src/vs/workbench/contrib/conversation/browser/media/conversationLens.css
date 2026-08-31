@@ -190,6 +190,18 @@
 	color: var(--vscode-descriptionForeground);
 }
 
+.monaco-workbench .part.conversation .conversation-lens-turn-body.rendered-markdown p {
+	margin: 0;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-turn-body.rendered-markdown p + p {
+	margin-top: 0.5em;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-turn-body.rendered-markdown :is(p, ul, ol):last-child {
+	margin-bottom: 0;
+}
+
 /* Confirmation seat — in-timeline */
 .monaco-workbench .part.conversation .conversation-lens-confirmation-seat {
 	display: flex;

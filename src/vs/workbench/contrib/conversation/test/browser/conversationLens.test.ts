@@ -18,6 +18,7 @@ import {
 import { conversationLensSessionBarNewSession } from '../../browser/conversationLensSessionBarStrings.js';
 import { CONVERSATION_STUB_SEED_SESSIONS } from '../../browser/conversationStubModel.js';
 import { ConversationStubService, IConversationStubService } from '../../browser/conversationStubService.js';
+import { shouldRenderTurnAsMarkdown } from '../../browser/conversationTurnMarkdown.js';
 
 suite('ConversationLens', () => {
 
@@ -145,6 +146,37 @@ suite('ConversationLens', () => {
 		assert.ok(userTurn?.querySelector('.conversation-lens-turn-body'));
 		assert.ok(assistantTurn?.querySelector('.conversation-lens-turn-header')?.textContent?.includes('Agent'));
 		assert.ok(assistantTurn?.querySelector('.conversation-lens-turn-body'));
+		assert.strictEqual(shouldRenderTurnAsMarkdown('assistant'), true);
+		assert.strictEqual(shouldRenderTurnAsMarkdown('user'), false);
+	});
+
+	test('renders assistant turns as markdown, user turns as plain text', () => {
+		const { part, stubService } = mountLens();
+		stubService.switchSession('blank');
+		const markdownEcho = '**bold** stub echo';
+		stubService.appendStubEchoAssistant('blank', markdownEcho);
+
+		const timelineContent = part.getSlots()!.timeline.querySelector('.conversation-lens-timeline-content')!;
+		const assistantBody = timelineContent.querySelector('.conversation-lens-turn[data-kind="assistant"] .conversation-lens-turn-body')!;
+		const userBody = timelineContent.querySelector('.conversation-lens-turn[data-kind="user"] .conversation-lens-turn-body');
+
+		assert.ok(assistantBody.classList.contains('rendered-markdown'));
+		assert.ok(assistantBody.querySelector('strong'));
+		assert.strictEqual(assistantBody.textContent, 'bold stub echo');
+		assert.notStrictEqual(assistantBody.textContent, markdownEcho);
+		assert.strictEqual(userBody, null);
+	});
+
+	test('keeps user turn body as plain text without markdown rendering', () => {
+		const { part, stubService } = mountLens();
+		stubService.switchSession('blank');
+		const userMessage = 'plain **not bold** text';
+		stubService.appendUserTurn('blank', userMessage);
+
+		const userBody = part.getSlots()!.timeline.querySelector('.conversation-lens-turn[data-kind="user"] .conversation-lens-turn-body')!;
+		assert.strictEqual(userBody.textContent, userMessage);
+		assert.strictEqual(userBody.classList.contains('rendered-markdown'), false);
+		assert.strictEqual(userBody.querySelector('strong'), null);
 	});
 
 	test('does not host the lens as ChatEditorInput', () => {
