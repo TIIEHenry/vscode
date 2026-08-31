@@ -24,10 +24,12 @@ import { IThemeService } from '../../../../platform/theme/common/themeService.js
 import { IViewPaneOptions, ViewAction, ViewPane } from '../../../browser/parts/views/viewPane.js';
 import { IViewDescriptorService } from '../../../common/views.js';
 import { IViewsService } from '../../../services/views/common/viewsService.js';
+import { matchesNavigatorAgentsInlineFilter } from '../common/navigatorAgentsInlineFilter.js';
 import {
 	AGENT_INSPECT_VIEW_ID,
 	OPEN_NAVIGATOR_AGENTS_INSPECT_COMMAND_ID,
 } from './agentInspectIds.js';
+import { NavigatorAgentsInlineFilterBox } from './navigatorAgentsInlineFilterBox.js';
 
 const $ = dom.$;
 
@@ -179,15 +181,20 @@ export class NavigatorAgentsView extends ViewPane {
 	private readonly hierarchyContextKey: IContextKey<boolean>;
 	private readonly activityContextKey: IContextKey<boolean>;
 
+	private filterBox: NavigatorAgentsInlineFilterBox | undefined;
+	private filterQuery = '';
+
 	private hierarchyBody: HTMLElement | undefined;
 	private hierarchyEmpty: HTMLElement | undefined;
 	private hierarchyTreeContainer: HTMLElement | undefined;
 	private hierarchyTree: WorkbenchObjectTree<INavigatorAgentsHierarchyNode, void> | undefined;
+	private hierarchyEntries: INavigatorAgentsHierarchyNode[] = [];
 
 	private activityBody: HTMLElement | undefined;
 	private activityEmpty: HTMLElement | undefined;
 	private activityListContainer: HTMLElement | undefined;
 	private activityList: WorkbenchList<INavigatorAgentsActivityItem> | undefined;
+	private activityEntries: INavigatorAgentsActivityItem[] = [];
 
 	constructor(
 		options: IViewPaneOptions,
@@ -234,6 +241,17 @@ export class NavigatorAgentsView extends ViewPane {
 		super.renderBody(container);
 		container.classList.add('navigator-agents-view');
 
+		const filterPlaceholder = localize('navigatorAgentsFilterPlaceholder', "Filter agents");
+		this.filterBox = this._register(new NavigatorAgentsInlineFilterBox(
+			container,
+			filterPlaceholder,
+			filterPlaceholder,
+		));
+		this._register(this.filterBox.onDidChange(query => {
+			this.filterQuery = query;
+			this.applyFilter();
+		}));
+
 		this.hierarchyBody = dom.append(container, $('.navigator-agents-subview'));
 		this.hierarchyEmpty = dom.append(this.hierarchyBody, $('.navigator-stub-empty'));
 		this.hierarchyEmpty.textContent = localize('navigatorAgentsHierarchy.empty', "No agents — no engine.");
@@ -246,15 +264,18 @@ export class NavigatorAgentsView extends ViewPane {
 		this.activityListContainer = dom.append(this.activityBody, $('.navigator-agents-activity-list'));
 		this.ensureActivityList();
 
+		this.setHierarchyEntries([]);
+		this.setActivityEntries([]);
 		this.updateSubviewVisibility();
 	}
 
 	protected override layoutBody(height: number, width: number): void {
 		super.layoutBody(height, width);
+		const contentHeight = height - NavigatorAgentsInlineFilterBox.HEIGHT;
 		if (this.subview === 'hierarchy') {
-			this.hierarchyTree?.layout(height, width);
+			this.hierarchyTree?.layout(contentHeight, width);
 		} else {
-			this.activityList?.layout(height, width);
+			this.activityList?.layout(contentHeight, width);
 		}
 	}
 
@@ -315,19 +336,66 @@ export class NavigatorAgentsView extends ViewPane {
 		this.activityContextKey.set(this.subview === 'activity');
 	}
 
+	private setHierarchyEntries(entries: INavigatorAgentsHierarchyNode[]): void {
+		this.hierarchyEntries = entries;
+		this.applyFilterToHierarchy();
+		this.updateHierarchyDisplay();
+	}
+
+	private setActivityEntries(entries: INavigatorAgentsActivityItem[]): void {
+		this.activityEntries = entries;
+		this.applyFilterToActivity();
+		this.updateActivityDisplay();
+	}
+
+	private applyFilter(): void {
+		this.applyFilterToHierarchy();
+		this.applyFilterToActivity();
+	}
+
+	private applyFilterToHierarchy(): void {
+		const tree = this.hierarchyTree;
+		if (!tree) {
+			return;
+		}
+
+		const filtered = this.hierarchyEntries.filter(entry => matchesNavigatorAgentsInlineFilter(entry.label, this.filterQuery));
+		tree.setChildren(null, filtered.map(element => ({ element })));
+	}
+
+	private applyFilterToActivity(): void {
+		const list = this.activityList;
+		if (!list) {
+			return;
+		}
+
+		const filtered = this.activityEntries.filter(entry => matchesNavigatorAgentsInlineFilter(entry.label, this.filterQuery));
+		list.splice(0, list.length, filtered);
+	}
+
+	private updateHierarchyDisplay(): void {
+		if (!this.hierarchyEmpty || !this.hierarchyTreeContainer) {
+			return;
+		}
+
+		const isEmpty = this.hierarchyEntries.length === 0;
+		this.hierarchyEmpty.style.display = isEmpty ? 'block' : 'none';
+		this.hierarchyTreeContainer.style.display = isEmpty ? 'none' : 'block';
+	}
+
+	private updateActivityDisplay(): void {
+		if (!this.activityEmpty || !this.activityListContainer) {
+			return;
+		}
+
+		const isEmpty = this.activityEntries.length === 0;
+		this.activityEmpty.style.display = isEmpty ? 'block' : 'none';
+		this.activityListContainer.style.display = isEmpty ? 'none' : 'block';
+	}
+
 	private updateSubviewVisibility(): void {
 		this.hierarchyBody?.classList.toggle('active', this.subview === 'hierarchy');
 		this.activityBody?.classList.toggle('active', this.subview === 'activity');
-
-		if (this.hierarchyEmpty && this.hierarchyTreeContainer) {
-			this.hierarchyEmpty.style.display = 'block';
-			this.hierarchyTreeContainer.style.display = 'none';
-		}
-
-		if (this.activityEmpty && this.activityListContainer) {
-			this.activityEmpty.style.display = 'block';
-			this.activityListContainer.style.display = 'none';
-		}
 	}
 }
 

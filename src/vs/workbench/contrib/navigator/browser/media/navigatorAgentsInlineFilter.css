@@ -1,0 +1,71 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+.monaco-workbench .navigator-agents-inline-filter {
+	flex-shrink: 0;
+	display: flex;
+	align-items: center;
+	height: 28px;
+	margin: 0;
+	padding: 0;
+	background: transparent;
+	border: none;
+	box-sizing: border-box;
+}
+
+.monaco-workbench .navigator-agents-inline-filter .navigator-agents-inline-filter-icon {
+	flex-shrink: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 28px;
+	height: 28px;
+	color: var(--vscode-descriptionForeground);
+}
+
+.monaco-workbench .navigator-agents-inline-filter-input {
+	flex: 1;
+	min-width: 0;
+	height: 28px;
+	margin: 0;
+	padding: 0;
+	border: none;
+	outline: none;
+	background: transparent;
+	color: var(--vscode-foreground);
+	font-size: 12px;
+	line-height: 28px;
+}
+
+.monaco-workbench .navigator-agents-inline-filter-input::placeholder {
+	color: var(--vscode-input-placeholderForeground);
+}
+
+.monaco-workbench .navigator-agents-inline-filter-input:focus {
+	outline: none;
+	background: transparent;
+}
+
+.monaco-workbench .navigator-agents-inline-filter-clear {
+	flex-shrink: 0;
+	display: none;
+	align-items: center;
+	justify-content: center;
+	width: 28px;
+	height: 28px;
+	padding: 0;
+	border: none;
+	background: transparent;
+	color: var(--vscode-descriptionForeground);
+	cursor: pointer;
+}
+
+.monaco-workbench .navigator-agents-inline-filter.has-text .navigator-agents-inline-filter-clear {
+	display: flex;
+}
+
+.monaco-workbench .navigator-agents-inline-filter-clear:hover {
+	color: var(--vscode-foreground);
+}

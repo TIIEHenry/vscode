@@ -64,6 +64,26 @@ suite('Navigator Agents subviews', () => {
 		return view;
 	}
 
+	function getFilterInput(view: NavigatorAgentsView): HTMLInputElement | null {
+		return view.element.querySelector('.navigator-agents-inline-filter-input');
+	}
+
+	function setHierarchyEntries(view: NavigatorAgentsView, entries: { id: string; label: string }[]): void {
+		(view as unknown as { setHierarchyEntries: (entries: { id: string; label: string }[]) => void }).setHierarchyEntries(entries);
+	}
+
+	function setActivityEntries(view: NavigatorAgentsView, entries: { id: string; label: string }[]): void {
+		(view as unknown as { setActivityEntries: (entries: { id: string; label: string }[]) => void }).setActivityEntries(entries);
+	}
+
+	async function setFilterQuery(view: NavigatorAgentsView, query: string): Promise<void> {
+		const input = getFilterInput(view);
+		assert.ok(input, 'filter input must exist');
+		input.value = query;
+		input.dispatchEvent(new globalThis.Event('input'));
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+	}
+
 	test('ViewTitle registers Hierarchy, Activity, and Inspect actions for Agents', () => {
 		const viewTitleItems = MenuRegistry.getMenuItems(MenuId.ViewTitle).filter(isIMenuItem);
 		const hierarchyItem = viewTitleItems.find(item => item.command.id === NAVIGATOR_AGENTS_SHOW_HIERARCHY_COMMAND_ID);
@@ -130,5 +150,78 @@ suite('Navigator Agents subviews', () => {
 		const descriptor = viewsRegistry.getView(NAVIGATOR_AGENTS_VIEW_ID);
 		assert.ok(descriptor);
 		assert.strictEqual(descriptor.ctorDescriptor.ctor, NavigatorAgentsView);
+	});
+
+	test('body-top filter sits above subview content with Filter agents placeholder', () => {
+		const view = mountAgentsView();
+
+		const filter = view.element.querySelector('.navigator-agents-inline-filter');
+		assert.ok(filter, 'expected body-top filter chrome');
+
+		const input = getFilterInput(view);
+		assert.ok(input);
+		assert.strictEqual(input?.placeholder, 'Filter agents');
+		assert.strictEqual(input?.getAttribute('aria-label'), 'Filter agents');
+
+		const body = view.element.querySelector('.navigator-agents-view');
+		assert.ok(body);
+		const children = Array.from(body!.children);
+		assert.strictEqual(children[0], filter, 'filter must be first in body');
+		assert.ok(children[1]?.classList.contains('navigator-agents-subview'));
+
+		const clearButton = view.element.querySelector('.navigator-agents-inline-filter-clear') as HTMLElement | null;
+		assert.ok(clearButton);
+		assert.strictEqual(filter?.classList.contains('has-text'), false);
+
+		assert.strictEqual(view.element.querySelector('.navigator-agents-type-filter'), null);
+		assert.strictEqual(view.element.querySelector('.navigator-panel-body-filter-status'), null);
+	});
+
+	test('shared filter query live-filters hierarchy and activity lists', async () => {
+		const view = mountAgentsView();
+
+		setHierarchyEntries(view, [
+			{ id: 'h1', label: 'Alpha Agent' },
+			{ id: 'h2', label: 'Beta Agent' },
+		]);
+		setActivityEntries(view, [
+			{ id: 'a1', label: 'Alpha Tool Run' },
+			{ id: 'a2', label: 'Gamma Tool Run' },
+		]);
+
+		const hierarchyTree = (view as unknown as { hierarchyTree: WorkbenchObjectTree<{ id: string; label: string }, void> }).hierarchyTree;
+		const activityList = (view as unknown as { activityList: WorkbenchList<{ id: string; label: string }> }).activityList;
+
+		assert.strictEqual(hierarchyTree.getNode(null)?.children.length ?? 0, 2);
+		assert.strictEqual(activityList.length, 2);
+
+		await setFilterQuery(view, 'alpha');
+
+		assert.strictEqual(hierarchyTree.getNode(null)?.children.length ?? 0, 1);
+		assert.strictEqual(activityList.length, 1);
+		assert.strictEqual(hierarchyTree.getNode(null)?.children[0]?.element.label, 'Alpha Agent');
+		assert.strictEqual(activityList.element(0)?.label, 'Alpha Tool Run');
+
+		view.showActivity();
+		assert.strictEqual(view.getActiveSubview(), 'activity');
+		assert.strictEqual(getFilterInput(view)?.value, 'alpha');
+		assert.strictEqual(activityList.length, 1);
+
+		const filter = view.element.querySelector('.navigator-agents-inline-filter');
+		const activeSubview = view.element.querySelector('.navigator-agents-subview.active');
+		assert.ok(filter && activeSubview);
+		assert.ok(filter!.compareDocumentPosition(activeSubview!) & Node.DOCUMENT_POSITION_FOLLOWING);
+	});
+
+	test('unfiltered empty keeps honest empty copy and hides list or tree', () => {
+		const view = mountAgentsView();
+
+		const hierarchyEmpty = view.element.querySelector('.navigator-agents-subview.active .navigator-stub-empty') as HTMLElement | null;
+		const hierarchyTree = view.element.querySelector('.navigator-agents-hierarchy-tree') as HTMLElement | null;
+		assert.ok(hierarchyEmpty);
+		assert.ok(hierarchyTree);
+		assert.strictEqual(hierarchyEmpty.style.display, 'block');
+		assert.strictEqual(hierarchyTree.style.display, 'none');
+		assert.strictEqual(hierarchyEmpty.textContent, 'No agents — no engine.');
 	});
 });
