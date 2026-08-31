@@ -17,10 +17,13 @@ import {
 	BACK_TO_CLIENT_SETTINGS_COMMAND_ID,
 	UA_CONNECTION_PANE_ID,
 	UA_CONNECTION_PANE_ORDER,
+	UA_CUSTOMIZATIONS_PANE_ID,
+	UA_CUSTOMIZATIONS_PANE_ORDER,
 	UA_ENGINE_PANE_ID,
 	UA_ENGINE_PANE_ORDER,
 } from '../common/uaPreferencesPanes.js';
 import { ConnectionPreferencesPane } from './connectionPreferencesPane.js';
+import { CustomizationsPreferencesPane } from './customizationsPreferencesPane.js';
 import { EnginePreferencesPane } from './enginePreferencesPane.js';
 
 const preferencesEditorPaneRegistry = Registry.as<IPreferencesEditorPaneRegistry>(Extensions.PreferencesEditorPane);
@@ -41,6 +44,15 @@ preferencesEditorPaneRegistry.registerPreferencesEditorPane({
 	order: UA_ENGINE_PANE_ORDER,
 	showBackToClientSettings: true,
 	ctorDescriptor: new SyncDescriptor(EnginePreferencesPane),
+});
+
+preferencesEditorPaneRegistry.registerPreferencesEditorPane({
+	id: UA_CUSTOMIZATIONS_PANE_ID,
+	title: localize('ua.customizationsPane', "Customizations"),
+	icon: Codicon.settingsGear,
+	order: UA_CUSTOMIZATIONS_PANE_ORDER,
+	showBackToClientSettings: true,
+	ctorDescriptor: new SyncDescriptor(CustomizationsPreferencesPane),
 });
 
 registerAction2(class BackToClientSettingsAction extends Action2 {

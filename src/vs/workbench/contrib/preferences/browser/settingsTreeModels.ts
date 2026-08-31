@@ -61,7 +61,7 @@ export abstract class SettingsTreeElement extends Disposable {
 	}
 }
 
-export type SettingsTreeGroupChild = (SettingsTreeGroupElement | SettingsTreeSettingElement | SettingsTreeNewExtensionsElement | SettingsTreeNavigationLinkElement);
+export type SettingsTreeGroupChild = (SettingsTreeGroupElement | SettingsTreeSettingElement | SettingsTreeNewExtensionsElement | SettingsTreeNavigationLinkElement | SettingsTreeEmptyCopyElement);
 
 export class SettingsTreeGroupElement extends SettingsTreeElement {
 	count?: number;
@@ -112,6 +112,12 @@ export class SettingsTreeNewExtensionsElement extends SettingsTreeElement {
 
 export class SettingsTreeNavigationLinkElement extends SettingsTreeElement {
 	constructor(_id: string, public readonly label: string, public readonly commandId: string) {
+		super(_id);
+	}
+}
+
+export class SettingsTreeEmptyCopyElement extends SettingsTreeElement {
+	constructor(_id: string, public readonly message: string) {
 		super(_id);
 	}
 }
@@ -694,6 +700,10 @@ export class SettingsTreeModel implements IDisposable {
 			for (const link of tocEntry.navigationLinks) {
 				children.push(new SettingsTreeNavigationLinkElement(link.id, link.label, link.commandId));
 			}
+		}
+
+		if (tocEntry.emptyCopy && !children.some(child => child instanceof SettingsTreeSettingElement)) {
+			children.push(new SettingsTreeEmptyCopyElement(`${tocEntry.id}/empty`, tocEntry.emptyCopy));
 		}
 
 		element.children = children;

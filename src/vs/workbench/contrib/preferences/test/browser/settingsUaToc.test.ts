@@ -23,6 +23,7 @@ import {
 } from '../../browser/settingsLayout.js';
 import { resolveSettingsTree } from '../../browser/settingsTree.js';
 import {
+	SettingsTreeEmptyCopyElement,
 	SettingsTreeGroupChild,
 	SettingsTreeGroupElement,
 	SettingsTreeModel,
@@ -124,7 +125,6 @@ suite('Settings UA TOC', () => {
 	test('resolved default window tree keeps navigation-only ua groups', () => {
 		const groups = mockGroups([
 			'editor.fontSize',
-			'ua.client.display.placeholder',
 			'chat.agent.maxRequests',
 		]);
 		const result = resolveSettingsTree(
@@ -139,10 +139,15 @@ suite('Settings UA TOC', () => {
 		assert.ok(connection?.navigationLinks?.length === 1);
 		assert.strictEqual(connection.navigationLinks![0].commandId, 'workbench.action.openConnectionPreferences');
 		assert.ok(!connection.settings?.length);
+		const customizations = findTocEntry(result.tree, 'ua/customizations');
+		assert.ok(customizations?.navigationLinks?.length === 1);
+		assert.strictEqual(customizations.navigationLinks![0].commandId, 'workbench.action.openCustomizationsPreferences');
+		const display = findTocEntry(result.tree, 'ua/display');
+		assert.ok(display?.emptyCopy?.includes('not connected'));
 	});
 
 	test('SettingsTreeModel maps navigation links to SettingsTreeNavigationLinkElement', () => {
-		const groups = mockGroups(['ua.client.display.placeholder']);
+		const groups = mockGroups(['editor.fontSize']);
 		const resolved = resolveSettingsTree(
 			getTocDataForWindow(false),
 			groups,
@@ -160,6 +165,28 @@ suite('Settings UA TOC', () => {
 			const link = children[0];
 			assert.ok(link instanceof SettingsTreeNavigationLinkElement, `${groupId} must use SettingsTreeNavigationLinkElement`);
 			assert.ok(!(link instanceof SettingsTreeNewExtensionsElement));
+		}
+	});
+
+	test('SettingsTreeModel maps empty client groups to SettingsTreeEmptyCopyElement', () => {
+		const groups = mockGroups(['editor.fontSize']);
+		const resolved = resolveSettingsTree(
+			getTocDataForWindow(false),
+			groups,
+			getSettingsTocFilter(false, true),
+			new NullLogService()
+		).tree;
+
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		const model = store.add(instantiationService.createInstance(SettingsTreeModel, { settingsTarget: ConfigurationTarget.USER_LOCAL }, true));
+		model.update(resolved);
+
+		for (const groupId of ['ua/display', 'ua/chatInput', 'ua/startup', 'ua/keyboardEnter', 'ua/notifications', 'ua/permissions', 'ua/clientTools']) {
+			const children = collectGroupChildren(model.root, groupId);
+			assert.strictEqual(children.length, 1, `${groupId} must have one empty-copy row`);
+			const emptyCopy = children[0];
+			assert.ok(emptyCopy instanceof SettingsTreeEmptyCopyElement, `${groupId} must use SettingsTreeEmptyCopyElement`);
+			assert.ok(emptyCopy.message.includes('not connected'));
 		}
 	});
 
@@ -193,5 +220,7 @@ suite('Settings UA TOC', () => {
 		assert.ok(!keys.some(key => key.startsWith('ua.connection.')));
 		assert.ok(!keys.includes('connection.host'));
 		assert.ok(!keys.includes('connection.port'));
+		assert.ok(!keys.includes('ua.client.display.placeholder'));
+		assert.ok(!keys.some(key => key.startsWith('ua.client.')));
 	});
 });

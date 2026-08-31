@@ -34,7 +34,12 @@ export interface ITOCEntry<T> {
 	children?: ITOCEntry<T>[];
 	settings?: Array<T>;
 	navigationLinks?: ITOCNavigationLink[];
+	emptyCopy?: string;
 	hide?: boolean;
+}
+
+function uaClientGroupNotConnected(label: string): string {
+	return localize({ key: 'uaClientGroupNotConnected', comment: ['{0} is a Client settings group name such as Display'] }, "{0} is not connected — no engine.", label);
 }
 
 export const DEFAULT_COMMONLY_USED_EXCLUDE_KEY_PATTERNS: readonly string[] = [
@@ -473,37 +478,44 @@ export const tocData: ITOCEntry<string> = {
 				{
 					id: 'ua/display',
 					label: localize('uaDisplay', "Display"),
-					settings: ['ua.client.display.*']
+					settings: ['ua.client.display.*'],
+					emptyCopy: uaClientGroupNotConnected(localize('uaDisplay', "Display")),
 				},
 				{
 					id: 'ua/chatInput',
 					label: localize('uaChatInput', "Chat Input"),
-					settings: ['ua.client.chatInput.*']
+					settings: ['ua.client.chatInput.*'],
+					emptyCopy: uaClientGroupNotConnected(localize('uaChatInput', "Chat Input")),
 				},
 				{
 					id: 'ua/startup',
 					label: localize('uaStartup', "Startup"),
-					settings: ['ua.client.startup.*']
+					settings: ['ua.client.startup.*'],
+					emptyCopy: uaClientGroupNotConnected(localize('uaStartup', "Startup")),
 				},
 				{
 					id: 'ua/keyboardEnter',
 					label: localize('uaKeyboardEnter', "Keyboard Enter"),
-					settings: ['ua.client.keyboardEnter.*']
+					settings: ['ua.client.keyboardEnter.*'],
+					emptyCopy: uaClientGroupNotConnected(localize('uaKeyboardEnter', "Keyboard Enter")),
 				},
 				{
 					id: 'ua/notifications',
 					label: localize('uaNotifications', "Notifications"),
-					settings: ['ua.client.notifications.*']
+					settings: ['ua.client.notifications.*'],
+					emptyCopy: uaClientGroupNotConnected(localize('uaNotifications', "Notifications")),
 				},
 				{
 					id: 'ua/permissions',
 					label: localize('uaPermissions', "Permissions"),
-					settings: ['ua.client.permissions.*']
+					settings: ['ua.client.permissions.*'],
+					emptyCopy: uaClientGroupNotConnected(localize('uaPermissions', "Permissions")),
 				},
 				{
 					id: 'ua/clientTools',
 					label: localize('uaClientTools', "Client Tools"),
-					settings: ['ua.client.clientTools.*']
+					settings: ['ua.client.clientTools.*'],
+					emptyCopy: uaClientGroupNotConnected(localize('uaClientTools', "Client Tools")),
 				},
 				{
 					id: 'ua/connection',
@@ -529,7 +541,7 @@ export const tocData: ITOCEntry<string> = {
 					navigationLinks: [{
 						id: 'ua/customizations/open',
 						label: localize('uaOpenCustomizations', "Open Customizations…"),
-						commandId: 'aiCustomization.openManagementEditor'
+						commandId: 'workbench.action.openCustomizationsPreferences'
 					}]
 				}
 			]

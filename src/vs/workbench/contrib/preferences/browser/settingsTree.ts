@@ -70,7 +70,7 @@ import { settingsMoreActionIcon } from './preferencesIcons.js';
 import { SettingsTarget } from './preferencesWidgets.js';
 import { ISettingOverrideClickEvent, SettingsTreeIndicatorsLabel, getIndicatorsLabelAriaLabel } from './settingsEditorSettingIndicators.js';
 import { ITOCEntry, ITOCFilter } from './settingsLayout.js';
-import { ISettingsEditorViewState, SettingsTreeElement, SettingsTreeGroupChild, SettingsTreeGroupElement, SettingsTreeNavigationLinkElement, SettingsTreeNewExtensionsElement, SettingsTreeSettingElement, inspectSetting, objectSettingSupportsRemoveDefaultValue, settingKeyToDisplayFormat } from './settingsTreeModels.js';
+import { ISettingsEditorViewState, SettingsTreeElement, SettingsTreeEmptyCopyElement, SettingsTreeGroupChild, SettingsTreeGroupElement, SettingsTreeNavigationLinkElement, SettingsTreeNewExtensionsElement, SettingsTreeSettingElement, inspectSetting, objectSettingSupportsRemoveDefaultValue, settingKeyToDisplayFormat } from './settingsTreeModels.js';
 import { ExcludeSettingWidget, IBoolObjectDataItem, IIncludeExcludeDataItem, IListDataItem, IObjectDataItem, IObjectEnumOption, IObjectKeySuggester, IObjectValueSuggester, IncludeSettingWidget, ListSettingWidget, ObjectSettingCheckboxWidget, ObjectSettingDropdownWidget, ObjectValue, SettingListEvent } from './settingsWidgets.js';
 
 const $ = DOM.$;
@@ -569,7 +569,7 @@ function _resolveSettingsTree(tocData: ITOCEntry<string>, allSettings: Set<ISett
 		children = tocData.children
 			.filter(child => child.hide !== true)
 			.map(child => _resolveSettingsTree(child, allSettings, filter, logService))
-			.filter(child => child.children?.length || child.settings?.length || child.navigationLinks?.length);
+			.filter(child => child.children?.length || child.settings?.length || child.navigationLinks?.length || child.emptyCopy);
 	}
 
 	let settings: ISetting[] | undefined;
@@ -585,8 +585,9 @@ function _resolveSettingsTree(tocData: ITOCEntry<string>, allSettings: Set<ISett
 	}
 
 	const navigationLinks = tocData.navigationLinks;
+	const emptyCopy = tocData.emptyCopy;
 
-	if (!children && !settings && !navigationLinks?.length) {
+	if (!children && !settings && !navigationLinks?.length && !emptyCopy) {
 		throw new Error(`TOC node has no child groups or settings: ${tocData.id}`);
 	}
 
@@ -595,7 +596,8 @@ function _resolveSettingsTree(tocData: ITOCEntry<string>, allSettings: Set<ISett
 		label: tocData.label,
 		children,
 		settings,
-		navigationLinks
+		navigationLinks,
+		emptyCopy
 	};
 }
 
@@ -793,6 +795,10 @@ interface ISettingNavigationLinkTemplate extends IDisposableTemplate {
 	toDispose: DisposableStore;
 }
 
+interface ISettingEmptyCopyTemplate extends IDisposableTemplate {
+	message: HTMLElement;
+}
+
 interface IGroupTitleTemplate extends IDisposableTemplate {
 	context?: SettingsTreeGroupElement;
 	parent: HTMLElement;
@@ -812,6 +818,7 @@ const SETTINGS_COMPLEX_TEMPLATE_ID = 'settings.complex.template';
 const SETTINGS_COMPLEX_OBJECT_TEMPLATE_ID = 'settings.complexObject.template';
 const SETTINGS_NEW_EXTENSIONS_TEMPLATE_ID = 'settings.newExtensions.template';
 const SETTINGS_NAVIGATION_LINK_TEMPLATE_ID = 'settings.navigationLink.template';
+const SETTINGS_EMPTY_COPY_TEMPLATE_ID = 'settings.emptyCopy.template';
 const SETTINGS_ELEMENT_TEMPLATE_ID = 'settings.group.template';
 const SETTINGS_EXTENSION_TOGGLE_TEMPLATE_ID = 'settings.extensionToggle.template';
 
@@ -1255,6 +1262,27 @@ export class SettingNavigationLinkRenderer implements ITreeRenderer<SettingsTree
 
 	disposeTemplate(template: ISettingNavigationLinkTemplate): void {
 		template.toDispose.dispose();
+	}
+}
+
+export class SettingEmptyCopyRenderer implements ITreeRenderer<SettingsTreeEmptyCopyElement, never, ISettingEmptyCopyTemplate> {
+	templateId = SETTINGS_EMPTY_COPY_TEMPLATE_ID;
+
+	renderTemplate(container: HTMLElement): ISettingEmptyCopyTemplate {
+		container.classList.add('setting-item-empty-copy');
+
+		const message = DOM.append(container, DOM.$('.settings-empty-copy-message'));
+		message.style.opacity = '0.8';
+
+		return { message };
+	}
+
+	renderElement(element: ITreeNode<SettingsTreeEmptyCopyElement, never>, index: number, templateData: ISettingEmptyCopyTemplate): void {
+		templateData.message.textContent = element.element.message;
+	}
+
+	disposeTemplate(_template: ISettingEmptyCopyTemplate): void {
+		// Static template — nothing to dispose.
 	}
 }
 
@@ -2340,6 +2368,7 @@ export class SettingTreeRenderers extends Disposable {
 			this._instantiationService.createInstance(SettingGroupRenderer),
 			this._instantiationService.createInstance(SettingNewExtensionsRenderer),
 			this._instantiationService.createInstance(SettingNavigationLinkRenderer),
+			this._instantiationService.createInstance(SettingEmptyCopyRenderer),
 		];
 	}
 
@@ -2547,6 +2576,13 @@ export class SettingsTreeFilter implements ITreeFilter<SettingsTreeElement> {
 			}
 		}
 
+		// Empty copy rows are not searchable
+		if (element instanceof SettingsTreeEmptyCopyElement) {
+			if (this.viewState.tagFilters?.size || this.viewState.categoryFilter) {
+				return false;
+			}
+		}
+
 		return true;
 	}
 
@@ -2596,7 +2632,7 @@ export class SettingsTreeFilter implements ITreeFilter<SettingsTreeElement> {
 
 class SettingsTreeDelegate extends CachedListVirtualDelegate<SettingsTreeGroupChild> {
 
-	getTemplateId(element: SettingsTreeGroupElement | SettingsTreeSettingElement | SettingsTreeNewExtensionsElement | SettingsTreeNavigationLinkElement): string {
+	getTemplateId(element: SettingsTreeGroupElement | SettingsTreeSettingElement | SettingsTreeNewExtensionsElement | SettingsTreeNavigationLinkElement | SettingsTreeEmptyCopyElement): string {
 		if (element instanceof SettingsTreeGroupElement) {
 			return SETTINGS_ELEMENT_TEMPLATE_ID;
 		}
@@ -2673,10 +2709,14 @@ class SettingsTreeDelegate extends CachedListVirtualDelegate<SettingsTreeGroupCh
 			return SETTINGS_NAVIGATION_LINK_TEMPLATE_ID;
 		}
 
+		if (element instanceof SettingsTreeEmptyCopyElement) {
+			return SETTINGS_EMPTY_COPY_TEMPLATE_ID;
+		}
+
 		throw new Error('unknown element type: ' + element);
 	}
 
-	hasDynamicHeight(element: SettingsTreeGroupElement | SettingsTreeSettingElement | SettingsTreeNewExtensionsElement | SettingsTreeNavigationLinkElement): boolean {
+	hasDynamicHeight(element: SettingsTreeGroupElement | SettingsTreeSettingElement | SettingsTreeNewExtensionsElement | SettingsTreeNavigationLinkElement | SettingsTreeEmptyCopyElement): boolean {
 		return !(element instanceof SettingsTreeGroupElement);
 	}
 
@@ -2686,6 +2726,10 @@ class SettingsTreeDelegate extends CachedListVirtualDelegate<SettingsTreeGroupCh
 		}
 
 		if (element instanceof SettingsTreeNavigationLinkElement) {
+			return 78;
+		}
+
+		if (element instanceof SettingsTreeEmptyCopyElement) {
 			return 78;
 		}
 
@@ -2729,6 +2773,8 @@ class SettingsTreeAccessibilityProvider implements IListAccessibilityProvider<Se
 			return ariaLabelSections.join(' ');
 		} else if (element instanceof SettingsTreeGroupElement) {
 			return element.label;
+		} else if (element instanceof SettingsTreeEmptyCopyElement) {
+			return element.message;
 		} else {
 			return element.id;
 		}

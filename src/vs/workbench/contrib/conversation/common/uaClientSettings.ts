@@ -13,12 +13,6 @@ export function registerUaClientSettings(): void {
 		id: 'uaClient',
 		title: localize('uaClientSettingsTitle', "Client"),
 		type: 'object',
-		properties: {
-			'ua.client.display.placeholder': {
-				type: 'boolean',
-				description: localize('uaClientDisplayPlaceholder', "Reserved TOC placeholder for the Display group."),
-				default: false,
-			},
-		}
+		properties: {}
 	});
 }
