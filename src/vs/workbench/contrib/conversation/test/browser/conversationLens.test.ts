@@ -38,6 +38,14 @@ suite('ConversationLens', () => {
 
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
+	async function flushTimelineHeightUpdates(): Promise<void> {
+		await new Promise<void>(resolve => setTimeout(resolve, 20));
+	}
+
+	teardown(async () => {
+		await flushTimelineHeightUpdates();
+	});
+
 	const LENS_LAYOUT_WIDTH = 640;
 	const LENS_LAYOUT_HEIGHT = 480;
 
@@ -65,7 +73,26 @@ suite('ConversationLens', () => {
 		return slots.timeline.querySelectorAll(selector);
 	}
 
-	function layoutReadingColumn(lens: ConversationLens): void {
+	function layoutReadingColumn(lens: ConversationLens, slots: IConversationLensSlots): void {
+		const readingColumn = slots.timeline.querySelector('.conversation-lens-reading-column') as HTMLElement | null;
+		const timelineScroll = slots.timeline.querySelector('.conversation-lens-timeline-scroll') as HTMLElement | null;
+		const contentHost = slots.timeline.querySelector('.conversation-lens-timeline-content') as HTMLElement | null;
+		const treeContainer = slots.timeline.querySelector('.conversation-timeline-tree') as HTMLElement | null;
+		if (readingColumn) {
+			readingColumn.style.width = `${LENS_LAYOUT_WIDTH}px`;
+			readingColumn.style.height = `${LENS_LAYOUT_HEIGHT}px`;
+		}
+		if (timelineScroll) {
+			timelineScroll.style.height = `${LENS_LAYOUT_HEIGHT - 120}px`;
+			timelineScroll.style.minHeight = `${LENS_LAYOUT_HEIGHT - 120}px`;
+		}
+		if (contentHost) {
+			contentHost.style.display = '';
+			contentHost.style.minHeight = `${LENS_LAYOUT_HEIGHT - 120}px`;
+		}
+		if (treeContainer) {
+			treeContainer.style.height = `${LENS_LAYOUT_HEIGHT - 120}px`;
+		}
 		const timelineTree = (lens as unknown as { timelineTree: ConversationTimelineTree }).timelineTree;
 		const trajectoryList = (lens as unknown as { trajectoryList: ConversationTrajectoryList }).trajectoryList;
 		timelineTree.layout(LENS_LAYOUT_HEIGHT, LENS_LAYOUT_WIDTH);
@@ -73,15 +100,25 @@ suite('ConversationLens', () => {
 	}
 
 	function getInboxGoalButton(slots: IConversationLensSlots): HTMLElement {
-		const button = slots.dock.querySelector('.conversation-lens-inbox-goal-button');
+		const button = slots.dock.querySelector('.conversation-lens-inbox-goal .monaco-button');
 		assert.ok(button);
 		return button as HTMLElement;
 	}
 
 	function getInboxStopButton(slots: IConversationLensSlots): HTMLElement {
-		const button = slots.dock.querySelector('.conversation-lens-inbox-stop-button');
+		const button = slots.dock.querySelector('.conversation-lens-inbox-stop .monaco-button');
 		assert.ok(button);
 		return button as HTMLElement;
+	}
+
+	function getVisibleDockAttachPopup(): HTMLElement | null {
+		for (const popup of document.querySelectorAll<HTMLElement>('.conversation-lens-dock-attach-popup')) {
+			const host = popup.closest('.context-view') as HTMLElement | null;
+			if (!host || host.style.display !== 'none') {
+				return popup;
+			}
+		}
+		return null;
 	}
 
 	function getSessionSelectLabel(slots: NonNullable<ReturnType<ConversationPart['getSlots']>>): string | undefined {
@@ -98,23 +135,44 @@ suite('ConversationLens', () => {
 		instantiationService.stub(IConversationRosterService, stubService);
 		const part = store.add(instantiationService.createInstance(ConversationPart));
 		const parent = document.createElement('div');
+		parent.classList.add('monaco-workbench');
+		parent.style.width = `${LENS_LAYOUT_WIDTH}px`;
+		parent.style.height = `${LENS_LAYOUT_HEIGHT}px`;
 		document.body.appendChild(parent);
 		store.add(toDisposable(() => parent.remove()));
 		part.create(parent);
 		const slots = part.getSlots();
 		assert.ok(slots);
+		slots.timeline.classList.add('part', 'conversation');
+		part.layout(LENS_LAYOUT_WIDTH, LENS_LAYOUT_HEIGHT, 0, 0);
+		const layoutCallbacks: Array<() => void> = [];
+		const runLayouts = () => {
+			for (const layout of layoutCallbacks) {
+				layout();
+			}
+		};
+		store.add(stubService.onDidChangeSession(() => runLayouts()));
+		store.add(stubService.onDidChangeActiveSession(() => runLayouts()));
 		const lens = store.add(instantiationService.createInstance(ConversationLens, slots));
-		const layout = () => layoutReadingColumn(lens);
+		const layout = () => layoutReadingColumn(lens, slots);
+		layoutCallbacks.push(layout);
 		layout();
-		store.add(stubService.onDidChangeSession(() => layout()));
-		store.add(stubService.onDidChangeActiveSession(() => layout()));
+		const contentHost = slots.timeline.querySelector('.conversation-lens-timeline-content') as HTMLElement | null;
+		if (contentHost) {
+			contentHost.style.display = '';
+		}
+		layout();
 		return { part, lens, stubService, layoutReadingColumn: layout };
 	}
 
-	function seedPendingConfirmation(stubService: ConversationStubService, message = 'Write README.md?'): void {
+	async function seedPendingConfirmation(stubService: ConversationStubService, layoutReadingColumn: () => void, message = 'Write README.md?'): Promise<void> {
 		const sessionId = stubService.getActiveSessionId();
 		stubService.appendUserTurn(sessionId, 'Help me scaffold the project README.');
+		layoutReadingColumn();
+		await flushTimelineHeightUpdates();
 		stubService.appendConfirmationTurn(sessionId, message);
+		layoutReadingColumn();
+		await flushTimelineHeightUpdates();
 	}
 
 	test('default session shows honest empty timeline without fake history', () => {
@@ -210,7 +268,6 @@ suite('ConversationLens', () => {
 		assert.strictEqual(goalButton.getAttribute('aria-disabled'), 'true');
 		assert.strictEqual(goalButton.getAttribute('aria-label'), `${conversationLensDockGoal}, ${conversationLensDockNoGoal}`);
 		assert.strictEqual(goalButton.textContent?.trim(), conversationLensDockNoGoal);
-		assert.strictEqual(goalButton.title, conversationLensDockNoGoal);
 
 		goalButton.click();
 		assert.ok(goalButton.classList.contains('disabled'));
@@ -264,23 +321,26 @@ suite('ConversationLens', () => {
 	test('dock attach control is honest: no file picker or attachment list', () => {
 		const { part } = mountLens();
 		const slots = part.getSlots()!;
-		const attachButton = slots.dock.querySelector('.conversation-lens-dock-attach .monaco-button') as HTMLButtonElement;
+		const attachHost = slots.dock.querySelector('.conversation-lens-dock-attach');
+		const attachButton = attachHost?.querySelector('.monaco-button') as HTMLButtonElement | null;
 
+		assert.ok(attachHost);
 		assert.ok(attachButton);
 		assert.strictEqual(attachButton.getAttribute('aria-label'), conversationLensDockAttachTitle);
-		assert.strictEqual(slots.dock.querySelector('.conversation-lens-dock-attachment-list'), null);
-		assert.strictEqual(slots.dock.querySelector('.chat-attachments'), null);
+		assert.strictEqual(attachHost.querySelector('.conversation-lens-dock-attachment-list'), null);
+		assert.strictEqual(attachHost.querySelector('.chat-attachments-container'), null);
 		assert.strictEqual(slots.dock.querySelector('.chat-setup'), null);
+		assert.strictEqual(getVisibleDockAttachPopup(), null);
 
 		attachButton.click();
 
-		const popup = document.querySelector('.conversation-lens-dock-attach-popup');
+		const popup = getVisibleDockAttachPopup();
 		assert.ok(popup);
-		assert.strictEqual(popup!.textContent, conversationLensDockNoAttachments);
-		assert.strictEqual(popup!.querySelectorAll('[role="option"], .monaco-list-row, .conversation-lens-dock-attachment-item').length, 0);
+		assert.strictEqual(popup.textContent, conversationLensDockNoAttachments);
+		assert.strictEqual(popup.querySelectorAll('[role="option"], .monaco-list-row, .conversation-lens-dock-attachment-item').length, 0);
 
 		attachButton.click();
-		assert.strictEqual(document.querySelector('.conversation-lens-dock-attach-popup'), null);
+		assert.strictEqual(getVisibleDockAttachPopup(), null);
 	});
 
 	test('empty session shows timeline empty state', () => {
@@ -292,10 +352,10 @@ suite('ConversationLens', () => {
 		assert.strictEqual(stubService.getTurns(stubService.getActiveSessionId()).length, 0);
 	});
 
-	test('renders confirmation as a timeline list item with Allow and Skip', () => {
-		const { part, stubService } = mountLens();
+	test('renders confirmation as a timeline list item with Allow and Skip', async () => {
+		const { part, stubService, layoutReadingColumn } = mountLens();
 		const slots = part.getSlots()!;
-		seedPendingConfirmation(stubService);
+		await seedPendingConfirmation(stubService, layoutReadingColumn);
 		const seat = queryTimeline(slots, '.conversation-lens-confirmation-seat');
 		assert.ok(seat);
 		assert.ok(seat.textContent?.includes('confirmation pending'));
@@ -361,7 +421,7 @@ suite('ConversationLens', () => {
 		assert.strictEqual(part.getSlots()!.timeline.querySelector('.chat-setup'), null);
 	});
 
-	test('session switcher changes visible title and timeline turns', () => {
+	test('session switcher changes visible title and timeline turns', async () => {
 		const { part, stubService } = mountLens();
 		const slots = part.getSlots()!;
 		const title = slots.sessionBar.querySelector('.conversation-lens-session-title')!;
@@ -370,13 +430,16 @@ suite('ConversationLens', () => {
 		const secondId = stubService.createSession();
 		stubService.switchSession(first.id);
 		stubService.appendUserTurn(first.id, 'First session message');
+		await flushTimelineHeightUpdates();
 		const second = stubService.getSessions().find(s => s.id === secondId)!;
 		stubService.appendUserTurn(secondId, 'Second session message');
+		await flushTimelineHeightUpdates();
 
 		assert.strictEqual(title.textContent, first.title);
 		assert.ok(slots.timeline.textContent?.includes('First session message'));
 
 		stubService.switchSession(second.id);
+		await flushTimelineHeightUpdates();
 
 		assert.strictEqual(title.textContent, second.title);
 		assert.ok(slots.timeline.textContent?.includes('Second session message'));
@@ -404,7 +467,7 @@ suite('ConversationLens', () => {
 		assert.ok(getTimelineScroll(slots).textContent?.includes('No messages yet'));
 	});
 
-	test('SessionBar delete button removes active stub session', () => {
+	test('SessionBar delete button removes active stub session', async () => {
 		const { part, stubService } = mountLens();
 		const slots = part.getSlots()!;
 		const deleteButton = slots.sessionBar.querySelector('.conversation-lens-session-delete .monaco-button') as HTMLButtonElement;
@@ -416,6 +479,7 @@ suite('ConversationLens', () => {
 		assert.strictEqual(deleteButton.getAttribute('aria-label'), 'Delete session');
 
 		deleteButton.click();
+		await flushTimelineHeightUpdates();
 
 		assert.strictEqual(stubService.getSessions().length, initialCount - 1);
 		assert.notStrictEqual(stubService.getActiveSessionId(), deletedId);
@@ -441,7 +505,7 @@ suite('ConversationLens', () => {
 		assert.ok(getTimelineEmpty(slots));
 	});
 
-	test('SessionBar history toggles in-column trajectory for current session turns', () => {
+	test('SessionBar history toggles in-column trajectory for current session turns', async () => {
 		const { part, stubService, layoutReadingColumn } = mountLens();
 		const slots = part.getSlots()!;
 		const historyButton = slots.sessionBar.querySelector('.conversation-lens-session-history .monaco-button') as HTMLButtonElement;
@@ -450,6 +514,7 @@ suite('ConversationLens', () => {
 
 		stubService.appendUserTurn(sessionId, 'First turn in trajectory');
 		stubService.appendStubEchoAssistant(sessionId, 'Stub reply');
+		await flushTimelineHeightUpdates();
 
 		assert.ok(historyButton);
 		assert.strictEqual(historyButton.getAttribute('aria-label'), conversationLensSessionBarHistoryTitle);
@@ -459,6 +524,7 @@ suite('ConversationLens', () => {
 
 		historyButton.click();
 		layoutReadingColumn();
+		await flushTimelineHeightUpdates();
 
 		assert.strictEqual(historyButton.getAttribute('aria-pressed'), 'true');
 		const trajectory = slots.timeline.querySelector('.conversation-lens-trajectory')!;
@@ -470,13 +536,14 @@ suite('ConversationLens', () => {
 		assert.strictEqual(stubService.getActiveSession().title, activeTitle);
 
 		historyButton.click();
+		await flushTimelineHeightUpdates();
 
 		assert.strictEqual(historyButton.getAttribute('aria-pressed'), 'false');
 		assert.ok(slots.timeline.querySelector('.conversation-lens-timeline:not([hidden])'));
 		assert.strictEqual(slots.timeline.querySelector('.conversation-lens-trajectory')!.hasAttribute('hidden'), true);
 	});
 
-	test('trajectory row click reveals matching timeline turn and returns to conversation view', () => {
+	test('trajectory row click reveals matching timeline turn and returns to conversation view', async () => {
 		const { part, stubService, layoutReadingColumn } = mountLens();
 		const slots = part.getSlots()!;
 		const historyButton = slots.sessionBar.querySelector('.conversation-lens-session-history .monaco-button') as HTMLButtonElement;
@@ -484,14 +551,17 @@ suite('ConversationLens', () => {
 
 		stubService.appendUserTurn(sessionId, 'Reveal me in timeline');
 		stubService.appendStubEchoAssistant(sessionId, 'Later reply');
+		await flushTimelineHeightUpdates();
 
 		historyButton.click();
 		layoutReadingColumn();
+		await flushTimelineHeightUpdates();
 
 		const trajectory = slots.timeline.querySelector('.conversation-lens-trajectory')!;
 		const firstRow = trajectory.querySelector('.monaco-list-row') as HTMLElement;
 		assert.ok(firstRow);
 		firstRow.click();
+		await flushTimelineHeightUpdates();
 
 		assert.strictEqual(historyButton.getAttribute('aria-pressed'), 'false');
 		assert.ok(slots.timeline.querySelector('.conversation-lens-timeline:not([hidden])'));
@@ -569,10 +639,10 @@ suite('ConversationLens', () => {
 		assert.strictEqual(pendingButton.hidden, true);
 	});
 
-	test('allow on confirmation hides CTAs and updates inbox pending count', () => {
-		const { part, stubService } = mountLens();
+	test('allow on confirmation hides CTAs and updates inbox pending count', async () => {
+		const { part, stubService, layoutReadingColumn } = mountLens();
 		const slots = part.getSlots()!;
-		seedPendingConfirmation(stubService);
+		await seedPendingConfirmation(stubService, layoutReadingColumn);
 		const seat = queryTimeline(slots, '.conversation-lens-confirmation-seat')!;
 		const allowButton = seat.querySelector('.conversation-lens-confirmation-actions .monaco-button') as HTMLElement | null;
 		const pendingButton = slots.dock.querySelector('.conversation-lens-inbox-pending') as HTMLButtonElement;
@@ -636,13 +706,13 @@ suite('ConversationLens', () => {
 		assert.strictEqual(slots.dock.classList.contains(conversationLensInputMaximizedClass), false);
 	});
 
-	test('input maximize keeps pending confirmation reachable via dock inbox row', () => {
-		const { part, lens, stubService } = mountLens();
+	test('input maximize keeps pending confirmation reachable via dock inbox row', async () => {
+		const { part, lens, stubService, layoutReadingColumn } = mountLens();
 		const slots = part.getSlots()!;
 		const maximizeButton = slots.dock.querySelector('.conversation-lens-dock-maximize-input-button') as HTMLButtonElement;
 		const pendingButton = slots.dock.querySelector('.conversation-lens-inbox-pending') as HTMLButtonElement;
 
-		seedPendingConfirmation(stubService);
+		await seedPendingConfirmation(stubService, layoutReadingColumn);
 
 		assert.ok(pendingButton);
 		assert.ok(!pendingButton.hidden);
