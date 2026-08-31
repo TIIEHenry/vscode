@@ -13,10 +13,11 @@ suite('Sources - Review list projection', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	function createRepo(groups: { label: string; resources: URI[] }[]): ISourcesChangeRepositoryLike {
+	function createRepo(groups: { id: string; label: string; resources: URI[] }[]): ISourcesChangeRepositoryLike {
 		return {
 			provider: {
 				groups: groups.map(group => ({
+					id: group.id,
 					label: group.label,
 					resources: group.resources.map(sourceUri => ({ sourceUri })),
 				})),
@@ -34,8 +35,8 @@ suite('Sources - Review list projection', () => {
 		const unstaged = toResource.call(this, '/project/readme.md');
 		const repos = [
 			createRepo([
-				{ label: 'Unstaged Changes', resources: [unstaged] },
-				{ label: 'Staged Changes', resources: [staged] },
+				{ id: 'workingTree', label: 'Unstaged Changes', resources: [unstaged] },
+				{ id: 'index', label: 'Staged Changes', resources: [staged] },
 			]),
 		];
 

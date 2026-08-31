@@ -3,6 +3,36 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+.monaco-workbench .part.sources .sources-changes-host {
+	display: flex;
+	flex-direction: column;
+	flex: 1;
+	min-height: 0;
+}
+
+.monaco-workbench .part.sources .sources-changes-content {
+	display: flex;
+	flex-direction: column;
+	flex: 1;
+	min-height: 0;
+}
+
+.monaco-workbench .part.sources .sources-changes-toolbar {
+	display: none;
+	flex-direction: row;
+	align-items: center;
+	gap: 4px;
+	padding: 4px 8px;
+	border-bottom: 1px solid var(--vscode-sideBarSectionHeader-border, transparent);
+}
+
+.monaco-workbench .part.sources .sources-changes-toolbar .monaco-button {
+	min-width: 22px;
+	width: 22px;
+	height: 22px;
+	padding: 0;
+}
+
 .monaco-workbench .part.sources .sources-tab-panel .sources-changes-list {
 	flex: 1;
 	min-height: 0;
@@ -12,4 +42,64 @@
 	padding: 8px 16px;
 	color: var(--vscode-descriptionForeground);
 	font-size: 13px;
+}
+
+.monaco-workbench .part.sources .sources-change-row {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+}
+
+.monaco-workbench .part.sources .sources-change-label {
+	flex: 1;
+	min-width: 0;
+	overflow: hidden;
+}
+
+.monaco-workbench .part.sources .sources-change-action {
+	flex-shrink: 0;
+	min-width: 22px;
+	width: 22px;
+	height: 22px;
+	margin-right: 4px;
+	padding: 0;
+}
+
+.monaco-workbench .part.sources .sources-changes-commit {
+	display: none;
+	flex-direction: row;
+	align-items: stretch;
+	gap: 4px;
+	padding: 6px 8px;
+	border-top: 1px solid var(--vscode-sideBarSectionHeader-border, transparent);
+}
+
+.monaco-workbench .part.sources .sources-changes-commit-input {
+	flex: 1;
+	min-width: 0;
+	box-sizing: border-box;
+	background: var(--vscode-input-background);
+	color: var(--vscode-input-foreground);
+	border: 1px solid var(--vscode-input-border, transparent);
+	border-radius: 2px;
+	font-size: 13px;
+	line-height: 22px;
+	padding: 0 6px;
+}
+
+.monaco-workbench .part.sources .sources-changes-commit-input:focus {
+	outline: 1px solid var(--vscode-focusBorder);
+	outline-offset: -1px;
+}
+
+.monaco-workbench .part.sources .sources-changes-commit .monaco-button {
+	flex-shrink: 0;
+	height: 24px;
+	padding: 0 12px;
+}
+
+.monaco-workbench .part.sources .sources-changes-status {
+	padding: 4px 8px 6px;
+	color: var(--vscode-descriptionForeground);
+	font-size: 12px;
 }
