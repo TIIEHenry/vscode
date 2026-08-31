@@ -18,6 +18,7 @@ import { KeybindingWeight } from '../../../../platform/keybinding/common/keybind
 import { KeyCode, KeyMod } from '../../../../base/common/keyCodes.js';
 import { SearchStateKey, SearchUIState } from '../common/search.js';
 import { category, getSearchView } from './searchActionsBase.js';
+import { IsSessionsWindowContext } from '../../../common/contextkeys.js';
 import { isSearchTreeMatch, RenderableMatch, ISearchResult, isSearchTreeFolderMatch, isSearchTreeFolderMatchNoRoot, isSearchTreeFolderMatchWorkspaceRoot, isSearchResult, isTextSearchHeading, isSearchTreeFileMatch } from './searchTreeModel/searchTreeCommon.js';
 
 //#region Actions
@@ -205,17 +206,17 @@ registerAction2(class ViewAsListAction extends Action2 {
 	}
 });
 
-registerAction2(class SearchWithAIAction extends Action2 {
+export class SearchWithAIAction extends Action2 {
 	constructor() {
 		super({
 			id: Constants.SearchCommandIds.SearchWithAIActionId,
 			title: nls.localize2('SearchWithAIAction.label', "Search with AI"),
 			category,
 			f1: true,
-			precondition: Constants.SearchContext.hasAIResultProvider,
+			precondition: ContextKeyExpr.and(Constants.SearchContext.hasAIResultProvider, IsSessionsWindowContext),
 			keybinding: {
 				weight: KeybindingWeight.WorkbenchContrib,
-				when: ContextKeyExpr.and(Constants.SearchContext.hasAIResultProvider, Constants.SearchContext.SearchViewFocusedKey),
+				when: ContextKeyExpr.and(Constants.SearchContext.hasAIResultProvider, Constants.SearchContext.SearchViewFocusedKey, IsSessionsWindowContext),
 				primary: KeyMod.CtrlCmd | KeyCode.KeyI
 			}
 		});
@@ -227,7 +228,9 @@ registerAction2(class SearchWithAIAction extends Action2 {
 			searchView.requestAIResults();
 		}
 	}
-});
+}
+
+registerAction2(SearchWithAIAction);
 
 //#endregion
 
