@@ -72,11 +72,10 @@ suite('Navigator stub views', () => {
 		}
 	});
 
-	test('Navigator ViewContainers are Sidebar non-default composites', () => {
+	test('Navigator Agents and Team ViewContainers are Sidebar non-default composites', () => {
 		const defaultSidebarContainers = viewContainersRegistry.getDefaultViewContainers(ViewContainerLocation.Sidebar);
 		const nonDefaultContainerIds = [
 			CONVERSATION_SESSIONS_CONTAINER_ID,
-			NAVIGATOR_PROJECTS_CONTAINER_ID,
 			NAVIGATOR_AGENTS_CONTAINER_ID,
 			NAVIGATOR_TEAM_CONTAINER_ID,
 		];
@@ -86,10 +85,10 @@ suite('Navigator stub views', () => {
 		}
 	});
 
-	test('Explorer remains the default Sidebar composite', () => {
+	test('Navigator Projects is the default Sidebar composite', () => {
 		const defaultSidebarContainers = viewContainersRegistry.getDefaultViewContainers(ViewContainerLocation.Sidebar);
-		assert.ok(defaultSidebarContainers.some(container => container.id === VIEWLET_ID));
-		assert.ok(!defaultSidebarContainers.some(container => container.id === NAVIGATOR_PROJECTS_CONTAINER_ID));
+		assert.ok(defaultSidebarContainers.some(container => container.id === NAVIGATOR_PROJECTS_CONTAINER_ID));
+		assert.ok(!defaultSidebarContainers.some(container => container.id === VIEWLET_ID));
 		assert.ok(!defaultSidebarContainers.some(container => container.id === NAVIGATOR_AGENTS_CONTAINER_ID));
 		assert.ok(!defaultSidebarContainers.some(container => container.id === NAVIGATOR_TEAM_CONTAINER_ID));
 		assert.ok(!defaultSidebarContainers.some(container => container.id === CONVERSATION_SESSIONS_CONTAINER_ID));

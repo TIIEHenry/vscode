@@ -45,7 +45,7 @@ const navigatorTeamViewIcon = registerIcon(
 const viewContainersRegistry = Registry.as<IViewContainersRegistry>(ViewContainerExtensions.ViewContainersRegistry);
 const viewsRegistry = Registry.as<IViewsRegistry>(ViewExtensions.ViewsRegistry);
 
-function registerNavigatorStubContainer(id: string, title: string, icon: typeof navigatorProjectsViewIcon, order: number): ViewContainer {
+function registerNavigatorStubContainer(id: string, title: string, icon: typeof navigatorProjectsViewIcon, order: number, isDefault: boolean = false): ViewContainer {
 	return viewContainersRegistry.registerViewContainer({
 		id,
 		title,
@@ -55,7 +55,7 @@ function registerNavigatorStubContainer(id: string, title: string, icon: typeof 
 		hideIfEmpty: true,
 		order,
 		alwaysUseContainerInfo: true,
-	}, ViewContainerLocation.Sidebar, { isDefault: false });
+	}, ViewContainerLocation.Sidebar, { isDefault });
 }
 
 export const NAVIGATOR_PROJECTS_VIEW_CONTAINER = registerNavigatorStubContainer(
@@ -63,6 +63,7 @@ export const NAVIGATOR_PROJECTS_VIEW_CONTAINER = registerNavigatorStubContainer(
 	localize2('navigatorProjects', "Projects"),
 	navigatorProjectsViewIcon,
 	11,
+	true,
 );
 
 export const NAVIGATOR_AGENTS_VIEW_CONTAINER = registerNavigatorStubContainer(
