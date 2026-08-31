@@ -29,6 +29,7 @@ import { IChatEditingService } from '../../chat/common/editing/chatEditingServic
 import { IChatWidgetService } from '../../chat/browser/chat.js';
 import { ChatEntitlementContextKeys } from '../../../services/chat/common/chatEntitlementService.js';
 import { NOTEBOOK_IS_ACTIVE_EDITOR } from '../../notebook/common/notebookContextKeys.js';
+import { IsSessionsWindowContext } from '../../../common/contextkeys.js';
 
 CommandsRegistry.registerCommandAlias('interactiveEditor.start', 'inlineChat.start');
 
@@ -45,6 +46,19 @@ const inlineChatContextKey = ContextKeyExpr.and(
 	EditorContextKeys.editorSimpleInput.negate()
 );
 
+const startInlineChatWhen = ContextKeyExpr.and(
+	inlineChatContextKey,
+	ContextKeyExpr.or(CTX_INLINE_CHAT_FILE_BELONGS_TO_CHAT.negate(), CTX_ASK_IN_CHAT_ENABLED.negate()),
+	IsSessionsWindowContext,
+);
+
+const askInChatWhen = ContextKeyExpr.and(
+	inlineChatContextKey,
+	CTX_INLINE_CHAT_FILE_BELONGS_TO_CHAT,
+	CTX_ASK_IN_CHAT_ENABLED,
+	IsSessionsWindowContext,
+);
+
 export class StartSessionAction extends Action2 {
 
 	constructor() {
@@ -54,13 +68,9 @@ export class StartSessionAction extends Action2 {
 			shortTitle: localize2('runShort', 'Inline Chat'),
 			category: AbstractInlineChatAction.category,
 			f1: true,
-			precondition: ContextKeyExpr.and(inlineChatContextKey, ContextKeyExpr.or(CTX_INLINE_CHAT_FILE_BELONGS_TO_CHAT.negate(), CTX_ASK_IN_CHAT_ENABLED.negate())),
+			precondition: startInlineChatWhen,
 			keybinding: {
-				when: ContextKeyExpr.and(
-					EditorContextKeys.focus,
-					inlineChatContextKey,
-					ContextKeyExpr.or(CTX_INLINE_CHAT_FILE_BELONGS_TO_CHAT.negate(), CTX_ASK_IN_CHAT_ENABLED.negate())
-				),
+				when: ContextKeyExpr.and(EditorContextKeys.focus, startInlineChatWhen),
 				weight: KeybindingWeight.WorkbenchContrib,
 				primary: KeyMod.CtrlCmd | KeyCode.KeyI
 			},
@@ -69,7 +79,7 @@ export class StartSessionAction extends Action2 {
 				id: MenuId.EditorContext,
 				group: '1_chat',
 				order: 3,
-				when: ContextKeyExpr.and(inlineChatContextKey, ContextKeyExpr.or(CTX_INLINE_CHAT_FILE_BELONGS_TO_CHAT.negate(), CTX_ASK_IN_CHAT_ENABLED.negate()))
+				when: startInlineChatWhen
 			}, {
 				id: MenuId.ChatTitleBarMenu,
 				group: 'a_open',
@@ -122,7 +132,7 @@ export class StartSessionAction extends Action2 {
 MenuRegistry.appendMenuItem(MenuId.InlineChatEditorAffordance, {
 	group: '0_chat',
 	order: 1,
-	when: ContextKeyExpr.and(EditorContextKeys.writable, EditorContextKeys.hasNonEmptySelection, ContextKeyExpr.or(CTX_INLINE_CHAT_FILE_BELONGS_TO_CHAT.negate(), CTX_ASK_IN_CHAT_ENABLED.negate()), ChatEntitlementContextKeys.Setup.hidden.negate()),
+	when: ContextKeyExpr.and(EditorContextKeys.writable, EditorContextKeys.hasNonEmptySelection, ContextKeyExpr.or(CTX_INLINE_CHAT_FILE_BELONGS_TO_CHAT.negate(), CTX_ASK_IN_CHAT_ENABLED.negate()), ChatEntitlementContextKeys.Setup.hidden.negate(), IsSessionsWindowContext),
 	command: {
 		id: ACTION_START,
 		title: localize('editCode', "Ask for Edits"),
@@ -407,9 +417,9 @@ export class AskInChatAction extends EditorAction2 {
 			title: localize2('askInChat', 'Ask in Chat'),
 			category: AbstractInlineChatAction.category,
 			f1: true,
-			precondition: ContextKeyExpr.and(inlineChatContextKey, CTX_INLINE_CHAT_FILE_BELONGS_TO_CHAT, CTX_ASK_IN_CHAT_ENABLED),
+			precondition: askInChatWhen,
 			keybinding: {
-				when: EditorContextKeys.focus,
+				when: ContextKeyExpr.and(EditorContextKeys.focus, askInChatWhen),
 				weight: KeybindingWeight.WorkbenchContrib,
 				primary: KeyMod.CtrlCmd | KeyCode.KeyI
 			},
@@ -418,12 +428,12 @@ export class AskInChatAction extends EditorAction2 {
 				id: MenuId.EditorContext,
 				group: '1_chat',
 				order: 3,
-				when: ContextKeyExpr.and(inlineChatContextKey, CTX_INLINE_CHAT_FILE_BELONGS_TO_CHAT, CTX_ASK_IN_CHAT_ENABLED)
+				when: askInChatWhen
 			}, {
 				id: MenuId.InlineChatEditorAffordance,
 				group: '0_chat',
 				order: 1,
-				when: ContextKeyExpr.and(EditorContextKeys.hasNonEmptySelection, CTX_INLINE_CHAT_FILE_BELONGS_TO_CHAT, CTX_ASK_IN_CHAT_ENABLED)
+				when: ContextKeyExpr.and(EditorContextKeys.hasNonEmptySelection, askInChatWhen)
 			}]
 		});
 	}
