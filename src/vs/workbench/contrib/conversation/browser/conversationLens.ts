@@ -29,6 +29,8 @@ import {
 	conversationLensDockNoAttachments,
 	conversationLensDockNoModel,
 	conversationLensDockRestoreTimeline,
+	conversationLensDockStop,
+	conversationLensDockStopNotGenerating,
 	conversationLensInputMaximizedClass,
 } from './conversationLensDockStrings.js';
 import { conversationLensSessionBarDeleteSession, conversationLensSessionBarHistoryTitle, conversationLensSessionBarNewSession, conversationLensSessionBarNoHistory, conversationLensSessionBarRenameInputAria, conversationLensSessionBarRenameTitle } from './conversationLensSessionBarStrings.js';
@@ -56,6 +58,7 @@ export class ConversationLens extends Disposable {
 	private timelineScroll!: HTMLElement;
 	private timelineContent!: HTMLElement;
 	private inboxStatus!: HTMLButtonElement;
+	private stopButton!: Button;
 	private dockTextarea!: HTMLTextAreaElement;
 	private sendButton!: Button;
 	private attachButton!: Button;
@@ -282,6 +285,17 @@ export class ConversationLens extends Disposable {
 		inboxRow.setAttribute('aria-label', localize('conversationLens.inbox', "Inbox"));
 		append(inboxRow, $('span.conversation-lens-inbox-label')).textContent = localize('conversationLens.inboxLabel', "Inbox");
 		append(inboxRow, $('span.conversation-lens-inbox-queue')).textContent = conversationLensDockInboxNoQueue;
+		const stopContainer = append(inboxRow, $('.conversation-lens-inbox-stop'));
+		this.stopButton = this._register(new Button(stopContainer, {
+			...defaultButtonStyles,
+			small: true,
+			secondary: true,
+			disabled: true,
+			title: conversationLensDockStopNotGenerating,
+		}));
+		this.stopButton.label = conversationLensDockStop;
+		this.stopButton.element.classList.add('conversation-lens-inbox-stop-button');
+		this.stopButton.setAriaLabel(`${conversationLensDockStop}, ${conversationLensDockStopNotGenerating}`);
 		this.inboxStatus = append(inboxRow, $('button.conversation-lens-inbox-pending')) as HTMLButtonElement;
 		this.inboxStatus.type = 'button';
 		this.inboxStatus.hidden = true;

@@ -19,6 +19,8 @@ import {
 	conversationLensDockNoAttachments,
 	conversationLensDockNoModel,
 	conversationLensDockRestoreTimeline,
+	conversationLensDockStop,
+	conversationLensDockStopNotGenerating,
 	conversationLensInputMaximizedClass,
 } from '../../browser/conversationLensDockStrings.js';
 import { conversationLensSessionBarDeleteSession, conversationLensSessionBarHistoryTitle, conversationLensSessionBarNewSession, conversationLensSessionBarNoHistory, conversationLensSessionBarRenameTitle } from '../../browser/conversationLensSessionBarStrings.js';
@@ -113,7 +115,28 @@ suite('ConversationLens', () => {
 
 		assert.ok(inboxRow.querySelector('.conversation-lens-inbox-label'));
 		assert.ok(inboxRow.querySelector('.conversation-lens-inbox-queue'));
+		assert.ok(inboxRow.querySelector('.conversation-lens-inbox-stop'));
 		assert.ok(inboxRow.textContent?.includes(conversationLensDockInboxNoQueue));
+	});
+
+	test('inbox stop is honest: disabled without engine, no stopLoop side effects', () => {
+		const { part } = mountLens();
+		const inboxRow = part.getSlots()!.dock.querySelector('.conversation-lens-inbox-row')!;
+		const stopButton = inboxRow.querySelector('.conversation-lens-inbox-stop .monaco-button') as HTMLButtonElement;
+		const timelineContent = part.getSlots()!.timeline.querySelector('.conversation-lens-timeline-content')!;
+		const turnCountBefore = timelineContent.querySelectorAll('.conversation-lens-turn').length;
+
+		assert.ok(stopButton);
+		assert.ok(stopButton.classList.contains('disabled'));
+		assert.strictEqual(stopButton.getAttribute('aria-disabled'), 'true');
+		assert.strictEqual(stopButton.getAttribute('aria-label'), `${conversationLensDockStop}, ${conversationLensDockStopNotGenerating}`);
+		assert.strictEqual(stopButton.textContent?.trim(), conversationLensDockStop);
+
+		stopButton.click();
+
+		assert.strictEqual(timelineContent.querySelectorAll('.conversation-lens-turn').length, turnCountBefore);
+		assert.ok(inboxRow.textContent?.includes(conversationLensDockInboxNoQueue));
+		assert.ok(inboxRow.querySelector('.conversation-lens-inbox-pending')!.textContent?.includes('confirmation pending'));
 	});
 
 	test('honest dock gate and model labels without Copilot CTAs', () => {
