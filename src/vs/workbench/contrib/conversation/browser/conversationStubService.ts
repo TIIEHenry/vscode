@@ -27,6 +27,8 @@ export interface IConversationRosterService {
 	appendUserTurn(sessionId: string, text: string): ConversationStubTurn | undefined;
 	appendStubEchoAssistant(sessionId: string, text: string): ConversationStubTurn | undefined;
 	appendConfirmationTurn(sessionId: string, text: string): ConversationStubTurn | undefined;
+	appendThinkingTurn(sessionId: string, text: string): ConversationStubTurn | undefined;
+	appendToolTurn(sessionId: string, text: string): ConversationStubTurn | undefined;
 	resolveConfirmation(sessionId: string, turnId: string, status: 'allowed' | 'skipped'): void;
 	countPendingConfirmations(sessionId: string): number;
 }
@@ -125,6 +127,22 @@ export class ConversationStubService extends Disposable implements IConversation
 
 	appendConfirmationTurn(sessionId: string, text: string): ConversationStubTurn | undefined {
 		const turn = this.model.appendConfirmationTurn(sessionId, text);
+		if (turn) {
+			this._onDidChangeSession.fire(sessionId);
+		}
+		return turn;
+	}
+
+	appendThinkingTurn(sessionId: string, text: string): ConversationStubTurn | undefined {
+		const turn = this.model.appendThinkingTurn(sessionId, text);
+		if (turn) {
+			this._onDidChangeSession.fire(sessionId);
+		}
+		return turn;
+	}
+
+	appendToolTurn(sessionId: string, text: string): ConversationStubTurn | undefined {
+		const turn = this.model.appendToolTurn(sessionId, text);
 		if (turn) {
 			this._onDidChangeSession.fire(sessionId);
 		}

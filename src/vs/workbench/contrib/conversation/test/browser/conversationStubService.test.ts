@@ -143,4 +143,18 @@ suite('ConversationStubService', () => {
 		assert.strictEqual(service.deleteSession('missing'), false);
 		assert.strictEqual(service.getSessions().length, initialCount);
 	});
+
+	test('appendThinkingTurn and appendToolTurn add seedable process turns', () => {
+		const service = store.add(new ConversationStubService());
+		const sessionId = service.getActiveSessionId();
+
+		const thinking = service.appendThinkingTurn(sessionId, 'Planning next steps');
+		const tool = service.appendToolTurn(sessionId, 'Read package.json');
+
+		assert.ok(thinking);
+		assert.ok(tool);
+		assert.strictEqual(thinking!.kind, 'thinking');
+		assert.strictEqual(tool!.kind, 'tool');
+		assert.strictEqual(service.getTurns(sessionId).length, 2);
+	});
 });

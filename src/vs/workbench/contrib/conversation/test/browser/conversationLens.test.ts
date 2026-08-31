@@ -26,7 +26,7 @@ import {
 	conversationLensDockStopNotGenerating,
 	conversationLensInputMaximizedClass,
 } from '../../browser/conversationLensDockStrings.js';
-import { conversationLensSessionBarDeleteSession, conversationLensSessionBarHistoryTitle, conversationLensSessionBarNewSession, conversationLensSessionBarRenameTitle } from '../../browser/conversationLensSessionBarStrings.js';
+import { conversationLensSessionBarDeleteSession, conversationLensSessionBarHistoryTitle, conversationLensSessionBarNewSession, conversationLensSessionBarNoTrajectory, conversationLensSessionBarRenameTitle, conversationLensThinkingNotConnected, conversationLensToolNotConnected } from '../../browser/conversationLensSessionBarStrings.js';
 import { ConversationStubService, IConversationRosterService } from '../../browser/conversationStubService.js';
 import { getConversationSessionStatusText } from '../../browser/conversationSessionStatus.js';
 import { shouldRenderTurnAsMarkdown } from '../../browser/conversationTurnMarkdown.js';
@@ -387,40 +387,96 @@ suite('ConversationLens', () => {
 		assert.ok(slots.timeline.querySelector('.conversation-lens-timeline-empty'));
 	});
 
-	test('SessionBar history lists stub sessions and switches active session on select', () => {
+	test('SessionBar history toggles in-column trajectory for current session turns', () => {
 		const { part, stubService } = mountLens();
 		const slots = part.getSlots()!;
 		const historyButton = slots.sessionBar.querySelector('.conversation-lens-session-history .monaco-button') as HTMLButtonElement;
-		const title = slots.sessionBar.querySelector('.conversation-lens-session-title')!;
-		const first = stubService.getActiveSession();
-		const secondId = stubService.createSession();
-		stubService.renameSession(secondId, 'Product tour');
-		stubService.switchSession(first.id);
+		const sessionId = stubService.getActiveSessionId();
+		const activeTitle = stubService.getActiveSession().title;
+
+		stubService.appendUserTurn(sessionId, 'First turn in trajectory');
+		stubService.appendStubEchoAssistant(sessionId, 'Stub reply');
 
 		assert.ok(historyButton);
 		assert.strictEqual(historyButton.getAttribute('aria-label'), conversationLensSessionBarHistoryTitle);
-		assert.strictEqual(slots.sessionBar.querySelector('.agent-sessions'), null);
-		assert.strictEqual(slots.sessionBar.querySelector('.chat-setup'), null);
+		assert.strictEqual(historyButton.getAttribute('aria-pressed'), 'false');
+		assert.strictEqual(slots.timeline.querySelector('.conversation-lens-trajectory[hidden]'), slots.timeline.querySelector('.conversation-lens-trajectory'));
+		assert.ok(slots.timeline.querySelector('.conversation-lens-timeline:not([hidden])'));
 
 		historyButton.click();
 
-		const popup = document.querySelector('.conversation-lens-session-history-popup');
-		assert.ok(popup);
-		const list = popup!.querySelector('.conversation-lens-session-history-list');
-		assert.ok(list);
-		const items = popup!.querySelectorAll('.conversation-lens-session-history-item');
-		assert.strictEqual(items.length, stubService.getSessions().length);
-
-		const tourItem = [...items].find(el => el.textContent === 'Product tour') as HTMLButtonElement;
-		assert.ok(tourItem);
-		tourItem.click();
-
-		assert.strictEqual(stubService.getActiveSessionId(), secondId);
-		assert.strictEqual(title.textContent, 'Product tour');
-		assert.strictEqual(document.querySelector('.conversation-lens-session-history-popup'), null);
+		assert.strictEqual(historyButton.getAttribute('aria-pressed'), 'true');
+		const trajectory = slots.timeline.querySelector('.conversation-lens-trajectory')!;
+		assert.ok(trajectory);
+		assert.ok(!trajectory.hasAttribute('hidden'));
+		assert.strictEqual(slots.timeline.querySelector('.conversation-lens-timeline')!.hasAttribute('hidden'), true);
+		assert.strictEqual(trajectory.querySelectorAll('.conversation-lens-trajectory-row').length, 2);
+		assert.ok(trajectory.textContent?.includes('First turn in trajectory'));
+		assert.strictEqual(stubService.getActiveSession().title, activeTitle);
 
 		historyButton.click();
-		assert.strictEqual(document.querySelector('.conversation-lens-session-history-popup'), null);
+
+		assert.strictEqual(historyButton.getAttribute('aria-pressed'), 'false');
+		assert.ok(slots.timeline.querySelector('.conversation-lens-timeline:not([hidden])'));
+		assert.strictEqual(slots.timeline.querySelector('.conversation-lens-trajectory')!.hasAttribute('hidden'), true);
+	});
+
+	test('trajectory row click reveals matching timeline turn and returns to conversation view', () => {
+		const { part, stubService } = mountLens();
+		const slots = part.getSlots()!;
+		const historyButton = slots.sessionBar.querySelector('.conversation-lens-session-history .monaco-button') as HTMLButtonElement;
+		const sessionId = stubService.getActiveSessionId();
+
+		stubService.appendUserTurn(sessionId, 'Reveal me in timeline');
+		stubService.appendStubEchoAssistant(sessionId, 'Later reply');
+
+		historyButton.click();
+
+		const trajectory = slots.timeline.querySelector('.conversation-lens-trajectory')!;
+		const firstRow = trajectory.querySelector('.conversation-lens-trajectory-row') as HTMLElement;
+		assert.ok(firstRow);
+		firstRow.click();
+
+		assert.strictEqual(historyButton.getAttribute('aria-pressed'), 'false');
+		assert.ok(slots.timeline.querySelector('.conversation-lens-timeline:not([hidden])'));
+		const timelineContent = slots.timeline.querySelector('.conversation-lens-timeline-content')!;
+		assert.ok(timelineContent.querySelector('.conversation-lens-turn[data-turn-id][data-kind="user"]'));
+	});
+
+	test('empty trajectory shows honest copy without fake history', () => {
+		const { part } = mountLens();
+		const slots = part.getSlots()!;
+		const historyButton = slots.sessionBar.querySelector('.conversation-lens-session-history .monaco-button') as HTMLButtonElement;
+
+		historyButton.click();
+
+		const trajectory = slots.timeline.querySelector('.conversation-lens-trajectory')!;
+		assert.ok(trajectory.textContent?.includes(conversationLensSessionBarNoTrajectory));
+		assert.strictEqual(trajectory.querySelector('.conversation-lens-trajectory-row'), null);
+		assert.strictEqual(trajectory.querySelector('.conversation-lens-session-history-popup'), null);
+	});
+
+	test('thinking and tool turns render as collapsible process rows with honest not-connected bodies', () => {
+		const { part, stubService } = mountLens();
+		const sessionId = stubService.getActiveSessionId();
+		stubService.appendThinkingTurn(sessionId, 'Weighing options');
+		stubService.appendToolTurn(sessionId, 'grep src');
+
+		const timelineContent = part.getSlots()!.timeline.querySelector('.conversation-lens-timeline-content')!;
+		const thinking = timelineContent.querySelector('.conversation-lens-turn-process[data-kind="thinking"]');
+		const tool = timelineContent.querySelector('.conversation-lens-turn-process[data-kind="tool"]');
+
+		assert.ok(thinking?.textContent?.includes('Weighing options'));
+		assert.ok(tool?.textContent?.includes('grep src'));
+		assert.strictEqual(timelineContent.querySelector('.conversation-lens-turn-process-body'), null);
+
+		const twisties = timelineContent.querySelectorAll('.monaco-tl-twistie');
+		assert.ok(twisties.length >= 2);
+		(twisties[0] as HTMLElement).click();
+
+		const bodies = timelineContent.querySelectorAll('.conversation-lens-turn-process-body');
+		assert.ok([...bodies].some(body => body.textContent === conversationLensThinkingNotConnected));
+		assert.ok([...bodies].some(body => body.textContent === conversationLensToolNotConnected));
 	});
 
 	test('ConversationPart.focus lands on dock textarea when lens is mounted', () => {
