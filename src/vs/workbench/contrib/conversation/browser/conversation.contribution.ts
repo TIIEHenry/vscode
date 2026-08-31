@@ -12,21 +12,34 @@ import { SyncDescriptor } from '../../../../platform/instantiation/common/descri
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { Registry } from '../../../../platform/registry/common/platform.js';
 import { registerIcon } from '../../../../platform/theme/common/iconRegistry.js';
+import { ViewPaneContainer } from '../../../browser/parts/views/viewPaneContainer.js';
 import { IWorkbenchContribution, registerWorkbenchContribution2, WorkbenchPhase } from '../../../common/contributions.js';
-import { IViewsRegistry, Extensions as ViewExtensions } from '../../../common/views.js';
+import { Extensions as ViewContainerExtensions, IViewContainersRegistry, IViewsRegistry, Extensions as ViewExtensions, ViewContainerLocation } from '../../../common/views.js';
 import { IConversationLensSlots, IConversationPartService } from '../../../browser/parts/conversation/conversationPart.js';
-import { VIEW_CONTAINER } from '../../files/browser/explorerViewlet.js';
 import { ConversationLens } from './conversationLens.js';
 import { CONVERSATION_SESSIONS_VIEW_ID, ConversationSessionsView } from './conversationSessionsView.js';
 import { ConversationStubService, IConversationStubService } from './conversationStubService.js';
 
 registerSingleton(IConversationStubService, ConversationStubService, InstantiationType.Delayed);
 
+export const CONVERSATION_SESSIONS_CONTAINER_ID = 'workbench.view.sessions';
+
 const conversationSessionsViewIcon = registerIcon(
 	'conversation-sessions-view-icon',
 	Codicon.commentDiscussion,
 	localize('conversationSessionsViewIcon', 'View icon of the conversation sessions view.'),
 );
+
+const conversationSessionsViewContainer = Registry.as<IViewContainersRegistry>(ViewContainerExtensions.ViewContainersRegistry).registerViewContainer({
+	id: CONVERSATION_SESSIONS_CONTAINER_ID,
+	title: localize2('conversationSessions', "Sessions"),
+	icon: conversationSessionsViewIcon,
+	ctorDescriptor: new SyncDescriptor(ViewPaneContainer, [CONVERSATION_SESSIONS_CONTAINER_ID, { mergeViewWithContainerWhenSingleView: true }]),
+	storageId: CONVERSATION_SESSIONS_CONTAINER_ID,
+	hideIfEmpty: true,
+	order: 10,
+	alwaysUseContainerInfo: true,
+}, ViewContainerLocation.Sidebar, { isDefault: false });
 
 Registry.as<IViewsRegistry>(ViewExtensions.ViewsRegistry).registerViews([{
 	id: CONVERSATION_SESSIONS_VIEW_ID,
@@ -35,11 +48,9 @@ Registry.as<IViewsRegistry>(ViewExtensions.ViewsRegistry).registerViews([{
 	ctorDescriptor: new SyncDescriptor(ConversationSessionsView),
 	canToggleVisibility: true,
 	canMoveView: true,
-	hideByDefault: false,
-	collapsed: false,
-	order: 3,
-	weight: 20,
-}], VIEW_CONTAINER);
+	order: 1,
+	weight: 100,
+}], conversationSessionsViewContainer);
 
 class ConversationLensContribution extends Disposable implements IWorkbenchContribution {
 

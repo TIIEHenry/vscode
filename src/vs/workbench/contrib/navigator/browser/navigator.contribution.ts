@@ -9,8 +9,8 @@ import { localize, localize2 } from '../../../../nls.js';
 import { SyncDescriptor } from '../../../../platform/instantiation/common/descriptors.js';
 import { Registry } from '../../../../platform/registry/common/platform.js';
 import { registerIcon } from '../../../../platform/theme/common/iconRegistry.js';
-import { Extensions as ViewExtensions, IViewsRegistry } from '../../../common/views.js';
-import { VIEW_CONTAINER } from '../../files/browser/explorerViewlet.js';
+import { ViewPaneContainer } from '../../../browser/parts/views/viewPaneContainer.js';
+import { Extensions as ViewContainerExtensions, Extensions as ViewExtensions, IViewContainersRegistry, IViewsRegistry, ViewContainer, ViewContainerLocation } from '../../../common/views.js';
 import {
 	NAVIGATOR_AGENTS_VIEW_ID,
 	NAVIGATOR_PROJECTS_VIEW_ID,
@@ -19,6 +19,10 @@ import {
 	NavigatorProjectsView,
 	NavigatorTeamView,
 } from './navigatorStubView.js';
+
+export const NAVIGATOR_PROJECTS_CONTAINER_ID = 'workbench.view.navigator.projects';
+export const NAVIGATOR_AGENTS_CONTAINER_ID = 'workbench.view.navigator.agents';
+export const NAVIGATOR_TEAM_CONTAINER_ID = 'workbench.view.navigator.team';
 
 const navigatorProjectsViewIcon = registerIcon(
 	'navigator-projects-view-icon',
@@ -38,7 +42,44 @@ const navigatorTeamViewIcon = registerIcon(
 	localize('navigatorTeamViewIcon', 'View icon of the navigator team view.'),
 );
 
-Registry.as<IViewsRegistry>(ViewExtensions.ViewsRegistry).registerViews([
+const viewContainersRegistry = Registry.as<IViewContainersRegistry>(ViewContainerExtensions.ViewContainersRegistry);
+const viewsRegistry = Registry.as<IViewsRegistry>(ViewExtensions.ViewsRegistry);
+
+function registerNavigatorStubContainer(id: string, title: string, icon: typeof navigatorProjectsViewIcon, order: number): ViewContainer {
+	return viewContainersRegistry.registerViewContainer({
+		id,
+		title,
+		icon,
+		ctorDescriptor: new SyncDescriptor(ViewPaneContainer, [id, { mergeViewWithContainerWhenSingleView: true }]),
+		storageId: id,
+		hideIfEmpty: true,
+		order,
+		alwaysUseContainerInfo: true,
+	}, ViewContainerLocation.Sidebar, { isDefault: false });
+}
+
+export const NAVIGATOR_PROJECTS_VIEW_CONTAINER = registerNavigatorStubContainer(
+	NAVIGATOR_PROJECTS_CONTAINER_ID,
+	localize2('navigatorProjects', "Projects"),
+	navigatorProjectsViewIcon,
+	11,
+);
+
+export const NAVIGATOR_AGENTS_VIEW_CONTAINER = registerNavigatorStubContainer(
+	NAVIGATOR_AGENTS_CONTAINER_ID,
+	localize2('navigatorAgents', "Agents"),
+	navigatorAgentsViewIcon,
+	12,
+);
+
+export const NAVIGATOR_TEAM_VIEW_CONTAINER = registerNavigatorStubContainer(
+	NAVIGATOR_TEAM_CONTAINER_ID,
+	localize2('navigatorTeam', "Team"),
+	navigatorTeamViewIcon,
+	13,
+);
+
+viewsRegistry.registerViews([
 	{
 		id: NAVIGATOR_PROJECTS_VIEW_ID,
 		name: localize2('navigatorProjects', "Projects"),
@@ -46,11 +87,12 @@ Registry.as<IViewsRegistry>(ViewExtensions.ViewsRegistry).registerViews([
 		ctorDescriptor: new SyncDescriptor(NavigatorProjectsView),
 		canToggleVisibility: true,
 		canMoveView: true,
-		hideByDefault: true,
-		collapsed: true,
-		order: 4,
-		weight: 10,
+		order: 1,
+		weight: 100,
 	},
+], NAVIGATOR_PROJECTS_VIEW_CONTAINER);
+
+viewsRegistry.registerViews([
 	{
 		id: NAVIGATOR_AGENTS_VIEW_ID,
 		name: localize2('navigatorAgents', "Agents"),
@@ -58,11 +100,12 @@ Registry.as<IViewsRegistry>(ViewExtensions.ViewsRegistry).registerViews([
 		ctorDescriptor: new SyncDescriptor(NavigatorAgentsView),
 		canToggleVisibility: true,
 		canMoveView: true,
-		hideByDefault: true,
-		collapsed: true,
-		order: 5,
-		weight: 10,
+		order: 1,
+		weight: 100,
 	},
+], NAVIGATOR_AGENTS_VIEW_CONTAINER);
+
+viewsRegistry.registerViews([
 	{
 		id: NAVIGATOR_TEAM_VIEW_ID,
 		name: localize2('navigatorTeam', "Team"),
@@ -70,9 +113,7 @@ Registry.as<IViewsRegistry>(ViewExtensions.ViewsRegistry).registerViews([
 		ctorDescriptor: new SyncDescriptor(NavigatorTeamView),
 		canToggleVisibility: true,
 		canMoveView: true,
-		hideByDefault: true,
-		collapsed: true,
-		order: 6,
-		weight: 10,
+		order: 1,
+		weight: 100,
 	},
-], VIEW_CONTAINER);
+], NAVIGATOR_TEAM_VIEW_CONTAINER);
