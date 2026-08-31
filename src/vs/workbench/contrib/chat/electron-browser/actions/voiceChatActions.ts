@@ -572,6 +572,7 @@ export class StartVoiceChatAction extends Action2 {
 			icon: Codicon.mic,
 			precondition: ContextKeyExpr.and(
 				CanVoiceChat,
+				IsSessionsWindowContext,
 				ScopedVoiceChatGettingReady.negate(),	// disable when voice chat is getting ready
 				SpeechToTextInProgress.negate()			// disable when speech to text is in progress
 			),
