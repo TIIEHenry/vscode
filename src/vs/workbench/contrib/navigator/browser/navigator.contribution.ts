@@ -4,13 +4,16 @@
  *--------------------------------------------------------------------------------------------*/
 
 import './media/navigatorStub.css';
+import './agentInspect.contribution.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { localize, localize2, ILocalizedString } from '../../../../nls.js';
 import { SyncDescriptor } from '../../../../platform/instantiation/common/descriptors.js';
 import { Registry } from '../../../../platform/registry/common/platform.js';
 import { registerIcon } from '../../../../platform/theme/common/iconRegistry.js';
+import { OpenFolderAction } from '../../../browser/actions/workspaceActions.js';
+import { OpenRecentAction } from '../../../browser/actions/windowActions.js';
 import { ViewPaneContainer } from '../../../browser/parts/views/viewPaneContainer.js';
-import { Extensions as ViewContainerExtensions, Extensions as ViewExtensions, IViewContainersRegistry, IViewsRegistry, ViewContainer, ViewContainerLocation } from '../../../common/views.js';
+import { Extensions as ViewContainerExtensions, Extensions as ViewExtensions, IViewContainersRegistry, IViewsRegistry, ViewContainer, ViewContainerLocation, ViewContentGroups } from '../../../common/views.js';
 import {
 	NAVIGATOR_AGENTS_VIEW_ID,
 	NAVIGATOR_PROJECTS_VIEW_ID,
@@ -52,7 +55,7 @@ function registerNavigatorStubContainer(id: string, title: ILocalizedString, ico
 		icon,
 		ctorDescriptor: new SyncDescriptor(ViewPaneContainer, [id, { mergeViewWithContainerWhenSingleView: true }]),
 		storageId: id,
-		hideIfEmpty: true,
+		hideIfEmpty: false,
 		order,
 		alwaysUseContainerInfo: true,
 	}, ViewContainerLocation.Sidebar, { isDefault });
@@ -86,7 +89,7 @@ viewsRegistry.registerViews([
 		name: localize2('navigatorProjects', "Projects"),
 		containerIcon: navigatorProjectsViewIcon,
 		ctorDescriptor: new SyncDescriptor(NavigatorProjectsView),
-		canToggleVisibility: true,
+		canToggleVisibility: false,
 		canMoveView: true,
 		order: 1,
 		weight: 100,
@@ -99,7 +102,7 @@ viewsRegistry.registerViews([
 		name: localize2('navigatorAgents', "Agents"),
 		containerIcon: navigatorAgentsViewIcon,
 		ctorDescriptor: new SyncDescriptor(NavigatorAgentsView),
-		canToggleVisibility: true,
+		canToggleVisibility: false,
 		canMoveView: true,
 		order: 1,
 		weight: 100,
@@ -112,9 +115,21 @@ viewsRegistry.registerViews([
 		name: localize2('navigatorTeam', "Team"),
 		containerIcon: navigatorTeamViewIcon,
 		ctorDescriptor: new SyncDescriptor(NavigatorTeamView),
-		canToggleVisibility: true,
+		canToggleVisibility: false,
 		canMoveView: true,
 		order: 1,
 		weight: 100,
 	},
 ], NAVIGATOR_TEAM_VIEW_CONTAINER);
+
+const openFolder = localize('openFolder', "Open Folder");
+const openRecent = localize('openRecent', "Open Recent");
+const openFolderButton = `[${openFolder}](command:${OpenFolderAction.ID})`;
+const openRecentButton = `[${openRecent}](command:${OpenRecentAction.ID})`;
+
+viewsRegistry.registerViewWelcomeContent(NAVIGATOR_PROJECTS_VIEW_ID, {
+	content: localize({ key: 'navigatorProjectsWelcome', comment: ['Please do not translate the word "command", it is part of our internal syntax which must not change'] },
+		"No projects yet.\n{0}\n{1}", openFolderButton, openRecentButton),
+	group: ViewContentGroups.Open,
+	order: 1,
+});

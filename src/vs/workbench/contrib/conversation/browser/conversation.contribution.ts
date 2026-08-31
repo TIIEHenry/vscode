@@ -41,7 +41,7 @@ const conversationSessionsViewContainer = Registry.as<IViewContainersRegistry>(V
 	icon: conversationSessionsViewIcon,
 	ctorDescriptor: new SyncDescriptor(ViewPaneContainer, [CONVERSATION_SESSIONS_CONTAINER_ID, { mergeViewWithContainerWhenSingleView: true }]),
 	storageId: CONVERSATION_SESSIONS_CONTAINER_ID,
-	hideIfEmpty: true,
+	hideIfEmpty: false,
 	order: 10,
 	alwaysUseContainerInfo: true,
 }, ViewContainerLocation.Sidebar, { isDefault: false });
@@ -51,7 +51,7 @@ Registry.as<IViewsRegistry>(ViewExtensions.ViewsRegistry).registerViews([{
 	name: localize2('conversationSessions', "Sessions"),
 	containerIcon: conversationSessionsViewIcon,
 	ctorDescriptor: new SyncDescriptor(ConversationSessionsView),
-	canToggleVisibility: true,
+	canToggleVisibility: false,
 	canMoveView: true,
 	order: 1,
 	weight: 100,
