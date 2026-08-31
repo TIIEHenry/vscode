@@ -7,7 +7,6 @@ import './media/sourcesPart.css';
 import { $, append } from '../../../../base/browser/dom.js';
 import { LayoutPriority } from '../../../../base/browser/ui/splitview/splitview.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
-import { localize } from '../../../../nls.js';
 import { InstantiationType, registerSingleton } from '../../../../platform/instantiation/common/extensions.js';
 import { createDecorator } from '../../../../platform/instantiation/common/instantiation.js';
 import { IStorageService } from '../../../../platform/storage/common/storage.js';
@@ -19,6 +18,9 @@ export const ISourcesPartService = createDecorator<ISourcesPartService>('sources
 
 export interface ISourcesPartService {
 	readonly _serviceBrand: undefined;
+
+	readonly onDidRegisterTabHost: Event<HTMLElement>;
+	readonly tabHost: HTMLElement | undefined;
 
 	readonly onDidRegisterContentHost: Event<HTMLElement>;
 	readonly contentHost: HTMLElement | undefined;
@@ -34,10 +36,18 @@ export class SourcesPart extends Part implements ISourcesPartService {
 
 	declare readonly _serviceBrand: undefined;
 
+	private readonly _onDidRegisterTabHost = this._register(new Emitter<HTMLElement>());
+	readonly onDidRegisterTabHost = this._onDidRegisterTabHost.event;
+
 	private readonly _onDidRegisterContentHost = this._register(new Emitter<HTMLElement>());
 	readonly onDidRegisterContentHost = this._onDidRegisterContentHost.event;
 
+	private _tabHost: HTMLElement | undefined;
 	private _contentHost: HTMLElement | undefined;
+
+	get tabHost(): HTMLElement | undefined {
+		return this._tabHost;
+	}
 
 	get contentHost(): HTMLElement | undefined {
 		return this._contentHost;
@@ -73,9 +83,9 @@ export class SourcesPart extends Part implements ISourcesPartService {
 
 	protected override createTitleArea(parent: HTMLElement): HTMLElement {
 		const titleArea = append(parent, $('.title'));
-		const titleLabel = append(titleArea, $('.title-label'));
-		const heading = append(titleLabel, $('h2'));
-		heading.textContent = localize('sourcesPart.title', "Sources");
+		const tabHost = append(titleArea, $('.sources-tab-host'));
+		this._tabHost = tabHost;
+		this._onDidRegisterTabHost.fire(tabHost);
 
 		return titleArea;
 	}

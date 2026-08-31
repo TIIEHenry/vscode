@@ -4,7 +4,7 @@ type: architecture
 status: accepted
 phase: N/A
 updated: 2026-08-31
-summary: "Explorer、SCM/git、Terminal、Debug 是配套设施不是 Conversation；Sources Files 列表已在 contrib/sources；Changes/Diff FORK 仍 parked"
+summary: "Explorer、SCM/git、Terminal、Debug 是配套设施不是 Conversation；Sources 三 tab 已在 contrib/sources；Changes/Review stub；Diff FORK 仍 parked"
 ---
 
 # 配套 IDE 设施：files / SCM / terminal / debug
@@ -89,7 +89,7 @@ Desktop IA §4：
 
 S1 合法路径：树继续由 Sidebar Explorer 拥有；End Sources 做 **只读/点击打开** 的列表投影，打开目标仍是 Preview（`EDITOR_PART`），不复制 `IExplorerService` 真相。
 
-**M1 已落：** `contrib/sources`（`SourcesFilesList`）在 `SOURCES_PART` 槽内提供 Files 列表投影；树权威仍在 Sidebar Explorer。Changes / Diff 路由仍按 §5 FORK，未搬进 End 下格。
+**M1 已落：** `contrib/sources`（`SourcesTabsHost` + `SourcesFilesList`）在 `SOURCES_PART` 槽内提供 **Files \| Changes \| Review** tab strip；Files 为列表投影，Changes / Review 为 stub；树权威仍在 Sidebar Explorer。Diff 深查看路由仍按 §5 FORK（**EDITOR_PART**，未搬进 End 下格）。
 
 ## 5. Diff 深查看 ↔ Changes 清单（映射张力）
 

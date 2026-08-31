@@ -15,12 +15,11 @@
 }
 
 .monaco-workbench .part.sources > .title {
+	display: flex;
+	flex-direction: row;
+	align-items: stretch;
 	background-color: var(--vscode-sideBarTitle-background);
 	border-bottom: 1px solid var(--vscode-sideBarTitle-border, var(--vscode-contrastBorder, transparent));
-}
-
-.monaco-workbench .part.sources > .title > .title-label h2 {
-	text-transform: uppercase;
 }
 
 .monaco-workbench .part.sources > .content {

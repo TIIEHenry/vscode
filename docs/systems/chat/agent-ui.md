@@ -4,7 +4,7 @@ type: architecture
 status: accepted
 phase: N/A
 updated: 2026-08-31
-summary: "本仓对话 UI 的三层：ChatWidget 零件、workbench 宿主（含违反 INV-TOPO 的 ChatEditor）、Sessions Part；M1 透镜骨架 + Sources Files 列表 + D7 四钮已落"
+summary: "本仓对话 UI 的三层：ChatWidget 零件、workbench 宿主（含违反 INV-TOPO 的 ChatEditor）、Sessions Part；M1 透镜骨架 + Sources 三 tab + D7 四钮已落"
 ---
 
 # Agent UI 清单
@@ -143,7 +143,7 @@ adapter 是唯一反腐层。M1 透镜仍用 stub 时间线（spike 允许），
 | Input Dock / MessageQueue | `ChatInputPart` | **例外合同**在 spec §8.3，不能用 VS Code picker 顶替 |
 | 权限 CTA | 无对等（有 confirmation service） | 自研 ResponseSeat |
 | Preview File tabs | `EDITOR_PART` tabs | **同构**，应保留 |
-| Sources | `SOURCES_PART` + `contrib/sources` Files 列表投影 | Files 已落；Changes / Diff（ADR-051 / ADR-047 FORK）仍 deferred |
+| Sources | `SOURCES_PART` + `contrib/sources` **Files \| Changes \| Review** tab strip | Files 已落；Changes / Review 为 stub；Diff 深查看（ADR-051 / ADR-047 FORK）仍 **EDITOR_PART**，未接线 |
 
 ## 8. 相关文档
 

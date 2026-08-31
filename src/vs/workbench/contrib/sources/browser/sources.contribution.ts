@@ -7,13 +7,13 @@ import { Disposable } from '../../../../base/common/lifecycle.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { IWorkbenchContribution, registerWorkbenchContribution2, WorkbenchPhase } from '../../../common/contributions.js';
 import { ISourcesPartService } from '../../../browser/parts/sources/sourcesPart.js';
-import { SourcesFilesList } from './sourcesFilesList.js';
+import { SourcesTabsHost } from './sourcesTabsHost.js';
 
-class SourcesFilesContribution extends Disposable implements IWorkbenchContribution {
+class SourcesTabsContribution extends Disposable implements IWorkbenchContribution {
 
-	static readonly ID = 'workbench.contrib.sourcesFiles';
+	static readonly ID = 'workbench.contrib.sourcesTabs';
 
-	private mountedHost: HTMLElement | undefined;
+	private mounted = false;
 
 	constructor(
 		@ISourcesPartService private readonly sourcesPartService: ISourcesPartService,
@@ -21,22 +21,26 @@ class SourcesFilesContribution extends Disposable implements IWorkbenchContribut
 	) {
 		super();
 
-		this._register(this.sourcesPartService.onDidRegisterContentHost(host => {
-			this.mountList(host);
-		}));
-
-		if (this.sourcesPartService.contentHost) {
-			this.mountList(this.sourcesPartService.contentHost);
-		}
+		const tryMount = () => this.tryMountTabsHost();
+		this._register(this.sourcesPartService.onDidRegisterTabHost(() => tryMount()));
+		this._register(this.sourcesPartService.onDidRegisterContentHost(() => tryMount()));
+		tryMount();
 	}
 
-	private mountList(host: HTMLElement): void {
-		if (this.mountedHost === host) {
+	private tryMountTabsHost(): void {
+		if (this.mounted) {
 			return;
 		}
-		this.mountedHost = host;
-		this._register(this.instantiationService.createInstance(SourcesFilesList, host));
+
+		const tabHost = this.sourcesPartService.tabHost;
+		const contentHost = this.sourcesPartService.contentHost;
+		if (!tabHost || !contentHost) {
+			return;
+		}
+
+		this.mounted = true;
+		this._register(this.instantiationService.createInstance(SourcesTabsHost, tabHost, contentHost));
 	}
 }
 
-registerWorkbenchContribution2(SourcesFilesContribution.ID, SourcesFilesContribution, WorkbenchPhase.AfterRestored);
+registerWorkbenchContribution2(SourcesTabsContribution.ID, SourcesTabsContribution, WorkbenchPhase.AfterRestored);
