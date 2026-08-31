@@ -167,7 +167,7 @@ const registry = Registry.as<IConfigurationRegistry>(ConfigurationExtensions.Con
 			'workbench.editor.empty.hint': {
 				'type': 'string',
 				'enum': ['text', 'hidden'],
-				'default': 'text',
+				'default': 'hidden',
 				'markdownDescription': localize("workbench.editor.empty.hint", "Controls if the empty editor text hint should be visible in the editor.")
 			},
 			'workbench.editor.languageDetection': {

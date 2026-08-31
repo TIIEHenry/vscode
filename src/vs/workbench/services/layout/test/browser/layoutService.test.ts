@@ -636,4 +636,10 @@ suite('LayoutService - INV-052-NO-RIGHT-RAIL auxiliary bar fresh layout', () => 
 		assert.strictEqual(property.default, 'none');
 		assert.deepStrictEqual(property.agentsWindow, { default: 'none', readOnly: true });
 	});
+
+	test('editor window workbench.editor.empty.hint defaults to hidden (Preview hides empty editor chrome)', () => {
+		const configurationRegistry = Registry.as<IConfigurationRegistry>(ConfigurationExtensions.Configuration);
+		const property = configurationRegistry.getConfigurationProperties()['workbench.editor.empty.hint'];
+		assert.strictEqual(property.default, 'hidden');
+	});
 });
