@@ -9,6 +9,7 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/tes
 import { Extensions as ConfigurationExtensions, IConfigurationRegistry } from '../../../../../platform/configuration/common/configurationRegistry.js';
 import { Registry } from '../../../../../platform/registry/common/platform.js';
 import '../../../../browser/workbench.contribution.js';
+import '../../../../contrib/welcomeGettingStarted/browser/gettingStarted.contribution.js';
 import { COMPACT_FLOATING_PANEL_MARGIN, COMPACT_FLOATING_PANEL_OUTER_MARGIN, FLOATING_PANEL_INNER_MARGIN, FLOATING_PANEL_MARGIN, forceShownAgentShellPart, getFloatingEditorVerticalMargins, getFloatingOuterEdgeOwners, getFloatingPaneCompositeHorizontalMargins, getFloatingPaneCompositeVerticalMargins, getFloatingPanelMargin, getFloatingPanelOuterMargin, getFloatingSidebarSiblingToEditorStatus, isFloatingTopEdgeExposed, isHorizontal, type PanelAlignment, Parts, Position } from '../../browser/layoutService.js';
 import { TestLayoutService } from '../../../../test/browser/workbenchTestServices.js';
 
@@ -600,5 +601,12 @@ suite('LayoutService - INV-052-NO-RIGHT-RAIL auxiliary bar fresh layout', () => 
 		const property = configurationRegistry.getConfigurationProperties()['workbench.secondarySideBar.defaultVisibility'];
 		assert.strictEqual(property.default, 'hidden');
 		assert.deepStrictEqual(property.agentsWindow, { default: 'visibleInWorkspace', readOnly: true });
+	});
+
+	test('editor window workbench.startupEditor defaults to none (Preview does not auto-open Welcome)', () => {
+		const configurationRegistry = Registry.as<IConfigurationRegistry>(ConfigurationExtensions.Configuration);
+		const property = configurationRegistry.getConfigurationProperties()['workbench.startupEditor'];
+		assert.strictEqual(property.default, 'none');
+		assert.deepStrictEqual(property.agentsWindow, { default: 'none', readOnly: true });
 	});
 });
