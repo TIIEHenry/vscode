@@ -10,7 +10,7 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/tes
 import { getSelectionKeyboardEvent, WorkbenchList } from '../../../../../platform/list/browser/listService.js';
 import { Registry } from '../../../../../platform/registry/common/platform.js';
 import { ConversationPart, IConversationPartService } from '../../../../browser/parts/conversation/conversationPart.js';
-import { Extensions as ViewContainerExtensions, Extensions as ViewExtensions, IViewContainersRegistry, IViewDescriptorService, IViewsRegistry, ViewContainerLocation } from '../../../../common/views.js';
+import { Extensions as ViewContainerExtensions, Extensions as ViewExtensions, IViewContainerModel, IViewContainersRegistry, IViewDescriptorService, IViewsRegistry, ViewContainer, ViewContainerLocation } from '../../../../common/views.js';
 import { IWorkbenchLayoutService, Parts } from '../../../../services/layout/browser/layoutService.js';
 import { EditorInput } from '../../../../common/editor/editorInput.js';
 import { IEditorPane, IUntypedEditorInput } from '../../../../common/editor.js';
@@ -31,6 +31,35 @@ suite('ConversationSessionsView', () => {
 
 	const viewContainersRegistry = Registry.as<IViewContainersRegistry>(ViewContainerExtensions.ViewContainersRegistry);
 	const viewsRegistry = Registry.as<IViewsRegistry>(ViewExtensions.ViewsRegistry);
+
+	const stubViewContainer = {
+		id: 'conversation-sessions-test-container',
+		title: { value: 'Sessions', original: 'Sessions' },
+	} as ViewContainer;
+
+	function createViewDescriptorServiceStub(): IViewDescriptorService {
+		return new class extends mock<IViewDescriptorService>() {
+			override onDidChangeLocation = Event.None;
+			override getViewLocationById(_id: string): ViewContainerLocation {
+				return ViewContainerLocation.Sidebar;
+			}
+			override getViewDescriptorById(_id: string) {
+				return null;
+			}
+			override getViewContainerByViewId(_id: string): ViewContainer | null {
+				return stubViewContainer;
+			}
+			override getViewContainerModel(_viewContainer: ViewContainer): IViewContainerModel {
+				return {
+					title: stubViewContainer.title.value,
+					onDidChangeContainerInfo: Event.None,
+				} as IViewContainerModel;
+			}
+			override getDefaultContainerById(_id: string): ViewContainer | null {
+				return stubViewContainer;
+			}
+		}();
+	}
 
 	class RosterNavigationLayoutService extends TestLayoutService {
 		private conversationVisible = true;
@@ -97,15 +126,7 @@ suite('ConversationSessionsView', () => {
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		instantiationService.stub(IConversationRosterService, service);
 		instantiationService.stub(IWorkbenchLayoutService, layoutService);
-		instantiationService.stub(IViewDescriptorService, new class extends mock<IViewDescriptorService>() {
-			override onDidChangeLocation = Event.None;
-			override getViewLocationById(): ViewContainerLocation {
-				return ViewContainerLocation.Sidebar;
-			}
-			override getViewDescriptorById(_id: string) {
-				return null;
-			}
-		}());
+		instantiationService.stub(IViewDescriptorService, createViewDescriptorServiceStub());
 
 		const conversationPart = store.add(instantiationService.createInstance(ConversationPart));
 		const partParent = document.createElement('div');
@@ -247,15 +268,7 @@ suite('ConversationSessionsView', () => {
 		instantiationService.stub(IConversationRosterService, service);
 		instantiationService.stub(IWorkbenchLayoutService, layoutService);
 		instantiationService.stub(IEditorService, editorService);
-		instantiationService.stub(IViewDescriptorService, new class extends mock<IViewDescriptorService>() {
-			override onDidChangeLocation = Event.None;
-			override getViewLocationById(): ViewContainerLocation {
-				return ViewContainerLocation.Sidebar;
-			}
-			override getViewDescriptorById(_id: string) {
-				return null;
-			}
-		}());
+		instantiationService.stub(IViewDescriptorService, createViewDescriptorServiceStub());
 
 		const conversationPart = store.add(instantiationService.createInstance(ConversationPart));
 		conversationPart.create(document.createElement('div'));
