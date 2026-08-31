@@ -28,7 +28,7 @@ import { localize } from '../../../../nls.js';
 import { IEditorResolverService, RegisteredEditorPriority } from '../../../services/editor/common/editorResolverService.js';
 import { TerminalCommandId } from '../../terminal/common/terminal.js';
 import { IContextKeyService } from '../../../../platform/contextkey/common/contextkey.js';
-import { AuxiliaryBarMaximizedContext } from '../../../common/contextkeys.js';
+import { AuxiliaryBarMaximizedContext, IsSessionsWindowContext } from '../../../common/contextkeys.js';
 import { mainWindow } from '../../../../base/browser/window.js';
 import { getActiveElement } from '../../../../base/browser/dom.js';
 import { isWeb } from '../../../../base/common/platform.js';
@@ -234,6 +234,10 @@ export class StartupPageRunnerContribution extends Disposable implements IWorkbe
 	}
 
 	private tryShowOnboarding(): void {
+		if (!IsSessionsWindowContext.getValue(this.contextKeyService)) {
+			return; // default window skips onboarding overlay
+		}
+
 		if (this.environmentService.skipWelcome) {
 			return; // skip welcome flag is set
 		}

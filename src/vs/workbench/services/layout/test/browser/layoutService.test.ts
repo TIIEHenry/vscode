@@ -642,4 +642,11 @@ suite('LayoutService - INV-052-NO-RIGHT-RAIL auxiliary bar fresh layout', () => 
 		const property = configurationRegistry.getConfigurationProperties()['workbench.editor.empty.hint'];
 		assert.strictEqual(property.default, 'hidden');
 	});
+
+	test('editor window workbench.tips.enabled defaults to false (Preview hides empty watermark shortcuts)', () => {
+		const configurationRegistry = Registry.as<IConfigurationRegistry>(ConfigurationExtensions.Configuration);
+		const property = configurationRegistry.getConfigurationProperties()['workbench.tips.enabled'];
+		assert.strictEqual(property.default, false);
+		assert.deepStrictEqual(property.agentsWindow, { default: false });
+	});
 });
