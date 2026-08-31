@@ -21,6 +21,7 @@ import { ACTIVE_GROUP, IEditorService } from '../../../services/editor/common/ed
 import { IExplorerService } from '../../files/browser/files.js';
 import { filterSourcesEntries } from '../common/sourcesFilterModel.js';
 import { collectSourcesFileEntries, ISourcesFileEntry } from '../common/sourcesFilesModel.js';
+import { sourcesFilesListEmptyMessage } from './sourcesFilesListStrings.js';
 import { SourcesListFilterBox } from './sourcesListFilterBox.js';
 
 const $ = dom.$;
@@ -174,7 +175,7 @@ export class SourcesFilesList extends Disposable {
 		const hasVisibleEntries = entries.length > 0;
 
 		if (!hasAnyEntries) {
-			this.emptyMessage.textContent = localize('sourcesFilesList.empty', "No workspace files to show.");
+			this.emptyMessage.textContent = sourcesFilesListEmptyMessage;
 		} else if (!hasVisibleEntries) {
 			this.emptyMessage.textContent = localize('sourcesFilesList.noMatching', "No matching files.");
 		}
