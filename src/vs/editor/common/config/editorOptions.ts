@@ -4549,7 +4549,7 @@ export type InternalInlineSuggestOptions = Readonly<RequiredRecursive<IInlineSug
 class InlineEditorSuggest extends BaseEditorOption<EditorOption.inlineSuggest, IInlineSuggestOptions, InternalInlineSuggestOptions> {
 	constructor() {
 		const defaults: InternalInlineSuggestOptions = {
-			enabled: true,
+			enabled: false,
 			mode: 'subwordSmart',
 			showToolbar: 'onHover',
 			suppressSuggestions: false,
