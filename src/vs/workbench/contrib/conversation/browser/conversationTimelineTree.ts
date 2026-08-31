@@ -25,6 +25,13 @@ import {
 } from './conversationTimelineScroll.js';
 import { ConversationTurnContentAdapter, IConversationTurnContentAdapter } from './conversationTurnContentAdapter.js';
 import { getConversationTurnRoleLabel } from './conversationTrajectoryList.js';
+import {
+	shouldCollapseUserBubble,
+	shouldScrollExpandedUserBubble,
+} from './conversationUserBubbleCollapse.js';
+
+export const conversationLensUserBubbleShowMore = localize('conversationLens.userBubbleShowMore', "Show more");
+export const conversationLensUserBubbleShowLess = localize('conversationLens.userBubbleShowLess', "Show less");
 
 export type ConversationTimelineItemVariant = 'turn' | 'process-body';
 
@@ -84,6 +91,7 @@ class ConversationTimelineRenderer implements ITreeRenderer<ConversationTimeline
 	readonly templateId = ConversationTimelineRenderer.TEMPLATE_ID;
 
 	private readonly confirmationSeats = new Map<string, ConversationConfirmationSeat>();
+	private readonly userBubbleExpanded = new Map<string, boolean>();
 
 	constructor(
 		private readonly contentAdapter: IConversationTurnContentAdapter,
@@ -165,6 +173,29 @@ class ConversationTimelineRenderer implements ITreeRenderer<ConversationTimeline
 			}
 			templateData.disposables.add(this.contentAdapter.renderTurnBody(turn, body));
 
+			if (turn.kind === 'user' && shouldCollapseUserBubble(turn.text)) {
+				const expanded = this.userBubbleExpanded.get(turn.id) ?? false;
+				body.classList.add('conversation-lens-turn-body--collapsible');
+				this.applyUserBubbleCollapseState(body, turn.text, expanded);
+
+				const foldControl = append(el, $('.conversation-lens-turn-fold'));
+				const foldButton = append(foldControl, $('button.conversation-lens-turn-fold-button')) as HTMLButtonElement;
+				foldButton.type = 'button';
+				foldButton.textContent = expanded ? conversationLensUserBubbleShowLess : conversationLensUserBubbleShowMore;
+				foldButton.setAttribute('aria-expanded', String(expanded));
+				foldButton.setAttribute('aria-label', expanded ? conversationLensUserBubbleShowLess : conversationLensUserBubbleShowMore);
+				templateData.disposables.add(addDisposableListener(foldButton, 'click', (e) => {
+					e.stopPropagation();
+					const nextExpanded = !(this.userBubbleExpanded.get(turn.id) ?? false);
+					this.userBubbleExpanded.set(turn.id, nextExpanded);
+					this.applyUserBubbleCollapseState(body, turn.text, nextExpanded);
+					foldButton.textContent = nextExpanded ? conversationLensUserBubbleShowLess : conversationLensUserBubbleShowMore;
+					foldButton.setAttribute('aria-expanded', String(nextExpanded));
+					foldButton.setAttribute('aria-label', nextExpanded ? conversationLensUserBubbleShowLess : conversationLensUserBubbleShowMore);
+					this.scheduleHeightUpdate(item, templateData.container);
+				}));
+			}
+
 			if (turn.kind === 'user' || turn.kind === 'assistant') {
 				const actions = append(el, $('.conversation-lens-turn-actions'));
 				const copyContainer = append(actions, $('span.conversation-lens-turn-action-copy'));
@@ -219,6 +250,20 @@ class ConversationTimelineRenderer implements ITreeRenderer<ConversationTimeline
 			seat.dispose();
 		}
 		this.confirmationSeats.clear();
+	}
+
+	clearUserBubbleExpanded(): void {
+		this.userBubbleExpanded.clear();
+	}
+
+	private applyUserBubbleCollapseState(body: HTMLElement, text: string, expanded: boolean): void {
+		body.classList.toggle('conversation-lens-turn-body--collapsed', !expanded);
+		body.classList.toggle('conversation-lens-turn-body--scrollable', expanded && shouldScrollExpandedUserBubble(text));
+		if (!expanded) {
+			body.setAttribute('title', text);
+		} else {
+			body.removeAttribute('title');
+		}
 	}
 
 	private scheduleHeightUpdate(item: ConversationTimelineItem, row: HTMLElement): void {
@@ -414,6 +459,7 @@ export class ConversationTimelineTree extends Disposable {
 	setTurns(turns: readonly ConversationStubTurn[]): void {
 		this.withPersistedAutoScroll(() => {
 			this.renderer.clearConfirmationSeats();
+			this.renderer.clearUserBubbleExpanded();
 			this.turnItems.clear();
 			const items = turns.map(turn => this.toTreeElement(turn));
 			for (const treeElement of items) {

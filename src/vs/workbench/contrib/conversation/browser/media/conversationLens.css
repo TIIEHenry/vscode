@@ -378,6 +378,53 @@
 	box-shadow: 0 1px 2px var(--vscode-widget-shadow, rgba(0, 0, 0, 0.16));
 }
 
+.monaco-workbench .part.conversation .conversation-lens-turn-body--user-bubble.conversation-lens-turn-body--collapsible {
+	position: relative;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-turn-body--user-bubble.conversation-lens-turn-body--collapsed {
+	display: -webkit-box;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 4;
+	overflow: hidden;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-turn-body--user-bubble.conversation-lens-turn-body--collapsed::after {
+	content: '';
+	position: absolute;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	height: 1.5em;
+	background: linear-gradient(to bottom, transparent, var(--vscode-sideBar-background));
+	pointer-events: none;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-turn-body--user-bubble.conversation-lens-turn-body--scrollable {
+	max-height: calc(1.5em * 20);
+	overflow-y: auto;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-turn-fold {
+	align-self: flex-end;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-turn-fold-button {
+	margin: 0;
+	padding: 0;
+	border: none;
+	background: none;
+	font-size: 12px;
+	line-height: 1.4;
+	color: var(--vscode-descriptionForeground);
+	cursor: pointer;
+	text-decoration: underline;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-turn-fold-button:hover {
+	color: var(--vscode-foreground);
+}
+
 .monaco-workbench .part.conversation .conversation-lens-turn-body--reading-text {
 	padding: 2px 0;
 	border: none;

@@ -12,7 +12,7 @@ import { Parts } from '../../../../services/layout/browser/layoutService.js';
 import { ChatEditorInput } from '../../../chat/browser/widgetHosts/editor/chatEditorInput.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { ConversationLens } from '../../browser/conversationLens.js';
-import { ConversationTimelineTree } from '../../browser/conversationTimelineTree.js';
+import { ConversationTimelineTree, conversationLensUserBubbleShowLess, conversationLensUserBubbleShowMore } from '../../browser/conversationTimelineTree.js';
 import { ConversationTrajectoryList } from '../../browser/conversationTrajectoryList.js';
 import {
 	conversationLensDockAttachTitle,
@@ -201,6 +201,97 @@ suite('ConversationLens', () => {
 		layoutReadingColumn();
 		await flushTimelineHeightUpdates();
 	}
+
+	function userMessageLines(lineCount: number): string {
+		return Array.from({ length: lineCount }, (_, index) => `User line ${index + 1}`).join('\n');
+	}
+
+	function getUserTurnBody(slots: IConversationLensSlots): HTMLElement {
+		const body = queryTimeline(slots, '.conversation-lens-turn[data-kind="user"] .conversation-lens-turn-body');
+		assert.ok(body);
+		return body as HTMLElement;
+	}
+
+	function getUserFoldButton(slots: IConversationLensSlots): HTMLButtonElement | null {
+		return queryTimeline(slots, '.conversation-lens-turn[data-kind="user"] .conversation-lens-turn-fold-button') as HTMLButtonElement | null;
+	}
+
+	test('short user turn does not show Show more control', () => {
+		const { part, stubService } = mountLens();
+		const slots = part.getSlots()!;
+		const sessionId = stubService.getActiveSessionId();
+		stubService.appendUserTurn(sessionId, userMessageLines(2));
+
+		assert.strictEqual(getUserFoldButton(slots), null);
+		assert.strictEqual(getUserTurnBody(slots).classList.contains('conversation-lens-turn-body--collapsed'), false);
+	});
+
+	test('long user turn collapses with Show more and full-text title', () => {
+		const { part, stubService } = mountLens();
+		const slots = part.getSlots()!;
+		const sessionId = stubService.getActiveSessionId();
+		const message = userMessageLines(8);
+		stubService.appendUserTurn(sessionId, message);
+
+		const body = getUserTurnBody(slots);
+		const foldButton = getUserFoldButton(slots);
+
+		assert.ok(body.classList.contains('conversation-lens-turn-body--collapsed'));
+		assert.ok(foldButton);
+		assert.strictEqual(foldButton!.textContent, conversationLensUserBubbleShowMore);
+		assert.strictEqual(body.getAttribute('title'), message);
+
+		const userTurn = queryTimeline(slots, '.conversation-lens-turn[data-kind="user"]')!;
+		const actions = userTurn.querySelector('.conversation-lens-turn-actions');
+		const fold = userTurn.querySelector('.conversation-lens-turn-fold');
+		assert.ok(fold);
+		assert.ok(actions);
+		assert.ok(fold!.compareDocumentPosition(actions!) & Node.DOCUMENT_POSITION_FOLLOWING);
+	});
+
+	test('Show more expands user bubble and Show less collapses it again', async () => {
+		const { part, stubService, layoutReadingColumn } = mountLens();
+		const slots = part.getSlots()!;
+		const sessionId = stubService.getActiveSessionId();
+		stubService.appendUserTurn(sessionId, userMessageLines(8));
+		layoutReadingColumn();
+		await flushTimelineHeightUpdates();
+
+		const body = getUserTurnBody(slots);
+		const foldButton = getUserFoldButton(slots)!;
+
+		foldButton.click();
+		layoutReadingColumn();
+		await flushTimelineHeightUpdates();
+		await flushAnimationFrames();
+
+		assert.strictEqual(body.classList.contains('conversation-lens-turn-body--collapsed'), false);
+		assert.strictEqual(foldButton.textContent, conversationLensUserBubbleShowLess);
+		assert.strictEqual(foldButton.getAttribute('aria-expanded'), 'true');
+		assert.strictEqual(body.getAttribute('title'), null);
+
+		foldButton.click();
+		layoutReadingColumn();
+		await flushTimelineHeightUpdates();
+		await flushAnimationFrames();
+
+		assert.ok(body.classList.contains('conversation-lens-turn-body--collapsed'));
+		assert.strictEqual(foldButton.textContent, conversationLensUserBubbleShowMore);
+		assert.strictEqual(foldButton.getAttribute('aria-expanded'), 'false');
+		assert.strictEqual(body.getAttribute('title'), userMessageLines(8));
+	});
+
+	test('long assistant stub echo does not get user bubble collapse chrome', () => {
+		const { part, stubService } = mountLens();
+		const slots = part.getSlots()!;
+		const sessionId = stubService.getActiveSessionId();
+		stubService.appendStubEchoAssistant(sessionId, userMessageLines(8));
+
+		const assistantTurn = queryTimeline(slots, '.conversation-lens-turn[data-kind="assistant"]');
+		assert.ok(assistantTurn);
+		assert.strictEqual(assistantTurn.querySelector('.conversation-lens-turn-fold'), null);
+		assert.strictEqual(assistantTurn.querySelector('.conversation-lens-turn-body--collapsed'), null);
+	});
 
 	test('default session shows honest empty timeline without fake history', () => {
 		const { part, stubService } = mountLens();
