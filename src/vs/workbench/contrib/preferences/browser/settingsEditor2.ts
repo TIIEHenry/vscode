@@ -68,9 +68,9 @@ import './media/settingsEditor2.css';
 import { preferencesAiResultsIcon, preferencesClearInputIcon, preferencesFilterIcon } from './preferencesIcons.js';
 import { SettingsTarget, SettingsTargetsWidget } from './preferencesWidgets.js';
 import { ISettingOverrideClickEvent } from './settingsEditorSettingIndicators.js';
-import { getCommonlyUsedData, ITOCEntry, tocData } from './settingsLayout.js';
+import { getCommonlyUsedData, getSettingsTocFilter, getTocDataForWindow, ITOCEntry } from './settingsLayout.js';
 import { SettingsSearchFilterDropdownMenuActionViewItem } from './settingsSearchMenu.js';
-import { AbstractSettingRenderer, createTocTreeForExtensionSettings, HeightChangeParams, ISettingLinkClickEvent, resolveConfiguredUntrustedSettings, resolveSettingsTree, SettingsTree, SettingTreeRenderers } from './settingsTree.js';
+import { AbstractSettingRenderer, createSettingMatchRegExp, createTocTreeForExtensionSettings, HeightChangeParams, ISettingLinkClickEvent, resolveConfiguredUntrustedSettings, resolveSettingsTree, SettingsTree, SettingTreeRenderers } from './settingsTree.js';
 import { ISettingsEditorViewState, parseQuery, SearchResultIdx, SearchResultModel, SettingsTreeElement, SettingsTreeGroupChild, SettingsTreeGroupElement, SettingsTreeModel, SettingsTreeSettingElement } from './settingsTreeModels.js';
 import { createTOCIterator, TOCTree, TOCTreeModel } from './tocTree.js';
 
@@ -1473,19 +1473,28 @@ export class SettingsEditor2 extends EditorPane {
 				coreSettingsGroups.push(group);
 			}
 		}
-		const filter = this.canShowAdvancedSettings() ? undefined : { exclude: { tags: [ADVANCED_SETTING_TAG] } };
+		const isSessionsWindow = this.environmentService.isSessionsWindow;
+		const filter = getSettingsTocFilter(isSessionsWindow, this.canShowAdvancedSettings());
 
-		const settingsResult = resolveSettingsTree(tocData, coreSettingsGroups, filter, this.logService);
+		const settingsResult = resolveSettingsTree(getTocDataForWindow(isSessionsWindow), coreSettingsGroups, filter, this.logService);
 		const resolvedSettingsRoot = settingsResult.tree;
 
 		// Warn for settings not included in layout
 		if (settingsResult.leftoverSettings.size && !this.hasWarnedMissingSettings) {
+			const chatPatterns = isSessionsWindow
+				? []
+				: (getSettingsTocFilter(false, true)?.exclude?.keyPatterns ?? []).map(createSettingMatchRegExp);
 			const settingKeyList: string[] = [];
 			settingsResult.leftoverSettings.forEach(s => {
+				if (chatPatterns.some(pattern => pattern.test(s.key))) {
+					return;
+				}
 				settingKeyList.push(s.key);
 			});
 
-			this.logService.warn(`SettingsEditor2: Settings not included in settingsLayout.ts: ${settingKeyList.join(', ')}`);
+			if (settingKeyList.length) {
+				this.logService.warn(`SettingsEditor2: Settings not included in settingsLayout.ts: ${settingKeyList.join(', ')}`);
+			}
 			this.hasWarnedMissingSettings = true;
 		}
 
