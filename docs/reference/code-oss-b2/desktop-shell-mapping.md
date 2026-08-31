@@ -48,7 +48,7 @@ StatusBar
 | Sources | 无独立格。SCM/Changes 常在 Sidebar 或 Panel | **`SOURCES_PART`**（End 下格；`contrib/sources` Files 列表投影） | Files 列表已落；ADR-051 Changes/Diff 仍 deferred |
 | Bottom Panel | `PANEL_PART` | 保留；**不进四钮** | 对齐 ADR-047 / ADR-052 决策 3 |
 | StatusBar | `STATUSBAR_PART` | 保留 | |
-| 右缘 rail | `AUXILIARYBAR_PART` | **合同默认关**（INV-052-NO-RIGHT-RAIL） | 布局类扩展爱往这里打，记入 EH 矩阵；**HEAD 仍可能被 Chat 容器**（`ViewContainerLocation.AuxiliaryBar` + `isDefault: true`）**拉开关** |
+| 右缘 rail | `AUXILIARYBAR_PART` | **合同默认关**（INV-052-NO-RIGHT-RAIL） | 布局类扩展爱往这里打，记入 EH 矩阵；Chat 容器仍挂 Aux 但 **`isDefault: false`**，出厂 hidden（M2） |
 | Titlebar | `TITLEBAR_PART`（菜单 + command center + 右上 layout controls） | **按 vscode 原生来**（2026-08-30 拍板）；四钮宿主 = 右上 layout controls 簇（原生 Sidebar/Panel/Aux 三钮同族扩展） | 不再自研顶部 chrome |
 | SessionBar | Chat 标题条 / sessions `sessionHeader` | Conversation 透镜内自研 chrome | ADR-052 NO-SUBLAYOUT |
 

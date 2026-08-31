@@ -4,14 +4,14 @@ type: progress
 status: active
 phase: M3
 updated: 2026-08-31
-summary: "M3 方案已合；roster 与部分 chat 改开 Part 已落；ChatEditor 还原/resolver 仍缺口"
+summary: "M3 两切片已落地并合入 agent-ide：ChatEditor 默认路径藏/转 + Navigator stub roster"
 ---
 
 # Development Progress
 
 ## Current Session
 
-- **M3 方案** [m3-shell-closeout.md](../plans/m3-shell-closeout.md) **`in_progress`**（可选 follow-on）：切片 2 roster `80b3f76c`；切片 1 命令转 Conversation `fd549855`。仍缺 serializer 拒还原、chat URI resolver、`openInEditor` / agentSession 进 editor。
+- **M3 方案** [m3-shell-closeout.md](../plans/m3-shell-closeout.md) **`implemented`**（可选 follow-on）：切片 1 ChatEditor 默认路径 `fd549855` + serializer/resolver/move `8ca89e3a`；切片 2 Navigator stub roster `80b3f76c`。合入 `agent-ide` `98522c4b`。无引擎。compile/启动/EH 仍 D3–D5。
 - **M2 方案** [m2-product-shell.md](../plans/m2-product-shell.md) **`implemented`**（无引擎产品壳完成线；M3 不阻塞）。
 - **M1 切片 3 Sources Files**（`156f0fe5`）：只读列表投影，点击开 End Preview。
 - **D7 四钮 chrome**（`2dcd5a0a`）：默认窗 `LayoutControlMenu` 只留 Nav / Conversation / Preview / Sources；Panel/Aux 仍在 submenu。
@@ -34,6 +34,7 @@ summary: "M3 方案已合；roster 与部分 chat 改开 Part 已落；ChatEdito
 - M0 Conversation 中心 `fc6089a3`；Sources+四钮 `b5631393`；D7 chrome `2dcd5a0a`。
 - M1 Conversation 透镜 `4f3fef65`；Sources Files 列表 `156f0fe5`。
 - M2 透镜 stub 产品面 `7822d430`；Aux hidden `9b34c1b6`。
+- M3 ChatEditor 默认路径 `8ca89e3a`；Navigator stub roster `80b3f76c`；合入 `98522c4b`。
 - Diff footprint @ `b283fe19`。
 
 ## Blockers
