@@ -410,7 +410,7 @@ suite('ConversationLens', () => {
 		assert.ok(trajectory);
 		assert.ok(!trajectory.hasAttribute('hidden'));
 		assert.strictEqual(slots.timeline.querySelector('.conversation-lens-timeline')!.hasAttribute('hidden'), true);
-		assert.strictEqual(trajectory.querySelectorAll('.conversation-lens-trajectory-row').length, 2);
+		assert.strictEqual(trajectory.querySelectorAll('.monaco-list-row').length, 2);
 		assert.ok(trajectory.textContent?.includes('First turn in trajectory'));
 		assert.strictEqual(stubService.getActiveSession().title, activeTitle);
 
@@ -433,7 +433,7 @@ suite('ConversationLens', () => {
 		historyButton.click();
 
 		const trajectory = slots.timeline.querySelector('.conversation-lens-trajectory')!;
-		const firstRow = trajectory.querySelector('.conversation-lens-trajectory-row') as HTMLElement;
+		const firstRow = trajectory.querySelector('.monaco-list-row') as HTMLElement;
 		assert.ok(firstRow);
 		firstRow.click();
 
@@ -452,7 +452,7 @@ suite('ConversationLens', () => {
 
 		const trajectory = slots.timeline.querySelector('.conversation-lens-trajectory')!;
 		assert.ok(trajectory.textContent?.includes(conversationLensSessionBarNoTrajectory));
-		assert.strictEqual(trajectory.querySelector('.conversation-lens-trajectory-row'), null);
+		assert.strictEqual(trajectory.querySelector('.monaco-list-row'), null);
 		assert.strictEqual(trajectory.querySelector('.conversation-lens-session-history-popup'), null);
 	});
 

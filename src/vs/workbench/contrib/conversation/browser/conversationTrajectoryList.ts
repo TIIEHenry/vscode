@@ -101,7 +101,7 @@ export function getConversationTurnSummary(turn: ConversationStubTurn): string {
 	if (!trimmed) {
 		return localize('conversationLens.turnEmptySummary', "(empty)");
 	}
-	return trimmed.length > 120 ? `${trimmed.slice(0, 117)}…` : trimmed;
+	return trimmed.length > 120 ? `${trimmed.slice(0, 119)}…` : trimmed;
 }
 
 /**
