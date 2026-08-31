@@ -34,6 +34,9 @@ import { ConfigurationTarget } from '../../../../../platform/configuration/commo
 import { TerminalChatAgentToolsSettingId } from '../../chatAgentTools/common/terminalChatAgentToolsConfiguration.js';
 import { IMarkdownString } from '../../../../../base/common/htmlContent.js';
 import { AbstractInlineChatAction } from '../../../inlineChat/browser/inlineChatActions.js';
+import { IsSessionsWindowContext } from '../../../../common/contextkeys.js';
+
+const terminalChatEnabledWhen = ContextKeyExpr.and(ChatContextKeys.enabled, IsSessionsWindowContext);
 
 registerActiveXtermAction({
 	id: TerminalChatCommandId.Start,
@@ -47,7 +50,7 @@ registerActiveXtermAction({
 	},
 	f1: true,
 	precondition: ContextKeyExpr.and(
-		ChatContextKeys.enabled,
+		terminalChatEnabledWhen,
 		ContextKeyExpr.or(TerminalContextKeys.processSupported, TerminalContextKeys.terminalHasBeenCreated),
 		TerminalChatContextKeys.hasChatAgent
 	),
@@ -55,7 +58,7 @@ registerActiveXtermAction({
 		id: MenuId.TerminalInstanceContext,
 		group: TerminalContextMenuGroup.Chat,
 		order: 2,
-		when: ChatContextKeys.enabled
+		when: terminalChatEnabledWhen
 	},
 	run: (_xterm, _accessor, activeInstance, opts?: unknown) => {
 		if (isDetachedTerminalInstance(activeInstance)) {
@@ -105,7 +108,7 @@ registerActiveXtermAction({
 	icon: Codicon.close,
 	f1: true,
 	precondition: ContextKeyExpr.and(
-		ChatContextKeys.enabled,
+		terminalChatEnabledWhen,
 		TerminalChatContextKeys.visible,
 	),
 	run: (_xterm, _accessor, activeInstance) => {
@@ -335,7 +338,7 @@ registerAction2(class ShowChatTerminalsAction extends Action2 {
 			title: localize2('viewHiddenChatTerminals', 'View Hidden Chat Terminals'),
 			category: localize2('terminalCategory2', 'Terminal'),
 			f1: true,
-			precondition: ContextKeyExpr.and(TerminalChatContextKeys.hasHiddenChatTerminals, ChatContextKeys.enabled),
+			precondition: ContextKeyExpr.and(TerminalChatContextKeys.hasHiddenChatTerminals, terminalChatEnabledWhen),
 			menu: [{
 				id: MenuId.ViewTitle,
 				when: ContextKeyExpr.and(TerminalChatContextKeys.hasHiddenChatTerminals, ContextKeyExpr.equals('view', ChatViewId)),
@@ -538,7 +541,7 @@ MenuRegistry.appendMenuItem(MenuId.CommandPalette, {
 		id: TerminalChatCommandId.FocusMostRecentChatTerminal,
 		title: localize('chat.focusMostRecentTerminal', 'Chat: Focus Most Recent Terminal'),
 	},
-	when: ChatContextKeys.inChatSession
+	when: ContextKeyExpr.and(ChatContextKeys.inChatSession, IsSessionsWindowContext)
 });
 
 MenuRegistry.appendMenuItem(MenuId.CommandPalette, {
@@ -546,7 +549,7 @@ MenuRegistry.appendMenuItem(MenuId.CommandPalette, {
 		id: TerminalChatCommandId.FocusMostRecentChatTerminalOutput,
 		title: localize('chat.focusMostRecentTerminalOutput', 'Chat: Focus Most Recent Terminal Output'),
 	},
-	when: ChatContextKeys.inChatSession
+	when: ContextKeyExpr.and(ChatContextKeys.inChatSession, IsSessionsWindowContext)
 });
 
 

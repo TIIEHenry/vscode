@@ -11,6 +11,7 @@ import { InputValidationType, ISCMInput, IInputValidation, ISCMViewService, SCMI
 import { IInstantiationService, ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js';
 import { IContextViewService, IContextMenuService, IOpenContextView } from '../../../../platform/contextview/browser/contextView.js';
 import { IContextKeyService, IContextKey, ContextKeyExpr, RawContextKey } from '../../../../platform/contextkey/common/contextkey.js';
+import { IsSessionsWindowContext } from '../../../common/contextkeys.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
 import { IKeybindingService } from '../../../../platform/keybinding/common/keybinding.js';
 import { MenuItemAction, IMenuService, registerAction2, MenuId, Action2 } from '../../../../platform/actions/common/actions.js';
@@ -847,6 +848,7 @@ registerAction2(class extends Action2 {
 			menu: {
 				id: MenuId.SCMInputBox,
 				when: ContextKeyExpr.and(
+					IsSessionsWindowContext,
 					ChatContextKeys.Setup.hidden.negate(),
 					ChatContextKeys.Setup.disabledInWorkspace.negate(),
 					ChatContextKeys.Setup.completed.negate(),
