@@ -22,7 +22,7 @@ import { IPaneCompositePartService } from '../../services/panecomposite/browser/
 import { ToggleAuxiliaryBarAction } from '../parts/auxiliarybar/auxiliaryBarActions.js';
 import { TogglePanelAction } from '../parts/panel/panelActions.js';
 import { ICommandService } from '../../../platform/commands/common/commands.js';
-import { AuxiliaryBarVisibleContext, PanelAlignmentContext, PanelVisibleContext, SideBarVisibleContext, FocusedViewContext, InEditorZenModeContext, IsMainEditorCenteredLayoutContext, MainEditorAreaVisibleContext, ConversationVisibleContext, SourcesVisibleContext, IsMainWindowFullscreenContext, IsAuxiliaryWindowFocusedContext, IsSessionsWindowContext, TitleBarStyleContext, IsAuxiliaryWindowContext, CustomMenuBarVisibleContext } from '../../common/contextkeys.js';
+import { AuxiliaryBarVisibleContext, PanelAlignmentContext, PanelVisibleContext, SideBarVisibleContext, FocusedViewContext, InEditorZenModeContext, IsMainEditorCenteredLayoutContext, MainEditorAreaVisibleContext, ConversationVisibleContext, SourcesVisibleContext, IsMainWindowFullscreenContext, IsAuxiliaryWindowFocusedContext, IsSessionsWindowContext, TitleBarStyleContext, IsAuxiliaryWindowContext, CustomMenuBarVisibleContext, EditorPartModalContext } from '../../common/contextkeys.js';
 import { Codicon } from '../../../base/common/codicons.js';
 import { ThemeIcon } from '../../../base/common/themables.js';
 import { DisposableStore } from '../../../base/common/lifecycle.js';
@@ -284,6 +284,45 @@ MenuRegistry.appendMenuItem(MenuId.LayoutControlMenuSubmenu, {
 		title: localize('preview', "Preview")
 	},
 	order: 2
+});
+
+const previewEditorTitleHideWhen = ContextKeyExpr.and(
+	IsAuxiliaryWindowContext.negate(),
+	IsSessionsWindowContext.negate(),
+);
+
+MenuRegistry.appendMenuItem(MenuId.EditorTitle, {
+	group: 'navigation',
+	command: {
+		id: ToggleEditorVisibilityActionId,
+		title: localize('showPreview', "Show Preview"),
+		icon: Codicon.remove,
+		toggled: {
+			condition: MainEditorAreaVisibleContext,
+			title: localize('hidePreview', "Hide Preview"),
+			icon: Codicon.remove,
+		},
+	},
+	when: ContextKeyExpr.and(
+		previewEditorTitleHideWhen,
+		MainEditorAreaVisibleContext,
+		EditorPartModalContext.toNegated(),
+	),
+	order: 1000001,
+});
+
+MenuRegistry.appendMenuItem(MenuId.EditorTitleContext, {
+	group: '10_workbench_layout',
+	command: {
+		id: ToggleEditorVisibilityActionId,
+		title: localize('showPreview', "Show Preview"),
+		toggled: {
+			condition: MainEditorAreaVisibleContext,
+			title: localize('hidePreview', "Hide Preview"),
+		},
+	},
+	when: previewEditorTitleHideWhen,
+	order: 10,
 });
 
 export const ToggleConversationVisibilityActionId = 'workbench.action.toggleConversation';

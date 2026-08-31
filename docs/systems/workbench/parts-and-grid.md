@@ -80,7 +80,7 @@ VERTICAL
 | `ACTIVITYBAR_PART` | `setActivityBarHidden` | 可独立藏 |
 | `STATUSBAR_PART` | 对应 hidden key | 可独立藏 |
 
-不变量是 **Conversation ∨ (Editor ∨ Sources)**（INV-052-NO-DUAL-HIDE；`forceShownAgentShellPart`）。命令：`workbench.action.toggleConversation`、`workbench.action.toggleEditorVisibility`、`workbench.action.toggleSources`；四钮经 `LayoutControlMenu` 注册。各 Agent shell 区域另有本地 **hide (−)** 控件（`ConversationPart` overlay、`SourcesPart` title），经 `setPartHidden(true, …)` 走同一 layout 路径。
+不变量是 **Conversation ∨ (Editor ∨ Sources)**（INV-052-NO-DUAL-HIDE；`forceShownAgentShellPart`）。命令：`workbench.action.toggleConversation`、`workbench.action.toggleEditorVisibility`、`workbench.action.toggleSources`；四钮经 `LayoutControlMenu` 注册。各 Agent shell 区域另有本地 **hide (−)**：Conversation / Sources 为 part 内 − 控件；Preview（`EDITOR_PART`）无原生 part chrome，本地 hide 为 editor title 上的 `MenuId.EditorTitle` / `EditorTitleContext` 动作（`Hide Preview` / `Show Preview`），均经 `setPartHidden` 走同一 layout 路径。
 
 CSS class：`LayoutClasses.MAIN_EDITOR_AREA_HIDDEN` / `CONVERSATION_HIDDEN` 等，随 `getLayoutClasses()` 打在 `mainContainer`。
 
