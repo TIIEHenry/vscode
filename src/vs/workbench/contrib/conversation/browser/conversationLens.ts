@@ -157,7 +157,7 @@ export class ConversationLens extends Disposable {
 		this.dockTextarea = append(inputRow, $('textarea.conversation-lens-dock-input')) as HTMLTextAreaElement;
 		this.dockTextarea.setAttribute('aria-label', localize('conversationLens.dockInput', "Message"));
 		this.dockTextarea.placeholder = localize('conversationLens.dockPlaceholder', "Ask anything…");
-		this.dockTextarea.rows = 3;
+		this.dockTextarea.rows = 1;
 
 		const actions = append(inputRow, $('.conversation-lens-dock-actions'));
 		this.sendButton = this._register(new Button(actions, defaultButtonStyles));
