@@ -116,6 +116,7 @@ suite('ChatSetupContributions - default window chrome (INV-NO-COPILOT)', () => {
 		}()));
 		instantiationService.stub(IEnvironmentService, testDisposables.add(new class extends mock<IEnvironmentService>() {
 			override get isExtensionDevelopment() { return false; }
+			override get isSessionsWindow() { return false; }
 		}()));
 		instantiationService.stub(IConfigurationService, testDisposables.add(new TestConfigurationService()));
 
@@ -157,6 +158,45 @@ suite('ChatSetupContributions - default window chrome (INV-NO-COPILOT)', () => {
 			evalWhen(item.when, defaultWindow),
 			false,
 			'default Code window must hide title bar sign-in entry'
+		);
+	});
+
+	test('default Code window hides Copilot upgrade and budget title bar menu items', () => {
+		const quotaExceeded: Record<string, ContextKeyValue> = {
+			[ChatContextKeys.chatQuotaExceeded.key]: true,
+		};
+		const upgradeItem = getMenuItem(MenuId.ChatTitleBarMenu, 'workbench.action.chat.upgradePlan');
+		const budgetItem = getMenuItem(MenuId.ChatTitleBarMenu, 'workbench.action.chat.manageAdditionalSpend');
+		assert.ok(upgradeItem?.when, 'upgrade plan menu item should have a when clause');
+		assert.ok(budgetItem?.when, 'manage budget menu item should have a when clause');
+
+		const freePlan: Record<string, ContextKeyValue> = {
+			...setupReady,
+			[IsSessionsWindowContext.key]: true,
+			[ChatContextKeys.Entitlement.planFree.key]: true,
+			...quotaExceeded,
+		};
+		const proPlan: Record<string, ContextKeyValue> = {
+			...setupReady,
+			[IsSessionsWindowContext.key]: true,
+			[ChatContextKeys.Entitlement.planPro.key]: true,
+			...quotaExceeded,
+		};
+
+		assert.strictEqual(
+			evalWhen(upgradeItem!.when, { ...freePlan, [IsSessionsWindowContext.key]: false }),
+			false,
+			'default Code window must hide upgrade plan title bar menu item'
+		);
+		assert.strictEqual(
+			evalWhen(budgetItem!.when, { ...proPlan, [IsSessionsWindowContext.key]: false }),
+			false,
+			'default Code window must hide manage budget title bar menu item'
+		);
+		assert.strictEqual(
+			evalWhen(upgradeItem!.when, freePlan),
+			true,
+			'Agents Window may show upgrade plan title bar menu item'
 		);
 	});
 });

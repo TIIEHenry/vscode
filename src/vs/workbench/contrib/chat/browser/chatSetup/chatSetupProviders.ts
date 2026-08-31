@@ -875,10 +875,15 @@ export class AINewSymbolNamesProvider {
 		private readonly controller: Lazy<ChatSetupController>,
 		@IInstantiationService private readonly instantiationService: IInstantiationService,
 		@IChatEntitlementService private readonly chatEntitlementService: IChatEntitlementService,
+		@IWorkbenchEnvironmentService private readonly environmentService: IWorkbenchEnvironmentService,
 	) {
 	}
 
 	async provideNewSymbolNames(model: ITextModel, range: IRange, triggerKind: NewSymbolNameTriggerKind, token: CancellationToken): Promise<NewSymbolName[] | undefined> {
+		if (!this.environmentService.isSessionsWindow) {
+			return [];
+		}
+
 		await this.instantiationService.invokeFunction(accessor => {
 			return ChatSetup.getInstance(this.instantiationService, this.context, this.controller).run({
 				forceAnonymous: this.chatEntitlementService.anonymous ? ChatSetupAnonymous.EnabledWithDialog : undefined
