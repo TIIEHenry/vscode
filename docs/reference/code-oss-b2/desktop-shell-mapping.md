@@ -49,7 +49,7 @@ StatusBar
 | Bottom Panel | `PANEL_PART` | 保留；**不进四钮** | 对齐 ADR-047 / ADR-052 决策 3 |
 | StatusBar | `STATUSBAR_PART` | 保留 | |
 | 右缘 rail | `AUXILIARYBAR_PART` | **合同默认关**（INV-052-NO-RIGHT-RAIL） | 布局类扩展爱往这里打，记入 EH 矩阵；Chat 容器仍挂 Aux 但 **`isDefault: false`**，出厂 hidden（M2） |
-| Titlebar | `TITLEBAR_PART`（菜单 + command center + 右上 layout controls） | **按 vscode 原生来**（2026-08-30 拍板）；四钮宿主 = 右上 layout controls 簇（原生 Sidebar/Panel/Aux 三钮同族扩展） | 不再自研顶部 chrome |
+| Titlebar | `TITLEBAR_PART`（菜单 + command center + 右上 layout controls） | **按 vscode 原生来**（2026-08-30 拍板）；四钮宿主 = 右上 layout controls 簇（**Navigator / Conversation / Preview / Sources** 产品名；Panel / Aux 仅在 submenu） | 不再自研顶部 chrome |
 | SessionBar | Chat 标题条 / sessions `sessionHeader` | Conversation 透镜内自研 chrome | ADR-052 NO-SUBLAYOUT |
 
 **默认窗口 vs Agents Window（右缘 rail，2026-08-31）**：产品 Conversation 宿主是 `CONVERSATION_PART`，不是 Copilot `contrib/chat` 的 Auxiliary Bar 视图。`workbench.panel.chat` 仍以 donor 身份注册在 `AUXILIARYBAR_PART`，但 **`isDefault: false`**，且 `LayoutStateKeys.AUXILIARYBAR_HIDDEN`（`auxiliaryBar.hidden`，出厂 `true`）在 fresh layout 下不再因 Copilot「新用户 / visibleInWorkspace」逻辑自动展开右栏；用户显式打开或 workspace 持久化可见时才显示。Command Palette / Views 仍可打开 Chat 调试。
@@ -65,7 +65,7 @@ StatusBar
 | Prev | `toggleRegion('preview')` | `workbench.action.toggleEditorVisibility` → `setPartHidden(EDITOR_PART)`；**已注册** `LayoutControlMenu` | 不再强制开 Panel |
 | Src | `toggleRegion('sources')` | `workbench.action.toggleSources` → `setPartHidden(SOURCES_PART)`；**已注册** `LayoutControlMenu` | Files 列表已落；Changes tab 未做；不能用底边细条（ADR-052 已废） |
 
-> **HEAD（M1）**：默认窗口已有 Conversation 透镜骨架 + End 列（Editor 上 / Sources Files 列表下）+ titlebar 产品四钮（D7：主簇仅 Nav / Conversation / Preview / Sources）。**compile / 启动演示 / EH 探针仍 deferred** → [deferred-gaps](../../../dev/progress/deferred-gaps.md)。
+> **HEAD（M1）**：默认窗口已有 Conversation 透镜骨架 + End 列（Editor 上 / Sources Files 列表下）+ titlebar 产品四钮（D7：主簇仅 **Navigator / Conversation / Preview / Sources** 标签；Panel / Aux 退 submenu）。**compile / 启动演示 / EH 探针仍 deferred** → [deferred-gaps](../../../dev/progress/deferred-gaps.md)。
 
 `INV-052-NO-DUAL-HIDE`：Conversation ∨ Workbench(Preview∨Sources) 至少一个可见。  
 本仓默认（M0）：**Conversation ∨ (Editor ∨ Sources)** 至少一个可见（`forceShownAgentShellPart`）。Panel 不进此公式。

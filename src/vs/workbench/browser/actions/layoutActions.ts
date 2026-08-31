@@ -281,7 +281,7 @@ MenuRegistry.appendMenuItem(MenuId.LayoutControlMenuSubmenu, {
 	group: '0_workbench_layout',
 	command: {
 		id: ToggleEditorVisibilityActionId,
-		title: localize('togglePreview', "Toggle Preview")
+		title: localize('preview', "Preview")
 	},
 	order: 2
 });
@@ -301,18 +301,11 @@ registerAction2(class extends Action2 {
 			f1: true,
 			toggled: ConversationVisibleContext,
 			precondition: ContextKeyExpr.and(IsAuxiliaryWindowFocusedContext.toNegated(), IsSessionsWindowContext.negate()),
-			menu: [
-				{
-					id: MenuId.LayoutControlMenuSubmenu,
-					group: '0_workbench_layout',
-					order: 1
-				},
-				{
-					id: MenuId.MenubarAppearanceMenu,
-					group: '2_workbench_layout',
-					order: 2
-				}
-			]
+			menu: [{
+				id: MenuId.MenubarAppearanceMenu,
+				group: '2_workbench_layout',
+				order: 2
+			}]
 		});
 	}
 
@@ -324,6 +317,15 @@ registerAction2(class extends Action2 {
 			? localize('conversationHidden', "Conversation hidden")
 			: localize('conversationShown', "Conversation shown"));
 	}
+});
+
+MenuRegistry.appendMenuItem(MenuId.LayoutControlMenuSubmenu, {
+	group: '0_workbench_layout',
+	command: {
+		id: ToggleConversationVisibilityActionId,
+		title: localize('conversation', "Conversation")
+	},
+	order: 1
 });
 
 export const ToggleSourcesVisibilityActionId = 'workbench.action.toggleSources';
@@ -341,18 +343,11 @@ registerAction2(class extends Action2 {
 			f1: true,
 			toggled: SourcesVisibleContext,
 			precondition: ContextKeyExpr.and(IsAuxiliaryWindowFocusedContext.toNegated(), IsSessionsWindowContext.negate()),
-			menu: [
-				{
-					id: MenuId.LayoutControlMenuSubmenu,
-					group: '0_workbench_layout',
-					order: 3
-				},
-				{
-					id: MenuId.MenubarAppearanceMenu,
-					group: '2_workbench_layout',
-					order: 3
-				}
-			]
+			menu: [{
+				id: MenuId.MenubarAppearanceMenu,
+				group: '2_workbench_layout',
+				order: 3
+			}]
 		});
 	}
 
@@ -364,6 +359,15 @@ registerAction2(class extends Action2 {
 			? localize('sourcesHidden', "Sources hidden")
 			: localize('sourcesShown', "Sources shown"));
 	}
+});
+
+MenuRegistry.appendMenuItem(MenuId.LayoutControlMenuSubmenu, {
+	group: '0_workbench_layout',
+	command: {
+		id: ToggleSourcesVisibilityActionId,
+		title: localize('sources', "Sources")
+	},
+	order: 3
 });
 
 MenuRegistry.appendMenuItem(MenuId.MenubarViewMenu, {
@@ -387,7 +391,7 @@ export class ToggleSidebarVisibilityAction extends Action2 {
 			title: localize2('toggleSidebar', 'Toggle Primary Side Bar Visibility'),
 			toggled: {
 				condition: SideBarVisibleContext,
-				title: localize('primary sidebar', "Primary Side Bar"),
+				title: localize('navigator', "Navigator"),
 				mnemonicTitle: localize({ key: 'primary sidebar mnemonic', comment: ['&& denotes a mnemonic'] }, "&&Primary Side Bar"),
 			},
 			metadata: {
@@ -399,18 +403,11 @@ export class ToggleSidebarVisibilityAction extends Action2 {
 				weight: KeybindingWeight.WorkbenchContrib,
 				primary: KeyMod.CtrlCmd | KeyCode.KeyB
 			},
-			menu: [
-				{
-					id: MenuId.LayoutControlMenuSubmenu,
-					group: '0_workbench_layout',
-					order: 0
-				},
-				{
-					id: MenuId.MenubarAppearanceMenu,
-					group: '2_workbench_layout',
-					order: 1
-				}
-			]
+			menu: [{
+				id: MenuId.MenubarAppearanceMenu,
+				group: '2_workbench_layout',
+				order: 1
+			}]
 		});
 	}
 
@@ -422,13 +419,22 @@ export class ToggleSidebarVisibilityAction extends Action2 {
 
 		// Announce visibility change to screen readers
 		const alertMessage = isCurrentlyVisible
-			? localize('sidebarHidden', "Primary Side Bar hidden")
-			: localize('sidebarVisible', "Primary Side Bar shown");
+			? localize('navigatorHidden', "Navigator hidden")
+			: localize('navigatorShown', "Navigator shown");
 		alert(alertMessage);
 	}
 }
 
 registerAction2(ToggleSidebarVisibilityAction);
+
+MenuRegistry.appendMenuItem(MenuId.LayoutControlMenuSubmenu, {
+	group: '0_workbench_layout',
+	command: {
+		id: ToggleSidebarVisibilityAction.ID,
+		title: localize('navigator', "Navigator")
+	},
+	order: 0
+});
 
 MenuRegistry.appendMenuItems([
 	{
@@ -448,9 +454,9 @@ MenuRegistry.appendMenuItems([
 			group: 'navigation',
 			command: {
 				id: ToggleSidebarVisibilityAction.ID,
-				title: localize('toggleSideBar', "Toggle Primary Side Bar"),
+				title: localize('navigator', "Navigator"),
 				icon: panelLeftOffIcon,
-				toggled: { condition: SideBarVisibleContext, icon: panelLeftIcon }
+				toggled: { condition: SideBarVisibleContext, icon: panelLeftIcon, title: localize('navigator', "Navigator") }
 			},
 			when: ContextKeyExpr.and(
 				IsAuxiliaryWindowContext.negate(),
@@ -467,9 +473,9 @@ MenuRegistry.appendMenuItems([
 			group: 'navigation',
 			command: {
 				id: ToggleSidebarVisibilityAction.ID,
-				title: localize('toggleSideBar', "Toggle Primary Side Bar"),
+				title: localize('navigator', "Navigator"),
 				icon: panelRightOffIcon,
-				toggled: { condition: SideBarVisibleContext, icon: panelRightIcon }
+				toggled: { condition: SideBarVisibleContext, icon: panelRightIcon, title: localize('navigator', "Navigator") }
 			},
 			when: ContextKeyExpr.and(
 				IsAuxiliaryWindowContext.negate(),
@@ -486,9 +492,9 @@ MenuRegistry.appendMenuItems([
 			group: 'navigation',
 			command: {
 				id: ToggleConversationVisibilityActionId,
-				title: localize('toggleConversationLayout', "Toggle Conversation"),
+				title: localize('conversation', "Conversation"),
 				icon: conversationLayoutIcon,
-				toggled: { condition: ConversationVisibleContext, icon: conversationLayoutIcon }
+				toggled: { condition: ConversationVisibleContext, icon: conversationLayoutIcon, title: localize('conversation', "Conversation") }
 			},
 			when: ContextKeyExpr.and(
 				IsAuxiliaryWindowContext.negate(),
@@ -504,9 +510,9 @@ MenuRegistry.appendMenuItems([
 			group: 'navigation',
 			command: {
 				id: ToggleEditorVisibilityActionId,
-				title: localize('togglePreviewLayout', "Toggle Preview"),
+				title: localize('preview', "Preview"),
 				icon: previewLayoutIcon,
-				toggled: { condition: MainEditorAreaVisibleContext, icon: previewLayoutIcon }
+				toggled: { condition: MainEditorAreaVisibleContext, icon: previewLayoutIcon, title: localize('preview', "Preview") }
 			},
 			when: ContextKeyExpr.and(
 				IsAuxiliaryWindowContext.negate(),
@@ -522,9 +528,9 @@ MenuRegistry.appendMenuItems([
 			group: 'navigation',
 			command: {
 				id: ToggleSourcesVisibilityActionId,
-				title: localize('toggleSourcesLayout', "Toggle Sources"),
+				title: localize('sources', "Sources"),
 				icon: sourcesLayoutIcon,
-				toggled: { condition: SourcesVisibleContext, icon: sourcesLayoutIcon }
+				toggled: { condition: SourcesVisibleContext, icon: sourcesLayoutIcon, title: localize('sources', "Sources") }
 			},
 			when: ContextKeyExpr.and(
 				IsAuxiliaryWindowContext.negate(),
@@ -1510,7 +1516,7 @@ if (!isMacintosh || !isNative) {
 
 ToggleVisibilityActions.push(...[
 	CreateToggleLayoutItem(ToggleActivityBarVisibilityActionId, ContextKeyExpr.notEquals('config.workbench.activityBar.location', 'hidden'), localize('activityBar', "Activity Bar"), { whenA: ContextKeyExpr.equals('config.workbench.sideBar.location', 'left'), iconA: activityBarLeftIcon, iconB: activityBarRightIcon }),
-	CreateToggleLayoutItem(ToggleSidebarVisibilityAction.ID, SideBarVisibleContext, localize('sideBar', "Primary Side Bar"), { whenA: ContextKeyExpr.equals('config.workbench.sideBar.location', 'left'), iconA: panelLeftIcon, iconB: panelRightIcon }),
+	CreateToggleLayoutItem(ToggleSidebarVisibilityAction.ID, SideBarVisibleContext, localize('navigator', "Navigator"), { whenA: ContextKeyExpr.equals('config.workbench.sideBar.location', 'left'), iconA: panelLeftIcon, iconB: panelRightIcon }),
 	CreateToggleLayoutItem(ToggleConversationVisibilityActionId, ConversationVisibleContext, localize('conversation', "Conversation"), conversationLayoutIcon),
 	CreateToggleLayoutItem(ToggleEditorVisibilityActionId, MainEditorAreaVisibleContext, localize('preview', "Preview"), previewLayoutIcon),
 	CreateToggleLayoutItem(ToggleSourcesVisibilityActionId, SourcesVisibleContext, localize('sources', "Sources"), sourcesLayoutIcon),

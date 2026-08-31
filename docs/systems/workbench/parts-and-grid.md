@@ -61,7 +61,7 @@ VERTICAL
 - Activity 在 **middleSection**，上接 TitleBar、下接 StatusBar → **rail 碰到 StatusBar**，与 ADR-052「通高到 StatusBar」同几何量级。
 - 默认 **底 Panel 与 Conversation 同枝**，不钻到 Activity 底下（Activity 是更外层水平邻居）。这与 ADR-052「Bottom Panel 不钻 Activity」一致。
 - Activity **不是** 第四 root；它仍是 middle 的一个叶。
-- Activity **默认没有**「底栏四钮」。四钮是 Desktop chrome，宿主在 titlebar 右上 `LayoutControlMenu`（Nav / Conversation / Preview / Sources），与原生 Sidebar/Panel/Aux 三钮同族。
+- Activity **默认没有**「底栏四钮」。四钮是 Desktop chrome，宿主在 titlebar 右上 `LayoutControlMenu`（**Navigator / Conversation / Preview / Sources** 产品名；Panel / Aux 仅在 submenu）。
 
 `workbench.activityBar.location` 可把 Activity 藏进 Sidebar 顶或关：改壳时这是 EH/`viewsContainers` 的冲突面，见 [eh-surface-notes](../../reference/code-oss-b2/eh-surface-notes.md)。
 
@@ -102,7 +102,7 @@ CSS class：`LayoutClasses.MAIN_EDITOR_AREA_HIDDEN` / `CONVERSATION_HIDDEN` 等�
 2. **`getVisibleNeighborPart`** — 白名单已含 `CONVERSATION_PART`。
 3. **互斥** — `setEditorHidden` / `setConversationHidden` / `setSourcesHidden` / `enforceAgentShellVisible`：Conversation ∨ (Editor ∨ Sources)。Panel 不再被强制弹出。
 4. **注册** — `Parts.CONVERSATION_PART` / `SOURCES_PART`；`ConversationPart` / `SourcesPart` eager singleton；`createWorkbenchLayout` view map；`workbench.ts` `createPart` 循环。
-5. **四钮（D7）** — `layoutActions.ts`：主簇 `LayoutControlMenu` 仅 Nav / Conversation / Preview / Sources；Panel / Aux 退到 `LayoutControlMenuSubmenu`。
+5. **四钮（D7）** — `layoutActions.ts`：主簇 `LayoutControlMenu` 仅 **Navigator / Conversation / Preview / Sources**（产品名标签）；Panel / Aux 退到 `LayoutControlMenuSubmenu`。
 6. **Conversation 透镜** — `contrib/conversation`：`ConversationLens` 填 SessionBar / stub 时间线 / stub dock 槽；非 `ChatEditor` / `ChatViewPane`。
 7. **Sources Files** — `contrib/sources`：`SourcesFilesList` 只读列表投影；点击 `IEditorService.openEditor` 落 End 上格 Preview。
 8. **storage keys** — `workbench.conversation.hidden`、`workbench.sources.hidden`（runtime）、`workbench.editor.size` / `workbench.sources.size`（End 列）。Workbench grid 每次启动从描述符重建，不读旧 grid JSON。
