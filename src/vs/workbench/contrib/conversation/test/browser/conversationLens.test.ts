@@ -26,6 +26,9 @@ import {
 	conversationLensDockInboxQueueLabel,
 	conversationLensDockInboxTaskLabel,
 	conversationLensDockMaximizeInput,
+	conversationLensDockMicNotAvailable,
+	conversationLensDockMicStopTitle,
+	conversationLensDockMicTitle,
 	conversationLensDockNoAttachments,
 	conversationLensDockNoGoal,
 	conversationLensDockNoModel,
@@ -47,7 +50,10 @@ import {
 	conversationLensPrefirstHeroClass,
 	conversationLensInboxQueueEditingTag,
 	conversationLensInboxQueuePause,
+	conversationLensVoiceStubPhraseOne,
+	conversationLensVoiceTranscriptLabel,
 } from '../../browser/conversationLensDockStrings.js';
+import { conversationLensVoiceTranscriptBarClass } from '../../browser/conversationVoiceTranscriptBar.js';
 import { conversationLensSessionBarConversationTab, conversationLensSessionBarDeleteSession, conversationLensSessionBarNewSession, conversationLensSessionBarNoTrajectory, conversationLensSessionBarRenameTitle, conversationLensSessionBarRouteLabel, conversationLensSessionBarTrajectoryTab, conversationLensPinnedUserPromptAria, conversationLensPinnedUserPromptCopyAria } from '../../browser/conversationLensSessionBarStrings.js';
 import { ConversationStubService, IConversationRosterService } from '../../browser/conversationStubService.js';
 import { conversationIdentityStripClass } from '../../browser/conversationIdentityStrip.js';
@@ -253,6 +259,23 @@ suite('ConversationLens', () => {
 			}
 		}
 		return null;
+	}
+
+	function getDockMicButton(slots: IConversationLensSlots): HTMLButtonElement {
+		const button = (slots.dock.querySelector('.conversation-lens-dock-mic .monaco-button')
+			?? getReadingColumn(slots).querySelector('.conversation-lens-dock-mic .monaco-button')) as HTMLButtonElement | null;
+		assert.ok(button);
+		return button;
+	}
+
+	function getVoiceTranscriptBar(slots: IConversationLensSlots): HTMLElement | null {
+		return (slots.dock.querySelector(`.${conversationLensVoiceTranscriptBarClass}`)
+			?? getReadingColumn(slots).querySelector(`.${conversationLensVoiceTranscriptBarClass}`)) as HTMLElement | null;
+	}
+
+	function isVoiceTranscriptBarVisible(slots: IConversationLensSlots): boolean {
+		const bar = getVoiceTranscriptBar(slots);
+		return !!bar && !bar.hidden;
 	}
 
 	function getComposerBottomBar(slots: IConversationLensSlots): HTMLElement {
@@ -1655,6 +1678,72 @@ suite('ConversationLens', () => {
 		assert.strictEqual(countComposers(slots), 1);
 		assert.ok(slots.dock.querySelector('.conversation-lens-composer'));
 		assert.strictEqual(slots.dock.querySelector('.conversation-lens-composer--edit'), null);
+	});
+
+	test('T6 Voice: mic left of Send, disabled without engine, stub transcript bar separate from inbox queue', async () => {
+		const { part, stubService } = mountLens();
+		const slots = part.getSlots()!;
+		const sessionId = stubService.createSession();
+		sendDockDraft(slots, 'seed active composer');
+
+		const trailing = getComposerBottomBar(slots).querySelector('.conversation-lens-dock-bottom-trailing')!;
+		const children = Array.from(trailing.children).map(node => (node as HTMLElement).className);
+		const micIndex = children.findIndex(name => name.includes('conversation-lens-dock-mic'));
+		const sendIndex = children.findIndex(name => name.includes('conversation-lens-dock-send'));
+		assert.ok(micIndex >= 0 && sendIndex >= 0);
+		assert.strictEqual(sendIndex - micIndex, 1);
+
+		const micButton = getDockMicButton(slots);
+		assert.strictEqual(micButton.getAttribute('aria-disabled'), 'true');
+		assert.strictEqual(isVoiceTranscriptBarVisible(slots), false);
+
+		stubService.setEngineConnected(true);
+		assert.strictEqual(getDockMicButton(slots).getAttribute('aria-disabled'), 'false');
+
+		stubService.setMessageQueueFixture(sessionId, {
+			items: [{ id: 'q1', content: 'Queued item', status: 'PENDING', hold: undefined, uploadProgress: undefined, retryCount: 0, lastError: undefined, locked: false, pinned: false }],
+			isPaused: false,
+			isProcessing: false,
+		});
+
+		getDockMicButton(slots).click();
+		const voiceBar = getVoiceTranscriptBar(slots);
+		assert.ok(voiceBar);
+		assert.strictEqual(isVoiceTranscriptBarVisible(slots), true);
+		assert.strictEqual(voiceBar!.getAttribute('aria-label'), conversationLensVoiceTranscriptLabel);
+		assert.ok(voiceBar!.querySelector('.conversation-lens-voice-transcript-row-status')?.textContent?.includes('Recording'));
+		assert.strictEqual(getVisibleInboxListPanel(), null);
+		getInboxQueueChip(slots).click();
+		const queuePanel = getVisibleInboxListPanel();
+		assert.ok(queuePanel);
+		assert.strictEqual(queuePanel!.querySelector(`.${conversationLensVoiceTranscriptBarClass}`), null);
+		assert.ok(!queuePanel!.textContent?.includes(conversationLensVoiceTranscriptLabel));
+
+		getDockMicButton(slots).click();
+		assert.ok(getVoiceTranscriptBar(slots)?.querySelector('.conversation-lens-voice-transcript-row-status')?.textContent?.includes('Transcribing'));
+
+		await new Promise<void>(resolve => setTimeout(resolve, 50));
+		assert.strictEqual(isVoiceTranscriptBarVisible(slots), false);
+		assert.strictEqual(getDockTextarea(slots).value, conversationLensVoiceStubPhraseOne);
+
+		stubService.setEngineConnected(false);
+		assert.strictEqual(getDockMicButton(slots).getAttribute('aria-disabled'), 'true');
+		assert.strictEqual(getDockMicButton(slots).getAttribute('aria-label'), `${conversationLensDockMicTitle} — ${conversationLensDockMicNotAvailable}`);
+	});
+
+	test('T6 Voice: recording mic uses filled surface and stop title', () => {
+		const { part, stubService } = mountLens();
+		const slots = part.getSlots()!;
+		stubService.createSession();
+		stubService.setEngineConnected(true);
+
+		const micButton = getDockMicButton(slots);
+		assert.ok(micButton.classList.contains('conversation-lens-dock-control--ghost'));
+		assert.strictEqual(micButton.getAttribute('aria-label'), conversationLensDockMicTitle);
+
+		micButton.click();
+		assert.ok(micButton.classList.contains('conversation-lens-dock-control--filled'));
+		assert.strictEqual(micButton.getAttribute('aria-label'), conversationLensDockMicStopTitle);
 	});
 
 	test('dock input history recalls sent user drafts with ArrowUp and ArrowDown on empty composer', () => {

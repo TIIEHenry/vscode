@@ -39,7 +39,16 @@ export const conversationLensDockTemplatesTitle = localize('conversationLens.doc
 export const conversationLensDockNoTemplates = localize('conversationLens.dockNoTemplates', "No templates");
 export const conversationLensDockMaximizeInput = localize('conversationLens.dockMaximizeInput', "Maximize input");
 export const conversationLensDockMicTitle = localize('conversationLens.dockMicTitle', "Voice input");
+export const conversationLensDockMicStopTitle = localize('conversationLens.dockMicStopTitle', "Stop voice clip");
 export const conversationLensDockMicNotAvailable = localize('conversationLens.dockMicNotAvailable', "Voice input unavailable without engine");
+export const conversationLensVoiceTranscriptLabel = localize('conversationLens.voiceTranscriptLabel', "Voice");
+export const conversationLensVoiceRecording = localize('conversationLens.voiceRecording', "Recording");
+export const conversationLensVoiceTranscribing = localize('conversationLens.voiceTranscribing', "Transcribing");
+export const conversationLensVoiceTranscribingDetail = localize('conversationLens.voiceTranscribingDetail', "text lands in the input when ready");
+export const conversationLensVoiceTranscriptHint = localize('conversationLens.voiceTranscriptHint', "Stop a clip, then tap mic again without waiting. Segments append in order.");
+export const conversationLensVoiceStubPhraseOne = localize('conversationLens.voiceStubPhraseOne', "Stub voice segment one");
+export const conversationLensVoiceStubPhraseTwo = localize('conversationLens.voiceStubPhraseTwo', "Stub voice segment two");
+export const conversationLensVoiceStubPhraseThree = localize('conversationLens.voiceStubPhraseThree', "Stub voice segment three");
 /** Composer bottom-bar control hit height (px). */
 export const conversationLensDockControlHeightPx = 32;
 export const conversationLensDockRestoreTimeline = localize('conversationLens.dockRestoreTimeline', "Restore timeline");
