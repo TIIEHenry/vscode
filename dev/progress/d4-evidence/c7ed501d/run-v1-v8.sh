@@ -50,7 +50,31 @@ run_cmd_id() {
   pw type "$cmd_id"
   sleep 0.4
   pw press Enter
-  sleep 1
+  sleep 0.5
+  # Dismiss blocking alert() from layout toggle actions
+  pw press Enter 2>/dev/null || true
+  sleep 0.5
+}
+
+click_layout_toggle() {
+  local label="$1"
+  pw eval "
+(() => {
+  const buttons = [...document.querySelectorAll('.part.titlebar .monaco-toolbar button[aria-label]')];
+  const match = buttons.find(b => (b.getAttribute('aria-label') || '').startsWith('${label}'));
+  if (!match) return { clicked: false, label: '${label}' };
+  match.click();
+  return { clicked: true, label: '${label}' };
+})()" --raw 2>/dev/null
+  sleep 0.5
+  pw press Enter 2>/dev/null || true
+  sleep 0.5
+}
+
+toggle_four_layout_buttons() {
+  for label in Navigator Conversation Preview Sources; do
+    click_layout_toggle "$label"
+  done
 }
 
 run_palette() {
@@ -72,44 +96,39 @@ echo "$V1" | tee "$EVIDENCE_DIR/v1-layout.json"
 pw screenshot --filename="$EVIDENCE_DIR/screenshots/v1-fresh.png" 2>/dev/null || true
 
 echo "=== V2 toggle Nav / Conversation / Preview / Sources ==="
-for label in \
-  "View: Toggle Primary Side Bar Visibility" \
-  "View: Toggle Conversation Visibility" \
-  "View: Toggle Editor Area Visibility" \
-  "View: Toggle Sources Visibility"; do
-  run_palette "$label"
-  sleep 0.5
-done
+toggle_four_layout_buttons
 V2=$(get_layout)
 echo "$V2" | tee "$EVIDENCE_DIR/v2-after-toggles.json"
 pw screenshot --filename="$EVIDENCE_DIR/screenshots/v2-toggles.png" 2>/dev/null || true
 
 echo "=== V3 hide Preview only ==="
-run_palette "View: Toggle Editor Area Visibility"
+run_cmd_id workbench.action.toggleEditorVisibility
 sleep 1
 V3=$(get_layout)
 echo "$V3" | tee "$EVIDENCE_DIR/v3-hide-preview.json"
 pw screenshot --filename="$EVIDENCE_DIR/screenshots/v3-hide-preview.png" 2>/dev/null || true
 
 echo "=== V4 maximize panel then restore ==="
-run_palette "View: Toggle Maximized Panel"
+run_cmd_id workbench.action.toggleMaximizedPanel
 sleep 1
 V4max=$(get_layout)
 echo "$V4max" | tee "$EVIDENCE_DIR/v4-maximized.json"
-run_palette "View: Toggle Maximized Panel"
+run_cmd_id workbench.action.toggleMaximizedPanel
 sleep 1
 V4=$(get_layout)
 echo "$V4" | tee "$EVIDENCE_DIR/v4-restored.json"
 pw screenshot --filename="$EVIDENCE_DIR/screenshots/v4-restored.png" 2>/dev/null || true
 
 echo "=== V5 hide Conversation, open Sessions roster ==="
-run_palette "View: Toggle Conversation Visibility"
-sleep 1
-run_palette "View: Show Sessions"
+run_cmd_id workbench.action.toggleConversation
+sleep 0.5
+run_cmd_id workbench.action.toggleSidebarVisibility
+sleep 0.5
+run_cmd_id workbench.view.sessions.focus
 sleep 1
 pw eval '
 (() => {
-  const row = document.querySelector(".sessions-list-row, .monaco-list-row");
+  const row = document.querySelector(".conversation-sessions-list .monaco-list-row, .sessions-list-row, .monaco-list-row");
   if (row) { row.click(); return { clicked: true }; }
   return { clicked: false };
 })()' --raw 2>/dev/null | tee "$EVIDENCE_DIR/v5-roster-click.json"
@@ -133,7 +152,7 @@ echo "{\"openConversation\":$V6open,\"newChatEditor\":$V6editor,\"quickChat\":$V
 pw screenshot --filename="$EVIDENCE_DIR/screenshots/v6-routing.png" 2>/dev/null || true
 
 echo "=== V7 reload window ==="
-run_palette "Developer: Reload Window"
+run_cmd_id workbench.action.reloadWindow
 sleep 10
 pw attach --cdp="http://127.0.0.1:$CDP" >/dev/null 2>&1 || true
 sleep 5
@@ -142,12 +161,30 @@ echo "$V7" | tee "$EVIDENCE_DIR/v7-after-reload.json"
 pw screenshot --filename="$EVIDENCE_DIR/screenshots/v7-reload.png" 2>/dev/null || true
 
 echo "=== V8 Sources tabs ==="
-run_palette "View: Toggle Sources Visibility"
-sleep 1
+SOURCES_VISIBLE=$(pw eval '
+(() => {
+  const el = document.querySelector(".part.sources");
+  if (!el) return false;
+  const r = el.getBoundingClientRect();
+  return r.width > 0 && r.height > 0;
+})()' --raw 2>/dev/null || echo false)
+if [ "$SOURCES_VISIBLE" != "true" ]; then
+  run_cmd_id workbench.action.toggleSources
+  sleep 0.5
+fi
 pw eval '
 (() => {
-  const tabs = [...document.querySelectorAll(".part.sources .tabs-container .tab")].map(t => t.textContent?.trim());
-  return { sourcesTabs: tabs };
+  const sourcesVisible = (() => {
+    const el = document.querySelector(".part.sources");
+    if (!el) return false;
+    const r = el.getBoundingClientRect();
+    return r.width > 0 && r.height > 0;
+  })();
+  if (!sourcesVisible) {
+    return { sourcesVisible: false, sourcesTabs: [] };
+  }
+  const tabs = [...document.querySelectorAll(".part.sources .sources-tab")].map(t => t.textContent?.trim()).filter(Boolean);
+  return { sourcesVisible: true, sourcesTabs: tabs };
 })()' --raw 2>/dev/null | tee "$EVIDENCE_DIR/v8-sources-tabs.json"
 pw screenshot --filename="$EVIDENCE_DIR/screenshots/v8-sources.png" 2>/dev/null || true
 

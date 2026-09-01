@@ -2745,6 +2745,10 @@ export class Workbench extends Disposable implements IAgentWorkbenchLayoutServic
 		}
 	}
 
+	setPanelMaximizeEntryPanelVisible(_visible: boolean): void {
+		// No-op: sessions workbench does not use default-window panel maximize restore semantics.
+	}
+
 	isPanelMaximized(): boolean {
 		if (!this.workbenchGrid) {
 			return false;

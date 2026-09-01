@@ -672,6 +672,11 @@ export interface IWorkbenchLayoutService extends ILayoutService {
 	toggleMaximizedPanel(): void;
 
 	/**
+	 * Records whether the panel was visible before maximize when the panel is shown as part of maximize.
+	 */
+	setPanelMaximizeEntryPanelVisible(visible: boolean): void;
+
+	/**
 	 * Returns true if the panel is maximized.
 	 */
 	isPanelMaximized(): boolean;

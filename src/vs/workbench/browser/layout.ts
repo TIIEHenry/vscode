@@ -1972,6 +1972,8 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 			return; // return: leaving maximised auxiliary bar made this part visible
 		}
 
+		const beforeHide = hidden ? this.getAgentShellVisibility() : undefined;
+
 		this.stateModel.setRuntimeValue(LayoutStateKeys.EDITOR_HIDDEN, hidden);
 
 		// Adjust CSS
@@ -1982,7 +1984,6 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 		}
 
 		// Propagate to grid
-		const beforeHide = hidden ? this.getAgentShellVisibility() : undefined;
 		this.workbenchGrid.setViewVisible(this.editorPartView, !hidden);
 
 		// INV-052-NO-DUAL-HIDE: Conversation ∨ (Editor ∨ Sources) ≥ 1
@@ -1996,6 +1997,8 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 			return;
 		}
 
+		const beforeHide = hidden ? this.getAgentShellVisibility() : undefined;
+
 		this.stateModel.setRuntimeValue(LayoutStateKeys.CONVERSATION_HIDDEN, hidden);
 
 		if (hidden) {
@@ -2004,7 +2007,6 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 			this.mainContainer.classList.remove(LayoutClasses.CONVERSATION_HIDDEN);
 		}
 
-		const beforeHide = hidden ? this.getAgentShellVisibility() : undefined;
 		this.workbenchGrid.setViewVisible(this.conversationPartView, !hidden);
 
 		// INV-052-NO-DUAL-HIDE: Conversation ∨ (Editor ∨ Sources) ≥ 1
@@ -2018,6 +2020,8 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 			return;
 		}
 
+		const beforeHide = hidden ? this.getAgentShellVisibility() : undefined;
+
 		this.stateModel.setRuntimeValue(LayoutStateKeys.SOURCES_HIDDEN, hidden);
 
 		if (hidden) {
@@ -2026,7 +2030,6 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 			this.mainContainer.classList.remove(LayoutClasses.SOURCES_HIDDEN);
 		}
 
-		const beforeHide = hidden ? this.getAgentShellVisibility() : undefined;
 		this.workbenchGrid.setViewVisible(this.sourcesPartView, !hidden);
 
 		// INV-052-NO-DUAL-HIDE: Conversation ∨ (Editor ∨ Sources) ≥ 1
@@ -2356,6 +2359,7 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 
 	private inMaximizedAuxiliaryBarTransition = false;
 	private inMaximizedPanelTransition = false;
+	private panelMaximizeEntryPanelVisible: boolean | undefined;
 
 	isAuxiliaryBarMaximized(): boolean {
 		return this.stateModel.getRuntimeValue(LayoutStateKeys.AUXILIARYBAR_WAS_LAST_MAXIMIZED);
@@ -2449,6 +2453,10 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 		) && this.isEndColumnHidden() && !this.isAuxiliaryBarMaximized();
 	}
 
+	setPanelMaximizeEntryPanelVisible(visible: boolean): void {
+		this.panelMaximizeEntryPanelVisible = visible;
+	}
+
 	toggleMaximizedPanel(): void {
 		const size = this.workbenchGrid.getViewSize(this.panelPartView);
 		const panelPosition = this.getPanelPosition();
@@ -2462,9 +2470,13 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 				}
 			}
 
+			const panelVisible = this.panelMaximizeEntryPanelVisible ?? this.isVisible(Parts.PANEL_PART);
+			this.panelMaximizeEntryPanelVisible = undefined;
+
 			const state = {
 				editorVisible: this.isVisible(Parts.EDITOR_PART, mainWindow),
 				sourcesVisible: this.isVisible(Parts.SOURCES_PART),
+				panelVisible,
 			};
 			this.stateModel.setRuntimeValue(LayoutStateKeys.PANEL_LAST_NON_MAXIMIZED_VISIBILITY, state);
 
@@ -2490,6 +2502,9 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 			try {
 				this.setEditorHidden(!(state?.editorVisible ?? true));
 				this.setSourcesHidden(!(state?.sourcesVisible ?? true));
+				if (state?.panelVisible === false) {
+					this.setPanelHidden(true);
+				}
 			} finally {
 				this.inMaximizedPanelTransition = false;
 			}
@@ -3176,6 +3191,7 @@ const LayoutStateKeys = {
 	PANEL_LAST_NON_MAXIMIZED_VISIBILITY: new RuntimeStateKey('panel.lastNonMaximizedVisibility', StorageScope.WORKSPACE, StorageTarget.MACHINE, {
 		editorVisible: true,
 		sourcesVisible: true,
+		panelVisible: true,
 	}),
 
 	AUXILIARYBAR_WAS_LAST_MAXIMIZED: new RuntimeStateKey<boolean>('auxiliaryBar.wasLastMaximized', StorageScope.WORKSPACE, StorageTarget.MACHINE, false),

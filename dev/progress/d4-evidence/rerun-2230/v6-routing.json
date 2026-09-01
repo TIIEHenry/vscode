@@ -1,0 +1,34 @@
+{"openConversation":{
+  "sidebar": false,
+  "conversation": true,
+  "editor": false,
+  "sources": true,
+  "panel": false,
+  "aux": false,
+  "editorTabs": [],
+  "quickChatWidget": false,
+  "hasWorkbench": true,
+  "title": "Code - OSS Dev"
+},"newChatEditor":{
+  "sidebar": false,
+  "conversation": true,
+  "editor": false,
+  "sources": true,
+  "panel": false,
+  "aux": false,
+  "editorTabs": [],
+  "quickChatWidget": false,
+  "hasWorkbench": true,
+  "title": "Code - OSS Dev"
+},"quickChat":{
+  "sidebar": false,
+  "conversation": true,
+  "editor": false,
+  "sources": true,
+  "panel": false,
+  "aux": false,
+  "editorTabs": [],
+  "quickChatWidget": false,
+  "hasWorkbench": true,
+  "title": "Code - OSS Dev"
+}}

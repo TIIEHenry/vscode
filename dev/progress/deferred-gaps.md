@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-01
-summary: "P2/P3 延期缺口 SSOT；D1/D3/D7 已闭；D4/D5 仍开；D4 closer 为 M5 切片 4 V1–V8"
+summary: "P2/P3 延期缺口 SSOT；D1/D3/D7/D4 已闭；D5 仍开"
 ---
 
 # Deferred Gaps
@@ -18,7 +18,7 @@ summary: "P2/P3 延期缺口 SSOT；D1/D3/D7 已闭；D4/D5 仍开；D4 closer �
 | D1 | P3 | 套件 `dev/loop/overview.md` 引用的 `docs/guides/multi-agent-design-workflow.md` 缺失 | 门禁仅 warning 不阻塞 | 指南落盘且 `check-docs-health` 0 warning | docs | closed |
 | D2 | P2 | 工位池基线未编译验绿 | 编译耗时长；建槽时未跑 | M0 集成编译绿后在 `worktree-pool.md` 标注基线已验 | infra | open |
 | D3 | P2 | **M0 compile 验证**（`compile-client` + `valid-layers-check`） | — | merge 槽 `a6137373`：`compile-client` + `valid-layers-check` 绿；17 域单测绿 | M4 | closed |
-| D4 | P2 | **启动 T1–T3 演示**（目视：Conversation 中心、End Editor/Sources、互斥、四钮；M3 无 ChatEditor 默认路径、Sidebar stub Sessions） | 工位 A 首轮无构建产物（已记）；D3 绿后可在 merge 工位重跑。**Closer 是 M5 切片 4 V1–V8**，M4 切片 2 不得把本行标 closed | M5 V1–V8 隔离 profile 通过并有证据（含路由与 roster）；T1–T3 只作环境探测记录 | M5 | open |
+| D4 | P2 | **启动 T1–T3 演示**（目视：Conversation 中心、End Editor/Sources、互斥、四钮；M3 无 ChatEditor 默认路径、Sidebar stub Sessions） | 工位 A 首轮无构建产物（已记）；D3 绿后可在 merge 工位重跑。**Closer 是 M5 切片 4 V1–V8**，M4 切片 2 不得把本行标 closed | M5 V1–V8 隔离 profile 通过并有证据（含路由与 roster）；T1–T3 只作环境探测记录 | M5 | closed |
 | D5 | P2 | **EH 探针冒烟**（LSP + layout 类扩展） | 探针已选（2026-08-31）；未安装/未跑；依赖 D4 启动 | [eh-surface-matrix](../../docs/reference/code-oss-b2/eh-surface-matrix.md) 关键行「探针已选」→「已实测」 | M4 | open |
 | D6 | P3 | **Diff footprint 刷新** | slot C 已于 `b283fe19` 重测 `b5631393` | 页已更新 | docs | closed |
 | D7 | P3 | titlebar LayoutControlMenu 产品四钮与原生 Panel/Aux 共存 | `2dcd5a0a` 已从 LayoutControlMenu 去掉 Panel/Aux；留 submenu | 默认窗只见四钮 | M0 | closed |
@@ -86,6 +86,27 @@ summary: "P2/P3 延期缺口 SSOT；D1/D3/D7 已闭；D4/D5 仍开；D4 closer �
 **截图**：`dev/progress/d4-evidence/c7ed501d/screenshots/v1.png`（post-fix fresh profile）。
 
 **状态**：D4 **open** — V1–V8 未全绿，不得 closed。
+
+## D4 M5 切片 4 验收记录（2026-09-01，主仓 / `agent-ide` working tree）
+
+**代码修复**（待提交）：INV-052 `beforeHide` 须在 `setRuntimeValue` 之前采集；Panel maximize 恢复 `panelVisible`；.harness 四钮 titlebar 点击 + command id + V5/V7 命令链。
+
+**启动**：`launch.sh --repo /home/clarence/Projects/Agents/vscode --disable-workspace-trust --skip-prelaunch`
+
+**自动化**：`dev/progress/d4-evidence/c7ed501d/run-v1-v8.sh` · 证据：[d4-evidence/rerun-2230](d4-evidence/rerun-2230/)
+
+| ID | 场景 | 结果 | 证据 / 备注 |
+|:---|:-----|:-----|:------------|
+| V1 | fresh profile：中心 Conversation；End Sources；panel/aux off | **PASS** | `conversation`+`sources` true；`panel`/`aux` false |
+| V2 | 四钮 toggle；常态不可全藏 Conv/Preview/Sources | **PASS** | titlebar 点击后 `conversation`+`sources` 仍 true |
+| V3 | 只关 Preview | **PASS** | `editor` false；`conversation`+`sources` 不变；`panel` false |
+| V4 | maximize Panel 后恢复 | **PASS** | 恢复后合法 shell；`panel` false |
+| V5 | 隐藏 Conversation → Sessions roster 选会话 | **PASS** | `workbench.view.sessions.focus` + roster `clicked:true`；`conversation` true |
+| V6 | Open Chat / New Chat Editor / Quick Chat | **PASS** | 无 ChatEditor tab；`quickChatWidget` false |
+| V7 | Reload 恢复 | **PASS** | `conversation`+`sources` 恢复；无 ChatEditor tab；`panel` false |
+| V8 | Sources Files/Changes/Review | **PASS** | `sourcesTabs`: Files, Changes, Review |
+
+**状态**：D4 **closed** @ rerun-2230（2026-09-01）。`valid-layers-check` 环境红仍记 D3 行，不阻塞 D4。
 
 ## D5 探针计划（2026-08-31，工位 B / `loop/B`）
 
