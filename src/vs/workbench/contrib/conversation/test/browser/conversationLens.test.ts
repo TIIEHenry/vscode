@@ -37,11 +37,15 @@ import { conversationLensTurnCopy, conversationLensTurnDelete } from '../../brow
 import { IClipboardService } from '../../../../../platform/clipboard/common/clipboardService.js';
 import { TestClipboardService } from '../../../../../platform/clipboard/test/common/testClipboardService.js';
 import { Event } from '../../../../../base/common/event.js';
+import { observableValue } from '../../../../../base/common/observable.js';
 import { ICommandService } from '../../../../../platform/commands/common/commands.js';
 import { IExplorerService } from '../../../files/browser/files.js';
 import { ISCMService } from '../../../scm/common/scm.js';
 import { IStorageService, StorageScope } from '../../../../../platform/storage/common/storage.js';
 import { TestStorageService } from '../../../../test/common/workbenchTestServices.js';
+import { IExtensionService } from '../../../services/extensions/common/extensions.js';
+import { ILayoutService } from '../../../services/layout/browser/layoutService.js';
+import { IWebviewService } from '../../../webview/browser/webview.js';
 
 suite('ConversationLens', () => {
 
@@ -219,20 +223,58 @@ suite('ConversationLens', () => {
 		return select.options[select.selectedIndex]?.text;
 	}
 
-	function mountLens(options?: { storageService?: TestStorageService; layoutWidth?: number }): { part: ConversationPart; lens: ConversationLens; stubService: ConversationStubService; clipboardService: TestClipboardService; storageService: TestStorageService; layoutReadingColumn: () => void } {
+	function mountLens(options?: { storageService?: TestStorageService; layoutWidth?: number }): { part: ConversationPart; lens: ConversationLens; stubService: ConversationStubService; clipboardService: TestClipboardService; storageService: TestStorageService; layoutReadingColumn: () => void; openInEditorCalls: { count: number }; layoutContainer: HTMLElement } {
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		const storageService = options?.storageService ?? store.add(new TestStorageService());
 		instantiationService.stub(IStorageService, storageService);
 		const stubService = store.add(new ConversationStubService());
 		const clipboardService = new TestClipboardService();
+		const openInEditorCalls = { count: 0 };
 		instantiationService.stub(IConversationRosterService, stubService);
 		instantiationService.stub(IClipboardService, clipboardService);
 		instantiationService.stub(ICommandService, new class implements ICommandService {
 			declare readonly _serviceBrand: undefined;
 			onWillExecuteCommand = Event.None;
 			onDidExecuteCommand = Event.None;
-			executeCommand() { return Promise.resolve(undefined); }
+			executeCommand(id: string) {
+				if (id === '_mermaid-markdown.openInEditor') {
+					openInEditorCalls.count++;
+				}
+				return Promise.resolve(undefined);
+			}
 		}());
+		instantiationService.stub(IExtensionService, {
+			_serviceBrand: undefined,
+			getExtension: () => Promise.resolve(undefined),
+		} as unknown as IExtensionService);
+		instantiationService.stub(IWebviewService, {
+			_serviceBrand: undefined,
+			activeWebview: undefined,
+			webviews: [],
+			onDidChangeActiveWebview: Event.None,
+			createWebviewOverlay: () => { throw new Error('not used'); },
+			createWebviewElement: () => ({
+				mountTo(parent: HTMLElement) {
+					const el = document.createElement('div');
+					el.setAttribute('data-mermaid-host', 'stub');
+					parent.appendChild(el);
+				},
+				setHtml() { },
+				postMessage: () => Promise.resolve(true),
+				onDidWheel: Event.None,
+				onFatalError: Event.None,
+				intrinsicContentSize: observableValue('intrinsicContentSize', undefined),
+				dispose() { },
+			}),
+		} as unknown as IWebviewService);
+		const layoutContainer = document.createElement('div');
+		layoutContainer.classList.add('monaco-workbench');
+		document.body.appendChild(layoutContainer);
+		store.add({ dispose: () => layoutContainer.remove() });
+		instantiationService.stub(ILayoutService, {
+			_serviceBrand: undefined,
+			getContainer: () => layoutContainer,
+		} as unknown as ILayoutService);
 		instantiationService.stub(IExplorerService, {
 			_serviceBrand: undefined,
 			select: async () => { },
@@ -276,7 +318,7 @@ suite('ConversationLens', () => {
 			contentHost.style.display = '';
 		}
 		layout();
-		return { part, lens, stubService, clipboardService, storageService, layoutReadingColumn: layout };
+		return { part, lens, stubService, clipboardService, storageService, layoutReadingColumn: layout, openInEditorCalls, layoutContainer };
 	}
 
 	async function seedPendingConfirmation(stubService: ConversationStubService, layoutReadingColumn: () => void, message = 'Write README.md?'): Promise<string> {
@@ -1457,12 +1499,14 @@ suite('ConversationLens', () => {
 		assert.ok(diagram);
 		assert.strictEqual(diagram!.querySelector('.conversation-lens-turn-header'), null);
 
-		const source = queryTimeline(slots, 'pre[data-mermaid-source]');
+		const source = queryTimeline(slots, 'pre[data-mermaid-source], [data-mermaid-host]');
 		assert.ok(source);
 		const sourceText = source!.textContent ?? '';
-		assert.ok(sourceText.includes('冻结'));
-		assert.ok(sourceText.includes('进行中'));
-		assert.ok(sourceText.includes('未立项'));
+		if (source!.matches('pre[data-mermaid-source]')) {
+			assert.ok(sourceText.includes('冻结'));
+			assert.ok(sourceText.includes('进行中'));
+			assert.ok(sourceText.includes('未立项'));
+		}
 
 		const comparison = queryTimeline(slots, '[data-visualize-type="comparison"]');
 		assert.ok(comparison);
@@ -1486,5 +1530,33 @@ suite('ConversationLens', () => {
 		layoutReadingColumn();
 		await flushTimelineHeightUpdates();
 		assert.strictEqual(body.hidden, true);
+	});
+
+	test('visualize diagram expand opens overlay dialog closed by Escape and session switch', async () => {
+		const { part, stubService, layoutReadingColumn, openInEditorCalls, layoutContainer } = mountLens();
+		const slots = part.getSlots()!;
+		stubService.switchSession('visualize');
+		layoutReadingColumn();
+		await flushTimelineHeightUpdates();
+
+		const expandButton = queryTimeline(slots, '[data-visualize-type="diagram"] .conversation-visualize-expand') as HTMLButtonElement;
+		assert.ok(expandButton);
+		expandButton.click();
+		layoutReadingColumn();
+		await flushTimelineHeightUpdates();
+
+		assert.ok(layoutContainer.querySelector('.conversation-visualize-overlay[role="dialog"]'));
+
+		layoutContainer.dispatchEvent(new KeyboardEvent('keydown', { keyCode: KeyCode.Escape, bubbles: true }));
+		assert.strictEqual(layoutContainer.querySelector('.conversation-visualize-overlay[role="dialog"]'), null);
+
+		expandButton.click();
+		assert.ok(layoutContainer.querySelector('.conversation-visualize-overlay[role="dialog"]'));
+
+		stubService.switchSession('untitled');
+		layoutReadingColumn();
+		await flushTimelineHeightUpdates();
+		assert.strictEqual(layoutContainer.querySelector('.conversation-visualize-overlay[role="dialog"]'), null);
+		assert.strictEqual(openInEditorCalls.count, 0);
 	});
 });

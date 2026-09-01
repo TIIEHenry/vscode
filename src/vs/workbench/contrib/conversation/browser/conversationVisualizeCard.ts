@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { $, addDisposableListener, append } from '../../../../base/browser/dom.js';
+import { IMouseWheelEvent } from '../../../../base/browser/mouseEvent.js';
 import { renderIcon } from '../../../../base/browser/ui/iconLabel/iconLabels.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { DisposableStore } from '../../../../base/common/lifecycle.js';
@@ -14,7 +15,10 @@ import {
 	ConversationVisualizeOption,
 	parseVisualizeArgs,
 } from '../common/conversationVisualize.js';
+import { ConversationMermaidHostContext, mountConversationMermaidHost } from './conversationMermaidHost.js';
 import { ConversationStubTurn } from './conversationStubModel.js';
+
+export const conversationVisualizeExpandDiagram = localize('conversationVisualize.expandDiagram', "Expand diagram");
 
 export const conversationVisualizeHeaderLabel = localize('conversationVisualize.header', "Visualize");
 
@@ -22,6 +26,9 @@ export interface ConversationVisualizeCardOptions {
 	readonly isExpanded: (turnId: string) => boolean;
 	readonly setExpanded: (turnId: string, expanded: boolean) => void;
 	readonly onLayoutChange: () => void;
+	readonly mermaidHost?: ConversationMermaidHostContext;
+	readonly onOpenFullscreen?: (source: string, title?: string) => void;
+	readonly onWheelDelegate?: (event: IMouseWheelEvent) => void;
 }
 
 /**
@@ -60,9 +67,9 @@ export function renderConversationVisualizeCard(
 			append(body, $('div.conversation-visualize-title')).textContent = args.title;
 		}
 		if (args.type === 'diagram') {
-			renderDiagramBody(body, args);
+			renderDiagramBody(body, args, options, disposables);
 		} else {
-			renderComparisonBody(body, args);
+			renderComparisonBody(body, args, options, disposables);
 		}
 	});
 }
@@ -104,21 +111,57 @@ function renderVisualizeCardChrome(
 	}));
 }
 
-function renderDiagramBody(parent: HTMLElement, args: Extract<ConversationVisualizeArgs, { type: 'diagram' }>): void {
-	const host = append(parent, $('div.conversation-visualize-diagram'));
-	const pre = append(host, $('pre.conversation-visualize-mermaid-source')) as HTMLPreElement;
-	pre.setAttribute('data-mermaid-source', '');
-	pre.textContent = args.mermaid.trim();
-}
+function renderDiagramBody(
+	parent: HTMLElement,
+	args: Extract<ConversationVisualizeArgs, { type: 'diagram' }>,
+	options: ConversationVisualizeCardOptions,
+	disposables: DisposableStore,
+): void {
+	const diagram = append(parent, $('div.conversation-visualize-diagram'));
+	const toolbar = append(diagram, $('div.conversation-visualize-diagram-toolbar'));
+	const expandButton = append(toolbar, $('button.conversation-visualize-expand')) as HTMLButtonElement;
+	expandButton.type = 'button';
+	expandButton.title = conversationVisualizeExpandDiagram;
+	expandButton.setAttribute('aria-label', conversationVisualizeExpandDiagram);
+	expandButton.appendChild(renderIcon(Codicon.screenFull));
 
-function renderComparisonBody(parent: HTMLElement, args: Extract<ConversationVisualizeArgs, { type: 'comparison' }>): void {
-	const grid = append(parent, $('div.conversation-visualize-comparison-grid'));
-	for (const option of args.options) {
-		grid.appendChild(renderComparisonOptionCard(option));
+	disposables.add(addDisposableListener(expandButton, 'click', (e) => {
+		e.stopPropagation();
+		options.onOpenFullscreen?.(args.mermaid, args.title);
+	}));
+
+	if (options.mermaidHost) {
+		mountConversationMermaidHost(diagram, options.mermaidHost, {
+			mode: 'inline',
+			source: args.mermaid,
+			title: args.title,
+			onLayoutChange: options.onLayoutChange,
+			onWheelDelegate: options.onWheelDelegate,
+		}, disposables);
+	} else {
+		const pre = append(diagram, $('pre.conversation-visualize-mermaid-source')) as HTMLPreElement;
+		pre.setAttribute('data-mermaid-source', '');
+		pre.textContent = args.mermaid.trim();
 	}
 }
 
-function renderComparisonOptionCard(option: ConversationVisualizeOption): HTMLElement {
+function renderComparisonBody(
+	parent: HTMLElement,
+	args: Extract<ConversationVisualizeArgs, { type: 'comparison' }>,
+	options: ConversationVisualizeCardOptions,
+	disposables: DisposableStore,
+): void {
+	const grid = append(parent, $('div.conversation-visualize-comparison-grid'));
+	for (const option of args.options) {
+		grid.appendChild(renderComparisonOptionCard(option, options, disposables));
+	}
+}
+
+function renderComparisonOptionCard(
+	option: ConversationVisualizeOption,
+	options: ConversationVisualizeCardOptions,
+	disposables: DisposableStore,
+): HTMLElement {
 	const card = $('div.conversation-visualize-option');
 	card.classList.toggle('conversation-visualize-option--recommended', option.recommended);
 	if (option.recommended) {
@@ -156,9 +199,19 @@ function renderComparisonOptionCard(option: ConversationVisualizeOption): HTMLEl
 
 	if (option.mermaid && option.mermaid.trim() !== '') {
 		const host = append(card, $('div.conversation-visualize-option-diagram'));
-		const pre = append(host, $('pre.conversation-visualize-mermaid-source')) as HTMLPreElement;
-		pre.setAttribute('data-mermaid-source', '');
-		pre.textContent = option.mermaid.trim();
+		if (options.mermaidHost) {
+			mountConversationMermaidHost(host, options.mermaidHost, {
+				mode: 'inline',
+				source: option.mermaid,
+				title: option.name,
+				onLayoutChange: options.onLayoutChange,
+				onWheelDelegate: options.onWheelDelegate,
+			}, disposables);
+		} else {
+			const pre = append(host, $('pre.conversation-visualize-mermaid-source')) as HTMLPreElement;
+			pre.setAttribute('data-mermaid-source', '');
+			pre.textContent = option.mermaid.trim();
+		}
 	}
 
 	return card;
