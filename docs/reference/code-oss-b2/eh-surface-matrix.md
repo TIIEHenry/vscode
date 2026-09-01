@@ -4,7 +4,7 @@ type: reference
 status: accepted
 phase: N/A
 updated: 2026-09-01
-summary: "贡献点 → Part 落点 → 改壳后 → 承诺分级；D5 探针 2/3 已装入 EXT_DIR，冒烟待跑"
+summary: "贡献点 → Part 落点 → 承诺分级；D5 YAML 已实测 rerun-2348；Todo/js-debug 仍开"
 ---
 
 # EH 表面矩阵
@@ -27,7 +27,7 @@ summary: "贡献点 → Part 落点 → 改壳后 → 承诺分级；D5 探针 2
 
 | 贡献点 | lands on | after shell change | 承诺 \| 不承诺 \| 冲突 | 证据 |
 |--------|----------|-------------------|------------------------|------|
-| `languages` / `grammars` / `semanticToken*` | editor 语言层（`EDITOR_PART` 内 Monaco） | 仍在 End 列 `EDITOR_PART` | **承诺** | **推定** |
+| `languages` / `grammars` / `semanticToken*` | editor 语言层（`EDITOR_PART` 内 Monaco） | 仍在 End 列 `EDITOR_PART` | **承诺** | **已实测 @2026-09-01** — `redhat.vscode-yaml` 诊断 @ [rerun-2348](../../dev/progress/d5-evidence/smoke-rerun-2348/) |
 | `debuggers` / `breakpoints`（适配器协议） | 调试服务 + EH；不占 chrome 槽 | 协议层不变 | **承诺**（适配器） | **推定** |
 | `debuggers` / `breakpoints`（调试视图） | 常用 `SIDEBAR_PART` / `PANEL_PART` ViewContainer | 视图仍在 Sidebar/Panel；End 列 Editor 独立 | **冲突**（视图容器顺序/默认开） | **探针已选 @2026-08-31** |
 | `viewsContainers.activitybar` | 新 Activity 图标 + `SIDEBAR_PART` 容器 | 与产品 Navigator roster / titlebar 四钮 **抢 Activity 槽** | **不承诺** | **推定** |
@@ -65,7 +65,7 @@ summary: "贡献点 → Part 落点 → 改壳后 → 承诺分级；D5 探针 2
 
 | 探针 | 目的 | 预期看什么 | 证据 |
 |------|------|------------|------|
-| 纯 LSP / language | 语言承诺是否还在 | End 列 editor 高亮、转到定义 | **探针已选 @2026-08-31** |
+| 纯 LSP / language | 语言承诺是否还在 | End 列 editor 高亮、转到定义 | **已实测 @2026-09-01** |
 | `viewsContainers` + tree view | 布局不承诺是否属实 | Activity 是否多出产品外图标；四钮位是否被挤 | **探针已选 @2026-08-31** |
 | 命令 + `editor/decoration` | 非槽位贡献 | 不依赖 Activity 仍生效 | **待实测** |
 
