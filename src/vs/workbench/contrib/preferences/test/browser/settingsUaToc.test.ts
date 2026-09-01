@@ -166,7 +166,7 @@ suite('Settings UA TOC', () => {
 		assert.ok(!connection.settings?.length);
 		const customizations = findTocEntry(result.tree, 'ua/customizations');
 		assert.ok(customizations?.navigationLinks?.length === 1);
-		assert.strictEqual(customizations.navigationLinks![0].commandId, 'workbench.action.openCustomizationsPreferences');
+		assert.strictEqual(customizations.navigationLinks![0].commandId, 'aiCustomization.openManagementEditor');
 		const display = findTocEntry(result.tree, 'ua/display');
 		assert.strictEqual(display?.emptyCopy, clientLocalEmptyCopyByGroupId['ua/display']);
 		assert.ok(!display?.emptyCopy?.includes('not connected'));
