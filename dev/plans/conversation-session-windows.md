@@ -4,7 +4,7 @@ type: plan
 status: in_progress
 phase: N/A
 updated: 2026-09-02
-summary: "S1–S3c、S4 已合入 loop/A；S4 同窗 split 经 CONVERSATION_SIDE_GROUP + 藏列不画"
+summary: "S3c @ 18b5e8d7、S4 @ 28f1af5a 已合入 agent-ide；S4 同窗 split 经 CONVERSATION_SIDE_GROUP + 藏列不画"
 ---
 
 # 默认窗 Conversation：session 窗口与 chat tab
