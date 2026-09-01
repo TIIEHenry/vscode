@@ -538,6 +538,13 @@ export interface IConversationEditorPart extends IEditorPart {
 	 * Stable session key for this session window leaf.
 	 */
 	readonly sessionKey: string;
+
+	/**
+	 * Hide a split column without closing its tabs (藏列 = 不画).
+	 */
+	setGroupHidden(group: IEditorGroup | GroupIdentifier, hidden: boolean): void;
+
+	isGroupHidden(group: IEditorGroup | GroupIdentifier): boolean;
 }
 
 export interface IAuxiliaryEditorPart extends IEditorPart {

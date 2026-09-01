@@ -70,11 +70,13 @@ suite('Conversation editor fence', () => {
 	test('SIDE_GROUP never targets conversation editor part', async () => {
 		const { instantiationService, parts, conversationPart } = await createHarness();
 		const file = disposables.add(new TestFileEditorInput(URI.file('/tmp/side.txt'), TEST_EDITOR_INPUT_ID));
+		const conversationGroupsBefore = conversationPart.groups.length;
 		const mainGroupsBefore = parts.mainPart.groups.length;
 
 		const [group] = instantiationService.invokeFunction(accessor => findGroup(accessor, file, SIDE_GROUP)) as [typeof parts.mainPart.activeGroup, unknown];
 		assert.strictEqual(parts.getPart(group), parts.mainPart);
-		assert.ok(parts.mainPart.groups.length >= mainGroupsBefore);
+		assert.strictEqual(conversationPart.groups.length, conversationGroupsBefore);
+		assert.ok(parts.mainPart.groups.length > mainGroupsBefore);
 		assert.notStrictEqual(parts.getPart(group), conversationPart);
 	});
 
