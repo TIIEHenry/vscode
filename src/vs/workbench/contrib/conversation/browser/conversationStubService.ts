@@ -8,6 +8,10 @@ import { Disposable } from '../../../../base/common/lifecycle.js';
 import { createDecorator } from '../../../../platform/instantiation/common/instantiation.js';
 import { ConversationStubModel, ConversationStubSession, ConversationStubTurn } from './conversationStubModel.js';
 import { ConversationTrajectoryRecord } from './conversationTrajectoryModel.js';
+import {
+	ConversationMessageQueueState,
+	ConversationQueueItemHoldReason,
+} from './conversationMessageQueueModel.js';
 
 export const IConversationRosterService = createDecorator<IConversationRosterService>('conversationStubService');
 
@@ -34,6 +38,16 @@ export interface IConversationRosterService {
 	resolveConfirmation(sessionId: string, turnId: string, status: 'allowed' | 'skipped'): void;
 	countPendingConfirmations(sessionId: string): number;
 	deleteTurn(sessionId: string, turnId: string): boolean;
+	getMessageQueueState(sessionId: string): ConversationMessageQueueState;
+	setMessageQueueFixture(sessionId: string, state: ConversationMessageQueueState): void;
+	pauseMessageQueue(sessionId: string): void;
+	resumeMessageQueue(sessionId: string): void;
+	clearMessageQueue(sessionId: string): void;
+	holdMessageQueueItem(sessionId: string, itemId: string, hold: ConversationQueueItemHoldReason): void;
+	releaseMessageQueueItemHold(sessionId: string, itemId: string): void;
+	getAutoDriveTasks(sessionId: string): readonly string[];
+	getAutoDriveTaskCount(sessionId: string): number;
+	setAutoDriveTaskFixture(sessionId: string, tasks: readonly string[]): void;
 }
 
 export type IConversationStubService = IConversationRosterService;
@@ -171,5 +185,52 @@ export class ConversationStubService extends Disposable implements IConversation
 			this._onDidChangeSession.fire(sessionId);
 		}
 		return deleted;
+	}
+
+	getMessageQueueState(sessionId: string): ConversationMessageQueueState {
+		return this.model.getMessageQueueState(sessionId);
+	}
+
+	setMessageQueueFixture(sessionId: string, state: ConversationMessageQueueState): void {
+		this.model.setMessageQueueFixture(sessionId, state);
+		this._onDidChangeSession.fire(sessionId);
+	}
+
+	pauseMessageQueue(sessionId: string): void {
+		this.model.pauseMessageQueue(sessionId);
+		this._onDidChangeSession.fire(sessionId);
+	}
+
+	resumeMessageQueue(sessionId: string): void {
+		this.model.resumeMessageQueue(sessionId);
+		this._onDidChangeSession.fire(sessionId);
+	}
+
+	clearMessageQueue(sessionId: string): void {
+		this.model.clearMessageQueue(sessionId);
+		this._onDidChangeSession.fire(sessionId);
+	}
+
+	holdMessageQueueItem(sessionId: string, itemId: string, hold: ConversationQueueItemHoldReason): void {
+		this.model.holdMessageQueueItem(sessionId, itemId, hold);
+		this._onDidChangeSession.fire(sessionId);
+	}
+
+	releaseMessageQueueItemHold(sessionId: string, itemId: string): void {
+		this.model.releaseMessageQueueItemHold(sessionId, itemId);
+		this._onDidChangeSession.fire(sessionId);
+	}
+
+	getAutoDriveTasks(sessionId: string): readonly string[] {
+		return this.model.getAutoDriveTasks(sessionId);
+	}
+
+	getAutoDriveTaskCount(sessionId: string): number {
+		return this.model.getAutoDriveTaskCount(sessionId);
+	}
+
+	setAutoDriveTaskFixture(sessionId: string, tasks: readonly string[]): void {
+		this.model.setAutoDriveTaskFixture(sessionId, tasks);
+		this._onDidChangeSession.fire(sessionId);
 	}
 }
