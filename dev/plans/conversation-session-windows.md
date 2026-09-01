@@ -1,10 +1,10 @@
 ---
 title: "默认窗 Conversation：session 窗口与 chat tab"
 type: plan
-status: in_progress
+status: implemented
 phase: N/A
 updated: 2026-09-02
-summary: "S3c @ 18b5e8d7、S4 @ 28f1af5a、S5 @ 3e287e65 已合入 agent-ide；S5 窗口并列 + session chat 单测修复"
+summary: "S1–S6 已落（S6 知识层签收 @ loop/C）；S3c @ 18b5e8d7、S4 @ 28f1af5a、S5 @ 3e287e65 已合入 agent-ide"
 ---
 
 # 默认窗 Conversation：session 窗口与 chat tab
@@ -13,7 +13,7 @@ summary: "S3c @ 18b5e8d7、S4 @ 28f1af5a、S5 @ 3e287e65 已合入 agent-ide；S
 > 形态决策：[ADR-002](../decisions/002-conversation-session-windows.md)（`accepted`）。  
 > Agents 窗同 session 并排仍以 [ADR-001](../decisions/001-chat-compare-form.md) / [PRD-011](../../docs/product/requirements.md#prd-011-chat-并排比对) / [chat-compare-split](chat-compare-split.md) 为准，本方案不改。  
 > 透镜页内 chrome：[conversation-lens-assembly](../../docs/reference/code-oss-b2/conversation-lens-assembly.md)；「对话 | 轨迹」是 **每个 chat 页内** 透镜（PRD-012，经 PRD-016 修正），不是与 chat tab 平级的第三条。  
-> **签收：** 2026-09-01 用户签收。S1–S6 已合入（`ad67cfe3`–`a48780ae`）；S1a 与 S1 同批落地。D4 rerun-2230 V1–V8 PASS。S3c 对话框 chrome（2026-09-01）对齐 `ModalEditorPart` 壳、不改宿主。
+> **签收：** 2026-09-01 用户签收。S1–S6 已落（`ad67cfe3`–`a48780ae` + S6 知识层 @ loop/C）；S1a 与 S1 同批落地。D4 rerun-2230 V1–V8 PASS。S3c 对话框 chrome（2026-09-01）对齐 `ModalEditorPart` 壳、不改宿主。
 
 **Goal：** 默认窗中间 Conversation 变成「session 窗口 + chat tab」：根/默认 chat 钉死；用户 Fork 默认加 tab；子代理默认在窗口内以居中对话框打开（父对话仍在底下可见），「打开为 tab」才新建 tab、叶内最大化只铺满对话框；子代理对话框与 tab 顶有 agent 层级面包屑（点击替换当前预览或当前延伸 tab）；每扇窗口一键关掉根以外的 tab；用户可 split；另一 session 用窗口并列；只能隐藏。
 
@@ -40,8 +40,8 @@ summary: "S3c @ 18b5e8d7、S4 @ 28f1af5a、S5 @ 3e287e65 已合入 agent-ide；S
 | 事实 | 位置 |
 |------|------|
 | 中心叶是 `CONVERSATION_PART`，Editor 在 End Preview | [parts-and-grid](../../docs/systems/workbench/parts-and-grid.md) §2；`Layout.createGridDescriptor` |
-| 「编辑器仅 `EDITOR_PART`」；凡 `EditorInput` 进某组 tab；**没有**打开到 Conversation 的插入面 | [editor-part-tabs](../../docs/systems/workbench/editor-part-tabs.md) §2 推论 |
-| `SIDE_GROUP` / 组内 split **只**发生在 Preview 的 `EDITOR_PART` | 同上 §5 |
+| 文件 / `ChatEditorInput` 仅主 `EDITOR_PART`；Conversation 第四插入面已落（`ConversationChatInput` + `CONVERSATION_GROUP`） | [editor-part-tabs](../../docs/systems/workbench/editor-part-tabs.md) §2/§4 · [parts-and-grid](../../docs/systems/workbench/parts-and-grid.md) §5 |
+| Preview `SIDE_GROUP` / 组内 split 仅 `EDITOR_PART`；同窗 split 走 `CONVERSATION_SIDE_GROUP` | [editor-part-tabs](../../docs/systems/workbench/editor-part-tabs.md) §5 · [parts-and-grid](../../docs/systems/workbench/parts-and-grid.md) §5 |
 | 已有多 EditorPart：主 / 辅助窗 / 模态 | `IEditorGroupsService.parts`；`createAuxiliaryEditorPart`；`MODAL_GROUP` |
 | Hide Conversation = `setConversationHidden`；会话不因此删除 | `layout.ts` `setConversationHidden`；PRD-001 验收 3 |
 | Conversation 透镜单 session：SelectBox + 对话\|轨迹；无 chat tab | `conversationLens.ts` `mountSessionBar` |
@@ -278,7 +278,7 @@ HEAD 已接受的锁是 **插入面**：编辑器仅 `EDITOR_PART`；没有「�
 2. Conversation `IEditorPart` 是与 Modal/Aux **并列的第四类 editor 容器**，DOM 挂在 ConversationPart 内，**不是** `Parts.EDITOR_PART`。
 3. 产品对话 input **禁止** `ChatEditorInput`；新 `ConversationChatInput` + `ConversationEditorPane`。
 4. 默认窗仍不为 ChatEditor 注册 resolver（M5 不变）。
-5. 知识层（`parts-and-grid` §5、`editor-part-tabs` §2/§4、`agent-ui` INV-TOPO）在 **本签收批**改写为选定合同。S1 落地后再把「选定、未实施」改成 HEAD 事实。**禁止** `ChatEditorInput`。
+5. 知识层（`parts-and-grid` §5、`editor-part-tabs` §2/§4、`agent-ui` INV-TOPO）在 **本签收批**改写为插入面合同；**S6 已落**（HEAD 句已从「选定」改为「已落」）。**禁止** `ChatEditorInput`。
 
 须改写或补断言的测试（签收后 S1）：
 
@@ -322,9 +322,9 @@ HEAD 已接受的锁是 **插入面**：编辑器仅 `EDITOR_PART`；没有「�
 | S3c | 对话框 chrome | 叶内卡片+遮罩（`position:absolute` 于 session 叶）；`promoteSubAgentDialog` → tab；`toggleSubAgentDialogMaximized` → 叶内铺满；对话框面包屑走 overlay 分支；删除 HEAD `maximizeSubAgentDialog` 提升语义 | 见测试 4；`data-maximized`；`aria-modal=false`；点遮罩关；无 `ModalEditorPart` / `.monaco-modal-editor-block`；overlay 在 `.conversation-session-window` 内 |
 | S4 | 同窗 split **（已落 loop/A）** | `CONVERSATION_SIDE_GROUP`；藏列=不画 | 单测组数；文件 `SIDE_GROUP` 不增加 Conversation 组 |
 | S5 | 窗口并列 **（已合入 agent-ide @ 3e287e65）** | 第二 session 叶 + 第二 Conversation EditorPart；藏窗恢复；共享 Preview | roster 打开到旁边；藏后单窗；两 session 时 Preview 仍一个 `EDITOR_PART` |
-| S6 | 知识层 | 签收本批已改 parts-and-grid / editor-part-tabs / agent-ui 插入面合同；S1 落地后把 HEAD 句从「选定」改成「已落」 | `check-docs-health.py` |
+| S6 | 知识层 **（已落 loop/C）** | 签收本批已改 parts-and-grid / editor-part-tabs / agent-ui 插入面合同；HEAD 句从「选定」改成「已落」 | `check-docs-health.py` PASS |
 
-S1 / S1a 可在无引擎下落地，且 **S1a 与 S1 同批**（A1 未落地即 S1 未完成，见 §3.8）。S3 / S3b 活数据依赖 PRD-008；`SideChat` / `ReadOnly` / `Hidden`（§3.3b）同样等引擎，stub 期一律 `Full`。**S3c 可在 stub catalog 上落地**（不新增引擎合同）。每个实施 commit 满足 DOCUMENTATION 规则 3a/3b。知识层插入面合同已随签收改写；S1 改代码，不重开拓扑。
+S1 / S1a 可在无引擎下落地，且 **S1a 与 S1 同批**（A1 未落地即 S1 未完成，见 §3.8）。S3 / S3b 活数据依赖 PRD-008；`SideChat` / `ReadOnly` / `Hidden`（§3.3b）同样等引擎，stub 期一律 `Full`。**S3c 可在 stub catalog 上落地**（不新增引擎合同）。每个实施 commit 满足 DOCUMENTATION 规则 3a/3b。知识层插入面合同 S6 已签收；S1–S5 改代码，不重开拓扑。
 
 ## 5. 测试计划
 

@@ -3,8 +3,8 @@ title: "EditorPart：组、Tabs、EditorInput"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-09-01
-summary: "主 EDITOR_PART = Preview 组+tabs；ChatEditorInput 仍禁止当 Conversation；Conversation 嵌套 IEditorPart 为第四插入面（PRD-016 S1–S5 已落）"
+updated: 2026-09-02
+summary: "主 EDITOR_PART = Preview 组+tabs；ChatEditorInput 仍禁止当 Conversation；Conversation 嵌套 IEditorPart 为第四插入面（PRD-016 S1–S6 已落）"
 ---
 
 # EditorPart：组、Tabs、EditorInput
@@ -87,7 +87,7 @@ INV-TOPO **仍然禁止**：
 - 把 Layout 中心叶改成 `Parts.EDITOR_PART`；
 - 用 `ChatEditor` / Custom Editor / 主 `EDITOR_PART` 的普通组当产品 Conversation。
 
-INV-TOPO **不再禁止**（[ADR-002](../../../dev/decisions/002-conversation-session-windows.md) / [PRD-016](../../product/requirements.md#prd-016-conversation-session-窗口与-chat-tab)）：在 `CONVERSATION_PART` **内部**挂独立 Conversation `IEditorPart`（`ConversationEditorPartImpl`），用 `ConversationChatInput` + `ConversationEditorPane` 画 chat tab。这不是把中心变成 Preview。**已落**（S1–S5）。
+INV-TOPO **不再禁止**（[ADR-002](../../../dev/decisions/002-conversation-session-windows.md) / [PRD-016](../../product/requirements.md#prd-016-conversation-session-窗口与-chat-tab)）：在 `CONVERSATION_PART` **内部**挂独立 Conversation `IEditorPart`（`ConversationEditorPartImpl`），用 `ConversationChatInput` + `ConversationEditorPane` 画 chat tab。这不是把中心变成 Preview。**已落**（S1–S6）。
 
 **聚合豁免（已落，S1a）：** 嵌套 part 注册进 `IEditorGroupsService.parts` 只为复用组 / tab / pane 机制，**不参与面向用户的全局 editor 语义**。`ConversationEditorPartImpl.excludeFromGlobalEditorAggregation = true`；`EditorParts` 经 `isExcludedFromGlobalEditorAggregation` 过滤：`getGroups` / `activePart` MRU / `findGroup` FIRST-LAST / `applyState` 跳过 Conversation part；`getScopedInstantiationService` **按 part 索引**（共享主窗 `windowId` 的多 Conversation part 各得独立 scoped `IEditorService`）。Conversation 自有导航栈与 `IHistoryService` 隔离（S2）。合同见 [conversation-session-windows](../../../dev/plans/conversation-session-windows.md) §3.8。
 

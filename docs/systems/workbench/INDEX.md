@@ -3,7 +3,7 @@ title: "Workbench 系统索引"
 type: index
 status: accepted
 phase: N/A
-updated: 2026-09-01
+updated: 2026-09-02
 summary: "跨层工作台系统：layout/parts、services、contrib；含 Parts/Grid 与 Settings 接入草案"
 ---
 
@@ -47,7 +47,7 @@ summary: "跨层工作台系统：layout/parts、services、contrib；含 Parts/
 
 - [Parts、Grid、显隐](parts-and-grid.md) — 默认窗口 UI 框架；T1/T2 代码锚点
 - [Activity + Sidebar](activity-and-sidebar.md) — Navigator / 四钮 Nav
-- [EditorPart tabs](editor-part-tabs.md) — Preview 同构；ADR-002 选定 Conversation 嵌套 IEditorPart（未实施）
+- [EditorPart tabs](editor-part-tabs.md) — Preview 同构；ADR-002 Conversation 嵌套 IEditorPart 第四插入面（**已落**，S1–S6）
 - [Panel + AuxiliaryBar](panel-and-auxiliary-bar.md) — 底栏 / 禁右 rail
 - [Title / Status](chrome-title-status.md) — AppTabBar / StatusBar 对照
 - [Views / composites](views-and-composites.md) — 视图容器插入面
