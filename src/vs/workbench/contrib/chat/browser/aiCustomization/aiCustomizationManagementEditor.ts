@@ -875,24 +875,20 @@ export class AICustomizationManagementEditor extends EditorPane {
 					this.showCustomizationMigrationPage(categoryId);
 				},
 				prefillChat: async (query, options) => {
+					if (!this.workspaceService.isSessionsWindow) {
+						return;
+					}
 					try {
-						if (this.workspaceService.isSessionsWindow) {
-							const sessionsViewId = 'workbench.view.sessions.chat';
-							if (options?.newChat) {
-								await this.commandService.executeCommand('workbench.action.sessions.newChat');
-							}
-							const view = await this.viewsService.openView(sessionsViewId, true);
-							const chatView = view as unknown as { prefillInput?(text: string): void; sendQuery?(text: string): void } | undefined;
-							if (options?.isPartialQuery && chatView?.prefillInput) {
-								chatView.prefillInput(query);
-							} else if (chatView?.sendQuery) {
-								chatView.sendQuery(query);
-							}
-						} else {
-							if (options?.newChat) {
-								await this.commandService.executeCommand('workbench.action.chat.newChat');
-							}
-							await this.commandService.executeCommand('workbench.action.chat.open', { query, isPartialQuery: options?.isPartialQuery ?? false });
+						const sessionsViewId = 'workbench.view.sessions.chat';
+						if (options?.newChat) {
+							await this.commandService.executeCommand('workbench.action.sessions.newChat');
+						}
+						const view = await this.viewsService.openView(sessionsViewId, true);
+						const chatView = view as unknown as { prefillInput?(text: string): void; sendQuery?(text: string): void } | undefined;
+						if (options?.isPartialQuery && chatView?.prefillInput) {
+							chatView.prefillInput(query);
+						} else if (chatView?.sendQuery) {
+							chatView.sendQuery(query);
 						}
 					} catch (err) {
 						onUnexpectedError(err);
@@ -1016,21 +1012,25 @@ export class AICustomizationManagementEditor extends EditorPane {
 		// Welcome page (shown when no section is selected)
 		this.createWelcomePage(contentInner);
 		this.createUnavailableSectionContent(contentInner);
-		this.editorDisposables.add(Event.any(
-			this.promptsService.onDidChangeSlashCommands,
-			this.promptsService.onDidChangeCustomAgents,
-			this.promptsService.onDidChangeInstructions,
-			this.promptsService.onDidChangeAgentInstructions,
-		)(() => {
-			void this.refreshCustomizationMigrationInfo();
-		}));
-		this.registerCustomizationMigrationSessionRefresh();
+		if (this.workspaceService.isSessionsWindow) {
+			this.editorDisposables.add(Event.any(
+				this.promptsService.onDidChangeSlashCommands,
+				this.promptsService.onDidChangeCustomAgents,
+				this.promptsService.onDidChangeInstructions,
+				this.promptsService.onDidChangeAgentInstructions,
+			)(() => {
+				void this.refreshCustomizationMigrationInfo();
+			}));
+			this.registerCustomizationMigrationSessionRefresh();
+		}
 
 		// Container for prompts-based content (Agents, Skills, Instructions, Prompts)
 		this.promptsContentContainer = DOM.append(contentInner, $('.prompts-content-container'));
 		this.listWidget = this.editorDisposables.add(this.instantiationService.createInstance(AICustomizationListWidget));
 		this.promptsContentContainer.appendChild(this.listWidget.element);
-		this.createCustomizationMigrationContent(contentInner);
+		if (this.workspaceService.isSessionsWindow) {
+			this.createCustomizationMigrationContent(contentInner);
+		}
 
 		// Handle item selection
 		this.editorDisposables.add(this.listWidget.onDidSelectItem(item => {
@@ -1188,7 +1188,9 @@ export class AICustomizationManagementEditor extends EditorPane {
 			void this.listWidget.setSection(this.selectedSection);
 		}
 
-		void this.refreshCustomizationMigrationInfo();
+		if (this.workspaceService.isSessionsWindow) {
+			void this.refreshCustomizationMigrationInfo();
+		}
 	}
 
 	private registerCustomizationMigrationSessionRefresh(): void {
