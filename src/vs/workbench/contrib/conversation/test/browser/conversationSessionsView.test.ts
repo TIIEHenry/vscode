@@ -207,7 +207,7 @@ suite('ConversationSessionsView', () => {
 		const secondId = stubService.createSession();
 		stubService.switchSession(stubService.getSessions()[0].id);
 		const sessions = stubService.getSessions();
-		assert.strictEqual(sessions.length, 2);
+		assert.strictEqual(sessions.length, 3);
 
 		const labels = [...view.element.querySelectorAll('.conversation-sessions-item-label')];
 		assert.strictEqual(labels.length, sessions.length);

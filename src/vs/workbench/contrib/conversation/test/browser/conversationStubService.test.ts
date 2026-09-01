@@ -11,10 +11,12 @@ suite('ConversationStubService', () => {
 
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('starts with one untitled session seeded with process-fold fixture turns', () => {
+	test('starts with untitled and visualize seed sessions', () => {
 		const service = store.add(new ConversationStubService());
 		const sessions = service.getSessions();
-		assert.strictEqual(sessions.length, 1);
+		assert.strictEqual(sessions.length, 2);
+		assert.ok(sessions.some(session => session.id === 'untitled'));
+		assert.ok(sessions.some(session => session.id === 'visualize'));
 		assert.ok(sessions[0].title.includes('Untitled'));
 		const turns = service.getTurns(sessions[0].id);
 		assert.strictEqual(turns.length, 7);

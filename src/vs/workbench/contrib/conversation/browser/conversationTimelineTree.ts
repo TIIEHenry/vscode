@@ -20,6 +20,7 @@ import { conversationLensTurnCopy, conversationLensTurnDelete, conversationLensP
 import { renderProcessFoldSpan } from './conversationProcessFold.js';
 import { ProcessFoldSpan, projectProcessFoldSpans } from './conversationProcessFoldModel.js';
 import { ConversationStubTurn } from './conversationStubModel.js';
+import { renderConversationVisualizeCard } from './conversationVisualizeCard.js';
 import {
 	ConversationTimelineFlatItem,
 	flattenConversationTimelineItems,
@@ -105,6 +106,7 @@ class ConversationTimelineRenderer implements ITreeRenderer<ConversationTimeline
 	private readonly userBubbleExpanded = new Map<string, boolean>();
 	private readonly processFoldOuterExpanded = new Map<string, boolean>();
 	private readonly processFoldThinkingExpanded = new Map<string, boolean>();
+	private readonly visualizeExpanded = new Map<string, boolean>();
 
 	constructor(
 		private readonly contentAdapter: IConversationTurnContentAdapter,
@@ -144,6 +146,22 @@ class ConversationTimelineRenderer implements ITreeRenderer<ConversationTimeline
 						this.processFoldThinkingExpanded.set(turnId, true);
 					} else {
 						this.processFoldThinkingExpanded.delete(turnId);
+					}
+				},
+				onLayoutChange: () => this.scheduleHeightUpdate(item, templateData.container),
+			}, templateData.disposables);
+			this.scheduleHeightUpdate(item, templateData.container);
+			return;
+		}
+
+		if (turn.kind === 'visualization') {
+			renderConversationVisualizeCard(templateData.container, turn, {
+				isExpanded: (turnId) => this.visualizeExpanded.get(turnId) ?? true,
+				setExpanded: (turnId, expanded) => {
+					if (expanded) {
+						this.visualizeExpanded.set(turnId, true);
+					} else {
+						this.visualizeExpanded.delete(turnId);
 					}
 				},
 				onLayoutChange: () => this.scheduleHeightUpdate(item, templateData.container),
@@ -283,6 +301,10 @@ class ConversationTimelineRenderer implements ITreeRenderer<ConversationTimeline
 	clearProcessFoldExpanded(): void {
 		this.processFoldOuterExpanded.clear();
 		this.processFoldThinkingExpanded.clear();
+	}
+
+	clearVisualizeExpanded(): void {
+		this.visualizeExpanded.clear();
 	}
 
 	private applyUserBubbleCollapseState(body: HTMLElement, text: string, expanded: boolean): void {
@@ -448,6 +470,9 @@ export class ConversationTimelineTree extends Disposable {
 						if (turn.kind === 'confirmation') {
 							return localize('conversationLens.confirmationSeat', "Confirmation");
 						}
+						if (turn.kind === 'visualization') {
+							return localize('conversationVisualize.accessibility', "Visualize");
+						}
 						return getConversationTurnRoleLabel(turn.kind);
 					},
 					getWidgetAriaLabel: () => localize('conversationLens.timeline', "Conversation timeline"),
@@ -525,6 +550,7 @@ export class ConversationTimelineTree extends Disposable {
 			this.renderer.clearConfirmationSeats();
 			this.renderer.clearUserBubbleExpanded();
 			this.renderer.clearProcessFoldExpanded();
+			this.renderer.clearVisualizeExpanded();
 			this.turnItems.clear();
 			this.flatItems = flattenConversationTimelineItems(turns);
 			const items = this.buildTreeElements(turns);

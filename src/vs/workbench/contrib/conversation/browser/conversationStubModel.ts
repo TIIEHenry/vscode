@@ -4,13 +4,14 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { localize } from '../../../../nls.js';
+import { ConversationVisualizeArgs } from '../common/conversationVisualize.js';
 import {
 	ConversationTrajectoryRecord,
 	mergeTrajectoryFixtureExtras,
 	projectTurnsToTrajectory,
 } from './conversationTrajectoryModel.js';
 
-export type StubTurnKind = 'user' | 'assistant' | 'confirmation' | 'thinking' | 'tool';
+export type StubTurnKind = 'user' | 'assistant' | 'confirmation' | 'thinking' | 'tool' | 'visualization';
 export type ConfirmationStatus = 'pending' | 'allowed' | 'skipped';
 
 export interface ConversationStubTurn {
@@ -22,6 +23,7 @@ export interface ConversationStubTurn {
 	readonly toolName?: string;
 	readonly summary?: string;
 	readonly payload?: string;
+	readonly visualize?: ConversationVisualizeArgs;
 }
 
 export interface ConversationStubSession {
@@ -52,12 +54,73 @@ function createUntitledFixtureTurns(): ConversationStubTurn[] {
 	];
 }
 
+function createVisualizeFixtureTurns(): ConversationStubTurn[] {
+	const diagramMermaid = [
+		'flowchart TD',
+		'  frozen["冻结"] --> active["进行中"] --> backlog["未立项"]',
+	].join('\n');
+
+	return [
+		{
+			id: 'visualize-u1',
+			kind: 'user',
+			text: localize('conversationStub.visualizeUser', "Show the implementation roadmap."),
+		},
+		{
+			id: 'visualize-v1',
+			kind: 'visualization',
+			text: '',
+			visualize: {
+				type: 'diagram',
+				title: localize('conversationStub.visualizeDiagramTitle', "Stub: 实现路线状态"),
+				mermaid: diagramMermaid,
+			},
+		},
+		{
+			id: 'visualize-v2',
+			kind: 'visualization',
+			text: '',
+			visualize: {
+				type: 'comparison',
+				title: localize('conversationStub.visualizeComparisonTitle', "Stub: host options"),
+				options: [
+					{
+						name: localize('conversationStub.visualizeDomCard', "Stub: DOM card"),
+						description: localize('conversationStub.visualizeDomCardDesc', "Pure workbench DOM; no webview."),
+						pros: [localize('conversationStub.visualizeDomPro', "Simple layout")],
+						cons: [localize('conversationStub.visualizeDomCon', "No mermaid runtime")],
+						recommended: false,
+					},
+					{
+						name: localize('conversationStub.visualizeWebviewHost', "Stub: webview host"),
+						description: localize('conversationStub.visualizeWebviewHostDesc', "Mermaid via extension bundle."),
+						pros: [localize('conversationStub.visualizeWebviewPro', "Theme-aware SVG")],
+						cons: [localize('conversationStub.visualizeWebviewCon', "Requires extension")],
+						recommended: true,
+					},
+				],
+			},
+		},
+		{
+			id: 'visualize-a1',
+			kind: 'assistant',
+			text: localize('conversationStub.visualizeAssistant', "Stub echo — visualize cards above are fixtures, no engine."),
+			stubEcho: true,
+		},
+	];
+}
+
 function createSeedSessions(): ConversationStubSession[] {
 	return [
 		{
 			id: 'untitled',
 			title: localize('conversationLens.sessionUntitled', "Untitled session"),
 			turns: createUntitledFixtureTurns(),
+		},
+		{
+			id: 'visualize',
+			title: localize('conversationStub.visualizeSessionTitle', "Visualize (Stub)"),
+			turns: createVisualizeFixtureTurns(),
 		},
 	];
 }
