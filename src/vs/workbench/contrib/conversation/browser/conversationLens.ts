@@ -16,6 +16,7 @@ import { localize } from '../../../../nls.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { IClipboardService } from '../../../../platform/clipboard/common/clipboardService.js';
 import { IContextViewService, IOpenContextView } from '../../../../platform/contextview/browser/contextView.js';
+import { IStorageService, StorageScope, StorageTarget } from '../../../../platform/storage/common/storage.js';
 import { defaultButtonStyles, defaultSelectBoxStyles } from '../../../../platform/theme/browser/defaultStyles.js';
 import { hasNativeContextMenu } from '../../../../platform/window/common/window.js';
 import { IConversationLensSlots } from '../../../browser/parts/conversation/conversationPart.js';
@@ -37,7 +38,7 @@ import {
 	conversationLensDockStopNotGenerating,
 	conversationLensInputMaximizedClass,
 } from './conversationLensDockStrings.js';
-import { conversationLensSessionBarDeleteSession, conversationLensSessionBarHistoryTitle, conversationLensSessionBarNewSession, conversationLensSessionBarRenameInputAria, conversationLensSessionBarRenameTitle } from './conversationLensSessionBarStrings.js';
+import { conversationLensSessionBarConversationTab, conversationLensSessionBarDeleteSession, conversationLensSessionBarNewSession, conversationLensSessionBarRenameInputAria, conversationLensSessionBarRenameTitle, conversationLensSessionBarTrajectoryTab } from './conversationLensSessionBarStrings.js';
 import {
 	buildSessionUserInputHistory,
 	createInputHistoryBrowseState,
@@ -49,6 +50,10 @@ import {
 import { showConversationPart } from './conversationSessionStatus.js';
 import { IConversationRosterService } from './conversationStubService.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
+
+const CONVERSATION_LENS_ID_STORAGE_KEY = 'conversation.lensId';
+
+type ConversationLensId = 'conversation' | 'trajectory';
 
 /**
  * Product Conversation lens: SessionBar + stub timeline + local dock, mounted
@@ -65,8 +70,10 @@ export class ConversationLens extends Disposable {
 	private sessionSelectContainer!: HTMLElement;
 	private newSessionButton!: Button;
 	private deleteSessionButton!: Button;
-	private historyButton!: Button;
-	private showTrajectory = false;
+	private lensTablist!: HTMLElement;
+	private lensTabConversation!: HTMLButtonElement;
+	private lensTabTrajectory!: HTMLButtonElement;
+	private lensId: ConversationLensId = 'conversation';
 	private timelineTree!: ConversationTimelineTree;
 	private trajectoryList!: ConversationTrajectoryList;
 	private inboxStatus!: HTMLButtonElement;
@@ -91,6 +98,7 @@ export class ConversationLens extends Disposable {
 		@IContextViewService private readonly contextViewService: IContextViewService,
 		@IConfigurationService private readonly configurationService: IConfigurationService,
 		@IInstantiationService private readonly instantiationService: IInstantiationService,
+		@IStorageService private readonly storageService: IStorageService,
 	) {
 		super();
 
@@ -100,7 +108,10 @@ export class ConversationLens extends Disposable {
 		this.mountTimeline(slots.timeline);
 		this.mountDock(slots.dock);
 
+		this.lensId = this.loadLensId();
+		this.updateLensTabs();
 		this.renderTimeline();
+		this.updateReadingColumn();
 		this.updateSessionTitle();
 		this.renderInboxStatus();
 
@@ -156,6 +167,22 @@ export class ConversationLens extends Disposable {
 		const leading = append(bar, $('.conversation-lens-session-bar-leading'));
 		const icon = append(leading, $('span.conversation-lens-session-icon'));
 		icon.classList.add(...ThemeIcon.asClassNameArray(Codicon.commentDiscussion));
+
+		this.lensTablist = append(leading, $('.conversation-lens-lens-tabs'));
+		this.lensTablist.setAttribute('role', 'tablist');
+		this.lensTabConversation = append(this.lensTablist, $('button.conversation-lens-lens-tab')) as HTMLButtonElement;
+		this.lensTabConversation.type = 'button';
+		this.lensTabConversation.setAttribute('role', 'tab');
+		this.lensTabConversation.setAttribute('data-lens-id', 'conversation');
+		this.lensTabConversation.textContent = conversationLensSessionBarConversationTab;
+		this.lensTabTrajectory = append(this.lensTablist, $('button.conversation-lens-lens-tab')) as HTMLButtonElement;
+		this.lensTabTrajectory.type = 'button';
+		this.lensTabTrajectory.setAttribute('role', 'tab');
+		this.lensTabTrajectory.setAttribute('data-lens-id', 'trajectory');
+		this.lensTabTrajectory.textContent = conversationLensSessionBarTrajectoryTab;
+		this._register(addDisposableListener(this.lensTabConversation, 'click', () => this.setLensId('conversation')));
+		this._register(addDisposableListener(this.lensTabTrajectory, 'click', () => this.setLensId('trajectory')));
+
 		const titleWrap = append(leading, $('.conversation-lens-session-title-wrap'));
 		this.sessionTitleButton = append(titleWrap, $('button.conversation-lens-session-title')) as HTMLButtonElement;
 		this.sessionTitleButton.type = 'button';
@@ -213,18 +240,6 @@ export class ConversationLens extends Disposable {
 		this.deleteSessionButton.icon = Codicon.trash;
 		this._register(this.deleteSessionButton.onDidClick(() => this.deleteActiveSession()));
 
-		const historyContainer = append(controls, $('.conversation-lens-session-history'));
-		this.historyButton = this._register(new Button(historyContainer, {
-			...defaultButtonStyles,
-			supportIcons: true,
-			small: true,
-			secondary: true,
-			title: conversationLensSessionBarHistoryTitle,
-		}));
-		this.historyButton.icon = Codicon.history;
-		this.historyButton.element.setAttribute('aria-pressed', 'false');
-		this._register(this.historyButton.onDidClick(() => this.toggleTrajectoryView()));
-
 		this._register(this.sessionSelectBox.onDidSelect(e => {
 			if (this.suppressSessionSelect) {
 				return;
@@ -276,9 +291,7 @@ export class ConversationLens extends Disposable {
 			onCopyTurn: (_turnId, text) => this.copyTurn(text),
 			onDeleteTurn: turnId => this.deleteTurn(turnId),
 		}));
-		this.trajectoryList = this._register(this.instantiationService.createInstance(ConversationTrajectoryList, readingColumn, {
-			onDidSelectTurn: turnId => this.onTrajectoryTurnSelected(turnId),
-		}));
+		this.trajectoryList = this._register(this.instantiationService.createInstance(ConversationTrajectoryList, readingColumn, {}));
 	}
 
 	private mountDock(host: HTMLElement): void {
@@ -431,29 +444,36 @@ export class ConversationLens extends Disposable {
 		this.instantiationService.invokeFunction(showConversationPart);
 	}
 
-	private toggleTrajectoryView(): void {
-		this.showTrajectory = !this.showTrajectory;
-		this.historyButton.element.setAttribute('aria-pressed', String(this.showTrajectory));
+	private loadLensId(): ConversationLensId {
+		const stored = this.storageService.get(CONVERSATION_LENS_ID_STORAGE_KEY, StorageScope.WORKSPACE);
+		if (stored === 'conversation' || stored === 'trajectory') {
+			return stored;
+		}
+		return 'conversation';
+	}
+
+	private setLensId(lensId: ConversationLensId): void {
+		if (this.lensId === lensId) {
+			return;
+		}
+		this.lensId = lensId;
+		this.storageService.store(CONVERSATION_LENS_ID_STORAGE_KEY, lensId, StorageScope.WORKSPACE, StorageTarget.MACHINE);
+		this.updateLensTabs();
 		this.updateReadingColumn();
 	}
 
-	private onTrajectoryTurnSelected(turnId: string): void {
-		if (this.showTrajectory) {
-			this.showTrajectory = false;
-			this.historyButton.element.setAttribute('aria-pressed', 'false');
-		}
-		this.updateReadingColumn();
-		if (this.inputMaximized) {
-			this.setInputMaximized(false);
-		}
-		this.renderTimeline();
-		this.timelineTree.revealTurn(turnId);
+	private updateLensTabs(): void {
+		const isConversation = this.lensId === 'conversation';
+		this.lensTabConversation.setAttribute('aria-selected', String(isConversation));
+		this.lensTabTrajectory.setAttribute('aria-selected', String(!isConversation));
+		this.lensTabConversation.tabIndex = isConversation ? 0 : -1;
+		this.lensTabTrajectory.tabIndex = isConversation ? -1 : 0;
 	}
 
 	private updateReadingColumn(): void {
 		const sessionId = this.stubService.getActiveSessionId();
 		const turns = this.stubService.getTurns(sessionId);
-		if (this.showTrajectory) {
+		if (this.lensId === 'trajectory') {
 			this.timelineTree.hide();
 			this.trajectoryList.setTurns(turns);
 			this.trajectoryList.show();
@@ -479,7 +499,7 @@ export class ConversationLens extends Disposable {
 		this.refreshSessionSelectOptions();
 		this.updateSessionTitle();
 		this.dockTextarea.value = this.drafts.get(sessionId) ?? '';
-		if (this.showTrajectory) {
+		if (this.lensId === 'trajectory') {
 			this.trajectoryList.setTurns(this.stubService.getTurns(sessionId));
 		}
 		this.renderTimeline();
@@ -551,6 +571,9 @@ export class ConversationLens extends Disposable {
 	}
 
 	private scrollToFirstPendingConfirmation(): void {
+		if (this.lensId === 'trajectory') {
+			this.setLensId('conversation');
+		}
 		if (this.inputMaximized) {
 			this.setInputMaximized(false);
 		}
@@ -566,7 +589,7 @@ export class ConversationLens extends Disposable {
 	private renderTimeline(): void {
 		const turns = this.stubService.getTurns(this.stubService.getActiveSessionId());
 		this.timelineTree.setTurns(turns);
-		if (this.showTrajectory) {
+		if (this.lensId === 'trajectory') {
 			this.trajectoryList.setTurns(turns);
 		}
 	}
