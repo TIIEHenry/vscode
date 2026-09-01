@@ -124,6 +124,20 @@ suite('Settings UA TOC', () => {
 		}
 	});
 
+	test('Agents Window keeps donor chat subtree in tocData', () => {
+		const toc = getTocDataForWindow(true);
+		assert.ok(childIds(toc).includes('chat'));
+	});
+
+	test('default Code window keeps Copilot exclude filter when advanced settings are shown', () => {
+		for (const showAdvanced of [false, true]) {
+			const filter = getSettingsTocFilter(false, showAdvanced);
+			assert.ok(filter, 'default window must always have a TOC filter');
+			const keyPatterns = filter!.exclude?.keyPatterns ?? [];
+			assert.ok(keyPatterns.some(pattern => pattern.startsWith('chat.')), `advanced=${showAdvanced} must still exclude chat keys`);
+		}
+	});
+
 	test('default Code window includes Client product group skeleton', () => {
 		const toc = getTocDataForWindow(false);
 		assert.ok(childIds(toc).includes('ua'));
