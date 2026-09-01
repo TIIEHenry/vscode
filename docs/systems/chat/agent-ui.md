@@ -4,7 +4,7 @@ type: architecture
 status: accepted
 phase: N/A
 updated: 2026-09-01
-summary: "本仓对话 UI 三层；Conversation 列 + session 窗口/chat tab + empty-hero；M5 切片 1–4 已落（chatShellRouting、roster、D4 V1–V8）；D5 EH 仍 open"
+summary: "本仓对话 UI 三层；Conversation 列 + session 窗口/chat tab + empty-hero；子代理对话框对齐 Modal 壳、不复用 MODAL_GROUP；M5 切片 1–4 已落；D5 EH 仍 open"
 ---
 
 # Agent UI 清单
@@ -86,11 +86,11 @@ Desktop 合同：窗口壳 = Singularity/IDEA；Conversation 内 = 时间线 + I
 
 `ChatViewPane` 还嵌 `AgentSessionsControl`、welcome、entitlement、mic/TTS——体量远超「一个列表 + Dock」。把它整块搬进新 Part 会把 Copilot 设置流一起搬进来。
 
-**产品中心（M2 透镜 + PRD-016 session 窗口，S1–S5 已落）：** `workbench/contrib/conversation` 在 `ConversationPart` 提供 Part 级 SessionBar（SelectBox、←→、关非根）与 session 窗口网格（`IConversationSessionWindowService`，最多两叶）；每叶内 `EditorParts.createConversationEditorPart` + 默认根 `ConversationChatInput`。页 chrome 在 `ConversationEditorPane`：「对话\|轨迹」+ 阅读列 + Dock + 子代理 tab 面包屑（`ConversationAgentBreadcrumbBox`）。子代理默认 **session 叶 overlay**（`ConversationSubAgentOverlay`），最大化才延伸 tab；Fork → `CONVERSATION_GROUP` 延伸 tab。自有导航栈（S2）与 `IHistoryService` 隔离；`conversation.navigate.closeChildOnBack` 默认开。roster「打开到旁边」/ Alt+点击可并列第二 session 叶（S5），共享 End Preview。仍用 stub 时间线 / composer（`IConversationRosterService` 内存会话）；非 `ChatEditorInput` / `ChatViewPane`，不走 Copilot setup 或 `IChatModel`。SessionBar 仍含 compact New/Delete session、History stub、Inbox 单行（PRD-015 选定布局未实施）。
+**产品中心（M2 透镜 + PRD-016 session 窗口，S1–S5 已落）：** `workbench/contrib/conversation` 在 `ConversationPart` 提供 Part 级 SessionBar（SelectBox、←→、关非根）与 session 窗口网格（`IConversationSessionWindowService`，最多两叶）；每叶内 `EditorParts.createConversationEditorPart` + 默认根 `ConversationChatInput`。页 chrome 在 `ConversationEditorPane`：「对话\|轨迹」+ 阅读列 + Dock + 子代理 tab 面包屑（`ConversationAgentBreadcrumbBox`）。子代理默认 **session 叶 overlay**（`ConversationSubAgentOverlay`）：居中卡片对齐 Modal 壳（不是 `MODAL_GROUP`）；弹出才延伸 tab，叶内最大化只铺满 overlay。Fork → `CONVERSATION_GROUP` 延伸 tab。自有导航栈（S2）与 `IHistoryService` 隔离；`conversation.navigate.closeChildOnBack` 默认开。roster「打开到旁边」/ Alt+点击可并列第二 session 叶（S5），共享 End Preview。仍用 stub 时间线 / composer（`IConversationRosterService` 内存会话）；非 `ChatEditorInput` / `ChatViewPane`，不走 Copilot setup 或 `IChatModel`。SessionBar 仍含 compact New/Delete session、History stub、Inbox 单行（PRD-015 选定布局未实施）。
 
 **Inbox 选定布局（[PRD-015](../../product/requirements.md#prd-015-conversation-空会话与输入面)，2026-09-01 签收，未实施）：** PreFirst 无 Inbox / Goal / Stop；Active 左右分簇（左 Task · MessageQueue · Goal，右 Stop · 上下文环），Task 在 MessageQueue 左侧。HEAD 仍是上一段单行 inbox-row。合同见 [conversation-empty-hero](../../../dev/plans/conversation-empty-hero.md)。
 
-**Session 窗口 / chat tab（[PRD-016](../../product/requirements.md#prd-016-conversation-session-窗口与-chat-tab) / [ADR-002](../../../dev/decisions/002-conversation-session-windows.md)，**S1–S5 已落**）：** 中心叶仍是 `CONVERSATION_PART`。Part 自管最多两叶 session 窗口；每叶内嵌 Conversation `IEditorPart`（`CONVERSATION_GROUP` / `CONVERSATION_SIDE_GROUP`）。产品对话用 `ConversationChatInput`，**禁止** `ChatEditorInput`。文件 / Preview `SIDE_GROUP` 永远 Preview；**出站**聚合豁免（`excludeFromGlobalEditorAggregation`：chat tab 不进全局 editor 枚举 / MRU / 工作集 / `IHistoryService`）已落。Fork 默认延伸 tab；子代理 spawn 不加 tab、点击开叶内对话框、最大化才 tab；面包屑沿 stub `origin.chat` 链替换延伸 tab；窗口 chrome「关非根」不 `closeGroup` 根组。协议 `ChatOrigin` 四 kind / `ChatInteractivity`（§3.3b）呈现合同已签收，**SideChat / ReadOnly / Hidden 活数据仍等 PRD-008**；stub 期一律 `Full`。细节见 [conversation-session-windows](../../../dev/plans/conversation-session-windows.md)。
+**Session 窗口 / chat tab（[PRD-016](../../product/requirements.md#prd-016-conversation-session-窗口与-chat-tab) / [ADR-002](../../../dev/decisions/002-conversation-session-windows.md)，**S1–S5 已落**）：** 中心叶仍是 `CONVERSATION_PART`。Part 自管最多两叶 session 窗口；每叶内嵌 Conversation `IEditorPart`（`CONVERSATION_GROUP` / `CONVERSATION_SIDE_GROUP`）。产品对话用 `ConversationChatInput`，**禁止** `ChatEditorInput`。文件 / Preview `SIDE_GROUP` 永远 Preview；**出站**聚合豁免（`excludeFromGlobalEditorAggregation`：chat tab 不进全局 editor 枚举 / MRU / 工作集 / `IHistoryService`）已落。Fork 默认延伸 tab；子代理 spawn 不加 tab、点击开叶内居中对话框、弹出才 tab（叶内最大化不进 tab）；面包屑沿 stub `origin.chat` 链（对话框与 tab）；tab 上点击替换延伸 tab；窗口 chrome「关非根」不 `closeGroup` 根组。协议 `ChatOrigin` 四 kind / `ChatInteractivity`（§3.3b）呈现合同已签收，**SideChat / ReadOnly / Hidden 活数据仍等 PRD-008**；stub 期一律 `Full`。细节见 [conversation-session-windows](../../../dev/plans/conversation-session-windows.md)。
 
 ## 4. Sessions / Agents Window 宿主（更接近透镜，但不是文档壳）
 

@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M5
 updated: 2026-09-02
-summary: "HEAD e13172fa：D5 closed（三探针 wave3）；S3c overlay WIP 未 commit"
+summary: "HEAD e13172fa：D5 closed（三探针 wave3）；S3c 子代理对话框 chrome 已 commit loop/A"
 ---
 
 # Development Progress
@@ -12,7 +12,7 @@ summary: "HEAD e13172fa：D5 closed（三探针 wave3）；S3c overlay WIP 未 c
 ## Current Session
 
 - **集成 HEAD：** `e13172fa` — D5 三探针（YAML / TODOs Tree / js-debug）**closed** @ wave3；`eh-surface-matrix` 已更新。
-- **未提交 WIP：** PRD-016 S3c 子代理对话框 chrome（`conversationSubAgentOverlay` 等 + 方案/需求文档）。
+- **loop/A：** PRD-016 S3c 子代理对话框 chrome 已 commit（`promoteSubAgentDialog` / 叶内最大化 / overlay 面包屑）。
 
 ## Blockers
 

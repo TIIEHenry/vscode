@@ -24,7 +24,7 @@ import {
 } from '../../browser/conversationChatInput.js';
 import '../../browser/conversationEditor.contribution.js';
 import { ConversationSessionChatService, IConversationSessionChatService } from '../../browser/conversationSessionChatService.js';
-import { conversationSubAgentOverlayClass } from '../../browser/conversationSubAgentOverlay.js';
+import { conversationSubAgentOverlayClass, conversationSubAgentOverlayBackdropClass, conversationSubAgentOverlayCardClass, conversationSubAgentOverlayMaximizeClass, conversationSubAgentOverlayMaximizedAttribute, conversationSubAgentOverlayPopoutClass } from '../../browser/conversationSubAgentOverlay.js';
 import { ConversationStubService, IConversationRosterService } from '../../browser/conversationStubService.js';
 import { ForkConversationAction } from '../../../chat/browser/actions/chatForkActions.js';
 import { IChatSessionsService } from '../../../chat/common/chatSessionsService.js';
@@ -49,7 +49,7 @@ suite('Conversation session chat (S3)', () => {
 	});
 
 	async function createHarness() {
-		const rosterService = new ConversationStubService();
+		const rosterService = store.add(new ConversationStubService());
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		instantiationService.stub(IConversationRosterService, rosterService);
 		instantiationService.invokeFunction(accessor => Registry.as<IEditorFactoryRegistry>(EditorExtensions.EditorFactory).start(accessor));
@@ -61,6 +61,7 @@ suite('Conversation session chat (S3)', () => {
 		const host = document.createElement('div');
 		const sessionBar = document.createElement('div');
 		const sessionWindow = document.createElement('div');
+		sessionWindow.className = 'conversation-session-window';
 		const editorHost = document.createElement('div');
 		sessionWindow.appendChild(editorHost);
 		document.body.appendChild(host);
@@ -151,7 +152,7 @@ suite('Conversation session chat (S3)', () => {
 		assert.strictEqual(sessionWindow.querySelector(`.${conversationSubAgentOverlayClass}`)?.hasAttribute('hidden'), true);
 	});
 
-	test('sub-agent click opens session-leaf dialog while root tab stays mounted', async () => {
+	test('sub-agent click opens a centered session-leaf dialog while root tab stays mounted', async () => {
 		const { conversationPart, sessionChatService, sessionWindow } = await createHarness();
 		sessionChatService.registerSubAgentChat(SESSION_KEY, 'sub-1', 'Research sub-agent');
 
@@ -159,8 +160,16 @@ suite('Conversation session chat (S3)', () => {
 
 		assert.strictEqual(conversationPart.activeGroup.count, 1);
 		assert.strictEqual(sessionChatService.isSubAgentDialogOpen(), true);
-		assert.ok(sessionWindow.querySelector(`.${conversationSubAgentOverlayClass}:not([hidden])`));
+		const overlay = sessionWindow.querySelector(`.${conversationSubAgentOverlayClass}:not([hidden])`) as HTMLElement | null;
+		assert.ok(overlay);
+		assert.strictEqual(overlay.getAttribute('aria-modal'), 'false');
+		assert.strictEqual(overlay.getAttribute(conversationSubAgentOverlayMaximizedAttribute), 'false');
+		assert.ok(overlay.querySelector(`.${conversationSubAgentOverlayCardClass}`));
+		assert.ok(overlay.querySelector(`.${conversationSubAgentOverlayBackdropClass}`));
+		assert.ok(overlay.querySelector(`.${conversationSubAgentOverlayPopoutClass}`));
 		assert.ok(conversationPart.activeGroup.getEditorByIndex(0) instanceof ConversationChatInput);
+		assert.ok(sessionWindow.contains(overlay));
+		assert.strictEqual(overlay.closest('.monaco-modal-editor-block'), null);
 	});
 
 	test('clicking a sub-agent with an existing tab activates the tab instead of opening a dialog', async () => {
@@ -175,16 +184,56 @@ suite('Conversation session chat (S3)', () => {
 		assert.strictEqual((conversationPart.activeGroup.activeEditor as ConversationChatInput).resource.toString(), getConversationChatResource(SESSION_KEY, 'sub-1').toString());
 	});
 
-	test('maximize promotes sub-agent dialog to an extension tab', async () => {
+	test('pop-out promotes sub-agent dialog to an extension tab', async () => {
 		const { conversationPart, sessionChatService } = await createHarness();
 		sessionChatService.registerSubAgentChat(SESSION_KEY, 'sub-1', 'Research sub-agent');
 		await sessionChatService.openSubAgent(SESSION_KEY, 'sub-1');
 
-		await sessionChatService.maximizeSubAgentDialog();
+		await sessionChatService.promoteSubAgentDialog();
 
 		assert.strictEqual(sessionChatService.isSubAgentDialogOpen(), false);
 		assert.strictEqual(conversationPart.activeGroup.count, 2);
 		assert.ok(sessionChatService.findOpenTabForChat(SESSION_KEY, 'sub-1'));
+	});
+
+	test('leaf maximize keeps the sub-agent dialog open without adding a tab', async () => {
+		const { conversationPart, sessionChatService, sessionWindow } = await createHarness();
+		sessionChatService.registerSubAgentChat(SESSION_KEY, 'sub-1', 'Research sub-agent');
+		await sessionChatService.openSubAgent(SESSION_KEY, 'sub-1');
+
+		sessionChatService.toggleSubAgentDialogMaximized();
+
+		assert.strictEqual(sessionChatService.isSubAgentDialogOpen(), true);
+		assert.strictEqual(sessionChatService.isSubAgentDialogMaximized(), true);
+		assert.strictEqual(conversationPart.activeGroup.count, 1);
+		assert.strictEqual(
+			sessionWindow.querySelector(`.${conversationSubAgentOverlayClass}`)?.getAttribute(conversationSubAgentOverlayMaximizedAttribute),
+			'true',
+		);
+		assert.ok(sessionWindow.querySelector(`.${conversationSubAgentOverlayMaximizeClass}`));
+	});
+
+	test('header double-click toggles leaf maximize', async () => {
+		const { sessionChatService, sessionWindow } = await createHarness();
+		sessionChatService.registerSubAgentChat(SESSION_KEY, 'sub-1', 'Research sub-agent');
+		await sessionChatService.openSubAgent(SESSION_KEY, 'sub-1');
+
+		const header = sessionWindow.querySelector('.conversation-subagent-overlay-header') as HTMLElement;
+		header.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+
+		assert.strictEqual(sessionChatService.isSubAgentDialogMaximized(), true);
+		assert.strictEqual(sessionChatService.isSubAgentDialogOpen(), true);
+	});
+
+	test('backdrop click closes the sub-agent dialog', async () => {
+		const { sessionChatService, sessionWindow } = await createHarness();
+		sessionChatService.registerSubAgentChat(SESSION_KEY, 'sub-1', 'Research sub-agent');
+		await sessionChatService.openSubAgent(SESSION_KEY, 'sub-1');
+
+		const backdrop = sessionWindow.querySelector(`.${conversationSubAgentOverlayBackdropClass}`) as HTMLElement;
+		backdrop.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+
+		assert.strictEqual(sessionChatService.isSubAgentDialogOpen(), false);
 	});
 
 	test('CONVERSATION_GROUP open targets the conversation editor part active group', async () => {
@@ -237,6 +286,33 @@ suite('Conversation session chat (S3)', () => {
 		assert.strictEqual(conversationPart.activeGroup.count, 1);
 		assert.strictEqual(conversationPart.groups.length, 1);
 		assert.ok((conversationPart.activeGroup.activeEditor as ConversationChatInput).isDefaultRoot);
+	});
+
+	test('dialog breadcrumb root click closes overlay and keeps the root tab', async () => {
+		const { conversationPart, sessionChatService } = await createHarness();
+		sessionChatService.registerSubAgentChat(SESSION_KEY, 'sub-1', 'Parent agent', 'default');
+		await sessionChatService.openSubAgent(SESSION_KEY, 'sub-1');
+
+		await sessionChatService.navigateAgentBreadcrumb(SESSION_KEY, 'default');
+
+		assert.strictEqual(sessionChatService.isSubAgentDialogOpen(), false);
+		assert.strictEqual(conversationPart.activeGroup.count, 1);
+		assert.ok((conversationPart.activeGroup.getEditorByIndex(0) as ConversationChatInput).isDefaultRoot);
+	});
+
+	test('dialog breadcrumb ancestor without a tab replaces overlay content', async () => {
+		const { conversationPart, sessionChatService } = await createHarness();
+		sessionChatService.registerSubAgentChat(SESSION_KEY, 'sub-1', 'Parent agent', 'default');
+		sessionChatService.registerSubAgentChat(SESSION_KEY, 'sub-2', 'Child agent', 'sub-1');
+		await sessionChatService.openSubAgent(SESSION_KEY, 'sub-2');
+
+		await sessionChatService.navigateAgentBreadcrumb(SESSION_KEY, 'sub-1');
+
+		assert.strictEqual(sessionChatService.isSubAgentDialogOpen(), true);
+		assert.strictEqual(conversationPart.activeGroup.count, 1);
+		assert.ok((conversationPart.activeGroup.getEditorByIndex(0) as ConversationChatInput).isDefaultRoot);
+		assert.strictEqual(sessionChatService.findOpenTabForChat(SESSION_KEY, 'sub-1'), undefined);
+		assert.strictEqual(sessionChatService.findOpenTabForChat(SESSION_KEY, 'sub-2'), undefined);
 	});
 
 	test('close non-root closes extension tabs but keeps root group', async () => {

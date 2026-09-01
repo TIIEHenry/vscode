@@ -4,22 +4,33 @@
  *--------------------------------------------------------------------------------------------*/
 
 import './media/conversationSubAgentOverlay.css';
-import { $, addDisposableListener, append, EventType } from '../../../../base/browser/dom.js';
+import { $, addDisposableListener, append, EventHelper, EventType, isHTMLElement } from '../../../../base/browser/dom.js';
 import { Button } from '../../../../base/browser/ui/button/button.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { Emitter } from '../../../../base/common/event.js';
 import { Disposable, DisposableStore } from '../../../../base/common/lifecycle.js';
+import { ThemeIcon } from '../../../../base/common/themables.js';
 import { localize } from '../../../../nls.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { defaultButtonStyles } from '../../../../platform/theme/browser/defaultStyles.js';
+import { IConversationAgentBreadcrumbItem } from '../common/conversationAgentHierarchy.js';
+import { ConversationAgentBreadcrumbBox } from './conversationAgentBreadcrumb.js';
 import { ConversationLens } from './conversationLens.js';
 
 export const conversationSubAgentOverlayClass = 'conversation-subagent-overlay';
+export const conversationSubAgentOverlayCardClass = 'conversation-subagent-overlay-card';
+export const conversationSubAgentOverlayBackdropClass = 'conversation-subagent-overlay-backdrop';
+export const conversationSubAgentOverlayPopoutClass = 'conversation-subagent-overlay-popout';
+export const conversationSubAgentOverlayMaximizeClass = 'conversation-subagent-overlay-maximize';
+export const conversationSubAgentOverlayCloseClass = 'conversation-subagent-overlay-close';
+export const conversationSubAgentOverlayMaximizedAttribute = 'data-maximized';
 
 export interface IConversationSubAgentOverlayState {
 	readonly sessionKey: string;
 	readonly chatId: string;
 	readonly title: string;
+	readonly sessionTitle: string;
+	readonly breadcrumb: readonly IConversationAgentBreadcrumbItem[];
 }
 
 export class ConversationSubAgentOverlay extends Disposable {
@@ -27,15 +38,24 @@ export class ConversationSubAgentOverlay extends Disposable {
 	private readonly _onDidClose = this._register(new Emitter<void>());
 	readonly onDidClose = this._onDidClose.event;
 
-	private readonly _onDidRequestMaximize = this._register(new Emitter<IConversationSubAgentOverlayState>());
-	readonly onDidRequestMaximize = this._onDidRequestMaximize.event;
+	private readonly _onDidRequestPromote = this._register(new Emitter<IConversationSubAgentOverlayState>());
+	readonly onDidRequestPromote = this._onDidRequestPromote.event;
+
+	private readonly _onDidSelectBreadcrumb = this._register(new Emitter<string>());
+	readonly onDidSelectBreadcrumb = this._onDidSelectBreadcrumb.event;
 
 	readonly element: HTMLElement;
 
-	private chrome!: HTMLElement;
+	private card!: HTMLElement;
+	private header!: HTMLElement;
+	private nameElement!: HTMLElement;
+	private descriptionElement!: HTMLElement;
 	private body!: HTMLElement;
+	private maximizeButton!: Button;
+	private breadcrumb!: ConversationAgentBreadcrumbBox;
 	private readonly lensDisposables = this._register(new DisposableStore());
 	private state: IConversationSubAgentOverlayState | undefined;
+	private maximized = false;
 
 	constructor(
 		parent: HTMLElement,
@@ -46,31 +66,56 @@ export class ConversationSubAgentOverlay extends Disposable {
 		this.element = append(parent, $(`.${conversationSubAgentOverlayClass}`));
 		this.element.setAttribute('role', 'dialog');
 		this.element.setAttribute('aria-modal', 'false');
+		this.element.setAttribute(conversationSubAgentOverlayMaximizedAttribute, 'false');
 		this.element.hidden = true;
 		this.renderChrome();
 	}
 
 	private renderChrome(): void {
-		this.chrome = append(this.element, $('.conversation-subagent-overlay-chrome'));
-		const title = append(this.chrome, $('.conversation-subagent-overlay-title'));
-		title.textContent = localize('conversationSubAgentOverlayTitle', "Sub-agent");
+		const backdrop = append(this.element, $(`.${conversationSubAgentOverlayBackdropClass}`));
+		this._register(addDisposableListener(backdrop, EventType.MOUSE_DOWN, event => {
+			if (event.target === backdrop) {
+				EventHelper.stop(event, true);
+				this.close();
+			}
+		}));
 
-		const actions = append(this.chrome, $('.conversation-subagent-overlay-actions'));
+		this.card = append(this.element, $(`.${conversationSubAgentOverlayCardClass}`));
+		this.header = append(this.card, $('.conversation-subagent-overlay-header'));
 
-		const maximizeButton = this._register(new Button(actions, {
+		const title = append(this.header, $('.conversation-subagent-overlay-title'));
+		const icon = append(title, $('span.conversation-subagent-overlay-icon'));
+		icon.classList.add(...ThemeIcon.asClassNameArray(Codicon.commentDiscussion));
+		this.nameElement = append(title, $('span.conversation-subagent-overlay-name'));
+		this.descriptionElement = append(title, $('span.conversation-subagent-overlay-description'));
+
+		const actions = append(this.header, $('.conversation-subagent-overlay-actions'));
+		const popoutButton = this._register(new Button(actions, {
 			...defaultButtonStyles,
 			supportIcons: true,
 			small: true,
 			secondary: true,
-			title: localize('conversationSubAgentOverlayMaximize', "Maximize to tab"),
+			title: localize('conversationSubAgentOverlayPromote', "Open as tab"),
 		}));
-		maximizeButton.icon = Codicon.screenFull;
-		maximizeButton.element.classList.add('conversation-subagent-overlay-maximize');
-		this._register(maximizeButton.onDidClick(() => {
+		popoutButton.icon = Codicon.openInProduct;
+		popoutButton.element.classList.add(conversationSubAgentOverlayPopoutClass);
+		this._register(popoutButton.onDidClick(() => {
 			if (this.state) {
-				this._onDidRequestMaximize.fire(this.state);
+				this._onDidRequestPromote.fire(this.state);
 			}
 		}));
+
+		this.maximizeButton = this._register(new Button(actions, {
+			...defaultButtonStyles,
+			supportIcons: true,
+			small: true,
+			secondary: true,
+			title: localize('conversationSubAgentOverlayMaximize', "Maximize"),
+		}));
+		this.maximizeButton.icon = Codicon.screenFull;
+		this.maximizeButton.element.classList.add(conversationSubAgentOverlayMaximizeClass);
+		this.maximizeButton.element.setAttribute('aria-pressed', 'false');
+		this._register(this.maximizeButton.onDidClick(() => this.toggleMaximized()));
 
 		const closeButton = this._register(new Button(actions, {
 			...defaultButtonStyles,
@@ -80,10 +125,22 @@ export class ConversationSubAgentOverlay extends Disposable {
 			title: localize('conversationSubAgentOverlayClose', "Close"),
 		}));
 		closeButton.icon = Codicon.close;
-		closeButton.element.classList.add('conversation-subagent-overlay-close');
+		closeButton.element.classList.add(conversationSubAgentOverlayCloseClass);
 		this._register(closeButton.onDidClick(() => this.close()));
 
-		this.body = append(this.element, $('.conversation-subagent-overlay-body'));
+		this._register(addDisposableListener(this.header, EventType.DBLCLICK, event => {
+			const target = event.target;
+			if (isHTMLElement(target) && (target.closest('.monaco-button') || target.closest('.action-item'))) {
+				return;
+			}
+			EventHelper.stop(event, true);
+			this.toggleMaximized();
+		}));
+
+		this.breadcrumb = this._register(new ConversationAgentBreadcrumbBox(this.card));
+		this._register(this.breadcrumb.onDidSelect(chatId => this._onDidSelectBreadcrumb.fire(chatId)));
+
+		this.body = append(this.card, $('.conversation-subagent-overlay-body'));
 		this._register(addDisposableListener(this.element, EventType.KEY_DOWN, event => {
 			if (event.key === 'Escape') {
 				event.stopPropagation();
@@ -94,10 +151,13 @@ export class ConversationSubAgentOverlay extends Disposable {
 
 	open(state: IConversationSubAgentOverlayState): void {
 		this.state = state;
+		this.setMaximized(false);
 		this.element.hidden = false;
 		this.element.setAttribute('aria-label', state.title);
-		const titleElement = this.chrome.querySelector('.conversation-subagent-overlay-title') as HTMLElement;
-		titleElement.textContent = state.title;
+		this.nameElement.textContent = state.title;
+		this.descriptionElement.textContent = state.sessionTitle;
+		this.breadcrumb.setItems([...state.breadcrumb]);
+		this.breadcrumb.layout(this.card.clientWidth);
 
 		this.lensDisposables.clear();
 		this.body.replaceChildren();
@@ -105,7 +165,33 @@ export class ConversationSubAgentOverlay extends Disposable {
 		timeline.setAttribute('data-conversation-slot', 'timeline');
 		const dock = append(this.body, $('.conversation-dock'));
 		dock.setAttribute('data-conversation-slot', 'dock');
-		this.lensDisposables.add(this.instantiationService.createInstance(ConversationLens, { sessionBar: this.sessionBar, timeline, dock }));
+		// Detached S3 harnesses are not inside `.monaco-workbench`; skip the full lens there.
+		if (this.element.closest('.monaco-workbench')) {
+			this.lensDisposables.add(this.instantiationService.createInstance(ConversationLens, { sessionBar: this.sessionBar, timeline, dock }));
+		}
+	}
+
+	toggleMaximized(): void {
+		if (!this.isOpen()) {
+			return;
+		}
+		this.setMaximized(!this.maximized);
+	}
+
+	setMaximized(maximized: boolean): void {
+		this.maximized = maximized;
+		this.element.setAttribute(conversationSubAgentOverlayMaximizedAttribute, String(maximized));
+		this.maximizeButton.icon = maximized ? Codicon.screenNormal : Codicon.screenFull;
+		const title = maximized
+			? localize('conversationSubAgentOverlayRestore', "Restore")
+			: localize('conversationSubAgentOverlayMaximize', "Maximize");
+		this.maximizeButton.setTitle(title);
+		this.maximizeButton.element.setAttribute('aria-pressed', String(maximized));
+		this.breadcrumb.layout(this.card.clientWidth);
+	}
+
+	isMaximized(): boolean {
+		return this.maximized && this.isOpen();
 	}
 
 	close(): void {
@@ -114,8 +200,14 @@ export class ConversationSubAgentOverlay extends Disposable {
 		}
 		this.element.hidden = true;
 		this.state = undefined;
+		this.maximized = false;
+		this.element.setAttribute(conversationSubAgentOverlayMaximizedAttribute, 'false');
+		this.maximizeButton.icon = Codicon.screenFull;
+		this.maximizeButton.setTitle(localize('conversationSubAgentOverlayMaximize', "Maximize"));
+		this.maximizeButton.element.setAttribute('aria-pressed', 'false');
 		this.lensDisposables.clear();
 		this.body.replaceChildren();
+		this.breadcrumb.setItems([]);
 		this._onDidClose.fire();
 	}
 

@@ -4,7 +4,7 @@ type: demand
 status: accepted
 phase: N/A
 updated: 2026-09-01
-summary: "PRD-001–PRD-016：默认窗产品壳已接受；轨迹/过程折/visualize/空会话/session 窗口已接受未全部实施；Agents 窗口 Chat 并排已接受；引擎、Diff、产品身份未决或阻塞"
+summary: "PRD-001–PRD-016：默认窗产品壳已接受；session 窗口 S1–S6 已落、S3c 对话框 chrome 已写；Agents 窗口 Chat 并排已接受；引擎、Diff、产品身份未决或阻塞"
 ---
 
 # Agent IDE 产品需求
@@ -177,19 +177,19 @@ PRD-001 至 PRD-007 的代码已在 M0–M3 合入，但 D4 启动冒烟（T1–
 ### PRD-016 Conversation session 窗口与 chat tab
 
 - **状态**：`accepted`
-- **用户价值**：用户在中间对话区用 tab 管理同一会话的根对话和 fork；点开子代理先在窗口内对话框里看，需要时再最大化成 tab，并能沿 agent 层级跳转；必要时拆列或并排另一个会话；藏起中间区不会丢掉会话。
-- **用户可观察陈述**：默认窗口中间 Conversation 里，每个会话是一扇窗口，有一条默认根 tab（不可关闭）。用户 Fork 在同一会话加一张 tab。Agent 拉起的子代理仍在该会话里；用户点击后在当前窗口内弹出对话框（父对话仍在底下，不是新 tab），最大化才变成一张 tab。子代理 tab 顶部有 agent 层级面包屑；点击某一级切到该 agent，当前子代理 tab 被替换。每扇窗口有一键关闭根会话以外全部 tab 的按钮。用户 split 后同一扇窗口出现两列，每列自己的 tab。窗口并列展示的是另一个会话；藏起后回到单窗口，再打开该会话仍按原样显示。整块 Conversation 只能隐藏、不能关闭。前进后退有按钮也响应鼠标侧键；默认可在后退时关掉延伸 tab 或关掉对话框。文件仍在右边 Preview。
+- **用户价值**：用户在中间对话区用 tab 管理同一会话的根对话和 fork；点开子代理先在窗口内对话框里看，需要时再打开为 tab，并能沿 agent 层级跳转；必要时拆列或并排另一个会话；藏起中间区不会丢掉会话。
+- **用户可观察陈述**：默认窗口中间 Conversation 里，每个会话是一扇窗口，有一条默认根 tab（不可关闭）。用户 Fork 在同一会话加一张 tab。Agent 拉起的子代理仍在该会话里；用户点击后在当前窗口内弹出居中对话框（父对话在底下仍可见，不是新 tab）。对话框可铺满当前窗口（仍不是 tab）；「打开为 tab」才变成一张延伸 tab。对话框和子代理 tab 顶部都有 agent 层级面包屑；点击某一级切到该 agent（对话框里替换预览内容或关掉对话框回到根；已是 tab 时替换当前延伸 tab）。每扇窗口有一键关闭根会话以外全部 tab 的按钮。用户 split 后同一扇窗口出现两列，每列自己的 tab。窗口并列展示的是另一个会话；藏起后回到单窗口，再打开该会话仍按原样显示。整块 Conversation 只能隐藏、不能关闭。前进后退有按钮也响应鼠标侧键；默认可在后退时关掉延伸 tab 或关掉对话框。文件仍在右边 Preview。
 - **产品验收标准**：
   1. 中间可见 chat tab（有延伸或 split 时）；不是 Preview 里的 Chat 编辑器标签。
   2. 默认根 tab 没有关闭；隐藏 Conversation 或隐藏某会话窗口后再打开，该会话的 tab 还在。
   3. 用户 Fork 不产生第二个根会话；新内容作为同一会话的 tab（引擎未接时不假装已 fork）。
-  4. 子代理未点击时不出现新 tab、不弹对话框；点击后窗口内对话框打开且仍只有根 tab（父对话未卸）；最大化后才出现延伸 tab。
-  5. 子代理 tab 顶有面包屑；点击祖先切到该 agent，当前延伸 tab 被替换（不叠新 tab）。每扇窗口能一键关掉根以外全部 tab。
+  4. 子代理未点击时不出现新 tab、不弹对话框；点击后窗口内居中对话框打开且仍只有根 tab（父对话未卸）；叶内铺满后仍只有根 tab；「打开为 tab」后才出现延伸 tab。
+  5. 对话框与子代理 tab 顶有面包屑；点击祖先切到该 agent（对话框替换预览或关对话框；已是 tab 时当前延伸 tab 被替换，不叠新 tab）。每扇窗口能一键关掉根以外全部 tab。
   6. 用户 split 后仍是同一会话、同一扇中间窗口；不把 fork 拆进 Preview。
   7. 窗口并列是第二个会话（第二扇中间叶）；隐藏该窗后只剩一个会话窗口；再打开该会话窗口回来。两扇窗共用右边同一个 Preview，不是 Agents 窗口里的双会话孪生。
   8. Conversation 聚焦时 ←→ 与鼠标 4/5 在 chat tab / 对话框之间导航；Preview 聚焦时仍是文件历史。默认后退关闭延伸 tab 或关掉对话框，不关根 tab。
   9. 「对话 | 轨迹」是每个 tab / 对话框内的透镜，不是与 chat tab 平级的第三条。
-- **依赖或未决**：活 fork / 子代理 catalog 依赖 PRD-008。形态见 [ADR-002](../../dev/decisions/002-conversation-session-windows.md)（`accepted`）。方案见 [conversation-session-windows](../../dev/plans/conversation-session-windows.md)（`accepted`，未实施）。不改变 Agents 窗口 [PRD-011](#prd-011-chat-并排比对)。本条修正 [PRD-012](#prd-012-conversation-轨迹透镜)：「对话 | 轨迹」是每个 chat 页 / 子代理对话框的页 chrome；[PRD-002](#prd-002-会话上下文) SelectBox 仍是窗口 chrome。窗口并列共享同一个 Preview / Sources / Panel，不是 ADR-001 的双 session 孪生。HEAD 仍是单透镜三槽，随 S1 落地。
+- **依赖或未决**：活 fork / 子代理 catalog 依赖 PRD-008。形态见 [ADR-002](../../dev/decisions/002-conversation-session-windows.md)（`accepted`）。方案见 [conversation-session-windows](../../dev/plans/conversation-session-windows.md)（S1–S6 `implemented`；S3c 对话框 chrome 已写）。不改变 Agents 窗口 [PRD-011](#prd-011-chat-并排比对)。本条修正 [PRD-012](#prd-012-conversation-轨迹透镜)：「对话 | 轨迹」是每个 chat 页 / 子代理对话框的页 chrome；[PRD-002](#prd-002-会话上下文) SelectBox 仍是窗口 chrome。窗口并列共享同一个 Preview / Sources / Panel，不是 ADR-001 的双 session 孪生。
 
 ## 未决或阻塞
 

@@ -55,7 +55,11 @@ export interface IConversationSessionChatService {
 
 	openSubAgent(sessionKey: string, chatId: string, title?: string): Promise<void>;
 
-	maximizeSubAgentDialog(sessionKey?: string): Promise<void>;
+	promoteSubAgentDialog(sessionKey?: string): Promise<void>;
+
+	toggleSubAgentDialogMaximized(sessionKey?: string): void;
+
+	isSubAgentDialogMaximized(sessionKey?: string): boolean;
 
 	closeSubAgentDialog(sessionKey?: string): void;
 
@@ -101,8 +105,11 @@ export class ConversationSessionChatService extends Disposable implements IConve
 		}
 		const overlay = this._register(this.instantiationService.createInstance(ConversationSubAgentOverlay, sessionWindowHost, sessionBar));
 		this.subAgentOverlays.set(sessionKey, overlay);
-		this._register(overlay.onDidRequestMaximize(() => {
-			void this.maximizeSubAgentDialog(sessionKey);
+		this._register(overlay.onDidRequestPromote(() => {
+			void this.promoteSubAgentDialog(sessionKey);
+		}));
+		this._register(overlay.onDidSelectBreadcrumb(chatId => {
+			void this.navigateAgentBreadcrumb(sessionKey, chatId);
 		}));
 		this._register(overlay.onDidClose(() => this.fireCloseNonRootStateChange()));
 	}
@@ -134,6 +141,12 @@ export class ConversationSessionChatService extends Disposable implements IConve
 	}
 
 	async navigateAgentBreadcrumb(sessionKey: string, targetChatId: string): Promise<void> {
+		const overlay = this.subAgentOverlays.get(sessionKey);
+		if (overlay?.isOpen()) {
+			await this.navigateOverlayBreadcrumb(sessionKey, targetChatId);
+			return;
+		}
+
 		const part = this.getConversationPart(sessionKey);
 		if (!part) {
 			return;
@@ -182,6 +195,39 @@ export class ConversationSessionChatService extends Disposable implements IConve
 			editor: activeEditor,
 			replacement,
 		}], group);
+		this.fireCloseNonRootStateChange();
+	}
+
+	private async navigateOverlayBreadcrumb(sessionKey: string, targetChatId: string): Promise<void> {
+		const overlay = this.subAgentOverlays.get(sessionKey);
+		const state = overlay?.getState();
+		if (!overlay || !state) {
+			return;
+		}
+
+		if (targetChatId === state.chatId) {
+			return;
+		}
+
+		if (targetChatId === 'default') {
+			this.closeSubAgentDialog(sessionKey);
+			return;
+		}
+
+		const existingTab = this.findOpenTabForChat(sessionKey, targetChatId);
+		if (existingTab) {
+			const part = this.getConversationPart(sessionKey);
+			this.closeSubAgentDialog(sessionKey);
+			await part?.activeGroup.openEditor(existingTab);
+			return;
+		}
+
+		const targetEntry = this.catalog.get(sessionKey)?.get(targetChatId);
+		if (!targetEntry) {
+			return;
+		}
+
+		overlay.open(this.createOverlayState(sessionKey, targetEntry.chatId, targetEntry.title));
 		this.fireCloseNonRootStateChange();
 	}
 
@@ -297,15 +343,11 @@ export class ConversationSessionChatService extends Disposable implements IConve
 			throw new Error(`Sub-agent overlay for session ${sessionKey} is not mounted`);
 		}
 
-		overlay.open({
-			sessionKey,
-			chatId,
-			title: title ?? entry.title,
-		});
+		overlay.open(this.createOverlayState(sessionKey, chatId, title ?? entry.title));
 		this.fireCloseNonRootStateChange();
 	}
 
-	async maximizeSubAgentDialog(sessionKey?: string): Promise<void> {
+	async promoteSubAgentDialog(sessionKey?: string): Promise<void> {
 		const key = sessionKey ?? this.rosterService.getActiveSessionId();
 		const overlay = this.subAgentOverlays.get(key);
 		const state = overlay?.getState();
@@ -315,6 +357,26 @@ export class ConversationSessionChatService extends Disposable implements IConve
 
 		this.closeSubAgentDialog(key);
 		await this.openExtensionTab(state.sessionKey, state.chatId, { title: state.title });
+	}
+
+	toggleSubAgentDialogMaximized(sessionKey?: string): void {
+		const key = sessionKey ?? this.rosterService.getActiveSessionId();
+		this.subAgentOverlays.get(key)?.toggleMaximized();
+	}
+
+	isSubAgentDialogMaximized(sessionKey?: string): boolean {
+		const key = sessionKey ?? this.rosterService.getActiveSessionId();
+		return this.subAgentOverlays.get(key)?.isMaximized() ?? false;
+	}
+
+	private createOverlayState(sessionKey: string, chatId: string, title: string) {
+		return {
+			sessionKey,
+			chatId,
+			title,
+			sessionTitle: this.rosterService.getSessions().find(session => session.id === sessionKey)?.title ?? sessionKey,
+			breadcrumb: this.getAgentHierarchyBreadcrumb(sessionKey, chatId),
+		};
 	}
 
 	closeSubAgentDialog(sessionKey?: string): void {

@@ -1,29 +1,93 @@
-.monaco-workbench .part.conversation .conversation-subagent-overlay {
-	position: absolute;
-	inset: 0;
-	z-index: 5;
-	display: flex;
-	flex-direction: column;
-	background: var(--vscode-editor-background);
-	border: 1px solid var(--vscode-panel-border);
-	box-shadow: 0 8px 24px rgba(0, 0, 0, 0.24);
-}
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
 
 .monaco-workbench .part.conversation .conversation-session-window {
 	position: relative;
 }
 
-.monaco-workbench .part.conversation .conversation-subagent-overlay-chrome {
+.monaco-workbench .part.conversation .conversation-subagent-overlay {
+	position: absolute;
+	inset: 0;
+	z-index: 5;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: transparent;
+}
+
+.monaco-workbench .part.conversation .conversation-subagent-overlay[hidden] {
+	display: none !important;
+}
+
+.monaco-workbench .part.conversation .conversation-subagent-overlay-backdrop {
+	position: absolute;
+	inset: 0;
+	background: rgba(0, 0, 0, 0.5);
+}
+
+.monaco-workbench .part.conversation .conversation-subagent-overlay-card {
+	position: relative;
+	z-index: 1;
+	display: flex;
+	flex-direction: column;
+	width: 86%;
+	height: 86%;
+	min-width: min(400px, 100%);
+	min-height: min(300px, 100%);
+	max-width: 100%;
+	max-height: 100%;
+	overflow: hidden;
+	border-radius: 8px;
+	border: 1px solid var(--vscode-editorWidget-border, var(--vscode-contrastBorder));
+	background: var(--vscode-editor-background);
+	box-shadow: var(--vscode-shadow-xl);
+}
+
+.monaco-workbench .part.conversation .conversation-subagent-overlay[data-maximized="true"] .conversation-subagent-overlay-card {
+	width: calc(100% - 32px);
+	height: calc(100% - 32px);
+}
+
+.monaco-workbench .part.conversation .conversation-subagent-overlay-header {
 	display: flex;
 	align-items: center;
 	gap: 8px;
-	padding: 4px 8px;
-	border-bottom: 1px solid var(--vscode-panel-border);
+	height: 32px;
+	min-height: 32px;
+	padding: 0 8px 0 10px;
+	color: var(--vscode-titleBar-activeForeground);
+	background-color: var(--vscode-titleBar-activeBackground);
+	border-bottom: 1px solid var(--vscode-titleBar-border, transparent);
 }
 
 .monaco-workbench .part.conversation .conversation-subagent-overlay-title {
+	display: flex;
+	align-items: baseline;
+	gap: 8px;
 	flex: 1;
-	font-weight: 600;
+	min-width: 0;
+	overflow: hidden;
+}
+
+.monaco-workbench .part.conversation .conversation-subagent-overlay-icon {
+	flex-shrink: 0;
+	align-self: center;
+	color: inherit;
+}
+
+.monaco-workbench .part.conversation .conversation-subagent-overlay-name {
+	font-size: 12px;
+	font-weight: var(--vscode-fontWeight-semiBold);
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.monaco-workbench .part.conversation .conversation-subagent-overlay-description {
+	font-size: 12px;
+	opacity: 0.7;
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
@@ -31,6 +95,8 @@
 
 .monaco-workbench .part.conversation .conversation-subagent-overlay-actions {
 	display: flex;
+	align-items: center;
+	flex-shrink: 0;
 	gap: 4px;
 }
 

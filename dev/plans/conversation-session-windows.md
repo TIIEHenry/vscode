@@ -1,10 +1,10 @@
 ---
 title: "默认窗 Conversation：session 窗口与 chat tab"
 type: plan
-status: implemented
+status: in_progress
 phase: N/A
 updated: 2026-09-01
-summary: "ConversationPart 每叶内嵌 IEditorPart；入站围栏 + 出站聚合豁免；S1–S6 已合入 `ad67cfe3`–`a48780ae`；D4 V1–V8 已验"
+summary: "S1–S6 已合入；S3c 子代理对话框 chrome 已落地 loop/A（借 Modal 壳、不复用 MODAL_GROUP）"
 ---
 
 # 默认窗 Conversation：session 窗口与 chat tab
@@ -13,9 +13,9 @@ summary: "ConversationPart 每叶内嵌 IEditorPart；入站围栏 + 出站聚�
 > 形态决策：[ADR-002](../decisions/002-conversation-session-windows.md)（`accepted`）。  
 > Agents 窗同 session 并排仍以 [ADR-001](../decisions/001-chat-compare-form.md) / [PRD-011](../../docs/product/requirements.md#prd-011-chat-并排比对) / [chat-compare-split](chat-compare-split.md) 为准，本方案不改。  
 > 透镜页内 chrome：[conversation-lens-assembly](../../docs/reference/code-oss-b2/conversation-lens-assembly.md)；「对话 | 轨迹」是 **每个 chat 页内** 透镜（PRD-012，经 PRD-016 修正），不是与 chat tab 平级的第三条。  
-> **签收：** 2026-09-01 用户签收。S1–S6 已合入（`ad67cfe3`–`a48780ae`）；S1a 与 S1 同批落地。D4 rerun-2230 V1–V8 PASS。
+> **签收：** 2026-09-01 用户签收。S1–S6 已合入（`ad67cfe3`–`a48780ae`）；S1a 与 S1 同批落地。D4 rerun-2230 V1–V8 PASS。S3c 对话框 chrome（2026-09-01）对齐 `ModalEditorPart` 壳、不改宿主。
 
-**Goal：** 默认窗中间 Conversation 变成「session 窗口 + chat tab」：根/默认 chat 钉死；用户 Fork 默认加 tab；子代理默认在窗口内以对话框打开（父对话仍在底下），最大化才新建 tab；子代理 tab 顶有 agent 层级面包屑（点击替换当前延伸 tab）；每扇窗口一键关掉根以外的 tab；用户可 split；另一 session 用窗口并列；只能隐藏。
+**Goal：** 默认窗中间 Conversation 变成「session 窗口 + chat tab」：根/默认 chat 钉死；用户 Fork 默认加 tab；子代理默认在窗口内以居中对话框打开（父对话仍在底下可见），「打开为 tab」才新建 tab、叶内最大化只铺满对话框；子代理对话框与 tab 顶有 agent 层级面包屑（点击替换当前预览或当前延伸 tab）；每扇窗口一键关掉根以外的 tab；用户可 split；另一 session 用窗口并列；只能隐藏。
 
 ## 1. 选定与拒绝
 
@@ -27,8 +27,8 @@ summary: "ConversationPart 每叶内嵌 IEditorPart；入站围栏 + 出站聚�
 | 同 session 呈现 | 用户 Fork **默认 tab**；用户 split → **同一扇窗口内** 两列，每列自己的 tab | fork 默认拆列（那是 Agents 窗 PRD-011）；fork 拆到 Preview |
 | 窗口并列 | 展示 **另一个 session**；只能藏，藏后单窗口 | 窗口并列 = 同 session 的两 chat（与「fork 挂原根」混层） |
 | 关 vs 藏 | 整块 Conversation、每个 session 的默认面、并列的另一 session 窗：**只藏不关** | 关闭 session / 关掉默认根 tab / 藏列时合并并丢掉 tab 模型 |
-| Agent 子代理 | 仍在原 session；时间线可见；**默认点击 = 窗口内对话框**（盖在当前窗口上，父对话不卸）；**最大化才新建 tab** | 一点就开 tab；把阅读列换成子代理（钻入）；一 spawn 就开 tab 或开新 OS 窗 |
-| 子代理 tab chrome | 页顶 **agent 层级面包屑**；点某一级切到该 agent，**当前延伸 tab 被替换**（不叠 tab） | 面包屑只展示不跳转；点层级再开一张 tab |
+| Agent 子代理 | 仍在原 session；时间线可见；**默认点击 = 窗口内居中对话框**（盖在当前窗口上，父对话不卸）；**弹出/打开为 tab 才新建 tab**；叶内最大化只铺满 overlay | 一点就开 tab；把阅读列换成子代理（钻入）；一 spawn 就开 tab 或开新 OS 窗；把对话框接到 `MODAL_GROUP` |
+| 子代理 tab chrome | 对话框与页顶 **agent 层级面包屑**；点某一级切到该 agent（对话框替换预览或关掉；已是 tab 时当前延伸 tab 被替换，不叠 tab） | 面包屑只展示不跳转；点层级再开一张 tab |
 | 关延伸 tab | 每扇 session 窗口一颗 **关闭根以外全部 tab** 的按钮；根 tab 不动 | 没有批量关；把根 tab 一起关 |
 | 页布局 | 窗口 chrome（SelectBox / ←→ / 关非根）+ 每个 chat 页相同的「对话\|轨迹」+ 阅读列 + Dock | 对话\|轨迹与 chat tab 抢同一条 tablist；每 tab 复制 SelectBox |
 | 导航 | Conversation **自有**历史栈（tab + 对话框）；`IHistoryService` 只服务 Preview；鼠标 4/5 在 `hasFocus(CONVERSATION_PART)` 时拦截 | 两套历史混成一条；靠用户改 `workbench.editor.navigationScope`；`GoScope.EDITOR_GROUP` 当隔离 |
@@ -103,7 +103,7 @@ EDITOR_PART（Preview / MainEditorPart）：默认 openEditor、ACTIVE_GROUP、S
 | 名词 | 是 | 不是 |
 |------|----|------|
 | session 窗口 | ConversationPart 网格的一叶 + 其内嵌 Conversation EditorPart | OS 辅助窗；Preview；贴纸了 sessionId 的 EditorGroup |
-| chat tab | 该 Conversation EditorPart 某组里的 `ConversationChatInput`（默认根 / 用户 Fork peer / **最大化后**的子代理） | 子代理默认对话框；Navigator session 行；对话\|轨迹透镜；`ChatEditorInput` |
+| chat tab | 该 Conversation EditorPart 某组里的 `ConversationChatInput`（默认根 / 用户 Fork peer / **打开为 tab 后**的子代理） | 子代理默认对话框；Navigator session 行；对话\|轨迹透镜；`ChatEditorInput` |
 | 窗口并列 | 两个 **session 叶**（两个 Conversation EditorPart） | ADR-001 形态 2（Agents 窗双 session 孪生）；同 session 两 chat 的默认形态 |
 | 隐藏 | 不画；模型仍在 | dispose session、关默认 tab、`closeGroup` 根组 |
 
@@ -131,22 +131,23 @@ EDITOR_PART（Preview / MainEditorPart）：默认 openEditor、ACTIVE_GROUP、S
 |------|------|
 | `openEditor` 无目标 / `ACTIVE_GROUP` / `SIDE_GROUP`（文件） | Preview |
 | `openEditor(..., CONVERSATION_GROUP)`；用户 Fork | 当前 session 窗口 active 组新 tab（已打开则激活） |
-| 用户点击子代理 | **该 session 叶上的对话框**（§3.3）；不加 tab |
-| 子代理对话框 **最大化** | `openEditor(input, CONVERSATION_GROUP)` 延伸 tab；关掉对话框 |
+| 用户点击子代理 | **该 session 叶上的对话框**（§3.3 / §3.3c）；不加 tab |
+| 子代理对话框 **打开为 tab**（弹出控件） | `openEditor(input, CONVERSATION_GROUP)` 延伸 tab；关掉对话框 |
+| 子代理对话框 **最大化** | 叶内铺满 overlay 卡片；**不** `openEditor` |
 | 用户 split / 拖 tab 到该窗边缘 | `CONVERSATION_SIDE_GROUP` / 该 Conversation EditorPart `addGroup` |
 | 打开另一个已有 session 到旁边 | 新 session 叶 + 新 Conversation EditorPart；该 session 的默认面 |
 | 点名 Conversation 组但 input 是文件 / `ChatEditorInput` | **拒绝并落到 Preview**（围栏 3） |
 
 校验：单测锁定「fork / conversation 资源不得出现在主 `EDITOR_PART`」**以及**「文件 / `ChatEditorInput` 不得出现在任何 Conversation EditorPart」。
 
-### 3.3 同 session：Fork 默认 tab；子代理对话框 / 最大化才 tab
+### 3.3 同 session：Fork 默认 tab；子代理对话框 / 打开为 tab 才 tab
 
 1. 用户 Fork → 默认窗 workbench 调 `IAgentConnection.createChat` / `_forkSession`（`agentHostSessionHandler.ts`）→ `openEditor(ConversationChatInput, CONVERSATION_GROUP)` 加 tab 并激活（不自动拆列）。**不**走 `agentHostForkActions.ts` / `openChatToSide`。
 2. Agent spawn 子代理 → catalog 有 chat、时间线可点；**不加 tab、不弹对话框**。
 3. 用户点击子代理：
    - 若该 chat **已有**延伸 tab → 激活该 tab，**不**再开对话框。
    - 否则 → **session 叶 overlay**（§3.3 对话框合同）。
-4. 对话框 **最大化** → `openEditor(..., CONVERSATION_GROUP)` 提升为延伸 tab；关掉 overlay。已有同一 chat 的 tab 则激活已有 tab。
+4. 对话框 **打开为 tab**（标题栏弹出控件，§3.3c）→ `openEditor(..., CONVERSATION_GROUP)` 提升为延伸 tab；关掉 overlay。已有同一 chat 的 tab 则激活已有 tab。对话框 **最大化**（标题栏最大化控件 / 双击标题栏）→ overlay 卡片铺满当前 session 叶；**不** `openEditor`，tab 数不变；再点恢复居中卡片。
 5. 用户 split → `CONVERSATION_SIDE_GROUP`；该 session 窗口内两列；每列独立 tab 条；比对上限若做，对齐 PRD-011 的 2，且只约束「比对类」入口，手动拖拽不限（与 ADR-001 验收 6 同构，但是 **默认窗、同 session 窗内**，不调用 `sessions/`）。
 6. 关延伸 tab ≠ 藏窗口。默认根 input **不是** pin/sticky（HEAD pin 仍可关、group lock 挡的是别的 editor）。须 **关闭拦截器**：隐藏 index-0 默认 chat 的关闭控件；拦截 `closeEditor` / 中键 / `closeAllEditors` / 关组，使默认根永不 `dispose`。关掉一列里最后一张非根 tab **不得** `closeGroup` 根组、不得拆掉 session 窗口。
 7. 每扇 session 窗口一颗 **关闭根以外全部 tab** 按钮：关掉该窗（含 split 两列）里除默认根 tab 外的所有 chat tab；若对话框开着则一并关掉。实现 **不得** `closeGroup` 根所在组。无延伸 tab 且无对话框时按钮 disabled。根 tab 与 session 窗口本身不动。
@@ -157,18 +158,55 @@ EDITOR_PART（Preview / MainEditorPart）：默认 openEditor、ACTIVE_GROUP、S
 |----|------|
 | 父 DOM | **当前 session 叶**（盖住该 Conversation EditorPart 的内容区）。父根 pane **保持 mounted** |
 | 不是 | `layoutService.mainContainer`（那是 `ConversationVisualizeOverlay`，全窗、盖住 Preview）；不是 `MODAL_GROUP` |
-| 内容 | **瞬时第二份透镜实例**（对话\|轨迹 + 阅读列 + Dock），**不是** tab 模型里的 `EditorInput`，也不是 `ConversationEditorPane` 直到最大化 |
-| 关闭 | × / Esc；`closeChildOnBack` 后退也关 |
+| 形态 | 叶内 **居中卡片 + 半透明遮罩**（§3.3c）。父根 pane 在遮罩下 **保持 mounted、四周可见** |
+| 内容 | **瞬时第二份透镜实例**（对话\|轨迹 + 阅读列 + Dock），**不是** tab 模型里的 `EditorInput`，也不是 `ConversationEditorPane` 直到 **打开为 tab** |
+| 关闭 | × / Esc / 点遮罩；`closeChildOnBack` 后退也关。点卡片不关 |
 | 与 visualize 叠放 | visualize 仍是 window-level、`aria-modal`、盖整个 `mainContainer`。z 序：visualize **高于**子代理对话框。Esc：先关最顶层（visualize 开着先关 visualize） |
-| 与 Settings 模态 | 互不复用；Settings 仍走 `MODAL_GROUP` |
+| 与 Settings 模态 | 互不复用；Settings 仍走 `MODAL_GROUP`。两套可同时开（不同宿主） |
 
-### 3.3a 子代理 tab 的面包屑
+### 3.3c 子代理对话框 chrome（对齐 ModalEditorPart 壳）
 
-仅当子代理 **已经是 tab**（最大化之后）时，**页 chrome**（ConversationEditorPane 顶，SessionBar 窗口 chrome 之下）显示 **agent 层级面包屑**：`根会话 > … > 父代理 > 当前子代理`。
+**宿主不变。** 仍是 session 叶 overlay（上表）。**禁止** `openEditor(..., MODAL_GROUP)`、禁止把 overlay 挂到 `layoutService.mainContainer`、禁止 `import` `ModalEditorPart` / `modalEditorPart.ts`。Settings / Preferences / JSON 继续独占全局 `ModalEditorPart` 单例。
+
+**借壳不借宿主。** 视觉与标题栏三按钮对齐 `ModalEditorTitle` 的**控件语义与令牌**（圆角 8px、`--vscode-shadow-xl`、`--vscode-titleBar-*`、`--vscode-editor-background`、遮罩 `rgba(0,0,0,0.5)`）。**禁止** `import` `ModalEditorPart` / `modalEditorPart.ts` / `ModalEditorTitle`；**禁止**复用 CSS 类名 `.monaco-modal-editor-block`、`.modal-editor-part`、`.modal-editor-header`。
+
+**定位作用域（可测，防 CSS 偷换拓扑）：** overlay 根与遮罩、卡片必须 `position: absolute`，相对 `.conversation-session-window`（该节点已 `position: relative`）。**禁止** `position: fixed`、禁止视口 `width/height: 100%`、禁止 `z-index: 2540`。单测断言 overlay 节点是 session 叶后代，**不**在 `layoutService.mainContainer` 下（除非叶本身在 workbench 树里——断言 `!overlay.parentElement?.classList.contains('monaco-modal-editor-block')` 且 overlay 的 `offsetParent` 链经过 `.conversation-session-window`）。
+
+ADR-002 正文不改（规则 5）。口语对照：
+
+| 文本 | 指什么 | 代码 |
+|------|--------|------|
+| ADR-002「最大化才为延伸 tab」 | **提升动作** | `promoteSubAgentDialog` ← HEAD `maximizeSubAgentDialog` |
+| chrome「弹出」/`Codicon.openInProduct` | 同上 | `onDidRequestPromote` → `promoteSubAgentDialog` → `openEditor(CONVERSATION_GROUP)` |
+| chrome「最大化」/`Codicon.screenFull` | **叶内铺满 overlay** | `toggleSubAgentDialogMaximized`；**禁止**再接到 `openEditor` |
+| HEAD 符号 `maximizeSubAgentDialog` / `onDidRequestMaximize` | 今日 = 提升为 tab | **删除或改名**；禁止留下 maximize* 仍 `openEditor` |
+
+**实现范围（不只 overlay）：** `conversationSubAgentOverlay.ts` + css、`conversationSessionChatService.ts`（符号迁移 + 对话框面包屑分支）、`conversationSessionChat.test.ts`（重写「maximize promotes…」）。点击规则以 **§3.3a** 为准，不在本节另写一套。
+
+| 控件 | 对齐 Modal 的哪颗 | 子代理语义 |
+|------|-------------------|------------|
+| 标题 | Modal `ResourceLabel` 位：图标 + 名 + description | `Codicon.commentDiscussion` + 子代理 title + 所属 session 名（`IConversationRosterService` 该 session 的 title，缺则 sessionKey） |
+| 弹出 | `Codicon.openInProduct`（Open Modal Editor in Main Window） | **提升为延伸 tab**（§3.3 第 4 条） |
+| 最大化 | `Codicon.screenFull` / `screenNormal` | **叶内铺满** overlay 卡片（边距 16px）；不 `openEditor`；再点恢复居中。双击标题栏同切换 |
+| 关闭 | × | 关 overlay |
+| 点遮罩 | Modal 点 `monaco-modal-editor-block` 关 | 关 overlay；点卡片不关 |
+| 面包屑 | Modal 里是 editor 文件/JSON 面包屑 | **agent 层级**（复用 `ConversationAgentBreadcrumbBox`），不是文件路径 |
+
+默认尺寸：居中卡片约为叶的 86%×86%，最小 400×300，不超过叶。最大化态：卡片 `calc(100% - 32px)`（边距 16px）；overlay 根设 `data-maximized="true"`（可测）。打开对话框时最大化态复位为假。
+
+**不借：** Modal 的 `aria-modal=true`（本 overlay 保持 `aria-modal=false`，叶级非全窗）、命令白名单、拖到辅助窗 / `MOVE_MODAL_EDITOR_TO_WINDOW`、sidebar、`z-index: 2540`。z 序仍低于 visualize（§3.3）。Esc：overlay 开着且焦点在 overlay 内 → 关 overlay（`stopPropagation`）。visualize 盖在上面时焦点在 visualize，Esc 先关 visualize（既有合同，S3c 不改 visualize 监听）。双击标题栏 = 切换叶内最大化。
+
+**导航：** 叶内最大化不单独入 Conversation 栈（同一对话框）。弹出 = 关对话框 + 开 tab，记一条。`closeChildOnBack` 关的是对话框整体，与是否铺满无关。
+
+### 3.3a 子代理面包屑（对话框 + tab）
+
+子代理 **对话框** 与 **已经是 tab** 时都显示 **agent 层级面包屑**：`根会话 > … > 父代理 > 当前子代理`。tab 上放在 **页 chrome**（ConversationEditorPane 顶，SessionBar 窗口 chrome 之下）；对话框上放在标题栏与透镜之间。
 
 数据走 **协议** `ChatOrigin`（`channels-chat/state.ts`）：Tool `{ kind: Tool, chat, toolCallId }`、Fork `{ kind: Fork, chat, turnId }`。沿 **`origin.chat`** 走到该 session 的默认根 chat URI。**禁止**读 sessions 适配器的 `IChatOrigin.parentChat`（映射在 `baseAgentHostSessionsProvider.ts`，默认窗不得 import）。
 
-- 点某一级：**切到该 chat**。若目标是默认根 → 关闭（替换掉）当前这张子代理延伸 tab，激活根 tab。若目标仍是树上某一子代理 → **用目标 chat 替换当前延伸 tab**（同一 tab 槽换 input，不新开、不留下旧子代理 tab）。
+- 点某一级：**切到该 chat**。
+  - **对话框开着：** **不得**走 tab 路径的 `replaceEditors`，也不得为了让点击生效而删掉 `navigateAgentBreadcrumb` 的 `isDefaultRoot` 守卫（对话框底下通常就是根 tab）。接线：`navigateAgentBreadcrumb` 若 overlay 开着则走 overlay 分支后 return。目标是默认根 → `closeSubAgentDialog`。目标已有延伸 tab → `openEditor` **已有** input 并关 overlay。目标仍是树上某一子代理且无 tab → 同一 overlay `open({ chatId })`，`group.count` 仍为 1、根 input 仍是 index-0。
+  - **已经是 tab：** 目标是默认根 → 关闭（替换掉）当前这张子代理延伸 tab，激活根 tab。目标仍是树上某一子代理 → **用目标 chat 替换当前延伸 tab**（同一 tab 槽换 input，不新开、不留下旧子代理 tab）。
 - 当前项不可点或 aria-current。中间断裂（父 chat 已删）诚实省略或停在最近仍存在的祖先，不造假节点。
 - 用户 Fork 出的 peer tab **不**强制 agent 层级面包屑；若 origin 为 Fork 可显示「从某 turn fork」，不走 agent 层级替换规则。
 
@@ -180,8 +218,8 @@ EDITOR_PART（Preview / MainEditorPart）：默认 openEditor、ACTIVE_GROUP、S
 |---------------|-----------|--------|
 | `User` | 该 session 的**默认根 tab**（钉死、不可关） | 无（自己就是根） |
 | `Fork` | 用户 Fork → **默认延伸 tab**（§3.3 第 1 条） | 不强制 agent 层级；可显示「从某 turn fork」 |
-| `Tool` | 子代理 → **默认 session 叶对话框**，最大化才延伸 tab（§3.3 第 3–4 条） | agent 层级面包屑，沿 `origin.chat` |
-| `SideChat` | **与 Tool 同款**：默认 session 叶对话框，最大化才延伸 tab。标题带「侧聊」标识与来源 turn；`origin.selection` 有值时在页 chrome 显示被选文本的**快照**（provenance，**不是** live range） | 只显示「来自某 chat 某 turn」一级，**不**走 agent 层级替换规则 |
+| `Tool` | 子代理 → **默认 session 叶对话框**，弹出/打开为 tab 才延伸 tab（§3.3 第 3–4 条） | agent 层级面包屑，沿 `origin.chat`（对话框与 tab） |
+| `SideChat` | **与 Tool 同款**：默认 session 叶对话框，弹出/打开为 tab 才延伸 tab。标题带「侧聊」标识与来源 turn；`origin.selection` 有值时在页 chrome 显示被选文本的**快照**（provenance，**不是** live range） | 只显示「来自某 chat 某 turn」一级，**不**走 agent 层级替换规则 |
 
 SideChat **不**当作第三种窗口形态，也**不**自动开 tab。能力位 `capabilities.multipleChats.sideChat` 为假时不暴露入口（与 fork 同构）。
 
@@ -219,7 +257,7 @@ SideChat **不**当作第三种窗口形态，也**不**自动开 tab。能力�
 | 层 | 放什么 | 不放什么 |
 |----|--------|----------|
 | **窗口 chrome**（session 叶 / Part） | 藏、←→、关非根、PRD-002 SelectBox（切 **当前窗** session）、roster「打开到旁边」 | 对话\|轨迹；每 tab 再画一个 SelectBox |
-| **页 chrome**（ConversationEditorPane / 对话框透镜） | 「对话 \| 轨迹」、阅读列、Dock、子代理 tab 面包屑 | 切 session |
+| **页 chrome**（ConversationEditorPane / 对话框透镜） | 「对话 \| 轨迹」、阅读列、Dock、子代理对话框与 tab 面包屑 | 切 session |
 
 每个 chat 页自己的「对话 | 轨迹」状态。切 tab 不串透镜。窄宽度已有 300px 透镜 tab 测试；chat tab 独立一行（设计选定 A），有延伸 tab 或用户 split 时再显示 chat tab 行。**开着子代理对话框不单独撑出 tab 行**。仅默认根且未 split 时可藏 chat tab 行（复制 `shouldShowChatTabs` **启发式**，**禁止** import `chatGroupsView.ts`）。推荐 **仅当存在延伸 tab 或第二组时显示 tab 行**。
 
@@ -229,7 +267,7 @@ PRD-012 原文把「对话 | 轨迹」钉在 Conversation **标题条**。本方
 
 - UI 与 Conversation EditorPart 宿主：`workbench`（`parts/conversation` + `contrib/conversation` + `editorParts.ts` 扩展）。**禁止** `workbench/contrib/conversation` import `vs/sessions`（ESLint `code-import-patterns` / M5 H7）。`valid-layers-check` **不**查这条；仅当 S1 改目标环境边界时才跑它。
 - Chat 身份与 fork 存储：Agent Host（`peerChats`）。默认窗 **不** 经 `ISessionsService`。
-- 无引擎：stub session 先当「一个 session 窗口 + 一张默认 tab」。fork tab、子代理对话框/最大化依赖 PRD-008 或显式 stub chat fixture；未接线时不假装已 fork / 已有子代理。
+- 无引擎：stub session 先当「一个 session 窗口 + 一张默认 tab」。fork tab、子代理对话框/打开为 tab 依赖 PRD-008 或显式 stub chat fixture；未接线时不假装已 fork / 已有子代理。
 - 第一期 **只** conversation 类 input。围栏落地前禁止「其它 EditorInput 预留进 Conversation 组」。
 
 **插入面合同（写入本方案与 ADR-002；不是「S6 事后收窄 INV-TOPO」）：**
@@ -279,20 +317,21 @@ HEAD 已接受的锁是 **插入面**：编辑器仅 `EDITOR_PART`；没有「�
 | S1 | 插入面 | `createConversationEditorPart`；单 session 叶、单组、关闭拦截器钉死默认 tab；透镜迁入 pane；`findGroup` 围栏；`CONVERSATION_GROUP` | 打开文件仍只在 Preview；Conversation 组有且仅有 stub 默认 input；无 `vs/sessions` import（ESLint）；ChatEditorInput 两边都不进 |
 | S1a | 聚合豁免（§3.8） | A1 `applyState` 跳过 Conversation part；A2 scoped service 改按 part 索引；A3 全局聚合/MRU/`getPartByDocument` 排除谓词（与 §3.5 历史排除共用一条） | 工作集 apply 与跨窗 memento 变更后默认根 tab 仍在；两个 Conversation part 各自拿到独立 scoped `IEditorService`；`IEditorService.editors` / Close All / FIRST-LAST 不含 chat tab；Conversation 获焦后 `activePart` 仍是 main |
 | S2 | 导航 | Conversation 自有栈；←→；`hasFocus(CONVERSATION_PART)` 鼠标拦截；`closeChildOnBack` | 单测两栈隔离；Conversation open 不写入 `IHistoryService` |
-| S3 | 同 session | Fork → `createChat` + `CONVERSATION_GROUP`；子代理点击 → session 叶对话框；最大化 → tab | 单测打开目标；AH 路径不写新 `AgentSessionRegistry` 行；不 import `agentHostForkActions` |
+| S3 | 同 session | Fork → `createChat` + `CONVERSATION_GROUP`；子代理点击 → session 叶对话框；打开为 tab → tab | 单测打开目标；AH 路径不写新 `AgentSessionRegistry` 行；不 import `agentHostForkActions` |
 | S3b | 面包屑 + 关非根 | 沿协议 `origin.chat`；点击替换当前延伸 tab；关非根 **不** `closeGroup` 根组 | 单测替换不叠 tab；根 tab 仍在 |
+| S3c | 对话框 chrome | 叶内卡片+遮罩（`position:absolute` 于 session 叶）；`promoteSubAgentDialog` → tab；`toggleSubAgentDialogMaximized` → 叶内铺满；对话框面包屑走 overlay 分支；删除 HEAD `maximizeSubAgentDialog` 提升语义 | 见测试 4；`data-maximized`；`aria-modal=false`；点遮罩关；无 `ModalEditorPart` / `.monaco-modal-editor-block`；overlay 在 `.conversation-session-window` 内 |
 | S4 | 同窗 split | `CONVERSATION_SIDE_GROUP`；藏列=不画 | 单测组数；文件 `SIDE_GROUP` 不增加 Conversation 组 |
 | S5 | 窗口并列 | 第二 session 叶 + 第二 Conversation EditorPart；藏窗恢复；共享 Preview | roster 打开到旁边；藏后单窗；两 session 时 Preview 仍一个 `EDITOR_PART` |
 | S6 | 知识层 | 签收本批已改 parts-and-grid / editor-part-tabs / agent-ui 插入面合同；S1 落地后把 HEAD 句从「选定」改成「已落」 | `check-docs-health.py` |
 
-S1 / S1a 可在无引擎下落地，且 **S1a 与 S1 同批**（A1 未落地即 S1 未完成，见 §3.8）。S3 / S3b 活数据依赖 PRD-008；`SideChat` / `ReadOnly` / `Hidden`（§3.3b）同样等引擎，stub 期一律 `Full`。每个实施 commit 满足 DOCUMENTATION 规则 3a/3b。知识层插入面合同已随签收改写；S1 改代码，不重开拓扑。
+S1 / S1a 可在无引擎下落地，且 **S1a 与 S1 同批**（A1 未落地即 S1 未完成，见 §3.8）。S3 / S3b 活数据依赖 PRD-008；`SideChat` / `ReadOnly` / `Hidden`（§3.3b）同样等引擎，stub 期一律 `Full`。**S3c 可在 stub catalog 上落地**（不新增引擎合同）。每个实施 commit 满足 DOCUMENTATION 规则 3a/3b。知识层插入面合同已随签收改写；S1 改代码，不重开拓扑。
 
 ## 5. 测试计划
 
 1. **围栏：** 焦点在 Conversation tab 时 `openEditor(file)` 与 `SIDE_GROUP` → 只进 `MainEditorPart`；`CONVERSATION_GROUP` + 文件被拒绝。conversation input 无 Preview tab。`ChatEditorInput` 两边都不进。
 2. **钉死：** 默认根无关闭控件；`closeEditor` / 中键被拦截；隐藏 Conversation 再显示，同一 input 仍在；关非根 **不** `closeGroup` 根组。
 3. **Fork：** AH `createChat` + `source.kind === "fork"` 后 catalog 多一条；registry session 数不变；UI 多一 tab。默认窗无 `agentHostForkActions` import。
-4. **子代理：** spawn 不加 tab；点击后 session 叶对话框且 `group.count === 1`；根 pane 仍 mounted；已有 tab 再点则激活 tab 不开第二对话框；最大化后 tab 数 2；面包屑沿 `origin.chat`；点祖先 → 延伸 tab 被替换。
+4. **子代理：** spawn 不加 tab；点击后 session 叶居中对话框且 `group.count === 1`；根 pane 仍 mounted；已有 tab 再点则激活 tab 不开第二对话框；**弹出**（`promoteSubAgentDialog` / 弹出钮）后 tab 数 2 且 overlay 关；**叶内最大化**后 tab 仍为 1、overlay 仍开、`data-maximized="true"`；点遮罩关；`aria-modal=false`；面包屑沿 `origin.chat`（对话框与 tab）；tab 上点祖先 → 延伸 tab 被替换；对话框上点根 → 关掉 overlay 且 `group.count === 1`、根仍是 index-0；对话框上点无 tab 祖先 → overlay 换 chatId、仍无第二 tab。双击标题栏切换最大化。HEAD 单测 `maximize promotes sub-agent dialog to an extension tab` **改写**为弹出提升。
 5. **关非根：** 两张延伸 tab 时点按钮 → 只剩根 tab；对话框开着点按钮 → 关掉对话框且无延伸 tab。
 6. **Split：** 同 session Conversation EditorPart 组数 +1；文件 `SIDE_GROUP` 只影响 Preview 组数。
 7. **窗口并列：** 两 session 叶、两个 Conversation EditorPart；共享一个 Preview；藏第二窗后可见 session=1；再打开恢复。
@@ -317,7 +356,8 @@ S1 / S1a 可在无引擎下落地，且 **S1a 与 S1 同批**（A1 未落地即 
 | stub 只有 session 没有 chat | S1 只钉默认 tab；S3 等引擎或加 stub chat，禁止用「再造一个 stub session」冒充 fork |
 | 与 PRD-011 用户心智不一致 | 宿主不同；默认窗 fork 默认 tab，split 是显式手势 |
 | SelectBox 与窗口并列 | SelectBox 只切 **当前叶** session（PRD-002）；并列入口是 roster「打开到旁边」 |
-| 对话框与 EditorInput 双模型 | overlay = 瞬时透镜，不进 tab 模型；最大化才 `openEditor` |
+| 对话框与 EditorInput 双模型 | overlay = 瞬时透镜，不进 tab 模型；**弹出/打开为 tab** 才 `openEditor` |
+| 误把对话框接到 `MODAL_GROUP` | §3.3c：借壳不借宿主；Settings 单例与 Conversation 围栏都不允许 |
 | visualize 与子代理对话框双 Esc | z 序 visualize 在上；Esc 关最顶层 |
 | 两 session 共享 Preview | 第一期接受；worktree 隔离 session 不得当真并排，直到 Preview-owner 规则 |
 
@@ -331,8 +371,8 @@ S1 / S1a 可在无引擎下落地，且 **S1a 与 S1 同批**（A1 未落地即 
 | 默认根不可关（拦截器，非 pin）；整块与 session 窗只藏 | S1 / **S1a（A1：`applyState` 豁免）** / S5 |
 | chat tab 不外漏进 Preview 的全局 editor 语义（枚举、Close All、组导航、工作集） | S1a（A3） |
 | Fork 同 session 新 tab，非新根 | S3 |
-| 子代理默认点击 session 叶对话框、不加 tab；最大化才开 tab | S3 |
-| 子代理 tab 面包屑沿 `origin.chat`；点击替换当前延伸 tab | S3b |
+| 子代理默认点击 session 叶对话框、不加 tab；打开为 tab 才开 tab；叶内最大化不进 tab | S3 / S3c |
+| 子代理 tab 面包屑沿 `origin.chat`；点击替换当前延伸 tab；对话框面包屑点根关 overlay | S3b / S3c |
 | 每窗一键关闭根以外 tab（不 closeGroup 根组） | S3b |
 | 用户 split 同窗两列（`CONVERSATION_SIDE_GROUP`） | S4 |
 | 窗口并列是另一 session 叶 + 第二 EditorPart，共享 Preview，可藏可再打开 | S5 |
@@ -357,3 +397,5 @@ Critical 已改入：Conversation EditorPart 工厂 + session 叶在组之上；
 | Important | 协议 `ChatOrigin` 是四 kind（`SideChat` 未覆盖）；`ChatInteractivity` 的 `ReadOnly` / `Hidden` 无呈现合同 | §2 锚点 + 新增 §3.3b + 测试 13 |
 
 结论：形态与拓扑（ADR-002 形态 1）不受影响，故 ADR-002 正文按规则 5 不改（其细节本就授权给本方案 §3）。本批改写**未派独立 reviewer**；S1 / S1a 开工前须补规则 16 只读审查。
+
+2026-09-01（S3c）：子代理对话框 chrome — 借 Modal 壳、不复用 `MODAL_GROUP`。规则 16 只读审查 → **Block**。Critical 已改入：HEAD `maximizeSubAgentDialog` 迁移表（弹出 = 旧提升；maximize* 禁止再 `openEditor`）；实现范围扩到 service + 测试；CSS 锁定 `position:absolute` 于 session 叶、禁止 `fixed` / `z-index: 2540` / 抄 `.monaco-modal-editor-block`。Important 已改入：对话框面包屑不得走 `replaceEditors`、保留根守卫；agent-ui 改回 HEAD 句；`data-maximized` / `aria-modal=false` / Esc / 双击标题栏锚点；ADR 口语对照表。

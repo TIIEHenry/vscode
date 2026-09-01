@@ -4,7 +4,7 @@ type: reference
 status: accepted
 phase: N/A
 updated: 2026-09-01
-summary: "PRD-001–016 追踪；PRD-001–016 代码已落、D4 已验（rerun-2230）；D5 EH 仍开；E1/PRD-008 blocked"
+summary: "PRD-001–016 追踪；PRD-016 S1–S6 已落、S3c chrome 待落；D4 已验（rerun-2230）；D5 EH 仍开；E1/PRD-008 blocked"
 ---
 
 # 产品需求追踪
@@ -30,7 +30,7 @@ summary: "PRD-001–016 追踪；PRD-001–016 代码已落、D4 已验（rerun-
 | [PRD-013](requirements.md#prd-013-conversation-过程折) | `accepted` | [conversation-lens-assembly](../reference/code-oss-b2/conversation-lens-assembly.md) | [conversation-process-fold](../../dev/plans/conversation-process-fold.md) | D4 PASS；单测 |
 | [PRD-014](requirements.md#prd-014-conversation-图示卡visualize) | `accepted` | [conversation-lens-assembly](../reference/code-oss-b2/conversation-lens-assembly.md) | [thinkrail-visualize-port](../../dev/plans/thinkrail-visualize-port.md) | D4 PASS；单测 |
 | [PRD-015](requirements.md#prd-015-conversation-空会话与输入面) | `accepted` | [conversation-lens-assembly](../reference/code-oss-b2/conversation-lens-assembly.md) §4 | [conversation-empty-hero](../../dev/plans/conversation-empty-hero.md) (`implemented`) | T1–T6 单测；D4 PASS |
-| [PRD-016](requirements.md#prd-016-conversation-session-窗口与-chat-tab) | `accepted` | [parts-and-grid](../systems/workbench/parts-and-grid.md) · [editor-part-tabs](../systems/workbench/editor-part-tabs.md) | [conversation-session-windows](../../dev/plans/conversation-session-windows.md) (`implemented`) · [ADR-002](../../dev/decisions/002-conversation-session-windows.md) | S1–S6 单测；D4 PASS |
+| [PRD-016](requirements.md#prd-016-conversation-session-窗口与-chat-tab) | `accepted` | [parts-and-grid](../systems/workbench/parts-and-grid.md) · [editor-part-tabs](../systems/workbench/editor-part-tabs.md) · [agent-ui](../systems/chat/agent-ui.md) | [conversation-session-windows](../../dev/plans/conversation-session-windows.md)（S1–S6 `implemented`；S3c chrome 已写）· [ADR-002](../../dev/decisions/002-conversation-session-windows.md) | S1–S6 单测；D4 PASS；S3c chrome 单测 |
 
 ## 状态分桶
 
