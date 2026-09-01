@@ -240,7 +240,8 @@ suite('mcpListWidget', () => {
 			shouldLoadMcpGallerySnapshot(true, 'search', 0, false, false, true),
 			shouldLoadMcpGallerySnapshot(true, '', 1, false, false, true),
 			shouldLoadMcpGallerySnapshot(true, '', 0, false, false, false),
-		], [false, true, false, false, false]);
+			shouldLoadMcpGallerySnapshot(true, '', 0, false, false, true, false),
+		], [false, true, false, false, false, false]);
 	});
 
 	test('shows access-disabled UI before gallery work starts', () => {
