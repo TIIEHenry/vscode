@@ -37,6 +37,9 @@ import {
 	conversationLensDockStop,
 	conversationLensDockStopNotGenerating,
 	conversationLensInputMaximizedClass,
+	conversationLensPhasePreFirstClass,
+	conversationLensPhasePreFirstDockHiddenClass,
+	conversationLensPrefirstHeroClass,
 } from './conversationLensDockStrings.js';
 import { conversationLensSessionBarConversationTab, conversationLensSessionBarDeleteSession, conversationLensSessionBarNewSession, conversationLensSessionBarRenameInputAria, conversationLensSessionBarRenameTitle, conversationLensSessionBarTrajectoryTab } from './conversationLensSessionBarStrings.js';
 import {
@@ -88,8 +91,17 @@ export class ConversationLens extends Disposable {
 	private attachContextView: IOpenContextView | undefined;
 	private maximizeInputButton!: Button;
 
+	private readingColumn!: HTMLElement;
+	private prefirstHero!: HTMLElement;
+	private dockRoot!: HTMLElement;
+	private gateRow!: HTMLElement;
+	private inboxRow!: HTMLElement;
+	private composer!: HTMLElement;
+	private identityStrip!: ConversationIdentityStrip;
+
 	private readonly slotHosts: IConversationLensSlots;
 	private inputMaximized = false;
+	private conversationPhase: 'prefirst' | 'active' | undefined;
 
 	private readonly drafts = new Map<string, string>();
 	private inputHistoryBrowse: InputHistoryBrowseState = createInputHistoryBrowseState();
@@ -162,6 +174,7 @@ export class ConversationLens extends Disposable {
 		for (const host of [this.slotHosts.timeline, this.slotHosts.dock]) {
 			host.classList.toggle(conversationLensInputMaximizedClass, maximized);
 		}
+		this.readingColumn.classList.toggle(conversationLensInputMaximizedClass, maximized);
 		this.updateMaximizeInputButton();
 	}
 
@@ -299,31 +312,33 @@ export class ConversationLens extends Disposable {
 	}
 
 	private mountTimeline(host: HTMLElement): void {
-		const readingColumn = append(host, $('.conversation-lens-reading-column'));
-		this._register(this.instantiationService.createInstance(ConversationIdentityStrip, readingColumn));
-		this.timelineTree = this._register(this.instantiationService.createInstance(ConversationTimelineTree, readingColumn, {
+		this.readingColumn = append(host, $('.conversation-lens-reading-column'));
+		this.identityStrip = this._register(this.instantiationService.createInstance(ConversationIdentityStrip, this.readingColumn));
+		this.prefirstHero = append(this.readingColumn, $(`.${conversationLensPrefirstHeroClass}`));
+		this.prefirstHero.hidden = true;
+		this.timelineTree = this._register(this.instantiationService.createInstance(ConversationTimelineTree, this.readingColumn, {
 			onResolveConfirmation: (turnId, status) => this.resolveConfirmation(turnId, status),
 			onCopyTurn: (_turnId, text) => this.copyTurn(text),
 			onDeleteTurn: turnId => this.deleteTurn(turnId),
 			onOpenVisualizeFullscreen: (source, title) => this.openVisualizeOverlay(source, title),
 		}));
-		this.trajectoryView = this._register(this.instantiationService.createInstance(ConversationTrajectory, readingColumn, {}));
+		this.trajectoryView = this._register(this.instantiationService.createInstance(ConversationTrajectory, this.readingColumn, {}));
 	}
 
 	private mountDock(host: HTMLElement): void {
-		const dock = append(host, $('.conversation-lens-dock'));
+		this.dockRoot = append(host, $('.conversation-lens-dock'));
 
-		const gateRow = append(dock, $('.conversation-lens-dock-gate-row'));
-		gateRow.setAttribute('role', 'status');
-		gateRow.setAttribute('aria-label', conversationLensDockEngineNotConnected);
-		append(gateRow, $('span.conversation-lens-dock-gate-label')).textContent = conversationLensDockEngineNotConnected;
+		this.gateRow = append(this.dockRoot, $('.conversation-lens-dock-gate-row'));
+		this.gateRow.setAttribute('role', 'status');
+		this.gateRow.setAttribute('aria-label', conversationLensDockEngineNotConnected);
+		append(this.gateRow, $('span.conversation-lens-dock-gate-label')).textContent = conversationLensDockEngineNotConnected;
 
-		const inboxRow = append(dock, $('.conversation-lens-inbox-row'));
-		inboxRow.setAttribute('role', 'status');
-		inboxRow.setAttribute('aria-label', localize('conversationLens.inbox', "Inbox"));
-		append(inboxRow, $('span.conversation-lens-inbox-label')).textContent = localize('conversationLens.inboxLabel', "Inbox");
-		append(inboxRow, $('span.conversation-lens-inbox-queue')).textContent = conversationLensDockInboxNoQueue;
-		const goalContainer = append(inboxRow, $('.conversation-lens-inbox-goal'));
+		this.inboxRow = append(this.dockRoot, $('.conversation-lens-inbox-row'));
+		this.inboxRow.setAttribute('role', 'status');
+		this.inboxRow.setAttribute('aria-label', localize('conversationLens.inbox', "Inbox"));
+		append(this.inboxRow, $('span.conversation-lens-inbox-label')).textContent = localize('conversationLens.inboxLabel', "Inbox");
+		append(this.inboxRow, $('span.conversation-lens-inbox-queue')).textContent = conversationLensDockInboxNoQueue;
+		const goalContainer = append(this.inboxRow, $('.conversation-lens-inbox-goal'));
 		const goalButton = this._register(new Button(goalContainer, {
 			...defaultButtonStyles,
 			small: true,
@@ -334,7 +349,7 @@ export class ConversationLens extends Disposable {
 		goalButton.label = conversationLensDockNoGoal;
 		goalButton.element.classList.add('conversation-lens-inbox-goal-button');
 		goalButton.setAriaLabel(`${conversationLensDockGoal}, ${conversationLensDockNoGoal}`);
-		const stopContainer = append(inboxRow, $('.conversation-lens-inbox-stop'));
+		const stopContainer = append(this.inboxRow, $('.conversation-lens-inbox-stop'));
 		this.stopButton = this._register(new Button(stopContainer, {
 			...defaultButtonStyles,
 			small: true,
@@ -345,20 +360,20 @@ export class ConversationLens extends Disposable {
 		this.stopButton.label = conversationLensDockStop;
 		this.stopButton.element.classList.add('conversation-lens-inbox-stop-button');
 		this.stopButton.setAriaLabel(`${conversationLensDockStop}, ${conversationLensDockStopNotGenerating}`);
-		this.inboxStatus = append(inboxRow, $('button.conversation-lens-inbox-pending')) as HTMLButtonElement;
+		this.inboxStatus = append(this.inboxRow, $('button.conversation-lens-inbox-pending')) as HTMLButtonElement;
 		this.inboxStatus.type = 'button';
 		this.inboxStatus.hidden = true;
 		this._register(addDisposableListener(this.inboxStatus, 'click', () => this.scrollToFirstPendingConfirmation()));
 
-		const composer = append(dock, $('.conversation-lens-composer'));
-		const inputRow = append(composer, $('.conversation-lens-dock-input-row'));
+		this.composer = append(this.dockRoot, $('.conversation-lens-composer'));
+		const inputRow = append(this.composer, $('.conversation-lens-dock-input-row'));
 
 		this.dockTextarea = append(inputRow, $('textarea.conversation-lens-dock-input')) as HTMLTextAreaElement;
 		this.dockTextarea.setAttribute('aria-label', localize('conversationLens.dockInput', "Message"));
 		this.dockTextarea.placeholder = conversationLensDockPlaceholder;
 		this.dockTextarea.rows = 1;
 
-		const bottomBar = append(composer, $('.conversation-lens-dock-bottom-bar'));
+		const bottomBar = append(this.composer, $('.conversation-lens-dock-bottom-bar'));
 		const bottomLeading = append(bottomBar, $('.conversation-lens-dock-bottom-leading'));
 		const attachContainer = append(bottomLeading, $('.conversation-lens-dock-attach'));
 		this.attachButton = this._register(new Button(attachContainer, {
@@ -420,6 +435,39 @@ export class ConversationLens extends Disposable {
 			}
 			this.drafts.set(this.stubService.getActiveSessionId(), this.dockTextarea.value);
 		}));
+
+		this.updateConversationPhase();
+	}
+
+	private isPreFirst(): boolean {
+		return this.stubService.getTurns(this.stubService.getActiveSessionId()).length === 0;
+	}
+
+	private updateConversationPhase(): void {
+		const preFirst = this.isPreFirst();
+		const nextPhase = preFirst ? 'prefirst' : 'active';
+		if (this.conversationPhase === nextPhase) {
+			return;
+		}
+		this.conversationPhase = nextPhase;
+
+		this.readingColumn.classList.toggle(conversationLensPhasePreFirstClass, preFirst);
+		this.slotHosts.dock.classList.toggle(conversationLensPhasePreFirstDockHiddenClass, preFirst);
+		this.prefirstHero.hidden = !preFirst;
+
+		if (preFirst) {
+			this.prefirstHero.appendChild(this.identityStrip.element);
+			this.prefirstHero.appendChild(this.gateRow);
+			this.prefirstHero.appendChild(this.composer);
+			this.inboxRow.hidden = true;
+			return;
+		}
+
+		this.readingColumn.insertBefore(this.identityStrip.element, this.readingColumn.firstChild);
+		this.dockRoot.insertBefore(this.gateRow, this.inboxRow);
+		this.dockRoot.appendChild(this.composer);
+		this.inboxRow.hidden = false;
+		this.gateRow.hidden = false;
 	}
 
 	private toggleAttachContextView(): void {
@@ -619,6 +667,7 @@ export class ConversationLens extends Disposable {
 		if (this.lensId === 'trajectory') {
 			this.trajectoryView.setRecords(this.stubService.getTrajectoryRecords(this.stubService.getActiveSessionId()));
 		}
+		this.updateConversationPhase();
 	}
 
 	private resolveConfirmation(turnId: string, status: 'allowed' | 'skipped'): void {

@@ -21,3 +21,9 @@ export const conversationLensDockPlaceholder = localize('conversationLens.dockPl
 
 /** Toggled on ConversationPart slot hosts when Input Maximize is active (Desktop §8.3.11). */
 export const conversationLensInputMaximizedClass = 'conversation-lens-input-maximized';
+
+/** PreFirst (no visible messages): centered composer cluster in the reading column. */
+export const conversationLensPhasePreFirstClass = 'conversation-lens-phase-prefirst';
+export const conversationLensPrefirstHeroClass = 'conversation-lens-prefirst-hero';
+/** Hides the dock slot while PreFirst composer lives in the reading column. */
+export const conversationLensPhasePreFirstDockHiddenClass = 'conversation-lens-phase-prefirst-dock-hidden';
