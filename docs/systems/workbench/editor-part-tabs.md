@@ -4,7 +4,7 @@ type: architecture
 status: accepted
 phase: N/A
 updated: 2026-09-01
-summary: "主 EDITOR_PART = Preview 组+tabs；ChatEditorInput 仍禁止当 Conversation；ADR-002 选定 Conversation 嵌套 IEditorPart 为第四插入面（未实施）"
+summary: "主 EDITOR_PART = Preview 组+tabs；ChatEditorInput 仍禁止当 Conversation；Conversation 嵌套 IEditorPart 为第四插入面（PRD-016 S1–S5 已落）"
 ---
 
 # EditorPart：组、Tabs、EditorInput
@@ -48,7 +48,7 @@ EDITOR_PART（MainEditorPart / 辅助窗 AuxiliaryEditorPart / 模态 ModalEdito
 `IEditorService`（`editorService.ts`）：
 
 - 入参：资源（untyped）或已有 `EditorInput`
-- 目标组 `PreferredGroup`：`ACTIVE_GROUP`（`-1`）、`SIDE_GROUP`（`-2`）、`AUX_WINDOW_GROUP`（`-3`）、`MODAL_GROUP`（`-4`），或具体 `IEditorGroup` / `GroupIdentifier`。ADR-002 **选定**再加 `CONVERSATION_GROUP`（`-5`）、`CONVERSATION_SIDE_GROUP`（`-6`）（未实施）。
+- 目标组 `PreferredGroup`：`ACTIVE_GROUP`（`-1`）、`SIDE_GROUP`（`-2`）、`AUX_WINDOW_GROUP`（`-3`）、`MODAL_GROUP`（`-4`），或具体 `IEditorGroup` / `GroupIdentifier`；以及 `CONVERSATION_GROUP`（`-5`）、`CONVERSATION_SIDE_GROUP`（`-6`）（`editorService.ts`；围栏在 `editorGroupFinder.ts`）。
 - `IEditorResolverService` 按资源 / `workbench.editorAssociations` 选 pane（默认文本 → `TextFileEditor` + `FileEditorInput`）
 
 `IEditorGroupsService` 管 **组几何**：`addGroup`（从某组向四向切开）、`merge`、`applyLayout`、`sideGroup`。组就绪用 `whenReady` / `whenRestored`。组模型变化经 `IEditorGroup.onDidModelChange`；跨组聚合事件在 `IEditorService.onDidEditorsChange`。
@@ -60,7 +60,7 @@ EDITOR_PART（MainEditorPart / 辅助窗 AuxiliaryEditorPart / 模态 ModalEdito
 3. 目标 `EditorGroupView` 写入 `EditorGroupModel`，tabs 出现一枚标签。
 4. `EditorPanes` `setInput`；文本 pane 再拿 `ITextModel` 交给 `CodeEditorWidget`。
 
-**推论：** 文件 / untitled / `ChatEditorInput` 打开后落在 **主** `EDITOR_PART` 某组的 tab 栈。HEAD **没有**打开到 Conversation 的插入面。ADR-002 **选定**第四面：仅 `ConversationChatInput` 经 `CONVERSATION_GROUP` 进入嵌套 Conversation `IEditorPart`（未实施）。围栏：未点名 Conversation 组时，即使 Conversation 组是 `activeGroup`，文件仍进 Preview。
+**推论：** 文件 / untitled / `ChatEditorInput` 打开后落在 **主** `EDITOR_PART` 某组的 tab 栈。Conversation 第四面已落：仅 `ConversationChatInput` 经 `CONVERSATION_GROUP` / `CONVERSATION_SIDE_GROUP` 或具体 Conversation 组进入嵌套 `ConversationEditorPartImpl`。围栏：未点名 Conversation 组时，即使焦点在 Conversation 区域，文件仍进 Preview；conversation input 无点名则拒绝（不静默掉进 Preview）。
 
 ## 3. 与 Desktop Preview File tabs 同构
 
@@ -87,9 +87,9 @@ INV-TOPO **仍然禁止**：
 - 把 Layout 中心叶改成 `Parts.EDITOR_PART`；
 - 用 `ChatEditor` / Custom Editor / 主 `EDITOR_PART` 的普通组当产品 Conversation。
 
-INV-TOPO **不再禁止**（[ADR-002](../../../dev/decisions/002-conversation-session-windows.md) 选定）：在 `CONVERSATION_PART` **内部**挂独立 Conversation `IEditorPart`，用专用 conversation input 画 chat tab。这不是把中心变成 Preview。HEAD 未实施。
+INV-TOPO **不再禁止**（[ADR-002](../../../dev/decisions/002-conversation-session-windows.md) / [PRD-016](../../product/requirements.md#prd-016-conversation-session-窗口与-chat-tab)）：在 `CONVERSATION_PART` **内部**挂独立 Conversation `IEditorPart`（`ConversationEditorPartImpl`），用 `ConversationChatInput` + `ConversationEditorPane` 画 chat tab。这不是把中心变成 Preview。**已落**（S1–S5）。
 
-**聚合豁免（选定，未实施）：** 该嵌套 part 注册进 `IEditorGroupsService.parts` 只为复用组 / tab / pane 机制，**不参与面向用户的全局 editor 语义**。`EditorParts` 今天对 `this.parts` 做全局聚合（`getGroups` flatMap、`activeGroup` 取 MRU `activePart`、`findGroup` FIRST/LAST 全局、`applyState` 对非 `mainPart` 一律 `force` 关闭再 `close()`、`getScopedInstantiationService` 按 windowId 索引），故 Conversation part 须以**一条**排除谓词退出枚举、MRU、工作集恢复与 editor 历史，且 scoped 服务索引须从 windowId 改为 part。合同与切片见 [conversation-session-windows](../../../dev/plans/conversation-session-windows.md) §3.8。
+**聚合豁免（已落，S1a）：** 嵌套 part 注册进 `IEditorGroupsService.parts` 只为复用组 / tab / pane 机制，**不参与面向用户的全局 editor 语义**。`ConversationEditorPartImpl.excludeFromGlobalEditorAggregation = true`；`EditorParts` 经 `isExcludedFromGlobalEditorAggregation` 过滤：`getGroups` / `activePart` MRU / `findGroup` FIRST-LAST / `applyState` 跳过 Conversation part；`getScopedInstantiationService` **按 part 索引**（共享主窗 `windowId` 的多 Conversation part 各得独立 scoped `IEditorService`）。Conversation 自有导航栈与 `IHistoryService` 隔离（S2）。合同见 [conversation-session-windows](../../../dev/plans/conversation-session-windows.md) §3.8。
 
 宿主清单、Copilot 边界、Sessions Part 对照见 [agent-ui](../chat/agent-ui.md)，此处不改写。
 
@@ -104,10 +104,10 @@ Desktop IA 的 Preview 是 **一块 File tabs 面**，不是「Conversation 旁�
 | | 本仓默认 | Desktop IA |
 |--|----------|------------|
 | Preview / 文件 | `EDITOR_PART` 内可 N 组、可 split | 一块 File tabs；**不是**相对 Conversation 的「第二 Editor Group」 |
-| Conversation | HEAD：独立中心 Part、三槽透镜。选定：Part 内嵌 Conversation `IEditorPart` 画 chat tab（非 `ChatEditorInput`） | 新 Part，禁止用 Preview ChatEditor 当对话 |
+| Conversation | Part 内嵌 Conversation `IEditorPart` 画 chat tab（`ConversationChatInput`，非 `ChatEditorInput`）；最多两叶 session 窗口并列 | 新 Part，禁止用 Preview ChatEditor 当对话 |
 | Sources | 无独立格；SCM 常在 Sidebar/Panel | End 下格，也不是 editor group |
 
-M0 把 `EDITOR_PART` 挪到 End 后，文件的 `SIDE_GROUP` 与组内 split **仍然只发生在 End 上格 Preview 内部**。Conversation 内 split 走选定的 `CONVERSATION_SIDE_GROUP`（未实施），不是 Preview `SIDE_GROUP`。
+M0 把 `EDITOR_PART` 挪到 End 后，文件的 `SIDE_GROUP` 与组内 split **仍然只发生在 End 上格 Preview 内部**。Conversation 内 split 走 `CONVERSATION_SIDE_GROUP`（**已落**，S4）；藏列 = `ConversationEditorPartImpl.setGroupHidden`（模型保留），不是 Preview `SIDE_GROUP`。
 
 辅助窗（`AUX_WINDOW_GROUP`）同样是配套 `EditorPart`，不要当成第二 Conversation。
 
