@@ -48,8 +48,8 @@ summary: "本仓库核心术语的单一事实源：分层、Parts、Agent UI �
 | **EDITOR_PART** | End 列 Preview：`EditorGroup` + tabs + `EditorInput`（M0 已从中心叶挪到 End）。 | [Parts/Grid](systems/workbench/parts-and-grid.md) |
 | **SESSIONS_PART** | Agents Window 的非 editor 中心 Part；默认 Code 窗口 grid 不装配。 | [agent-ui](systems/chat/agent-ui.md) · [LAYOUT.md](../src/vs/sessions/LAYOUT.md) |
 | **ChatWidget** | contrib/chat 的对话列表+输入零件；可被多种宿主嵌套。 | [agent-ui](systems/chat/agent-ui.md) |
-| **ChatEditor / ChatEditorInput** | 把对话做成 `EDITOR_PART` 的 tab。B2 **INV-TOPO 禁止**以此当 Conversation 中心。 | [agent-ui](systems/chat/agent-ui.md) |
-| **INV-TOPO** | Desktop B2：Conversation 不是 `EditorInput` / Custom Editor / 普通 EditorGroup tab。 | [code-oss-b2](reference/code-oss-b2/INDEX.md) |
+| **ChatEditor / ChatEditorInput** | 把对话做成主 `EDITOR_PART`（Preview）的 tab。INV-TOPO **禁止**以此当 Conversation 中心。 | [agent-ui](systems/chat/agent-ui.md) |
+| **INV-TOPO** | Layout 中心必须是 `CONVERSATION_PART`，禁止 `ChatEditor` 占中心。ADR-002 允许 Part 内嵌 Conversation `IEditorPart` 画 chat tab（未实施）。 | [parts-and-grid](systems/workbench/parts-and-grid.md) · [ADR-002](../dev/decisions/002-conversation-session-windows.md) |
 | **SettingsEditor2** | vscode Preferences UI（`EDITOR_PART` tab）。B2 推荐作默认窗 Settings 宿主，非正式决策。 | [settings-ua-access](reference/code-oss-b2/settings-ua-access.md) |
 | **ConversationSessionsView** | Navigator 产品会话 roster（Explorer `ViewPane` + `WorkbenchList`）；数据今天是 stub。 | [session-roster-reuse](reference/code-oss-b2/session-roster-reuse.md) |
 | **ConversationLens** | 填进 `CONVERSATION_PART` 三槽的产品面：SessionBar / Timeline / Dock。 | [透镜组装](reference/code-oss-b2/conversation-lens-assembly.md) |

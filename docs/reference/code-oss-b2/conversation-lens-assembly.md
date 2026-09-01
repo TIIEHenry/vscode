@@ -4,7 +4,7 @@ type: reference
 status: draft
 phase: N/A
 updated: 2026-09-01
-summary: "对照 Desktop Conversation / Input Dock：三槽自研 chrome 保持；阶段 2 绿field ConversationTimelineTree + chatContentParts 白名单；发送链换 UA adapter；禁止 ChatWidget 整块或 ChatEditor"
+summary: "对照 Desktop Conversation / Input Dock：三槽自研 chrome 保持；PRD-016 选定 timeline/dock 迁入 EditorPane（未实施）；禁止 ChatWidget 整块或 ChatEditor"
 ---
 
 # Conversation 透镜组装
@@ -105,6 +105,7 @@ CONVERSATION_PART          ← 槽宿主；不渲染产品 chrome
 - 外仓 `docs/product/ui-interaction-spec.md` §8.3 Input Dock、**§8.4 权限座位**、§8.6 阅读层级（只链，不复述）
 - 父方案：[page-access-schemes.md](../../../dev/plans/page-access-schemes.md) §4 / §10 切片 4
 - 空会话 / 输入面选定（未实施）：[conversation-empty-hero.md](../../../dev/plans/conversation-empty-hero.md)（PRD-015）
+- session 窗口 / chat tab 选定（未实施）：[conversation-session-windows.md](../../../dev/plans/conversation-session-windows.md)（PRD-016）；timeline/dock 将迁入 EditorPane，窗口 chrome 留在 Part
 
 ## 审查
 

@@ -3,8 +3,8 @@ title: "Workbench UI 框架：Parts、Grid、显隐"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-08-31
-summary: "默认 Code 窗口的 Part 枚举、SerializableGrid 描述符、Conversation∨(Editor∨Sources) 显隐不变量；M1 透镜骨架 + Sources Files/Changes/Review tab strip"
+updated: 2026-09-01
+summary: "默认 Code 窗口的 Part 枚举、SerializableGrid、Conversation∨(Editor∨Sources)；INV-TOPO：中心叶仍是 CONVERSATION_PART；对话 tab 走嵌套 IEditorPart（ADR-002 选定）"
 ---
 
 # Workbench UI 框架：Parts、Grid、显隐
@@ -90,11 +90,12 @@ CSS class：`LayoutClasses.MAIN_EDITOR_AREA_HIDDEN` / `CONVERSATION_HIDDEN` 等�
 |--------|------|-----|
 | View container | Sidebar / Panel / AuxiliaryBar | `ViewContainerLocation` + `IViewDescriptorService` |
 | 单个 view | 上述容器内 | `ViewsRegistry` / `views` 贡献点 |
-| 编辑器 | **仅** `EDITOR_PART` | `EditorInput` + `IEditorService` / `IEditorGroupsService` |
+| 文件 / untitled / diff / `ChatEditorInput` | **仅**主 `EDITOR_PART`（Preview） | `EditorInput` + `IEditorService`；`ACTIVE_GROUP` / `SIDE_GROUP` |
+| Conversation chat tab（[ADR-002](../../../dev/decisions/002-conversation-session-windows.md) **选定，未实施**） | `CONVERSATION_PART` 内嵌的 Conversation `IEditorPart`（非 Layout `Parts` 枚举） | `ConversationChatInput` + `CONVERSATION_GROUP` / `CONVERSATION_SIDE_GROUP`；**禁止** `ChatEditorInput` |
 | Status | StatusBar | `IStatusbarService` |
 | Activity 图标 | ActivityBar | 与 Sidebar 容器绑定 |
 
-**推论（INV-TOPO）：** 任何 `EditorInput`（含 `ChatEditorInput`、Custom Editor）都落在 `EDITOR_PART` 的 tab 模型里。把 Conversation 做成 editor pane = 中心仍是 EditorPart。S0 在框架层就被这条插入面锁死。
+**推论（INV-TOPO）：** Layout 中心叶 **必须**是 `CONVERSATION_PART`，禁止把中心改回 `Parts.EDITOR_PART` 或用 `ChatEditor` / Custom Editor 当产品对话。文件永远进 End 列 Preview。ADR-002 增加 **第四类 editor 容器**：Conversation `IEditorPart` 挂在 ConversationPart 的 session 叶内（Modal 同款注册、共用 `windowId`），只接受 conversation 类 input。HEAD 代码仍是 Part 三槽透镜，尚未工厂该嵌套 Part。S0 拒绝的是 **ChatEditor 占中心**，不是「Conversation 内部永远不能有 EditorGroup」。
 
 ## 6. M0 拓扑 + M1 内容（已落地代码面）
 
@@ -103,7 +104,7 @@ CSS class：`LayoutClasses.MAIN_EDITOR_AREA_HIDDEN` / `CONVERSATION_HIDDEN` 等�
 3. **互斥** — `setEditorHidden` / `setConversationHidden` / `setSourcesHidden` / `enforceAgentShellVisible`：Conversation ∨ (Editor ∨ Sources)。Panel 不再被强制弹出。
 4. **注册** — `Parts.CONVERSATION_PART` / `SOURCES_PART`；`ConversationPart` / `SourcesPart` eager singleton；`createWorkbenchLayout` view map；`workbench.ts` `createPart` 循环。
 5. **四钮（D7）** — `layoutActions.ts`：主簇 `LayoutControlMenu` 仅 **Navigator / Conversation / Preview / Sources**（产品名标签）；Panel / Aux 退到 `LayoutControlMenuSubmenu`。
-6. **Conversation 透镜** — `contrib/conversation`：`ConversationLens` 填 SessionBar / stub 时间线 / stub dock 槽；非 `ChatEditor` / `ChatViewPane`。
+6. **Conversation 透镜** — HEAD：`contrib/conversation` 填 SessionBar / stub 时间线 / stub dock 槽；非 `ChatEditor` / `ChatViewPane`。[PRD-016](../../product/requirements.md#prd-016-conversation-session-窗口与-chat-tab) 选定：timeline/dock 迁入 `ConversationEditorPane`，窗口 chrome 留在 Part/叶；未实施。
 7. **Sources tabs** — `contrib/sources`：title 区 **Files \| Changes \| Review** tab strip；各 tab 面板顶有紧凑 **filter** 输入（`filterSourcesEntries` 按文件名/路径子串筛选可见行；空结果 copy 诚实，如 Files 无工作区文件时 `Flat Explorer list projection—not a file tree or Chat.`、筛选无匹配时 `No matching files.` / `No matching changes.`）；Files = `SourcesFilesList` 只读列表投影（点击 `IEditorService.openEditor` 落 End 上格 Preview）；Changes = `SourcesChangesList` SCM 变更资源列表（点击 `openEditor` 打开文件；行内/选中 **stage/unstage** 经 `git.stage` / `git.unstage` + `ISCMResource`，底部 **commit** 行写 SCM input 并跑 `acceptInputCommand` / `git.commit`；**不**走 Diff / `openDiff` / `ISCMResource.open`）；Review = `SourcesReviewList` SCM 变更资源只读列表（同样 `openEditor` 打开 Preview，**不**走 Diff；面板顶 **header hint** 标明只读、Preview≠Diff FORK、review engine 未接线——无假 review comment）；Diff 深查看仍 **EDITOR_PART** FORK。
 8. **storage keys** — `workbench.conversation.hidden`、`workbench.sources.hidden`（runtime）、`workbench.editor.size` / `workbench.sources.size`（End 列）。Workbench grid 每次启动从描述符重建，不读旧 grid JSON。
 9. **辅助窗口** — 仍复用 `EDITOR_PART`；Conversation / Sources 只在主窗口。

@@ -4,7 +4,7 @@ type: index
 status: accepted
 phase: N/A
 updated: 2026-09-01
-summary: "dev/plans 导航：产品需求层建设与 M0–M5；设置两套主面已签收；PRD-015 accepted 未实施；PRD-016 draft"
+summary: "dev/plans 导航：产品需求层建设与 M0–M5；设置两套主面已签收；PRD-015–016 accepted 未实施"
 ---
 
 # 方案
@@ -29,4 +29,4 @@ summary: "dev/plans 导航：产品需求层建设与 M0–M5；设置两套主�
 | [conversation-process-fold.md](conversation-process-fold.md) | `implemented` | PRD-013 代码已落；D4 待验证 |
 | [thinkrail-visualize-port.md](thinkrail-visualize-port.md) | `implemented` | PRD-014 代码已落；D4 待验证 |
 | [conversation-empty-hero.md](conversation-empty-hero.md) | `accepted` | PRD-015 空会话居中 Composer、SessionConfig XOR、Inbox 分簇；T1–T6 ReadyToImplement · [canvas 快照](conversation-empty-hero.canvas.tsx) |
-| [conversation-session-windows.md](conversation-session-windows.md) | `draft` | PRD-016；Grok Block 已改入（EditorPart 工厂/围栏/自有栈）；改稿后未再审；不开 S1 |
+| [conversation-session-windows.md](conversation-session-windows.md) | `accepted` | PRD-016；每叶 Conversation IEditorPart；S1–S6 ReadyToImplement；未实施 |

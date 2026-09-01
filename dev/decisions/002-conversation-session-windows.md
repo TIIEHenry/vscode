@@ -1,7 +1,7 @@
 ---
 title: "ADR-002 默认窗 Conversation：session 窗口与 chat tab"
 type: decision
-status: proposed
+status: accepted
 phase: N/A
 updated: 2026-09-01
 summary: "CONVERSATION_PART 自管 session 叶，每叶内嵌 Conversation IEditorPart；Fork 默认 tab；子代理默认叶内对话框；围栏与自有导航栈；只能藏不能关"
@@ -52,10 +52,10 @@ HEAD `EditorParts` 只工厂 main / auxiliary / modal。未指定的 `openEditor
 
 ## Consequences
 
-- 须扩展 `EditorParts` / `findGroup` / `PreferredGroup`；知识层 `parts-and-grid` §5、`editor-part-tabs` §2/§4、`agent-ui` INV-TOPO 在 **本 ADR 签收与 S1 同批**改写（`draft` 期间不改已接受页）。
+- 2026-09-01 用户签收。须扩展 `EditorParts` / `findGroup` / `PreferredGroup`（S1）。知识层 `parts-and-grid` §5、`editor-part-tabs` §2/§4、`agent-ui` INV-TOPO 已随本签收改写为选定合同（HEAD 代码尚未落地）。
 - `IConversationLensSlots` 的 timeline/dock 退役，迁入 EditorPane；窗口 chrome 留在 Part/叶。
 - 须改写 `does not host the lens as ChatEditorInput` 的断言形态，但 **保持** ChatEditorInput 禁令与 `chatEditorShellPaths` 默认窗路径。
-- 实施方案：[conversation-session-windows](../plans/conversation-session-windows.md)。需求：[PRD-016](../../docs/product/requirements.md#prd-016-conversation-session-窗口与-chat-tab)。
+- 实施方案：[conversation-session-windows](../plans/conversation-session-windows.md)（`accepted`）。需求：[PRD-016](../../docs/product/requirements.md#prd-016-conversation-session-窗口与-chat-tab)。
 
 ## Alternatives
 

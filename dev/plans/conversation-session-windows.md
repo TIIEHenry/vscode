@@ -1,19 +1,19 @@
 ---
 title: "默认窗 Conversation：session 窗口与 chat tab"
 type: plan
-status: draft
+status: accepted
 phase: N/A
 updated: 2026-09-01
-summary: "ConversationPart 每叶内嵌 IEditorPart；围栏 CONVERSATION_GROUP；自有导航栈；子代理叶内对话框；Grok Block 已改入；仍 draft"
+summary: "ConversationPart 每叶内嵌 IEditorPart；围栏 CONVERSATION_GROUP；自有导航栈；子代理叶内对话框；已签收；S1–S6 ReadyToImplement；未实施"
 ---
 
 # 默认窗 Conversation：session 窗口与 chat tab
 
-> 需求：[PRD-016](../../docs/product/requirements.md#prd-016-conversation-session-窗口与-chat-tab)（`proposed`）。  
-> 形态决策：[ADR-002](../decisions/002-conversation-session-windows.md)（`proposed`）。  
+> 需求：[PRD-016](../../docs/product/requirements.md#prd-016-conversation-session-窗口与-chat-tab)（`accepted`）。  
+> 形态决策：[ADR-002](../decisions/002-conversation-session-windows.md)（`accepted`）。  
 > Agents 窗同 session 并排仍以 [ADR-001](../decisions/001-chat-compare-form.md) / [PRD-011](../../docs/product/requirements.md#prd-011-chat-并排比对) / [chat-compare-split](chat-compare-split.md) 为准，本方案不改。  
-> 透镜页内 chrome：[conversation-lens-assembly](../../docs/reference/code-oss-b2/conversation-lens-assembly.md)；「对话 | 轨迹」仍是 **每个 chat 页内** 透镜（PRD-012），不是与 chat tab 平级的第三条。  
-> **规则 16：** Grok 4.6 High 只读审查（2026-09-01 **Block**）。Critical / Important 已当轮改入。方案保持 `draft`（改稿后未再审、未签收），不得开实施切片。
+> 透镜页内 chrome：[conversation-lens-assembly](../../docs/reference/code-oss-b2/conversation-lens-assembly.md)；「对话 | 轨迹」是 **每个 chat 页内** 透镜（PRD-012，经 PRD-016 修正），不是与 chat tab 平级的第三条。  
+> **签收：** 2026-09-01 用户签收。规则 16：Grok 4.6 High Block 已改入后产品签收（Opus 5.0 slug 不可用，未再派审查）。S1–S6 ReadyToImplement；未改 `src/`。
 
 **Goal：** 默认窗中间 Conversation 变成「session 窗口 + chat tab」：根/默认 chat 钉死；用户 Fork 默认加 tab；子代理默认在窗口内以对话框打开（父对话仍在底下），最大化才新建 tab；子代理 tab 顶有 agent 层级面包屑（点击替换当前延伸 tab）；每扇窗口一键关掉根以外的 tab；用户可 split；另一 session 用窗口并列；只能隐藏。
 
@@ -213,7 +213,7 @@ HEAD 已接受的锁是 **插入面**：编辑器仅 `EDITOR_PART`；没有「�
 2. Conversation `IEditorPart` 是与 Modal/Aux **并列的第四类 editor 容器**，DOM 挂在 ConversationPart 内，**不是** `Parts.EDITOR_PART`。
 3. 产品对话 input **禁止** `ChatEditorInput`；新 `ConversationChatInput` + `ConversationEditorPane`。
 4. 默认窗仍不为 ChatEditor 注册 resolver（M5 不变）。
-5. 知识层（`parts-and-grid` §5、`editor-part-tabs` §2/§4、`agent-ui` INV-TOPO）在 **ADR 签收的同一批**改写，与 S1 同 merge 或紧挨其前的知识 commit，**不是**实施完再打扫。本方案 `draft` 期间 **不**改那些已接受页。
+5. 知识层（`parts-and-grid` §5、`editor-part-tabs` §2/§4、`agent-ui` INV-TOPO）在 **本签收批**改写为选定合同。S1 落地后再把「选定、未实施」改成 HEAD 事实。**禁止** `ChatEditorInput`。
 
 须改写或补断言的测试（签收后 S1）：
 
@@ -224,7 +224,7 @@ HEAD 已接受的锁是 **插入面**：编辑器仅 `EDITOR_PART`；没有「�
 | 新围栏测试 | 焦点在 Conversation tab 时 `openEditor(file)` / `SIDE_GROUP` 只进 MainEditorPart；`CONVERSATION_GROUP` + 文件被拒绝 |
 | Part 级 `IConversationLensSlots` timeline/dock 测试 | 迁到 pane；窗口 chrome 测试只覆盖 SelectBox / 关非根 / ←→ |
 
-## 4. 实施切片（审查通过前不开）
+## 4. 实施切片（ReadyToImplement）
 
 | # | 切片 | 内容 | 验证 |
 |---|------|------|------|
@@ -234,9 +234,9 @@ HEAD 已接受的锁是 **插入面**：编辑器仅 `EDITOR_PART`；没有「�
 | S3b | 面包屑 + 关非根 | 沿协议 `origin.chat`；点击替换当前延伸 tab；关非根 **不** `closeGroup` 根组 | 单测替换不叠 tab；根 tab 仍在 |
 | S4 | 同窗 split | `CONVERSATION_SIDE_GROUP`；藏列=不画 | 单测组数；文件 `SIDE_GROUP` 不增加 Conversation 组 |
 | S5 | 窗口并列 | 第二 session 叶 + 第二 Conversation EditorPart；藏窗恢复；共享 Preview | roster 打开到旁边；藏后单窗；两 session 时 Preview 仍一个 `EDITOR_PART` |
-| S6 | 知识层 | ADR 签收时改 parts-and-grid / editor-part-tabs / agent-ui 插入面表述（与 S1 同批） | `check-docs-health.py` |
+| S6 | 知识层 | 签收本批已改 parts-and-grid / editor-part-tabs / agent-ui 插入面合同；S1 落地后把 HEAD 句从「选定」改成「已落」 | `check-docs-health.py` |
 
-S1 可在无引擎下落地。S3 / S3b 活数据依赖 PRD-008。每个实施 commit 满足 DOCUMENTATION 规则 3a/3b。**S1 未开前不得改已接受知识页。**
+S1 可在无引擎下落地。S3 / S3b 活数据依赖 PRD-008。每个实施 commit 满足 DOCUMENTATION 规则 3a/3b。知识层插入面合同已随签收改写；S1 改代码，不重开拓扑。
 
 ## 5. 测试计划
 
@@ -269,7 +269,7 @@ S1 可在无引擎下落地。S3 / S3b 活数据依赖 PRD-008。每个实施 co
 
 ## 7. 验收对照
 
-| PRD-016 验收（拟定） | 由谁满足 |
+| PRD-016 验收 | 由谁满足 |
 |----------------------|----------|
 | 中间是 Conversation 多 tab，不是 Preview 里的 ChatEditor | S1 |
 | 默认根不可关（拦截器，非 pin）；整块与 session 窗只藏 | S1 / S5 |
@@ -288,4 +288,4 @@ S1 可在无引擎下落地。S3 / S3b 活数据依赖 PRD-008。每个实施 co
 
 Critical 已改入：Conversation EditorPart 工厂 + session 叶在组之上；`CONVERSATION_GROUP`/`CONVERSATION_SIDE_GROUP` 与 Modal 级围栏；Conversation 自有导航栈（弃 `GoScope.EDITOR_GROUP`）；协议 `origin.chat` / `CreateChatParams.source`；插入面合同写入方案而非「S6 收窄」。Important 已改入：对话框 DOM/z 序；窗口 vs 页 chrome 与 PRD-012 修正；窗口并列非 ADR-001 孪生、共享 Preview；关闭拦截器；ESLint 分层门；默认窗 fork 不走 `agentHostForkActions`。
 
-方案保持 `draft`（末次审查为 Block，改稿后未再审）。未签收前不得开 S1。
+方案 `accepted`（2026-09-01 用户签收）。末次只读审查为 Grok Block，Critical/Important 已改入后签收；未再派 Opus。S1–S6 ReadyToImplement；未改 `src/`。
