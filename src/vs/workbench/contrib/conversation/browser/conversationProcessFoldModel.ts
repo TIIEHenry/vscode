@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { ConversationTrajectoryKind, ConversationTrajectoryRecord } from './conversationTrajectoryModel.js';
 import { ConversationStubTurn, StubTurnKind } from './conversationStubModel.js';
 
 export interface ProcessFoldSpan {
@@ -93,6 +94,133 @@ export function projectProcessFoldSpans(turns: readonly ConversationStubTurn[]):
 
 	finalizeSpan(turns.length);
 	return spans;
+}
+
+const TRAJECTORY_PROCESS_FOLD_KINDS: ReadonlySet<ConversationTrajectoryKind> = new Set(['thinking', 'tool', 'subtool']);
+
+function isTrajectoryProcessFoldKind(kind: ConversationTrajectoryKind): kind is 'thinking' | 'tool' | 'subtool' {
+	return TRAJECTORY_PROCESS_FOLD_KINDS.has(kind);
+}
+
+export interface TrajectoryProcessFoldSpan {
+	readonly id: string;
+	readonly startIndex: number;
+	readonly endIndex: number;
+	readonly recordIds: readonly string[];
+	readonly records: readonly ConversationTrajectoryRecord[];
+}
+
+/**
+ * Projects parallel process-fold spans over trajectory records (thinking / tool / subtool).
+ * user, context, system, message, and compacted break spans.
+ */
+export function projectTrajectoryProcessFoldSpans(records: readonly ConversationTrajectoryRecord[]): TrajectoryProcessFoldSpan[] {
+	const spans: TrajectoryProcessFoldSpan[] = [];
+	let spanStart: number | undefined;
+
+	const finalizeSpan = (endIndex: number): void => {
+		if (spanStart === undefined) {
+			return;
+		}
+
+		const startIndex = spanStart;
+		const segment = records.slice(startIndex, endIndex);
+		spanStart = undefined;
+
+		if (segment.length === 0) {
+			return;
+		}
+
+		spans.push({
+			id: `fold:${segment[0]!.id}`,
+			startIndex,
+			endIndex,
+			recordIds: segment.map(record => record.id),
+			records: segment,
+		});
+	};
+
+	for (let index = 0; index < records.length; index++) {
+		const record = records[index]!;
+		if (isTrajectoryProcessFoldKind(record.kind)) {
+			if (spanStart === undefined) {
+				spanStart = index;
+			}
+		} else {
+			finalizeSpan(index);
+		}
+	}
+
+	finalizeSpan(records.length);
+	return spans;
+}
+
+const MAX_SUMMARY_STEP_NAMES = 4;
+
+function formatStepNameCounts(names: readonly string[]): string {
+	const counts = new Map<string, number>();
+	for (const name of names) {
+		counts.set(name, (counts.get(name) ?? 0) + 1);
+	}
+
+	const parts: string[] = [];
+	let shown = 0;
+	for (const [name, count] of counts) {
+		if (shown >= MAX_SUMMARY_STEP_NAMES) {
+			break;
+		}
+		parts.push(count > 1 ? `${name} ×${count}` : name);
+		shown++;
+	}
+	return parts.join(', ');
+}
+
+function collectTurnStepNames(span: ProcessFoldSpan): string[] {
+	const names: string[] = [];
+	for (const node of span.nodes) {
+		if (node.kind === 'thinking') {
+			names.push('thinking');
+			for (const tool of node.tools) {
+				names.push(tool.toolName ?? 'tool');
+			}
+		} else {
+			names.push(node.turn.toolName ?? 'tool');
+		}
+	}
+	return names;
+}
+
+/** Outer process-fold header summary for conversation turns (must include Stub per PRD-013). */
+export function summarizeProcessSteps(span: ProcessFoldSpan): string {
+	const stepCount = span.turnIds.length;
+	const stepSummary = formatStepNameCounts(collectTurnStepNames(span));
+	return stepSummary.length > 0
+		? `Stub · ${stepCount} steps · ${stepSummary}`
+		: `Stub · ${stepCount} steps`;
+}
+
+function collectTrajectoryStepNames(span: TrajectoryProcessFoldSpan): string[] {
+	return span.records.map(record => {
+		switch (record.kind) {
+			case 'thinking':
+				return 'thinking';
+			case 'subtool':
+				return 'subtool';
+			case 'tool':
+				return 'tool';
+			default:
+				return record.kind;
+		}
+	});
+}
+
+/** Outer process-fold header summary for trajectory records (must include Stub per PRD-013). */
+export function summarizeTrajectoryProcessSteps(span: TrajectoryProcessFoldSpan): string {
+	const stepCount = span.records.length;
+	const stepSummary = formatStepNameCounts(collectTrajectoryStepNames(span));
+	return stepSummary.length > 0
+		? `Stub · ${stepCount} steps · ${stepSummary}`
+		: `Stub · ${stepCount} steps`;
 }
 
 const MAX_SUMMARY_STEP_NAMES = 4;

@@ -358,6 +358,262 @@
 	box-sizing: border-box;
 }
 
+.monaco-workbench .part.conversation .conversation-lens-trajectory-body {
+	display: flex;
+	flex: 1;
+	flex-direction: column;
+	min-height: 0;
+	max-width: 720px;
+	margin: 0 auto;
+	padding: 8px;
+	width: 100%;
+	box-sizing: border-box;
+	gap: 8px;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-trajectory-table {
+	display: flex;
+	flex-direction: column;
+	flex: 1;
+	min-height: 0;
+	border: 1px solid var(--vscode-widget-border, transparent);
+	border-radius: 4px;
+	overflow: auto;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-trajectory-table-header {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 4px 8px;
+	border-bottom: 1px solid var(--vscode-widget-border, transparent);
+	background-color: var(--vscode-editor-inactiveSelectionBackground);
+	font-size: 11px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	color: var(--vscode-descriptionForeground);
+}
+
+.monaco-workbench .part.conversation .conversation-lens-trajectory-table-kind-header,
+.monaco-workbench .part.conversation .conversation-lens-trajectory-table-kind {
+	flex-shrink: 0;
+	min-width: 72px;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-trajectory-table-preview-header,
+.monaco-workbench .part.conversation .conversation-lens-trajectory-table-preview {
+	flex: 1;
+	min-width: 0;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-trajectory-table-body {
+	display: flex;
+	flex-direction: column;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-trajectory-fold-host {
+	padding: 2px 0;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-trajectory-record-row {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 4px 8px;
+	cursor: pointer;
+	font-size: 12px;
+	line-height: 1.45;
+	color: var(--vscode-foreground);
+}
+
+.monaco-workbench .part.conversation .conversation-lens-trajectory-record-row:hover,
+.monaco-workbench .part.conversation .conversation-lens-trajectory-record-row--selected {
+	background-color: var(--vscode-list-hoverBackground);
+}
+
+.monaco-workbench .part.conversation .conversation-lens-trajectory-record-row--selected {
+	outline: 1px solid var(--vscode-focusBorder);
+	outline-offset: -1px;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-trajectory-table-kind {
+	font-size: 11px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	color: var(--vscode-descriptionForeground);
+}
+
+.monaco-workbench .part.conversation .conversation-lens-trajectory-table-preview {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	color: var(--vscode-foreground);
+}
+
+.monaco-workbench .part.conversation .conversation-lens-trajectory-source-block {
+	display: inline-block;
+	margin-inline-start: 6px;
+	padding: 0 6px;
+	border-radius: 3px;
+	background-color: var(--vscode-badge-background);
+	color: var(--vscode-badge-foreground);
+	font-size: 11px;
+	line-height: 18px;
+	vertical-align: middle;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-trajectory-inspector {
+	border: 1px solid var(--vscode-widget-border, transparent);
+	border-radius: 4px;
+	padding: 8px;
+	background-color: var(--vscode-editor-background);
+	max-height: 40%;
+	overflow: auto;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-trajectory-inspector-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 8px;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-trajectory-inspector-title {
+	font-size: 12px;
+	font-weight: 600;
+	color: var(--vscode-foreground);
+}
+
+.monaco-workbench .part.conversation .conversation-lens-trajectory-inspector-close {
+	border: none;
+	background: none;
+	color: var(--vscode-descriptionForeground);
+	cursor: pointer;
+	padding: 2px;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-trajectory-inspector-section + .conversation-lens-trajectory-inspector-section {
+	margin-top: 8px;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-trajectory-inspector-section-title {
+	margin: 0 0 4px;
+	font-size: 11px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	color: var(--vscode-descriptionForeground);
+}
+
+.monaco-workbench .part.conversation .conversation-lens-trajectory-inspector-section-body {
+	margin: 0;
+	font-size: 12px;
+	line-height: 1.45;
+	color: var(--vscode-foreground);
+	white-space: pre-wrap;
+}
+
+/* Process-fold overlay (ADR-046) */
+.monaco-workbench .part.conversation .conversation-process-fold {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+}
+
+.monaco-workbench .part.conversation .conversation-process-fold-header,
+.monaco-workbench .part.conversation .conversation-process-fold-thinking-header {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	width: 100%;
+	padding: 4px 8px;
+	border: none;
+	background: none;
+	color: var(--vscode-descriptionForeground);
+	font-size: 12px;
+	line-height: 1.45;
+	text-align: start;
+	cursor: pointer;
+}
+
+.monaco-workbench .part.conversation .conversation-process-fold-header:hover,
+.monaco-workbench .part.conversation .conversation-process-fold-thinking-header:hover {
+	color: var(--vscode-foreground);
+}
+
+.monaco-workbench .part.conversation .conversation-process-fold-summary {
+	flex: 1;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.monaco-workbench .part.conversation .conversation-process-fold-chevron {
+	flex-shrink: 0;
+	color: var(--vscode-descriptionForeground);
+	transition: transform 0.15s ease;
+}
+
+.monaco-workbench .part.conversation .conversation-process-fold-chevron--expanded {
+	transform: rotate(90deg);
+}
+
+.monaco-workbench .part.conversation .conversation-process-fold-children {
+	padding-inline-start: 12px;
+}
+
+.monaco-workbench .part.conversation .conversation-process-fold-thinking-tools {
+	padding-inline-start: 12px;
+}
+
+.monaco-workbench .part.conversation .conversation-process-fold-thinking-label {
+	flex-shrink: 0;
+	font-weight: 600;
+	color: var(--vscode-foreground);
+}
+
+.monaco-workbench .part.conversation .conversation-process-fold-thinking-summary,
+.monaco-workbench .part.conversation .conversation-process-fold-tool-summary {
+	flex: 1;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	color: var(--vscode-descriptionForeground);
+}
+
+.monaco-workbench .part.conversation .conversation-process-fold-thinking-body {
+	font-size: 12px;
+	line-height: 1.45;
+	color: var(--vscode-descriptionForeground);
+	padding: 2px 8px 4px 22px;
+	white-space: pre-wrap;
+}
+
+.monaco-workbench .part.conversation .conversation-process-fold-tool {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	padding: 2px 8px;
+	font-size: 12px;
+	line-height: 1.45;
+	color: var(--vscode-descriptionForeground);
+}
+
+.monaco-workbench .part.conversation .conversation-process-fold-tool-icon {
+	flex-shrink: 0;
+	color: var(--vscode-descriptionForeground);
+}
+
+.monaco-workbench .part.conversation .conversation-process-fold-tool-name {
+	flex-shrink: 0;
+	font-weight: 600;
+	color: var(--vscode-foreground);
+}
+
 .monaco-workbench .part.conversation .conversation-lens-trajectory-row {
 	display: flex;
 	align-items: center;

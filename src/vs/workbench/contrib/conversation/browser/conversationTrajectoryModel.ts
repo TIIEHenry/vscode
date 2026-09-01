@@ -34,6 +34,7 @@ export interface ConversationTrajectoryRecord {
 export const CONVERSATION_TRAJECTORY_STUB_SYSTEM_TEXT = 'Stub environment';
 export const CONVERSATION_TRAJECTORY_STUB_CONTEXT_TEXT = 'Stub: workspace context';
 export const CONVERSATION_TRAJECTORY_STUB_SOURCE_BLOCK_CONTENT = 'Stub: README.md';
+export const CONVERSATION_TRAJECTORY_STUB_SUBTOOL_TEXT = 'Stub: nested dispatch';
 
 /**
  * Projects admitted stub turns into trajectory records. Confirmation turns are omitted.
@@ -128,5 +129,20 @@ function mergeUntitledTrajectoryFixtures(records: readonly ConversationTrajector
 		};
 	});
 
-	return [systemRecord, contextRecord, ...enrichedRecords];
+	const withFixtures = [systemRecord, contextRecord, ...enrichedRecords];
+	const toolIndex = withFixtures.findIndex(record => record.kind === 'tool');
+	if (toolIndex >= 0) {
+		const parentTool = withFixtures[toolIndex]!;
+		const subtoolRecord: ConversationTrajectoryRecord = {
+			id: 'fixture:untitled:subtool',
+			kind: 'subtool',
+			text: CONVERSATION_TRAJECTORY_STUB_SUBTOOL_TEXT,
+			parentCallId: parentTool.callId ?? parentTool.id,
+			callId: 'fixture:untitled:subtool-call',
+			depth: 1,
+		};
+		withFixtures.splice(toolIndex + 1, 0, subtoolRecord);
+	}
+
+	return withFixtures;
 }

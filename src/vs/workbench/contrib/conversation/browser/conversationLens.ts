@@ -22,7 +22,7 @@ import { hasNativeContextMenu } from '../../../../platform/window/common/window.
 import { IConversationLensSlots } from '../../../browser/parts/conversation/conversationPart.js';
 import { ConversationIdentityStrip } from './conversationIdentityStrip.js';
 import { ConversationTimelineTree } from './conversationTimelineTree.js';
-import { ConversationTrajectoryList } from './conversationTrajectoryList.js';
+import { ConversationTrajectory } from './conversationTrajectory.js';
 import {
 	conversationLensDockAttachTitle,
 	conversationLensDockEngineNotConnected,
@@ -75,7 +75,7 @@ export class ConversationLens extends Disposable {
 	private lensTabTrajectory!: HTMLButtonElement;
 	private lensId: ConversationLensId = 'conversation';
 	private timelineTree!: ConversationTimelineTree;
-	private trajectoryList!: ConversationTrajectoryList;
+	private trajectoryView!: ConversationTrajectory;
 	private inboxStatus!: HTMLButtonElement;
 	private stopButton!: Button;
 	private dockTextarea!: HTMLTextAreaElement;
@@ -291,7 +291,7 @@ export class ConversationLens extends Disposable {
 			onCopyTurn: (_turnId, text) => this.copyTurn(text),
 			onDeleteTurn: turnId => this.deleteTurn(turnId),
 		}));
-		this.trajectoryList = this._register(this.instantiationService.createInstance(ConversationTrajectoryList, readingColumn, {}));
+		this.trajectoryView = this._register(this.instantiationService.createInstance(ConversationTrajectory, readingColumn, {}));
 	}
 
 	private mountDock(host: HTMLElement): void {
@@ -472,13 +472,12 @@ export class ConversationLens extends Disposable {
 
 	private updateReadingColumn(): void {
 		const sessionId = this.stubService.getActiveSessionId();
-		const turns = this.stubService.getTurns(sessionId);
 		if (this.lensId === 'trajectory') {
 			this.timelineTree.hide();
-			this.trajectoryList.setTurns(turns);
-			this.trajectoryList.show();
+			this.trajectoryView.setRecords(this.stubService.getTrajectoryRecords(sessionId));
+			this.trajectoryView.show();
 		} else {
-			this.trajectoryList.hide();
+			this.trajectoryView.hide();
 			this.timelineTree.show();
 		}
 	}
@@ -500,7 +499,7 @@ export class ConversationLens extends Disposable {
 		this.updateSessionTitle();
 		this.dockTextarea.value = this.drafts.get(sessionId) ?? '';
 		if (this.lensId === 'trajectory') {
-			this.trajectoryList.setTurns(this.stubService.getTurns(sessionId));
+			this.trajectoryView.setRecords(this.stubService.getTrajectoryRecords(sessionId));
 		}
 		this.renderTimeline();
 		this.renderInboxStatus();
@@ -590,7 +589,7 @@ export class ConversationLens extends Disposable {
 		const turns = this.stubService.getTurns(this.stubService.getActiveSessionId());
 		this.timelineTree.setTurns(turns);
 		if (this.lensId === 'trajectory') {
-			this.trajectoryList.setTurns(turns);
+			this.trajectoryView.setRecords(this.stubService.getTrajectoryRecords(this.stubService.getActiveSessionId()));
 		}
 	}
 

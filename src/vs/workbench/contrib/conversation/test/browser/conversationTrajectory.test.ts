@@ -10,11 +10,12 @@ import { ConversationPart, IConversationLensSlots } from '../../../../browser/pa
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { ConversationLens } from '../../browser/conversationLens.js';
 import { ConversationTimelineTree } from '../../browser/conversationTimelineTree.js';
-import { ConversationTrajectoryList } from '../../browser/conversationTrajectoryList.js';
+import { ConversationTrajectory } from '../../browser/conversationTrajectory.js';
 import { ConversationStubService, IConversationRosterService } from '../../browser/conversationStubService.js';
 import {
 	CONVERSATION_TRAJECTORY_STUB_CONTEXT_TEXT,
 	CONVERSATION_TRAJECTORY_STUB_SOURCE_BLOCK_CONTENT,
+	CONVERSATION_TRAJECTORY_STUB_SUBTOOL_TEXT,
 	CONVERSATION_TRAJECTORY_STUB_SYSTEM_TEXT,
 	projectTurnsToTrajectory,
 } from '../../browser/conversationTrajectoryModel.js';
@@ -70,10 +71,10 @@ suite('ConversationTrajectory', () => {
 			treeContainer.style.height = `${LENS_LAYOUT_HEIGHT - 120}px`;
 		}
 		const timelineTree = (lens as unknown as { timelineTree: ConversationTimelineTree }).timelineTree;
-		const trajectoryList = (lens as unknown as { trajectoryList: ConversationTrajectoryList }).trajectoryList;
+		const trajectoryView = (lens as unknown as { trajectoryView: ConversationTrajectory }).trajectoryView;
 		const timelineHeight = LENS_LAYOUT_HEIGHT - 120;
 		timelineTree.layout(timelineHeight, LENS_LAYOUT_WIDTH);
-		trajectoryList.layout(LENS_LAYOUT_HEIGHT, LENS_LAYOUT_WIDTH);
+		trajectoryView.layout(LENS_LAYOUT_HEIGHT, LENS_LAYOUT_WIDTH);
 	}
 
 	function mountLens(): { part: ConversationPart; lens: ConversationLens; stubService: ConversationStubService; layoutReadingColumn: () => void } {
@@ -156,6 +157,8 @@ suite('ConversationTrajectory', () => {
 
 		const user = service.appendUserTurn(sessionId, 'Draft the README');
 		assert.ok(user);
+		service.appendThinkingTurn(sessionId, 'Stub: outline sections');
+		service.appendToolTurn(sessionId, 'Stub: README.md');
 
 		const records = service.getTrajectoryRecords(sessionId);
 		assert.ok(records.some(record => record.kind === 'system' && record.text.includes('Stub')));
@@ -164,6 +167,10 @@ suite('ConversationTrajectory', () => {
 		assert.ok(userRecord);
 		assert.strictEqual(userRecord!.kind, 'user');
 		assert.ok(userRecord!.sourceBlocks?.some(block => block.content.includes('Stub')));
+		const subtool = records.find(record => record.kind === 'subtool');
+		assert.ok(subtool);
+		assert.strictEqual(subtool!.text, CONVERSATION_TRAJECTORY_STUB_SUBTOOL_TEXT);
+		assert.strictEqual(subtool!.depth, 1);
 	});
 
 	test('getTrajectoryRecords is empty for createSession without fixture extras', () => {

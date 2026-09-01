@@ -5,7 +5,8 @@
 
 import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
-import { nestThinkingTools, projectProcessFoldSpans, summarizeProcessSteps } from '../../browser/conversationProcessFoldModel.js';
+import { nestThinkingTools, projectProcessFoldSpans, projectTrajectoryProcessFoldSpans, summarizeProcessSteps, summarizeTrajectoryProcessSteps } from '../../browser/conversationProcessFoldModel.js';
+import { ConversationTrajectoryRecord } from '../../browser/conversationTrajectoryModel.js';
 import { ConversationStubTurn } from '../../browser/conversationStubModel.js';
 
 function turn(id: string, kind: ConversationStubTurn['kind'], text = id): ConversationStubTurn {
@@ -162,5 +163,42 @@ suite('ConversationProcessFold', () => {
 		assert.ok(summary.startsWith('Stub · 4 steps ·'));
 		assert.ok(summary.includes('thinking ×2'));
 		assert.ok(summary.includes('tool ×2'));
+	});
+
+	function record(id: string, kind: ConversationTrajectoryRecord['kind'], text = id, extra?: Partial<ConversationTrajectoryRecord>): ConversationTrajectoryRecord {
+		return { id, kind, text, ...extra };
+	}
+
+	test('projectTrajectoryProcessFoldSpans keeps system and context outside fold segments', () => {
+		const records = [
+			record('s1', 'system', 'Stub environment'),
+			record('c1', 'context', 'Stub: workspace context'),
+			record('u1', 'user', 'Help'),
+			record('t1', 'thinking', 'Stub: outline'),
+			record('tool1', 'tool', 'Stub: README.md', { callId: 'tool1', depth: 0 }),
+			record('sub1', 'subtool', 'Stub: nested dispatch', { parentCallId: 'tool1', depth: 1 }),
+			record('m1', 'message', 'Done'),
+		];
+
+		const spans = projectTrajectoryProcessFoldSpans(records);
+		assert.strictEqual(spans.length, 1);
+		assert.strictEqual(spans[0]!.startIndex, 3);
+		assert.strictEqual(spans[0]!.endIndex, 6);
+		assert.deepStrictEqual(spans[0]!.recordIds, ['t1', 'tool1', 'sub1']);
+	});
+
+	test('summarizeTrajectoryProcessSteps includes Stub prefix for trajectory spans', () => {
+		const records = [
+			record('t1', 'thinking', 'Stub: outline'),
+			record('tool1', 'tool', 'Stub: README.md'),
+			record('sub1', 'subtool', 'Stub: nested dispatch'),
+		];
+		const spans = projectTrajectoryProcessFoldSpans(records);
+		assert.strictEqual(spans.length, 1);
+		const summary = summarizeTrajectoryProcessSteps(spans[0]!);
+		assert.ok(summary.startsWith('Stub · 3 steps ·'));
+		assert.ok(summary.includes('thinking'));
+		assert.ok(summary.includes('tool'));
+		assert.ok(summary.includes('subtool'));
 	});
 });

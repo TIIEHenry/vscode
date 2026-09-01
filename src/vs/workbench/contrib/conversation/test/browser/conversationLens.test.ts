@@ -13,7 +13,7 @@ import { ChatEditorInput } from '../../../chat/browser/widgetHosts/editor/chatEd
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { ConversationLens } from '../../browser/conversationLens.js';
 import { ConversationTimelineTree, conversationLensUserBubbleShowLess, conversationLensUserBubbleShowMore } from '../../browser/conversationTimelineTree.js';
-import { ConversationTrajectoryList } from '../../browser/conversationTrajectoryList.js';
+import { ConversationTrajectory } from '../../browser/conversationTrajectory.js';
 import {
 	conversationLensDockAttachTitle,
 	conversationLensDockEngineNotConnected,
@@ -166,10 +166,10 @@ suite('ConversationLens', () => {
 			treeContainer.style.height = `${LENS_LAYOUT_HEIGHT - 120}px`;
 		}
 		const timelineTree = (lens as unknown as { timelineTree: ConversationTimelineTree }).timelineTree;
-		const trajectoryList = (lens as unknown as { trajectoryList: ConversationTrajectoryList }).trajectoryList;
+		const trajectoryView = (lens as unknown as { trajectoryView: ConversationTrajectory }).trajectoryView;
 		const timelineHeight = LENS_LAYOUT_HEIGHT - 120;
 		timelineTree.layout(timelineHeight, LENS_LAYOUT_WIDTH);
-		trajectoryList.layout(LENS_LAYOUT_HEIGHT, LENS_LAYOUT_WIDTH);
+		trajectoryView.layout(LENS_LAYOUT_HEIGHT, LENS_LAYOUT_WIDTH);
 	}
 
 	function getInboxGoalButton(slots: IConversationLensSlots): HTMLElement {
@@ -755,7 +755,7 @@ suite('ConversationLens', () => {
 		const trajectory = slots.timeline.querySelector('.conversation-lens-trajectory')!;
 		assert.ok(!trajectory.hasAttribute('hidden'));
 		assert.strictEqual(slots.timeline.querySelector('.conversation-lens-timeline')!.hasAttribute('hidden'), true);
-		assert.strictEqual(trajectory.querySelectorAll('.monaco-list-row').length, 2);
+		assert.strictEqual(trajectory.querySelectorAll('.conversation-lens-trajectory-record-row').length, 2);
 		assert.ok(trajectory.textContent?.includes('First turn in trajectory'));
 
 		clickLensTab(slots, 'conversation');
@@ -829,7 +829,7 @@ suite('ConversationLens', () => {
 
 		const trajectory = slots.timeline.querySelector('.conversation-lens-trajectory')!;
 		assert.ok(trajectory.textContent?.includes(conversationLensSessionBarNoTrajectory));
-		assert.strictEqual(trajectory.querySelector('.monaco-list-row'), null);
+		assert.strictEqual(trajectory.querySelector('.conversation-lens-trajectory-record-row'), null);
 	});
 
 	test('inbox pending click from Trajectory lens switches back to Conversation', async () => {
@@ -1171,7 +1171,7 @@ suite('ConversationLens', () => {
 		await flushTimelineHeightUpdates();
 
 		let trajectory = slots.timeline.querySelector('.conversation-lens-trajectory')!;
-		assert.strictEqual(trajectory.querySelectorAll('.monaco-list-row').length, 2);
+		assert.strictEqual(trajectory.querySelectorAll('.conversation-lens-trajectory-record-row').length, 2);
 
 		clickLensTab(slots, 'conversation');
 		layoutReadingColumn();
@@ -1190,7 +1190,7 @@ suite('ConversationLens', () => {
 		await flushTimelineHeightUpdates();
 
 		trajectory = slots.timeline.querySelector('.conversation-lens-trajectory')!;
-		assert.strictEqual(trajectory.querySelectorAll('.monaco-list-row').length, 1);
+		assert.strictEqual(trajectory.querySelectorAll('.conversation-lens-trajectory-record-row').length, 1);
 		assert.ok(trajectory.textContent?.includes(assistantText));
 		assert.ok(!trajectory.textContent?.includes(userText));
 
