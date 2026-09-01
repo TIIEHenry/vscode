@@ -148,3 +148,42 @@ function mergeUntitledTrajectoryFixtures(records: readonly ConversationTrajector
 
 	return withFixtures;
 }
+
+/** Turn ids admitted on the conversation timeline (excludes confirmation / visualization). */
+export function collectConversationTrajectoryTurnIds(turns: readonly ConversationStubTurn[]): ReadonlySet<string> {
+	const ids = new Set<string>();
+	for (const turn of turns) {
+		if (turn.kind === 'confirmation' || turn.kind === 'visualization') {
+			continue;
+		}
+		ids.add(turn.id);
+	}
+	return ids;
+}
+
+/** Resolve a conversation turn to reveal from a trajectory record (fixture rows return undefined). */
+export function findTurnIdForTrajectoryRecord(
+	record: ConversationTrajectoryRecord,
+	turnIds: ReadonlySet<string>,
+): string | undefined {
+	if (turnIds.has(record.id)) {
+		return record.id;
+	}
+	if (record.parentCallId && turnIds.has(record.parentCallId)) {
+		return record.parentCallId;
+	}
+	return undefined;
+}
+
+/** Resolve the primary trajectory record for a conversation turn (prefers direct projection). */
+export function findTrajectoryRecordIdForTurn(
+	turnId: string,
+	records: readonly ConversationTrajectoryRecord[],
+): string | undefined {
+	const direct = records.find(record => record.id === turnId);
+	if (direct) {
+		return direct.id;
+	}
+	const nested = records.find(record => record.parentCallId === turnId);
+	return nested?.id;
+}

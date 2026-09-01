@@ -25,6 +25,10 @@ import { ConversationInboxOverlay } from './conversationInboxOverlay.js';
 import { ConversationTimelineTree } from './conversationTimelineTree.js';
 import { ConversationTrajectory } from './conversationTrajectory.js';
 import {
+	collectConversationTrajectoryTurnIds,
+	findTrajectoryRecordIdForTurn,
+} from './conversationTrajectoryModel.js';
+import {
 	conversationLensDockAddTitle,
 	conversationLensDockEngineNotConnected,
 	conversationLensDockEditExit,
@@ -490,9 +494,12 @@ export class ConversationLens extends Disposable {
 			onCopyTurn: (_turnId, text) => this.copyTurn(text),
 			onDeleteTurn: turnId => this.deleteTurn(turnId),
 			onEditUserTurn: turnId => this.beginTurnEdit(turnId),
+			onViewInTrajectory: turnId => this.navigateToTrajectoryFromTurn(turnId),
 			onOpenVisualizeFullscreen: (source, title) => this.openVisualizeOverlay(source, title),
 		}));
-		this.trajectoryView = this._register(this.instantiationService.createInstance(ConversationTrajectory, this.readingColumn, {}));
+		this.trajectoryView = this._register(this.instantiationService.createInstance(ConversationTrajectory, this.readingColumn, {
+			onNavigateToLinkedTurn: turnId => this.navigateToTurnFromTrajectory(turnId),
+		}));
 	}
 
 	private mountDock(host: HTMLElement): void {
@@ -1132,12 +1139,52 @@ export class ConversationLens extends Disposable {
 		const sessionId = this.stubService.getActiveSessionId();
 		if (this.lensId === 'trajectory') {
 			this.timelineTree.hide();
-			this.trajectoryView.setRecords(this.stubService.getTrajectoryRecords(sessionId));
+			this.refreshTrajectoryRecords(sessionId);
 			this.trajectoryView.show();
 		} else {
 			this.trajectoryView.hide();
 			this.timelineTree.show();
 		}
+	}
+
+	private refreshTrajectoryRecords(sessionId: string): void {
+		const turns = this.stubService.getTurns(sessionId);
+		this.trajectoryView.setRecords(
+			this.stubService.getTrajectoryRecords(sessionId),
+			collectConversationTrajectoryTurnIds(turns),
+		);
+	}
+
+	private navigateToTurnFromTrajectory(turnId: string): void {
+		if (this.lensId !== 'conversation') {
+			this.lensId = 'conversation';
+			this.storageService.store(CONVERSATION_LENS_ID_STORAGE_KEY, 'conversation', StorageScope.WORKSPACE, StorageTarget.MACHINE);
+			this.updateLensTabs();
+			this.trajectoryView.hide();
+			this.timelineTree.show();
+		}
+		if (this.inputMaximized) {
+			this.setInputMaximized(false);
+		}
+		this.timelineTree.revealTurn(turnId);
+	}
+
+	private navigateToTrajectoryFromTurn(turnId: string): void {
+		const sessionId = this.stubService.getActiveSessionId();
+		const records = this.stubService.getTrajectoryRecords(sessionId);
+		const recordId = findTrajectoryRecordIdForTurn(turnId, records);
+		if (!recordId) {
+			return;
+		}
+		if (this.lensId !== 'trajectory') {
+			this.lensId = 'trajectory';
+			this.storageService.store(CONVERSATION_LENS_ID_STORAGE_KEY, 'trajectory', StorageScope.WORKSPACE, StorageTarget.MACHINE);
+			this.updateLensTabs();
+			this.timelineTree.hide();
+			this.refreshTrajectoryRecords(sessionId);
+			this.trajectoryView.show();
+		}
+		this.trajectoryView.revealRecord(recordId);
 	}
 
 	private createNewSession(): void {
@@ -1160,7 +1207,7 @@ export class ConversationLens extends Disposable {
 		this.updateSessionTitle();
 		this.dockTextarea.value = this.drafts.get(sessionId) ?? '';
 		if (this.lensId === 'trajectory') {
-			this.trajectoryView.setRecords(this.stubService.getTrajectoryRecords(sessionId));
+			this.refreshTrajectoryRecords(sessionId);
 		}
 		this.renderTimeline();
 		this.renderInboxStatus();
@@ -1240,10 +1287,11 @@ export class ConversationLens extends Disposable {
 	}
 
 	private renderTimeline(): void {
-		const turns = this.stubService.getTurns(this.stubService.getActiveSessionId());
+		const sessionId = this.stubService.getActiveSessionId();
+		const turns = this.stubService.getTurns(sessionId);
 		this.timelineTree.setTurns(turns);
 		if (this.lensId === 'trajectory') {
-			this.trajectoryView.setRecords(this.stubService.getTrajectoryRecords(this.stubService.getActiveSessionId()));
+			this.refreshTrajectoryRecords(sessionId);
 		}
 		this.updateConversationPhase();
 		this.syncComposerPlacement();

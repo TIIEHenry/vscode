@@ -21,6 +21,7 @@ import {
 import {
 	ConversationTrajectoryKind,
 	ConversationTrajectoryRecord,
+	findTurnIdForTrajectoryRecord,
 } from './conversationTrajectoryModel.js';
 
 export const conversationTrajectoryKindUser = localize('conversationTrajectory.kindUser', "USER");
@@ -79,7 +80,7 @@ export function getTrajectoryRecordPreview(record: ConversationTrajectoryRecord)
 }
 
 export interface IConversationTrajectoryOptions {
-	readonly onDidSelectRecord?: (recordId: string) => void;
+	readonly onNavigateToLinkedTurn?: (turnId: string) => void;
 }
 
 /**
@@ -97,11 +98,14 @@ export class ConversationTrajectory extends Disposable {
 	private readonly renderDisposables = this._register(new DisposableStore());
 	private readonly processFoldOuterExpanded = new Map<string, boolean>();
 	private readonly selectedRecordId = { current: undefined as string | undefined };
+	private readonly linkedTurnIds = { current: new Set<string>() };
+	private currentRecords: readonly ConversationTrajectoryRecord[] = [];
+	private pendingRevealRecordId: string | undefined;
 	private visible = false;
 
 	constructor(
 		parent: HTMLElement,
-		_options: IConversationTrajectoryOptions,
+		private readonly options: IConversationTrajectoryOptions,
 		@IInstantiationService _instantiationService: IInstantiationService,
 	) {
 		super();
@@ -163,7 +167,11 @@ export class ConversationTrajectory extends Disposable {
 		return this.visible;
 	}
 
-	setRecords(records: readonly ConversationTrajectoryRecord[]): void {
+	setRecords(records: readonly ConversationTrajectoryRecord[], linkedTurnIds?: ReadonlySet<string>): void {
+		this.currentRecords = records;
+		if (linkedTurnIds) {
+			this.linkedTurnIds.current = new Set(linkedTurnIds);
+		}
 		this.renderDisposables.clear();
 		clearNode(this.tableBody);
 
@@ -203,6 +211,37 @@ export class ConversationTrajectory extends Disposable {
 				this.openInspector(selected);
 			}
 		}
+
+		if (this.pendingRevealRecordId) {
+			const recordId = this.pendingRevealRecordId;
+			this.pendingRevealRecordId = undefined;
+			this.scrollRecordIntoView(recordId);
+		}
+	}
+
+	revealRecord(recordId: string): void {
+		const record = this.currentRecords.find(candidate => candidate.id === recordId);
+		if (!record) {
+			return;
+		}
+
+		const spans = projectTrajectoryProcessFoldSpans(this.currentRecords);
+		for (const span of spans) {
+			if (span.recordIds.includes(recordId)) {
+				this.processFoldOuterExpanded.set(span.id, true);
+				break;
+			}
+		}
+
+		this.pendingRevealRecordId = recordId;
+		this.selectedRecordId.current = recordId;
+		this.setRecords(this.currentRecords, this.linkedTurnIds.current);
+		this.selectRecord(record, false);
+	}
+
+	private scrollRecordIntoView(recordId: string): void {
+		const row = this.host.querySelector(`.conversation-lens-trajectory-record-row[data-record-id="${recordId}"]`) as HTMLElement | undefined;
+		row?.scrollIntoView({ block: 'nearest' });
 	}
 
 	layout(_height: number, _width: number): void {
@@ -278,7 +317,7 @@ export class ConversationTrajectory extends Disposable {
 			}
 		}
 
-		const select = () => this.selectRecord(record);
+		const select = () => this.selectRecord(record, true);
 		this.renderDisposables.add(addDisposableListener(row, 'click', select));
 		this.renderDisposables.add(addDisposableListener(row, 'keydown', (e) => {
 			if (e.key === 'Enter' || e.key === ' ') {
@@ -293,7 +332,13 @@ export class ConversationTrajectory extends Disposable {
 		}
 	}
 
-	private selectRecord(record: ConversationTrajectoryRecord): void {
+	private selectRecord(record: ConversationTrajectoryRecord, navigateToConversation: boolean): void {
+		const linkedTurnId = findTurnIdForTrajectoryRecord(record, this.linkedTurnIds.current);
+		if (navigateToConversation && linkedTurnId && this.options.onNavigateToLinkedTurn) {
+			this.options.onNavigateToLinkedTurn(linkedTurnId);
+			return;
+		}
+
 		this.selectedRecordId.current = record.id;
 		for (const row of this.host.querySelectorAll('.conversation-lens-trajectory-record-row')) {
 			const selected = row.getAttribute('data-record-id') === record.id;

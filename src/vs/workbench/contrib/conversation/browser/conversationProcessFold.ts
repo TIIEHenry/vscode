@@ -9,6 +9,7 @@ import { Codicon } from '../../../../base/common/codicons.js';
 import { DisposableStore } from '../../../../base/common/lifecycle.js';
 import { ThemeIcon } from '../../../../base/common/themables.js';
 import { localize } from '../../../../nls.js';
+import { conversationLensTurnViewInTrajectory } from './conversationLensSessionBarStrings.js';
 import { ConversationStubTurn } from './conversationStubModel.js';
 import { ProcessFoldNode, ProcessFoldSpan, summarizeProcessSteps } from './conversationProcessFoldModel.js';
 
@@ -22,6 +23,7 @@ export interface ProcessFoldDomOptions {
 	readonly setThinkingExpanded: (turnId: string, expanded: boolean) => void;
 	readonly isToolExpanded: (turnId: string) => boolean;
 	readonly setToolExpanded: (turnId: string, expanded: boolean) => void;
+	readonly onViewInTrajectory?: (turnId: string) => void;
 	readonly onLayoutChange: () => void;
 }
 
@@ -102,6 +104,8 @@ function renderThinkingNode(
 	const summary = append(header, $('span.conversation-process-fold-thinking-summary'));
 	summary.textContent = turn.text;
 
+	appendProcessFoldTrajectoryJump(thinking, turn.id, options, disposables);
+
 	const body = append(thinking, $('div.conversation-process-fold-thinking-body'));
 	body.hidden = !thinkingExpanded;
 	body.textContent = turn.payload ?? turn.text;
@@ -171,6 +175,8 @@ function renderToolRow(
 	const summary = append(header, $('span.conversation-process-fold-tool-summary'));
 	summary.textContent = turn.summary ?? turn.text;
 
+	appendProcessFoldTrajectoryJump(row, turn.id, options, disposables);
+
 	if (hasPayload) {
 		const body = append(row, $('div.conversation-process-fold-tool-body'));
 		body.hidden = !toolExpanded;
@@ -186,4 +192,24 @@ function renderToolRow(
 			options.onLayoutChange();
 		}));
 	}
+}
+
+function appendProcessFoldTrajectoryJump(
+	parent: HTMLElement,
+	turnId: string,
+	options: ProcessFoldDomOptions,
+	disposables: DisposableStore,
+): void {
+	if (!options.onViewInTrajectory) {
+		return;
+	}
+	const jump = append(parent, $('button.conversation-process-fold-trajectory-jump')) as HTMLButtonElement;
+	jump.type = 'button';
+	jump.classList.add(...ThemeIcon.asClassNameArray(Codicon.listTree));
+	jump.title = conversationLensTurnViewInTrajectory;
+	jump.setAttribute('aria-label', conversationLensTurnViewInTrajectory);
+	disposables.add(addDisposableListener(jump, 'click', (e) => {
+		e.stopPropagation();
+		options.onViewInTrajectory!(turnId);
+	}));
 }
