@@ -1797,6 +1797,8 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 			// Auxiliary Bar State
 			this.stateModel.setInitializationValue(LayoutStateKeys.AUXILIARYBAR_EMPTY, this.paneCompositeService.getPaneCompositeIds(ViewContainerLocation.AuxiliaryBar).length === 0);
 		}));
+
+		this.ensureAgentShellMinimumVisible();
 	}
 
 	layout(): void {
@@ -1814,6 +1816,8 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 			// Layout the grid widget
 			this.workbenchGrid.layout(this._mainContainerDimension.width, this._mainContainerDimension.height);
 			this.initialized = true;
+
+			this.ensureAgentShellMinimumVisible();
 
 			// Emit as event
 			this.handleContainerDidLayout(this.mainContainer, this._mainContainerDimension);
@@ -2046,6 +2050,21 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 		} else if (show === Parts.SOURCES_PART) {
 			this.setSourcesHidden(false);
 		}
+	}
+
+	private ensureAgentShellMinimumVisible(): void {
+		if (this.inMaximizedAuxiliaryBarTransition || this.isAuxiliaryBarMaximized() || this.inMaximizedPanelTransition || this.isPanelMaximized()) {
+			return;
+		}
+
+		const conversation = this.isVisible(Parts.CONVERSATION_PART);
+		const editor = this.isVisible(Parts.EDITOR_PART, mainWindow);
+		const sources = this.isVisible(Parts.SOURCES_PART);
+		if (conversation || editor || sources) {
+			return;
+		}
+
+		this.setConversationHidden(false);
 	}
 
 	getLayoutClasses(): string[] {
