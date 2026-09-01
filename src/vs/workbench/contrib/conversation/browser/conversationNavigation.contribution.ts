@@ -20,6 +20,7 @@ import { IWorkbenchLayoutService, Parts } from '../../../services/layout/browser
 import { IEditorGroupsService, IConversationEditorPart } from '../../../services/editor/common/editorGroupsService.js';
 import { registerConversationNavigationConfiguration } from '../common/conversationNavigation.js';
 import { ConversationNavigationService, IConversationNavigationService } from './conversationNavigationService.js';
+import { IConversationSessionChatService } from './conversationSessionChatService.js';
 
 registerConversationNavigationConfiguration();
 registerSingleton(IConversationNavigationService, ConversationNavigationService, InstantiationType.Delayed);
@@ -34,6 +35,7 @@ class ConversationNavigationContribution extends Disposable implements IWorkbenc
 		@IConversationNavigationService private readonly navigationService: IConversationNavigationService,
 		@IConversationPartService private readonly conversationPartService: IConversationPartService,
 		@IEditorGroupsService private readonly editorGroupsService: IEditorGroupsService,
+		@IConversationSessionChatService private readonly sessionChatService: IConversationSessionChatService,
 		@IConfigurationService private readonly configurationService: IConfigurationService,
 		@IWorkbenchLayoutService private readonly layoutService: IWorkbenchLayoutService,
 	) {
@@ -59,6 +61,7 @@ class ConversationNavigationContribution extends Disposable implements IWorkbenc
 			}
 			this.registeredParts.add(part);
 			this._register(this.navigationService.registerPart(part));
+			this._register(this.sessionChatService.registerPartListeners(part));
 		}
 	}
 
@@ -104,6 +107,28 @@ class ConversationNavigationContribution extends Disposable implements IWorkbenc
 		}));
 		this._register(forwardButton.onDidClick(() => {
 			void this.navigationService.goForward();
+		}));
+
+		const closeNonRootButton = this._register(new Button(nav, {
+			...defaultButtonStyles,
+			supportIcons: true,
+			small: true,
+			secondary: true,
+			title: localize('conversationCloseNonRootTabs', "Close extension tabs"),
+		}));
+		closeNonRootButton.icon = Codicon.closeAll;
+		closeNonRootButton.element.classList.add('conversation-close-non-root');
+		closeNonRootButton.enabled = false;
+
+		const updateCloseNonRootButton = () => {
+			closeNonRootButton.enabled = this.sessionChatService.canCloseNonRoot();
+		};
+
+		this._register(this.sessionChatService.onDidChangeCloseNonRootState(() => updateCloseNonRootButton()));
+		updateCloseNonRootButton();
+
+		this._register(closeNonRootButton.onDidClick(() => {
+			void this.sessionChatService.closeNonRootTabs();
 		}));
 	}
 
