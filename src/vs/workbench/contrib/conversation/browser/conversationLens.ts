@@ -24,18 +24,27 @@ import { ConversationIdentityStrip } from './conversationIdentityStrip.js';
 import { ConversationTimelineTree } from './conversationTimelineTree.js';
 import { ConversationTrajectory } from './conversationTrajectory.js';
 import {
-	conversationLensDockAttachTitle,
+	conversationLensDockAddTitle,
 	conversationLensDockEngineNotConnected,
 	conversationLensDockGoal,
 	conversationLensDockInboxNoQueue,
 	conversationLensDockMaximizeInput,
+	conversationLensDockMicNotAvailable,
+	conversationLensDockMicTitle,
+	conversationLensDockMoreTitle,
 	conversationLensDockNoGoal,
 	conversationLensDockNoAttachments,
 	conversationLensDockNoModel,
+	conversationLensDockNoTemplates,
+	conversationLensDockNoTools,
+	conversationLensDockPermissionAsk,
+	conversationLensDockPermissionLabel,
 	conversationLensDockPlaceholder,
 	conversationLensDockRestoreTimeline,
 	conversationLensDockStop,
 	conversationLensDockStopNotGenerating,
+	conversationLensDockTemplatesTitle,
+	conversationLensDockTuneTitle,
 	conversationLensInputMaximizedClass,
 	conversationLensPhasePreFirstClass,
 	conversationLensPhasePreFirstDockHiddenClass,
@@ -87,9 +96,19 @@ export class ConversationLens extends Disposable {
 	private stopButton!: Button;
 	private dockTextarea!: HTMLTextAreaElement;
 	private sendButton!: Button;
-	private attachButton!: Button;
-	private attachContextView: IOpenContextView | undefined;
+	private addButton!: Button;
+	private addContextView: IOpenContextView | undefined;
+	private tuneButton!: Button;
+	private tuneContextView: IOpenContextView | undefined;
+	private permissionSelectBox!: SelectBox;
+	private moreButton!: Button;
+	private moreContextView: IOpenContextView | undefined;
+	private modelSelectBox!: SelectBox;
+	private modelSelectedIndex = 0;
+	private templatesButton!: Button;
+	private templatesContextView: IOpenContextView | undefined;
 	private maximizeInputButton!: Button;
+	private micButton!: Button;
 
 	private readingColumn!: HTMLElement;
 	private prefirstHero!: HTMLElement;
@@ -155,7 +174,10 @@ export class ConversationLens extends Disposable {
 		}));
 
 		this._register(toDisposable(() => {
-			this.attachContextView?.close();
+			this.addContextView?.close();
+			this.tuneContextView?.close();
+			this.moreContextView?.close();
+			this.templatesContextView?.close();
 			reset(slots.sessionBar);
 			reset(slots.timeline);
 			reset(slots.dock);
@@ -183,9 +205,30 @@ export class ConversationLens extends Disposable {
 	}
 
 	private updateMaximizeInputButton(): void {
-		const label = this.inputMaximized ? conversationLensDockRestoreTimeline : conversationLensDockMaximizeInput;
-		this.maximizeInputButton.label = label;
+		const title = this.inputMaximized ? conversationLensDockRestoreTimeline : conversationLensDockMaximizeInput;
+		this.maximizeInputButton.icon = this.inputMaximized ? Codicon.screenNormal : Codicon.screenFull;
+		this.maximizeInputButton.setTitle(title);
+		this.maximizeInputButton.setAriaLabel(title);
 		this.maximizeInputButton.element.setAttribute('aria-pressed', String(this.inputMaximized));
+	}
+
+	private updateSendEnabled(): void {
+		const hasModel = this.modelSelectedIndex > 0;
+		const hasDraft = this.dockTextarea.value.trim().length > 0;
+		this.sendButton.enabled = hasModel && hasDraft;
+	}
+
+	private createComposerSelectBox(options: { text: string }[], selectedIndex: number, ariaLabel: string): SelectBox {
+		return new SelectBox(
+			options,
+			selectedIndex,
+			this.contextViewService,
+			defaultSelectBoxStyles,
+			{
+				ariaLabel,
+				useCustomDrawn: !hasNativeContextMenu(this.configurationService),
+			},
+		);
 	}
 
 	private mountSessionBar(host: HTMLElement): void {
@@ -375,35 +418,102 @@ export class ConversationLens extends Disposable {
 
 		const bottomBar = append(this.composer, $('.conversation-lens-dock-bottom-bar'));
 		const bottomLeading = append(bottomBar, $('.conversation-lens-dock-bottom-leading'));
-		const attachContainer = append(bottomLeading, $('.conversation-lens-dock-attach'));
-		this.attachButton = this._register(new Button(attachContainer, {
+
+		const addContainer = append(bottomLeading, $('.conversation-lens-dock-add'));
+		this.addButton = this._register(new Button(addContainer, {
 			...defaultButtonStyles,
 			supportIcons: true,
-			small: true,
-			secondary: true,
-			title: conversationLensDockAttachTitle,
+			title: conversationLensDockAddTitle,
 		}));
-		this.attachButton.icon = Codicon.attach;
-		this._register(this.attachButton.onDidClick(() => this.toggleAttachContextView()));
+		this.addButton.icon = Codicon.add;
+		this.addButton.element.classList.add('conversation-lens-dock-control', 'conversation-lens-dock-control--soft');
+		this._register(this.addButton.onDidClick(() => this.toggleAddContextView()));
 
-		const maximizeInputContainer = append(bottomLeading, $('.conversation-lens-dock-maximize-input'));
-		this.maximizeInputButton = this._register(new Button(maximizeInputContainer, {
+		const tuneContainer = append(bottomLeading, $('.conversation-lens-dock-tune'));
+		this.tuneButton = this._register(new Button(tuneContainer, {
 			...defaultButtonStyles,
-			small: true,
-			secondary: true,
-			title: conversationLensDockMaximizeInput,
+			supportIcons: true,
+			title: conversationLensDockTuneTitle,
 		}));
-		this.maximizeInputButton.label = conversationLensDockMaximizeInput;
-		this.maximizeInputButton.element.classList.add('conversation-lens-dock-maximize-input-button');
-		this.maximizeInputButton.element.setAttribute('aria-pressed', 'false');
-		this._register(this.maximizeInputButton.onDidClick(() => this.toggleInputMaximized()));
+		this.tuneButton.icon = Codicon.settingsGear;
+		this.tuneButton.element.classList.add('conversation-lens-dock-control', 'conversation-lens-dock-control--ghost');
+		this._register(this.tuneButton.onDidClick(() => this.toggleTuneContextView()));
+
+		const permissionContainer = append(bottomLeading, $('.conversation-lens-dock-permission'));
+		this.permissionSelectBox = this._register(this.createComposerSelectBox(
+			[{ text: conversationLensDockPermissionAsk }],
+			0,
+			conversationLensDockPermissionLabel,
+		));
+		this.permissionSelectBox.render(permissionContainer);
+
+		const moreContainer = append(bottomLeading, $('.conversation-lens-dock-more'));
+		this.moreButton = this._register(new Button(moreContainer, {
+			...defaultButtonStyles,
+			supportIcons: true,
+			title: conversationLensDockMoreTitle,
+		}));
+		this.moreButton.icon = Codicon.ellipsis;
+		this.moreButton.element.classList.add('conversation-lens-dock-control', 'conversation-lens-dock-control--ghost');
+		this._register(this.moreButton.onDidClick(() => this.toggleMoreContextView()));
 
 		const bottomTrailing = append(bottomBar, $('.conversation-lens-dock-bottom-trailing'));
-		append(bottomTrailing, $('span.conversation-lens-dock-model')).textContent = conversationLensDockNoModel;
 
-		const actions = append(bottomTrailing, $('.conversation-lens-dock-actions'));
-		this.sendButton = this._register(new Button(actions, defaultButtonStyles));
-		this.sendButton.label = localize('conversationLens.send', "Send");
+		const modelContainer = append(bottomTrailing, $('.conversation-lens-dock-model'));
+		this.modelSelectBox = this._register(this.createComposerSelectBox(
+			[
+				{ text: conversationLensDockNoModel },
+				{ text: localize('conversationLens.dockStubModel', "Stub model") },
+			],
+			0,
+			localize('conversationLens.dockModelLabel', "Model"),
+		));
+		this.modelSelectBox.render(modelContainer);
+		this._register(this.modelSelectBox.onDidSelect(e => {
+			this.modelSelectedIndex = e.index;
+			this.updateSendEnabled();
+		}));
+
+		const templatesContainer = append(bottomTrailing, $('.conversation-lens-dock-templates'));
+		this.templatesButton = this._register(new Button(templatesContainer, {
+			...defaultButtonStyles,
+			supportIcons: true,
+			title: conversationLensDockTemplatesTitle,
+		}));
+		this.templatesButton.icon = Codicon.notebookTemplate;
+		this.templatesButton.element.classList.add('conversation-lens-dock-control', 'conversation-lens-dock-control--ghost');
+		this._register(this.templatesButton.onDidClick(() => this.toggleTemplatesContextView()));
+
+		const maximizeInputContainer = append(bottomTrailing, $('.conversation-lens-dock-maximize-input'));
+		this.maximizeInputButton = this._register(new Button(maximizeInputContainer, {
+			...defaultButtonStyles,
+			supportIcons: true,
+			title: conversationLensDockMaximizeInput,
+		}));
+		this.maximizeInputButton.element.classList.add('conversation-lens-dock-control', 'conversation-lens-dock-control--ghost', 'conversation-lens-dock-maximize-input-button');
+		this.maximizeInputButton.element.setAttribute('aria-pressed', 'false');
+		this.updateMaximizeInputButton();
+		this._register(this.maximizeInputButton.onDidClick(() => this.toggleInputMaximized()));
+
+		const micContainer = append(bottomTrailing, $('.conversation-lens-dock-mic'));
+		this.micButton = this._register(new Button(micContainer, {
+			...defaultButtonStyles,
+			supportIcons: true,
+			disabled: true,
+			title: `${conversationLensDockMicTitle} — ${conversationLensDockMicNotAvailable}`,
+		}));
+		this.micButton.icon = Codicon.mic;
+		this.micButton.element.classList.add('conversation-lens-dock-control', 'conversation-lens-dock-control--ghost', 'conversation-lens-dock-control--mic');
+
+		const sendContainer = append(bottomTrailing, $('.conversation-lens-dock-send'));
+		this.sendButton = this._register(new Button(sendContainer, {
+			...defaultButtonStyles,
+			supportIcons: true,
+			title: localize('conversationLens.send', "Send"),
+		}));
+		this.sendButton.icon = Codicon.arrowUp;
+		this.sendButton.element.classList.add('conversation-lens-dock-control', 'conversation-lens-dock-control--filled', 'conversation-lens-dock-send-button');
+		this.sendButton.enabled = false;
 
 		this._register(addDisposableListener(this.dockTextarea, 'keydown', e => {
 			if (e.keyCode === KeyCode.UpArrow) {
@@ -434,9 +544,128 @@ export class ConversationLens extends Disposable {
 				this.inputHistoryBrowse = createInputHistoryBrowseState();
 			}
 			this.drafts.set(this.stubService.getActiveSessionId(), this.dockTextarea.value);
+			this.updateSendEnabled();
 		}));
 
 		this.updateConversationPhase();
+	}
+
+	private toggleAddContextView(): void {
+		if (this.addContextView) {
+			this.addContextView.close();
+			return;
+		}
+		this.addContextView = this.contextViewService.showContextView({
+			getAnchor: () => this.addButton.element,
+			anchorAlignment: AnchorAlignment.RIGHT,
+			anchorPosition: AnchorPosition.ABOVE,
+			render: container => {
+				append(container, $('.conversation-lens-dock-add-popup')).textContent = conversationLensDockNoAttachments;
+				return toDisposable(() => {
+					this.addContextView = undefined;
+				});
+			},
+			onDOMEvent: e => {
+				if (e.type === 'click') {
+					const target = e.target as HTMLElement | null;
+					if (target && !this.addButton.element.contains(target)) {
+						this.addContextView?.close();
+					}
+				}
+			},
+			onHide: () => {
+				this.addContextView = undefined;
+			},
+		});
+	}
+
+	private toggleTuneContextView(): void {
+		if (this.tuneContextView) {
+			this.tuneContextView.close();
+			return;
+		}
+		this.tuneContextView = this.contextViewService.showContextView({
+			getAnchor: () => this.tuneButton.element,
+			anchorAlignment: AnchorAlignment.RIGHT,
+			anchorPosition: AnchorPosition.ABOVE,
+			render: container => {
+				append(container, $('.conversation-lens-dock-tune-popup')).textContent = conversationLensDockNoTools;
+				return toDisposable(() => {
+					this.tuneContextView = undefined;
+				});
+			},
+			onDOMEvent: e => {
+				if (e.type === 'click') {
+					const target = e.target as HTMLElement | null;
+					if (target && !this.tuneButton.element.contains(target)) {
+						this.tuneContextView?.close();
+					}
+				}
+			},
+			onHide: () => {
+				this.tuneContextView = undefined;
+			},
+		});
+	}
+
+	private toggleMoreContextView(): void {
+		if (this.moreContextView) {
+			this.moreContextView.close();
+			return;
+		}
+		this.moreContextView = this.contextViewService.showContextView({
+			getAnchor: () => this.moreButton.element,
+			anchorAlignment: AnchorAlignment.RIGHT,
+			anchorPosition: AnchorPosition.ABOVE,
+			render: container => {
+				const popup = append(container, $('.conversation-lens-dock-more-popup'));
+				append(popup, $('div')).textContent = localize('conversationLens.dockMoreDisplay', "Display");
+				append(popup, $('div')).textContent = localize('conversationLens.dockMorePin', "Pin input");
+				return toDisposable(() => {
+					this.moreContextView = undefined;
+				});
+			},
+			onDOMEvent: e => {
+				if (e.type === 'click') {
+					const target = e.target as HTMLElement | null;
+					if (target && !this.moreButton.element.contains(target)) {
+						this.moreContextView?.close();
+					}
+				}
+			},
+			onHide: () => {
+				this.moreContextView = undefined;
+			},
+		});
+	}
+
+	private toggleTemplatesContextView(): void {
+		if (this.templatesContextView) {
+			this.templatesContextView.close();
+			return;
+		}
+		this.templatesContextView = this.contextViewService.showContextView({
+			getAnchor: () => this.templatesButton.element,
+			anchorAlignment: AnchorAlignment.RIGHT,
+			anchorPosition: AnchorPosition.ABOVE,
+			render: container => {
+				append(container, $('.conversation-lens-dock-templates-popup')).textContent = conversationLensDockNoTemplates;
+				return toDisposable(() => {
+					this.templatesContextView = undefined;
+				});
+			},
+			onDOMEvent: e => {
+				if (e.type === 'click') {
+					const target = e.target as HTMLElement | null;
+					if (target && !this.templatesButton.element.contains(target)) {
+						this.templatesContextView?.close();
+					}
+				}
+			},
+			onHide: () => {
+				this.templatesContextView = undefined;
+			},
+		});
 	}
 
 	private isPreFirst(): boolean {
@@ -468,35 +697,6 @@ export class ConversationLens extends Disposable {
 		this.dockRoot.appendChild(this.composer);
 		this.inboxRow.hidden = false;
 		this.gateRow.hidden = false;
-	}
-
-	private toggleAttachContextView(): void {
-		if (this.attachContextView) {
-			this.attachContextView.close();
-			return;
-		}
-		this.attachContextView = this.contextViewService.showContextView({
-			getAnchor: () => this.attachButton.element,
-			anchorAlignment: AnchorAlignment.RIGHT,
-			anchorPosition: AnchorPosition.ABOVE,
-			render: container => {
-				append(container, $('.conversation-lens-dock-attach-popup')).textContent = conversationLensDockNoAttachments;
-				return toDisposable(() => {
-					this.attachContextView = undefined;
-				});
-			},
-			onDOMEvent: e => {
-				if (e.type === 'click') {
-					const target = e.target as HTMLElement | null;
-					if (target && !this.attachButton.element.contains(target)) {
-						this.attachContextView?.close();
-					}
-				}
-			},
-			onHide: () => {
-				this.attachContextView = undefined;
-			},
-		});
 	}
 
 	private switchToSession(sessionId: string): void {
@@ -717,6 +917,9 @@ export class ConversationLens extends Disposable {
 	}
 
 	private submitDraft(): void {
+		if (this.modelSelectedIndex === 0) {
+			return;
+		}
 		const text = this.dockTextarea.value.trim();
 		if (!text) {
 			return;

@@ -1175,37 +1175,120 @@
 	align-items: center;
 	justify-content: space-between;
 	gap: 6px;
+	min-height: 32px;
 	padding: 4px 6px;
 	border: 1px solid var(--vscode-input-border, var(--vscode-contrastBorder, transparent));
 	border-top: none;
 	border-radius: 0 0 2px 2px;
 	background-color: var(--vscode-input-background);
+	box-sizing: border-box;
 }
 
 .monaco-workbench .part.conversation .conversation-lens-dock-bottom-leading {
 	flex: 1;
 	min-width: 0;
-	min-height: 0;
 	display: flex;
 	align-items: center;
 	gap: 4px;
+	overflow-x: auto;
+	height: 32px;
 }
 
-.monaco-workbench .part.conversation .conversation-lens-dock-attach {
+.monaco-workbench .part.conversation .conversation-lens-dock-bottom-trailing {
+	display: flex;
+	flex-shrink: 0;
+	align-items: center;
+	gap: 4px;
+	height: 32px;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-dock-control.monaco-button {
+	width: 32px;
+	height: 32px;
+	min-width: 32px;
+	min-height: 32px;
+	padding: 0;
+	border-radius: 16px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
 	flex-shrink: 0;
 }
 
-.monaco-workbench .part.conversation .conversation-lens-dock-attach .monaco-button {
-	height: 20px;
-	min-width: 20px;
-	padding: 0 4px;
-}
-
-.monaco-workbench .part.conversation .conversation-lens-dock-attach .monaco-button .codicon {
+.monaco-workbench .part.conversation .conversation-lens-dock-control.monaco-button .codicon {
 	margin: 0;
+	font-size: 16px;
 }
 
-.monaco-workbench .conversation-lens-dock-attach-popup {
+.monaco-workbench .part.conversation .conversation-lens-dock-control--soft.monaco-button {
+	border: none;
+	background-color: var(--vscode-toolbar-hoverBackground, var(--vscode-list-hoverBackground));
+	color: var(--vscode-foreground);
+}
+
+.monaco-workbench .part.conversation .conversation-lens-dock-control--soft.monaco-button:hover {
+	background-color: var(--vscode-toolbar-activeBackground, var(--vscode-list-activeSelectionBackground));
+}
+
+.monaco-workbench .part.conversation .conversation-lens-dock-control--ghost.monaco-button {
+	border: none;
+	background: transparent;
+	color: var(--vscode-descriptionForeground);
+}
+
+.monaco-workbench .part.conversation .conversation-lens-dock-control--ghost.monaco-button:hover:not(.disabled) {
+	background: transparent;
+	color: var(--vscode-foreground);
+}
+
+.monaco-workbench .part.conversation .conversation-lens-dock-control--filled.monaco-button {
+	border: none;
+	background-color: var(--vscode-button-background);
+	color: var(--vscode-button-foreground);
+}
+
+.monaco-workbench .part.conversation .conversation-lens-dock-control--filled.monaco-button:hover:not(.disabled) {
+	background-color: var(--vscode-button-hoverBackground);
+}
+
+.monaco-workbench .part.conversation .conversation-lens-dock-control--filled.monaco-button.disabled,
+.monaco-workbench .part.conversation .conversation-lens-dock-control--filled.monaco-button.disabled:hover {
+	opacity: 0.5;
+	background-color: var(--vscode-button-background);
+	color: var(--vscode-button-foreground);
+}
+
+.monaco-workbench .part.conversation .conversation-lens-dock-control--mic.monaco-button.disabled {
+	opacity: 0.45;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-dock-permission,
+.monaco-workbench .part.conversation .conversation-lens-dock-model {
+	flex-shrink: 0;
+	height: 32px;
+	display: flex;
+	align-items: center;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-dock-permission .monaco-select-box,
+.monaco-workbench .part.conversation .conversation-lens-dock-model .monaco-select-box {
+	height: 32px;
+	min-height: 32px;
+	max-height: 32px;
+	min-width: 72px;
+	max-width: 128px;
+	padding: 0 4px;
+	border: none;
+	background: transparent;
+	color: var(--vscode-descriptionForeground);
+	font-size: 12px;
+	line-height: 32px;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-dock-add-popup,
+.monaco-workbench .part.conversation .conversation-lens-dock-tune-popup,
+.monaco-workbench .part.conversation .conversation-lens-dock-templates-popup,
+.monaco-workbench .conversation-lens-dock-add-popup {
 	padding: 4px 8px;
 	font-size: 12px;
 	font-weight: 400;
@@ -1218,34 +1301,20 @@
 	box-shadow: 0 2px 8px var(--vscode-widget-shadow, rgba(0, 0, 0, 0.16));
 }
 
-.monaco-workbench .part.conversation .conversation-lens-dock-bottom-trailing {
-	display: flex;
-	flex-shrink: 0;
-	align-items: center;
-	gap: 8px;
-}
-
-.monaco-workbench .part.conversation .conversation-lens-dock-model {
+.monaco-workbench .conversation-lens-dock-more-popup {
+	padding: 4px 0;
+	min-width: 140px;
 	font-size: 12px;
-	line-height: 16px;
+	color: var(--vscode-foreground);
+	background-color: var(--vscode-menu-background);
+	border: 1px solid var(--vscode-menu-border, var(--vscode-contrastBorder, transparent));
+	border-radius: 2px;
+	box-shadow: 0 2px 8px var(--vscode-widget-shadow, rgba(0, 0, 0, 0.16));
+}
+
+.monaco-workbench .conversation-lens-dock-more-popup > div {
+	padding: 4px 12px;
 	color: var(--vscode-descriptionForeground);
-	white-space: nowrap;
-}
-
-.monaco-workbench .part.conversation .conversation-lens-dock-actions {
-	display: flex;
-	flex-shrink: 0;
-	align-items: center;
-}
-
-.monaco-workbench .part.conversation .conversation-lens-dock-maximize-input {
-	flex-shrink: 0;
-}
-
-.monaco-workbench .part.conversation .conversation-lens-dock-maximize-input .monaco-button {
-	height: 20px;
-	padding: 0 6px;
-	font-size: 11px;
 }
 
 /* Input Maximize — stays inside Conversation column (Desktop §8.3.11) */

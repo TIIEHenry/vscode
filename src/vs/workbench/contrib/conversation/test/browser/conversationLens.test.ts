@@ -15,7 +15,8 @@ import { ConversationLens } from '../../browser/conversationLens.js';
 import { ConversationTimelineTree, conversationLensUserBubbleShowLess, conversationLensUserBubbleShowMore } from '../../browser/conversationTimelineTree.js';
 import { ConversationTrajectory } from '../../browser/conversationTrajectory.js';
 import {
-	conversationLensDockAttachTitle,
+	conversationLensDockAddTitle,
+	conversationLensDockControlHeightPx,
 	conversationLensDockEngineNotConnected,
 	conversationLensDockGoal,
 	conversationLensDockInboxNoQueue,
@@ -23,10 +24,14 @@ import {
 	conversationLensDockNoAttachments,
 	conversationLensDockNoGoal,
 	conversationLensDockNoModel,
+	conversationLensDockNoTools,
+	conversationLensDockPermissionAsk,
 	conversationLensDockPlaceholder,
 	conversationLensDockRestoreTimeline,
 	conversationLensDockStop,
 	conversationLensDockStopNotGenerating,
+	conversationLensDockTemplatesTitle,
+	conversationLensDockTuneTitle,
 	conversationLensInputMaximizedClass,
 	conversationLensPhasePreFirstClass,
 	conversationLensPhasePreFirstDockHiddenClass,
@@ -196,14 +201,36 @@ suite('ConversationLens', () => {
 		return button as HTMLElement;
 	}
 
-	function getVisibleDockAttachPopup(): HTMLElement | null {
-		for (const popup of document.querySelectorAll<HTMLElement>('.conversation-lens-dock-attach-popup')) {
+	function getVisibleDockAddPopup(): HTMLElement | null {
+		for (const popup of document.querySelectorAll<HTMLElement>('.conversation-lens-dock-add-popup')) {
 			const host = popup.closest('.context-view') as HTMLElement | null;
 			if (!host || host.style.display !== 'none') {
 				return popup;
 			}
 		}
 		return null;
+	}
+
+	function getComposerBottomBar(slots: IConversationLensSlots): HTMLElement {
+		const bottomBar = (slots.dock.querySelector('.conversation-lens-dock-bottom-bar')
+			?? getReadingColumn(slots).querySelector('.conversation-lens-dock-bottom-bar')) as HTMLElement | null;
+		assert.ok(bottomBar);
+		return bottomBar;
+	}
+
+	function getDockSendButton(slots: IConversationLensSlots): HTMLButtonElement {
+		const button = (slots.dock.querySelector('.conversation-lens-dock-send .monaco-button')
+			?? getReadingColumn(slots).querySelector('.conversation-lens-dock-send .monaco-button')) as HTMLButtonElement | null;
+		assert.ok(button);
+		return button;
+	}
+
+	function selectDockModel(slots: IConversationLensSlots, optionIndex: number): void {
+		const bottomBar = getComposerBottomBar(slots);
+		const modelSelect = bottomBar.querySelector('.conversation-lens-dock-model select.monaco-select-box') as HTMLSelectElement | null;
+		assert.ok(modelSelect);
+		modelSelect.selectedIndex = optionIndex;
+		modelSelect.dispatchEvent(new Event('change', { bubbles: true }));
 	}
 
 	function getDockTextarea(slots: IConversationLensSlots): HTMLTextAreaElement {
@@ -215,9 +242,10 @@ suite('ConversationLens', () => {
 
 	function sendDockDraft(slots: IConversationLensSlots, message: string): void {
 		const textarea = getDockTextarea(slots);
-		const sendButton = (slots.dock.querySelector('.conversation-lens-dock-actions .monaco-button')
-			?? getReadingColumn(slots).querySelector('.conversation-lens-dock-actions .monaco-button')) as HTMLElement;
+		selectDockModel(slots, 1);
+		const sendButton = getDockSendButton(slots);
 		textarea.value = message;
+		textarea.dispatchEvent(new Event('input', { bubbles: true }));
 		sendButton.click();
 	}
 
@@ -474,7 +502,7 @@ suite('ConversationLens', () => {
 		assert.ok(slots.dock.querySelector('.conversation-lens-composer'));
 		assert.ok(slots.dock.querySelector('.conversation-lens-dock-input-row'));
 		assert.ok(slots.dock.querySelector('.conversation-lens-dock-bottom-bar'));
-		assert.ok(slots.dock.querySelector('.conversation-lens-dock-actions'));
+		assert.ok(slots.dock.querySelector('.conversation-lens-dock-send'));
 		assert.ok(slots.dock.querySelector('.conversation-lens-dock-gate-row'));
 		assert.ok(slots.dock.querySelector('.conversation-lens-dock-model'));
 		assert.ok(slots.dock.querySelector('.conversation-lens-inbox-label'));
@@ -496,14 +524,66 @@ suite('ConversationLens', () => {
 		const textarea = slots.dock.querySelector('textarea.conversation-lens-dock-input') as HTMLTextAreaElement;
 		const inputRow = slots.dock.querySelector('.conversation-lens-dock-input-row')!;
 		const bottomBar = slots.dock.querySelector('.conversation-lens-dock-bottom-bar')!;
-		const sendButton = bottomBar.querySelector('.conversation-lens-dock-actions .monaco-button');
+		const sendButton = bottomBar.querySelector('.conversation-lens-dock-send .monaco-button');
 
 		assert.strictEqual(textarea.rows, 1);
 		assert.strictEqual(textarea.placeholder, conversationLensDockPlaceholder);
 		assert.ok(inputRow.contains(textarea));
 		assert.ok(sendButton);
 		assert.ok(bottomBar.contains(sendButton!.parentElement!));
-		assert.ok(!inputRow.querySelector('.conversation-lens-dock-actions'));
+		assert.ok(!inputRow.querySelector('.conversation-lens-dock-send'));
+	});
+
+	test('T2 composer chrome: 32px bottom bar with add tune permission model more mic send codicons', () => {
+		const { part } = mountLens();
+		const slots = part.getSlots()!;
+		const bottomBar = getComposerBottomBar(slots);
+
+		assert.strictEqual(parseInt(getComputedStyle(bottomBar).minHeight, 10), conversationLensDockControlHeightPx);
+
+		const leading = bottomBar.querySelector('.conversation-lens-dock-bottom-leading')!;
+		const trailing = bottomBar.querySelector('.conversation-lens-dock-bottom-trailing')!;
+		assert.ok(leading.querySelector('.conversation-lens-dock-add .codicon-add'));
+		assert.ok(leading.querySelector('.conversation-lens-dock-tune .codicon-settings-gear'));
+		assert.ok(leading.querySelector('.conversation-lens-dock-permission .monaco-select-box'));
+		assert.ok(leading.querySelector('.conversation-lens-dock-more .codicon-ellipsis'));
+		assert.ok(trailing.querySelector('.conversation-lens-dock-model .monaco-select-box'));
+		assert.ok(trailing.querySelector('.conversation-lens-dock-templates .codicon-notebook-template'));
+		assert.ok(trailing.querySelector('.conversation-lens-dock-maximize-input .codicon-screen-full'));
+		assert.ok(trailing.querySelector('.conversation-lens-dock-mic .codicon-mic'));
+		assert.ok(trailing.querySelector('.conversation-lens-dock-send .codicon-arrow-up'));
+
+		const softAdd = leading.querySelector('.conversation-lens-dock-add .monaco-button') as HTMLElement;
+		const ghostTune = leading.querySelector('.conversation-lens-dock-tune .monaco-button') as HTMLElement;
+		const filledSend = trailing.querySelector('.conversation-lens-dock-send .monaco-button') as HTMLElement;
+		assert.ok(softAdd.classList.contains('conversation-lens-dock-control--soft'));
+		assert.ok(ghostTune.classList.contains('conversation-lens-dock-control--ghost'));
+		assert.ok(filledSend.classList.contains('conversation-lens-dock-control--filled'));
+
+		for (const control of bottomBar.querySelectorAll('.conversation-lens-dock-control')) {
+			const height = parseInt(getComputedStyle(control as HTMLElement).height, 10);
+			assert.strictEqual(height, conversationLensDockControlHeightPx);
+		}
+
+		const addButton = leading.querySelector('.conversation-lens-dock-add .monaco-button') as HTMLButtonElement;
+		const tuneButton = leading.querySelector('.conversation-lens-dock-tune .monaco-button') as HTMLButtonElement;
+		const micButton = trailing.querySelector('.conversation-lens-dock-mic .monaco-button') as HTMLButtonElement;
+		assert.strictEqual(addButton.getAttribute('aria-label'), conversationLensDockAddTitle);
+		assert.strictEqual(tuneButton.getAttribute('aria-label'), conversationLensDockTuneTitle);
+		assert.strictEqual(micButton.getAttribute('aria-disabled'), 'true');
+
+		const permissionSelect = leading.querySelector('.conversation-lens-dock-permission select.monaco-select-box') as HTMLSelectElement;
+		const modelSelect = trailing.querySelector('.conversation-lens-dock-model select.monaco-select-box') as HTMLSelectElement;
+		assert.strictEqual(permissionSelect.options[permissionSelect.selectedIndex]?.text, conversationLensDockPermissionAsk);
+		assert.strictEqual(modelSelect.options[modelSelect.selectedIndex]?.text, conversationLensDockNoModel);
+
+		const sendButton = getDockSendButton(slots);
+		assert.strictEqual(sendButton.classList.contains('disabled'), true);
+		selectDockModel(slots, 1);
+		const textarea = getDockTextarea(slots);
+		textarea.value = 'hello';
+		textarea.dispatchEvent(new Event('input', { bubbles: true }));
+		assert.strictEqual(sendButton.classList.contains('disabled'), false);
 	});
 
 	test('PreFirst: centered composer cluster hides dock inbox and moves identity above composer', () => {
@@ -595,12 +675,13 @@ suite('ConversationLens', () => {
 		const { part } = mountLens();
 		const slots = part.getSlots()!;
 		const gateRow = slots.dock.querySelector('.conversation-lens-dock-gate-row')!;
-		const modelLabel = slots.dock.querySelector('.conversation-lens-dock-model')!;
-		const sendButton = slots.dock.querySelector('.conversation-lens-dock-actions .monaco-button')!;
+		const modelSelect = slots.dock.querySelector('.conversation-lens-dock-model select.monaco-select-box') as HTMLSelectElement;
+		const sendButton = getDockSendButton(slots);
 
 		assert.ok(gateRow.textContent?.includes(conversationLensDockEngineNotConnected));
-		assert.strictEqual(modelLabel.textContent, conversationLensDockNoModel);
-		assert.ok(sendButton.textContent?.includes('Send'));
+		assert.strictEqual(modelSelect.options[modelSelect.selectedIndex]?.text, conversationLensDockNoModel);
+		assert.strictEqual(sendButton.getAttribute('aria-label'), 'Send');
+		assert.ok(sendButton.querySelector('.codicon-arrow-up'));
 		assert.strictEqual(slots.dock.querySelector('.chat-setup'), null);
 		assert.strictEqual(slots.dock.querySelector('.monaco-button[aria-label*="Sign in"]'), null);
 	});
@@ -616,29 +697,50 @@ suite('ConversationLens', () => {
 		assert.strictEqual(textarea.getAttribute('aria-label'), 'Message');
 	});
 
-	test('dock attach control is honest: no file picker or attachment list', () => {
+	test('dock add control is honest: no file picker or attachment list', () => {
 		const { part } = mountLens();
 		const slots = part.getSlots()!;
-		const attachHost = slots.dock.querySelector('.conversation-lens-dock-attach');
-		const attachButton = attachHost?.querySelector('.monaco-button') as HTMLButtonElement | null;
+		const addHost = slots.dock.querySelector('.conversation-lens-dock-add');
+		const addButton = addHost?.querySelector('.monaco-button') as HTMLButtonElement | null;
 
-		assert.ok(attachHost);
-		assert.ok(attachButton);
-		assert.strictEqual(attachButton.getAttribute('aria-label'), conversationLensDockAttachTitle);
-		assert.strictEqual(attachHost.querySelector('.conversation-lens-dock-attachment-list'), null);
-		assert.strictEqual(attachHost.querySelector('.chat-attachments-container'), null);
+		assert.ok(addHost);
+		assert.ok(addButton);
+		assert.strictEqual(addButton.getAttribute('aria-label'), conversationLensDockAddTitle);
+		assert.strictEqual(addHost.querySelector('.conversation-lens-dock-attachment-list'), null);
+		assert.strictEqual(addHost.querySelector('.chat-attachments-container'), null);
 		assert.strictEqual(slots.dock.querySelector('.chat-setup'), null);
-		assert.strictEqual(getVisibleDockAttachPopup(), null);
+		assert.strictEqual(getVisibleDockAddPopup(), null);
 
-		attachButton.click();
+		addButton.click();
 
-		const popup = getVisibleDockAttachPopup();
+		const popup = getVisibleDockAddPopup();
 		assert.ok(popup);
 		assert.strictEqual(popup.textContent, conversationLensDockNoAttachments);
 		assert.strictEqual(popup.querySelectorAll('[role="option"], .monaco-list-row, .conversation-lens-dock-attachment-item').length, 0);
 
-		attachButton.click();
-		assert.strictEqual(getVisibleDockAttachPopup(), null);
+		addButton.click();
+		assert.strictEqual(getVisibleDockAddPopup(), null);
+	});
+
+	test('dock tune and templates popups are honest stubs', () => {
+		const { part } = mountLens();
+		const slots = part.getSlots()!;
+		const tuneButton = slots.dock.querySelector('.conversation-lens-dock-tune .monaco-button') as HTMLButtonElement;
+		const templatesButton = slots.dock.querySelector('.conversation-lens-dock-templates .monaco-button') as HTMLButtonElement;
+
+		assert.strictEqual(tuneButton.getAttribute('aria-label'), conversationLensDockTuneTitle);
+		assert.strictEqual(templatesButton.getAttribute('aria-label'), conversationLensDockTemplatesTitle);
+
+		tuneButton.click();
+		const tunePopup = document.querySelector('.conversation-lens-dock-tune-popup');
+		assert.ok(tunePopup);
+		assert.strictEqual(tunePopup.textContent, conversationLensDockNoTools);
+		tuneButton.click();
+
+		templatesButton.click();
+		const templatesPopup = document.querySelector('.conversation-lens-dock-templates-popup');
+		assert.ok(templatesPopup);
+		templatesButton.click();
 	});
 
 	test('empty session shows timeline empty state without send-below hint', () => {
@@ -1034,14 +1136,12 @@ suite('ConversationLens', () => {
 	test('dock appends a local user turn and stub echo to the current session timeline', () => {
 		const { part } = mountLens();
 		const slots = part.getSlots()!;
-		const textarea = slots.dock.querySelector('textarea.conversation-lens-dock-input') as HTMLTextAreaElement;
-		const sendButton = slots.dock.querySelector('.conversation-lens-dock-actions .monaco-button') as HTMLElement;
+		const textarea = getDockTextarea(slots);
 
 		const message = 'Local stub message from test';
 		assert.ok(!slots.timeline.textContent?.includes(message));
 
-		textarea.value = message;
-		sendButton.click();
+		sendDockDraft(slots, message);
 
 		assert.ok(slots.timeline.textContent?.includes(message));
 		assert.ok(queryTimeline(slots, '[data-stub="true"]'));
@@ -1051,10 +1151,11 @@ suite('ConversationLens', () => {
 	test('dock maximize input toggles conversation-lens-input-maximized on slot hosts', () => {
 		const { part, lens } = mountLens();
 		const slots = part.getSlots()!;
-		const maximizeButton = slots.dock.querySelector('.conversation-lens-dock-maximize-input-button') as HTMLButtonElement;
+		const maximizeButton = slots.dock.querySelector('.conversation-lens-dock-maximize-input .monaco-button') as HTMLButtonElement;
 
 		assert.ok(maximizeButton);
-		assert.strictEqual(maximizeButton.textContent?.trim(), conversationLensDockMaximizeInput);
+		assert.ok(maximizeButton.querySelector('.codicon-screen-full'));
+		assert.strictEqual(maximizeButton.getAttribute('aria-label'), conversationLensDockMaximizeInput);
 		assert.strictEqual(lens.isInputMaximized(), false);
 		assert.strictEqual(slots.timeline.classList.contains(conversationLensInputMaximizedClass), false);
 		assert.strictEqual(slots.dock.classList.contains(conversationLensInputMaximizedClass), false);
@@ -1064,7 +1165,8 @@ suite('ConversationLens', () => {
 		maximizeButton.click();
 
 		assert.strictEqual(lens.isInputMaximized(), true);
-		assert.strictEqual(maximizeButton.textContent?.trim(), conversationLensDockRestoreTimeline);
+		assert.ok(maximizeButton.querySelector('.codicon-screen-normal'));
+		assert.strictEqual(maximizeButton.getAttribute('aria-label'), conversationLensDockRestoreTimeline);
 		assert.strictEqual(maximizeButton.getAttribute('aria-pressed'), 'true');
 		assert.strictEqual(slots.timeline.classList.contains(conversationLensInputMaximizedClass), true);
 		assert.strictEqual(slots.dock.classList.contains(conversationLensInputMaximizedClass), true);
@@ -1072,7 +1174,8 @@ suite('ConversationLens', () => {
 		maximizeButton.click();
 
 		assert.strictEqual(lens.isInputMaximized(), false);
-		assert.strictEqual(maximizeButton.textContent?.trim(), conversationLensDockMaximizeInput);
+		assert.ok(maximizeButton.querySelector('.codicon-screen-full'));
+		assert.strictEqual(maximizeButton.getAttribute('aria-label'), conversationLensDockMaximizeInput);
 		assert.strictEqual(maximizeButton.getAttribute('aria-pressed'), 'false');
 		assert.strictEqual(slots.timeline.classList.contains(conversationLensInputMaximizedClass), false);
 		assert.strictEqual(slots.dock.classList.contains(conversationLensInputMaximizedClass), false);
@@ -1081,7 +1184,7 @@ suite('ConversationLens', () => {
 	test('input maximize keeps pending confirmation reachable via dock inbox row', async () => {
 		const { part, lens, stubService, layoutReadingColumn } = mountLens();
 		const slots = part.getSlots()!;
-		const maximizeButton = slots.dock.querySelector('.conversation-lens-dock-maximize-input-button') as HTMLButtonElement;
+		const maximizeButton = slots.dock.querySelector('.conversation-lens-dock-maximize-input .monaco-button') as HTMLButtonElement;
 		const pendingButton = slots.dock.querySelector('.conversation-lens-inbox-pending') as HTMLButtonElement;
 
 		await seedPendingConfirmation(stubService, layoutReadingColumn);
