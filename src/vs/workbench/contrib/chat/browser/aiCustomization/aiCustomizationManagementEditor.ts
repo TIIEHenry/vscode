@@ -458,12 +458,13 @@ export class AICustomizationManagementEditor extends EditorPane {
 		this._register(toDisposable(() => this.disposeBuiltinEditingSessions()));
 
 		// Build sections from the workspace service configuration
+		const isDonorWindow = !this.workspaceService.isSessionsWindow;
 		const sectionInfo: Record<string, { label: string; icon: ThemeIcon; description: string }> = {
 			[AICustomizationManagementSection.Agents]: { label: localize('agents', "Agents"), icon: agentIcon, description: localize('agentsDesc', "Define custom agents with specialized personas, tool access, and instructions for specific tasks.") },
 			[AICustomizationManagementSection.Skills]: { label: localize('skills', "Skills"), icon: skillIcon, description: localize('skillsDesc', "Create reusable skill files that provide domain-specific knowledge and workflows.") },
-			[AICustomizationManagementSection.Instructions]: { label: localize('instructions', "Instructions"), icon: instructionsIcon, description: localize('instructionsDesc', "Set always-on instructions that guide AI behavior across your workspace or user profile.") },
+			[AICustomizationManagementSection.Instructions]: { label: localize('instructions', "Instructions"), icon: instructionsIcon, description: isDonorWindow ? localize('instructionsDonorNavDesc', "Always-on rules for this workspace or your user profile.") : localize('instructionsDesc', "Set always-on instructions that guide AI behavior across your workspace or user profile.") },
 			[AICustomizationManagementSection.Prompts]: { label: localize('prompts', "Prompts"), icon: promptIcon, description: localize('promptsDesc', "Reusable prompt templates that can be invoked as slash commands.") },
-			[AICustomizationManagementSection.Hooks]: { label: localize('hooks', "Hooks"), icon: hookIcon, description: localize('hooksDesc', "Configure automated actions triggered by events like saving files or running tasks.") },
+			[AICustomizationManagementSection.Hooks]: { label: localize('hooks', "Hooks"), icon: hookIcon, description: isDonorWindow ? localize('hooksDonorNavDesc', "Hook definition files for the agent loop (message / tool / permission lifecycle).") : localize('hooksDesc', "Configure automated actions triggered by events like saving files or running tasks.") },
 			[AICustomizationManagementSection.McpServers]: { label: localize('mcpServers', "MCP Servers"), icon: Codicon.server, description: localize('mcpServersDesc', "Connect external tool servers that extend AI capabilities with custom tools and data sources.") },
 			[AICustomizationManagementSection.Plugins]: { label: localize('plugins', "Plugins"), icon: pluginIcon, description: localize('pluginsDesc', "Install and manage agent plugins that add additional tools, skills, and integrations.") },
 			[AICustomizationManagementSection.Models]: { label: localize('models', "Models"), icon: Codicon.vm, description: localize('modelsDesc', "Configure and manage language models available for use.") },
@@ -2266,13 +2267,14 @@ export class AICustomizationManagementEditor extends EditorPane {
 					preferredStorage,
 				});
 			} else {
-				// Core: use the default core behaviour
+				// Donor window: create hook definition files without Copilot/VS Code task event picker.
 				await this.instantiationService.invokeFunction(showConfigureHooksQuickPick, {
 					openEditor: async (resource) => {
 						await this.showEmbeddedEditor(resource, basename(resource), PromptsType.hook, preferredStorage, preferredStorage === PromptsStorage.local);
 						return;
 					},
 					preferredStorage,
+					skipHookTypeSelection: true,
 				});
 			}
 			return;
