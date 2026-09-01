@@ -3,7 +3,7 @@ title: "dev/ — 开发规划与决策目录"
 type: concept
 status: accepted
 phase: N/A
-updated: 2026-08-30
+updated: 2026-09-02
 summary: "行动层：plan、ADR、progress；与 docs/ 知识库分离"
 ---
 
@@ -18,8 +18,8 @@ summary: "行动层：plan、ADR、progress；与 docs/ 知识库分离"
 | 当前迭代状态 | [`progress/status.md`](progress/status.md) · [`progress/INDEX.md`](progress/INDEX.md) |
 | 方案与计划 | [`plans/INDEX.md`](plans/INDEX.md) |
 | 架构决策 | [`decisions/INDEX.md`](decisions/INDEX.md) |
-| 阶段日志 | [`iterations/`](iterations/) |
-| 任务清单 | [`roadmap/active/`](roadmap/active/) |
+| 阶段日志 | [`progress/status.md`](progress/status.md) |
+| 任务清单 | [`plans/INDEX.md`](plans/INDEX.md) · [`parallel/INDEX.md`](parallel/INDEX.md) |
 | 并行看板 | [`parallel/`](parallel/) |
 
 ## 与 `docs/` 的区别

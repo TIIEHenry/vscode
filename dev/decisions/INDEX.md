@@ -3,13 +3,13 @@ title: "架构决策记录索引（ADR）"
 type: index
 status: accepted
 phase: N/A
-updated: 2026-09-01
+updated: 2026-09-02
 summary: "本仓库本地 ADR 索引；上游 wiki 决策不迁入；ADR-002 默认窗 Conversation 窗口/tab 已接受未实施"
 ---
 
 # 架构决策记录
 
-每个 ADR 记录 Context / Decision / Consequences / Alternatives。阶段实现日志在 [`dev/iterations/`](../iterations/)。
+每个 ADR 记录 Context / Decision / Consequences / Alternatives。阶段实现日志见 [`dev/progress/status.md`](../progress/status.md)（规范路径 `dev/iterations/` 待建，见 [DOCUMENTATION.md](../../docs/DOCUMENTATION.md) 规则 4）。
 
 新增文件命名：`NNN-short-name.md`，并在本索引登记。
 
