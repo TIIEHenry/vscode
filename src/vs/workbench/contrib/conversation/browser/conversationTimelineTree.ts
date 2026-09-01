@@ -58,6 +58,7 @@ export interface IConversationTimelineTreeOptions {
 	readonly onResolveConfirmation?: (turnId: string, status: 'allowed' | 'skipped') => void;
 	readonly onCopyTurn?: (turnId: string, text: string) => void;
 	readonly onDeleteTurn?: (turnId: string) => void;
+	readonly onEditUserTurn?: (turnId: string) => void;
 	readonly onOpenVisualizeFullscreen?: (source: string, title?: string) => void;
 	readonly contentAdapter?: IConversationTurnContentAdapter;
 	readonly paddingBottom?: number;
@@ -117,6 +118,8 @@ class ConversationTimelineRenderer implements ITreeRenderer<ConversationTimeline
 		private readonly onResolveConfirmation: ((turnId: string, status: 'allowed' | 'skipped') => void) | undefined,
 		private readonly onCopyTurn: ((turnId: string, text: string) => void) | undefined,
 		private readonly onDeleteTurn: ((turnId: string) => void) | undefined,
+		private readonly onEditUserTurn: ((turnId: string) => void) | undefined,
+		private readonly getEditingTurnId: () => string | undefined,
 		private readonly onOpenVisualizeFullscreen: ((source: string, title?: string) => void) | undefined,
 		private readonly getMermaidExtensionInfo: () => ConversationMermaidExtensionInfo | undefined,
 		private readonly webviewService: IWebviewService,
@@ -231,6 +234,15 @@ class ConversationTimelineRenderer implements ITreeRenderer<ConversationTimeline
 			}
 			if (turn.kind === 'user') {
 				el.classList.add('conversation-lens-turn--user-align-end');
+				const editing = this.getEditingTurnId() === turn.id;
+				if (editing) {
+					el.classList.add('conversation-lens-turn--editing');
+					const host = append(el, $('.conversation-lens-turn-edit-host'));
+					host.setAttribute('data-turn-id', turn.id);
+					templateData.container.appendChild(el);
+					this.scheduleHeightUpdate(item, templateData.container);
+					return;
+				}
 			}
 
 			const header = append(el, $('.conversation-lens-turn-header'));
@@ -238,7 +250,15 @@ class ConversationTimelineRenderer implements ITreeRenderer<ConversationTimeline
 
 			const body = append(el, $('.conversation-lens-turn-body'));
 			if (turn.kind === 'user') {
-				body.classList.add('conversation-lens-turn-body--user-bubble');
+				body.classList.add('conversation-lens-turn-body--user-bubble', 'conversation-lens-turn-body--clickable');
+				body.setAttribute('role', 'button');
+				body.tabIndex = 0;
+				templateData.disposables.add(addDisposableListener(body, 'click', (e) => {
+					if ((e.target as HTMLElement).closest('.conversation-lens-turn-fold-button')) {
+						return;
+					}
+					this.onEditUserTurn?.(turn.id);
+				}));
 			} else if (turn.kind === 'assistant') {
 				body.classList.add('conversation-lens-turn-body--reading-text');
 			}
@@ -267,7 +287,7 @@ class ConversationTimelineRenderer implements ITreeRenderer<ConversationTimeline
 				}));
 			}
 
-			if (turn.kind === 'user' || turn.kind === 'assistant') {
+			if (turn.kind === 'assistant') {
 				const actions = append(el, $('.conversation-lens-turn-actions'));
 				const copyContainer = append(actions, $('span.conversation-lens-turn-action-copy'));
 				const copyButton = templateData.disposables.add(new Button(copyContainer, {
@@ -401,6 +421,8 @@ export class ConversationTimelineTree extends Disposable {
 	private readonly autoScrollHolds = new ConversationAutoScrollHolds();
 	private readonly turnItems = new Map<string, ConversationTimelineItem>();
 	private mermaidExtensionInfo: ConversationMermaidExtensionInfo | undefined;
+	private editingTurnId: string | undefined;
+	private currentTurns: readonly ConversationStubTurn[] = [];
 
 	private _scrollLock = true;
 	private flatItems: readonly ConversationTimelineFlatItem[] = [];
@@ -463,6 +485,8 @@ export class ConversationTimelineTree extends Disposable {
 			options.onResolveConfirmation,
 			options.onCopyTurn,
 			options.onDeleteTurn,
+			options.onEditUserTurn,
+			() => this.editingTurnId,
 			options.onOpenVisualizeFullscreen,
 			() => this.mermaidExtensionInfo,
 			this.webviewService,
@@ -583,6 +607,7 @@ export class ConversationTimelineTree extends Disposable {
 	}
 
 	setTurns(turns: readonly ConversationStubTurn[]): void {
+		this.currentTurns = turns;
 		this.withPersistedAutoScroll(() => {
 			this.renderer.clearConfirmationSeats();
 			this.renderer.clearUserBubbleExpanded();
@@ -604,6 +629,25 @@ export class ConversationTimelineTree extends Disposable {
 			this.renderEmptyState(turns.length === 0);
 			this.updatePinnedUserPromptVisibility();
 		});
+	}
+
+	setEditingTurnId(turnId: string | undefined): void {
+		if (this.editingTurnId === turnId) {
+			return;
+		}
+		this.editingTurnId = turnId;
+		this.refreshTurnPresentation();
+	}
+
+	getTurnEditHost(turnId: string): HTMLElement | undefined {
+		return this.treeContainer.querySelector(`.conversation-lens-turn-edit-host[data-turn-id="${turnId}"]`) as HTMLElement | undefined;
+	}
+
+	private refreshTurnPresentation(): void {
+		if (this.currentTurns.length === 0) {
+			return;
+		}
+		this.setTurns(this.currentTurns);
 	}
 
 	private buildTreeElements(turns: readonly ConversationStubTurn[]): IObjectTreeElement<ConversationTimelineItem>[] {

@@ -17,6 +17,8 @@ import { ConversationTrajectory } from '../../browser/conversationTrajectory.js'
 import {
 	conversationLensDockAddTitle,
 	conversationLensDockControlHeightPx,
+	conversationLensDockEditExit,
+	conversationLensDockEditingMessage,
 	conversationLensDockEngineNotConnected,
 	conversationLensDockGoal,
 	conversationLensDockInboxNoQueue,
@@ -196,6 +198,11 @@ suite('ConversationLens', () => {
 
 	function getPrefirstHero(slots: IConversationLensSlots): HTMLElement | null {
 		return getReadingColumn(slots).querySelector(`.${conversationLensPrefirstHeroClass}`) as HTMLElement | null;
+	}
+
+	function countComposers(slots: IConversationLensSlots): number {
+		return slots.timeline.querySelectorAll('.conversation-lens-composer').length
+			+ slots.dock.querySelectorAll('.conversation-lens-composer').length;
 	}
 
 	function getInboxOverlay(slots: IConversationLensSlots): HTMLElement {
@@ -1462,12 +1469,12 @@ suite('ConversationLens', () => {
 		assert.strictEqual(slots.sessionBar.querySelector('select.monaco-select-box option')?.textContent, stubService.getActiveSession().title);
 	});
 
-	test('user and assistant turns expose Copy and Delete action bars; process and confirmation rows do not', async () => {
+	test('user turns are display-only; assistant turns expose Copy and Delete action bars', async () => {
 		const { part, stubService, layoutReadingColumn } = mountLens();
 		const slots = part.getSlots()!;
 		const sessionId = stubService.createSession();
 
-		stubService.appendUserTurn(sessionId, 'Copy me user');
+		stubService.appendUserTurn(sessionId, 'Click me user');
 		stubService.appendStubEchoAssistant(sessionId, 'Copy me assistant');
 		stubService.appendThinkingTurn(sessionId, 'Thinking summary');
 		stubService.appendToolTurn(sessionId, 'Tool summary');
@@ -1484,19 +1491,15 @@ suite('ConversationLens', () => {
 
 		assert.ok(userTurn.classList.contains('conversation-lens-turn--user-align-end'));
 		assert.strictEqual(assistantTurn.classList.contains('conversation-lens-turn--user-align-end'), false);
+		assert.ok(userTurn.querySelector('.conversation-lens-turn-body--clickable'));
+		assert.strictEqual(userTurn.querySelector('.conversation-lens-turn-actions'), null);
 
-		const userActions = userTurn.querySelector('.conversation-lens-turn-actions')!;
 		const assistantActions = assistantTurn.querySelector('.conversation-lens-turn-actions')!;
-		assert.ok(userActions);
 		assert.ok(assistantActions);
 
-		const userCopy = userActions.querySelector('.conversation-lens-turn-action-copy .monaco-button') as HTMLElement;
-		const userDelete = userActions.querySelector('.conversation-lens-turn-action-delete .monaco-button') as HTMLElement;
 		const assistantCopy = assistantActions.querySelector('.conversation-lens-turn-action-copy .monaco-button') as HTMLElement;
 		const assistantDelete = assistantActions.querySelector('.conversation-lens-turn-action-delete .monaco-button') as HTMLElement;
 
-		assert.strictEqual(userCopy.getAttribute('aria-label'), conversationLensTurnCopy);
-		assert.strictEqual(userDelete.getAttribute('aria-label'), conversationLensTurnDelete);
 		assert.strictEqual(assistantCopy.getAttribute('aria-label'), conversationLensTurnCopy);
 		assert.strictEqual(assistantDelete.getAttribute('aria-label'), conversationLensTurnDelete);
 
@@ -1524,10 +1527,9 @@ suite('ConversationLens', () => {
 		await flushTimelineHeightUpdates();
 
 		const userTurn = queryTimeline(slots, '.conversation-lens-turn[data-kind="user"]')!;
-		assert.ok(queryTimeline(slots, '.conversation-lens-turn[data-kind="assistant"]'));
-		const userCopy = userTurn.querySelector('.conversation-lens-turn-action-copy .monaco-button') as HTMLElement;
-		userCopy.click();
-		assert.strictEqual(await clipboardService.readText(), userText);
+		const assistantTurn = queryTimeline(slots, '.conversation-lens-turn[data-kind="assistant"]')!;
+		assert.ok(userTurn);
+		assert.ok(assistantTurn);
 
 		clickLensTab(slots, 'trajectory');
 		layoutReadingColumn();
@@ -1540,13 +1542,17 @@ suite('ConversationLens', () => {
 		layoutReadingColumn();
 		await flushTimelineHeightUpdates();
 
-		const userDelete = userTurn.querySelector('.conversation-lens-turn-action-delete .monaco-button') as HTMLElement;
-		userDelete.click();
+		const assistantCopy = assistantTurn.querySelector('.conversation-lens-turn-action-copy .monaco-button') as HTMLElement;
+		assistantCopy.click();
+		assert.strictEqual(await clipboardService.readText(), assistantText);
+
+		const assistantDelete = assistantTurn.querySelector('.conversation-lens-turn-action-delete .monaco-button') as HTMLElement;
+		assistantDelete.click();
 		layoutReadingColumn();
 		await flushTimelineHeightUpdates();
 
 		assert.strictEqual(stubService.getTurns(sessionId).length, 1);
-		assert.strictEqual(stubService.getTurns(sessionId)[0].text, assistantText);
+		assert.strictEqual(stubService.getTurns(sessionId)[0].text, userText);
 
 		clickLensTab(slots, 'trajectory');
 		layoutReadingColumn();
@@ -1554,16 +1560,101 @@ suite('ConversationLens', () => {
 
 		trajectory = slots.timeline.querySelector('.conversation-lens-trajectory')!;
 		assert.strictEqual(trajectory.querySelectorAll('.conversation-lens-trajectory-record-row').length, 1);
-		assert.ok(trajectory.textContent?.includes(assistantText));
-		assert.ok(!trajectory.textContent?.includes(userText));
+		assert.ok(trajectory.textContent?.includes(userText));
+		assert.ok(!trajectory.textContent?.includes(assistantText));
 
 		clickLensTab(slots, 'conversation');
 		layoutReadingColumn();
 		await flushTimelineHeightUpdates();
 		await flushAnimationFrames();
 
-		assert.strictEqual(queryTimeline(slots, '.conversation-lens-turn[data-kind="user"]'), null);
-		assert.ok(queryTimeline(slots, '.conversation-lens-turn[data-kind="assistant"]'));
+		assert.ok(queryTimeline(slots, '.conversation-lens-turn[data-kind="user"]'));
+		assert.strictEqual(queryTimeline(slots, '.conversation-lens-turn[data-kind="assistant"]'), null);
+	});
+
+	test('T5 Edit XOR: user card click mounts composer with Exit; dock has no composer', async () => {
+		const { part, stubService, layoutReadingColumn } = mountLens();
+		const slots = part.getSlots()!;
+		const sessionId = stubService.createSession();
+		const userText = 'Edit this user turn';
+
+		stubService.appendUserTurn(sessionId, userText);
+		layoutReadingColumn();
+		await flushTimelineHeightUpdates();
+
+		assert.ok(slots.dock.querySelector('.conversation-lens-composer'));
+		assert.strictEqual(countComposers(slots), 1);
+
+		const userBody = queryTimeline(slots, '.conversation-lens-turn[data-kind="user"] .conversation-lens-turn-body--clickable') as HTMLElement;
+		assert.ok(userBody);
+		userBody.click();
+		layoutReadingColumn();
+		await flushTimelineHeightUpdates();
+		await flushAnimationFrames();
+
+		assert.strictEqual(countComposers(slots), 1);
+		assert.strictEqual(slots.dock.querySelector('.conversation-lens-composer'), null);
+		const inlineComposer = queryTimeline(slots, '.conversation-lens-turn-edit-host .conversation-lens-composer');
+		assert.ok(inlineComposer);
+		assert.ok(inlineComposer?.querySelector('.conversation-lens-composer-edit-header'));
+		assert.strictEqual(inlineComposer?.querySelector('.conversation-lens-composer-edit-title')?.textContent, conversationLensDockEditingMessage);
+
+		const textarea = inlineComposer!.querySelector('textarea.conversation-lens-dock-input') as HTMLTextAreaElement;
+		assert.strictEqual(textarea.value, userText);
+
+		const exitButton = inlineComposer!.querySelector('.conversation-lens-composer-edit-exit .monaco-button') as HTMLElement;
+		assert.strictEqual(exitButton.getAttribute('title'), conversationLensDockEditExit);
+		exitButton.click();
+		layoutReadingColumn();
+		await flushTimelineHeightUpdates();
+
+		assert.strictEqual(countComposers(slots), 1);
+		assert.ok(slots.dock.querySelector('.conversation-lens-composer'));
+		assert.strictEqual(queryTimeline(slots, '.conversation-lens-turn-edit-host .conversation-lens-composer'), null);
+	});
+
+	test('T5 Edit XOR: queue row edit mounts composer in dock and XORs compose', async () => {
+		const { part, stubService } = mountLens();
+		const slots = part.getSlots()!;
+		const sessionId = stubService.createSession();
+		sendDockDraft(slots, 'Activate queue edit');
+		stubService.setMessageQueueFixture(sessionId, {
+			isPaused: false,
+			isProcessing: false,
+			items: [{
+				id: 'q-edit',
+				content: 'Queued message body',
+				status: 'PENDING',
+				hold: undefined,
+				uploadProgress: undefined,
+				retryCount: 0,
+				lastError: undefined,
+				locked: false,
+				pinned: false,
+			}],
+		});
+
+		getInboxQueueChip(slots).click();
+		const row = getVisibleInboxListPanel()!.querySelector('.queue-item[data-item-id="q-edit"]') as HTMLElement;
+		row.click();
+		await flushAnimationFrames();
+
+		assert.strictEqual(countComposers(slots), 1);
+		const dockComposer = slots.dock.querySelector('.conversation-lens-composer')!;
+		assert.ok(dockComposer.classList.contains('conversation-lens-composer--edit'));
+		assert.ok(dockComposer.querySelector('.conversation-lens-composer-edit-title')?.textContent?.includes('Queued message body'));
+
+		const textarea = dockComposer.querySelector('textarea.conversation-lens-dock-input') as HTMLTextAreaElement;
+		assert.strictEqual(textarea.value, 'Queued message body');
+		assert.strictEqual(queryTimeline(slots, '.conversation-lens-composer'), null);
+
+		const exitButton = dockComposer.querySelector('.conversation-lens-composer-edit-exit .monaco-button') as HTMLElement;
+		exitButton.click();
+
+		assert.strictEqual(stubService.getMessageQueueState(sessionId).items[0]?.hold, undefined);
+		assert.strictEqual(countComposers(slots), 1);
+		assert.ok(slots.dock.querySelector('.conversation-lens-composer'));
+		assert.strictEqual(slots.dock.querySelector('.conversation-lens-composer--edit'), null);
 	});
 
 	test('dock input history recalls sent user drafts with ArrowUp and ArrowDown on empty composer', () => {

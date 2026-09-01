@@ -27,6 +27,9 @@ import { ConversationTrajectory } from './conversationTrajectory.js';
 import {
 	conversationLensDockAddTitle,
 	conversationLensDockEngineNotConnected,
+	conversationLensDockEditExit,
+	conversationLensDockEditingMessage,
+	conversationLensDockEditingQueued,
 	conversationLensDockMaximizeInput,
 	conversationLensDockMicNotAvailable,
 	conversationLensDockMicTitle,
@@ -47,6 +50,7 @@ import {
 	conversationLensDockPermissionLabel,
 	conversationLensDockPlaceholder,
 	conversationLensDockRestoreTimeline,
+	conversationLensDockSaveQueued,
 	conversationLensDockTemplatesTitle,
 	conversationLensDockTuneTitle,
 	conversationLensInputMaximizedClass,
@@ -74,6 +78,7 @@ import { IWebviewService } from '../../webview/browser/webview.js';
 const CONVERSATION_LENS_ID_STORAGE_KEY = 'conversation.lensId';
 
 type ConversationLensId = 'conversation' | 'trajectory';
+type ComposerPolicy = 'compose' | 'turnEdit' | 'queueEdit';
 
 interface ConversationSessionConfigSelection {
 	agentIndex: number;
@@ -141,11 +146,18 @@ export class ConversationLens extends Disposable {
 	private dockRoot!: HTMLElement;
 	private gateRow!: HTMLElement;
 	private composer!: HTMLElement;
+	private composerEditHeader!: HTMLElement;
+	private composerEditTitle!: HTMLElement;
+	private composerExitButton!: Button;
 	private identityStrip!: ConversationIdentityStrip;
 
 	private readonly slotHosts: IConversationLensSlots;
 	private inputMaximized = false;
 	private conversationPhase: 'prefirst' | 'active' | undefined;
+	private composerPolicy: ComposerPolicy = 'compose';
+	private editingTurnId: string | undefined;
+	private editingQueueItemId: string | undefined;
+	private composeDraftSnapshot = '';
 
 	private readonly drafts = new Map<string, string>();
 	private readonly sessionConfigBySessionId = new Map<string, ConversationSessionConfigSelection>();
@@ -242,8 +254,18 @@ export class ConversationLens extends Disposable {
 	}
 
 	private updateSendEnabled(): void {
-		const hasModel = this.modelSelectedIndex > 0;
 		const hasDraft = this.dockTextarea.value.trim().length > 0;
+		if (this.composerPolicy === 'queueEdit') {
+			const item = this.getEditingQueueItem();
+			const changed = !!item && this.dockTextarea.value !== item.content;
+			this.sendButton.enabled = hasDraft && changed;
+			return;
+		}
+		if (this.composerPolicy === 'turnEdit') {
+			this.sendButton.enabled = hasDraft;
+			return;
+		}
+		const hasModel = this.modelSelectedIndex > 0;
 		this.sendButton.enabled = hasModel && hasDraft;
 	}
 
@@ -434,6 +456,7 @@ export class ConversationLens extends Disposable {
 			onResolveConfirmation: (turnId, status) => this.resolveConfirmation(turnId, status),
 			onCopyTurn: (_turnId, text) => this.copyTurn(text),
 			onDeleteTurn: turnId => this.deleteTurn(turnId),
+			onEditUserTurn: turnId => this.beginTurnEdit(turnId),
 			onOpenVisualizeFullscreen: (source, title) => this.openVisualizeOverlay(source, title),
 		}));
 		this.trajectoryView = this._register(this.instantiationService.createInstance(ConversationTrajectory, this.readingColumn, {}));
@@ -448,11 +471,23 @@ export class ConversationLens extends Disposable {
 		append(this.gateRow, $('span.conversation-lens-dock-gate-label')).textContent = conversationLensDockEngineNotConnected;
 
 		this.inboxOverlay = this._register(this.instantiationService.createInstance(ConversationInboxOverlay, this.dockRoot, {
-			onQueueItemHold: () => { /* T5 wires queueEdit XOR */ },
+			onQueueItemHold: itemId => this.beginQueueEdit(itemId),
 			onScrollToPendingConfirmation: () => this.scrollToFirstPendingConfirmation(),
 		}));
 
 		this.composer = append(this.dockRoot, $('.conversation-lens-composer'));
+		this.composerEditHeader = append(this.composer, $('.conversation-lens-composer-edit-header'));
+		this.composerEditHeader.hidden = true;
+		this.composerEditTitle = append(this.composerEditHeader, $('span.conversation-lens-composer-edit-title'));
+		const exitContainer = append(this.composerEditHeader, $('.conversation-lens-composer-edit-exit'));
+		this.composerExitButton = this._register(new Button(exitContainer, {
+			...defaultButtonStyles,
+			supportIcons: true,
+			title: conversationLensDockEditExit,
+		}));
+		this.composerExitButton.icon = Codicon.close;
+		this.composerExitButton.element.classList.add('conversation-lens-dock-control', 'conversation-lens-dock-control--ghost');
+		this._register(this.composerExitButton.onDidClick(() => this.exitComposerEdit()));
 		const inputRow = append(this.composer, $('.conversation-lens-dock-input-row'));
 
 		this.dockTextarea = append(inputRow, $('textarea.conversation-lens-dock-input')) as HTMLTextAreaElement;
@@ -583,6 +618,11 @@ export class ConversationLens extends Disposable {
 		this.sendButton.enabled = false;
 
 		this._register(addDisposableListener(this.dockTextarea, 'keydown', e => {
+			if (e.keyCode === KeyCode.Escape && this.composerPolicy !== 'compose') {
+				e.preventDefault();
+				this.exitComposerEdit();
+				return;
+			}
 			if (e.keyCode === KeyCode.UpArrow) {
 				if (this.navigateInputHistory('older')) {
 					e.preventDefault();
@@ -741,6 +781,9 @@ export class ConversationLens extends Disposable {
 
 	private updateConversationPhase(): void {
 		const preFirst = this.isPreFirst();
+		if (preFirst && this.composerPolicy !== 'compose') {
+			this.exitComposerEdit();
+		}
 		const nextPhase = preFirst ? 'prefirst' : 'active';
 		if (this.conversationPhase === nextPhase) {
 			return;
@@ -755,16 +798,133 @@ export class ConversationLens extends Disposable {
 		if (preFirst) {
 			this.prefirstHero.appendChild(this.identityStrip.element);
 			this.prefirstHero.appendChild(this.gateRow);
-			this.prefirstHero.appendChild(this.composer);
 			this.inboxOverlay.element.hidden = true;
+		} else {
+			this.readingColumn.insertBefore(this.identityStrip.element, this.readingColumn.firstChild);
+			this.dockRoot.insertBefore(this.gateRow, this.inboxOverlay.element);
+			this.inboxOverlay.element.hidden = false;
+			this.gateRow.hidden = false;
+		}
+		this.syncComposerPlacement();
+	}
+
+	private beginTurnEdit(turnId: string): void {
+		if (this.isPreFirst()) {
+			return;
+		}
+		const sessionId = this.stubService.getActiveSessionId();
+		const turn = this.stubService.getTurns(sessionId).find(t => t.id === turnId && t.kind === 'user');
+		if (!turn) {
+			return;
+		}
+		this.exitComposerEdit(false);
+		this.inboxOverlay.closeListPanel();
+		this.composeDraftSnapshot = this.dockTextarea.value;
+		this.composerPolicy = 'turnEdit';
+		this.editingTurnId = turnId;
+		this.editingQueueItemId = undefined;
+		this.dockTextarea.value = turn.text;
+		this.timelineTree.setEditingTurnId(turnId);
+		this.syncComposerPlacement();
+		this.updateComposerEditChrome();
+		this.updateSendEnabled();
+		this.dockTextarea.focus();
+	}
+
+	private beginQueueEdit(itemId: string): void {
+		const sessionId = this.stubService.getActiveSessionId();
+		const item = this.stubService.getMessageQueueState(sessionId).items.find(row => row.id === itemId);
+		if (!item) {
+			return;
+		}
+		this.exitComposerEdit(false);
+		this.inboxOverlay.closeListPanel();
+		this.composeDraftSnapshot = this.dockTextarea.value;
+		this.composerPolicy = 'queueEdit';
+		this.editingQueueItemId = itemId;
+		this.editingTurnId = undefined;
+		this.timelineTree.setEditingTurnId(undefined);
+		this.dockTextarea.value = item.content;
+		this.syncComposerPlacement();
+		this.updateComposerEditChrome();
+		this.updateSendEnabled();
+		this.dockTextarea.focus();
+	}
+
+	private exitComposerEdit(restoreComposeDraft = true, releaseQueueHold = true): void {
+		if (this.composerPolicy === 'compose') {
+			return;
+		}
+		const sessionId = this.stubService.getActiveSessionId();
+		if (this.composerPolicy === 'queueEdit' && this.editingQueueItemId && releaseQueueHold) {
+			this.stubService.releaseMessageQueueItemHold(sessionId, this.editingQueueItemId);
+			this.renderInboxStatus();
+		}
+		this.composerPolicy = 'compose';
+		this.editingTurnId = undefined;
+		this.editingQueueItemId = undefined;
+		this.timelineTree.setEditingTurnId(undefined);
+		this.dockTextarea.value = restoreComposeDraft
+			? (this.composeDraftSnapshot || this.drafts.get(sessionId) || '')
+			: '';
+		this.composeDraftSnapshot = '';
+		this.syncComposerPlacement();
+		this.updateComposerEditChrome();
+		this.updateSendEnabled();
+	}
+
+	private getEditingQueueItem() {
+		if (!this.editingQueueItemId) {
+			return undefined;
+		}
+		return this.stubService.getMessageQueueState(this.stubService.getActiveSessionId())
+			.items.find(item => item.id === this.editingQueueItemId);
+	}
+
+	private updateComposerEditChrome(): void {
+		const isEdit = this.composerPolicy !== 'compose';
+		this.composerEditHeader.hidden = !isEdit;
+		this.composer.classList.toggle('conversation-lens-composer--edit', isEdit);
+		if (this.composerPolicy === 'queueEdit') {
+			const item = this.getEditingQueueItem();
+			this.composerEditTitle.textContent = item
+				? `${conversationLensDockEditingQueued} · ${item.content}`
+				: conversationLensDockEditingQueued;
+			this.sendButton.setTitle(conversationLensDockSaveQueued);
+			this.sendButton.setAriaLabel(conversationLensDockSaveQueued);
+			return;
+		}
+		if (this.composerPolicy === 'turnEdit') {
+			this.composerEditTitle.textContent = conversationLensDockEditingMessage;
+		}
+		const sendTitle = localize('conversationLens.send', "Send");
+		this.sendButton.setTitle(sendTitle);
+		this.sendButton.setAriaLabel(sendTitle);
+	}
+
+	private syncComposerPlacement(): void {
+		if (this.composerPolicy === 'turnEdit' && this.editingTurnId) {
+			const host = this.timelineTree.getTurnEditHost(this.editingTurnId);
+			if (host) {
+				if (this.composer.parentElement !== host) {
+					host.appendChild(this.composer);
+				}
+				return;
+			}
+			getWindow(this.composer).requestAnimationFrame(() => this.syncComposerPlacement());
 			return;
 		}
 
-		this.readingColumn.insertBefore(this.identityStrip.element, this.readingColumn.firstChild);
-		this.dockRoot.insertBefore(this.gateRow, this.inboxOverlay.element);
-		this.dockRoot.appendChild(this.composer);
-		this.inboxOverlay.element.hidden = false;
-		this.gateRow.hidden = false;
+		if (this.isPreFirst()) {
+			if (this.composer.parentElement !== this.prefirstHero) {
+				this.prefirstHero.appendChild(this.composer);
+			}
+			return;
+		}
+
+		if (this.composer.parentElement !== this.dockRoot) {
+			this.dockRoot.appendChild(this.composer);
+		}
 	}
 
 	private switchToSession(sessionId: string): void {
@@ -838,6 +998,7 @@ export class ConversationLens extends Disposable {
 
 	private applyActiveSession(sessionId: string): void {
 		this.visualizeOverlay.close();
+		this.exitComposerEdit();
 		this.resetInputHistoryBrowse();
 		this.refreshSessionSelectOptions();
 		this.syncSessionConfigSelects(sessionId);
@@ -928,6 +1089,7 @@ export class ConversationLens extends Disposable {
 			this.trajectoryView.setRecords(this.stubService.getTrajectoryRecords(this.stubService.getActiveSessionId()));
 		}
 		this.updateConversationPhase();
+		this.syncComposerPlacement();
 	}
 
 	private resolveConfirmation(turnId: string, status: 'allowed' | 'skipped'): void {
@@ -977,6 +1139,14 @@ export class ConversationLens extends Disposable {
 	}
 
 	private submitDraft(): void {
+		if (this.composerPolicy === 'turnEdit') {
+			this.saveTurnEdit();
+			return;
+		}
+		if (this.composerPolicy === 'queueEdit') {
+			this.saveQueueEdit();
+			return;
+		}
 		if (this.modelSelectedIndex === 0) {
 			return;
 		}
@@ -990,5 +1160,30 @@ export class ConversationLens extends Disposable {
 		this.drafts.set(sessionId, '');
 		this.dockTextarea.value = '';
 		this.resetInputHistoryBrowse();
+	}
+
+	private saveTurnEdit(): void {
+		const text = this.dockTextarea.value.trim();
+		if (!text || !this.editingTurnId) {
+			return;
+		}
+		const sessionId = this.stubService.getActiveSessionId();
+		const turnId = this.editingTurnId;
+		this.exitComposerEdit();
+		this.stubService.updateUserTurnText(sessionId, turnId, text);
+	}
+
+	private saveQueueEdit(): void {
+		const text = this.dockTextarea.value.trim();
+		const item = this.getEditingQueueItem();
+		if (!text || !item || text === item.content) {
+			return;
+		}
+		const sessionId = this.stubService.getActiveSessionId();
+		const itemId = item.id;
+		this.exitComposerEdit(true, false);
+		this.stubService.updateMessageQueueItemContent(sessionId, itemId, text);
+		this.stubService.releaseMessageQueueItemHold(sessionId, itemId);
+		this.renderInboxStatus();
 	}
 }
