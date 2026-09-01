@@ -25,6 +25,7 @@ import { ContributionEnablementState, isContributionDisabled, isContributionEnab
 import { McpCommandIds } from '../../../../contrib/mcp/common/mcpCommandIds.js';
 import { autorun } from '../../../../../base/common/observable.js';
 import { IOpenerService } from '../../../../../platform/opener/common/opener.js';
+import { basename } from '../../../../../base/common/resources.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { InputBox, MessageType } from '../../../../../base/browser/ui/inputbox/inputBox.js';
 import { IContextMenuService, IContextViewService } from '../../../../../platform/contextview/browser/contextView.js';
@@ -700,8 +701,8 @@ export function updateMcpCardRuntimePresentation(
 	description.textContent = descriptionText;
 }
 
-export function shouldLoadMcpGallerySnapshot(visible: boolean, query: string, itemCount: number, failed: boolean, loading: boolean, accessEnabled: boolean): boolean {
-	return accessEnabled && visible && !query.trim() && itemCount === 0 && !failed && !loading;
+export function shouldLoadMcpGallerySnapshot(visible: boolean, query: string, itemCount: number, failed: boolean, loading: boolean, accessEnabled: boolean, isSessionsWindow = true): boolean {
+	return isSessionsWindow && accessEnabled && visible && !query.trim() && itemCount === 0 && !failed && !loading;
 }
 
 export function hasSameMcpMembership(previous: string, current: string): boolean {
@@ -1068,6 +1069,7 @@ export class McpListWidget extends Disposable {
 	private disabledMessage!: HTMLElement;
 	private readonly disabledLinkListener = this._register(new MutableDisposable());
 	private installedAddButton!: Button | undefined;
+	private donorAddButton!: Button;
 
 	private filteredServers: IWorkbenchMcpServer[] = [];
 	private filteredBuiltinCount = 0;
@@ -1139,6 +1141,8 @@ export class McpListWidget extends Disposable {
 	}
 
 	private create(): void {
+		const isDonorWindow = !this.workspaceService.isSessionsWindow;
+
 		// Section title header (title + description with inline learn more) at the top.
 		this.sectionTitleHeader = DOM.append(this.element, $('.section-title-header'));
 		const titleRow = DOM.append(this.sectionTitleHeader, $('.section-title-row'));
@@ -1146,20 +1150,26 @@ export class McpListWidget extends Disposable {
 		sectionTitle.textContent = localize('mcpServers', "MCP Servers");
 		const sectionTitleDescription = DOM.append(this.sectionTitleHeader, $('p.section-title-description'));
 		const sectionTitleDescriptionText = DOM.append(sectionTitleDescription, $('span.section-title-description-text'));
-		sectionTitleDescriptionText.textContent = localize('mcpServersDescription', "An open standard that lets AI use external tools and services. MCP servers provide tools for file operations, databases, APIs, and more.");
-		// Real whitespace text node between description and link so the gap collapses
-		// when the link wraps to a new line (a CSS margin-left would push it inward).
-		sectionTitleDescription.appendChild(document.createTextNode(' '));
+		sectionTitleDescriptionText.textContent = isDonorWindow
+			? localize('mcpServersDonorDescription', "Definitions in this workspace and your user profile. Not live engine tools.")
+			: localize('mcpServersDescription', "An open standard that lets AI use external tools and services. MCP servers provide tools for file operations, databases, APIs, and more.");
 		this.sectionLink = DOM.append(sectionTitleDescription, $('a.section-title-link')) as HTMLAnchorElement;
-		this.sectionLink.textContent = localize('learnMoreMcp', "Learn more about MCP servers");
-		this.sectionLink.href = 'https://code.visualstudio.com/docs/agent-customization/mcp-servers?referrer=in-product';
-		this._register(DOM.addDisposableListener(this.sectionLink, 'click', (e) => {
-			e.preventDefault();
-			const href = this.sectionLink.href;
-			if (href) {
-				this.openerService.open(URI.parse(href));
-			}
-		}));
+		if (isDonorWindow) {
+			this.sectionLink.style.display = 'none';
+		} else {
+			// Real whitespace text node between description and link so the gap collapses
+			// when the link wraps to a new line (a CSS margin-left would push it inward).
+			sectionTitleDescription.insertBefore(document.createTextNode(' '), this.sectionLink);
+			this.sectionLink.textContent = localize('learnMoreMcp', "Learn more about MCP servers");
+			this.sectionLink.href = 'https://code.visualstudio.com/docs/agent-customization/mcp-servers?referrer=in-product';
+			this._register(DOM.addDisposableListener(this.sectionLink, 'click', (e) => {
+				e.preventDefault();
+				const href = this.sectionLink.href;
+				if (href) {
+					this.openerService.open(URI.parse(href));
+				}
+			}));
+		}
 
 		// Re-layout when the header height changes so the list's allotted
 		// height stays in sync with the actual on-screen header size. Only
@@ -1192,16 +1202,27 @@ export class McpListWidget extends Disposable {
 			inputBoxStyles: defaultInputBoxStyles,
 		}));
 
+		const addButtonContainer = DOM.append(this.searchAndButtonContainer, $('.list-add-button-container'));
+		const addLabel = localize('addServer', "Add Server");
+		this.donorAddButton = this._register(new Button(addButtonContainer, { ...defaultButtonStyles, secondary: true, ariaLabel: addLabel }));
+		this.donorAddButton.element.classList.add('list-add-button');
+		this.donorAddButton.label = addLabel;
+		this.donorAddButton.element.style.display = isDonorWindow ? '' : 'none';
+		this._register(this.donorAddButton.onDidClick(() => this.commandService.executeCommand(McpCommandIds.AddConfiguration)));
+
 		this._register(this.searchInput.onDidChange(() => {
 			this.searchQuery = this.searchInput.value;
 			this.galleryCts?.dispose(true);
 			this.galleryCts = undefined;
 			this.searchInput.hideMessage();
+			this.delayedFilter.trigger(() => this.filterServers());
+			if (isDonorWindow) {
+				return;
+			}
 			const query = this.searchQuery.toLowerCase().trim();
 			this.galleryServers = query
 				? this.gallerySnapshotServers.filter(server => this.matchesGalleryServerQuery(server, query))
 				: [...this.gallerySnapshotServers];
-			this.delayedFilter.trigger(() => this.filterServers());
 			if (!this.mcpAccessEnabled) {
 				this.gallerySearchLoading = false;
 				this.delayedGallerySearch.cancel();
@@ -1264,7 +1285,7 @@ export class McpListWidget extends Disposable {
 
 	private async refresh(): Promise<void> {
 		this.filterServers();
-		if (shouldLoadMcpGallerySnapshot(this.visible, this.searchQuery, this.gallerySnapshotServers.length, this.gallerySnapshotFailed, this.gallerySnapshotLoading, this.mcpAccessEnabled)) {
+		if (shouldLoadMcpGallerySnapshot(this.visible, this.searchQuery, this.gallerySnapshotServers.length, this.gallerySnapshotFailed, this.gallerySnapshotLoading, this.mcpAccessEnabled, this.workspaceService.isSessionsWindow)) {
 			await this.queryGallerySnapshot();
 		}
 	}
@@ -1324,7 +1345,7 @@ export class McpListWidget extends Disposable {
 	}
 
 	public showBrowseMarketplace(): void {
-		if (!this.mcpAccessEnabled) {
+		if (!this.workspaceService.isSessionsWindow || !this.mcpAccessEnabled) {
 			return;
 		}
 		this.searchInput.value = '';
@@ -1447,6 +1468,11 @@ export class McpListWidget extends Disposable {
 			return;
 		}
 
+		if (!this.workspaceService.isSessionsWindow) {
+			this.renderDonorMcpHome();
+			return;
+		}
+
 		this.cardDisposables.clear();
 		this.installedAddButton = undefined;
 		this.firstCardFocusElement = undefined;
@@ -1477,6 +1503,73 @@ export class McpListWidget extends Disposable {
 		this.cardListControllers.get(installedList)?.finalize();
 
 		this.renderAvailableServers(content, this.getAvailableGalleryServers(), true);
+	}
+
+	private renderDonorMcpHome(): void {
+		this.cardDisposables.clear();
+		this.installedAddButton = undefined;
+		this.firstCardFocusElement = undefined;
+		this.availableSection = undefined;
+		DOM.clearNode(this.cardContainer);
+
+		if (this.installedEntries.length === 0) {
+			this.showEmptySurface(
+				localize('noMcpServersDonor', "No MCP servers yet"),
+				localize('noMcpServersDonorDetail', "Add a server definition for this workspace. Featured marketplace servers are not available."),
+			);
+			return;
+		}
+
+		this.showCardSurface();
+		const content = this.cardScrollElement = DOM.append(this.cardContainer, $('.plugin-card-scroll'));
+		this.renderDonorDefinitionGroups(content);
+	}
+
+	private renderDonorDefinitionGroups(parent: HTMLElement): void {
+		const workspaceEntries = this.installedEntries.filter(({ entry }) =>
+			entry.type === 'server-item' && entry.server.local?.scope === LocalMcpServerScope.Workspace);
+		const userEntries = this.installedEntries.filter(({ entry }) =>
+			entry.type === 'server-item' && entry.server.local?.scope !== LocalMcpServerScope.Workspace);
+
+		this.renderDonorDefinitionGroup(parent, localize('workspaceGroup', "Workspace"), workspaceEntries);
+		this.renderDonorDefinitionGroup(parent, localize('userGroup', "User"), userEntries);
+	}
+
+	private renderDonorDefinitionGroup(parent: HTMLElement, title: string, entries: readonly IMcpInstalledPresentation[]): void {
+		const list = this.renderCardSection(parent, title, undefined, 'donor-mcp-definitions-section', entries.length);
+		list.classList.add('plugin-inventory-list');
+		if (entries.length === 0) {
+			const empty = DOM.append(list, $('.plugin-inventory-empty'));
+			empty.textContent = localize('noMcpDefinitionsInGroup', "No definitions in this scope.");
+		} else {
+			for (const presentation of entries) {
+				this.appendDonorDefinitionRow(list, presentation.entry as IMcpServerItemEntry);
+			}
+		}
+		this.cardListControllers.get(list)?.finalize();
+	}
+
+	private appendDonorDefinitionRow(parent: HTMLElement, entry: IMcpServerItemEntry): void {
+		const label = entry.server.label;
+		const row = DOM.append(parent, $('.plugin-list-item.plugin-home-row.mcp-donor-definition-row'));
+		const primaryAction = this.addSurfaceActivation(row, label, () => this._onDidSelectServer.fire(createInstalledMcpServerDetailInput(entry)));
+		const details = DOM.append(primaryAction, $('.plugin-list-item-details'));
+		const nameRow = DOM.append(details, $('.plugin-list-item-name-row'));
+		const name = DOM.append(nameRow, $('.plugin-list-item-name'));
+		name.textContent = formatDisplayName(label);
+		name.title = label;
+		const description = DOM.append(details, $('.plugin-list-item-description'));
+		description.textContent = this.getDonorDefinitionSourceLabel(entry.server);
+		this.cardListControllers.get(parent)?.addItem({
+			row,
+			primaryAction,
+			label,
+		});
+	}
+
+	private getDonorDefinitionSourceLabel(server: IWorkbenchMcpServer): string {
+		const mcpResource = server.local?.mcpResource;
+		return mcpResource ? basename(mcpResource) : localize('mcpJsonDefinition', "mcp.json");
 	}
 
 	private renderInstalledSectionActions(header: HTMLElement): void {
@@ -1804,6 +1897,11 @@ export class McpListWidget extends Disposable {
 	}
 
 	private updateSearchResults(): void {
+		if (!this.workspaceService.isSessionsWindow) {
+			this.updateDonorSearchResults();
+			return;
+		}
+
 		const available = this.getAvailableGalleryServers();
 		if (this.installedEntries.length === 0 && available.length === 0) {
 			this.showEmptySurface(
@@ -1833,6 +1931,25 @@ export class McpListWidget extends Disposable {
 		if (available.length > 0) {
 			this.renderAvailableServers(content, available, false);
 		}
+	}
+
+	private updateDonorSearchResults(): void {
+		if (this.installedEntries.length === 0) {
+			this.showEmptySurface(
+				localize('noMatchingMcpDefinitions', "No servers match '{0}'", this.searchQuery),
+				localize('tryDifferentSearch', "Try a different search term"),
+			);
+			return;
+		}
+
+		this.cardDisposables.clear();
+		this.installedAddButton = undefined;
+		this.firstCardFocusElement = undefined;
+		this.availableSection = undefined;
+		DOM.clearNode(this.cardContainer);
+		this.showCardSurface();
+		const content = this.cardScrollElement = DOM.append(this.cardContainer, $('.plugin-card-scroll.plugin-search-results'));
+		this.renderDonorDefinitionGroups(content);
 	}
 
 	private filterServers(render = true): void {
@@ -1867,8 +1984,8 @@ export class McpListWidget extends Disposable {
 			const entry: IMcpServerItemEntry = {
 				type: 'server-item',
 				server,
-				activeSessionServer: activeSessionMatcher.take(getWorkbenchServerMatchKeys(server)),
-				localServer: localServerMatcher.find(getWorkbenchServerMatchKeys(server)),
+				activeSessionServer: this.workspaceService.isSessionsWindow ? activeSessionMatcher.take(getWorkbenchServerMatchKeys(server)) : undefined,
+				localServer: this.workspaceService.isSessionsWindow ? localServerMatcher.find(getWorkbenchServerMatchKeys(server)) : undefined,
 			};
 			const scope = server.local?.scope;
 			if (scope === LocalMcpServerScope.Workspace) {
@@ -1877,6 +1994,20 @@ export class McpListWidget extends Disposable {
 				// User, RemoteUser, or unknown → group under User
 				groups[1].entries.push(entry);
 			}
+		}
+
+		if (!this.workspaceService.isSessionsWindow) {
+			this.installedEntries = [
+				...groups[0].entries.map(entry => ({ entry })),
+				...groups[1].entries.map(entry => ({ entry })),
+			];
+			this.filteredBuiltinCount = 0;
+			this.filteredActiveSessionCount = 0;
+			this._onDidChangeItemCount.fire(this.itemCount);
+			if (render) {
+				this.renderFilteredServers();
+			}
+			return;
 		}
 
 		// Add plugin-provided, extension-provided, and built-in servers.
@@ -1919,6 +2050,8 @@ export class McpListWidget extends Disposable {
 	private renderFilteredServers(): void {
 		if (this.searchQuery.trim()) {
 			this.updateSearchResults();
+		} else if (!this.workspaceService.isSessionsWindow) {
+			this.renderDonorMcpHome();
 		} else {
 			this.renderMcpHome();
 		}
@@ -1937,6 +2070,9 @@ export class McpListWidget extends Disposable {
 	 * (the same source used to build group headers).
 	 */
 	get itemCount(): number {
+		if (!this.workspaceService.isSessionsWindow) {
+			return this.filteredServers.length;
+		}
 		return this.filteredServers.length + this.filteredBuiltinCount + this.filteredActiveSessionCount;
 	}
 
@@ -2026,6 +2162,9 @@ export class McpListWidget extends Disposable {
 		this.element.classList.toggle('wide-layout', wide);
 		if (this.installedAddButton) {
 			this.installedAddButton.label = narrow ? localize('addServerNarrow', "Add") : localize('addServer', "Add Server");
+		}
+		if (this.donorAddButton) {
+			this.donorAddButton.label = narrow ? localize('addServerNarrow', "Add") : localize('addServer', "Add Server");
 		}
 	}
 
