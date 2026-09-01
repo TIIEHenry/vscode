@@ -4,7 +4,7 @@ type: reference
 status: accepted
 phase: N/A
 updated: 2026-09-01
-summary: "PRD-001–PRD-016 到规格、方案与证据的轻量追踪；PRD-011–014 与页面接入 1a–4 代码已落、D4 待验证；PRD-015–016 已接受未实施"
+summary: "PRD-001–PRD-016 到规格、方案与证据的轻量追踪；PRD-011–014 与页面接入 1a–4 代码已落、D4 待验证；PRD-015–016 已接受未实施；PRD-016 签收后改写待补审查"
 ---
 
 # 产品需求追踪
@@ -32,7 +32,7 @@ summary: "PRD-001–PRD-016 到规格、方案与证据的轻量追踪；PRD-011
 | [PRD-013](requirements.md#prd-013-conversation-过程折) | `accepted` | 待实施后写 [conversation-lens-assembly](../reference/code-oss-b2/conversation-lens-assembly.md) · [agent-ui](../systems/chat/agent-ui.md) | [conversation-process-fold](../../dev/plans/conversation-process-fold.md) (`implemented`) | 待验证：D4 未跑 |
 | [PRD-014](requirements.md#prd-014-conversation-图示卡visualize) | `accepted` | 待实施后写 [agent-ui](../systems/chat/agent-ui.md) · [conversation-lens-assembly](../reference/code-oss-b2/conversation-lens-assembly.md) | [thinkrail-visualize-port](../../dev/plans/thinkrail-visualize-port.md) (`implemented`) | 待验证：D4 未跑 |
 | [PRD-015](requirements.md#prd-015-conversation-空会话与输入面) | `accepted` | 选定指针：[conversation-lens-assembly](../reference/code-oss-b2/conversation-lens-assembly.md) §4 · [agent-ui](../systems/chat/agent-ui.md) Inbox；HEAD 仍是旧 dock | [conversation-empty-hero](../../dev/plans/conversation-empty-hero.md) (`accepted`) | 无。未实施 |
-| [PRD-016](requirements.md#prd-016-conversation-session-窗口与-chat-tab) | `accepted` | [parts-and-grid](../systems/workbench/parts-and-grid.md) §5 · [editor-part-tabs](../systems/workbench/editor-part-tabs.md) §2/§4 · [agent-ui](../systems/chat/agent-ui.md)（选定合同；HEAD 仍三槽） | [conversation-session-windows](../../dev/plans/conversation-session-windows.md) (`accepted`) · [ADR-002](../../dev/decisions/002-conversation-session-windows.md) (`accepted`) | 无代码。2026-09-01 签收；S1–S6 ReadyToImplement |
+| [PRD-016](requirements.md#prd-016-conversation-session-窗口与-chat-tab) | `accepted` | [parts-and-grid](../systems/workbench/parts-and-grid.md) §5 · [editor-part-tabs](../systems/workbench/editor-part-tabs.md) §2/§4 · [agent-ui](../systems/chat/agent-ui.md)（选定合同；HEAD 仍三槽） | [conversation-session-windows](../../dev/plans/conversation-session-windows.md) (`accepted`) · [ADR-002](../../dev/decisions/002-conversation-session-windows.md) (`accepted`) | 无代码。2026-09-01 签收。签收后代码事实复核改入 §3.8 聚合豁免与 §3.3b origin/可交互度，新增切片 S1a；该批**未派独立 reviewer**，S1 开工前须补规则 16 审查 |
 
 ## 外仓冲突与出处
 

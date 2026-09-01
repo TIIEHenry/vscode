@@ -4,7 +4,7 @@ type: plan
 status: accepted
 phase: N/A
 updated: 2026-09-01
-summary: "ConversationPart 每叶内嵌 IEditorPart；围栏 CONVERSATION_GROUP；自有导航栈；子代理叶内对话框；已签收；S1–S6 ReadyToImplement；未实施"
+summary: "ConversationPart 每叶内嵌 IEditorPart；入站围栏 CONVERSATION_GROUP + 出站聚合豁免（§3.8）；自有导航栈；子代理叶内对话框；已签收；S1/S1a–S6；S1a 改写待补规则 16 审查；未实施"
 ---
 
 # 默认窗 Conversation：session 窗口与 chat tab
@@ -13,7 +13,8 @@ summary: "ConversationPart 每叶内嵌 IEditorPart；围栏 CONVERSATION_GROUP�
 > 形态决策：[ADR-002](../decisions/002-conversation-session-windows.md)（`accepted`）。  
 > Agents 窗同 session 并排仍以 [ADR-001](../decisions/001-chat-compare-form.md) / [PRD-011](../../docs/product/requirements.md#prd-011-chat-并排比对) / [chat-compare-split](chat-compare-split.md) 为准，本方案不改。  
 > 透镜页内 chrome：[conversation-lens-assembly](../../docs/reference/code-oss-b2/conversation-lens-assembly.md)；「对话 | 轨迹」是 **每个 chat 页内** 透镜（PRD-012，经 PRD-016 修正），不是与 chat tab 平级的第三条。  
-> **签收：** 2026-09-01 用户签收。规则 16：Grok 4.6 High Block 已改入后产品签收（Opus 5.0 slug 不可用，未再派审查）。S1–S6 ReadyToImplement；未改 `src/`。
+> **签收：** 2026-09-01 用户签收。规则 16：Grok 4.6 High Block 已改入后产品签收（Opus 5.0 slug 不可用，未再派审查）。未改 `src/`。  
+> **2026-09-01 签收后改写（§3.8 聚合豁免、§3.3b origin 四 kind 与可交互度、新增切片 S1a）：** 来源是父 agent 对 `editorParts.ts` 与 agentHost 协议的只读代码事实复核，**不是**独立 reviewer。按规则 16 第 4 条，**S1 / S1a 开工前须补一次只读审查**；拓扑与形态不变，故不退回 `draft`。
 
 **Goal：** 默认窗中间 Conversation 变成「session 窗口 + chat tab」：根/默认 chat 钉死；用户 Fork 默认加 tab；子代理默认在窗口内以对话框打开（父对话仍在底下），最大化才新建 tab；子代理 tab 顶有 agent 层级面包屑（点击替换当前延伸 tab）；每扇窗口一键关掉根以外的 tab；用户可 split；另一 session 用窗口并列；只能隐藏。
 
@@ -50,7 +51,13 @@ summary: "ConversationPart 每叶内嵌 IEditorPart；围栏 CONVERSATION_GROUP�
 | Peer 持久化 | session 库 metadata `peerChats`；不新注册 `AgentSessionRegistry` 行；backing 打 I7 | `src/vs/platform/agentHost/node/agentService.ts` `PEER_CHATS_METADATA_KEY` / `_persistPeerChat`；`src/vs/platform/agentHost/AGENTS.md` I5/I7 |
 | 工具子代理 | `addChat` origin Tool `{ chat, toolCallId }`；**不写** `peerChats` | 同上 I4 / 5c；协议 `ChatOrigin` 在 `channels-chat/state.ts`（字段是 **`chat`**，不是 sessions 的 `parentChat`） |
 | EditorPart 工厂 | HEAD 只有 main / auxiliary / modal 三种；`EditorGroup` **无** sessionId | `editorParts.ts` `createMainEditorPart` / `createAuxiliaryEditorPart` / `createModalEditorPart` |
+| Modal 是**单例** | `createModalEditorPart` 复用同一实例（`modalEditorPart` 字段 + in-flight promise 去重）；不是「可多开的第四类」 | `editorParts.ts` `createModalEditorPart` / `doCreateModalEditorPart` |
+| scoped 服务索引是 **windowId** | `mapPartToInstantiationService: Map<number /* window ID */, …>`；Modal 靠**专属字段** `modalPartInstantiationService` 绕开该 map。共享 windowId 的**多个** part 无法都从这张 map 取到自己的 scope | `editorParts.ts` `getScopedInstantiationService` |
+| `applyState` 对非 main part **强制清空并关闭** | 循环 `this.parts`，只 `continue` mainPart，其余一律 `closeAllEditors({ excludeConfirming: true, force: true })` 再 `(part as unknown as IAuxiliaryEditorPart).close()`。触发源：工作集 apply **与** `onDidChangeMementoState`（别的窗口改 workspace memento 也会进来） | `editorParts.ts` `applyState` / `onDidChangeMementoState` |
+| 全局聚合跨所有 part | `getGroups` 对 `this.parts` **flatMap**；`findGroup` 的 FIRST/LAST 注释即「dispatches globally over all parts」；`activeGroup` = `activePart.activeGroup`，`activePart` 走 **MRU**；`getPartByDocument` 在同一 document 多 part 时靠「焦点祖先 → MRU 兜底」消歧 | `editorParts.ts` `getGroups` / `findGroup` / `activeGroup` / `getPartByDocument` |
 | 未指定目标的 `openEditor` | 落到 `editorGroupService.activeGroup`（焦点在 Conversation 组时会把文件开进该组，除非加围栏） | `editorGroupFinder.ts` |
+| `ChatOrigin` 有 **四** 个 kind | `User` / `Fork {chat,turnId}` / `SideChat {chat,turnId,selection?}` / `Tool {chat,toolCallId}`。SideChat 另有能力位 `capabilities.multipleChats.sideChat` | `channels-chat/state.ts` `ChatOrigin` / `ChatOriginKind`；`channels-root/state.ts` `MultipleChatsCapability` |
+| chat 有**可交互度** | `ChatInteractivity` = `Full`（缺省）/ `ReadOnly`（可看不可发）/ `Hidden`（internal worker，**完全不在 UI 出现**） | `channels-chat/state.ts` `ChatInteractivity`；`ChatState.interactivity` |
 | 默认导航栈 | `GoScope.DEFAULT` = 跨所有 editor/group；`EDITOR_GROUP` 仅当用户改 `workbench.editor.navigationScope` | `historyService.ts` |
 | 鼠标 4/5 | 主窗 HistoryService 在每个 container 上监听，**无** Conversation 互斥 | `historyService.ts`；Agents 窗模式：`sessionsMouseNavigation.ts`（独立栈，**不可** import） |
 | `workbench` 不得依赖 `sessions` | ESLint `code-import-patterns`（M5 H7）；`valid-layers-check` **不**查这条 | [layers.md](../../docs/architecture/cross-cutting/layers.md)；`m5-ui-shell-hardening.md` |
@@ -166,6 +173,27 @@ EDITOR_PART（Preview / MainEditorPart）：默认 openEditor、ACTIVE_GROUP、S
 - 当前项不可点或 aria-current。中间断裂（父 chat 已删）诚实省略或停在最近仍存在的祖先，不造假节点。
 - 用户 Fork 出的 peer tab **不**强制 agent 层级面包屑；若 origin 为 Fork 可显示「从某 turn fork」，不走 agent 层级替换规则。
 
+### 3.3b `ChatOrigin` 四 kind 与可交互度（第一期合同）
+
+协议的 `ChatOrigin` 是 **四** 个 kind，不是两个。第一期呈现形态按下表钉死，**禁止**实施时临时发明语义：
+
+| `origin.kind` | 第一期呈现 | 面包屑 |
+|---------------|-----------|--------|
+| `User` | 该 session 的**默认根 tab**（钉死、不可关） | 无（自己就是根） |
+| `Fork` | 用户 Fork → **默认延伸 tab**（§3.3 第 1 条） | 不强制 agent 层级；可显示「从某 turn fork」 |
+| `Tool` | 子代理 → **默认 session 叶对话框**，最大化才延伸 tab（§3.3 第 3–4 条） | agent 层级面包屑，沿 `origin.chat` |
+| `SideChat` | **与 Tool 同款**：默认 session 叶对话框，最大化才延伸 tab。标题带「侧聊」标识与来源 turn；`origin.selection` 有值时在页 chrome 显示被选文本的**快照**（provenance，**不是** live range） | 只显示「来自某 chat 某 turn」一级，**不**走 agent 层级替换规则 |
+
+SideChat **不**当作第三种窗口形态，也**不**自动开 tab。能力位 `capabilities.multipleChats.sideChat` 为假时不暴露入口（与 fork 同构）。
+
+**可交互度（`ChatInteractivity`，缺省 `Full`）：**
+
+1. `Hidden`：**完全不出现**在 tab 条、时间线子代理列表、面包屑与「关非根」计数里。已开着的 tab / 对话框若转为 `Hidden` → 关掉该延伸 tab 或对话框（根 tab 例外：根不因此关闭，退化为只读空面并记一条诚实提示）。
+2. `ReadOnly`：可以是 tab 或对话框，但页 chrome 的 **Dock 输入区禁用**（不是隐藏，禁用 + 说明），Send / MessageQueue / Stop 不可用；阅读列与「对话\|轨迹」照常。
+3. `Full`：无限制。
+4. 面包屑与「关闭根以外全部 tab」按钮的 enabled 计算 **排除 `Hidden`**，否则会出现「按钮 enabled 但看不到任何可关的 tab」。
+5. 无引擎 stub 一律视为 `Full`；**禁止**用 stub 假装 `ReadOnly` / `Hidden` 已接线。
+
 ### 3.4 窗口并列与隐藏
 
 - **藏整块中间**：现有 `setConversationHidden`。所有 session 叶一起不画；再 `showConversation` / 打开某 session → Conversation 可见，tab 模型恢复。
@@ -224,11 +252,33 @@ HEAD 已接受的锁是 **插入面**：编辑器仅 `EDITOR_PART`；没有「�
 | 新围栏测试 | 焦点在 Conversation tab 时 `openEditor(file)` / `SIDE_GROUP` 只进 MainEditorPart；`CONVERSATION_GROUP` + 文件被拒绝 |
 | Part 级 `IConversationLensSlots` timeline/dock 测试 | 迁到 pane；窗口 chrome 测试只覆盖 SelectBox / 关非根 / ←→ |
 
+### 3.8 聚合豁免合同（出站；与 §3.2 围栏对称）
+
+§3.2 围栏管的是 **入站**：谁能被打开**进** Conversation 组。但 `EditorParts` 对 `this.parts` 做**全局聚合**（§2 锚点），凡注册进 `IEditorGroupsService.parts` 的 part 都会被枚举、被 MRU 选中、被状态恢复流程处理。**只做入站围栏不足以成立本方案**：Conversation part 一旦注册，chat tab 就会从「出站」漏进 Preview 的世界，其中 `applyState` 一条直接否掉「默认根永不 dispose、只能藏不能关」。
+
+因此 S1 **必须同批**落地下列豁免。原则：**Conversation part 注册进 `parts` 只为复用组/tab/pane 机制，不参与任何面向用户的全局 editor 语义。**
+
+| # | 缺口（HEAD 行为） | 豁免合同 |
+|---|------------------|----------|
+| A1 | `applyState` 循环 `this.parts` 只豁免 `mainPart`，对其余 part `closeAllEditors({ force: true })` + `(part as IAuxiliaryEditorPart).close()` | 该循环改为**同时跳过 Conversation part**（判定用 part 类型/能力位，**不是** windowId）。Conversation part **不实现** `IAuxiliaryEditorPart.close()`，那个 cast 对它是非法的。工作集与跨窗 memento 变更**永不**关闭 Conversation part 或其 tab |
+| A2 | `getScopedInstantiationService` 主体按 **windowId** 索引；Modal 靠单例专属字段绕开 | 改成**按 part 索引**（`Map<IEditorPart, IInstantiationService>` 或等价），使**多个**共享主窗 windowId 的 part 各自拿到自己的 scoped `IEditorService`。**禁止**给 Conversation part 复制第二个「Modal 式专属字段」——两扇 session 窗是**两个**实例，单例字段模式在此不成立 |
+| A3 | `getGroups` flatMap 所有 part；`activeGroup` = MRU `activePart`；`findGroup` FIRST/LAST 全局；`getPartByDocument` 靠焦点 + MRU 消歧 | Conversation 组**不得**出现在面向用户的全局枚举与全局跳转里：`IEditorService.editors` / `count` / Show All Editors / Close All Editors / 组间 FIRST-LAST 导航 / 脏编辑器确认 / hot exit / 工作集快照。实现取**排除**语义（聚合时过滤 Conversation part），**不是**逐个命令打补丁 |
+
+配套约束：
+
+1. **单一开关。** A3 的排除与 §3.5 已为 `IHistoryService` 写的排除是**同一类问题**，须落成**一条**可测的谓词（例如 part 上的 `excludeFromGlobalEditorAggregation` 能力位），供聚合、历史、工作集共用。禁止在 N 个调用点各写一次 `part !== conversationPart`。
+2. **MRU 语义。** Conversation part 获得焦点**不得**使它成为 `activePart` 意义上的「全局活动 editor part」。若做不到（`onDidFocus` → `doUpdateMostRecentActive` 是 part 通用逻辑），则 Conversation part 必须从 MRU 列表中排除，`activePart` 只在 main / auxiliary / modal 之间选。这是 §3.2 围栏第 4 条（「文件仍进 Preview」）真正成立的前提——围栏靠的是 `activeGroup`，而 `activeGroup` 取自 `activePart`。
+3. **`getPartByDocument` 歧义。** 主窗 document 下将同时存在 main + modal + 最多 2 个 Conversation part。凡按 document / DOM 元素反查 part 的路径，Conversation part 都必须可判定地被排除（除非查询本身来自 Conversation 容器内部）。
+4. **不改上游语义。** 以上豁免只加「跳过/过滤 Conversation part」的分支，**不**改 main / auxiliary / modal 现有行为；Modal 今天被 `applyState` 关掉是既有行为，本方案不动。
+
+**这三条是 S1 的验收组成部分，不是「S2 之后再补的加固」。** A1 未落地即视为 S1 未完成。
+
 ## 4. 实施切片（ReadyToImplement）
 
 | # | 切片 | 内容 | 验证 |
 |---|------|------|------|
 | S1 | 插入面 | `createConversationEditorPart`；单 session 叶、单组、关闭拦截器钉死默认 tab；透镜迁入 pane；`findGroup` 围栏；`CONVERSATION_GROUP` | 打开文件仍只在 Preview；Conversation 组有且仅有 stub 默认 input；无 `vs/sessions` import（ESLint）；ChatEditorInput 两边都不进 |
+| S1a | 聚合豁免（§3.8） | A1 `applyState` 跳过 Conversation part；A2 scoped service 改按 part 索引；A3 全局聚合/MRU/`getPartByDocument` 排除谓词（与 §3.5 历史排除共用一条） | 工作集 apply 与跨窗 memento 变更后默认根 tab 仍在；两个 Conversation part 各自拿到独立 scoped `IEditorService`；`IEditorService.editors` / Close All / FIRST-LAST 不含 chat tab；Conversation 获焦后 `activePart` 仍是 main |
 | S2 | 导航 | Conversation 自有栈；←→；`hasFocus(CONVERSATION_PART)` 鼠标拦截；`closeChildOnBack` | 单测两栈隔离；Conversation open 不写入 `IHistoryService` |
 | S3 | 同 session | Fork → `createChat` + `CONVERSATION_GROUP`；子代理点击 → session 叶对话框；最大化 → tab | 单测打开目标；AH 路径不写新 `AgentSessionRegistry` 行；不 import `agentHostForkActions` |
 | S3b | 面包屑 + 关非根 | 沿协议 `origin.chat`；点击替换当前延伸 tab；关非根 **不** `closeGroup` 根组 | 单测替换不叠 tab；根 tab 仍在 |
@@ -236,7 +286,7 @@ HEAD 已接受的锁是 **插入面**：编辑器仅 `EDITOR_PART`；没有「�
 | S5 | 窗口并列 | 第二 session 叶 + 第二 Conversation EditorPart；藏窗恢复；共享 Preview | roster 打开到旁边；藏后单窗；两 session 时 Preview 仍一个 `EDITOR_PART` |
 | S6 | 知识层 | 签收本批已改 parts-and-grid / editor-part-tabs / agent-ui 插入面合同；S1 落地后把 HEAD 句从「选定」改成「已落」 | `check-docs-health.py` |
 
-S1 可在无引擎下落地。S3 / S3b 活数据依赖 PRD-008。每个实施 commit 满足 DOCUMENTATION 规则 3a/3b。知识层插入面合同已随签收改写；S1 改代码，不重开拓扑。
+S1 / S1a 可在无引擎下落地，且 **S1a 与 S1 同批**（A1 未落地即 S1 未完成，见 §3.8）。S3 / S3b 活数据依赖 PRD-008；`SideChat` / `ReadOnly` / `Hidden`（§3.3b）同样等引擎，stub 期一律 `Full`。每个实施 commit 满足 DOCUMENTATION 规则 3a/3b。知识层插入面合同已随签收改写；S1 改代码，不重开拓扑。
 
 ## 5. 测试计划
 
@@ -249,13 +299,20 @@ S1 可在无引擎下落地。S3 / S3b 活数据依赖 PRD-008。每个实施 co
 7. **窗口并列：** 两 session 叶、两个 Conversation EditorPart；共享一个 Preview；藏第二窗后可见 session=1；再打开恢复。
 8. **导航：** Conversation 栈与 `IHistoryService` 隔离；开延伸 tab → 后退（设置开）→ tab 关闭且回到根；对话框开着后退则关掉对话框；Conversation 聚焦时鼠标 4/5 不驱动 Preview 历史。
 9. **分层：** `workbench/contrib/conversation` 无 `vs/sessions` import（ESLint `code-import-patterns`）。仅 S1 改目标环境边界时才跑 `valid-layers-check`。
+10. **聚合豁免 A1（§3.8）：** 调 `applyState`（工作集 apply 路径）与模拟 `onDidChangeMementoState` 外部变更后，Conversation part 仍注册、默认根 input 仍在、未被 `force` 关闭、未调用 `close()`。断言 Conversation part 不实现 `IAuxiliaryEditorPart.close`。
+11. **聚合豁免 A2：** 两个 Conversation part（共享主窗 windowId）从 `getScopedInstantiationService` 取到**彼此不同**、且都不等于主 part 的实例；主 / Modal 的既有取值不变。
+12. **聚合豁免 A3：** Conversation 组有 2 张 tab 时，`IEditorService.editors` / `count` / `getGroups` 面向用户的枚举不含它们；`findGroup` FIRST/LAST 不跨进 Conversation part；Conversation 组获焦后 `editorGroupsService.activeGroup` 仍在 main part（围栏第 4 条前提）；`getPartByDocument` 从 Preview 容器查询时不返回 Conversation part。
+13. **可交互度（§3.3b）：** `Hidden` chat 不出现在 tab 条 / 子代理列表 / 面包屑 / 「关非根」计数；已开 tab 转 `Hidden` 被关闭而根 tab 不关；`ReadOnly` 的 Dock 输入禁用但阅读列可用；`SideChat` 默认走对话框且面包屑只一级。
 
 ## 6. 风险与开放点
 
 | 风险 | 缓解 |
 |------|------|
 | 第四类 EditorPart 与已接受 INV-TOPO 字面冲突 | §3.7 写入新插入面合同；签收时与 S1 同批改知识层；围栏测试锁文件/`ChatEditorInput` |
-| 共享 `windowId` 的 scoped `IEditorService` | 抄 Modal special-case；禁止伪造 windowId |
+| **工作集 / 跨窗 memento 恢复强制关掉 Conversation part**（`applyState` 只豁免 mainPart，`force: true` 绕过 §3.3 第 6 条的关闭拦截器） | §3.8 A1：`applyState` 同批跳过 Conversation part；测试 10 覆盖两条触发源。**S1 硬门**：未落地即 S1 未完成 |
+| 共享 `windowId` 的 scoped `IEditorService`：HEAD 的 map **按 windowId 索引**，Modal 靠单例专属字段绕开，两扇 session 窗无处安放 | §3.8 A2：改按 part 索引；禁止再加单例式专属字段；测试 11 锁两个 part 拿到不同实例 |
+| **全局聚合外漏**：`getGroups` flatMap、`activeGroup` 取 MRU `activePart`、`findGroup` FIRST/LAST 全局、`getPartByDocument` 同 document 多 part 消歧 | §3.8 A3 + 配套约束 1–3：落成**一条**排除谓词，与 §3.5 历史排除共用；测试 12。注意围栏第 4 条依赖 `activePart` 不被 Conversation 抢走 |
+| `ChatOrigin` 的 `SideChat` 与 `ChatInteractivity` 的 `ReadOnly` / `Hidden` 在协议里已存在，实施时易临时发明语义 | §3.3b 钉死第一期呈现；stub 期一律 `Full`；测试 13 |
 | Conversation 组进入全局 editor 历史 | S2：自有栈；从 `IHistoryService` 排除 Conversation part |
 | DND 跨 session 叶 / 拖到 Preview | S4/S5：禁止把 ConversationChatInput 拖进 MainEditorPart；禁止把文件拖进 Conversation 组 |
 | stub 只有 session 没有 chat | S1 只钉默认 tab；S3 等引擎或加 stub chat，禁止用「再造一个 stub session」冒充 fork |
@@ -272,7 +329,8 @@ S1 可在无引擎下落地。S3 / S3b 活数据依赖 PRD-008。每个实施 co
 | PRD-016 验收 | 由谁满足 |
 |----------------------|----------|
 | 中间是 Conversation 多 tab，不是 Preview 里的 ChatEditor | S1 |
-| 默认根不可关（拦截器，非 pin）；整块与 session 窗只藏 | S1 / S5 |
+| 默认根不可关（拦截器，非 pin）；整块与 session 窗只藏 | S1 / **S1a（A1：`applyState` 豁免）** / S5 |
+| chat tab 不外漏进 Preview 的全局 editor 语义（枚举、Close All、组导航、工作集） | S1a（A3） |
 | Fork 同 session 新 tab，非新根 | S3 |
 | 子代理默认点击 session 叶对话框、不加 tab；最大化才开 tab | S3 |
 | 子代理 tab 面包屑沿 `origin.chat`；点击替换当前延伸 tab | S3b |
@@ -288,4 +346,15 @@ S1 可在无引擎下落地。S3 / S3b 活数据依赖 PRD-008。每个实施 co
 
 Critical 已改入：Conversation EditorPart 工厂 + session 叶在组之上；`CONVERSATION_GROUP`/`CONVERSATION_SIDE_GROUP` 与 Modal 级围栏；Conversation 自有导航栈（弃 `GoScope.EDITOR_GROUP`）；协议 `origin.chat` / `CreateChatParams.source`；插入面合同写入方案而非「S6 收窄」。Important 已改入：对话框 DOM/z 序；窗口 vs 页 chrome 与 PRD-012 修正；窗口并列非 ADR-001 孪生、共享 Preview；关闭拦截器；ESLint 分层门；默认窗 fork 不走 `agentHostForkActions`。
 
-方案 `accepted`（2026-09-01 用户签收）。末次只读审查为 Grok Block，Critical/Important 已改入后签收；未再派 Opus。S1–S6 ReadyToImplement；未改 `src/`。
+方案 `accepted`（2026-09-01 用户签收）。末次只读审查为 Grok Block，Critical/Important 已改入后签收；未再派 Opus。未改 `src/`。
+
+2026-09-01（签收后）：父 agent 对 `editorParts.ts` 与 agentHost 协议做只读代码事实复核，发现签收稿的三项缺口并改入：
+
+| 级别 | 发现 | 改入 |
+|------|------|------|
+| Critical | `applyState` 只豁免 `mainPart`，对其余 part `force` 关光 editor 再 `close()`；触发源含工作集 apply 与跨窗 `onDidChangeMementoState`。直接否掉「默认根永不 dispose、只能藏不能关」，且 `force` 绕过 §3.3 第 6 条的关闭拦截器 | §2 锚点 + §3.8 A1 + 切片 S1a + 测试 10 + §6 风险 + §7 验收 |
+| Critical | `getScopedInstantiationService` 主体按 **windowId** 索引，Modal 靠**单例专属字段**绕开；原稿「与 Modal 一样」对**两个**共享 windowId 的 part 不成立 | §2 锚点 + §3.8 A2 + 测试 11 |
+| Important | `getGroups` flatMap 全部 part、`activeGroup` 取 MRU `activePart`、`findGroup` FIRST/LAST 全局、`getPartByDocument` 同 document 消歧。原稿围栏只覆盖**入站**（§3.2 第 5 条只提「不得 reveal 进」），方向相反；且围栏第 4 条本身依赖 `activePart` 不被 Conversation 抢走 | §2 锚点 + §3.8 A3 与配套约束 1–3 + 测试 12 + §7 验收 |
+| Important | 协议 `ChatOrigin` 是四 kind（`SideChat` 未覆盖）；`ChatInteractivity` 的 `ReadOnly` / `Hidden` 无呈现合同 | §2 锚点 + 新增 §3.3b + 测试 13 |
+
+结论：形态与拓扑（ADR-002 形态 1）不受影响，故 ADR-002 正文按规则 5 不改（其细节本就授权给本方案 §3）。本批改写**未派独立 reviewer**；S1 / S1a 开工前须补规则 16 只读审查。

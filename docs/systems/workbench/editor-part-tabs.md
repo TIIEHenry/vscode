@@ -89,6 +89,8 @@ INV-TOPO **仍然禁止**：
 
 INV-TOPO **不再禁止**（[ADR-002](../../../dev/decisions/002-conversation-session-windows.md) 选定）：在 `CONVERSATION_PART` **内部**挂独立 Conversation `IEditorPart`，用专用 conversation input 画 chat tab。这不是把中心变成 Preview。HEAD 未实施。
 
+**聚合豁免（选定，未实施）：** 该嵌套 part 注册进 `IEditorGroupsService.parts` 只为复用组 / tab / pane 机制，**不参与面向用户的全局 editor 语义**。`EditorParts` 今天对 `this.parts` 做全局聚合（`getGroups` flatMap、`activeGroup` 取 MRU `activePart`、`findGroup` FIRST/LAST 全局、`applyState` 对非 `mainPart` 一律 `force` 关闭再 `close()`、`getScopedInstantiationService` 按 windowId 索引），故 Conversation part 须以**一条**排除谓词退出枚举、MRU、工作集恢复与 editor 历史，且 scoped 服务索引须从 windowId 改为 part。合同与切片见 [conversation-session-windows](../../../dev/plans/conversation-session-windows.md) §3.8。
+
 宿主清单、Copilot 边界、Sessions Part 对照见 [agent-ui](../chat/agent-ui.md)，此处不改写。
 
 ## 5. 多组 / 分屏 vs IA「不是第二 Editor Group」

@@ -4,14 +4,16 @@ type: progress
 status: active
 phase: M4
 updated: 2026-09-01
-summary: "设置两套主面已签收（C5 / H0–H3 ReadyToImplement；E1 等 PRD-008）；PRD-015–016 已签收未实施；M4 D4 仍阻塞于 compile 产物"
+summary: "设置两套主面已签收（C5 / H0–H3 ReadyToImplement；E1 等 PRD-008）；PRD-015–016 已签收未实施；PRD-016 补聚合豁免 §3.8 与切片 S1a，待补规则 16 审查；M4 D4 仍阻塞于 compile 产物"
 ---
 
 # Development Progress
 
 ## Current Session
 
-- **Conversation session 窗口与 tab：** [conversation-session-windows.md](../plans/conversation-session-windows.md)（`accepted`）· [PRD-016](../../docs/product/requirements.md#prd-016-conversation-session-窗口与-chat-tab)（`accepted`）· [ADR-002](../decisions/002-conversation-session-windows.md)（`accepted`）。2026-09-01 用户签收。Grok Block 已改入。**S1–S6 ReadyToImplement**；未改 `src/`。
+- **Conversation session 窗口与 tab：** [conversation-session-windows.md](../plans/conversation-session-windows.md)（`accepted`）· [PRD-016](../../docs/product/requirements.md#prd-016-conversation-session-窗口与-chat-tab)（`accepted`）· [ADR-002](../decisions/002-conversation-session-windows.md)（`accepted`）。2026-09-01 用户签收，Grok Block 已改入。**签收后代码事实复核**（`editorParts.ts` + agentHost 协议）改入两 Critical、两 Important：§3.8 **聚合豁免**（A1 `applyState` 只豁免 `mainPart`，会 `force` 关光 Conversation tab；A2 scoped service 按 windowId 索引装不下两个 part；A3 `getGroups`/MRU `activePart`/FIRST-LAST/`getPartByDocument` 外漏）与 §3.3b（`ChatOrigin` 四 kind 含 `SideChat`；`ChatInteractivity` `ReadOnly`/`Hidden`）；新增切片 **S1a**（与 S1 同批，A1 未落地即 S1 未完成）。ADR-002 正文按规则 5 不改（细节授权给方案 §3）。知识层 `editor-part-tabs` §4 / `parts-and-grid` §5 / `agent-ui` 已同步。**该批未派独立 reviewer；S1 / S1a 开工前须补规则 16 只读审查。** 未改 `src/`。
+
+- **文档卫生：** 删除 `dev/plans/status.md` 与 `dev/plans/traceability.md` —— 二者是 `dev/progress/status.md`（本文件）与 [docs/product/traceability.md](../../docs/product/traceability.md) 的**过期副本**（PRD-016 仍写 `draft`/`proposed`），违反单一事实来源，并让 `check-docs-health.py` 多报 30+ 条相对路径断链。SSOT 位置以 [DOCS-SPEC](../../docs/DOCS-SPEC.md) §3 为准；副本非「过时文档」，不进 `dev/archive/`，git 历史已留存。
 
 - **设置两套主面已签收：** [settings-two-surfaces.md](../plans/settings-two-surfaces.md) · [customizations-host-ui.md](../plans/customizations-host-ui.md) · [customizations-engine.md](../plans/customizations-engine.md) 均为 `accepted`。规则 16 三轮 Grok 4.6（Opus 不可用）。**ReadyToImplement：** C5 + donor H0–H3。**E1 blocked PRD-008**。未改 `src/`。
 

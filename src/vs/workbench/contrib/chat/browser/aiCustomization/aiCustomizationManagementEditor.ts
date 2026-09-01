@@ -635,6 +635,9 @@ export class AICustomizationManagementEditor extends EditorPane {
 
 		this.sections.length = 0;
 		for (const s of this.allSections) {
+			if (s.id === OVERVIEW_SECTION_ITEM_ID) {
+				continue;
+			}
 			const contribution = aiCustomizationManagementSectionRegistry.get(s.id, activeId);
 			const contributed = aiCustomizationManagementSectionRegistry.has(s.id);
 			if (!hidden.has(s.id) && (!contributed || !!contribution)) {
@@ -733,6 +736,9 @@ export class AICustomizationManagementEditor extends EditorPane {
 				}
 				this.contributedSectionWidgets.clear();
 				for (const section of this.sections) {
+					if (section.id === OVERVIEW_SECTION_ITEM_ID) {
+						continue;
+					}
 					this.updateSectionCount(section.id, 0);
 				}
 			}

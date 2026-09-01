@@ -95,7 +95,7 @@ CSS class：`LayoutClasses.MAIN_EDITOR_AREA_HIDDEN` / `CONVERSATION_HIDDEN` 等�
 | Status | StatusBar | `IStatusbarService` |
 | Activity 图标 | ActivityBar | 与 Sidebar 容器绑定 |
 
-**推论（INV-TOPO）：** Layout 中心叶 **必须**是 `CONVERSATION_PART`，禁止把中心改回 `Parts.EDITOR_PART` 或用 `ChatEditor` / Custom Editor 当产品对话。文件永远进 End 列 Preview。ADR-002 增加 **第四类 editor 容器**：Conversation `IEditorPart` 挂在 ConversationPart 的 session 叶内（Modal 同款注册、共用 `windowId`），只接受 conversation 类 input。HEAD 代码仍是 Part 三槽透镜，尚未工厂该嵌套 Part。S0 拒绝的是 **ChatEditor 占中心**，不是「Conversation 内部永远不能有 EditorGroup」。
+**推论（INV-TOPO）：** Layout 中心叶 **必须**是 `CONVERSATION_PART`，禁止把中心改回 `Parts.EDITOR_PART` 或用 `ChatEditor` / Custom Editor 当产品对话。文件永远进 End 列 Preview。ADR-002 增加 **第四类 editor 容器**：Conversation `IEditorPart` 挂在 ConversationPart 的 session 叶内（Modal 同款注册、共用 `windowId`），只接受 conversation 类 input，且**须从 `EditorParts` 的全局聚合中豁免**（枚举、MRU `activePart`、`applyState` 工作集恢复、editor 历史；见 [editor-part-tabs](editor-part-tabs.md) §4 与 [conversation-session-windows](../../../dev/plans/conversation-session-windows.md) §3.8）。HEAD 代码仍是 Part 三槽透镜，尚未工厂该嵌套 Part。S0 拒绝的是 **ChatEditor 占中心**，不是「Conversation 内部永远不能有 EditorGroup」。
 
 ## 6. M0 拓扑 + M1 内容（已落地代码面）
 

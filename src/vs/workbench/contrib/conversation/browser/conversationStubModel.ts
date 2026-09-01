@@ -6,7 +6,6 @@
 import { localize } from '../../../../nls.js';
 import { ConversationVisualizeArgs } from '../common/conversationVisualize.js';
 import {
-	ConversationMessageQueueItem,
 	ConversationMessageQueueState,
 	ConversationQueueItemHoldReason,
 	createEmptyMessageQueueState,

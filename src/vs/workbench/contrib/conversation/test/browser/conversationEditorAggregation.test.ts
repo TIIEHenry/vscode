@@ -71,7 +71,10 @@ suite('Conversation editor aggregation exemption (S1a)', () => {
 		await (parts as unknown as { applyState(state: 'empty'): Promise<boolean> }).applyState('empty');
 
 		assert.ok(parts.conversationParts.includes(conversationA));
-		assert.strictEqual(conversationA.activeGroup.getEditorByIndex(0)?.resource.toString(), rootEditor.resource.toString());
+		const rootAfterApply = conversationA.activeGroup.getEditorByIndex(0);
+		assert.ok(rootAfterApply);
+		assert.ok(rootAfterApply.resource);
+		assert.strictEqual(rootAfterApply.resource.toString(), rootEditor.resource.toString());
 	});
 
 	test('scoped instantiation services are unique per conversation part', async () => {

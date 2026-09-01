@@ -29,7 +29,7 @@ export class PromptsServiceCustomizationItemProvider implements ICustomizationIt
 
 	constructor(
 		@IPromptsService private readonly promptsService: IPromptsService,
-		@IAICustomizationWorkspaceService private readonly workspaceService: IAICustomizationWorkspaceService,
+		@IAICustomizationWorkspaceService _workspaceService: IAICustomizationWorkspaceService,
 		@IProductService private readonly productService: IProductService,
 	) {
 		this.onDidChange = Event.any(

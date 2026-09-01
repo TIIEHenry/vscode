@@ -29,4 +29,4 @@ summary: "dev/plans 导航：产品需求层建设与 M0–M5；设置两套主�
 | [conversation-process-fold.md](conversation-process-fold.md) | `implemented` | PRD-013 代码已落；D4 待验证 |
 | [thinkrail-visualize-port.md](thinkrail-visualize-port.md) | `implemented` | PRD-014 代码已落；D4 待验证 |
 | [conversation-empty-hero.md](conversation-empty-hero.md) | `accepted` | PRD-015 空会话居中 Composer、SessionConfig XOR、Inbox 分簇；T1–T6 ReadyToImplement · [canvas 快照](conversation-empty-hero.canvas.tsx) |
-| [conversation-session-windows.md](conversation-session-windows.md) | `accepted` | PRD-016；每叶 Conversation IEditorPart；S1–S6 ReadyToImplement；未实施 |
+| [conversation-session-windows.md](conversation-session-windows.md) | `accepted` | PRD-016；每叶 Conversation IEditorPart；入站围栏 + 出站聚合豁免（§3.8）；S1/S1a–S6；S1a 改写待补规则 16 审查；未实施 |

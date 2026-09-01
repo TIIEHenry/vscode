@@ -25,8 +25,6 @@ import {
 	conversationLensDockGoal,
 	conversationLensDockInboxNoQueue,
 	conversationLensDockInboxNoTasks,
-	conversationLensDockInboxQueueLabel,
-	conversationLensDockInboxTaskLabel,
 	conversationLensDockMaximizeInput,
 	conversationLensDockMicNotAvailable,
 	conversationLensDockMicStopTitle,
@@ -36,7 +34,6 @@ import {
 	conversationLensDockNoModel,
 	conversationLensDockNoRoute,
 	conversationLensDockNoTools,
-	conversationLensDockAgentLabel,
 	conversationLensDockNoAgent,
 	conversationLensDockRouteBalanced,
 	conversationLensDockPermissionAsk,
@@ -306,7 +303,7 @@ suite('ConversationLens', () => {
 		const modelSelect = bottomBar.querySelector('.conversation-lens-dock-model select.monaco-select-box') as HTMLSelectElement | null;
 		assert.ok(modelSelect);
 		modelSelect.selectedIndex = optionIndex;
-		modelSelect.dispatchEvent(new Event('change', { bubbles: true }));
+		modelSelect.dispatchEvent(new globalThis.Event('change', { bubbles: true }));
 	}
 
 	function getDockTextarea(slots: IConversationLensSlots): HTMLTextAreaElement {
@@ -321,7 +318,7 @@ suite('ConversationLens', () => {
 		selectDockModel(slots, 1);
 		const sendButton = getDockSendButton(slots);
 		textarea.value = message;
-		textarea.dispatchEvent(new Event('input', { bubbles: true }));
+		textarea.dispatchEvent(new globalThis.Event('input', { bubbles: true }));
 		sendButton.click();
 	}
 
@@ -669,7 +666,7 @@ suite('ConversationLens', () => {
 		selectDockModel(slots, 1);
 		const textarea = getDockTextarea(slots);
 		textarea.value = 'hello';
-		textarea.dispatchEvent(new Event('input', { bubbles: true }));
+		textarea.dispatchEvent(new globalThis.Event('input', { bubbles: true }));
 		assert.strictEqual(sendButton.classList.contains('disabled'), false);
 	});
 
@@ -760,7 +757,7 @@ suite('ConversationLens', () => {
 		const composerRouteSelect = routeSlot().querySelector('select.monaco-select-box') as HTMLSelectElement;
 
 		composerRouteSelect.selectedIndex = 1;
-		composerRouteSelect.dispatchEvent(new Event('change', { bubbles: true }));
+		composerRouteSelect.dispatchEvent(new globalThis.Event('change', { bubbles: true }));
 		assert.strictEqual(composerRouteSelect.options[composerRouteSelect.selectedIndex]?.text, conversationLensDockRouteBalanced);
 
 		sendDockDraft(slots, 'Lock route on SessionBar');
@@ -1045,7 +1042,6 @@ suite('ConversationLens', () => {
 		assert.notStrictEqual(ConversationChatInput.TypeID, ChatEditorInput.TypeID);
 		assert.notStrictEqual(ConversationEditorPane.ID, ChatEditorInput.EditorID);
 		assert.deepStrictEqual(part.toJSON(), { type: Parts.CONVERSATION_PART });
-		const slots = getLensSlots(part);
 		const lensHost = document.createElement('div');
 		const timeline = document.createElement('div');
 		timeline.className = 'conversation-timeline';

@@ -6,7 +6,6 @@
 import { $, addDisposableListener, append, reset } from '../../../../base/browser/dom.js';
 import { Button } from '../../../../base/browser/ui/button/button.js';
 import { AnchorAlignment } from '../../../../base/browser/ui/contextview/contextview.js';
-import { Codicon } from '../../../../base/common/codicons.js';
 import { AnchorPosition } from '../../../../base/common/layout.js';
 import { Disposable, toDisposable } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
@@ -220,7 +219,7 @@ export class ConversationInboxOverlay extends Disposable {
 
 	private refreshOpenListPanel(): void {
 		const panel = this.openPanel;
-		const host = document.querySelector('.conversation-lens-inbox-list-panel');
+		const host = document.querySelector('.conversation-lens-inbox-list-panel') as HTMLElement | null;
 		if (!panel || !host) {
 			return;
 		}

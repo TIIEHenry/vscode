@@ -90,7 +90,7 @@ Desktop 合同：窗口壳 = Singularity/IDEA；Conversation 内 = 时间线 + I
 
 **Inbox 选定布局（[PRD-015](../../product/requirements.md#prd-015-conversation-空会话与输入面)，2026-09-01 签收，未实施）：** PreFirst 无 Inbox / Goal / Stop；Active 左右分簇（左 Task · MessageQueue · Goal，右 Stop · 上下文环），Task 在 MessageQueue 左侧。HEAD 仍是上一段单行 inbox-row。合同见 [conversation-empty-hero](../../../dev/plans/conversation-empty-hero.md)。
 
-**Session 窗口 / chat tab（[PRD-016](../../product/requirements.md#prd-016-conversation-session-窗口与-chat-tab) / [ADR-002](../../../dev/decisions/002-conversation-session-windows.md)，2026-09-01 签收，未实施）：** 中心叶仍是 `CONVERSATION_PART`。Part 自管最多两叶 session 窗口；每叶内嵌 Conversation `IEditorPart`（`CONVERSATION_GROUP` / `CONVERSATION_SIDE_GROUP`）。产品对话用 `ConversationChatInput`，**禁止** `ChatEditorInput`。文件 / `SIDE_GROUP` 永远 Preview。HEAD 仍是上一段三槽单透镜。合同见 [conversation-session-windows](../../../dev/plans/conversation-session-windows.md)。
+**Session 窗口 / chat tab（[PRD-016](../../product/requirements.md#prd-016-conversation-session-窗口与-chat-tab) / [ADR-002](../../../dev/decisions/002-conversation-session-windows.md)，2026-09-01 签收，未实施）：** 中心叶仍是 `CONVERSATION_PART`。Part 自管最多两叶 session 窗口；每叶内嵌 Conversation `IEditorPart`（`CONVERSATION_GROUP` / `CONVERSATION_SIDE_GROUP`）。产品对话用 `ConversationChatInput`，**禁止** `ChatEditorInput`。文件 / `SIDE_GROUP` 永远 Preview；反向的 **出站**聚合豁免（chat tab 不进全局 editor 枚举 / MRU / 工作集 / editor 历史）见方案 §3.8。chat 呈现按协议 `ChatOrigin` 四 kind 分流（`User` 根 tab、`Fork` 延伸 tab、`Tool` / `SideChat` 叶内对话框），`ChatInteractivity` 的 `Hidden` 完全不出现在 UI、`ReadOnly` 禁用 Dock 输入（方案 §3.3b）。HEAD 仍是上一段三槽单透镜。合同见 [conversation-session-windows](../../../dev/plans/conversation-session-windows.md)。
 
 ## 4. Sessions / Agents Window 宿主（更接近透镜，但不是文档壳）
 
