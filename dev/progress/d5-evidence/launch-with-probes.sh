@@ -7,7 +7,7 @@ PROBE_EXT="${PROBE_EXT:-/tmp/d5-probe-ext-vsix}"
 REPO="${REPO:-/home/clarence/Projects/Agents/vscode-WorkTrees/merge}"
 LAUNCH="$REPO/.agents/skills/launch/scripts/launch.sh"
 
-if [[ ! -d "$PROBE_EXT/redhat.vscode-yaml-"* ]] 2>/dev/null; then
+if [[ -z "$(ls -d "$PROBE_EXT"/redhat.vscode-yaml-* 2>/dev/null)" ]]; then
 	echo "Missing probe extensions in $PROBE_EXT — run code-cli.sh install first." >&2
 	exit 1
 fi

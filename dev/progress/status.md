@@ -4,17 +4,15 @@ type: progress
 status: active
 phase: M5
 updated: 2026-09-01
-summary: "UI 方案并行收口：B2 知识层四页 accepted；M5 切片 5 文档待 commit；D5 延后"
+summary: "HEAD 3180a611：M5 切片 5 文档已 commit；D5 launch 冒烟下一步"
 ---
 
 # Development Progress
 
 ## Current Session
 
-- **集成 HEAD：** `77d6e7cc`
-- **策略：** **先 UI 方案、后测试** — D5 EH 冒烟延后；并行同步知识层与 plans。
-- **M5 切片 5：** plans INDEX、traceability、lens-assembly、desktop-shell-mapping、agent-ui、eh-surface-matrix + B2 四页（settings-ua-access、session-roster-reuse、navigator-tabs-access、conversation-lens-assembly）— **待 commit**。
-- **D5：** 探针已装入 `/tmp/d5-probe-ext-vsix`；`launch-with-probes.sh` 就绪；**不测直到 UI 文档收口完成**。
+- **集成 HEAD：** `3180a611` — M5 切片 5 文档已 commit（`docs(m5): close slice 5 UI scheme sync`）。
+- **策略：** UI 方案收口完成；**D5 launch 冒烟** 可开（`dev/progress/d5-evidence/launch-with-probes.sh`）。
 
 ## 并行 UI 方案轨
 
