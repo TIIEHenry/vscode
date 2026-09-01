@@ -45,7 +45,7 @@ suite('ConversationTrajectoryUi', () => {
 	}
 
 	function getLensTab(slots: IConversationLensSlots, lensId: 'conversation' | 'trajectory'): HTMLButtonElement {
-		const tab = slots.sessionBar.querySelector(`button[data-lens-id="${lensId}"]`);
+		const tab = slots.sessionBar!.querySelector(`button[data-lens-id="${lensId}"]`);
 		assert.ok(tab);
 		return tab as HTMLButtonElement;
 	}
@@ -64,7 +64,7 @@ suite('ConversationTrajectoryUi', () => {
 		trajectoryView.layout(LENS_LAYOUT_HEIGHT, LENS_LAYOUT_WIDTH);
 	}
 
-	function mountLens(): { part: ConversationPart; lens: ConversationLens; stubService: ConversationStubService; layoutReadingColumn: () => void } {
+	function mountLens(): { part: ConversationPart; lens: ConversationLens; stubService: ConversationStubService; layoutReadingColumn: () => void; slots: IConversationLensSlots } {
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		const storageService = store.add(new TestStorageService());
 		instantiationService.stub(IStorageService, storageService);
@@ -99,12 +99,21 @@ suite('ConversationTrajectoryUi', () => {
 		document.body.appendChild(parent);
 		store.add(toDisposable(() => parent.remove()));
 		part.create(parent);
-		const slots = part.getSlots();
-		assert.ok(slots);
+		const partSlots = part.getSlots();
+		assert.ok(partSlots);
+		const slots: IConversationLensSlots = {
+			sessionBar: partSlots.sessionBar,
+			timeline: document.createElement('div'),
+			dock: document.createElement('div'),
+		};
+		slots.timeline.classList.add('conversation-timeline');
+		slots.dock.classList.add('conversation-dock');
+		parent.appendChild(slots.timeline);
+		parent.appendChild(slots.dock);
 		const layout = () => layoutReadingColumn(lens, slots);
 		const lens = store.add(instantiationService.createInstance(ConversationLens, slots));
 		layout();
-		return { part, lens, stubService, layoutReadingColumn: layout };
+		return { part, lens, stubService, layoutReadingColumn: layout, slots };
 	}
 
 	function seedUntitledTrajectory(stubService: ConversationStubService): string {
@@ -117,8 +126,7 @@ suite('ConversationTrajectoryUi', () => {
 	}
 
 	test('trajectory table renders record kinds and opens inspector on row select', async () => {
-		const { part, stubService, layoutReadingColumn } = mountLens();
-		const slots = part.getSlots()!;
+		const { stubService, layoutReadingColumn, slots } = mountLens();
 		seedUntitledTrajectory(stubService);
 		await flushTimelineHeightUpdates();
 
@@ -146,8 +154,7 @@ suite('ConversationTrajectoryUi', () => {
 	});
 
 	test('subtool row is indented relative to parent tool', async () => {
-		const { part, stubService, layoutReadingColumn } = mountLens();
-		const slots = part.getSlots()!;
+		const { stubService, layoutReadingColumn, slots } = mountLens();
 		seedUntitledTrajectory(stubService);
 		await flushTimelineHeightUpdates();
 
@@ -163,8 +170,7 @@ suite('ConversationTrajectoryUi', () => {
 	});
 
 	test('process fold defaults expanded on trajectory and keeps SYSTEM/context outside when collapsed', async () => {
-		const { part, stubService, layoutReadingColumn } = mountLens();
-		const slots = part.getSlots()!;
+		const { stubService, layoutReadingColumn, slots } = mountLens();
 		seedUntitledTrajectory(stubService);
 		await flushTimelineHeightUpdates();
 

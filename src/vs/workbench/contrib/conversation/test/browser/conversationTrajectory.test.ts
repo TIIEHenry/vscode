@@ -77,7 +77,7 @@ suite('ConversationTrajectory', () => {
 		trajectoryView.layout(LENS_LAYOUT_HEIGHT, LENS_LAYOUT_WIDTH);
 	}
 
-	function mountLens(): { part: ConversationPart; lens: ConversationLens; stubService: ConversationStubService; layoutReadingColumn: () => void } {
+	function mountLens(): { part: ConversationPart; lens: ConversationLens; stubService: ConversationStubService; layoutReadingColumn: () => void; slots: IConversationLensSlots } {
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		const storageService = store.add(new TestStorageService());
 		instantiationService.stub(IStorageService, storageService);
@@ -112,12 +112,21 @@ suite('ConversationTrajectory', () => {
 		document.body.appendChild(parent);
 		store.add(toDisposable(() => parent.remove()));
 		part.create(parent);
-		const slots = part.getSlots();
-		assert.ok(slots);
+		const partSlots = part.getSlots();
+		assert.ok(partSlots);
+		const slots: IConversationLensSlots = {
+			sessionBar: partSlots.sessionBar,
+			timeline: document.createElement('div'),
+			dock: document.createElement('div'),
+		};
+		slots.timeline.classList.add('conversation-timeline');
+		slots.dock.classList.add('conversation-dock');
+		parent.appendChild(slots.timeline);
+		parent.appendChild(slots.dock);
 		const layout = () => layoutReadingColumn(lens, slots);
 		const lens = store.add(instantiationService.createInstance(ConversationLens, slots));
 		layout();
-		return { part, lens, stubService, layoutReadingColumn: layout };
+		return { part, lens, stubService, layoutReadingColumn: layout, slots };
 	}
 
 	test('projectTurnsToTrajectory skips confirmation turns', () => {
@@ -194,8 +203,7 @@ suite('ConversationTrajectory', () => {
 	});
 
 	test('conversation lens hides trajectory fixture copy on the Conversation page', async () => {
-		const { part, stubService, layoutReadingColumn } = mountLens();
-		const slots = part.getSlots()!;
+		const { stubService, layoutReadingColumn, slots } = mountLens();
 		const sessionId = stubService.getActiveSessionId();
 
 		stubService.appendUserTurn(sessionId, 'Only the user prompt belongs here');

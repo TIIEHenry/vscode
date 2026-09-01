@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { localize } from '../../../../nls.js';
-import { EditorGroupLayout, GroupActivationReason, GroupDirection, GroupLocation, GroupOrientation, GroupsArrangement, GroupsOrder, IAuxiliaryEditorPart, IEditorGroupContextKeyProvider, IEditorDropTargetDelegate, IEditorGroupsService, IEditorSideGroup, IEditorWorkingSet, IFindGroupScope, IMergeGroupOptions, IEditorWorkingSetOptions, IEditorPart, IModalEditorPart, IEditorGroupActivationEvent } from '../../../services/editor/common/editorGroupsService.js';
+import { EditorGroupLayout, GroupActivationReason, GroupDirection, GroupLocation, GroupOrientation, GroupsArrangement, GroupsOrder, IAuxiliaryEditorPart, IEditorGroupContextKeyProvider, IEditorDropTargetDelegate, IEditorGroupsService, IEditorSideGroup, IEditorWorkingSet, IFindGroupScope, IMergeGroupOptions, IEditorWorkingSetOptions, IEditorPart, IModalEditorPart, IEditorGroupActivationEvent, IConversationEditorPart, isExcludedFromGlobalEditorAggregation } from '../../../services/editor/common/editorGroupsService.js';
 import { Emitter } from '../../../../base/common/event.js';
 import { DisposableMap, DisposableStore, IDisposable, toDisposable } from '../../../../base/common/lifecycle.js';
 import { GroupIdentifier, IEditorPartOptions } from '../../../common/editor.js';
@@ -15,6 +15,7 @@ import { IInstantiationService } from '../../../../platform/instantiation/common
 import { distinct } from '../../../../base/common/arrays.js';
 import { AuxiliaryEditorPart, IAuxiliaryEditorPartOpenOptions } from './auxiliaryEditorPart.js';
 import { ModalEditorPart } from './modalEditorPart.js';
+import { ConversationEditorPartImpl } from './conversationEditorPart.js';
 import { MultiWindowParts } from '../../part.js';
 import { DeferredPromise } from '../../../../base/common/async.js';
 import { IStorageService, IStorageValueChangeEvent, StorageScope, StorageTarget } from '../../../../platform/storage/common/storage.js';
@@ -30,6 +31,7 @@ import { IStatusbarService } from '../../../services/statusbar/browser/statusbar
 import { mainWindow } from '../../../../base/browser/window.js';
 import { IModalEditorPartOptions } from '../../../../platform/editor/common/editor.js';
 import { EditorPartModalVisibleContext } from '../../../common/contextkeys.js';
+import { ConversationChatInput, getDefaultConversationChatResource } from '../../../contrib/conversation/browser/conversationChatInput.js';
 
 interface IEditorPartsUIState {
 	readonly auxiliary: IAuxiliaryEditorPartState[];
@@ -120,26 +122,26 @@ export class EditorParts extends MultiWindowParts<EditorPart, IEditorPartsMement
 
 	//#region Scoped Instantiation Services
 
-	private readonly mapPartToInstantiationService = new Map<number /* window ID */, IInstantiationService>();
+	private readonly mapPartToInstantiationService = new Map<IEditorPart, IInstantiationService>();
 	private modalPartInstantiationService: IInstantiationService | undefined;
 
 	getScopedInstantiationService(part: IEditorPart): IInstantiationService {
 
 		// Main Part
 		if (part === this.mainPart) {
-			let mainPartInstantiationService = this.mapPartToInstantiationService.get(part.windowId);
+			let mainPartInstantiationService = this.mapPartToInstantiationService.get(part);
 			if (!mainPartInstantiationService) {
 				mainPartInstantiationService = this.instantiationService.invokeFunction(accessor => {
 					const editorService = accessor.get(IEditorService);
 					const statusbarService = accessor.get(IStatusbarService);
 
-					const mainPartInstantiationService = this._register(this.mainPart.scopedInstantiationService.createChild(new ServiceCollection(
+					const scoped = this._register(this.mainPart.scopedInstantiationService.createChild(new ServiceCollection(
 						[IEditorService, editorService.createScoped(this.mainPart, this._store)],
 						[IStatusbarService, statusbarService.createScoped(statusbarService, this._store)]
 					)));
-					this.mapPartToInstantiationService.set(part.windowId, mainPartInstantiationService);
+					this.mapPartToInstantiationService.set(part, scoped);
 
-					return mainPartInstantiationService;
+					return scoped;
 				});
 			}
 
@@ -151,7 +153,17 @@ export class EditorParts extends MultiWindowParts<EditorPart, IEditorPartsMement
 			return this.modalPartInstantiationService;
 		}
 
-		return this.mapPartToInstantiationService.get(part.windowId) ?? this.instantiationService;
+		const scoped = this.mapPartToInstantiationService.get(part);
+		if (scoped) {
+			return scoped;
+		}
+
+		return this.instantiationService;
+	}
+
+	private setScopedInstantiationService(part: IEditorPart, instantiationService: IInstantiationService, owner: DisposableStore): void {
+		this.mapPartToInstantiationService.set(part, instantiationService);
+		owner.add(toDisposable(() => this.mapPartToInstantiationService.delete(part)));
 	}
 
 	//#endregion
@@ -165,8 +177,7 @@ export class EditorParts extends MultiWindowParts<EditorPart, IEditorPartsMement
 		const { part, instantiationService, disposables } = await this.instantiationService.createInstance(AuxiliaryEditorPart, this).create(this.getGroupsLabel(this._parts.size), options);
 
 		// Keep instantiation service
-		this.mapPartToInstantiationService.set(part.windowId, instantiationService);
-		disposables.add(toDisposable(() => this.mapPartToInstantiationService.delete(part.windowId)));
+		this.setScopedInstantiationService(part, instantiationService, disposables);
 
 		// Events
 		this._onDidAddGroup.fire(part.activeGroup);
@@ -174,6 +185,69 @@ export class EditorParts extends MultiWindowParts<EditorPart, IEditorPartsMement
 		this._onDidCreateAuxiliaryEditorPart.fire(part);
 
 		return part;
+	}
+
+	//#endregion
+
+	//#region Conversation Editor Parts
+
+	private readonly conversationEditorParts = new Map<string, IConversationEditorPart>();
+
+	get conversationParts(): ReadonlyArray<IConversationEditorPart> {
+		return [...this.conversationEditorParts.values()];
+	}
+
+	getActiveConversationEditorPart(): IConversationEditorPart | undefined {
+		const activeElement = getActiveElement();
+		for (const part of this.conversationParts) {
+			const container = (part as ConversationEditorPartImpl).getContainer();
+			if (container && isAncestor(activeElement, container)) {
+				return part;
+			}
+		}
+
+		return this.conversationParts.at(0);
+	}
+
+	createConversationEditorPart(parent: unknown /* HTMLElement */, sessionKey: string): IConversationEditorPart {
+		const existing = this.conversationEditorParts.get(sessionKey);
+		if (existing) {
+			return existing;
+		}
+
+		const disposables = this._register(new DisposableStore());
+		const host = parent as HTMLElement;
+
+		const editorPart = disposables.add(this.instantiationService.createInstance(
+			ConversationEditorPartImpl,
+			sessionKey,
+			mainWindow.vscodeWindowId,
+			this,
+		));
+		disposables.add(this.registerPart(editorPart));
+		editorPart.create(host);
+
+		const scopedInstantiationService = this.instantiationService.invokeFunction(accessor => {
+			const editorService = accessor.get(IEditorService);
+			return editorPart.scopedInstantiationService.createChild(new ServiceCollection(
+				[IEditorService, editorService.createScoped(editorPart, disposables)]
+			));
+		});
+		this.setScopedInstantiationService(editorPart, scopedInstantiationService, disposables);
+
+		const defaultInput = this.instantiationService.createInstance(
+			ConversationChatInput,
+			getDefaultConversationChatResource(sessionKey),
+			{ isDefaultRoot: true },
+		);
+		void editorPart.activeGroup.openEditor(defaultInput);
+
+		this.conversationEditorParts.set(sessionKey, editorPart);
+		disposables.add(toDisposable(() => this.conversationEditorParts.delete(sessionKey)));
+
+		this._onDidAddGroup.fire(editorPart.activeGroup);
+
+		return editorPart;
 	}
 
 	//#endregion
@@ -339,6 +413,10 @@ export class EditorParts extends MultiWindowParts<EditorPart, IEditorPartsMement
 	}
 
 	private doUpdateMostRecentActive(part: EditorPart, makeMostRecentlyActive?: boolean): void {
+		if (isExcludedFromGlobalEditorAggregation(part)) {
+			return;
+		}
+
 		const index = this.mostRecentActiveParts.indexOf(part);
 
 		// Remove from MRU list
@@ -360,11 +438,30 @@ export class EditorParts extends MultiWindowParts<EditorPart, IEditorPartsMement
 
 	//#region Helpers
 
+	private getGloballyAggregatedParts(): EditorPart[] {
+		return this.parts.filter(part => !isExcludedFromGlobalEditorAggregation(part));
+	}
+
+	override get activePart(): EditorPart {
+		const activeElement = getActiveElement();
+		for (const part of this.mostRecentActiveParts) {
+			if (isExcludedFromGlobalEditorAggregation(part)) {
+				continue;
+			}
+			const container = part.getContainer();
+			if (container && isAncestor(activeElement, container)) {
+				return part;
+			}
+		}
+
+		return this.mainPart;
+	}
+
 	protected override getPartByDocument(document: Document): EditorPart {
 		// Multiple editor parts can share the same document because
 		// the main part and a modal part both live in the main window.
 
-		const mruParts = this.mostRecentActiveParts;
+		const mruParts = this.mostRecentActiveParts.filter(part => !isExcludedFromGlobalEditorAggregation(part));
 		const mruDocumentParts = mruParts.filter(part => part.element?.ownerDocument === document);
 		if (mruDocumentParts.length > 1) {
 			// First try to find the part that has the currently focused element, which is the most likely candidate to be the active part for that document.
@@ -377,6 +474,10 @@ export class EditorParts extends MultiWindowParts<EditorPart, IEditorPartsMement
 			}
 
 			// Pick the part that was set active last for that document
+			return mruDocumentParts[0];
+		}
+
+		if (mruDocumentParts.length === 1) {
 			return mruDocumentParts[0];
 		}
 
@@ -566,8 +667,8 @@ export class EditorParts extends MultiWindowParts<EditorPart, IEditorPartsMement
 		// them merge into the main part.
 
 		for (const part of this.parts) {
-			if (part === this.mainPart) {
-				continue; // main part takes care on its own
+			if (part === this.mainPart || isExcludedFromGlobalEditorAggregation(part)) {
+				continue; // main part takes care on its own; conversation parts are hide-only
 			}
 
 			for (const group of part.getGroups(GroupsOrder.MOST_RECENTLY_ACTIVE)) {
@@ -724,15 +825,16 @@ export class EditorParts extends MultiWindowParts<EditorPart, IEditorPartsMement
 	}
 
 	getGroups(order = GroupsOrder.CREATION_TIME): IEditorGroupView[] {
-		if (this._parts.size > 1) {
+		const aggregatedParts = this.getGloballyAggregatedParts();
+		if (aggregatedParts.length > 1 || (aggregatedParts.length === 1 && aggregatedParts[0] !== this.mainPart)) {
 			let parts: EditorPart[];
 			switch (order) {
 				case GroupsOrder.GRID_APPEARANCE: // we currently do not have a way to compute by appearance over multiple windows
 				case GroupsOrder.CREATION_TIME:
-					parts = this.parts;
+					parts = aggregatedParts;
 					break;
 				case GroupsOrder.MOST_RECENTLY_ACTIVE:
-					parts = distinct([...this.mostRecentActiveParts, ...this.parts]); // always ensure all parts are included
+					parts = distinct([...this.mostRecentActiveParts.filter(part => !isExcludedFromGlobalEditorAggregation(part)), ...aggregatedParts]); // always ensure all parts are included
 					break;
 			}
 
@@ -816,7 +918,8 @@ export class EditorParts extends MultiWindowParts<EditorPart, IEditorPartsMement
 
 	findGroup(scope: IFindGroupScope, source: IEditorGroupView | GroupIdentifier = this.activeGroup, wrap?: boolean): IEditorGroupView | undefined {
 		const sourcePart = this.getPart(source);
-		if (this._parts.size > 1) {
+		const aggregatedParts = this.getGloballyAggregatedParts();
+		if (aggregatedParts.length > 1 || (aggregatedParts.length === 1 && aggregatedParts[0] !== this.mainPart)) {
 			const groups = this.getGroups(GroupsOrder.GRID_APPEARANCE);
 
 			// Ensure that FIRST/LAST dispatches globally over all parts

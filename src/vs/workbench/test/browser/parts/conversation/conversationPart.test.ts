@@ -22,18 +22,17 @@ suite('ConversationPart', () => {
 		return part;
 	}
 
-	test('exposes SessionBar, timeline, and dock slots that can host content', () => {
+	test('exposes SessionBar and session editor host slots', () => {
 		const part = createPart();
 		const slots = part.getSlots();
 		assert.ok(slots);
 		assert.ok(slots.sessionBar);
-		assert.ok(slots.timeline);
-		assert.ok(slots.dock);
+		assert.ok(slots.editorPartHost);
 
 		const fill = document.createElement('div');
 		fill.className = 'test-slot-fill';
-		slots.timeline.appendChild(fill);
-		assert.strictEqual(slots.timeline.querySelector('.test-slot-fill'), fill);
+		slots.sessionBar.appendChild(fill);
+		assert.strictEqual(slots.sessionBar.querySelector('.test-slot-fill'), fill);
 	});
 
 	test('is the conversation Part, not an EditorInput', () => {

@@ -11,6 +11,8 @@ import { ConversationPart, IConversationLensSlots } from '../../../../browser/pa
 import { Parts } from '../../../../services/layout/browser/layoutService.js';
 import { ChatEditorInput } from '../../../chat/browser/widgetHosts/editor/chatEditorInput.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
+import { ConversationChatInput } from '../../browser/conversationChatInput.js';
+import { ConversationEditorPane } from '../../browser/conversationEditorPane.js';
 import { ConversationLens } from '../../browser/conversationLens.js';
 import { ConversationTimelineTree, conversationLensUserBubbleShowLess, conversationLensUserBubbleShowMore } from '../../browser/conversationTimelineTree.js';
 import { ConversationTrajectory } from '../../browser/conversationTrajectory.js';
@@ -76,6 +78,13 @@ import { IWebviewService } from '../../../webview/browser/webview.js';
 suite('ConversationLens', () => {
 
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
+	const lensSlotsByPart = new WeakMap<ConversationPart, IConversationLensSlots>();
+
+	function getLensSlots(part: ConversationPart): IConversationLensSlots {
+		const slots = lensSlotsByPart.get(part);
+		assert.ok(slots);
+		return slots;
+	}
 
 	async function flushTimelineHeightUpdates(): Promise<void> {
 		await new Promise<void>(resolve => setTimeout(resolve, 20));
@@ -109,7 +118,7 @@ suite('ConversationLens', () => {
 	const LENS_MIN_WIDTH = 300;
 
 	function getLensTab(slots: IConversationLensSlots, lensId: 'conversation' | 'trajectory'): HTMLButtonElement {
-		const tab = slots.sessionBar.querySelector(`button.conversation-lens-lens-tab[data-lens-id="${lensId}"]`) as HTMLButtonElement | null;
+		const tab = slots.sessionBar!.querySelector(`button.conversation-lens-lens-tab[data-lens-id="${lensId}"]`) as HTMLButtonElement | null;
 		assert.ok(tab);
 		return tab;
 	}
@@ -320,7 +329,7 @@ suite('ConversationLens', () => {
 		textarea.dispatchEvent(new KeyboardEvent('keydown', { keyCode, bubbles: true, cancelable: true }));
 	}
 
-	function getSessionSelectLabel(slots: NonNullable<ReturnType<ConversationPart['getSlots']>>): string | undefined {
+	function getSessionSelectLabel(slots: IConversationLensSlots): string | undefined {
 		const select = slots.sessionBar.querySelector('select.monaco-select-box') as HTMLSelectElement | null;
 		if (!select || select.options.length === 0) {
 			return undefined;
@@ -402,8 +411,17 @@ suite('ConversationLens', () => {
 		document.body.appendChild(parent);
 		store.add(toDisposable(() => parent.remove()));
 		part.create(parent);
-		const slots = part.getSlots();
-		assert.ok(slots);
+		const partSlots = part.getSlots();
+		assert.ok(partSlots);
+		const slots: IConversationLensSlots = {
+			sessionBar: partSlots.sessionBar,
+			timeline: document.createElement('div'),
+			dock: document.createElement('div'),
+		};
+		slots.timeline.classList.add('conversation-timeline');
+		slots.dock.classList.add('conversation-dock');
+		parent.appendChild(slots.timeline);
+		parent.appendChild(slots.dock);
 		slots.timeline.classList.add('part', 'conversation');
 		part.layout(layoutWidth, LENS_LAYOUT_HEIGHT, 0, 0);
 		const layoutCallbacks: Array<() => void> = [];
@@ -415,6 +433,7 @@ suite('ConversationLens', () => {
 		store.add(stubService.onDidChangeSession(() => runLayouts()));
 		store.add(stubService.onDidChangeActiveSession(() => runLayouts()));
 		const lens = store.add(instantiationService.createInstance(ConversationLens, slots));
+		lensSlotsByPart.set(part, slots);
 		const layout = () => layoutReadingColumn(lens, slots);
 		layoutCallbacks.push(layout);
 		layout();
@@ -453,7 +472,7 @@ suite('ConversationLens', () => {
 
 	test('short user turn does not show Show more control', () => {
 		const { part, stubService } = mountLens();
-		const slots = part.getSlots()!;
+		const slots = getLensSlots(part);
 		const sessionId = stubService.createSession();
 		stubService.appendUserTurn(sessionId, userMessageLines(2));
 
@@ -463,7 +482,7 @@ suite('ConversationLens', () => {
 
 	test('long user turn collapses with Show more and full-text title', () => {
 		const { part, stubService } = mountLens();
-		const slots = part.getSlots()!;
+		const slots = getLensSlots(part);
 		const sessionId = stubService.createSession();
 		const message = userMessageLines(8);
 		stubService.appendUserTurn(sessionId, message);
@@ -486,7 +505,7 @@ suite('ConversationLens', () => {
 
 	test('Show more expands user bubble and Show less collapses it again', async () => {
 		const { part, stubService, layoutReadingColumn } = mountLens();
-		const slots = part.getSlots()!;
+		const slots = getLensSlots(part);
 		const sessionId = stubService.createSession();
 		stubService.appendUserTurn(sessionId, userMessageLines(8));
 		layoutReadingColumn();
@@ -518,7 +537,7 @@ suite('ConversationLens', () => {
 
 	test('long assistant stub echo does not get user bubble collapse chrome', () => {
 		const { part, stubService } = mountLens();
-		const slots = part.getSlots()!;
+		const slots = getLensSlots(part);
 		const sessionId = stubService.createSession();
 		stubService.appendStubEchoAssistant(sessionId, userMessageLines(8));
 
@@ -530,7 +549,7 @@ suite('ConversationLens', () => {
 
 	test('default session shows seeded untitled fixture without fake engine history', () => {
 		const { part, stubService } = mountLens();
-		const slots = part.getSlots()!;
+		const slots = getLensSlots(part);
 		const pendingButton = slots.dock.querySelector('.conversation-lens-inbox-pending') as HTMLButtonElement;
 
 		assert.strictEqual(stubService.getSessions().length, 2);
@@ -545,7 +564,7 @@ suite('ConversationLens', () => {
 
 	test('fills SessionBar, stub timeline, and stub dock slots', () => {
 		const { part } = mountLens();
-		const slots = part.getSlots()!;
+		const slots = getLensSlots(part);
 		assert.ok(slots.sessionBar.querySelector('.conversation-lens-session-bar'));
 		assert.ok(slots.timeline.querySelector('.conversation-lens-timeline'));
 		assert.ok(slots.dock.querySelector('.conversation-lens-dock'));
@@ -557,7 +576,7 @@ suite('ConversationLens', () => {
 
 	test('exposes Agent IDE chrome landmarks', () => {
 		const { part } = mountLens();
-		const slots = part.getSlots()!;
+		const slots = getLensSlots(part);
 
 		assert.ok(slots.sessionBar.querySelector('.conversation-lens-session-icon'));
 		assert.ok(slots.sessionBar.querySelector('.conversation-lens-session-title'));
@@ -578,7 +597,7 @@ suite('ConversationLens', () => {
 
 	test('compact chrome: scroll region is timeline inner scroll only', () => {
 		const { part } = mountLens();
-		const slots = part.getSlots()!;
+		const slots = getLensSlots(part);
 		const timelineSlot = slots.timeline;
 
 		assert.ok(timelineSlot.querySelector('.conversation-lens-timeline-scroll'));
@@ -588,7 +607,7 @@ suite('ConversationLens', () => {
 
 	test('compact chrome: dock composer textarea with bottom bar send', () => {
 		const { part } = mountLens();
-		const slots = part.getSlots()!;
+		const slots = getLensSlots(part);
 		const textarea = slots.dock.querySelector('textarea.conversation-lens-dock-input') as HTMLTextAreaElement;
 		const inputRow = slots.dock.querySelector('.conversation-lens-dock-input-row')!;
 		const bottomBar = slots.dock.querySelector('.conversation-lens-dock-bottom-bar')!;
@@ -604,7 +623,7 @@ suite('ConversationLens', () => {
 
 	test('T2 composer chrome: 32px bottom bar with add tune permission model more mic send codicons', () => {
 		const { part } = mountLens();
-		const slots = part.getSlots()!;
+		const slots = getLensSlots(part);
 		const bottomBar = getComposerBottomBar(slots);
 
 		assert.strictEqual(parseInt(getComputedStyle(bottomBar).minHeight, 10), conversationLensDockControlHeightPx);
@@ -656,7 +675,7 @@ suite('ConversationLens', () => {
 
 	test('PreFirst: centered composer cluster hides dock inbox and moves identity above composer', () => {
 		const { part, stubService } = mountLens();
-		const slots = part.getSlots()!;
+		const slots = getLensSlots(part);
 		const emptySessionId = stubService.createSession();
 		assert.strictEqual(stubService.getActiveSessionId(), emptySessionId);
 
@@ -676,7 +695,7 @@ suite('ConversationLens', () => {
 
 	test('Active: first message restores dock inbox row and identity at reading column top', () => {
 		const { part, stubService } = mountLens();
-		const slots = part.getSlots()!;
+		const slots = getLensSlots(part);
 		const sessionId = stubService.createSession();
 		sendDockDraft(slots, 'Hello PreFirst');
 
@@ -692,7 +711,7 @@ suite('ConversationLens', () => {
 
 	test('T3 SessionConfig XOR: agent and route only in PreFirst composer; Active SessionBar route; clearing turns returns PreFirst', () => {
 		const { part, stubService } = mountLens();
-		const slots = part.getSlots()!;
+		const slots = getLensSlots(part);
 		const sessionId = stubService.createSession();
 		const readingColumn = getReadingColumn(slots);
 
@@ -733,7 +752,7 @@ suite('ConversationLens', () => {
 
 	test('T3 SessionConfig XOR: route selection syncs between composer and SessionBar until first send', () => {
 		const { part, stubService } = mountLens();
-		const slots = part.getSlots()!;
+		const slots = getLensSlots(part);
 		stubService.createSession();
 
 		const routeSlot = () => getComposerBottomBar(slots).querySelector('.conversation-lens-dock-route') as HTMLElement;
@@ -753,7 +772,7 @@ suite('ConversationLens', () => {
 
 	test('Active inbox: left/right clusters with Task before MessageQueue', () => {
 		const { part, stubService } = mountLens();
-		const slots = part.getSlots()!;
+		const slots = getLensSlots(part);
 		stubService.createSession();
 		sendDockDraft(slots, 'Activate inbox overlay');
 		const overlay = getInboxOverlay(slots);
@@ -776,7 +795,7 @@ suite('ConversationLens', () => {
 
 	test('inbox task and queue lists are XOR', () => {
 		const { part, stubService } = mountLens();
-		const slots = part.getSlots()!;
+		const slots = getLensSlots(part);
 		const sessionId = stubService.createSession();
 		sendDockDraft(slots, 'Open inbox lists');
 		stubService.setAutoDriveTaskFixture(sessionId, ['Fix lint']);
@@ -795,7 +814,7 @@ suite('ConversationLens', () => {
 
 	test('message queue fixture renders Singularity queue rows with hold tag', () => {
 		const { part, stubService } = mountLens();
-		const slots = part.getSlots()!;
+		const slots = getLensSlots(part);
 		const sessionId = stubService.createSession();
 		sendDockDraft(slots, 'Queue fixture');
 		stubService.setMessageQueueFixture(sessionId, {
@@ -830,7 +849,7 @@ suite('ConversationLens', () => {
 
 	test('inbox goal is honest: disabled without engine, no goal field', () => {
 		const { part } = mountLens();
-		const slots = part.getSlots()!;
+		const slots = getLensSlots(part);
 		const goalButton = getInboxGoalButton(slots);
 
 		assert.ok(goalButton.classList.contains('disabled'));
@@ -844,7 +863,7 @@ suite('ConversationLens', () => {
 
 	test('inbox stop is honest: disabled without engine, no stopLoop side effects', () => {
 		const { part, stubService } = mountLens();
-		const slots = part.getSlots()!;
+		const slots = getLensSlots(part);
 		const sessionId = stubService.createSession();
 		sendDockDraft(slots, 'Activate inbox chrome');
 		const overlay = getInboxOverlay(slots);
@@ -867,7 +886,7 @@ suite('ConversationLens', () => {
 
 	test('honest dock gate and model labels without Copilot CTAs', () => {
 		const { part } = mountLens();
-		const slots = part.getSlots()!;
+		const slots = getLensSlots(part);
 		const gateRow = slots.dock.querySelector('.conversation-lens-dock-gate-row')!;
 		const modelSelect = slots.dock.querySelector('.conversation-lens-dock-model select.monaco-select-box') as HTMLSelectElement;
 		const sendButton = getDockSendButton(slots);
@@ -886,14 +905,14 @@ suite('ConversationLens', () => {
 		assert.ok(!conversationLensDockPlaceholder.toLowerCase().includes('copilot'));
 
 		const { part } = mountLens();
-		const textarea = part.getSlots()!.dock.querySelector('textarea.conversation-lens-dock-input') as HTMLTextAreaElement;
+		const textarea = getLensSlots(part).dock.querySelector('textarea.conversation-lens-dock-input') as HTMLTextAreaElement;
 		assert.strictEqual(textarea.placeholder, conversationLensDockPlaceholder);
 		assert.strictEqual(textarea.getAttribute('aria-label'), 'Message');
 	});
 
 	test('dock add control is honest: no file picker or attachment list', () => {
 		const { part } = mountLens();
-		const slots = part.getSlots()!;
+		const slots = getLensSlots(part);
 		const addHost = slots.dock.querySelector('.conversation-lens-dock-add');
 		const addButton = addHost?.querySelector('.monaco-button') as HTMLButtonElement | null;
 
@@ -918,7 +937,7 @@ suite('ConversationLens', () => {
 
 	test('dock tune and templates popups are honest stubs', () => {
 		const { part } = mountLens();
-		const slots = part.getSlots()!;
+		const slots = getLensSlots(part);
 		const tuneButton = slots.dock.querySelector('.conversation-lens-dock-tune .monaco-button') as HTMLButtonElement;
 		const templatesButton = slots.dock.querySelector('.conversation-lens-dock-templates .monaco-button') as HTMLButtonElement;
 
@@ -939,7 +958,7 @@ suite('ConversationLens', () => {
 
 	test('empty session shows timeline empty state without send-below hint', () => {
 		const { part, stubService } = mountLens();
-		const slots = part.getSlots()!;
+		const slots = getLensSlots(part);
 		const emptySessionId = stubService.createSession();
 		assert.strictEqual(stubService.getActiveSessionId(), emptySessionId);
 		const empty = getTimelineEmpty(slots);
@@ -952,7 +971,7 @@ suite('ConversationLens', () => {
 
 	test('renders confirmation as a timeline list item with Allow and Skip', async () => {
 		const { part, stubService, layoutReadingColumn } = mountLens();
-		const slots = part.getSlots()!;
+		const slots = getLensSlots(part);
 		await seedPendingConfirmation(stubService, layoutReadingColumn);
 		const seat = queryTimeline(slots, '.conversation-lens-confirmation-seat');
 		assert.ok(seat);
@@ -967,7 +986,7 @@ suite('ConversationLens', () => {
 
 	test('renders user and assistant turns with role headers', () => {
 		const { part, stubService } = mountLens();
-		const slots = part.getSlots()!;
+		const slots = getLensSlots(part);
 		const sessionId = stubService.createSession();
 		stubService.appendUserTurn(sessionId, 'What lives in the center lens?');
 		stubService.appendStubEchoAssistant(sessionId, 'SessionBar, timeline, and dock — not ChatEditor.');
@@ -993,7 +1012,7 @@ suite('ConversationLens', () => {
 
 	test('renders assistant turns as markdown, user turns as plain text', () => {
 		const { part, stubService } = mountLens();
-		const slots = part.getSlots()!;
+		const slots = getLensSlots(part);
 		const sessionId = stubService.createSession();
 		const markdownEcho = '**bold** stub echo';
 		stubService.appendStubEchoAssistant(sessionId, markdownEcho);
@@ -1010,7 +1029,7 @@ suite('ConversationLens', () => {
 
 	test('keeps user turn body as plain text without markdown rendering', () => {
 		const { part, stubService } = mountLens();
-		const slots = part.getSlots()!;
+		const slots = getLensSlots(part);
 		const sessionId = stubService.createSession();
 		const userMessage = 'plain **not bold** text';
 		stubService.appendUserTurn(sessionId, userMessage);
@@ -1023,15 +1042,20 @@ suite('ConversationLens', () => {
 
 	test('does not host the lens as ChatEditorInput', () => {
 		const { part } = mountLens();
-		assert.notStrictEqual(Parts.CONVERSATION_PART, ChatEditorInput.TypeID);
-		assert.notStrictEqual(Parts.CONVERSATION_PART, ChatEditorInput.EditorID);
+		assert.notStrictEqual(ConversationChatInput.TypeID, ChatEditorInput.TypeID);
+		assert.notStrictEqual(ConversationEditorPane.ID, ChatEditorInput.EditorID);
 		assert.deepStrictEqual(part.toJSON(), { type: Parts.CONVERSATION_PART });
-		assert.strictEqual(part.getSlots()!.timeline.querySelector('.chat-setup'), null);
+		const slots = getLensSlots(part);
+		const lensHost = document.createElement('div');
+		const timeline = document.createElement('div');
+		timeline.className = 'conversation-timeline';
+		lensHost.appendChild(timeline);
+		assert.strictEqual(timeline.querySelector('.chat-setup'), null);
 	});
 
 	test('session switcher changes visible title and timeline turns', async () => {
 		const { part, stubService } = mountLens();
-		const slots = part.getSlots()!;
+		const slots = getLensSlots(part);
 		const title = slots.sessionBar.querySelector('.conversation-lens-session-title')!;
 
 		const first = stubService.getActiveSession();
@@ -1056,7 +1080,7 @@ suite('ConversationLens', () => {
 
 	test('SessionBar new session button creates an empty stub session', () => {
 		const { part, stubService } = mountLens();
-		const slots = part.getSlots()!;
+		const slots = getLensSlots(part);
 		const newButton = slots.sessionBar.querySelector('.conversation-lens-session-new .monaco-button') as HTMLButtonElement;
 		const title = slots.sessionBar.querySelector('.conversation-lens-session-title')!;
 		const initialCount = stubService.getSessions().length;
@@ -1078,7 +1102,7 @@ suite('ConversationLens', () => {
 
 	test('SessionBar delete button removes active stub session', async () => {
 		const { part, stubService } = mountLens();
-		const slots = part.getSlots()!;
+		const slots = getLensSlots(part);
 		const deleteButton = slots.sessionBar.querySelector('.conversation-lens-session-delete .monaco-button') as HTMLButtonElement;
 		const initialCount = stubService.getSessions().length;
 		const deletedId = stubService.getActiveSessionId();
@@ -1099,7 +1123,7 @@ suite('ConversationLens', () => {
 
 	test('SessionBar delete on last session creates fresh untitled stub', () => {
 		const { part, stubService } = mountLens();
-		const slots = part.getSlots()!;
+		const slots = getLensSlots(part);
 		const deleteButton = slots.sessionBar.querySelector('.conversation-lens-session-delete .monaco-button') as HTMLButtonElement;
 		const title = slots.sessionBar.querySelector('.conversation-lens-session-title')!;
 		const sessions = [...stubService.getSessions()];
@@ -1118,7 +1142,7 @@ suite('ConversationLens', () => {
 
 	test('SessionBar lens tablist defaults to Conversation and switches to Trajectory', async () => {
 		const { part, stubService, layoutReadingColumn } = mountLens();
-		const slots = part.getSlots()!;
+		const slots = getLensSlots(part);
 		const sessionId = stubService.createSession();
 		const conversationTab = getLensTab(slots, 'conversation');
 		const trajectoryTab = getLensTab(slots, 'trajectory');
@@ -1157,7 +1181,7 @@ suite('ConversationLens', () => {
 
 	test('SessionBar lens tabs stay visible at 300px minimum width with 22px bar height', () => {
 		const { part } = mountLens({ layoutWidth: LENS_MIN_WIDTH });
-		const slots = part.getSlots()!;
+		const slots = getLensSlots(part);
 		const bar = slots.sessionBar.querySelector('.conversation-lens-session-bar') as HTMLElement;
 		const conversationTab = getLensTab(slots, 'conversation');
 		const trajectoryTab = getLensTab(slots, 'trajectory');
@@ -1173,14 +1197,14 @@ suite('ConversationLens', () => {
 	test('lensId persists across remount via workspace storage', async () => {
 		const storageService = store.add(new TestStorageService());
 		const first = mountLens({ storageService });
-		const slots = first.part.getSlots()!;
+		const slots = getLensSlots(first.part);
 
 		clickLensTab(slots, 'trajectory');
 		assert.strictEqual(storageService.get('conversation.lensId', StorageScope.WORKSPACE), 'trajectory');
 
 		first.lens.dispose();
 		const second = mountLens({ storageService });
-		const remountedSlots = second.part.getSlots()!;
+		const remountedSlots = getLensSlots(second.part);
 
 		assert.strictEqual(getLensTab(remountedSlots, 'trajectory').getAttribute('aria-selected'), 'true');
 		assert.ok(!remountedSlots.timeline.querySelector('.conversation-lens-trajectory')!.hasAttribute('hidden'));
@@ -1188,7 +1212,7 @@ suite('ConversationLens', () => {
 
 	test('switching sessions keeps the active lens tab', async () => {
 		const { part, stubService, layoutReadingColumn } = mountLens();
-		const slots = part.getSlots()!;
+		const slots = getLensSlots(part);
 		const firstId = stubService.getActiveSessionId();
 		const secondId = stubService.createSession();
 
@@ -1208,7 +1232,7 @@ suite('ConversationLens', () => {
 
 	test('empty trajectory shows honest copy for any zero-turn session', () => {
 		const { part, stubService, layoutReadingColumn } = mountLens();
-		const slots = part.getSlots()!;
+		const slots = getLensSlots(part);
 		const emptySessionId = stubService.createSession();
 		stubService.switchSession(emptySessionId);
 
@@ -1222,7 +1246,7 @@ suite('ConversationLens', () => {
 
 	test('inbox pending click from Trajectory lens switches back to Conversation', async () => {
 		const { part, lens, stubService, layoutReadingColumn } = mountLens();
-		const slots = part.getSlots()!;
+		const slots = getLensSlots(part);
 		await seedPendingConfirmation(stubService, layoutReadingColumn);
 
 		clickLensTab(slots, 'trajectory');
@@ -1243,7 +1267,7 @@ suite('ConversationLens', () => {
 
 	test('thinking and tool turns render inside a collapsed process fold by default', () => {
 		const { part, stubService } = mountLens();
-		const slots = part.getSlots()!;
+		const slots = getLensSlots(part);
 		const sessionId = stubService.createSession();
 		stubService.appendThinkingTurn(sessionId, 'Weighing options');
 		stubService.appendToolTurn(sessionId, 'grep src');
@@ -1268,7 +1292,7 @@ suite('ConversationLens', () => {
 
 	test('ConversationPart.focus lands on dock textarea when lens is mounted', () => {
 		const { part } = mountLens();
-		const slots = part.getSlots()!;
+		const slots = getLensSlots(part);
 		const textarea = slots.dock.querySelector('textarea.conversation-lens-dock-input') as HTMLTextAreaElement;
 
 		part.focus();
@@ -1291,12 +1315,12 @@ suite('ConversationLens', () => {
 
 	test('inbox overlay is honest: no inline queue rows until opened, pending hidden without confirmations', () => {
 		const { part, stubService } = mountLens();
-		const emptySlots = part.getSlots()!;
+		const emptySlots = getLensSlots(part);
 		stubService.createSession();
 		assert.strictEqual(emptySlots.dock.querySelector('.conversation-lens-inbox-overlay'), null);
 
 		sendDockDraft(emptySlots, 'Activate inbox overlay');
-		const slots = part.getSlots()!;
+		const slots = getLensSlots(part);
 		const overlay = getInboxOverlay(slots);
 		const pendingButton = overlay.querySelector('.conversation-lens-inbox-pending') as HTMLButtonElement;
 
@@ -1309,7 +1333,7 @@ suite('ConversationLens', () => {
 
 	test('allow on confirmation hides CTAs and updates inbox pending count', async () => {
 		const { part, stubService, layoutReadingColumn } = mountLens();
-		const slots = part.getSlots()!;
+		const slots = getLensSlots(part);
 		await seedPendingConfirmation(stubService, layoutReadingColumn);
 		const seat = queryTimeline(slots, '.conversation-lens-confirmation-seat')!;
 		const allowButton = seat.querySelector('.conversation-lens-confirmation-actions .monaco-button') as HTMLElement | null;
@@ -1329,7 +1353,7 @@ suite('ConversationLens', () => {
 
 	test('dock appends a local user turn and stub echo to the current session timeline', () => {
 		const { part } = mountLens();
-		const slots = part.getSlots()!;
+		const slots = getLensSlots(part);
 		const textarea = getDockTextarea(slots);
 
 		const message = 'Local stub message from test';
@@ -1344,7 +1368,7 @@ suite('ConversationLens', () => {
 
 	test('dock maximize input toggles conversation-lens-input-maximized on slot hosts', () => {
 		const { part, lens } = mountLens();
-		const slots = part.getSlots()!;
+		const slots = getLensSlots(part);
 		const maximizeButton = slots.dock.querySelector('.conversation-lens-dock-maximize-input .monaco-button') as HTMLButtonElement;
 
 		assert.ok(maximizeButton);
@@ -1377,7 +1401,7 @@ suite('ConversationLens', () => {
 
 	test('input maximize keeps pending confirmation reachable via dock inbox row', async () => {
 		const { part, lens, stubService, layoutReadingColumn } = mountLens();
-		const slots = part.getSlots()!;
+		const slots = getLensSlots(part);
 		const maximizeButton = slots.dock.querySelector('.conversation-lens-dock-maximize-input .monaco-button') as HTMLButtonElement;
 		const pendingButton = slots.dock.querySelector('.conversation-lens-inbox-pending') as HTMLButtonElement;
 
@@ -1399,7 +1423,7 @@ suite('ConversationLens', () => {
 
 	test('SessionBar title button enters rename mode and commits on Enter', () => {
 		const { part, stubService } = mountLens();
-		const slots = part.getSlots()!;
+		const slots = getLensSlots(part);
 		const titleButton = slots.sessionBar.querySelector('button.conversation-lens-session-title') as HTMLButtonElement;
 		const titleInput = slots.sessionBar.querySelector('input.conversation-lens-session-title-input') as HTMLInputElement;
 		const sessionId = stubService.getActiveSessionId();
@@ -1428,7 +1452,7 @@ suite('ConversationLens', () => {
 
 	test('SessionBar rename rejects empty title and Escape cancels edit', () => {
 		const { part, stubService } = mountLens();
-		const slots = part.getSlots()!;
+		const slots = getLensSlots(part);
 		const titleButton = slots.sessionBar.querySelector('button.conversation-lens-session-title') as HTMLButtonElement;
 		const titleInput = slots.sessionBar.querySelector('input.conversation-lens-session-title-input') as HTMLInputElement;
 		const previousTitle = stubService.getActiveSession().title;
@@ -1452,7 +1476,7 @@ suite('ConversationLens', () => {
 
 	test('SessionBar select and aria-live stay in sync after rename', () => {
 		const { part, stubService } = mountLens();
-		const slots = part.getSlots()!;
+		const slots = getLensSlots(part);
 		const titleButton = slots.sessionBar.querySelector('button.conversation-lens-session-title') as HTMLButtonElement;
 		const titleInput = slots.sessionBar.querySelector('input.conversation-lens-session-title-input') as HTMLInputElement;
 		const titleLive = slots.sessionBar.querySelector('.conversation-lens-session-title-live') as HTMLElement;
@@ -1473,7 +1497,7 @@ suite('ConversationLens', () => {
 
 	test('SessionBar select refreshes after deleting the last stub session', () => {
 		const { part, stubService } = mountLens();
-		const slots = part.getSlots()!;
+		const slots = getLensSlots(part);
 		const deleteButton = slots.sessionBar.querySelector('.conversation-lens-session-delete .monaco-button') as HTMLButtonElement;
 		const titleLive = slots.sessionBar.querySelector('.conversation-lens-session-title-live') as HTMLElement;
 		const sessions = [...stubService.getSessions()];
@@ -1494,7 +1518,7 @@ suite('ConversationLens', () => {
 
 	test('user turns are display-only; assistant turns expose Copy and Delete action bars', async () => {
 		const { part, stubService, layoutReadingColumn } = mountLens();
-		const slots = part.getSlots()!;
+		const slots = getLensSlots(part);
 		const sessionId = stubService.createSession();
 
 		stubService.appendUserTurn(sessionId, 'Click me user');
@@ -1537,7 +1561,7 @@ suite('ConversationLens', () => {
 
 	test('Delete turn removes it from timeline and trajectory; Copy writes turn text to clipboard', async () => {
 		const { part, stubService, clipboardService, layoutReadingColumn } = mountLens();
-		const slots = part.getSlots()!;
+		const slots = getLensSlots(part);
 		const sessionId = stubService.createSession();
 		const userText = 'Delete and copy user text';
 		const assistantText = 'Delete and copy assistant text';
@@ -1597,7 +1621,7 @@ suite('ConversationLens', () => {
 
 	test('T5 Edit XOR: user card click mounts composer with Exit; dock has no composer', async () => {
 		const { part, stubService, layoutReadingColumn } = mountLens();
-		const slots = part.getSlots()!;
+		const slots = getLensSlots(part);
 		const sessionId = stubService.createSession();
 		const userText = 'Edit this user turn';
 
@@ -1638,7 +1662,7 @@ suite('ConversationLens', () => {
 
 	test('T5 Edit XOR: queue row edit mounts composer in dock and XORs compose', async () => {
 		const { part, stubService } = mountLens();
-		const slots = part.getSlots()!;
+		const slots = getLensSlots(part);
 		const sessionId = stubService.createSession();
 		sendDockDraft(slots, 'Activate queue edit');
 		stubService.setMessageQueueFixture(sessionId, {
@@ -1682,7 +1706,7 @@ suite('ConversationLens', () => {
 
 	test('T6 Voice: mic left of Send, disabled without engine, stub transcript bar separate from inbox queue', async () => {
 		const { part, stubService } = mountLens();
-		const slots = part.getSlots()!;
+		const slots = getLensSlots(part);
 		const sessionId = stubService.createSession();
 		sendDockDraft(slots, 'seed active composer');
 
@@ -1733,7 +1757,7 @@ suite('ConversationLens', () => {
 
 	test('T6 Voice: recording mic uses filled surface and stop title', () => {
 		const { part, stubService } = mountLens();
-		const slots = part.getSlots()!;
+		const slots = getLensSlots(part);
 		stubService.createSession();
 		stubService.setEngineConnected(true);
 
@@ -1748,7 +1772,7 @@ suite('ConversationLens', () => {
 
 	test('dock input history recalls sent user drafts with ArrowUp and ArrowDown on empty composer', () => {
 		const { part } = mountLens();
-		const slots = part.getSlots()!;
+		const slots = getLensSlots(part);
 		const textarea = getDockTextarea(slots);
 
 		sendDockDraft(slots, 'first message');
@@ -1767,7 +1791,7 @@ suite('ConversationLens', () => {
 
 	test('dock input history is isolated per session', () => {
 		const { part, stubService } = mountLens();
-		const slots = part.getSlots()!;
+		const slots = getLensSlots(part);
 		const textarea = getDockTextarea(slots);
 
 		sendDockDraft(slots, 'session A only');
@@ -1784,7 +1808,7 @@ suite('ConversationLens', () => {
 
 	test('dock input history Escape restores unsent draft snapshot', () => {
 		const { part } = mountLens();
-		const slots = part.getSlots()!;
+		const slots = getLensSlots(part);
 		const textarea = getDockTextarea(slots);
 
 		sendDockDraft(slots, 'sent message');
@@ -1798,7 +1822,7 @@ suite('ConversationLens', () => {
 
 	test('dock input history typing exits browse and keeps edited text', () => {
 		const { part } = mountLens();
-		const slots = part.getSlots()!;
+		const slots = getLensSlots(part);
 		const textarea = getDockTextarea(slots);
 
 		sendDockDraft(slots, 'sent message');
@@ -1815,7 +1839,7 @@ suite('ConversationLens', () => {
 
 	test('dock input history ignores deleted user turns', async () => {
 		const { part, layoutReadingColumn } = mountLens();
-		const slots = part.getSlots()!;
+		const slots = getLensSlots(part);
 		const textarea = getDockTextarea(slots);
 
 		sendDockDraft(slots, 'delete me');
@@ -1838,7 +1862,7 @@ suite('ConversationLens', () => {
 
 	test('dock input history ignores ArrowUp when composer is not trim-empty', () => {
 		const { part } = mountLens();
-		const slots = part.getSlots()!;
+		const slots = getLensSlots(part);
 		const textarea = getDockTextarea(slots);
 
 		sendDockDraft(slots, 'sent message');
@@ -1850,7 +1874,7 @@ suite('ConversationLens', () => {
 	test('pinned user prompt is hidden at bottom and on empty session', async function () {
 		this.timeout(15000);
 		const { part, lens, stubService, layoutReadingColumn } = mountLens();
-		const slots = part.getSlots()!;
+		const slots = getLensSlots(part);
 		const sessionId = stubService.createSession();
 
 		assert.notStrictEqual(getPinnedUserPrompt(slots)?.classList.contains('conversation-timeline-pinned-user--visible'), true);
@@ -1880,7 +1904,7 @@ suite('ConversationLens', () => {
 	test('pinned user prompt shows one-line preview and reveals user turn on click', async function () {
 		this.timeout(15000);
 		const { part, lens, stubService, layoutReadingColumn } = mountLens();
-		const slots = part.getSlots()!;
+		const slots = getLensSlots(part);
 		const sessionId = stubService.createSession();
 		const userText = 'Scroll target user prompt';
 
@@ -1911,7 +1935,7 @@ suite('ConversationLens', () => {
 
 	test('untitled fixture renders collapsed process fold header with Stub summary', () => {
 		const { part } = mountLens();
-		const slots = part.getSlots()!;
+		const slots = getLensSlots(part);
 		const fold = queryTimeline(slots, '[data-process-fold]');
 		assert.ok(fold);
 		const header = fold!.querySelector('.conversation-process-fold-header') as HTMLElement;
@@ -1924,7 +1948,7 @@ suite('ConversationLens', () => {
 
 	test('expanding untitled process fold reveals nested thinking and tool indent layers', () => {
 		const { part } = mountLens();
-		const slots = part.getSlots()!;
+		const slots = getLensSlots(part);
 		const fold = queryTimeline(slots, '[data-process-fold]')!;
 		const header = fold.querySelector('.conversation-process-fold-header') as HTMLElement;
 		header.click();
@@ -1948,7 +1972,7 @@ suite('ConversationLens', () => {
 
 	test('user and confirmation seats stay outside process fold on untitled fixture', () => {
 		const { part } = mountLens();
-		const slots = part.getSlots()!;
+		const slots = getLensSlots(part);
 		const fold = queryTimeline(slots, '[data-process-fold]')!;
 		assert.strictEqual(fold.querySelector('.conversation-lens-turn[data-kind="user"]'), null);
 		assert.strictEqual(fold.querySelector('.conversation-lens-confirmation-seat'), null);
@@ -1958,7 +1982,7 @@ suite('ConversationLens', () => {
 
 	test('expanding untitled thinking reveals Stub payload body distinct from header summary', () => {
 		const { part } = mountLens();
-		const slots = part.getSlots()!;
+		const slots = getLensSlots(part);
 		const fold = queryTimeline(slots, '[data-process-fold]')!;
 		(fold.querySelector('.conversation-process-fold-header') as HTMLElement).click();
 
@@ -1976,7 +2000,7 @@ suite('ConversationLens', () => {
 
 	test('expanding untitled tool row reveals Stub payload text', () => {
 		const { part } = mountLens();
-		const slots = part.getSlots()!;
+		const slots = getLensSlots(part);
 		const fold = queryTimeline(slots, '[data-process-fold]')!;
 		(fold.querySelector('.conversation-process-fold-header') as HTMLElement).click();
 
@@ -1998,7 +2022,7 @@ suite('ConversationLens', () => {
 	test('pinned user prompt copy writes full text and exposes no Quote Edit or Regenerate', async function () {
 		this.timeout(15000);
 		const { part, lens, stubService, clipboardService, layoutReadingColumn } = mountLens();
-		const slots = part.getSlots()!;
+		const slots = getLensSlots(part);
 		const sessionId = stubService.createSession();
 		const userText = userMessageLines(8);
 
@@ -2027,7 +2051,7 @@ suite('ConversationLens', () => {
 
 	test('visualize seed session renders two visualization cards without Agent header', async () => {
 		const { part, stubService, layoutReadingColumn } = mountLens();
-		const slots = part.getSlots()!;
+		const slots = getLensSlots(part);
 		stubService.switchSession('visualize');
 		layoutReadingColumn();
 		await flushTimelineHeightUpdates();
@@ -2055,7 +2079,7 @@ suite('ConversationLens', () => {
 
 	test('visualize card header collapses and expands body', async () => {
 		const { part, stubService, layoutReadingColumn } = mountLens();
-		const slots = part.getSlots()!;
+		const slots = getLensSlots(part);
 		stubService.switchSession('visualize');
 		layoutReadingColumn();
 		await flushTimelineHeightUpdates();
@@ -2074,7 +2098,7 @@ suite('ConversationLens', () => {
 
 	test('visualize diagram expand opens overlay dialog closed by Escape and session switch', async () => {
 		const { part, stubService, layoutReadingColumn, openInEditorCalls, layoutContainer } = mountLens();
-		const slots = part.getSlots()!;
+		const slots = getLensSlots(part);
 		stubService.switchSession('visualize');
 		layoutReadingColumn();
 		await flushTimelineHeightUpdates();

@@ -1,0 +1,17 @@
+.conversation-session-window {
+	display: flex;
+	flex-direction: column;
+	flex: 1;
+	min-height: 0;
+	min-width: 0;
+}
+
+.conversation-editor-part-container {
+	flex: 1;
+	min-height: 0;
+	min-width: 0;
+}
+
+.conversation-editor-part-host {
+	height: 100%;
+}

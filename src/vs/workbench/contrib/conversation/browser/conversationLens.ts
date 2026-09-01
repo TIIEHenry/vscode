@@ -206,9 +206,11 @@ export class ConversationLens extends Disposable {
 			this.renderTimeline();
 		});
 
-		this.mountSessionBar(slots.sessionBar);
 		this.mountTimeline(slots.timeline);
 		this.mountDock(slots.dock);
+		if (slots.sessionBar) {
+			this.mountSessionBar(slots.sessionBar);
+		}
 
 		this.lensId = this.loadLensId();
 		this.updateLensTabs();
@@ -239,7 +241,9 @@ export class ConversationLens extends Disposable {
 				clearTimeout(timeout);
 			}
 			this.voiceTranscriptTimeouts.clear();
-			reset(slots.sessionBar);
+			if (slots.sessionBar) {
+				reset(slots.sessionBar);
+			}
 			reset(slots.timeline);
 			reset(slots.dock);
 		}));
@@ -247,6 +251,10 @@ export class ConversationLens extends Disposable {
 
 	isInputMaximized(): boolean {
 		return this.inputMaximized;
+	}
+
+	focusDockInput(): void {
+		this.dockTextarea?.focus();
 	}
 
 	setInputMaximized(maximized: boolean): void {

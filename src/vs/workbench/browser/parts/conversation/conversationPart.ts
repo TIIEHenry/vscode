@@ -28,11 +28,16 @@ export interface IConversationLensSlots {
 	readonly dock: HTMLElement;
 }
 
+export interface IConversationPartWindowSlots {
+	readonly sessionBar: HTMLElement;
+	readonly editorPartHost: HTMLElement;
+}
+
 export interface IConversationPartService {
 	readonly _serviceBrand: undefined;
 
-	readonly onDidCreateSlots: Event<IConversationLensSlots>;
-	getSlots(): IConversationLensSlots | undefined;
+	readonly onDidCreateSlots: Event<IConversationPartWindowSlots>;
+	getSlots(): IConversationPartWindowSlots | undefined;
 	focus(): void;
 }
 
@@ -57,9 +62,9 @@ export class ConversationPart extends Part implements IConversationPartService {
 
 	//#endregion
 
-	private _slots: IConversationLensSlots | undefined;
-	private readonly _onDidCreateSlots = this._register(new Emitter<IConversationLensSlots>());
-	readonly onDidCreateSlots: Event<IConversationLensSlots> = this._onDidCreateSlots.event;
+	private _slots: IConversationPartWindowSlots | undefined;
+	private readonly _onDidCreateSlots = this._register(new Emitter<IConversationPartWindowSlots>());
+	readonly onDidCreateSlots: Event<IConversationPartWindowSlots> = this._onDidCreateSlots.event;
 
 	constructor(
 		@IThemeService themeService: IThemeService,
@@ -69,7 +74,7 @@ export class ConversationPart extends Part implements IConversationPartService {
 		super(Parts.CONVERSATION_PART, { hasTitle: false }, themeService, storageService, layoutService);
 	}
 
-	getSlots(): IConversationLensSlots | undefined {
+	getSlots(): IConversationPartWindowSlots | undefined {
 		return this._slots;
 	}
 
@@ -95,12 +100,11 @@ export class ConversationPart extends Part implements IConversationPartService {
 
 		const sessionBar = append(content, $('.conversation-session-bar'));
 		sessionBar.setAttribute('data-conversation-slot', 'sessionBar');
-		const timeline = append(content, $('.conversation-timeline'));
-		timeline.setAttribute('data-conversation-slot', 'timeline');
-		const dock = append(content, $('.conversation-dock'));
-		dock.setAttribute('data-conversation-slot', 'dock');
 
-		this._slots = { sessionBar, timeline, dock };
+		const sessionWindow = append(content, $('.conversation-session-window'));
+		const editorPartHost = append(sessionWindow, $('.conversation-editor-part-container.part.editor'));
+
+		this._slots = { sessionBar, editorPartHost };
 		this._onDidCreateSlots.fire(this._slots);
 
 		return content;
@@ -116,7 +120,7 @@ export class ConversationPart extends Part implements IConversationPartService {
 	}
 
 	focus(): void {
-		const dockInput = this._slots?.dock.querySelector('textarea.conversation-lens-dock-input') as HTMLTextAreaElement | null;
+		const dockInput = this.getContainer()?.querySelector('textarea.conversation-lens-dock-input') as HTMLTextAreaElement | null;
 		if (dockInput) {
 			dockInput.focus();
 			return;

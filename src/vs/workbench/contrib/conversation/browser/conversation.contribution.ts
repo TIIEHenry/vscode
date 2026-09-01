@@ -9,18 +9,16 @@ import './uaClientSettings.contribution.js';
 import './uaPreferencesPanes.contribution.js';
 import './universeAgentDeepLink.contribution.js';
 import { Codicon } from '../../../../base/common/codicons.js';
-import { Disposable } from '../../../../base/common/lifecycle.js';
 import { localize, localize2 } from '../../../../nls.js';
 import { InstantiationType, registerSingleton } from '../../../../platform/instantiation/common/extensions.js';
 import { SyncDescriptor } from '../../../../platform/instantiation/common/descriptors.js';
-import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { Registry } from '../../../../platform/registry/common/platform.js';
 import { registerIcon } from '../../../../platform/theme/common/iconRegistry.js';
 import { ViewPaneContainer } from '../../../browser/parts/views/viewPaneContainer.js';
-import { IWorkbenchContribution, registerWorkbenchContribution2, WorkbenchPhase } from '../../../common/contributions.js';
 import { Extensions as ViewContainerExtensions, IViewContainersRegistry, IViewsRegistry, Extensions as ViewExtensions, ViewContainerLocation } from '../../../common/views.js';
-import { IConversationLensSlots, IConversationPartService } from '../../../browser/parts/conversation/conversationPart.js';
-import { ConversationLens } from './conversationLens.js';
+import { registerWorkbenchContribution2, WorkbenchPhase } from '../../../common/contributions.js';
+import './conversationEditor.contribution.js';
+import './conversationSessionWindow.contribution.js';
 import { CONVERSATION_SESSIONS_VIEW_ID, ConversationSessionsView } from './conversationSessionsView.js';
 import { ConversationSessionStatusBarContribution, registerConversationSessionStatusBar } from './conversationSessionStatusBar.js';
 import { registerUaPreferencesNavigationActions } from './uaPreferencesNavigation.js';
@@ -57,37 +55,6 @@ Registry.as<IViewsRegistry>(ViewExtensions.ViewsRegistry).registerViews([{
 	order: 1,
 	weight: 100,
 }], conversationSessionsViewContainer);
-
-class ConversationLensContribution extends Disposable implements IWorkbenchContribution {
-
-	static readonly ID = 'workbench.contrib.conversationLens';
-
-	private _mounted = false;
-
-	constructor(
-		@IConversationPartService conversationPartService: IConversationPartService,
-		@IInstantiationService private readonly instantiationService: IInstantiationService,
-	) {
-		super();
-
-		const existing = conversationPartService.getSlots();
-		if (existing) {
-			this.mount(existing);
-		} else {
-			this._register(conversationPartService.onDidCreateSlots(slots => this.mount(slots)));
-		}
-	}
-
-	private mount(slots: IConversationLensSlots): void {
-		if (this._mounted) {
-			return;
-		}
-		this._mounted = true;
-		this._register(this.instantiationService.createInstance(ConversationLens, slots));
-	}
-}
-
-registerWorkbenchContribution2(ConversationLensContribution.ID, ConversationLensContribution, WorkbenchPhase.AfterRestored);
 
 registerConversationSessionStatusBar();
 registerUaPreferencesNavigationActions();
