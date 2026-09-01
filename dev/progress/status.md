@@ -11,7 +11,7 @@ summary: "设置两套主面已签收（C5 / H0–H3 ReadyToImplement；E1 等 P
 
 ## Current Session
 
-- **Conversation session 窗口与 tab：** [conversation-session-windows.md](../plans/conversation-session-windows.md)（`draft`）· [PRD-016](../../docs/product/requirements.md#prd-016-conversation-session-窗口与-chat-tab)（`proposed`）· [ADR-002](../decisions/002-conversation-session-windows.md)（`proposed`）。Grok 4.6 High 2026-09-01 **Block**；Critical/Important 已改入方案。未 Opus 5.0 再审、未改 `src/`、不开 S1。
+- **Conversation session 窗口与 tab：** [conversation-session-windows.md](../plans/conversation-session-windows.md)（`draft`）· [PRD-016](../../docs/product/requirements.md#prd-016-conversation-session-窗口与-chat-tab)（`proposed`）· [ADR-002](../decisions/002-conversation-session-windows.md)（`proposed`）。Grok 4.6 High 2026-09-01 **Block**；Critical/Important 已改入方案。改稿后未再审、未改 `src/`、不开 S1。
 
 - **设置两套主面已签收：** [settings-two-surfaces.md](../plans/settings-two-surfaces.md) · [customizations-host-ui.md](../plans/customizations-host-ui.md) · [customizations-engine.md](../plans/customizations-engine.md) 均为 `accepted`。规则 16 三轮 Grok 4.6（Opus 不可用）。**ReadyToImplement：** C5 + donor H0–H3。**E1 blocked PRD-008**。未改 `src/`。
 
