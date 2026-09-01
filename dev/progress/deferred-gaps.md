@@ -151,8 +151,8 @@ $REPO/scripts/code-cli.sh --extensions-dir="$EXT_DIR" \
 |------|------|------|
 | Workbench boot（merge `out/`） | **PASS** | EH 起；无 `IPreferencesEditorPane` |
 | `redhat.vscode-yaml` 诊断 | **PASS** | 打开 sample yaml；squiggle ≥1 |
-| `gruntfuggly.todo-tree` sidebar | **FAIL** | Activity 无 Todo Tree 容器；`Todo Tree: Focus` 未出 pane |
-| 内置 `js-debug` F5 | **FAIL** | F5/Start Debugging 未出现 debug toolbar |
+| `gruntfuggly.todo-tree` sidebar | **PARTIAL** | Activity 有产品 **TODOs** 段，无扩展独立图标；`Views: Show Todo Tree` palette 未出 pane header（见 tick 25–26 palette 重试） |
+| 内置 `js-debug` F5 | **FAIL** | F5 与 `Debug: Start Debugging` → Node.js 均无 toolbar/view；需 `launch.json` 或调试配置自动化 |
 
 **矩阵：** [eh-surface-matrix](../../docs/reference/code-oss-b2/eh-surface-matrix.md) 探针行仍为 **探针已选**（整体 smoke 未 PASS）。
 
