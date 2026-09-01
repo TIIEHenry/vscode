@@ -288,7 +288,7 @@ M5 完成时要求本方案相关 warning 为 0；`dev/loop/` 子模块自身断
 - [ ] `npm run valid-layers-check` 通过（Node v26.7.0 TS lib 环境红，记 D3）。
 - [ ] 聚焦域单测通过（本轮未全量重跑）。
 - [x] V1–V8 在隔离 profile 通过并有证据（[rerun-2230](../progress/d4-evidence/rerun-2230/)）。
-- [ ] YAML / Todo Tree / js-debug 三探针均已实测；任一 blocking gap 未关闭时 M5 保持 `in_progress`。
+- [x] YAML / Todo Tree / js-debug 三探针均已实测（wave3 @ 2026-09-02）；D5 仍 open（panel/terminal 矩阵行待实测）。
 
 ### 文档与状态
 
