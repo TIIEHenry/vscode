@@ -10,7 +10,7 @@ summary: "本仓对话 UI 的三层：ChatWidget 零件、workbench 宿主（含
 # Agent UI 清单
 
 > 导航：[Chat 索引](INDEX.md)。文件夹地图 SSOT：[chatCodeOrganization.md](../../../src/vs/workbench/contrib/chat/chatCodeOrganization.md)。  
-> B2：Conversation **不是** Preview 里的 `ChatEditor` tab（INV-TOPO）；中心叶仍是 `CONVERSATION_PART`。ADR-002 选定在 Part **内部**嵌 Conversation `IEditorPart` 画 chat tab（未实施）。**0×** 依赖 GitHub Copilot（INV-NO-COPILOT）。  
+> B2：Conversation **不是** Preview 里的 `ChatEditor` tab（INV-TOPO）；中心叶仍是 `CONVERSATION_PART`。Part **内部**嵌 Conversation `IEditorPart` 画 chat tab（**PRD-016 S1–S5 已落**）。**0×** 依赖 GitHub Copilot（INV-NO-COPILOT）。  
 > Sessions 窗口契约：[LAYOUT.md](../../../src/vs/sessions/LAYOUT.md)、[SESSIONS.md](../../../src/vs/sessions/SESSIONS.md)。
 
 本页回答：改造时 **哪些 UI 是 MIT 开源零件、哪些宿主违反产品壳、哪些状态机不能当会话真相**。
@@ -19,7 +19,7 @@ summary: "本仓对话 UI 的三层：ChatWidget 零件、workbench 宿主（含
 
 ```text
 ┌─ 窗口壳（Parts / Grid）─────────────────────────────────────┐
-│  默认 Code（M1）：CONVERSATION_PART 中心（contrib 透镜 chrome）   │
+│  默认 Code（M1+PRD-016）：CONVERSATION_PART 中心（session 窗口 + 嵌套 EditorPart） │
 │              End 列 EDITOR_PART（Preview）+ SOURCES Files    │
 │              titlebar 四钮 Nav/Conv/Preview/Sources（D7）    │
 │  Agents Window：SESSIONS_PART 中心 + 可选 EDITOR_PART       │
@@ -86,11 +86,11 @@ Desktop 合同：窗口壳 = Singularity/IDEA；Conversation 内 = 时间线 + I
 
 `ChatViewPane` 还嵌 `AgentSessionsControl`、welcome、entitlement、mic/TTS——体量远超「一个列表 + Dock」。把它整块搬进新 Part 会把 Copilot 设置流一起搬进来。
 
-**产品中心透镜（M2 切片 1 + chrome）：** `workbench/contrib/conversation` 在 `ConversationPart` 三槽内提供本地 stub 产品面：SessionBar 用 workbench 标题 chrome（图标、可点击重命名的当前标题、SelectBox 会话切换器、紧凑 **New session** 按钮创建内存 stub 并切换、紧凑 **Delete session** 按钮删除当前内存 stub（删最后一项时自动新建 Untitled，无确认）、紧凑 **History** 控件点击仅提示 No history——无引擎历史列表；标题旁 `aria-live="polite"` 区域在 rename/delete 后向读屏播报当前会话名）并与 Sidebar roster 共用 `IConversationStubService`；Timeline 为可滚动阅读列（回合间距、空态、You/Agent 头），user/assistant 回合体后各有 message-level **Copy** / **Delete** 动作条（本地 stub：`IClipboardService.writeText` + `deleteTurn`，无引擎、无 Regenerate/Quote/Edit）；confirmation 座位仍在列表内且 Allow/Skip 只改本地 `pending → allowed/skipped`；Dock 顶 Inbox 状态行诚实显示「No queue」，同行紧凑 **Goal**（恒 disabled，文案/aria「No goal」——无引擎 goal 字段），紧凑 **Stop**（恒 disabled，tooltip/aria「Not generating」——无引擎、不调 stopLoop），有 pending 时才出现「N confirmation pending」并滚到座位；底部 sticky composer（textarea + Send）用 Enter/Send append user 回合（可选 stub echo）；空 composer 时 ↑/↓ 逐条召回本会话已发送 user 草稿（内存、无引擎，最多 100 条）；Dock bottom bar 含紧凑 **Attach** 控件（点击仅提示 No attachments——无文件选择器/附件列表）、**Maximize input** / **Restore timeline** 切换（Desktop §8.3.11：列内隐藏 Timeline、Dock 扩展，不走 Workbench slotMaximize，SessionBar 无 maximize）。Conversation 列现已采用 **紧凑 chrome（NoSpacing）**：单行 SessionBar、Timeline 内层独占滚动、单行 Inbox 与同行 composer，无 Copilot 式额外 gutter；样式仅用 workbench token（foreground/background/border/input），无 Copilot 品牌色。中心仍不是 `ChatEditorInput` / `ChatViewPane`，也不走 Copilot setup 或 `IChatModel`。
+**产品中心（M2 透镜 + PRD-016 session 窗口，S1–S5 已落）：** `workbench/contrib/conversation` 在 `ConversationPart` 提供 Part 级 SessionBar（SelectBox、←→、关非根）与 session 窗口网格（`IConversationSessionWindowService`，最多两叶）；每叶内 `EditorParts.createConversationEditorPart` + 默认根 `ConversationChatInput`。页 chrome 在 `ConversationEditorPane`：「对话\|轨迹」+ 阅读列 + Dock + 子代理 tab 面包屑（`ConversationAgentBreadcrumbBox`）。子代理默认 **session 叶 overlay**（`ConversationSubAgentOverlay`），最大化才延伸 tab；Fork → `CONVERSATION_GROUP` 延伸 tab。自有导航栈（S2）与 `IHistoryService` 隔离；`conversation.navigate.closeChildOnBack` 默认开。roster「打开到旁边」/ Alt+点击可并列第二 session 叶（S5），共享 End Preview。仍用 stub 时间线 / composer（`IConversationRosterService` 内存会话）；非 `ChatEditorInput` / `ChatViewPane`，不走 Copilot setup 或 `IChatModel`。SessionBar 仍含 compact New/Delete session、History stub、Inbox 单行（PRD-015 选定布局未实施）。
 
 **Inbox 选定布局（[PRD-015](../../product/requirements.md#prd-015-conversation-空会话与输入面)，2026-09-01 签收，未实施）：** PreFirst 无 Inbox / Goal / Stop；Active 左右分簇（左 Task · MessageQueue · Goal，右 Stop · 上下文环），Task 在 MessageQueue 左侧。HEAD 仍是上一段单行 inbox-row。合同见 [conversation-empty-hero](../../../dev/plans/conversation-empty-hero.md)。
 
-**Session 窗口 / chat tab（[PRD-016](../../product/requirements.md#prd-016-conversation-session-窗口与-chat-tab) / [ADR-002](../../../dev/decisions/002-conversation-session-windows.md)，2026-09-01 签收，未实施）：** 中心叶仍是 `CONVERSATION_PART`。Part 自管最多两叶 session 窗口；每叶内嵌 Conversation `IEditorPart`（`CONVERSATION_GROUP` / `CONVERSATION_SIDE_GROUP`）。产品对话用 `ConversationChatInput`，**禁止** `ChatEditorInput`。文件 / `SIDE_GROUP` 永远 Preview；反向的 **出站**聚合豁免（chat tab 不进全局 editor 枚举 / MRU / 工作集 / editor 历史）见方案 §3.8。chat 呈现按协议 `ChatOrigin` 四 kind 分流（`User` 根 tab、`Fork` 延伸 tab、`Tool` / `SideChat` 叶内对话框），`ChatInteractivity` 的 `Hidden` 完全不出现在 UI、`ReadOnly` 禁用 Dock 输入（方案 §3.3b）。HEAD 仍是上一段三槽单透镜。合同见 [conversation-session-windows](../../../dev/plans/conversation-session-windows.md)。
+**Session 窗口 / chat tab（[PRD-016](../../product/requirements.md#prd-016-conversation-session-窗口与-chat-tab) / [ADR-002](../../../dev/decisions/002-conversation-session-windows.md)，**S1–S5 已落**）：** 中心叶仍是 `CONVERSATION_PART`。Part 自管最多两叶 session 窗口；每叶内嵌 Conversation `IEditorPart`（`CONVERSATION_GROUP` / `CONVERSATION_SIDE_GROUP`）。产品对话用 `ConversationChatInput`，**禁止** `ChatEditorInput`。文件 / Preview `SIDE_GROUP` 永远 Preview；**出站**聚合豁免（`excludeFromGlobalEditorAggregation`：chat tab 不进全局 editor 枚举 / MRU / 工作集 / `IHistoryService`）已落。Fork 默认延伸 tab；子代理 spawn 不加 tab、点击开叶内对话框、最大化才 tab；面包屑沿 stub `origin.chat` 链替换延伸 tab；窗口 chrome「关非根」不 `closeGroup` 根组。协议 `ChatOrigin` 四 kind / `ChatInteractivity`（§3.3b）呈现合同已签收，**SideChat / ReadOnly / Hidden 活数据仍等 PRD-008**；stub 期一律 `Full`。细节见 [conversation-session-windows](../../../dev/plans/conversation-session-windows.md)。
 
 ## 4. Sessions / Agents Window 宿主（更接近透镜，但不是文档壳）
 

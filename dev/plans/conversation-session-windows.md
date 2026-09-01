@@ -4,7 +4,7 @@ type: plan
 status: accepted
 phase: N/A
 updated: 2026-09-01
-summary: "ConversationPart 每叶内嵌 IEditorPart；入站围栏 CONVERSATION_GROUP + 出站聚合豁免（§3.8）；自有导航栈；子代理叶内对话框；已签收；S1/S1a–S6；S1a 改写待补规则 16 审查；未实施"
+summary: "ConversationPart 每叶内嵌 IEditorPart；入站围栏 CONVERSATION_GROUP + 出站聚合豁免（§3.8）；自有导航栈；子代理叶内对话框；已签收；S1–S6 已实施（S1a 改写待补规则 16 审查）"
 ---
 
 # 默认窗 Conversation：session 窗口与 chat tab
