@@ -11,6 +11,8 @@ summary: "PRD-012/013/014 轨迹/过程折/visualize 已签收；三份壳方案
 
 ## Current Session
 
+- **设置两套主面：** 本地 vs Engine 必须分开，视觉与 vscode 统一。[settings-two-surfaces.md](../plans/settings-two-surfaces.md)（`draft`）。Customizations host-ui / engine 落盘稿已按该目录改口径（Customizations 不是第三套主设置）。未改 `src/`。
+
 - **visualize 卡** [thinkrail-visualize-port.md](../plans/thinkrail-visualize-port.md) **`accepted`**：[PRD-014](../../docs/product/requirements.md#prd-014-conversation-图示卡visualize) 已签收；Grok xhigh 规则 16 审查（Opus 不可用）Approve with changes 已改入。**T1–T3 ReadyToImplement**；未改 `src/`。
 - **过程折** [conversation-process-fold.md](../plans/conversation-process-fold.md) **`accepted`**：显示 overlay，对话默认收起、轨迹默认展开（P3t）。**P1–P3/P3t ReadyToImplement**；未改 `src/`。
 - **轨迹透镜** [conversation-trajectory-lens.md](../plans/conversation-trajectory-lens.md) **`accepted`**：详细列表 + 强制显示压缩相关项；T3 复用过程折 overlay。**T1–T3 ReadyToImplement**；未改 `src/`。

@@ -187,15 +187,17 @@ v1 **接受分裂体验**：用户将 `useModal` 改为 `'off'` 后 Client 可�
 
 **Client 与 vscode 原生不双入口：** 主题 → `workbench.colorTheme`；字号 → `editor.fontSize`；全局快捷键 → `KeybindingsEditor`；UA 仅保留「聊天 Enter 行为」等增量键。`agentsWindow.default` / `.readOnly` 保留 Agents Window 差异，与 TOC 可见性 **不可互替**。
 
-#### Customizations 切分（**已拍板**，不重开）
+#### Customizations 切分（C5 入口目标不重开宿主；HEAD 未落；产品主面见 two-surfaces）
 
-| 面 | 宿主 |
-|----|------|
-| 文件型（skills / instructions / hooks / agents md / MCP 定义） | `AICustomizationManagementEditor`（`aiCustomization.openManagementEditor`） |
-| Engine 运行时 | Preferences Engine pane（外链自 Settings TOC） |
-| 跳转 | Settings TOC 链接行「Open Customizations」 |
+| 面 | 代码宿主 |
+|----|----------|
+| 文件型编辑器（零件，**不是**产品主设置） | `AICustomizationManagementEditor` — C5 **目标** `aiCustomization.openManagementEditor`。HEAD TOC 仍走 `workbench.action.openCustomizationsPreferences` + `ua.customizations` |
+| Engine 运行时 **与** Skill/Agent/Rules/Hooks/MCP 定义 **产品主面** | Preferences `ua.engine` |
+| 跳转 | TOC「Open Customizations…」C5 后 = 文件工具。**禁止保留** `ua.customizations` pane |
 
-MCP：定义面留 Customizations；「连上哪台引擎后的 MCP 运行态」若 UA 有独立页，标为后续切片，本页不发明第二 MCP UI。
+**2026-09-01：** 两个主要设置页是本地 Client 与 Engine，必须分开；UI 与 vscode 统一。SSOT：[settings-two-surfaces.md](settings-two-surfaces.md)。
+
+MCP 运行态若另有页，标为后续切片，不发明第二 MCP UI。
 
 #### Copilot TOC 剥离（INV-NO-COPILOT）
 

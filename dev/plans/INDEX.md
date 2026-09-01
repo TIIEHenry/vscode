@@ -21,6 +21,9 @@ summary: "dev/plans 导航：产品需求层建设与 M0–M5；PRD-011–014 �
 | [m5-ui-shell-hardening.md](m5-ui-shell-hardening.md) | `accepted` | 默认窗 Chat 路由、roster 导航、关键测试、D4/D5 实测与交付证据收口 |
 | [chat-compare-split.md](chat-compare-split.md) | `implemented` | PRD-011 代码已落；D4 待验证 |
 | [page-access-schemes.md](page-access-schemes.md) | `implemented` | 切片 1a–4 代码已落；D4 待验证；切片 5 等引擎 |
+| [settings-two-surfaces.md](settings-two-surfaces.md) | `draft` | 本地 vs Engine 两套主设置面；vscode 同一张脸；Customizations 降级为零件 |
+| [customizations-host-ui.md](customizations-host-ui.md) | `draft` | 文件编辑器 donor chrome：剥 Copilot 营销；零件可拆进 Engine 页 |
+| [customizations-engine.md](customizations-engine.md) | `draft` | Engine 页 catalog/profile/hook/MCP 权威与协议缺口 |
 | [product-requirements-layer.md](product-requirements-layer.md) | `implemented` | 建立本仓产品需求 SSOT，并迁入当前 Agent IDE 壳需求 |
 | [conversation-trajectory-lens.md](conversation-trajectory-lens.md) | `implemented` | PRD-012 代码已落；D4 待验证 |
 | [conversation-process-fold.md](conversation-process-fold.md) | `implemented` | PRD-013 代码已落；D4 待验证 |
