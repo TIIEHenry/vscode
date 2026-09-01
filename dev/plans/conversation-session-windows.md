@@ -4,7 +4,7 @@ type: plan
 status: in_progress
 phase: N/A
 updated: 2026-09-02
-summary: "S3c @ 18b5e8d7、S4 @ 28f1af5a 已合入 agent-ide；S4 同窗 split 经 CONVERSATION_SIDE_GROUP + 藏列不画"
+summary: "S3c @ 18b5e8d7、S4 @ 28f1af5a、S5 @ 3e287e65 已合入 agent-ide；S5 窗口并列 + session chat 单测修复"
 ---
 
 # 默认窗 Conversation：session 窗口与 chat tab
@@ -321,7 +321,7 @@ HEAD 已接受的锁是 **插入面**：编辑器仅 `EDITOR_PART`；没有「�
 | S3b | 面包屑 + 关非根 | 沿协议 `origin.chat`；点击替换当前延伸 tab；关非根 **不** `closeGroup` 根组 | 单测替换不叠 tab；根 tab 仍在 |
 | S3c | 对话框 chrome | 叶内卡片+遮罩（`position:absolute` 于 session 叶）；`promoteSubAgentDialog` → tab；`toggleSubAgentDialogMaximized` → 叶内铺满；对话框面包屑走 overlay 分支；删除 HEAD `maximizeSubAgentDialog` 提升语义 | 见测试 4；`data-maximized`；`aria-modal=false`；点遮罩关；无 `ModalEditorPart` / `.monaco-modal-editor-block`；overlay 在 `.conversation-session-window` 内 |
 | S4 | 同窗 split **（已落 loop/A）** | `CONVERSATION_SIDE_GROUP`；藏列=不画 | 单测组数；文件 `SIDE_GROUP` 不增加 Conversation 组 |
-| S5 | 窗口并列 | 第二 session 叶 + 第二 Conversation EditorPart；藏窗恢复；共享 Preview | roster 打开到旁边；藏后单窗；两 session 时 Preview 仍一个 `EDITOR_PART` |
+| S5 | 窗口并列 **（已合入 agent-ide @ 3e287e65）** | 第二 session 叶 + 第二 Conversation EditorPart；藏窗恢复；共享 Preview | roster 打开到旁边；藏后单窗；两 session 时 Preview 仍一个 `EDITOR_PART` |
 | S6 | 知识层 | 签收本批已改 parts-and-grid / editor-part-tabs / agent-ui 插入面合同；S1 落地后把 HEAD 句从「选定」改成「已落」 | `check-docs-health.py` |
 
 S1 / S1a 可在无引擎下落地，且 **S1a 与 S1 同批**（A1 未落地即 S1 未完成，见 §3.8）。S3 / S3b 活数据依赖 PRD-008；`SideChat` / `ReadOnly` / `Hidden`（§3.3b）同样等引擎，stub 期一律 `Full`。**S3c 可在 stub catalog 上落地**（不新增引擎合同）。每个实施 commit 满足 DOCUMENTATION 规则 3a/3b。知识层插入面合同已随签收改写；S1 改代码，不重开拓扑。

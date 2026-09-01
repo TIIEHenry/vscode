@@ -4,14 +4,14 @@ type: progress
 status: active
 phase: M5
 updated: 2026-09-02
-summary: "HEAD 28f1af5a：S4 merged；S3c @ 18b5e8d7；M5 implemented @ 9f67fb5a"
+summary: "HEAD 3e287e65：S5 merged + test fix；S4 @ 28f1af5a；S3c @ 18b5e8d7；M5 implemented @ 9f67fb5a"
 ---
 
 # Development Progress
 
 ## Current Session
 
-- **集成 HEAD：** `28f1af5a` — PRD-016 **S4** 同窗 split（`CONVERSATION_SIDE_GROUP` + 藏列不画）已合入 agent-ide。
+- **集成 HEAD：** `3e287e65` — PRD-016 **S5** 窗口并列（第二 session 叶 + 第二 Conversation EditorPart）已合入 agent-ide；同窗 test harness 修复同批（`4929e2e7`）。
 - **已合入里程碑：** S3c @ `18b5e8d7`；M5 **implemented** @ `9f67fb5a`。
 
 ## Blockers
