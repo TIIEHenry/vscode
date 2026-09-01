@@ -4,7 +4,7 @@ type: progress
 status: accepted
 phase: N/A
 created: 2026-08-30
-updated: 2026-08-31
+updated: 2026-09-01
 summary: "P2/P3 延期缺口 SSOT；D1/D3/D7 已闭；D4/D5 仍开；D4 closer 为 M5 切片 4 V1–V8"
 ---
 
@@ -39,6 +39,53 @@ summary: "P2/P3 延期缺口 SSOT；D1/D3/D7 已闭；D4/D5 仍开；D4 closer �
 | 截图 | 无 |
 
 **下一步**：D3 已绿（`a6137373`）；在 **merge 工位**（有 `node_modules`/`out`/`.build/electron`）重跑 `launch.sh` 做环境探测。D4 **不得**因 T1–T3 勾选而 closed；closer 是 [M5 切片 4](../plans/m5-ui-shell-hardening.md) V1–V8。
+
+## D4 M5 切片 4 验收记录（2026-09-01，merge 工位 / `loop/merge`）
+
+**基线 SHA**：`c7ed501d`（切片 1–3 集成工位）。**启动修复 SHA**（仅 boot blocker，非 V1–V8 closer）：`bd2b8872`。
+
+**门禁**：
+
+| 命令 | SHA | 结果 |
+|------|-----|------|
+| `npm run compile` | `c7ed501d` | **PASS**（0 errors，~37s） |
+| `npm run valid-layers-check` | `c7ed501d` | **FAIL**（exit 1；`EditContext`/`GPUBufferUsage`/`FileSystemHandle` 等 TS lib 报错，Node v26.7.0；与 M5 路由/布局无关） |
+| `launch.sh --repo merge --disable-workspace-trust --skip-prelaunch` | `c7ed501d` | **BLOCKED** — workbench 未加载：`IPreferencesEditorPane` 运行时 re-export 缺失 + `workbench.action.chat.forkConversation` 重复注册 |
+| 同上 | `bd2b8872` | **PASS** — CDP 就绪；隔离 temp profile |
+
+**启动命令**（post-fix 实测）：
+
+```bash
+.agents/skills/launch/scripts/launch.sh \
+  --repo /home/clarence/Projects/Agents/vscode-WorkTrees/merge \
+  --disable-workspace-trust --skip-prelaunch
+```
+
+**Profile**：throwaway temp（`launch.sh` slim copy；无 `--source-user-data-dir`；`~/.vscode-oss-dev` 不存在）。
+
+**自动化**：Playwright CLI over CDP（`npx @playwright/cli attach --cdp=…`）。证据目录：[d4-evidence/c7ed501d](d4-evidence/c7ed501d/)（JSON + `screenshots/v1.png`）。
+
+| ID | 场景 | 结果 | 证据 / 备注 |
+|:---|:-----|:-----|:------------|
+| V1 | fresh profile：中心 Conversation；End 上 Preview、下 Sources；Aux hidden | **PARTIAL** | post-`bd2b8872`：`conversation`+`sources` 可见，`panel`/`aux` false，`convError` false；DOM 尺寸检测 `editor`/`sidebar` false（快照见四钮 + End Preview/Sources tab strip）。`c7ed501d` **未验**（未启动） |
+| V2 | 依次切 Nav / Conv / Preview / Sources；四钮可达；常态不可全藏 Conv/Preview/Sources | **FAIL** | Command Palette 自动化不可靠；toggle 后 `panel:true`、`sources:false`，未证明互斥 |
+| V3 | 只关 Preview；Sources/Conversation 不被改写；Panel 不弹出 | **FAIL** | `panel:true` after hide Preview；Panel 被意外显示 |
+| V4 | maximize Panel/Aux 后恢复合法 agent shell | **FAIL** | maximize 命令未改变可测 layout JSON；恢复态与 V3 相同 |
+| V5 | 隐藏 Conversation → Sessions 选会话 → show+focus | **PARTIAL** | roster `clicked:true`；之后 `conversation:true`（`v5.json`）；SessionBar 一致性与 focus 未 DOM 断言 |
+| V6 | Palette / Chat menu / Quick Chat；无 ChatEditor/Quick Chat；Open Conversation OK | **FAIL** | `New Chat Editor` 后无 ChatEditor tab（`editorTabs:[]`）；**Quick Chat 快捷键打开 quick-input**（`v6-quick.json` `quickChat:true`）— M5 路由违背 |
+| V7 | 重启恢复 Part 显隐与 End 尺寸；无 ChatEditor tab 还原 | **FAIL** | Reload 后全部 part `false`（`v7.json`）；布局未恢复 |
+| V8 | Sources Files/Changes/Review 基本打开 | **PARTIAL** | 快照（V2 阶段）见 Files/Changes/Review tab；eval `sourcesTabs:[]`（automation 时 Sources 已隐藏） |
+
+**Blocking failures（D4 保持 open）**：
+
+1. `c7ed501d` 无法完成 D4 closer（workbench boot 崩溃；见上）。
+2. `valid-layers-check` 红（工位环境 / TS lib；需与 D3 记录 reconciled）。
+3. V6 Quick Chat 在默认窗仍可触发（post-fix 自动化证据）。
+4. V2–V4 / V7 布局切换与恢复未通过。
+
+**截图**：`dev/progress/d4-evidence/c7ed501d/screenshots/v1.png`（post-fix fresh profile）。
+
+**状态**：D4 **open** — V1–V8 未全绿，不得 closed。
 
 ## D5 探针计划（2026-08-31，工位 B / `loop/B`）
 

@@ -1,0 +1,5 @@
+        - listitem [ref=e33] [cursor=pointer]:
+          - tab "Sessions" [expanded] [selected] [ref=e66] [cursor=pointer]:
+            - generic "Sessions" [ref=e67]: 
+          - heading "Sessions" [level=2] [ref=e788]
+          - toolbar "Sessions actions" [ref=e792]:

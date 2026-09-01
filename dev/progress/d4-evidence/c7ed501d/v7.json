@@ -1,0 +1,11 @@
+{
+  "bodyClasses": [],
+  "sidebar": false,
+  "conversation": false,
+  "editor": false,
+  "sources": false,
+  "panel": false,
+  "aux": false,
+  "convError": false,
+  "editorTabs": []
+}
