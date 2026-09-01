@@ -390,13 +390,18 @@ export class ItemProviderItemSource extends Disposable implements IAICustomizati
 		let providerItems: readonly ICustomizationItem[];
 		if (promptType === PromptsType.hook) {
 			const hookItems = allItems.filter(item => item.type === PromptsType.hook);
-			// Plugin hooks are pre-expanded by plugin manifests — skip re-expansion.
-			const toExpand = hookItems.filter(item => item.source !== AICustomizationSources.plugin);
-			const preExpanded = hookItems.filter(item => item.source === AICustomizationSources.plugin);
-			const expanded = await expandHookFileItems(
-				toExpand, this.workspaceService, this.fileService, this.pathService,
-			);
-			providerItems = [...expanded, ...preExpanded];
+			if (!this.workspaceService.isSessionsWindow) {
+				// Donor window lists hook definition files, not expanded Copilot/VS Code task events.
+				providerItems = hookItems;
+			} else {
+				// Plugin hooks are pre-expanded by plugin manifests — skip re-expansion.
+				const toExpand = hookItems.filter(item => item.source !== AICustomizationSources.plugin);
+				const preExpanded = hookItems.filter(item => item.source === AICustomizationSources.plugin);
+				const expanded = await expandHookFileItems(
+					toExpand, this.workspaceService, this.fileService, this.pathService,
+				);
+				providerItems = [...expanded, ...preExpanded];
+			}
 		} else {
 			providerItems = allItems.filter(item => item.type === promptType);
 		}

@@ -311,6 +311,8 @@ export interface IHookQuickPickOptions {
 	readonly target?: Target;
 	/** Restrict hook files and creation destinations to one storage scope. */
 	readonly preferredStorage?: PromptsStorage;
+	/** Skip lifecycle event picker; create or open hook definition files directly. */
+	readonly skipHookTypeSelection?: boolean;
 }
 
 /**
@@ -366,7 +368,7 @@ export async function showConfigureHooksQuickPick(
 	const backButton = quickInputService.backButton;
 	picker.show();
 
-	let step = Step.SelectHookType;
+	let step = options?.skipHookTypeSelection ? Step.SelectFile : Step.SelectHookType;
 	let selectedHookType: IHookTypeQuickPickItem | undefined;
 	let selectedHook: IHookQuickPickItem | undefined;
 	let selectedFile: IHookFileQuickPickItem | undefined;
@@ -631,6 +633,14 @@ export async function showConfigureHooksQuickPick(
 
 					// Handle adding hook to existing file
 					if (selectedFile.fileUri) {
+						if (options?.skipHookTypeSelection) {
+							if (options?.openEditor) {
+								await options.openEditor(selectedFile.fileUri);
+							} else {
+								await editorService.openEditor({ resource: selectedFile.fileUri });
+							}
+							return;
+						}
 						await addHookToFile(
 							selectedFile.fileUri,
 							selectedHookType!.hookType,
@@ -764,6 +774,14 @@ export async function showConfigureHooksQuickPick(
 
 					// Check if file already exists
 					if (await fileService.exists(hookFileUri)) {
+						if (options?.skipHookTypeSelection) {
+							if (options?.openEditor) {
+								await options.openEditor(hookFileUri);
+							} else {
+								await editorService.openEditor({ resource: hookFileUri });
+							}
+							return;
+						}
 						// File exists - add hook to it instead of creating new
 						await addHookToFile(
 							hookFileUri,
@@ -774,6 +792,18 @@ export async function showConfigureHooksQuickPick(
 							bulkEditService,
 							options?.openEditor,
 						);
+						return;
+					}
+
+					if (options?.skipHookTypeSelection) {
+						const jsonContent = JSON.stringify({ hooks: {} }, null, '\t');
+						await fileService.writeFile(hookFileUri, VSBuffer.fromString(jsonContent));
+						options?.onHookFileCreated?.(hookFileUri);
+						if (options?.openEditor) {
+							await options.openEditor(hookFileUri);
+						} else {
+							await editorService.openEditor({ resource: hookFileUri });
+						}
 						return;
 					}
 

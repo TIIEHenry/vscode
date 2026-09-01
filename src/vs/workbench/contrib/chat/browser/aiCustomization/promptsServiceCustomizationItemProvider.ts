@@ -6,15 +6,12 @@
 import { CancellationToken } from '../../../../../base/common/cancellation.js';
 import { Event } from '../../../../../base/common/event.js';
 import { ResourceMap, ResourceSet } from '../../../../../base/common/map.js';
-import { OS } from '../../../../../base/common/platform.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { basename, dirname } from '../../../../../base/common/resources.js';
 import { localize } from '../../../../../nls.js';
 import { ExtensionIdentifier } from '../../../../../platform/extensions/common/extensions.js';
 import { IProductService } from '../../../../../platform/product/common/productService.js';
 import { IAICustomizationWorkspaceService, AICustomizationSources } from '../../common/aiCustomizationWorkspaceService.js';
-import { HookType, HOOK_METADATA } from '../../common/promptSyntax/hookTypes.js';
-import { formatHookCommandLabel } from '../../common/promptSyntax/hookSchema.js';
 import { PromptsType, getSourceDescription } from '../../common/promptSyntax/promptTypes.js';
 import { ICustomAgent, IPromptsService, matchesSessionType, PromptsStorage } from '../../common/promptSyntax/service/promptsService.js';
 import { ICustomizationItem, ICustomizationItemProvider, ICustomizationSourceFolder } from '../../common/customizationHarnessService.js';
@@ -199,37 +196,6 @@ export class PromptsServiceCustomizationItemProvider implements ICustomizationIt
 			});
 		}
 
-		// Agent-embedded hooks (not in sessions window).
-		const agents = !this.workspaceService.isSessionsWindow ? await this.promptsService.getCustomAgents(CancellationToken.None) : [];
-		for (const agent of agents) {
-			if (!agent.hooks || !agent.enabled) {
-				continue;
-			}
-			for (const hookType of Object.values(HookType)) {
-				const hookCommands = agent.hooks[hookType];
-				if (!hookCommands || hookCommands.length === 0) {
-					continue;
-				}
-				const hookMeta = HOOK_METADATA[hookType];
-				for (let i = 0; i < hookCommands.length; i++) {
-					const hook = hookCommands[i];
-					const cmdLabel = formatHookCommandLabel(hook, OS);
-					const truncatedCmd = cmdLabel.length > 60 ? cmdLabel.substring(0, 57) + '...' : cmdLabel;
-					items.push({
-						uri: agent.uri,
-						type: promptType,
-						name: hookMeta?.label ?? hookType,
-						description: `${agent.name}: ${truncatedCmd || localize('hookUnset', "(unset)")}`,
-						source: agent.source.storage,
-						groupKey: 'agents',
-						enabled: !disabledUris.has(agent.uri),
-						extensionId: agent.source.storage === PromptsStorage.extension ? agent.source.extensionId.value : undefined,
-						pluginUri: agent.source.storage === PromptsStorage.plugin ? agent.source.pluginUri : undefined,
-						userInvocable: undefined
-					});
-				}
-			}
-		}
 	}
 
 	private async fetchPromptServiceInstructions(items: ICustomizationItem[], extensionInfoByUri: ResourceMap<{ id: ExtensionIdentifier; displayName?: string }>, disabledUris: ResourceSet, promptType: PromptsType): Promise<void> {
