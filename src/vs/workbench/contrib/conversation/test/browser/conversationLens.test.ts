@@ -29,7 +29,7 @@ import {
 	conversationLensDockStopNotGenerating,
 	conversationLensInputMaximizedClass,
 } from '../../browser/conversationLensDockStrings.js';
-import { conversationLensSessionBarConversationTab, conversationLensSessionBarDeleteSession, conversationLensSessionBarNewSession, conversationLensSessionBarNoTrajectory, conversationLensSessionBarRenameTitle, conversationLensSessionBarTrajectoryTab, conversationLensThinkingNotConnected, conversationLensToolNotConnected, conversationLensPinnedUserPromptAria, conversationLensPinnedUserPromptCopyAria } from '../../browser/conversationLensSessionBarStrings.js';
+import { conversationLensSessionBarConversationTab, conversationLensSessionBarDeleteSession, conversationLensSessionBarNewSession, conversationLensSessionBarNoTrajectory, conversationLensSessionBarRenameTitle, conversationLensSessionBarTrajectoryTab, conversationLensPinnedUserPromptAria, conversationLensPinnedUserPromptCopyAria } from '../../browser/conversationLensSessionBarStrings.js';
 import { ConversationStubService, IConversationRosterService } from '../../browser/conversationStubService.js';
 import { getConversationSessionStatusText } from '../../browser/conversationSessionStatus.js';
 import { shouldRenderTurnAsMarkdown } from '../../browser/conversationTurnMarkdown.js';
@@ -279,14 +279,15 @@ suite('ConversationLens', () => {
 		return { part, lens, stubService, clipboardService, storageService, layoutReadingColumn: layout };
 	}
 
-	async function seedPendingConfirmation(stubService: ConversationStubService, layoutReadingColumn: () => void, message = 'Write README.md?'): Promise<void> {
-		const sessionId = stubService.getActiveSessionId();
+	async function seedPendingConfirmation(stubService: ConversationStubService, layoutReadingColumn: () => void, message = 'Write README.md?'): Promise<string> {
+		const sessionId = stubService.createSession();
 		stubService.appendUserTurn(sessionId, 'Help me scaffold the project README.');
 		layoutReadingColumn();
 		await flushTimelineHeightUpdates();
 		stubService.appendConfirmationTurn(sessionId, message);
 		layoutReadingColumn();
 		await flushTimelineHeightUpdates();
+		return sessionId;
 	}
 
 	function userMessageLines(lineCount: number): string {
@@ -306,7 +307,7 @@ suite('ConversationLens', () => {
 	test('short user turn does not show Show more control', () => {
 		const { part, stubService } = mountLens();
 		const slots = part.getSlots()!;
-		const sessionId = stubService.getActiveSessionId();
+		const sessionId = stubService.createSession();
 		stubService.appendUserTurn(sessionId, userMessageLines(2));
 
 		assert.strictEqual(getUserFoldButton(slots), null);
@@ -316,7 +317,7 @@ suite('ConversationLens', () => {
 	test('long user turn collapses with Show more and full-text title', () => {
 		const { part, stubService } = mountLens();
 		const slots = part.getSlots()!;
-		const sessionId = stubService.getActiveSessionId();
+		const sessionId = stubService.createSession();
 		const message = userMessageLines(8);
 		stubService.appendUserTurn(sessionId, message);
 
@@ -339,7 +340,7 @@ suite('ConversationLens', () => {
 	test('Show more expands user bubble and Show less collapses it again', async () => {
 		const { part, stubService, layoutReadingColumn } = mountLens();
 		const slots = part.getSlots()!;
-		const sessionId = stubService.getActiveSessionId();
+		const sessionId = stubService.createSession();
 		stubService.appendUserTurn(sessionId, userMessageLines(8));
 		layoutReadingColumn();
 		await flushTimelineHeightUpdates();
@@ -371,7 +372,7 @@ suite('ConversationLens', () => {
 	test('long assistant stub echo does not get user bubble collapse chrome', () => {
 		const { part, stubService } = mountLens();
 		const slots = part.getSlots()!;
-		const sessionId = stubService.getActiveSessionId();
+		const sessionId = stubService.createSession();
 		stubService.appendStubEchoAssistant(sessionId, userMessageLines(8));
 
 		const assistantTurn = queryTimeline(slots, '.conversation-lens-turn[data-kind="assistant"]');
@@ -380,19 +381,19 @@ suite('ConversationLens', () => {
 		assert.strictEqual(assistantTurn.querySelector('.conversation-lens-turn-body--collapsed'), null);
 	});
 
-	test('default session shows honest empty timeline without fake history', () => {
+	test('default session shows seeded untitled fixture without fake engine history', () => {
 		const { part, stubService } = mountLens();
 		const slots = part.getSlots()!;
-		const timelineEmpty = getTimelineEmpty(slots);
 		const pendingButton = slots.dock.querySelector('.conversation-lens-inbox-pending') as HTMLButtonElement;
 
 		assert.strictEqual(stubService.getSessions().length, 1);
-		assert.strictEqual(stubService.getTurns(stubService.getActiveSessionId()).length, 0);
-		assert.ok(timelineEmpty);
-		assert.ok(timelineEmpty.textContent?.includes('No messages yet'));
-		assert.strictEqual(queryTimeline(slots, '.conversation-lens-turn'), null);
-		assert.strictEqual(queryTimeline(slots, '.conversation-lens-confirmation-seat'), null);
-		assert.strictEqual(pendingButton.hidden, true);
+		assert.strictEqual(stubService.getTurns(stubService.getActiveSessionId()).length, 7);
+		assert.strictEqual(getTimelineEmpty(slots), null);
+		assert.ok(queryTimeline(slots, '[data-process-fold]'));
+		assert.ok(queryTimeline(slots, '.conversation-lens-turn[data-kind="user"]'));
+		assert.ok(queryTimeline(slots, '.conversation-lens-confirmation-seat'));
+		assert.ok(pendingButton);
+		assert.ok(!pendingButton.hidden);
 	});
 
 	test('fills SessionBar, stub timeline, and stub dock slots', () => {
@@ -480,8 +481,9 @@ suite('ConversationLens', () => {
 	});
 
 	test('inbox stop is honest: disabled without engine, no stopLoop side effects', () => {
-		const { part } = mountLens();
+		const { part, stubService } = mountLens();
 		const slots = part.getSlots()!;
+		const sessionId = stubService.createSession();
 		const inboxRow = slots.dock.querySelector('.conversation-lens-inbox-row')!;
 		const stopButton = getInboxStopButton(slots);
 		const turnCountBefore = queryAllTimeline(slots, '.conversation-lens-turn').length;
@@ -497,6 +499,7 @@ suite('ConversationLens', () => {
 		assert.strictEqual(queryAllTimeline(slots, '.conversation-lens-turn').length, turnCountBefore);
 		assert.ok(inboxRow.textContent?.includes(conversationLensDockInboxNoQueue));
 		assert.strictEqual(pendingButton.hidden, true);
+		assert.strictEqual(stubService.getTurns(sessionId).length, 0);
 	});
 
 	test('honest dock gate and model labels without Copilot CTAs', () => {
@@ -552,10 +555,12 @@ suite('ConversationLens', () => {
 	test('empty session shows timeline empty state', () => {
 		const { part, stubService } = mountLens();
 		const slots = part.getSlots()!;
+		const emptySessionId = stubService.createSession();
+		assert.strictEqual(stubService.getActiveSessionId(), emptySessionId);
 		const empty = getTimelineEmpty(slots);
 		assert.ok(empty);
 		assert.ok(empty.textContent?.includes('No messages yet'));
-		assert.strictEqual(stubService.getTurns(stubService.getActiveSessionId()).length, 0);
+		assert.strictEqual(stubService.getTurns(emptySessionId).length, 0);
 	});
 
 	test('renders confirmation as a timeline list item with Allow and Skip', async () => {
@@ -576,7 +581,7 @@ suite('ConversationLens', () => {
 	test('renders user and assistant turns with role headers', () => {
 		const { part, stubService } = mountLens();
 		const slots = part.getSlots()!;
-		const sessionId = stubService.getActiveSessionId();
+		const sessionId = stubService.createSession();
 		stubService.appendUserTurn(sessionId, 'What lives in the center lens?');
 		stubService.appendStubEchoAssistant(sessionId, 'SessionBar, timeline, and dock — not ChatEditor.');
 		const userTurn = queryTimeline(slots, '.conversation-lens-turn[data-kind="user"]');
@@ -602,7 +607,7 @@ suite('ConversationLens', () => {
 	test('renders assistant turns as markdown, user turns as plain text', () => {
 		const { part, stubService } = mountLens();
 		const slots = part.getSlots()!;
-		const sessionId = stubService.getActiveSessionId();
+		const sessionId = stubService.createSession();
 		const markdownEcho = '**bold** stub echo';
 		stubService.appendStubEchoAssistant(sessionId, markdownEcho);
 
@@ -619,7 +624,7 @@ suite('ConversationLens', () => {
 	test('keeps user turn body as plain text without markdown rendering', () => {
 		const { part, stubService } = mountLens();
 		const slots = part.getSlots()!;
-		const sessionId = stubService.getActiveSessionId();
+		const sessionId = stubService.createSession();
 		const userMessage = 'plain **not bold** text';
 		stubService.appendUserTurn(sessionId, userMessage);
 
@@ -726,7 +731,7 @@ suite('ConversationLens', () => {
 	test('SessionBar lens tablist defaults to Conversation and switches to Trajectory', async () => {
 		const { part, stubService, layoutReadingColumn } = mountLens();
 		const slots = part.getSlots()!;
-		const sessionId = stubService.getActiveSessionId();
+		const sessionId = stubService.createSession();
 		const conversationTab = getLensTab(slots, 'conversation');
 		const trajectoryTab = getLensTab(slots, 'trajectory');
 
@@ -848,29 +853,29 @@ suite('ConversationLens', () => {
 		assert.ok(queryTimeline(slots, '.conversation-lens-confirmation-seat'));
 	});
 
-	test('thinking and tool turns render as collapsible process rows with honest not-connected bodies', () => {
+	test('thinking and tool turns render inside a collapsed process fold by default', () => {
 		const { part, stubService } = mountLens();
 		const slots = part.getSlots()!;
-		const sessionId = stubService.getActiveSessionId();
+		const sessionId = stubService.createSession();
 		stubService.appendThinkingTurn(sessionId, 'Weighing options');
 		stubService.appendToolTurn(sessionId, 'grep src');
 
-		const thinking = queryTimeline(slots, '.conversation-lens-turn-process[data-kind="thinking"]');
-		const tool = queryTimeline(slots, '.conversation-lens-turn-process[data-kind="tool"]');
+		const fold = queryTimeline(slots, '[data-process-fold]');
+		assert.ok(fold);
+		const header = fold!.querySelector('.conversation-process-fold-header') as HTMLElement;
+		assert.strictEqual(header.getAttribute('aria-expanded'), 'false');
+		const children = fold!.querySelector('.conversation-process-fold-children') as HTMLElement;
+		assert.strictEqual(children.hidden, true);
+		assert.ok(header.textContent?.includes('Stub'));
 
+		header.click();
+
+		assert.strictEqual(header.getAttribute('aria-expanded'), 'true');
+		assert.strictEqual(children.hidden, false);
+		const thinking = fold!.querySelector('.conversation-process-fold-thinking[data-kind="thinking"]');
+		const tool = fold!.querySelector('.conversation-process-fold-tool[data-kind="tool"]');
 		assert.ok(thinking?.textContent?.includes('Weighing options'));
 		assert.ok(tool?.textContent?.includes('grep src'));
-		assert.strictEqual(queryTimeline(slots, '.conversation-lens-turn-process-body'), null);
-
-		const twisties = queryAllTimeline(slots, '.monaco-tl-twistie');
-		assert.ok(twisties.length >= 2);
-		for (const twistie of twisties) {
-			(twistie as HTMLElement).click();
-		}
-
-		const bodies = queryAllTimeline(slots, '.conversation-lens-turn-process-body');
-		assert.ok([...bodies].some(body => body.textContent === conversationLensThinkingNotConnected));
-		assert.ok([...bodies].some(body => body.textContent === conversationLensToolNotConnected));
 	});
 
 	test('ConversationPart.focus lands on dock textarea when lens is mounted', () => {
@@ -897,7 +902,8 @@ suite('ConversationLens', () => {
 	});
 
 	test('inbox status row is honest: no fake queue list, pending hidden without confirmations', () => {
-		const { part } = mountLens();
+		const { part, stubService } = mountLens();
+		stubService.createSession();
 		const slots = part.getSlots()!;
 		const inboxRow = slots.dock.querySelector('.conversation-lens-inbox-row')!;
 		const pendingButton = inboxRow.querySelector('.conversation-lens-inbox-pending') as HTMLButtonElement;
@@ -1096,7 +1102,7 @@ suite('ConversationLens', () => {
 	test('user and assistant turns expose Copy and Delete action bars; process and confirmation rows do not', async () => {
 		const { part, stubService, layoutReadingColumn } = mountLens();
 		const slots = part.getSlots()!;
-		const sessionId = stubService.getActiveSessionId();
+		const sessionId = stubService.createSession();
 
 		stubService.appendUserTurn(sessionId, 'Copy me user');
 		stubService.appendStubEchoAssistant(sessionId, 'Copy me assistant');
@@ -1105,6 +1111,10 @@ suite('ConversationLens', () => {
 		stubService.appendConfirmationTurn(sessionId, 'Confirm this?');
 		layoutReadingColumn();
 		await flushTimelineHeightUpdates();
+
+		const foldHeader = queryTimeline(slots, '.conversation-process-fold-header');
+		assert.ok(foldHeader);
+		(foldHeader as HTMLElement).click();
 
 		const userTurn = queryTimeline(slots, '.conversation-lens-turn[data-kind="user"]')!;
 		const assistantTurn = queryTimeline(slots, '.conversation-lens-turn[data-kind="assistant"]')!;
@@ -1127,8 +1137,8 @@ suite('ConversationLens', () => {
 		assert.strictEqual(assistantCopy.getAttribute('aria-label'), conversationLensTurnCopy);
 		assert.strictEqual(assistantDelete.getAttribute('aria-label'), conversationLensTurnDelete);
 
-		assert.strictEqual(queryTimeline(slots, '.conversation-lens-turn-process[data-kind="thinking"] .conversation-lens-turn-actions'), null);
-		assert.strictEqual(queryTimeline(slots, '.conversation-lens-turn-process[data-kind="tool"] .conversation-lens-turn-actions'), null);
+		assert.strictEqual(queryTimeline(slots, '.conversation-process-fold-thinking .conversation-lens-turn-actions'), null);
+		assert.strictEqual(queryTimeline(slots, '.conversation-process-fold-tool .conversation-lens-turn-actions'), null);
 		assert.strictEqual(queryTimeline(slots, '.conversation-lens-confirmation-seat .conversation-lens-turn-actions'), null);
 
 		assert.strictEqual(queryTimeline(slots, '[aria-label*="Regenerate"]'), null);
@@ -1139,7 +1149,7 @@ suite('ConversationLens', () => {
 	test('Delete turn removes it from timeline and trajectory; Copy writes turn text to clipboard', async () => {
 		const { part, stubService, clipboardService, layoutReadingColumn } = mountLens();
 		const slots = part.getSlots()!;
-		const sessionId = stubService.getActiveSessionId();
+		const sessionId = stubService.createSession();
 		const userText = 'Delete and copy user text';
 		const assistantText = 'Delete and copy assistant text';
 
@@ -1298,7 +1308,7 @@ suite('ConversationLens', () => {
 		this.timeout(15000);
 		const { part, lens, stubService, layoutReadingColumn } = mountLens();
 		const slots = part.getSlots()!;
-		const sessionId = stubService.getActiveSessionId();
+		const sessionId = stubService.createSession();
 
 		assert.notStrictEqual(getPinnedUserPrompt(slots)?.classList.contains('conversation-timeline-pinned-user--visible'), true);
 
@@ -1328,7 +1338,7 @@ suite('ConversationLens', () => {
 		this.timeout(15000);
 		const { part, lens, stubService, layoutReadingColumn } = mountLens();
 		const slots = part.getSlots()!;
-		const sessionId = stubService.getActiveSessionId();
+		const sessionId = stubService.createSession();
 		const userText = 'Scroll target user prompt';
 
 		stubService.appendUserTurn(sessionId, userText);
@@ -1356,11 +1366,58 @@ suite('ConversationLens', () => {
 		assert.ok(!getPinnedUserPrompt(slots)?.classList.contains('conversation-timeline-pinned-user--visible'));
 	});
 
+	test('untitled fixture renders collapsed process fold header with Stub summary', () => {
+		const { part } = mountLens();
+		const slots = part.getSlots()!;
+		const fold = queryTimeline(slots, '[data-process-fold]');
+		assert.ok(fold);
+		const header = fold!.querySelector('.conversation-process-fold-header') as HTMLElement;
+		assert.strictEqual(header.getAttribute('aria-expanded'), 'false');
+		assert.ok(header.textContent?.includes('Stub'));
+		assert.ok(header.textContent?.includes('4 steps'));
+		const children = fold!.querySelector('.conversation-process-fold-children') as HTMLElement;
+		assert.strictEqual(children.hidden, true);
+	});
+
+	test('expanding untitled process fold reveals nested thinking and tool indent layers', () => {
+		const { part } = mountLens();
+		const slots = part.getSlots()!;
+		const fold = queryTimeline(slots, '[data-process-fold]')!;
+		const header = fold.querySelector('.conversation-process-fold-header') as HTMLElement;
+		header.click();
+
+		const children = fold.querySelector('.conversation-process-fold-children') as HTMLElement;
+		assert.strictEqual(children.hidden, false);
+
+		const thinkingBlocks = fold.querySelectorAll('.conversation-process-fold-thinking');
+		assert.strictEqual(thinkingBlocks.length, 2);
+		const nestedTools = fold.querySelectorAll('.conversation-process-fold-tool--nested');
+		assert.strictEqual(nestedTools.length, 2);
+
+		const childrenStyle = getComputedStyle(children);
+		const nestedToolStyle = getComputedStyle(nestedTools[0] as Element);
+		const thinkingToolsHost = fold.querySelector('.conversation-process-fold-thinking-tools') as HTMLElement;
+		const thinkingToolsStyle = getComputedStyle(thinkingToolsHost);
+		assert.ok(parseFloat(childrenStyle.paddingInlineStart) >= 12);
+		assert.ok(parseFloat(thinkingToolsStyle.paddingInlineStart) >= 12);
+		assert.ok(parseFloat(nestedToolStyle.paddingInlineStart) >= 0);
+	});
+
+	test('user and confirmation seats stay outside process fold on untitled fixture', () => {
+		const { part } = mountLens();
+		const slots = part.getSlots()!;
+		const fold = queryTimeline(slots, '[data-process-fold]')!;
+		assert.strictEqual(fold.querySelector('.conversation-lens-turn[data-kind="user"]'), null);
+		assert.strictEqual(fold.querySelector('.conversation-lens-confirmation-seat'), null);
+		assert.ok(queryTimeline(slots, '.conversation-lens-turn[data-kind="user"]'));
+		assert.ok(queryTimeline(slots, '.conversation-lens-confirmation-seat'));
+	});
+
 	test('pinned user prompt copy writes full text and exposes no Quote Edit or Regenerate', async function () {
 		this.timeout(15000);
 		const { part, lens, stubService, clipboardService, layoutReadingColumn } = mountLens();
 		const slots = part.getSlots()!;
-		const sessionId = stubService.getActiveSessionId();
+		const sessionId = stubService.createSession();
 		const userText = userMessageLines(8);
 
 		stubService.appendUserTurn(sessionId, userText);

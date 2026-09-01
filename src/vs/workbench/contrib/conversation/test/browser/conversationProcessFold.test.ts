@@ -5,7 +5,7 @@
 
 import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
-import { nestThinkingTools, projectProcessFoldSpans } from '../../browser/conversationProcessFoldModel.js';
+import { nestThinkingTools, projectProcessFoldSpans, summarizeProcessSteps } from '../../browser/conversationProcessFoldModel.js';
 import { ConversationStubTurn } from '../../browser/conversationStubModel.js';
 
 function turn(id: string, kind: ConversationStubTurn['kind'], text = id): ConversationStubTurn {
@@ -145,5 +145,22 @@ suite('ConversationProcessFold', () => {
 		if (nodes[1]!.kind === 'thinking') {
 			assert.deepStrictEqual(nodes[1]!.tools.map(tool => tool.id), ['tool2']);
 		}
+	});
+
+	test('summarizeProcessSteps includes Stub prefix and step counts', () => {
+		const turns = [
+			turn('u1', 'user'),
+			turn('t1', 'thinking', 'Stub: outline sections'),
+			turn('tool1', 'tool', 'Stub: README.md'),
+			turn('t2', 'thinking', 'Stub: draft'),
+			turn('tool2', 'tool', 'Stub: README.md'),
+			turn('a1', 'assistant', 'Done'),
+		];
+		const spans = projectProcessFoldSpans(turns);
+		assert.strictEqual(spans.length, 1);
+		const summary = summarizeProcessSteps(spans[0]!);
+		assert.ok(summary.startsWith('Stub · 4 steps ·'));
+		assert.ok(summary.includes('thinking ×2'));
+		assert.ok(summary.includes('tool ×2'));
 	});
 });

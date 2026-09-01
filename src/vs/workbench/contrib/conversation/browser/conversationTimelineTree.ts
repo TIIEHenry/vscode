@@ -7,7 +7,7 @@ import { $, addDisposableListener, append, clearNode, getWindow, scheduleAtNextA
 import { Button } from '../../../../base/browser/ui/button/button.js';
 import { IListVirtualDelegate } from '../../../../base/browser/ui/list/list.js';
 import { RenderIndentGuides } from '../../../../base/browser/ui/tree/abstractTree.js';
-import { IObjectTreeElement, ITreeElementRenderDetails, ITreeNode, ITreeRenderer, ObjectTreeElementCollapseState } from '../../../../base/browser/ui/tree/tree.js';
+import { IObjectTreeElement, ITreeElementRenderDetails, ITreeNode, ITreeRenderer } from '../../../../base/browser/ui/tree/tree.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { Disposable, DisposableStore, IDisposable } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
@@ -16,7 +16,9 @@ import { asCssVariable, asCssVariableWithDefault, buttonSecondaryBackground, but
 import { defaultButtonStyles } from '../../../../platform/theme/browser/defaultStyles.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { ConversationConfirmationSeat } from './conversationConfirmationSeat.js';
-import { conversationLensThinkingNotConnected, conversationLensToolNotConnected, conversationLensTurnCopy, conversationLensTurnDelete, conversationLensPinnedUserPromptAria, conversationLensPinnedUserPromptCopyAria } from './conversationLensSessionBarStrings.js';
+import { conversationLensTurnCopy, conversationLensTurnDelete, conversationLensPinnedUserPromptAria, conversationLensPinnedUserPromptCopyAria } from './conversationLensSessionBarStrings.js';
+import { renderProcessFoldSpan } from './conversationProcessFold.js';
+import { ProcessFoldSpan, projectProcessFoldSpans } from './conversationProcessFoldModel.js';
 import { ConversationStubTurn } from './conversationStubModel.js';
 import {
 	ConversationTimelineFlatItem,
@@ -41,11 +43,12 @@ import {
 export const conversationLensUserBubbleShowMore = localize('conversationLens.userBubbleShowMore', "Show more");
 export const conversationLensUserBubbleShowLess = localize('conversationLens.userBubbleShowLess', "Show less");
 
-export type ConversationTimelineItemVariant = 'turn' | 'process-body';
+export type ConversationTimelineItemVariant = 'turn' | 'process-fold';
 
 export interface ConversationTimelineItem {
 	readonly turn: ConversationStubTurn;
 	readonly variant: ConversationTimelineItemVariant;
+	readonly processFoldSpan?: ProcessFoldSpan;
 }
 
 export interface IConversationTimelineTreeOptions {
@@ -67,12 +70,12 @@ class ConversationTimelineDelegate implements IListVirtualDelegate<ConversationT
 
 	getHeight(element: ConversationTimelineItem): number {
 		const key = this.heightKey(element);
-		return this.heights.get(key) ?? (element.variant === 'process-body' ? 40 : 72);
+		return this.heights.get(key) ?? (element.variant === 'process-fold' ? 40 : 72);
 	}
 
 	getTemplateId(element: ConversationTimelineItem): string {
-		return element.variant === 'process-body'
-			? ConversationTimelineRenderer.PROCESS_BODY_TEMPLATE_ID
+		return element.variant === 'process-fold'
+			? ConversationTimelineRenderer.PROCESS_FOLD_TEMPLATE_ID
 			: ConversationTimelineRenderer.TEMPLATE_ID;
 	}
 
@@ -85,8 +88,8 @@ class ConversationTimelineDelegate implements IListVirtualDelegate<ConversationT
 	}
 
 	private heightKey(element: ConversationTimelineItem): string {
-		return element.variant === 'process-body'
-			? `${element.turn.id}:body`
+		return element.variant === 'process-fold'
+			? element.processFoldSpan?.id ?? element.turn.id
 			: element.turn.id;
 	}
 }
@@ -94,12 +97,14 @@ class ConversationTimelineDelegate implements IListVirtualDelegate<ConversationT
 class ConversationTimelineRenderer implements ITreeRenderer<ConversationTimelineItem, void, ITurnTemplateData> {
 
 	static readonly TEMPLATE_ID = 'conversationTimelineTurn';
-	static readonly PROCESS_BODY_TEMPLATE_ID = 'conversationTimelineProcessBody';
+	static readonly PROCESS_FOLD_TEMPLATE_ID = 'conversationTimelineProcessFold';
 
 	readonly templateId = ConversationTimelineRenderer.TEMPLATE_ID;
 
 	private readonly confirmationSeats = new Map<string, ConversationConfirmationSeat>();
 	private readonly userBubbleExpanded = new Map<string, boolean>();
+	private readonly processFoldOuterExpanded = new Map<string, boolean>();
+	private readonly processFoldThinkingExpanded = new Map<string, boolean>();
 
 	constructor(
 		private readonly contentAdapter: IConversationTurnContentAdapter,
@@ -121,13 +126,28 @@ class ConversationTimelineRenderer implements ITreeRenderer<ConversationTimeline
 		const item = node.element;
 		const turn = item.turn;
 
-		if (item.variant === 'process-body') {
-			const el = append(templateData.container, $('.conversation-lens-turn-process-body'));
-			el.setAttribute('data-turn-id', turn.id);
-			el.setAttribute('data-kind', turn.kind);
-			el.textContent = turn.kind === 'thinking'
-				? conversationLensThinkingNotConnected
-				: conversationLensToolNotConnected;
+		if (item.variant === 'process-fold' && item.processFoldSpan) {
+			const span = item.processFoldSpan;
+			renderProcessFoldSpan(templateData.container, span, {
+				defaultOuterExpanded: false,
+				isOuterExpanded: (spanId) => this.processFoldOuterExpanded.get(spanId) ?? false,
+				setOuterExpanded: (spanId, expanded) => {
+					if (expanded) {
+						this.processFoldOuterExpanded.set(spanId, true);
+					} else {
+						this.processFoldOuterExpanded.delete(spanId);
+					}
+				},
+				isThinkingExpanded: (turnId) => this.processFoldThinkingExpanded.get(turnId) ?? false,
+				setThinkingExpanded: (turnId, expanded) => {
+					if (expanded) {
+						this.processFoldThinkingExpanded.set(turnId, true);
+					} else {
+						this.processFoldThinkingExpanded.delete(turnId);
+					}
+				},
+				onLayoutChange: () => this.scheduleHeightUpdate(item, templateData.container),
+			}, templateData.disposables);
 			this.scheduleHeightUpdate(item, templateData.container);
 			return;
 		}
@@ -149,16 +169,12 @@ class ConversationTimelineRenderer implements ITreeRenderer<ConversationTimeline
 			this.confirmationSeats.set(turn.id, seat);
 			templateData.container.appendChild(seat.element);
 		} else if (turn.kind === 'thinking' || turn.kind === 'tool') {
+			// Process-fold spans render thinking/tool turns; standalone hits should not occur.
 			const el = append(templateData.container, $('div.conversation-lens-turn.conversation-lens-turn-process'));
 			el.setAttribute('data-kind', turn.kind);
 			el.setAttribute('data-turn-id', turn.id);
-
-			const header = append(el, $('.conversation-lens-turn-header'));
-			header.textContent = getConversationTurnRoleLabel(turn.kind);
-
 			const summary = append(el, $('.conversation-lens-turn-summary'));
 			summary.textContent = turn.text;
-			templateData.container.appendChild(el);
 		} else {
 			const el = $('div.conversation-lens-turn');
 			el.setAttribute('data-kind', turn.kind);
@@ -264,6 +280,11 @@ class ConversationTimelineRenderer implements ITreeRenderer<ConversationTimeline
 		this.userBubbleExpanded.clear();
 	}
 
+	clearProcessFoldExpanded(): void {
+		this.processFoldOuterExpanded.clear();
+		this.processFoldThinkingExpanded.clear();
+	}
+
 	private applyUserBubbleCollapseState(body: HTMLElement, text: string, expanded: boolean): void {
 		body.classList.toggle('conversation-lens-turn-body--collapsed', !expanded);
 		body.classList.toggle('conversation-lens-turn-body--scrollable', expanded && shouldScrollExpandedUserBubble(text));
@@ -283,9 +304,9 @@ class ConversationTimelineRenderer implements ITreeRenderer<ConversationTimeline
 	}
 }
 
-class ConversationTimelineProcessBodyRenderer implements ITreeRenderer<ConversationTimelineItem, void, ITurnTemplateData> {
+class ConversationTimelineProcessFoldRenderer implements ITreeRenderer<ConversationTimelineItem, void, ITurnTemplateData> {
 
-	readonly templateId = ConversationTimelineRenderer.PROCESS_BODY_TEMPLATE_ID;
+	readonly templateId = ConversationTimelineRenderer.PROCESS_FOLD_TEMPLATE_ID;
 
 	constructor(
 		private readonly inner: ConversationTimelineRenderer,
@@ -393,18 +414,18 @@ export class ConversationTimelineTree extends Disposable {
 			options.onDeleteTurn,
 			(item, height) => this.safeUpdateElementHeight(item, height),
 		);
-		const processBodyRenderer = new ConversationTimelineProcessBodyRenderer(this.renderer);
+		const processFoldRenderer = new ConversationTimelineProcessFoldRenderer(this.renderer);
 
 		this.tree = this._register(this.instantiationService.createInstance(
 			WorkbenchObjectTree<ConversationTimelineItem, void>,
 			'ConversationTimeline',
 			this.treeContainer,
 			this.delegate,
-			[this.renderer, processBodyRenderer],
+			[this.renderer, processFoldRenderer],
 			{
 				identityProvider: {
-					getId: (e: ConversationTimelineItem) => e.variant === 'process-body'
-						? `${e.turn.id}:body`
+					getId: (e: ConversationTimelineItem) => e.variant === 'process-fold'
+						? e.processFoldSpan?.id ?? e.turn.id
 						: e.turn.id,
 				},
 				horizontalScrolling: false,
@@ -420,10 +441,8 @@ export class ConversationTimelineTree extends Disposable {
 				setRowLineHeight: false,
 				accessibilityProvider: {
 					getAriaLabel: (item: ConversationTimelineItem) => {
-						if (item.variant === 'process-body') {
-							return item.turn.kind === 'thinking'
-								? conversationLensThinkingNotConnected
-								: conversationLensToolNotConnected;
+						if (item.variant === 'process-fold') {
+							return localize('conversationProcessFold.accessibility', "Process steps");
 						}
 						const turn = item.turn;
 						if (turn.kind === 'confirmation') {
@@ -505,16 +524,57 @@ export class ConversationTimelineTree extends Disposable {
 		this.withPersistedAutoScroll(() => {
 			this.renderer.clearConfirmationSeats();
 			this.renderer.clearUserBubbleExpanded();
+			this.renderer.clearProcessFoldExpanded();
 			this.turnItems.clear();
 			this.flatItems = flattenConversationTimelineItems(turns);
-			const items = turns.map(turn => this.toTreeElement(turn));
+			const items = this.buildTreeElements(turns);
 			for (const treeElement of items) {
-				this.turnItems.set(treeElement.element.turn.id, treeElement.element);
+				const item = treeElement.element;
+				this.turnItems.set(item.turn.id, item);
+				if (item.variant === 'process-fold' && item.processFoldSpan) {
+					for (const turnId of item.processFoldSpan.turnIds) {
+						this.turnItems.set(turnId, item);
+					}
+				}
 			}
 			this.tree.setChildren(null, items);
 			this.renderEmptyState(turns.length === 0);
 			this.updatePinnedUserPromptVisibility();
 		});
+	}
+
+	private buildTreeElements(turns: readonly ConversationStubTurn[]): IObjectTreeElement<ConversationTimelineItem>[] {
+		const spans = projectProcessFoldSpans(turns);
+		const spanByStartIndex = new Map(spans.map(span => [span.startIndex, span]));
+		const coveredIndices = new Set<number>();
+		for (const span of spans) {
+			for (let index = span.startIndex + 1; index < span.endIndex; index++) {
+				coveredIndices.add(index);
+			}
+		}
+
+		const elements: IObjectTreeElement<ConversationTimelineItem>[] = [];
+		for (let index = 0; index < turns.length; index++) {
+			if (coveredIndices.has(index)) {
+				continue;
+			}
+
+			const turn = turns[index]!;
+			const span = spanByStartIndex.get(index);
+			if (span) {
+				elements.push({
+					element: {
+						turn: turns[span.startIndex]!,
+						variant: 'process-fold',
+						processFoldSpan: span,
+					},
+				});
+				continue;
+			}
+
+			elements.push({ element: { turn, variant: 'turn' } });
+		}
+		return elements;
 	}
 
 	revealTurn(turnId: string, relativeTop = 0.5): void {
@@ -590,19 +650,6 @@ export class ConversationTimelineTree extends Disposable {
 	layout(height: number, width: number): void {
 		this.tree.layout(height, width);
 		this.refreshScrollChrome();
-	}
-
-	private toTreeElement(turn: ConversationStubTurn): IObjectTreeElement<ConversationTimelineItem> {
-		const element: ConversationTimelineItem = { turn, variant: 'turn' };
-		if (turn.kind === 'thinking' || turn.kind === 'tool') {
-			return {
-				element,
-				collapsible: true,
-				collapsed: ObjectTreeElementCollapseState.PreserveOrCollapsed,
-				children: [{ element: { turn, variant: 'process-body' } }],
-			};
-		}
-		return { element };
 	}
 
 	private renderEmptyState(empty: boolean): void {

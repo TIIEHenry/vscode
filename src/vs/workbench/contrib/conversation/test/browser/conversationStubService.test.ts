@@ -11,12 +11,15 @@ suite('ConversationStubService', () => {
 
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('starts with one empty untitled session', () => {
+	test('starts with one untitled session seeded with process-fold fixture turns', () => {
 		const service = store.add(new ConversationStubService());
 		const sessions = service.getSessions();
 		assert.strictEqual(sessions.length, 1);
 		assert.ok(sessions[0].title.includes('Untitled'));
-		assert.strictEqual(service.getTurns(sessions[0].id).length, 0);
+		const turns = service.getTurns(sessions[0].id);
+		assert.strictEqual(turns.length, 7);
+		assert.strictEqual(turns.filter(turn => turn.kind === 'thinking').length, 2);
+		assert.strictEqual(turns.filter(turn => turn.kind === 'tool').length, 2);
 		assert.strictEqual(service.getActiveSessionId(), sessions[0].id);
 	});
 
@@ -145,7 +148,7 @@ suite('ConversationStubService', () => {
 
 	test('appendThinkingTurn and appendToolTurn add seedable process turns', () => {
 		const service = store.add(new ConversationStubService());
-		const sessionId = service.getActiveSessionId();
+		const sessionId = service.createSession();
 
 		const thinking = service.appendThinkingTurn(sessionId, 'Planning next steps');
 		const tool = service.appendToolTurn(sessionId, 'Read package.json');

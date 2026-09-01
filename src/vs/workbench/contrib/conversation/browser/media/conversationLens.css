@@ -393,6 +393,105 @@
 	padding: 4px 8px 6px;
 }
 
+/* Process-fold overlay (ADR-046) */
+.monaco-workbench .part.conversation .conversation-process-fold {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+}
+
+.monaco-workbench .part.conversation .conversation-process-fold-header,
+.monaco-workbench .part.conversation .conversation-process-fold-thinking-header {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	width: 100%;
+	padding: 4px 8px;
+	border: none;
+	background: none;
+	color: var(--vscode-descriptionForeground);
+	font-size: 12px;
+	line-height: 1.45;
+	text-align: start;
+	cursor: pointer;
+}
+
+.monaco-workbench .part.conversation .conversation-process-fold-header:hover,
+.monaco-workbench .part.conversation .conversation-process-fold-thinking-header:hover {
+	color: var(--vscode-foreground);
+}
+
+.monaco-workbench .part.conversation .conversation-process-fold-summary {
+	flex: 1;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.monaco-workbench .part.conversation .conversation-process-fold-chevron {
+	flex-shrink: 0;
+	color: var(--vscode-descriptionForeground);
+	transition: transform 0.15s ease;
+}
+
+.monaco-workbench .part.conversation .conversation-process-fold-chevron--expanded {
+	transform: rotate(90deg);
+}
+
+.monaco-workbench .part.conversation .conversation-process-fold-children {
+	padding-inline-start: 12px;
+}
+
+.monaco-workbench .part.conversation .conversation-process-fold-thinking-tools {
+	padding-inline-start: 12px;
+}
+
+.monaco-workbench .part.conversation .conversation-process-fold-thinking-label {
+	flex-shrink: 0;
+	font-weight: 600;
+	color: var(--vscode-foreground);
+}
+
+.monaco-workbench .part.conversation .conversation-process-fold-thinking-summary,
+.monaco-workbench .part.conversation .conversation-process-fold-tool-summary {
+	flex: 1;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	color: var(--vscode-descriptionForeground);
+}
+
+.monaco-workbench .part.conversation .conversation-process-fold-thinking-body {
+	font-size: 12px;
+	line-height: 1.45;
+	color: var(--vscode-descriptionForeground);
+	padding: 2px 8px 4px 22px;
+	white-space: pre-wrap;
+}
+
+.monaco-workbench .part.conversation .conversation-process-fold-tool {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	padding: 2px 8px;
+	font-size: 12px;
+	line-height: 1.45;
+	color: var(--vscode-descriptionForeground);
+}
+
+.monaco-workbench .part.conversation .conversation-process-fold-tool-icon {
+	flex-shrink: 0;
+	color: var(--vscode-descriptionForeground);
+}
+
+.monaco-workbench .part.conversation .conversation-process-fold-tool-name {
+	flex-shrink: 0;
+	font-weight: 600;
+	color: var(--vscode-foreground);
+}
+
 .monaco-workbench .part.conversation .conversation-lens-turn-process-body {
 	font-size: 12px;
 	line-height: 1.45;

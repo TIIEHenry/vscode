@@ -19,6 +19,9 @@ export interface ConversationStubTurn {
 	readonly text: string;
 	readonly status?: ConfirmationStatus;
 	readonly stubEcho?: boolean;
+	readonly toolName?: string;
+	readonly summary?: string;
+	readonly payload?: string;
 }
 
 export interface ConversationStubSession {
@@ -27,12 +30,34 @@ export interface ConversationStubSession {
 	turns: ConversationStubTurn[];
 }
 
+function createUntitledFixtureTurns(): ConversationStubTurn[] {
+	return [
+		{ id: 'untitled-u1', kind: 'user', text: localize('conversationStub.untitledUser', "Help me draft the README.") },
+		{ id: 'untitled-t1', kind: 'thinking', text: 'Stub: outline sections' },
+		{ id: 'untitled-tool1', kind: 'tool', text: 'Stub: README.md', toolName: 'read', summary: 'Stub: README.md' },
+		{ id: 'untitled-t2', kind: 'thinking', text: 'Stub: draft' },
+		{ id: 'untitled-tool2', kind: 'tool', text: 'Stub: README.md', toolName: 'write', summary: 'Stub: README.md' },
+		{
+			id: 'untitled-a1',
+			kind: 'assistant',
+			text: localize('conversationStub.untitledAssistant', "Stub: README draft ready."),
+			stubEcho: true,
+		},
+		{
+			id: 'untitled-c1',
+			kind: 'confirmation',
+			text: localize('conversationStub.untitledConfirmation', "Allow write to README.md?"),
+			status: 'pending',
+		},
+	];
+}
+
 function createSeedSessions(): ConversationStubSession[] {
 	return [
 		{
 			id: 'untitled',
 			title: localize('conversationLens.sessionUntitled', "Untitled session"),
-			turns: [],
+			turns: createUntitledFixtureTurns(),
 		},
 	];
 }
@@ -60,6 +85,7 @@ export class ConversationStubModel {
 			turns: session.turns.map(turn => ({ ...turn })),
 		}));
 		this.activeSessionId = this.sessions[0].id;
+		nextTurnId = 100;
 	}
 
 	getSessions(): readonly ConversationStubSession[] {
