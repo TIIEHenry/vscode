@@ -14,13 +14,43 @@ export const ConversationChatInputTypeId = 'workbench.editors.conversationChatIn
 
 export interface IConversationChatInputOptions {
 	readonly isDefaultRoot?: boolean;
+	readonly title?: string;
 }
 
 export function getDefaultConversationChatResource(sessionKey: string): URI {
+	return getConversationChatResource(sessionKey, 'default');
+}
+
+export function getConversationChatResource(sessionKey: string, chatId: string): URI {
 	return URI.from({
 		scheme: ConversationChatInputScheme,
-		path: `/session/${sessionKey}/chat/default`,
+		path: `/session/${encodeURIComponent(sessionKey)}/chat/${encodeURIComponent(chatId)}`,
 	});
+}
+
+export function parseConversationChatResource(resource: URI): { sessionKey: string; chatId: string; isDefaultRoot: boolean } | undefined {
+	if (resource.scheme !== ConversationChatInputScheme) {
+		return undefined;
+	}
+	const match = /^\/session\/([^/]+)\/chat\/([^/]+)$/.exec(resource.path);
+	if (!match) {
+		return undefined;
+	}
+	const sessionKey = decodeURIComponent(match[1]);
+	const chatId = decodeURIComponent(match[2]);
+	return {
+		sessionKey,
+		chatId,
+		isDefaultRoot: chatId === 'default',
+	};
+}
+
+export function deriveConversationChatIdFromForkResource(forkedResource: URI): string {
+	if (forkedResource.fragment) {
+		return forkedResource.fragment;
+	}
+	const segments = forkedResource.path.split('/').filter(Boolean);
+	return segments.at(-1) ?? forkedResource.toString();
 }
 
 export class ConversationChatInput extends EditorInput implements IEditorCloseHandler {
@@ -29,11 +59,14 @@ export class ConversationChatInput extends EditorInput implements IEditorCloseHa
 
 	private readonly _resource: URI;
 	private readonly _isDefaultRoot: boolean;
+	private readonly _title: string | undefined;
 
 	constructor(resource: URI, options?: IConversationChatInputOptions) {
 		super();
 		this._resource = resource;
-		this._isDefaultRoot = options?.isDefaultRoot ?? false;
+		const parsed = parseConversationChatResource(resource);
+		this._isDefaultRoot = options?.isDefaultRoot ?? parsed?.isDefaultRoot ?? false;
+		this._title = options?.title;
 	}
 
 	override closeHandler = this;
@@ -51,11 +84,11 @@ export class ConversationChatInput extends EditorInput implements IEditorCloseHa
 	}
 
 	override get typeId(): string {
-		return ConversationChatInput.TypeID;
+		return ConversationChatInputTypeId;
 	}
 
 	override get editorId(): string | undefined {
-		return ConversationChatInput.TypeID;
+		return ConversationChatInputTypeId;
 	}
 
 	override get resource(): URI {
@@ -71,7 +104,7 @@ export class ConversationChatInput extends EditorInput implements IEditorCloseHa
 	}
 
 	override getName(): string {
-		return localize('conversationChatInputName', "Conversation");
+		return this._title ?? localize('conversationChatInputName', "Conversation");
 	}
 
 	override matches(other: EditorInput | IUntypedEditorInput): boolean {
@@ -94,7 +127,7 @@ export class ConversationChatInput extends EditorInput implements IEditorCloseHa
 		return {
 			resource: this._resource,
 			options: {
-				override: ConversationChatInput.TypeID,
+				override: ConversationChatInputTypeId,
 			}
 		};
 	}

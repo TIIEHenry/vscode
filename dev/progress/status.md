@@ -4,14 +4,14 @@ type: progress
 status: active
 phase: M4
 updated: 2026-09-01
-summary: "设置两套主面已签收（C5 / H0–H3 ReadyToImplement；E1 等 PRD-008）；PRD-015–016 已签收未实施；PRD-016 补聚合豁免 §3.8 与切片 S1a，待补规则 16 审查；M4 D4 仍阻塞于 compile 产物"
+summary: "PRD-016 session-windows S3（fork tab + 子代理对话框）已落 loop/A；M4 D4 仍阻塞于 compile 产物"
 ---
 
 # Development Progress
 
 ## Current Session
 
-- **Conversation session 窗口与 tab：** [conversation-session-windows.md](../plans/conversation-session-windows.md)（`accepted`）· [PRD-016](../../docs/product/requirements.md#prd-016-conversation-session-窗口与-chat-tab)（`accepted`）· [ADR-002](../decisions/002-conversation-session-windows.md)（`accepted`）。2026-09-01 用户签收，Grok Block 已改入。**签收后代码事实复核**（`editorParts.ts` + agentHost 协议）改入两 Critical、两 Important：§3.8 **聚合豁免**（A1 `applyState` 只豁免 `mainPart`，会 `force` 关光 Conversation tab；A2 scoped service 按 windowId 索引装不下两个 part；A3 `getGroups`/MRU `activePart`/FIRST-LAST/`getPartByDocument` 外漏）与 §3.3b（`ChatOrigin` 四 kind 含 `SideChat`；`ChatInteractivity` `ReadOnly`/`Hidden`）；新增切片 **S1a**（与 S1 同批，A1 未落地即 S1 未完成）。ADR-002 正文按规则 5 不改（细节授权给方案 §3）。知识层 `editor-part-tabs` §4 / `parts-and-grid` §5 / `agent-ui` 已同步。**该批未派独立 reviewer；S1 / S1a 开工前须补规则 16 只读审查。** 未改 `src/`。
+- **Conversation session 窗口与 tab：** [conversation-session-windows.md](../plans/conversation-session-windows.md)（`accepted`）· S1/S1a/S2 已合入 `agent-ide`；**S3 同 session（`loop/A` `4d690515+`）**：默认窗 Fork → `forkChatSession` + `CONVERSATION_GROUP` 延伸 tab（不 import `agentHostForkActions` / `vs/sessions`）；子代理 spawn 仅登记 catalog；点击 → session 叶 overlay 对话框；最大化 → 延伸 tab；stub 期 `Full` 可交互；单测 `conversationSessionChat.test.ts`（§5 fork/子代理项）。**待做：** S3b 面包屑 + 关非根、S4 split、S5 窗口并列。
 
 - **文档卫生：** 删除 `dev/plans/status.md` 与 `dev/plans/traceability.md` —— 二者是 `dev/progress/status.md`（本文件）与 [docs/product/traceability.md](../../docs/product/traceability.md) 的**过期副本**（PRD-016 仍写 `draft`/`proposed`），违反单一事实来源，并让 `check-docs-health.py` 多报 30+ 条相对路径断链。SSOT 位置以 [DOCS-SPEC](../../docs/DOCS-SPEC.md) §3 为准；副本非「过时文档」，不进 `dev/archive/`，git 历史已留存。
 
