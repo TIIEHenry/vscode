@@ -72,7 +72,7 @@ suite('Conversation session chat (S3)', () => {
 		await conversationPart.whenReady;
 
 		const sessionChatService = disposables.add(instantiationService.createInstance(ConversationSessionChatService));
-		sessionChatService.mountSubAgentOverlay(sessionWindow, sessionBar);
+		sessionChatService.mountSubAgentOverlay(SESSION_KEY, sessionWindow, sessionBar);
 		store.add(sessionChatService.registerPartListeners(conversationPart));
 
 		for (const editor of conversationPart.activeGroup.editors) {

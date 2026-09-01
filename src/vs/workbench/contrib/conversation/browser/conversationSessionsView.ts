@@ -5,7 +5,8 @@
 
 import './media/conversationSessions.css';
 import * as dom from '../../../../base/browser/dom.js';
-import { IListRenderer, IListVirtualDelegate } from '../../../../base/browser/ui/list/list.js';
+import { IListContextMenuEvent, IListRenderer, IListVirtualDelegate } from '../../../../base/browser/ui/list/list.js';
+import { Action } from '../../../../base/common/actions.js';
 import { IListAccessibilityProvider } from '../../../../base/browser/ui/list/listWidget.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { ThemeIcon } from '../../../../base/common/themables.js';
@@ -28,6 +29,7 @@ import { matchesConversationSessionsInlineFilter } from '../common/conversationS
 import { ConversationSessionsInlineFilterBox } from './conversationSessionsInlineFilterBox.js';
 import { ConversationStubSession } from './conversationStubModel.js';
 import { IConversationRosterService } from './conversationStubService.js';
+import { IConversationSessionWindowService } from './conversationSessionWindowService.js';
 
 export const CONVERSATION_SESSIONS_VIEW_ID = 'workbench.view.conversationSessions';
 
@@ -141,6 +143,7 @@ export class ConversationSessionsView extends ViewPane {
 		@IConversationRosterService private readonly stubService: IConversationRosterService,
 		@IWorkbenchLayoutService private readonly layoutService: IWorkbenchLayoutService,
 		@IConversationPartService private readonly conversationPartService: IConversationPartService,
+		@IConversationSessionWindowService private readonly sessionWindowService: IConversationSessionWindowService,
 		@IKeybindingService keybindingService: IKeybindingService,
 		@IContextMenuService contextMenuService: IContextMenuService,
 		@IConfigurationService configurationService: IConfigurationService,
@@ -163,6 +166,17 @@ export class ConversationSessionsView extends ViewPane {
 
 	deleteActiveSession(): void {
 		this.stubService.deleteSession(this.stubService.getActiveSessionId());
+	}
+
+	openSessionBeside(sessionId: string): void {
+		if (!this.stubService.getSessions().some(session => session.id === sessionId)) {
+			return;
+		}
+		if (!this.layoutService.isVisible(Parts.CONVERSATION_PART)) {
+			this.layoutService.setPartHidden(false, Parts.CONVERSATION_PART);
+		}
+		void this.sessionWindowService.openSessionBeside(sessionId);
+		this.conversationPartService.focus();
 	}
 
 	protected override renderBody(container: HTMLElement): void {
@@ -224,8 +238,28 @@ export class ConversationSessionsView extends ViewPane {
 		)) as WorkbenchList<ConversationStubSession>;
 
 		this._register(this.list.onDidOpen(e => this.openSessionFromRoster(e.element, e.browserEvent)));
+		this._register(this.list.onContextMenu(e => this.onContextMenu(e)));
 
 		return this.list;
+	}
+
+	private onContextMenu(e: IListContextMenuEvent<ConversationStubSession>): void {
+		if (!e.element) {
+			return;
+		}
+
+		this.contextMenuService.showContextMenu({
+			getAnchor: () => e.anchor,
+			getActions: () => [
+				new Action(
+					'workbench.action.conversationSessions.openBeside',
+					localize('conversationSessionsView.openBeside', "Open beside"),
+					undefined,
+					true,
+					() => this.openSessionBeside(e.element!.id),
+				),
+			],
+		});
 	}
 
 	private openSessionFromRoster(session: ConversationStubSession | undefined, browserEvent?: UIEvent): void {
@@ -238,6 +272,13 @@ export class ConversationSessionsView extends ViewPane {
 		if (!browserEvent) {
 			return;
 		}
+
+		const mouseEvent = browserEvent as MouseEvent;
+		if (mouseEvent.altKey) {
+			this.openSessionBeside(session.id);
+			return;
+		}
+
 		this.stubService.switchSession(session.id);
 		if (!this.layoutService.isVisible(Parts.CONVERSATION_PART)) {
 			this.layoutService.setPartHidden(false, Parts.CONVERSATION_PART);

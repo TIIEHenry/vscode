@@ -4,36 +4,49 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Disposable } from '../../../../base/common/lifecycle.js';
-import { InstantiationType, registerSingleton } from '../../../../platform/instantiation/common/extensions.js';
 import { IWorkbenchContribution, registerWorkbenchContribution2, WorkbenchPhase } from '../../../common/contributions.js';
 import { IConversationPartService } from '../../../browser/parts/conversation/conversationPart.js';
-import { ConversationSessionChatService, IConversationSessionChatService } from './conversationSessionChatService.js';
-
-registerSingleton(IConversationSessionChatService, ConversationSessionChatService, InstantiationType.Delayed);
+import { IConversationSessionChatService } from './conversationSessionChatService.js';
+import { IConversationSessionWindowService } from './conversationSessionWindowService.js';
 
 class ConversationSessionChatContribution extends Disposable implements IWorkbenchContribution {
 
 	static readonly ID = 'workbench.contrib.conversationSessionChat';
 
+	private readonly mountedOverlays = new Set<string>();
+
 	constructor(
 		@IConversationPartService conversationPartService: IConversationPartService,
 		@IConversationSessionChatService sessionChatService: IConversationSessionChatService,
+		@IConversationSessionWindowService sessionWindowService: IConversationSessionWindowService,
 	) {
 		super();
 
-		const mount = (slots: { sessionBar: HTMLElement; editorPartHost: HTMLElement }) => {
-			const sessionWindow = slots.editorPartHost.parentElement;
-			if (!sessionWindow) {
+		const mountAll = () => {
+			const sessionBar = conversationPartService.getSlots()?.sessionBar;
+			if (!sessionBar) {
 				return;
 			}
-			sessionChatService.mountSubAgentOverlay(sessionWindow, slots.sessionBar);
+
+			for (const sessionKey of sessionWindowService.getAllLeafSessionKeys()) {
+				if (this.mountedOverlays.has(sessionKey)) {
+					continue;
+				}
+				const leaf = sessionWindowService.getLeafSlots(sessionKey);
+				if (!leaf) {
+					continue;
+				}
+				sessionChatService.mountSubAgentOverlay(sessionKey, leaf.sessionWindow, sessionBar);
+				this.mountedOverlays.add(sessionKey);
+			}
 		};
 
 		const existing = conversationPartService.getSlots();
 		if (existing) {
-			mount(existing);
+			mountAll();
 		}
-		this._register(conversationPartService.onDidCreateSlots(mount));
+		this._register(conversationPartService.onDidCreateSlots(() => mountAll()));
+		this._register(sessionWindowService.onDidChangeVisibleWindows(() => mountAll()));
 	}
 }
 

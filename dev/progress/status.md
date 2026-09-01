@@ -11,7 +11,7 @@ summary: "PRD-016 session-windows S3（fork tab + 子代理对话框）已落 lo
 
 ## Current Session
 
-- **Conversation session 窗口与 tab：** [conversation-session-windows.md](../plans/conversation-session-windows.md)（`accepted`）· S1/S1a/S2 已合入 `agent-ide`；**S3 同 session（`loop/A`）**：Fork → `CONVERSATION_GROUP` 延伸 tab；子代理 spawn/对话框/最大化。**S3b（`loop/A`）**：子代理 tab 沿 `origin.chat` 面包屑、点击替换延伸 tab；窗口 chrome「关非根」不 `closeGroup` 根组；单测 §5 项 4–5。**S4（`loop/A`）**：同窗 `CONVERSATION_SIDE_GROUP` split；藏列 = 不画（模型保留）；单测 §5 项 6。**待做：** S5 窗口并列。
+- **Conversation session 窗口与 tab：** [conversation-session-windows.md](../plans/conversation-session-windows.md)（`accepted`）· S1/S1a/S2 已合入 `agent-ide`；**S3 同 session（`loop/A`）**：Fork → `CONVERSATION_GROUP` 延伸 tab；子代理 spawn/对话框/最大化。**S3b（`loop/A`）**：子代理 tab 沿 `origin.chat` 面包屑、点击替换延伸 tab；窗口 chrome「关非根」不 `closeGroup` 根组；单测 §5 项 4–5。**S4（`loop/A`）**：同窗 `CONVERSATION_SIDE_GROUP` split；藏列 = 不画（模型保留）；单测 §5 项 6。**S5（`loop/A`）**：第二 session 叶 + 第二 Conversation EditorPart；roster「打开到旁边」/Alt+点击；藏窗恢复；共享 Preview；单测 §5 项 7。**待做：** S6 知识层。
 
 - **文档卫生：** 删除 `dev/plans/status.md` 与 `dev/plans/traceability.md` —— 二者是 `dev/progress/status.md`（本文件）与 [docs/product/traceability.md](../../docs/product/traceability.md) 的**过期副本**（PRD-016 仍写 `draft`/`proposed`），违反单一事实来源，并让 `check-docs-health.py` 多报 30+ 条相对路径断链。SSOT 位置以 [DOCS-SPEC](../../docs/DOCS-SPEC.md) §3 为准；副本非「过时文档」，不进 `dev/archive/`，git 历史已留存。
 
