@@ -972,7 +972,7 @@ suite('ConversationLens', () => {
 
 		titleButton.click();
 		titleInput.value = '   ';
-		titleInput.dispatchEvent(new Event('blur', { bubbles: true }));
+		titleInput.dispatchEvent(new globalThis.Event('blur', { bubbles: true }));
 
 		assert.strictEqual(stubService.getActiveSession().title, previousTitle);
 		assert.strictEqual(titleButton.textContent, previousTitle);
@@ -1190,7 +1190,7 @@ suite('ConversationLens', () => {
 		assert.strictEqual(textarea.value, 'sent message');
 
 		textarea.value = `${textarea.value}a`;
-		textarea.dispatchEvent(new Event('input', { bubbles: true }));
+		textarea.dispatchEvent(new globalThis.Event('input', { bubbles: true }));
 		assert.strictEqual(textarea.value, 'sent messagea');
 
 		dispatchDockKeydown(textarea, KeyCode.UpArrow);

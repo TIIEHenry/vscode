@@ -68,7 +68,7 @@ suite('ConversationIdentityStrip', () => {
 			historyProvider: observableValue('historyProvider', historyProvider),
 			dispose: () => { },
 		};
-		const repository = { id: 'git', provider, dispose: () => { } } as ISCMRepository;
+		const repository = { id: 'git', provider, dispose: () => { } } as unknown as ISCMRepository;
 		return {
 			_serviceBrand: undefined,
 			get repositories() { return [repository]; },
@@ -170,7 +170,7 @@ suite('ConversationIdentityStrip', () => {
 
 		engineChip.click();
 		await Promise.resolve();
-		assert.deepStrictEqual((commandService as { executed: string[] }).executed, [OPEN_CONNECTION_PREFERENCES_COMMAND_ID]);
+		assert.deepStrictEqual((commandService as unknown as { executed: string[] }).executed, [OPEN_CONNECTION_PREFERENCES_COMMAND_ID]);
 	});
 
 	test('folder chip is hidden for empty workspace', () => {

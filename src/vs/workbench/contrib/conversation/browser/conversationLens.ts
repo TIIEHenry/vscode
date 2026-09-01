@@ -67,7 +67,6 @@ export class ConversationLens extends Disposable {
 	private deleteSessionButton!: Button;
 	private historyButton!: Button;
 	private showTrajectory = false;
-	private identityStrip!: ConversationIdentityStrip;
 	private timelineTree!: ConversationTimelineTree;
 	private trajectoryList!: ConversationTrajectoryList;
 	private inboxStatus!: HTMLButtonElement;
@@ -271,7 +270,7 @@ export class ConversationLens extends Disposable {
 
 	private mountTimeline(host: HTMLElement): void {
 		const readingColumn = append(host, $('.conversation-lens-reading-column'));
-		this.identityStrip = this._register(this.instantiationService.createInstance(ConversationIdentityStrip, readingColumn));
+		this._register(this.instantiationService.createInstance(ConversationIdentityStrip, readingColumn));
 		this.timelineTree = this._register(this.instantiationService.createInstance(ConversationTimelineTree, readingColumn, {
 			onResolveConfirmation: (turnId, status) => this.resolveConfirmation(turnId, status),
 			onCopyTurn: (_turnId, text) => this.copyTurn(text),

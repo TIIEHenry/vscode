@@ -75,7 +75,7 @@ suite('EnginePreferencesPane', () => {
 		const emptyWelcome = container.querySelector('.engine-empty-welcome') as HTMLElement;
 		const welcomeText = emptyWelcome.textContent ?? '';
 		assert.ok(!/not connected/i.test(welcomeText), 'empty welcome must not say not connected');
-		assert.ok(!/no engine/i.test(welcomeText), 'empty welcome must not say no engine');
+		assert.ok(!/not connected — no engine/i.test(welcomeText), 'empty welcome must not use test-status disconnected copy');
 
 		const combined = container.textContent ?? '';
 		assert.ok(!/copilot/i.test(combined), 'pane must not mention Copilot');
