@@ -75,9 +75,13 @@ CONVERSATION_PART          ← 槽宿主；不渲染产品 chrome
 
 `ChatInputPart` 是 donor 对照，不是 Dock 合同。外仓条款只链 §8.3，本文不发明例外。
 
+**选定合同（[PRD-015](../../product/requirements.md#prd-015-conversation-空会话与输入面) / [conversation-empty-hero](../../../dev/plans/conversation-empty-hero.md)，2026-09-01 签收，未实施）：** PreFirst 居中 Composer + 身份条、无 Inbox；Active Composer BottomDocked；Agent/Route XOR；Inbox 左右分簇且 Task 左于 MessageQueue。上表「已落地」仍是 HEAD：gate + 单行 inbox-row + 底栏 Send。实施前不得把本表改写成新布局。
+
 ## 5. SessionBar
 
 **已落地、保持自研。** 不在此做 Settings 齿轮。与 Navigator roster 共用同一会话服务（见 [session-roster-reuse.md](session-roster-reuse.md)），今天是 `IConversationRosterService`（decorator id 仍 `'conversationStubService'`）内存标题；引擎后换 UA session，不换槽位。SelectBox 去留 **Deferred**（父方案 §1.4）。
+
+保持自研。Active 增加 **Route** 下拉（无策略则省略）是 PRD-015 选定，HEAD 尚无该槽。身份条继续禁止进 SessionBar。
 
 ## 6. 分阶段
 
@@ -102,6 +106,7 @@ CONVERSATION_PART          ← 槽宿主；不渲染产品 chrome
 - [壳映射](desktop-shell-mapping.md) — Part 与四钮
 - 外仓 `docs/product/ui-interaction-spec.md` §8.3 Input Dock、**§8.4 权限座位**、§8.6 阅读层级（只链，不复述）
 - 父方案：[page-access-schemes.md](../../../dev/plans/page-access-schemes.md) §4 / §10 切片 4
+- 空会话 / 输入面选定（未实施）：[conversation-empty-hero.md](../../../dev/plans/conversation-empty-hero.md)（PRD-015）
 
 ## 审查
 

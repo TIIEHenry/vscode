@@ -1,10 +1,10 @@
 ---
 title: "Agent Customizations 引擎面：UA catalog / profile / hook / MCP / tools"
 type: plan
-status: draft
+status: accepted
 phase: N/A
 updated: 2026-09-01
-summary: "Engine 页 Skill/Agent/Rules/Hook/MCP/tools 的 UA 数据权威与协议缺口；无能力诚实空；禁止 Copilot 磁盘冒充已接引擎"
+summary: "已签收：Engine 页 catalog 权威与协议缺口；E1 blocked PRD-008；禁止 Stub catalog"
 ---
 
 # Agent Customizations 引擎面
@@ -15,6 +15,8 @@ summary: "Engine 页 Skill/Agent/Rules/Hook/MCP/tools 的 UA 数据权威与协�
 > **红线：** 无引擎时 **Engine 页诚实空 + Test**；禁止 Copilot 磁盘顶替 UA 路径后写「已接引擎」。`EngineSkillCatalogService` 等是 **外仓 UniverseAgent HEAD**，不是本仓 `src/vs/` 类型。vscode 消费 `ListSkills` / `SetSkillEnabled` / `SkillInfo` 等 RPC，**不要**在 IDE 里再实现一个同名 class。
 
 **Goal：** 把 Engine 页各节钉到 UniverseAgent 的 SSOT 与传输面；列出最小协议。无引擎时 **不要**在 Engine 页或 Customizations Overview 扫盘当 catalog。
+
+本稿 `accepted`（2026-09-01）。规则 16 三轮 Grok 4.6（Opus 不可用）。第三轮 Approve with changes 已改入。**ReadyToImplement：** 无（E1 blocked PRD-008）。H0–H3 在 host-ui。
 
 ---
 
@@ -312,3 +314,5 @@ UA **Local**（已接本机引擎的文件面）≠ 断连 Stub catalog。Local 
 2026-09-01 第二轮：**Approve with changes**。已改入：§8.1 DAG 的 H1 改为 donor 卫生（禁止 Stub catalog）；§8.2/§9 去掉「Customizations 里 Stub 可写」；E1.5 断连回诚实空而非 Stub；§10 改锚 two-surfaces 余量表；UA Local ≠ 断连 Stub。
 
 2026-09-01 第三轮 [engine](4efc3dae-ba83-400d-b04d-784d8fee5cc8)：**Approve with changes**。Round-2 点名位置 gone。已改入：§3 去掉 Stub→真的 / Local Stub I/O；§8.2 标题改为 donor 卫生；断连禁止扫 AgentHome；§1 禁止移植 Kotlin catalog；Hooks 未补 RPC 则空；四探测键为 IDE 矩阵不扩 proto。
+
+2026-09-01：**签收** `accepted`。E1 blocked PRD-008。未改 `src/`。

@@ -1,20 +1,20 @@
 ---
 title: "Conversation 空会话与输入面"
 type: plan
-status: draft
+status: accepted
 phase: N/A
 updated: 2026-09-01
-summary: "PreFirst 居中 Composer + 身份条；Active 底栏同一 Composer；Agent/Route 初始化 XOR；Inbox 左右分簇且 Task 在 MessageQueue 左；未审、未实施"
+summary: "PreFirst 居中 Composer + 身份条；Active 底栏同一 Composer；Agent/Route 初始化 XOR；Inbox 左右分簇且 Task 在 MessageQueue 左；已签收；T1–T6 ReadyToImplement；未实施"
 ---
 
 # Conversation 空会话与输入面
 
-> 需求：[PRD-015](../../docs/product/requirements.md#prd-015-conversation-空会话与输入面)（`proposed`）。  
+> 需求：[PRD-015](../../docs/product/requirements.md#prd-015-conversation-空会话与输入面)（`accepted`）。  
 > 时间线发送合同：[PRD-003](../../docs/product/requirements.md#prd-003-时间线与输入) 不改。  
 > 透镜三槽：[conversation-lens-assembly](../../docs/reference/code-oss-b2/conversation-lens-assembly.md)（`draft`）— 本方案改 `dock` 与空会话 placement，不改 `ChatWidget` 接管。  
 > 外仓只读：Desktop [ui-interaction-spec §8.3](../../../UniverseAgentDesktop/docs/product/ui-interaction-spec.md) Inbox / Input Dock；Singularity [session-config-panel](../../../UniverseAgent/singularity/docs/systems/session/session-config-panel.md) 首条锁定、[chat-input-bar](../../../UniverseAgent/singularity/docs/ui/components/input/chat-input-bar.md) 现行底栏无 Agent；**MessageQueue 列表/行交互**以 Singularity [message-queue-bar.md](../../../UniverseAgent/singularity/docs/ui/components/status/message-queue-bar.md) 与交互原型 [message-queue-layout-preview.html](../../../UniverseAgent/singularity/dev/plans/message-queue-layout-preview.html) 为设计稿 SSOT。  
 > 视觉对照（非正式 SSOT）：仓内快照 [conversation-empty-hero.canvas.tsx](conversation-empty-hero.canvas.tsx)。聊天旁活 canvas 仍在 Cursor `canvases/`，不同步进 git。  
-> **规则 16：** 本会话无法派出 `claude-opus-5-thinking-high`（Task 允许 slug 仅 `composer-2.5` / `composer-2.5-fast` / `cursor-grok-4.6-high`）。**禁止**用其它模型顶替本门禁。方案保持 `draft`，**不得**标 `accepted`、不得开实施切片，直到 Opus 5.0 审查改稿。
+> **签收：** 2026-09-01 用户签收。规则 16 Opus 5.0 slug 不可用（未用其它模型顶替）。T1–T6 ReadyToImplement；未改 `src/`。
 
 **Goal：** 空会话是安静居中输入；有消息后同一张 Composer 落到列底。SessionConfig 五字段按 XOR 放置，不复活 2×2 卡，也不画锁定配置第二行。
 
@@ -140,9 +140,9 @@ Heal：清空消息 / 新建会话 → 回到 PreFirst（身份回到 Composer �
 
 身份条继续禁止进 SessionBar。
 
-## 4. 切片（审查通过前不得开工）
+## 4. 切片
 
-冲突域：**一个** — `src/vs/workbench/contrib/conversation/**`（含 `browser/media` 与 `test/browser`）。同 tick 只 1 个写者。
+冲突域：**一个** — `src/vs/workbench/contrib/conversation/**`（含 `browser/media` 与 `test/browser`）。同 tick 只 1 个写者。T1–T6 **ReadyToImplement**。
 
 | 切片 | 交付 | 验证 |
 |------|------|------|
@@ -162,9 +162,9 @@ T1–T3 可串行同一写者；T4 依赖 T1（Inbox 仅 Active）。T5 依赖 T
 - 身份 XOR：扩展 `conversationIdentityStrip.test.ts`（PreFirst 不在 reading-column 顶）。
 - 最小命令：`scripts/test.sh --run src/vs/workbench/contrib/conversation/test/browser/conversationLens.test.ts`（及 identity / import boundaries）。分层未变则不跑 `valid-layers-check`。
 
-## 6. 文档（实施 commit 时）
+## 6. 文档
 
-签收本方案后：把 PRD-015 升 `accepted`；改 [conversation-lens-assembly](../../docs/reference/code-oss-b2/conversation-lens-assembly.md) §4 Dock 与空会话；[agent-ui](../../docs/systems/chat/agent-ui.md) Inbox 一句；本文件 `status`。未实施前知识层不假装 HEAD 已是新布局。
+签收已做：PRD-015 `accepted`；本文件 `accepted`。知识层只加选定指针，**不**把 HEAD 写成新布局。实施 commit 再把 [conversation-lens-assembly](../../docs/reference/code-oss-b2/conversation-lens-assembly.md) §4「已落地」行改成与代码一致。
 
 ## 7. 文件互斥
 

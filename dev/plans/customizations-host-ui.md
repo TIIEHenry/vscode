@@ -1,10 +1,10 @@
 ---
 title: "Agent Customizations 宿主 UI：按 vscode 重排各节"
 type: plan
-status: draft
+status: accepted
 phase: N/A
 updated: 2026-09-01
-summary: "文件编辑器 donor 的 vscode chrome：剥 Copilot 营销；零件可拆进 Engine 页；不是第三套主设置"
+summary: "已签收：文件编辑器 donor chrome；剥 Copilot 营销；零件可拆进 Engine 页；H0–H3 ReadyToImplement"
 ---
 
 # Agent Customizations 宿主 UI
@@ -16,6 +16,8 @@ summary: "文件编辑器 donor 的 vscode chrome：剥 Copilot 营销；零件�
 > **范围窗：** 默认窗（`isSessionsWindow === false`）。
 
 **Goal：** 剥 Copilot 营销 Overview / Browse / CLI 工具清单，改成 vscode 左 nav + 列表 + markdown 预览。无引擎时本页只列/空着本地文件，**不**画 catalog；诚实空 + Test 在 Engine 页。**不要**把这只编辑器当成 Skill/Agent 产品首页。
+
+本稿 `accepted`（2026-09-01）。规则 16 三轮 Grok 4.6（Opus 不可用）。第三轮 Approve with changes 已改入。**ReadyToImplement：** H0–H3 donor chrome（不改扫描根）。E1 不在本文件。
 
 ## 0. 已拍板约束（本文件不重开）
 
@@ -345,7 +347,7 @@ E1 / catalog 不在本页。
 
 - 产品主面（本地 vs Engine、vscode 同一张脸）以 [settings-two-surfaces.md](settings-two-surfaces.md) 为准。本文件只写 donor 零件 chrome。
 - TOC 入口：C5 目标 `executeCommand(OpenEditor)`；Palette **保持** `f1: true` + `IsSessionsWindowContext`。HEAD 仍有 `ua.customizations` pane。
-- catalog 空态与 E1 在 Engine 页 / 引擎面稿。本文件不把 H0 标成 ReadyToImplement。
+- catalog 空态与 E1 在 Engine 页 / 引擎面稿。H0–H3 已签收为 ReadyToImplement。
 
 ## 8. 审查记录（规则 16）
 
@@ -356,3 +358,5 @@ E1 / catalog 不在本页。
 2026-09-01 第三轮 [host-ui](f389761d-3658-41ea-b5ef-66a498df6855)：**Approve with changes**。Round-2 六条 gone。已改入：Goal 不再用 Engine「诚实空」口号；§3.7 深链不写 until-engine catalog；§0 默认窗从 `managementSections` 删 contributed，不是藏 nav。
 
 engine 第三轮连带：H0–H3 **不得**把扫描根改到 `{AgentHome}`。
+
+2026-09-01：**签收** `accepted`。H0–H3 ReadyToImplement。未改 `src/`。

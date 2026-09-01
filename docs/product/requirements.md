@@ -4,7 +4,7 @@ type: demand
 status: accepted
 phase: N/A
 updated: 2026-09-01
-summary: "PRD-001–PRD-016：默认窗产品壳已接受；轨迹/过程折/visualize 已接受；空会话与 session 窗口/tab 拟议；Agents 窗口 Chat 并排已接受；引擎、Diff、产品身份未决或阻塞"
+summary: "PRD-001–PRD-016：默认窗产品壳已接受；轨迹/过程折/visualize/空会话输入面已接受；session 窗口/tab 拟议；Agents 窗口 Chat 并排已接受；引擎、Diff、产品身份未决或阻塞"
 ---
 
 # Agent IDE 产品需求
@@ -160,7 +160,7 @@ PRD-001 至 PRD-007 的代码已在 M0–M3 合入，但 D4 启动冒烟（T1–
 
 ### PRD-015 Conversation 空会话与输入面
 
-- **状态**：`proposed`
+- **状态**：`accepted`
 - **用户价值**：空会话时用户能在安静画布上配好会话并开始说话；对话开始后输入不换一套控件，Inbox 也不挡阅读。
 - **用户可观察陈述**：空会话（尚无可见消息）时，身份条（文件夹 · 引擎 · 分支）在居中输入卡上方；输入卡上可改 Agent、Model、Permission、Tools、Route；没有 Inbox / Goal / Stop。发出第一条消息后，同一张输入卡落到列底；身份条只出现在阅读列顶部（不在 SessionBar、不在输入工具栏）；Agent 不再出现在输入行；Route 出现在 SessionBar；Inbox 在输入卡上方左右分簇（左 Task · MessageQueue · Goal，右 Stop · 上下文环）。用户回合展示为纯文本卡片；点卡片才进入编辑。同一时刻只有一个输入。
 - **产品验收标准**：
@@ -177,18 +177,18 @@ PRD-001 至 PRD-007 的代码已在 M0–M3 合入，但 D4 启动冒烟（T1–
 ### PRD-016 Conversation session 窗口与 chat tab
 
 - **状态**：`proposed`
-- **用户价值**：用户在中间对话区用 tab 管理同一会话的根对话和 fork；点开子代理先在同窗整面看，需要时再最大化成 tab，并能沿 agent 层级跳转；必要时拆列或并排另一个会话；藏起中间区不会丢掉会话。
-- **用户可观察陈述**：默认窗口中间 Conversation 里，每个会话是一扇窗口，有一条默认根 tab（不可关闭）。用户 Fork 在同一会话加一张 tab。Agent 拉起的子代理仍在该会话里；用户点击后在同一扇窗口里整面打开（钻入，不是新 tab），最大化才变成一张 tab。子代理 tab 顶部有 agent 层级面包屑；点击某一级切到该 agent，当前子代理 tab 被替换。每扇窗口有一键关闭根会话以外全部 tab 的按钮。用户 split 后同一扇窗口出现两列，每列自己的 tab。窗口并列展示的是另一个会话；藏起后回到单窗口，再打开该会话仍按原样显示。整块 Conversation 只能隐藏、不能关闭。前进后退有按钮也响应鼠标侧键；默认可在后退时关掉延伸 tab 或退出钻入。文件仍在右边 Preview。
+- **用户价值**：用户在中间对话区用 tab 管理同一会话的根对话和 fork；点开子代理先在窗口内对话框里看，需要时再最大化成 tab，并能沿 agent 层级跳转；必要时拆列或并排另一个会话；藏起中间区不会丢掉会话。
+- **用户可观察陈述**：默认窗口中间 Conversation 里，每个会话是一扇窗口，有一条默认根 tab（不可关闭）。用户 Fork 在同一会话加一张 tab。Agent 拉起的子代理仍在该会话里；用户点击后在当前窗口内弹出对话框（父对话仍在底下，不是新 tab），最大化才变成一张 tab。子代理 tab 顶部有 agent 层级面包屑；点击某一级切到该 agent，当前子代理 tab 被替换。每扇窗口有一键关闭根会话以外全部 tab 的按钮。用户 split 后同一扇窗口出现两列，每列自己的 tab。窗口并列展示的是另一个会话；藏起后回到单窗口，再打开该会话仍按原样显示。整块 Conversation 只能隐藏、不能关闭。前进后退有按钮也响应鼠标侧键；默认可在后退时关掉延伸 tab 或关掉对话框。文件仍在右边 Preview。
 - **产品验收标准**：
   1. 中间可见 chat tab（有延伸或 split 时）；不是 Preview 里的 Chat 编辑器标签。
   2. 默认根 tab 没有关闭；隐藏 Conversation 或隐藏某会话窗口后再打开，该会话的 tab 还在。
   3. 用户 Fork 不产生第二个根会话；新内容作为同一会话的 tab（引擎未接时不假装已 fork）。
-  4. 子代理未点击时不出现新 tab、不钻入；点击后同窗整面打开且仍只有根 tab；最大化后才出现延伸 tab。
+  4. 子代理未点击时不出现新 tab、不弹对话框；点击后窗口内对话框打开且仍只有根 tab（父对话未卸）；最大化后才出现延伸 tab。
   5. 子代理 tab 顶有面包屑；点击祖先切到该 agent，当前延伸 tab 被替换（不叠新 tab）。每扇窗口能一键关掉根以外全部 tab。
   6. 用户 split 后仍是同一会话、同一扇中间窗口；不把 fork 拆进 Preview。
   7. 窗口并列是第二个会话；隐藏该窗后只剩一个会话窗口；再打开该会话窗口回来。
-  8. Conversation 聚焦时 ←→ 与鼠标 4/5 在 chat tab / 钻入之间导航；Preview 聚焦时仍是文件历史。默认后退关闭延伸 tab 或退出钻入，不关根 tab。
-  9. 「对话 | 轨迹」是每个 tab / 钻入页内的透镜，不是与 chat tab 平级的第三条。
+  8. Conversation 聚焦时 ←→ 与鼠标 4/5 在 chat tab / 对话框之间导航；Preview 聚焦时仍是文件历史。默认后退关闭延伸 tab 或关掉对话框，不关根 tab。
+  9. 「对话 | 轨迹」是每个 tab / 对话框内的透镜，不是与 chat tab 平级的第三条。
 - **依赖或未决**：活 fork / 子代理 catalog 依赖 PRD-008。形态见 [ADR-002](../../dev/decisions/002-conversation-session-windows.md)。方案见 [conversation-session-windows](../../dev/plans/conversation-session-windows.md)。不改变 Agents 窗口 [PRD-011](#prd-011-chat-并排比对)。
 
 ## 未决或阻塞

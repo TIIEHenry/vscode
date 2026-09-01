@@ -4,7 +4,7 @@ type: index
 status: accepted
 phase: N/A
 updated: 2026-09-01
-summary: "dev/plans 导航：产品需求层建设与 M0–M5；PRD-011–014 与页面接入 1a–4 代码已落；PRD-015/016 draft"
+summary: "dev/plans 导航：产品需求层建设与 M0–M5；设置两套主面已签收；PRD-015/016 draft"
 ---
 
 # 方案
@@ -21,12 +21,12 @@ summary: "dev/plans 导航：产品需求层建设与 M0–M5；PRD-011–014 �
 | [m5-ui-shell-hardening.md](m5-ui-shell-hardening.md) | `accepted` | 默认窗 Chat 路由、roster 导航、关键测试、D4/D5 实测与交付证据收口 |
 | [chat-compare-split.md](chat-compare-split.md) | `implemented` | PRD-011 代码已落；D4 待验证 |
 | [page-access-schemes.md](page-access-schemes.md) | `implemented` | 切片 1a–4 代码已落；D4 待验证；切片 5 等引擎 |
-| [settings-two-surfaces.md](settings-two-surfaces.md) | `draft` | 本地 vs Engine 两套主设置面；vscode 同一张脸；Customizations 降级为零件 |
-| [customizations-host-ui.md](customizations-host-ui.md) | `draft` | 文件编辑器 donor chrome：剥 Copilot 营销；零件可拆进 Engine 页 |
-| [customizations-engine.md](customizations-engine.md) | `draft` | Engine 页 catalog/profile/hook/MCP 权威与协议缺口 |
+| [settings-two-surfaces.md](settings-two-surfaces.md) | `accepted` | 本地 vs Engine 两套主设置面；vscode 同一张脸；Customizations 降级为零件；C5 / H0–H3 ReadyToImplement |
+| [customizations-host-ui.md](customizations-host-ui.md) | `accepted` | 文件编辑器 donor chrome：剥 Copilot 营销；零件可拆进 Engine 页 |
+| [customizations-engine.md](customizations-engine.md) | `accepted` | Engine 页 catalog 权威与协议缺口；E1 blocked PRD-008 |
 | [product-requirements-layer.md](product-requirements-layer.md) | `implemented` | 建立本仓产品需求 SSOT，并迁入当前 Agent IDE 壳需求 |
 | [conversation-trajectory-lens.md](conversation-trajectory-lens.md) | `implemented` | PRD-012 代码已落；D4 待验证 |
 | [conversation-process-fold.md](conversation-process-fold.md) | `implemented` | PRD-013 代码已落；D4 待验证 |
 | [thinkrail-visualize-port.md](thinkrail-visualize-port.md) | `implemented` | PRD-014 代码已落；D4 待验证 |
-| [conversation-empty-hero.md](conversation-empty-hero.md) | `draft` | PRD-015 空会话居中 Composer、SessionConfig XOR、Inbox 分簇；未审 · [canvas 快照](conversation-empty-hero.canvas.tsx) |
-| [conversation-session-windows.md](conversation-session-windows.md) | `draft` | PRD-016 中间 session 窗口；Fork 默认 tab；子代理钻入/最大化才 tab；面包屑替换；关非根 tab；未审 |
+| [conversation-empty-hero.md](conversation-empty-hero.md) | `accepted` | PRD-015 空会话居中 Composer、SessionConfig XOR、Inbox 分簇；T1–T6 ReadyToImplement · [canvas 快照](conversation-empty-hero.canvas.tsx) |
+| [conversation-session-windows.md](conversation-session-windows.md) | `draft` | PRD-016 中间 session 窗口；Fork 默认 tab；子代理对话框/最大化才 tab；面包屑替换；关非根 tab；未审 |

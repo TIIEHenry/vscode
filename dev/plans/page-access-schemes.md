@@ -173,9 +173,10 @@ v1 **接受分裂体验**：用户将 `useModal` 改为 `'off'` 后 Client 可�
 
 | 步 | 行为 |
 |----|------|
-| 开 | **关闭**当前 `SettingsEditor2Input`（伪代码见 §15 B5）→ 打开目标壳。Connection/Engine → `openPreferences({ paneId })`（恒 `MODAL_GROUP`）。Customizations → 既有 `aiCustomization.openManagementEditor`（`RequiresModal`，`editorGroupFinder` 接管）。**禁止**双模态栈（Settings 留在 Preferences 背后）。 |
+| 开 Connection / Engine | **关闭**当前 `SettingsEditor2Input` → `openPreferences({ paneId })`（恒 `MODAL_GROUP`）。**禁止**双 Preferences 栈（Settings 留在 Preferences 背后）。 |
+| 开 Customizations（C5） | `executeCommand(aiCustomization.openManagementEditor)`。**不要**包进 `openUaPaneReplacingClientSettings`。`RequiresModal` 由 `editorGroupFinder` 接管；已有 Settings 模态时可能同组两个 tab。删除 `OpenCustomizationsPreferencesAction` / `ua.customizations` pane。产品目录 SSOT：[settings-two-surfaces.md](settings-two-surfaces.md) |
 | Back | PreferencesEditor **壳**按 pane descriptor `showBackToClientSettings` 渲染 **「Back to Client Settings」**（§15 B6）：关闭 `PreferencesEditor` → `openSettings()` **不带** `query` / `revealSetting` / `focusSearch`。v1 **不保证**恢复 TOC 滚动位置。Customizations **不**发明 Back chrome。 |
-| `useModal: 'off'` | Client 已在 Preview；链接仍关 Preview 中的 Settings → 开 Preferences **模态**；Back 再 `openSettings()`（随当时 `useModal` 进 Preview 或模态）。空 editor group 交 vscode 默认清理，v1 不另关 group。 |
+| `useModal: 'off'` | Client 已在 Preview；Connection/Engine 链接仍关 Preview 中的 Settings → 开 Preferences **模态**；Back 再 `openSettings()`。Customizations 仍走 OpenEditor。空 editor group 交 vscode 默认清理，v1 不另关 group。 |
 
 #### UA 三层 → 键空间与面
 
@@ -183,7 +184,7 @@ v1 **接受分裂体验**：用户将 `useModal` 改为 `'off'` 后 Client 可�
 |----|------|--------|
 | **Client** | `registerConfiguration` + **`tocData` 新产品分组**（Display / Chat Input / Startup / Keyboard Enter / Notifications / Permissions / Client Tools）。只注册不进 TOC 的键会 leftover 警告 | `settings.json` |
 | **Connection** | Settings TOC **链接行** → Preferences pane `ua.connection`：Profile 列表、host/port/TLS、Test Connection。**禁止**普通 setting key。切片 1 = **纯 UI 占位（内存）**，不引入 `ConnectionProfileStore` | 引擎 adapter 后经 UA；本仓无第二套；切片 1 **零** `settings.json` |
-| **Engine 运行时** | Settings TOC **链接行** → Preferences pane `ua.engine`：Provider API key、Model Profile、连接探测。**允许进 `IConfigurationRegistry` 的 Engine 键 = 空集 `[]`**（runtime 全在 pane）。不在 SettingsEditor2 做 Engine 配置分组 | 引擎侧，非第二套会话真相 |
+| **Engine 运行时 + catalog** | Settings TOC **链接行** → Preferences pane `ua.engine`：Provider / Model Profile **以及** Skill/Agent/Rules/Hooks/MCP 定义 / 引擎工具（[settings-two-surfaces.md](settings-two-surfaces.md)）。无引擎 = 诚实空 + Test。**允许进 `IConfigurationRegistry` 的 Engine 键 = 空集 `[]`** | 引擎侧，非第二套会话真相 |
 
 **Client 与 vscode 原生不双入口：** 主题 → `workbench.colorTheme`；字号 → `editor.fontSize`；全局快捷键 → `KeybindingsEditor`；UA 仅保留「聊天 Enter 行为」等增量键。`agentsWindow.default` / `.readOnly` 保留 Agents Window 差异，与 TOC 可见性 **不可互替**。
 
@@ -226,7 +227,7 @@ MCP 运行态若另有页，标为后续切片，不发明第二 MCP UI。
 | `engine` / 等价 | `PreferencesEditor` | `openPreferences({ paneId: 'ua.engine' })` |
 | **unknown / 未映射 / typo**（BL-2） | **Client `SettingsEditor2`** | **只打开不滚**（无 `query` / `revealSetting`）。**不**打开 `PreferencesEditor`。与未知 `paneId` 同构（§15 B2） |
 
-从 Settings 模态链到 Customizations（`RequiresModal`）会关/接管当前模态（`editorGroupFinder`）——已知 UX，与上表「开」同族；文档化即可，不另发明壳。
+从 Settings 模态链到 Customizations（`RequiresModal`）：`editorGroupFinder` 接管；**不**保证关掉 Client Settings（可能同组两个 tab）。文档化即可，不另发明壳、不改回 pane helper。
 
 #### 无引擎
 
@@ -1020,7 +1021,7 @@ SessionBar：type alias 后旧注入名仍编译；切片 2 **同 PR** 改 impor
 | C2 | v1 **无** SettingsEditor2 Engine 配置分组（Engine registry 空集）。用户只见 TOC「Open Engine…」。 |
 | C3 | 走备选 B **须人类回签**。本轮不设工时/行数证伪阈值。 |
 | C4 | 见 15.4 Renderer。 |
-| C5 | Customizations TOC **复用** `aiCustomization.openManagementEditor`（HEAD：`aiCustomizationManagement.contribution.ts`、`chatActions.ts`）。Connection/Engine 用 15.5 helper（显式 close）。不强制 Customizations 走同一 helper。 |
+| C5 | Customizations TOC **复用** `aiCustomization.openManagementEditor`（不走 pane helper）。删除 `OpenCustomizationsPreferencesAction` + `ua.customizations` pane + `settingsUaToc` 旧 commandId。产品目录 [settings-two-surfaces.md](settings-two-surfaces.md)（`accepted`）。 |
 | C6 | 默认窗丢掉 `tocData` 子节点 `id: 'chat'`，并 **始终** 有 exclude filter（advanced 开启也不得 `undefined`）。commonly-used exclude **仅** `!environmentService.isSessionsWindow`。Agents Window **完全保留** chat TOC + Copilot commonly-used。CI：`settingsUaToc.test.ts` 分两例（mock isSessionsWindow true/false）。 |
 | C7 | `canToggleVisibility: false` 足够（对照 Explorer / Search）。CI：断言 descriptor，**不**要求 `setViewVisible(false)` throw。View 菜单残留 hide **Deferred** 切片 3 若复现再补 `when`。 |
 | C8 | `hideIfEmpty: false` 后删光 stub session：**图标仍在** + welcome。welcome 文案切片 3 可占位；copy SSOT Deferred 切片 3。 |

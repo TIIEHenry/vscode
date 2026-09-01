@@ -4,7 +4,7 @@ type: reference
 status: draft
 phase: N/A
 updated: 2026-09-01
-summary: "对照 Singularity/Desktop Settings：混合宿主（Client SettingsEditor2 + Connection/Engine Preferences 子 pane）、UA 三层键空间、Customizations 切分、Copilot TOC 剥离与入口/深链；选定设计已按父方案 §12 同步"
+summary: "混合宿主：Client SettingsEditor2 + Connection/Engine Preferences pane；Customizations 文件工具（C5 注销第三 pane）；产品目录见 settings-two-surfaces"
 ---
 
 # Settings 接入：UA 设置项如何挂进 vscode Preferences
@@ -23,14 +23,14 @@ Desktop：Overlay `OverlayKind.settings`；齿轮在 AppTabBar；StatusBar profi
 
 ## 2. 选定宿主（已签收）
 
-**选定：混合宿主 C。** 默认窗 Client Settings **仍用 `SettingsEditor2`**（键空间、扩展设置、搜索齐全），不要自研 Overlay 再做一套表单。Connection / Engine **运行时**注册为 **`PreferencesEditor` 子 pane**（钉死 id `ua.connection` / `ua.engine`，见 `uaPreferencesPanes.ts`）。**拒绝**并列 `RequiresModal` `EditorInput` 作为 Connection/Engine 宿主；Customizations 文件型中心仍保留 `AICustomizationManagementEditor`（ADR-061 决策 5），TOC 链接在 HEAD 亦可达 Preferences `ua.customizations` 占位 pane。
+**选定：混合宿主 C。** 默认窗 Client Settings **仍用 `SettingsEditor2`**。Connection / Engine 注册为 **`PreferencesEditor` 子 pane**（`ua.connection` / `ua.engine`）。**拒绝**并列 `RequiresModal` `EditorInput` 作为 Connection/Engine 宿主。Customizations **文件工具**保留 `AICustomizationManagementEditor`（ADR-061 决策 5）。产品主面（Skill/Agent catalog 等）在 Engine pane，见 [settings-two-surfaces.md](../../../dev/plans/settings-two-surfaces.md)。C5 注销 `ua.customizations` pane；HEAD 仍注册该占位。
 
 **候选对比（签收背景）：**
 
 | 候选 | HEAD 形态 | 适合 | 不适合 |
 |------|-----------|------|--------|
 | `SettingsEditor2` | 出厂 `useModal: 'some'` → `MODAL_GROUP`；可被用户改成 Preview tab | `IConfigurationRegistry` 全量键 + 搜索 + TOC | Connection 非 key 行塞进 settings 树（**已拒绝**） |
-| `PreferencesEditor` + `PreferencesEditorInput` | `openPreferences({ paneId? })` **无条件** `MODAL_GROUP`；`IPreferencesEditorPaneRegistry` 挂 UA 子页 | Connection / Engine / Customizations 外链子页 | Client 全量键搬迁（**已拒绝**） |
+| `PreferencesEditor` + `PreferencesEditorInput` | `openPreferences({ paneId? })` **无条件** `MODAL_GROUP`；`IPreferencesEditorPaneRegistry` 挂 UA 子页 | Connection / Engine 外链子页 | Client 全量键搬迁（**已拒绝**）；C5 后 Customizations **不是**第三 pane |
 | **混合 C（选定）** | Client → `SettingsEditor2`；Connection/Engine → Preferences 子 pane | 层边界干净 | 双宿主深链须路由表 |
 
 **HEAD 事实：** `IPreferencesService.openPreferences(options?: { paneId?: string })` 已扩展（`preferencesService.ts`）。Registry 已注册 `ua.connection`（order 10）、`ua.engine`（20）、`ua.customizations`（30）（`uaPreferencesPanes.contribution.ts`）。未知 / 未注册 `paneId` **fail-closed** → `openSettings()` 无 `query` / `revealSetting` / `focusSearch`。
@@ -50,7 +50,7 @@ Desktop：Overlay `OverlayKind.settings`；齿轮在 AppTabBar；StatusBar profi
 |----|-------------|----------|--------|
 | Client | Display / Chat Input / Startup / Keyboard Enter / Notifications / Permissions / Client Tools | `IConfigurationRegistry.registerConfiguration` → `IConfigurationService`；**必须**写入 `tocData` 新产品名分组（只注册不进 TOC 的键不会出现在 UI，只会 leftover 警告）。窗口差异用注册项 `agentsWindow.default` / `.readOnly`（`settingsTreeModels.ts`） | 用户 settings.json |
 | Connection | Profile 列表、host/port/TLS、Test Connection | Settings TOC **链接行**（`SettingsTreeNavigationLinkElement`，`navigationLinks[]` in `tocData`）→ command `workbench.action.openConnectionPreferences` → 关 Client 模态 → `openPreferences({ paneId: 'ua.connection' })`。**禁止**普通 setting key；**禁止** settings 树内非 setting 自定义 renderer | 切片占位 = 内存 UI（`ConnectionPreferencesPane`）；引擎 adapter 后经 UA；本仓无第二套 |
-| Engine | Provider / Model Profiles / Agent / Prompts / MCP | Settings TOC **链接行** → `openPreferences({ paneId: 'ua.engine' })`（`EnginePreferencesPane`）。**允许进 `IConfigurationRegistry` 的 Engine 键 = 空集 `[]`**；runtime 控件全在 pane，**不在** `SettingsEditor2` 建 Engine 配置分组 | 引擎侧，非第二套会话真相 |
+| Engine | Provider / Model / Skill catalog / Agent Profile / Rules / Hooks / MCP 定义 / 引擎工具 | Settings TOC **链接行** → `openPreferences({ paneId: 'ua.engine' })`。catalog 产品面见 [settings-two-surfaces.md](../../../dev/plans/settings-two-surfaces.md)。**允许进 `IConfigurationRegistry` 的 Engine 键 = 空集 `[]`** | 引擎侧，非第二套会话真相 |
 
 **TOC 链接允许族（签收形态 A，钉死）：** HEAD 新增 `SettingsTreeNavigationLinkElement`（`settingsTreeModels.ts` / `SettingNavigationLinkRenderer` in `settingsTree.ts`）——仅 `label` + `commandId`，零内嵌控件。Connection / Engine / Customizations「Open …」三行同族。走 group 级 `ITOCEntry.command` 备选 **须人类回签**。
 
@@ -58,9 +58,10 @@ Desktop：Overlay `OverlayKind.settings`；齿轮在 AppTabBar；StatusBar profi
 
 | 步 | 行为 |
 |----|------|
-| 开 | TOC「Open Connection…」/「Open Engine…」/「Open Customizations…」→ **关闭**当前 `SettingsEditor2Input`（`uaPreferencesNavigation.ts`）→ `openPreferences({ paneId })`（恒 `MODAL_GROUP`）。**禁止**双模态栈 |
+| 开 Connection / Engine | TOC → **关闭**当前 `SettingsEditor2Input` → `openPreferences({ paneId })`。**禁止**双 Preferences 栈 |
+| 开 Customizations（C5） | TOC → `aiCustomization.openManagementEditor`。**不要**走 pane helper。可能同组两个 tab |
 | Back | PreferencesEditor 壳按 descriptor `showBackToClientSettings` 渲染「Back to Client Settings」→ `workbench.action.backToClientSettings` → 关 Preferences → `openSettings()` **不带** query / revealSetting / focusSearch。v1 **不保证**恢复 TOC 滚动 |
-| `useModal: 'off'` | Client 已在 Preview；链接仍关 Preview 中的 Settings → 开 Preferences **模态**；Back 再 `openSettings()`（随当时 `useModal` 进 Preview 或模态） |
+| `useModal: 'off'` | Client 已在 Preview；Connection/Engine 链接仍关 Preview 中的 Settings → 开 Preferences **模态**；Back 再 `openSettings()` |
 
 Client 与 vscode 原生重叠的项 **不要双入口**：
 
@@ -68,17 +69,17 @@ Client 与 vscode 原生重叠的项 **不要双入口**：
 - 编辑器字号 → `editor.fontSize`（消息字号仅当产品要独立时才新 key）
 - 快捷键编辑器 → `KeybindingsEditor` / `workbench.action.openGlobalKeybindings`；UA 只保留「聊天输入 Enter 行为」一项挂 TOC
 
-## 4. Customizations 切分（ADR-061 决策 5）
+## 4. Customizations 切分（ADR-061 决策 5 + two-surfaces）
 
-**已拍板：** 默认保留 vscode Customizations 中心（Agents / Skills / Instructions / Hooks / MCP Servers / Plugins / Tools）。见 [映射](desktop-shell-mapping.md) §4a、[agent-ui](../../systems/chat/agent-ui.md)、外仓 [ADR-061 决策 5](../../../../UniverseAgentDesktop/dev/decisions/061-code-oss-base-and-editor-window-shell.md)。
+**已拍板：** 保留 `AICustomizationManagementEditor` 作 **文件工具 donor**，**不是**第三套主设置。Skill/Agent/Rules/Hooks/MCP 定义 / 引擎工具的产品主面是 `ua.engine`。chrome 见 [customizations-host-ui.md](../../../dev/plans/customizations-host-ui.md)；权威见 [customizations-engine.md](../../../dev/plans/customizations-engine.md)。
 
 | 面 | 宿主 | 禁止 |
 |----|------|------|
-| 文件型定制（skills / instructions / hooks / agents md、MCP 服务器定义） | `AICustomizationManagementEditor`（`aiCustomization.openManagementEditor`，`RequiresModal`）仍保留为 donor / 完整文件型中心 | Settings TOC 再做一份列表 |
-| UA Engine 运行时（Provider API key、Model Profile、连接探测） | Preferences **Engine pane**（外链自 Settings TOC） | 塞进 Customizations / `ModelsManagementEditor` |
-| 跳转 | TOC **链接行**「Open Customizations…」→ HEAD 亦注册 `workbench.action.openCustomizationsPreferences` → `ua.customizations` Preferences 占位 pane | 复制其列表进 Settings 树 |
+| 打开某份 UA markdown / `tools.json` | `AICustomizationManagementEditor`（`aiCustomization.openManagementEditor`，`RequiresModal`） | Settings TOC 再做一份 catalog 列表；默认窗构造 Plugins/Tools widget |
+| Skill/Agent catalog 等产品面 | Preferences **Engine pane** | 把 Copilot Overview 当 Engine 首页；无引擎扫盘 Stub catalog |
+| 跳转 | TOC「Open Customizations…」C5 → `aiCustomization.openManagementEditor`。HEAD 仍有 `ua.customizations` pane，切片须注销 | 复制列表进 Settings 树 |
 
-MCP：定义面留 Customizations；「连上哪台引擎后的 MCP 运行态」若 UA 有独立页，标为后续切片，本页不发明第二 MCP UI。
+MCP：vscode 本地 `mcp.json` 可在 donor 当普通文件；引擎 MCP 定义 CRUD 在 Engine 页。运行态另切片。
 
 ## 5. Copilot TOC 剥离（INV-NO-COPILOT）
 
@@ -110,7 +111,7 @@ MCP：定义面留 Customizations；「连上哪台引擎后的 MCP 运行态」
 | `engine` / 等价 | `PreferencesEditor` | `openPreferences({ paneId: 'ua.engine' })` |
 | **unknown / 未映射 / typo** | **Client `SettingsEditor2`** | **只打开不滚**（无 `query` / `revealSetting`）。**不**打开 `PreferencesEditor` |
 
-从 Settings 模态链到 Connection/Engine/Customizations 会关当前 Client 模态（`uaPreferencesNavigation.ts`）——已知 UX，文档化即可。
+从 Settings 模态链到 Connection/Engine 会关当前 Client 模态（`uaPreferencesNavigation.ts`）。Customizations C5 **不**走该 helper，可能同组两个 tab。
 
 ## 7. 首次连接 / 无引擎
 
@@ -126,9 +127,10 @@ Client Settings **无连接也可开**（Singularity 原则）。**选定：** C
 - [Desktop 壳映射](desktop-shell-mapping.md) · [缺口](gap-vs-desktop-shell.md) · [agent-ui](../../systems/chat/agent-ui.md) · [companion-contribs](../../systems/workbench/companion-contribs.md)
 - 外仓 IA Overlay 行 · ui-interaction-spec · Singularity Settings UI · ADR-037
 - 父方案：[page-access-schemes.md](../../../dev/plans/page-access-schemes.md) §2 / §15
+- 产品目录：[settings-two-surfaces.md](../../../dev/plans/settings-two-surfaces.md)（`accepted`）
 
 ## 审查
 
 2026-08-31 已经 Opus 5.0（`claude-opus-5-thinking-high`）审查并改稿。Critical：出厂打开路径是 `useModal: 'some'` → `MODAL_GROUP`，不是 Preview tab。Important：Connection 用非 setting TOC 元素、`ITOCFilter.exclude` 并入 advanced 滤、`agentsWindow` 与 TOC 可见性不可互替、StatusBar 映射 `status.conversation.engine`。
 
-2026-09-01 按父方案 §12 同步选定设计：Connection/Engine → Preferences 子 pane + `SettingsTreeNavigationLinkElement`；Client→Preferences 关模态/Back；StatusBar / unknown 深链 / Connection 空态与 HEAD 对齐。
+2026-09-01 设置两套主面签收：Customizations 不是第三 pane；C5 不走 pane helper。见 [settings-two-surfaces.md](../../../dev/plans/settings-two-surfaces.md)。

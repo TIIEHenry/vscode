@@ -83,7 +83,7 @@ StatusBar
 
 ## 4a. 复用姿态（2026-08-30 拍板）
 
-sessions / agent-host 配套功能面**默认保留绝大部分**（Customizations 中心：Agents / Skills / Instructions / Hooks / MCP Servers / Plugins / Tools；Tasks / worktree 运行面；复用包括功能）。例外才换：Copilot provider / entitlement / setup 流（INV-NO-COPILOT）、会话真相归属（UA 权威）、Task ↔ client-tool 双执行面 owner（Go 后 ADR 收敛）、产品自研面（SessionBar / 四钮语义 / 权限座位 / Inbox）。详见外仓父方案 §3 拍板段与 [agent-ui](../../systems/chat/agent-ui.md)。
+sessions / agent-host 配套功能面**默认保留绝大部分**（Customizations 编辑器零件、Tasks / worktree 运行面；复用包括功能）。**产品主面**（Skill/Agent catalog 等）在 Engine pane，见 [settings-two-surfaces](../../../dev/plans/settings-two-surfaces.md)。例外才换：Copilot provider / entitlement / setup 流（INV-NO-COPILOT）、会话真相归属（UA 权威）、Task ↔ client-tool 双执行面 owner（Go 后 ADR 收敛）、产品自研面（SessionBar / 四钮语义 / 权限座位 / Inbox）。详见外仓父方案 §3 拍板段与 [agent-ui](../../systems/chat/agent-ui.md)。
 
 ## 5. 合法同构（应保留）
 

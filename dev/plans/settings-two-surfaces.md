@@ -1,10 +1,10 @@
 ---
 title: "设置两套主面：本地 Client / Engine；Singularity 设置在 vscode 重设计"
 type: plan
-status: draft
+status: accepted
 phase: N/A
 updated: 2026-09-01
-summary: "产品设置只有本地与 Engine 两页，必须分开；视觉与 vscode 统一；Customizations 编辑器不是第三套主设置"
+summary: "已签收：本地 vs Engine 两套主设置面；vscode 同一张脸；Customizations 降级为零件；C5 / H0–H3 ReadyToImplement；E1 等 PRD-008"
 ---
 
 # 设置两套主面：本地 / Engine
@@ -13,6 +13,8 @@ summary: "产品设置只有本地与 Engine 两页，必须分开；视觉与 v
 > **零件：** [customizations-host-ui.md](customizations-host-ui.md)（文件编辑器 chrome）、[customizations-engine.md](customizations-engine.md)（引擎权威）。冲突以 **本文件** 为准。
 
 **Goal：** 钉死两页各装什么。不实施。
+
+本稿 `accepted`（2026-09-01）。规则 16 三轮并行 Cursor Grok 4.6（Opus 5.0 slug 不可用）。第三轮 Approve with changes 已改入。**ReadyToImplement：** C5（TOC→OpenEditor、注销 `ua.customizations` pane）与 donor H0–H3。Engine catalog **E1 blocked PRD-008**。
 
 ## 0. 人类约束（2026-09-01）
 
@@ -88,3 +90,5 @@ Chat `ViewTitle` 仍可能挂 Open Customizations（无 Sessions 门）：默认
 2026-09-01 第二轮并行 Grok：**Approve**。C5：`executeCommand` 不查 precondition（`commandService.ts` `_tryExecuteCommand`）；Palette 门保持。余量表成立。Minor 已改入：去掉「除非证伪 gated」；C5 不走 pane helper。
 
 2026-09-01 第三轮 [two-surfaces](bd6399de-54cd-47d8-816a-4ec97fedee5c)：**Approve with changes**。HEAD 七条主张成立。已改入：C5 删除 `OpenCustomizationsPreferencesAction` / pane 全套；`settingsUaToc.test.ts` 换 commandId。
+
+2026-09-01：**签收** `accepted`。C5 / H0–H3 ReadyToImplement；E1 blocked PRD-008。未改 `src/`。
