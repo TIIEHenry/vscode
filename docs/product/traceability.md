@@ -4,7 +4,7 @@ type: reference
 status: accepted
 phase: N/A
 updated: 2026-09-01
-summary: "PRD-001–PRD-015 到规格、方案与证据的轻量追踪；PRD-011–014 与页面接入 1a–4 代码已落、D4 待验证；PRD-015 拟议"
+summary: "PRD-001–PRD-016 到规格、方案与证据的轻量追踪；PRD-011–014 与页面接入 1a–4 代码已落、D4 待验证；PRD-015/016 拟议"
 ---
 
 # 产品需求追踪
@@ -32,13 +32,14 @@ summary: "PRD-001–PRD-015 到规格、方案与证据的轻量追踪；PRD-011
 | [PRD-013](requirements.md#prd-013-conversation-过程折) | `accepted` | 待实施后写 [conversation-lens-assembly](../reference/code-oss-b2/conversation-lens-assembly.md) · [agent-ui](../systems/chat/agent-ui.md) | [conversation-process-fold](../../dev/plans/conversation-process-fold.md) (`implemented`) | 待验证：D4 未跑 |
 | [PRD-014](requirements.md#prd-014-conversation-图示卡visualize) | `accepted` | 待实施后写 [agent-ui](../systems/chat/agent-ui.md) · [conversation-lens-assembly](../reference/code-oss-b2/conversation-lens-assembly.md) | [thinkrail-visualize-port](../../dev/plans/thinkrail-visualize-port.md) (`implemented`) | 待验证：D4 未跑 |
 | [PRD-015](requirements.md#prd-015-conversation-空会话与输入面) | `proposed` | 待签收后写 [conversation-lens-assembly](../reference/code-oss-b2/conversation-lens-assembly.md) · [agent-ui](../systems/chat/agent-ui.md) | [conversation-empty-hero](../../dev/plans/conversation-empty-hero.md) (`draft`) | 无。方案未审、未实施 |
+| [PRD-016](requirements.md#prd-016-conversation-session-窗口与-chat-tab) | `proposed` | 待签收后写 [parts-and-grid](../systems/workbench/parts-and-grid.md) · [editor-part-tabs](../systems/workbench/editor-part-tabs.md) · [agent-ui](../systems/chat/agent-ui.md) | [conversation-session-windows](../../dev/plans/conversation-session-windows.md) (`draft`) · [ADR-002](../../dev/decisions/002-conversation-session-windows.md) (`proposed`) | 无。方案未审、未实施 |
 
 ## 外仓冲突与出处
 
 | 主题 | 外仓历史出处 | 本仓决定 |
 |------|--------------|----------|
 | Agent IDE 主流程在 Conversation | UniverseAgentDesktop `docs/product/experience-principles.md` §2 | 已迁入 [vision.md](vision.md)；外仓不再是持续权威 |
-| 外仓 F1–F11 现行交付表 | UniverseAgentDesktop `docs/product/requirements.md` | **不迁入**。本仓只用 `PRD-001`–`PRD-015` |
+| 外仓 F1–F11 现行交付表 | UniverseAgentDesktop `docs/product/requirements.md` | **不迁入**。本仓只用 `PRD-001`–`PRD-016` |
 | 编辑器窗口作为产品壳 | UniverseAgentDesktop ADR-061 | 壳拓扑已由本仓 M0–M3 落地；产品陈述以本目录为准 |
 | Diff 落点 | 外仓合同要底部面板，本仓现状在编辑器区域 | 冲突保留为 PRD-009 `blocked`，表述为「编辑器区域 vs 底部面板」，不静默覆盖 |
 | Conversation 轨迹页内容 | Desktop ADR-047：轨迹 = 当前活动/运行监视 | **宿主**对齐闭集 `conversation \| trajectory`；**内容**对齐 DeepSeek harness 检查记录表（注入 / chip / 环境），不把「当前活动监视」当本仓轨迹定义 |
@@ -53,5 +54,5 @@ summary: "PRD-001–PRD-015 到规格、方案与证据的轻量追踪；PRD-011
 | 已接受、代码已落、启动待验证 | PRD-001–PRD-014；页面接入切片 1a–4 |
 | 已接受、方案已立、未实施 | 页面接入切片 5；M5 切片 |
 | 阻塞 / 未决 | PRD-008、PRD-009 |
-| 仅提议 | PRD-010、PRD-015 |
+| 仅提议 | PRD-010、PRD-015、PRD-016 |
 | 明确排除 | 见 [requirements.md](requirements.md)「明确排除」，不进入上表当待办 |

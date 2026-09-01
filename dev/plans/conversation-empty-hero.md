@@ -13,7 +13,7 @@ summary: "PreFirst 居中 Composer + 身份条；Active 底栏同一 Composer；
 > 时间线发送合同：[PRD-003](../../docs/product/requirements.md#prd-003-时间线与输入) 不改。  
 > 透镜三槽：[conversation-lens-assembly](../../docs/reference/code-oss-b2/conversation-lens-assembly.md)（`draft`）— 本方案改 `dock` 与空会话 placement，不改 `ChatWidget` 接管。  
 > 外仓只读：Desktop [ui-interaction-spec §8.3](../../../UniverseAgentDesktop/docs/product/ui-interaction-spec.md) Inbox / Input Dock；Singularity [session-config-panel](../../../UniverseAgent/singularity/docs/systems/session/session-config-panel.md) 首条锁定、[chat-input-bar](../../../UniverseAgent/singularity/docs/ui/components/input/chat-input-bar.md) 现行底栏无 Agent；**MessageQueue 列表/行交互**以 Singularity [message-queue-bar.md](../../../UniverseAgent/singularity/docs/ui/components/status/message-queue-bar.md) 与交互原型 [message-queue-layout-preview.html](../../../UniverseAgent/singularity/dev/plans/message-queue-layout-preview.html) 为设计稿 SSOT。  
-> 视觉对照（非正式 SSOT）：会话 canvas `conversation-empty-hero.canvas.tsx`。  
+> 视觉对照（非正式 SSOT）：仓内快照 [conversation-empty-hero.canvas.tsx](conversation-empty-hero.canvas.tsx)。聊天旁活 canvas 仍在 Cursor `canvases/`，不同步进 git。  
 > **规则 16：** 本会话无法派出 `claude-opus-5-thinking-high`（Task 允许 slug 仅 `composer-2.5` / `composer-2.5-fast` / `cursor-grok-4.6-high`）。**禁止**用其它模型顶替本门禁。方案保持 `draft`，**不得**标 `accepted`、不得开实施切片，直到 Opus 5.0 审查改稿。
 
 **Goal：** 空会话是安静居中输入；有消息后同一张 Composer 落到列底。SessionConfig 五字段按 XOR 放置，不复活 2×2 卡，也不画锁定配置第二行。

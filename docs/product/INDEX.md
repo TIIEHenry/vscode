@@ -4,7 +4,7 @@ type: index
 status: accepted
 phase: N/A
 updated: 2026-09-01
-summary: "本仓 Agent IDE 产品需求导航：愿景、需求、追踪；PRD-015 空会话输入面拟议；外仓只作历史出处"
+summary: "本仓 Agent IDE 产品需求导航：愿景、需求、追踪；PRD-015/016 拟议；外仓只作历史出处"
 ---
 
 # 产品需求
