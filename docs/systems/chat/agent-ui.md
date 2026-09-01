@@ -3,8 +3,8 @@ title: "Agent UI 清单：宿主、Widget、Copilot 边界"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-08-31
-summary: "本仓对话 UI 的三层：ChatWidget 零件、workbench 宿主（含违反 INV-TOPO 的 ChatEditor）、Sessions Part；Conversation 列 SessionBar/Timeline/Dock chrome + Sources Files/Changes/Review tab + D7 四钮 + StatusBar stub chip 已落"
+updated: 2026-09-01
+summary: "本仓对话 UI 的三层：ChatWidget 零件、workbench 宿主（含违反 INV-TOPO 的 ChatEditor）、Sessions Part；Conversation 列 + Sources 三 tab + D7 四钮已落；M5 切片 1–3：`chatShellRouting` 默认窗路由、roster show+focus、`IAgentHostMcpServer` 下沉 platform"
 ---
 
 # Agent UI 清单
@@ -60,13 +60,15 @@ Desktop 合同：窗口壳 = Singularity/IDEA；Conversation 内 = 时间线 + I
 
 **复用建议（分析，非正式决策）：** 列表虚拟化、markdown/code block content parts、输入编辑器补全基础设施值得当 donor。SessionBar、四钮、权限座位、Inbox 按 Desktop 自研。
 
+**Agent Host 类型分层（M5 切片 3）：** `IAgentHostMcpServer`（MCP server status / enablement / start/stop 协议面）下沉至 `platform/agentHost/common/agentHostMcpServer.ts`；`workbench/contrib/chat` 与 `vs/sessions` 均依赖 platform 落点，workbench 生产路径 **不再** import `sessions/common` 取该类型；eslint `code-import-patterns` 已从 workbench/contrib allow-list 去掉 `vs/sessions/~`（H7）。
+
 **复用姿态拍板（人类，2026-08-30，外仓父方案 §3 / ADR-061 决策 5）：** sessions / agent-host **配套功能面默认保留绝大部分**（Customizations 中心：Agents / Skills / Instructions / Hooks / MCP Servers / Plugins / Tools；Tasks / worktree 运行面；含功能，不只 UI）。姿态 = 默认保留、例外才换。例外：Copilot provider / entitlement / setup（§5 不可复用面不变）、会话真相归属（§6 不变）、Task ↔ client-tool 双执行面 owner（后续切片）。
 
 **明确进复用清单（人类补充 2026-08-30）：** 会话列表侧边栏（sessions viewlet / `agentSessions` 控件族）、对话列表、**权限确认弹框组件**（chat confirmation 零件：Allow/Skip 按钮、「N confirmation pending」摘要行、Input needed 徽标）。权限交互为**半自研**：座位位置与语义按 Desktop spec（权限座位在时间线内），实现零件优先复用本仓 confirmation 组件；SessionBar / Inbox / Conversation 透镜仍自研。
 
-**Navigator stub roster（M3 切片 2，post-merge）：** `workbench.view.conversationSessions`（`contrib/conversation`）已作为 **Sidebar `ViewPane`** 挂在 Explorer 容器（`VIEW_CONTAINER`）内，与 SessionBar 共用 `IConversationStubService` 内存会话；有会话时 Body 顶展示 IDE inline 文本 filter（`Filter sessions`）按标题即时筛行；点击切 `CONVERSATION_PART` 当前 stub，**Delete session** 标题动作与 SessionBar 紧凑删除控件均调用 `deleteSession`（仅内存，无 Copilot archive/cloud），**不走** `IChatModel` / `IChatService` / `ChatEditorInput`。Explorer 仍是 Sidebar 默认 composite；产品 roster 是配套列表，不是中心透镜。
+**Navigator stub roster（page-access 1a + M5 切片 2）：** `workbench.view.conversationSessions`（`ConversationSessionsView`）挂在 **独立** Sidebar 容器 `workbench.view.sessions`（`CONVERSATION_SESSIONS_CONTAINER_ID`，非 Explorer 内叶），与 SessionBar 共用 `IConversationRosterService`（decorator id `'conversationStubService'`）内存会话；有会话时 Body 顶展示 IDE inline 文本 filter（`Filter sessions`）按标题即时筛行。**打开行**（单击或键盘 `onDidOpen`）顺序：`switchSession(id)` → 显示 `CONVERSATION_PART` → `IConversationPartService.focus()`（经 `IWorkbenchLayoutService`，**不** import `chatShellRouting`）；stale/空元素不改变布局。**Delete session** 标题动作与 SessionBar 紧凑删除控件均调用 `deleteSession`（仅内存，无 Copilot archive/cloud），**不走** `IChatModel` / `IChatService` / `ChatEditorInput`。Activity 默认仍是 Files（Explorer）；产品 roster 是配套列表，不是中心透镜。细节见 [session-roster-reuse](../../reference/code-oss-b2/session-roster-reuse.md)。
 
-**Navigator 产品方向（agent-ide doc，draft）：** 长期拓扑目标包括独立 Sidebar 容器（如 `workbench.view.sessions`，非 Explorer 内叶）以及 Projects / Agents / Team 独立容器 + honest empty；各 tab 重设计见 [navigator-tabs-access](../../reference/code-oss-b2/navigator-tabs-access.md)（draft）。当前 `loop/merge` 集成实现仍以 Explorer 内 `ViewPane` 为准。
+**Navigator 产品方向（agent-ide doc，draft）：** Projects / Agents / Team 独立容器 + honest empty 与各 tab 重设计见 [navigator-tabs-access](../../reference/code-oss-b2/navigator-tabs-access.md)（draft）；Sessions 独立容器已落地。
 
 ## 3. Workbench 宿主（默认 Code 窗口）
 
@@ -76,9 +78,11 @@ Desktop 合同：窗口壳 = Singularity/IDEA；Conversation 内 = 时间线 + I
 |------|------|--------|----------|
 | **ChatViewPane** | `viewPane/chatViewPane.ts` | Sidebar / Panel 的 `ViewPane` | 不占 editor tab，但是 **侧栏插件形**（经验原则明确拒绝「Agent 当聊天插件」）。可作开发期对照，**不能**当 B2 中心透镜；Aux donor 仍注册，但默认窗口 **无** View 菜单 open command / `Ctrl+Cmd+Alt+I`（与 Open Conversation 键位不冲突） |
 | **ChatEditor** | `editor/chatEditor.ts` | `EDITOR_PART` | **违反**。`ChatEditorInput` 是 `EditorInput`；打开即 editor tab |
-| **Quick Chat** | `chatQuick.ts` | 浮层 | 不是主流程 |
+| **Quick Chat** | `chatQuick.ts` | 浮层 | 不是主流程；**M5 切片 1**：`QuickChatGlobalAction` 全局快捷键与 `ChatTitleBarMenu` 入口 `when: IsSessionsWindowContext`（Agents Window only） |
 
-`ChatEditor` 继承 `AbstractEditorWithViewState`，走 `IEditorService`。spike **S0 拒绝**的就是这条路径。源码与 `registerEditorPane(ChatEditor, ChatEditorInput)` **仍保留**（donor / EH 对照）；默认 Code 窗口里，Command Palette 主入口为 **`workbench.action.chat.open` → Open Conversation**（`New Chat Editor` / `workbench.action.openChat` 不在 F1），「Move into Editor Area」/ agentSessions「Open as Editor」/ 其余 open-chat 路径已 **藏或转** 到 `CONVERSATION_PART`，`ChatEditorInputWorkbenchSerializer` 对默认窗 `canSerialize === false`，`ChatResolverContribution` 不再把 `vscodeChatEditor` / `vscodeLocalChatSession` URI 送进 `EDITOR_PART`。`ChatWidget` 仍作 donor，**不是**「从注册表删除 ChatEditor」。默认窗 Command Palette 亦不再列出已重定向的 `workbench.action.openChatToSide`（New Chat Editor to the Side）、`workbench.action.newChatWindow`（New Chat Window）与 `workbench.action.chat.hideSetup`（Learn How to Hide AI Features），三者 `f1: false`。
+**默认窗 Chat 路由（M5 切片 1，SSOT `contrib/chat/browser/chatShellRouting.ts`）：** `isDefaultCodeWindow` / `shouldRouteChatEditorToConversation` / `focusConversationPart` 为唯一可审计 helper；New/Open Chat Editor 族在默认窗 **无条件** 显示并聚焦 `CONVERSATION_PART`（**不再** 因 active editor 已是 `ChatEditorInput` 而放行）。`openChatSession(..., Editor)` 在默认窗 **第一句** `BugIndicatingError`（先于 URI mint / `importConversationStore.set` / `openEditor`）；Sidebar 等非 Editor 位置亦短路为 `focusConversationPart`。`ChatResolverContribution` 经 `shouldRegisterChatEditorResolver(isSessionsWindow)`：**默认窗不为任何** content-provider scheme 注册 `ChatEditorInput` resolver（含 EH 动态 scheme）；Agents Window 保留。Continue-in / Agent Host Editor 等带 payload 的 Editor 路径在注册层不可见。
+
+`ChatEditor` 继承 `AbstractEditorWithViewState`，走 `IEditorService`。spike **S0 拒绝**的就是这条路径。源码与 `registerEditorPane(ChatEditor, ChatEditorInput)` **仍保留**（donor / EH 对照）；默认 Code 窗口里，Command Palette 主入口为 **`workbench.action.chat.open` → Open Conversation**（`New Chat Editor` / `workbench.action.openChat` 不在 F1），「Move into Editor Area」/ agentSessions「Open as Editor」/ 其余 open-chat 路径已 **藏或转** 到 `CONVERSATION_PART`，`ChatEditorInputWorkbenchSerializer` 对默认窗 `canSerialize === false`。`ChatWidget` 仍作 donor，**不是**「从注册表删除 ChatEditor」。默认窗 Command Palette 亦不再列出已重定向的 `workbench.action.openChatToSide`（New Chat Editor to the Side）、`workbench.action.newChatWindow`（New Chat Window）与 `workbench.action.chat.hideSetup`（Learn How to Hide AI Features），三者 `f1: false`。
 
 `ChatViewPane` 还嵌 `AgentSessionsControl`、welcome、entitlement、mic/TTS——体量远超「一个列表 + Dock」。把它整块搬进新 Part 会把 Copilot 设置流一起搬进来。
 
@@ -105,7 +109,7 @@ Desktop 合同：窗口壳 = Singularity/IDEA；Conversation 内 = 时间线 + I
 **对 B2 的含义：**
 
 - 拓扑上，Agents Window **已经证明**「非 Editor 中心 Part + Editor 可藏」在本仓可行。
-- 默认 Code 窗口在 **M1 亦已落地** 同构拓扑（`ConversationPart` 中心透镜 + End Editor/Sources Files + titlebar 四钮 D7）；compile/启动/EH **验证**仍 deferred（D3–D5）。
+- 默认 Code 窗口在 **M1 亦已落地** 同构拓扑（`ConversationPart` 中心透镜 + End Editor/Sources Files + titlebar 四钮 D7）；**M5 切片 1–3** 已加固默认窗 Chat 路由与 roster 导航、清掉 workbench→sessions 的 `IAgentHostMcpServer` 依赖。**启动演示（D4）与 EH 探针（D5）仍 open** → [deferred-gaps](../../../dev/progress/deferred-gaps.md)。
 - 壳合同上，它 **缺** Activity 通高与四钮，**多**了 session 多开网格 / Custom View Grid，**不能**拿来当文档壳交差（选项 C）。
 - S1 主路径仍是改 **默认 Code `Layout`**，而不是把生产入口改成 Agents Window。Sessions 是 **算法与 Part 样例**，不是产品壳。
 
