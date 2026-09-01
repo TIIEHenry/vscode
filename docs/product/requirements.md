@@ -4,7 +4,7 @@ type: demand
 status: accepted
 phase: N/A
 updated: 2026-09-01
-summary: "PRD-001–PRD-014：默认窗产品壳已接受；轨迹透镜/过程折/visualize 卡已接受；Agents 窗口 Chat 并排已接受；引擎、Diff、产品身份未决或阻塞"
+summary: "PRD-001–PRD-015：默认窗产品壳已接受；轨迹/过程折/visualize 已接受；空会话与输入面拟议；Agents 窗口 Chat 并排已接受；引擎、Diff、产品身份未决或阻塞"
 ---
 
 # Agent IDE 产品需求
@@ -46,7 +46,7 @@ summary: "PRD-001–PRD-014：默认窗产品壳已接受；轨迹透镜/过程�
   1. 时间线不是两行写死的说明文案。
   2. 发送后新回合留在当前会话，而不是跳到 Chat 插件。
   3. 若出现助手回复，必须能看出这是本地占位回复，而不能看起来像已经接上引擎。
-- **依赖或未决**：真实助手回合依赖 PRD-008。思考/工具过程折见 PRD-013，不把它们画成与助手正文同级的气泡。
+- **依赖或未决**：真实助手回合依赖 PRD-008。思考/工具过程折见 PRD-013，不把它们画成与助手正文同级的气泡。空会话居中输入、Inbox 分簇、SessionConfig 显隐见 [PRD-015](#prd-015-conversation-空会话与输入面)。
 
 ### PRD-004 权限座位
 
@@ -157,6 +157,22 @@ PRD-001 至 PRD-007 的代码已在 M0–M3 合入，但 D4 启动冒烟（T1–
   4. 扩展缺失时诚实降级为 fence + Stub 文案。
   5. 过程折（PRD-013）不把 `visualization` 收进 span；轨迹（PRD-012）不投影 `visualization`。
 - **依赖或未决**：活数据依赖 PRD-008。引擎 admitted `visualize` **只**映射为 `visualization` kind，不进 `tool`/`reasoning` span。方案见 [thinkrail-visualize-port](../../dev/plans/thinkrail-visualize-port.md)。
+
+### PRD-015 Conversation 空会话与输入面
+
+- **状态**：`proposed`
+- **用户价值**：空会话时用户能在安静画布上配好会话并开始说话；对话开始后输入不换一套控件，Inbox 也不挡阅读。
+- **用户可观察陈述**：空会话（尚无可见消息）时，身份条（文件夹 · 引擎 · 分支）在居中输入卡上方；输入卡上可改 Agent、Model、Permission、Tools、Route；没有 Inbox / Goal / Stop。发出第一条消息后，同一张输入卡落到列底；身份条只出现在阅读列顶部（不在 SessionBar、不在输入工具栏）；Agent 不再出现在输入行；Route 出现在 SessionBar；Inbox 在输入卡上方左右分簇（左 Task · MessageQueue · Goal，右 Stop · 上下文环）。用户回合展示为纯文本卡片；点卡片才进入编辑。同一时刻只有一个输入。
+- **产品验收标准**：
+  1. 空会话没有 Inbox 浮层，也没有把输入永远钉在列底当成唯一布局。
+  2. Init 与 During 共用一张 Composer：底栏同一高度；`+` 浅底圆、语音无底、发送实心圆；其余底栏控件无背景。
+  3. Agent 只在空会话可改；首条发送后从输入行消失，不进 SessionBar。Route 只在空会话出现在输入行；首条发送后只在 SessionBar。
+  4. Model、Permission、Tools 在 During 仍留在输入行。不画第二行「锁定 SessionConfig」卡片。
+  5. Inbox 左簇 Task 在 MessageQueue 左侧；两列表互斥展开；无权威时整槽省略或诚实空，不造假任务。
+  6. 列表内编辑与队列编辑复用同一 Composer（含 Exit）；展示态用户卡没有按钮。
+  7. 语音钮在发送左侧。语音转写队列不是 MessageQueue。
+  8. 输入面不是 Copilot `ChatInputPart` 的一排 picker，也不是 Singularity 2×2 Material 配置卡。
+- **依赖或未决**：活队列 / 路由策略 / AgentProfile 数据依赖 PRD-008。无引擎时 Route 与 Agent 用诚实空或 stub 选项，不假装已接到引擎策略表。方案见 [conversation-empty-hero](../../dev/plans/conversation-empty-hero.md)。
 
 ## 未决或阻塞
 

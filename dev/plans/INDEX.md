@@ -4,7 +4,7 @@ type: index
 status: accepted
 phase: N/A
 updated: 2026-09-01
-summary: "dev/plans 导航：产品需求层建设与 M0–M5；PRD-011–014 与页面接入 1a–4 代码已落、D4 待验证"
+summary: "dev/plans 导航：产品需求层建设与 M0–M5；PRD-011–014 与页面接入 1a–4 代码已落；PRD-015 空会话输入面 draft"
 ---
 
 # 方案
@@ -28,3 +28,4 @@ summary: "dev/plans 导航：产品需求层建设与 M0–M5；PRD-011–014 �
 | [conversation-trajectory-lens.md](conversation-trajectory-lens.md) | `implemented` | PRD-012 代码已落；D4 待验证 |
 | [conversation-process-fold.md](conversation-process-fold.md) | `implemented` | PRD-013 代码已落；D4 待验证 |
 | [thinkrail-visualize-port.md](thinkrail-visualize-port.md) | `implemented` | PRD-014 代码已落；D4 待验证 |
+| [conversation-empty-hero.md](conversation-empty-hero.md) | `draft` | PRD-015 空会话居中 Composer、SessionConfig XOR、Inbox 分簇；未审 |

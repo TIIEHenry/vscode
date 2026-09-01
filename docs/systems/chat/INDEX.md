@@ -3,8 +3,8 @@ title: "Chat 系统索引"
 type: index
 status: accepted
 phase: N/A
-updated: 2026-08-31
-summary: "跨层 Chat：contrib 模型/UI、宿主清单、Copilot 边界、sessions 窗口消费、页面接入草案"
+updated: 2026-09-01
+summary: "跨层 Chat：contrib 模型/UI、宿主清单、Copilot 边界、sessions 窗口消费、页面接入；PRD-015 空会话输入面 draft"
 ---
 
 # Chat
@@ -41,6 +41,7 @@ chat **不是** `vs/` 层；import 方向仍是 workbench contrib ← sessions�
 - [Widget 零件](widget-parts.md) — 列表、输入、content parts（Input Dock donor）
 - [工具与编辑会话](tools-and-editing.md) — tools / ChatEditingSession
 - [会话列表复用](../../reference/code-oss-b2/session-roster-reuse.md) · [透镜组装](../../reference/code-oss-b2/conversation-lens-assembly.md) — 页面接入（draft）
+- 空会话 / 输入面：[conversation-empty-hero](../../../dev/plans/conversation-empty-hero.md)（draft · PRD-015）
 
 ## 相关文档
 
