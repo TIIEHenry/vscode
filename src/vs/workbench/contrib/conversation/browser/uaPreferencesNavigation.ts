@@ -11,10 +11,8 @@ import { IPreferencesService } from '../../../services/preferences/common/prefer
 import { SettingsEditor2Input } from '../../../services/preferences/common/preferencesEditorInput.js';
 import {
 	OPEN_CONNECTION_PREFERENCES_COMMAND_ID,
-	OPEN_CUSTOMIZATIONS_PREFERENCES_COMMAND_ID,
 	OPEN_ENGINE_PREFERENCES_COMMAND_ID,
 	UA_CONNECTION_PANE_ID,
-	UA_CUSTOMIZATIONS_PANE_ID,
 	UA_ENGINE_PANE_ID,
 } from '../common/uaPreferencesPanes.js';
 
@@ -63,20 +61,6 @@ export function registerUaPreferencesNavigationActions(): void {
 
 		override run(accessor: ServicesAccessor): Promise<void> {
 			return openUaPaneReplacingClientSettings(accessor, UA_ENGINE_PANE_ID);
-		}
-	});
-
-	registerAction2(class OpenCustomizationsPreferencesAction extends Action2 {
-		constructor() {
-			super({
-				id: OPEN_CUSTOMIZATIONS_PREFERENCES_COMMAND_ID,
-				title: localize2('openCustomizationsPreferences', "Open Customizations Preferences"),
-				f1: false,
-			});
-		}
-
-		override run(accessor: ServicesAccessor): Promise<void> {
-			return openUaPaneReplacingClientSettings(accessor, UA_CUSTOMIZATIONS_PANE_ID);
 		}
 	});
 }
