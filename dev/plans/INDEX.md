@@ -20,7 +20,7 @@ summary: "dev/plans 导航：M5 切片 5 文档收口中；PRD-012/013/014/015/0
 | [m4-validation-wave.md](m4-validation-wave.md) | `in_progress` | D3 closed；D4 closed @ rerun-2230；D5 仍开 |
 | [m5-ui-shell-hardening.md](m5-ui-shell-hardening.md) | `in_progress` | 切片 1–4 已落；切片 5 文档收口 + D5 EH 探针 |
 | [chat-compare-split.md](chat-compare-split.md) | `implemented` | PRD-011 代码已落；D4 已验 |
-| [page-access-schemes.md](page-access-schemes.md) | `implemented` | 切片 1a–4 代码已落；切片 5 等引擎 |
+| [page-access-schemes.md](page-access-schemes.md) | `implemented` | 切片 1a–4 代码已落；切片 5 blocked PRD-008 |
 | [settings-two-surfaces.md](settings-two-surfaces.md) | `implemented` | C5 + donor H0–H3 已落；E1 blocked PRD-008 |
 | [customizations-host-ui.md](customizations-host-ui.md) | `implemented` | H0–H3 donor chrome @ `77d6e7cc` |
 | [customizations-engine.md](customizations-engine.md) | `accepted` | Engine 页 catalog 权威与协议缺口；E1 blocked PRD-008 |

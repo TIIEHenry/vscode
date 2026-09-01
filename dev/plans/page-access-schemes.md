@@ -1,10 +1,10 @@
 ---
 title: "页面接入方案：Settings / 会话列表 / 透镜 / Navigator tab"
 type: plan
-status: accepted
+status: implemented
 phase: N/A
 updated: 2026-09-01
-summary: "多方架构评审综合稿：B2 壳之后的页面接入；已签收；知识层四页选定设计已按 §12 同步"
+summary: "B2 壳之后页面接入；切片 1a–4 已落；切片 5 blocked PRD-008"
 origin: multi-party-design-review
 mpdr:
   skill: multi-party-design-review

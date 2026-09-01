@@ -1,10 +1,10 @@
 ---
 title: "Chat 并排比对：fork / 子 agent 落位到侧边"
 type: plan
-status: accepted
+status: implemented
 phase: N/A
-updated: 2026-08-31
-summary: "同一会话内两个 chat 并排比对：落位上限策略（2，可放开 N）与既有落位启发式的次序，fork 与子 agent 两个入口收敛；已签收"
+updated: 2026-09-01
+summary: "PRD-011 并排比对已落：maxGroups=2、fork/子 agent 入口收敛；D4 已验"
 ---
 
 # Chat 并排比对方案
