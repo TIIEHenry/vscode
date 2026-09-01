@@ -20,6 +20,8 @@ export interface ProcessFoldDomOptions {
 	readonly setOuterExpanded: (spanId: string, expanded: boolean) => void;
 	readonly isThinkingExpanded: (turnId: string) => boolean;
 	readonly setThinkingExpanded: (turnId: string, expanded: boolean) => void;
+	readonly isToolExpanded: (turnId: string) => boolean;
+	readonly setToolExpanded: (turnId: string, expanded: boolean) => void;
 	readonly onLayoutChange: () => void;
 }
 
@@ -57,7 +59,7 @@ export function renderProcessFoldSpan(
 		if (node.kind === 'thinking') {
 			renderThinkingNode(children, node, options, disposables);
 		} else {
-			renderToolRow(children, node.turn, false, disposables);
+			renderToolRow(children, node.turn, false, options, disposables);
 		}
 	}
 
@@ -102,11 +104,12 @@ function renderThinkingNode(
 
 	const body = append(thinking, $('div.conversation-process-fold-thinking-body'));
 	body.hidden = !thinkingExpanded;
-	body.textContent = turn.text;
+	body.textContent = turn.payload ?? turn.text;
 
 	const tools = append(thinking, $('div.conversation-process-fold-thinking-tools'));
+	tools.hidden = !thinkingExpanded;
 	for (const toolTurn of node.tools) {
-		renderToolRow(tools, toolTurn, true, disposables);
+		renderToolRow(tools, toolTurn, true, options, disposables);
 	}
 
 	disposables.add(addDisposableListener(header, 'click', (e) => {
@@ -115,6 +118,7 @@ function renderThinkingNode(
 		options.setThinkingExpanded(turn.id, next);
 		header.setAttribute('aria-expanded', String(next));
 		body.hidden = !next;
+		tools.hidden = !next;
 		chevron.classList.toggle('conversation-process-fold-chevron--expanded', next);
 		options.onLayoutChange();
 	}));
@@ -124,8 +128,12 @@ function renderToolRow(
 	parent: HTMLElement,
 	turn: ConversationStubTurn,
 	nested: boolean,
+	options: ProcessFoldDomOptions,
 	disposables: DisposableStore,
 ): void {
+	const payload = turn.payload?.trim();
+	const hasPayload = !!payload;
+
 	const row = append(parent, $('div.conversation-process-fold-tool'));
 	row.setAttribute('data-turn-id', turn.id);
 	row.setAttribute('data-kind', turn.kind);
@@ -133,12 +141,49 @@ function renderToolRow(
 		row.classList.add('conversation-process-fold-tool--nested');
 	}
 
-	const icon = append(row, $('span.conversation-process-fold-tool-icon'));
+	const header = append(row, hasPayload
+		? $('button.conversation-process-fold-tool-header') as HTMLButtonElement
+		: $('div.conversation-process-fold-tool-header'));
+	if (hasPayload) {
+		(header as HTMLButtonElement).type = 'button';
+		header.setAttribute('role', 'button');
+	}
+
+	const toolExpanded = hasPayload && options.isToolExpanded(turn.id);
+	if (hasPayload) {
+		header.setAttribute('aria-expanded', String(toolExpanded));
+	}
+
+	const chevron = append(header, $('span.conversation-process-fold-tool-chevron'));
+	if (hasPayload) {
+		chevron.classList.add(...ThemeIcon.asClassNameArray(Codicon.chevronRight));
+		chevron.classList.toggle('conversation-process-fold-chevron--expanded', toolExpanded);
+	} else {
+		chevron.hidden = true;
+	}
+
+	const icon = append(header, $('span.conversation-process-fold-tool-icon'));
 	icon.appendChild(renderIcon(Codicon.check));
 
-	const name = append(row, $('span.conversation-process-fold-tool-name'));
+	const name = append(header, $('span.conversation-process-fold-tool-name'));
 	name.textContent = turn.toolName ?? turn.kind;
 
-	const summary = append(row, $('span.conversation-process-fold-tool-summary'));
+	const summary = append(header, $('span.conversation-process-fold-tool-summary'));
 	summary.textContent = turn.summary ?? turn.text;
+
+	if (hasPayload) {
+		const body = append(row, $('div.conversation-process-fold-tool-body'));
+		body.hidden = !toolExpanded;
+		body.textContent = payload!;
+
+		disposables.add(addDisposableListener(header, 'click', (e) => {
+			e.stopPropagation();
+			const next = !options.isToolExpanded(turn.id);
+			options.setToolExpanded(turn.id, next);
+			header.setAttribute('aria-expanded', String(next));
+			body.hidden = !next;
+			chevron.classList.toggle('conversation-process-fold-chevron--expanded', next);
+			options.onLayoutChange();
+		}));
+	}
 }

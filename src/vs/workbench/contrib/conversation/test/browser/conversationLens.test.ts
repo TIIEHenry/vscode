@@ -1413,6 +1413,45 @@ suite('ConversationLens', () => {
 		assert.ok(queryTimeline(slots, '.conversation-lens-confirmation-seat'));
 	});
 
+	test('expanding untitled thinking reveals Stub payload body distinct from header summary', () => {
+		const { part } = mountLens();
+		const slots = part.getSlots()!;
+		const fold = queryTimeline(slots, '[data-process-fold]')!;
+		(fold.querySelector('.conversation-process-fold-header') as HTMLElement).click();
+
+		const firstThinking = fold.querySelector('.conversation-process-fold-thinking[data-turn-id="untitled-t1"]')!;
+		const thinkingHeader = firstThinking.querySelector('.conversation-process-fold-thinking-header') as HTMLElement;
+		assert.ok(thinkingHeader.textContent?.includes('Stub: outline sections'));
+
+		thinkingHeader.click();
+
+		const body = firstThinking.querySelector('.conversation-process-fold-thinking-body') as HTMLElement;
+		assert.strictEqual(body.hidden, false);
+		assert.ok(body.textContent?.includes('Stub: Consider intro'));
+		assert.notStrictEqual(body.textContent, thinkingHeader.textContent);
+	});
+
+	test('expanding untitled tool row reveals Stub payload text', () => {
+		const { part } = mountLens();
+		const slots = part.getSlots()!;
+		const fold = queryTimeline(slots, '[data-process-fold]')!;
+		(fold.querySelector('.conversation-process-fold-header') as HTMLElement).click();
+
+		const firstThinking = fold.querySelector('.conversation-process-fold-thinking[data-turn-id="untitled-t1"]')!;
+		(firstThinking.querySelector('.conversation-process-fold-thinking-header') as HTMLElement).click();
+
+		const readTool = fold.querySelector('.conversation-process-fold-tool[data-turn-id="untitled-tool1"]')!;
+		const toolHeader = readTool.querySelector('.conversation-process-fold-tool-header') as HTMLElement;
+		assert.ok(toolHeader.textContent?.includes('read'));
+		assert.ok(toolHeader.textContent?.includes('Stub: README.md'));
+
+		toolHeader.click();
+
+		const payload = readTool.querySelector('.conversation-process-fold-tool-body') as HTMLElement;
+		assert.strictEqual(payload.hidden, false);
+		assert.ok(payload.textContent?.includes('Stub: # Project'));
+	});
+
 	test('pinned user prompt copy writes full text and exposes no Quote Edit or Regenerate', async function () {
 		this.timeout(15000);
 		const { part, lens, stubService, clipboardService, layoutReadingColumn } = mountLens();

@@ -106,6 +106,7 @@ class ConversationTimelineRenderer implements ITreeRenderer<ConversationTimeline
 	private readonly userBubbleExpanded = new Map<string, boolean>();
 	private readonly processFoldOuterExpanded = new Map<string, boolean>();
 	private readonly processFoldThinkingExpanded = new Map<string, boolean>();
+	private readonly processFoldToolExpanded = new Map<string, boolean>();
 	private readonly visualizeExpanded = new Map<string, boolean>();
 
 	constructor(
@@ -146,6 +147,14 @@ class ConversationTimelineRenderer implements ITreeRenderer<ConversationTimeline
 						this.processFoldThinkingExpanded.set(turnId, true);
 					} else {
 						this.processFoldThinkingExpanded.delete(turnId);
+					}
+				},
+				isToolExpanded: (turnId) => this.processFoldToolExpanded.get(turnId) ?? false,
+				setToolExpanded: (turnId, expanded) => {
+					if (expanded) {
+						this.processFoldToolExpanded.set(turnId, true);
+					} else {
+						this.processFoldToolExpanded.delete(turnId);
 					}
 				},
 				onLayoutChange: () => this.scheduleHeightUpdate(item, templateData.container),

@@ -35,10 +35,34 @@ export interface ConversationStubSession {
 function createUntitledFixtureTurns(): ConversationStubTurn[] {
 	return [
 		{ id: 'untitled-u1', kind: 'user', text: localize('conversationStub.untitledUser', "Help me draft the README.") },
-		{ id: 'untitled-t1', kind: 'thinking', text: 'Stub: outline sections' },
-		{ id: 'untitled-tool1', kind: 'tool', text: 'Stub: README.md', toolName: 'read', summary: 'Stub: README.md' },
-		{ id: 'untitled-t2', kind: 'thinking', text: 'Stub: draft' },
-		{ id: 'untitled-tool2', kind: 'tool', text: 'Stub: README.md', toolName: 'write', summary: 'Stub: README.md' },
+		{
+			id: 'untitled-t1',
+			kind: 'thinking',
+			text: 'Stub: outline sections',
+			payload: 'Stub: Consider intro, setup, usage, and license sections.',
+		},
+		{
+			id: 'untitled-tool1',
+			kind: 'tool',
+			text: 'Stub: README.md',
+			toolName: 'read',
+			summary: 'Stub: README.md',
+			payload: 'Stub: # Project\n\n(existing readme content)',
+		},
+		{
+			id: 'untitled-t2',
+			kind: 'thinking',
+			text: 'Stub: draft',
+			payload: 'Stub: Draft updated sections based on read output.',
+		},
+		{
+			id: 'untitled-tool2',
+			kind: 'tool',
+			text: 'Stub: README.md',
+			toolName: 'write',
+			summary: 'Stub: README.md',
+			payload: 'Stub: Wrote draft to README.md.',
+		},
 		{
 			id: 'untitled-a1',
 			kind: 'assistant',

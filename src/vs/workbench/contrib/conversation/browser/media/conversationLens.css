@@ -595,8 +595,8 @@
 
 .monaco-workbench .part.conversation .conversation-process-fold-tool {
 	display: flex;
-	align-items: center;
-	gap: 6px;
+	flex-direction: column;
+	gap: 2px;
 	padding: 2px 8px;
 	font-size: 12px;
 	line-height: 1.45;
@@ -612,6 +612,42 @@
 	flex-shrink: 0;
 	font-weight: 600;
 	color: var(--vscode-foreground);
+}
+
+.monaco-workbench .part.conversation .conversation-process-fold-tool-header {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	width: 100%;
+	padding: 0;
+	border: none;
+	background: none;
+	color: inherit;
+	font: inherit;
+	text-align: start;
+	cursor: pointer;
+}
+
+.monaco-workbench .part.conversation button.conversation-process-fold-tool-header:hover {
+	color: var(--vscode-foreground);
+}
+
+.monaco-workbench .part.conversation .conversation-process-fold-tool-chevron {
+	flex-shrink: 0;
+	color: var(--vscode-descriptionForeground);
+	transition: transform 0.15s ease;
+}
+
+.monaco-workbench .part.conversation .conversation-process-fold-tool-body {
+	font-size: 12px;
+	line-height: 1.45;
+	color: var(--vscode-descriptionForeground);
+	padding: 2px 8px 4px 22px;
+	white-space: pre-wrap;
+}
+
+.monaco-workbench .part.conversation .conversation-process-fold-tool--nested .conversation-process-fold-tool-body {
+	padding-inline-start: 34px;
 }
 
 .monaco-workbench .part.conversation .conversation-lens-trajectory-row {
@@ -729,8 +765,8 @@
 
 .monaco-workbench .part.conversation .conversation-process-fold-tool {
 	display: flex;
-	align-items: center;
-	gap: 6px;
+	flex-direction: column;
+	gap: 2px;
 	padding: 2px 8px;
 	font-size: 12px;
 	line-height: 1.45;
