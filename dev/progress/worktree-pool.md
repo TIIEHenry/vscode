@@ -2,10 +2,10 @@
 title: "Loop 并行工位池（本仓）"
 type: progress
 status: accepted
-phase: M0
+phase: M5
 created: 2026-08-30
-updated: 2026-08-31
-summary: "仓外 vscode-WorkTrees 工位表；A–D + merge 全 idle；M3 关仓"
+updated: 2026-09-02
+summary: "仓外 vscode-WorkTrees 工位表；merge + A–D 全 idle @ agent-ide 18b5e8d7"
 ---
 
 # Loop 并行工位池（本仓）
@@ -20,17 +20,17 @@ summary: "仓外 vscode-WorkTrees 工位表；A–D + merge 全 idle；M3 关仓
 | 主仓 | `/home/clarence/Projects/Agents/vscode` |
 | 工位根 `$WT_ROOT` | `/home/clarence/Projects/Agents/vscode-WorkTrees` |
 | 集成分支（当前） | **`agent-ide`**（merge 槽对齐此分支；非上游 `main`） |
-| 集成本次 HEAD | 对齐 `agent-ide` `61ded6e2` — M4 验证波 `in_progress` |
+| 集成本次 HEAD | 对齐 `agent-ide` **`18b5e8d7`** — M5 implemented；S3c 子代理对话框 chrome overlay |
 
-## 槽位表（2026-08-31 M4 验证波 · 并发）
+## 槽位表（2026-09-02 · 全 idle）
 
 | 槽 | 路径 | 分支 | 状态 | 切片 | 互斥域 |
 |:---|:-----|:-----|:-----|:-----|--------|
-| merge | `vscode-WorkTrees/merge` | `loop/merge` | **busy** | M4-1 D3 compile/单测 | `src/**` chat/conversation/sources |
-| A | `vscode-WorkTrees/A` | `loop/A` | **queued** | M4-2 D4 启动冒烟 | 待 merge 编译绿后复跑 |
-| B | `vscode-WorkTrees/B` | `loop/B` | **busy** | M4-3 D5 EH 探针计划 | `docs/**` EH 矩阵 |
-| C | `vscode-WorkTrees/C` | `loop/C` | **busy** | M4-4 D1 工作流指南 | `docs/guides/**` |
-| D | `vscode-WorkTrees/D` | `loop/D` | `idle` | 备用 / D4 截图 | — |
+| merge | `vscode-WorkTrees/merge` | `loop/merge` | **idle** | — | — |
+| A | `vscode-WorkTrees/A` | `loop/A` | **idle** | — | — |
+| B | `vscode-WorkTrees/B` | `loop/B` | **idle** | — | — |
+| C | `vscode-WorkTrees/C` | `loop/C` | **idle** | — | — |
+| D | `vscode-WorkTrees/D` | `loop/D` | **idle** | — | — |
 
 并行 slice 归属记在 `status.md` 或 parallel board；**槽字母不绑定模块**。
 

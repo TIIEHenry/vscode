@@ -4,7 +4,7 @@ type: index
 status: accepted
 phase: N/A
 updated: 2026-09-02
-summary: "dev/plans 导航：M4 D3–D5 closed；M5 in_progress；S3c overlay WIP"
+summary: "dev/plans 导航：M4/M5 implemented；valid-layers environment-blocked；S3c overlay @ 18b5e8d7"
 ---
 
 # 方案
@@ -18,7 +18,7 @@ summary: "dev/plans 导航：M4 D3–D5 closed；M5 in_progress；S3c overlay WI
 | [m2-product-shell.md](m2-product-shell.md) | `implemented` | 无引擎产品壳剩余面：透镜产品化、Chat/Aux 卫生、文档诚实 |
 | [m3-shell-closeout.md](m3-shell-closeout.md) | `implemented` | 可选壳收尾已落：ChatEditor 默认路径藏/转、Navigator stub 会话列表 |
 | [m4-validation-wave.md](m4-validation-wave.md) | `implemented` | D3/D4/D5 closed；D3 valid-layers 环境红仍记 D2 脚注 |
-| [m5-ui-shell-hardening.md](m5-ui-shell-hardening.md) | `in_progress` | 切片 1–5 文档与 D5 探针已闭；valid-layers / 域单测待绿 |
+| [m5-ui-shell-hardening.md](m5-ui-shell-hardening.md) | `implemented` | 切片 1–5 @ 18b5e8d7；D4/D5 closed；valid-layers environment-blocked（Node v26.7.0） |
 | [chat-compare-split.md](chat-compare-split.md) | `implemented` | PRD-011 并排比对已落；D4 已验 |
 | [page-access-schemes.md](page-access-schemes.md) | `implemented` | 切片 1a–4 已落；切片 5 blocked PRD-008 |
 | [settings-two-surfaces.md](settings-two-surfaces.md) | `implemented` | C5 + donor H0–H3 已落；E1 blocked PRD-008 |

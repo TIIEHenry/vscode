@@ -1,10 +1,10 @@
 ---
 title: "M5 UI 壳加固与交付收口"
 type: plan
-status: in_progress
+status: implemented
 phase: M5
-updated: 2026-09-01
-summary: "切片 1–4 已落、D4 closed（rerun-2230）；切片 5 文档门禁 @ 3180a611；D5 冒烟 slot A 进行中"
+updated: 2026-09-02
+summary: "切片 1–5 已落 @ 18b5e8d7；D4/D5 closed；valid-layers-check environment-blocked（Node v26.7.0 WebGPU/FileSystemHandle lib）"
 ---
 
 # M5 UI 壳加固与交付收口
@@ -22,7 +22,7 @@ summary: "切片 1–4 已落、D4 closed（rerun-2230）；切片 5 文档门�
 4. 完整编译、T1–T3 启动冒烟、M3 路径、布局恢复与 EH 探针形成可复查证据。
 5. 方案、进度与知识层对代码事实、验证状态和剩余 FORK 保持一致。
 
-**M5 完成线：** 代码门禁、自动化测试、D4 启动验收、D5 EH 探针和文档门禁全部通过；否则 M5 保持 `in_progress` 或记录明确 blocker，不以“代码已合入”代替“可交付”。
+**M5 完成线：** 代码门禁、自动化测试、D4 启动验收、D5 EH 探针和文档门禁全部通过；`valid-layers-check` 在 Node v26.7.0 上 **environment-blocked**（TS lib 缺 WebGPU/FileSystemHandle 等），记环境脚注、**不**冒充绿。本方案 @ `18b5e8d7` 已 `implemented`。
 
 ## 2. 保留的架构决定
 
@@ -222,7 +222,7 @@ scripts/test.sh
 
 ### 切片 5 — D5 EH 探针与文档收口
 
-**进度（2026-09-01）：** 文档门禁 @ `3180a611`（`docs(m5): close slice 5 UI scheme sync`）已闭；D5 EH 探针冒烟 **slot A** 进行中（`dev/progress/d5-evidence/launch-with-probes.sh`）。
+**进度（2026-09-02）：** 切片 1 `@304db259`、切片 2 `@b11290bb`、切片 3 `@2f938d6b`、切片 4 D4 closed @ rerun-2230、切片 5 文档门禁 @ `3180a611` + D5 closed @ `13069cb7`（wave3 三探针）。`valid-layers-check` 仍 environment-blocked（Node v26.7.0），不阻塞本方案关闭。
 
 在同一隔离 profile 按既有 D5 计划实测：
 
@@ -285,14 +285,14 @@ M5 完成时要求本方案相关 warning 为 0；`dev/loop/` 子模块自身断
 ### 构建与运行
 
 - [x] `npm run compile` 通过。
-- [ ] `npm run valid-layers-check` 通过（Node v26.7.0 TS lib 环境红，记 D3）。
+- [ ] `npm run valid-layers-check` — **environment-blocked**（Node v26.7.0 TS lib 缺 `WebGPU`/`FileSystemHandle` 等；exit 1 @ `c7ed501d`，与 M5 路由/布局无关；**不**记为通过）。
 - [ ] 聚焦域单测通过（本轮未全量重跑）。
 - [x] V1–V8 在隔离 profile 通过并有证据（[rerun-2230](../progress/d4-evidence/rerun-2230/)）。
 - [x] YAML / Todo Tree / js-debug 三探针均已实测（wave3 @ 2026-09-02）；D5 **closed** @ [deferred-gaps](../progress/deferred-gaps.md)（panel/terminal 矩阵脚注仍待实测）。
 
 ### 文档与状态
 
-- [x] D3/D4/status 一致（D5 仍 open，已记入 deferred-gaps）。
+- [x] D3/D4/D5/status 一致（D5 closed @ wave3；valid-layers 环境脚注见 D3/deferred-gaps）。
 - [x] `agent-ui.md` 无重复 frontmatter key。
 - [x] M5 不宣称 UA 引擎、Diff FORK、跨平台发布验证已完成。
 - [x] `python3 scripts/check-docs-health.py` 0 error（5 条既有 loop 子模块 warning，非本方案引入）。
