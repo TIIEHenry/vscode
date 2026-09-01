@@ -4,7 +4,7 @@ type: index
 status: accepted
 phase: N/A
 updated: 2026-09-01
-summary: "dev/plans 导航：产品需求层建设与 M0–M5；设置两套主面已签收；PRD-015/016 draft"
+summary: "dev/plans 导航：产品需求层建设与 M0–M5；设置两套主面已签收；PRD-015 accepted 未实施；PRD-016 draft"
 ---
 
 # 方案

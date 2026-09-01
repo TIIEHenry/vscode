@@ -159,4 +159,5 @@ adapter 是唯一反腐层。M1 透镜仍用 stub 时间线（spike 允许），
 
 - [Chat 概览](overview.md) · [Parts/Grid](../workbench/parts-and-grid.md) · [壳映射](../../reference/code-oss-b2/desktop-shell-mapping.md)
 - [会话列表复用](../../reference/code-oss-b2/session-roster-reuse.md) · [透镜组装](../../reference/code-oss-b2/conversation-lens-assembly.md) · [Settings 接入](../../reference/code-oss-b2/settings-ua-access.md) · [Navigator tab](../../reference/code-oss-b2/navigator-tabs-access.md)（draft）
+- 空会话 / 输入面选定（未实施）：[conversation-empty-hero](../../../dev/plans/conversation-empty-hero.md)（PRD-015）
 - [Sessions 概览](../sessions/overview.md)

@@ -79,9 +79,7 @@ CONVERSATION_PART          ← 槽宿主；不渲染产品 chrome
 
 ## 5. SessionBar
 
-**已落地、保持自研。** 不在此做 Settings 齿轮。与 Navigator roster 共用同一会话服务（见 [session-roster-reuse.md](session-roster-reuse.md)），今天是 `IConversationRosterService`（decorator id 仍 `'conversationStubService'`）内存标题；引擎后换 UA session，不换槽位。SelectBox 去留 **Deferred**（父方案 §1.4）。
-
-保持自研。Active 增加 **Route** 下拉（无策略则省略）是 PRD-015 选定，HEAD 尚无该槽。身份条继续禁止进 SessionBar。
+**已落地、保持自研。** 不在此做 Settings 齿轮。与 Navigator roster 共用同一会话服务（见 [session-roster-reuse.md](session-roster-reuse.md)），今天是 `IConversationRosterService`（decorator id 仍 `'conversationStubService'`）内存标题；引擎后换 UA session，不换槽位。SelectBox 去留 **Deferred**（父方案 §1.4）。Active **Route** 下拉（无策略则省略）是 PRD-015 选定，HEAD 尚无该槽。身份条继续禁止进 SessionBar。
 
 ## 6. 分阶段
 
