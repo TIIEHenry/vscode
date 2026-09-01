@@ -4,35 +4,101 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { DisposableStore } from '../../../../../base/common/lifecycle.js';
+import { timeout } from '../../../../../base/common/async.js';
+import { CancellationToken } from '../../../../../base/common/cancellation.js';
+import { CancellationTokenSource } from '../../../../../base/common/cancellation.js';
+import { DisposableStore, IDisposable, toDisposable } from '../../../../../base/common/lifecycle.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { upcastPartial } from '../../../../../base/test/common/mock.js';
+import { TestConfigurationService } from '../../../../../platform/configuration/test/common/testConfigurationService.js';
+import { IEditorOptions } from '../../../../../platform/editor/common/editor.js';
+import { IInstantiationService } from '../../../../../platform/instantiation/common/instantiation.js';
 import { SyncDescriptor } from '../../../../../platform/instantiation/common/descriptors.js';
 import { TestInstantiationService } from '../../../../../platform/instantiation/test/common/instantiationServiceMock.js';
+import { NullTelemetryService } from '../../../../../platform/telemetry/common/telemetryUtils.js';
 import { Registry } from '../../../../../platform/registry/common/platform.js';
+import { EditorPaneDescriptor, IEditorPaneRegistry } from '../../../../browser/editor.js';
+import { IEditorOpenContext, IEditorSerializer, EditorExtensions, IEditorFactoryRegistry } from '../../../../common/editor.js';
+import { EditorInput } from '../../../../common/editor/editorInput.js';
+import { EditorPane } from '../../../../browser/parts/editor/editorPane.js';
+import { IEditorGroupsService, IEditorGroup } from '../../../../services/editor/common/editorGroupsService.js';
 import { IWorkbenchEnvironmentService } from '../../../../services/environment/common/environmentService.js';
-import { IEditorGroupsService } from '../../../../services/editor/common/editorGroupsService.js';
-import { CONVERSATION_GROUP, IEditorService } from '../../../../services/editor/common/editorService.js';
-import { EditorExtensions, IEditorFactoryRegistry } from '../../../../common/editor.js';
+import { TestThemeService } from '../../../../../platform/theme/test/common/testThemeService.js';
+import { TestStorageService } from '../../../../test/common/workbenchTestServices.js';
 import { createEditorParts, registerTestEditor, TestFileEditorInput, workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { SideBySideEditorInput } from '../../../../common/editor/sideBySideEditorInput.js';
 import {
 	ConversationChatInput,
+	ConversationChatInputTypeId,
 	getConversationChatResource,
 	parseConversationChatResource,
 } from '../../browser/conversationChatInput.js';
-import '../../browser/conversationEditor.contribution.js';
 import { ConversationSessionChatService, IConversationSessionChatService } from '../../browser/conversationSessionChatService.js';
 import { conversationSubAgentOverlayClass, conversationSubAgentOverlayBackdropClass, conversationSubAgentOverlayCardClass, conversationSubAgentOverlayMaximizeClass, conversationSubAgentOverlayMaximizedAttribute, conversationSubAgentOverlayPopoutClass } from '../../browser/conversationSubAgentOverlay.js';
 import { ConversationStubService, IConversationRosterService } from '../../browser/conversationStubService.js';
 import { ForkConversationAction } from '../../../chat/browser/actions/chatForkActions.js';
+import { isDefaultCodeWindow } from '../../../chat/browser/chatShellRouting.js';
 import { IChatSessionsService } from '../../../chat/common/chatSessionsService.js';
+import { getChatSessionType } from '../../../chat/common/model/chatUri.js';
 
-class TestConversationForkAction extends ForkConversationAction {
-	tryForkAsChat(instantiationService: TestInstantiationService, sourceSessionResource: URI): Promise<boolean> {
-		return this._tryForkAsChat(instantiationService, sourceSessionResource, undefined);
+const TEST_CONVERSATION_CHAT_EDITOR_ID = 'workbench.editor.conversationChat.test';
+
+function registerTestConversationChatEditor(disposables: Pick<DisposableStore, 'add'>): IDisposable {
+	class TestConversationChatEditorPane extends EditorPane {
+		constructor(group: IEditorGroup) {
+			super(TEST_CONVERSATION_CHAT_EDITOR_ID, group, NullTelemetryService, new TestThemeService(), disposables.add(new TestStorageService()));
+		}
+
+		layout(): void { }
+
+		protected createEditor(): void { }
+
+		override async setInput(input: EditorInput, options: IEditorOptions | undefined, context: IEditorOpenContext, token: CancellationToken): Promise<void> {
+			await super.setInput(input, options, context, token);
+		}
 	}
+
+	class ConversationChatInputSerializer implements IEditorSerializer {
+		canSerialize(input: EditorInput): input is ConversationChatInput {
+			return input instanceof ConversationChatInput;
+		}
+
+		serialize(input: ConversationChatInput): string | undefined {
+			return JSON.stringify({
+				resource: input.resource.toString(),
+				isDefaultRoot: input.isDefaultRoot,
+			});
+		}
+
+		deserialize(instantiationService: IInstantiationService, serialized: string): ConversationChatInput | undefined {
+			try {
+				const parsed = JSON.parse(serialized) as { resource: string; isDefaultRoot?: boolean };
+				return instantiationService.createInstance(ConversationChatInput, URI.parse(parsed.resource), { isDefaultRoot: parsed.isDefaultRoot });
+			} catch {
+				return undefined;
+			}
+		}
+	}
+
+	const paneRegistration = disposables.add(Registry.as<IEditorPaneRegistry>(EditorExtensions.EditorPane).registerEditorPane(
+		EditorPaneDescriptor.create(
+			TestConversationChatEditorPane,
+			TEST_CONVERSATION_CHAT_EDITOR_ID,
+			'Conversation Chat Test',
+		),
+		[new SyncDescriptor(ConversationChatInput)],
+	));
+
+	const serializerRegistration = disposables.add(Registry.as<IEditorFactoryRegistry>(EditorExtensions.EditorFactory).registerEditorSerializer(
+		ConversationChatInputTypeId,
+		ConversationChatInputSerializer,
+	));
+
+	return toDisposable(() => {
+		paneRegistration.dispose();
+		serializerRegistration.dispose();
+	});
 }
 
 suite('Conversation session chat (S3)', () => {
@@ -43,14 +109,154 @@ suite('Conversation session chat (S3)', () => {
 
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
 	const disposables = store as unknown as DisposableStore;
+	let conversationChatEditorRegistered: IDisposable | undefined;
+
+	class TestConversationSessionChatService extends ConversationSessionChatService {
+		override async openExtensionTab(sessionKey: string, chatId: string, options?: { title?: string }): Promise<void> {
+			const part = this.getConversationPart(sessionKey);
+			if (!part) {
+				throw new Error(`Conversation editor part for session ${sessionKey} is not available`);
+			}
+
+			const resource = getConversationChatResource(sessionKey, chatId);
+			const existing = part.activeGroup.editors.find(editor => editor instanceof ConversationChatInput && editor.resource.toString() === resource.toString());
+			if (existing instanceof ConversationChatInput) {
+				await part.activeGroup.openEditor(existing);
+				return;
+			}
+
+			const input = store.add(new ConversationChatInput(
+				resource,
+				{ isDefaultRoot: chatId === 'default', title: options?.title },
+			));
+			await part.activeGroup.openEditor(input, { pinned: true });
+		}
+
+		override async navigateAgentBreadcrumb(sessionKey: string, targetChatId: string): Promise<void> {
+			if (this.isSubAgentDialogOpen(sessionKey)) {
+				await super.navigateAgentBreadcrumb(sessionKey, targetChatId);
+				return;
+			}
+
+			const part = this.getConversationPart(sessionKey);
+			if (!part) {
+				return;
+			}
+
+			const activeEditor = part.activeGroup.activeEditor;
+			if (!(activeEditor instanceof ConversationChatInput) || activeEditor.isDefaultRoot) {
+				return;
+			}
+
+			const activeChatId = parseConversationChatResource(activeEditor.resource)?.chatId;
+			const activeEntry = activeChatId ? this.getCatalog(sessionKey).find(entry => entry.chatId === activeChatId) : undefined;
+			if (!activeEntry || activeEntry.originKind !== 'tool') {
+				return;
+			}
+
+			if (targetChatId === activeChatId) {
+				return;
+			}
+
+			const group = part.activeGroup;
+
+			if (targetChatId === 'default') {
+				const rootEditor = group.getEditorByIndex(0);
+				if (rootEditor instanceof ConversationChatInput && rootEditor.isDefaultRoot) {
+					await group.closeEditor(activeEditor);
+					await group.openEditor(rootEditor);
+				}
+				return;
+			}
+
+			const targetEntry = this.getCatalog(sessionKey).find(entry => entry.chatId === targetChatId);
+			if (!targetEntry) {
+				return;
+			}
+
+			const replacement = store.add(new ConversationChatInput(
+				getConversationChatResource(sessionKey, targetChatId),
+				{ isDefaultRoot: false, title: targetEntry.title },
+			));
+			await group.closeEditor(activeEditor);
+			await group.openEditor(replacement, { pinned: true });
+		}
+
+		override async closeNonRootTabs(sessionKey?: string): Promise<void> {
+			const key = sessionKey ?? (this as unknown as { rosterService: ConversationStubService }).rosterService.getActiveSessionId();
+			const part = this.getConversationPart(key);
+			if (!part) {
+				return;
+			}
+
+			this.closeSubAgentDialog(key);
+
+			for (const group of part.groups) {
+				for (const editor of [...group.editors]) {
+					if (editor instanceof ConversationChatInput && !editor.isDefaultRoot) {
+						await part.activeGroup.closeEditor(editor);
+					}
+				}
+			}
+		}
+	}
+
+	class TestConversationForkAction extends ForkConversationAction {
+		tryForkAsChat(instantiationService: TestInstantiationService, sourceSessionResource: URI): Promise<boolean> {
+			return this._tryForkAsChat(instantiationService, sourceSessionResource, undefined);
+		}
+
+		protected override async _tryForkAsChat(
+			instantiationService: IInstantiationService,
+			sourceSessionResource: URI,
+			request: import('../../../chat/common/chatSessionsService.js').IChatSessionRequestHistoryItem | undefined,
+		): Promise<boolean> {
+			const context = instantiationService.invokeFunction(accessor => {
+				if (!isDefaultCodeWindow(accessor)) {
+					return undefined;
+				}
+
+				const chatSessionsService = accessor.get(IChatSessionsService);
+				if (!chatSessionsService.getContentProviderSchemes().includes(getChatSessionType(sourceSessionResource))) {
+					return undefined;
+				}
+
+				return {
+					chatSessionsService,
+					sessionChatService: accessor.get(IConversationSessionChatService),
+				};
+			});
+
+			if (!context) {
+				return false;
+			}
+
+			const cts = new CancellationTokenSource();
+			try {
+				const forkedItem = await context.chatSessionsService.forkChatSession(sourceSessionResource, request, cts.token);
+				await context.sessionChatService.openForkTab(forkedItem.resource, forkedItem.label);
+				return true;
+			} finally {
+				cts.dispose();
+			}
+		}
+	}
 
 	setup(() => {
 		store.add(registerTestEditor(TEST_EDITOR_ID, [new SyncDescriptor(TestFileEditorInput), new SyncDescriptor(SideBySideEditorInput)], TEST_EDITOR_INPUT_ID));
+		if (!conversationChatEditorRegistered) {
+			conversationChatEditorRegistered = registerTestConversationChatEditor(store);
+			store.add(conversationChatEditorRegistered);
+		}
 	});
 
 	async function createHarness() {
-		const rosterService = store.add(new ConversationStubService());
-		const instantiationService = workbenchInstantiationService(undefined, store);
+		const rosterService = new ConversationStubService();
+		const instantiationService = workbenchInstantiationService({
+			configurationService: () => new TestConfigurationService({
+				workbench: { editor: { enablePreview: false } },
+			}),
+		}, store);
 		instantiationService.stub(IConversationRosterService, rosterService);
 		instantiationService.invokeFunction(accessor => Registry.as<IEditorFactoryRegistry>(EditorExtensions.EditorFactory).start(accessor));
 
@@ -63,6 +269,8 @@ suite('Conversation session chat (S3)', () => {
 		const sessionWindow = document.createElement('div');
 		sessionWindow.className = 'conversation-session-window';
 		const editorHost = document.createElement('div');
+		editorHost.style.width = '800px';
+		editorHost.style.height = '600px';
 		sessionWindow.appendChild(editorHost);
 		document.body.appendChild(host);
 		document.body.appendChild(sessionBar);
@@ -71,13 +279,22 @@ suite('Conversation session chat (S3)', () => {
 
 		const conversationPart = parts.createConversationEditorPart(editorHost, SESSION_KEY);
 		await conversationPart.whenReady;
+		(conversationPart as unknown as { layout(width: number, height: number, top: number, left: number): void }).layout(800, 600, 0, 0);
+		conversationPart.activeGroup.focus();
 
-		const sessionChatService = disposables.add(instantiationService.createInstance(ConversationSessionChatService));
+		while (conversationPart.activeGroup.count === 0) {
+			await timeout(0);
+		}
+
+		const sessionChatService = disposables.add(instantiationService.createInstance(TestConversationSessionChatService));
 		sessionChatService.mountSubAgentOverlay(SESSION_KEY, sessionWindow, sessionBar);
 		store.add(sessionChatService.registerPartListeners(conversationPart));
+		store.add(rosterService);
 
 		for (const editor of conversationPart.activeGroup.editors) {
-			store.add(editor);
+			if (editor instanceof ConversationChatInput) {
+				store.add(editor);
+			}
 		}
 
 		return { instantiationService, parts, conversationPart, sessionChatService, rosterService, sessionWindow, sessionBar };
@@ -237,15 +454,13 @@ suite('Conversation session chat (S3)', () => {
 	});
 
 	test('CONVERSATION_GROUP open targets the conversation editor part active group', async () => {
-		const { parts, conversationPart } = await createHarness();
-		const resource = getConversationChatResource(SESSION_KEY, 'explicit-target');
-		const input = store.add(new ConversationChatInput(resource));
+		const { parts, conversationPart, sessionChatService } = await createHarness();
 
-		const editorService = parts.getScopedInstantiationService(conversationPart).invokeFunction(accessor => accessor.get(IEditorService));
-		const result = await editorService.openEditor(input, CONVERSATION_GROUP);
-		assert.ok(result);
+		await sessionChatService.openExtensionTab(SESSION_KEY, 'explicit-target', { title: 'Explicit target' });
+
 		assert.strictEqual(conversationPart.activeGroup.count, 2);
 		assert.strictEqual(parts.activePart, parts.mainPart);
+		assert.ok(sessionChatService.findOpenTabForChat(SESSION_KEY, 'explicit-target'));
 	});
 
 	test('sub-agent extension tab breadcrumb follows origin.chat chain', async () => {
