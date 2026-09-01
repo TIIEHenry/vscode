@@ -21,7 +21,7 @@ summary: "仓外 vscode-WorkTrees 工位表；merge + A–D 全 idle；集成分
 | 工位根 `$WT_ROOT` | `/home/clarence/Projects/Agents/vscode-WorkTrees` |
 | 集成分支（当前） | **`agent-ide`**（merge 槽对齐此分支；非上游 `main`） |
 | 集成本次 HEAD | 对齐 `agent-ide` **`2700b38e`** |
-| 工位池 compile 基线 | **`569ce371`** @ merge 槽 · `npm run compile` **PASS**（0 errors，~25s，2026-09-02） |
+| 工位池 compile 基线 | **`a047fe35`** @ merge 槽 · `npm run compile` **PASS**（0 errors，~25s，2026-09-02） |
 
 ## 槽位表（2026-09-02 · 全 idle）
 
