@@ -3,6 +3,14 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+.monaco-workbench .part.sources .sources-review-header-hint {
+	flex-shrink: 0;
+	padding: 4px 8px 2px;
+	color: var(--vscode-descriptionForeground);
+	font-size: 11px;
+	line-height: 16px;
+}
+
 .monaco-workbench .part.sources .sources-tab-panel .sources-review-list {
 	flex: 1;
 	min-height: 0;

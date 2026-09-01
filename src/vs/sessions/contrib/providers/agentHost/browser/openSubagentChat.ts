@@ -15,6 +15,7 @@ import { IWorkbenchContribution, registerWorkbenchContribution2, WorkbenchPhase 
 import { CHAT_OPEN_AGENT_HOST_CHAT_COMMAND_ID } from '../../../../../workbench/contrib/chat/common/constants.js';
 import { OpenSubagentChatActionViewItem, shouldShowSubagentModel, subagentChatOpenerRegistry } from '../../../../../workbench/contrib/chat/browser/widget/chatContentParts/chatSubagentOpenChat.js';
 import { fillSessionChatDragData } from '../../../../browser/dnd.js';
+import { COMPARE_MAX_GROUPS } from './compareMaxGroups.js';
 import { ISessionsService } from '../../../../services/sessions/browser/sessionsService.js';
 import { ISessionsPartService } from '../../../../services/sessions/browser/sessionsPartService.js';
 import { IActiveSession } from '../../../../services/sessions/common/sessionsManagement.js';
@@ -79,7 +80,7 @@ class OpenSubagentChatActionViewItemContribution extends Disposable implements I
 				if (match) {
 					const view = sessionsPartService.getSessionView(match.session.sessionId);
 					if (context.toSide && view) {
-						await view.openChatToSide(match.chat.resource);
+						await view.openChatToSide(match.chat.resource, { maxGroups: COMPARE_MAX_GROUPS });
 					} else {
 						await sessionsService.openChat(match.session, match.chat.resource);
 					}

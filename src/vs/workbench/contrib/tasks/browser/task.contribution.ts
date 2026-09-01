@@ -32,7 +32,7 @@ import schemaVersion2, { updateProblemMatchers, updateTaskDefinitions } from '..
 import { AbstractTaskService, ConfigureTaskAction } from './abstractTaskService.js';
 import { tasksSchemaId } from '../../../services/configuration/common/configuration.js';
 import { ConfigurationScope, Extensions as ConfigurationExtensions, IConfigurationRegistry } from '../../../../platform/configuration/common/configurationRegistry.js';
-import { WorkbenchStateContext } from '../../../common/contextkeys.js';
+import { IsSessionsWindowContext, WorkbenchStateContext } from '../../../common/contextkeys.js';
 import { IQuickAccessRegistry, Extensions as QuickAccessExtensions } from '../../../../platform/quickinput/common/quickAccess.js';
 import { TasksQuickAccessProvider } from './tasksQuickAccess.js';
 import { ContextKeyExpr } from '../../../../platform/contextkey/common/contextkey.js';
@@ -405,6 +405,7 @@ quickAccessRegistry.registerQuickAccessProvider({
 	ctor: TasksQuickAccessProvider,
 	prefix: TasksQuickAccessProvider.PREFIX,
 	contextKey: tasksPickerContextKey,
+	when: IsSessionsWindowContext,
 	placeholder: nls.localize('tasksQuickAccessPlaceholder', "Type the name of a task to run."),
 	helpEntries: [{ description: nls.localize('tasksQuickAccessHelp', "Run Task"), commandCenterOrder: 60 }]
 });

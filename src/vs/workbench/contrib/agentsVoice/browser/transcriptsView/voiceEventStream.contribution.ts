@@ -75,6 +75,7 @@ class ShowVoiceEventStreamAction extends Action2 {
 			title: localize2('agentsVoice.showEventStream', "Show Voice Event Stream"),
 			f1: true,
 			category: localize2('agentsVoiceCategory', "Agents Voice"),
+			precondition: IsSessionsWindowContext,
 		});
 	}
 

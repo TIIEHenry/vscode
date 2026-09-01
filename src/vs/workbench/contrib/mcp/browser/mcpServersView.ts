@@ -54,6 +54,7 @@ import { SeverityIcon } from '../../../../base/browser/ui/severityIcon/severityI
 import { IMarkdownRendererService } from '../../../../platform/markdown/browser/markdownRenderer.js';
 import { ILogService } from '../../../../platform/log/common/log.js';
 import { buildModalNavigationForPagedList } from '../../extensions/browser/extensionsViewer.js';
+import { IsSessionsWindowContext } from '../../../common/contextkeys.js';
 
 export interface McpServerListViewOptions {
 	showWelcome?: boolean;
@@ -531,6 +532,52 @@ export class DefaultBrowseMcpServersView extends McpServersListView {
 	}
 }
 
+const mcpServersViewDescriptors = [
+	{
+		id: InstalledMcpServersViewId,
+		name: localize2('mcp-installed', "MCP Servers - Installed"),
+		ctorDescriptor: new SyncDescriptor(McpServersListView, [{}]),
+		when: ContextKeyExpr.and(IsSessionsWindowContext, DefaultViewsContext, HasInstalledMcpServersContext, ChatContextKeys.Setup.hidden.negate(), ChatContextKeys.Setup.disabledInWorkspace.negate()),
+		weight: 40,
+		order: 4,
+		canToggleVisibility: true
+	},
+	{
+		id: 'workbench.views.mcp.default.marketplace',
+		name: localize2('mcp', "MCP Servers"),
+		ctorDescriptor: new SyncDescriptor(DefaultBrowseMcpServersView, [{}]),
+		when: ContextKeyExpr.and(IsSessionsWindowContext, DefaultViewsContext, HasInstalledMcpServersContext.toNegated(), ChatContextKeys.Setup.hidden.negate(), ChatContextKeys.Setup.disabledInWorkspace.negate(), McpServersGalleryStatusContext.isEqualTo(McpGalleryManifestStatus.Available), ContextKeyExpr.or(ContextKeyDefinedExpr.create(`config.${mcpGalleryServiceUrlConfig}`), ProductQualityContext.notEqualsTo('stable'), ContextKeyDefinedExpr.create(`config.${mcpGalleryServiceEnablementConfig}`))),
+		weight: 40,
+		order: 4,
+		canToggleVisibility: true
+	},
+	{
+		id: 'workbench.views.mcp.marketplace',
+		name: localize2('mcp', "MCP Servers"),
+		ctorDescriptor: new SyncDescriptor(McpServersListView, [{}]),
+		when: ContextKeyExpr.and(IsSessionsWindowContext, SearchMcpServersContext, ChatContextKeys.Setup.hidden.negate(), ChatContextKeys.Setup.disabledInWorkspace.negate(), McpServersGalleryStatusContext.isEqualTo(McpGalleryManifestStatus.Available), ContextKeyExpr.or(ContextKeyDefinedExpr.create(`config.${mcpGalleryServiceUrlConfig}`), ProductQualityContext.notEqualsTo('stable'), ContextKeyDefinedExpr.create(`config.${mcpGalleryServiceEnablementConfig}`))),
+	},
+	{
+		id: 'workbench.views.mcp.default.welcomeView',
+		name: localize2('mcp', "MCP Servers"),
+		ctorDescriptor: new SyncDescriptor(DefaultBrowseMcpServersView, [{ showWelcome: true }]),
+		when: ContextKeyExpr.and(IsSessionsWindowContext, DefaultViewsContext, HasInstalledMcpServersContext.toNegated(), ChatContextKeys.Setup.hidden.negate(), ChatContextKeys.Setup.disabledInWorkspace.negate(), McpServersGalleryStatusContext.isEqualTo(McpGalleryManifestStatus.Available), ContextKeyDefinedExpr.create(`config.${mcpGalleryServiceUrlConfig}`).negate(), ProductQualityContext.isEqualTo('stable'), ContextKeyDefinedExpr.create(`config.${mcpGalleryServiceEnablementConfig}`).negate()),
+		weight: 40,
+		order: 4,
+		canToggleVisibility: true
+	},
+	{
+		id: 'workbench.views.mcp.welcomeView',
+		name: localize2('mcp', "MCP Servers"),
+		ctorDescriptor: new SyncDescriptor(McpServersListView, [{ showWelcome: true }]),
+		when: ContextKeyExpr.and(IsSessionsWindowContext, SearchMcpServersContext, ChatContextKeys.Setup.hidden.negate(), ChatContextKeys.Setup.disabledInWorkspace.negate(), McpServersGalleryStatusContext.isEqualTo(McpGalleryManifestStatus.Available), ContextKeyDefinedExpr.create(`config.${mcpGalleryServiceUrlConfig}`).negate(), ProductQualityContext.isEqualTo('stable'), ContextKeyDefinedExpr.create(`config.${mcpGalleryServiceEnablementConfig}`).negate()),
+	}
+] as const;
+
+export function registerMcpServersViews(): void {
+	Registry.as<IViewsRegistry>(ViewExtensions.ViewsRegistry).registerViews([...mcpServersViewDescriptors], VIEW_CONTAINER);
+}
+
 export class McpServersViewsContribution extends Disposable implements IWorkbenchContribution {
 
 	static ID = 'workbench.mcp.servers.views.contribution';
@@ -538,46 +585,6 @@ export class McpServersViewsContribution extends Disposable implements IWorkbenc
 	constructor() {
 		super();
 
-		Registry.as<IViewsRegistry>(ViewExtensions.ViewsRegistry).registerViews([
-			{
-				id: InstalledMcpServersViewId,
-				name: localize2('mcp-installed', "MCP Servers - Installed"),
-				ctorDescriptor: new SyncDescriptor(McpServersListView, [{}]),
-				when: ContextKeyExpr.and(DefaultViewsContext, HasInstalledMcpServersContext, ChatContextKeys.Setup.hidden.negate(), ChatContextKeys.Setup.disabledInWorkspace.negate()),
-				weight: 40,
-				order: 4,
-				canToggleVisibility: true
-			},
-			{
-				id: 'workbench.views.mcp.default.marketplace',
-				name: localize2('mcp', "MCP Servers"),
-				ctorDescriptor: new SyncDescriptor(DefaultBrowseMcpServersView, [{}]),
-				when: ContextKeyExpr.and(DefaultViewsContext, HasInstalledMcpServersContext.toNegated(), ChatContextKeys.Setup.hidden.negate(), ChatContextKeys.Setup.disabledInWorkspace.negate(), McpServersGalleryStatusContext.isEqualTo(McpGalleryManifestStatus.Available), ContextKeyExpr.or(ContextKeyDefinedExpr.create(`config.${mcpGalleryServiceUrlConfig}`), ProductQualityContext.notEqualsTo('stable'), ContextKeyDefinedExpr.create(`config.${mcpGalleryServiceEnablementConfig}`))),
-				weight: 40,
-				order: 4,
-				canToggleVisibility: true
-			},
-			{
-				id: 'workbench.views.mcp.marketplace',
-				name: localize2('mcp', "MCP Servers"),
-				ctorDescriptor: new SyncDescriptor(McpServersListView, [{}]),
-				when: ContextKeyExpr.and(SearchMcpServersContext, ChatContextKeys.Setup.hidden.negate(), ChatContextKeys.Setup.disabledInWorkspace.negate(), McpServersGalleryStatusContext.isEqualTo(McpGalleryManifestStatus.Available), ContextKeyExpr.or(ContextKeyDefinedExpr.create(`config.${mcpGalleryServiceUrlConfig}`), ProductQualityContext.notEqualsTo('stable'), ContextKeyDefinedExpr.create(`config.${mcpGalleryServiceEnablementConfig}`))),
-			},
-			{
-				id: 'workbench.views.mcp.default.welcomeView',
-				name: localize2('mcp', "MCP Servers"),
-				ctorDescriptor: new SyncDescriptor(DefaultBrowseMcpServersView, [{ showWelcome: true }]),
-				when: ContextKeyExpr.and(DefaultViewsContext, HasInstalledMcpServersContext.toNegated(), ChatContextKeys.Setup.hidden.negate(), ChatContextKeys.Setup.disabledInWorkspace.negate(), McpServersGalleryStatusContext.isEqualTo(McpGalleryManifestStatus.Available), ContextKeyDefinedExpr.create(`config.${mcpGalleryServiceUrlConfig}`).negate(), ProductQualityContext.isEqualTo('stable'), ContextKeyDefinedExpr.create(`config.${mcpGalleryServiceEnablementConfig}`).negate()),
-				weight: 40,
-				order: 4,
-				canToggleVisibility: true
-			},
-			{
-				id: 'workbench.views.mcp.welcomeView',
-				name: localize2('mcp', "MCP Servers"),
-				ctorDescriptor: new SyncDescriptor(McpServersListView, [{ showWelcome: true }]),
-				when: ContextKeyExpr.and(SearchMcpServersContext, ChatContextKeys.Setup.hidden.negate(), ChatContextKeys.Setup.disabledInWorkspace.negate(), McpServersGalleryStatusContext.isEqualTo(McpGalleryManifestStatus.Available), ContextKeyDefinedExpr.create(`config.${mcpGalleryServiceUrlConfig}`).negate(), ProductQualityContext.isEqualTo('stable'), ContextKeyDefinedExpr.create(`config.${mcpGalleryServiceEnablementConfig}`).negate()),
-			}
-		], VIEW_CONTAINER);
+		registerMcpServersViews();
 	}
 }

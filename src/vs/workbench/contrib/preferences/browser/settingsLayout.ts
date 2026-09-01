@@ -5,8 +5,10 @@
 
 import { isWeb, isWindows } from '../../../../base/common/platform.js';
 import { localize } from '../../../../nls.js';
+import { EXTENSION_UNIFICATION_EXTENSION_IDS } from '../../../../platform/configuration/common/configurationRegistry.js';
 import { ISetting, ISettingsGroup } from '../../../services/preferences/common/preferences.js';
 import { ChatAIDisabledSettingId } from '../../../../platform/chat/common/chatSettings.js';
+import { ADVANCED_SETTING_TAG } from '../common/preferences.js';
 
 export interface ITOCFilter {
 	include?: {
@@ -19,24 +21,40 @@ export interface ITOCFilter {
 	};
 }
 
+export interface ITOCNavigationLink {
+	id: string;
+	label: string;
+	commandId: string;
+}
+
 export interface ITOCEntry<T> {
 	id: string;
 	label: string;
 	order?: number;
 	children?: ITOCEntry<T>[];
 	settings?: Array<T>;
+	navigationLinks?: ITOCNavigationLink[];
+	emptyCopy?: string;
 	hide?: boolean;
 }
+
+export function uaClientLocalGroupEmptyCopy(scope: string): string {
+	return localize({ key: 'uaClientLocalGroupEmptyCopy', comment: ['{0} is a lowercase client settings scope such as display or chat input'] }, "No {0} settings yet", scope);
+}
+
+export const DEFAULT_COMMONLY_USED_EXCLUDE_KEY_PATTERNS: readonly string[] = [
+	'GitHub.copilot-chat.manageExtension',
+	'chat.agent.maxRequests',
+	'chat.*',
+];
 
 const COMMONLY_USED_SETTINGS: readonly string[] = [
 	'editor.fontSize',
 	'editor.formatOnSave',
 	'files.autoSave',
-	'GitHub.copilot-chat.manageExtension',
 	'editor.defaultFormatter',
 	'editor.fontFamily',
 	'editor.wordWrap',
-	'chat.agent.maxRequests',
 	'files.exclude',
 	'workbench.colorTheme',
 	'editor.tabSize',
@@ -44,7 +62,17 @@ const COMMONLY_USED_SETTINGS: readonly string[] = [
 	'editor.formatOnPaste'
 ];
 
-export function getCommonlyUsedData(settingGroups: ISettingsGroup[]): ITOCEntry<ISetting> {
+function settingMatchesExcludePatterns(key: string, excludeKeyPatterns: readonly string[]): boolean {
+	for (const pattern of excludeKeyPatterns) {
+		const regexp = new RegExp('^' + pattern.replace(/\./g, '\\.').replace(/\*/g, '.*') + '$');
+		if (regexp.test(key)) {
+			return true;
+		}
+	}
+	return false;
+}
+
+export function getCommonlyUsedData(settingGroups: ISettingsGroup[], excludeKeyPatterns?: readonly string[]): ITOCEntry<ISetting> {
 	const allSettings = new Map<string, ISetting>();
 	for (const group of settingGroups) {
 		for (const section of group.sections) {
@@ -55,6 +83,9 @@ export function getCommonlyUsedData(settingGroups: ISettingsGroup[]): ITOCEntry<
 	}
 	const settings: ISetting[] = [];
 	for (const id of COMMONLY_USED_SETTINGS) {
+		if (excludeKeyPatterns?.length && settingMatchesExcludePatterns(id, excludeKeyPatterns)) {
+			continue;
+		}
 		const setting = allSettings.get(id);
 		if (setting) {
 			settings.push(setting);
@@ -439,6 +470,140 @@ export const tocData: ITOCEntry<string> = {
 					settings: ['security.workspace.*']
 				}
 			]
+		},
+		{
+			id: 'ua',
+			label: localize('uaSettings', "Client"),
+			children: [
+				{
+					id: 'ua/display',
+					label: localize('uaDisplay', "Display"),
+					settings: ['ua.client.display.*'],
+					emptyCopy: uaClientLocalGroupEmptyCopy(localize('uaDisplayScope', "display")),
+				},
+				{
+					id: 'ua/chatInput',
+					label: localize('uaChatInput', "Chat Input"),
+					settings: ['ua.client.chatInput.*'],
+					emptyCopy: uaClientLocalGroupEmptyCopy(localize('uaChatInputScope', "chat input")),
+				},
+				{
+					id: 'ua/startup',
+					label: localize('uaStartup', "Startup"),
+					settings: ['ua.client.startup.*'],
+					emptyCopy: uaClientLocalGroupEmptyCopy(localize('uaStartupScope', "startup")),
+				},
+				{
+					id: 'ua/keyboardEnter',
+					label: localize('uaKeyboardEnter', "Keyboard Enter"),
+					settings: ['ua.client.keyboardEnter.*'],
+					emptyCopy: uaClientLocalGroupEmptyCopy(localize('uaKeyboardEnterScope', "keyboard enter")),
+				},
+				{
+					id: 'ua/notifications',
+					label: localize('uaNotifications', "Notifications"),
+					settings: ['ua.client.notifications.*'],
+					emptyCopy: uaClientLocalGroupEmptyCopy(localize('uaNotificationsScope', "notification")),
+				},
+				{
+					id: 'ua/permissions',
+					label: localize('uaPermissions', "Permissions"),
+					settings: ['ua.client.permissions.*'],
+					emptyCopy: uaClientLocalGroupEmptyCopy(localize('uaPermissionsScope', "permissions")),
+				},
+				{
+					id: 'ua/clientTools',
+					label: localize('uaClientTools', "Client Tools"),
+					settings: ['ua.client.clientTools.*'],
+					emptyCopy: uaClientLocalGroupEmptyCopy(localize('uaClientToolsScope', "client tools")),
+				},
+				{
+					id: 'ua/connection',
+					label: localize('uaConnection', "Connection"),
+					navigationLinks: [{
+						id: 'ua/connection/open',
+						label: localize('uaOpenConnection', "Open Connection…"),
+						commandId: 'workbench.action.openConnectionPreferences'
+					}]
+				},
+				{
+					id: 'ua/engine',
+					label: localize('uaEngine', "Engine"),
+					navigationLinks: [{
+						id: 'ua/engine/open',
+						label: localize('uaOpenEngine', "Open Engine…"),
+						commandId: 'workbench.action.openEnginePreferences'
+					}]
+				},
+				{
+					id: 'ua/customizations',
+					label: localize('uaCustomizations', "Customizations"),
+					navigationLinks: [{
+						id: 'ua/customizations/open',
+						label: localize('uaOpenCustomizations', "Open Customizations…"),
+						commandId: 'workbench.action.openCustomizationsPreferences'
+					}]
+				}
+			]
 		}
 	]
 };
+
+function getChatTocKeyPatterns(): string[] {
+	const chat = tocData.children?.find(child => child.id === 'chat');
+	return chat?.children?.flatMap(child => child.settings ?? []) ?? [];
+}
+
+export function getTocDataForWindow(isSessionsWindow: boolean): ITOCEntry<string> {
+	if (isSessionsWindow) {
+		return tocData;
+	}
+	return {
+		...tocData,
+		children: tocData.children?.filter(child => child.id !== 'chat')
+	};
+}
+
+export function getSettingsTocFilter(isSessionsWindow: boolean, showAdvanced: boolean): ITOCFilter | undefined {
+	const advancedTags = showAdvanced ? undefined : [ADVANCED_SETTING_TAG];
+	if (isSessionsWindow) {
+		return advancedTags ? { exclude: { tags: advancedTags } } : undefined;
+	}
+	return {
+		exclude: {
+			...(advancedTags ? { tags: advancedTags } : {}),
+			keyPatterns: [...getChatTocKeyPatterns(), 'agents.voice.*']
+		}
+	};
+}
+
+export function filterExtensionSettingsGroupsForWindow(groups: ISettingsGroup[], isSessionsWindow: boolean): ISettingsGroup[] {
+	if (isSessionsWindow) {
+		return groups;
+	}
+	return groups.filter(group => {
+		const extensionId = group.extensionInfo?.id;
+		if (!extensionId) {
+			return true;
+		}
+		return !EXTENSION_UNIFICATION_EXTENSION_IDS.has(extensionId.toLowerCase());
+	});
+}
+
+export function shouldIncludeSettingInWindowSearch(setting: ISetting, isSessionsWindow: boolean): boolean {
+	if (isSessionsWindow) {
+		return true;
+	}
+
+	const excludeKeyPatterns = getSettingsTocFilter(false, true)?.exclude?.keyPatterns;
+	if (excludeKeyPatterns?.length && settingMatchesExcludePatterns(setting.key, excludeKeyPatterns)) {
+		return false;
+	}
+
+	const extensionId = setting.extensionInfo?.id ?? setting.displayExtensionId;
+	if (extensionId && EXTENSION_UNIFICATION_EXTENSION_IDS.has(extensionId.toLowerCase())) {
+		return false;
+	}
+
+	return true;
+}

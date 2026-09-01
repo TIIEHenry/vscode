@@ -373,6 +373,7 @@ registerAction2(class extends Action2 {
 			icon: Codicon.debugDisconnectCompact,
 			f1: true,
 			precondition: ContextKeyExpr.and(
+				IsSessionsWindowContext,
 				AGENTS_VOICE_ENABLED,
 				AGENTS_VOICE_CONNECTED.isEqualTo(true),
 			),
@@ -466,7 +467,7 @@ registerAction2(class extends Action2 {
 			id: 'agentsVoice.openSettings',
 			title: nls.localize2('agentsVoice.openSettings', "Voice Mode Settings"),
 			f1: true,
-			precondition: AGENTS_VOICE_ENABLED,
+			precondition: ContextKeyExpr.and(IsSessionsWindowContext, AGENTS_VOICE_ENABLED),
 		});
 	}
 	async run(accessor: ServicesAccessor): Promise<void> {
@@ -481,7 +482,7 @@ registerAction2(class extends Action2 {
 			id: SHOW_VOICE_MODE_ONBOARDING_COMMAND,
 			title: nls.localize2('agentsVoice.showOnboarding', "Voice Mode: Show Introduction"),
 			f1: true,
-			precondition: AGENTS_VOICE_ENABLED,
+			precondition: ContextKeyExpr.and(IsSessionsWindowContext, AGENTS_VOICE_ENABLED),
 		});
 	}
 
@@ -500,6 +501,7 @@ registerAction2(class extends Action2 {
 			id: 'agentsVoice.simulateConnection',
 			title: nls.localize2('agentsVoice.simulateConnection', "Voice: Simulate Connection (Dev)"),
 			f1: true,
+			precondition: IsSessionsWindowContext,
 		});
 	}
 	async run(accessor: ServicesAccessor): Promise<void> {
@@ -516,6 +518,7 @@ registerAction2(class extends Action2 {
 			id: 'agentsVoice.resetOnboarding',
 			title: nls.localize2('resetAgentsVoiceOnboarding', "Voice: Reset Onboarding"),
 			f1: true,
+			precondition: IsSessionsWindowContext,
 		});
 	}
 	async run(accessor: ServicesAccessor): Promise<void> {
@@ -533,7 +536,7 @@ registerAction2(class extends Action2 {
 			id: 'agentsVoice.pushToTalk',
 			title: nls.localize2('agentsVoicePushToTalk', "Voice Mode: Push to Talk"),
 			f1: true,
-			precondition: AGENTS_VOICE_ENABLED,
+			precondition: ContextKeyExpr.and(IsSessionsWindowContext, AGENTS_VOICE_ENABLED),
 			keybinding: {
 				weight: KeybindingWeight.WorkbenchContrib,
 				primary: KeyMod.CtrlCmd | KeyMod.Shift | KeyCode.Space,

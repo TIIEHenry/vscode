@@ -8,9 +8,9 @@ import { Disposable } from '../../../../base/common/lifecycle.js';
 import { createDecorator } from '../../../../platform/instantiation/common/instantiation.js';
 import { ConversationStubModel, ConversationStubSession, ConversationStubTurn } from './conversationStubModel.js';
 
-export const IConversationStubService = createDecorator<IConversationStubService>('conversationStubService');
+export const IConversationRosterService = createDecorator<IConversationRosterService>('conversationStubService');
 
-export interface IConversationStubService {
+export interface IConversationRosterService {
 	readonly _serviceBrand: undefined;
 
 	readonly onDidChangeActiveSession: Event<string>;
@@ -26,11 +26,18 @@ export interface IConversationStubService {
 	getTurns(sessionId: string): readonly ConversationStubTurn[];
 	appendUserTurn(sessionId: string, text: string): ConversationStubTurn | undefined;
 	appendStubEchoAssistant(sessionId: string, text: string): ConversationStubTurn | undefined;
+	appendConfirmationTurn(sessionId: string, text: string): ConversationStubTurn | undefined;
+	appendThinkingTurn(sessionId: string, text: string): ConversationStubTurn | undefined;
+	appendToolTurn(sessionId: string, text: string): ConversationStubTurn | undefined;
 	resolveConfirmation(sessionId: string, turnId: string, status: 'allowed' | 'skipped'): void;
 	countPendingConfirmations(sessionId: string): number;
+	deleteTurn(sessionId: string, turnId: string): boolean;
 }
 
-export class ConversationStubService extends Disposable implements IConversationStubService {
+export type IConversationStubService = IConversationRosterService;
+export const IConversationStubService = IConversationRosterService;
+
+export class ConversationStubService extends Disposable implements IConversationRosterService {
 
 	declare readonly _serviceBrand: undefined;
 
@@ -119,6 +126,30 @@ export class ConversationStubService extends Disposable implements IConversation
 		return turn;
 	}
 
+	appendConfirmationTurn(sessionId: string, text: string): ConversationStubTurn | undefined {
+		const turn = this.model.appendConfirmationTurn(sessionId, text);
+		if (turn) {
+			this._onDidChangeSession.fire(sessionId);
+		}
+		return turn;
+	}
+
+	appendThinkingTurn(sessionId: string, text: string): ConversationStubTurn | undefined {
+		const turn = this.model.appendThinkingTurn(sessionId, text);
+		if (turn) {
+			this._onDidChangeSession.fire(sessionId);
+		}
+		return turn;
+	}
+
+	appendToolTurn(sessionId: string, text: string): ConversationStubTurn | undefined {
+		const turn = this.model.appendToolTurn(sessionId, text);
+		if (turn) {
+			this._onDidChangeSession.fire(sessionId);
+		}
+		return turn;
+	}
+
 	resolveConfirmation(sessionId: string, turnId: string, status: 'allowed' | 'skipped'): void {
 		this.model.resolveConfirmation(sessionId, turnId, status);
 		this._onDidChangeSession.fire(sessionId);
@@ -126,5 +157,13 @@ export class ConversationStubService extends Disposable implements IConversation
 
 	countPendingConfirmations(sessionId: string): number {
 		return this.model.countPendingConfirmations(sessionId);
+	}
+
+	deleteTurn(sessionId: string, turnId: string): boolean {
+		const deleted = this.model.deleteTurn(sessionId, turnId);
+		if (deleted) {
+			this._onDidChangeSession.fire(sessionId);
+		}
+		return deleted;
 	}
 }

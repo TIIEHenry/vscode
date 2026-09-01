@@ -11,6 +11,8 @@ import { IsSessionsWindowContext } from '../../../../../common/contextkeys.js';
 import { ChatContextKeys } from '../../../common/actions/chatContextKeys.js';
 import { ChatModeKind } from '../../../common/constants.js';
 import {
+	ACTION_ID_NEW_CHAT,
+	ACTION_ID_OPEN_CHAT,
 	CHAT_OPEN_ACTION_ID,
 	GENERATE_AGENT_COMMAND_ID,
 	GENERATE_AGENT_INSTRUCTIONS_COMMAND_ID,
@@ -33,6 +35,12 @@ function evalWhen(when: ContextKeyExpression | undefined, values: Record<string,
 
 function findCommandPaletteItem(commandId: string) {
 	return MenuRegistry.getMenuItems(MenuId.CommandPalette)
+		.filter(isIMenuItem)
+		.find(item => item.command.id === commandId);
+}
+
+function findTitleBarMenuItem(commandId: string) {
+	return MenuRegistry.getMenuItems(MenuId.ChatTitleBarMenu)
 		.filter(isIMenuItem)
 		.find(item => item.command.id === commandId);
 }
@@ -68,6 +76,11 @@ const f1FalseCommandIds = [
 ];
 
 const sessionsWindowOnlyCommandIds = [
+	CHAT_OPEN_ACTION_ID,
+	'workbench.action.chat.openask',
+	'workbench.action.chat.openedit',
+	'workbench.action.chat.openagent',
+	'workbench.action.chat.showContextUsage',
 	'workbench.action.chat.clearInputHistory',
 	'workbench.action.chat.focusTodosView',
 	'workbench.action.chat.focusQuestionCarousel',
@@ -77,19 +90,18 @@ const sessionsWindowOnlyCommandIds = [
 	'workbench.action.chat.focusTip',
 ];
 
+const titleBarMenuSessionsWindowOnlyCommandIds = [
+	ACTION_ID_NEW_CHAT,
+	CHAT_OPEN_ACTION_ID,
+	ACTION_ID_OPEN_CHAT,
+	'workbench.action.newChatWindow',
+	'workbench.action.chat.manageSettings',
+	'workbench.action.chat.configureCodeCompletions',
+];
+
 suite('ChatActions - default window Command Palette (INV-NO-COPILOT)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
-
-	test('Open Conversation remains available in the default Code window Command Palette', () => {
-		const item = findCommandPaletteItem(CHAT_OPEN_ACTION_ID);
-		assert.ok(item, 'Open Conversation should remain registered in Command Palette');
-		assert.strictEqual(
-			evalWhen(item.when, defaultWindow),
-			true,
-			'default Code window must list Open Conversation in Command Palette'
-		);
-	});
 
 	test('Copilot factory and tool-approval commands are not registered in Command Palette', () => {
 		for (const commandId of f1FalseCommandIds) {
@@ -98,7 +110,7 @@ suite('ChatActions - default window Command Palette (INV-NO-COPILOT)', () => {
 		}
 	});
 
-	test('Chat widget chrome commands stay in Command Palette for Agents Window only', () => {
+	test('Chat F1 commands stay in Command Palette for Agents Window only', () => {
 		for (const commandId of sessionsWindowOnlyCommandIds) {
 			const item = findCommandPaletteItem(commandId);
 			assert.ok(item, `${commandId} should remain registered for Agents Window`);
@@ -113,6 +125,25 @@ suite('ChatActions - default window Command Palette (INV-NO-COPILOT)', () => {
 				evalWhen(item.when, agentsWindowChatReady),
 				true,
 				`Agents Window may list ${commandId} in Command Palette`
+			);
+		}
+	});
+
+	test('Chat title bar menu items stay registered for Agents Window only', () => {
+		for (const commandId of titleBarMenuSessionsWindowOnlyCommandIds) {
+			const item = findTitleBarMenuItem(commandId);
+			assert.ok(item, `${commandId} should remain registered in Chat title bar menu for Agents Window`);
+			assert.ok(item.when, `${commandId} Chat title bar menu item should have a when clause`);
+
+			assert.strictEqual(
+				evalWhen(item.when, defaultWindow),
+				false,
+				`default Code window must hide ${commandId} in Chat title bar menu`
+			);
+			assert.strictEqual(
+				evalWhen(item.when, agentsWindowChatReady),
+				true,
+				`Agents Window may show ${commandId} in Chat title bar menu`
 			);
 		}
 	});

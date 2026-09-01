@@ -1,0 +1,12 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+.monaco-workbench .connection-list {
+	height: 100%;
+}
+
+.monaco-workbench .connection-list .monaco-list-row .connection-profile-label {
+	padding-left: 8px;
+}

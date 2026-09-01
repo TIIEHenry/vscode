@@ -20,6 +20,7 @@ import { IContextMenuService, IContextViewService } from '../../../../../platfor
 import { IThemeService } from '../../../../../platform/theme/common/themeService.js';
 import { IConfigurationChangeEvent, IConfigurationService } from '../../../../../platform/configuration/common/configuration.js';
 import { ExplorerFindProviderActive, IFilesConfiguration, UndoConfirmLevel } from '../../common/files.js';
+import { matchesExplorerInlineFilter } from '../../common/explorerInlineFilter.js';
 import { dirname, joinPath, distinctParents, relativePath } from '../../../../../base/common/resources.js';
 import { InputBox, MessageType } from '../../../../../base/browser/ui/inputbox/inputBox.js';
 import { localize } from '../../../../../nls.js';
@@ -1229,6 +1230,7 @@ export class FilesFilter implements ITreeFilter<ExplorerItem, FuzzyScore> {
 	private hiddenExpressionPerRoot = new Map<string, CachedParsedExpression>();
 	private editorsAffectingFilter = new Set<EditorInput>();
 	private _onDidChange = new Emitter<void>();
+	private inlineQuery = '';
 	private toDispose: IDisposable[] = [];
 	// List of ignoreFile resources. Used to detect changes to the ignoreFiles.
 	private ignoreFileResourcesPerRoot = new Map<string, ResourceSet>();
@@ -1302,6 +1304,13 @@ export class FilesFilter implements ITreeFilter<ExplorerItem, FuzzyScore> {
 
 	get onDidChange(): Event<void> {
 		return this._onDidChange.event;
+	}
+
+	setInlineQuery(query: string): void {
+		if (this.inlineQuery !== query) {
+			this.inlineQuery = query;
+			this._onDidChange.fire();
+		}
 	}
 
 	private updateConfiguration(): void {
@@ -1420,7 +1429,30 @@ export class FilesFilter implements ITreeFilter<ExplorerItem, FuzzyScore> {
 			return false; // hidden through pattern
 		}
 
+		if (!this.isVisibleForInlineQuery(stat)) {
+			return false;
+		}
+
 		return true;
+	}
+
+	private isVisibleForInlineQuery(stat: ExplorerItem): boolean {
+		if (!this.inlineQuery.trim() || stat.isDirectory) {
+			return true;
+		}
+
+		if (matchesExplorerInlineFilter(stat.name, this.inlineQuery)) {
+			return true;
+		}
+
+		const editors = this.editorService.visibleEditors;
+		const editor = editors.find(e => e.resource && this.uriIdentityService.extUri.isEqualOrParent(e.resource, stat.resource));
+		if (editor && stat.root === this.explorerService.findClosestRoot(stat.resource)) {
+			this.editorsAffectingFilter.add(editor);
+			return true;
+		}
+
+		return false;
 	}
 
 	isIgnored(resource: URI, rootResource: URI, isDirectory: boolean): boolean {

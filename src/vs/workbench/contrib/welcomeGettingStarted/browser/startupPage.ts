@@ -28,7 +28,7 @@ import { localize } from '../../../../nls.js';
 import { IEditorResolverService, RegisteredEditorPriority } from '../../../services/editor/common/editorResolverService.js';
 import { TerminalCommandId } from '../../terminal/common/terminal.js';
 import { IContextKeyService } from '../../../../platform/contextkey/common/contextkey.js';
-import { AuxiliaryBarMaximizedContext } from '../../../common/contextkeys.js';
+import { AuxiliaryBarMaximizedContext, IsSessionsWindowContext } from '../../../common/contextkeys.js';
 import { mainWindow } from '../../../../base/browser/window.js';
 import { getActiveElement } from '../../../../base/browser/dom.js';
 import { isWeb } from '../../../../base/common/platform.js';
@@ -38,6 +38,25 @@ import { IChatEntitlementService } from '../../../services/chat/common/chatEntit
 
 export const restoreWalkthroughsConfigurationKey = 'workbench.welcomePage.restorableWalkthroughs';
 export type RestoreWalkthroughsConfigurationValue = { folder: string; category?: string; step?: string };
+
+export function isCopilotWalkthroughCategory(category: string | undefined): boolean {
+	if (!category) {
+		return false;
+	}
+	const lower = category.toLowerCase();
+	if (lower === 'copilotwelcome' || lower.endsWith('#copilotwelcome')) {
+		return true;
+	}
+	const hashIndex = lower.indexOf('#');
+	if (hashIndex >= 0) {
+		const extensionId = lower.substring(0, hashIndex);
+		const walkthroughId = lower.substring(hashIndex + 1);
+		if ((extensionId === 'github.copilot-chat' || extensionId === 'github.copilot') && walkthroughId.includes('copilot')) {
+			return true;
+		}
+	}
+	return false;
+}
 
 const configurationKey = 'workbench.startupEditor';
 const oldConfigurationKey = 'workbench.welcome.enabled';
@@ -162,6 +181,10 @@ export class StartupPageRunnerContribution extends Disposable implements IWorkbe
 			const restoreData: RestoreWalkthroughsConfigurationValue = JSON.parse(toRestore);
 			const currentWorkspace = this.contextService.getWorkspace();
 			if (restoreData.folder === UNKNOWN_EMPTY_WINDOW_WORKSPACE.id || restoreData.folder === currentWorkspace.folders[0].uri.toString()) {
+				if (!this.environmentService.isSessionsWindow && isCopilotWalkthroughCategory(restoreData.category)) {
+					this.storageService.remove(restoreWalkthroughsConfigurationKey, StorageScope.PROFILE);
+					return false;
+				}
 				const options: GettingStartedEditorOptions = { selectedCategory: restoreData.category, selectedStep: restoreData.step, pinned: false, preserveFocus: this.shouldPreserveFocus() };
 				this.editorService.openEditor({
 					resource: GettingStartedInput.RESOURCE,
@@ -234,6 +257,10 @@ export class StartupPageRunnerContribution extends Disposable implements IWorkbe
 	}
 
 	private tryShowOnboarding(): void {
+		if (!IsSessionsWindowContext.getValue(this.contextKeyService)) {
+			return; // default window skips onboarding overlay
+		}
+
 		if (this.environmentService.skipWelcome) {
 			return; // skip welcome flag is set
 		}

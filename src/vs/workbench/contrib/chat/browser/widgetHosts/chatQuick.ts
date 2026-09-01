@@ -23,6 +23,7 @@ import { IQuickInputService, IQuickWidget } from '../../../../../platform/quicki
 import { editorBackground, inputBackground, quickInputBackground, quickInputForeground } from '../../../../../platform/theme/common/colorRegistry.js';
 import { EDITOR_DRAG_AND_DROP_BACKGROUND } from '../../../../common/theme.js';
 import { IChatEntitlementService } from '../../../../services/chat/common/chatEntitlementService.js';
+import { IWorkbenchEnvironmentService } from '../../../../services/environment/common/environmentService.js';
 import { IWorkbenchLayoutService } from '../../../../services/layout/browser/layoutService.js';
 import { isCellTextEditOperationArray } from '../../common/model/chatModel.js';
 import { ChatMode } from '../../common/chatModes.js';
@@ -47,6 +48,7 @@ export class QuickChatService extends Disposable implements IQuickChatService {
 		@IQuickInputService private readonly quickInputService: IQuickInputService,
 		@IChatService private readonly chatService: IChatService,
 		@IInstantiationService private readonly instantiationService: IInstantiationService,
+		@IWorkbenchEnvironmentService private readonly environmentService: IWorkbenchEnvironmentService,
 	) {
 		super();
 	}
@@ -68,6 +70,10 @@ export class QuickChatService extends Disposable implements IQuickChatService {
 	}
 
 	toggle(options?: IQuickChatOpenOptions): void {
+		if (!this.environmentService.isSessionsWindow) {
+			return;
+		}
+
 		// If the input is already shown, hide it. This provides a toggle behavior of the quick
 		// pick. This should not happen when there is a query.
 		if (this.focused && !options?.query) {
@@ -86,6 +92,10 @@ export class QuickChatService extends Disposable implements IQuickChatService {
 	}
 
 	open(options?: IQuickChatOpenOptions): void {
+		if (!this.environmentService.isSessionsWindow) {
+			return;
+		}
+
 		if (this._input) {
 			if (this._currentChat && options?.query) {
 				this._currentChat.focus();

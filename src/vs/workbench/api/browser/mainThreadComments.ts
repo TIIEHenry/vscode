@@ -16,7 +16,7 @@ import { ICommentController, ICommentService } from '../../contrib/comments/brow
 import { CommentsPanel } from '../../contrib/comments/browser/commentsView.js';
 import { CommentProviderFeatures, ExtHostCommentsShape, ExtHostContext, MainContext, MainThreadCommentsShape, CommentThreadChanges } from '../common/extHost.protocol.js';
 import { COMMENTS_VIEW_ID, COMMENTS_VIEW_STORAGE_ID, COMMENTS_VIEW_TITLE } from '../../contrib/comments/browser/commentsTreeViewer.js';
-import { ViewContainer, IViewContainersRegistry, Extensions as ViewExtensions, ViewContainerLocation, IViewsRegistry, IViewDescriptorService } from '../../common/views.js';
+import { ViewContainer, IViewContainersRegistry, Extensions as ViewExtensions, ViewContainerLocation, IViewsRegistry, IViewDescriptorService, WindowEnablement } from '../../common/views.js';
 import { SyncDescriptor } from '../../../platform/instantiation/common/descriptors.js';
 import { ViewPaneContainer } from '../../browser/parts/views/viewPaneContainer.js';
 import { Codicon } from '../../../base/common/codicons.js';
@@ -717,6 +717,7 @@ export class MainThreadComments extends Disposable implements MainThreadComments
 				hideIfEmpty: true,
 				icon: commentsViewIcon,
 				order: 10,
+				windowEnablement: WindowEnablement.Sessions
 			}, ViewContainerLocation.Panel);
 
 			Registry.as<IViewsRegistry>(ViewExtensions.ViewsRegistry).registerViews([{
@@ -728,7 +729,8 @@ export class MainThreadComments extends Disposable implements MainThreadComments
 				containerIcon: commentsViewIcon,
 				focusCommand: {
 					id: 'workbench.action.focusCommentsPanel'
-				}
+				},
+				windowEnablement: WindowEnablement.Sessions
 			}], VIEW_CONTAINER);
 		}
 		this.registerViewListeners(commentsPanelAlreadyConstructed);

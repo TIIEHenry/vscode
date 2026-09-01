@@ -561,6 +561,8 @@ export class AgentPluginsListView extends AbstractExtensionsListView<IAgentPlugi
 
 //#region Browse command
 
+const AGENT_PLUGINS_BROWSE_VISIBLE = ContextKeyExpr.and(IsSessionsWindowContext, ChatContextKeys.Setup.hidden.negate(), ChatContextKeys.Setup.disabledInWorkspace.negate());
+
 class AgentPluginsBrowseCommand extends Action2 {
 	constructor() {
 		super({
@@ -568,12 +570,12 @@ class AgentPluginsBrowseCommand extends Action2 {
 			title: localize2('agentPlugins.browse', "Agent Plugins"),
 			tooltip: localize2('agentPlugins.browse.tooltip', "Browse Agent Plugins"),
 			icon: Codicon.search,
-			precondition: ContextKeyExpr.and(ChatContextKeys.Setup.hidden.negate(), ChatContextKeys.Setup.disabledInWorkspace.negate()),
+			precondition: AGENT_PLUGINS_BROWSE_VISIBLE,
 			menu: [{
 				id: extensionsFilterSubMenu,
 				group: '1_predefined',
 				order: 2,
-				when: ContextKeyExpr.and(ChatContextKeys.Setup.hidden.negate(), ChatContextKeys.Setup.disabledInWorkspace.negate()),
+				when: AGENT_PLUGINS_BROWSE_VISIBLE,
 			}, {
 				id: MenuId.ViewTitle,
 				when: ContextKeyExpr.and(ContextKeyExpr.equals('view', InstalledAgentPluginsViewId), ChatContextKeys.Setup.hidden.negate(), ChatContextKeys.Setup.disabledInWorkspace.negate()),
@@ -648,6 +650,38 @@ registerAction2(RefreshPluginMarketplacesCommand);
 //#endregion
 //#region Views contribution
 
+const agentPluginsViewDescriptors = [
+	{
+		id: InstalledAgentPluginsViewId,
+		name: localize2('agent-plugins-installed', "Agent Plugins - Installed"),
+		ctorDescriptor: new SyncDescriptor(AgentPluginsListView, [{ installedOnly: true }]),
+		when: ContextKeyExpr.and(IsSessionsWindowContext, DefaultViewsContext, HasInstalledAgentPluginsContext, ChatContextKeys.Setup.hidden.negate()),
+		weight: 30,
+		order: 5,
+		canToggleVisibility: true,
+	},
+	{
+		id: 'workbench.views.agentPlugins.default.marketplace',
+		name: localize2('agent-plugins', "Agent Plugins"),
+		ctorDescriptor: new SyncDescriptor(AgentPluginsListView, [{}]),
+		when: ContextKeyExpr.and(IsSessionsWindowContext, DefaultViewsContext, HasInstalledAgentPluginsContext.toNegated(), ChatContextKeys.Setup.hidden.negate()),
+		weight: 30,
+		order: 5,
+		canToggleVisibility: true,
+		hideByDefault: true,
+	},
+	{
+		id: 'workbench.views.agentPlugins.marketplace',
+		name: localize2('agent-plugins', "Agent Plugins"),
+		ctorDescriptor: new SyncDescriptor(AgentPluginsListView, [{}]),
+		when: ContextKeyExpr.and(IsSessionsWindowContext, SearchAgentPluginsContext, ChatContextKeys.Setup.hidden.negate()),
+	},
+] as const;
+
+export function registerAgentPluginsViews(): void {
+	Registry.as<IViewsRegistry>(ViewExtensions.ViewsRegistry).registerViews([...agentPluginsViewDescriptors], VIEW_CONTAINER);
+}
+
 export class AgentPluginsViewsContribution extends Disposable implements IWorkbenchContribution {
 
 	static ID = 'workbench.chat.agentPlugins.views.contribution';
@@ -663,33 +697,7 @@ export class AgentPluginsViewsContribution extends Disposable implements IWorkbe
 			hasInstalledKey.set(agentPluginService.plugins.read(reader).length > 0);
 		}));
 
-		Registry.as<IViewsRegistry>(ViewExtensions.ViewsRegistry).registerViews([
-			{
-				id: InstalledAgentPluginsViewId,
-				name: localize2('agent-plugins-installed', "Agent Plugins - Installed"),
-				ctorDescriptor: new SyncDescriptor(AgentPluginsListView, [{ installedOnly: true }]),
-				when: ContextKeyExpr.and(DefaultViewsContext, HasInstalledAgentPluginsContext, ChatContextKeys.Setup.hidden.negate()),
-				weight: 30,
-				order: 5,
-				canToggleVisibility: true,
-			},
-			{
-				id: 'workbench.views.agentPlugins.default.marketplace',
-				name: localize2('agent-plugins', "Agent Plugins"),
-				ctorDescriptor: new SyncDescriptor(AgentPluginsListView, [{}]),
-				when: ContextKeyExpr.and(DefaultViewsContext, HasInstalledAgentPluginsContext.toNegated(), ChatContextKeys.Setup.hidden.negate()),
-				weight: 30,
-				order: 5,
-				canToggleVisibility: true,
-				hideByDefault: true,
-			},
-			{
-				id: 'workbench.views.agentPlugins.marketplace',
-				name: localize2('agent-plugins', "Agent Plugins"),
-				ctorDescriptor: new SyncDescriptor(AgentPluginsListView, [{}]),
-				when: ContextKeyExpr.and(SearchAgentPluginsContext, ChatContextKeys.Setup.hidden.negate()),
-			},
-		], VIEW_CONTAINER);
+		registerAgentPluginsViews();
 	}
 }
 

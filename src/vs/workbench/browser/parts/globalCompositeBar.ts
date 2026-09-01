@@ -284,7 +284,7 @@ export class AccountsActivityActionViewItem extends AbstractGlobalActivityAction
 		@IMenuService menuService: IMenuService,
 		@IContextKeyService contextKeyService: IContextKeyService,
 		@IAuthenticationService private readonly authenticationService: IAuthenticationService,
-		@IWorkbenchEnvironmentService environmentService: IWorkbenchEnvironmentService,
+		@IWorkbenchEnvironmentService private readonly environmentService: IWorkbenchEnvironmentService,
 		@IProductService private readonly productService: IProductService,
 		@IConfigurationService configurationService: IConfigurationService,
 		@IKeybindingService keybindingService: IKeybindingService,
@@ -471,7 +471,7 @@ export class AccountsActivityActionViewItem extends AbstractGlobalActivityAction
 					continue;
 				}
 
-				const canUseMcp = !!provider.authorizationServers?.length;
+				const canUseMcp = !!provider.authorizationServers?.length && this.environmentService.isSessionsWindow;
 				for (const account of accounts) {
 					const manageExtensionsAction = toAction({
 						id: `configureSessions${account.label}`,
@@ -546,13 +546,15 @@ export class AccountsActivityActionViewItem extends AbstractGlobalActivityAction
 					// });
 
 					const providerSubMenuActions: IAction[] = [];
-					const manageMCPAction = toAction({
-						id: `configureSessions${account.label}`,
-						label: localize('manageTrustedMCPServers', "Manage Trusted MCP Servers"),
-						enabled: true,
-						run: () => this.commandService.executeCommand('_manageTrustedMCPServersForAccount', { providerId, accountLabel: account.label })
-					});
-					providerSubMenuActions.push(manageMCPAction);
+					if (this.environmentService.isSessionsWindow) {
+						const manageMCPAction = toAction({
+							id: `configureSessions${account.label}`,
+							label: localize('manageTrustedMCPServers', "Manage Trusted MCP Servers"),
+							enabled: true,
+							run: () => this.commandService.executeCommand('_manageTrustedMCPServersForAccount', { providerId, accountLabel: account.label })
+						});
+						providerSubMenuActions.push(manageMCPAction);
+					}
 					providerSubMenuActions.push(manageDynamicAuthProvidersAction);
 					if (account.canSignOut) {
 						providerSubMenuActions.push(toAction({

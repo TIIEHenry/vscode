@@ -23,17 +23,19 @@ export function appendPartRegionHideControl(
 	layoutService: IWorkbenchLayoutService,
 	part: Parts.CONVERSATION_PART | Parts.SOURCES_PART,
 	label: string,
-	register: (disposable: IDisposable) => IDisposable,
+	register: <T extends IDisposable>(disposable: T) => T,
 ): HTMLElement {
 	const actionsContainer = append(parent, $('.title-actions.part-region-hide-actions'));
-	const actionBar = register(new ActionBar(actionsContainer));
-	const hideAction = register(new Action(
+	const actionBar = new ActionBar(actionsContainer);
+	register(actionBar);
+	const hideAction = new Action(
 		`workbench.action.hidePart.${part}`,
 		label,
 		ThemeIcon.asClassName(partRegionHideIcon),
 		true,
 		() => layoutService.setPartHidden(true, part),
-	));
+	);
+	register(hideAction);
 	hideAction.tooltip = label;
 	actionBar.push(hideAction, { icon: true, label: false });
 	actionBar.setFocusable(false);

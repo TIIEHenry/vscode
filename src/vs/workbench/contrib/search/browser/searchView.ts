@@ -86,6 +86,7 @@ import { searchMatchComparer } from './searchCompare.js';
 import { AIFolderMatchWorkspaceRootImpl } from './AISearch/aiSearchModel.js';
 import { ITelemetryService } from '../../../../platform/telemetry/common/telemetry.js';
 import { forcedExpandRecursively } from './searchActionsTopBar.js';
+import { IsSessionsWindowContext } from '../../../common/contextkeys.js';
 
 const $ = dom.$;
 
@@ -1781,6 +1782,10 @@ export class SearchView extends ViewPane {
 	}
 
 	private appendSearchWithAIButton(messageEl: HTMLElement) {
+		if (!IsSessionsWindowContext.getValue(this.contextKeyService)) {
+			return;
+		}
+
 		const searchWithAIButtonTooltip = this.keybindingService.appendKeybinding(
 			nls.localize('triggerAISearch.tooltip', "Search with AI."),
 			Constants.SearchCommandIds.SearchWithAIActionId
@@ -1864,7 +1869,7 @@ export class SearchView extends ViewPane {
 			const messageEl = this.clearMessage();
 			dom.append(messageEl, message);
 
-			if (this.shouldShowAIResults()) {
+			if (this.shouldShowAIResults() && IsSessionsWindowContext.getValue(this.contextKeyService)) {
 				this.appendSearchWithAIButton(messageEl);
 				dom.append(messageEl, $('span', undefined, ' - '));
 			}
@@ -2093,7 +2098,7 @@ export class SearchView extends ViewPane {
 				openInEditorTooltip));
 			dom.append(messageEl, openInEditorButton.element);
 
-			if (this.shouldShowAIResults()) {
+			if (this.shouldShowAIResults() && IsSessionsWindowContext.getValue(this.contextKeyService)) {
 				dom.append(messageEl, ' - ');
 				this.appendSearchWithAIButton(messageEl);
 			}

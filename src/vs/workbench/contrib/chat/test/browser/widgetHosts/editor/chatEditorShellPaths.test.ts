@@ -7,20 +7,22 @@ import assert from 'assert';
 import { URI } from '../../../../../../../base/common/uri.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../../../base/test/common/utils.js';
 import { IEditorOptions } from '../../../../../../../platform/editor/common/editor.js';
+import { ICommandService } from '../../../../../../../platform/commands/common/commands.js';
 import { IConversationPartService } from '../../../../../../browser/parts/conversation/conversationPart.js';
 import { ConversationPart } from '../../../../../../browser/parts/conversation/conversationPart.js';
 import { EditorInput } from '../../../../../../common/editor/editorInput.js';
 import { IEditorPane } from '../../../../../../common/editor.js';
 import { PreferredGroup } from '../../../../../../services/editor/common/editorService.js';
 import { workbenchInstantiationService, TestEditorService, TestEnvironmentService } from '../../../../../../test/browser/workbenchTestServices.js';
-import { focusConversationPart } from '../../../../browser/actions/chatActions.js';
-import { OpenAgentSessionInEditorGroupAction, OpenAgentSessionInNewEditorGroupAction } from '../../../../browser/agentSessions/agentSessionsActions.js';
+import { OpenAgentSessionInEditorGroupAction, OpenAgentSessionInNewEditorGroupAction, OpenAgentSessionInNewWindowAction } from '../../../../browser/agentSessions/agentSessionsActions.js';
 import { IAgentSession } from '../../../../browser/agentSessions/agentSessionsModel.js';
 import { IChatWidgetService } from '../../../../browser/chat.js';
 import { ChatEditor } from '../../../../browser/widgetHosts/editor/chatEditor.js';
 import { ChatEditorInput, ChatEditorInputWorkbenchSerializer } from '../../../../browser/widgetHosts/editor/chatEditorInput.js';
 import { LocalChatSessionUri } from '../../../../common/model/chatUri.js';
 import { MockChatWidgetService } from '../../widget/mockChatWidget.js';
+
+import '../../../../browser/chat.shared.contribution.js';
 
 suite('default-window ChatEditor shell paths', () => {
 
@@ -30,6 +32,7 @@ suite('default-window ChatEditor shell paths', () => {
 		instantiationService: ReturnType<typeof workbenchInstantiationService>;
 		editorService: TestEditorService;
 		openSessionTracker: { called: boolean };
+		commandService: ICommandService;
 	} {
 		const openSessionTracker = { called: false };
 		const editorService = store.add(new TestEditorService());
@@ -59,7 +62,12 @@ suite('default-window ChatEditor shell paths', () => {
 		instantiationService.stub(IConversationPartService, conversationPart);
 		instantiationService.stub(IChatWidgetService, widgetService);
 
-		return { instantiationService, editorService, openSessionTracker };
+		return {
+			instantiationService,
+			editorService,
+			openSessionTracker,
+			commandService: instantiationService.get(ICommandService),
+		};
 	}
 
 	const mockSession = { resource: LocalChatSessionUri.forSession('shell-path-test') } as IAgentSession;
@@ -79,12 +87,27 @@ suite('default-window ChatEditor shell paths', () => {
 		assert.strictEqual(serializer.canSerialize(input), false);
 	});
 
-	test('workbench.action.chat.openInEditor does not open ChatEditorInput as active editor', async () => {
-		const { instantiationService, editorService, openSessionTracker } = setup();
-		await instantiationService.invokeFunction(accessor => focusConversationPart(accessor));
-
+	async function assertCommandDoesNotOpenChatEditor(commandId: string): Promise<void> {
+		const { commandService, editorService, openSessionTracker } = setup();
+		await commandService.executeCommand(commandId);
 		assert.strictEqual(editorService.activeEditor instanceof ChatEditorInput, false);
 		assert.strictEqual(openSessionTracker.called, false);
+	}
+
+	test('workbench.action.chat.openInEditor does not open ChatEditorInput as active editor', async () => {
+		await assertCommandDoesNotOpenChatEditor('workbench.action.chat.openInEditor');
+	});
+
+	test('workbench.action.openChat does not open ChatEditorInput as active editor', async () => {
+		await assertCommandDoesNotOpenChatEditor('workbench.action.openChat');
+	});
+
+	test('workbench.action.openChatToSide does not open ChatEditorInput as active editor', async () => {
+		await assertCommandDoesNotOpenChatEditor('workbench.action.openChatToSide');
+	});
+
+	test('workbench.action.newChatWindow does not open ChatEditorInput as active editor', async () => {
+		await assertCommandDoesNotOpenChatEditor('workbench.action.newChatWindow');
 	});
 
 	test('workbench.action.chat.openSessionInEditorGroup does not open ChatEditorInput as active editor', async () => {
@@ -99,6 +122,15 @@ suite('default-window ChatEditor shell paths', () => {
 	test('workbench.action.chat.openSessionInNewEditorGroup does not open ChatEditorInput as active editor', async () => {
 		const { instantiationService, editorService, openSessionTracker } = setup();
 		const action = instantiationService.createInstance(OpenAgentSessionInNewEditorGroupAction);
+		await instantiationService.invokeFunction(accessor => action.runWithSessions([mockSession], accessor));
+
+		assert.strictEqual(editorService.activeEditor instanceof ChatEditorInput, false);
+		assert.strictEqual(openSessionTracker.called, false);
+	});
+
+	test('workbench.action.chat.openSessionInNewWindow does not open ChatEditorInput as active editor', async () => {
+		const { instantiationService, editorService, openSessionTracker } = setup();
+		const action = instantiationService.createInstance(OpenAgentSessionInNewWindowAction);
 		await instantiationService.invokeFunction(accessor => action.runWithSessions([mockSession], accessor));
 
 		assert.strictEqual(editorService.activeEditor instanceof ChatEditorInput, false);

@@ -12,7 +12,8 @@ import { RunOnceScheduler } from '../../../../base/common/async.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { Event } from '../../../../base/common/event.js';
 import { Disposable, DisposableMap, DisposableStore } from '../../../../base/common/lifecycle.js';
-import { ThemeIcon } from '../../../../base/common/themables.js';
+import { StandardKeyboardEvent } from '../../../../base/browser/keyboardEvent.js';
+import { KeyCode } from '../../../../base/common/keyCodes.js';
 import { localize } from '../../../../nls.js';
 import { CommandsRegistry } from '../../../../platform/commands/common/commands.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
@@ -30,9 +31,41 @@ import {
 	isSourcesChangeStageable,
 	isSourcesChangeUnstageable,
 } from '../common/sourcesChangesGit.js';
+import { filterSourcesEntries } from '../common/sourcesFilterModel.js';
 import { collectSourcesChangeEntries, ISourcesChangeEntry } from '../common/sourcesChangesModel.js';
+import { SourcesListFilterBox } from './sourcesListFilterBox.js';
 
 const $ = dom.$;
+
+export interface ISourcesChangeEntryOpenOptions {
+	readonly preserveFocus?: boolean;
+	readonly pinned?: boolean;
+}
+
+/** Open a Changes/Review row via SCM working-tree diff when possible (same as SCM view). */
+export async function openSourcesChangeEntry(
+	entry: ISourcesChangeEntry,
+	editorService: IEditorService,
+	options: ISourcesChangeEntryOpenOptions,
+): Promise<void> {
+	if (entry.scmResource) {
+		await entry.scmResource.open(!!options.preserveFocus);
+		if (options.pinned) {
+			const activeEditorPane = editorService.activeEditorPane;
+			activeEditorPane?.group.pinEditor(activeEditorPane.input);
+		}
+		return;
+	}
+
+	await editorService.openEditor({
+		resource: entry.resource,
+		options: {
+			preserveFocus: options.preserveFocus,
+			pinned: options.pinned,
+			source: EditorOpenSource.USER,
+		},
+	}, ACTIVE_GROUP);
+}
 
 type SourcesChangeRowAction = 'stage' | 'unstage';
 
@@ -105,7 +138,7 @@ class SourcesChangesRenderer implements IListRenderer<ISourcesChangeEntry, ISour
 
 		if (canStage) {
 			templateData.actionButton.element.style.display = '';
-			templateData.actionButton.label = ThemeIcon.asClassNameArray(Codicon.add);
+			templateData.actionButton.icon = Codicon.add;
 			templateData.actionButton.enabled = true;
 			templateData.actionButton.element.setAttribute('aria-label', localize('sourcesChangesList.stage', "Stage"));
 			templateData.elementDisposables.add(templateData.actionButton.onDidClick(e => {
@@ -117,7 +150,7 @@ class SourcesChangesRenderer implements IListRenderer<ISourcesChangeEntry, ISour
 
 		if (canUnstage) {
 			templateData.actionButton.element.style.display = '';
-			templateData.actionButton.label = ThemeIcon.asClassNameArray(Codicon.remove);
+			templateData.actionButton.icon = Codicon.remove;
 			templateData.actionButton.enabled = true;
 			templateData.actionButton.element.setAttribute('aria-label', localize('sourcesChangesList.unstage', "Unstage"));
 			templateData.elementDisposables.add(templateData.actionButton.onDidClick(e => {
@@ -152,6 +185,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 
 	private readonly contentContainer: HTMLElement;
 	private readonly toolbar: HTMLElement;
+	private readonly filterBox: SourcesListFilterBox;
 	private readonly stageSelectedButton: Button;
 	private readonly unstageSelectedButton: Button;
 	private readonly listContainer: HTMLElement;
@@ -180,6 +214,13 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 
 		host.classList.add('show-file-icons', 'sources-changes-host');
 
+		this.filterBox = this._register(new SourcesListFilterBox(
+			host,
+			localize('sourcesChangesList.filterPlaceholder', "Filter changes"),
+			localize('sourcesChangesList.filterAriaLabel', "Filter changes"),
+		));
+		this._register(this.filterBox.onDidChange(() => this.scheduleRefresh()));
+
 		this.contentContainer = dom.append(host, $('.sources-changes-content'));
 		this.toolbar = dom.append(host, $('.sources-changes-toolbar'));
 		this.stageSelectedButton = this._register(new Button(this.toolbar, {
@@ -187,13 +228,13 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 			title: localize('sourcesChangesList.stageSelected', "Stage Selected"),
 			...defaultButtonStyles,
 		}));
-		this.stageSelectedButton.label = ThemeIcon.asClassNameArray(Codicon.add);
+		this.stageSelectedButton.icon = Codicon.add;
 		this.unstageSelectedButton = this._register(new Button(this.toolbar, {
 			supportIcons: true,
 			title: localize('sourcesChangesList.unstageSelected', "Unstage Selected"),
 			...defaultButtonStyles,
 		}));
-		this.unstageSelectedButton.label = ThemeIcon.asClassNameArray(Codicon.remove);
+		this.unstageSelectedButton.icon = Codicon.remove;
 
 		this.listContainer = dom.append(this.contentContainer, $('.sources-changes-list'));
 		this.emptyMessage = dom.append(this.contentContainer, $('.sources-changes-empty'));
@@ -221,12 +262,13 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 			}
 			this.updateCommitRow();
 		}));
-		this._register(dom.addStandardDisposableListener(this.commitInput, 'keydown', e => {
-			if (e.key === 'Enter' && !this.commitButton.enabled) {
+		this._register(dom.addDisposableListener(this.commitInput, 'keydown', (e: KeyboardEvent) => {
+			const event = new StandardKeyboardEvent(e);
+			if (event.keyCode === KeyCode.Enter && !this.commitButton.enabled) {
 				return;
 			}
-			if (e.key === 'Enter') {
-				e.preventDefault();
+			if (event.keyCode === KeyCode.Enter) {
+				event.preventDefault();
 				void this.runCommit();
 			}
 		}));
@@ -326,14 +368,10 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 				return;
 			}
 
-			await this.editorService.openEditor({
-				resource: element.resource,
-				options: {
-					preserveFocus: e.editorOptions.preserveFocus,
-					pinned: e.editorOptions.pinned,
-					source: EditorOpenSource.USER,
-				},
-			}, ACTIVE_GROUP);
+			await openSourcesChangeEntry(element, this.editorService, {
+				preserveFocus: e.editorOptions.preserveFocus,
+				pinned: e.editorOptions.pinned,
+			});
 		}));
 
 		this._register(this.list.onDidChangeSelection(() => this.updateSelectionToolbar()));
@@ -344,8 +382,10 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 	private refresh(): void {
 		const hasRepository = this.scmService.repositoryCount > 0;
 		this.activeRepository = this.getPrimaryRepository();
-		const entries = collectSourcesChangeEntries(this.scmService.repositories);
-		const hasEntries = entries.length > 0;
+		const allEntries = collectSourcesChangeEntries(this.scmService.repositories);
+		const entries = filterSourcesEntries(allEntries, this.filterBox.value);
+		const hasAnyEntries = allEntries.length > 0;
+		const hasVisibleEntries = entries.length > 0;
 
 		this.gitCommandsAvailable = this.isGitCommandAvailable(SOURCES_GIT_STAGE_COMMAND)
 			|| this.isGitCommandAvailable(SOURCES_GIT_UNSTAGE_COMMAND)
@@ -353,13 +393,16 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 
 		if (!hasRepository) {
 			this.emptyMessage.textContent = localize('sourcesChangesList.noRepository', "No source control repository.");
-		} else if (!hasEntries) {
+		} else if (!hasAnyEntries) {
 			this.emptyMessage.textContent = localize('sourcesChangesList.noChanges', "No changes.");
+		} else if (!hasVisibleEntries) {
+			this.emptyMessage.textContent = localize('sourcesChangesList.noMatching', "No matching changes.");
 		}
 
-		this.emptyMessage.style.display = hasEntries ? 'none' : 'block';
-		this.listContainer.style.display = hasEntries ? 'block' : 'none';
-		this.toolbar.style.display = hasEntries ? 'flex' : 'none';
+		this.emptyMessage.style.display = hasVisibleEntries ? 'none' : 'block';
+		this.listContainer.style.display = hasVisibleEntries ? 'block' : 'none';
+		this.toolbar.style.display = hasVisibleEntries ? 'flex' : 'none';
+		this.filterBox.element.style.display = hasAnyEntries ? 'block' : 'none';
 		this.commitRow.style.display = hasRepository ? 'flex' : 'none';
 
 		if (hasRepository && !this.gitCommandsAvailable) {
@@ -372,7 +415,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		this.syncCommitInputFromRepository();
 		this.updateCommitRow();
 
-		if (hasEntries) {
+		if (hasVisibleEntries) {
 			const list = this.ensureList();
 			list.splice(0, list.length, entries);
 			this.updateSelectionToolbar();

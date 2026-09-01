@@ -51,7 +51,8 @@ import { ILabelService } from '../../../../platform/label/common/label.js';
 import { SyncDescriptor } from '../../../../platform/instantiation/common/descriptors.js';
 import { IPreferencesService } from '../../../services/preferences/common/preferences.js';
 import { SIDE_BAR_DRAG_AND_DROP_BACKGROUND } from '../../../common/theme.js';
-import { IsSessionsWindowContext, VirtualWorkspaceContext, WorkbenchStateContext } from '../../../common/contextkeys.js';
+import { VirtualWorkspaceContext, WorkbenchStateContext } from '../../../common/contextkeys.js';
+import { activityViewletWhen, ActivityBarVisibleViewlets } from '../../../common/activityViewletEnablement.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
 import { installLocalInRemoteIcon } from './extensionsIcons.js';
 import { registerAction2, Action2, MenuId } from '../../../../platform/actions/common/actions.js';
@@ -93,8 +94,8 @@ export const ExtensionsSearchValueContext = new RawContextKey<string>('extension
 
 const REMOTE_CATEGORY: ILocalizedString = localize2({ key: 'remote', comment: ['Remote as in remote machine'] }, "Remote");
 
-function whenInSessionsWindow(when: ContextKeyExpression): ContextKeyExpression {
-	return ContextKeyExpr.and(IsSessionsWindowContext, when);
+function whenInSessionsWindow(when: ContextKeyExpression | undefined): ContextKeyExpression {
+	return when ? activityViewletWhen(ActivityBarVisibleViewlets.extensions, when) : activityViewletWhen(ActivityBarVisibleViewlets.extensions);
 }
 
 interface IExtensionsViewletState {

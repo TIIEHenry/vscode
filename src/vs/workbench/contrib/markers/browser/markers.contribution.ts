@@ -25,7 +25,8 @@ import { IStatusbarEntryAccessor, IStatusbarService, StatusbarAlignment, IStatus
 import { IMarkerService, MarkerStatistics } from '../../../../platform/markers/common/markers.js';
 import { ViewContainer, IViewContainersRegistry, Extensions as ViewContainerExtensions, ViewContainerLocation, IViewsRegistry, WindowEnablement } from '../../../common/views.js';
 import { IViewsService } from '../../../services/views/common/viewsService.js';
-import { getVisbileViewContextKey, FocusedViewContext } from '../../../common/contextkeys.js';
+import { getVisbileViewContextKey, FocusedViewContext, IsSessionsWindowContext } from '../../../common/contextkeys.js';
+import { IWorkbenchEnvironmentService } from '../../../services/environment/common/environmentService.js';
 import { ViewPaneContainer } from '../../../browser/parts/views/viewPaneContainer.js';
 import { SyncDescriptor } from '../../../../platform/instantiation/common/descriptors.js';
 import { ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js';
@@ -137,7 +138,7 @@ const VIEW_CONTAINER: ViewContainer = Registry.as<IViewContainersRegistry>(ViewC
 	order: 0,
 	ctorDescriptor: new SyncDescriptor(ViewPaneContainer, [Markers.MARKERS_CONTAINER_ID, { mergeViewWithContainerWhenSingleView: true }]),
 	storageId: Markers.MARKERS_VIEW_STORAGE_ID,
-	windowEnablement: WindowEnablement.Both
+	windowEnablement: WindowEnablement.Sessions
 }, ViewContainerLocation.Panel, { doNotRegisterOpenCommand: true });
 
 Registry.as<IViewsRegistry>(ViewContainerExtensions.ViewsRegistry).registerViews([{
@@ -150,11 +151,18 @@ Registry.as<IViewsRegistry>(ViewContainerExtensions.ViewsRegistry).registerViews
 	openCommandActionDescriptor: {
 		id: 'workbench.actions.view.problems',
 		mnemonicTitle: localize({ key: 'miMarker', comment: ['&& denotes a mnemonic'] }, "&&Problems"),
-		keybindings: { primary: KeyMod.CtrlCmd | KeyMod.Shift | KeyCode.KeyM },
+		keybindings: {
+			primary: KeyMod.CtrlCmd | KeyMod.Shift | KeyCode.KeyM,
+			when: IsSessionsWindowContext,
+		},
 		order: 0,
 	},
-	windowEnablement: WindowEnablement.Both
+	windowEnablement: WindowEnablement.Sessions
 }], VIEW_CONTAINER);
+
+export function shouldRegisterProblemsStatusBar(isSessionsWindow: boolean): boolean {
+	return isSessionsWindow;
+}
 
 // workbench
 const workbenchRegistry = Registry.as<IWorkbenchContributionsRegistry>(WorkbenchExtensions.Workbench);
@@ -571,15 +579,19 @@ registerAction2(class extends Action2 {
 
 class MarkersStatusBarContributions extends Disposable implements IWorkbenchContribution {
 
-	private markersStatusItem: IStatusbarEntryAccessor;
+	private markersStatusItem: IStatusbarEntryAccessor | undefined;
 	private markersStatusItemOff: IStatusbarEntryAccessor | undefined;
 
 	constructor(
 		@IMarkerService private readonly markerService: IMarkerService,
 		@IStatusbarService private readonly statusbarService: IStatusbarService,
-		@IConfigurationService private readonly configurationService: IConfigurationService
+		@IConfigurationService private readonly configurationService: IConfigurationService,
+		@IWorkbenchEnvironmentService private readonly environmentService: IWorkbenchEnvironmentService
 	) {
 		super();
+		if (!shouldRegisterProblemsStatusBar(this.environmentService.isSessionsWindow)) {
+			return;
+		}
 		this.markersStatusItem = this._register(this.statusbarService.addEntry(this.getMarkersItem(), 'status.problems', StatusbarAlignment.LEFT, 50 /* Medium Priority */));
 
 		const addStatusBarEntry = () => {
@@ -593,12 +605,12 @@ class MarkersStatusBarContributions extends Disposable implements IWorkbenchCont
 		}
 
 		this._register(this.markerService.onMarkerChanged(() => {
-			this.markersStatusItem.update(this.getMarkersItem());
+			this.markersStatusItem?.update(this.getMarkersItem());
 		}));
 
 		this._register(this.configurationService.onDidChangeConfiguration(e => {
 			if (e.affectsConfiguration('problems.visibility')) {
-				this.markersStatusItem.update(this.getMarkersItem());
+				this.markersStatusItem?.update(this.getMarkersItem());
 
 				// Update based on what setting was changed to.
 				config = this.configurationService.getValue('problems.visibility');

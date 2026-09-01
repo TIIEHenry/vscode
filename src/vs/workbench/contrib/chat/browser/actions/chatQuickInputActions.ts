@@ -72,18 +72,20 @@ class QuickChatGlobalAction extends Action2 {
 		super({
 			id: ASK_QUICK_QUESTION_ACTION_ID,
 			title: localize2('quickChat', 'Open Quick Chat'),
-			precondition: ChatContextKeys.enabled,
+			precondition: ContextKeyExpr.and(ChatContextKeys.enabled, IsSessionsWindowContext),
 			icon: Codicon.chatSparkle,
 			f1: false,
 			category: CHAT_CATEGORY,
 			keybinding: {
 				weight: KeybindingWeight.WorkbenchContrib,
 				primary: KeyMod.CtrlCmd | KeyMod.Shift | KeyMod.Alt | KeyCode.KeyL,
+				when: IsSessionsWindowContext,
 			},
 			menu: {
 				id: MenuId.ChatTitleBarMenu,
 				group: 'a_open',
-				order: 4
+				order: 4,
+				when: IsSessionsWindowContext,
 			},
 			metadata: {
 				description: localize('toggle.desc', 'Toggle the quick chat'),

@@ -22,10 +22,10 @@ import { IActionViewItemService } from '../../../../../platform/actions/browser/
 import { Action2, MenuId, MenuRegistry, registerAction2 } from '../../../../../platform/actions/common/actions.js';
 import { CommandsRegistry, ICommandService } from '../../../../../platform/commands/common/commands.js';
 import { ConfigurationTarget, IConfigurationService } from '../../../../../platform/configuration/common/configuration.js';
-import { ContextKeyExpr, IContextKeyService } from '../../../../../platform/contextkey/common/contextkey.js';
+import { ContextKeyExpr, ContextKeyExpression, IContextKeyService } from '../../../../../platform/contextkey/common/contextkey.js';
 import { IsWebContext } from '../../../../../platform/contextkey/common/contextkeys.js';
 import { IDialogService } from '../../../../../platform/dialogs/common/dialogs.js';
-import { IEnvironmentService } from '../../../../../platform/environment/common/environment.js';
+import { IWorkbenchEnvironmentService } from '../../../../services/environment/common/environmentService.js';
 import { ExtensionIdentifier } from '../../../../../platform/extensions/common/extensions.js';
 import { IInstantiationService } from '../../../../../platform/instantiation/common/instantiation.js';
 import { ILogService } from '../../../../../platform/log/common/log.js';
@@ -61,7 +61,7 @@ import { buildUpgradeUrlWithRedirect, ChatSetupAnonymous, ChatSetupStrategy, ICh
 import { ChatSetupController } from './chatSetupController.js';
 import { GrowthSessionController, registerGrowthSession } from './chatSetupGrowthSession.js';
 import { AICodeActionsHelper, AINewSymbolNamesProvider, ChatCodeActionsProvider, SetupAgent } from './chatSetupProviders.js';
-import { ChatSetup } from './chatSetupRunner.js';
+import { ChatSetup, shouldRunChatSetupRunner } from './chatSetupRunner.js';
 
 const defaultChat = {
 	chatExtensionId: product.defaultChatAgent?.chatExtensionId ?? '',
@@ -69,7 +69,7 @@ const defaultChat = {
 
 const SIGN_IN_TITLE_BAR_ACTION_ID = 'workbench.action.chat.signInIndicator';
 
-const chatSetupSessionsWindowPrecondition = (precondition: ContextKeyExpression) => ContextKeyExpr.and(IsSessionsWindowContext, precondition);
+const chatSetupSessionsWindowPrecondition = (precondition: ContextKeyExpression | undefined) => ContextKeyExpr.and(IsSessionsWindowContext, precondition) ?? IsSessionsWindowContext;
 
 export class ChatSetupContribution extends Disposable implements IWorkbenchContribution {
 
@@ -84,7 +84,7 @@ export class ChatSetupContribution extends Disposable implements IWorkbenchContr
 		@IWorkbenchExtensionEnablementService private readonly extensionEnablementService: IWorkbenchExtensionEnablementService,
 		@IExtensionsWorkbenchService private readonly extensionsWorkbenchService: IExtensionsWorkbenchService,
 		@IExtensionService private readonly extensionService: IExtensionService,
-		@IEnvironmentService private readonly environmentService: IEnvironmentService,
+		@IWorkbenchEnvironmentService private readonly environmentService: IWorkbenchEnvironmentService,
 		@IChatSessionsService private readonly chatSessionsService: IChatSessionsService,
 		@IConfigurationService private readonly configurationService: IConfigurationService,
 	) {
@@ -99,7 +99,9 @@ export class ChatSetupContribution extends Disposable implements IWorkbenchContr
 		const controller = new Lazy(() => this._register(this.instantiationService.createInstance(ChatSetupController, context, requests)));
 
 		this.registerSetupAgents(context, controller);
-		this.registerGrowthSession(chatEntitlementService);
+		if (this.environmentService.isSessionsWindow) {
+			this.registerGrowthSession(chatEntitlementService);
+		}
 		this.registerActions(context, requests, controller);
 		this.registerSignInTitleBarEntry(actionViewItemService);
 		this.registerUrlLinkHandler();
@@ -114,10 +116,11 @@ export class ChatSetupContribution extends Disposable implements IWorkbenchContr
 		const codeActionsProviderDisposables = markAsSingleton(new MutableDisposable());
 
 		const updateRegistration = () => {
+			const isSessionsWindow = this.environmentService.isSessionsWindow;
 
 			// Agent + Tools
 			{
-				if (!context.state.hidden && !context.state.disabledInWorkspace) {
+				if (isSessionsWindow && !context.state.hidden && !context.state.disabledInWorkspace) {
 
 					// Default Agents (always, even if installed to allow for speedy requests right on startup)
 					if (!defaultAgentDisposables.value) {
@@ -165,7 +168,7 @@ export class ChatSetupContribution extends Disposable implements IWorkbenchContr
 
 			// Rename Provider
 			{
-				if (!context.state.completed && !context.state.hidden && !context.state.disabledInWorkspace) {
+				if (isSessionsWindow && !context.state.completed && !context.state.hidden && !context.state.disabledInWorkspace) {
 					if (!renameProviderDisposables.value) {
 						renameProviderDisposables.value = AINewSymbolNamesProvider.registerProvider(this.instantiationService, context, controller);
 					}
@@ -176,7 +179,7 @@ export class ChatSetupContribution extends Disposable implements IWorkbenchContr
 
 			// Code Actions Provider
 			{
-				if (!context.state.completed && !context.state.hidden && !context.state.disabledInWorkspace) {
+				if (isSessionsWindow && !context.state.completed && !context.state.hidden && !context.state.disabledInWorkspace) {
 					if (!codeActionsProviderDisposables.value) {
 						codeActionsProviderDisposables.value = ChatCodeActionsProvider.registerProvider(this.instantiationService);
 					}
@@ -190,6 +193,10 @@ export class ChatSetupContribution extends Disposable implements IWorkbenchContr
 	}
 
 	private registerGrowthSession(chatEntitlementService: ChatEntitlementService): void {
+		if (!this.environmentService.isSessionsWindow) {
+			return;
+		}
+
 		const growthSessionDisposables = markAsSingleton(new MutableDisposable());
 
 		const updateGrowthSession = () => {
@@ -251,6 +258,7 @@ export class ChatSetupContribution extends Disposable implements IWorkbenchContr
 				const commandService = accessor.get(ICommandService);
 				const lifecycleService = accessor.get(ILifecycleService);
 				const configurationService = accessor.get(IConfigurationService);
+				const environmentService = accessor.get(IWorkbenchEnvironmentService);
 
 				await context.update({ hidden: false });
 				configurationService.updateValue(ChatAIDisabledSettingId, false);
@@ -277,7 +285,7 @@ export class ChatSetupContribution extends Disposable implements IWorkbenchContr
 					return result;
 				}
 				const { success } = result;
-				if (success === false && !result.errorAlreadyHandled && !lifecycleService.willShutdown) {
+				if (success === false && !result.errorAlreadyHandled && !lifecycleService.willShutdown && shouldRunChatSetupRunner(environmentService.isSessionsWindow)) {
 					const { confirmed } = await dialogService.confirm({
 						type: Severity.Error,
 						message: localize('setupErrorDialog', "Chat setup failed. Would you like to try again?"),
@@ -480,6 +488,7 @@ export class ChatSetupContribution extends Disposable implements IWorkbenchContr
 						group: 'a_first',
 						order: 1,
 						when: ContextKeyExpr.and(
+							IsSessionsWindowContext,
 							ChatContextKeys.Entitlement.planFree,
 							ContextKeyExpr.or(
 								ChatContextKeys.chatQuotaExceeded,
@@ -547,6 +556,7 @@ export class ChatSetupContribution extends Disposable implements IWorkbenchContr
 						group: 'a_first',
 						order: 1,
 						when: ContextKeyExpr.and(
+							IsSessionsWindowContext,
 							ContextKeyExpr.or(
 								ChatContextKeys.Entitlement.planPro,
 								ChatContextKeys.Entitlement.planProPlus,
@@ -736,6 +746,7 @@ class ChatSetupExtensionUrlHandler implements IExtensionUrlHandlerOverride {
 		@ITelemetryService private readonly telemetryService: ITelemetryService,
 		@IChatEntitlementService private readonly chatEntitlementService: IChatEntitlementService,
 		@IChatInputNotificationService private readonly chatInputNotificationService: IChatInputNotificationService,
+		@IWorkbenchEnvironmentService private readonly environmentService: IWorkbenchEnvironmentService,
 	) { }
 
 	canHandleURL(url: URI): boolean {
@@ -743,6 +754,10 @@ class ChatSetupExtensionUrlHandler implements IExtensionUrlHandlerOverride {
 	}
 
 	async handleURL(url: URI): Promise<boolean> {
+		if (!shouldRunChatSetupRunner(this.environmentService.isSessionsWindow)) {
+			return false;
+		}
+
 		if (url.path === '/upgrade-success') {
 			return this._handleUpgradeSuccess();
 		}

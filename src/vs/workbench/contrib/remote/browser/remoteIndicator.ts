@@ -58,6 +58,18 @@ import { ILifecycleService } from '../../../services/lifecycle/common/lifecycle.
 
 type ActionGroup = [string, Array<MenuItemAction | SubmenuItemAction>];
 
+export function shouldRegisterRemoteHostStatusBar(options: {
+	isSessionsWindow: boolean;
+	remoteAuthority: string | undefined;
+	hasVirtualWorkspaceLocation: boolean;
+	hasWindowIndicator: boolean;
+}): boolean {
+	if (options.hasWindowIndicator || options.remoteAuthority || options.hasVirtualWorkspaceLocation) {
+		return true;
+	}
+	return options.isSessionsWindow;
+}
+
 interface RemoteExtensionMetadata {
 	id: string;
 	installed: boolean;
@@ -492,6 +504,16 @@ export class RemoteStatusIndicator extends Disposable implements IWorkbenchContr
 
 	private updateRemoteStatusIndicator(): void {
 
+		if (!shouldRegisterRemoteHostStatusBar({
+			isSessionsWindow: this.environmentService.isSessionsWindow,
+			remoteAuthority: this.remoteAuthority,
+			hasVirtualWorkspaceLocation: !!this.virtualWorkspaceLocation,
+			hasWindowIndicator: !!this.environmentService.options?.windowIndicator,
+		})) {
+			this.hideRemoteStatusIndicator();
+			return;
+		}
+
 		// Remote Indicator: show if provided via options, e.g. by the web embedder API
 		const remoteIndicator = this.environmentService.options?.windowIndicator;
 		if (remoteIndicator) {
@@ -558,6 +580,13 @@ export class RemoteStatusIndicator extends Disposable implements IWorkbenchContr
 
 		this.renderRemoteStatusIndicator(RemoteStatusIndicator.DEFAULT_REMOTE_STATUS_LABEL, nls.localize('noHost.tooltip', "Open a Remote Window"));
 		return;
+	}
+
+	private hideRemoteStatusIndicator(): void {
+		if (this.remoteStatusEntry) {
+			this.remoteStatusEntry.dispose();
+			this.remoteStatusEntry = undefined;
+		}
 	}
 
 	private renderRemoteStatusIndicator(initialText: string, initialTooltip?: string | MarkdownString, command?: string, showProgress?: boolean): void {

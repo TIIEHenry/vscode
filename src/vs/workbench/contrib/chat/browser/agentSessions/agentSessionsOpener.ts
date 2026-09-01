@@ -26,6 +26,7 @@ import { ITelemetryService } from '../../../../../platform/telemetry/common/tele
 import { IProgressService, ProgressLocation } from '../../../../../platform/progress/common/progress.js';
 import { migratedCopilotCliResource } from '../copilotCliEventsUri.js';
 import { adoptLegacyCopilotCliResource, LEGACY_MIGRATION_OPEN_TIMEOUT_MS, reportLegacyMigrationOpen } from './agentHost/agentHostLegacyMigration.js';
+import { focusConversationPart, isDefaultCodeWindow } from '../actions/chatActions.js';
 
 //#region Session Opener Registry
 
@@ -185,6 +186,11 @@ export async function openSession(accessor: ServicesAccessor, session: IAgentSes
 }
 
 async function openSessionDefault(accessor: ServicesAccessor, session: IAgentSession, openOptions?: ISessionOpenOptions): Promise<IChatWidget | undefined> {
+	if (isDefaultCodeWindow(accessor)) {
+		focusConversationPart(accessor);
+		return undefined;
+	}
+
 	const chatSessionsService = accessor.get(IChatSessionsService);
 	const chatWidgetService = accessor.get(IChatWidgetService);
 	const notificationService = accessor.get(INotificationService);

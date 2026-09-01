@@ -17,11 +17,13 @@ import { IProgressService, ProgressLocation } from '../../../../../platform/prog
 import { CHAT_CATEGORY } from '../../browser/actions/chatActions.js';
 import { INSTALL_DICTATION_MODEL_COMMAND_ID } from '../../browser/speechToText/chatSpeechToTextService.js';
 import { ChatContextKeys } from '../../common/actions/chatContextKeys.js';
+import { IsSessionsWindowContext } from '../../../../common/contextkeys.js';
 
 export function registerInstallDictationModelAction(): void {
 	const enabled = ContextKeyExpr.and(
 		ChatContextKeys.enabled,
 		ContextKeyExpr.equals('config.dictation.enabled', true),
+		IsSessionsWindowContext,
 	);
 
 	registerAction2(class InstallDictationModelAction extends Action2 {

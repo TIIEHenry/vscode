@@ -489,6 +489,10 @@ suite('LayoutService - INV-052-NO-DUAL-HIDE', () => {
 			hideConversationEditorRemain: forceShownAgentShellPart(Parts.CONVERSATION_PART, editorOnly),
 			hideEditorAndSourcesRemain: forceShownAgentShellPart(Parts.CONVERSATION_PART, editorAndSources),
 			conversationOnlyStillValid: forceShownAgentShellPart(Parts.EDITOR_PART, conversationOnly),
+			hideEditorWhileConversationVisibleNoSources: forceShownAgentShellPart(Parts.EDITOR_PART, conversationOnly),
+			hideSourcesWhileConversationVisibleNoEditor: forceShownAgentShellPart(Parts.SOURCES_PART, conversationOnly),
+			hideSourcesWhileEditorAndConversationVisible: forceShownAgentShellPart(Parts.SOURCES_PART, { conversation: true, editor: true, sources: false }),
+			hideEditorWhileConversationAndSourcesVisible: forceShownAgentShellPart(Parts.EDITOR_PART, { conversation: true, editor: false, sources: true }),
 		}, {
 			hideConversationWhileEditorVisible: undefined,
 			hideEditorWhileConversationVisible: undefined,
@@ -504,6 +508,10 @@ suite('LayoutService - INV-052-NO-DUAL-HIDE', () => {
 			hideConversationEditorRemain: undefined,
 			hideEditorAndSourcesRemain: undefined,
 			conversationOnlyStillValid: undefined,
+			hideEditorWhileConversationVisibleNoSources: undefined,
+			hideSourcesWhileConversationVisibleNoEditor: undefined,
+			hideSourcesWhileEditorAndConversationVisible: undefined,
+			hideEditorWhileConversationAndSourcesVisible: undefined,
 		});
 	});
 });
@@ -641,5 +649,12 @@ suite('LayoutService - INV-052-NO-RIGHT-RAIL auxiliary bar fresh layout', () => 
 		const configurationRegistry = Registry.as<IConfigurationRegistry>(ConfigurationExtensions.Configuration);
 		const property = configurationRegistry.getConfigurationProperties()['workbench.editor.empty.hint'];
 		assert.strictEqual(property.default, 'hidden');
+	});
+
+	test('editor window workbench.tips.enabled defaults to false (Preview hides empty watermark shortcuts)', () => {
+		const configurationRegistry = Registry.as<IConfigurationRegistry>(ConfigurationExtensions.Configuration);
+		const property = configurationRegistry.getConfigurationProperties()['workbench.tips.enabled'];
+		assert.strictEqual(property.default, false);
+		assert.deepStrictEqual(property.agentsWindow, { default: false });
 	});
 });

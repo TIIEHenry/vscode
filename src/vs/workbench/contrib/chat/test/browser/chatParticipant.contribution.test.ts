@@ -5,10 +5,19 @@
 
 import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import type { ContextKeyExpression, ContextKeyValue } from '../../../../../platform/contextkey/common/contextkey.js';
 import { Registry } from '../../../../../platform/registry/common/platform.js';
+import { IsSessionsWindowContext } from '../../../../common/contextkeys.js';
 import { Extensions as ViewContainerExtensions, Extensions as ViewExtensions, IViewContainersRegistry, IViewsRegistry, ViewContainerLocation } from '../../../../common/views.js';
 import { ChatViewContainerId, ChatViewId } from '../../browser/chat.js';
 import '../../browser/chatParticipant.contribution.js';
+
+function evalWhen(when: ContextKeyExpression | undefined, values: Record<string, ContextKeyValue>): boolean {
+	if (!when) {
+		return true;
+	}
+	return when.evaluate({ getValue: <T extends ContextKeyValue = ContextKeyValue>(key: string) => values[key] as T });
+}
 
 suite('ChatParticipantContribution - Auxiliary Bar default', () => {
 
@@ -35,6 +44,18 @@ suite('ChatParticipantContribution - Auxiliary Bar default', () => {
 			chatViewDescriptor.openCommandActionDescriptor,
 			undefined,
 			'Chat view must not register a View-menu open command or Ctrl+Cmd+Alt+I keybinding (Open Conversation owns that surface)'
+		);
+	});
+
+	test('Chat view when clause requires Agents Window (INV-NO-COPILOT)', () => {
+		const viewsRegistry = Registry.as<IViewsRegistry>(ViewExtensions.ViewsRegistry);
+		const chatViewDescriptor = viewsRegistry.getView(ChatViewId);
+		assert.ok(chatViewDescriptor?.when, 'Chat view should have a when clause');
+
+		assert.strictEqual(
+			evalWhen(chatViewDescriptor.when, { [IsSessionsWindowContext.key]: false }),
+			false,
+			'default Code window must not show ChatView'
 		);
 	});
 });

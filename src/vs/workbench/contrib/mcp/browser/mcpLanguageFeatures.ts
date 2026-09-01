@@ -28,6 +28,7 @@ import { IMarkerData, IMarkerService, MarkerSeverity } from '../../../../platfor
 import { ISecretStorageService } from '../../../../platform/secrets/common/secrets.js';
 import { StorageScope } from '../../../../platform/storage/common/storage.js';
 import { IWorkbenchContribution } from '../../../common/contributions.js';
+import { IWorkbenchEnvironmentService } from '../../../services/environment/common/environmentService.js';
 import { IConfigurationResolverService } from '../../../services/configurationResolver/common/configurationResolver.js';
 import { ConfigurationResolverExpression, IResolvedValue } from '../../../services/configurationResolver/common/configurationResolverExpression.js';
 import { IAgentHostCustomizationService } from '../../chat/browser/agentSessions/agentHost/agentHostCustomizationService.js';
@@ -61,6 +62,7 @@ export class McpLanguageFeatures extends Disposable implements IWorkbenchContrib
 		@IMarkerService private readonly _markerService: IMarkerService,
 		@IConfigurationResolverService private readonly _configurationResolverService: IConfigurationResolverService,
 		@ISecretStorageService private readonly _secretStorageService: ISecretStorageService,
+		@IWorkbenchEnvironmentService private readonly _environmentService: IWorkbenchEnvironmentService,
 	) {
 		super();
 
@@ -206,6 +208,10 @@ export class McpLanguageFeatures extends Disposable implements IWorkbenchContrib
 	}
 
 	private async _provideCodeLenses(model: ITextModel, onDidChangeCodeLens: () => void): Promise<CodeLensList | undefined> {
+		if (!this._environmentService.isSessionsWindow) {
+			return undefined;
+		}
+
 		const parsed = await this._parseModel(model);
 		if (!parsed) {
 			return undefined;

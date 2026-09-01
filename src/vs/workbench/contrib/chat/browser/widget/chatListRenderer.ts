@@ -81,7 +81,7 @@ import { ChatAgentHover, getChatAgentHoverOptions } from './chatAgentHover.js';
 import { ChatContentMarkdownRenderer } from './chatContentMarkdownRenderer.js';
 import { ChatAgentCommandContentPart } from './chatContentParts/chatAgentCommandContentPart.js';
 import { ChatAgentMergeContentPart } from './chatContentParts/chatAgentMergeContentPart.js';
-import { ChatAnonymousRateLimitedPart } from './chatContentParts/chatAnonymousRateLimitedPart.js';
+import { ChatAnonymousRateLimitedPart, shouldShowChatAnonymousRateLimitedPart } from './chatContentParts/chatAnonymousRateLimitedPart.js';
 import { ChatAttachmentsContentPart } from './chatContentParts/chatAttachmentsContentPart.js';
 import { ChatAutoModeResolutionContentPart } from './chatContentParts/chatAutoModeResolutionContentPart.js';
 import { ChatCheckpointFileChangesSummaryContentPart } from './chatContentParts/chatChangesSummaryPart.js';
@@ -3604,7 +3604,7 @@ export class ChatListItemRenderer extends Disposable implements ITreeRenderer<Ch
 		if (content.errorDetails.isQuotaExceeded) {
 			const renderedError = this.instantiationService.createInstance(ChatQuotaExceededPart, context.element, content, this.chatContentMarkdownRenderer);
 			return renderedError;
-		} else if (content.errorDetails.isRateLimited && this.chatEntitlementService.anonymous) {
+		} else if (content.errorDetails.isRateLimited && this.chatEntitlementService.anonymous && shouldShowChatAnonymousRateLimitedPart(this.environmentService.isSessionsWindow)) {
 			const renderedError = this.instantiationService.createInstance(ChatAnonymousRateLimitedPart, content);
 			return renderedError;
 		} else if (content.errorDetails.confirmationButtons && isLast) {

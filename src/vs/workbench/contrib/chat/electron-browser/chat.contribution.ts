@@ -35,7 +35,9 @@ import './codexCustomizationSettings.contribution.js';
 import { AgentSessionProviders, getAgentSessionProviderName } from '../browser/agentSessions/agentSessions.js';
 import { IAgentSessionsService } from '../browser/agentSessions/agentSessionsService.js';
 import { ChatViewPaneTarget, IChatWidgetService } from '../browser/chat.js';
+import { BugIndicatingError } from '../../../../base/common/errors.js';
 import { ChatSessionPosition, openChatSession } from '../browser/chatSessions/chatSessions.contribution.js';
+import { isDefaultCodeWindow } from '../browser/chatShellRouting.js';
 import { IAgentHostService } from '../../../../platform/agentHost/common/agentService.js';
 import { type AgentInfo, type RootState } from '../../../../platform/agentHost/common/state/sessionState.js';
 import { ChatContextKeys } from '../common/actions/chatContextKeys.js';
@@ -307,6 +309,9 @@ async function resolveAgentHostSessionType(agentHostService: IAgentHostService):
 // Delegates to `openChatSession` so the session type picker, context keys,
 // and welcome flows all stay in sync with the dynamic per-agent path.
 async function openNewAgentHostSession(accessor: ServicesAccessor, position: ChatSessionPosition): Promise<void> {
+	if (isDefaultCodeWindow(accessor) && position === ChatSessionPosition.Editor) {
+		throw new BugIndicatingError('Default Code window must not open ChatEditorInput sessions');
+	}
 	// Snapshot the services we need synchronously — `accessor` is only valid
 	// before the first `await`. Use the instantiation service to mint a fresh
 	// accessor for the downstream `openChatSession` call.

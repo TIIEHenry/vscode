@@ -16,21 +16,28 @@ import { IInstantiationService, ServicesAccessor } from '../../../../platform/in
 import { IEditorService } from '../../../services/editor/common/editorService.js';
 import { IEditorGroupsService } from '../../../services/editor/common/editorGroupsService.js';
 import { IContextKeyService } from '../../../../platform/contextkey/common/contextkey.js';
-import { AuxiliaryBarMaximizedContext } from '../../../common/contextkeys.js';
+import { AuxiliaryBarMaximizedContext, IsSessionsWindowContext } from '../../../common/contextkeys.js';
 import { IStorageService, StorageScope } from '../../../../platform/storage/common/storage.js';
 import { AgentSessionsWelcomeInput } from './agentSessionsWelcomeInput.js';
-import { AgentSessionsWelcomePage, AgentSessionsWelcomeInputSerializer } from './agentSessionsWelcome.js';
+import { AgentSessionsWelcomePage, AgentSessionsWelcomeInputWorkbenchSerializer } from './agentSessionsWelcome.js';
 import { Action2, registerAction2 } from '../../../../platform/actions/common/actions.js';
 import { ChatContextKeys } from '../../chat/common/actions/chatContextKeys.js';
 import { IWorkspaceContextService, WorkbenchState } from '../../../../platform/workspace/common/workspace.js';
 import { IChatEntitlementService } from '../../../services/chat/common/chatEntitlementService.js';
+import { ContextKeyExpr } from '../../../../platform/contextkey/common/contextkey.js';
+import { IWorkbenchEnvironmentService } from '../../../services/environment/common/environmentService.js';
 
 // Registration priority
 const agentSessionsWelcomeInputTypeId = 'workbench.editors.agentSessionsWelcomeInput';
 
+/** INV-NO-COPILOT: Agent Sessions Welcome URI resolver is Agents Window only. */
+export function shouldRegisterAgentSessionsWelcomeEditorResolver(isSessionsWindow: boolean): boolean {
+	return isSessionsWindow;
+}
+
 // Register editor serializer
 Registry.as<IEditorFactoryRegistry>(EditorExtensions.EditorFactory)
-	.registerEditorSerializer(agentSessionsWelcomeInputTypeId, AgentSessionsWelcomeInputSerializer);
+	.registerEditorSerializer(agentSessionsWelcomeInputTypeId, AgentSessionsWelcomeInputWorkbenchSerializer);
 
 // Register editor pane
 Registry.as<IEditorPaneRegistry>(EditorExtensions.EditorPane).registerEditorPane(
@@ -67,8 +74,13 @@ class AgentSessionsWelcomeEditorResolverContribution extends Disposable implemen
 		@IEditorResolverService editorResolverService: IEditorResolverService,
 		@IInstantiationService instantiationService: IInstantiationService,
 		@IWorkspaceContextService workspaceContextService: IWorkspaceContextService,
+		@IWorkbenchEnvironmentService environmentService: IWorkbenchEnvironmentService,
 	) {
 		super();
+
+		if (!shouldRegisterAgentSessionsWelcomeEditorResolver(environmentService.isSessionsWindow)) {
+			return;
+		}
 
 		this._register(editorResolverService.registerEditor(
 			`${AgentSessionsWelcomeInput.RESOURCE.scheme}:${AgentSessionsWelcomeInput.RESOURCE.authority}/**`,
@@ -100,7 +112,7 @@ registerAction2(class OpenAgentSessionsWelcomeAction extends Action2 {
 		super({
 			id: AgentSessionsWelcomePage.COMMAND_ID,
 			title: localize('openAgentSessionsWelcome', "Open Agent Sessions Welcome"),
-			precondition: ChatContextKeys.enabled
+			precondition: ContextKeyExpr.and(ChatContextKeys.enabled, IsSessionsWindowContext)
 		});
 	}
 
@@ -125,13 +137,18 @@ class AgentSessionsWelcomeRunnerContribution extends Disposable implements IWork
 		@IContextKeyService private readonly contextKeyService: IContextKeyService,
 		@IStorageService private readonly storageService: IStorageService,
 		@IWorkspaceContextService private readonly workspaceContextService: IWorkspaceContextService,
-		@IChatEntitlementService private readonly chatEntitlementService: IChatEntitlementService
+		@IChatEntitlementService private readonly chatEntitlementService: IChatEntitlementService,
+		@IWorkbenchEnvironmentService private readonly environmentService: IWorkbenchEnvironmentService,
 	) {
 		super();
 		this.run();
 	}
 
 	private async run(): Promise<void> {
+		if (!this.environmentService.isSessionsWindow) {
+			return;
+		}
+
 		// Check if AI features are enabled
 		if (this.chatEntitlementService.sentiment.hidden) {
 			return;

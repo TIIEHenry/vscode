@@ -116,7 +116,12 @@ export class ConversationPart extends Part implements IConversationPartService {
 	}
 
 	focus(): void {
-		this.element?.focus();
+		const dockInput = this._slots?.dock.querySelector('textarea.conversation-lens-dock-input') as HTMLTextAreaElement | null;
+		if (dockInput) {
+			dockInput.focus();
+			return;
+		}
+		this.getContainer()?.focus();
 	}
 
 	toJSON(): object {

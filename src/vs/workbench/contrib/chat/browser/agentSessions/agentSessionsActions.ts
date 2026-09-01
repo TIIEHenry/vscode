@@ -938,11 +938,11 @@ export class OpenAgentSessionInEditorGroupAction extends BaseOpenAgentSessionAct
 					primary: KeyMod.WinCtrl | KeyCode.Enter
 				},
 				weight: KeybindingWeight.WorkbenchContrib + 1,
-				when: ContextKeyExpr.and(ChatContextKeys.agentSessionsViewerFocused, IsSessionsWindowContext.negate()),
+				when: ContextKeyExpr.and(ChatContextKeys.agentSessionsViewerFocused, IsSessionsWindowContext),
 			},
 			menu: {
 				id: MenuId.AgentSessionsContext,
-				when: IsSessionsWindowContext.negate(),
+				when: IsSessionsWindowContext,
 				order: 1,
 				group: 'navigation'
 			}
@@ -980,11 +980,11 @@ export class OpenAgentSessionInNewEditorGroupAction extends BaseOpenAgentSession
 					primary: KeyMod.WinCtrl | KeyMod.Alt | KeyCode.Enter
 				},
 				weight: KeybindingWeight.WorkbenchContrib + 1,
-				when: ContextKeyExpr.and(ChatContextKeys.agentSessionsViewerFocused, IsSessionsWindowContext.negate()),
+				when: ContextKeyExpr.and(ChatContextKeys.agentSessionsViewerFocused, IsSessionsWindowContext),
 			},
 			menu: {
 				id: MenuId.AgentSessionsContext,
-				when: IsSessionsWindowContext.negate(),
+				when: IsSessionsWindowContext,
 				order: 2,
 				group: 'navigation'
 			}
@@ -1018,6 +1018,7 @@ export class OpenAgentSessionInNewWindowAction extends BaseOpenAgentSessionActio
 			title: localize2('chat.openSessionInNewWindow.label', "Open in New Window"),
 			menu: {
 				id: MenuId.AgentSessionsContext,
+				when: IsSessionsWindowContext,
 				order: 3,
 				group: 'navigation'
 			}
@@ -1032,6 +1033,14 @@ export class OpenAgentSessionInNewWindowAction extends BaseOpenAgentSessionActio
 		return {
 			auxiliary: { compact: true, bounds: { width: 800, height: 640 } }
 		};
+	}
+
+	override async runWithSessions(_sessions: IAgentSession[], accessor: ServicesAccessor): Promise<void> {
+		if (isDefaultCodeWindow(accessor)) {
+			focusConversationPart(accessor);
+			return;
+		}
+		await super.runWithSessions(_sessions, accessor);
 	}
 }
 

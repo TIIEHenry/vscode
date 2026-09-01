@@ -39,11 +39,10 @@ import { ITelemetryService } from '../../../../../platform/telemetry/common/tele
 import { ActiveEditorContext, IsSessionsWindowContext } from '../../../../common/contextkeys.js';
 import { IViewDescriptorService, ViewContainerLocation } from '../../../../common/views.js';
 import { ChatEntitlement, IChatEntitlementService } from '../../../../services/chat/common/chatEntitlementService.js';
-import { ACTIVE_GROUP, AUX_WINDOW_GROUP, IEditorService, SIDE_GROUP } from '../../../../services/editor/common/editorService.js';
-import { IWorkbenchEnvironmentService } from '../../../../services/environment/common/environmentService.js';
+import { ACTIVE_GROUP, AUX_WINDOW_GROUP, SIDE_GROUP } from '../../../../services/editor/common/editorService.js';
 import { IHostService } from '../../../../services/host/browser/host.js';
-import { IConversationPartService } from '../../../../browser/parts/conversation/conversationPart.js';
 import { IWorkbenchLayoutService, Parts } from '../../../../services/layout/browser/layoutService.js';
+import { focusConversationPart, isDefaultCodeWindow } from '../chatShellRouting.js';
 import { IPreferencesService } from '../../../../services/preferences/common/preferences.js';
 import { IViewsService } from '../../../../services/views/common/viewsService.js';
 import { EXTENSIONS_CATEGORY, IExtensionsWorkbenchService } from '../../../extensions/common/extensions.js';
@@ -209,24 +208,7 @@ export interface IChatViewOpenRequestEntry {
 	response: string;
 }
 
-/** Default Code window (not Agents Window). */
-export function isDefaultCodeWindow(accessor: ServicesAccessor): boolean {
-	return !accessor.get(IWorkbenchEnvironmentService).isSessionsWindow;
-}
-
-/** Show and focus the center ConversationPart (INV-TOPO product shell). */
-export function focusConversationPart(accessor: ServicesAccessor): void {
-	const layoutService = accessor.get(IWorkbenchLayoutService);
-	const conversationPartService = accessor.get(IConversationPartService);
-	if (!layoutService.isVisible(Parts.CONVERSATION_PART)) {
-		layoutService.setPartHidden(false, Parts.CONVERSATION_PART);
-	}
-	conversationPartService.focus();
-}
-
-function shouldFocusConversationPartInsteadOfChatEditor(accessor: ServicesAccessor): boolean {
-	return isDefaultCodeWindow(accessor) && !(accessor.get(IEditorService).activeEditor instanceof ChatEditorInput);
-}
+export { focusConversationPart, isDefaultCodeWindow, shouldRouteChatEditorToConversation } from '../chatShellRouting.js';
 
 const OPEN_CHAT_QUOTA_EXCEEDED_DIALOG = 'workbench.action.chat.openQuotaExceededDialog';
 
@@ -240,6 +222,7 @@ abstract class OpenChatGlobalAction extends Action2 {
 			precondition: ContextKeyExpr.and(
 				ChatContextKeys.Setup.hidden.negate(),
 				ChatContextKeys.Setup.disabledInWorkspace.negate(),
+				IsSessionsWindowContext,
 			)
 		});
 	}
@@ -592,7 +575,8 @@ class PrimaryOpenChatGlobalAction extends OpenChatGlobalAction {
 			menu: [{
 				id: MenuId.ChatTitleBarMenu,
 				group: 'a_open',
-				order: 1
+				order: 1,
+				when: IsSessionsWindowContext,
 			}]
 		});
 	}
@@ -626,7 +610,7 @@ export function registerChatActions() {
 	}
 
 	async function openNewChatEditorSession(accessor: ServicesAccessor, target: typeof ACTIVE_GROUP | typeof SIDE_GROUP | typeof AUX_WINDOW_GROUP, options?: IChatEditorOptions): Promise<void> {
-		if (shouldFocusConversationPartInsteadOfChatEditor(accessor)) {
+		if (isDefaultCodeWindow(accessor)) {
 			focusConversationPart(accessor);
 			return;
 		}
@@ -665,6 +649,11 @@ export function registerChatActions() {
 		}
 
 		async run(accessor: ServicesAccessor) {
+			if (isDefaultCodeWindow(accessor)) {
+				focusConversationPart(accessor);
+				return;
+			}
+
 			const layoutService = accessor.get(IWorkbenchLayoutService);
 			const viewsService = accessor.get(IViewsService);
 			const viewDescriptorService = accessor.get(IViewDescriptorService);
@@ -718,7 +707,8 @@ export function registerChatActions() {
 				menu: [{
 					id: MenuId.ChatTitleBarMenu,
 					group: 'b_new',
-					order: 0
+					order: 0,
+					when: IsSessionsWindowContext,
 				}, {
 					id: MenuId.ChatNewMenu,
 					group: '2_new',
@@ -837,7 +827,8 @@ export function registerChatActions() {
 				menu: [{
 					id: MenuId.ChatTitleBarMenu,
 					group: 'b_new',
-					order: 1
+					order: 1,
+					when: IsSessionsWindowContext,
 				}, {
 					id: MenuId.ChatNewMenu,
 					group: '2_new',
@@ -1147,7 +1138,7 @@ export function registerChatActions() {
 				title: localize2('interactiveSession.showContextUsage.label', "Show Context Window Usage"),
 				category: CHAT_CATEGORY,
 				f1: true,
-				precondition: ChatContextKeys.enabled,
+				precondition: ContextKeyExpr.and(ChatContextKeys.enabled, IsSessionsWindowContext),
 			});
 		}
 
@@ -1227,7 +1218,7 @@ export function registerChatActions() {
 					id: MenuId.ChatTitleBarMenu,
 					group: 'y_manage',
 					order: 1,
-					when: nonEnterpriseCopilotUsers
+					when: ContextKeyExpr.and(nonEnterpriseCopilotUsers, IsSessionsWindowContext)
 				}
 			});
 		}
@@ -1272,6 +1263,7 @@ export function registerChatActions() {
 					id: MenuId.ChatTitleBarMenu,
 					group: 'f_completions',
 					order: 10,
+					when: IsSessionsWindowContext,
 				}
 			});
 		}

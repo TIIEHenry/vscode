@@ -42,6 +42,9 @@ import { ILogService } from '../../../../platform/log/common/log.js';
 const explorerViewIcon = registerIcon('explorer-view-icon', Codicon.files, localize('explorerViewIcon', 'View icon of the explorer view.'));
 const openEditorsViewIcon = registerIcon('open-editors-view-icon', Codicon.book, localize('openEditorsIcon', 'View icon of the open editors view.'));
 
+/** Files sidebar views are available whenever the Files container is enabled (default Code window). */
+export const explorerSidebarViewsWhen = undefined;
+
 export class ExplorerViewletViewsContribution extends Disposable implements IWorkbenchContribution {
 
 	static readonly ID = 'workbench.contrib.explorerViewletViews';
@@ -115,6 +118,7 @@ export class ExplorerViewletViewsContribution extends Disposable implements IWor
 			canMoveView: true,
 			collapsed: false,
 			hideByDefault: true,
+			when: explorerSidebarViewsWhen,
 			focusCommand: {
 				id: 'workbench.files.action.focusOpenEditorsView',
 				keybindings: { primary: KeyChord(KeyMod.CtrlCmd | KeyCode.KeyK, KeyCode.KeyE) }
@@ -130,6 +134,7 @@ export class ExplorerViewletViewsContribution extends Disposable implements IWor
 			ctorDescriptor: new SyncDescriptor(EmptyView),
 			order: 1,
 			canToggleVisibility: true,
+			when: explorerSidebarViewsWhen,
 			focusCommand: {
 				id: 'workbench.explorer.fileView.focus'
 			}
@@ -145,6 +150,7 @@ export class ExplorerViewletViewsContribution extends Disposable implements IWor
 			order: 1,
 			canMoveView: true,
 			canToggleVisibility: false,
+			when: explorerSidebarViewsWhen,
 			focusCommand: {
 				id: 'workbench.explorer.fileView.focus'
 			}
@@ -267,7 +273,9 @@ export const VIEW_CONTAINER: ViewContainer = viewContainerRegistry.registerViewC
 		id: VIEWLET_ID,
 		title: localize2('exploreFiles', "Files"),
 		mnemonicTitle: localize({ key: 'miViewFiles', comment: ['&& denotes a mnemonic'] }, "&&Files"),
-		keybindings: { primary: KeyMod.CtrlCmd | KeyMod.Shift | KeyCode.KeyE },
+		keybindings: {
+			primary: KeyMod.CtrlCmd | KeyMod.Shift | KeyCode.KeyE,
+		},
 		order: 0
 	},
 }, ViewContainerLocation.Sidebar, { isDefault: true });

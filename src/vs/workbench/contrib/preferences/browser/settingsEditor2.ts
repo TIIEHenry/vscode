@@ -68,9 +68,9 @@ import './media/settingsEditor2.css';
 import { preferencesAiResultsIcon, preferencesClearInputIcon, preferencesFilterIcon } from './preferencesIcons.js';
 import { SettingsTarget, SettingsTargetsWidget } from './preferencesWidgets.js';
 import { ISettingOverrideClickEvent } from './settingsEditorSettingIndicators.js';
-import { getCommonlyUsedData, ITOCEntry, tocData } from './settingsLayout.js';
+import { getCommonlyUsedData, DEFAULT_COMMONLY_USED_EXCLUDE_KEY_PATTERNS, filterExtensionSettingsGroupsForWindow, getSettingsTocFilter, getTocDataForWindow, ITOCEntry, shouldIncludeSettingInWindowSearch } from './settingsLayout.js';
 import { SettingsSearchFilterDropdownMenuActionViewItem } from './settingsSearchMenu.js';
-import { AbstractSettingRenderer, createTocTreeForExtensionSettings, HeightChangeParams, ISettingLinkClickEvent, resolveConfiguredUntrustedSettings, resolveSettingsTree, SettingsTree, SettingTreeRenderers } from './settingsTree.js';
+import { AbstractSettingRenderer, createSettingMatchRegExp, createTocTreeForExtensionSettings, HeightChangeParams, ISettingLinkClickEvent, resolveConfiguredUntrustedSettings, resolveSettingsTree, SettingsTree, SettingTreeRenderers } from './settingsTree.js';
 import { ISettingsEditorViewState, parseQuery, SearchResultIdx, SearchResultModel, SettingsTreeElement, SettingsTreeGroupChild, SettingsTreeGroupElement, SettingsTreeModel, SettingsTreeSettingElement } from './settingsTreeModels.js';
 import { createTOCIterator, TOCTree, TOCTreeModel } from './tocTree.js';
 
@@ -101,35 +101,12 @@ export function isSettingsSearchUpToDate(searchPending: boolean, renderedSearchQ
 	return !searchPending && renderedSearchQuery === currentSearchValue.trim();
 }
 
-const $ = DOM.$;
-
-const searchBoxLabel = localize('SearchSettings.AriaLabel', "Search settings");
-const searchBoxPlaceholderWithHistory = localize({
-	key: 'SearchSettings.PlaceholderWithHistory',
-	comment: ['Placeholder for the settings search input hinting that the up and down arrow keys navigate the search history. The character inserted for {0} is \u21C5 to represent the up and down arrow keys.']
-}, "Search settings ({0} for history)", '\u21C5');
-const SEARCH_TOC_BEHAVIOR_KEY = 'workbench.settings.settingsSearchTocBehavior';
-
-const SHOW_AI_RESULTS_ENABLED_LABEL = localize('showAiResultsEnabled', "Show AI-recommended results");
-const SHOW_AI_RESULTS_DISABLED_LABEL = localize('showAiResultsDisabled', "No AI results available at this time...");
-
-const SETTINGS_EDITOR_STATE_KEY = 'settingsEditorState';
-
-export class SettingsEditor2 extends EditorPane {
-
-	static readonly ID: string = 'workbench.editor.settings2';
-	private static NUM_INSTANCES: number = 0;
-	private static SEARCH_DEBOUNCE: number = 200;
-	private static SETTING_UPDATE_FAST_DEBOUNCE: number = 200;
-	private static SETTING_UPDATE_SLOW_DEBOUNCE: number = 1000;
-	private static CONFIG_SCHEMA_UPDATE_DELAYER = 500;
-	private static TOC_MIN_WIDTH: number = 100;
-	private static TOC_RESET_WIDTH: number = 200;
-	private static EDITOR_MIN_WIDTH: number = 500;
-	// Below NARROW_TOTAL_WIDTH, we only render the editor rather than the ToC.
-	private static NARROW_TOTAL_WIDTH: number = this.TOC_RESET_WIDTH + this.EDITOR_MIN_WIDTH;
-
-	private static SUGGESTIONS: string[] = [
+/**
+ * Settings search @-filter suggestions, assembled per window.
+ * Default Code window omits `@feature:chat`; Agents window keeps it.
+ */
+export function getSettingsSearchSuggestions(isSessionsWindow: boolean): string[] {
+	const suggestions: string[] = [
 		`@${MODIFIED_SETTING_TAG}`,
 		'@tag:notebookLayout',
 		'@tag:notebookOutputLayout',
@@ -158,9 +135,47 @@ export class SettingsEditor2 extends EditorPane {
 		`@${FEATURE_SETTING_TAG}remote`,
 		`@${FEATURE_SETTING_TAG}timeline`,
 		`@${FEATURE_SETTING_TAG}notebook`,
-		`@${FEATURE_SETTING_TAG}chat`,
-		`@${POLICY_SETTING_TAG}`
 	];
+	if (isSessionsWindow) {
+		suggestions.push(`@${FEATURE_SETTING_TAG}chat`);
+	}
+	suggestions.push(`@${POLICY_SETTING_TAG}`);
+	if (ENABLE_LANGUAGE_FILTER) {
+		suggestions.push(`@${LANGUAGE_SETTING_TAG}`);
+	}
+	if (isSessionsWindow) {
+		suggestions.push(`@${AGENTS_WINDOW_SETTING_TAG}`);
+	}
+	return suggestions;
+}
+
+const $ = DOM.$;
+
+const searchBoxLabel = localize('SearchSettings.AriaLabel', "Search settings");
+const searchBoxPlaceholderWithHistory = localize({
+	key: 'SearchSettings.PlaceholderWithHistory',
+	comment: ['Placeholder for the settings search input hinting that the up and down arrow keys navigate the search history. The character inserted for {0} is \u21C5 to represent the up and down arrow keys.']
+}, "Search settings ({0} for history)", '\u21C5');
+const SEARCH_TOC_BEHAVIOR_KEY = 'workbench.settings.settingsSearchTocBehavior';
+
+const SHOW_AI_RESULTS_ENABLED_LABEL = localize('showAiResultsEnabled', "Show AI-recommended results");
+const SHOW_AI_RESULTS_DISABLED_LABEL = localize('showAiResultsDisabled', "No AI results available at this time...");
+
+const SETTINGS_EDITOR_STATE_KEY = 'settingsEditorState';
+
+export class SettingsEditor2 extends EditorPane {
+
+	static readonly ID: string = 'workbench.editor.settings2';
+	private static NUM_INSTANCES: number = 0;
+	private static SEARCH_DEBOUNCE: number = 200;
+	private static SETTING_UPDATE_FAST_DEBOUNCE: number = 200;
+	private static SETTING_UPDATE_SLOW_DEBOUNCE: number = 1000;
+	private static CONFIG_SCHEMA_UPDATE_DELAYER = 500;
+	private static TOC_MIN_WIDTH: number = 100;
+	private static TOC_RESET_WIDTH: number = 200;
+	private static EDITOR_MIN_WIDTH: number = 500;
+	// Below NARROW_TOTAL_WIDTH, we only render the editor rather than the ToC.
+	private static NARROW_TOTAL_WIDTH: number = this.TOC_RESET_WIDTH + this.EDITOR_MIN_WIDTH;
 
 	private static shouldSettingUpdateFast(type: SettingValueType | SettingValueType[]): boolean {
 		if (Array.isArray(type)) {
@@ -261,6 +276,8 @@ export class SettingsEditor2 extends EditorPane {
 
 	private readonly inputChangeListener: MutableDisposable<IDisposable>;
 
+	private readonly suggestions: string[];
+
 	private searchInputActionBar: ActionBar | null = null;
 
 	constructor(
@@ -316,9 +333,11 @@ export class SettingsEditor2 extends EditorPane {
 			.split(this.DISMISSED_EXTENSION_SETTINGS_DELIMITER);
 
 		this._register(configurationService.onDidChangeConfiguration(e => {
-			if (e.affectedKeys.has(WorkbenchSettingsEditorSettings.ShowAISearchToggle)
-				|| e.affectedKeys.has(WorkbenchSettingsEditorSettings.EnableNaturalLanguageSearch)) {
-				this.updateAiSearchToggleVisibility();
+			if (this.environmentService.isSessionsWindow) {
+				if (e.affectedKeys.has(WorkbenchSettingsEditorSettings.ShowAISearchToggle)
+					|| e.affectedKeys.has(WorkbenchSettingsEditorSettings.EnableNaturalLanguageSearch)) {
+					this.updateAiSearchToggleVisibility();
+				}
 			}
 			if (e.affectsConfiguration(ALWAYS_SHOW_ADVANCED_SETTINGS_SETTING)) {
 				this.onConfigUpdate(undefined, true, true);
@@ -328,9 +347,11 @@ export class SettingsEditor2 extends EditorPane {
 			}
 		}));
 
-		this._register(chatEntitlementService.onDidChangeSentiment(() => {
-			this.updateAiSearchToggleVisibility();
-		}));
+		if (this.environmentService.isSessionsWindow) {
+			this._register(chatEntitlementService.onDidChangeSentiment(() => {
+				this.updateAiSearchToggleVisibility();
+			}));
+		}
 
 		this._register(userDataProfileService.onDidChangeCurrentProfile(e => {
 			e.join(this.whenCurrentProfileChanged());
@@ -360,12 +381,7 @@ export class SettingsEditor2 extends EditorPane {
 
 		this.modelDisposables = this._register(new DisposableStore());
 
-		if (ENABLE_LANGUAGE_FILTER && !SettingsEditor2.SUGGESTIONS.includes(`@${LANGUAGE_SETTING_TAG}`)) {
-			SettingsEditor2.SUGGESTIONS.push(`@${LANGUAGE_SETTING_TAG}`);
-		}
-		if (this.environmentService.isSessionsWindow && !SettingsEditor2.SUGGESTIONS.includes(`@${AGENTS_WINDOW_SETTING_TAG}`)) {
-			SettingsEditor2.SUGGESTIONS.push(`@${AGENTS_WINDOW_SETTING_TAG}`);
-		}
+		this.suggestions = getSettingsSearchSuggestions(this.environmentService.isSessionsWindow);
 		this.inputChangeListener = this._register(new MutableDisposable());
 	}
 
@@ -419,6 +435,10 @@ export class SettingsEditor2 extends EditorPane {
 	}
 
 	private updateAiSearchToggleVisibility(): void {
+		if (!this.environmentService.isSessionsWindow) {
+			return;
+		}
+
 		if (!this.searchContainer || !this.showAiResultsAction || !this.searchInputActionBar) {
 			return;
 		}
@@ -762,7 +782,7 @@ export class SettingsEditor2 extends EditorPane {
 		const query = this.searchWidget.getValue();
 
 		const splitQuery = query.split(' ').filter(word => {
-			return word.length && !SettingsEditor2.SUGGESTIONS.some(suggestion => word.startsWith(suggestion));
+			return word.length && !this.suggestions.some(suggestion => word.startsWith(suggestion));
 		});
 
 		this.searchWidget.setValue(splitQuery.join(' '));
@@ -804,12 +824,14 @@ export class SettingsEditor2 extends EditorPane {
 		));
 
 		const showAiResultActionClassNames = ['action-label', ThemeIcon.asClassName(preferencesAiResultsIcon)];
-		this.showAiResultsAction = this._register(new Action(SETTINGS_EDITOR_COMMAND_SHOW_AI_RESULTS,
-			SHOW_AI_RESULTS_DISABLED_LABEL, showAiResultActionClassNames.join(' '), true
-		));
-		this._register(this.showAiResultsAction.onDidChange(async () => {
-			await this.onDidToggleAiSearch();
-		}));
+		if (this.environmentService.isSessionsWindow) {
+			this.showAiResultsAction = this._register(new Action(SETTINGS_EDITOR_COMMAND_SHOW_AI_RESULTS,
+				SHOW_AI_RESULTS_DISABLED_LABEL, showAiResultActionClassNames.join(' '), true
+			));
+			this._register(this.showAiResultsAction.onDidChange(async () => {
+				await this.onDidToggleAiSearch();
+			}));
+		}
 
 		const filterAction = this._register(new Action(SETTINGS_EDITOR_COMMAND_SUGGEST_FILTERS,
 			localize('filterInput', "Filter Settings"), ThemeIcon.asClassName(preferencesFilterIcon)
@@ -837,7 +859,7 @@ export class SettingsEditor2 extends EditorPane {
 						}).sort();
 						return installedExtensionsTags.filter(extFilter => !query.includes(extFilter));
 					} else if (query === '' || queryParts[queryParts.length - 1].startsWith('@')) {
-						return SettingsEditor2.SUGGESTIONS.filter(tag => !query.includes(tag)).map(tag => tag.endsWith(':') ? tag : tag + ' ');
+						return this.suggestions.filter(tag => !query.includes(tag)).map(tag => tag.endsWith(':') ? tag : tag + ' ');
 					}
 					return [];
 				}
@@ -904,8 +926,10 @@ export class SettingsEditor2 extends EditorPane {
 		const actionsToPush = [clearInputAction, filterAction];
 		this.searchInputActionBar.push(actionsToPush, { label: false, icon: true });
 
-		this.disableAiSearchToggle();
-		this.updateAiSearchToggleVisibility();
+		if (this.environmentService.isSessionsWindow) {
+			this.disableAiSearchToggle();
+			this.updateAiSearchToggleVisibility();
+		}
 	}
 
 	toggleAiSearch(): void {
@@ -1473,128 +1497,143 @@ export class SettingsEditor2 extends EditorPane {
 				coreSettingsGroups.push(group);
 			}
 		}
-		const filter = this.canShowAdvancedSettings() ? undefined : { exclude: { tags: [ADVANCED_SETTING_TAG] } };
+		const isSessionsWindow = this.environmentService.isSessionsWindow;
+		const filter = getSettingsTocFilter(isSessionsWindow, this.canShowAdvancedSettings());
 
-		const settingsResult = resolveSettingsTree(tocData, coreSettingsGroups, filter, this.logService);
+		const settingsResult = resolveSettingsTree(getTocDataForWindow(isSessionsWindow), coreSettingsGroups, filter, this.logService);
 		const resolvedSettingsRoot = settingsResult.tree;
 
 		// Warn for settings not included in layout
 		if (settingsResult.leftoverSettings.size && !this.hasWarnedMissingSettings) {
+			const chatPatterns = isSessionsWindow
+				? []
+				: (getSettingsTocFilter(false, true)?.exclude?.keyPatterns ?? []).map(createSettingMatchRegExp);
 			const settingKeyList: string[] = [];
 			settingsResult.leftoverSettings.forEach(s => {
+				if (chatPatterns.some(pattern => pattern.test(s.key))) {
+					return;
+				}
 				settingKeyList.push(s.key);
 			});
 
-			this.logService.warn(`SettingsEditor2: Settings not included in settingsLayout.ts: ${settingKeyList.join(', ')}`);
+			if (settingKeyList.length) {
+				this.logService.warn(`SettingsEditor2: Settings not included in settingsLayout.ts: ${settingKeyList.join(', ')}`);
+			}
 			this.hasWarnedMissingSettings = true;
 		}
 
 		const additionalGroups: ISettingsGroup[] = [];
 		let setAdditionalGroups = false;
-		const toggleData = await getExperimentalExtensionToggleData(this.chatEntitlementService, this.extensionGalleryService, this.productService);
-		if (toggleData && groups.filter(g => g.extensionInfo).length && Object.keys(toggleData.settingsEditorRecommendedExtensions).length) {
-			// Refresh installed extensions once per onConfigUpdate invocation for performance,
-			// instead of per extension. The installed list may still change while iterating.
-			await this.refreshInstalledExtensionsList();
-			for (const key in toggleData.settingsEditorRecommendedExtensions) {
-				const extension: IGalleryExtension = toggleData.recommendedExtensionsGalleryInfo[key];
-				if (!extension) {
-					continue;
-				}
+		if (isSessionsWindow) {
+			const toggleData = await getExperimentalExtensionToggleData(this.chatEntitlementService, this.extensionGalleryService, this.productService);
+			if (toggleData && groups.filter(g => g.extensionInfo).length && Object.keys(toggleData.settingsEditorRecommendedExtensions).length) {
+				// Refresh installed extensions once per onConfigUpdate invocation for performance,
+				// instead of per extension. The installed list may still change while iterating.
+				await this.refreshInstalledExtensionsList();
+				for (const key in toggleData.settingsEditorRecommendedExtensions) {
+					const extension: IGalleryExtension = toggleData.recommendedExtensionsGalleryInfo[key];
+					if (!extension) {
+						continue;
+					}
 
-				const extensionId = extension.identifier.id;
-				const extensionInstalled = this.installedExtensionIds.includes(extensionId);
+					const extensionId = extension.identifier.id;
+					const extensionInstalled = this.installedExtensionIds.includes(extensionId);
 
-				// Drill down to see whether the group and setting already exist
-				// and need to be removed.
-				const matchingGroupIndex = groups.findIndex(g =>
-					g.extensionInfo && g.extensionInfo!.id.toLowerCase() === extensionId.toLowerCase() &&
-					g.sections.length === 1 && g.sections[0].settings.length === 1 && g.sections[0].settings[0].displayExtensionId
-				);
-				if (extensionInstalled || this.dismissedExtensionSettings.includes(extensionId)) {
+					// Drill down to see whether the group and setting already exist
+					// and need to be removed.
+					const matchingGroupIndex = groups.findIndex(g =>
+						g.extensionInfo && g.extensionInfo!.id.toLowerCase() === extensionId.toLowerCase() &&
+						g.sections.length === 1 && g.sections[0].settings.length === 1 && g.sections[0].settings[0].displayExtensionId
+					);
+					if (extensionInstalled || this.dismissedExtensionSettings.includes(extensionId)) {
+						if (matchingGroupIndex !== -1) {
+							groups.splice(matchingGroupIndex, 1);
+							setAdditionalGroups = true;
+						}
+						continue;
+					}
+
 					if (matchingGroupIndex !== -1) {
-						groups.splice(matchingGroupIndex, 1);
-						setAdditionalGroups = true;
+						continue;
 					}
-					continue;
-				}
 
-				if (matchingGroupIndex !== -1) {
-					continue;
-				}
+					// Create the entry. extensionInstalled is false in this case.
+					let manifest: IExtensionManifest | null = null;
+					try {
+						manifest = await raceTimeout(
+							this.extensionGalleryService.getManifest(extension, CancellationToken.None),
+							EXTENSION_FETCH_TIMEOUT_MS
+						) ?? null;
+					} catch (e) {
+						// Likely a networking issue.
+						// Skip adding a button for this extension to the Settings editor.
+						continue;
+					}
 
-				// Create the entry. extensionInstalled is false in this case.
-				let manifest: IExtensionManifest | null = null;
-				try {
-					manifest = await raceTimeout(
-						this.extensionGalleryService.getManifest(extension, CancellationToken.None),
-						EXTENSION_FETCH_TIMEOUT_MS
-					) ?? null;
-				} catch (e) {
-					// Likely a networking issue.
-					// Skip adding a button for this extension to the Settings editor.
-					continue;
-				}
+					if (manifest === null) {
+						continue;
+					}
 
-				if (manifest === null) {
-					continue;
-				}
+					const contributesConfiguration = manifest?.contributes?.configuration;
 
-				const contributesConfiguration = manifest?.contributes?.configuration;
+					let groupTitle: string | undefined;
+					if (!Array.isArray(contributesConfiguration)) {
+						groupTitle = contributesConfiguration?.title;
+					} else if (contributesConfiguration.length === 1) {
+						groupTitle = contributesConfiguration[0].title;
+					}
 
-				let groupTitle: string | undefined;
-				if (!Array.isArray(contributesConfiguration)) {
-					groupTitle = contributesConfiguration?.title;
-				} else if (contributesConfiguration.length === 1) {
-					groupTitle = contributesConfiguration[0].title;
-				}
-
-				const recommendationInfo = toggleData.settingsEditorRecommendedExtensions[key];
-				const extensionName = extension.displayName ?? extension.name ?? extensionId;
-				const settingKey = `${key}.manageExtension`;
-				const setting: ISetting = {
-					range: nullRange,
-					key: settingKey,
-					keyRange: nullRange,
-					value: null,
-					valueRange: nullRange,
-					description: [recommendationInfo.onSettingsEditorOpen?.descriptionOverride ?? extension.description],
-					descriptionIsMarkdown: false,
-					descriptionRanges: [],
-					scope: ConfigurationScope.WINDOW,
-					type: 'null',
-					displayExtensionId: extensionId,
-					extensionGroupTitle: groupTitle ?? extensionName,
-					categoryLabel: 'Extensions',
-					title: extensionName
-				};
-				const additionalGroup: ISettingsGroup = {
-					sections: [{
-						settings: [setting],
-					}],
-					id: extensionId,
-					title: setting.extensionGroupTitle!,
-					titleRange: nullRange,
-					range: nullRange,
-					extensionInfo: {
+					const recommendationInfo = toggleData.settingsEditorRecommendedExtensions[key];
+					const extensionName = extension.displayName ?? extension.name ?? extensionId;
+					const settingKey = `${key}.manageExtension`;
+					const setting: ISetting = {
+						range: nullRange,
+						key: settingKey,
+						keyRange: nullRange,
+						value: null,
+						valueRange: nullRange,
+						description: [recommendationInfo.onSettingsEditorOpen?.descriptionOverride ?? extension.description],
+						descriptionIsMarkdown: false,
+						descriptionRanges: [],
+						scope: ConfigurationScope.WINDOW,
+						type: 'null',
+						displayExtensionId: extensionId,
+						extensionGroupTitle: groupTitle ?? extensionName,
+						categoryLabel: 'Extensions',
+						title: extensionName
+					};
+					const additionalGroup: ISettingsGroup = {
+						sections: [{
+							settings: [setting],
+						}],
 						id: extensionId,
-						displayName: extension.displayName,
-					}
-				};
-				groups.push(additionalGroup);
-				additionalGroups.push(additionalGroup);
-				setAdditionalGroups = true;
+						title: setting.extensionGroupTitle!,
+						titleRange: nullRange,
+						range: nullRange,
+						extensionInfo: {
+							id: extensionId,
+							displayName: extension.displayName,
+						}
+					};
+					groups.push(additionalGroup);
+					additionalGroups.push(additionalGroup);
+					setAdditionalGroups = true;
+				}
+			}
+
+			if (setAdditionalGroups) {
+				// Add the additional groups to the model to help with searching.
+				this.defaultSettingsEditorModel.setAdditionalGroups(additionalGroups);
 			}
 		}
 
-		resolvedSettingsRoot.children!.push(await createTocTreeForExtensionSettings(this.extensionService, extensionSettingsGroups, filter));
-
-		resolvedSettingsRoot.children!.unshift(getCommonlyUsedData(groups));
-
-		if (toggleData && setAdditionalGroups) {
-			// Add the additional groups to the model to help with searching.
-			this.defaultSettingsEditorModel.setAdditionalGroups(additionalGroups);
+		const extensionGroupsForToc = filterExtensionSettingsGroupsForWindow(extensionSettingsGroups, isSessionsWindow);
+		if (extensionGroupsForToc.length) {
+			resolvedSettingsRoot.children!.push(await createTocTreeForExtensionSettings(this.extensionService, extensionGroupsForToc, filter));
 		}
+
+		const commonlyUsedExclude = isSessionsWindow ? undefined : DEFAULT_COMMONLY_USED_EXCLUDE_KEY_PATTERNS;
+		resolvedSettingsRoot.children!.unshift(getCommonlyUsedData(groups, commonlyUsedExclude));
 
 		if (!this.workspaceTrustManagementService.isWorkspaceTrusted() && (this.viewState.settingsTarget instanceof URI || this.viewState.settingsTarget === ConfigurationTarget.WORKSPACE)) {
 			const configuredUntrustedWorkspaceSettings = resolveConfiguredUntrustedSettings(groups, this.viewState.settingsTarget, this.viewState.languageFilter, this.configurationService);
@@ -1962,6 +2001,9 @@ export class SettingsEditor2 extends EditorPane {
 		for (const g of this.defaultSettingsEditorModel.settingsGroups.slice(1)) {
 			for (const sect of g.sections) {
 				for (const setting of sect.settings) {
+					if (!shouldIncludeSettingInWindowSearch(setting, this.environmentService.isSessionsWindow)) {
+						continue;
+					}
 					if (!shouldShowAdvanced && !this.shouldShowSetting(setting)) {
 						continue;
 					}
@@ -2123,9 +2165,15 @@ export class SettingsEditor2 extends EditorPane {
 			return null;
 		}
 
-		// Filter out advanced settings unless the advanced tag is explicitly set or setting matches an ID filter
-		if (result && !this.canShowAdvancedSettings()) {
-			result.filterMatches = result.filterMatches.filter(match => this.shouldShowSetting(match.setting));
+		if (result) {
+			const isSessionsWindow = this.environmentService.isSessionsWindow;
+			const showAdvanced = this.canShowAdvancedSettings();
+			result.filterMatches = result.filterMatches.filter(match => {
+				if (!shouldIncludeSettingInWindowSearch(match.setting, isSessionsWindow)) {
+					return false;
+				}
+				return showAdvanced || this.shouldShowSetting(match.setting);
+			});
 		}
 
 		// Only log the elapsed time if there are actual results.

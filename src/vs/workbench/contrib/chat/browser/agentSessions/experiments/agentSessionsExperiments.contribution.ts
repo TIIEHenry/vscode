@@ -14,7 +14,7 @@ import { Codicon } from '../../../../../../base/common/codicons.js';
 import { localize } from '../../../../../../nls.js';
 import { ContextKeyExpr } from '../../../../../../platform/contextkey/common/contextkey.js';
 import { ProductQualityContext } from '../../../../../../platform/contextkey/common/contextkeys.js';
-import { InEditorZenModeContext } from '../../../../../common/contextkeys.js';
+import { InEditorZenModeContext, IsSessionsWindowContext } from '../../../../../common/contextkeys.js';
 import { ChatAgentLocation, ChatConfiguration } from '../../../common/constants.js';
 import { ChatContextKeys } from '../../../common/actions/chatContextKeys.js';
 import { Disposable, DisposableStore, IDisposable } from '../../../../../../base/common/lifecycle.js';
@@ -256,6 +256,7 @@ MenuRegistry.appendMenuItem(MenuId.CommandCenter, {
 	title: localize('agentsControl', "Agents"),
 	icon: Codicon.chatSparkle,
 	when: ContextKeyExpr.and(
+		IsSessionsWindowContext,
 		ChatContextKeys.enabled,
 		ContextKeyExpr.notEquals(`config.${ChatConfiguration.AgentStatusEnabled}`, 'hidden'),
 		ContextKeyExpr.notEquals(`config.${ChatConfiguration.AgentStatusEnabled}`, false),
@@ -271,6 +272,7 @@ MenuRegistry.appendMenuItem(MenuId.TitleBar, {
 	group: 'navigation',
 	icon: Codicon.chatSparkle,
 	when: ContextKeyExpr.and(
+		IsSessionsWindowContext,
 		ChatContextKeys.supported,
 		ContextKeyExpr.and(
 			ChatContextKeys.Setup.hidden.negate(),
@@ -286,7 +288,7 @@ MenuRegistry.appendMenuItem(MenuId.AgentsTitleBarControlMenu, {
 		id: 'workbench.action.chat.toggle',
 		title: localize('openChat', "Open Chat"),
 	},
-	when: ChatContextKeys.enabled,
+	when: ContextKeyExpr.and(ChatContextKeys.enabled, IsSessionsWindowContext),
 	group: 'a_open',
 	order: 1
 });

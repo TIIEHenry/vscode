@@ -21,9 +21,10 @@ import { Registry } from '../../../../platform/registry/common/platform.js';
 import { EditorPaneDescriptor, IEditorPaneRegistry } from '../../../browser/editor.js';
 import { ViewPaneContainer } from '../../../browser/parts/views/viewPaneContainer.js';
 import { FocusedViewContext, IsSessionsWindowContext } from '../../../common/contextkeys.js';
+import { activityViewletWhen, ActivityBarVisibleViewlets } from '../../../common/activityViewletEnablement.js';
 import { IWorkbenchContributionsRegistry, Extensions as WorkbenchExtensions, WorkbenchPhase, registerWorkbenchContribution2 } from '../../../common/contributions.js';
 import { EditorExtensions } from '../../../common/editor.js';
-import { IViewContainersRegistry, IViewsRegistry, ViewContainer, ViewContainerLocation, Extensions as ViewExtensions } from '../../../common/views.js';
+import { IViewContainersRegistry, IViewsRegistry, ViewContainer, ViewContainerLocation, Extensions as ViewExtensions, WindowEnablement } from '../../../common/views.js';
 import { launchSchemaId } from '../../../services/configuration/common/configuration.js';
 import { LifecyclePhase } from '../../../services/lifecycle/common/lifecycle.js';
 import { COPY_NOTEBOOK_VARIABLE_VALUE_ID, COPY_NOTEBOOK_VARIABLE_VALUE_LABEL } from '../../notebook/browser/contrib/notebookVariables/notebookVariableCommands.js';
@@ -89,6 +90,7 @@ Registry.as<IQuickAccessRegistry>(QuickAccessExtensions.Quickaccess).registerQui
 	ctor: StartDebugQuickAccessProvider,
 	prefix: DEBUG_QUICK_ACCESS_PREFIX,
 	contextKey: 'inLaunchConfigurationsPicker',
+	when: IsSessionsWindowContext,
 	placeholder: nls.localize('startDebugPlaceholder', "Type the name of a launch configuration to run."),
 	helpEntries: [{
 		description: nls.localize('startDebuggingHelp', "Start Debugging"),
@@ -254,7 +256,7 @@ if (isMacintosh) {
 
 // Editor Title Menu's "Run/Debug" dropdown item
 
-MenuRegistry.appendMenuItem(MenuId.EditorTitle, { submenu: MenuId.EditorTitleRun, isSplitButton: { togglePrimaryAction: true }, title: nls.localize2('run', "Run or Debug..."), icon: icons.debugRun, group: 'navigation', order: -1 });
+MenuRegistry.appendMenuItem(MenuId.EditorTitle, { submenu: MenuId.EditorTitleRun, isSplitButton: { togglePrimaryAction: true }, title: nls.localize2('run', "Run or Debug..."), icon: icons.debugRun, group: 'navigation', order: -1, when: IsSessionsWindowContext });
 
 // Debug menu
 
@@ -265,7 +267,7 @@ MenuRegistry.appendMenuItem(MenuId.MenubarMainMenu, {
 		mnemonicTitle: nls.localize({ key: 'mRun', comment: ['&& denotes a mnemonic'] }, "&&Run")
 	},
 	order: 6,
-	when: IsSessionsWindowContext.negate()
+	when: IsSessionsWindowContext
 });
 
 MenuRegistry.appendMenuItem(MenuId.MenubarDebugMenu, {
@@ -431,6 +433,7 @@ const VIEW_CONTAINER: ViewContainer = Registry.as<IViewContainersRegistry>(ViewE
 	storageId: DEBUG_PANEL_ID,
 	hideIfEmpty: true,
 	order: 2,
+	windowEnablement: WindowEnablement.Sessions
 }, ViewContainerLocation.Panel, { doNotRegisterOpenCommand: true });
 
 Registry.as<IViewsRegistry>(ViewExtensions.ViewsRegistry).registerViews([{
@@ -444,9 +447,13 @@ Registry.as<IViewsRegistry>(ViewExtensions.ViewsRegistry).registerViews([{
 	openCommandActionDescriptor: {
 		id: 'workbench.debug.action.toggleRepl',
 		mnemonicTitle: nls.localize({ key: 'miToggleDebugConsole', comment: ['&& denotes a mnemonic'] }, "De&&bug Console"),
-		keybindings: { primary: KeyMod.CtrlCmd | KeyMod.Shift | KeyCode.KeyY },
+		keybindings: {
+			primary: KeyMod.CtrlCmd | KeyMod.Shift | KeyCode.KeyY,
+			when: IsSessionsWindowContext,
+		},
 		order: 2
-	}
+	},
+	windowEnablement: WindowEnablement.Sessions
 }], VIEW_CONTAINER);
 
 
@@ -458,7 +465,7 @@ const viewContainer = Registry.as<IViewContainersRegistry>(ViewExtensions.ViewCo
 		mnemonicTitle: nls.localize({ key: 'miViewRun', comment: ['&& denotes a mnemonic'] }, "&&Run"),
 		keybindings: {
 			primary: KeyMod.CtrlCmd | KeyMod.Shift | KeyCode.KeyD,
-			when: IsSessionsWindowContext,
+			when: activityViewletWhen(ActivityBarVisibleViewlets.debug),
 		},
 		order: 3
 	},
@@ -471,12 +478,12 @@ const viewContainer = Registry.as<IViewContainersRegistry>(ViewExtensions.ViewCo
 
 // Register default debug views
 const viewsRegistry = Registry.as<IViewsRegistry>(ViewExtensions.ViewsRegistry);
-viewsRegistry.registerViews([{ id: VARIABLES_VIEW_ID, name: nls.localize2('variables', "Variables"), containerIcon: icons.variablesViewIcon, ctorDescriptor: new SyncDescriptor(VariablesView), order: 10, weight: 40, canToggleVisibility: true, canMoveView: true, focusCommand: { id: 'workbench.debug.action.focusVariablesView' }, when: ContextKeyExpr.and(IsSessionsWindowContext, CONTEXT_DEBUG_UX.isEqualTo('default')) }], viewContainer);
-viewsRegistry.registerViews([{ id: WATCH_VIEW_ID, name: nls.localize2('watch', "Watch"), containerIcon: icons.watchViewIcon, ctorDescriptor: new SyncDescriptor(WatchExpressionsView), order: 20, weight: 10, canToggleVisibility: true, canMoveView: true, focusCommand: { id: 'workbench.debug.action.focusWatchView' }, when: ContextKeyExpr.and(IsSessionsWindowContext, CONTEXT_DEBUG_UX.isEqualTo('default')) }], viewContainer);
-viewsRegistry.registerViews([{ id: CALLSTACK_VIEW_ID, name: nls.localize2('callStack', "Call Stack"), containerIcon: icons.callStackViewIcon, ctorDescriptor: new SyncDescriptor(CallStackView), order: 30, weight: 30, canToggleVisibility: true, canMoveView: true, focusCommand: { id: 'workbench.debug.action.focusCallStackView' }, when: ContextKeyExpr.and(IsSessionsWindowContext, CONTEXT_DEBUG_UX.isEqualTo('default')) }], viewContainer);
-viewsRegistry.registerViews([{ id: BREAKPOINTS_VIEW_ID, name: nls.localize2('breakpoints', "Breakpoints"), containerIcon: icons.breakpointsViewIcon, ctorDescriptor: new SyncDescriptor(BreakpointsView), order: 40, weight: 20, canToggleVisibility: true, canMoveView: true, focusCommand: { id: 'workbench.debug.action.focusBreakpointsView' }, when: ContextKeyExpr.and(IsSessionsWindowContext, ContextKeyExpr.or(CONTEXT_BREAKPOINTS_EXIST, CONTEXT_DEBUG_UX.isEqualTo('default'), CONTEXT_HAS_DEBUGGED)) }], viewContainer);
-viewsRegistry.registerViews([{ id: WelcomeView.ID, name: WelcomeView.LABEL, containerIcon: icons.runViewIcon, ctorDescriptor: new SyncDescriptor(WelcomeView), order: 1, weight: 40, canToggleVisibility: true, when: ContextKeyExpr.and(IsSessionsWindowContext, CONTEXT_DEBUG_UX.isEqualTo('simple')) }], viewContainer);
-viewsRegistry.registerViews([{ id: LOADED_SCRIPTS_VIEW_ID, name: nls.localize2('loadedScripts', "Loaded Scripts"), containerIcon: icons.loadedScriptsViewIcon, ctorDescriptor: new SyncDescriptor(LoadedScriptsView), order: 35, weight: 5, canToggleVisibility: true, canMoveView: true, collapsed: true, when: ContextKeyExpr.and(IsSessionsWindowContext, CONTEXT_LOADED_SCRIPTS_SUPPORTED, CONTEXT_DEBUG_UX.isEqualTo('default')) }], viewContainer);
+viewsRegistry.registerViews([{ id: VARIABLES_VIEW_ID, name: nls.localize2('variables', "Variables"), containerIcon: icons.variablesViewIcon, ctorDescriptor: new SyncDescriptor(VariablesView), order: 10, weight: 40, canToggleVisibility: true, canMoveView: true, focusCommand: { id: 'workbench.debug.action.focusVariablesView' }, when: ContextKeyExpr.and(activityViewletWhen(ActivityBarVisibleViewlets.debug), CONTEXT_DEBUG_UX.isEqualTo('default')) }], viewContainer);
+viewsRegistry.registerViews([{ id: WATCH_VIEW_ID, name: nls.localize2('watch', "Watch"), containerIcon: icons.watchViewIcon, ctorDescriptor: new SyncDescriptor(WatchExpressionsView), order: 20, weight: 10, canToggleVisibility: true, canMoveView: true, focusCommand: { id: 'workbench.debug.action.focusWatchView' }, when: ContextKeyExpr.and(activityViewletWhen(ActivityBarVisibleViewlets.debug), CONTEXT_DEBUG_UX.isEqualTo('default')) }], viewContainer);
+viewsRegistry.registerViews([{ id: CALLSTACK_VIEW_ID, name: nls.localize2('callStack', "Call Stack"), containerIcon: icons.callStackViewIcon, ctorDescriptor: new SyncDescriptor(CallStackView), order: 30, weight: 30, canToggleVisibility: true, canMoveView: true, focusCommand: { id: 'workbench.debug.action.focusCallStackView' }, when: ContextKeyExpr.and(activityViewletWhen(ActivityBarVisibleViewlets.debug), CONTEXT_DEBUG_UX.isEqualTo('default')) }], viewContainer);
+viewsRegistry.registerViews([{ id: BREAKPOINTS_VIEW_ID, name: nls.localize2('breakpoints', "Breakpoints"), containerIcon: icons.breakpointsViewIcon, ctorDescriptor: new SyncDescriptor(BreakpointsView), order: 40, weight: 20, canToggleVisibility: true, canMoveView: true, focusCommand: { id: 'workbench.debug.action.focusBreakpointsView' }, when: ContextKeyExpr.and(activityViewletWhen(ActivityBarVisibleViewlets.debug), ContextKeyExpr.or(CONTEXT_BREAKPOINTS_EXIST, CONTEXT_DEBUG_UX.isEqualTo('default'), CONTEXT_HAS_DEBUGGED)) }], viewContainer);
+viewsRegistry.registerViews([{ id: WelcomeView.ID, name: WelcomeView.LABEL, containerIcon: icons.runViewIcon, ctorDescriptor: new SyncDescriptor(WelcomeView), order: 1, weight: 40, canToggleVisibility: true, when: ContextKeyExpr.and(activityViewletWhen(ActivityBarVisibleViewlets.debug), CONTEXT_DEBUG_UX.isEqualTo('simple')) }], viewContainer);
+viewsRegistry.registerViews([{ id: LOADED_SCRIPTS_VIEW_ID, name: nls.localize2('loadedScripts', "Loaded Scripts"), containerIcon: icons.loadedScriptsViewIcon, ctorDescriptor: new SyncDescriptor(LoadedScriptsView), order: 35, weight: 5, canToggleVisibility: true, canMoveView: true, collapsed: true, when: ContextKeyExpr.and(activityViewletWhen(ActivityBarVisibleViewlets.debug), CONTEXT_LOADED_SCRIPTS_SUPPORTED, CONTEXT_DEBUG_UX.isEqualTo('default')) }], viewContainer);
 
 // Register disassembly view
 

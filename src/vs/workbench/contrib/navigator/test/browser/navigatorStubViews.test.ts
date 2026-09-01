@@ -4,10 +4,10 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { mock } from '../../../../../base/test/common/mock.js';
+import { Event } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { Registry } from '../../../../../platform/registry/common/platform.js';
-import { Extensions as ViewContainerExtensions, Extensions as ViewExtensions, IViewContainersRegistry, IViewDescriptorService, IViewsRegistry, ViewContainerLocation } from '../../../../common/views.js';
+import { Extensions as ViewContainerExtensions, Extensions as ViewExtensions, IViewContainerModel, IViewContainersRegistry, IViewDescriptorService, IViewsRegistry, ViewContainer, ViewContainerLocation } from '../../../../common/views.js';
 import { VIEWLET_ID } from '../../../files/common/files.js';
 import { VIEW_CONTAINER as EXPLORER_VIEW_CONTAINER } from '../../../files/browser/explorerViewlet.js';
 import { ChatEditorInput } from '../../../chat/browser/widgetHosts/editor/chatEditorInput.js';
@@ -19,10 +19,9 @@ import {
 	NAVIGATOR_PROJECTS_VIEW_ID,
 	NAVIGATOR_STUB_VIEW_IDS,
 	NAVIGATOR_TEAM_VIEW_ID,
-	NavigatorAgentsView,
 	NavigatorProjectsView,
-	NavigatorTeamView,
 } from '../../browser/navigatorStubView.js';
+import { NavigatorTeamView } from '../../browser/navigatorTeamList.js';
 import {
 	NAVIGATOR_AGENTS_CONTAINER_ID,
 	NAVIGATOR_AGENTS_VIEW_CONTAINER,
@@ -41,17 +40,18 @@ suite('Navigator stub views', () => {
 	const viewContainersRegistry = Registry.as<IViewContainersRegistry>(ViewContainerExtensions.ViewContainersRegistry);
 	const viewsRegistry = Registry.as<IViewsRegistry>(ViewExtensions.ViewsRegistry);
 
-	const navigatorContainerCases = [
+	const productFourSegments = [
 		{ viewId: NAVIGATOR_PROJECTS_VIEW_ID, containerId: NAVIGATOR_PROJECTS_CONTAINER_ID, container: NAVIGATOR_PROJECTS_VIEW_CONTAINER },
 		{ viewId: NAVIGATOR_AGENTS_VIEW_ID, containerId: NAVIGATOR_AGENTS_CONTAINER_ID, container: NAVIGATOR_AGENTS_VIEW_CONTAINER },
 		{ viewId: NAVIGATOR_TEAM_VIEW_ID, containerId: NAVIGATOR_TEAM_CONTAINER_ID, container: NAVIGATOR_TEAM_VIEW_CONTAINER },
+		{ viewId: CONVERSATION_SESSIONS_VIEW_ID, containerId: CONVERSATION_SESSIONS_CONTAINER_ID, container: viewContainersRegistry.get(CONVERSATION_SESSIONS_CONTAINER_ID)! },
 	] as const;
 
-	test('Projects, Agents, and Team views register on dedicated Sidebar ViewContainers', () => {
-		for (const { viewId, containerId, container } of navigatorContainerCases) {
+	test('Projects, Agents, Team, and Sessions views register on dedicated Sidebar ViewContainers', () => {
+		for (const { viewId, containerId, container } of productFourSegments) {
 			const descriptor = viewsRegistry.getView(viewId);
 			assert.ok(descriptor, `expected view descriptor for ${viewId}`);
-			assert.strictEqual(descriptor.canToggleVisibility, true);
+			assert.strictEqual(descriptor.canToggleVisibility, false, `${viewId} must keep canToggleVisibility false`);
 			assert.strictEqual(viewsRegistry.getViewContainer(viewId), container);
 			assert.strictEqual(container.id, containerId);
 			assert.strictEqual(viewContainersRegistry.getViewContainerLocation(container), ViewContainerLocation.Sidebar);
@@ -66,13 +66,16 @@ suite('Navigator stub views', () => {
 		assert.notStrictEqual(viewsRegistry.getViewContainer(CONVERSATION_SESSIONS_VIEW_ID), EXPLORER_VIEW_CONTAINER);
 	});
 
-	test('Navigator stub ViewContainers use hideIfEmpty and are non-default', () => {
-		for (const { containerId, container } of navigatorContainerCases) {
-			assert.strictEqual(container.hideIfEmpty, true, `${containerId} must keep hideIfEmpty`);
+	test('Product four segments use hideIfEmpty false and Explorer keeps hideIfEmpty true', () => {
+		const defaultSidebarContainers = viewContainersRegistry.getDefaultViewContainers(ViewContainerLocation.Sidebar);
+		for (const { containerId, container } of productFourSegments) {
+			assert.strictEqual(container.hideIfEmpty, false, `${containerId} must keep hideIfEmpty false`);
+			assert.ok(!defaultSidebarContainers.some(c => c.id === containerId), `${containerId} must not be default`);
 		}
+		assert.strictEqual(EXPLORER_VIEW_CONTAINER.hideIfEmpty, true, 'Explorer must keep hideIfEmpty true');
 	});
 
-	test('Navigator ViewContainers are Sidebar non-default composites', () => {
+	test('Navigator stub and Sessions ViewContainers are Sidebar non-default composites', () => {
 		const defaultSidebarContainers = viewContainersRegistry.getDefaultViewContainers(ViewContainerLocation.Sidebar);
 		const nonDefaultContainerIds = [
 			CONVERSATION_SESSIONS_CONTAINER_ID,
@@ -86,9 +89,10 @@ suite('Navigator stub views', () => {
 		}
 	});
 
-	test('Explorer remains the default Sidebar composite', () => {
+	test('Files explorer is the default Sidebar composite', () => {
 		const defaultSidebarContainers = viewContainersRegistry.getDefaultViewContainers(ViewContainerLocation.Sidebar);
 		assert.ok(defaultSidebarContainers.some(container => container.id === VIEWLET_ID));
+		assert.ok(defaultSidebarContainers.some(container => container.id === EXPLORER_VIEW_CONTAINER.id));
 		assert.ok(!defaultSidebarContainers.some(container => container.id === NAVIGATOR_PROJECTS_CONTAINER_ID));
 		assert.ok(!defaultSidebarContainers.some(container => container.id === NAVIGATOR_AGENTS_CONTAINER_ID));
 		assert.ok(!defaultSidebarContainers.some(container => container.id === NAVIGATOR_TEAM_CONTAINER_ID));
@@ -107,36 +111,58 @@ suite('Navigator stub views', () => {
 		}
 	});
 
-	test('stub views render honest empty state without ChatEditorInput', () => {
+	test('Projects leftover stub view renders service-disconnected empty state without ChatEditorInput', () => {
 		const instantiationService = workbenchInstantiationService(undefined, store);
-		instantiationService.stub(IViewDescriptorService, new class extends mock<IViewDescriptorService>() {
-			override getViewLocationById(): ViewContainerLocation {
+		const stubViewContainer = {
+			id: 'navigator-stub-test-container',
+			title: { value: 'Navigator', original: 'Navigator' },
+		} as ViewContainer;
+		instantiationService.stub(IViewDescriptorService, {
+			onDidChangeLocation: Event.None,
+			getViewLocationById(_id: string): ViewContainerLocation {
 				return ViewContainerLocation.Sidebar;
-			}
-		}());
+			},
+			getViewDescriptorById(_id: string): null {
+				return null;
+			},
+			getViewContainerByViewId(_id: string): ViewContainer | null {
+				return stubViewContainer;
+			},
+			getViewContainerModel(_viewContainer: ViewContainer): IViewContainerModel {
+				return {
+					title: stubViewContainer.title.value,
+					onDidChangeContainerInfo: Event.None,
+				} as IViewContainerModel;
+			},
+			getDefaultContainerById(_id: string): ViewContainer | null {
+				return stubViewContainer;
+			},
+		});
 
-		const cases: Array<{ id: string; ctor: typeof NavigatorProjectsView; label: string }> = [
-			{ id: NAVIGATOR_PROJECTS_VIEW_ID, ctor: NavigatorProjectsView, label: 'Projects' },
-			{ id: NAVIGATOR_AGENTS_VIEW_ID, ctor: NavigatorAgentsView, label: 'Agents' },
-			{ id: NAVIGATOR_TEAM_VIEW_ID, ctor: NavigatorTeamView, label: 'Team' },
-		];
+		const view = store.add(instantiationService.createInstance(NavigatorProjectsView, {
+			id: NAVIGATOR_PROJECTS_VIEW_ID,
+			title: 'Projects',
+		}));
+		const container = document.createElement('div');
+		view.render();
+		container.appendChild(view.element);
+		view.setExpanded(true);
+		view.setVisible(true);
 
-		for (const { id, ctor, label } of cases) {
-			const view = store.add(instantiationService.createInstance(ctor, { id, title: label }));
-			const container = document.createElement('div');
-			view.render();
-			container.appendChild(view.element);
-			view.setExpanded(true);
-			view.setVisible(true);
+		const empty = view.element.querySelector('.navigator-stub-empty');
+		assert.ok(empty, `expected empty stub body for ${NAVIGATOR_PROJECTS_VIEW_ID}`);
+		assert.ok(empty.textContent?.includes('not connected'));
+		assert.ok(empty.textContent?.includes('no engine'));
+		assert.ok(!empty.textContent?.match(/copilot/i), 'stub body must not mention Copilot');
+		assert.ok(!empty.textContent?.match(/open chat/i), 'stub body must not mention Open Chat');
+		assert.strictEqual(view.element.querySelector('.chat-widget'), null);
+		assert.strictEqual(view.element.querySelector('.chat-setup'), null);
+	});
 
-			const empty = view.element.querySelector('.navigator-stub-empty');
-			assert.ok(empty, `expected empty stub body for ${id}`);
-			assert.ok(empty.textContent?.includes('not connected'));
-			assert.ok(empty.textContent?.includes('no engine'));
-			assert.ok(!empty.textContent?.match(/copilot/i), `stub body must not mention Copilot (${id})`);
-			assert.ok(!empty.textContent?.match(/open chat/i), `stub body must not mention Open Chat (${id})`);
-			assert.strictEqual(view.element.querySelector('.chat-widget'), null);
-			assert.strictEqual(view.element.querySelector('.chat-setup'), null);
-		}
+	test('Team view descriptor registers graduated NavigatorTeamView ctor', () => {
+		const descriptor = viewsRegistry.getView(NAVIGATOR_TEAM_VIEW_ID);
+		assert.ok(descriptor);
+		assert.strictEqual(descriptor.ctorDescriptor.ctor, NavigatorTeamView);
+		assert.notStrictEqual(descriptor.ctorDescriptor.ctor, NavigatorProjectsView);
 	});
 });

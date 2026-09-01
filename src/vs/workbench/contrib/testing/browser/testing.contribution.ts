@@ -19,9 +19,9 @@ import { IProgressService } from '../../../../platform/progress/common/progress.
 import { Registry } from '../../../../platform/registry/common/platform.js';
 import { ViewPaneContainer } from '../../../browser/parts/views/viewPaneContainer.js';
 import { registerWorkbenchContribution2, WorkbenchPhase } from '../../../common/contributions.js';
-import { IViewContainersRegistry, IViewsRegistry, Extensions as ViewContainerExtensions, ViewContainerLocation } from '../../../common/views.js';
+import { IViewContainersRegistry, IViewsRegistry, Extensions as ViewContainerExtensions, ViewContainerLocation, WindowEnablement } from '../../../common/views.js';
 import { IViewsService } from '../../../services/views/common/viewsService.js';
-import { IsSessionsWindowContext } from '../../../common/contextkeys.js';
+import { activityViewletWhen, ActivityBarVisibleViewlets } from '../../../common/activityViewletEnablement.js';
 import { REVEAL_IN_EXPLORER_COMMAND_ID } from '../../files/browser/fileConstants.js';
 import { testingConfiguration } from '../common/configuration.js';
 import { TestCommandId, Testing } from '../common/constants.js';
@@ -72,7 +72,7 @@ const viewContainer = Registry.as<IViewContainersRegistry>(ViewContainerExtensio
 		id: Testing.ViewletId,
 		mnemonicTitle: localize({ key: 'miViewTesting', comment: ['&& denotes a mnemonic'] }, "T&&esting"),
 		keybindings: {
-			when: IsSessionsWindowContext,
+			when: activityViewletWhen(ActivityBarVisibleViewlets.testing),
 		},
 		order: 4,
 	},
@@ -87,6 +87,7 @@ const testResultsViewContainer = Registry.as<IViewContainersRegistry>(ViewContai
 	ctorDescriptor: new SyncDescriptor(ViewPaneContainer, [Testing.ResultsPanelId, { mergeViewWithContainerWhenSingleView: true }]),
 	hideIfEmpty: true,
 	order: 3,
+	windowEnablement: WindowEnablement.Sessions
 }, ViewContainerLocation.Panel, { doNotRegisterOpenCommand: true });
 
 const viewsRegistry = Registry.as<IViewsRegistry>(ViewContainerExtensions.ViewsRegistry);
@@ -100,6 +101,7 @@ viewsRegistry.registerViews([{
 	canMoveView: true,
 	when: TestingContextKeys.hasAnyResults.isEqualTo(true),
 	ctorDescriptor: new SyncDescriptor(TestResultsView),
+	windowEnablement: WindowEnablement.Sessions
 }], testResultsViewContainer);
 
 viewsRegistry.registerViewWelcomeContent(Testing.ExplorerViewId, {
@@ -120,7 +122,7 @@ viewsRegistry.registerViews([{
 	weight: 80,
 	order: -999,
 	containerIcon: testingViewIcon,
-	when: ContextKeyExpr.and(IsSessionsWindowContext, ContextKeyExpr.greater(TestingContextKeys.providerCount.key, 0)),
+	when: ContextKeyExpr.and(activityViewletWhen(ActivityBarVisibleViewlets.testing), ContextKeyExpr.greater(TestingContextKeys.providerCount.key, 0)),
 }, {
 	id: Testing.CoverageViewId,
 	name: localize2('testCoverage', "Test Coverage"),
@@ -130,7 +132,7 @@ viewsRegistry.registerViews([{
 	weight: 80,
 	order: -998,
 	containerIcon: testingViewIcon,
-	when: ContextKeyExpr.and(IsSessionsWindowContext, TestingContextKeys.isTestCoverageOpen),
+	when: ContextKeyExpr.and(activityViewletWhen(ActivityBarVisibleViewlets.testing), TestingContextKeys.isTestCoverageOpen),
 }], viewContainer);
 
 allTestActions.forEach(registerAction2);

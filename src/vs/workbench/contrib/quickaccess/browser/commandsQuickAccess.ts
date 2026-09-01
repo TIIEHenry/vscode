@@ -40,6 +40,15 @@ import { CHAT_OPEN_ACTION_ID } from '../../chat/browser/actions/chatActions.js';
 import { ASK_QUICK_QUESTION_ACTION_ID } from '../../chat/browser/actions/chatQuickInputActions.js';
 import { IChatAgentService } from '../../chat/common/participants/chatAgents.js';
 import { ChatAgentLocation } from '../../chat/common/constants.js';
+import { IWorkbenchEnvironmentService } from '../../../services/environment/common/environmentService.js';
+
+export function shouldOfferCommandPaletteAskInChat(isSessionsWindow: boolean, showAskInChat: boolean): boolean {
+	return isSessionsWindow && showAskInChat;
+}
+
+export function shouldOfferCommandPaletteAiRelatedPicks(isSessionsWindow: boolean, useAiRelatedInfo: boolean, aiRelatedInformationEnabled: boolean): boolean {
+	return isSessionsWindow && useAiRelatedInfo && aiRelatedInformationEnabled;
+}
 
 export class CommandsQuickAccessProvider extends AbstractEditorCommandsQuickAccessProvider {
 
@@ -79,6 +88,7 @@ export class CommandsQuickAccessProvider extends AbstractEditorCommandsQuickAcce
 		@IProductService private readonly productService: IProductService,
 		@IAiRelatedInformationService private readonly aiRelatedInformationService: IAiRelatedInformationService,
 		@IChatAgentService private readonly chatAgentService: IChatAgentService,
+		@IWorkbenchEnvironmentService private readonly environmentService: IWorkbenchEnvironmentService,
 	) {
 		super({
 			showAlias: !Language.isDefaultVariant(),
@@ -142,16 +152,15 @@ export class CommandsQuickAccessProvider extends AbstractEditorCommandsQuickAcce
 	}
 
 	protected hasAdditionalCommandPicks(filter: string, token: CancellationToken): boolean {
-		if (
-			!this.useAiRelatedInfo
-			|| token.isCancellationRequested
-			|| filter === ''
-			|| !this.aiRelatedInformationService.isEnabled()
-		) {
+		if (token.isCancellationRequested || filter === '') {
 			return false;
 		}
 
-		return true;
+		return shouldOfferCommandPaletteAiRelatedPicks(
+			this.environmentService.isSessionsWindow,
+			this.useAiRelatedInfo,
+			this.aiRelatedInformationService.isEnabled(),
+		);
 	}
 
 	protected async getAdditionalCommandPicks(allPicks: ICommandQuickPick[], picksSoFar: ICommandQuickPick[], filter: string, token: CancellationToken): Promise<Array<ICommandQuickPick | IQuickPickSeparator>> {
@@ -160,16 +169,19 @@ export class CommandsQuickAccessProvider extends AbstractEditorCommandsQuickAcce
 		}
 
 		let additionalPicks: (ICommandQuickPick | IQuickPickSeparator)[] = [];
-		try {
-			// Wait a bit to see if the user is still typing
-			await timeout(CommandsQuickAccessProvider.AI_RELATED_INFORMATION_DEBOUNCE, token);
-			additionalPicks = await this.getRelatedInformationPicks(allPicks, picksSoFar, filter, token);
-		} catch (e) {
-			// Ignore and continue to add "Ask in Chat" option
+		const isSessionsWindow = this.environmentService.isSessionsWindow;
+		if (shouldOfferCommandPaletteAiRelatedPicks(isSessionsWindow, this.useAiRelatedInfo, this.aiRelatedInformationService.isEnabled())) {
+			try {
+				// Wait a bit to see if the user is still typing
+				await timeout(CommandsQuickAccessProvider.AI_RELATED_INFORMATION_DEBOUNCE, token);
+				additionalPicks = await this.getRelatedInformationPicks(allPicks, picksSoFar, filter, token);
+			} catch (e) {
+				// Ignore and continue to add "Ask in Chat" option
+			}
 		}
 
 		// If enabled in settings, add "Ask in Chat" option after a separator (if needed).
-		if (this.configuration.showAskInChat) {
+		if (shouldOfferCommandPaletteAskInChat(isSessionsWindow, this.configuration.showAskInChat)) {
 			const defaultAgent = this.chatAgentService.getDefaultAgent(ChatAgentLocation.Chat);
 			if (defaultAgent) {
 				if (picksSoFar.length || additionalPicks.length) {

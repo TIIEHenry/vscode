@@ -194,6 +194,14 @@ export interface IOpenSettingsOptions extends ISettingsEditorOptions {
 	groupId?: number;
 }
 
+export interface IOpenPreferencesOptions {
+	readonly paneId?: string;
+}
+
+export interface IPreferencesEditorOptions extends IEditorOptions {
+	readonly paneId?: string;
+}
+
 export function validateSettingsEditorOptions(options: ISettingsEditorOptions): ISettingsEditorOptions {
 	return {
 		// Inherit provided options
@@ -232,7 +240,7 @@ export interface IPreferencesService {
 	hasDefaultSettingsContent(uri: URI): boolean;
 	createSettings2EditorModel(): Settings2EditorModel; // TODO
 
-	openPreferences(): Promise<void>;
+	openPreferences(options?: IOpenPreferencesOptions): Promise<void>;
 
 	openRawDefaultSettings(): Promise<IEditorPane | undefined>;
 	openSettings(options?: IOpenSettingsOptions): Promise<IEditorPane | undefined>;

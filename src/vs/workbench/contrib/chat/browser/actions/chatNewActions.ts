@@ -228,7 +228,7 @@ export function registerNewChatActions() {
 			id: ACTION_ID_NEW_CHAT,
 			title: localize2('chat.newEdits.label', "New Chat"),
 		},
-		when: ChatContextKeys.enabled,
+		when: ContextKeyExpr.and(ChatContextKeys.enabled, IsSessionsWindowContext),
 		group: 'b_new',
 		order: -1,
 	});

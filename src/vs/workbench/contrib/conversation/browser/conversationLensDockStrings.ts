@@ -8,9 +8,16 @@ import { localize } from '../../../../nls.js';
 /** Honest Input Dock copy — no engine, no Copilot entitlement CTAs. */
 export const conversationLensDockEngineNotConnected = localize('conversationLens.dockEngineNotConnected', "Engine not connected");
 export const conversationLensDockInboxNoQueue = localize('conversationLens.inboxNoQueue', "No queue");
+export const conversationLensDockGoal = localize('conversationLens.dockGoal', "Goal");
+export const conversationLensDockNoGoal = localize('conversationLens.dockNoGoal', "No goal");
 export const conversationLensDockNoModel = localize('conversationLens.dockNoModel', "No model");
+export const conversationLensDockAttachTitle = localize('conversationLens.dockAttachTitle', "Attach");
+export const conversationLensDockNoAttachments = localize('conversationLens.dockNoAttachments', "No attachments");
 export const conversationLensDockMaximizeInput = localize('conversationLens.dockMaximizeInput', "Maximize input");
 export const conversationLensDockRestoreTimeline = localize('conversationLens.dockRestoreTimeline', "Restore timeline");
+export const conversationLensDockStop = localize('conversationLens.dockStop', "Stop");
+export const conversationLensDockStopNotGenerating = localize('conversationLens.dockStopNotGenerating', "Not generating");
+export const conversationLensDockPlaceholder = localize('conversationLens.dockPlaceholder', "Message");
 
 /** Toggled on ConversationPart slot hosts when Input Maximize is active (Desktop §8.3.11). */
 export const conversationLensInputMaximizedClass = 'conversation-lens-input-maximized';

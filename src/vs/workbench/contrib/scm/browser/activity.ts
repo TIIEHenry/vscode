@@ -20,8 +20,11 @@ import { IEditorGroupContextKeyProvider, IEditorGroupsService } from '../../../s
 import { EditorInput } from '../../../common/editor/editorInput.js';
 import { getRepositoryResourceCount, getSCMRepositoryIcon, getStatusBarCommandGenericName } from './util.js';
 import { autorun, derived, IObservable, observableFromEvent } from '../../../../base/common/observable.js';
-import { observableConfigValue } from '../../../../platform/observable/common/platformObservableUtils.js';
+import { observableConfigValue, observableContextKey } from '../../../../platform/observable/common/platformObservableUtils.js';
 import { Command } from '../../../../editor/common/languages.js';
+import { IsSessionsWindowContext } from '../../../common/contextkeys.js';
+
+export const scmStatusBarWhen = IsSessionsWindowContext;
 
 const ActiveRepositoryContextKeys = {
 	ActiveRepositoryName: new RawContextKey<string>('scmActiveRepositoryName', ''),
@@ -34,6 +37,7 @@ export class SCMActiveRepositoryController extends Disposable implements IWorkbe
 	private readonly _countBadgeConfig: IObservable<'all' | 'focused' | 'off'>;
 	private readonly _countBadgeRepositories: IObservable<readonly { provider: ISCMProvider; resourceCount: IObservable<number> }[]>;
 	private readonly _countBadge: IObservable<number>;
+	private readonly _isSessionsWindow: IObservable<boolean | undefined>;
 
 	private _activeRepositoryNameContextKey: IContextKey<string>;
 	private _activeRepositoryBranchNameContextKey: IContextKey<string>;
@@ -58,6 +62,7 @@ export class SCMActiveRepositoryController extends Disposable implements IWorkbe
 		]);
 
 		this._countBadgeConfig = observableConfigValue<'all' | 'focused' | 'off'>('scm.countBadge', 'all', this.configurationService);
+		this._isSessionsWindow = observableContextKey<boolean>(IsSessionsWindowContext.key, this.contextKeyService);
 
 		this._visibleRepositories = observableFromEvent(this,
 			Event.any(this.scmViewService.onDidChangeVisibleRepositories, this.scmService.onDidAddRepository, this.scmService.onDidRemoveRepository),
@@ -107,6 +112,10 @@ export class SCMActiveRepositoryController extends Disposable implements IWorkbe
 		}));
 
 		this._register(autorun(reader => {
+			if (!this._isSessionsWindow.read(reader)) {
+				return;
+			}
+
 			const activeRepository = this.scmViewService.activeRepository.read(reader);
 			const commands = activeRepository?.repository.provider.statusBarCommands.read(reader);
 

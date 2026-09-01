@@ -16,6 +16,7 @@ import { MenuRegistry, MenuId, registerAction2 } from '../../../../platform/acti
 import { registerWorkbenchContribution2 } from '../../../common/contributions.js';
 import { IEditorPaneRegistry, EditorPaneDescriptor } from '../../../browser/editor.js';
 import { KeybindingsRegistry } from '../../../../platform/keybinding/common/keybindingsRegistry.js';
+import { IsSessionsWindowContext } from '../../../common/contextkeys.js';
 
 Registry.as<IEditorPaneRegistry>(EditorExtensions.EditorPane)
 	.registerEditorPane(EditorPaneDescriptor.create(
@@ -45,5 +46,6 @@ MenuRegistry.appendMenuItem(MenuId.MenubarHelpMenu, {
 		id: 'workbench.action.showInteractivePlayground',
 		title: localize({ key: 'miPlayground', comment: ['&& denotes a mnemonic'] }, "Editor Playgrou&&nd")
 	},
-	order: 3
+	order: 3,
+	when: IsSessionsWindowContext,
 });

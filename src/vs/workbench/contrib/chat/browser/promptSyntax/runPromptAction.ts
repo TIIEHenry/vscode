@@ -35,6 +35,7 @@ import { CancellationToken } from '../../../../../base/common/cancellation.js';
  */
 const EDITOR_ACTIONS_CONDITION = ContextKeyExpr.and(
 	ChatContextKeys.enabled,
+	IsSessionsWindowContext,
 	ResourceContextKey.HasResource,
 	ResourceContextKey.LangId.isEqualTo(PROMPT_LANGUAGE_ID),
 );

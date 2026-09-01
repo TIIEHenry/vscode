@@ -4,6 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 import './media/conversationLens.css';
+import './uaClientSettings.contribution.js';
+import './uaPreferencesPanes.contribution.js';
+import './universeAgentDeepLink.contribution.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { localize, localize2 } from '../../../../nls.js';
@@ -19,9 +22,10 @@ import { IConversationLensSlots, IConversationPartService } from '../../../brows
 import { ConversationLens } from './conversationLens.js';
 import { CONVERSATION_SESSIONS_VIEW_ID, ConversationSessionsView } from './conversationSessionsView.js';
 import { ConversationSessionStatusBarContribution, registerConversationSessionStatusBar } from './conversationSessionStatusBar.js';
-import { ConversationStubService, IConversationStubService } from './conversationStubService.js';
+import { registerUaPreferencesNavigationActions } from './uaPreferencesNavigation.js';
+import { ConversationStubService, IConversationRosterService } from './conversationStubService.js';
 
-registerSingleton(IConversationStubService, ConversationStubService, InstantiationType.Delayed);
+registerSingleton(IConversationRosterService, ConversationStubService, InstantiationType.Delayed);
 
 export const CONVERSATION_SESSIONS_CONTAINER_ID = 'workbench.view.sessions';
 
@@ -37,7 +41,7 @@ const conversationSessionsViewContainer = Registry.as<IViewContainersRegistry>(V
 	icon: conversationSessionsViewIcon,
 	ctorDescriptor: new SyncDescriptor(ViewPaneContainer, [CONVERSATION_SESSIONS_CONTAINER_ID, { mergeViewWithContainerWhenSingleView: true }]),
 	storageId: CONVERSATION_SESSIONS_CONTAINER_ID,
-	hideIfEmpty: true,
+	hideIfEmpty: false,
 	order: 10,
 	alwaysUseContainerInfo: true,
 }, ViewContainerLocation.Sidebar, { isDefault: false });
@@ -47,7 +51,7 @@ Registry.as<IViewsRegistry>(ViewExtensions.ViewsRegistry).registerViews([{
 	name: localize2('conversationSessions', "Sessions"),
 	containerIcon: conversationSessionsViewIcon,
 	ctorDescriptor: new SyncDescriptor(ConversationSessionsView),
-	canToggleVisibility: true,
+	canToggleVisibility: false,
 	canMoveView: true,
 	order: 1,
 	weight: 100,
@@ -85,4 +89,5 @@ class ConversationLensContribution extends Disposable implements IWorkbenchContr
 registerWorkbenchContribution2(ConversationLensContribution.ID, ConversationLensContribution, WorkbenchPhase.AfterRestored);
 
 registerConversationSessionStatusBar();
+registerUaPreferencesNavigationActions();
 registerWorkbenchContribution2(ConversationSessionStatusBarContribution.ID, ConversationSessionStatusBarContribution, WorkbenchPhase.AfterRestored);

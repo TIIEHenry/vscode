@@ -8,8 +8,10 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/tes
 import { Registry } from '../../../../../platform/registry/common/platform.js';
 import type { ContextKeyExpression, ContextKeyValue } from '../../../../../platform/contextkey/common/contextkey.js';
 import { Extensions as ViewExtensions, IViewsRegistry } from '../../../../common/views.js';
+import { ActivityBarVisibleViewlets } from '../../../../common/activityViewletEnablement.js';
 import { IsSessionsWindowContext } from '../../../../common/contextkeys.js';
 import { HISTORY_VIEW_PANE_ID, REPOSITORIES_VIEW_PANE_ID, VIEW_PANE_ID } from '../../common/scm.js';
+import { scmStatusBarWhen } from '../../browser/activity.js';
 
 import '../../browser/scm.contribution.js';
 
@@ -24,7 +26,7 @@ suite('SCMContribution - default window Activity', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('Source Control sidebar views are gated to Agents Window', () => {
+	test('Source Control sidebar views respect optional Activity setting', () => {
 		const viewsRegistry = Registry.as<IViewsRegistry>(ViewExtensions.ViewsRegistry);
 
 		const changesView = viewsRegistry.getView(VIEW_PANE_ID);
@@ -39,13 +41,28 @@ suite('SCMContribution - default window Activity', () => {
 		assert.ok(repositoriesView.when, 'Repositories view should have a when clause');
 		assert.ok(historyView.when, 'Graph view should have a when clause');
 
-		const defaultWindow = { [IsSessionsWindowContext.key]: false };
-		const agentsWindow = { [IsSessionsWindowContext.key]: true };
+		const defaultWindowHidden = {
+			[IsSessionsWindowContext.key]: false,
+			[`config.${ActivityBarVisibleViewlets.scm}`]: false,
+		};
+		const defaultWindowShown = {
+			[IsSessionsWindowContext.key]: false,
+			[`config.${ActivityBarVisibleViewlets.scm}`]: true,
+		};
+		const agentsWindow = {
+			[IsSessionsWindowContext.key]: true,
+			[`config.${ActivityBarVisibleViewlets.scm}`]: false,
+		};
 
 		assert.strictEqual(
-			evalWhen(changesView.when, defaultWindow),
+			evalWhen(changesView.when, defaultWindowHidden),
 			false,
-			'default Code window must hide Source Control Changes from Activity sidebar'
+			'default Code window must hide Source Control Changes when setting is off'
+		);
+		assert.strictEqual(
+			evalWhen(changesView.when, defaultWindowShown),
+			true,
+			'default Code window may show Source Control Changes when setting is on'
 		);
 		assert.strictEqual(
 			evalWhen(changesView.when, agentsWindow),
@@ -53,36 +70,54 @@ suite('SCMContribution - default window Activity', () => {
 			'Agents Window may show Source Control Changes in Activity sidebar'
 		);
 		assert.strictEqual(
-			evalWhen(repositoriesView.when, defaultWindow),
+			evalWhen(repositoriesView.when, defaultWindowShown),
 			false,
-			'default Code window must hide Source Control Repositories from Activity sidebar'
+			'Repositories view remains provider-gated even when setting is on'
 		);
 		assert.strictEqual(
-			evalWhen(repositoriesView.when, agentsWindow),
-			false,
-			'Repositories view remains provider-gated even in Agents Window'
+			evalWhen(repositoriesView.when, { ...defaultWindowShown, 'scm.providerCount': 1 }),
+			true,
+			'Repositories view may show when providers exist and setting is on'
 		);
 		assert.strictEqual(
-			evalWhen(historyView.when, defaultWindow),
+			evalWhen(historyView.when, defaultWindowShown),
 			false,
-			'default Code window must hide Source Control Graph from Activity sidebar'
-		);
-		assert.strictEqual(
-			evalWhen(historyView.when, agentsWindow),
-			false,
-			'Graph view remains history-provider-gated even in Agents Window'
+			'Graph view remains history-provider-gated even when setting is on'
 		);
 
 		assert.ok(changesView.openCommandActionDescriptor?.keybindings?.when, 'Changes open command keybinding should have a when clause');
 		assert.strictEqual(
-			evalWhen(changesView.openCommandActionDescriptor!.keybindings!.when, defaultWindow),
+			evalWhen(changesView.openCommandActionDescriptor!.keybindings!.when, defaultWindowHidden),
 			false,
-			'default Code window must hide Source Control keybinding'
+			'default Code window must hide Source Control keybinding when setting is off'
+		);
+		assert.strictEqual(
+			evalWhen(changesView.openCommandActionDescriptor!.keybindings!.when, defaultWindowShown),
+			true,
+			'default Code window may keep Source Control keybinding when setting is on'
 		);
 		assert.strictEqual(
 			evalWhen(changesView.openCommandActionDescriptor!.keybindings!.when, agentsWindow),
 			true,
 			'Agents Window may keep Source Control keybinding'
+		);
+	});
+
+	test('Source Control status bar entries are gated to Agents Window', () => {
+		assert.ok(scmStatusBarWhen, 'SCM status bar should have a when clause');
+
+		const defaultWindow = { [IsSessionsWindowContext.key]: false };
+		const agentsWindow = { [IsSessionsWindowContext.key]: true };
+
+		assert.strictEqual(
+			evalWhen(scmStatusBarWhen, defaultWindow),
+			false,
+			'default Code window must hide Git status bar entries'
+		);
+		assert.strictEqual(
+			evalWhen(scmStatusBarWhen, agentsWindow),
+			true,
+			'Agents Window may show Git status bar entries'
 		);
 	});
 });

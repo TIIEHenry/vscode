@@ -13,7 +13,12 @@ import { localize } from '../../../../nls.js';
 import { IWorkbenchContribution } from '../../../common/contributions.js';
 import { IChatEntitlementService } from '../../../services/chat/common/chatEntitlementService.js';
 import { IEditorService } from '../../../services/editor/common/editorService.js';
+import { IWorkbenchEnvironmentService } from '../../../services/environment/common/environmentService.js';
 import { ILanguageStatusService } from '../../../services/languageStatus/common/languageStatusService.js';
+
+export function shouldShowInlineCompletionLanguageStatus(isSessionsWindow: boolean): boolean {
+	return isSessionsWindow;
+}
 
 export class InlineCompletionLanguageStatusBarContribution extends Disposable implements IWorkbenchContribution {
 	public static readonly hot = createHotClass(this);
@@ -29,9 +34,9 @@ export class InlineCompletionLanguageStatusBarContribution extends Disposable im
 		@ILanguageStatusService private readonly _languageStatusService: ILanguageStatusService,
 		@IEditorService private readonly _editorService: IEditorService,
 		@IChatEntitlementService private readonly _chatEntitlementService: IChatEntitlementService,
+		@IWorkbenchEnvironmentService private readonly _environmentService: IWorkbenchEnvironmentService,
 	) {
 		super();
-
 
 		this._activeEditor = observableFromEvent(this, _editorService.onDidActiveEditorChange, () => this._editorService.activeTextEditorControl);
 		this._sentiment = this._chatEntitlementService.sentimentObs;
@@ -54,6 +59,10 @@ export class InlineCompletionLanguageStatusBarContribution extends Disposable im
 		});
 
 		this._register(autorunWithStore((reader, store) => {
+			if (!shouldShowInlineCompletionLanguageStatus(this._environmentService.isSessionsWindow)) {
+				return;
+			}
+
 			// Do not show the Copilot icon in the language status when AI features are disabled
 			const sentiment = this._sentiment.read(reader);
 			if (sentiment.hidden) {

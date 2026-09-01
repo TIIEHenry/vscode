@@ -8,7 +8,7 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/tes
 import type { ContextKeyValue } from '../../../../../platform/contextkey/common/contextkey.js';
 import { ContextKeyExpr } from '../../../../../platform/contextkey/common/contextkey.js';
 import { IsSessionsWindowContext } from '../../../../common/contextkeys.js';
-import { walkthroughs } from '../../common/gettingStartedContent.js';
+import { startEntries, walkthroughs } from '../../common/gettingStartedContent.js';
 
 const COPILOT_SETUP_STEP_IDS = [
 	'CopilotSetupAnonymous',
@@ -33,6 +33,12 @@ function getSetupCopilotSteps() {
 	return setupWalkthrough.content.steps.filter(step => COPILOT_SETUP_STEP_IDS.includes(step.id as typeof COPILOT_SETUP_STEP_IDS[number]));
 }
 
+function getNewWorkspaceChatStartEntry() {
+	const entry = startEntries.find(e => e.id === 'topLevelNewWorkspaceChat');
+	assert.ok(entry, 'topLevelNewWorkspaceChat start entry should exist');
+	return entry;
+}
+
 suite('Getting Started Copilot walkthrough (INV-NO-COPILOT)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
@@ -40,6 +46,7 @@ suite('Getting Started Copilot walkthrough (INV-NO-COPILOT)', () => {
 	test('default Code window hides Copilot setup steps in Setup walkthrough', () => {
 		const defaultWindow: Record<string, ContextKeyValue> = {
 			[IsSessionsWindowContext.key]: false,
+			isWeb: false,
 			chatAnonymous: true,
 			chatSetupCompleted: false,
 			chatSetupHidden: false,
@@ -57,11 +64,20 @@ suite('Getting Started Copilot walkthrough (INV-NO-COPILOT)', () => {
 				`default Code window must hide ${step.id}`
 			);
 		}
+
+		const newWorkspaceChat = getNewWorkspaceChatStartEntry();
+		assert.ok(newWorkspaceChat.when, 'topLevelNewWorkspaceChat should have a when clause');
+		assert.strictEqual(
+			evalWhen(newWorkspaceChat.when, defaultWindow),
+			false,
+			'default Code window must hide topLevelNewWorkspaceChat'
+		);
 	});
 
 	test('Agents Window retains Copilot setup steps when chat setup is eligible', () => {
 		const sessionsWindow: Record<string, ContextKeyValue> = {
 			[IsSessionsWindowContext.key]: true,
+			isWeb: false,
 			chatAnonymous: true,
 			chatSetupCompleted: false,
 			chatSetupHidden: false,
@@ -74,6 +90,14 @@ suite('Getting Started Copilot walkthrough (INV-NO-COPILOT)', () => {
 			evalWhen(anonymousStep.when, sessionsWindow),
 			true,
 			'Agents Window should retain CopilotSetupAnonymous when chat setup is eligible'
+		);
+
+		const newWorkspaceChat = getNewWorkspaceChatStartEntry();
+		assert.ok(newWorkspaceChat.when);
+		assert.strictEqual(
+			evalWhen(newWorkspaceChat.when, sessionsWindow),
+			true,
+			'Agents Window should show topLevelNewWorkspaceChat when chat setup is eligible'
 		);
 	});
 });

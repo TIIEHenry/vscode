@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { commands, languages } from 'vscode';
+import { commands, languages, workspace } from 'vscode';
 import { IAuthenticationService } from '../../../platform/authentication/common/authentication';
 import { ConfigKey, IConfigurationService } from '../../../platform/configuration/common/configurationService';
 import { IExperimentationService } from '../../../platform/telemetry/common/nullExperimentationService';
@@ -28,6 +28,10 @@ export class CompletionsCoreContribution extends Disposable {
 		const unificationState = unificationStateObservable(this);
 
 		this._register(autorun(reader => {
+			if (!workspace.isAgentSessionsWorkspace) {
+				return;
+			}
+
 			const unificationStateValue = unificationState.read(reader);
 			const configEnabled = configurationService.getExperimentBasedConfigObservable<boolean>(ConfigKey.TeamInternal.InlineEditsEnableGhCompletionsProvider, experimentationService).read(reader);
 			const extensionUnification = unificationStateValue?.extensionUnification ?? false;

@@ -19,6 +19,7 @@ import { IMarkdownRendererService } from '../../../../../platform/markdown/brows
 import product from '../../../../../platform/product/common/product.js';
 import { ChatEntitlement, IChatEntitlementService } from '../../../../services/chat/common/chatEntitlementService.js';
 import { IEditorService } from '../../../../services/editor/common/editorService.js';
+import { IWorkbenchEnvironmentService } from '../../../../services/environment/common/environmentService.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { ChatStatusDashboard, IChatStatusDashboardOptions } from '../../../chat/browser/chatStatus/chatStatusDashboard.js';
 import { IChatStatusItemService } from '../../../chat/browser/chatStatus/chatStatusItemService.js';
@@ -245,9 +246,16 @@ suite('ChatStatusDashboard', () => {
 		dashboardOptions?: IChatStatusDashboardOptions;
 		configurationService?: TestConfigurationService;
 		activeTextEditorLanguageId?: string;
+		isSessionsWindow?: boolean;
 	} = {}): ChatStatusDashboard {
 		const configurationService = options.configurationService;
-		const instantiationService = workbenchInstantiationService(configurationService ? { configurationService: () => configurationService } : undefined, store);
+		const isSessionsWindow = options.isSessionsWindow ?? true;
+		const instantiationService = workbenchInstantiationService({
+			configurationService: configurationService ? () => configurationService : undefined,
+			environmentService: () => ({
+				isSessionsWindow,
+			} as IWorkbenchEnvironmentService),
+		}, store);
 
 		instantiationService.stub(IChatEntitlementService, entitlementService);
 		instantiationService.stub(IChatStatusItemService, {
@@ -1158,6 +1166,21 @@ suite('ChatStatusDashboard', () => {
 		svc.fireQuotaRemaining();
 
 		assert.notStrictEqual(headerButton.style.display, 'none');
+	});
+
+	test('default Code window hides Copilot quota and setup chrome', () => {
+		const dashboard = createDashboard(createEntitlementService({
+			chat: { percentRemaining: 80, unlimited: false },
+			completions: { percentRemaining: 70, unlimited: false },
+			entitlement: ChatEntitlement.Free,
+		}), {
+			isSessionsWindow: false,
+		});
+
+		assert.deepStrictEqual(getQuotaLabels(dashboard.element), []);
+		assert.strictEqual(dashboard.element.querySelector('.header'), null);
+		assert.strictEqual(dashboard.element.querySelector('.description'), null);
+		assert.strictEqual(dashboard.element.querySelector('.monaco-button'), null);
 	});
 
 });

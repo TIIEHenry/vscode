@@ -11,13 +11,16 @@ import { RunOnceScheduler } from '../../../../base/common/async.js';
 import { Event } from '../../../../base/common/event.js';
 import { Disposable, DisposableMap, DisposableStore } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
-import { EditorOpenSource } from '../../../../platform/editor/common/editor.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { WorkbenchList } from '../../../../platform/list/browser/listService.js';
 import { ResourceLabels, IResourceLabel } from '../../../browser/labels.js';
-import { ACTIVE_GROUP, IEditorService } from '../../../services/editor/common/editorService.js';
+import { IEditorService } from '../../../services/editor/common/editorService.js';
 import { ISCMRepository, ISCMService } from '../../scm/common/scm.js';
+import { filterSourcesEntries } from '../common/sourcesFilterModel.js';
 import { collectSourcesReviewEntries, ISourcesReviewEntry } from '../common/sourcesReviewModel.js';
+import { openSourcesChangeEntry } from './sourcesChangesList.js';
+import { SourcesListFilterBox } from './sourcesListFilterBox.js';
+import { sourcesReviewListHeaderHint } from './sourcesReviewListStrings.js';
 
 const $ = dom.$;
 
@@ -73,6 +76,8 @@ class SourcesReviewAccessibilityProvider implements IListAccessibilityProvider<I
 
 export class SourcesReviewList extends Disposable {
 
+	private readonly filterBox: SourcesListFilterBox;
+	private readonly headerHint: HTMLElement;
 	private readonly listContainer: HTMLElement;
 	private readonly emptyMessage: HTMLElement;
 	private list: WorkbenchList<ISourcesReviewEntry> | undefined;
@@ -89,6 +94,17 @@ export class SourcesReviewList extends Disposable {
 		super();
 
 		host.classList.add('show-file-icons');
+
+		this.filterBox = this._register(new SourcesListFilterBox(
+			host,
+			localize('sourcesReviewList.filterPlaceholder', "Filter changes"),
+			localize('sourcesReviewList.filterAriaLabel', "Filter changes"),
+		));
+		this._register(this.filterBox.onDidChange(() => this.scheduleRefresh()));
+
+		this.headerHint = dom.append(host, $('.sources-review-header-hint'));
+		this.headerHint.setAttribute('role', 'note');
+		this.headerHint.textContent = sourcesReviewListHeaderHint;
 
 		this.listContainer = dom.append(host, $('.sources-review-list'));
 		this.emptyMessage = dom.append(host, $('.sources-review-empty'));
@@ -160,14 +176,10 @@ export class SourcesReviewList extends Disposable {
 				return;
 			}
 
-			await this.editorService.openEditor({
-				resource: element.resource,
-				options: {
-					preserveFocus: e.editorOptions.preserveFocus,
-					pinned: false,
-					source: EditorOpenSource.USER,
-				},
-			}, ACTIVE_GROUP);
+			await openSourcesChangeEntry(element, this.editorService, {
+				preserveFocus: e.editorOptions.preserveFocus,
+				pinned: false,
+			});
 		}));
 
 		return this.list;
@@ -175,19 +187,24 @@ export class SourcesReviewList extends Disposable {
 
 	private refresh(): void {
 		const hasRepository = this.scmService.repositoryCount > 0;
-		const entries = collectSourcesReviewEntries(this.scmService.repositories);
-		const hasEntries = entries.length > 0;
+		const allEntries = collectSourcesReviewEntries(this.scmService.repositories);
+		const entries = filterSourcesEntries(allEntries, this.filterBox.value);
+		const hasAnyEntries = allEntries.length > 0;
+		const hasVisibleEntries = entries.length > 0;
 
 		if (!hasRepository) {
 			this.emptyMessage.textContent = localize('sourcesReviewList.noRepository', "No source control repository.");
-		} else if (!hasEntries) {
+		} else if (!hasAnyEntries) {
 			this.emptyMessage.textContent = localize('sourcesReviewList.noChanges', "No changes to review.");
+		} else if (!hasVisibleEntries) {
+			this.emptyMessage.textContent = localize('sourcesReviewList.noMatching', "No matching changes.");
 		}
 
-		this.emptyMessage.style.display = hasEntries ? 'none' : 'block';
-		this.listContainer.style.display = hasEntries ? 'block' : 'none';
+		this.emptyMessage.style.display = hasVisibleEntries ? 'none' : 'block';
+		this.listContainer.style.display = hasVisibleEntries ? 'block' : 'none';
+		this.filterBox.element.style.display = hasAnyEntries ? 'block' : 'none';
 
-		if (!hasEntries) {
+		if (!hasVisibleEntries) {
 			return;
 		}
 

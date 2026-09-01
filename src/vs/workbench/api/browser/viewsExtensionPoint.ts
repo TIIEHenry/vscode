@@ -11,7 +11,7 @@ import { isFalsyOrWhitespace } from '../../../base/common/strings.js';
 import { ThemeIcon } from '../../../base/common/themables.js';
 import { URI } from '../../../base/common/uri.js';
 import { localize } from '../../../nls.js';
-import { ContextKeyExpr } from '../../../platform/contextkey/common/contextkey.js';
+import { ContextKeyExpr, ContextKeyExpression } from '../../../platform/contextkey/common/contextkey.js';
 import { ExtensionIdentifier, ExtensionIdentifierSet, IExtensionDescription, IExtensionManifest } from '../../../platform/extensions/common/extensions.js';
 import { SyncDescriptor } from '../../../platform/instantiation/common/descriptors.js';
 import { IInstantiationService } from '../../../platform/instantiation/common/instantiation.js';
@@ -22,6 +22,7 @@ import { CustomTreeView, TreeViewPane } from '../../browser/parts/views/treeView
 import { ViewPaneContainer } from '../../browser/parts/views/viewPaneContainer.js';
 import { IWorkbenchContribution, WorkbenchPhase, registerWorkbenchContribution2 } from '../../common/contributions.js';
 import { ICustomViewDescriptor, IViewContainersRegistry, IViewDescriptor, IViewsRegistry, ViewContainer, Extensions as ViewContainerExtensions, ViewContainerLocation } from '../../common/views.js';
+import { activityViewletWhen, ActivityBarVisibleViewlets } from '../../common/activityViewletEnablement.js';
 import { VIEWLET_ID as DEBUG } from '../../contrib/debug/common/debug.js';
 import { VIEWLET_ID as EXPLORER } from '../../contrib/files/common/files.js';
 import { VIEWLET_ID as REMOTE } from '../../contrib/remote/browser/remoteExplorer.js';
@@ -35,6 +36,22 @@ export interface IUserFriendlyViewsContainerDescriptor {
 	id: string;
 	title: string;
 	icon: string;
+}
+
+/** Extension views in Activity-bar containers respect optional viewlet settings in the default Code window. */
+export function gateActivityExtensionViewWhen(containerId: string, when: ContextKeyExpression | undefined): ContextKeyExpression | undefined {
+	switch (containerId) {
+		case EXPLORER:
+			return when;
+		case SCM:
+			return when ? activityViewletWhen(ActivityBarVisibleViewlets.scm, when) : activityViewletWhen(ActivityBarVisibleViewlets.scm);
+		case DEBUG:
+			return when ? activityViewletWhen(ActivityBarVisibleViewlets.debug, when) : activityViewletWhen(ActivityBarVisibleViewlets.debug);
+		case REMOTE:
+			return when ? activityViewletWhen(ActivityBarVisibleViewlets.remote, when) : activityViewletWhen(ActivityBarVisibleViewlets.remote);
+		default:
+			return when;
+	}
 }
 
 const viewsContainerSchema: IJSONSchema = {
@@ -518,7 +535,7 @@ class ViewsExtensionHandler implements IWorkbenchContribution {
 						ctorDescriptor: type === ViewType.Tree ? new SyncDescriptor(TreeViewPane) : new SyncDescriptor(WebviewViewPane),
 						id: item.id,
 						name: { value: item.name, original: item.name },
-						when: ContextKeyExpr.deserialize(item.when),
+						when: gateActivityExtensionViewWhen(container.id, ContextKeyExpr.deserialize(item.when)),
 						containerIcon: icon || viewContainer?.icon,
 						containerTitle: item.contextualTitle || (viewContainer && (typeof viewContainer.title === 'string' ? viewContainer.title : viewContainer.title.value)),
 						canToggleVisibility: true,

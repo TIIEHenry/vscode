@@ -5,7 +5,7 @@
 
 import { localize } from '../../../../nls.js';
 
-export type StubTurnKind = 'user' | 'assistant' | 'confirmation';
+export type StubTurnKind = 'user' | 'assistant' | 'confirmation' | 'thinking' | 'tool';
 export type ConfirmationStatus = 'pending' | 'allowed' | 'skipped';
 
 export interface ConversationStubTurn {
@@ -27,25 +27,6 @@ function createSeedSessions(): ConversationStubSession[] {
 		{
 			id: 'untitled',
 			title: localize('conversationLens.sessionUntitled', "Untitled session"),
-			turns: [
-				{ id: 'untitled-u1', kind: 'user', text: localize('conversationLens.stubUntitledUser', "Help me scaffold the project README.") },
-				{ id: 'untitled-a1', kind: 'assistant', text: localize('conversationLens.stubUntitledAssistant', "I can draft a README with setup and contribution sections.") },
-				{ id: 'untitled-c1', kind: 'confirmation', text: localize('conversationLens.confirmationMessage', "Write README.md?"), status: 'pending' },
-			],
-		},
-		{
-			id: 'tour',
-			title: localize('conversationLens.sessionTour', "Product tour"),
-			turns: [
-				{ id: 'tour-u1', kind: 'user', text: localize('conversationLens.stubTourUser1', "What lives in the center lens?") },
-				{ id: 'tour-a1', kind: 'assistant', text: localize('conversationLens.stubTourAssistant1', "SessionBar, timeline, and dock — not ChatEditor.") },
-				{ id: 'tour-u2', kind: 'user', text: localize('conversationLens.stubTourUser2', "Where does Inbox go?") },
-				{ id: 'tour-a2', kind: 'assistant', text: localize('conversationLens.stubTourAssistant2', "Dock top status row; no fake queue list without authority.") },
-			],
-		},
-		{
-			id: 'blank',
-			title: localize('conversationLens.sessionBlank', "Blank session"),
 			turns: [],
 		},
 	];
@@ -176,6 +157,36 @@ export class ConversationStubModel {
 		return turn;
 	}
 
+	appendConfirmationTurn(sessionId: string, text: string): ConversationStubTurn | undefined {
+		const session = this.sessions.find(s => s.id === sessionId);
+		if (!session) {
+			return undefined;
+		}
+		const turn: ConversationStubTurn = { id: nextId(sessionId), kind: 'confirmation', text, status: 'pending' };
+		session.turns.push(turn);
+		return turn;
+	}
+
+	appendThinkingTurn(sessionId: string, text: string): ConversationStubTurn | undefined {
+		const session = this.sessions.find(s => s.id === sessionId);
+		if (!session) {
+			return undefined;
+		}
+		const turn: ConversationStubTurn = { id: nextId(sessionId), kind: 'thinking', text };
+		session.turns.push(turn);
+		return turn;
+	}
+
+	appendToolTurn(sessionId: string, text: string): ConversationStubTurn | undefined {
+		const session = this.sessions.find(s => s.id === sessionId);
+		if (!session) {
+			return undefined;
+		}
+		const turn: ConversationStubTurn = { id: nextId(sessionId), kind: 'tool', text };
+		session.turns.push(turn);
+		return turn;
+	}
+
 	resolveConfirmation(sessionId: string, turnId: string, status: 'allowed' | 'skipped'): void {
 		const session = this.sessions.find(s => s.id === sessionId);
 		const turn = session?.turns.find(t => t.id === turnId && t.kind === 'confirmation') as ConversationStubTurn | undefined;
@@ -186,5 +197,18 @@ export class ConversationStubModel {
 
 	countPendingConfirmations(sessionId: string): number {
 		return this.getTurns(sessionId).filter(t => t.kind === 'confirmation' && t.status === 'pending').length;
+	}
+
+	deleteTurn(sessionId: string, turnId: string): boolean {
+		const session = this.sessions.find(s => s.id === sessionId);
+		if (!session) {
+			return false;
+		}
+		const index = session.turns.findIndex(t => t.id === turnId);
+		if (index < 0) {
+			return false;
+		}
+		session.turns.splice(index, 1);
+		return true;
 	}
 }

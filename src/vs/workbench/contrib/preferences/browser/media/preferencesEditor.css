@@ -10,7 +10,7 @@
 	max-width: 1400px;
 	margin: auto;
 
-	.preferences-editor-header {
+		.preferences-editor-header {
 		box-sizing: border-box;
 		margin: auto;
 		overflow: hidden;
@@ -19,6 +19,10 @@
 		padding-left: 24px;
 		padding-right: 24px;
 		max-width: 1400px;
+
+		.back-to-client-settings-container {
+			margin-bottom: 8px;
+		}
 
 		.search-container {
 			position: relative;

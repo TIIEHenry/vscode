@@ -184,6 +184,13 @@
 }
 
 /* Timeline — reading column; scroll only the inner region (Part slot is overflow:hidden) */
+.monaco-workbench .part.conversation .conversation-lens-reading-column {
+	display: flex;
+	flex-direction: column;
+	flex: 1;
+	min-height: 0;
+}
+
 .monaco-workbench .part.conversation .conversation-lens-timeline {
 	display: flex;
 	flex-direction: column;
@@ -195,19 +202,106 @@
 .monaco-workbench .part.conversation .conversation-lens-timeline-scroll {
 	flex: 1;
 	min-height: 0;
-	overflow-y: auto;
-	overflow-x: hidden;
+	position: relative;
+	display: flex;
+	flex-direction: column;
 }
 
 .monaco-workbench .part.conversation .conversation-lens-timeline-content {
 	display: flex;
 	flex-direction: column;
-	gap: 10px;
+	flex: 1;
+	min-height: 0;
 	max-width: 720px;
 	margin: 0 auto;
 	padding: 8px;
 	width: 100%;
 	box-sizing: border-box;
+	position: relative;
+}
+
+.monaco-workbench .part.conversation .conversation-timeline-pinned-user {
+	position: absolute;
+	top: 8px;
+	left: 8px;
+	right: 8px;
+	z-index: 2;
+	display: none;
+	justify-content: flex-end;
+	pointer-events: none;
+}
+
+.monaco-workbench .part.conversation .conversation-timeline-pinned-user--visible {
+	display: flex;
+}
+
+.monaco-workbench .part.conversation .conversation-timeline-pinned-user-inner {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	max-width: 92%;
+	min-width: 0;
+	pointer-events: auto;
+}
+
+.monaco-workbench .part.conversation .conversation-timeline-pinned-user-bubble {
+	display: flex;
+	align-items: center;
+	flex: 1;
+	min-width: 0;
+	margin: 0;
+	padding: 0;
+	border: none;
+	background: transparent;
+	box-shadow: none;
+	color: inherit;
+	font: inherit;
+	line-height: inherit;
+	cursor: pointer;
+	text-align: start;
+}
+
+.monaco-workbench .part.conversation .conversation-timeline-pinned-user-text {
+	flex: 1;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.monaco-workbench .part.conversation .conversation-timeline-pinned-user-copy {
+	flex-shrink: 0;
+	pointer-events: auto;
+}
+
+.monaco-workbench .part.conversation .conversation-timeline-pinned-user-copy .monaco-button {
+	height: 20px;
+	min-width: 20px;
+	padding: 0 4px;
+}
+
+.monaco-workbench .part.conversation .conversation-timeline-pinned-user-copy .monaco-button .codicon {
+	margin: 0;
+}
+
+.monaco-workbench .part.conversation .conversation-timeline-tree {
+	flex: 1;
+	min-height: 0;
+}
+
+.monaco-workbench .part.conversation .conversation-timeline-scroll-down {
+	position: absolute;
+	right: 12px;
+	bottom: 12px;
+	z-index: 2;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-timeline-scroll.conversation-timeline-at-bottom .conversation-timeline-tree {
+	padding-bottom: 30px;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-timeline-row {
+	padding-bottom: 10px;
 }
 
 .monaco-workbench .part.conversation .conversation-lens-timeline-empty {
@@ -220,6 +314,85 @@
 	padding: 16px 8px;
 	text-align: center;
 	color: var(--vscode-descriptionForeground);
+}
+
+.monaco-workbench .part.conversation .conversation-lens-trajectory {
+	display: flex;
+	flex-direction: column;
+	flex: 1;
+	min-height: 0;
+	background-color: var(--vscode-editor-background);
+}
+
+.monaco-workbench .part.conversation .conversation-lens-trajectory-empty {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	min-height: 120px;
+	padding: 16px 8px;
+	text-align: center;
+	color: var(--vscode-descriptionForeground);
+}
+
+.monaco-workbench .part.conversation .conversation-lens-trajectory-empty-title {
+	margin: 0;
+	font-size: 13px;
+	font-weight: 600;
+	color: var(--vscode-foreground);
+}
+
+.monaco-workbench .part.conversation .conversation-lens-trajectory-list {
+	flex: 1;
+	min-height: 0;
+	max-width: 720px;
+	margin: 0 auto;
+	padding: 8px;
+	width: 100%;
+	box-sizing: border-box;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-trajectory-row {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 0 8px;
+	cursor: pointer;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-trajectory-role {
+	flex-shrink: 0;
+	font-size: 11px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	color: var(--vscode-descriptionForeground);
+	min-width: 72px;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-trajectory-summary {
+	flex: 1;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	font-size: 12px;
+	color: var(--vscode-foreground);
+}
+
+.monaco-workbench .part.conversation .conversation-lens-turn-process .conversation-lens-turn-summary {
+	font-size: 13px;
+	line-height: 1.45;
+	color: var(--vscode-foreground);
+	padding: 4px 8px 6px;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-turn-process-body {
+	font-size: 12px;
+	line-height: 1.45;
+	color: var(--vscode-descriptionForeground);
+	font-style: italic;
+	padding: 4px 8px 6px 20px;
 }
 
 .monaco-workbench .part.conversation .conversation-lens-timeline-empty-title {
@@ -236,11 +409,15 @@
 	max-width: 280px;
 }
 
-/* Turns — tighter reading rhythm */
+/* Turns — chat column rhythm (user bubble vs assistant reading text) */
 .monaco-workbench .part.conversation .conversation-lens-turn {
 	display: flex;
 	flex-direction: column;
 	gap: 4px;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-turn--user-align-end {
+	align-items: flex-end;
 }
 
 .monaco-workbench .part.conversation .conversation-lens-turn-header {
@@ -255,22 +432,73 @@
 	font-size: 13px;
 	line-height: 1.5;
 	color: var(--vscode-foreground);
-	padding: 6px 8px;
-	border-radius: 2px;
-	border: 1px solid var(--vscode-widget-border, var(--vscode-contrastBorder, transparent));
-	background-color: var(--vscode-input-background);
 }
 
-.monaco-workbench .part.conversation .conversation-lens-turn[data-kind="user"] .conversation-lens-turn-body {
+.monaco-workbench .part.conversation .conversation-lens-turn-body--user-bubble {
+	max-width: 92%;
+	padding: 6px 12px;
+	border-radius: 8px;
+	border: none;
 	background-color: var(--vscode-sideBar-background);
-	border-color: var(--vscode-sideBar-border, var(--vscode-contrastBorder, transparent));
+	box-shadow: 0 1px 2px var(--vscode-widget-shadow, rgba(0, 0, 0, 0.16));
 }
 
-.monaco-workbench .part.conversation .conversation-lens-turn[data-kind="assistant"] .conversation-lens-turn-body {
-	background-color: var(--vscode-editor-background);
+.monaco-workbench .part.conversation .conversation-lens-turn-body--user-bubble.conversation-lens-turn-body--collapsible {
+	position: relative;
 }
 
-.monaco-workbench .part.conversation .conversation-lens-turn[data-kind="assistant"][data-stub="true"] .conversation-lens-turn-body {
+.monaco-workbench .part.conversation .conversation-lens-turn-body--user-bubble.conversation-lens-turn-body--collapsed {
+	display: -webkit-box;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 4;
+	overflow: hidden;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-turn-body--user-bubble.conversation-lens-turn-body--collapsed::after {
+	content: '';
+	position: absolute;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	height: 1.5em;
+	background: linear-gradient(to bottom, transparent, var(--vscode-sideBar-background));
+	pointer-events: none;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-turn-body--user-bubble.conversation-lens-turn-body--scrollable {
+	max-height: calc(1.5em * 20);
+	overflow-y: auto;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-turn-fold {
+	align-self: flex-end;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-turn-fold-button {
+	margin: 0;
+	padding: 0;
+	border: none;
+	background: none;
+	font-size: 12px;
+	line-height: 1.4;
+	color: var(--vscode-descriptionForeground);
+	cursor: pointer;
+	text-decoration: underline;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-turn-fold-button:hover {
+	color: var(--vscode-foreground);
+}
+
+.monaco-workbench .part.conversation .conversation-lens-turn-body--reading-text {
+	padding: 2px 0;
+	border: none;
+	background: transparent;
+	border-radius: 0;
+	box-shadow: none;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-turn[data-kind="assistant"][data-stub="true"] .conversation-lens-turn-body--reading-text {
 	font-style: italic;
 	color: var(--vscode-descriptionForeground);
 }
@@ -285,6 +513,18 @@
 
 .monaco-workbench .part.conversation .conversation-lens-turn-body.rendered-markdown :is(p, ul, ol):last-child {
 	margin-bottom: 0;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-turn-actions {
+	display: flex;
+	flex-direction: row;
+	gap: 2px;
+	opacity: 0;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-turn:hover .conversation-lens-turn-actions,
+.monaco-workbench .part.conversation .conversation-lens-turn:focus-within .conversation-lens-turn-actions {
+	opacity: 1;
 }
 
 /* Confirmation seat — in-timeline */
@@ -386,6 +626,32 @@
 	color: var(--vscode-descriptionForeground);
 }
 
+.monaco-workbench .part.conversation .conversation-lens-inbox-goal {
+	flex-shrink: 0;
+	margin-left: 2px;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-inbox-goal-button {
+	min-width: 0;
+	padding: 0 6px;
+	height: 20px;
+	font-size: 11px;
+	line-height: 18px;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-inbox-stop {
+	flex-shrink: 0;
+	margin-left: 2px;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-inbox-stop-button {
+	min-width: 0;
+	padding: 0 6px;
+	height: 20px;
+	font-size: 11px;
+	line-height: 18px;
+}
+
 .monaco-workbench .part.conversation .conversation-lens-inbox-pending {
 	padding: 0;
 	border: none;
@@ -454,6 +720,36 @@
 	flex: 1;
 	min-width: 0;
 	min-height: 0;
+	display: flex;
+	align-items: center;
+	gap: 4px;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-dock-attach {
+	flex-shrink: 0;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-dock-attach .monaco-button {
+	height: 20px;
+	min-width: 20px;
+	padding: 0 4px;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-dock-attach .monaco-button .codicon {
+	margin: 0;
+}
+
+.monaco-workbench .conversation-lens-dock-attach-popup {
+	padding: 4px 8px;
+	font-size: 12px;
+	font-weight: 400;
+	text-transform: none;
+	letter-spacing: normal;
+	color: var(--vscode-descriptionForeground);
+	background-color: var(--vscode-menu-background);
+	border: 1px solid var(--vscode-menu-border, var(--vscode-contrastBorder, transparent));
+	border-radius: 2px;
+	box-shadow: 0 2px 8px var(--vscode-widget-shadow, rgba(0, 0, 0, 0.16));
 }
 
 .monaco-workbench .part.conversation .conversation-lens-dock-bottom-trailing {

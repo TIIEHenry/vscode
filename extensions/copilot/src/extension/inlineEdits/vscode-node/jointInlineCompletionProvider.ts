@@ -103,7 +103,6 @@ export class JointCompletionsProviderContribution extends Disposable implements 
 		super();
 
 		const useJointCompletionsProviderObs = _configurationService.getExperimentBasedConfigObservable(ConfigKey.TeamInternal.InlineEditsJointCompletionsProviderEnabled, _expService);
-
 		this._register(autorun((reader) => { // FX
 			const useJointCompletionsProvider = useJointCompletionsProviderObs.read(reader);
 			if (!useJointCompletionsProvider) {
@@ -118,6 +117,10 @@ export class JointCompletionsProviderContribution extends Disposable implements 
 			const unificationState = unificationStateObservable(this);
 
 			reader.store.add(autorun((reader) => {
+				if (!vscode.workspace.isAgentSessionsWorkspace) {
+					return;
+				}
+
 				const unificationStateValue = unificationState.read(reader);
 
 				// A model whose strategy bakes in `supportsUnifiedCompletions` runs as the single unified
