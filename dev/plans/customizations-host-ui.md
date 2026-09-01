@@ -1,10 +1,10 @@
 ---
 title: "Agent Customizations 宿主 UI：按 vscode 重排各节"
 type: plan
-status: accepted
+status: implemented
 phase: N/A
 updated: 2026-09-01
-summary: "已签收：文件编辑器 donor chrome；剥 Copilot 营销；零件可拆进 Engine 页；H0–H3 ReadyToImplement"
+summary: "donor chrome 已落：H0–H3 @ `77d6e7cc`（剥 Copilot 营销、WorkbenchList、UA/MCP copy）；E1 blocked PRD-008"
 ---
 
 # Agent Customizations 宿主 UI
@@ -17,7 +17,7 @@ summary: "已签收：文件编辑器 donor chrome；剥 Copilot 营销；零件
 
 **Goal：** 剥 Copilot 营销 Overview / Browse / CLI 工具清单，改成 vscode 左 nav + 列表 + markdown 预览。无引擎时本页只列/空着本地文件，**不**画 catalog；诚实空 + Test 在 Engine 页。**不要**把这只编辑器当成 Skill/Agent 产品首页。
 
-本稿 `accepted`（2026-09-01）。规则 16 三轮 Grok 4.6（Opus 不可用）。第三轮 Approve with changes 已改入。**ReadyToImplement：** H0–H3 donor chrome（不改扫描根）。E1 不在本文件。
+本稿 `implemented`（H0–H3 @ `a23c4e7f`/`f248cc47`/`77d6e7cc`）。E1 在 [customizations-engine.md](customizations-engine.md)，blocked PRD-008。
 
 ## 0. 已拍板约束（本文件不重开）
 
@@ -359,4 +359,4 @@ E1 / catalog 不在本页。
 
 engine 第三轮连带：H0–H3 **不得**把扫描根改到 `{AgentHome}`。
 
-2026-09-01：**签收** `accepted`。H0–H3 ReadyToImplement。未改 `src/`。
+2026-09-01：**签收** `accepted` → **`implemented`** @ `77d6e7cc`（H0–H3）。

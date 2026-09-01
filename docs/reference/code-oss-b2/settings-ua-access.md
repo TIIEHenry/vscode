@@ -1,10 +1,10 @@
 ---
 title: "Settings 接入：UA 设置项如何挂进 vscode Preferences"
 type: reference
-status: draft
+status: accepted
 phase: N/A
 updated: 2026-09-01
-summary: "混合宿主：Client SettingsEditor2 + Connection/Engine Preferences pane；Customizations 文件工具（C5 注销第三 pane）；产品目录见 settings-two-surfaces"
+summary: "混合宿主：Client SettingsEditor2 + Connection/Engine Preferences pane；C5 已落（TOC→aiCustomization.openManagementEditor，ua.customizations pane 已注销）；donor H0–H3 已落 @77d6e7cc；产品目录见 settings-two-surfaces"
 ---
 
 # Settings 接入：UA 设置项如何挂进 vscode Preferences
@@ -23,7 +23,7 @@ Desktop：Overlay `OverlayKind.settings`；齿轮在 AppTabBar；StatusBar profi
 
 ## 2. 选定宿主（已签收）
 
-**选定：混合宿主 C。** 默认窗 Client Settings **仍用 `SettingsEditor2`**。Connection / Engine 注册为 **`PreferencesEditor` 子 pane**（`ua.connection` / `ua.engine`）。**拒绝**并列 `RequiresModal` `EditorInput` 作为 Connection/Engine 宿主。Customizations **文件工具**保留 `AICustomizationManagementEditor`（ADR-061 决策 5）。产品主面（Skill/Agent catalog 等）在 Engine pane，见 [settings-two-surfaces.md](../../../dev/plans/settings-two-surfaces.md)。C5 注销 `ua.customizations` pane；HEAD 仍注册该占位。
+**选定：混合宿主 C。** 默认窗 Client Settings **仍用 `SettingsEditor2`**。Connection / Engine 注册为 **`PreferencesEditor` 子 pane**（`ua.connection` / `ua.engine`）。**拒绝**并列 `RequiresModal` `EditorInput` 作为 Connection/Engine 宿主。Customizations **文件工具**保留 `AICustomizationManagementEditor`（ADR-061 决策 5）。产品主面（Skill/Agent catalog 等）在 Engine pane，见 [settings-two-surfaces.md](../../../dev/plans/settings-two-surfaces.md)。**C5 已落 @ `77d6e7cc`：** `ua.customizations` pane 已从 `IPreferencesEditorPaneRegistry` 注销；TOC `ua/customizations` 链接 → `aiCustomization.openManagementEditor`（`settingsLayout.ts`）。
 
 **候选对比（签收背景）：**
 
@@ -33,7 +33,7 @@ Desktop：Overlay `OverlayKind.settings`；齿轮在 AppTabBar；StatusBar profi
 | `PreferencesEditor` + `PreferencesEditorInput` | `openPreferences({ paneId? })` **无条件** `MODAL_GROUP`；`IPreferencesEditorPaneRegistry` 挂 UA 子页 | Connection / Engine 外链子页 | Client 全量键搬迁（**已拒绝**）；C5 后 Customizations **不是**第三 pane |
 | **混合 C（选定）** | Client → `SettingsEditor2`；Connection/Engine → Preferences 子 pane | 层边界干净 | 双宿主深链须路由表 |
 
-**HEAD 事实：** `IPreferencesService.openPreferences(options?: { paneId?: string })` 已扩展（`preferencesService.ts`）。Registry 已注册 `ua.connection`（order 10）、`ua.engine`（20）、`ua.customizations`（30）（`uaPreferencesPanes.contribution.ts`）。未知 / 未注册 `paneId` **fail-closed** → `openSettings()` 无 `query` / `revealSetting` / `focusSearch`。
+**HEAD 事实 @ `77d6e7cc`：** `IPreferencesService.openPreferences(options?: { paneId?: string })` 已扩展（`preferencesService.ts`）。Registry **仅**注册 `ua.connection`（order 10）、`ua.engine`（20）（`uaPreferencesPanes.contribution.ts`）；**无** `ua.customizations`。未知 / 未注册 `paneId` **fail-closed** → `openSettings()` 无 `query` / `revealSetting` / `focusSearch`。
 
 张力（v1 **接受**，不要假装已解决）：
 
@@ -71,13 +71,13 @@ Client 与 vscode 原生重叠的项 **不要双入口**：
 
 ## 4. Customizations 切分（ADR-061 决策 5 + two-surfaces）
 
-**已拍板：** 保留 `AICustomizationManagementEditor` 作 **文件工具 donor**，**不是**第三套主设置。Skill/Agent/Rules/Hooks/MCP 定义 / 引擎工具的产品主面是 `ua.engine`。chrome 见 [customizations-host-ui.md](../../../dev/plans/customizations-host-ui.md)；权威见 [customizations-engine.md](../../../dev/plans/customizations-engine.md)。
+**已拍板：** 保留 `AICustomizationManagementEditor` 作 **文件工具 donor**，**不是**第三套主设置。Skill/Agent/Rules/Hooks/MCP 定义 / 引擎工具的产品主面是 `ua.engine`。chrome 见 [customizations-host-ui.md](../../../dev/plans/customizations-host-ui.md)；权威见 [customizations-engine.md](../../../dev/plans/customizations-engine.md)。**donor H0–H3 已落 @ `77d6e7cc`**（去 Copilot 营销脸、WorkbenchList 密度、Instructions/Hooks UA 文案、MCP Browse 剥离；见 [settings-two-surfaces.md](../../../dev/plans/settings-two-surfaces.md) §3）。
 
 | 面 | 宿主 | 禁止 |
 |----|------|------|
 | 打开某份 UA markdown / `tools.json` | `AICustomizationManagementEditor`（`aiCustomization.openManagementEditor`，`RequiresModal`） | Settings TOC 再做一份 catalog 列表；默认窗构造 Plugins/Tools widget |
 | Skill/Agent catalog 等产品面 | Preferences **Engine pane** | 把 Copilot Overview 当 Engine 首页；无引擎扫盘 Stub catalog |
-| 跳转 | TOC「Open Customizations…」C5 → `aiCustomization.openManagementEditor`。HEAD 仍有 `ua.customizations` pane，切片须注销 | 复制列表进 Settings 树 |
+| 跳转 | TOC「Open Customizations…」→ `aiCustomization.openManagementEditor`（C5 已落；**无**第三 Preferences pane） | 复制列表进 Settings 树 |
 
 MCP：vscode 本地 `mcp.json` 可在 donor 当普通文件；引擎 MCP 定义 CRUD 在 Engine 页。运行态另切片。
 
@@ -134,3 +134,5 @@ Client Settings **无连接也可开**（Singularity 原则）。**选定：** C
 2026-08-31 已经 Opus 5.0（`claude-opus-5-thinking-high`）审查并改稿。Critical：出厂打开路径是 `useModal: 'some'` → `MODAL_GROUP`，不是 Preview tab。Important：Connection 用非 setting TOC 元素、`ITOCFilter.exclude` 并入 advanced 滤、`agentsWindow` 与 TOC 可见性不可互替、StatusBar 映射 `status.conversation.engine`。
 
 2026-09-01 设置两套主面签收：Customizations 不是第三 pane；C5 不走 pane helper。见 [settings-two-surfaces.md](../../../dev/plans/settings-two-surfaces.md)。
+
+2026-09-01 HEAD 同步 @ `77d6e7cc`：`accepted`；C5 与 donor H0–H3 已落；`ua.customizations` pane 已从 registry 注销；TOC 链接 commandId 已换为 `aiCustomization.openManagementEditor`。

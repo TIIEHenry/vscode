@@ -76,16 +76,14 @@ summary: "P2/P3 延期缺口 SSOT；D1/D3/D7/D4 已闭；D5 仍开"
 | V7 | 重启恢复 Part 显隐与 End 尺寸；无 ChatEditor tab 还原 | **FAIL** | Reload 后全部 part `false`（`v7.json`）；布局未恢复 |
 | V8 | Sources Files/Changes/Review 基本打开 | **PARTIAL** | 快照（V2 阶段）见 Files/Changes/Review tab；eval `sourcesTabs:[]`（automation 时 Sources 已隐藏） |
 
-**Blocking failures（D4 保持 open）**：
+**Blocking failures（首轮 c7ed501d，已由 rerun-2230 闭合）：**
 
-1. `c7ed501d` 无法完成 D4 closer（workbench boot 崩溃；见上）。
-2. `valid-layers-check` 红（工位环境 / TS lib；需与 D3 记录 reconciled）。
-3. V6 Quick Chat 在默认窗仍可触发（post-fix 自动化证据）。
-4. V2–V4 / V7 布局切换与恢复未通过。
+1. ~~`c7ed501d` boot 崩溃~~ → `bd2b8872` + `c95fd679` 修复。
+2. ~~V2–V7 布局/路由失败~~ → rerun-2230 全 PASS。
 
 **截图**：`dev/progress/d4-evidence/c7ed501d/screenshots/v1.png`（post-fix fresh profile）。
 
-**状态**：D4 **open** — V1–V8 未全绿，不得 closed。
+**状态（首轮记录，已 supersede）**：见下节 rerun-2230 — D4 **closed**。
 
 ## D4 M5 切片 4 验收记录（2026-09-01，主仓 / `agent-ide` working tree）
 
@@ -112,21 +110,33 @@ summary: "P2/P3 延期缺口 SSOT；D1/D3/D7/D4 已闭；D5 仍开"
 
 **文档**：[eh-surface-matrix §Probe plan](../../docs/reference/code-oss-b2/eh-surface-matrix.md#probe-plan)。
 
-**已选扩展**（尚未安装）：
+**已选扩展**（安装状态 @ 2026-09-01）：
 
-| 扩展 | ID | 覆盖 |
-|------|-----|------|
-| YAML | `redhat.vscode-yaml` | LSP / 语言层（End 列 editor） |
-| Todo Tree | `gruntfuggly.todo-tree` | Sidebar `views` + Activity 布局挤占 |
-| JavaScript Debugger | `ms-vscode.js-debug` | 调试视图（Sidebar/Panel） |
+| 扩展 | ID | 覆盖 | 安装 |
+|------|-----|------|------|
+| YAML | `redhat.vscode-yaml` | LSP / 语言层（End 列 editor） | **OK** → `/tmp/d5-probe-ext-vsix` |
+| Todo Tree | `gruntfuggly.todo-tree` | Sidebar `views` + Activity 布局挤占 | **OK** → 同上 |
+| JavaScript Debugger | `ms-vscode.js-debug` | 调试视图（Sidebar/Panel） | **跳过 VSIX** — 产品内置；`code-cli.sh` 拒绝覆盖 builtin |
+
+**安装命令（SSOT）**：
+
+```bash
+export VSCODE_SKIP_PRELAUNCH=1
+REPO=/home/clarence/Projects/Agents/vscode-WorkTrees/merge
+EXT_DIR=/tmp/d5-probe-ext-vsix
+$REPO/scripts/code-cli.sh --extensions-dir="$EXT_DIR" \
+  --force --install-extension=/tmp/d5-vsix/<id>.vsix
+```
+
+`launch.sh` 冒烟时传 **`--extensions-dir=/tmp/d5-probe-ext-vsix`**（或 `--` 转发给 `code.sh`）。勿用 `code.sh --install-extension`（会起完整 workbench）。
 
 **矩阵**：3 行 + 2 探针对照行已标 **探针已选 @2026-08-31**；panel / terminal / `editor/decoration` 仍为 **待实测**。
 
 **下一步**：
 
-1. D3 compile 绿 + D4 隔离 profile 启动（同 `launch.sh` 工位）。
-2. 在 temp profile 安装上表三扩展（`code --install-extension <id>` 或 Extensions 视图）。
-3. 打开含 `.yaml` 与 `// TODO` 注释的样例仓；YAML 文件在 End Preview 验 LSP；Todo Tree 验 Sidebar/Activity；对样例 `.js` F5 验调试视图。
+1. ~~D3 compile 绿 + D4 隔离 profile 启动~~ — D4 closed @ rerun-2230。
+2. ~~VSIX 下载 + 安装~~ — 两扩展已装入 `EXT_DIR`；js-debug 用内置扩展，不装 VSIX。
+`launch.sh` 冒烟：`dev/progress/d5-evidence/launch-with-probes.sh`（seed profile + `--clone-extensions` 注入 `EXT_DIR`）。
 4. 截图 + 把覆盖行证据改为 **已实测 @\<date\>**，未覆盖 gap 记入本表或矩阵脚注。
 
 ## 维护规则

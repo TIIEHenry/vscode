@@ -1,10 +1,10 @@
 ---
 title: "会话列表复用：Navigator roster 用哪些 vscode 零件"
 type: reference
-status: draft
+status: accepted
 phase: N/A
 updated: 2026-09-01
-summary: "对照 Singularity SessionList / Desktop Navigator Sessions：产品 roster 宿主、WorkbenchList donor、IConversationRosterService 同 token 演进；禁止 IChatModel / agentSessions 当真相"
+summary: "对照 Singularity SessionList / Desktop Navigator Sessions：产品 roster 宿主、WorkbenchList donor、IConversationRosterService 同 token 演进；M5 切片 2 已落（roster 点击→switchSession→show+focus CONVERSATION_PART）；禁止 IChatModel / agentSessions 当真相"
 ---
 
 # 会话列表复用：Navigator roster 用哪些 vscode 零件
@@ -53,7 +53,7 @@ ADR-061 决策 5 写了「会话列表侧边栏（sessions viewlet / `agentSessi
 | ViewPane 标题动作 New / Delete 模式（删的是 **当前活动会话** `getActiveSessionId()`，不是列表焦点行） | Copilot Archive All / Mark All Read（[widget-parts §8.1](../../systems/chat/widget-parts.md)：默认窗 F1 已 `IsSessionsWindowContext` 门闩） |
 | SessionBar 与 roster **同一服务** | 第二份列表状态 |
 
-已落地动作：`workbench.action.conversationSessions.newSession` / `deleteSession`；点击行 → `IConversationRosterService.switchSession`。数据 = `IConversationRosterService` / `ConversationStubModel`，**仅内存**。
+已落地动作：`workbench.action.conversationSessions.newSession` / `deleteSession`；**M5 切片 2 @ `77d6e7cc`：** 列表 `onDidOpen`（单击 / 键盘）→ `openSessionFromRoster` 顺序：`switchSession(id)` → 若 `CONVERSATION_PART` 隐藏则 `IWorkbenchLayoutService.setPartHidden(false, …)` → `IConversationPartService.focus()`（`conversationSessionsView.ts`；**不** import `chatShellRouting`）。Alt+单击走 `openSessionBeside`。stale / 空元素不改变布局。数据 = `IConversationRosterService` / `ConversationStubModel`，**仅内存**。
 
 SessionBar `SelectBox` 去留：**Deferred**（父方案 §1.4）；阶段 1 保持双入口，共用同一服务，高亮谓词恒 `getActiveSessionId()`。
 
@@ -70,7 +70,7 @@ View 只绑：`getSessions` / `getActiveSessionId` / `switchSession` / `createSe
 | 产品 roster | 容器 `workbench.view.sessions` / 叶 `workbench.view.conversationSessions` | — |
 | `contrib/chat/browser/agentSessions/` | **禁止**再挂一份 Copilot sessions viewlet | 可留（donor `ChatViewPane` / Agents Window） |
 
-点击切 `CONVERSATION_PART` 当前会话，**禁止** `openEditor(ChatEditorInput)`。
+点击切 `CONVERSATION_PART` 当前会话（M5 切片 2：Conversation 隐藏时亦 show+focus），**禁止** `openEditor(ChatEditorInput)`。
 
 **INV-TOPO：Open-as-Editor（HEAD 已闭合 default 窗路径）：**
 
@@ -91,7 +91,7 @@ View 只绑：`getSessions` / `getActiveSessionId` / `switchSession` / `createSe
 
 | Desktop / Singularity | 本仓 v1（已落地 stub） | 有引擎后 |
 |----------------------|------------------------|----------|
-| 列表选择会话 | stub `switchSession` | adapter bind listed id |
+| 列表选择会话 | stub `switchSession` + show+focus `CONVERSATION_PART`（M5 切片 2） | adapter bind listed id |
 | New session | 内存新会话（标题 `New session` / `New session N`，`createUniqueNewSessionTitle()`） | `cmd.session.create` 生产路径（外仓） |
 | Delete | 内存；删最后一项新建 Untitled | UA delete；空列表策略另切片 |
 | History | SessionBar 提示 No history | 不把 Copilot history 当产品 History |
@@ -116,3 +116,5 @@ View 只绑：`getSessions` / `getActiveSessionId` / `switchSession` / `createSe
 2026-08-31 已经 Opus 5.0（`claude-opus-5-thinking-high`）审查并改稿。Critical：禁令目标是产品 roster（`workbench.view.sessions`），不是 Explorer。Important：Open as Editor 默认窗须门闩；adapter 须 `getActiveSessionId()`；新建标题是 `New session` / `New session N`（`Untitled` 只作种子 / 删空回退）。
 
 2026-09-01 按父方案 §12 同步：`hideIfEmpty: false`；`IConversationRosterService` 同 token 演进；Open-as-Editor 行为 + 菜单 when 与 HEAD 对齐；SelectBox Deferred 见父方案 §1.4。
+
+2026-09-01 HEAD 同步 @ `77d6e7cc`：`accepted`；M5 切片 2 roster 导航闭环（`conversationSessionsView.ts` `openSessionFromRoster` show+focus）已落。

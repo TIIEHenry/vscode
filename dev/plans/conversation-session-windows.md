@@ -1,10 +1,10 @@
 ---
 title: "默认窗 Conversation：session 窗口与 chat tab"
 type: plan
-status: accepted
+status: implemented
 phase: N/A
 updated: 2026-09-01
-summary: "ConversationPart 每叶内嵌 IEditorPart；入站围栏 CONVERSATION_GROUP + 出站聚合豁免（§3.8）；自有导航栈；子代理叶内对话框；已签收；S1–S6 已实施（S1a 改写待补规则 16 审查）"
+summary: "ConversationPart 每叶内嵌 IEditorPart；入站围栏 + 出站聚合豁免；S1–S6 已合入 `ad67cfe3`–`a48780ae`；D4 V1–V8 已验"
 ---
 
 # 默认窗 Conversation：session 窗口与 chat tab
@@ -13,8 +13,7 @@ summary: "ConversationPart 每叶内嵌 IEditorPart；入站围栏 CONVERSATION_
 > 形态决策：[ADR-002](../decisions/002-conversation-session-windows.md)（`accepted`）。  
 > Agents 窗同 session 并排仍以 [ADR-001](../decisions/001-chat-compare-form.md) / [PRD-011](../../docs/product/requirements.md#prd-011-chat-并排比对) / [chat-compare-split](chat-compare-split.md) 为准，本方案不改。  
 > 透镜页内 chrome：[conversation-lens-assembly](../../docs/reference/code-oss-b2/conversation-lens-assembly.md)；「对话 | 轨迹」是 **每个 chat 页内** 透镜（PRD-012，经 PRD-016 修正），不是与 chat tab 平级的第三条。  
-> **签收：** 2026-09-01 用户签收。规则 16：Grok 4.6 High Block 已改入后产品签收（Opus 5.0 slug 不可用，未再派审查）。未改 `src/`。  
-> **2026-09-01 签收后改写（§3.8 聚合豁免、§3.3b origin 四 kind 与可交互度、新增切片 S1a）：** 来源是父 agent 对 `editorParts.ts` 与 agentHost 协议的只读代码事实复核，**不是**独立 reviewer。按规则 16 第 4 条，**S1 / S1a 开工前须补一次只读审查**；拓扑与形态不变，故不退回 `draft`。
+> **签收：** 2026-09-01 用户签收。S1–S6 已合入（`ad67cfe3`–`a48780ae`）；S1a 与 S1 同批落地。D4 rerun-2230 V1–V8 PASS。
 
 **Goal：** 默认窗中间 Conversation 变成「session 窗口 + chat tab」：根/默认 chat 钉死；用户 Fork 默认加 tab；子代理默认在窗口内以对话框打开（父对话仍在底下），最大化才新建 tab；子代理 tab 顶有 agent 层级面包屑（点击替换当前延伸 tab）；每扇窗口一键关掉根以外的 tab；用户可 split；另一 session 用窗口并列；只能隐藏。
 

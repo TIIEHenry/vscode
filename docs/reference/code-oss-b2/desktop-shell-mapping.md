@@ -4,7 +4,7 @@ type: reference
 status: accepted
 phase: N/A
 updated: 2026-09-01
-summary: "ADR-052 四钮与 IA 区域投影到默认 workbench / Agents Window；M1 透镜 + Sources 三 tab + D7 四钮已落；M5 切片 1–3：chatShellRouting、roster show+focus、IAgentHostMcpServer platform 下沉"
+summary: "ADR-052 四钮与 IA 区域投影到默认 workbench / Agents Window；M5 切片 1–4 已落；D4 closed @ rerun-2230；D5 EH 仍 open"
 ---
 
 # Desktop 壳合同 ↔ 本仓 Parts 映射
@@ -65,7 +65,7 @@ StatusBar
 | Prev | `toggleRegion('preview')` | `workbench.action.toggleEditorVisibility` → `setPartHidden(EDITOR_PART)`；**已注册** `LayoutControlMenu` | 不再强制开 Panel |
 | Src | `toggleRegion('sources')` | `workbench.action.toggleSources` → `setPartHidden(SOURCES_PART)`；**已注册** `LayoutControlMenu` | Files / Changes / Review tab strip 已落（Changes / Review = SCM 列表 → Preview）；Diff 路由未改 |
 
-> **HEAD**：默认窗口已有 Conversation 透镜 + End 列（Editor 上 / Sources **Files \| Changes \| Review** 下）+ titlebar 产品四钮（主簇仅 **Navigator / Conversation / Preview / Sources**；Panel / Aux 退 submenu）。Changes / Review = SCM 资源列表打开 Preview；Diff 仍 **EDITOR_PART** FORK。**M5 切片 1–3 已落**：`contrib/chat/browser/chatShellRouting.ts` 统一默认窗 Chat/Quick Chat/Resolver 路由（`shouldRegisterChatEditorResolver` = Agents Window only；Quick Chat 快捷键 `IsSessionsWindowContext`）；Sidebar Sessions roster 打开行 show+focus Conversation；`IAgentHostMcpServer` 下沉 `platform/agentHost/common/`（workbench 无 `sessions/common` import）。**D4 启动演示与 D5 EH 探针仍 open**（closer = [M5 切片 4](../../../dev/plans/m5-ui-shell-hardening.md) V1–V8）→ [deferred-gaps](../../../dev/progress/deferred-gaps.md)。
+> **HEAD**：默认窗口已有 Conversation 透镜 + End 列（Editor 上 / Sources **Files \| Changes \| Review** 下）+ titlebar 产品四钮（主簇仅 **Navigator / Conversation / Preview / Sources**；Panel / Aux 退 submenu）。Changes / Review = SCM 资源列表打开 Preview；Diff 仍 **EDITOR_PART** FORK。**M5 切片 1–4 已落**：`chatShellRouting` 默认窗路由、roster show+focus、`IAgentHostMcpServer` platform 下沉；**D4 closed** @ [rerun-2230](../../../dev/progress/d4-evidence/rerun-2230/) V1–V8。**D5 EH 探针仍 open** → [deferred-gaps](../../../dev/progress/deferred-gaps.md)。
 
 `INV-052-NO-DUAL-HIDE`：Conversation ∨ Workbench(Preview∨Sources) 至少一个可见。  
 本仓默认（M0）：**Conversation ∨ (Editor ∨ Sources)** 至少一个可见（`forceShownAgentShellPart`）。Panel 不进此公式。

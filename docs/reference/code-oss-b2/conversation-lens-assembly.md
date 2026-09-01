@@ -1,10 +1,10 @@
 ---
 title: "Conversation 透镜组装：零件如何嵌进 CONVERSATION_PART"
 type: reference
-status: draft
+status: accepted
 phase: N/A
 updated: 2026-09-01
-summary: "对照 Desktop Conversation / Input Dock：三槽自研 chrome 保持；PRD-016 选定 timeline/dock 迁入 EditorPane（未实施）；禁止 ChatWidget 整块或 ChatEditor"
+summary: "三槽自研 chrome；PRD-015 空会话 Composer 与 PRD-016 session 窗口/chat tab 已落；timeline/dock 在 Conversation EditorPane 内；禁止 ChatWidget 整块"
 ---
 
 # Conversation 透镜组装
@@ -75,11 +75,11 @@ CONVERSATION_PART          ← 槽宿主；不渲染产品 chrome
 
 `ChatInputPart` 是 donor 对照，不是 Dock 合同。外仓条款只链 §8.3，本文不发明例外。
 
-**选定合同（[PRD-015](../../product/requirements.md#prd-015-conversation-空会话与输入面) / [conversation-empty-hero](../../../dev/plans/conversation-empty-hero.md)，2026-09-01 签收，未实施）：** PreFirst 居中 Composer + 身份条、无 Inbox；Active Composer BottomDocked；Agent/Route XOR；Inbox 左右分簇且 Task 左于 MessageQueue。上表「已落地」仍是 HEAD：gate + 单行 inbox-row + 底栏 Send。实施前不得把本表改写成新布局。
+**已落地（[PRD-015](../../product/requirements.md#prd-015-conversation-空会话与输入面) / [conversation-empty-hero](../../../dev/plans/conversation-empty-hero.md)，`ea0104c0`–`d4064ba0` T1–T6）：** PreFirst 居中 Composer + `ConversationIdentityStrip`、无 Inbox；Active Composer BottomDocked（32px 底栏）；Agent/Route XOR（PreFirst 在 Composer、Active Route 在 SessionBar）；Inbox 左右分簇且 Task 左于 MessageQueue。Dock 槽仍是自研表面，不是 `ChatInputPart`。
 
 ## 5. SessionBar
 
-**已落地、保持自研。** 不在此做 Settings 齿轮。与 Navigator roster 共用同一会话服务（见 [session-roster-reuse.md](session-roster-reuse.md)），今天是 `IConversationRosterService`（decorator id 仍 `'conversationStubService'`）内存标题；引擎后换 UA session，不换槽位。SelectBox 去留 **Deferred**（父方案 §1.4）。Active **Route** 下拉（无策略则省略）是 PRD-015 选定，HEAD 尚无该槽。身份条继续禁止进 SessionBar。
+**已落地、保持自研。** 不在此做 Settings 齿轮。与 Navigator roster 共用同一会话服务（见 [session-roster-reuse.md](session-roster-reuse.md)），今天是 `IConversationRosterService`（decorator id 仍 `'conversationStubService'`）内存标题；引擎后换 UA session，不换槽位。SelectBox 去留 **Deferred**（父方案 §1.4）。Active **Route** 下拉在 SessionBar（PRD-015 T3）。身份条在 PreFirst 居中区 / Active 阅读列顶，不进 SessionBar。
 
 ## 6. 分阶段
 
@@ -104,8 +104,8 @@ CONVERSATION_PART          ← 槽宿主；不渲染产品 chrome
 - [壳映射](desktop-shell-mapping.md) — Part 与四钮
 - 外仓 `docs/product/ui-interaction-spec.md` §8.3 Input Dock、**§8.4 权限座位**、§8.6 阅读层级（只链，不复述）
 - 父方案：[page-access-schemes.md](../../../dev/plans/page-access-schemes.md) §4 / §10 切片 4
-- 空会话 / 输入面选定（未实施）：[conversation-empty-hero.md](../../../dev/plans/conversation-empty-hero.md)（PRD-015）
-- session 窗口 / chat tab 选定（未实施）：[conversation-session-windows.md](../../../dev/plans/conversation-session-windows.md)（PRD-016）；timeline/dock 将迁入 EditorPane，窗口 chrome 留在 Part
+- 空会话 / 输入面（已实施）：[conversation-empty-hero.md](../../../dev/plans/conversation-empty-hero.md)（PRD-015）
+- session 窗口 / chat tab（已实施）：[conversation-session-windows.md](../../../dev/plans/conversation-session-windows.md)（PRD-016）；timeline/dock 在 Conversation `IEditorPart` pane 内，窗口 chrome 在 Part
 
 ## 审查
 

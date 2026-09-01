@@ -4,7 +4,7 @@ type: architecture
 status: accepted
 phase: N/A
 updated: 2026-09-01
-summary: "本仓对话 UI 的三层：ChatWidget 零件、workbench 宿主（含违反 INV-TOPO 的 ChatEditor）、Sessions Part；Conversation 列 + Sources 三 tab + D7 四钮已落；M5 切片 1–3：`chatShellRouting` 默认窗路由、roster show+focus、`IAgentHostMcpServer` 下沉 platform"
+summary: "本仓对话 UI 三层；Conversation 列 + session 窗口/chat tab + empty-hero；M5 切片 1–4 已落（chatShellRouting、roster、D4 V1–V8）；D5 EH 仍 open"
 ---
 
 # Agent UI 清单

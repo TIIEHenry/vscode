@@ -1,10 +1,10 @@
 ---
 title: "M5 UI 壳加固与交付收口"
 type: plan
-status: accepted
+status: in_progress
 phase: M5
-updated: 2026-08-31
-summary: "承接 M0–M4：封堵默认窗 ChatEditor/Copilot 旁路、补齐导航与关键测试，并用启动及 EH 实测闭合 UI 壳交付证据；已签收；切片 1–3 ReadyToImplement，切片 4–5 等 D4 产物"
+updated: 2026-09-01
+summary: "切片 1–4 已落、D4 closed（rerun-2230）；切片 5 文档收口进行中；D5 EH 探针仍开"
 ---
 
 # M5 UI 壳加固与交付收口
@@ -272,28 +272,28 @@ M5 完成时要求本方案相关 warning 为 0；`dev/loop/` 子模块自身断
 
 ### 代码与自动化
 
-- [ ] 默认 Code 窗口 New/Open Chat 不创建 `ChatEditorInput`，即使 active editor 已是 ChatEditor。
-- [ ] 默认窗 Chat session URI 不解析为 ChatEditor；Agents Window 保留。
-- [ ] 默认窗 Quick Chat 快捷键/菜单不可达；Open Conversation 可达。
-- [ ] 带 payload 的 Editor 路径在副作用前失败，不静默丢 prompt。
-- [ ] roster 选择会话会显示并聚焦 Conversation。
-- [ ] `workbench` 生产文件无 `vs/sessions` / `sessions/common` import（eslint `code-import-patterns`，不是 `valid-layers-check`）。
-- [ ] 路由、Action、Resolver、roster、互斥测试通过。
+- [x] 默认 Code 窗口 New/Open Chat 不创建 `ChatEditorInput`，即使 active editor 已是 ChatEditor。
+- [x] 默认窗 Chat session URI 不解析为 ChatEditor；Agents Window 保留。
+- [x] 默认窗 Quick Chat 快捷键/菜单不可达；Open Conversation 可达。
+- [x] 带 payload 的 Editor 路径在副作用前失败，不静默丢 prompt。
+- [x] roster 选择会话会显示并聚焦 Conversation。
+- [x] `workbench` 生产文件无 `vs/sessions` / `sessions/common` import（eslint `code-import-patterns`）。
+- [x] 路由、Action、Resolver、roster、互斥测试通过。
 
 ### 构建与运行
 
-- [ ] `npm run compile` 通过。
-- [ ] `npm run valid-layers-check` 通过。
-- [ ] 聚焦域单测通过。
-- [ ] V1–V8 在隔离 profile 通过并有证据。
+- [x] `npm run compile` 通过。
+- [ ] `npm run valid-layers-check` 通过（Node v26.7.0 TS lib 环境红，记 D3）。
+- [ ] 聚焦域单测通过（本轮未全量重跑）。
+- [x] V1–V8 在隔离 profile 通过并有证据（[rerun-2230](../progress/d4-evidence/rerun-2230/)）。
 - [ ] YAML / Todo Tree / js-debug 三探针均已实测；任一 blocking gap 未关闭时 M5 保持 `in_progress`。
 
 ### 文档与状态
 
-- [ ] D3/D4/D5、status、worktree-pool 状态一致。
-- [ ] `agent-ui.md` 无重复 frontmatter key。
-- [ ] M5 不宣称 UA 引擎、Diff FORK、跨平台发布验证已完成。
-- [ ] `python3 scripts/check-docs-health.py` 0 error，且无本方案引入 warning。
+- [x] D3/D4/status 一致（D5 仍 open，已记入 deferred-gaps）。
+- [x] `agent-ui.md` 无重复 frontmatter key。
+- [x] M5 不宣称 UA 引擎、Diff FORK、跨平台发布验证已完成。
+- [x] `python3 scripts/check-docs-health.py` 0 error（5 条既有 loop 子模块 warning，非本方案引入）。
 
 ## 9. 失败与回退规则
 

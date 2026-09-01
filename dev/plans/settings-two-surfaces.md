@@ -1,10 +1,10 @@
 ---
 title: "设置两套主面：本地 Client / Engine；Singularity 设置在 vscode 重设计"
 type: plan
-status: accepted
+status: implemented
 phase: N/A
 updated: 2026-09-01
-summary: "已签收：本地 vs Engine 两套主设置面；vscode 同一张脸；Customizations 降级为零件；C5 / H0–H3 ReadyToImplement；E1 等 PRD-008"
+summary: "本地 vs Engine 两套主设置面；C5 TOC→OpenEditor 已落；donor H0–H3 已落；E1 blocked PRD-008"
 ---
 
 # 设置两套主面：本地 / Engine
@@ -14,7 +14,7 @@ summary: "已签收：本地 vs Engine 两套主设置面；vscode 同一张脸�
 
 **Goal：** 钉死两页各装什么。不实施。
 
-本稿 `accepted`（2026-09-01）。规则 16 三轮并行 Cursor Grok 4.6（Opus 5.0 slug 不可用）。第三轮 Approve with changes 已改入。**ReadyToImplement：** C5（TOC→OpenEditor、注销 `ua.customizations` pane）与 donor H0–H3。Engine catalog **E1 blocked PRD-008**。
+本稿 `implemented`（C5 + donor H0–H3 @ `77d6e7cc`）。Engine catalog **E1 blocked PRD-008**。
 
 ## 0. 人类约束（2026-09-01）
 
@@ -91,4 +91,4 @@ Chat `ViewTitle` 仍可能挂 Open Customizations（无 Sessions 门）：默认
 
 2026-09-01 第三轮（two-surfaces）：**Approve with changes**。HEAD 七条主张成立。已改入：C5 删除 `OpenCustomizationsPreferencesAction` / pane 全套；`settingsUaToc.test.ts` 换 commandId。
 
-2026-09-01：**签收** `accepted`。C5 / H0–H3 ReadyToImplement；E1 blocked PRD-008。未改 `src/`。
+2026-09-01：**签收** `accepted` → **`implemented`** @ `77d6e7cc`（C5 + H0–H3）。

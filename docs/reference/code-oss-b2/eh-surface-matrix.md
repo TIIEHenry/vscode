@@ -3,14 +3,14 @@ title: "Extension Host 表面矩阵（推定 / 待实测）"
 type: reference
 status: accepted
 phase: N/A
-updated: 2026-08-31
-summary: "贡献点 → Part 落点 → 改壳后 → 承诺分级；D5 探针已选、尚未运行"
+updated: 2026-09-01
+summary: "贡献点 → Part 落点 → 改壳后 → 承诺分级；D5 探针 2/3 已装入 EXT_DIR，冒烟待跑"
 ---
 
 # EH 表面矩阵
 
 > 父页：[eh-surface-notes](eh-surface-notes.md)（冲突原则与探针建议）。  
-> **探针已选、尚未运行**（2026-08-31，见 §Probe plan）——表中 **不得** 写「已实测」或声称探针已跑。  
+> **探针已选；安装 2/3 @2026-09-01**（`redhat.vscode-yaml`、`gruntfuggly.todo-tree` → `/tmp/d5-probe-ext-vsix`；`ms-vscode.js-debug` 用产品内置，不装 VSIX）——表中 **不得** 写「已实测」直到 `launch.sh` 冒烟完成。  
 > 装扩展冒烟后，把对应行的证据列由「探针已选」改为「已实测 @\<date\>」并更新「冲突」列。
 
 列说明：
@@ -49,13 +49,13 @@ summary: "贡献点 → Part 落点 → 改壳后 → 承诺分级；D5 探针�
 
 ## Probe plan
 
-与 [eh-surface-notes §2](eh-surface-notes.md) 对齐。以下为 **D5 最小探针集**（1 LSP + 2 layout，共 3 个扩展）；**尚未安装或运行**。
+与 [eh-surface-notes §2](eh-surface-notes.md) 对齐。以下为 **D5 最小探针集**（1 LSP + 2 layout，共 3 个扩展）；**已装入** `EXT_DIR=/tmp/d5-probe-ext-vsix`（2 个 VSIX + 内置 js-debug）。
 
-| 扩展 | Marketplace ID | 验证行 / 探针 | 看什么 |
-|------|----------------|---------------|--------|
-| YAML | `redhat.vscode-yaml` | 探针「纯 LSP / language」 | End 列 `EDITOR_PART` 内：语法高亮、hover、schema 诊断（语言层不依赖中心 Conversation） |
-| Todo Tree | `gruntfuggly.todo-tree` | `views`（sidebar）；探针「`viewsContainers` + tree view」 | Sidebar 树视图是否落槽；Activity 是否多出产品外图标、四钮位是否被挤 |
-| JavaScript Debugger | `ms-vscode.js-debug` | `debuggers` / `breakpoints`（调试视图） | F5 启动调试后 Run and Debug / 断点视图在 Sidebar/Panel 的显隐与默认开 |
+| 扩展 | Marketplace ID | 验证行 / 探针 | 看什么 | 安装 |
+|------|----------------|---------------|--------|------|
+| YAML | `redhat.vscode-yaml` | 探针「纯 LSP / language」 | End 列 `EDITOR_PART` 内：语法高亮、hover、schema 诊断 | VSIX OK |
+| Todo Tree | `gruntfuggly.todo-tree` | `views`（sidebar）；探针「`viewsContainers` + tree view」 | Sidebar 树视图是否落槽；Activity 是否多出产品外图标 | VSIX OK |
+| JavaScript Debugger | `ms-vscode.js-debug` | `debuggers` / `breakpoints`（调试视图） | F5 启动调试后 Run and Debug / 断点视图在 Sidebar/Panel 的显隐 | **builtin**（VSIX 安装被拒） |
 
 **本轮不覆盖**（仍为 **待实测**，需后续探针或手工）：`viewsContainers.panel`、`views`（panel）、`terminal` profiles / `onStartup`、探针「命令 + `editor/decoration`」。
 

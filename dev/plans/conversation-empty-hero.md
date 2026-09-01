@@ -1,20 +1,20 @@
 ---
 title: "Conversation 空会话与输入面"
 type: plan
-status: accepted
+status: implemented
 phase: N/A
 updated: 2026-09-01
-summary: "PreFirst 居中 Composer + 身份条；Active 底栏同一 Composer；Agent/Route 初始化 XOR；Inbox 左右分簇且 Task 在 MessageQueue 左；已签收；T1–T6 ReadyToImplement；未实施"
+summary: "PreFirst 居中 Composer + 身份条；Active 底栏同一 Composer；Agent/Route XOR；Inbox 分簇；T1–T6 已合入 `ea0104c0`–`d4064ba0`"
 ---
 
 # Conversation 空会话与输入面
 
 > 需求：[PRD-015](../../docs/product/requirements.md#prd-015-conversation-空会话与输入面)（`accepted`）。  
 > 时间线发送合同：[PRD-003](../../docs/product/requirements.md#prd-003-时间线与输入) 不改。  
-> 透镜三槽：[conversation-lens-assembly](../../docs/reference/code-oss-b2/conversation-lens-assembly.md)（`draft`）— 本方案改 `dock` 与空会话 placement，不改 `ChatWidget` 接管。  
+> 透镜三槽：[conversation-lens-assembly](../../docs/reference/code-oss-b2/conversation-lens-assembly.md)（`accepted`）— 本方案改 `dock` 与空会话 placement，不改 `ChatWidget` 接管。  
 > 外仓只读：Desktop [ui-interaction-spec §8.3](../../../UniverseAgentDesktop/docs/product/ui-interaction-spec.md) Inbox / Input Dock；Singularity [session-config-panel](../../../UniverseAgent/singularity/docs/systems/session/session-config-panel.md) 首条锁定、[chat-input-bar](../../../UniverseAgent/singularity/docs/ui/components/input/chat-input-bar.md) 现行底栏无 Agent；**MessageQueue 列表/行交互**以 Singularity [message-queue-bar.md](../../../UniverseAgent/singularity/docs/ui/components/status/message-queue-bar.md) 与交互原型 [message-queue-layout-preview.html](../../../UniverseAgent/singularity/dev/plans/message-queue-layout-preview.html) 为设计稿 SSOT。  
 > 视觉对照（非正式 SSOT）：仓内快照 [conversation-empty-hero.canvas.tsx](conversation-empty-hero.canvas.tsx)。聊天旁活 canvas 仍在 Cursor `canvases/`，不同步进 git。  
-> **签收：** 2026-09-01 用户签收。规则 16 Opus 5.0 slug 不可用（未用其它模型顶替）。T1–T6 ReadyToImplement；未改 `src/`。
+> **签收：** 2026-09-01 用户签收。T1–T6 已合入（`ea0104c0`–`d4064ba0`）。
 
 **Goal：** 空会话是安静居中输入；有消息后同一张 Composer 落到列底。SessionConfig 五字段按 XOR 放置，不复活 2×2 卡，也不画锁定配置第二行。
 
