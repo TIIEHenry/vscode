@@ -340,7 +340,9 @@ export class ConversationLens extends Disposable {
 	private updateSessionConfigVisibility(preFirst: boolean): void {
 		this.agentContainer.hidden = !preFirst;
 		this.routeContainer.hidden = !preFirst;
-		this.sessionBarRouteContainer.hidden = preFirst;
+		if (this.sessionBarRouteContainer) {
+			this.sessionBarRouteContainer.hidden = preFirst;
+		}
 	}
 
 	private mountSessionBar(host: HTMLElement): void {

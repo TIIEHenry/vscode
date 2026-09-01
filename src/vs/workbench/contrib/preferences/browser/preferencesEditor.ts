@@ -21,7 +21,8 @@ import { settingsTextInputBorder } from '../common/settingsEditorColorRegistry.j
 import { SearchWidget } from './preferencesWidgets.js';
 import { ActionBar, ActionsOrientation } from '../../../../base/browser/ui/actionbar/actionbar.js';
 import { Registry } from '../../../../platform/registry/common/platform.js';
-import { IPreferencesEditorPaneRegistry, Extensions, IPreferencesEditorPaneDescriptor, IPreferencesEditorPane } from './preferencesEditorRegistry.js';
+import type { IPreferencesEditorPaneRegistry, IPreferencesEditorPaneDescriptor, IPreferencesEditorPane } from './preferencesEditorRegistry.js';
+import { Extensions } from './preferencesEditorRegistry.js';
 import { Action } from '../../../../base/common/actions.js';
 import { CancellationToken } from '../../../../base/common/cancellation.js';
 import { IEditorOpenContext } from '../../../common/editor.js';

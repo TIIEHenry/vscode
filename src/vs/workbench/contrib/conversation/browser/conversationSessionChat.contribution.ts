@@ -4,10 +4,13 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Disposable } from '../../../../base/common/lifecycle.js';
+import { InstantiationType, registerSingleton } from '../../../../platform/instantiation/common/extensions.js';
 import { IWorkbenchContribution, registerWorkbenchContribution2, WorkbenchPhase } from '../../../common/contributions.js';
 import { IConversationPartService } from '../../../browser/parts/conversation/conversationPart.js';
-import { IConversationSessionChatService } from './conversationSessionChatService.js';
+import { ConversationSessionChatService, IConversationSessionChatService } from './conversationSessionChatService.js';
 import { IConversationSessionWindowService } from './conversationSessionWindowService.js';
+
+registerSingleton(IConversationSessionChatService, ConversationSessionChatService, InstantiationType.Eager);
 
 class ConversationSessionChatContribution extends Disposable implements IWorkbenchContribution {
 

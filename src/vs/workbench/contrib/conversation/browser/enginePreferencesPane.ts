@@ -13,7 +13,7 @@ import { localize } from '../../../../nls.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { WorkbenchList } from '../../../../platform/list/browser/listService.js';
 import { defaultButtonStyles } from '../../../../platform/theme/browser/defaultStyles.js';
-import { IPreferencesEditorPane } from '../../preferences/browser/preferencesEditorRegistry.js';
+import type { IPreferencesEditorPane } from '../../preferences/browser/preferencesEditorRegistry.js';
 
 const $ = DOM.$;
 
