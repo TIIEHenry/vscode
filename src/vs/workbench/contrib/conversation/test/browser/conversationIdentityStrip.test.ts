@@ -26,6 +26,10 @@ import {
 } from '../../browser/conversationIdentityStrip.js';
 import { getConversationEngineStatusText } from '../../browser/conversationSessionStatus.js';
 import { ConversationStubService, IConversationRosterService } from '../../browser/conversationStubService.js';
+import {
+	conversationLensPhasePreFirstClass,
+	conversationLensPrefirstHeroClass,
+} from '../../browser/conversationLensDockStrings.js';
 import { OPEN_CONNECTION_PREFERENCES_COMMAND_ID } from '../../common/uaPreferencesPanes.js';
 import { IClipboardService } from '../../../../../platform/clipboard/common/clipboardService.js';
 import { TestClipboardService } from '../../../../../platform/clipboard/test/common/testClipboardService.js';
@@ -141,7 +145,7 @@ suite('ConversationIdentityStrip', () => {
 		return strip as HTMLElement;
 	}
 
-	test('identity strip mounts in reading column before timeline scroll', () => {
+	test('identity strip mounts in reading column before timeline scroll when Active', () => {
 		const { slots } = mountLens();
 		const readingColumn = getReadingColumn(slots);
 		const children = [...readingColumn.children];
@@ -149,6 +153,56 @@ suite('ConversationIdentityStrip', () => {
 		assert.strictEqual(children[0]?.classList.contains(conversationIdentityStripClass), true);
 		assert.ok(children[1]?.classList.contains('conversation-lens-timeline'));
 		assert.ok(getIdentityStrip(slots).compareDocumentPosition(getReadingColumn(slots).querySelector('.conversation-lens-timeline-scroll')!) & Node.DOCUMENT_POSITION_FOLLOWING);
+	});
+
+	test('PreFirst: identity strip mounts in prefirst hero above composer, not at column top', () => {
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		const stubService = store.add(new ConversationStubService());
+		const clipboardService = new TestClipboardService();
+		const commandService = new class implements ICommandService {
+			declare readonly _serviceBrand: undefined;
+			readonly executed: string[] = [];
+			onWillExecuteCommand = Event.None;
+			onDidExecuteCommand = Event.None;
+			executeCommand<T>(id: string): Promise<T | undefined> {
+				this.executed.push(id);
+				return Promise.resolve(undefined);
+			}
+		}();
+		instantiationService.stub(IConversationRosterService, stubService);
+		instantiationService.stub(IClipboardService, clipboardService);
+		instantiationService.stub(ICommandService, commandService);
+		instantiationService.stub(IExplorerService, {
+			_serviceBrand: undefined,
+			select: async () => { },
+		} as unknown as IExplorerService);
+		instantiationService.stub(ISCMService, createEmptyScmService());
+
+		const part = store.add(instantiationService.createInstance(ConversationPart));
+		const parent = document.createElement('div');
+		parent.classList.add('monaco-workbench');
+		parent.style.width = `${LENS_LAYOUT_WIDTH}px`;
+		parent.style.height = `${LENS_LAYOUT_HEIGHT}px`;
+		document.body.appendChild(parent);
+		store.add(toDisposable(() => parent.remove()));
+		part.create(parent);
+		const slots = part.getSlots();
+		assert.ok(slots);
+		slots.timeline.classList.add('part', 'conversation');
+		part.layout(LENS_LAYOUT_WIDTH, LENS_LAYOUT_HEIGHT, 0, 0);
+		store.add(instantiationService.createInstance(ConversationLens, slots));
+
+		const emptySessionId = stubService.createSession();
+		assert.strictEqual(stubService.getTurns(emptySessionId).length, 0);
+
+		const readingColumn = getReadingColumn(slots);
+		const prefirstHero = readingColumn.querySelector(`.${conversationLensPrefirstHeroClass}`) as HTMLElement | null;
+		assert.ok(prefirstHero);
+		assert.ok(!prefirstHero.hidden);
+		assert.strictEqual(readingColumn.classList.contains(conversationLensPhasePreFirstClass), true);
+		assert.strictEqual(readingColumn.firstElementChild?.classList.contains(conversationIdentityStripClass), false);
+		assert.strictEqual(prefirstHero.querySelector(`.${conversationIdentityStripClass}`), getIdentityStrip(slots));
+		assert.ok(prefirstHero.querySelector('.conversation-lens-composer'));
 	});
 
 	test('identity strip is absent from SessionBar and dock', () => {

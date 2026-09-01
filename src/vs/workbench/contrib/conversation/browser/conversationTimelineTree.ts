@@ -422,8 +422,6 @@ export class ConversationTimelineTree extends Disposable {
 		this.emptyState = append(this.scrollHost, $('.conversation-lens-timeline-empty'));
 		append(this.emptyState, $('p.conversation-lens-timeline-empty-title')).textContent =
 			localize('conversationLens.timelineEmptyTitle', "No messages yet");
-		append(this.emptyState, $('p.conversation-lens-timeline-empty-hint')).textContent =
-			localize('conversationLens.timelineEmptyHint', "Send a message below to start this session.");
 
 		this.contentHost = append(this.scrollHost, $('.conversation-lens-timeline-content'));
 		this.pinnedUserHost = append(this.contentHost, $('.conversation-timeline-pinned-user'));

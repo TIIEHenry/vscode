@@ -28,9 +28,13 @@ import {
 	conversationLensDockStop,
 	conversationLensDockStopNotGenerating,
 	conversationLensInputMaximizedClass,
+	conversationLensPhasePreFirstClass,
+	conversationLensPhasePreFirstDockHiddenClass,
+	conversationLensPrefirstHeroClass,
 } from '../../browser/conversationLensDockStrings.js';
 import { conversationLensSessionBarConversationTab, conversationLensSessionBarDeleteSession, conversationLensSessionBarNewSession, conversationLensSessionBarNoTrajectory, conversationLensSessionBarRenameTitle, conversationLensSessionBarTrajectoryTab, conversationLensPinnedUserPromptAria, conversationLensPinnedUserPromptCopyAria } from '../../browser/conversationLensSessionBarStrings.js';
 import { ConversationStubService, IConversationRosterService } from '../../browser/conversationStubService.js';
+import { conversationIdentityStripClass } from '../../browser/conversationIdentityStrip.js';
 import { getConversationSessionStatusText } from '../../browser/conversationSessionStatus.js';
 import { shouldRenderTurnAsMarkdown } from '../../browser/conversationTurnMarkdown.js';
 import { conversationLensTurnCopy, conversationLensTurnDelete } from '../../browser/conversationLensSessionBarStrings.js';
@@ -176,6 +180,10 @@ suite('ConversationLens', () => {
 		trajectoryView.layout(LENS_LAYOUT_HEIGHT, LENS_LAYOUT_WIDTH);
 	}
 
+	function getPrefirstHero(slots: IConversationLensSlots): HTMLElement | null {
+		return getReadingColumn(slots).querySelector(`.${conversationLensPrefirstHeroClass}`) as HTMLElement | null;
+	}
+
 	function getInboxGoalButton(slots: IConversationLensSlots): HTMLElement {
 		const button = slots.dock.querySelector('.conversation-lens-inbox-goal .monaco-button');
 		assert.ok(button);
@@ -199,14 +207,16 @@ suite('ConversationLens', () => {
 	}
 
 	function getDockTextarea(slots: IConversationLensSlots): HTMLTextAreaElement {
-		const textarea = slots.dock.querySelector('textarea.conversation-lens-dock-input') as HTMLTextAreaElement | null;
+		const textarea = (slots.dock.querySelector('textarea.conversation-lens-dock-input')
+			?? getReadingColumn(slots).querySelector('textarea.conversation-lens-dock-input')) as HTMLTextAreaElement | null;
 		assert.ok(textarea);
 		return textarea;
 	}
 
 	function sendDockDraft(slots: IConversationLensSlots, message: string): void {
 		const textarea = getDockTextarea(slots);
-		const sendButton = slots.dock.querySelector('.conversation-lens-dock-actions .monaco-button') as HTMLElement;
+		const sendButton = (slots.dock.querySelector('.conversation-lens-dock-actions .monaco-button')
+			?? getReadingColumn(slots).querySelector('.conversation-lens-dock-actions .monaco-button')) as HTMLElement;
 		textarea.value = message;
 		sendButton.click();
 	}
@@ -496,6 +506,42 @@ suite('ConversationLens', () => {
 		assert.ok(!inputRow.querySelector('.conversation-lens-dock-actions'));
 	});
 
+	test('PreFirst: centered composer cluster hides dock inbox and moves identity above composer', () => {
+		const { part, stubService } = mountLens();
+		const slots = part.getSlots()!;
+		const emptySessionId = stubService.createSession();
+		assert.strictEqual(stubService.getActiveSessionId(), emptySessionId);
+
+		const readingColumn = getReadingColumn(slots);
+		const prefirstHero = getPrefirstHero(slots);
+		assert.ok(prefirstHero);
+		assert.ok(!prefirstHero!.hidden);
+		assert.strictEqual(readingColumn.classList.contains(conversationLensPhasePreFirstClass), true);
+		assert.strictEqual(slots.dock.classList.contains(conversationLensPhasePreFirstDockHiddenClass), true);
+		assert.strictEqual(slots.dock.querySelector('.conversation-lens-inbox-row'), null);
+		assert.strictEqual(slots.dock.querySelector('.conversation-lens-composer'), null);
+		assert.strictEqual(readingColumn.querySelector(`.${conversationIdentityStripClass}`), prefirstHero!.querySelector(`.${conversationIdentityStripClass}`));
+		assert.ok(prefirstHero!.querySelector('.conversation-lens-composer'));
+		assert.ok(prefirstHero!.querySelector('.conversation-lens-dock-gate-row'));
+		assert.strictEqual(readingColumn.firstElementChild?.classList.contains(conversationIdentityStripClass), false);
+	});
+
+	test('Active: first message restores dock inbox row and identity at reading column top', () => {
+		const { part, stubService } = mountLens();
+		const slots = part.getSlots()!;
+		const sessionId = stubService.createSession();
+		sendDockDraft(slots, 'Hello PreFirst');
+
+		const readingColumn = getReadingColumn(slots);
+		assert.strictEqual(readingColumn.classList.contains(conversationLensPhasePreFirstClass), false);
+		assert.strictEqual(slots.dock.classList.contains(conversationLensPhasePreFirstDockHiddenClass), false);
+		assert.ok(slots.dock.querySelector('.conversation-lens-inbox-row'));
+		assert.ok(slots.dock.querySelector('.conversation-lens-composer'));
+		assert.strictEqual(readingColumn.firstElementChild?.classList.contains(conversationIdentityStripClass), true);
+		assert.strictEqual(getPrefirstHero(slots)?.hidden, true);
+		assert.strictEqual(stubService.getTurns(sessionId).length, 2);
+	});
+
 	test('compact chrome: inbox status stays on one row', () => {
 		const { part } = mountLens();
 		const inboxRow = part.getSlots()!.dock.querySelector('.conversation-lens-inbox-row')!;
@@ -526,6 +572,7 @@ suite('ConversationLens', () => {
 		const { part, stubService } = mountLens();
 		const slots = part.getSlots()!;
 		const sessionId = stubService.createSession();
+		sendDockDraft(slots, 'Activate inbox chrome');
 		const inboxRow = slots.dock.querySelector('.conversation-lens-inbox-row')!;
 		const stopButton = getInboxStopButton(slots);
 		const turnCountBefore = queryAllTimeline(slots, '.conversation-lens-turn').length;
@@ -541,7 +588,7 @@ suite('ConversationLens', () => {
 		assert.strictEqual(queryAllTimeline(slots, '.conversation-lens-turn').length, turnCountBefore);
 		assert.ok(inboxRow.textContent?.includes(conversationLensDockInboxNoQueue));
 		assert.strictEqual(pendingButton.hidden, true);
-		assert.strictEqual(stubService.getTurns(sessionId).length, 0);
+		assert.strictEqual(stubService.getTurns(sessionId).length, 2);
 	});
 
 	test('honest dock gate and model labels without Copilot CTAs', () => {
@@ -594,7 +641,7 @@ suite('ConversationLens', () => {
 		assert.strictEqual(getVisibleDockAttachPopup(), null);
 	});
 
-	test('empty session shows timeline empty state', () => {
+	test('empty session shows timeline empty state without send-below hint', () => {
 		const { part, stubService } = mountLens();
 		const slots = part.getSlots()!;
 		const emptySessionId = stubService.createSession();
@@ -602,6 +649,8 @@ suite('ConversationLens', () => {
 		const empty = getTimelineEmpty(slots);
 		assert.ok(empty);
 		assert.ok(empty.textContent?.includes('No messages yet'));
+		assert.strictEqual(empty.querySelector('.conversation-lens-timeline-empty-hint'), null);
+		assert.ok(!empty.textContent?.toLowerCase().includes('send a message below'));
 		assert.strictEqual(stubService.getTurns(emptySessionId).length, 0);
 	});
 
@@ -728,6 +777,7 @@ suite('ConversationLens', () => {
 		assert.ok(title.textContent?.includes('New session'));
 		assert.ok(getTimelineEmpty(slots));
 		assert.ok(getTimelineScroll(slots).textContent?.includes('No messages yet'));
+		assert.ok(!getTimelineScroll(slots).textContent?.toLowerCase().includes('send a message below'));
 	});
 
 	test('SessionBar delete button removes active stub session', async () => {
@@ -945,7 +995,11 @@ suite('ConversationLens', () => {
 
 	test('inbox status row is honest: no fake queue list, pending hidden without confirmations', () => {
 		const { part, stubService } = mountLens();
+		const emptySlots = part.getSlots()!;
 		stubService.createSession();
+		assert.strictEqual(emptySlots.dock.querySelector('.conversation-lens-inbox-row'), null);
+
+		sendDockDraft(emptySlots, 'Activate inbox row');
 		const slots = part.getSlots()!;
 		const inboxRow = slots.dock.querySelector('.conversation-lens-inbox-row')!;
 		const pendingButton = inboxRow.querySelector('.conversation-lens-inbox-pending') as HTMLButtonElement;
