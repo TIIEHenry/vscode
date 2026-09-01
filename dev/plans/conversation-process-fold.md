@@ -1,10 +1,10 @@
 ---
 title: "Conversation 过程折：ThinkRail 缩进折叠移植"
 type: plan
-status: accepted
+status: implemented
 phase: N/A
 updated: 2026-09-01
-summary: "对话/轨迹共用过程折 overlay（ADR-046）；对话默认收起、轨迹默认展开；已签收；不搬 React、本波不接引擎"
+summary: "ADR-046 span overlay；对话默认收起、轨迹默认展开；Thinking/工具两层缩进；P1–P3/P3t 已合入 `19f3e7ba`–`42fa941e`；P4 blocked PRD-008"
 ---
 
 # Conversation 过程折
@@ -15,7 +15,8 @@ summary: "对话/轨迹共用过程折 overlay（ADR-046）；对话默认收起
 > 视觉对照（只取缩进/披露层次，不搬 React）：sibling `thinkrail/apps/web/src/chat/ActivityGroup.tsx`。  
 > 轨迹页：[conversation-trajectory-lens.md](conversation-trajectory-lens.md)（`accepted`）— **同一套 overlay**；轨迹默认展开；context / SYSTEM / compacted 不得进折。  
 > 透镜组装：[page-access-schemes.md](page-access-schemes.md) §4 三槽冻结；本方案改 `timeline` 槽的对话列表与轨迹列表 chrome。  
-> 本方案 Grok 只读审查（Approve with changes）已当轮改入；2026-09-01 用户签收。Opus 5.0 因账单未付未跑；`status: accepted`。
+> 本方案 Grok 只读审查（Approve with changes）已当轮改入；2026-09-01 用户签收。Opus 5.0 因账单未付未跑。  
+> **签收：** P1–P3/P3t 已合入（`19f3e7ba`–`42fa941e`）；P4 blocked PRD-008。
 
 **Goal：** 过程折是显示优化：连续思考与工具上盖 ThinkRail 式缩进披露，不改列表身份。对话页默认收起（阅读）。轨迹页复用同一 chrome，默认展开（分析），且不把注入 / SYSTEM 藏进折里。
 
@@ -160,7 +161,7 @@ fixture 可见字符串必须含 **Stub**（PRD-007 / PRD-013.4）。例如 thin
 | P4 | 引擎 admitted turnId 连续段替换 fixture | **blocked on PRD-008** | 是 |
 | P5 | sticky 面包屑、缺口折叠、executing 限高内滚 | Deferred（ADR-046 决策 8 内滚属引擎 live） | 是 |
 
-**ReadyToImplement：** **P1–P3、P3t 是**（2026-09-01 签收）。P4–P5 否（P4 blocked on PRD-008；P5 Deferred）。
+**Implemented：** **P1–P3、P3t**（`19f3e7ba`–`42fa941e`）。P4–P5 否（P4 blocked on PRD-008；P5 Deferred）。
 
 与轨迹：**不能**假设文件级并行。P2 / P3t / 轨迹 T1–T3 都可能改 `conversationLens.ts`、`conversationStubModel.ts`。**同一 PR 禁止**两人同时改这些文件。推荐：过程折 P1–P3 → 轨迹 T2（投影 reasoning/tool）→ T3/P3t（轨迹 overlay + subtool）。
 
@@ -209,7 +210,7 @@ fixture 可见字符串必须含 **Stub**（PRD-007 / PRD-013.4）。例如 thin
 
 **Reviewer：** Cursor Grok 4.6（只读）。**Assessment：** Approve with changes。Critical / Important 已当轮改入下文表。
 
-**签收：** 2026-09-01 用户签收（Grok 审查后；Opus 5.0 因账单未付未派）。`status: accepted`；P1–P3、P3t ReadyToImplement；未改 `src/`。
+**签收：** 2026-09-01 用户签收（Grok 审查后；Opus 5.0 因账单未付未派）。P1–P3/P3t 已合入（`19f3e7ba`–`42fa941e`）；`status: implemented`。
 
 | 级别 | 意见 | 本稿处理 |
 |------|------|----------|

@@ -1,10 +1,10 @@
 ---
 title: "Conversation visualize 卡：ThinkRail 图示工具移植"
 type: plan
-status: accepted
+status: implemented
 phase: N/A
 updated: 2026-09-01
-summary: "ThinkRail visualize 图示卡；自研 webview 借 mermaid 扩展 bundle；overlay 全屏；已签收；T1–T3 ReadyToImplement；本波不接引擎"
+summary: "ThinkRail visualize 图示卡；diagram mermaid webview + comparison 网格；overlay 全屏 pan/zoom；T1–T3 已合入 `5cad7c3b`–`0eb470f2`；T4 blocked PRD-008"
 origin: multi-party-design-review
 mpdr:
   skill: multi-party-design-review
@@ -41,7 +41,7 @@ mpdr:
 > 过程折：[conversation-process-fold.md](conversation-process-fold.md)（`accepted`，PRD-013）— 本卡折**外**；`visualization` 与 `reasoning`/`tool` span **互斥**。  
 > 轨迹页：[conversation-trajectory-lens.md](conversation-trajectory-lens.md)（`accepted`，PRD-012）— `projectTurnsToTrajectory` **skip** `visualization`。  
 > 透镜组装：[page-access-schemes.md](page-access-schemes.md) §4 三槽冻结。  
-> 本稿 `accepted`（2026-09-01）。规则 16 Grok xhigh 审查（Opus 5.0 不可用）Approve with changes 已改入。T1–T3 ReadyToImplement；T4 blocked PRD-008。
+> 本稿 `implemented`（2026-09-01 签收；T1–T3 已合入 `5cad7c3b`–`0eb470f2`）。规则 16 Grok xhigh 审查（Opus 5.0 不可用）Approve with changes 已改入。T4 blocked PRD-008。
 
 **Goal：** 把 ThinkRail 聊天里 agent 调用 `visualize` 后出现的图示卡搬进 Agent IDE 默认窗 Conversation 时间线：`type=diagram` 用主题感知的 mermaid SVG（标题 + 全屏 overlay pan/zoom）；`type=comparison` 用并排方案卡（pros / cons / Recommended）。截图里的「实现路线状态」（冻结 / 进行中 / 未立项 + 箭头）是 **mermaid flowchart 内容**，不是第三种 widget。无引擎用 Stub fixture 证明卡形态，不冒充已接引擎。
 
@@ -237,7 +237,7 @@ T3 断言：
 
 ## 6. 切片
 
-**ReadyToImplement：** T1–T3（本稿已 `accepted`）。T4 blocked PRD-008。
+**Implemented：** T1–T3（`5cad7c3b`–`0eb470f2`）。T4 blocked PRD-008。
 
 ### T1 — 合同与降级
 
@@ -307,3 +307,4 @@ admitted `visualize` → 同一 parse；去 Stub。不改 mermaid 扩展。
 - 2026-08-31：Grok×2 并行草案 → 综合稿；Grok 多视角 refine（拒 ChatOutputRenderer）。
 - 2026-09-01：规则 16 **Grok xhigh** 审查（Opus 5.0 子 agent 不可用）— **Approve with changes**。已改入：donor PanZoomHandler + chrome Close/Reset；webview API/async 扩展解析；`visualization`↔`tool` 互斥；滚轮/Escape 委托；PRD-014 落盘。
 - 2026-09-01：签收 `accepted`；T1–T3 ReadyToImplement。
+- 2026-09-01：T1–T3 已合入（`5cad7c3b`–`0eb470f2`）；`status: implemented`。

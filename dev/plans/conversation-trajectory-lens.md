@@ -1,10 +1,10 @@
 ---
 title: "Conversation 轨迹透镜：DeepSeek harness 检查表移植"
 type: plan
-status: accepted
+status: implemented
 phase: N/A
 updated: 2026-09-01
-summary: "默认窗 Conversation 闭集「对话 | 轨迹」；轨迹是详细列表并强制显示压缩相关项；过程折是两页共用的显示 overlay；已签收；本波不接引擎"
+summary: "SessionBar 对话|轨迹 tablist；stub 投影 + fixture；轨迹表 + 检查器 + 过程折默认展开；T1–T3 已合入 `b08ca9de`–`3e2ac61f`；T4 blocked PRD-008"
 ---
 
 # Conversation 轨迹透镜
@@ -14,7 +14,8 @@ summary: "默认窗 Conversation 闭集「对话 | 轨迹」；轨迹是详细�
 > 宿主对照（只取闭集，不取内容定义）：Desktop [ADR-047 决策 2](../../../UniverseAgentDesktop/dev/decisions/047-typed-slot-hosts-and-vscode-bottom-panel.md)。  
 > 内容对照（只取 view-model / 记录种类，不搬 React）：sibling `deepseek-harness/packages/client/ui-trajectory/`。  
 > 透镜组装：[page-access-schemes.md](page-access-schemes.md) §4 三槽冻结；本方案只在 SessionBar 加闭集切换、在 `timeline` 槽换阅读面。  
-> 本方案 Grok 只读审查（Approve with changes）已当轮改入；2026-09-01 用户签收。Opus 5.0 因账单未付未跑；`status: accepted`。
+> 本方案 Grok 只读审查（Approve with changes）已当轮改入；2026-09-01 用户签收。Opus 5.0 因账单未付未跑。  
+> **签收：** T1–T3 已合入（`b08ca9de`–`3e2ac61f`）；T4 blocked PRD-008。
 
 **Goal：** 在默认 Code 窗口 `CONVERSATION_PART` 上提供不可关闭的「对话 | 轨迹」两页。对话页是压缩阅读。轨迹页是同一会话的详细列表，强制显示对话隐去的注入 / chip / 环境，并对长工具段复用过程折 overlay（默认展开）。无引擎用 stub fixture，不冒充已接引擎。
 
@@ -214,7 +215,7 @@ interface ConversationTrajectoryRecord {
 | T4 | 引擎 Event fold 替换 fixture（含真 tool 树） | **blocked on PRD-008** | 是 |
 | T5 | 对话 ↔ 轨迹 reveal（非 Inbox）、搜索、虚拟化、Overview | Deferred | 是 |
 
-**ReadyToImplement：** **T1–T3 是**（2026-09-01 签收）。T4–T5 否（T4 blocked on PRD-008；T5 Deferred）。
+**Implemented：** **T1–T3**（`b08ca9de`–`3e2ac61f`）。T4–T5 否（T4 blocked on PRD-008；T5 Deferred）。
 
 T1 与 page-access / M5：**不**改 `agentSessionsActions.ts`、roster `onDidOpen`、Chat 路由。SessionBar 只加 tablist + 上列收缩。**不**提前删 SelectBox。
 
@@ -271,7 +272,7 @@ T1 与 page-access / M5：**不**改 `agentSessionsActions.ts`、roster `onDidOp
 
 **Reviewer：** Cursor Grok 4.6（`inherit` / `generalPurpose`，只读）。**Assessment：** Approve with changes。Critical / Important 已当轮改入下文表。
 
-**签收：** 2026-09-01 用户签收（Grok 审查后；Opus 5.0 因账单未付未派）。`status: accepted`；T1–T3 ReadyToImplement；未改 `src/`。
+**签收：** 2026-09-01 用户签收（Grok 审查后；Opus 5.0 因账单未付未派）。T1–T3 已合入（`b08ca9de`–`3e2ac61f`）；`status: implemented`。
 
 | 级别 | 意见 | 本稿处理 |
 |------|------|----------|
