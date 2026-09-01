@@ -1,3 +1,12 @@
+---
+title: "D5 EH probe smoke slot A"
+type: progress
+status: archived
+phase: N/A
+updated: 2026-09-01
+summary: "D5 smoke FAIL — stale out/ workbench boot"
+---
+
 # D5 EH probe smoke — 2026-09-01 (slot A)
 
 **Head:** `5e565223` · **Branch:** `loop/A` · **REPO:** worktree A
