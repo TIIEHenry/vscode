@@ -4,7 +4,7 @@ type: plan
 status: in_progress
 phase: M5
 updated: 2026-09-01
-summary: "切片 1–4 已落、D4 closed（rerun-2230）；切片 5 文档收口进行中；D5 EH 探针仍开"
+summary: "切片 1–4 已落、D4 closed（rerun-2230）；切片 5 文档门禁 @ 3180a611；D5 冒烟 slot A 进行中"
 ---
 
 # M5 UI 壳加固与交付收口
@@ -221,6 +221,8 @@ scripts/test.sh
 证据写入 `dev/progress/deferred-gaps.md` D4 记录：命令、commit SHA、profile 类型、每项结果和截图位置。任一 Blocking 失败则 D4 不关闭。
 
 ### 切片 5 — D5 EH 探针与文档收口
+
+**进度（2026-09-01）：** 文档门禁 @ `3180a611`（`docs(m5): close slice 5 UI scheme sync`）已闭；D5 EH 探针冒烟 **slot A** 进行中（`dev/progress/d5-evidence/launch-with-probes.sh`）。
 
 在同一隔离 profile 按既有 D5 计划实测：
 
