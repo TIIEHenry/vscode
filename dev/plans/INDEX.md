@@ -3,8 +3,8 @@ title: "方案索引"
 type: index
 status: accepted
 phase: N/A
-updated: 2026-09-01
-summary: "dev/plans 导航：plan hygiene 已合；D5 冒烟 FAIL（stale out）；M5 仍 in_progress"
+updated: 2026-09-02
+summary: "dev/plans 导航：M4 D3–D5 closed；M5 in_progress；S3c overlay WIP"
 ---
 
 # 方案
@@ -17,8 +17,8 @@ summary: "dev/plans 导航：plan hygiene 已合；D5 冒烟 FAIL（stale out）
 | [m1-shell-followon.md](m1-shell-followon.md) | `implemented` | M0 之后三切片：四钮 chrome、Conversation 透镜、Sources Files 投影 |
 | [m2-product-shell.md](m2-product-shell.md) | `implemented` | 无引擎产品壳剩余面：透镜产品化、Chat/Aux 卫生、文档诚实 |
 | [m3-shell-closeout.md](m3-shell-closeout.md) | `implemented` | 可选壳收尾已落：ChatEditor 默认路径藏/转、Navigator stub 会话列表 |
-| [m4-validation-wave.md](m4-validation-wave.md) | `in_progress` | D3 closed；D4 closed @ rerun-2230；D5 仍开 |
-| [m5-ui-shell-hardening.md](m5-ui-shell-hardening.md) | `in_progress` | 切片 1–4 已落；切片 5 文档 @ 3180a611；D5 冒烟待 compile 后重跑 |
+| [m4-validation-wave.md](m4-validation-wave.md) | `implemented` | D3/D4/D5 closed；D3 valid-layers 环境红仍记 D2 脚注 |
+| [m5-ui-shell-hardening.md](m5-ui-shell-hardening.md) | `in_progress` | 切片 1–5 文档与 D5 探针已闭；valid-layers / 域单测待绿 |
 | [chat-compare-split.md](chat-compare-split.md) | `implemented` | PRD-011 并排比对已落；D4 已验 |
 | [page-access-schemes.md](page-access-schemes.md) | `implemented` | 切片 1a–4 已落；切片 5 blocked PRD-008 |
 | [settings-two-surfaces.md](settings-two-surfaces.md) | `implemented` | C5 + donor H0–H3 已落；E1 blocked PRD-008 |
@@ -29,4 +29,4 @@ summary: "dev/plans 导航：plan hygiene 已合；D5 冒烟 FAIL（stale out）
 | [conversation-process-fold.md](conversation-process-fold.md) | `implemented` | PRD-013 P1–P3/P3t @ `19f3e7ba`–`42fa941e` |
 | [thinkrail-visualize-port.md](thinkrail-visualize-port.md) | `implemented` | PRD-014 T1–T3 @ `5cad7c3b`–`0eb470f2` |
 | [conversation-empty-hero.md](conversation-empty-hero.md) | `implemented` | PRD-015 T1–T6 @ `ea0104c0`–`d4064ba0` · [canvas](conversation-empty-hero.canvas.tsx) |
-| [conversation-session-windows.md](conversation-session-windows.md) | `implemented` | PRD-016 S1–S6 @ `ad67cfe3`–`a48780ae` |
+| [conversation-session-windows.md](conversation-session-windows.md) | `in_progress` | PRD-016 S1–S6 已落；S3c 对话框 chrome 已写 |
