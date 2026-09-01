@@ -4,12 +4,14 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Emitter, Event } from '../../../../base/common/event.js';
-import { Disposable } from '../../../../base/common/lifecycle.js';
+import { Disposable, IDisposable } from '../../../../base/common/lifecycle.js';
 import { URI } from '../../../../base/common/uri.js';
 import { createDecorator } from '../../../../platform/instantiation/common/instantiation.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
+import { IEditorIdentifier } from '../../../common/editor.js';
 import { IEditorGroupsService, IConversationEditorPart } from '../../../services/editor/common/editorGroupsService.js';
 import { CONVERSATION_GROUP, IEditorService } from '../../../services/editor/common/editorService.js';
+import { buildAgentHierarchyBreadcrumb, IConversationAgentBreadcrumbItem } from '../common/conversationAgentHierarchy.js';
 import { IConversationSessionChatEntry } from '../common/conversationSessionChat.js';
 import {
 	ConversationChatInput,
@@ -26,8 +28,19 @@ export interface IConversationSessionChatService {
 	readonly _serviceBrand: undefined;
 
 	readonly onDidChangeCatalog: Event<string>;
+	readonly onDidChangeCloseNonRootState: Event<void>;
 
 	mountSubAgentOverlay(sessionWindowHost: HTMLElement, sessionBar: HTMLElement): void;
+
+	registerPartListeners(part: IConversationEditorPart): IDisposable;
+
+	getAgentHierarchyBreadcrumb(sessionKey: string, chatId: string): readonly IConversationAgentBreadcrumbItem[];
+
+	navigateAgentBreadcrumb(sessionKey: string, targetChatId: string): Promise<void>;
+
+	canCloseNonRoot(sessionKey?: string): boolean;
+
+	closeNonRootTabs(sessionKey?: string): Promise<void>;
 
 	getCatalog(sessionKey: string): readonly IConversationSessionChatEntry[];
 
@@ -57,10 +70,14 @@ export class ConversationSessionChatService extends Disposable implements IConve
 	declare readonly _serviceBrand: undefined;
 
 	private readonly catalog = new Map<string, Map<string, IConversationSessionChatEntry>>();
+	private readonly partListeners = new Set<IConversationEditorPart>();
 	private subAgentOverlay: ConversationSubAgentOverlay | undefined;
 
 	private readonly _onDidChangeCatalog = this._register(new Emitter<string>());
 	readonly onDidChangeCatalog = this._onDidChangeCatalog.event;
+
+	private readonly _onDidChangeCloseNonRootState = this._register(new Emitter<void>());
+	readonly onDidChangeCloseNonRootState = this._onDidChangeCloseNonRootState.event;
 
 	constructor(
 		@IEditorGroupsService private readonly editorGroupsService: IEditorGroupsService,
@@ -78,6 +95,120 @@ export class ConversationSessionChatService extends Disposable implements IConve
 		this._register(this.subAgentOverlay.onDidRequestMaximize(() => {
 			void this.maximizeSubAgentDialog();
 		}));
+		this._register(this.subAgentOverlay.onDidClose(() => this.fireCloseNonRootStateChange()));
+	}
+
+	registerPartListeners(part: IConversationEditorPart): IDisposable {
+		if (this.partListeners.has(part)) {
+			return { dispose: () => { } };
+		}
+		this.partListeners.add(part);
+
+		const scopedEditorService = this.getScopedEditorService(part);
+		const disposables = [
+			scopedEditorService.onDidActiveEditorChange(() => this.fireCloseNonRootStateChange()),
+			scopedEditorService.onDidCloseEditor(() => this.fireCloseNonRootStateChange()),
+			{ dispose: () => this.partListeners.delete(part) },
+		];
+
+		return {
+			dispose: () => {
+				for (const disposable of disposables) {
+					disposable.dispose();
+				}
+			},
+		};
+	}
+
+	getAgentHierarchyBreadcrumb(sessionKey: string, chatId: string): readonly IConversationAgentBreadcrumbItem[] {
+		return buildAgentHierarchyBreadcrumb(this.getCatalog(sessionKey), chatId);
+	}
+
+	async navigateAgentBreadcrumb(sessionKey: string, targetChatId: string): Promise<void> {
+		const part = this.getConversationPart(sessionKey);
+		if (!part) {
+			return;
+		}
+
+		const activeEditor = part.activeGroup.activeEditor;
+		if (!(activeEditor instanceof ConversationChatInput) || activeEditor.isDefaultRoot) {
+			return;
+		}
+
+		const activeChatId = parseConversationChatResource(activeEditor.resource)?.chatId;
+		const activeEntry = activeChatId ? this.catalog.get(sessionKey)?.get(activeChatId) : undefined;
+		if (!activeEntry || activeEntry.originKind !== 'tool') {
+			return;
+		}
+
+		if (targetChatId === activeChatId) {
+			return;
+		}
+
+		const editorService = this.getScopedEditorService(part);
+		const group = part.activeGroup;
+
+		if (targetChatId === 'default') {
+			const rootEditor = group.getEditorByIndex(0);
+			if (rootEditor instanceof ConversationChatInput && rootEditor.isDefaultRoot) {
+				await editorService.closeEditor({ editor: activeEditor, groupId: group.id });
+				await group.openEditor(rootEditor);
+			}
+			this.fireCloseNonRootStateChange();
+			return;
+		}
+
+		const targetEntry = this.catalog.get(sessionKey)?.get(targetChatId);
+		if (!targetEntry) {
+			return;
+		}
+
+		const replacement = this.instantiationService.createInstance(
+			ConversationChatInput,
+			getConversationChatResource(sessionKey, targetChatId),
+			{ isDefaultRoot: false, title: targetEntry.title },
+		);
+
+		await editorService.replaceEditors([{
+			editor: activeEditor,
+			replacement,
+		}], group);
+		this.fireCloseNonRootStateChange();
+	}
+
+	canCloseNonRoot(sessionKey?: string): boolean {
+		if (this.isSubAgentDialogOpen()) {
+			return true;
+		}
+
+		const key = sessionKey ?? this.rosterService.getActiveSessionId();
+		return this.countCloseableNonRootTabs(key) > 0;
+	}
+
+	async closeNonRootTabs(sessionKey?: string): Promise<void> {
+		const key = sessionKey ?? this.rosterService.getActiveSessionId();
+		const part = this.getConversationPart(key);
+		if (!part) {
+			return;
+		}
+
+		this.closeSubAgentDialog();
+
+		const editorService = this.getScopedEditorService(part);
+		const toClose: IEditorIdentifier[] = [];
+		for (const group of part.groups) {
+			for (const editor of group.editors) {
+				if (editor instanceof ConversationChatInput && !editor.isDefaultRoot) {
+					toClose.push({ editor, groupId: group.id });
+				}
+			}
+		}
+
+		if (toClose.length > 0) {
+			await editorService.closeEditors(toClose);
+		}
+
+		this.fireCloseNonRootStateChange();
 	}
 
 	getCatalog(sessionKey: string): readonly IConversationSessionChatEntry[] {
@@ -107,6 +238,7 @@ export class ConversationSessionChatService extends Disposable implements IConve
 		const entry: IConversationSessionChatEntry = { sessionKey, chatId, title, originKind, parentChatId };
 		sessionCatalog.set(chatId, entry);
 		this._onDidChangeCatalog.fire(sessionKey);
+		this.fireCloseNonRootStateChange();
 		return entry;
 	}
 
@@ -137,6 +269,7 @@ export class ConversationSessionChatService extends Disposable implements IConve
 		);
 		const editorService = this.getScopedEditorService(part);
 		await editorService.openEditor(input, CONVERSATION_GROUP);
+		this.fireCloseNonRootStateChange();
 	}
 
 	async openSubAgent(sessionKey: string, chatId: string, title?: string): Promise<void> {
@@ -159,6 +292,7 @@ export class ConversationSessionChatService extends Disposable implements IConve
 			chatId,
 			title: title ?? entry.title,
 		});
+		this.fireCloseNonRootStateChange();
 	}
 
 	async maximizeSubAgentDialog(): Promise<void> {
@@ -172,7 +306,10 @@ export class ConversationSessionChatService extends Disposable implements IConve
 	}
 
 	closeSubAgentDialog(): void {
-		this.subAgentOverlay?.close();
+		if (this.subAgentOverlay?.isOpen()) {
+			this.subAgentOverlay.close();
+			this.fireCloseNonRootStateChange();
+		}
 	}
 
 	isSubAgentDialogOpen(): boolean {
@@ -201,6 +338,27 @@ export class ConversationSessionChatService extends Disposable implements IConve
 
 	private getScopedEditorService(part: IConversationEditorPart): IEditorService {
 		return this.editorGroupsService.getScopedInstantiationService(part).invokeFunction(accessor => accessor.get(IEditorService));
+	}
+
+	private countCloseableNonRootTabs(sessionKey: string): number {
+		const part = this.getConversationPart(sessionKey);
+		if (!part) {
+			return 0;
+		}
+
+		let count = 0;
+		for (const group of part.groups) {
+			for (const editor of group.editors) {
+				if (editor instanceof ConversationChatInput && !editor.isDefaultRoot) {
+					count++;
+				}
+			}
+		}
+		return count;
+	}
+
+	private fireCloseNonRootStateChange(): void {
+		this._onDidChangeCloseNonRootState.fire();
 	}
 }
 

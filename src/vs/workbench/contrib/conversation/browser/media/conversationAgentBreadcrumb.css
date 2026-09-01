@@ -1,0 +1,35 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+.monaco-workbench .conversation-agent-breadcrumb {
+	display: flex;
+	align-items: center;
+	flex-shrink: 0;
+	min-height: 24px;
+	padding: 0 8px;
+	border-bottom: 1px solid var(--vscode-sideBar-border, var(--vscode-contrastBorder, transparent));
+	background-color: var(--vscode-sideBar-background);
+}
+
+.monaco-workbench .conversation-agent-breadcrumb.hidden {
+	display: none;
+}
+
+.monaco-workbench .conversation-agent-breadcrumb-scroll {
+	flex: 1 1 auto;
+	min-width: 0;
+}
+
+.monaco-workbench .conversation-agent-breadcrumb .monaco-breadcrumbs {
+	height: 24px;
+}
+
+.monaco-workbench .conversation-agent-breadcrumb-item-label {
+	font-size: 12px;
+}
+
+.monaco-workbench .conversation-agent-breadcrumb-item[aria-current="location"] .conversation-agent-breadcrumb-item-label {
+	font-weight: 600;
+}

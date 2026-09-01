@@ -24,7 +24,7 @@ import {
 } from '../../browser/conversationChatInput.js';
 import '../../browser/conversationEditor.contribution.js';
 import { ConversationSessionChatService, IConversationSessionChatService } from '../../browser/conversationSessionChatService.js';
-import { ConversationSubAgentOverlay, conversationSubAgentOverlayClass } from '../../browser/conversationSubAgentOverlay.js';
+import { conversationSubAgentOverlayClass } from '../../browser/conversationSubAgentOverlay.js';
 import { ConversationStubService, IConversationRosterService } from '../../browser/conversationStubService.js';
 import { ForkConversationAction } from '../../../chat/browser/actions/chatForkActions.js';
 import { IChatSessionsService } from '../../../chat/common/chatSessionsService.js';
@@ -73,6 +73,7 @@ suite('Conversation session chat (S3)', () => {
 
 		const sessionChatService = disposables.add(instantiationService.createInstance(ConversationSessionChatService));
 		sessionChatService.mountSubAgentOverlay(sessionWindow, sessionBar);
+		store.add(sessionChatService.registerPartListeners(conversationPart));
 
 		for (const editor of conversationPart.activeGroup.editors) {
 			store.add(editor);
@@ -187,7 +188,7 @@ suite('Conversation session chat (S3)', () => {
 	});
 
 	test('CONVERSATION_GROUP open targets the conversation editor part active group', async () => {
-		const { parts, conversationPart, sessionChatService } = await createHarness();
+		const { parts, conversationPart } = await createHarness();
 		const resource = getConversationChatResource(SESSION_KEY, 'explicit-target');
 		const input = store.add(new ConversationChatInput(resource));
 
@@ -196,5 +197,76 @@ suite('Conversation session chat (S3)', () => {
 		assert.ok(result);
 		assert.strictEqual(conversationPart.activeGroup.count, 2);
 		assert.strictEqual(parts.activePart, parts.mainPart);
+	});
+
+	test('sub-agent extension tab breadcrumb follows origin.chat chain', async () => {
+		const { sessionChatService } = await createHarness();
+		sessionChatService.registerSubAgentChat(SESSION_KEY, 'sub-1', 'Parent agent', 'default');
+		sessionChatService.registerSubAgentChat(SESSION_KEY, 'sub-2', 'Child agent', 'sub-1');
+		await sessionChatService.openExtensionTab(SESSION_KEY, 'sub-2', { title: 'Child agent' });
+
+		const breadcrumb = sessionChatService.getAgentHierarchyBreadcrumb(SESSION_KEY, 'sub-2');
+		assert.deepStrictEqual(breadcrumb.map(item => item.chatId), ['default', 'sub-1', 'sub-2']);
+		assert.strictEqual(breadcrumb.at(-1)?.isCurrent, true);
+	});
+
+	test('breadcrumb ancestor click replaces current extension tab without stacking tabs', async () => {
+		const { conversationPart, sessionChatService } = await createHarness();
+		sessionChatService.registerSubAgentChat(SESSION_KEY, 'sub-1', 'Parent agent', 'default');
+		sessionChatService.registerSubAgentChat(SESSION_KEY, 'sub-2', 'Child agent', 'sub-1');
+		await sessionChatService.openExtensionTab(SESSION_KEY, 'sub-2', { title: 'Child agent' });
+
+		await sessionChatService.navigateAgentBreadcrumb(SESSION_KEY, 'sub-1');
+
+		assert.strictEqual(conversationPart.activeGroup.count, 2);
+		assert.strictEqual(conversationPart.groups.length, 1);
+		assert.strictEqual(
+			(conversationPart.activeGroup.activeEditor as ConversationChatInput).resource.toString(),
+			getConversationChatResource(SESSION_KEY, 'sub-1').toString(),
+		);
+		assert.ok(!sessionChatService.findOpenTabForChat(SESSION_KEY, 'sub-2'));
+	});
+
+	test('breadcrumb root click closes extension tab and activates root tab', async () => {
+		const { conversationPart, sessionChatService } = await createHarness();
+		sessionChatService.registerSubAgentChat(SESSION_KEY, 'sub-1', 'Parent agent', 'default');
+		await sessionChatService.openExtensionTab(SESSION_KEY, 'sub-1', { title: 'Parent agent' });
+
+		await sessionChatService.navigateAgentBreadcrumb(SESSION_KEY, 'default');
+
+		assert.strictEqual(conversationPart.activeGroup.count, 1);
+		assert.strictEqual(conversationPart.groups.length, 1);
+		assert.ok((conversationPart.activeGroup.activeEditor as ConversationChatInput).isDefaultRoot);
+	});
+
+	test('close non-root closes extension tabs but keeps root group', async () => {
+		const { conversationPart, sessionChatService } = await createHarness();
+		sessionChatService.registerSubAgentChat(SESSION_KEY, 'sub-1', 'Sub agent one', 'default');
+		sessionChatService.registerSubAgentChat(SESSION_KEY, 'sub-2', 'Sub agent two', 'default');
+		await sessionChatService.openExtensionTab(SESSION_KEY, 'sub-1', { title: 'Sub agent one' });
+		await sessionChatService.openExtensionTab(SESSION_KEY, 'sub-2', { title: 'Sub agent two' });
+
+		assert.strictEqual(conversationPart.activeGroup.count, 3);
+		assert.strictEqual(sessionChatService.canCloseNonRoot(), true);
+
+		await sessionChatService.closeNonRootTabs();
+
+		assert.strictEqual(conversationPart.activeGroup.count, 1);
+		assert.strictEqual(conversationPart.groups.length, 1);
+		assert.ok((conversationPart.activeGroup.activeEditor as ConversationChatInput).isDefaultRoot);
+		assert.strictEqual(sessionChatService.canCloseNonRoot(), false);
+	});
+
+	test('close non-root closes dialog and leaves only root tab', async () => {
+		const { conversationPart, sessionChatService } = await createHarness();
+		sessionChatService.registerSubAgentChat(SESSION_KEY, 'sub-1', 'Sub agent', 'default');
+		await sessionChatService.openSubAgent(SESSION_KEY, 'sub-1');
+
+		assert.strictEqual(sessionChatService.canCloseNonRoot(), true);
+		await sessionChatService.closeNonRootTabs();
+
+		assert.strictEqual(sessionChatService.isSubAgentDialogOpen(), false);
+		assert.strictEqual(conversationPart.activeGroup.count, 1);
+		assert.ok((conversationPart.activeGroup.activeEditor as ConversationChatInput).isDefaultRoot);
 	});
 });
