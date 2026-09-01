@@ -3,8 +3,8 @@ title: "产品需求追踪矩阵"
 type: reference
 status: accepted
 phase: N/A
-updated: 2026-09-01
-summary: "PRD-001–016 追踪；PRD-016 S1–S6 已落、S3c chrome 待落；D4 已验（rerun-2230）；D5 EH 仍开；E1/PRD-008 blocked"
+updated: 2026-09-02
+summary: "PRD-001–016 追踪；PRD-012 T5a reveal @ f66c36c9；PRD-016 S1–S6 已落、S3c chrome 待落；D4 已验（rerun-2230）；D5 EH 仍开；E1/PRD-008 blocked"
 ---
 
 # 产品需求追踪
@@ -26,7 +26,7 @@ summary: "PRD-001–016 追踪；PRD-016 S1–S6 已落、S3c chrome 待落；D4
 | [PRD-009](requirements.md#prd-009-changes-与-diff) | `blocked` | [diff-footprint](../reference/code-oss-b2/diff-footprint.md) | FORK 未选 | 无 |
 | [PRD-010](requirements.md#prd-010-产品身份) | `proposed` | 无 | 无 | 无 |
 | [PRD-011](requirements.md#prd-011-chat-并排比对) | `accepted` | `src/vs/sessions/LAYOUT.md` · [ADR-001](../../dev/decisions/001-chat-compare-form.md) | [chat-compare-split](../../dev/plans/chat-compare-split.md) | D4 PASS |
-| [PRD-012](requirements.md#prd-012-conversation-轨迹透镜) | `accepted` | [conversation-lens-assembly](../reference/code-oss-b2/conversation-lens-assembly.md) | [conversation-trajectory-lens](../../dev/plans/conversation-trajectory-lens.md) | D4 PASS；单测 |
+| [PRD-012](requirements.md#prd-012-conversation-轨迹透镜) | `accepted` | [conversation-lens-assembly](../reference/code-oss-b2/conversation-lens-assembly.md) | [conversation-trajectory-lens](../../dev/plans/conversation-trajectory-lens.md) | D4 PASS；T1–T3 单测；T5a reveal 子集 @ `f66c36c9`（T5 搜索/虚拟化/Overview 仍 Deferred） |
 | [PRD-013](requirements.md#prd-013-conversation-过程折) | `accepted` | [conversation-lens-assembly](../reference/code-oss-b2/conversation-lens-assembly.md) | [conversation-process-fold](../../dev/plans/conversation-process-fold.md) | D4 PASS；单测 |
 | [PRD-014](requirements.md#prd-014-conversation-图示卡visualize) | `accepted` | [conversation-lens-assembly](../reference/code-oss-b2/conversation-lens-assembly.md) | [thinkrail-visualize-port](../../dev/plans/thinkrail-visualize-port.md) | D4 PASS；单测 |
 | [PRD-015](requirements.md#prd-015-conversation-空会话与输入面) | `accepted` | [conversation-lens-assembly](../reference/code-oss-b2/conversation-lens-assembly.md) §4 | [conversation-empty-hero](../../dev/plans/conversation-empty-hero.md) (`implemented`) | T1–T6 单测；D4 PASS |

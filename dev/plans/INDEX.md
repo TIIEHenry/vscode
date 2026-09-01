@@ -25,7 +25,7 @@ summary: "dev/plans 导航：M4/M5 implemented；valid-layers environment-blocke
 | [customizations-host-ui.md](customizations-host-ui.md) | `implemented` | H0–H3 donor chrome @ `77d6e7cc` |
 | [customizations-engine.md](customizations-engine.md) | `accepted` | Engine 页 catalog 权威与协议缺口；E1 blocked PRD-008 |
 | [product-requirements-layer.md](product-requirements-layer.md) | `implemented` | 建立本仓产品需求 SSOT |
-| [conversation-trajectory-lens.md](conversation-trajectory-lens.md) | `implemented` | PRD-012 T1–T3 @ `b08ca9de`–`3e2ac61f` |
+| [conversation-trajectory-lens.md](conversation-trajectory-lens.md) | `implemented` | PRD-012 T1–T3 @ `b08ca9de`–`3e2ac61f`；T5a reveal @ `f66c36c9` |
 | [conversation-process-fold.md](conversation-process-fold.md) | `implemented` | PRD-013 P1–P3/P3t @ `19f3e7ba`–`42fa941e` |
 | [thinkrail-visualize-port.md](thinkrail-visualize-port.md) | `implemented` | PRD-014 T1–T3 @ `5cad7c3b`–`0eb470f2` |
 | [conversation-empty-hero.md](conversation-empty-hero.md) | `implemented` | PRD-015 T1–T6 @ `ea0104c0`–`d4064ba0` · [canvas](conversation-empty-hero.canvas.tsx) |
