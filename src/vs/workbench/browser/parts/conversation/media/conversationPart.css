@@ -46,6 +46,11 @@
 	align-items: stretch;
 }
 
+.monaco-workbench .part.conversation .conversation-session-window-grid {
+	flex: 1;
+	min-height: 0;
+}
+
 .monaco-workbench .part.conversation .conversation-timeline {
 	flex: 1;
 	min-height: 0;

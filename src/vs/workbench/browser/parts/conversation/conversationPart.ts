@@ -30,7 +30,9 @@ export interface IConversationLensSlots {
 
 export interface IConversationPartWindowSlots {
 	readonly sessionBar: HTMLElement;
-	readonly editorPartHost: HTMLElement;
+	readonly sessionWindowGrid: HTMLElement;
+	/** Primary session leaf editor host; created by {@link IConversationSessionWindowService}. */
+	readonly editorPartHost: HTMLElement | undefined;
 }
 
 export interface IConversationPartService {
@@ -101,10 +103,9 @@ export class ConversationPart extends Part implements IConversationPartService {
 		const sessionBar = append(content, $('.conversation-session-bar'));
 		sessionBar.setAttribute('data-conversation-slot', 'sessionBar');
 
-		const sessionWindow = append(content, $('.conversation-session-window'));
-		const editorPartHost = append(sessionWindow, $('.conversation-editor-part-container.part.editor'));
+		const sessionWindowGrid = append(content, $('.conversation-session-window-grid'));
 
-		this._slots = { sessionBar, editorPartHost };
+		this._slots = { sessionBar, sessionWindowGrid, editorPartHost: undefined };
 		this._onDidCreateSlots.fire(this._slots);
 
 		return content;

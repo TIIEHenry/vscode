@@ -22,12 +22,13 @@ suite('ConversationPart', () => {
 		return part;
 	}
 
-	test('exposes SessionBar and session editor host slots', () => {
+	test('exposes SessionBar and session window grid slots', () => {
 		const part = createPart();
 		const slots = part.getSlots();
 		assert.ok(slots);
 		assert.ok(slots.sessionBar);
-		assert.ok(slots.editorPartHost);
+		assert.ok(slots.sessionWindowGrid);
+		assert.strictEqual(slots.editorPartHost, undefined);
 
 		const fill = document.createElement('div');
 		fill.className = 'test-slot-fill';

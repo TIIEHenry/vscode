@@ -31,7 +31,7 @@ export interface IConversationSessionChatService {
 	readonly onDidChangeCatalog: Event<string>;
 	readonly onDidChangeCloseNonRootState: Event<void>;
 
-	mountSubAgentOverlay(sessionWindowHost: HTMLElement, sessionBar: HTMLElement): void;
+	mountSubAgentOverlay(sessionKey: string, sessionWindowHost: HTMLElement, sessionBar: HTMLElement): void;
 
 	registerPartListeners(part: IConversationEditorPart): IDisposable;
 
@@ -55,11 +55,11 @@ export interface IConversationSessionChatService {
 
 	openSubAgent(sessionKey: string, chatId: string, title?: string): Promise<void>;
 
-	maximizeSubAgentDialog(): Promise<void>;
+	maximizeSubAgentDialog(sessionKey?: string): Promise<void>;
 
-	closeSubAgentDialog(): void;
+	closeSubAgentDialog(sessionKey?: string): void;
 
-	isSubAgentDialogOpen(): boolean;
+	isSubAgentDialogOpen(sessionKey?: string): boolean;
 
 	findOpenTabForChat(sessionKey: string, chatId: string): ConversationChatInput | undefined;
 
@@ -78,7 +78,7 @@ export class ConversationSessionChatService extends Disposable implements IConve
 
 	private readonly catalog = new Map<string, Map<string, IConversationSessionChatEntry>>();
 	private readonly partListeners = new Set<IConversationEditorPart>();
-	private subAgentOverlay: ConversationSubAgentOverlay | undefined;
+	private readonly subAgentOverlays = new Map<string, ConversationSubAgentOverlay>();
 
 	private readonly _onDidChangeCatalog = this._register(new Emitter<string>());
 	readonly onDidChangeCatalog = this._onDidChangeCatalog.event;
@@ -95,15 +95,16 @@ export class ConversationSessionChatService extends Disposable implements IConve
 		super();
 	}
 
-	mountSubAgentOverlay(sessionWindowHost: HTMLElement, sessionBar: HTMLElement): void {
-		if (this.subAgentOverlay) {
+	mountSubAgentOverlay(sessionKey: string, sessionWindowHost: HTMLElement, sessionBar: HTMLElement): void {
+		if (this.subAgentOverlays.has(sessionKey)) {
 			return;
 		}
-		this.subAgentOverlay = this._register(this.instantiationService.createInstance(ConversationSubAgentOverlay, sessionWindowHost, sessionBar));
-		this._register(this.subAgentOverlay.onDidRequestMaximize(() => {
-			void this.maximizeSubAgentDialog();
+		const overlay = this._register(this.instantiationService.createInstance(ConversationSubAgentOverlay, sessionWindowHost, sessionBar));
+		this.subAgentOverlays.set(sessionKey, overlay);
+		this._register(overlay.onDidRequestMaximize(() => {
+			void this.maximizeSubAgentDialog(sessionKey);
 		}));
-		this._register(this.subAgentOverlay.onDidClose(() => this.fireCloseNonRootStateChange()));
+		this._register(overlay.onDidClose(() => this.fireCloseNonRootStateChange()));
 	}
 
 	registerPartListeners(part: IConversationEditorPart): IDisposable {
@@ -185,7 +186,7 @@ export class ConversationSessionChatService extends Disposable implements IConve
 	}
 
 	canCloseNonRoot(sessionKey?: string): boolean {
-		if (this.isSubAgentDialogOpen()) {
+		if (this.isSubAgentDialogOpen(sessionKey)) {
 			return true;
 		}
 
@@ -200,7 +201,7 @@ export class ConversationSessionChatService extends Disposable implements IConve
 			return;
 		}
 
-		this.closeSubAgentDialog();
+		this.closeSubAgentDialog(key);
 
 		const editorService = this.getScopedEditorService(part);
 		const toClose: IEditorIdentifier[] = [];
@@ -291,11 +292,12 @@ export class ConversationSessionChatService extends Disposable implements IConve
 		const entry = this.catalog.get(sessionKey)?.get(chatId)
 			?? this.registerSubAgentChat(sessionKey, chatId, title ?? chatId);
 
-		if (!this.subAgentOverlay) {
-			throw new Error('Sub-agent overlay is not mounted');
+		const overlay = this.subAgentOverlays.get(sessionKey);
+		if (!overlay) {
+			throw new Error(`Sub-agent overlay for session ${sessionKey} is not mounted`);
 		}
 
-		this.subAgentOverlay.open({
+		overlay.open({
 			sessionKey,
 			chatId,
 			title: title ?? entry.title,
@@ -303,25 +305,37 @@ export class ConversationSessionChatService extends Disposable implements IConve
 		this.fireCloseNonRootStateChange();
 	}
 
-	async maximizeSubAgentDialog(): Promise<void> {
-		const state = this.subAgentOverlay?.getState();
+	async maximizeSubAgentDialog(sessionKey?: string): Promise<void> {
+		const key = sessionKey ?? this.rosterService.getActiveSessionId();
+		const overlay = this.subAgentOverlays.get(key);
+		const state = overlay?.getState();
 		if (!state) {
 			return;
 		}
 
-		this.closeSubAgentDialog();
+		this.closeSubAgentDialog(key);
 		await this.openExtensionTab(state.sessionKey, state.chatId, { title: state.title });
 	}
 
-	closeSubAgentDialog(): void {
-		if (this.subAgentOverlay?.isOpen()) {
-			this.subAgentOverlay.close();
+	closeSubAgentDialog(sessionKey?: string): void {
+		const key = sessionKey ?? this.rosterService.getActiveSessionId();
+		const overlay = this.subAgentOverlays.get(key);
+		if (overlay?.isOpen()) {
+			overlay.close();
 			this.fireCloseNonRootStateChange();
 		}
 	}
 
-	isSubAgentDialogOpen(): boolean {
-		return this.subAgentOverlay?.isOpen() ?? false;
+	isSubAgentDialogOpen(sessionKey?: string): boolean {
+		if (sessionKey) {
+			return this.subAgentOverlays.get(sessionKey)?.isOpen() ?? false;
+		}
+		for (const overlay of this.subAgentOverlays.values()) {
+			if (overlay.isOpen()) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	findOpenTabForChat(sessionKey: string, chatId: string): ConversationChatInput | undefined {
