@@ -304,3 +304,5 @@ UA **Local**（已接本机引擎的文件面）≠ 断连 Stub catalog。Local 
 ## 11. 审查记录（规则 16）
 
 2026-09-01：三路并行 Cursor Grok 4.6 只读。本文件 **Approve with changes**。已当轮改入：无引擎 Engine 页不扫 Stub catalog；H1 走 `ua.engine` 空态；探测键与 handshake 字段、`ListSkills.source`、传输失败态按审查改口径。
+
+2026-09-01 第二轮：**Approve with changes**。已改入：§8.1 DAG 的 H1 改为 donor 卫生（禁止 Stub catalog）；§8.2/§9 去掉「Customizations 里 Stub 可写」；E1.5 断连回诚实空而非 Stub；§10 改锚 two-surfaces 余量表；UA Local ≠ 断连 Stub。

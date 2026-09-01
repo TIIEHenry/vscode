@@ -350,3 +350,5 @@ E1 / catalog 不在本页。
 ## 8. 审查记录（规则 16）
 
 2026-09-01：三路并行 Cursor Grok 4.6 只读。本文件原评估 **Block**。已当轮改入：H0–H3 收成文件工具；Tools 不进默认窗左 nav；OpenEditor Palette 门钉死；`managementSections` 必须删 plugins/tools 而非只藏 nav。
+
+2026-09-01 第二轮：**Block**。已改入：§0/§3.1 Overview 去掉 Tools 行与「catalog after connection」；Plugins 改为删 `managementSections`；§3.5/§3.8 去掉 until E1 / Tools 空态；§6 welcome 不再写 Engine not connected。
