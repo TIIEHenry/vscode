@@ -500,18 +500,29 @@ function toItemsModelSection(section: AICustomizationManagementSection): ItemsMo
 	}
 }
 
-export function usesCustomizationCardLayout(section: AICustomizationManagementSection): boolean {
+function isDonorFileCustomizationSection(section: AICustomizationManagementSection): boolean {
 	return section === AICustomizationManagementSection.Agents
 		|| section === AICustomizationManagementSection.Skills
 		|| section === AICustomizationManagementSection.Instructions
-		|| section === AICustomizationManagementSection.Hooks
+		|| section === AICustomizationManagementSection.Hooks;
+}
+
+export function usesCustomizationCardLayout(section: AICustomizationManagementSection, isSessionsWindow = true): boolean {
+	if (!isSessionsWindow) {
+		return false;
+	}
+	return isDonorFileCustomizationSection(section)
 		|| section === AICustomizationManagementSection.Prompts;
 }
 
-export function getAlwaysVisibleCustomizationGroupKeys(section: AICustomizationManagementSection, isFiltering: boolean): readonly string[] {
-	return usesCustomizationCardLayout(section) && !isFiltering
-		? [PromptsStorage.local, PromptsStorage.user]
-		: [];
+export function getAlwaysVisibleCustomizationGroupKeys(section: AICustomizationManagementSection, isFiltering: boolean, isSessionsWindow = true): readonly string[] {
+	if (isFiltering) {
+		return [];
+	}
+	if (usesCustomizationCardLayout(section, isSessionsWindow) || (!isSessionsWindow && isDonorFileCustomizationSection(section))) {
+		return [PromptsStorage.local, PromptsStorage.user];
+	}
+	return [];
 }
 
 export function getTargetedCreateActionLabel(label: string, compactLabel?: string): string {
@@ -1064,34 +1075,43 @@ export class AICustomizationListWidget extends Disposable {
 	 * Updates the section header based on the current section.
 	 */
 	private updateSectionHeader(): void {
+		const isDonorWindow = !this.workspaceService.isSessionsWindow;
 		let title: string;
 		let description: string;
-		let docsUrl: string;
-		let learnMoreLabel: string;
+		let docsUrl: string | undefined;
+		let learnMoreLabel: string | undefined;
 		switch (this.currentSection) {
 			case AICustomizationManagementSection.Agents:
 				title = localize('agents', "Agents");
-				description = localize('agentsDescription', "Configure the AI to adopt different personas tailored to specific development tasks. Each agent has its own instructions, tools, and behavior.");
-				docsUrl = 'https://code.visualstudio.com/docs/agent-customization/custom-agents?referrer=in-product';
-				learnMoreLabel = localize('learnMoreAgents', "Learn more about custom agents");
+				description = isDonorWindow
+					? localize('agentsDonorDescription', "Agent profiles (AGENTS.md and tools.json) for this workspace or your user profile.")
+					: localize('agentsDescription', "Configure the AI to adopt different personas tailored to specific development tasks. Each agent has its own instructions, tools, and behavior.");
+				docsUrl = isDonorWindow ? undefined : 'https://code.visualstudio.com/docs/agent-customization/custom-agents?referrer=in-product';
+				learnMoreLabel = isDonorWindow ? undefined : localize('learnMoreAgents', "Learn more about custom agents");
 				break;
 			case AICustomizationManagementSection.Skills:
 				title = localize('skills', "Skills");
-				description = localize('skillsDescription', "Folders of instructions, scripts, and resources that Copilot loads when relevant to perform specialized tasks.");
-				docsUrl = 'https://code.visualstudio.com/docs/agent-customization/agent-skills?referrer=in-product';
-				learnMoreLabel = localize('learnMoreSkills', "Learn more about agent skills");
+				description = isDonorWindow
+					? localize('skillsDonorDescription', "Skill markdown files. Engine catalog is in Engine settings.")
+					: localize('skillsDescription', "Folders of instructions, scripts, and resources that Copilot loads when relevant to perform specialized tasks.");
+				docsUrl = isDonorWindow ? undefined : 'https://code.visualstudio.com/docs/agent-customization/agent-skills?referrer=in-product';
+				learnMoreLabel = isDonorWindow ? undefined : localize('learnMoreSkills', "Learn more about agent skills");
 				break;
 			case AICustomizationManagementSection.Instructions:
 				title = localize('instructions', "Instructions");
-				description = localize('instructionsDescription', "Define common guidelines and rules that automatically influence how AI generates code and handles development tasks.");
-				docsUrl = 'https://code.visualstudio.com/docs/agent-customization/custom-instructions?referrer=in-product';
-				learnMoreLabel = localize('learnMoreInstructions', "Learn more about custom instructions");
+				description = isDonorWindow
+					? localize('instructionsDonorDescription', "Always-on rules for this workspace or your user profile.")
+					: localize('instructionsDescription', "Define common guidelines and rules that automatically influence how AI generates code and handles development tasks.");
+				docsUrl = isDonorWindow ? undefined : 'https://code.visualstudio.com/docs/agent-customization/custom-instructions?referrer=in-product';
+				learnMoreLabel = isDonorWindow ? undefined : localize('learnMoreInstructions', "Learn more about custom instructions");
 				break;
 			case AICustomizationManagementSection.Hooks:
 				title = localize('hooks', "Hooks");
-				description = localize('hooksDescription', "Prompts executed at specific points during an agentic lifecycle.");
-				docsUrl = 'https://code.visualstudio.com/docs/agent-customization/hooks?referrer=in-product';
-				learnMoreLabel = localize('learnMoreHooks', "Learn more about hooks");
+				description = isDonorWindow
+					? localize('hooksDonorDescription', "Hook definition files for the agent loop (message / tool / permission lifecycle).")
+					: localize('hooksDescription', "Prompts executed at specific points during an agentic lifecycle.");
+				docsUrl = isDonorWindow ? undefined : 'https://code.visualstudio.com/docs/agent-customization/hooks?referrer=in-product';
+				learnMoreLabel = isDonorWindow ? undefined : localize('learnMoreHooks', "Learn more about hooks");
 				break;
 			case AICustomizationManagementSection.Prompts:
 			default:
@@ -1103,8 +1123,15 @@ export class AICustomizationListWidget extends Disposable {
 		}
 		this.sectionTitle.textContent = title;
 		this.sectionTitleDescriptionText.textContent = description;
-		this.sectionLink.textContent = learnMoreLabel;
-		this.sectionLink.href = docsUrl;
+		if (learnMoreLabel && docsUrl) {
+			this.sectionLink.textContent = learnMoreLabel;
+			this.sectionLink.href = docsUrl;
+			this.sectionLink.style.display = '';
+		} else {
+			this.sectionLink.textContent = '';
+			this.sectionLink.removeAttribute('href');
+			this.sectionLink.style.display = 'none';
+		}
 	}
 
 	/**
@@ -1213,7 +1240,7 @@ export class AICustomizationListWidget extends Disposable {
 
 		// Hooks have a simplified action set
 		if (promptType === PromptsType.hook) {
-			if (!this.workspaceService.isSessionsWindow && !descriptor.hideGenerateButton) {
+			if (this.workspaceService.isSessionsWindow && !descriptor.hideGenerateButton) {
 				actions.push({
 					label: localize('generateWithAI', "Generate with AI"),
 					tooltip: localize('generateCustomizationWithAI', "Generate {0} with AI", typeLabel),
@@ -1245,8 +1272,7 @@ export class AICustomizationListWidget extends Disposable {
 
 		if (!override?.rootFile) {
 			// Determine the primary action (first in list)
-			if (!this.workspaceService.isSessionsWindow && !descriptor.hideGenerateButton) {
-				// Local exposes one non-storage-scoped AI generation action.
+			if (this.workspaceService.isSessionsWindow && !descriptor.hideGenerateButton) {
 				actions.push({
 					label: localize('generateWithAI', "Generate with AI"),
 					tooltip: localize('generateCustomizationWithAI', "Generate {0} with AI", typeLabel),
@@ -1450,10 +1476,16 @@ export class AICustomizationListWidget extends Disposable {
 			group.items.sort((a, b) => a.name.localeCompare(b.name));
 		}
 
+		const alwaysVisibleGroupKeys = new Set(getAlwaysVisibleCustomizationGroupKeys(
+			this.currentSection,
+			!!this.searchQuery.trim(),
+			this.workspaceService.isSessionsWindow,
+		));
+
 		this.displayEntries = [];
 		let isFirstGroup = true;
 		for (const group of groups) {
-			if (group.items.length === 0) {
+			if (group.items.length === 0 && !alwaysVisibleGroupKeys.has(group.groupKey)) {
 				continue;
 			}
 
@@ -1548,7 +1580,7 @@ export class AICustomizationListWidget extends Disposable {
 	}
 
 	private usesCardLayout(): boolean {
-		return usesCustomizationCardLayout(this.currentSection);
+		return usesCustomizationCardLayout(this.currentSection, this.workspaceService.isSessionsWindow);
 	}
 
 	private renderCardGroups(groups: ICustomizationItemGroup[]): void {
@@ -1558,7 +1590,7 @@ export class AICustomizationListWidget extends Disposable {
 		const isFiltering = !!this.searchQuery.trim();
 		const usesTargetedCreateActions = this.usesTargetedCreateActions();
 		const createGroupKey = isFiltering || usesTargetedCreateActions ? undefined : this.getCreateActionGroupKey();
-		const alwaysVisibleGroupKeys = new Set(getAlwaysVisibleCustomizationGroupKeys(this.currentSection, isFiltering));
+		const alwaysVisibleGroupKeys = new Set(getAlwaysVisibleCustomizationGroupKeys(this.currentSection, isFiltering, this.workspaceService.isSessionsWindow));
 		const visibleGroups = groups.filter(group => group.items.length > 0 || alwaysVisibleGroupKeys.has(group.groupKey) || group.groupKey === createGroupKey);
 		if (visibleGroups.length === 0) {
 			this.cardDisposables.clear();
@@ -1899,24 +1931,37 @@ export class AICustomizationListWidget extends Disposable {
 	}
 
 	private getEmptyStateInfo(): { title: string; description: string } {
+		const isDonorWindow = !this.workspaceService.isSessionsWindow;
 		switch (this.currentSection) {
 			case AICustomizationManagementSection.Agents:
-				return {
+				return isDonorWindow ? {
+					title: localize('noAgentFiles', "No agent files yet"),
+					description: localize('createAgentFileDonor', "Create a markdown file. Agent profiles are managed in Engine settings."),
+				} : {
 					title: localize('noAgents', "No agents yet"),
 					description: localize('createFirstAgent', "Create your first custom agent to get started"),
 				};
 			case AICustomizationManagementSection.Skills:
-				return {
+				return isDonorWindow ? {
+					title: localize('noSkillFiles', "No skill files yet"),
+					description: localize('createSkillFileDonor', "Add a skill markdown file."),
+				} : {
 					title: localize('noSkills', "No skills yet"),
 					description: localize('createFirstSkill', "Create your first skill to extend agent capabilities"),
 				};
 			case AICustomizationManagementSection.Instructions:
-				return {
+				return isDonorWindow ? {
+					title: localize('noInstructions', "No instructions yet"),
+					description: localize('createInstructionFileDonor', "Add a rules file."),
+				} : {
 					title: localize('noInstructions', "No instructions yet"),
 					description: localize('createFirstInstructions', "Add instructions to teach Copilot about your codebase"),
 				};
 			case AICustomizationManagementSection.Hooks:
-				return {
+				return isDonorWindow ? {
+					title: localize('noHookFiles', "No hook files yet"),
+					description: localize('createHookFileDonor', "Add a hook definition file."),
+				} : {
 					title: localize('noHooks', "No hooks yet"),
 					description: localize('createFirstHook', "Create hooks to execute commands at agent lifecycle events"),
 				};
