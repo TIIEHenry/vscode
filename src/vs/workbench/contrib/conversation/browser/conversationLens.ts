@@ -32,6 +32,7 @@ import {
 	conversationLensDockEditingQueued,
 	conversationLensDockMaximizeInput,
 	conversationLensDockMicNotAvailable,
+	conversationLensDockMicStopTitle,
 	conversationLensDockMicTitle,
 	conversationLensDockMoreTitle,
 	conversationLensDockNoAttachments,
@@ -57,6 +58,9 @@ import {
 	conversationLensPhasePreFirstClass,
 	conversationLensPhasePreFirstDockHiddenClass,
 	conversationLensPrefirstHeroClass,
+	conversationLensVoiceStubPhraseOne,
+	conversationLensVoiceStubPhraseThree,
+	conversationLensVoiceStubPhraseTwo,
 } from './conversationLensDockStrings.js';
 import { conversationLensSessionBarConversationTab, conversationLensSessionBarDeleteSession, conversationLensSessionBarNewSession, conversationLensSessionBarRenameInputAria, conversationLensSessionBarRenameTitle, conversationLensSessionBarRouteLabel, conversationLensSessionBarTrajectoryTab } from './conversationLensSessionBarStrings.js';
 import {
@@ -74,6 +78,8 @@ import { ConversationVisualizeOverlay } from './conversationVisualizeOverlay.js'
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { IExtensionService } from '../../../services/extensions/common/extensions.js';
 import { IWebviewService } from '../../webview/browser/webview.js';
+import { ConversationVoiceTranscriptBar } from './conversationVoiceTranscriptBar.js';
+import { appendVoiceTextToDraft, ConversationVoiceClip } from './conversationVoiceTranscriptModel.js';
 
 const CONVERSATION_LENS_ID_STORAGE_KEY = 'conversation.lensId';
 
@@ -95,6 +101,12 @@ const COMPOSER_ROUTE_OPTIONS = [
 	conversationLensDockRouteBalanced,
 	conversationLensDockRouteSpeed,
 	conversationLensDockRouteQuality,
+] as const;
+
+const STUB_VOICE_TRANSCRIPT_PHRASES = [
+	conversationLensVoiceStubPhraseOne,
+	conversationLensVoiceStubPhraseTwo,
+	conversationLensVoiceStubPhraseThree,
 ] as const;
 
 /**
@@ -140,6 +152,8 @@ export class ConversationLens extends Disposable {
 	private templatesContextView: IOpenContextView | undefined;
 	private maximizeInputButton!: Button;
 	private micButton!: Button;
+	private composerCluster!: HTMLElement;
+	private voiceTranscriptBar!: ConversationVoiceTranscriptBar;
 
 	private readingColumn!: HTMLElement;
 	private prefirstHero!: HTMLElement;
@@ -161,6 +175,10 @@ export class ConversationLens extends Disposable {
 
 	private readonly drafts = new Map<string, string>();
 	private readonly sessionConfigBySessionId = new Map<string, ConversationSessionConfigSelection>();
+	private readonly voiceClipsBySessionId = new Map<string, ConversationVoiceClip[]>();
+	private readonly voicePhraseIndexBySessionId = new Map<string, number>();
+	private readonly voiceTranscriptTimeouts = new Map<string, ReturnType<typeof setTimeout>>();
+	private nextVoiceClipId = 0;
 	private inputHistoryBrowse: InputHistoryBrowseState = createInputHistoryBrowseState();
 	private suppressSessionSelect = false;
 	private mermaidExtensionInfo: ConversationMermaidExtensionInfo | undefined;
@@ -210,12 +228,17 @@ export class ConversationLens extends Disposable {
 				this.renderInboxStatus();
 			}
 		}));
+		this._register(this.stubService.onDidChangeEngineConnection(() => this.updateVoiceMicChrome()));
 
 		this._register(toDisposable(() => {
 			this.addContextView?.close();
 			this.tuneContextView?.close();
 			this.moreContextView?.close();
 			this.templatesContextView?.close();
+			for (const timeout of this.voiceTranscriptTimeouts.values()) {
+				clearTimeout(timeout);
+			}
+			this.voiceTranscriptTimeouts.clear();
 			reset(slots.sessionBar);
 			reset(slots.timeline);
 			reset(slots.dock);
@@ -475,7 +498,9 @@ export class ConversationLens extends Disposable {
 			onScrollToPendingConfirmation: () => this.scrollToFirstPendingConfirmation(),
 		}));
 
-		this.composer = append(this.dockRoot, $('.conversation-lens-composer'));
+		this.composerCluster = append(this.dockRoot, $('.conversation-lens-composer-cluster'));
+		this.voiceTranscriptBar = this._register(new ConversationVoiceTranscriptBar(this.composerCluster));
+		this.composer = append(this.composerCluster, $('.conversation-lens-composer'));
 		this.composerEditHeader = append(this.composer, $('.conversation-lens-composer-edit-header'));
 		this.composerEditHeader.hidden = true;
 		this.composerEditTitle = append(this.composerEditHeader, $('span.conversation-lens-composer-edit-title'));
@@ -606,6 +631,7 @@ export class ConversationLens extends Disposable {
 		}));
 		this.micButton.icon = Codicon.mic;
 		this.micButton.element.classList.add('conversation-lens-dock-control', 'conversation-lens-dock-control--ghost', 'conversation-lens-dock-control--mic');
+		this._register(this.micButton.onDidClick(() => this.toggleVoiceRecording()));
 
 		const sendContainer = append(bottomTrailing, $('.conversation-lens-dock-send'));
 		this.sendButton = this._register(new Button(sendContainer, {
@@ -655,6 +681,7 @@ export class ConversationLens extends Disposable {
 		}));
 
 		this.updateConversationPhase();
+		this.updateVoiceMicChrome();
 	}
 
 	private toggleAddContextView(): void {
@@ -828,6 +855,8 @@ export class ConversationLens extends Disposable {
 		this.syncComposerPlacement();
 		this.updateComposerEditChrome();
 		this.updateSendEnabled();
+		this.renderVoiceTranscriptBar();
+		this.updateVoiceMicChrome();
 		this.dockTextarea.focus();
 	}
 
@@ -848,6 +877,8 @@ export class ConversationLens extends Disposable {
 		this.syncComposerPlacement();
 		this.updateComposerEditChrome();
 		this.updateSendEnabled();
+		this.renderVoiceTranscriptBar();
+		this.updateVoiceMicChrome();
 		this.dockTextarea.focus();
 	}
 
@@ -871,6 +902,109 @@ export class ConversationLens extends Disposable {
 		this.syncComposerPlacement();
 		this.updateComposerEditChrome();
 		this.updateSendEnabled();
+		this.renderVoiceTranscriptBar();
+		this.updateVoiceMicChrome();
+	}
+
+	private getVoiceClips(sessionId: string): readonly ConversationVoiceClip[] {
+		return this.voiceClipsBySessionId.get(sessionId) ?? [];
+	}
+
+	private setVoiceClips(sessionId: string, clips: readonly ConversationVoiceClip[]): void {
+		if (clips.length === 0) {
+			this.voiceClipsBySessionId.delete(sessionId);
+		} else {
+			this.voiceClipsBySessionId.set(sessionId, [...clips]);
+		}
+		this.renderVoiceTranscriptBar();
+		this.updateVoiceMicChrome();
+	}
+
+	private renderVoiceTranscriptBar(): void {
+		const composeMode = this.composerPolicy === 'compose';
+		this.voiceTranscriptBar.setComposerVisible(composeMode);
+		this.voiceTranscriptBar.render(this.getVoiceClips(this.stubService.getActiveSessionId()));
+	}
+
+	private updateVoiceMicChrome(): void {
+		const engineConnected = this.stubService.isEngineConnected();
+		const recording = this.getVoiceClips(this.stubService.getActiveSessionId())
+			.some(clip => clip.status === 'recording');
+
+		if (!engineConnected || this.composerPolicy !== 'compose') {
+			this.micButton.enabled = false;
+			this.micButton.element.classList.remove('conversation-lens-dock-control--filled');
+			this.micButton.element.classList.add('conversation-lens-dock-control--ghost');
+			const title = engineConnected
+				? conversationLensDockMicTitle
+				: `${conversationLensDockMicTitle} — ${conversationLensDockMicNotAvailable}`;
+			this.micButton.setTitle(title);
+			this.micButton.setAriaLabel(title);
+			return;
+		}
+
+		this.micButton.enabled = true;
+		if (recording) {
+			this.micButton.element.classList.remove('conversation-lens-dock-control--ghost');
+			this.micButton.element.classList.add('conversation-lens-dock-control--filled');
+			this.micButton.setTitle(conversationLensDockMicStopTitle);
+			this.micButton.setAriaLabel(conversationLensDockMicStopTitle);
+			return;
+		}
+
+		this.micButton.element.classList.remove('conversation-lens-dock-control--filled');
+		this.micButton.element.classList.add('conversation-lens-dock-control--ghost');
+		this.micButton.setTitle(conversationLensDockMicTitle);
+		this.micButton.setAriaLabel(conversationLensDockMicTitle);
+	}
+
+	private toggleVoiceRecording(): void {
+		if (!this.stubService.isEngineConnected() || this.composerPolicy !== 'compose') {
+			return;
+		}
+		const sessionId = this.stubService.getActiveSessionId();
+		const clips = [...this.getVoiceClips(sessionId)];
+		const recording = clips.find(clip => clip.status === 'recording');
+		if (recording) {
+			this.finishVoiceClip(sessionId, recording.id);
+			return;
+		}
+		const clip: ConversationVoiceClip = {
+			id: `voice-${++this.nextVoiceClipId}`,
+			status: 'recording',
+			durationLabel: '0:01',
+		};
+		this.setVoiceClips(sessionId, [...clips, clip]);
+	}
+
+	private finishVoiceClip(sessionId: string, clipId: string): void {
+		const clips = this.getVoiceClips(sessionId).map(clip =>
+			clip.id === clipId ? { ...clip, status: 'transcribing' as const } : clip);
+		this.setVoiceClips(sessionId, clips);
+
+		const phraseIndex = this.voicePhraseIndexBySessionId.get(sessionId) ?? 0;
+		const phrase = STUB_VOICE_TRANSCRIPT_PHRASES[phraseIndex % STUB_VOICE_TRANSCRIPT_PHRASES.length];
+		this.voicePhraseIndexBySessionId.set(sessionId, phraseIndex + 1);
+
+		const existingTimeout = this.voiceTranscriptTimeouts.get(clipId);
+		if (existingTimeout !== undefined) {
+			clearTimeout(existingTimeout);
+		}
+		const timeout = setTimeout(() => {
+			this.voiceTranscriptTimeouts.delete(clipId);
+			const remaining = this.getVoiceClips(sessionId).filter(clip => clip.id !== clipId);
+			this.setVoiceClips(sessionId, remaining);
+			const draft = this.stubService.getActiveSessionId() === sessionId && this.composerPolicy === 'compose'
+				? this.dockTextarea.value
+				: (this.drafts.get(sessionId) ?? '');
+			const nextDraft = appendVoiceTextToDraft(draft, phrase);
+			this.drafts.set(sessionId, nextDraft);
+			if (this.stubService.getActiveSessionId() === sessionId && this.composerPolicy === 'compose') {
+				this.dockTextarea.value = nextDraft;
+				this.updateSendEnabled();
+			}
+		}, 30);
+		this.voiceTranscriptTimeouts.set(clipId, timeout);
 	}
 
 	private getEditingQueueItem() {
@@ -904,6 +1038,8 @@ export class ConversationLens extends Disposable {
 
 	private syncComposerPlacement(): void {
 		if (this.composerPolicy === 'turnEdit' && this.editingTurnId) {
+			this.ensureComposerInCluster();
+			this.renderVoiceTranscriptBar();
 			const host = this.timelineTree.getTurnEditHost(this.editingTurnId);
 			if (host) {
 				if (this.composer.parentElement !== host) {
@@ -915,15 +1051,24 @@ export class ConversationLens extends Disposable {
 			return;
 		}
 
+		this.ensureComposerInCluster();
+		this.renderVoiceTranscriptBar();
+
 		if (this.isPreFirst()) {
-			if (this.composer.parentElement !== this.prefirstHero) {
-				this.prefirstHero.appendChild(this.composer);
+			if (this.composerCluster.parentElement !== this.prefirstHero) {
+				this.prefirstHero.appendChild(this.composerCluster);
 			}
 			return;
 		}
 
-		if (this.composer.parentElement !== this.dockRoot) {
-			this.dockRoot.appendChild(this.composer);
+		if (this.composerCluster.parentElement !== this.dockRoot) {
+			this.dockRoot.appendChild(this.composerCluster);
+		}
+	}
+
+	private ensureComposerInCluster(): void {
+		if (this.composer.parentElement !== this.composerCluster) {
+			this.composerCluster.appendChild(this.composer);
 		}
 	}
 
@@ -1009,6 +1154,8 @@ export class ConversationLens extends Disposable {
 		}
 		this.renderTimeline();
 		this.renderInboxStatus();
+		this.renderVoiceTranscriptBar();
+		this.updateVoiceMicChrome();
 	}
 
 	private updateSessionTitle(): void {

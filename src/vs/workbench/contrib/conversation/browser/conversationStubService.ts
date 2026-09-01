@@ -20,6 +20,7 @@ export interface IConversationRosterService {
 
 	readonly onDidChangeActiveSession: Event<string>;
 	readonly onDidChangeSession: Event<string>;
+	readonly onDidChangeEngineConnection: Event<boolean>;
 
 	getSessions(): readonly ConversationStubSession[];
 	getActiveSessionId(): string;
@@ -50,6 +51,8 @@ export interface IConversationRosterService {
 	getAutoDriveTasks(sessionId: string): readonly string[];
 	getAutoDriveTaskCount(sessionId: string): number;
 	setAutoDriveTaskFixture(sessionId: string, tasks: readonly string[]): void;
+	isEngineConnected(): boolean;
+	setEngineConnected(connected: boolean): void;
 }
 
 export type IConversationStubService = IConversationRosterService;
@@ -60,12 +63,16 @@ export class ConversationStubService extends Disposable implements IConversation
 	declare readonly _serviceBrand: undefined;
 
 	private readonly model = new ConversationStubModel();
+	private engineConnected = false;
 
 	private readonly _onDidChangeActiveSession = this._register(new Emitter<string>());
 	readonly onDidChangeActiveSession = this._onDidChangeActiveSession.event;
 
 	private readonly _onDidChangeSession = this._register(new Emitter<string>());
 	readonly onDidChangeSession = this._onDidChangeSession.event;
+
+	private readonly _onDidChangeEngineConnection = this._register(new Emitter<boolean>());
+	readonly onDidChangeEngineConnection = this._onDidChangeEngineConnection.event;
 
 	getSessions(): readonly ConversationStubSession[] {
 		return this.model.getSessions();
@@ -250,5 +257,17 @@ export class ConversationStubService extends Disposable implements IConversation
 	setAutoDriveTaskFixture(sessionId: string, tasks: readonly string[]): void {
 		this.model.setAutoDriveTaskFixture(sessionId, tasks);
 		this._onDidChangeSession.fire(sessionId);
+	}
+
+	isEngineConnected(): boolean {
+		return this.engineConnected;
+	}
+
+	setEngineConnected(connected: boolean): void {
+		if (this.engineConnected === connected) {
+			return;
+		}
+		this.engineConnected = connected;
+		this._onDidChangeEngineConnection.fire(connected);
 	}
 }
