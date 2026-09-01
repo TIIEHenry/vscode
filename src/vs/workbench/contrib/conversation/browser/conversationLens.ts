@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { $, addDisposableListener, append, reset } from '../../../../base/browser/dom.js';
+import { $, addDisposableListener, append, getWindow, reset } from '../../../../base/browser/dom.js';
 import { Button } from '../../../../base/browser/ui/button/button.js';
 import { AnchorAlignment } from '../../../../base/browser/ui/contextview/contextview.js';
 import { SelectBox } from '../../../../base/browser/ui/selectBox/selectBox.js';
@@ -49,7 +49,11 @@ import {
 } from './conversationInputHistory.js';
 import { showConversationPart } from './conversationSessionStatus.js';
 import { IConversationRosterService } from './conversationStubService.js';
+import { ConversationMermaidExtensionInfo, resolveConversationMermaidExtension } from './conversationMermaidHost.js';
+import { ConversationVisualizeOverlay } from './conversationVisualizeOverlay.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
+import { IExtensionService } from '../../../services/extensions/common/extensions.js';
+import { IWebviewService } from '../../webview/browser/webview.js';
 
 const CONVERSATION_LENS_ID_STORAGE_KEY = 'conversation.lensId';
 
@@ -90,6 +94,8 @@ export class ConversationLens extends Disposable {
 	private readonly drafts = new Map<string, string>();
 	private inputHistoryBrowse: InputHistoryBrowseState = createInputHistoryBrowseState();
 	private suppressSessionSelect = false;
+	private mermaidExtensionInfo: ConversationMermaidExtensionInfo | undefined;
+	private readonly visualizeOverlay: ConversationVisualizeOverlay;
 
 	constructor(
 		slots: IConversationLensSlots,
@@ -99,10 +105,19 @@ export class ConversationLens extends Disposable {
 		@IConfigurationService private readonly configurationService: IConfigurationService,
 		@IInstantiationService private readonly instantiationService: IInstantiationService,
 		@IStorageService private readonly storageService: IStorageService,
+		@IExtensionService private readonly extensionService: IExtensionService,
+		@IWebviewService private readonly webviewService: IWebviewService,
 	) {
 		super();
 
 		this.slotHosts = slots;
+		this.visualizeOverlay = this._register(this.instantiationService.createInstance(ConversationVisualizeOverlay));
+
+		void resolveConversationMermaidExtension(this.extensionService).then(info => {
+			this.mermaidExtensionInfo = info;
+			this.timelineTree.setMermaidExtensionInfo(info);
+			this.renderTimeline();
+		});
 
 		this.mountSessionBar(slots.sessionBar);
 		this.mountTimeline(slots.timeline);
@@ -290,6 +305,7 @@ export class ConversationLens extends Disposable {
 			onResolveConfirmation: (turnId, status) => this.resolveConfirmation(turnId, status),
 			onCopyTurn: (_turnId, text) => this.copyTurn(text),
 			onDeleteTurn: turnId => this.deleteTurn(turnId),
+			onOpenVisualizeFullscreen: (source, title) => this.openVisualizeOverlay(source, title),
 		}));
 		this.trajectoryView = this._register(this.instantiationService.createInstance(ConversationTrajectory, readingColumn, {}));
 	}
@@ -438,10 +454,21 @@ export class ConversationLens extends Disposable {
 	private switchToSession(sessionId: string): void {
 		const previousId = this.stubService.getActiveSessionId();
 		if (previousId !== sessionId) {
+			this.visualizeOverlay.close();
 			this.drafts.set(previousId, this.dockTextarea.value);
 			this.stubService.switchSession(sessionId);
 		}
 		this.instantiationService.invokeFunction(showConversationPart);
+	}
+
+	private openVisualizeOverlay(source: string, title?: string): void {
+		this.visualizeOverlay.open({
+			source,
+			title,
+			extensionInfo: this.mermaidExtensionInfo,
+			targetWindow: getWindow(this.slotHosts.timeline),
+			webviewService: this.webviewService,
+		});
 	}
 
 	private loadLensId(): ConversationLensId {
@@ -494,6 +521,7 @@ export class ConversationLens extends Disposable {
 	}
 
 	private applyActiveSession(sessionId: string): void {
+		this.visualizeOverlay.close();
 		this.resetInputHistoryBrowse();
 		this.refreshSessionSelectOptions();
 		this.updateSessionTitle();

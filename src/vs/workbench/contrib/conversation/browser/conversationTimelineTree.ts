@@ -15,8 +15,10 @@ import { WorkbenchObjectTree } from '../../../../platform/list/browser/listServi
 import { asCssVariable, asCssVariableWithDefault, buttonSecondaryBackground, buttonSecondaryForeground } from '../../../../platform/theme/common/colorRegistry.js';
 import { defaultButtonStyles } from '../../../../platform/theme/browser/defaultStyles.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
+import { IWebviewService } from '../../webview/browser/webview.js';
 import { ConversationConfirmationSeat } from './conversationConfirmationSeat.js';
 import { conversationLensTurnCopy, conversationLensTurnDelete, conversationLensPinnedUserPromptAria, conversationLensPinnedUserPromptCopyAria } from './conversationLensSessionBarStrings.js';
+import { ConversationMermaidExtensionInfo, createMermaidHostContext } from './conversationMermaidHost.js';
 import { renderProcessFoldSpan } from './conversationProcessFold.js';
 import { ProcessFoldSpan, projectProcessFoldSpans } from './conversationProcessFoldModel.js';
 import { ConversationStubTurn } from './conversationStubModel.js';
@@ -56,6 +58,7 @@ export interface IConversationTimelineTreeOptions {
 	readonly onResolveConfirmation?: (turnId: string, status: 'allowed' | 'skipped') => void;
 	readonly onCopyTurn?: (turnId: string, text: string) => void;
 	readonly onDeleteTurn?: (turnId: string) => void;
+	readonly onOpenVisualizeFullscreen?: (source: string, title?: string) => void;
 	readonly contentAdapter?: IConversationTurnContentAdapter;
 	readonly paddingBottom?: number;
 }
@@ -114,6 +117,10 @@ class ConversationTimelineRenderer implements ITreeRenderer<ConversationTimeline
 		private readonly onResolveConfirmation: ((turnId: string, status: 'allowed' | 'skipped') => void) | undefined,
 		private readonly onCopyTurn: ((turnId: string, text: string) => void) | undefined,
 		private readonly onDeleteTurn: ((turnId: string) => void) | undefined,
+		private readonly onOpenVisualizeFullscreen: ((source: string, title?: string) => void) | undefined,
+		private readonly getMermaidExtensionInfo: () => ConversationMermaidExtensionInfo | undefined,
+		private readonly webviewService: IWebviewService,
+		private readonly getTimelineScrollHost: () => HTMLElement | undefined,
 		private readonly onHeightChange: (item: ConversationTimelineItem, height: number) => void,
 	) { }
 
@@ -164,6 +171,11 @@ class ConversationTimelineRenderer implements ITreeRenderer<ConversationTimeline
 		}
 
 		if (turn.kind === 'visualization') {
+			const mermaidHost = createMermaidHostContext(
+				templateData.container,
+				this.getMermaidExtensionInfo(),
+				this.webviewService,
+			);
 			renderConversationVisualizeCard(templateData.container, turn, {
 				isExpanded: (turnId) => this.visualizeExpanded.get(turnId) ?? true,
 				setExpanded: (turnId, expanded) => {
@@ -174,6 +186,14 @@ class ConversationTimelineRenderer implements ITreeRenderer<ConversationTimeline
 					}
 				},
 				onLayoutChange: () => this.scheduleHeightUpdate(item, templateData.container),
+				mermaidHost,
+				onOpenFullscreen: this.onOpenVisualizeFullscreen,
+				onWheelDelegate: (e) => {
+					const scrollHost = this.getTimelineScrollHost();
+					if (scrollHost) {
+						scrollHost.scrollTop += e.deltaY;
+					}
+				},
 			}, templateData.disposables);
 			this.scheduleHeightUpdate(item, templateData.container);
 			return;
@@ -380,6 +400,7 @@ export class ConversationTimelineTree extends Disposable {
 	private readonly delegate: ConversationTimelineDelegate;
 	private readonly autoScrollHolds = new ConversationAutoScrollHolds();
 	private readonly turnItems = new Map<string, ConversationTimelineItem>();
+	private mermaidExtensionInfo: ConversationMermaidExtensionInfo | undefined;
 
 	private _scrollLock = true;
 	private flatItems: readonly ConversationTimelineFlatItem[] = [];
@@ -389,6 +410,7 @@ export class ConversationTimelineTree extends Disposable {
 		parent: HTMLElement,
 		options: IConversationTimelineTreeOptions,
 		@IInstantiationService private readonly instantiationService: IInstantiationService,
+		@IWebviewService private readonly webviewService: IWebviewService,
 	) {
 		super();
 
@@ -443,6 +465,10 @@ export class ConversationTimelineTree extends Disposable {
 			options.onResolveConfirmation,
 			options.onCopyTurn,
 			options.onDeleteTurn,
+			options.onOpenVisualizeFullscreen,
+			() => this.mermaidExtensionInfo,
+			this.webviewService,
+			() => this.scrollHost,
 			(item, height) => this.safeUpdateElementHeight(item, height),
 		);
 		const processFoldRenderer = new ConversationTimelineProcessFoldRenderer(this.renderer);
@@ -552,6 +578,10 @@ export class ConversationTimelineTree extends Disposable {
 
 	hide(): void {
 		this.domNode.hidden = true;
+	}
+
+	setMermaidExtensionInfo(info: ConversationMermaidExtensionInfo | undefined): void {
+		this.mermaidExtensionInfo = info;
 	}
 
 	setTurns(turns: readonly ConversationStubTurn[]): void {

@@ -72,6 +72,93 @@
 	max-height: 240px;
 }
 
+.monaco-workbench .part.conversation .conversation-visualize-diagram-toolbar {
+	display: flex;
+	justify-content: flex-end;
+	padding: 4px 4px 0;
+}
+
+.monaco-workbench .part.conversation .conversation-visualize-expand {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 24px;
+	height: 24px;
+	padding: 0;
+	border: none;
+	border-radius: 4px;
+	background: transparent;
+	color: var(--vscode-icon-foreground);
+	cursor: pointer;
+}
+
+.monaco-workbench .part.conversation .conversation-visualize-expand:hover {
+	background: var(--vscode-toolbar-hoverBackground);
+}
+
+.monaco-workbench .part.conversation .conversation-visualize-mermaid-host {
+	min-height: 80px;
+	width: 100%;
+}
+
+.monaco-workbench .part.conversation .conversation-visualize-mermaid-host--overlay {
+	min-height: 100%;
+	height: 100%;
+}
+
+.monaco-workbench .conversation-visualize-overlay {
+	position: fixed;
+	inset: 0;
+	z-index: 2600;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background-color: var(--vscode-widget-shadow, rgba(0, 0, 0, 0.45));
+}
+
+.monaco-workbench .conversation-visualize-overlay-panel {
+	display: flex;
+	flex-direction: column;
+	width: 95vw;
+	height: 90vh;
+	max-width: 95vw;
+	max-height: 90vh;
+	border: 1px solid var(--vscode-panel-border, var(--vscode-widget-border, transparent));
+	border-radius: 6px;
+	background-color: var(--vscode-editor-background);
+	box-shadow: 0 8px 32px var(--vscode-widget-shadow, rgba(0, 0, 0, 0.33));
+	overflow: hidden;
+}
+
+.monaco-workbench .conversation-visualize-overlay-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	padding: 8px 12px;
+	border-bottom: 1px solid var(--vscode-panel-border, var(--vscode-widget-border, transparent));
+	background-color: var(--vscode-sideBarSectionHeader-background, var(--vscode-editor-background));
+}
+
+.monaco-workbench .conversation-visualize-overlay-title {
+	margin: 0;
+	font-size: 13px;
+	font-weight: 600;
+	color: var(--vscode-foreground);
+}
+
+.monaco-workbench .conversation-visualize-overlay-actions {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+}
+
+.monaco-workbench .conversation-visualize-overlay-body {
+	flex: 1;
+	min-height: 0;
+	overflow: hidden;
+}
+
 .monaco-workbench .part.conversation .conversation-visualize-mermaid-source {
 	margin: 0;
 	padding: 8px;
