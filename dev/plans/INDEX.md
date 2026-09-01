@@ -29,4 +29,4 @@ summary: "dev/plans 导航：产品需求层建设与 M0–M5；PRD-011–014 �
 | [conversation-process-fold.md](conversation-process-fold.md) | `implemented` | PRD-013 代码已落；D4 待验证 |
 | [thinkrail-visualize-port.md](thinkrail-visualize-port.md) | `implemented` | PRD-014 代码已落；D4 待验证 |
 | [conversation-empty-hero.md](conversation-empty-hero.md) | `draft` | PRD-015 空会话居中 Composer、SessionConfig XOR、Inbox 分簇；未审 · [canvas 快照](conversation-empty-hero.canvas.tsx) |
-| [conversation-session-windows.md](conversation-session-windows.md) | `draft` | PRD-016 中间 session 窗口 + chat tab；同 session 默认 tab、用户 split；窗口并列=另一 session；未审 |
+| [conversation-session-windows.md](conversation-session-windows.md) | `draft` | PRD-016 中间 session 窗口；Fork 默认 tab；子代理钻入/最大化才 tab；面包屑替换；关非根 tab；未审 |

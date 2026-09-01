@@ -11,7 +11,7 @@ summary: "PRD-016 session 窗口/tab 方案 draft；PRD-015 空会话 draft；PR
 
 ## Current Session
 
-- **Conversation session 窗口与 tab：** [conversation-session-windows.md](../plans/conversation-session-windows.md)（`draft`）· [PRD-016](../../docs/product/requirements.md#prd-016-conversation-session-窗口与-chat-tab)（`proposed`）· [ADR-002](../decisions/002-conversation-session-windows.md)（`proposed`）。同 session 默认 tab、用户 split；窗口并列=另一 session；只能藏不能关。未走规则 16、未改 `src/`。
+- **Conversation session 窗口与 tab：** [conversation-session-windows.md](../plans/conversation-session-windows.md)（`draft`）· [PRD-016](../../docs/product/requirements.md#prd-016-conversation-session-窗口与-chat-tab)（`proposed`）· [ADR-002](../decisions/002-conversation-session-windows.md)（`proposed`）。子代理默认同窗钻入、最大化才 tab；面包屑替换延伸 tab；每窗一键关非根 tab。未走规则 16、未改 `src/`。
 
 - **设置方案三路审查（规则 16）：** Opus 5.0 slug 不可用；并行 Cursor Grok 4.6 审查 [settings-two-surfaces](../plans/settings-two-surfaces.md) / [customizations-host-ui](../plans/customizations-host-ui.md) / [customizations-engine](../plans/customizations-engine.md)。Critical/Important 已改入。均仍 `draft`。未改 `src/`。
 

@@ -4,7 +4,7 @@ type: decision
 status: proposed
 phase: N/A
 updated: 2026-09-01
-summary: "默认窗中间 Conversation 内嵌作用域 EditorPart；一张 session 窗口=一个 AH session；同 session 默认 tab、用户可 split；窗口并列=另一个 session；只能藏不能关"
+summary: "默认窗中间 Conversation 内嵌作用域 EditorPart；一张 session 窗口=一个 AH session；Fork 默认 tab；子代理默认同窗钻入、最大化才 tab；窗口并列=另一个 session；只能藏不能关"
 ---
 
 # ADR-002 默认窗 Conversation：session 窗口与 chat tab
@@ -13,7 +13,9 @@ summary: "默认窗中间 Conversation 内嵌作用域 EditorPart；一张 sessi
 
 默认窗中心是 `CONVERSATION_PART`（非 `EditorInput`）。产品要在中间对话区：
 
-- 多 tab（根/默认 chat 钉死；fork 与点开的子代理为延伸 tab）；
+- 多 tab（根/默认 chat 钉死；用户 Fork 为延伸 tab；子代理默认同窗钻入，最大化才为延伸 tab）；
+- 子代理 tab 顶 agent 层级面包屑（点击替换当前延伸 tab）；
+- 每扇 session 窗口一键关闭根以外的 tab；
 - 前进后退（按钮 + 鼠标侧键）；
 - 同一 session 默认 tab，用户 split 则同窗两列；
 - 窗口并列展示 **另一个 session**；
@@ -36,9 +38,9 @@ summary: "默认窗中间 Conversation 内嵌作用域 EditorPart；一张 sessi
 - 中心叶仍是 `CONVERSATION_PART`。Part 内嵌 **Conversation-scoped `IEditorPart`**（可多组）。这是第三条打开插入面：`PreferredGroup` 点名 Conversation 组；**不得**复用 Preview 的 `SIDE_GROUP`。
 - **一张 session 窗口 = 一个 AH session**（无引擎时 = 一个 stub session）。窗口内 tab = 该 session 的 chat（默认根 chat + peer）。页布局相同：SessionBar（含「对话 | 轨迹」）+ 阅读列 + Dock。
 - 每个 session 有 **默认面**（默认根 chat tab 钉死）。session 窗口与整块 Conversation **不支持关闭，只支持隐藏**。隐藏后数据与 tab 模型仍在；再打开该 session 照常显示。
-- **同 session**：fork / 点开的子代理 **默认新 tab**；用户 split 则在 **这一扇 session 窗口内** 拆列（每列自己的 tab 条）。仍是同一个 session、同一扇窗口，不是新根、不是 Preview、不是 OS 辅助窗。
+- **同 session**：用户 Fork **默认新 tab**；子代理 **默认同窗钻入（不加 tab）**，**最大化才新建延伸 tab**；用户 split 则在 **这一扇 session 窗口内** 拆列。仍是同一个 session、同一扇窗口。
 - **窗口并列**：展示 **另一个 session** 的窗口（只能藏）。藏后回到单 session 窗口。
-- Agent 拉起的 fork/子代理仍在原 session；**未点不开 tab**；用户点击才在该 session 窗口加 tab。
+- Agent 拉起的子代理仍在原 session；未点不钻入、不开 tab。子代理 **tab**（最大化后）页顶为 origin 链面包屑：点击某一级切到该 agent，**当前延伸 tab 被替换**。每扇窗口提供一键关闭根 tab 以外的全部 tab。
 - workbench **不得** import `vs/sessions`。不把 `ChatGroupsView` 搬进默认窗。Agents 窗继续 ADR-001 / [chat-compare-split](../plans/chat-compare-split.md)。
 
 ## Consequences
