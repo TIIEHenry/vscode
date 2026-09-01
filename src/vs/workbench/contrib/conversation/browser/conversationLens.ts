@@ -19,6 +19,7 @@ import { IContextViewService, IOpenContextView } from '../../../../platform/cont
 import { defaultButtonStyles, defaultSelectBoxStyles } from '../../../../platform/theme/browser/defaultStyles.js';
 import { hasNativeContextMenu } from '../../../../platform/window/common/window.js';
 import { IConversationLensSlots } from '../../../browser/parts/conversation/conversationPart.js';
+import { ConversationIdentityStrip } from './conversationIdentityStrip.js';
 import { ConversationTimelineTree } from './conversationTimelineTree.js';
 import { ConversationTrajectoryList } from './conversationTrajectoryList.js';
 import {
@@ -66,6 +67,7 @@ export class ConversationLens extends Disposable {
 	private deleteSessionButton!: Button;
 	private historyButton!: Button;
 	private showTrajectory = false;
+	private identityStrip!: ConversationIdentityStrip;
 	private timelineTree!: ConversationTimelineTree;
 	private trajectoryList!: ConversationTrajectoryList;
 	private inboxStatus!: HTMLButtonElement;
@@ -269,6 +271,7 @@ export class ConversationLens extends Disposable {
 
 	private mountTimeline(host: HTMLElement): void {
 		const readingColumn = append(host, $('.conversation-lens-reading-column'));
+		this.identityStrip = this._register(this.instantiationService.createInstance(ConversationIdentityStrip, readingColumn));
 		this.timelineTree = this._register(this.instantiationService.createInstance(ConversationTimelineTree, readingColumn, {
 			onResolveConfirmation: (turnId, status) => this.resolveConfirmation(turnId, status),
 			onCopyTurn: (_turnId, text) => this.copyTurn(text),
