@@ -16,11 +16,11 @@ import { Disposable, DisposableStore, IDisposable, DisposableMap } from '../../.
 import { IStorageService, StorageScope, StorageTarget } from '../../../../platform/storage/common/storage.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
-import { IEditorGroup, IEditorGroupsService } from '../../editor/common/editorGroupsService.js';
+import { IEditorGroup, IEditorGroupsService, isExcludedFromGlobalEditorAggregation } from '../../editor/common/editorGroupsService.js';
 import { getExcludes, ISearchConfiguration, SEARCH_EXCLUDE_CONFIG } from '../../search/common/search.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { EditorServiceImpl } from '../../../browser/parts/editor/editor.js';
-import { IWorkbenchLayoutService } from '../../layout/browser/layoutService.js';
+import { IWorkbenchLayoutService, Parts } from '../../layout/browser/layoutService.js';
 import { IContextKey, IContextKeyService, RawContextKey } from '../../../../platform/contextkey/common/contextkey.js';
 import { coalesce } from '../../../../base/common/arrays.js';
 import { InstantiationType, registerSingleton } from '../../../../platform/instantiation/common/extensions.js';
@@ -169,6 +169,11 @@ export class HistoryService extends Disposable implements IHistoryService {
 
 	private onMouseDownOrUp(event: MouseEvent, isMouseDown: boolean): void {
 
+		// Conversation owns mouse 4/5 when its part has focus (see conversationNavigation.contribution.ts).
+		if (this.layoutService.hasFocus(Parts.CONVERSATION_PART)) {
+			return;
+		}
+
 		// Support to navigate in history when mouse buttons 4/5 are pressed
 		// We want to trigger this on mouse down for a faster experience
 		// but we also need to prevent mouse up from triggering the default
@@ -197,6 +202,9 @@ export class HistoryService extends Disposable implements IHistoryService {
 
 	private onDidActiveEditorChange(): void {
 		const activeEditorGroup = this.editorGroupService.activeGroup;
+		if (isExcludedFromGlobalEditorAggregation(this.editorGroupService.getPart(activeEditorGroup))) {
+			return;
+		}
 		const activeEditorPane = activeEditorGroup.activeEditorPane;
 
 		if (this.lastActiveEditor && this.editorHelper.matchesEditorIdentifier(this.lastActiveEditor, activeEditorPane)) {
@@ -268,11 +276,17 @@ export class HistoryService extends Disposable implements IHistoryService {
 	}
 
 	private handleActiveEditorChange(group: IEditorGroup, editorPane?: IEditorPane): void {
+		if (isExcludedFromGlobalEditorAggregation(this.editorGroupService.getPart(group))) {
+			return;
+		}
 		this.handleActiveEditorChangeInHistory(editorPane);
 		this.handleActiveEditorChangeInNavigationStacks(group, editorPane);
 	}
 
 	private handleActiveEditorSelectionChangeEvent(group: IEditorGroup, editorPane: IEditorPaneWithSelection, event: IEditorPaneSelectionChangeEvent): void {
+		if (isExcludedFromGlobalEditorAggregation(this.editorGroupService.getPart(group))) {
+			return;
+		}
 		this.handleActiveEditorSelectionChangeInNavigationStacks(group, editorPane, event);
 	}
 
