@@ -1,3 +1,12 @@
+---
+title: "D5 EH probe smoke wave 3"
+type: progress
+status: completed
+phase: N/A
+updated: 2026-09-02
+summary: "D5 wave3 PASS — TODOs activity + js-debug with workspace launch.json"
+---
+
 # D5 EH probe smoke wave 3 — 2026-09-02
 
 **Head (loop/A):** see `smoke-results.json` · **Launch REPO:** merge worktree

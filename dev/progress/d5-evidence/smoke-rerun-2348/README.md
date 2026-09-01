@@ -1,3 +1,12 @@
+---
+title: "D5 EH probe smoke rerun 2348"
+type: progress
+status: archived
+phase: N/A
+updated: 2026-09-01
+summary: "D5 rerun FAIL — yaml PASS; todo + debug FAIL (merge compile)"
+---
+
 # D5 EH probe smoke rerun — 2026-09-01 23:48 (merge compile)
 
 **Head (loop/A):** `991853eb` · **Compile/Launch REPO:** merge worktree
