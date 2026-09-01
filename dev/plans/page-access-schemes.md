@@ -3,8 +3,8 @@ title: "页面接入方案：Settings / 会话列表 / 透镜 / Navigator tab"
 type: plan
 status: accepted
 phase: N/A
-updated: 2026-08-31
-summary: "多方架构评审综合稿：B2 壳之后的页面接入；已签收；切片 1a ReadyToImplement；本文件不改 src；知识层四页选定设计仍待 §12 同步"
+updated: 2026-09-01
+summary: "多方架构评审综合稿：B2 壳之后的页面接入；已签收；知识层四页选定设计已按 §12 同步"
 origin: multi-party-design-review
 mpdr:
   skill: multi-party-design-review
@@ -37,9 +37,9 @@ mpdr:
 
 # 页面接入方案：Settings / 会话列表 / 透镜 / Navigator tab
 
-> **本文件是已签收（`accepted`）决策 SSOT。** 与知识层四页冲突时 **以本文件为准**。四页仍作细节锚点（HEAD 类名、容器 id、donor 禁令、分阶段清单）；文首已加 SSOT banner。**选定设计全文同步仍待 §12**，实施者 **禁止**按四页旧 Connection 树内形态施工。  
+> **本文件是已签收（`accepted`）决策 SSOT。** 与知识层四页冲突时 **以本文件为准**。四页仍作细节锚点（HEAD 类名、容器 id、donor 禁令、分阶段清单）；文首已加 SSOT banner。**选定设计全文已于 2026-09-01 按 §12 同步至四页**；实施者 **禁止**按四页旧 Connection 树内形态施工。  
 > **前置**：M0–M3 壳 `implemented`；M4 验证波仍 `in_progress`（D4 启动）。**实施另开会话按切片开**；本文件不改 `src/`。切片 1a ReadyToImplement；1b 及之后按 §10 / B12。  
-> **知识层锚点**（选定设计尚未按 §12 改写；banner 已标父方案优先）：[settings-ua-access](../../docs/reference/code-oss-b2/settings-ua-access.md) · [session-roster-reuse](../../docs/reference/code-oss-b2/session-roster-reuse.md) · [conversation-lens-assembly](../../docs/reference/code-oss-b2/conversation-lens-assembly.md) · [navigator-tabs-access](../../docs/reference/code-oss-b2/navigator-tabs-access.md)。  
+> **知识层锚点**（选定设计已按 §12 同步；banner 已标父方案优先）：[settings-ua-access](../../docs/reference/code-oss-b2/settings-ua-access.md) · [session-roster-reuse](../../docs/reference/code-oss-b2/session-roster-reuse.md) · [conversation-lens-assembly](../../docs/reference/code-oss-b2/conversation-lens-assembly.md) · [navigator-tabs-access](../../docs/reference/code-oss-b2/navigator-tabs-access.md)。  
 > **壳拓扑**（已 accepted）：[desktop-shell-mapping](../../docs/reference/code-oss-b2/desktop-shell-mapping.md)。  
 > **外仓**（只链，不复述条款）：[IA](../../../UniverseAgentDesktop/docs/product/information-architecture.md) · [ui-interaction-spec](../../../UniverseAgentDesktop/docs/product/ui-interaction-spec.md) · [ADR-061 决策 5](../../../UniverseAgentDesktop/dev/decisions/061-code-oss-base-and-editor-window-shell.md) · [ADR-037](../../../UniverseAgentDesktop/dev/decisions/037-deep-link-navigation-event-seam.md)。
 
@@ -55,7 +55,7 @@ mpdr:
 2. **禁止**按 `settings-ua-access.md` 旧形态实施：Connection/Engine **不是** settings 树内非 setting 元素 + 专属 renderer；Engine **不是** Settings 分组内嵌控件。
 3. **禁止**按 `conversation-lens-assembly.md` 旧形态从 `ChatListWidget` 抽出虚拟化。
 4. **禁止**按 `navigator-tabs-access.md` / `session-roster-reuse.md` 把产品四段 `hideIfEmpty: true` 当签收后目标。
-5. 四页选定设计全文改写 = 签收后 §12，**不是**切片 1 前置。banner 已加，足够挡住读错 SSOT。
+5. 四页选定设计全文改写 = 签收后 §12（**已完成 2026-09-01**）。banner 已加，足够挡住读错 SSOT。
 6. 本文件不改 `src/`。实施强制 **切片 1a merge 先于 1b**（§10 / B12）。
 
 ---
@@ -636,9 +636,9 @@ SessionBar 去 SelectBox **不进本序列**，见 §1.4 Deferred。
 
 ---
 
-## 12. 知识层待同步（签收后改四页选定设计）
+## 12. 知识层同步（签收后改四页选定设计）
 
-本文件为已签收决策 SSOT。**细化 round 1 已在四页文首加 SSOT banner**（B1）。选定设计段落的结构性改写 **仍待** 按下列冲突点做，实施者在此之前只读本文件施工。
+本文件为已签收决策 SSOT。**细化 round 1 已在四页文首加 SSOT banner**（B1）。选定设计段落的结构性改写 **已于 2026-09-01 完成**（loop/A @103410c7），四页与 HEAD 对齐；冲突仍以本文件为准。
 
 同步时保持现有 banner：「结构性决策 SSOT = `dev/plans/page-access-schemes.md`；冲突以父方案为准。」
 
