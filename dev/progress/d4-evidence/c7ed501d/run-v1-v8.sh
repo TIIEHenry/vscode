@@ -6,11 +6,10 @@ CDP="${CDP:?CDP port required}"
 PW_SESSION="${PW_SESSION:-d4-v1v8-$$}"
 EVIDENCE_DIR="${EVIDENCE_DIR:-$(dirname "$0")}"
 
-pw() { npx @playwright/cli -s="$PW_SESSION" "$@"; }
+pw() { npx @playwright/cli --s="$PW_SESSION" "$@"; }
 
-# Attach and select workbench tab
+# Attach to running Code OSS via CDP
 pw attach --cdp="http://127.0.0.1:$CDP" >/dev/null
-pw tab-select 1 >/dev/null
 sleep 5
 
 # Dismiss welcome / trust if present
@@ -40,7 +39,7 @@ get_layout() {
     hasWorkbench: !!document.querySelector(".monaco-workbench"),
     title: document.title
   };
-})()' 2>/dev/null | sed -n '/^### Result$/,/^### Ran/p' | grep -v '^###' | head -1
+})()' --raw 2>/dev/null
 }
 
 run_cmd_id() {
@@ -48,7 +47,7 @@ run_cmd_id() {
   pw press Control+Shift+P
   sleep 0.4
   pw press Control+a
-  pw type_text "$cmd_id"
+  pw type "$cmd_id"
   sleep 0.4
   pw press Enter
   sleep 1
@@ -59,7 +58,7 @@ run_palette() {
   pw press Control+Shift+P
   sleep 0.4
   pw press Control+a
-  pw type_text ">${label}"
+  pw type ">${label}"
   sleep 0.4
   pw press Enter
   sleep 1
@@ -113,7 +112,7 @@ pw eval '
   const row = document.querySelector(".sessions-list-row, .monaco-list-row");
   if (row) { row.click(); return { clicked: true }; }
   return { clicked: false };
-})()' 2>/dev/null | sed -n '/^### Result$/,/^### Ran/p' | grep -v '^###' | head -1 | tee "$EVIDENCE_DIR/v5-roster-click.json"
+})()' --raw 2>/dev/null | tee "$EVIDENCE_DIR/v5-roster-click.json"
 sleep 1
 V5=$(get_layout)
 echo "$V5" | tee "$EVIDENCE_DIR/v5-after-roster.json"
@@ -136,7 +135,7 @@ pw screenshot --filename="$EVIDENCE_DIR/screenshots/v6-routing.png" 2>/dev/null 
 echo "=== V7 reload window ==="
 run_palette "Developer: Reload Window"
 sleep 10
-pw tab-select 1 >/dev/null 2>&1 || pw attach --cdp="http://127.0.0.1:$CDP" >/dev/null
+pw attach --cdp="http://127.0.0.1:$CDP" >/dev/null 2>&1 || true
 sleep 5
 V7=$(get_layout)
 echo "$V7" | tee "$EVIDENCE_DIR/v7-after-reload.json"
@@ -149,7 +148,7 @@ pw eval '
 (() => {
   const tabs = [...document.querySelectorAll(".part.sources .tabs-container .tab")].map(t => t.textContent?.trim());
   return { sourcesTabs: tabs };
-})()' 2>/dev/null | sed -n '/^### Result$/,/^### Ran/p' | grep -v '^###' | head -1 | tee "$EVIDENCE_DIR/v8-sources-tabs.json"
+})()' --raw 2>/dev/null | tee "$EVIDENCE_DIR/v8-sources-tabs.json"
 pw screenshot --filename="$EVIDENCE_DIR/screenshots/v8-sources.png" 2>/dev/null || true
 
 echo DONE

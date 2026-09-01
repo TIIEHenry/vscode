@@ -1,0 +1,12 @@
+{
+  "sidebar": true,
+  "conversation": true,
+  "editor": false,
+  "sources": true,
+  "panel": true,
+  "aux": false,
+  "editorTabs": [],
+  "quickChatWidget": false,
+  "hasWorkbench": true,
+  "title": "Code - OSS Dev"
+}
