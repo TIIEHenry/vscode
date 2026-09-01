@@ -1,0 +1,42 @@
+.monaco-workbench .part.conversation .conversation-subagent-overlay {
+	position: absolute;
+	inset: 0;
+	z-index: 5;
+	display: flex;
+	flex-direction: column;
+	background: var(--vscode-editor-background);
+	border: 1px solid var(--vscode-panel-border);
+	box-shadow: 0 8px 24px rgba(0, 0, 0, 0.24);
+}
+
+.monaco-workbench .part.conversation .conversation-session-window {
+	position: relative;
+}
+
+.monaco-workbench .part.conversation .conversation-subagent-overlay-chrome {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 4px 8px;
+	border-bottom: 1px solid var(--vscode-panel-border);
+}
+
+.monaco-workbench .part.conversation .conversation-subagent-overlay-title {
+	flex: 1;
+	font-weight: 600;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.monaco-workbench .part.conversation .conversation-subagent-overlay-actions {
+	display: flex;
+	gap: 4px;
+}
+
+.monaco-workbench .part.conversation .conversation-subagent-overlay-body {
+	flex: 1;
+	min-height: 0;
+	display: flex;
+	flex-direction: column;
+}
