@@ -1,0 +1,8 @@
+[launch.sh] slim copy: /tmp/d5-seed-udd-IJGR9M -> /tmp/code-oss-dev-20260902-001048-375518-qpdHiW/user-data
+[launch.sh] copying extensions: /tmp/d5-seed-udd-IJGR9M/extensions -> /tmp/code-oss-dev-20260902-001048-375518-qpdHiW/user-data/extensions
+[launch.sh] ensured files.simpleDialog.enable=true in /tmp/code-oss-dev-20260902-001048-375518-qpdHiW/user-data/User/settings.json
+[launch.sh] launching: /home/clarence/Projects/Agents/vscode-WorkTrees/merge/scripts/code.sh --user-data-dir=/tmp/code-oss-dev-20260902-001048-375518-qpdHiW/user-data --extensions-dir=/tmp/code-oss-dev-20260902-001048-375518-qpdHiW/user-data/extensions --shared-data-dir=/tmp/code-oss-dev-20260902-001048-375518-qpdHiW/shared-data --remote-debugging-port=34429 --inspect-extensions=37373 --inspect=38515 --inspect-agenthost=43937 --disable-workspace-trust /home/clarence/Projects/Agents/vscode-WorkTrees/merge/dev/progress/d5-evidence/sample-workspace
+[launch.sh] logs: /tmp/code-oss-dev-20260902-001048-375518-qpdHiW/code.log
+[launch.sh] skipping pre-launch by request
+[launch.sh] waiting for CDP on port 34429 (timeout 90s)...
+[launch.sh] CDP ready after 557ms

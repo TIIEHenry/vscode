@@ -4,7 +4,7 @@ type: progress
 status: accepted
 phase: N/A
 created: 2026-08-30
-updated: 2026-09-01
+updated: 2026-09-02
 summary: "P2/P3 延期缺口 SSOT；D1/D3/D7/D4 已闭；D5 仍开"
 ---
 
@@ -19,7 +19,7 @@ summary: "P2/P3 延期缺口 SSOT；D1/D3/D7/D4 已闭；D5 仍开"
 | D2 | P2 | 工位池基线未编译验绿 | 编译耗时长；建槽时未跑 | M0 集成编译绿后在 `worktree-pool.md` 标注基线已验 | infra | open |
 | D3 | P2 | **M0 compile 验证**（`compile-client` + `valid-layers-check`） | — | merge 槽 `a6137373`：`compile-client` + `valid-layers-check` 绿；17 域单测绿 | M4 | closed |
 | D4 | P2 | **启动 T1–T3 演示**（目视：Conversation 中心、End Editor/Sources、互斥、四钮；M3 无 ChatEditor 默认路径、Sidebar stub Sessions） | 工位 A 首轮无构建产物（已记）；D3 绿后可在 merge 工位重跑。**Closer 是 M5 切片 4 V1–V8**，M4 切片 2 不得把本行标 closed | M5 V1–V8 隔离 profile 通过并有证据（含路由与 roster）；T1–T3 只作环境探测记录 | M5 | closed |
-| D5 | P2 | **EH 探针冒烟**（LSP + layout 类扩展） | merge compile 绿后 rerun-2348：boot+yaml PASS；Todo Tree / js-debug 自动化未过 | [eh-surface-matrix](../../docs/reference/code-oss-b2/eh-surface-matrix.md) 关键行「探针已选」→「已实测」 | M4 | open |
+| D5 | P2 | **EH 探针冒烟**（LSP + layout 类扩展） | wave3-0001：TODOs activity + js-debug（sample-workspace `launch.json`）PASS；panel/terminal/decoration 仍待 | [eh-surface-matrix](../../docs/reference/code-oss-b2/eh-surface-matrix.md) 关键行「探针已选」→「已实测」 | M4 | open |
 | D6 | P3 | **Diff footprint 刷新** | slot C 已于 `b283fe19` 重测 `b5631393` | 页已更新 | docs | closed |
 | D7 | P3 | titlebar LayoutControlMenu 产品四钮与原生 Panel/Aux 共存 | `2dcd5a0a` 已从 LayoutControlMenu 去掉 Panel/Aux；留 submenu | 默认窗只见四钮 | M0 | closed |
 
@@ -140,6 +140,24 @@ $REPO/scripts/code-cli.sh --extensions-dir="$EXT_DIR" \
 4. 截图 + 把覆盖行证据改为 **已实测 @\<date\>**，未覆盖 gap 记入本表或矩阵脚注。
 
 
+
+## D5 EH 探针冒烟 wave 3（2026-09-02，merge launch / loop/A 证据）
+
+**Launch：** `REPO=/home/clarence/Projects/Agents/vscode-WorkTrees/merge dev/progress/d5-evidence/launch-with-probes.sh -- dev/progress/d5-evidence/sample-workspace`
+
+**Playwright：** `d5-wave3-375500` @ CDP from `launch.json`
+
+**证据：** [d5-evidence/smoke-wave3-0001](d5-evidence/smoke-wave3-0001/)
+
+| 检查 | 结果 | 备注 |
+|------|------|------|
+| Sample workspace + `launch.json` | **PASS** | 文件夹 `sample-workspace`；含 **D5 probe debug** 配置 |
+| Activity **TODOs** click | **PASS** | `aria-label` TODOs → sidebar **TODOs: Tree**（产品槽位；无 gruntfuggly 独立 activity 图标） |
+| 内置 `js-debug` F5 | **PASS** | 打开 `d5-probe-debug.js`；F5 → debug toolbar + status **Debug: D5 probe debug (sample-workspace)** |
+
+**TODOs 澄清：** Agent IDE 预留 Activity **TODOs** 与扩展探针共用槽位；自动化以 **TODOs: Tree** 为可见性判据（非独立 “Todo Tree” pane 标题）。
+
+**下一步：** 矩阵 panel/terminal/decoration 行；确认 gruntfuggly 贡献是否仅通过该 Tree 视图暴露。
 
 ## D5 EH 探针冒烟记录（2026-09-01 rerun-2348，merge launch / loop/A 证据）
 

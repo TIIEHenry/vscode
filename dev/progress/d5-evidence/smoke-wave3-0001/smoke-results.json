@@ -1,0 +1,38 @@
+{
+  "meta": {
+    "date": "2026-09-02",
+    "wave": "smoke-wave3-0001",
+    "worktree": "/home/clarence/Projects/Agents/vscode-WorkTrees/A",
+    "compileWorktree": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge",
+    "branch": "loop/A",
+    "head": "d39b84d2d56968135e7763f8d20c4cd92f7e0396",
+    "probeExtDir": "/tmp/d5-probe-ext-vsix",
+    "sampleWorkspace": "dev/progress/d5-evidence/sample-workspace",
+    "launchScript": "dev/progress/d5-evidence/launch-with-probes.sh",
+    "pwSession": "d5-wave3-375500",
+    "evidenceDir": "dev/progress/d5-evidence/smoke-wave3-0001"
+  },
+  "launch": {"pid":375580,"cdpPort":34429,"extHostPort":37373,"mainPort":38515,"agentHostPort":43937,"userDataDir":"/tmp/code-oss-dev-20260902-001048-375518-qpdHiW/user-data","extensionsDir":"/tmp/code-oss-dev-20260902-001048-375518-qpdHiW/user-data/extensions","sharedDataDir":"/tmp/code-oss-dev-20260902-001048-375518-qpdHiW/shared-data","runDir":"/tmp/code-oss-dev-20260902-001048-375518-qpdHiW","logFile":"/tmp/code-oss-dev-20260902-001048-375518-qpdHiW/code.log","repo":"/home/clarence/Projects/Agents/vscode-WorkTrees/merge","agents":false,"timings":{"profileMs":202,"preLaunchMs":33,"cdpReadyMs":651,"totalMs":886}},
+  "checks": [
+    {
+      "id": "workbench-boot",
+      "description": "Sample workspace folder opens on merge out/",
+      "result": "PASS",
+      "notes": "Title sample-workspace; explorer lists d5-probe-debug.js + yaml."
+    },
+    {
+      "id": "todo-tree-sidebar",
+      "description": "Click Activity TODOs; todo tree / gruntfuggly pane",
+      "result": "PASS",
+      "notes": "Activity aria-label TODOs clicked; sidebar heading TODOs: Tree + tree widget (see snapshot-todos-tree.yml). Product TODOs slot hosts Tree view; no separate gruntfuggly activity icon."
+    },
+    {
+      "id": "js-debug-f5",
+      "description": "Open d5-probe-debug.js; F5 with launch.json D5 probe debug",
+      "result": "PASS",
+      "notes": "debugToolbar true; status Debug: D5 probe debug (sample-workspace)."
+    }
+  ],
+  "overall": "PASS",
+  "followUp": "Confirm gruntfuggly vs product TODOs in eh-surface-matrix; panel/terminal probes still open."
+}

@@ -1,0 +1,20 @@
+{
+  "clickedTodosActivity": true,
+  "sidebarHeading": "TODOs: Tree",
+  "productTodosTab": true,
+  "gruntfugglyActivityIcon": false,
+  "todoHeaderLiteral": false,
+  "gruntPaneSelectorMatch": true,
+  "activityLabels": [
+    "Files (Ctrl+Shift+E)",
+    "Search (Ctrl+Shift+F)",
+    "TODOs",
+    "Sessions",
+    "Projects",
+    "Agents",
+    "Team",
+    "Accounts",
+    "Manage"
+  ],
+  "note": "Playwright snapshot shows heading TODOs: Tree and tree widget after clicking Activity TODOs."
+}

@@ -1,0 +1,202 @@
+- application [ref=e2]:
+  - generic [ref=e6]:
+    - generic [ref=e8]:
+      - menubar [ref=e12]:
+        - menuitem "File" [ref=e13]:
+          - generic [ref=e14]: File
+        - menuitem "Edit" [ref=e15]:
+          - generic [ref=e16]: Edit
+        - menuitem "Selection" [ref=e17]:
+          - generic [ref=e18]: Selection
+        - menuitem "View" [ref=e19]:
+          - generic [ref=e20]: View
+        - menuitem "Go" [ref=e21]:
+          - generic [ref=e22]: Go
+        - menuitem "Help" [ref=e23]:
+          - generic [ref=e24]: Help
+      - toolbar [ref=e30]:
+        - button "Go Back (Ctrl+Alt+-)" [disabled] [ref=e31]: 
+        - button "Go Forward (Ctrl+Shift+-)" [disabled] [ref=e32]: 
+        - listitem [ref=e33] [cursor=pointer]:
+          - toolbar [ref=e36]:
+            - button "sample-workspace" [ref=e37]:
+              - generic [ref=e38]: 
+              - generic [ref=e39]: sample-workspace
+      - toolbar "Title actions" [ref=e44]:
+        - button "Customize Layout..." [ref=e45] [cursor=pointer]: 
+        - button "Navigator (Ctrl+B)" [pressed] [ref=e46] [cursor=pointer]: 
+        - button "Conversation" [pressed] [ref=e47] [cursor=pointer]: 
+        - button "Preview" [pressed] [ref=e48] [cursor=pointer]: 
+        - button "Sources" [pressed] [ref=e49] [cursor=pointer]: 
+    - generic [ref=e56]:
+      - generic [ref=e58]:
+        - tablist "Active View Switcher" [ref=e61]:
+          - tab "Files (Ctrl+Shift+E)" [ref=e62] [cursor=pointer]:
+            - generic "Files (Ctrl+Shift+E)" [ref=e63]: 
+          - tab "Search (Ctrl+Shift+F)" [ref=e64] [cursor=pointer]:
+            - generic "Search (Ctrl+Shift+F)" [ref=e65]: 
+          - tab "TODOs" [expanded] [selected] [ref=e66] [cursor=pointer]:
+            - generic "TODOs" [ref=e67]
+          - tab "Sessions" [ref=e68] [cursor=pointer]:
+            - generic "Sessions" [ref=e69]: 
+          - tab "Projects" [ref=e70] [cursor=pointer]:
+            - generic "Projects" [ref=e71]: 
+          - tab "Agents" [ref=e72] [cursor=pointer]:
+            - generic "Agents" [ref=e73]: 
+          - tab "Team" [ref=e74] [cursor=pointer]:
+            - generic "Team" [ref=e75]: 
+        - toolbar "Manage" [ref=e78]:
+          - button "Accounts" [ref=e79] [cursor=pointer]:
+            - generic "Accounts" [ref=e80]: 
+          - button "Manage" [ref=e81] [cursor=pointer]:
+            - generic "Manage" [ref=e82]: 
+      - generic [ref=e83]:
+        - generic [ref=e84]:
+          - 'heading "TODOs: Tree" [level=2] [ref=e316]'
+          - 'toolbar "TODOs: Tree actions" [ref=e317]':
+            - button "Show Flat View" [ref=e362] [cursor=pointer]: 
+            - button "Group by Tag" [ref=e363] [cursor=pointer]: 
+            - button "Filter Tree" [ref=e364] [cursor=pointer]: 
+            - button "Refresh" [ref=e365] [cursor=pointer]: 
+            - button "Expand Tree" [ref=e366] [cursor=pointer]: 
+          - generic:
+            - generic:
+              - generic:
+                - toolbar
+        - generic [ref=e328]:
+          - text:      
+          - tree "Tree" [ref=e332]:
+            - generic [ref=e333]:
+              - 'treeitem "Scan mode: workspace and open files" [level=1] [ref=e334] [cursor=pointer]':
+                - generic [ref=e337]:
+                  - generic [ref=e338]: 
+                  - generic [ref=e340]: "Scan mode: workspace and open files"
+              - treeitem "Nothing found" [level=1] [ref=e341] [cursor=pointer]:
+                - generic [ref=e344]:
+                  - generic [ref=e345]: 
+                  - generic [ref=e347]: Nothing found
+      - generic [ref=e190]:
+        - toolbar [ref=e193]:
+          - button "Hide Conversation" [ref=e194] [cursor=pointer]: 
+        - generic [ref=e195]:
+          - generic [ref=e196]:
+            - navigation "Conversation history" [ref=e197]:
+              - button "Go Back" [disabled] [ref=e198]: 
+              - button "Go Forward" [disabled] [ref=e199]: 
+              - button "Close extension tabs" [disabled] [ref=e200]: 
+            - banner [ref=e201]:
+              - generic [ref=e202]:
+                - generic [ref=e203]: 
+                - tablist [ref=e204]:
+                  - tab "Conversation" [selected] [ref=e205] [cursor=pointer]
+                  - tab "Trajectory" [ref=e206] [cursor=pointer]
+                - generic:
+                  - button "Rename session"
+              - generic [ref=e208]:
+                - generic [ref=e209]:
+                  - combobox "Route" [ref=e210] [cursor=pointer]:
+                    - option "No route" [selected]
+                    - option "Balanced"
+                    - option "Speed"
+                    - option "Quality"
+                  - text: 
+                - generic [ref=e211]: Session
+                - generic [ref=e212]:
+                  - combobox "Switch session" [ref=e213] [cursor=pointer]:
+                    - option "Untitled session" [selected]
+                    - option "Visualize (Stub)"
+                  - text: 
+                - button "New session" [ref=e215]: 
+                - button "Delete session" [ref=e217]: 
+          - generic:
+            - generic:
+              - generic:
+                - generic "Conversation, The editor could not be opened due to an unexpected error. Please consult the log for more details." [ref=e222]:
+                  - generic [ref=e224]: 
+                  - generic [ref=e225]: The editor could not be opened due to an unexpected error. Please consult the log for more details.
+                  - generic [ref=e226]:
+                    - button "Try Again" [ref=e227] [cursor=pointer]
+                    - button "Show Logs" [ref=e228] [cursor=pointer]
+                - dialog [ref=e229]:
+                  - generic [ref=e230]:
+                    - generic [ref=e231]: Sub-agent
+                    - generic [ref=e232]:
+                      - button "Maximize to tab" [ref=e233]: 
+                      - button "Close" [ref=e234]: 
+      - generic [ref=e240]:
+        - main [ref=e242]:
+          - generic [ref=e367]:
+            - generic [ref=e368] [cursor=pointer]:
+              - generic [ref=e369]:
+                - tablist [ref=e370]:
+                  - tab "d5-probe-debug.js" [selected] [ref=e371]:
+                    - generic "~/Projects/Agents/vscode-WorkTrees/merge/dev/progress/d5-evidence/sample-workspace/d5-probe-debug.js" [ref=e372]:
+                      - text: 
+                      - generic [ref=e374]: d5-probe-debug.js
+                    - toolbar "Tab actions" [ref=e377]:
+                      - button "Close (Ctrl+W)" [ref=e378]: 
+                - toolbar "Editor actions" [ref=e382]:
+                  - button "Split Editor Right (Ctrl+\\) [Alt] Split Editor Down" [ref=e383]: 
+                  - button "Hide Preview" [pressed] [ref=e384]: 
+                  - button "More Actions..." [ref=e387]: 
+              - list [ref=e390]:
+                - listitem [ref=e391]:
+                  - generic "~/Projects/Agents/vscode-WorkTrees/merge/dev/progress/d5-evidence/sample-workspace/d5-probe-debug.js" [ref=e392]:
+                    - text: 
+                    - generic [ref=e394]: d5-probe-debug.js
+                  - text: 
+            - generic "d5-probe-debug.js" [ref=e396]:
+              - code [ref=e397]:
+                - generic [ref=e398]:
+                  - textbox "The editor is not accessible at this time. To enable screen reader optimized mode, use Shift+Alt+F4" [active]
+                  - textbox [ref=e399]
+                  - generic [ref=e400]:
+                    - generic [ref=e402]:
+                      - generic [ref=e405]: "1"
+                      - generic [ref=e407]: "2"
+                      - generic [ref=e409]: "3"
+                    - generic [ref=e410] [cursor=pointer]: 
+                  - generic [ref=e417]:
+                    - generic [ref=e419]: console.log('d5 probe');
+                    - generic [ref=e421]: debugger;
+        - generic [ref=e257]:
+          - generic [ref=e258]:
+            - tablist "Sources tabs" [ref=e260]:
+              - tab "Files" [selected] [ref=e261] [cursor=pointer]
+              - tab "Changes" [ref=e262] [cursor=pointer]
+              - tab "Review" [ref=e263] [cursor=pointer]
+            - toolbar [ref=e266]:
+              - button "Hide Sources" [ref=e267] [cursor=pointer]: 
+          - generic [ref=e269]:
+            - tabpanel "Files" [ref=e270]:
+              - textbox "Filter files" [ref=e272]
+              - list "Sources Files" [ref=e274]
+            - tabpanel "Changes" [ref=e276]:
+              - generic [ref=e278]: No source control repository.
+              - text:  
+    - status [ref=e280]:
+      - generic [ref=e282]:
+        - generic "Notifications" [ref=e283]:
+          - button "Notifications" [ref=e284] [cursor=pointer]:
+            - generic [ref=e285]: 
+        - 'generic "Conversation session: Untitled session" [ref=e286]':
+          - 'button "Conversation session: Untitled session" [ref=e287] [cursor=pointer]': Untitled session
+        - 'generic "Engine: Engine not connected" [ref=e288]':
+          - 'status "Engine: Engine not connected" [ref=e289] [cursor=pointer]': Engine not connected
+        - generic "JavaScript" [ref=e429]:
+          - button "JavaScript" [ref=e430] [cursor=pointer]
+        - 'generic "Editor Language Status: No jsconfig, next: 6.0.3, TypeScript version" [ref=e431]':
+          - 'button "Editor Language Status: No jsconfig, next: 6.0.3, TypeScript version" [ref=e432] [cursor=pointer]':
+            - generic [ref=e433]: 
+        - generic "LF" [ref=e434]:
+          - button "LF" [ref=e435] [cursor=pointer]
+        - generic "UTF-8" [ref=e436]:
+          - button "UTF-8" [ref=e437] [cursor=pointer]
+        - 'generic "Spaces: 4" [ref=e438]':
+          - 'button "Spaces: 4" [ref=e439] [cursor=pointer]'
+        - generic "Ln 1, Col 1" [ref=e440]:
+          - button "Ln 1, Col 1" [ref=e441] [cursor=pointer]
+  - generic [ref=e290]:
+    - alert [ref=e291]: "Info: A git repository was found in the parent folders of the workspace or the open file(s). Would you like to open the repository?"
+    - alert
+  - text:  

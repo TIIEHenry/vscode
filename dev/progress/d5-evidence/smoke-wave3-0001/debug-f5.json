@@ -1,0 +1,8 @@
+{
+  "debugView": false,
+  "debugToolbar": true,
+  "statusDebug": "Debug: D5 probe debug (sample-workspace)",
+  "callStack": false,
+  "title": "d5-probe-debug.js - sample-workspace - Code - OSS Dev",
+  "launchConfig": "D5 probe debug"
+}
