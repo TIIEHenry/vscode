@@ -19,6 +19,7 @@ import { Extensions as ViewContainerExtensions, IViewContainersRegistry, IViewsR
 import { registerWorkbenchContribution2, WorkbenchPhase } from '../../../common/contributions.js';
 import './conversationEditor.contribution.js';
 import './conversationNavigation.contribution.js';
+import './conversationSplitActions.contribution.js';
 import './conversationSessionChat.contribution.js';
 import './conversationSessionWindow.contribution.js';
 import { CONVERSATION_SESSIONS_VIEW_ID, ConversationSessionsView } from './conversationSessionsView.js';

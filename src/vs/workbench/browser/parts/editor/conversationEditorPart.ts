@@ -15,7 +15,9 @@ import { EditorPart } from './editorPart.js';
 import { IEditorPartsView } from './editor.js';
 import { IEditorGroupView } from './editor.js';
 import { GroupIdentifier } from '../../../common/editor.js';
-import { IConversationEditorPart, IEditorGroup } from '../../../services/editor/common/editorGroupsService.js';
+import { findGroup } from '../../../services/editor/common/editorGroupFinder.js';
+import { IConversationEditorPart, IEditorGroup, IEditorSideGroup } from '../../../services/editor/common/editorGroupsService.js';
+import { CONVERSATION_SIDE_GROUP } from '../../../services/editor/common/editorService.js';
 import { IHostService } from '../../../services/host/browser/host.js';
 import { IWorkbenchLayoutService } from '../../../services/layout/browser/layoutService.js';
 
@@ -27,6 +29,19 @@ export class ConversationEditorPartImpl extends EditorPart implements IConversat
 
 	private readonly partOptionsDisposable = this._register(new DisposableStore());
 	private readonly hiddenGroupIds = new Set<GroupIdentifier>();
+
+	override readonly sideGroup: IEditorSideGroup = {
+		openEditor: async (editor, options) => {
+			const findGroupResult = this.scopedInstantiationService.invokeFunction(accessor => findGroup(accessor, { editor, options }, CONVERSATION_SIDE_GROUP));
+			let group;
+			if (findGroupResult instanceof Promise) {
+				([group] = await findGroupResult);
+			} else {
+				([group] = findGroupResult);
+			}
+			return group.openEditor(editor, options);
+		}
+	};
 
 	constructor(
 		readonly sessionKey: string,

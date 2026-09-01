@@ -3,8 +3,8 @@ title: "默认窗 Conversation：session 窗口与 chat tab"
 type: plan
 status: in_progress
 phase: N/A
-updated: 2026-09-01
-summary: "S1–S6 已合入；S3c 子代理对话框 chrome 已落地 loop/A（借 Modal 壳、不复用 MODAL_GROUP）"
+updated: 2026-09-02
+summary: "S1–S3c、S4 已合入 loop/A；S4 同窗 split 经 CONVERSATION_SIDE_GROUP + 藏列不画"
 ---
 
 # 默认窗 Conversation：session 窗口与 chat tab
@@ -320,7 +320,7 @@ HEAD 已接受的锁是 **插入面**：编辑器仅 `EDITOR_PART`；没有「�
 | S3 | 同 session | Fork → `createChat` + `CONVERSATION_GROUP`；子代理点击 → session 叶对话框；打开为 tab → tab | 单测打开目标；AH 路径不写新 `AgentSessionRegistry` 行；不 import `agentHostForkActions` |
 | S3b | 面包屑 + 关非根 | 沿协议 `origin.chat`；点击替换当前延伸 tab；关非根 **不** `closeGroup` 根组 | 单测替换不叠 tab；根 tab 仍在 |
 | S3c | 对话框 chrome | 叶内卡片+遮罩（`position:absolute` 于 session 叶）；`promoteSubAgentDialog` → tab；`toggleSubAgentDialogMaximized` → 叶内铺满；对话框面包屑走 overlay 分支；删除 HEAD `maximizeSubAgentDialog` 提升语义 | 见测试 4；`data-maximized`；`aria-modal=false`；点遮罩关；无 `ModalEditorPart` / `.monaco-modal-editor-block`；overlay 在 `.conversation-session-window` 内 |
-| S4 | 同窗 split | `CONVERSATION_SIDE_GROUP`；藏列=不画 | 单测组数；文件 `SIDE_GROUP` 不增加 Conversation 组 |
+| S4 | 同窗 split **（已落 loop/A）** | `CONVERSATION_SIDE_GROUP`；藏列=不画 | 单测组数；文件 `SIDE_GROUP` 不增加 Conversation 组 |
 | S5 | 窗口并列 | 第二 session 叶 + 第二 Conversation EditorPart；藏窗恢复；共享 Preview | roster 打开到旁边；藏后单窗；两 session 时 Preview 仍一个 `EDITOR_PART` |
 | S6 | 知识层 | 签收本批已改 parts-and-grid / editor-part-tabs / agent-ui 插入面合同；S1 落地后把 HEAD 句从「选定」改成「已落」 | `check-docs-health.py` |
 
