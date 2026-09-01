@@ -12,7 +12,7 @@ import { isWindows, isLinux, isMacintosh, isWeb, isIOS } from '../../base/common
 import { EditorInputCapabilities, GroupIdentifier, isResourceEditorInput, IUntypedEditorInput, pathsToEditors } from '../common/editor.js';
 import { SidebarPart } from './parts/sidebar/sidebarPart.js';
 import { PanelPart } from './parts/panel/panelPart.js';
-import { Position, Parts, PartOpensMaximizedOptions, IWorkbenchLayoutService, positionFromString, positionToString, partOpensMaximizedFromString, PanelAlignment, ActivityBarPosition, LayoutSettings, MULTI_WINDOW_PARTS, SINGLE_WINDOW_PARTS, ZenModeSettings, EditorTabsMode, EditorActionsLocation, shouldShowCustomTitleBar, isHorizontal, isMultiWindowPart, IPartVisibilityChangeEvent, isFloatingTopEdgeExposed, ModernUIDensity, forceShownAgentShellPart, AgentShellPart, createDefaultZenModeExitInfo } from '../services/layout/browser/layoutService.js';
+import { Position, Parts, PartOpensMaximizedOptions, IWorkbenchLayoutService, positionFromString, positionToString, partOpensMaximizedFromString, PanelAlignment, ActivityBarPosition, LayoutSettings, MULTI_WINDOW_PARTS, SINGLE_WINDOW_PARTS, ZenModeSettings, EditorTabsMode, EditorActionsLocation, shouldShowCustomTitleBar, isHorizontal, isMultiWindowPart, IPartVisibilityChangeEvent, isFloatingTopEdgeExposed, ModernUIDensity, forceShownAgentShellPart, AgentShellPart, IAgentShellVisibility, createDefaultZenModeExitInfo } from '../services/layout/browser/layoutService.js';
 import { isTemporaryWorkspace, IWorkspaceContextService, WorkbenchState } from '../../platform/workspace/common/workspace.js';
 import { IStorageService, StorageScope, StorageTarget } from '../../platform/storage/common/storage.js';
 import { IConfigurationChangeEvent, IConfigurationService, isConfigured } from '../../platform/configuration/common/configuration.js';
@@ -1982,11 +1982,12 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 		}
 
 		// Propagate to grid
+		const beforeHide = hidden ? this.getAgentShellVisibility() : undefined;
 		this.workbenchGrid.setViewVisible(this.editorPartView, !hidden);
 
 		// INV-052-NO-DUAL-HIDE: Conversation ∨ (Editor ∨ Sources) ≥ 1
-		if (hidden) {
-			this.enforceAgentShellVisible(Parts.EDITOR_PART);
+		if (hidden && beforeHide) {
+			this.enforceAgentShellVisible(Parts.EDITOR_PART, this.getAgentShellVisibilityAfterHide(Parts.EDITOR_PART, beforeHide));
 		}
 	}
 
@@ -2003,11 +2004,12 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 			this.mainContainer.classList.remove(LayoutClasses.CONVERSATION_HIDDEN);
 		}
 
+		const beforeHide = hidden ? this.getAgentShellVisibility() : undefined;
 		this.workbenchGrid.setViewVisible(this.conversationPartView, !hidden);
 
 		// INV-052-NO-DUAL-HIDE: Conversation ∨ (Editor ∨ Sources) ≥ 1
-		if (hidden) {
-			this.enforceAgentShellVisible(Parts.CONVERSATION_PART);
+		if (hidden && beforeHide) {
+			this.enforceAgentShellVisible(Parts.CONVERSATION_PART, this.getAgentShellVisibilityAfterHide(Parts.CONVERSATION_PART, beforeHide));
 		}
 	}
 
@@ -2024,24 +2026,37 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 			this.mainContainer.classList.remove(LayoutClasses.SOURCES_HIDDEN);
 		}
 
+		const beforeHide = hidden ? this.getAgentShellVisibility() : undefined;
 		this.workbenchGrid.setViewVisible(this.sourcesPartView, !hidden);
 
 		// INV-052-NO-DUAL-HIDE: Conversation ∨ (Editor ∨ Sources) ≥ 1
-		if (hidden) {
-			this.enforceAgentShellVisible(Parts.SOURCES_PART);
+		if (hidden && beforeHide) {
+			this.enforceAgentShellVisible(Parts.SOURCES_PART, this.getAgentShellVisibilityAfterHide(Parts.SOURCES_PART, beforeHide));
 		}
 	}
 
-	private enforceAgentShellVisible(justHid: AgentShellPart): void {
+	private getAgentShellVisibility(): IAgentShellVisibility {
+		return {
+			conversation: this.isVisible(Parts.CONVERSATION_PART),
+			editor: this.isVisible(Parts.EDITOR_PART, mainWindow),
+			sources: this.isVisible(Parts.SOURCES_PART),
+		};
+	}
+
+	private getAgentShellVisibilityAfterHide(justHid: AgentShellPart, beforeHide: IAgentShellVisibility): IAgentShellVisibility {
+		return {
+			conversation: justHid === Parts.CONVERSATION_PART ? false : beforeHide.conversation,
+			editor: justHid === Parts.EDITOR_PART ? false : beforeHide.editor,
+			sources: justHid === Parts.SOURCES_PART ? false : beforeHide.sources,
+		};
+	}
+
+	private enforceAgentShellVisible(justHid: AgentShellPart, visible: IAgentShellVisibility = this.getAgentShellVisibility()): void {
 		if (this.inMaximizedAuxiliaryBarTransition || this.isAuxiliaryBarMaximized() || this.inMaximizedPanelTransition || this.isPanelMaximized()) {
 			return;
 		}
 
-		const show = forceShownAgentShellPart(justHid, {
-			conversation: this.isVisible(Parts.CONVERSATION_PART),
-			editor: this.isVisible(Parts.EDITOR_PART, mainWindow),
-			sources: this.isVisible(Parts.SOURCES_PART),
-		});
+		const show = forceShownAgentShellPart(justHid, visible);
 
 		if (show === Parts.CONVERSATION_PART) {
 			this.setConversationHidden(false);
