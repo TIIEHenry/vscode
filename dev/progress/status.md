@@ -11,6 +11,8 @@ summary: "PRD-012/013/014 轨迹/过程折/visualize 已签收；PRD-015 空会�
 
 ## Current Session
 
+- **设置方案三路审查（规则 16）：** Opus 5.0 slug 不可用；并行 Cursor Grok 4.6 审查 [settings-two-surfaces](../plans/settings-two-surfaces.md) / [customizations-host-ui](../plans/customizations-host-ui.md) / [customizations-engine](../plans/customizations-engine.md)。Critical/Important 已改入。均仍 `draft`。未改 `src/`。
+
 - **空会话与输入面：** [conversation-empty-hero.md](../plans/conversation-empty-hero.md)（`draft`）· [PRD-015](../../docs/product/requirements.md#prd-015-conversation-空会话与输入面)（`proposed`）。PreFirst 居中 Composer、Agent/Route XOR、Inbox 分簇。未走规则 16、未改 `src/`。
 
 - **设置两套主面：** 本地 vs Engine 必须分开，视觉与 vscode 统一。[settings-two-surfaces.md](../plans/settings-two-surfaces.md)（`draft`）。Customizations host-ui / engine 落盘稿已按该目录改口径（Customizations 不是第三套主设置）。未改 `src/`。

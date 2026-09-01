@@ -50,6 +50,7 @@ summary: "PreFirst 居中 Composer + 身份条；Active 底栏同一 Composer；
 | Singularity 现行 ChatInputBar 底栏无 Agent：`+ Tune Flag ⋯ \| Model 模板 Send` | `chat-input-bar.md` 布局概览 |
 | Desktop SessionBar 拥有 History / Route / Copy / Snapshots | ui-interaction-spec §6.4 槽位表 |
 | Desktop Inbox：左 Queue/Tasks tab · Goal；右 Stop · ctx 环 | ui-interaction-spec §8.3 |
+| Singularity MessageQueue 列表：hold=`EDITING` 不 pause 整队；Save/Cancel 释 hold；Pause/Clear/reorder/inject 等见设计稿 §4–§5 | [message-queue-bar.md](../../../UniverseAgent/singularity/docs/ui/components/status/message-queue-bar.md)；原型 [message-queue-layout-preview.html](../../../UniverseAgent/singularity/dev/plans/message-queue-layout-preview.html) |
 
 ## 3. 设计
 
@@ -121,7 +122,8 @@ Heal：清空消息 / 新建会话 → 回到 PreFirst（身份回到 Composer �
 ```
 
 - **Task** 在 MessageQueue **左侧**（纠正「Queue / Tasks」融一颗）。点开 `auto_drive_task` 列表向上；与 Queue 列表 **XOR**。
-- **MessageQueue** 点开候发列表；行点击 hold → `queueEdit`。
+- **MessageQueue 槽位**（本方案）：Inbox 芯片，点开列表**向上**浮出，不挤 Composer 高度。行点击进入 `queueEdit`（hold），与主 Composer XOR。
+- **MessageQueue 列表 UI**（Singularity 设计稿，不在本方案重画）：行结构、状态 tag（编辑中 / 上传中 / 失败）、Pause / Clear、单项 hold 编辑、reorder / pin / inject / lock / retry 等 **跟** [message-queue-bar.md](../../../UniverseAgent/singularity/docs/ui/components/status/message-queue-bar.md) §4–§5 与 [message-queue-layout-preview.html](../../../UniverseAgent/singularity/dev/plans/message-queue-layout-preview.html)。本仓只换挂载点（Inbox 浮层，不是 StatusPanel Queue Tab，也不是已退役的 Composer 上 QueueBar 常驻条）。编辑态仍用本仓同一张 Composer + Exit，对应稿里的 hold → 内联编辑 → Save/Cancel 释 hold。
 - **Goal** 独立图标，永不进 Composer 行（Singularity 现行 Flag 在输入栏；本仓选定 Inbox）。
 - **Stop** 仅 in-flight；不在 Composer 底栏。Send 恒 Send。
 - **ctx** 圆环，不是 chip。无 admitted ctx 时省略。
@@ -147,7 +149,7 @@ Heal：清空消息 / 新建会话 → 回到 PreFirst（身份回到 Composer �
 | **T1 Placement** | PreFirst 居中 Composer + 身份 XOR；隐藏 Inbox/gate 或把 gate 收到 Composer 内诚实一行；空态去掉「Send a message below」把输入钉死的暗示 | `conversationLens.test.ts` + `conversationIdentityStrip.test.ts`：空会话身份不在 timeline 顶而在 composer 簇；dock 无 inbox-row |
 | **T2 Composer chrome** | 32px 底栏；`+`/mic/Send 表面；Tune · Permission · Model · ⋯；Codicon | 测命中高度与 DOM 结构；无 `ChatInputPart` import |
 | **T3 SessionConfig XOR** | `showAgent`/`showRoute` 仅 PreFirst；Active SessionBar Route；清空 turns 回到 PreFirst | 空会话 Composer 有 Agent+Route；发送后 Composer 无、SessionBar 有 Route |
-| **T4 Inbox** | 左右分簇；Task 左于 Queue；列表 XOR；诚实空 | 不再断言单行含 label+queue+goal+stop 融在一起 |
+| **T4 Inbox** | 左右分簇；Task 左于 Queue；列表 XOR；诚实空。Queue **列表**按 Singularity 设计稿接线，不自造行 chrome | 不再断言单行含 label+queue+goal+stop 融在一起；有队列 fixture 时行/hold 语义对得上 message-queue-bar |
 | **T5 Edit XOR** | 用户卡展示无按钮；click → Composer+Exit；队列编辑 XOR 主输入 | 同时只存在一个 `.conversation-lens-composer` |
 | **T6 Voice** | mic 槽位；可选 stub 转写条。无引擎可先 disabled | mic 在 Send 左；Voice 列表 ≠ inbox queue |
 

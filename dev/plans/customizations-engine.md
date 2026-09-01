@@ -12,9 +12,9 @@ summary: "Engine 页 Skill/Agent/Rules/Hook/MCP/tools 的 UA 数据权威与协�
 > **产品目录 SSOT：** [settings-two-surfaces.md](settings-two-surfaces.md) — 这些能力的 **产品主面是 Engine 页**（`ua.engine`），不是 Copilot Customizations Overview。  
 > **并行宿主稿：** [customizations-host-ui.md](customizations-host-ui.md)（donor chrome；不写 RPC）。本文件只写 **数据权威、传输、协议缺口、能力探测**。不写像素；宿主必须是 vscode Settings/Preferences 脸。  
 > **产品：** 引擎与会话权威是 UniverseAgent（[PRD-008](../../docs/product/requirements.md#prd-008-引擎与会话权威) 今天 `blocked`）。Agent Host / AHP **不是** catalog 权威。  
-> **红线：** 无能力则诚实空 / Stub；禁止 Copilot 磁盘顶替 UA 路径后写「已接引擎」。下文 `EngineSkillCatalogService` 等是 **计划中的 IDE 门面 / 外仓符号**，不是本仓 HEAD 类型。
+> **红线：** 无引擎时 **Engine 页诚实空 + Test**；禁止 Copilot 磁盘顶替 UA 路径后写「已接引擎」。`EngineSkillCatalogService` 等是 **外仓 UniverseAgent HEAD**，不是本仓 `src/vs/` 类型。vscode 消费 `ListSkills` / `SetSkillEnabled` / `SkillInfo` 等 RPC，**不要**在 IDE 里再实现一个同名 class。
 
-**Goal：** 把 Engine 页各节钉到 UniverseAgent 的 SSOT 与传输面；列出最小协议；断连时 IDE 可碰哪些本地 UA 路径、什么算假同步。
+**Goal：** 把 Engine 页各节钉到 UniverseAgent 的 SSOT 与传输面；列出最小协议。无引擎时 **不要**在 Engine 页或 Customizations Overview 扫盘当 catalog。
 
 ---
 
@@ -25,14 +25,14 @@ summary: "Engine 页 Skill/Agent/Rules/Hook/MCP/tools 的 UA 数据权威与协�
 | 层 | 本页职责 | 禁止 |
 |----|----------|------|
 | A 壳 | 不写。Engine pane + 可拆的文件编辑器零件；vscode 同一张脸 | 独立 SettingsScreen / Compose 卡网 / 把 Customizations Overview 当 Engine 首页 |
-| B 节语义 | 只引用父方案已拍板的节处置 | 把 Galaxy / Gateway / Devices / Provider 塞进本页 |
+| B 节语义 | catalog / profile / rules / hooks / MCP 定义 / 引擎工具 | Galaxy / Gateway / Devices。Provider/Model **运行时表单**在同一 `ua.engine` pane，但不在本表当 Customizations 节 |
 | C 数据权威 | **本文 SSOT** | 把 `IChatModel`、AHP、`IPromptsService` Copilot 路径当 UA catalog |
 
 **传输两态（产品语言，不是类名）：**
 
 | 态 | 何时 | IDE 可以说什么 |
 |----|------|----------------|
-| **Disconnected / Stub** | PRD-008 未接通，或能力探测 `UNKNOWN`/`UNSUPPORTED` | 「引擎未连接」；列表若来自本机 UA 路径，必须标 Stub |
+| **Disconnected** | PRD-008 未接通 | Engine 页诚实空 + Test。donor 编辑器若列出 UA 路径文件，只当普通文件，**禁止**标 catalog/Stub「快接上了」 |
 | **Engine-backed** | PRD-008 接通 **且** 对应能力 `SUPPORTED` | 「来自当前引擎」；list/toggle/body 必须走引擎协议，禁止 silent 读客户端盘冒充远端引擎 |
 
 AHP 可以拉起 Copilot CLI / agent-host 进程，那只是 vscode 侧 harness。Customizations 的 Skills / Agents / Rules / Hooks / MCP 定义 **不得**经 AHP 的 Copilot 文件发现冒充 UA。
@@ -43,7 +43,7 @@ AHP 可以拉起 Copilot CLI / agent-host 进程，那只是 vscode 侧 harness�
 
 默认 `AgentHome` = `~/.universe-agent`（可被测试覆盖；产品文案用这个路径）。工作目录 = 当前项目根（引擎 `workDir`，接通后以引擎回报为准）。
 
-| Customizations 节 | 引擎 SSOT | 磁盘路径（plane A） | 已有传输 | 本页用它做什么 |
+| Customizations / donor 节 | 引擎 SSOT | 磁盘路径（plane A） | 已有传输 | **产品主面 `ua.engine` 用它做什么** |
 |-------------------|-----------|---------------------|----------|----------------|
 | **Skills** | `EngineSkillCatalogService`（`listForUi` / `listEnabled` / `resolve` / `loadBody`）；toggle 写 scope `manifest.json` 并抬 catalog generation | **BUNDLED** 安装包 `resources/skills/{name}/SKILL.md`（只读）；**USER** `{AgentHome}/skills/{name}/SKILL.md`；**PROJECT** `{workDir}/.universe-agent/skills/{name}/SKILL.md`。合并：BUNDLED 不可覆盖；同名非内置时 PROJECT > USER；损坏 manifest **fail-closed** | gRPC `ToolService.ListSkills` / `SkillInfo` / `SetSkillEnabled`（Local 同源 catalog）。**不含 CLIENT**（CLIENT 只进 Singularity Chip / 显式 `/name`，不进 `sys_skill`、不进本页） | 列表、启用开关、读 SKILL.md 正文。斜杠走同一 catalog，本页不另开 Prompts 节 |
 | **Agents** | `AgentPresetLoader.discoverAll` / `savePreset` / `updatePreset` / `deletePreset`；创建语义是 `agent_spawn` catalog | 目录 `{id}/AGENTS.md` + `tools.json` + 可选 `model.json`。优先级：PROJECT `{workDir}/.universe-agent/agents/` > USER `{AgentHome}/agents/` > BUILT_IN `core/.../resources/agents/`（种子写入用户目录后可改/禁/重置，不可删） | gRPC `AgentService.ListAgentProfiles`（`project_path` 可选）/ `SaveAgentProfile` / `DeleteAgentProfile` / `ResetAgentProfile` | 列表、读/写 profile 目录，不是单文件 `.agent.md` persona |
@@ -63,26 +63,28 @@ AHP 可以拉起 Copilot CLI / agent-host 进程，那只是 vscode 侧 harness�
 
 模式对齐 UniverseAgent `EngineSettingsCapabilities` / `CapabilitySupport`：**SUPPORTED / UNSUPPORTED / UNKNOWN**，带 `reason`。IDE 必须实现等价探测，**禁止**在 `UNKNOWN` 时画假列表或假 Browse。
 
-本页相关探测键（不要把 Galaxy / Gateway / Devices / tokenUsage / Memory browse 拉进这页）：
+本页相关探测键。UA `EngineSettingsCapabilities` **已有** `skills` / `mcp` / `plugins` / `globalRules`（以及本页排除的 memory/token/galaxy/…）。**没有** `agentProfiles` / `projectRules` / `tools` / `hooksMetadata`（`agentProfiles` 在 UA 是 `BridgeCapabilities` 上的 Boolean，不是三态）。这四键是 **vscode 计划中的探测键**，不是 UA settings capabilities 抄过来的。`hooksMetadata` 在 `ListHookPoints` 出现前无握手。
 
-| 探测键 | 对应节 | `SUPPORTED` | `UNSUPPORTED` | `UNKNOWN` | 无连接（profile 未选 / PRD-008 blocked） |
+| 探测键 | 对应节（Engine 页） | `SUPPORTED` | `UNSUPPORTED` | `UNKNOWN` | 无连接（profile 未选 / PRD-008 blocked） |
 |--------|--------|-------------|---------------|-----------|------------------------------------------|
-| `skills` | Skills | 引擎 list/toggle/body | 节在，正文诚实句（「当前引擎无技能 API」），**零假名** | 同 UNSUPPORTED，文案「正在确认引擎能力」；禁止用 Copilot 目录填空 | Stub：见 §4。节可在 |
-| `agentProfiles` | Agents | List/Save/Delete/Reset | 节在，空 + 原因 | 同左 | Stub：本地 UA profile 目录，标 Stub |
-| `globalRules` + `projectRules` | Instructions | Local：可读可写本机 AgentHome / workDir。Remote：今天 UA 即 UNSUPPORTED（规则在引擎主机，远端客户端未开通 RPC） | 空 + 原因；**禁止** REMOTE 时写 vscode 工作区盘假装改了引擎 | UNKNOWN 不画规则名 | Stub：可扫 UA rules 路径并标 Stub |
-| `hooksMetadata` | Hooks | 能拿到点位表（协议或引擎版本钉死的点位清单） | 节在，列表空，不列 vscode task 事件 | 同 UNSUPPORTED | Stub：可显示静态 UA 点位表（来源写明「引擎合同副本」）+ 若存在则只读 `hooks.json`，标 Stub |
-| `mcp` | MCP Servers | 定义 CRUD | 节在；可只读本地 UA `mcp-servers.json` **但不可声称已连引擎** | 不画假服务器、去掉 Browse | 同上 |
+| `skills` | Skills | 引擎 list/toggle/body | 节在，正文诚实句（「当前引擎无技能 API」），**零假名** | 同 UNSUPPORTED，文案「正在确认引擎能力」；禁止用 Copilot 目录填空 | **Engine 页空 + Test**。donor 不扫盘当 catalog |
+| `agentProfiles` | Agents | List/Save/Delete/Reset | 节在，空 + 原因 | 同左 | 同上 |
+| `globalRules` + `projectRules` | Rules（Instructions） | Local：可读可写本机 AgentHome / workDir。Remote：今天 UA 即 UNSUPPORTED | 空 + 原因；**禁止** REMOTE 时写 vscode 工作区盘假装改了引擎 | UNKNOWN 不画规则名 | 同上 |
+| `hooksMetadata` | Hooks | 能拿到点位表 | 节在，列表空，不列 vscode task 事件 | 同 UNSUPPORTED | 同上 |
+| `mcp` | MCP Servers | 定义 CRUD | 节在，空；不可声称已连引擎 | 不画假服务器、去掉 Browse | 同上 |
 | `plugins` | Plugins | 以后切片 | **v1 隐藏或诚实空** | 隐藏或空 | 隐藏或空 |
-| `tools` | Tools | ListTools + 当前 profile `tools.json`；接通后可列本机已登记 client-tool | 空，不列 Copilot CLI 名 | 空 | 空（H0 已要求去掉 Copilot CLI 清单） |
+| `tools` | Tools | ListTools + 当前 profile `tools.json` | 空，不列 Copilot CLI 名 | 空 | 空 |
 
 **聚合规则（已拍板）：**
 
 1. 任一键 `UNKNOWN`：**该节不渲染假条目**。Browse / 市场按钮直接去掉。  
 2. `UNSUPPORTED`：节可以留在左 nav（父方案「节可在，内容诚实空」），但计数为 0。  
-3. Memory / Provider / Model / token / Gateway / Galaxy：**本页永远不探测来决定显隐**——它们不属于 Customizations。  
+3. Memory browse / Galaxy / Gateway：**本 catalog 表永远不探测来决定显隐**。Provider/Model 运行时在同一 Engine pane 的另一分组，不走本表。
 4. vscode `IMcpService` 已连接若干 `.vscode/mcp.json` 服务器 **不得**把 `mcp` 探测抬成 `SUPPORTED`。那是 IDE MCP 运行时，不是 UA 定义面。
 
-探测失败必须三分：`Supported` / `Failed`（传输错）/ `Unsupported`（服务端未实现）。**禁止** `catch → emptyList()` 当成「引擎说你有 0 个技能」。
+探测失败必须分开：**能力三态** `SUPPORTED|UNSUPPORTED|UNKNOWN`（UA `CapabilitySupport`）vs vscode **传输失败**（计划中的 IDE 态，**不是** UA `Failed`）。**禁止** `catch → emptyList()` 当成「引擎说你有 0 个技能」。
+
+无引擎映射（勿与 UA `deriveEngineSettingsCapabilities` 混）：PRD-008 未接通 → vscode **一律按无列表渲染**（Engine 空 + Test）。UA 侧 `profile==null` → `UNKNOWN`、`!bridgeAvailable` → `UNSUPPORTED` 是外仓公式；IDE 不要用 Stub 列表去填 `UNKNOWN`。
 
 ---
 
@@ -94,7 +96,7 @@ AHP 可以拉起 Copilot CLI / agent-host 进程，那只是 vscode 侧 harness�
 
 | 操作 | 最小契约 | 已有 | IDE 语义 |
 |------|----------|------|----------|
-| 列表 | 每条：逻辑 `name`、`description`、`source` ∈ `{bundled,user,project}`、`enabled`、`slash_enabled`、`contentPath` 不向 UI 暴露为可拼路径 | `ListSkills`。wire 上 `source` 曾写 built-in/custom/plugin；产品与合并规则以 **bundled/user/project** 为准（与 `ListCommands.skill_source` 对齐） | 按 scope 分组。BUNDLED 只可 disable，不可删、不可覆盖安装 |
+| 列表 | 每条：逻辑 `name`、`description`、`source` ∈ `{bundled,user,project}`、`enabled`、`slash_enabled`、`contentPath` 不向 UI 暴露为可拼路径 | `ListSkills`。Local 已 `setSource` 为 bundled/user/project。未知 wire 当 unknown，不映射 Copilot local/user/extension | 按 scope 分组。BUNDLED 只可 disable，不可删、不可覆盖安装 |
 | 启停 | `SetSkillEnabled(skill_name, enabled)` → 写对应 scope manifest，抬 catalog generation | 已有。损坏 manifest → `FAILED`，不得当空清单覆盖 | 开关打到引擎 catalog。UI 必须同时展示 §5 冻结文案 |
 | 正文 | `SkillInfo(skill_name)` → `content`（经 `entry.contentPath` 读，INV-SKILL-PATH-1） | 已有 | 预览/编辑 USER/PROJECT；BUNDLED 只读 |
 | 新建 | 落盘 `{scopeRoot}/{name}/SKILL.md`（唯一合法布局）。无 manifest 行时 USER/PROJECT **opt-in**：`frontmatter.enabled == true` 才进入 catalog，禁止「丢文件即启用」 | 无独立 Create RPC；Local Stub 写文件；Engine-backed 须经 catalog/install 或约定「写文件后 ListSkills 刷新」 | New 命令的目标目录必须是 UA 路径，不是 `.github/skills` |
@@ -116,7 +118,7 @@ AHP 可以拉起 Copilot CLI / agent-host 进程，那只是 vscode 侧 harness�
 
 | 操作 | 最小契约 | 已有 |
 |------|----------|------|
-| 列表 | global / project 两条 scope；记录含 id、title、body、enabled、priority、globs、appliesTo | Local `RulesBridge` |
+| 列表 | global / project 两条 scope；记录含 id、title、body、enabled、priority；`globs` / `appliesTo` 在 `ProjectRuleRecord` 上可读。Local `create*`/`update*` **不写** globs/appliesTo | Local `RulesBridge` |
 | 读写 | CRUD + prompt preview + health | Local 已有 |
 | Remote | 与 Local 同形状的 gRPC | **须补**。未补之前探测 = `UNSUPPORTED`。禁止用工作区 `.github/copilot-instructions.md` 顶替 |
 
@@ -150,27 +152,27 @@ Browse 市场：UA 无商店则按钮不存在。Copilot featured gallery **剥�
 
 | 操作 | 最小契约 | 已有 |
 |------|----------|------|
-| Handshake | 对 `skills` / `mcp` / `plugins` / `globalRules` / `projectRules` / `agentProfiles` / `tools` / `hooksMetadata` 返回 SUPPORTED\|UNSUPPORTED\|UNKNOWN + reason | Singularity：`GrpcCapabilityProbe` + UNIMPLEMENTED 降级。**vscode 侧无等价物，须补**（可复用 UA proto `supported_methods` / UNIMPLEMENTED，不必抄 Kotlin 类型名） |
+| Handshake | 对 UA 已有键 `skills` / `mcp` / `plugins` / `globalRules` 以及 vscode 计划键 `projectRules` / `agentProfiles` / `tools` / `hooksMetadata` 返回 SUPPORTED\|UNSUPPORTED\|UNKNOWN + reason | Singularity：`GrpcCapabilityProbe` + UNIMPLEMENTED 降级。**vscode 侧无等价物，须补**。Connect 广告的是 `ConnectResponse.capabilities.methods`（**没有** proto 字段 `supported_methods`） |
 
-未接通引擎：全部 `UNKNOWN`（「尚未选择/连接引擎」），不是「0 个技能所以 SUPPORTED」。
+未接通引擎：Engine 页不画 catalog 列表（不是「0 个技能所以 SUPPORTED」）。
 
 ---
 
-## 4. 断连 Stub vs 假同步
+## 4. 断连 vs 假同步
 
-H1 **允许**在 PRD-008 之前用本机 UA 路径填 Skills / Agents 列表，但必须标 Stub。下表是对每一节的硬边界。
+**与 [settings-two-surfaces.md](settings-two-surfaces.md) 同一句：** 无引擎时 **Engine 页不扫盘**（诚实空 + Test）。donor 编辑器不是 catalog。下表「Stub 允许」**作废为 H1 产品路径**；仅作「将来若有人想在 donor 打开 UA 文件」的假同步红线。
 
-| 节 | Stub 允许（Disconnected） | 假同步（禁止，即使文件碰巧存在） |
-|----|---------------------------|-----------------------------------|
-| Skills | 扫描 `{AgentHome}/skills/*/SKILL.md` 与 `{workspace}/.universe-agent/skills/*/SKILL.md`；只读正文；本地改 USER/PROJECT 文件时文案为「仅写入本机 UniverseAgent 目录，未同步到引擎 catalog」 | 扫描 `~/.copilot/skills`、`.github/skills`、`.agents/skills`、`.claude/skills` 并标成 UA；把本地 manifest 开关说成 `SetSkillEnabled` 已生效；把空目录说成「引擎返回 0」 |
-| Agents | 扫描 `{AgentHome}/agents/*/AGENTS.md` 与 `{workspace}/.universe-agent/agents/`；编辑目录内三件套，标 Stub | 把 `.github/agents/*.md`、`~/.copilot/agents/*.agent.md` 单文件 persona 当 Profile；声称 `agent_spawn` catalog 已更新 |
-| Instructions | 扫描 `{AgentHome}/rules/` 与 `{workspace}/.universe-agent/rules/` | 把 `.github/copilot-instructions.md`、`.github/instructions/*.instructions.md`、`.claude/rules` 当 Global/Project rules；REMOTE 引擎时写客户端盘 |
-| Hooks | 只读展示 UA 点位合同表；若存在则打开 `{AgentHome}/hooks.json` | 把 `.github/hooks`、`~/.copilot/hooks`、`.claude/settings.json` 的 save/task 事件标成 AgentLoop 点位 |
-| MCP | 只读 `{workspace}/.universe-agent/mcp-servers.json`（及本机 AgentHome 叙事文件），文案「本地定义，引擎未连接」 | 把 `.vscode/mcp.json` / 用户 `mcp.json` / Copilot gallery / `IMcpService` 已连接态当作 UA 定义或「已同步」 |
-| Plugins | 不展示假市场 | Browse Open VSX / Copilot plugin / `~/.copilot/installed-plugins` |
-| Tools | **空**。不要用 Stub 清单 | `COPILOT_CLI_TOOLS`、vscode `ILanguageModelToolsService` 扩展工具冒充当前引擎/profile |
+| 节 | 无引擎时 Engine 页 | 假同步（禁止，即使文件碰巧存在） |
+|----|-------------------|-----------------------------------|
+| Skills | 空 | 扫描 `~/.copilot/skills`、`.github/skills` 并标成 UA；把本地开关说成 `SetSkillEnabled`；把空目录说成「引擎返回 0」 |
+| Agents | 空 | `.github/agents`、`~/.copilot/agents` persona 当 Profile |
+| Rules | 空 | `.github/copilot-instructions.md` 当引擎规则 |
+| Hooks | 空 | vscode task / Copilot hook 事件当 AgentLoop 点位 |
+| MCP | 空 | `.vscode/mcp.json` / `IMcpService` 当 UA 定义或已同步 |
+| Plugins | 隐藏或空 | Browse Open VSX / Copilot plugin |
+| Tools | 空 | `COPILOT_CLI_TOOLS` |
 
-**判定句（产品）：** 用户若能在未连接 UniverseAgent 时看到「已与引擎同步 / Copilot Agent Host / 来自 Copilot CLI」任一措辞，本切片失败。
+**判定句：** 用户若在未连接 UniverseAgent 时看到「已与引擎同步 / Copilot Agent Host / 来自 Copilot CLI」任一措辞，失败。
 
 ---
 
@@ -181,7 +183,7 @@ H1 **允许**在 PRD-008 之前用本机 UA 路径填 Skills / Agents 列表，�
 - **Catalog / 正文 / `sys_skill` / List\***：单一 versioned snapshot；install/toggle 抬 generation 后 **下一读**刷新。  
 - **Root `<available_skills>`**：`AgentLoopFactory` 组装时快照，**活跃会话不热切换**。
 
-因此 Customizations 里把某个 skill 打开：
+因此 Engine 页把某个 skill 打开：
 
 1. 写的是 catalog（下次 `ListSkills` / 新会话 / 新 Root 组装会看见）。  
 2. **已经打开的 Conversation 不会立刻换技能表。**  
@@ -245,14 +247,13 @@ H0（去 Copilot 文案 / Overview 去预填 Chat / Tools 去 CLI 清单）
 - **E1 不得早于 PRD-008**。引擎接线方案未接受时，把 Stub 标成「已接引擎」= 产品失败。  
 - Plugins 整节不在 H1–E1。
 
-### 8.2 H1（产品语言）
+### 8.2 H1（产品语言）— **Engine 页，不是 Customizations**
 
-用户打开 Customizations → Skills / Agents：
+无引擎：用户打开 **Engine pane**（`openPreferences({ paneId: 'ua.engine' })`）看到诚实空 + Test。**不要**打开 Customizations Overview 去扫 `{AgentHome}` / `.universe-agent` 当 Stub catalog。
 
-- 标题与分组不再出现 Copilot / Agent Host 商品名。  
-- 若工作区或用户目录下存在 **UA** 技能/profile，列表能看到它们，并标明 **Stub（引擎未连接）**。  
-- 若只有 `~/.copilot/skills` 而没有 UA 目录：Skills **空**，不把 Copilot 技能「借来」填上。  
-- 新建技能落到 `{workspace}/.universe-agent/skills/{name}/SKILL.md`（或用户确认的 USER 根），不落到 `.github/skills`。
+有引擎且 `skills=SUPPORTED` 之前，H1 只允许剥 Copilot 文案/路径的 **donor 卫生**（host-ui），不算 catalog 产品。
+
+新建技能的 UA 路径约定留给 E1；H1 不在 Customizations 里做「引擎未连接也能看见 Stub 列表」。
 
 ### 8.3 E1 验收（产品语言，禁止「某 class 接上了」当成功）
 
@@ -278,7 +279,7 @@ vscode 本页 **消费** 下列面；缺的由 UniverseAgent 补，IDE 不得用
 | vscode 无能力探测 | 阻塞 E1 | 须对 §2 键做 SUPPORTED/UNSUPPORTED/UNKNOWN，UNIMPLEMENTED ≠ 空列表成功 |
 | Rules Remote gRPC | 阻塞 Remote 下 Instructions 成真 | 现网 `RulesBridge` 默认 Unsupported；未补之前 REMOTE 诚实空 |
 | Hook 点位元数据 RPC | 阻塞 Hooks「来自引擎」 | 否则只允许文档合同副本 + Stub `hooks.json` |
-| `ListSkills.source` 与 bundled/user/project 对齐 | E1 必须约定 | IDE 按三 scope 分组，不按 Copilot local/user/extension |
+| `ListSkills.source` | 非缺口 | Local 已 `setSource` 为 bundled/user/project。IDE 消费当前 wire；未知值当 unknown，不映射 Copilot local/user/extension |
 | 独立 CreateSkill / 写正文 RPC | H1 Stub 可写文件；E1 至少要「写后 catalog 刷新」或 SkillInfo 回读 | 禁止只写 vscode 工作区却声称 catalog 已收 |
 | `SetToolEnabled` | 不强制 | 用 `SaveAgentProfile`/`tools.json` 即可；Tools 节不要再发明第三套开关存储 |
 | MCP 运行态 | 非本页 | 不要为了填列表去调 Status/Tools |
@@ -292,7 +293,11 @@ vscode 本页 **消费** 下列面；缺的由 UniverseAgent 补，IDE 不得用
 |------------|----------|
 | §6 引擎必须做的 | 展开为 §1 权威表 + §3 最小协议 |
 | §7 UI 约束 | 不在本文重复；空态文案必须能区分 Stub vs UNSUPPORTED vs 真 0 条 |
-| §8 H1 | §4 + §8.2：本地 UA 路径 + Stub |
-| §8 E1 | §5 + §8.3：list/toggle 走引擎且不暗示热切换 |
+| §8 H1 | Engine 页保持空直到 PRD-008；donor 不做 Stub catalog |
+| §8 E1 | §5 + §8.3：list/toggle 走引擎且不暗示热切换；UI 在 `ua.engine` |
 
 宿主 UI 详稿只消费本表的节显隐与空态原因字符串，不另造数据源。
+
+## 11. 审查记录（规则 16）
+
+2026-09-01：三路并行 Cursor Grok 4.6 只读。本文件 **Approve with changes**。已当轮改入：无引擎 Engine 页不扫 Stub catalog；H1 走 `ua.engine` 空态；探测键与 handshake 字段、`ListSkills.source`、传输失败态按审查改口径。

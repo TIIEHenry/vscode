@@ -27,12 +27,25 @@ summary: "文件编辑器 donor 的 vscode chrome：剥 Copilot 营销；零件�
 | 标题 | 禁止停留在 `Copilot [Agent Host]` / `Agent Customizations - Copilot` |
 | Overview 输入 | 禁止「Customize Your Agent」预填 Chat / `/init` |
 | Plugins | v1 **默认窗左 nav 隐藏**；深链到该节则诚实空。禁止 Browse 进 Copilot / Open VSX 冒充引擎插件 |
-| Tools | 禁止 `COPILOT_CLI_TOOLS` / `copilot-cli` 只读清单。无引擎：整节诚实空 until E1 |
+| Tools | 禁止 `COPILOT_CLI_TOOLS`。默认窗 **不画** Tools 节（HEAD 已藏）。产品 enablement 在 Engine 页 |
 | 默认窗不进产品轨 | `prompts` / `automations` / `models` / `harnessSettings`（HEAD 枚举仍可存在，左 nav 不画） |
 | 截图底栏 | `+ Agent` / `Auto` / `Autopilot` / `Detailed permissions` 是 **Conversation Dock**，不是本编辑器。剥离走 M5 / INV-NO-COPILOT。本页只记 **out of scope** |
-| 无引擎 | 节可以在（Plugins 除外），内容 `registerViewWelcomeContent` 风格诚实句。禁止假技能名、假 Featured MCP、假工具组 |
+| 无引擎 | donor 列出的是文件，不是 catalog。禁止假技能名、假 Featured MCP、假工具组 |
+| OpenEditor | HEAD `f1: true` + `IsSessionsWindowContext`。**保持**（Palette 仍注册、默认窗隐藏）。TOC 用 `executeCommand`，不靠 precondition。禁止为 TOC 去掉 Sessions 门 |
 
-引擎 list/toggle/catalog 权威见 [customizations-engine.md](customizations-engine.md)；接到 UI 是 **E1**（依赖 PRD-008）。本文件遇到引擎门控一律写 **诚实空 until E1**，不画 stub 市场。
+引擎 list/toggle 在 [customizations-engine.md](customizations-engine.md) + **Engine pane**。本文件遇到引擎门控一律 **不要在本编辑器画 catalog**。
+
+## 0b. 余量（禁止第三套主设置）
+
+| 本编辑器可以做 | 必须在 `ua.engine`、本文件不做产品面 |
+|----------------|--------------------------------------|
+| 剥 Copilot 标题/营销卡/Browse/CLI 清单 | Skill catalog / enable |
+| 列表+预览 **普通文件**（含用户从 Engine 行打开的 UA md） | Agent Profile catalog |
+| MCP **vscode 本地定义文件**（不得写已连引擎） | 引擎 MCP 定义 CRUD、引擎工具 enablement、Hook 点位表 |
+
+HEAD 默认窗 Local harness **隐藏 Tools**（`hiddenSections`）。本文件 **不要**把 Tools 加回左 nav。产品 Tools 在 Engine 页。
+
+默认窗 `managementSections` **去掉** `plugins` / `prompts` / `harnessSettings` / `tools`（隐藏左 nav 不够，仍会构造 `PluginListWidget`）。
 
 ## 1. 目标 chrome（ASCII）
 
@@ -43,23 +56,20 @@ summary: "文件编辑器 donor 的 vscode chrome：剥 Copilot 营销；零件�
 ```text
 ┌ Agent Customizations                              [链接] [x] ┐
 ├──────────────────┬───────────────────────────────────────────┤
-│ Overview      ●  │  Agent Customizations                     │
-│ Agents           │  Engine not connected.                    │
-│ Skills           │  Workspace and user files can still be    │
-│ Instructions     │  listed after you open a section.         │
-│ Hooks            │                                           │
-│ MCP Servers      │  Sections                                 │
-│ Tools            │  Agents          Define agent profiles…   │
-│                  │  Skills          Reusable skill files…    │
-│                  │  Instructions    Always-on rules…         │
-│                  │  Hooks           AgentLoop hook files…    │
-│                  │  MCP Servers     Server definitions…      │
-│                  │  Tools           Engine tool enablement   │
-│                  │                  (empty until engine)     │
+│ Overview      ●  │  File customizations                      │
+│ Agents           │  Edit markdown files. Skill / Agent       │
+│ Skills           │  catalogs live in Engine settings.        │
+│ Instructions     │                                           │
+│ Hooks            │  Sections                                 │
+│ MCP Servers      │  Agents          Profile markdown…        │
+│                  │  Skills          Skill files…             │
+│                  │  Instructions    Rules files…             │
+│                  │  Hooks           Hook files…              │
+│                  │  MCP Servers     Local MCP definitions…   │
 └──────────────────┴───────────────────────────────────────────┘
 ```
 
-Overview **不是** Copilot getting-started：无 sparkle 卡、无预填输入、无 7 张营销卡、无 Voice/Dictation 附属卡。节跳转是 Settings 式 **链接行**（一行标题 + 一行 description），点击调用现有 `selectSection`。
+Overview **不是** Engine catalog 着陆：无 sparkle 卡、无预填输入。节跳转若保留，只打开 **文件列表**（donor），文案不得写「引擎 catalog / until E1」。产品 Skill/Agent 去 Engine pane。
 
 ### 1.2 文件节（Agents / Skills / Instructions / Hooks）
 
@@ -72,7 +82,7 @@ Overview **不是** Copilot getting-started：无 sparkle 卡、无预填输入�
 │ Instructions     │  ┌ Search…                      [New] ┐   │
 │ Hooks            │  │ Workspace                          │   │
 │ MCP Servers      │  │   (empty: honest copy, no fakes)   │   │
-│ Tools            │  │ User                               │   │
+│                  │  │ User                               │   │
 │                  │  │   (empty)                          │   │
 │                  │  └────────────────────────────────────┘   │
 │                  │  选中一行后右栏切到 markdown 预览/编辑     │
@@ -80,7 +90,7 @@ Overview **不是** Copilot getting-started：无 sparkle 卡、无预填输入�
 └──────────────────┴───────────────────────────────────────────┘
 ```
 
-有文件时：分组头（Workspace / User）+ 行（名、路径、enable checkbox）。点行 → 现有 embedded editor（preview / raw）。无文件、无引擎：列表不画假行，走 §3 空态。
+有文件时：分组头（Workspace / User）+ 行（名、路径）。**不要**把 enable checkbox 当引擎 catalog 开关（那是 Engine 页）。点行 → embedded editor。无文件：列表空，不画假行。
 
 ### 1.3 MCP（定义面，非运行态）
 
@@ -93,7 +103,7 @@ Overview **不是** Copilot getting-started：无 sparkle 卡、无预填输入�
 │ Instructions     │  ┌ Search…                       [Add] ┐  │
 │ Hooks            │  │ Workspace                          │   │
 │ MCP Servers   ●  │  │   my-server     mcp.json           │   │
-│ Tools            │  │ User                               │   │
+│                  │  │ User                               │   │
 │                  │  │   (empty)                          │   │
 │                  │  └────────────────────────────────────┘   │
 │                  │  无 Featured / Browse Marketplace         │
@@ -109,11 +119,11 @@ Overview **不是** Copilot getting-started：无 sparkle 卡、无预填输入�
 
 | 现状（截图 / HEAD） | 选定 |
 |---------------------|------|
-| 模态名 `Agent Customizations for Copilot [Agent Host]` | 默认窗固定 **`Agent Customizations`** |
+| 模态名截图 `… Copilot [Agent Host]`；**默认窗 HEAD** `getName()` = `Agent Customizations - Local`（core descriptor `Local`） | 默认窗固定 **`Agent Customizations`**，去掉 `- Local` / Copilot / Agent Host |
 | `EditorInput.setTargetLabel(harnessService.getActiveDescriptor().label)` 拼出 `- Copilot` | 默认窗 **不要**把 Copilot / Agent Host / 回退 `"Local"` 写进标题 |
 | Overview `h2` 已是 `Agent Customizations`，但截图大标题仍带 Copilot | Overview 大标题与模态名同一字符串，不再重复 harness |
 
-引擎真正连上 UniverseAgent 之后（E1 之后，本文件不实施）：标题可变为 `Agent Customizations — UniverseAgent`。未连上时副文案写 **Engine not connected.**，不要假装 Local harness。
+引擎真正连上之后本文件仍不改标题成商品名。副文案不要写 Engine catalog 空态（那是 Engine pane）。
 
 改点：`AICustomizationManagementEditorInput.getName()` 的 target 后缀；`updateHarnessLabelPresentation()` 默认窗不再 `setTargetLabel` Copilot 描述符。
 
@@ -122,9 +132,9 @@ Overview **不是** Copilot getting-started：无 sparkle 卡、无预填输入�
 | 现状 | 选定 |
 |------|------|
 | 顶上独立 `sidebar-home-button`（Overview）+ 下面 `WorkbenchList` **不含** Overview | Overview 收进 **同一只** `sectionsList`（`WorkbenchList<ISectionItem>`）作第一行，选中态与其它节同一 renderer。删掉 harness 风格 home 按钮 |
-| HEAD `managementSections` 默认窗：Plugins, MCP, Skills, Instructions, Agents, Hooks, Tools, Prompts, HarnessSettings | 默认窗可见序：**Overview · Agents · Skills · Instructions · Hooks · MCP Servers · Tools**（对齐截图产品序，去掉 Plugins） |
+| HEAD `managementSections` 默认窗含 Plugins, MCP, Skills, Instructions, Agents, Hooks, Tools, Prompts, HarnessSettings；Local harness **`hiddenSections` 含 Tools** | 默认窗可见序：**Overview · Agents · Skills · Instructions · Hooks · MCP Servers**。**不要**把 Tools 加回左 nav（HEAD 已藏）。`managementSections` **删除** plugins / prompts / harnessSettings / tools，否则仍会构造 widget |
 | harness `hiddenSections` 再滤一层 | 保留机制；默认窗产品轨额外 **永不画出** Prompts / Automations / Models / HarnessSettings / Plugins |
-| 侧栏 count 徽章 | 可保留数字；0 不显示「假 7 张卡都有货」的营销感。无引擎 Tools 计为 0 |
+| 侧栏 count 徽章 | 可保留；0 不营销 |
 
 Overview 选中 = 今日 `selectedSection === undefined` + `showWelcomePage()`。不要给 Overview 新枚举值；`AICustomizationManagementSection` 保持 HEAD 字符串。
 
@@ -134,10 +144,11 @@ Overview 选中 = 今日 `selectedSection === undefined` + `showWelcomePage()`�
 
 | 节 | 默认窗左 nav | 备注 |
 |----|----------------|------|
-| Overview | 有（welcome，非枚举） | 改造 |
-| Agents / Skills / Instructions / Hooks / MCP / Tools | 有 | 按 §3 |
-| Plugins | **无**（隐藏） | 深链 → 诚实空，无 Browse |
-| Prompts / Automations / Models / HarnessSettings | **无** | [settings-two-surfaces.md](settings-two-surfaces.md)：不进默认窗产品轨。禁止挂 `ChatModelsWidget` |
+| Overview | 有（welcome，非枚举） | 文件工具着陆，不是 Engine catalog |
+| Agents / Skills / Instructions / Hooks / MCP | 有 | 文件列表+预览，§3 |
+| Tools | **无**（保持 harness 隐藏；并从 `managementSections` 去掉） | 产品面在 Engine 页 |
+| Plugins | **无**；从 `managementSections` 去掉（只藏左 nav 仍会挂载 Browse） | 深链 → 诚实空 |
+| Prompts / Automations / Models / HarnessSettings | **无** | 不进默认窗产品轨。禁止挂 `ChatModelsWidget` |
 
 ### 2.4 从整页剥掉的 Copilot chrome
 
@@ -165,7 +176,7 @@ Overview 选中 = 今日 `selectedSection === undefined` + `showWelcomePage()`�
 | 卡上文案 | 改造：去掉 Copilot marketing（「Create specialized agents…」等）。每行一句产品事实，见下表 |
 | Voice/Dictation | **剥离** |
 | 迁移卡 | 默认窗 **剥离** |
-| 无引擎 | 着陆副文案：**Engine not connected.** 仍列出六节链接（Tools 行注明 until E1） |
+| 无引擎 | 着陆说明文件工具；**不要**写 Engine not connected 六节 catalog。链到 Engine settings 用 Settings 式一行链接即可 |
 
 链接行 copy（英文 UI 源串）：
 
@@ -192,18 +203,18 @@ Overview 选中 = 今日 `selectedSection === undefined` + `showWelcomePage()`�
 | 路径/元数据 | H1 起按 UA Profile 目录（[customizations-engine.md](customizations-engine.md)）。H0 只改正文案与卡→列表，不在本 UI 稿规定磁盘布局 |
 | 工具白名单 | 预览侧展示 `tools.json` 是引擎面；H0/H1 UI 只预览 `AGENTS.md`。完整白名单 until E1 |
 | Copilot agent 市场 | **剥离** |
-| 空态 | 标题 `No agent profiles yet`。副句：`Create a profile in this workspace or your user folder. The engine catalog is unavailable until E1.` 无引擎允许空列表；**禁止**填 Copilot 内置 persona 名 |
+| 空态 | 标题 `No agent files yet`。副句：`Create a markdown file. Agent profiles are managed in Engine settings.` **禁止**填 Copilot persona 名 |
 
-### 3.3 Skills → Engine Skill catalog
+### 3.3 Skills → 技能**文件**（不是 Engine catalog）
 
 | | |
 |--|--|
 | 列表 / New / SKILL.md | **复用** `AICustomizationListWidget`；卡→`WorkbenchList` 同 Agents |
-| 文案 | 去掉「Folders … that Copilot loads」。改为：Reusable skill files. Enablement applies to new conversations after the catalog is connected. |
-| enable 开关 | 控件可留（list 行 checkbox）。无引擎：开关 disabled 或整行不可 toggle，hover：**诚实空 until E1**。禁止只改 Copilot 忽略列表却写「已接引擎」 |
-| Skill 商店 / Browse | **剥离**（延后） |
-| 空态 | `No skills yet` / `Skills are listed from the UniverseAgent catalog after an engine connects. This view stays empty until then.` **禁止**假技能名 |
-| H1 | 列表分组改扫 UA 路径，仍可本地文件，标 Stub。本文件不写 RPC |
+| 文案 | 去掉 Copilot loads。改为：Skill markdown files. Engine catalog is in Engine settings. |
+| enable 开关 | **不要**当引擎 catalog toggle |
+| Skill 商店 / Browse | **剥离** |
+| 空态 | `No skill files yet` / `Add a skill markdown file.` **禁止**假技能名 |
+| 路径 | 禁止扫 `~/.copilot/skills` 冒充 UA。可列工作区普通文件；**不要**标 Stub catalog |
 
 ### 3.4 Instructions → 规则
 
@@ -212,7 +223,7 @@ Overview 选中 = 今日 `selectedSection === undefined` + `showWelcomePage()`�
 | 列表 / New / md | **复用** list + preview；卡→列表 |
 | 产品意图 | 保留「总是注入的短规则」 |
 | 文案 | 去掉「teach Copilot about your codebase」。改为：Always-on rules for this workspace or your user profile. |
-| 空态 | `No instructions yet` / `Add a rules file for this workspace or your user profile. Engine-backed rules stay empty until E1.` |
+| 空态 | `No instructions yet` / `Add a rules file.` Engine-backed rules 在 Engine 页 |
 | Memory | **不**出现。不增加 Memory 节 |
 | H2 | 语义对 UA global/project rules；禁止 UI 声称 `.github/copilot-instructions.md` 已是引擎权威 |
 
@@ -242,7 +253,7 @@ Overview 选中 = 今日 `selectedSection === undefined` + `showWelcomePage()`�
 
 | | |
 |--|--|
-| 左 nav | **隐藏** |
+| 左 nav | **无**；从默认窗 `managementSections` **删除** `plugins`（只藏 nav 仍会构造 Browse） |
 | `PluginListWidget` / `EmbeddedAgentPluginDetail` | 默认窗不挂载。深链 `openManagementEditor({ section: 'plugins' })`：右栏诚实空，无 Browse、无 `PluginMarketplaceSnapshotModel` |
 | 空态（仅深链） | `Plugins are not available yet.` / `Engine plugins are not the VS Code marketplace. This section stays empty until the engine exposes a plugin catalog.` |
 | Browse Marketplace | **剥离** |
@@ -252,38 +263,37 @@ Overview 选中 = 今日 `selectedSection === undefined` + `showWelcomePage()`�
 | | |
 |--|--|
 | HEAD | `ToolsListWidget(AGENT_HOST_COPILOT_CLI_SESSION_TYPE)` 画出只读 `copilot-cli` 组（bash、apply_patch、…）+ 默认窗 Browse Marketplace |
-| 选定 | **替换内容为诚实空 until E1**。左 nav **保留** Tools |
+| 选定 | **默认窗不构造、不展示** Tools（保持 harness 隐藏并从 `managementSections` 去掉）。产品 enablement 在 `ua.engine` |
 | Copilot CLI 清单 | **剥离**（H0 即可整节空） |
 | Browse / `GalleryItemRenderer` | **剥离** |
-| 有引擎后（E1，不在本文件画控件树） | 当前引擎/Profile 的工具 enablement（引擎工具 + 本机 client-tool）。本页仍用列表+checkbox，不新造卡网 |
+| 有引擎后 | **不在本编辑器**。列表零件可拆到 Engine pane |
 | 空态（现在） | `No tools to configure` / `Tool enablement needs a connected engine. Copilot built-in tools are not listed.` |
 
-## 4. H0–H3 UI 验收（切片名与引擎面 / two-surfaces 对齐）
+## 4. H0–H3 UI 验收（donor chrome，不是 Engine catalog）
 
-本文件只验收 **看得见的宿主 UI**。E1（引擎 list/toggle 接到 H1）不在本页。
+E1 / catalog 不在本页。
 
-### H0 — 去 Copilot 脸 + Overview + Tools 空
+### H0 — 去 Copilot 脸；不要加回 Tools
 
 - 模态标题是 `Agent Customizations`，不含 Copilot、Agent Host、Local。
 - Overview 无「Customize Your Agent」输入，无预填 Chat，无营销卡栅，无 Voice/Dictation。
-- 左 nav 默认窗只有 Overview + Agents + Skills + Instructions + Hooks + MCP Servers + Tools；无 Prompts / Models / HarnessSettings / Plugins。
-- Tools 右栏诚实空，DOM/文案均无 `apply_patch` / `copilot-cli` / Copilot CLI 工具名。
+- 左 nav：**Overview · Agents · Skills · Instructions · Hooks · MCP**。无 Tools / Prompts / Models / HarnessSettings / Plugins。`managementSections` 不含 plugins/tools/prompts/harnessSettings。
+- DOM 无 `apply_patch` / `copilot-cli`。Chat `ViewTitle` Open Customizations 默认窗须藏（M5）。
 - 截图底栏 Auto / Autopilot / Detailed permissions **未**出现在本编辑器内（若仍在窗口底，属 Dock / M5，不记本切片失败）。
 - 无假技能名、无 Featured MCP 三卡。
 
-### H1 — Skills / Agents 换 UA 路径与文案（仍可本地，标 Stub）
+### H1 — 文件列表 vscode 化（不是 Stub catalog）
 
 - 两节卡布局改为 `WorkbenchList` 分组（Workspace / User）。
-- 文案不再含 Copilot；空态用 §3.2 / §3.3。
-- New 为 Manual；无 Generate with AI / Chat。
-- 列表若仍扫 Copilot `~/.copilot/skills` 冒充 UA catalog → **本切片失败**。本地 UA 路径文件可出现并标 Stub。
-- enable 在无引擎时不可假装已打到 catalog。
+- 文案不再含 Copilot。New 为 Manual；无 Generate with AI。
+- 仍扫 `~/.copilot/skills` 冒充 UA → 失败。
+- **不**做引擎 enable / Stub catalog。
 
 ### H2 — Instructions / Hooks 换 UA 语义
 
 - Instructions 空态/说明不再 teach Copilot；不出现 Memory 节。
 - Hooks 说明指向 agent loop，不指向 save-file / run-task。
-- 无引擎：列表诚实空 until E1；不列出 Copilot/vscode 任务事件冒充 hook 点。
+- 无引擎：文件列表可空；不列出 Copilot/vscode 任务事件冒充 hook 点。
 
 ### H3 — MCP 定义去 Copilot 源；Browse 去掉
 
@@ -323,9 +333,9 @@ Overview 选中 = 今日 `selectedSection === undefined` + `showWelcomePage()`�
 | `mcpListWidget.ts` | **复用** 已安装/本地定义列表 + search + Add；**剥离** Featured / gallery / Browse |
 | `embeddedMcpServerDetail.ts` | **复用** 定义详情 |
 | `pluginListWidget.ts` / `embeddedAgentPluginDetail.ts` | 默认窗 **不挂载**；深链空态即可 |
-| `toolsListWidget.ts` / `embeddedExtensionToolsDetail.ts` | H0：**替换**为诚实空（或编辑器内不实例化 widget，右栏自绘 welcome）。禁止 `COPILOT_CLI_TOOLS` |
+| `toolsListWidget.ts` / `embeddedExtensionToolsDetail.ts` | 默认窗 **不实例化**。禁止 `COPILOT_CLI_TOOLS` |
 | `galleryItemRenderer.ts` | 默认窗产品轨 **不用** |
-| `aiCustomizationWorkspaceService.ts`（browser） | **改** `managementSections` 默认窗集合与顺序；`welcomePageFeatures.showGettingStartedBanner: false` |
+| `aiCustomizationWorkspaceService.ts`（browser） | 默认窗 `managementSections` **仅**文件节（agents/skills/instructions/hooks/mcpServers）；**删除** plugins/tools/prompts/harnessSettings。`showGettingStartedBanner: false` |
 | `ChatModelsWidget`（经 editor 挂载） | 默认窗 **不挂载** |
 | `agentGlobalConfigurationSettingsWidget.ts` | HarnessSettings：**不进**默认窗轨 |
 | `promptsServiceCustomizationItemProvider.ts` / `aiCustomizationItemsModel.ts` | H1+ 换扫描路径时改 data source；H0 不动权威、只动 chrome |
@@ -336,6 +346,9 @@ Overview 选中 = 今日 `selectedSection === undefined` + `showWelcomePage()`�
 ## 7. 与产品目录 / C5 的边界
 
 - 产品主面（本地 vs Engine、vscode 同一张脸）以 [settings-two-surfaces.md](settings-two-surfaces.md) 为准。本文件只写 donor 零件 chrome。
-- TOC 入口、RequiresModal：以 [page-access-schemes.md](page-access-schemes.md) C5 **目标**为准；HEAD 代码未落（仍有 `ua.customizations` pane）。
-- 引擎 catalog / Profile / hook / 工具： [customizations-engine.md](customizations-engine.md)；本页只规定无数据时的空态。
-- 本文件不把 H0 标成 ReadyToImplement。
+- TOC 入口：C5 目标 `executeCommand(OpenEditor)`；Palette **保持** `f1: true` + `IsSessionsWindowContext`。HEAD 仍有 `ua.customizations` pane。
+- catalog 空态与 E1 在 Engine 页 / 引擎面稿。本文件不把 H0 标成 ReadyToImplement。
+
+## 8. 审查记录（规则 16）
+
+2026-09-01：三路并行 Cursor Grok 4.6 只读。本文件原评估 **Block**。已当轮改入：H0–H3 收成文件工具；Tools 不进默认窗左 nav；OpenEditor Palette 门钉死；`managementSections` 必须删 plugins/tools 而非只藏 nav。

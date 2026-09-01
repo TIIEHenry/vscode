@@ -168,11 +168,11 @@ PRD-001 至 PRD-007 的代码已在 M0–M3 合入，但 D4 启动冒烟（T1–
   2. Init 与 During 共用一张 Composer：底栏同一高度；`+` 浅底圆、语音无底、发送实心圆；其余底栏控件无背景。
   3. Agent 只在空会话可改；首条发送后从输入行消失，不进 SessionBar。Route 只在空会话出现在输入行；首条发送后只在 SessionBar。
   4. Model、Permission、Tools 在 During 仍留在输入行。不画第二行「锁定 SessionConfig」卡片。
-  5. Inbox 左簇 Task 在 MessageQueue 左侧；两列表互斥展开；无权威时整槽省略或诚实空，不造假任务。
+  5. Inbox 左簇 Task 在 MessageQueue 左侧；两列表互斥展开；无权威时整槽省略或诚实空，不造假任务。MessageQueue **列表与行交互**跟 Singularity MessageQueue 设计稿，不另造一套。
   6. 列表内编辑与队列编辑复用同一 Composer（含 Exit）；展示态用户卡没有按钮。
   7. 语音钮在发送左侧。语音转写队列不是 MessageQueue。
   8. 输入面不是 Copilot `ChatInputPart` 的一排 picker，也不是 Singularity 2×2 Material 配置卡。
-- **依赖或未决**：活队列 / 路由策略 / AgentProfile 数据依赖 PRD-008。无引擎时 Route 与 Agent 用诚实空或 stub 选项，不假装已接到引擎策略表。方案见 [conversation-empty-hero](../../dev/plans/conversation-empty-hero.md)。
+- **依赖或未决**：活队列 / 路由策略 / AgentProfile 数据依赖 PRD-008。无引擎时 Route 与 Agent 用诚实空或 stub 选项，不假装已接到引擎策略表。MessageQueue 列表 UI SSOT = Singularity [message-queue-bar](../../../UniverseAgent/singularity/docs/ui/components/status/message-queue-bar.md)（槽位仍以本仓 Inbox 为准）。方案见 [conversation-empty-hero](../../dev/plans/conversation-empty-hero.md)。
 
 ## 未决或阻塞
 

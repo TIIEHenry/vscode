@@ -44,6 +44,7 @@ summary: "PRD-001–PRD-015 到规格、方案与证据的轻量追踪；PRD-011
 | Conversation 轨迹页内容 | Desktop ADR-047：轨迹 = 当前活动/运行监视 | **宿主**对齐闭集 `conversation \| trajectory`；**内容**对齐 DeepSeek harness 检查记录表（注入 / chip / 环境），不把「当前活动监视」当本仓轨迹定义 |
 | Conversation 过程折 | Desktop ADR-046：span overlay | **显示优化**：对话/轨迹共用 overlay；对话默认收起、轨迹默认展开；不把折壳当列表键 |
 | 空会话配置 / Input Dock | Desktop §8.3 Inbox；Singularity SessionConfig 首条锁定 | **本仓**：Agent 初始化可改后锁定且不进 SessionBar；Route 初始化在 Composer、之后 SessionBar；不画 CompactStrip 锁定行；Inbox 左右分簇且 Task 在 MessageQueue 左 |
+| MessageQueue 列表 UI | Singularity `message-queue-bar.md` + `message-queue-layout-preview.html` | **槽位**用本仓 Inbox 浮层；**列表/行/hold/Pause**跟 Singularity 设计稿，不自造 |
 
 ## 状态分桶
 

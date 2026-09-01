@@ -22,14 +22,16 @@ summary: "产品设置只有本地与 Engine 两页，必须分开；视觉与 v
 4. **UI 与 vscode 统一：** 两页同一张脸（workbench token、`SettingsEditor2` / Preferences 密度、`WorkbenchList`、原生 Button / SelectBox / InputBox / monaco）。禁止 Material 卡、Copilot 营销卡栅、第二套色板。
 
 ```text
-本地 SettingsEditor2：Display / Chat Input / Keyboard / Notifications /
-  Permissions 座位 / Client Tools
+本地 = 完整 SettingsEditor2（Application / Features / … + UA 组）
+  UA 组：Display / Chat Input / Startup / Keyboard Enter /
+         Notifications / Permissions / Client Tools
   → Open Connection…（ua.connection）
   → Open Engine…（只跳转）
   → Open Customizations…（C5 后 = 文件工具，不是第三主页）
 
-Engine ua.engine：Provider / Model / Skill / Agent Profile / Rules /
-  Hooks / MCP 定义 / 引擎工具。无引擎 = 诚实空 + Test。
+Engine ua.engine：Provider / Model / Skill catalog / Agent Profile /
+  Rules（= Instructions）/ Hooks / MCP 定义 / 引擎工具。
+  无引擎 = 诚实空 + Test。禁止本机 Copilot 盘冒充已连。
 
 HEAD ua.customizations pane = 禁止的第三宿主（TOC 今天仍打开它）。
 ```
@@ -38,18 +40,52 @@ HEAD ua.customizations pane = 禁止的第三宿主（TOC 今天仍打开它）�
 
 ## 1. 本地页
 
-无连接也可开。主题复用 `workbench.colorTheme`。UA 增量（对话阅读、Enter）做在 Client 树。禁止在本地树做 Provider / Skill catalog / Agent Profile。
+**就是完整 `SettingsEditor2`**，不是只剩 UA 组的空壳。主题复用 `workbench.colorTheme`。UA 增量（对话阅读、Enter）做在 Client `ua/*` 组。HEAD 已有 `ua/startup` emptyCopy，本波不迁启动向导。禁止在本地树做 Provider / Skill catalog / Agent Profile。
 
-## 2. Engine 页
+## 2. Engine 页 vs 文件工具（必须一张表，禁止第三套主设置）
 
-产品 catalog 在这里。无引擎整页诚实空，禁止浏览本机 Copilot 文件冒充已连。Provider **禁止** `ModelsManagementEditor`。Prompts 不进默认窗产品轨。
+| 产品行为 | 宿主 |
+|----------|------|
+| Provider / Model Profile | `ua.engine`。**禁止** `ModelsManagementEditor` |
+| Skill catalog 列表 / enable | `ua.engine` |
+| Agent Profile catalog | `ua.engine` |
+| Rules（UA global/project；donor 节名 Instructions） | `ua.engine` |
+| Hook 点位 + 引擎侧定义 | `ua.engine` |
+| MCP **定义** CRUD（引擎权威） | `ua.engine` |
+| 引擎 / Profile 工具 enablement | `ua.engine` |
+| 无引擎 | **整页诚实空 + Test**。禁止在 Engine 页扫本机文件当 catalog/Stub「快接上了」 |
+| 打开某份 UA markdown / `tools.json` 来编辑 | `AICustomizationManagementEditor`（文件工具）。可从 Engine 某行「在编辑器中打开」 |
+| 本地 vscode MCP / 工作区普通 md | 不是 Engine catalog；donor 若列出须当普通文件，文案不得写引擎 |
 
-零件从 Customizations 编辑器拆用时，只拆列表/预览行为，chrome 落到 Engine pane 的 vscode 密度上。
+零件：只把 `WorkbenchList` / monaco / markdown 预览 **拆进** Engine pane 的 vscode 密度。禁止把 Copilot 左 nav Overview 整页当 Engine 首页。
 
-## 3. Customizations 编辑器降级
+Prompts 不进默认窗产品轨（斜杠 = Skill catalog）。
 
-`AICustomizationManagementEditor` = 文件工具 donor。C5 目标 TOC → `aiCustomization.openManagementEditor`；HEAD 仍是 `workbench.action.openCustomizationsPreferences` + `ua.customizations` pane。产品 Skill/Agent 主路径是 §2，不是这只 Overview。
+## 3. Customizations 编辑器降级 + C5 打开路径
+
+`AICustomizationManagementEditor` = 文件工具。**不是** Skill/Agent/Tools 产品首页。
+
+**C5 TOC（默认窗合法路径，不新开 command）：**
+
+| | HEAD | 选定 |
+|--|------|------|
+| TOC `ua/customizations` | `workbench.action.openCustomizationsPreferences`（第三 pane） | `aiCustomization.openManagementEditor` |
+| `OpenEditor` | `f1: true`，`precondition: ChatContextKeys.enabled ∧ IsSessionsWindowContext` | **保持**。Palette 测要求条目仍注册且默认窗 `when` 为 false |
+| TOC 点击 | `ICommandService.executeCommand` | **不走** Action2 `precondition`（precondition 管 Menu/键位）。默认窗 TOC 可打开编辑器 |
+| 禁止 | | 为 TOC 去掉 `IsSessionsWindowContext`（会把 F1 「Open Customizations」露进默认窗）；新开第二条 Open 命令，除非证伪 executeCommand 被 precondition 挡住 |
+
+Chat `ViewTitle` 仍可能挂 Open Customizations（无 Sessions 门）：默认窗须藏，走 M5 / INV-NO-COPILOT，不得当第三产品门。
+
+HEAD 仍有 `ua.customizations` pane，切片须注销。
 
 ## 4. 非目标
 
-重开 Client/Connection/Engine 宿主；Navigator Agents 并进设置；两页两套皮肤；保留 `ua.customizations` pane。
+重开 Client/Connection/Engine 宿主；Navigator Agents 并进设置；两页两套皮肤；保留 `ua.customizations` pane；把 donor Overview 做成 Engine catalog。
+
+## 5. 审查记录（规则 16）
+
+2026-09-01：请求 Opus 5.0 本 harness 无此 slug。三路并行 Cursor Grok 4.6 只读（一篇一审）。本文件 **Approve with changes**。已当轮改入：
+
+- **C1：** 钉死默认窗 TOC 用 `executeCommand(OpenEditor)`，保持 Palette 的 Sessions 门，不新开 command。
+- **C2：** §2 余量表：catalog 只在 `ua.engine`；donor 只编辑文件。
+- **I：** 完整 SettingsEditor2 + `ua/startup` / Keyboard Enter；Rules = Instructions。
