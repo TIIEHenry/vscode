@@ -26,7 +26,7 @@ summary: "文件编辑器 donor 的 vscode chrome：剥 Copilot 营销；零件�
 | 禁止视觉 | Singularity Settings 卡、Material 彩色圆标大卡、Copilot Overview 营销卡栅、Ocean/Snow |
 | 标题 | 禁止停留在 `Copilot [Agent Host]` / `Agent Customizations - Copilot` |
 | Overview 输入 | 禁止「Customize Your Agent」预填 Chat / `/init` |
-| Plugins | v1 **默认窗左 nav 隐藏**；深链到该节则诚实空。禁止 Browse 进 Copilot / Open VSX 冒充引擎插件 |
+| Plugins | v1 默认窗 **`managementSections` 删除** `plugins`（只藏左 nav 仍会构造 `PluginListWidget`）。深链诚实空。禁止 Browse 进 Copilot / Open VSX |
 | Tools | 禁止 `COPILOT_CLI_TOOLS`。默认窗 **不画** Tools 节（HEAD 已藏）。产品 enablement 在 Engine 页 |
 | 默认窗不进产品轨 | `prompts` / `automations` / `models` / `harnessSettings`（HEAD 枚举仍可存在，左 nav 不画） |
 | 截图底栏 | `+ Agent` / `Auto` / `Autopilot` / `Detailed permissions` 是 **Conversation Dock**，不是本编辑器。剥离走 M5 / INV-NO-COPILOT。本页只记 **out of scope** |
@@ -182,12 +182,11 @@ Overview 选中 = 今日 `selectedSection === undefined` + `showWelcomePage()`�
 
 | 节 | 行描述 |
 |----|--------|
-| Agents | Define agent profiles for this workspace or your user profile. |
-| Skills | Add reusable skill files. The engine catalog appears after a connection. |
-| Instructions | Always-on rules for the workspace or your user profile. |
-| Hooks | Hook definition files for the agent loop. |
-| MCP Servers | Server definitions (not live engine tools). |
-| Tools | Enable tools for the current engine profile. Empty until an engine is connected. |
+| Agents | Agent profile markdown files. Catalog is in Engine settings. |
+| Skills | Skill markdown files. Catalog is in Engine settings. |
+| Instructions | Rules markdown files. |
+| Hooks | Hook definition files. |
+| MCP Servers | Local MCP definition files (not live engine tools). |
 
 禁止 Overview 再做第二套 Conversation。
 
@@ -200,8 +199,8 @@ Overview 选中 = 今日 `selectedSection === undefined` + `showWelcomePage()`�
 | 文案 | 去掉 persona/Copilot。标题 **Agents**。说明：Agent profiles (`AGENTS.md` + `tools.json`) for this workspace or your user profile. |
 | Learn more | 去掉 vscode Copilot 文档链 |
 | New | 只留 **Manual New**（现有 `NEW_AGENT_COMMAND_ID` / `onDidRequestCreateManual`）。剥离 AI-guided `onDidRequestCreate` |
-| 路径/元数据 | H1 起按 UA Profile 目录（[customizations-engine.md](customizations-engine.md)）。H0 只改正文案与卡→列表，不在本 UI 稿规定磁盘布局 |
-| 工具白名单 | 预览侧展示 `tools.json` 是引擎面；H0/H1 UI 只预览 `AGENTS.md`。完整白名单 until E1 |
+| 路径/元数据 | H0 只改正文案与卡→列表。磁盘权威在引擎面；本编辑器当普通文件打开 |
+| 工具白名单 | 本编辑器最多预览已打开的 `AGENTS.md`。`tools.json` enablement 在 Engine 页 |
 | Copilot agent 市场 | **剥离** |
 | 空态 | 标题 `No agent files yet`。副句：`Create a markdown file. Agent profiles are managed in Engine settings.` **禁止**填 Copilot persona 名 |
 
@@ -233,9 +232,9 @@ Overview 选中 = 今日 `selectedSection === undefined` + `showWelcomePage()`�
 |--|--|
 | 列表 + 编辑定义 | **复用** list + preview；卡→列表 |
 | 文案 | HEAD「saving files or running tasks」是 vscode 任务钩子。改为：Hook definition files for the agent loop (message / tool / permission lifecycle). |
-| New | 复用现有 create / `showConfigureHooksQuickPick`，但触发点枚举不得只列 Copilot/vscode task 事件。无引擎：New 仍可建本地文件；点位下拉若只有 Copilot 事件则 **隐藏下拉**，说明 **诚实空 until E1** |
-| 空态 | `No hooks yet` / `Hook points come from the engine. This list stays empty until E1.` |
-| H2 | 展示 UA hook 点（引擎面）；本文件不列 RPC |
+| New | 可建本地 hook 文件。点位下拉若只有 Copilot/vscode task 事件则 **隐藏下拉**（点位表在 Engine 页） |
+| 空态 | `No hook files yet` / `Add a hook definition file.` |
+| H2 | 去 Copilot 任务钩子文案。live 点位表不在本编辑器 |
 
 ### 3.6 MCP Servers
 
@@ -264,10 +263,9 @@ Overview 选中 = 今日 `selectedSection === undefined` + `showWelcomePage()`�
 |--|--|
 | HEAD | `ToolsListWidget(AGENT_HOST_COPILOT_CLI_SESSION_TYPE)` 画出只读 `copilot-cli` 组（bash、apply_patch、…）+ 默认窗 Browse Marketplace |
 | 选定 | **默认窗不构造、不展示** Tools（保持 harness 隐藏并从 `managementSections` 去掉）。产品 enablement 在 `ua.engine` |
-| Copilot CLI 清单 | **剥离**（H0 即可整节空） |
+| Copilot CLI 清单 | **剥离**（不实例化即达标） |
 | Browse / `GalleryItemRenderer` | **剥离** |
 | 有引擎后 | **不在本编辑器**。列表零件可拆到 Engine pane |
-| 空态（现在） | `No tools to configure` / `Tool enablement needs a connected engine. Copilot built-in tools are not listed.` |
 
 ## 4. H0–H3 UI 验收（donor chrome，不是 Engine catalog）
 
@@ -325,10 +323,10 @@ E1 / catalog 不在本页。
 | `aiCustomizationManagementEditor.ts` | **保留壳**（`SplitView`、sidebar list、content 显隐、embedded editor）。改：默认窗节序/显隐、Overview 并进 `sectionsList`、去掉 harness 标题后缀、不构造 Models/Plugins/Tools Copilot CLI、关掉 migration shortcut |
 | `aiCustomizationManagementEditorInput.ts` | **restyle 标题**：默认窗 `getName()` 不加 Copilot target |
 | `aiCustomizationWelcomePage.ts` | **保留包装**；回调里默认窗 `prefillChat` 不再从 Overview 触发 |
-| `aiCustomizationWelcomePagePromptLaunchers.ts` | **替换 Overview 呈现**：删输入与卡栅；改为链接行；删 Voice/Dictation/迁移卡；副文案 Engine not connected |
+| `aiCustomizationWelcomePagePromptLaunchers.ts` | **替换 Overview**：删输入与卡栅；链接行按 §3.1（无 Tools 行）；删 Voice/Dictation/迁移卡；副文案是文件工具，**不要** Engine not connected catalog |
 | `media/aiCustomizationWelcomePromptLaunchers.css` | **restyle**：去掉 `.welcome-prompts-primary` / card grid；链接行用 settings 密度 |
 | `aiCustomizationListWidget.ts` | **复用** `WorkbenchList` 路径；**关掉** `usesCustomizationCardLayout` 对 Agents/Skills/Instructions/Hooks（默认窗改走 list 非 `CustomizationCardListController`）；换 header/空态 copy；去掉 Copilot learnMore；去掉 AI create |
-| `customizationCardList.ts` | 默认窗文件节 **不再作为主呈现**；MCP/Plugins 卡若仍用，MCP 只服务定义行 |
+| `customizationCardList.ts` | 默认窗文件节 **不再作为主呈现**。Plugins 卡默认窗不挂 |
 | `customizationGroupHeaderRenderer.ts` | **复用** Workspace/User 分组头 |
 | `mcpListWidget.ts` | **复用** 已安装/本地定义列表 + search + Add；**剥离** Featured / gallery / Browse |
 | `embeddedMcpServerDetail.ts` | **复用** 定义详情 |

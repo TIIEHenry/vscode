@@ -71,8 +71,8 @@ Prompts 不进默认窗产品轨（斜杠 = Skill catalog）。
 |--|------|------|
 | TOC `ua/customizations` | `workbench.action.openCustomizationsPreferences`（第三 pane） | `aiCustomization.openManagementEditor` |
 | `OpenEditor` | `f1: true`，`precondition: ChatContextKeys.enabled ∧ IsSessionsWindowContext` | **保持**。Palette 测要求条目仍注册且默认窗 `when` 为 false |
-| TOC 点击 | `ICommandService.executeCommand` | **不走** Action2 `precondition`（precondition 管 Menu/键位）。默认窗 TOC 可打开编辑器 |
-| 禁止 | | 为 TOC 去掉 `IsSessionsWindowContext`（会把 F1 「Open Customizations」露进默认窗）；新开第二条 Open 命令，除非证伪 executeCommand 被 precondition 挡住 |
+| TOC 点击 | `ICommandService.executeCommand` | **不走** Action2 `precondition`（`CommandService._tryExecuteCommand` 只调 handler）。默认窗 TOC 可打开编辑器。**不要**包进 `openUaPaneReplacingClientSettings`（那是 Connection/Engine pane）。`RequiresModal` 由 `editorGroupFinder` 接管模态 |
+| 禁止 | | 为 TOC 去掉 `IsSessionsWindowContext`；新开第二条 Open 命令（executeCommand **未被** precondition 挡住，已核） |
 
 Chat `ViewTitle` 仍可能挂 Open Customizations（无 Sessions 门）：默认窗须藏，走 M5 / INV-NO-COPILOT，不得当第三产品门。
 
@@ -84,8 +84,4 @@ HEAD 仍有 `ua.customizations` pane，切片须注销。
 
 ## 5. 审查记录（规则 16）
 
-2026-09-01：请求 Opus 5.0 本 harness 无此 slug。三路并行 Cursor Grok 4.6 只读（一篇一审）。本文件 **Approve with changes**。已当轮改入：
-
-- **C1：** 钉死默认窗 TOC 用 `executeCommand(OpenEditor)`，保持 Palette 的 Sessions 门，不新开 command。
-- **C2：** §2 余量表：catalog 只在 `ua.engine`；donor 只编辑文件。
-- **I：** 完整 SettingsEditor2 + `ua/startup` / Keyboard Enter；Rules = Instructions。
+2026-09-01 第二轮并行 Grok：**Approve**。C5：`executeCommand` 不查 precondition（`commandService.ts` `_tryExecuteCommand`）；Palette 门保持。余量表成立。Minor 已改入：去掉「除非证伪 gated」；C5 不走 pane helper。

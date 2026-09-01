@@ -236,24 +236,24 @@ HEAD 发现路径在 `promptFileLocations.ts` / `IPromptsService` / `AICustomiza
 ### 8.1 依赖关系
 
 ```text
-H0（去 Copilot 文案 / Overview 去预填 Chat / Tools 去 CLI 清单）
-  → H1（Skills/Agents 换 UA 路径，本地 Stub）
-      → H2（Instructions/Hooks 换 UA 语义）
-      → H3（MCP 定义去 Copilot 源，去掉 Browse）
-          → E1（PRD-008 接通后：Skills list/toggle 走引擎协议）
+H0（donor：去 Copilot 文案 / Overview 去预填 / 不画 Tools CLI）
+  → H1（donor：Skills/Agents 列表 vscode 化，禁止 Stub catalog）
+      → H2（donor：Instructions/Hooks 去 Copilot 语义）
+      → H3（donor：MCP 去 Copilot 源，去掉 Browse）
+          → E1（PRD-008 后：Skills list/toggle 在 ua.engine）
 ```
 
-- H0–H3 **可以**在无引擎时做；必须遵守 §4。  
-- **E1 不得早于 PRD-008**。引擎接线方案未接受时，把 Stub 标成「已接引擎」= 产品失败。  
+- H0–H3 **可以**在无引擎时做；只动 donor chrome，**遵守 §4（Engine 页不扫盘）**。  
+- **E1 不得早于 PRD-008**。把断连列表标成「已接引擎」= 产品失败。  
 - Plugins 整节不在 H1–E1。
 
 ### 8.2 H1（产品语言）— **Engine 页，不是 Customizations**
 
 无引擎：用户打开 **Engine pane**（`openPreferences({ paneId: 'ua.engine' })`）看到诚实空 + Test。**不要**打开 Customizations Overview 去扫 `{AgentHome}` / `.universe-agent` 当 Stub catalog。
 
-有引擎且 `skills=SUPPORTED` 之前，H1 只允许剥 Copilot 文案/路径的 **donor 卫生**（host-ui），不算 catalog 产品。
+PRD-008 接通 **且** `skills=SUPPORTED` **之前**：Engine 页无 catalog（空 + Test）。H1 只做 donor 卫生，不算 catalog。donor 与 Engine 页都 **不得**标 Stub catalog。
 
-新建技能的 UA 路径约定留给 E1；H1 不在 Customizations 里做「引擎未连接也能看见 Stub 列表」。
+新建技能的 UA 路径约定留给 E1。
 
 ### 8.3 E1 验收（产品语言，禁止「某 class 接上了」当成功）
 
@@ -263,7 +263,7 @@ H0（去 Copilot 文案 / Overview 去预填 Chat / Tools 去 CLI 清单）
 2. 关掉一个 USER/PROJECT 技能后，再打开本页或刷新，开关状态仍是关；引擎侧 `ListSkills` 的 `enabled` 为 false。损坏的 manifest 不会被静默当成「全部关闭成功」。  
 3. 打开技能正文，预览的是引擎经 catalog 读出的 SKILL.md，而不是旁路打开了 `~/.copilot/skills/...`。  
 4. 开关旁有冻结说明；用户改开关后，**当前已打开的对话**技能表不变，新对话才变。  
-5. 断开引擎后，列表回到 Stub 或诚实空，**不再**显示刚才那次 RPC 的缓存并写「已同步」。  
+5. 断开引擎后，Engine 页回到 **诚实空 + Test**，**不再**显示刚才那次 RPC 的缓存并写「已同步」。禁止回成 Stub 磁盘 catalog。  
 6. `skills=UNSUPPORTED` 或探测失败时：无假技能名，无 Copilot 回填。
 
 未满足任一条，E1 不算完成。`SetSkillEnabled` 调用成功但 UI 仍扫 Copilot 路径，不算完成。
@@ -280,21 +280,24 @@ vscode 本页 **消费** 下列面；缺的由 UniverseAgent 补，IDE 不得用
 | Rules Remote gRPC | 阻塞 Remote 下 Instructions 成真 | 现网 `RulesBridge` 默认 Unsupported；未补之前 REMOTE 诚实空 |
 | Hook 点位元数据 RPC | 阻塞 Hooks「来自引擎」 | 否则只允许文档合同副本 + Stub `hooks.json` |
 | `ListSkills.source` | 非缺口 | Local 已 `setSource` 为 bundled/user/project。IDE 消费当前 wire；未知值当 unknown，不映射 Copilot local/user/extension |
-| 独立 CreateSkill / 写正文 RPC | H1 Stub 可写文件；E1 至少要「写后 catalog 刷新」或 SkillInfo 回读 | 禁止只写 vscode 工作区却声称 catalog 已收 |
+| 独立 CreateSkill / 写正文 RPC | E1 至少要「写后 catalog 刷新」或 SkillInfo 回读。H1 **不**做无引擎 Stub 写文件产品路径 | 禁止只写 vscode 工作区却声称 catalog 已收 |
 | `SetToolEnabled` | 不强制 | 用 `SaveAgentProfile`/`tools.json` 即可；Tools 节不要再发明第三套开关存储 |
 | MCP 运行态 | 非本页 | 不要为了填列表去调 Status/Tools |
 | AHP 定制资源 | 永久非权威 | 不把 agent-host 文件提供者升级成 UA adapter |
 
 ---
 
-## 10. 与父方案的关系
+## 10. 与产品目录的关系
 
-| 父方案切片 | 本文约束 |
-|------------|----------|
-| §6 引擎必须做的 | 展开为 §1 权威表 + §3 最小协议 |
-| §7 UI 约束 | 不在本文重复；空态文案必须能区分 Stub vs UNSUPPORTED vs 真 0 条 |
-| §8 H1 | Engine 页保持空直到 PRD-008；donor 不做 Stub catalog |
-| §8 E1 | §5 + §8.3：list/toggle 走引擎且不暗示热切换；UI 在 `ua.engine` |
+| 锚点 | 本文约束 |
+|------|----------|
+| two-surfaces §2 余量表 | catalog 只在 `ua.engine`；无引擎整页空 + Test |
+| host-ui donor | 只剥 Copilot 文件 chrome |
+| E1 | §5 + §8.3：list/toggle 在 `ua.engine`，不暗示热切换 |
+
+空态须区分：断连诚实空、UNSUPPORTED、UNKNOWN、真 0 条。**不要**把断连画成 Stub catalog。
+
+UA **Local**（已接本机引擎的文件面）≠ 断连 Stub catalog。Local I/O 只在 Engine-backed。
 
 宿主 UI 详稿只消费本表的节显隐与空态原因字符串，不另造数据源。
 
