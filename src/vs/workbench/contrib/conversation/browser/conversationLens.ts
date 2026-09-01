@@ -35,8 +35,16 @@ import {
 	conversationLensDockNoGoal,
 	conversationLensDockNoAttachments,
 	conversationLensDockNoModel,
+	conversationLensDockNoRoute,
 	conversationLensDockNoTemplates,
 	conversationLensDockNoTools,
+	conversationLensDockAgentLabel,
+	conversationLensDockNoAgent,
+	conversationLensDockStubAgent,
+	conversationLensDockRouteLabel,
+	conversationLensDockRouteBalanced,
+	conversationLensDockRouteQuality,
+	conversationLensDockRouteSpeed,
 	conversationLensDockPermissionAsk,
 	conversationLensDockPermissionLabel,
 	conversationLensDockPlaceholder,
@@ -50,7 +58,7 @@ import {
 	conversationLensPhasePreFirstDockHiddenClass,
 	conversationLensPrefirstHeroClass,
 } from './conversationLensDockStrings.js';
-import { conversationLensSessionBarConversationTab, conversationLensSessionBarDeleteSession, conversationLensSessionBarNewSession, conversationLensSessionBarRenameInputAria, conversationLensSessionBarRenameTitle, conversationLensSessionBarTrajectoryTab } from './conversationLensSessionBarStrings.js';
+import { conversationLensSessionBarConversationTab, conversationLensSessionBarDeleteSession, conversationLensSessionBarNewSession, conversationLensSessionBarRenameInputAria, conversationLensSessionBarRenameTitle, conversationLensSessionBarRouteLabel, conversationLensSessionBarTrajectoryTab } from './conversationLensSessionBarStrings.js';
 import {
 	buildSessionUserInputHistory,
 	createInputHistoryBrowseState,
@@ -71,6 +79,23 @@ const CONVERSATION_LENS_ID_STORAGE_KEY = 'conversation.lensId';
 
 type ConversationLensId = 'conversation' | 'trajectory';
 
+interface ConversationSessionConfigSelection {
+	agentIndex: number;
+	routeIndex: number;
+}
+
+const COMPOSER_AGENT_OPTIONS = [
+	conversationLensDockNoAgent,
+	conversationLensDockStubAgent,
+] as const;
+
+const COMPOSER_ROUTE_OPTIONS = [
+	conversationLensDockNoRoute,
+	conversationLensDockRouteBalanced,
+	conversationLensDockRouteSpeed,
+	conversationLensDockRouteQuality,
+] as const;
+
 /**
  * Product Conversation lens: SessionBar + stub timeline + local dock, mounted
  * into {@link IConversationLensSlots}. Not ChatEditor / ChatViewPane.
@@ -86,6 +111,8 @@ export class ConversationLens extends Disposable {
 	private sessionSelectContainer!: HTMLElement;
 	private newSessionButton!: Button;
 	private deleteSessionButton!: Button;
+	private sessionBarRouteContainer!: HTMLElement;
+	private sessionBarRouteSelectBox!: SelectBox;
 	private lensTablist!: HTMLElement;
 	private lensTabConversation!: HTMLButtonElement;
 	private lensTabTrajectory!: HTMLButtonElement;
@@ -101,6 +128,10 @@ export class ConversationLens extends Disposable {
 	private tuneButton!: Button;
 	private tuneContextView: IOpenContextView | undefined;
 	private permissionSelectBox!: SelectBox;
+	private agentContainer!: HTMLElement;
+	private agentSelectBox!: SelectBox;
+	private routeContainer!: HTMLElement;
+	private routeSelectBox!: SelectBox;
 	private moreButton!: Button;
 	private moreContextView: IOpenContextView | undefined;
 	private modelSelectBox!: SelectBox;
@@ -123,6 +154,7 @@ export class ConversationLens extends Disposable {
 	private conversationPhase: 'prefirst' | 'active' | undefined;
 
 	private readonly drafts = new Map<string, string>();
+	private readonly sessionConfigBySessionId = new Map<string, ConversationSessionConfigSelection>();
 	private inputHistoryBrowse: InputHistoryBrowseState = createInputHistoryBrowseState();
 	private suppressSessionSelect = false;
 	private mermaidExtensionInfo: ConversationMermaidExtensionInfo | undefined;
@@ -231,6 +263,36 @@ export class ConversationLens extends Disposable {
 		);
 	}
 
+	private createRouteSelectBox(selectedIndex: number, ariaLabel: string): SelectBox {
+		return this.createComposerSelectBox(
+			COMPOSER_ROUTE_OPTIONS.map(text => ({ text })),
+			selectedIndex,
+			ariaLabel,
+		);
+	}
+
+	private getSessionConfig(sessionId: string): ConversationSessionConfigSelection {
+		return this.sessionConfigBySessionId.get(sessionId) ?? { agentIndex: 0, routeIndex: 0 };
+	}
+
+	private setSessionConfig(sessionId: string, patch: Partial<ConversationSessionConfigSelection>): void {
+		const current = this.getSessionConfig(sessionId);
+		this.sessionConfigBySessionId.set(sessionId, { ...current, ...patch });
+	}
+
+	private syncSessionConfigSelects(sessionId: string): void {
+		const { agentIndex, routeIndex } = this.getSessionConfig(sessionId);
+		this.agentSelectBox.select(agentIndex);
+		this.routeSelectBox.select(routeIndex);
+		this.sessionBarRouteSelectBox.select(routeIndex);
+	}
+
+	private updateSessionConfigVisibility(preFirst: boolean): void {
+		this.agentContainer.hidden = !preFirst;
+		this.routeContainer.hidden = !preFirst;
+		this.sessionBarRouteContainer.hidden = preFirst;
+	}
+
 	private mountSessionBar(host: HTMLElement): void {
 		const bar = append(host, $('.conversation-lens-session-bar'));
 		bar.setAttribute('role', 'banner');
@@ -282,6 +344,18 @@ export class ConversationLens extends Disposable {
 		}));
 
 		const controls = append(bar, $('.conversation-lens-session-controls'));
+
+		this.sessionBarRouteContainer = append(controls, $('.conversation-lens-session-route'));
+		const activeSessionId = this.stubService.getActiveSessionId();
+		const activeRouteIndex = this.getSessionConfig(activeSessionId).routeIndex;
+		this.sessionBarRouteSelectBox = this._register(this.createRouteSelectBox(activeRouteIndex, conversationLensSessionBarRouteLabel));
+		this.sessionBarRouteSelectBox.render(this.sessionBarRouteContainer);
+		this._register(this.sessionBarRouteSelectBox.onDidSelect(e => {
+			const sessionId = this.stubService.getActiveSessionId();
+			this.setSessionConfig(sessionId, { routeIndex: e.index });
+			this.routeSelectBox.select(e.index);
+		}));
+
 		const switcherLabel = append(controls, $('span.conversation-lens-session-switcher-label'));
 		switcherLabel.textContent = localize('conversationLens.sessionLabel', "Session");
 
@@ -446,6 +520,29 @@ export class ConversationLens extends Disposable {
 			conversationLensDockPermissionLabel,
 		));
 		this.permissionSelectBox.render(permissionContainer);
+
+		this.agentContainer = append(bottomLeading, $('.conversation-lens-dock-agent'));
+		this.agentSelectBox = this._register(this.createComposerSelectBox(
+			COMPOSER_AGENT_OPTIONS.map(text => ({ text })),
+			this.getSessionConfig(this.stubService.getActiveSessionId()).agentIndex,
+			conversationLensDockAgentLabel,
+		));
+		this.agentSelectBox.render(this.agentContainer);
+		this._register(this.agentSelectBox.onDidSelect(e => {
+			this.setSessionConfig(this.stubService.getActiveSessionId(), { agentIndex: e.index });
+		}));
+
+		this.routeContainer = append(bottomLeading, $('.conversation-lens-dock-route'));
+		this.routeSelectBox = this._register(this.createRouteSelectBox(
+			this.getSessionConfig(this.stubService.getActiveSessionId()).routeIndex,
+			conversationLensDockRouteLabel,
+		));
+		this.routeSelectBox.render(this.routeContainer);
+		this._register(this.routeSelectBox.onDidSelect(e => {
+			const sessionId = this.stubService.getActiveSessionId();
+			this.setSessionConfig(sessionId, { routeIndex: e.index });
+			this.sessionBarRouteSelectBox.select(e.index);
+		}));
 
 		const moreContainer = append(bottomLeading, $('.conversation-lens-dock-more'));
 		this.moreButton = this._register(new Button(moreContainer, {
@@ -683,6 +780,7 @@ export class ConversationLens extends Disposable {
 		this.readingColumn.classList.toggle(conversationLensPhasePreFirstClass, preFirst);
 		this.slotHosts.dock.classList.toggle(conversationLensPhasePreFirstDockHiddenClass, preFirst);
 		this.prefirstHero.hidden = !preFirst;
+		this.updateSessionConfigVisibility(preFirst);
 
 		if (preFirst) {
 			this.prefirstHero.appendChild(this.identityStrip.element);
@@ -772,6 +870,7 @@ export class ConversationLens extends Disposable {
 		this.visualizeOverlay.close();
 		this.resetInputHistoryBrowse();
 		this.refreshSessionSelectOptions();
+		this.syncSessionConfigSelects(sessionId);
 		this.updateSessionTitle();
 		this.dockTextarea.value = this.drafts.get(sessionId) ?? '';
 		if (this.lensId === 'trajectory') {

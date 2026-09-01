@@ -24,7 +24,11 @@ import {
 	conversationLensDockNoAttachments,
 	conversationLensDockNoGoal,
 	conversationLensDockNoModel,
+	conversationLensDockNoRoute,
 	conversationLensDockNoTools,
+	conversationLensDockAgentLabel,
+	conversationLensDockNoAgent,
+	conversationLensDockRouteBalanced,
 	conversationLensDockPermissionAsk,
 	conversationLensDockPlaceholder,
 	conversationLensDockRestoreTimeline,
@@ -37,7 +41,7 @@ import {
 	conversationLensPhasePreFirstDockHiddenClass,
 	conversationLensPrefirstHeroClass,
 } from '../../browser/conversationLensDockStrings.js';
-import { conversationLensSessionBarConversationTab, conversationLensSessionBarDeleteSession, conversationLensSessionBarNewSession, conversationLensSessionBarNoTrajectory, conversationLensSessionBarRenameTitle, conversationLensSessionBarTrajectoryTab, conversationLensPinnedUserPromptAria, conversationLensPinnedUserPromptCopyAria } from '../../browser/conversationLensSessionBarStrings.js';
+import { conversationLensSessionBarConversationTab, conversationLensSessionBarDeleteSession, conversationLensSessionBarNewSession, conversationLensSessionBarNoTrajectory, conversationLensSessionBarRenameTitle, conversationLensSessionBarRouteLabel, conversationLensSessionBarTrajectoryTab, conversationLensPinnedUserPromptAria, conversationLensPinnedUserPromptCopyAria } from '../../browser/conversationLensSessionBarStrings.js';
 import { ConversationStubService, IConversationRosterService } from '../../browser/conversationStubService.js';
 import { conversationIdentityStripClass } from '../../browser/conversationIdentityStrip.js';
 import { getConversationSessionStatusText } from '../../browser/conversationSessionStatus.js';
@@ -620,6 +624,67 @@ suite('ConversationLens', () => {
 		assert.strictEqual(readingColumn.firstElementChild?.classList.contains(conversationIdentityStripClass), true);
 		assert.strictEqual(getPrefirstHero(slots)?.hidden, true);
 		assert.strictEqual(stubService.getTurns(sessionId).length, 2);
+	});
+
+	test('T3 SessionConfig XOR: agent and route only in PreFirst composer; Active SessionBar route; clearing turns returns PreFirst', () => {
+		const { part, stubService } = mountLens();
+		const slots = part.getSlots()!;
+		const sessionId = stubService.createSession();
+		const readingColumn = getReadingColumn(slots);
+
+		const getLeading = () => getComposerBottomBar(slots).querySelector('.conversation-lens-dock-bottom-leading')!;
+		const agentSlot = () => getLeading().querySelector('.conversation-lens-dock-agent') as HTMLElement;
+		const routeSlot = () => getLeading().querySelector('.conversation-lens-dock-route') as HTMLElement;
+		const sessionRoute = () => slots.sessionBar.querySelector('.conversation-lens-session-route') as HTMLElement;
+
+		assert.ok(agentSlot());
+		assert.ok(routeSlot());
+		assert.strictEqual(agentSlot().hidden, false);
+		assert.strictEqual(routeSlot().hidden, false);
+		assert.ok(sessionRoute());
+		assert.strictEqual(sessionRoute().hidden, true);
+
+		const agentSelect = agentSlot().querySelector('select.monaco-select-box') as HTMLSelectElement;
+		const routeSelect = routeSlot().querySelector('select.monaco-select-box') as HTMLSelectElement;
+		assert.strictEqual(agentSelect.options[agentSelect.selectedIndex]?.text, conversationLensDockNoAgent);
+		assert.strictEqual(routeSelect.options[routeSelect.selectedIndex]?.text, conversationLensDockNoRoute);
+
+		sendDockDraft(slots, 'Hello Active');
+
+		assert.strictEqual(agentSlot().hidden, true);
+		assert.strictEqual(routeSlot().hidden, true);
+		assert.strictEqual(sessionRoute().hidden, false);
+		const sessionRouteSelect = sessionRoute().querySelector('select.monaco-select-box') as HTMLSelectElement;
+		assert.strictEqual(sessionRouteSelect.getAttribute('aria-label'), conversationLensSessionBarRouteLabel);
+
+		for (const turn of [...stubService.getTurns(sessionId)]) {
+			stubService.deleteTurn(sessionId, turn.id);
+		}
+
+		assert.strictEqual(readingColumn.classList.contains(conversationLensPhasePreFirstClass), true);
+		assert.strictEqual(agentSlot().hidden, false);
+		assert.strictEqual(routeSlot().hidden, false);
+		assert.strictEqual(sessionRoute().hidden, true);
+	});
+
+	test('T3 SessionConfig XOR: route selection syncs between composer and SessionBar until first send', () => {
+		const { part, stubService } = mountLens();
+		const slots = part.getSlots()!;
+		stubService.createSession();
+
+		const routeSlot = () => getComposerBottomBar(slots).querySelector('.conversation-lens-dock-route') as HTMLElement;
+		const sessionRoute = () => slots.sessionBar.querySelector('.conversation-lens-session-route') as HTMLElement;
+		const composerRouteSelect = routeSlot().querySelector('select.monaco-select-box') as HTMLSelectElement;
+
+		composerRouteSelect.selectedIndex = 1;
+		composerRouteSelect.dispatchEvent(new Event('change', { bubbles: true }));
+		assert.strictEqual(composerRouteSelect.options[composerRouteSelect.selectedIndex]?.text, conversationLensDockRouteBalanced);
+
+		sendDockDraft(slots, 'Lock route on SessionBar');
+
+		const sessionRouteSelect = sessionRoute().querySelector('select.monaco-select-box') as HTMLSelectElement;
+		assert.strictEqual(sessionRouteSelect.options[sessionRouteSelect.selectedIndex]?.text, conversationLensDockRouteBalanced);
+		assert.strictEqual(routeSlot().hidden, true);
 	});
 
 	test('compact chrome: inbox status stays on one row', () => {
