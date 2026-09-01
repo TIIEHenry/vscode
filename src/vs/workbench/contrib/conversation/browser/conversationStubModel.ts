@@ -349,6 +349,28 @@ export class ConversationStubModel {
 		return this.getTurns(sessionId).filter(t => t.kind === 'confirmation' && t.status === 'pending').length;
 	}
 
+	updateUserTurnText(sessionId: string, turnId: string, text: string): boolean {
+		const session = this.sessions.find(s => s.id === sessionId);
+		const turn = session?.turns.find(t => t.id === turnId && t.kind === 'user');
+		if (!turn) {
+			return false;
+		}
+		(turn as { text: string }).text = text;
+		return true;
+	}
+
+	updateMessageQueueItemContent(sessionId: string, itemId: string, content: string): boolean {
+		const extras = this.ensureSessionExtras(sessionId);
+		const index = extras.messageQueue.items.findIndex(item => item.id === itemId);
+		if (index < 0) {
+			return false;
+		}
+		const items = extras.messageQueue.items.slice();
+		items[index] = { ...items[index]!, content };
+		extras.messageQueue = { ...extras.messageQueue, items };
+		return true;
+	}
+
 	deleteTurn(sessionId: string, turnId: string): boolean {
 		const session = this.sessions.find(s => s.id === sessionId);
 		if (!session) {

@@ -38,6 +38,8 @@ export interface IConversationRosterService {
 	resolveConfirmation(sessionId: string, turnId: string, status: 'allowed' | 'skipped'): void;
 	countPendingConfirmations(sessionId: string): number;
 	deleteTurn(sessionId: string, turnId: string): boolean;
+	updateUserTurnText(sessionId: string, turnId: string, text: string): boolean;
+	updateMessageQueueItemContent(sessionId: string, itemId: string, content: string): boolean;
 	getMessageQueueState(sessionId: string): ConversationMessageQueueState;
 	setMessageQueueFixture(sessionId: string, state: ConversationMessageQueueState): void;
 	pauseMessageQueue(sessionId: string): void;
@@ -185,6 +187,22 @@ export class ConversationStubService extends Disposable implements IConversation
 			this._onDidChangeSession.fire(sessionId);
 		}
 		return deleted;
+	}
+
+	updateUserTurnText(sessionId: string, turnId: string, text: string): boolean {
+		const updated = this.model.updateUserTurnText(sessionId, turnId, text);
+		if (updated) {
+			this._onDidChangeSession.fire(sessionId);
+		}
+		return updated;
+	}
+
+	updateMessageQueueItemContent(sessionId: string, itemId: string, content: string): boolean {
+		const updated = this.model.updateMessageQueueItemContent(sessionId, itemId, content);
+		if (updated) {
+			this._onDidChangeSession.fire(sessionId);
+		}
+		return updated;
 	}
 
 	getMessageQueueState(sessionId: string): ConversationMessageQueueState {
