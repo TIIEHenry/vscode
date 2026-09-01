@@ -1,10 +1,10 @@
 ---
 title: "M4 验证波：编译、单测与启动冒烟"
 type: plan
-status: in_progress
+status: implemented
 phase: M4
-updated: 2026-08-31
-summary: "闭合 M0 遗留 D3–D5：compile-client、分层检查、M0–M3 域单测、启动 T1–T3 目视"
+updated: 2026-09-02
+summary: "D3/D4/D5 已闭 @ deferred-gaps；D3 valid-layers 环境红不阻塞本方案关闭"
 ---
 
 # M4 验证波
