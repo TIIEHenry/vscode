@@ -4,7 +4,7 @@ type: decision
 status: proposed
 phase: N/A
 updated: 2026-09-01
-summary: "默认窗中间 Conversation 内嵌作用域 EditorPart；一张 session 窗口=一个 AH session；Fork 默认 tab；子代理默认窗口内对话框、最大化才 tab；窗口并列=另一个 session；只能藏不能关"
+summary: "CONVERSATION_PART 自管 session 叶，每叶内嵌 Conversation IEditorPart；Fork 默认 tab；子代理默认叶内对话框；围栏与自有导航栈；只能藏不能关"
 ---
 
 # ADR-002 默认窗 Conversation：session 窗口与 chat tab
@@ -21,39 +21,47 @@ summary: "默认窗中间 Conversation 内嵌作用域 EditorPart；一张 sessi
 - 窗口并列展示 **另一个 session**；
 - 中间窗口与每个 session 的默认面 **只能隐藏、不能关闭**。
 
-引擎合同（Agent Host）：用户点 Fork 是 **同一 AH session 的 peer chat**（`createChat(..., { fork })`），不是新根会话。本地非 AH 的 `loadSessionFromData` 新 `sessionId` 不是本产品权威。
+引擎合同（Agent Host）：用户点 Fork 是 **同一 AH session 的 peer chat**。连接面 `createChat(session, chat, { fork: { source, turnId } })` 映射到协议 `CreateChatParams.source: { kind: "fork", chat, turnId }`。本地非 AH 的 `loadSessionFromData` 新 `sessionId` 不是本产品权威。
 
-[INV-TOPO](../../docs/systems/workbench/parts-and-grid.md) 禁止把 Conversation 做成主 `EDITOR_PART` 的 `ChatEditor`。[ADR-001](001-chat-compare-form.md) 只约束 **Agents 窗口** PRD-011：同 session 多 chat 并排；双 session 孪生在 Agents 窗延后。本 ADR 不推翻 ADR-001。
+HEAD `EditorParts` 只工厂 main / auxiliary / modal。未指定的 `openEditor` 落到 `activeGroup`。默认 `IHistoryService` 是 `GoScope.DEFAULT`（跨所有组）。已接受的 [INV-TOPO](../../docs/systems/workbench/parts-and-grid.md) 锁的是 **插入面**（编辑器仅 `EDITOR_PART`；Conversation 不是 editor pane），不是 ChatEditor 品牌名。
+
+[ADR-001](001-chat-compare-form.md) 只约束 **Agents 窗口** PRD-011。本 ADR 不推翻 ADR-001。
 
 候选：
 
-1. **Conversation 作用域 EditorPart**：`CONVERSATION_PART` 内嵌一组/多组 `EditorGroup`；默认 `openEditor` 仍进 Preview；显式目标才进 Conversation 组。
+1. **ConversationPart 网格 + 每叶一个 Conversation `IEditorPart`**（Modal 同款注册，共享 `windowId`，独立 scoped `IEditorService`）。
 2. **自研 chat tab 条**：只认识 conversation chat，其它内容以后另造注册表。
 3. **把对话放回 Preview `ChatEditor`**：中心重新变成 EditorPart。
+4. **同一 EditorPart、组贴纸 sessionId**：扁平组冒充嵌套窗口（Grok Block；拒绝）。
 
 ## Decision
 
-选形态 1。
+选形态 1。细节以 [conversation-session-windows](../plans/conversation-session-windows.md) §3 为 SSOT。摘要：
 
-- 中心叶仍是 `CONVERSATION_PART`。Part 内嵌 **Conversation-scoped `IEditorPart`**（可多组）。这是第三条打开插入面：`PreferredGroup` 点名 Conversation 组；**不得**复用 Preview 的 `SIDE_GROUP`。
-- **一张 session 窗口 = 一个 AH session**（无引擎时 = 一个 stub session）。窗口内 tab = 该 session 的 chat（默认根 chat + peer）。页布局相同：SessionBar（含「对话 | 轨迹」）+ 阅读列 + Dock。
-- 每个 session 有 **默认面**（默认根 chat tab 钉死）。session 窗口与整块 Conversation **不支持关闭，只支持隐藏**。隐藏后数据与 tab 模型仍在；再打开该 session 照常显示。
-- **同 session**：用户 Fork **默认新 tab**；子代理 **默认窗口内对话框（不加 tab、不换根页）**，**最大化才新建延伸 tab**；用户 split 则在 **这一扇 session 窗口内** 拆列。仍是同一个 session、同一扇窗口。
-- **窗口并列**：展示 **另一个 session** 的窗口（只能藏）。藏后回到单 session 窗口。
-- Agent 拉起的子代理仍在原 session；未点不弹对话框、不开 tab。子代理 **tab**（最大化后）页顶为 origin 链面包屑：点击某一级切到该 agent，**当前延伸 tab 被替换**。每扇窗口提供一键关闭根 tab 以外的全部 tab。
-- workbench **不得** import `vs/sessions`。不把 `ChatGroupsView` 搬进默认窗。Agents 窗继续 ADR-001 / [chat-compare-split](../plans/chat-compare-split.md)。
+- 中心叶仍是 Layout `Parts.CONVERSATION_PART`。Part **自管**最多两叶的 session 窗口网格（不是 EditorGroup）。**每叶**内嵌一个 Conversation `IEditorPart`：DOM 父是该叶 content；`EditorParts.createConversationEditorPart` 注册到 `IEditorGroupsService.parts`；**不**新增 Layout `Parts` 枚举；`windowId` = 主窗（Modal special-case）；独立 scoped `IEditorService`。
+- 这是 **第四类 editor 容器**（与 Modal/Aux 并列），**不是** `Parts.EDITOR_PART`，也不是「收窄 INV-TOPO 的脚注」。产品对话用新 `ConversationChatInput` + `ConversationEditorPane`。**禁止** `ChatEditorInput`。
+- `PreferredGroup`：`CONVERSATION_GROUP` (`-5`)、`CONVERSATION_SIDE_GROUP` (`-6`)。围栏对齐 Modal：Conversation 组只接受 conversation 类 input，且只在显式目标时进入；文件 / untitled / `ChatEditorInput` / `SIDE_GROUP` / 未指定目标 **永远** MainEditorPart，即使 Conversation 组是 `activeGroup`。
+- **一张 session 窗口 = 一个 AH session**（无引擎时 = 一个 stub session）。窗口内 tab = 该 session 的 chat。两扇窗 = 两个 Conversation EditorPart。禁止组贴纸 `sessionId`。
+- Chrome 分层：**窗口**（藏、←→、关非根、PRD-002 SelectBox）vs **页**（对话\|轨迹、Dock、面包屑）。PRD-012 标题条透镜改为每 chat 页。
+- 每个 session 有 **默认面**。根 tab 用 **关闭拦截器**（不是 pin/sticky）。session 窗口与整块 Conversation **不支持关闭，只支持隐藏**。关非根不得 `closeGroup` 根组。
+- **同 session**：用户 Fork **默认新 tab**（workbench `createChat` / `_forkSession` + `CONVERSATION_GROUP`；**不** import `agentHostForkActions.ts`）；子代理 **默认 session 叶对话框**（父 pane mounted；不是 `mainContainer` visualize overlay，不是 `MODAL_GROUP`），**最大化才新建延伸 tab**；用户 split 走 `CONVERSATION_SIDE_GROUP`。
+- **窗口并列**：另一 session 叶。共享同一个 Preview / Sources / Panel。**不是** ADR-001 形态 2。worktree 隔离 session 在没有 Preview-owner 规则前不得当真并排。
+- 面包屑沿协议 **`origin.chat`**，不读 sessions `parentChat`。
+- 导航：Conversation **自有**栈；`IHistoryService` 只服务 Preview。鼠标 4/5 在 `hasFocus(CONVERSATION_PART)` 时拦截。模式抄 `sessionsMouseNavigation.ts`，禁止 import。
+- workbench **不得** import `vs/sessions`（ESLint `code-import-patterns`）。不把 `ChatGroupsView` 搬进默认窗。Agents 窗继续 ADR-001 / [chat-compare-split](../plans/chat-compare-split.md)。
 
 ## Consequences
 
-- 须改 `IEditorGroupsService` / `IEditorService` 打开目标，使 Conversation 组可被点名；默认路径与文件 Preview 隔离。
-- INV-TOPO 收窄为：「禁止 ChatEditor 占主 `EDITOR_PART` 当中心」；允许 Conversation Part **内部** 使用 EditorGroup 画 tab。须在 parts-and-grid / editor-part-tabs 签收后改知识层（方案审查通过之后）。
-- 前进后退复用 `IHistoryService` 的组作用域（`GoScope.EDITOR_GROUP`）+ Conversation 聚焦时拦截鼠标 4/5 键；与 Preview 文件历史分栈。
-- 其它 `EditorInput` 可预留进 Conversation 组，但默认 `openEditor` 仍进 Preview；第一期只实现 conversation 类 input。
+- 须扩展 `EditorParts` / `findGroup` / `PreferredGroup`；知识层 `parts-and-grid` §5、`editor-part-tabs` §2/§4、`agent-ui` INV-TOPO 在 **本 ADR 签收与 S1 同批**改写（`draft` 期间不改已接受页）。
+- `IConversationLensSlots` 的 timeline/dock 退役，迁入 EditorPane；窗口 chrome 留在 Part/叶。
+- 须改写 `does not host the lens as ChatEditorInput` 的断言形态，但 **保持** ChatEditorInput 禁令与 `chatEditorShellPaths` 默认窗路径。
 - 实施方案：[conversation-session-windows](../plans/conversation-session-windows.md)。需求：[PRD-016](../../docs/product/requirements.md#prd-016-conversation-session-窗口与-chat-tab)。
 
 ## Alternatives
 
 - 形态 2（自研 tab）：fork/子代理能做，但「tab 以后挂其它内容」要第二套注册表，与「复用 VS Code 多窗口/多组」相反。
 - 形态 3（ChatEditor 占中心）：已由 M0/M5 INV-TOPO 拒绝。
-- 把同 session split 做成第二个 AH session：与引擎 `createChat({ fork })` 及「fork 依赖原根」冲突。
+- 形态 4（组贴纸 sessionId）：与 `addGroup` 扁平网格冲突；藏窗 vs 藏列、跨 session DND 无模型。Grok 2026-09-01 Block。
+- 把同 session split 做成第二个 AH session：与引擎 `createChat` fork source 及「fork 依赖原根」冲突。
 - 在默认窗搬 `ChatGroupsView`：违反 `workbench` 不得依赖 `sessions`。
+- 复用 `IHistoryService` `GoScope.EDITOR_GROUP`：HEAD 默认是全局栈；不能靠改用户 navigationScope 冒充隔离。

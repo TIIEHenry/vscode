@@ -3,8 +3,8 @@ title: "多 Agent 方案设计工作流"
 type: guide
 status: accepted
 phase: N/A
-updated: 2026-08-31
-summary: "方案定稿前的多 agent 探索；写完须 Opus 5.0 审查改稿；并行 slice、文件互斥与 worktree 池"
+updated: 2026-09-01
+summary: "方案定稿前的多 agent 探索；写完须只读审查改稿；并行 slice、文件互斥与 worktree 池"
 ---
 
 # 多 Agent 方案设计工作流
@@ -84,7 +84,7 @@ loop/C ──┘
 
 1. **探索**：并行 2–4 路（强架构起草 + 质疑清单 + 可选外部 CLI），输出到父 agent 可合成的草稿区。
 2. **收敛**：父 agent 写定 `dev/plans/` 或 ADR；冲突域与 slice 队列写入 plan 的 **文件互斥** 表（见 [m4-validation-wave.md](../../dev/plans/m4-validation-wave.md) 示例）。
-3. **Opus 5.0 审查（强制）**：[DOCUMENTATION 规则 16](../DOCUMENTATION.md)。一篇方案一个只读 reviewer（`claude-opus-5-thinking-high`）；父 agent 核验后改 Critical / Important。未审不得签收、不得实施。
+3. **只读审查**：[DOCUMENTATION 规则 16](../DOCUMENTATION.md)。一篇方案一个只读 reviewer；父 agent 核验后改 Critical / Important。未审不得签收、不得实施。不锁定模型。
 4. **实施**：按 [dev/loop/workflow.md](../../dev/loop/workflow.md) 开 Loop tick；每 slice 占字母槽，遵守冲突矩阵与 merge 流程。
 
 ## 相关

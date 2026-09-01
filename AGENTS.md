@@ -15,7 +15,7 @@
 | [产品需求](docs/product/INDEX.md) | Agent IDE 愿景、需求与追踪 SSOT |
 | [文档索引](docs/INDEX.md) | 全局导航 |
 | [文档规范](docs/DOCS-SPEC.md) | 目录结构与模板 |
-| [维护规则](docs/DOCUMENTATION.md) | frontmatter、commit 门禁；**方案写完须 Opus 5.0 审查**（规则 16） |
+| [维护规则](docs/DOCUMENTATION.md) | frontmatter、commit 门禁；**方案写完须只读审查**（规则 16） |
 | [架构概览](docs/architecture/overview.md) | 分层全景 |
 | [术语表](docs/glossary.md) | 核心术语 SSOT |
 | [B2 壳 / Agent UI 分析](docs/reference/code-oss-b2/INDEX.md) | 对照 Desktop 文档壳的本仓实现真相 |

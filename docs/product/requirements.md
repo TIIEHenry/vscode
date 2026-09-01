@@ -130,7 +130,7 @@ PRD-001 至 PRD-007 的代码已在 M0–M3 合入，但 D4 启动冒烟（T1–
   6. pending 权限或新 Diff **不**自动切到轨迹。
   7. 无引擎、该会话也无 fixture 记录时，轨迹写诚实空态，不造假 Run，不空白标签页。
   8. 轨迹不是 Copilot Chat / ChatEditor / Bottom Panel inspect。
-- **依赖或未决**：活数据依赖 PRD-008。过程折是显示优化，见 [PRD-013](#prd-013-conversation-过程折)；记录身份仍是各行，折壳不是列表键。
+- **依赖或未决**：活数据依赖 PRD-008。过程折是显示优化，见 [PRD-013](#prd-013-conversation-过程折)；记录身份仍是各行，折壳不是列表键。[PRD-016](#prd-016-conversation-session-窗口与-chat-tab)（`proposed`）拟把「对话 | 轨迹」从 Conversation 标题条改到每个 chat 页 / 对话框；本条正文在 PRD-016 签收前仍按标题条验收。
 
 ### PRD-013 Conversation 过程折
 
@@ -186,10 +186,10 @@ PRD-001 至 PRD-007 的代码已在 M0–M3 合入，但 D4 启动冒烟（T1–
   4. 子代理未点击时不出现新 tab、不弹对话框；点击后窗口内对话框打开且仍只有根 tab（父对话未卸）；最大化后才出现延伸 tab。
   5. 子代理 tab 顶有面包屑；点击祖先切到该 agent，当前延伸 tab 被替换（不叠新 tab）。每扇窗口能一键关掉根以外全部 tab。
   6. 用户 split 后仍是同一会话、同一扇中间窗口；不把 fork 拆进 Preview。
-  7. 窗口并列是第二个会话；隐藏该窗后只剩一个会话窗口；再打开该会话窗口回来。
+  7. 窗口并列是第二个会话（第二扇中间叶）；隐藏该窗后只剩一个会话窗口；再打开该会话窗口回来。两扇窗共用右边同一个 Preview，不是 Agents 窗口里的双会话孪生。
   8. Conversation 聚焦时 ←→ 与鼠标 4/5 在 chat tab / 对话框之间导航；Preview 聚焦时仍是文件历史。默认后退关闭延伸 tab 或关掉对话框，不关根 tab。
   9. 「对话 | 轨迹」是每个 tab / 对话框内的透镜，不是与 chat tab 平级的第三条。
-- **依赖或未决**：活 fork / 子代理 catalog 依赖 PRD-008。形态见 [ADR-002](../../dev/decisions/002-conversation-session-windows.md)。方案见 [conversation-session-windows](../../dev/plans/conversation-session-windows.md)。不改变 Agents 窗口 [PRD-011](#prd-011-chat-并排比对)。
+- **依赖或未决**：活 fork / 子代理 catalog 依赖 PRD-008。形态见 [ADR-002](../../dev/decisions/002-conversation-session-windows.md)。方案见 [conversation-session-windows](../../dev/plans/conversation-session-windows.md)。不改变 Agents 窗口 [PRD-011](#prd-011-chat-并排比对)。本条修正 [PRD-012](#prd-012-conversation-轨迹透镜)：「对话 | 轨迹」是每个 chat 页 / 子代理对话框的页 chrome，不再钉在 Conversation 标题条上；[PRD-002](#prd-002-会话上下文) SelectBox 仍是窗口 chrome，每扇 session 窗一份、不随 tab 复制。窗口并列共享同一个 Preview / Sources / Panel，不是 ADR-001 的双 session 孪生。
 
 ## 未决或阻塞
 

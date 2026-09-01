@@ -3,7 +3,7 @@ title: "Documentation System — LLM Maintenance Rules"
 type: concept
 status: accepted
 phase: N/A
-updated: 2026-08-31
+updated: 2026-09-01
 summary: "本仓库 LLM 文档维护规则；结构见 DOCS-SPEC.md"
 ---
 
@@ -163,16 +163,16 @@ summary: "一行描述"
 
 方案 commit 与实施 commit 分开；各自提交前满足规则 3a，提交时满足 3b。禁止跳过方案直接编码（trivial bugfix 除外）。方案正文写完后须先满足 **规则 16**，再进入实施。
 
-### 规则 16：方案写完必须经 Opus 5.0 审查再改稿
+### 规则 16：方案写完必须经只读审查再改稿
 
 对 `dev/plans/` 新方案或实质改写、以及 `docs/reference/code-oss-b2/` 页面接入 / 映射方案：
 
-1. **写完即审**：同一会话内派只读 reviewer（Cursor Task：`generalPurpose` + **`claude-opus-5-thinking-high`** = Opus 5.0）。一篇方案一个 reviewer；多篇并行。
+1. **写完即审**：同一会话内派只读 reviewer（Cursor Task：`generalPurpose`）。一篇方案一个 reviewer；多篇并行。不锁定模型。
 2. Reviewer **不改文件**。产出 Strengths / Critical / Important / Minor / Assessment。
 3. 父 agent **核验后改稿**：Critical 与 Important 当轮改入方案；与 HEAD 或已拍板合同冲突的意见写明不采纳原因。Minor 可记父方案，不阻塞。
 4. 未走本门禁不得把方案标成可签收完成，也不得开实施切片。
 
-Cursor 侧提醒见 `.cursor/rules/scheme-opus-review.mdc`。流程见 [multi-agent-design-workflow](guides/multi-agent-design-workflow.md)。
+Cursor 侧提醒见 `.cursor/rules/scheme-review.mdc`。流程见 [multi-agent-design-workflow](guides/multi-agent-design-workflow.md)。
 
 ### 规则 14：会话结束自检
 

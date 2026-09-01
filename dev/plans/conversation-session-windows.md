@@ -4,7 +4,7 @@ type: plan
 status: draft
 phase: N/A
 updated: 2026-09-01
-summary: "中间 Conversation 内嵌作用域 EditorPart；子代理默认窗口内对话框、最大化才开 tab；tab 顶面包屑替换；一键关非根 tab；未审、未实施"
+summary: "ConversationPart 每叶内嵌 IEditorPart；围栏 CONVERSATION_GROUP；自有导航栈；子代理叶内对话框；Grok Block 已改入；仍 draft"
 ---
 
 # 默认窗 Conversation：session 窗口与 chat tab
@@ -13,7 +13,7 @@ summary: "中间 Conversation 内嵌作用域 EditorPart；子代理默认窗口
 > 形态决策：[ADR-002](../decisions/002-conversation-session-windows.md)（`proposed`）。  
 > Agents 窗同 session 并排仍以 [ADR-001](../decisions/001-chat-compare-form.md) / [PRD-011](../../docs/product/requirements.md#prd-011-chat-并排比对) / [chat-compare-split](chat-compare-split.md) 为准，本方案不改。  
 > 透镜页内 chrome：[conversation-lens-assembly](../../docs/reference/code-oss-b2/conversation-lens-assembly.md)；「对话 | 轨迹」仍是 **每个 chat 页内** 透镜（PRD-012），不是与 chat tab 平级的第三条。  
-> **规则 16：** 本会话无法派出 `claude-opus-5-thinking-high`。用户要求 Grok 4.6 High 只读审查（2026-09-01 **Block**）。Critical / Important 已当轮改入。方案保持 `draft`，**不得**标 `accepted`、不得开实施切片，直到 Opus 5.0 再审或产品签收明确放开。
+> **规则 16：** Grok 4.6 High 只读审查（2026-09-01 **Block**）。Critical / Important 已当轮改入。方案保持 `draft`（改稿后未再审、未签收），不得开实施切片。
 
 **Goal：** 默认窗中间 Conversation 变成「session 窗口 + chat tab」：根/默认 chat 钉死；用户 Fork 默认加 tab；子代理默认在窗口内以对话框打开（父对话仍在底下），最大化才新建 tab；子代理 tab 顶有 agent 层级面包屑（点击替换当前延伸 tab）；每扇窗口一键关掉根以外的 tab；用户可 split；另一 session 用窗口并列；只能隐藏。
 
@@ -30,7 +30,7 @@ summary: "中间 Conversation 内嵌作用域 EditorPart；子代理默认窗口
 | Agent 子代理 | 仍在原 session；时间线可见；**默认点击 = 窗口内对话框**（盖在当前窗口上，父对话不卸）；**最大化才新建 tab** | 一点就开 tab；把阅读列换成子代理（钻入）；一 spawn 就开 tab 或开新 OS 窗 |
 | 子代理 tab chrome | 页顶 **agent 层级面包屑**；点某一级切到该 agent，**当前延伸 tab 被替换**（不叠 tab） | 面包屑只展示不跳转；点层级再开一张 tab |
 | 关延伸 tab | 每扇 session 窗口一颗 **关闭根以外全部 tab** 的按钮；根 tab 不动 | 没有批量关；把根 tab 一起关 |
-| 页布局 | 每个 chat tab **与子代理对话框内** 相同：SessionBar（对话\|轨迹）+ 阅读列 + Dock | 对话\|轨迹与 chat tab 抢同一条 tablist |
+| 页布局 | 窗口 chrome（SelectBox / ←→ / 关非根）+ 每个 chat 页相同的「对话\|轨迹」+ 阅读列 + Dock | 对话\|轨迹与 chat tab 抢同一条 tablist；每 tab 复制 SelectBox |
 | 导航 | Conversation **自有**历史栈（tab + 对话框）；`IHistoryService` 只服务 Preview；鼠标 4/5 在 `hasFocus(CONVERSATION_PART)` 时拦截 | 两套历史混成一条；靠用户改 `workbench.editor.navigationScope`；`GoScope.EDITOR_GROUP` 当隔离 |
 | 后退关子 tab | 设置默认开：后退弹出延伸 tab **或关掉对话框**，根/默认 tab 不动 | 后退关掉 session 窗口或整块 Conversation |
 | 其它内容 | 第一期 **只** conversation 类 input；围栏落地前禁止任何文件/untitled/`ChatEditorInput` 进 Conversation 组 | 第一期实现非 conversation 页；默认可把文件掉进中间 |
@@ -168,9 +168,10 @@ EDITOR_PART（Preview / MainEditorPart）：默认 openEditor、ACTIVE_GROUP、S
 
 ### 3.4 窗口并列与隐藏
 
-- **藏整块中间**：现有 `setConversationHidden`。所有 session 窗口一起不画；再 `showConversation` / 打开某 session → Conversation 可见，tab 模型恢复。
-- **藏并列的另一 session 窗**：该窗不画，留下的 session 窗铺满；被藏 session 仍在 roster；再打开则按藏前的窗口几何与 tab 恢复。
-- **藏 session 窗口内的一列**（用户 split 之后）：该列不画，回到该 session 的单列；该列 tab 仍属该 session，不是关 tab。
+- **藏整块中间**：现有 `setConversationHidden`。所有 session 叶一起不画；再 `showConversation` / 打开某 session → Conversation 可见，tab 模型恢复。
+- **藏并列的另一 session 窗**：卸下该叶（含其 Conversation EditorPart 不画，不 dispose 模型），留下的 session 叶铺满；被藏 session 仍在 roster；再打开则按藏前的窗口几何与 tab 恢复。
+- **藏 session 窗口内的一列**（用户 split 之后）：该 Conversation EditorPart 内该组不画，回到该 session 的单列；该列 tab 仍属该 session，不是关 tab。
+- 两扇可见窗共享 **一个** Preview / Sources / Panel。
 - 不提供「关闭 session」。删除会话仍走现有 Delete（stub / 将来引擎），与隐藏正交。
 
 ### 3.5 导航与设置
@@ -237,61 +238,54 @@ HEAD 已接受的锁是 **插入面**：编辑器仅 `EDITOR_PART`；没有「�
 
 S1 可在无引擎下落地。S3 / S3b 活数据依赖 PRD-008。每个实施 commit 满足 DOCUMENTATION 规则 3a/3b。**S1 未开前不得改已接受知识页。**
 
-## 4. 实施切片（审查通过前不开）
-
-| # | 切片 | 内容 | 验证 |
-|---|------|------|------|
-| S1 | 插入面 | Conversation-scoped EditorPart；单 session、单组、钉死默认 tab；透镜仍填 pane | 打开文件仍只在 Preview；Conversation 组有且仅有 stub 默认 input；分层检查 |
-| S2 | 导航 | ←→、鼠标 4/5、`closeChildOnBack` | 单测历史栈；Conversation vs Preview 分栈 |
-| S3 | 同 session | Fork → 加 tab；子代理点击 → 对话框不加 tab；最大化 → 新建 tab | 单测打开目标；AH 路径不写新 `AgentSessionRegistry` 行 |
-| S3b | 面包屑 + 关非根 | 子代理 tab 顶 origin 链面包屑；点击替换当前延伸 tab；每窗一键关非根 tab | 单测替换不叠 tab；根 tab 仍在 |
-| S4 | 同窗 split | 用户 split / 拖边缘；藏列=不画 | 单测组数；文件 `SIDE_GROUP` 不增加 Conversation 组 |
-| S5 | 窗口并列 | 第二 session 窗口；藏窗恢复 | roster 打开到旁边；藏后单窗；再打开几何恢复 |
-| S6 | 知识层 | 签收后改 parts-and-grid / editor-part-tabs / agent-ui INV-TOPO 表述 | `check-docs-health.py` |
-
-S1 可在无引擎下落地。S3 / S3b 活数据依赖 PRD-008。每个实施 commit 满足 DOCUMENTATION 规则 3a/3b。
-
 ## 5. 测试计划
 
-1. **路由：** `openEditor(file)` → 主 EditorPart；conversation input 无 Preview tab。
-2. **钉死：** 默认根 tab 无 close；隐藏 Conversation 再显示，同一 input 仍在。
-3. **Fork：** AH `createChat` 后 catalog 多一条 origin Fork；registry session 数不变；UI 多一 tab。
-4. **子代理：** spawn 不加 tab；点击后弹出窗口内对话框且 tab 数仍 1（仅根）；根页仍在对话框底下；最大化后 tab 数 2；再点面包屑祖先 → 延伸 tab 被替换，不叠第三张。
+1. **围栏：** 焦点在 Conversation tab 时 `openEditor(file)` 与 `SIDE_GROUP` → 只进 `MainEditorPart`；`CONVERSATION_GROUP` + 文件被拒绝。conversation input 无 Preview tab。`ChatEditorInput` 两边都不进。
+2. **钉死：** 默认根无关闭控件；`closeEditor` / 中键被拦截；隐藏 Conversation 再显示，同一 input 仍在；关非根 **不** `closeGroup` 根组。
+3. **Fork：** AH `createChat` + `source.kind === "fork"` 后 catalog 多一条；registry session 数不变；UI 多一 tab。默认窗无 `agentHostForkActions` import。
+4. **子代理：** spawn 不加 tab；点击后 session 叶对话框且 `group.count === 1`；根 pane 仍 mounted；已有 tab 再点则激活 tab 不开第二对话框；最大化后 tab 数 2；面包屑沿 `origin.chat`；点祖先 → 延伸 tab 被替换。
 5. **关非根：** 两张延伸 tab 时点按钮 → 只剩根 tab；对话框开着点按钮 → 关掉对话框且无延伸 tab。
-6. **Split：** 同 session 组数 +1；`SIDE_GROUP` 只影响 Preview 组数。
-7. **窗口并列：** 两 session 可见；藏第二窗后可见 session=1；再打开恢复。
-8. **导航：** 开延伸 tab → 后退（设置开）→ tab 关闭且回到根；设置关则 tab 仍在。对话框开着后退则关掉对话框。
-9. **分层：** `valid-layers-check`；conversation contrib 无 `vs/sessions` import。
+6. **Split：** 同 session Conversation EditorPart 组数 +1；文件 `SIDE_GROUP` 只影响 Preview 组数。
+7. **窗口并列：** 两 session 叶、两个 Conversation EditorPart；共享一个 Preview；藏第二窗后可见 session=1；再打开恢复。
+8. **导航：** Conversation 栈与 `IHistoryService` 隔离；开延伸 tab → 后退（设置开）→ tab 关闭且回到根；对话框开着后退则关掉对话框；Conversation 聚焦时鼠标 4/5 不驱动 Preview 历史。
+9. **分层：** `workbench/contrib/conversation` 无 `vs/sessions` import（ESLint `code-import-patterns`）。仅 S1 改目标环境边界时才跑 `valid-layers-check`。
 
 ## 6. 风险与开放点
 
 | 风险 | 缓解 |
 |------|------|
-| 嵌 EditorPart 与 INV-TOPO 文档字面冲突 | ADR-002 收窄 INV-TOPO；S6 改知识层；测试锁 ChatEditor 不进 Preview 中心 |
-| `IEditorGroupsService` 多 part 的焦点 / 历史 / DND 泄漏到 Preview | Conversation part 独立 `windowId` 或等价隔离；鼠标互斥学 sessions 但默认窗要接 Conversation 焦点 |
+| 第四类 EditorPart 与已接受 INV-TOPO 字面冲突 | §3.7 写入新插入面合同；签收时与 S1 同批改知识层；围栏测试锁文件/`ChatEditorInput` |
+| 共享 `windowId` 的 scoped `IEditorService` | 抄 Modal special-case；禁止伪造 windowId |
+| Conversation 组进入全局 editor 历史 | S2：自有栈；从 `IHistoryService` 排除 Conversation part |
+| DND 跨 session 叶 / 拖到 Preview | S4/S5：禁止把 ConversationChatInput 拖进 MainEditorPart；禁止把文件拖进 Conversation 组 |
 | stub 只有 session 没有 chat | S1 只钉默认 tab；S3 等引擎或加 stub chat，禁止用「再造一个 stub session」冒充 fork |
-| 与 PRD-011 用户心智不一致（Agents 窗 fork 默认并排） | 文档写明宿主不同；默认窗 fork 默认 tab，split 是显式手势 |
-| SessionBar SelectBox 与多窗口并列重复 | 开放：第一期并列以 roster「打开到旁边」为准；SelectBox 仍切 **当前窗** 的 session，不删（PRD-002）直到 S5 验收后再收 |
-| 对话框与 EditorInput 双模型 | 对话框是窗口 overlay（根 tab/页仍在底下）；最大化才 `openEditor` 延伸 input。单测锁「点击后 `group.count === 1`」。不走 `MODAL_GROUP`。 |
-| 模态 Settings 已是第四类 EditorPart | Conversation part 不要走 `MODAL_GROUP` |
+| 与 PRD-011 用户心智不一致 | 宿主不同；默认窗 fork 默认 tab，split 是显式手势 |
+| SelectBox 与窗口并列 | SelectBox 只切 **当前叶** session（PRD-002）；并列入口是 roster「打开到旁边」 |
+| 对话框与 EditorInput 双模型 | overlay = 瞬时透镜，不进 tab 模型；最大化才 `openEditor` |
+| visualize 与子代理对话框双 Esc | z 序 visualize 在上；Esc 关最顶层 |
+| 两 session 共享 Preview | 第一期接受；worktree 隔离 session 不得当真并排，直到 Preview-owner 规则 |
 
-**开放点（不阻塞方案正文）：** Conversation 组是否允许 N>2（用户手动）；第一期建议手动不限、产品比对入口若做则上限 2。第二 session 窗口是否共享同一 EditorPart 的两组（每组绑不同 session）还是两个 scoped part——实施 S1 时选 **同一 Conversation EditorPart、组绑定 sessionId**，避免再造 Part 枚举。
+**仍开放（不阻塞正文、也不许再开放已锁拓扑）：** Conversation 组用户手动 N>2；第一期手动不限、产品比对入口若做则上限 2。
 
 ## 7. 验收对照
 
 | PRD-016 验收（拟定） | 由谁满足 |
 |----------------------|----------|
 | 中间是 Conversation 多 tab，不是 Preview 里的 ChatEditor | S1 |
-| 默认根不可关；整块与 session 窗只藏 | S1 / S5 |
+| 默认根不可关（拦截器，非 pin）；整块与 session 窗只藏 | S1 / S5 |
 | Fork 同 session 新 tab，非新根 | S3 |
-| 子代理默认点击窗口内对话框、不加 tab；最大化才开 tab | S3 |
-| 子代理 tab 面包屑点击替换当前延伸 tab | S3b |
-| 每窗一键关闭根以外 tab | S3b |
-| 用户 split 同窗两列 | S4 |
-| 窗口并列是另一 session，可藏可再打开 | S5 |
-| 前进后退 + 鼠标；默认后退关延伸 tab | S2 |
-| 文件仍进 Preview | S1 |
+| 子代理默认点击 session 叶对话框、不加 tab；最大化才开 tab | S3 |
+| 子代理 tab 面包屑沿 `origin.chat`；点击替换当前延伸 tab | S3b |
+| 每窗一键关闭根以外 tab（不 closeGroup 根组） | S3b |
+| 用户 split 同窗两列（`CONVERSATION_SIDE_GROUP`） | S4 |
+| 窗口并列是另一 session 叶 + 第二 EditorPart，共享 Preview，可藏可再打开 | S5 |
+| Conversation 自有栈 + 鼠标拦截；默认后退关延伸 tab | S2 |
+| 文件 / `SIDE_GROUP` / `ChatEditorInput` 仍进 Preview | S1 |
 
 ## 8. 审查记录（规则 16）
 
-2026-09-01：本会话派出 `claude-opus-5-thinking-high` 失败（Invalid model selection）。未用 Grok / Composer 顶替。保持 `draft`。同日改入：子代理默认窗口内对话框（非钻入）、最大化才 tab、面包屑替换延伸 tab、每窗一键关非根 tab。Opus 5.0 可用后再审、再改稿、再谈签收。
+2026-09-01：Grok 4.6 High 只读审查 → **Block**（审查 id `878b1cb4-5930-44e3-88b2-183077912462`）。
+
+Critical 已改入：Conversation EditorPart 工厂 + session 叶在组之上；`CONVERSATION_GROUP`/`CONVERSATION_SIDE_GROUP` 与 Modal 级围栏；Conversation 自有导航栈（弃 `GoScope.EDITOR_GROUP`）；协议 `origin.chat` / `CreateChatParams.source`；插入面合同写入方案而非「S6 收窄」。Important 已改入：对话框 DOM/z 序；窗口 vs 页 chrome 与 PRD-012 修正；窗口并列非 ADR-001 孪生、共享 Preview；关闭拦截器；ESLint 分层门；默认窗 fork 不走 `agentHostForkActions`。
+
+方案保持 `draft`（末次审查为 Block，改稿后未再审）。未签收前不得开 S1。

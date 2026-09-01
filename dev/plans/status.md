@@ -4,18 +4,14 @@ type: progress
 status: active
 phase: M4
 updated: 2026-09-01
-summary: "设置两套主面已签收（C5 / H0–H3 ReadyToImplement；E1 等 PRD-008）；PRD-015 空会话已签收（T1–T6 ReadyToImplement）；PRD-016 仍 draft；M4 D4 仍阻塞于 compile 产物"
+summary: "PRD-012/013/014 轨迹/过程折/visualize 已签收；三份壳方案已签收；M4 D4 仍阻塞于 compile 产物"
 ---
 
 # Development Progress
 
 ## Current Session
 
-- **Conversation session 窗口与 tab：** [conversation-session-windows.md](../plans/conversation-session-windows.md)（`draft`）· [PRD-016](../../docs/product/requirements.md#prd-016-conversation-session-窗口与-chat-tab)（`proposed`）· [ADR-002](../decisions/002-conversation-session-windows.md)（`proposed`）。Grok 4.6 High 2026-09-01 **Block**；Critical/Important 已改入方案。未 Opus 5.0 再审、未改 `src/`、不开 S1。
-
-- **设置两套主面已签收：** [settings-two-surfaces.md](../plans/settings-two-surfaces.md) · [customizations-host-ui.md](../plans/customizations-host-ui.md) · [customizations-engine.md](../plans/customizations-engine.md) 均为 `accepted`。规则 16 三轮 Grok 4.6（Opus 不可用）。**ReadyToImplement：** C5 + donor H0–H3。**E1 blocked PRD-008**。未改 `src/`。
-
-- **空会话与输入面：** [conversation-empty-hero.md](../plans/conversation-empty-hero.md)（`accepted`）· [PRD-015](../../docs/product/requirements.md#prd-015-conversation-空会话与输入面)（`accepted`）· 视觉快照 [conversation-empty-hero.canvas.tsx](../plans/conversation-empty-hero.canvas.tsx)。PreFirst 居中 Composer、Agent/Route XOR、Inbox 分簇。2026-09-01 用户签收。规则 16 Opus 5.0 slug 不可用（未顶替）。**T1–T6 ReadyToImplement**；未改 `src/`。
+- **设置两套主面：** 本地 vs Engine 必须分开，视觉与 vscode 统一。[settings-two-surfaces.md](../plans/settings-two-surfaces.md)（`draft`）。Customizations host-ui / engine 落盘稿已按该目录改口径（Customizations 不是第三套主设置）。未改 `src/`。
 
 - **visualize 卡** [thinkrail-visualize-port.md](../plans/thinkrail-visualize-port.md) **`accepted`**：[PRD-014](../../docs/product/requirements.md#prd-014-conversation-图示卡visualize) 已签收；Grok xhigh 规则 16 审查（Opus 不可用）Approve with changes 已改入。**T1–T3 ReadyToImplement**；未改 `src/`。
 - **过程折** [conversation-process-fold.md](../plans/conversation-process-fold.md) **`accepted`**：显示 overlay，对话默认收起、轨迹默认展开（P3t）。**P1–P3/P3t ReadyToImplement**；未改 `src/`。
@@ -50,7 +46,7 @@ summary: "设置两套主面已签收（C5 / H0–H3 ReadyToImplement；E1 等 P
 - M2 透镜 stub 产品面 `7822d430`；Aux hidden `9b34c1b6`。
 - M3 ChatEditor 默认路径 `8ca89e3a`；Navigator stub roster `80b3f76c`；合入 `98522c4b`。
 - Diff footprint @ `b283fe19`。
-- 页面接入 / M5 / Chat 并排 / 轨迹 / 过程折 / visualize / **设置两套主面**：方案 `accepted`（2026-09-01 设置签收）。
+- 页面接入 / M5 / Chat 并排 / 轨迹 / 过程折 / visualize：六份方案 `accepted`（2026-09-01 visualize 签收）。
 
 ## Blockers
 
