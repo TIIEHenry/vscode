@@ -150,7 +150,7 @@ import { CodeEditorService } from '../../services/editor/browser/codeEditorServi
 import { EditorPaneService } from '../../services/editor/browser/editorPaneService.js';
 import { EditorResolverService } from '../../services/editor/browser/editorResolverService.js';
 import { CustomEditorLabelService, ICustomEditorLabelService } from '../../services/editor/common/customEditorLabelService.js';
-import { EditorGroupLayout, GroupDirection, GroupOrientation, GroupsArrangement, GroupsOrder, IAuxiliaryEditorPart, ICloseAllEditorsOptions, ICloseEditorOptions, ICloseEditorsFilter, IEditorDropTargetDelegate, IEditorGroup, IEditorGroupActivationEvent, IEditorGroupContextKeyProvider, IEditorGroupsContainer, IEditorGroupsService, IEditorPart, IEditorReplacement, IEditorWorkingSet, IEditorWorkingSetOptions, IFindGroupScope, IMergeGroupOptions, IModalEditorPart } from '../../services/editor/common/editorGroupsService.js';
+import { EditorGroupLayout, GroupDirection, GroupOrientation, GroupsArrangement, GroupsOrder, IAuxiliaryEditorPart, ICloseAllEditorsOptions, ICloseEditorOptions, ICloseEditorsFilter, IConversationEditorPart, IEditorDropTargetDelegate, IEditorGroup, IEditorGroupActivationEvent, IEditorGroupContextKeyProvider, IEditorGroupsContainer, IEditorGroupsService, IEditorPart, IEditorReplacement, IEditorWorkingSet, IEditorWorkingSetOptions, IFindGroupScope, IMergeGroupOptions, IModalEditorPart } from '../../services/editor/common/editorGroupsService.js';
 import { IEditorPaneService } from '../../services/editor/common/editorPaneService.js';
 import { IEditorResolverService } from '../../services/editor/common/editorResolverService.js';
 import { IEditorsChangeEvent, IEditorService, IRevertAllEditorsOptions, ISaveEditorsOptions, ISaveEditorsResult, IVisibleEditorsChangeEvent, PreferredGroup } from '../../services/editor/common/editorService.js';
@@ -941,6 +941,9 @@ export class TestEditorGroupsService implements IEditorGroupsService {
 	registerEditorPart(part: any): IDisposable { return Disposable.None; }
 	createAuxiliaryEditorPart(): Promise<IAuxiliaryEditorPart> { throw new Error('Method not implemented.'); }
 	createModalEditorPart(): Promise<IModalEditorPart> { throw new Error('Method not implemented.'); }
+	createConversationEditorPart(_parent: unknown, _sessionKey: string): IConversationEditorPart { throw new Error('Method not implemented.'); }
+	readonly conversationParts: readonly IConversationEditorPart[] = [];
+	getActiveConversationEditorPart(): IConversationEditorPart | undefined { return undefined; }
 }
 
 export class TestEditorGroupView implements IEditorGroupView {
@@ -1686,6 +1689,16 @@ export class TestEditorPart extends MainEditorPart implements IEditorGroupsServi
 
 	createModalEditorPart(): Promise<IModalEditorPart> {
 		throw new Error('Method not implemented.');
+	}
+
+	createConversationEditorPart(_parent: unknown, _sessionKey: string): IConversationEditorPart {
+		throw new Error('Method not implemented.');
+	}
+
+	readonly conversationParts: readonly IConversationEditorPart[] = [];
+
+	getActiveConversationEditorPart(): IConversationEditorPart | undefined {
+		return undefined;
 	}
 
 	getScopedInstantiationService(part: IEditorPart): IInstantiationService {

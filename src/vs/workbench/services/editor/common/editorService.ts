@@ -41,6 +41,18 @@ export const MODAL_GROUP = -4;
 export type MODAL_GROUP_TYPE = typeof MODAL_GROUP;
 
 /**
+ * Open a conversation chat editor in the active session window.
+ */
+export const CONVERSATION_GROUP = -5;
+export type CONVERSATION_GROUP_TYPE = typeof CONVERSATION_GROUP;
+
+/**
+ * Split the active session window with a new conversation editor group.
+ */
+export const CONVERSATION_SIDE_GROUP = -6;
+export type CONVERSATION_SIDE_GROUP_TYPE = typeof CONVERSATION_SIDE_GROUP;
+
+/**
  * Setting that controls whether editors open in a modal editor part.
  */
 export const USE_MODAL_EDITOR_SETTING = 'workbench.editor.useModal';
@@ -53,12 +65,16 @@ export const USE_MODAL_EDITOR_SETTING = 'workbench.editor.useModal';
  */
 export type UseModalEditorMode = 'off' | 'some' | 'all';
 
-export type PreferredGroup = IEditorGroup | GroupIdentifier | SIDE_GROUP_TYPE | ACTIVE_GROUP_TYPE | AUX_WINDOW_GROUP_TYPE | MODAL_GROUP_TYPE;
+export type PreferredGroup = IEditorGroup | GroupIdentifier | SIDE_GROUP_TYPE | ACTIVE_GROUP_TYPE | AUX_WINDOW_GROUP_TYPE | MODAL_GROUP_TYPE | CONVERSATION_GROUP_TYPE | CONVERSATION_SIDE_GROUP_TYPE;
 
 export function isPreferredGroup(obj: unknown): obj is PreferredGroup {
 	const candidate = obj as PreferredGroup | undefined;
 
 	return typeof obj === 'number' || isEditorGroup(candidate);
+}
+
+export function isConversationPreferredGroup(preferredGroup: PreferredGroup | undefined): preferredGroup is CONVERSATION_GROUP_TYPE | CONVERSATION_SIDE_GROUP_TYPE {
+	return preferredGroup === CONVERSATION_GROUP || preferredGroup === CONVERSATION_SIDE_GROUP;
 }
 
 export interface ISaveEditorsOptions extends ISaveOptions {

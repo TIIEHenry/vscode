@@ -124,9 +124,17 @@ suite('ConversationIdentityStrip', () => {
 		document.body.appendChild(parent);
 		store.add(toDisposable(() => parent.remove()));
 		part.create(parent);
-		const slots = part.getSlots();
-		assert.ok(slots);
-		slots.timeline.classList.add('part', 'conversation');
+		const partSlots = part.getSlots();
+		assert.ok(partSlots);
+		const slots: IConversationLensSlots = {
+			sessionBar: partSlots.sessionBar,
+			timeline: document.createElement('div'),
+			dock: document.createElement('div'),
+		};
+		slots.timeline.classList.add('conversation-timeline', 'part', 'conversation');
+		slots.dock.classList.add('conversation-dock');
+		parent.appendChild(slots.timeline);
+		parent.appendChild(slots.dock);
 		part.layout(LENS_LAYOUT_WIDTH, LENS_LAYOUT_HEIGHT, 0, 0);
 		store.add(instantiationService.createInstance(ConversationLens, slots));
 
@@ -186,9 +194,17 @@ suite('ConversationIdentityStrip', () => {
 		document.body.appendChild(parent);
 		store.add(toDisposable(() => parent.remove()));
 		part.create(parent);
-		const slots = part.getSlots();
-		assert.ok(slots);
-		slots.timeline.classList.add('part', 'conversation');
+		const partSlots = part.getSlots();
+		assert.ok(partSlots);
+		const slots: IConversationLensSlots = {
+			sessionBar: partSlots.sessionBar,
+			timeline: document.createElement('div'),
+			dock: document.createElement('div'),
+		};
+		slots.timeline.classList.add('conversation-timeline', 'part', 'conversation');
+		slots.dock.classList.add('conversation-dock');
+		parent.appendChild(slots.timeline);
+		parent.appendChild(slots.dock);
 		part.layout(LENS_LAYOUT_WIDTH, LENS_LAYOUT_HEIGHT, 0, 0);
 		store.add(instantiationService.createInstance(ConversationLens, slots));
 

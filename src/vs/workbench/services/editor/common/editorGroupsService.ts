@@ -518,6 +518,26 @@ export interface IEditorPart extends IEditorGroupsContainer {
 	 * Find out if the editor layout is currently centered.
 	 */
 	isLayoutCentered(): boolean;
+
+	/**
+	 * When true, this part participates in editor group/tab mechanics but is
+	 * excluded from global editor aggregation (MRU, Close All, working sets, etc.).
+	 */
+	readonly excludeFromGlobalEditorAggregation?: boolean;
+}
+
+export function isExcludedFromGlobalEditorAggregation(part: IEditorPart): boolean {
+	return part.excludeFromGlobalEditorAggregation === true;
+}
+
+export interface IConversationEditorPart extends IEditorPart {
+
+	readonly excludeFromGlobalEditorAggregation: true;
+
+	/**
+	 * Stable session key for this session window leaf.
+	 */
+	readonly sessionKey: string;
 }
 
 export interface IAuxiliaryEditorPart extends IEditorPart {
@@ -688,6 +708,21 @@ export interface IEditorGroupsService extends IEditorGroupsContainer {
 	 * instead of creating a new one.
 	 */
 	createModalEditorPart(options?: IModalEditorPartOptions): Promise<IModalEditorPart>;
+
+	/**
+	 * Creates a conversation editor part embedded in {@link Parts.CONVERSATION_PART}.
+	 */
+	createConversationEditorPart(parent: unknown /* HTMLElement */, sessionKey: string): IConversationEditorPart;
+
+	/**
+	 * All conversation editor parts currently registered.
+	 */
+	readonly conversationParts: ReadonlyArray<IConversationEditorPart>;
+
+	/**
+	 * The conversation editor part that should receive {@link CONVERSATION_GROUP} opens.
+	 */
+	getActiveConversationEditorPart(): IConversationEditorPart | undefined;
 
 	/**
 	 * The currently active modal editor part, if any.

@@ -8,8 +8,9 @@ import { EditorActivation } from '../../../../platform/editor/common/editor.js';
 import { ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js';
 import { EditorInputWithOptions, isEditorInputWithOptions, IUntypedEditorInput, isEditorInput, EditorInputCapabilities } from '../../../common/editor.js';
 import { EditorInput } from '../../../common/editor/editorInput.js';
-import { IEditorGroup, GroupsOrder, preferredSideBySideGroupDirection, IEditorGroupsService, IModalEditorPart } from './editorGroupsService.js';
-import { AUX_WINDOW_GROUP, AUX_WINDOW_GROUP_TYPE, MODAL_GROUP, MODAL_GROUP_TYPE, PreferredGroup, SIDE_GROUP, USE_MODAL_EDITOR_SETTING, UseModalEditorMode } from './editorService.js';
+import { IEditorGroup, GroupsOrder, preferredSideBySideGroupDirection, IEditorGroupsService, IModalEditorPart, isExcludedFromGlobalEditorAggregation } from './editorGroupsService.js';
+import { AUX_WINDOW_GROUP, AUX_WINDOW_GROUP_TYPE, CONVERSATION_GROUP, CONVERSATION_SIDE_GROUP, MODAL_GROUP, MODAL_GROUP_TYPE, PreferredGroup, SIDE_GROUP, USE_MODAL_EDITOR_SETTING, UseModalEditorMode, isConversationPreferredGroup } from './editorService.js';
+import { isBlockedFromConversationGroup, isConversationChatInput } from '../../../contrib/conversation/common/conversationEditorRouting.js';
 
 type FindGroupResult = Promise<[IEditorGroup, EditorActivation | undefined]> | [IEditorGroup, EditorActivation | undefined];
 
@@ -38,13 +39,29 @@ export function findGroup(accessor: ServicesAccessor, editor: EditorInputWithOpt
 }
 
 function handleGroupResult(group: IEditorGroup, editor: EditorInputWithOptions | IUntypedEditorInput, preferredGroup: PreferredGroup | undefined, editorGroupService: IEditorGroupsService, configurationService: IConfigurationService): FindGroupResult {
+	const editorInput = isEditorInputWithOptions(editor) ? editor.editor : isEditorInput(editor) ? editor : undefined;
+
+	if (isGroupInExcludedPart(group, editorGroupService)) {
+		group = editorGroupService.mainPart.activeGroup;
+	}
+
+	if (editorInput && isBlockedFromConversationGroup(editorInput)) {
+		if (isConversationPreferredGroup(preferredGroup) || isGroupInExcludedPart(group, editorGroupService)) {
+			group = editorGroupService.mainPart.activeGroup;
+		}
+	} else if (editorInput && isConversationChatInput(editorInput)) {
+		if (!isConversationPreferredGroup(preferredGroup) && !isGroupInConversationPart(group, editorGroupService)) {
+			throw new Error('Conversation chat input requires CONVERSATION_GROUP or a conversation editor group');
+		}
+	}
+
 	const modalEditorPart = editorGroupService.activeModalEditorPart;
 	const modalEditorMode = configurationService.getValue<UseModalEditorMode>(USE_MODAL_EDITOR_SETTING);
-	const editorInput = isEditorInputWithOptions(editor) ? editor.editor : isEditorInput(editor) ? editor : undefined;
+	const editorInputForModal = isEditorInputWithOptions(editor) ? editor.editor : isEditorInput(editor) ? editor : undefined;
 	// The `RequiresModal` capability is honored unless the user has explicitly
 	// disabled modal editors via `workbench.editor.useModal: 'off'`, in which
 	// case the user preference wins.
-	const requiresModal = editorInput instanceof EditorInput && editorInput.hasCapability(EditorInputCapabilities.RequiresModal) && modalEditorMode !== 'off';
+	const requiresModal = editorInputForModal instanceof EditorInput && editorInputForModal.hasCapability(EditorInputCapabilities.RequiresModal) && modalEditorMode !== 'off';
 	if (modalEditorPart && preferredGroup !== MODAL_GROUP && modalEditorMode !== 'all' && !requiresModal) {
 		// Only allow to open in modal group if MODAL_GROUP is explicitly requested
 		// or when the setting is configured to open all editors modal or when the
@@ -120,17 +137,38 @@ function doFindGroup(input: EditorInputWithOptions | IUntypedEditorInput, prefer
 		group = editorGroupService.getGroup(preferredGroup);
 	}
 
-	// Group: Side by Side
+	// Group: Side by Side (Preview only — never split Conversation parts)
 	else if (preferredGroup === SIDE_GROUP) {
 		const direction = preferredSideBySideGroupDirection(configurationService);
 
-		let candidateGroup = editorGroupService.findGroup({ direction });
+		let candidateGroup = editorGroupService.mainPart.findGroup({ direction }, editorGroupService.mainPart.activeGroup, false);
 		if (!candidateGroup || isGroupLockedForEditor(candidateGroup, editor)) {
-			// Create new group either when the candidate group
-			// is locked or was not found in the direction
-			candidateGroup = editorGroupService.addGroup(editorGroupService.activeGroup, direction);
+			candidateGroup = editorGroupService.mainPart.addGroup(editorGroupService.mainPart.activeGroup, direction);
 		}
 
+		group = candidateGroup;
+	}
+
+	// Group: Conversation active group
+	else if (preferredGroup === CONVERSATION_GROUP) {
+		const conversationPart = editorGroupService.getActiveConversationEditorPart();
+		if (!conversationPart) {
+			throw new Error('No conversation editor part is available');
+		}
+		group = conversationPart.activeGroup;
+	}
+
+	// Group: Conversation side group
+	else if (preferredGroup === CONVERSATION_SIDE_GROUP) {
+		const conversationPart = editorGroupService.getActiveConversationEditorPart();
+		if (!conversationPart) {
+			throw new Error('No conversation editor part is available');
+		}
+		const direction = preferredSideBySideGroupDirection(configurationService);
+		let candidateGroup = conversationPart.findGroup({ direction }, conversationPart.activeGroup, false);
+		if (!candidateGroup) {
+			candidateGroup = conversationPart.addGroup(conversationPart.activeGroup, direction);
+		}
 		group = candidateGroup;
 	}
 
@@ -200,25 +238,34 @@ function doFindGroup(input: EditorInputWithOptions | IUntypedEditorInput, prefer
 	// Fallback to active group if target not valid but avoid
 	// locked editor groups unless editor is already opened there
 	if (!group) {
+		const typedEditor = isEditorInputWithOptions(editor) ? editor.editor : isEditorInput(editor) ? editor : undefined;
+
+		if (typedEditor && isConversationChatInput(typedEditor)) {
+			throw new Error('Conversation chat input requires an explicit conversation group target');
+		}
+
 		let candidateGroup = editorGroupService.activeGroup;
+		if (isBlockedFromConversationGroup(editor) || isGroupInExcludedPart(candidateGroup, editorGroupService)) {
+			candidateGroup = editorGroupService.mainPart.activeGroup;
+		}
 
 		// Locked group: find the next non-locked group
 		// going up the neigbours of the group or create
 		// a new group otherwise
 		if (isGroupLockedForEditor(candidateGroup, editor)) {
-			for (const group of editorGroupService.getGroups(GroupsOrder.MOST_RECENTLY_ACTIVE)) {
-				if (isGroupLockedForEditor(group, editor)) {
+			for (const partGroup of editorGroupService.getGroups(GroupsOrder.MOST_RECENTLY_ACTIVE)) {
+				if (isGroupLockedForEditor(partGroup, editor)) {
 					continue;
 				}
 
-				candidateGroup = group;
+				candidateGroup = partGroup;
 				break;
 			}
 
 			if (isGroupLockedForEditor(candidateGroup, editor)) {
 				// Group is still locked, so we have to create a new
 				// group to the side of the candidate group
-				group = editorGroupService.addGroup(candidateGroup, preferredSideBySideGroupDirection(configurationService));
+				group = editorGroupService.mainPart.addGroup(candidateGroup, preferredSideBySideGroupDirection(configurationService));
 			} else {
 				group = candidateGroup;
 			}
@@ -231,6 +278,16 @@ function doFindGroup(input: EditorInputWithOptions | IUntypedEditorInput, prefer
 	}
 
 	return group;
+}
+
+function isGroupInExcludedPart(group: IEditorGroup, editorGroupService: IEditorGroupsService): boolean {
+	const part = editorGroupService.getPart(group);
+	return isExcludedFromGlobalEditorAggregation(part);
+}
+
+function isGroupInConversationPart(group: IEditorGroup, editorGroupService: IEditorGroupsService): boolean {
+	const part = editorGroupService.getPart(group);
+	return part.excludeFromGlobalEditorAggregation === true;
 }
 
 function isGroupLockedForEditor(group: IEditorGroup, editor: EditorInput | IUntypedEditorInput): boolean {
