@@ -30,7 +30,7 @@ import { createCustomizationCardPrimaryAction, CustomizationCardListController }
 suite('aiCustomizationListWidget', () => {
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('uses the inventory card layout for all file customization sections', () => {
+	test('uses the inventory card layout for file customization sections in the sessions window', () => {
 		assert.deepStrictEqual({
 			agents: usesCustomizationCardLayout(AICustomizationManagementSection.Agents),
 			skills: usesCustomizationCardLayout(AICustomizationManagementSection.Skills),
@@ -46,6 +46,22 @@ suite('aiCustomizationListWidget', () => {
 		});
 	});
 
+	test('uses WorkbenchList layout for file customization sections in the default window', () => {
+		assert.deepStrictEqual({
+			agents: usesCustomizationCardLayout(AICustomizationManagementSection.Agents, false),
+			skills: usesCustomizationCardLayout(AICustomizationManagementSection.Skills, false),
+			instructions: usesCustomizationCardLayout(AICustomizationManagementSection.Instructions, false),
+			hooks: usesCustomizationCardLayout(AICustomizationManagementSection.Hooks, false),
+			prompts: usesCustomizationCardLayout(AICustomizationManagementSection.Prompts, false),
+		}, {
+			agents: false,
+			skills: false,
+			instructions: false,
+			hooks: false,
+			prompts: false,
+		});
+	});
+
 	test('keeps editable source sections visible until search filtering starts', () => {
 		assert.deepStrictEqual({
 			agents: getAlwaysVisibleCustomizationGroupKeys(AICustomizationManagementSection.Agents, false),
@@ -54,6 +70,7 @@ suite('aiCustomizationListWidget', () => {
 			hooks: getAlwaysVisibleCustomizationGroupKeys(AICustomizationManagementSection.Hooks, false),
 			filtered: getAlwaysVisibleCustomizationGroupKeys(AICustomizationManagementSection.Agents, true),
 			prompts: getAlwaysVisibleCustomizationGroupKeys(AICustomizationManagementSection.Prompts, false),
+			donorAgents: getAlwaysVisibleCustomizationGroupKeys(AICustomizationManagementSection.Agents, false, false),
 		}, {
 			agents: [PromptsStorage.local, PromptsStorage.user],
 			skills: [PromptsStorage.local, PromptsStorage.user],
@@ -61,6 +78,7 @@ suite('aiCustomizationListWidget', () => {
 			hooks: [PromptsStorage.local, PromptsStorage.user],
 			filtered: [],
 			prompts: [PromptsStorage.local, PromptsStorage.user],
+			donorAgents: [PromptsStorage.local, PromptsStorage.user],
 		});
 	});
 
