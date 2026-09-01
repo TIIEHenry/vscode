@@ -1354,7 +1354,7 @@ export class McpListWidget extends Disposable {
 	}
 
 	private async queryGallerySnapshot(revealMarketplace = false): Promise<void> {
-		if (!this.mcpAccessEnabled) {
+		if (!this.workspaceService.isSessionsWindow || !this.mcpAccessEnabled) {
 			return;
 		}
 		this.galleryCts?.dispose(true);
@@ -1391,6 +1391,9 @@ export class McpListWidget extends Disposable {
 	}
 
 	private async queryMcpSearch(): Promise<void> {
+		if (!this.workspaceService.isSessionsWindow) {
+			return;
+		}
 		const query = this.searchQuery.trim();
 		if (!query || !this.mcpAccessEnabled) {
 			return;
@@ -1997,10 +2000,10 @@ export class McpListWidget extends Disposable {
 		}
 
 		if (!this.workspaceService.isSessionsWindow) {
-			this.installedEntries = [
-				...groups[0].entries.map(entry => ({ entry })),
-				...groups[1].entries.map(entry => ({ entry })),
-			];
+			// Donor window: mcp.json definitions only — no extension runtime or gallery rows.
+			const definitionEntries = [...groups[0].entries, ...groups[1].entries]
+				.filter((entry): entry is IMcpServerItemEntry => entry.type === 'server-item' && entry.server.local !== undefined);
+			this.installedEntries = definitionEntries.map(entry => ({ entry }));
 			this.filteredBuiltinCount = 0;
 			this.filteredActiveSessionCount = 0;
 			this._onDidChangeItemCount.fire(this.itemCount);

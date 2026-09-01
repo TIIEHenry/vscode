@@ -1694,15 +1694,20 @@ export class AICustomizationListWidget extends Disposable {
 
 	private getEmptyGroupMessage(groupKey: string): string {
 		const workspace = groupKey === PromptsStorage.local;
+		const isDonorWindow = !this.workspaceService.isSessionsWindow;
 		switch (this.currentSection) {
 			case AICustomizationManagementSection.Agents:
 				return workspace ? localize('noWorkspaceAgents', "No workspace agents yet.") : localize('noUserAgents', "No user agents yet.");
 			case AICustomizationManagementSection.Skills:
 				return workspace ? localize('noWorkspaceSkills', "No workspace skills yet.") : localize('noUserSkills', "No user skills yet.");
 			case AICustomizationManagementSection.Instructions:
-				return workspace ? localize('noWorkspaceInstructions', "No workspace instructions yet.") : localize('noUserInstructions', "No user instructions yet.");
+				return isDonorWindow
+					? (workspace ? localize('noWorkspaceRules', "No workspace rules yet.") : localize('noUserRules', "No user rules yet."))
+					: (workspace ? localize('noWorkspaceInstructions', "No workspace instructions yet.") : localize('noUserInstructions', "No user instructions yet."));
 			case AICustomizationManagementSection.Hooks:
-				return workspace ? localize('noWorkspaceHooks', "No workspace hooks yet.") : localize('noUserHooks', "No user hooks yet.");
+				return isDonorWindow
+					? (workspace ? localize('noWorkspaceHookFiles', "No workspace hook files yet.") : localize('noUserHookFiles', "No user hook files yet."))
+					: (workspace ? localize('noWorkspaceHooks', "No workspace hooks yet.") : localize('noUserHooks', "No user hooks yet."));
 			case AICustomizationManagementSection.Prompts:
 				return workspace ? localize('noWorkspacePrompts', "No workspace prompts yet.") : localize('noUserPrompts', "No user prompts yet.");
 			default:

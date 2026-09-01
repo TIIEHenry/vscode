@@ -13,6 +13,10 @@ import { defaultButtonStyles } from '../../../../../platform/theme/browser/defau
 const $ = DOM.$;
 
 /**
+ * Marketplace gallery row renderer (Install / Installed). Used by sessions-window Tools
+ * marketplace lists only; the default-window Agent Customizations product track does
+ * not mount gallery browse surfaces (MCP Featured, Plugins, Tools Browse).
+ *
  * Install state of a gallery item, used to drive the install button label and enablement.
  */
 export const enum GalleryItemInstallState {
