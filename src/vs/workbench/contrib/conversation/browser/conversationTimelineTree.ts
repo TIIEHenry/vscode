@@ -17,7 +17,7 @@ import { defaultButtonStyles } from '../../../../platform/theme/browser/defaultS
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { IWebviewService } from '../../webview/browser/webview.js';
 import { ConversationConfirmationSeat } from './conversationConfirmationSeat.js';
-import { conversationLensTurnCopy, conversationLensTurnDelete, conversationLensPinnedUserPromptAria, conversationLensPinnedUserPromptCopyAria } from './conversationLensSessionBarStrings.js';
+import { conversationLensTurnCopy, conversationLensTurnDelete, conversationLensPinnedUserPromptAria, conversationLensPinnedUserPromptCopyAria, conversationLensTurnViewInTrajectory } from './conversationLensSessionBarStrings.js';
 import { ConversationMermaidExtensionInfo, createMermaidHostContext } from './conversationMermaidHost.js';
 import { renderProcessFoldSpan } from './conversationProcessFold.js';
 import { ProcessFoldSpan, projectProcessFoldSpans } from './conversationProcessFoldModel.js';
@@ -59,6 +59,7 @@ export interface IConversationTimelineTreeOptions {
 	readonly onCopyTurn?: (turnId: string, text: string) => void;
 	readonly onDeleteTurn?: (turnId: string) => void;
 	readonly onEditUserTurn?: (turnId: string) => void;
+	readonly onViewInTrajectory?: (turnId: string) => void;
 	readonly onOpenVisualizeFullscreen?: (source: string, title?: string) => void;
 	readonly contentAdapter?: IConversationTurnContentAdapter;
 	readonly paddingBottom?: number;
@@ -119,6 +120,7 @@ class ConversationTimelineRenderer implements ITreeRenderer<ConversationTimeline
 		private readonly onCopyTurn: ((turnId: string, text: string) => void) | undefined,
 		private readonly onDeleteTurn: ((turnId: string) => void) | undefined,
 		private readonly onEditUserTurn: ((turnId: string) => void) | undefined,
+		private readonly onViewInTrajectory: ((turnId: string) => void) | undefined,
 		private readonly getEditingTurnId: () => string | undefined,
 		private readonly onOpenVisualizeFullscreen: ((source: string, title?: string) => void) | undefined,
 		private readonly getMermaidExtensionInfo: () => ConversationMermaidExtensionInfo | undefined,
@@ -167,6 +169,7 @@ class ConversationTimelineRenderer implements ITreeRenderer<ConversationTimeline
 						this.processFoldToolExpanded.delete(turnId);
 					}
 				},
+				onViewInTrajectory: this.onViewInTrajectory,
 				onLayoutChange: () => this.scheduleHeightUpdate(item, templateData.container),
 			}, templateData.disposables);
 			this.scheduleHeightUpdate(item, templateData.container);
@@ -248,6 +251,10 @@ class ConversationTimelineRenderer implements ITreeRenderer<ConversationTimeline
 			const header = append(el, $('.conversation-lens-turn-header'));
 			header.textContent = getConversationTurnRoleLabel(turn.kind);
 
+			if (turn.kind === 'user' && this.onViewInTrajectory) {
+				appendTurnTrajectoryButton(header, turn.id, this.onViewInTrajectory, templateData.disposables, 'conversation-lens-turn-header-trajectory');
+			}
+
 			const body = append(el, $('.conversation-lens-turn-body'));
 			if (turn.kind === 'user') {
 				body.classList.add('conversation-lens-turn-body--user-bubble', 'conversation-lens-turn-body--clickable');
@@ -289,6 +296,9 @@ class ConversationTimelineRenderer implements ITreeRenderer<ConversationTimeline
 
 			if (turn.kind === 'assistant') {
 				const actions = append(el, $('.conversation-lens-turn-actions'));
+				if (this.onViewInTrajectory) {
+					appendTurnTrajectoryButton(actions, turn.id, this.onViewInTrajectory, templateData.disposables);
+				}
 				const copyContainer = append(actions, $('span.conversation-lens-turn-action-copy'));
 				const copyButton = templateData.disposables.add(new Button(copyContainer, {
 					...defaultButtonStyles,
@@ -373,6 +383,26 @@ class ConversationTimelineRenderer implements ITreeRenderer<ConversationTimeline
 			this.onHeightChange(item, height);
 		});
 	}
+}
+
+function appendTurnTrajectoryButton(
+	parent: HTMLElement,
+	turnId: string,
+	onViewInTrajectory: (turnId: string) => void,
+	disposables: DisposableStore,
+	containerClass = 'conversation-lens-turn-action-trajectory',
+): void {
+	const trajectoryContainer = append(parent, $(`span.${containerClass}`));
+	const trajectoryButton = disposables.add(new Button(trajectoryContainer, {
+		...defaultButtonStyles,
+		supportIcons: true,
+		small: true,
+		secondary: true,
+		title: conversationLensTurnViewInTrajectory,
+		ariaLabel: conversationLensTurnViewInTrajectory,
+	}));
+	trajectoryButton.icon = Codicon.listTree;
+	disposables.add(trajectoryButton.onDidClick(() => onViewInTrajectory(turnId)));
 }
 
 class ConversationTimelineProcessFoldRenderer implements ITreeRenderer<ConversationTimelineItem, void, ITurnTemplateData> {
@@ -486,6 +516,7 @@ export class ConversationTimelineTree extends Disposable {
 			options.onCopyTurn,
 			options.onDeleteTurn,
 			options.onEditUserTurn,
+			options.onViewInTrajectory,
 			() => this.editingTurnId,
 			options.onOpenVisualizeFullscreen,
 			() => this.mermaidExtensionInfo,

@@ -19,5 +19,6 @@ export const conversationLensSessionBarDeleteSession = localize('conversationLen
 export const conversationLensSessionBarRouteLabel = localize('conversationLens.sessionBarRouteLabel', "Route");
 export const conversationLensTurnCopy = localize('conversationLens.copyTurn', "Copy message");
 export const conversationLensTurnDelete = localize('conversationLens.deleteTurn', "Delete message");
+export const conversationLensTurnViewInTrajectory = localize('conversationLens.viewInTrajectory', "View in trajectory");
 export const conversationLensPinnedUserPromptAria = localize('conversationLens.pinnedUserPrompt', "Pinned user prompt");
 export const conversationLensPinnedUserPromptCopyAria = localize('conversationLens.copyPinnedUserPrompt', "Copy pinned prompt");
