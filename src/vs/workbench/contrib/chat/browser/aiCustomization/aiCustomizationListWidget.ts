@@ -49,6 +49,7 @@ import { ICommandService } from '../../../../../platform/commands/common/command
 import { IAICustomizationListItem } from './aiCustomizationItemSource.js';
 import { IAICustomizationItemsModel, ItemsModelSection } from './aiCustomizationItemsModel.js';
 import { createCustomizationCardPrimaryAction, CustomizationCardListController } from './customizationCardList.js';
+import { CustomizationGroupHeaderRenderer, CUSTOMIZATION_GROUP_HEADER_HEIGHT, CUSTOMIZATION_GROUP_HEADER_HEIGHT_WITH_SEPARATOR, ICustomizationGroupHeaderEntry } from './customizationGroupHeaderRenderer.js';
 
 export { truncateToFirstLine } from './aiCustomizationListWidgetUtils.js';
 
@@ -71,22 +72,12 @@ type CustomizationEditorSearchClassification = {
 //#endregion
 
 const ITEM_HEIGHT = 44;
-const GROUP_HEADER_HEIGHT = 36;
-const GROUP_HEADER_HEIGHT_WITH_SEPARATOR = 40;
 
 /**
  * Represents a collapsible group header in the list.
  */
-interface IGroupHeaderEntry {
-	readonly type: 'group-header';
-	readonly id: string;
+interface IGroupHeaderEntry extends ICustomizationGroupHeaderEntry {
 	readonly groupKey: string;
-	readonly label: string;
-	readonly icon: ThemeIcon;
-	readonly count: number;
-	readonly isFirst: boolean;
-	readonly description: string;
-	collapsed: boolean;
 }
 
 /**
@@ -105,7 +96,7 @@ type IListEntry = IGroupHeaderEntry | IFileItemEntry;
 class AICustomizationListDelegate implements IListVirtualDelegate<IListEntry> {
 	getHeight(element: IListEntry): number {
 		if (element.type === 'group-header') {
-			return element.isFirst ? GROUP_HEADER_HEIGHT : GROUP_HEADER_HEIGHT_WITH_SEPARATOR;
+			return element.isFirst ? CUSTOMIZATION_GROUP_HEADER_HEIGHT : CUSTOMIZATION_GROUP_HEADER_HEIGHT_WITH_SEPARATOR;
 		}
 		return ITEM_HEIGHT;
 	}
@@ -128,79 +119,6 @@ interface IAICustomizationItemTemplateData {
 	readonly elementDisposables: DisposableStore;
 	/** Index of the row currently rendered into this template, or -1 when unbound. */
 	currentIndex: number;
-}
-
-interface IGroupHeaderTemplateData {
-	readonly container: HTMLElement;
-	readonly chevron: HTMLElement;
-	readonly icon: HTMLElement;
-	readonly label: HTMLElement;
-	readonly count: HTMLElement;
-	readonly infoIcon: HTMLElement;
-	readonly disposables: DisposableStore;
-	readonly elementDisposables: DisposableStore;
-}
-
-/**
- * Renderer for collapsible group headers (Workspace, User, Extensions).
- * Note: Click handling is done via the list's onDidOpen event, not here.
- */
-class GroupHeaderRenderer implements IListRenderer<IGroupHeaderEntry, IGroupHeaderTemplateData> {
-	readonly templateId = 'groupHeader';
-
-	constructor(
-		private readonly hoverService: IHoverService,
-	) { }
-
-	renderTemplate(container: HTMLElement): IGroupHeaderTemplateData {
-		const disposables = new DisposableStore();
-		const elementDisposables = new DisposableStore();
-		container.classList.add('ai-customization-group-header');
-
-		const chevron = DOM.append(container, $('.group-chevron'));
-		const icon = DOM.append(container, $('.group-icon'));
-		const labelGroup = DOM.append(container, $('.group-label-group'));
-		const label = DOM.append(labelGroup, $('.group-label'));
-		const count = DOM.append(container, $('.group-count'));
-		const infoIcon = DOM.append(container, $('.group-info'));
-		infoIcon.classList.add(...ThemeIcon.asClassNameArray(Codicon.info));
-
-		return { container, chevron, icon, label, count, infoIcon, disposables, elementDisposables };
-	}
-
-	renderElement(element: IGroupHeaderEntry, _index: number, templateData: IGroupHeaderTemplateData): void {
-		templateData.elementDisposables.clear();
-
-		// Chevron
-		templateData.chevron.className = 'group-chevron';
-		templateData.chevron.classList.add(...ThemeIcon.asClassNameArray(element.collapsed ? Codicon.chevronRightCompact : Codicon.chevronDownCompact));
-
-		// Icon
-		templateData.icon.className = 'group-icon';
-		templateData.icon.classList.add(...ThemeIcon.asClassNameArray(element.icon));
-
-		// Label + count
-		templateData.label.textContent = element.label;
-		templateData.count.textContent = `${element.count}`;
-
-		// Info icon hover
-		templateData.elementDisposables.add(this.hoverService.setupDelayedHover(templateData.infoIcon, () => ({
-			content: element.description,
-			appearance: {
-				compact: true,
-				skipFadeInAnimation: true,
-			}
-		})));
-
-		// Collapsed state and separator for non-first groups
-		templateData.container.classList.toggle('collapsed', element.collapsed);
-		templateData.container.classList.toggle('has-previous-group', !element.isFirst);
-	}
-
-	disposeTemplate(templateData: IGroupHeaderTemplateData): void {
-		templateData.elementDisposables.dispose();
-		templateData.disposables.dispose();
-	}
 }
 
 /**
@@ -500,11 +418,20 @@ function toItemsModelSection(section: AICustomizationManagementSection): ItemsMo
 	}
 }
 
-function isDonorFileCustomizationSection(section: AICustomizationManagementSection): boolean {
+export function isDonorFileCustomizationSection(section: AICustomizationManagementSection): boolean {
 	return section === AICustomizationManagementSection.Agents
 		|| section === AICustomizationManagementSection.Skills
 		|| section === AICustomizationManagementSection.Instructions
 		|| section === AICustomizationManagementSection.Hooks;
+}
+
+function isDonorFileListSection(section: AICustomizationManagementSection, isSessionsWindow: boolean): boolean {
+	return !isSessionsWindow && isDonorFileCustomizationSection(section);
+}
+
+function isDonorWorkspaceOrUserItem(item: IAICustomizationListItem): boolean {
+	const key = item.groupKey ?? item.source;
+	return key === PromptsStorage.local || key === PromptsStorage.user || key === AICustomizationSources.local || key === AICustomizationSources.user;
 }
 
 export function usesCustomizationCardLayout(section: AICustomizationManagementSection, isSessionsWindow = true): boolean {
@@ -812,7 +739,7 @@ export class AICustomizationListWidget extends Disposable {
 			this.listContainer,
 			new AICustomizationListDelegate(),
 			[
-				new GroupHeaderRenderer(this.hoverService),
+				new CustomizationGroupHeaderRenderer<IGroupHeaderEntry>('groupHeader', this.hoverService),
 				itemRenderer,
 			],
 			{
@@ -1184,6 +1111,7 @@ export class AICustomizationListWidget extends Disposable {
 		const descriptor = this.harnessService.getActiveDescriptor();
 		const override = descriptor.sectionOverrides?.get(this.currentSection);
 		const hasWorkspace = this.hasActiveWorkspace();
+		const donorFileSection = isDonorFileListSection(this.currentSection, this.workspaceService.isSessionsWindow);
 
 		// Full command override (e.g. Claude hooks) — single action, no dropdown
 		if (override?.commandId) {
@@ -1194,32 +1122,35 @@ export class AICustomizationListWidget extends Disposable {
 			}];
 		}
 
-		// Check for menu-contributed create actions from extensions.
-		// Extensions contribute to AICustomizationManagementCreateMenuId with
-		// when-clauses targeting chatCustomizationSessionType and
-		// chatCustomizationSection context keys.
-		// When a harness contributes create actions, they REPLACE the built-in ones
-		// for all section types, including hooks.
-		const menuActions = this.menuService.getMenuActions(
-			AICustomizationManagementCreateMenuId,
-			this.contextKeyService,
-			{ shouldForwardArgs: true },
-		);
-		const extensionCreateActions: ICreateAction[] = [];
-		for (const [, group] of menuActions) {
-			for (const menuItem of group) {
-				if (menuItem instanceof MenuItemAction) {
-					extensionCreateActions.push({
-						label: typeof menuItem.item.title === 'string' ? menuItem.item.title : menuItem.item.title.value,
-						enabled: menuItem.enabled,
-						run: () => { menuItem.run(); },
-					});
+		// Donor file sections: manual New only — no extension menu overrides or AI-guided create.
+		if (!donorFileSection) {
+			// Check for menu-contributed create actions from extensions.
+			// Extensions contribute to AICustomizationManagementCreateMenuId with
+			// when-clauses targeting chatCustomizationSessionType and
+			// chatCustomizationSection context keys.
+			// When a harness contributes create actions, they REPLACE the built-in ones
+			// for all section types, including hooks.
+			const menuActions = this.menuService.getMenuActions(
+				AICustomizationManagementCreateMenuId,
+				this.contextKeyService,
+				{ shouldForwardArgs: true },
+			);
+			const extensionCreateActions: ICreateAction[] = [];
+			for (const [, group] of menuActions) {
+				for (const menuItem of group) {
+					if (menuItem instanceof MenuItemAction) {
+						extensionCreateActions.push({
+							label: typeof menuItem.item.title === 'string' ? menuItem.item.title : menuItem.item.title.value,
+							enabled: menuItem.enabled,
+							run: () => { menuItem.run(); },
+						});
+					}
 				}
 			}
-		}
 
-		if (extensionCreateActions.length > 0) {
-			return extensionCreateActions;
+			if (extensionCreateActions.length > 0) {
+				return extensionCreateActions;
+			}
 		}
 
 		const createTypeLabel = override?.typeLabel ?? typeLabel;
@@ -1525,7 +1456,14 @@ export class AICustomizationListWidget extends Disposable {
 	 * Groups items by normalized storage/groupKey.
 	 */
 	private groupMatchedItems(matchedItems: IAICustomizationListItem[]): void {
-		const groups: ICustomizationItemGroup[] = [
+		const donorFileSection = isDonorFileListSection(this.currentSection, this.workspaceService.isSessionsWindow);
+		const itemsToGroup = donorFileSection
+			? matchedItems.filter(item => isDonorWorkspaceOrUserItem(item))
+			: matchedItems;
+		const groups: ICustomizationItemGroup[] = donorFileSection ? [
+			{ groupKey: PromptsStorage.local, label: localize('workspaceGroup', "Workspace"), icon: workspaceIcon, description: localize('workspaceGroupDescription', "Customizations stored as files in your project folder and shared with your team via version control."), items: [] },
+			{ groupKey: PromptsStorage.user, label: localize('userGroup', "User"), icon: userIcon, description: localize('userGroupDescription', "Customizations stored locally on your machine in a central location. Private to you and available across all projects."), items: [] },
+		] : [
 			{ groupKey: PromptsStorage.local, label: localize('workspaceGroup', "Workspace"), icon: workspaceIcon, description: localize('workspaceGroupDescription', "Customizations stored as files in your project folder and shared with your team via version control."), items: [] },
 			{ groupKey: PromptsStorage.user, label: localize('userGroup', "User"), icon: userIcon, description: localize('userGroupDescription', "Customizations stored locally on your machine in a central location. Private to you and available across all projects."), items: [] },
 			{ groupKey: PromptsStorage.plugin, label: localize('pluginGroup', "Plugins"), icon: pluginIcon, description: localize('pluginGroupDescription', "Read-only customizations provided by installed plugins."), items: [] },
@@ -1533,12 +1471,12 @@ export class AICustomizationListWidget extends Disposable {
 			{ groupKey: PromptsStorage.builtIn, label: localize('builtinGroup', "Built-in"), icon: builtinIcon, description: localize('builtinGroupDescription', "Built-in customizations shipped with the application."), items: [] },
 		];
 
-		for (const item of matchedItems) {
+		for (const item of itemsToGroup) {
 			const key = this.currentSection === AICustomizationManagementSection.Instructions
 				? item.source
 				: item.groupKey ?? item.source ?? AICustomizationSources.local;
 			let group = groups.find(g => g.groupKey === key);
-			if (!group) {
+			if (!group && !donorFileSection) {
 				// Dynamically create a group for unknown groupKeys from providers
 				let label: string;
 				let description = '';
@@ -1567,6 +1505,9 @@ export class AICustomizationListWidget extends Disposable {
 				} else {
 					groups.push(group);
 				}
+			}
+			if (!group) {
+				continue;
 			}
 			group.items.push(item);
 		}

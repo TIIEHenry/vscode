@@ -3,6 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+/**
+ * Card-grid list controller for the sessions-window customization inventory.
+ * Default-window file sections (Agents/Skills/Instructions/Hooks) use WorkbenchList; see usesCustomizationCardLayout().
+ */
+
 import * as DOM from '../../../../../base/browser/dom.js';
 import { disposableTimeout } from '../../../../../base/common/async.js';
 import { Disposable, DisposableStore, MutableDisposable } from '../../../../../base/common/lifecycle.js';
