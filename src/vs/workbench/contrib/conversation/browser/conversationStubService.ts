@@ -7,6 +7,7 @@ import { Emitter, Event } from '../../../../base/common/event.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { createDecorator } from '../../../../platform/instantiation/common/instantiation.js';
 import { ConversationStubModel, ConversationStubSession, ConversationStubTurn } from './conversationStubModel.js';
+import { ConversationTrajectoryRecord } from './conversationTrajectoryModel.js';
 
 export const IConversationRosterService = createDecorator<IConversationRosterService>('conversationStubService');
 
@@ -24,6 +25,7 @@ export interface IConversationRosterService {
 	renameSession(sessionId: string, title: string): boolean;
 	deleteSession(sessionId: string): boolean;
 	getTurns(sessionId: string): readonly ConversationStubTurn[];
+	getTrajectoryRecords(sessionId: string): readonly ConversationTrajectoryRecord[];
 	appendUserTurn(sessionId: string, text: string): ConversationStubTurn | undefined;
 	appendStubEchoAssistant(sessionId: string, text: string): ConversationStubTurn | undefined;
 	appendConfirmationTurn(sessionId: string, text: string): ConversationStubTurn | undefined;
@@ -108,6 +110,10 @@ export class ConversationStubService extends Disposable implements IConversation
 
 	getTurns(sessionId: string): readonly ConversationStubTurn[] {
 		return this.model.getTurns(sessionId);
+	}
+
+	getTrajectoryRecords(sessionId: string): readonly ConversationTrajectoryRecord[] {
+		return this.model.getTrajectoryRecords(sessionId);
 	}
 
 	appendUserTurn(sessionId: string, text: string): ConversationStubTurn | undefined {

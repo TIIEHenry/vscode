@@ -814,8 +814,10 @@ suite('ConversationLens', () => {
 	});
 
 	test('empty trajectory shows honest copy for any zero-turn session', () => {
-		const { part, layoutReadingColumn } = mountLens();
+		const { part, stubService, layoutReadingColumn } = mountLens();
 		const slots = part.getSlots()!;
+		const emptySessionId = stubService.createSession();
+		stubService.switchSession(emptySessionId);
 
 		clickLensTab(slots, 'trajectory');
 		layoutReadingColumn();

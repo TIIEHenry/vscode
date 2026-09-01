@@ -4,6 +4,11 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { localize } from '../../../../nls.js';
+import {
+	ConversationTrajectoryRecord,
+	mergeTrajectoryFixtureExtras,
+	projectTurnsToTrajectory,
+} from './conversationTrajectoryModel.js';
 
 export type StubTurnKind = 'user' | 'assistant' | 'confirmation' | 'thinking' | 'tool';
 export type ConfirmationStatus = 'pending' | 'allowed' | 'skipped';
@@ -135,6 +140,12 @@ export class ConversationStubModel {
 
 	getTurns(sessionId: string): readonly ConversationStubTurn[] {
 		return this.sessions.find(s => s.id === sessionId)?.turns ?? [];
+	}
+
+	getTrajectoryRecords(sessionId: string): readonly ConversationTrajectoryRecord[] {
+		const turns = this.getTurns(sessionId);
+		const projected = projectTurnsToTrajectory(turns);
+		return mergeTrajectoryFixtureExtras(sessionId, projected);
 	}
 
 	appendUserTurn(sessionId: string, text: string): ConversationStubTurn | undefined {
