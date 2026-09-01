@@ -69,14 +69,15 @@ Prompts 不进默认窗产品轨（斜杠 = Skill catalog）。
 
 | | HEAD | 选定 |
 |--|------|------|
-| TOC `ua/customizations` | `workbench.action.openCustomizationsPreferences`（第三 pane） | `aiCustomization.openManagementEditor` |
+| TOC `ua/customizations` | `workbench.action.openCustomizationsPreferences`（第三 pane） | `aiCustomization.openManagementEditor`。TOC **组仍可留**；只换 `commandId` |
 | `OpenEditor` | `f1: true`，`precondition: ChatContextKeys.enabled ∧ IsSessionsWindowContext` | **保持**。Palette 测要求条目仍注册且默认窗 `when` 为 false |
-| TOC 点击 | `ICommandService.executeCommand` | **不走** Action2 `precondition`（`CommandService._tryExecuteCommand` 只调 handler）。默认窗 TOC 可打开编辑器。**不要**包进 `openUaPaneReplacingClientSettings`（那是 Connection/Engine pane）。`RequiresModal` 由 `editorGroupFinder` 接管模态 |
-| 禁止 | | 为 TOC 去掉 `IsSessionsWindowContext`；新开第二条 Open 命令（executeCommand **未被** precondition 挡住，已核） |
+| TOC 点击 | `ICommandService.executeCommand` | **不走** Action2 `precondition`（`CommandService._tryExecuteCommand` 只调 handler）。默认窗 TOC 可打开编辑器。**不要**包进 `openUaPaneReplacingClientSettings`（那是 Connection/Engine pane）。`RequiresModal` 由 `editorGroupFinder` 接管模态。已有 Settings 模态时可能同组两个 tab，**不要**为此改回 pane helper |
+| HEAD 第三宿主入口 | `OpenCustomizationsPreferencesAction`（`OPEN_CUSTOMIZATIONS_PREFERENCES_COMMAND_ID`）→ `openUaPaneReplacingClientSettings(..., ua.customizations)` | **删除**该 Action 与常量。改 TOC 不够：漏删则 Preferences 第三 tab 仍在；pane 已注销时未知 `paneId` fail-closed 回 Client |
+| 注销 pane | `CustomizationsPreferencesPane` + 贡献 + CSS + `UA_CUSTOMIZATIONS_PANE_ID` + `customizationsPreferencesPane.test.ts` | **一并删**。Connection / Engine pane **保留** |
+| TOC 锁测 | `settingsUaToc.test.ts` 断言 `commandId === 'workbench.action.openCustomizationsPreferences'` | 改成 `aiCustomization.openManagementEditor`。`ua/customizations` 链接行测可留 |
+| 禁止 | | 为 TOC 去掉 `IsSessionsWindowContext`；新开第二条 Open 命令（executeCommand **未被** precondition 挡住，已核）；只改 TOC / 只注销 pane 而留下 pane Open Action |
 
 Chat `ViewTitle` 仍可能挂 Open Customizations（无 Sessions 门）：默认窗须藏，走 M5 / INV-NO-COPILOT，不得当第三产品门。
-
-HEAD 仍有 `ua.customizations` pane，切片须注销。
 
 ## 4. 非目标
 
@@ -85,3 +86,5 @@ HEAD 仍有 `ua.customizations` pane，切片须注销。
 ## 5. 审查记录（规则 16）
 
 2026-09-01 第二轮并行 Grok：**Approve**。C5：`executeCommand` 不查 precondition（`commandService.ts` `_tryExecuteCommand`）；Palette 门保持。余量表成立。Minor 已改入：去掉「除非证伪 gated」；C5 不走 pane helper。
+
+2026-09-01 第三轮 [two-surfaces](bd6399de-54cd-47d8-816a-4ec97fedee5c)：**Approve with changes**。HEAD 七条主张成立。已改入：C5 删除 `OpenCustomizationsPreferencesAction` / pane 全套；`settingsUaToc.test.ts` 换 commandId。

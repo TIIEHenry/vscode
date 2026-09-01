@@ -11,11 +11,11 @@ summary: "文件编辑器 donor 的 vscode chrome：剥 Copilot 营销；零件�
 
 > **产品目录 SSOT：** [settings-two-surfaces.md](settings-two-surfaces.md) — 主设置页是 **本地 Client** 与 **Engine**；本编辑器是文件工具 donor，**不是**第三套主设置。  
 > **本文件职责：** 若打开 `AICustomizationManagementEditor`，页内 chrome / 空态 / vscode 控件 / 要剥的 Copilot 脸。不写引擎 RPC。零件拆进 Engine pane 时必须落在 vscode Preferences 密度上。  
-> **C5：** 目标 TOC → `aiCustomization.openManagementEditor`。HEAD 仍打开 `ua.customizations` pane（`workbench.action.openCustomizationsPreferences`）。从 Settings 点进去须关 Client 模态。  
+> **C5：** 目标 TOC → `aiCustomization.openManagementEditor`。HEAD 仍打开 `ua.customizations` pane。**不要**包进 `openUaPaneReplacingClientSettings`；也不要求先关 Client Settings 模态（`RequiresModal` 由 `editorGroupFinder` 接管，可能同组两个 tab）。删除 pane Open Action 见 two-surfaces。  
 > **视觉：** 与 vscode Settings / Preferences **同一张脸**（workbench token）。禁止 Singularity 卡、Copilot 营销卡栅。  
 > **范围窗：** 默认窗（`isSessionsWindow === false`）。
 
-**Goal：** 剥 Copilot 营销 Overview / Browse / CLI 工具清单，改成 vscode 左 nav + 列表 + markdown 预览。无引擎诚实空。**不要**把这只编辑器当成 Skill/Agent 产品首页（那是 Engine 页）。
+**Goal：** 剥 Copilot 营销 Overview / Browse / CLI 工具清单，改成 vscode 左 nav + 列表 + markdown 预览。无引擎时本页只列/空着本地文件，**不**画 catalog；诚实空 + Test 在 Engine 页。**不要**把这只编辑器当成 Skill/Agent 产品首页。
 
 ## 0. 已拍板约束（本文件不重开）
 
@@ -28,7 +28,7 @@ summary: "文件编辑器 donor 的 vscode chrome：剥 Copilot 营销；零件�
 | Overview 输入 | 禁止「Customize Your Agent」预填 Chat / `/init` |
 | Plugins | v1 默认窗 **`managementSections` 删除** `plugins`（只藏左 nav 仍会构造 `PluginListWidget`）。深链诚实空。禁止 Browse 进 Copilot / Open VSX |
 | Tools | 禁止 `COPILOT_CLI_TOOLS`。默认窗 **不画** Tools 节（HEAD 已藏）。产品 enablement 在 Engine 页 |
-| 默认窗不进产品轨 | `prompts` / `automations` / `models` / `harnessSettings`（HEAD 枚举仍可存在，左 nav 不画） |
+| 默认窗不进产品轨 | TypeScript 枚举可留。默认窗 `managementSections` **数组必须去掉** `prompts` / `harnessSettings` / `models`（contributed 含 harnessSettings：只藏 nav 仍会建 container）。`automations` 左 nav 不画 |
 | 截图底栏 | `+ Agent` / `Auto` / `Autopilot` / `Detailed permissions` 是 **Conversation Dock**，不是本编辑器。剥离走 M5 / INV-NO-COPILOT。本页只记 **out of scope** |
 | 无引擎 | donor 列出的是文件，不是 catalog。禁止假技能名、假 Featured MCP、假工具组 |
 | OpenEditor | HEAD `f1: true` + `IsSessionsWindowContext`。**保持**（Palette 仍注册、默认窗隐藏）。TOC 用 `executeCommand`，不靠 precondition。禁止为 TOC 去掉 Sessions 门 |
@@ -111,7 +111,7 @@ Overview **不是** Engine catalog 着陆：无 sparkle 卡、无预填输入。
 └──────────────────┴───────────────────────────────────────────┘
 ```
 
-无本地定义且无引擎：诚实空，**不**用 gallery snapshot 填三张 Featured。
+无本地 `mcp.json` 定义：诚实空，**不**用 gallery snapshot 填三张 Featured。与引擎是否接通无关。
 
 ## 2. 全局 chrome 改造
 
@@ -199,7 +199,7 @@ Overview 选中 = 今日 `selectedSection === undefined` + `showWelcomePage()`�
 | 文案 | 去掉 persona/Copilot。标题 **Agents**。说明：Agent profiles (`AGENTS.md` + `tools.json`) for this workspace or your user profile. |
 | Learn more | 去掉 vscode Copilot 文档链 |
 | New | 只留 **Manual New**（现有 `NEW_AGENT_COMMAND_ID` / `onDidRequestCreateManual`）。剥离 AI-guided `onDidRequestCreate` |
-| 路径/元数据 | H0 只改正文案与卡→列表。磁盘权威在引擎面；本编辑器当普通文件打开 |
+| 路径/元数据 | H0 只改正文案与卡→列表。catalog 权威在 Engine 页；本编辑器只当普通文件打开 |
 | 工具白名单 | 本编辑器最多预览已打开的 `AGENTS.md`。`tools.json` enablement 在 Engine 页 |
 | Copilot agent 市场 | **剥离** |
 | 空态 | 标题 `No agent files yet`。副句：`Create a markdown file. Agent profiles are managed in Engine settings.` **禁止**填 Copilot persona 名 |
@@ -245,16 +245,16 @@ Overview 选中 = 今日 `selectedSection === undefined` + `showWelcomePage()`�
 | Add | 保留 vscode MCP **定义**添加（工作区/用户 `mcp.json` 流）。这是定义 CRUD，不是商店 |
 | Copilot 扩展源分组 | **剥离**（`isCopilotExtension` 那路不要在默认窗当「已安装 MCP」推销） |
 | 运行态（已连引擎的 live 工具） | **不在本页** |
-| 无引擎但有本地定义 | 只读列出文件定义；状态文案不得写 Connected to engine |
-| 无定义且无引擎 | `No MCP servers yet` / `Add a server definition for this workspace. Featured marketplace servers are not available.` |
+| 有本地定义 | 列出 vscode `mcp.json` 文件定义；状态文案不得写 Connected to engine |
+| 无本地定义 | `No MCP servers yet` / `Add a server definition for this workspace. Featured marketplace servers are not available.` |
 
 ### 3.7 Plugins（v1 延后）
 
 | | |
 |--|--|
 | 左 nav | **无**；从默认窗 `managementSections` **删除** `plugins`（只藏 nav 仍会构造 Browse） |
-| `PluginListWidget` / `EmbeddedAgentPluginDetail` | 默认窗不挂载。深链 `openManagementEditor({ section: 'plugins' })`：右栏诚实空，无 Browse、无 `PluginMarketplaceSnapshotModel` |
-| 空态（仅深链） | `Plugins are not available yet.` / `Engine plugins are not the VS Code marketplace. This section stays empty until the engine exposes a plugin catalog.` |
+| `PluginListWidget` / `EmbeddedAgentPluginDetail` | 默认窗不挂载。深链 `openManagementEditor({ section: 'plugins' })`：**不构造 widget**；右栏一句不可用即可，无 Browse、无 `PluginMarketplaceSnapshotModel` |
+| 深链（节未构造） | `Plugins are not available.` / `This editor does not manage engine plugins.` **不要**写 until-engine catalog |
 | Browse Marketplace | **剥离** |
 
 ### 3.8 Tools
@@ -336,7 +336,7 @@ E1 / catalog 不在本页。
 | `aiCustomizationWorkspaceService.ts`（browser） | 默认窗 `managementSections` **仅**文件节（agents/skills/instructions/hooks/mcpServers）；**删除** plugins/tools/prompts/harnessSettings。`showGettingStartedBanner: false` |
 | `ChatModelsWidget`（经 editor 挂载） | 默认窗 **不挂载** |
 | `agentGlobalConfigurationSettingsWidget.ts` | HarnessSettings：**不进**默认窗轨 |
-| `promptsServiceCustomizationItemProvider.ts` / `aiCustomizationItemsModel.ts` | H1+ 换扫描路径时改 data source；H0 不动权威、只动 chrome |
+| `promptsServiceCustomizationItemProvider.ts` / `aiCustomizationItemsModel.ts` | H0–H3 **不**把扫描根改到 `{AgentHome}` / `.universe-agent`。H0 只动 chrome。UA 路径 list 只在 E1 Engine-backed |
 | `customizationMigration*.ts` | 默认窗 **不展示** Copilot 迁移 UI |
 
 主题继续 `aiCustomizationManagement.css` workbench token，不引入新设计系统。
@@ -352,3 +352,7 @@ E1 / catalog 不在本页。
 2026-09-01：三路并行 Cursor Grok 4.6 只读。本文件原评估 **Block**。已当轮改入：H0–H3 收成文件工具；Tools 不进默认窗左 nav；OpenEditor Palette 门钉死；`managementSections` 必须删 plugins/tools 而非只藏 nav。
 
 2026-09-01 第二轮：**Block**。已改入：§0/§3.1 Overview 去掉 Tools 行与「catalog after connection」；Plugins 改为删 `managementSections`；§3.5/§3.8 去掉 until E1 / Tools 空态；§6 welcome 不再写 Engine not connected。
+
+2026-09-01 第三轮 [host-ui](f389761d-3658-41ea-b5ef-66a498df6855)：**Approve with changes**。Round-2 六条 gone。已改入：Goal 不再用 Engine「诚实空」口号；§3.7 深链不写 until-engine catalog；§0 默认窗从 `managementSections` 删 contributed，不是藏 nav。
+
+engine 第三轮连带：H0–H3 **不得**把扫描根改到 `{AgentHome}`。
