@@ -29,7 +29,7 @@ import {
 	conversationLensDockStopNotGenerating,
 	conversationLensInputMaximizedClass,
 } from '../../browser/conversationLensDockStrings.js';
-import { conversationLensSessionBarDeleteSession, conversationLensSessionBarHistoryTitle, conversationLensSessionBarNewSession, conversationLensSessionBarNoTrajectory, conversationLensSessionBarRenameTitle, conversationLensThinkingNotConnected, conversationLensToolNotConnected, conversationLensPinnedUserPromptAria, conversationLensPinnedUserPromptCopyAria } from '../../browser/conversationLensSessionBarStrings.js';
+import { conversationLensSessionBarConversationTab, conversationLensSessionBarDeleteSession, conversationLensSessionBarNewSession, conversationLensSessionBarNoTrajectory, conversationLensSessionBarRenameTitle, conversationLensSessionBarTrajectoryTab, conversationLensThinkingNotConnected, conversationLensToolNotConnected, conversationLensPinnedUserPromptAria, conversationLensPinnedUserPromptCopyAria } from '../../browser/conversationLensSessionBarStrings.js';
 import { ConversationStubService, IConversationRosterService } from '../../browser/conversationStubService.js';
 import { getConversationSessionStatusText } from '../../browser/conversationSessionStatus.js';
 import { shouldRenderTurnAsMarkdown } from '../../browser/conversationTurnMarkdown.js';
@@ -40,6 +40,8 @@ import { Event } from '../../../../../base/common/event.js';
 import { ICommandService } from '../../../../../platform/commands/common/commands.js';
 import { IExplorerService } from '../../../files/browser/files.js';
 import { ISCMService } from '../../../scm/common/scm.js';
+import { IStorageService, StorageScope } from '../../../../../platform/storage/common/storage.js';
+import { TestStorageService } from '../../../../test/common/workbenchTestServices.js';
 
 suite('ConversationLens', () => {
 
@@ -74,6 +76,17 @@ suite('ConversationLens', () => {
 
 	const LENS_LAYOUT_WIDTH = 640;
 	const LENS_LAYOUT_HEIGHT = 480;
+	const LENS_MIN_WIDTH = 300;
+
+	function getLensTab(slots: IConversationLensSlots, lensId: 'conversation' | 'trajectory'): HTMLButtonElement {
+		const tab = slots.sessionBar.querySelector(`button.conversation-lens-lens-tab[data-lens-id="${lensId}"]`) as HTMLButtonElement | null;
+		assert.ok(tab);
+		return tab;
+	}
+
+	function clickLensTab(slots: IConversationLensSlots, lensId: 'conversation' | 'trajectory'): void {
+		getLensTab(slots, lensId).click();
+	}
 
 	function getReadingColumn(slots: IConversationLensSlots): HTMLElement {
 		const column = slots.timeline.querySelector('.conversation-lens-reading-column');
@@ -206,8 +219,10 @@ suite('ConversationLens', () => {
 		return select.options[select.selectedIndex]?.text;
 	}
 
-	function mountLens(): { part: ConversationPart; lens: ConversationLens; stubService: ConversationStubService; clipboardService: TestClipboardService; layoutReadingColumn: () => void } {
+	function mountLens(options?: { storageService?: TestStorageService; layoutWidth?: number }): { part: ConversationPart; lens: ConversationLens; stubService: ConversationStubService; clipboardService: TestClipboardService; storageService: TestStorageService; layoutReadingColumn: () => void } {
 		const instantiationService = workbenchInstantiationService(undefined, store);
+		const storageService = options?.storageService ?? store.add(new TestStorageService());
+		instantiationService.stub(IStorageService, storageService);
 		const stubService = store.add(new ConversationStubService());
 		const clipboardService = new TestClipboardService();
 		instantiationService.stub(IConversationRosterService, stubService);
@@ -234,7 +249,8 @@ suite('ConversationLens', () => {
 		const part = store.add(instantiationService.createInstance(ConversationPart));
 		const parent = document.createElement('div');
 		parent.classList.add('monaco-workbench');
-		parent.style.width = `${LENS_LAYOUT_WIDTH}px`;
+		const layoutWidth = options?.layoutWidth ?? LENS_LAYOUT_WIDTH;
+		parent.style.width = `${layoutWidth}px`;
 		parent.style.height = `${LENS_LAYOUT_HEIGHT}px`;
 		document.body.appendChild(parent);
 		store.add(toDisposable(() => parent.remove()));
@@ -242,7 +258,7 @@ suite('ConversationLens', () => {
 		const slots = part.getSlots();
 		assert.ok(slots);
 		slots.timeline.classList.add('part', 'conversation');
-		part.layout(LENS_LAYOUT_WIDTH, LENS_LAYOUT_HEIGHT, 0, 0);
+		part.layout(layoutWidth, LENS_LAYOUT_HEIGHT, 0, 0);
 		const layoutCallbacks: Array<() => void> = [];
 		const runLayouts = () => {
 			for (const layout of layoutCallbacks) {
@@ -260,7 +276,7 @@ suite('ConversationLens', () => {
 			contentHost.style.display = '';
 		}
 		layout();
-		return { part, lens, stubService, clipboardService, layoutReadingColumn: layout };
+		return { part, lens, stubService, clipboardService, storageService, layoutReadingColumn: layout };
 	}
 
 	async function seedPendingConfirmation(stubService: ConversationStubService, layoutReadingColumn: () => void, message = 'Write README.md?'): Promise<void> {
@@ -397,6 +413,7 @@ suite('ConversationLens', () => {
 
 		assert.ok(slots.sessionBar.querySelector('.conversation-lens-session-icon'));
 		assert.ok(slots.sessionBar.querySelector('.conversation-lens-session-title'));
+		assert.ok(slots.sessionBar.querySelector('.conversation-lens-lens-tabs[role="tablist"]'));
 		assert.ok(slots.sessionBar.querySelector('.conversation-lens-session-switcher-label'));
 		assert.ok(getReadingColumn(slots));
 		assert.ok(slots.timeline.querySelector('.conversation-lens-timeline-scroll'));
@@ -706,82 +723,127 @@ suite('ConversationLens', () => {
 		assert.ok(getTimelineEmpty(slots));
 	});
 
-	test('SessionBar history toggles in-column trajectory for current session turns', async () => {
+	test('SessionBar lens tablist defaults to Conversation and switches to Trajectory', async () => {
 		const { part, stubService, layoutReadingColumn } = mountLens();
 		const slots = part.getSlots()!;
-		const historyButton = slots.sessionBar.querySelector('.conversation-lens-session-history .monaco-button') as HTMLButtonElement;
 		const sessionId = stubService.getActiveSessionId();
-		const activeTitle = stubService.getActiveSession().title;
+		const conversationTab = getLensTab(slots, 'conversation');
+		const trajectoryTab = getLensTab(slots, 'trajectory');
+
+		assert.strictEqual(conversationTab.textContent, conversationLensSessionBarConversationTab);
+		assert.strictEqual(trajectoryTab.textContent, conversationLensSessionBarTrajectoryTab);
+		assert.strictEqual(conversationTab.getAttribute('aria-selected'), 'true');
+		assert.strictEqual(trajectoryTab.getAttribute('aria-selected'), 'false');
+		assert.ok(slots.timeline.querySelector('.conversation-lens-timeline:not([hidden])'));
+		assert.strictEqual(slots.timeline.querySelector('.conversation-lens-trajectory')!.hasAttribute('hidden'), true);
 
 		stubService.appendUserTurn(sessionId, 'First turn in trajectory');
 		stubService.appendStubEchoAssistant(sessionId, 'Stub reply');
 		await flushTimelineHeightUpdates();
 
-		assert.ok(historyButton);
-		assert.strictEqual(historyButton.getAttribute('aria-label'), conversationLensSessionBarHistoryTitle);
-		assert.strictEqual(historyButton.getAttribute('aria-pressed'), 'false');
-		assert.strictEqual(slots.timeline.querySelector('.conversation-lens-trajectory[hidden]'), slots.timeline.querySelector('.conversation-lens-trajectory'));
-		assert.ok(slots.timeline.querySelector('.conversation-lens-timeline:not([hidden])'));
-
-		historyButton.click();
+		clickLensTab(slots, 'trajectory');
 		layoutReadingColumn();
 		await flushTimelineHeightUpdates();
 
-		assert.strictEqual(historyButton.getAttribute('aria-pressed'), 'true');
+		assert.strictEqual(conversationTab.getAttribute('aria-selected'), 'false');
+		assert.strictEqual(trajectoryTab.getAttribute('aria-selected'), 'true');
 		const trajectory = slots.timeline.querySelector('.conversation-lens-trajectory')!;
-		assert.ok(trajectory);
 		assert.ok(!trajectory.hasAttribute('hidden'));
 		assert.strictEqual(slots.timeline.querySelector('.conversation-lens-timeline')!.hasAttribute('hidden'), true);
 		assert.strictEqual(trajectory.querySelectorAll('.monaco-list-row').length, 2);
 		assert.ok(trajectory.textContent?.includes('First turn in trajectory'));
-		assert.strictEqual(stubService.getActiveSession().title, activeTitle);
 
-		historyButton.click();
+		clickLensTab(slots, 'conversation');
 		await flushTimelineHeightUpdates();
 
-		assert.strictEqual(historyButton.getAttribute('aria-pressed'), 'false');
+		assert.strictEqual(conversationTab.getAttribute('aria-selected'), 'true');
+		assert.strictEqual(trajectoryTab.getAttribute('aria-selected'), 'false');
 		assert.ok(slots.timeline.querySelector('.conversation-lens-timeline:not([hidden])'));
 		assert.strictEqual(slots.timeline.querySelector('.conversation-lens-trajectory')!.hasAttribute('hidden'), true);
 	});
 
-	test('trajectory row click reveals matching timeline turn and returns to conversation view', async () => {
-		const { part, stubService, layoutReadingColumn } = mountLens();
+	test('SessionBar lens tabs stay visible at 300px minimum width with 22px bar height', () => {
+		const { part } = mountLens({ layoutWidth: LENS_MIN_WIDTH });
 		const slots = part.getSlots()!;
-		const historyButton = slots.sessionBar.querySelector('.conversation-lens-session-history .monaco-button') as HTMLButtonElement;
-		const sessionId = stubService.getActiveSessionId();
+		const bar = slots.sessionBar.querySelector('.conversation-lens-session-bar') as HTMLElement;
+		const conversationTab = getLensTab(slots, 'conversation');
+		const trajectoryTab = getLensTab(slots, 'trajectory');
+		const switcherLabel = slots.sessionBar.querySelector('.conversation-lens-session-switcher-label') as HTMLElement;
 
-		stubService.appendUserTurn(sessionId, 'Reveal me in timeline');
-		stubService.appendStubEchoAssistant(sessionId, 'Later reply');
-		await flushTimelineHeightUpdates();
-
-		historyButton.click();
-		layoutReadingColumn();
-		await flushTimelineHeightUpdates();
-
-		const trajectory = slots.timeline.querySelector('.conversation-lens-trajectory')!;
-		const firstRow = trajectory.querySelector('.monaco-list-row') as HTMLElement;
-		assert.ok(firstRow);
-		firstRow.click();
-		layoutReadingColumn();
-		await flushTimelineHeightUpdates();
-
-		assert.strictEqual(historyButton.getAttribute('aria-pressed'), 'false');
-		assert.ok(slots.timeline.querySelector('.conversation-lens-timeline:not([hidden])'));
-		assert.ok(queryTimeline(slots, '.conversation-lens-turn[data-turn-id][data-kind="user"]'));
+		assert.ok(bar);
+		assert.ok(conversationTab.offsetWidth > 0);
+		assert.ok(trajectoryTab.offsetWidth > 0);
+		assert.strictEqual(switcherLabel.offsetWidth, 0);
+		assert.strictEqual(bar.offsetHeight, 22);
 	});
 
-	test('empty trajectory shows honest copy without fake history', () => {
+	test('lensId persists across remount via workspace storage', async () => {
+		const storageService = store.add(new TestStorageService());
+		const first = mountLens({ storageService });
+		const slots = first.part.getSlots()!;
+
+		clickLensTab(slots, 'trajectory');
+		assert.strictEqual(storageService.get('conversation.lensId', StorageScope.WORKSPACE), 'trajectory');
+
+		first.lens.dispose();
+		const second = mountLens({ storageService });
+		const remountedSlots = second.part.getSlots()!;
+
+		assert.strictEqual(getLensTab(remountedSlots, 'trajectory').getAttribute('aria-selected'), 'true');
+		assert.ok(!remountedSlots.timeline.querySelector('.conversation-lens-trajectory')!.hasAttribute('hidden'));
+	});
+
+	test('switching sessions keeps the active lens tab', async () => {
+		const { part, stubService, layoutReadingColumn } = mountLens();
+		const slots = part.getSlots()!;
+		const firstId = stubService.getActiveSessionId();
+		const secondId = stubService.createSession();
+
+		stubService.appendUserTurn(firstId, 'First session message');
+		await flushTimelineHeightUpdates();
+		clickLensTab(slots, 'trajectory');
+		layoutReadingColumn();
+		await flushTimelineHeightUpdates();
+
+		stubService.switchSession(secondId);
+		await flushTimelineHeightUpdates();
+
+		assert.strictEqual(getLensTab(slots, 'trajectory').getAttribute('aria-selected'), 'true');
+		assert.ok(!slots.timeline.querySelector('.conversation-lens-trajectory')!.hasAttribute('hidden'));
+		assert.ok(slots.timeline.querySelector('.conversation-lens-trajectory')!.textContent?.includes(conversationLensSessionBarNoTrajectory));
+	});
+
+	test('empty trajectory shows honest copy for any zero-turn session', () => {
 		const { part, layoutReadingColumn } = mountLens();
 		const slots = part.getSlots()!;
-		const historyButton = slots.sessionBar.querySelector('.conversation-lens-session-history .monaco-button') as HTMLButtonElement;
 
-		historyButton.click();
+		clickLensTab(slots, 'trajectory');
 		layoutReadingColumn();
 
 		const trajectory = slots.timeline.querySelector('.conversation-lens-trajectory')!;
 		assert.ok(trajectory.textContent?.includes(conversationLensSessionBarNoTrajectory));
 		assert.strictEqual(trajectory.querySelector('.monaco-list-row'), null);
-		assert.strictEqual(trajectory.querySelector('.conversation-lens-session-history-popup'), null);
+	});
+
+	test('inbox pending click from Trajectory lens switches back to Conversation', async () => {
+		const { part, lens, stubService, layoutReadingColumn } = mountLens();
+		const slots = part.getSlots()!;
+		await seedPendingConfirmation(stubService, layoutReadingColumn);
+
+		clickLensTab(slots, 'trajectory');
+		layoutReadingColumn();
+		await flushTimelineHeightUpdates();
+
+		const pendingButton = slots.dock.querySelector('.conversation-lens-inbox-pending') as HTMLButtonElement;
+		assert.ok(!pendingButton.hidden);
+
+		pendingButton.click();
+		layoutReadingColumn();
+		await flushTimelineHeightUpdates();
+
+		assert.strictEqual(getLensTab(slots, 'conversation').getAttribute('aria-selected'), 'true');
+		assert.strictEqual(lens.isInputMaximized(), false);
+		assert.ok(queryTimeline(slots, '.conversation-lens-confirmation-seat'));
 	});
 
 	test('thinking and tool turns render as collapsible process rows with honest not-connected bodies', () => {
@@ -1092,15 +1154,14 @@ suite('ConversationLens', () => {
 		userCopy.click();
 		assert.strictEqual(await clipboardService.readText(), userText);
 
-		const historyButton = slots.sessionBar.querySelector('.conversation-lens-session-history .monaco-button') as HTMLButtonElement;
-		historyButton.click();
+		clickLensTab(slots, 'trajectory');
 		layoutReadingColumn();
 		await flushTimelineHeightUpdates();
 
 		let trajectory = slots.timeline.querySelector('.conversation-lens-trajectory')!;
 		assert.strictEqual(trajectory.querySelectorAll('.monaco-list-row').length, 2);
 
-		historyButton.click();
+		clickLensTab(slots, 'conversation');
 		layoutReadingColumn();
 		await flushTimelineHeightUpdates();
 
@@ -1112,7 +1173,7 @@ suite('ConversationLens', () => {
 		assert.strictEqual(stubService.getTurns(sessionId).length, 1);
 		assert.strictEqual(stubService.getTurns(sessionId)[0].text, assistantText);
 
-		historyButton.click();
+		clickLensTab(slots, 'trajectory');
 		layoutReadingColumn();
 		await flushTimelineHeightUpdates();
 
@@ -1121,7 +1182,7 @@ suite('ConversationLens', () => {
 		assert.ok(trajectory.textContent?.includes(assistantText));
 		assert.ok(!trajectory.textContent?.includes(userText));
 
-		historyButton.click();
+		clickLensTab(slots, 'conversation');
 		layoutReadingColumn();
 		await flushTimelineHeightUpdates();
 		await flushAnimationFrames();
