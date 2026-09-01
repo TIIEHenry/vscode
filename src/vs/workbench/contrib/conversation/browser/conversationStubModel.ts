@@ -6,6 +6,12 @@
 import { localize } from '../../../../nls.js';
 import { ConversationVisualizeArgs } from '../common/conversationVisualize.js';
 import {
+	ConversationMessageQueueItem,
+	ConversationMessageQueueState,
+	ConversationQueueItemHoldReason,
+	createEmptyMessageQueueState,
+} from './conversationMessageQueueModel.js';
+import {
 	ConversationTrajectoryRecord,
 	mergeTrajectoryFixtureExtras,
 	projectTurnsToTrajectory,
@@ -161,10 +167,16 @@ function nextId(prefix: string): string {
 /**
  * In-memory stub conversation model (no engine, no persistence).
  */
+interface ConversationStubSessionExtras {
+	messageQueue: ConversationMessageQueueState;
+	autoDriveTasks: string[];
+}
+
 export class ConversationStubModel {
 
 	private readonly sessions: ConversationStubSession[];
 	private activeSessionId: string;
+	private readonly sessionExtras = new Map<string, ConversationStubSessionExtras>();
 
 	constructor() {
 		this.sessions = createSeedSessions().map(session => ({
@@ -173,6 +185,18 @@ export class ConversationStubModel {
 		}));
 		this.activeSessionId = this.sessions[0].id;
 		nextTurnId = 100;
+		for (const session of this.sessions) {
+			this.ensureSessionExtras(session.id);
+		}
+	}
+
+	private ensureSessionExtras(sessionId: string): ConversationStubSessionExtras {
+		let extras = this.sessionExtras.get(sessionId);
+		if (!extras) {
+			extras = { messageQueue: createEmptyMessageQueueState(), autoDriveTasks: [] };
+			this.sessionExtras.set(sessionId, extras);
+		}
+		return extras;
 	}
 
 	getSessions(): readonly ConversationStubSession[] {
@@ -197,6 +221,7 @@ export class ConversationStubModel {
 		const id = nextId('session');
 		const title = this.createUniqueNewSessionTitle();
 		this.sessions.push({ id, title, turns: [] });
+		this.ensureSessionExtras(id);
 		this.activeSessionId = id;
 		return id;
 	}
@@ -230,6 +255,7 @@ export class ConversationStubModel {
 				title: localize('conversationLens.sessionUntitled', "Untitled session"),
 				turns: [],
 			});
+			this.ensureSessionExtras(id);
 			this.activeSessionId = id;
 		} else if (wasActive) {
 			const newIndex = Math.min(index, this.sessions.length - 1);
@@ -334,5 +360,59 @@ export class ConversationStubModel {
 		}
 		session.turns.splice(index, 1);
 		return true;
+	}
+
+	getMessageQueueState(sessionId: string): ConversationMessageQueueState {
+		return this.ensureSessionExtras(sessionId).messageQueue;
+	}
+
+	setMessageQueueFixture(sessionId: string, state: ConversationMessageQueueState): void {
+		this.ensureSessionExtras(sessionId).messageQueue = {
+			items: state.items.map(item => ({ ...item })),
+			isPaused: state.isPaused,
+			isProcessing: state.isProcessing,
+		};
+	}
+
+	pauseMessageQueue(sessionId: string): void {
+		const extras = this.ensureSessionExtras(sessionId);
+		extras.messageQueue = { ...extras.messageQueue, isPaused: true };
+	}
+
+	resumeMessageQueue(sessionId: string): void {
+		const extras = this.ensureSessionExtras(sessionId);
+		extras.messageQueue = { ...extras.messageQueue, isPaused: false };
+	}
+
+	clearMessageQueue(sessionId: string): void {
+		this.ensureSessionExtras(sessionId).messageQueue = createEmptyMessageQueueState();
+	}
+
+	holdMessageQueueItem(sessionId: string, itemId: string, hold: ConversationQueueItemHoldReason): void {
+		const extras = this.ensureSessionExtras(sessionId);
+		extras.messageQueue = {
+			...extras.messageQueue,
+			items: extras.messageQueue.items.map(item => item.id === itemId ? { ...item, hold } : item),
+		};
+	}
+
+	releaseMessageQueueItemHold(sessionId: string, itemId: string): void {
+		const extras = this.ensureSessionExtras(sessionId);
+		extras.messageQueue = {
+			...extras.messageQueue,
+			items: extras.messageQueue.items.map(item => item.id === itemId ? { ...item, hold: undefined } : item),
+		};
+	}
+
+	getAutoDriveTasks(sessionId: string): readonly string[] {
+		return this.ensureSessionExtras(sessionId).autoDriveTasks;
+	}
+
+	getAutoDriveTaskCount(sessionId: string): number {
+		return this.getAutoDriveTasks(sessionId).length;
+	}
+
+	setAutoDriveTaskFixture(sessionId: string, tasks: readonly string[]): void {
+		this.ensureSessionExtras(sessionId).autoDriveTasks = [...tasks];
 	}
 }

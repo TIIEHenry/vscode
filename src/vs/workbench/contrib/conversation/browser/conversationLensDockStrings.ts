@@ -8,6 +8,15 @@ import { localize } from '../../../../nls.js';
 /** Honest Input Dock copy — no engine, no Copilot entitlement CTAs. */
 export const conversationLensDockEngineNotConnected = localize('conversationLens.dockEngineNotConnected', "Engine not connected");
 export const conversationLensDockInboxNoQueue = localize('conversationLens.inboxNoQueue', "No queue");
+export const conversationLensDockInboxNoTasks = localize('conversationLens.inboxNoTasks', "No tasks");
+export const conversationLensDockInboxTaskLabel = localize('conversationLens.inboxTaskLabel', "Task");
+export const conversationLensDockInboxQueueLabel = localize('conversationLens.inboxQueueLabel', "MessageQueue");
+export const conversationLensInboxQueuePause = localize('conversationLens.inboxQueuePause', "Pause");
+export const conversationLensInboxQueueResume = localize('conversationLens.inboxQueueResume', "Resume");
+export const conversationLensInboxQueueClear = localize('conversationLens.inboxQueueClear', "Clear");
+export const conversationLensInboxQueueEditingTag = localize('conversationLens.inboxQueueEditingTag', "Editing");
+export const conversationLensInboxQueueUploadingTag = localize('conversationLens.inboxQueueUploadingTag', "Uploading {0}%");
+export const conversationLensInboxQueueFailedTag = localize('conversationLens.inboxQueueFailedTag', "Failed");
 export const conversationLensDockGoal = localize('conversationLens.dockGoal', "Goal");
 export const conversationLensDockNoGoal = localize('conversationLens.dockNoGoal', "No goal");
 export const conversationLensDockNoModel = localize('conversationLens.dockNoModel', "No model");

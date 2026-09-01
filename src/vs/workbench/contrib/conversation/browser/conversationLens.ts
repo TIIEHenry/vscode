@@ -21,18 +21,16 @@ import { defaultButtonStyles, defaultSelectBoxStyles } from '../../../../platfor
 import { hasNativeContextMenu } from '../../../../platform/window/common/window.js';
 import { IConversationLensSlots } from '../../../browser/parts/conversation/conversationPart.js';
 import { ConversationIdentityStrip } from './conversationIdentityStrip.js';
+import { ConversationInboxOverlay } from './conversationInboxOverlay.js';
 import { ConversationTimelineTree } from './conversationTimelineTree.js';
 import { ConversationTrajectory } from './conversationTrajectory.js';
 import {
 	conversationLensDockAddTitle,
 	conversationLensDockEngineNotConnected,
-	conversationLensDockGoal,
-	conversationLensDockInboxNoQueue,
 	conversationLensDockMaximizeInput,
 	conversationLensDockMicNotAvailable,
 	conversationLensDockMicTitle,
 	conversationLensDockMoreTitle,
-	conversationLensDockNoGoal,
 	conversationLensDockNoAttachments,
 	conversationLensDockNoModel,
 	conversationLensDockNoRoute,
@@ -49,8 +47,6 @@ import {
 	conversationLensDockPermissionLabel,
 	conversationLensDockPlaceholder,
 	conversationLensDockRestoreTimeline,
-	conversationLensDockStop,
-	conversationLensDockStopNotGenerating,
 	conversationLensDockTemplatesTitle,
 	conversationLensDockTuneTitle,
 	conversationLensInputMaximizedClass,
@@ -119,8 +115,7 @@ export class ConversationLens extends Disposable {
 	private lensId: ConversationLensId = 'conversation';
 	private timelineTree!: ConversationTimelineTree;
 	private trajectoryView!: ConversationTrajectory;
-	private inboxStatus!: HTMLButtonElement;
-	private stopButton!: Button;
+	private inboxOverlay!: ConversationInboxOverlay;
 	private dockTextarea!: HTMLTextAreaElement;
 	private sendButton!: Button;
 	private addButton!: Button;
@@ -145,7 +140,6 @@ export class ConversationLens extends Disposable {
 	private prefirstHero!: HTMLElement;
 	private dockRoot!: HTMLElement;
 	private gateRow!: HTMLElement;
-	private inboxRow!: HTMLElement;
 	private composer!: HTMLElement;
 	private identityStrip!: ConversationIdentityStrip;
 
@@ -230,6 +224,9 @@ export class ConversationLens extends Disposable {
 		}
 		this.readingColumn.classList.toggle(conversationLensInputMaximizedClass, maximized);
 		this.updateMaximizeInputButton();
+		if (maximized) {
+			this.inboxOverlay.closeListPanel();
+		}
 	}
 
 	private toggleInputMaximized(): void {
@@ -450,37 +447,10 @@ export class ConversationLens extends Disposable {
 		this.gateRow.setAttribute('aria-label', conversationLensDockEngineNotConnected);
 		append(this.gateRow, $('span.conversation-lens-dock-gate-label')).textContent = conversationLensDockEngineNotConnected;
 
-		this.inboxRow = append(this.dockRoot, $('.conversation-lens-inbox-row'));
-		this.inboxRow.setAttribute('role', 'status');
-		this.inboxRow.setAttribute('aria-label', localize('conversationLens.inbox', "Inbox"));
-		append(this.inboxRow, $('span.conversation-lens-inbox-label')).textContent = localize('conversationLens.inboxLabel', "Inbox");
-		append(this.inboxRow, $('span.conversation-lens-inbox-queue')).textContent = conversationLensDockInboxNoQueue;
-		const goalContainer = append(this.inboxRow, $('.conversation-lens-inbox-goal'));
-		const goalButton = this._register(new Button(goalContainer, {
-			...defaultButtonStyles,
-			small: true,
-			secondary: true,
-			disabled: true,
-			title: conversationLensDockNoGoal,
+		this.inboxOverlay = this._register(this.instantiationService.createInstance(ConversationInboxOverlay, this.dockRoot, {
+			onQueueItemHold: () => { /* T5 wires queueEdit XOR */ },
+			onScrollToPendingConfirmation: () => this.scrollToFirstPendingConfirmation(),
 		}));
-		goalButton.label = conversationLensDockNoGoal;
-		goalButton.element.classList.add('conversation-lens-inbox-goal-button');
-		goalButton.setAriaLabel(`${conversationLensDockGoal}, ${conversationLensDockNoGoal}`);
-		const stopContainer = append(this.inboxRow, $('.conversation-lens-inbox-stop'));
-		this.stopButton = this._register(new Button(stopContainer, {
-			...defaultButtonStyles,
-			small: true,
-			secondary: true,
-			disabled: true,
-			title: conversationLensDockStopNotGenerating,
-		}));
-		this.stopButton.label = conversationLensDockStop;
-		this.stopButton.element.classList.add('conversation-lens-inbox-stop-button');
-		this.stopButton.setAriaLabel(`${conversationLensDockStop}, ${conversationLensDockStopNotGenerating}`);
-		this.inboxStatus = append(this.inboxRow, $('button.conversation-lens-inbox-pending')) as HTMLButtonElement;
-		this.inboxStatus.type = 'button';
-		this.inboxStatus.hidden = true;
-		this._register(addDisposableListener(this.inboxStatus, 'click', () => this.scrollToFirstPendingConfirmation()));
 
 		this.composer = append(this.dockRoot, $('.conversation-lens-composer'));
 		const inputRow = append(this.composer, $('.conversation-lens-dock-input-row'));
@@ -786,14 +756,14 @@ export class ConversationLens extends Disposable {
 			this.prefirstHero.appendChild(this.identityStrip.element);
 			this.prefirstHero.appendChild(this.gateRow);
 			this.prefirstHero.appendChild(this.composer);
-			this.inboxRow.hidden = true;
+			this.inboxOverlay.element.hidden = true;
 			return;
 		}
 
 		this.readingColumn.insertBefore(this.identityStrip.element, this.readingColumn.firstChild);
-		this.dockRoot.insertBefore(this.gateRow, this.inboxRow);
+		this.dockRoot.insertBefore(this.gateRow, this.inboxOverlay.element);
 		this.dockRoot.appendChild(this.composer);
-		this.inboxRow.hidden = false;
+		this.inboxOverlay.element.hidden = false;
 		this.gateRow.hidden = false;
 	}
 
@@ -932,16 +902,7 @@ export class ConversationLens extends Disposable {
 	}
 
 	private renderInboxStatus(): void {
-		const pending = this.stubService.countPendingConfirmations(this.stubService.getActiveSessionId());
-		if (pending > 0) {
-			this.inboxStatus.hidden = false;
-			this.inboxStatus.textContent = pending === 1
-				? localize('conversationLens.inboxOnePending', "1 confirmation pending")
-				: localize('conversationLens.inboxManyPending', "{0} confirmations pending", pending);
-		} else {
-			this.inboxStatus.hidden = true;
-			this.inboxStatus.textContent = '';
-		}
+		this.inboxOverlay.render();
 	}
 
 	private scrollToFirstPendingConfirmation(): void {

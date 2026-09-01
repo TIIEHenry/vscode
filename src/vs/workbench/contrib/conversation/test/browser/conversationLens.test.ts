@@ -20,6 +20,9 @@ import {
 	conversationLensDockEngineNotConnected,
 	conversationLensDockGoal,
 	conversationLensDockInboxNoQueue,
+	conversationLensDockInboxNoTasks,
+	conversationLensDockInboxQueueLabel,
+	conversationLensDockInboxTaskLabel,
 	conversationLensDockMaximizeInput,
 	conversationLensDockNoAttachments,
 	conversationLensDockNoGoal,
@@ -40,6 +43,8 @@ import {
 	conversationLensPhasePreFirstClass,
 	conversationLensPhasePreFirstDockHiddenClass,
 	conversationLensPrefirstHeroClass,
+	conversationLensInboxQueueEditingTag,
+	conversationLensInboxQueuePause,
 } from '../../browser/conversationLensDockStrings.js';
 import { conversationLensSessionBarConversationTab, conversationLensSessionBarDeleteSession, conversationLensSessionBarNewSession, conversationLensSessionBarNoTrajectory, conversationLensSessionBarRenameTitle, conversationLensSessionBarRouteLabel, conversationLensSessionBarTrajectoryTab, conversationLensPinnedUserPromptAria, conversationLensPinnedUserPromptCopyAria } from '../../browser/conversationLensSessionBarStrings.js';
 import { ConversationStubService, IConversationRosterService } from '../../browser/conversationStubService.js';
@@ -193,14 +198,42 @@ suite('ConversationLens', () => {
 		return getReadingColumn(slots).querySelector(`.${conversationLensPrefirstHeroClass}`) as HTMLElement | null;
 	}
 
+	function getInboxOverlay(slots: IConversationLensSlots): HTMLElement {
+		const overlay = slots.dock.querySelector('.conversation-lens-inbox-overlay');
+		assert.ok(overlay);
+		return overlay as HTMLElement;
+	}
+
+	function getInboxTaskChip(slots: IConversationLensSlots): HTMLButtonElement {
+		const chip = getInboxOverlay(slots).querySelector('.conversation-lens-inbox-task') as HTMLButtonElement | null;
+		assert.ok(chip);
+		return chip;
+	}
+
+	function getInboxQueueChip(slots: IConversationLensSlots): HTMLButtonElement {
+		const chip = getInboxOverlay(slots).querySelector('.conversation-lens-inbox-queue') as HTMLButtonElement | null;
+		assert.ok(chip);
+		return chip;
+	}
+
+	function getVisibleInboxListPanel(): HTMLElement | null {
+		for (const panel of document.querySelectorAll<HTMLElement>('.conversation-lens-inbox-list-panel')) {
+			const host = panel.closest('.context-view') as HTMLElement | null;
+			if (!host || host.style.display !== 'none') {
+				return panel;
+			}
+		}
+		return null;
+	}
+
 	function getInboxGoalButton(slots: IConversationLensSlots): HTMLElement {
-		const button = slots.dock.querySelector('.conversation-lens-inbox-goal .monaco-button');
+		const button = slots.dock.querySelector('.conversation-lens-inbox-goal .conversation-lens-inbox-goal-button');
 		assert.ok(button);
 		return button as HTMLElement;
 	}
 
 	function getInboxStopButton(slots: IConversationLensSlots): HTMLElement {
-		const button = slots.dock.querySelector('.conversation-lens-inbox-stop .monaco-button');
+		const button = slots.dock.querySelector('.conversation-lens-inbox-stop .conversation-lens-inbox-stop-button');
 		assert.ok(button);
 		return button as HTMLElement;
 	}
@@ -488,7 +521,7 @@ suite('ConversationLens', () => {
 		assert.ok(slots.dock.querySelector('.conversation-lens-dock'));
 		assert.ok(slots.sessionBar.querySelector('.conversation-lens-session-select'));
 		assert.ok(slots.dock.querySelector('.conversation-lens-dock-gate-row'));
-		assert.ok(slots.dock.querySelector('.conversation-lens-inbox-row'));
+		assert.ok(slots.dock.querySelector('.conversation-lens-inbox-overlay'));
 		assert.ok(slots.dock.querySelector('textarea.conversation-lens-dock-input'));
 	});
 
@@ -509,7 +542,8 @@ suite('ConversationLens', () => {
 		assert.ok(slots.dock.querySelector('.conversation-lens-dock-send'));
 		assert.ok(slots.dock.querySelector('.conversation-lens-dock-gate-row'));
 		assert.ok(slots.dock.querySelector('.conversation-lens-dock-model'));
-		assert.ok(slots.dock.querySelector('.conversation-lens-inbox-label'));
+		assert.ok(slots.dock.querySelector('.conversation-lens-inbox-task'));
+		assert.ok(slots.dock.querySelector('.conversation-lens-inbox-queue'));
 	});
 
 	test('compact chrome: scroll region is timeline inner scroll only', () => {
@@ -602,7 +636,7 @@ suite('ConversationLens', () => {
 		assert.ok(!prefirstHero!.hidden);
 		assert.strictEqual(readingColumn.classList.contains(conversationLensPhasePreFirstClass), true);
 		assert.strictEqual(slots.dock.classList.contains(conversationLensPhasePreFirstDockHiddenClass), true);
-		assert.strictEqual(slots.dock.querySelector('.conversation-lens-inbox-row'), null);
+		assert.strictEqual(slots.dock.querySelector('.conversation-lens-inbox-overlay'), null);
 		assert.strictEqual(slots.dock.querySelector('.conversation-lens-composer'), null);
 		assert.strictEqual(readingColumn.querySelector(`.${conversationIdentityStripClass}`), prefirstHero!.querySelector(`.${conversationIdentityStripClass}`));
 		assert.ok(prefirstHero!.querySelector('.conversation-lens-composer'));
@@ -619,7 +653,7 @@ suite('ConversationLens', () => {
 		const readingColumn = getReadingColumn(slots);
 		assert.strictEqual(readingColumn.classList.contains(conversationLensPhasePreFirstClass), false);
 		assert.strictEqual(slots.dock.classList.contains(conversationLensPhasePreFirstDockHiddenClass), false);
-		assert.ok(slots.dock.querySelector('.conversation-lens-inbox-row'));
+		assert.ok(slots.dock.querySelector('.conversation-lens-inbox-overlay'));
 		assert.ok(slots.dock.querySelector('.conversation-lens-composer'));
 		assert.strictEqual(readingColumn.firstElementChild?.classList.contains(conversationIdentityStripClass), true);
 		assert.strictEqual(getPrefirstHero(slots)?.hidden, true);
@@ -687,16 +721,81 @@ suite('ConversationLens', () => {
 		assert.strictEqual(routeSlot().hidden, true);
 	});
 
-	test('compact chrome: inbox status stays on one row', () => {
-		const { part } = mountLens();
-		const inboxRow = part.getSlots()!.dock.querySelector('.conversation-lens-inbox-row')!;
+	test('Active inbox: left/right clusters with Task before MessageQueue', () => {
+		const { part, stubService } = mountLens();
+		const slots = part.getSlots()!;
+		stubService.createSession();
+		sendDockDraft(slots, 'Activate inbox overlay');
+		const overlay = getInboxOverlay(slots);
+		const left = overlay.querySelector('.conversation-lens-inbox-left')!;
+		const right = overlay.querySelector('.conversation-lens-inbox-right')!;
 
-		assert.ok(inboxRow.querySelector('.conversation-lens-inbox-label'));
-		assert.ok(inboxRow.querySelector('.conversation-lens-inbox-queue'));
-		assert.ok(inboxRow.querySelector('.conversation-lens-inbox-goal'));
-		assert.ok(inboxRow.querySelector('.conversation-lens-inbox-stop'));
-		assert.ok(inboxRow.textContent?.includes(conversationLensDockInboxNoQueue));
-		assert.ok(inboxRow.textContent?.includes(conversationLensDockNoGoal));
+		assert.ok(left.querySelector('.conversation-lens-inbox-task'));
+		assert.ok(left.querySelector('.conversation-lens-inbox-queue'));
+		assert.ok(left.querySelector('.conversation-lens-inbox-goal'));
+		assert.ok(right.querySelector('.conversation-lens-inbox-stop'));
+		assert.strictEqual(left.querySelector('.conversation-lens-inbox-label'), null);
+
+		const chipOrder = [...left.querySelectorAll('.conversation-lens-inbox-task, .conversation-lens-inbox-queue')].map(el => el.classList.contains('conversation-lens-inbox-task') ? 'task' : 'queue');
+		assert.deepStrictEqual(chipOrder, ['task', 'queue']);
+
+		assert.ok(getInboxTaskChip(slots).textContent?.includes(conversationLensDockInboxNoTasks));
+		assert.ok(getInboxQueueChip(slots).textContent?.includes(conversationLensDockInboxNoQueue));
+		assert.ok(overlay.textContent?.includes(conversationLensDockNoGoal));
+	});
+
+	test('inbox task and queue lists are XOR', () => {
+		const { part, stubService } = mountLens();
+		const slots = part.getSlots()!;
+		const sessionId = stubService.createSession();
+		sendDockDraft(slots, 'Open inbox lists');
+		stubService.setAutoDriveTaskFixture(sessionId, ['Fix lint']);
+
+		getInboxTaskChip(slots).click();
+		const taskPanel = getVisibleInboxListPanel();
+		assert.ok(taskPanel?.querySelector('.conversation-lens-inbox-task-list'));
+
+		getInboxQueueChip(slots).click();
+		const queuePanel = getVisibleInboxListPanel();
+		assert.ok(queuePanel?.querySelector('.conversation-lens-message-queue-list'));
+		assert.strictEqual(queuePanel?.querySelector('.conversation-lens-inbox-task-list'), null);
+		assert.strictEqual(getInboxTaskChip(slots).getAttribute('aria-pressed'), 'false');
+		assert.strictEqual(getInboxQueueChip(slots).getAttribute('aria-pressed'), 'true');
+	});
+
+	test('message queue fixture renders Singularity queue rows with hold tag', () => {
+		const { part, stubService } = mountLens();
+		const slots = part.getSlots()!;
+		const sessionId = stubService.createSession();
+		sendDockDraft(slots, 'Queue fixture');
+		stubService.setMessageQueueFixture(sessionId, {
+			isPaused: false,
+			isProcessing: false,
+			items: [{
+				id: 'q1',
+				content: 'Follow up after deploy',
+				status: 'PENDING',
+				hold: undefined,
+				uploadProgress: undefined,
+				retryCount: 0,
+				lastError: undefined,
+				locked: false,
+				pinned: false,
+			}],
+		});
+
+		getInboxQueueChip(slots).click();
+		const panel = getVisibleInboxListPanel()!;
+		const row = panel.querySelector('.queue-item[data-item-id="q1"]') as HTMLElement;
+		assert.ok(row);
+		assert.ok(panel.querySelector('.queue-bar-summary')?.textContent?.includes('1'));
+		assert.ok(panel.querySelector('.queue-bar-action')?.textContent?.includes(conversationLensInboxQueuePause));
+
+		row.click();
+		const heldRow = getVisibleInboxListPanel()?.querySelector('.queue-item.hold-editing[data-item-id="q1"]');
+		assert.ok(heldRow);
+		assert.ok(heldRow?.querySelector('.queue-item-meta .tag.hold')?.textContent?.includes(conversationLensInboxQueueEditingTag));
+		assert.strictEqual(stubService.getMessageQueueState(sessionId).items[0]?.hold, 'EDITING');
 	});
 
 	test('inbox goal is honest: disabled without engine, no goal field', () => {
@@ -718,10 +817,10 @@ suite('ConversationLens', () => {
 		const slots = part.getSlots()!;
 		const sessionId = stubService.createSession();
 		sendDockDraft(slots, 'Activate inbox chrome');
-		const inboxRow = slots.dock.querySelector('.conversation-lens-inbox-row')!;
+		const overlay = getInboxOverlay(slots);
 		const stopButton = getInboxStopButton(slots);
 		const turnCountBefore = queryAllTimeline(slots, '.conversation-lens-turn').length;
-		const pendingButton = inboxRow.querySelector('.conversation-lens-inbox-pending') as HTMLButtonElement;
+		const pendingButton = overlay.querySelector('.conversation-lens-inbox-pending') as HTMLButtonElement;
 
 		assert.ok(stopButton.classList.contains('disabled'));
 		assert.strictEqual(stopButton.getAttribute('aria-disabled'), 'true');
@@ -731,7 +830,7 @@ suite('ConversationLens', () => {
 		stopButton.click();
 
 		assert.strictEqual(queryAllTimeline(slots, '.conversation-lens-turn').length, turnCountBefore);
-		assert.ok(inboxRow.textContent?.includes(conversationLensDockInboxNoQueue));
+		assert.ok(getInboxQueueChip(slots).textContent?.includes(conversationLensDockInboxNoQueue));
 		assert.strictEqual(pendingButton.hidden, true);
 		assert.strictEqual(stubService.getTurns(sessionId).length, 2);
 	});
@@ -1160,20 +1259,20 @@ suite('ConversationLens', () => {
 		assert.strictEqual(document.activeElement, parent);
 	});
 
-	test('inbox status row is honest: no fake queue list, pending hidden without confirmations', () => {
+	test('inbox overlay is honest: no inline queue rows until opened, pending hidden without confirmations', () => {
 		const { part, stubService } = mountLens();
 		const emptySlots = part.getSlots()!;
 		stubService.createSession();
-		assert.strictEqual(emptySlots.dock.querySelector('.conversation-lens-inbox-row'), null);
+		assert.strictEqual(emptySlots.dock.querySelector('.conversation-lens-inbox-overlay'), null);
 
-		sendDockDraft(emptySlots, 'Activate inbox row');
+		sendDockDraft(emptySlots, 'Activate inbox overlay');
 		const slots = part.getSlots()!;
-		const inboxRow = slots.dock.querySelector('.conversation-lens-inbox-row')!;
-		const pendingButton = inboxRow.querySelector('.conversation-lens-inbox-pending') as HTMLButtonElement;
+		const overlay = getInboxOverlay(slots);
+		const pendingButton = overlay.querySelector('.conversation-lens-inbox-pending') as HTMLButtonElement;
 
-		assert.ok(inboxRow.textContent?.includes(conversationLensDockInboxNoQueue));
-		assert.strictEqual(inboxRow.querySelector('.conversation-lens-inbox-list'), null);
-		assert.strictEqual(inboxRow.querySelector('.conversation-lens-inbox-item'), null);
+		assert.ok(getInboxQueueChip(slots).textContent?.includes(conversationLensDockInboxNoQueue));
+		assert.strictEqual(overlay.querySelector('.conversation-lens-message-queue-list'), null);
+		assert.strictEqual(overlay.querySelector('.queue-item'), null);
 		assert.strictEqual(slots.sessionBar.querySelector('.conversation-lens-inbox-badge'), null);
 		assert.strictEqual(pendingButton.hidden, true);
 	});
