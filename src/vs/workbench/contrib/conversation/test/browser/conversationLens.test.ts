@@ -36,6 +36,10 @@ import { shouldRenderTurnAsMarkdown } from '../../browser/conversationTurnMarkdo
 import { conversationLensTurnCopy, conversationLensTurnDelete } from '../../browser/conversationLensSessionBarStrings.js';
 import { IClipboardService } from '../../../../../platform/clipboard/common/clipboardService.js';
 import { TestClipboardService } from '../../../../../platform/clipboard/test/common/testClipboardService.js';
+import { Event } from '../../../../../base/common/event.js';
+import { ICommandService } from '../../../../../platform/commands/common/commands.js';
+import { IExplorerService } from '../../../files/browser/files.js';
+import { ISCMService } from '../../../scm/common/scm.js';
 
 suite('ConversationLens', () => {
 
@@ -208,6 +212,25 @@ suite('ConversationLens', () => {
 		const clipboardService = new TestClipboardService();
 		instantiationService.stub(IConversationRosterService, stubService);
 		instantiationService.stub(IClipboardService, clipboardService);
+		instantiationService.stub(ICommandService, new class implements ICommandService {
+			declare readonly _serviceBrand: undefined;
+			onWillExecuteCommand = Event.None;
+			onDidExecuteCommand = Event.None;
+			executeCommand() { return Promise.resolve(undefined); }
+		}());
+		instantiationService.stub(IExplorerService, {
+			_serviceBrand: undefined,
+			select: async () => { },
+		} as unknown as IExplorerService);
+		instantiationService.stub(ISCMService, {
+			_serviceBrand: undefined,
+			get repositories() { return []; },
+			get repositoryCount() { return 0; },
+			onDidAddRepository: Event.None,
+			onDidRemoveRepository: Event.None,
+			registerSCMProvider: () => { throw new Error('not implemented'); },
+			getRepository: () => undefined,
+		} as unknown as ISCMService);
 		const part = store.add(instantiationService.createInstance(ConversationPart));
 		const parent = document.createElement('div');
 		parent.classList.add('monaco-workbench');
