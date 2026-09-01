@@ -45,7 +45,7 @@ export class PromptLaunchersAICustomizationWelcomePage extends Disposable implem
 	readonly container: HTMLElement;
 	private readonly scrollable: DomScrollableElement;
 	private cardsContainer: HTMLElement | undefined;
-	private firstCard: HTMLElement | undefined;
+	private firstFocusableElement: HTMLElement | undefined;
 	private heading: HTMLElement | undefined;
 	private inputElement: HTMLInputElement | undefined;
 	private visibleSectionIds = new Set<AICustomizationManagementSection>();
@@ -54,6 +54,39 @@ export class PromptLaunchersAICustomizationWelcomePage extends Disposable implem
 	private submitBtn: HTMLElement | undefined;
 	private inputRow: HTMLElement | undefined;
 	private migrationCategories: readonly ICustomizationMigrationCategorySummary[] = [];
+
+	private readonly defaultWindowCategoryDescriptions: IPromptLaunchersCategoryDescription[] = [
+		{
+			id: AICustomizationManagementSection.Agents,
+			label: localize('agents', "Agents"),
+			icon: agentIcon,
+			description: localize('agentsDonorDesc', "Agent profile markdown files. Catalog is in Engine settings."),
+		},
+		{
+			id: AICustomizationManagementSection.Skills,
+			label: localize('skills', "Skills"),
+			icon: skillIcon,
+			description: localize('skillsDonorDesc', "Skill markdown files. Catalog is in Engine settings."),
+		},
+		{
+			id: AICustomizationManagementSection.Instructions,
+			label: localize('instructions', "Instructions"),
+			icon: instructionsIcon,
+			description: localize('instructionsDonorDesc', "Rules markdown files."),
+		},
+		{
+			id: AICustomizationManagementSection.Hooks,
+			label: localize('hooks', "Hooks"),
+			icon: hookIcon,
+			description: localize('hooksDonorDesc', "Hook definition files."),
+		},
+		{
+			id: AICustomizationManagementSection.McpServers,
+			label: localize('mcpServers', "MCP Servers"),
+			icon: Codicon.server,
+			description: localize('mcpServersDonorDesc', "Local MCP definition files (not live engine tools)."),
+		},
+	];
 
 	private readonly categoryDescriptions: IPromptLaunchersCategoryDescription[] = [
 		{
@@ -140,8 +173,6 @@ export class PromptLaunchersAICustomizationWelcomePage extends Disposable implem
 		scrollableNode.classList.add('welcome-prompts-scrollable');
 		parent.appendChild(scrollableNode);
 
-		// Re-scan whenever the wrapper changes size so the scrollbar reflects
-		// the current overflow state. rebuildCards() scans after content changes.
 		const resizeObserver = this._register(new DOM.DisposableResizeObserver('AICustomizationWelcomePagePromptLaunchers.scrollable', () => this.scrollable.scanDomNode()));
 		this._register(resizeObserver.observe(scrollableNode));
 
@@ -151,9 +182,11 @@ export class PromptLaunchersAICustomizationWelcomePage extends Disposable implem
 		this.updateHeading();
 
 		const subtitle = DOM.append(welcomeInner, $('p.welcome-prompts-subtitle'));
-		subtitle.textContent = localize('welcomeSubtitle', "Tailor how agents work in your projects. Configure workspace customizations for the entire team, or create personal ones that follow you across projects.");
+		subtitle.textContent = this.workspaceService.isSessionsWindow
+			? localize('welcomeSubtitle', "Tailor how agents work in your projects. Configure workspace customizations for the entire team, or create personal ones that follow you across projects.")
+			: localize('welcomeDonorSubtitle', "Edit markdown files in this workspace or your user profile. Skill and agent catalogs live in Engine settings.");
 
-		if (this.welcomePageFeatures?.showGettingStartedBanner !== false) {
+		if (this.workspaceService.isSessionsWindow && this.welcomePageFeatures?.showGettingStartedBanner !== false) {
 			const gettingStarted = DOM.append(welcomeInner, $('.welcome-prompts-primary'));
 			const header = DOM.append(gettingStarted, $('.welcome-prompts-section-label'));
 			const icon = DOM.append(header, $('span.welcome-prompts-section-label-icon.codicon.codicon-sparkle'));
@@ -196,8 +229,6 @@ export class PromptLaunchersAICustomizationWelcomePage extends Disposable implem
 					query = `/init ${value}`;
 				}
 
-				// Show confirmation immediately — before prefillChat so it's visible
-				// even if prefillChat navigates focus away from this editor
 				if (this.inputElement) {
 					this.inputElement.value = '';
 				}
@@ -224,7 +255,6 @@ export class PromptLaunchersAICustomizationWelcomePage extends Disposable implem
 			}));
 			this._register(DOM.addDisposableListener(this.inputElement, 'input', () => {
 				updateSubmitState();
-				// Typing restores the input row from sent state
 				this._clearSentState();
 			}));
 			updateSubmitState();
@@ -258,8 +288,62 @@ export class PromptLaunchersAICustomizationWelcomePage extends Disposable implem
 
 		this.cardDisposables.clear();
 		DOM.clearNode(this.cardsContainer);
-		this.firstCard = undefined;
+		this.firstFocusableElement = undefined;
 
+		if (!this.workspaceService.isSessionsWindow) {
+			this.rebuildDefaultWindowOverview(visibleSectionIds);
+			this.scrollable.scanDomNode();
+			return;
+		}
+
+		this.rebuildSessionsWindowOverview(visibleSectionIds);
+		this.scrollable.scanDomNode();
+	}
+
+	private rebuildDefaultWindowOverview(visibleSectionIds: ReadonlySet<AICustomizationManagementSection>): void {
+		const fileSection = DOM.append(this.cardsContainer!, $('.welcome-donor-section'));
+		const fileHeading = DOM.append(fileSection, $('h3.welcome-donor-section-title'));
+		fileHeading.textContent = localize('welcomeFileCustomizationsTitle', "File customizations");
+		const fileDescription = DOM.append(fileSection, $('p.welcome-donor-section-description'));
+		fileDescription.textContent = localize('welcomeFileCustomizationsDescription', "Edit markdown files. Skill / Agent catalogs live in Engine settings.");
+
+		const sectionsBlock = DOM.append(this.cardsContainer!, $('.welcome-donor-section'));
+		const sectionsHeading = DOM.append(sectionsBlock, $('h3.welcome-donor-section-title'));
+		sectionsHeading.textContent = localize('welcomeSectionsTitle', "Sections");
+		const linkList = DOM.append(sectionsBlock, $('.welcome-section-link-list'));
+
+		for (const category of this.defaultWindowCategoryDescriptions) {
+			if (!visibleSectionIds.has(category.id)) {
+				continue;
+			}
+			this.renderSectionLinkRow(linkList, category);
+		}
+	}
+
+	private renderSectionLinkRow(parent: HTMLElement, category: IPromptLaunchersCategoryDescription): void {
+		const row = DOM.append(parent, $('button.welcome-section-link-row')) as HTMLButtonElement;
+		row.type = 'button';
+		row.setAttribute('aria-label', localize('openCustomizationCategory', "Open {0}", category.label));
+		if (!this.firstFocusableElement) {
+			this.firstFocusableElement = row;
+		}
+
+		const iconEl = DOM.append(row, $('.welcome-section-link-icon'));
+		iconEl.classList.add(...ThemeIcon.asClassNameArray(category.icon));
+		iconEl.setAttribute('aria-hidden', 'true');
+
+		const textContainer = DOM.append(row, $('.welcome-section-link-text'));
+		const labelEl = DOM.append(textContainer, $('span.welcome-section-link-label'));
+		labelEl.textContent = category.label;
+		const descEl = DOM.append(textContainer, $('span.welcome-section-link-description'));
+		descEl.textContent = category.description;
+
+		this.cardDisposables.add(DOM.addDisposableListener(row, 'click', () => {
+			this.callbacks.selectSection(category.id);
+		}));
+	}
+
+	private rebuildSessionsWindowOverview(visibleSectionIds: ReadonlySet<AICustomizationManagementSection>): void {
 		if (this.migrationCategories.length > 0) {
 			const migrationGrid = this.renderOverviewSection(
 				localize('overviewNeedsAttention', "Needs Attention"),
@@ -285,8 +369,8 @@ export class PromptLaunchersAICustomizationWelcomePage extends Disposable implem
 			const card = DOM.append(exploreGrid, $('button.welcome-prompts-card.welcome-prompts-navigation-card')) as HTMLButtonElement;
 			card.type = 'button';
 			card.setAttribute('aria-label', localize('openCustomizationCategory', "Open {0}", category.label));
-			if (!this.firstCard) {
-				this.firstCard = card;
+			if (!this.firstFocusableElement) {
+				this.firstFocusableElement = card;
 			}
 
 			const cardHeader = DOM.append(card, $('.welcome-prompts-card-header'));
@@ -313,9 +397,6 @@ export class PromptLaunchersAICustomizationWelcomePage extends Disposable implem
 				this.renderStandaloneCustomization(otherGrid, customization);
 			}
 		}
-
-		// Content changed — recompute scroll dimensions.
-		this.scrollable.scanDomNode();
 	}
 
 	private renderOverviewSection(title: string, description: string, className: string): HTMLElement {
@@ -332,8 +413,8 @@ export class PromptLaunchersAICustomizationWelcomePage extends Disposable implem
 		const card = DOM.append(parent, $('button.welcome-prompts-card.welcome-prompts-navigation-card')) as HTMLButtonElement;
 		card.type = 'button';
 		card.setAttribute('aria-label', localize('configureCategoryAriaLabel', "Configure {0}", customization.label));
-		if (!this.firstCard) {
-			this.firstCard = card;
+		if (!this.firstFocusableElement) {
+			this.firstFocusableElement = card;
 		}
 
 		const cardHeader = DOM.append(card, $('.welcome-prompts-card-header'));
@@ -352,6 +433,9 @@ export class PromptLaunchersAICustomizationWelcomePage extends Disposable implem
 	}
 
 	setMigrationCategories(categories: readonly ICustomizationMigrationCategorySummary[]): void {
+		if (!this.workspaceService.isSessionsWindow) {
+			return;
+		}
 		const didChange = categories.length !== this.migrationCategories.length
 			|| categories.some((category, index) => {
 				const previous = this.migrationCategories[index];
@@ -393,8 +477,8 @@ export class PromptLaunchersAICustomizationWelcomePage extends Disposable implem
 		const descEl = DOM.append(migrationCard, $('p.welcome-prompts-card-description'));
 		descEl.textContent = category.description;
 
-		if (!this.firstCard) {
-			this.firstCard = migrationCard;
+		if (!this.firstFocusableElement) {
+			this.firstFocusableElement = migrationCard;
 		}
 		const actionLabel = DOM.append(migrationCard, $('span.welcome-prompts-card-action-label'));
 		actionLabel.textContent = category.actionLabel;
@@ -402,14 +486,10 @@ export class PromptLaunchersAICustomizationWelcomePage extends Disposable implem
 	}
 
 	focus(): void {
-		// Prefer the prompt input so screen reader / keyboard users land on a meaningful
-		// control. If the input isn't rendered (e.g. when the getting-started banner is
-		// disabled), fall back to the first focusable card so focus stays inside the
-		// welcome page rather than escaping to the surrounding workbench editor.
 		if (this.inputElement) {
 			this.inputElement.focus();
 			return;
 		}
-		this.firstCard?.focus();
+		this.firstFocusableElement?.focus();
 	}
 }

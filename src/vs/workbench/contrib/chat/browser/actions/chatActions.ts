@@ -1561,7 +1561,7 @@ export function registerChatActions() {
 		}
 	});
 
-	// Show a direct gear action to open the Customizations editor
+	// Show a direct gear action to open the Customizations editor (sessions window only)
 	MenuRegistry.appendMenuItem(MenuId.ViewTitle, {
 		command: {
 			id: AICustomizationManagementCommands.OpenEditor,
@@ -1573,6 +1573,7 @@ export function registerChatActions() {
 		when: ContextKeyExpr.and(
 			ChatContextKeys.enabled,
 			ContextKeyExpr.equals('view', ChatViewId),
+			IsSessionsWindowContext,
 		),
 		order: 6
 	});
