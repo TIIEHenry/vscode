@@ -1,0 +1,27 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+.monaco-workbench .part.conversation .conversation-session-bar {
+	display: flex;
+	flex-direction: row;
+	align-items: stretch;
+}
+
+.monaco-workbench .part.conversation .conversation-window-nav {
+	display: flex;
+	align-items: center;
+	gap: 2px;
+	flex-shrink: 0;
+	padding: 0 4px;
+	border-bottom: 1px solid var(--vscode-sideBar-border, var(--vscode-contrastBorder, transparent));
+	background-color: var(--vscode-sideBar-background);
+}
+
+.monaco-workbench .part.conversation .conversation-window-nav .monaco-button {
+	width: 22px;
+	height: 20px;
+	min-width: 22px;
+	padding: 0;
+}
