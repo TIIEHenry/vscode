@@ -15,10 +15,7 @@ import { CONVERSATION_SIDE_GROUP, SIDE_GROUP } from '../../../../services/editor
 import { EditorExtensions, IEditorFactoryRegistry } from '../../../../common/editor.js';
 import { createEditorParts, registerTestEditor, TestFileEditorInput, workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { SideBySideEditorInput } from '../../../../common/editor/sideBySideEditorInput.js';
-import {
-	ConversationChatInput,
-	getDefaultConversationChatResource,
-} from '../../browser/conversationChatInput.js';
+import { getDefaultConversationChatResource } from '../../browser/conversationChatInput.js';
 import '../../browser/conversationEditor.contribution.js';
 import { ConversationSessionChatService } from '../../browser/conversationSessionChatService.js';
 import { ConversationStubService, IConversationRosterService } from '../../browser/conversationStubService.js';
@@ -52,7 +49,6 @@ suite('Conversation session split (S4)', () => {
 
 		const conversationPart = parts.createConversationEditorPart(editorHost, SESSION_KEY);
 		await conversationPart.whenReady;
-		conversationPart.layout(800, 600, 0, 0);
 
 		const sessionChatService = disposables.add(instantiationService.createInstance(ConversationSessionChatService));
 		store.add(sessionChatService.registerPartListeners(conversationPart));
@@ -70,7 +66,7 @@ suite('Conversation session split (S4)', () => {
 		const resource = getDefaultConversationChatResource(SESSION_KEY);
 		const groupsBefore = conversationPart.groups.length;
 
-		instantiationService.invokeFunction(accessor => findGroup(accessor, resource, CONVERSATION_SIDE_GROUP));
+		instantiationService.invokeFunction(accessor => findGroup(accessor, { resource }, CONVERSATION_SIDE_GROUP));
 
 		assert.strictEqual(conversationPart.groups.length, groupsBefore + 1);
 	});

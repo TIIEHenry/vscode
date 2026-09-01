@@ -1011,6 +1011,14 @@ export class EditorPart extends Part<IEditorPartMemento> implements IEditorPart,
 		return result;
 	}
 
+	protected setGroupViewVisible(groupView: IEditorGroupView, visible: boolean): void {
+		this.gridWidget.setViewVisible(groupView, visible);
+	}
+
+	protected isGroupViewVisible(groupView: IEditorGroupView): boolean {
+		return this.gridWidget.isViewVisible(groupView);
+	}
+
 	protected assertGroupView(group: IEditorGroupView | GroupIdentifier): IEditorGroupView {
 		let groupView: IEditorGroupView | undefined;
 		if (typeof group === 'number') {

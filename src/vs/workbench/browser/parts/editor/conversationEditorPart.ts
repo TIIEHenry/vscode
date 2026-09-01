@@ -13,7 +13,9 @@ import { IStorageService } from '../../../../platform/storage/common/storage.js'
 import { IThemeService } from '../../../../platform/theme/common/themeService.js';
 import { EditorPart } from './editorPart.js';
 import { IEditorPartsView } from './editor.js';
-import { GroupIdentifier, IConversationEditorPart, IEditorGroup } from '../../../services/editor/common/editorGroupsService.js';
+import { IEditorGroupView } from './editor.js';
+import { GroupIdentifier } from '../../../common/editor.js';
+import { IConversationEditorPart, IEditorGroup } from '../../../services/editor/common/editorGroupsService.js';
 import { IHostService } from '../../../services/host/browser/host.js';
 import { IWorkbenchLayoutService } from '../../../services/layout/browser/layoutService.js';
 
@@ -59,7 +61,7 @@ export class ConversationEditorPartImpl extends EditorPart implements IConversat
 	}
 
 	setGroupHidden(group: IEditorGroup | GroupIdentifier, hidden: boolean): void {
-		const groupView = this.assertGroupView(group);
+		const groupView = this.assertGroupView(group as IEditorGroupView | GroupIdentifier);
 		const rootGroup = this.groups.at(0);
 		if (rootGroup && groupView.id === rootGroup.id) {
 			return;
@@ -71,17 +73,17 @@ export class ConversationEditorPartImpl extends EditorPart implements IConversat
 			this.hiddenGroupIds.delete(groupView.id);
 		}
 
-		this.gridWidget?.setViewVisible(groupView, !hidden);
+		this.setGroupViewVisible(groupView, !hidden);
 		this.applyConversationPartOptions();
 	}
 
 	isGroupHidden(group: IEditorGroup | GroupIdentifier): boolean {
-		const groupView = this.assertGroupView(group);
+		const groupView = this.assertGroupView(group as IEditorGroupView | GroupIdentifier);
 		if (this.hiddenGroupIds.has(groupView.id)) {
 			return true;
 		}
 
-		return this.gridWidget ? !this.gridWidget.isViewVisible(groupView) : false;
+		return !this.isGroupViewVisible(groupView);
 	}
 
 	private applyConversationPartOptions(): void {
