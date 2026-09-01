@@ -7,9 +7,10 @@ import { Emitter, Event } from '../../../../base/common/event.js';
 import { Disposable, IDisposable } from '../../../../base/common/lifecycle.js';
 import { URI } from '../../../../base/common/uri.js';
 import { createDecorator } from '../../../../platform/instantiation/common/instantiation.js';
+import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { IEditorIdentifier } from '../../../common/editor.js';
-import { IEditorGroupsService, IConversationEditorPart } from '../../../services/editor/common/editorGroupsService.js';
+import { GroupIdentifier, IEditorGroupsService, IConversationEditorPart, preferredSideBySideGroupDirection } from '../../../services/editor/common/editorGroupsService.js';
 import { CONVERSATION_GROUP, IEditorService } from '../../../services/editor/common/editorService.js';
 import { buildAgentHierarchyBreadcrumb, IConversationAgentBreadcrumbItem } from '../common/conversationAgentHierarchy.js';
 import { IConversationSessionChatEntry } from '../common/conversationSessionChat.js';
@@ -63,6 +64,12 @@ export interface IConversationSessionChatService {
 	findOpenTabForChat(sessionKey: string, chatId: string): ConversationChatInput | undefined;
 
 	getConversationPart(sessionKey: string): IConversationEditorPart | undefined;
+
+	splitSessionWindow(sessionKey?: string): Promise<void>;
+
+	hideSplitColumn(sessionKey?: string, groupId?: GroupIdentifier): void;
+
+	showSplitColumn(sessionKey?: string, groupId?: GroupIdentifier): void;
 }
 
 export class ConversationSessionChatService extends Disposable implements IConversationSessionChatService {
@@ -83,6 +90,7 @@ export class ConversationSessionChatService extends Disposable implements IConve
 		@IEditorGroupsService private readonly editorGroupsService: IEditorGroupsService,
 		@IInstantiationService private readonly instantiationService: IInstantiationService,
 		@IConversationRosterService private readonly rosterService: IConversationRosterService,
+		@IConfigurationService private readonly configurationService: IConfigurationService,
 	) {
 		super();
 	}
@@ -334,6 +342,71 @@ export class ConversationSessionChatService extends Disposable implements IConve
 
 	getConversationPart(sessionKey: string): IConversationEditorPart | undefined {
 		return this.editorGroupsService.conversationParts.find(part => part.sessionKey === sessionKey);
+	}
+
+	async splitSessionWindow(sessionKey?: string): Promise<void> {
+		const key = sessionKey ?? this.rosterService.getActiveSessionId();
+		const part = this.getConversationPart(key);
+		if (!part) {
+			throw new Error(`Conversation editor part for session ${key} is not available`);
+		}
+
+		const direction = preferredSideBySideGroupDirection(this.configurationService);
+		let sideGroup = part.findGroup({ direction }, part.activeGroup, false);
+		if (!sideGroup) {
+			sideGroup = part.addGroup(part.activeGroup, direction);
+		}
+
+		await sideGroup.focus();
+	}
+
+	hideSplitColumn(sessionKey?: string, groupId?: GroupIdentifier): void {
+		const key = sessionKey ?? this.rosterService.getActiveSessionId();
+		const part = this.getConversationPart(key);
+		if (!part) {
+			return;
+		}
+
+		const rootGroup = part.groups.at(0);
+		const targetId = groupId ?? this.resolveHideSplitColumnTarget(part);
+		if (targetId === undefined || rootGroup?.id === targetId) {
+			return;
+		}
+
+		part.setGroupHidden(targetId, true);
+	}
+
+	showSplitColumn(sessionKey?: string, groupId?: GroupIdentifier): void {
+		const key = sessionKey ?? this.rosterService.getActiveSessionId();
+		const part = this.getConversationPart(key);
+		if (!part) {
+			return;
+		}
+
+		if (groupId !== undefined) {
+			part.setGroupHidden(groupId, false);
+			return;
+		}
+
+		for (const group of part.groups) {
+			if (part.isGroupHidden(group)) {
+				part.setGroupHidden(group, false);
+			}
+		}
+	}
+
+	private resolveHideSplitColumnTarget(part: IConversationEditorPart): GroupIdentifier | undefined {
+		const rootGroup = part.groups.at(0);
+		if (!rootGroup) {
+			return undefined;
+		}
+
+		if (part.activeGroup.id !== rootGroup.id && !part.isGroupHidden(part.activeGroup)) {
+			return part.activeGroup.id;
+		}
+
+		const candidate = part.groups.find(group => group.id !== rootGroup.id && !part.isGroupHidden(group));
+		return candidate?.id;
 	}
 
 	private getScopedEditorService(part: IConversationEditorPart): IEditorService {

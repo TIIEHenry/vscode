@@ -13,7 +13,7 @@ import { IStorageService } from '../../../../platform/storage/common/storage.js'
 import { IThemeService } from '../../../../platform/theme/common/themeService.js';
 import { EditorPart } from './editorPart.js';
 import { IEditorPartsView } from './editor.js';
-import { IConversationEditorPart } from '../../../services/editor/common/editorGroupsService.js';
+import { GroupIdentifier, IConversationEditorPart, IEditorGroup } from '../../../services/editor/common/editorGroupsService.js';
 import { IHostService } from '../../../services/host/browser/host.js';
 import { IWorkbenchLayoutService } from '../../../services/layout/browser/layoutService.js';
 
@@ -24,6 +24,7 @@ export class ConversationEditorPartImpl extends EditorPart implements IConversat
 	readonly excludeFromGlobalEditorAggregation = true as const;
 
 	private readonly partOptionsDisposable = this._register(new DisposableStore());
+	private readonly hiddenGroupIds = new Set<GroupIdentifier>();
 
 	constructor(
 		readonly sessionKey: string,
@@ -53,11 +54,40 @@ export class ConversationEditorPartImpl extends EditorPart implements IConversat
 		);
 
 		this.applyConversationPartOptions();
+		this._register(this.onDidAddGroup(() => this.applyConversationPartOptions()));
+		this._register(this.onDidRemoveGroup(() => this.applyConversationPartOptions()));
+	}
+
+	setGroupHidden(group: IEditorGroup | GroupIdentifier, hidden: boolean): void {
+		const groupView = this.assertGroupView(group);
+		const rootGroup = this.groups.at(0);
+		if (rootGroup && groupView.id === rootGroup.id) {
+			return;
+		}
+
+		if (hidden) {
+			this.hiddenGroupIds.add(groupView.id);
+		} else {
+			this.hiddenGroupIds.delete(groupView.id);
+		}
+
+		this.gridWidget?.setViewVisible(groupView, !hidden);
+		this.applyConversationPartOptions();
+	}
+
+	isGroupHidden(group: IEditorGroup | GroupIdentifier): boolean {
+		const groupView = this.assertGroupView(group);
+		if (this.hiddenGroupIds.has(groupView.id)) {
+			return true;
+		}
+
+		return this.gridWidget ? !this.gridWidget.isViewVisible(groupView) : false;
 	}
 
 	private applyConversationPartOptions(): void {
 		const editorCount = this.groups.reduce((count, group) => count + group.count, 0);
-		const showTabs = editorCount > 1 ? 'multiple' : 'none';
+		const visibleGroupCount = this.groups.filter(group => !this.isGroupHidden(group)).length;
+		const showTabs = editorCount > 1 || visibleGroupCount > 1 ? 'multiple' : 'none';
 
 		this.partOptionsDisposable.clear();
 		this.partOptionsDisposable.add(this.enforcePartOptions({
