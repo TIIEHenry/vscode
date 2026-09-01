@@ -355,7 +355,7 @@ E1 / catalog 不在本页。
 
 2026-09-01 第二轮：**Block**。已改入：§0/§3.1 Overview 去掉 Tools 行与「catalog after connection」；Plugins 改为删 `managementSections`；§3.5/§3.8 去掉 until E1 / Tools 空态；§6 welcome 不再写 Engine not connected。
 
-2026-09-01 第三轮 [host-ui](f389761d-3658-41ea-b5ef-66a498df6855)：**Approve with changes**。Round-2 六条 gone。已改入：Goal 不再用 Engine「诚实空」口号；§3.7 深链不写 until-engine catalog；§0 默认窗从 `managementSections` 删 contributed，不是藏 nav。
+2026-09-01 第三轮（host-ui）：**Approve with changes**。Round-2 六条 gone。已改入：Goal 不再用 Engine「诚实空」口号；§3.7 深链不写 until-engine catalog；§0 默认窗从 `managementSections` 删 contributed，不是藏 nav。
 
 engine 第三轮连带：H0–H3 **不得**把扫描根改到 `{AgentHome}`。
 

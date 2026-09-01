@@ -313,6 +313,6 @@ UA **Local**（已接本机引擎的文件面）≠ 断连 Stub catalog。Local 
 
 2026-09-01 第二轮：**Approve with changes**。已改入：§8.1 DAG 的 H1 改为 donor 卫生（禁止 Stub catalog）；§8.2/§9 去掉「Customizations 里 Stub 可写」；E1.5 断连回诚实空而非 Stub；§10 改锚 two-surfaces 余量表；UA Local ≠ 断连 Stub。
 
-2026-09-01 第三轮 [engine](4efc3dae-ba83-400d-b04d-784d8fee5cc8)：**Approve with changes**。Round-2 点名位置 gone。已改入：§3 去掉 Stub→真的 / Local Stub I/O；§8.2 标题改为 donor 卫生；断连禁止扫 AgentHome；§1 禁止移植 Kotlin catalog；Hooks 未补 RPC 则空；四探测键为 IDE 矩阵不扩 proto。
+2026-09-01 第三轮（engine）：**Approve with changes**。Round-2 点名位置 gone。已改入：§3 去掉 Stub→真的 / Local Stub I/O；§8.2 标题改为 donor 卫生；断连禁止扫 AgentHome；§1 禁止移植 Kotlin catalog；Hooks 未补 RPC 则空；四探测键为 IDE 矩阵不扩 proto。
 
 2026-09-01：**签收** `accepted`。E1 blocked PRD-008。未改 `src/`。

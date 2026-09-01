@@ -89,6 +89,6 @@ Chat `ViewTitle` 仍可能挂 Open Customizations（无 Sessions 门）：默认
 
 2026-09-01 第二轮并行 Grok：**Approve**。C5：`executeCommand` 不查 precondition（`commandService.ts` `_tryExecuteCommand`）；Palette 门保持。余量表成立。Minor 已改入：去掉「除非证伪 gated」；C5 不走 pane helper。
 
-2026-09-01 第三轮 [two-surfaces](bd6399de-54cd-47d8-816a-4ec97fedee5c)：**Approve with changes**。HEAD 七条主张成立。已改入：C5 删除 `OpenCustomizationsPreferencesAction` / pane 全套；`settingsUaToc.test.ts` 换 commandId。
+2026-09-01 第三轮（two-surfaces）：**Approve with changes**。HEAD 七条主张成立。已改入：C5 删除 `OpenCustomizationsPreferencesAction` / pane 全套；`settingsUaToc.test.ts` 换 commandId。
 
 2026-09-01：**签收** `accepted`。C5 / H0–H3 ReadyToImplement；E1 blocked PRD-008。未改 `src/`。

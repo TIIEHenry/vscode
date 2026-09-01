@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M4
 updated: 2026-09-01
-summary: "设置两套主面已签收（C5 / H0–H3 ReadyToImplement；E1 等 PRD-008）；PRD-016/015 仍 draft；M4 D4 仍阻塞于 compile 产物"
+summary: "设置两套主面已签收（C5 / H0–H3 ReadyToImplement；E1 等 PRD-008）；PRD-015 空会话已签收（T1–T6 ReadyToImplement）；PRD-016 仍 draft；M4 D4 仍阻塞于 compile 产物"
 ---
 
 # Development Progress
@@ -13,11 +13,9 @@ summary: "设置两套主面已签收（C5 / H0–H3 ReadyToImplement；E1 等 P
 
 - **Conversation session 窗口与 tab：** [conversation-session-windows.md](../plans/conversation-session-windows.md)（`draft`）· [PRD-016](../../docs/product/requirements.md#prd-016-conversation-session-窗口与-chat-tab)（`proposed`）· [ADR-002](../decisions/002-conversation-session-windows.md)（`proposed`）。子代理默认窗口内对话框、最大化才 tab；面包屑替换延伸 tab；每窗一键关非根 tab。未走规则 16、未改 `src/`。
 
-- **设置方案三路审查（规则 16）：** Opus 5.0 slug 不可用；并行 Cursor Grok 4.6 审查 [settings-two-surfaces](../plans/settings-two-surfaces.md) / [customizations-host-ui](../plans/customizations-host-ui.md) / [customizations-engine](../plans/customizations-engine.md)。Critical/Important 已改入。均仍 `draft`。未改 `src/`。
+- **设置两套主面已签收：** [settings-two-surfaces.md](../plans/settings-two-surfaces.md) · [customizations-host-ui.md](../plans/customizations-host-ui.md) · [customizations-engine.md](../plans/customizations-engine.md) 均为 `accepted`。规则 16 三轮 Grok 4.6（Opus 不可用）。**ReadyToImplement：** C5 + donor H0–H3。**E1 blocked PRD-008**。未改 `src/`。
 
 - **空会话与输入面：** [conversation-empty-hero.md](../plans/conversation-empty-hero.md)（`accepted`）· [PRD-015](../../docs/product/requirements.md#prd-015-conversation-空会话与输入面)（`accepted`）· 视觉快照 [conversation-empty-hero.canvas.tsx](../plans/conversation-empty-hero.canvas.tsx)。PreFirst 居中 Composer、Agent/Route XOR、Inbox 分簇。2026-09-01 用户签收。规则 16 Opus 5.0 slug 不可用（未顶替）。**T1–T6 ReadyToImplement**；未改 `src/`。
-
-- **设置两套主面：** 本地 vs Engine 必须分开，视觉与 vscode 统一。[settings-two-surfaces.md](../plans/settings-two-surfaces.md)（`draft`）。Customizations host-ui / engine 落盘稿已按该目录改口径（Customizations 不是第三套主设置）。未改 `src/`。
 
 - **visualize 卡** [thinkrail-visualize-port.md](../plans/thinkrail-visualize-port.md) **`accepted`**：[PRD-014](../../docs/product/requirements.md#prd-014-conversation-图示卡visualize) 已签收；Grok xhigh 规则 16 审查（Opus 不可用）Approve with changes 已改入。**T1–T3 ReadyToImplement**；未改 `src/`。
 - **过程折** [conversation-process-fold.md](../plans/conversation-process-fold.md) **`accepted`**：显示 overlay，对话默认收起、轨迹默认展开（P3t）。**P1–P3/P3t ReadyToImplement**；未改 `src/`。
