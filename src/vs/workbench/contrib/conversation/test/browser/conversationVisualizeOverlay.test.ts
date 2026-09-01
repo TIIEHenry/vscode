@@ -23,10 +23,10 @@ suite('ConversationVisualizeOverlay', () => {
 		const container = append(document.body, $('.conversation-visualize-overlay-test-root'));
 		store.add({ dispose: () => container.remove() });
 
-		const layoutService: ILayoutService = {
+		const layoutService = {
 			_serviceBrand: undefined,
 			getContainer: () => container,
-		} as ILayoutService;
+		} as unknown as ILayoutService;
 
 		const webviewService: IWebviewService = {
 			_serviceBrand: undefined,
