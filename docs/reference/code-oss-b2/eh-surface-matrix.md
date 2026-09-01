@@ -27,12 +27,12 @@ summary: "贡献点 → Part 落点 → 承诺分级；D5 三探针已实测 wav
 
 | 贡献点 | lands on | after shell change | 承诺 \| 不承诺 \| 冲突 | 证据 |
 |--------|----------|-------------------|------------------------|------|
-| `languages` / `grammars` / `semanticToken*` | editor 语言层（`EDITOR_PART` 内 Monaco） | 仍在 End 列 `EDITOR_PART` | **承诺** | **已实测 @2026-09-01** — `redhat.vscode-yaml` 诊断 @ [rerun-2348](../../dev/progress/d5-evidence/smoke-rerun-2348/) |
+| `languages` / `grammars` / `semanticToken*` | editor 语言层（`EDITOR_PART` 内 Monaco） | 仍在 End 列 `EDITOR_PART` | **承诺** | **已实测 @2026-09-01** — `redhat.vscode-yaml` 诊断 @ [rerun-2348](../../../dev/progress/d5-evidence/smoke-rerun-2348/) |
 | `debuggers` / `breakpoints`（适配器协议） | 调试服务 + EH；不占 chrome 槽 | 协议层不变 | **承诺**（适配器） | **推定** |
-| `debuggers` / `breakpoints`（调试视图） | 常用 `SIDEBAR_PART` / `PANEL_PART` ViewContainer | 视图仍在 Sidebar/Panel；End 列 Editor 独立 | **冲突**（视图容器顺序/默认开） | **已实测 @2026-09-02** — 内置 js-debug + `launch.json` @ [wave3](../../dev/progress/d5-evidence/smoke-wave3-0001/) |
+| `debuggers` / `breakpoints`（调试视图） | 常用 `SIDEBAR_PART` / `PANEL_PART` ViewContainer | 视图仍在 Sidebar/Panel；End 列 Editor 独立 | **冲突**（视图容器顺序/默认开） | **已实测 @2026-09-02** — 内置 js-debug + `launch.json` @ [wave3](../../../dev/progress/d5-evidence/smoke-wave3-0001/) |
 | `viewsContainers.activitybar` | 新 Activity 图标 + `SIDEBAR_PART` 容器 | 与产品 Navigator roster / titlebar 四钮 **抢 Activity 槽** | **不承诺** | **推定** |
 | `viewsContainers.panel` | `PANEL_PART` | 底栏仍在；与 ADR-047 Diff 策略并存 | **冲突**（顺序/默认开） | **待实测** |
-| `views`（sidebar） | `SIDEBAR_PART` 内 View | 不变 | **冲突**（与产品 tab roster） | **已实测 @2026-09-02** — `gruntfuggly.todo-tree` via 产品 **TODOs** 槽 → **TODOs: Tree** @ [wave3](../../dev/progress/d5-evidence/smoke-wave3-0001/) |
+| `views`（sidebar） | `SIDEBAR_PART` 内 View | 不变 | **冲突**（与产品 tab roster） | **已实测 @2026-09-02** — `gruntfuggly.todo-tree` via 产品 **TODOs** 槽 → **TODOs: Tree** @ [wave3](../../../dev/progress/d5-evidence/smoke-wave3-0001/) |
 | `views`（panel） | `PANEL_PART` 内 View | 不变 | **冲突**（有限承诺） | **待实测** |
 | `views`（auxiliary / `ViewContainerLocation.AuxiliaryBar`） | `AUXILIARYBAR_PART` | Aux **默认关**（`workbench.secondarySideBar.defaultVisibility` 出厂 `'hidden'`；splash 同值；Chat 容器 `isDefault: false`）→ 视图无处去或被塞进 Sidebar | **不承诺** | **推定** |
 | `customEditors` | `EDITOR_PART` tab | End Preview 内打开；**合法**（文件类） | **承诺**「能开」；**不承诺**占中心 | **推定** |
