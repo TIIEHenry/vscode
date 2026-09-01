@@ -8,6 +8,7 @@ import * as dom from '../../../../base/browser/dom.js';
 import { IListRenderer, IListVirtualDelegate } from '../../../../base/browser/ui/list/list.js';
 import { IListAccessibilityProvider } from '../../../../base/browser/ui/list/listWidget.js';
 import { Codicon } from '../../../../base/common/codicons.js';
+import { ThemeIcon } from '../../../../base/common/themables.js';
 import { localize, localize2 } from '../../../../nls.js';
 import { MenuId, registerAction2 } from '../../../../platform/actions/common/actions.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
@@ -30,11 +31,33 @@ import { IConversationRosterService } from './conversationStubService.js';
 
 export const CONVERSATION_SESSIONS_VIEW_ID = 'workbench.view.conversationSessions';
 
+/** Two-line compact SessionCard row height (workbench list delegate). */
+export const CONVERSATION_SESSION_ROW_HEIGHT = 44;
+
 const $ = dom.$;
+
+function formatSessionRosterSubtitle(session: ConversationStubSession, pendingConfirmations: number): string {
+	const turnCount = session.turns.length;
+	let subtitle: string;
+	if (turnCount === 0) {
+		subtitle = localize('conversationSessionsView.noMessages', "No messages");
+	} else if (turnCount === 1) {
+		subtitle = localize('conversationSessionsView.oneMessage', "1 message");
+	} else {
+		subtitle = localize('conversationSessionsView.manyMessages', "{0} messages", turnCount);
+	}
+	if (pendingConfirmations > 0) {
+		const pending = pendingConfirmations === 1
+			? localize('conversationSessionsView.oneConfirmationPending', "1 confirmation pending")
+			: localize('conversationSessionsView.manyConfirmationsPending', "{0} confirmations pending", pendingConfirmations);
+		subtitle = `${subtitle} · ${pending}`;
+	}
+	return subtitle;
+}
 
 class SessionsDelegate implements IListVirtualDelegate<ConversationStubSession> {
 	getHeight(): number {
-		return 22;
+		return CONVERSATION_SESSION_ROW_HEIGHT;
 	}
 
 	getTemplateId(): string {
@@ -45,6 +68,7 @@ class SessionsDelegate implements IListVirtualDelegate<ConversationStubSession> 
 interface ISessionTemplateData {
 	readonly container: HTMLElement;
 	readonly label: HTMLElement;
+	readonly subtitle: HTMLElement;
 }
 
 class SessionsRenderer implements IListRenderer<ConversationStubSession, ISessionTemplateData> {
@@ -52,15 +76,28 @@ class SessionsRenderer implements IListRenderer<ConversationStubSession, ISessio
 
 	readonly templateId = SessionsRenderer.TEMPLATE_ID;
 
-	constructor(private readonly getActiveSessionId: () => string) { }
+	constructor(
+		private readonly getActiveSessionId: () => string,
+		private readonly countPendingConfirmations: (sessionId: string) => number,
+	) { }
 
 	renderTemplate(container: HTMLElement): ISessionTemplateData {
-		const label = dom.append(container, $('.conversation-sessions-item-label'));
-		return { container, label };
+		container.classList.add('conversation-sessions-item');
+		const row = dom.append(container, $('.conversation-sessions-item-row'));
+		const icon = dom.append(row, $('span.conversation-sessions-item-icon'));
+		icon.classList.add(...ThemeIcon.asClassNameArray(Codicon.commentDiscussion));
+		const textColumn = dom.append(row, $('.conversation-sessions-item-text'));
+		const label = dom.append(textColumn, $('.conversation-sessions-item-label'));
+		const subtitle = dom.append(textColumn, $('.conversation-sessions-item-subtitle'));
+		return { container, label, subtitle };
 	}
 
 	renderElement(session: ConversationStubSession, _index: number, templateData: ISessionTemplateData): void {
 		templateData.label.textContent = session.title;
+		templateData.subtitle.textContent = formatSessionRosterSubtitle(
+			session,
+			this.countPendingConfirmations(session.id),
+		);
 		const active = session.id === this.getActiveSessionId();
 		templateData.container.classList.toggle('conversation-sessions-item-active', active);
 	}
@@ -71,17 +108,21 @@ class SessionsRenderer implements IListRenderer<ConversationStubSession, ISessio
 }
 
 class SessionsAccessibilityProvider implements IListAccessibilityProvider<ConversationStubSession> {
-	constructor(private readonly getActiveSessionId: () => string) { }
+	constructor(
+		private readonly getActiveSessionId: () => string,
+		private readonly countPendingConfirmations: (sessionId: string) => number,
+	) { }
 
 	getWidgetAriaLabel(): string {
 		return localize('conversationSessionsView.ariaLabel', "Conversation Sessions");
 	}
 
 	getAriaLabel(session: ConversationStubSession): string {
+		const subtitle = formatSessionRosterSubtitle(session, this.countPendingConfirmations(session.id));
 		const active = session.id === this.getActiveSessionId();
 		return active
-			? localize('conversationSessionsView.activeSession', "{0}, active session", session.title)
-			: session.title;
+			? localize('conversationSessionsView.activeSessionWithSubtitle', "{0}, {1}, active session", session.title, subtitle)
+			: localize('conversationSessionsView.sessionWithSubtitle', "{0}, {1}", session.title, subtitle);
 	}
 }
 
@@ -165,8 +206,9 @@ export class ConversationSessionsView extends ViewPane {
 		}
 
 		const getActiveSessionId = () => this.stubService.getActiveSessionId();
+		const countPendingConfirmations = (sessionId: string) => this.stubService.countPendingConfirmations(sessionId);
 		const delegate = new SessionsDelegate();
-		const renderer = new SessionsRenderer(getActiveSessionId);
+		const renderer = new SessionsRenderer(getActiveSessionId, countPendingConfirmations);
 
 		this.list = this._register(this.instantiationService.createInstance(
 			WorkbenchList,
@@ -176,7 +218,7 @@ export class ConversationSessionsView extends ViewPane {
 			[renderer],
 			{
 				identityProvider: { getId: (session: ConversationStubSession) => session.id },
-				accessibilityProvider: new SessionsAccessibilityProvider(getActiveSessionId),
+				accessibilityProvider: new SessionsAccessibilityProvider(getActiveSessionId, countPendingConfirmations),
 				openOnSingleClick: true,
 			}
 		)) as WorkbenchList<ConversationStubSession>;
@@ -246,7 +288,7 @@ export class ConversationSessionsView extends ViewPane {
 		if (width > 0 && height > 0) {
 			this.list.layout(height, width);
 		} else if (filteredCount > 0) {
-			this.list.layout(Math.max(filteredCount, 1) * 22, 300);
+			this.list.layout(Math.max(filteredCount, 1) * CONVERSATION_SESSION_ROW_HEIGHT, 300);
 		}
 	}
 

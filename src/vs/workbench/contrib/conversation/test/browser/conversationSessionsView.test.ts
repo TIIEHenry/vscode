@@ -18,7 +18,7 @@ import { IEditorOptions } from '../../../../../platform/editor/common/editor.js'
 import { IEditorService, PreferredGroup } from '../../../../services/editor/common/editorService.js';
 import { ChatEditorInput } from '../../../chat/browser/widgetHosts/editor/chatEditorInput.js';
 import { CONVERSATION_SESSIONS_CONTAINER_ID } from '../../browser/conversation.contribution.js';
-import { CONVERSATION_SESSIONS_VIEW_ID, ConversationSessionsView } from '../../browser/conversationSessionsView.js';
+import { CONVERSATION_SESSION_ROW_HEIGHT, CONVERSATION_SESSIONS_VIEW_ID, ConversationSessionsView } from '../../browser/conversationSessionsView.js';
 import { ConversationStubSession } from '../../browser/conversationStubModel.js';
 import { conversationLensSessionBarNewSession } from '../../browser/conversationLensSessionBarStrings.js';
 import { ConversationStubService, IConversationRosterService } from '../../browser/conversationStubService.js';
@@ -164,6 +164,42 @@ suite('ConversationSessionsView', () => {
 		const descriptor = viewsRegistry.getView(CONVERSATION_SESSIONS_VIEW_ID);
 		assert.ok(descriptor);
 		assert.notStrictEqual(descriptor.ctorDescriptor.ctor, ChatEditorInput);
+	});
+
+	function getRosterCombinedText(view: ConversationSessionsView): string {
+		return view.element.querySelector('.conversation-sessions-list')?.textContent?.toLowerCase() ?? '';
+	}
+
+	test('seed session row shows title and No messages subtitle', () => {
+		const { view, stubService } = mountView();
+		const session = stubService.getActiveSession();
+		const row = view.element.querySelector('.conversation-sessions-item-active');
+		assert.ok(row);
+		assert.strictEqual(row?.querySelector('.conversation-sessions-item-label')?.textContent, session.title);
+		assert.strictEqual(row?.querySelector('.conversation-sessions-item-subtitle')?.textContent, 'No messages');
+		assert.ok(row?.querySelector('.conversation-sessions-item-icon.codicon-comment-discussion'));
+	});
+
+	test('appendUserTurn updates roster subtitle to 1 message', () => {
+		const { view, stubService } = mountView();
+		const sessionId = stubService.getActiveSessionId();
+		stubService.appendUserTurn(sessionId, 'Hello from roster test');
+
+		const subtitle = view.element.querySelector('.conversation-sessions-item-active .conversation-sessions-item-subtitle');
+		assert.strictEqual(subtitle?.textContent, '1 message');
+	});
+
+	test('session roster rows use 44px delegate height', () => {
+		assert.strictEqual(CONVERSATION_SESSION_ROW_HEIGHT, 44);
+	});
+
+	test('roster copy has no engine or Copilot placeholders', () => {
+		const { view, stubService } = mountView();
+		stubService.appendUserTurn(stubService.getActiveSessionId(), 'Local stub message');
+		const combined = getRosterCombinedText(view);
+		assert.ok(!combined.includes('copilot'));
+		assert.ok(!combined.includes('not connected'));
+		assert.ok(!combined.includes('no engine'));
 	});
 
 	test('lists stub session titles and highlights the active session', () => {
