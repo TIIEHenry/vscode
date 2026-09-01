@@ -43,8 +43,8 @@ import { IExplorerService } from '../../../files/browser/files.js';
 import { ISCMService } from '../../../scm/common/scm.js';
 import { IStorageService, StorageScope } from '../../../../../platform/storage/common/storage.js';
 import { TestStorageService } from '../../../../test/common/workbenchTestServices.js';
-import { IExtensionService } from '../../../services/extensions/common/extensions.js';
-import { ILayoutService } from '../../../services/layout/browser/layoutService.js';
+import { IExtensionService } from '../../../../services/extensions/common/extensions.js';
+import { ILayoutService } from '../../../../../platform/layout/browser/layoutService.js';
 import { IWebviewService } from '../../../webview/browser/webview.js';
 
 suite('ConversationLens', () => {

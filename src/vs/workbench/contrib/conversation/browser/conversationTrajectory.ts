@@ -98,7 +98,6 @@ export class ConversationTrajectory extends Disposable {
 	private readonly processFoldOuterExpanded = new Map<string, boolean>();
 	private readonly selectedRecordId = { current: undefined as string | undefined };
 	private visible = false;
-	private records: readonly ConversationTrajectoryRecord[] = [];
 
 	constructor(
 		parent: HTMLElement,
@@ -165,7 +164,6 @@ export class ConversationTrajectory extends Disposable {
 	}
 
 	setRecords(records: readonly ConversationTrajectoryRecord[]): void {
-		this.records = records;
 		this.renderDisposables.clear();
 		clearNode(this.tableBody);
 

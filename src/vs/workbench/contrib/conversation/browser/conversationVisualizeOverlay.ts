@@ -11,7 +11,7 @@ import { KeyCode } from '../../../../base/common/keyCodes.js';
 import { Disposable, DisposableStore } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
 import { defaultButtonStyles } from '../../../../platform/theme/browser/defaultStyles.js';
-import { ILayoutService } from '../../../services/layout/browser/layoutService.js';
+import { ILayoutService } from '../../../../platform/layout/browser/layoutService.js';
 import { IWebviewService } from '../../webview/browser/webview.js';
 import {
 	ConversationMermaidExtensionInfo,

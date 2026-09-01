@@ -9,7 +9,9 @@ import { KeyCode } from '../../../../../base/common/keyCodes.js';
 import { Event } from '../../../../../base/common/event.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
-import { ILayoutService } from '../../../../services/layout/browser/layoutService.js';
+import { mainWindow } from '../../../../../base/browser/window.js';
+import { ExtensionIdentifier } from '../../../../../platform/extensions/common/extensions.js';
+import { ILayoutService } from '../../../../../platform/layout/browser/layoutService.js';
 import { IWebviewElement, IWebviewService } from '../../../webview/browser/webview.js';
 import { ConversationVisualizeOverlay } from '../../browser/conversationVisualizeOverlay.js';
 
@@ -57,9 +59,9 @@ suite('ConversationVisualizeOverlay', () => {
 			title: 'Stub overlay',
 			extensionInfo: {
 				extensionLocation: URI.file('/tmp/mermaid'),
-				extensionId: { value: 'vscode.mermaid-markdown-features' },
+				extensionId: new ExtensionIdentifier('vscode.mermaid-markdown-features'),
 			},
-			targetWindow: window,
+			targetWindow: mainWindow,
 			webviewService,
 		});
 
