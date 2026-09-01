@@ -799,11 +799,80 @@
 	color: var(--vscode-foreground);
 }
 
-.monaco-workbench .part.conversation .conversation-lens-timeline-empty-hint {
-	margin: 0;
-	font-size: 12px;
-	line-height: 1.4;
-	max-width: 280px;
+/* PreFirst — centered composer cluster in reading column; dock slot hidden */
+.monaco-workbench .part.conversation .conversation-dock.conversation-lens-phase-prefirst-dock-hidden {
+	display: none;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-reading-column.conversation-lens-phase-prefirst {
+	min-height: 0;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-prefirst-hero {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	flex: 1;
+	min-height: 0;
+	gap: 8px;
+	max-width: 720px;
+	width: 100%;
+	margin: 0 auto;
+	padding: 16px 8px 24px;
+	box-sizing: border-box;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-phase-prefirst .conversation-lens-timeline,
+.monaco-workbench .part.conversation .conversation-lens-phase-prefirst .conversation-lens-trajectory {
+	flex: 0 0 auto;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-prefirst-hero .conversation-identity-strip {
+	justify-content: center;
+	border-bottom: none;
+	padding-bottom: 0;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-prefirst-hero .conversation-lens-dock-gate-row {
+	width: 100%;
+	justify-content: center;
+	padding: 0;
+	border-bottom: none;
+	text-align: center;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-prefirst-hero .conversation-lens-composer {
+	width: 100%;
+	padding: 0;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-reading-column.conversation-lens-phase-prefirst.conversation-lens-input-maximized .conversation-lens-timeline,
+.monaco-workbench .part.conversation .conversation-lens-reading-column.conversation-lens-phase-prefirst.conversation-lens-input-maximized .conversation-lens-trajectory {
+	display: none;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-reading-column.conversation-lens-phase-prefirst.conversation-lens-input-maximized .conversation-lens-prefirst-hero {
+	flex: 1;
+	min-height: 0;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-reading-column.conversation-lens-phase-prefirst.conversation-lens-input-maximized .conversation-lens-composer {
+	flex: 1;
+	min-height: 0;
+	display: flex;
+	flex-direction: column;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-reading-column.conversation-lens-phase-prefirst.conversation-lens-input-maximized .conversation-lens-dock-input-row {
+	flex: 1;
+	min-height: 0;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-reading-column.conversation-lens-phase-prefirst.conversation-lens-input-maximized .conversation-lens-dock-input {
+	max-height: none;
+	flex: 1;
+	min-height: 80px;
 }
 
 /* Turns — chat column rhythm (user bubble vs assistant reading text) */
@@ -1180,7 +1249,7 @@
 }
 
 /* Input Maximize — stays inside Conversation column (Desktop §8.3.11) */
-.monaco-workbench .part.conversation .conversation-timeline.conversation-lens-input-maximized {
+.monaco-workbench .part.conversation .conversation-timeline.conversation-lens-input-maximized:not(:has(.conversation-lens-phase-prefirst)) {
 	display: none;
 }
 

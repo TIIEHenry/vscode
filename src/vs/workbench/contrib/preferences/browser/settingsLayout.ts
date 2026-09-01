@@ -541,7 +541,7 @@ export const tocData: ITOCEntry<string> = {
 					navigationLinks: [{
 						id: 'ua/customizations/open',
 						label: localize('uaOpenCustomizations', "Open Customizations…"),
-						commandId: 'workbench.action.openCustomizationsPreferences'
+						commandId: 'aiCustomization.openManagementEditor'
 					}]
 				}
 			]
