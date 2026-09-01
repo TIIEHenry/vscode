@@ -135,6 +135,19 @@ suite('ConversationTrajectory', () => {
 		assert.strictEqual(records[1]!.text, 'Done');
 	});
 
+	test('projectTurnsToTrajectory skips visualization turns', () => {
+		const turns = [
+			turn('u1', 'user', 'Show roadmap'),
+			turn('v1', 'visualization', ''),
+			turn('a1', 'assistant', 'Done'),
+		];
+
+		const records = projectTurnsToTrajectory(turns);
+
+		assert.deepStrictEqual(records.map(record => record.kind), ['user', 'message']);
+		assert.ok(!records.some(record => record.id === 'v1'));
+	});
+
 	test('projectTurnsToTrajectory maps thinking and tool turns', () => {
 		const turns = [
 			turn('t1', 'thinking', 'Stub: outline sections'),

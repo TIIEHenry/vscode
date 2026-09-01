@@ -77,6 +77,8 @@ export function projectTurnsToTrajectory(turns: readonly ConversationStubTurn[])
 					depth: 0,
 				});
 				break;
+			case 'visualization':
+				break;
 		}
 	}
 

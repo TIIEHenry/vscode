@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import './media/conversationLens.css';
+import './media/conversationVisualize.css';
 import './uaClientSettings.contribution.js';
 import './uaPreferencesPanes.contribution.js';
 import './universeAgentDeepLink.contribution.js';

@@ -386,7 +386,7 @@ suite('ConversationLens', () => {
 		const slots = part.getSlots()!;
 		const pendingButton = slots.dock.querySelector('.conversation-lens-inbox-pending') as HTMLButtonElement;
 
-		assert.strictEqual(stubService.getSessions().length, 1);
+		assert.strictEqual(stubService.getSessions().length, 2);
 		assert.strictEqual(stubService.getTurns(stubService.getActiveSessionId()).length, 7);
 		assert.strictEqual(getTimelineEmpty(slots), null);
 		assert.ok(queryTimeline(slots, '[data-process-fold]'));
@@ -1441,5 +1441,50 @@ suite('ConversationLens', () => {
 		assert.strictEqual(pinnedHost!.querySelector('[aria-label*="Edit"]'), null);
 		assert.strictEqual(pinnedHost!.querySelector('[aria-label*="Regenerate"]'), null);
 		assert.strictEqual(pinnedHost!.querySelector('.conversation-lens-turn-actions'), null);
+	});
+
+	test('visualize seed session renders two visualization cards without Agent header', async () => {
+		const { part, stubService, layoutReadingColumn } = mountLens();
+		const slots = part.getSlots()!;
+		stubService.switchSession('visualize');
+		layoutReadingColumn();
+		await flushTimelineHeightUpdates();
+
+		const cards = queryAllTimeline(slots, '[data-kind="visualization"]');
+		assert.strictEqual(cards.length, 2);
+
+		const diagram = queryTimeline(slots, '[data-visualize-type="diagram"]');
+		assert.ok(diagram);
+		assert.strictEqual(diagram!.querySelector('.conversation-lens-turn-header'), null);
+
+		const source = queryTimeline(slots, 'pre[data-mermaid-source]');
+		assert.ok(source);
+		const sourceText = source!.textContent ?? '';
+		assert.ok(sourceText.includes('冻结'));
+		assert.ok(sourceText.includes('进行中'));
+		assert.ok(sourceText.includes('未立项'));
+
+		const comparison = queryTimeline(slots, '[data-visualize-type="comparison"]');
+		assert.ok(comparison);
+		assert.ok(comparison!.querySelector('.conversation-visualize-option[data-recommended="true"]'));
+	});
+
+	test('visualize card header collapses and expands body', async () => {
+		const { part, stubService, layoutReadingColumn } = mountLens();
+		const slots = part.getSlots()!;
+		stubService.switchSession('visualize');
+		layoutReadingColumn();
+		await flushTimelineHeightUpdates();
+
+		const header = queryTimeline(slots, '[data-visualize-type="diagram"] .conversation-visualize-header') as HTMLButtonElement;
+		const body = queryTimeline(slots, '[data-visualize-type="diagram"] .conversation-visualize-body') as HTMLElement;
+		assert.ok(header);
+		assert.ok(body);
+		assert.strictEqual(body.hidden, false);
+
+		header.click();
+		layoutReadingColumn();
+		await flushTimelineHeightUpdates();
+		assert.strictEqual(body.hidden, true);
 	});
 });
