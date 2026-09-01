@@ -802,8 +802,13 @@ class AICustomizationManagementActionsContribution extends Disposable implements
 					harnessService.setActiveSession(sessionResource);
 				}
 
+				const workspaceService = accessor.get(IAICustomizationWorkspaceService);
 				const input = AICustomizationManagementEditorInput.getOrCreate();
-				input.setTargetLabel(harnessService.getActiveDescriptor().label);
+				if (workspaceService.isSessionsWindow) {
+					input.setTargetLabel(harnessService.getActiveDescriptor().label);
+				} else {
+					input.setTargetLabel(undefined);
+				}
 				const pane = await editorService.openEditor(input, { pinned: true });
 				if (section && pane instanceof AICustomizationManagementEditor) {
 					pane.selectSectionById(section);

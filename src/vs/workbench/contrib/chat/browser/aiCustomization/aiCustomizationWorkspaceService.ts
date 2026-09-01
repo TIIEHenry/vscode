@@ -47,21 +47,17 @@ class AICustomizationWorkspaceService implements IAICustomizationWorkspaceServic
 	}
 
 	readonly managementSections: readonly AICustomizationManagementSection[] = [
-		AICustomizationManagementSection.Plugins,
-		AICustomizationManagementSection.McpServers,
+		AICustomizationManagementSection.Agents,
 		AICustomizationManagementSection.Skills,
 		AICustomizationManagementSection.Instructions,
-		AICustomizationManagementSection.Agents,
 		AICustomizationManagementSection.Hooks,
-		AICustomizationManagementSection.Tools,
-		AICustomizationManagementSection.Prompts,
-		AICustomizationManagementSection.HarnessSettings,
+		AICustomizationManagementSection.McpServers,
 	];
 
 	readonly isSessionsWindow = false;
 
 	readonly welcomePageFeatures = {
-		showGettingStartedBanner: true,
+		showGettingStartedBanner: false,
 	};
 
 	readonly hasOverrideProjectRoot = constObservable(false);

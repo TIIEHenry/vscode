@@ -111,6 +111,9 @@ import { isAgentHostTarget } from '../../common/chatSessionsService.js';
 
 const $ = DOM.$;
 
+/** Sidebar list sentinel for the Overview landing row (not an `AICustomizationManagementSection`). */
+const OVERVIEW_SECTION_ITEM_ID = '__overview__';
+
 //#region Telemetry
 
 type CustomizationEditorOpenedEvent = {
@@ -192,7 +195,7 @@ type CustomizationEditorSaveItemClassification = {
 //#region Sidebar Section Item
 
 interface ISectionItem {
-	readonly id: AICustomizationManagementSection;
+	readonly id: AICustomizationManagementSection | typeof OVERVIEW_SECTION_ITEM_ID;
 	readonly label: string;
 	readonly icon: ThemeIcon;
 	readonly description: string;
@@ -298,6 +301,9 @@ export class AICustomizationManagementEditor extends EditorPane {
 	private pluginListWidget: PluginListWidget | undefined;
 	private modelsWidget: ChatModelsWidget | undefined;
 	private toolsListWidget: ToolsListWidget | undefined;
+	private unavailableSectionContainer: HTMLElement | undefined;
+	private unavailableSectionTitle: HTMLElement | undefined;
+	private unavailableSectionDescription: HTMLElement | undefined;
 	private promptsContentContainer!: HTMLElement;
 	private mcpContentContainer: HTMLElement | undefined;
 	private pluginContentContainer: HTMLElement | undefined;
@@ -586,8 +592,34 @@ export class AICustomizationManagementEditor extends EditorPane {
 		const harnessLabel = this.getActiveHarnessLabel();
 		this.welcomePage?.setHarnessLabel(harnessLabel);
 		if (this.input instanceof AICustomizationManagementEditorInput) {
-			this.input.setTargetLabel(harnessLabel);
+			if (this.workspaceService.isSessionsWindow) {
+				this.input.setTargetLabel(harnessLabel);
+			} else {
+				this.input.setTargetLabel(undefined);
+			}
 		}
+	}
+
+	private createOverviewSectionItem(): ISectionItem {
+		return {
+			id: OVERVIEW_SECTION_ITEM_ID,
+			label: localize('homeButtonLabel', "Overview"),
+			icon: Codicon.home,
+			description: localize('overviewNavDesc', "File customizations landing page."),
+			count: 0,
+		};
+	}
+
+	private getVisibleFileSectionIds(): Set<AICustomizationManagementSection> {
+		return new Set(
+			this.sections
+				.filter(section => section.id !== OVERVIEW_SECTION_ITEM_ID)
+				.map(section => section.id as AICustomizationManagementSection),
+		);
+	}
+
+	private isUnavailableDonorSection(sectionId: AICustomizationManagementSection): boolean {
+		return !this.workspaceService.isSessionsWindow && !this.workspaceService.managementSections.includes(sectionId);
 	}
 
 	/**
@@ -609,6 +641,10 @@ export class AICustomizationManagementEditor extends EditorPane {
 			}
 		}
 
+		if (!this.workspaceService.isSessionsWindow) {
+			this.sections.unshift(this.createOverviewSectionItem());
+		}
+
 		// Update the list widget if it exists
 		if (this.sectionsList) {
 			this.sectionsList.splice(0, this.sectionsList.length, this.sections);
@@ -616,10 +652,12 @@ export class AICustomizationManagementEditor extends EditorPane {
 		}
 
 		// Rebuild welcome cards to reflect new visible sections
-		this.welcomePage?.rebuildCards(new Set(this.sections.map(s => s.id)));
+		this.welcomePage?.rebuildCards(this.getVisibleFileSectionIds());
 
 		// If the current selection is hidden, fall back to welcome page
-		if (this.selectedSection !== undefined && !this.sections.some(s => s.id === this.selectedSection) && this.sections.length > 0) {
+		if (this.selectedSection !== undefined && this.isUnavailableDonorSection(this.selectedSection)) {
+			// Keep unavailable deep-link sections selected.
+		} else if (this.selectedSection !== undefined && !this.sections.some(s => s.id === this.selectedSection) && this.sections.length > 0) {
 			this.showWelcomePage();
 		} else {
 			this.ensureSectionsListReflectsActiveSection();
@@ -667,7 +705,12 @@ export class AICustomizationManagementEditor extends EditorPane {
 				}
 				return;
 			}
-			this.selectSection(e.elements[0].id);
+			const item = e.elements[0];
+			if (item.id === OVERVIEW_SECTION_ITEM_ID) {
+				this.showWelcomePage();
+				return;
+			}
+			this.selectSection(item.id as AICustomizationManagementSection);
 		}));
 
 		// React to harness changes — rebuild visible sections and refresh counts.
@@ -729,6 +772,10 @@ export class AICustomizationManagementEditor extends EditorPane {
 	}
 
 	private createSidebarHeader(sidebarContent: HTMLElement): void {
+		if (!this.workspaceService.isSessionsWindow) {
+			return;
+		}
+
 		const headerRow = this.sidebarHeaderContainer = DOM.append(sidebarContent, $('.sidebar-header-row'));
 
 		// Home/overview button
@@ -772,6 +819,10 @@ export class AICustomizationManagementEditor extends EditorPane {
 	}
 
 	private createSidebarMigrationShortcut(sidebarContent: HTMLElement): void {
+		if (!this.workspaceService.isSessionsWindow) {
+			return;
+		}
+
 		const container = this.migrationShortcutContainer = DOM.append(sidebarContent, $('.sidebar-migration-shortcut'));
 		container.style.display = 'none';
 
@@ -846,8 +897,37 @@ export class AICustomizationManagementEditor extends EditorPane {
 			this.hoverService,
 			this.getActiveHarnessLabel(),
 		));
-		this.welcomePage.rebuildCards(new Set(this.sections.map(s => s.id)));
+		this.welcomePage.rebuildCards(this.getVisibleFileSectionIds());
 		this.welcomePage.setMigrationCategories(this.getMigrationCategorySummaries());
+	}
+
+	private createUnavailableSectionContent(contentInner: HTMLElement): void {
+		this.unavailableSectionContainer = DOM.append(contentInner, $('.unavailable-section-container'));
+		const header = DOM.append(this.unavailableSectionContainer, $('.section-title-header'));
+		this.unavailableSectionTitle = DOM.append(header, $('h2.section-title'));
+		this.unavailableSectionDescription = DOM.append(header, $('p.section-title-description'));
+		this.unavailableSectionContainer.style.display = 'none';
+	}
+
+	private updateUnavailableSectionPresentation(sectionId: AICustomizationManagementSection): void {
+		if (!this.unavailableSectionTitle || !this.unavailableSectionDescription) {
+			return;
+		}
+
+		switch (sectionId) {
+			case AICustomizationManagementSection.Plugins:
+				this.unavailableSectionTitle.textContent = localize('pluginsUnavailableTitle', "Plugins are not available.");
+				this.unavailableSectionDescription.textContent = localize('pluginsUnavailableDescription', "This editor does not manage engine plugins.");
+				break;
+			case AICustomizationManagementSection.Tools:
+				this.unavailableSectionTitle.textContent = localize('toolsUnavailableTitle', "Tools are not available.");
+				this.unavailableSectionDescription.textContent = localize('toolsUnavailableDescription', "Tool enablement is managed in Engine settings.");
+				break;
+			default:
+				this.unavailableSectionTitle.textContent = localize('sectionUnavailableTitle', "This section is not available.");
+				this.unavailableSectionDescription.textContent = localize('sectionUnavailableDescription', "This editor does not manage this customization type.");
+				break;
+		}
 	}
 
 	private createBackArrowButton(onClick?: () => void): HTMLButtonElement {
@@ -928,6 +1008,7 @@ export class AICustomizationManagementEditor extends EditorPane {
 
 		// Welcome page (shown when no section is selected)
 		this.createWelcomePage(contentInner);
+		this.createUnavailableSectionContent(contentInner);
 		this.editorDisposables.add(Event.any(
 			this.promptsService.onDidChangeSlashCommands,
 			this.promptsService.onDidChangeCustomAgents,
@@ -1111,6 +1192,10 @@ export class AICustomizationManagementEditor extends EditorPane {
 	}
 
 	private async refreshCustomizationMigrationInfo(): Promise<void> {
+		if (!this.workspaceService.isSessionsWindow) {
+			return;
+		}
+
 		const activeHarnessId = this.harnessService.activeHarness.get();
 		const activeSessionResource = this.harnessService.activeSessionResource.get();
 		const refreshSequence = ++this.customizationMigrationRefreshSequence;
@@ -1256,6 +1341,10 @@ export class AICustomizationManagementEditor extends EditorPane {
 	}
 
 	private refreshCustomizationMigrationUi(): void {
+		if (!this.workspaceService.isSessionsWindow) {
+			return;
+		}
+
 		this.welcomePage?.setMigrationCategories(this.getMigrationCategorySummaries());
 		this.updateSidebarMigrationShortcut();
 		this.renderCustomizationMigrationPage();
@@ -1869,7 +1958,7 @@ export class AICustomizationManagementEditor extends EditorPane {
 	 */
 	private updateSectionCount(sectionId: AICustomizationManagementSection, count: number): void {
 		const section = this.sections.find(s => s.id === sectionId);
-		if (!section || section.count === count) {
+		if (!section || section.id === OVERVIEW_SECTION_ITEM_ID || section.count === count) {
 			return;
 		}
 		section.count = count;
@@ -1992,7 +2081,18 @@ export class AICustomizationManagementEditor extends EditorPane {
 		}
 
 		if (section === undefined) {
-			// Welcome page — deselect all
+			const overviewIndex = this.sections.findIndex(s => s.id === OVERVIEW_SECTION_ITEM_ID);
+			if (overviewIndex >= 0) {
+				const selection = this.sectionsList.getSelection();
+				if (selection.length !== 1 || selection[0] !== overviewIndex) {
+					this.sectionsList.setSelection([overviewIndex]);
+				}
+				const focus = this.sectionsList.getFocus();
+				if (focus.length !== 1 || focus[0] !== overviewIndex) {
+					this.sectionsList.setFocus([overviewIndex]);
+				}
+				return;
+			}
 			this.sectionsList.setSelection([]);
 			this.sectionsList.setFocus([]);
 			return;
@@ -2023,6 +2123,7 @@ export class AICustomizationManagementEditor extends EditorPane {
 		const isToolsDetailMode = this.viewMode === 'toolsDetail';
 		const isDetailMode = isMcpDetailMode || isPluginDetailMode || isToolsDetailMode;
 		const isWelcome = this.selectedSection === undefined;
+		const isUnavailableSection = this.selectedSection !== undefined && this.isUnavailableDonorSection(this.selectedSection);
 		const isPromptsSection = this.selectedSection !== undefined && this.isPromptsSection(this.selectedSection);
 		const isModelsSection = this.selectedSection === AICustomizationManagementSection.Models;
 		const isMcpSection = this.selectedSection === AICustomizationManagementSection.McpServers;
@@ -2031,6 +2132,9 @@ export class AICustomizationManagementEditor extends EditorPane {
 
 		if (this.welcomePage) {
 			this.welcomePage.container.style.display = isWelcome && !isEditorMode && !isMigrationMode && !isDetailMode ? '' : 'none';
+		}
+		if (this.unavailableSectionContainer) {
+			this.unavailableSectionContainer.style.display = !isEditorMode && !isMigrationMode && !isDetailMode && isUnavailableSection ? '' : 'none';
 		}
 		if (this.promptsContentContainer) {
 			this.promptsContentContainer.style.display = !isEditorMode && !isMigrationMode && !isDetailMode && isPromptsSection ? '' : 'none';
@@ -2375,10 +2479,42 @@ export class AICustomizationManagementEditor extends EditorPane {
 					this.pluginListWidget?.showBrowseMarketplace();
 				}
 			}
+			return;
+		}
+
+		if (this.isUnavailableDonorSection(sectionId)) {
+			if (this.viewMode === 'editor') {
+				this.goBackToList();
+			}
+			if (this.viewMode === 'migration') {
+				this.viewMode = 'list';
+			}
+			if (this.viewMode === 'mcpDetail') {
+				this.goBackFromMcpDetail();
+			}
+			if (this.viewMode === 'pluginDetail') {
+				this.goBackFromPluginDetail();
+			}
+			if (this.viewMode === 'toolsDetail') {
+				this.goBackFromToolDetail();
+			}
+			this.selectedSection = sectionId;
+			this.sectionContextKey.set(sectionId);
+			this.storageService.store(AI_CUSTOMIZATION_MANAGEMENT_SELECTED_SECTION_KEY, sectionId, StorageScope.PROFILE, StorageTarget.USER);
+			this.updateUnavailableSectionPresentation(sectionId);
+			this.updateContentVisibility();
+			if (this.dimension) {
+				this.layout(this.dimension);
+			}
+			this.ensureSectionsListReflectsActiveSection(sectionId);
 		}
 	}
 
 	public showCustomizationMigrationPage(categoryId: CustomizationMigrationCategoryId): void {
+		if (!this.workspaceService.isSessionsWindow) {
+			return;
+		}
+
 		if (!this.isMigrationCategoryEnabled(getCustomizationMigrationCategory(categoryId))) {
 			return;
 		}
