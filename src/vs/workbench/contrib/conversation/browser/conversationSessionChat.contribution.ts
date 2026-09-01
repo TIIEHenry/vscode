@@ -17,6 +17,7 @@ class ConversationSessionChatContribution extends Disposable implements IWorkben
 	static readonly ID = 'workbench.contrib.conversationSessionChat';
 
 	private readonly mountedOverlays = new Set<string>();
+	private readonly registeredParts = new Set<string>();
 
 	constructor(
 		@IConversationPartService conversationPartService: IConversationPartService,
@@ -32,15 +33,21 @@ class ConversationSessionChatContribution extends Disposable implements IWorkben
 			}
 
 			for (const sessionKey of sessionWindowService.getAllLeafSessionKeys()) {
-				if (this.mountedOverlays.has(sessionKey)) {
-					continue;
-				}
 				const leaf = sessionWindowService.getLeafSlots(sessionKey);
 				if (!leaf) {
 					continue;
 				}
-				sessionChatService.mountSubAgentOverlay(sessionKey, leaf.sessionWindow, sessionBar);
-				this.mountedOverlays.add(sessionKey);
+
+				if (!this.mountedOverlays.has(sessionKey)) {
+					sessionChatService.mountSubAgentOverlay(sessionKey, leaf.sessionWindow, sessionBar);
+					this.mountedOverlays.add(sessionKey);
+				}
+
+				const part = sessionChatService.getConversationPart(sessionKey);
+				if (part && !this.registeredParts.has(sessionKey)) {
+					this.registeredParts.add(sessionKey);
+					this._register(sessionChatService.registerPartListeners(part));
+				}
 			}
 		};
 

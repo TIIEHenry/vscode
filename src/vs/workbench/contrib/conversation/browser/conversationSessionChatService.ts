@@ -236,12 +236,12 @@ export class ConversationSessionChatService extends Disposable implements IConve
 			return true;
 		}
 
-		const key = sessionKey ?? this.rosterService.getActiveSessionId();
+		const key = this.resolveSessionKey(sessionKey);
 		return this.countCloseableNonRootTabs(key) > 0;
 	}
 
 	async closeNonRootTabs(sessionKey?: string): Promise<void> {
-		const key = sessionKey ?? this.rosterService.getActiveSessionId();
+		const key = this.resolveSessionKey(sessionKey);
 		const part = this.getConversationPart(key);
 		if (!part) {
 			return;
@@ -298,7 +298,7 @@ export class ConversationSessionChatService extends Disposable implements IConve
 	}
 
 	async openForkTab(forkedResource: URI, title?: string): Promise<void> {
-		const sessionKey = this.rosterService.getActiveSessionId();
+		const sessionKey = this.resolveSessionKey();
 		const chatId = deriveConversationChatIdFromForkResource(forkedResource);
 		this.registerForkChat(sessionKey, chatId, title ?? chatId);
 		await this.openExtensionTab(sessionKey, chatId, { title });
@@ -348,7 +348,7 @@ export class ConversationSessionChatService extends Disposable implements IConve
 	}
 
 	async promoteSubAgentDialog(sessionKey?: string): Promise<void> {
-		const key = sessionKey ?? this.rosterService.getActiveSessionId();
+		const key = this.resolveSessionKey(sessionKey);
 		const overlay = this.subAgentOverlays.get(key);
 		const state = overlay?.getState();
 		if (!state) {
@@ -360,12 +360,12 @@ export class ConversationSessionChatService extends Disposable implements IConve
 	}
 
 	toggleSubAgentDialogMaximized(sessionKey?: string): void {
-		const key = sessionKey ?? this.rosterService.getActiveSessionId();
+		const key = this.resolveSessionKey(sessionKey);
 		this.subAgentOverlays.get(key)?.toggleMaximized();
 	}
 
 	isSubAgentDialogMaximized(sessionKey?: string): boolean {
-		const key = sessionKey ?? this.rosterService.getActiveSessionId();
+		const key = this.resolveSessionKey(sessionKey);
 		return this.subAgentOverlays.get(key)?.isMaximized() ?? false;
 	}
 
@@ -380,7 +380,7 @@ export class ConversationSessionChatService extends Disposable implements IConve
 	}
 
 	closeSubAgentDialog(sessionKey?: string): void {
-		const key = sessionKey ?? this.rosterService.getActiveSessionId();
+		const key = this.resolveSessionKey(sessionKey);
 		const overlay = this.subAgentOverlays.get(key);
 		if (overlay?.isOpen()) {
 			overlay.close();
@@ -421,7 +421,7 @@ export class ConversationSessionChatService extends Disposable implements IConve
 	}
 
 	async splitSessionWindow(sessionKey?: string): Promise<void> {
-		const key = sessionKey ?? this.rosterService.getActiveSessionId();
+		const key = this.resolveSessionKey(sessionKey);
 		const part = this.getConversationPart(key);
 		if (!part) {
 			throw new Error(`Conversation editor part for session ${key} is not available`);
@@ -437,7 +437,7 @@ export class ConversationSessionChatService extends Disposable implements IConve
 	}
 
 	hideSplitColumn(sessionKey?: string, groupId?: GroupIdentifier): void {
-		const key = sessionKey ?? this.rosterService.getActiveSessionId();
+		const key = this.resolveSessionKey(sessionKey);
 		const part = this.getConversationPart(key);
 		if (!part) {
 			return;
@@ -453,7 +453,7 @@ export class ConversationSessionChatService extends Disposable implements IConve
 	}
 
 	showSplitColumn(sessionKey?: string, groupId?: GroupIdentifier): void {
-		const key = sessionKey ?? this.rosterService.getActiveSessionId();
+		const key = this.resolveSessionKey(sessionKey);
 		const part = this.getConversationPart(key);
 		if (!part) {
 			return;
@@ -483,6 +483,19 @@ export class ConversationSessionChatService extends Disposable implements IConve
 
 		const candidate = part.groups.find(group => group.id !== rootGroup.id && !part.isGroupHidden(group));
 		return candidate?.id;
+	}
+
+	private resolveSessionKey(sessionKey?: string): string {
+		if (sessionKey) {
+			return sessionKey;
+		}
+
+		const focusedPart = this.editorGroupsService.getActiveConversationEditorPart();
+		if (focusedPart) {
+			return focusedPart.sessionKey;
+		}
+
+		return this.rosterService.getActiveSessionId();
 	}
 
 	private getScopedEditorService(part: IConversationEditorPart): IEditorService {

@@ -14,6 +14,7 @@ import { EditorExtensions, IEditorFactoryRegistry } from '../../../../common/edi
 import { createEditorParts, registerTestEditor, TestFileEditorInput, workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { SideBySideEditorInput } from '../../../../common/editor/sideBySideEditorInput.js';
 import { ConversationSessionWindowService } from '../../browser/conversationSessionWindowService.js';
+import { ConversationSessionChatService } from '../../browser/conversationSessionChatService.js';
 import { ConversationStubService, IConversationRosterService } from '../../browser/conversationStubService.js';
 import { conversationSessionLeafHiddenClass } from '../../common/conversationSessionWindow.js';
 
@@ -55,13 +56,14 @@ suite('Conversation session window side-by-side (S5)', () => {
 		instantiationService.stub(IConversationPartService, conversationPart);
 
 		const sessionWindowService = disposables.add(instantiationService.createInstance(ConversationSessionWindowService));
+		const sessionChatService = disposables.add(instantiationService.createInstance(ConversationSessionChatService));
 		store.add(rosterService);
 
 		const primaryId = rosterService.getActiveSessionId();
 		await sessionWindowService.ensurePrimaryWindow(primaryId);
 		trackConversationEditors(parts);
 
-		return { parts, rosterService, sessionWindowService, primaryId };
+		return { parts, rosterService, sessionWindowService, sessionChatService, primaryId };
 	}
 
 	async function createSideBySideHarness() {
@@ -133,5 +135,18 @@ suite('Conversation session window side-by-side (S5)', () => {
 
 		assert.strictEqual(parts.conversationParts.length, 2);
 		assert.strictEqual(sessionWindowService.getVisibleWindowCount(), 2);
+	});
+
+	test('splitSessionWindow targets a specific parallel session part by session key', async () => {
+		const { parts, sessionChatService, primaryId, secondaryId } = await createSideBySideHarness();
+		const primaryPart = parts.conversationParts.find(part => part.sessionKey === primaryId);
+		const secondaryPart = parts.conversationParts.find(part => part.sessionKey === secondaryId);
+		assert.ok(primaryPart);
+		assert.ok(secondaryPart);
+
+		await sessionChatService.splitSessionWindow(secondaryId);
+
+		assert.strictEqual(secondaryPart.groups.length, 2);
+		assert.strictEqual(primaryPart.groups.length, 1);
 	});
 });
