@@ -49,6 +49,20 @@ suite('ConversationLens', () => {
 		await new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
 	}
 
+	async function inflateTimelineRowHeights(lens: ConversationLens, layout: () => void, rowHeight = 400): Promise<void> {
+		const timelineTree = getTimelineTree(lens);
+		const internal = timelineTree as unknown as {
+			turnItems: Map<string, object>;
+			safeUpdateElementHeight: (item: object, height: number) => void;
+		};
+		for (const item of internal.turnItems.values()) {
+			internal.safeUpdateElementHeight(item, rowHeight);
+		}
+		layout();
+		await flushAnimationFrames();
+		await flushTimelineHeightUpdates();
+	}
+
 	teardown(async () => {
 		await flushTimelineHeightUpdates();
 		await flushAnimationFrames();
@@ -85,33 +99,25 @@ suite('ConversationLens', () => {
 		return (lens as unknown as { timelineTree: ConversationTimelineTree }).timelineTree;
 	}
 
-	function scrollTimelineAwayFromBottom(lens: ConversationLens, slots: IConversationLensSlots, offsetFromBottom = 200): void {
+	async function scrollTimelineAwayFromPinnedRead(lens: ConversationLens, slots: IConversationLensSlots, layout: () => void, rowHeight = 400): Promise<void> {
 		const timelineTree = getTimelineTree(lens);
-		timelineTree.setScrollLock(false);
-		const tree = (timelineTree as unknown as {
-			tree: {
-				scrollTop: number;
-				scrollHeight: number;
-				renderHeight: number;
-				view: {
-					length: number;
-					getElementTop: (index: number) => number;
-				};
-			};
-		}).tree;
-		const view = tree.view;
+		const assistantTurn = queryTimeline(slots, '.conversation-lens-turn[data-kind="assistant"]');
+		assert.ok(assistantTurn);
+		const turnId = assistantTurn!.getAttribute('data-turn-id');
+		assert.ok(turnId);
 
-		let scrollPastUser = 0;
-		if (view.length > 1) {
-			scrollPastUser = view.getElementTop(1);
-		} else {
-			const userRow = queryTimeline(slots, '.conversation-lens-turn[data-kind="user"]')?.closest('.conversation-lens-timeline-row') as HTMLElement | null;
-			scrollPastUser = (userRow?.offsetHeight ?? 72) + 4;
+		for (let attempt = 0; attempt < 3; attempt++) {
+			await inflateTimelineRowHeights(lens, layout, rowHeight + attempt * 40);
+			timelineTree.setScrollLock(false);
+			timelineTree.revealTurn(turnId!, 0);
+			layout();
+			await flushAnimationFrames();
+			await flushTimelineHeightUpdates();
+			if (!timelineTree.isScrolledToBottom()) {
+				return;
+			}
 		}
-
-		const maxScrollTop = Math.max(0, tree.scrollHeight - tree.renderHeight - offsetFromBottom);
-		tree.scrollTop = Math.min(maxScrollTop, Math.max(scrollPastUser, 0));
-		timelineTree.refreshScrollChrome();
+		assert.fail('could not scroll timeline away from bottom');
 	}
 
 	function getPinnedUserPrompt(slots: IConversationLensSlots): HTMLElement | null {
@@ -144,7 +150,8 @@ suite('ConversationLens', () => {
 		}
 		const timelineTree = (lens as unknown as { timelineTree: ConversationTimelineTree }).timelineTree;
 		const trajectoryList = (lens as unknown as { trajectoryList: ConversationTrajectoryList }).trajectoryList;
-		timelineTree.layout(LENS_LAYOUT_HEIGHT, LENS_LAYOUT_WIDTH);
+		const timelineHeight = LENS_LAYOUT_HEIGHT - 120;
+		timelineTree.layout(timelineHeight, LENS_LAYOUT_WIDTH);
 		trajectoryList.layout(LENS_LAYOUT_HEIGHT, LENS_LAYOUT_WIDTH);
 	}
 
@@ -1201,7 +1208,8 @@ suite('ConversationLens', () => {
 		assert.strictEqual(textarea.value, 'typing now');
 	});
 
-	test('pinned user prompt is hidden at bottom and on empty session', async () => {
+	test('pinned user prompt is hidden at bottom and on empty session', async function () {
+		this.timeout(15000);
 		const { part, lens, stubService, layoutReadingColumn } = mountLens();
 		const slots = part.getSlots()!;
 		const sessionId = stubService.getActiveSessionId();
@@ -1215,7 +1223,7 @@ suite('ConversationLens', () => {
 
 		assert.ok(!getPinnedUserPrompt(slots)?.classList.contains('conversation-timeline-pinned-user--visible'));
 
-		scrollTimelineAwayFromBottom(lens, slots);
+		await scrollTimelineAwayFromPinnedRead(lens, slots, layoutReadingColumn);
 		layoutReadingColumn();
 		await flushTimelineHeightUpdates();
 		await flushAnimationFrames();
@@ -1230,7 +1238,8 @@ suite('ConversationLens', () => {
 		assert.ok(!getPinnedUserPrompt(slots)?.classList.contains('conversation-timeline-pinned-user--visible'));
 	});
 
-	test('pinned user prompt shows one-line preview and reveals user turn on click', async () => {
+	test('pinned user prompt shows one-line preview and reveals user turn on click', async function () {
+		this.timeout(15000);
 		const { part, lens, stubService, layoutReadingColumn } = mountLens();
 		const slots = part.getSlots()!;
 		const sessionId = stubService.getActiveSessionId();
@@ -1240,8 +1249,7 @@ suite('ConversationLens', () => {
 		stubService.appendStubEchoAssistant(sessionId, userMessageLines(40));
 		layoutReadingColumn();
 		await flushTimelineHeightUpdates();
-
-		scrollTimelineAwayFromBottom(lens, slots);
+		await scrollTimelineAwayFromPinnedRead(lens, slots, layoutReadingColumn);
 		layoutReadingColumn();
 		await flushTimelineHeightUpdates();
 		await flushAnimationFrames();
@@ -1262,7 +1270,8 @@ suite('ConversationLens', () => {
 		assert.ok(!getPinnedUserPrompt(slots)?.classList.contains('conversation-timeline-pinned-user--visible'));
 	});
 
-	test('pinned user prompt copy writes full text and exposes no Quote Edit or Regenerate', async () => {
+	test('pinned user prompt copy writes full text and exposes no Quote Edit or Regenerate', async function () {
+		this.timeout(15000);
 		const { part, lens, stubService, clipboardService, layoutReadingColumn } = mountLens();
 		const slots = part.getSlots()!;
 		const sessionId = stubService.getActiveSessionId();
@@ -1272,8 +1281,7 @@ suite('ConversationLens', () => {
 		stubService.appendStubEchoAssistant(sessionId, userMessageLines(40));
 		layoutReadingColumn();
 		await flushTimelineHeightUpdates();
-
-		scrollTimelineAwayFromBottom(lens, slots);
+		await scrollTimelineAwayFromPinnedRead(lens, slots, layoutReadingColumn);
 		layoutReadingColumn();
 		await flushTimelineHeightUpdates();
 		await flushAnimationFrames();

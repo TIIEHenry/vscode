@@ -517,26 +517,27 @@ export class ConversationTimelineTree extends Disposable {
 		});
 	}
 
-	revealTurn(turnId: string): void {
+	revealTurn(turnId: string, relativeTop = 0.5): void {
 		const item = this.turnItems.get(turnId);
 		if (!item) {
 			return;
 		}
-		this.revealTurnElement(item);
+		this.revealTurnElement(item, relativeTop);
 	}
 
-	private revealTurnElement(item: ConversationTimelineItem, attempt = 0): void {
+	private revealTurnElement(item: ConversationTimelineItem, relativeTop = 0.5, attempt = 0): void {
 		if (!this.tree.hasElement(item)) {
 			if (attempt < 3) {
-				scheduleAtNextAnimationFrame(getWindow(this.domNode), () => this.revealTurnElement(item, attempt + 1));
+				scheduleAtNextAnimationFrame(getWindow(this.domNode), () => this.revealTurnElement(item, relativeTop, attempt + 1));
 			}
 			return;
 		}
 		try {
-			this.tree.reveal(item, 0.5);
+			this.tree.reveal(item, relativeTop);
+			this.refreshScrollChrome();
 		} catch {
 			if (attempt < 3) {
-				scheduleAtNextAnimationFrame(getWindow(this.domNode), () => this.revealTurnElement(item, attempt + 1));
+				scheduleAtNextAnimationFrame(getWindow(this.domNode), () => this.revealTurnElement(item, relativeTop, attempt + 1));
 			}
 		}
 	}
@@ -588,6 +589,7 @@ export class ConversationTimelineTree extends Disposable {
 
 	layout(height: number, width: number): void {
 		this.tree.layout(height, width);
+		this.refreshScrollChrome();
 	}
 
 	private toTreeElement(turn: ConversationStubTurn): IObjectTreeElement<ConversationTimelineItem> {
