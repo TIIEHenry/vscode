@@ -1,0 +1,268 @@
+npm warn Unknown project config "disturl". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "target". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "ms_build_id". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "runtime". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "build_from_source". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "timeout". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+### Ran Playwright code
+```js
+await (async (page) => {
+  const r = await page.evaluate(() => {
+    const wb = document.querySelector('.monaco-workbench');
+    const editor = document.querySelector('.editor-instance');
+    const sidebar = document.querySelector('.part.sidebar');
+    const tabs = [...document.querySelectorAll('.tabs-container .tab')].map(t => t.textContent?.trim()).filter(Boolean);
+    const squiggles = document.querySelectorAll('.squiggly-error, .squiggly-warning').length;
+    const activityLabels = [...document.querySelectorAll('.activitybar .action-label')].map(e => e.getAttribute('aria-label') || e.title).filter(Boolean);
+    const sidebarPaneHeaders = [...document.querySelectorAll('.pane-header')].map(h => h.textContent?.trim()).filter(Boolean);
+    return { title: document.title, url: location.href, hasWorkbench: !!wb, editor: !!editor, sidebar: !!sidebar, editorTabs: tabs, squiggles, activityLabels, sidebarPaneHeaders };
+  });
+  console.log('D5_JSON' + JSON.stringify(r));
+}
+)(page);
+```
+npm warn Unknown project config "disturl". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "target". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "ms_build_id". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "runtime". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "build_from_source". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "timeout". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+### Ran Playwright code
+```js
+await (async (page) => {
+  const r = await page.evaluate(() => {
+    const viewLines = document.querySelectorAll('.view-line');
+    const squiggleDecorations = document.querySelectorAll('.squiggly-error, .squiggly-warning, .squiggly-info').length;
+    const overviewRulerMarks = document.querySelectorAll('.monaco-editor .overview-ruler .overview-ruler-marker').length;
+    const text = [...viewLines].slice(0,3).map(l => l.textContent).join('|');
+    return { hasYamlContent: viewLines.length > 0, lineCount: viewLines.length, squiggleDecorations, overviewRulerMarks, sampleText: text };
+  });
+  console.log('D5_JSON' + JSON.stringify(r));
+}
+)(page);
+```
+npm warn Unknown project config "disturl". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "target". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "ms_build_id". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "runtime". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "build_from_source". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "timeout". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+### Result
+- [Screenshot of viewport](../A/dev/progress/d5-evidence/smoke-rerun-2348/screenshots/01-yaml-open.png)
+### Ran Playwright code
+```js
+// Screenshot viewport and save it as ../A/dev/progress/d5-evidence/smoke-rerun-2348/screenshots/01-yaml-open.png
+await page.screenshot({
+  path: '../A/dev/progress/d5-evidence/smoke-rerun-2348/screenshots/01-yaml-open.png',
+  scale: 'css',
+  type: 'png'
+});
+```
+npm warn Unknown project config "disturl". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "target". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "ms_build_id". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "runtime". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "build_from_source". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "timeout". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+### Ran Playwright code
+```js
+// Press Control+Shift+P
+await page.keyboard.press('Control+Shift+P');
+```
+npm warn Unknown project config "disturl". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "target". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "ms_build_id". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "runtime". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "build_from_source". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "timeout". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+### Ran Playwright code
+```js
+// Press Control+a
+await page.keyboard.press('Control+a');
+```
+npm warn Unknown project config "disturl". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "target". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "ms_build_id". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "runtime". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "build_from_source". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "timeout". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+### Ran Playwright code
+```js
+// Press Todo Tree: Focus on Todo Tree View
+await page.keyboard.type('Todo Tree: Focus on Todo Tree View');
+```
+npm warn Unknown project config "disturl". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "target". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "ms_build_id". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "runtime". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "build_from_source". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "timeout". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+### Ran Playwright code
+```js
+// Press Enter
+await page.keyboard.press('Enter');
+```
+### Page
+- Page URL: vscode-file://vscode-app/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/code/electron-browser/workbench/workbench-dev.html
+- Page Title: d5-probe-sample.yaml - Code - OSS Dev
+- Console: 13 errors, 2 warnings
+### Snapshot
+- [Snapshot](.playwright-cli/page-2026-09-01T15-52-32-851Z.yml)
+npm warn Unknown project config "disturl". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "target". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "ms_build_id". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "runtime". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "build_from_source". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "timeout". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+### Ran Playwright code
+```js
+await (async (page) => {
+  const r = await page.evaluate(() => {
+    const headers = [...document.querySelectorAll('.pane-header')].map(h => h.textContent?.trim()).filter(Boolean);
+    const activityLabels = [...document.querySelectorAll('.activitybar .action-label')].map(e => e.getAttribute('aria-label') || e.title).filter(Boolean);
+    const todoHeader = headers.some(h => /todo/i.test(h));
+    const todoActivity = activityLabels.some(l => /todo/i.test(l));
+    return { todoHeader, todoActivity, headers, activityLabels };
+  });
+  console.log('D5_JSON' + JSON.stringify(r));
+}
+)(page);
+```
+npm warn Unknown project config "disturl". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "target". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "ms_build_id". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "runtime". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "build_from_source". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "timeout". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+### Result
+- [Screenshot of viewport](../A/dev/progress/d5-evidence/smoke-rerun-2348/screenshots/02-todo-tree.png)
+### Ran Playwright code
+```js
+// Screenshot viewport and save it as ../A/dev/progress/d5-evidence/smoke-rerun-2348/screenshots/02-todo-tree.png
+await page.screenshot({
+  path: '../A/dev/progress/d5-evidence/smoke-rerun-2348/screenshots/02-todo-tree.png',
+  scale: 'css',
+  type: 'png'
+});
+```
+npm warn Unknown project config "disturl". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "target". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "ms_build_id". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "runtime". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "build_from_source". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "timeout". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+### Ran Playwright code
+```js
+// Press Control+p
+await page.keyboard.press('Control+p');
+```
+npm warn Unknown project config "disturl". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "target". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "ms_build_id". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "runtime". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "build_from_source". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "timeout". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+### Ran Playwright code
+```js
+// Press Control+a
+await page.keyboard.press('Control+a');
+```
+npm warn Unknown project config "disturl". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "target". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "ms_build_id". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "runtime". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "build_from_source". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "timeout". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+### Ran Playwright code
+```js
+// Press d5-probe-debug.js
+await page.keyboard.type('d5-probe-debug.js');
+```
+npm warn Unknown project config "disturl". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "target". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "ms_build_id". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "runtime". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "build_from_source". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "timeout". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+### Ran Playwright code
+```js
+// Press Enter
+await page.keyboard.press('Enter');
+```
+### Page
+- Page URL: vscode-file://vscode-app/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/code/electron-browser/workbench/workbench-dev.html
+- Page Title: d5-probe-sample.yaml - Code - OSS Dev
+- Console: 13 errors, 2 warnings
+### Snapshot
+- [Snapshot](.playwright-cli/page-2026-09-01T15-52-41-091Z.yml)
+npm warn Unknown project config "disturl". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "target". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "ms_build_id". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "runtime". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "build_from_source". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "timeout". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+### Ran Playwright code
+```js
+await (async (page) => {
+  const r = await page.evaluate(() => {
+    const wb = document.querySelector('.monaco-workbench');
+    const editor = document.querySelector('.editor-instance');
+    const sidebar = document.querySelector('.part.sidebar');
+    const tabs = [...document.querySelectorAll('.tabs-container .tab')].map(t => t.textContent?.trim()).filter(Boolean);
+    const squiggles = document.querySelectorAll('.squiggly-error, .squiggly-warning').length;
+    const activityLabels = [...document.querySelectorAll('.activitybar .action-label')].map(e => e.getAttribute('aria-label') || e.title).filter(Boolean);
+    const sidebarPaneHeaders = [...document.querySelectorAll('.pane-header')].map(h => h.textContent?.trim()).filter(Boolean);
+    return { title: document.title, url: location.href, hasWorkbench: !!wb, editor: !!editor, sidebar: !!sidebar, editorTabs: tabs, squiggles, activityLabels, sidebarPaneHeaders };
+  });
+  console.log('D5_JSON' + JSON.stringify(r));
+}
+)(page);
+```
+npm warn Unknown project config "disturl". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "target". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "ms_build_id". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "runtime". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "build_from_source". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "timeout". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+### Ran Playwright code
+```js
+// Press F5
+await page.keyboard.press('F5');
+```
+npm warn Unknown project config "disturl". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "target". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "ms_build_id". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "runtime". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "build_from_source". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "timeout". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+### Ran Playwright code
+```js
+await (async (page) => {
+  const r = await page.evaluate(() => {
+    const debugView = !!document.querySelector('.debug-view-content, .debug-pane, .debug-pane-body');
+    const debugToolbar = !!document.querySelector('.debug-toolbar, .monaco-action-bar.debug-toolbar');
+    const statusDebug = document.querySelector('.statusbar-item.debugging')?.textContent ?? null;
+    const title = document.title;
+    return { debugView, debugToolbar, statusDebug, title };
+  });
+  console.log('D5_JSON' + JSON.stringify(r));
+}
+)(page);
+```
+npm warn Unknown project config "disturl". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "target". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "ms_build_id". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "runtime". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "build_from_source". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "timeout". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+### Result
+- [Screenshot of viewport](../A/dev/progress/d5-evidence/smoke-rerun-2348/screenshots/03-debug-f5.png)
+### Ran Playwright code
+```js
+// Screenshot viewport and save it as ../A/dev/progress/d5-evidence/smoke-rerun-2348/screenshots/03-debug-f5.png
+await page.screenshot({
+  path: '../A/dev/progress/d5-evidence/smoke-rerun-2348/screenshots/03-debug-f5.png',
+  scale: 'css',
+  type: 'png'
+});
+```

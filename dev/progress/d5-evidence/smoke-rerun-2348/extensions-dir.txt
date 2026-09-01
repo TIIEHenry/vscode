@@ -1,0 +1,3 @@
+extensions.json
+gruntfuggly.todo-tree-0.0.215
+redhat.vscode-yaml-1.25.2026090108

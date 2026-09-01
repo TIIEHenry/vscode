@@ -1,0 +1,69 @@
+{
+  "meta": {
+    "date": "2026-09-01",
+    "worktree": "/home/clarence/Projects/Agents/vscode-WorkTrees/A",
+    "compileWorktree": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge",
+    "branch": "loop/A",
+    "head": "991853eb5012303522a0a9f39e98aab329831a34",
+    "probeExtDir": "/tmp/d5-probe-ext-vsix",
+    "launchScript": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/dev/progress/d5-evidence/launch-with-probes.sh",
+    "pwSession": "d5-merge-rerun-2348",
+    "evidenceDir": "dev/progress/d5-evidence/smoke-rerun-2348"
+  },
+  "launch": {
+    "pid": 288401,
+    "cdpPort": 37329,
+    "extHostPort": 39269,
+    "mainPort": 34757,
+    "agentHostPort": 32815,
+    "userDataDir": "/tmp/code-oss-dev-20260901-235014-288337-chHOpu/user-data",
+    "extensionsDir": "/tmp/code-oss-dev-20260901-235014-288337-chHOpu/user-data/extensions",
+    "sharedDataDir": "/tmp/code-oss-dev-20260901-235014-288337-chHOpu/shared-data",
+    "runDir": "/tmp/code-oss-dev-20260901-235014-288337-chHOpu",
+    "logFile": "/tmp/code-oss-dev-20260901-235014-288337-chHOpu/code.log",
+    "repo": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge",
+    "agents": false,
+    "timings": {
+      "profileMs": 175,
+      "preLaunchMs": 25,
+      "cdpReadyMs": 612,
+      "totalMs": 812
+    },
+    "workbenchBoot": true,
+    "cdpReady": true
+  },
+  "checks": [
+    {
+      "id": "workbench-boot",
+      "description": "Merge out/ workbench boots (post compile)",
+      "result": "PASS",
+      "notes": "EH started; no IPreferencesEditorPane error."
+    },
+    {
+      "id": "extensions-loaded",
+      "description": "YAML + Todo Tree extensions in profile",
+      "result": "PASS",
+      "notes": "VSIX clones present; yaml extension contributed diagnostics."
+    },
+    {
+      "id": "yaml-lsp-end-preview",
+      "description": "Open .yaml; LSP/diagnostic sign",
+      "result": "PASS",
+      "notes": "{\"hasYamlContent\":true,\"lineCount\":3,\"squiggleDecorations\":1,\"overviewRulerMarks\":0,\"sampleText\":\"# D5 probe sample — intentional schema stress|invalid_key: [not, a, mapping\",\"note\":\"Captured while d5-probe-sample.yaml tab active (see screenshots/01-yaml-open.png)\"}"
+    },
+    {
+      "id": "todo-tree-sidebar",
+      "description": "Todo Tree view in sidebar / activity",
+      "result": "FAIL",
+      "notes": "{\"todoHeader\":false,\"todoActivityIcon\":false,\"productTodosTab\":true,\"headers\":[],\"activityLabels\":[\"Files (Ctrl+Shift+E) - 1 unsaved file\",\"Search (Ctrl+Shift+F)\",\"TODOs\",\"Sessions\",\"Projects\",\"Agents\",\"Team\",\"Accounts\",\"Manage\"]}"
+    },
+    {
+      "id": "js-debug-f5",
+      "description": "F5 debug with builtin js-debug",
+      "result": "FAIL",
+      "notes": "{\"debugView\":false,\"debugToolbar\":false,\"statusDebug\":null,\"title\":\"● d5-probe-debug.js - Code - OSS Dev\"}"
+    }
+  ],
+  "overall": "FAIL",
+  "followUp": "Todo Tree container not in activity bar; js-debug needs launch config or debugger picker automation."
+}

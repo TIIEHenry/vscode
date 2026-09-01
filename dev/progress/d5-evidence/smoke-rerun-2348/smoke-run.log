@@ -1,0 +1,2287 @@
+### attach
+npm warn Unknown project config "disturl". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "target". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "ms_build_id". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "runtime". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "build_from_source". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "timeout". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+### Session `d5-merge-rerun-2348` created, attached to `http://127.0.0.1:37329`.
+Run commands with: playwright-cli --s=d5-merge-rerun-2348 <command>
+
+### Page
+- Page URL: vscode-file://vscode-app/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/code/electron-browser/workbench/workbench-dev.html
+- Page Title: d5-probe-sample.yaml - Code - OSS Dev
+- Console: 13 errors, 2 warnings
+### Snapshot
+- [Snapshot](.playwright-cli/page-2026-09-01T15-50-35-950Z.yml)
+### Events
+- New console entries: .playwright-cli/console-2026-09-01T15-50-35-882Z.log#L1-L308
+### tab-list
+npm warn Unknown project config "disturl". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "target". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "ms_build_id". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "runtime". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "build_from_source". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "timeout". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+### Result
+- 0: (current) [d5-probe-sample.yaml - Code - OSS Dev](vscode-file://vscode-app/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/code/electron-browser/workbench/workbench-dev.html)
+### tab-select 1
+npm warn Unknown project config "disturl". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "target". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "ms_build_id". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "runtime". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "build_from_source". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "timeout". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+### Error
+Error: Tab 1 not found
+### escape
+npm warn Unknown project config "disturl". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "target". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "ms_build_id". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "runtime". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "build_from_source". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "timeout". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+### Ran Playwright code
+```js
+// Press Escape
+await page.keyboard.press('Escape');
+```
+npm warn Unknown project config "disturl". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "target". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "ms_build_id". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "runtime". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "build_from_source". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "timeout". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+Unknown option: --code
+
+playwright-cli run-code [code]
+
+Run Playwright code snippet
+
+Arguments:
+  [code]                      a javascript function containing playwright code to execute. it will be invoked with a single argument, page, which you can use for any page interaction.
+Options:
+  --filename                  load code from the specified file.
+### dom->/home/clarence/Projects/Agents/vscode-WorkTrees/A/dev/progress/d5-evidence/smoke-rerun-2348/dom-initial.json
+npm warn Unknown project config "disturl". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "target". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "ms_build_id". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "runtime". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "build_from_source". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "timeout". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+Unknown command: dom->/home/clarence/Projects/Agents/vscode-WorkTrees/A/dev/progress/d5-evidence/smoke-rerun-2348/dom-initial.json
+
+Usage: playwright-cli <command> [args] [options]
+Usage: playwright-cli -s=<session> <command> [args] [options]
+
+Core:
+  open [url]                  open the browser
+  attach [name]               attach to a running playwright browser
+  close                       close the browser
+  detach                      detach from an attached browser
+  goto <url>                  navigate to a url
+  type <text>                 type text into editable element
+  click <target> [button]     perform click on a web page
+  dblclick <target> [button]  perform double click on a web page
+  fill <target> <text>        fill text into editable element
+  drag <startTarget> <endTarget> perform drag and drop between two elements
+  drop <target>               drop files or data onto an element
+  hover <target>              hover over element on page
+  select <target> <val>       select an option in a dropdown
+  upload <file>               upload one or multiple files
+  check <target>              check a checkbox or radio button
+  uncheck <target>            uncheck a checkbox or radio button
+  snapshot [target]           capture page snapshot to obtain element ref
+  eval <func> [target]        evaluate javascript expression on page or element
+  dialog-accept [prompt]      accept a dialog
+  dialog-dismiss              dismiss a dialog
+  resize <w> <h>              resize the browser window
+  delete-data                 delete session data
+
+Navigation:
+  go-back                     go back to the previous page
+  go-forward                  go forward to the next page
+  reload                      reload the current page
+
+Keyboard:
+  press <key>                 press a key on the keyboard, `a`, `arrowleft`
+  keydown <key>               press a key down on the keyboard
+  keyup <key>                 press a key up on the keyboard
+
+Mouse:
+  mousemove <x> <y>           move mouse to a given position
+  mousedown [button]          press mouse down
+  mouseup [button]            press mouse up
+  mousewheel <dx> <dy>        scroll mouse wheel
+
+Save as:
+  screenshot [target]         screenshot of the current page or element
+  pdf                         save page as pdf
+
+Tabs:
+  tab-list                    list all tabs
+  tab-new [url]               create a new tab
+  tab-close [index]           close a browser tab
+  tab-select <index>          select a browser tab
+
+Storage:
+  state-load <filename>       loads browser storage (authentication) state from a file
+  state-save [filename]       saves the current storage (authentication) state to a file
+  cookie-list                 list all cookies (optionally filtered by domain/path)
+  cookie-get <name>           get a specific cookie by name
+  cookie-set <name> <value>   set a cookie with optional flags
+  cookie-delete <name>        delete a specific cookie
+  cookie-clear                clear all cookies
+  localstorage-list           list all localstorage key-value pairs
+  localstorage-get <key>      get a localstorage item by key
+  localstorage-set <key> <value> set a localstorage item
+  localstorage-delete <key>   delete a localstorage item
+  localstorage-clear          clear all localstorage
+  sessionstorage-list         list all sessionstorage key-value pairs
+  sessionstorage-get <key>    get a sessionstorage item by key
+  sessionstorage-set <key> <value> set a sessionstorage item
+  sessionstorage-delete <key> delete a sessionstorage item
+  sessionstorage-clear        clear all sessionstorage
+
+Network:
+  route <pattern>             mock network requests matching a url pattern
+  route-list                  list all active network routes
+  unroute [pattern]           remove routes matching a pattern (or all routes)
+  network-state-set <state>   set the browser network state to online or offline
+
+DevTools:
+  console [min-level]         list console messages
+  run-code [code]             run playwright code snippet
+  network                     list all network requests since loading the page
+  tracing-start               start trace recording
+  tracing-stop                stop trace recording
+  video-start [filename]      start video recording
+  video-stop                  stop video recording
+  video-chapter <title>       add a chapter marker to the video recording
+  show                        show playwright dashboard
+  pause-at <location>         run the test up to a specific location and pause there
+  resume                      resume the test execution
+  step-over                   step over the next call in the test
+  generate-locator <target>   generate a playwright locator for the given element
+  highlight [target]          show (or with --hide, remove) a highlight overlay for an element; `--hide` without a target hides all page highlights.
+
+Install:
+  install                     initialize workspace
+  install-browser [browser]   install browser
+
+Browser sessions:
+  list                        list browser sessions
+  close-all                   close all browser sessions
+  kill-all                    forcefully kill all browser sessions (for stale/zombie processes)
+
+Global options:
+  --help [command]            print help
+  --json                      output response as JSON
+  --raw                       output only the result value, without status and code
+  --version                   print version
+### dom->/home/clarence/Projects/Agents/vscode-WorkTrees/A/dev/progress/d5-evidence/smoke-rerun-2348/dom-after-yaml.json
+npm warn Unknown project config "disturl". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "target". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "ms_build_id". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "runtime". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "build_from_source". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "timeout". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+Unknown command: dom->/home/clarence/Projects/Agents/vscode-WorkTrees/A/dev/progress/d5-evidence/smoke-rerun-2348/dom-after-yaml.json
+
+Usage: playwright-cli <command> [args] [options]
+Usage: playwright-cli -s=<session> <command> [args] [options]
+
+Core:
+  open [url]                  open the browser
+  attach [name]               attach to a running playwright browser
+  close                       close the browser
+  detach                      detach from an attached browser
+  goto <url>                  navigate to a url
+  type <text>                 type text into editable element
+  click <target> [button]     perform click on a web page
+  dblclick <target> [button]  perform double click on a web page
+  fill <target> <text>        fill text into editable element
+  drag <startTarget> <endTarget> perform drag and drop between two elements
+  drop <target>               drop files or data onto an element
+  hover <target>              hover over element on page
+  select <target> <val>       select an option in a dropdown
+  upload <file>               upload one or multiple files
+  check <target>              check a checkbox or radio button
+  uncheck <target>            uncheck a checkbox or radio button
+  snapshot [target]           capture page snapshot to obtain element ref
+  eval <func> [target]        evaluate javascript expression on page or element
+  dialog-accept [prompt]      accept a dialog
+  dialog-dismiss              dismiss a dialog
+  resize <w> <h>              resize the browser window
+  delete-data                 delete session data
+
+Navigation:
+  go-back                     go back to the previous page
+  go-forward                  go forward to the next page
+  reload                      reload the current page
+
+Keyboard:
+  press <key>                 press a key on the keyboard, `a`, `arrowleft`
+  keydown <key>               press a key down on the keyboard
+  keyup <key>                 press a key up on the keyboard
+
+Mouse:
+  mousemove <x> <y>           move mouse to a given position
+  mousedown [button]          press mouse down
+  mouseup [button]            press mouse up
+  mousewheel <dx> <dy>        scroll mouse wheel
+
+Save as:
+  screenshot [target]         screenshot of the current page or element
+  pdf                         save page as pdf
+
+Tabs:
+  tab-list                    list all tabs
+  tab-new [url]               create a new tab
+  tab-close [index]           close a browser tab
+  tab-select <index>          select a browser tab
+
+Storage:
+  state-load <filename>       loads browser storage (authentication) state from a file
+  state-save [filename]       saves the current storage (authentication) state to a file
+  cookie-list                 list all cookies (optionally filtered by domain/path)
+  cookie-get <name>           get a specific cookie by name
+  cookie-set <name> <value>   set a cookie with optional flags
+  cookie-delete <name>        delete a specific cookie
+  cookie-clear                clear all cookies
+  localstorage-list           list all localstorage key-value pairs
+  localstorage-get <key>      get a localstorage item by key
+  localstorage-set <key> <value> set a localstorage item
+  localstorage-delete <key>   delete a localstorage item
+  localstorage-clear          clear all localstorage
+  sessionstorage-list         list all sessionstorage key-value pairs
+  sessionstorage-get <key>    get a sessionstorage item by key
+  sessionstorage-set <key> <value> set a sessionstorage item
+  sessionstorage-delete <key> delete a sessionstorage item
+  sessionstorage-clear        clear all sessionstorage
+
+Network:
+  route <pattern>             mock network requests matching a url pattern
+  route-list                  list all active network routes
+  unroute [pattern]           remove routes matching a pattern (or all routes)
+  network-state-set <state>   set the browser network state to online or offline
+
+DevTools:
+  console [min-level]         list console messages
+  run-code [code]             run playwright code snippet
+  network                     list all network requests since loading the page
+  tracing-start               start trace recording
+  tracing-stop                stop trace recording
+  video-start [filename]      start video recording
+  video-stop                  stop video recording
+  video-chapter <title>       add a chapter marker to the video recording
+  show                        show playwright dashboard
+  pause-at <location>         run the test up to a specific location and pause there
+  resume                      resume the test execution
+  step-over                   step over the next call in the test
+  generate-locator <target>   generate a playwright locator for the given element
+  highlight [target]          show (or with --hide, remove) a highlight overlay for an element; `--hide` without a target hides all page highlights.
+
+Install:
+  install                     initialize workspace
+  install-browser [browser]   install browser
+
+Browser sessions:
+  list                        list browser sessions
+  close-all                   close all browser sessions
+  kill-all                    forcefully kill all browser sessions (for stale/zombie processes)
+
+Global options:
+  --help [command]            print help
+  --json                      output response as JSON
+  --raw                       output only the result value, without status and code
+  --version                   print version
+### yaml probe
+npm warn Unknown project config "disturl". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "target". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "ms_build_id". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "runtime". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "build_from_source". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "timeout". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+Unknown command: yaml probe
+
+Usage: playwright-cli <command> [args] [options]
+Usage: playwright-cli -s=<session> <command> [args] [options]
+
+Core:
+  open [url]                  open the browser
+  attach [name]               attach to a running playwright browser
+  close                       close the browser
+  detach                      detach from an attached browser
+  goto <url>                  navigate to a url
+  type <text>                 type text into editable element
+  click <target> [button]     perform click on a web page
+  dblclick <target> [button]  perform double click on a web page
+  fill <target> <text>        fill text into editable element
+  drag <startTarget> <endTarget> perform drag and drop between two elements
+  drop <target>               drop files or data onto an element
+  hover <target>              hover over element on page
+  select <target> <val>       select an option in a dropdown
+  upload <file>               upload one or multiple files
+  check <target>              check a checkbox or radio button
+  uncheck <target>            uncheck a checkbox or radio button
+  snapshot [target]           capture page snapshot to obtain element ref
+  eval <func> [target]        evaluate javascript expression on page or element
+  dialog-accept [prompt]      accept a dialog
+  dialog-dismiss              dismiss a dialog
+  resize <w> <h>              resize the browser window
+  delete-data                 delete session data
+
+Navigation:
+  go-back                     go back to the previous page
+  go-forward                  go forward to the next page
+  reload                      reload the current page
+
+Keyboard:
+  press <key>                 press a key on the keyboard, `a`, `arrowleft`
+  keydown <key>               press a key down on the keyboard
+  keyup <key>                 press a key up on the keyboard
+
+Mouse:
+  mousemove <x> <y>           move mouse to a given position
+  mousedown [button]          press mouse down
+  mouseup [button]            press mouse up
+  mousewheel <dx> <dy>        scroll mouse wheel
+
+Save as:
+  screenshot [target]         screenshot of the current page or element
+  pdf                         save page as pdf
+
+Tabs:
+  tab-list                    list all tabs
+  tab-new [url]               create a new tab
+  tab-close [index]           close a browser tab
+  tab-select <index>          select a browser tab
+
+Storage:
+  state-load <filename>       loads browser storage (authentication) state from a file
+  state-save [filename]       saves the current storage (authentication) state to a file
+  cookie-list                 list all cookies (optionally filtered by domain/path)
+  cookie-get <name>           get a specific cookie by name
+  cookie-set <name> <value>   set a cookie with optional flags
+  cookie-delete <name>        delete a specific cookie
+  cookie-clear                clear all cookies
+  localstorage-list           list all localstorage key-value pairs
+  localstorage-get <key>      get a localstorage item by key
+  localstorage-set <key> <value> set a localstorage item
+  localstorage-delete <key>   delete a localstorage item
+  localstorage-clear          clear all localstorage
+  sessionstorage-list         list all sessionstorage key-value pairs
+  sessionstorage-get <key>    get a sessionstorage item by key
+  sessionstorage-set <key> <value> set a sessionstorage item
+  sessionstorage-delete <key> delete a sessionstorage item
+  sessionstorage-clear        clear all sessionstorage
+
+Network:
+  route <pattern>             mock network requests matching a url pattern
+  route-list                  list all active network routes
+  unroute [pattern]           remove routes matching a pattern (or all routes)
+  network-state-set <state>   set the browser network state to online or offline
+
+DevTools:
+  console [min-level]         list console messages
+  run-code [code]             run playwright code snippet
+  network                     list all network requests since loading the page
+  tracing-start               start trace recording
+  tracing-stop                stop trace recording
+  video-start [filename]      start video recording
+  video-stop                  stop video recording
+  video-chapter <title>       add a chapter marker to the video recording
+  show                        show playwright dashboard
+  pause-at <location>         run the test up to a specific location and pause there
+  resume                      resume the test execution
+  step-over                   step over the next call in the test
+  generate-locator <target>   generate a playwright locator for the given element
+  highlight [target]          show (or with --hide, remove) a highlight overlay for an element; `--hide` without a target hides all page highlights.
+
+Install:
+  install                     initialize workspace
+  install-browser [browser]   install browser
+
+Browser sessions:
+  list                        list browser sessions
+  close-all                   close all browser sessions
+  kill-all                    forcefully kill all browser sessions (for stale/zombie processes)
+
+Global options:
+  --help [command]            print help
+  --json                      output response as JSON
+  --raw                       output only the result value, without status and code
+  --version                   print version
+### screenshot yaml
+npm warn Unknown project config "disturl". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "target". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "ms_build_id". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "runtime". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "build_from_source". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "timeout". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+Unknown command: screenshot yaml
+
+Usage: playwright-cli <command> [args] [options]
+Usage: playwright-cli -s=<session> <command> [args] [options]
+
+Core:
+  open [url]                  open the browser
+  attach [name]               attach to a running playwright browser
+  close                       close the browser
+  detach                      detach from an attached browser
+  goto <url>                  navigate to a url
+  type <text>                 type text into editable element
+  click <target> [button]     perform click on a web page
+  dblclick <target> [button]  perform double click on a web page
+  fill <target> <text>        fill text into editable element
+  drag <startTarget> <endTarget> perform drag and drop between two elements
+  drop <target>               drop files or data onto an element
+  hover <target>              hover over element on page
+  select <target> <val>       select an option in a dropdown
+  upload <file>               upload one or multiple files
+  check <target>              check a checkbox or radio button
+  uncheck <target>            uncheck a checkbox or radio button
+  snapshot [target]           capture page snapshot to obtain element ref
+  eval <func> [target]        evaluate javascript expression on page or element
+  dialog-accept [prompt]      accept a dialog
+  dialog-dismiss              dismiss a dialog
+  resize <w> <h>              resize the browser window
+  delete-data                 delete session data
+
+Navigation:
+  go-back                     go back to the previous page
+  go-forward                  go forward to the next page
+  reload                      reload the current page
+
+Keyboard:
+  press <key>                 press a key on the keyboard, `a`, `arrowleft`
+  keydown <key>               press a key down on the keyboard
+  keyup <key>                 press a key up on the keyboard
+
+Mouse:
+  mousemove <x> <y>           move mouse to a given position
+  mousedown [button]          press mouse down
+  mouseup [button]            press mouse up
+  mousewheel <dx> <dy>        scroll mouse wheel
+
+Save as:
+  screenshot [target]         screenshot of the current page or element
+  pdf                         save page as pdf
+
+Tabs:
+  tab-list                    list all tabs
+  tab-new [url]               create a new tab
+  tab-close [index]           close a browser tab
+  tab-select <index>          select a browser tab
+
+Storage:
+  state-load <filename>       loads browser storage (authentication) state from a file
+  state-save [filename]       saves the current storage (authentication) state to a file
+  cookie-list                 list all cookies (optionally filtered by domain/path)
+  cookie-get <name>           get a specific cookie by name
+  cookie-set <name> <value>   set a cookie with optional flags
+  cookie-delete <name>        delete a specific cookie
+  cookie-clear                clear all cookies
+  localstorage-list           list all localstorage key-value pairs
+  localstorage-get <key>      get a localstorage item by key
+  localstorage-set <key> <value> set a localstorage item
+  localstorage-delete <key>   delete a localstorage item
+  localstorage-clear          clear all localstorage
+  sessionstorage-list         list all sessionstorage key-value pairs
+  sessionstorage-get <key>    get a sessionstorage item by key
+  sessionstorage-set <key> <value> set a sessionstorage item
+  sessionstorage-delete <key> delete a sessionstorage item
+  sessionstorage-clear        clear all sessionstorage
+
+Network:
+  route <pattern>             mock network requests matching a url pattern
+  route-list                  list all active network routes
+  unroute [pattern]           remove routes matching a pattern (or all routes)
+  network-state-set <state>   set the browser network state to online or offline
+
+DevTools:
+  console [min-level]         list console messages
+  run-code [code]             run playwright code snippet
+  network                     list all network requests since loading the page
+  tracing-start               start trace recording
+  tracing-stop                stop trace recording
+  video-start [filename]      start video recording
+  video-stop                  stop video recording
+  video-chapter <title>       add a chapter marker to the video recording
+  show                        show playwright dashboard
+  pause-at <location>         run the test up to a specific location and pause there
+  resume                      resume the test execution
+  step-over                   step over the next call in the test
+  generate-locator <target>   generate a playwright locator for the given element
+  highlight [target]          show (or with --hide, remove) a highlight overlay for an element; `--hide` without a target hides all page highlights.
+
+Install:
+  install                     initialize workspace
+  install-browser [browser]   install browser
+
+Browser sessions:
+  list                        list browser sessions
+  close-all                   close all browser sessions
+  kill-all                    forcefully kill all browser sessions (for stale/zombie processes)
+
+Global options:
+  --help [command]            print help
+  --json                      output response as JSON
+  --raw                       output only the result value, without status and code
+  --version                   print version
+### palette todo
+npm warn Unknown project config "disturl". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "target". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "ms_build_id". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "runtime". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "build_from_source". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "timeout". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+Unknown command: palette todo
+
+Usage: playwright-cli <command> [args] [options]
+Usage: playwright-cli -s=<session> <command> [args] [options]
+
+Core:
+  open [url]                  open the browser
+  attach [name]               attach to a running playwright browser
+  close                       close the browser
+  detach                      detach from an attached browser
+  goto <url>                  navigate to a url
+  type <text>                 type text into editable element
+  click <target> [button]     perform click on a web page
+  dblclick <target> [button]  perform double click on a web page
+  fill <target> <text>        fill text into editable element
+  drag <startTarget> <endTarget> perform drag and drop between two elements
+  drop <target>               drop files or data onto an element
+  hover <target>              hover over element on page
+  select <target> <val>       select an option in a dropdown
+  upload <file>               upload one or multiple files
+  check <target>              check a checkbox or radio button
+  uncheck <target>            uncheck a checkbox or radio button
+  snapshot [target]           capture page snapshot to obtain element ref
+  eval <func> [target]        evaluate javascript expression on page or element
+  dialog-accept [prompt]      accept a dialog
+  dialog-dismiss              dismiss a dialog
+  resize <w> <h>              resize the browser window
+  delete-data                 delete session data
+
+Navigation:
+  go-back                     go back to the previous page
+  go-forward                  go forward to the next page
+  reload                      reload the current page
+
+Keyboard:
+  press <key>                 press a key on the keyboard, `a`, `arrowleft`
+  keydown <key>               press a key down on the keyboard
+  keyup <key>                 press a key up on the keyboard
+
+Mouse:
+  mousemove <x> <y>           move mouse to a given position
+  mousedown [button]          press mouse down
+  mouseup [button]            press mouse up
+  mousewheel <dx> <dy>        scroll mouse wheel
+
+Save as:
+  screenshot [target]         screenshot of the current page or element
+  pdf                         save page as pdf
+
+Tabs:
+  tab-list                    list all tabs
+  tab-new [url]               create a new tab
+  tab-close [index]           close a browser tab
+  tab-select <index>          select a browser tab
+
+Storage:
+  state-load <filename>       loads browser storage (authentication) state from a file
+  state-save [filename]       saves the current storage (authentication) state to a file
+  cookie-list                 list all cookies (optionally filtered by domain/path)
+  cookie-get <name>           get a specific cookie by name
+  cookie-set <name> <value>   set a cookie with optional flags
+  cookie-delete <name>        delete a specific cookie
+  cookie-clear                clear all cookies
+  localstorage-list           list all localstorage key-value pairs
+  localstorage-get <key>      get a localstorage item by key
+  localstorage-set <key> <value> set a localstorage item
+  localstorage-delete <key>   delete a localstorage item
+  localstorage-clear          clear all localstorage
+  sessionstorage-list         list all sessionstorage key-value pairs
+  sessionstorage-get <key>    get a sessionstorage item by key
+  sessionstorage-set <key> <value> set a sessionstorage item
+  sessionstorage-delete <key> delete a sessionstorage item
+  sessionstorage-clear        clear all sessionstorage
+
+Network:
+  route <pattern>             mock network requests matching a url pattern
+  route-list                  list all active network routes
+  unroute [pattern]           remove routes matching a pattern (or all routes)
+  network-state-set <state>   set the browser network state to online or offline
+
+DevTools:
+  console [min-level]         list console messages
+  run-code [code]             run playwright code snippet
+  network                     list all network requests since loading the page
+  tracing-start               start trace recording
+  tracing-stop                stop trace recording
+  video-start [filename]      start video recording
+  video-stop                  stop video recording
+  video-chapter <title>       add a chapter marker to the video recording
+  show                        show playwright dashboard
+  pause-at <location>         run the test up to a specific location and pause there
+  resume                      resume the test execution
+  step-over                   step over the next call in the test
+  generate-locator <target>   generate a playwright locator for the given element
+  highlight [target]          show (or with --hide, remove) a highlight overlay for an element; `--hide` without a target hides all page highlights.
+
+Install:
+  install                     initialize workspace
+  install-browser [browser]   install browser
+
+Browser sessions:
+  list                        list browser sessions
+  close-all                   close all browser sessions
+  kill-all                    forcefully kill all browser sessions (for stale/zombie processes)
+
+Global options:
+  --help [command]            print help
+  --json                      output response as JSON
+  --raw                       output only the result value, without status and code
+  --version                   print version
+### select all
+npm warn Unknown project config "disturl". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "target". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "ms_build_id". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "runtime". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "build_from_source". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "timeout". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+Unknown command: select all
+
+Usage: playwright-cli <command> [args] [options]
+Usage: playwright-cli -s=<session> <command> [args] [options]
+
+Core:
+  open [url]                  open the browser
+  attach [name]               attach to a running playwright browser
+  close                       close the browser
+  detach                      detach from an attached browser
+  goto <url>                  navigate to a url
+  type <text>                 type text into editable element
+  click <target> [button]     perform click on a web page
+  dblclick <target> [button]  perform double click on a web page
+  fill <target> <text>        fill text into editable element
+  drag <startTarget> <endTarget> perform drag and drop between two elements
+  drop <target>               drop files or data onto an element
+  hover <target>              hover over element on page
+  select <target> <val>       select an option in a dropdown
+  upload <file>               upload one or multiple files
+  check <target>              check a checkbox or radio button
+  uncheck <target>            uncheck a checkbox or radio button
+  snapshot [target]           capture page snapshot to obtain element ref
+  eval <func> [target]        evaluate javascript expression on page or element
+  dialog-accept [prompt]      accept a dialog
+  dialog-dismiss              dismiss a dialog
+  resize <w> <h>              resize the browser window
+  delete-data                 delete session data
+
+Navigation:
+  go-back                     go back to the previous page
+  go-forward                  go forward to the next page
+  reload                      reload the current page
+
+Keyboard:
+  press <key>                 press a key on the keyboard, `a`, `arrowleft`
+  keydown <key>               press a key down on the keyboard
+  keyup <key>                 press a key up on the keyboard
+
+Mouse:
+  mousemove <x> <y>           move mouse to a given position
+  mousedown [button]          press mouse down
+  mouseup [button]            press mouse up
+  mousewheel <dx> <dy>        scroll mouse wheel
+
+Save as:
+  screenshot [target]         screenshot of the current page or element
+  pdf                         save page as pdf
+
+Tabs:
+  tab-list                    list all tabs
+  tab-new [url]               create a new tab
+  tab-close [index]           close a browser tab
+  tab-select <index>          select a browser tab
+
+Storage:
+  state-load <filename>       loads browser storage (authentication) state from a file
+  state-save [filename]       saves the current storage (authentication) state to a file
+  cookie-list                 list all cookies (optionally filtered by domain/path)
+  cookie-get <name>           get a specific cookie by name
+  cookie-set <name> <value>   set a cookie with optional flags
+  cookie-delete <name>        delete a specific cookie
+  cookie-clear                clear all cookies
+  localstorage-list           list all localstorage key-value pairs
+  localstorage-get <key>      get a localstorage item by key
+  localstorage-set <key> <value> set a localstorage item
+  localstorage-delete <key>   delete a localstorage item
+  localstorage-clear          clear all localstorage
+  sessionstorage-list         list all sessionstorage key-value pairs
+  sessionstorage-get <key>    get a sessionstorage item by key
+  sessionstorage-set <key> <value> set a sessionstorage item
+  sessionstorage-delete <key> delete a sessionstorage item
+  sessionstorage-clear        clear all sessionstorage
+
+Network:
+  route <pattern>             mock network requests matching a url pattern
+  route-list                  list all active network routes
+  unroute [pattern]           remove routes matching a pattern (or all routes)
+  network-state-set <state>   set the browser network state to online or offline
+
+DevTools:
+  console [min-level]         list console messages
+  run-code [code]             run playwright code snippet
+  network                     list all network requests since loading the page
+  tracing-start               start trace recording
+  tracing-stop                stop trace recording
+  video-start [filename]      start video recording
+  video-stop                  stop video recording
+  video-chapter <title>       add a chapter marker to the video recording
+  show                        show playwright dashboard
+  pause-at <location>         run the test up to a specific location and pause there
+  resume                      resume the test execution
+  step-over                   step over the next call in the test
+  generate-locator <target>   generate a playwright locator for the given element
+  highlight [target]          show (or with --hide, remove) a highlight overlay for an element; `--hide` without a target hides all page highlights.
+
+Install:
+  install                     initialize workspace
+  install-browser [browser]   install browser
+
+Browser sessions:
+  list                        list browser sessions
+  close-all                   close all browser sessions
+  kill-all                    forcefully kill all browser sessions (for stale/zombie processes)
+
+Global options:
+  --help [command]            print help
+  --json                      output response as JSON
+  --raw                       output only the result value, without status and code
+  --version                   print version
+### type todo cmd
+npm warn Unknown project config "disturl". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "target". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "ms_build_id". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "runtime". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "build_from_source". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "timeout". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+Unknown command: type todo cmd
+
+Usage: playwright-cli <command> [args] [options]
+Usage: playwright-cli -s=<session> <command> [args] [options]
+
+Core:
+  open [url]                  open the browser
+  attach [name]               attach to a running playwright browser
+  close                       close the browser
+  detach                      detach from an attached browser
+  goto <url>                  navigate to a url
+  type <text>                 type text into editable element
+  click <target> [button]     perform click on a web page
+  dblclick <target> [button]  perform double click on a web page
+  fill <target> <text>        fill text into editable element
+  drag <startTarget> <endTarget> perform drag and drop between two elements
+  drop <target>               drop files or data onto an element
+  hover <target>              hover over element on page
+  select <target> <val>       select an option in a dropdown
+  upload <file>               upload one or multiple files
+  check <target>              check a checkbox or radio button
+  uncheck <target>            uncheck a checkbox or radio button
+  snapshot [target]           capture page snapshot to obtain element ref
+  eval <func> [target]        evaluate javascript expression on page or element
+  dialog-accept [prompt]      accept a dialog
+  dialog-dismiss              dismiss a dialog
+  resize <w> <h>              resize the browser window
+  delete-data                 delete session data
+
+Navigation:
+  go-back                     go back to the previous page
+  go-forward                  go forward to the next page
+  reload                      reload the current page
+
+Keyboard:
+  press <key>                 press a key on the keyboard, `a`, `arrowleft`
+  keydown <key>               press a key down on the keyboard
+  keyup <key>                 press a key up on the keyboard
+
+Mouse:
+  mousemove <x> <y>           move mouse to a given position
+  mousedown [button]          press mouse down
+  mouseup [button]            press mouse up
+  mousewheel <dx> <dy>        scroll mouse wheel
+
+Save as:
+  screenshot [target]         screenshot of the current page or element
+  pdf                         save page as pdf
+
+Tabs:
+  tab-list                    list all tabs
+  tab-new [url]               create a new tab
+  tab-close [index]           close a browser tab
+  tab-select <index>          select a browser tab
+
+Storage:
+  state-load <filename>       loads browser storage (authentication) state from a file
+  state-save [filename]       saves the current storage (authentication) state to a file
+  cookie-list                 list all cookies (optionally filtered by domain/path)
+  cookie-get <name>           get a specific cookie by name
+  cookie-set <name> <value>   set a cookie with optional flags
+  cookie-delete <name>        delete a specific cookie
+  cookie-clear                clear all cookies
+  localstorage-list           list all localstorage key-value pairs
+  localstorage-get <key>      get a localstorage item by key
+  localstorage-set <key> <value> set a localstorage item
+  localstorage-delete <key>   delete a localstorage item
+  localstorage-clear          clear all localstorage
+  sessionstorage-list         list all sessionstorage key-value pairs
+  sessionstorage-get <key>    get a sessionstorage item by key
+  sessionstorage-set <key> <value> set a sessionstorage item
+  sessionstorage-delete <key> delete a sessionstorage item
+  sessionstorage-clear        clear all sessionstorage
+
+Network:
+  route <pattern>             mock network requests matching a url pattern
+  route-list                  list all active network routes
+  unroute [pattern]           remove routes matching a pattern (or all routes)
+  network-state-set <state>   set the browser network state to online or offline
+
+DevTools:
+  console [min-level]         list console messages
+  run-code [code]             run playwright code snippet
+  network                     list all network requests since loading the page
+  tracing-start               start trace recording
+  tracing-stop                stop trace recording
+  video-start [filename]      start video recording
+  video-stop                  stop video recording
+  video-chapter <title>       add a chapter marker to the video recording
+  show                        show playwright dashboard
+  pause-at <location>         run the test up to a specific location and pause there
+  resume                      resume the test execution
+  step-over                   step over the next call in the test
+  generate-locator <target>   generate a playwright locator for the given element
+  highlight [target]          show (or with --hide, remove) a highlight overlay for an element; `--hide` without a target hides all page highlights.
+
+Install:
+  install                     initialize workspace
+  install-browser [browser]   install browser
+
+Browser sessions:
+  list                        list browser sessions
+  close-all                   close all browser sessions
+  kill-all                    forcefully kill all browser sessions (for stale/zombie processes)
+
+Global options:
+  --help [command]            print help
+  --json                      output response as JSON
+  --raw                       output only the result value, without status and code
+  --version                   print version
+### enter todo
+npm warn Unknown project config "disturl". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "target". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "ms_build_id". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "runtime". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "build_from_source". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "timeout". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+Unknown command: enter todo
+
+Usage: playwright-cli <command> [args] [options]
+Usage: playwright-cli -s=<session> <command> [args] [options]
+
+Core:
+  open [url]                  open the browser
+  attach [name]               attach to a running playwright browser
+  close                       close the browser
+  detach                      detach from an attached browser
+  goto <url>                  navigate to a url
+  type <text>                 type text into editable element
+  click <target> [button]     perform click on a web page
+  dblclick <target> [button]  perform double click on a web page
+  fill <target> <text>        fill text into editable element
+  drag <startTarget> <endTarget> perform drag and drop between two elements
+  drop <target>               drop files or data onto an element
+  hover <target>              hover over element on page
+  select <target> <val>       select an option in a dropdown
+  upload <file>               upload one or multiple files
+  check <target>              check a checkbox or radio button
+  uncheck <target>            uncheck a checkbox or radio button
+  snapshot [target]           capture page snapshot to obtain element ref
+  eval <func> [target]        evaluate javascript expression on page or element
+  dialog-accept [prompt]      accept a dialog
+  dialog-dismiss              dismiss a dialog
+  resize <w> <h>              resize the browser window
+  delete-data                 delete session data
+
+Navigation:
+  go-back                     go back to the previous page
+  go-forward                  go forward to the next page
+  reload                      reload the current page
+
+Keyboard:
+  press <key>                 press a key on the keyboard, `a`, `arrowleft`
+  keydown <key>               press a key down on the keyboard
+  keyup <key>                 press a key up on the keyboard
+
+Mouse:
+  mousemove <x> <y>           move mouse to a given position
+  mousedown [button]          press mouse down
+  mouseup [button]            press mouse up
+  mousewheel <dx> <dy>        scroll mouse wheel
+
+Save as:
+  screenshot [target]         screenshot of the current page or element
+  pdf                         save page as pdf
+
+Tabs:
+  tab-list                    list all tabs
+  tab-new [url]               create a new tab
+  tab-close [index]           close a browser tab
+  tab-select <index>          select a browser tab
+
+Storage:
+  state-load <filename>       loads browser storage (authentication) state from a file
+  state-save [filename]       saves the current storage (authentication) state to a file
+  cookie-list                 list all cookies (optionally filtered by domain/path)
+  cookie-get <name>           get a specific cookie by name
+  cookie-set <name> <value>   set a cookie with optional flags
+  cookie-delete <name>        delete a specific cookie
+  cookie-clear                clear all cookies
+  localstorage-list           list all localstorage key-value pairs
+  localstorage-get <key>      get a localstorage item by key
+  localstorage-set <key> <value> set a localstorage item
+  localstorage-delete <key>   delete a localstorage item
+  localstorage-clear          clear all localstorage
+  sessionstorage-list         list all sessionstorage key-value pairs
+  sessionstorage-get <key>    get a sessionstorage item by key
+  sessionstorage-set <key> <value> set a sessionstorage item
+  sessionstorage-delete <key> delete a sessionstorage item
+  sessionstorage-clear        clear all sessionstorage
+
+Network:
+  route <pattern>             mock network requests matching a url pattern
+  route-list                  list all active network routes
+  unroute [pattern]           remove routes matching a pattern (or all routes)
+  network-state-set <state>   set the browser network state to online or offline
+
+DevTools:
+  console [min-level]         list console messages
+  run-code [code]             run playwright code snippet
+  network                     list all network requests since loading the page
+  tracing-start               start trace recording
+  tracing-stop                stop trace recording
+  video-start [filename]      start video recording
+  video-stop                  stop video recording
+  video-chapter <title>       add a chapter marker to the video recording
+  show                        show playwright dashboard
+  pause-at <location>         run the test up to a specific location and pause there
+  resume                      resume the test execution
+  step-over                   step over the next call in the test
+  generate-locator <target>   generate a playwright locator for the given element
+  highlight [target]          show (or with --hide, remove) a highlight overlay for an element; `--hide` without a target hides all page highlights.
+
+Install:
+  install                     initialize workspace
+  install-browser [browser]   install browser
+
+Browser sessions:
+  list                        list browser sessions
+  close-all                   close all browser sessions
+  kill-all                    forcefully kill all browser sessions (for stale/zombie processes)
+
+Global options:
+  --help [command]            print help
+  --json                      output response as JSON
+  --raw                       output only the result value, without status and code
+  --version                   print version
+### todo probe
+npm warn Unknown project config "disturl". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "target". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "ms_build_id". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "runtime". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "build_from_source". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "timeout". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+Unknown command: todo probe
+
+Usage: playwright-cli <command> [args] [options]
+Usage: playwright-cli -s=<session> <command> [args] [options]
+
+Core:
+  open [url]                  open the browser
+  attach [name]               attach to a running playwright browser
+  close                       close the browser
+  detach                      detach from an attached browser
+  goto <url>                  navigate to a url
+  type <text>                 type text into editable element
+  click <target> [button]     perform click on a web page
+  dblclick <target> [button]  perform double click on a web page
+  fill <target> <text>        fill text into editable element
+  drag <startTarget> <endTarget> perform drag and drop between two elements
+  drop <target>               drop files or data onto an element
+  hover <target>              hover over element on page
+  select <target> <val>       select an option in a dropdown
+  upload <file>               upload one or multiple files
+  check <target>              check a checkbox or radio button
+  uncheck <target>            uncheck a checkbox or radio button
+  snapshot [target]           capture page snapshot to obtain element ref
+  eval <func> [target]        evaluate javascript expression on page or element
+  dialog-accept [prompt]      accept a dialog
+  dialog-dismiss              dismiss a dialog
+  resize <w> <h>              resize the browser window
+  delete-data                 delete session data
+
+Navigation:
+  go-back                     go back to the previous page
+  go-forward                  go forward to the next page
+  reload                      reload the current page
+
+Keyboard:
+  press <key>                 press a key on the keyboard, `a`, `arrowleft`
+  keydown <key>               press a key down on the keyboard
+  keyup <key>                 press a key up on the keyboard
+
+Mouse:
+  mousemove <x> <y>           move mouse to a given position
+  mousedown [button]          press mouse down
+  mouseup [button]            press mouse up
+  mousewheel <dx> <dy>        scroll mouse wheel
+
+Save as:
+  screenshot [target]         screenshot of the current page or element
+  pdf                         save page as pdf
+
+Tabs:
+  tab-list                    list all tabs
+  tab-new [url]               create a new tab
+  tab-close [index]           close a browser tab
+  tab-select <index>          select a browser tab
+
+Storage:
+  state-load <filename>       loads browser storage (authentication) state from a file
+  state-save [filename]       saves the current storage (authentication) state to a file
+  cookie-list                 list all cookies (optionally filtered by domain/path)
+  cookie-get <name>           get a specific cookie by name
+  cookie-set <name> <value>   set a cookie with optional flags
+  cookie-delete <name>        delete a specific cookie
+  cookie-clear                clear all cookies
+  localstorage-list           list all localstorage key-value pairs
+  localstorage-get <key>      get a localstorage item by key
+  localstorage-set <key> <value> set a localstorage item
+  localstorage-delete <key>   delete a localstorage item
+  localstorage-clear          clear all localstorage
+  sessionstorage-list         list all sessionstorage key-value pairs
+  sessionstorage-get <key>    get a sessionstorage item by key
+  sessionstorage-set <key> <value> set a sessionstorage item
+  sessionstorage-delete <key> delete a sessionstorage item
+  sessionstorage-clear        clear all sessionstorage
+
+Network:
+  route <pattern>             mock network requests matching a url pattern
+  route-list                  list all active network routes
+  unroute [pattern]           remove routes matching a pattern (or all routes)
+  network-state-set <state>   set the browser network state to online or offline
+
+DevTools:
+  console [min-level]         list console messages
+  run-code [code]             run playwright code snippet
+  network                     list all network requests since loading the page
+  tracing-start               start trace recording
+  tracing-stop                stop trace recording
+  video-start [filename]      start video recording
+  video-stop                  stop video recording
+  video-chapter <title>       add a chapter marker to the video recording
+  show                        show playwright dashboard
+  pause-at <location>         run the test up to a specific location and pause there
+  resume                      resume the test execution
+  step-over                   step over the next call in the test
+  generate-locator <target>   generate a playwright locator for the given element
+  highlight [target]          show (or with --hide, remove) a highlight overlay for an element; `--hide` without a target hides all page highlights.
+
+Install:
+  install                     initialize workspace
+  install-browser [browser]   install browser
+
+Browser sessions:
+  list                        list browser sessions
+  close-all                   close all browser sessions
+  kill-all                    forcefully kill all browser sessions (for stale/zombie processes)
+
+Global options:
+  --help [command]            print help
+  --json                      output response as JSON
+  --raw                       output only the result value, without status and code
+  --version                   print version
+### screenshot todo
+npm warn Unknown project config "disturl". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "target". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "ms_build_id". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "runtime". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "build_from_source". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "timeout". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+Unknown command: screenshot todo
+
+Usage: playwright-cli <command> [args] [options]
+Usage: playwright-cli -s=<session> <command> [args] [options]
+
+Core:
+  open [url]                  open the browser
+  attach [name]               attach to a running playwright browser
+  close                       close the browser
+  detach                      detach from an attached browser
+  goto <url>                  navigate to a url
+  type <text>                 type text into editable element
+  click <target> [button]     perform click on a web page
+  dblclick <target> [button]  perform double click on a web page
+  fill <target> <text>        fill text into editable element
+  drag <startTarget> <endTarget> perform drag and drop between two elements
+  drop <target>               drop files or data onto an element
+  hover <target>              hover over element on page
+  select <target> <val>       select an option in a dropdown
+  upload <file>               upload one or multiple files
+  check <target>              check a checkbox or radio button
+  uncheck <target>            uncheck a checkbox or radio button
+  snapshot [target]           capture page snapshot to obtain element ref
+  eval <func> [target]        evaluate javascript expression on page or element
+  dialog-accept [prompt]      accept a dialog
+  dialog-dismiss              dismiss a dialog
+  resize <w> <h>              resize the browser window
+  delete-data                 delete session data
+
+Navigation:
+  go-back                     go back to the previous page
+  go-forward                  go forward to the next page
+  reload                      reload the current page
+
+Keyboard:
+  press <key>                 press a key on the keyboard, `a`, `arrowleft`
+  keydown <key>               press a key down on the keyboard
+  keyup <key>                 press a key up on the keyboard
+
+Mouse:
+  mousemove <x> <y>           move mouse to a given position
+  mousedown [button]          press mouse down
+  mouseup [button]            press mouse up
+  mousewheel <dx> <dy>        scroll mouse wheel
+
+Save as:
+  screenshot [target]         screenshot of the current page or element
+  pdf                         save page as pdf
+
+Tabs:
+  tab-list                    list all tabs
+  tab-new [url]               create a new tab
+  tab-close [index]           close a browser tab
+  tab-select <index>          select a browser tab
+
+Storage:
+  state-load <filename>       loads browser storage (authentication) state from a file
+  state-save [filename]       saves the current storage (authentication) state to a file
+  cookie-list                 list all cookies (optionally filtered by domain/path)
+  cookie-get <name>           get a specific cookie by name
+  cookie-set <name> <value>   set a cookie with optional flags
+  cookie-delete <name>        delete a specific cookie
+  cookie-clear                clear all cookies
+  localstorage-list           list all localstorage key-value pairs
+  localstorage-get <key>      get a localstorage item by key
+  localstorage-set <key> <value> set a localstorage item
+  localstorage-delete <key>   delete a localstorage item
+  localstorage-clear          clear all localstorage
+  sessionstorage-list         list all sessionstorage key-value pairs
+  sessionstorage-get <key>    get a sessionstorage item by key
+  sessionstorage-set <key> <value> set a sessionstorage item
+  sessionstorage-delete <key> delete a sessionstorage item
+  sessionstorage-clear        clear all sessionstorage
+
+Network:
+  route <pattern>             mock network requests matching a url pattern
+  route-list                  list all active network routes
+  unroute [pattern]           remove routes matching a pattern (or all routes)
+  network-state-set <state>   set the browser network state to online or offline
+
+DevTools:
+  console [min-level]         list console messages
+  run-code [code]             run playwright code snippet
+  network                     list all network requests since loading the page
+  tracing-start               start trace recording
+  tracing-stop                stop trace recording
+  video-start [filename]      start video recording
+  video-stop                  stop video recording
+  video-chapter <title>       add a chapter marker to the video recording
+  show                        show playwright dashboard
+  pause-at <location>         run the test up to a specific location and pause there
+  resume                      resume the test execution
+  step-over                   step over the next call in the test
+  generate-locator <target>   generate a playwright locator for the given element
+  highlight [target]          show (or with --hide, remove) a highlight overlay for an element; `--hide` without a target hides all page highlights.
+
+Install:
+  install                     initialize workspace
+  install-browser [browser]   install browser
+
+Browser sessions:
+  list                        list browser sessions
+  close-all                   close all browser sessions
+  kill-all                    forcefully kill all browser sessions (for stale/zombie processes)
+
+Global options:
+  --help [command]            print help
+  --json                      output response as JSON
+  --raw                       output only the result value, without status and code
+  --version                   print version
+### palette open
+npm warn Unknown project config "disturl". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "target". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "ms_build_id". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "runtime". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "build_from_source". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "timeout". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+Unknown command: palette open
+
+Usage: playwright-cli <command> [args] [options]
+Usage: playwright-cli -s=<session> <command> [args] [options]
+
+Core:
+  open [url]                  open the browser
+  attach [name]               attach to a running playwright browser
+  close                       close the browser
+  detach                      detach from an attached browser
+  goto <url>                  navigate to a url
+  type <text>                 type text into editable element
+  click <target> [button]     perform click on a web page
+  dblclick <target> [button]  perform double click on a web page
+  fill <target> <text>        fill text into editable element
+  drag <startTarget> <endTarget> perform drag and drop between two elements
+  drop <target>               drop files or data onto an element
+  hover <target>              hover over element on page
+  select <target> <val>       select an option in a dropdown
+  upload <file>               upload one or multiple files
+  check <target>              check a checkbox or radio button
+  uncheck <target>            uncheck a checkbox or radio button
+  snapshot [target]           capture page snapshot to obtain element ref
+  eval <func> [target]        evaluate javascript expression on page or element
+  dialog-accept [prompt]      accept a dialog
+  dialog-dismiss              dismiss a dialog
+  resize <w> <h>              resize the browser window
+  delete-data                 delete session data
+
+Navigation:
+  go-back                     go back to the previous page
+  go-forward                  go forward to the next page
+  reload                      reload the current page
+
+Keyboard:
+  press <key>                 press a key on the keyboard, `a`, `arrowleft`
+  keydown <key>               press a key down on the keyboard
+  keyup <key>                 press a key up on the keyboard
+
+Mouse:
+  mousemove <x> <y>           move mouse to a given position
+  mousedown [button]          press mouse down
+  mouseup [button]            press mouse up
+  mousewheel <dx> <dy>        scroll mouse wheel
+
+Save as:
+  screenshot [target]         screenshot of the current page or element
+  pdf                         save page as pdf
+
+Tabs:
+  tab-list                    list all tabs
+  tab-new [url]               create a new tab
+  tab-close [index]           close a browser tab
+  tab-select <index>          select a browser tab
+
+Storage:
+  state-load <filename>       loads browser storage (authentication) state from a file
+  state-save [filename]       saves the current storage (authentication) state to a file
+  cookie-list                 list all cookies (optionally filtered by domain/path)
+  cookie-get <name>           get a specific cookie by name
+  cookie-set <name> <value>   set a cookie with optional flags
+  cookie-delete <name>        delete a specific cookie
+  cookie-clear                clear all cookies
+  localstorage-list           list all localstorage key-value pairs
+  localstorage-get <key>      get a localstorage item by key
+  localstorage-set <key> <value> set a localstorage item
+  localstorage-delete <key>   delete a localstorage item
+  localstorage-clear          clear all localstorage
+  sessionstorage-list         list all sessionstorage key-value pairs
+  sessionstorage-get <key>    get a sessionstorage item by key
+  sessionstorage-set <key> <value> set a sessionstorage item
+  sessionstorage-delete <key> delete a sessionstorage item
+  sessionstorage-clear        clear all sessionstorage
+
+Network:
+  route <pattern>             mock network requests matching a url pattern
+  route-list                  list all active network routes
+  unroute [pattern]           remove routes matching a pattern (or all routes)
+  network-state-set <state>   set the browser network state to online or offline
+
+DevTools:
+  console [min-level]         list console messages
+  run-code [code]             run playwright code snippet
+  network                     list all network requests since loading the page
+  tracing-start               start trace recording
+  tracing-stop                stop trace recording
+  video-start [filename]      start video recording
+  video-stop                  stop video recording
+  video-chapter <title>       add a chapter marker to the video recording
+  show                        show playwright dashboard
+  pause-at <location>         run the test up to a specific location and pause there
+  resume                      resume the test execution
+  step-over                   step over the next call in the test
+  generate-locator <target>   generate a playwright locator for the given element
+  highlight [target]          show (or with --hide, remove) a highlight overlay for an element; `--hide` without a target hides all page highlights.
+
+Install:
+  install                     initialize workspace
+  install-browser [browser]   install browser
+
+Browser sessions:
+  list                        list browser sessions
+  close-all                   close all browser sessions
+  kill-all                    forcefully kill all browser sessions (for stale/zombie processes)
+
+Global options:
+  --help [command]            print help
+  --json                      output response as JSON
+  --raw                       output only the result value, without status and code
+  --version                   print version
+### select all2
+npm warn Unknown project config "disturl". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "target". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "ms_build_id". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "runtime". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "build_from_source". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "timeout". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+Unknown command: select all2
+
+Usage: playwright-cli <command> [args] [options]
+Usage: playwright-cli -s=<session> <command> [args] [options]
+
+Core:
+  open [url]                  open the browser
+  attach [name]               attach to a running playwright browser
+  close                       close the browser
+  detach                      detach from an attached browser
+  goto <url>                  navigate to a url
+  type <text>                 type text into editable element
+  click <target> [button]     perform click on a web page
+  dblclick <target> [button]  perform double click on a web page
+  fill <target> <text>        fill text into editable element
+  drag <startTarget> <endTarget> perform drag and drop between two elements
+  drop <target>               drop files or data onto an element
+  hover <target>              hover over element on page
+  select <target> <val>       select an option in a dropdown
+  upload <file>               upload one or multiple files
+  check <target>              check a checkbox or radio button
+  uncheck <target>            uncheck a checkbox or radio button
+  snapshot [target]           capture page snapshot to obtain element ref
+  eval <func> [target]        evaluate javascript expression on page or element
+  dialog-accept [prompt]      accept a dialog
+  dialog-dismiss              dismiss a dialog
+  resize <w> <h>              resize the browser window
+  delete-data                 delete session data
+
+Navigation:
+  go-back                     go back to the previous page
+  go-forward                  go forward to the next page
+  reload                      reload the current page
+
+Keyboard:
+  press <key>                 press a key on the keyboard, `a`, `arrowleft`
+  keydown <key>               press a key down on the keyboard
+  keyup <key>                 press a key up on the keyboard
+
+Mouse:
+  mousemove <x> <y>           move mouse to a given position
+  mousedown [button]          press mouse down
+  mouseup [button]            press mouse up
+  mousewheel <dx> <dy>        scroll mouse wheel
+
+Save as:
+  screenshot [target]         screenshot of the current page or element
+  pdf                         save page as pdf
+
+Tabs:
+  tab-list                    list all tabs
+  tab-new [url]               create a new tab
+  tab-close [index]           close a browser tab
+  tab-select <index>          select a browser tab
+
+Storage:
+  state-load <filename>       loads browser storage (authentication) state from a file
+  state-save [filename]       saves the current storage (authentication) state to a file
+  cookie-list                 list all cookies (optionally filtered by domain/path)
+  cookie-get <name>           get a specific cookie by name
+  cookie-set <name> <value>   set a cookie with optional flags
+  cookie-delete <name>        delete a specific cookie
+  cookie-clear                clear all cookies
+  localstorage-list           list all localstorage key-value pairs
+  localstorage-get <key>      get a localstorage item by key
+  localstorage-set <key> <value> set a localstorage item
+  localstorage-delete <key>   delete a localstorage item
+  localstorage-clear          clear all localstorage
+  sessionstorage-list         list all sessionstorage key-value pairs
+  sessionstorage-get <key>    get a sessionstorage item by key
+  sessionstorage-set <key> <value> set a sessionstorage item
+  sessionstorage-delete <key> delete a sessionstorage item
+  sessionstorage-clear        clear all sessionstorage
+
+Network:
+  route <pattern>             mock network requests matching a url pattern
+  route-list                  list all active network routes
+  unroute [pattern]           remove routes matching a pattern (or all routes)
+  network-state-set <state>   set the browser network state to online or offline
+
+DevTools:
+  console [min-level]         list console messages
+  run-code [code]             run playwright code snippet
+  network                     list all network requests since loading the page
+  tracing-start               start trace recording
+  tracing-stop                stop trace recording
+  video-start [filename]      start video recording
+  video-stop                  stop video recording
+  video-chapter <title>       add a chapter marker to the video recording
+  show                        show playwright dashboard
+  pause-at <location>         run the test up to a specific location and pause there
+  resume                      resume the test execution
+  step-over                   step over the next call in the test
+  generate-locator <target>   generate a playwright locator for the given element
+  highlight [target]          show (or with --hide, remove) a highlight overlay for an element; `--hide` without a target hides all page highlights.
+
+Install:
+  install                     initialize workspace
+  install-browser [browser]   install browser
+
+Browser sessions:
+  list                        list browser sessions
+  close-all                   close all browser sessions
+  kill-all                    forcefully kill all browser sessions (for stale/zombie processes)
+
+Global options:
+  --help [command]            print help
+  --json                      output response as JSON
+  --raw                       output only the result value, without status and code
+  --version                   print version
+### type open
+npm warn Unknown project config "disturl". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "target". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "ms_build_id". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "runtime". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "build_from_source". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "timeout". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+Unknown command: type open
+
+Usage: playwright-cli <command> [args] [options]
+Usage: playwright-cli -s=<session> <command> [args] [options]
+
+Core:
+  open [url]                  open the browser
+  attach [name]               attach to a running playwright browser
+  close                       close the browser
+  detach                      detach from an attached browser
+  goto <url>                  navigate to a url
+  type <text>                 type text into editable element
+  click <target> [button]     perform click on a web page
+  dblclick <target> [button]  perform double click on a web page
+  fill <target> <text>        fill text into editable element
+  drag <startTarget> <endTarget> perform drag and drop between two elements
+  drop <target>               drop files or data onto an element
+  hover <target>              hover over element on page
+  select <target> <val>       select an option in a dropdown
+  upload <file>               upload one or multiple files
+  check <target>              check a checkbox or radio button
+  uncheck <target>            uncheck a checkbox or radio button
+  snapshot [target]           capture page snapshot to obtain element ref
+  eval <func> [target]        evaluate javascript expression on page or element
+  dialog-accept [prompt]      accept a dialog
+  dialog-dismiss              dismiss a dialog
+  resize <w> <h>              resize the browser window
+  delete-data                 delete session data
+
+Navigation:
+  go-back                     go back to the previous page
+  go-forward                  go forward to the next page
+  reload                      reload the current page
+
+Keyboard:
+  press <key>                 press a key on the keyboard, `a`, `arrowleft`
+  keydown <key>               press a key down on the keyboard
+  keyup <key>                 press a key up on the keyboard
+
+Mouse:
+  mousemove <x> <y>           move mouse to a given position
+  mousedown [button]          press mouse down
+  mouseup [button]            press mouse up
+  mousewheel <dx> <dy>        scroll mouse wheel
+
+Save as:
+  screenshot [target]         screenshot of the current page or element
+  pdf                         save page as pdf
+
+Tabs:
+  tab-list                    list all tabs
+  tab-new [url]               create a new tab
+  tab-close [index]           close a browser tab
+  tab-select <index>          select a browser tab
+
+Storage:
+  state-load <filename>       loads browser storage (authentication) state from a file
+  state-save [filename]       saves the current storage (authentication) state to a file
+  cookie-list                 list all cookies (optionally filtered by domain/path)
+  cookie-get <name>           get a specific cookie by name
+  cookie-set <name> <value>   set a cookie with optional flags
+  cookie-delete <name>        delete a specific cookie
+  cookie-clear                clear all cookies
+  localstorage-list           list all localstorage key-value pairs
+  localstorage-get <key>      get a localstorage item by key
+  localstorage-set <key> <value> set a localstorage item
+  localstorage-delete <key>   delete a localstorage item
+  localstorage-clear          clear all localstorage
+  sessionstorage-list         list all sessionstorage key-value pairs
+  sessionstorage-get <key>    get a sessionstorage item by key
+  sessionstorage-set <key> <value> set a sessionstorage item
+  sessionstorage-delete <key> delete a sessionstorage item
+  sessionstorage-clear        clear all sessionstorage
+
+Network:
+  route <pattern>             mock network requests matching a url pattern
+  route-list                  list all active network routes
+  unroute [pattern]           remove routes matching a pattern (or all routes)
+  network-state-set <state>   set the browser network state to online or offline
+
+DevTools:
+  console [min-level]         list console messages
+  run-code [code]             run playwright code snippet
+  network                     list all network requests since loading the page
+  tracing-start               start trace recording
+  tracing-stop                stop trace recording
+  video-start [filename]      start video recording
+  video-stop                  stop video recording
+  video-chapter <title>       add a chapter marker to the video recording
+  show                        show playwright dashboard
+  pause-at <location>         run the test up to a specific location and pause there
+  resume                      resume the test execution
+  step-over                   step over the next call in the test
+  generate-locator <target>   generate a playwright locator for the given element
+  highlight [target]          show (or with --hide, remove) a highlight overlay for an element; `--hide` without a target hides all page highlights.
+
+Install:
+  install                     initialize workspace
+  install-browser [browser]   install browser
+
+Browser sessions:
+  list                        list browser sessions
+  close-all                   close all browser sessions
+  kill-all                    forcefully kill all browser sessions (for stale/zombie processes)
+
+Global options:
+  --help [command]            print help
+  --json                      output response as JSON
+  --raw                       output only the result value, without status and code
+  --version                   print version
+### enter open
+npm warn Unknown project config "disturl". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "target". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "ms_build_id". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "runtime". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "build_from_source". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "timeout". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+Unknown command: enter open
+
+Usage: playwright-cli <command> [args] [options]
+Usage: playwright-cli -s=<session> <command> [args] [options]
+
+Core:
+  open [url]                  open the browser
+  attach [name]               attach to a running playwright browser
+  close                       close the browser
+  detach                      detach from an attached browser
+  goto <url>                  navigate to a url
+  type <text>                 type text into editable element
+  click <target> [button]     perform click on a web page
+  dblclick <target> [button]  perform double click on a web page
+  fill <target> <text>        fill text into editable element
+  drag <startTarget> <endTarget> perform drag and drop between two elements
+  drop <target>               drop files or data onto an element
+  hover <target>              hover over element on page
+  select <target> <val>       select an option in a dropdown
+  upload <file>               upload one or multiple files
+  check <target>              check a checkbox or radio button
+  uncheck <target>            uncheck a checkbox or radio button
+  snapshot [target]           capture page snapshot to obtain element ref
+  eval <func> [target]        evaluate javascript expression on page or element
+  dialog-accept [prompt]      accept a dialog
+  dialog-dismiss              dismiss a dialog
+  resize <w> <h>              resize the browser window
+  delete-data                 delete session data
+
+Navigation:
+  go-back                     go back to the previous page
+  go-forward                  go forward to the next page
+  reload                      reload the current page
+
+Keyboard:
+  press <key>                 press a key on the keyboard, `a`, `arrowleft`
+  keydown <key>               press a key down on the keyboard
+  keyup <key>                 press a key up on the keyboard
+
+Mouse:
+  mousemove <x> <y>           move mouse to a given position
+  mousedown [button]          press mouse down
+  mouseup [button]            press mouse up
+  mousewheel <dx> <dy>        scroll mouse wheel
+
+Save as:
+  screenshot [target]         screenshot of the current page or element
+  pdf                         save page as pdf
+
+Tabs:
+  tab-list                    list all tabs
+  tab-new [url]               create a new tab
+  tab-close [index]           close a browser tab
+  tab-select <index>          select a browser tab
+
+Storage:
+  state-load <filename>       loads browser storage (authentication) state from a file
+  state-save [filename]       saves the current storage (authentication) state to a file
+  cookie-list                 list all cookies (optionally filtered by domain/path)
+  cookie-get <name>           get a specific cookie by name
+  cookie-set <name> <value>   set a cookie with optional flags
+  cookie-delete <name>        delete a specific cookie
+  cookie-clear                clear all cookies
+  localstorage-list           list all localstorage key-value pairs
+  localstorage-get <key>      get a localstorage item by key
+  localstorage-set <key> <value> set a localstorage item
+  localstorage-delete <key>   delete a localstorage item
+  localstorage-clear          clear all localstorage
+  sessionstorage-list         list all sessionstorage key-value pairs
+  sessionstorage-get <key>    get a sessionstorage item by key
+  sessionstorage-set <key> <value> set a sessionstorage item
+  sessionstorage-delete <key> delete a sessionstorage item
+  sessionstorage-clear        clear all sessionstorage
+
+Network:
+  route <pattern>             mock network requests matching a url pattern
+  route-list                  list all active network routes
+  unroute [pattern]           remove routes matching a pattern (or all routes)
+  network-state-set <state>   set the browser network state to online or offline
+
+DevTools:
+  console [min-level]         list console messages
+  run-code [code]             run playwright code snippet
+  network                     list all network requests since loading the page
+  tracing-start               start trace recording
+  tracing-stop                stop trace recording
+  video-start [filename]      start video recording
+  video-stop                  stop video recording
+  video-chapter <title>       add a chapter marker to the video recording
+  show                        show playwright dashboard
+  pause-at <location>         run the test up to a specific location and pause there
+  resume                      resume the test execution
+  step-over                   step over the next call in the test
+  generate-locator <target>   generate a playwright locator for the given element
+  highlight [target]          show (or with --hide, remove) a highlight overlay for an element; `--hide` without a target hides all page highlights.
+
+Install:
+  install                     initialize workspace
+  install-browser [browser]   install browser
+
+Browser sessions:
+  list                        list browser sessions
+  close-all                   close all browser sessions
+  kill-all                    forcefully kill all browser sessions (for stale/zombie processes)
+
+Global options:
+  --help [command]            print help
+  --json                      output response as JSON
+  --raw                       output only the result value, without status and code
+  --version                   print version
+### type js
+npm warn Unknown project config "disturl". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "target". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "ms_build_id". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "runtime". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "build_from_source". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "timeout". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+Unknown command: type js
+
+Usage: playwright-cli <command> [args] [options]
+Usage: playwright-cli -s=<session> <command> [args] [options]
+
+Core:
+  open [url]                  open the browser
+  attach [name]               attach to a running playwright browser
+  close                       close the browser
+  detach                      detach from an attached browser
+  goto <url>                  navigate to a url
+  type <text>                 type text into editable element
+  click <target> [button]     perform click on a web page
+  dblclick <target> [button]  perform double click on a web page
+  fill <target> <text>        fill text into editable element
+  drag <startTarget> <endTarget> perform drag and drop between two elements
+  drop <target>               drop files or data onto an element
+  hover <target>              hover over element on page
+  select <target> <val>       select an option in a dropdown
+  upload <file>               upload one or multiple files
+  check <target>              check a checkbox or radio button
+  uncheck <target>            uncheck a checkbox or radio button
+  snapshot [target]           capture page snapshot to obtain element ref
+  eval <func> [target]        evaluate javascript expression on page or element
+  dialog-accept [prompt]      accept a dialog
+  dialog-dismiss              dismiss a dialog
+  resize <w> <h>              resize the browser window
+  delete-data                 delete session data
+
+Navigation:
+  go-back                     go back to the previous page
+  go-forward                  go forward to the next page
+  reload                      reload the current page
+
+Keyboard:
+  press <key>                 press a key on the keyboard, `a`, `arrowleft`
+  keydown <key>               press a key down on the keyboard
+  keyup <key>                 press a key up on the keyboard
+
+Mouse:
+  mousemove <x> <y>           move mouse to a given position
+  mousedown [button]          press mouse down
+  mouseup [button]            press mouse up
+  mousewheel <dx> <dy>        scroll mouse wheel
+
+Save as:
+  screenshot [target]         screenshot of the current page or element
+  pdf                         save page as pdf
+
+Tabs:
+  tab-list                    list all tabs
+  tab-new [url]               create a new tab
+  tab-close [index]           close a browser tab
+  tab-select <index>          select a browser tab
+
+Storage:
+  state-load <filename>       loads browser storage (authentication) state from a file
+  state-save [filename]       saves the current storage (authentication) state to a file
+  cookie-list                 list all cookies (optionally filtered by domain/path)
+  cookie-get <name>           get a specific cookie by name
+  cookie-set <name> <value>   set a cookie with optional flags
+  cookie-delete <name>        delete a specific cookie
+  cookie-clear                clear all cookies
+  localstorage-list           list all localstorage key-value pairs
+  localstorage-get <key>      get a localstorage item by key
+  localstorage-set <key> <value> set a localstorage item
+  localstorage-delete <key>   delete a localstorage item
+  localstorage-clear          clear all localstorage
+  sessionstorage-list         list all sessionstorage key-value pairs
+  sessionstorage-get <key>    get a sessionstorage item by key
+  sessionstorage-set <key> <value> set a sessionstorage item
+  sessionstorage-delete <key> delete a sessionstorage item
+  sessionstorage-clear        clear all sessionstorage
+
+Network:
+  route <pattern>             mock network requests matching a url pattern
+  route-list                  list all active network routes
+  unroute [pattern]           remove routes matching a pattern (or all routes)
+  network-state-set <state>   set the browser network state to online or offline
+
+DevTools:
+  console [min-level]         list console messages
+  run-code [code]             run playwright code snippet
+  network                     list all network requests since loading the page
+  tracing-start               start trace recording
+  tracing-stop                stop trace recording
+  video-start [filename]      start video recording
+  video-stop                  stop video recording
+  video-chapter <title>       add a chapter marker to the video recording
+  show                        show playwright dashboard
+  pause-at <location>         run the test up to a specific location and pause there
+  resume                      resume the test execution
+  step-over                   step over the next call in the test
+  generate-locator <target>   generate a playwright locator for the given element
+  highlight [target]          show (or with --hide, remove) a highlight overlay for an element; `--hide` without a target hides all page highlights.
+
+Install:
+  install                     initialize workspace
+  install-browser [browser]   install browser
+
+Browser sessions:
+  list                        list browser sessions
+  close-all                   close all browser sessions
+  kill-all                    forcefully kill all browser sessions (for stale/zombie processes)
+
+Global options:
+  --help [command]            print help
+  --json                      output response as JSON
+  --raw                       output only the result value, without status and code
+  --version                   print version
+### enter js
+npm warn Unknown project config "disturl". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "target". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "ms_build_id". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "runtime". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "build_from_source". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "timeout". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+Unknown command: enter js
+
+Usage: playwright-cli <command> [args] [options]
+Usage: playwright-cli -s=<session> <command> [args] [options]
+
+Core:
+  open [url]                  open the browser
+  attach [name]               attach to a running playwright browser
+  close                       close the browser
+  detach                      detach from an attached browser
+  goto <url>                  navigate to a url
+  type <text>                 type text into editable element
+  click <target> [button]     perform click on a web page
+  dblclick <target> [button]  perform double click on a web page
+  fill <target> <text>        fill text into editable element
+  drag <startTarget> <endTarget> perform drag and drop between two elements
+  drop <target>               drop files or data onto an element
+  hover <target>              hover over element on page
+  select <target> <val>       select an option in a dropdown
+  upload <file>               upload one or multiple files
+  check <target>              check a checkbox or radio button
+  uncheck <target>            uncheck a checkbox or radio button
+  snapshot [target]           capture page snapshot to obtain element ref
+  eval <func> [target]        evaluate javascript expression on page or element
+  dialog-accept [prompt]      accept a dialog
+  dialog-dismiss              dismiss a dialog
+  resize <w> <h>              resize the browser window
+  delete-data                 delete session data
+
+Navigation:
+  go-back                     go back to the previous page
+  go-forward                  go forward to the next page
+  reload                      reload the current page
+
+Keyboard:
+  press <key>                 press a key on the keyboard, `a`, `arrowleft`
+  keydown <key>               press a key down on the keyboard
+  keyup <key>                 press a key up on the keyboard
+
+Mouse:
+  mousemove <x> <y>           move mouse to a given position
+  mousedown [button]          press mouse down
+  mouseup [button]            press mouse up
+  mousewheel <dx> <dy>        scroll mouse wheel
+
+Save as:
+  screenshot [target]         screenshot of the current page or element
+  pdf                         save page as pdf
+
+Tabs:
+  tab-list                    list all tabs
+  tab-new [url]               create a new tab
+  tab-close [index]           close a browser tab
+  tab-select <index>          select a browser tab
+
+Storage:
+  state-load <filename>       loads browser storage (authentication) state from a file
+  state-save [filename]       saves the current storage (authentication) state to a file
+  cookie-list                 list all cookies (optionally filtered by domain/path)
+  cookie-get <name>           get a specific cookie by name
+  cookie-set <name> <value>   set a cookie with optional flags
+  cookie-delete <name>        delete a specific cookie
+  cookie-clear                clear all cookies
+  localstorage-list           list all localstorage key-value pairs
+  localstorage-get <key>      get a localstorage item by key
+  localstorage-set <key> <value> set a localstorage item
+  localstorage-delete <key>   delete a localstorage item
+  localstorage-clear          clear all localstorage
+  sessionstorage-list         list all sessionstorage key-value pairs
+  sessionstorage-get <key>    get a sessionstorage item by key
+  sessionstorage-set <key> <value> set a sessionstorage item
+  sessionstorage-delete <key> delete a sessionstorage item
+  sessionstorage-clear        clear all sessionstorage
+
+Network:
+  route <pattern>             mock network requests matching a url pattern
+  route-list                  list all active network routes
+  unroute [pattern]           remove routes matching a pattern (or all routes)
+  network-state-set <state>   set the browser network state to online or offline
+
+DevTools:
+  console [min-level]         list console messages
+  run-code [code]             run playwright code snippet
+  network                     list all network requests since loading the page
+  tracing-start               start trace recording
+  tracing-stop                stop trace recording
+  video-start [filename]      start video recording
+  video-stop                  stop video recording
+  video-chapter <title>       add a chapter marker to the video recording
+  show                        show playwright dashboard
+  pause-at <location>         run the test up to a specific location and pause there
+  resume                      resume the test execution
+  step-over                   step over the next call in the test
+  generate-locator <target>   generate a playwright locator for the given element
+  highlight [target]          show (or with --hide, remove) a highlight overlay for an element; `--hide` without a target hides all page highlights.
+
+Install:
+  install                     initialize workspace
+  install-browser [browser]   install browser
+
+Browser sessions:
+  list                        list browser sessions
+  close-all                   close all browser sessions
+  kill-all                    forcefully kill all browser sessions (for stale/zombie processes)
+
+Global options:
+  --help [command]            print help
+  --json                      output response as JSON
+  --raw                       output only the result value, without status and code
+  --version                   print version
+### F5
+npm warn Unknown project config "disturl". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "target". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "ms_build_id". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "runtime". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "build_from_source". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "timeout". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+Unknown command: F5
+
+Usage: playwright-cli <command> [args] [options]
+Usage: playwright-cli -s=<session> <command> [args] [options]
+
+Core:
+  open [url]                  open the browser
+  attach [name]               attach to a running playwright browser
+  close                       close the browser
+  detach                      detach from an attached browser
+  goto <url>                  navigate to a url
+  type <text>                 type text into editable element
+  click <target> [button]     perform click on a web page
+  dblclick <target> [button]  perform double click on a web page
+  fill <target> <text>        fill text into editable element
+  drag <startTarget> <endTarget> perform drag and drop between two elements
+  drop <target>               drop files or data onto an element
+  hover <target>              hover over element on page
+  select <target> <val>       select an option in a dropdown
+  upload <file>               upload one or multiple files
+  check <target>              check a checkbox or radio button
+  uncheck <target>            uncheck a checkbox or radio button
+  snapshot [target]           capture page snapshot to obtain element ref
+  eval <func> [target]        evaluate javascript expression on page or element
+  dialog-accept [prompt]      accept a dialog
+  dialog-dismiss              dismiss a dialog
+  resize <w> <h>              resize the browser window
+  delete-data                 delete session data
+
+Navigation:
+  go-back                     go back to the previous page
+  go-forward                  go forward to the next page
+  reload                      reload the current page
+
+Keyboard:
+  press <key>                 press a key on the keyboard, `a`, `arrowleft`
+  keydown <key>               press a key down on the keyboard
+  keyup <key>                 press a key up on the keyboard
+
+Mouse:
+  mousemove <x> <y>           move mouse to a given position
+  mousedown [button]          press mouse down
+  mouseup [button]            press mouse up
+  mousewheel <dx> <dy>        scroll mouse wheel
+
+Save as:
+  screenshot [target]         screenshot of the current page or element
+  pdf                         save page as pdf
+
+Tabs:
+  tab-list                    list all tabs
+  tab-new [url]               create a new tab
+  tab-close [index]           close a browser tab
+  tab-select <index>          select a browser tab
+
+Storage:
+  state-load <filename>       loads browser storage (authentication) state from a file
+  state-save [filename]       saves the current storage (authentication) state to a file
+  cookie-list                 list all cookies (optionally filtered by domain/path)
+  cookie-get <name>           get a specific cookie by name
+  cookie-set <name> <value>   set a cookie with optional flags
+  cookie-delete <name>        delete a specific cookie
+  cookie-clear                clear all cookies
+  localstorage-list           list all localstorage key-value pairs
+  localstorage-get <key>      get a localstorage item by key
+  localstorage-set <key> <value> set a localstorage item
+  localstorage-delete <key>   delete a localstorage item
+  localstorage-clear          clear all localstorage
+  sessionstorage-list         list all sessionstorage key-value pairs
+  sessionstorage-get <key>    get a sessionstorage item by key
+  sessionstorage-set <key> <value> set a sessionstorage item
+  sessionstorage-delete <key> delete a sessionstorage item
+  sessionstorage-clear        clear all sessionstorage
+
+Network:
+  route <pattern>             mock network requests matching a url pattern
+  route-list                  list all active network routes
+  unroute [pattern]           remove routes matching a pattern (or all routes)
+  network-state-set <state>   set the browser network state to online or offline
+
+DevTools:
+  console [min-level]         list console messages
+  run-code [code]             run playwright code snippet
+  network                     list all network requests since loading the page
+  tracing-start               start trace recording
+  tracing-stop                stop trace recording
+  video-start [filename]      start video recording
+  video-stop                  stop video recording
+  video-chapter <title>       add a chapter marker to the video recording
+  show                        show playwright dashboard
+  pause-at <location>         run the test up to a specific location and pause there
+  resume                      resume the test execution
+  step-over                   step over the next call in the test
+  generate-locator <target>   generate a playwright locator for the given element
+  highlight [target]          show (or with --hide, remove) a highlight overlay for an element; `--hide` without a target hides all page highlights.
+
+Install:
+  install                     initialize workspace
+  install-browser [browser]   install browser
+
+Browser sessions:
+  list                        list browser sessions
+  close-all                   close all browser sessions
+  kill-all                    forcefully kill all browser sessions (for stale/zombie processes)
+
+Global options:
+  --help [command]            print help
+  --json                      output response as JSON
+  --raw                       output only the result value, without status and code
+  --version                   print version
+### debug probe
+npm warn Unknown project config "disturl". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "target". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "ms_build_id". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "runtime". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "build_from_source". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "timeout". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+Unknown command: debug probe
+
+Usage: playwright-cli <command> [args] [options]
+Usage: playwright-cli -s=<session> <command> [args] [options]
+
+Core:
+  open [url]                  open the browser
+  attach [name]               attach to a running playwright browser
+  close                       close the browser
+  detach                      detach from an attached browser
+  goto <url>                  navigate to a url
+  type <text>                 type text into editable element
+  click <target> [button]     perform click on a web page
+  dblclick <target> [button]  perform double click on a web page
+  fill <target> <text>        fill text into editable element
+  drag <startTarget> <endTarget> perform drag and drop between two elements
+  drop <target>               drop files or data onto an element
+  hover <target>              hover over element on page
+  select <target> <val>       select an option in a dropdown
+  upload <file>               upload one or multiple files
+  check <target>              check a checkbox or radio button
+  uncheck <target>            uncheck a checkbox or radio button
+  snapshot [target]           capture page snapshot to obtain element ref
+  eval <func> [target]        evaluate javascript expression on page or element
+  dialog-accept [prompt]      accept a dialog
+  dialog-dismiss              dismiss a dialog
+  resize <w> <h>              resize the browser window
+  delete-data                 delete session data
+
+Navigation:
+  go-back                     go back to the previous page
+  go-forward                  go forward to the next page
+  reload                      reload the current page
+
+Keyboard:
+  press <key>                 press a key on the keyboard, `a`, `arrowleft`
+  keydown <key>               press a key down on the keyboard
+  keyup <key>                 press a key up on the keyboard
+
+Mouse:
+  mousemove <x> <y>           move mouse to a given position
+  mousedown [button]          press mouse down
+  mouseup [button]            press mouse up
+  mousewheel <dx> <dy>        scroll mouse wheel
+
+Save as:
+  screenshot [target]         screenshot of the current page or element
+  pdf                         save page as pdf
+
+Tabs:
+  tab-list                    list all tabs
+  tab-new [url]               create a new tab
+  tab-close [index]           close a browser tab
+  tab-select <index>          select a browser tab
+
+Storage:
+  state-load <filename>       loads browser storage (authentication) state from a file
+  state-save [filename]       saves the current storage (authentication) state to a file
+  cookie-list                 list all cookies (optionally filtered by domain/path)
+  cookie-get <name>           get a specific cookie by name
+  cookie-set <name> <value>   set a cookie with optional flags
+  cookie-delete <name>        delete a specific cookie
+  cookie-clear                clear all cookies
+  localstorage-list           list all localstorage key-value pairs
+  localstorage-get <key>      get a localstorage item by key
+  localstorage-set <key> <value> set a localstorage item
+  localstorage-delete <key>   delete a localstorage item
+  localstorage-clear          clear all localstorage
+  sessionstorage-list         list all sessionstorage key-value pairs
+  sessionstorage-get <key>    get a sessionstorage item by key
+  sessionstorage-set <key> <value> set a sessionstorage item
+  sessionstorage-delete <key> delete a sessionstorage item
+  sessionstorage-clear        clear all sessionstorage
+
+Network:
+  route <pattern>             mock network requests matching a url pattern
+  route-list                  list all active network routes
+  unroute [pattern]           remove routes matching a pattern (or all routes)
+  network-state-set <state>   set the browser network state to online or offline
+
+DevTools:
+  console [min-level]         list console messages
+  run-code [code]             run playwright code snippet
+  network                     list all network requests since loading the page
+  tracing-start               start trace recording
+  tracing-stop                stop trace recording
+  video-start [filename]      start video recording
+  video-stop                  stop video recording
+  video-chapter <title>       add a chapter marker to the video recording
+  show                        show playwright dashboard
+  pause-at <location>         run the test up to a specific location and pause there
+  resume                      resume the test execution
+  step-over                   step over the next call in the test
+  generate-locator <target>   generate a playwright locator for the given element
+  highlight [target]          show (or with --hide, remove) a highlight overlay for an element; `--hide` without a target hides all page highlights.
+
+Install:
+  install                     initialize workspace
+  install-browser [browser]   install browser
+
+Browser sessions:
+  list                        list browser sessions
+  close-all                   close all browser sessions
+  kill-all                    forcefully kill all browser sessions (for stale/zombie processes)
+
+Global options:
+  --help [command]            print help
+  --json                      output response as JSON
+  --raw                       output only the result value, without status and code
+  --version                   print version
+### screenshot debug
+npm warn Unknown project config "disturl". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "target". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "ms_build_id". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "runtime". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "build_from_source". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "timeout". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+Unknown command: screenshot debug
+
+Usage: playwright-cli <command> [args] [options]
+Usage: playwright-cli -s=<session> <command> [args] [options]
+
+Core:
+  open [url]                  open the browser
+  attach [name]               attach to a running playwright browser
+  close                       close the browser
+  detach                      detach from an attached browser
+  goto <url>                  navigate to a url
+  type <text>                 type text into editable element
+  click <target> [button]     perform click on a web page
+  dblclick <target> [button]  perform double click on a web page
+  fill <target> <text>        fill text into editable element
+  drag <startTarget> <endTarget> perform drag and drop between two elements
+  drop <target>               drop files or data onto an element
+  hover <target>              hover over element on page
+  select <target> <val>       select an option in a dropdown
+  upload <file>               upload one or multiple files
+  check <target>              check a checkbox or radio button
+  uncheck <target>            uncheck a checkbox or radio button
+  snapshot [target]           capture page snapshot to obtain element ref
+  eval <func> [target]        evaluate javascript expression on page or element
+  dialog-accept [prompt]      accept a dialog
+  dialog-dismiss              dismiss a dialog
+  resize <w> <h>              resize the browser window
+  delete-data                 delete session data
+
+Navigation:
+  go-back                     go back to the previous page
+  go-forward                  go forward to the next page
+  reload                      reload the current page
+
+Keyboard:
+  press <key>                 press a key on the keyboard, `a`, `arrowleft`
+  keydown <key>               press a key down on the keyboard
+  keyup <key>                 press a key up on the keyboard
+
+Mouse:
+  mousemove <x> <y>           move mouse to a given position
+  mousedown [button]          press mouse down
+  mouseup [button]            press mouse up
+  mousewheel <dx> <dy>        scroll mouse wheel
+
+Save as:
+  screenshot [target]         screenshot of the current page or element
+  pdf                         save page as pdf
+
+Tabs:
+  tab-list                    list all tabs
+  tab-new [url]               create a new tab
+  tab-close [index]           close a browser tab
+  tab-select <index>          select a browser tab
+
+Storage:
+  state-load <filename>       loads browser storage (authentication) state from a file
+  state-save [filename]       saves the current storage (authentication) state to a file
+  cookie-list                 list all cookies (optionally filtered by domain/path)
+  cookie-get <name>           get a specific cookie by name
+  cookie-set <name> <value>   set a cookie with optional flags
+  cookie-delete <name>        delete a specific cookie
+  cookie-clear                clear all cookies
+  localstorage-list           list all localstorage key-value pairs
+  localstorage-get <key>      get a localstorage item by key
+  localstorage-set <key> <value> set a localstorage item
+  localstorage-delete <key>   delete a localstorage item
+  localstorage-clear          clear all localstorage
+  sessionstorage-list         list all sessionstorage key-value pairs
+  sessionstorage-get <key>    get a sessionstorage item by key
+  sessionstorage-set <key> <value> set a sessionstorage item
+  sessionstorage-delete <key> delete a sessionstorage item
+  sessionstorage-clear        clear all sessionstorage
+
+Network:
+  route <pattern>             mock network requests matching a url pattern
+  route-list                  list all active network routes
+  unroute [pattern]           remove routes matching a pattern (or all routes)
+  network-state-set <state>   set the browser network state to online or offline
+
+DevTools:
+  console [min-level]         list console messages
+  run-code [code]             run playwright code snippet
+  network                     list all network requests since loading the page
+  tracing-start               start trace recording
+  tracing-stop                stop trace recording
+  video-start [filename]      start video recording
+  video-stop                  stop video recording
+  video-chapter <title>       add a chapter marker to the video recording
+  show                        show playwright dashboard
+  pause-at <location>         run the test up to a specific location and pause there
+  resume                      resume the test execution
+  step-over                   step over the next call in the test
+  generate-locator <target>   generate a playwright locator for the given element
+  highlight [target]          show (or with --hide, remove) a highlight overlay for an element; `--hide` without a target hides all page highlights.
+
+Install:
+  install                     initialize workspace
+  install-browser [browser]   install browser
+
+Browser sessions:
+  list                        list browser sessions
+  close-all                   close all browser sessions
+  kill-all                    forcefully kill all browser sessions (for stale/zombie processes)
+
+Global options:
+  --help [command]            print help
+  --json                      output response as JSON
+  --raw                       output only the result value, without status and code
+  --version                   print version
