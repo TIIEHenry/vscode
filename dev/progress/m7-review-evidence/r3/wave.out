@@ -1,0 +1,37 @@
+核对了第二轮 7 条改口的落点和兄弟文档是否同步；结论如下。
+
+```
+Verdict: Approve
+
+Round-2 follow-up:
+- I1 Resolved — §5.1 现为 Connection 以 `ConnectionPhase` 五 kind 为准（`connectionHubTypes.ts:28-33`），Web / `unsupported_environment` 省略桌面控件、不套 catalog 六态；A 方案 E2-1 完成线与看板仲裁 #2 同口径。
+- M1 Resolved — Engine 六态改指 engine-preferences §2，文中已无「§1.1」。
+- M2 Resolved — P2a 写明成功先 `upsertDetail(ref, body = response.content, …)` 再 settle；`DetailPatch` 现有 `body`（`conversationViewFrame.ts:62-64`）。
+- M3 Resolved — P0 写明 `registerSingleton`、禁止 `workbench.web.main.ts` 调 `registerMainProcessRemoteService`；Hub 按接口列 `login` / `addDirectAddressProfile` / `isEncryptionAvailable` / profiles（`hub.ts:66-111` 无 `connect`）。
+- M4 Resolved — 看板 B 已列 `conversationEditorPane*`；C 拥有 `sources.contribution.ts` 的 import 一行；`conversationPart.ts` 的 T1 import / CS-1 `focus()` 转交已写。
+- M5 Resolved — `status.md:17` 分层破坏改为只阻塞该冲突域，与总方案 §2 / health-gates:28 一致。
+- M6 Resolved — 总方案 P2b 改为 `EnvelopeRangeReplaced(COMPACT)` 单独成立；`BRANCH_NOTICE` 非必要条件。
+
+Critical:
+（无）
+
+Important:
+（无）
+
+Minor:
+- M1 [总方案 §5 第 5 条] 完成定义仍写「P0 + E2-1/E2-7」。Wave 1 A1 / Wave 3 A3 / status.md Next / 看板仲裁 #2 / Engine E2-1 表均已统一为省略只在 E2-1。不挡开工；收口时改成「P0 + E2-1」即可。
+- M2 [P 槽知识面] 总方案 P2b 已改「单独成立」，但 `engine-protocol-surface.md:54` 与 conversation-ui-closeout §4 仍写 `RangeReplaced(COMPACT)+BRANCH_NOTICE`。P 写者以总方案为准不会丢行；P2b 开工前把这两处改成与父方案一致。
+
+Cross-doc:
+- X1 可达性 §7 仍写「A 在 E2-1 / E2-7 省略」且 Hub「login / connect 拒绝」；W1 表、Engine E2-1、父方案 Wave 1/3 已是 E2-1-only / 无 Hub `connect`。属兄弟文档未跟上，不挡 P0/E2-1 开工。
+- X2 conversation-ui-closeout:117「Q2 接通 / Q3 先落壳」与看板「Q2 接通未合入 P2a 不开工」字面不一致；物理上接通需要 `requestDetail` 接口，以看板为准。
+
+Verified OK:
+- P0 前提仍成立：无 `platform/universeAgent/browser/`；`workbench.web.main.ts` 无 UA；`workbench.desktop.main.ts:60-61` 仅 Connection/SessionView；Hub 经 `connectionHub.contribution.ts:6` → common 链进 Web。
+- `ConnectionPhase` 五 kind 存在；`ConnectionFailureCode` 尚无 `unsupported_environment`（P0 增量）；Hub 有 `unavailable`、无 `connect`。
+- 文件所有权覆盖第二轮点名文件；Client 归 B；P0 只动 Hub import 一行。
+- 非阻塞政策：点名断言仅 `settingsUaToc.test.ts:253`；分层=冲突域；secret=全局硬门。D15 Exit = P0+E2-1。D12/D17 方向未变。
+- Wave 0 五刀与子方案平台前置仍一一对应；§6 不纳入未回退。
+```
+
+无 Critical，也无会阻止 P0 / Wave 1 开工的 Important。M1/M2 与 Cross-doc 可在对应切片动手前顺手对齐，不构成第四轮阻塞。

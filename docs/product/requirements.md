@@ -4,7 +4,7 @@ type: demand
 status: accepted
 phase: N/A
 updated: 2026-09-02
-summary: "PRD-001–PRD-016 默认窗产品壳已接受；PRD-003/004/007 增流式、提问座位、两层连接态验收；PRD-005 收进 Changes/Review 列表；PRD-002 Route 以 PRD-015 为准；PRD-009 Diff 归属已接受；PRD-017–021 accepted（017 存储落点 / 020 上限已裁定）；PRD-008 接线方案已签收、本条仍 blocked 待接通证据；产品身份排引擎波后；PRD-022 Navigator 引擎段 / PRD-023 Sources Review 审阅进度与归因 accepted；PRD-024 Connection Hub 远程引擎连接 proposed（H0 @2026-09-02）"
+summary: "PRD-001–026：M7 明确 UI 优先、测试债非阻塞开发；PRD-010 产品身份与 PRD-025 Engine 设置、PRD-026 Client 设置 accepted；PRD-008 仍待接通证据"
 ---
 
 # Agent IDE 产品需求
@@ -225,11 +225,15 @@ PRD-001 至 PRD-007 的代码已在 M0–M3 合入，但 D4 启动冒烟（T1–
 
 ### PRD-010 产品身份
 
-- **状态**：`proposed`
+- **状态**：`accepted`
 - **用户价值**：窗口名称、图标与发行身份应是本产品，而不是上游 Code - OSS 默认身份。
 - **用户可观察陈述**：用户能从窗口标题与图标认出 Agent IDE。
-- **产品验收标准**：未决。本批不改产品名称与图标。
-- **依赖或未决**：**已裁决 @2026-09-02**：产品名 **UniverseAgentStudio**；图标复用 UniverseAgentDesktop / Singularity 现有资产。落地排在引擎波（PRD-008 接通）之后，见 [D12](../../dev/progress/deferred-gaps.md)。扩展分发仍未决（且明确排除完整市场分发）。
+- **产品验收标准**：
+  1. 窗口标题、About、桌面入口与安装产物使用 **UniverseAgentStudio**，不再以 Code - OSS 作为主品牌。
+  2. Linux / Windows / macOS 图标来自同一份已批准品牌源；不得从截图抠图或混用 Hub logo。
+  3. `universe-agent://` 深链由本产品接管；产品数据目录与 Code OSS 分离，且不自动迁移旧目录中的 secret。
+  4. 上游许可证、第三方 notices 与内置扩展来源保留。
+- **依赖或未决**：**图标源已裁定（用户，2026-09-02）**：以 Singularity 标识 `Singular/logo/singularity.svg` 为唯一品牌源，入仓为 `resources/brand/universe-agent-studio.svg`，三平台产物只由脚本从它生成（小尺寸允许同源粗线派生）；见 [product-identity §4](../../dev/plans/product-identity.md)。验收 2 的「同一份已批准品牌源」据此有了具体所指。Darwin 发布域名与签名主体仍由发布方提供。完整扩展市场分发继续排除。
 
 ## 非功能需求（2026-09-02 新增；同日签收 `accepted`）
 
@@ -255,7 +259,7 @@ PRD-001 至 PRD-007 的代码已在 M0–M3 合入，但 D4 启动冒烟（T1–
   1. `workbench.action.toggleConversation` / `toggleSources` / `toggleEditorVisibility` / Navigator 各有默认键位且在 Keyboard Shortcuts 里可见。
   2. 隐藏 Conversation 后仅靠键盘能回到对话（PRD-001 验收 3 的键盘版）。
   3. 屏幕阅读器能读出会话标题、回合角色、权限请求状态。
-- **依赖或未决**：HEAD 只有 `workbench.action.chat.open`（Open Conversation，`Ctrl+Alt+I` / mac `Cmd+Ctrl+I`）能靠键盘显示并聚焦 Conversation；四钮 toggle、split、关非根均无默认键位。新键位须避开已占用的 Open Conversation 键与上游 `Ctrl/Cmd+B`（Navigator）。**裁定（2026-09-02）**：具体键位由实施切片在 `contrib/conversation` / `contrib/sources` 的 keybinding 注册处选定并写入 [commands](../systems/conversation/commands.md) §7，产品层只约束「有默认键位、Keyboard Shortcuts 可见、不与上游冲突」；实施登记 [D14](../../dev/progress/deferred-gaps.md)，排在 M6-B 之后（StatusBar / 四钮命令面在 M6-B 定稿后再加键位，避免两次改动）。
+- **依赖或未决**：四钮默认键位与 F6 Part 循环已在 [D14](../../dev/progress/deferred-gaps.md) 第一阶段落地；chat tab、对话框、透镜、过程折、权限/提问座位、Engine/Connection 与窄宽度完整可达进入 [accessibility-responsive-ui](../../dev/plans/accessibility-responsive-ui.md)（`accepted` @2026-09-02）。新键位仍须避开 Open Conversation 与上游 `Ctrl/Cmd+B`，并登记在 [commands](../systems/conversation/commands.md) §7。
 
 ### PRD-019 Web / 远程窗口一致性
 
@@ -265,7 +269,7 @@ PRD-001 至 PRD-007 的代码已在 M0–M3 合入，但 D4 启动冒烟（T1–
 - **产品验收标准**：
   1. Web 入口启动后 PRD-001 验收 1–3 成立。
   2. 依赖桌面进程的能力（如本机引擎进程）在 Web 下省略或明示不可用。
-- **依赖或未决**：`contrib/conversation` / `contrib/sources` 注册在 `workbench.common.main.ts`，理论上 Web 共用；尚无任何 Web 冒烟证据。**裁定（2026-09-02）**：本条是验证义务而非新功能；验收 1 的 Web 冒烟（`scripts/code-web.sh` 或 `server` 入口 + D4 式 V1–V3 断言）登记 [D15](../../dev/progress/deferred-gaps.md)，在 M6-A2 合入后跑一次（届时同时验证验收 2「本机引擎进程在 Web 下省略」）。ADR-003 已保证 gRPC 只在 `platform/universeAgent/node`，Web 形态下 `IUniverseAgentConnection` 必须诚实报 `disconnected`，不得在 Web 画连接控件。
+- **依赖或未决**：`contrib/conversation` / `contrib/sources` 注册在 `workbench.common.main.ts`，理论上 Web 共用；尚无任何 Web 冒烟证据。**裁定（2026-09-02）**：本条是验证义务而非新功能；验收 1 的 Web 冒烟（`scripts/code-web.sh` 或 `server` 入口 + D4 式 V1–V3 断言）登记 [D15](../../dev/progress/deferred-gaps.md)，**前置改为 M7 P0 + Engine E2-1**（原「M6-A2 合入后」已过时；届时同时验证验收 2「本机引擎进程在 Web 下省略」）。ADR-003 已保证 gRPC 只在 `platform/universeAgent/node`，Web 形态下 `IUniverseAgentConnection` 必须诚实报 `disconnected`，不得在 Web 画连接控件。**HEAD 事实（2026-09-02 审查）**：该服务只在 `workbench.desktop.main.ts` 注册，Web 入口无注册也无 browser 实现，产品 contrib 在 Web 会因缺服务无法实例化；[M7 P0](../../dev/plans/m7-ui-completion-wave.md) 补 `platform/universeAgent/browser/` 诚实断连实现是 D15 与验收 2 的前置。
 
 ### PRD-020 规模与性能上限
 
@@ -335,6 +339,33 @@ PRD-001 至 PRD-007 的代码已在 M0–M3 合入，但 D4 启动冒烟（T1–
   7. Web 形态不画连接控件。
 - **可测方式**：①②③⑥⑦ 单测（pane / StatusBar 文案表 + 负向断言）；④ mock TLS 单测；⑤ 隔离 profile 重启冒烟（真 Hub）。
 - **依赖或未决**：活数据依赖 [PRD-008](#prd-008-引擎与会话权威)（M6-A1/A2）；上游 Hub 部署与 Engine `--hub --enroll`。v1 中继 + DirectAddress；HubDevice 经 Hub 的 GUA / 公网 IPv4 自动直连（ADR-374 Phase 3）**不在 v1**，见 [connection-hub-client](../../dev/plans/connection-hub-client.md) 切片 H6。方案 @2026-09-02 `accepted`；H1–H5 代码 @ HEAD；H4a 真 Hub 冒烟为升 `implemented` 证据门槛。
+
+### PRD-025 Engine 设置完整性
+
+- **状态**：`accepted`
+- **用户价值**：用户在一个 Engine 设置页里完成运行时与 catalog 配置，不需要在 Copilot、文件工具和多个零散页面之间寻找。
+- **用户可观察陈述**：Engine 页以 vscode Preferences 的同一套视觉呈现 Overview、Provider & Model、Skills、Agents、Rules、Hooks、MCP Servers、Plugins、Tools 九节；每节都有加载、空、不可用、失败、可用状态。MCP 定义与运行态在同一节分 tab；Plugins 指 Engine plugin，不是 vscode Extension。
+- **产品验收标准**：
+  1. 九节都可从页内导航到达，窄宽度切成可返回的单栏，不使用 Material 卡网或 Copilot marketing。
+  2. 无 Engine 时整页诚实空（零条目、零写按钮；九节导航仍可达，不整节隐藏）；能力 `UNSUPPORTED`、探测中、传输失败、真空列表四种状态文案互不冒充。
+  3. Provider 凭据不回显明文、不写普通 `settings.json`；Provider/Model 不跳到 Copilot Models。
+  4. Rules 不把 Copilot instructions 当 UA 权威；Hooks 无 metadata RPC 时不抄静态点位；Plugins 无 marketplace。
+  5. MCP Definitions 与 Runtime 共用 Engine server id，但不读取 vscode `IMcpService` 作为 UA 运行态。
+  6. Skills / Agents / Tools 已有编辑状态迁入新宿主后不丢选择、未保存内容或能力门控。
+- **依赖或未决**：UI 不等待所有 RPC；缺能力先交付完整 unsupported/failed 状态，真实数据接线后只替换数据源。实施见 [engine-preferences-completion](../../dev/plans/engine-preferences-completion.md)（`accepted` @2026-09-02）。**引擎面核对（2026-09-02，[protocol-surface §1b](../reference/universe-agent/engine-protocol-surface.md)）**：Model 组数据源是 `ConfigService.ListModels` 只读注册表（无「上下文上限 / 能力标签」，无写 RPC）；会话级 `SwitchModel` / 模型策略属 Composer，不在本条；Provider 凭据、Instructions Rules、Hook 点位**没有引擎 RPC**（G-ENG-1/2/3），本条验收 1「九节可达」在这三节以 unsupported 完整态满足，不画表单；MCP 运行态与 Plugins 的 IDE 绑定由 M7 P 槽提供。测试失败进入非阻塞验证债，但没有用户可观察证据不得升 `implemented`。
+
+### PRD-026 Client 设置完整性
+
+- **状态**：`accepted`
+- **用户价值**：用户能在标准 Settings 中配置 Agent IDE 的本地体验，而不是面对空分组或隐藏占位键。
+- **用户可观察陈述**：Client Settings 的 Display、Chat Input、Startup、Keyboard Enter、Notifications、Permissions、Client Tools 七组均包含真实可用设置；Connection 与 Engine 仍是独立 Preferences 页面，不把 profile、token 或 Engine catalog 写进 `settings.json`。
+- **产品验收标准**：
+  1. 七组均可搜索、修改并有真实消费点；没有 placeholder 或只为撑起 TOC 的假设置。
+  2. Conversation 密度、草稿恢复、Composer 自动聚焦、启动恢复上次会话、Enter 行为、非活动会话通知、回到会话时定位 pending 座位、tool 行详情显隐按设置生效（键闭集见方案 §2）。
+  3. Permissions 设置不能自动批准 Engine 请求或绕过权限座位；Client Tools 仍受 Engine capability 与会话权限约束。
+  4. 草稿正文按工作区保存在本机，不经 Settings Sync 漫游。
+  5. `settings.json` 中不存在 Connection host、Hub refresh、Engine credential 或 session token。
+- **依赖或未决**：初始键闭集见 [client-settings-completion](../../dev/plans/client-settings-completion.md)（`accepted` @2026-09-02；2026-09-02 两轮审查删去 `advertiseWorkspaceTools`、`confirmBeforeExternalOpen`、`showAgentIdentity`、`startup.openConversation` 四个无消费点或前提不实的键，余 9 键；执行槽为 B，因消费点全在 Conversation 文件）；规则 16 可继续删减无真实消费点的键，但不得退回空 TOC。IDE 开始广告 workspace tool 时再补广告开关。通知指 `INotificationService` 窗内通知，不含 OS 级桌面通知。测试失败不阻塞后续 UI 切片，但阻止本条升 `implemented`。
 
 ## 明确排除（不是需求）
 

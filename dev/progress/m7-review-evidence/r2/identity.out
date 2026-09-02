@@ -1,0 +1,51 @@
+核对完第一轮改入与 HEAD 事实：方向已纠正，剩余是完成线与触发条件仍会让实施走偏。
+
+```
+Verdict: Approve with changes
+
+Round-1 follow-up:
+- C1 Resolved — §3.1 两棵树与 `userDataPath.ts:47-49` / `common/environmentService.ts:56` / `storageMain.ts:285-289` 一致；I2 含开发态硬编码；I5 排除 `globalStorage`/`state.vscdb`。
+- I1 Resolved — I2 完成线含 gulp electron、`code.sh`/`code-server.sh`、CLI `--help`、tunnel 名、`product.ts` 回退；remote-cli 在 §3.2。
+- I2 Resolved — 断言改到 node/构建读仓内 `product.json`；I2 改 `product.ts` 回退。
+- I3 Resolved — I5 钉死新 contrib + 一次通知 + 命令，不出现即未完成。
+- I4 Resolved — §4.2.2 写死倍数/去线/中心点；§4.2.3 指定 sharp / png-to-ico / @fiahfy/icns。
+- I5 Resolved — `singular-white.svg` 不用；浅底由主源反色。
+- I6 Resolved — I3b/I4 已点名 manifest / VisualElements / Appx / Inno / appdata / debian / rpm / snap / hicolor / `electron.ts` companyName。
+- I7 Resolved — §5 三条可判定项。
+- I8 Resolved — §2 补 win32*/darwin；§3.2/§8 写 bundle id 定死与占位包不持久化 secret。
+- I9 Resolved — `code-icon.svg` 进 §4.2.1；看板 C 已扩权。
+- I10 Resolved — I5 源路径写死 `code-oss-dev` / `Code - OSS`。
+
+Critical:
+（无）
+
+Important:
+- I1 [§6 I4] 完成线 `rg -i "visual studio code|code - oss" resources/ src/vs/workbench` 与切片文件清单、C 所有权互斥。证据：该 rg 会打中 `welcomeOnboarding/.../onboardingVariationA.ts:192`（「Welcome to Visual Studio Code」）、`welcomeWalkthrough/.../vs_code_editor_walkthrough.ts:47`、`issueReporterOverlay.ts:757`、`extensions.contribution.ts:965` 等；I4 文件表只列了 About/模板，看板 C 也不拥有这些 contrib。按 rg 则越权改 workbench；按文件表则完成线永假，且 I4 自称覆盖的 Welcome 仍是 VS Code。建议改法：完成线改成「I4 点名路径零命中」+ 另列 Welcome/Onboarding/Walkthrough 的 contrib 路径并扩权，或写明那些字符串不在本切片、PRD-010 暂不覆盖。
+- I2 [§6 I5 / §3.2] 「当前 userData 为空」按文件系统几乎永假，且 I2 前合入时源=宿。证据：Electron 在 `main.ts:57-64` `app.setPath('userData')` 后即写 Cache/logs；application 库是 `state.vscdb`（`storageMain.ts:285-289`），首启判定上游用 `storageService.isNew(StorageScope.APPLICATION)`（`gettingStarted.ts:1015`），不是目录空。I2 前默认 userData 就是 `code-oss-dev`（`userDataPath.ts:47-49`），与写死源同路径。建议改法：触发改为 `isNew(APPLICATION)`（或「尚无 `User/settings.json`」）且 `source !== dest`，并记一次 offered 标记；Web/无本机目录形态省略入口。
+- I3 [§2 / §6 I2 / §8] I2 完成线要求改完 Darwin 字段，§8 仍说发布域未定。证据：§2 把 `darwinBundleIdentifier` 列入 I2 表，§8 仍开放；macOS `safeStorage` 按打包 bundle id 封密钥（§3.2 已承认）。表还写了 `product.json`/`gulpfile.vscode.win32.ts` 都不存在的 `win32AppId`/`win32UserAppId`（实为 `win32x64AppId`/`win32arm64AppId`/`win32x64UserAppId`/`win32arm64UserAppId`，`gulpfile.vscode.win32.ts:67,87,102`），并漏了 `darwinProfilePayloadUUID`（`product.json:30`，`policyGenerator.ts:188`）。I3b 改 Appx `Publisher`（现为 Microsoft，`AppxManifest.xml:18,23`）同样没有合法替代值。建议改法：darwin*/Appx Publisher 从 I2/I3b 完成线拆到「第一次正式打包前」；占位 id 要么就是最终 id，要么写死开发态不得登录 Hub；Windows 只列真实字段并补 Payload UUID。
+- I4 [§4.2 / §6 I3b / §7] 「Linux hicolor 进 deb/rpm/snap + 任务栏 16/24/32」对 snap 不成立，且 apt 安装器文案未进 I4 清单。证据：`snapcraft.yaml:58` 明确 `prime: -usr/share/icons`；snap 只放单张 `snap/gui/${linuxIconName}.png`（`gulpfile.vscode.linux.ts:255-257`）。`debian/templates.template:4-6` 仍是「Add Microsoft apt repository for Visual Studio Code?」，gulp 会打进 deb（`gulpfile.vscode.linux.ts:116`），I4 点名了 `control.template` 却没点它。建议改法：hicolor 只验收 deb/rpm，snap 写明单图缩放或不排除 icons；`templates.template` 列入 I4。
+- I5 [§2] 「node 层单测读导出常量 `UNIVERSE_AGENT_SCHEME`」若按 import 实现会破分层。证据：常量在 `universeAgentDeepLink.contribution.ts:15`（browser contrib）；renderer 只许走 `platform/universeAgent/common`，node 测试不能 import `workbench/contrib/**/browser`。建议改法：构建脚本/node 测试当文本比对 `product.json` 的 `urlProtocol` 与该文件字面量，或把常量下沉到 C 拥有的 common 模块。
+
+Minor:
+- M1 [§6 I2] 完成线仍未写「未重跑 gulp electron 时 `scripts/code.sh:20-26` 会找不到 `.build/electron/UniverseAgentStudio`」；remote-cli `@@APPNAME@@`/`@@SERVERDATAFOLDER@@` 只在 §3.2、不在完成线。未核实发行 overlay。
+- M2 [§4 / I3b] `electron.ts:152-153` `darwinHelpBookFolder/Name` 仍是 `VS Code HelpBook`，不在 I3b/I4 点名表。
+- M3 [§6 I5] 未写须在 `workbench.desktop.main.ts` 注册、且不得改 P 槽 UA 注册行。
+- M4 [§3.1] `environmentService.ts:56` 未写 `common/`；`node/environmentService.ts` 只有 36 行。`engineTrustStore.ts:116` 是 `get` 不是 `put`。锚点内容仍对。
+- M5 [§2] `win32ShellNameShort` 写成 `&UniverseAgentStudio` 后加速键是 U，与现 `C&ode - OSS`（`product.json:25`）的 C 不同；未写是否有意。
+
+Cross-doc:
+- X1 与 `docs/systems/conversation/commands.md:59`、`docs/glossary.md:76`、`page-access-schemes.md:959`「不绑 `product.urlProtocol`」：I2 改口只列了前两处，漏了仍自称 SSOT 的 page-access-schemes。
+- X2 与看板 C 所有权 / 本方案 I4「Welcome」：Welcome 文案在 `contrib/welcomeOnboarding` / `welcomeWalkthrough`，看板未列；与 I1 同源。
+- X3 与总方案 §2、本方案 §7：测试失败不阻塞切片、阻止 PRD 升 `implemented` — 仍一致。
+
+Verified OK:
+- `product.json:2-36` 仍是 Code - OSS 名、`code-oss` 协议、`.vscode-oss*`、Microsoft GUID/bundle。
+- `UNIVERSE_AGENT_SCHEME === 'universe-agent'`（`universeAgentDeepLink.contribution.ts:15`）。
+- userData：`VSCODE_DEV` 硬编码 `code-oss-dev`（`userDataPath.ts:47-49`）；`--user-data-dir` 优先（`:67-69`）；`User/` 在 `common/environmentService.ts:56`；`dataFolderName` 只管 extensions/argv/policy（`:94-101,147,274`）。
+- Hub/identity/trust/profiles 在 `StorageScope.APPLICATION`；secret 前缀 `secret://`（`secrets.ts:19`）；排除 `globalStorage` 即不迁 secret。
+- `server.main.ts:41` 用 `serverDataFolderName`；tunnel 名来自 `product.tunnelApplicationName`（`cli.ts:80`、`codeTunnelCliProcess.ts:40`）。
+- Linux 模板 `@@NAME@@`/`@@ICON@@`/`@@URLPROTOCOL@@` 由 gulp 替换；今天只有 pixmap 单图（`gulpfile.vscode.linux.ts:69-70`）。
+- `singularity.svg` 几何与 §4.1/§4.2.2 去线选择器（三根 `x1="256" y1="256"`）一致；`singular-white.svg` 已声明不用。
+- 看板 C 已含 `userDataPath.ts`、`product.ts`、`code-icon.svg`、I5 新建 contrib。
+- 无 Copilot/MCP/Extension 顶替 UA 面；无发明引擎 RPC。
+```

@@ -1,0 +1,41 @@
+```
+Verdict: Approve
+
+Round-2 follow-up:
+- I1 Resolved — Wave 1 A1 / Wave 3 A3、Engine E2-1/E2-7、看板仲裁 2 / 矩阵 W1、status.md Next、a11y W1 依赖均改为「省略只在 E2-1」。残留见新 M1。
+- I2 Resolved — 总方案 Wave 2 B2 含「Q2 接通」；看板矩阵拆「Q2 壳 / Q2 接通」两行；status.md B 写「Q2 接通（随 P2a）」。
+- I3 Resolved — 看板 B 与 closeout §10 均含 `conversationEditorPane*`。
+- I4 Resolved — engine-catalog §2 标题与 protocol-surface §2 均标 @ HEAD 整节隐藏、E2-1 起左栏可达。
+- M1 Resolved — traceability PRD-013 改为 Q4 承接旧 P5、旧 P4 仍 blocked。
+- M2 Resolved — stream-timeline G3 改为 M7 P2a。
+- M3 Resolved — lens-and-trajectory 仍记 HEAD（permission/question 不进轨迹、`branchReason='compact'` 跳过）；closeout Q5a/Q3 写明落地时改，规则 3c 未到。
+- M4 Resolved — 总方案 §5.1 改指 engine-preferences §2 六态。
+- M5 Resolved — status.md summary 为 A=Engine/Connection、B=Conversation→Client Settings。
+- M6 Resolved — Engine §6 描述升 `accepted` 后门禁；frontmatter 仍 `review`（有意）。
+- M7 Resolved — a11y L1 依赖含 CS-2；§9 与 Wave 3 C3 均点名 Enter 两模式。
+- M8 Resolved — engine-catalog §4 MCP 运行态改为 P1a → E2-4。
+
+Critical:
+（无）
+
+Important:
+（无。Wave 1 文件所有权、P 五刀顺序、省略刀与 Q2 接通座位已对齐，不阻止开工。）
+
+Minor:
+- M1 [m7-ui-completion-wave §5.5 ↔ accessibility-responsive-ui §7] 完成句仍写「P0 + E2-1/E2-7」不画桌面控件；a11y §7 仍写「A 在 E2-1 / E2-7 省略」。证据：m7-ui-completion-wave.md:107；accessibility-responsive-ui.md:98。Wave 表已正确，不改合同。
+- M2 [conversation-ui-closeout §4 ↔ protocol-surface §1b ↔ 总方案 P2b] 总方案已改为 RangeReplaced 单独成立；closeout / §1b 仍写 `RangeReplaced(COMPACT)+BRANCH_NOTICE` 合取。证据：m7-ui-completion-wave.md:71；conversation-ui-closeout.md:67；engine-protocol-surface.md:54。P 以总方案 Wave 0 为准即可；P2b 开刀前应改这两处。
+- M3 [accessibility-responsive-ui §7] Hub stub 仍写「login / connect 拒绝」；接口无 `connect`（`login` / `addDirectAddressProfile`）。证据：accessibility-responsive-ui.md:96；hub.ts:86, :101。P0 以总方案方法表为准。
+- M4 [conversation-ui-closeout §7 / §8 末句] 平台前置仍写 Q2 含 loading；末句把 Q2 接通写成「先落壳」。切片表与看板已是「壳=preview/unavailable；接通等 P2a」。证据：conversation-ui-closeout.md:101, :118 vs :109-110；m7-ui-completion.md:55-56。
+- M5 [看板 B ↔ closeout §10] 新建 `conversationQuestionSeat*` 只在 §10，看板 glob 未列。仅 B 会建，非双主。证据：conversation-ui-closeout.md:132；m7-ui-completion.md:21。
+- M6 [conversation-process-fold 表下 Implemented 句] P5 行已标 Q4 承接，总句仍写「P5 Deferred」。证据：conversation-process-fold.md:162 vs :164。规则 3c 未到。未核实实施者是否会读总句停工。
+
+Verified OK:
+- 六份方案 `status: review`、`updated: 2026-09-02`；看板 pending（方案 review）；status.md 待本轮后升 `accepted`；对应 PRD `accepted`。
+- P 五刀顺序四处均为 P0→P1a→P2a→P1b→P2b；IDE 方法与 `mcpRuntime`/`models`/`providerConfig`/`scanNewPlugins`/`requestDetail`/`branchReason` 已对齐。
+- Client = B + CS-*；PRD-026 验收 2 为 9 键行为句；PRD-025 验收 2 为九节可达 + 零条目零写按钮。
+- PRD-019 / D15 前置 = P0 + E2-1；D12 开且图标源已裁定；D14 closed；D17 开。
+- W1 依赖 P0 + E2-1；E2-7 只保留 RWD-2 与文案（切片表）。
+- 分层/安全合同未改。HEAD 引用仅 status.md `83b279a0`；各方案不重复 SHA，日期均为 2026-09-02。
+```
+
+无 Critical、无开工阻塞 Important。规则 16 跨文档合同可以升 `accepted` 并按看板开工。M1–M5 可在 P2b / 看板扫尾时顺手改，不必再开一轮审查。

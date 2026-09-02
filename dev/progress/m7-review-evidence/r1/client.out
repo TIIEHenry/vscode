@@ -1,0 +1,47 @@
+```
+Verdict: Approve with changes
+
+Critical:
+- C1 [§5] C2–C5 的消费点要改 B 槽（及未分配）文件，方案只写「不依赖 P」，未写「由 B 实施」或合同请求。证据：看板 A 所有权是 `uaClientSettings*` / `settingsLayout.ts` UA 段 / `settingsUaToc.test.ts`（`dev/parallel/active/m7-ui-completion.md:20`）；B 所有权是 `conversationLens*` / `conversationProcessFold*` / `conversationTimelineTree*` / `conversationConfirmationSeat*`（同文件:21）。密度/草稿/Enter 在 `conversationLens.ts:769-779`，tool 详情在 `conversationProcessFold.ts:160-211`，pending 定位入口在 `conversationTimelineTree.ts:377-378`，`restoreLastSession` 在 `conversationStubService.ts:121-128`（看板未列）。建议改法：C1 由 A 注册键；C2–C5 标「由 B 实施」，A 只出键名/语义合同；`conversationStubService` / `conversationIdentityStrip` 在看板补 owner。
+- C2 [§2] `showAgentIdentity`「strip 已有，加开关」不成立：`ConversationIdentityStrip` 是 engine · folder · branch（`conversationIdentityStrip.ts:64-66,96-113`），不是非根 Agent 标签；时间线 header 只用 `getConversationTurnRoleLabel(turn.kind)`（`conversationTimelineTree.ts:284`，`conversationTrajectoryList.ts:83`），`agentId` 在 `ConversationTimelineEntry`（`conversationSessionView.ts:55,265`）上存在但无渲染。按字面实施会关掉工作区/引擎条，或该键没有消费点。建议改法：删该键，或改消费点为尚未存在的行级 Agent 标签并改「现状」为「新增渲染+开关」，且不隐藏角色/权限。
+
+Important:
+- I1 [§2 Startup] `openConversation`「Part 默认可见，加开关」未处理与 `LayoutStateKeys.CONVERSATION_HIDDEN` 的关系：默认 `false`（`layout.ts:3218`），但工作区会恢复上次显隐（`layout.ts:2002,3017`）；`applyOverrides` 只在 Conversation+Editor+Sources 全藏时强制打开（`layout.ts:3423-3430`）。不写清「仅新工作区 / 覆盖上次隐藏 / 被 layout 状态盖掉」则设置无真实启动效果。建议改法：钉死与 `conversation.hidden` 的优先级，并写消费点文件（多半是 `layout.ts` 或 startup contribution，均非 A 所有权）。
+- I2 [§2 Notifications / §5 C4] 「非活动会话」未定义：多 session 叶、隐藏 Conversation Part、窗口失焦。现有可判定信号只有 roster `getActiveSessionId()`（`conversationStubService.ts`）和 `layoutService.isVisible(Parts.CONVERSATION_PART)`（`conversationPart.ts:117`）。建议改法：写死判定（例如：toast 当且仅当 `sessionId !== getActiveSessionId()` 或 Part 不可见；窗口失焦是否算非活动单独一句）；「前台可见的座位不重复弹」跟着这一定义。
+- I3 [§2 Notifications] `turnCompleted` 把 `onDidTurnSettle` 写成已有消费前提，该事件只在引擎 host 流里 `notifyTurnSettle`（`sessionViewHost.ts:283-287`，`ITurnSettleSignal` 含 `sessionId`：`universeAgentTypes.ts:135-139`）；renderer 可达（`conversationReviewNavService.ts:55-57`），但 stub/本地回合不会点火。建议改法：写明仅引擎会话；本地 stub 不弹 turn-completed（诚实省略，不造假 settle）。
+- I4 [§2 Client Tools] 「`clientToolCall` → tool 行已存在」只对平台 demux 成立（`client-tool-call.ts:1-3`，`types.ts:105-108` 的 `respondable`）；投影到 `ConversationTimelineEntry` 后没有 client-tool 判别字段（`conversationSessionView.ts:41-62` 无 `respondable`），过程折对所有 tool 显示 `payload`（`conversationProcessFold.ts:160-211`）。该键无法只关 client-tool 详情。建议改法：改成「所有 tool 行详情显隐」，或先规定投影保留 `respondable` 再按它过滤。
+- I5 [§3] `conversation.drafts.v1` 与 `conversation.roster.v1` 不撞键（`conversationRosterStorage.ts:10`），同 `WORKSPACE+MACHINE` 策略正确；但删会话时内存已 `drafts.delete`（`conversationLens.ts:1310-1313`），方案未要求持久化草稿随 session 删除/roster 消毒。建议改法：C2 完成线加「deleteSession / roster 中消失的 id 从 `conversation.drafts.v1` 去掉」。
+- I6 [§2 Chat Input] `autoFocus`「聚焦路径已有」不完整：`focusDockInput`（`conversationLens.ts:307-309`）只被 `ConversationEditorPane`（`conversationEditorPane.ts:101`）和 `ConversationPart.focus`（`conversationPart.ts:125-129`）调用；`switchToSession` 只 `showConversationPart`（`conversationLens.ts:1175-1182`），不聚焦 dock。建议改法：写清开关绑在 Part.focus / 打开 Conversation / 切会话哪几条路径。
+- I7 [§2] 11 键未写 `scope`。registry 默认 `ConfigurationScope.WINDOW`（`configurationRegistry.ts:804`）。`startup.*` 若误标 RESOURCE，空窗不生效；若标 APPLICATION，工作区无法覆盖。建议改法：表中逐键写 WINDOW（默认即可则显式写出）；草稿正文仍是 storage MACHINE，与设置键可漫游分开。
+
+Minor:
+- M1 [§2 通知裁定] 「a11y §6」写错，OS 通知诚实省略在 a11y §7（`accessibility-responsive-ui.md:93-99`）。未核实对实施的影响。
+- M2 [§2 Keyboard Enter] 「另一动作由 Shift+Enter 提供」已覆盖 newline→Shift+Enter 发送；HEAD 无 send command，只有 Enter 处理与发送按钮（`conversationLens.ts:769-774,1534`）。建议 C3 写一句「newline 时 Shift+Enter 调用现有 `submitDraft()`，不新增 command」。
+- M3 [§4/§5 C1] 改 `:253` 白名单不会削弱守卫，前提是保留 `:249-252` 的 `ua.connection.*` / `connection.host|port` / `placeholder`。白名单必须是闭集精确匹配，禁止改成 `startsWith('ua.client.')` 正向放行。
+- M4 [§2] `comfortable|compact` 与 `send|newline` 未要求 `enumDescriptions`（vscode `IConfigurationPropertySchema` 惯例）。键名 `ua.client.<group>.*` 与 TOC pattern 一致（`settingsLayout.ts:481-517`）。
+- M5 [§2] `permissions.openPendingOnFocus` 的 count 已有（`conversationStubService.ts:328`），`getConfirmationElement` 已有（`conversationTimelineTree.ts:377-378`）；「回到会话时」锚点未写（Part 获得焦点 / 切 session / 窗口聚焦）。可并入 I2。
+- M6 [Cross] PRD-026 验收 2 正文仍写「Client Tools 广告」（`requirements.md:364`），依赖段已改读详情显隐（同文件:368）。方案跟依赖段一致，验收句未改。
+
+Cross-doc:
+- X1 与 `accessibility-responsive-ui.md` §7：通知走 `INotificationService`、Web 可用，一致；方案误引 §6（见 M1）。Composer「发送始终有键盘路径」（a11y §3）与本方案 C3 一致，前提是 newline 模式接到 Shift+Enter（见 M2）。
+- X2 与看板 / 父方案 A3「Client 不依赖 P」：注册键不依赖 P，成立；消费点依赖 B 文件，看板依赖矩阵无 A Client 行，本方案也未登记。
+- X3 与 PRD-026：七组真实键、禁止 placeholder/凭据、Permissions 不自动批准，一致；验收 2「广告」措辞落后（见 M6）。
+- X4 与 `engine-protocol-surface.md` §1：`Connect.supported_tools=[]` 已记录；删 `advertiseWorkspaceTools` 与协议面一致，本方案不发明 RPC。
+
+Verified OK:
+- `registerUaClientSettings()` `properties: {}`（`uaClientSettings.ts:10-17`）；TOC 七组 + `emptyCopy` + `ua.client.<group>.*`（`settingsLayout.ts:478-518`）。
+- `settingsUaToc.test.ts:246-253`：禁 `ua.connection.*`、`connection.host/port`、`placeholder`、任何 `ua.client.*`。
+- 草稿仅为内存 `Map`（`conversationLens.ts:199,779`）；roster 键 `conversation.roster.v1`，`WORKSPACE+MACHINE`（`conversationRosterStorage.ts:9-10,35-36,64-70`）；`conversation.drafts.v1` 不撞键。
+- Enter：`Enter && !shiftKey` → `submitDraft()`（`conversationLens.ts:769-772`）；Shift+Enter 目前走 textarea 换行。
+- `focusDockInput` 存在（`conversationLens.ts:307-309`）。
+- Conversation Part 默认可见：`CONVERSATION_HIDDEN` default `false`（`layout.ts:3218`）。
+- roster 启动已无条件恢复 `activeSessionId`（`conversationStubService.ts:121-128`；无效 id 回落到第一项：`conversationStubModel.ts:202-203`）。
+- `countPendingConfirmations` 已有；confirmation seat 无自动批准以外的 API（Allow/Skip 仍是用户点击：`conversationConfirmationSeat.ts:51-61`）。
+- `onDidTurnSettle` 在 `platform/universeAgent/common` 上，renderer 可 import；`ITurnSettleSignal.sessionId` 可用于非活动判定。
+- 删 `advertiseWorkspaceTools`：形式配对 `supported_tools = []`（`grpcClient.ts:831-833`）；proto 字段存在（`common.proto:163`）。
+- 删 `confirmBeforeExternalOpen`：`contrib/conversation` 无 `openExternal`；`IOpenerService` 仅 `ViewPane` 构造透传（`conversationSessionsView.ts:153-157`）。
+- 通知 = `INotificationService` 与 PRD-026 依赖段、a11y §7 一致；不做 electron-main OS 通知。
+- Permissions 文案「不得生成 Allow/Skip/grant」与代码面一致。
+- C1 预告改 `:253` 与父方案非阻塞政策、看板「预告断言不记 D17」一致。
+- 分层：本方案不要求 contrib import `platform/universeAgent/node`；不把 Copilot Chat/Models/MCP 当 UA 面。
+```

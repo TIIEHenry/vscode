@@ -3,8 +3,8 @@ title: "Agent Customizations 宿主 UI：按 vscode 重排各节"
 type: plan
 status: implemented
 phase: N/A
-updated: 2026-09-01
-summary: "donor chrome 已落：H0–H3 @ `77d6e7cc`（剥 Copilot 营销、WorkbenchList、UA/MCP copy）；E1 blocked PRD-008"
+updated: 2026-09-02
+summary: "donor 文件工具 chrome H0–H3 已落；Engine 产品主面 E1 四节主体已落，M7 九节方案另行完成"
 ---
 
 # Agent Customizations 宿主 UI
@@ -17,7 +17,7 @@ summary: "donor chrome 已落：H0–H3 @ `77d6e7cc`（剥 Copilot 营销、Work
 
 **Goal：** 剥 Copilot 营销 Overview / Browse / CLI 工具清单，改成 vscode 左 nav + 列表 + markdown 预览。无引擎时本页只列/空着本地文件，**不**画 catalog；诚实空 + Test 在 Engine 页。**不要**把这只编辑器当成 Skill/Agent 产品首页。
 
-本稿 `implemented`（H0–H3 @ `a23c4e7f`/`f248cc47`/`77d6e7cc`）。E1 在 [customizations-engine.md](customizations-engine.md)，blocked PRD-008。
+本稿 `implemented`（H0–H3 @ `a23c4e7f`/`f248cc47`/`77d6e7cc`）。E1 四节主体见 [customizations-engine.md](customizations-engine.md)；M7 九节产品主面见 [engine-preferences-completion](engine-preferences-completion.md)。本文件仍只约束文件工具 donor，不承载 Engine UI。
 
 ## 0. 已拍板约束（本文件不重开）
 

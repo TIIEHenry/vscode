@@ -1,0 +1,44 @@
+```
+Verdict: Approve with changes
+```
+
+方向仍正确：六态已对齐 P2a `DetailFetchOutcome`、compacted 只认 L2、Overview 是带 `turnId?` 的派生 view-model、洗白进 Q5a、Q5 已拆。无新 Critical。两处改入后的完成线仍会让实施者改错文件或做出不完整的提问/错误行。
+
+Round-1 follow-up:
+- C1 [§3/§7/§8 Q2] Resolved — 六态表 + 总方案 P2a `requestDetail → DetailFetchOutcome` + `DetailPatch.truncated/totalBytes` + Q2 壳/接通拆分已写入；loading 改为本地 in-flight。
+- C2 [§6/Q5] Resolved — Q5a / §6 / §9 明写停止 `entryToRenderableTurn` 洗白，error/unknown/question 不标 Stub。
+- I1 [§4] Resolved — 行身份只来自 L2；`ContextCompactedEvent` 仅 Chat 可选富化。
+- I2 [§4] Resolved — 两条 L2 路径 + Q3「P2b 未投影则零行」。
+- I3 [§5/Q4] Resolved — 只在 span id 不变时保留；禁止 overlay↔L2 推断。
+- I4 [§5/Q4] Resolved — 写死 `streaming` / tool `status` 须经 `entryToRenderableTurn`。
+- I5 [§5/Q4] Resolved — 声明 Q4 非旧 P4/P5；旧 P4 仍 blocked PRD-008。
+- I6 [§2/Q1] Resolved — 拷 `turnId?`；改称派生 view-model；200 与 PRD-020 脱钩。
+- I7 [§6/Q5] Resolved — label / haystack / reveal / 5000 与两页知识层列入 Q5a。
+- I8 [Q5] Resolved — 拆 Q5a/Q5b，窄宽并入 Q6，与 a11y 方案一致。
+
+Critical:
+（无）
+
+Important:
+- I1 [§7 / §8 Q2 壳] C1 改入后引出：Q2 壳在无 P 依赖下列「stub 本地 `requestDetail`」和 loading，但方法属于 P2a 要改的 `IConversationSessionViewLease`（`conversationViewFrame.ts:19-30` 无此方法；`IUniverseAgentSessionView` `universeAgentSessionView.ts:30-43` 亦无）。B 槽按字面会改 P 文件，或用未写明的 duck-type。建议：Q2 壳完成线改回「无 P2a 只验收 preview/unavailable 状态机」；stub `requestDetail` 与 loading 显式依赖 P2a（可与接通同波）；禁止 Q2 改 `platform/universeAgent/**`。
+- I2 [§6 / §8 Q5a] C2 改入后完成线仍不够：停止洗白后树仍吃 `ConversationStubTurn`（`conversationTimelineTree.ts:725-726`），该类型无 `retryable`/`typeName`/提问项（`conversationStubModel.ts:23-35`）；`timelineItemToEntry` 的 question 只留 title+status，丢掉 `summary.items` / `answerKeysValid`（`conversationSessionView.ts:305-306`）；error 的 `retryable` 只在 entry 上（`:307-308`）；树只对 `confirmation` 挂 `ConversationConfirmationSeat` Allow/Skip（`conversationTimelineTree.ts:240-250`）。Q5a「question 进座位 / error 保留可重试」无法从现有字段落地。建议：完成线写死——树改吃 entry 或扩展 turn；投影 `items`；独立提问座位；**禁止**复用 Allow/Skip（PRD-004.4）。
+
+Minor:
+- M1 [§2 / §8 Q1] 无 `turnId` 时「200 段按 turnId 聚合」无法触发：stub 投影不写 `turnId`（`conversationSessionView.ts:114-199`），每条单独成段。Q1 完成线「200 段聚合可见」须写明用带 `turnId` 的测试夹具，产品 stub 路径不验收聚合。
+- M2 [§3] `full` 判定要求 outcome `ok:true`，但 stub visualize 已把全文预填进 `details`（`conversationSessionView.ts:158-166`）。预填体在未调用 `requestDetail` 时算 preview 还是 full 未写。未核实 inspector 今日是否已读 `details` 当全文。
+- M3 [§8 Q5a vs Q5b] 给 `StubTurnKind` 加四 kind 会使 `getConversationTurnRoleLabel` 穷尽 switch 编不过（`conversationTrajectoryList.ts:83-99`），而「可读名称」写在 Q5b。同一 B 写者可顺手改，但 Q5a 完成线应点名该 switch。
+
+Cross-doc:
+- X1 与总方案 Wave 1 B1「无通道时 preview / unavailable」：本方案 §7 / Q2 壳还列 loading 与 stub full。
+- X2 与 `conversation-process-fold.md` P5（sticky / executing 内滚仍 Deferred）：本方案 Q4 已承接这两项；编号声明已避开旧 P4，但旧 P5 状态未改。
+- X3 与 a11y §4「permission 与 question 使用不同 role/name；Allow/Skip 不读成答案选项」：本方案 §6 把 permission/question 写在同一「座位」行，未点名独立提问座位（与 I2 同源）。
+
+Verified OK:
+- HEAD：lease 无 `requestDetail`，`details` 仍 `ReadonlyMap<string,string>`，`DetailPatch` 仅 `{ref,body}`；`ItemAttribution` 无 `branchReason` 生产者。
+- 轨迹投影：`error→message`、`permission/question→undefined`、`unknown→context`（`conversationTrajectoryModel.ts:205-213`）；`branchReason==='compact'` 跳过（`:129-132`）；sessionCore / stub 无 compact 处理。
+- 对话页：`projectSnapshotToEntries` 已产出独立 question/error/unknown（`conversationSessionView.ts:305-310`）；`entryToRenderableTurn` 仍洗成 `assistant`+`stubEcho`（`:360-388`）；活路径 `applyEntries`→`entriesToRenderableTurns`（`conversationLens.ts:1365`）。
+- `TimelineItemView.turnId` 在合法 admit 时 apply 保留（`sessionView/apply.ts:477-481`）；engine fold 会拷 `turnId`；记录类型今日无该字段。
+- proto：`FetchToolDetailResponse.{success,truncated,total_bytes,error_message}`；`subscribe` 在 Request；`CompactedSpanBlock` 三 turn id；`EnvelopeRangeReplaced.reason=COMPACT`；`BRANCH_NOTICE`；`ContextCompactedEvent` 仅 `ChatResponse.event`。
+- 过程折 span id `fold:${firstId}`；overlay id `overlay:${blockId}`；折白名单 `thinking|tool|subtool`；stub 无 `streaming`/`sync:live`（已有测）。
+- §7 P2a/P2b 与看板依赖矩阵一致；contrib 只 import `common`；未把 Copilot/MCP/凭据写入本方案；轨迹 permission 仍是摘要而非第二套自动批准。
+- Q5a/Q5b/Q6 与 a11y A11Y-1/2、RWD-1 及总方案 B2/B3 切片划分一致。

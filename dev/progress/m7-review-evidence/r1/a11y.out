@@ -1,0 +1,39 @@
+Verdict: Approve with changes
+
+Critical:
+- C1 [§7 / P0] P0 只注册 `IUniverseAgentConnection` + `IUniverseAgentSessionView` 不足以让 Connection 诚实降级、也不够挡住 Web 入口在 DI 之前就加载桌面 IPC。证据：`ConnectionPreferencesPane` 构造函数同时注入 `IUniverseAgentHubService`（`connectionPreferencesPane.ts:205-208`）；`uaPreferencesPanes.contribution.ts:23` → `connectionHub.contribution.ts:6` 静态 import `platform/universeAgent/electron-browser/universeAgentHubService.ts:6`（`registerMainProcessRemoteService`）。该链经 `conversation.contribution.ts` 进 `workbench.common.main.ts:232`，Web 入口必加载。P0 正文与父方案 Wave 0 均未列 Hub browser stub，也未写把这条 electron-browser import 移出 common.main。建议：P0 增补 `IUniverseAgentHubService` 的 browser 实现（`getAuthStatus()={kind:'unavailable'}`、login/connect 拒绝、不回显凭据），并把 Hub 的 electron-browser 注册移到仅 desktop 入口；Web 只注册 browser 实现。
+- C2 [§7 / §8 W1 / §10] 「Web 不画 Hub 登录、Direct Address、SAS、Test Engine」没有实施者，P0 stub 也不会自动藏控件。证据：`ConnectionPreferencesPane` 构造期无条件画出 Hub 表单/Direct/Test（`connectionPreferencesPane.ts:219-250` 起）；`EnginePreferencesPane` 无条件画 Test Engine（`enginePreferencesPane.ts:61-71`）。看板 A 文件是 `enginePreferencesPane*`，B 是 lens/timeline，C 是 keybindings/公共 CSS/冒烟；`connectionPreferencesPane.ts` 无主。W1 完成线却要求「Connection/Engine 页诚实文案」，C 又被禁止改 A/B 文件。按现状合入 P0+W1 仍会画出可点的本机连接 UI，正是 §10 硬阻塞。建议：写明「A 在 E2-1/E2-7 根据 Web/unavailable 省略桌面连接控件；W1 只复核；未合入前不得称 Web 已诚实」。
+
+Important:
+- I1 [§2 归属表] 「合同出处」章节号与正文错位，B/A 会读错合同。表写 A11Y-1「§2–§3」、A11Y-2「§3」、RWD「§4」、THEME「§5」、WEB「§6」；正文实际是键盘 §3、ARIA §4、RWD §5、主题 §6、Web §7。建议：表内改为真实节号。
+- I2 [§3 键盘 / K1] `Ctrl/Cmd+PageUp/PageDown` 已被全局占用，方案未写 `when`。证据：`workbench.action.previousEditor` / `nextEditor` 主键即 `CtrlCmd+PageUp/PageDown`（`editorActions.ts:1274-1276`、`1322-1324`），无 part 限定。Conversation 持焦时该键仍切 Preview 编辑器。Chat tab 实际是 Conversation editor group 的 editor tab，不是独立 DOM tablist。建议：K1 写清 `when`（Conversation 叶 editor group 持焦、权重高于 WorkbenchContrib）或声明复用既有 editor 命令、不再另绑。
+- I3 [§5 宽度档] 「由宿主 `layout(dimension)` 打 class」对 Conversation 不成立，且 Part 宽 ≠ 叶宽。证据：`ConversationLens` 无 `layout`；`ConversationPart.layout` 只有 Part 尺寸（`conversationPart.ts:116-122`），`minimumWidth=300`（:59）。多 session 叶由 `ConversationSessionWindowService` 分列，叶宽是 editor pane 的 layout。Engine/Connection 的 `layout(dimension)` 存在但只改 list 高度（`enginePreferencesPane.ts:84-91`、`connectionPreferencesPane.ts:402-407`），不打 class。建议：RWD-1 指定 `ConversationEditorPane`/叶容器打 `.is-narrow`；RWD-2 用 pane `dimension.width`；禁止用 `ConversationPart` 宽度代表 split 叶。
+- I4 [§6 / T1] T1 完成线「三槽 CSS 引用」与「C 不改 B/A 文件」冲突；现有动画也不吃 class。证据：`conversationLens.css:637` 等 `transition` 直接绑在 B 的选择器上，无 motion class。C 只加公共 `@media` 而 B/A 不改选择器/class，reduced-motion 不会生效。建议：T1 完成线改为「公共 CSS 落地（例如 `.ua-motion` + `prefers-reduced-motion`）」；B Q5 / A E2-7 才把 class 挂上自己的动画节点；或公共规则用已有 UA 根 class，不要求改三槽 CSS。
+- I5 [§4 ARIA] 「流式行附『进行中』，完成后移除」未禁止按 token 更新 `aria-label`/`aria-live`，会刷屏。证据：时间线无障碍名来自 `getConversationTurnAriaLabel`（`conversationTimelineTree.ts:645`、`conversationAccessibility.ts:40-49`），不含 streaming；`ConversationTimelineEntry.streaming` 已存在（`conversationSessionView.ts:54`）。SessionBar 已有 `aria-live=polite`（`conversationLens.ts:442-453`）。vscode Chat 用 Accessible View / 节流播报，Conversation 未接 `IAccessibleViewService`。建议：行名只在进入/离开 streaming 时改一次稳定后缀；禁止对正文增量设 live；完整回合走 Accessible View，不在本方案新造第二套 live 区。
+- I6 [§9] 清单 kind 与代码/Q5 完成线对不齐，B 无法直接勾 pass/fail。证据：清单写 `reasoning`/`permission`，代码是 `thinking`/`confirmation`（`conversationStubModel.ts:20`、`conversationSessionView.ts:39`）；轨迹还有 `system`/`context`/`subtool`/`message`（`conversationTrajectoryModel.ts:30`）；`compacted` 属 B Q3 不是 Q5。缺 Composer Tab、Engine/Connection 表单、Sources/Diff（K2）、Web 省略。建议：按 `ConversationTimelineEntryKind` + 轨迹 kind 列清单，标明 Q5 vs Q3 vs A E2-7 vs K2；`confirmation` 与 `question` 分条。
+- I7 [§7 P0] `connect*`「拒绝」未钉返回形。证据：`connectProfile` 有 `ok:false`（`connectionHubTypes.ts:35-47`）；`connect()` 是 `UniverseAgentConnectResult`（token 可选，无 `ok`，`universeAgentConnection.ts:110`、`universeAgentTypes.ts:31-44`）。抛错会被当成 transport failed，冒充另一种诚实态。建议：P0 写明 `connect` 不 throw、不发 token；`connectProfile` 固定 `ok:false` + 非 `transport_failed` 的 Web 原因码。
+- I8 [§3 Escape] 合同可实施，但现实现会吞内层 Escape，方案未点名必须改的监听。证据：overlay 在根节点 Escape 直接 `close()`（`conversationSubAgentOverlay.ts:149-153`）；图示 overlay 会 `stopPropagation`（`conversationVisualizeOverlay.ts:110-115`）；SessionBar 标题编辑 Escape 只 cancel（`conversationLens.ts:460-462`），若未 stop 会冒泡关掉整个对话框。无 focus trap。建议：Q5 写监听顺序（详情/改名/图示 → dialog → 不关根会话）并加 Tab wrap；C 不改该文件。
+- I9 [K2] Sources「打开/已审阅/宿主移动均有 command」与现状及所有权不符。证据：`commands.md` §5「Sources 无独立命令」。看板 C 不含 `contrib/sources`。建议：K2 列出将新增的 command id 与文件（C 新 contribution 或显式交 Sources 写者），并改 `commands.md` §5。
+
+Minor:
+- M1 [开篇] 「注入这两个服务（14 处）」：`@IUniverseAgentConnection` 生产装饰器确为 14 处；`@IUniverseAgentSessionView` 只有 `conversationEngineRosterService.ts:43` 一处。
+- M2 [开篇/§7] 「无法实例化这些 contrib」方向对，但不是整个 workbench 起不来。证据：`InstantiationService` 为 strict（`workbench.ts:212`）；contribution 有 try/catch（`contributions.ts:376-390`）；`ConversationPart` 不注入 UA（`conversationPart.ts:73-78`），`layout.ts:354` 会 Eager 创建 Part。Roster 是 Delayed，仅 `onDid*` 不实例化（`instantiationService.ts:336-358`）。缺服务时 StatusBar/Lens/Navigator 视图在创建时抛错，壳还在。
+- M3 [§7] P0「全部 capability UNSUPPORTED」未写 snapshot 必须含现有十键（`universeAgentTypes.ts:10-29`），缺键会让 Engine 节取值抛错。未核实 P0 实现草稿是否已列全键。
+- M4 [T1] 公共 CSS 落点未写（新文件 vs 已有 workbench media）。未核实是否已有 UA 公共 stylesheet。
+
+Cross-doc:
+- X1 与 `connection-hub-client.md`（约 §296）：该文要求 Web 上 `IUniverseAgentHubService` 报 `unavailable`、不画登录表；本方案 P0/看板 P 文件表均未列 Hub。
+- X2 与 `client-settings-completion.md:43`：写「a11y 方案 §6」为 Web 省略 OS 通知；本方案 Web 在 §7，§6 是主题。
+- X3 与 `engine-preferences-completion.md`：E2-1 断连态仍有「Test / Open Connection」；本方案 §7 禁止 Web 画 Test Engine。两文未交叉引用谁在 Web 藏按钮。
+- X4 与看板/父方案：A11Y-1/2、RWD-1→B Q5、RWD-2→A E2-7、C 只出清单，与本方案 §2 一致；矛盾主要是本方案表内节号和 P0 漏 Hub。
+
+Verified OK:
+- `IUniverseAgentConnection`/`IUniverseAgentSessionView` 只在 `workbench.desktop.main.ts:60-61` 经 `registerMainProcessRemoteService` 注册；`workbench.web.main.ts` 无 UA；`platform/universeAgent/browser/` 不存在。
+- `contrib/conversation|navigator|sources` 由 `workbench.common.main.ts:232-274` 加载；生产 `@IUniverseAgentConnection` 14 处。
+- D14 closed 只覆盖四钮+F6；D15 open 且以 P0 为前置（`deferred-gaps.md:31-32`）。`commands.md` §7 与 D14 描述一致。
+- F6/Shift+F6 已是 `focusNextPart`/`focusPreviousPart`（`navigationActions.ts:292-313`），K1 复核不会与新 F6 冲突。
+- 透镜 tablist 左右键已有（`conversationLens.ts:1226-1248`）；过程折已有 `aria-expanded`；overlay 已有 `role=dialog` + `aria-modal`，无 trap。
+- conversation CSS 无 `prefers-reduced-motion`、无宽度档 class。
+- 传输态含 `idle`（`universeAgentTypes.ts:7`）；`getConnectionPhase` 含 `disconnected`（`connectionHubTypes.ts:28-29`）。
+- K1/T1/W1/L1 不要求 C 改 `conversationLens*`（B）或 `enginePreferencesPane*`（A）；T1 若用公共文件+class 消费，C 可不改 B/A 文件。
+- 方案未用 Copilot Chat / `IMcpService` / Extension 数据顶替 UA 面；凭据不进 `settings.json` 的约束与 Client 方案一致。

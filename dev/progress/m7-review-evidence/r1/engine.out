@@ -1,0 +1,47 @@
+核对过 `SaveAgentProfile` 的 mapper：引擎侧把 `model`/`modelType` 写死为 null，本仓类型同样没有这些字段。下面按规则 16 只写问题。
+
+```
+Verdict: Approve with changes
+```
+
+方向对：九节、诚实 unsupported、P 槽前置、MCP/Plugins 跟 proto 走、不接 Copilot。不能 Approve 的原因是 **E2-6 Model 子 tab 按原文实施会做出「保存成功但 model.json 从未出站」的假编辑器**；其余是状态机缺口、跨文旧口径和完成线不可判定。
+
+Critical:
+- C1 [§3.4 / §5 E2-6] 「Model tab 编辑 profile `model.json`」没有传输路径，按原文做就是假保存。证据：`AgentProfileProto`（`agent_service.proto` `SaveAgentProfileRequest`）无 `model` / `modelType` / `maxTurns`；引擎 `GrpcAgentProfileMappers.toAgentPreset` 写死 `model = null, modelType = null, maxTurns = 0`（`UniverseAgent/grpc-server/.../GrpcAgentProfileMappers.kt:35-40`），`writePresetFiles` 仅在这些字段非空才写 `model.json`（`AgentPresetLoader.kt:299-312`）；本仓 `UniverseAgentAgentProfileDetail` / `mapAgentProfileDetail` 同样无这些字段（`universeAgentTypes.ts:239-254`、`grpcClient.ts:372-388`）。`tools.json` 能写是因为 `disabled_tools`/`enabled_tools` 在 proto 里（`engineToolProfile.ts:18-44`）。List 也不回读 model 附件。建议：E2-6 删掉可写 Model 编辑器；该 tab 固定诚实空/unsupported，reason 写清「SaveAgentProfile 不承载 model.json」；待引擎补字段后再立切片。不得用自由文本 + SaveAgentProfile 冒充已写入。
+
+Important:
+- I1 [§2] 六态优先级不完备：缺现网已有的 `unknown`（`engineCatalog.ts:10,22-24`，文案 `getCatalogUnknownCopy`）；`loading` 排在 `failed` 之前，in-flight 标志若未清会盖住失败。建议：补第七态或显式把 capability `UNKNOWN` 并入 loading 并沿用「正在确认引擎能力」（禁止与 list RPC loading 混句）；写明 **in-flight 与 terminal failed 互斥**，RPC settle 必须清 loading。
+- I2 [§3.2 Provider 组] 「从 ListModels 去重得到的 provider 名」放进 **unsupported 完整态** 的 Provider 组，会被读成「已配置的 Provider」。Model 组已经按 `provider` 分组。建议：去重名单只留在 Model 组脚注；Provider 组零引擎数据、零列表。
+- I3 [§3.8 Plugins] ScanNew / Info 完成线会诱导假 UI。`ScanNewPluginsResponse` 有 `new_plugins` + `skipped_count`（`plugin_service.proto:88-91`），现网 `PluginGrpcService.scanNew` 调 `loadAll()` 却只 `setSkippedCount(0)`、不填 `new_plugins`（`PluginGrpcService.kt:111-122`）；`info` 只填 `summary`、不填 `hooks`（同文件 `:54-66`）；`buildSummary` 把 `source` 写死为 `"plugin"`（`:183`），不是 proto 注释里的 JAR/DEX/`embedded`。建议：ScanNew 以响应字段为准，空则诚实 0，禁止用 List 长度差宣称「扫描到 N 个」；Info hooks 为空就空表，禁止用 `hook_count` 造 `PluginHookEntry`；Unload 仅当 **wire `source === "embedded"`** 时隐藏，不得本地猜。
+- I4 [§5 E2-6] 「选择与编辑态不丢」不可判定；且 E2-6 依赖栏为 `—`，却要在 `models=SUPPORTED` 时用 `ListModels` 做候选（那是 P1b / 看板 E2-2）。建议：完成线写成可观察项（选中 skill/profile id、textarea dirty、Tools checkbox 未保存、能力门控与迁入前一致）；Model 候选要么挪到 E2-2 之后并标依赖 P1b，要么在 P1b 前不画候选。
+- I5 [§2] 「断连后清 RPC 缓存」与 Navigator「断开前快照」（`navigator-engine-segments.md` §3 传输失败/断开行；PRD-007 验收 5 只约束会话时间线）看起来冲突，但 Engine catalog 清缓存本身符合 `engine-catalog.md` §2 与 customizations-engine §8.3 #5。建议：加一句 **Engine catalog ≠ Navigator/时间线**：配置页断连必须空，不得复用快照合同。
+- I6 [§2 / E2-1] 新宿主「目录行可见」与 HEAD「disconnected 整节 `display:none`」未显式废止。证据：`engineSkillsSection.ts:326-328`、`shouldHideCatalogRows`（`engineCatalog.ts:28-30`）、测试 `disconnected pane hides skills section`（`enginePreferencesPane.test.ts:109-116`）。另：现网 Test 成功句是 `"Engine is connected."`（`enginePreferencesPane.ts:69`），违反 PRD-007 验收 4（「已连接」只归 SessionBar）。建议：E2-1 写明废止 hide-on-disconnect；Test/Overview 复用 `getConnectionPhaseStatusBarText` 的「Engine · Hub relay/Direct/Loopback」，不用「已连接」。
+- I7 [§2 统一状态组件 / §7] 组件落点未写。九节若继续走 `EngineCatalogPaneMode` 四态，新六态只覆盖 Rules/Hooks，Skills 仍会断连隐藏。建议：E2-1 独占扩展 `engineCatalog.ts`（并列入冲突域），E2-6 只迁入、不改状态机。
+
+Minor:
+- M1 [§3.5] `GetSessionRules` 在 `PermissionService` 上（`session_service.proto:42-53`），不是 `SessionService`。不调用即可，改名以免找错 RPC。protocol-surface §1 同样写错。
+- M2 [§3.7] proto 另有 `MCP_STATUS_UNSPECIFIED=0`。建议：产品四态外的值走 failed/unknown，不画第五态。
+- M3 [§3.6] 「右侧点位表」壳在 `ListHookPoints` 不存在时（全仓 proto 无此 RPC）可能诱导填 `points.md`。建议：完成线写死「G-ENG-3 前点位表行数恒为 0」。
+- M4 [§7] 冲突域未点名 `engineCatalog.ts` / `engineSkillCatalog.ts` / `engineToolProfile.ts` / `engineAgentAgentsMd.ts`；E2-6 必碰。
+- M5 [§3.2] Provider reason「Engine 未提供 Provider 配置接口」与 protocol-surface §2 `providerConfig`「Provider 配置键合同未定」不一致。建议跟 §2 键走。
+- M6 [§3.8] 现网 Enable/Reload/Unload/ScanNew 要 operator，非 operator 为 `PERMISSION_DENIED`（`PluginGrpcService.kt:193-206`）。按钮「仅看 Connect 广告」不够；DENIED 必须是 failed，不能显示「已卸载」。未核实 Connect 是否对非 operator 仍广告这些 method。
+
+Cross-doc:
+- X1 与 `customizations-engine.md` §2 表「Local：可读可写本机 AgentHome / workDir」、§1 Instructions「已有传输 = Local RulesBridge」矛盾。本仓 `src/vs` 无 `RulesBridge`、无读 `{AgentHome}/rules` 的 UA 路径（已 `rg`）。本方案 §3.5「IDE 没有 Local 路径」成立，旧表会诱导 E2-3 扫盘。须回改旧文档，不能只改本方案。
+- X2 与 `engine-catalog.md` §5 Rules 行「Local bridge / Remote unsupported」矛盾；该页已指向本方案，却仍写 Local bridge。
+- X3 与父方案 `m7-ui-completion-wave.md` §4 Wave 2「A2 Model 注册表（P1b 后）、MCP Runtime 与 Plugins（P1a 后）」的「等待 P」措辞，对照本方案 §5「E2-2/4/5 UI 不等待 P：先落壳」。看板矩阵是「节存在 + unsupported」，与本方案一致；父方案 Wave 2 应改成「壳可先、真数据等 P」，避免 A 槽停工。
+- X4 与 `settings-two-surfaces.md` §2「无引擎整页诚实空 + Test」、PRD-025 验收 2 同句，对照本方案「九节左栏仍可达」。可解释为无假条目而非无导航，但须在两处统一一句，避免 E2-1 与旧测试各做各的。
+
+Verified OK:
+- HEAD 现状：`EnginePreferencesPane` 只挂四节、`(height-220)/4`（`enginePreferencesPane.ts:56-59,86`）；`IUniverseAgentConnection` 止于 `listTools`，无 MCP 运行态 / Plugins / ListModels（`universeAgentConnection.ts:132-159`）。
+- `plugins/globalRules/projectRules/hooksMetadata` 在 `grpcCapabilityProbe.ts:100-104` 固定 `UNSUPPORTED`（reason `probe not implemented in M6-A1`）。
+- `mcpRuntime` / `models` / `providerConfig` 尚未进入 `UniverseAgentCapabilityKey`（`universeAgentTypes.ts:10-20`）；P1a/P1b 在现有 `PROBE_TARGETS` + 广告+probe 结构上可加，UI 不重复定义签名。
+- `ListModels` / `ModelEntryProto` 字段与 §3.2 一致（`common.proto:78-88,130-137`）；无写 RPC；`SwitchModel`/`Get|SetModelPreferences` 带 `session_id`，排除出 Engine 页正确。
+- Provider 组零输入 / 不接 `TestModelProfile` 直至 G-ENG-1；`TestModelProfile` 确在 `AgentService`（`agent_service.proto:71,1584-1596`）。
+- MCP Runtime 字段与 `mcp_service.proto:82-117` 一致（四态、`error_message`、`last_connected_at`、`checked_at`、`GetMcpServerTools` 的 `name/description/total/cached_at/force_refresh`）；`mcp` 与 `mcpRuntime` 分离与 protocol-surface §2 一致。
+- Plugin 消息字段名与 `plugin_service.proto:35-62` 一致；无 marketplace。
+- proto 无 Hook 点位 RPC；禁止 `points.md` / `{AgentHome}/hooks.json` / Copilot instructions / `IMcpService` 的红线与既有合同一致。
+- §4/§5 依赖表与看板矩阵（E2-2→P1b，E2-4/E2-5→P1a，未合入则 unsupported）一致；E2-7 ↔ a11y RWD-2、`conversationSessionStatus*` 归 C 经看板转交，与看板冲突仲裁 2/4 一致。
+- 分层：UI 只 import `platform/universeAgent/common`（pane:12）；gRPC 在 node；Web 无 electron-main 不在本方案伪造。
+- 安全：凭据不进 settings.json / 不回显；Permissions 自动批准不在本方案。
+- §6 测试失败不升 `implemented`，与父方案 §2 / PRD-025 依赖段一致。

@@ -1,0 +1,46 @@
+对照入口注册、Hub 链路、proto 与五份子方案的平台前置后，总方案方向成立，但 P0 漏了 Hub，且所有权/完成线还有几处会卡住实施。
+
+```
+Verdict: Approve with changes
+
+Critical:
+- C1 [总方案 §4 P0 / 看板 P 所有权] P0 只登记 `IUniverseAgentConnection` 与 `IUniverseAgentSessionView`，未覆盖 `IUniverseAgentHubService`；且 HEAD 已从 common 链加载 electron-browser Hub ProxyChannel。按此合入后 Web 仍会在打开 Connection 时走主进程 IPC（Web 无 electron-main），D15/WEB-1「不画连接控件」无法成立。证据：`workbench.desktop.main.ts:60-61` 仅两行 UA；`workbench.web.main.ts` 无 UA；`connectionHub.contribution.ts:6` `import .../electron-browser/universeAgentHubService.js`；`uaPreferencesPanes.contribution.ts:23` 拉入该文件；`conversation.contribution.ts:9` ← `workbench.common.main.ts:232`；`connectionPreferencesPane.ts:207` `@IUniverseAgentHubService`。建议：P0 增 browser Hub 诚实 stub；把 Hub 的 `registerMainProcessRemoteService` 移出 common 链（改 `connectionHub.contribution.ts` 或改 `workbench.desktop.main.ts`），并在看板把该 contrib 文件标为「P0 实施 / 依赖 P」。
+
+Important:
+- I1 [看板文件所有权 / 总方案 §3 A3] Client Settings 消费点写 `conversationLens.ts`、草稿/Enter/密度/`ConversationIdentityStrip`，这些文件归 B，看板未写「由 B 实施」或「经看板转交」。A 与 B（Q5）会双写同一文件。证据：`client-settings-completion.md` §2/§5 C2–C5；看板 B 行 `conversationLens*`；总方案 §4「A3 … 不依赖 P」未提 B。建议：消费点改由 B 在 Q5 前切片落地，或看板把这些文件在 A3 期间转交 A。
+- I2 [看板文件所有权] 子方案点名但无人拥有：`connectionPreferencesPane.ts` / `.css`、`connectionHub.contribution.ts`、`uaPreferencesPanes.contribution.ts`、`conversationIdentityStrip.ts`、`conversationStubFrameSource.ts`；C 的 K2 要改 Sources/Diff 命令但 C 所有权无 `contrib/sources/**`。证据：`accessibility-responsive-ui.md` §2 A11Y-3/RWD-2/K2；`connectionPreferencesPane.ts:6,207`；看板工位表。建议：Connection 面归 A（与 RWD-2 一致）；K2 把 `contrib/sources/**` 相关文件划给 C；stub 帧源划给 P2a 或 B。
+- I3 [总方案 §4 P2a] 「stub 源同步实现本地解析」落在 `contrib/conversation/browser/conversationStubFrameSource.ts`（已本地 `upsertDetail`），不在 `platform/universeAgent/**`；与「P 槽不写任何 UI」及 P 所有权冲突。证据：`conversationStubFrameSource.ts:41,233`；`conversationViewFrame.ts:19-29` lease 无 `requestDetail`。建议：P2a 只扩 common 合同 + host/electron-browser；stub `requestDetail` 写明「由 B 实施」或把该文件划入 P 本刀。
+- I4 [总方案 §4 P2b] P2b 只写 `ItemAttribution.branchReason` + summary/messages_before/after；B Q3 还要 `original_tokens`/`compacted_tokens`；HEAD `ItemAttribution` 无这些字段，轨迹侧只在 contrib 本地扩展上跳过 compact。证据：`conversationViewFrame.ts:38-46`；`conversationTrajectoryModel.ts:18-22,129-131`；`ContextCompactedEvent` proto（`agent_service.proto:648-658`）；`conversation-ui-closeout.md` § 数据来源。建议：P2b 写明元数据载体（扩展 `ItemAttribution` 或独立 compacted 记录）及与 proto 对齐的字段闭集，并规定 browser stub 同步。
+- I5 [总方案 §4 Wave 0] P1a/P1b/P2a 会给 `IUniverseAgentConnection` / lease 加方法与 `mcpRuntime`/`models`/`providerConfig` 键，未要求同一提交更新 P0 的 `platform/universeAgent/browser/`。否则 Web 编译失败或新键呈 UNKNOWN，冒充未探测。证据：`universeAgentTypes.ts:10-20` 无这三键；`universeAgentSessionView.ts:30-43` 无 `requestDetail`。建议：Wave 0 表加一列「browser 断连实现同步」。
+- I6 [总方案 §2 / 看板「非阻塞验证账」/ health-gates] 「方案已预告的断言变更不记 D17」未限定必须写明测试文件 + 旧断言 + 新期望；health-gates.md 无对应行，D17 行也无豁免。任意切片写「会改测试」即可不记债。证据：总方案 §2 第 3 行；看板 L57；`health-gates.md:20-27`；`deferred-gaps.md` D17 行。建议：豁免仅限方案点名的断言替换（例：`settingsUaToc.test.ts:253` 负向 → 白名单）；health-gates 补同一行；其余红测一律进 D17。
+- I7 [总方案 §5.1] 「所有已选择页面都有正常/空/加载/不可用/失败」不可判定：Client 七组是本地设置，没有引擎五态；Navigator/Sources/Diff/Connection 在 §1.5 只补一致性，不在五份子方案的完成表里。易被做成假 unsupported。建议：§5.1 收成「Engine 九节 + Conversation 轨迹/详情 + Connection」五态；Client 改为「七组均有真实键与消费点」；其余面只要求诚实省略/不失效。
+- I8 [总方案 §2 vs health-gates] 跨层边界破坏：总方案为「全局硬阻塞」，health-gates 为「阻塞该冲突域合入」。证据：总方案 §2 表末行；`health-gates.md:27`。建议：与总方案对齐为全局硬门，或总方案改为冲突域并改 status.md。
+
+Minor:
+- M1 [plans/INDEX.md / parallel/INDEX.md] 两处摘要仍写「三开发槽」，未提 P 槽。未核实是否还有其它索引漏 P。
+- M2 [总方案 §6] protocol-surface §1b 已标 M7 不接的 `FetchToolUsageDetail` / `Compact` 未列入「不纳入」，与 `SubscribeToolDetail` 待遇不一致。
+- M3 [protocol-surface §2 vs Wave 0 命名] 能力表写「M7 P1」，总方案拆成 P1a/P1b，后实施易对错切片。
+- M4 [D15] deferred-gaps D15 的 Track 仍为 `M6`，Exit 已是 M7 P0。
+- M5 [总方案 §4 P2b] 「范围」未定义（span 三 turn id 还是 token 差）；未核实实施者是否会猜。
+
+Cross-doc:
+- X1 与 accessibility-responsive-ui §7 / D15：WEB-1 要求 Connection 诚实省略 Hub 登录，但 Wave 0 无 Hub stub（见 C1）。
+- X2 与 client-settings-completion §5：A3「不依赖 P」成立，但依赖 B 文件未写入看板依赖矩阵。
+- X3 与 conversation-ui-closeout §7：P2b 字段闭集窄于 B 所列 proto 字段（见 I4）。
+- X4 与 health-gates.md：非阻塞表缺「预告断言不记 D17」；分层硬门范围与总方案不一致（见 I6/I8）。
+- X5 与 engine-protocol-surface §1b：Wave 0 五刀与待接 RPC 对应关系正确（见 Verified OK）；缺口是 §1b 未列、但 WEB-1 需要的 Hub/Web 注册（非 RPC）。
+
+Verified OK:
+- P0 前提成立：`platform/universeAgent/` 无 `browser/`；`workbench.web.main.ts` 无 UA 注册；desktop 仅 `electron-browser` Connection/SessionView（`:60-61`）；common.main 加载 conversation/navigator/sources contrib（`:232/:235/:274`）；StatusBar AfterRestored 注入 Connection（`conversationSessionStatusBar.ts:27-39`）；Roster 注入两服务（`conversationEngineRosterService.ts:41-43`）。
+- HEAD Engine 页仅 Skills/Agents/MCP/Tools 四节（`enginePreferencesPane.ts:15-18,56-59`）。
+- `IUniverseAgentConnection` 无 MCP 运行态/Plugins/`listModels`（`universeAgentConnection.ts`）；`plugins` 固定 UNSUPPORTED reason `probe not implemented in M6-A1`（`grpcCapabilityProbe.ts:101-103`）。
+- lease 无 `requestDetail`；`ItemAttribution` 无 `branchReason`；sessionCore/demux 无 compact（`conversationViewFrame.ts:19-46`；sessionCore/sessionStreamDemux 无匹配）。
+- Client TOC 七组有 pattern、`properties: {}`（`uaClientSettings.ts:10-17`；`settingsLayout.ts:481-517`）；`settingsUaToc.test.ts:253` 负向断言 `ua.client.*`。
+- Wave 0 RPC 均在 proto：`ListModels`/`GetMcpServerStatuses`/`GetMcpServerTools`/`PluginService.{List,Info,Enable,Reload,Unload,ScanNew}`/`FetchToolDetail`；`CompactedSpanBlock`/`branch_reason`/`ContextCompactedEvent` 字段名与方案一致。`SubscribeToolDetail` 已排除。
+- P1a/P1b/P2a/P2b 与五份子方案「平台前置」一一对应；未发现其它 RPC 绑定被 UI 依赖却未进 Wave 0（Hub 是 IDE 注册，非 RPC）。
+- §6 不纳入与子方案一致：H6、G-ENG-1/2/3 不画表单、会话级 SwitchModel、SubscribeToolDetail、无 fixture 冒充。
+- 非阻塞政策主体与 health-gates/D17 一致：红测不挡下切片、挡 PRD `implemented`；编译/启动挡冲突域；secret/权限为硬门。
+- 诚实降级/分层/不用 Copilot·IMcpService 顶替/凭据不进 settings.json：总方案 §5–§6 与 PRD-025/026 一致，Wave 0 未要求假数据。
+```
+
+**判定说明：** 总方向（P 槽串行合同、UI 先 unsupported、测试旁路）正确，P0「Web 缺 Connection/SessionView」也是真的。因 P0 漏 Hub 会导致 Web Connection 假通路/崩溃，不能 Approve；尚未到「关键 RPC 不存在 / 鼓励假 UI」的 Reject 线。改入 C1 与 I1–I8 后再升 `accepted`。

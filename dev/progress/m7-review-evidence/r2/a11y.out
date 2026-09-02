@@ -1,0 +1,56 @@
+核对了改稿后的方案、看板、Engine/Conversation 子方案与 HEAD 代码。第一轮 Critical 已改入且成立；本轮没有新的 Critical，但有几处改入后露出的可实施性缺口。
+
+```
+Verdict: Approve with changes
+
+Round-1 follow-up:
+- C1 Resolved — §7 / 总方案 P0 / 看板 P 已列 Hub browser stub，并把 `connectionHub.contribution.ts:6` 的 electron-browser 注册移出 common 链。
+- C2 Resolved — 桌面控件省略归 A E2-1（engine 方案 E2-1 完成线一致）；W1 只复核；§10 写明 P0 合入而 E2-1 未合入时不得称已诚实。
+- I1 Resolved — §2 表节号已与正文一致（键盘 §3、ARIA §4、RWD §5、主题 §6、Web §7）。
+- I2 Resolved — §3 改为复用 `workbench.action.previousEditor` / `nextEditor`，不另绑。
+- I3 Resolved — §5 改为叶级 `ConversationEditorPane.layout`，禁止用 Part 宽。
+- I4 Resolved — T1 只落 `ua-common.css` + `.ua-motion`；B/A 自己挂 class。
+- I5 Resolved — §4 禁止按 token 更新 live；完整回合点名 `IAccessibleViewService`。
+- I6 Resolved — §9 已改用代码 kind 名并标 Q5a/Q5b/Q3。
+- I7 Resolved — `connect()` 不 throw、无 token；`connectProfile` `ok:false` + `unsupported_environment`。
+- I8 Resolved — §3 点名 overlay / visualize / 改名三处监听，实施归 Q5b。
+- I9 Resolved — K2 列出命令 id 与新 contribution 文件，看板 C 已收该文件。
+- M1–M4 Resolved — 开篇 14+1、壳仍在、snapshot 含全部键、T1 落点已写。
+- X1 Resolved — P0 / 看板 / protocol-surface 已列 Hub。
+- X2 Resolved — `client-settings-completion.md` 已改指 a11y §7。
+- X3 Resolved — Engine E2-1 完成线含 Web 省略 Test；本方案 W1 依赖 E2-1。
+- X4 Resolved — 归属表与看板一致；节号已修。
+
+Critical:
+（无）
+
+Important:
+- I1 [§5 / §2 RWD-1] `ConversationEditorPane.layout` 打 `.is-narrow` 的文件不在 B 冲突域。证据：`conversationEditorPane.ts:96-98` 今天只把 width 传给 breadcrumb；看板 B 与 `conversation-ui-closeout.md` §10 均未列 `conversationEditorPane*`。Q6 正文已点名该文件，B 按看板无法合法改。建议：看板 B 与 Conversation §10 补 `conversationEditorPane.ts` / `conversationEditor.contribution.ts`。
+- I2 [§3 / §8 K2] `sources.review.moveToHost` 无对应动作，且 C 新 contribution 接不进现有选中行。证据：HEAD 只有 `sources.review.showForPaths`（`sourcesReview.contribution.ts:16`）、右键 Action id `sources.review.markReviewed` / `markUnreviewed`（`sourcesReviewList.ts:436-447`）、打开走 `openSourcesChangeEntry`（`:405`）；`ISourcesReviewListHost` 仅 `selectReviewTab` / `setPathFilter`（`sourcesReviewHostService.ts:11-14`）。新文件也未写由谁 `import`（`sources.contribution.ts:10` 只拉 `sourcesReview.contribution.js`）。建议：命令 id 对齐现有 Action/打开函数；扩展 host 接口或明确转交 `sourcesReviewList.ts`；写明 import 落点。
+- I3 [§4 / §9 / Q5b] 「完整回合走 Accessible View」无完成线、无实施者。证据：`contrib/conversation` 无 `IAccessibleViewService`；`conversation-ui-closeout.md` Q5b 完成线（约 :114）未提 Accessible View；本方案 §9 也未列。建议：Q5b 完成线加「接入既有 Accessible View，不新造 live 区」；§9 加对应勾选项。
+- I4 [§3 子代理 dialog] focus trap 的 DOM 边界与共用 SessionBar 冲突，合同不可直接做。证据：overlay 的 lens 写入 Part 级 `sessionBar`（`conversationSubAgentOverlay.ts:64,179`，`conversationSessionChat.contribution.ts:30-42`），该节点不在 `overlay.element` 内。只 trap `overlay.element` 则透镜 tab / 改名在陷阱外；把 Part sessionBar 纳入则锁住根会话 chrome。建议：Q5b 写死 trap 根节点（例如 overlay 内自备 sessionBar，或 trap 明确不含 Part 槽）。
+- I5 [§9] 对话页清单仍漏 `system`。证据：`ConversationTimelineEntryKind` 含 `system`（`conversationSessionView.ts:39,86,269`）。建议：§9 时间线条补 `system`。
+
+Minor:
+- M1 [§3 / K1] 复用 `nextEditor` 在组内最后一 tab 会跳到下一 group（`editorActions.ts:1286-1307`），即 Preview。§9 未写「切完本叶后离开 Conversation」。验收时不要判 fail。
+- M2 [§7 P0 Hub] 「login / connect 拒绝」：Hub 无 `connect()`（`hub.ts:86-111`）；`login` 的 `HubLoginResult.code`、`addDirectAddressProfile`、`isEncryptionAvailable` 未钉。`connectionPreferencesPane.ts:377-395` 构造期订阅 Events 并调用 `isEncryptionAvailable()`；返回 `false` 会画「重启后再登录」，冒充密钥环问题。E2-1 藏控件前仍可见。建议：mutating 一律 `ok:false` + 环境码；`isEncryptionAvailable()=true` 或 idle directory；profiles=`[]`。未核实 P 草稿是否已列全方法。
+- M3 [§6 T1] 高对比度选择器应写成 `.monaco-workbench.hc-black` / `.hc-light`（见 `workbench/browser/media/style.css:129`），不要当成 UA 根 class。
+- M4 [§8 L1] §9 含 Composer Tab / Enter（B CS-2），L1 依赖只有 Q5b/Q6、E2-7。Composer 项无人复核窗口。
+- M5 [§7] P0 未显式写 `isEngineConnected()=false` 与 Connection Events 为 `Event.None`。接口会强迫实现；Navigator 在 `isEngineConnected()=false` 时不读 capability（`navigatorAgentsView.ts:352-355`），不构成假探测。未核实 browser 草稿。
+
+Cross-doc:
+- X1 与 `m7-ui-completion-wave.md` Wave 3 A3（约 :92）：父方案仍写「E2-7 … 省略桌面连接控件」；本方案 / Engine E2-1 已把省略放在 E2-1，E2-7 只做 RWD-2。C3 写 W1「P0 后」，本方案 W1 依赖 P0+E2-1。
+- X2 与 `conversation-ui-closeout.md` §10：Q6 要改 `ConversationEditorPane`，冲突域未列该文件（同 I1）。
+- X3 与 `conversation-ui-closeout.md` Q5b：本方案 §4 的 Accessible View 未出现在 Q5b 完成线（同 I3）。
+
+Verified OK:
+- Web 今天无 UA 注册：`workbench.desktop.main.ts:60-61` 注册 Connection/SessionView；`workbench.web.main.ts` 无 UA；`platform/universeAgent/browser/` 不存在；Hub 经 `connectionHub.contribution.ts:6` → `uaPreferencesPanes.contribution.ts:23` → `conversation.contribution.ts:9` → `workbench.common.main.ts:232` 进 Web。
+- 缺服务时是 contrib 创建失败、壳仍在（开篇现状句成立）。P0 三服务 + 移出 Hub import 足以让 DI 实例化；控件诚实省略仍靠 A E2-1，方案已写明。
+- `UniverseAgentConnectResult` 无 `ok`、token 可选（`universeAgentTypes.ts:37-44`）；`ConnectionFailureCode` 尚无 `unsupported_environment`（`connectionHubTypes.ts:7-24`），P0 新增成立。`HubAuthStatus` 已有 `unavailable`（`hub.ts:14-19`）。
+- 十个 capability 键在 `universeAgentTypes.ts:10-20`；`getConnectionPhase` / transport `idle` 存在。
+- K1/T1/W1/L1 不要求 C 改 `conversationLens*` 或 `enginePreferencesPane*`；T1 经 `conversationPart.ts` 进公共 CSS，B/A 只挂 `.ua-motion`。
+- `ConversationLens` 无 `layout()`；透镜 tablist 左右键、过程折 `aria-expanded`、overlay `role=dialog` 仍如现状所述。
+- D14 closed 只覆盖四钮+F6；D15 前置为 P0+E2-1（`deferred-gaps.md:31-32`）。
+- 方案未用 Copilot Chat / `IMcpService` / Extension 顶替 UA；凭据不进 `settings.json`。
+- F6 仍是 `focusNextPart` / `focusPreviousPart`，K1 复核不另绑 F6。
+```

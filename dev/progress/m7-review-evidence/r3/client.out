@@ -1,0 +1,32 @@
+Verdict: **Approve**
+
+Round-2 follow-up:
+- I1 Resolved — §2 两条路径与代码一致：`ConversationPart.focus` 直接 `querySelector`（`conversationPart.ts:125-132`），不经 `focusDockInput`；`ConversationEditorPane.focus` 才走 `focusDockInput`（`conversationEditorPane.ts:100-102`）；`switchToSession` → `showConversationPart` → `conversationPartService.focus()`（`conversationLens.ts:1175-1182`，`conversationSessionStatus.ts:111-117`）并入 Part 路径，已删「第三条新增」。看板 B 行已转交 `conversationPart.ts` 的 `focus()` 一处。
+- I2 Resolved — §2 / CS-2 写死 stub 构造（`conversationStubService.ts:121-128`，失效回落 `conversationStubModel.ts:202`）与 `restoreEngineCacheFromStorage`（`conversationEngineRosterService.ts:248-262`）两处都读设置；关闭时仍加载列表、active 落第一项。
+- I3 Resolved — 宿主钉为新建单例 `conversationNotifications.contribution.ts`，看板已列该文件并由 `conversation.contribution.ts` 挂载；禁止 per-lens / overlay。
+- I4 Resolved — CS-4 完成线要求扩展已有 `scrollToFirstPendingConfirmation`（`conversationLens.ts:1465-1479`）到 question 座位；`countPendingConfirmations` 仍走 `pendingActions.length`（`conversationStubService.ts:328-329`）。
+- I5 Resolved — CS-1 白名单 = 当次已注册键；CS-2…CS-5 每次改同一断言；禁止 `startsWith('ua.client.')` 正向放行；`:249-252` 负向保留。
+- M1 N/A — 第二轮已接受定义，本轮未改产品裁定。
+- M2 Resolved — Permissions 行改为「定位函数与 count 已有，加开关」。
+- M3 Resolved — 持久化条目键 `${sessionId}/${chatId}`，根叶与 overlay 不共用。
+- M4 Resolved — §1.6 要求 `registerUaClientSettings` 显式 `ConfigurationScope.WINDOW`（registry 默认即 WINDOW，`configurationRegistry.ts:804,831`）。
+- M5 Resolved — §1.6 已给 `comfortable|compact` 与 `send|newline` 的 `enumDescriptions`。
+
+Critical:
+（无）
+
+Important:
+（无）
+
+Minor:
+- M1 [§2 Chat Input / CS-1] 「改为委托 lens `focusDockInput`」若按字面在 `conversationPart.ts` 引用 `ConversationLens`，会违反 contrib 外不得依赖 contrib（该文件自述 Part 不渲染产品 chrome，`conversationPart.ts:21-23`）。实施时：Part.focus 只读 `IConfigurationService` 后沿用现有 `querySelector`；EditorPane 路径在 `focusDockInput` 读同一键。未核实是否有人会真的反向 import。
+- M2 [§2 Chat Input × Permissions] `autoFocus=false` 时不得让 `Part.focus` 整函数 return，否则 Sessions/Navigator 的「回到会话」只调 `conversationPartService.focus()`（`conversationSessionsView.ts:282-286`，`navigatorProjectsList.ts:225-229`），CS-4 的 pending 滚动会被误伤。`autoFocus` 只闸 textarea.focus。
+- M3 [§5 CS-3] toast 点击「定位座位」未写如何调用现为 lens private 的 `scrollToFirstPendingConfirmation`（`conversationLens.ts:1465`）。可抽共享助手或先 `switchSession` + `showConversationPart` 再 scroll；不阻塞 CS-1。
+
+Verified OK:
+- 9 键闭集、四键删除依据（`grpcClient.ts:831-833` `supported_tools=[]`；`contrib/conversation` 无 `openExternal`；IdentityStrip 仍是 engine·folder·branch，`conversationIdentityStrip.ts:64-66`；`CONVERSATION_HIDDEN` 默认 `false`，`layout.ts:3218`）仍成立。
+- 看板 B 含 `uaClientSettings*` / TOC / `settingsUaToc.test.ts` / `conversationNotifications.contribution.ts` / `conversationPart.ts#focus` 转交；依赖矩阵 CS-* 不依赖 P。
+- `settingsUaToc.test.ts:246-253` 负向 `ua.connection.*` / host|port / placeholder / 任何 `ua.client.*` 仍在；CS-1 只替换 `:253`。
+- 草稿键不撞 `conversation.roster.v1` / `conversation.lensId`；Enter `newline` → Shift+Enter `submitDraft()`，不新增 command。
+- `page-access-schemes.md:954` 已划掉 placeholder 并指向本方案。
+- 分层/安全：本方案不要求 contrib import `platform/universeAgent/node`；凭据不进 `settings.json`；Permissions 不自动批准。

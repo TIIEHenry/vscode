@@ -1,0 +1,33 @@
+第二轮改口已对照方案正文、跨文档与 HEAD 代码核对完毕。无新的 Critical，也没有会挡住 E2-1 开工的 Important。
+
+```
+Verdict: Approve
+```
+
+Round-2 follow-up:
+- I1 [§2 / §5 E2-1 / §7] Resolved。§2 新增六态 `EngineSectionState`、保留四态别名、`shouldHideCatalogRows` 恒 false；E2-1 可改四节 `display:none` / `'supported'` 判别并列入 §7；E2-1 完成线可单独判定（`engine-preferences-completion.md:61,154,179`）。HEAD 仍四态 + 断连隐藏（`engineCatalog.ts:10,28-29`；`engineSkillsSection.ts:326-328`；`engineAgentsSection.ts:400-412`；`engineMcpSection.ts:356-358`；`engineToolsSection.ts:277-279`），属待实施。
+- M1 [§2 / E2-2] Resolved。Retry 只在 failed（`:59`）；E2-2「零 button」改为零凭据/测试/写控件（`:155`）。
+- M2 [§2] Resolved。断连复用 `getConnectionPhaseStatusBarText`「Engine not connected」（函数确为该句：`conversationSessionStatus.ts:77-79`）；废止 `getEngineEmptyCopy` / 「Engine is connected.」（`:50,154`）。HEAD 仍 `"No engines yet"` / `"Engine is connected."`（`enginePreferencesPane.ts:26-28,69`）。
+- M3 [§5 E2-2] Resolved。完成线已拆 P1b 前两组 unsupported / 后分组只读列表（`:155`）。
+- M4 [§3.3] Resolved。`customizations-engine.md:127` 已改「仅 Desktop 进程内 `RulesBridge`；IDE 不可达」。
+- X1 Resolved。`customizations-engine.md:121` 已改「`model.json` IDE 不可读不可写（G-ENG-4）」；`engine-catalog.md:71` 同步。
+- X2 Resolved。`settings-two-surfaces.md:36,58` 与 PRD-025 验收 2（`requirements.md:350`）均已加「零条目零写按钮，导航仍可达」。
+- X3 Resolved。父方案 Wave 1 A1（`m7-ui-completion-wave.md:79`）、Wave 3 A3（`:92`）、看板（`m7-ui-completion.md:38,51,59`）、`status.md:34` 均已收口为省略只在 E2-1。残留见 Minor。
+- X4 Resolved。`engine-catalog.md:30` 节题已标 @ HEAD，并指向 §5 / E2-1 废止 hide。
+
+Critical:
+（无）
+
+Important:
+（无）
+
+Minor:
+- M1 [父方案 §5.5 / 可达性 §7] 未核实会否误导 E2-7 重复做省略：`m7-ui-completion-wave.md:107` 完成定义仍写「P0 + E2-1/E2-7」；`accessibility-responsive-ui.md:98` 仍写「由 A 在 E2-1 / E2-7」省略。本方案与看板已是 A 槽 SSOT，不阻止开工。
+- M2 [§2 vs §7] E2-6「四态别名删除」会改 `engineCatalog.ts`，而 §7 写「状态机仅 E2-1 写」（`:61,178`）。别名残留无行为风险；E2-6 开工前在 §7 给开别名删除权即可。
+
+Verified OK:
+- I1 编译边界自洽：E2-1 原子改四节 + 新六态文件，E2-6 只迁入/删别名、不改状态机语义。
+- C1 仍成立：Model tab 固定 unsupported；G-ENG-4 在 protocol-surface（`:46,109`）。
+- 跨文档 Local Rules / 整页空+导航可达 / Web 省略归属（Wave 表 + 看板 + status）与本方案一致。
+- HEAD 分层未变：pane 只 import `platform/universeAgent/common`（`enginePreferencesPane.ts:12`）。
+- 断连文案函数与 §2 引用一致（`conversationSessionStatus.ts:72-89`）。

@@ -4,7 +4,7 @@ type: plan
 status: implemented
 phase: N/A
 updated: 2026-09-02
-summary: "B2 壳之后页面接入；切片 1a–4 已落；切片 5 blocked PRD-008"
+summary: "B2 壳之后页面接入；切片 1a–5 代码已落，M7 继续 Engine/Client UI 完成，不重开宿主"
 origin: multi-party-design-review
 mpdr:
   skill: multi-party-design-review
@@ -38,7 +38,7 @@ mpdr:
 # 页面接入方案：Settings / 会话列表 / 透镜 / Navigator tab
 
 > **本文件是已签收（`accepted`）决策 SSOT。** 与知识层四页冲突时 **以本文件为准**。四页仍作细节锚点（HEAD 类名、容器 id、donor 禁令、分阶段清单）；文首已加 SSOT banner。**选定设计全文已于 2026-09-01 按 §12 同步至四页**；实施者 **禁止**按四页旧 Connection 树内形态施工。  
-> **前置**：M0–M3 壳 `implemented`；M4 验证波仍 `in_progress`（D4 启动）。**实施另开会话按切片开**；本文件不改 `src/`。切片 1a ReadyToImplement；1b 及之后按 §10 / B12。  
+> **实施状态补记（2026-09-02）：** 切片 1a–5 均已落；本文件继续作为 Settings/roster/透镜/Navigator 宿主与边界 SSOT。M7 只补 [Engine](engine-preferences-completion.md) / [Client](client-settings-completion.md) 内容面，不重开本文件的混合宿主与同 token 决策。
 > **知识层锚点**（选定设计已按 §12 同步；banner 已标父方案优先）：[settings-ua-access](../../docs/reference/code-oss-b2/settings-ua-access.md) · [session-roster-reuse](../../docs/reference/code-oss-b2/session-roster-reuse.md) · [conversation-lens-assembly](../../docs/reference/code-oss-b2/conversation-lens-assembly.md) · [navigator-tabs-access](../../docs/reference/code-oss-b2/navigator-tabs-access.md)。  
 > **壳拓扑**（已 accepted）：[desktop-shell-mapping](../../docs/reference/code-oss-b2/desktop-shell-mapping.md)。  
 > **外仓**（只链，不复述条款）：[IA](../../../UniverseAgentDesktop/docs/product/information-architecture.md) · [ui-interaction-spec](../../../UniverseAgentDesktop/docs/product/ui-interaction-spec.md) · [ADR-061 决策 5](../../../UniverseAgentDesktop/dev/decisions/061-code-oss-base-and-editor-window-shell.md) · [ADR-037](../../../UniverseAgentDesktop/dev/decisions/037-deep-link-navigation-event-seam.md)。
@@ -951,12 +951,12 @@ getCommonlyUsedData(
 
 **层：** 必须 `contrib/conversation`（产品键），**禁止**放 `contrib/preferences`（donor）。`tocData` 仍在 `settingsLayout.ts` 用 key pattern 引用，不 import conversation 实现。
 
-切片 1 可只注册分组骨架 + 0～N 个占位键；无键的分组须有至少一条非 leftover 的 pattern 或显式空组策略——若 HEAD leftover 警告，放 **一条** `ua.client.display.placeholder` 仅作 TOC 占位 **须在 1b 注明且不得进 commonly-used**。优先：有真实 Client 键再进 TOC。**Deferred：** 各分组完整键清单留给产品签收，不阻塞 1b 骨架。
+切片 1 可只注册分组骨架 + 0～N 个占位键；无键的分组须有至少一条非 leftover 的 pattern 或显式空组策略。~~若 HEAD leftover 警告，放一条 `ua.client.display.placeholder`~~ **已被取代（2026-09-02）**：PRD-026 验收 1 与 [client-settings-completion](client-settings-completion.md) 禁止任何 placeholder 键，`settingsUaToc.test.ts` 有负向断言；键闭集（9 键）与消费点见该方案。
 
 ### 15.9 B9 — 深链 handler / 别名 / 「未滚动」
 
 **Handler 落点：** `src/vs/workbench/contrib/conversation/browser/universeAgentDeepLink.contribution.ts`  
-实现 `IURLHandler`，`IURLService.registerHandler`。scheme = `'universe-agent'`（Desktop ADR-037；**不**绑 `product.urlProtocol`）。OS 级协议注册 **Deferred**。切片 1b 测直接 `handler.handleURL(URI.parse(...))`。
+实现 `IURLHandler`，`IURLService.registerHandler`。scheme = `'universe-agent'`（Desktop ADR-037）。~~不绑 `product.urlProtocol`~~ **M7 起改口（2026-09-02）**：[product-identity](product-identity.md) I2 把 `product.json` `urlProtocol` 改为 `universe-agent` 并把常量下沉到 `platform/product/common/universeAgentScheme.ts`，二者由 node 层测试保持一致；OS 级协议注册随 I2 落地。切片 1b 测直接 `handler.handleURL(URI.parse(...))`。
 
 **page 别名（lowercase、trim、去尾 `/`；authority 忽略或为 `settings`）：**
 

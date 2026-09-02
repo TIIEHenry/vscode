@@ -1,0 +1,59 @@
+核对完第一轮改口、proto 字段和跨文档残留，结论如下。
+
+```
+Verdict: Approve with changes
+```
+
+本方案方向仍正确：C1 假编辑器已从本合同拿掉，九节诚实 unsupported、P 槽前置、分层/安全红线仍成立。不能 Approve 是因为 E2-1 完成线与文件所有权在改入 I7 后对不上（六态类型替换会撑破 E2-6 文件），以及既有合同里仍留着会诱导假 Model 编辑器 / 整页隐藏的旧句。无新 Critical。
+
+Round-1 follow-up:
+- C1 [§3.4 / E2-6] Resolved。§3.4/§3.2/E2-6/§6 改为 Model tab 固定 unsupported；G-ENG-4 已登记。前提仍成立：`AgentProfileProto` 无 `model`/`modelType`/`maxTurns`（`agent_service.proto:1513-1530`）；`toAgentPreset` 写死 `model = null, modelType = null, maxTurns = 0`（`GrpcAgentProfileMappers.kt:38-40`）；`writePresetFiles` 仅非空才写 `model.json`（`AgentPresetLoader.kt:300-312`）；本仓 `UniverseAgentAgentProfileDetail` / `mapAgentProfileDetail` 无这些字段（`universeAgentTypes.ts:239-254`、`grpcClient.ts:372-388`）。残留旧合同见 X1，不把 C1 打回。
+- I1 [§2] Resolved。判定顺序表含 UNKNOWN→loading 分句；in-flight 与 failed 互斥已写。
+- I2 [§3.2] Resolved。Provider 组零引擎数据；provider 名只作 Model 组脚注。
+- I3 [§3.8] Resolved。ScanNew/Info/Unload/DENIED 均按 wire 与响应字段。
+- I4 [§5 E2-6] Resolved。完成线改为可观察项；Model 候选随 C1 删除，依赖栏 `—` 不再偷用 P1b。
+- I5 [§2] Resolved。§2 与 `engine-catalog.md:78` 已写 Engine catalog ≠ Navigator。
+- I6 [§2 / E2-1] Resolved（方案正文）。§1/§2/E2-1 写明废止 hide-on-disconnect，并改用 `getConnectionPhaseStatusBarText`（`conversationSessionStatus.ts:72-90`）。HEAD 仍 `display:none`（`engineSkillsSection.ts:326-328`）与 `"Engine is connected."`（`enginePreferencesPane.ts:69`），属待实施，不是方案未改。所有权缺口见新 I1。
+- I7 [§2 / §7] Resolved（落点已写）；改入后新矛盾见新 I1。
+- M1 Resolved。`PermissionService.GetSessionRules`（`session_service.proto:42-53`）；protocol-surface §1 已改。
+- M2 Resolved。`MCP_STATUS_UNSPECIFIED`→failed。
+- M3 Resolved。Hooks「两栏行数恒为 0」。
+- M4 Resolved。§7 点名四文件。
+- M5 Resolved。Provider reason 跟 `providerConfig` capability。
+- M6 Resolved。`PERMISSION_DENIED`→failed。Connect 是否对非 operator 仍广告方法仍未核实（原标）。
+- X1 Resolved（所引 §1 表 / §2 矩阵 Local 口径）。`src/vs` 仍无 `RulesBridge`。§3.3「已有 = Local RulesBridge」弱残留不单列。
+- X2 Resolved。`engine-catalog.md` §5 Rules 行已改「无 Local 路径」。
+- X3 Resolved。父方案 Wave 2 已改「壳可先、真数据等 P」（`m7-ui-completion-wave.md:83-85`）。
+- X4 NotResolved。本方案 §1 已本地统一；`settings-two-surfaces.md:58` 与 PRD-025 验收 2（`requirements.md:350`）仍写「整页诚实空 + Test」，无「导航仍可达」。
+
+Critical:
+（无）
+
+Important:
+- I1 [§2 / §5 E2-1 / §7] E2-1「独占把 `EngineCatalogPaneMode` 扩成六态」与「E2-6 只迁入、不改状态机」互斥，E2-1 完成线不可单独判定。证据：现类型是 `'disconnected' | 'unsupported' | 'unknown' | 'supported'`（`engineCatalog.ts:10`）；四节直接判别 `'unknown'` / `'supported'` 且断连 `display:none`（`engineAgentsSection.ts:400-412`、`engineSkillsSection.ts:326-328`）。换成 loading/failed/empty/ready 后这些文件无法编译，而 §7 把它们划给 E2-6。只改 `shouldHideCatalogRows`（`engineCatalog.ts:28-30`）也废不掉各节自己的 hide。建议：E2-1 新增六态组件、保留四态别名；各节 `display:none` 与 `'supported'` 分支的删除写进 E2-6 完成线；或写明 E2-1 为编译通过可改四节的 mode 判别（并列入冲突域）。
+
+Minor:
+- M1 [§2 / E2-2] 统一组件写「同一 Retry 按钮」，E2-2 完成线又写 Provider 组「DOM 内零 `button`」。未核实 Retry 是否在 unsupported 也出现。建议：Retry 仅 failed；E2-2「零 button」= 零凭据/测试/写控件。
+- M2 [§2] 断连页级文案写「No engine connected」，但 Test/Overview 复用的 `getConnectionPhaseStatusBarText` 在 disconnected 是 `"Engine not connected"`（`conversationSessionStatus.ts:77-79`）。HEAD 还有 `getEngineEmptyCopy` = `"No engines yet"`（`enginePreferencesPane.ts:26-28`），会被读成真空目录。建议：E2-1 完成线点名废止该句，断连三处共用 StatusBar 那句。
+- M3 [§5 E2-2] 依赖列是 P1b，末段又说 UI 不等待 P，完成线只写「按 provider 分组只读列表」（SUPPORTED 路径）。建议完成线拆两行：P1b 前两组 unsupported；之后才分组列表。
+- M4 [§3.3] `customizations-engine.md:127` 列表「已有」仍写 Local `RulesBridge`。本方案 §3.5 已正确。未核实实施者会不会读到旧表。建议旧 §3.3「已有」改为「仅 Desktop 进程内，IDE 不可达」。
+
+Cross-doc:
+- X1 与 `customizations-engine.md:121` 矛盾：仍写「`model.json` 在本页只作 profile 附件只读/可编」。本方案列为既有合同（文首），E2-6 按旧句会做出 C1 已禁止的假编辑器。须回改该句为「SaveAgentProfile 不承载 model.json（G-ENG-4），IDE 不可读不可写」。
+- X2 即 Round-1 X4 未改旧文：`settings-two-surfaces.md:36,58`、PRD-025 验收 2（`requirements.md:350`）仍「整页诚实空」。本方案 §1 的「零条目、导航可达」只写在本文件。须在那两处加同一句，否则 E2-1 与旧测试/PRD 仍会各做各的。
+- X3 与父方案切片归属：本方案 Web 省略在 E2-1（§1、§5），窄宽度在 E2-7；父方案 Wave 1 A1 未写 Web 省略（`m7-ui-completion-wave.md:79`），Wave 3 A3 又把「Web 下省略桌面连接控件」挂到 E2-7（`:92`）。建议父方案 Wave 1 补「P0 后 Web 省略」、Wave 3 只留 RWD-2 与文案。
+- X4 与 `engine-catalog.md` §2：仍写 disconnected「整节隐藏」（`:36`），标题未标 @ HEAD；§5 才是 M7 清缓存。E2-1 实施者若把 §2 当合同会保留 hide。建议 §2 标 @ HEAD，并指向 §5 / 本方案废止 hide。
+
+Verified OK:
+- C1 传输事实未变（proto / mapper / 本仓类型均无 model 字段）；本方案不再要求可写 Model tab。
+- HEAD：`EnginePreferencesPane` 只挂四节、`(height-220)/4`（`enginePreferencesPane.ts:56-59,86`）；`IUniverseAgentConnection` 止于 `listTools`（`universeAgentConnection.ts:132-159`）；`plugins/globalRules/projectRules/hooksMetadata` 在 `grpcCapabilityProbe.ts:100-104` 固定 `UNSUPPORTED`；`mcpRuntime`/`models`/`providerConfig` 仍不在 `UniverseAgentCapabilityKey`（`universeAgentTypes.ts:10-20`）。
+- `ListModels`/`ModelEntryProto` 字段与 §3.2 一致（`common.proto:78-88,130-137`）；`SwitchModel`/`Get|SetModelPreferences` 带 `session_id`，排除正确。
+- Provider 组零输入；`TestModelProfile` 在 `AgentService`（`agent_service.proto:71,1584-1596`），G-ENG-1 前不接。
+- MCP Runtime 字段与 `mcp_service.proto:82-117` 一致；`UNSPECIFIED=0` 已归 failed；`mcp`/`mcpRuntime` 分离与 protocol-surface §2 一致。
+- Plugin 字段与 `plugin_service.proto:35-62,88-91` 一致；Unload 按 wire `source==="embedded"`；无 marketplace。
+- 全仓 proto 无 `ListHookPoints`；Rules/Hooks 完成线行数恒 0。
+- §4/§5 与看板矩阵（E2-2→P1b，E2-4/5→P1a，未合入则 unsupported；E2-7↔RWD-2；`conversationSessionStatus*` 归 C）一致。
+- 分层：pane 只 import `platform/universeAgent/common`（`enginePreferencesPane.ts:12`）；gRPC 在 node。
+- 安全：凭据不进 settings.json / 不回显；Permissions 自动批准不在本方案。
+- §6 测试失败不升 `implemented`，与父方案 §2 / PRD-025 依赖段一致。
+```

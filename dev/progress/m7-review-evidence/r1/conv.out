@@ -1,0 +1,44 @@
+```
+Verdict: Approve with changes
+```
+
+方向正确：DetailRef 走 P2a、compacted 走 P2b、Overview 声明为记录派生、无 timing 等宽、新 kind 折外、测试不升 `implemented`。但有两处按原文实施会做出假 UI / 假状态，且 Q2 六态的平台合同尚未成立。
+
+Critical:
+- C1 [§3 / §7 / §8 Q2] loading/failed「侧信号」与 partial 所需的 `truncated`/`total_bytes` 在现行合同里都不存在，Q2 六态无法判定。证据：`IConversationSessionViewLease` 无 `requestDetail`，`details` 为 `ReadonlyMap<string, string>`（`conversationViewFrame.ts:19-25`）；`DetailPatch` 只有 `{ref, body}`（同文件 `:62-64`）；`IUniverseAgentSessionView` 无详情 API（`universeAgentSessionView.ts:30-43`）。P2a（总方案 §4、看板依赖表）只写 `requestDetail` + DetailPatch 标 `truncated`，没有 loading/failed 事件，也没有改 `details` 值类型。`FetchToolDetailResponse` 另有 `success`/`error_message`（`agent_service.proto:FetchToolDetailResponse`）。建议：把六态写进 P2a 合同（扩展 `DetailPatch`/`details`，或明确 UI 仅用「已调用 `requestDetail` 的本地 in-flight」+ 回填体；`success=false`→failed，`truncated=true`→partial，缺通道/`UNIMPLEMENTED`→unavailable），并改 Q2 完成线为「无 P2a 只验收 preview/unavailable」。
+- C2 [§6 / Q5] 对话页「独立诚实行」与 HEAD 渲染洗白矛盾；Q5 只扩轨迹 kind 会留下假助手行。证据：`projectSnapshotToEntries` 已把 `error`/`unknown`/`question` 映成独立 entry（`conversationSessionView.ts:305-310`），但 `entryToRenderableTurn` 把非 stub kind 一律变成 `kind:'assistant'` + `stubEcho:true`（同文件 `:360-388`）；树只吃 `ConversationStubTurn`（`conversationTimelineTree.ts:725-726`）。这直接违反本方案引用的 PRD-021。建议：Q5 完成线显式包含「停止 `entryToRenderableTurn` 洗白；error/unknown/question 进树与座位，且不得标 Stub」。
+
+Important:
+- I1 [§4] `ContextCompactedEvent` 不在显示流上。证据：该消息只出现在 `ChatResponse.event`（`agent_service.proto:229`）；`SessionStreamEvent` 无 compact 子类型（`message_envelope.proto:482-527`）。L2 可用的是 `branch_reason`、`CompactedSpanBlock`、`SummaryBlock`、以及 `EnvelopeRangeReplaced.reason=COMPACT`（同 proto `:66-70,:213-216,:301-304,:375,:603-614`）。方案把 Chat 事件与 envelope 块并列交给 host demux，若 P2b 去订 `AgentService.Chat` 当显示源，违反 stream-timeline §1/§5。建议：写明行身份只来自 L2；summary/token 若只有 Chat 事件则作可选富化或走 `SummaryBlock`，不得当第二显示源。
+- I2 [§4] 「P2b 未合入时跳过分支永不命中」对生产者成立，但对 compact 事实形态不完备。证据：全仓 `branchReason` 只有轨迹模型本地扩展与 `=== 'compact'` 跳过（`conversationTrajectoryModel.ts:18-22,:129-132`）；`ItemAttribution` 无此字段（`conversationViewFrame.ts:38-46`）；stub/`sessionCore` 无 compact 处理。但 compact 还可能以 `EnvelopeRangeReplaced` 删段+插入 `BRANCH_NOTICE` 出现，只改 skip→emit 可能零行。建议：P2b 写清 range-replace vs `branch_reason` 行两条路径；Q3 完成线改为「P2b 未投影则零 compacted 行」。
+- I3 [§5 / Q4] 「overlay→L2 后展开态保留」与已落 span id 规则冲突。证据：span id = `fold:${firstId}`（`conversationProcessFoldModel.ts:76`）；overlay id = `overlay:${blockId}`（`conversationSessionView.ts:232-237`）；session-core 声明 overlay 与 timeline「0 admitted correlation」（`sessionView/types.ts:11`）；stream-timeline §3.3/§3.4 规定 UI 不做同一条推断、只在 span id 稳定时保留展开。overlay 若是段首，换成 L2 后 span id 必变。建议：完成线改为「只保证 span id 不变时保留；禁止为保展开去关联 overlay↔L2」。
+- I4 [§5 / Q4] live 标志在进折 chrome 前被丢掉。证据：`ConversationTimelineEntry.streaming` 有（`conversationSessionView.ts:53-54,:240`），`entryToRenderableTurn` 不拷贝，`ConversationStubTurn` 无该字段（`conversationStubModel.ts:23-35`）。Q4 的 loading/「live 字样」没有诚实输入，除非改用 `overlay:` 前缀或把 streaming/status 传到折。建议：写死信号源；stub 仍禁止 loading（已有测：`conversationSessionView.test.ts` stub 无 streaming）。
+- I5 [§5 / Q4] 借用过程折方案的 P4/P5 编号但内容已换。证据：`conversation-process-fold.md` P4 =「turnId 连续段替换 fixture」、**blocked on PRD-008**；P5 = sticky/缺口/executing 内滚。本方案 Q4 无 P、无 PRD-008 依赖。建议：声明 Q4 不含旧 P4；旧 P4 仍 blocked。
+- I6 [§2 / Q1] Overview「按 turn 分段 / 超 200 段按 turn 聚合」无法从现有记录派生。证据：`ConversationTrajectoryRecord` 无 `turnId`/timing（`conversationTrajectoryModel.ts:38-53`）；投影丢弃 `TimelineItemView.turnId`（`sessionView/types.ts:181`）；`TimelineItemSummary` 有意 omit duration（`types.ts:8`）。Q1 又写「Overview model」，与「不另造第二事件模型」字面打架。建议：Q1 从 snapshot 拷 `turnId` 进记录（仍一份模型），或写明无 `turnId` 时只按记录顺序等宽、不做 turn 聚合；「Overview model」改成「派生 view-model」。200 段无 PRD 依据（PRD-020 的 200 是毫秒）。
+- I7 [§6 / Q5] 四 kind 对搜索/reveal/上限的改动未写进完成线。证据：`getTrajectoryKindLabel` 穷尽 switch、无四 kind（`conversationTrajectory.ts:63-81`）；`collectTrajectoryTurnIdsFromSnapshot` 仍跳过 permission/question（`conversationTrajectoryModel.ts:254-258`）；`applyTrajectoryRecordLimit` 按条数截断（`:381-395`）。permission/question 今天被丢弃，Q5 会新增计入 5000 的行。折规则已是白名单 `thinking|tool|subtool`（`conversationProcessFoldModel.ts:99`），新 kind 默认打断——这一点成立，但须同步注释/文档。建议：Q5 列出 label、haystack、reveal、5000；并改 `conversation-trajectory-lens` §3.3 闭集与 `lens-and-trajectory.md`（HEAD 写「permission/question 不进轨迹」）。PRD-012 禁的是自动切页与进过程折，不是轨迹出现权限行。
+- I8 [Q5] 一刀过载，完成线不可判定。内容绑在一起：四 kind + A11Y-1（tabs/透镜/对话框）+ A11Y-2（全 kind ARIA）+ RWD-1（300px/inspector）。任一块未完则整刀不能勾。建议：拆 Q5a 行类型 / Q5b 键盘与 ARIA / 窄宽并入 Q6（与 a11y 方案「Q5/Q6」一致）。
+
+Minor:
+- M1 [§8 Q2] 「六态全部可见」与 §7「无 P2a 只有 preview/unavailable」互相打架；壳与接通应拆完成线。
+- M2 [§3] `truncated=true` 但缺 `total_bytes` 时未规定文案（字段为 optional，`FetchToolDetailResponse.total_bytes`）。
+- M3 [§3] 未禁止 `FetchToolDetailRequest.subscribe=true`（proto 有该字段）；与「不接 SubscribeToolDetail」并列表述。
+- M4 [§2] 「没有 timing 时等宽」暗示将来可能有耗时；view 层已 omit duration，应写死等宽。
+- M5 [跨面] 本方案未提 Web 实例化依赖 P0（总方案 P0 / PRD-019）；桌面 Q 切片可开，但不得称 Web Conversation 已可用。未核实 Q6 与现有 reveal 命令的逐条映射。
+
+Cross-doc:
+- X1 与 `engine-protocol-surface` §1b / §4 G-CONV-1：三件套并列，未标明 `ContextCompactedEvent` 在 ChatResponse、不在 SessionEventStream。
+- X2 与 stream-timeline §3.3/§3.4/G3：Q4 无条件保 overlay→L2 展开态；G3 已要求 `truncated=true` 为 partial，但 P2a 未把该字段送进 UI 可读结构。
+- X3 与 `conversation-process-fold.md` P4/P5：同名不同义，旧 P4 仍 blocked PRD-008。
+- X4 与 `lens-and-trajectory.md` §3.1 / `conversation-trajectory-lens` §3.3：闭集无 permission/question/error/unknown；方案只说改前者。
+- X5 与总方案 Wave 1 B1「Overview 与 Detail 宿主」：本方案 Q1 与 Q2 壳未对上 B1；看板 Q2/Q3 依赖姿态与 §7 一致（preview+不可用 / 无 compacted 行）。
+- X6 与 PRD-012：不矛盾（禁自动切轨迹、禁把权限折进过程区）。与 PRD-021：轨迹改独立 kind 对齐；对话页洗白未列入切片则矛盾。
+
+Verified OK:
+- 现状句：lease 无 `requestDetail`；`ItemAttribution` 无 `branchReason` 生产者；轨迹 `error→message`、`permission/question→undefined`、`unknown→context`（`conversationTrajectoryModel.ts:205-213`）。
+- stub / sessionCore 不写 `branchReason`；compact skip 在 P2b 前永不命中。
+- `FetchToolDetail` RPC 与 `truncated`/`total_bytes` 字段名属实；`CompactedSpanBlock` 三字段属实；`SubscribeToolDetail` 本方案不接。
+- 过程折 span id `fold:${firstId}`；overlay 行 id `overlay:${id}`；stub 无 `streaming`/`sync:live`。
+- `ConversationTrajectoryKind` 已含 `compacted`；折白名单使新 kind 默认折外。
+- 5000 上限与搜索 haystack 已在轨迹模型；无 timing 字段，等宽不造假耗时成立。
+- §7 P2a/P2b 与看板依赖矩阵一致；`platform/universeAgent/**` 归 P、轨迹/折文件归 B；contrib 只 import `common`。
+- 未把 Copilot Chat/MCP/凭据写入本方案路径；轨迹 permission 写成摘要而非第二套自动批准座位。

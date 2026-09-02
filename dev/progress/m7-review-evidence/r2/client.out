@@ -1,0 +1,54 @@
+对照代码复核了第一轮改入点和改稿后的新矛盾。结论如下。
+
+```
+Verdict: Approve with changes
+
+Round-1 follow-up:
+- C1 Resolved — 执行槽改 B（Wave 3 B4）；看板 B 行含 `uaClientSettings*` / TOC / `settingsUaToc.test.ts` 及 `conversationStubService*` / `conversationIdentityStrip*`；键与消费同切片。
+- C2 Resolved — `showAgentIdentity` 已删；IdentityStrip 仍是 engine · folder · branch（`conversationIdentityStrip.ts:64-66,96-113`）。
+- I1 Resolved — `openConversation` 已删；不再与 `LayoutStateKeys.CONVERSATION_HIDDEN`（`layout.ts:3218`）抢优先级。
+- I2 Resolved — §2 写死 `sessionId !== getActiveSessionId()` 或 Part 不可见；窗口失焦不算。
+- I3 Resolved — `turnCompleted` 标明仅引擎会话、`onDidTurnSettle`、stub 不伪造。
+- I4 Resolved — 改名 `showToolInvocationDetails`，作用于全部 tool 行；投影仍无 `respondable`（`conversationSessionView.ts:41-62`）。
+- I5 Resolved — §3 / CS-1 要求 `deleteSession` 与 roster 消失 id 同步清 `conversation.drafts.v1`。
+- I6 NotResolved — 三条路径写了，但「Part.focus / EditorPane 已调用 `focusDockInput`、`switchToSession` 需新增」与调用链不符（见 I1）。
+- I7 Resolved — §1.6 全部 `ConfigurationScope.WINDOW`；registry 默认即 WINDOW（`configurationRegistry.ts:804,831`）。
+
+Critical:
+（无）
+
+Important:
+- I1 [§2 Chat Input / CS-1] `autoFocus` 现状列不成立，按字面接线则 `false` 对主路径无效。`ConversationPart.focus` 用 `querySelector('textarea.conversation-lens-dock-input')` 直接聚焦（`conversationPart.ts:125-132`），不调用 `focusDockInput`；该文件不在看板 B 所有权。`ConversationEditorPane.focus` 才走 `focusDockInput`（`conversationEditorPane.ts:100-102`）。`switchToSession` 已 `invokeFunction(showConversationPart)`（`conversationLens.ts:1175-1182`），而 `showConversationPart` 必调 `conversationPartService.focus()`（`conversationSessionStatus.ts:111-117`），第三条并非「缺失」。建议：把开关做在 `focusDockInput` 不够；须写清 Part.focus 由谁改（看板转交 `conversationPart.ts` 该函数，或 B contribution 听 Part 可见/焦点），并删掉「第三条新增」。
+- I2 [§2 Startup / CS-2] `restoreLastSession` 现状只写 stub 构造无条件恢复（`conversationStubService.ts:121-128`）。曾连接引擎时真正恢复的是 `restoreEngineCacheFromStorage` 的 `engineCache.activeSessionId`（`conversationEngineRosterService.ts:248-262`）。只改 stub 则引擎工作区该键无效果。建议：CS-2 完成线写两处都读设置；关闭时仍加载会话列表，仅 active id 落第一项。
+- I3 [§5 CS-3] 未指定 toast 监听宿主。`ConversationLens` 按叶实例化（`conversationEditorPane.ts:68`），overlay 再实例化一次（`conversationSubAgentOverlay.ts:177-179`）。在 lens 内订 `onDidTurnSettle` / pending 变化会重复弹。建议：写死单一 workbench contribution（可新建，或挂 `conversation.contribution.ts` / ReviewNav 旁），禁止 per-lens。
+- I4 [§2 Notifications / Permissions / CS-3/CS-4] 通知语义含 permission **与 question**，定位却绑 `countPendingConfirmations` + `getConfirmationElement`。前者是 `pendingActions.length`（`conversationStubService.ts:328-329`，引擎 question 可进 pendingActions：`types.ts:51,129,207-212`）；后者只登记 `kind==='confirmation'` 座位（`conversationTimelineTree.ts:240-254,377-378`），树无 question 分支。HEAD 已有 `scrollToFirstPendingConfirmation`（`conversationLens.ts:1465-1479`），只找 confirmation。依赖 Q5a 后 question 进座位，但 CS-4 未要求扩展 lookup。建议：CS-4 完成线写 reveal 覆盖 question；或 CS-3 暂时只 toast permission，与 HEAD API 对齐。
+- I5 [§5 CS-1] 「闭集白名单精确匹配」未写白名单随切片增长。CS-1 只注册 Display+Chat Input **三键**；若测试写成 9 键必须存在，会迫使无消费点注册（违反 §1.3）。若写成三键闭集，CS-2…CS-5 必须追加同一测试却未列入完成线。建议：CS-1 白名单 = 当次已注册键的精确集合；后续切片追加键时改同一断言，禁止 `startsWith('ua.client.')` 正向放行。
+
+Minor:
+- M1 [§2] 多 session 叶时，非 roster-active 但可见的叶仍会 toast（定义只看 `getActiveSessionId` + Part 可见）。与「可见座位不重复弹」的直觉不完全一致；已钉死定义，可接受。未要求改产品裁定。
+- M2 [§2 Permissions] 「定位逻辑新增」不实：`scrollToFirstPendingConfirmation` 已存在且 Inbox 已接（`conversationLens.ts:598,1465-1479`）。应改为「加开关接到已有函数，并按 I4 覆盖 question」。
+- M3 [§3] 多 `ConversationLens` 实例各持内存 `drafts` Map（pane + overlay），持久化到同一 `conversation.drafts.v1` 可能互相覆盖。未核实产品是否允许 overlay 与根叶共用 sessionId 草稿。
+- M4 [§1.6] 表中无逐键 `scope` 列，靠总则 WINDOW；与 I7 改法等价，实施时勿漏写进 `registerUaClientSettings`。
+- M5 [§1.6] 要求 `enumDescriptions` 但未给 `comfortable|compact` / `send|newline` 文案；`IJSONSchema.enumDescriptions` 可用。不阻塞。
+
+Cross-doc:
+- X1 与 `page-access-schemes.md:954`：旧文仍允许切片 1 放 `ua.client.display.placeholder`。本方案 §4 / PRD-026 验收 1 禁止 placeholder。以本方案为准；旧宿主合同未改，不构成本方案缺陷。
+- X2 与 a11y §7、PRD-026 依赖段：通知 = `INotificationService`、Web 可用、不做 OS 通知，一致；a11y §3 Composer「发送始终有键盘路径」与 CS-2 Shift+Enter → `submitDraft()` 一致。
+- X3 与总方案 Wave 3 B4 / 看板 B 行 / 依赖矩阵「CS-* 不依赖 P」一致。
+- X4 与 `engine-protocol-surface.md` §1：`supported_tools=[]`；proto `common.proto:163` 字段存在；本方案不发明 RPC。
+
+Verified OK:
+- `registerUaClientSettings()` `properties: {}`（`uaClientSettings.ts:10-17`）；TOC 七组 + `emptyCopy` + `ua.client.<group>.*`（`settingsLayout.ts:478-518`）。
+- `settingsUaToc.test.ts:246-253`：负向 `ua.connection.*` / `connection.host|port` / `placeholder` / 任何 `ua.client.*` 仍在。
+- 草稿内存 Map（`conversationLens.ts:199,779`）；删会话内存 `drafts.delete`（`:1310-1313`）；roster 键 `conversation.roster.v1` WORKSPACE+MACHINE（`conversationRosterStorage.ts:9-10,35-36,64-70`）；`conversation.lensId` 亦不撞 `drafts.v1`。
+- Enter：`Enter && !shiftKey` → `submitDraft()`（`conversationLens.ts:769-772`）；发送钮 `:774`；无独立 send command。
+- `focusDockInput` 存在（`:307-309`）；仅 EditorPane 调用，Part.focus 不走它。
+- Part 默认可见：`CONVERSATION_HIDDEN` default `false`（`layout.ts:3218`）。
+- `countPendingConfirmations` / `getConfirmationElement` / confirmation seat Allow/Skip 仍为用户点击（`conversationConfirmationSeat.ts:51-61`）。
+- `onDidTurnSettle` 在 `platform/universeAgent/common`；`ITurnSettleSignal.sessionId`（`universeAgentTypes.ts:135-139`）；host `notifyTurnSettle`（`sessionViewHost.ts:283`）；renderer `conversationReviewNavService.ts:55-57`。
+- 删 `advertiseWorkspaceTools`：`grpcClient.ts:831-833` formal 配对 `supported_tools=[]`。
+- 删 `confirmBeforeExternalOpen`：`contrib/conversation` 无 `openExternal`；`IOpenerService` 仅 `conversationSessionsView.ts:153-157` ViewPane 透传。
+- PRD-026 验收 2 已改为密度/草稿/聚焦/恢复会话/Enter/通知/pending/tool 详情，无「广告」。
+- 分层：本方案不要求 contrib import `platform/universeAgent/node`；不把 Copilot Chat/Models/MCP 当 UA 面；凭据不进 `settings.json`。
+- CS-* 编号与总方案 Wave 内 C1 已区分；非阻塞政策与点名改 `:253` 不记 D17 仍成立。
+```
