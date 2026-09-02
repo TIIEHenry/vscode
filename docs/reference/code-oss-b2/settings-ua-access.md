@@ -4,7 +4,7 @@ type: reference
 status: accepted
 phase: N/A
 updated: 2026-09-02
-summary: "混合宿主：Client SettingsEditor2 + Connection/Engine Preferences pane；C5 与 donor H0–H3 已落；M6-C E1 catalog list/toggle @ ad4be0ea（写路径待槽 A）；Connection pane 四区空态见 connection-hub-client §4.2；产品目录见 settings-two-surfaces"
+summary: "混合宿主：Client SettingsEditor2 + Connection/Engine Preferences pane；C5 与 donor H0–H3 已落；M6-C E1 catalog @ ad4be0ea（SaveSkillContent 传输 @ 45fa7a35）；Connection pane 四区空态见 connection-hub-client §4.2；产品目录见 settings-two-surfaces"
 ---
 
 # Settings 接入：UA 设置项如何挂进 vscode Preferences

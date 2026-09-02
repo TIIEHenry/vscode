@@ -4,7 +4,7 @@ type: plan
 status: accepted
 phase: N/A
 updated: 2026-09-02
-summary: "Engine 页 catalog 权威；E1 部分已落（Skills list/toggle @ 8bfc299e；正文编辑器 UI + saveSkillContent? 契约 @ f3f2d366；Skill 新建 UI @ e6167c45；Agents/MCP/Tools List @ 4833c008；Save/CRUD/tools.json @ f49615a1；AGENTS.md @ 9419f583）；SaveSkillContent node 传输待槽 A；PRD-008 未升 implemented"
+summary: "Engine 页 catalog 权威；E1 部分已落（Skills list/toggle @ 8bfc299e；正文 UI + saveSkillContent? @ f3f2d366；SaveSkillContent node 传输 @ 45fa7a35/040c823d；Skill 新建 UI @ e6167c45；Agents/MCP/Tools List @ 4833c008；Save/CRUD/tools.json @ f49615a1；AGENTS.md @ 9419f583）；MCP 运行态/Plugins/§8.3 冒烟仍待；PRD-008 未升 implemented"
 ---
 
 # Agent Customizations 引擎面
@@ -16,7 +16,7 @@ summary: "Engine 页 catalog 权威；E1 部分已落（Skills list/toggle @ 8bf
 
 **Goal：** 把 Engine 页各节钉到 UniverseAgent 的 SSOT 与传输面；列出最小协议。无引擎时 **不要**在 Engine 页或 Customizations Overview 扫盘当 catalog。
 
-本稿 `accepted`（2026-09-01）。规则 16 三轮 Grok 4.6（Opus 不可用）。第三轮 Approve with changes 已改入。**E1 部分已落** @ `8bfc299e`/`4833c008`/`f49615a1`/`9419f583`/`f3f2d366`（Skills list/toggle；**Skills 正文编辑器 UI**—选中 skill textarea + Save，读 `SkillInfo`、USER/PROJECT 可编/BUNDLED 只读、断连/`UNSUPPORTED` 不渲染；common 可选 `saveSkillContent?` @ `f3f2d366`，**node gRPC 传输待槽 A**；Agents/MCP/Tools **List** + MCP `ToggleMcpServer`；Agents Save/Delete/Reset、MCP Add·Update·Remove、Tools 经 `SaveAgentProfile`/`engineToolProfile.ts`；**Agents `AGENTS.md` 全文编辑器** @ `9419f583`/`3756d04e`；**Skill 新建 UI** @ `e6167c45`/`9255e363`（connected 且 `skills=SUPPORTED` 时 New 创建用户 skill；断连/`UNSUPPORTED` 不调写）；**未落**：SaveSkillContent node 传输、MCP 运行态、Plugins、§8.3 六条产品验收与 PRD-008 隔离 profile 冒烟仍待。H0–H3 在 host-ui。
+本稿 `accepted`（2026-09-01）。规则 16 三轮 Grok 4.6（Opus 不可用）。第三轮 Approve with changes 已改入。**E1 部分已落** @ `8bfc299e`/`4833c008`/`f49615a1`/`9419f583`/`f3f2d366`/`45fa7a35`（Skills list/toggle；**Skills 正文编辑器 UI**—选中 skill textarea + Save，读 `SkillInfo`、USER/PROJECT 可编/BUNDLED 只读、断连/`UNSUPPORTED` 不渲染；common 可选 `saveSkillContent?` @ `f3f2d366`；**SaveSkillContent node gRPC 传输** @ `45fa7a35` / merge `040c823d`—`grpcClient` / `grpcTransport` / `universeAgentConnectionService` 动态绑定，`UNIMPLEMENTED` → `{ ok: false }`，`universeAgentConnection.test.ts` 覆盖）；Agents/MCP/Tools **List** + MCP `ToggleMcpServer`；Agents Save/Delete/Reset、MCP Add·Update·Remove、Tools 经 `SaveAgentProfile`/`engineToolProfile.ts`；**Agents `AGENTS.md` 全文编辑器** @ `9419f583`/`3756d04e`；**Skill 新建 UI** @ `e6167c45`/`9255e363`（connected 且 `skills=SUPPORTED` 时 New 创建用户 skill；断连/`UNSUPPORTED` 不调写）；**未落**：MCP 运行态、Plugins、§8.3 六条产品验收与 PRD-008 隔离 profile 冒烟仍待。H0–H3 在 host-ui。
 
 ---
 
@@ -102,7 +102,7 @@ AHP 可以拉起 Copilot CLI / agent-host 进程，那只是 vscode 侧 harness�
 |------|----------|------|----------|
 | 列表 | 每条：逻辑 `name`、`description`、`source` ∈ `{bundled,user,project}`、`enabled`、`slash_enabled`、`contentPath` 不向 UI 暴露为可拼路径 | `ListSkills`。Local 已 `setSource` 为 bundled/user/project。未知 wire 当 unknown，不映射 Copilot local/user/extension | 按 scope 分组。BUNDLED 只可 disable，不可删、不可覆盖安装 |
 | 启停 | `SetSkillEnabled(skill_name, enabled)` → 写对应 scope manifest，抬 catalog generation | 已有。损坏 manifest → `FAILED`，不得当空清单覆盖 | 开关打到引擎 catalog。UI 必须同时展示 §5 冻结文案 |
-| 正文 | `SkillInfo(skill_name)` → `content`（读，经 `entry.contentPath`，INV-SKILL-PATH-1）；写经 `SaveSkillContent` → IDE `saveSkillContent?` | 读：已有。写：UA RPC 已有；**IDE node 传输待槽 A**（@ HEAD UI + common 契约 @ `f3f2d366`，未接线时 Save 隐藏） | @ HEAD：**UI 已落**—textarea 预览/编辑 USER/PROJECT；BUNDLED 只读；断连/`UNSUPPORTED` 不渲染。**不得**写「写路径已通」直到 node 挂接 |
+| 正文 | `SkillInfo(skill_name)` → `content`（读，经 `entry.contentPath`，INV-SKILL-PATH-1）；写经 `SaveSkillContent` → IDE `saveSkillContent?` | 读：已有。写：UA RPC + **IDE node 传输已落** @ `45fa7a35`/`040c823d`（UI + common 契约 @ `f3f2d366`；probe/`UNIMPLEMENTED` 时 `saveSkillContent?` 缺席，Save 隐藏） | @ HEAD：textarea 预览/编辑 USER/PROJECT；BUNDLED 只读；断连/`UNSUPPORTED` 不渲染；node 传输已挂接。**§8.3 产品验收与 PRD-008 冒烟仍待**，不得以此升 PRD-008 `implemented` |
 | 新建 | 落盘 `{scopeRoot}/{name}/SKILL.md`（唯一合法布局）。无 manifest 行时 USER/PROJECT **opt-in**：`frontmatter.enabled == true` 才进入 catalog，禁止「丢文件即启用」 | 无独立 Create RPC。**仅 Engine-backed**：经 catalog/install 或约定「写文件后 ListSkills 刷新」（写发生在 UA Local 文件面，由已接引擎执行）。**禁止**断连 IDE 写 `{AgentHome}` | New 只在 E1+Engine-backed；目标目录是 UA 路径，不是 `.github/skills` |
 
 **本页不做：** Skill 商店、CLIENT scope、把 `ListCommands` 当第二套 Skills 列表（斜杠是同一 catalog 的投影）。
@@ -248,7 +248,7 @@ H0（donor：去 Copilot 文案 / Overview 去预填 / 不画 Tools CLI）
 ```
 
 - H0–H3 **可以**在无引擎时做；只动 donor chrome，**遵守 §4（Engine 页不扫盘）**。H1 **不得**把 `IPromptsService` 扫描根改到 `{AgentHome}` / `.universe-agent`。  
-- **E1 部分已落** @ `8bfc299e`/`4833c008`/`f49615a1`/`9419f583`/`f3f2d366`/`e6167c45`：**Skills** list/toggle + **正文编辑器 UI**（`f3f2d366`；`saveSkillContent?` 契约已落、node 传输待槽 A）+ **新建 UI**（`e6167c45`/`9255e363`；connected New 创建用户 skill，断连不调写）；**Agents / MCP / Tools List**（MCP toggle enablement）；**Agents Save/Delete/Reset**、**MCP Add/Update/Remove**、**Tools profile 启用集**（`SaveAgentProfile` + `engineToolProfile.ts`）；**Agents `AGENTS.md` 全文编辑器** @ `9419f583`/`3756d04e`。**未落**：SaveSkillContent node 传输、MCP 运行态、Plugins；§8.3 六条验收 + 断开诚实空仍待 PRD-008 隔离 profile 冒烟。  
+- **E1 部分已落** @ `8bfc299e`/`4833c008`/`f49615a1`/`9419f583`/`f3f2d366`/`e6167c45`/`45fa7a35`：**Skills** list/toggle + **正文编辑器 UI**（`f3f2d366`；`saveSkillContent?` 契约 + **node 传输** @ `45fa7a35`/`040c823d`）+ **新建 UI**（`e6167c45`/`9255e363`；connected New 创建用户 skill，断连不调写）；**Agents / MCP / Tools List**（MCP toggle enablement）；**Agents Save/Delete/Reset**、**MCP Add/Update/Remove**、**Tools profile 启用集**（`SaveAgentProfile` + `engineToolProfile.ts`）；**Agents `AGENTS.md` 全文编辑器** @ `9419f583`/`3756d04e`。**未落**：MCP 运行态、Plugins；§8.3 六条验收 + 断开诚实空仍待 PRD-008 隔离 profile 冒烟。  
 - Plugins 整节不在 H1–E1。
 
 ### 8.2 H1 — donor chrome 卫生（不是 Engine catalog 交付）
@@ -263,7 +263,7 @@ PRD-008 接通 **且** `skills=SUPPORTED` **之前**：Engine 页无 catalog（�
 
 ### 8.3 E1 验收（产品语言，禁止「某 class 接上了」当成功）
 
-**代码已落（部分）：** @ `8bfc299e` Skills list/toggle；@ `4833c008` Agents/MCP/Tools **List**（MCP toggle only）；@ `f49615a1` Agents Save/Delete/Reset、MCP 定义 CRUD、Tools profile 启用集（`SaveAgentProfile`）；@ `9419f583`/`3756d04e` Agents **`AGENTS.md` 全文编辑器**；@ `f3f2d366`/`3e986bde` Skills **正文编辑器 UI**（textarea + Save 形状、读 `SkillInfo`、USER/PROJECT 可编/BUNDLED 只读、断连/`UNSUPPORTED` 不渲染；common `saveSkillContent?`，**node 传输未挂接**）；@ `e6167c45`/`9255e363` Skills **新建 UI**（connected 且 `skills=SUPPORTED` 时 New 创建用户 skill；断连/`UNSUPPORTED` 不展示写入口、不调写）。**未落：** SaveSkillContent node 传输、MCP 运行态、Plugins；§8.3 产品验收与隔离 profile 冒烟仍待 PRD-008 证据。
+**代码已落（部分）：** @ `8bfc299e` Skills list/toggle；@ `4833c008` Agents/MCP/Tools **List**（MCP toggle only）；@ `f49615a1` Agents Save/Delete/Reset、MCP 定义 CRUD、Tools profile 启用集（`SaveAgentProfile`）；@ `9419f583`/`3756d04e` Agents **`AGENTS.md` 全文编辑器**；@ `f3f2d366`/`3e986bde` Skills **正文编辑器 UI**（textarea + Save 形状、读 `SkillInfo`、USER/PROJECT 可编/BUNDLED 只读、断连/`UNSUPPORTED` 不渲染；common `saveSkillContent?`）；@ `45fa7a35`/`040c823d` **SaveSkillContent node gRPC 传输**（`grpcClient` / `grpcTransport` / `universeAgentConnectionService` 动态绑定；`UNIMPLEMENTED` → `{ ok: false }`；`universeAgentConnection.test.ts`）；@ `e6167c45`/`9255e363` Skills **新建 UI**（connected 且 `skills=SUPPORTED` 时 New 创建用户 skill；断连/`UNSUPPORTED` 不展示写入口、不调写）。**未落：** MCP 运行态、Plugins；§8.3 产品验收与隔离 profile 冒烟仍待 PRD-008 证据。
 
 在 **UniverseAgent 已连接** 且 `skills=SUPPORTED` 时：
 
@@ -289,7 +289,7 @@ vscode 本页 **消费** 下列面；缺的由 UniverseAgent 补，IDE 不得用
 | Hook 点位元数据 RPC | 阻塞 Hooks「来自引擎」 | 未补则 Engine Hooks **空**。禁止 `points.md` 文档副本或读 `{AgentHome}/hooks.json` 顶替 |
 | `ListSkills.source` | 非缺口 | Local 已 `setSource` 为 bundled/user/project。IDE 消费当前 wire；未知值当 unknown，不映射 Copilot local/user/extension |
 | 独立 CreateSkill RPC | E1 新建技能 UI | **UI 已落** @ `e6167c45`/`9255e363`（connected New 创建用户 skill；无独立 Create RPC；断连/`UNSUPPORTED` 不调写） |
-| `SaveSkillContent` IDE node 传输 | E1 正文写到引擎 | common `saveSkillContent?` + UI @ `f3f2d366` 已落；**node gRPC 待槽 A**；禁止只写 vscode 工作区却声称 catalog 已收 |
+| `SaveSkillContent` IDE node 传输 | —（**已闭** @ `45fa7a35`/`040c823d`） | UI + common @ `f3f2d366` + node gRPC 动态绑定已落；`UNIMPLEMENTED` → `{ ok: false }`；单测 `universeAgentConnection.test.ts`。§8.3 产品验收仍待 |
 | `SetToolEnabled` | 不强制 | 用 `SaveAgentProfile`/`tools.json` 即可；Tools 节不要再发明第三套开关存储 |
 | MCP 运行态 | 非本页 | 不要为了填列表去调 Status/Tools |
 | AHP 定制资源 | 永久非权威 | 不把 agent-host 文件提供者升级成 UA adapter |

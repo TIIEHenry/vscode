@@ -54,7 +54,7 @@ summary: "跨层工作台系统：layout/parts、services、contrib；含 Parts/
 - [配套 contrib](companion-contribs.md) — files / SCM / terminal / debug
 - [Layout 状态](layout-state.md) — 显隐与尺寸持久化
 - [Desktop 壳映射](../../reference/code-oss-b2/desktop-shell-mapping.md)
-- [Engine catalog](engine-catalog.md) — `ua.engine` Skills/Agents/MCP/Tools list·toggle @ HEAD；写路径待槽 A
+- [Engine catalog](engine-catalog.md) — `ua.engine` Skills/Agents/MCP/Tools catalog @ HEAD；SaveSkillContent 传输 @ `45fa7a35`
 - [Settings UA 接入](../../reference/code-oss-b2/settings-ua-access.md) — Preferences 宿主与 UA 三层
 - [Navigator tab 适配](../../reference/code-oss-b2/navigator-tabs-access.md) — Activity 五段按 ViewContainer 重设计（draft）
 

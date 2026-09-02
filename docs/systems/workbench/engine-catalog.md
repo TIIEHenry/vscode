@@ -4,14 +4,14 @@ type: reference
 status: accepted
 phase: N/A
 updated: 2026-09-02
-summary: "M6-C E1 @ HEAD（`f3f2d366`/`3e986bde`）：Skills list/toggle + 正文编辑器 UI；Agents/MCP/Tools List + 写路径 + AGENTS.md 编辑器；SaveSkillContent node 传输待槽 A；Skill 新建、MCP 运行态、Plugins 仍待"
+summary: "M6-C E1 @ HEAD：Skills list/toggle + 正文 UI/传输（`f3f2d366`/`45fa7a35`）；Agents/MCP/Tools List + 写路径 + AGENTS.md 编辑器；Skill 新建 @ e6167c45；MCP 运行态、Plugins 仍待"
 ---
 
 # Engine 页 Customizations catalog（`ua.engine`）
 
 > 宿主与 TOC 见 [Settings UA 接入](../../reference/code-oss-b2/settings-ua-access.md)。权威表与协议缺口见 [customizations-engine](../../../dev/plans/customizations-engine.md)。传输 RPC 登记见 [engine-protocol-surface §1/§7](../../reference/universe-agent/engine-protocol-surface.md)。
 
-Engine Preferences 子页（`EnginePreferencesPane`）承载 Customizations 产品主面。本节记 **@ HEAD（`f3f2d366`/`3e986bde`）已落地的 list/toggle、Skills 正文编辑器 UI、Agents/MCP/Tools 写路径与 Agents `AGENTS.md` 全文编辑器**；**不得**把 `SaveSkillContent` node 传输未接线写成「正文写路径已通」；不得把 Skill **新建** UI、MCP 运行态探针或 Plugins 节写成已接通。
+Engine Preferences 子页（`EnginePreferencesPane`）承载 Customizations 产品主面。本节记 **@ HEAD 已落地的 list/toggle、Skills 正文 UI + SaveSkillContent node 传输、Agents/MCP/Tools 写路径、Agents `AGENTS.md` 全文编辑器与 Skill 新建 UI**；**不得**把 MCP 运行态探针或 Plugins 节写成已接通；§8.3 产品验收与 PRD-008 隔离 profile 冒烟仍待。
 
 ## 1. 节与能力键
 
@@ -42,7 +42,7 @@ Engine Preferences 子页（`EnginePreferencesPane`）承载 Customizations 产�
 
 | 节 | 传输（`platform/universeAgent`） | Engine UI（`contrib/conversation/browser`） | 备注 |
 |----|-----------------------------------|---------------------------------------------|------|
-| **Skills** | 读：`ListSkills` · `SkillInfo` · `SetSkillEnabled`。写：`IUniverseAgentConnection.saveSkillContent?`（common 契约 @ `f3f2d366`；**node gRPC `SaveSkillContent` 传输待槽 A，@ HEAD 未挂接**） | `EngineSkillsSection`：bundled/user/project 分组 + 启用开关（旁冻结句 `getSkillToggleFreezeNotice`）+ 选中 skill **textarea**（`getSkillInfo` 读正文）；USER/PROJECT 在 `saveSkillContent` 存在且 `supported` 时 **Save**；BUNDLED 只读；断连/`UNSUPPORTED` 不渲染正文区 | list/toggle @ `8bfc299e`；**正文编辑器 UI** @ `f3f2d366`/`3e986bde` |
+| **Skills** | 读：`ListSkills` · `SkillInfo` · `SetSkillEnabled`。写：`IUniverseAgentConnection.saveSkillContent?`（common 契约 @ `f3f2d366`；node gRPC `SaveSkillContent` @ `45fa7a35`/`040c823d`） | `EngineSkillsSection`：bundled/user/project 分组 + 启用开关（旁冻结句 `getSkillToggleFreezeNotice`）+ 选中 skill **textarea**（`getSkillInfo` 读正文）；USER/PROJECT 在 `saveSkillContent` 存在且 `supported` 时 **Save**；BUNDLED 只读；断连/`UNSUPPORTED` 不渲染正文区 | list/toggle @ `8bfc299e`；**正文 UI** @ `f3f2d366`/`3e986bde`；**node 传输** @ `45fa7a35`/`040c823d`；**新建 UI** @ `e6167c45`/`9255e363` |
 | **Agents** | `ListAgentProfiles` · `SaveAgentProfile` · `DeleteAgentProfile` · `ResetAgentProfile` | `EngineAgentsSection`：project/user/built_in 分组列表；`supported` 时写工具栏 **New / Delete / Reset** + 选中 profile **`AGENTS.md` textarea + Save**（`engineAgentAgentsMd.ts`） | list @ `4833c008`；写 RPC + 写入口 @ `7f10e65c` / `f49615a1`；**`AGENTS.md` 全文编辑器** @ `9419f583`/`3756d04e`（断连/`UNSUPPORTED` 不渲染） |
 | **MCP Servers** | `ListMcpServers` · `ToggleMcpServer` · `AddMcpServer` · `UpdateMcpServer` · `RemoveMcpServer` | `EngineMcpSection`：global/project 分组 + 启用 checkbox；`supported` 时写工具栏 **Add / Update / Remove** | list + toggle @ `4833c008`；定义 CRUD @ `7f10e65c` / `f49615a1` |
 | **Tools** | `ListTools` · `SaveAgentProfile`（profile `tools.json`） | `EngineToolsSection`：`ListTools` 目录 + profile 下拉（user/project，不含 built_in）+ 启用 checkbox；经 `engineToolProfile.ts` 写 `disabledTools` / `enabledTools` | list @ `4833c008`；profile 启用集 @ `7f10e65c` / `f49615a1` |
@@ -55,8 +55,7 @@ Engine Preferences 子页（`EnginePreferencesPane`）承载 Customizations 产�
 |------|----------|------|
 | Agent profile `tools.json` / `model.json` 独立 UI | `SaveAgentProfile` 附件 | `AGENTS.md` 正文 @ `9419f583` 已落；`tools.json` 经 Tools 节；`model.json` 仍无独立编辑器 |
 | MCP **运行态** | `GetMcpServerStatuses` · `GetMcpServerTools` | 不在 Engine 页；后续运行态切片 |
-| Skill **新建** UI | 无独立 Create RPC；写盘 + `ListSkills` 刷新 | UI **未**在本 slice |
-| Skill 正文 **写传输** | `ToolService.SaveSkillContent` → `saveSkillContent?` | **UI + common 契约** @ `f3f2d366` 已落；**node gRPC 传输待槽 A**——未接线时 Save 工具栏隐藏，**不得**声称写路径已通 |
+| Skill **新建** UI | 无独立 Create RPC；写盘 + `ListSkills` 刷新 | **已落** @ `e6167c45`/`9255e363`（connected 且 `skills=SUPPORTED` 时 New） |
 | Rules / Hooks / Plugins Engine 节 | `RulesBridge` · `ListHookPoints` · `PluginService.*` | probe / 列表 **未**接 Engine 页 |
 | Composer 下拉 | Route / AgentProfile / Model / Permission / Tools | 仍待 catalog / 策略 RPC 切片 |
 

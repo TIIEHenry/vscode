@@ -4,7 +4,7 @@ type: plan
 status: accepted
 phase: M6
 updated: 2026-09-02
-summary: "R5 签收：A1–A2/B/D 已落；C E1 部分（list/toggle @ 8bfc299e；Skills 正文 UI + saveSkillContent? @ f3f2d366；Skill 新建 UI @ e6167c45；List @ 4833c008；Save/CRUD/tools.json @ f49615a1/7f10e65c；AGENTS.md @ 9419f583）；SaveSkillContent node 传输待槽 A；§8.3 冒烟未闭合；PRD-008 未升 implemented"
+summary: "R5 签收：A1–A2/B/D 已落；C E1 部分（list/toggle @ 8bfc299e；Skills 正文 UI + saveSkillContent? @ f3f2d366；SaveSkillContent node 传输 @ 45fa7a35/040c823d；Skill 新建 UI @ e6167c45；List @ 4833c008；Save/CRUD/tools.json @ f49615a1/7f10e65c；AGENTS.md @ 9419f583）；MCP 运行态/Plugins/§8.3 冒烟未闭合；PRD-008 未升 implemented"
 ---
 
 # M6 引擎波
@@ -16,7 +16,7 @@ summary: "R5 签收：A1–A2/B/D 已落；C E1 部分（list/toggle @ 8bfc299e�
 > **能力矩阵 SSOT：** [customizations-engine.md](customizations-engine.md) §2 / §3.7。本稿不重开 catalog 权威。  
 > **AHP：** [agent-host overview](../../docs/systems/agent-host/overview.md) — `IAgentHostService` 不是 UA session-core。
 
-**签收（2026-09-02）：** 规则 16 只读审查 Approve with changes 已全部改入（见文末审查记录）；用户委托裁决「分析 loop 阻塞、解禁后续」，据此本稿与 ADR-003 同批升 `accepted`。**代码已落：** **A1** @ `25ed2c28`、**A2** @ `fbce0d84`（含 stream-timeline S4/S5）、**B** @ `42d523f1`、**D** @ `5104678e`；**C E1 部分** @ `8bfc299e`/`4833c008`/`f49615a1`/`9419f583`/`f3f2d366`（Skills list/toggle + **正文编辑器 UI**（`saveSkillContent?` 契约 @ `f3f2d366`，**node 传输待槽 A**）；Agents/MCP/Tools **List** + MCP toggle；Agents Save/Delete/Reset、MCP Add·Update·Remove、Tools profile 启用集经 `SaveAgentProfile`/`engineToolProfile.ts` @ `7f10e65c`；**Agents `AGENTS.md` 全文编辑器** @ `9419f583`/`3756d04e`；**Skill 新建 UI** @ `e6167c45`/`9255e363`（connected 且 `skills=SUPPORTED` 时 New 创建用户 skill；断连/`UNSUPPORTED` 不展示写入口、不调写））。**未落：** SaveSkillContent node 传输、MCP 运行态、Plugins；§8.3 六条产品验收与 PRD-008 隔离 profile 冒烟。PRD-008 仍须冒烟才升 `implemented`。
+**签收（2026-09-02）：** 规则 16 只读审查 Approve with changes 已全部改入（见文末审查记录）；用户委托裁决「分析 loop 阻塞、解禁后续」，据此本稿与 ADR-003 同批升 `accepted`。**代码已落：** **A1** @ `25ed2c28`、**A2** @ `fbce0d84`（含 stream-timeline S4/S5）、**B** @ `42d523f1`、**D** @ `5104678e`；**C E1 部分** @ `8bfc299e`/`4833c008`/`f49615a1`/`9419f583`/`f3f2d366`/`45fa7a35`（Skills list/toggle + **正文编辑器 UI**（`saveSkillContent?` 契约 @ `f3f2d366`；**SaveSkillContent node 传输** @ `45fa7a35`/`040c823d`）；Agents/MCP/Tools **List** + MCP toggle；Agents Save/Delete/Reset、MCP Add·Update·Remove、Tools profile 启用集经 `SaveAgentProfile`/`engineToolProfile.ts` @ `7f10e65c`；**Agents `AGENTS.md` 全文编辑器** @ `9419f583`/`3756d04e`；**Skill 新建 UI** @ `e6167c45`/`9255e363`（connected 且 `skills=SUPPORTED` 时 New 创建用户 skill；断连/`UNSUPPORTED` 不展示写入口、不调写））。**未落：** MCP 运行态、Plugins；§8.3 六条产品验收与 PRD-008 隔离 profile 冒烟。PRD-008 仍须冒烟才升 `implemented`。
 
 ---
 
@@ -226,7 +226,7 @@ stream-timeline S1 → S2 → S3（工位 D，串行）      M6-A1 platform/univ
 
 ### M6-C — customizations E1 **部分已落** @ `8bfc299e`/`4833c008`/`f49615a1`
 
-[customizations-engine §8.3](customizations-engine.md) 六条产品验收仍待冒烟。**已落：** Skills list/toggle @ `8bfc299e`；Skills **正文编辑器 UI** + common `saveSkillContent?` @ `f3f2d366`（**node gRPC 传输待槽 A**）；Agents/MCP/Tools **List**（MCP toggle enablement）@ `4833c008`；Agents Save/Delete/Reset、MCP Add·Update·Remove、Tools profile 启用集（`SaveAgentProfile` + `engineToolProfile.ts`）@ `7f10e65c`/`f49615a1`；**Agents `AGENTS.md` 全文编辑器** @ `9419f583`/`3756d04e`；**Skill 新建 UI** @ `e6167c45`/`9255e363`（connected New 创建用户 skill；断连/`UNSUPPORTED` 不调写）。**未落：** SaveSkillContent node 传输、MCP 运行态、Plugins 节；§8.3 产品验收与 PRD-008 隔离 profile 冒烟。H0–H3 donor 已落，禁止改扫描根到 `{AgentHome}`。
+[customizations-engine §8.3](customizations-engine.md) 六条产品验收仍待冒烟。**已落：** Skills list/toggle @ `8bfc299e`；Skills **正文编辑器 UI** + common `saveSkillContent?` @ `f3f2d366`；**SaveSkillContent node gRPC 传输** @ `45fa7a35`/`040c823d`；Agents/MCP/Tools **List**（MCP toggle enablement）@ `4833c008`；Agents Save/Delete/Reset、MCP Add·Update·Remove、Tools profile 启用集（`SaveAgentProfile` + `engineToolProfile.ts`）@ `7f10e65c`/`f49615a1`；**Agents `AGENTS.md` 全文编辑器** @ `9419f583`/`3756d04e`；**Skill 新建 UI** @ `e6167c45`/`9255e363`（connected New 创建用户 skill；断连/`UNSUPPORTED` 不调写）。**未落：** MCP 运行态、Plugins 节；§8.3 产品验收与 PRD-008 隔离 profile 冒烟。H0–H3 donor 已落，禁止改扫描根到 `{AgentHome}`。
 
 ### M6-D — trajectory T4 **已落** @ `5104678e`（= stream-timeline S6）
 

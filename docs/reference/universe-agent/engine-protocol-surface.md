@@ -24,7 +24,7 @@ summary: "已知 gRPC 服务 / RPC 名与本仓用途；§1 Conversation（A1/A2
 | `TeamService` | `MemberStatus` / `TaskList` / `TeamInfo` | Navigator Team 段（renderer `IUniverseAgentConnection.team`） | m6 §11 A1 unary |
 | L3 `tool_runtime_snapshot` | `payload.file_mutation_payload` + `ToolCallLifecycleEvent` join | Sources Review 归因 chip / `reviewNav` 物化（**host-only** demux；contrib 消费 `onDidFileMutation`） | m6 §11 A2；禁止解析 L2 `arguments_json`；历史见 **G-REV-1** |
 | `ToolService` | `ListSkills` / `SkillInfo` / `SetSkillEnabled` | **@ HEAD** 传输 + `EngineSkillsSection` list/toggle + 正文 **读**（E1） | 无独立 Create RPC；写文件后 `ListSkills` 刷新 |
-| `ToolService` | `SaveSkillContent` | **未**接 node gRPC（槽 A）；common 可选 `saveSkillContent?` @ `f3f2d366` + **UI** textarea/Save @ `f3f2d366`/`3e986bde` | USER/PROJECT 可编、BUNDLED 只读；断连/`UNSUPPORTED` 不渲染；**未接线时 Save 隐藏**——不得写「写路径已通」 |
+| `ToolService` | `SaveSkillContent` | **@ HEAD** node gRPC @ `45fa7a35`/`040c823d` + common 可选 `saveSkillContent?` @ `f3f2d366` + **UI** textarea/Save @ `f3f2d366`/`3e986bde` | USER/PROJECT 可编、BUNDLED 只读；断连/`UNSUPPORTED` 不渲染；probe/`UNIMPLEMENTED` 时 `saveSkillContent?` 缺席、Save 隐藏；运行时 `UNIMPLEMENTED` → `{ ok: false }` |
 | `ToolService` | `ListTools` / `ToolInfo` | **@ HEAD** `listTools` → `EngineToolsSection` 目录 + profile 启用 checkbox | 无 `SetToolEnabled`；enablement 经 `SaveAgentProfile` → `{profileDir}/tools.json`（`engineToolProfile.ts` @ `f49615a1`） |
 | `AgentService` | `ListAgentProfiles` / `SaveAgentProfile` / `DeleteAgentProfile` / `ResetAgentProfile` | **@ HEAD** list + 写 RPC → `EngineAgentsSection`（New/Delete/Reset 工具栏 + **`AGENTS.md` 全文编辑器** @ `9419f583`） | 选中 profile textarea + Save → `SaveAgentProfile`；断连/`UNSUPPORTED` 不渲染；built_in 只读；built_in 不可 Delete、仅 Reset |
 | `McpService` | `ListMcpServers` / `ToggleMcpServer` / `AddMcpServer` / `UpdateMcpServer` / `RemoveMcpServer` | **@ HEAD** list + toggle + 定义 CRUD → `EngineMcpSection` | `GetMcpServerStatuses` / `GetMcpServerTools` 运行态，**不在** Engine 页 |
@@ -72,7 +72,7 @@ Connect 后 `probeEngineCapabilities`：**仅**广告了 method 且 probe 非 `U
 | Rules Remote gRPC | Remote 模式 Instructions | — |
 | `ListHookPoints`（或握手带版本化点位表） | Engine 页 Hooks「来自引擎」 | — |
 | 独立 CreateSkill RPC（或等价新建 UI） | E1 新建技能 | Skill **新建** UI 未在本 slice |
-| `SaveSkillContent` node gRPC 传输 | E1 正文 **写**到引擎 | common `saveSkillContent?` + UI @ `f3f2d366` 已落；**node 传输待槽 A** |
+| `SaveSkillContent` node gRPC 传输 | —（**已闭** @ `45fa7a35`/`040c823d`） | `grpcClient` / `grpcTransport` / `universeAgentConnectionService` 动态绑定；单测 `universeAgentConnection.test.ts` |
 | Agent profile `tools.json` / `model.json` 独立 UI | Engine 页目录三件套附件编辑 | `AGENTS.md` 正文 @ `9419f583` 已落；`tools.json` 经 Tools 节 checkbox；`model.json` 仍无独立编辑器 |
 | `globalRules` / `plugins` IDE probe | Rules / Plugins Engine 节 | 待后续切片；Today 诚实 UNSUPPORTED |
 
@@ -101,7 +101,7 @@ Connect 后 `probeEngineCapabilities`：**仅**广告了 method 且 probe 非 `U
 
 | 能力键 | List RPC | Toggle / 写 | Engine 页 @ HEAD |
 |--------|----------|--------------|------------------|
-| `skills` | `ListSkills` · `SkillInfo` | `SetSkillEnabled` · `SaveSkillContent`（**传输待槽 A**；`saveSkillContent?` 契约 @ `f3f2d366`） | 分组 list + 开关 + 正文 textarea（读 `SkillInfo`；Save 须传输已接线） |
+| `skills` | `ListSkills` · `SkillInfo` | `SetSkillEnabled` · `SaveSkillContent`（node 传输 @ `45fa7a35`/`040c823d`；`saveSkillContent?` 契约 @ `f3f2d366`） | 分组 list + 开关 + 正文 textarea（读 `SkillInfo`；Save 在 `saveSkillContent?` 存在且 `supported` 时展示） |
 | `agentProfiles` | `ListAgentProfiles` | `SaveAgentProfile` / `DeleteAgentProfile` / `ResetAgentProfile` | 分组 list + New/Delete/Reset + **`AGENTS.md` 全文编辑器** @ `9419f583` |
 | `mcp` | `ListMcpServers` | `ToggleMcpServer` · `AddMcpServer` / `UpdateMcpServer` / `RemoveMcpServer` | 分组 list + 启用 checkbox + Add/Update/Remove 工具栏 |
 | `tools` | `ListTools` | `SaveAgentProfile`（profile `tools.json`） | 目录 + profile 下拉 + 启用 checkbox |
