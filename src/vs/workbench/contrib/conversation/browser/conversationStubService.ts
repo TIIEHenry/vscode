@@ -84,13 +84,13 @@ export class ConversationStubService extends Disposable implements IConversation
 	private readonly model = new ConversationStubModel();
 	private engineConnected = false;
 
-	private readonly _onDidChangeActiveSession = this._register(new Emitter<string>());
+	protected readonly _onDidChangeActiveSession = this._register(new Emitter<string>());
 	readonly onDidChangeActiveSession = this._onDidChangeActiveSession.event;
 
-	private readonly _onDidChangeSession = this._register(new Emitter<string>());
+	protected readonly _onDidChangeSession = this._register(new Emitter<string>());
 	readonly onDidChangeSession = this._onDidChangeSession.event;
 
-	private readonly _onDidChangeEngineConnection = this._register(new Emitter<boolean>());
+	protected readonly _onDidChangeEngineConnection = this._register(new Emitter<boolean>());
 	readonly onDidChangeEngineConnection = this._onDidChangeEngineConnection.event;
 
 	protected frameSource = this._register(new ConversationStubFrameSource(this.model, sessionId => this._onDidChangeSession.fire(sessionId)));

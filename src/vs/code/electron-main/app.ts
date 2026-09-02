@@ -37,7 +37,9 @@ import { DialogMainService, IDialogMainService } from '../../platform/dialogs/el
 import { IEncryptionMainService } from '../../platform/encryption/common/encryptionService.js';
 import { EncryptionMainService } from '../../platform/encryption/electron-main/encryptionMainService.js';
 import { IUniverseAgentConnection, universeAgentConnectionChannelName } from '../../platform/universeAgent/common/universeAgentConnection.js';
+import { IUniverseAgentSessionView, universeAgentSessionViewChannelName } from '../../platform/universeAgent/common/universeAgentSessionView.js';
 import { UniverseAgentConnectionService } from '../../platform/universeAgent/electron-main/universeAgentMainService.js';
+import { UniverseAgentSessionViewService } from '../../platform/universeAgent/electron-main/universeAgentSessionViewMainService.js';
 import { ipcBrowserViewChannelName } from '../../platform/browserView/common/browserView.js';
 import { ipcBrowserViewGroupChannelName } from '../../platform/browserView/common/browserViewGroup.js';
 import { BrowserViewMainService, IBrowserViewMainService } from '../../platform/browserView/electron-main/browserViewMainService.js';
@@ -1220,6 +1222,7 @@ export class CodeApplication extends Disposable {
 
 		// UniverseAgent gRPC adapter (electron-main host; ADR-003)
 		services.set(IUniverseAgentConnection, new SyncDescriptor(UniverseAgentConnectionService, undefined, false /* proxied to renderer */));
+		services.set(IUniverseAgentSessionView, new SyncDescriptor(UniverseAgentSessionViewService, undefined, false /* proxied to renderer */));
 
 		// Browser View
 		services.set(IBrowserViewMainService, new SyncDescriptor(BrowserViewMainService, undefined, false /* proxied to other processes */));
@@ -1395,6 +1398,8 @@ export class CodeApplication extends Disposable {
 		// UniverseAgent gRPC adapter
 		const universeAgentConnectionChannel = ProxyChannel.fromService(accessor.get(IUniverseAgentConnection), disposables);
 		mainProcessElectronServer.registerChannel(universeAgentConnectionChannelName, universeAgentConnectionChannel);
+		const universeAgentSessionViewChannel = ProxyChannel.fromService(accessor.get(IUniverseAgentSessionView), disposables);
+		mainProcessElectronServer.registerChannel(universeAgentSessionViewChannelName, universeAgentSessionViewChannel);
 
 		// Browser View
 		const browserViewChannel = ProxyChannel.fromService(accessor.get(IBrowserViewMainService), disposables);
