@@ -109,11 +109,11 @@ export function getTrajectoryKindLabel(kind: ConversationTrajectoryKind): string
 /** One-line preview for trajectory table navigation. */
 export function getTrajectoryRecordPreview(record: ConversationTrajectoryRecord): string {
 	if (record.kind === 'compacted') {
-		const parts = [record.compactedRange, record.compactedReason, record.compactedSummary].filter(Boolean);
-		if (parts.length > 0) {
+		if (record.compactedSummary) {
+			const parts = [record.compactedRange, record.compactedReason, record.compactedSummary].filter(Boolean);
 			return parts.join(' · ');
 		}
-		return record.text.trim() || localize('conversationTrajectory.compactedEmptyPreview', "(compacted)");
+		return record.text.trim() || localize('conversationTrajectory.compactedTypeOnly', "Compacted");
 	}
 	if (record.kind === 'unknown') {
 		const typeName = record.messageSource?.kind;
@@ -909,7 +909,17 @@ function getInspectorStateLabel(state: TrajectoryDetailInspectorState): string {
 
 function appendInspectorCompactedMetadata(parent: HTMLElement, record: ConversationTrajectoryRecord): void {
 	const parts: string[] = [];
-	if (record.compactedRange) {
+	if (record.compactedAnchorTurnId || record.compactedFoldedLeafTurnId || record.compactedBranchTurnId) {
+		if (record.compactedAnchorTurnId) {
+			parts.push(localize('conversationTrajectory.compactedMetaAnchor', "Anchor: {0}", record.compactedAnchorTurnId));
+		}
+		if (record.compactedFoldedLeafTurnId) {
+			parts.push(localize('conversationTrajectory.compactedMetaFoldedLeaf', "Folded leaf: {0}", record.compactedFoldedLeafTurnId));
+		}
+		if (record.compactedBranchTurnId) {
+			parts.push(localize('conversationTrajectory.compactedMetaBranch', "Compact branch: {0}", record.compactedBranchTurnId));
+		}
+	} else if (record.compactedRange) {
 		parts.push(localize('conversationTrajectory.compactedMetaRange', "Range: {0}", record.compactedRange));
 	}
 	if (record.compactedReason) {
@@ -917,6 +927,12 @@ function appendInspectorCompactedMetadata(parent: HTMLElement, record: Conversat
 	}
 	if (record.compactedSummary) {
 		parts.push(localize('conversationTrajectory.compactedMetaSummary', "Summary: {0}", record.compactedSummary));
+	}
+	if (record.compactedTokensBefore !== undefined) {
+		parts.push(localize('conversationTrajectory.compactedMetaTokensBefore', "Tokens before: {0}", String(record.compactedTokensBefore)));
+	}
+	if (record.compactedTokensAfter !== undefined) {
+		parts.push(localize('conversationTrajectory.compactedMetaTokensAfter', "Tokens after: {0}", String(record.compactedTokensAfter)));
 	}
 	if (parts.length > 0) {
 		appendInspectorSection(parent, conversationTrajectoryInspectorPayload, parts.join('\n'));

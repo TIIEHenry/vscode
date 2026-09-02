@@ -4,7 +4,7 @@ type: architecture
 status: accepted
 phase: N/A
 updated: 2026-09-02
-summary: "ConversationEditorPane 页 chrome；「对话 | 轨迹」双透镜；帧源 projectSnapshotToTrajectory + T5 搜索/虚拟化；子代理 filterAgentId；DetailRef 六态经 P2a requestDetail；轨迹含 permission/question/error/unknown；compacted/Overview 仍 Deferred；PRD-003 / 012 / 013 / 014 / 020 / 021"
+summary: "ConversationEditorPane 页 chrome；「对话 | 轨迹」双透镜；帧源 projectSnapshotToTrajectory + T5 搜索/虚拟化；子代理 filterAgentId；DetailRef 六态经 P2a requestDetail；轨迹含 permission/question/error/unknown；Q3 compacted 只消费 P2b attribution；Overview 仍 Deferred；PRD-003 / 012 / 013 / 014 / 020 / 021"
 ---
 
 # Conversation 透镜、时间线与轨迹
@@ -47,19 +47,20 @@ summary: "ConversationEditorPane 页 chrome；「对话 | 轨迹」双透镜；�
 | 引擎 roster | `ConversationEngineRosterService` | 已连接 UA 会话：cached snapshot → `projectSnapshotToTrajectory`（**永不** merge stub fixture）；否则 `projectTurnsToTrajectory(getTurns())` |
 | 透镜 | `conversationLens.ts` | 读 roster；子代理 overlay 经 `IConversationLensSlots.filterAgentId` 传入 `trajectoryProjectionOptions()` |
 
-`ConversationTrajectoryKind = system | user | context | compacted | message | tool | subtool | thinking | permission | question | error | unknown`。`projectSnapshotToTrajectory` 把 session-core `TimelineItemView` + **attribution sidecar**（role / agentId / toolCallId / parentToolCallId）映射为轨迹行：`text+role=system` → `system`，`reasoning` → `thinking`，`tool` → `tool`（经 `finalizeToolTree` 可升为缩进 `subtool`），`permission` / `question` / `error` / `unknown` 各为独立 kind（请求/答案摘要、`retryable`、`typeName`+`rawContent`）；`generic` 不进轨迹。**confirmation 与 visualization** 仍不从 stub turns 投影（对话页专属座位 / 图示卡）；引擎 snapshot 的 `permission` / `question` **进轨迹**，但不进过程折、也不自动切页（PRD-012）。
+`ConversationTrajectoryKind = system | user | context | compacted | message | tool | subtool | thinking | permission | question | error | unknown`。`projectSnapshotToTrajectory` 把 session-core `TimelineItemView` + **attribution sidecar**（role / agentId / toolCallId / parentToolCallId / `branchReason` / `compacted`）映射为轨迹行：`text+role=system` → `system`，`reasoning` → `thinking`，`tool` → `tool`（经 `finalizeToolTree` 可升为缩进 `subtool`），`permission` / `question` / `error` / `unknown` 各为独立 kind（请求/答案摘要、`retryable`、`typeName`+`rawContent`）；`generic` 不进轨迹。**confirmation 与 visualization** 仍不从 stub turns 投影（对话页专属座位 / 图示卡）；引擎 snapshot 的 `permission` / `question` **进轨迹**，但不进过程折、也不自动切页（PRD-012）。
 
 **DetailRef（Q2 接通）：** 局部 inspector 六态 — `preview` / `loading`（本地 in-flight；lease 无 `requestDetail` 永不 loading）/ `full` / `partial`（`truncated=true` + 字节数）/ `unavailable` / `failed`+Retry。成功先 `upsertDetail(ref, content)` 再 settle；UI 读 `details` + outcome。stub 帧源本地 `requestDetail`；引擎 lease 代理 `IUniverseAgentSessionView.requestDetail`。搜索 haystack 仍用有界 preview。
+
+**`compacted`（Q3）：** `projectSnapshotToTrajectory` 只消费 P2b `ItemAttribution.branchReason==='compact'` 和/或 `compacted{anchorTurnId,foldedLeafTurnId,compactBranchTurnId,summary?}` 才 emit 独立记录；无 attribution 则**零行**，不解析 envelope / 不订阅 `ContextCompactedEvent`、不伪造 stub 行。范围 / 原因 / summary 来自 attribution；无 summary 只显示类型与范围。token 前后数仅当 span 上已有富化数字才显示。始终折外，不伪装成 SYSTEM / assistant。点击局部 inspector 看三 turn id，并声明已丢弃全文不可恢复。
 
 **仍 Deferred / 预留（勿写进「已接通引擎全文」）：**
 
 | 项 | HEAD 姿态 |
 |----|-----------|
-| `compacted` kind | 类型与过程折规则已定义；`branchReason='compact'` 行在 demux 投影前**跳过**，不 emit（S6 待 M6-D） |
 | Overview 瀑布时间条 | harness 有、本仓未做（T5 子集之外，仍随 M6-D） |
 | 活 Event fold 替换 fixture | 完整 T4 仍 blocked on [PRD-008](../../product/requirements.md#prd-008-引擎与会话权威)（M6-D）；HEAD 仅为帧源上的纯函数投影 + stub fixture |
 
-Stub fixture：`mergeTrajectoryFixtureExtras` 仅 seed `untitled`、且 `!isEngineConnected()` 时插入带 `Stub` 的 system / context / sourceBlocks / subtool（`CONVERSATION_TRAJECTORY_STUB_*`）。`createSession()` 等无 extras → 空态。
+Stub fixture：`mergeTrajectoryFixtureExtras` 仅 seed `untitled`、且 `!isEngineConnected()` 时插入带 `Stub` 的 system / context / sourceBlocks / subtool（`CONVERSATION_TRAJECTORY_STUB_*`）。**不**插入 compacted（browser stub 从不产出 `ItemAttribution.compacted`）。`createSession()` 等无 extras → 空态。
 
 **子代理过滤（PRD-016）：** `filterAgentId` 保留无归属的 `user` 行 + attribution 中 `agentId` 匹配项；根 tab 不传 filter。`conversationSubAgentOverlay.ts` 把对话框 `chatId` 注入 `ConversationLens`。
 

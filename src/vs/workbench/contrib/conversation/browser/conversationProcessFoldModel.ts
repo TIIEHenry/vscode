@@ -128,8 +128,8 @@ function sharedAdmittedTurnId(segment: readonly ConversationStubTurn[]): string 
 
 /**
  * Trajectory process-fold whitelist is thinking|tool|subtool only.
- * Q5a kinds (permission / question / error / unknown) are not in this set, so
- * they interrupt a span the same way user / context / system / message / compacted do.
+ * Q3 compacted and Q5a kinds (permission / question / error / unknown) are not
+ * in this set, so they interrupt a span the same way user / context / system / message do.
  */
 const TRAJECTORY_PROCESS_FOLD_KINDS: ReadonlySet<ConversationTrajectoryKind> = new Set(['thinking', 'tool', 'subtool']);
 
