@@ -36,6 +36,8 @@ ACTIVE_MODULES = (
 ACTIVE_SYSTEMS = (
     "editor",
     "workbench",
+    "conversation",
+    "sources",
     "sessions",
     "chat",
     "extension-api",

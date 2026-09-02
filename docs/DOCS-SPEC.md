@@ -3,7 +3,7 @@ title: "软件架构文档系统设计规范"
 type: concept
 status: accepted
 phase: N/A
-updated: 2026-08-31
+updated: 2026-09-02
 summary: "基于 Git + Markdown 的文档系统规范：结构、模块归属、人工索引与健康检查；适配 VS Code 分层而非 Gradle 多模块"
 ---
 
@@ -80,21 +80,24 @@ docs/
 ├── systems/                       # 跨层系统文档
 │   ├── editor/
 │   ├── workbench/
+│   ├── conversation/              # 产品中心：CONVERSATION_PART + contrib/conversation
+│   ├── sources/                   # End 列下格：SOURCES_PART + contrib/sources
 │   ├── sessions/
 │   ├── chat/
+│   ├── agent-host/
 │   ├── extension-api/
 │   └── processes/
+├── reference/                     # 只读对照与协议面（code-oss-b2、universe-agent、commands）
 └── guides/
 
 dev/
 ├── README.md
-├── progress/                      # status.md ≤ 200 行
+├── progress/                      # status.md ≤ 200 行；两队列；*-evidence/ 验收证据
 ├── decisions/                     # ADR
 ├── plans/
-├── iterations/
-├── roadmap/active|archive
 ├── parallel/active|archive
-└── archive/                       # 只移入，不删除
+├── loop/                          # 跨仓通用 Loop 套件（submodule 语义，不写本仓业务）
+└── archive/                       # 只移入，不删除；INDEX.md 登记
 ```
 
 ### 3.1 VS Code 分层 ↔ 文档模块

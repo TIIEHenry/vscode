@@ -3,8 +3,8 @@ title: "Documentation System — LLM Maintenance Rules"
 type: concept
 status: accepted
 phase: N/A
-updated: 2026-09-01
-summary: "本仓库 LLM 文档维护规则；结构见 DOCS-SPEC.md"
+updated: 2026-09-02
+summary: "本仓库 LLM 文档维护规则；结构见 DOCS-SPEC.md；规则 3c 状态翻转后扫知识层；阶段日志落 status + evidence，不设 dev/iterations"
 ---
 
 # 文档系统维护规则
@@ -21,8 +21,8 @@ summary: "本仓库 LLM 文档维护规则；结构见 DOCS-SPEC.md"
 | 知识库 | `docs/` | 相对稳定的设计 spec 与导航 |
 | 产品需求 | `docs/product/` | Agent IDE 产品愿景、`PRD-NNN`、追踪；知识库的产品层 |
 | 就近 SSOT | `src/vs/sessions/*.md` 等既有规格 | 不迁走、不复制正文 |
-| 行动层 | `dev/` | status、plan、ADR、iteration |
-| 归档 | `dev/archive/` | 过时文档只移入、不删除 |
+| 行动层 | `dev/` | status、plan、ADR、progress 证据 |
+| 归档 | `dev/archive/` | 过时文档只移入、不删除；入口 [`dev/archive/INDEX.md`](../dev/archive/INDEX.md) |
 | 根指令 | `AGENTS.md`、`.github/copilot-instructions.md` | 项目向导（豁免 docs frontmatter） |
 
 **五类职责**：`docs/product/` 产品需求 · `docs/modules/` 分层导航 · `docs/systems/` 跨层协作 · `docs/architecture/` 全景横切 · `dev/` 行动层。
@@ -115,10 +115,14 @@ summary: "一行描述"
 
 仅 `git add <path…>` 暂存本次主题。禁止为「干净工作区」restore / stash / reset 其他 WIP。存在无关 WIP 时禁止 `git add -A`。
 
+### 规则 3c：方案状态翻转后扫知识层
+
+`check-docs-health.py` 只查 frontmatter 与断链，**查不出内容过时**。当某个 plan / PRD / D 项状态翻转（`accepted → implemented`、`open → closed`）时，必须在 `docs/` 中检索该项名称与「未实施 / deferred / 仍 open / 待验证」等字样并逐处改口，尤其是 `docs/systems/**` 与 `docs/glossary.md`。
+
 ### 规则 4：ADR vs 阶段日志
 
 **ADR**（`dev/decisions/`）：新架构概念、两方案择一、跨层契约、推翻已有 ADR。  
-**阶段日志**（`dev/iterations/`）：实现过程、踩坑、测试策略、局部 UI/构建变更。
+**阶段日志**：实现过程、踩坑、测试策略、局部 UI/构建变更写在 `dev/progress/status.md`（≤ 200 行）与 `dev/progress/<topic>-evidence/`（验收证据 + README）。本仓**不设** `dev/iterations/`；status 超长时把历史段移入 `dev/archive/`。
 
 ### 规则 5：创建 ADR
 
@@ -126,7 +130,7 @@ summary: "一行描述"
 
 ### 规则 7：过时 → 归档
 
-移入 `dev/archive/`，更新索引，`status: archived`。
+移入 `dev/archive/`，在 [`dev/archive/INDEX.md`](../dev/archive/INDEX.md) 登记一行（原路径、归档日期、被谁取代），`status: archived`。健康检查跳过 `archive/` 下的文件，因此归档文件不再要求链接有效。
 
 ### 规则 9：始终使用 Frontmatter
 

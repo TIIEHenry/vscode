@@ -29,7 +29,7 @@ summary: "默认 Code 窗口的 Part 枚举、SerializableGrid、Conversation∨
 | `SIDEBAR_PART` | `workbench.parts.sidebar` | 主侧栏 ViewContainer（资源管理器等） |
 | `CONVERSATION_PART` | `workbench.parts.conversation` | **中心锚点**（Part 级窗口 chrome：SessionBar / session 窗口网格；每叶内嵌 Conversation `IEditorPart`；页内 timeline/dock 在 `ConversationEditorPane`，非 `EditorInput`） |
 | `EDITOR_PART` | `workbench.parts.editor` | **End 列上格**：EditorGroup + tabs + `EditorInput`（`IEditorService.openEditor` 仍落这里） |
-| `SOURCES_PART` | `workbench.parts.sources` | **End 列下格**：`contrib/sources` **Files \| Changes \| Review** tab strip（Files = 只读列表投影，空工作区 copy 诚实：Explorer 列表投影、非 file tree、非 Chat；Changes = SCM 变更资源列表 + **stage/unstage/commit** 列表操作 → Preview；Review = SCM 变更资源只读列表 → Preview（`SourcesReviewList`）；树权威仍在 Sidebar Explorer） |
+| `SOURCES_PART` | `workbench.parts.sources` | **End 列下格**：`contrib/sources` **Files \| Changes \| Review** tab strip（Files = 只读列表投影，空工作区 copy 诚实：Explorer 列表投影、非 file tree、非 Chat；Changes = SCM 变更资源列表 + **stage/unstage/commit** 列表操作，行点击经 `ISCMResource.open()` 在 Preview 开 Diff；Review = 同一批 SCM 资源只读列表（`SourcesReviewList`）；树权威仍在 Sidebar Explorer；详见 [Sources 系统](../sources/overview.md)） |
 | `PANEL_PART` | `workbench.parts.panel` | 底（可左右）面板：终端、问题、输出 |
 | `AUXILIARYBAR_PART` | `workbench.parts.auxiliarybar` | 对侧栏（Secondary Side Bar）；默认仍可关 |
 | `STATUSBAR_PART` | `workbench.parts.statusbar` | 底栏 |
@@ -52,7 +52,7 @@ VERTICAL
 
 水平 Panel（默认底栏）时：中心枝是纵向 `[ ConversationPart, PANEL ]`；End 列是纵向 `[ EDITOR_PART, SOURCES_PART ]`（auxiliary bar 同侧、更靠内）。Aux 仍是最外侧叶，默认可关。
 
-**锚点事实：** 中间枝的「主面积」叶子是 `{ type: Parts.CONVERSATION_PART }`。Editor 仍走 `IEditorService.openEditor`，出现在 End 列上格原生 tabs；Sources 占 End 下格，`contrib/sources` 提供 **Files \| Changes \| Review** tab strip（Files 为只读列表投影；Changes = SCM 变更资源列表 + **stage/unstage/commit** 列表操作 → Preview；Review = SCM 变更资源只读列表 → Preview）。
+**锚点事实：** 中间枝的「主面积」叶子是 `{ type: Parts.CONVERSATION_PART }`。Editor 仍走 `IEditorService.openEditor`，出现在 End 列上格原生 tabs；Sources 占 End 下格，`contrib/sources` 提供 **Files \| Changes \| Review** tab strip（Files 为只读列表投影；Changes / Review = SCM 变更资源列表，行点击经 `ISCMResource.open()` 在 Preview 开 Diff；Changes 另有 **stage/unstage/commit** 列表操作）。
 
 `arrangeCenterSectionNodes` 在 Conversation 没有水平兄弟时直接返回 conversation 叶。Sidebar / Editor / Aux 是 Conversation 的水平兄弟或更外层邻居，取决于 panel alignment。
 
@@ -105,15 +105,15 @@ CSS class：`LayoutClasses.MAIN_EDITOR_AREA_HIDDEN` / `CONVERSATION_HIDDEN` 等�
 4. **注册** — `Parts.CONVERSATION_PART` / `SOURCES_PART`；`ConversationPart` / `SourcesPart` eager singleton；`createWorkbenchLayout` view map；`workbench.ts` `createPart` 循环。
 5. **四钮（D7）** — `layoutActions.ts`：主簇 `LayoutControlMenu` 仅 **Navigator / Conversation / Preview / Sources**（产品名标签）；Panel / Aux 退到 `LayoutControlMenuSubmenu`。
 6. **Conversation session 窗口** — [PRD-016](../../product/requirements.md#prd-016-conversation-session-窗口与-chat-tab) S1–S6：`ConversationPart` 自管最多两叶 session 窗口（`IConversationSessionWindowService`）；每叶内嵌 Conversation `IEditorPart` + `ConversationChatInput` 默认根 tab（关闭拦截器）；timeline/dock 与「对话\|轨迹」在 `ConversationEditorPane` / 子代理 overlay；Part 级 SessionBar 保留 SelectBox、←→、关非根与 roster「打开到旁边」。非 `ChatEditor` / `ChatViewPane`。活 fork/子代理 catalog 仍依赖 PRD-008；stub 期 catalog 用内存 fixture。
-7. **Sources tabs** — `contrib/sources`：title 区 **Files \| Changes \| Review** tab strip；各 tab 面板顶有紧凑 **filter** 输入（`filterSourcesEntries` 按文件名/路径子串筛选可见行；空结果 copy 诚实，如 Files 无工作区文件时 `Flat Explorer list projection—not a file tree or Chat.`、筛选无匹配时 `No matching files.` / `No matching changes.`）；Files = `SourcesFilesList` 只读列表投影（点击 `IEditorService.openEditor` 落 End 上格 Preview）；Changes = `SourcesChangesList` SCM 变更资源列表（点击 `openEditor` 打开文件；行内/选中 **stage/unstage** 经 `git.stage` / `git.unstage` + `ISCMResource`，底部 **commit** 行写 SCM input 并跑 `acceptInputCommand` / `git.commit`；**不**走 Diff / `openDiff` / `ISCMResource.open`）；Review = `SourcesReviewList` SCM 变更资源只读列表（同样 `openEditor` 打开 Preview，**不**走 Diff；面板顶 **header hint** 标明只读、Preview≠Diff FORK、review engine 未接线——无假 review comment）；Diff 深查看仍 **EDITOR_PART** FORK。
+7. **Sources tabs** — `contrib/sources`：title 区 **Files \| Changes \| Review** tab strip；各 tab 面板顶有紧凑 **filter** 输入（`filterSourcesEntries`）。Files = `SourcesFilesList` 只读列表投影（`openEditor` → Preview）；Changes = `SourcesChangesList` SCM 变更资源列表（行点击 `openSourcesChangeEntry`：有 `scmResource` → `ISCMResource.open()` 在 Preview 开 Diff，否则 `openEditor` 文件；行内 / 选中 **stage/unstage** 经 `git.stage` / `git.unstage`；底部 **commit** 行走 `acceptInputCommand` / `git.commit`）；Review = `SourcesReviewList` 同一批 SCM 资源只读列表（header hint「Read-only list. Review engine not connected.」，同一打开路径）。Diff 默认归属 = Preview（[ADR-005](../../../dev/decisions/005-changes-diff-owner.md)）；「移到对话窗口 / 底部」待 [sources-changes-diff](../../../dev/plans/sources-changes-diff.md)。系统正文见 [Sources 系统](../sources/overview.md)。
 8. **storage keys** — `workbench.conversation.hidden`、`workbench.sources.hidden`（runtime）、`workbench.editor.size` / `workbench.sources.size`（End 列）。Workbench grid 每次启动从描述符重建，不读旧 grid JSON。
 9. **辅助窗口** — 仍复用 `EDITOR_PART`；Conversation / Sources 只在主窗口。
 
-**仍 deferred（非代码）：** compile、启动 T1–T3 演示、EH 探针 → [deferred-gaps](../../../dev/progress/deferred-gaps.md) D3–D5。代码面见 [diff-footprint](../../reference/code-oss-b2/diff-footprint.md) 与 [m1-shell-followon](../../../dev/plans/m1-shell-followon.md)。
+**验证状态：** compile（D3）、启动 V1–V8 演示（D4，rerun-2230）、EH 探针（D5，wave3）均已闭合；panel / terminal / decoration 次级探针仍记 [D9](../../../dev/progress/deferred-gaps.md)。复现步骤见 [壳冒烟验证指南](../../guides/shell-smoke-verification.md)。代码面见 [diff-footprint](../../reference/code-oss-b2/diff-footprint.md) 与 [m1-shell-followon](../../../dev/plans/m1-shell-followon.md)；Conversation / Sources 系统正文见 [systems/conversation](../conversation/INDEX.md) 与 [systems/sources](../sources/INDEX.md)。
 
 ## 7. Modern UI / floating panels
 
-`LayoutSettings.MODERN_UI`（`workbench.experimental.modernUI`）给 part 加 margin/card（`FLOATING_PANEL_MARGIN`）。这是视觉实验，**不是**拓扑。B2 壳合同走 Desktop token（ADR-003），不要把 Modern UI 当文档壳。
+`LayoutSettings.MODERN_UI`（`workbench.experimental.modernUI`）给 part 加 margin/card（`FLOATING_PANEL_MARGIN`）。这是视觉实验，**不是**拓扑。B2 壳合同走 **Desktop 外仓** ADR-003 token（不是本仓 [ADR-003 引擎 adapter 边界](../../../dev/decisions/003-engine-adapter-boundary.md)；壳不变量见 [ADR-006](../../../dev/decisions/006-shell-invariants.md)），不要把 Modern UI 当文档壳。
 
 ## 8. 相关文档
 

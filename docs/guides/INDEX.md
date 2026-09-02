@@ -3,8 +3,8 @@ title: "指南索引"
 type: index
 status: accepted
 phase: N/A
-updated: 2026-09-01
-summary: "辅助指南导航：构建运行、docs 写作、方案只读审查"
+updated: 2026-09-02
+summary: "辅助指南导航：构建运行、docs 写作、方案只读审查、壳冒烟验证"
 ---
 
 # 指南索引
@@ -18,6 +18,7 @@ summary: "辅助指南导航：构建运行、docs 写作、方案只读审查"
 | [快速开始](getting-started.md) | 从本仓库安装、构建、启动 Code - OSS；完整贡献流程指向上游 wiki |
 | [文体指南](doc-style-guide.md) | frontmatter、INDEX 与概览、禁止 `src/vs/` 文档树、链接不复制 |
 | [多 Agent 方案设计](multi-agent-design-workflow.md) | 方案定稿前探索；写完须只读审查改稿；worktree 池与文件互斥 |
+| [壳冒烟验证](shell-smoke-verification.md) | 隔离 profile 启动、Playwright over CDP、V1–V8 场景与 EH 探针、证据落盘 |
 
 ## 相关文档
 
