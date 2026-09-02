@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M5
 updated: 2026-09-02
-summary: "HEAD 0476e10d：壳层 PRD-001–016 全落、D1–D7 全闭、工位池全 idle；后续排期 = 引擎波（R5/R6/R7 研究）+ 工具链尾巴（D8–D11）"
+summary: "HEAD 0476e10d：壳层 PRD-001–016 全落、D1–D7/D11 全闭、工位池全 idle；后续排期 = 引擎波（R5/R6/R7 研究）+ 工具链尾巴（D8–D10/D12）"
 ---
 
 # Development Progress
@@ -28,8 +28,7 @@ summary: "HEAD 0476e10d：壳层 PRD-001–016 全落、D1–D7 全闭、工位�
 | 序 | 任务 | 类型 | 产出 / Exit | 工位建议 |
 |:---|:-----|:-----|:------------|:---------|
 | 0a | **D8** `nvm use`（24.18.0）后重跑 `npm run valid-layers-check`；仍红则定位 TS lib 差异 | infra | 门禁绿或落 root cause | merge |
-| 0b | **D11** 收编未跟踪 `d4-evidence/82582fe8`、`rerun-2221`（补 README 或删）；修 `plans/INDEX.md` 指向不存在的 `dev/roadmap/` | docs | `git status` 干净；`check-docs-health` 0 warning | 主仓 |
-| 0c | **D9** EH 矩阵 panel / terminal / `editor/decoration` 探针（复用 `launch-with-probes.sh`） | docs/验证 | 矩阵三行改「已实测」 | A |
+| 0b | **D9** EH 矩阵 panel / terminal / `editor/decoration` 探针（复用 `launch-with-probes.sh`） | docs/验证 | 矩阵三行改「已实测」 | A |
 | 1 | **R5** PRD-008 引擎接线发现：UA gRPC 面 vs 现有 `IConversationStubService` 契约；adapter 落层（`platform`/`workbench/services`）；能力探测三态 | research → plan + ADR-003 草案 | plan `accepted`（规则 16 独立审查） | B |
 | 2 | **R6** PRD-009 Diff owner 裁决（编辑器区 vs 底部 Panel vs Sources Changes 内嵌） | research → ADR-004 | ADR `accepted` | C |
 | 3 | ~~R7~~ PRD-010 产品身份 — **已裁决**：名 **UniverseAgentStudio**，图标复用 Desktop/Singularity 资产，**引擎波后再改**（[D12](deferred-gaps.md)） | 已决 | M6 闭后开 plan | — |
