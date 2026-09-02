@@ -37,6 +37,14 @@ import type {
 	UniverseAgentResetAgentProfileResult,
 	UniverseAgentListMcpServersRequest,
 	UniverseAgentListMcpServersResult,
+	UniverseAgentGetMcpServerStatusesResult,
+	UniverseAgentGetMcpServerToolsResult,
+	UniverseAgentListPluginsResult,
+	UniverseAgentPluginInfoResult,
+	UniverseAgentEnablePluginResult,
+	UniverseAgentReloadPluginResult,
+	UniverseAgentUnloadPluginResult,
+	UniverseAgentScanNewPluginsResult,
 	UniverseAgentAddMcpServerRequest,
 	UniverseAgentAddMcpServerResult,
 	UniverseAgentUpdateMcpServerRequest,
@@ -181,6 +189,38 @@ export class WebUniverseAgentConnection implements IUniverseAgentConnection {
 	}
 
 	listMcpServers(_request?: UniverseAgentListMcpServersRequest): Promise<UniverseAgentListMcpServersResult> {
+		return rejectUnsupportedEnvironment();
+	}
+
+	getMcpServerStatuses(_serverIds?: readonly string[]): Promise<UniverseAgentGetMcpServerStatusesResult> {
+		return rejectUnsupportedEnvironment();
+	}
+
+	getMcpServerTools(_serverId: string, _forceRefresh?: boolean): Promise<UniverseAgentGetMcpServerToolsResult> {
+		return rejectUnsupportedEnvironment();
+	}
+
+	listPlugins(): Promise<UniverseAgentListPluginsResult> {
+		return rejectUnsupportedEnvironment();
+	}
+
+	getPluginInfo(_id: string): Promise<UniverseAgentPluginInfoResult> {
+		return rejectUnsupportedEnvironment();
+	}
+
+	enablePlugin(_id: string, _enabled?: boolean): Promise<UniverseAgentEnablePluginResult> {
+		return rejectUnsupportedEnvironment();
+	}
+
+	reloadPlugin(_id: string): Promise<UniverseAgentReloadPluginResult> {
+		return rejectUnsupportedEnvironment();
+	}
+
+	unloadPlugin(_id: string): Promise<UniverseAgentUnloadPluginResult> {
+		return rejectUnsupportedEnvironment();
+	}
+
+	scanNewPlugins(): Promise<UniverseAgentScanNewPluginsResult> {
 		return rejectUnsupportedEnvironment();
 	}
 

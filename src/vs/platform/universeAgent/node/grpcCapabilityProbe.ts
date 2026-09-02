@@ -18,6 +18,7 @@ function emptySnapshot(): UniverseAgentCapabilitySnapshot {
 	return {
 		skills: { ...UNKNOWN },
 		mcp: { ...UNKNOWN },
+		mcpRuntime: { ...UNKNOWN },
 		plugins: { ...UNKNOWN },
 		globalRules: { ...UNKNOWN },
 		agentProfiles: { ...UNKNOWN },
@@ -45,6 +46,16 @@ const PROBE_TARGETS: Partial<Record<UniverseAgentCapabilityKey, { service: strin
 		service: UniverseAgentGrpcServices.Mcp.service,
 		method: UniverseAgentGrpcServices.Mcp.ListMcpServers,
 		methodKey: 'McpService.ListMcpServers',
+	},
+	mcpRuntime: {
+		service: UniverseAgentGrpcServices.Mcp.service,
+		method: UniverseAgentGrpcServices.Mcp.GetMcpServerStatuses,
+		methodKey: 'McpService.GetMcpServerStatuses',
+	},
+	plugins: {
+		service: UniverseAgentGrpcServices.Plugin.service,
+		method: UniverseAgentGrpcServices.Plugin.List,
+		methodKey: 'PluginService.List',
 	},
 	tools: {
 		service: UniverseAgentGrpcServices.Tool.service,
@@ -98,7 +109,7 @@ export async function probeEngineCapabilities(input: GrpcCapabilityProbeInput): 
 	}
 
 	// Remaining IDE-local derived keys without dedicated probes in this slice.
-	for (const key of ['projectRules', 'hooksMetadata', 'plugins', 'globalRules'] as const) {
+	for (const key of ['projectRules', 'hooksMetadata', 'globalRules'] as const) {
 		if (snapshot[key].support === 'UNKNOWN' && snapshot[key].reason === 'not probed') {
 			snapshot[key] = { ...UNSUPPORTED, reason: 'probe not implemented in M6-A1' };
 		}

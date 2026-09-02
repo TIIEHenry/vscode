@@ -10,6 +10,7 @@ export type UniverseAgentTransportState = 'idle' | 'ok' | 'failed';
 export type UniverseAgentCapabilityKey =
 	| 'skills'
 	| 'mcp'
+	| 'mcpRuntime'
 	| 'plugins'
 	| 'globalRules'
 	| 'agentProfiles'
@@ -386,4 +387,82 @@ export interface UniverseAgentToolSummary {
 
 export interface UniverseAgentListToolsResult {
 	readonly tools: readonly UniverseAgentToolSummary[];
+}
+
+/**
+ * MCP runtime connection status from McpService.GetMcpServerStatuses.
+ * Proto `MCP_STATUS_UNSPECIFIED` maps to `failed` (no fifth UI state).
+ */
+export type UniverseAgentMcpRuntimeStatus = 'disconnected' | 'connecting' | 'connected' | 'error' | 'failed';
+
+export interface UniverseAgentMcpServerStatus {
+	readonly serverId: string;
+	readonly status: UniverseAgentMcpRuntimeStatus;
+	readonly errorMessage?: string;
+	readonly lastConnectedAt?: number;
+}
+
+export interface UniverseAgentGetMcpServerStatusesResult {
+	readonly statuses: readonly UniverseAgentMcpServerStatus[];
+	readonly checkedAt?: number;
+}
+
+export interface UniverseAgentMcpToolDefinition {
+	readonly name: string;
+	readonly description?: string;
+	readonly inputSchemaJson?: string;
+}
+
+export interface UniverseAgentGetMcpServerToolsResult {
+	readonly tools: readonly UniverseAgentMcpToolDefinition[];
+	readonly total?: number;
+	readonly cachedAt?: number;
+}
+
+/** PluginService.List / Info status. Wire `PLUGIN_ACTIVE|DISABLED|ERROR`. */
+export type UniverseAgentPluginStatus = 'active' | 'disabled' | 'error' | 'unknown';
+
+export interface UniverseAgentPluginSummary {
+	readonly id: string;
+	readonly displayName: string;
+	readonly version: string;
+	/** Wire `source` (JAR/DEX filename, `embedded`, or live `"plugin"`). Do not reinterpret. */
+	readonly source: string;
+	readonly hookCount: number;
+	readonly status: UniverseAgentPluginStatus;
+	readonly loadedAt?: number;
+}
+
+export interface UniverseAgentListPluginsResult {
+	readonly plugins: readonly UniverseAgentPluginSummary[];
+}
+
+export interface UniverseAgentPluginHookEntry {
+	readonly hookType: string;
+	readonly priority: number;
+	readonly className: string;
+}
+
+export interface UniverseAgentPluginInfoResult {
+	readonly summary: UniverseAgentPluginSummary;
+	readonly hooks: readonly UniverseAgentPluginHookEntry[];
+	readonly config?: Readonly<Record<string, string>>;
+	readonly errorMessage?: string;
+}
+
+export interface UniverseAgentEnablePluginResult {
+	readonly plugin: UniverseAgentPluginSummary;
+}
+
+export interface UniverseAgentReloadPluginResult {
+	readonly plugin: UniverseAgentPluginSummary;
+}
+
+export interface UniverseAgentUnloadPluginResult {
+	readonly removedHookCount: number;
+}
+
+export interface UniverseAgentScanNewPluginsResult {
+	readonly newPlugins: readonly UniverseAgentPluginSummary[];
+	readonly skippedCount: number;
 }

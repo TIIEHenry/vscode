@@ -26,6 +26,14 @@ import type {
 	UniverseAgentResetAgentProfileResult,
 	UniverseAgentListMcpServersRequest,
 	UniverseAgentListMcpServersResult,
+	UniverseAgentGetMcpServerStatusesResult,
+	UniverseAgentGetMcpServerToolsResult,
+	UniverseAgentListPluginsResult,
+	UniverseAgentPluginInfoResult,
+	UniverseAgentEnablePluginResult,
+	UniverseAgentReloadPluginResult,
+	UniverseAgentUnloadPluginResult,
+	UniverseAgentScanNewPluginsResult,
 	UniverseAgentAddMcpServerRequest,
 	UniverseAgentAddMcpServerResult,
 	UniverseAgentUpdateMcpServerRequest,
@@ -140,6 +148,22 @@ export interface IUniverseAgentGrpcTransport {
 
 	listMcpServers(request: UniverseAgentListMcpServersRequest): Promise<UniverseAgentListMcpServersResult>;
 
+	getMcpServerStatuses(serverIds?: readonly string[]): Promise<UniverseAgentGetMcpServerStatusesResult>;
+
+	getMcpServerTools(serverId: string, forceRefresh?: boolean): Promise<UniverseAgentGetMcpServerToolsResult>;
+
+	listPlugins(): Promise<UniverseAgentListPluginsResult>;
+
+	getPluginInfo(id: string): Promise<UniverseAgentPluginInfoResult>;
+
+	enablePlugin(id: string, enabled?: boolean): Promise<UniverseAgentEnablePluginResult>;
+
+	reloadPlugin(id: string): Promise<UniverseAgentReloadPluginResult>;
+
+	unloadPlugin(id: string): Promise<UniverseAgentUnloadPluginResult>;
+
+	scanNewPlugins(): Promise<UniverseAgentScanNewPluginsResult>;
+
 	addMcpServer(request: UniverseAgentAddMcpServerRequest): Promise<UniverseAgentAddMcpServerResult>;
 
 	updateMcpServer(request: UniverseAgentUpdateMcpServerRequest): Promise<UniverseAgentUpdateMcpServerResult>;
@@ -187,10 +211,21 @@ export const UniverseAgentGrpcServices = {
 	Mcp: {
 		service: 'universeagent.mcp.v1.McpService',
 		ListMcpServers: 'ListMcpServers',
+		GetMcpServerStatuses: 'GetMcpServerStatuses',
+		GetMcpServerTools: 'GetMcpServerTools',
 		ToggleMcpServer: 'ToggleMcpServer',
 		AddMcpServer: 'AddMcpServer',
 		UpdateMcpServer: 'UpdateMcpServer',
 		RemoveMcpServer: 'RemoveMcpServer',
+	},
+	Plugin: {
+		service: 'universeagent.plugin.v1.PluginService',
+		List: 'List',
+		Info: 'Info',
+		Enable: 'Enable',
+		Reload: 'Reload',
+		Unload: 'Unload',
+		ScanNew: 'ScanNew',
 	},
 	Team: {
 		service: 'universeagent.team.v1.TeamService',

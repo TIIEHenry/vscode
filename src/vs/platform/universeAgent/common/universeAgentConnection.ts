@@ -31,6 +31,14 @@ import type {
 	UniverseAgentResetAgentProfileResult,
 	UniverseAgentListMcpServersRequest,
 	UniverseAgentListMcpServersResult,
+	UniverseAgentGetMcpServerStatusesResult,
+	UniverseAgentGetMcpServerToolsResult,
+	UniverseAgentListPluginsResult,
+	UniverseAgentPluginInfoResult,
+	UniverseAgentEnablePluginResult,
+	UniverseAgentReloadPluginResult,
+	UniverseAgentUnloadPluginResult,
+	UniverseAgentScanNewPluginsResult,
 	UniverseAgentAddMcpServerRequest,
 	UniverseAgentAddMcpServerResult,
 	UniverseAgentUpdateMcpServerRequest,
@@ -147,6 +155,26 @@ export interface IUniverseAgentConnection {
 	resetAgentProfile(request: UniverseAgentResetAgentProfileRequest): Promise<UniverseAgentResetAgentProfileResult>;
 
 	listMcpServers(request?: UniverseAgentListMcpServersRequest): Promise<UniverseAgentListMcpServersResult>;
+
+	/** McpService.GetMcpServerStatuses — runtime, not definitions (`mcp` vs `mcpRuntime`). */
+	getMcpServerStatuses(serverIds?: readonly string[]): Promise<UniverseAgentGetMcpServerStatusesResult>;
+
+	/** McpService.GetMcpServerTools — `forceRefresh` maps to proto `force_refresh`. */
+	getMcpServerTools(serverId: string, forceRefresh?: boolean): Promise<UniverseAgentGetMcpServerToolsResult>;
+
+	/** PluginService.List — also the `plugins` capability probe target. */
+	listPlugins(): Promise<UniverseAgentListPluginsResult>;
+
+	getPluginInfo(id: string): Promise<UniverseAgentPluginInfoResult>;
+
+	/** PluginService.Enable. `enabled` defaults to true (`enablePlugin(id)`). */
+	enablePlugin(id: string, enabled?: boolean): Promise<UniverseAgentEnablePluginResult>;
+
+	reloadPlugin(id: string): Promise<UniverseAgentReloadPluginResult>;
+
+	unloadPlugin(id: string): Promise<UniverseAgentUnloadPluginResult>;
+
+	scanNewPlugins(): Promise<UniverseAgentScanNewPluginsResult>;
 
 	addMcpServer(request: UniverseAgentAddMcpServerRequest): Promise<UniverseAgentAddMcpServerResult>;
 
