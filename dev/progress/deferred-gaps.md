@@ -4,8 +4,8 @@ type: progress
 status: accepted
 phase: N/A
 created: 2026-08-30
-updated: 2026-09-02
-summary: "P2/P3 延期缺口 SSOT；M7 D17 验证债；D18 I3b 打包未验；D19 L1 源码残留；D12/D15/D16 不冻结 UI 主线"
+updated: 2026-09-03
+summary: "P2/P3 延期缺口 SSOT；M7 D17 验证债；D18 I3b 打包未验；D19 L1 源码残留；D20 CS-6 Settings 300px 目视；D12/D15/D16 不冻结 UI 主线"
 ---
 
 # Deferred Gaps
@@ -34,6 +34,7 @@ summary: "P2/P3 延期缺口 SSOT；M7 D17 验证债；D18 I3b 打包未验；D1
 | D17 | P2 | **M7 非阻塞验证债总账**：单测、E2E、视觉、a11y、性能与缺失 Engine/Hub/Web 证据 | 用户裁定测试不阻塞 UI 开发；若每条红测都成为 blocker，会再次冻结不冲突 UI 槽 | 每项记录首次 SHA、场景、baseline/新增、owner、关闭证据；普通失败不进 `status` Blockers，只阻止对应 PRD/plan 升 `implemented` | M7 verification | open |
 | D18 | P2 | **I3b 三平台安装包未验**：hicolor 已进 deb/rpm gulp+spec，`electron.ts` 已改公司名/HelpBook；未跑 prepare-deb/rpm、snapcraft、Inno、darwin 打包 | 委派先不复杂测试；本机缺 fakeroot/rpmbuild/Inno/macOS | V 槽确认八档 hicolor 进包，Win/mac 检查 ico/bmp/icns 与 exe/plist 元数据 | product / packaging | open |
 | D19 | P2 | **L1 源码复核残留**（[a11y-rwd-l1.md](a11y-rwd-l1.md)）：(1) A 未在 Engine/Connection 挂 `.ua-motion`；(2) T1 HC 选择器只打 `.part.conversation`/`.part.sources`，Preferences pane 无描边；(3) Connection 300px 无左导航 Back；(4) Web 省略门控是 `isWeb` 而非 `getConnectionPhase`+capability，无「此环境不支持本机 Engine 连接」文案 | L1 只做源码清单，不改 B/A 生产文件；不阻塞 CS-3 或 W1 | A 挂 class 或方案改口「无动画节点」；T1 或 A 给 pane 补 HC；Connection Back 落地或 §9 改合同；E2-1 改 phase/capability 门控并补文案。手测/axe/Web 冒烟失败仍记 D17/D15，不并入本行 | M7 a11y | open |
+| D20 | P2 | **CS-6 Settings 默认窗 300px 目视**：搜索框与 Client 七组标题在缩到约 300px 时是否仍可见；`SettingsEditor2` 在宽度低于 700px 已隐藏 TOC，源码未见 UA 专用挤占，但本轮禁止 electron / playwright | CS-6 代码完成线不阻塞；§6 产品验证另含重载 / 草稿不进 Sync / 两种 Enter / 通知语义 | 隔离 profile 打开默认窗 Settings，缩到 300px，确认搜索框与 Client 组标题仍可见、无 emptyCopy；失败记入 D17 证据，不并入本行关闭条件 | M7 verification | open |
 
 ## D2 工位池 compile 基线（2026-09-02，merge 工位 / `loop/merge`）
 

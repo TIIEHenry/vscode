@@ -86,7 +86,7 @@ summary: "四钮、Conversation、Sources Review 三命令、Sessions roster、U
 | `chat.titleBar.signIn.enabled` | `false` | 出厂关：titlebar 无 Copilot Sign In |
 | `chat.agentsControl.enabled` | `hidden` | 出厂关：无 Agent Status 命令中心 chrome |
 | `editor.inlineSuggest.enabled` | `false` | 出厂关：Preview 内无 ghost-text |
-| UA 客户端设置组（`uaClientSettings.ts`） | 见下 | CS-1…CS-5 已注册 9 键（均为 `ConfigurationScope.WINDOW`），含 `ua.client.clientTools.showToolInvocationDetails`（过程折全部 tool 行 payload 显隐；不改 Engine 工具可用性）。未注册已删键 `advertiseWorkspaceTools`。CS-6 未做。宿主为 `SettingsEditor2` |
+| UA 客户端设置组（`uaClientSettings.ts`） | 见下 | 已注册 9 键（均为 `ConfigurationScope.WINDOW`），含 `ua.client.clientTools.showToolInvocationDetails`（过程折全部 tool 行 payload 显隐；不改 Engine 工具可用性）。未注册已删键 `advertiseWorkspaceTools` 等四键。CS-6 代码完成线已落（非法 enum 回默认、已删键迁移、七组无 emptyCopy）；PRD-026 仍 `accepted`。宿主为 `SettingsEditor2` |
 
 ## 7. 键盘可达性现状
 

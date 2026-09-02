@@ -6,13 +6,20 @@
 import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { ConfigurationTarget } from '../../../../../platform/configuration/common/configuration.js';
-import { Extensions, IConfigurationRegistry } from '../../../../../platform/configuration/common/configurationRegistry.js';
+import { Extensions, IConfigurationRegistry, IRegisteredConfigurationPropertySchema } from '../../../../../platform/configuration/common/configurationRegistry.js';
 import { NullLogService } from '../../../../../platform/log/common/log.js';
 import { Registry } from '../../../../../platform/registry/common/platform.js';
-import { ISetting, ISettingsGroup } from '../../../../services/preferences/common/preferences.js';
+import { TestConfigurationService } from '../../../../../platform/configuration/test/common/testConfigurationService.js';
+import { ISetting, ISettingsGroup, SettingMatchType, SettingValueType } from '../../../../services/preferences/common/preferences.js';
 import { nullRange } from '../../../../services/preferences/common/preferencesModels.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import '../../../conversation/browser/uaClientSettings.contribution.js';
+import {
+	UA_CLIENT_DISPLAY_CONVERSATION_DENSITY,
+	UA_CLIENT_KEYBOARD_ENTER_BEHAVIOR,
+	UA_CLIENT_REGISTERED_SETTING_KEYS,
+	UA_CLIENT_REMOVED_SETTING_KEYS,
+} from '../../../conversation/common/uaClientSettingsKeys.js';
 import {
 	DEFAULT_COMMONLY_USED_EXCLUDE_KEY_PATTERNS,
 	getCommonlyUsedData,
@@ -22,6 +29,7 @@ import {
 	tocData,
 	uaClientLocalGroupEmptyCopy,
 } from '../../browser/settingsLayout.js';
+import { SettingMatches } from '../../browser/preferencesSearch.js';
 import { resolveSettingsTree } from '../../browser/settingsTree.js';
 import {
 	SettingsTreeEmptyCopyElement,
@@ -30,6 +38,7 @@ import {
 	SettingsTreeModel,
 	SettingsTreeNavigationLinkElement,
 	SettingsTreeNewExtensionsElement,
+	SettingsTreeSettingElement,
 } from '../../browser/settingsTreeModels.js';
 
 function childIds<T>(entry: ITOCEntry<T> | undefined): string[] {
@@ -64,7 +73,7 @@ function collectGroupChildren(root: SettingsTreeGroupElement, groupId: string): 
 	return [];
 }
 
-function mockSetting(key: string, tags?: string[]): ISetting {
+function mockSetting(key: string, tags?: string[], extras?: Partial<ISetting>): ISetting {
 	return {
 		range: nullRange,
 		key,
@@ -73,20 +82,43 @@ function mockSetting(key: string, tags?: string[]): ISetting {
 		valueRange: nullRange,
 		description: [],
 		descriptionRanges: [],
-		tags
+		tags,
+		...extras
 	};
 }
 
-function mockGroups(keys: string[]): ISettingsGroup[] {
+function configurationProperty(key: string): IRegisteredConfigurationPropertySchema {
+	const properties = Registry.as<IConfigurationRegistry>(Extensions.Configuration).getConfigurationProperties();
+	const prop = properties[key];
+	assert.ok(prop, `expected registered setting ${key}`);
+	return prop;
+}
+
+function mockRegisteredUaSetting(key: string): ISetting {
+	const prop = configurationProperty(key);
+	const description = typeof prop.description === 'string' ? [prop.description] : [];
+	return mockSetting(key, prop.tags, {
+		type: typeof prop.type === 'string' ? prop.type : undefined,
+		enum: Array.isArray(prop.enum) ? prop.enum.filter((value): value is string => typeof value === 'string') : undefined,
+		description,
+		keywords: prop.keywords,
+	});
+}
+
+function mockGroups(keys: string[], factory: (key: string) => ISetting = mockSetting): ISettingsGroup[] {
 	return [{
 		id: 'test',
 		range: nullRange,
 		title: 'test',
 		titleRange: nullRange,
 		sections: [{
-			settings: keys.map(key => mockSetting(key))
+			settings: keys.map(key => factory(key))
 		}]
 	}];
+}
+
+function mockRegisteredUaGroups(): ISettingsGroup[] {
+	return mockGroups([...UA_CLIENT_REGISTERED_SETTING_KEYS], mockRegisteredUaSetting);
 }
 
 suite('Settings UA TOC', () => {
@@ -195,11 +227,20 @@ suite('Settings UA TOC', () => {
 		}
 	});
 
-	test('SettingsTreeModel maps empty client groups to SettingsTreeEmptyCopyElement', () => {
-		const groups = mockGroups(['editor.fontSize']);
+	test('SettingsTreeModel lists registered client settings and no empty-copy rows', () => {
+		const expectedKeysByGroupId: Record<string, readonly string[]> = {
+			'ua/display': ['ua.client.display.conversationDensity'],
+			'ua/chatInput': ['ua.client.chatInput.autoFocus', 'ua.client.chatInput.restoreDrafts'],
+			'ua/startup': ['ua.client.startup.restoreLastSession'],
+			'ua/keyboardEnter': ['ua.client.keyboardEnter.behavior'],
+			'ua/notifications': ['ua.client.notifications.permissionRequests', 'ua.client.notifications.turnCompleted'],
+			'ua/permissions': ['ua.client.permissions.openPendingOnFocus'],
+			'ua/clientTools': ['ua.client.clientTools.showToolInvocationDetails'],
+		};
+
 		const resolved = resolveSettingsTree(
 			getTocDataForWindow(false),
-			groups,
+			mockRegisteredUaGroups(),
 			getSettingsTocFilter(false, true),
 			new NullLogService()
 		).tree;
@@ -208,15 +249,52 @@ suite('Settings UA TOC', () => {
 		const model = store.add(instantiationService.createInstance(SettingsTreeModel, { settingsTarget: ConfigurationTarget.USER_LOCAL }, true));
 		model.update(resolved);
 
-		for (const groupId of ['ua/display', 'ua/chatInput', 'ua/startup', 'ua/keyboardEnter', 'ua/notifications', 'ua/permissions', 'ua/clientTools']) {
+		for (const [groupId, expectedKeys] of Object.entries(expectedKeysByGroupId)) {
 			const children = collectGroupChildren(model.root, groupId);
-			assert.strictEqual(children.length, 1, `${groupId} must have one empty-copy row`);
-			const emptyCopy = children[0];
-			assert.ok(emptyCopy instanceof SettingsTreeEmptyCopyElement, `${groupId} must use SettingsTreeEmptyCopyElement`);
-			assert.strictEqual(emptyCopy.message, clientLocalEmptyCopyByGroupId[groupId]);
-			assert.ok(!emptyCopy.message.includes('not connected'));
-			assert.ok(!emptyCopy.message.includes('no engine'));
+			assert.ok(children.length >= 1, `${groupId} must list registered settings`);
+			assert.ok(children.every(child => !(child instanceof SettingsTreeEmptyCopyElement)), `${groupId} must not use SettingsTreeEmptyCopyElement`);
+			const settingKeys = children
+				.filter((child): child is SettingsTreeSettingElement => child instanceof SettingsTreeSettingElement)
+				.map(child => child.setting.key)
+				.sort();
+			assert.deepStrictEqual(settingKeys, [...expectedKeys].sort(), `${groupId} must list its registered keys`);
+			for (const child of children) {
+				if (child instanceof SettingsTreeSettingElement) {
+					assert.ok(
+						child.valueType === SettingValueType.Boolean || child.valueType === SettingValueType.Enum,
+						`${child.setting.key} must use SettingsEditor2 boolean/enum widgets`,
+					);
+				}
+			}
 		}
+	});
+
+	test('Settings search matches all nine client keys by description or enum', () => {
+		const configurationService = new TestConfigurationService();
+		const queriesByKey: Record<string, string> = {
+			'ua.client.display.conversationDensity': 'comfortable',
+			'ua.client.chatInput.restoreDrafts': 'Composer drafts',
+			'ua.client.chatInput.autoFocus': 'Composer textarea',
+			'ua.client.startup.restoreLastSession': 'last active Conversation',
+			'ua.client.keyboardEnter.behavior': 'newline',
+			'ua.client.notifications.permissionRequests': 'window toast',
+			'ua.client.notifications.turnCompleted': 'finishes a turn',
+			'ua.client.permissions.openPendingOnFocus': 'pending permission',
+			'ua.client.clientTools.showToolInvocationDetails': 'process-fold tool',
+		};
+
+		for (const key of UA_CLIENT_REGISTERED_SETTING_KEYS) {
+			const query = queriesByKey[key];
+			assert.ok(query, `missing search query for ${key}`);
+			const matches = new SettingMatches(query, mockRegisteredUaSetting(key), true, configurationService);
+			assert.ok(matches.matchType !== SettingMatchType.None, `${key} must match Settings search for "${query}"`);
+			assert.ok(matches.matches.length > 0, `${key} must produce search highlight ranges`);
+		}
+
+		const densityKeyword = new SettingMatches('舒适', mockRegisteredUaSetting(UA_CLIENT_DISPLAY_CONVERSATION_DENSITY), true, configurationService);
+		assert.ok(densityKeyword.matchType !== SettingMatchType.None, 'conversationDensity enum description must be searchable');
+		const enterKeyword = new SettingMatches('换行', mockRegisteredUaSetting(UA_CLIENT_KEYBOARD_ENTER_BEHAVIOR), true, configurationService);
+		assert.ok(enterKeyword.matchType !== SettingMatchType.None, 'keyboardEnter enum description must be searchable');
 	});
 
 	test('commonly-used excludes Copilot keys in default Code window', () => {
@@ -252,17 +330,10 @@ suite('Settings UA TOC', () => {
 		assert.ok(!keys.includes('ua.client.display.placeholder'));
 		assert.ok(!keys.some(key => key.startsWith('ua.engine.')));
 		assert.ok(!keys.includes('ua.client.clientTools.advertiseWorkspaceTools'));
+		for (const removed of UA_CLIENT_REMOVED_SETTING_KEYS) {
+			assert.ok(!keys.includes(removed), `removed key ${removed} must not be registered`);
+		}
 		const clientKeys = keys.filter(key => key.startsWith('ua.client.')).sort();
-		assert.deepStrictEqual(clientKeys, [
-			'ua.client.chatInput.autoFocus',
-			'ua.client.chatInput.restoreDrafts',
-			'ua.client.clientTools.showToolInvocationDetails',
-			'ua.client.display.conversationDensity',
-			'ua.client.keyboardEnter.behavior',
-			'ua.client.notifications.permissionRequests',
-			'ua.client.notifications.turnCompleted',
-			'ua.client.permissions.openPendingOnFocus',
-			'ua.client.startup.restoreLastSession',
-		]);
+		assert.deepStrictEqual(clientKeys, [...UA_CLIENT_REGISTERED_SETTING_KEYS]);
 	});
 });

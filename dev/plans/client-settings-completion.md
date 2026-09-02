@@ -3,8 +3,8 @@ title: "Client Settings UI 完成方案"
 type: plan
 status: accepted
 phase: M7
-updated: 2026-09-02
-summary: "把 ua.client 七个空 TOC 分组补成真实本地配置（9 键），键注册与消费点同切片落地；由 B 槽在 Conversation 收口之后执行；通知走 INotificationService，草稿新增本机持久化"
+updated: 2026-09-03
+summary: "把 ua.client 七个空 TOC 分组补成真实本地配置（9 键），键注册与消费点同切片落地；CS-6 代码完成线已落，PRD-026 仍待 §6 产品验证"
 ---
 
 # Client Settings UI 完成方案
@@ -77,7 +77,7 @@ summary: "把 ua.client 七个空 TOC 分组补成真实本地配置（9 键）�
 | CS-3 | Notifications | 新建 `conversationNotifications.contribution.ts` 单例宿主；非活动会话 toast（按 §2 定义，permission 与 question 均覆盖）；toast 点击 = `switchSession` + `showConversationPart` 后调用从 lens 抽出的共享定位助手（`scrollToFirstPendingConfirmation` 今天是 lens private，CS-3 先抽成可注入助手）；引擎会话 turn settle toast；活动可见座位不弹；零自动授权；白名单 +2 |
 | CS-4 | Permissions | `openPendingOnFocus` 两条锚点路径调用 `scrollToFirstPendingConfirmation`，且该函数扩展到 question 座位；白名单 +1 |
 | CS-5 | Client Tools | tool 行 payload 显隐；白名单 +1（至此 9 键） |
-| CS-6 | 设置迁移与窄宽度 | 未知旧值回默认；Settings 搜索、键盘、窄宽度可用；七组 `emptyCopy` 均不再出现 |
+| CS-6 | 设置迁移与窄宽度 | 未知旧值回默认；Settings 搜索、键盘、窄宽度可用；七组 `emptyCopy` 均不再出现。**代码完成线已落（2026-09-03，worktree B）**：`IConfigurationMigrationRegistry` 回默认 / 删已删键；`settingsUaToc.test.ts` 改为七组列出已注册键。§6 产品验证未做，不升 PRD-026 |
 
 CS-1 对 `settingsUaToc.test.ts` 的改动是方案点名的断言替换，不记 D17。其余切片测试失败记 D17；除无法编译、启动崩溃、安全边界破坏外，不阻塞下一切片。本方案不依赖 P 槽；依赖 B 自己的 Q5a/Q5b。
 

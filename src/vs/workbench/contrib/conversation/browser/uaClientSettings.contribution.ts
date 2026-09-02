@@ -4,5 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { registerUaClientSettings } from '../common/uaClientSettings.js';
+import { registerUaClientSettingsMigrations } from '../common/uaClientSettingsMigration.js';
 
 registerUaClientSettings();
+registerUaClientSettingsMigrations();
