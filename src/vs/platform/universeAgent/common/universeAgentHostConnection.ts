@@ -4,7 +4,13 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Event } from '../../../base/common/event.js';
-import type { IFileMutationRecord, ITurnSettleSignal, UniverseAgentAgentTreeNode } from './universeAgentTypes.js';
+import type {
+	IFileMutationRecord,
+	ITurnSettleSignal,
+	UniverseAgentAgentTreeNode,
+	UniverseAgentFetchToolDetailRequest,
+	UniverseAgentFetchToolDetailResult,
+} from './universeAgentTypes.js';
 
 /**
  * Electron-main-only surface for SessionViewHost (m6 §11).
@@ -19,6 +25,9 @@ export interface IUniverseAgentHostConnection {
 
 	/** Whether Tree returned UNIMPLEMENTED for this connection (no further retries). */
 	isAgentTreeUnsupported(): boolean;
+
+	/** Host-only AgentService.FetchToolDetail (`subscribe=false`). */
+	fetchToolDetail(request: UniverseAgentFetchToolDetailRequest): Promise<UniverseAgentFetchToolDetailResult>;
 
 	notifyFileMutation(record: IFileMutationRecord): void;
 

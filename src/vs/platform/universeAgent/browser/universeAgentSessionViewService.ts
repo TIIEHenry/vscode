@@ -5,7 +5,7 @@
 
 import { Event } from '../../../base/common/event.js';
 import { InstantiationType, registerSingleton } from '../../instantiation/common/extensions.js';
-import type { ConversationWriteMessage, PostOutcome } from '../common/conversationViewFrame.js';
+import type { ConversationWriteMessage, DetailFetchOutcome, PostOutcome } from '../common/conversationViewFrame.js';
 import { IUniverseAgentSessionView } from '../common/universeAgentSessionView.js';
 
 /**
@@ -32,6 +32,10 @@ export class WebUniverseAgentSessionView implements IUniverseAgentSessionView {
 
 	async requestResync(_leaseId: string): Promise<void> {
 		// Empty lease: no replica to resync.
+	}
+
+	async requestDetail(_leaseId: string, _ref: string): Promise<DetailFetchOutcome> {
+		return { ok: false, reason: 'unavailable' };
 	}
 }
 

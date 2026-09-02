@@ -80,6 +80,11 @@ suite('Web universeAgent disconnect (P0)', () => {
 		assert.ok(leaseId.startsWith('web-empty:'));
 		const post = await sessionView.post(leaseId, { kind: 'submitInput', text: 'hi' });
 		assert.strictEqual(post.accepted, false);
+		const detail = await sessionView.requestDetail(leaseId, '{"toolCallId":"tc","detailKind":1,"refId":"tc"}');
+		assert.strictEqual(detail.ok, false);
+		if (!detail.ok) {
+			assert.strictEqual(detail.reason, 'unavailable');
+		}
 	});
 
 	test('hub auth is unavailable; login/connect refuse without echoing credentials', async () => {

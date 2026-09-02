@@ -4,7 +4,7 @@ type: reference
 status: accepted
 phase: N/A
 updated: 2026-09-02
-summary: "已知 gRPC 服务 / RPC 名与本仓用途；§1 Conversation（A1/A2）+ Device Grant；§1b Web 断连（M7 P0）+ P1a MCP 运行态 / Plugins；Engine catalog list/toggle + 写 RPC @ f49615a1；§7 Engine 页四节；§5 会话面对照；§11 Navigator/Review；§4 G-NAV-* / G-REV-*"
+summary: "已知 gRPC 服务 / RPC 名与本仓用途；§1 Conversation（A1/A2）+ Device Grant；§1b Web 断连（M7 P0）+ P1a MCP/Plugins + P2a DetailRef；Engine catalog list/toggle + 写 RPC @ f49615a1；§7 Engine 页四节；§5 会话面对照；§11 Navigator/Review；§4 G-NAV-* / G-REV-*"
 ---
 
 # UniverseAgent 引擎协议面（本仓消费口径）
@@ -21,6 +21,7 @@ summary: "已知 gRPC 服务 / RPC 名与本仓用途；§1 Conversation（A1/A2
 | `SessionService` | `List` / `Create` / `Delete` / `GetHistory` / `SessionEventStream` | Conversation roster + 时间线 fold 输入（`GetHistory` + 流 → session-core Actor → `ViewFrame`） | 无 `SwitchSession`；切换 = IDE 客户端投影。标题 proto 为 `AgentService.Rename`，**HEAD adapter 未接** |
 | `AgentService` | `Chat` | 发送 + 流内 permission / question / clientTool 应答（Chat 双向流） | 权限 cleanup 亦走 Chat 臂；`PermissionService.Respond` 为备选（见 stream-timeline S5 注释） |
 | `AgentService` | `Tree` | Navigator Agent 树（**host-only**，不经 renderer `IUniverseAgentConnection`） | m6 §11；`UNIMPLEMENTED` → `agentTree=UNSUPPORTED` |
+| `AgentService` | `FetchToolDetail` | Conversation DetailRef 按需通道（**host-only**，lease `requestDetail`） | **P2a**；见 §1b；`subscribe=false` |
 | `TeamService` | `MemberStatus` / `TaskList` / `TeamInfo` | Navigator Team 段（renderer `IUniverseAgentConnection.team`） | m6 §11 A1 unary |
 | L3 `tool_runtime_snapshot` | `payload.file_mutation_payload` + `ToolCallLifecycleEvent` join | Sources Review 归因 chip / `reviewNav` 物化（**host-only** demux；contrib 消费 `onDidFileMutation`） | m6 §11 A2；禁止解析 L2 `arguments_json`；历史见 **G-REV-1** |
 | `ToolService` | `ListSkills` / `SkillInfo` / `SetSkillEnabled` | **@ HEAD** 传输 + `EngineSkillsSection` list/toggle + 正文 **读**（E1） | 无独立 Create RPC；写文件后 `ListSkills` 刷新 |
@@ -39,7 +40,7 @@ summary: "已知 gRPC 服务 / RPC 名与本仓用途；§1 Conversation（A1/A2
 | 服务 | Web 诚实断连 | 备注 |
 |------|--------------|------|
 | `IUniverseAgentConnection` | `isEngineConnected()=false`；transport `idle`；全部 `Event` 为 `Event.None`；capability snapshot **含全部已有键**且均 `UNSUPPORTED`，reason「Web 不支持本机 Engine 连接」；`connect()` 不 throw、返回无 token 的 `{ methods: [], events: [] }`；`connectProfile` 返回 `ok:false`、`code: 'unsupported_environment'`（`ConnectionFailureCode` 新增，非 `transport_failed`）；`getConnectionPhase` = `{ kind: 'disconnected' }`；其余方法 reject 为 `unsupported_environment` | `workbench.web.main.ts` 注册 |
-| `IUniverseAgentSessionView` | 空 lease（可 acquire，不投帧；`post` → `not_authenticated`） | 同上 |
+| `IUniverseAgentSessionView` | 空 lease（可 acquire，不投帧；`post` → `not_authenticated`；`requestDetail` 恒 `{ ok:false, reason:'unavailable' }`） | 同上 |
 | `IUniverseAgentHubService` | `getAuthStatus` = `unavailable`；`login` / `addDirectAddressProfile` 等 mutating 方法一律 `ok:false` + 环境码；profiles = `[]`；`isEncryptionAvailable()` = `true`（避免冒充密钥环问题）；不回显凭据 | `connectionHub.contribution.ts` **不再**静态 import `electron-browser/universeAgentHubService`；该注册仅在 `workbench.desktop.main.ts` |
 
 后续 P 切片新增 capability 键或方法时，**同一提交**须同步本目录 browser 断连实现。
@@ -51,6 +52,12 @@ summary: "已知 gRPC 服务 / RPC 名与本仓用途；§1 Conversation（A1/A2
 | `McpService` | `GetMcpServerStatuses` | `McpServerStatus{ server_id, status DISCONNECTED/CONNECTING/CONNECTED/ERROR, error_message, last_connected_at }` + `checked_at`；另有 `MCP_STATUS_UNSPECIFIED=0` | Engine 页 MCP 节 **Runtime** tab | **P1a** `getMcpServerStatuses()`；能力键 `mcpRuntime` | 与 Definitions 共享 `server_id`；不得读 vscode `IMcpService`；`UNSPECIFIED` 映射为 failed，不画第五态 |
 | `McpService` | `GetMcpServerTools(server_id, force_refresh)` | `McpToolDefinition{ name, description, input_schema_json }` + `total` + `cached_at` | Runtime tab 每服务器工具列表 | **P1a** `getMcpServerTools(serverId, forceRefresh)` | `cached_at` 展示为「上次刷新」 |
 | `PluginService` | `List` / `Info` / `Enable` / `Reload` / `Unload` / `ScanNew` | `PluginSummary{ id, display_name, version, source, hook_count, status ACTIVE/DISABLED/ERROR, loaded_at }`；`Info` 附 `PluginHookEntry{ hook_type, priority, class_name }`；`ScanNewPluginsResponse{ new_plugins, skipped_count }`；写操作要求 operator，否则 `PERMISSION_DENIED` | Engine 页 Plugins 节 | **P1a** `listPlugins()` / `getPluginInfo(id)` / `enablePlugin(id)` / `reloadPlugin(id)` / `unloadPlugin(id)` / `scanNewPlugins()`；`plugins` 由 `List` 真探测 | `source` 为 JAR/DEX 文件名或 `embedded`（现网实现可能回 `"plugin"`，UI 只按 wire 值判断）；`Info.hooks` 现网可能为空，空就空表；无安装市场 |
+
+### P2a 已绑定（DetailRef 通道）
+
+| 服务 | RPC | 线上消息要点 | 本仓消费面（M7） | P 切片 / IDE 方法 | 备注 |
+|------|-----|--------------|------------------|------------------|------|
+| `AgentService` | `FetchToolDetail(session_id, tool_call_id, detail_kind, ref_id, mime_type?, revision?, offset?, length?, tail_bytes?, subscribe)` | `FetchToolDetailResponse{ success, content, revision?, truncated, total_bytes?, mime_type?, error_message }` | Conversation **DetailRef 按需通道**（G3 数据源） | **P2a** `IUniverseAgentSessionView.requestDetail(leaseId, ref) → Promise<DetailFetchOutcome>`；`DetailPatch{ ref, body, truncated?, totalBytes? }`；`IConversationSessionViewLease.requestDetail?`（stub 源由 B 在 Q2 接通实施） | Host-only：`DetailRef` JSON `{ toolCallId, detailKind, refId }`（或 compact `{ tc, k, r }`）→ `FetchToolDetail(subscribe=false)`。成功先写入 host `leaseDetails` 并在 outcome 带 `content`，再 settle（调用方据此 upsert `details.get(ref)`）。`success=false` / 传输错 → failed；方法未广告 / `UNIMPLEMENTED` → unavailable。browser lease 恒 unavailable。**禁止** `subscribe=true`；不注入 `ViewFrame`（避免抢走 Actor `frameId`） |
 
 ## 2. 能力探测
 
@@ -109,7 +116,7 @@ Connect 后 `probeEngineCapabilities`：**仅**广告了 method 且 probe 非 `U
 | 会话枚举 / 创建 / 删除 | `getSessions` … `deleteSession` | `SessionService.List` / `Create` / `Delete`；`work_dir` 过滤随 Connect。已连接时首次 `List` 完成前 roster **不**含 stub 种子行 |
 | 切换 / 重命名 | `switchSession` / `renameSession` | 切换 = 客户端 `activeSessionId` 投影（**无** `SwitchSession` RPC）。重命名 HEAD 仍走本地 `renameSession`；proto `AgentService.Rename` **未接** |
 | 回合流（用户 / 助手 / thinking / tool / …） | `getTurns`、`onDidChangeSession` | `SessionService.GetHistory`（`cursor_seq`）+ `SessionEventStream` → session-core fold → `ViewFrame`；renderer 经 `IUniverseAgentSessionView` / `acquireSessionView` |
-| 轨迹记录 | `getTrajectoryRecords(sessionId, { filterAgentId? }?)` | HEAD：`projectSnapshotToTrajectory(snapshot, attribution, details, options)` 从 lease/帧源投影；stub 仅 `untitled` 且未连接时 ∪ fixture extras；UA 会话**不** merge fixture；检查器只用有界 preview（G3 DetailRef 未做）；`compacted` 预留；Overview 瀑布 Deferred。活 Event fold 全文仍 M6-D / PRD-008 |
+| 轨迹记录 | `getTrajectoryRecords(sessionId, { filterAgentId? }?)` | HEAD：`projectSnapshotToTrajectory(snapshot, attribution, details, options)` 从 lease/帧源投影；stub 仅 `untitled` 且未连接时 ∪ fixture extras；UA 会话**不** merge fixture；**P2a** 已提供 `requestDetail` / `FetchToolDetail` 通道（renderer 帧源与 stub 本地解析仍待 B Q2 接通）；`compacted` 预留；Overview 瀑布 Deferred。活 Event fold 全文仍 M6-D / PRD-008 |
 | 权限请求 / 回执 | `resolveConfirmation`、`countPendingConfirmations` | 流内 L4 `permission_request` → `pendingActions`；应答经 `AgentService.Chat` 臂（`permissionRespond` fact）；`PermissionService.Respond` 为文档化备选 |
 | MessageQueue | `getMessageQueueState` 与五个操作 | **仍 fixture**；`AgentService.EnqueueQueueItem` 族未进 roster adapter |
 | AutoDrive / Task 列表 | `getAutoDriveTasks` | **仍 fixture**；`PermissionService.SetSessionGoal` 未接 |

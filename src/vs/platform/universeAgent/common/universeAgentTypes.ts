@@ -175,6 +175,27 @@ export interface UniverseAgentAgentTreeNode {
 	readonly children: readonly UniverseAgentAgentTreeNode[];
 }
 
+/** Host-only `AgentService.FetchToolDetail` (M7 P2a). Always `subscribe=false`. */
+export interface UniverseAgentFetchToolDetailRequest {
+	readonly sessionId: string;
+	readonly toolCallId: string;
+	readonly detailKind: number;
+	readonly refId: string;
+}
+
+export type UniverseAgentFetchToolDetailResult =
+	| { readonly ok: true; readonly content: string; readonly truncated: boolean; readonly totalBytes?: number }
+	| { readonly ok: false; readonly reason: 'unavailable' | 'failed'; readonly message?: string };
+
+/** Raw transport mapping of FetchToolDetailResponse before advertisement / UNIMPLEMENTED fold. */
+export interface UniverseAgentFetchToolDetailWireResult {
+	readonly success: boolean;
+	readonly content: string;
+	readonly truncated: boolean;
+	readonly totalBytes?: number;
+	readonly errorMessage?: string;
+}
+
 /** Skill catalog source from ToolService.ListSkills (customizations-engine §3.1). */
 export type UniverseAgentSkillSource = 'bundled' | 'user' | 'project' | 'unknown';
 

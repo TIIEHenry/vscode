@@ -155,6 +155,7 @@ class RecordingMockTransport implements IUniverseAgentGrpcTransport {
 	async listTools() { return { tools: [] }; }
 
 	async fetchAgentTree() { return undefined; }
+	async fetchToolDetail() { return { success: false, content: '', truncated: false }; }
 	async memberStatus() { return []; }
 	async taskList() { return []; }
 	async teamInfo() { return undefined; }
