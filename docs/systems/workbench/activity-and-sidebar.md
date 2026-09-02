@@ -3,8 +3,8 @@ title: "ActivityBar 与 Sidebar：容器绑定与显隐"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-08-31
-summary: "ACTIVITYBAR_PART 与 SIDEBAR_PART 的从属与 grid 关系、ViewContainer 如何变成图标、显隐 API 与 activityBar.location；对照 Desktop Navigator"
+updated: 2026-09-02
+summary: "ACTIVITYBAR_PART 与 SIDEBAR_PART 的从属与 grid 关系、ViewContainer 如何变成图标、显隐 API 与 activityBar.location；对照 Desktop Navigator；§5.1 Navigator 段数据来源（N1–N4）"
 ---
 
 # ActivityBar 与 Sidebar
@@ -91,8 +91,20 @@ Sidebar 显隐 **不** 自动藏 Activity；点已激活图标收起的是 Sideb
 
 相关不变量仍以 [desktop-shell-mapping](../../reference/code-oss-b2/desktop-shell-mapping.md) 为准：`INV-052-NO-DUAL-HIDE` 对象是 Conversation ∨ Workbench，与本仓 Editor ∨ Panel 不是同一条。
 
+### 5.1 Navigator 段数据来源（N1–N4 @ HEAD）
+
+与 [navigator-tabs-access](../../reference/code-oss-b2/navigator-tabs-access.md) · [navigator-engine-segments](../../../dev/plans/navigator-engine-segments.md) 对齐。无引擎时 Projects 仅本地文件夹组，Agents / Team 诚实空；**不**用 stub 冒充 UA 数据。
+
+| Activity 段 | 无引擎 | 有引擎（已接通 PRD-008） |
+|-------------|--------|--------------------------|
+| Projects | 本地 folders + Recent（`openWindow`） | `WorkbenchObjectTree`：引擎根 → connection `workDir` → `IConversationRosterService.getSessions()`（同 Sessions roster）；+ 本地文件夹组 |
+| Agents · Hierarchy | 空态 | 当前会话 lease → `snapshot.liveAgentTree`（M6-A2 host `AgentService.Tree` → `agentTreeBound`） |
+| Agents · Activity | 空态（不读 stub tool） | 同一 lease → `timeline[] ∪ overlay.blocks[]` 中 tool 项 |
+| Team | 空态 | 独立 lease → 同树发现 manager → `IUniverseAgentConnection.team.*` unary；`onDidChangeTeamRuntime` 刷新 |
+| Inspect（Panel） | 空 target | `IAgentInspectService` 四模板；v1 单叶 |
+
 ## 6. 相关文档
 
 - [parts-and-grid](parts-and-grid.md) · [Workbench 概览](overview.md) · [壳映射](../../reference/code-oss-b2/desktop-shell-mapping.md)
-- [navigator-tabs-access](../../reference/code-oss-b2/navigator-tabs-access.md) — 各 tab 子页重设计（draft）
+- [navigator-tabs-access](../../reference/code-oss-b2/navigator-tabs-access.md) — 各 tab 子页与 N1–N4 数据源
 - `src/vs/workbench/browser/parts/{activitybar,sidebar,globalCompositeBar.ts}` · `common/views.ts`

@@ -3,8 +3,8 @@ title: "Navigator tab 适配：按 vscode ViewContainer 重设计子页"
 type: reference
 status: accepted
 phase: N/A
-updated: 2026-09-01
-summary: "@77d6e7cc 五段 Activity 已落产品 chrome（page-access 切片 1a–4 + M5 切片 1–4；D4 closed）：Files=Explorer；Sessions/Projects/Agents/Team 各 ViewPane + WorkbenchList/树 + 内联 filter；inspect→Panel；数据仍 stub/本地工作区；Engines 不进 Activity"
+updated: 2026-09-02
+summary: "五段 Activity 产品 chrome 已落；N1–N4 @ HEAD：Projects=WorkbenchObjectTree（引擎根→work_dir→roster 会话 + 本地文件夹组）；Agents Hierarchy=lease.liveAgentTree、Activity=lease timeline∪overlay tool；Team=同树 manager→connection team unary；Inspect=IAgentInspectService→Panel 单叶（第二叶不需要）；无引擎三段诚实空；Engines 不进 Activity"
 ---
 
 # Navigator tab 适配
@@ -26,12 +26,12 @@ Singularity Navigator 是 **TabLayout + 单一 body**：一段 Activity 换一�
 |------------|-----------|----------------------------------------|
 | Files（默认） | Explorer `VIEW_CONTAINER`（`workbench.view.explorer`，`isDefault: true`，`hideIfEmpty: true`） | `ExplorerView` 权威树 + Open Editors（`contrib/files`） |
 | Sessions | 独立容器 `workbench.view.sessions`（order 10；`hideIfEmpty: false`） | 叶 `workbench.view.conversationSessions` → `ConversationSessionsView`（`conversationSessionsView.ts`）：`WorkbenchList` 44px 双行 SessionCard、内联 filter、标题 New/Delete；行选 → `switchSession` + 显示并聚焦 `CONVERSATION_PART`（**M5 切片 2** / page-access 切片 2）；数据 = `IConversationRosterService` 内存 stub |
-| Projects | 独立容器 `workbench.view.navigator.projects`（order 11） | 叶 `workbench.view.navigatorProjects` → `NavigatorProjectsView`（`navigatorProjectsList.ts`）：无工作区时 `registerViewWelcomeContent`（Open Folder / Recent）；有工作区或 Recent 时 `WorkbenchList`（当前 folders + `IWorkspacesService.getRecentlyOpened()`）+ 内联 filter；`canToggleVisibility: false` |
-| Agents | 独立容器 `workbench.view.navigator.agents`（order 12） | 叶 `workbench.view.navigatorAgents` → `NavigatorAgentsView`（`navigatorStubView.ts`）：ViewTitle **Hierarchy / Activity** 子视图切换；Hierarchy = `WorkbenchObjectTree`；Activity = `WorkbenchList`；内联 filter；标题 **Inspect** → `workbench.panel.agentInspect.view`；无引擎时空态文案（非 Copilot 假数据） |
-| Team | 独立容器 `workbench.view.navigator.team`（order 13） | 叶 `workbench.view.navigatorTeam` → `NavigatorTeamView`（`navigatorTeamList.ts`）：ViewTitle **Members / Tasks** 子视图；各子视图 `WorkbenchList` + 内联 filter；标题 **Inspect**（同 Agents 单叶）；无引擎时空态 |
+| Projects | 独立容器 `workbench.view.navigator.projects`（order 11） | 叶 `workbench.view.navigatorProjects` → `NavigatorProjectsView`（`navigatorProjectsList.ts`）：`WorkbenchObjectTree`——**无引擎**仅「本地文件夹」组（当前窗口 folders + Recent，行点击 `openWindow`）；**有引擎**加引擎根 → `IUniverseAgentConnection` 快照 `workDir` 分组 → `IConversationRosterService.getSessions()` 同一份会话（行点击 `switchSession`）；内联 filter；`canToggleVisibility: false` |
+| Agents | 独立容器 `workbench.view.navigator.agents`（order 12） | 叶 `workbench.view.navigatorAgents` → `NavigatorAgentsView`（`navigatorAgentsView.ts`）：ViewTitle **Hierarchy / Activity**；**无引擎**诚实空态；**有引擎**叶可见时 `acquireSessionView` lease——Hierarchy 读 `snapshot.liveAgentTree`（host 填 `agentTreeBound`，contrib 零 Tree RPC）；Activity 读 lease `timeline[] ∪ overlay.blocks[]` 中 `kind === 'tool'`；`IAgentInspectService` + 标题 **Inspect** → Panel 单叶 |
+| Team | 独立容器 `workbench.view.navigator.team`（order 13） | 叶 `workbench.view.navigatorTeam` → `NavigatorTeamView`（`navigatorTeamList.ts`）：ViewTitle **Members / Tasks**；**无引擎**诚实空态；**有引擎**独立 lease 读同一 `liveAgentTree` 发现 manager → `IUniverseAgentConnection.team.memberStatus` / `taskList`（`liveTeamId` 有值才 `teamInfo`）；`onDidChangeTeamRuntime` 刷新；Inspect 同 Agents 单叶 |
 | Engines | **无** Activity 段 | 连接面走 Settings → Preferences Connection pane（`ua.connection`） |
 
-五段 **UI 壳与 vscode 零件已按本页选定落地**；Singularity 优化稿里的 Engine→Project→Session 树、Agents Hierarchy/Activity、Team Members/Tasks **不能**像素搬进 Sidebar，但 **子视图结构与控件族已在 HEAD 用 vscode 零件重做**（见 §3.3–3.5）。有引擎后只换 data source，不换容器 id。
+五段 **UI 壳与 vscode 零件已按本页选定落地**；Singularity 优化稿里的 Engine→Project→Session 树、Agents Hierarchy/Activity、Team Members/Tasks **不能**像素搬进 Sidebar，但 **子视图结构与控件族已在 HEAD 用 vscode 零件重做**（见 §3.3–3.5）。**N1–N4 @ HEAD** 已接引擎 data source（方案 [navigator-engine-segments](../../../dev/plans/navigator-engine-segments.md)）；无引擎时三段仍与签收前一致（诚实空 / 仅本地文件夹）。容器 id 不变。
 
 ## 2. 宿主规则（已落地，保持）
 
@@ -76,11 +76,11 @@ ACTIVITYBAR_PART 图标
 
 Singularity 意图（只取问题，不取 Compose 树合同）：「有哪些可工作会话，属于哪个 Engine / Project」。Desktop 本片在无 UA 引擎时展示 **本地工作区发现**，不发假 session roster。
 
-| 阶段 | 选定 UI | vscode 零件 | HEAD @ `77d6e7cc` |
-|------|---------|-------------|-------------------|
+| 阶段 | 选定 UI | vscode 零件 | HEAD |
+|------|---------|-------------|------|
 | 无工作区 | 空态 + Open Folder / Recent CTA | `registerViewWelcomeContent`（`workbench.action.files.openFolder` / `openRecent`） | **已落**（`navigator.contribution.ts`） |
-| 有本地工作区、无 UA | 当前窗口 folders + 最近工作区 | `IWorkspaceContextService` + `IWorkspacesService.getRecentlyOpened()` → `WorkbenchList`（`ResourceLabels` 行）+ 内联 filter | **已落**（`navigatorProjectsList.ts`）；**不是** UA session catalog |
-| 有引擎后 | Engine → Project → Session **只读发现投影** | 同一 `ViewPane` 换 data source；树用 `WorkbenchAsyncDataTree`（可压缩）。Engine 节点 = **分组轴**，不是连接生命周期（连接面仍在 Settings → Connection pane），也不是第二份产品 roster。活动会话只发 `switchSession`（同一 `getActiveSessionId()`），不持久化第二份 catalog | 待引擎 adapter |
+| 无引擎、有本地工作区 | 仅「本地文件夹」组 | `IWorkspaceContextService` + `IWorkspacesService.getRecentlyOpened()` → 树中 `local-folder` 叶 + 内联 filter | **已落**（N1）；**不是** UA session catalog |
+| 有引擎 | Engine → work_dir → Session **只读发现** | `WorkbenchObjectTree`（`buildNavigatorProjectsTree`）：引擎根 + connection 快照 `workDir` 分组（G-NAV-1 未补前单 work_dir）+ roster 同一份 `getSessions()`；本地文件夹组仍在引擎根下。Engine / work_dir = **分组轴**；行点击只 `switchSession` | **已落**（N1）；细节 [navigator-engine-segments §2.1](../../../dev/plans/navigator-engine-segments.md) |
 
 **禁止：**
 
@@ -94,22 +94,22 @@ Singularity 意图（只取问题，不取 Compose 树合同）：「有哪些�
 | | |
 |--|--|
 | 产品意图 | **当前 session** 的 agent 发现 / 活动导航；深查看进 Bottom Panel，不是 Preview L1 |
-| 无引擎（HEAD 已落） | `NavigatorAgentsView`：ViewTitle **Hierarchy / Activity** 子视图（`MenuId.ViewTitle` navigation）；Hierarchy = `WorkbenchObjectTree`；Activity = `WorkbenchList`；内联 filter；各子视图诚实空态（「no engine」）；标题 **Inspect** → Panel |
-| 有引擎后 | 同一 chrome 换 data source；Activity 列表 = 工具进行中 |
+| 无引擎 | `NavigatorAgentsView`：Hierarchy / Activity 子视图 + 内联 filter；诚实空态（「No agents — no engine.」「No tool activity — no engine.」）；**不**读 stub lease 的 tool 行；标题 **Inspect** 只 `openView`（无选中） |
+| 有引擎 | 叶可见时 1 个 `acquireSessionView` lease（Hierarchy / Activity 共用）：Hierarchy = `liveAgentTree` → `WorkbenchObjectTree`；Activity = lease 快照 tool 项（timeline ∪ overlay，去重、上限 200）；Refresh → `requestAgentTreeRefresh`；行 **Inspect** / 单击 → `IAgentInspectService.setTarget`；**Reveal in Conversation** → `conversation.revealItem`（根 `'default'` 例外）。方案 [§2.2–2.3](../../../dev/plans/navigator-engine-segments.md) |
 | 复用 | 树/列表虚拟化、`ViewPane` 标题动作（Refresh / Filter）。confirmation 零件不进本 tab |
 | **禁止** | `AICustomizationManagementEditor` 的 Agents（那是 **文件型 agent 定义**，见 [settings-ua-access](settings-ua-access.md) §4）；`IChatAgentService` participant 列表；恢复 Agent Detail 为 `EDITOR_PART` |
 
 Select 行可切 Conversation 读视图（共享 session 导航态）；**不得**改引擎执行 owner。
 
-**inspect（选定，HEAD 已注册）：** 专用 Panel 容器 **`workbench.panel.agentInspect`** + 单叶 view id **`workbench.panel.agentInspect.view`** + `AgentInspectView`（`agentInspect.contribution.ts`）。Agents/Team 行 action「Inspect」→ `ViewsService.openView` 打开 Panel 叶。**v1 单叶**：Agents/Team 共用同一 view id + 同一 ctor；第二叶 id 显式延期（可与 §9.6 EH 矩阵一起定）。**不是** `openEditor` Preview tab，**不是** editor-in-panel（ADR-047 Diff FORK 另一族）。容器 `order: 50`，`hideIfEmpty: true`（inspect 非常在产品轨，默认折叠）。
+**inspect（选定，N2 @ HEAD）：** Panel 容器 **`workbench.panel.agentInspect`** + 单叶 **`workbench.panel.agentInspect.view`** + `AgentInspectView`。`IAgentInspectService` 选中总线（agent / member / task / activity 四模板）；行 action「Inspect」与行单击写入 target 再 `openView`。**v1 单叶**：Agents/Team 共用；**第二叶不需要**（page-access §5.4 留白已关）。**不是** Preview tab / editor-in-panel。容器 `hideIfEmpty: true`。
 
 ### 3.5 Team — 成员列表，不是 SCM / Accounts
 
 | | |
 |--|--|
 | 产品意图 | session-scope 协作发现（成员 / 任务）；inspect 同 §3.4（专用 Panel 容器，v1 单叶） |
-| 无引擎（HEAD 已落） | `NavigatorTeamView`：ViewTitle **Members / Tasks** 子视图；各子视图 `WorkbenchList` + 内联 filter；诚实空态；标题 **Inspect**（与 Agents 共用 `workbench.panel.agentInspect.view`） |
-| 有引擎后 | 同一 chrome 换 Members / Tasks 投影 |
+| 无引擎 | `NavigatorTeamView`：Members / Tasks 子视图 + 内联 filter；诚实空态；标题 **Inspect**（与 Agents 共用 Panel 单叶） |
+| 有引擎 | Team 叶独立 lease 读 `liveAgentTree` 发现 manager（`AGENT_TYPE_MEMBER` 子节点）→ `team.memberStatus` / `taskList`；`liveTeamId` 有值才 `teamInfo`；`onDidChangeTeamRuntime` + 250 ms 合并刷新。方案 [§2.4](../../../dev/plans/navigator-engine-segments.md) |
 | **禁止** | GitHub Accounts 菜单、Extensions 市场、把 Team 注册成 Preview Surface、伪造 `team.*` RPC |
 
 ### 3.6 Engines — 不进 Activity
@@ -126,7 +126,7 @@ Select 行可切 Conversation 读视图（共享 session 导航态）；**不得
 |------|----|------|
 | 侧栏宿主 | `ViewContainer` + `ViewPane` + `ViewPaneContainer` | 新 Part、Compose TabLayout |
 | 扁平名单 | `WorkbenchList`（Sessions 44px SessionCard；Projects / Team / Agents Activity 22px 行；HEAD 已用） | `AgentSessionsControl` |
-| 层级 | `WorkbenchObjectTree` / `WorkbenchAsyncDataTree`（Agents Hierarchy 已用；有引擎后 Projects 树） | 自研 DOM 树、Singularity dense row 像素 |
+| 层级 | `WorkbenchObjectTree`（Projects / Agents Hierarchy；N1–N2 @ HEAD） | 自研 DOM 树、Singularity dense row 像素 |
 | 空态 | `registerViewWelcomeContent`（Projects 无工作区）+ pane 内诚实空态 DOM（Agents/Team/Sessions 无数据） | 假行、`contrib/welcomeGettingStarted` walkthrough |
 | 标题动作 | `ViewAction` / `MenuId.ViewTitle`（子视图切换 Hierarchy/Activity、Members/Tasks、Inspect 已用） | 自研第二 ActionBar |
 | 过滤 | pane 内一行 IDE input（`*InlineFilterBox` 族；HEAD 四段均已用） | Singularity Body filter 胶囊 |
@@ -138,7 +138,7 @@ Select 行可切 Conversation 读视图（共享 session 导航态）；**不得
 
 1. **无引擎产品 chrome（已落 @ `77d6e7cc`）：** page-access **切片 1a–4** + **M5 切片 1–4**（D4 closed）。五段 Activity 图标；Files = Explorer 真树；Sessions / Projects / Agents / Team 各 `ViewPane` 产品壳（列表/树、内联 filter、子视图切换、Inspect）；Panel inspect 容器 `workbench.panel.agentInspect` v1 单叶；产品四段 `hideIfEmpty: false` + 唯一叶 `canToggleVisibility: false`。
 2. **本地工作区 Projects 列表（已落）：** `NavigatorProjectsView` 当前 folders + Recent；与 Explorer 树 **重复可接受**（发现面 vs 权威树，父方案 C10）。
-3. **引擎（切片 5+）：** Projects / Agents / Team 换 UA 投影；inspect 叶接引擎 payload；Sessions 走 roster adapter；StatusBar 芯片可切 Engine pane。
+3. **引擎 Navigator 段（N1–N4 @ HEAD）：** Projects / Agents / Team 已接 UA 投影（无引擎仍诚实空）；inspect 经 `IAgentInspectService`；Sessions roster 同 token（M6-A2）。**N5** 隔离 profile 冒烟与 traceability 升 `implemented` 仍待验。
 
 ### 会话身份所有权
 
