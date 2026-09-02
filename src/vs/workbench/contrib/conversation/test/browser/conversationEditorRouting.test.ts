@@ -6,7 +6,6 @@
 import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { URI } from '../../../../../base/common/uri.js';
-import { DisposableStore } from '../../../../../base/common/lifecycle.js';
 import { SyncDescriptor } from '../../../../../platform/instantiation/common/descriptors.js';
 import { isBlockedFromConversationGroup, isConversationExtensionTab } from '../../common/conversationEditorRouting.js';
 import { registerTestEditor, TestFileEditorInput, workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
@@ -21,7 +20,6 @@ suite('Conversation editor routing (F1)', () => {
 	const TEST_EDITOR_INPUT_ID = 'testEditorInputForConversationRouting';
 
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
-	const disposables = store as unknown as DisposableStore;
 
 	setup(() => {
 		store.add(registerTestEditor(TEST_EDITOR_ID, [new SyncDescriptor(TestFileEditorInput), new SyncDescriptor(SideBySideEditorInput)], TEST_EDITOR_INPUT_ID));

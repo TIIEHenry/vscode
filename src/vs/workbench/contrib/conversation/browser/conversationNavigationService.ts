@@ -165,7 +165,7 @@ export class ConversationNavigationService extends Disposable implements IConver
 		const scopedEditorService = this.getScopedEditorService(part);
 		disposables.add(scopedEditorService.onDidActiveEditorChange(() => {
 			const editor = part.activeGroup.activeEditor;
-			if (editor instanceof ConversationChatInput || isConversationDiffReviewInput(editor)) {
+			if (editor && (editor instanceof ConversationChatInput || isConversationDiffReviewInput(editor))) {
 				stack.push({ groupId: part.activeGroup.id, editor });
 			}
 		}));
@@ -177,7 +177,7 @@ export class ConversationNavigationService extends Disposable implements IConver
 		}));
 
 		const activeEditor = part.activeGroup.activeEditor;
-		if (activeEditor instanceof ConversationChatInput || isConversationDiffReviewInput(activeEditor)) {
+		if (activeEditor && (activeEditor instanceof ConversationChatInput || isConversationDiffReviewInput(activeEditor))) {
 			stack.push({ groupId: part.activeGroup.id, editor: activeEditor });
 		}
 
