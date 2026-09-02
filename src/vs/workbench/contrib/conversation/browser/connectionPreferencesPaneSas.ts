@@ -14,7 +14,7 @@ import {
 
 export type SasConfirmDialogInput = {
 	readonly displayName: string;
-	readonly sasCode: string;
+	readonly sasCode?: string;
 	readonly engineIdentityId: string;
 };
 
