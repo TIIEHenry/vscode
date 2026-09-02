@@ -32,7 +32,7 @@ export interface IConversationSessionChatService {
 	readonly onDidChangeCatalog: Event<string>;
 	readonly onDidChangeCloseNonRootState: Event<void>;
 
-	mountSubAgentOverlay(sessionKey: string, sessionWindowHost: HTMLElement, sessionBar: HTMLElement): void;
+	mountSubAgentOverlay(sessionKey: string, sessionWindowHost: HTMLElement): void;
 
 	registerPartListeners(part: IConversationEditorPart): IDisposable;
 
@@ -100,11 +100,11 @@ export class ConversationSessionChatService extends Disposable implements IConve
 		super();
 	}
 
-	mountSubAgentOverlay(sessionKey: string, sessionWindowHost: HTMLElement, sessionBar: HTMLElement): void {
+	mountSubAgentOverlay(sessionKey: string, sessionWindowHost: HTMLElement): void {
 		if (this.subAgentOverlays.has(sessionKey)) {
 			return;
 		}
-		const overlay = this._register(this.instantiationService.createInstance(ConversationSubAgentOverlay, sessionWindowHost, sessionBar));
+		const overlay = this._register(this.instantiationService.createInstance(ConversationSubAgentOverlay, sessionWindowHost));
 		this.subAgentOverlays.set(sessionKey, overlay);
 		this._register(overlay.onDidRequestPromote(() => {
 			void this.promoteSubAgentDialog(sessionKey);

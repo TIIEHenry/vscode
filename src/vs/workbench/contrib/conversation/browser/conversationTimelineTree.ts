@@ -1149,6 +1149,18 @@ export class ConversationTimelineTree extends Disposable {
 		return this.renderer.getConfirmationElement(turnId);
 	}
 
+	getFocusedTurn(): ConversationStubTurn | undefined {
+		const focused = this.tree.getFocus().find((item): item is ConversationTimelineItem => !!item);
+		if (focused?.turn) {
+			return focused.turn;
+		}
+		if (this.lastRevealTurnId) {
+			return this.turnItems.get(this.lastRevealTurnId)?.turn
+				?? this.currentTurns.find(turn => turn.id === this.lastRevealTurnId);
+		}
+		return this.currentTurns.at(-1);
+	}
+
 	/** Focus the permission/question record after submit; does not jump to page top. */
 	focusRecord(turnId: string): void {
 		const el = this.getConfirmationElement(turnId) ?? this.getTimelineRowElement(turnId);

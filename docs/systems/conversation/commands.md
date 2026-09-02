@@ -4,7 +4,7 @@ type: reference
 status: accepted
 phase: N/A
 updated: 2026-09-02
-summary: "四钮、Conversation、Sources、Sessions roster、UA Preferences、深链的用户可见命令清单；四钮默认键位与 F6 part 循环（D14）；设置键与默认值"
+summary: "四钮、Conversation、Sources、Sessions roster、UA Preferences、深链的用户可见命令清单；chat tab 复用 editor group 命令；对话框 Escape 顺序与 Accessible View"
 ---
 
 # Agent IDE 壳命令、菜单落点与快捷键
@@ -31,13 +31,14 @@ summary: "四钮、Conversation、Sources、Sessions roster、UA Preferences、�
 | `workbench.action.showConversationPart` | StatusBar session / model 芯片点击 | `setPartHidden(false, CONVERSATION_PART)` + `IConversationPartService.focus()` | 无 |
 | `workbench.action.chat.forkConversation` | Fork（Conversation 版 `ForkConversationAction`） | 同 session 新增延伸 tab | 上游继承 |
 | `workbench.action.conversation.splitSessionWindow` | Split Conversation Editor（类别 Conversation） | 当前叶内开 `CONVERSATION_SIDE_GROUP`；F1 | `Ctrl/Cmd+\`（`conversationPartFocus`） |
-| `workbench.action.conversation.nextChatTab` | Open Next Conversation Chat | 当前 Conversation 叶内下一 chat tab / 下一 split 列；不打到 Preview | `Ctrl+PageDown`（mac `Cmd+Alt+→`） |
-| `workbench.action.conversation.previousChatTab` | Open Previous Conversation Chat | 当前 Conversation 叶内上一 chat tab / 上一 split 列 | `Ctrl+PageUp`（mac `Cmd+Alt+←`） |
-| Conversation chat tablist ← / → | 焦点在 chat tablist 上 | 只切同组 tab（循环）；Home / End 到首尾；不跨 split 列、不打到 Preview | 组件内键处理（`conversationSplitActions.contribution.ts`） |
+| `workbench.action.conversation.nextChatTab` | Open Next Conversation Chat | F1 别名：当前 Conversation 叶内下一 chat tab / 下一 split 列；**不另绑键** | 无（复用 `workbench.action.nextEditor`：`Ctrl+PageDown` / mac `Cmd+Alt+→`） |
+| `workbench.action.conversation.previousChatTab` | Open Previous Conversation Chat | F1 别名：当前 Conversation 叶内上一 chat tab / 上一 split 列；**不另绑键** | 无（复用 `workbench.action.previousEditor`：`Ctrl+PageUp` / mac `Cmd+Alt+←`） |
+| Conversation chat tablist ← / → | 焦点在 editor group tablist 上 | 只切同组 tab（循环）；Home / End 到首尾；不跨 split 列、不打到 Preview | 组件内键处理（`conversationSplitActions.contribution.ts`）；全局切 tab 走 editor group 命令 |
 | SessionBar ← / → | 按钮；鼠标侧键 4 / 5（`event.button` 3 / 4） | 每个 Conversation `IEditorPart` 自有导航栈 | 鼠标侧键 |
 | SessionBar「关非根」 | 按钮 | `closeNonRootTabs` | 无 |
-| 子代理对话框：popout / maximize / close | overlay 按钮；Esc | Esc 先关局部 inspector，再关对话框，不关根会话 | Esc（组件内） |
-| 「对话 \| 轨迹」 | pane 内透镜切换 | 持久化到 workspace storage | 无 |
+| 子代理对话框：popout / maximize / close | overlay 按钮；Esc | trap 根 = `overlay.element`（自备透镜 tab / 标题行，不写 Part 级 sessionBar）。Esc 顺序：图示 overlay → 局部 inspector → 标题改名 → 对话框；**不**关根会话 | Esc（组件内） |
+| 「对话 \| 轨迹」 | pane 内透镜 tablist | 左右键 / Home / End 切换；持久化到 workspace storage | 组件内键处理（`conversationLens.ts`） |
+| Accessible View 朗读回合 | `Alt+F2`（上游 Accessible View） | `ConversationAccessibleView` 经 `IAccessibleViewService` 读完整回合；不新造 live 区 | 上游 Accessible View |
 | Composer | Enter 发送；Shift+Enter 换行；Esc 退出 turnEdit / queueEdit；↑ / ↓ 浏览输入历史 | 见 [composer-and-inbox](composer-and-inbox.md) | 组件内键处理 |
 | 图示卡全屏 | Expand diagram；Esc 关闭 | overlay Close + Reset | 组件内键处理 |
 
@@ -102,11 +103,12 @@ Sources 无独立命令；tab 切换为 title 区 tab strip 点击（`nextSource
 
 | 控件 | 实现文件 |
 |------|----------|
-| 延伸 chat tab / SessionBar 窗口导航（← / →） | `conversationNavigation.contribution.ts`、`conversationSplitActions.contribution.ts`（tablist 左右键） |
-| 「对话 \| 轨迹」透镜 tablist | `conversationLens.ts` |
+| 延伸 chat tab / SessionBar 窗口导航（← / →） | `conversationNavigation.contribution.ts`；chat tab 全局键复用 `workbench.action.nextEditor` / `previousEditor`，不另绑 |
+| 「对话 \| 轨迹」透镜 tablist | `conversationLens.ts`（左右键） |
 | 过程折（Process steps） | `conversationProcessFold.ts`、`conversationTimelineTree.ts` |
-| 权限 / 确认座位（confirmation seat） | `conversationConfirmationSeat.ts` |
+| 权限 / 提问座位 | `conversationConfirmationSeat.ts`、`conversationQuestionSeat.ts` |
 | Composer 底栏 Permission 下拉 | `conversationLens.ts`（文案 `conversationLensDockStrings.ts`） |
-| 子代理对话框 overlay | `conversationSubAgentOverlay.ts` |
+| 子代理对话框 overlay | `conversationSubAgentOverlay.ts`（trap 根 `overlay.element`；Esc：图示 → inspector → 改名 → 对话框） |
+| 完整回合朗读 | `conversationAccessibleView.ts` → `IAccessibleViewService`（`AccessibleViewProviderId.Conversation`） |
 
-**仍缺（PRD-018 其余项）**：「对话 \| 轨迹」透镜 / 过程折 / 权限座位的**部分默认键盘快捷键**（aria 名已部分落地，见上表）；`showConversationPart`、关非根仍无默认键位。`split` 与 chat tab 的 `Ctrl+\\` / `Ctrl+PageDown` 已在 `conversationPartFocus` 时接管；chat tablist 左右键与子代理 Esc（先 inspector 再对话框）已落。约束与目标见 [PRD-018](../../product/requirements.md#prd-018-键盘可达与辅助功能)（`accepted`）。
+**仍缺（PRD-018 其余项）**：`showConversationPart`、关非根仍无默认键位；Composer Tab 进工具栏与 Enter 模式属 CS-2；窄宽度属 Q6。`split` 的 `Ctrl+\\` 仍在 `conversationPartFocus` 时接管；chat tab **不**再另绑 `Ctrl+PageDown`。约束与目标见 [PRD-018](../../product/requirements.md#prd-018-键盘可达与辅助功能)（`accepted`）。

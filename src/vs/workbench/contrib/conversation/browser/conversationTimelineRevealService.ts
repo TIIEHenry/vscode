@@ -14,6 +14,8 @@ export interface IConversationTimelineRevealService {
 	readonly _serviceBrand: undefined;
 	registerLens(lens: ConversationLens): { dispose(): void };
 	revealItem(itemId: string): void;
+	getAccessibleTurnContent(): string | undefined;
+	focusAccessibleTurn(): void;
 }
 
 export class ConversationTimelineRevealService extends Disposable implements IConversationTimelineRevealService {
@@ -35,6 +37,14 @@ export class ConversationTimelineRevealService extends Disposable implements ICo
 
 	revealItem(itemId: string): void {
 		this.primaryLens?.revealTimelineItem(itemId);
+	}
+
+	getAccessibleTurnContent(): string | undefined {
+		return this.primaryLens?.getAccessibleTurnContent();
+	}
+
+	focusAccessibleTurn(): void {
+		this.primaryLens?.focusAccessibleTurn();
 	}
 }
 

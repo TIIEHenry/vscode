@@ -27,11 +27,6 @@ class ConversationSessionChatContribution extends Disposable implements IWorkben
 		super();
 
 		const mountAll = () => {
-			const sessionBar = conversationPartService.getSlots()?.sessionBar;
-			if (!sessionBar) {
-				return;
-			}
-
 			for (const sessionKey of sessionWindowService.getAllLeafSessionKeys()) {
 				const leaf = sessionWindowService.getLeafSlots(sessionKey);
 				if (!leaf) {
@@ -39,7 +34,7 @@ class ConversationSessionChatContribution extends Disposable implements IWorkben
 				}
 
 				if (!this.mountedOverlays.has(sessionKey)) {
-					sessionChatService.mountSubAgentOverlay(sessionKey, leaf.sessionWindow, sessionBar);
+					sessionChatService.mountSubAgentOverlay(sessionKey, leaf.sessionWindow);
 					this.mountedOverlays.add(sessionKey);
 				}
 

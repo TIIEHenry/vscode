@@ -81,6 +81,8 @@ suite('ConversationTrajectoryUi', () => {
 			_serviceBrand: undefined,
 			registerLens: () => ({ dispose: () => { } }),
 			revealItem: () => { },
+			getAccessibleTurnContent: () => undefined,
+			focusAccessibleTurn: () => { },
 		});
 		instantiationService.stub(IConversationReviewNavService, {
 			_serviceBrand: undefined,

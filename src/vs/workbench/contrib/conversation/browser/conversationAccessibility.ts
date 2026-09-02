@@ -4,9 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { localize } from '../../../../nls.js';
-import { ConfirmationStatus } from './conversationStubModel.js';
+import { ConfirmationStatus, ConversationStubTurn } from './conversationStubModel.js';
 import { getConversationTurnRoleLabel, getConversationTurnSummary } from './conversationTrajectoryList.js';
-import type { ConversationStubTurn } from './conversationStubModel.js';
 
 export function getConversationConfirmationStatusLabel(status: ConfirmationStatus): string {
 	switch (status) {
@@ -65,17 +64,78 @@ export function getConversationQuestionSeatAriaLabel(status: ConfirmationStatus,
 	);
 }
 
+function conversationTurnAgentSuffix(turn: ConversationStubTurn): string {
+	return turn.agentId && turn.agentId !== 'default'
+		? localize('conversationAccessibility.ariaAgent', ", Agent {0}", turn.agentId)
+		: '';
+}
+
+/**
+ * Stable row name for the timeline / tree.
+ * Streaming rows add an "in progress" suffix only while `streaming` is true;
+ * the growing token body is omitted so aria-label does not update per token.
+ */
 export function getConversationTurnAriaLabel(turn: ConversationStubTurn): string {
+	const agent = conversationTurnAgentSuffix(turn);
+	const streaming = turn.streaming
+		? localize('conversationAccessibility.ariaInProgress', ", in progress")
+		: '';
+	const summary = turn.streaming
+		? ''
+		: (turn.text.trim() || localize('conversationAccessibility.emptySummary', "(empty)"));
+
 	if (turn.kind === 'confirmation') {
-		return getConversationPermissionSeatAriaLabel(turn.status ?? 'pending', turn.text);
+		const seat = getConversationPermissionSeatAriaLabel(turn.status ?? 'pending', turn.streaming ? '' : turn.text);
+		return streaming ? `${seat}${streaming}` : seat;
 	}
 	if (turn.kind === 'question') {
-		return getConversationQuestionSeatAriaLabel(turn.status ?? 'pending', turn.text);
+		const seat = getConversationQuestionSeatAriaLabel(turn.status ?? 'pending', turn.streaming ? '' : turn.text);
+		return streaming ? `${seat}${streaming}` : seat;
 	}
-	return localize(
-		'conversationLens.turnAriaLabel',
-		"{0}: {1}",
-		getConversationTurnRoleLabel(turn.kind),
-		getConversationTurnSummary(turn),
-	);
+	if (turn.kind === 'error') {
+		const retry = turn.retryable
+			? localize('conversationAccessibility.errorRetryable', "retryable")
+			: localize('conversationAccessibility.errorNotRetryable', "not retryable");
+		return turn.streaming
+			? localize('conversationAccessibility.errorAriaStreaming', "Error, {0}{1}{2}", retry, agent, streaming)
+			: localize('conversationAccessibility.errorAria', "Error, {0}{1}: {2}", retry, agent, summary);
+	}
+	if (turn.kind === 'unknown') {
+		const typeName = turn.typeName || localize('conversationAccessibility.unknownType', "unknown type");
+		return turn.streaming
+			? localize('conversationAccessibility.unknownAriaStreaming', "Unknown content, {0}{1}{2}", typeName, agent, streaming)
+			: localize('conversationAccessibility.unknownAria', "Unknown content, {0}{1}: {2}", typeName, agent, summary);
+	}
+	if (turn.kind === 'visualization') {
+		const title = turn.streaming ? '' : (turn.visualize?.title || summary);
+		return localize('conversationAccessibility.visualizeAria', "Visualization{0}{1}{2}", title ? `, ${title}` : '', agent, streaming);
+	}
+	if (turn.kind === 'reviewNav') {
+		return localize('conversationAccessibility.reviewNavAria', "Review, {0}{1}", summary || localize('conversationAccessibility.emptySummary', "(empty)"), agent);
+	}
+	if (turn.kind === 'system') {
+		return turn.streaming
+			? localize('conversationAccessibility.systemAriaStreaming', "System{0}{1}", agent, streaming)
+			: localize('conversationAccessibility.systemAria', "System{0}: {1}", agent, summary);
+	}
+
+	const role = getConversationTurnRoleLabel(turn.kind);
+	return turn.streaming
+		? localize('conversationAccessibility.turnAriaStreaming', "{0}{1}{2}", role, agent, streaming)
+		: localize('conversationAccessibility.turnAria', "{0}{1}: {2}", role, agent, summary || getConversationTurnSummary(turn));
+}
+
+/** Full turn text for Accessible View. Includes the body even while streaming. */
+export function getConversationTurnAccessibleText(turn: ConversationStubTurn): string {
+	const header = getConversationTurnAriaLabel({ ...turn, streaming: false });
+	const body = turn.kind === 'unknown'
+		? (turn.rawContent ?? turn.text)
+		: turn.text;
+	if (!body.trim()) {
+		return header;
+	}
+	if (header.includes(body.trim())) {
+		return header;
+	}
+	return `${header}\n\n${body}`;
 }

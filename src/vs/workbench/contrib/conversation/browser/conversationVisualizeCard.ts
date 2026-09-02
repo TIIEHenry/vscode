@@ -89,7 +89,7 @@ function renderVisualizeCardChrome(
 	header.type = 'button';
 	header.setAttribute('aria-expanded', String(expanded));
 
-	const chevron = append(header, $('span.conversation-visualize-chevron'));
+	const chevron = append(header, $('span.conversation-visualize-chevron.ua-motion'));
 	chevron.classList.add(...ThemeIcon.asClassNameArray(Codicon.chevronRight));
 	chevron.classList.toggle('conversation-visualize-chevron--expanded', expanded);
 

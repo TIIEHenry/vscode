@@ -360,6 +360,8 @@ suite('ConversationLens', () => {
 			_serviceBrand: undefined,
 			registerLens: () => ({ dispose: () => { } }),
 			revealItem: () => { },
+			getAccessibleTurnContent: () => undefined,
+			focusAccessibleTurn: () => { },
 		});
 		instantiationService.stub(IConversationReviewNavService, {
 			_serviceBrand: undefined,
@@ -2207,7 +2209,8 @@ suite('ConversationLens', () => {
 
 		assert.ok(layoutContainer.querySelector('.conversation-visualize-overlay[role="dialog"]'));
 
-		layoutContainer.dispatchEvent(new KeyboardEvent('keydown', { keyCode: KeyCode.Escape, bubbles: true }));
+		const dialog = layoutContainer.querySelector('.conversation-visualize-overlay') as HTMLElement;
+		dialog.dispatchEvent(new KeyboardEvent('keydown', { keyCode: KeyCode.Escape, bubbles: true }));
 		assert.strictEqual(layoutContainer.querySelector('.conversation-visualize-overlay[role="dialog"]'), null);
 
 		expandButton.click();

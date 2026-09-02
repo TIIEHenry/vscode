@@ -4,7 +4,7 @@ type: architecture
 status: accepted
 phase: N/A
 updated: 2026-09-02
-summary: "ConversationEditorPane 页 chrome；「对话 | 轨迹」双透镜；帧源 projectSnapshotToTrajectory + T5 搜索/虚拟化；子代理 filterAgentId；DetailRef 六态经 P2a requestDetail；轨迹含 permission/question/error/unknown；Q3 compacted 只消费 P2b attribution；Q4 live 过程折按 fold:${firstId} 保留展开；Overview 仍 Deferred；PRD-003 / 012 / 013 / 014 / 020 / 021"
+summary: "ConversationEditorPane 页 chrome；「对话 | 轨迹」双透镜；子代理 overlay 自备 sessionBar（trap 根 overlay.element）；Accessible View 读完整回合；帧源投影与 Q4 live 过程折；Overview 仍 Deferred"
 ---
 
 # Conversation 透镜、时间线与轨迹
@@ -13,7 +13,11 @@ summary: "ConversationEditorPane 页 chrome；「对话 | 轨迹」双透镜；�
 
 ## 1. 页 chrome 在哪
 
-每张 chat tab / 子代理对话框的内容由 `ConversationEditorPane`（`workbench.editor.conversationChat`）渲染。它把 `IConversationLensSlots`（`sessionBar` / `timeline` / `dock` 三个 DOM 槽）交给 `ConversationLens` 填。**注意两层 SessionBar**：Part 级的窗口 chrome（SelectBox、←→、关非根、Route）在 `ConversationPart.sessionBar`；页级的「对话 | 轨迹」透镜切换与面包屑在 pane 内。会话切换不随 tab 复制。
+每张 chat tab 的内容由 `ConversationEditorPane`（`workbench.editor.conversationChat`）渲染。它把 `IConversationLensSlots`（`sessionBar` / `timeline` / `dock` 三个 DOM 槽）交给 `ConversationLens` 填。**注意两层 SessionBar**：Part 级的窗口 chrome（SelectBox、←→、关非根、Route）在 `ConversationPart.sessionBar`；页级的「对话 | 轨迹」透镜切换与标题行由 `ConversationLens.mountSessionBar` 填。根 tab 的透镜栏仍挂在 Part 槽。
+
+子代理对话框（`ConversationSubAgentOverlay`）**自备** overlay 内 sessionBar（透镜 tab + 标题行），不再把 Part 级 sessionBar 传入 `ConversationLens`。focus trap 根 = `overlay.element`，Tab wrap 与 Escape 才能包住透镜 / 改名。Escape 顺序：图示 overlay → 局部 inspector → 标题改名 → 对话框；不关根会话。
+
+时间线行名由 `getConversationTurnAriaLabel` 给出（含 `system` / error 可否重试 / unknown 原始类型）。流式行只在进入 / 离开 `streaming` 时改「进行中」后缀，不按 token 更新 `aria-label`。完整回合经 `ConversationAccessibleView` 接入既有 `IAccessibleViewService`（`AccessibleViewProviderId.Conversation`），不新造 live 区。
 
 `ConversationLens` 把当前透镜 id（`'conversation' | 'trajectory'`）存到 `StorageScope.WORKSPACE`（`CONVERSATION_LENS_ID_STORAGE_KEY`），是本系统今天**唯一**持久化的用户状态。
 
@@ -94,7 +98,7 @@ Stub fixture：`mergeTrajectoryFixtureExtras` 仅 seed `untitled`、且 `!isEngi
 ## 5. 图示卡（visualize）
 
 - 协议类型在 `common/conversationVisualize.ts`：`type: 'diagram'`（`mermaid` 必填）或 `'comparison'`（`options[]`：name / pros / cons / recommended / 可选 mermaid）。`parseVisualizeArgs` 失败时给 `fallbackMarkdown`（错误说明 + 原始 fence）。
-- 渲染：`conversationVisualizeCard.ts` 在时间线以卡片呈现，无 You / Agent 气泡头；`conversationVisualizeOverlay.ts` 全屏 overlay（Close + Reset，Esc 关闭），**不是** mermaid preview editor tab。
+- 渲染：`conversationVisualizeCard.ts` 在时间线以卡片呈现，无 You / Agent 气泡头；`conversationVisualizeOverlay.ts` 全屏 overlay（Close + Reset）。Escape 只听 `overlay.element`（不再在 layout 容器上吞键），先关图示、不关子代理对话框或根会话。**不是** mermaid preview editor tab。
 - mermaid 宿主 `conversationMermaidHost.ts`：依赖内置扩展 `vscode.mermaid-markdown-features` 的 `chat-webview-out` 资源起 webview；扩展缺失时 `fallback: true`，退回 `<pre>` 源码 fence + Stub 文案（PRD-014 验收 4）。
 - 引擎 admitted `visualize` **只**映射为 `visualization` kind（`visualizeArgsFromMermaidTool` 是未来 adapter 入口），不进 tool / reasoning span，轨迹不投影。
 

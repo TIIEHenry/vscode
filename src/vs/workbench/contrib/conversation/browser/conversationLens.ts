@@ -79,6 +79,7 @@ import {
 	conversationLensVoiceStubPhraseThree,
 	conversationLensVoiceStubPhraseTwo,
 } from './conversationLensDockStrings.js';
+import { getConversationTurnAccessibleText } from './conversationAccessibility.js';
 import { conversationLensSessionBarConversationTab, conversationLensSessionBarDeleteSession, conversationLensSessionBarNewSession, conversationLensSessionBarRenameInputAria, conversationLensSessionBarRenameTitle, conversationLensSessionBarRouteLabel, conversationLensSessionBarTrajectoryTab } from './conversationLensSessionBarStrings.js';
 import {
 	buildSessionUserInputHistory,
@@ -317,6 +318,39 @@ export class ConversationLens extends Disposable {
 		return this.trajectoryView?.tryDismissInspector() ?? false;
 	}
 
+	/** Cancels an in-progress session title edit. Does not close the session. */
+	tryCancelSessionTitleEdit(): boolean {
+		if (!this.sessionTitleEditing) {
+			return false;
+		}
+		this.cancelSessionTitleEdit();
+		this.sessionTitleButton?.focus();
+		return true;
+	}
+
+	/** Closes the visualize overlay if it is open. Does not close the dialog or session. */
+	tryCloseVisualizeOverlay(): boolean {
+		if (!this.visualizeOverlay.isOpen()) {
+			return false;
+		}
+		this.visualizeOverlay.close();
+		return true;
+	}
+
+	getAccessibleTurnContent(): string | undefined {
+		const turn = this.timelineTree.getFocusedTurn();
+		return turn ? getConversationTurnAccessibleText(turn) : undefined;
+	}
+
+	focusAccessibleTurn(): void {
+		const turn = this.timelineTree.getFocusedTurn();
+		if (turn) {
+			this.focusTimelineRecord(turn.id);
+		} else {
+			this.focusDockInput();
+		}
+	}
+
 	revealTimelineItem(itemId: string): void {
 		this.lastRevealItemId = itemId;
 		if (this.lensId !== 'conversation') {
@@ -481,6 +515,7 @@ export class ConversationLens extends Disposable {
 				this.commitSessionTitleEdit();
 			} else if (e.keyCode === KeyCode.Escape) {
 				e.preventDefault();
+				e.stopPropagation();
 				this.cancelSessionTitleEdit();
 			}
 		}));

@@ -80,7 +80,8 @@ suite('ConversationVisualizeOverlay', () => {
 		const { overlay, container } = mountOverlay();
 		assert.ok(overlay.isOpen());
 
-		container.dispatchEvent(new KeyboardEvent('keydown', { keyCode: KeyCode.Escape, bubbles: true }));
+		const dialog = container.querySelector('.conversation-visualize-overlay') as HTMLElement;
+		dialog.dispatchEvent(new KeyboardEvent('keydown', { keyCode: KeyCode.Escape, bubbles: true }));
 		assert.strictEqual(overlay.isOpen(), false);
 		assert.strictEqual(container.querySelector('[role="dialog"]'), null);
 	});

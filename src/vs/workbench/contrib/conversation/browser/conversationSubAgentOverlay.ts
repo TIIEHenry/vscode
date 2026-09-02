@@ -56,6 +56,7 @@ export class ConversationSubAgentOverlay extends Disposable {
 	private maximizeButton!: Button;
 	private closeButton!: Button;
 	private breadcrumb!: ConversationAgentBreadcrumbBox;
+	private overlaySessionBar!: HTMLElement;
 	private readonly lensDisposables = this._register(new DisposableStore());
 	private lens: ConversationLens | undefined;
 	private state: IConversationSubAgentOverlayState | undefined;
@@ -63,7 +64,6 @@ export class ConversationSubAgentOverlay extends Disposable {
 
 	constructor(
 		parent: HTMLElement,
-		private readonly sessionBar: HTMLElement,
 		@IInstantiationService private readonly instantiationService: IInstantiationService,
 	) {
 		super();
@@ -148,12 +148,20 @@ export class ConversationSubAgentOverlay extends Disposable {
 		this.breadcrumb = this._register(new ConversationAgentBreadcrumbBox(this.card));
 		this._register(this.breadcrumb.onDidSelect(chatId => this._onDidSelectBreadcrumb.fire(chatId)));
 
+		this.overlaySessionBar = append(this.card, $('.conversation-subagent-overlay-session-bar'));
 		this.body = append(this.card, $('.conversation-subagent-overlay-body'));
 		this._register(addDisposableListener(this.element, EventType.KEY_DOWN, event => {
 			if (event.key === 'Escape') {
 				event.preventDefault();
 				event.stopPropagation();
+				// Escape order: visualize → inspector → rename → dialog. Never close the root session.
+				if (this.lens?.tryCloseVisualizeOverlay()) {
+					return;
+				}
 				if (this.lens?.tryDismissLocalInspector()) {
+					return;
+				}
+				if (this.lens?.tryCancelSessionTitleEdit()) {
 					return;
 				}
 				this.close();
@@ -186,7 +194,7 @@ export class ConversationSubAgentOverlay extends Disposable {
 		// Detached S3 harnesses are not inside `.monaco-workbench`; skip the full lens there.
 		if (this.element.closest('.monaco-workbench')) {
 			const filterAgentId = state.chatId !== 'default' ? state.chatId : undefined;
-			this.lens = this.instantiationService.createInstance(ConversationLens, { sessionBar: this.sessionBar, timeline, dock, filterAgentId });
+			this.lens = this.instantiationService.createInstance(ConversationLens, { sessionBar: this.overlaySessionBar, timeline, dock, filterAgentId });
 			this.lensDisposables.add(this.lens);
 		}
 	}
