@@ -157,7 +157,7 @@ export class UniverseAgentHubService extends Disposable implements IUniverseAgen
 		}
 		this._activeHubBaseUrl = trimmed;
 		this._directoryAuthExpired = false;
-		await this._hubSessionStore.applyAuthSession(trimmed, result.session, this._nowMs());
+		await this._hubSessionStore.applyAuthSession(trimmed, result.session, this._nowMs(), result.refreshToken);
 		this._fireAuthChanged();
 		await this.refreshDirectory();
 		return { ok: true };
