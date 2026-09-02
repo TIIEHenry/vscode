@@ -389,6 +389,56 @@
 	box-sizing: border-box;
 }
 
+.monaco-workbench .part.conversation .conversation-lens-trajectory-toolbar {
+	display: flex;
+	flex-shrink: 0;
+	align-items: center;
+	gap: 8px;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-trajectory-search {
+	flex: 1;
+	min-width: 0;
+	height: 22px;
+	padding: 0 8px;
+	border: 1px solid var(--vscode-input-border, transparent);
+	border-radius: 4px;
+	background-color: var(--vscode-input-background);
+	color: var(--vscode-input-foreground);
+	font-size: 12px;
+	box-sizing: border-box;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-trajectory-search:focus {
+	outline: 1px solid var(--vscode-focusBorder);
+	outline-offset: -1px;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-trajectory-limit-notice {
+	flex-shrink: 0;
+	margin: 0;
+	padding: 4px 8px;
+	border-radius: 4px;
+	background-color: var(--vscode-inputValidation-infoBackground);
+	color: var(--vscode-inputValidation-infoForeground);
+	font-size: 11px;
+	line-height: 1.4;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-trajectory-table-scroll {
+	flex: 1;
+	min-height: 0;
+	overflow: hidden;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-trajectory-table-scroll .monaco-list {
+	height: 100%;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-trajectory-table-scroll .monaco-list-row {
+	padding: 0;
+}
+
 .monaco-workbench .part.conversation .conversation-lens-trajectory-body {
 	display: flex;
 	flex: 1;
@@ -409,7 +459,7 @@
 	min-height: 0;
 	border: 1px solid var(--vscode-widget-border, transparent);
 	border-radius: 4px;
-	overflow: auto;
+	overflow: hidden;
 }
 
 .monaco-workbench .part.conversation .conversation-lens-trajectory-table-header {
@@ -439,8 +489,7 @@
 }
 
 .monaco-workbench .part.conversation .conversation-lens-trajectory-table-body {
-	display: flex;
-	flex-direction: column;
+	display: none;
 }
 
 .monaco-workbench .part.conversation .conversation-lens-trajectory-fold-host {

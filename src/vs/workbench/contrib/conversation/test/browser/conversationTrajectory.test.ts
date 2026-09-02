@@ -12,11 +12,15 @@ import { ConversationLens } from '../../browser/conversationLens.js';
 import { ConversationTimelineTree } from '../../browser/conversationTimelineTree.js';
 import { ConversationTrajectory } from '../../browser/conversationTrajectory.js';
 import { ConversationStubService, IConversationRosterService } from '../../browser/conversationStubService.js';
+import { IConversationTimelineRevealService } from '../../browser/conversationTimelineRevealService.js';
 import {
+	CONVERSATION_TRAJECTORY_RECORD_LIMIT,
 	CONVERSATION_TRAJECTORY_STUB_CONTEXT_TEXT,
 	CONVERSATION_TRAJECTORY_STUB_SOURCE_BLOCK_CONTENT,
 	CONVERSATION_TRAJECTORY_STUB_SUBTOOL_TEXT,
 	CONVERSATION_TRAJECTORY_STUB_SYSTEM_TEXT,
+	applyTrajectoryRecordLimit,
+	filterTrajectoryRecordsBySearch,
 	projectSnapshotToTrajectory,
 	projectTurnsToTrajectory,
 	shouldMergeTrajectoryFixtureExtras,
@@ -89,6 +93,11 @@ suite('ConversationTrajectory', () => {
 		const stubService = store.add(new ConversationStubService());
 		const clipboardService = new TestClipboardService();
 		instantiationService.stub(IConversationRosterService, stubService);
+		instantiationService.stub(IConversationTimelineRevealService, {
+			_serviceBrand: undefined,
+			registerLens: () => ({ dispose: () => { } }),
+			revealItem: () => { },
+		});
 		instantiationService.stub(IClipboardService, clipboardService);
 		instantiationService.stub(ICommandService, new class implements ICommandService {
 			declare readonly _serviceBrand: undefined;
@@ -362,5 +371,34 @@ suite('ConversationTrajectory', () => {
 		const tool = records.find(record => record.kind === 'tool');
 		assert.ok(tool);
 		assert.strictEqual(getTrajectoryKindLabel(tool!.kind), conversationTrajectoryKindTool);
+	});
+
+	test('applyTrajectoryRecordLimit keeps most recent records and reports omitted count', () => {
+		const records = Array.from({ length: CONVERSATION_TRAJECTORY_RECORD_LIMIT + 42 }, (_, index) => ({
+			id: `r${index}`,
+			kind: 'message' as const,
+			text: `Record ${index}`,
+		}));
+
+		const limited = applyTrajectoryRecordLimit(records);
+
+		assert.strictEqual(limited.totalCount, CONVERSATION_TRAJECTORY_RECORD_LIMIT + 42);
+		assert.strictEqual(limited.omittedCount, 42);
+		assert.strictEqual(limited.visibleRecords.length, CONVERSATION_TRAJECTORY_RECORD_LIMIT);
+		assert.strictEqual(limited.visibleRecords[0]!.id, 'r42');
+		assert.strictEqual(limited.visibleRecords.at(-1)!.id, `r${CONVERSATION_TRAJECTORY_RECORD_LIMIT + 41}`);
+	});
+
+	test('filterTrajectoryRecordsBySearch matches kind, text, and source blocks', () => {
+		const records = [
+			{ id: '1', kind: 'system' as const, text: 'Stub environment' },
+			{ id: '2', kind: 'user' as const, text: 'Find me', sourceBlocks: [{ type: 'text', content: 'needle.txt', toolName: 'readme' }] },
+			{ id: '3', kind: 'message' as const, text: 'Other reply' },
+		];
+
+		assert.strictEqual(filterTrajectoryRecordsBySearch(records, '').length, 3);
+		assert.deepStrictEqual(filterTrajectoryRecordsBySearch(records, 'stub').map(record => record.id), ['1']);
+		assert.deepStrictEqual(filterTrajectoryRecordsBySearch(records, 'needle').map(record => record.id), ['2']);
+		assert.deepStrictEqual(filterTrajectoryRecordsBySearch(records, 'missing').length, 0);
 	});
 });
