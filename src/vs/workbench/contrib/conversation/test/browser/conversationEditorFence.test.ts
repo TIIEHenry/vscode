@@ -17,23 +17,20 @@ import { createEditorParts, registerTestEditor, TestFileEditorInput, workbenchIn
 import { SideBySideEditorInput } from '../../../../common/editor/sideBySideEditorInput.js';
 import { ChatEditorInput } from '../../../chat/browser/widgetHosts/editor/chatEditorInput.js';
 import { ConversationChatInput, getDefaultConversationChatResource } from '../../browser/conversationChatInput.js';
+import { ConversationDiffReviewInput } from '../../../sources/browser/conversationDiffReviewInput.js';
 import '../../browser/conversationEditor.contribution.js';
+import '../../../sources/browser/conversationDiffReview.contribution.js';
 
 suite('Conversation editor fence', () => {
-
-	ensureNoDisposablesAreLeakedInTestSuite();
 
 	const TEST_EDITOR_ID = 'MyFileEditorForConversationFence';
 	const TEST_EDITOR_INPUT_ID = 'testEditorInputForConversationFence';
 
-	const disposables = new DisposableStore();
+	const store = ensureNoDisposablesAreLeakedInTestSuite();
+	const disposables = store as unknown as DisposableStore;
 
 	setup(() => {
-		disposables.add(registerTestEditor(TEST_EDITOR_ID, [new SyncDescriptor(TestFileEditorInput), new SyncDescriptor(SideBySideEditorInput)], TEST_EDITOR_INPUT_ID));
-	});
-
-	teardown(() => {
-		disposables.clear();
+		store.add(registerTestEditor(TEST_EDITOR_ID, [new SyncDescriptor(TestFileEditorInput), new SyncDescriptor(SideBySideEditorInput)], TEST_EDITOR_INPUT_ID));
 	});
 
 	async function createHarness() {
@@ -48,6 +45,10 @@ suite('Conversation editor fence', () => {
 
 		const conversationPart = parts.createConversationEditorPart(conversationHost, 'session-a');
 		await conversationPart.whenReady;
+		const rootEditor = conversationPart.activeGroup.getEditorByIndex(0);
+		if (rootEditor) {
+			store.add(rootEditor);
+		}
 		conversationPart.activeGroup.focus();
 
 		return { instantiationService, parts, conversationPart };
@@ -60,7 +61,7 @@ suite('Conversation editor fence', () => {
 
 	test('openEditor(file) while conversation focused routes to main editor part', async () => {
 		const { instantiationService, parts, conversationPart } = await createHarness();
-		const file = disposables.add(new TestFileEditorInput(URI.file('/tmp/fence.txt'), TEST_EDITOR_INPUT_ID));
+		const file = store.add(new TestFileEditorInput(URI.file('/tmp/fence.txt'), TEST_EDITOR_INPUT_ID));
 
 		const [group] = instantiationService.invokeFunction(accessor => findGroup(accessor, file, undefined)) as [typeof parts.mainPart.activeGroup, unknown];
 		assert.strictEqual(parts.getPart(group), parts.mainPart);
@@ -69,7 +70,7 @@ suite('Conversation editor fence', () => {
 
 	test('SIDE_GROUP never targets conversation editor part', async () => {
 		const { instantiationService, parts, conversationPart } = await createHarness();
-		const file = disposables.add(new TestFileEditorInput(URI.file('/tmp/side.txt'), TEST_EDITOR_INPUT_ID));
+		const file = store.add(new TestFileEditorInput(URI.file('/tmp/side.txt'), TEST_EDITOR_INPUT_ID));
 		const conversationGroupsBefore = conversationPart.groups.length;
 		const mainGroupsBefore = parts.mainPart.groups.length;
 
@@ -82,7 +83,7 @@ suite('Conversation editor fence', () => {
 
 	test('CONVERSATION_GROUP + file is rejected to main editor part', async () => {
 		const { instantiationService, parts, conversationPart } = await createHarness();
-		const file = disposables.add(new TestFileEditorInput(URI.file('/tmp/reject.txt'), TEST_EDITOR_INPUT_ID));
+		const file = store.add(new TestFileEditorInput(URI.file('/tmp/reject.txt'), TEST_EDITOR_INPUT_ID));
 
 		const [group] = instantiationService.invokeFunction(accessor => findGroup(accessor, file, CONVERSATION_GROUP)) as [typeof parts.mainPart.activeGroup, unknown];
 		assert.strictEqual(parts.getPart(group), parts.mainPart);
@@ -91,7 +92,7 @@ suite('Conversation editor fence', () => {
 
 	test('ChatEditorInput is blocked from conversation groups', async () => {
 		const { instantiationService, parts, conversationPart } = await createHarness();
-		const chatInput = disposables.add(instantiationService.createInstance(ChatEditorInput, URI.parse('vscode-chat:session/test'), {}));
+		const chatInput = store.add(instantiationService.createInstance(ChatEditorInput, URI.parse('vscode-chat:session/test'), {}));
 
 		const [group] = instantiationService.invokeFunction(accessor => findGroup(accessor, chatInput, CONVERSATION_GROUP)) as [typeof parts.mainPart.activeGroup, unknown];
 		assert.strictEqual(parts.getPart(group), parts.mainPart);
@@ -100,12 +101,37 @@ suite('Conversation editor fence', () => {
 
 	test('conversation input opens in conversation part when explicitly requested', async () => {
 		const { instantiationService, parts } = await createHarness();
-		const conversationInput = disposables.add(instantiationService.createInstance(
+		const conversationInput = store.add(instantiationService.createInstance(
 			ConversationChatInput,
 			getDefaultConversationChatResource('session-b'),
 		));
 
 		const [targetGroup] = instantiationService.invokeFunction(accessor => findGroup(accessor, conversationInput, CONVERSATION_GROUP)) as [typeof parts.mainPart.activeGroup, unknown];
 		assert.ok(parts.conversationParts.some(part => part.groups.some(g => g.id === targetGroup.id)));
+	});
+
+	test('CONVERSATION_GROUP + diff review input opens in conversation part', async () => {
+		const { instantiationService, parts } = await createHarness();
+		const reviewInput = store.add(instantiationService.createInstance(
+			ConversationDiffReviewInput,
+			URI.file('/tmp/fence-modified.ts'),
+			URI.file('/tmp/fence-original.ts'),
+		));
+
+		const [targetGroup] = instantiationService.invokeFunction(accessor => findGroup(accessor, reviewInput, CONVERSATION_GROUP)) as [typeof parts.mainPart.activeGroup, unknown];
+		assert.ok(parts.conversationParts.some(part => part.groups.some(g => g.id === targetGroup.id)));
+	});
+
+	test('diff review input without explicit conversation group throws', async () => {
+		const { instantiationService } = await createHarness();
+		const reviewInput = store.add(instantiationService.createInstance(
+			ConversationDiffReviewInput,
+			URI.file('/tmp/fence-throw-modified.ts'),
+			URI.file('/tmp/fence-throw-original.ts'),
+		));
+
+		assert.throws(() => {
+			instantiationService.invokeFunction(accessor => findGroup(accessor, reviewInput, undefined));
+		}, /explicit conversation group target/);
 	});
 });

@@ -7,6 +7,7 @@ import { Disposable } from '../../../../base/common/lifecycle.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { IWorkbenchContribution, registerWorkbenchContribution2, WorkbenchPhase } from '../../../common/contributions.js';
 import { ISourcesPartService } from '../../../browser/parts/sources/sourcesPart.js';
+import './conversationDiffReview.contribution.js';
 import { SourcesTabsHost } from './sourcesTabsHost.js';
 
 class SourcesTabsContribution extends Disposable implements IWorkbenchContribution {

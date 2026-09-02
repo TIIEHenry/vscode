@@ -20,10 +20,12 @@ import { HistoryService } from '../../../../services/history/browser/historyServ
 import { IHistoryService } from '../../../../services/history/common/history.js';
 import { createEditorParts, registerTestEditor, TestFileEditorInput, workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { SideBySideEditorInput } from '../../../../common/editor/sideBySideEditorInput.js';
-import { ConversationChatInput, getDefaultConversationChatResource } from '../../browser/conversationChatInput.js';
+import { ConversationChatInput, getConversationChatResource, getDefaultConversationChatResource } from '../../browser/conversationChatInput.js';
+import { ConversationDiffReviewInput } from '../../../sources/browser/conversationDiffReviewInput.js';
 import { ConversationNavigationService } from '../../browser/conversationNavigationService.js';
 import { CONVERSATION_CLOSE_CHILD_ON_BACK_SETTING } from '../../common/conversationNavigation.js';
 import '../../browser/conversationEditor.contribution.js';
+import '../../../sources/browser/conversationDiffReview.contribution.js';
 
 suite('Conversation navigation (S2)', () => {
 
@@ -91,7 +93,7 @@ suite('Conversation navigation (S2)', () => {
 
 	function createExtensionTab(sessionKey: string, suffix: string): ConversationChatInput {
 		return store.add(new ConversationChatInput(
-			getDefaultConversationChatResource(`${sessionKey}-${suffix}`),
+			getConversationChatResource(sessionKey, suffix),
 		));
 	}
 
@@ -138,6 +140,23 @@ suite('Conversation navigation (S2)', () => {
 		await navigationService.goBack(conversationA);
 
 		assert.strictEqual(conversationA.activeGroup.count, 2);
+		assert.strictEqual((conversationA.activeGroup.activeEditor as ConversationChatInput).isDefaultRoot, true);
+	});
+
+	test('closeChildOnBack closes diff review tab when navigating back', async () => {
+		const { navigationService, conversationA, instantiationService } = await createHarness({ closeChildOnBack: true });
+
+		const reviewInput = store.add(instantiationService.createInstance(
+			ConversationDiffReviewInput,
+			URI.file('/tmp/nav-review-modified.ts'),
+			URI.file('/tmp/nav-review-original.ts'),
+		));
+		await conversationA.activeGroup.openEditor(reviewInput);
+		assert.strictEqual(conversationA.activeGroup.count, 2);
+
+		await navigationService.goBack(conversationA);
+
+		assert.strictEqual(conversationA.activeGroup.count, 1);
 		assert.strictEqual((conversationA.activeGroup.activeEditor as ConversationChatInput).isDefaultRoot, true);
 	});
 
