@@ -88,19 +88,19 @@ function roleTitle(role: ItemAttribution['role']): string {
 	}
 }
 
-/** Session-level sync chrome label for SessionBar / Inbox (PRD-007). Only `live` may say “connected”. */
+/** Session-level sync chrome for SessionBar / Inbox. Never reuse Engine connection wording. */
 export function formatSyncChromeLabel(sync: SyncChrome): string | undefined {
 	switch (sync.kind) {
 		case 'idle':
 			return undefined;
 		case 'syncing':
-			return localize('conversationSessionView.syncSyncing', "Syncing");
+			return localize('conversationSessionView.syncSyncing', "Session syncing");
 		case 'live':
-			return localize('conversationSessionView.syncLive', "Connected");
+			return localize('conversationSessionView.syncLive', "Session live");
 		case 'degraded':
-			return localize('conversationSessionView.syncDegraded', "Degraded: {0}", sync.reason);
+			return localize('conversationSessionView.syncDegraded', "Session degraded: {0}", sync.reason);
 		case 'closed':
-			return localize('conversationSessionView.syncClosed', "Disconnected: {0}", sync.reason);
+			return localize('conversationSessionView.syncClosed', "Session disconnected: {0}", sync.reason);
 	}
 }
 

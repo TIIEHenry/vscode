@@ -279,8 +279,8 @@ registerAction2(class extends Action2 {
 		super({
 			id: ToggleEditorVisibilityActionId,
 			title: {
-				...localize2('toggleEditor', "Toggle Editor Area Visibility"),
-				mnemonicTitle: localize({ key: 'miShowEditorArea', comment: ['&& denotes a mnemonic'] }, "Show &&Editor Area"),
+				...localize2('toggleEditor', "Toggle Preview Visibility"),
+				mnemonicTitle: localize({ key: 'miShowEditorArea', comment: ['&& denotes a mnemonic'] }, "Show &&Preview"),
 			},
 			category: Categories.View,
 			f1: true,
@@ -457,7 +457,7 @@ export class ToggleSidebarVisibilityAction extends Action2 {
 	constructor() {
 		super({
 			id: ToggleSidebarVisibilityAction.ID,
-			title: localize2('toggleSidebar', 'Toggle Primary Side Bar Visibility'),
+			title: localize2('toggleSidebar', 'Toggle Navigator Visibility'),
 			toggled: {
 				condition: SideBarVisibleContext,
 				title: localize('navigator', "Navigator"),

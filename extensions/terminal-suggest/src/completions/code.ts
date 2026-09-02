@@ -983,7 +983,7 @@ export const codeTunnelSubcommands: Fig.Subcommand[] = [
 	},
 	{
 		name: 'serve-web',
-		description: 'Runs a local web version of Code - OSS',
+		description: 'Runs a local web version of UniverseAgentStudio',
 		options: [
 			{
 				name: '--host',
@@ -1152,7 +1152,7 @@ export const codeTunnelSubcommands: Fig.Subcommand[] = [
 			},
 			{
 				name: 'serve-web',
-				description: 'Runs a local web version of Code - OSS',
+				description: 'Runs a local web version of UniverseAgentStudio',
 			},
 			{
 				name: 'agent',
@@ -1184,7 +1184,7 @@ export const codeTunnelSubcommands: Fig.Subcommand[] = [
 
 const codeCompletionSpec: Fig.Spec = {
 	name: 'code',
-	description: 'Visual Studio Code',
+	description: 'UniverseAgentStudio',
 	args: {
 		template: ['filepaths', 'folders'],
 		isVariadic: true,

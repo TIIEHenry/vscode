@@ -107,10 +107,10 @@ export class ConversationSessionStatusBarContribution extends Disposable impleme
 	private createSessionEntry(): IStatusbarEntry {
 		const text = getConversationSessionStatusText(this.stubService.getActiveSession());
 		return {
-			name: localize('conversationStatus.name', "Conversation Session"),
+			name: localize('conversationStatus.sessionName', "Session"),
 			text,
-			ariaLabel: localize('conversationStatus.ariaLabel', "Conversation session: {0}", text),
-			tooltip: localize('conversationStatus.tooltip', "Show Conversation"),
+			ariaLabel: localize('conversationStatus.sessionAriaLabel', "Session: {0}", text),
+			tooltip: localize('conversationStatus.sessionTooltip', "Active session: {0}", text),
 			command: {
 				id: ShowConversationPartAction.ID,
 				title: '',
@@ -128,10 +128,10 @@ export class ConversationSessionStatusBarContribution extends Disposable impleme
 		);
 		const commandId = connected ? OPEN_ENGINE_PREFERENCES_COMMAND_ID : OPEN_CONNECTION_PREFERENCES_COMMAND_ID;
 		return {
-			name: localize('conversationStatus.engineName', "Engine"),
+			name: localize('conversationStatus.engineName', "Engine connection"),
 			text,
-			ariaLabel: localize('conversationStatus.engineAriaLabel', "Engine: {0}", text),
-			tooltip: text,
+			ariaLabel: localize('conversationStatus.engineAriaLabel', "Engine connection: {0}", text),
+			tooltip: localize('conversationStatus.engineTooltip', "Engine connection: {0}", text),
 			command: {
 				id: commandId,
 				title: '',
