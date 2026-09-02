@@ -25,6 +25,17 @@ import {
 	findTurnIdForTrajectoryRecord,
 	TrajectoryTableDisplayItem,
 } from './conversationTrajectoryModel.js';
+import {
+	buildTrajectoryOverviewSegments,
+	TrajectoryOverviewSegment,
+} from './conversationTrajectoryOverview.js';
+import {
+	conversationTrajectoryCompactedDiscardedNotice,
+	conversationTrajectoryDetailLoading,
+	ITrajectoryDetailContext,
+	TrajectoryDetailInspectorModel,
+	TrajectoryDetailInspectorState,
+} from './conversationTrajectoryDetailInspector.js';
 
 export const conversationTrajectoryKindUser = localize('conversationTrajectory.kindUser', "USER");
 export const conversationTrajectoryKindContext = localize('conversationTrajectory.kindContext', "CONTEXT");
@@ -34,6 +45,8 @@ export const conversationTrajectoryKindTool = localize('conversationTrajectory.k
 export const conversationTrajectoryKindSubtool = localize('conversationTrajectory.kindSubtool', "SUBTOOL");
 export const conversationTrajectoryKindThinking = localize('conversationTrajectory.kindThinking', "THINKING");
 export const conversationTrajectoryKindCompacted = localize('conversationTrajectory.kindCompacted', "COMPACTED");
+export const conversationTrajectoryKindPermission = localize('conversationTrajectory.kindPermission', "PERMISSION");
+export const conversationTrajectoryKindError = localize('conversationTrajectory.kindError', "ERROR");
 
 export const conversationTrajectoryInspectorSummary = localize('conversationTrajectory.inspectorSummary', "Summary");
 export const conversationTrajectoryInspectorPayload = localize('conversationTrajectory.inspectorPayload', "Payload");
@@ -78,11 +91,22 @@ export function getTrajectoryKindLabel(kind: ConversationTrajectoryKind): string
 			return conversationTrajectoryKindThinking;
 		case 'compacted':
 			return conversationTrajectoryKindCompacted;
+		case 'permission':
+			return conversationTrajectoryKindPermission;
+		case 'error':
+			return conversationTrajectoryKindError;
 	}
 }
 
 /** One-line preview for trajectory table navigation. */
 export function getTrajectoryRecordPreview(record: ConversationTrajectoryRecord): string {
+	if (record.kind === 'compacted') {
+		const parts = [record.compactedRange, record.compactedReason, record.compactedSummary].filter(Boolean);
+		if (parts.length > 0) {
+			return parts.join(' · ');
+		}
+		return record.text.trim() || localize('conversationTrajectory.compactedEmptyPreview', "(compacted)");
+	}
 	if (record.kind === 'user' && record.sourceBlocks?.length) {
 		const chips = record.sourceBlocks.map(block => block.toolName ?? block.content).join(', ');
 		const trimmed = record.text.trim();
@@ -96,8 +120,16 @@ export function getTrajectoryRecordPreview(record: ConversationTrajectoryRecord)
 	return trimmed.length > 120 ? `${trimmed.slice(0, 119)}…` : trimmed;
 }
 
+export const conversationTrajectoryOverviewTitle = localize('conversationTrajectory.overviewTitle', "Overview");
+export const conversationTrajectoryOverviewCollapse = localize('conversationTrajectory.overviewCollapse', "Collapse overview");
+export const conversationTrajectoryOverviewExpand = localize('conversationTrajectory.overviewExpand', "Expand overview");
+export const conversationTrajectoryInspectorPreview = localize('conversationTrajectory.inspectorPreview', "Preview");
+export const conversationTrajectoryInspectorFull = localize('conversationTrajectory.inspectorFull', "Full content");
+export const conversationTrajectoryInspectorStatus = localize('conversationTrajectory.inspectorStatus', "Status");
+
 export interface IConversationTrajectoryOptions {
 	readonly onNavigateToLinkedTurn?: (turnId: string) => void;
+	readonly detailContext?: ITrajectoryDetailContext;
 }
 
 interface ITrajectoryRecordTemplateData {
@@ -258,6 +290,12 @@ export class ConversationTrajectory extends Disposable implements ITrajectoryTab
 	private readonly emptyState: HTMLElement;
 	private readonly body: HTMLElement;
 	private readonly toolbar: HTMLElement;
+	private readonly overviewHost: HTMLElement;
+	private readonly overviewToggle: HTMLButtonElement;
+	private readonly overviewTrack: HTMLElement;
+	private overviewExpanded = true;
+	private overviewSegments: readonly TrajectoryOverviewSegment[] = [];
+	private readonly detailInspector = new TrajectoryDetailInspectorModel();
 	private readonly searchInput: HTMLInputElement;
 	private readonly limitNotice: HTMLElement;
 	private readonly table: HTMLElement;
@@ -306,6 +344,23 @@ export class ConversationTrajectory extends Disposable implements ITrajectoryTab
 		this.searchInput.setAttribute('aria-label', conversationTrajectorySearchAria);
 		this.searchInput.autocomplete = 'off';
 		this.searchInput.spellcheck = false;
+
+		this.overviewHost = append(this.body, $('.conversation-lens-trajectory-overview'));
+		const overviewHeader = append(this.overviewHost, $('.conversation-lens-trajectory-overview-header'));
+		append(overviewHeader, $('span.conversation-lens-trajectory-overview-title')).textContent = conversationTrajectoryOverviewTitle;
+		this.overviewToggle = append(overviewHeader, $('button.conversation-lens-trajectory-overview-toggle')) as HTMLButtonElement;
+		this.overviewToggle.type = 'button';
+		this.overviewToggle.setAttribute('aria-expanded', 'true');
+		this.overviewToggle.title = conversationTrajectoryOverviewCollapse;
+		this.overviewToggle.classList.add(...ThemeIcon.asClassNameArray(Codicon.chevronDown));
+		this._register(addDisposableListener(this.overviewToggle, 'click', () => {
+			this.overviewExpanded = !this.overviewExpanded;
+			this.syncOverviewChrome();
+		}));
+
+		this.overviewTrack = append(this.overviewHost, $('.conversation-lens-trajectory-overview-track'));
+		this.overviewTrack.setAttribute('role', 'list');
+		this.overviewTrack.setAttribute('aria-label', conversationTrajectoryOverviewTitle);
 
 		this.limitNotice = append(this.body, $('.conversation-lens-trajectory-limit-notice'));
 		this.limitNotice.hidden = true;
@@ -423,7 +478,57 @@ export class ConversationTrajectory extends Disposable implements ITrajectoryTab
 		if (linkedTurnIds) {
 			this.linkedTurnIds.current = new Set(linkedTurnIds);
 		}
+		this.refreshOverview();
 		this.refreshTable();
+	}
+
+	clearSessionState(): void {
+		this.detailInspector.clearSession();
+		this.closeInspector();
+	}
+
+	refreshDetailInspector(): void {
+		const selectedId = this.selectedRecordIdHolder.current;
+		if (!selectedId) {
+			return;
+		}
+		const record = this.currentRecords.find(candidate => candidate.id === selectedId);
+		if (record) {
+			this.openInspector(record);
+		}
+	}
+
+	private refreshOverview(): void {
+		clearNode(this.overviewTrack);
+		const { segments } = buildTrajectoryOverviewSegments(this.currentRecords);
+		this.overviewSegments = segments;
+		this.overviewHost.hidden = segments.length === 0;
+		if (segments.length === 0) {
+			return;
+		}
+		for (const segment of segments) {
+			const segmentEl = append(this.overviewTrack, $('button.conversation-lens-trajectory-overview-segment')) as HTMLButtonElement;
+			segmentEl.type = 'button';
+			segmentEl.setAttribute('role', 'listitem');
+			segmentEl.dataset.segmentKind = segment.kind;
+			segmentEl.title = segment.label;
+			append(segmentEl, $('span.conversation-lens-trajectory-overview-segment-glyph'));
+			append(segmentEl, $('span.conversation-lens-trajectory-overview-segment-label')).textContent = segment.label;
+			this.renderDisposables.add(addDisposableListener(segmentEl, 'click', () => {
+				const targetId = segment.recordIds[0];
+				if (targetId) {
+					this.revealRecord(targetId);
+				}
+			}));
+		}
+		this.syncOverviewChrome();
+	}
+
+	private syncOverviewChrome(): void {
+		this.overviewToggle.setAttribute('aria-expanded', String(this.overviewExpanded));
+		this.overviewToggle.title = this.overviewExpanded ? conversationTrajectoryOverviewCollapse : conversationTrajectoryOverviewExpand;
+		this.overviewToggle.classList.toggle('conversation-lens-trajectory-overview-toggle--collapsed', !this.overviewExpanded);
+		this.overviewTrack.hidden = !this.overviewExpanded;
 	}
 
 	revealRecord(recordId: string): void {
@@ -456,7 +561,7 @@ export class ConversationTrajectory extends Disposable implements ITrajectoryTab
 	}
 
 	layout(height: number, width: number): void {
-		this.listHeight = Math.max(0, height - 160);
+		this.listHeight = Math.max(0, height - 200);
 		this.listWidth = width;
 		if (this.displayItems.length > 0) {
 			this.list.layout(this.listHeight, this.listWidth);
@@ -543,16 +648,37 @@ export class ConversationTrajectory extends Disposable implements ITrajectoryTab
 		this.inspector.hidden = false;
 		clearNode(this.inspectorContent);
 
-		appendInspectorSection(this.inspectorContent, conversationTrajectoryInspectorSummary, record.text);
+		const detailView = this.detailInspector.resolve(record, this.options.detailContext);
+		appendInspectorStateBadge(this.inspectorContent, detailView.state);
 
-		const payload = buildInspectorPayload(record);
-		if (payload) {
-			appendInspectorSection(this.inspectorContent, conversationTrajectoryInspectorPayload, payload);
+		appendInspectorSection(this.inspectorContent, conversationTrajectoryInspectorPreview, detailView.previewText);
+
+		if (detailView.statusMessage) {
+			const statusSection = append(this.inspectorContent, $('.conversation-lens-trajectory-inspector-status'));
+			statusSection.textContent = detailView.statusMessage;
+			statusSection.setAttribute('role', 'status');
 		}
 
-		const result = record.result ?? record.outputDetail;
-		if (result && (record.kind === 'tool' || record.kind === 'subtool' || record.kind === 'thinking')) {
-			appendInspectorSection(this.inspectorContent, conversationTrajectoryInspectorResult, result);
+		if (detailView.state === 'full' && detailView.fullText !== undefined) {
+			appendInspectorSection(this.inspectorContent, conversationTrajectoryInspectorFull, detailView.fullText);
+		} else if (detailView.state === 'loading') {
+			const loading = append(this.inspectorContent, $('.conversation-lens-trajectory-inspector-loading'));
+			loading.textContent = conversationTrajectoryDetailLoading;
+			loading.setAttribute('role', 'status');
+		}
+
+		if (record.kind === 'compacted') {
+			appendInspectorCompactedMetadata(this.inspectorContent, record);
+		} else {
+			const payload = buildInspectorPayload(record);
+			if (payload) {
+				appendInspectorSection(this.inspectorContent, conversationTrajectoryInspectorPayload, payload);
+			}
+
+			const result = record.result ?? record.outputDetail;
+			if (result && (record.kind === 'tool' || record.kind === 'subtool' || record.kind === 'thinking')) {
+				appendInspectorSection(this.inspectorContent, conversationTrajectoryInspectorResult, result);
+			}
 		}
 	}
 
@@ -637,6 +763,47 @@ function appendInspectorSection(parent: HTMLElement, title: string, body: string
 	append(section, $('h4.conversation-lens-trajectory-inspector-section-title')).textContent = title;
 	const content = append(section, $('.conversation-lens-trajectory-inspector-section-body'));
 	content.textContent = body;
+}
+
+function appendInspectorStateBadge(parent: HTMLElement, state: TrajectoryDetailInspectorState): void {
+	const badge = append(parent, $('.conversation-lens-trajectory-inspector-state'));
+	badge.textContent = getInspectorStateLabel(state);
+	badge.dataset.state = state;
+	badge.setAttribute('aria-label', `${conversationTrajectoryInspectorStatus}: ${badge.textContent}`);
+}
+
+function getInspectorStateLabel(state: TrajectoryDetailInspectorState): string {
+	switch (state) {
+		case 'preview':
+			return localize('conversationTrajectory.inspectorStatePreview', "Preview");
+		case 'loading':
+			return localize('conversationTrajectory.inspectorStateLoading', "Loading");
+		case 'full':
+			return localize('conversationTrajectory.inspectorStateFull', "Full");
+		case 'unavailable':
+			return localize('conversationTrajectory.inspectorStateUnavailable', "Unavailable");
+		case 'failed':
+			return localize('conversationTrajectory.inspectorStateFailed', "Failed");
+	}
+}
+
+function appendInspectorCompactedMetadata(parent: HTMLElement, record: ConversationTrajectoryRecord): void {
+	const parts: string[] = [];
+	if (record.compactedRange) {
+		parts.push(localize('conversationTrajectory.compactedMetaRange', "Range: {0}", record.compactedRange));
+	}
+	if (record.compactedReason) {
+		parts.push(localize('conversationTrajectory.compactedMetaReason', "Reason: {0}", record.compactedReason));
+	}
+	if (record.compactedSummary) {
+		parts.push(localize('conversationTrajectory.compactedMetaSummary', "Summary: {0}", record.compactedSummary));
+	}
+	if (parts.length > 0) {
+		appendInspectorSection(parent, conversationTrajectoryInspectorPayload, parts.join('\n'));
+	}
+	const notice = append(parent, $('.conversation-lens-trajectory-inspector-compacted-notice'));
+	notice.textContent = conversationTrajectoryCompactedDiscardedNotice;
+	notice.setAttribute('role', 'note');
 }
 
 function buildInspectorPayload(record: ConversationTrajectoryRecord): string | undefined {

@@ -72,6 +72,7 @@ export interface IConversationTimelineTreeOptions {
 	readonly onOpenVisualizeFullscreen?: (source: string, title?: string) => void;
 	readonly contentAdapter?: IConversationTurnContentAdapter;
 	readonly paddingBottom?: number;
+	readonly showLiveChrome?: () => boolean;
 }
 
 interface ITurnTemplateData {
@@ -140,6 +141,7 @@ class ConversationTimelineRenderer implements ITreeRenderer<ConversationTimeline
 		private readonly getEditingTurnId: () => string | undefined,
 		private readonly onOpenVisualizeFullscreen: ((source: string, title?: string) => void) | undefined,
 		private readonly getMermaidExtensionInfo: () => ConversationMermaidExtensionInfo | undefined,
+		private readonly showLiveChrome: () => boolean,
 		private readonly webviewService: IWebviewService,
 		private readonly getTimelineScrollHost: () => HTMLElement | undefined,
 		private readonly onHeightChange: (item: ConversationTimelineItem, height: number) => void,
@@ -161,6 +163,7 @@ class ConversationTimelineRenderer implements ITreeRenderer<ConversationTimeline
 			const span = item.processFoldSpan;
 			renderProcessFoldSpan(templateData.container, span, {
 				defaultOuterExpanded: false,
+				showLiveChrome: this.showLiveChrome(),
 				isOuterExpanded: (spanId) => this.processFoldOuterExpanded.get(spanId) ?? false,
 				setOuterExpanded: (spanId, expanded) => {
 					if (expanded) {
@@ -392,6 +395,22 @@ class ConversationTimelineRenderer implements ITreeRenderer<ConversationTimeline
 	clearProcessFoldExpanded(): void {
 		this.processFoldOuterExpanded.clear();
 		this.processFoldThinkingExpanded.clear();
+		this.processFoldToolExpanded.clear();
+	}
+
+	migrateProcessFoldExpandState(fromTurnId: string, toTurnId: string): void {
+		if (fromTurnId === toTurnId) {
+			return;
+		}
+		this.migrateExpandMap(this.processFoldThinkingExpanded, fromTurnId, toTurnId);
+		this.migrateExpandMap(this.processFoldToolExpanded, fromTurnId, toTurnId);
+	}
+
+	private migrateExpandMap(map: Map<string, boolean>, fromTurnId: string, toTurnId: string): void {
+		if (map.has(fromTurnId)) {
+			map.set(toTurnId, map.get(fromTurnId)!);
+			map.delete(fromTurnId);
+		}
 	}
 
 	clearVisualizeExpanded(): void {
@@ -604,6 +623,7 @@ export class ConversationTimelineTree extends Disposable {
 			() => this.editingTurnId,
 			options.onOpenVisualizeFullscreen,
 			() => this.mermaidExtensionInfo,
+			() => options.showLiveChrome?.() ?? false,
 			this.webviewService,
 			() => this.scrollHost,
 			(item, height) => this.safeUpdateElementHeight(item, height),
@@ -800,8 +820,14 @@ export class ConversationTimelineTree extends Disposable {
 
 	private pruneExpandedState(removedTreeIds: ReadonlySet<string>, turns: readonly ConversationStubTurn[]): void {
 		const knownIds = this.collectKnownExpandedIds(turns);
-		for (const id of removedTreeIds) {
-			knownIds.delete(id);
+		for (const removedId of removedTreeIds) {
+			if (removedId.startsWith('overlay:')) {
+				const blockId = removedId.slice('overlay:'.length);
+				if (knownIds.has(blockId)) {
+					this.renderer.migrateProcessFoldExpandState(removedId, blockId);
+				}
+			}
+			knownIds.delete(removedId);
 		}
 		this.renderer.pruneConfirmationSeats(knownIds);
 		this.renderer.pruneUserBubbleExpanded(knownIds);

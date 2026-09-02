@@ -52,6 +52,8 @@ export interface ConversationTimelineEntry {
 	readonly pending?: boolean;
 	/** Live overlay row (L3) still receiving deltas. Never set by the stub source. */
 	readonly streaming?: boolean;
+	/** Tool execution status for live process-fold chrome. */
+	readonly toolStatus?: 'pending' | 'running' | 'completed' | 'failed' | 'cancelled';
 	readonly agentId?: string;
 	/** `error` entries: engine-declared retryability; absent = not retryable. */
 	readonly retryable?: boolean;
@@ -207,23 +209,26 @@ export function projectSnapshotToEntries(
 	details: ReadonlyMap<string, string>,
 ): ConversationTimelineEntry[] {
 	const pendingIds = new Set<string>(snapshot.pendingActions.map(action => String(action.requestId)));
-	const entries: ConversationTimelineEntry[] = [];
+	const ordered: { readonly orderKey: string; readonly entry: ConversationTimelineEntry }[] = [];
 
 	const sortedTimeline = snapshot.timeline.slice().sort((a, b) => compareOrderKeys(a.orderKey, b.orderKey));
 	for (const item of sortedTimeline) {
 		const entry = timelineItemToEntry(item, attribution.get(String(item.id)), details, pendingIds);
 		if (entry) {
-			entries.push(entry);
+			ordered.push({ orderKey: item.orderKey, entry });
 		}
 	}
 
 	for (const send of snapshot.localPendingSends) {
 		const id = `send:${String(send.operationId)}`;
-		entries.push({
-			id,
-			kind: 'user',
-			text: send.summary.kind === 'text' ? send.summary.preview ?? send.summary.title : summaryTitle(send.summary),
-			pending: true,
+		ordered.push({
+			orderKey: send.summary.kind === 'text' ? 'zzzz-send' : 'zzzz-send',
+			entry: {
+				id,
+				kind: 'user',
+				text: send.summary.kind === 'text' ? send.summary.preview ?? send.summary.title : summaryTitle(send.summary),
+				pending: true,
+			},
 		});
 	}
 
@@ -233,17 +238,26 @@ export function projectSnapshotToEntries(
 		const attr = attribution.get(key);
 		const text = block.chunks.slice().sort((a, b) => compareOrderKeys(a.orderKey, b.orderKey)).map(chunk => chunk.text).join('');
 		const kind: ConversationTimelineEntryKind = block.summary.kind === 'reasoning' ? 'thinking' : block.summary.kind === 'tool' ? 'tool' : 'assistant';
-		entries.push({
-			id: key,
-			kind,
-			text: text.length > 0 ? text : summaryTitle(block.summary),
-			streaming: true,
-			...(block.summary.kind === 'tool' ? { toolName: block.summary.toolName } : {}),
-			...(attr?.agentId !== undefined ? { agentId: attr.agentId } : {}),
+		ordered.push({
+			orderKey: block.orderKey,
+			entry: {
+				id: key,
+				kind,
+				text: text.length > 0 ? text : summaryTitle(block.summary),
+				streaming: true,
+				...(block.summary.kind === 'tool' ? {
+					toolName: block.summary.toolName,
+					toolStatus: block.summary.status,
+					...(block.summary.argPreview !== undefined ? { summary: block.summary.argPreview } : {}),
+					...(block.summary.resultPreview !== undefined ? { payload: block.summary.resultPreview } : {}),
+				} : {}),
+				...(attr?.agentId !== undefined ? { agentId: attr.agentId } : {}),
+			},
 		});
 	}
 
-	return entries;
+	ordered.sort((a, b) => compareOrderKeys(a.orderKey, b.orderKey));
+	return ordered.map(item => item.entry);
 }
 
 function compareOrderKeys(a: string, b: string): number {
@@ -294,7 +308,7 @@ function timelineItemToEntry(
 				id, kind: 'tool', text: summary.title, toolName: summary.toolName,
 				...(summary.argPreview !== undefined ? { summary: summary.argPreview } : {}),
 				...(summary.resultPreview !== undefined ? { payload: summary.resultPreview } : {}),
-				...(summary.status === 'running' || summary.status === 'pending' ? { streaming: true } : {}),
+				...(summary.status === 'running' || summary.status === 'pending' ? { streaming: true, toolStatus: summary.status } : { toolStatus: summary.status }),
 				...agent,
 			};
 		}
@@ -378,6 +392,8 @@ export function entryToRenderableTurn(entry: ConversationTimelineEntry): Convers
 			...(entry.summary !== undefined ? { summary: entry.summary } : {}),
 			...(entry.payload !== undefined ? { payload: entry.payload } : {}),
 			...(entry.visualize !== undefined ? { visualize: entry.visualize } : {}),
+			...(entry.streaming ? { streaming: true } : {}),
+			...(entry.toolStatus !== undefined ? { toolStatus: entry.toolStatus } : {}),
 		};
 	}
 	return {

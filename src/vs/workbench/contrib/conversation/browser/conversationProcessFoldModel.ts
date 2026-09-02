@@ -191,9 +191,14 @@ function collectTurnStepNames(span: ProcessFoldSpan): string[] {
 }
 
 /** Outer process-fold header summary for conversation turns (must include Stub per PRD-013). */
-export function summarizeProcessSteps(span: ProcessFoldSpan): string {
+export function summarizeProcessSteps(span: ProcessFoldSpan, options?: { readonly showLiveChrome?: boolean }): string {
 	const stepCount = span.turnIds.length;
 	const stepSummary = formatStepNameCounts(collectTurnStepNames(span));
+	if (options?.showLiveChrome) {
+		return stepSummary.length > 0
+			? `${stepCount} steps · ${stepSummary}`
+			: `${stepCount} steps`;
+	}
 	return stepSummary.length > 0
 		? `Stub · ${stepCount} steps · ${stepSummary}`
 		: `Stub · ${stepCount} steps`;

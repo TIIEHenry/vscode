@@ -43,6 +43,8 @@ export interface ProcessFoldDomOptions {
 	readonly setToolExpanded: (turnId: string, expanded: boolean) => void;
 	readonly onViewInTrajectory?: (turnId: string) => void;
 	readonly onLayoutChange: () => void;
+	/** When false (stub fixture), omit loading / live / duration chrome (PRD-013 P4/P5). */
+	readonly showLiveChrome: boolean;
 }
 
 /**
@@ -60,6 +62,10 @@ export function renderProcessFoldSpan(
 
 	const outerExpanded = options.isOuterExpanded(span.id);
 
+	const stickyBreadcrumb = append(root, $('div.conversation-process-fold-sticky-breadcrumb'));
+	stickyBreadcrumb.hidden = true;
+	const stickySummary = append(stickyBreadcrumb, $('span.conversation-process-fold-sticky-summary'));
+
 	const header = append(root, $('button.conversation-process-fold-header')) as HTMLButtonElement;
 	header.type = 'button';
 	header.setAttribute('role', 'button');
@@ -70,7 +76,7 @@ export function renderProcessFoldSpan(
 	chevron.classList.toggle('conversation-process-fold-chevron--expanded', outerExpanded);
 
 	const summary = append(header, $('span.conversation-process-fold-summary'));
-	summary.textContent = summarizeProcessSteps(span);
+	summary.textContent = summarizeProcessSteps(span, { showLiveChrome: options.showLiveChrome });
 	syncProcessFoldOuterAria(header, summary.textContent ?? '', outerExpanded);
 
 	const children = append(root, $('div.conversation-process-fold-children'));
@@ -84,6 +90,20 @@ export function renderProcessFoldSpan(
 		}
 	}
 
+	const syncSticky = (): void => {
+		if (!outerExpanded || !options.isOuterExpanded(span.id)) {
+			stickyBreadcrumb.hidden = true;
+			return;
+		}
+		const overflow = children.scrollHeight > children.clientHeight + 4;
+		stickyBreadcrumb.hidden = !overflow;
+		if (overflow) {
+			stickySummary.textContent = summary.textContent ?? '';
+		}
+	};
+
+	disposables.add(addDisposableListener(children, 'scroll', () => syncSticky()));
+
 	disposables.add(addDisposableListener(header, 'click', (e) => {
 		e.stopPropagation();
 		const next = !options.isOuterExpanded(span.id);
@@ -92,8 +112,11 @@ export function renderProcessFoldSpan(
 		syncProcessFoldOuterAria(header, summary.textContent ?? '', next);
 		children.hidden = !next;
 		chevron.classList.toggle('conversation-process-fold-chevron--expanded', next);
+		syncSticky();
 		options.onLayoutChange();
 	}));
+
+	syncSticky();
 }
 
 function renderThinkingNode(
@@ -130,6 +153,9 @@ function renderThinkingNode(
 	const body = append(thinking, $('div.conversation-process-fold-thinking-body'));
 	body.hidden = !thinkingExpanded;
 	body.textContent = turn.payload ?? turn.text;
+	if (isExecutingTurn(turn, options)) {
+		body.classList.add('conversation-process-fold-body--executing');
+	}
 
 	const tools = append(thinking, $('div.conversation-process-fold-thinking-tools'));
 	tools.hidden = !thinkingExpanded;
@@ -159,12 +185,16 @@ function renderToolRow(
 ): void {
 	const payload = turn.payload?.trim();
 	const hasPayload = !!payload;
+	const executing = isExecutingTurn(turn, options);
 
 	const row = append(parent, $('div.conversation-process-fold-tool'));
 	row.setAttribute('data-turn-id', turn.id);
 	row.setAttribute('data-kind', turn.kind);
 	if (nested) {
 		row.classList.add('conversation-process-fold-tool--nested');
+	}
+	if (executing) {
+		row.classList.add('conversation-process-fold-tool--executing');
 	}
 
 	const header = append(row, hasPayload
@@ -189,13 +219,13 @@ function renderToolRow(
 	}
 
 	const icon = append(header, $('span.conversation-process-fold-tool-icon'));
-	icon.appendChild(renderIcon(Codicon.check));
+	icon.appendChild(renderIcon(resolveToolStatusIcon(turn, options)));
 
 	const name = append(header, $('span.conversation-process-fold-tool-name'));
 	name.textContent = turn.toolName ?? turn.kind;
 
 	const summary = append(header, $('span.conversation-process-fold-tool-summary'));
-	summary.textContent = turn.summary ?? turn.text;
+	summary.textContent = formatToolSummary(turn, options);
 	const toolName = turn.toolName ?? turn.kind;
 	if (hasPayload) {
 		syncProcessFoldToolAria(header, toolName, summary.textContent ?? '', toolExpanded);
@@ -209,6 +239,9 @@ function renderToolRow(
 		const body = append(row, $('div.conversation-process-fold-tool-body'));
 		body.hidden = !toolExpanded;
 		body.textContent = payload!;
+		if (executing) {
+			body.classList.add('conversation-process-fold-body--executing');
+		}
 
 		disposables.add(addDisposableListener(header, 'click', (e) => {
 			e.stopPropagation();
@@ -220,6 +253,51 @@ function renderToolRow(
 			chevron.classList.toggle('conversation-process-fold-chevron--expanded', next);
 			options.onLayoutChange();
 		}));
+	}
+}
+
+function isExecutingTurn(turn: ConversationStubTurn, options: ProcessFoldDomOptions): boolean {
+	if (!options.showLiveChrome) {
+		return false;
+	}
+	return turn.toolStatus === 'pending' || turn.toolStatus === 'running' || !!turn.streaming;
+}
+
+function resolveToolStatusIcon(turn: ConversationStubTurn, options: ProcessFoldDomOptions): ThemeIcon {
+	if (!options.showLiveChrome) {
+		return Codicon.check;
+	}
+	switch (turn.toolStatus) {
+		case 'pending':
+		case 'running':
+			return Codicon.loading;
+		case 'failed':
+			return Codicon.error;
+		case 'cancelled':
+			return Codicon.circleSlash;
+		case 'completed':
+		default:
+			return Codicon.check;
+	}
+}
+
+function formatToolSummary(turn: ConversationStubTurn, options: ProcessFoldDomOptions): string {
+	const base = turn.summary ?? turn.text;
+	if (!options.showLiveChrome) {
+		return base;
+	}
+	switch (turn.toolStatus) {
+		case 'pending':
+			return localize('conversationProcessFold.toolPending', "{0} · Pending", base);
+		case 'running':
+			return localize('conversationProcessFold.toolRunning', "{0} · Running", base);
+		case 'failed':
+			return localize('conversationProcessFold.toolFailed', "{0} · Failed", base);
+		case 'cancelled':
+			return localize('conversationProcessFold.toolCancelled', "{0} · Cancelled", base);
+		case 'completed':
+		default:
+			return base;
 	}
 }
 
