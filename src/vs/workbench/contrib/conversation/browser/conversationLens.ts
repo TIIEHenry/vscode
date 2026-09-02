@@ -31,7 +31,9 @@ import type { IConversationSessionViewLease } from '../../../../platform/univers
 import type { SyncChrome } from '../../../../platform/universeAgent/common/sessionView/index.js';
 import {
 	collectConversationTrajectoryTurnIds,
+	collectTrajectoryTurnIdsFromSnapshot,
 	findTrajectoryRecordIdForTurn,
+	projectSnapshotToTrajectory,
 } from './conversationTrajectoryModel.js';
 import {
 	conversationLensDockAddTitle,
@@ -1186,6 +1188,17 @@ export class ConversationLens extends Disposable {
 	}
 
 	private refreshTrajectoryRecords(sessionId: string): void {
+		const engineConnected = this.stubService.isEngineConnected();
+		const lease = this.sessionViewLease?.sessionId === sessionId ? this.sessionViewLease : undefined;
+
+		if (engineConnected && lease) {
+			this.trajectoryView.setRecords(
+				projectSnapshotToTrajectory(lease.snapshot, lease.attribution, lease.details),
+				collectTrajectoryTurnIdsFromSnapshot(lease.snapshot),
+			);
+			return;
+		}
+
 		const turns = this.stubService.getTurns(sessionId);
 		this.trajectoryView.setRecords(
 			this.stubService.getTrajectoryRecords(sessionId),

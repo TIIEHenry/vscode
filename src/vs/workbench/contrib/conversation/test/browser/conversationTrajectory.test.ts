@@ -17,8 +17,13 @@ import {
 	CONVERSATION_TRAJECTORY_STUB_SOURCE_BLOCK_CONTENT,
 	CONVERSATION_TRAJECTORY_STUB_SUBTOOL_TEXT,
 	CONVERSATION_TRAJECTORY_STUB_SYSTEM_TEXT,
+	projectSnapshotToTrajectory,
 	projectTurnsToTrajectory,
+	shouldMergeTrajectoryFixtureExtras,
 } from '../../browser/conversationTrajectoryModel.js';
+import type { ItemAttribution } from '../../../../../platform/universeAgent/common/conversationViewFrame.js';
+import type { SessionViewSnapshot, TimelineItemId } from '../../../../../platform/universeAgent/common/sessionView/index.js';
+import { getTrajectoryKindLabel, conversationTrajectoryKindTool } from '../../browser/conversationTrajectory.js';
 import { ConversationStubTurn } from '../../browser/conversationStubModel.js';
 import { IClipboardService } from '../../../../../platform/clipboard/common/clipboardService.js';
 import { TestClipboardService } from '../../../../../platform/clipboard/test/common/testClipboardService.js';
@@ -238,5 +243,124 @@ suite('ConversationTrajectory', () => {
 			record.kind === 'user'
 			&& record.sourceBlocks?.some(block => block.content === CONVERSATION_TRAJECTORY_STUB_SOURCE_BLOCK_CONTENT),
 		));
+	});
+
+	function engineSnapshotWithTool(): { snapshot: SessionViewSnapshot; attribution: Map<string, ItemAttribution> } {
+		const attribution = new Map<string, ItemAttribution>([
+			['u1', { role: 'user' }],
+			['tool-root', { role: 'tool', toolCallId: 'call-root' } as ItemAttribution],
+			['tool-child', { role: 'tool', toolCallId: 'call-child', parentToolCallId: 'call-root' } as ItemAttribution],
+		]);
+		const snapshot: SessionViewSnapshot = {
+			sessionId: 'ua-live' as SessionViewSnapshot['sessionId'],
+			sync: { kind: 'live' },
+			timeline: [
+				{ id: 'u1' as TimelineItemId, orderKey: '0000000000000001', summary: { kind: 'text', title: 'Run grep', preview: 'Run grep' } },
+				{
+					id: 'tool-root' as TimelineItemId,
+					orderKey: '0000000000000002',
+					summary: {
+						kind: 'tool',
+						title: 'grep pattern',
+						toolName: 'grep',
+						status: 'completed',
+						argPreview: '{"pattern":"foo"}',
+						resultPreview: 'src/a.ts:1:match',
+					},
+				},
+				{
+					id: 'tool-child' as TimelineItemId,
+					orderKey: '0000000000000003',
+					summary: {
+						kind: 'tool',
+						title: 'read result file',
+						toolName: 'read',
+						status: 'completed',
+						resultPreview: 'file body preview',
+					},
+				},
+			],
+			overlay: { blocks: [] },
+			pendingActions: [],
+			localPendingSends: [],
+		};
+		return { snapshot, attribution };
+	}
+
+	test('projectSnapshotToTrajectory folds tool rows with bounded previews only (G3)', () => {
+		const { snapshot, attribution } = engineSnapshotWithTool();
+		const fullBody = '{"pattern":"foo","path":"/secret/full/path"}';
+		const details = new Map<string, string>([['detail:tool-root', fullBody]]);
+
+		const records = projectSnapshotToTrajectory(snapshot, attribution, details);
+
+		const rootTool = records.find(record => record.id === 'tool-root');
+		assert.ok(rootTool);
+		assert.strictEqual(rootTool!.kind, 'tool');
+		assert.strictEqual(rootTool!.inputDetail, '{"pattern":"foo"}');
+		assert.strictEqual(rootTool!.result, 'src/a.ts:1:match');
+		assert.notStrictEqual(rootTool!.inputDetail, fullBody);
+
+		const subtool = records.find(record => record.id === 'tool-child');
+		assert.ok(subtool);
+		assert.strictEqual(subtool!.kind, 'subtool');
+		assert.strictEqual(subtool!.parentCallId, 'call-root');
+		assert.strictEqual(subtool!.depth, 1);
+	});
+
+	test('projectSnapshotToTrajectory filters sub-agent rows by attribution', () => {
+		const attribution = new Map<string, ItemAttribution>([
+			['u1', { role: 'user' }],
+			['tool-root', { role: 'tool', toolCallId: 'call-root' } as ItemAttribution],
+			['a1', { role: 'assistant', agentId: 'agent-root' }],
+			['a2', { role: 'assistant', agentId: 'agent-sub' }],
+		]);
+		const snapshot: SessionViewSnapshot = {
+			sessionId: 'ua-live' as SessionViewSnapshot['sessionId'],
+			sync: { kind: 'live' },
+			timeline: [
+				{ id: 'u1' as TimelineItemId, orderKey: '0000000000000001', summary: { kind: 'text', title: 'Run grep', preview: 'Run grep' } },
+				{
+					id: 'tool-root' as TimelineItemId,
+					orderKey: '0000000000000002',
+					summary: { kind: 'tool', title: 'grep pattern', toolName: 'grep', status: 'completed' },
+				},
+				{ id: 'a1' as TimelineItemId, orderKey: '0000000000000003', summary: { kind: 'text', title: 'Root reply', preview: 'Root reply' } },
+				{ id: 'a2' as TimelineItemId, orderKey: '0000000000000004', summary: { kind: 'text', title: 'Sub reply', preview: 'Sub reply' } },
+			],
+			overlay: { blocks: [] },
+			pendingActions: [],
+			localPendingSends: [],
+		};
+
+		const filtered = projectSnapshotToTrajectory(snapshot, attribution, new Map(), { filterAgentId: 'agent-sub' });
+
+		assert.ok(filtered.some(record => record.id === 'u1'));
+		assert.ok(filtered.some(record => record.id === 'a2'));
+		assert.ok(!filtered.some(record => record.id === 'a1'));
+		assert.ok(!filtered.some(record => record.id === 'tool-root'));
+	});
+
+	test('shouldMergeTrajectoryFixtureExtras is false for UA session ids when disconnected', () => {
+		assert.strictEqual(shouldMergeTrajectoryFixtureExtras('untitled', false), true);
+		assert.strictEqual(shouldMergeTrajectoryFixtureExtras('untitled', true), false);
+		assert.strictEqual(shouldMergeTrajectoryFixtureExtras('ua-only', false), false);
+		assert.strictEqual(shouldMergeTrajectoryFixtureExtras('ua-only', true), false);
+	});
+
+	test('ua session trajectory projection never includes Stub fixture rows', () => {
+		const { snapshot, attribution } = engineSnapshotWithTool();
+		const records = projectSnapshotToTrajectory(snapshot, attribution, new Map());
+		assert.ok(!records.some(record => record.text.includes('Stub')));
+		assert.ok(!records.some(record => record.kind === 'system'));
+		assert.ok(records.some(record => record.kind === 'tool'));
+	});
+
+	test('connected trajectory UI shows engine tool row label', () => {
+		const { snapshot, attribution } = engineSnapshotWithTool();
+		const records = projectSnapshotToTrajectory(snapshot, attribution, new Map());
+		const tool = records.find(record => record.kind === 'tool');
+		assert.ok(tool);
+		assert.strictEqual(getTrajectoryKindLabel(tool!.kind), conversationTrajectoryKindTool);
 	});
 });
