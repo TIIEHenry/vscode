@@ -1,0 +1,102 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+/*
+ * THEME-1 / T1 — UA shared high-contrast tokens, reduced motion, 200% zoom overlay guard.
+ * Selectors must be `.monaco-workbench.hc-black` / `.monaco-workbench.hc-light`
+ * (see workbench/browser/media/style.css:129), not a UA root class.
+ *
+ * Status tokens alias workbench colors. B/A attach `.ua-motion` on animated nodes.
+ */
+
+.monaco-workbench {
+	--ua-status-focus: var(--vscode-focusBorder);
+	--ua-status-selected: var(--vscode-list-activeSelectionBackground);
+	--ua-status-selected-fg: var(--vscode-list-activeSelectionForeground);
+	--ua-status-error: var(--vscode-errorForeground);
+	--ua-status-pending: var(--vscode-editorWarning-foreground);
+}
+
+.monaco-workbench.hc-black,
+.monaco-workbench.hc-light {
+	--ua-status-focus: var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
+	--ua-status-selected: var(--vscode-list-activeSelectionBackground);
+	--ua-status-selected-fg: var(--vscode-list-activeSelectionForeground);
+	--ua-status-error: var(--vscode-errorForeground);
+	--ua-status-pending: var(--vscode-editorWarning-foreground);
+}
+
+/* High contrast: focus / selected / error / pending must differ by stroke, not hue alone. */
+.monaco-workbench.hc-black .part.conversation :focus-visible,
+.monaco-workbench.hc-light .part.conversation :focus-visible,
+.monaco-workbench.hc-black .part.sources :focus-visible,
+.monaco-workbench.hc-light .part.sources :focus-visible {
+	outline: 2px solid var(--ua-status-focus);
+	outline-offset: 1px;
+}
+
+.monaco-workbench.hc-black .part.conversation [aria-selected="true"],
+.monaco-workbench.hc-light .part.conversation [aria-selected="true"],
+.monaco-workbench.hc-black .part.sources [aria-selected="true"],
+.monaco-workbench.hc-light .part.sources [aria-selected="true"],
+.monaco-workbench.hc-black .part.conversation .monaco-list-row.selected,
+.monaco-workbench.hc-light .part.conversation .monaco-list-row.selected,
+.monaco-workbench.hc-black .part.sources .monaco-list-row.selected,
+.monaco-workbench.hc-light .part.sources .monaco-list-row.selected {
+	outline: 2px solid var(--vscode-contrastBorder);
+	outline-offset: -2px;
+	color: var(--ua-status-selected-fg);
+	background-color: var(--ua-status-selected);
+}
+
+.monaco-workbench.hc-black .part.conversation .conversation-lens-turn--error,
+.monaco-workbench.hc-light .part.conversation .conversation-lens-turn--error,
+.monaco-workbench.hc-black .part.conversation .conversation-visualize-error,
+.monaco-workbench.hc-light .part.conversation .conversation-visualize-error {
+	outline: 2px solid var(--ua-status-error);
+	outline-offset: -2px;
+}
+
+.monaco-workbench.hc-black .part.conversation .conversation-lens-inbox-pending,
+.monaco-workbench.hc-light .part.conversation .conversation-lens-inbox-pending {
+	outline: 2px dashed var(--ua-status-pending);
+	outline-offset: 1px;
+}
+
+/* B/A hang this class on shimmer / chevron / spin nodes. */
+.ua-motion {
+	/* marker */
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.ua-motion {
+		transition: none;
+		animation: none;
+	}
+}
+
+/*
+ * 200% zoom shrinks the CSS viewport. Common-layer chrome must stay a corner
+ * control (already pointer-events: none on the host). Dialogs stay inside the
+ * part so dismiss / Back remain reachable. Contrib lens CSS is owned by B.
+ */
+.monaco-workbench .part.conversation > .conversation-region-chrome {
+	max-width: 40%;
+	width: auto;
+	pointer-events: none;
+}
+
+.monaco-workbench .part.conversation > .conversation-region-chrome .title-actions,
+.monaco-workbench .part.sources > .title > .title-actions {
+	pointer-events: auto;
+	flex-shrink: 0;
+}
+
+.monaco-workbench .part.conversation [role="dialog"],
+.monaco-workbench .part.sources [role="dialog"] {
+	max-width: 100%;
+	max-height: 100%;
+	box-sizing: border-box;
+}
