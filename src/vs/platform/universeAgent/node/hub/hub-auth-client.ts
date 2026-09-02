@@ -34,8 +34,27 @@ export type HubAuthHttp = {
 		},
 	) => Promise<{
 		readonly status: number
+		readonly headers?: { readonly getSetCookie?: () => readonly string[] }
 		readonly json: () => Promise<unknown>
 	}>
+}
+
+const HUB_REFRESH_COOKIE = 'hub_refresh'
+
+function parseSetCookieValue(setCookieHeaders: readonly string[] | undefined, cookieName: string): string | undefined {
+	if (!setCookieHeaders) {
+		return undefined
+	}
+	for (const header of setCookieHeaders) {
+		if (!header.startsWith(`${cookieName}=`)) {
+			continue
+		}
+		const value = header.slice(cookieName.length + 1).split(';')[0]?.trim()
+		if (value) {
+			return value
+		}
+	}
+	return undefined
 }
 
 const HUB_AUTH_TIMEOUT_MS = 10_000
@@ -156,7 +175,7 @@ export type LoginHubInput = {
 }
 
 export type LoginHubResult =
-	| { readonly ok: true; readonly session: ParsedAuthSessionV1 }
+	| { readonly ok: true; readonly session: ParsedAuthSessionV1; readonly refreshToken?: string }
 	| { readonly ok: false; readonly code: HubAuthDenialCode; readonly reason: string }
 
 export async function loginHub(
@@ -213,7 +232,9 @@ export async function loginHub(
 		if (!parsed.ok) {
 			return parsed
 		}
-		return { ok: true, session: parsed.session }
+		const setCookie = response.headers?.getSetCookie?.() ?? []
+		const refreshToken = parseSetCookieValue(setCookie, HUB_REFRESH_COOKIE)
+		return { ok: true, session: parsed.session, refreshToken }
 	} catch (err) {
 		return {
 			ok: false,

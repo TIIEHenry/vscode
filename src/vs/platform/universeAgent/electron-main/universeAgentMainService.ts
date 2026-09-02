@@ -3,4 +3,36 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-export { UniverseAgentConnectionService } from '../node/universeAgentConnectionService.js';
+import { IEncryptionMainService } from '../../encryption/common/encryptionService.js';
+import { IApplicationStorageMainService } from '../../storage/electron-main/storageMainService.js';
+import { ClientIdentityStore } from '../node/clientIdentityStore.js';
+import { ConnectionProfileStore } from '../node/connectionProfileStore.js';
+import { createConnectionResolver } from '../node/connectionResolver.js';
+import { HubSessionStore } from '../node/hubSessionStore.js';
+import { UniverseAgentConnectionService as UniverseAgentConnectionServiceBase } from '../node/universeAgentConnectionService.js';
+
+/**
+ * Electron-main Hub client host: wires encrypted secret stores (§3.5 / §3.6)
+ * and keeps {@link InMemoryHubSessionStore} as the test-only fallback in node/.
+ */
+export class UniverseAgentConnectionService extends UniverseAgentConnectionServiceBase {
+
+	constructor(
+		@IEncryptionMainService encryptionService: IEncryptionMainService,
+		@IApplicationStorageMainService applicationStorage: IApplicationStorageMainService,
+	) {
+		const hubSessionStore = new HubSessionStore(encryptionService, applicationStorage);
+		const clientIdentityStore = new ClientIdentityStore(encryptionService, applicationStorage);
+		const connectionProfileStore = new ConnectionProfileStore(applicationStorage);
+		super({
+			hubSessionStore,
+			clientIdentityStore,
+			connectionProfileStore,
+			connectionResolver: createConnectionResolver({
+				connectionProfileStore,
+				hubSessionStore,
+				clientIdentityStore,
+			}),
+		});
+	}
+}
