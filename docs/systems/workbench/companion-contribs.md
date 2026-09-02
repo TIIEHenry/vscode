@@ -4,7 +4,7 @@ type: architecture
 status: accepted
 phase: N/A
 updated: 2026-09-02
-summary: "Explorer、SCM/git、Terminal、Debug 是配套设施不是 Conversation；Sources 三 tab 已在 contrib/sources；Changes/Review SCM 列表投影；Review 无写操作、审阅进度不入 SCM；Diff 归属已由 ADR-005 裁决（默认 Preview，可移对话窗口/底部），sources-changes-diff 已部分落地"
+summary: "Explorer、SCM/git、Terminal、Debug 是配套设施不是 Conversation；Sources 三 tab 已在 contrib/sources；Changes/Review SCM 列表投影；Review 无写操作、审阅进度不入 SCM；Diff 归属 ADR-005 已裁决（默认 Preview，可移对话窗口/底部 Panel，F1–F3 已落）"
 ---
 
 # 配套 IDE 设施：files / SCM / terminal / debug
@@ -91,7 +91,7 @@ Desktop IA §4：
 
 S1 合法路径：树继续由 Sidebar Explorer 拥有；End Sources 做 **只读/点击打开** 的列表投影，打开目标仍是 Preview（`EDITOR_PART`），不复制 `IExplorerService` 真相。
 
-**M1 已落：** `contrib/sources`（`SourcesTabsHost` + `SourcesFilesList` / `SourcesChangesList` / `SourcesReviewList`）在 `SOURCES_PART` 槽内提供 **Files \| Changes \| Review** tab strip；Files 为列表投影，Changes / Review 为 **SCM 资源列表投影**（只读清单，非 stub 占位）；Review 无 stage/commit 写操作，审阅进度为窗口内存 own-data（见 [sources-review-progress](../../../dev/plans/sources-review-progress.md) R1）；树权威仍在 Sidebar Explorer。Diff 深查看路由仍按 §5 FORK（**EDITOR_PART**，未搬进 End 下格）。
+**M1 已落：** `contrib/sources`（`SourcesTabsHost` + `SourcesFilesList` / `SourcesChangesList` / `SourcesReviewList`）在 `SOURCES_PART` 槽内提供 **Files \| Changes \| Review** tab strip；Files 为列表投影，Changes / Review 为 **SCM 资源列表投影**（只读清单，非 stub 占位）；Review 无 stage/commit 写操作，审阅进度为窗口内存 own-data（见 [sources-review-progress](../../../dev/plans/sources-review-progress.md) R1）；树权威仍在 Sidebar Explorer。Diff 深查看默认 **EDITOR_PART** Preview；经显式动作可移 Conversation 只读审阅 tab 或 Panel 产品 Diff 视图（§5；F1–F3 已落）。
 
 ## 5. Diff 深查看 ↔ Changes 清单（映射张力）
 
@@ -108,10 +108,10 @@ Desktop（IA §4 + ADR-047）：
 | | Desktop 目标 | 本仓今天 |
 |--|--------------|----------|
 | Changes 清单 | End Sources tab | End Sources tab（默认 Code 窗口；Sidebar scm 门闩隐藏） |
-| 文件级 Diff | `PANEL_PART` 临时 tab | `EDITOR_PART` Diff 编辑器 |
-| 开 Diff 是否撑开 Sources | 不得自动撑开已收起的下格 | 无下格；打开 Diff 占用中心编辑器 |
+| 文件级 Diff | `PANEL_PART` 临时 tab | 默认 `EDITOR_PART` Preview Diff（`openSourcesChangeEntry` / `ISCMResource.open()`）；显式动作或 `sources.diff.defaultOwner` 可进 Conversation 只读审阅 tab（`ConversationDiffReviewInput`）或 Panel 产品 Diff 视图（`SourcesDiffPanelView`，重宿主）；`sources.diff.moveToConversation` / `moveToPanel` / `moveToPreview` 三宿主往返（F1–F3 已落） |
+| 开 Diff 是否撑开 Sources | 不得自动撑开已收起的下格 | 不自动撑开已收起的 Sources 下格（ADR-047 保留） |
 
-**本仓裁决（[ADR-005](../../../dev/decisions/005-changes-diff-owner.md) @2026-09-02，[PRD-009](../../product/requirements.md#prd-009-changes-与-diff) `accepted`）：** 上表「Desktop 目标」列的 `PANEL_PART` 单一归属 **不再是本仓目标**。Diff 默认 Preview（`EDITOR_PART`，即 HEAD 现状）；用户显式动作可把它 **移入 Conversation 延伸 tab（只读审阅 input，围栏白名单第二类）** 或 **移到底部 Panel 产品 Diff 视图（重宿主，不是第三个 EditorPart）**，并可设默认归属。ADR-047 保留两条：不做 Changes 内嵌 inline diff；开 Diff 不自动撑开已收起的 Sources 下格。QuickDiff 仍留在 File 编辑器作行内提示。实施方案 `dev/plans/sources-changes-diff.md` 待写；HEAD 尚无「移到…」动作。
+**本仓裁决（[ADR-005](../../../dev/decisions/005-changes-diff-owner.md) @2026-09-02，[PRD-009](../../product/requirements.md#prd-009-changes-与-diff) `accepted`）：** 上表「Desktop 目标」列的 `PANEL_PART` 单一归属 **不再是本仓目标**。Diff 默认 Preview（`EDITOR_PART`）；用户显式动作或默认归属设置可把它 **移入 Conversation 延伸 tab（只读审阅 input，围栏白名单第二类）** 或 **移到底部 Panel 产品 Diff 视图（重宿主，不是第三个 EditorPart）**。ADR-047 保留两条：不做 Changes 内嵌 inline diff；开 Diff 不自动撑开已收起的 Sources 下格。QuickDiff 仍留在 File 编辑器作行内提示。实施方案 [sources-changes-diff](../../../dev/plans/sources-changes-diff.md) F1–F3 已落；F4 隔离 profile 冒烟待验。
 
 ## 6. 相关文档
 

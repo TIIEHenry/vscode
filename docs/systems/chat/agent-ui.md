@@ -156,7 +156,7 @@ adapter 是唯一反腐层。M1 透镜仍用 stub 时间线（spike 允许），
 | Input Dock / MessageQueue | `ChatInputPart` | **例外合同**在 spec §8.3，不能用 VS Code picker 顶替 |
 | 权限 CTA | 无对等（有 confirmation service） | 自研 ResponseSeat |
 | Preview File tabs | `EDITOR_PART` tabs | **同构**，应保留；出厂 **`editor.inlineSuggest.enabled` = `false`**（Preview 内不自动显示 Copilot 式 ghost-text 补全；用户可在设置中开启） |
-| Sources | `SOURCES_PART` + `contrib/sources` **Files \| Changes \| Review** tab strip | Files 已落；Changes / Review = SCM 资源列表，行点击经 `ISCMResource.open()` 在 Preview 开 Diff（[ADR-005](../../../dev/decisions/005-changes-diff-owner.md) 默认归属）；可移宿主待 [sources-changes-diff](../../../dev/plans/sources-changes-diff.md)。系统正文见 [Sources](../sources/overview.md) |
+| Sources | `SOURCES_PART` + `contrib/sources` **Files \| Changes \| Review** tab strip | Files 已落；Changes / Review = SCM 资源列表，行点击经 `openSourcesChangeEntry` 按 `sources.diff.defaultOwner` 分派（默认 Preview Diff）；Diff 三宿主移动（Conversation 只读审阅 tab / Panel 产品 Diff 视图 / Preview）与 `sources.diff.moveTo*` 已落（[sources-changes-diff](../../../dev/plans/sources-changes-diff.md) F1–F3）。系统正文见 [Sources](../sources/overview.md) |
 
 ## 8. 相关文档
 

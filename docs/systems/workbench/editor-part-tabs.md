@@ -60,7 +60,7 @@ EDITOR_PART（MainEditorPart / 辅助窗 AuxiliaryEditorPart / 模态 ModalEdito
 3. 目标 `EditorGroupView` 写入 `EditorGroupModel`，tabs 出现一枚标签。
 4. `EditorPanes` `setInput`；文本 pane 再拿 `ITextModel` 交给 `CodeEditorWidget`。
 
-**推论：** 文件 / untitled / `ChatEditorInput` 打开后落在 **主** `EDITOR_PART` 某组的 tab 栈。Conversation 第四面已落：仅 `ConversationChatInput` 经 `CONVERSATION_GROUP` / `CONVERSATION_SIDE_GROUP` 或具体 Conversation 组进入嵌套 `ConversationEditorPartImpl`。围栏：未点名 Conversation 组时，即使焦点在 Conversation 区域，文件仍进 Preview；conversation input 无点名则拒绝（不静默掉进 Preview）。
+**推论：** 文件 / untitled / `ChatEditorInput` 打开后落在 **主** `EDITOR_PART` 某组的 tab 栈。Conversation 第四面已落：`ConversationChatInput` 与围栏白名单第二类 `ConversationDiffReviewInput`（[ADR-005](../../../dev/decisions/005-changes-diff-owner.md) / [sources-changes-diff](../../../dev/plans/sources-changes-diff.md) F1 已落）经 `CONVERSATION_GROUP` / `CONVERSATION_SIDE_GROUP` 或具体 Conversation 组进入嵌套 `ConversationEditorPartImpl`。围栏：未点名 Conversation 组时，即使焦点在 Conversation 区域，文件 / untitled / `ChatEditorInput` 仍进 Preview；`ConversationChatInput` / `ConversationDiffReviewInput` 无点名则拒绝（不静默掉进 Preview）。审阅 input 只读、经 `isConversationExtensionTab` 纳入「关非根」/`closeChildOnBack`/`showTabs` 计数，与 fork 延伸 tab 同姿态。
 
 ## 3. 与 Desktop Preview File tabs 同构
 
@@ -87,7 +87,7 @@ INV-TOPO **仍然禁止**：
 - 把 Layout 中心叶改成 `Parts.EDITOR_PART`；
 - 用 `ChatEditor` / Custom Editor / 主 `EDITOR_PART` 的普通组当产品 Conversation。
 
-INV-TOPO **不再禁止**（[ADR-002](../../../dev/decisions/002-conversation-session-windows.md) / [PRD-016](../../product/requirements.md#prd-016-conversation-session-窗口与-chat-tab)）：在 `CONVERSATION_PART` **内部**挂独立 Conversation `IEditorPart`（`ConversationEditorPartImpl`），用 `ConversationChatInput` + `ConversationEditorPane` 画 chat tab。这不是把中心变成 Preview。**已落**（S1–S6）。
+INV-TOPO **不再禁止**（[ADR-002](../../../dev/decisions/002-conversation-session-windows.md) / [PRD-016](../../product/requirements.md#prd-016-conversation-session-窗口与-chat-tab)）：在 `CONVERSATION_PART` **内部**挂独立 Conversation `IEditorPart`（`ConversationEditorPartImpl`），用 `ConversationChatInput` + `ConversationEditorPane` 画 chat tab，以及经显式动作带入的只读 `ConversationDiffReviewInput` 延伸 tab（[PRD-009](../../product/requirements.md#prd-009-changes-与-diff) F1 已落）。这不是把中心变成 Preview。**已落**（S1–S6；Diff 审阅 tab F1）。
 
 **聚合豁免（已落，S1a）：** 嵌套 part 注册进 `IEditorGroupsService.parts` 只为复用组 / tab / pane 机制，**不参与面向用户的全局 editor 语义**。`ConversationEditorPartImpl.excludeFromGlobalEditorAggregation = true`；`EditorParts` 经 `isExcludedFromGlobalEditorAggregation` 过滤：`getGroups` / `activePart` MRU / `findGroup` FIRST-LAST / `applyState` 跳过 Conversation part；`getScopedInstantiationService` **按 part 索引**（共享主窗 `windowId` 的多 Conversation part 各得独立 scoped `IEditorService`）。Conversation 自有导航栈与 `IHistoryService` 隔离（S2）。合同见 [conversation-session-windows](../../../dev/plans/conversation-session-windows.md) §3.8。
 
