@@ -3,8 +3,8 @@ title: "产品需求追踪矩阵"
 type: reference
 status: accepted
 phase: N/A
-updated: 2026-09-02
-summary: "PRD-001–026 追踪；M7 UI 完成波新增 PRD-025 Engine 设置与 PRD-026 Client 设置；测试债不阻塞开发但仍阻止需求升 implemented"
+updated: 2026-09-03
+summary: "PRD-001–026 追踪；M7 UI 完成波新增 PRD-025 Engine 设置与 PRD-026 Client 设置；CS-1…CS-5 已落 9 键，CS-6 未做，PRD-026 仍 accepted"
 ---
 
 # 产品需求追踪
@@ -40,7 +40,7 @@ summary: "PRD-001–026 追踪；M7 UI 完成波新增 PRD-025 Engine 设置与 
 | [PRD-023](requirements.md#prd-023-sources-review-审阅进度与归因) | `accepted` | [sources overview](../systems/sources/overview.md) · [companion-contribs §4](../systems/workbench/companion-contribs.md) · [engine-protocol-surface §4/§11](../reference/universe-agent/engine-protocol-surface.md)（G-REV-1）；Desktop ADR-043 作 `source` | [sources-review-progress](../../dev/plans/sources-review-progress.md)（R1–R4 @ HEAD；R5 冒烟未做） | 无引擎审阅进度可用；归因/reviewNav 需引擎；R5 未验、不升 `implemented` |
 | [PRD-024](requirements.md#prd-024-远程引擎连接connection-hub) | `proposed` | [hub-control-plane-surface §](../reference/universe-agent/hub-control-plane-surface.md) · [engine-protocol-surface §1](../reference/universe-agent/engine-protocol-surface.md)（GetAuthNonce / DeviceAuth / pairing） · [settings-ua-access §7](../reference/code-oss-b2/settings-ua-access.md) · [stub-and-fixtures §5](../systems/conversation/stub-and-fixtures.md) · [ADR-003](../../dev/decisions/003-engine-adapter-boundary.md)（宿主 electron-main） | [connection-hub-client](../../dev/plans/connection-hub-client.md)（H0 docs @ HEAD；H1–H5 代码 @ HEAD；H4a 真 Hub 冒烟未做；**H6 GUA 直连 v2 未做**） | 无 PRD-024 真 Hub 冒烟证据；不升 `implemented` |
 | [PRD-025](requirements.md#prd-025-engine-设置完整性) | `accepted` | [engine-catalog](../systems/workbench/engine-catalog.md) · [settings-ua-access](../reference/code-oss-b2/settings-ua-access.md) | [engine-preferences-completion](../../dev/plans/engine-preferences-completion.md)（`accepted` @2026-09-02）· [M7 UI 波](../../dev/plans/m7-ui-completion-wave.md) | 当前仅 Skills / Agents / MCP Definitions / Tools；九节与全状态矩阵待实现。Model 走 `ConfigService.ListModels` 只读注册表（P1b）；MCP 运行态 / Plugins 走 P1a；Provider / Rules / Hooks 缺引擎 RPC（[G-ENG-1/2/3](../reference/universe-agent/engine-protocol-surface.md)），本波保持 unsupported 完整态 |
-| [PRD-026](requirements.md#prd-026-client-设置完整性) | `accepted` | [settings-ua-access](../reference/code-oss-b2/settings-ua-access.md) · [page-access-schemes](../../dev/plans/page-access-schemes.md) | [client-settings-completion](../../dev/plans/client-settings-completion.md)（`accepted` @2026-09-02）· [M7 UI 波](../../dev/plans/m7-ui-completion-wave.md) | CS-1 已注册 Display / Chat Input 三键并接消费点；其余四组待 CS-2…CS-5（9 键闭集，审查已删 4 键；键注册与消费同切片） |
+| [PRD-026](requirements.md#prd-026-client-设置完整性) | `accepted` | [settings-ua-access](../reference/code-oss-b2/settings-ua-access.md) · [page-access-schemes](../../dev/plans/page-access-schemes.md) | [client-settings-completion](../../dev/plans/client-settings-completion.md)（`accepted` @2026-09-02）· [M7 UI 波](../../dev/plans/m7-ui-completion-wave.md) | CS-1…CS-5 已注册 9 键闭集并接消费点（含 `showToolInvocationDetails`）；CS-6 迁移/窄宽度/`emptyCopy` 未做。不升 `implemented` |
 
 ## 状态分桶
 

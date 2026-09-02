@@ -251,10 +251,12 @@ suite('Settings UA TOC', () => {
 		assert.ok(!keys.includes('connection.port'));
 		assert.ok(!keys.includes('ua.client.display.placeholder'));
 		assert.ok(!keys.some(key => key.startsWith('ua.engine.')));
+		assert.ok(!keys.includes('ua.client.clientTools.advertiseWorkspaceTools'));
 		const clientKeys = keys.filter(key => key.startsWith('ua.client.')).sort();
 		assert.deepStrictEqual(clientKeys, [
 			'ua.client.chatInput.autoFocus',
 			'ua.client.chatInput.restoreDrafts',
+			'ua.client.clientTools.showToolInvocationDetails',
 			'ua.client.display.conversationDensity',
 			'ua.client.keyboardEnter.behavior',
 			'ua.client.notifications.permissionRequests',

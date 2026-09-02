@@ -45,6 +45,11 @@ export interface ProcessFoldDomOptions {
 	readonly onLayoutChange: () => void;
 	/** When false (stub fixture), omit loading / live / duration chrome (Q4). */
 	readonly showLiveChrome: boolean;
+	/**
+	 * When false, every tool row (including client-tool) shows only name + status.
+	 * Payload body is not rendered and the row is not expandable.
+	 */
+	readonly showToolInvocationDetails?: boolean;
 }
 
 /**
@@ -194,7 +199,8 @@ function renderToolRow(
 	disposables: DisposableStore,
 ): void {
 	const payload = turn.payload?.trim();
-	const hasPayload = !!payload;
+	const showDetails = options.showToolInvocationDetails !== false;
+	const hasPayload = showDetails && !!payload;
 	const executing = isExecutingTurn(turn, options);
 
 	const row = append(parent, $('div.conversation-process-fold-tool'));

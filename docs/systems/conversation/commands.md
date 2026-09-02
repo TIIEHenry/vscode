@@ -3,7 +3,7 @@ title: "Agent IDE 壳命令、菜单落点与快捷键"
 type: reference
 status: accepted
 phase: N/A
-updated: 2026-09-02
+updated: 2026-09-03
 summary: "四钮、Conversation、Sources Review 三命令、Sessions roster、UA Preferences、深链的用户可见命令清单；chat tab 复用 editor group 命令；对话框 Escape / Accessible View；窄宽度见透镜页"
 ---
 
@@ -86,7 +86,7 @@ summary: "四钮、Conversation、Sources Review 三命令、Sessions roster、U
 | `chat.titleBar.signIn.enabled` | `false` | 出厂关：titlebar 无 Copilot Sign In |
 | `chat.agentsControl.enabled` | `hidden` | 出厂关：无 Agent Status 命令中心 chrome |
 | `editor.inlineSuggest.enabled` | `false` | 出厂关：Preview 内无 ghost-text |
-| UA 客户端设置组（`uaClientSettings.ts`） | 见下 | CS-1 已注册三键（均为 `ConfigurationScope.WINDOW`）：`ua.client.display.conversationDensity`（comfortable / compact）、`ua.client.chatInput.restoreDrafts`、`ua.client.chatInput.autoFocus`。Startup / Keyboard Enter / Notifications / Permissions / Client Tools 尚未注册。宿主为 `SettingsEditor2` |
+| UA 客户端设置组（`uaClientSettings.ts`） | 见下 | CS-1…CS-5 已注册 9 键（均为 `ConfigurationScope.WINDOW`），含 `ua.client.clientTools.showToolInvocationDetails`（过程折全部 tool 行 payload 显隐；不改 Engine 工具可用性）。未注册已删键 `advertiseWorkspaceTools`。CS-6 未做。宿主为 `SettingsEditor2` |
 
 ## 7. 键盘可达性现状
 
