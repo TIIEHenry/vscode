@@ -1,0 +1,15 @@
+{
+  "name": "universe-agent-studio-brand",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "I3a: generate UniverseAgentStudio icons from resources/brand/universe-agent-studio.svg",
+  "scripts": {
+    "generate": "node generate-icons.mjs"
+  },
+  "devDependencies": {
+    "@fiahfy/icns": "^0.0.7",
+    "png-to-ico": "^2.1.8",
+    "sharp": "^0.34.4"
+  }
+}

@@ -22,7 +22,7 @@
 	"win32x64UserAppId": "{{72B9716D-B38E-4947-9A27-B886F50CC80F}",
 	"win32arm64UserAppId": "{{47161B01-4070-41F8-811E-6CB63CCB343A}",
 	"win32AppUserModelId": "UniverseAgentStudio.UniverseAgentStudio",
-	"win32ShellNameShort": "U&niverseAgentStudio",
+	"win32ShellNameShort": "&UniverseAgentStudio",
 	"win32TunnelServiceMutex": "universeagentstudio-tunnelservice",
 	"win32TunnelMutex": "universeagentstudio-tunnel",
 	"darwinBundleIdentifier": "studio.universeagent.app",
