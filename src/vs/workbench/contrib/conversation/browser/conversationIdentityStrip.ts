@@ -12,7 +12,7 @@ import { localize } from '../../../../nls.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
 import { ILabelService } from '../../../../platform/label/common/label.js';
 import { IWorkspaceContextService } from '../../../../platform/workspace/common/workspace.js';
-import { IExplorerService } from '../../files/browser/files.js';
+import { REVEAL_IN_EXPLORER_COMMAND_ID } from '../../files/browser/fileConstants.js';
 import { ISCMRepository, ISCMService } from '../../scm/common/scm.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { OPEN_CONNECTION_PREFERENCES_COMMAND_ID, OPEN_ENGINE_PREFERENCES_COMMAND_ID } from '../common/uaPreferencesPanes.js';
@@ -83,7 +83,6 @@ export class ConversationIdentityStrip extends Disposable {
 		@ILabelService private readonly labelService: ILabelService,
 		@ISCMService private readonly scmService: ISCMService,
 		@ICommandService private readonly commandService: ICommandService,
-		@IExplorerService private readonly explorerService: IExplorerService,
 		@IConversationRosterService private readonly rosterService: IConversationRosterService,
 		@IUniverseAgentConnection private readonly uaConnection: IUniverseAgentConnection,
 	) {
@@ -106,7 +105,9 @@ export class ConversationIdentityStrip extends Disposable {
 		this.folderChip.type = 'button';
 		this._register(addDisposableListener(this.folderChip, 'click', () => {
 			if (this.folderResource) {
-				this.explorerService.select(this.folderResource);
+				// revealInExplorer opens Navigator Files even when Explorer is not mounted;
+				// explorerService.select would silently return in that case.
+				this.commandService.executeCommand(REVEAL_IN_EXPLORER_COMMAND_ID, this.folderResource);
 			}
 		}));
 
