@@ -4,7 +4,7 @@ type: reference
 status: accepted
 phase: N/A
 updated: 2026-09-02
-summary: "已知 gRPC 服务 / RPC 名与本仓用途；§1 Conversation（A1/A2）+ Device Grant；Engine catalog list/toggle + 写 RPC @ f49615a1；§7 Engine 页四节；§5 会话面对照；§11 Navigator/Review；§4 G-NAV-* / G-REV-*"
+summary: "已知 gRPC 服务 / RPC 名与本仓用途；§1 Conversation（A1/A2）+ Device Grant；§1b Web 断连（M7 P0）；Engine catalog list/toggle + 写 RPC @ f49615a1；§7 Engine 页四节；§5 会话面对照；§11 Navigator/Review；§4 G-NAV-* / G-REV-*"
 ---
 
 # UniverseAgent 引擎协议面（本仓消费口径）
@@ -32,6 +32,18 @@ summary: "已知 gRPC 服务 / RPC 名与本仓用途；§1 Conversation（A1/A2
 | Local `RulesBridge` | list / create / update / delete / preview / health × global / workDir（12）+ `defaultAgentHome()` | Engine 页 Rules（Instructions） | **Remote gRPC 不存在**；默认 `Unsupported`；Engine 页 Rules list **未**在本 slice |
 | `MemoryService` | — | 不在 Engine 页；未来独立 pane | 与 Instructions 分家 |
 
+## 1b. Web 断连（M7 P0）
+
+非 RPC：`IUniverseAgentConnection` / `IUniverseAgentSessionView` / `IUniverseAgentHubService` 在 Web 以 **`registerSingleton`** 注册（**禁止** `registerMainProcessRemoteService`），实现位于 `platform/universeAgent/browser/`。
+
+| 服务 | Web 诚实断连 | 备注 |
+|------|--------------|------|
+| `IUniverseAgentConnection` | `isEngineConnected()=false`；transport `idle`；全部 `Event` 为 `Event.None`；capability snapshot **含全部已有键**且均 `UNSUPPORTED`，reason「Web 不支持本机 Engine 连接」；`connect()` 不 throw、返回无 token 的 `{ methods: [], events: [] }`；`connectProfile` 返回 `ok:false`、`code: 'unsupported_environment'`（`ConnectionFailureCode` 新增，非 `transport_failed`）；`getConnectionPhase` = `{ kind: 'disconnected' }`；其余方法 reject 为 `unsupported_environment` | `workbench.web.main.ts` 注册 |
+| `IUniverseAgentSessionView` | 空 lease（可 acquire，不投帧；`post` → `not_authenticated`） | 同上 |
+| `IUniverseAgentHubService` | `getAuthStatus` = `unavailable`；`login` / `addDirectAddressProfile` 等 mutating 方法一律 `ok:false` + 环境码；profiles = `[]`；`isEncryptionAvailable()` = `true`（避免冒充密钥环问题）；不回显凭据 | `connectionHub.contribution.ts` **不再**静态 import `electron-browser/universeAgentHubService`；该注册仅在 `workbench.desktop.main.ts` |
+
+后续 P 切片新增 capability 键或方法时，**同一提交**须同步本目录 browser 断连实现。
+
 ## 2. 能力探测
 
 UA 侧 `EngineSettingsCapabilities` / `CapabilitySupport`：`SUPPORTED | UNSUPPORTED | UNKNOWN` + `reason`。
@@ -46,6 +58,8 @@ UA 侧 `EngineSettingsCapabilities` / `CapabilitySupport`：`SUPPORTED | UNSUPPO
 | `plugins` · `globalRules` | UA 侧键；本仓 probe 未实现 | @ HEAD 固定 `UNSUPPORTED`（`probe not implemented in M6-A1`） |
 | `projectRules` · `hooksMetadata` | UA 无握手字段 | IDE 矩阵；@ HEAD 同上固定 `UNSUPPORTED` |
 | IDE 传输失败 | 非 UA 概念 | 独立态；list RPC `catch` → 传输失败文案，**不得**映射为 UNSUPPORTED 或「0 条」 |
+
+**Web 形态（P0）：** `workbench.web.main.ts` 以 `registerSingleton` 注册三者（`platform/universeAgent/browser/`）。transport `idle`；capability snapshot **含全部已有键**且均 `UNSUPPORTED` reason「Web 不支持本机 Engine 连接」；`connect()` 不 throw、返回无 token 的 `{ methods: [], events: [] }`；`connectProfile` 返回 `ok:false` 且 `code` 为 `unsupported_environment`（非 `transport_failed`）；`getConnectionPhase` 为 `disconnected`；Hub `getAuthStatus` 为 `unavailable`、login / addDirectAddressProfile 拒绝且不回显凭据；session view 空 lease。Hub 的 electron-browser 注册只在 `workbench.desktop.main.ts`，已移出 common 链。这是 PRD-019 / D15 前置。
 
 Connect 后 `probeEngineCapabilities`：**仅**广告了 method 且 probe 非 `UNIMPLEMENTED` 才升 `SUPPORTED`。无连接（PRD-008 未接通证据）：catalog 节 **disconnected**（隐藏），不用 Stub 填 `UNKNOWN`。
 

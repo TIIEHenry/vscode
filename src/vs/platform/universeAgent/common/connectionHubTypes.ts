@@ -21,7 +21,8 @@ export type ConnectionFailureCode =
 	| 'engine_not_serving'
 	| 'hub_ticket_failed'
 	| 'hub_rate_limited'
-	| 'transport_failed';
+	| 'transport_failed'
+	| 'unsupported_environment';
 
 export type ConnectionPath = 'direct' | 'hubRelay' | 'loopback';
 
