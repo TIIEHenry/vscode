@@ -6,6 +6,8 @@
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { createDecorator } from '../../../../platform/instantiation/common/instantiation.js';
+import type { IConversationSessionViewLease } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
+import { ConversationStubFrameSource } from './conversationStubFrameSource.js';
 import { ConversationStubModel, ConversationStubSession, ConversationStubTurn } from './conversationStubModel.js';
 import { ConversationTrajectoryRecord } from './conversationTrajectoryModel.js';
 import {
@@ -53,6 +55,13 @@ export interface IConversationRosterService {
 	setAutoDriveTaskFixture(sessionId: string, tasks: readonly string[]): void;
 	isEngineConnected(): boolean;
 	setEngineConnected(connected: boolean): void;
+
+	/**
+	 * Fine-grained frame channel for one session (dev/plans/conversation-stream-timeline.md §3.2).
+	 * Each chat tab / dialog / split column holds its own lease; same-session leases share one
+	 * subscription. Same token as the roster — the engine implementation replaces the class, not the id.
+	 */
+	acquireSessionView(sessionId: string): IConversationSessionViewLease;
 }
 
 export type IConversationStubService = IConversationRosterService;
@@ -73,6 +82,12 @@ export class ConversationStubService extends Disposable implements IConversation
 
 	private readonly _onDidChangeEngineConnection = this._register(new Emitter<boolean>());
 	readonly onDidChangeEngineConnection = this._onDidChangeEngineConnection.event;
+
+	private readonly frameSource = this._register(new ConversationStubFrameSource(this.model, this.onDidChangeSession));
+
+	acquireSessionView(sessionId: string): IConversationSessionViewLease {
+		return this.frameSource.acquire(sessionId);
+	}
 
 	getSessions(): readonly ConversationStubSession[] {
 		return this.model.getSessions();

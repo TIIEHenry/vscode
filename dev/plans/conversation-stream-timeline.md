@@ -4,7 +4,7 @@ type: plan
 status: accepted
 phase: M6
 updated: 2026-09-02
-summary: "m6-engine-wave / ADR-003 的时间线专章（规则 16 两轮 Cursor CLI Grok 审查后签收）：显示写源 = SessionEventStream L1–L4；fold 复用 Desktop session-core（view→common，Actor→node）；同 token 增量加 acquireSessionView；attribution sidecar 解 role/agent；stub 改帧源；TimelineTree 三类帧增量；S1–S3 ReadyToImplement，S4–S6 随 M6-A/D"
+summary: "m6-engine-wave / ADR-003 的时间线专章（规则 16 两轮 Cursor CLI Grok 审查后签收；S1 implemented @2026-09-02）：显示写源 = SessionEventStream L1–L4；fold 复用 Desktop session-core（view→common，Actor→node）；同 token 增量加 acquireSessionView；attribution sidecar 解 role/agent；stub 改帧源；TimelineTree 三类帧增量；S1–S3 ReadyToImplement，S4–S6 随 M6-A/D"
 ---
 
 # Conversation 订阅流与时间线增量模型
@@ -267,7 +267,7 @@ S3 前**不改**公开形状。**同步点写死：**
 
 | # | 内容 | 验证 | 引擎？ |
 |---|------|------|--------|
-| S1 | 同步脚本（跳过 `view/index.ts`；自写 barrel；`.eslint-ignore` 两棵树；SYNC.md）+ `common/sessionView/**` + `node/sessionCore/**`；`conversationViewFrame.ts` 契约；`acquireSessionView` 增量加入接口；`stubTurnsToSnapshot` + attribution；`projectSnapshotToEntries`；`ConversationStubFrameSource`（lens **尚未**切换）；platform 级 boundary 测；`code-layering` 对 `platform/universeAgent/**` 提 error | 新 `conversationSessionView.test.ts`：三会话 fixture → entries → legacy turns 与 HEAD `getTurns` 逐项等价；`npm run compile` 绿；`npm run eslint` 绿（含 header / layering）；boundary 测绿。`valid-layers-check` 不是本切片门（API/lib 检查；D8 open） | 否 |
+| S1 **implemented @2026-09-02** | **脚手架（工位 D，已在 HEAD `a1cd9897` / `0649602d`）**：同步脚本、`common/sessionView/**`、`node/sessionCore/**` @ 上游 `02a2ba350`、`.eslint-ignore` + `build/filters.ts` 豁免、`code-layering` error 块、boundary 测（`test/common`，经 `import.meta.url` 真实扫 `src/`）、`conversationViewFrame.ts` 基础契约。**主仓增量（本稿实施者）**：`sessionView/index.ts` 从「仅类型」补齐 `applyViewFrame` / `createEmptyReplica` / `emptySessionViewSnapshot` 等值导出；契约加 attribution `stub` 标记、`DetailPatch` / `details` sidecar、`overlayAttributionKey`、`IConversationViewFrameSource`；`acquireSessionView` 增量加入 `IConversationRosterService`；`conversationSessionView.ts`（`stubTurnsToSnapshot` / `projectSnapshotToEntries` / `entriesToLegacyTurns` / `diffProjections`）；`conversationStubFrameSource.ts`（订 `onDidChangeSession` → id diff → `applyViewFrame`；lens **尚未**切换）；boundary 测加 `sessionView` 自包含断言 | `conversationSessionView.test.ts` 11 测绿（三会话 fixture 往返等价、lease 镜像、post 三臂、resync）；boundary 测 2 测绿；`compile-client` 0 error；eslint 0 error。**附带修复**：`conversationLens.test.ts` 夹具改用 `TestLayoutService`（HEAD 缺 `registerPart` / `isVisible`，73 个测试原本无法启动）；`conversationTimelineTree.getVisibleTimelineIndices` 对上游无越界保护的 `lastVisibleElement` 加防御。基线对照：Lens 11 + IdentityStrip 1 + StubService 3 个失败在**不含 S1 改动**的 HEAD 上同样失败 → [D16](../progress/deferred-gaps.md)，S2 退出条件按 D16 处理 | 否 |
 | S2 | `applyEntries` 三类帧；按 id Map 保留态；overlay live 行 + chunk 拼接；帧合并；**stub 写方法双写**（[§3.7 同步点](#37-旧方法调用点与-shim)）；lens 改订 `onDidApplyFrame`、只读 lease | `conversationTimelineScroll.test.ts` 扩三类帧矩阵（A rerender 计数 + `setChildren`=0 / B DOM 复用 / C span id 规则）；HEAD `conversationLens.test.ts` 全绿（靠双写）；无默认 UI 假流 | 否 |
 | S3 | Dock → `lease.post(submitInput)` + 占位 → supersede；`PostOutcome` 失败文案；`SyncChrome` → SessionBar / Inbox；读方法转 shim、写方法只经帧源（[§3.7](#37-旧方法调用点与-shim)）；`TestConversationFrameSource` 供语音测 | `conversationLens.test.ts`：发送后占位 → 正式行；stub 永远 `idle`；shim 等价测；T6 语音测改用测试帧源 | 否 |
 | S4 | node 侧生产者：gRPC `SessionEventStream` + demux + attribution + Actor + lease over ProxyChannel；ports 实现 | **随 M6-A2**（ADR-003 已 `accepted` @2026-09-02；A2 入口 = S3 + M6-A1 合入）；隔离 profile 冒烟：hello → live、gap → syncing → live、断连 → closed 快照 | 是 |
@@ -296,7 +296,8 @@ S3 前**不改**公开形状。**同步点写死：**
 | G2 | `visualize` 只是 `tool` 行，`resultPreview` / `argPreview` 有界；已有 `canvasRefs` 但不承载 mermaid 正文 | PRD-014 图示卡 | session-core typed arm 或 `DetailRef` 取全文 | tool 行 + 「打开完整结果」；不截断当图 |
 | G3 | `DetailRef` 按需通道未实施（Desktop D14 defer） | 轨迹全文、长工具输出、图示卡 | Desktop + vscode 共同 | 轨迹保持 fixture extras；不把预览当全文 |
 | G4 | 普通 timeline 行无 agent 归属（`TimelineItemView.agentId?` 仅 pendingActions 投影；`liveAgentTree` 是另一份树） | PRD-016 子代理对话框过滤 | Desktop session-core 从 envelope `agent_id / agent_path` 投影 | attribution sidecar 的 `agentId / agentPath`；上游投影后退场 |
-| G5 | Ask-user `question`、`error`、`unknown` 行无产品需求条 | 行存在但 PRD 未覆盖 | 本仓 requirements | [§7](#7-产品需求待改规则-10a) |
+| G5 | Ask-user `question`、`error`、`unknown` 行无产品需求条 | 行存在但 PRD 未覆盖 | 本仓 requirements | **已落**：PRD-003/004/007 增补 + PRD-021（2026-09-02） |
+| G6 | `session-actor.ts` 四个 dead `private` 成员（`connectionGeneration` / `prefixHole` / `blockRespondMissingAgentId` / `commitSeqIndex`）在 vscode `noUnusedLocals` 下 TS6133 | HEAD `0649602d` 在 vendored 文件里**手删**了这 28 行（违反 verbatim；下次 `sync` 会重新引入并再次编不过） | Desktop session-core 删死代码 | 上游未删前，同步脚本应把该删除做成确定性变换（或放宽为 `protected`）而非手改 vendored 文件；上游删除后清掉变换 |
 
 ## 7. 产品需求待改（规则 10a）
 

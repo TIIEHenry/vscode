@@ -820,7 +820,14 @@ export class ConversationTimelineTree extends Disposable {
 		if (!firstVisible) {
 			return [];
 		}
-		const lastVisible = this.tree.lastVisibleElement;
+		let lastVisible: ConversationTimelineItem | null | undefined;
+		try {
+			// Unlike firstVisibleElement, the tree's lastVisibleElement getter has no bounds check and
+			// throws when the view has no laid-out rows yet (zero-height layout, first render).
+			lastVisible = this.tree.lastVisibleElement;
+		} catch {
+			lastVisible = undefined;
+		}
 		if (!lastVisible) {
 			return [];
 		}

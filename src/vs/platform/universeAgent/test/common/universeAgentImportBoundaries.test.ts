@@ -94,4 +94,23 @@ suite('universeAgentImportBoundaries', () => {
 			`Forbidden imports in workbench/sessions production code:\n${violations.join('\n')}`,
 		);
 	});
+
+	test('vendored common/sessionView is self-contained (no parent-directory imports)', () => {
+		// dev/plans/conversation-stream-timeline.md §3.1: the view tree must never reach into the
+		// Actor tree; upstream `view/index.ts` does, which is why VS Code keeps its own barrel.
+		const sessionViewDir = path.join(REPO_ROOT, 'src/vs/platform/universeAgent/common/sessionView');
+		const files = fs.readdirSync(sessionViewDir).filter(name => name.endsWith('.ts'));
+		assert.ok(files.length >= 7, `expected the vendored view tree, found ${files.length} files`);
+
+		const violations: string[] = [];
+		for (const name of files) {
+			const source = fs.readFileSync(path.join(sessionViewDir, name), 'utf8');
+			for (const importPath of extractImportPaths(source)) {
+				if (importPath.startsWith('../')) {
+					violations.push(`${name}: ${importPath}`);
+				}
+			}
+		}
+		assert.deepStrictEqual(violations, [], `common/sessionView must not import its parent directory:\n${violations.join('\n')}`);
+	});
 });

@@ -10,7 +10,7 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/tes
 import { ConversationPart, IConversationLensSlots } from '../../../../browser/parts/conversation/conversationPart.js';
 import { Parts } from '../../../../services/layout/browser/layoutService.js';
 import { ChatEditorInput } from '../../../chat/browser/widgetHosts/editor/chatEditorInput.js';
-import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
+import { TestLayoutService, workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { ConversationChatInput } from '../../browser/conversationChatInput.js';
 import { ConversationEditorPane } from '../../browser/conversationEditorPane.js';
 import { ConversationLens } from '../../browser/conversationLens.js';
@@ -382,10 +382,11 @@ suite('ConversationLens', () => {
 		layoutContainer.classList.add('monaco-workbench');
 		document.body.appendChild(layoutContainer);
 		store.add({ dispose: () => layoutContainer.remove() });
-		instantiationService.stub(ILayoutService, {
-			_serviceBrand: undefined,
-			getContainer: () => layoutContainer,
-		} as unknown as ILayoutService);
+		// IWorkbenchLayoutService shares this decorator: Part registers itself and ConversationPart.layout
+		// asks isVisible(), so a bare { getContainer } stub is not enough.
+		const layoutService = new TestLayoutService();
+		layoutService.getContainer = () => layoutContainer;
+		instantiationService.stub(ILayoutService, layoutService);
 		instantiationService.stub(IExplorerService, {
 			_serviceBrand: undefined,
 			select: async () => { },

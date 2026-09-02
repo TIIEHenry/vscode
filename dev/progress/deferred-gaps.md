@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-02
-summary: "P2/P3 延期缺口 SSOT；D1–D7、D11 已闭；D8 valid-layers 环境红降 P3 并豁免为门禁（2026-09-02 裁决）/ D9 terminal 行非阻塞 / D10 T5（M6-D 后）/ D12 产品身份（引擎波后）/ D13–D15 PRD-017–019 实施（不阻塞 M6）"
+summary: "P2/P3 延期缺口 SSOT；D1–D7、D11 已闭；D8 valid-layers 环境红降 P3 并豁免为门禁（2026-09-02 裁决）/ D9 terminal 行非阻塞 / D10 T5（M6-D 后）/ D12 产品身份（引擎波后）/ D13–D15 PRD-017–019 实施（不阻塞 M6）/ D16 conversation 单测基线红（S1 对照确认既有）"
 ---
 
 # Deferred Gaps
@@ -30,6 +30,7 @@ summary: "P2/P3 延期缺口 SSOT；D1–D7、D11 已闭；D8 valid-layers 环�
 | D13 | P2 | **PRD-017 本地会话持久化**（`accepted` @2026-09-02） | 落点已裁定：`StorageScope.WORKSPACE` + `StorageTarget.MACHINE`；引擎接通后不迁移，本地只存 stub 会话 + UA 断连快照缓存并标 `source`。须建在 stream-timeline 帧源之上，S3 之前动 `conversationStubService.ts` 会与 S1–S3 撞同一冲突域 | S3 合入后作为独立切片（同工位串行）：重启后会话列表 / 当前会话 / 回合 / 权限记录一致；session 窗口布局恢复；无引擎无「已同步」文案；单测 + D4 式隔离 profile 重启验收 | M6 | open |
 | D14 | P3 | **PRD-018 键盘可达**（`accepted` @2026-09-02）：四钮默认键位 + F6 焦点循环 + chat tab / 对话框 / 透镜 / 过程折 / 权限座位键盘可达 + aria 名 | 键位选定属实施细节；StatusBar / 四钮命令面在 M6-B 定稿后再加，避免两次改动 | M6-B 合入后：四 toggle 命令在 Keyboard Shortcuts 可见且不与 Open Conversation / `Ctrl+B` 冲突；隐藏 Conversation 后纯键盘可回；屏幕阅读器读出会话标题 / 回合角色 / 权限状态；键位写入 [commands §7](../../docs/systems/conversation/commands.md) | M6+ | open |
 | D15 | P3 | **PRD-019 Web 冒烟**（`accepted` @2026-09-02）：验证义务，非新功能 | 尚无 Web 冒烟证据；在 M6-A2 接通前跑只能验壳，接通后可同时验「本机引擎在 Web 下诚实省略」 | M6-A2 合入后：`scripts/code-web.sh`（或 `server` 入口）启动 → D4 式 V1–V3 断言通过；`IUniverseAgentConnection` 在 Web 报 `disconnected`、不画连接控件；证据目录 `d15-evidence/` | M6 | open |
+| D16 | P2 | **conversation 单测基线红**：`conversationLens.test.ts` 11 个失败（DOM 高度 0 / codicon 选择器 / 种子会话数 `1 !== 2` 等）、`conversationIdentityStrip.test.ts` 1 个、`conversationStubService.test.ts` 3 个（假定种子会话为空，实际 `untitled` 有 7 条 fixture），在 **不含** stream-timeline S1 改动的 HEAD `0649602d` 上同样失败；另 `conversationImportBoundaries.test.ts` 用 `__dirname` 指向 `out/` 扫 `.ts`，疑似空扫假绿（`universeAgentImportBoundaries.test.ts` 已改用 `FileAccess` + 扫描计数断言，可参照） | 2026-09-02 S1 实施时发现；已顺手修两处启动级问题（Lens 夹具缺 `registerPart`/`isVisible` → `TestLayoutService`；`getVisibleTimelineIndices` 对 `lastVisibleElement` 越界防御），剩余为断言级过时 | 逐条分类：过时断言改测 / 产品 bug 修码；stream-timeline S2 退出条件「Lens 全绿」以本行闭合为前提，或改为「S2 不新增失败」 | M6 / conversation | open |
 
 ## D2 工位池 compile 基线（2026-09-02，merge 工位 / `loop/merge`）
 

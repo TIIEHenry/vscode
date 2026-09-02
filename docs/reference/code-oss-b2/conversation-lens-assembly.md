@@ -3,8 +3,8 @@ title: "Conversation 透镜组装：零件如何嵌进 CONVERSATION_PART"
 type: reference
 status: accepted
 phase: N/A
-updated: 2026-09-01
-summary: "三槽自研 chrome；PRD-015 空会话 Composer 与 PRD-016 session 窗口/chat tab 已落；timeline/dock 在 Conversation EditorPane 内；禁止 ChatWidget 整块"
+updated: 2026-09-02
+summary: "三槽自研 chrome；PRD-015 空会话 Composer 与 PRD-016 session 窗口/chat tab 已落；timeline/dock 在 Conversation EditorPane 内；禁止 ChatWidget 整块；阶段 3a 修正指针 → conversation-stream-timeline（accepted）"
 ---
 
 # Conversation 透镜组装
@@ -88,6 +88,8 @@ CONVERSATION_PART          ← 槽宿主；不渲染产品 chrome
 3. **引擎：** **3a** 只换服务 / 发送链（adapter → UA）。**3b** Dock **状态行控件集**随 queue / stop / ctx 权威解锁（槽位仍是 Dock，不是「控件集永冻」）。不换 Part。
 
 阶段 2 与 3a/3b 可交错，但 **槽位所有权先于接线**。
+
+> **3a 修正（accepted @2026-09-02）：** 「只换服务」不成立——引擎事件是流式 delta，HEAD `onDidChangeSession` → `getTurns()` → `setChildren(null)` 全量重建会丢展开态并逐 token 重排。选定改为「换**帧源** + 时间线**增量 apply**」：显示写源 = `SessionEventStream` L1–L4，fold 复用 Desktop `session-core`，renderer 只吃幂等 `ViewFrame`，stub 也改为同一契约帧源；token 不变（`acquireSessionView` 同接口增量）。见 [conversation-stream-timeline](../../../dev/plans/conversation-stream-timeline.md)（`accepted`；本节正文随 S1 实施 commit 改写）。
 
 ## 7. 非目标
 
