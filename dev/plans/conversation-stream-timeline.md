@@ -9,11 +9,11 @@ summary: "m6-engine-wave / ADR-003 的时间线专章（规则 16 两轮 Cursor 
 
 # Conversation 订阅流与时间线增量模型
 
-> **定位：** 本稿是 [m6-engine-wave](m6-engine-wave.md)（`draft`）与 [ADR-003 引擎 adapter 边界](../decisions/003-engine-adapter-boundary.md)（`draft`）的**时间线专章**，细化 m6 §3 的「时间线 / 发送 / 权限 / 变更事件」四行与 M6-A 发送链、M6-D 轨迹 fold。**不 supersede** 两稿的任何 Decision；对两稿的增量修订建议集中在 [§9](#9-对-m6--adr-003-的增量修订建议)。
+> **定位：** 本稿是 [m6-engine-wave](m6-engine-wave.md)（`accepted`）与 [ADR-003 引擎 adapter 边界](../decisions/003-engine-adapter-boundary.md)（`accepted`）的**时间线专章**，细化 m6 §3 的「时间线 / 发送 / 权限 / 变更事件」四行与 M6-A 发送链、M6-D 轨迹 fold。**不 supersede** 两稿的任何 Decision；对两稿的增量修订已同批并入（原建议见 [§9](#9-对-m6--adr-003-的增量修订建议)）。
 > **需求：** [PRD-003](../../docs/product/requirements.md#prd-003-时间线与输入) / [PRD-004](../../docs/product/requirements.md#prd-004-权限座位) / [PRD-007](../../docs/product/requirements.md#prd-007-诚实降级)（`accepted`）；活数据上游 [PRD-008](../../docs/product/requirements.md#prd-008-引擎与会话权威)（`blocked`）。
 > **透镜合同：** [conversation-lens-assembly](../../docs/reference/code-oss-b2/conversation-lens-assembly.md) §3 / §6（三槽冻结；阶段 3a「只换服务」由本稿修正为「换帧源 + 增量 apply」）。
 > **外仓合同（只读，不复述）：** Desktop [ADR-009](../../../UniverseAgentDesktop/dev/decisions/009-session-projection-core.md) 投影核 · [ADR-012](../../../UniverseAgentDesktop/dev/decisions/012-chat-stream-lifecycle-and-outbox.md) Chat 流与 outbox · [ADR-013](../../../UniverseAgentDesktop/dev/decisions/013-engine-event-ingestion-reliable.md) 摄入 Reliable；`UniverseAgentDesktop/packages/session-core`；引擎 proto `UniverseAgent/grpc-api/src/main/proto/{session_service,message_envelope,agent_service}.proto`。
-> **规则 16：** Cursor CLI `cursor-grok-4.6-high`（`--mode ask` 只读）两轮：第一轮 **Reject** → 改稿；第二轮 **Approve with changes**（1 Critical + 6 Important）→ 全部改入（见 [§12](#12-审查记录)）。**2026-09-02 用户授权「改完没问题就签收」，据此 `accepted`。** S1–S3 ReadyToImplement；S4–S6 随 m6 / ADR-003 签收。
+> **规则 16：** Cursor CLI `cursor-grok-4.6-high`（`--mode ask` 只读）两轮：第一轮 **Reject** → 改稿；第二轮 **Approve with changes**（1 Critical + 6 Important）→ 全部改入（见 [§12](#12-审查记录)）。**2026-09-02 用户授权「改完没问题就签收」，据此 `accepted`。** S1–S3 ReadyToImplement；S4–S6 随 m6 / ADR-003（**2026-09-02 R5 签收，已 `accepted`**）。
 
 **Goal：** 把「引擎事件流怎么进 IDE、时间线怎么增量更新」写成可实施合同。vscode **不**自研 fold：复用 Desktop `session-core` 做 L1–L4 fold；renderer 只应用幂等 `ViewFrame`。无引擎 stub 改为**同一契约的帧源**，时间线只剩一条渲染路径；引擎接通时换帧源，不换 UI、不换 token。
 
@@ -322,9 +322,7 @@ S3 前**不改**公开形状。**同步点写死：**
 
 ## 9. 对 m6 / ADR-003 的增量修订建议
 
-两稿均 `draft`。下表除标 **替换** 的一行外均为增量；**不推翻 ADR-003 任何编号 Decision**（token / 落层 / AHP 隔离 / `isEngineConnected` / 断连语义均保留）。
-
-**签收顺序（写死）：** 本稿与 m6 **同批**改稿签收；若 m6 先按现文 `accepted`，则本稿 S4 **阻塞**于 m6 M6-A 该句已改，防止 S4 与 M6-A 各写一条 history 投影。
+**2026-09-02 R5 签收：** 下表修订已同批并入 [m6-engine-wave.md](m6-engine-wave.md) 与 [ADR-003](../decisions/003-engine-adapter-boundary.md)（均 `accepted`）。本节保留为签收审计记录。
 
 | 目标 | 现文 | 建议 |
 |------|------|------|

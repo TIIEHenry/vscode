@@ -1,21 +1,21 @@
 ---
 title: "M6 引擎波：UniverseAgent adapter 与活数据接线"
 type: plan
-status: draft
+status: accepted
 phase: M6
 updated: 2026-09-02
-summary: "R5 草案：platform 传输 adapter + 同 token roster 投影；AHP 非权威；能力三态；切片 adapter → page-access 5 → E1 → T4"
+summary: "R5 已签收：platform 传输 adapter + 同 token roster 投影；AHP 非权威；能力三态；M6-A ReadyToImplement → page-access 5 → E1 → T4"
 ---
 
 # M6 引擎波
 
 > **研究入口：** [research-queue R5](../progress/research-queue.md)。  
 > **产品：** [PRD-008](../../docs/product/requirements.md#prd-008-引擎与会话权威) 今天 `blocked`；活数据还解锁 PRD-002/003/004、page-access 切片 5、customizations E1、trajectory T4。  
-> **边界 ADR：** [ADR-003](../decisions/003-engine-adapter-boundary.md)（本稿同期 `draft`）。  
+> **边界 ADR：** [ADR-003](../decisions/003-engine-adapter-boundary.md)（`accepted`）。  
 > **能力矩阵 SSOT：** [customizations-engine.md](customizations-engine.md) §2 / §3.7。本稿不重开 catalog 权威。  
 > **AHP：** [agent-host overview](../../docs/systems/agent-host/overview.md) — `IAgentHostService` 不是 UA session-core。
 
-本稿 `status: draft`。**不得**标 `accepted` / ReadyToImplement，直到规则 16 只读审查改稿。本稿 **不改** `src/`。
+本稿 `status: accepted`。**M6-A** ReadyToImplement（[stream-timeline S4–S6](conversation-stream-timeline.md) 随 A/D 同批落地）。实施 commit **才**改 `src/`。
 
 ---
 
@@ -27,7 +27,7 @@ summary: "R5 草案：platform 传输 adapter + 同 token roster 投影；AHP �
 2. Engine 页（`ua.engine`）能按能力三态显隐 catalog；无连接时仍是诚实空 + Test（PRD-007）。
 3. 轨迹透镜能用引擎 Event fold 替换 fixture（T4），且不经过 AHP / `IChatModel`。
 
-**M6 完成线（签收后实施）：** adapter 同 token 替换 stub 实现 → page-access 切片 5 UI 状态机 → E1 Skills list/toggle → trajectory T4。PRD-008 仍须启动冒烟证据才升 `implemented`。
+**M6 完成线（实施中）：** adapter 同 token 替换 stub 实现 → page-access 切片 5 UI 状态机 → E1 Skills list/toggle → trajectory T4。PRD-008 仍须启动冒烟证据才升 `implemented`。
 
 ---
 
@@ -232,7 +232,7 @@ M6-A adapter
 | 断连回 stub 种子造成「会话消失又冒出 Untitled」 | §6；测：UA id 在 `onDidChangeEngineConnection(false)` 后仍在 `getSessions()`；已连接 `deleteSession` 末条不回填 `untitled`/`visualize` |
 | 已连接仍 stub echo | M6-A：`submitDraft` fail-closed + `appendStubEchoAssistant` service 拒写 |
 | 首次 List 前 stub 种子冒充 UA catalog | M6-A：List 完成前 roster 不含 stub 种子行 |
-| 规则 16 未过就开实施 | 本稿保持 `draft` |
+| 规则 16 未过就开实施 | 已签收 @ 2026-09-02；M6-A 可开 |
 
 ---
 
@@ -255,4 +255,5 @@ M6-A adapter
 ## 审查记录
 
 - 2026-09-02：R5 发现稿 `draft`（工位 B @ `01dee834`）。规则 16 **未跑**；不得实施。
-- 2026-09-02：规则 16 只读审查 **Approve with changes**（工位 B @ `bfe24b48`）。已钉：`isEngineConnected` = token + 活 channel；pairing-pending 非 connected；stub 种子 `untitled`/`visualize`；首次 List 前不投影 stub；M6-A `submitDraft`/echo fail-closed；`deleteSession` 已连接不回填 stub；SUPPORTED 须 `GrpcCapabilityProbe` 非 UNIMPLEMENTED；gRPC 宿主 node + ProxyChannel；切片 5 UI-only；ADR-003 一窗一 UA session。本稿 **仍 `draft`**，待人类签收后升 `accepted`。
+- 2026-09-02：规则 16 只读审查 **Approve with changes**（工位 B @ `bfe24b48`）。已钉：`isEngineConnected` = token + 活 channel；pairing-pending 非 connected；stub 种子 `untitled`/`visualize`；首次 List 前不投影 stub；M6-A `submitDraft`/echo fail-closed；`deleteSession` 已连接不回填 stub；SUPPORTED 须 `GrpcCapabilityProbe` 非 UNIMPLEMENTED；gRPC 宿主 node + ProxyChannel；切片 5 UI-only；ADR-003 一窗一 UA session。
+- 2026-09-02：R5 人类签收 @ 工位 B；并入 [conversation-stream-timeline §9](conversation-stream-timeline.md#9-对-m6--adr-003-的增量修订建议) 增量修订；与 [ADR-003](../decisions/003-engine-adapter-boundary.md) 同升 **`accepted`**；**M6-A ReadyToImplement**。

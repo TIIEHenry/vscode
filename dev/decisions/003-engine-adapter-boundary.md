@@ -1,7 +1,7 @@
 ---
 title: "ADR-003 引擎 adapter 边界：platform 传输 vs roster token"
 type: decision
-status: draft
+status: accepted
 phase: M6
 updated: 2026-09-02
 summary: "UA gRPC 客户端落 platform/universeAgent；IConversationRosterService 同 token 投影；AHP 非权威；不改 conversationStubService decorator id"
@@ -26,7 +26,7 @@ summary: "UA gRPC 客户端落 platform/universeAgent；IConversationRosterServi
 3. **传输与探测放 `platform/universeAgent`，roster 投影留 contrib、同 token**（对照 agentHost：platform 协议 + 上层 facade）。
 4. **扩展 `IAgentHostService` / 实现 `IAgentConnection`**，把 UA 假装成另一种 harness。
 
-实施方案：[m6-engine-wave.md](../plans/m6-engine-wave.md)（`draft`）。
+实施方案：[m6-engine-wave.md](../plans/m6-engine-wave.md)（`accepted`）。
 
 ## Decision
 
@@ -50,7 +50,7 @@ summary: "UA gRPC 客户端落 platform/universeAgent；IConversationRosterServi
 - sessions 层将来若要 UA，只注入 platform 契约，**不得** import `contrib/conversation`。
 - 不推翻 [ADR-001](001-chat-compare-form.md) / [ADR-002](002-conversation-session-windows.md)。ADR-002 里「一张 session 窗口 = 一个 AH session」在 **无引擎** 时仍是 stub session；**UA Connect 成功后**默认窗改为 **一窗一 UA `SessionService` session**（Agents Window 仍 AHP）。AHP `createChat` fork 不是默认窗权威。
 - token 全仓替换 **永久不做**（零收益、非 extension API）。M5「不迁 ADR-003 token」与本决策一致：保留 id。
-- 实施前须规则 16 将 [m6-engine-wave.md](../plans/m6-engine-wave.md) 从 `draft` 推到 `accepted`。本 ADR 同期升 `accepted`。**2026-09-02 规则 16 审查已跑（Approve with changes）；两稿仍 `draft`，待人类签收。**
+- [m6-engine-wave.md](../plans/m6-engine-wave.md) 与本 ADR **2026-09-02 R5 签收** 同升 `accepted`；[conversation-stream-timeline.md](../plans/conversation-stream-timeline.md) §9 增量修订已同批并入。
 
 ## Alternatives
 
@@ -61,4 +61,5 @@ summary: "UA gRPC 客户端落 platform/universeAgent；IConversationRosterServi
 
 ## 审查记录
 
-- 2026-09-02：规则 16 只读审查 **Approve with changes**（工位 B @ `bfe24b48`）。与 [m6-engine-wave.md](../plans/m6-engine-wave.md) 同期改稿。本 ADR **仍 `draft`**，待人类签收后与 M6 方案同升 `accepted`。
+- 2026-09-02：规则 16 只读审查 **Approve with changes**（工位 B @ `bfe24b48`）。与 [m6-engine-wave.md](../plans/m6-engine-wave.md) 同期改稿。
+- 2026-09-02：R5 人类签收 @ 工位 B；与 M6 方案同升 **`accepted`**；stream-timeline §9 已并入。
