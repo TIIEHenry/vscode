@@ -14,6 +14,7 @@ import { localize } from '../../../../nls.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { DEFAULT_SOURCES_TAB, nextSourcesTab, SOURCES_TAB_ORDER, SourcesTabId } from '../common/sourcesTabs.js';
 import { ISourcesReviewHostService, ISourcesReviewListHost } from '../common/sourcesReviewHostService.js';
+import { ISourcesReviewEntry } from '../common/sourcesReviewModel.js';
 import { SourcesChangesList } from './sourcesChangesList.js';
 import { SourcesFilesList } from './sourcesFilesList.js';
 import { SourcesReviewList } from './sourcesReviewList.js';
@@ -66,6 +67,18 @@ export class SourcesTabsHost extends Disposable implements ISourcesReviewListHos
 
 	setPathFilter(paths: URI[] | undefined): void {
 		this.reviewList?.setPathFilter(paths);
+	}
+
+	getSelectedEntry(): ISourcesReviewEntry | undefined {
+		return this.reviewList?.getSelectedEntry();
+	}
+
+	toggleReviewedSelected(): void {
+		this.reviewList?.toggleReviewedSelected();
+	}
+
+	markAllReviewed(): void {
+		this.reviewList?.markAllReviewed();
 	}
 
 	selectTab(tabId: SourcesTabId, focusTab: boolean): void {

@@ -11,7 +11,13 @@ import { workbenchInstantiationService } from '../../../../test/browser/workbenc
 import { ISourcesReviewHostService } from '../../common/sourcesReviewHostService.js';
 import { SourcesReviewHostService } from '../../browser/sourcesReviewHostService.js';
 import { SOURCES_REVIEW_SHOW_FOR_PATHS_COMMAND } from '../../browser/sourcesReview.contribution.js';
+import {
+	SOURCES_REVIEW_MARK_ALL_REVIEWED_COMMAND,
+	SOURCES_REVIEW_OPEN_SELECTED_COMMAND,
+	SOURCES_REVIEW_TOGGLE_REVIEWED_SELECTED_COMMAND,
+} from '../../browser/sourcesReviewCommands.contribution.js';
 import '../../browser/sourcesReview.contribution.js';
+import '../../browser/sourcesReviewCommands.contribution.js';
 import { CommandsRegistry } from '../../../../../platform/commands/common/commands.js';
 import { SourcesTabId } from '../../common/sourcesTabs.js';
 
@@ -28,6 +34,9 @@ suite('Sources - review showForPaths', () => {
 		hostService.registerReviewListHost({
 			selectReviewTab: () => { selectedTab = SourcesTabId.Review; },
 			setPathFilter: (paths: URI[] | undefined) => { pathFilter = paths; },
+			getSelectedEntry: () => undefined,
+			toggleReviewedSelected: () => { },
+			markAllReviewed: () => { },
 		});
 
 		hostService.showForPaths([resource]);
@@ -53,6 +62,9 @@ suite('Sources - review showForPaths', () => {
 		hostService.registerReviewListHost({
 			selectReviewTab: () => { },
 			setPathFilter: (paths: URI[] | undefined) => { pathFilter = paths; },
+			getSelectedEntry: () => undefined,
+			toggleReviewedSelected: () => { },
+			markAllReviewed: () => { },
 		});
 
 		const instantiationService = workbenchInstantiationService(undefined, store);
@@ -82,9 +94,78 @@ suite('Sources - review showForPaths', () => {
 		hostService.registerReviewListHost({
 			selectReviewTab: () => { },
 			setPathFilter: paths => { pathFilter = paths; },
+			getSelectedEntry: () => undefined,
+			toggleReviewedSelected: () => { },
+			markAllReviewed: () => { },
 		});
 
 		hostService.showForPaths([]);
 		assert.strictEqual(pathFilter, undefined);
+	});
+
+	test('getSelectedEntry and markAllReviewed forward through the registered host', () => {
+		const resource = toResource.call(this, '/project/a.ts');
+		const entry = {
+			resource,
+			name: 'a.ts',
+			description: 'Changes',
+			groupId: 'workingTree',
+		};
+		let markedAll = false;
+		let toggled = false;
+
+		const hostService = store.add(new SourcesReviewHostService());
+		hostService.registerReviewListHost({
+			selectReviewTab: () => { },
+			setPathFilter: () => { },
+			getSelectedEntry: () => entry,
+			toggleReviewedSelected: () => { toggled = true; },
+			markAllReviewed: () => { markedAll = true; },
+		});
+
+		assert.strictEqual(hostService.getReviewListHost()?.getSelectedEntry()?.resource.toString(), resource.toString());
+		hostService.getReviewListHost()?.toggleReviewedSelected();
+		hostService.getReviewListHost()?.markAllReviewed();
+		assert.strictEqual(toggled, true);
+		assert.strictEqual(markedAll, true);
+	});
+
+	test('review row commands are registered', () => {
+		assert.ok(CommandsRegistry.getCommand(SOURCES_REVIEW_OPEN_SELECTED_COMMAND));
+		assert.ok(CommandsRegistry.getCommand(SOURCES_REVIEW_TOGGLE_REVIEWED_SELECTED_COMMAND));
+		assert.ok(CommandsRegistry.getCommand(SOURCES_REVIEW_MARK_ALL_REVIEWED_COMMAND));
+	});
+
+	test('toggle and markAll commands no-op without a host and forward when registered', async function () {
+		const hostService = store.add(new SourcesReviewHostService());
+		let toggled = 0;
+		let markedAll = 0;
+		const accessor = {
+			get: (id: unknown) => {
+				if (id === ISourcesReviewHostService) {
+					return hostService;
+				}
+				throw new Error(`unexpected service ${String(id)}`);
+			},
+			// eslint-disable-next-line local/code-no-any-casts
+		} as any;
+
+		await CommandsRegistry.getCommand(SOURCES_REVIEW_TOGGLE_REVIEWED_SELECTED_COMMAND)?.handler?.(accessor);
+		await CommandsRegistry.getCommand(SOURCES_REVIEW_MARK_ALL_REVIEWED_COMMAND)?.handler?.(accessor);
+		assert.strictEqual(toggled, 0);
+		assert.strictEqual(markedAll, 0);
+
+		hostService.registerReviewListHost({
+			selectReviewTab: () => { },
+			setPathFilter: () => { },
+			getSelectedEntry: () => undefined,
+			toggleReviewedSelected: () => { toggled += 1; },
+			markAllReviewed: () => { markedAll += 1; },
+		});
+
+		await CommandsRegistry.getCommand(SOURCES_REVIEW_TOGGLE_REVIEWED_SELECTED_COMMAND)?.handler?.(accessor);
+		await CommandsRegistry.getCommand(SOURCES_REVIEW_MARK_ALL_REVIEWED_COMMAND)?.handler?.(accessor);
+		assert.strictEqual(toggled, 1);
+		assert.strictEqual(markedAll, 1);
 	});
 });
