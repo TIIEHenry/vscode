@@ -20,7 +20,9 @@ import { Registry } from '../../../../platform/registry/common/platform.js';
 import { registerIcon } from '../../../../platform/theme/common/iconRegistry.js';
 import { ViewPaneContainer } from '../../../browser/parts/views/viewPaneContainer.js';
 import { Extensions as ViewContainerExtensions, IViewContainersRegistry, IViewsRegistry, Extensions as ViewExtensions, ViewContainerLocation } from '../../../common/views.js';
+import { AccessibleViewRegistry } from '../../../../platform/accessibility/browser/accessibleViewRegistry.js';
 import { registerWorkbenchContribution2, WorkbenchPhase } from '../../../common/contributions.js';
+import { ConversationAccessibleView } from './conversationAccessibleView.js';
 import './conversationEditor.contribution.js';
 import './conversationNavigation.contribution.js';
 import './conversationSplitActions.contribution.js';
@@ -69,4 +71,5 @@ Registry.as<IViewsRegistry>(ViewExtensions.ViewsRegistry).registerViews([{
 
 registerConversationSessionStatusBar();
 registerUaPreferencesNavigationActions();
+AccessibleViewRegistry.register(new ConversationAccessibleView());
 registerWorkbenchContribution2(ConversationSessionStatusBarContribution.ID, ConversationSessionStatusBarContribution, WorkbenchPhase.AfterRestored);

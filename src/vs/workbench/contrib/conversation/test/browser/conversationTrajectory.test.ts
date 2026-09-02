@@ -101,6 +101,8 @@ suite('ConversationTrajectory', () => {
 			_serviceBrand: undefined,
 			registerLens: () => ({ dispose: () => { } }),
 			revealItem: () => { },
+			getAccessibleTurnContent: () => undefined,
+			focusAccessibleTurn: () => { },
 		});
 		instantiationService.stub(IClipboardService, clipboardService);
 		instantiationService.stub(ICommandService, new class implements ICommandService {

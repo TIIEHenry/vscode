@@ -220,15 +220,8 @@ registerAction2(class ConversationNextChatTabAction extends Action2 {
 			category: localize2('conversation', 'Conversation'),
 			f1: true,
 			precondition: ConversationVisibleContext,
-			keybinding: {
-				weight: conversationKeybindingWeight,
-				when: conversationKeybindingWhen,
-				primary: KeyMod.CtrlCmd | KeyCode.PageDown,
-				mac: {
-					primary: KeyMod.CtrlCmd | KeyMod.Alt | KeyCode.RightArrow,
-					secondary: [KeyMod.CtrlCmd | KeyMod.Shift | KeyCode.BracketRight],
-				},
-			},
+			// Q5b: chat tabs reuse workbench.action.nextEditor / previousEditor.
+			// Do not bind Ctrl/Cmd+PageUp/PageDown here.
 		});
 	}
 
@@ -249,15 +242,6 @@ registerAction2(class ConversationPreviousChatTabAction extends Action2 {
 			category: localize2('conversation', 'Conversation'),
 			f1: true,
 			precondition: ConversationVisibleContext,
-			keybinding: {
-				weight: conversationKeybindingWeight,
-				when: conversationKeybindingWhen,
-				primary: KeyMod.CtrlCmd | KeyCode.PageUp,
-				mac: {
-					primary: KeyMod.CtrlCmd | KeyMod.Alt | KeyCode.LeftArrow,
-					secondary: [KeyMod.CtrlCmd | KeyMod.Shift | KeyCode.BracketLeft],
-				},
-			},
 		});
 	}
 

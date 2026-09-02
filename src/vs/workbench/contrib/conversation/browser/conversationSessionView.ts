@@ -21,6 +21,7 @@ import type {
 	ViewPatch,
 } from '../../../../platform/universeAgent/common/sessionView/index.js';
 import { ConversationVisualizeArgs } from '../common/conversationVisualize.js';
+import { getConversationTurnAriaLabel } from './conversationAccessibility.js';
 import { ConfirmationStatus, ConversationQuestionOptionItem, ConversationStubTurn, ConversationTurnKind, StubTurnKind } from './conversationStubModel.js';
 
 /**
@@ -458,65 +459,7 @@ export function getConversationHonestFields(turn: ConversationStubTurn): Convers
 
 /** Readable name for a timeline / trajectory row (role, agent, status, summary). */
 export function getConversationEntryAriaLabel(turn: ConversationStubTurn): string {
-	const kind = getConversationHonestKind(turn);
-	const fields = getConversationHonestFields(turn);
-	const summary = turn.text.trim() || localize('conversationSessionView.emptySummary', "(empty)");
-	const agent = fields.agentId && fields.agentId !== 'default'
-		? localize('conversationSessionView.ariaAgent', ", Agent {0}", fields.agentId)
-		: '';
-	const streaming = turn.streaming
-		? localize('conversationSessionView.ariaInProgress', ", in progress")
-		: '';
-
-	switch (kind) {
-		case 'confirmation': {
-			const status = turn.status === 'allowed'
-				? localize('conversationSessionView.permissionAllowed', "allowed")
-				: turn.status === 'skipped'
-					? localize('conversationSessionView.permissionSkipped', "skipped")
-					: localize('conversationSessionView.permissionPending', "pending");
-			return localize('conversationSessionView.permissionAria', "Permission, {0}{1}{2}: {3}", status, agent, streaming, summary);
-		}
-		case 'question': {
-			const status = turn.status === 'allowed'
-				? localize('conversationSessionView.questionAnswered', "answered")
-				: localize('conversationSessionView.questionPending', "pending");
-			return localize('conversationSessionView.questionAria', "Question, {0}{1}{2}: {3}", status, agent, streaming, summary);
-		}
-		case 'error': {
-			const retry = fields.retryable
-				? localize('conversationSessionView.errorRetryable', "retryable")
-				: localize('conversationSessionView.errorNotRetryable', "not retryable");
-			return localize('conversationSessionView.errorAria', "Error, {0}{1}{2}: {3}", retry, agent, streaming, summary);
-		}
-		case 'unknown': {
-			const typeName = fields.typeName || localize('conversationSessionView.unknownType', "unknown type");
-			return localize('conversationSessionView.unknownAria', "Unknown content, {0}{1}{2}: {3}", typeName, agent, streaming, summary);
-		}
-		case 'visualization': {
-			const title = turn.visualize?.title || summary;
-			return localize('conversationSessionView.visualizeAria', "Visualization, {0}{1}{2}", title, agent, streaming);
-		}
-		case 'reviewNav':
-			return localize('conversationSessionView.reviewNavAria', "Review, {0}{1}", summary, agent);
-		case 'system':
-			return localize('conversationSessionView.systemAria', "System{0}{1}: {2}", agent, streaming, summary);
-		default:
-			return localize(
-				'conversationSessionView.turnAria',
-				"{0}{1}{2}: {3}",
-				kind === 'user'
-					? localize('conversationSessionView.roleUser', "You")
-					: kind === 'thinking'
-						? localize('conversationSessionView.roleThinking', "Thinking")
-						: kind === 'tool'
-							? localize('conversationSessionView.roleTool', "Tool")
-							: localize('conversationSessionView.roleAssistant', "Agent"),
-				agent,
-				streaming,
-				summary,
-			);
-	}
+	return getConversationTurnAriaLabel(turn);
 }
 
 /**

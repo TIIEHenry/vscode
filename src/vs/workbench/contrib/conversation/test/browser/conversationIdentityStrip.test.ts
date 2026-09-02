@@ -174,6 +174,8 @@ suite('ConversationIdentityStrip', () => {
 			_serviceBrand: undefined,
 			registerLens: () => ({ dispose: () => { } }),
 			revealItem: () => { },
+			getAccessibleTurnContent: () => undefined,
+			focusAccessibleTurn: () => { },
 		});
 		instantiationService.stub(IConversationReviewNavService, {
 			_serviceBrand: undefined,
@@ -257,6 +259,8 @@ suite('ConversationIdentityStrip', () => {
 			_serviceBrand: undefined,
 			registerLens: () => ({ dispose: () => { } }),
 			revealItem: () => { },
+			getAccessibleTurnContent: () => undefined,
+			focusAccessibleTurn: () => { },
 		});
 		instantiationService.stub(IConversationReviewNavService, {
 			_serviceBrand: undefined,

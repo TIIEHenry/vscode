@@ -108,14 +108,13 @@ export class ConversationVisualizeOverlay extends Disposable {
 		}
 
 		session.add(closeButton.onDidClick(() => this.close()));
-		session.add(addDisposableListener(container, 'keydown', (e) => {
+		session.add(addDisposableListener(overlay, 'keydown', (e) => {
 			if (e.keyCode === KeyCode.Escape) {
 				e.preventDefault();
 				e.stopPropagation();
 				this.close();
+				return;
 			}
-		}));
-		session.add(addDisposableListener(overlay, 'keydown', (e) => {
 			handleConversationOverlayTab(overlay, e);
 		}));
 

@@ -58,6 +58,8 @@ suite('Page access schemes slice 5 (UI contract)', () => {
 			_serviceBrand: undefined,
 			registerLens: () => ({ dispose: () => { } }),
 			revealItem: () => { },
+			getAccessibleTurnContent: () => undefined,
+			focusAccessibleTurn: () => { },
 		});
 		instantiationService.stub(IConversationReviewNavService, {
 			_serviceBrand: undefined,
