@@ -73,6 +73,17 @@ summary: "IConversationRosterService 契约分组；getTrajectoryRecords + filte
    | `pairing` sidecar（非 phase） | false | Engine not connected | SAS 对话框；不写 trust 直至用户确认 |
 
    Hub 账号态（`signedOut` / `signedIn` / `mustChangePassword` / `hub_auth_expired`）与上表 **正交**（[connection-hub-client §3.7](../../../dev/plans/connection-hub-client.md#37-两个正交状态与-presence-矩阵)）。**切片 5 / B10：** connected → command `workbench.action.openEnginePreferences`；否则 → `workbench.action.openConnectionPreferences`。能力三态在 `getCapabilitySnapshot()`；传输失败在 `getTransportState()`，**不得** `catch → emptyList()` 冒充引擎返回 0 条。
+
+   **Hub secret 落盘与加密可用性**（[hub-control-plane-surface §3.1](../../reference/universe-agent/hub-control-plane-surface.md#31-hub-会话与客户端身份落盘3536--321a4e0b) @ `321a4e0b`）与 `ConnectionPhase` **再正交一层**：
+
+   | 条件 | Hub 账号 UI | `isEngineConnected` | 配对 / 连接 |
+   |------|-------------|---------------------|-------------|
+   | 加密可用 + 已登录 | 正常 `signedIn` | 仍仅看 Engine 握手 | 正常 |
+   | 加密可用 + 未登录 | 登录表单 | false | 须先 Hub 登录 |
+   | **加密不可用** | 表单 + 诚实提示「重启后须重登」 | false | **无客户端身份**（`ClientIdentityStore` → `encryption_unavailable`）；refresh **仅内存**，重启丢失 |
+   | Hub signedIn 但 Engine 未 Connect | 顶部已登录 | **false** | ticket / 目录可用；**不等于** connected |
+
+   **未落地：** 进程启动时 `refreshIfNeeded` 从磁盘恢复 Hub 会话（槽 A）——文档与产品口径在落地前仍按「重启须重登（access 15 min TTL）」描述跨重启 Hub 态。
 6. **诚实降级**：断连时 UI 必须回到诚实空，不显示上次 RPC 缓存并写「已同步」（PRD-007；customizations-engine E1 验收 5 同理）。
 7. **不得**用 `IChatModel`、AHP（`IAgentHostService` / `IAgentConnection`）、`copilotChatSessions` 实现本契约（[ADR-006](../../../dev/decisions/006-shell-invariants.md) INV-NO-COPILOT；[agent-host overview](../agent-host/overview.md)）。
 
