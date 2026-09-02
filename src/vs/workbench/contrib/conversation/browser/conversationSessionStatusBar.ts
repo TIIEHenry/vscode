@@ -20,7 +20,7 @@ import {
 	showConversationPart,
 } from './conversationSessionStatus.js';
 import { IConversationRosterService } from './conversationStubService.js';
-import { OPEN_CONNECTION_PREFERENCES_COMMAND_ID } from '../common/uaPreferencesPanes.js';
+import { OPEN_CONNECTION_PREFERENCES_COMMAND_ID, OPEN_ENGINE_PREFERENCES_COMMAND_ID } from '../common/uaPreferencesPanes.js';
 
 export class ConversationSessionStatusBarContribution extends Disposable implements IWorkbenchContribution {
 
@@ -62,6 +62,7 @@ export class ConversationSessionStatusBarContribution extends Disposable impleme
 		this.updateModelEntry();
 
 		this._register(this.stubService.onDidChangeActiveSession(() => this.updateSessionEntry()));
+		this._register(this.stubService.onDidChangeEngineConnection(() => this.updateEngineEntry()));
 		this._register(this.stubService.onDidChangeSession(sessionId => {
 			if (sessionId === this.stubService.getActiveSessionId()) {
 				this.updateSessionEntry();
@@ -76,6 +77,10 @@ export class ConversationSessionStatusBarContribution extends Disposable impleme
 
 	private updateSessionEntry(): void {
 		this.sessionEntryAccessor.value?.update(this.createSessionEntry());
+	}
+
+	private updateEngineEntry(): void {
+		this.engineEntryAccessor.value?.update(this.createEngineEntry());
 	}
 
 	private updateModelEntry(): void {
@@ -112,14 +117,16 @@ export class ConversationSessionStatusBarContribution extends Disposable impleme
 	}
 
 	private createEngineEntry(): IStatusbarEntry {
-		const text = getConversationEngineStatusText();
+		const connected = this.stubService.isEngineConnected();
+		const text = getConversationEngineStatusText(connected);
+		const commandId = connected ? OPEN_ENGINE_PREFERENCES_COMMAND_ID : OPEN_CONNECTION_PREFERENCES_COMMAND_ID;
 		return {
 			name: localize('conversationStatus.engineName', "Engine"),
 			text,
 			ariaLabel: localize('conversationStatus.engineAriaLabel', "Engine: {0}", text),
 			tooltip: text,
 			command: {
-				id: OPEN_CONNECTION_PREFERENCES_COMMAND_ID,
+				id: commandId,
 				title: '',
 			},
 			role: 'status',

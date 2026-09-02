@@ -18,8 +18,11 @@ export function getConversationSessionStatusText(session: ConversationStubSessio
 	return title;
 }
 
-/** Honest engine StatusBar copy — no Copilot setup, no fake connected state (matches Dock phrasing). */
-export function getConversationEngineStatusText(): string {
+/** Honest engine StatusBar copy — no Copilot setup; connected state from roster `isEngineConnected()`. */
+export function getConversationEngineStatusText(isConnected = false): string {
+	if (isConnected) {
+		return localize('conversationStatus.engineConnected', "Engine connected");
+	}
 	return localize('conversationStatus.engineNotConnected', "Engine not connected");
 }
 

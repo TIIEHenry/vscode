@@ -42,6 +42,11 @@ suite('ConversationSessionStatus', () => {
 
 	test('getConversationEngineStatusText returns honest not-connected copy', () => {
 		assert.strictEqual(getConversationEngineStatusText(), 'Engine not connected');
+		assert.strictEqual(getConversationEngineStatusText(false), 'Engine not connected');
+	});
+
+	test('getConversationEngineStatusText returns connected copy when engine is connected', () => {
+		assert.strictEqual(getConversationEngineStatusText(true), 'Engine connected');
 	});
 
 	test('getConversationModelEchoStatusText returns honest no-model copy', () => {
