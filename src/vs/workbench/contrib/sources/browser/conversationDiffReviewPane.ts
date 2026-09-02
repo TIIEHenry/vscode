@@ -33,7 +33,7 @@ export class ConversationDiffReviewPane extends EditorPane {
 	protected override createEditor(parent: HTMLElement): void {
 		this.container = append(parent, $('.conversation-diff-review-pane'));
 		this.container.setAttribute('role', 'document');
-		this.container.setAttribute('aria-label', localize('conversationDiffReviewPane.ariaLabel', "Diff review"));
+		this.container.setAttribute('aria-label', localize('conversationDiffReviewPane.ariaLabel', "Conversation Diff is not connected yet"));
 	}
 
 	override async setInput(input: ConversationDiffReviewInput, options: IEditorOptions | undefined, context: IEditorOpenContext, token: CancellationToken): Promise<void> {
@@ -41,11 +41,15 @@ export class ConversationDiffReviewPane extends EditorPane {
 		if (this.container) {
 			clearNode(this.container);
 			append(this.container, $('span.conversation-diff-review-pane-stub'));
-			this.container.lastElementChild!.textContent = input.getName();
+			this.container.lastElementChild!.textContent = localize(
+				'conversationDiffReviewPane.notWired',
+				"Conversation Diff is not connected yet. {0} opened here as a placeholder; review the file in Preview until this pane hosts a read-only diff.",
+				input.getName(),
+			);
 		}
 	}
 
 	override layout(_dimension: { width: number; height: number }): void {
-		// Stub pane: no embedded diff widget until a later slice wires content.
+		// Honest placeholder: Conversation Diff editor is not wired yet.
 	}
 }
