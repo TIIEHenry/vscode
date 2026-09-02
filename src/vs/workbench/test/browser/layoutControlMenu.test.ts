@@ -4,10 +4,15 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { decodeKeybinding } from '../../../base/common/keybindings.js';
+import { KeyCode, KeyMod } from '../../../base/common/keyCodes.js';
+import { OperatingSystem, OS } from '../../../base/common/platform.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../base/test/common/utils.js';
 import { isIMenuItem, MenuId, MenuRegistry } from '../../../platform/actions/common/actions.js';
 import { ILocalizedString } from '../../../nls.js';
+import { KeybindingsRegistry } from '../../../platform/keybinding/common/keybindingsRegistry.js';
 import {
+	ProductLayoutToggleKeybindingPrimary,
 	ToggleConversationVisibilityActionId,
 	ToggleEditorVisibilityActionId,
 	ToggleSidebarVisibilityAction,
@@ -26,6 +31,25 @@ const PRODUCT_LAYOUT_TOGGLE_IDS = [
 	ToggleEditorVisibilityActionId,
 	ToggleSourcesVisibilityActionId,
 ];
+
+const PRODUCT_LAYOUT_TOGGLE_KEYBINDINGS: ReadonlyArray<{ id: string; primary: number }> = [
+	{ id: ToggleSidebarVisibilityAction.ID, primary: ProductLayoutToggleKeybindingPrimary.navigator },
+	{ id: ToggleConversationVisibilityActionId, primary: ProductLayoutToggleKeybindingPrimary.conversation },
+	{ id: ToggleEditorVisibilityActionId, primary: ProductLayoutToggleKeybindingPrimary.preview },
+	{ id: ToggleSourcesVisibilityActionId, primary: ProductLayoutToggleKeybindingPrimary.sources },
+];
+
+const OPEN_CONVERSATION_KEYBINDINGS = {
+	[OperatingSystem.Windows]: KeyMod.CtrlCmd | KeyMod.Alt | KeyCode.KeyI,
+	[OperatingSystem.Linux]: KeyMod.CtrlCmd | KeyMod.Alt | KeyCode.KeyI,
+	[OperatingSystem.Macintosh]: KeyMod.CtrlCmd | KeyMod.WinCtrl | KeyCode.KeyI,
+} as const;
+
+function getDefaultKeybindingRule(os: OperatingSystem, commandId: string, primary: number) {
+	const hash = decodeKeybinding(primary, os)!.getHashCode();
+	return KeybindingsRegistry.getDefaultKeybindingsForOS(os)
+		.find(item => item.command === commandId && item.keybinding?.getHashCode() === hash);
+}
 
 function commandTitle(title: string | ILocalizedString): string {
 	return typeof title === 'string' ? title : title.value;
@@ -77,5 +101,24 @@ suite('LayoutControlMenu - product four-button cluster', () => {
 			MenuRegistry.getMenuItems(MenuId.LayoutControlMenu).filter(isIMenuItem).some(item => item.command.id === ToggleAuxiliaryBarAction.ID),
 			false
 		);
+	});
+
+	test('product layout toggles register default keybindings without conflicting with Open Conversation or Navigator', () => {
+		for (const os of [OperatingSystem.Windows, OperatingSystem.Linux, OperatingSystem.Macintosh]) {
+			const hashes = new Set<string>();
+			for (const { id, primary } of PRODUCT_LAYOUT_TOGGLE_KEYBINDINGS) {
+				const rule = getDefaultKeybindingRule(os, id, primary);
+				assert.ok(rule, `${id} should register default keybinding on OS ${os}`);
+				const hash = rule.keybinding!.getHashCode();
+				assert.ok(!hashes.has(hash), `duplicate product layout keybinding on OS ${os}: ${id}`);
+				hashes.add(hash);
+			}
+
+			const openConversationHash = decodeKeybinding(OPEN_CONVERSATION_KEYBINDINGS[os], os)!.getHashCode();
+			assert.ok(!hashes.has(openConversationHash), `product layout keys must not collide with Open Conversation on OS ${os}`);
+		}
+
+		const navigatorRule = getDefaultKeybindingRule(OS, ToggleSidebarVisibilityAction.ID, ProductLayoutToggleKeybindingPrimary.navigator);
+		assert.ok(navigatorRule, 'Navigator toggle should keep Ctrl/Cmd+B');
 	});
 });

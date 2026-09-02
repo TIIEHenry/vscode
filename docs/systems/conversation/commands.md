@@ -4,7 +4,7 @@ type: reference
 status: accepted
 phase: N/A
 updated: 2026-09-02
-summary: "四钮、Conversation、Sources、Sessions roster、UA Preferences、深链的用户可见命令清单；快捷键现状（四钮与 Conversation 命令均无默认键位，PRD-018 proposed）；设置键与默认值"
+summary: "四钮、Conversation、Sources、Sessions roster、UA Preferences、深链的用户可见命令清单；四钮默认键位（D14）；设置键与默认值"
 ---
 
 # Agent IDE 壳命令、菜单落点与快捷键
@@ -16,9 +16,9 @@ summary: "四钮、Conversation、Sources、Sessions roster、UA Preferences、�
 | 命令 id | 标题 | 落点 | 默认键位 |
 |---------|------|------|----------|
 | `workbench.action.toggleSidebarVisibility` | Navigator（产品名；上游 Toggle Primary Side Bar） | titlebar `LayoutControlMenu` 首钮；View › Appearance | `Ctrl/Cmd+B`（上游继承） |
-| `workbench.action.toggleConversation` | Toggle Conversation Visibility | `LayoutControlMenu`「Conversation」；View › Appearance；F1 | **无** |
-| `workbench.action.toggleEditorVisibility` | Toggle Editor Area Visibility | `LayoutControlMenu`「Preview」（四钮之一，`CreateToggleLayoutItem`）；`LayoutControlMenuSubmenu` 亦有；Preview editor title 上的 Hide / Show Preview（`MenuId.EditorTitle` / `EditorTitleContext`）；F1 | **无** |
-| `workbench.action.toggleSources` | Toggle Sources Visibility | `LayoutControlMenu`「Sources」；View › Appearance；F1 | **无** |
+| `workbench.action.toggleConversation` | Toggle Conversation Visibility | `LayoutControlMenu`「Conversation」；View › Appearance；F1 | `Ctrl/Cmd+Alt+Shift+C` |
+| `workbench.action.toggleEditorVisibility` | Toggle Editor Area Visibility | `LayoutControlMenu`「Preview」（四钮之一，`CreateToggleLayoutItem`）；`LayoutControlMenuSubmenu` 亦有；Preview editor title 上的 Hide / Show Preview（`MenuId.EditorTitle` / `EditorTitleContext`）；F1 | `Ctrl/Cmd+Alt+Shift+P` |
+| `workbench.action.toggleSources` | Toggle Sources Visibility | `LayoutControlMenu`「Sources」；View › Appearance；F1 | `Ctrl/Cmd+Alt+Shift+S` |
 | Panel / Auxiliary Bar toggles | 上游命令 | 退到 `LayoutControlMenuSubmenu`（D7） | 上游继承 |
 
 四钮之外，Conversation / Sources 区域内各有本地 hide（−）控件（`partRegionHideControl.ts`），Preview 的本地 hide 是 editor title 动作；全部经 `setPartHidden` 走同一 Layout 路径。互斥规则见 [ADR-006](../../../dev/decisions/006-shell-invariants.md)。
@@ -75,4 +75,15 @@ Sources 无独立命令；tab 切换为 title 区 tab strip 点击（`nextSource
 
 ## 7. 键盘可达性现状
 
-键盘上今天能做的：`Ctrl/Cmd+B` 切 Navigator；`Ctrl+Alt+I`（Open Conversation）显示并聚焦 Conversation——所以隐藏 Conversation 后键盘用户**有**一条返回路径。做不到的：Conversation / Preview / Sources 的 toggle、`showConversationPart`、split、关非根均**无默认键位**，只能鼠标或 F1；无法用键盘单独藏 / 显 Preview 或 Sources。约束与目标见 [PRD-018](../../product/requirements.md#prd-018-键盘可达与辅助功能)（`proposed`）；新键位须避开已占用的 `Ctrl+Alt+I` 与 `Ctrl/Cmd+B`。
+**四钮默认键位（D14 @2026-09-02）** — 注册于 `layoutActions.ts`，Keyboard Shortcuts 可见；须不与 Open Conversation（`Ctrl+Alt+I` / mac `Cmd+Ctrl+I`）或 Navigator（`Ctrl/Cmd+B`）冲突：
+
+| 区域 | 命令 id | 默认键位 |
+|------|---------|----------|
+| Navigator | `workbench.action.toggleSidebarVisibility` | `Ctrl/Cmd+B` |
+| Conversation | `workbench.action.toggleConversation` | `Ctrl/Cmd+Alt+Shift+C` |
+| Preview | `workbench.action.toggleEditorVisibility` | `Ctrl/Cmd+Alt+Shift+P` |
+| Sources | `workbench.action.toggleSources` | `Ctrl/Cmd+Alt+Shift+S` |
+
+隐藏 Conversation 后可用 **`Ctrl/Cmd+Alt+Shift+C`**（toggle）或 **`Ctrl+Alt+I`**（Open Conversation，显示并聚焦）纯键盘回到对话。
+
+**仍缺（PRD-018 其余项，D14 未闭）**：F6 / Shift+F6 part 焦点循环；chat tab / 子代理对话框 / 「对话 \| 轨迹」透镜 / 过程折 / 权限座位键盘可达与 aria 名；`showConversationPart`、split、关非根仍无默认键位。约束与目标见 [PRD-018](../../product/requirements.md#prd-018-键盘可达与辅助功能)（`accepted`）。

@@ -251,6 +251,24 @@ MenuRegistry.appendMenuItem(MenuId.MenubarAppearanceMenu, {
 	order: 2
 });
 
+// --- Product layout toggle default keybindings (PRD-018 / D14; avoid Ctrl/Cmd+B and Open Conversation Ctrl+Alt+I)
+
+const defaultWindowLayoutTogglePrecondition = ContextKeyExpr.and(
+	IsAuxiliaryWindowFocusedContext.toNegated(),
+	IsSessionsWindowContext.negate(),
+);
+
+export const ProductLayoutToggleKeybindingPrimary = {
+	navigator: KeyMod.CtrlCmd | KeyCode.KeyB,
+	conversation: KeyMod.CtrlCmd | KeyMod.Alt | KeyMod.Shift | KeyCode.KeyC,
+	preview: KeyMod.CtrlCmd | KeyMod.Alt | KeyMod.Shift | KeyCode.KeyP,
+	sources: KeyMod.CtrlCmd | KeyMod.Alt | KeyMod.Shift | KeyCode.KeyS,
+} as const;
+
+const productLayoutToggleKeybinding = {
+	weight: KeybindingWeight.WorkbenchContrib,
+};
+
 // --- Toggle Editor Visibility
 
 export const ToggleEditorVisibilityActionId = 'workbench.action.toggleEditorVisibility';
@@ -267,7 +285,11 @@ registerAction2(class extends Action2 {
 			category: Categories.View,
 			f1: true,
 			toggled: MainEditorAreaVisibleContext,
-			precondition: ContextKeyExpr.and(IsAuxiliaryWindowFocusedContext.toNegated(), IsSessionsWindowContext.negate())
+			precondition: defaultWindowLayoutTogglePrecondition,
+			keybinding: {
+				...productLayoutToggleKeybinding,
+				primary: ProductLayoutToggleKeybindingPrimary.preview,
+			},
 		});
 	}
 
@@ -339,7 +361,11 @@ registerAction2(class extends Action2 {
 			category: Categories.View,
 			f1: true,
 			toggled: ConversationVisibleContext,
-			precondition: ContextKeyExpr.and(IsAuxiliaryWindowFocusedContext.toNegated(), IsSessionsWindowContext.negate()),
+			precondition: defaultWindowLayoutTogglePrecondition,
+			keybinding: {
+				...productLayoutToggleKeybinding,
+				primary: ProductLayoutToggleKeybindingPrimary.conversation,
+			},
 			menu: [{
 				id: MenuId.MenubarAppearanceMenu,
 				group: '2_workbench_layout',
@@ -381,7 +407,11 @@ registerAction2(class extends Action2 {
 			category: Categories.View,
 			f1: true,
 			toggled: SourcesVisibleContext,
-			precondition: ContextKeyExpr.and(IsAuxiliaryWindowFocusedContext.toNegated(), IsSessionsWindowContext.negate()),
+			precondition: defaultWindowLayoutTogglePrecondition,
+			keybinding: {
+				...productLayoutToggleKeybinding,
+				primary: ProductLayoutToggleKeybindingPrimary.sources,
+			},
 			menu: [{
 				id: MenuId.MenubarAppearanceMenu,
 				group: '2_workbench_layout',
@@ -439,8 +469,8 @@ export class ToggleSidebarVisibilityAction extends Action2 {
 			category: Categories.View,
 			f1: true,
 			keybinding: {
-				weight: KeybindingWeight.WorkbenchContrib,
-				primary: KeyMod.CtrlCmd | KeyCode.KeyB
+				...productLayoutToggleKeybinding,
+				primary: ProductLayoutToggleKeybindingPrimary.navigator,
 			},
 			menu: [{
 				id: MenuId.MenubarAppearanceMenu,
