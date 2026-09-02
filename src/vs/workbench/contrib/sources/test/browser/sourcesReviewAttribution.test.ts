@@ -249,6 +249,16 @@ suite('Sources - review attribution', () => {
 		assert.strictEqual(resolveRevealItemId(attribution, 'missing'), undefined);
 	});
 
+	test('service resolveRevealItemId uses the active session lease', function () {
+		const service = createService(this, {
+			attribution: makeAttribution([
+				['item-1', { role: 'tool', toolCallId: 'tc-1' }],
+			]),
+		});
+		assert.strictEqual(service.resolveRevealItemId('tc-1'), 'item-1');
+		assert.strictEqual(service.resolveRevealItemId('missing'), undefined);
+	});
+
 	test('filterRecordsForResource matches joined work_dir paths', function () {
 		const resource = toResource.call(this, '/project/src/a.ts');
 		const workspaceRoot = workspaceRootFor(this);

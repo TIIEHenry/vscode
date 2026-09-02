@@ -21,6 +21,7 @@ import {
 	IReviewItemAttribution,
 	isWorkDirCompatible,
 	ISourcesReviewAttributionService,
+	resolveRevealItemId,
 } from '../common/sourcesReviewAttribution.js';
 
 function subscribeFileMutations(
@@ -113,6 +114,15 @@ export class SourcesReviewAttributionService extends Disposable implements ISour
 			'sourcesReviewAttribution.headerSuffix',
 			"Attribution from the connected engine.",
 		);
+	}
+
+	resolveRevealItemId(toolCallId: string): string | undefined {
+		const lease = this.roster.acquireSessionView(this.activeSessionId);
+		try {
+			return resolveRevealItemId(lease.attribution as ReadonlyMap<string, IReviewItemAttribution>, toolCallId);
+		} finally {
+			lease.dispose();
+		}
 	}
 
 	buildChipMapForEntries(entries: readonly { readonly resource: URI }[]): ReadonlyMap<string, readonly IReviewAttributionChipDisplay[]> {

@@ -9,6 +9,7 @@ import { EditorInput } from '../../../common/editor/editorInput.js';
 
 export const ConversationDiffReviewInputScheme = 'conversation-diff-review';
 export const ConversationDiffReviewInputTypeId = 'workbench.editors.conversationDiffReviewInput';
+export const ConversationDiffReviewEditorId = 'workbench.editor.conversationDiffReview';
 
 export function getConversationDiffReviewResource(modified: URI, original: URI | undefined): URI {
 	return URI.from({

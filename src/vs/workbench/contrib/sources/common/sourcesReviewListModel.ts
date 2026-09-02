@@ -29,6 +29,47 @@ export function filterReviewEntries(
 	return result;
 }
 
+export type ReviewListEmptyReason =
+	| 'noRepository'
+	| 'noChanges'
+	| 'unreviewedDone'
+	| 'pathNoIntersection'
+	| 'textFilterEmpty';
+
+/** Distinguishes why the Review list is empty so the UI does not share one generic sentence. */
+export function reviewListEmptyReason(
+	hasRepository: boolean,
+	allEntries: readonly ISourcesReviewEntry[],
+	textQuery: string,
+	pathFilter: readonly URI[] | undefined,
+	unreviewedOnly: boolean,
+	isReviewed: (entry: ISourcesReviewEntry) => boolean,
+): ReviewListEmptyReason | undefined {
+	if (!hasRepository) {
+		return 'noRepository';
+	}
+	if (allEntries.length === 0) {
+		return 'noChanges';
+	}
+
+	const visible = filterReviewEntries(allEntries, textQuery, pathFilter, unreviewedOnly, isReviewed);
+	if (visible.length > 0) {
+		return undefined;
+	}
+
+	const textAndPath = filterReviewEntries(allEntries, textQuery, pathFilter, false, isReviewed);
+	if (unreviewedOnly && textAndPath.length > 0) {
+		return 'unreviewedDone';
+	}
+
+	const pathOnly = filterReviewEntries(allEntries, '', pathFilter, false, isReviewed);
+	if (pathFilter && pathFilter.length > 0 && pathOnly.length === 0) {
+		return 'pathNoIntersection';
+	}
+
+	return 'textFilterEmpty';
+}
+
 export function countReviewProgress(
 	entries: readonly ISourcesReviewEntry[],
 	isReviewed: (entry: ISourcesReviewEntry) => boolean,

@@ -30,6 +30,7 @@ import {
 	countReviewProgress,
 	filterReviewEntries,
 	markReviewedAfterSuccessfulOpen,
+	reviewListEmptyReason,
 } from '../common/sourcesReviewListModel.js';
 import {
 	ISourcesReviewProgressKey,
@@ -43,7 +44,7 @@ import {
 } from '../common/sourcesReviewAttribution.js';
 import { openSourcesChangeEntry } from './sourcesChangesList.js';
 import { SourcesListFilterBox } from './sourcesListFilterBox.js';
-import { sourcesReviewListHeaderHint } from './sourcesReviewListStrings.js';
+import { sourcesReviewListEmptyMessage, sourcesReviewListHeaderHint, sourcesReviewRevealMissHint } from './sourcesReviewListStrings.js';
 
 const $ = dom.$;
 
@@ -63,13 +64,16 @@ interface ISourcesReviewTemplateData {
 	readonly container: HTMLElement;
 	readonly label: IResourceLabel;
 	readonly attribution: HTMLElement;
-	readonly reviewState: HTMLElement;
+	readonly reviewState: HTMLButtonElement;
+	readonly elementDisposables: DisposableStore;
 }
 
 interface ISourcesReviewRendererDelegate {
 	isReviewed(entry: ISourcesReviewEntry): boolean;
 	getChips(entry: ISourcesReviewEntry): readonly IReviewAttributionChipDisplay[];
+	getChipTitle(chip: IReviewAttributionChipDisplay): string;
 	onChipClick(toolCallId: string): void;
+	onReviewToggle(entry: ISourcesReviewEntry): void;
 }
 
 class SourcesReviewRenderer implements IListRenderer<ISourcesReviewEntry, ISourcesReviewTemplateData> {
@@ -87,12 +91,13 @@ class SourcesReviewRenderer implements IListRenderer<ISourcesReviewEntry, ISourc
 		const label = this.labels.create(container, { supportDescriptionHighlights: true });
 		const attribution = dom.append(container, $('.sources-review-attribution'));
 		attribution.setAttribute('aria-hidden', 'true');
-		const reviewState = dom.append(container, $('.sources-review-state'));
-		reviewState.setAttribute('aria-hidden', 'true');
-		return { container, label, attribution, reviewState };
+		const reviewState = dom.append(container, $('button.sources-review-state')) as HTMLButtonElement;
+		reviewState.type = 'button';
+		return { container, label, attribution, reviewState, elementDisposables: new DisposableStore() };
 	}
 
 	renderElement(element: ISourcesReviewEntry, _index: number, templateData: ISourcesReviewTemplateData): void {
+		templateData.elementDisposables.clear();
 		templateData.label.setResource({
 			resource: element.resource,
 			name: element.name,
@@ -103,6 +108,22 @@ class SourcesReviewRenderer implements IListRenderer<ISourcesReviewEntry, ISourc
 		templateData.reviewState.textContent = reviewed ? '○' : '●';
 		templateData.reviewState.classList.toggle('reviewed', reviewed);
 		templateData.reviewState.classList.toggle('unreviewed', !reviewed);
+		const reviewLabel = reviewed
+			? localize('sourcesReviewList.markUnreviewed', "Mark as unreviewed")
+			: localize('sourcesReviewList.markReviewed', "Mark as reviewed");
+		templateData.reviewState.setAttribute('aria-pressed', String(reviewed));
+		templateData.reviewState.setAttribute('aria-label', reviewLabel);
+		templateData.reviewState.title = reviewLabel;
+		templateData.elementDisposables.add(dom.addDisposableListener(templateData.reviewState, 'click', event => {
+			event.preventDefault();
+			event.stopPropagation();
+			this.delegate.onReviewToggle(element);
+		}));
+		templateData.elementDisposables.add(dom.addDisposableListener(templateData.reviewState, 'keydown', event => {
+			if (event.key === ' ' || event.key === 'Enter') {
+				event.stopPropagation();
+			}
+		}));
 
 		dom.clearNode(templateData.attribution);
 		const chips = this.delegate.getChips(element);
@@ -116,7 +137,7 @@ class SourcesReviewRenderer implements IListRenderer<ISourcesReviewEntry, ISourc
 			const button = dom.append(templateData.attribution, $('button.sources-review-attribution-chip')) as HTMLButtonElement;
 			button.type = 'button';
 			button.textContent = chip.label;
-			button.title = chip.label;
+			button.title = this.delegate.getChipTitle(chip);
 			button.addEventListener('click', event => {
 				event.preventDefault();
 				event.stopPropagation();
@@ -125,7 +146,12 @@ class SourcesReviewRenderer implements IListRenderer<ISourcesReviewEntry, ISourc
 		}
 	}
 
+	disposeElement(_element: ISourcesReviewEntry, _index: number, templateData: ISourcesReviewTemplateData): void {
+		templateData.elementDisposables.clear();
+	}
+
 	disposeTemplate(templateData: ISourcesReviewTemplateData): void {
+		templateData.elementDisposables.dispose();
 		templateData.label.dispose();
 	}
 }
@@ -173,11 +199,16 @@ export class SourcesReviewList extends Disposable {
 	private visibleEntries: ISourcesReviewEntry[] = [];
 	private allEntries: ISourcesReviewEntry[] = [];
 	private chipMap = new Map<string, readonly IReviewAttributionChipDisplay[]>();
+	private lastRevealMissToolCallId: string | undefined;
 
 	private readonly rendererDelegate: ISourcesReviewRendererDelegate = {
 		isReviewed: (entry) => this.isEntryReviewed(entry),
 		getChips: (entry) => this.chipMap.get(entry.resource.toString()) ?? [],
+		getChipTitle: (chip) => !chip.overflow && this.lastRevealMissToolCallId === chip.toolCallId
+			? sourcesReviewRevealMissHint
+			: chip.label,
 		onChipClick: (toolCallId) => void this.revealAttributionItem(toolCallId),
+		onReviewToggle: (entry) => this.toggleEntryReview(entry),
 	};
 
 	constructor(
@@ -329,6 +360,14 @@ export class SourcesReviewList extends Disposable {
 		}
 	}
 
+	private toggleEntryReview(entry: ISourcesReviewEntry): void {
+		if (this.isEntryReviewed(entry)) {
+			this.markEntryUnreviewed(entry);
+		} else {
+			this.markEntryReviewed(entry);
+		}
+	}
+
 	private updateHeaderHint(): void {
 		const parts = [sourcesReviewListHeaderHint];
 		const attributionSuffix = this.attributionService.getAttributionHeaderSuffix();
@@ -339,15 +378,23 @@ export class SourcesReviewList extends Disposable {
 		if (workDirNote) {
 			parts.push(workDirNote);
 		}
+		if (this.lastRevealMissToolCallId) {
+			parts.push(sourcesReviewRevealMissHint);
+		}
 		this.headerHint.textContent = parts.join(' ');
+		this.headerHint.title = this.lastRevealMissToolCallId ? sourcesReviewRevealMissHint : '';
 	}
 
 	private async revealAttributionItem(toolCallId: string): Promise<void> {
+		const itemId = this.attributionService.resolveRevealItemId(toolCallId);
 		try {
 			await this.commandService.executeCommand(CONVERSATION_REVEAL_ITEM_COMMAND, { toolCallId });
+			this.lastRevealMissToolCallId = itemId ? undefined : toolCallId;
 		} catch {
-			// revealItem contract: missing command or lookup miss → silent return
+			this.lastRevealMissToolCallId = toolCallId;
 		}
+		this.updateHeaderHint();
+		this.scheduleRefresh();
 	}
 
 	private updatePathFilterBanner(): void {
@@ -483,13 +530,16 @@ export class SourcesReviewList extends Disposable {
 
 		const hasAnyEntries = this.allEntries.length > 0;
 		const hasVisibleEntries = this.visibleEntries.length > 0;
-
-		if (!hasRepository) {
-			this.emptyMessage.textContent = localize('sourcesReviewList.noRepository', "No source control repository.");
-		} else if (!hasAnyEntries) {
-			this.emptyMessage.textContent = localize('sourcesReviewList.noChanges', "No changes to review.");
-		} else if (!hasVisibleEntries) {
-			this.emptyMessage.textContent = localize('sourcesReviewList.noMatching', "No matching changes.");
+		const emptyReason = reviewListEmptyReason(
+			hasRepository,
+			this.allEntries,
+			this.filterBox.value,
+			this.pathFilter,
+			this.unreviewedOnly,
+			entry => this.isEntryReviewed(entry),
+		);
+		if (emptyReason) {
+			this.emptyMessage.textContent = sourcesReviewListEmptyMessage(emptyReason);
 		}
 
 		this.emptyMessage.style.display = hasVisibleEntries ? 'none' : 'block';

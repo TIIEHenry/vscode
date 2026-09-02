@@ -9,10 +9,11 @@ import { localize2 } from '../../../../nls.js';
 import { Action2, MenuId, registerAction2 } from '../../../../platform/actions/common/actions.js';
 import { ContextKeyExpr } from '../../../../platform/contextkey/common/contextkey.js';
 import { IInstantiationService, ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js';
-import { ResourceContextKey } from '../../../common/contextkeys.js';
+import { ActiveEditorContext, ResourceContextKey } from '../../../common/contextkeys.js';
 import { IEditorService } from '../../../services/editor/common/editorService.js';
 import { ISCMService } from '../../scm/common/scm.js';
 import { ISourcesDiffPanelService } from '../common/sourcesDiffPanelService.js';
+import { ConversationDiffReviewEditorId } from '../common/conversationDiffReviewInput.js';
 import { SourcesDiffPanelService } from './sourcesDiffPanelService.js';
 import { SOURCES_DIFF_PANEL_VIEW_ID } from './sourcesDiffPanelIds.js';
 import { moveActiveDiffToConversation, moveActiveDiffToPanel, moveActiveDiffToPreview } from './sourcesDiffRefHelpers.js';
@@ -93,6 +94,11 @@ registerAction2(class SourcesDiffMoveToPreviewAction extends Action2 {
 			icon: Codicon.openPreview,
 			f1: false,
 			menu: [{
+				id: MenuId.EditorTitle,
+				group: '1_sourcesDiff',
+				order: 11,
+				when: ActiveEditorContext.isEqualTo(ConversationDiffReviewEditorId),
+			}, {
 				id: MenuId.ViewTitle,
 				group: '1_sourcesDiff',
 				order: 11,

@@ -173,15 +173,30 @@ export class SourcesDiffPanelView extends ViewPane {
 		}
 	}
 
+	private showLoadNotice(message: string): void {
+		if (!this.newFileNoticeElement) {
+			return;
+		}
+		this.newFileNoticeElement.textContent = message;
+		this.newFileNoticeElement.style.display = '';
+	}
+
 	private async renderDiff(original: URI, modified: URI): Promise<void> {
 		if (!this.editorContainer) {
 			return;
 		}
 
-		const [originalRef, modifiedRef] = await Promise.all([
-			this.textModelService.createModelReference(original),
-			this.textModelService.createModelReference(modified),
-		]);
+		let originalRef: IReference<IResolvedTextEditorModel> | undefined;
+		let modifiedRef: IReference<IResolvedTextEditorModel> | undefined;
+		try {
+			originalRef = await this.textModelService.createModelReference(original);
+			modifiedRef = await this.textModelService.createModelReference(modified);
+		} catch {
+			originalRef?.dispose();
+			modifiedRef?.dispose();
+			this.showLoadNotice(localize('sourcesDiffPanel.loadFailed', "Unable to load this comparison."));
+			return;
+		}
 
 		this.bodyDisposables.add(originalRef);
 		this.bodyDisposables.add(modifiedRef);
@@ -206,7 +221,13 @@ export class SourcesDiffPanelView extends ViewPane {
 			return;
 		}
 
-		const modifiedRef = await this.textModelService.createModelReference(modified);
+		let modifiedRef: IReference<IResolvedTextEditorModel>;
+		try {
+			modifiedRef = await this.textModelService.createModelReference(modified);
+		} catch {
+			this.showLoadNotice(localize('sourcesDiffPanel.loadFailed', "Unable to load this comparison."));
+			return;
+		}
 		this.modifiedModelRef.value = modifiedRef;
 		this.bodyDisposables.add(modifiedRef);
 
