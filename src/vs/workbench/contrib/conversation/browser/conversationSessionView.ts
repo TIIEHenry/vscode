@@ -402,6 +402,7 @@ export function entryToRenderableTurn(entry: ConversationTimelineEntry): Convers
 			...(entry.streaming ? { streaming: true } : {}),
 			...(entry.toolStatus !== undefined ? { toolStatus: entry.toolStatus } : {}),
 			...(entry.turnId !== undefined ? { turnId: entry.turnId } : {}),
+			...(entry.agentId !== undefined ? { agentId: entry.agentId } : {}),
 		};
 	}
 	return {

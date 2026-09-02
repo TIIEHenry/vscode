@@ -114,7 +114,7 @@ class UaClientNotificationsContribution extends Disposable implements IWorkbench
 	}
 
 	private countPending(turns: readonly ConversationStubTurn[]): number {
-		return turns.filter(turn => (turn.kind === 'confirmation' || turn.kind === 'question') && turn.status === 'pending').length;
+		return turns.filter(turn => turn.kind === 'confirmation' && turn.status === 'pending').length;
 	}
 }
 

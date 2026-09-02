@@ -32,6 +32,8 @@ export interface ConversationStubTurn {
 	readonly visualize?: ConversationVisualizeArgs;
 	/** Review navigation row (PRD-023 §2.4); not part of legacy stub fixtures. */
 	readonly reviewNavPaths?: readonly string[];
+	/** Non-root agent attribution for timeline identity labels. */
+	readonly agentId?: string;
 	/** Live overlay / streaming row (engine path only). */
 	readonly streaming?: boolean;
 	/** Tool execution status for live process-fold chrome. */
