@@ -4,12 +4,12 @@ type: reference
 status: accepted
 phase: N/A
 updated: 2026-09-02
-summary: "已知 gRPC 服务 / RPC 名与本仓用途；§1 Conversation（A1/A2）+ Device Grant（GetAuthNonce / Connect.device_auth / pairing）；Engine catalog list-only（M6-C @ ad4be0ea）；§7 Engine 页三节；§5 会话面对照；§11 Navigator/Review；§4 G-NAV-* / G-REV-*"
+summary: "已知 gRPC 服务 / RPC 名与本仓用途；§1 Conversation（A1/A2）+ Device Grant；Engine catalog list/toggle + 写 RPC @ f49615a1；§7 Engine 页四节；§5 会话面对照；§11 Navigator/Review；§4 G-NAV-* / G-REV-*"
 ---
 
 # UniverseAgent 引擎协议面（本仓消费口径）
 
-> 导航：[索引](INDEX.md)。RPC 名以外仓 proto 为准。§1 **Conversation 传输**行来自 `platform/universeAgent/node/grpc/grpcTransport.ts`（`UniverseAgentGrpcServices`，A1/A2 @ HEAD）。§1 **Engine catalog list/toggle** 与 §7 UI 口径来自 [customizations-engine](../../../dev/plans/customizations-engine.md) 与 [engine-catalog §3](../../systems/workbench/engine-catalog.md)（`ListSkills`/`SetSkillEnabled` + Agents/MCP/Tools **List** + MCP **Toggle** @ `ad4be0ea`；**写 RPC 待槽 A**）。
+> 导航：[索引](INDEX.md)。RPC 名以外仓 proto 为准。§1 **Conversation 传输**行来自 `platform/universeAgent/node/grpc/grpcTransport.ts`（`UniverseAgentGrpcServices`，A1/A2 @ HEAD）。§1 **Engine catalog** 与 §7 UI 口径来自 [customizations-engine](../../../dev/plans/customizations-engine.md) 与 [engine-catalog §3](../../systems/workbench/engine-catalog.md)（list/toggle @ `4833c008`/`8bfc299e`；Agents Save/Delete/Reset、MCP Add/Update/Remove、Tools 经 `SaveAgentProfile` @ `f49615a1`）。
 
 ## 1. 已知服务与 RPC
 
@@ -24,9 +24,9 @@ summary: "已知 gRPC 服务 / RPC 名与本仓用途；§1 Conversation（A1/A2
 | `TeamService` | `MemberStatus` / `TaskList` / `TeamInfo` | Navigator Team 段（renderer `IUniverseAgentConnection.team`） | m6 §11 A1 unary |
 | L3 `tool_runtime_snapshot` | `payload.file_mutation_payload` + `ToolCallLifecycleEvent` join | Sources Review 归因 chip / `reviewNav` 物化（**host-only** demux；contrib 消费 `onDidFileMutation`） | m6 §11 A2；禁止解析 L2 `arguments_json`；历史见 **G-REV-1** |
 | `ToolService` | `ListSkills` / `SkillInfo` / `SetSkillEnabled` | **@ HEAD** 传输 + `EngineSkillsSection` list/toggle（E1） | 无独立 Create RPC；写文件后 `ListSkills` 刷新；Skill 正文/新建 UI 未在本 slice |
-| `ToolService` | `ListTools` / `ToolInfo` | **@ HEAD** `listTools` → `EngineToolsSection` **只读目录** | 无 `SetToolEnabled`；profile 启用集经 `SaveAgentProfile`/`tools.json`（**写路径待槽 A**） |
-| `AgentService` | `ListAgentProfiles` | **@ HEAD** `listAgentProfiles` → `EngineAgentsSection` **只读列表** | `SaveAgentProfile` / `DeleteAgentProfile` / `ResetAgentProfile` **未进传输**（槽 A） |
-| `McpService` | `ListMcpServers` / `ToggleMcpServer` | **@ HEAD** list + toggle → `EngineMcpSection` | `AddMcpServer` / `UpdateMcpServer` / `RemoveMcpServer` **未进传输**（槽 A）；`GetMcpServerStatuses` / `GetMcpServerTools` 运行态，不在 Engine 页 |
+| `ToolService` | `ListTools` / `ToolInfo` | **@ HEAD** `listTools` → `EngineToolsSection` 目录 + profile 启用 checkbox | 无 `SetToolEnabled`；enablement 经 `SaveAgentProfile` → `{profileDir}/tools.json`（`engineToolProfile.ts` @ `f49615a1`） |
+| `AgentService` | `ListAgentProfiles` / `SaveAgentProfile` / `DeleteAgentProfile` / `ResetAgentProfile` | **@ HEAD** list + 写 RPC → `EngineAgentsSection`（New/Delete/Reset 工具栏） | **无** `AGENTS.md` 全文编辑器；built_in 不可 Delete、仅 Reset |
+| `McpService` | `ListMcpServers` / `ToggleMcpServer` / `AddMcpServer` / `UpdateMcpServer` / `RemoveMcpServer` | **@ HEAD** list + toggle + 定义 CRUD → `EngineMcpSection` | `GetMcpServerStatuses` / `GetMcpServerTools` 运行态，**不在** Engine 页 |
 | `PluginService` | `List` / `Info` / `Enable` / `Reload` / `Unload` | Plugins 节（v1 延后） | Local 模式 UNSUPPORTED |
 | Local `RulesBridge` | list / create / update / delete / preview / health × global / workDir（12）+ `defaultAgentHome()` | Engine 页 Rules（Instructions） | **Remote gRPC 不存在**；默认 `Unsupported`；Engine 页 Rules list **未**在本 slice |
 | `MemoryService` | — | 不在 Engine 页；未来独立 pane | 与 Instructions 分家 |
@@ -71,7 +71,7 @@ Connect 后 `probeEngineCapabilities`：**仅**广告了 method 且 probe 非 `U
 | Rules Remote gRPC | Remote 模式 Instructions | — |
 | `ListHookPoints`（或握手带版本化点位表） | Engine 页 Hooks「来自引擎」 | — |
 | 独立 CreateSkill / 写正文 RPC（或「写后刷新」约定） | E1 新建技能 UI | list/toggle 已接；新建/编辑 UI 未在本 slice |
-| Catalog **写** RPC 进 IDE 传输 | Agents/MCP/Tools 定义 CRUD、`tools.json` | `SaveAgentProfile` / MCP Add·Update·Remove **待槽 A**；不得写进「已落地」 |
+| Agent profile 全文编辑器 | Engine 页 `AGENTS.md` 三件套 UI | 写 RPC @ `f49615a1` 已进传输；目录正文编辑器 **未**在本 slice |
 | `globalRules` / `plugins` IDE probe | Rules / Plugins Engine 节 | 待后续切片；Today 诚实 UNSUPPORTED |
 
 ## 5. Conversation 会话面（A1/A2 @ HEAD 回填）
@@ -93,16 +93,16 @@ Connect 后 `probeEngineCapabilities`：**仅**广告了 method 且 probe 非 `U
 | Route / AgentProfile / Model / Permission / Tools 选项 | Composer 各下拉 | 无引擎 = 诚实空；Engine 页 Agents **list-only** 已接，Composer 下拉 **仍**待 profile/策略切片 |
 | 本地会话缓存与引擎权威切换 | PRD-017 | D13 @ HEAD：`conversation.roster.v1` @ `StorageScope.WORKSPACE` + `StorageTarget.MACHINE`；引擎接通后本地存 stub + UA 断连快照（`source` 字段） |
 
-## 7. Engine catalog 消费面（M6-C list-only @ HEAD）
+## 7. Engine catalog 消费面（M6-C @ HEAD `f49615a1`）
 
-系统规格：[engine-catalog](../../systems/workbench/engine-catalog.md)。代码锚：`engineCatalog.ts` · `engineSkillCatalog.ts` · `engineSkillsSection.ts` · `engineAgentsSection.ts` · `engineMcpSection.ts` · `engineToolsSection.ts`。
+系统规格：[engine-catalog](../../systems/workbench/engine-catalog.md)。代码锚：`engineCatalog.ts` · `engineSkillCatalog.ts` · `engineSkillsSection.ts` · `engineAgentsSection.ts` · `engineMcpSection.ts` · `engineToolsSection.ts` · `engineToolProfile.ts`。
 
 | 能力键 | List RPC | Toggle / 写 | Engine 页 @ HEAD |
 |--------|----------|--------------|------------------|
 | `skills` | `ListSkills` | `SetSkillEnabled` | 分组 list + 开关 + 冻结说明 |
-| `agentProfiles` | `ListAgentProfiles` | —（写 RPC 待槽 A） | 分组只读 list |
-| `mcp` | `ListMcpServers` | `ToggleMcpServer` | 分组 list + 启用 checkbox |
-| `tools` | `ListTools` | —（`tools.json` 待槽 A） | 只读工具目录 |
+| `agentProfiles` | `ListAgentProfiles` | `SaveAgentProfile` / `DeleteAgentProfile` / `ResetAgentProfile` | 分组 list + New/Delete/Reset 工具栏（无全文编辑器） |
+| `mcp` | `ListMcpServers` | `ToggleMcpServer` · `AddMcpServer` / `UpdateMcpServer` / `RemoveMcpServer` | 分组 list + 启用 checkbox + Add/Update/Remove 工具栏 |
+| `tools` | `ListTools` | `SaveAgentProfile`（profile `tools.json`） | 目录 + profile 下拉 + 启用 checkbox |
 
 断连 / `UNSUPPORTED` / `UNKNOWN` / 传输失败四路径须与 customizations-engine §2 一致；**禁止** Copilot 盘或 vscode `IMcpService` 顶替 UA 定义面。
 
@@ -123,4 +123,4 @@ Connect 后 `probeEngineCapabilities`：**仅**广告了 method 且 probe 非 `U
 
 - 外仓 RPC 改名 / 新增时改本页对应行并更新 `updated`；不在 plan 里重复枚举。
 - 本页不得出现 `src/vs/` 类型名充当引擎类型；IDE 侧行为规格在 [engine-catalog](../../systems/workbench/engine-catalog.md) 与 [systems/conversation](../../systems/conversation/INDEX.md)。
-- 槽 A 合入写 RPC 后：更新 §1 行、§4 缺口、§7 表与 [engine-catalog §3–§4](../../systems/workbench/engine-catalog.md)；**不得**提前写「已落地」。
+- 写 RPC 合入后须同步 §1 行、§4 缺口、§7 表与 [engine-catalog §3–§4](../../systems/workbench/engine-catalog.md)；**不得**把 PRD-008 升 `implemented` 或写隔离 profile 冒烟已通过。
