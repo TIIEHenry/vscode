@@ -88,11 +88,14 @@ export type ConversationViewFrameApplied =
 	}
 	| { readonly kind: 'effects'; readonly effects: readonly ViewEffect[] };
 
+/** Host `questionRespond` answers: one `selectedLabels[]` per item id, plus optional `customText`. */
+export type ConversationQuestionRespondAnswers = Readonly<Record<string, { readonly selectedLabels: readonly string[] }>>;
+
 /** Write messages accepted by a lease. The Actor allocates message / operation / lease ids (Desktop ADR-012 §6.1). */
 export type ConversationWriteMessage =
 	| { readonly kind: 'submitInput'; readonly text: string }
 	| { readonly kind: 'permissionRespond'; readonly requestId: string; readonly decision: 'allow' | 'deny' }
-	| { readonly kind: 'questionRespond'; readonly requestId: string; readonly answers: Readonly<Record<string, string>> }
+	| { readonly kind: 'questionRespond'; readonly requestId: string; readonly answers: ConversationQuestionRespondAnswers; readonly customText?: string }
 	| { readonly kind: 'clientToolRespond'; readonly requestId: string; readonly resultJson: string };
 // S1–S3 only use submitInput / permissionRespond; S5 must map every arm against the full
 // ChatRequest.payload oneof (question_response, …) and unary PermissionService.Respond.

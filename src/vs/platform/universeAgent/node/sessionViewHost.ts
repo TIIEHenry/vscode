@@ -75,9 +75,9 @@ function writeMessageToCoreFact(msg: ConversationWriteMessage, leaseId: ViewLeas
 				kind: 'questionRespond',
 				questionId: msg.requestId,
 				answers: Object.fromEntries(
-					Object.entries(msg.answers).map(([key, value]) => [key, { selectedLabels: [value], multiSelect: false }]),
+					Object.entries(msg.answers).map(([key, value]) => [key, { selectedLabels: value.selectedLabels, multiSelect: value.selectedLabels.length > 1 }]),
 				),
-				customText: '',
+				customText: msg.customText ?? '',
 			};
 		case 'clientToolRespond':
 			return {

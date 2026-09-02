@@ -139,7 +139,7 @@ export type ConversationViewFrameApplied =
 export type ConversationWriteMessage =
 	| { readonly kind: 'submitInput'; readonly text: string }                   // 三键由 Actor 分配
 	| { readonly kind: 'permissionRespond'; readonly requestId: string; readonly decision: 'allow' | 'deny' }
-	| { readonly kind: 'questionRespond'; readonly requestId: string; readonly answers: Readonly<Record<string, string>> }
+	| { readonly kind: 'questionRespond'; readonly requestId: string; readonly answers: Readonly<Record<string, { readonly selectedLabels: readonly string[] }>>; readonly customText?: string }
 	| { readonly kind: 'clientToolRespond'; readonly requestId: string; readonly resultJson: string };
 // S1–S3 只用 submitInput；S5 须对照 ChatRequest.payload 完整 oneof（含 question_response 等）
 // 与 unary PermissionService.Respond，逐臂决定写路径。

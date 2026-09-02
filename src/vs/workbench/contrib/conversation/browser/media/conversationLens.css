@@ -1998,9 +1998,45 @@
 	color: var(--vscode-foreground);
 }
 
-.monaco-workbench .part.conversation .conversation-lens-question-option[role="radio"]:focus {
+.monaco-workbench .part.conversation .conversation-lens-question-option[role="radio"]:focus,
+.monaco-workbench .part.conversation .conversation-lens-question-option[role="checkbox"]:focus {
 	outline: 1px solid var(--vscode-focusBorder);
 	outline-offset: -1px;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-question-option[role="checkbox"] {
+	cursor: pointer;
+	padding: 2px 6px;
+	border-radius: 3px;
+	border: 1px solid transparent;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-question-option[role="checkbox"][aria-checked="true"] {
+	background-color: var(--vscode-list-hoverBackground);
+	color: var(--vscode-foreground);
+}
+
+.monaco-workbench .part.conversation .conversation-lens-question-custom {
+	display: block;
+	width: 100%;
+	margin: 6px 0 0;
+	padding: 4px 6px;
+	box-sizing: border-box;
+	border: 1px solid var(--vscode-input-border, transparent);
+	background: var(--vscode-input-background);
+	color: var(--vscode-input-foreground);
+	font-size: 12px;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-question-custom:focus {
+	outline: 1px solid var(--vscode-focusBorder);
+	outline-offset: -1px;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-question-actions {
+	display: flex;
+	gap: 6px;
+	margin: 6px 0 0;
 }
 
 .monaco-workbench .part.conversation .conversation-lens-turn--error {

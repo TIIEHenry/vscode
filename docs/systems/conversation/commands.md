@@ -30,7 +30,9 @@ summary: "四钮、Conversation、Sources、Sessions roster、UA Preferences、�
 | `workbench.action.chat.open` | **Open Conversation**（默认窗标题） | F1 主入口；经 `chatShellRouting.focusConversationPart` 显示并聚焦 `CONVERSATION_PART`，**不**开 ChatEditor / Aux Chat | `Ctrl+Alt+I`（mac `Cmd+Ctrl+I`，上游继承） |
 | `workbench.action.showConversationPart` | StatusBar session / model 芯片点击 | `setPartHidden(false, CONVERSATION_PART)` + `IConversationPartService.focus()` | 无 |
 | `workbench.action.chat.forkConversation` | Fork（Conversation 版 `ForkConversationAction`） | 同 session 新增延伸 tab | 上游继承 |
-| `workbench.action.conversation.splitSessionWindow` | Split Conversation Editor（类别 Conversation） | 当前叶内开 `CONVERSATION_SIDE_GROUP`；F1 | 无 |
+| `workbench.action.conversation.splitSessionWindow` | Split Conversation Editor（类别 Conversation） | 当前叶内开 `CONVERSATION_SIDE_GROUP`；F1 | `Ctrl/Cmd+\`（`conversationPartFocus`） |
+| `workbench.action.conversation.nextChatTab` | Open Next Conversation Chat | 当前 Conversation 叶内下一 chat tab / 下一 split 列；不打到 Preview | `Ctrl+PageDown`（mac `Cmd+Alt+→`） |
+| `workbench.action.conversation.previousChatTab` | Open Previous Conversation Chat | 当前 Conversation 叶内上一 chat tab / 上一 split 列 | `Ctrl+PageUp`（mac `Cmd+Alt+←`） |
 | SessionBar ← / → | 按钮；鼠标侧键 4 / 5（`event.button` 3 / 4） | 每个 Conversation `IEditorPart` 自有导航栈 | 鼠标侧键 |
 | SessionBar「关非根」 | 按钮 | `closeNonRootTabs` | 无 |
 | 子代理对话框：popout / maximize / close | overlay 按钮 | `promoteSubAgentDialog` / `toggleSubAgentDialogMaximized` / `closeSubAgentDialog` | 无 |
@@ -106,4 +108,4 @@ Sources 无独立命令；tab 切换为 title 区 tab strip 点击（`nextSource
 | Composer 底栏 Permission 下拉 | `conversationLens.ts`（文案 `conversationLensDockStrings.ts`） |
 | 子代理对话框 overlay | `conversationSubAgentOverlay.ts` |
 
-**仍缺（PRD-018 其余项）**：延伸 chat tab / 子代理对话框 / 「对话 \| 轨迹」透镜 / 过程折 / 权限座位的**默认键盘快捷键**（aria 名已部分落地，见上表）；`showConversationPart`、split、关非根仍无默认键位。约束与目标见 [PRD-018](../../product/requirements.md#prd-018-键盘可达与辅助功能)（`accepted`）。
+**仍缺（PRD-018 其余项）**：延伸 chat tab 左右键、子代理对话框 / 「对话 \| 轨迹」透镜 / 过程折 / 权限座位的**部分默认键盘快捷键**（aria 名已部分落地，见上表）；`showConversationPart`、关非根仍无默认键位。`split` 与 chat tab 的 `Ctrl+\\` / `Ctrl+PageDown` 已在 `conversationPartFocus` 时接管，不再只打到 Preview。约束与目标见 [PRD-018](../../product/requirements.md#prd-018-键盘可达与辅助功能)（`accepted`）。
