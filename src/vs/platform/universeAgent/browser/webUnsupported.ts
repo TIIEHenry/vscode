@@ -34,6 +34,8 @@ export function createWebUnsupportedCapabilitySnapshot(): UniverseAgentCapabilit
 		mcp: WEB_UNSUPPORTED_ENTRY,
 		mcpRuntime: WEB_UNSUPPORTED_ENTRY,
 		plugins: WEB_UNSUPPORTED_ENTRY,
+		models: WEB_UNSUPPORTED_ENTRY,
+		providerConfig: WEB_UNSUPPORTED_ENTRY,
 		globalRules: WEB_UNSUPPORTED_ENTRY,
 		agentProfiles: WEB_UNSUPPORTED_ENTRY,
 		projectRules: WEB_UNSUPPORTED_ENTRY,

@@ -203,6 +203,10 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 		return { tools: [] };
 	}
 
+	async listModels() {
+		return { models: [] };
+	}
+
 	async fetchAgentTree() {
 		return undefined;
 	}

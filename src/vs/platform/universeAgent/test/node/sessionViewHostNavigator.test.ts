@@ -96,6 +96,7 @@ class TestConnection implements IUniverseAgentConnection {
 	async updateMcpServer() { return { ok: true }; }
 	async removeMcpServer() { return { ok: true }; }
 	async listTools() { return { tools: [] }; }
+	async listModels() { return { models: [] }; }
 
 	pushStreamEvent(sessionId: string, payload: unknown): void {
 		for (const listener of this.streamListeners.get(sessionId) ?? []) {

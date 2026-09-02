@@ -14,12 +14,17 @@ const UNKNOWN: UniverseAgentCapabilityEntry = { support: 'UNKNOWN', reason: 'not
 const UNSUPPORTED: UniverseAgentCapabilityEntry = { support: 'UNSUPPORTED' };
 const SUPPORTED: UniverseAgentCapabilityEntry = { support: 'SUPPORTED' };
 
+/** G-ENG-1: Provider config keys are not a closed contract yet. */
+const PROVIDER_CONFIG_UNSUPPORTED_REASON = 'Provider 配置键合同未定';
+
 function emptySnapshot(): UniverseAgentCapabilitySnapshot {
 	return {
 		skills: { ...UNKNOWN },
 		mcp: { ...UNKNOWN },
 		mcpRuntime: { ...UNKNOWN },
 		plugins: { ...UNKNOWN },
+		models: { ...UNKNOWN },
+		providerConfig: { support: 'UNSUPPORTED', reason: PROVIDER_CONFIG_UNSUPPORTED_REASON },
 		globalRules: { ...UNKNOWN },
 		agentProfiles: { ...UNKNOWN },
 		projectRules: { ...UNKNOWN },
@@ -56,6 +61,11 @@ const PROBE_TARGETS: Partial<Record<UniverseAgentCapabilityKey, { service: strin
 		service: UniverseAgentGrpcServices.Plugin.service,
 		method: UniverseAgentGrpcServices.Plugin.List,
 		methodKey: 'PluginService.List',
+	},
+	models: {
+		service: UniverseAgentGrpcServices.Config.service,
+		method: UniverseAgentGrpcServices.Config.ListModels,
+		methodKey: 'ConfigService.ListModels',
 	},
 	tools: {
 		service: UniverseAgentGrpcServices.Tool.service,
@@ -114,6 +124,9 @@ export async function probeEngineCapabilities(input: GrpcCapabilityProbeInput): 
 			snapshot[key] = { ...UNSUPPORTED, reason: 'probe not implemented in M6-A1' };
 		}
 	}
+
+	// G-ENG-1: never probe ConfigService.Get/Set as a provider catalog.
+	snapshot.providerConfig = { support: 'UNSUPPORTED', reason: PROVIDER_CONFIG_UNSUPPORTED_REASON };
 
 	return snapshot;
 }

@@ -52,6 +52,7 @@ import type {
 	UniverseAgentRemoveMcpServerRequest,
 	UniverseAgentRemoveMcpServerResult,
 	UniverseAgentListToolsResult,
+	UniverseAgentListModelsResult,
 	UniverseAgentToggleMcpServerRequest,
 	UniverseAgentToggleMcpServerResult,
 	UniverseAgentSessionEvent,
@@ -241,6 +242,10 @@ export class WebUniverseAgentConnection implements IUniverseAgentConnection {
 	}
 
 	listTools(): Promise<UniverseAgentListToolsResult> {
+		return rejectUnsupportedEnvironment();
+	}
+
+	listModels(): Promise<UniverseAgentListModelsResult> {
 		return rejectUnsupportedEnvironment();
 	}
 }

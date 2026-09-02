@@ -46,6 +46,7 @@ import type {
 	UniverseAgentRemoveMcpServerRequest,
 	UniverseAgentRemoveMcpServerResult,
 	UniverseAgentListToolsResult,
+	UniverseAgentListModelsResult,
 	UniverseAgentToggleMcpServerRequest,
 	UniverseAgentToggleMcpServerResult,
 	UniverseAgentSessionEvent,
@@ -185,4 +186,7 @@ export interface IUniverseAgentConnection {
 	toggleMcpServer(request: UniverseAgentToggleMcpServerRequest): Promise<UniverseAgentToggleMcpServerResult>;
 
 	listTools(): Promise<UniverseAgentListToolsResult>;
+
+	/** ConfigService.ListModels — always `include_disabled=true` (Engine Model registry). */
+	listModels(): Promise<UniverseAgentListModelsResult>;
 }

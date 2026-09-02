@@ -116,6 +116,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 			updateMcpServer: options.updateMcpServer ?? (async () => ({ ok: true })),
 			removeMcpServer: options.removeMcpServer ?? (async () => ({ ok: true })),
 			listTools: options.listTools ?? (async () => ({ tools: [] })),
+			listModels: async () => ({ models: [] }),
 			setConnected(value: boolean) {
 				connected = value;
 				onDidChangeConnection.fire(snapshot());

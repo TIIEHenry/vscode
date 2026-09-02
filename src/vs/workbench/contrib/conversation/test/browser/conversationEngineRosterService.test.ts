@@ -92,6 +92,7 @@ class MockUniverseAgentConnection extends Disposable implements IUniverseAgentCo
 	async updateMcpServer() { return { ok: true }; }
 	async removeMcpServer() { return { ok: true }; }
 	async listTools() { return { tools: [] }; }
+	async listModels() { return { models: [] }; }
 }
 
 class MockUniverseAgentSessionView implements IUniverseAgentSessionView {

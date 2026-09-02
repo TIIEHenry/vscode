@@ -67,6 +67,8 @@ import type {
 	UniverseAgentRemoveMcpServerRequest,
 	UniverseAgentRemoveMcpServerResult,
 	UniverseAgentListToolsResult,
+	UniverseAgentListModelsResult,
+	UniverseAgentModelEntry,
 	UniverseAgentToolSummary,
 	UniverseAgentAgentTreeNode,
 	UniverseAgentFetchToolDetailRequest,
@@ -890,6 +892,40 @@ function mapListToolsResponse(wire: ListToolsResponseWire): UniverseAgentListToo
 	};
 }
 
+interface ListModelsResponseWire {
+	models?: Array<{
+		id?: string;
+		type?: string;
+		enabled?: boolean;
+		level?: number;
+		description?: string;
+		cost?: string;
+		speed?: string;
+		provider?: string;
+		model_id?: string;
+	}>;
+}
+
+function mapModelEntry(wire: NonNullable<ListModelsResponseWire['models']>[number]): UniverseAgentModelEntry {
+	return {
+		id: wire.id ?? '',
+		type: wire.type ?? '',
+		enabled: wire.enabled === true,
+		level: typeof wire.level === 'number' && Number.isFinite(wire.level) ? wire.level : 0,
+		description: wire.description,
+		cost: wire.cost,
+		speed: wire.speed,
+		provider: wire.provider ?? '',
+		modelId: wire.model_id ?? '',
+	};
+}
+
+function mapListModelsResponse(wire: ListModelsResponseWire): UniverseAgentListModelsResult {
+	return {
+		models: (wire.models ?? []).map(mapModelEntry),
+	};
+}
+
 interface AgentInfoWire {
 	agent_id?: string;
 	name?: string;
@@ -1430,6 +1466,16 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 		);
 		const wire = await unary({});
 		return mapListToolsResponse(wire);
+	}
+
+	async listModels(): Promise<UniverseAgentListModelsResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, ListModelsResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.Config.service,
+			UniverseAgentGrpcServices.Config.ListModels,
+		);
+		const wire = await unary({ include_disabled: true });
+		return mapListModelsResponse(wire);
 	}
 
 	async fetchToolDetail(request: UniverseAgentFetchToolDetailRequest): Promise<UniverseAgentFetchToolDetailWireResult> {

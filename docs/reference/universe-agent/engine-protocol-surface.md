@@ -4,7 +4,7 @@ type: reference
 status: accepted
 phase: N/A
 updated: 2026-09-02
-summary: "已知 gRPC 服务 / RPC 名与本仓用途；§1 Conversation（A1/A2）+ Device Grant；§1b Web 断连（M7 P0）+ P1a MCP/Plugins + P2a DetailRef；Engine catalog list/toggle + 写 RPC @ f49615a1；§7 Engine 页四节；§5 会话面对照；§11 Navigator/Review；§4 G-NAV-* / G-REV-*"
+summary: "已知 gRPC 服务 / RPC 名与本仓用途；§1 Conversation（A1/A2）+ Device Grant；§1b Web 断连（M7 P0）+ P1a MCP/Plugins + P1b 模型注册表 + P2a DetailRef；Engine catalog list/toggle + 写 RPC @ f49615a1；§7 Engine 页四节；§5 会话面对照；§11 Navigator/Review；§4 G-NAV-* / G-REV-* / G-ENG-1"
 ---
 
 # UniverseAgent 引擎协议面（本仓消费口径）
@@ -30,6 +30,7 @@ summary: "已知 gRPC 服务 / RPC 名与本仓用途；§1 Conversation（A1/A2
 | `AgentService` | `ListAgentProfiles` / `SaveAgentProfile` / `DeleteAgentProfile` / `ResetAgentProfile` | **@ HEAD** list + 写 RPC → `EngineAgentsSection`（New/Delete/Reset 工具栏 + **`AGENTS.md` 全文编辑器** @ `9419f583`） | 选中 profile textarea + Save → `SaveAgentProfile`；断连/`UNSUPPORTED` 不渲染；built_in 只读；built_in 不可 Delete、仅 Reset |
 | `McpService` | `ListMcpServers` / `ToggleMcpServer` / `AddMcpServer` / `UpdateMcpServer` / `RemoveMcpServer` | **@ HEAD** list + toggle + 定义 CRUD → `EngineMcpSection` | 运行态 RPC 见 §1b（M7 P1a） |
 | `PluginService` | `List` / `Info` / `Enable` / `Reload` / `Unload` / `ScanNew` | Plugins 节（M7 E2-5；见 §1b） | Local 模式 Singularity 标 UNSUPPORTED；IDE 以 `List` probe 决定三态 |
+| `ConfigService` | `ListModels` | Engine 页 **Model** 组只读注册表（M7 E2-2；见 §1b） | **P1b** `listModels()`；恒 `include_disabled=true`。会话级 `SwitchModel` / `Get|SetModelPreferences` **未接** |
 | Local `RulesBridge` | list / create / update / delete / preview / health × global / workDir（12）+ `defaultAgentHome()` | Engine 页 Rules（Instructions） | **Remote gRPC 不存在**；默认 `Unsupported`；Engine 页 Rules list **未**在本 slice |
 | `MemoryService` | — | 不在 Engine 页；未来独立 pane | 与 Instructions 分家 |
 
@@ -53,6 +54,13 @@ summary: "已知 gRPC 服务 / RPC 名与本仓用途；§1 Conversation（A1/A2
 | `McpService` | `GetMcpServerTools(server_id, force_refresh)` | `McpToolDefinition{ name, description, input_schema_json }` + `total` + `cached_at` | Runtime tab 每服务器工具列表 | **P1a** `getMcpServerTools(serverId, forceRefresh)` | `cached_at` 展示为「上次刷新」 |
 | `PluginService` | `List` / `Info` / `Enable` / `Reload` / `Unload` / `ScanNew` | `PluginSummary{ id, display_name, version, source, hook_count, status ACTIVE/DISABLED/ERROR, loaded_at }`；`Info` 附 `PluginHookEntry{ hook_type, priority, class_name }`；`ScanNewPluginsResponse{ new_plugins, skipped_count }`；写操作要求 operator，否则 `PERMISSION_DENIED` | Engine 页 Plugins 节 | **P1a** `listPlugins()` / `getPluginInfo(id)` / `enablePlugin(id)` / `reloadPlugin(id)` / `unloadPlugin(id)` / `scanNewPlugins()`；`plugins` 由 `List` 真探测 | `source` 为 JAR/DEX 文件名或 `embedded`（现网实现可能回 `"plugin"`，UI 只按 wire 值判断）；`Info.hooks` 现网可能为空，空就空表；无安装市场 |
 
+### P1b 已绑定（模型注册表）
+
+| 服务 | RPC | 线上消息要点 | 本仓消费面（M7） | P 切片 / IDE 方法 | 备注 |
+|------|-----|--------------|------------------|------------------|------|
+| `ConfigService` | `ListModels(type?, include_disabled)` | `ModelEntryProto{ id, type, enabled, level 1-9, description, cost min…max, speed, provider, model_id }` | Engine 页 **Model** 组：只读模型注册表，按 `provider` 分组 | **P1b** `listModels()`；能力键 `models` | 传输恒传 `include_disabled=true`。没有「上下文上限 / 能力标签」字段；IDE 不得自造。`SwitchModel` / `Get|SetModelPreferences` **不属于**本刀 |
+| `ConfigService` | `Get` / `Set` / `Watch` | 通用 `map<string,string>`，scope `global / project / session` | Provider 配置的**候选**传输；配置键合同未知 → **G-ENG-1** | — （P1b 只加能力键 `providerConfig`，固定 `UNSUPPORTED`，reason「Provider 配置键合同未定」） | 键合同确定前 Engine 页 Provider 组只显示 unsupported。Web 断连实现同步拒绝 `listModels`，新键均为 `UNSUPPORTED` |
+
 ### P2a 已绑定（DetailRef 通道）
 
 | 服务 | RPC | 线上消息要点 | 本仓消费面（M7） | P 切片 / IDE 方法 | 备注 |
@@ -72,8 +80,10 @@ UA 侧 `EngineSettingsCapabilities` / `CapabilitySupport`：`SUPPORTED | UNSUPPO
 | `agentTree` · `team` | IDE 推导（m6 §11） | `AgentService.Tree` / `TeamService.MemberStatus` probe |
 | `mcpRuntime`（**M7 P1a 新增**） | IDE 推导 | Connect 广告 `McpService.GetMcpServerStatuses` + probe；与 `mcp` 分开，Definitions 可用而 Runtime 不可用是合法状态 |
 | `plugins` | UA 侧键 | **M7 P1a**：Connect 广告 `PluginService.List` + probe；探测不到则诚实 `UNSUPPORTED`（`method not advertised` / `UNIMPLEMENTED`），不得假 ready |
-| `globalRules` | UA 侧键 / IDE 矩阵 | 固定 `UNSUPPORTED`（无 Rules RPC / `probe not implemented in M6-A1`）；不随 P1a 改变 |
-| `projectRules` · `hooksMetadata` | UA 无握手字段 | 固定 `UNSUPPORTED`（`probe not implemented in M6-A1`）；不随 P1a 改变 |
+| `models`（**M7 P1b 新增**） | IDE 推导 | Connect 广告 `ConfigService.ListModels` + probe → Engine 页 Model 组 |
+| `providerConfig`（**M7 P1b 新增**） | IDE 推导 | G-ENG-1 闭合前固定 `UNSUPPORTED`，reason「Provider 配置键合同未定」（Engine 页 Provider 组 reason 文案以此为准）。不 probe `Get`/`Set` |
+| `globalRules` | UA 侧键 / IDE 矩阵 | 固定 `UNSUPPORTED`（无 Rules RPC / `probe not implemented in M6-A1`）；不随 P1a / P1b 改变 |
+| `projectRules` · `hooksMetadata` | UA 无握手字段 | 固定 `UNSUPPORTED`（`probe not implemented in M6-A1`）；不随 P1a / P1b 改变 |
 | IDE 传输失败 | 非 UA 概念 | 独立态；list RPC `catch` → 传输失败文案，**不得**映射为 UNSUPPORTED 或「0 条」 |
 
 **Web 形态（P0）：** `workbench.web.main.ts` 以 `registerSingleton` 注册三者（`platform/universeAgent/browser/`）。transport `idle`；capability snapshot **含全部已有键**且均 `UNSUPPORTED` reason「Web 不支持本机 Engine 连接」；`connect()` 不 throw、返回无 token 的 `{ methods: [], events: [] }`；`connectProfile` 返回 `ok:false` 且 `code` 为 `unsupported_environment`（非 `transport_failed`）；`getConnectionPhase` 为 `disconnected`；Hub `getAuthStatus` 为 `unavailable`、login / addDirectAddressProfile 拒绝且不回显凭据；session view 空 lease。Hub 的 electron-browser 注册只在 `workbench.desktop.main.ts`，已移出 common 链。这是 PRD-019 / D15 前置。
@@ -105,6 +115,7 @@ Connect 后 `probeEngineCapabilities`：**仅**广告了 method 且 probe 非 `U
 | 独立 CreateSkill RPC（或等价新建 UI） | E1 新建技能 | Skill **新建** UI 未在本 slice |
 | `SaveSkillContent` node gRPC 传输 | —（**已闭** @ `45fa7a35`/`040c823d`） | `grpcClient` / `grpcTransport` / `universeAgentConnectionService` 动态绑定；单测 `universeAgentConnection.test.ts` |
 | Agent profile `tools.json` / `model.json` 独立 UI | Engine 页目录三件套附件编辑 | `AGENTS.md` 正文 @ `9419f583` 已落；`tools.json` 经 Tools 节 checkbox；`model.json` 仍无独立编辑器 |
+| **G-ENG-1** Provider 配置键合同 | Engine 页 Provider 组的读/写/测试 | 引擎只有通用 `ConfigService.Get/Set` 与 `TestModelProfile`，没有 Provider 列表 / 凭据已配置查询。**P1b** 已登记能力键 `providerConfig` 且固定 `UNSUPPORTED`；闭合前 Provider 组 unsupported |
 | `plugins` IDE probe | Plugins Engine 节 | **M7 P1a 已闭**（`PluginService.List` 探测）；`globalRules` 无 RPC，见 G-ENG-2，不排 probe |
 
 ## 5. Conversation 会话面（A1/A2 @ HEAD 回填）
