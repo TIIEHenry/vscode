@@ -114,6 +114,9 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 			if (previous !== sessionId) {
 				this._onDidChangeActiveSession.fire(sessionId);
 			}
+			if (this.isEngineConnected()) {
+				this.uaConnection.requestAgentTreeRefresh(sessionId);
+			}
 			this.persistEngineAwareRoster();
 			return;
 		}

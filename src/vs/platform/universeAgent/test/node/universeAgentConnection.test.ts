@@ -119,11 +119,27 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 	async getSkillInfo() {
 		return { name: '', content: '', source: 'unknown' as const, enabled: false };
 	}
+
+	async fetchAgentTree() {
+		return undefined;
+	}
+
+	async memberStatus() {
+		return [];
+	}
+
+	async taskList() {
+		return [];
+	}
+
+	async teamInfo() {
+		return undefined;
+	}
 }
 
 suite('UniverseAgentConnectionService', () => {
 
-	ensureNoDisposablesAreLeakedInTestSuite();
+	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
 	test('token + live channel => isEngineConnected === true', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
@@ -204,12 +220,45 @@ suite('UniverseAgentConnectionService', () => {
 		service.dispose();
 	});
 
-	test('onDidFileMutation === Event.None', () => {
+	test('onDidFileMutation fires joined records from host', () => {
 		const service = new UniverseAgentConnectionService({
 			createTransport: () => new MockUniverseAgentGrpcTransport(),
 		});
+		const records: unknown[] = [];
+		store.add(service.onDidFileMutation(r => records.push(r)));
+		service.notifyFileMutation({
+			sessionId: 's1',
+			toolCallId: 'tc',
+			turnId: 't1',
+			agentId: 'a1',
+			path: 'p.ts',
+			operation: 'edit',
+		});
+		assert.strictEqual(records.length, 1);
+		service.dispose();
+	});
 
-		assert.strictEqual(service.onDidFileMutation, Event.None);
+	test('agentTree UNIMPLEMENTED probe → UNSUPPORTED capability', async () => {
+		const transport = new MockUniverseAgentGrpcTransport({
+			connect: async () => ({
+				sessionToken: 'token-1',
+				methods: ['AgentService.Tree'],
+				events: [],
+			}),
+			probeRpc: async (_service, method) => {
+				if (method === 'Tree') {
+					return GrpcStatusCode.UNIMPLEMENTED;
+				}
+				return GrpcStatusCode.OK;
+			},
+		});
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		assert.strictEqual(service.getCapabilitySnapshot().agentTree.support, 'UNSUPPORTED');
 		service.dispose();
 	});
 

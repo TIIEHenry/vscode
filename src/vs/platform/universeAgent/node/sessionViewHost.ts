@@ -6,6 +6,7 @@
 import { Emitter } from '../../../base/common/event.js';
 import { Disposable } from '../../../base/common/lifecycle.js';
 import type { IUniverseAgentConnection } from '../common/universeAgentConnection.js';
+import type { IUniverseAgentHostConnection } from '../common/universeAgentHostConnection.js';
 import type {
 	ConversationViewFrame,
 	ConversationViewFrameApplied,
@@ -25,10 +26,29 @@ import {
 	createSessionViewIdPort,
 	NodeSchedulerPort,
 } from './sessionViewHostPorts.js';
+import { AgentTreeCoordinator, type AgentTreeBoundFact } from './agentTreeCoordinator.js';
+import {
+	FileMutationJoin,
+	isMultiAgentStatusPayload,
+	readTeamCreatedTeamId,
+	shouldRefreshAgentTree,
+} from './fileMutationJoin.js';
 
 type ActiveStream = {
 	readonly attemptId: AttemptId;
 	readonly dispose: () => void;
+	readonly sessionId: string;
+};
+
+type SessionSidecar = {
+	readonly tree: AgentTreeCoordinator;
+	readonly fileJoin: FileMutationJoin;
+};
+
+type ToolAttributionHint = {
+	readonly itemId: string;
+	readonly toolCallId?: string;
+	readonly agentId?: string;
 };
 
 type ActiveLease = {
@@ -85,6 +105,8 @@ export class SessionViewHost extends Disposable {
 	private readonly leases = new Map<string, ActiveLease>();
 	private readonly leaseAttribution = new Map<string, Map<string, ItemAttribution>>();
 	private readonly streams = new Map<string, ActiveStream>();
+	private readonly sessionSidecars = new Map<string, SessionSidecar>();
+	private readonly toolAttributionHints = new Map<string, ToolAttributionHint[]>();
 	private connectionGeneration = 0;
 	private connectionUp = false;
 
@@ -93,6 +115,7 @@ export class SessionViewHost extends Disposable {
 
 	constructor(
 		private readonly connection: IUniverseAgentConnection,
+		private readonly host: IUniverseAgentHostConnection,
 	) {
 		super();
 		this.core = createSessionCore({
@@ -100,6 +123,9 @@ export class SessionViewHost extends Disposable {
 			ids: this.ids,
 			diagnostics: this.diagnostics,
 		});
+		this._register(host.onRequestAgentTreeRefresh(({ sessionId }) => {
+			this.scheduleAgentTreeRefresh(sessionId);
+		}));
 	}
 
 	acquireLease(sessionId: string): string {
@@ -117,8 +143,10 @@ export class SessionViewHost extends Disposable {
 		this.drainIntents(sessionId);
 		this.leases.set(String(leaseId), { sessionId, leaseId, sink });
 		this.leaseAttribution.set(String(leaseId), new Map());
+		this.ensureSessionSidecar(sessionId);
 		if (this.connectionUp) {
 			this.postConnectionUp(sessionId);
+			this.scheduleAgentTreeRefresh(sessionId, true);
 		}
 		return String(leaseId);
 	}
@@ -198,16 +226,118 @@ export class SessionViewHost extends Disposable {
 		}
 	}
 
+	private ensureSessionSidecar(sessionId: string): SessionSidecar {
+		let sidecar = this.sessionSidecars.get(sessionId);
+		if (!sidecar) {
+			sidecar = {
+				tree: new AgentTreeCoordinator(sessionId, this.host),
+				fileJoin: new FileMutationJoin(sessionId),
+			};
+			this.sessionSidecars.set(sessionId, sidecar);
+		}
+		return sidecar;
+	}
+
+	private postAgentTreeBound(sessionId: string, fact: AgentTreeBoundFact): void {
+		const sid = sessionId as SessionId;
+		this.core.post(sid, { t: 'localFact', fact });
+		this.drainIntents(sessionId);
+	}
+
+	private scheduleAgentTreeRefresh(sessionId: string, immediate = false): void {
+		if (!this.connection.isEngineConnected() || this.host.isAgentTreeUnsupported()) {
+			return;
+		}
+		const sidecar = this.ensureSessionSidecar(sessionId);
+		const onBound = (fact: AgentTreeBoundFact) => this.postAgentTreeBound(sessionId, fact);
+		if (immediate) {
+			void sidecar.tree.pullNow(onBound);
+		} else {
+			sidecar.tree.scheduleRefresh(onBound);
+		}
+	}
+
+	private handleHostStreamPayload(sessionId: string, payload: unknown): void {
+		const sidecar = this.ensureSessionSidecar(sessionId);
+
+		if (shouldRefreshAgentTree(payload)) {
+			this.scheduleAgentTreeRefresh(sessionId);
+		}
+
+		const teamId = readTeamCreatedTeamId(payload);
+		if (teamId !== undefined) {
+			this.core.post(sessionId as SessionId, {
+				t: 'localFact',
+				fact: { kind: 'teamIdBound', teamId },
+			});
+			this.drainIntents(sessionId);
+		}
+
+		if (isMultiAgentStatusPayload(payload)) {
+			this.host.notifyTeamRuntimeChange(sessionId);
+		}
+
+		sidecar.fileJoin.handleStreamPayload(payload, record => {
+			this.host.notifyFileMutation(record);
+		});
+
+		this.captureToolAttributionHint(sessionId, payload);
+	}
+
+	private captureToolAttributionHint(sessionId: string, payload: unknown): void {
+		if (payload === null || typeof payload !== 'object' || Array.isArray(payload)) {
+			return;
+		}
+		const record = payload as Record<string, unknown>;
+		const lifecycle = record.tool_call_lifecycle ?? record.toolCallLifecycle;
+		if (lifecycle && typeof lifecycle === 'object') {
+			const body = lifecycle as object;
+			const toolCallId = readPayloadField(body, 'tool_call_id', 'toolCallId');
+			const turnId = readPayloadField(body, 'turn_id', 'turnId');
+			const agentId = readPayloadField(body, 'agent_id', 'agentId');
+			if (typeof toolCallId === 'string' && toolCallId) {
+				const hints = this.toolAttributionHints.get(sessionId) ?? [];
+				hints.push({
+					itemId: typeof turnId === 'string' ? turnId : toolCallId,
+					toolCallId,
+					agentId: typeof agentId === 'string' ? agentId : undefined,
+				});
+				this.toolAttributionHints.set(sessionId, hints);
+			}
+		}
+	}
+
 	private onFrameEnqueued(leaseId: ViewLeaseId, sessionId: string, frame: ViewFrame): void {
 		const attributionMap = this.leaseAttribution.get(String(leaseId)) ?? new Map();
 		const attributionPatches: Array<NonNullable<ConversationViewFrame['attribution']>[number]> = [];
+		const hints = this.toolAttributionHints.get(sessionId) ?? [];
 		if (frame.body.kind === 'baseline') {
 			for (const item of frame.body.snapshot.timeline) {
 				const id = String(item.id);
 				if (!attributionMap.has(id)) {
+					const hint = hints.find(h => h.itemId === id || h.toolCallId === id);
 					const role = 'assistant' as const;
-					attributionMap.set(id, { role });
-					attributionPatches.push({ op: 'upsertAttribution', itemId: id, attribution: { role } });
+					const attribution: ItemAttribution = hint?.toolCallId
+						? { role, toolCallId: hint.toolCallId, agentId: hint.agentId }
+						: { role };
+					attributionMap.set(id, attribution);
+					attributionPatches.push({ op: 'upsertAttribution', itemId: id, attribution });
+				}
+			}
+		} else if (frame.body.kind === 'patches') {
+			for (const patch of frame.body.patches) {
+				if (patch.op === 'upsertTimelineItem') {
+					const id = String(patch.item.id);
+					const summary = patch.item.summary;
+					if (summary.kind === 'tool') {
+						const hint = hints.find(h => h.itemId === id || h.toolCallId === id);
+						const toolCallId = hint?.toolCallId;
+						const attribution: ItemAttribution = toolCallId
+							? { role: 'tool', toolCallId, agentId: hint?.agentId }
+							: { role: 'tool' };
+						attributionMap.set(id, attribution);
+						attributionPatches.push({ op: 'upsertAttribution', itemId: id, attribution });
+					}
 				}
 			}
 		}
@@ -277,7 +407,13 @@ export class SessionViewHost extends Disposable {
 
 	private openStream(sessionId: string, attemptId: AttemptId): void {
 		const key = `${sessionId}:${attemptId}`;
+		let streamOpened = false;
 		const subscription = this.connection.subscribeSessionEventStream(sessionId, event => {
+			if (!streamOpened) {
+				streamOpened = true;
+				this.scheduleAgentTreeRefresh(sessionId, true);
+			}
+			this.handleHostStreamPayload(sessionId, event.payload);
 			const arms = demuxSessionStreamPayload(event.payload);
 			for (const arm of arms) {
 				if (arm && typeof arm === 'object' && (arm as { arm?: string }).arm === 'heartbeat') {
@@ -292,7 +428,7 @@ export class SessionViewHost extends Disposable {
 				this.drainIntents(sessionId);
 			}
 		});
-		this.streams.set(key, { attemptId, dispose: () => subscription.dispose() });
+		this.streams.set(key, { attemptId, sessionId, dispose: () => subscription.dispose() });
 	}
 
 	private async sendHeartbeatAck(sessionId: string): Promise<void> {
@@ -380,4 +516,14 @@ export class SessionViewHost extends Disposable {
 		}
 		this.drainIntents(sessionId);
 	}
+}
+
+function readPayloadField(record: object, ...keys: string[]): unknown {
+	for (const key of keys) {
+		const desc = Object.getOwnPropertyDescriptor(record, key);
+		if (desc !== undefined && Object.hasOwn(desc, 'value')) {
+			return desc.value;
+		}
+	}
+	return undefined;
 }

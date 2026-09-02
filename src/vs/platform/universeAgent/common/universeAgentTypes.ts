@@ -15,7 +15,9 @@ export type UniverseAgentCapabilityKey =
 	| 'agentProfiles'
 	| 'projectRules'
 	| 'tools'
-	| 'hooksMetadata';
+	| 'hooksMetadata'
+	| 'agentTree'
+	| 'team';
 
 export type UniverseAgentCapabilitySupport = 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN';
 
@@ -107,9 +109,62 @@ export interface UniverseAgentConnectionSnapshot {
 	readonly transport: UniverseAgentTransportState;
 	readonly sessionToken?: string;
 	readonly workDir?: string;
+	/** True when the Connect request carried a client work_dir / shared_fs_root hint. */
+	readonly sharedFsRootSent: boolean;
 	readonly pairingPending: boolean;
 	readonly channelAlive: boolean;
 	readonly capabilities: UniverseAgentCapabilitySnapshot;
+}
+
+/** Joined file mutation record (m6 §11 / sources-review §8); produced only after lifecycle join. */
+export interface IFileMutationRecord {
+	readonly sessionId: string;
+	readonly toolCallId: string;
+	readonly turnId: string;
+	readonly agentId: string;
+	readonly path: string;
+	readonly operation: string;
+	readonly diffStats?: {
+		readonly addedLines: number;
+		readonly removedLines: number;
+		readonly changedFiles: number;
+	};
+}
+
+export interface UniverseAgentTeamMemberInfo {
+	readonly memberName: string;
+	readonly memberAgentId: string;
+	readonly status: string;
+	readonly preset: string;
+	readonly dynamic: string;
+	readonly turnCount: number;
+}
+
+export interface UniverseAgentTeamTaskInfo {
+	readonly taskId: string;
+	readonly subject: string;
+	readonly owner: string;
+	readonly status: string;
+	readonly blockedBy: string;
+	readonly lastMessage: string;
+	readonly description: string;
+}
+
+export interface UniverseAgentTeamInfo {
+	readonly teamId: number;
+	readonly status: string;
+}
+
+/** AgentService.Tree node (host-only RPC; proto enum names for type/status). */
+export interface UniverseAgentAgentTreeNode {
+	readonly agentId: string;
+	readonly name: string;
+	readonly type: string;
+	readonly status: string;
+	readonly model: string;
+	readonly turnCount: number;
+	readonly createdAt: number;
+	readonly children: readonly UniverseAgentAgentTreeNode[];
 }
 
 /** Skill catalog source from ToolService.ListSkills (customizations-engine §3.1). */
