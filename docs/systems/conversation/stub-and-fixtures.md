@@ -83,7 +83,7 @@ summary: "IConversationRosterService 契约分组；getTrajectoryRecords + filte
    | **加密不可用** | 表单 + 诚实提示「重启后须重登」 | false | **无客户端身份**（`ClientIdentityStore` → `encryption_unavailable`）；refresh **仅内存**，重启丢失 |
    | Hub signedIn 但 Engine 未 Connect | 顶部已登录 | **false** | ticket / 目录可用；**不等于** connected |
 
-   **未落地：** 进程启动时 `refreshIfNeeded` 从磁盘恢复 Hub 会话（槽 A）——文档与产品口径在落地前仍按「重启须重登（access 15 min TTL）」描述跨重启 Hub 态。
+   **Hub 会话 refresh（@ `dba63c70` / `23fd9d70`）：** 启动时 `restorePersistedHubSessionIfNeeded` 从加密 refresh 恢复 access；运行中目录 / 拨号 / 控制面 mutation 经 `withHubAccessRetry` 在 access 过期或 401/403 时强制 refresh 并重试一次；refresh 仍失败 → `authExpired` / `hub_auth_expired`。
 6. **诚实降级**：断连时 UI 必须回到诚实空，不显示上次 RPC 缓存并写「已同步」（PRD-007；customizations-engine E1 验收 5 同理）。
 7. **不得**用 `IChatModel`、AHP（`IAgentHostService` / `IAgentConnection`）、`copilotChatSessions` 实现本契约（[ADR-006](../../../dev/decisions/006-shell-invariants.md) INV-NO-COPILOT；[agent-host overview](../agent-host/overview.md)）。
 
