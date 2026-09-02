@@ -7,6 +7,6 @@
 	<url type="homepage">https://github.com/microsoft/vscode</url>
 	<summary>UniverseAgentStudio agent IDE.</summary>
 	<description>
-		<p>UniverseAgentStudio is an agent development IDE built on the Code - OSS editor platform.</p>
+		<p>UniverseAgentStudio is an agent development IDE.</p>
 	</description>
 </component>

@@ -2,8 +2,7 @@ name: @@NAME@@
 version: '@@VERSION@@'
 summary: UniverseAgentStudio agent IDE.
 description: |
-  UniverseAgentStudio is an agent development IDE built on the Code - OSS
-  editor platform.
+  UniverseAgentStudio is an agent development IDE.
 
 architectures:
   - build-on: amd64
