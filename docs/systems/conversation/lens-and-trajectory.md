@@ -4,7 +4,7 @@ type: architecture
 status: accepted
 phase: N/A
 updated: 2026-09-02
-summary: "ConversationEditorPane 页 chrome；「对话 | 轨迹」双透镜；子代理 overlay 自备 sessionBar（trap 根 overlay.element）；Accessible View 读完整回合；帧源投影与 Q4 live 过程折；Overview 仍 Deferred"
+summary: "ConversationEditorPane 页 chrome；「对话 | 轨迹」双透镜；叶宽 `.is-narrow`（Q6/RWD-1）；子代理 overlay 自备 sessionBar；Accessible View；帧源投影与 Q4 live 过程折"
 ---
 
 # Conversation 透镜、时间线与轨迹
@@ -18,6 +18,8 @@ summary: "ConversationEditorPane 页 chrome；「对话 | 轨迹」双透镜；�
 子代理对话框（`ConversationSubAgentOverlay`）**自备** overlay 内 sessionBar（透镜 tab + 标题行），不再把 Part 级 sessionBar 传入 `ConversationLens`。focus trap 根 = `overlay.element`，Tab wrap 与 Escape 才能包住透镜 / 改名。Escape 顺序：图示 overlay → 局部 inspector → 标题改名 → 对话框；不关根会话。
 
 时间线行名由 `getConversationTurnAriaLabel` 给出（含 `system` / error 可否重试 / unknown 原始类型）。流式行只在进入 / 离开 `streaming` 时改「进行中」后缀，不按 token 更新 `aria-label`。完整回合经 `ConversationAccessibleView` 接入既有 `IAccessibleViewService`（`AccessibleViewProviderId.Conversation`），不新造 live 区。
+
+**窄宽度（Q6 = a11y RWD-1）：** `ConversationEditorPane.layout(dimension)` 用**本叶** `dimension.width` 打 `.is-narrow`（< 600）与 `.is-compact`（< 300），再把同宽传给 `ConversationLens.layout`。禁止用 `ConversationPart` 宽代表 split / 并列叶。Part 级 SessionBar 用自己的盒宽打 class；overlay 自备栏用卡片体宽。300px 叶：主输入、透镜 tabs、同步态、inspector Back 保持 `flex-shrink: 0`；标题截断。轨迹 inspector 在叶宽 < 600 时覆盖表并显示 Back，关闭后恢复选中与 `scrollTop`。Navigator / Review reveal 把 `lastRevealItemId` 记在透镜上；隐藏 Part / 叶宽从 0 恢复 / overlay 打开或铺满时 `layout` 再 `revealTurn` / `scrollRecordIntoView`，不丢定位。
 
 `ConversationLens` 把当前透镜 id（`'conversation' | 'trajectory'`）存到 `StorageScope.WORKSPACE`（`CONVERSATION_LENS_ID_STORAGE_KEY`），是本系统今天**唯一**持久化的用户状态。
 

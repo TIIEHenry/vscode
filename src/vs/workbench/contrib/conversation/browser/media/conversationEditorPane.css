@@ -1,8 +1,18 @@
 /* Conversation editor pane hosts page chrome (timeline + dock) inside the nested editor part. */
 
+.monaco-workbench .conversation-editor-page {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+	min-height: 0;
+	min-width: 0;
+}
+
 .monaco-workbench .conversation-editor-page-chrome {
 	display: flex;
 	flex-direction: column;
+	flex-shrink: 0;
+	min-width: 0;
 }
 
 .monaco-workbench .conversation-editor-page-content {
@@ -10,5 +20,6 @@
 	flex-direction: column;
 	flex: 1 1 auto;
 	min-height: 0;
+	min-width: 0;
 }
 

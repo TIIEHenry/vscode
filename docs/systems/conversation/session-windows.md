@@ -59,7 +59,7 @@ CONVERSATION_PART
 ## 5. split 与并列
 
 - **split**（`workbench.action.conversation.splitSessionWindow`，F1 可见）：同一叶内新建 `CONVERSATION_SIDE_GROUP`，两列各自 tab；`hideSplitColumn` / `showSplitColumn` 收放。仍是同一 session、同一叶；fork 不会因此被送进 Preview。
-- **并列** = 第二叶（§1）；隐藏后剩单叶；再打开恢复。
+- **并列** = 第二叶（§1）；隐藏后剩单叶；再打开恢复。每叶 `ConversationEditorPane.layout` 用自己的叶宽打 `.is-narrow`，不用 Part 宽。
 
 ## 6. 与 PRD-016 验收的对应
 

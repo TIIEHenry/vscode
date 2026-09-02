@@ -37,6 +37,7 @@ import {
 	TrajectoryDetailInspectorModel,
 	TrajectoryDetailInspectorState,
 } from './conversationTrajectoryDetailInspector.js';
+import { CONVERSATION_LEAF_NARROW_WIDTH } from './conversationNarrowLayout.js';
 
 export const conversationTrajectoryKindUser = localize('conversationTrajectory.kindUser', "USER");
 export const conversationTrajectoryKindContext = localize('conversationTrajectory.kindContext', "CONTEXT");
@@ -724,13 +725,13 @@ export class ConversationTrajectory extends Disposable implements ITrajectoryTab
 	}
 
 	private isNarrowWidth(): boolean {
-		return this.listWidth > 0 && this.listWidth < 600;
+		return this.listWidth > 0 && this.listWidth < CONVERSATION_LEAF_NARROW_WIDTH;
 	}
 
 	private syncInspectorOverlay(): void {
 		const open = !this.inspector.hidden;
 		const overlay = open && this.isNarrowWidth();
-		this.host.classList.toggle('conversation-lens-trajectory--narrow', this.isNarrowWidth() || (this.listWidth > 0 && this.listWidth < 600));
+		this.host.classList.toggle('conversation-lens-trajectory--narrow', this.isNarrowWidth());
 		this.host.classList.toggle('conversation-lens-trajectory--inspector-open', open);
 		this.host.classList.toggle('conversation-lens-trajectory--inspector-overlay', overlay);
 		this.inspectorBackButton.hidden = !overlay;

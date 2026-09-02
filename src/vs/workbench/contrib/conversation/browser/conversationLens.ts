@@ -99,6 +99,11 @@ import { IExtensionService } from '../../../services/extensions/common/extension
 import { IWebviewService } from '../../webview/browser/webview.js';
 import { ConversationVoiceTranscriptBar } from './conversationVoiceTranscriptBar.js';
 import { appendVoiceTextToDraft, ConversationVoiceClip } from './conversationVoiceTranscriptModel.js';
+import {
+	conversationLeafWidthBucket,
+	isConversationLeafCompact,
+	isConversationLeafNarrow,
+} from './conversationNarrowLayout.js';
 
 const CONVERSATION_LENS_ID_STORAGE_KEY = 'conversation.lensId';
 
@@ -924,6 +929,12 @@ export class ConversationLens extends Disposable {
 			anchorPosition: AnchorPosition.ABOVE,
 			render: container => {
 				const popup = append(container, $('.conversation-lens-dock-more-popup'));
+				if (isConversationLeafNarrow(this.lastReadingWidth)) {
+					append(popup, $('div')).textContent = conversationLensDockTuneTitle;
+					append(popup, $('div')).textContent = conversationLensDockPermissionLabel;
+					append(popup, $('div')).textContent = conversationLensDockTemplatesTitle;
+					append(popup, $('div')).textContent = conversationLensDockMaximizeInput;
+				}
 				append(popup, $('div')).textContent = localize('conversationLens.dockMoreDisplay', "Display");
 				append(popup, $('div')).textContent = localize('conversationLens.dockMorePin', "Pin input");
 				return toDisposable(() => {
@@ -1468,13 +1479,32 @@ export class ConversationLens extends Disposable {
 	}
 
 	private applyConversationWidth(width: number): void {
-		const bucket = width >= 900 ? 'full' : width >= 600 ? 'medium' : width >= 300 ? 'narrow' : 'min';
-		this.readingColumn.dataset.conversationWidth = bucket;
-		this.slotHosts.timeline.dataset.conversationWidth = bucket;
-		this.slotHosts.dock.dataset.conversationWidth = bucket;
+		this.applyLeafWidthClasses(this.readingColumn, width);
+		this.applyLeafWidthClasses(this.slotHosts.timeline, width);
+		this.applyLeafWidthClasses(this.slotHosts.dock, width);
 		if (this.slotHosts.sessionBar) {
-			this.slotHosts.sessionBar.dataset.conversationWidth = bucket;
+			// Part 级 sessionBar 用自己的盒宽，避免并列窄叶把共享栏打成 .is-narrow。
+			// Overlay 自备栏在尚未 paint 时回退到本次叶宽。
+			const measured = this.slotHosts.sessionBar.clientWidth;
+			const barWidth = measured > 0
+				? measured
+				: this.isOverlaySessionBarHost()
+					? width
+					: 0;
+			if (barWidth > 0) {
+				this.applyLeafWidthClasses(this.slotHosts.sessionBar, barWidth);
+			}
 		}
+	}
+
+	private isOverlaySessionBarHost(): boolean {
+		return !!this.slotHosts.sessionBar?.classList.contains('conversation-subagent-overlay-session-bar');
+	}
+
+	private applyLeafWidthClasses(host: HTMLElement, width: number): void {
+		host.dataset.conversationWidth = conversationLeafWidthBucket(width);
+		host.classList.toggle('is-narrow', isConversationLeafNarrow(width));
+		host.classList.toggle('is-compact', isConversationLeafCompact(width));
 	}
 
 	private updateSyncChrome(sync: SyncChrome): void {

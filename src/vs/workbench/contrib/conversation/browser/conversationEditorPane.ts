@@ -18,6 +18,7 @@ import { IEditorGroup } from '../../../services/editor/common/editorGroupsServic
 import { ConversationAgentBreadcrumbBox } from './conversationAgentBreadcrumb.js';
 import { ConversationLens } from './conversationLens.js';
 import { ConversationChatInput, parseConversationChatResource } from './conversationChatInput.js';
+import { CONVERSATION_LEAF_COMPACT_WIDTH, CONVERSATION_LEAF_NARROW_WIDTH } from './conversationNarrowLayout.js';
 import { IConversationSessionChatService } from './conversationSessionChatService.js';
 import { IConversationPartService } from '../../../browser/parts/conversation/conversationPart.js';
 
@@ -25,6 +26,7 @@ export class ConversationEditorPane extends EditorPane {
 
 	static readonly ID = 'workbench.editor.conversationChat';
 
+	private pageRoot: HTMLElement | undefined;
 	private pageChrome: HTMLElement | undefined;
 	private breadcrumb: ConversationAgentBreadcrumbBox | undefined;
 	private lens: ConversationLens | undefined;
@@ -45,7 +47,9 @@ export class ConversationEditorPane extends EditorPane {
 	}
 
 	protected override createEditor(parent: HTMLElement): void {
-		this.pageChrome = append(parent, $('.conversation-editor-page-chrome'));
+		const pageRoot = append(parent, $('.conversation-editor-page'));
+		this.pageRoot = pageRoot;
+		this.pageChrome = append(pageRoot, $('.conversation-editor-page-chrome'));
 		this.breadcrumb = this.chromeDisposables.add(this.paneInstantiationService.createInstance(ConversationAgentBreadcrumbBox, this.pageChrome));
 		this.chromeDisposables.add(this.breadcrumb.onDidSelect(chatId => {
 			const parsed = this.activeInput ? parseConversationChatResource(this.activeInput.resource) : undefined;
@@ -55,7 +59,7 @@ export class ConversationEditorPane extends EditorPane {
 			void this.sessionChatService.navigateAgentBreadcrumb(parsed.sessionKey, chatId);
 		}));
 
-		const content = append(parent, $('.conversation-editor-page-content'));
+		const content = append(pageRoot, $('.conversation-editor-page-content'));
 		const timeline = append(content, $('.conversation-timeline'));
 		timeline.setAttribute('data-conversation-slot', 'timeline');
 		const dock = append(content, $('.conversation-dock'));
@@ -94,7 +98,15 @@ export class ConversationEditorPane extends EditorPane {
 	}
 
 	override layout(dimension: { width: number; height: number }): void {
+		// RWD-1 / Q6：`.is-narrow` / `.is-compact` 只看本叶 `dimension.width`，不用 ConversationPart 宽。
+		const narrow = dimension.width > 0 && dimension.width < CONVERSATION_LEAF_NARROW_WIDTH;
+		const compact = dimension.width > 0 && dimension.width < CONVERSATION_LEAF_COMPACT_WIDTH;
+		this.pageRoot?.classList.toggle('is-narrow', narrow);
+		this.pageRoot?.classList.toggle('is-compact', compact);
 		this.breadcrumb?.layout(dimension.width);
+		const chromeHeight = this.pageChrome?.offsetHeight ?? 0;
+		const contentHeight = Math.max(0, dimension.height - chromeHeight);
+		this.lens?.layout(contentHeight, dimension.width);
 	}
 
 	override focus(): void {
