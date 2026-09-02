@@ -21,7 +21,12 @@ import type {
 	UniverseAgentGetHistoryResult,
 	UniverseAgentListSessionsRequest,
 	UniverseAgentListSessionsResult,
+	UniverseAgentListSkillsResult,
 	UniverseAgentSessionEvent,
+	UniverseAgentSetSkillEnabledRequest,
+	UniverseAgentSetSkillEnabledResult,
+	UniverseAgentSkillInfoRequest,
+	UniverseAgentSkillInfoResult,
 	UniverseAgentTransportState,
 } from '../common/universeAgentTypes.js';
 import { createEmptyCapabilitySnapshot, probeEngineCapabilities } from './grpcCapabilityProbe.js';
@@ -299,6 +304,18 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 
 	async chat(request: UniverseAgentChatRequest, onResponse: (response: UniverseAgentChatResponse) => void): Promise<void> {
 		await this._withTransport(transport => transport.chat(request, onResponse));
+	}
+
+	async listSkills(): Promise<UniverseAgentListSkillsResult> {
+		return this._withTransport(transport => transport.listSkills());
+	}
+
+	async setSkillEnabled(request: UniverseAgentSetSkillEnabledRequest): Promise<UniverseAgentSetSkillEnabledResult> {
+		return this._withTransport(transport => transport.setSkillEnabled(request));
+	}
+
+	async getSkillInfo(request: UniverseAgentSkillInfoRequest): Promise<UniverseAgentSkillInfoResult> {
+		return this._withTransport(transport => transport.getSkillInfo(request));
 	}
 
 	getActiveHubBaseUrl(): string | undefined {

@@ -34,6 +34,11 @@ class MockUniverseAgentConnection extends Disposable implements IUniverseAgentCo
 	}
 
 	getTransportState() { return 'ok' as const; }
+	getConnectionPhase() {
+		return this.connected
+			? { kind: 'connected' as const, path: 'loopback' as const }
+			: { kind: 'disconnected' as const };
+	}
 	getConnectionSnapshot(): UniverseAgentConnectionSnapshot {
 		return {
 			transport: 'ok',
@@ -45,6 +50,7 @@ class MockUniverseAgentConnection extends Disposable implements IUniverseAgentCo
 	}
 	getCapabilitySnapshot() { return this.getConnectionSnapshot().capabilities; }
 	async connect() { return { methods: [], events: [], sessionToken: 'tok' }; }
+	async connectProfile() { return { ok: false as const, code: 'transport_failed' as const, reason: 'stub' }; }
 	async disconnect() { this.setConnected(false); }
 	async listSessions() { return { sessions: this.sessions.map(s => ({ sessionId: s.sessionId, title: s.title })) }; }
 	async createSession() { return { sessionId: 'ua-new' }; }
@@ -52,6 +58,9 @@ class MockUniverseAgentConnection extends Disposable implements IUniverseAgentCo
 	async getHistory() { return { envelopes: [] }; }
 	subscribeSessionEventStream() { return { dispose: () => { } }; }
 	async chat() { }
+	async listSkills() { return { skills: [] }; }
+	async setSkillEnabled() { return { ok: true }; }
+	async getSkillInfo() { return { name: '', content: '', source: 'unknown' as const, enabled: false }; }
 }
 
 class MockUniverseAgentSessionView implements IUniverseAgentSessionView {

@@ -20,7 +20,7 @@ import type {
 	UniverseAgentListSessionsResult,
 	UniverseAgentSessionEvent,
 } from '../../common/universeAgentTypes.js';
-import { GrpcStatusCode, IUniverseAgentGrpcTransport, UniverseAgentAuthNonceRequest, UniverseAgentAuthNonceResult, UniverseAgentConnectRequest, UniverseAgentConnectResult, UniverseAgentDeviceAuthConnectRequest, UniverseAgentTransportError } from '../../node/grpc/grpcTransport.js';
+import { GrpcStatusCode, IUniverseAgentGrpcTransport, UniverseAgentAuthNonceRequest, UniverseAgentAuthNonceResult, UniverseAgentDeviceAuthConnectRequest, UniverseAgentTransportError } from '../../node/grpc/grpcTransport.js';
 import { UniverseAgentConnectionService } from '../../node/universeAgentConnectionService.js';
 import { InMemoryHubSessionStore } from '../../node/hubSessionStore.js';
 
@@ -106,6 +106,18 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 	}
 
 	async chat(_request: UniverseAgentChatRequest, _onResponse: (response: UniverseAgentChatResponse) => void): Promise<void> {
+	}
+
+	async listSkills() {
+		return { skills: [] };
+	}
+
+	async setSkillEnabled() {
+		return { ok: true };
+	}
+
+	async getSkillInfo() {
+		return { name: '', content: '', source: 'unknown' as const, enabled: false };
 	}
 }
 

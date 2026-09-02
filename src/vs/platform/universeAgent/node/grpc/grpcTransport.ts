@@ -15,7 +15,12 @@ import type {
 	UniverseAgentGetHistoryResult,
 	UniverseAgentListSessionsRequest,
 	UniverseAgentListSessionsResult,
+	UniverseAgentListSkillsResult,
 	UniverseAgentSessionEvent,
+	UniverseAgentSetSkillEnabledRequest,
+	UniverseAgentSetSkillEnabledResult,
+	UniverseAgentSkillInfoRequest,
+	UniverseAgentSkillInfoResult,
 } from '../../common/universeAgentTypes.js';
 
 export interface UniverseAgentAuthNonceRequest {
@@ -91,6 +96,12 @@ export interface IUniverseAgentGrpcTransport {
 	subscribeSessionEventStream(sessionId: string, listener: (event: UniverseAgentSessionEvent) => void): { dispose(): void };
 
 	chat(request: UniverseAgentChatRequest, onResponse: (response: UniverseAgentChatResponse) => void): Promise<void>;
+
+	listSkills(): Promise<UniverseAgentListSkillsResult>;
+
+	setSkillEnabled(request: UniverseAgentSetSkillEnabledRequest): Promise<UniverseAgentSetSkillEnabledResult>;
+
+	getSkillInfo(request: UniverseAgentSkillInfoRequest): Promise<UniverseAgentSkillInfoResult>;
 }
 
 /** Service / method paths aligned with UniverseAgent grpc-api proto package names. */
@@ -115,5 +126,7 @@ export const UniverseAgentGrpcServices = {
 	Tool: {
 		service: 'universeagent.tool.v1.ToolService',
 		ListSkills: 'ListSkills',
+		SkillInfo: 'SkillInfo',
+		SetSkillEnabled: 'SetSkillEnabled',
 	},
 } as const;

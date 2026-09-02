@@ -111,3 +111,39 @@ export interface UniverseAgentConnectionSnapshot {
 	readonly channelAlive: boolean;
 	readonly capabilities: UniverseAgentCapabilitySnapshot;
 }
+
+/** Skill catalog source from ToolService.ListSkills (customizations-engine §3.1). */
+export type UniverseAgentSkillSource = 'bundled' | 'user' | 'project' | 'unknown';
+
+export interface UniverseAgentSkillSummary {
+	readonly name: string;
+	readonly description?: string;
+	readonly source: UniverseAgentSkillSource;
+	readonly enabled: boolean;
+	readonly slashEnabled?: boolean;
+}
+
+export interface UniverseAgentListSkillsResult {
+	readonly skills: readonly UniverseAgentSkillSummary[];
+}
+
+export interface UniverseAgentSetSkillEnabledRequest {
+	readonly skillName: string;
+	readonly enabled: boolean;
+}
+
+export interface UniverseAgentSetSkillEnabledResult {
+	readonly ok: boolean;
+	readonly reason?: string;
+}
+
+export interface UniverseAgentSkillInfoRequest {
+	readonly skillName: string;
+}
+
+export interface UniverseAgentSkillInfoResult {
+	readonly name: string;
+	readonly content: string;
+	readonly source: UniverseAgentSkillSource;
+	readonly enabled: boolean;
+}
