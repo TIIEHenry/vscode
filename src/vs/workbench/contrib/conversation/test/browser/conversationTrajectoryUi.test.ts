@@ -19,6 +19,8 @@ import {
 	conversationTrajectoryKindTool,
 } from '../../browser/conversationTrajectory.js';
 import { ConversationStubService, IConversationRosterService } from '../../browser/conversationStubService.js';
+import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
+import { createConversationConnectionTestStub } from '../common/conversationConnectionTestStub.js';
 import { IConversationTimelineRevealService } from '../../browser/conversationTimelineRevealService.js';
 import { IConversationReviewNavService } from '../../common/conversationReviewEntry.js';
 import {
@@ -74,6 +76,7 @@ suite('ConversationTrajectoryUi', () => {
 		const stubService = store.add(new ConversationStubService());
 		const clipboardService = new TestClipboardService();
 		instantiationService.stub(IConversationRosterService, stubService);
+		instantiationService.stub(IUniverseAgentConnection, createConversationConnectionTestStub());
 		instantiationService.stub(IConversationTimelineRevealService, {
 			_serviceBrand: undefined,
 			registerLens: () => ({ dispose: () => { } }),

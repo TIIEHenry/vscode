@@ -55,6 +55,8 @@ import {
 import { conversationLensVoiceTranscriptBarClass } from '../../browser/conversationVoiceTranscriptBar.js';
 import { conversationLensSessionBarConversationTab, conversationLensSessionBarDeleteSession, conversationLensSessionBarNewSession, conversationLensSessionBarNoTrajectory, conversationLensSessionBarRenameTitle, conversationLensSessionBarRouteLabel, conversationLensSessionBarTrajectoryTab, conversationLensPinnedUserPromptAria, conversationLensPinnedUserPromptCopyAria } from '../../browser/conversationLensSessionBarStrings.js';
 import { ConversationStubService, IConversationRosterService } from '../../browser/conversationStubService.js';
+import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
+import { createConversationConnectionTestStub } from '../common/conversationConnectionTestStub.js';
 import { entriesToLegacyTurns, projectSnapshotToEntries } from '../../browser/conversationSessionView.js';
 import { TestConversationFrameSource } from './testConversationFrameSource.js';
 import { conversationIdentityStripClass } from '../../browser/conversationIdentityStrip.js';
@@ -353,6 +355,7 @@ suite('ConversationLens', () => {
 		const clipboardService = new TestClipboardService();
 		const openInEditorCalls = { count: 0 };
 		instantiationService.stub(IConversationRosterService, stubService);
+		instantiationService.stub(IUniverseAgentConnection, createConversationConnectionTestStub());
 		instantiationService.stub(IConversationTimelineRevealService, {
 			_serviceBrand: undefined,
 			registerLens: () => ({ dispose: () => { } }),

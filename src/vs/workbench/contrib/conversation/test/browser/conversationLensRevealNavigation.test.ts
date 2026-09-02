@@ -12,6 +12,8 @@ import { ConversationLens } from '../../browser/conversationLens.js';
 import { ConversationTrajectory } from '../../browser/conversationTrajectory.js';
 import { ConversationTimelineTree } from '../../browser/conversationTimelineTree.js';
 import { ConversationStubService, IConversationRosterService } from '../../browser/conversationStubService.js';
+import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
+import { createConversationConnectionTestStub } from '../common/conversationConnectionTestStub.js';
 import { IConversationTimelineRevealService } from '../../browser/conversationTimelineRevealService.js';
 import { IConversationReviewNavService } from '../../common/conversationReviewEntry.js';
 import { IClipboardService } from '../../../../../platform/clipboard/common/clipboardService.js';
@@ -94,6 +96,7 @@ suite('ConversationLens reveal navigation (T5a)', () => {
 		const stubService = store.add(new ConversationStubService());
 		stubService.createSession();
 		instantiationService.stub(IConversationRosterService, stubService);
+		instantiationService.stub(IUniverseAgentConnection, createConversationConnectionTestStub());
 		instantiationService.stub(IConversationTimelineRevealService, {
 			_serviceBrand: undefined,
 			registerLens: () => ({ dispose: () => { } }),
