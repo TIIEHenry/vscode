@@ -4,7 +4,7 @@ type: reference
 status: accepted
 phase: N/A
 updated: 2026-09-02
-summary: "已知 gRPC 服务 / RPC 名与本仓用途；§1 Conversation（A1/A2）+ Device Grant；§1b P0/P1a/P1b/P2a/P2b 已绑定；Engine catalog list/toggle + 写 RPC @ f49615a1；§7 Engine 页四节；§5 会话面对照；§11 Navigator/Review；§4 G-NAV-* / G-REV-* / G-ENG-*；G-CONV-1 待 Q3 消费"
+summary: "已知 gRPC 服务 / RPC 名与本仓用途；§1 Conversation（A1/A2）+ Device Grant；§1b P0/P1a/P1b/P2a/P2b 已绑定；Engine catalog list/toggle + 写 RPC @ f49615a1；§7 Engine 页四节；§5 会话面对照；§11 Navigator/Review；§4 G-NAV-* / G-REV-* / G-ENG-*；G-CONV-1 生产者 P2b + 轨迹 Q3 已消费 attribution"
 ---
 
 # UniverseAgent 引擎协议面（本仓消费口径）
@@ -102,7 +102,7 @@ Connect 后 `probeEngineCapabilities`：**仅**广告了 method 且 probe 非 `U
 | **G-ENG-2** Rules Remote gRPC | Engine 页 Rules（Instructions） | `RulesBridge` 仅 Desktop 进程内；IDE 一律 unsupported。原「Rules Remote gRPC」行合并至此 |
 | **G-ENG-3** `ListHookPoints`（或握手带版本化点位表） | Engine 页 Hooks「来自引擎」 | 原行改编号；闭合前 Hooks 节只显示 unsupported |
 | **G-ENG-4** Agent profile `model.json` 写路径 | Agents 节 Model 子 tab | `SaveAgentProfileRequest.AgentProfileProto` 无 `model` / `modelType` / `maxTurns`，引擎 mapper 写死 null；Model 子 tab 在引擎补字段前只能是 unsupported |
-| **G-CONV-1** compact 事实进入 session-core | 轨迹 `compacted` 记录 | **P2b 生产者已落**：host 只从 L2 取行身份（`branch_reason` compact / `EnvelopeRangeReplaced(reason=COMPACT)` 单独成立）→ `ItemAttribution.branchReason:'compact'` + `compacted{…}`。`ContextCompactedEvent` 仍非显示源、不订阅。**待 B Q3 消费** attribution 发出轨迹 compacted 行 |
+| **G-CONV-1** compact 事实进入 session-core | 轨迹 `compacted` 记录 | **P2b 生产者已落** + **Q3 已消费**：host 只从 L2 取行身份（`branch_reason` compact / `EnvelopeRangeReplaced(reason=COMPACT)` 单独成立）→ `ItemAttribution.branchReason:'compact'` + `compacted{…}`。轨迹 `projectSnapshotToTrajectory` 只据此 emit；无 attribution 则零行。`ContextCompactedEvent` 仍非显示源、不订阅 |
 | 独立 CreateSkill RPC（或等价新建 UI） | E1 新建技能 | Skill **新建** UI 已落 @ `e6167c45`（写文件后 `ListSkills` 刷新）；独立 RPC 仍缺 |
 | `SaveSkillContent` node gRPC 传输 | —（**已闭** @ `45fa7a35`/`040c823d`） | `grpcClient` / `grpcTransport` / `universeAgentConnectionService` 动态绑定；单测 `universeAgentConnection.test.ts` |
 | Agent profile `tools.json` / `model.json` 独立 UI | Engine 页目录三件套附件编辑 | `AGENTS.md` 正文 @ `9419f583` 已落；`tools.json` 经 Tools 节 checkbox；`model.json` 仍无独立编辑器 |
@@ -117,7 +117,7 @@ Connect 后 `probeEngineCapabilities`：**仅**广告了 method 且 probe 非 `U
 | 会话枚举 / 创建 / 删除 | `getSessions` … `deleteSession` | `SessionService.List` / `Create` / `Delete`；`work_dir` 过滤随 Connect。已连接时首次 `List` 完成前 roster **不**含 stub 种子行 |
 | 切换 / 重命名 | `switchSession` / `renameSession` | 切换 = 客户端 `activeSessionId` 投影（**无** `SwitchSession` RPC）。重命名 HEAD 仍走本地 `renameSession`；proto `AgentService.Rename` **未接** |
 | 回合流（用户 / 助手 / thinking / tool / …） | `getTurns`、`onDidChangeSession` | `SessionService.GetHistory`（`cursor_seq`）+ `SessionEventStream` → session-core fold → `ViewFrame`；renderer 经 `IUniverseAgentSessionView` / `acquireSessionView` |
-| 轨迹记录 | `getTrajectoryRecords(sessionId, { filterAgentId? }?)` | HEAD：`projectSnapshotToTrajectory(snapshot, attribution, details, options)` 从 lease/帧源投影；stub 仅 `untitled` 且未连接时 ∪ fixture extras；UA 会话**不** merge fixture；**P2a** `requestDetail` / `FetchToolDetail` 通道已接通（renderer 帧源 upsert `outcome.content`；stub 本地 `requestDetail`）；**P2b** 已投影 `ItemAttribution.compacted`（browser 不产出）；轨迹 compacted 行待 B Q3。Overview 瀑布 Deferred。活 Event fold 全文仍 M6-D / PRD-008 |
+| 轨迹记录 | `getTrajectoryRecords(sessionId, { filterAgentId? }?)` | HEAD：`projectSnapshotToTrajectory(snapshot, attribution, details, options)` 从 lease/帧源投影；stub 仅 `untitled` 且未连接时 ∪ fixture extras（**无** compacted 伪造行）；UA 会话**不** merge fixture；**P2a** `requestDetail` / `FetchToolDetail` 通道已接通（renderer 帧源 upsert `outcome.content`；stub 本地 `requestDetail`）；**P2b** 已投影 `ItemAttribution.compacted`（browser 不产出）；**Q3** 消费 attribution emit `compacted` 行（未投影则零行）。Overview 瀑布 Deferred。活 Event fold 全文仍 M6-D / PRD-008 |
 | 权限请求 / 回执 | `resolveConfirmation`、`countPendingConfirmations` | 流内 L4 `permission_request` → `pendingActions`；应答经 `AgentService.Chat` 臂（`permissionRespond` fact）；`PermissionService.Respond` 为文档化备选 |
 | MessageQueue | `getMessageQueueState` 与五个操作 | **仍 fixture**；`AgentService.EnqueueQueueItem` 族未进 roster adapter |
 | AutoDrive / Task 列表 | `getAutoDriveTasks` | **仍 fixture**；`PermissionService.SetSessionGoal` 未接 |

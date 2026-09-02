@@ -4,7 +4,7 @@ type: plan
 status: implemented
 phase: N/A
 updated: 2026-09-02
-summary: "SessionBar 对话|轨迹 tablist；T1–T3 @ `b08ca9de`–`3e2ac61f`；T5a @ `f66c36c9`；**T4** Event fold @ `5104678e`；**T5** 搜索/虚拟化 @ `94267eef`；Overview / DetailRef 全文 / `compacted` emit 仍 Deferred"
+summary: "SessionBar 对话|轨迹 tablist；T1–T3 @ `b08ca9de`–`3e2ac61f`；T5a @ `f66c36c9`；**T4** Event fold @ `5104678e`；**T5** 搜索/虚拟化 @ `94267eef`；Q3 compacted 消费 P2b attribution；Overview / DetailRef 全文仍 Deferred"
 ---
 
 # Conversation 轨迹透镜
@@ -15,7 +15,7 @@ summary: "SessionBar 对话|轨迹 tablist；T1–T3 @ `b08ca9de`–`3e2ac61f`�
 > 内容对照（只取 view-model / 记录种类，不搬 React）：sibling `deepseek-harness/packages/client/ui-trajectory/`。  
 > 透镜组装：[page-access-schemes.md](page-access-schemes.md) §4 三槽冻结；本方案只在 SessionBar 加闭集切换、在 `timeline` 槽换阅读面。  
 > 本方案 Grok 只读审查（Approve with changes）已当轮改入；2026-09-01 用户签收。Opus 5.0 因账单未付未跑。  
-> **签收：** T1–T3 已合入（`b08ca9de`–`3e2ac61f`）；T5a reveal 子集 @ `f66c36c9`；**T4** Event fold 替换 fixture @ `5104678e`；**T5** 搜索/虚拟化 @ `94267eef`；Overview 瀑布条 / DetailRef 全文 / `compacted` demux 投影 **仍 Deferred**（stream-timeline §6 G2/G3）。
+> **签收：** T1–T3 已合入（`b08ca9de`–`3e2ac61f`）；T5a reveal 子集 @ `f66c36c9`；**T4** Event fold 替换 fixture @ `5104678e`；**T5** 搜索/虚拟化 @ `94267eef`；**Q3** compacted 消费 P2b attribution emit。Overview 瀑布条 / DetailRef 全文 **仍 Deferred**（stream-timeline §6 G2/G3）。
 
 **Goal：** 在默认 Code 窗口 `CONVERSATION_PART` 上提供不可关闭的「对话 | 轨迹」两页。对话页是压缩阅读。轨迹页是同一会话的详细列表，强制显示对话隐去的注入 / chip / 环境，并对长工具段复用过程折 overlay（默认展开）。无引擎用 stub fixture，不冒充已接引擎。
 
@@ -102,7 +102,7 @@ T1 断言：宿主宽 300px 时两枚 tab `offsetWidth > 0`；bar 计算高度�
 
 **T1–T2 必出现：** `user` / `context` / `system` / `message`（PRD-012.3）。  
 **T3 必出现：** 一对 Stub **`tool` + 缩进 `subtool`**，以及过程折 overlay（默认展开）；context / SYSTEM 在折外。  
-**T4：** 活数据替换 fixture。`compacted` 仍预留，且始终在折外。  
+**T4：** 活数据替换 fixture。`compacted` 由 Q3 从 P2b attribution emit，且始终在折外。  
 **Q5a：** `permission` / `question` / `error` / `unknown` **进轨迹**独立 kind（搜索 haystack、reveal、5000 截断一并计入）。PRD-012 禁止的是自动切页与进过程折，**不是**轨迹出现权限/提问记录。
 
 | kind | 对话页 | 轨迹页 | 来源 |
@@ -114,7 +114,7 @@ T1 断言：宿主宽 300px 时两枚 tab `offsetWidth > 0`；bar 计算高度�
 | `tool` | 过程折里的工具行 | 过程折内的检查父行 + payload | 根 tool call |
 | `subtool` | 过程折内缩进（不另起一层 Activity） | 相对父 `tool` 再缩进 | `parentCallId` |
 | `thinking` | 对话 `reasoning` 投影 | 过程折内 Thinking 层（**本仓扩展**，DSH `TrajectoryCellKind` 无此项） | 思考块 |
-| `compacted` | 不渲染 | 预留 | compaction |
+| `compacted` | 不渲染 | P2b attribution emit（无则零行） | L2 `branchReason==='compact'` + `compacted{…}` |
 | `permission` | 独立权限座位（Allow / Skip） | 记录 + 请求/决定摘要 | snapshot `permission` |
 | `question` | 独立提问座位（非 Allow/Skip，不标 Stub） | 记录 + 选项/答案摘要 | snapshot `question` |
 | `error` | 独立诚实行；按 `retryable` 显示重试 | 独立 kind | snapshot `error` |
@@ -146,6 +146,14 @@ interface ConversationTrajectoryRecord {
 	readonly callId?: string;
 	readonly parentCallId?: string; // subtool → 父 tool；对照 harness，无则平铺
 	readonly depth?: number;       // 0 = 根 tool；subtool ≥ 1
+	readonly compactedRange?: string;
+	readonly compactedReason?: string;
+	readonly compactedSummary?: string;
+	readonly compactedAnchorTurnId?: string;
+	readonly compactedFoldedLeafTurnId?: string;
+	readonly compactedBranchTurnId?: string;
+	readonly compactedTokensBefore?: number; // 仅当 attribution 富化存在
+	readonly compactedTokensAfter?: number;
 }
 ```
 
@@ -219,9 +227,9 @@ interface ConversationTrajectoryRecord {
 | T3 | 轨迹表 + 检查器 + tool/subtool 缩进 + **过程折 overlay（默认展开；SYSTEM/context 在折外）** | `conversationTrajectoryUi.test.ts` | 否 |
 | T4 | 引擎 Event fold 替换 fixture（含真 tool 树） | **已落** @ `5104678e`（`projectSnapshotToTrajectory`；有界 preview，非 DetailRef 全文） | 是 |
 | T5a | 对话 ↔ 轨迹双向 reveal（非 Inbox）：turn 菜单 View in Trajectory；轨迹行链回对话并 `revealTurn` / `revealRecord` | lens + 轨迹导航 wiring（`f66c36c9`；无专属测试文件） | 否 |
-| T5 | 搜索、虚拟化、Overview | **部分已落** @ `94267eef`（搜索 + 虚拟化 + PRD-020 超限提示）；**Overview / DetailRef 全文 / `compacted` emit 仍 Deferred** | 是 |
+| T5 | 搜索、虚拟化、Overview | **部分已落** @ `94267eef`（搜索 + 虚拟化 + PRD-020 超限提示）；**Q3** compacted emit 已消费 attribution；**Overview / DetailRef 全文仍 Deferred** | 是 |
 
-**Implemented：** **T1–T3**（`b08ca9de`–`3e2ac61f`）；**T5a**（`f66c36c9`）；**T4**（`5104678e`）；**T5** 搜索/虚拟化（`94267eef`）。**仍 Deferred：** Overview 瀑布条；DetailRef 按需全文（G3）；`compacted` 行 demux 投影（G2/G3）。
+**Implemented：** **T1–T3**（`b08ca9de`–`3e2ac61f`）；**T5a**（`f66c36c9`）；**T4**（`5104678e`）；**T5** 搜索/虚拟化（`94267eef`）；**Q3** compacted attribution emit。**仍 Deferred：** Overview 瀑布条；DetailRef 按需全文（G3）。
 
 T1 与 page-access / M5：**不**改 `agentSessionsActions.ts`、roster `onDidOpen`、Chat 路由。SessionBar 只加 tablist + 上列收缩。**不**提前删 SelectBox。
 
