@@ -5,6 +5,7 @@
 
 import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { TestConfigurationService } from '../../../../../platform/configuration/test/common/testConfigurationService.js';
 import { EditorInput } from '../../../../common/editor/editorInput.js';
 import { ConversationPart } from '../../../../browser/parts/conversation/conversationPart.js';
 import { Parts } from '../../../../services/layout/browser/layoutService.js';
@@ -47,5 +48,20 @@ suite('ConversationPart', () => {
 		const hideControl = part.getContainer()?.querySelector('.part-region-hide-actions .action-label');
 		assert.ok(hideControl);
 		assert.strictEqual(hideControl.getAttribute('aria-label'), 'Hide Conversation');
+	});
+
+	test('focus fires onDidFocus even when autoFocus is off', () => {
+		const instantiationService = workbenchInstantiationService({
+			configurationService: () => new TestConfigurationService({
+				'ua.client.chatInput.autoFocus': false,
+			}),
+		}, store);
+		const part = store.add(instantiationService.createInstance(ConversationPart));
+		const parent = document.createElement('div');
+		part.create(parent);
+		let fired = 0;
+		store.add(part.onDidFocus(() => fired++));
+		part.focus();
+		assert.strictEqual(fired, 1);
 	});
 });

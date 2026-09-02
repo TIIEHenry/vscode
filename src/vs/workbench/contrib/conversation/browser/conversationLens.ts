@@ -1292,6 +1292,7 @@ export class ConversationLens extends Disposable {
 			this.writeComposerDraft(previousId, this.dockTextarea.value);
 			this.stubService.switchSession(sessionId);
 		}
+		// CS-4 openPendingOnFocus: showConversationPart → Part.focus → onDidFocus (contrib scrolls once).
 		this.instantiationService.invokeFunction(showConversationPart);
 	}
 

@@ -259,6 +259,7 @@ suite('Settings UA TOC', () => {
 			'ua.client.keyboardEnter.behavior',
 			'ua.client.notifications.permissionRequests',
 			'ua.client.notifications.turnCompleted',
+			'ua.client.permissions.openPendingOnFocus',
 			'ua.client.startup.restoreLastSession',
 		]);
 	});

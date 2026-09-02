@@ -13,6 +13,7 @@ import {
 	UA_CLIENT_KEYBOARD_ENTER_BEHAVIOR,
 	UA_CLIENT_NOTIFICATIONS_PERMISSION_REQUESTS,
 	UA_CLIENT_NOTIFICATIONS_TURN_COMPLETED,
+	UA_CLIENT_PERMISSIONS_OPEN_PENDING_ON_FOCUS,
 	UA_CLIENT_STARTUP_RESTORE_LAST_SESSION,
 } from './uaClientSettingsKeys.js';
 
@@ -93,6 +94,15 @@ export function registerUaClientSettings(): void {
 				description: localize(
 					'ua.client.notifications.turnCompleted',
 					"Show a window toast when an inactive engine session finishes a turn (window scope). A session is inactive when it is not the active session or Conversation is hidden. Local stub sessions do not produce this toast. Applies immediately. Not an operating-system notification.",
+				),
+				scope: ConfigurationScope.WINDOW,
+			},
+			[UA_CLIENT_PERMISSIONS_OPEN_PENDING_ON_FOCUS]: {
+				type: 'boolean',
+				default: true,
+				description: localize(
+					'ua.client.permissions.openPendingOnFocus',
+					"When returning to Conversation (switching session or focusing the Conversation part), scroll to the first pending permission or question seat if one exists (window scope). Does not grant, deny, Allow, or Skip. Applies immediately.",
 				),
 				scope: ConfigurationScope.WINDOW,
 			},
