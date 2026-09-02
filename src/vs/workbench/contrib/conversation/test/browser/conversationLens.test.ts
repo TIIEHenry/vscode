@@ -73,6 +73,8 @@ import { TestStorageService } from '../../../../test/common/workbenchTestService
 import { IExtensionService } from '../../../../services/extensions/common/extensions.js';
 import { ILayoutService } from '../../../../../platform/layout/browser/layoutService.js';
 import { IWebviewService } from '../../../webview/browser/webview.js';
+import { IConversationTimelineRevealService } from '../../browser/conversationTimelineRevealService.js';
+import { IConversationReviewNavService } from '../../common/conversationReviewEntry.js';
 
 suite('ConversationLens', () => {
 
@@ -351,6 +353,16 @@ suite('ConversationLens', () => {
 		const clipboardService = new TestClipboardService();
 		const openInEditorCalls = { count: 0 };
 		instantiationService.stub(IConversationRosterService, stubService);
+		instantiationService.stub(IConversationTimelineRevealService, {
+			_serviceBrand: undefined,
+			registerLens: () => ({ dispose: () => { } }),
+			revealItem: () => { },
+		});
+		instantiationService.stub(IConversationReviewNavService, {
+			_serviceBrand: undefined,
+			onDidChange: Event.None,
+			getReviewNavForSession: () => [],
+		});
 		instantiationService.stub(IClipboardService, clipboardService);
 		instantiationService.stub(ICommandService, new class implements ICommandService {
 			declare readonly _serviceBrand: undefined;
