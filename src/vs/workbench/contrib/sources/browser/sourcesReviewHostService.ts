@@ -22,6 +22,10 @@ export class SourcesReviewHostService extends Disposable implements ISourcesRevi
 		this.reviewListHost?.selectReviewTab();
 		this.reviewListHost?.setPathFilter(paths.length > 0 ? paths : undefined);
 	}
+
+	getReviewListHost(): ISourcesReviewListHost | undefined {
+		return this.reviewListHost;
+	}
 }
 
 registerSingleton(ISourcesReviewHostService, SourcesReviewHostService, InstantiationType.Delayed);

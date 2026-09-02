@@ -297,6 +297,22 @@ export class SourcesReviewList extends Disposable {
 		this.scheduleRefresh();
 	}
 
+	getSelectedEntry(): ISourcesReviewEntry | undefined {
+		return this.list?.getSelectedElements()[0];
+	}
+
+	toggleReviewedSelected(): void {
+		const entry = this.getSelectedEntry();
+		if (!entry) {
+			return;
+		}
+		this.toggleEntryReview(entry);
+	}
+
+	markAllReviewed(): void {
+		this.markAllVisibleReviewed();
+	}
+
 	private registerRepository(repo: ISCMRepository): void {
 		if (this.repositoryListeners.has(repo)) {
 			return;
