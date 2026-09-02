@@ -1689,3 +1689,19 @@
 	flex: 1;
 	min-height: 80px;
 }
+
+.monaco-workbench .part.conversation .conversation-review-nav {
+	display: block;
+	margin: 4px 12px 8px;
+	padding: 4px 8px;
+	border: none;
+	background: transparent;
+	color: var(--vscode-textLink-foreground);
+	cursor: pointer;
+	text-align: start;
+	font-size: 12px;
+}
+
+.monaco-workbench .part.conversation .conversation-review-nav:hover {
+	text-decoration: underline;
+}

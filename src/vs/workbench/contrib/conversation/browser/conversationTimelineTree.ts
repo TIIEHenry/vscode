@@ -67,6 +67,7 @@ export interface IConversationTimelineTreeOptions {
 	readonly onDeleteTurn?: (turnId: string) => void;
 	readonly onEditUserTurn?: (turnId: string) => void;
 	readonly onViewInTrajectory?: (turnId: string) => void;
+	readonly onReviewNavClick?: (paths: readonly string[]) => void;
 	readonly onOpenVisualizeFullscreen?: (source: string, title?: string) => void;
 	readonly contentAdapter?: IConversationTurnContentAdapter;
 	readonly paddingBottom?: number;
@@ -83,7 +84,13 @@ class ConversationTimelineDelegate implements IListVirtualDelegate<ConversationT
 
 	getHeight(element: ConversationTimelineItem): number {
 		const key = this.heightKey(element);
-		return this.heights.get(key) ?? (element.variant === 'process-fold' ? 40 : 72);
+		if (this.heights.has(key)) {
+			return this.heights.get(key)!;
+		}
+		if (element.turn.kind === 'reviewNav') {
+			return 36;
+		}
+		return element.variant === 'process-fold' ? 40 : 72;
 	}
 
 	getTemplateId(element: ConversationTimelineItem): string {
@@ -128,6 +135,7 @@ class ConversationTimelineRenderer implements ITreeRenderer<ConversationTimeline
 		private readonly onDeleteTurn: ((turnId: string) => void) | undefined,
 		private readonly onEditUserTurn: ((turnId: string) => void) | undefined,
 		private readonly onViewInTrajectory: ((turnId: string) => void) | undefined,
+		private readonly onReviewNavClick: ((paths: readonly string[]) => void) | undefined,
 		private readonly getEditingTurnId: () => string | undefined,
 		private readonly onOpenVisualizeFullscreen: ((source: string, title?: string) => void) | undefined,
 		private readonly getMermaidExtensionInfo: () => ConversationMermaidExtensionInfo | undefined,
@@ -179,6 +187,22 @@ class ConversationTimelineRenderer implements ITreeRenderer<ConversationTimeline
 				onViewInTrajectory: this.onViewInTrajectory,
 				onLayoutChange: () => this.scheduleHeightUpdate(item, templateData.container),
 			}, templateData.disposables);
+			this.scheduleHeightUpdate(item, templateData.container);
+			return;
+		}
+
+		if (turn.kind === 'reviewNav') {
+			const button = append(templateData.container, $('button.conversation-review-nav')) as HTMLButtonElement;
+			button.type = 'button';
+			button.textContent = turn.text;
+			button.setAttribute('data-turn-id', turn.id);
+			button.setAttribute('data-kind', turn.kind);
+			if (this.onReviewNavClick && turn.reviewNavPaths && turn.reviewNavPaths.length > 0) {
+				templateData.disposables.add(addDisposableListener(button, 'click', (e) => {
+					e.stopPropagation();
+					this.onReviewNavClick!(turn.reviewNavPaths!);
+				}));
+			}
 			this.scheduleHeightUpdate(item, templateData.container);
 			return;
 		}
@@ -575,6 +599,7 @@ export class ConversationTimelineTree extends Disposable {
 			options.onDeleteTurn,
 			options.onEditUserTurn,
 			options.onViewInTrajectory,
+			options.onReviewNavClick,
 			() => this.editingTurnId,
 			options.onOpenVisualizeFullscreen,
 			() => this.mermaidExtensionInfo,

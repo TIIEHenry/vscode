@@ -36,7 +36,7 @@ import { ConfirmationStatus, ConversationStubTurn, StubTurnKind } from './conver
  * `stubTurnsToSnapshot`, so the stub and the engine share one render path.
  */
 
-export type ConversationTimelineEntryKind = StubTurnKind | 'system' | 'question' | 'error' | 'unknown';
+export type ConversationTimelineEntryKind = StubTurnKind | 'system' | 'question' | 'error' | 'unknown' | 'reviewNav';
 
 export interface ConversationTimelineEntry {
 	readonly id: string;
@@ -57,6 +57,8 @@ export interface ConversationTimelineEntry {
 	readonly retryable?: boolean;
 	/** `unknown` entries: verbatim upstream type name. */
 	readonly typeName?: string;
+	/** `reviewNav` entries: workspace file URIs (string form) opened via Sources Review. */
+	readonly reviewNavPaths?: readonly string[];
 }
 
 export interface ConversationSessionViewProjection {
@@ -357,6 +359,14 @@ function isStubTurnKind(kind: ConversationTimelineEntryKind): kind is StubTurnKi
 
 /** Maps a product entry to a renderer turn; non-stub kinds degrade to assistant chrome. */
 export function entryToRenderableTurn(entry: ConversationTimelineEntry): ConversationStubTurn {
+	if (entry.kind === 'reviewNav') {
+		return {
+			id: entry.id,
+			kind: 'reviewNav',
+			text: entry.text,
+			reviewNavPaths: entry.reviewNavPaths,
+		};
+	}
 	if (isStubTurnKind(entry.kind)) {
 		return {
 			id: entry.id,

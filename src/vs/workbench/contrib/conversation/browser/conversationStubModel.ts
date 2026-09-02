@@ -17,7 +17,7 @@ import {
 	projectTurnsToTrajectory,
 } from './conversationTrajectoryModel.js';
 
-export type StubTurnKind = 'user' | 'assistant' | 'confirmation' | 'thinking' | 'tool' | 'visualization';
+export type StubTurnKind = 'user' | 'assistant' | 'confirmation' | 'thinking' | 'tool' | 'visualization' | 'reviewNav';
 export type ConfirmationStatus = 'pending' | 'allowed' | 'skipped';
 
 export interface ConversationStubTurn {
@@ -30,6 +30,8 @@ export interface ConversationStubTurn {
 	readonly summary?: string;
 	readonly payload?: string;
 	readonly visualize?: ConversationVisualizeArgs;
+	/** Review navigation row (PRD-023 §2.4); not part of legacy stub fixtures. */
+	readonly reviewNavPaths?: readonly string[];
 }
 
 export interface ConversationStubSession {

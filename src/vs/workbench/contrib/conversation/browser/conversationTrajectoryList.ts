@@ -94,6 +94,8 @@ export function getConversationTurnRoleLabel(kind: StubTurnKind): string {
 			return localize('conversationLens.turnTool', "Tool");
 		case 'visualization':
 			return localize('conversationVisualize.turnLabel', "Visualize");
+		case 'reviewNav':
+			return localize('conversationReviewEntry.turnLabel', "Review");
 	}
 }
 

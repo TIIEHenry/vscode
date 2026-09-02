@@ -14,6 +14,9 @@ import { Disposable, DisposableStore, toDisposable } from '../../../../base/comm
 import { ThemeIcon } from '../../../../base/common/themables.js';
 import { localize } from '../../../../nls.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
+import { ICommandService } from '../../../../platform/commands/common/commands.js';
+import { URI } from '../../../../base/common/uri.js';
+import { SOURCES_REVIEW_SHOW_FOR_PATHS_COMMAND } from '../../sources/browser/sourcesReview.contribution.js';
 import { IClipboardService } from '../../../../platform/clipboard/common/clipboardService.js';
 import { IContextViewService, IOpenContextView } from '../../../../platform/contextview/browser/contextView.js';
 import { IStorageService, StorageScope, StorageTarget } from '../../../../platform/storage/common/storage.js';
@@ -25,6 +28,8 @@ import { ConversationInboxOverlay } from './conversationInboxOverlay.js';
 import { ConversationTimelineTree } from './conversationTimelineTree.js';
 import { ConversationTrajectory } from './conversationTrajectory.js';
 import { projectSnapshotToEntries, formatSyncChromeLabel } from './conversationSessionView.js';
+import type { ConversationTimelineEntry } from './conversationSessionView.js';
+import { attachReviewEntries, computeReviewNavSidecarApplied, IConversationReviewNavService } from '../common/conversationReviewEntry.js';
 import { ConversationSessionViewFrameCoalescer } from './conversationSessionViewFrameCoalescer.js';
 import type { ConversationViewFrameApplied } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
 import type { IConversationSessionViewLease } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
@@ -203,6 +208,7 @@ export class ConversationLens extends Disposable {
 	private readonly visualizeOverlay: ConversationVisualizeOverlay;
 	private sessionViewLease: IConversationSessionViewLease | undefined;
 	private readonly sessionViewLifetime = this._register(new DisposableStore());
+	private lastAttachedEntries: ConversationTimelineEntry[] = [];
 
 	constructor(
 		slots: IConversationLensSlots,
@@ -215,10 +221,15 @@ export class ConversationLens extends Disposable {
 		@IExtensionService private readonly extensionService: IExtensionService,
 		@IWebviewService private readonly webviewService: IWebviewService,
 		@IConversationTimelineRevealService revealService: IConversationTimelineRevealService,
+		@IConversationReviewNavService private readonly reviewNavService: IConversationReviewNavService,
+		@ICommandService private readonly commandService: ICommandService,
 	) {
 		super();
 
 		this._register(revealService.registerLens(this));
+		this._register(this.reviewNavService.onDidChange(() => {
+			this.applySessionViewTimeline({ kind: 'patches', changedIds: new Set() }, { sidecarOnly: true });
+		}));
 
 		this.slotHosts = slots;
 		this.visualizeOverlay = this._register(this.instantiationService.createInstance(ConversationVisualizeOverlay));
@@ -534,6 +545,12 @@ export class ConversationLens extends Disposable {
 			onDeleteTurn: turnId => this.deleteTurn(turnId),
 			onEditUserTurn: turnId => this.beginTurnEdit(turnId),
 			onViewInTrajectory: turnId => this.navigateToTrajectoryFromTurn(turnId),
+			onReviewNavClick: paths => {
+				void this.commandService.executeCommand(
+					SOURCES_REVIEW_SHOW_FOR_PATHS_COMMAND,
+					paths.map(path => URI.parse(path)),
+				);
+			},
 			onOpenVisualizeFullscreen: (source, title) => this.openVisualizeOverlay(source, title),
 		}));
 		this.trajectoryView = this._register(this.instantiationService.createInstance(ConversationTrajectory, this.readingColumn, {
@@ -1273,16 +1290,32 @@ export class ConversationLens extends Disposable {
 		this.applySessionViewTimeline({ kind: 'baseline' });
 	}
 
-	private applySessionViewTimeline(applied: ConversationViewFrameApplied): void {
+	private applySessionViewTimeline(
+		applied: ConversationViewFrameApplied,
+		options?: { readonly sidecarOnly?: boolean },
+	): void {
 		if (!this.sessionViewLease) {
 			return;
 		}
-		const entries = projectSnapshotToEntries(
+		const baseEntries = projectSnapshotToEntries(
 			this.sessionViewLease.snapshot,
 			this.sessionViewLease.attribution,
 			this.sessionViewLease.details,
 		);
-		this.timelineTree.applyEntries(entries, applied);
+		const reviewNav = this.reviewNavService.getReviewNavForSession(this.sessionViewLease.sessionId);
+		const entries = attachReviewEntries(baseEntries, this.sessionViewLease.snapshot, reviewNav);
+
+		let effectiveApplied = applied;
+		if (options?.sidecarOnly) {
+			effectiveApplied = computeReviewNavSidecarApplied(this.lastAttachedEntries, entries);
+			if (effectiveApplied.kind === 'patches' && effectiveApplied.changedIds.size === 0) {
+				this.lastAttachedEntries = entries;
+				return;
+			}
+		}
+
+		this.lastAttachedEntries = entries;
+		this.timelineTree.applyEntries(entries, effectiveApplied);
 		if (this.lensId === 'trajectory') {
 			this.refreshTrajectoryRecords(this.sessionViewLease.sessionId);
 		}
