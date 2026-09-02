@@ -93,10 +93,6 @@ function mapChangedIdsToTreeIds(
 		if (rawId === 'sync' || rawId.startsWith('pending:')) {
 			continue;
 		}
-		if (rawId.startsWith('overlay:')) {
-			rerenderIds.add(rawId);
-			continue;
-		}
 		if (rawId.startsWith('send:')) {
 			rerenderIds.add(rawId);
 			continue;

@@ -4,7 +4,7 @@ type: architecture
 status: accepted
 phase: N/A
 updated: 2026-09-02
-summary: "ConversationEditorPane 页 chrome；「对话 | 轨迹」双透镜；帧源 projectSnapshotToTrajectory + T5 搜索/虚拟化；子代理 filterAgentId；DetailRef 六态经 P2a requestDetail；轨迹含 permission/question/error/unknown；Q3 compacted 只消费 P2b attribution；Overview 仍 Deferred；PRD-003 / 012 / 013 / 014 / 020 / 021"
+summary: "ConversationEditorPane 页 chrome；「对话 | 轨迹」双透镜；帧源 projectSnapshotToTrajectory + T5 搜索/虚拟化；子代理 filterAgentId；DetailRef 六态经 P2a requestDetail；轨迹含 permission/question/error/unknown；Q3 compacted 只消费 P2b attribution；Q4 live 过程折按 fold:${firstId} 保留展开；Overview 仍 Deferred；PRD-003 / 012 / 013 / 014 / 020 / 021"
 ---
 
 # Conversation 透镜、时间线与轨迹
@@ -84,9 +84,10 @@ Stub fixture：`mergeTrajectoryFixtureExtras` 仅 seed `untitled`、且 `!isEngi
 
 模型：`conversationProcessFoldModel.ts`。
 
-- 对话页：`projectProcessFoldSpans(turns)` — 连续 thinking / tool 成一个 span；user、assistant、confirmation、question、error、unknown、system 打断。`nestThinkingTools` 把工具行缩进到最近的 thinking 下。
+- 对话页：`projectProcessFoldSpans(turns)` — 连续 thinking / tool 成一个 span（同一 turn 的 live reasoning/tool 同 span）；user、assistant、confirmation、question、error、unknown、system 打断。`nestThinkingTools` 把工具行缩进到最近的 thinking 下。span id = `fold:${firstId}`。L3 `overlay:${blockId}` 与 L2 **零关联**：禁止为保展开去推断对应；overlay 做段首时 id 变成 `fold:overlay:…`，展开重置是合同行为。
 - 轨迹页：`projectTrajectoryProcessFoldSpans(records)` — thinking / tool / subtool 成 span；user、context、system、message、compacted、permission、question、error、unknown 打断，**始终在折外**。
-- 外层摘要 `summarizeProcessSteps` / `summarizeTrajectoryProcessSteps` 必含 `Stub`（PRD-013 验收 4），无假耗时。
+- live 信号：`ConversationTimelineEntry.streaming` 与 tool `toolStatus` 经 `entryToRenderableTurn` 传到渲染层。执行中详情限高内滚；折叠后只稳定摘要；sticky breadcrumb 仅展开且内容超出可视区时出现。完成后换成完成/失败状态。
+- 外层摘要 `summarizeProcessSteps` / `summarizeTrajectoryProcessSteps`：无引擎时必含 `Stub`（PRD-013 验收 4），无假耗时 / loading / live 字样。引擎 live chrome（`showLiveChrome`）才显示 Loading / Running。stub 源永不置 `streaming`。
 - 默认态：对话页收起，轨迹页展开（验收 2）。视图 `conversationProcessFold.ts`；两页共用 overlay 辅助函数，宿主 DOM 各自一套。
 - 折壳不是 Copilot Chat 列表行，也不是 `groupIdentity`；分组按 Desktop ADR-046「平行 span overlay」。
 

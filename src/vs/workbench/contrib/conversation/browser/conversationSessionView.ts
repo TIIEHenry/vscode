@@ -571,6 +571,8 @@ export function stubTurnsToEntries(turns: readonly ConversationStubTurn[]): Conv
 		...(turn.answerKeysValid !== undefined ? { answerKeysValid: turn.answerKeysValid } : {}),
 		...(turn.questionRequestId !== undefined ? { questionRequestId: turn.questionRequestId } : {}),
 		...(turn.reviewNavPaths !== undefined ? { reviewNavPaths: turn.reviewNavPaths } : {}),
+		...(turn.streaming ? { streaming: true } : {}),
+		...(turn.toolStatus !== undefined ? { toolStatus: turn.toolStatus } : {}),
 		...(turn.turnId !== undefined ? { turnId: turn.turnId } : {}),
 	}));
 }

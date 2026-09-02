@@ -54,8 +54,11 @@ export function nestThinkingTools(turns: readonly ConversationStubTurn[]): Proce
 
 /**
  * Projects parallel process-fold spans over a turn timeline (ADR-046 span overlay).
- * Continuous thinking/tool runs form one span. user, assistant, confirmation,
- * question, error, unknown, system, visualization, and reviewNav break spans.
+ * Continuous thinking/tool runs form one span (same-turn live reasoning/tool
+ * stay together). user, assistant, confirmation, question, error, unknown,
+ * system, visualization, and reviewNav break spans.
+ * Span id is `fold:${firstId}` only. Overlay-first spans are `fold:overlay:…`;
+ * that id change on L2 replace resets expand (Q4 — do not infer overlay↔L2).
  */
 export function projectProcessFoldSpans(turns: readonly ConversationStubTurn[]): ProcessFoldSpan[] {
 	const spans: ProcessFoldSpan[] = [];
@@ -75,7 +78,7 @@ export function projectProcessFoldSpans(turns: readonly ConversationStubTurn[]):
 		}
 
 		spans.push({
-			id: processFoldSpanId(segment),
+			id: `fold:${segment[0]!.id}`,
 			startIndex,
 			endIndex,
 			turnIds: segment.map(turn => turn.id),
@@ -96,34 +99,6 @@ export function projectProcessFoldSpans(turns: readonly ConversationStubTurn[]):
 
 	finalizeSpan(turns.length);
 	return spans;
-}
-
-/** Overlay attribution keys share the L2 item id after the `overlay:` prefix (stream-timeline §3.3). */
-export function stripOverlayAttributionPrefix(id: string): string {
-	return id.startsWith('overlay:') ? id.slice('overlay:'.length) : id;
-}
-
-/** Stable process-fold span id: same admitted turn stays one span across overlay → L2. */
-export function processFoldSpanId(segment: readonly ConversationStubTurn[]): string {
-	const admittedTurnId = sharedAdmittedTurnId(segment);
-	if (admittedTurnId) {
-		return `fold:turn:${admittedTurnId}`;
-	}
-	const firstId = segment[0]?.id;
-	return `fold:${firstId ? stripOverlayAttributionPrefix(firstId) : 'empty'}`;
-}
-
-function sharedAdmittedTurnId(segment: readonly ConversationStubTurn[]): string | undefined {
-	const admitted = new Set<string>();
-	for (const turn of segment) {
-		if (turn.turnId) {
-			admitted.add(turn.turnId);
-		}
-	}
-	if (admitted.size !== 1) {
-		return undefined;
-	}
-	return [...admitted][0];
 }
 
 /**
