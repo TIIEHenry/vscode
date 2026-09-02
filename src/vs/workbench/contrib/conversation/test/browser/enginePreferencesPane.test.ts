@@ -11,11 +11,12 @@ import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import {
 	EnginePreferencesPane,
-	getEngineEmptyCopy,
 	getEngineTestStatusText,
 } from '../../browser/enginePreferencesPane.js';
+import { getConnectionPhaseStatusBarText } from '../../browser/conversationSessionStatus.js';
+import { Dimension } from '../../../../../base/browser/dom.js';
 
-const ENGINE_EMPTY_COPY = 'No engines yet';
+const ENGINE_DISCONNECTED_COPY = getConnectionPhaseStatusBarText({ kind: 'disconnected' });
 const FAKE_ENGINE_LABELS = ['Local Engine', '127.0.0.1:8080'];
 
 suite('EnginePreferencesPane', () => {
@@ -92,15 +93,12 @@ suite('EnginePreferencesPane', () => {
 		return pane;
 	}
 
-	test('getEngineTestStatusText returns honest not-connected copy', () => {
-		assert.strictEqual(getEngineTestStatusText(), 'Not connected — no engine.');
+	test('getEngineTestStatusText reuses StatusBar phase copy', () => {
+		assert.strictEqual(getEngineTestStatusText(), ENGINE_DISCONNECTED_COPY);
+		assert.strictEqual(getEngineTestStatusText({ kind: 'connected', path: 'hubRelay' }), 'Engine · Hub relay');
 	});
 
-	test('getEngineEmptyCopy returns honest roster-empty copy', () => {
-		assert.strictEqual(getEngineEmptyCopy(), ENGINE_EMPTY_COPY);
-	});
-
-	test('pane title remains Engine with honest empty welcome when disconnected', () => {
+	test('pane title remains Engine and disconnected banner reuses StatusBar copy', () => {
 		const pane = mountPane(false);
 		const container = pane.getDomNode();
 
@@ -108,9 +106,39 @@ suite('EnginePreferencesPane', () => {
 		assert.ok(title);
 		assert.strictEqual(title.textContent, 'Engine');
 
-		const emptyWelcome = container.querySelector('.engine-empty-welcome') as HTMLElement;
-		assert.ok(emptyWelcome);
-		assert.strictEqual(emptyWelcome.textContent, ENGINE_EMPTY_COPY);
+		assert.strictEqual(container.querySelector('.engine-empty-welcome'), null);
+		const banner = container.querySelector('.engine-preferences-disconnected-copy') as HTMLElement;
+		assert.ok(banner);
+		assert.strictEqual(banner.textContent, ENGINE_DISCONNECTED_COPY);
+		assert.ok(!(container.textContent ?? '').includes('No engines yet'));
+
+		container.remove();
+	});
+
+	test('layout under 600px applies is-narrow and Back returns to nav', () => {
+		const pane = mountPane(false);
+		const container = pane.getDomNode();
+
+		pane.layout(new Dimension(599, 800));
+		assert.ok(container.classList.contains('is-narrow'));
+		assert.ok(!container.classList.contains('is-compact'));
+		assert.ok(container.classList.contains('is-showing-detail'));
+		const back = container.querySelector('.engine-preferences-back') as HTMLButtonElement;
+		assert.ok(back);
+		assert.strictEqual(back.hidden, false);
+
+		back.click();
+		assert.ok(!container.classList.contains('is-showing-detail'));
+		assert.strictEqual(back.hidden, true);
+
+		pane.layout(new Dimension(299, 800));
+		assert.ok(container.classList.contains('is-narrow'));
+		assert.ok(container.classList.contains('is-compact'));
+
+		pane.layout(new Dimension(600, 800));
+		assert.ok(!container.classList.contains('is-narrow'));
+		assert.ok(!container.classList.contains('is-compact'));
+		assert.ok(!container.classList.contains('is-showing-detail'));
 
 		container.remove();
 	});

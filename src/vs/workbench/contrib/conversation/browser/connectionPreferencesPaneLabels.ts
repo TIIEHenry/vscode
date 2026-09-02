@@ -6,6 +6,7 @@
 import { localize } from '../../../../nls.js';
 import type { ConnectionPhase } from '../../../../platform/universeAgent/common/connectionHubTypes.js';
 import type { HubAuthStatus, HubDeviceProjection, HubDirectoryStatus } from '../../../../platform/universeAgent/common/hub.js';
+import { getConnectionPhaseStatusBarText } from './conversationSessionStatus.js';
 
 /** §3.7 presence matrix — device row status label. */
 export function getHubDeviceRowStatusLabel(device: HubDeviceProjection): string {
@@ -69,28 +70,9 @@ export function getHubDirectoryBannerLabel(status: HubDirectoryStatus): string |
 	}
 }
 
-/** Connection phase label for pane device row / profile row (not StatusBar — H4b). */
-export function getConnectionPhasePaneLabel(phase: ConnectionPhase): string {
-	switch (phase.kind) {
-		case 'disconnected':
-			return localize('ua.connectionPhaseDisconnected', "Not connected");
-		case 'connecting':
-			return phase.reason === 'transport_lost'
-				? localize('ua.connectionPhaseReconnecting', "Reconnecting…")
-				: localize('ua.connectionPhaseConnecting', "Connecting…");
-		case 'connected':
-			return phase.path === 'hubRelay'
-				? localize('ua.connectionPhaseConnectedRelay', "Engine · Hub relay")
-				: phase.path === 'direct'
-					? localize('ua.connectionPhaseConnectedDirect', "Engine · Direct")
-					: localize('ua.connectionPhaseConnectedLoopback', "Engine · Loopback");
-		case 'failed':
-			return localize('ua.connectionPhaseFailed', "Connection failed ({0})", phase.code);
-		case 'closed':
-			return localize('ua.connectionPhaseClosed', "Disconnected");
-		default:
-			return localize('ua.connectionPhaseDisconnected', "Not connected");
-	}
+/** Connection / Engine / StatusBar 共用 H4b 文案，不另造「Not connected」。 */
+export function getConnectionPhasePaneLabel(phase: ConnectionPhase, pairingPending = false): string {
+	return getConnectionPhaseStatusBarText(phase, pairingPending);
 }
 
 export const HUB_LOGIN_BUTTON_LABEL = localize('ua.connectionHubLogin', "Sign in");

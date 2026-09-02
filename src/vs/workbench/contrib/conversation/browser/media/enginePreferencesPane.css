@@ -9,6 +9,8 @@
 	height: 100%;
 	padding: 16px 20px;
 	box-sizing: border-box;
+	overflow-x: hidden;
+	min-width: 0;
 }
 
 .monaco-workbench .engine-preferences-title {
@@ -33,10 +35,8 @@
 	margin-top: 8px;
 }
 
-.monaco-workbench .engine-empty-welcome {
-	margin-bottom: 12px;
-	font-size: 13px;
-	opacity: 0.85;
+.monaco-workbench .engine-preferences-pane.is-compact {
+	padding: 8px 10px;
 }
 
 .monaco-workbench .engine-preferences-body {
@@ -46,27 +46,77 @@
 	gap: 16px;
 }
 
-.monaco-workbench .engine-preferences-pane--narrow .engine-preferences-body {
+.monaco-workbench .engine-preferences-pane.is-narrow .engine-preferences-body {
 	flex-direction: column;
 }
 
-.monaco-workbench .engine-preferences-pane--narrow .engine-preferences-nav {
-	flex: 0 0 auto;
+.monaco-workbench .engine-preferences-pane.is-narrow:not(.is-showing-detail) .engine-preferences-detail {
+	display: none;
+}
+
+.monaco-workbench .engine-preferences-pane.is-narrow.is-showing-detail .engine-preferences-nav {
+	display: none;
+}
+
+.monaco-workbench .engine-preferences-pane.is-narrow .engine-preferences-nav {
+	flex: 1 1 auto;
 	min-width: 0;
 	width: 100%;
 	border-right: none;
-	border-bottom: 1px solid var(--vscode-panel-border);
 }
 
-.monaco-workbench .engine-preferences-pane--narrow .engine-rules-scopes,
-.monaco-workbench .engine-preferences-pane--narrow .engine-hooks-layout {
+.monaco-workbench .engine-preferences-pane.is-narrow .engine-rules-scopes,
+.monaco-workbench .engine-preferences-pane.is-narrow .engine-hooks-layout {
 	grid-template-columns: 1fr;
 }
 
-.monaco-workbench .engine-preferences-pane--narrow .engine-provider-model-group-heading {
+.monaco-workbench .engine-preferences-pane.is-narrow .engine-provider-model-group-heading {
 	flex-direction: column;
 	align-items: flex-start;
 	gap: 2px;
+}
+
+.monaco-workbench .engine-preferences-detail-header {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin-bottom: 12px;
+	min-width: 0;
+}
+
+.monaco-workbench .engine-preferences-detail-header .engine-preferences-detail-title {
+	margin: 0;
+	min-width: 0;
+	overflow-wrap: anywhere;
+}
+
+.monaco-workbench .engine-preferences-back {
+	flex: 0 0 auto;
+	border: 1px solid var(--vscode-button-border, var(--vscode-panel-border));
+	background: var(--vscode-button-secondaryBackground);
+	color: var(--vscode-button-secondaryForeground);
+	padding: 2px 8px;
+	font-size: 12px;
+	cursor: pointer;
+}
+
+.monaco-workbench .engine-preferences-pane.is-narrow input,
+.monaco-workbench .engine-preferences-pane.is-narrow textarea,
+.monaco-workbench .engine-preferences-pane.is-narrow select {
+	max-width: 100%;
+	min-width: 0;
+	box-sizing: border-box;
+}
+
+.monaco-workbench .engine-preferences-pane.is-narrow .engine-tools-profile-select {
+	min-width: 0;
+	max-width: 100%;
+}
+
+.monaco-workbench .engine-preferences-pane.is-narrow .engine-agents-editor-textarea,
+.monaco-workbench .engine-preferences-pane.is-narrow .engine-skill-body-textarea {
+	width: 100%;
+	max-width: 100%;
 }
 
 .monaco-workbench .engine-preferences-nav {
@@ -92,7 +142,7 @@
 }
 
 .monaco-workbench .engine-preferences-detail-title {
-	margin: 0 0 12px 0;
+	margin: 0;
 	font-size: 15px;
 	font-weight: 600;
 }
@@ -151,16 +201,16 @@
 	word-break: break-word;
 }
 
-.monaco-workbench .engine-preferences-pane--narrow .engine-overview-row,
-.monaco-workbench .engine-preferences-pane--narrow .engine-overview-capability-row,
+.monaco-workbench .engine-preferences-pane.is-narrow .engine-overview-row,
+.monaco-workbench .engine-preferences-pane.is-narrow .engine-overview-capability-row,
 .monaco-workbench .engine-overview-section--narrow .engine-overview-row,
 .monaco-workbench .engine-overview-section--narrow .engine-overview-capability-row {
 	flex-direction: column;
 	gap: 2px;
 }
 
-.monaco-workbench .engine-preferences-pane--narrow .engine-overview-label,
-.monaco-workbench .engine-preferences-pane--narrow .engine-overview-capability-name,
+.monaco-workbench .engine-preferences-pane.is-narrow .engine-overview-label,
+.monaco-workbench .engine-preferences-pane.is-narrow .engine-overview-capability-name,
 .monaco-workbench .engine-overview-section--narrow .engine-overview-label,
 .monaco-workbench .engine-overview-section--narrow .engine-overview-capability-name {
 	flex: 0 0 auto;

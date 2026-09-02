@@ -13,6 +13,10 @@ export function shouldDrawDesktopConnectionControls(): boolean {
 	return !isWeb;
 }
 
+/** a11y RWD-2：叶级 pane `layout(dimension).width`，不是 Part 宽。 */
+export const PREFERENCES_PANE_NARROW_WIDTH = 600;
+export const PREFERENCES_PANE_COMPACT_WIDTH = 300;
+
 const $ = DOM.$;
 
 export function getEngineSectionDisconnectedCopy(): string {
