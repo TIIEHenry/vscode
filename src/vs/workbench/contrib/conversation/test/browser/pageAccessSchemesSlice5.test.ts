@@ -41,7 +41,7 @@ suite('Page access schemes slice 5 (UI contract)', () => {
 	}
 
 	function getSessionSelectLabel(slots: IConversationLensSlots): string | undefined {
-		const select = slots.sessionBar.querySelector('select.monaco-select-box') as HTMLSelectElement | null;
+		const select = slots.sessionBar.querySelector('.conversation-lens-session-select select.monaco-select-box') as HTMLSelectElement | null;
 		if (!select || select.options.length === 0) {
 			return undefined;
 		}
@@ -165,7 +165,7 @@ suite('Page access schemes slice 5 (UI contract)', () => {
 		assertActiveSessionProjection(stubService, slots);
 	});
 
-	test('Send does not call IChatService.sendRequest (negative mock)', () => {
+	test('Send does not call IChatService.sendRequest (negative mock)', async () => {
 		const stubService = store.add(new ConversationStubService());
 		let sendRequestCalls = 0;
 		const chatService = {
@@ -193,6 +193,7 @@ suite('Page access schemes slice 5 (UI contract)', () => {
 		sendButton.click();
 
 		assert.strictEqual(sendRequestCalls, 0);
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
 		assert.ok(stubService.getTurns(stubService.getActiveSessionId()).some(turn => turn.text === 'slice 5 negative send contract'));
 	});
 });
