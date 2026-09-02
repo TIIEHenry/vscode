@@ -4,17 +4,23 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { Event } from '../../../../../base/common/event.js';
+import { Emitter, Event } from '../../../../../base/common/event.js';
 import { observableValue } from '../../../../../base/common/observable.js';
 import { toDisposable } from '../../../../../base/common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import type { ConnectionPhase } from '../../../../../platform/universeAgent/common/connectionHubTypes.js';
+import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
+import type { UniverseAgentConnectionSnapshot } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { ICommandService } from '../../../../../platform/commands/common/commands.js';
+import { IStorageService } from '../../../../../platform/storage/common/storage.js';
 import { IWorkspaceContextService } from '../../../../../platform/workspace/common/workspace.js';
 import { Workspace } from '../../../../../platform/workspace/test/common/testWorkspace.js';
 import { ConversationPart, IConversationLensSlots } from '../../../../browser/parts/conversation/conversationPart.js';
 import { IExplorerService } from '../../../files/browser/files.js';
 import { ISCMRepository, ISCMService } from '../../../scm/common/scm.js';
-import { TestContextService } from '../../../../test/common/workbenchTestServices.js';
+import { TestContextService, TestStorageService } from '../../../../test/common/workbenchTestServices.js';
+import { IConversationTimelineRevealService } from '../../browser/conversationTimelineRevealService.js';
+import { IConversationReviewNavService } from '../../common/conversationReviewEntry.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { ConversationLens } from '../../browser/conversationLens.js';
 import {
@@ -24,13 +30,13 @@ import {
 	conversationIdentityStripClass,
 	getConversationIdentityBranchName,
 } from '../../browser/conversationIdentityStrip.js';
-import { getConversationEngineStatusText } from '../../browser/conversationSessionStatus.js';
+import { getConnectionPhaseStatusBarText } from '../../browser/conversationSessionStatus.js';
 import { ConversationStubService, IConversationRosterService } from '../../browser/conversationStubService.js';
 import {
 	conversationLensPhasePreFirstClass,
 	conversationLensPrefirstHeroClass,
 } from '../../browser/conversationLensDockStrings.js';
-import { OPEN_CONNECTION_PREFERENCES_COMMAND_ID } from '../../common/uaPreferencesPanes.js';
+import { OPEN_CONNECTION_PREFERENCES_COMMAND_ID, OPEN_ENGINE_PREFERENCES_COMMAND_ID } from '../../common/uaPreferencesPanes.js';
 import { IClipboardService } from '../../../../../platform/clipboard/common/clipboardService.js';
 import { TestClipboardService } from '../../../../../platform/clipboard/test/common/testClipboardService.js';
 
@@ -40,6 +46,48 @@ const LENS_LAYOUT_HEIGHT = 480;
 suite('ConversationIdentityStrip', () => {
 
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
+
+	function createConnectionStub(overrides: Partial<IUniverseAgentConnection> = {}): IUniverseAgentConnection {
+		return {
+			_serviceBrand: undefined,
+			isEngineConnected: () => false,
+			getConnectionPhase: () => ({ kind: 'disconnected' }),
+			getTransportState: () => 'idle',
+			getConnectionSnapshot: () => ({
+				transport: 'idle',
+				pairingPending: false,
+				channelAlive: false,
+				capabilities: { methods: [], toolFamilies: [] },
+			}),
+			getCapabilitySnapshot: () => ({ methods: [], toolFamilies: [] }),
+			onDidChangeConnection: Event.None,
+			onDidFileMutation: Event.None,
+			onDidTurnSettle: Event.None,
+			connect: async () => ({ sessionToken: undefined, workDir: undefined, methods: [] }),
+			connectProfile: async () => ({ ok: false, code: 'transport_failed', reason: 'stub' }),
+			disconnect: async () => { },
+			listSessions: async () => ({ sessions: [] }),
+			createSession: async () => ({ sessionId: 's' }),
+			deleteSession: async () => { },
+			getHistory: async () => ({ events: [] }),
+			subscribeSessionEventStream: () => ({ dispose: () => { } }),
+			chat: async () => { },
+			listSkills: async () => ({ skills: [] }),
+			setSkillEnabled: async () => ({ ok: true }),
+			getSkillInfo: async () => ({ name: '', content: '', source: 'unknown', enabled: false }),
+			listAgentProfiles: async () => ({ profiles: [] }),
+			saveAgentProfile: async (request) => ({ profile: request.profile }),
+			deleteAgentProfile: async () => ({ ok: true }),
+			resetAgentProfile: async () => ({ ok: true }),
+			listMcpServers: async () => ({ servers: [] }),
+			toggleMcpServer: async () => ({ ok: true }),
+			addMcpServer: async () => ({ ok: true }),
+			updateMcpServer: async () => ({ ok: true }),
+			removeMcpServer: async () => ({ ok: true }),
+			listTools: async () => ({ tools: [] }),
+			...overrides,
+		};
+	}
 
 	function createEmptyScmService(): ISCMService {
 		return {
@@ -88,9 +136,13 @@ suite('ConversationIdentityStrip', () => {
 		workspaceContextService?: IWorkspaceContextService;
 		scmService?: ISCMService;
 		commandService?: ICommandService;
-	}): { part: ConversationPart; slots: IConversationLensSlots; commandService: ICommandService } {
+		stubService?: ConversationStubService;
+		connectionOverrides?: Partial<IUniverseAgentConnection>;
+	}): { part: ConversationPart; slots: IConversationLensSlots; commandService: ICommandService; stubService: ConversationStubService } {
 		const instantiationService = workbenchInstantiationService(undefined, store);
-		const stubService = store.add(new ConversationStubService());
+		const storageService = store.add(new TestStorageService());
+		instantiationService.stub(IStorageService, storageService);
+		const stubService = options?.stubService ?? store.add(new ConversationStubService());
 		const clipboardService = new TestClipboardService();
 		const commandService = options?.commandService ?? new class implements ICommandService {
 			declare readonly _serviceBrand: undefined;
@@ -108,6 +160,17 @@ suite('ConversationIdentityStrip', () => {
 		} as unknown as IExplorerService;
 
 		instantiationService.stub(IConversationRosterService, stubService);
+		instantiationService.stub(IUniverseAgentConnection, createConnectionStub(options?.connectionOverrides));
+		instantiationService.stub(IConversationTimelineRevealService, {
+			_serviceBrand: undefined,
+			registerLens: () => ({ dispose: () => { } }),
+			revealItem: () => { },
+		});
+		instantiationService.stub(IConversationReviewNavService, {
+			_serviceBrand: undefined,
+			onDidChange: Event.None,
+			getReviewNavForSession: () => [],
+		});
 		instantiationService.stub(IClipboardService, clipboardService);
 		instantiationService.stub(ICommandService, commandService);
 		instantiationService.stub(IExplorerService, explorerService);
@@ -138,7 +201,7 @@ suite('ConversationIdentityStrip', () => {
 		part.layout(LENS_LAYOUT_WIDTH, LENS_LAYOUT_HEIGHT, 0, 0);
 		store.add(instantiationService.createInstance(ConversationLens, slots));
 
-		return { part, slots, commandService };
+		return { part, slots, commandService, stubService };
 	}
 
 	function getReadingColumn(slots: IConversationLensSlots): HTMLElement {
@@ -159,12 +222,14 @@ suite('ConversationIdentityStrip', () => {
 		const children = [...readingColumn.children];
 
 		assert.strictEqual(children[0]?.classList.contains(conversationIdentityStripClass), true);
-		assert.ok(children[1]?.classList.contains('conversation-lens-timeline'));
+		assert.ok(readingColumn.querySelector('.conversation-lens-timeline'));
 		assert.ok(getIdentityStrip(slots).compareDocumentPosition(getReadingColumn(slots).querySelector('.conversation-lens-timeline-scroll')!) & Node.DOCUMENT_POSITION_FOLLOWING);
 	});
 
 	test('PreFirst: identity strip mounts in prefirst hero above composer, not at column top', () => {
 		const instantiationService = workbenchInstantiationService(undefined, store);
+		const storageService = store.add(new TestStorageService());
+		instantiationService.stub(IStorageService, storageService);
 		const stubService = store.add(new ConversationStubService());
 		const clipboardService = new TestClipboardService();
 		const commandService = new class implements ICommandService {
@@ -178,6 +243,17 @@ suite('ConversationIdentityStrip', () => {
 			}
 		}();
 		instantiationService.stub(IConversationRosterService, stubService);
+		instantiationService.stub(IUniverseAgentConnection, createConnectionStub());
+		instantiationService.stub(IConversationTimelineRevealService, {
+			_serviceBrand: undefined,
+			registerLens: () => ({ dispose: () => { } }),
+			revealItem: () => { },
+		});
+		instantiationService.stub(IConversationReviewNavService, {
+			_serviceBrand: undefined,
+			onDidChange: Event.None,
+			getReviewNavForSession: () => [],
+		});
 		instantiationService.stub(IClipboardService, clipboardService);
 		instantiationService.stub(ICommandService, commandService);
 		instantiationService.stub(IExplorerService, {
@@ -230,17 +306,63 @@ suite('ConversationIdentityStrip', () => {
 		assert.strictEqual(slots.dock.querySelector(`.${conversationIdentityEngineChipClass}`), null);
 	});
 
-	test('engine chip shows honest not-connected copy and opens Connection preferences', async () => {
+	test('engine chip shows disconnected copy and opens Connection preferences', async () => {
 		const { slots, commandService } = mountLens();
 		const engineChip = getIdentityStrip(slots).querySelector(`.${conversationIdentityEngineChipClass}`) as HTMLButtonElement;
 
 		assert.ok(engineChip);
-		assert.strictEqual(engineChip.textContent, getConversationEngineStatusText());
+		assert.strictEqual(engineChip.textContent, getConnectionPhaseStatusBarText({ kind: 'disconnected' }));
 		assert.strictEqual(engineChip.textContent, 'Engine not connected');
 
 		engineChip.click();
 		await Promise.resolve();
 		assert.deepStrictEqual((commandService as unknown as { executed: string[] }).executed, [OPEN_CONNECTION_PREFERENCES_COMMAND_ID]);
+	});
+
+	test('engine chip shows connected copy and opens Engine preferences', async () => {
+		const stubService = store.add(new ConversationStubService());
+		stubService.setEngineConnected(true);
+
+		const { slots, commandService } = mountLens({
+			stubService,
+			connectionOverrides: {
+				isEngineConnected: () => true,
+				getConnectionPhase: () => ({ kind: 'connected', path: 'hubRelay' }),
+			},
+		});
+		const engineChip = getIdentityStrip(slots).querySelector(`.${conversationIdentityEngineChipClass}`) as HTMLButtonElement;
+
+		assert.ok(engineChip);
+		assert.strictEqual(engineChip.textContent, getConnectionPhaseStatusBarText({ kind: 'connected', path: 'hubRelay' }));
+		assert.strictEqual(engineChip.textContent, 'Engine · Hub relay');
+
+		engineChip.click();
+		await Promise.resolve();
+		assert.deepStrictEqual((commandService as unknown as { executed: string[] }).executed, [OPEN_ENGINE_PREFERENCES_COMMAND_ID]);
+	});
+
+	test('engine chip updates when connection phase changes', () => {
+		const onDidChangeConnection = new Emitter<UniverseAgentConnectionSnapshot>();
+		let phase: ConnectionPhase = { kind: 'disconnected' };
+
+		const { slots } = mountLens({
+			connectionOverrides: {
+				onDidChangeConnection: onDidChangeConnection.event,
+				getConnectionPhase: () => phase,
+			},
+		});
+		const engineChip = getIdentityStrip(slots).querySelector(`.${conversationIdentityEngineChipClass}`) as HTMLButtonElement;
+
+		assert.strictEqual(engineChip.textContent, 'Engine not connected');
+
+		phase = { kind: 'connecting', reason: 'initial' };
+		onDidChangeConnection.fire({
+			transport: 'connecting',
+			pairingPending: false,
+			channelAlive: false,
+			capabilities: { methods: [], toolFamilies: [] },
+		});
+		assert.strictEqual(engineChip.textContent, 'Connecting…');
 	});
 
 	test('folder chip is hidden for empty workspace', () => {
