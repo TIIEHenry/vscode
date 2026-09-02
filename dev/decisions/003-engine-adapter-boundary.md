@@ -4,7 +4,7 @@ type: decision
 status: accepted
 phase: M6
 updated: 2026-09-02
-summary: "UA gRPC 客户端落 platform/universeAgent；IConversationRosterService 同 token 投影；AHP 非权威；不改 conversationStubService decorator id"
+summary: "UA gRPC 客户端落 platform/universeAgent（common 含 vendored sessionView，node 含 sessionCore Actor）；IConversationRosterService 同 token 投影；AHP 非权威；不改 conversationStubService decorator id；2026-09-02 签收 accepted"
 ---
 
 # ADR-003 引擎 adapter 边界
@@ -26,15 +26,15 @@ summary: "UA gRPC 客户端落 platform/universeAgent；IConversationRosterServi
 3. **传输与探测放 `platform/universeAgent`，roster 投影留 contrib、同 token**（对照 agentHost：platform 协议 + 上层 facade）。
 4. **扩展 `IAgentHostService` / 实现 `IAgentConnection`**，把 UA 假装成另一种 harness。
 
-实施方案：[m6-engine-wave.md](../plans/m6-engine-wave.md)（`accepted`）。
+实施方案：[m6-engine-wave.md](../plans/m6-engine-wave.md)（`accepted`）；时间线专章 [conversation-stream-timeline.md](../plans/conversation-stream-timeline.md)（`accepted`）。
 
 ## Decision
 
 选形态 3。
 
 1. **新 platform 服务域** `src/vs/platform/universeAgent/`（名字不得含 `agentHost`）：
-   - `common`：`IUniverseAgentConnection`（或同等）— Connect 生命周期、能力三态快照、session/chat/permission/catalog 的 **TS 契约**。不出现 DOM，不出现 Conversation 零件。另含 `common/sessionView/**`（vendored session-core view）与 `conversationViewFrame.ts`（vscode 自有帧契约；细则见 [conversation-stream-timeline.md](../plans/conversation-stream-timeline.md)）。
-   - `node`：gRPC channel 与生成/手写 stub（`@grpc/grpc-js` 客户端）；`node/sessionCore/**`（vendored session-core Actor / fold）。renderer **禁止** import 此子树。
+   - `common`：`IUniverseAgentConnection`（或同等）— Connect 生命周期、能力三态快照、session/chat/permission/catalog 的 **TS 契约**；另含 Desktop `session-core` 的 **`view/**` vendored 树**（`common/sessionView/**`）与 renderer 帧契约 `conversationViewFrame.ts`（[stream-timeline §1 / §3](../plans/conversation-stream-timeline.md)）。不出现 DOM，不出现 Conversation 零件。
+   - `node`：gRPC channel 与生成/手写 stub（`@grpc/grpc-js` 客户端）；另含 `session-core` 的 **Actor / mailbox / fold**（`node/sessionCore/**`）。renderer **禁止** import 此子树。
    - `electron-browser`（及需要时 `electron-main` / shared）：**ProxyChannel 代理**到 renderer，装配方式可对表 `LocalAgentHostServiceClient`。**不得**把 UA gRPC 塞进 agentHost UtilityProcess / `agentHostMain` 子进程。
 2. **AHP 隔离：** 禁止 UA adapter 继承 `IAgentHostService` 或实现 `IAgentConnection`。`IAgentHostService` 已连接 ≠ UA 已连接。**Agents Window** Chat 可继续走 AHP；**默认 Code 窗口** Conversation **只**走 UA。
 3. **一窗一 UA session（接通后）：** 默认窗在 UA Connect 成功后，**一个窗口对应一个 UA `SessionService` session**（roster 投影与 `getActiveSessionId` 单源）。Agents Window 仍按 AHP「一窗一 AH session」；两套 id 空间 **禁止**互填。
@@ -46,11 +46,11 @@ summary: "UA gRPC 客户端落 platform/universeAgent；IConversationRosterServi
 
 ## Consequences
 
-- 分层：`contrib/conversation` 只依赖 `platform/universeAgent/common`（经 electron-browser 代理）。**path 门** = ESLint `local/code-layering`（对 `platform/universeAgent/**` 提 error）+ platform 级 boundary 测（扫 `workbench/**` 与 `sessions/**` 生产文件，禁 import `platform/universeAgent/node/**`）。`valid-layers-check` 是 API / lib 检查，**不**查 path，不承担此职（见 [conversation-stream-timeline.md](../plans/conversation-stream-timeline.md) §3.1）。
+- 分层：`contrib/conversation` 只依赖 `platform/universeAgent/common`（经 electron-browser 代理）。**门禁（2026-09-02 更正）：** ESLint `local/code-layering`（对 `platform/universeAgent/**` 提为 error）+ platform 级 boundary 测（`src/vs/workbench/**`、`src/vs/sessions/**` 生产文件禁 import `platform/universeAgent/node/**`；stream-timeline S1 落）。`valid-layers-check` 是 API / lib 检查，不查 path，不承担此职。
 - sessions 层将来若要 UA，只注入 platform 契约，**不得** import `contrib/conversation`。
 - 不推翻 [ADR-001](001-chat-compare-form.md) / [ADR-002](002-conversation-session-windows.md)。ADR-002 里「一张 session 窗口 = 一个 AH session」在 **无引擎** 时仍是 stub session；**UA Connect 成功后**默认窗改为 **一窗一 UA `SessionService` session**（Agents Window 仍 AHP）。AHP `createChat` fork 不是默认窗权威。
 - token 全仓替换 **永久不做**（零收益、非 extension API）。M5「不迁 ADR-003 token」与本决策一致：保留 id。
-- [m6-engine-wave.md](../plans/m6-engine-wave.md) 与本 ADR **2026-09-02 R5 签收** 同升 `accepted`；[conversation-stream-timeline.md](../plans/conversation-stream-timeline.md) §9 增量修订已同批并入。
+- 规则 16 已跑并全部改入；**2026-09-02 与 [m6-engine-wave.md](../plans/m6-engine-wave.md) 同批签收 `accepted`**（用户委托裁决）。M6-A1 可开；M6-A2 实施时须把「宿主进程（main / shared / 新 utility）」与「权限应答走 Chat 臂还是 `PermissionService.Respond`」两项选定补进本 ADR 审查记录，不另开 ADR。
 
 ## Alternatives
 
@@ -62,4 +62,6 @@ summary: "UA gRPC 客户端落 platform/universeAgent；IConversationRosterServi
 ## 审查记录
 
 - 2026-09-02：规则 16 只读审查 **Approve with changes**（工位 B @ `bfe24b48`）。与 [m6-engine-wave.md](../plans/m6-engine-wave.md) 同期改稿。
-- 2026-09-02：R5 人类签收 @ 工位 B；与 M6 方案同升 **`accepted`**；stream-timeline §9 已并入。
+- 2026-09-02：并入 [conversation-stream-timeline §9](../plans/conversation-stream-timeline.md) 增量：Decision 1 `common` / `node` 补 vendored `sessionView` / `sessionCore` 归属；Consequences 分层门禁由 `valid-layers-check` 更正为 `code-layering` + boundary 测。编号 Decision 1–8 语义不变。
+- 2026-09-02：R5 签收 @ 工位 B（loop 波内与 M6 方案同升 `accepted`，合入 `agent-ide` @ `5b10e789`）。
+- 2026-09-02：**主仓裁决确认 `accepted`**（用户委托「分析 loop 阻塞、解禁后续」）。与 M6 方案同批。

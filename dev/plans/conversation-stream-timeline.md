@@ -9,11 +9,11 @@ summary: "m6-engine-wave / ADR-003 的时间线专章（规则 16 两轮 Cursor 
 
 # Conversation 订阅流与时间线增量模型
 
-> **定位：** 本稿是 [m6-engine-wave](m6-engine-wave.md)（`accepted`）与 [ADR-003 引擎 adapter 边界](../decisions/003-engine-adapter-boundary.md)（`accepted`）的**时间线专章**，细化 m6 §3 的「时间线 / 发送 / 权限 / 变更事件」四行与 M6-A 发送链、M6-D 轨迹 fold。**不 supersede** 两稿的任何 Decision；对两稿的增量修订已同批并入（原建议见 [§9](#9-对-m6--adr-003-的增量修订建议)）。
+> **定位：** 本稿是 [m6-engine-wave](m6-engine-wave.md)（`accepted`）与 [ADR-003 引擎 adapter 边界](../decisions/003-engine-adapter-boundary.md)（`accepted`）的**时间线专章**，细化 m6 §3 的「时间线 / 发送 / 权限 / 变更事件」四行与 M6-A 发送链、M6-D 轨迹 fold。**不 supersede** 两稿的任何 Decision；对两稿的增量修订建议集中在 [§9](#9-对-m6--adr-003-的增量修订建议)。
 > **需求：** [PRD-003](../../docs/product/requirements.md#prd-003-时间线与输入) / [PRD-004](../../docs/product/requirements.md#prd-004-权限座位) / [PRD-007](../../docs/product/requirements.md#prd-007-诚实降级)（`accepted`）；活数据上游 [PRD-008](../../docs/product/requirements.md#prd-008-引擎与会话权威)（`blocked`）。
 > **透镜合同：** [conversation-lens-assembly](../../docs/reference/code-oss-b2/conversation-lens-assembly.md) §3 / §6（三槽冻结；阶段 3a「只换服务」由本稿修正为「换帧源 + 增量 apply」）。
 > **外仓合同（只读，不复述）：** Desktop [ADR-009](../../../UniverseAgentDesktop/dev/decisions/009-session-projection-core.md) 投影核 · [ADR-012](../../../UniverseAgentDesktop/dev/decisions/012-chat-stream-lifecycle-and-outbox.md) Chat 流与 outbox · [ADR-013](../../../UniverseAgentDesktop/dev/decisions/013-engine-event-ingestion-reliable.md) 摄入 Reliable；`UniverseAgentDesktop/packages/session-core`；引擎 proto `UniverseAgent/grpc-api/src/main/proto/{session_service,message_envelope,agent_service}.proto`。
-> **规则 16：** Cursor CLI `cursor-grok-4.6-high`（`--mode ask` 只读）两轮：第一轮 **Reject** → 改稿；第二轮 **Approve with changes**（1 Critical + 6 Important）→ 全部改入（见 [§12](#12-审查记录)）。**2026-09-02 用户授权「改完没问题就签收」，据此 `accepted`。** S1–S3 ReadyToImplement；S4–S6 随 m6 / ADR-003（**2026-09-02 R5 签收，已 `accepted`**）。
+> **规则 16：** Cursor CLI `cursor-grok-4.6-high`（`--mode ask` 只读）两轮：第一轮 **Reject** → 改稿；第二轮 **Approve with changes**（1 Critical + 6 Important）→ 全部改入（见 [§12](#12-审查记录)）。**2026-09-02 用户授权「改完没问题就签收」，据此 `accepted`。** S1–S3 ReadyToImplement；S4–S6 随 m6 / ADR-003 签收。
 
 **Goal：** 把「引擎事件流怎么进 IDE、时间线怎么增量更新」写成可实施合同。vscode **不**自研 fold：复用 Desktop `session-core` 做 L1–L4 fold；renderer 只应用幂等 `ViewFrame`。无引擎 stub 改为**同一契约的帧源**，时间线只剩一条渲染路径；引擎接通时换帧源，不换 UI、不换 token。
 
@@ -270,13 +270,13 @@ S3 前**不改**公开形状。**同步点写死：**
 | S1 | 同步脚本（跳过 `view/index.ts`；自写 barrel；`.eslint-ignore` 两棵树；SYNC.md）+ `common/sessionView/**` + `node/sessionCore/**`；`conversationViewFrame.ts` 契约；`acquireSessionView` 增量加入接口；`stubTurnsToSnapshot` + attribution；`projectSnapshotToEntries`；`ConversationStubFrameSource`（lens **尚未**切换）；platform 级 boundary 测；`code-layering` 对 `platform/universeAgent/**` 提 error | 新 `conversationSessionView.test.ts`：三会话 fixture → entries → legacy turns 与 HEAD `getTurns` 逐项等价；`npm run compile` 绿；`npm run eslint` 绿（含 header / layering）；boundary 测绿。`valid-layers-check` 不是本切片门（API/lib 检查；D8 open） | 否 |
 | S2 | `applyEntries` 三类帧；按 id Map 保留态；overlay live 行 + chunk 拼接；帧合并；**stub 写方法双写**（[§3.7 同步点](#37-旧方法调用点与-shim)）；lens 改订 `onDidApplyFrame`、只读 lease | `conversationTimelineScroll.test.ts` 扩三类帧矩阵（A rerender 计数 + `setChildren`=0 / B DOM 复用 / C span id 规则）；HEAD `conversationLens.test.ts` 全绿（靠双写）；无默认 UI 假流 | 否 |
 | S3 | Dock → `lease.post(submitInput)` + 占位 → supersede；`PostOutcome` 失败文案；`SyncChrome` → SessionBar / Inbox；读方法转 shim、写方法只经帧源（[§3.7](#37-旧方法调用点与-shim)）；`TestConversationFrameSource` 供语音测 | `conversationLens.test.ts`：发送后占位 → 正式行；stub 永远 `idle`；shim 等价测；T6 语音测改用测试帧源 | 否 |
-| S4 | node 侧生产者：gRPC `SessionEventStream` + demux + attribution + Actor + lease over ProxyChannel；ports 实现 | **随 M6-A**（ADR-003 `accepted` 后）；隔离 profile 冒烟：hello → live、gap → syncing → live、断连 → closed 快照 | 是 |
-| S5 | Chat bidi 写路径 + outbox + `heartbeat_ack` reflex + permission / question / clientTool respond | 随 M6-A / M6-B；契约测试复用 ADR-012 行为表 | 是 |
+| S4 | node 侧生产者：gRPC `SessionEventStream` + demux + attribution + Actor + lease over ProxyChannel；ports 实现 | **随 M6-A2**（ADR-003 已 `accepted` @2026-09-02；A2 入口 = S3 + M6-A1 合入）；隔离 profile 冒烟：hello → live、gap → syncing → live、断连 → closed 快照 | 是 |
+| S5 | Chat bidi 写路径 + outbox + `heartbeat_ack` reflex + permission / question / clientTool respond | 随 M6-A2 / M6-B；契约测试复用 ADR-012 行为表 | 是 |
 | S6 | 轨迹 T4：`GetHistory` + `DetailRef` 全文；`compacted` 投影；visualize 类型化；子代理按 attribution 过滤 | 随 M6-D；依赖 [§6](#6-契约缺口需上游补vscode-不得自造) G2 / G3 | 是 |
 
-**顺序**：S1 → S2 → S3 串行（同改 `conversationLens.ts` / `conversationTimelineTree.ts` / `conversationStubService.ts`，**同一 PR 禁止两人同时改**）。S4 = M6-A 的时间线部分，不早于 ADR-003 `accepted`。
+**顺序**：S1 → S2 → S3 串行（同改 `conversationLens.ts` / `conversationTimelineTree.ts` / `conversationStubService.ts`，**同一 PR 禁止两人同时改**）。S4 = M6-A2 的时间线部分。与 **M6-A1**（`platform/universeAgent` 传输层，[m6 §8](m6-engine-wave.md#8-切片顺序)）并行时，S1 只新建 `common/sessionView/**`、`node/sessionCore/**`、`conversationViewFrame.ts`，不碰 A1 的连接 / gRPC 文件。
 
-**ReadyToImplement（签收后）：** S1–S3。S4–S6 并入 m6 切片表（[§9](#9-对-m6--adr-003-的增量修订建议)）。
+**ReadyToImplement：** S1–S3（已签收）。S4–S6 已并入 m6 切片表（M6-A2 / M6-D；[§9](#9-对-m6--adr-003-的增量修订建议) 已于 2026-09-02 全部并入）。
 
 ## 5. 非目标
 
@@ -322,7 +322,9 @@ S3 前**不改**公开形状。**同步点写死：**
 
 ## 9. 对 m6 / ADR-003 的增量修订建议
 
-**2026-09-02 R5 签收：** 下表修订已同批并入 [m6-engine-wave.md](m6-engine-wave.md) 与 [ADR-003](../decisions/003-engine-adapter-boundary.md)（均 `accepted`）。本节保留为签收审计记录。
+**状态：已并入（2026-09-02）。** 两稿已同批 `accepted`，下表各行均已落入 [m6-engine-wave](m6-engine-wave.md)（§3 四行、§8 M6-A2 / M6-D）与 [ADR-003](../decisions/003-engine-adapter-boundary.md)（Decision 1、Consequences）。本表保留为对照记录。下表除标 **替换** 的一行外均为增量；**不推翻 ADR-003 任何编号 Decision**（token / 落层 / AHP 隔离 / `isEngineConnected` / 断连语义均保留）。
+
+**签收顺序（已满足）：** 本稿与 m6 同批改稿签收；M6-A 的 `GetHistory` 句已替换，S4 不再阻塞。
 
 | 目标 | 现文 | 建议 |
 |------|------|------|

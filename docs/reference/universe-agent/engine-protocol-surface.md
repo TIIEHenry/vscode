@@ -4,7 +4,7 @@ type: reference
 status: accepted
 phase: N/A
 updated: 2026-09-02
-summary: "已知 gRPC 服务 / RPC 名与本仓用途（§1–4 来自已签收 customizations-engine）；能力探测三态；协议缺口；§5 会话面仍对照 R5 draft，未签收前勿当 RPC SSOT——权威在外仓"
+summary: "已知 gRPC 服务 / RPC 名与本仓用途（§1–4 来自已签收 customizations-engine）；能力探测三态；协议缺口；§5 会话面对照已签收的 m6 / ADR-003 / stream-timeline，RPC 名待 M6-A 实测回填——权威在外仓"
 ---
 
 # UniverseAgent 引擎协议面（本仓消费口径）
@@ -61,7 +61,7 @@ UA 侧 `EngineSettingsCapabilities` / `CapabilitySupport`：`SUPPORTED | UNSUPPO
 
 ## 5. Conversation 会话面（R5 草案已覆盖大半，签收后回填）
 
-[IConversationRosterService](../../systems/conversation/stub-and-fixtures.md) 需要的引擎面，R5 草案 [m6-engine-wave §3](../../../dev/plans/m6-engine-wave.md) 已逐行对照（例如时间线 = `SessionService.GetHistory(cursor_seq)` + `SessionEventStream`；队列 = `AgentService.EnqueueQueueItem` 族；Goal = `PermissionService.SetSessionGoal`），adapter 落层见 [ADR-003](../../../dev/decisions/003-engine-adapter-boundary.md)（`platform/universeAgent`）。两文仍 `draft`；**规则 16 签收后**把确认的 RPC 名回填到 §1 表，并把下表「须查明」列改成事实或「引擎缺口」：
+[IConversationRosterService](../../systems/conversation/stub-and-fixtures.md) 需要的引擎面，R5 草案 [m6-engine-wave §3](../../../dev/plans/m6-engine-wave.md) 已逐行对照（例如时间线 = `SessionService.GetHistory(cursor_seq)` + `SessionEventStream`；队列 = `AgentService.EnqueueQueueItem` 族；Goal = `PermissionService.SetSessionGoal`），adapter 落层见 [ADR-003](../../../dev/decisions/003-engine-adapter-boundary.md)（`platform/universeAgent`）；时间线 / 发送 / 权限的流形态见 [conversation-stream-timeline](../../../dev/plans/conversation-stream-timeline.md)。三文已于 2026-09-02 `accepted`；**M6-A1 / A2 实施 commit 时**把实测确认的 RPC 名回填到 §1 表，并把下表「须查明」列改成事实或「引擎缺口」（m6 §10 知识层清单）：
 
 | IDE 需要 | 对应 stub 方法 | 须查明 / 草案答案位置 |
 |----------|----------------|--------|

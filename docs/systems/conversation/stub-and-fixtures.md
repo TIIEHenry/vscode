@@ -53,12 +53,12 @@ summary: "把 IConversationRosterService 约 34 个成员按产品契约 / 测�
 - `ConversationStubService` **不**使用 `IStorageService`：会话、回合、队列、任务全部在内存，窗口重载即丢。
 - 本系统唯一持久化项是透镜 id（`ConversationLens`，`StorageScope.WORKSPACE` / `StorageTarget.MACHINE`）。
 - Part 显隐与 End 列尺寸由 Layout 持久化（`workbench.conversation.hidden` 等，[layout-state](../workbench/layout-state.md)），与本服务无关。
-- 结论：[PRD-016](../../product/requirements.md#prd-016-conversation-session-窗口与-chat-tab) 验收 2「隐藏再打开 tab 还在」只在进程内成立；跨重启由 [PRD-017](../../product/requirements.md#prd-017-本地会话持久化)（`proposed`）约束。
+- 结论：[PRD-016](../../product/requirements.md#prd-016-conversation-session-窗口与-chat-tab) 验收 2「隐藏再打开 tab 还在」只在进程内成立；跨重启由 [PRD-017](../../product/requirements.md#prd-017-本地会话持久化)（`accepted`；落点 `StorageScope.WORKSPACE` + `StorageTarget.MACHINE`，实施 [D13](../../../dev/progress/deferred-gaps.md)）约束。
 
-## 5. 引擎替换约束（对照 R5 草案 [ADR-003](../../../dev/decisions/003-engine-adapter-boundary.md) / [m6-engine-wave](../../../dev/plans/m6-engine-wave.md)，均 `draft`）
+## 5. 引擎替换约束（对照 [ADR-003](../../../dev/decisions/003-engine-adapter-boundary.md) / [m6-engine-wave](../../../dev/plans/m6-engine-wave.md)，均 `accepted` @2026-09-02）
 
-1. **同 token 替换**是既定路线（ADR-003 草案决策 4：公开类型与 decorator id `'conversationStubService'` 都不改，引擎实现替换 `registerSingleton` 的类）：UI 零改动。
-2. **夹具方法的去向**（按 ADR-003 草案决策 4 / m6-engine-wave M6-A）：接口**保留不拆**；引擎实现对 §2 夹具组的语义是——已连接时 `appendStubEchoAssistant` 在 service 层拒写（reject / throw 或 no-op + 断言），`set*Fixture` / `setEngineConnected` 不得影响 UA session。是否另拆 fixture 接口属 ADR-003 规则 16 审查范围，不在本页裁定。
+1. **同 token 替换**是既定路线（ADR-003 决策 4：公开类型与 decorator id `'conversationStubService'` 都不改，引擎实现替换 `registerSingleton` 的类）：UI 零改动。
+2. **夹具方法的去向**（按 ADR-003 决策 4 / m6-engine-wave M6-A2）：接口**保留不拆**（规则 16 审查与签收均未要求另拆 fixture 接口；此问题已闭）；引擎实现对 §2 夹具组的语义是——已连接时 `appendStubEchoAssistant` 在 service 层拒写（reject / throw 或 no-op + 断言），`set*Fixture` / `setEngineConnected` 不得影响 UA session。stub 本身在 [conversation-stream-timeline](../../../dev/plans/conversation-stream-timeline.md) S1–S3 改为同契约的**帧源**，旧读方法在 S3 变为 shim。
 3. **事件语义**：`onDidChangeSession` 今天是「某会话内容变了」的粗粒度信号；引擎流式回合到达时要么沿用（UI 全量重投影），要么在方案里定义细粒度事件并同步改 `ConversationTimelineTree` 的 diff 策略。
 4. **权限**：`resolveConfirmation` 只改本地状态；adapter 必须把它变成向引擎发送授权 / 拒绝，并在回执前保持 pending 可见（PRD-004 验收 3 反向：不得在无回执时宣称已授权）。
 5. **连接态三态**：`isEngineConnected(): boolean` 不足以表达 [customizations-engine §2](../../../dev/plans/customizations-engine.md) 的 `SUPPORTED / UNSUPPORTED / UNKNOWN` 与「传输失败」；m6-engine-wave §5 已给映射草案（Connect 成功 + token + 活 channel → true；探测放 `platform/universeAgent`），签收后回填本页。

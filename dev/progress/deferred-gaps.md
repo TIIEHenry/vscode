@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-02
-summary: "P2/P3 延期缺口 SSOT；D1–D7、D11 已闭；D8 valid-layers TS lib（非 Node）仍 open / D9 EH 次级探针 partial / D10 T5 / D12 产品身份（UniverseAgentStudio，引擎波后）open"
+summary: "P2/P3 延期缺口 SSOT；D1–D7、D11 已闭；D8 valid-layers 环境红降 P3 并豁免为门禁（2026-09-02 裁决）/ D9 terminal 行非阻塞 / D10 T5（M6-D 后）/ D12 产品身份（引擎波后）/ D13–D15 PRD-017–019 实施（不阻塞 M6）"
 ---
 
 # Deferred Gaps
@@ -22,11 +22,14 @@ summary: "P2/P3 延期缺口 SSOT；D1–D7、D11 已闭；D8 valid-layers TS li
 | D5 | P2 | **EH 探针冒烟**（LSP + layout 类扩展） | — | 三探针行 **已实测 @2026-09-02**（[wave3](d5-evidence/smoke-wave3-0001/)）；panel/terminal 记入矩阵 **待实测**，不阻塞本行 | M4 | closed |
 | D6 | P3 | **Diff footprint 刷新** | slot C 已于 `b283fe19` 重测 `b5631393` | 页已更新 | docs | closed |
 | D7 | P3 | titlebar LayoutControlMenu 产品四钮与原生 Panel/Aux 共存 | `2dcd5a0a` 已从 LayoutControlMenu 去掉 Panel/Aux；留 submenu | 默认窗只见四钮 | M0 | closed |
-| D8 | P2 | **`valid-layers-check` 环境红**（`EditContext`/`GPUBufferUsage`/`FileSystemHandle` TS lib 报错） | D8 深挖 @2026-09-02 **`c0dfee3d`**：Node **24.18.0** + PATH 钉死仍 **FAIL**（166× TS）；**browser/electron-browser 单跑 0 错** → 非全局缺 lib，见 D8 节 | `npm run valid-layers-check` 六域全绿（或 documented infra 豁免） | infra | open |
-| D9 | P2 | **EH 矩阵次级探针**：`viewsContainers.panel` / `views`(panel) / `terminal` profiles·`onStartup` / 命令 + `editor/decoration` | wave3 只覆盖 LSP + Sidebar 布局 + js-debug；panel/decoration 已测；terminal xterm 自动化 blocked | panel + decoration **已实测 @2026-09-02**（[d9](d5-evidence/smoke-d9-0001/)）；`terminal` 扩展已装但 xterm 自动化 blocked → 矩阵 terminal 行仍 **待实测** | docs | open |
-| D10 | P3 | **PRD-012 T5** 轨迹搜索 / 虚拟化 / Overview 瀑布条 | fixture 三位数以下普通 DOM 够用；用户未要 | 记录数上千或用户提出；实施后 [conversation-trajectory-lens](../plans/conversation-trajectory-lens.md) T5 行转 implemented | M6+ | open |
+| D8 | **P3**（2026-09-02 由 P2 降） | **`valid-layers-check` 环境红**（`EditContext`/`GPUBufferUsage`/`FileSystemHandle` TS lib 报错） | D8 深挖 @2026-09-02 **`c0dfee3d`**：Node **24.18.0** + PATH 钉死仍 **FAIL**（166× TS）；**browser/electron-browser 单跑 0 错**，红在 node / worker 系 checker 拉入 browser 源码却未套补充类型（见 D8 节），**不是业务分层违规**。**裁决 @2026-09-02：豁免为集成门禁**（[health-gates](health-gates.md) 改 `compile` + `eslint`）；分层由 ESLint `code-layering` + stream-timeline S1 boundary 测承担 | `npm run valid-layers-check` 六域全绿（按 D8 节「可执行修复」1 → 2B），再恢复为门禁；任一实施波不得以「D8 红」为 blocked 理由 | infra | open |
+| D9 | **P3**（2026-09-02 由 P2 降） | **EH 矩阵次级探针**：`viewsContainers.panel` / `views`(panel) / `terminal` profiles·`onStartup` / 命令 + `editor/decoration` | panel + decoration **已实测 @2026-09-02**（[d9](d5-evidence/smoke-d9-0001/)）；仅 `terminal` 行 xterm 自动化 blocked。**裁决 @2026-09-02：不再列 status Blockers**——矩阵 terminal 行标「待人工」即为诚实状态，无产品功能依赖它 | 人工跑一次 `Terminals: Run` 并截图记入 [smoke-d9-0001](d5-evidence/smoke-d9-0001/)；或某切片首次依赖 terminal EH 面时顺带补 | docs | open |
+| D10 | P3 | **PRD-012 T5** 轨迹搜索 / 虚拟化 / Overview 瀑布条 | fixture 三位数以下普通 DOM 够用。PRD-020 已 `accepted` 并写死上限（对话 1,000 / 轨迹 5,000）| 触发 = **M6-D 轨迹 T4 合入后**（引擎真数据前虚拟化无意义）；另在 stream-timeline S2 落地后用 1,000 回合 fixture 测 PRD-020 验收 1（≤ 200 ms）并记本行；实施后 [conversation-trajectory-lens](../plans/conversation-trajectory-lens.md) T5 行转 implemented | M6+ | open |
 | D12 | P3 | **PRD-010 产品身份落地**：`product.json` `nameShort`/`nameLong`/`applicationName`/`dataFolderName`/`win32AppUserModelId`/`urlProtocol` 一族 + 图标资产 | 用户裁决 @2026-09-02：名称 **UniverseAgentStudio**，图标复用 UniverseAgentDesktop / Singularity 资产；**排在引擎波（R5/M6）之后**，避免与接线同期改发行身份 | M6 引擎波闭后开 plan；`urlProtocol` 与 page-access 已选 `universe-agent` scheme 的关系在 plan 内裁定；窗口标题与图标可识别为 UniverseAgentStudio | product | open |
 | D11 | P3 | **证据目录与索引卫生**：未跟踪 `d4-evidence/82582fe8`、`d4-evidence/rerun-2221`；`plans/INDEX.md` 指向不存在的 `dev/roadmap/` | 首轮验收产物未收编；roadmap 目录从未建立 | 两目录补 README 收编或删除，`git status` 干净；INDEX 改指 `status.md` Next 段；`check-docs-health` 0 warning | docs | closed |
+| D13 | P2 | **PRD-017 本地会话持久化**（`accepted` @2026-09-02） | 落点已裁定：`StorageScope.WORKSPACE` + `StorageTarget.MACHINE`；引擎接通后不迁移，本地只存 stub 会话 + UA 断连快照缓存并标 `source`。须建在 stream-timeline 帧源之上，S3 之前动 `conversationStubService.ts` 会与 S1–S3 撞同一冲突域 | S3 合入后作为独立切片（同工位串行）：重启后会话列表 / 当前会话 / 回合 / 权限记录一致；session 窗口布局恢复；无引擎无「已同步」文案；单测 + D4 式隔离 profile 重启验收 | M6 | open |
+| D14 | P3 | **PRD-018 键盘可达**（`accepted` @2026-09-02）：四钮默认键位 + F6 焦点循环 + chat tab / 对话框 / 透镜 / 过程折 / 权限座位键盘可达 + aria 名 | 键位选定属实施细节；StatusBar / 四钮命令面在 M6-B 定稿后再加，避免两次改动 | M6-B 合入后：四 toggle 命令在 Keyboard Shortcuts 可见且不与 Open Conversation / `Ctrl+B` 冲突；隐藏 Conversation 后纯键盘可回；屏幕阅读器读出会话标题 / 回合角色 / 权限状态；键位写入 [commands §7](../../docs/systems/conversation/commands.md) | M6+ | open |
+| D15 | P3 | **PRD-019 Web 冒烟**（`accepted` @2026-09-02）：验证义务，非新功能 | 尚无 Web 冒烟证据；在 M6-A2 接通前跑只能验壳，接通后可同时验「本机引擎在 Web 下诚实省略」 | M6-A2 合入后：`scripts/code-web.sh`（或 `server` 入口）启动 → D4 式 V1–V3 断言通过；`IUniverseAgentConnection` 在 Web 报 `disconnected`、不画连接控件；证据目录 `d15-evidence/` | M6 | open |
 
 ## D2 工位池 compile 基线（2026-09-02，merge 工位 / `loop/merge`）
 
@@ -275,6 +278,7 @@ $REPO/scripts/code-cli.sh --extensions-dir="$EXT_DIR" \
 
 **状态**：**open**（browser 域已绿；infra 未修）。
 
+**裁决（2026-09-02，用户委托）**：在修好之前 **`valid-layers-check` 不作集成门禁**（[health-gates](health-gates.md) 已改为 `compile` + `eslint`），D8 降 **P3**。理由：① 上表证明 `browser` / `electron-browser` 两域 **0 错**，红全部来自 node / worker 系 checker 把 browser 源码拉进图却没套 browser 补充类型——与本仓任何 `contrib/{conversation,sources}` 或 `platform/universeAgent` 变更无关；② 它本就不查 import path，M6 需要的 renderer ↔ `platform/universeAgent/node` 边界由 ESLint `local/code-layering` + boundary 测承担（ADR-003 Consequences 已更正）；③ 继续挂在 Blockers 只会让每轮 closeout 都产生一条无法闭合的红项。修复按上文「可执行修复」1 → 2B 走，任何空闲 tick 可做，做完即恢复门禁。
 
 ## 维护规则
 

@@ -4,7 +4,7 @@ type: demand
 status: accepted
 phase: N/A
 updated: 2026-09-02
-summary: "PRD-001–PRD-016 默认窗产品壳已接受；PRD-005 收进 Changes/Review 列表；PRD-002 Route 以 PRD-015 为准；PRD-009 Diff 归属已接受（默认 Preview，可移对话窗口/底部）；PRD-017–020 非功能需求 proposed；引擎、产品身份未决或阻塞"
+summary: "PRD-001–PRD-016 默认窗产品壳已接受；PRD-003/004/007 增流式、提问座位、两层连接态验收；PRD-005 收进 Changes/Review 列表；PRD-002 Route 以 PRD-015 为准；PRD-009 Diff 归属已接受；PRD-017–021 accepted（017 存储落点 / 020 上限已裁定）；PRD-008 接线方案已签收、本条仍 blocked 待接通证据；产品身份排引擎波后"
 ---
 
 # Agent IDE 产品需求
@@ -47,7 +47,9 @@ summary: "PRD-001–PRD-016 默认窗产品壳已接受；PRD-005 收进 Changes
   1. 时间线不是两行写死的说明文案。
   2. 发送后新回合留在当前会话，而不是跳到 Chat 插件。
   3. 若出现助手回复，必须能看出这是本地占位回复，而不能看起来像已经接上引擎。
-- **依赖或未决**：真实助手回合依赖 PRD-008。思考/工具过程折见 PRD-013，不把它们画成与助手正文同级的气泡。空会话居中输入、Inbox 分簇、SessionConfig 显隐见 [PRD-015](#prd-015-conversation-空会话与输入面)。
+  4. 引擎接通后，助手回合可以**流式增量**出现在时间线；尚未完成的回合可辨（有进行中标识），完成后与历史回合外观一致；用户在流式期间展开或收起的过程折、切换的透镜不因新增量而重置。无引擎时不出现任何流式或进行中态。
+  5. 用户发送后，这句话先以「发送中」占位出现在**发起它的窗口**，被引擎确认后变为正式回合；发送未被受理时给出明确失败文案，不静默、不写「已发送」。
+- **依赖或未决**：真实助手回合依赖 PRD-008。思考/工具过程折见 PRD-013，不把它们画成与助手正文同级的气泡。空会话居中输入、Inbox 分簇、SessionConfig 显隐见 [PRD-015](#prd-015-conversation-空会话与输入面)。验收 4–5 的实施见 [conversation-stream-timeline](../../dev/plans/conversation-stream-timeline.md)（2026-09-02 增补）。
 
 ### PRD-004 权限座位
 
@@ -58,7 +60,9 @@ summary: "PRD-001–PRD-016 默认窗产品壳已接受；PRD-005 收进 Changes
   1. 待处理请求可见 Allow / Skip。
   2. 处理后不再留可点按钮。
   3. 无引擎时只改变本地状态，不声称已向远端授权。
-- **依赖或未决**：真实引擎权限请求依赖 PRD-008。
+  4. 引擎向用户**提问**（Ask-user：单选 / 多选 / 自定义答案）与权限请求是两种座位：提问座位显示问题与选项，用户作答后按钮消失、问题与答案留在记录里；提问不能被画成 Allow / Skip，权限也不能被画成问题。
+  5. 引擎接通后，Allow / Skip / 作答必须真正送达引擎；送达失败时座位回到可操作态并说明原因，不得显示「已授权 / 已回答」。
+- **依赖或未决**：真实引擎权限请求依赖 PRD-008。验收 4–5 见 [conversation-stream-timeline](../../dev/plans/conversation-stream-timeline.md)（2026-09-02 增补；提问座位对照 Desktop ADR-018 的 question ≠ permission 分家）。
 
 ### PRD-005 Preview 与 Sources
 
@@ -92,7 +96,9 @@ summary: "PRD-001–PRD-016 默认窗产品壳已接受；PRD-005 收进 Changes
   1. Queue / Tasks 要么整槽省略，要么诚实空（例如 “No queue”）。
   2. 无可用能力时，History / Snapshots 不画假按钮；Route 按 [PRD-015](#prd-015-conversation-空会话与输入面) 允许诚实空或带 Stub 标识的本地选项，但不得暗示已接到引擎策略表。
   3. 文档与 UI 都不把未完成的引擎或 Diff 写成已齐。
-- **依赖或未决**：无。
+  4. 连接态分两层、各说各的：**连接级**（是否接到引擎）显示在状态栏 / Engine 页；**会话级**（当前会话的订阅是否同步）显示在会话标题条，取值为「未连接 / 同步中 / 已连接 / 降级（附原因）/ 已断开（附原因）」五者之一。只有会话级「已连接」可以使用「已连接」措辞；不得用任一层的状态冒充另一层。
+  5. 会话订阅断开后，时间线保留断开前的内容只读可见，并在列顶明示「显示为断开前快照」；不得显示「已同步」，也不得把断开后的内容换回本地占位会话。
+- **依赖或未决**：无。验收 4–5 见 [conversation-stream-timeline](../../dev/plans/conversation-stream-timeline.md)（2026-09-02 增补）。
 
 ## 待验证说明
 
@@ -215,7 +221,7 @@ PRD-001 至 PRD-007 的代码已在 M0–M3 合入，但 D4 启动冒烟（T1–
 - **用户价值**：用户的对话、工具执行和权限应来自真实 Agent 引擎，而不是本地占位会话/占位回复。
 - **用户可观察陈述**：用户发送后由引擎产生助手回合与工具请求；会话列表来自引擎诚实枚举。
 - **产品验收标准**：未决。在引擎接线方案接受之前，本条不算成功，也不许占位界面冒充已接通。
-- **依赖或未决**：引擎未接入本产品；禁止用内置 Chat 会话模型顶替引擎权威。
+- **依赖或未决**：引擎未接入本产品；禁止用内置 Chat 会话模型顶替引擎权威。**接线方案已于 2026-09-02 签收**：[m6-engine-wave](../../dev/plans/m6-engine-wave.md) + [ADR-003](../../dev/decisions/003-engine-adapter-boundary.md) + [conversation-stream-timeline](../../dev/plans/conversation-stream-timeline.md)（均 `accepted`）；本条保持 `blocked` 直到 M6-A2 接通并有隔离 profile 启动冒烟证据，届时补验收标准并升 `implemented`。
 
 ### PRD-010 产品身份
 
@@ -225,51 +231,62 @@ PRD-001 至 PRD-007 的代码已在 M0–M3 合入，但 D4 启动冒烟（T1–
 - **产品验收标准**：未决。本批不改产品名称与图标。
 - **依赖或未决**：**已裁决 @2026-09-02**：产品名 **UniverseAgentStudio**；图标复用 UniverseAgentDesktop / Singularity 现有资产。落地排在引擎波（PRD-008 接通）之后，见 [D12](../../dev/progress/deferred-gaps.md)。扩展分发仍未决（且明确排除完整市场分发）。
 
-## 非功能需求（2026-09-02 新增，待签收）
+## 非功能需求（2026-09-02 新增；同日签收 `accepted`）
 
-以下四条约束贯穿 PRD-001–016，本批以 `proposed` 起草；签收后转 `accepted`。它们回答「产品在重启、键盘、Web、大会话四种情形下应该怎样」，此前需求正文对这些完全沉默，实现只能各自猜。
+以下四条约束贯穿 PRD-001–016。它们回答「产品在重启、键盘、Web、大会话四种情形下应该怎样」，此前需求正文对这些完全沉默，实现只能各自猜。**签收裁定（2026-09-02，用户委托）：** 四条均 `accepted`；各条「依赖或未决」里原待裁定的事项按下文写死；实施分别登记为 [D13 / D14 / D15](../../dev/progress/deferred-gaps.md) 与 [D10](../../dev/progress/deferred-gaps.md)，**都不阻塞 M6 引擎波**。
 
 ### PRD-017 本地会话持久化
 
-- **状态**：`proposed`
+- **状态**：`accepted`
 - **用户价值**：用户重启后还能找到昨天的本地会话，而不是每次从空白开始。
 - **用户可观察陈述**：无引擎时，本地会话（标题、回合、权限记录）与 Conversation 的 session 窗口布局在重启后恢复；界面明确它们是本机存储，不写「已同步」。引擎接通后，会话权威切换到引擎，本地副本只作缓存并如此标注。
 - **产品验收标准**：
   1. 重启后会话列表、当前会话与各会话回合与重启前一致。
   2. Conversation 显隐、session 窗口叶与 chat tab 结构恢复（PRD-016 验收 2 的跨重启版）。
   3. 无引擎时不出现远端同步文案；引擎接通后本地缓存不得冒充引擎回报。
-- **依赖或未决**：HEAD 的 `IConversationRosterService` 是纯内存（只有透镜选择持久化到 `StorageScope.WORKSPACE`）；存储落点（workspace / profile / 引擎）与引擎接通后的迁移规则须在 R5 方案内裁定。
+- **依赖或未决**：HEAD 的 `IConversationRosterService` 是纯内存（只有透镜选择持久化到 `StorageScope.WORKSPACE`）。**存储落点已裁定（2026-09-02）**：无引擎时本地会话（标题、回合、权限记录）存 `IStorageService` **`StorageScope.WORKSPACE` + `StorageTarget.MACHINE`**（随工作区、不随 Settings Sync 漫游，天然满足「不写已同步」）；session 窗口布局沿用 PRD-016 已有的 Layout 持久化。**引擎接通后不迁移**：UA 会话权威在引擎，本地存储只保留 stub 会话与「最后一次 UA 快照」缓存（供 PRD-007 断连只读），并以 `source: local | engine-cache` 标注，缓存不得冒充引擎回报。实施挂 [conversation-stream-timeline](../../dev/plans/conversation-stream-timeline.md) 帧源之上（在 S3 之后、作为独立切片，登记 [D13](../../dev/progress/deferred-gaps.md)）。
 
 ### PRD-018 键盘可达与辅助功能
 
-- **状态**：`proposed`
+- **状态**：`accepted`
 - **用户价值**：不用鼠标也能在四个区域之间切换、在 Conversation 的 tab / 对话框 / 透镜之间移动。
 - **用户可观察陈述**：四钮各有默认快捷键；Conversation、Preview、Sources 都进入 F6 / Shift+F6 的 part 焦点循环；chat tab、子代理对话框、「对话 | 轨迹」透镜、过程折、权限座位均可键盘操作并有可读的 aria 名称。
 - **产品验收标准**：
   1. `workbench.action.toggleConversation` / `toggleSources` / `toggleEditorVisibility` / Navigator 各有默认键位且在 Keyboard Shortcuts 里可见。
   2. 隐藏 Conversation 后仅靠键盘能回到对话（PRD-001 验收 3 的键盘版）。
   3. 屏幕阅读器能读出会话标题、回合角色、权限请求状态。
-- **依赖或未决**：HEAD 只有 `workbench.action.chat.open`（Open Conversation，`Ctrl+Alt+I` / mac `Cmd+Ctrl+I`）能靠键盘显示并聚焦 Conversation；四钮 toggle、split、关非根均无默认键位。新键位须避开已占用的 Open Conversation 键与上游 `Ctrl/Cmd+B`（Navigator）。
+- **依赖或未决**：HEAD 只有 `workbench.action.chat.open`（Open Conversation，`Ctrl+Alt+I` / mac `Cmd+Ctrl+I`）能靠键盘显示并聚焦 Conversation；四钮 toggle、split、关非根均无默认键位。新键位须避开已占用的 Open Conversation 键与上游 `Ctrl/Cmd+B`（Navigator）。**裁定（2026-09-02）**：具体键位由实施切片在 `contrib/conversation` / `contrib/sources` 的 keybinding 注册处选定并写入 [commands](../systems/conversation/commands.md) §7，产品层只约束「有默认键位、Keyboard Shortcuts 可见、不与上游冲突」；实施登记 [D14](../../dev/progress/deferred-gaps.md)，排在 M6-B 之后（StatusBar / 四钮命令面在 M6-B 定稿后再加键位，避免两次改动）。
 
 ### PRD-019 Web / 远程窗口一致性
 
-- **状态**：`proposed`
+- **状态**：`accepted`
 - **用户价值**：通过 `server` / Web 入口打开时，看到的仍是同一个 Agent IDE，而不是退化成上游编辑器。
 - **用户可观察陈述**：Web 与远程窗口的默认中心同样是 Conversation，四钮与 Sources 存在；某个能力在该形态不可用时诚实省略，不画假控件。
 - **产品验收标准**：
   1. Web 入口启动后 PRD-001 验收 1–3 成立。
   2. 依赖桌面进程的能力（如本机引擎进程）在 Web 下省略或明示不可用。
-- **依赖或未决**：`contrib/conversation` / `contrib/sources` 注册在 `workbench.common.main.ts`，理论上 Web 共用；尚无任何 Web 冒烟证据。
+- **依赖或未决**：`contrib/conversation` / `contrib/sources` 注册在 `workbench.common.main.ts`，理论上 Web 共用；尚无任何 Web 冒烟证据。**裁定（2026-09-02）**：本条是验证义务而非新功能；验收 1 的 Web 冒烟（`scripts/code-web.sh` 或 `server` 入口 + D4 式 V1–V3 断言）登记 [D15](../../dev/progress/deferred-gaps.md)，在 M6-A2 合入后跑一次（届时同时验证验收 2「本机引擎进程在 Web 下省略」）。ADR-003 已保证 gRPC 只在 `platform/universeAgent/node`，Web 形态下 `IUniverseAgentConnection` 必须诚实报 `disconnected`，不得在 Web 画连接控件。
 
 ### PRD-020 规模与性能上限
 
-- **状态**：`proposed`
+- **状态**：`accepted`
 - **用户价值**：长会话不卡输入，轨迹页记录上千条仍可滚动与检索。
-- **用户可观察陈述**：对话与轨迹列表在回合 / 记录数达到既定上限（初值：对话 1,000 回合、轨迹 5,000 记录）时仍保持可滚动、输入不阻塞；超限时诚实提示而非静默截断。
+- **用户可观察陈述**：对话与轨迹列表在回合 / 记录数达到既定上限（**已裁定 2026-09-02**：对话 1,000 回合、轨迹 5,000 记录）时仍保持可滚动、输入不阻塞；超限时诚实提示而非静默截断。
 - **产品验收标准**：
   1. 上述规模下发送一条消息到出现在时间线 ≤ 200 ms（本机、无引擎）。
   2. 轨迹页在上限规模有搜索与虚拟化（PRD-012 T5）。
-- **依赖或未决**：D10 延期项；上限数值待用户裁定。
+- **依赖或未决**：上限数值按初值写死，不再等裁定。实施仍是 [D10](../../dev/progress/deferred-gaps.md)（PRD-012 T5），触发条件改为「M6-D 轨迹 T4 合入后」——引擎真数据到来前虚拟化无意义；验收 1 的 200 ms 在 [conversation-stream-timeline](../../dev/plans/conversation-stream-timeline.md) S2 三类帧增量落地后用 1,000 回合 fixture 测一次并记 D10。
+
+### PRD-021 未知内容与错误的诚实呈现
+
+- **状态**：`accepted`
+- **用户价值**：引擎发来 IDE 尚不认识的内容块或一条错误时，用户看到的是它本来的样子，而不是被静默丢掉或被冒充成别的东西。
+- **用户可观察陈述**：时间线里出现「未知内容」行时，行上标明来源类型名并显示有界的原文预览（截断处有标记）；出现「错误」行时显示错误标题，只有引擎声明可重试的错误才有重试按钮。两种行都不进过程折，也不被画成助手正文或工具卡。
+- **产品验收标准**：
+  1. 未知块不消失、不被归并进相邻的助手回合或工具行；类型名逐字来自引擎。
+  2. 错误行的重试按钮只在引擎标记可重试时出现；不可重试的错误只显示说明。
+  3. 无引擎时不构造假未知块或假错误来演示这两种行。
+- **依赖或未决**：活数据依赖 PRD-008。对应 session-core `unknown` / `error` 两种记录（Desktop ADR-307 诚实降级镜像）。实施见 [conversation-stream-timeline](../../dev/plans/conversation-stream-timeline.md) §3.3。2026-09-02 随该方案签收新增。
 
 ## 明确排除（不是需求）
 

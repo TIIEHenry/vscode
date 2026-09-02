@@ -4,18 +4,19 @@ type: plan
 status: accepted
 phase: M6
 updated: 2026-09-02
-summary: "R5 已签收：platform 传输 adapter + 同 token roster 投影；AHP 非权威；能力三态；M6-A ReadyToImplement → page-access 5 → E1 → T4"
+summary: "R5 方案（2026-09-02 用户委托裁决签收）：platform 传输 adapter + 同 token roster 投影；history 经 session-core fold；AHP 非权威；能力三态；切片 M6-A1 platform → M6-A2 contrib 接线 → page-access 5 → E1 → T4"
 ---
 
 # M6 引擎波
 
 > **研究入口：** [research-queue R5](../progress/research-queue.md)。  
 > **产品：** [PRD-008](../../docs/product/requirements.md#prd-008-引擎与会话权威) 今天 `blocked`；活数据还解锁 PRD-002/003/004、page-access 切片 5、customizations E1、trajectory T4。  
-> **边界 ADR：** [ADR-003](../decisions/003-engine-adapter-boundary.md)（`accepted`）。  
+> **边界 ADR：** [ADR-003](../decisions/003-engine-adapter-boundary.md)（本稿同批 `accepted`）。  
+> **时间线专章：** [conversation-stream-timeline.md](conversation-stream-timeline.md)（`accepted`）— 细化本稿 §3 时间线 / 发送 / 权限 / 变更事件四行与 M6-A 发送链、M6-D 轨迹 fold；其 §9 增量修订已于本次签收并入本稿。  
 > **能力矩阵 SSOT：** [customizations-engine.md](customizations-engine.md) §2 / §3.7。本稿不重开 catalog 权威。  
 > **AHP：** [agent-host overview](../../docs/systems/agent-host/overview.md) — `IAgentHostService` 不是 UA session-core。
 
-本稿 `status: accepted`。**M6-A** ReadyToImplement（[stream-timeline S4–S6](conversation-stream-timeline.md) 随 A/D 同批落地）。实施 commit **才**改 `src/`。
+**签收（2026-09-02）：** 规则 16 只读审查 Approve with changes 已全部改入（见文末审查记录）；用户委托裁决「分析 loop 阻塞、解禁后续」，据此本稿与 ADR-003 同批升 `accepted`。**M6-A1 ReadyToImplement**（可与 stream-timeline S1–S3 并行）；M6-A2 在 S3 合入后开；M6-B/C/D 按 §8 串行。本稿 **不改** `src/`。
 
 ---
 
@@ -27,7 +28,7 @@ summary: "R5 已签收：platform 传输 adapter + 同 token roster 投影；AHP
 2. Engine 页（`ua.engine`）能按能力三态显隐 catalog；无连接时仍是诚实空 + Test（PRD-007）。
 3. 轨迹透镜能用引擎 Event fold 替换 fixture（T4），且不经过 AHP / `IChatModel`。
 
-**M6 完成线（实施中）：** adapter 同 token 替换 stub 实现 → page-access 切片 5 UI 状态机 → E1 Skills list/toggle → trajectory T4。PRD-008 仍须启动冒烟证据才升 `implemented`。
+**M6 完成线（已签收，可实施）：** M6-A1 platform 传输 → M6-A2 adapter 同 token 替换 stub 实现（含 stream-timeline S4 / S5）→ page-access 切片 5 UI 状态机 → E1 Skills list/toggle → trajectory T4（S6）。PRD-008 仍须启动冒烟证据才升 `implemented`。
 
 ---
 
@@ -57,12 +58,12 @@ HEAD 公开契约在 `IConversationRosterService`（`conversationStubService.ts`
 | 握手 | `isEngineConnected()` / `setEngineConnected`（测试可写布尔） | `SystemService.Connect` → `ConnectResponse`（`capabilities.methods` / `events`，**无** proto 字段 `supported_methods`；`session_token`；`work_dir`） | stub 无握手、无 token、无 methods 广告。生产 **`isEngineConnected()` = 非空 `session_token` + 活 channel**（Connect 成功且 transport 未死）；**pairing-pending 不算 connected**。禁止 UI 手拨 |
 | 会话目录 | `getSessions` / `createSession` / `deleteSession` / `renameSession` | `SessionService.List` / `Create` / `Delete`；标题 `AgentService.Rename` | stub 两颗种子（`untitled` / `visualize`）；UA 分页 + `SessionListFilter` + shelve。**无** `SwitchSession` RPC。**已连接时**首次 `List` 完成前 **不得**把 stub 种子投影进 UA catalog |
 | 当前会话 | `getActiveSessionId` / `switchSession` + `onDidChangeActiveSession` | 客户端投影：本地 active id + `Resume`/`GetHistory`/`SessionEventStream` | switch 是 IDE 选择，不是引擎命令。禁止第二份 active id（page-access B11 / navigator INV） |
-| 时间线 | `getTurns` 同步数组 | `SessionService.GetHistory`（`cursor_seq`）+ `SessionEventStream`；经 session-core fold；renderer 只吃 `ViewFrame`（细则见 [conversation-stream-timeline.md](conversation-stream-timeline.md)） | stub 是闭集 `user/assistant/confirmation/thinking/tool/visualization`；UA 是信封流。接通后 `appendStubEchoAssistant` **禁止**再写助手回合 |
-| 发送 | `appendUserTurn` 本地 push | `AgentService.Chat` 双向流（`session_id` + payload）；三键分立（`message_id` / `operation_id` / `originLeaseId`）；outbox 沿 ADR-012 | 发送链 = UA adapter，**禁止** `IChatService.sendRequest`（page-access 已钉） |
-| 权限 | `appendConfirmationTurn` / `resolveConfirmation` 本地状态 | 流内权限事件 + `PermissionService.Respond`；L4 `permission_request` → `pendingActions`；应答走 Chat 臂或 `Respond`（M6-A 定） | 无引擎时只改本地（PRD-004）；接通后必须打到引擎，禁止「已授权」文案在 Respond 失败时出现 |
+| 时间线 | `getTurns` 同步数组 | `SessionService.GetHistory`（`cursor_seq`）+ `SessionEventStream`，**经 session-core fold**（L1–L4 demux → Actor → `ViewFrame`）；renderer 只吃 `ViewFrame`，细则见 [stream-timeline §3](conversation-stream-timeline.md#3-设计) | stub 是闭集 `user/assistant/confirmation/thinking/tool/visualization`；UA 是信封流。接通后 `appendStubEchoAssistant` **禁止**再写助手回合 |
+| 发送 | `appendUserTurn` 本地 push | `AgentService.Chat` 双向流（`session_id` + payload）；**三键分立** `message_id` / `operation_id` / `originLeaseId`；outbox 沿 Desktop ADR-012 | 发送链 = UA adapter，**禁止** `IChatService.sendRequest`（page-access 已钉） |
+| 权限 | `appendConfirmationTurn` / `resolveConfirmation` 本地状态 | 流内 L4 `permission_request` → session-core `pendingActions`；应答走 Chat 臂 `PermissionResponse` 或 `PermissionService.Respond`（**M6-A2 实施时定一条，不双写**） | 无引擎时只改本地（PRD-004）；接通后必须打到引擎，禁止「已授权」文案在 Respond 失败时出现 |
 | 轨迹 | `getTrajectoryRecords` = turns 投影 ∪ Stub fixture | 同一 Event 窗口 fold（trajectory T4） | T1–T3 fixture 带 `Stub`；接通后替换，断连不得把 fixture 混进 UA session id |
 | 队列 / AutoDrive | `getMessageQueueState` / `setMessageQueueFixture` / `getAutoDriveTasks` | `AgentService.EnqueueQueueItem` 等队列 RPC；Goal 走 `PermissionService.SetSessionGoal` | HEAD 是 fixture。本波 adapter **保留接口**；活队列可在切片 5 后跟随，不得用 fixture 冒充引擎队列 |
-| 变更事件 | `onDidChangeSession` / `onDidChangeEngineConnection` | stream + capability revision | 投影层继续发这两事件，让 View / SessionBar / StatusBar 零改注入点；细粒度通道 `acquireSessionView`（同 token，见 [conversation-stream-timeline.md](conversation-stream-timeline.md)） |
+| 变更事件 | `onDidChangeSession` / `onDidChangeEngineConnection` | stream + capability revision | 投影层继续发这两事件，让 View / SessionBar / StatusBar 零改注入点；**同 token 增量加 `acquireSessionView(sessionId)`** 作细粒度帧通道（stream-timeline §3.2） |
 | 多 agent / fork | 无 | `AgentService.List` / `Tree` / `Fork`；PRD-016 活 catalog | 本波不假装已 fork；窗口 chrome 已落，活数据跟随 |
 
 **AgentService / ToolService / McpService 的 catalog RPC 不进 roster 接口。** 它们是 Engine 页与运行时 catalog，经 platform 连接服务调用，不塞进 `IConversationRosterService`（避免 Preferences pane 与 Conversation UI 抢同一上帝接口）。
@@ -177,36 +178,47 @@ M5 写过「不迁 ADR-003 token」：那是预留本 ADR。本 ADR 的结论是
 
 ## 8. 切片顺序
 
-官方顺序（串行依赖；后刀不得早于前刀合入）：
+官方顺序（串行依赖；后刀不得早于前刀合入）。**签收裁定（2026-09-02）：** M6-A 拆成 **A1（platform 独立域）** 与 **A2（contrib 接线）**。A1 与 [stream-timeline](conversation-stream-timeline.md) S1–S3 **不同冲突域、可并行**；A2 须等 S3 与 A1 都合入（同改 `conversationStubService.ts` / `conversationLens.ts`）。
 
 ```text
-M6-A adapter
-  → M6-B page-access 切片 5
-    → M6-C customizations E1
-      → M6-D trajectory T4
+stream-timeline S1 → S2 → S3（工位 D，串行）      M6-A1 platform/universeAgent（工位 A，并行）
+                        └────────────────┬──────────────────┘
+                                 M6-A2 contrib 接线（含 stream-timeline S4 / S5）
+                                   → M6-B page-access 切片 5
+                                     → M6-C customizations E1
+                                       → M6-D trajectory T4（= stream-timeline S6）
 ```
 
-### M6-A — adapter（本波新建）
+### M6-A1 — platform adapter（本波新建；**不改 `contrib/`**）
 
-**做什么：** `platform/universeAgent`（`node` gRPC 客户端 + `electron-browser` ProxyChannel，**非** agentHost UtilityProcess）连接 + Connect + `GrpcCapabilityProbe` + `SessionService.List/Create/Delete` + `GetHistory` 经 session-core `historyResult` 进 Actor，由 fold 产 baseline（**不**另写 roster 投影；时间线细则见 [conversation-stream-timeline.md](conversation-stream-timeline.md) S4）；实现类替换 stub；`isEngineConnected` = `session_token` + 活 channel（pairing-pending → false）。**发送链（本刀必改）：**
+**做什么：** 新建 `src/vs/platform/universeAgent/`：`common` 契约 `IUniverseAgentConnection`（Connect 生命周期、能力三态快照、session / chat / permission / catalog TS 面）；`node` gRPC 客户端（`@grpc/grpc-js`；生成 / 手写 stub）+ `SystemService.Connect` + `GrpcCapabilityProbe` 等价探测 + `SessionService.List/Create/Delete` + `GetHistory` / `SessionEventStream` / `AgentService.Chat` 的传输原语；`electron-browser` ProxyChannel 代理（**非** agentHost UtilityProcess；宿主进程 main / shared / 新 utility 由本刀实施定并写入 ADR-003 审查记录）。`isEngineConnected` = `session_token` + 活 channel（pairing-pending → false）。**history / stream 不自建投影**：本刀只暴露传输与订阅端口，fold 归 S1 落下的 `node/sessionCore` Actor（`historyResult` → fold → baseline）。
 
-- `conversationLens.submitDraft`：**未连接** → 现有 stub echo；**已连接** → fail-closed（拒发 + 诚实句），**不得**调用 `appendStubEchoAssistant`。
+**冲突域：** `platform/universeAgent/**`（S1 在其中只新建 `common/sessionView/**`、`node/sessionCore/**` 两棵 vendored 树与 `conversationViewFrame.ts`；A1 **不得**改这三处，只 import）、`package.json` 依赖、`build/` 打包配置。A1 若早于 S1 合入，对 sessionCore 的依赖以接口占位并在 A2 接线。
+
+**验证：** platform 单测 mock channel：Connect 成功 + token + 活 channel → `isEngineConnected===true`；pairing-pending → false；`GrpcCapabilityProbe` UNIMPLEMENTED on skills → `UNSUPPORTED`（非 methods 命中 alone）；transport 失败 → `transport: failed` 而非空列表。`npm run compile` + `npm run eslint`（`local/code-layering` 对 `platform/universeAgent/**` 为 error）绿。
+
+### M6-A2 — contrib 接线（S3 与 A1 合入后）
+
+**做什么：** 引擎实现类替换 `registerSingleton(IConversationRosterService, …)`，同 token；**`GetHistory` 经 session-core `historyResult` 进 Actor，由 fold 产 baseline 帧，不另写 roster 投影**（2026-09-02 按 [conversation-stream-timeline §9](conversation-stream-timeline.md) 替换原「`GetHistory` 只读投影到 roster」）；含该稿 **S4**（`SessionEventStream` 订阅 + demux + attribution + Actor + lease over ProxyChannel）与 **S5**（Chat 写路径 + outbox + `heartbeat_ack` + permission / question / clientTool respond）。**发送链（本刀必改）：**
+
+- `conversationLens.submitDraft`：**未连接** → 现有 stub 帧源；**已连接** → `lease.post` → `AgentService.Chat`；接不通则 fail-closed（拒发 + 诚实句），**不得**调用 `appendStubEchoAssistant`。
 - `IConversationRosterService.appendStubEchoAssistant`：**已连接时 service 层 reject/throw**（或 no-op + 断言），禁止写入助手回合。
 - `deleteSession`：**已连接时**删最后一条 UA 会话 **不得**再创建 `untitled`/`visualize` stub id 回填 catalog；应走 UA `Create` 或诚实空态。
+- 权限应答：Chat 臂 `PermissionResponse` 与 `PermissionService.Respond` **二选一**，选定写入 ADR-003 审查记录。
 
-首次 `List` 完成前 roster 不展示 stub 种子为 UA 行。`AgentService.Chat` 发送实现可在 A 末 fail-closed 或 B 前接通；切片 5 只验 UI 合同。
+首次 `List` 完成前 roster 不展示 stub 种子为 UA 行。切片 5 只验 UI 合同。
 
-**不做什么：** Engine catalog UI、StatusBar 改开 Engine pane、轨迹 fold、Device pairing 完整 UX（loopback 无 pairing 即可；需要 pairing 则 Connection pane 诚实待配对 — **pairing-pending 不算 connected** — 不静默跳过）。
+**不做什么（A1 / A2 共同）：** Engine catalog UI、StatusBar 改开 Engine pane、轨迹 fold（S6 / M6-D）、Device pairing 完整 UX（loopback 无 pairing 即可；需要 pairing 则 Connection pane 诚实待配对 — **pairing-pending 不算 connected** — 不静默跳过）。
 
-**验证：** platform 单测 mock channel：Connect 成功 + token + 活 channel → `isEngineConnected===true`；pairing-pending → false；`GrpcCapabilityProbe` UNIMPLEMENTED on skills → `UNSUPPORTED`（非 methods 命中 alone）；断连 / 已连接 `deleteSession` 不回填 stub 种子到 UA catalog；已连接 `appendStubEchoAssistant` 被拒。`valid-layers-check`：`contrib/conversation` 不得 import `platform/universeAgent/node`。
+**验证：** 断连 / 已连接 `deleteSession` 不回填 stub 种子到 UA catalog；已连接 `appendStubEchoAssistant` 被拒；`conversationLens.test.ts` 全绿；S4 隔离 profile 冒烟（hello → live、gap → syncing → live、断连 → closed 快照）。**分层门：** ESLint `local/code-layering` + S1 的 platform 级 boundary 测（`src/vs/workbench/**`、`src/vs/sessions/**` 生产文件禁 import `platform/universeAgent/node/**`）；`valid-layers-check` 是 API / lib 检查，不承担此职（[D8](../progress/deferred-gaps.md) 豁免期内不作门禁）。
 
 ### M6-B — page-access 切片 5（**仅 UI 合同**）
 
-父方案 [page-access-schemes §10 切片 5](page-access-schemes.md)：**adapter 同 token 与发送/ roster 行为已在 M6-A 落地**；本刀 **只改 UI 状态机与验收**，不重开 gRPC / roster 实现。
+父方案 [page-access-schemes §10 切片 5](page-access-schemes.md)：**adapter 同 token 与发送/ roster 行为已在 M6-A2 落地**；本刀 **只改 UI 状态机与验收**，不重开 gRPC / roster 实现。
 
 - StatusBar B10：connected → `openEnginePreferences`，否则 Connection。
 - roster listed id 与 SessionBar 标题一致；`getActiveSessionId` 单源。
-- Send **不**调用 `IChatService.sendRequest`（负向 mock）；已连接路径走 `AgentService.Chat`（实现归属 M6-A）。
+- Send **不**调用 `IChatService.sendRequest`（负向 mock）；已连接路径走 `AgentService.Chat`（实现归属 M6-A2）。
 - Dock 控件集 3b 按各页分阶段，本刀 **不接**新引擎实现。
 - SessionBar 去 SelectBox 仍 Deferred。
 
@@ -214,11 +226,11 @@ M6-A adapter
 
 ### M6-C — customizations E1
 
-[customizations-engine §8.3](customizations-engine.md) 六条产品验收。依赖 A 的 `skills` 三态。H0–H3 donor 已落，禁止改扫描根到 `{AgentHome}`。
+[customizations-engine §8.3](customizations-engine.md) 六条产品验收。依赖 A1 的 `skills` 三态探测与 A2 的连接态。H0–H3 donor 已落，禁止改扫描根到 `{AgentHome}`。
 
 ### M6-D — trajectory T4
 
-[conversation-trajectory-lens](conversation-trajectory-lens.md) T4：Event fold 替换 fixture（含真 tool 树）。依赖 A 的 history/stream 与 B 的活 turns。`compacted` 仍预留、折外。visualize T4（PRD-014）**不**绑死本刀，可在 D 后跟随。轨迹全文 / `compacted` 投影 / visualize 类型化见 [conversation-stream-timeline.md](conversation-stream-timeline.md) S6 与 G2 / G3。
+[conversation-trajectory-lens](conversation-trajectory-lens.md) T4：Event fold 替换 fixture（含真 tool 树）= [conversation-stream-timeline](conversation-stream-timeline.md) S6（`GetHistory` + `DetailRef` 全文、`compacted` 投影、子代理按 attribution 过滤；依赖其 §6 G2 / G3 上游缺口）。依赖 A2 的 history/stream 与 B 的活 turns。`compacted` 仍预留、折外。visualize T4（PRD-014）**不**绑死本刀，可在 D 后跟随。
 
 ---
 
@@ -230,15 +242,16 @@ M6-A adapter
 | gRPC 包体进 workbench | stubs 与 channel 留 platform `node`；renderer 只见 TS 接口 |
 | UNKNOWN 画假 Skills | E1 验收第 6 条；probe 单测 |
 | 断连回 stub 种子造成「会话消失又冒出 Untitled」 | §6；测：UA id 在 `onDidChangeEngineConnection(false)` 后仍在 `getSessions()`；已连接 `deleteSession` 末条不回填 `untitled`/`visualize` |
-| 已连接仍 stub echo | M6-A：`submitDraft` fail-closed + `appendStubEchoAssistant` service 拒写 |
-| 首次 List 前 stub 种子冒充 UA catalog | M6-A：List 完成前 roster 不含 stub 种子行 |
-| 规则 16 未过就开实施 | 已签收 @ 2026-09-02；M6-A 可开 |
+| 已连接仍 stub echo | M6-A2：`submitDraft` fail-closed + `appendStubEchoAssistant` service 拒写 |
+| 首次 List 前 stub 种子冒充 UA catalog | M6-A2：List 完成前 roster 不含 stub 种子行 |
+| A1 与 S1 同改 `platform/universeAgent/**` 冲突 | A1 不得改 `common/sessionView/**`、`node/sessionCore/**`、`conversationViewFrame.ts`；S1 不得改 A1 新建的连接 / gRPC 文件；两槽各自 rebase 到对方合入后的 `agent-ide` |
+| A2 早于 S3 开工导致 `conversationStubService.ts` 双写者 | A2 入口条件 = S3 与 A1 均已合入 `agent-ide` |
 
 ---
 
-## 10. 知识层（实施 commit 时，不在本草案）
+## 10. 知识层（实施 commit 时，不在本稿）
 
-签收并落地后：`docs/systems/agent-host` 加一句「UA adapter 在 `platform/universeAgent`，AHP 仍非权威」；`docs/product/traceability.md` PRD-008 方案列改本文件；`docs/systems/chat/agent-ui.md` StatusBar 状态机改切片 5 事实。
+落地后：`docs/systems/agent-host` 加一句「UA adapter 在 `platform/universeAgent`，AHP 仍非权威」；`docs/product/traceability.md` PRD-008 方案列改本文件；`docs/systems/chat/agent-ui.md` StatusBar 状态机改切片 5 事实；[engine-protocol-surface §1 / §5](../../docs/reference/universe-agent/engine-protocol-surface.md) 用 A1 / A2 实测的 RPC 名回填「须查明」列；[stub-and-fixtures §5](../../docs/systems/conversation/stub-and-fixtures.md) 回填连接态映射；[docs/modules/platform/overview.md](../../docs/modules/platform/overview.md) 加 `platform/universeAgent` 条目。
 
 ---
 
@@ -255,5 +268,7 @@ M6-A adapter
 ## 审查记录
 
 - 2026-09-02：R5 发现稿 `draft`（工位 B @ `01dee834`）。规则 16 **未跑**；不得实施。
+- 2026-09-02：并入 [conversation-stream-timeline](conversation-stream-timeline.md)（`accepted`）§9 增量修订：§3 时间线 / 发送 / 权限 / 变更事件四行；M6-A `GetHistory` 句**替换**；M6-D 指向其 S6。ADR-003 编号 Decision 不变。
 - 2026-09-02：规则 16 只读审查 **Approve with changes**（工位 B @ `bfe24b48`）。已钉：`isEngineConnected` = token + 活 channel；pairing-pending 非 connected；stub 种子 `untitled`/`visualize`；首次 List 前不投影 stub；M6-A `submitDraft`/echo fail-closed；`deleteSession` 已连接不回填 stub；SUPPORTED 须 `GrpcCapabilityProbe` 非 UNIMPLEMENTED；gRPC 宿主 node + ProxyChannel；切片 5 UI-only；ADR-003 一窗一 UA session。
-- 2026-09-02：R5 人类签收 @ 工位 B；并入 [conversation-stream-timeline §9](conversation-stream-timeline.md#9-对-m6--adr-003-的增量修订建议) 增量修订；与 [ADR-003](../decisions/003-engine-adapter-boundary.md) 同升 **`accepted`**；**M6-A ReadyToImplement**。
+- 2026-09-02：R5 签收 @ 工位 B（loop 波内并入 §9 并升 `accepted`，合入 `agent-ide` @ `5b10e789`）。
+- 2026-09-02：**主仓裁决确认 `accepted`**（用户委托「分析 loop 阻塞、解禁后续」；规则 16 已跑且全部改入，无未决 Critical）。同批裁定：M6-A 拆 **A1 platform**（与 stream-timeline S1–S3 并行）/ **A2 contrib 接线**（S3 + A1 合入后）；分层门 = `code-layering` + boundary 测，`valid-layers-check` 在 D8 豁免期内不作门禁；PRD-017 本地持久化落点见 [requirements PRD-017](../../docs/product/requirements.md#prd-017-本地会话持久化)（A2 接通后本地副本降为缓存）。ADR-003 同批 `accepted`。
