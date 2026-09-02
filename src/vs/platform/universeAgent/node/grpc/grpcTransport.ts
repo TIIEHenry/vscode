@@ -18,6 +18,27 @@ import type {
 	UniverseAgentSessionEvent,
 } from '../../common/universeAgentTypes.js';
 
+export interface UniverseAgentAuthNonceRequest {
+	readonly clientIdentityId: string;
+	readonly clientPublicKey: Uint8Array;
+}
+
+export interface UniverseAgentAuthNonceResult {
+	readonly authNonce: Uint8Array;
+	readonly engineIdentityId: string;
+	readonly engineCertFingerprint: string;
+	readonly expiresAtMs?: number;
+}
+
+export interface UniverseAgentDeviceAuthConnectRequest {
+	readonly clientIdentityId: string;
+	readonly clientPublicKey: Uint8Array;
+	readonly authNonce: Uint8Array;
+	readonly signature: Uint8Array;
+	readonly protocolVersion: string;
+	readonly pairingPhase?: 'provisional' | 'formal';
+}
+
 /** gRPC status codes used by capability probe and transport classification. */
 export const GrpcStatusCode = {
 	OK: 0,
@@ -51,6 +72,10 @@ export interface IUniverseAgentGrpcTransport {
 
 	connect(request: UniverseAgentConnectRequest): Promise<UniverseAgentConnectResult>;
 
+	getAuthNonce(request: UniverseAgentAuthNonceRequest): Promise<UniverseAgentAuthNonceResult>;
+
+	connectWithDeviceAuth(request: UniverseAgentDeviceAuthConnectRequest): Promise<UniverseAgentConnectResult>;
+
 	close(): void;
 
 	probeRpc(service: string, method: string): Promise<number>;
@@ -73,6 +98,7 @@ export const UniverseAgentGrpcServices = {
 	System: {
 		service: 'universeagent.system.v1.SystemService',
 		Connect: 'Connect',
+		GetAuthNonce: 'GetAuthNonce',
 	},
 	Session: {
 		service: 'universeagent.session.v1.SessionService',
