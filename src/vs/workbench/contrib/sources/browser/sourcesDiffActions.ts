@@ -13,6 +13,8 @@ import { ResourceContextKey } from '../../../common/contextkeys.js';
 import { IEditorService } from '../../../services/editor/common/editorService.js';
 import { ISCMService } from '../../scm/common/scm.js';
 import { ISourcesDiffPanelService } from '../common/sourcesDiffPanelService.js';
+import { SourcesDiffPanelService } from './sourcesDiffPanelService.js';
+import { SOURCES_DIFF_PANEL_VIEW_ID } from './sourcesDiffPanelIds.js';
 import { moveActiveDiffToConversation, moveActiveDiffToPanel, moveActiveDiffToPreview } from './sourcesDiffRefHelpers.js';
 
 export const SOURCES_DIFF_MOVE_TO_CONVERSATION_COMMAND = 'sources.diff.moveToConversation';
@@ -22,6 +24,11 @@ export const SOURCES_DIFF_MOVE_TO_PREVIEW_COMMAND = 'sources.diff.moveToPreview'
 const previewDiffTitleWhen = ContextKeyExpr.and(
 	ResourceContextKey.Scheme.isEqualTo(Schemas.file),
 	ContextKeyExpr.has('isInDiffEditor'),
+);
+
+const panelDiffTitleWhen = ContextKeyExpr.and(
+	ContextKeyExpr.equals('view', SOURCES_DIFF_PANEL_VIEW_ID),
+	SourcesDiffPanelService.ctxHasChange,
 );
 
 registerAction2(class SourcesDiffMoveToConversationAction extends Action2 {
@@ -35,6 +42,11 @@ registerAction2(class SourcesDiffMoveToConversationAction extends Action2 {
 				group: '1_sourcesDiff',
 				order: 10,
 				when: previewDiffTitleWhen,
+			}, {
+				id: MenuId.ViewTitle,
+				group: '1_sourcesDiff',
+				order: 10,
+				when: panelDiffTitleWhen,
 			}],
 		});
 	}
@@ -44,6 +56,7 @@ registerAction2(class SourcesDiffMoveToConversationAction extends Action2 {
 			accessor.get(IEditorService),
 			accessor.get(ISCMService),
 			accessor.get(IInstantiationService),
+			accessor.get(ISourcesDiffPanelService),
 		);
 	}
 });
@@ -79,6 +92,12 @@ registerAction2(class SourcesDiffMoveToPreviewAction extends Action2 {
 			title: localize2('sourcesDiffMoveToPreview', "Open Diff in Preview"),
 			icon: Codicon.openPreview,
 			f1: false,
+			menu: [{
+				id: MenuId.ViewTitle,
+				group: '1_sourcesDiff',
+				order: 11,
+				when: panelDiffTitleWhen,
+			}],
 		});
 	}
 
@@ -86,6 +105,7 @@ registerAction2(class SourcesDiffMoveToPreviewAction extends Action2 {
 		await moveActiveDiffToPreview(
 			accessor.get(IEditorService),
 			accessor.get(ISCMService),
+			accessor.get(ISourcesDiffPanelService),
 		);
 	}
 });
