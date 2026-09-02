@@ -3,12 +3,86 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+.monaco-workbench .part.sources .sources-review-filter-row {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	flex-shrink: 0;
+	padding: 2px 8px 0;
+}
+
+.monaco-workbench .part.sources .sources-review-filter-row .sources-list-filter {
+	flex: 1;
+	min-width: 0;
+}
+
+.monaco-workbench .part.sources .sources-review-unreviewed-toggle {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	font-size: 11px;
+	color: var(--vscode-descriptionForeground);
+	white-space: nowrap;
+	cursor: pointer;
+}
+
+.monaco-workbench .part.sources .sources-review-path-filter {
+	flex-shrink: 0;
+	padding: 2px 8px;
+	color: var(--vscode-descriptionForeground);
+	font-size: 11px;
+	line-height: 16px;
+}
+
+.monaco-workbench .part.sources .sources-review-path-filter-clear {
+	background: none;
+	border: none;
+	color: var(--vscode-textLink-foreground);
+	cursor: pointer;
+	font-size: 11px;
+	padding: 0;
+}
+
 .monaco-workbench .part.sources .sources-review-header-hint {
 	flex-shrink: 0;
 	padding: 4px 8px 2px;
 	color: var(--vscode-descriptionForeground);
 	font-size: 11px;
 	line-height: 16px;
+}
+
+.monaco-workbench .part.sources .sources-review-progress-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+	flex-shrink: 0;
+	padding: 2px 8px 4px;
+	font-size: 11px;
+	color: var(--vscode-descriptionForeground);
+}
+
+.monaco-workbench .part.sources .sources-review-row {
+	display: flex;
+	align-items: center;
+}
+
+.monaco-workbench .part.sources .sources-review-row .monaco-icon-label {
+	flex: 1;
+	min-width: 0;
+}
+
+.monaco-workbench .part.sources .sources-review-state {
+	flex-shrink: 0;
+	width: 16px;
+	text-align: center;
+	font-size: 10px;
+	line-height: 16px;
+	color: var(--vscode-descriptionForeground);
+}
+
+.monaco-workbench .part.sources .sources-review-state.unreviewed {
+	color: var(--vscode-charts-blue);
 }
 
 .monaco-workbench .part.sources .sources-tab-panel .sources-review-list {
