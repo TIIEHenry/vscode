@@ -22,7 +22,7 @@ summary: "P2/P3 延期缺口 SSOT；D1–D7、D11 已闭；D8 valid-layers TS li
 | D5 | P2 | **EH 探针冒烟**（LSP + layout 类扩展） | — | 三探针行 **已实测 @2026-09-02**（[wave3](d5-evidence/smoke-wave3-0001/)）；panel/terminal 记入矩阵 **待实测**，不阻塞本行 | M4 | closed |
 | D6 | P3 | **Diff footprint 刷新** | slot C 已于 `b283fe19` 重测 `b5631393` | 页已更新 | docs | closed |
 | D7 | P3 | titlebar LayoutControlMenu 产品四钮与原生 Panel/Aux 共存 | `2dcd5a0a` 已从 LayoutControlMenu 去掉 Panel/Aux；留 submenu | 默认窗只见四钮 | M0 | closed |
-| D8 | P2 | **`valid-layers-check` 环境红**（`EditContext`/`GPUBufferUsage`/`FileSystemHandle` TS lib 报错） | D8 复测 @2026-09-02：`nvm use 24.18.0` + 显式 PATH 仍 **FAIL**（166× TS）；见下方 D8 节 root cause | `layersTypeCheck`（TS7 `@typescript/native`）与 tsconfig lib/includes 对齐后绿；或记录可接受的 infra 豁免 | infra | open |
+| D8 | P2 | **`valid-layers-check` 环境红**（`EditContext`/`GPUBufferUsage`/`FileSystemHandle` TS lib 报错） | D8 深挖 @2026-09-02 **`c0dfee3d`**：Node **24.18.0** + PATH 钉死仍 **FAIL**（166× TS）；**browser/electron-browser 单跑 0 错** → 非全局缺 lib，见 D8 节 | `npm run valid-layers-check` 六域全绿（或 documented infra 豁免） | infra | open |
 | D9 | P2 | **EH 矩阵次级探针**：`viewsContainers.panel` / `views`(panel) / `terminal` profiles·`onStartup` / 命令 + `editor/decoration` | wave3 只覆盖 LSP + Sidebar 布局 + js-debug；panel/decoration 已测；terminal xterm 自动化 blocked | panel + decoration **已实测 @2026-09-02**（[d9](d5-evidence/smoke-d9-0001/)）；`terminal` 扩展已装但 xterm 自动化 blocked → 矩阵 terminal 行仍 **待实测** | docs | open |
 | D10 | P3 | **PRD-012 T5** 轨迹搜索 / 虚拟化 / Overview 瀑布条 | fixture 三位数以下普通 DOM 够用；用户未要 | 记录数上千或用户提出；实施后 [conversation-trajectory-lens](../plans/conversation-trajectory-lens.md) T5 行转 implemented | M6+ | open |
 | D12 | P3 | **PRD-010 产品身份落地**：`product.json` `nameShort`/`nameLong`/`applicationName`/`dataFolderName`/`win32AppUserModelId`/`urlProtocol` 一族 + 图标资产 | 用户裁决 @2026-09-02：名称 **UniverseAgentStudio**，图标复用 UniverseAgentDesktop / Singularity 资产；**排在引擎波（R5/M6）之后**，避免与接线同期改发行身份 | M6 引擎波闭后开 plan；`urlProtocol` 与 page-access 已选 `universe-agent` scheme 的关系在 plan 内裁定；窗口标题与图标可识别为 UniverseAgentStudio | product | open |
@@ -211,28 +211,70 @@ $REPO/scripts/code-cli.sh --extensions-dir="$EXT_DIR" \
 
 ## D8 `valid-layers-check` 复测（2026-09-02，merge 工位 / `loop/merge`）
 
-**路径**：`/home/clarence/Projects/Agents/vscode-WorkTrees/merge` · **SHA**：`01dee834`
+**路径**：`/home/clarence/Projects/Agents/vscode-WorkTrees/merge` · **SHA**：`c0dfee3d`
 
 | 步骤 | 结果 |
 |------|------|
 | `.nvmrc` | `24.18.0` |
-| `nvm use 24.18.0`（默认 PATH） | `node -v` → **v26.7.0**（`~/.local/bin/node` 优先于 nvm） |
 | `PATH=$NVM_DIR/versions/node/v24.18.0/bin:…` 后 `node -v` | **v24.18.0** |
-| `npm run valid-layers-check` | **FAIL**（exit 1；约 166 条 `error TS`） |
+| `npm run valid-layers-check` | **FAIL**（`layersChecker` exit 0；`layersTypeCheck` exit 1；**166** 条 `error TS`） |
+| `@typescript/native` | **7.0.2**（`layersTypeCheck` 经 `process.execPath` + 解析的 native `tsc`） |
 
-**失败签名（与历次 v26.7.0 相同族）**：
+### 分项目错误计数（同 PATH，`tsc --project build/checker/tsconfig.<p>.json`）
 
-- `EditContext` / `editContext` / `TextFormatUpdateEvent` / `CharacterBoundsUpdateEvent`
-- `GPUBufferUsage` / `GPUTextureUsage`（editor GPU 路径）
-- `FileSystemHandle.queryPermission` / `showDirectoryPicker` / `DataTransferItem.getAsFileSystemHandle`
+| 项目 | TS 错误数 |
+|------|-----------|
+| `browser` | **0** |
+| `electron-browser` | **0** |
+| `worker` | 46 |
+| `node` | 52 |
+| `electron-main` | 34 |
+| `electron-utility` | 34 |
 
-**Root cause（当前判断）**：
+### 前 20 条唯一 `error TS` 文案（全量去重）
 
-1. **非 Node 运行时版本问题**：在钉死的 **v24.18.0** 下仍全量失败，排除「仅 v26 误跑」假因。
-2. **PATH 陷阱**：仅 `nvm use` 不足以保证 `npm`/`node` 用 nvm 版本；自动化须前置 nvm bin 或 `hash -r`。
-3. **类型检查层**：`valid-layers-check` 第二阶段为 `build/checker/layersTypeCheck.ts`，通过 `process.execPath` 调 **TS7**（`@typescript/native` 的 `tsc`）按 `build/checker/tsconfig.*.json` 检查；`tsconfig.browser.json` 已声明 `DOM` lib 并 include `@webgpu/types` 与 `@types/wicg-file-system-access`，但 checker 仍报上述符号缺失 → **TS lib / include 解析或 TS7 与仓库 DOM 类型预期未对齐**（非 merge 分支业务层违规）。
+1. `TS2304: Cannot find name 'CharacterBoundsUpdateEvent'.`
+2. `TS2304: Cannot find name 'EditContextEventHandlersEventMap'.`
+3. `TS2304: Cannot find name 'EditContextInit'.`
+4. `TS2304: Cannot find name 'GPUBufferUsage'.`
+5. `TS2304: Cannot find name 'TextUpdateEvent'.`
+6. `TS2322: Type 'CanvasRenderingContext2D | GPUCanvasContext | …' is not assignable to type 'GPUCanvasContext'.`
+7. `TS2339: Property 'editContext' does not exist on type 'HTMLDivElement'.`
+8. `TS2339: Property 'editContext' does not exist on type 'HTMLElement'.`
+9. `TS2339: Property 'getAsFileSystemHandle' does not exist on type 'DataTransferItem'.`
+10. `TS2339: Property 'queryPermission' does not exist on type 'FileSystemHandle'.`
+11. `TS2339: Property 'requestPermission' does not exist on type 'FileSystemHandle'.`
+12. `TS2339: Property 'showDirectoryPicker' does not exist on type 'CodeWindow'.`
+13. `TS2345: Argument of type 'string | number | symbol' is not assignable to parameter of type 'string'.`
+14. `TS2552: Cannot find name 'GPUTextureUsage'. Did you mean 'GPUTexture'?`
+15. `TS2552: Cannot find name 'TextFormatUpdateEvent'. Did you mean 'ITextUpdateEvent'?`
+16. `TS2709: Cannot use namespace 'EditContext' as a type.`
+17. `TS2769: No overload matches this call.`
+18. `TS7006: Parameter 'f' implicitly has an 'any' type.`
 
-**下一步**：对照 upstream `valid-layers-check` 绿环境（Node PATH + `@typescript/native` 版本）；必要时补 `src/typings` 或修 checker tsconfig；D3 行曾绿需与当前 SHA  diff checker 依赖。
+（全量仅 **18** 种唯一文案；其余 166 条为同文案多文件/多行重复。）
+
+### `layersTypeCheck.ts` / tsconfig 结论
+
+- **`build/checker/layersTypeCheck.ts` 本身无逻辑缺陷**：并行对 6 个 `tsconfig.<env>.json` 调 TS7 native `tsc`；失败来自各 env 的 **compilerOptions / include 与入图文件不匹配**，不是「没调到 tsc」。
+- **`tsconfig.browser.json` 已正确**：`lib` 含 `DOM`/`DOM.Iterable`；`include` 含 `src/typings/*.d.ts`、`@webgpu/types`、`@types/wicg-file-system-access` → **单跑 browser 全绿**。
+- **红域共性**：报错文件均在 `src/vs/**/browser/**`（及 `workbench/services/driver/browser`），却出现在 **`node` / `worker` / electron-node 系** 检查中——TypeScript 从 `include` 内的 `src/*.ts`（node）或 `common/**`（worker）**沿 import 拉入 browser 源码**，但：
+  - `tsconfig.node.json` 仅 `lib: ES2024`（无 DOM），且 **exclude** `src/typings/editContext.d.ts`；
+  - `tsconfig.worker.json` 无 `@webgpu/types` include，且同样 **exclude** `editContext.d.ts`。
+- **因此**：不是「Node 24 vs 26」单因；也不是 browser checker 缺 lib。是 **非 browser 环境的 checker 图里出现了 browser 实现文件，却未套用 browser 的补充类型配置**。
+
+### 可执行修复（优先级）
+
+1. **对齐 worker checker 与 browser 的补充类型**（低风险、应优先试）：在 `tsconfig.worker.json` 增加与 browser 相同的 `@webgpu/types` include；**移除**对 `src/typings/editContext.d.ts` 的 exclude（browser 未 exclude）。复跑 worker 计数应下降。
+2. **node / electron-main / utility**：`include` 含根 `src/*.ts` 引导文件会拉入整棵 workbench/browser 依赖图。可选路径：
+   - **A（upstream 对齐）**：对照当前 `microsoft/vscode` main 的 `build/checker/tsconfig.node.json` 是否仍含 `src/*.ts`；若 upstream 已删或改 include，cherry-pick；
+   - **B（checker-only）**：在 node 系 tsconfig 为 layer typecheck 增加与 browser 相同的 `lib` + 补充 `include`（仅影响 `valid-layers-check`，不改变 emit）；或
+   - **C（架构）**：切断 bootstrap → browser 的 typecheck 边（工作量大，仅当 A/B 不可接受）。
+3. **PATH**：CI/脚本须 `PATH=$NVM_DIR/versions/node/v24.18.0/bin:$PATH`（或 `hash -r`）；仅 `nvm use` 不足。
+4. **验收**：`PATH=…/v24.18.0/bin:… npm run valid-layers-check` exit 0；六项目单独 `tsc` 均为 0 错。
+
+**状态**：**open**（browser 域已绿；infra 未修）。
+
 
 ## 维护规则
 
