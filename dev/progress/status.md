@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-02
-summary: "loop/merge 已合入 M7 代码与 accepted 方案；P0/P1a/P2a、E2-1/E2-4/E2-5、I2–I4/I3b 已落；P1b/P2b、Q2 接通、I5 未完；测试债 D17/D18 旁路"
+summary: "loop/merge 已合入 M7 代码与 accepted 方案；P0/P1a/P1b/P2a、E2-1/E2-4/E2-5、I2–I5/I3b 已落；P2b、Q2 接通、W1 未完；测试债 D17/D18 旁路"
 ---
 
 # Development Progress
@@ -16,8 +16,8 @@ summary: "loop/merge 已合入 M7 代码与 accepted 方案；P0/P1a/P2a、E2-1/
 - **未验证不等于未开发：** PRD-008、Diff F4、Navigator N5、Review R5、Hub H4a、Web D15 仍缺证据；它们进入 V 槽，不再冻结 UI 主线。
 - **M7 产品裁定：** 测试失败不阻塞后续 UI 切片；数据损坏、权限绕过、secret 泄漏为全局硬门；无法编译/启动与分层破坏只阻塞该**冲突域**合入（与 [health-gates](health-gates.md) 一致）。新失败统一记 [D17](deferred-gaps.md)；I3b 安装包未验记 [D18](deferred-gaps.md)。
 - **M7 方案：** 六份子方案 **2026-09-02 升 `accepted`**（规则 16 四轮，见各方案文末）。
-- **本波已落代码（loop/merge）：** P0 Web 三服务断连；P1a MCP 运行态/Plugins 真探测；P2a DetailRef `requestDetail`；E2-1 废止 hide-on-disconnect + 六态 + Web 省略桌面控件；E2-4/E2-5 Runtime/Plugins 接真方法；I2 userData `universe-agent-studio-dev`；I3a 品牌源与生成；I3b deb/rpm hicolor + electron 元数据；I4 点名路径去 Code - OSS。
-- **未完：** P1b `listModels`、P2b compacted、B Q2 接通、I5 迁移入口、W1 Web 冒烟。
+- **本波已落代码（loop/merge）：** P0 Web 三服务断连；P1a MCP 运行态/Plugins 真探测；P1b `listModels` + `providerConfig` 固定 unsupported；P2a DetailRef `requestDetail`；E2-1 废止 hide-on-disconnect + 六态 + Web 省略桌面控件；E2-4/E2-5 Runtime/Plugins 接真方法；I2 userData `universe-agent-studio-dev`；I3a 品牌源与生成；I3b deb/rpm hicolor + electron 元数据；I4 点名路径去 Code - OSS；I5 从 code-oss-dev 迁 settings/keybindings/snippets。
+- **未完：** P2b compacted、B Q2 接通、A E2-2 Model 组接 `listModels`、W1 Web 冒烟。
 
 ## Blockers
 

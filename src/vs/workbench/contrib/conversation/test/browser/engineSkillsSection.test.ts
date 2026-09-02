@@ -96,6 +96,7 @@ suite('EngineSkillsSection (E1)', () => {
 			updateMcpServer: async () => ({ ok: true }),
 			removeMcpServer: async () => ({ ok: true }),
 			listTools: async () => ({ tools: [] }),
+			listModels: async () => ({ models: [] }),
 			setConnected(value: boolean) {
 				connected = value;
 				onDidChangeConnection.fire(snapshot());

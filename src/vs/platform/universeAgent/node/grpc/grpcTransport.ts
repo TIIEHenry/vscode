@@ -41,6 +41,7 @@ import type {
 	UniverseAgentRemoveMcpServerRequest,
 	UniverseAgentRemoveMcpServerResult,
 	UniverseAgentListToolsResult,
+	UniverseAgentListModelsResult,
 	UniverseAgentToggleMcpServerRequest,
 	UniverseAgentToggleMcpServerResult,
 	UniverseAgentSessionEvent,
@@ -176,6 +177,9 @@ export interface IUniverseAgentGrpcTransport {
 
 	listTools(): Promise<UniverseAgentListToolsResult>;
 
+	/** ConfigService.ListModels — always `include_disabled=true`. */
+	listModels(): Promise<UniverseAgentListModelsResult>;
+
 	/** Host-only: AgentService.Tree (m6 §11 A1). */
 	fetchAgentTree(sessionId: string): Promise<UniverseAgentAgentTreeNode | undefined>;
 
@@ -232,6 +236,10 @@ export const UniverseAgentGrpcServices = {
 		Reload: 'Reload',
 		Unload: 'Unload',
 		ScanNew: 'ScanNew',
+	},
+	Config: {
+		service: 'universeagent.config.v1.ConfigService',
+		ListModels: 'ListModels',
 	},
 	Team: {
 		service: 'universeagent.team.v1.TeamService',

@@ -79,6 +79,7 @@ suite('EnginePreferencesPane', () => {
 			updateMcpServer: async () => ({ ok: true }),
 			removeMcpServer: async () => ({ ok: true }),
 			listTools: async () => ({ tools: [] }),
+			listModels: async () => ({ models: [] }),
 		};
 	}
 

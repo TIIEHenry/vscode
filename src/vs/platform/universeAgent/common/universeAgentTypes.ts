@@ -12,6 +12,8 @@ export type UniverseAgentCapabilityKey =
 	| 'mcp'
 	| 'mcpRuntime'
 	| 'plugins'
+	| 'models'
+	| 'providerConfig'
 	| 'globalRules'
 	| 'agentProfiles'
 	| 'projectRules'
@@ -408,6 +410,28 @@ export interface UniverseAgentToolSummary {
 
 export interface UniverseAgentListToolsResult {
 	readonly tools: readonly UniverseAgentToolSummary[];
+}
+
+/**
+ * ConfigService.ListModels registry row. Wire fields only — no invented
+ * context-window or capability-tag properties (protocol-surface §1b P1b).
+ */
+export interface UniverseAgentModelEntry {
+	readonly id: string;
+	readonly type: string;
+	readonly enabled: boolean;
+	/** Capability level 1–9 from wire `level`. */
+	readonly level: number;
+	readonly description?: string;
+	/** Wire `cost` (`min`…`max`); pass through, do not reinterpret. */
+	readonly cost?: string;
+	readonly speed?: string;
+	readonly provider: string;
+	readonly modelId: string;
+}
+
+export interface UniverseAgentListModelsResult {
+	readonly models: readonly UniverseAgentModelEntry[];
 }
 
 /**

@@ -49,6 +49,7 @@ import type {
 	UniverseAgentRemoveMcpServerRequest,
 	UniverseAgentRemoveMcpServerResult,
 	UniverseAgentListToolsResult,
+	UniverseAgentListModelsResult,
 	UniverseAgentToggleMcpServerRequest,
 	UniverseAgentToggleMcpServerResult,
 	UniverseAgentSessionEvent,
@@ -553,6 +554,10 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 
 	async listTools(): Promise<UniverseAgentListToolsResult> {
 		return this._withTransport(transport => transport.listTools());
+	}
+
+	async listModels(): Promise<UniverseAgentListModelsResult> {
+		return this._withTransport(transport => transport.listModels());
 	}
 
 	getActiveHubBaseUrl(): string | undefined {
