@@ -102,10 +102,19 @@
 .monaco-workbench .part.sources .sources-review-state {
 	flex-shrink: 0;
 	width: 16px;
+	padding: 0;
+	border: none;
+	background: transparent;
 	text-align: center;
 	font-size: 10px;
 	line-height: 16px;
 	color: var(--vscode-descriptionForeground);
+	cursor: pointer;
+}
+
+.monaco-workbench .part.sources .sources-review-state:focus-visible {
+	outline: 1px solid var(--vscode-focusBorder);
+	outline-offset: 1px;
 }
 
 .monaco-workbench .part.sources .sources-review-state.unreviewed {

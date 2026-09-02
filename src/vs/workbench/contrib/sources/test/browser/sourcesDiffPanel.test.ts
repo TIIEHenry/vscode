@@ -14,6 +14,7 @@ import { Registry } from '../../../../../platform/registry/common/platform.js';
 import { Extensions as ViewContainerExtensions, Extensions as ViewExtensions, IViewContainersRegistry, IViewsRegistry, ViewContainerLocation } from '../../../../common/views.js';
 import { IViewsService } from '../../../../services/views/common/viewsService.js';
 import { workbenchInstantiationService, TestViewsService } from '../../../../test/browser/workbenchTestServices.js';
+import { ConversationDiffReviewEditorId } from '../../common/conversationDiffReviewInput.js';
 import { SOURCES_DIFF_MOVE_TO_CONVERSATION_COMMAND, SOURCES_DIFF_MOVE_TO_PREVIEW_COMMAND } from '../../browser/sourcesDiffActions.js';
 import { SOURCES_DIFF_PANEL_VIEW_CONTAINER } from '../../browser/sourcesDiffPanel.contribution.js';
 import '../../browser/sourcesDiffPanel.contribution.js';
@@ -142,6 +143,22 @@ suite('Sources diff panel', () => {
 		);
 		assert.strictEqual(
 			evalWhen(moveToPreview.when, { view: SOURCES_DIFF_PANEL_VIEW_ID, [SourcesDiffPanelService.ctxHasChange.key]: false }),
+			false
+		);
+	});
+
+	test('EditorTitle exposes move to preview when Conversation Diff placeholder is active', () => {
+		const editorTitleItems = MenuRegistry.getMenuItems(MenuId.EditorTitle).filter(isIMenuItem);
+		const moveToPreview = editorTitleItems.find(item => item.command.id === SOURCES_DIFF_MOVE_TO_PREVIEW_COMMAND);
+
+		assert.ok(moveToPreview, 'Conversation Diff editor title must expose move to preview');
+		assert.ok(moveToPreview.when, 'Conversation Diff move to preview must be gated');
+		assert.strictEqual(
+			evalWhen(moveToPreview.when, { activeEditor: ConversationDiffReviewEditorId }),
+			true
+		);
+		assert.strictEqual(
+			evalWhen(moveToPreview.when, { activeEditor: 'workbench.editor.files.textFileEditor' }),
 			false
 		);
 	});

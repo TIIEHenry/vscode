@@ -14,6 +14,7 @@ import {
 	countReviewProgress,
 	filterReviewEntries,
 	markReviewedAfterSuccessfulOpen,
+	reviewListEmptyReason,
 } from '../../common/sourcesReviewListModel.js';
 import { buildSourcesReviewProgressKey, ISourcesReviewProgressKey } from '../../common/sourcesReviewProgress.js';
 
@@ -62,6 +63,30 @@ suite('Sources - review list model', () => {
 			e => reviewed.has(e.resource.toString()),
 		);
 		assert.deepStrictEqual(textAndPath.map(e => e.name), ['b.ts']);
+	});
+
+	test('reviewListEmptyReason distinguishes unreviewed-done, path miss, and text miss', function () {
+		const a = entry(toResource.call(this, '/project/a.ts'));
+		const b = entry(toResource.call(this, '/project/b.ts'));
+		const reviewed = new Set([a.resource.toString(), b.resource.toString()]);
+		const isReviewed = (e: ISourcesChangeEntry) => reviewed.has(e.resource.toString());
+
+		assert.strictEqual(
+			reviewListEmptyReason(true, [a, b], '', undefined, true, isReviewed),
+			'unreviewedDone',
+		);
+		assert.strictEqual(
+			reviewListEmptyReason(true, [a, b], '', [toResource.call(this, '/project/other.ts')], false, () => false),
+			'pathNoIntersection',
+		);
+		assert.strictEqual(
+			reviewListEmptyReason(true, [a, b], 'zzz', undefined, false, () => false),
+			'textFilterEmpty',
+		);
+		assert.strictEqual(
+			reviewListEmptyReason(true, [a, b], '', undefined, false, () => false),
+			undefined,
+		);
 	});
 
 	test('countReviewProgress reports reviewed and total', function () {

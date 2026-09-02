@@ -65,6 +65,9 @@ export interface ISourcesReviewAttributionService {
 	/** Header suffix when engine is connected and attribution data exists for the active session. */
 	getAttributionHeaderSuffix(): string | undefined;
 
+	/** Lease attribution lookup for chip reveal; undefined when this file cannot find the step. */
+	resolveRevealItemId(toolCallId: string): string | undefined;
+
 	buildChipMapForEntries(entries: readonly { readonly resource: URI }[]): ReadonlyMap<string, readonly IReviewAttributionChipDisplay[]>;
 }
 

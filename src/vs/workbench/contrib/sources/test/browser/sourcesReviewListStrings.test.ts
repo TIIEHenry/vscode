@@ -5,7 +5,7 @@
 
 import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
-import { sourcesReviewListHeaderHint } from '../../browser/sourcesReviewListStrings.js';
+import { sourcesReviewListEmptyMessage, sourcesReviewListHeaderHint, sourcesReviewRevealMissHint } from '../../browser/sourcesReviewListStrings.js';
 
 suite('Sources - Review list strings', () => {
 
@@ -18,5 +18,18 @@ suite('Sources - Review list strings', () => {
 		assert.ok(!sourcesReviewListHeaderHint.includes('Preview'), 'must not advertise Preview open behavior');
 		assert.ok(!sourcesReviewListHeaderHint.includes('FORK'), 'must not advertise FORK diff gap');
 		assert.ok(!sourcesReviewListHeaderHint.match(/comment/i), 'must not imply review comments are available');
+	});
+
+	test('filter empty messages are distinct by reason', () => {
+		const unreviewed = sourcesReviewListEmptyMessage('unreviewedDone');
+		const path = sourcesReviewListEmptyMessage('pathNoIntersection');
+		const text = sourcesReviewListEmptyMessage('textFilterEmpty');
+		assert.notStrictEqual(unreviewed, path);
+		assert.notStrictEqual(path, text);
+		assert.notStrictEqual(unreviewed, text);
+		assert.ok(!unreviewed.includes('No matching changes'));
+		assert.ok(!path.includes('No matching changes'));
+		assert.ok(!text.includes('No matching changes'));
+		assert.strictEqual(sourcesReviewRevealMissHint, '对话里找不到这一步');
 	});
 });
