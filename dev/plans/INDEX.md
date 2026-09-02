@@ -20,6 +20,7 @@ summary: "dev/plans 导航：M4/M5 implemented；M6 引擎波 draft；sources-ch
 | [m4-validation-wave.md](m4-validation-wave.md) | `implemented` | D3/D4/D5 closed；D3 valid-layers 环境红仍记 D2 脚注 |
 | [m5-ui-shell-hardening.md](m5-ui-shell-hardening.md) | `implemented` | 切片 1–5 @ 18b5e8d7；D4/D5 closed；valid-layers environment-blocked（Node v26.7.0） |
 | [m6-engine-wave.md](m6-engine-wave.md) | `draft` | R5：platform UA adapter + 同 token roster；切片 A→B page-access 5→E1→T4 |
+| [conversation-stream-timeline.md](conversation-stream-timeline.md) | `accepted` | M6 时间线专章（规则 16 两轮 Grok CLI 审查后签收）：SessionEventStream L1–L4 显示写源；session-core fold（view→common / Actor→node）；同 token `acquireSessionView`；attribution sidecar；stub 帧源；三类帧增量；**S1–S3 ReadyToImplement**（先改 PRD-003/004/007 + 新 PRD-021）；S4–S6 随 m6 / ADR-003 |
 | [sources-changes-diff.md](sources-changes-diff.md) | `accepted` | PRD-009 / ADR-005：Changes 行 → Preview Diff；`ConversationDiffReviewInput` 只读审阅 tab；Panel Diff 视图重宿主；切片 F1–F5（用户免除规则 16） |
 | [chat-compare-split.md](chat-compare-split.md) | `implemented` | PRD-011 并排比对已落；D4 已验 |
 | [page-access-schemes.md](page-access-schemes.md) | `implemented` | 切片 1a–4 已落；切片 5 blocked PRD-008 |
