@@ -5,7 +5,11 @@
 
 import type { ItemAttribution } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
 import type { SessionViewSnapshot, TimelineItemView } from '../../../../platform/universeAgent/common/sessionView/index.js';
+import { projectTrajectoryProcessFoldSpans, TrajectoryProcessFoldSpan } from './conversationProcessFoldModel.js';
 import { ConversationStubTurn } from './conversationStubModel.js';
+
+/** PRD-020 / PRD-012 T5: trajectory record display cap (honest notice when exceeded). */
+export const CONVERSATION_TRAJECTORY_RECORD_LIMIT = 5000;
 
 /** Stub seed ids that may receive trajectory fixture extras when no engine is connected. */
 export const STUB_TRAJECTORY_FIXTURE_SESSION_IDS = new Set(['untitled', 'visualize', 'tour', 'blank']);
@@ -365,4 +369,113 @@ export function findTrajectoryRecordIdForTurn(
 	}
 	const nested = records.find(record => record.parentCallId === turnId);
 	return nested?.id;
+}
+
+export interface TrajectoryRecordLimitView {
+	readonly visibleRecords: readonly ConversationTrajectoryRecord[];
+	readonly totalCount: number;
+	readonly omittedCount: number;
+}
+
+/** Keeps the most recent records when over PRD-020 cap; caller shows {@link omittedCount} honestly. */
+export function applyTrajectoryRecordLimit(
+	records: readonly ConversationTrajectoryRecord[],
+	limit: number = CONVERSATION_TRAJECTORY_RECORD_LIMIT,
+): TrajectoryRecordLimitView {
+	const totalCount = records.length;
+	if (totalCount <= limit) {
+		return { visibleRecords: records, totalCount, omittedCount: 0 };
+	}
+	const omittedCount = totalCount - limit;
+	return {
+		visibleRecords: records.slice(omittedCount),
+		totalCount,
+		omittedCount,
+	};
+}
+
+/** Lowercase haystack for trajectory search (kind, text, blocks, inspector fields). */
+export function getTrajectoryRecordSearchHaystack(record: ConversationTrajectoryRecord): string {
+	const parts: string[] = [record.kind, record.text];
+	if (record.messageSource) {
+		parts.push(record.messageSource.kind, record.messageSource.label ?? '');
+	}
+	if (record.environment) {
+		parts.push(record.environment.cwd ?? '', record.environment.os ?? '', record.environment.extra ?? '');
+	}
+	for (const field of [record.promptDetail, record.inputDetail, record.outputDetail, record.result]) {
+		if (field) {
+			parts.push(field);
+		}
+	}
+	if (record.sourceBlocks?.length) {
+		for (const block of record.sourceBlocks) {
+			parts.push(block.type, block.content, block.toolName ?? '');
+		}
+	}
+	return parts.join('\n').toLowerCase();
+}
+
+/** Case-insensitive substring filter; blank query returns all records. */
+export function filterTrajectoryRecordsBySearch(
+	records: readonly ConversationTrajectoryRecord[],
+	searchQuery: string,
+): readonly ConversationTrajectoryRecord[] {
+	const needle = searchQuery.trim().toLowerCase();
+	if (!needle) {
+		return records;
+	}
+	return records.filter(record => getTrajectoryRecordSearchHaystack(record).includes(needle));
+}
+
+export type TrajectoryTableDisplayItem =
+	| { readonly type: 'record'; readonly record: ConversationTrajectoryRecord }
+	| { readonly type: 'fold'; readonly span: TrajectoryProcessFoldSpan };
+
+/** Flat record rows and process-fold spans for virtualized table rendering. */
+export function buildTrajectoryTableDisplayItems(records: readonly ConversationTrajectoryRecord[]): TrajectoryTableDisplayItem[] {
+	const spans = projectTrajectoryProcessFoldSpans(records);
+	const spanByStart = new Map(spans.map(span => [span.startIndex, span]));
+	const foldedRecordIds = new Set(spans.flatMap(span => span.recordIds));
+	const items: TrajectoryTableDisplayItem[] = [];
+
+	for (let index = 0; index < records.length; index++) {
+		const span = spanByStart.get(index);
+		if (span) {
+			items.push({ type: 'fold', span });
+			index = span.endIndex - 1;
+			continue;
+		}
+		const record = records[index]!;
+		if (foldedRecordIds.has(record.id)) {
+			continue;
+		}
+		items.push({ type: 'record', record });
+	}
+
+	return items;
+}
+
+export interface TrajectoryTableViewModel {
+	readonly items: readonly TrajectoryTableDisplayItem[];
+	readonly totalCount: number;
+	readonly omittedCount: number;
+	readonly visibleRecordCount: number;
+	readonly filteredCount: number;
+}
+
+/** Applies PRD-020 limit, search filter, and fold grouping for the trajectory table. */
+export function buildTrajectoryTableViewModel(
+	records: readonly ConversationTrajectoryRecord[],
+	searchQuery: string,
+): TrajectoryTableViewModel {
+	const limited = applyTrajectoryRecordLimit(records);
+	const filtered = filterTrajectoryRecordsBySearch(limited.visibleRecords, searchQuery);
+	return {
+		items: buildTrajectoryTableDisplayItems(filtered),
+		totalCount: limited.totalCount,
+		omittedCount: limited.omittedCount,
+		visibleRecordCount: limited.visibleRecords.length,
+		filteredCount: filtered.length,
+	};
 }

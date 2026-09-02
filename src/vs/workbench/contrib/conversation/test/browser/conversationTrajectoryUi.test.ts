@@ -9,7 +9,7 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/tes
 import { ConversationPart, IConversationLensSlots } from '../../../../browser/parts/conversation/conversationPart.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { ConversationLens } from '../../browser/conversationLens.js';
-import { ConversationTrajectory } from '../../browser/conversationTrajectory.js';
+import { ConversationTrajectory, conversationTrajectorySearchPlaceholder, formatConversationTrajectoryLimitNotice } from '../../browser/conversationTrajectory.js';
 import {
 	conversationTrajectoryInspectorPayload,
 	conversationTrajectoryInspectorSummary,
@@ -19,7 +19,9 @@ import {
 	conversationTrajectoryKindTool,
 } from '../../browser/conversationTrajectory.js';
 import { ConversationStubService, IConversationRosterService } from '../../browser/conversationStubService.js';
+import { IConversationTimelineRevealService } from '../../browser/conversationTimelineRevealService.js';
 import {
+	CONVERSATION_TRAJECTORY_RECORD_LIMIT,
 	CONVERSATION_TRAJECTORY_STUB_CONTEXT_TEXT,
 	CONVERSATION_TRAJECTORY_STUB_SUBTOOL_TEXT,
 	CONVERSATION_TRAJECTORY_STUB_SYSTEM_TEXT,
@@ -71,6 +73,11 @@ suite('ConversationTrajectoryUi', () => {
 		const stubService = store.add(new ConversationStubService());
 		const clipboardService = new TestClipboardService();
 		instantiationService.stub(IConversationRosterService, stubService);
+		instantiationService.stub(IConversationTimelineRevealService, {
+			_serviceBrand: undefined,
+			registerLens: () => ({ dispose: () => { } }),
+			revealItem: () => { },
+		});
 		instantiationService.stub(IClipboardService, clipboardService);
 		instantiationService.stub(ICommandService, new class implements ICommandService {
 			declare readonly _serviceBrand: undefined;
@@ -114,6 +121,15 @@ suite('ConversationTrajectoryUi', () => {
 		const lens = store.add(instantiationService.createInstance(ConversationLens, slots));
 		layout();
 		return { part, lens, stubService, layoutReadingColumn: layout, slots };
+	}
+
+	function findRecordRowOutsideFold(trajectory: Element, kind: string): HTMLElement | undefined {
+		for (const row of trajectory.querySelectorAll(`.conversation-lens-trajectory-record-row[data-kind="${kind}"]`)) {
+			if (!row.closest('.conversation-process-fold-children')) {
+				return row as HTMLElement;
+			}
+		}
+		return undefined;
 	}
 
 	function seedUntitledTrajectory(stubService: ConversationStubService): string {
@@ -191,8 +207,8 @@ suite('ConversationTrajectoryUi', () => {
 		assert.ok(foldChildren.querySelector('.conversation-lens-trajectory-record-row[data-kind="tool"]'));
 		assert.ok(foldChildren.querySelector('.conversation-lens-trajectory-record-row[data-kind="subtool"]'));
 
-		const systemOutside = trajectory.querySelector('.conversation-lens-trajectory-table-body > .conversation-lens-trajectory-record-row[data-kind="system"]');
-		const contextOutside = trajectory.querySelector('.conversation-lens-trajectory-table-body > .conversation-lens-trajectory-record-row[data-kind="context"]');
+		const systemOutside = findRecordRowOutsideFold(trajectory, 'system');
+		const contextOutside = findRecordRowOutsideFold(trajectory, 'context');
 		assert.ok(systemOutside);
 		assert.ok(contextOutside);
 		assert.ok(systemOutside.textContent?.includes(CONVERSATION_TRAJECTORY_STUB_SYSTEM_TEXT));
@@ -202,9 +218,78 @@ suite('ConversationTrajectoryUi', () => {
 		layoutReadingColumn();
 		await flushTimelineHeightUpdates();
 
-		assert.strictEqual(foldHeader.getAttribute('aria-expanded'), 'false');
-		assert.strictEqual(foldChildren.hidden, true);
+		const foldHeaderAfter = trajectory.querySelector('.conversation-process-fold-header') as HTMLButtonElement;
+		const foldChildrenAfter = trajectory.querySelector('.conversation-process-fold-children') as HTMLElement;
+		assert.ok(foldHeaderAfter);
+		assert.ok(foldChildrenAfter);
+		assert.strictEqual(foldHeaderAfter.getAttribute('aria-expanded'), 'false');
+		assert.strictEqual(foldChildrenAfter.hidden, true);
 		assert.ok(trajectory.querySelector('.conversation-lens-trajectory-record-row[data-kind="system"]'));
 		assert.ok(trajectory.querySelector('.conversation-lens-trajectory-record-row[data-kind="context"]'));
+	});
+
+	function mountTrajectory(): { trajectory: ConversationTrajectory; layout: () => void } {
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		const parent = document.createElement('div');
+		parent.classList.add('monaco-workbench');
+		parent.style.width = `${LENS_LAYOUT_WIDTH}px`;
+		parent.style.height = `${LENS_LAYOUT_HEIGHT}px`;
+		document.body.appendChild(parent);
+		store.add(toDisposable(() => parent.remove()));
+		const trajectory = store.add(instantiationService.createInstance(ConversationTrajectory, parent, {}));
+		trajectory.show();
+		const layout = () => trajectory.layout(LENS_LAYOUT_HEIGHT, LENS_LAYOUT_WIDTH);
+		layout();
+		return { trajectory, layout };
+	}
+
+	test('trajectory search filters visible rows without blocking input', async () => {
+		const { trajectory, layout } = mountTrajectory();
+		const records = [
+			{ id: 'system', kind: 'system' as const, text: CONVERSATION_TRAJECTORY_STUB_SYSTEM_TEXT },
+			{ id: 'context', kind: 'context' as const, text: CONVERSATION_TRAJECTORY_STUB_CONTEXT_TEXT },
+			{ id: 'tool', kind: 'tool' as const, text: 'Stub: README.md', callId: 'tool', depth: 0 },
+		];
+		trajectory.setRecords(records);
+		layout();
+
+		const host = document.querySelector('.conversation-lens-trajectory')!;
+		const search = host.querySelector('.conversation-lens-trajectory-search') as HTMLInputElement;
+		assert.ok(search);
+		assert.strictEqual(search.placeholder, conversationTrajectorySearchPlaceholder);
+
+		search.value = CONVERSATION_TRAJECTORY_STUB_SYSTEM_TEXT;
+		search.dispatchEvent(new window.Event('input', { bubbles: true }));
+		await new Promise<void>(resolve => setTimeout(resolve, 200));
+		layout();
+
+		const visibleKinds = [...host.querySelectorAll('.conversation-lens-trajectory-record-row')]
+			.map(row => row.getAttribute('data-kind'));
+		assert.ok(visibleKinds.includes('system'));
+		assert.ok(!visibleKinds.includes('context'));
+		assert.ok(!visibleKinds.includes('tool'));
+	});
+
+	test('trajectory limit notice appears when records exceed PRD-020 cap', async () => {
+		const { trajectory, layout } = mountTrajectory();
+		const records = Array.from({ length: CONVERSATION_TRAJECTORY_RECORD_LIMIT + 5 }, (_, index) => ({
+			id: `bulk-${index}`,
+			kind: 'message' as const,
+			text: `Bulk ${index}`,
+		}));
+
+		trajectory.setRecords(records);
+		layout();
+		await flushTimelineHeightUpdates();
+
+		const notice = document.querySelector('.conversation-lens-trajectory-limit-notice') as HTMLElement;
+		assert.ok(notice);
+		assert.strictEqual(notice.hidden, false);
+		assert.ok(notice.textContent?.includes(String(CONVERSATION_TRAJECTORY_RECORD_LIMIT)));
+		assert.ok(notice.textContent?.includes(String(CONVERSATION_TRAJECTORY_RECORD_LIMIT + 5)));
+		assert.ok(notice.textContent?.includes(formatConversationTrajectoryLimitNotice(
+			CONVERSATION_TRAJECTORY_RECORD_LIMIT,
+			CONVERSATION_TRAJECTORY_RECORD_LIMIT + 5,
+		)));
 	});
 });
