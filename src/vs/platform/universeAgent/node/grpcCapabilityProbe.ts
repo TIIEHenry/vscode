@@ -24,6 +24,8 @@ function emptySnapshot(): UniverseAgentCapabilitySnapshot {
 		projectRules: { ...UNKNOWN },
 		tools: { ...UNKNOWN },
 		hooksMetadata: { ...UNKNOWN },
+		agentTree: { ...UNKNOWN },
+		team: { ...UNKNOWN },
 	};
 }
 
@@ -33,6 +35,16 @@ const PROBE_TARGETS: Partial<Record<UniverseAgentCapabilityKey, { service: strin
 		service: UniverseAgentGrpcServices.Tool.service,
 		method: UniverseAgentGrpcServices.Tool.ListSkills,
 		methodKey: 'ToolService.ListSkills',
+	},
+	agentTree: {
+		service: UniverseAgentGrpcServices.Agent.service,
+		method: UniverseAgentGrpcServices.Agent.Tree,
+		methodKey: 'AgentService.Tree',
+	},
+	team: {
+		service: UniverseAgentGrpcServices.Team.service,
+		method: UniverseAgentGrpcServices.Team.MemberStatus,
+		methodKey: 'TeamService.MemberStatus',
 	},
 };
 

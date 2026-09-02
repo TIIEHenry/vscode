@@ -39,6 +39,8 @@ export interface ItemAttribution {
 	readonly role: 'user' | 'assistant' | 'system' | 'tool';
 	readonly agentId?: string;
 	readonly agentPath?: readonly string[];
+	/** Join table correlation for revealItem (m6 §11). */
+	readonly toolCallId?: string;
 	/** Set only by the stub fixture source; keeps PRD-003.3 "Stub" chrome without reading titles. */
 	readonly stub?: true;
 }

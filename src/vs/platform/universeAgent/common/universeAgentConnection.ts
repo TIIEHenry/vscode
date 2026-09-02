@@ -26,7 +26,12 @@ import type {
 	UniverseAgentSetSkillEnabledResult,
 	UniverseAgentSkillInfoRequest,
 	UniverseAgentSkillInfoResult,
+	UniverseAgentTeamInfo,
+	UniverseAgentTeamMemberInfo,
+	UniverseAgentTeamTaskInfo,
 	UniverseAgentTransportState,
+	IFileMutationRecord,
+	UniverseAgentCapabilitySupport,
 } from './universeAgentTypes.js';
 
 export const IUniverseAgentConnection = createDecorator<IUniverseAgentConnection>('universeAgentConnection');
@@ -38,6 +43,16 @@ export const universeAgentConnectionChannelName = 'universeAgentConnection';
  * Platform transport contract for UniverseAgent gRPC.
  * Renderer sees this interface via electron-browser ProxyChannel; node holds the client.
  */
+/** Navigator / Team unary surface (m6 §11). */
+export interface IUniverseAgentTeamApi {
+	memberStatus(sessionId: string, agentId: string): Promise<readonly UniverseAgentTeamMemberInfo[]>;
+	taskList(sessionId: string, agentId: string): Promise<readonly UniverseAgentTeamTaskInfo[]>;
+	teamInfo(sessionId: string, agentId: string, teamId: number): Promise<UniverseAgentTeamInfo | undefined>;
+}
+
+/** IDE-derived capability keys for Navigator (navigator-engine-segments §3). */
+export type UniverseAgentNavigatorCapabilityKey = 'agentTree' | 'team' | 'sessionList';
+
 export interface IUniverseAgentConnection {
 
 	readonly _serviceBrand: undefined;
@@ -53,8 +68,19 @@ export interface IUniverseAgentConnection {
 
 	readonly onDidChangeConnection: Event<UniverseAgentConnectionSnapshot>;
 
-	/** Placeholder until A2 wires file-mutation join (m6 §8 M6-A1). */
-	readonly onDidFileMutation: Event<void>;
+	/** File mutations after host join (m6 §11 A2); never raw L3 snapshots. */
+	readonly onDidFileMutation: Event<IFileMutationRecord>;
+
+	/** L3 multi_agent_status demux (m6 §11 A2). */
+	readonly onDidChangeTeamRuntime: Event<{ readonly sessionId: string }>;
+
+	/** Manual Agent tree refresh; forwarded to SessionViewHost (navigator §2.2). */
+	requestAgentTreeRefresh(sessionId: string): void;
+
+	/** Navigator capability three-state (IDE-derived keys). */
+	getNavigatorCapability(key: UniverseAgentNavigatorCapabilityKey): UniverseAgentCapabilitySupport;
+
+	readonly team: IUniverseAgentTeamApi;
 
 	connect(request: UniverseAgentConnectRequest): Promise<UniverseAgentConnectResult>;
 

@@ -22,7 +22,8 @@ export class UniverseAgentSessionViewService extends Disposable implements IUniv
 		@IUniverseAgentConnection connection: IUniverseAgentConnection,
 	) {
 		super();
-		this.host = this._register(new SessionViewHost(connection));
+		const host = connection as unknown as import('../common/universeAgentHostConnection.js').IUniverseAgentHostConnection;
+		this.host = this._register(new SessionViewHost(connection, host));
 		this._register(connection.onDidChangeConnection(() => this.host.onEngineConnectionChanged()));
 	}
 

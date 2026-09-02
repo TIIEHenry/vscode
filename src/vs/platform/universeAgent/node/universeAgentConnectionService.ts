@@ -3,12 +3,14 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Emitter, Event } from '../../../base/common/event.js';
+import { Emitter } from '../../../base/common/event.js';
 import { Disposable } from '../../../base/common/lifecycle.js';
 import type { ConnectionPhase, UniverseAgentConnectProfileResult } from '../common/connectionHubTypes.js';
-import type { IUniverseAgentConnection } from '../common/universeAgentConnection.js';
+import type { IUniverseAgentConnection, IUniverseAgentTeamApi, UniverseAgentNavigatorCapabilityKey } from '../common/universeAgentConnection.js';
+import type { IUniverseAgentHostConnection } from '../common/universeAgentHostConnection.js';
 import type {
 	UniverseAgentCapabilitySnapshot,
+	UniverseAgentCapabilitySupport,
 	UniverseAgentChatRequest,
 	UniverseAgentChatResponse,
 	UniverseAgentConnectRequest,
@@ -28,10 +30,12 @@ import type {
 	UniverseAgentSkillInfoRequest,
 	UniverseAgentSkillInfoResult,
 	UniverseAgentTransportState,
+	UniverseAgentAgentTreeNode,
+	IFileMutationRecord,
 } from '../common/universeAgentTypes.js';
 import { createEmptyCapabilitySnapshot, probeEngineCapabilities } from './grpcCapabilityProbe.js';
 import { createGrpcUniverseAgentClient, createPinnedGrpcUniverseAgentClient } from './grpc/grpcClient.js';
-import { IUniverseAgentGrpcTransport, isTransportFailureCode, UniverseAgentTransportError } from './grpc/grpcTransport.js';
+import { GrpcStatusCode, IUniverseAgentGrpcTransport, isTransportFailureCode, UniverseAgentTransportError } from './grpc/grpcTransport.js';
 import type { ConnectionResolver } from './connectionResolver.js';
 import { runDeviceAuthHandshake } from './deviceAuthHandshake.js';
 import type { IClientIdentityStore } from './clientIdentityTypes.js';
@@ -51,11 +55,20 @@ function isPairingPending(sessionToken: string | undefined, pairingNonce: string
 	return !sessionToken && !!pairingNonce;
 }
 
-export class UniverseAgentConnectionService extends Disposable implements IUniverseAgentConnection, IUniverseAgentHubService {
+export class UniverseAgentConnectionService extends Disposable implements IUniverseAgentConnection, IUniverseAgentHostConnection, IUniverseAgentHubService {
 
 	declare readonly _serviceBrand: undefined;
 
-	readonly onDidFileMutation = Event.None;
+	private readonly _onDidFileMutation = this._register(new Emitter<IFileMutationRecord>());
+	readonly onDidFileMutation = this._onDidFileMutation.event;
+
+	private readonly _onDidChangeTeamRuntime = this._register(new Emitter<{ readonly sessionId: string }>());
+	readonly onDidChangeTeamRuntime = this._onDidChangeTeamRuntime.event;
+
+	private readonly _onRequestAgentTreeRefresh = this._register(new Emitter<{ readonly sessionId: string }>());
+	readonly onRequestAgentTreeRefresh = this._onRequestAgentTreeRefresh.event;
+
+	readonly team: IUniverseAgentTeamApi;
 
 	private readonly _hub: UniverseAgentHubService;
 
@@ -66,7 +79,9 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 	private _transportState: UniverseAgentTransportState = 'idle';
 	private _sessionToken: string | undefined;
 	private _workDir: string | undefined;
+	private _sharedFsRootSent = false;
 	private _pairingPending = false;
+	private _agentTreeProbeUnsupported = false;
 	private _capabilities: UniverseAgentCapabilitySnapshot = createEmptyCapabilitySnapshot();
 	private _connectionPhase: ConnectionPhase = { kind: 'disconnected' };
 	private _activeProfileId: string | undefined;
@@ -85,6 +100,11 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		this._connectionResolver = options.connectionResolver;
 		this._connectionProfileStore = options.connectionProfileStore;
 		this._clientIdentityStore = options.clientIdentityStore;
+		this.team = {
+			memberStatus: (sessionId, agentId) => this._withTransport(t => t.memberStatus(sessionId, agentId)),
+			taskList: (sessionId, agentId) => this._withTransport(t => t.taskList(sessionId, agentId)),
+			teamInfo: (sessionId, agentId, teamId) => this._withTransport(t => t.teamInfo(sessionId, agentId, teamId)),
+		};
 	}
 
 	isEngineConnected(): boolean {
@@ -109,8 +129,53 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		return this._capabilities;
 	}
 
+	getNavigatorCapability(key: UniverseAgentNavigatorCapabilityKey): UniverseAgentCapabilitySupport {
+		if (key === 'sessionList') {
+			return 'UNKNOWN';
+		}
+		return this._capabilities[key]?.support ?? 'UNKNOWN';
+	}
+
+	requestAgentTreeRefresh(sessionId: string): void {
+		if (sessionId) {
+			this._onRequestAgentTreeRefresh.fire({ sessionId });
+		}
+	}
+
+	async fetchAgentTree(sessionId: string): Promise<UniverseAgentAgentTreeNode | undefined> {
+		if (this._agentTreeProbeUnsupported) {
+			return undefined;
+		}
+		try {
+			return await this._withTransport(transport => transport.fetchAgentTree(sessionId));
+		} catch (error) {
+			if (error instanceof UniverseAgentTransportError && error.code === GrpcStatusCode.UNIMPLEMENTED) {
+				this._agentTreeProbeUnsupported = true;
+				this._capabilities = {
+					...this._capabilities,
+					agentTree: { support: 'UNSUPPORTED', reason: 'UNIMPLEMENTED' },
+				};
+				this._fireSnapshotChanged();
+			}
+			throw error;
+		}
+	}
+
+	isAgentTreeUnsupported(): boolean {
+		return this._agentTreeProbeUnsupported || this._capabilities.agentTree.support === 'UNSUPPORTED';
+	}
+
+	notifyFileMutation(record: IFileMutationRecord): void {
+		this._onDidFileMutation.fire(record);
+	}
+
+	notifyTeamRuntimeChange(sessionId: string): void {
+		this._onDidChangeTeamRuntime.fire({ sessionId });
+	}
+
 	async connect(request: UniverseAgentConnectRequest): Promise<UniverseAgentConnectResult> {
 		this._connectionPhase = { kind: 'connecting', reason: 'initial' };
+		this._sharedFsRootSent = !!request.workDir;
 		this._ensureTransport();
 		try {
 			const result = await this._transport!.connect(request);
@@ -273,7 +338,9 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		this._transport = undefined;
 		this._sessionToken = undefined;
 		this._workDir = undefined;
+		this._sharedFsRootSent = false;
 		this._pairingPending = false;
+		this._agentTreeProbeUnsupported = false;
 		this._transportState = 'idle';
 		this._capabilities = createEmptyCapabilitySnapshot();
 		this._connectionPhase = { kind: 'closed' };
@@ -445,6 +512,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 			transport: this._transportState,
 			sessionToken: this._sessionToken,
 			workDir: this._workDir,
+			sharedFsRootSent: this._sharedFsRootSent,
 			pairingPending: this._pairingPending,
 			channelAlive: !!this._transport?.isChannelAlive,
 			capabilities: this._capabilities,

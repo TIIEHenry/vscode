@@ -7,14 +7,23 @@ import assert from 'assert';
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { Disposable } from '../../../../../base/common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { StorageScope } from '../../../../../platform/storage/common/storage.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { IUniverseAgentSessionView } from '../../../../../platform/universeAgent/common/universeAgentSessionView.js';
 import type { UniverseAgentConnectionSnapshot } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
+import { TestStorageService } from '../../../../test/common/workbenchTestServices.js';
 import { ConversationEngineRosterService } from '../../browser/conversationEngineRosterService.js';
+import { CONVERSATION_ROSTER_STORAGE_KEY } from '../../browser/conversationRosterStorage.js';
 
 class MockUniverseAgentConnection extends Disposable implements IUniverseAgentConnection {
 	declare readonly _serviceBrand: undefined;
 	readonly onDidFileMutation = Event.None;
+	readonly onDidChangeTeamRuntime = Event.None;
+	readonly team = {
+		memberStatus: async () => [],
+		taskList: async () => [],
+		teamInfo: async () => undefined,
+	};
 	private connected = false;
 	private sessions: { sessionId: string; title?: string }[] = [];
 	private readonly _onDidChangeConnection = new Emitter<UniverseAgentConnectionSnapshot>();
@@ -45,10 +54,13 @@ class MockUniverseAgentConnection extends Disposable implements IUniverseAgentCo
 			sessionToken: this.connected ? 'tok' : undefined,
 			pairingPending: false,
 			channelAlive: this.connected,
+			sharedFsRootSent: false,
 			capabilities: {} as UniverseAgentConnectionSnapshot['capabilities'],
 		};
 	}
 	getCapabilitySnapshot() { return this.getConnectionSnapshot().capabilities; }
+	requestAgentTreeRefresh() { }
+	getNavigatorCapability() { return 'UNKNOWN' as const; }
 	async connect() { return { methods: [], events: [], sessionToken: 'tok' }; }
 	async connectProfile() { return { ok: false as const, code: 'transport_failed' as const, reason: 'stub' }; }
 	async disconnect() { this.setConnected(false); }
@@ -73,10 +85,11 @@ class MockUniverseAgentSessionView implements IUniverseAgentSessionView {
 	async requestResync() { }
 }
 
-function createService(connection: MockUniverseAgentConnection): ConversationEngineRosterService {
+function createService(connection: MockUniverseAgentConnection, storage?: TestStorageService): ConversationEngineRosterService {
 	return new ConversationEngineRosterService(
 		connection as unknown as IUniverseAgentConnection,
 		new MockUniverseAgentSessionView() as unknown as IUniverseAgentSessionView,
+		storage,
 	);
 }
 
@@ -151,5 +164,22 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		// listSessions not seeded → refresh fails → listCompleted false
 		assert.strictEqual(service.getSessions().length, 0);
 		assert.ok(!service.getSessions().some(s => s.id === 'untitled'));
+	});
+
+	test('D13 storage persists engine cache across engine roster restart', async () => {
+		const storage = store.add(new TestStorageService());
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setListSessions([{ sessionId: 'ua-persist', title: 'Persisted UA' }]);
+		const first = store.add(createService(connection, storage));
+		connection.setConnected(true);
+		first.setEngineConnected(true);
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+		assert.strictEqual(first.getSessions()[0]?.id, 'ua-persist');
+		first.switchSession('ua-persist');
+
+		const second = store.add(createService(store.add(new MockUniverseAgentConnection()), storage));
+		assert.ok(storage.get(CONVERSATION_ROSTER_STORAGE_KEY, StorageScope.WORKSPACE)?.includes('ua-persist'));
+		assert.strictEqual(second.getActiveSessionId(), 'ua-persist');
 	});
 });

@@ -25,6 +25,10 @@ import type {
 	UniverseAgentSkillInfoResult,
 	UniverseAgentSkillSource,
 	UniverseAgentSkillSummary,
+	UniverseAgentAgentTreeNode,
+	UniverseAgentTeamInfo,
+	UniverseAgentTeamMemberInfo,
+	UniverseAgentTeamTaskInfo,
 } from '../../common/universeAgentTypes.js';
 import {
 	GrpcStatusCode,
@@ -275,6 +279,92 @@ function mapSkillInfoResponse(wire: SkillInfoResponseWire): UniverseAgentSkillIn
 	};
 }
 
+interface AgentInfoWire {
+	agent_id?: string;
+	name?: string;
+	type?: string;
+	status?: string;
+	model?: string;
+	turn_count?: number;
+	created_at?: number;
+	children?: AgentInfoWire[];
+}
+
+interface AgentTreeResponseWire {
+	root?: AgentInfoWire;
+}
+
+function mapAgentTreeNode(wire: AgentInfoWire | undefined): UniverseAgentAgentTreeNode | undefined {
+	if (!wire) {
+		return undefined;
+	}
+	return {
+		agentId: wire.agent_id ?? 'root',
+		name: wire.name ?? '',
+		type: wire.type ?? 'AGENT_TYPE_UNKNOWN',
+		status: wire.status ?? 'AGENT_STATUS_UNKNOWN',
+		model: wire.model ?? '',
+		turnCount: wire.turn_count ?? 0,
+		createdAt: wire.created_at ?? 0,
+		children: (wire.children ?? []).map(child => mapAgentTreeNode(child)!).filter(Boolean),
+	};
+}
+
+interface MemberInfoWire {
+	member_name?: string;
+	member_agent_id?: string;
+	status?: string;
+	preset?: string;
+	dynamic?: string;
+	turn_count?: number;
+}
+
+interface MemberStatusResponseWire {
+	members?: MemberInfoWire[];
+}
+
+interface BlackboardTaskWire {
+	task_id?: string;
+	owner?: string;
+	description?: string;
+	status?: string;
+	blocked_by?: string;
+	last_message?: string;
+	subject?: string;
+}
+
+interface TaskListResponseWire {
+	tasks?: BlackboardTaskWire[];
+}
+
+interface TeamInfoResponseWire {
+	team_id?: number;
+	status?: string;
+}
+
+function mapMemberInfo(wire: MemberInfoWire): UniverseAgentTeamMemberInfo {
+	return {
+		memberName: wire.member_name ?? '',
+		memberAgentId: wire.member_agent_id ?? '',
+		status: wire.status ?? '',
+		preset: wire.preset ?? '',
+		dynamic: wire.dynamic ?? '',
+		turnCount: wire.turn_count ?? 0,
+	};
+}
+
+function mapTaskInfo(wire: BlackboardTaskWire): UniverseAgentTeamTaskInfo {
+	return {
+		taskId: wire.task_id ?? '',
+		subject: wire.subject ?? '',
+		owner: wire.owner ?? '',
+		status: wire.status ?? '',
+		blockedBy: wire.blocked_by ?? '',
+		lastMessage: wire.last_message ?? '',
+		description: wire.description ?? '',
+	};
+}
+
 export interface GrpcUniverseAgentClientOptions {
 	readonly address: string;
 	readonly credentials?: grpc.ChannelCredentials;
@@ -469,6 +559,49 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 		);
 		const wire = await unary({ skill_name: request.skillName });
 		return mapSkillInfoResponse(wire);
+	}
+
+	async fetchAgentTree(sessionId: string): Promise<UniverseAgentAgentTreeNode | undefined> {
+		const unary = makeUnaryClient<Record<string, unknown>, AgentTreeResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.Agent.service,
+			UniverseAgentGrpcServices.Agent.Tree,
+		);
+		const wire = await unary({ session_id: sessionId });
+		return mapAgentTreeNode(wire.root);
+	}
+
+	async memberStatus(sessionId: string, agentId: string): Promise<readonly UniverseAgentTeamMemberInfo[]> {
+		const unary = makeUnaryClient<Record<string, unknown>, MemberStatusResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.Team.service,
+			UniverseAgentGrpcServices.Team.MemberStatus,
+		);
+		const wire = await unary({ session_id: sessionId, agent_id: agentId });
+		return (wire.members ?? []).map(mapMemberInfo);
+	}
+
+	async taskList(sessionId: string, agentId: string): Promise<readonly UniverseAgentTeamTaskInfo[]> {
+		const unary = makeUnaryClient<Record<string, unknown>, TaskListResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.Team.service,
+			UniverseAgentGrpcServices.Team.TaskList,
+		);
+		const wire = await unary({ session_id: sessionId, agent_id: agentId });
+		return (wire.tasks ?? []).map(mapTaskInfo);
+	}
+
+	async teamInfo(sessionId: string, agentId: string, teamId: number): Promise<UniverseAgentTeamInfo | undefined> {
+		const unary = makeUnaryClient<Record<string, unknown>, TeamInfoResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.Team.service,
+			UniverseAgentGrpcServices.Team.TeamInfo,
+		);
+		const wire = await unary({ session_id: sessionId, agent_id: agentId, team_id: teamId });
+		if (wire.team_id === undefined) {
+			return undefined;
+		}
+		return { teamId: wire.team_id, status: wire.status ?? '' };
 	}
 }
 

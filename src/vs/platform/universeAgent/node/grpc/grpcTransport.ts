@@ -21,6 +21,10 @@ import type {
 	UniverseAgentSetSkillEnabledResult,
 	UniverseAgentSkillInfoRequest,
 	UniverseAgentSkillInfoResult,
+	UniverseAgentAgentTreeNode,
+	UniverseAgentTeamInfo,
+	UniverseAgentTeamMemberInfo,
+	UniverseAgentTeamTaskInfo,
 } from '../../common/universeAgentTypes.js';
 
 export interface UniverseAgentAuthNonceRequest {
@@ -102,6 +106,15 @@ export interface IUniverseAgentGrpcTransport {
 	setSkillEnabled(request: UniverseAgentSetSkillEnabledRequest): Promise<UniverseAgentSetSkillEnabledResult>;
 
 	getSkillInfo(request: UniverseAgentSkillInfoRequest): Promise<UniverseAgentSkillInfoResult>;
+
+	/** Host-only: AgentService.Tree (m6 §11 A1). */
+	fetchAgentTree(sessionId: string): Promise<UniverseAgentAgentTreeNode | undefined>;
+
+	memberStatus(sessionId: string, agentId: string): Promise<readonly UniverseAgentTeamMemberInfo[]>;
+
+	taskList(sessionId: string, agentId: string): Promise<readonly UniverseAgentTeamTaskInfo[]>;
+
+	teamInfo(sessionId: string, agentId: string, teamId: number): Promise<UniverseAgentTeamInfo | undefined>;
 }
 
 /** Service / method paths aligned with UniverseAgent grpc-api proto package names. */
@@ -122,6 +135,13 @@ export const UniverseAgentGrpcServices = {
 	Agent: {
 		service: 'universeagent.agent.v1.AgentService',
 		Chat: 'Chat',
+		Tree: 'Tree',
+	},
+	Team: {
+		service: 'universeagent.team.v1.TeamService',
+		MemberStatus: 'MemberStatus',
+		TaskList: 'TaskList',
+		TeamInfo: 'TeamInfo',
 	},
 	Tool: {
 		service: 'universeagent.tool.v1.ToolService',
