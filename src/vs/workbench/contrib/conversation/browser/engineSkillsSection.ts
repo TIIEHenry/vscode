@@ -19,6 +19,8 @@ import { canPerformCatalogWrite } from './engineCatalog.js';
 import {
 	EngineSkillsPaneMode,
 	canEditSkillBody,
+	getDefaultNewSkillContent,
+	getDefaultNewSkillName,
 	getSkillSourceGroupLabel,
 	getSkillsUnknownCopy,
 	getSkillsUnsupportedCopy,
@@ -137,6 +139,7 @@ export class EngineSkillsSection extends Disposable {
 	private readonly container: HTMLElement;
 	private readonly statusMessage: HTMLElement;
 	private readonly freezeNotice: HTMLElement;
+	private readonly writeToolbar: HTMLElement;
 	private readonly listContainer: HTMLElement;
 	private readonly bodyEditor: HTMLElement;
 	private readonly bodyToolbar: HTMLElement;
@@ -172,6 +175,12 @@ export class EngineSkillsSection extends Disposable {
 		this.freezeNotice = DOM.append(this.container, $('.engine-skills-freeze-notice'));
 		this.freezeNotice.textContent = getSkillToggleFreezeNotice();
 		this.freezeNotice.style.display = 'none';
+
+		this.writeToolbar = DOM.append(this.container, $('.engine-catalog-write-toolbar'));
+		this.writeToolbar.style.display = 'none';
+		const newButton = this._register(new Button(this.writeToolbar, defaultButtonStyles));
+		newButton.label = localize('ua.engineSkillsNew', "New");
+		this._register(newButton.onDidClick(() => void this.createSkill()));
 
 		this.listContainer = DOM.append(this.container, $('.engine-skills-list'));
 
@@ -232,6 +241,10 @@ export class EngineSkillsSection extends Disposable {
 		return this.bodyToolbar.style.display !== 'none';
 	}
 
+	isWriteToolbarVisible(): boolean {
+		return this.writeToolbar.style.display !== 'none';
+	}
+
 	getSelectedSkillBody(): string {
 		return this.bodyTextarea.value;
 	}
@@ -244,6 +257,28 @@ export class EngineSkillsSection extends Disposable {
 		const index = this.listEntries.findIndex(entry => entry.kind === 'skill' && entry.skill.name === name);
 		if (index >= 0) {
 			this.list.setSelection([index]);
+		}
+	}
+
+	async createSkill(options?: { skillName?: string; content?: string }): Promise<boolean> {
+		if (!this.canWrite() || !this.connection.saveSkillContent) {
+			return false;
+		}
+		const skillName = options?.skillName ?? getDefaultNewSkillName();
+		const content = options?.content ?? getDefaultNewSkillContent(skillName);
+		try {
+			const result = await this.connection.saveSkillContent({ skillName, content });
+			if (!result.ok) {
+				return false;
+			}
+			await this.refresh();
+			if (!this.canWrite()) {
+				return false;
+			}
+			this.selectSkillForTest(skillName);
+			return true;
+		} catch {
+			return false;
 		}
 	}
 
@@ -304,6 +339,7 @@ export class EngineSkillsSection extends Disposable {
 		}
 
 		this.freezeNotice.style.display = '';
+		this.writeToolbar.style.display = this.canWrite() && !!this.connection.saveSkillContent ? '' : 'none';
 		this.listContainer.style.display = '';
 		this.bodyEditor.style.display = '';
 
@@ -367,6 +403,7 @@ export class EngineSkillsSection extends Disposable {
 		this.statusMessage.style.display = 'none';
 		this.statusMessage.textContent = '';
 		this.freezeNotice.style.display = 'none';
+		this.writeToolbar.style.display = 'none';
 		this.listContainer.style.display = 'none';
 		this.bodyEditor.style.display = 'none';
 		this.clearBodyEditor();

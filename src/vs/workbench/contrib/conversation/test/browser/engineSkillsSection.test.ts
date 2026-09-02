@@ -148,6 +148,65 @@ suite('EngineSkillsSection (E1)', () => {
 		assert.strictEqual(section.getDomNode().style.display, 'none');
 	});
 
+	test('SUPPORTED connected shows New toolbar and createSkill calls saveSkillContent RPC', async () => {
+		let saveCalled = false;
+		let savedSkillName = '';
+		let savedContent = '';
+		const connection = createConnectionStub({
+			connected: true,
+			skillsSupport: 'SUPPORTED',
+			listSkills: async () => ({
+				skills: [
+					{ name: 'demo-skill', source: 'bundled', enabled: true },
+					...(savedSkillName ? [{ name: savedSkillName, source: 'user' as const, enabled: true }] : []),
+				],
+			}),
+			getSkillInfo: async (request) => ({
+				name: request.skillName,
+				content: savedContent || '# New',
+				source: request.skillName === 'demo-skill' ? 'bundled' : 'user',
+				enabled: true,
+			}),
+			saveSkillContent: async (request) => {
+				saveCalled = true;
+				savedSkillName = request.skillName;
+				savedContent = request.content;
+				return { ok: true };
+			},
+		});
+		const section = mountSection(connection);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'supported');
+		assert.strictEqual(section.canWrite(), true);
+		assert.strictEqual(section.isWriteToolbarVisible(), true);
+
+		const ok = await section.createSkill({ skillName: 'my-new-skill', content: '# My New Skill\n\nBody.' });
+		assert.ok(saveCalled);
+		assert.strictEqual(savedSkillName, 'my-new-skill');
+		assert.strictEqual(savedContent, '# My New Skill\n\nBody.');
+		assert.strictEqual(ok, true);
+	});
+
+	test('disconnected createSkill does not call saveSkillContent RPC', async () => {
+		let saveCalled = false;
+		const connection = createConnectionStub({
+			connected: false,
+			skillsSupport: 'SUPPORTED',
+			saveSkillContent: async () => {
+				saveCalled = true;
+				return { ok: true };
+			},
+		});
+		const section = mountSection(connection);
+		await flushMicrotasks();
+
+		const ok = await section.createSkill({ skillName: 'should-not-create', content: '# Nope' });
+		assert.strictEqual(saveCalled, false);
+		assert.strictEqual(ok, false);
+		assert.strictEqual(section.isWriteToolbarVisible(), false);
+	});
+
 	test('SUPPORTED connected saveSelectedSkillBody calls saveSkillContent RPC', async () => {
 		let saveCalled = false;
 		let savedContent = '';
