@@ -32,6 +32,7 @@ export function createWebUnsupportedCapabilitySnapshot(): UniverseAgentCapabilit
 	const snapshot: Record<UniverseAgentCapabilityKey, UniverseAgentCapabilityEntry> = {
 		skills: WEB_UNSUPPORTED_ENTRY,
 		mcp: WEB_UNSUPPORTED_ENTRY,
+		mcpRuntime: WEB_UNSUPPORTED_ENTRY,
 		plugins: WEB_UNSUPPORTED_ENTRY,
 		globalRules: WEB_UNSUPPORTED_ENTRY,
 		agentProfiles: WEB_UNSUPPORTED_ENTRY,

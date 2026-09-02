@@ -40,6 +40,20 @@ import type {
 	UniverseAgentResetAgentProfileResult,
 	UniverseAgentListMcpServersRequest,
 	UniverseAgentListMcpServersResult,
+	UniverseAgentGetMcpServerStatusesResult,
+	UniverseAgentGetMcpServerToolsResult,
+	UniverseAgentMcpRuntimeStatus,
+	UniverseAgentMcpServerStatus,
+	UniverseAgentMcpToolDefinition,
+	UniverseAgentListPluginsResult,
+	UniverseAgentPluginInfoResult,
+	UniverseAgentEnablePluginResult,
+	UniverseAgentReloadPluginResult,
+	UniverseAgentUnloadPluginResult,
+	UniverseAgentScanNewPluginsResult,
+	UniverseAgentPluginStatus,
+	UniverseAgentPluginSummary,
+	UniverseAgentPluginHookEntry,
 	UniverseAgentMcpServerOrigin,
 	UniverseAgentMcpTransport,
 	UniverseAgentMcpServerSummary,
@@ -635,6 +649,207 @@ function mapListMcpServersResponse(wire: ListMcpServersResponseWire): UniverseAg
 	};
 }
 
+function readEpochMs(value: unknown): number | undefined {
+	if (typeof value === 'number' && Number.isFinite(value) && value > 0) {
+		return value;
+	}
+	if (typeof value === 'string' && value) {
+		const parsed = Number(value);
+		if (Number.isFinite(parsed) && parsed > 0) {
+			return parsed;
+		}
+	}
+	return undefined;
+}
+
+function mapMcpRuntimeStatus(status: unknown): UniverseAgentMcpRuntimeStatus {
+	if (typeof status === 'number') {
+		switch (status) {
+			case 1:
+				return 'disconnected';
+			case 2:
+				return 'connecting';
+			case 3:
+				return 'connected';
+			case 4:
+				return 'error';
+			default:
+				return 'failed';
+		}
+	}
+	const normalized = String(status ?? '').toUpperCase();
+	if (normalized === 'MCP_STATUS_DISCONNECTED' || normalized === 'DISCONNECTED') {
+		return 'disconnected';
+	}
+	if (normalized === 'MCP_STATUS_CONNECTING' || normalized === 'CONNECTING') {
+		return 'connecting';
+	}
+	if (normalized === 'MCP_STATUS_CONNECTED' || normalized === 'CONNECTED') {
+		return 'connected';
+	}
+	if (normalized === 'MCP_STATUS_ERROR' || normalized === 'ERROR') {
+		return 'error';
+	}
+	return 'failed';
+}
+
+interface GetMcpServerStatusesResponseWire {
+	statuses?: Array<{
+		server_id?: string;
+		status?: unknown;
+		error_message?: string;
+		last_connected_at?: number | string;
+	}>;
+	checked_at?: number | string;
+}
+
+function mapMcpServerStatus(wire: NonNullable<GetMcpServerStatusesResponseWire['statuses']>[number]): UniverseAgentMcpServerStatus {
+	return {
+		serverId: wire.server_id ?? '',
+		status: mapMcpRuntimeStatus(wire.status),
+		errorMessage: wire.error_message,
+		lastConnectedAt: readEpochMs(wire.last_connected_at),
+	};
+}
+
+function mapGetMcpServerStatusesResponse(wire: GetMcpServerStatusesResponseWire): UniverseAgentGetMcpServerStatusesResult {
+	return {
+		statuses: (wire.statuses ?? []).map(mapMcpServerStatus),
+		checkedAt: readEpochMs(wire.checked_at),
+	};
+}
+
+interface GetMcpServerToolsResponseWire {
+	tools?: Array<{
+		name?: string;
+		description?: string;
+		input_schema_json?: string;
+	}>;
+	total?: number;
+	cached_at?: number | string;
+}
+
+function mapMcpToolDefinition(wire: NonNullable<GetMcpServerToolsResponseWire['tools']>[number]): UniverseAgentMcpToolDefinition {
+	return {
+		name: wire.name ?? '',
+		description: wire.description,
+		inputSchemaJson: wire.input_schema_json,
+	};
+}
+
+function mapGetMcpServerToolsResponse(wire: GetMcpServerToolsResponseWire): UniverseAgentGetMcpServerToolsResult {
+	return {
+		tools: (wire.tools ?? []).map(mapMcpToolDefinition),
+		total: wire.total,
+		cachedAt: readEpochMs(wire.cached_at),
+	};
+}
+
+function mapPluginStatus(status: unknown): UniverseAgentPluginStatus {
+	if (typeof status === 'number') {
+		switch (status) {
+			case 0:
+				return 'active';
+			case 1:
+				return 'disabled';
+			case 2:
+				return 'error';
+			default:
+				return 'unknown';
+		}
+	}
+	const normalized = String(status ?? '').toUpperCase();
+	if (normalized === 'PLUGIN_ACTIVE' || normalized === 'ACTIVE') {
+		return 'active';
+	}
+	if (normalized === 'PLUGIN_DISABLED' || normalized === 'DISABLED') {
+		return 'disabled';
+	}
+	if (normalized === 'PLUGIN_ERROR' || normalized === 'ERROR') {
+		return 'error';
+	}
+	return 'unknown';
+}
+
+interface PluginSummaryWire {
+	id?: string;
+	display_name?: string;
+	version?: string;
+	source?: string;
+	hook_count?: number;
+	status?: unknown;
+	loaded_at?: number | string;
+}
+
+function mapPluginSummary(wire: PluginSummaryWire | undefined): UniverseAgentPluginSummary {
+	return {
+		id: wire?.id ?? '',
+		displayName: wire?.display_name ?? '',
+		version: wire?.version ?? '',
+		source: wire?.source ?? '',
+		hookCount: wire?.hook_count ?? 0,
+		status: mapPluginStatus(wire?.status),
+		loadedAt: readEpochMs(wire?.loaded_at),
+	};
+}
+
+interface ListPluginsResponseWire {
+	plugins?: PluginSummaryWire[];
+}
+
+function mapListPluginsResponse(wire: ListPluginsResponseWire): UniverseAgentListPluginsResult {
+	return {
+		plugins: (wire.plugins ?? []).map(mapPluginSummary),
+	};
+}
+
+interface PluginHookEntryWire {
+	hook_type?: string;
+	priority?: number;
+	class_name?: string;
+}
+
+interface PluginInfoResponseWire {
+	summary?: PluginSummaryWire;
+	hooks?: PluginHookEntryWire[];
+	config?: Record<string, string>;
+	error_message?: string;
+}
+
+function mapPluginHookEntry(wire: PluginHookEntryWire): UniverseAgentPluginHookEntry {
+	return {
+		hookType: wire.hook_type ?? '',
+		priority: wire.priority ?? 0,
+		className: wire.class_name ?? '',
+	};
+}
+
+function mapPluginInfoResponse(wire: PluginInfoResponseWire): UniverseAgentPluginInfoResult {
+	return {
+		summary: mapPluginSummary(wire.summary),
+		hooks: (wire.hooks ?? []).map(mapPluginHookEntry),
+		config: wire.config,
+		errorMessage: wire.error_message,
+	};
+}
+
+interface EnablePluginResponseWire {
+	plugin?: PluginSummaryWire;
+}
+
+interface ReloadPluginResponseWire {
+	plugin?: PluginSummaryWire;
+}
+
+interface UnloadPluginResponseWire {
+	removed_hook_count?: number;
+}
+
+interface ScanNewPluginsResponseWire {
+	new_plugins?: PluginSummaryWire[];
+	skipped_count?: number;
+}
+
 interface ToggleMcpServerResponseWire {
 	success?: boolean;
 	error_message?: string;
@@ -1029,6 +1244,99 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 		}
 		const wire = await unary(payload);
 		return mapListMcpServersResponse(wire);
+	}
+
+	async getMcpServerStatuses(serverIds?: readonly string[]): Promise<UniverseAgentGetMcpServerStatusesResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, GetMcpServerStatusesResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.Mcp.service,
+			UniverseAgentGrpcServices.Mcp.GetMcpServerStatuses,
+		);
+		const payload: Record<string, unknown> = {};
+		if (serverIds && serverIds.length > 0) {
+			payload.server_ids = [...serverIds];
+		}
+		const wire = await unary(payload);
+		return mapGetMcpServerStatusesResponse(wire);
+	}
+
+	async getMcpServerTools(serverId: string, forceRefresh?: boolean): Promise<UniverseAgentGetMcpServerToolsResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, GetMcpServerToolsResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.Mcp.service,
+			UniverseAgentGrpcServices.Mcp.GetMcpServerTools,
+		);
+		const wire = await unary({
+			server_id: serverId,
+			force_refresh: forceRefresh === true,
+		});
+		return mapGetMcpServerToolsResponse(wire);
+	}
+
+	async listPlugins(): Promise<UniverseAgentListPluginsResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, ListPluginsResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.Plugin.service,
+			UniverseAgentGrpcServices.Plugin.List,
+		);
+		const wire = await unary({});
+		return mapListPluginsResponse(wire);
+	}
+
+	async getPluginInfo(id: string): Promise<UniverseAgentPluginInfoResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, PluginInfoResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.Plugin.service,
+			UniverseAgentGrpcServices.Plugin.Info,
+		);
+		const wire = await unary({ plugin_id: id });
+		return mapPluginInfoResponse(wire);
+	}
+
+	async enablePlugin(id: string, enabled?: boolean): Promise<UniverseAgentEnablePluginResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, EnablePluginResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.Plugin.service,
+			UniverseAgentGrpcServices.Plugin.Enable,
+		);
+		const wire = await unary({
+			plugin_id: id,
+			enabled: enabled !== false,
+		});
+		return { plugin: mapPluginSummary(wire.plugin) };
+	}
+
+	async reloadPlugin(id: string): Promise<UniverseAgentReloadPluginResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, ReloadPluginResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.Plugin.service,
+			UniverseAgentGrpcServices.Plugin.Reload,
+		);
+		const wire = await unary({ plugin_id: id });
+		return { plugin: mapPluginSummary(wire.plugin) };
+	}
+
+	async unloadPlugin(id: string): Promise<UniverseAgentUnloadPluginResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, UnloadPluginResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.Plugin.service,
+			UniverseAgentGrpcServices.Plugin.Unload,
+		);
+		const wire = await unary({ plugin_id: id });
+		return { removedHookCount: wire.removed_hook_count ?? 0 };
+	}
+
+	async scanNewPlugins(): Promise<UniverseAgentScanNewPluginsResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, ScanNewPluginsResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.Plugin.service,
+			UniverseAgentGrpcServices.Plugin.ScanNew,
+		);
+		const wire = await unary({});
+		return {
+			newPlugins: (wire.new_plugins ?? []).map(mapPluginSummary),
+			skippedCount: wire.skipped_count ?? 0,
+		};
 	}
 
 	async toggleMcpServer(request: UniverseAgentToggleMcpServerRequest): Promise<UniverseAgentToggleMcpServerResult> {

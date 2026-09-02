@@ -151,6 +151,38 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 		return { servers: [] };
 	}
 
+	async getMcpServerStatuses() {
+		return { statuses: [] };
+	}
+
+	async getMcpServerTools() {
+		return { tools: [] };
+	}
+
+	async listPlugins() {
+		return { plugins: [] };
+	}
+
+	async getPluginInfo() {
+		return { summary: { id: '', displayName: '', version: '', source: '', hookCount: 0, status: 'unknown' as const }, hooks: [] };
+	}
+
+	async enablePlugin() {
+		return { plugin: { id: '', displayName: '', version: '', source: '', hookCount: 0, status: 'unknown' as const } };
+	}
+
+	async reloadPlugin() {
+		return { plugin: { id: '', displayName: '', version: '', source: '', hookCount: 0, status: 'unknown' as const } };
+	}
+
+	async unloadPlugin() {
+		return { removedHookCount: 0 };
+	}
+
+	async scanNewPlugins() {
+		return { newPlugins: [], skippedCount: 0 };
+	}
+
 	async toggleMcpServer() {
 		return { ok: true };
 	}

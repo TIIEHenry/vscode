@@ -34,6 +34,14 @@ import type {
 	UniverseAgentResetAgentProfileResult,
 	UniverseAgentListMcpServersRequest,
 	UniverseAgentListMcpServersResult,
+	UniverseAgentGetMcpServerStatusesResult,
+	UniverseAgentGetMcpServerToolsResult,
+	UniverseAgentListPluginsResult,
+	UniverseAgentPluginInfoResult,
+	UniverseAgentEnablePluginResult,
+	UniverseAgentReloadPluginResult,
+	UniverseAgentUnloadPluginResult,
+	UniverseAgentScanNewPluginsResult,
 	UniverseAgentAddMcpServerRequest,
 	UniverseAgentAddMcpServerResult,
 	UniverseAgentUpdateMcpServerRequest,
@@ -442,6 +450,38 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 			...request,
 			workDir,
 		}));
+	}
+
+	async getMcpServerStatuses(serverIds?: readonly string[]): Promise<UniverseAgentGetMcpServerStatusesResult> {
+		return this._withTransport(transport => transport.getMcpServerStatuses(serverIds));
+	}
+
+	async getMcpServerTools(serverId: string, forceRefresh?: boolean): Promise<UniverseAgentGetMcpServerToolsResult> {
+		return this._withTransport(transport => transport.getMcpServerTools(serverId, forceRefresh));
+	}
+
+	async listPlugins(): Promise<UniverseAgentListPluginsResult> {
+		return this._withTransport(transport => transport.listPlugins());
+	}
+
+	async getPluginInfo(id: string): Promise<UniverseAgentPluginInfoResult> {
+		return this._withTransport(transport => transport.getPluginInfo(id));
+	}
+
+	async enablePlugin(id: string, enabled?: boolean): Promise<UniverseAgentEnablePluginResult> {
+		return this._withTransport(transport => transport.enablePlugin(id, enabled));
+	}
+
+	async reloadPlugin(id: string): Promise<UniverseAgentReloadPluginResult> {
+		return this._withTransport(transport => transport.reloadPlugin(id));
+	}
+
+	async unloadPlugin(id: string): Promise<UniverseAgentUnloadPluginResult> {
+		return this._withTransport(transport => transport.unloadPlugin(id));
+	}
+
+	async scanNewPlugins(): Promise<UniverseAgentScanNewPluginsResult> {
+		return this._withTransport(transport => transport.scanNewPlugins());
 	}
 
 	async addMcpServer(request: UniverseAgentAddMcpServerRequest): Promise<UniverseAgentAddMcpServerResult> {

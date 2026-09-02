@@ -14,6 +14,7 @@ import type { UniverseAgentCapabilityKey } from '../../common/universeAgentTypes
 const ALL_CAPABILITY_KEYS: readonly UniverseAgentCapabilityKey[] = [
 	'skills',
 	'mcp',
+	'mcpRuntime',
 	'plugins',
 	'globalRules',
 	'agentProfiles',
@@ -40,6 +41,18 @@ suite('Web universeAgent disconnect (P0)', () => {
 			assert.strictEqual(snapshot[key].support, 'UNSUPPORTED');
 			assert.strictEqual(snapshot[key].reason, WEB_UNSUPPORTED_REASON);
 		}
+	});
+
+	test('P1a methods reject unsupported_environment', async () => {
+		const connection = new WebUniverseAgentConnection();
+		await assert.rejects(() => connection.getMcpServerStatuses(), (error: unknown) => error instanceof Error && error.message === WEB_UNSUPPORTED_REASON);
+		await assert.rejects(() => connection.getMcpServerTools('s1'), (error: unknown) => error instanceof Error && error.message === WEB_UNSUPPORTED_REASON);
+		await assert.rejects(() => connection.listPlugins(), (error: unknown) => error instanceof Error && error.message === WEB_UNSUPPORTED_REASON);
+		await assert.rejects(() => connection.getPluginInfo('p1'), (error: unknown) => error instanceof Error && error.message === WEB_UNSUPPORTED_REASON);
+		await assert.rejects(() => connection.enablePlugin('p1'), (error: unknown) => error instanceof Error && error.message === WEB_UNSUPPORTED_REASON);
+		await assert.rejects(() => connection.reloadPlugin('p1'), (error: unknown) => error instanceof Error && error.message === WEB_UNSUPPORTED_REASON);
+		await assert.rejects(() => connection.unloadPlugin('p1'), (error: unknown) => error instanceof Error && error.message === WEB_UNSUPPORTED_REASON);
+		await assert.rejects(() => connection.scanNewPlugins(), (error: unknown) => error instanceof Error && error.message === WEB_UNSUPPORTED_REASON);
 	});
 
 	test('connect() does not throw and returns no token', async () => {
