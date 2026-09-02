@@ -18,6 +18,7 @@ import { ViewContainerLocation } from '../../common/views.js';
 import { KeybindingWeight } from '../../../platform/keybinding/common/keybindingsRegistry.js';
 import { ServicesAccessor } from '../../../platform/instantiation/common/instantiation.js';
 import { getActiveWindow } from '../../../base/browser/dom.js';
+import { IsSessionsWindowContext } from '../../common/contextkeys.js';
 
 abstract class BaseNavigationAction extends Action2 {
 
@@ -293,6 +294,7 @@ registerAction2(class extends BaseFocusAction {
 			title: localize2('focusNextPart', 'Focus Next Part'),
 			category: Categories.View,
 			f1: true,
+			precondition: IsSessionsWindowContext.negate(),
 			keybinding: {
 				primary: KeyCode.F6,
 				weight: KeybindingWeight.WorkbenchContrib
@@ -309,6 +311,7 @@ registerAction2(class extends BaseFocusAction {
 			title: localize2('focusPreviousPart', 'Focus Previous Part'),
 			category: Categories.View,
 			f1: true,
+			precondition: IsSessionsWindowContext.negate(),
 			keybinding: {
 				primary: KeyMod.Shift | KeyCode.F6,
 				weight: KeybindingWeight.WorkbenchContrib

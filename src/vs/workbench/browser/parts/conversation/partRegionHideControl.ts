@@ -40,5 +40,9 @@ export function appendPartRegionHideControl(
 	actionBar.push(hideAction, { icon: true, label: false });
 	actionBar.setFocusable(false);
 
+	for (const codicon of actionsContainer.querySelectorAll('.codicon')) {
+		codicon.setAttribute('aria-hidden', 'true');
+	}
+
 	return actionsContainer;
 }

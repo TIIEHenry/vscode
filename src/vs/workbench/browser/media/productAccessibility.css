@@ -1,0 +1,59 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+/* PRD-018/019 cross-surface responsive and accessibility (M7 C slot). */
+
+/* Narrow width: keep primary navigation and status readable from ~300px */
+@media (max-width: 599px) {
+	.monaco-workbench .part.conversation .conversation-session-bar {
+		min-width: 0;
+	}
+
+	.monaco-workbench .part.conversation .conversation-region-chrome {
+		max-width: 40%;
+	}
+
+	.monaco-workbench .part.sources > .title,
+	.monaco-workbench .part.sidebar > .title {
+		min-width: 0;
+	}
+
+	.monaco-workbench .part.statusbar > .items-container {
+		flex-wrap: wrap;
+		min-height: 22px;
+	}
+
+	.monaco-workbench .part.statusbar .statusbar-item {
+		max-width: 100%;
+	}
+}
+
+/* High contrast: strengthen focus and status distinction */
+.monaco-workbench.hc-black .part.statusbar .statusbar-item a:focus,
+.monaco-workbench.hc-light .part.statusbar .statusbar-item a:focus,
+.monaco-workbench.hc-black .part.conversation .part-region-hide-actions .action-label:focus,
+.monaco-workbench.hc-light .part.conversation .part-region-hide-actions .action-label:focus,
+.monaco-workbench.hc-black .part.sources .part-region-hide-actions .action-label:focus,
+.monaco-workbench.hc-light .part.sources .part-region-hide-actions .action-label:focus {
+	outline-width: 2px;
+	outline-offset: 1px;
+}
+
+.monaco-workbench.hc-black .part.statusbar .statusbar-item[id*="conversation.engine"] .statusbar-item-label,
+.monaco-workbench.hc-light .part.statusbar .statusbar-item[id*="conversation.engine"] .statusbar-item-label {
+	border-left: 1px solid var(--vscode-contrastBorder);
+	padding-left: 6px;
+}
+
+/* Reduced motion: disable non-essential workbench transitions */
+@media (prefers-reduced-motion: reduce) {
+	.monaco-workbench,
+	.monaco-workbench .part.statusbar,
+	.monaco-workbench .part.conversation,
+	.monaco-workbench .part.sources {
+		animation: none !important;
+		transition: none !important;
+	}
+}
