@@ -47,7 +47,7 @@ summary: "已知 gRPC 服务 / RPC 名与本仓用途；§1 Conversation（A1/A2
 |------|-----|-----------|--------|------|
 | `McpService` | `GetMcpServerStatuses` / `GetMcpServerTools` | Engine Runtime tab | **P1a** `getMcpServerStatuses` / `getMcpServerTools`；`mcpRuntime` | **已绑定** |
 | `PluginService` | `List` / `Info` / `Enable` / `Reload` / `Unload` / `ScanNew` | Engine Plugins | **P1a** 八方法；`plugins` 由 `List` 真探测 | **已绑定** |
-| `AgentService` | `FetchToolDetail(..., subscribe=false)` | Conversation DetailRef | **P2a** `requestDetail` + `DetailPatch.truncated/totalBytes`；browser 恒 unavailable；stub 源由 B Q2 接通 | **已绑定** |
+| `AgentService` | `FetchToolDetail(..., subscribe=false)` | Conversation DetailRef | **P2a** `requestDetail` + `DetailPatch.truncated/totalBytes`；browser 恒 unavailable；stub 源本地 `requestDetail` 已由 Q2 接通 | **已绑定** |
 | `ConfigService` | `ListModels` | Engine Model 组 | **P1b** `listModels()`；`models` | 待接 |
 | `ConfigService` | `Get` / `Set` / `Watch` | Provider 候选 | P1b 只加 `providerConfig`，G-ENG-1 前固定 `UNSUPPORTED` | 待接 |
 | L2 compact 事件 | `branch_reason` / `CompactedSpanBlock` / `RangeReplaced(COMPACT)` | 轨迹 compacted | **P2b** | 待接 |
@@ -116,7 +116,7 @@ Connect 后 `probeEngineCapabilities`：**仅**广告了 method 且 probe 非 `U
 | 会话枚举 / 创建 / 删除 | `getSessions` … `deleteSession` | `SessionService.List` / `Create` / `Delete`；`work_dir` 过滤随 Connect。已连接时首次 `List` 完成前 roster **不**含 stub 种子行 |
 | 切换 / 重命名 | `switchSession` / `renameSession` | 切换 = 客户端 `activeSessionId` 投影（**无** `SwitchSession` RPC）。重命名 HEAD 仍走本地 `renameSession`；proto `AgentService.Rename` **未接** |
 | 回合流（用户 / 助手 / thinking / tool / …） | `getTurns`、`onDidChangeSession` | `SessionService.GetHistory`（`cursor_seq`）+ `SessionEventStream` → session-core fold → `ViewFrame`；renderer 经 `IUniverseAgentSessionView` / `acquireSessionView` |
-| 轨迹记录 | `getTrajectoryRecords(sessionId, { filterAgentId? }?)` | HEAD：`projectSnapshotToTrajectory(snapshot, attribution, details, options)` 从 lease/帧源投影；stub 仅 `untitled` 且未连接时 ∪ fixture extras；UA 会话**不** merge fixture；**P2a** 已提供 `requestDetail` / `FetchToolDetail` 通道（renderer 帧源与 stub 本地解析仍待 B Q2 接通）；`compacted` 预留；Overview 瀑布 Deferred。活 Event fold 全文仍 M6-D / PRD-008 |
+| 轨迹记录 | `getTrajectoryRecords(sessionId, { filterAgentId? }?)` | HEAD：`projectSnapshotToTrajectory(snapshot, attribution, details, options)` 从 lease/帧源投影；stub 仅 `untitled` 且未连接时 ∪ fixture extras；UA 会话**不** merge fixture；**P2a** `requestDetail` / `FetchToolDetail` 通道已接通（renderer 帧源 upsert `outcome.content`；stub 本地 `requestDetail`）；`compacted` 预留；Overview 瀑布 Deferred。活 Event fold 全文仍 M6-D / PRD-008 |
 | 权限请求 / 回执 | `resolveConfirmation`、`countPendingConfirmations` | 流内 L4 `permission_request` → `pendingActions`；应答经 `AgentService.Chat` 臂（`permissionRespond` fact）；`PermissionService.Respond` 为文档化备选 |
 | MessageQueue | `getMessageQueueState` 与五个操作 | **仍 fixture**；`AgentService.EnqueueQueueItem` 族未进 roster adapter |
 | AutoDrive / Task 列表 | `getAutoDriveTasks` | **仍 fixture**；`PermissionService.SetSessionGoal` 未接 |

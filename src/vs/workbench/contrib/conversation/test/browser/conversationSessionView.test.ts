@@ -172,6 +172,23 @@ suite('conversationSessionView (S1)', () => {
 		assert.deepStrictEqual(lease.post({ kind: 'submitInput', text: 'x' }), { accepted: false, reason: 'no_such_session' });
 	});
 
+	test('stub lease requestDetail upserts local body then settles full', async () => {
+		const service = store.add(new ConversationStubService());
+		const lease = store.add(service.acquireSessionView('visualize'));
+		assert.ok(typeof lease.requestDetail === 'function');
+		const refs = [...lease.details.keys()];
+		assert.ok(refs.length > 0);
+		const ref = refs[0]!;
+		const before = lease.details.get(ref);
+		assert.ok(before);
+		const outcome = await lease.requestDetail!(ref);
+		assert.deepStrictEqual(outcome, { ok: true, truncated: false, content: before });
+		assert.strictEqual(lease.details.get(ref), before);
+
+		const missing = await lease.requestDetail!('detail:missing');
+		assert.deepStrictEqual(missing, { ok: false, reason: 'unavailable' });
+	});
+
 	test('requestResync re-baselines the replica', () => {
 		const service = store.add(new ConversationStubService());
 		const sessionId = service.getActiveSessionId();

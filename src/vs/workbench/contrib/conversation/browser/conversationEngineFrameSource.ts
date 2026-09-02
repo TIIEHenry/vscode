@@ -9,6 +9,7 @@ import type {
 	PostOutcome,
 	ConversationViewFrameApplied,
 	ConversationWriteMessage,
+	DetailFetchOutcome,
 	ItemAttribution,
 	IConversationSessionViewLease,
 	ConversationViewFrame,
@@ -124,6 +125,27 @@ class EngineSessionViewLease extends Disposable implements IConversationSessionV
 		if (this.leaseId) {
 			void this.sessionView.requestResync(this.leaseId);
 		}
+	}
+
+	async requestDetail(ref: string): Promise<DetailFetchOutcome> {
+		try {
+			await this.ready;
+		} catch {
+			return { ok: false, reason: 'failed', message: 'lease acquire failed' };
+		}
+		if (!this.leaseId) {
+			return { ok: false, reason: 'failed', message: 'lease not acquired' };
+		}
+		let outcome: DetailFetchOutcome;
+		try {
+			outcome = await this.sessionView.requestDetail(this.leaseId, ref);
+		} catch {
+			return { ok: false, reason: 'failed' };
+		}
+		if (outcome.ok && outcome.content !== undefined) {
+			this._details.set(ref, outcome.content);
+		}
+		return outcome;
 	}
 
 	/** @internal */
