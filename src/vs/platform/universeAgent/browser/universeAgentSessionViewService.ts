@@ -11,6 +11,7 @@ import { IUniverseAgentSessionView } from '../common/universeAgentSessionView.js
 /**
  * Web has no Engine host. Leases are accepted so consumers can hold an id, but
  * they never receive frames and writes are not authenticated.
+ * P2b: empty leases never emit `ItemAttribution.compacted` (no L2 demux on Web).
  */
 export class WebUniverseAgentSessionView implements IUniverseAgentSessionView {
 

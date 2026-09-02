@@ -4,7 +4,7 @@ type: reference
 status: accepted
 phase: N/A
 updated: 2026-09-02
-summary: "已知 gRPC 服务 / RPC 名与本仓用途；§1 Conversation（A1/A2）+ Device Grant；§1b P0/P1a/P1b/P2a 已绑定、P2b 待接；Engine catalog list/toggle + 写 RPC @ f49615a1；§7 Engine 页四节；§5 会话面对照；§11 Navigator/Review；§4 G-NAV-* / G-REV-* / G-ENG-*"
+summary: "已知 gRPC 服务 / RPC 名与本仓用途；§1 Conversation（A1/A2）+ Device Grant；§1b P0/P1a/P1b/P2a/P2b 已绑定；Engine catalog list/toggle + 写 RPC @ f49615a1；§7 Engine 页四节；§5 会话面对照；§11 Navigator/Review；§4 G-NAV-* / G-REV-* / G-ENG-*；G-CONV-1 待 Q3 消费"
 ---
 
 # UniverseAgent 引擎协议面（本仓消费口径）
@@ -34,7 +34,7 @@ summary: "已知 gRPC 服务 / RPC 名与本仓用途；§1 Conversation（A1/A2
 | Local `RulesBridge` | list / create / update / delete / preview / health × global / workDir（12）+ `defaultAgentHome()` | **本仓不可达**：`RulesBridge` 是 Desktop/Singularity 进程内接口，IDE 只经 gRPC | **Remote gRPC 不存在** → Engine 页 Rules 一律 `UNSUPPORTED`（见 §4 G-ENG-2） |
 | `MemoryService` | — | 不在 Engine 页；未来独立 pane | 与 Instructions 分家 |
 
-## 1b. M7 协议面（P0/P1a/P1b/P2a 已绑定；P2b 待接）
+## 1b. M7 协议面（P0/P1a/P1b/P2a/P2b 已绑定）
 
 非 RPC：`IUniverseAgentConnection` / `IUniverseAgentSessionView` / `IUniverseAgentHubService` 在 Web 以 **`registerSingleton`** 注册（**禁止** `registerMainProcessRemoteService`），实现位于 `platform/universeAgent/browser/`。`connectionHub.contribution.ts` **不再**静态 import electron-browser Hub；该注册仅在 `workbench.desktop.main.ts`。
 
@@ -51,7 +51,7 @@ summary: "已知 gRPC 服务 / RPC 名与本仓用途；§1 Conversation（A1/A2
 | `AgentService` | `FetchToolDetail(..., subscribe=false)` | Conversation DetailRef | **P2a** `requestDetail` + `DetailPatch.truncated/totalBytes`；browser 恒 unavailable；stub 源本地 `requestDetail` 已由 Q2 接通 | **已绑定** |
 | `ConfigService` | `ListModels` | Engine Model 组 | **P1b** `listModels()`（`include_disabled=true`）；`models` | **已绑定** |
 | `ConfigService` | `Get` / `Set` / `Watch` | Provider 候选 | `providerConfig` 固定 `UNSUPPORTED`（G-ENG-1） | **已登记** |
-| L2 compact 事件 | `branch_reason` / `CompactedSpanBlock` / `RangeReplaced(COMPACT)` | 轨迹 compacted | **P2b** | 待接 |
+| L2 compact 事件 | `branch_reason` / `CompactedSpanBlock` / `RangeReplaced(COMPACT)` | 轨迹 compacted 归因 | **P2b** host demux → `ItemAttribution.branchReason:'compact'` + `compacted{anchorTurnId,foldedLeafTurnId,compactBranchTurnId,summary?}`；browser 不产出 | **已绑定** |
 
 **不存在的 RPC：** Provider CRUD；Instructions Rules gRPC；`ListHookPoints`；Skill 独立 Create；Agent profile `model.json` 写路径。会话级 `SwitchModel` 不进 Engine 页。`SubscribeToolDetail` / `FetchToolUsageDetail` / `Compact` 手动触发 M7 不接。
 
@@ -102,7 +102,7 @@ Connect 后 `probeEngineCapabilities`：**仅**广告了 method 且 probe 非 `U
 | **G-ENG-2** Rules Remote gRPC | Engine 页 Rules（Instructions） | `RulesBridge` 仅 Desktop 进程内；IDE 一律 unsupported。原「Rules Remote gRPC」行合并至此 |
 | **G-ENG-3** `ListHookPoints`（或握手带版本化点位表） | Engine 页 Hooks「来自引擎」 | 原行改编号；闭合前 Hooks 节只显示 unsupported |
 | **G-ENG-4** Agent profile `model.json` 写路径 | Agents 节 Model 子 tab | `SaveAgentProfileRequest.AgentProfileProto` 无 `model` / `modelType` / `maxTurns`，引擎 mapper 写死 null；Model 子 tab 在引擎补字段前只能是 unsupported |
-| **G-CONV-1** compact 事实进入 session-core | 轨迹 `compacted` 记录 | proto 已有 L2 `branch_reason` / `CompactedSpanBlock` / `RangeReplaced(COMPACT)`；`ContextCompactedEvent` 只在 Chat 流。缺 host demux 与 `ItemAttribution.branchReason` / `compacted` 生产者（M7 **P2b**） |
+| **G-CONV-1** compact 事实进入 session-core | 轨迹 `compacted` 记录 | **P2b 生产者已落**：host 只从 L2 取行身份（`branch_reason` compact / `EnvelopeRangeReplaced(reason=COMPACT)` 单独成立）→ `ItemAttribution.branchReason:'compact'` + `compacted{…}`。`ContextCompactedEvent` 仍非显示源、不订阅。**待 B Q3 消费** attribution 发出轨迹 compacted 行 |
 | 独立 CreateSkill RPC（或等价新建 UI） | E1 新建技能 | Skill **新建** UI 已落 @ `e6167c45`（写文件后 `ListSkills` 刷新）；独立 RPC 仍缺 |
 | `SaveSkillContent` node gRPC 传输 | —（**已闭** @ `45fa7a35`/`040c823d`） | `grpcClient` / `grpcTransport` / `universeAgentConnectionService` 动态绑定；单测 `universeAgentConnection.test.ts` |
 | Agent profile `tools.json` / `model.json` 独立 UI | Engine 页目录三件套附件编辑 | `AGENTS.md` 正文 @ `9419f583` 已落；`tools.json` 经 Tools 节 checkbox；`model.json` 仍无独立编辑器 |
@@ -117,7 +117,7 @@ Connect 后 `probeEngineCapabilities`：**仅**广告了 method 且 probe 非 `U
 | 会话枚举 / 创建 / 删除 | `getSessions` … `deleteSession` | `SessionService.List` / `Create` / `Delete`；`work_dir` 过滤随 Connect。已连接时首次 `List` 完成前 roster **不**含 stub 种子行 |
 | 切换 / 重命名 | `switchSession` / `renameSession` | 切换 = 客户端 `activeSessionId` 投影（**无** `SwitchSession` RPC）。重命名 HEAD 仍走本地 `renameSession`；proto `AgentService.Rename` **未接** |
 | 回合流（用户 / 助手 / thinking / tool / …） | `getTurns`、`onDidChangeSession` | `SessionService.GetHistory`（`cursor_seq`）+ `SessionEventStream` → session-core fold → `ViewFrame`；renderer 经 `IUniverseAgentSessionView` / `acquireSessionView` |
-| 轨迹记录 | `getTrajectoryRecords(sessionId, { filterAgentId? }?)` | HEAD：`projectSnapshotToTrajectory(snapshot, attribution, details, options)` 从 lease/帧源投影；stub 仅 `untitled` 且未连接时 ∪ fixture extras；UA 会话**不** merge fixture；**P2a** `requestDetail` / `FetchToolDetail` 通道已接通（renderer 帧源 upsert `outcome.content`；stub 本地 `requestDetail`）；`compacted` 预留；Overview 瀑布 Deferred。活 Event fold 全文仍 M6-D / PRD-008 |
+| 轨迹记录 | `getTrajectoryRecords(sessionId, { filterAgentId? }?)` | HEAD：`projectSnapshotToTrajectory(snapshot, attribution, details, options)` 从 lease/帧源投影；stub 仅 `untitled` 且未连接时 ∪ fixture extras；UA 会话**不** merge fixture；**P2a** `requestDetail` / `FetchToolDetail` 通道已接通（renderer 帧源 upsert `outcome.content`；stub 本地 `requestDetail`）；**P2b** 已投影 `ItemAttribution.compacted`（browser 不产出）；轨迹 compacted 行待 B Q3。Overview 瀑布 Deferred。活 Event fold 全文仍 M6-D / PRD-008 |
 | 权限请求 / 回执 | `resolveConfirmation`、`countPendingConfirmations` | 流内 L4 `permission_request` → `pendingActions`；应答经 `AgentService.Chat` 臂（`permissionRespond` fact）；`PermissionService.Respond` 为文档化备选 |
 | MessageQueue | `getMessageQueueState` 与五个操作 | **仍 fixture**；`AgentService.EnqueueQueueItem` 族未进 roster adapter |
 | AutoDrive / Task 列表 | `getAutoDriveTasks` | **仍 fixture**；`PermissionService.SetSessionGoal` 未接 |
