@@ -8,10 +8,15 @@ import { Event } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { isIMenuItem, MenuId, MenuRegistry } from '../../../../../platform/actions/common/actions.js';
 import { WorkbenchList } from '../../../../../platform/list/browser/listService.js';
+import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { Registry } from '../../../../../platform/registry/common/platform.js';
 import { Extensions as ViewExtensions, IViewContainerModel, IViewDescriptorService, IViewsRegistry, ViewContainer, ViewContainerLocation } from '../../../../common/views.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
+import { ConversationStubService, IConversationRosterService } from '../../../conversation/browser/conversationStubService.js';
+import { IAgentInspectService } from '../../common/agentInspect.js';
+import { AgentInspectService } from '../../browser/agentInspectService.js';
 import { OPEN_NAVIGATOR_TEAM_INSPECT_COMMAND_ID } from '../../browser/agentInspectIds.js';
+import { createNavigatorConnectionTestStub } from '../common/navigatorConnectionTestStub.js';
 import '../../browser/navigator.contribution.js';
 import { NAVIGATOR_TEAM_VIEW_ID } from '../../browser/navigatorStubView.js';
 import {
@@ -30,6 +35,9 @@ suite('Navigator Team subviews', () => {
 
 	function mountTeamView(): NavigatorTeamView {
 		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IConversationRosterService, store.add(new ConversationStubService()));
+		instantiationService.stub(IAgentInspectService, store.add(instantiationService.createInstance(AgentInspectService)) as IAgentInspectService);
+		instantiationService.stub(IUniverseAgentConnection, createNavigatorConnectionTestStub());
 		const stubViewContainer = {
 			id: 'navigator-team-test-container',
 			title: { value: 'Team', original: 'Team' },
@@ -237,6 +245,7 @@ suite('Navigator Team subviews', () => {
 
 	test('unfiltered empty keeps honest empty copy and hides list', () => {
 		const view = mountTeamView();
+		setMemberEntries(view, []);
 
 		const membersEmpty = view.element.querySelector('.navigator-team-subview.active .navigator-stub-empty') as HTMLElement | null;
 		const membersList = view.element.querySelector('.navigator-team-list') as HTMLElement | null;

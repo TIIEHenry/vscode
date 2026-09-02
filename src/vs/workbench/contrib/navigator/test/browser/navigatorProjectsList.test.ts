@@ -9,7 +9,6 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/tes
 import { URI } from '../../../../../base/common/uri.js';
 import { WorkbenchObjectTree } from '../../../../../platform/list/browser/listService.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
-import type { UniverseAgentConnectionSnapshot } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { IRecentlyOpened, IWorkspacesService } from '../../../../../platform/workspaces/common/workspaces.js';
 import { IWorkspaceContextService, WorkbenchState } from '../../../../../platform/workspace/common/workspace.js';
 import { testWorkspace, Workspace } from '../../../../../platform/workspace/test/common/testWorkspace.js';
@@ -22,6 +21,7 @@ import { ConversationStubService, IConversationRosterService } from '../../../co
 import { NAVIGATOR_PROJECTS_VIEW_ID } from '../../browser/navigatorStubView.js';
 import { INavigatorLocalFolderEntry, NavigatorProjectsView } from '../../browser/navigatorProjectsList.js';
 import { CONVERSATION_STUB_SEED_SESSIONS } from '../../../conversation/browser/conversationStubModel.js';
+import { createNavigatorConnectionTestStub } from '../common/navigatorConnectionTestStub.js';
 
 suite('NavigatorProjectsView', () => {
 
@@ -90,30 +90,7 @@ suite('NavigatorProjectsView', () => {
 		instantiationService.stub(IWorkspaceContextService, contextService);
 		instantiationService.stub(IWorkspacesService, workspacesService);
 		instantiationService.stub(IConversationRosterService, rosterService);
-		instantiationService.stub(IUniverseAgentConnection, {
-			_serviceBrand: undefined,
-			isEngineConnected: () => false,
-			getTransportState: () => 'idle' as const,
-			getConnectionSnapshot: (): UniverseAgentConnectionSnapshot => ({
-				transport: 'idle',
-				pairingPending: false,
-				channelAlive: false,
-				capabilities: {} as UniverseAgentConnectionSnapshot['capabilities'],
-			}),
-			getCapabilitySnapshot: () => ({} as UniverseAgentConnectionSnapshot['capabilities']),
-			onDidChangeConnection: Event.None,
-			onDidFileMutation: Event.None,
-			connect: async () => ({ methods: [], events: [] }),
-			connectProfile: async () => ({ ok: false as const, code: 'transport_failed' as const, reason: 'test' }),
-			getConnectionPhase: () => ({ kind: 'disconnected' as const }),
-			disconnect: async () => { },
-			listSessions: async () => ({ sessions: [] }),
-			createSession: async () => ({ sessionId: 's' }),
-			deleteSession: async () => { },
-			getHistory: async () => ({ envelopes: [] }),
-			subscribeSessionEventStream: () => ({ dispose: () => { } }),
-			chat: async () => { },
-		});
+		instantiationService.stub(IUniverseAgentConnection, createNavigatorConnectionTestStub());
 		instantiationService.stub(IWorkbenchLayoutService, {
 			isVisible: () => true,
 			setPartHidden: async () => { },

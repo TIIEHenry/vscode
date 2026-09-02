@@ -11,13 +11,13 @@ import { WorkbenchList, WorkbenchObjectTree } from '../../../../../platform/list
 import { Registry } from '../../../../../platform/registry/common/platform.js';
 import { Extensions as ViewExtensions, IViewContainerModel, IViewDescriptorService, IViewsRegistry, ViewContainer, ViewContainerLocation } from '../../../../common/views.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
-import type { UniverseAgentConnectionSnapshot } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { ConversationStubService, IConversationRosterService } from '../../../conversation/browser/conversationStubService.js';
 import { IAgentInspectService } from '../../common/agentInspect.js';
 import { AgentInspectService } from '../../browser/agentInspectService.js';
 import { ICommandService } from '../../../../../platform/commands/common/commands.js';
 import type { INavigatorAgentsHierarchyNode } from '../../common/navigatorAgentHierarchy.js';
 import type { INavigatorAgentsActivityItem } from '../../common/navigatorAgentsActivity.js';
+import { createNavigatorConnectionTestStub } from '../common/navigatorConnectionTestStub.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { OPEN_NAVIGATOR_AGENTS_INSPECT_COMMAND_ID } from '../../browser/agentInspectIds.js';
 import '../../browser/navigator.contribution.js';
@@ -37,30 +37,7 @@ suite('Navigator Agents subviews', () => {
 		instantiationService.stub(IConversationRosterService, store.add(new ConversationStubService()));
 		instantiationService.stub(IAgentInspectService, store.add(instantiationService.createInstance(AgentInspectService)) as IAgentInspectService);
 		instantiationService.stub(ICommandService, { executeCommand: async () => undefined });
-		instantiationService.stub(IUniverseAgentConnection, {
-			_serviceBrand: undefined,
-			isEngineConnected: () => false,
-			getTransportState: () => 'idle' as const,
-			getConnectionSnapshot: (): UniverseAgentConnectionSnapshot => ({
-				transport: 'idle',
-				pairingPending: false,
-				channelAlive: false,
-				capabilities: {} as UniverseAgentConnectionSnapshot['capabilities'],
-			}),
-			getCapabilitySnapshot: () => ({} as UniverseAgentConnectionSnapshot['capabilities']),
-			onDidChangeConnection: Event.None,
-			onDidFileMutation: Event.None,
-			connect: async () => ({ methods: [], events: [] }),
-			connectProfile: async () => ({ ok: false as const, code: 'transport_failed' as const, reason: 'test' }),
-			getConnectionPhase: () => ({ kind: 'disconnected' as const }),
-			disconnect: async () => { },
-			listSessions: async () => ({ sessions: [] }),
-			createSession: async () => ({ sessionId: 's' }),
-			deleteSession: async () => { },
-			getHistory: async () => ({ envelopes: [] }),
-			subscribeSessionEventStream: () => ({ dispose: () => { } }),
-			chat: async () => { },
-		});
+		instantiationService.stub(IUniverseAgentConnection, createNavigatorConnectionTestStub());
 		const stubViewContainer = {
 			id: 'navigator-agents-test-container',
 			title: { value: 'Agents', original: 'Agents' },

@@ -27,7 +27,7 @@ import { IViewDescriptorService } from '../../../common/views.js';
 import { IViewsService } from '../../../services/views/common/viewsService.js';
 import { IConversationRosterService } from '../../conversation/browser/conversationStubService.js';
 import { IAgentInspectService } from '../common/agentInspect.js';
-import { asNavigatorEngineConnection, getNavigatorCapability } from '../common/navigatorEngineBridge.js';
+import { getNavigatorCapability } from '../common/navigatorEngineBridge.js';
 import { matchesNavigatorTeamInlineFilter } from '../common/navigatorTeamInlineFilter.js';
 import {
 	findManagerNodes,
@@ -191,14 +191,11 @@ export class NavigatorTeamView extends ViewPane {
 		this._register(this.rosterService.onDidChangeActiveSession(() => this.scheduleRefresh()));
 		this._register(this.rosterService.onDidChangeEngineConnection(() => this.scheduleRefresh()));
 
-		const teamRuntime = asNavigatorEngineConnection(this.uaConnection).onDidChangeTeamRuntime;
-		if (teamRuntime) {
-			this._register(teamRuntime(e => {
-				if (e.sessionId === this.rosterService.getActiveSessionId()) {
-					this.scheduleRefresh();
-				}
-			}));
-		}
+		this._register(this.uaConnection.onDidChangeTeamRuntime(e => {
+			if (e.sessionId === this.rosterService.getActiveSessionId()) {
+				this.scheduleRefresh();
+			}
+		}));
 
 		this.updateSubviewContextKeys();
 	}
@@ -373,13 +370,7 @@ export class NavigatorTeamView extends ViewPane {
 			return;
 		}
 
-		const teamApi = asNavigatorEngineConnection(this.uaConnection).team;
-		if (!teamApi) {
-			this.setMemberEntries([], localize('navigatorTeam.loading', "正在读取…"));
-			this.setTaskEntries([], localize('navigatorTeam.loading', "正在读取…"));
-			return;
-		}
-
+		const teamApi = this.uaConnection.team;
 		const sessionId = this.rosterService.getActiveSessionId();
 		const liveTeamId = lease?.snapshot.liveTeamId;
 		const members: INavigatorTeamMemberEntry[] = [];

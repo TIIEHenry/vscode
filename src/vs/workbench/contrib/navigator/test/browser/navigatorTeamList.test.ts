@@ -8,14 +8,19 @@ import { Event } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { Registry } from '../../../../../platform/registry/common/platform.js';
 import { WorkbenchList } from '../../../../../platform/list/browser/listService.js';
+import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { ChatEditorInput } from '../../../chat/browser/widgetHosts/editor/chatEditorInput.js';
 import { CONVERSATION_STUB_SEED_SESSIONS } from '../../../conversation/browser/conversationStubModel.js';
+import { ConversationStubService, IConversationRosterService } from '../../../conversation/browser/conversationStubService.js';
 import { VIEW_CONTAINER as EXPLORER_VIEW_CONTAINER } from '../../../files/browser/explorerViewlet.js';
 import { Extensions as ViewContainerExtensions, Extensions as ViewExtensions, IViewContainerModel, IViewContainersRegistry, IViewDescriptorService, IViewsRegistry, ViewContainer, ViewContainerLocation } from '../../../../common/views.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
+import { IAgentInspectService } from '../../common/agentInspect.js';
+import { AgentInspectService } from '../../browser/agentInspectService.js';
 import { NAVIGATOR_TEAM_VIEW_ID } from '../../browser/navigatorStubView.js';
 import { NAVIGATOR_TEAM_CONTAINER_ID, NAVIGATOR_TEAM_VIEW_CONTAINER } from '../../browser/navigator.contribution.js';
 import { INavigatorTeamMember, NavigatorTeamView } from '../../browser/navigatorTeamList.js';
+import { createNavigatorConnectionTestStub } from '../common/navigatorConnectionTestStub.js';
 import '../../browser/navigator.contribution.js';
 
 const TEAM_EMPTY_COPY = 'No team members yet';
@@ -37,6 +42,9 @@ suite('NavigatorTeamView', () => {
 
 	async function mountView(): Promise<NavigatorTeamView> {
 		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IConversationRosterService, store.add(new ConversationStubService()));
+		instantiationService.stub(IAgentInspectService, store.add(instantiationService.createInstance(AgentInspectService)) as IAgentInspectService);
+		instantiationService.stub(IUniverseAgentConnection, createNavigatorConnectionTestStub());
 		const stubViewContainer = {
 			id: 'navigator-team-test-container',
 			title: { value: 'Team', original: 'Team' },
