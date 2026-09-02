@@ -3,7 +3,25 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import type { ItemAttribution } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
+import type { SessionViewSnapshot, TimelineItemView } from '../../../../platform/universeAgent/common/sessionView/index.js';
 import { ConversationStubTurn } from './conversationStubModel.js';
+
+/** Stub seed ids that may receive trajectory fixture extras when no engine is connected. */
+export const STUB_TRAJECTORY_FIXTURE_SESSION_IDS = new Set(['untitled', 'visualize', 'tour', 'blank']);
+
+/** Extended attribution fields used by engine demux for tool-tree projection (M6-D / stream-timeline S6). */
+interface TrajectoryItemAttribution extends ItemAttribution {
+	readonly toolCallId?: string;
+	readonly parentToolCallId?: string;
+	/** Reserved for compaction rows; not emitted until demux projects branch_reason (S6 defer). */
+	readonly branchReason?: string;
+}
+
+export interface TrajectoryProjectionOptions {
+	/** When set, keep user rows and items attributed to this agent (PRD-016 sub-agent lens). */
+	readonly filterAgentId?: string;
+}
 
 export type ConversationTrajectoryKind = 'system' | 'user' | 'context' | 'compacted' | 'message' | 'tool' | 'subtool' | 'thinking';
 
@@ -83,6 +101,167 @@ export function projectTurnsToTrajectory(turns: readonly ConversationStubTurn[])
 	}
 
 	return records;
+}
+
+/**
+ * Projects a session-core snapshot into trajectory records (stream-timeline S6 / trajectory T4).
+ * Uses bounded summary previews only — never treats DetailRef bodies as authoritative (plan §6 G3).
+ */
+export function projectSnapshotToTrajectory(
+	snapshot: SessionViewSnapshot,
+	attribution: ReadonlyMap<string, ItemAttribution>,
+	_details: ReadonlyMap<string, string>,
+	options?: TrajectoryProjectionOptions,
+): ConversationTrajectoryRecord[] {
+	const records: ConversationTrajectoryRecord[] = [];
+	const sorted = snapshot.timeline.slice().sort((a, b) => compareOrderKeys(a.orderKey, b.orderKey));
+
+	for (const item of sorted) {
+		const id = String(item.id);
+		const attr = attribution.get(id) as TrajectoryItemAttribution | undefined;
+		if (!passesTrajectoryAgentFilter(attr, options?.filterAgentId)) {
+			continue;
+		}
+		// `compacted` reserved: demux must project branch_reason before rows are emitted.
+		if (attr?.branchReason === 'compact') {
+			continue;
+		}
+		const record = timelineItemToTrajectoryRecord(item, attr);
+		if (record) {
+			records.push(record);
+		}
+	}
+
+	return finalizeToolTree(records, sorted, attribution);
+}
+
+function compareOrderKeys(a: string, b: string): number {
+	return a < b ? -1 : a > b ? 1 : 0;
+}
+
+function passesTrajectoryAgentFilter(attr: TrajectoryItemAttribution | undefined, filterAgentId: string | undefined): boolean {
+	if (!filterAgentId) {
+		return true;
+	}
+	if (!attr) {
+		return false;
+	}
+	if (attr.role === 'user' && !attr.agentId) {
+		return true;
+	}
+	return attr.agentId === filterAgentId;
+}
+
+function timelineItemToTrajectoryRecord(
+	item: TimelineItemView,
+	attr: TrajectoryItemAttribution | undefined,
+): ConversationTrajectoryRecord | undefined {
+	const id = String(item.id);
+	const summary = item.summary;
+
+	switch (summary.kind) {
+		case 'text': {
+			const role = attr?.role;
+			if (role === 'system') {
+				return { id, kind: 'system', text: summary.preview ?? summary.title };
+			}
+			if (role === 'user') {
+				return { id, kind: 'user', text: summary.preview ?? summary.title, opensTurn: true };
+			}
+			if (role === 'tool') {
+				return {
+					id,
+					kind: 'context',
+					text: summary.preview ?? summary.title,
+					messageSource: { kind: 'inject' },
+				};
+			}
+			return { id, kind: 'message', text: summary.preview ?? summary.title };
+		}
+		case 'reasoning':
+			return {
+				id,
+				kind: 'thinking',
+				text: summary.title,
+				...(summary.collapsedPreview !== undefined ? { inputDetail: summary.collapsedPreview } : {}),
+			};
+		case 'tool': {
+			const callId = attr?.toolCallId ?? id;
+			return {
+				id,
+				kind: 'tool',
+				text: summary.title,
+				callId,
+				depth: 0,
+				...(summary.toolName ? { messageSource: { kind: 'tool', label: summary.toolName } } : {}),
+				...(summary.argPreview !== undefined ? { inputDetail: summary.argPreview } : {}),
+				...(summary.resultPreview !== undefined ? { outputDetail: summary.resultPreview, result: summary.resultPreview } : {}),
+			};
+		}
+		case 'permission':
+		case 'question':
+			return undefined;
+		case 'error':
+			return { id, kind: 'message', text: summary.title };
+		case 'usage':
+			return { id, kind: 'context', text: summary.title, messageSource: { kind: 'usage' } };
+		case 'unknown':
+			return { id, kind: 'context', text: summary.rawContent, messageSource: { kind: summary.typeName } };
+		case 'generic':
+			return undefined;
+	}
+}
+
+function finalizeToolTree(
+	records: ConversationTrajectoryRecord[],
+	_sortedTimeline: readonly TimelineItemView[],
+	attribution: ReadonlyMap<string, ItemAttribution>,
+): ConversationTrajectoryRecord[] {
+	const depthByCallId = new Map<string, number>();
+
+	return records.map(record => {
+		if (record.kind !== 'tool') {
+			return record;
+		}
+		const attr = attribution.get(record.id) as TrajectoryItemAttribution | undefined;
+		const callId = attr?.toolCallId ?? record.callId ?? record.id;
+		const parentCallId = attr?.parentToolCallId;
+		if (!parentCallId || parentCallId === callId) {
+			return { ...record, callId, depth: 0 };
+		}
+		const parentDepth = depthByCallId.get(parentCallId) ?? 0;
+		const depth = parentDepth + 1;
+		depthByCallId.set(callId, depth);
+		return {
+			...record,
+			kind: 'subtool',
+			callId,
+			parentCallId,
+			depth,
+		};
+	});
+}
+
+/** Turn ids linked from the conversation timeline for trajectory reveal (engine path). */
+export function collectTrajectoryTurnIdsFromSnapshot(snapshot: SessionViewSnapshot): ReadonlySet<string> {
+	const ids = new Set<string>();
+	for (const item of snapshot.timeline) {
+		switch (item.summary.kind) {
+			case 'permission':
+			case 'question':
+			case 'usage':
+			case 'generic':
+				continue;
+			default:
+				ids.add(String(item.id));
+		}
+	}
+	return ids;
+}
+
+/** Whether trajectory fixture extras may be merged for this session (stub-only; never UA ids). */
+export function shouldMergeTrajectoryFixtureExtras(sessionId: string, engineConnected: boolean): boolean {
+	return !engineConnected && sessionId === 'untitled';
 }
 
 export function mergeTrajectoryFixtureExtras(
