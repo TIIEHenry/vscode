@@ -8,16 +8,19 @@ import { Disposable, DisposableStore, IDisposable } from '../../../../base/commo
 import { createDecorator } from '../../../../platform/instantiation/common/instantiation.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { GroupIdentifier } from '../../../common/editor.js';
+import { EditorInput } from '../../../common/editor/editorInput.js';
 import { IEditorService } from '../../../services/editor/common/editorService.js';
 import { IConversationEditorPart, IEditorGroupsService } from '../../../services/editor/common/editorGroupsService.js';
 import { ConversationChatInput } from './conversationChatInput.js';
+import { isConversationDiffReviewInput } from '../../sources/common/conversationDiffReviewInput.js';
+import { isConversationExtensionTab } from '../common/conversationEditorRouting.js';
 import { CONVERSATION_CLOSE_CHILD_ON_BACK_SETTING } from '../common/conversationNavigation.js';
 
 export const IConversationNavigationService = createDecorator<IConversationNavigationService>('conversationNavigationService');
 
 interface IConversationNavigationEntry {
 	readonly groupId: GroupIdentifier;
-	readonly editor: ConversationChatInput;
+	readonly editor: EditorInput;
 }
 
 class ConversationNavigationStack {
@@ -93,7 +96,7 @@ class ConversationNavigationStack {
 		return this.current;
 	}
 
-	removeEditor(editor: ConversationChatInput): void {
+	removeEditor(editor: EditorInput): void {
 		const previousLength = this.stack.length;
 		const filtered = this.stack.filter(entry => entry.editor !== editor);
 		if (filtered.length === previousLength) {
@@ -162,19 +165,19 @@ export class ConversationNavigationService extends Disposable implements IConver
 		const scopedEditorService = this.getScopedEditorService(part);
 		disposables.add(scopedEditorService.onDidActiveEditorChange(() => {
 			const editor = part.activeGroup.activeEditor;
-			if (editor instanceof ConversationChatInput) {
+			if (editor instanceof ConversationChatInput || isConversationDiffReviewInput(editor)) {
 				stack.push({ groupId: part.activeGroup.id, editor });
 			}
 		}));
 
 		disposables.add(scopedEditorService.onDidCloseEditor(event => {
-			if (event.editor instanceof ConversationChatInput) {
+			if (event.editor instanceof ConversationChatInput || isConversationDiffReviewInput(event.editor)) {
 				stack.removeEditor(event.editor);
 			}
 		}));
 
 		const activeEditor = part.activeGroup.activeEditor;
-		if (activeEditor instanceof ConversationChatInput) {
+		if (activeEditor instanceof ConversationChatInput || isConversationDiffReviewInput(activeEditor)) {
 			stack.push({ groupId: part.activeGroup.id, editor: activeEditor });
 		}
 
@@ -214,7 +217,7 @@ export class ConversationNavigationService extends Disposable implements IConver
 			const scopedEditorService = this.getScopedEditorService(targetPart);
 			const closeChildOnBack = this.configurationService.getValue<boolean>(CONVERSATION_CLOSE_CHILD_ON_BACK_SETTING);
 
-			if (closeChildOnBack && leaving && !leaving.editor.isDefaultRoot) {
+			if (closeChildOnBack && leaving && isConversationExtensionTab(leaving.editor)) {
 				await scopedEditorService.closeEditor({ editor: leaving.editor, groupId: leaving.groupId });
 			} else {
 				await targetPart.activeGroup.openEditor(destination.editor);

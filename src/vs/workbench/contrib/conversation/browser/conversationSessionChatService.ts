@@ -13,6 +13,7 @@ import { GroupIdentifier, IEditorIdentifier } from '../../../common/editor.js';
 import { IEditorGroupsService, IConversationEditorPart, preferredSideBySideGroupDirection } from '../../../services/editor/common/editorGroupsService.js';
 import { CONVERSATION_GROUP, IEditorService } from '../../../services/editor/common/editorService.js';
 import { buildAgentHierarchyBreadcrumb, IConversationAgentBreadcrumbItem } from '../common/conversationAgentHierarchy.js';
+import { isConversationExtensionTab } from '../common/conversationEditorRouting.js';
 import { IConversationSessionChatEntry } from '../common/conversationSessionChat.js';
 import {
 	ConversationChatInput,
@@ -253,7 +254,7 @@ export class ConversationSessionChatService extends Disposable implements IConve
 		const toClose: IEditorIdentifier[] = [];
 		for (const group of part.groups) {
 			for (const editor of group.editors) {
-				if (editor instanceof ConversationChatInput && !editor.isDefaultRoot) {
+				if (isConversationExtensionTab(editor)) {
 					toClose.push({ editor, groupId: group.id });
 				}
 			}
@@ -511,7 +512,7 @@ export class ConversationSessionChatService extends Disposable implements IConve
 		let count = 0;
 		for (const group of part.groups) {
 			for (const editor of group.editors) {
-				if (editor instanceof ConversationChatInput && !editor.isDefaultRoot) {
+				if (isConversationExtensionTab(editor)) {
 					count++;
 				}
 			}

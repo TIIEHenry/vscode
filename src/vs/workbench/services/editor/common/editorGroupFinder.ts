@@ -11,6 +11,7 @@ import { EditorInput } from '../../../common/editor/editorInput.js';
 import { IEditorGroup, GroupsOrder, preferredSideBySideGroupDirection, IEditorGroupsService, IModalEditorPart, isExcludedFromGlobalEditorAggregation } from './editorGroupsService.js';
 import { AUX_WINDOW_GROUP, AUX_WINDOW_GROUP_TYPE, CONVERSATION_GROUP, CONVERSATION_SIDE_GROUP, MODAL_GROUP, MODAL_GROUP_TYPE, PreferredGroup, SIDE_GROUP, USE_MODAL_EDITOR_SETTING, UseModalEditorMode, isConversationPreferredGroup } from './editorService.js';
 import { isBlockedFromConversationGroup, isConversationChatInput } from '../../../contrib/conversation/common/conversationEditorRouting.js';
+import { isConversationDiffReviewInput } from '../../../contrib/sources/common/conversationDiffReviewInput.js';
 
 type FindGroupResult = Promise<[IEditorGroup, EditorActivation | undefined]> | [IEditorGroup, EditorActivation | undefined];
 
@@ -41,7 +42,11 @@ export function findGroup(accessor: ServicesAccessor, editor: EditorInputWithOpt
 function handleGroupResult(group: IEditorGroup, editor: EditorInputWithOptions | IUntypedEditorInput, preferredGroup: PreferredGroup | undefined, editorGroupService: IEditorGroupsService, configurationService: IConfigurationService): FindGroupResult {
 	const editorInput = isEditorInputWithOptions(editor) ? editor.editor : isEditorInput(editor) ? editor : undefined;
 
-	if (isGroupInExcludedPart(group, editorGroupService)) {
+	const conversationExplicitOpen = !!editorInput
+		&& !isBlockedFromConversationGroup(editorInput)
+		&& isConversationPreferredGroup(preferredGroup);
+
+	if (isGroupInExcludedPart(group, editorGroupService) && !conversationExplicitOpen) {
 		group = editorGroupService.mainPart.activeGroup;
 	}
 
@@ -49,7 +54,7 @@ function handleGroupResult(group: IEditorGroup, editor: EditorInputWithOptions |
 		if (isConversationPreferredGroup(preferredGroup) || isGroupInExcludedPart(group, editorGroupService)) {
 			group = editorGroupService.mainPart.activeGroup;
 		}
-	} else if (editorInput && isConversationChatInput(editorInput)) {
+	} else if (editorInput && (isConversationChatInput(editorInput) || isConversationDiffReviewInput(editorInput))) {
 		if (!isConversationPreferredGroup(preferredGroup) && !isGroupInConversationPart(group, editorGroupService)) {
 			throw new Error('Conversation chat input requires CONVERSATION_GROUP or a conversation editor group');
 		}
@@ -240,7 +245,7 @@ function doFindGroup(input: EditorInputWithOptions | IUntypedEditorInput, prefer
 	if (!group) {
 		const typedEditor = isEditorInputWithOptions(editor) ? editor.editor : isEditorInput(editor) ? editor : undefined;
 
-		if (typedEditor && isConversationChatInput(typedEditor)) {
+		if (typedEditor && (isConversationChatInput(typedEditor) || isConversationDiffReviewInput(typedEditor))) {
 			throw new Error('Conversation chat input requires an explicit conversation group target');
 		}
 

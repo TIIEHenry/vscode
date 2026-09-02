@@ -9,13 +9,16 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/tes
 import { SyncDescriptor } from '../../../../../platform/instantiation/common/descriptors.js';
 import { Registry } from '../../../../../platform/registry/common/platform.js';
 import { IEditorGroupsService, isExcludedFromGlobalEditorAggregation, IAuxiliaryEditorPart } from '../../../../services/editor/common/editorGroupsService.js';
+import { EditorService } from '../../../../services/editor/browser/editorService.js';
 import { IEditorService } from '../../../../services/editor/common/editorService.js';
 import { EditorExtensions, IEditorFactoryRegistry } from '../../../../common/editor.js';
 import { createEditorParts, registerTestEditor, TestFileEditorInput, workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { SideBySideEditorInput } from '../../../../common/editor/sideBySideEditorInput.js';
 import { URI } from '../../../../../base/common/uri.js';
-import { ConversationChatInput, getDefaultConversationChatResource } from '../../browser/conversationChatInput.js';
+import { ConversationChatInput, getConversationChatResource } from '../../browser/conversationChatInput.js';
+import { ConversationDiffReviewInput } from '../../../sources/browser/conversationDiffReviewInput.js';
 import '../../browser/conversationEditor.contribution.js';
+import '../../../sources/browser/conversationDiffReview.contribution.js';
 
 suite('Conversation editor aggregation exemption (S1a)', () => {
 
@@ -33,8 +36,10 @@ suite('Conversation editor aggregation exemption (S1a)', () => {
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		instantiationService.invokeFunction(accessor => Registry.as<IEditorFactoryRegistry>(EditorExtensions.EditorFactory).start(accessor));
 		const parts = await createEditorParts(instantiationService, disposables);
+		store.add(parts);
 		instantiationService.stub(IEditorGroupsService, parts);
-		const editorService = instantiationService.invokeFunction(accessor => accessor.get(IEditorService));
+		const editorService = store.add(instantiationService.createInstance(EditorService, undefined));
+		instantiationService.stub(IEditorService, editorService);
 
 		const hostA = document.createElement('div');
 		const hostB = document.createElement('div');
@@ -46,9 +51,16 @@ suite('Conversation editor aggregation exemption (S1a)', () => {
 		const conversationB = parts.createConversationEditorPart(hostB, 'session-b');
 		await Promise.all([conversationA.whenReady, conversationB.whenReady]);
 
+		for (const part of [conversationA, conversationB]) {
+			const rootEditor = part.activeGroup.getEditorByIndex(0);
+			if (rootEditor) {
+				store.add(rootEditor);
+			}
+		}
+
 		const extraInput = store.add(instantiationService.createInstance(
 			ConversationChatInput,
-			getDefaultConversationChatResource('session-a-fork'),
+			getConversationChatResource('session-a', 'fork-1'),
 		));
 		await conversationA.activeGroup.openEditor(extraInput);
 
@@ -101,6 +113,25 @@ suite('Conversation editor aggregation exemption (S1a)', () => {
 		assert.ok(globalEditors.some(editor => editor === mainFile));
 		assert.ok(!globalEditors.some(editor => editor === extraInput));
 		assert.ok(!globalEditors.some(editor => editor instanceof ConversationChatInput));
+	});
+
+	test('global editor enumeration excludes diff review tabs', async () => {
+		const { parts, editorService, conversationA, instantiationService } = await createHarness();
+
+		const reviewInput = store.add(instantiationService.createInstance(
+			ConversationDiffReviewInput,
+			URI.file('/tmp/aggregate-review-modified.ts'),
+			URI.file('/tmp/aggregate-review-original.ts'),
+		));
+		await conversationA.activeGroup.openEditor(reviewInput);
+
+		const mainFile = store.add(new TestFileEditorInput(URI.file('/tmp/main-with-review.txt'), TEST_EDITOR_INPUT_ID));
+		await parts.mainPart.activeGroup.openEditor(mainFile);
+
+		const globalEditors = editorService.editors;
+		assert.ok(globalEditors.some(editor => editor === mainFile));
+		assert.ok(!globalEditors.some(editor => editor === reviewInput));
+		assert.ok(!globalEditors.some(editor => editor instanceof ConversationDiffReviewInput));
 	});
 
 	test('getGroups for global navigation excludes conversation groups', async () => {

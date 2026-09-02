@@ -35,8 +35,11 @@ import {
 	parseConversationChatResource,
 } from '../../browser/conversationChatInput.js';
 import { ConversationSessionChatService, IConversationSessionChatService } from '../../browser/conversationSessionChatService.js';
+import { isConversationExtensionTab } from '../../common/conversationEditorRouting.js';
 import { conversationSubAgentOverlayClass, conversationSubAgentOverlayBackdropClass, conversationSubAgentOverlayCardClass, conversationSubAgentOverlayMaximizeClass, conversationSubAgentOverlayMaximizedAttribute, conversationSubAgentOverlayPopoutClass } from '../../browser/conversationSubAgentOverlay.js';
 import { ConversationStubService, IConversationRosterService } from '../../browser/conversationStubService.js';
+import { ConversationDiffReviewInput } from '../../../sources/browser/conversationDiffReviewInput.js';
+import { ConversationDiffReviewInputTypeId } from '../../../sources/common/conversationDiffReviewInput.js';
 import { ForkConversationAction } from '../../../chat/browser/actions/chatForkActions.js';
 import { isDefaultCodeWindow } from '../../../chat/browser/chatShellRouting.js';
 import { IChatSessionsService } from '../../../chat/common/chatSessionsService.js';
@@ -101,6 +104,65 @@ function registerTestConversationChatEditor(disposables: Pick<DisposableStore, '
 	});
 }
 
+const TEST_CONVERSATION_DIFF_REVIEW_EDITOR_ID = 'workbench.editor.conversationDiffReview.test';
+
+function registerTestConversationDiffReviewEditor(disposables: Pick<DisposableStore, 'add'>): IDisposable {
+	class TestConversationDiffReviewEditorPane extends EditorPane {
+		constructor(group: IEditorGroup) {
+			super(TEST_CONVERSATION_DIFF_REVIEW_EDITOR_ID, group, NullTelemetryService, new TestThemeService(), disposables.add(new TestStorageService()));
+		}
+
+		layout(): void { }
+
+		protected createEditor(): void { }
+
+		override async setInput(input: EditorInput, options: IEditorOptions | undefined, context: IEditorOpenContext, token: CancellationToken): Promise<void> {
+			await super.setInput(input, options, context, token);
+		}
+	}
+
+	class ConversationDiffReviewInputSerializer implements IEditorSerializer {
+		canSerialize(input: EditorInput): input is ConversationDiffReviewInput {
+			return input instanceof ConversationDiffReviewInput;
+		}
+
+		serialize(input: ConversationDiffReviewInput): string | undefined {
+			return JSON.stringify({
+				modified: input.modified.toString(),
+				original: input.original?.toString(),
+			});
+		}
+
+		deserialize(instantiationService: IInstantiationService, serialized: string): ConversationDiffReviewInput | undefined {
+			try {
+				const parsed = JSON.parse(serialized) as { modified: string; original?: string };
+				return instantiationService.createInstance(ConversationDiffReviewInput, URI.parse(parsed.modified), parsed.original ? URI.parse(parsed.original) : undefined);
+			} catch {
+				return undefined;
+			}
+		}
+	}
+
+	const paneRegistration = disposables.add(Registry.as<IEditorPaneRegistry>(EditorExtensions.EditorPane).registerEditorPane(
+		EditorPaneDescriptor.create(
+			TestConversationDiffReviewEditorPane,
+			TEST_CONVERSATION_DIFF_REVIEW_EDITOR_ID,
+			'Conversation Diff Review Test',
+		),
+		[new SyncDescriptor(ConversationDiffReviewInput)],
+	));
+
+	const serializerRegistration = disposables.add(Registry.as<IEditorFactoryRegistry>(EditorExtensions.EditorFactory).registerEditorSerializer(
+		ConversationDiffReviewInputTypeId,
+		ConversationDiffReviewInputSerializer,
+	));
+
+	return toDisposable(() => {
+		paneRegistration.dispose();
+		serializerRegistration.dispose();
+	});
+}
+
 suite('Conversation session chat (S3)', () => {
 
 	const TEST_EDITOR_ID = 'MyFileEditorForConversationSessionChat';
@@ -110,6 +172,7 @@ suite('Conversation session chat (S3)', () => {
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
 	const disposables = store as unknown as DisposableStore;
 	let conversationChatEditorRegistered: IDisposable | undefined;
+	let conversationDiffReviewEditorRegistered: IDisposable | undefined;
 
 	class TestConversationSessionChatService extends ConversationSessionChatService {
 		override async openExtensionTab(sessionKey: string, chatId: string, options?: { title?: string }): Promise<void> {
@@ -193,7 +256,7 @@ suite('Conversation session chat (S3)', () => {
 
 			for (const group of part.groups) {
 				for (const editor of [...group.editors]) {
-					if (editor instanceof ConversationChatInput && !editor.isDefaultRoot) {
+					if (isConversationExtensionTab(editor)) {
 						await part.activeGroup.closeEditor(editor);
 					}
 				}
@@ -244,9 +307,14 @@ suite('Conversation session chat (S3)', () => {
 
 	setup(() => {
 		store.add(registerTestEditor(TEST_EDITOR_ID, [new SyncDescriptor(TestFileEditorInput), new SyncDescriptor(SideBySideEditorInput)], TEST_EDITOR_INPUT_ID));
-		if (!conversationChatEditorRegistered) {
+		const editorFactory = Registry.as<IEditorFactoryRegistry>(EditorExtensions.EditorFactory);
+		if (!conversationChatEditorRegistered && !editorFactory.getEditorSerializer(ConversationChatInputTypeId)) {
 			conversationChatEditorRegistered = registerTestConversationChatEditor(store);
 			store.add(conversationChatEditorRegistered);
+		}
+		if (!conversationDiffReviewEditorRegistered && !editorFactory.getEditorSerializer(ConversationDiffReviewInputTypeId)) {
+			conversationDiffReviewEditorRegistered = registerTestConversationDiffReviewEditor(store);
+			store.add(conversationDiffReviewEditorRegistered);
 		}
 	});
 
@@ -559,5 +627,24 @@ suite('Conversation session chat (S3)', () => {
 		assert.strictEqual(sessionChatService.isSubAgentDialogOpen(), false);
 		assert.strictEqual(conversationPart.activeGroup.count, 1);
 		assert.ok((conversationPart.activeGroup.activeEditor as ConversationChatInput).isDefaultRoot);
+	});
+
+	test('close non-root closes diff review tab but keeps root tab', async () => {
+		const { conversationPart, sessionChatService, instantiationService } = await createHarness();
+		const reviewInput = store.add(instantiationService.createInstance(
+			ConversationDiffReviewInput,
+			URI.file('/tmp/close-review-modified.ts'),
+			URI.file('/tmp/close-review-original.ts'),
+		));
+		await conversationPart.activeGroup.openEditor(reviewInput);
+
+		assert.strictEqual(conversationPart.activeGroup.count, 2);
+		assert.strictEqual(sessionChatService.canCloseNonRoot(), true);
+
+		await sessionChatService.closeNonRootTabs();
+
+		assert.strictEqual(conversationPart.activeGroup.count, 1);
+		assert.ok((conversationPart.activeGroup.activeEditor as ConversationChatInput).isDefaultRoot);
+		assert.strictEqual(sessionChatService.canCloseNonRoot(), false);
 	});
 });

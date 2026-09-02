@@ -18,6 +18,7 @@ import { GroupIdentifier } from '../../../common/editor.js';
 import { findGroup } from '../../../services/editor/common/editorGroupFinder.js';
 import { IConversationEditorPart, IEditorGroup, IEditorSideGroup } from '../../../services/editor/common/editorGroupsService.js';
 import { CONVERSATION_SIDE_GROUP } from '../../../services/editor/common/editorService.js';
+import { isConversationExtensionTab } from '../../../contrib/conversation/common/conversationEditorRouting.js';
 import { IHostService } from '../../../services/host/browser/host.js';
 import { IWorkbenchLayoutService } from '../../../services/layout/browser/layoutService.js';
 
@@ -102,9 +103,9 @@ export class ConversationEditorPartImpl extends EditorPart implements IConversat
 	}
 
 	private applyConversationPartOptions(): void {
-		const editorCount = this.groups.reduce((count, group) => count + group.count, 0);
+		const extensionTabCount = this.groups.reduce((count, group) => count + group.editors.filter(editor => isConversationExtensionTab(editor)).length, 0);
 		const visibleGroupCount = this.groups.filter(group => !this.isGroupHidden(group)).length;
-		const showTabs = editorCount > 1 || visibleGroupCount > 1 ? 'multiple' : 'none';
+		const showTabs = extensionTabCount > 0 || visibleGroupCount > 1 ? 'multiple' : 'none';
 
 		this.partOptionsDisposable.clear();
 		this.partOptionsDisposable.add(this.enforcePartOptions({
