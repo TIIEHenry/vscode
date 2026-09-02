@@ -112,6 +112,7 @@ class EngineSkillRowRenderer implements IListRenderer<EngineSkillListEntry, ISki
 
 	disposeTemplate(templateData: ISkillRowTemplateData): void {
 		templateData.checkboxDisposable.dispose();
+		templateData.checkbox.dispose();
 	}
 }
 
@@ -135,7 +136,8 @@ export class EngineSkillsSection extends Disposable {
 	private readonly freezeNotice: HTMLElement;
 	private readonly listContainer: HTMLElement;
 	private readonly bodyPreview: HTMLElement;
-	private readonly list: WorkbenchList<EngineSkillListEntry>;
+	private readonly instantiationService: IInstantiationService;
+	private list: WorkbenchList<EngineSkillListEntry> | undefined;
 
 	private mode: EngineSkillsPaneMode = 'disconnected';
 	private listEntries: EngineSkillListEntry[] = [];
@@ -146,6 +148,7 @@ export class EngineSkillsSection extends Disposable {
 		@IInstantiationService instantiationService: IInstantiationService,
 	) {
 		super();
+		this.instantiationService = instantiationService;
 
 		this.container = DOM.append(parent, $('.engine-skills-section'));
 		this.container.style.display = 'none';
@@ -161,31 +164,6 @@ export class EngineSkillsSection extends Disposable {
 		this.freezeNotice.style.display = 'none';
 
 		this.listContainer = DOM.append(this.container, $('.engine-skills-list'));
-		this.list = this._register(instantiationService.createInstance(
-			WorkbenchList,
-			'EngineSkills',
-			this.listContainer,
-			new EngineSkillListDelegate(),
-			[
-				new EngineSkillGroupRenderer(),
-				new EngineSkillRowRenderer((skill, enabled) => this.toggleSkill(skill, enabled)),
-			],
-			{
-				identityProvider: {
-					getId: (entry: EngineSkillListEntry) => entry.kind === 'group'
-						? `group:${entry.source}`
-						: `skill:${entry.skill.name}`,
-				},
-				accessibilityProvider: new EngineSkillListAccessibilityProvider(),
-			},
-		)) as WorkbenchList<EngineSkillListEntry>;
-
-		this._register(this.list.onDidChangeSelection(e => {
-			const entry = e.elements[0];
-			if (entry?.kind === 'skill') {
-				void this.loadSkillBody(entry.skill);
-			}
-		}));
 
 		this.bodyPreview = DOM.append(this.container, $('.engine-skill-body-preview'));
 		this.bodyPreview.style.display = 'none';
@@ -198,7 +176,12 @@ export class EngineSkillsSection extends Disposable {
 	}
 
 	layout(width: number, listHeight: number): void {
-		this.list.layout(Math.max(120, listHeight), width);
+		this.list?.layout(Math.max(120, listHeight), width);
+	}
+
+	override dispose(): void {
+		this.clearCatalogPresentation();
+		super.dispose();
 	}
 
 	getDomNode(): HTMLElement {
@@ -258,9 +241,39 @@ export class EngineSkillsSection extends Disposable {
 		}
 	}
 
+	private ensureList(): WorkbenchList<EngineSkillListEntry> {
+		if (!this.list) {
+			this.list = this._register(this.instantiationService.createInstance(
+				WorkbenchList,
+				'EngineSkills',
+				this.listContainer,
+				new EngineSkillListDelegate(),
+				[
+					new EngineSkillGroupRenderer(),
+					new EngineSkillRowRenderer((skill, enabled) => this.toggleSkill(skill, enabled)),
+				],
+				{
+					identityProvider: {
+						getId: (entry: EngineSkillListEntry) => entry.kind === 'group'
+							? `group:${entry.source}`
+							: `skill:${entry.skill.name}`,
+					},
+					accessibilityProvider: new EngineSkillListAccessibilityProvider(),
+				},
+			)) as WorkbenchList<EngineSkillListEntry>;
+			this._register(this.list.onDidChangeSelection(e => {
+				const entry = e.elements[0];
+				if (entry?.kind === 'skill') {
+					void this.loadSkillBody(entry.skill);
+				}
+			}));
+		}
+		return this.list;
+	}
+
 	private clearCatalogPresentation(): void {
 		this.listEntries = [];
-		this.list.splice(0, this.list.length, []);
+		this.list?.splice(0, this.list?.length ?? 0, []);
 		this.statusMessage.style.display = 'none';
 		this.statusMessage.textContent = '';
 		this.freezeNotice.style.display = 'none';
@@ -278,7 +291,12 @@ export class EngineSkillsSection extends Disposable {
 			}
 		}
 		this.listEntries = entries;
-		this.list.splice(0, this.list.length, entries);
+		if (entries.length === 0) {
+			this.list?.splice(0, this.list?.length ?? 0, []);
+			return;
+		}
+		const list = this.ensureList();
+		list.splice(0, list.length, entries);
 	}
 
 	private async toggleSkill(skill: UniverseAgentSkillSummary, enabled: boolean): Promise<void> {
