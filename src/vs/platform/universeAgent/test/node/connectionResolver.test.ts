@@ -124,6 +124,24 @@ function hubProfile(overrides: Partial<ConnectionProfile> = {}): ConnectionProfi
 	};
 }
 
+function directAddressProfile(overrides: Partial<ConnectionProfile> = {}): ConnectionProfile {
+	const leafDer = randomBytes(32);
+	const trust = createEngineTrustRecord({
+		leafDer,
+		engineIdentityId: '0123456789abcdef'.repeat(4),
+		establishedAt: FIXTURE_NOW_MS,
+	});
+	return {
+		profileId: PROFILE_ID,
+		displayName: 'Direct Engine',
+		target: { kind: 'directAddress', host: '203.0.113.10', port: 7443 },
+		trust,
+		state: 'active',
+		allowPrivateNetwork: false,
+		...overrides,
+	};
+}
+
 function createResolverHarness(input: {
 	readonly profile: ConnectionProfile;
 	readonly devices?: HubDevice[];
@@ -310,6 +328,61 @@ suite('ConnectionResolver', () => {
 		assert.ok(result.ok);
 		if (result.ok) {
 			assert.strictEqual(result.ticketId, 'ticket-1');
+		}
+	});
+
+	test('direct address resolves without relay ticket', async () => {
+		let issueCount = 0;
+		const { resolver } = createResolverHarness({
+			profile: directAddressProfile(),
+			issueRelayTicketFn: async () => {
+				issueCount++;
+				return { ok: false, code: 'hub_ticket_failed', reason: 'must not issue ticket for direct address' };
+			},
+		});
+
+		const result = await resolver.resolve(PROFILE_ID);
+		assert.ok(result.ok);
+		if (result.ok) {
+			assert.strictEqual(result.endpoint.relayTicketId, null);
+			assert.strictEqual(result.endpoint.path, 'direct');
+			assert.strictEqual(result.allowRelayFallback, false);
+			assert.strictEqual(result.endpoint.authority, '203.0.113.10');
+			assert.strictEqual(result.endpoint.port, 7443);
+		}
+		assert.strictEqual(issueCount, 0);
+	});
+
+	test('direct address rejects RFC1918 host by default', async () => {
+		for (const host of ['192.168.1.1', '10.0.0.1', '172.16.0.1', '127.0.0.1', 'localhost']) {
+			const { resolver } = createResolverHarness({
+				profile: directAddressProfile({
+					target: { kind: 'directAddress', host, port: 7443 },
+					allowPrivateNetwork: false,
+				}),
+			});
+			const result = await resolver.resolve(PROFILE_ID);
+			assert.ok(!result.ok, `expected private host ${host} to be rejected`);
+			if (!result.ok) {
+				assert.strictEqual(result.code, 'private_network_denied');
+				assert.strictEqual(result.allowRelayFallback, false);
+			}
+		}
+	});
+
+	test('direct address allows private host when allowPrivateNetwork is true', async () => {
+		const { resolver } = createResolverHarness({
+			profile: directAddressProfile({
+				target: { kind: 'directAddress', host: '192.168.1.10', port: 50051 },
+				allowPrivateNetwork: true,
+			}),
+		});
+
+		const result = await resolver.resolve(PROFILE_ID);
+		assert.ok(result.ok);
+		if (result.ok) {
+			assert.strictEqual(result.endpoint.relayTicketId, null);
+			assert.strictEqual(result.endpoint.path, 'direct');
 		}
 	});
 });

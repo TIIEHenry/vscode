@@ -64,6 +64,8 @@ suite('ConnectionPreferencesPane', () => {
 			renameDevice: async () => ({ ok: true }),
 			revokeDevice: async () => ({ ok: true }),
 			confirmDeviceCode: async () => ({ ok: true }),
+			addDirectAddressProfile: async () => ({ ok: true, profileId: 'direct-profile-1' }),
+			forgetConnectionProfile: async () => ({ ok: true }),
 			isEncryptionAvailable: async () => true,
 			...overrides,
 		};
@@ -220,10 +222,20 @@ suite('ConnectionPreferencesPane', () => {
 
 		assert.ok(container.querySelector('.connection-hub-account'));
 		assert.ok(container.querySelector('.connection-hub-devices'));
+		assert.ok(container.querySelector('.connection-direct-address'));
 		assert.ok(container.querySelector('.connection-profiles'));
 		assert.ok(container.querySelector('.connection-test-section'));
 		assert.ok(container.querySelector('.connection-remote-io-hint'));
 
+		container.remove();
+	});
+
+	test('direct address zone exposes allowPrivateNetwork checkbox default unchecked', () => {
+		const pane = mountPane();
+		const container = pane.getDomNode();
+		const checkbox = container.querySelector('#connection-allow-private-network') as HTMLInputElement;
+		assert.ok(checkbox);
+		assert.strictEqual(checkbox.checked, false);
 		container.remove();
 	});
 
