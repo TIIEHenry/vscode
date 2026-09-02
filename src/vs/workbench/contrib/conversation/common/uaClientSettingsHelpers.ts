@@ -11,6 +11,7 @@ import {
 	UA_CLIENT_KEYBOARD_ENTER_BEHAVIOR,
 	UA_CLIENT_NOTIFICATIONS_PERMISSION_REQUESTS,
 	UA_CLIENT_NOTIFICATIONS_TURN_COMPLETED,
+	UA_CLIENT_PERMISSIONS_OPEN_PENDING_ON_FOCUS,
 	UA_CLIENT_STARTUP_RESTORE_LAST_SESSION,
 	type UaClientConversationDensity,
 	type UaClientKeyboardEnterBehavior,
@@ -57,7 +58,7 @@ export function getUaClientKeyboardEnterBehavior(configurationService?: IConfigu
 	return configurationService.getValue<string>(UA_CLIENT_KEYBOARD_ENTER_BEHAVIOR) === 'newline' ? 'newline' : 'send';
 }
 
-/** CS-4+ / deleted-key helpers: defaults only until those slices register keys. */
+/** Deleted-key / CS-5 helpers: defaults only until those slices register keys. */
 export function shouldShowAgentIdentity(_configurationService?: IConfigurationService): boolean {
 	return true;
 }
@@ -81,8 +82,11 @@ export function shouldNotifyTurnCompleted(configurationService?: IConfigurationS
 	return configurationService.getValue<boolean>(UA_CLIENT_NOTIFICATIONS_TURN_COMPLETED) === true;
 }
 
-export function shouldOpenPendingOnFocus(_configurationService?: IConfigurationService): boolean {
-	return true;
+export function shouldOpenPendingOnFocus(configurationService?: IConfigurationService): boolean {
+	if (!configurationService) {
+		return true;
+	}
+	return configurationService.getValue<boolean>(UA_CLIENT_PERMISSIONS_OPEN_PENDING_ON_FOCUS) !== false;
 }
 
 export function shouldConfirmBeforeExternalOpen(_configurationService?: IConfigurationService): boolean {

@@ -35,6 +35,7 @@ suite('welcome.newWorkspaceChat', () => {
 		const conversationPartService: IConversationPartService = {
 			_serviceBrand: undefined,
 			onDidCreateSlots: Event.None,
+			onDidFocus: Event.None,
 			getSlots: () => undefined,
 			focus: () => { focusTracker.called = true; },
 		};

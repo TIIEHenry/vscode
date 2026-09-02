@@ -69,4 +69,24 @@ suite('conversationPendingSeat', () => {
 		});
 		assert.deepStrictEqual(calls, ['show-lens', 'max:false', 'el:c1', 'scroll']);
 	});
+
+	test('scroll helper locates a question seat via the same host element lookup', () => {
+		const calls: string[] = [];
+		const seat = { scrollIntoView: () => calls.push('scroll') } as unknown as HTMLElement;
+		const turns: ConversationStubTurn[] = [
+			{ id: 'q1', kind: 'question', text: 'Pick', status: 'pending' },
+		];
+		scrollToFirstPendingConfirmation({
+			lensId: 'conversation',
+			showConversationLens: () => calls.push('show-lens'),
+			inputMaximized: false,
+			setInputMaximized: () => calls.push('max'),
+			findFirstPendingConfirmationTurnId: () => findFirstPendingConfirmationTurnId(turns),
+			getConfirmationElement: turnId => {
+				calls.push(`el:${turnId}`);
+				return turnId === 'q1' ? seat : undefined;
+			},
+		});
+		assert.deepStrictEqual(calls, ['el:q1', 'scroll']);
+	});
 });

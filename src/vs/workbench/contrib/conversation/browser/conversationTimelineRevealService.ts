@@ -24,6 +24,7 @@ export class ConversationTimelineRevealService extends Disposable implements ICo
 	declare readonly _serviceBrand: undefined;
 
 	private primaryLens: ConversationLens | undefined;
+	private pendingConfirmationScrollScheduled = false;
 
 	registerLens(lens: ConversationLens): { dispose(): void } {
 		this.primaryLens = lens;
@@ -49,7 +50,14 @@ export class ConversationTimelineRevealService extends Disposable implements ICo
 	}
 
 	scrollToFirstPendingConfirmation(): void {
-		this.primaryLens?.scrollToFirstPendingConfirmation();
+		if (this.pendingConfirmationScrollScheduled) {
+			return;
+		}
+		this.pendingConfirmationScrollScheduled = true;
+		queueMicrotask(() => {
+			this.pendingConfirmationScrollScheduled = false;
+			this.primaryLens?.scrollToFirstPendingConfirmation();
+		});
 	}
 }
 

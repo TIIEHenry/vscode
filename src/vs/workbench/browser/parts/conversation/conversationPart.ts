@@ -43,6 +43,8 @@ export interface IConversationPartService {
 	readonly _serviceBrand: undefined;
 
 	readonly onDidCreateSlots: Event<IConversationPartWindowSlots>;
+	/** Fired at the end of {@link focus}; CS-4 contrib scrolls pending seats from here. */
+	readonly onDidFocus: Event<void>;
 	getSlots(): IConversationPartWindowSlots | undefined;
 	focus(): void;
 }
@@ -71,6 +73,8 @@ export class ConversationPart extends Part implements IConversationPartService {
 	private _slots: IConversationPartWindowSlots | undefined;
 	private readonly _onDidCreateSlots = this._register(new Emitter<IConversationPartWindowSlots>());
 	readonly onDidCreateSlots: Event<IConversationPartWindowSlots> = this._onDidCreateSlots.event;
+	private readonly _onDidFocus = this._register(new Emitter<void>());
+	readonly onDidFocus: Event<void> = this._onDidFocus.event;
 
 	constructor(
 		@IThemeService themeService: IThemeService,
@@ -134,6 +138,7 @@ export class ConversationPart extends Part implements IConversationPartService {
 		} else {
 			this.getContainer()?.focus();
 		}
+		this._onDidFocus.fire();
 	}
 
 	toJSON(): object {
