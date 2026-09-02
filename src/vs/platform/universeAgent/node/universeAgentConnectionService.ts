@@ -26,8 +26,20 @@ import type {
 	UniverseAgentListSkillsResult,
 	UniverseAgentListAgentProfilesRequest,
 	UniverseAgentListAgentProfilesResult,
+	UniverseAgentSaveAgentProfileRequest,
+	UniverseAgentSaveAgentProfileResult,
+	UniverseAgentDeleteAgentProfileRequest,
+	UniverseAgentDeleteAgentProfileResult,
+	UniverseAgentResetAgentProfileRequest,
+	UniverseAgentResetAgentProfileResult,
 	UniverseAgentListMcpServersRequest,
 	UniverseAgentListMcpServersResult,
+	UniverseAgentAddMcpServerRequest,
+	UniverseAgentAddMcpServerResult,
+	UniverseAgentUpdateMcpServerRequest,
+	UniverseAgentUpdateMcpServerResult,
+	UniverseAgentRemoveMcpServerRequest,
+	UniverseAgentRemoveMcpServerResult,
 	UniverseAgentListToolsResult,
 	UniverseAgentToggleMcpServerRequest,
 	UniverseAgentToggleMcpServerResult,
@@ -407,11 +419,47 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		}));
 	}
 
+	async saveAgentProfile(request: UniverseAgentSaveAgentProfileRequest): Promise<UniverseAgentSaveAgentProfileResult> {
+		return this._withTransport(transport => transport.saveAgentProfile(request));
+	}
+
+	async deleteAgentProfile(request: UniverseAgentDeleteAgentProfileRequest): Promise<UniverseAgentDeleteAgentProfileResult> {
+		return this._withTransport(transport => transport.deleteAgentProfile(request));
+	}
+
+	async resetAgentProfile(request: UniverseAgentResetAgentProfileRequest): Promise<UniverseAgentResetAgentProfileResult> {
+		return this._withTransport(transport => transport.resetAgentProfile(request));
+	}
+
 	async listMcpServers(request: UniverseAgentListMcpServersRequest = {}): Promise<UniverseAgentListMcpServersResult> {
 		const workDir = request.workDir ?? this.getConnectionSnapshot().workDir;
 		return this._withTransport(transport => transport.listMcpServers({
 			...request,
 			workDir,
+		}));
+	}
+
+	async addMcpServer(request: UniverseAgentAddMcpServerRequest): Promise<UniverseAgentAddMcpServerResult> {
+		const workDir = request.workDir ?? this.getConnectionSnapshot().workDir;
+		return this._withTransport(transport => transport.addMcpServer({
+			...request,
+			workDir: request.scope === 'project' ? workDir : request.workDir,
+		}));
+	}
+
+	async updateMcpServer(request: UniverseAgentUpdateMcpServerRequest): Promise<UniverseAgentUpdateMcpServerResult> {
+		const workDir = request.workDir ?? this.getConnectionSnapshot().workDir;
+		return this._withTransport(transport => transport.updateMcpServer({
+			...request,
+			workDir: request.scope === 'project' ? workDir : request.workDir,
+		}));
+	}
+
+	async removeMcpServer(request: UniverseAgentRemoveMcpServerRequest): Promise<UniverseAgentRemoveMcpServerResult> {
+		const workDir = request.workDir ?? this.getConnectionSnapshot().workDir;
+		return this._withTransport(transport => transport.removeMcpServer({
+			...request,
+			workDir: request.scope === 'project' ? workDir : request.workDir,
 		}));
 	}
 

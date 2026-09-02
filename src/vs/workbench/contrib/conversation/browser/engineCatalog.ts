@@ -29,6 +29,11 @@ export function shouldHideCatalogRows(mode: EngineCatalogPaneMode): boolean {
 	return mode !== 'supported';
 }
 
+/** Write paths (Save/Delete/CRUD) only when engine-backed and capability SUPPORTED (§2). */
+export function canPerformCatalogWrite(mode: EngineCatalogPaneMode): boolean {
+	return mode === 'supported';
+}
+
 export function getCatalogUnsupportedCopy(featureLabel: string, reason?: string): string {
 	if (reason) {
 		return localize(

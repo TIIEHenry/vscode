@@ -75,8 +75,14 @@ suite('EngineSkillsSection (E1)', () => {
 			setSkillEnabled: async () => ({ ok: true }),
 			getSkillInfo: async () => ({ name: 'demo-skill', content: '# Demo', source: 'bundled', enabled: true }),
 			listAgentProfiles: async () => ({ profiles: [] }),
+			saveAgentProfile: async (request) => ({ profile: request.profile }),
+			deleteAgentProfile: async () => ({ ok: true }),
+			resetAgentProfile: async () => ({ ok: true }),
 			listMcpServers: async () => ({ servers: [] }),
 			toggleMcpServer: async () => ({ ok: true }),
+			addMcpServer: async () => ({ ok: true }),
+			updateMcpServer: async () => ({ ok: true }),
+			removeMcpServer: async () => ({ ok: true }),
 			listTools: async () => ({ tools: [] }),
 			setConnected(value: boolean) {
 				connected = value;

@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as DOM from '../../../../base/browser/dom.js';
+import { Button } from '../../../../base/browser/ui/button/button.js';
 import { Checkbox } from '../../../../base/browser/ui/toggle/toggle.js';
 import { IListRenderer, IListVirtualDelegate } from '../../../../base/browser/ui/list/list.js';
 import { IListAccessibilityProvider } from '../../../../base/browser/ui/list/listWidget.js';
@@ -12,10 +13,11 @@ import { localize } from '../../../../nls.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { WorkbenchList } from '../../../../platform/list/browser/listService.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
-import type { UniverseAgentMcpServerOrigin, UniverseAgentMcpServerSummary } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
-import { defaultCheckboxStyles } from '../../../../platform/theme/browser/defaultStyles.js';
+import type { UniverseAgentMcpServerConfig, UniverseAgentMcpServerOrigin, UniverseAgentMcpServerSummary } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
+import { defaultButtonStyles, defaultCheckboxStyles } from '../../../../platform/theme/browser/defaultStyles.js';
 import {
 	type EngineCatalogPaneMode,
+	canPerformCatalogWrite,
 	getCatalogTransportFailedCopy,
 	getCatalogUnsupportedCopy,
 	getCatalogUnknownCopy,
@@ -117,6 +119,7 @@ class EngineMcpRowRenderer implements IListRenderer<EngineMcpListEntry, IMcpRowT
 
 	disposeTemplate(templateData: IMcpRowTemplateData): void {
 		templateData.checkboxDisposable.dispose();
+		templateData.checkbox.dispose();
 	}
 }
 
@@ -163,11 +166,14 @@ export class EngineMcpSection extends Disposable {
 
 	private readonly container: HTMLElement;
 	private readonly statusMessage: HTMLElement;
+	private readonly writeToolbar: HTMLElement;
 	private readonly listContainer: HTMLElement;
-	private readonly list: WorkbenchList<EngineMcpListEntry>;
+	private readonly instantiationService: IInstantiationService;
+	private list: WorkbenchList<EngineMcpListEntry> | undefined;
 
 	private mode: EngineCatalogPaneMode = 'disconnected';
 	private listEntries: EngineMcpListEntry[] = [];
+	private selectedServer: UniverseAgentMcpServerSummary | undefined;
 
 	constructor(
 		parent: HTMLElement,
@@ -175,6 +181,7 @@ export class EngineMcpSection extends Disposable {
 		@IInstantiationService instantiationService: IInstantiationService,
 	) {
 		super();
+		this.instantiationService = instantiationService;
 
 		this.container = DOM.append(parent, $('.engine-mcp-section.engine-catalog-section'));
 		this.container.style.display = 'none';
@@ -185,25 +192,19 @@ export class EngineMcpSection extends Disposable {
 		this.statusMessage = DOM.append(this.container, $('.engine-catalog-status'));
 		this.statusMessage.style.display = 'none';
 
+		this.writeToolbar = DOM.append(this.container, $('.engine-catalog-write-toolbar'));
+		this.writeToolbar.style.display = 'none';
+		const addButton = this._register(new Button(this.writeToolbar, defaultButtonStyles));
+		addButton.label = localize('ua.engineMcpAdd', "Add");
+		this._register(addButton.onDidClick(() => void this.addServer()));
+		const removeButton = this._register(new Button(this.writeToolbar, defaultButtonStyles));
+		removeButton.label = localize('ua.engineMcpRemove', "Remove");
+		this._register(removeButton.onDidClick(() => void this.removeSelectedServer()));
+		const updateButton = this._register(new Button(this.writeToolbar, defaultButtonStyles));
+		updateButton.label = localize('ua.engineMcpUpdate', "Update");
+		this._register(updateButton.onDidClick(() => void this.updateSelectedServer()));
+
 		this.listContainer = DOM.append(this.container, $('.engine-catalog-list'));
-		this.list = this._register(instantiationService.createInstance(
-			WorkbenchList,
-			'EngineMcp',
-			this.listContainer,
-			new EngineMcpListDelegate(),
-			[
-				new EngineMcpGroupRenderer(),
-				new EngineMcpRowRenderer((server, enabled) => this.toggleServer(server, enabled)),
-			],
-			{
-				identityProvider: {
-					getId: (entry: EngineMcpListEntry) => entry.kind === 'group'
-						? `group:${entry.origin}`
-						: `server:${entry.server.id}`,
-				},
-				accessibilityProvider: new EngineMcpListAccessibilityProvider(),
-			},
-		)) as WorkbenchList<EngineMcpListEntry>;
 
 		this._register(this.connection.onDidChangeConnection(() => {
 			void this.refresh();
@@ -213,7 +214,12 @@ export class EngineMcpSection extends Disposable {
 	}
 
 	layout(width: number, listHeight: number): void {
-		this.list.layout(Math.max(80, listHeight), width);
+		this.list?.layout(Math.max(80, listHeight), width);
+	}
+
+	override dispose(): void {
+		this.clearCatalogPresentation();
+		super.dispose();
 	}
 
 	getDomNode(): HTMLElement {
@@ -228,8 +234,118 @@ export class EngineMcpSection extends Disposable {
 		return this.listEntries.filter(entry => entry.kind === 'server').length;
 	}
 
+	canWrite(): boolean {
+		return canPerformCatalogWrite(this.mode) && this.connection.isEngineConnected();
+	}
+
+	isWriteToolbarVisible(): boolean {
+		return this.writeToolbar.style.display !== 'none';
+	}
+
+	async addServer(config?: UniverseAgentMcpServerConfig): Promise<boolean> {
+		if (!this.canWrite()) {
+			return false;
+		}
+		const payload: UniverseAgentMcpServerConfig = config ?? {
+			name: localize('ua.engineMcpNewDefaultName', "New MCP Server"),
+			transport: 'stdio',
+			command: 'echo',
+			args: ['mcp-stub'],
+			enabled: true,
+		};
+		const scope = 'global';
+		try {
+			const result = await this.connection.addMcpServer({ config: payload, scope });
+			if (!result.ok) {
+				return false;
+			}
+			await this.refresh();
+			return true;
+		} catch {
+			return false;
+		}
+	}
+
+	async updateSelectedServer(config?: Partial<UniverseAgentMcpServerConfig>): Promise<boolean> {
+		if (!this.canWrite() || !this.selectedServer) {
+			return false;
+		}
+		const scope = this.selectedServer.origin === 'project' ? 'project' : 'global';
+		const merged: UniverseAgentMcpServerConfig = {
+			id: this.selectedServer.id,
+			name: config?.name ?? this.selectedServer.name,
+			transport: config?.transport ?? this.selectedServer.transport,
+			command: config?.command,
+			enabled: config?.enabled ?? this.selectedServer.enabled,
+		};
+		try {
+			const result = await this.connection.updateMcpServer({
+				serverId: this.selectedServer.id,
+				config: merged,
+				scope,
+			});
+			if (!result.ok) {
+				return false;
+			}
+			await this.refresh();
+			return true;
+		} catch {
+			return false;
+		}
+	}
+
+	async removeSelectedServer(): Promise<boolean> {
+		if (!this.canWrite() || !this.selectedServer) {
+			return false;
+		}
+		const scope = this.selectedServer.origin === 'project' ? 'project' : 'global';
+		try {
+			const result = await this.connection.removeMcpServer({
+				serverId: this.selectedServer.id,
+				scope,
+			});
+			if (!result.ok) {
+				return false;
+			}
+			this.selectedServer = undefined;
+			await this.refresh();
+			return true;
+		} catch {
+			return false;
+		}
+	}
+
+	private ensureList(): WorkbenchList<EngineMcpListEntry> {
+		if (!this.list) {
+			this.list = this._register(this.instantiationService.createInstance(
+				WorkbenchList,
+				'EngineMcp',
+				this.listContainer,
+				new EngineMcpListDelegate(),
+				[
+					new EngineMcpGroupRenderer(),
+					new EngineMcpRowRenderer((server, enabled) => this.toggleServer(server, enabled)),
+				],
+				{
+					identityProvider: {
+						getId: (entry: EngineMcpListEntry) => entry.kind === 'group'
+							? `group:${entry.origin}`
+							: `server:${entry.server.id}`,
+					},
+					accessibilityProvider: new EngineMcpListAccessibilityProvider(),
+				},
+			)) as WorkbenchList<EngineMcpListEntry>;
+			this._register(this.list.onDidChangeSelection(e => {
+				const entry = e.elements[0];
+				this.selectedServer = entry?.kind === 'server' ? entry.server : undefined;
+			}));
+		}
+		return this.list;
+	}
+
 	private async refresh(): Promise<void> {
 		this.clearCatalogPresentation();
+		this.selectedServer = undefined;
 
 		const capabilities = this.connection.getCapabilitySnapshot();
 		this.mode = resolveEngineCatalogPaneMode(
@@ -253,6 +369,7 @@ export class EngineMcpSection extends Disposable {
 		}
 
 		this.listContainer.style.display = '';
+		this.writeToolbar.style.display = canPerformCatalogWrite(this.mode) ? '' : 'none';
 
 		try {
 			const result = await this.connection.listMcpServers();
@@ -270,10 +387,11 @@ export class EngineMcpSection extends Disposable {
 
 	private clearCatalogPresentation(): void {
 		this.listEntries = [];
-		this.list.splice(0, this.list.length, []);
+		this.list?.splice(0, this.list?.length ?? 0, []);
 		this.statusMessage.style.display = 'none';
 		this.statusMessage.textContent = '';
 		this.listContainer.style.display = 'none';
+		this.writeToolbar.style.display = 'none';
 	}
 
 	private setServers(servers: readonly UniverseAgentMcpServerSummary[]): void {
@@ -285,7 +403,12 @@ export class EngineMcpSection extends Disposable {
 			}
 		}
 		this.listEntries = entries;
-		this.list.splice(0, this.list.length, entries);
+		if (entries.length === 0) {
+			this.list?.splice(0, this.list?.length ?? 0, []);
+			return;
+		}
+		const list = this.ensureList();
+		list.splice(0, list.length, entries);
 	}
 
 	private async toggleServer(server: UniverseAgentMcpServerSummary, enabled: boolean): Promise<void> {

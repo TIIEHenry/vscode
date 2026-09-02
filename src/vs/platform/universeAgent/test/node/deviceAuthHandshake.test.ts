@@ -95,8 +95,14 @@ class MockDeviceAuthTransport implements IUniverseAgentGrpcTransport {
 	}
 
 	async listAgentProfiles() { return { profiles: [] }; }
+	async saveAgentProfile(request: { profile: { id: string; name: string } }) { return { profile: request.profile }; }
+	async deleteAgentProfile() { return { ok: true }; }
+	async resetAgentProfile() { return { ok: true }; }
 	async listMcpServers() { return { servers: [] }; }
 	async toggleMcpServer() { return { ok: true }; }
+	async addMcpServer() { return { ok: true }; }
+	async updateMcpServer() { return { ok: true }; }
+	async removeMcpServer() { return { ok: true }; }
 	async listTools() { return { tools: [] }; }
 
 	async fetchAgentTree() { return undefined; }
