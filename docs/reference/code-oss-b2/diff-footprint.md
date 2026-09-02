@@ -3,8 +3,8 @@ title: "Fork diff 足迹（vs 基线 pin）"
 type: reference
 status: accepted
 phase: M0
-updated: 2026-08-31
-summary: "相对 fork main pin 004a1fbb 的文件数与 LOC；M0 拓扑（Conversation + End Editor/Sources + 四钮）已合入 b5631393"
+updated: 2026-09-02
+summary: "相对 fork main pin 004a1fbb 的文件数与 LOC；M0 拓扑已合入 b5631393；PRD-009 Diff owner 见 ADR-004 draft"
 ---
 
 # Diff footprint
@@ -61,7 +61,14 @@ M0 拓扑手术的直接代码面：
 
 > **M1+ 不重测（D6 已闭）**：上表数字仍锚 M0 `b5631393`；`contrib/conversation` 透镜与 `contrib/sources` Files 列表见 [agent-ui](../../systems/chat/agent-ui.md) · [parts-and-grid](../../systems/workbench/parts-and-grid.md)。本波 **不** 重跑 `git diff --stat`。
 
+## Diff owner（PRD-009 / R6）
+
+HEAD 产品 Diff 深查看仍走 End 列 `EDITOR_PART`（`openSourcesChangeEntry` → `ISCMResource.open` / `MultiDiffEditor`）。对照合同要 `PANEL_PART`。
+
+Owner 裁决草案：[ADR-004](../../../dev/decisions/004-diff-owner.md)（`draft`）**推荐 B** — 底部 Panel 专用容器；否决 A（维持编辑器区）与 C（Sources Changes 内嵌）。签收前 **不**改绑打开路径，本页 **不**因此重测 footprint。
+
 ## 相关文档
 
 - [spike-t1-t3-code-facts](spike-t1-t3-code-facts.md) · [m0-topology-surgery](../../../dev/plans/m0-topology-surgery.md)
 - [worktree-pool](../../../dev/progress/worktree-pool.md) · [deferred-gaps](../../../dev/progress/deferred-gaps.md)
+- [ADR-004 Diff owner](../../../dev/decisions/004-diff-owner.md) · [R6](../../../dev/progress/research-queue.md)
