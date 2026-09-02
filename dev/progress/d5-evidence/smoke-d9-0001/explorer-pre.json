@@ -1,0 +1,11 @@
+### Result
+{
+  "todoFileInExplorer": true,
+  "labels": [
+    "d5-probe-todo.js"
+  ]
+}
+### Ran Playwright code
+```js
+await page.evaluate('() => (\n(() => {\n  const items = Array.from(document.querySelectorAll(\'.monaco-list-row, [role=treeitem]\')).map(e => e.textContent?.trim()).filter(t => t && /d5-probe-todo/.test(t));\n  if (items.length) { items[0].slice(0,40); }\n  return { todoFileInExplorer: items.length > 0, labels: items.slice(0,3) };\n})())');
+```

@@ -1,0 +1,17 @@
+{
+  "panel": {
+    "present": true,
+    "height": 300,
+    "hidden": false
+  },
+  "editor": {
+    "present": true,
+    "height": 0,
+    "hidden": false
+  },
+  "sidebar": {
+    "present": true,
+    "height": 843,
+    "hidden": false
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "panelPart": true,
+  "panelHeight": 300,
+  "panelTabs": [
+    "Ports",
+    "Git Panel",
+    "Inspect"
+  ],
+  "panelHeadings": [
+    "Git Panel",
+    "Git Panel",
+    "Git Changes"
+  ],
+  "gitPanelTab": true,
+  "bodySnippet": "PORTS\nGIT PANEL\nINSPECT\nGIT PANEL\nGIT CHANGES"
+}

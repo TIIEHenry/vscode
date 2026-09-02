@@ -1,0 +1,13 @@
+{
+  "panelVisible": true,
+  "terminalDom": false,
+  "xtermRows": 0,
+  "hasD9Probe": false,
+  "hasTerminalTab": false,
+  "panelTabs": [
+    "Ports",
+    "Git Panel",
+    "Inspect"
+  ],
+  "panelSnippet": "PORTS\nGIT PANEL\nINSPECT\nGIT PANEL\nGIT CHANGES"
+}
