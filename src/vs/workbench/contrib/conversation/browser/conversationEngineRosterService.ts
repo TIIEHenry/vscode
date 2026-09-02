@@ -15,6 +15,7 @@ import {
 	type PersistedConversationSession,
 } from './conversationRosterStorage.js';
 import { entriesToLegacyTurns, projectSnapshotToEntries } from './conversationSessionView.js';
+import { projectSnapshotToTrajectory, projectTurnsToTrajectory, type ConversationTrajectoryRecord, type TrajectoryProjectionOptions } from './conversationTrajectoryModel.js';
 import {
 	ConversationStubService,
 	IConversationRosterService,
@@ -92,6 +93,19 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 			return this.engineSessions[0]!.id;
 		}
 		return super.getActiveSessionId();
+	}
+
+	override getTrajectoryRecords(sessionId: string, options?: TrajectoryProjectionOptions): readonly ConversationTrajectoryRecord[] {
+		if ((this.isEngineConnected() || this.wasEverConnected) && this.engineSessions.some(session => session.id === sessionId)) {
+			if (this.isEngineConnected()) {
+				const projection = this.engineFrameSource.getCachedProjection(sessionId);
+				if (projection) {
+					return projectSnapshotToTrajectory(projection.snapshot, projection.attribution, projection.details, options);
+				}
+			}
+			return projectTurnsToTrajectory(this.getTurns(sessionId));
+		}
+		return super.getTrajectoryRecords(sessionId, options);
 	}
 
 	override getTurns(sessionId: string): readonly ConversationStubTurn[] {

@@ -186,6 +186,21 @@ suite('ConversationTrajectory', () => {
 		assert.strictEqual(records[1]!.callId, 'tool1');
 	});
 
+	test('getTrajectoryRecords uses snapshot projection and filterAgentId option', () => {
+		const service = store.add(new ConversationStubService());
+		const sessionId = service.getActiveSessionId();
+		service.appendUserTurn(sessionId, 'hello');
+		service.appendStubEchoAssistant(sessionId, 'reply');
+
+		const all = service.getTrajectoryRecords(sessionId);
+		assert.ok(all.some(record => record.kind === 'message'));
+
+		// Non-matching agent filter removes assistant rows without agent attribution.
+		const filtered = service.getTrajectoryRecords(sessionId, { filterAgentId: 'agent-sub' });
+		assert.ok(filtered.some(record => record.kind === 'user'));
+		assert.ok(!filtered.some(record => record.kind === 'message'));
+	});
+
 	test('getTrajectoryRecords merges untitled stub fixtures with Stub copy', () => {
 		const service = store.add(new ConversationStubService());
 		const sessionId = service.getActiveSessionId();

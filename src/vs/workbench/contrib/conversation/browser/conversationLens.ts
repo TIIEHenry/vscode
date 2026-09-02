@@ -38,7 +38,6 @@ import {
 	collectConversationTrajectoryTurnIds,
 	collectTrajectoryTurnIdsFromSnapshot,
 	findTrajectoryRecordIdForTurn,
-	projectSnapshotToTrajectory,
 } from './conversationTrajectoryModel.js';
 import {
 	conversationLensDockAddTitle,
@@ -150,6 +149,7 @@ export class ConversationLens extends Disposable {
 	private lensTabConversation!: HTMLButtonElement;
 	private lensTabTrajectory!: HTMLButtonElement;
 	private lensId: ConversationLensId = 'conversation';
+	private filterAgentId: string | undefined;
 	private timelineTree!: ConversationTimelineTree;
 	private trajectoryView!: ConversationTrajectory;
 	private inboxOverlay!: ConversationInboxOverlay;
@@ -232,6 +232,7 @@ export class ConversationLens extends Disposable {
 		}));
 
 		this.slotHosts = slots;
+		this.filterAgentId = slots.filterAgentId;
 		this.visualizeOverlay = this._register(this.instantiationService.createInstance(ConversationVisualizeOverlay));
 
 		void resolveConversationMermaidExtension(this.extensionService).then(info => {
@@ -287,6 +288,20 @@ export class ConversationLens extends Disposable {
 
 	isInputMaximized(): boolean {
 		return this.inputMaximized;
+	}
+
+	setFilterAgentId(agentId: string | undefined): void {
+		if (this.filterAgentId === agentId) {
+			return;
+		}
+		this.filterAgentId = agentId;
+		if (this.lensId === 'trajectory') {
+			this.refreshTrajectoryRecords(this.stubService.getActiveSessionId());
+		}
+	}
+
+	private trajectoryProjectionOptions(): { readonly filterAgentId?: string } | undefined {
+		return this.filterAgentId ? { filterAgentId: this.filterAgentId } : undefined;
 	}
 
 	focusDockInput(): void {
@@ -1244,22 +1259,13 @@ export class ConversationLens extends Disposable {
 	}
 
 	private refreshTrajectoryRecords(sessionId: string): void {
-		const engineConnected = this.stubService.isEngineConnected();
+		const options = this.trajectoryProjectionOptions();
+		const records = this.stubService.getTrajectoryRecords(sessionId, options);
 		const lease = this.sessionViewLease?.sessionId === sessionId ? this.sessionViewLease : undefined;
-
-		if (engineConnected && lease) {
-			this.trajectoryView.setRecords(
-				projectSnapshotToTrajectory(lease.snapshot, lease.attribution, lease.details),
-				collectTrajectoryTurnIdsFromSnapshot(lease.snapshot),
-			);
-			return;
-		}
-
-		const turns = this.stubService.getTurns(sessionId);
-		this.trajectoryView.setRecords(
-			this.stubService.getTrajectoryRecords(sessionId),
-			collectConversationTrajectoryTurnIds(turns),
-		);
+		const turnIds = this.stubService.isEngineConnected() && lease
+			? collectTrajectoryTurnIdsFromSnapshot(lease.snapshot)
+			: collectConversationTrajectoryTurnIds(this.stubService.getTurns(sessionId));
+		this.trajectoryView.setRecords(records, turnIds);
 	}
 
 	private navigateToTurnFromTrajectory(turnId: string): void {
@@ -1278,7 +1284,7 @@ export class ConversationLens extends Disposable {
 
 	private navigateToTrajectoryFromTurn(turnId: string): void {
 		const sessionId = this.stubService.getActiveSessionId();
-		const records = this.stubService.getTrajectoryRecords(sessionId);
+		const records = this.stubService.getTrajectoryRecords(sessionId, this.trajectoryProjectionOptions());
 		const recordId = findTrajectoryRecordIdForTurn(turnId, records);
 		if (!recordId) {
 			return;

@@ -73,6 +73,8 @@ export class ConversationEditorPane extends EditorPane {
 	override async setInput(input: ConversationChatInput, options: IEditorOptions | undefined, context: IEditorOpenContext, token: CancellationToken): Promise<void> {
 		await super.setInput(input, options, context, token);
 		this.activeInput = input;
+		const parsed = parseConversationChatResource(input.resource);
+		this.lens?.setFilterAgentId(parsed && !parsed.isDefaultRoot ? parsed.chatId : undefined);
 		this.updateBreadcrumb();
 	}
 
