@@ -97,9 +97,14 @@ class MockUniverseAgentSessionView implements IUniverseAgentSessionView {
 }
 
 function createService(connection: MockUniverseAgentConnection, storage?: TestStorageService): ConversationEngineRosterService {
+	const workspaceToolsGate = {
+		_serviceBrand: undefined,
+		shouldAdvertise: () => true,
+	};
 	return new ConversationEngineRosterService(
 		connection as unknown as IUniverseAgentConnection,
 		new MockUniverseAgentSessionView() as unknown as IUniverseAgentSessionView,
+		workspaceToolsGate,
 		storage,
 	);
 }

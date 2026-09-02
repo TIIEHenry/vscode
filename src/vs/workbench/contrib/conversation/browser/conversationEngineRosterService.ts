@@ -9,6 +9,7 @@ import { IUniverseAgentConnection } from '../../../../platform/universeAgent/com
 import { IUniverseAgentSessionView } from '../../../../platform/universeAgent/common/universeAgentSessionView.js';
 import type { IConversationSessionViewLease } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
 import { ConversationEngineFrameSource } from './conversationEngineFrameSource.js';
+import { IUaClientWorkspaceToolsGate } from './uaClientWorkspaceToolsGate.js';
 import {
 	buildLocalSessionsFromModel,
 	loadConversationRosterStorage,
@@ -41,6 +42,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	constructor(
 		@IUniverseAgentConnection private readonly uaConnection: IUniverseAgentConnection,
 		@IUniverseAgentSessionView sessionView: IUniverseAgentSessionView,
+		@IUaClientWorkspaceToolsGate private readonly workspaceToolsGate: IUaClientWorkspaceToolsGate,
 		@IStorageService storageService?: IStorageService,
 	) {
 		super(storageService);
@@ -56,6 +58,11 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		return this.uaConnection.isEngineConnected();
 	}
 
+	/** Client setting gate for advertising IDE workspace tools to Engine (PRD-026). */
+	shouldAdvertiseClientWorkspaceTools(): boolean {
+		return this.isEngineConnected() && this.workspaceToolsGate.shouldAdvertise();
+	}
+
 	override setEngineConnected(connected: boolean): void {
 		if (!connected && this.isEngineConnected()) {
 			this.captureEngineCache();
@@ -64,6 +71,9 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		super.setEngineConnected(connected);
 		if (connected) {
 			this.wasEverConnected = true;
+			if (!this.shouldAdvertiseClientWorkspaceTools()) {
+				// Workspace-tool advertisement withheld by ua.client.clientTools.advertiseWorkspaceTools.
+			}
 			void this.refreshEngineCatalog();
 		} else {
 			this.listCompleted = this.engineSessions.length > 0;
