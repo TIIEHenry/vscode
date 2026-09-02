@@ -1,10 +1,10 @@
 ---
 title: "Connection Hub 客户端接入：IDE 作为 Hub Client 设备"
 type: plan
-status: draft
+status: accepted
 phase: M6+
 updated: 2026-09-02
-summary: "分析 UniverseAgent connection-hub 与本仓接入面：IDE 扮演 Client 设备（同 Singularity / Desktop），在 platform/universeAgent 增 Hub 解析 + Device Grant 拨号臂；Desktop Main 模块为 donor；v1 中继 + DirectAddress，GUA 直连留 v2；切片 H0–H6；规则 16 未跑"
+summary: "IDE 扮演 Hub Client 设备（同 Singularity / Desktop），在 platform/universeAgent 增 Hub 解析 + Device Grant 拨号臂；宿主 = electron-main（已入 ADR-003）；Desktop Main 模块为 donor；v1 中继 + DirectAddress，GUA 直连留 v2；切片 H0→H1/H2→H3→H4a/H4b→H5→H6；规则 16 Grok CLI 四轮后 accepted @2026-09-02"
 ---
 
 # Connection Hub 客户端接入
@@ -12,7 +12,7 @@ summary: "分析 UniverseAgent connection-hub 与本仓接入面：IDE 扮演 Cl
 > **上游事实（外仓只读）：** `UniverseAgent/dev/plans/connection-hub/{architecture,backend,frontend}.md`、`UniverseAgent/dev/decisions/{261,318,374,375}-*.md`、`UniverseAgent/grpc-api/src/main/proto/{system_service,common}.proto`、`UniverseAgent/connection-hub/docs/config.md`。  
 > **Donor（外仓只读）：** `UniverseAgentDesktop/apps/desktop/src/main/engine/**`（ADR-025 relay ticket / ADR-026 Hub 登录 / ADR-027 TLS 首配 orchestrator）与 `UniverseAgentDesktop/docs/architecture/connection-and-auth.md`；Singularity `shared/connection/ConnectionResolver.kt`、`shared/hub/HubApiClient.kt`（Kotlin，只移植逻辑）。  
 > **本仓边界：** [ADR-003](../decisions/003-engine-adapter-boundary.md)（adapter 落层）· [m6-engine-wave](m6-engine-wave.md) M6-A1（gRPC 宿主）· [page-access-schemes](page-access-schemes.md) §2.2 / §15.10（`ua.connection` pane、StatusBar B10）· [PRD-007](../../docs/product/requirements.md#prd-007-诚实降级) 验收 4–5 · [PRD-008](../../docs/product/requirements.md#prd-008-引擎与会话权威)。  
-> **状态：** 草案。**规则 16 只读审查未跑**，不得实施、不得标可签收。
+> **状态：** `accepted` @2026-09-02（规则 16：Grok Build CLI 四轮，见文末审查记录；用户委托「架构你定」）。H0 可开；H1 可与 M6-A1 并行；H2 起等 M6-A1 合入。
 
 ---
 
@@ -448,4 +448,21 @@ PRD-008 升 `implemented` 的启动冒烟证据可来自 loopback（M6-A2）；*
 | Minor 4 Web 空态写 `unavailable` | §3.9 已含；无改动 |
 | Minor 5 知识层 | 无改动 |
 
-审查本身偏浅（41 s 返回，事实核验段为整体性陈述、无逐条锚点），因此本轮**不据此翻 `accepted`**；第二轮以 `--reasoning-effort high` 要求逐条锚点后再定。
+审查本身偏浅（41 s 返回，事实核验段为整体性陈述、无逐条锚点），因此本轮**不据此翻 `accepted`**。
+
+**2026-09-02 第二轮（作废）：** 同 CLI + `--reasoning-effort high`，14 条事实全部回「未核验」——工具日志显示它一个文件都没读（提示词用了相对路径）。不计入。
+
+**2026-09-02 第三轮（事实核验）：** 提示词改绝对路径 + 「未 `read_file` 不得判 ✅」，streaming-json 日志证实 17 次 read / grep / list_dir。14 条事实 13 条 ✅ 带 `文件:行号`（TTL `config.go:109-111`、proto `common.proto:160-232`、KAT-1/2、`HubDeviceDto:70-88`、Desktop donor 五文件、`ConnectionResolver.kt` 三规则、Singularity 首配缺位、HEAD `platform/universeAgent` 目录、`connectionPreferencesPane.ts`、ADR-003 审查记录末行、page-access 三处引用）；第 10 条 ⚠️ = `package.json` 无 grpc（方案 §1.2 / R4 已写明，归 M6-A1）；**第 14 条它未实际读 `secrets.ts` 却判 ✅，由本会话自行核验**：`secrets.ts:227-236` 加密不可用退化内存属实，`platform/encryption/electron-main/encryptionMainService.ts` 属实——并据此**修正 §3.5 / §3.6**：宿主为 main 时 secret 落点是 `IEncryptionMainService` + `IApplicationStorageMainService`（`storageMainService.ts:331`），不是 renderer 侧 `ISecretStorageService` 实例。Assessment：Approve with changes（仅 grpc 依赖一项，非方案缺陷）。reviewer 未覆盖维度 A–E。
+
+**2026-09-02 第四轮（设计维度 A–F）：** 11 个文件全部 read_file（含 `electronAgentHostStarter.ts`、`encryptionMainService.ts`、`storageMainService.ts`、上游 architecture §2.2 / §2.5、Desktop connection-and-auth §2 / §5）。**Approve with changes**。六条「Critical」中三条是把审查问题原样抛回（B「请写未发现」、C「请确认未漏」、F「请补一致性声明」），本会话自行完成并写入方案；有效意见处理：
+
+| 意见 | 处理 |
+|------|------|
+| A 「`node/**` 进程无关」无测试守门；迁移阈值不可测 | **采纳**：§3.2 增 boundary 测两条断言（禁 import `electron` / `*/electron-main/**`；`electron-main/` 为唯一桥）+ 两级阈值测法（1,000 回合 fold 计时；main `monitorEventLoopDelay` p99 > 50 ms） |
+| B 绕过分析未写 | **采纳**：新增 §3.10 八行攻击面表；同用户进程可解 safeStorage 为已知残余风险，与 vscode / Desktop / Singularity 同面，不扩大 |
+| C 与上游 §2.2 转换表逐格核对 | **采纳**：§3.3 增转换表映射（上游 9 行 + 本仓解析阶段 1 行，无漏格） |
+| D H4a 自动化测缺 StatusBar 负向断言 | **采纳**：H4a 验证列加「Hub signedIn + 未 connected 时 entry 仍 `Engine not connected`」 |
+| E PRD-024 陈述「状态栏显示已连接」撞 PRD-007 验收 4 | **采纳（真冲突）**：改为「显示引擎名与路径，连接级不使用『已连接』」；验收 ⑥ 增「状态栏文案集合不含『已连接 / connected』」；补可测方式行 |
+| F 内部一致性 | 本会话 grep 核对：H4 → H4a/H4b 全部改齐；§3.10 / §3.11 编号无悬挂引用 |
+
+**签收（2026-09-02）：** 用户授权「用 Cursor CLI Grok 审查、架构由本会话裁定」。Cursor CLI 因账单不可用，改 Grok Build CLI 四轮（一轮作废）；事实 14 条全部有锚点（13 条 reviewer 核验 + 1 条本会话核验），设计维度有效意见全部改入，无未决 Critical。据此 **`status: accepted`**；宿主 = electron-main 已写入 ADR-003 审查记录。**H0 可开**（待 `requirements.md` W3-r 在途改动合入）；H1 可与 W1-A 并行；H2 起等 M6-A1。若用户不同意签收，回退 `review` 即可，不影响已写入 ADR-003 的宿主裁定（那是 ADR-003 Consequences 预留、M6-A1 本就要定的项）。
