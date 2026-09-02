@@ -338,6 +338,47 @@ function isStubTurnKind(kind: ConversationTimelineEntryKind): kind is StubTurnKi
 	return kind === 'user' || kind === 'assistant' || kind === 'confirmation' || kind === 'thinking' || kind === 'tool' || kind === 'visualization';
 }
 
+/** Maps a product entry to a renderer turn; non-stub kinds degrade to assistant chrome. */
+export function entryToRenderableTurn(entry: ConversationTimelineEntry): ConversationStubTurn {
+	if (isStubTurnKind(entry.kind)) {
+		return {
+			id: entry.id,
+			kind: entry.kind,
+			text: entry.text,
+			...(entry.status !== undefined ? { status: entry.status } : {}),
+			...(entry.stubEcho ? { stubEcho: true } : {}),
+			...(entry.toolName !== undefined ? { toolName: entry.toolName } : {}),
+			...(entry.summary !== undefined ? { summary: entry.summary } : {}),
+			...(entry.payload !== undefined ? { payload: entry.payload } : {}),
+			...(entry.visualize !== undefined ? { visualize: entry.visualize } : {}),
+		};
+	}
+	return {
+		id: entry.id,
+		kind: 'assistant',
+		text: entry.text,
+		stubEcho: true,
+	};
+}
+
+export function entriesToRenderableTurns(entries: readonly ConversationTimelineEntry[]): ConversationStubTurn[] {
+	return entries.map(entryToRenderableTurn);
+}
+
+export function stubTurnsToEntries(turns: readonly ConversationStubTurn[]): ConversationTimelineEntry[] {
+	return turns.map(turn => ({
+		id: turn.id,
+		kind: turn.kind,
+		text: turn.text,
+		...(turn.status !== undefined ? { status: turn.status } : {}),
+		...(turn.stubEcho ? { stubEcho: true } : {}),
+		...(turn.toolName !== undefined ? { toolName: turn.toolName } : {}),
+		...(turn.summary !== undefined ? { summary: turn.summary } : {}),
+		...(turn.payload !== undefined ? { payload: turn.payload } : {}),
+		...(turn.visualize !== undefined ? { visualize: turn.visualize } : {}),
+	}));
+}
+
 // ---- snapshot diff (stub frame source → patches) --------------------------------------------
 
 export interface ConversationSnapshotDiff {
