@@ -1,0 +1,24 @@
+.monaco-workbench .sources-diff-panel .sources-diff-panel-header {
+	display: flex;
+	align-items: center;
+	padding: 4px 8px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.monaco-workbench .sources-diff-panel .sources-diff-panel-new-file-notice {
+	padding: 4px 8px;
+	opacity: 0.8;
+}
+
+.monaco-workbench .sources-diff-panel .sources-diff-panel-editor {
+	flex: 1;
+	min-height: 0;
+}
+
+.monaco-workbench .sources-diff-panel .sources-diff-panel-body {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+}
