@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import './media/conversationSubAgentOverlay.css';
-import { $, addDisposableListener, append, EventHelper, EventType, isHTMLElement } from '../../../../base/browser/dom.js';
+import { $, addDisposableListener, append, EventHelper, EventType, getWindow, isHTMLElement } from '../../../../base/browser/dom.js';
 import { handleConversationOverlayTab } from './conversationConfirmationSeat.js';
 import { Button } from '../../../../base/browser/ui/button/button.js';
 import { Codicon } from '../../../../base/common/codicons.js';
@@ -197,6 +197,7 @@ export class ConversationSubAgentOverlay extends Disposable {
 			this.lens = this.instantiationService.createInstance(ConversationLens, { sessionBar: this.overlaySessionBar, timeline, dock, filterAgentId });
 			this.lensDisposables.add(this.lens);
 		}
+		this.scheduleLensLayout();
 	}
 
 	toggleMaximized(): void {
@@ -216,6 +217,21 @@ export class ConversationSubAgentOverlay extends Disposable {
 		this.maximizeButton.setTitle(title);
 		this.maximizeButton.element.setAttribute('aria-pressed', String(maximized));
 		this.breadcrumb.layout(this.card.clientWidth);
+		this.scheduleLensLayout();
+	}
+
+	private scheduleLensLayout(): void {
+		getWindow(this.element).requestAnimationFrame(() => this.layoutLens());
+	}
+
+	private layoutLens(): void {
+		if (!this.isOpen()) {
+			return;
+		}
+		const width = this.body.clientWidth || this.card.clientWidth;
+		const height = this.body.clientHeight;
+		this.breadcrumb.layout(this.card.clientWidth);
+		this.lens?.layout(height, width);
 	}
 
 	isMaximized(): boolean {

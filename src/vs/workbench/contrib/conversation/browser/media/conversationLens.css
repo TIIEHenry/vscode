@@ -2119,6 +2119,83 @@
 	display: none;
 }
 
+/* Q6 / RWD-1：`.is-narrow` < 600、`.is-compact` < 300，来自叶 layout，不是 Part / viewport */
+.monaco-workbench .part.conversation .is-narrow .conversation-lens-session-route,
+.monaco-workbench .part.conversation .is-narrow .conversation-lens-session-select,
+.monaco-workbench .part.conversation .is-narrow .conversation-lens-session-switcher-label {
+	display: none;
+}
+
+.monaco-workbench .part.conversation .is-compact .conversation-lens-session-new,
+.monaco-workbench .part.conversation .is-compact .conversation-lens-session-delete {
+	display: none;
+}
+
+.monaco-workbench .part.conversation .is-narrow .conversation-lens-lens-tabs,
+.monaco-workbench .part.conversation .is-compact .conversation-lens-lens-tabs,
+.monaco-workbench .part.conversation .is-narrow .conversation-lens-session-sync-badge,
+.monaco-workbench .part.conversation .is-compact .conversation-lens-session-sync-badge,
+.monaco-workbench .part.conversation .is-narrow .conversation-window-nav,
+.monaco-workbench .part.conversation .is-compact .conversation-window-nav,
+.monaco-workbench .part.conversation .is-narrow .conversation-lens-trajectory-inspector-back,
+.monaco-workbench .part.conversation .is-compact .conversation-lens-trajectory-inspector-back {
+	flex-shrink: 0;
+}
+
+.monaco-workbench .part.conversation .is-narrow .conversation-lens-session-title,
+.monaco-workbench .part.conversation .is-compact .conversation-lens-session-title {
+	min-width: 0;
+}
+
+.monaco-workbench .part.conversation .is-narrow .conversation-lens-dock-tune,
+.monaco-workbench .part.conversation .is-narrow .conversation-lens-dock-permission,
+.monaco-workbench .part.conversation .is-narrow .conversation-lens-dock-agent,
+.monaco-workbench .part.conversation .is-narrow .conversation-lens-dock-route,
+.monaco-workbench .part.conversation .is-narrow .conversation-lens-dock-templates,
+.monaco-workbench .part.conversation .is-narrow .conversation-lens-dock-maximize-input,
+.monaco-workbench .part.conversation .is-narrow .conversation-lens-dock-mic {
+	display: none;
+}
+
+.monaco-workbench .part.conversation .is-compact .conversation-lens-dock-add {
+	display: none;
+}
+
+.monaco-workbench .part.conversation .is-narrow .conversation-lens-dock-bottom-leading,
+.monaco-workbench .part.conversation .is-compact .conversation-lens-dock-bottom-leading {
+	overflow-x: hidden;
+}
+
+.monaco-workbench .part.conversation .is-narrow .conversation-lens-dock-input,
+.monaco-workbench .part.conversation .is-compact .conversation-lens-dock-input {
+	min-width: 0;
+	flex: 1 1 auto;
+}
+
+.monaco-workbench .part.conversation .is-narrow .conversation-lens-dock-send,
+.monaco-workbench .part.conversation .is-compact .conversation-lens-dock-send,
+.monaco-workbench .part.conversation .is-narrow .conversation-lens-dock-more,
+.monaco-workbench .part.conversation .is-compact .conversation-lens-dock-more {
+	flex-shrink: 0;
+	min-width: 32px;
+}
+
+.monaco-workbench .part.conversation [data-conversation-width="medium"] .conversation-lens-turn-header,
+.monaco-workbench .part.conversation [data-conversation-width="medium"] .conversation-lens-turn-meta {
+	flex-wrap: wrap;
+}
+
+.monaco-workbench .part.conversation .is-narrow .conversation-lens-turn-header,
+.monaco-workbench .part.conversation .is-compact .conversation-lens-turn-header,
+.monaco-workbench .part.conversation .is-narrow .conversation-lens-turn-body--user-bubble,
+.monaco-workbench .part.conversation .is-narrow .conversation-review-nav,
+.monaco-workbench .part.conversation .is-narrow .conversation-visualize-card,
+.monaco-workbench .part.conversation .is-narrow .conversation-lens-confirmation-seat,
+.monaco-workbench .part.conversation .is-narrow .conversation-lens-question-seat {
+	max-width: 100%;
+	min-width: 0;
+}
+
 @container conversation-reading (max-width: 599px) {
 	.conversation-lens-turn-header {
 		flex-wrap: wrap;

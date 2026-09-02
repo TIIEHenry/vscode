@@ -4,7 +4,7 @@ type: reference
 status: accepted
 phase: N/A
 updated: 2026-09-02
-summary: "四钮、Conversation、Sources、Sessions roster、UA Preferences、深链的用户可见命令清单；chat tab 复用 editor group 命令；对话框 Escape 顺序与 Accessible View"
+summary: "四钮、Conversation、Sources、Sessions roster、UA Preferences、深链的用户可见命令清单；chat tab 复用 editor group 命令；对话框 Escape / Accessible View；窄宽度见透镜页"
 ---
 
 # Agent IDE 壳命令、菜单落点与快捷键
@@ -111,4 +111,4 @@ Sources 无独立命令；tab 切换为 title 区 tab strip 点击（`nextSource
 | 子代理对话框 overlay | `conversationSubAgentOverlay.ts`（trap 根 `overlay.element`；Esc：图示 → inspector → 改名 → 对话框） |
 | 完整回合朗读 | `conversationAccessibleView.ts` → `IAccessibleViewService`（`AccessibleViewProviderId.Conversation`） |
 
-**仍缺（PRD-018 其余项）**：`showConversationPart`、关非根仍无默认键位；Composer Tab 进工具栏与 Enter 模式属 CS-2；窄宽度属 Q6。`split` 的 `Ctrl+\\` 仍在 `conversationPartFocus` 时接管；chat tab **不**再另绑 `Ctrl+PageDown`。约束与目标见 [PRD-018](../../product/requirements.md#prd-018-键盘可达与辅助功能)（`accepted`）。
+**仍缺（PRD-018 其余项）**：`showConversationPart`、关非根仍无默认键位；Composer Tab 进工具栏与 Enter 模式属 CS-2。窄宽度（Q6 / RWD-1）由叶级 `ConversationEditorPane.layout` 打 `.is-narrow` / `.is-compact`，见 [lens-and-trajectory](lens-and-trajectory.md) §1。`split` 的 `Ctrl+\\` 仍在 `conversationPartFocus` 时接管；chat tab **不**再另绑 `Ctrl+PageDown`。约束与目标见 [PRD-018](../../product/requirements.md#prd-018-键盘可达与辅助功能)（`accepted`）。

@@ -22,7 +22,7 @@ summary: "PRD-015 系统规格：PreFirst 居中 / Active 列底同一张 Compos
 | Model / Permission / Tools | Composer 行 | 仍在 Composer 行 |
 | Inbox / Goal / Stop | 无 | Composer 上方 Inbox overlay |
 
-底栏控件：`+` 浅底圆、语音无底、发送实心圆，其余无背景；Enter 发送、Shift+Enter 换行。同一时刻只有一个输入（PRD-015 验收 1–4、7）。
+底栏控件：`+` 浅底圆、语音无底、发送实心圆，其余无背景；Enter 发送、Shift+Enter 换行。同一时刻只有一个输入（PRD-015 验收 1–4、7）。叶宽 < 600（`.is-narrow`）时次要控件进溢出菜单（`…`），底栏不用横向滚动藏发送/输入；< 300（`.is-compact`）仍保留主输入、发送与返回路径。
 
 身份条数据：`getConversationIdentityFolder`（首个工作区文件夹）、`getConversationIdentityBranchName`（`ISCMService` HEAD ref）；无文件夹 / 无仓库时对应 chip 省略。引擎 chip 文案 = `getConnectionPhaseStatusBarText(getConnectionPhase(), pairingPending)`（与 StatusBar `status.conversation.engine` 同函数）；点击路由 = B10（`isEngineConnected()` → `workbench.action.openEnginePreferences`，否则 `workbench.action.openConnectionPreferences`）；订阅 `IUniverseAgentConnection.onDidChangeConnection` 与 `IConversationRosterService.onDidChangeEngineConnection`。
 
