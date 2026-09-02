@@ -38,6 +38,8 @@ import type {
 	UniverseAgentSessionEvent,
 	UniverseAgentSetSkillEnabledRequest,
 	UniverseAgentSetSkillEnabledResult,
+	UniverseAgentSaveSkillContentRequest,
+	UniverseAgentSaveSkillContentResult,
 	UniverseAgentSkillInfoRequest,
 	UniverseAgentSkillInfoResult,
 	UniverseAgentAgentTreeNode,
@@ -126,6 +128,8 @@ export interface IUniverseAgentGrpcTransport {
 
 	getSkillInfo(request: UniverseAgentSkillInfoRequest): Promise<UniverseAgentSkillInfoResult>;
 
+	saveSkillContent(request: UniverseAgentSaveSkillContentRequest): Promise<UniverseAgentSaveSkillContentResult>;
+
 	listAgentProfiles(request: UniverseAgentListAgentProfilesRequest): Promise<UniverseAgentListAgentProfilesResult>;
 
 	saveAgentProfile(request: UniverseAgentSaveAgentProfileRequest): Promise<UniverseAgentSaveAgentProfileResult>;
@@ -199,6 +203,10 @@ export const UniverseAgentGrpcServices = {
 		ListSkills: 'ListSkills',
 		SkillInfo: 'SkillInfo',
 		SetSkillEnabled: 'SetSkillEnabled',
+		SaveSkillContent: 'SaveSkillContent',
 		ListTools: 'ListTools',
 	},
 } as const;
+
+/** ConnectResponse.capabilities.methods advertisement key for SaveSkillContent. */
+export const UniverseAgentSaveSkillContentMethodKey = 'ToolService.SaveSkillContent';

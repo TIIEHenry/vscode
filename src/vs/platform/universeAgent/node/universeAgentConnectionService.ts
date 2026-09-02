@@ -48,6 +48,8 @@ import type {
 	UniverseAgentSetSkillEnabledResult,
 	UniverseAgentSkillInfoRequest,
 	UniverseAgentSkillInfoResult,
+	UniverseAgentSaveSkillContentRequest,
+	UniverseAgentSaveSkillContentResult,
 	UniverseAgentTransportState,
 	UniverseAgentAgentTreeNode,
 	IFileMutationRecord,
@@ -55,7 +57,7 @@ import type {
 } from '../common/universeAgentTypes.js';
 import { createEmptyCapabilitySnapshot, probeEngineCapabilities } from './grpcCapabilityProbe.js';
 import { createGrpcUniverseAgentClient, createPinnedGrpcUniverseAgentClient } from './grpc/grpcClient.js';
-import { GrpcStatusCode, IUniverseAgentGrpcTransport, isTransportFailureCode, UniverseAgentTransportError } from './grpc/grpcTransport.js';
+import { GrpcStatusCode, IUniverseAgentGrpcTransport, isTransportFailureCode, UniverseAgentGrpcServices, UniverseAgentSaveSkillContentMethodKey, UniverseAgentTransportError } from './grpc/grpcTransport.js';
 import type { ConnectionResolver } from './connectionResolver.js';
 import { runDeviceAuthHandshake } from './deviceAuthHandshake.js';
 import type { IClientIdentityStore } from './clientIdentityTypes.js';
@@ -215,6 +217,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 					methods: result.methods,
 					transport: this._transport,
 				});
+				await this._refreshSaveSkillContentBinding(result.methods);
 			}
 			this._connectionPhase = this._pairingPending
 				? { kind: 'connecting', reason: 'initial' }
@@ -344,6 +347,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 				methods: handshake.result.methods,
 				transport: this._transport,
 			});
+			await this._refreshSaveSkillContentBinding(handshake.result.methods);
 			this._connectionPhase = { kind: 'connected', path: endpoint.path };
 			this._fireSnapshotChanged();
 			return {
@@ -368,6 +372,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		this._sharedFsRootSent = false;
 		this._pairingPending = false;
 		this._agentTreeProbeUnsupported = false;
+		this._clearSaveSkillContentBinding();
 		this._transportState = 'idle';
 		this._capabilities = createEmptyCapabilitySnapshot();
 		this._connectionPhase = { kind: 'closed' };
@@ -611,5 +616,53 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 
 	private _fireSnapshotChanged(): void {
 		this._onDidChangeConnection.fire(this._buildSnapshot());
+	}
+
+	private async _refreshSaveSkillContentBinding(methods: readonly string[]): Promise<void> {
+		this._clearSaveSkillContentBinding();
+		if (!this._transport || !methods.includes(UniverseAgentSaveSkillContentMethodKey)) {
+			return;
+		}
+		const status = await this._transport.probeRpc(
+			UniverseAgentGrpcServices.Tool.service,
+			UniverseAgentGrpcServices.Tool.SaveSkillContent,
+		);
+		if (status === GrpcStatusCode.OK) {
+			this._bindSaveSkillContent();
+		}
+	}
+
+	private _bindSaveSkillContent(): void {
+		Object.defineProperty(this, 'saveSkillContent', {
+			configurable: true,
+			enumerable: true,
+			writable: true,
+			value: (request: UniverseAgentSaveSkillContentRequest) => this._invokeSaveSkillContent(request),
+		});
+	}
+
+	private _clearSaveSkillContentBinding(): void {
+		if ('saveSkillContent' in this) {
+			delete (this as Partial<IUniverseAgentConnection>).saveSkillContent;
+		}
+	}
+
+	private async _invokeSaveSkillContent(request: UniverseAgentSaveSkillContentRequest): Promise<UniverseAgentSaveSkillContentResult> {
+		this._assertTransportReady();
+		try {
+			const result = await this._transport!.saveSkillContent(request);
+			if (this._transportState !== 'ok') {
+				this._transportState = 'ok';
+				this._fireSnapshotChanged();
+			}
+			return result;
+		} catch (error) {
+			if (error instanceof UniverseAgentTransportError && error.code === GrpcStatusCode.UNIMPLEMENTED) {
+				this._clearSaveSkillContentBinding();
+				return { ok: false, reason: 'UNIMPLEMENTED' };
+			}
+			this._markTransportFailed(error);
+			throw error;
+		}
 	}
 }

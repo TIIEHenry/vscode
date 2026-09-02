@@ -21,6 +21,8 @@ import type {
 	UniverseAgentSessionEvent,
 	UniverseAgentSetSkillEnabledRequest,
 	UniverseAgentSetSkillEnabledResult,
+	UniverseAgentSaveSkillContentRequest,
+	UniverseAgentSaveSkillContentResult,
 	UniverseAgentSkillInfoRequest,
 	UniverseAgentSkillInfoResult,
 	UniverseAgentSkillSource,
@@ -254,6 +256,11 @@ interface SetSkillEnabledResponseWire {
 	reason?: string;
 }
 
+interface SaveSkillContentResponseWire {
+	ok?: boolean;
+	reason?: string;
+}
+
 interface SkillInfoResponseWire {
 	name?: string;
 	content?: string;
@@ -291,6 +298,13 @@ function mapListSkillsResponse(wire: ListSkillsResponseWire): UniverseAgentListS
 }
 
 function mapSetSkillEnabledResponse(wire: SetSkillEnabledResponseWire): UniverseAgentSetSkillEnabledResult {
+	return {
+		ok: wire.ok === true,
+		reason: wire.reason,
+	};
+}
+
+function mapSaveSkillContentResponse(wire: SaveSkillContentResponseWire): UniverseAgentSaveSkillContentResult {
 	return {
 		ok: wire.ok === true,
 		reason: wire.reason,
@@ -939,6 +953,19 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 		);
 		const wire = await unary({ skill_name: request.skillName });
 		return mapSkillInfoResponse(wire);
+	}
+
+	async saveSkillContent(request: UniverseAgentSaveSkillContentRequest): Promise<UniverseAgentSaveSkillContentResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, SaveSkillContentResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.Tool.service,
+			UniverseAgentGrpcServices.Tool.SaveSkillContent,
+		);
+		const wire = await unary({
+			skill_name: request.skillName,
+			content: request.content,
+		});
+		return mapSaveSkillContentResponse(wire);
 	}
 
 	async listAgentProfiles(request: UniverseAgentListAgentProfilesRequest): Promise<UniverseAgentListAgentProfilesResult> {
