@@ -70,7 +70,11 @@ export class FileMutationJoin {
 		return this.records;
 	}
 
-	handleStreamPayload(payload: unknown, onRecord: (record: IFileMutationRecord) => void): void {
+	handleStreamPayload(
+		payload: unknown,
+		onRecord: (record: IFileMutationRecord) => void,
+		onTurnSettle?: (signal: { readonly runtimeTurnId: string; readonly assistantTurnId: string }) => void,
+	): void {
 		if (payload === null || typeof payload !== 'object' || Array.isArray(payload)) {
 			return;
 		}
@@ -93,7 +97,7 @@ export class FileMutationJoin {
 
 		const turnCompleted = record.turn_completed ?? record.turnCompleted;
 		if (turnCompleted && typeof turnCompleted === 'object') {
-			this.onTurnCompleted(turnCompleted as object, onRecord);
+			this.onTurnCompleted(turnCompleted as object, onRecord, onTurnSettle);
 		}
 	}
 
@@ -182,12 +186,19 @@ export class FileMutationJoin {
 		}
 	}
 
-	private onTurnCompleted(body: object, onRecord: (record: IFileMutationRecord) => void): void {
+	private onTurnCompleted(
+		body: object,
+		onRecord: (record: IFileMutationRecord) => void,
+		onTurnSettle?: (signal: { readonly runtimeTurnId: string; readonly assistantTurnId: string }) => void,
+	): void {
 		const assistantTurnId = readField(body, 'assistant_turn_id', 'assistantTurnId');
 		if (typeof assistantTurnId !== 'string' || !assistantTurnId) {
 			return;
 		}
 		const runtimeTurnId = readField(body, 'turn_id', 'turnId');
+		if (typeof runtimeTurnId === 'string' && runtimeTurnId && onTurnSettle) {
+			onTurnSettle({ runtimeTurnId, assistantTurnId });
+		}
 		for (const rec of [...this.records]) {
 			if (typeof runtimeTurnId === 'string' && rec.turnId === runtimeTurnId) {
 				this.reemitWithTurnId(rec, assistantTurnId, onRecord);

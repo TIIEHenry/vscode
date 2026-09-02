@@ -32,6 +32,7 @@ import type {
 	UniverseAgentTransportState,
 	UniverseAgentAgentTreeNode,
 	IFileMutationRecord,
+	ITurnSettleSignal,
 } from '../common/universeAgentTypes.js';
 import { createEmptyCapabilitySnapshot, probeEngineCapabilities } from './grpcCapabilityProbe.js';
 import { createGrpcUniverseAgentClient, createPinnedGrpcUniverseAgentClient } from './grpc/grpcClient.js';
@@ -61,6 +62,9 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 
 	private readonly _onDidFileMutation = this._register(new Emitter<IFileMutationRecord>());
 	readonly onDidFileMutation = this._onDidFileMutation.event;
+
+	private readonly _onDidTurnSettle = this._register(new Emitter<ITurnSettleSignal>());
+	readonly onDidTurnSettle = this._onDidTurnSettle.event;
 
 	private readonly _onDidChangeTeamRuntime = this._register(new Emitter<{ readonly sessionId: string }>());
 	readonly onDidChangeTeamRuntime = this._onDidChangeTeamRuntime.event;
@@ -167,6 +171,10 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 
 	notifyFileMutation(record: IFileMutationRecord): void {
 		this._onDidFileMutation.fire(record);
+	}
+
+	notifyTurnSettle(signal: ITurnSettleSignal): void {
+		this._onDidTurnSettle.fire(signal);
 	}
 
 	notifyTeamRuntimeChange(sessionId: string): void {

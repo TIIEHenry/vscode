@@ -37,11 +37,7 @@ export interface IReviewNavRecord {
 }
 
 /** Turn settle signal from M6-A2 host (TurnCompletedChange.assistant_turn_id). */
-export interface ITurnSettleSignal {
-	readonly sessionId: string;
-	readonly runtimeTurnId: string;
-	readonly assistantTurnId: string;
-}
+export type { ITurnSettleSignal } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 
 export function reviewNavEntryId(turnId: string): string {
 	return `reviewNav:${turnId}`;

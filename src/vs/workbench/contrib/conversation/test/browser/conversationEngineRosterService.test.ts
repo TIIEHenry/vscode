@@ -18,6 +18,7 @@ import { CONVERSATION_ROSTER_STORAGE_KEY } from '../../browser/conversationRoste
 class MockUniverseAgentConnection extends Disposable implements IUniverseAgentConnection {
 	declare readonly _serviceBrand: undefined;
 	readonly onDidFileMutation = Event.None;
+	readonly onDidTurnSettle = Event.None;
 	readonly onDidChangeTeamRuntime = Event.None;
 	readonly team = {
 		memberStatus: async () => [],

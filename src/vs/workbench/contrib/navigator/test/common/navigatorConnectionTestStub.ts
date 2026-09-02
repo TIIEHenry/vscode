@@ -24,6 +24,7 @@ export function createNavigatorConnectionTestStub(
 		getCapabilitySnapshot: () => ({} as UniverseAgentConnectionSnapshot['capabilities']),
 		onDidChangeConnection: Event.None,
 		onDidFileMutation: Event.None,
+		onDidTurnSettle: Event.None,
 		onDidChangeTeamRuntime: Event.None,
 		requestAgentTreeRefresh: () => { },
 		getNavigatorCapability: () => 'UNKNOWN' as const,

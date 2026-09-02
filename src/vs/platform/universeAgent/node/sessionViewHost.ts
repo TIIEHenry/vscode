@@ -279,6 +279,12 @@ export class SessionViewHost extends Disposable {
 
 		sidecar.fileJoin.handleStreamPayload(payload, record => {
 			this.host.notifyFileMutation(record);
+		}, signal => {
+			this.host.notifyTurnSettle({
+				sessionId,
+				runtimeTurnId: signal.runtimeTurnId,
+				assistantTurnId: signal.assistantTurnId,
+			});
 		});
 
 		this.captureToolAttributionHint(sessionId, payload);

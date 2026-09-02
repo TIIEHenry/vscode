@@ -50,6 +50,7 @@ suite('EngineSkillsSection (E1)', () => {
 			getCapabilitySnapshot: () => capabilities,
 			onDidChangeConnection: onDidChangeConnection.event,
 			onDidFileMutation: Event.None,
+			onDidTurnSettle: Event.None,
 			connect: async () => ({ methods: [], events: [], sessionToken: 'tok' }),
 			connectProfile: async () => ({ ok: false, code: 'transport_failed', reason: 'stub' }),
 			disconnect: async () => { connected = false; onDidChangeConnection.fire(snapshot()); },

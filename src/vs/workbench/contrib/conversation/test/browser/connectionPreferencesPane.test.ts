@@ -86,6 +86,7 @@ suite('ConnectionPreferencesPane', () => {
 			getCapabilitySnapshot: () => ({ methods: [], toolFamilies: [] }),
 			onDidChangeConnection: Event.None,
 			onDidFileMutation: Event.None,
+			onDidTurnSettle: Event.None,
 			connect: async () => ({ sessionToken: undefined, workDir: undefined, methods: [] }),
 			connectProfile: async () => ({ ok: false, code: 'transport_failed', reason: 'stub' }),
 			disconnect: async () => { },
