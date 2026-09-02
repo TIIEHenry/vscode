@@ -127,9 +127,10 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 	});
 
 	test('connected deleteSession last entry does not refill stub seeds', async () => {
+		const storage = store.add(new TestStorageService());
 		const connection = store.add(new MockUniverseAgentConnection());
 		connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
-		const service = store.add(createService(connection));
+		const service = store.add(createService(connection, storage));
 		connection.setConnected(true);
 		service.setEngineConnected(true);
 		await new Promise<void>(resolve => setTimeout(resolve, 0));
@@ -142,12 +143,13 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 	});
 
 	test('disconnected after engine deleteSession still avoids stub seed refill', async () => {
+		const storage = store.add(new TestStorageService());
 		const connection = store.add(new MockUniverseAgentConnection());
 		connection.setListSessions([
 			{ sessionId: 'ua-a', title: 'A' },
 			{ sessionId: 'ua-b', title: 'B' },
 		]);
-		const service = store.add(createService(connection));
+		const service = store.add(createService(connection, storage));
 		connection.setConnected(true);
 		service.setEngineConnected(true);
 		await new Promise<void>(resolve => setTimeout(resolve, 0));
@@ -186,5 +188,35 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		const second = store.add(createService(store.add(new MockUniverseAgentConnection()), storage));
 		assert.ok(storage.get(CONVERSATION_ROSTER_STORAGE_KEY, StorageScope.WORKSPACE)?.includes('ua-persist'));
 		assert.strictEqual(second.getActiveSessionId(), 'ua-persist');
+	});
+
+	test('getTrajectoryRecords on UA session never merges stub fixture extras', async () => {
+		const storage = store.add(new TestStorageService());
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
+		const service = store.add(createService(connection, storage));
+		connection.setConnected(true);
+		service.setEngineConnected(true);
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+		service.switchSession('ua-only');
+		const records = service.getTrajectoryRecords('ua-only');
+		assert.ok(!records.some(record => record.text.includes('Stub')));
+		assert.ok(!records.some(record => record.kind === 'system'));
+	});
+
+	test('disconnected UA session getTrajectoryRecords stays fixture-free', async () => {
+		const storage = store.add(new TestStorageService());
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
+		const service = store.add(createService(connection, storage));
+		connection.setConnected(true);
+		service.setEngineConnected(true);
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		connection.setConnected(false);
+		service.setEngineConnected(false);
+
+		const records = service.getTrajectoryRecords('ua-only');
+		assert.ok(!records.some(record => record.kind === 'system' && record.text.includes('Stub')));
 	});
 });

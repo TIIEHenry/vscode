@@ -26,6 +26,8 @@ export interface IConversationLensSlots {
 	readonly sessionBar: HTMLElement;
 	readonly timeline: HTMLElement;
 	readonly dock: HTMLElement;
+	/** Non-root sub-agent chat id (≡ engine agent_id) for trajectory attribution filtering. */
+	readonly filterAgentId?: string;
 }
 
 export interface IConversationPartWindowSlots {

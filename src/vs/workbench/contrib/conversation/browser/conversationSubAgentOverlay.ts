@@ -175,7 +175,8 @@ export class ConversationSubAgentOverlay extends Disposable {
 		dock.setAttribute('data-conversation-slot', 'dock');
 		// Detached S3 harnesses are not inside `.monaco-workbench`; skip the full lens there.
 		if (this.element.closest('.monaco-workbench')) {
-			this.lensDisposables.add(this.instantiationService.createInstance(ConversationLens, { sessionBar: this.sessionBar, timeline, dock }));
+			const filterAgentId = state.chatId !== 'default' ? state.chatId : undefined;
+			this.lensDisposables.add(this.instantiationService.createInstance(ConversationLens, { sessionBar: this.sessionBar, timeline, dock, filterAgentId }));
 		}
 	}
 

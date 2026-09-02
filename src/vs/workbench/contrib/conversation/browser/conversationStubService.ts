@@ -27,7 +27,9 @@ import {
 } from './conversationStubModel.js';
 import {
 	mergeTrajectoryFixtureExtras,
-	projectTurnsToTrajectory,
+	projectSnapshotToTrajectory,
+	shouldMergeTrajectoryFixtureExtras,
+	type TrajectoryProjectionOptions,
 } from './conversationTrajectoryModel.js';
 import {
 	entriesToLegacyTurns,
@@ -56,7 +58,7 @@ export interface IConversationRosterService {
 	renameSession(sessionId: string, title: string): boolean;
 	deleteSession(sessionId: string): boolean;
 	getTurns(sessionId: string): readonly ConversationStubTurn[];
-	getTrajectoryRecords(sessionId: string): readonly ConversationTrajectoryRecord[];
+	getTrajectoryRecords(sessionId: string, options?: TrajectoryProjectionOptions): readonly ConversationTrajectoryRecord[];
 	getSessionSync(sessionId: string): SyncChrome;
 	getSessionSource(sessionId: string): ConversationSessionSource;
 	appendUserTurn(sessionId: string, text: string): ConversationStubTurn | undefined;
@@ -220,9 +222,13 @@ export class ConversationStubService extends Disposable implements IConversation
 		return entriesToLegacyTurns(projectSnapshotToEntries(projection.snapshot, projection.attribution, projection.details));
 	}
 
-	getTrajectoryRecords(sessionId: string): readonly ConversationTrajectoryRecord[] {
-		const turns = this.getTurns(sessionId);
-		return mergeTrajectoryFixtureExtras(sessionId, projectTurnsToTrajectory(turns));
+	getTrajectoryRecords(sessionId: string, options?: TrajectoryProjectionOptions): readonly ConversationTrajectoryRecord[] {
+		const projection = this.frameSource.project(sessionId);
+		const records = projectSnapshotToTrajectory(projection.snapshot, projection.attribution, projection.details, options);
+		if (shouldMergeTrajectoryFixtureExtras(sessionId, this.isEngineConnected())) {
+			return mergeTrajectoryFixtureExtras(sessionId, records);
+		}
+		return records;
 	}
 
 	getSessionSync(sessionId: string): SyncChrome {
