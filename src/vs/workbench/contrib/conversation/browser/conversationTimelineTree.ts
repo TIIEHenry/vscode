@@ -22,6 +22,13 @@ import { ConversationMermaidExtensionInfo, createMermaidHostContext } from './co
 import { renderProcessFoldSpan } from './conversationProcessFold.js';
 import { ProcessFoldSpan, projectProcessFoldSpans } from './conversationProcessFoldModel.js';
 import { ConversationStubTurn } from './conversationStubModel.js';
+import type { ConversationViewFrameApplied } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
+import {
+	ConversationTimelineEntry,
+	entriesToRenderableTurns,
+	stubTurnsToEntries,
+} from './conversationSessionView.js';
+import { computeTimelineApplyPlan } from './conversationTimelineApply.js';
 import { renderConversationVisualizeCard } from './conversationVisualizeCard.js';
 import {
 	ConversationTimelineFlatItem,
@@ -366,6 +373,49 @@ class ConversationTimelineRenderer implements ITreeRenderer<ConversationTimeline
 		this.visualizeExpanded.clear();
 	}
 
+	pruneUserBubbleExpanded(knownIds: ReadonlySet<string>): void {
+		for (const id of this.userBubbleExpanded.keys()) {
+			if (!knownIds.has(id)) {
+				this.userBubbleExpanded.delete(id);
+			}
+		}
+	}
+
+	pruneProcessFoldExpanded(knownIds: ReadonlySet<string>): void {
+		for (const id of this.processFoldOuterExpanded.keys()) {
+			if (!knownIds.has(id)) {
+				this.processFoldOuterExpanded.delete(id);
+			}
+		}
+		for (const id of this.processFoldThinkingExpanded.keys()) {
+			if (!knownIds.has(id)) {
+				this.processFoldThinkingExpanded.delete(id);
+			}
+		}
+		for (const id of this.processFoldToolExpanded.keys()) {
+			if (!knownIds.has(id)) {
+				this.processFoldToolExpanded.delete(id);
+			}
+		}
+	}
+
+	pruneVisualizeExpanded(knownIds: ReadonlySet<string>): void {
+		for (const id of this.visualizeExpanded.keys()) {
+			if (!knownIds.has(id)) {
+				this.visualizeExpanded.delete(id);
+			}
+		}
+	}
+
+	pruneConfirmationSeats(knownIds: ReadonlySet<string>): void {
+		for (const [id, seat] of this.confirmationSeats) {
+			if (!knownIds.has(id)) {
+				seat.dispose();
+				this.confirmationSeats.delete(id);
+			}
+		}
+	}
+
 	private applyUserBubbleCollapseState(body: HTMLElement, text: string, expanded: boolean): void {
 		body.classList.toggle('conversation-lens-turn-body--collapsed', !expanded);
 		body.classList.toggle('conversation-lens-turn-body--scrollable', expanded && shouldScrollExpandedUserBubble(text));
@@ -450,9 +500,17 @@ export class ConversationTimelineTree extends Disposable {
 	private readonly delegate: ConversationTimelineDelegate;
 	private readonly autoScrollHolds = new ConversationAutoScrollHolds();
 	private readonly turnItems = new Map<string, ConversationTimelineItem>();
+	private readonly timelineIdentity = {
+		getId: (item: ConversationTimelineItem) => item.variant === 'process-fold'
+			? item.processFoldSpan?.id ?? item.turn.id
+			: item.turn.id,
+	};
 	private mermaidExtensionInfo: ConversationMermaidExtensionInfo | undefined;
 	private editingTurnId: string | undefined;
+	private currentEntries: readonly ConversationTimelineEntry[] = [];
 	private currentTurns: readonly ConversationStubTurn[] = [];
+	private _testSetChildrenCount = 0;
+	private _testRerenderCount = 0;
 
 	private _scrollLock = true;
 	private flatItems: readonly ConversationTimelineFlatItem[] = [];
@@ -638,28 +696,174 @@ export class ConversationTimelineTree extends Disposable {
 	}
 
 	setTurns(turns: readonly ConversationStubTurn[]): void {
-		this.currentTurns = turns;
+		this.applyEntries(stubTurnsToEntries(turns), { kind: 'baseline' });
+	}
+
+	applyEntries(entries: readonly ConversationTimelineEntry[], applied: ConversationViewFrameApplied): void {
+		const nextTurns = entriesToRenderableTurns(entries);
+		const plan = computeTimelineApplyPlan(this.currentTurns, nextTurns, applied);
+
+		if (plan.mode === 'none') {
+			return;
+		}
+
+		this.currentEntries = entries;
+		this.currentTurns = nextTurns;
+
+		if (plan.mode === 'baseline') {
+			this.applyBaseline(nextTurns, plan.removedTreeIds);
+			return;
+		}
+
+		if (plan.mode === 'structure') {
+			this.applyStructure(nextTurns, plan.removedTreeIds);
+			return;
+		}
+
+		this.applyContentPatches(nextTurns, plan.rerenderIds, plan.removedTreeIds);
+	}
+
+	/** @internal Test instrumentation for applyEntries (plan §3.4). */
+	getTestApplyMetrics(): { setChildrenCount: number; rerenderCount: number } {
+		return { setChildrenCount: this._testSetChildrenCount, rerenderCount: this._testRerenderCount };
+	}
+
+	/** @internal */
+	resetTestApplyMetrics(): void {
+		this._testSetChildrenCount = 0;
+		this._testRerenderCount = 0;
+	}
+
+	/** @internal Returns the live DOM node for a tree row identity (type B DOM reuse tests). */
+	getTimelineRowElement(treeId: string): HTMLElement | undefined {
+		return this.treeContainer.querySelector(`[data-turn-id="${treeId}"], [data-fold-id="${treeId}"]`) as HTMLElement | undefined
+			?? this.treeContainer.querySelector(`[data-turn-id="${treeId}"]`) as HTMLElement | undefined;
+	}
+
+	private applyBaseline(turns: readonly ConversationStubTurn[], removedTreeIds: ReadonlySet<string>): void {
 		this.withPersistedAutoScroll(() => {
-			this.renderer.clearConfirmationSeats();
-			this.renderer.clearUserBubbleExpanded();
-			this.renderer.clearProcessFoldExpanded();
-			this.renderer.clearVisualizeExpanded();
-			this.turnItems.clear();
-			this.flatItems = flattenConversationTimelineItems(turns);
-			const items = this.buildTreeElements(turns);
-			for (const treeElement of items) {
-				const item = treeElement.element;
-				this.turnItems.set(item.turn.id, item);
-				if (item.variant === 'process-fold' && item.processFoldSpan) {
-					for (const turnId of item.processFoldSpan.turnIds) {
-						this.turnItems.set(turnId, item);
-					}
+			this.pruneExpandedState(removedTreeIds, turns);
+			this.rebuildTreeFromTurns(turns);
+		});
+	}
+
+	private applyStructure(turns: readonly ConversationStubTurn[], removedTreeIds: ReadonlySet<string>): void {
+		this.withPersistedAutoScroll(() => {
+			this.pruneExpandedState(removedTreeIds, turns);
+			this.rebuildTreeFromTurns(turns, { diff: true });
+		});
+	}
+
+	private applyContentPatches(
+		turns: readonly ConversationStubTurn[],
+		rerenderIds: ReadonlySet<string>,
+		removedTreeIds: ReadonlySet<string>,
+	): void {
+		this.withPersistedAutoScroll(() => {
+			this.pruneExpandedState(removedTreeIds, turns);
+			this.patchTurnItemsInPlace(turns);
+			for (const treeId of rerenderIds) {
+				const item = this.turnItems.get(treeId);
+				if (!item || !this.tree.hasElement(item)) {
+					continue;
 				}
+				this._testRerenderCount += 1;
+				this.tree.rerender(item);
 			}
-			this.tree.setChildren(null, items);
 			this.renderEmptyState(turns.length === 0);
 			this.updatePinnedUserPromptVisibility();
 		});
+	}
+
+	private pruneExpandedState(removedTreeIds: ReadonlySet<string>, turns: readonly ConversationStubTurn[]): void {
+		const knownIds = this.collectKnownExpandedIds(turns);
+		for (const id of removedTreeIds) {
+			knownIds.delete(id);
+		}
+		this.renderer.pruneConfirmationSeats(knownIds);
+		this.renderer.pruneUserBubbleExpanded(knownIds);
+		this.renderer.pruneProcessFoldExpanded(knownIds);
+		this.renderer.pruneVisualizeExpanded(knownIds);
+	}
+
+	private collectKnownExpandedIds(turns: readonly ConversationStubTurn[]): Set<string> {
+		const knownIds = new Set<string>();
+		for (const turn of turns) {
+			knownIds.add(turn.id);
+		}
+		for (const span of projectProcessFoldSpans(turns)) {
+			knownIds.add(span.id);
+			for (const turnId of span.turnIds) {
+				knownIds.add(turnId);
+			}
+		}
+		return knownIds;
+	}
+
+	private rebuildTreeFromTurns(turns: readonly ConversationStubTurn[], options?: { diff?: boolean }): void {
+		const items = this.buildTreeElements(turns);
+		this.indexTurnItems(turns, items);
+		this._testSetChildrenCount += 1;
+		if (options?.diff) {
+			this.tree.setChildren(null, items, { diffIdentityProvider: this.timelineIdentity });
+		} else {
+			this.tree.setChildren(null, items);
+		}
+		this.renderEmptyState(turns.length === 0);
+		this.updatePinnedUserPromptVisibility();
+	}
+
+	private indexTurnItems(turns: readonly ConversationStubTurn[], items: readonly IObjectTreeElement<ConversationTimelineItem>[]): void {
+		this.flatItems = flattenConversationTimelineItems(turns);
+		this.turnItems.clear();
+		for (const treeElement of items) {
+			const item = treeElement.element;
+			const treeId = this.timelineIdentity.getId(item);
+			this.turnItems.set(treeId, item);
+			this.turnItems.set(item.turn.id, item);
+			if (item.variant === 'process-fold' && item.processFoldSpan) {
+				for (const turnId of item.processFoldSpan.turnIds) {
+					this.turnItems.set(turnId, item);
+				}
+			}
+		}
+	}
+
+	private patchTurnItemsInPlace(turns: readonly ConversationStubTurn[]): void {
+		this.flatItems = flattenConversationTimelineItems(turns);
+		const freshById = new Map<string, ConversationTimelineItem>();
+		for (const treeElement of this.buildTreeElements(turns)) {
+			const item = treeElement.element;
+			freshById.set(this.timelineIdentity.getId(item), item);
+		}
+
+		const indexedLiveItems = new Map<string, ConversationTimelineItem>();
+		for (const item of this.turnItems.values()) {
+			indexedLiveItems.set(this.timelineIdentity.getId(item), item);
+		}
+
+		for (const [treeId, fresh] of freshById) {
+			const live = indexedLiveItems.get(treeId);
+			if (!live) {
+				continue;
+			}
+			const mutable = live as { turn: ConversationStubTurn; variant: ConversationTimelineItemVariant; processFoldSpan?: ProcessFoldSpan };
+			mutable.turn = fresh.turn;
+			mutable.variant = fresh.variant;
+			mutable.processFoldSpan = fresh.processFoldSpan;
+		}
+
+		this.turnItems.clear();
+		for (const item of new Set(indexedLiveItems.values())) {
+			const treeId = this.timelineIdentity.getId(item);
+			this.turnItems.set(treeId, item);
+			this.turnItems.set(item.turn.id, item);
+			if (item.variant === 'process-fold' && item.processFoldSpan) {
+				for (const turnId of item.processFoldSpan.turnIds) {
+					this.turnItems.set(turnId, item);
+				}
+			}
+		}
 	}
 
 	setEditingTurnId(turnId: string | undefined): void {
@@ -675,10 +879,14 @@ export class ConversationTimelineTree extends Disposable {
 	}
 
 	private refreshTurnPresentation(): void {
-		if (this.currentTurns.length === 0) {
+		if (this.currentEntries.length === 0 && this.currentTurns.length === 0) {
 			return;
 		}
-		this.setTurns(this.currentTurns);
+		if (this.currentEntries.length > 0) {
+			this.applyEntries(this.currentEntries, { kind: 'baseline' });
+		} else {
+			this.setTurns(this.currentTurns);
+		}
 	}
 
 	private buildTreeElements(turns: readonly ConversationStubTurn[]): IObjectTreeElement<ConversationTimelineItem>[] {

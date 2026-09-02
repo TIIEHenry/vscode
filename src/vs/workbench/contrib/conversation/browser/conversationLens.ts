@@ -10,7 +10,7 @@ import { SelectBox } from '../../../../base/browser/ui/selectBox/selectBox.js';
 import { KeyCode } from '../../../../base/common/keyCodes.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { AnchorPosition } from '../../../../base/common/layout.js';
-import { Disposable, toDisposable } from '../../../../base/common/lifecycle.js';
+import { Disposable, DisposableStore, toDisposable } from '../../../../base/common/lifecycle.js';
 import { ThemeIcon } from '../../../../base/common/themables.js';
 import { localize } from '../../../../nls.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
@@ -24,6 +24,10 @@ import { ConversationIdentityStrip } from './conversationIdentityStrip.js';
 import { ConversationInboxOverlay } from './conversationInboxOverlay.js';
 import { ConversationTimelineTree } from './conversationTimelineTree.js';
 import { ConversationTrajectory } from './conversationTrajectory.js';
+import { projectSnapshotToEntries } from './conversationSessionView.js';
+import { ConversationSessionViewFrameCoalescer } from './conversationSessionViewFrameCoalescer.js';
+import type { ConversationViewFrameApplied } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
+import type { IConversationSessionViewLease } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
 import {
 	collectConversationTrajectoryTurnIds,
 	findTrajectoryRecordIdForTurn,
@@ -187,6 +191,8 @@ export class ConversationLens extends Disposable {
 	private suppressSessionSelect = false;
 	private mermaidExtensionInfo: ConversationMermaidExtensionInfo | undefined;
 	private readonly visualizeOverlay: ConversationVisualizeOverlay;
+	private sessionViewLease: IConversationSessionViewLease | undefined;
+	private readonly sessionViewLifetime = this._register(new DisposableStore());
 
 	constructor(
 		slots: IConversationLensSlots,
@@ -207,7 +213,7 @@ export class ConversationLens extends Disposable {
 		void resolveConversationMermaidExtension(this.extensionService).then(info => {
 			this.mermaidExtensionInfo = info;
 			this.timelineTree.setMermaidExtensionInfo(info);
-			this.renderTimeline();
+			this.applySessionViewTimeline({ kind: 'baseline' });
 		});
 
 		this.mountTimeline(slots.timeline);
@@ -218,7 +224,7 @@ export class ConversationLens extends Disposable {
 
 		this.lensId = this.loadLensId();
 		this.updateLensTabs();
-		this.renderTimeline();
+		this.bindSessionView(this.stubService.getActiveSessionId());
 		this.updateReadingColumn();
 		this.updateSessionTitle();
 		this.renderInboxStatus();
@@ -230,8 +236,10 @@ export class ConversationLens extends Disposable {
 				if (!this.sessionTitleEditing) {
 					this.updateSessionTitle();
 				}
-				this.renderTimeline();
 				this.renderInboxStatus();
+				if (this.lensId === 'trajectory' && sessionId === this.stubService.getActiveSessionId()) {
+					this.refreshTrajectoryRecords(sessionId);
+				}
 			}
 		}));
 		this._register(this.stubService.onDidChangeEngineConnection(() => this.updateVoiceMicChrome()));
@@ -1206,13 +1214,37 @@ export class ConversationLens extends Disposable {
 		this.syncSessionConfigSelects(sessionId);
 		this.updateSessionTitle();
 		this.dockTextarea.value = this.drafts.get(sessionId) ?? '';
-		if (this.lensId === 'trajectory') {
-			this.refreshTrajectoryRecords(sessionId);
-		}
-		this.renderTimeline();
+		this.bindSessionView(sessionId);
 		this.renderInboxStatus();
 		this.renderVoiceTranscriptBar();
 		this.updateVoiceMicChrome();
+	}
+
+	private bindSessionView(sessionId: string): void {
+		this.sessionViewLifetime.clear();
+		const lease = this.sessionViewLifetime.add(this.stubService.acquireSessionView(sessionId));
+		this.sessionViewLease = lease;
+		const coalescer = this.sessionViewLifetime.add(new ConversationSessionViewFrameCoalescer(applied => this.applySessionViewTimeline(applied)));
+		this.sessionViewLifetime.add(lease.onDidApplyFrame(applied => coalescer.push(applied)));
+		// Baseline fires during lease construction, before the listener above is attached.
+		this.applySessionViewTimeline({ kind: 'baseline' });
+	}
+
+	private applySessionViewTimeline(applied: ConversationViewFrameApplied): void {
+		if (!this.sessionViewLease) {
+			return;
+		}
+		const entries = projectSnapshotToEntries(
+			this.sessionViewLease.snapshot,
+			this.sessionViewLease.attribution,
+			this.sessionViewLease.details,
+		);
+		this.timelineTree.applyEntries(entries, applied);
+		if (this.lensId === 'trajectory') {
+			this.refreshTrajectoryRecords(this.sessionViewLease.sessionId);
+		}
+		this.updateConversationPhase();
+		this.syncComposerPlacement();
 	}
 
 	private updateSessionTitle(): void {
@@ -1284,17 +1316,6 @@ export class ConversationLens extends Disposable {
 		}
 		const seat = this.timelineTree.getConfirmationElement(pending.id);
 		seat?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-	}
-
-	private renderTimeline(): void {
-		const sessionId = this.stubService.getActiveSessionId();
-		const turns = this.stubService.getTurns(sessionId);
-		this.timelineTree.setTurns(turns);
-		if (this.lensId === 'trajectory') {
-			this.refreshTrajectoryRecords(sessionId);
-		}
-		this.updateConversationPhase();
-		this.syncComposerPlacement();
 	}
 
 	private resolveConfirmation(turnId: string, status: 'allowed' | 'skipped'): void {
