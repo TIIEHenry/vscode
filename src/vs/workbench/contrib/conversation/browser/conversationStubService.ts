@@ -6,8 +6,10 @@
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
+import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { createDecorator } from '../../../../platform/instantiation/common/instantiation.js';
 import { IStorageService } from '../../../../platform/storage/common/storage.js';
+import { shouldRestoreLastSessionOnStartup } from '../common/uaClientSettingsHelpers.js';
 import type { IConversationSessionViewLease } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
 import type { SyncChrome } from '../../../../platform/universeAgent/common/sessionView/index.js';
 import { ConversationStubFrameSource } from './conversationStubFrameSource.js';
@@ -102,6 +104,7 @@ export class ConversationStubService extends Disposable implements IConversation
 	protected readonly model: ConversationStubModel;
 	private engineConnected = false;
 	protected readonly storageService: IStorageService | undefined;
+	protected readonly configurationService: IConfigurationService | undefined;
 	protected readonly loadedStorage: ConversationRosterStorageV1 | undefined;
 
 	protected readonly _onDidChangeActiveSession = this._register(new Emitter<string>());
@@ -115,15 +118,17 @@ export class ConversationStubService extends Disposable implements IConversation
 
 	protected frameSource!: ConversationStubFrameSource;
 
-	constructor(storageService?: IStorageService) {
+	constructor(storageService?: IStorageService, configurationService?: IConfigurationService) {
 		super();
 		this.storageService = storageService;
+		this.configurationService = configurationService;
 		this.loadedStorage = storageService ? loadConversationRosterStorage(storageService) : undefined;
 		const localSessions = this.loadedStorage?.localSessions;
 		if (localSessions && localSessions.length > 0) {
+			const restoreLast = shouldRestoreLastSessionOnStartup(this.configurationService);
 			this.model = new ConversationStubModel(
 				persistedSessionsToStubSessions(localSessions),
-				this.loadedStorage.activeSessionId,
+				restoreLast ? this.loadedStorage.activeSessionId : undefined,
 				this.loadedStorage.nextTurnId,
 			);
 		} else {

@@ -8,7 +8,10 @@ import {
 	UA_CLIENT_CHAT_INPUT_AUTO_FOCUS,
 	UA_CLIENT_CHAT_INPUT_RESTORE_DRAFTS,
 	UA_CLIENT_DISPLAY_CONVERSATION_DENSITY,
+	UA_CLIENT_KEYBOARD_ENTER_BEHAVIOR,
+	UA_CLIENT_STARTUP_RESTORE_LAST_SESSION,
 	type UaClientConversationDensity,
+	type UaClientKeyboardEnterBehavior,
 } from './uaClientSettingsKeys.js';
 
 export {
@@ -38,21 +41,28 @@ export function applyConversationDensityClass(host: HTMLElement, configurationSe
 	);
 }
 
-/** CS-2+ / deleted-key helpers: defaults only until those slices register keys. */
+export function shouldRestoreLastSessionOnStartup(configurationService?: IConfigurationService): boolean {
+	if (!configurationService) {
+		return true;
+	}
+	return configurationService.getValue<boolean>(UA_CLIENT_STARTUP_RESTORE_LAST_SESSION) !== false;
+}
+
+export function getUaClientKeyboardEnterBehavior(configurationService?: IConfigurationService): UaClientKeyboardEnterBehavior {
+	if (!configurationService) {
+		return 'send';
+	}
+	return configurationService.getValue<string>(UA_CLIENT_KEYBOARD_ENTER_BEHAVIOR) === 'newline' ? 'newline' : 'send';
+}
+
+/** CS-3+ / deleted-key helpers: defaults only until those slices register keys. */
 export function shouldShowAgentIdentity(_configurationService?: IConfigurationService): boolean {
 	return true;
 }
 
+/** Deleted key `ua.client.startup.openConversation` — do not read an unregistered setting. */
 export function shouldOpenConversationOnStartup(_configurationService?: IConfigurationService): boolean {
 	return true;
-}
-
-export function shouldRestoreLastSessionOnStartup(_configurationService?: IConfigurationService): boolean {
-	return true;
-}
-
-export function getUaClientKeyboardEnterBehavior(_configurationService?: IConfigurationService): 'send' | 'newline' {
-	return 'send';
 }
 
 export function shouldNotifyPermissionRequests(_configurationService?: IConfigurationService): boolean {

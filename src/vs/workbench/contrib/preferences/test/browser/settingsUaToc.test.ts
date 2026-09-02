@@ -256,6 +256,8 @@ suite('Settings UA TOC', () => {
 			'ua.client.chatInput.autoFocus',
 			'ua.client.chatInput.restoreDrafts',
 			'ua.client.display.conversationDensity',
+			'ua.client.keyboardEnter.behavior',
+			'ua.client.startup.restoreLastSession',
 		]);
 	});
 });
