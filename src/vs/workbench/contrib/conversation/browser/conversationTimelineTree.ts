@@ -16,7 +16,8 @@ import { asCssVariable, asCssVariableWithDefault, buttonSecondaryBackground, but
 import { defaultButtonStyles } from '../../../../platform/theme/browser/defaultStyles.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { IWebviewService } from '../../webview/browser/webview.js';
-import { ConversationConfirmationSeat } from './conversationConfirmationSeat.js';
+import { ConversationConfirmationSeat, wireConversationSeatOptionKeys } from './conversationConfirmationSeat.js';
+import { getConversationQuestionSeatAriaLabel } from './conversationAccessibility.js';
 import { conversationLensTurnCopy, conversationLensTurnDelete, conversationLensPinnedUserPromptAria, conversationLensPinnedUserPromptCopyAria, conversationLensTurnViewInTrajectory } from './conversationLensSessionBarStrings.js';
 import { ConversationMermaidExtensionInfo, createMermaidHostContext } from './conversationMermaidHost.js';
 import { renderProcessFoldSpan } from './conversationProcessFold.js';
@@ -66,6 +67,7 @@ export interface ConversationTimelineItem {
 
 export interface IConversationTimelineTreeOptions {
 	readonly onResolveConfirmation?: (turnId: string, status: 'allowed' | 'skipped') => void;
+	readonly onQuestionRespond?: (turnId: string, requestId: string, answers: Readonly<Record<string, string>>) => void;
 	readonly onCopyTurn?: (turnId: string, text: string) => void;
 	readonly onDeleteTurn?: (turnId: string) => void;
 	readonly onEditUserTurn?: (turnId: string) => void;
@@ -136,6 +138,7 @@ class ConversationTimelineRenderer implements ITreeRenderer<ConversationTimeline
 	constructor(
 		private readonly contentAdapter: IConversationTurnContentAdapter,
 		private readonly onResolveConfirmation: ((turnId: string, status: 'allowed' | 'skipped') => void) | undefined,
+		private readonly onQuestionRespond: ((turnId: string, requestId: string, answers: Readonly<Record<string, string>>) => void) | undefined,
 		private readonly onCopyTurn: ((turnId: string, text: string) => void) | undefined,
 		private readonly onDeleteTurn: ((turnId: string) => void) | undefined,
 		private readonly onEditUserTurn: ((turnId: string) => void) | undefined,
@@ -217,7 +220,7 @@ class ConversationTimelineRenderer implements ITreeRenderer<ConversationTimeline
 
 		const honestKind = getConversationHonestKind(turn);
 		if (honestKind === 'question' || honestKind === 'error' || honestKind === 'unknown' || honestKind === 'system') {
-			renderHonestTimelineRow(templateData.container, turn, honestKind);
+			renderHonestTimelineRow(templateData.container, turn, honestKind, templateData.disposables, this.onQuestionRespond);
 			this.scheduleHeightUpdate(item, templateData.container);
 			return;
 		}
@@ -511,14 +514,19 @@ function renderHonestTimelineRow(
 	container: HTMLElement,
 	turn: ConversationStubTurn,
 	kind: 'question' | 'error' | 'unknown' | 'system',
+	disposables: DisposableStore,
+	onQuestionRespond: ((turnId: string, requestId: string, answers: Readonly<Record<string, string>>) => void) | undefined,
 ): void {
 	const fields = getConversationHonestFields(turn);
 	const el = append(container, $(`div.conversation-lens-turn.conversation-lens-turn--${kind}`));
 	el.setAttribute('data-kind', kind);
 	el.setAttribute('data-honest-kind', kind);
 	el.setAttribute('data-turn-id', turn.id);
-	el.setAttribute('role', 'group');
-	el.setAttribute('aria-label', getConversationEntryAriaLabel(turn));
+	el.tabIndex = 0;
+	el.setAttribute('role', kind === 'question' ? 'region' : 'group');
+	el.setAttribute('aria-label', kind === 'question'
+		? getConversationQuestionSeatAriaLabel(turn.status ?? 'pending', turn.text)
+		: getConversationEntryAriaLabel(turn));
 
 	const header = append(el, $('.conversation-lens-turn-header'));
 	header.textContent = getConversationTurnRoleLabel(kind);
@@ -544,7 +552,31 @@ function renderHonestTimelineRow(
 
 	const body = append(el, $('.conversation-lens-turn-body.conversation-lens-turn-body--honest'));
 	body.textContent = turn.text;
-	if (kind === 'question' && turn.payload) {
+	if (kind === 'question') {
+		renderQuestionOptions(el, turn, fields, disposables, onQuestionRespond);
+	}
+}
+
+function renderQuestionOptions(
+	el: HTMLElement,
+	turn: ConversationStubTurn,
+	fields: ReturnType<typeof getConversationHonestFields>,
+	disposables: DisposableStore,
+	onQuestionRespond: ((turnId: string, requestId: string, answers: Readonly<Record<string, string>>) => void) | undefined,
+): void {
+	const items = fields.questionItems ?? [];
+	const requestId = fields.questionRequestId;
+	const respond = onQuestionRespond;
+	const canSubmit = turn.status !== 'allowed'
+		&& fields.answerKeysValid === true
+		&& requestId !== undefined
+		&& items.length > 0
+		&& respond !== undefined;
+
+	if (!canSubmit || requestId === undefined || respond === undefined) {
+		if (!turn.payload) {
+			return;
+		}
 		const options = append(el, $('ul.conversation-lens-question-options'));
 		options.setAttribute('role', 'list');
 		for (const option of turn.payload.split(' · ')) {
@@ -552,6 +584,49 @@ function renderHonestTimelineRow(
 			item.setAttribute('role', 'listitem');
 			item.textContent = option;
 		}
+		return;
+	}
+
+	const selections = new Map<string, string>();
+	const required = items.filter(item => item.options.length > 0);
+	const submitIfComplete = (): void => {
+		if (selections.size < required.length) {
+			return;
+		}
+		const answers: Record<string, string> = {};
+		for (const [key, value] of selections) {
+			answers[key] = value;
+		}
+		respond(turn.id, requestId, answers);
+	};
+
+	for (const item of required) {
+		const group = append(el, $('div.conversation-lens-question-options'));
+		group.setAttribute('role', 'radiogroup');
+		group.setAttribute('aria-label', item.title || turn.text);
+		const radios: HTMLElement[] = [];
+		for (const option of item.options) {
+			const radio = append(group, $('div.conversation-lens-question-option'));
+			radio.setAttribute('role', 'radio');
+			radio.textContent = option;
+			radios.push(radio);
+		}
+		const choose = (index: number): void => {
+			const label = item.options[index];
+			if (label === undefined) {
+				return;
+			}
+			selections.set(item.id, label);
+			if (required.length === 1) {
+				respond(turn.id, requestId, { [item.id]: label });
+				return;
+			}
+			submitIfComplete();
+		};
+		wireConversationSeatOptionKeys(radios, disposables, {
+			role: 'radio',
+			onActivate: choose,
+		});
 	}
 }
 
@@ -695,6 +770,7 @@ export class ConversationTimelineTree extends Disposable {
 		this.renderer = new ConversationTimelineRenderer(
 			contentAdapter,
 			options.onResolveConfirmation,
+			options.onQuestionRespond,
 			options.onCopyTurn,
 			options.onDeleteTurn,
 			options.onEditUserTurn,
@@ -1139,6 +1215,20 @@ export class ConversationTimelineTree extends Disposable {
 
 	getConfirmationElement(turnId: string): HTMLElement | undefined {
 		return this.renderer.getConfirmationElement(turnId);
+	}
+
+	/** Focus the permission/question record after submit; does not jump to page top. */
+	focusRecord(turnId: string): void {
+		const el = this.getConfirmationElement(turnId) ?? this.getTimelineRowElement(turnId);
+		if (!el) {
+			this.revealTurn(turnId);
+			return;
+		}
+		if (el.tabIndex < 0) {
+			el.tabIndex = 0;
+		}
+		el.focus({ preventScroll: true });
+		el.scrollIntoView({ block: 'nearest', inline: 'nearest' });
 	}
 
 	layout(height: number, width: number): void {

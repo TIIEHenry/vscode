@@ -578,6 +578,7 @@ export class ConversationLens extends Disposable {
 		this.prefirstHero.hidden = true;
 		this.timelineTree = this._register(this.instantiationService.createInstance(ConversationTimelineTree, this.readingColumn, {
 			onResolveConfirmation: (turnId, status) => this.resolveConfirmation(turnId, status),
+			onQuestionRespond: (turnId, requestId, answers) => this.resolveQuestion(turnId, requestId, answers),
 			onCopyTurn: (_turnId, text) => this.copyTurn(text),
 			onDeleteTurn: turnId => this.deleteTurn(turnId),
 			onEditUserTurn: turnId => this.beginTurnEdit(turnId),
@@ -1539,14 +1540,36 @@ export class ConversationLens extends Disposable {
 	}
 
 	private resolveConfirmation(turnId: string, status: 'allowed' | 'skipped'): void {
-		const outcome = this.sessionViewLease?.post({
+		const lease = this.sessionViewLease ?? this.stubService.acquireSessionView(this.stubService.getActiveSessionId());
+		const outcome = lease.post({
 			kind: 'permissionRespond',
 			requestId: turnId,
 			decision: status === 'allowed' ? 'allow' : 'deny',
 		});
 		if (outcome && !outcome.accepted) {
 			this.showPostFailure(outcome.reason);
+			return;
 		}
+		this.focusTimelineRecord(turnId);
+	}
+
+	private resolveQuestion(turnId: string, requestId: string, answers: Readonly<Record<string, string>>): void {
+		const lease = this.sessionViewLease ?? this.stubService.acquireSessionView(this.stubService.getActiveSessionId());
+		const outcome = lease.post({
+			kind: 'questionRespond',
+			requestId,
+			answers,
+		});
+		if (outcome && !outcome.accepted) {
+			this.showPostFailure(outcome.reason);
+			return;
+		}
+		this.focusTimelineRecord(turnId);
+	}
+
+	private focusTimelineRecord(turnId: string): void {
+		const targetWindow = getWindow(this.timelineTree.domNode);
+		targetWindow.requestAnimationFrame(() => this.timelineTree.focusRecord(turnId));
 	}
 
 	private copyTurn(text: string): void {

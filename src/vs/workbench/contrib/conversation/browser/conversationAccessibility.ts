@@ -19,19 +19,47 @@ export function getConversationConfirmationStatusLabel(status: ConfirmationStatu
 	}
 }
 
-export function getConversationConfirmationSeatAriaLabel(status: ConfirmationStatus, message: string): string {
-	const statusLabel = getConversationConfirmationStatusLabel(status);
+export function getConversationPermissionSeatAriaLabel(status: ConfirmationStatus, message: string): string {
+	const statusLabel = status === 'pending'
+		? localize('conversationLens.permissionPendingStatus', "pending")
+		: status === 'allowed'
+			? localize('conversationLens.confirmationAllowed', "Allowed")
+			: localize('conversationLens.confirmationSkipped', "Skipped");
 	if (status === 'pending') {
 		return localize(
-			'conversationLens.confirmationSeatAriaPending',
-			"Confirmation, {0}, Input needed, {1}",
+			'conversationLens.permissionSeatAriaPending',
+			"Permission, {0}, Input needed, {1}",
 			statusLabel,
 			message,
 		);
 	}
 	return localize(
-		'conversationLens.confirmationSeatAria',
-		"Confirmation, {0}, {1}",
+		'conversationLens.permissionSeatAria',
+		"Permission, {0}, {1}",
+		statusLabel,
+		message,
+	);
+}
+
+export function getConversationConfirmationSeatAriaLabel(status: ConfirmationStatus, message: string): string {
+	return getConversationPermissionSeatAriaLabel(status, message);
+}
+
+export function getConversationQuestionSeatAriaLabel(status: ConfirmationStatus, message: string): string {
+	const statusLabel = status === 'allowed'
+		? localize('conversationLens.questionAnsweredBadge', "Answered")
+		: localize('conversationLens.questionPendingBadge', "Input needed");
+	if (status !== 'allowed') {
+		return localize(
+			'conversationLens.questionSeatAriaPending',
+			"Question, {0}, {1}",
+			statusLabel,
+			message,
+		);
+	}
+	return localize(
+		'conversationLens.questionSeatAria',
+		"Question, {0}, {1}",
 		statusLabel,
 		message,
 	);
@@ -39,7 +67,10 @@ export function getConversationConfirmationSeatAriaLabel(status: ConfirmationSta
 
 export function getConversationTurnAriaLabel(turn: ConversationStubTurn): string {
 	if (turn.kind === 'confirmation') {
-		return getConversationConfirmationSeatAriaLabel(turn.status ?? 'pending', turn.text);
+		return getConversationPermissionSeatAriaLabel(turn.status ?? 'pending', turn.text);
+	}
+	if ((turn.kind as string) === 'question') {
+		return getConversationQuestionSeatAriaLabel(turn.status ?? 'pending', turn.text);
 	}
 	return localize(
 		'conversationLens.turnAriaLabel',

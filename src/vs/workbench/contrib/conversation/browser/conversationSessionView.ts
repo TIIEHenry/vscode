@@ -61,8 +61,20 @@ export interface ConversationTimelineEntry {
 	readonly typeName?: string;
 	/** `reviewNav` entries: workspace file URIs (string form) opened via Sources Review. */
 	readonly reviewNavPaths?: readonly string[];
+	/** Ask-user items (verbatim `items[].id`); omitted when the snapshot has none. */
+	readonly questionItems?: readonly ConversationQuestionOptionItem[];
+	/** `true` only when the snapshot admits a submit-safe single-select answer map. */
+	readonly answerKeysValid?: boolean;
+	/** Parent questionId for `questionRespond`; not the compound display row id. */
+	readonly questionRequestId?: string;
 	/** L1 turn id when the snapshot admits one; never inferred. */
 	readonly turnId?: string;
+}
+
+export interface ConversationQuestionOptionItem {
+	readonly id: string;
+	readonly title: string;
+	readonly options: readonly string[];
 }
 
 export interface ConversationSessionViewProjection {
@@ -270,6 +282,20 @@ function summaryTitle(summary: TimelineItemView['summary']): string {
 	return summary.kind === 'unknown' ? summary.typeName : summary.title;
 }
 
+/** Parent questionId: pending requestId, else the display id prefix before `:childKey`. */
+function resolveQuestionRequestId(displayId: string, pendingIds: ReadonlySet<string>): string {
+	if (pendingIds.has(displayId)) {
+		return displayId;
+	}
+	for (const pendingId of pendingIds) {
+		if (pendingId.length > 0 && displayId.startsWith(`${pendingId}:`)) {
+			return pendingId;
+		}
+	}
+	const sep = displayId.indexOf(':');
+	return sep > 0 ? displayId.slice(0, sep) : displayId;
+}
+
 function timelineItemToEntry(
 	item: TimelineItemView,
 	attr: ItemAttribution | undefined,
@@ -323,14 +349,32 @@ function timelineItemToEntry(
 			return { id, kind: 'confirmation', text: summary.title, status, ...agent, ...turn };
 		}
 		case 'question': {
+			const questionItems = (summary.items ?? [])
+				.filter(item => item.id.length > 0)
+				.map(item => ({
+					id: item.id,
+					title: item.title,
+					options: item.optionsPreview ?? [],
+				}));
 			const options = [
 				...(summary.optionsPreview ?? []),
-				...(summary.items ?? []).flatMap(item => [item.title, ...(item.optionsPreview ?? [])]),
+				...questionItems.flatMap(item => item.options),
 			].filter((value, index, all) => value.length > 0 && all.indexOf(value) === index);
+			const hasMultiOrCustom = summary.multiSelect === true
+				|| summary.allowCustom === true
+				|| (summary.items ?? []).some(item => item.multiSelect === true || item.allowCustom === true);
+			const answerKeysValid = summary.answerKeysValid === true
+				&& !hasMultiOrCustom
+				&& questionItems.length > 0
+				&& questionItems.every(item => item.options.length > 0);
+			const questionRequestId = resolveQuestionRequestId(id, pendingIds);
 			return {
 				id, kind: 'question', text: summary.title,
 				status: summary.answered ? 'allowed' : 'pending',
 				...(options.length > 0 ? { payload: options.join(' · ') } : {}),
+				...(questionItems.length > 0 ? { questionItems } : {}),
+				...(answerKeysValid ? { answerKeysValid: true } : {}),
+				...(questionRequestId !== undefined ? { questionRequestId } : {}),
 				...agent, ...turn,
 			};
 		}
@@ -397,6 +441,9 @@ export interface ConversationHonestTurnFields {
 	readonly retryable?: boolean;
 	readonly typeName?: string;
 	readonly agentId?: string;
+	readonly questionItems?: readonly ConversationQuestionOptionItem[];
+	readonly answerKeysValid?: boolean;
+	readonly questionRequestId?: string;
 }
 
 export function getConversationHonestKind(turn: ConversationStubTurn): ConversationTimelineEntryKind {
@@ -476,6 +523,9 @@ export function entryToRenderableTurn(entry: ConversationTimelineEntry): Convers
 		...(entry.agentId !== undefined ? { agentId: entry.agentId } : {}),
 		...(entry.retryable !== undefined ? { retryable: entry.retryable } : {}),
 		...(entry.typeName !== undefined ? { typeName: entry.typeName } : {}),
+		...(entry.questionItems !== undefined ? { questionItems: entry.questionItems } : {}),
+		...(entry.answerKeysValid !== undefined ? { answerKeysValid: entry.answerKeysValid } : {}),
+		...(entry.questionRequestId !== undefined ? { questionRequestId: entry.questionRequestId } : {}),
 	};
 
 	if (entry.kind === 'reviewNav') {
