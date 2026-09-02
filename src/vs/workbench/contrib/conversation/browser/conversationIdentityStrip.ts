@@ -14,8 +14,10 @@ import { ILabelService } from '../../../../platform/label/common/label.js';
 import { IWorkspaceContextService } from '../../../../platform/workspace/common/workspace.js';
 import { IExplorerService } from '../../files/browser/files.js';
 import { ISCMRepository, ISCMService } from '../../scm/common/scm.js';
-import { OPEN_CONNECTION_PREFERENCES_COMMAND_ID } from '../common/uaPreferencesPanes.js';
-import { getConversationEngineStatusText } from './conversationSessionStatus.js';
+import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
+import { OPEN_CONNECTION_PREFERENCES_COMMAND_ID, OPEN_ENGINE_PREFERENCES_COMMAND_ID } from '../common/uaPreferencesPanes.js';
+import { getConnectionPhaseStatusBarText } from './conversationSessionStatus.js';
+import { IConversationRosterService } from './conversationStubService.js';
 
 export const conversationIdentityStripClass = 'conversation-identity-strip';
 export const conversationIdentityEngineChipClass = 'conversation-identity-chip-engine';
@@ -82,6 +84,8 @@ export class ConversationIdentityStrip extends Disposable {
 		@ISCMService private readonly scmService: ISCMService,
 		@ICommandService private readonly commandService: ICommandService,
 		@IExplorerService private readonly explorerService: IExplorerService,
+		@IConversationRosterService private readonly rosterService: IConversationRosterService,
+		@IUniverseAgentConnection private readonly uaConnection: IUniverseAgentConnection,
 	) {
 		super();
 
@@ -92,7 +96,10 @@ export class ConversationIdentityStrip extends Disposable {
 		this.engineChip = append(this.element, $(`button.conversation-identity-chip.${conversationIdentityEngineChipClass}`)) as HTMLButtonElement;
 		this.engineChip.type = 'button';
 		this._register(addDisposableListener(this.engineChip, 'click', () => {
-			this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID);
+			const commandId = this.rosterService.isEngineConnected()
+				? OPEN_ENGINE_PREFERENCES_COMMAND_ID
+				: OPEN_CONNECTION_PREFERENCES_COMMAND_ID;
+			this.commandService.executeCommand(commandId);
 		}));
 
 		this.folderChip = append(this.element, $(`button.conversation-identity-chip.${conversationIdentityFolderChipClass}`)) as HTMLButtonElement;
@@ -106,6 +113,8 @@ export class ConversationIdentityStrip extends Disposable {
 		this.branchChip = append(this.element, $(`.conversation-identity-chip.${conversationIdentityBranchChipClass}`));
 		this.branchChip.setAttribute('role', 'status');
 
+		this._register(this.rosterService.onDidChangeEngineConnection(() => this.render()));
+		this._register(this.uaConnection.onDidChangeConnection(() => this.render()));
 		this._register(this.contextService.onDidChangeWorkspaceFolders(() => this.render()));
 		this._register(this.scmService.onDidAddRepository(repository => {
 			this.registerRepositoryListeners(repository);
@@ -134,7 +143,11 @@ export class ConversationIdentityStrip extends Disposable {
 	}
 
 	private render(): void {
-		const engineText = getConversationEngineStatusText();
+		const snapshot = this.uaConnection.getConnectionSnapshot();
+		const engineText = getConnectionPhaseStatusBarText(
+			this.uaConnection.getConnectionPhase(),
+			snapshot.pairingPending,
+		);
 		this.engineChip.textContent = engineText;
 		this.engineChip.setAttribute('aria-label', localize('conversationIdentityStrip.engineAriaLabel', "Engine: {0}", engineText));
 

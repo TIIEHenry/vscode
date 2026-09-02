@@ -19,7 +19,7 @@ export function getConversationSessionStatusText(session: ConversationStubSessio
 	return title;
 }
 
-/** Legacy boolean helper — identity strip still uses disconnected copy until wired. */
+/** Legacy boolean helper for panes that only need connected vs not-connected copy. */
 export function getConversationEngineStatusText(isConnected = false): string {
 	if (isConnected) {
 		return localize('conversationStatus.engineConnected', "Engine connected");
