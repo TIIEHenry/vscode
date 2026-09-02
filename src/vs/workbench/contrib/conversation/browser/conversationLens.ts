@@ -571,9 +571,16 @@ export class ConversationLens extends Disposable {
 				);
 			},
 			onOpenVisualizeFullscreen: (source, title) => this.openVisualizeOverlay(source, title),
+			showLiveChrome: () => this.stubService.isEngineConnected(),
 		}));
 		this.trajectoryView = this._register(this.instantiationService.createInstance(ConversationTrajectory, this.readingColumn, {
 			onNavigateToLinkedTurn: turnId => this.navigateToTurnFromTrajectory(turnId),
+			showLiveChrome: () => this.stubService.isEngineConnected(),
+			detailContext: {
+				supportsDetailFetch: () => this.stubService.isEngineConnected(),
+				getDetailBody: ref => this.sessionViewLease?.details.get(ref),
+				requestDetail: () => this.sessionViewLease?.requestResync(),
+			},
 		}));
 		this.timelineTree.domNode.id = 'conversation-lens-panel-conversation';
 		this.timelineTree.domNode.setAttribute('role', 'tabpanel');
@@ -1315,6 +1322,7 @@ export class ConversationLens extends Disposable {
 
 	private applyActiveSession(sessionId: string): void {
 		this.visualizeOverlay.close();
+		this.trajectoryView.clearSessionState();
 		this.exitComposerEdit();
 		this.resetInputHistoryBrowse();
 		this.refreshSessionSelectOptions();
@@ -1365,6 +1373,7 @@ export class ConversationLens extends Disposable {
 		this.timelineTree.applyEntries(entries, effectiveApplied);
 		if (this.lensId === 'trajectory') {
 			this.refreshTrajectoryRecords(this.sessionViewLease.sessionId);
+			this.trajectoryView.refreshDetailInspector();
 		}
 		this.updateSyncChrome(this.sessionViewLease.snapshot.sync);
 		this.updateConversationPhase();

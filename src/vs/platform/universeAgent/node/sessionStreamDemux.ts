@@ -81,6 +81,7 @@ function demuxEnvelope(envelope: unknown): unknown | undefined {
 		}
 	}
 	const roleStr = typeof role === 'string' ? role : 'USER';
+	const branchReason = readOwnDataValue(envelope, 'branch_reason') ?? readOwnDataValue(envelope, 'branchReason');
 	return {
 		arm: 'text',
 		body: {
@@ -89,6 +90,7 @@ function demuxEnvelope(envelope: unknown): unknown | undefined {
 			title: titleFromRole(roleStr),
 			preview,
 			role: roleStr.toLowerCase(),
+			...(typeof branchReason === 'string' && branchReason ? { branchReason } : {}),
 		},
 	};
 }

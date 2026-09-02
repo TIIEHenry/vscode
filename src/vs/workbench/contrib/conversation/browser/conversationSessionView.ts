@@ -52,6 +52,8 @@ export interface ConversationTimelineEntry {
 	readonly pending?: boolean;
 	/** Live overlay row (L3) still receiving deltas. Never set by the stub source. */
 	readonly streaming?: boolean;
+	/** Tool execution status for live process-fold chrome. */
+	readonly toolStatus?: 'pending' | 'running' | 'completed' | 'failed' | 'cancelled';
 	readonly agentId?: string;
 	/** `error` entries: engine-declared retryability; absent = not retryable. */
 	readonly retryable?: boolean;
@@ -59,6 +61,8 @@ export interface ConversationTimelineEntry {
 	readonly typeName?: string;
 	/** `reviewNav` entries: workspace file URIs (string form) opened via Sources Review. */
 	readonly reviewNavPaths?: readonly string[];
+	/** L1 turn id when the snapshot admits one; never inferred. */
+	readonly turnId?: string;
 }
 
 export interface ConversationSessionViewProjection {
@@ -207,23 +211,26 @@ export function projectSnapshotToEntries(
 	details: ReadonlyMap<string, string>,
 ): ConversationTimelineEntry[] {
 	const pendingIds = new Set<string>(snapshot.pendingActions.map(action => String(action.requestId)));
-	const entries: ConversationTimelineEntry[] = [];
+	const ordered: { readonly orderKey: string; readonly entry: ConversationTimelineEntry }[] = [];
 
 	const sortedTimeline = snapshot.timeline.slice().sort((a, b) => compareOrderKeys(a.orderKey, b.orderKey));
 	for (const item of sortedTimeline) {
 		const entry = timelineItemToEntry(item, attribution.get(String(item.id)), details, pendingIds);
 		if (entry) {
-			entries.push(entry);
+			ordered.push({ orderKey: item.orderKey, entry });
 		}
 	}
 
 	for (const send of snapshot.localPendingSends) {
 		const id = `send:${String(send.operationId)}`;
-		entries.push({
-			id,
-			kind: 'user',
-			text: send.summary.kind === 'text' ? send.summary.preview ?? send.summary.title : summaryTitle(send.summary),
-			pending: true,
+		ordered.push({
+			orderKey: send.summary.kind === 'text' ? 'zzzz-send' : 'zzzz-send',
+			entry: {
+				id,
+				kind: 'user',
+				text: send.summary.kind === 'text' ? send.summary.preview ?? send.summary.title : summaryTitle(send.summary),
+				pending: true,
+			},
 		});
 	}
 
@@ -233,17 +240,26 @@ export function projectSnapshotToEntries(
 		const attr = attribution.get(key);
 		const text = block.chunks.slice().sort((a, b) => compareOrderKeys(a.orderKey, b.orderKey)).map(chunk => chunk.text).join('');
 		const kind: ConversationTimelineEntryKind = block.summary.kind === 'reasoning' ? 'thinking' : block.summary.kind === 'tool' ? 'tool' : 'assistant';
-		entries.push({
-			id: key,
-			kind,
-			text: text.length > 0 ? text : summaryTitle(block.summary),
-			streaming: true,
-			...(block.summary.kind === 'tool' ? { toolName: block.summary.toolName } : {}),
-			...(attr?.agentId !== undefined ? { agentId: attr.agentId } : {}),
+		ordered.push({
+			orderKey: block.orderKey,
+			entry: {
+				id: key,
+				kind,
+				text: text.length > 0 ? text : summaryTitle(block.summary),
+				streaming: true,
+				...(block.summary.kind === 'tool' ? {
+					toolName: block.summary.toolName,
+					toolStatus: block.summary.status,
+					...(block.summary.argPreview !== undefined ? { summary: block.summary.argPreview } : {}),
+					...(block.summary.resultPreview !== undefined ? { payload: block.summary.resultPreview } : {}),
+				} : {}),
+				...(attr?.agentId !== undefined ? { agentId: attr.agentId } : {}),
+			},
 		});
 	}
 
-	return entries;
+	ordered.sort((a, b) => compareOrderKeys(a.orderKey, b.orderKey));
+	return ordered.map(item => item.entry);
 }
 
 function compareOrderKeys(a: string, b: string): number {
@@ -263,6 +279,7 @@ function timelineItemToEntry(
 	const id = String(item.id);
 	const summary = item.summary;
 	const agent = attr?.agentId !== undefined ? { agentId: attr.agentId } : {};
+	const turn = item.turnId !== undefined ? { turnId: item.turnId } : {};
 	switch (summary.kind) {
 		case 'text': {
 			// Role comes only from attribution; a missing attribution renders a neutral row (plan §3.3), never a title guess.
@@ -273,6 +290,7 @@ function timelineItemToEntry(
 				...(attr?.stub && kind === 'assistant' ? { stubEcho: true } : {}),
 				...(summary.streaming ? { streaming: true } : {}),
 				...agent,
+				...turn,
 			};
 		}
 		case 'reasoning':
@@ -281,33 +299,35 @@ function timelineItemToEntry(
 				...(summary.collapsedPreview !== undefined ? { payload: summary.collapsedPreview } : {}),
 				...(summary.streaming ? { streaming: true } : {}),
 				...agent,
+				...turn,
 			};
 		case 'tool': {
 			if (summary.toolName === VISUALIZE_TOOL_NAME) {
 				const body = item.detail !== undefined ? details.get(String(item.detail)) : undefined;
 				const visualize = body !== undefined ? parseVisualizeArgs(body) : undefined;
 				if (visualize) {
-					return { id, kind: 'visualization', text: '', visualize, ...agent };
+					return { id, kind: 'visualization', text: '', visualize, ...agent, ...turn };
 				}
 			}
 			return {
 				id, kind: 'tool', text: summary.title, toolName: summary.toolName,
 				...(summary.argPreview !== undefined ? { summary: summary.argPreview } : {}),
 				...(summary.resultPreview !== undefined ? { payload: summary.resultPreview } : {}),
-				...(summary.status === 'running' || summary.status === 'pending' ? { streaming: true } : {}),
+				...(summary.status === 'running' || summary.status === 'pending' ? { streaming: true, toolStatus: summary.status } : { toolStatus: summary.status }),
 				...agent,
+				...turn,
 			};
 		}
 		case 'permission': {
 			const status: ConfirmationStatus = pendingIds.has(id) ? 'pending' : summary.decision === 'allow' ? 'allowed' : summary.decision === 'deny' ? 'skipped' : 'pending';
-			return { id, kind: 'confirmation', text: summary.title, status, ...agent };
+			return { id, kind: 'confirmation', text: summary.title, status, ...agent, ...turn };
 		}
 		case 'question':
-			return { id, kind: 'question', text: summary.title, status: summary.answered ? 'allowed' : 'pending', ...agent };
+			return { id, kind: 'question', text: summary.title, status: summary.answered ? 'allowed' : 'pending', ...agent, ...turn };
 		case 'error':
-			return { id, kind: 'error', text: summary.title, retryable: summary.retryable, ...(summary.code !== undefined ? { summary: summary.code } : {}), ...agent };
+			return { id, kind: 'error', text: summary.title, retryable: summary.retryable, ...(summary.code !== undefined ? { summary: summary.code } : {}), ...agent, ...turn };
 		case 'unknown':
-			return { id, kind: 'unknown', text: summary.rawContent, typeName: summary.typeName, ...agent };
+			return { id, kind: 'unknown', text: summary.rawContent, typeName: summary.typeName, ...agent, ...turn };
 		case 'usage':
 		case 'generic':
 			// usage feeds the context ring / trajectory, not the conversation page; generic must not be produced by a production fold.
@@ -348,6 +368,7 @@ export function entriesToLegacyTurns(entries: readonly ConversationTimelineEntry
 			...(entry.summary !== undefined ? { summary: entry.summary } : {}),
 			...(entry.payload !== undefined ? { payload: entry.payload } : {}),
 			...(entry.visualize !== undefined ? { visualize: entry.visualize } : {}),
+			...(entry.turnId !== undefined ? { turnId: entry.turnId } : {}),
 		});
 	}
 	return turns;
@@ -378,6 +399,9 @@ export function entryToRenderableTurn(entry: ConversationTimelineEntry): Convers
 			...(entry.summary !== undefined ? { summary: entry.summary } : {}),
 			...(entry.payload !== undefined ? { payload: entry.payload } : {}),
 			...(entry.visualize !== undefined ? { visualize: entry.visualize } : {}),
+			...(entry.streaming ? { streaming: true } : {}),
+			...(entry.toolStatus !== undefined ? { toolStatus: entry.toolStatus } : {}),
+			...(entry.turnId !== undefined ? { turnId: entry.turnId } : {}),
 		};
 	}
 	return {

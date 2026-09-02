@@ -3,8 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { localize } from '../../../../nls.js';
 import type { ItemAttribution } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
-import type { SessionViewSnapshot, TimelineItemView } from '../../../../platform/universeAgent/common/sessionView/index.js';
+import type { BranchTopologyNoticeView, SessionViewSnapshot, TimelineItemView } from '../../../../platform/universeAgent/common/sessionView/index.js';
 import { projectTrajectoryProcessFoldSpans, TrajectoryProcessFoldSpan } from './conversationProcessFoldModel.js';
 import { ConversationStubTurn } from './conversationStubModel.js';
 
@@ -16,10 +17,16 @@ export const STUB_TRAJECTORY_FIXTURE_SESSION_IDS = new Set(['untitled', 'visuali
 
 /** Extended attribution fields used by engine demux for tool-tree projection (M6-D / stream-timeline S6). */
 interface TrajectoryItemAttribution extends ItemAttribution {
-	readonly toolCallId?: string;
 	readonly parentToolCallId?: string;
-	/** Reserved for compaction rows; not emitted until demux projects branch_reason (S6 defer). */
-	readonly branchReason?: string;
+}
+
+/** Protocol `branch_reason` / topology notice values that mark a compacted row. */
+export function isProtocolCompactMark(value: string | undefined): boolean {
+	if (!value) {
+		return false;
+	}
+	const normalized = value.trim().toLowerCase();
+	return normalized === 'compact' || normalized === 'compaction' || normalized === 'compacted';
 }
 
 export interface TrajectoryProjectionOptions {
@@ -27,7 +34,17 @@ export interface TrajectoryProjectionOptions {
 	readonly filterAgentId?: string;
 }
 
-export type ConversationTrajectoryKind = 'system' | 'user' | 'context' | 'compacted' | 'message' | 'tool' | 'subtool' | 'thinking';
+export type ConversationTrajectoryKind =
+	| 'system'
+	| 'user'
+	| 'context'
+	| 'compacted'
+	| 'message'
+	| 'tool'
+	| 'subtool'
+	| 'thinking'
+	| 'permission'
+	| 'error';
 
 export interface ConversationTrajectoryBlock {
 	readonly type: string;
@@ -50,6 +67,12 @@ export interface ConversationTrajectoryRecord {
 	readonly callId?: string;
 	readonly parentCallId?: string;
 	readonly depth?: number;
+	/** Opaque DetailRef handle when upstream provides one (body fetched out-of-band). */
+	readonly detailRef?: string;
+	/** Compaction metadata (demux from branch_reason / topology notice). */
+	readonly compactedRange?: string;
+	readonly compactedReason?: string;
+	readonly compactedSummary?: string;
 }
 
 /** Stub fixture copy surfaced only on the trajectory lens (PRD-012). */
@@ -120,14 +143,19 @@ export function projectSnapshotToTrajectory(
 	const records: ConversationTrajectoryRecord[] = [];
 	const sorted = snapshot.timeline.slice().sort((a, b) => compareOrderKeys(a.orderKey, b.orderKey));
 
+	const projectedCompactKeys = new Set<string>();
 	for (const item of sorted) {
 		const id = String(item.id);
 		const attr = attribution.get(id) as TrajectoryItemAttribution | undefined;
 		if (!passesTrajectoryAgentFilter(attr, options?.filterAgentId)) {
 			continue;
 		}
-		// `compacted` reserved: demux must project branch_reason before rows are emitted.
-		if (attr?.branchReason === 'compact') {
+		const notice = findMatchingCompactionNotice(item, snapshot.branchTopologyNotices);
+		if (isProtocolCompactMark(attr?.branchReason) || notice) {
+			records.push(projectCompactedRecord(item, attr, notice));
+			if (notice) {
+				projectedCompactKeys.add(compactionNoticeKey(notice));
+			}
 			continue;
 		}
 		const record = timelineItemToTrajectoryRecord(item, attr);
@@ -135,6 +163,8 @@ export function projectSnapshotToTrajectory(
 			records.push(record);
 		}
 	}
+
+	appendStandaloneCompactedNotices(records, snapshot.branchTopologyNotices, projectedCompactKeys);
 
 	return finalizeToolTree(records, sorted, attribution);
 }
@@ -156,6 +186,148 @@ function passesTrajectoryAgentFilter(attr: TrajectoryItemAttribution | undefined
 	return attr.agentId === filterAgentId;
 }
 
+function withDetailRef<T extends ConversationTrajectoryRecord>(record: T, item: TimelineItemView): T {
+	return item.detail !== undefined
+		? { ...record, detailRef: String(item.detail) }
+		: record;
+}
+
+function projectCompactedRecord(
+	item: TimelineItemView,
+	attr: TrajectoryItemAttribution | undefined,
+	notice: BranchTopologyNoticeView | undefined,
+): ConversationTrajectoryRecord {
+	const id = String(item.id);
+	const range = formatCompactionRange(notice, item);
+	const reason = notice?.reason ?? attr?.branchReason;
+	const summary = extractCompactionSummary(notice, item);
+	const text = summary
+		? summary
+		: range
+			? localize('conversationTrajectory.compactedRangeOnly', "Compacted · {0}", range)
+			: localize('conversationTrajectory.compactedTypeOnly', "Compacted");
+
+	return {
+		id,
+		kind: 'compacted',
+		text,
+		compactedRange: range,
+		...(reason ? { compactedReason: reason } : {}),
+		...(summary ? { compactedSummary: summary } : {}),
+		...(item.detail !== undefined ? { detailRef: String(item.detail) } : {}),
+	};
+}
+
+function findMatchingCompactionNotice(
+	item: TimelineItemView,
+	notices: readonly BranchTopologyNoticeView[] | undefined,
+): BranchTopologyNoticeView | undefined {
+	if (!notices?.length) {
+		return undefined;
+	}
+	const turnId = item.turnId;
+	const itemId = String(item.id);
+	for (const notice of notices) {
+		if (!isProtocolCompactMark(notice.reason)) {
+			continue;
+		}
+		if (turnId && notice.divergedFromTurnId === turnId) {
+			return notice;
+		}
+		if (notice.operationId && (itemId === notice.operationId || itemId.includes(notice.operationId))) {
+			return notice;
+		}
+	}
+	return undefined;
+}
+
+function compactionNoticeKey(notice: BranchTopologyNoticeView): string {
+	return notice.operationId ? `op:${notice.operationId}` : `turn:${notice.divergedFromTurnId}`;
+}
+
+function appendStandaloneCompactedNotices(
+	records: ConversationTrajectoryRecord[],
+	notices: readonly BranchTopologyNoticeView[] | undefined,
+	projectedKeys: ReadonlySet<string>,
+): void {
+	if (!notices?.length) {
+		return;
+	}
+	const seenIds = new Set(records.filter(record => record.kind === 'compacted').map(record => record.id));
+	for (const notice of notices) {
+		if (!isProtocolCompactMark(notice.reason)) {
+			continue;
+		}
+		const key = compactionNoticeKey(notice);
+		if (projectedKeys.has(key)) {
+			continue;
+		}
+		const id = notice.operationId
+			? `compacted:${notice.operationId}`
+			: `compacted:${notice.divergedFromTurnId}`;
+		if (seenIds.has(id)) {
+			continue;
+		}
+		const range = formatCompactionRange(notice, undefined);
+		const summary = extractCompactionSummary(notice, undefined);
+		const text = summary
+			? summary
+			: range
+				? localize('conversationTrajectory.compactedRangeOnly', "Compacted · {0}", range)
+				: localize('conversationTrajectory.compactedTypeOnly', "Compacted");
+		records.push({
+			id,
+			kind: 'compacted',
+			text,
+			compactedRange: range,
+			compactedReason: notice.reason,
+			...(summary ? { compactedSummary: summary } : {}),
+		});
+		seenIds.add(id);
+	}
+}
+
+function formatCompactionRange(notice: BranchTopologyNoticeView | undefined, item: TimelineItemView | undefined): string | undefined {
+	if (notice?.affectedTurnIdsJson) {
+		try {
+			const ids = JSON.parse(notice.affectedTurnIdsJson) as unknown;
+			if (Array.isArray(ids) && ids.length > 0) {
+				return ids.map(String).join(', ');
+			}
+		} catch {
+			// honest: omit unparsable range
+		}
+	}
+	if (item?.turnId) {
+		return item.turnId;
+	}
+	if (notice?.divergedFromTurnId) {
+		return notice.divergedFromTurnId;
+	}
+	return undefined;
+}
+
+function extractCompactionSummary(notice: BranchTopologyNoticeView | undefined, item: TimelineItemView | undefined): string | undefined {
+	if (notice?.messagesJson) {
+		try {
+			const messages = JSON.parse(notice.messagesJson) as unknown;
+			if (typeof messages === 'string' && messages.trim()) {
+				return messages.trim();
+			}
+			if (Array.isArray(messages) && messages.length > 0) {
+				const first = messages[0];
+				if (typeof first === 'string' && first.trim()) {
+					return first.trim();
+				}
+			}
+		} catch {
+			// omit invented summary
+		}
+	}
+	const preview = item?.summary.kind === 'text' ? item.summary.preview : undefined;
+	return preview?.trim() || undefined;
+}
+
 function timelineItemToTrajectoryRecord(
 	item: TimelineItemView,
 	attr: TrajectoryItemAttribution | undefined,
@@ -167,31 +339,31 @@ function timelineItemToTrajectoryRecord(
 		case 'text': {
 			const role = attr?.role;
 			if (role === 'system') {
-				return { id, kind: 'system', text: summary.preview ?? summary.title };
+				return withDetailRef({ id, kind: 'system', text: summary.preview ?? summary.title }, item);
 			}
 			if (role === 'user') {
-				return { id, kind: 'user', text: summary.preview ?? summary.title, opensTurn: true };
+				return withDetailRef({ id, kind: 'user', text: summary.preview ?? summary.title, opensTurn: true }, item);
 			}
 			if (role === 'tool') {
-				return {
+				return withDetailRef({
 					id,
 					kind: 'context',
 					text: summary.preview ?? summary.title,
 					messageSource: { kind: 'inject' },
-				};
+				}, item);
 			}
-			return { id, kind: 'message', text: summary.preview ?? summary.title };
+			return withDetailRef({ id, kind: 'message', text: summary.preview ?? summary.title }, item);
 		}
 		case 'reasoning':
-			return {
+			return withDetailRef({
 				id,
 				kind: 'thinking',
 				text: summary.title,
 				...(summary.collapsedPreview !== undefined ? { inputDetail: summary.collapsedPreview } : {}),
-			};
+			}, item);
 		case 'tool': {
 			const callId = attr?.toolCallId ?? id;
-			return {
+			return withDetailRef({
 				id,
 				kind: 'tool',
 				text: summary.title,
@@ -200,13 +372,19 @@ function timelineItemToTrajectoryRecord(
 				...(summary.toolName ? { messageSource: { kind: 'tool', label: summary.toolName } } : {}),
 				...(summary.argPreview !== undefined ? { inputDetail: summary.argPreview } : {}),
 				...(summary.resultPreview !== undefined ? { outputDetail: summary.resultPreview, result: summary.resultPreview } : {}),
-			};
+			}, item);
 		}
 		case 'permission':
+			return withDetailRef({
+				id,
+				kind: 'permission',
+				text: summary.title,
+				...(summary.argPreview !== undefined ? { inputDetail: summary.argPreview } : {}),
+			}, item);
 		case 'question':
 			return undefined;
 		case 'error':
-			return { id, kind: 'message', text: summary.title };
+			return withDetailRef({ id, kind: 'error', text: summary.title }, item);
 		case 'usage':
 			return { id, kind: 'context', text: summary.title, messageSource: { kind: 'usage' } };
 		case 'unknown':
@@ -314,7 +492,15 @@ function mergeUntitledTrajectoryFixtures(records: readonly ConversationTrajector
 		};
 	});
 
-	const withFixtures = [systemRecord, contextRecord, ...enrichedRecords];
+	const compactedRecord: ConversationTrajectoryRecord = {
+		id: 'fixture:untitled:compacted',
+		kind: 'compacted',
+		text: localize('conversationTrajectory.stubCompacted', "Stub: compacted turns 1–2"),
+		compactedRange: localize('conversationTrajectory.stubCompactedRange', "turn 1–2"),
+		compactedReason: 'compact',
+	};
+
+	const withFixtures = [systemRecord, contextRecord, compactedRecord, ...enrichedRecords];
 	const toolIndex = withFixtures.findIndex(record => record.kind === 'tool');
 	if (toolIndex >= 0) {
 		const parentTool = withFixtures[toolIndex]!;
@@ -403,7 +589,15 @@ export function getTrajectoryRecordSearchHaystack(record: ConversationTrajectory
 	if (record.environment) {
 		parts.push(record.environment.cwd ?? '', record.environment.os ?? '', record.environment.extra ?? '');
 	}
-	for (const field of [record.promptDetail, record.inputDetail, record.outputDetail, record.result]) {
+	for (const field of [
+		record.promptDetail,
+		record.inputDetail,
+		record.outputDetail,
+		record.result,
+		record.compactedRange,
+		record.compactedReason,
+		record.compactedSummary,
+	]) {
 		if (field) {
 			parts.push(field);
 		}

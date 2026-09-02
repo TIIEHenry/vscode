@@ -32,6 +32,12 @@ export interface ConversationStubTurn {
 	readonly visualize?: ConversationVisualizeArgs;
 	/** Review navigation row (PRD-023 §2.4); not part of legacy stub fixtures. */
 	readonly reviewNavPaths?: readonly string[];
+	/** Live overlay / streaming row (engine path only). */
+	readonly streaming?: boolean;
+	/** Tool execution status for live process-fold chrome. */
+	readonly toolStatus?: 'pending' | 'running' | 'completed' | 'failed' | 'cancelled';
+	/** L1 turn id when the snapshot admits one; never inferred. */
+	readonly turnId?: string;
 }
 
 export interface ConversationStubSession {
