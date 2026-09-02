@@ -59,7 +59,6 @@ class UaClientConversationChromeContribution extends Disposable implements IWork
 		this._register(addDisposableListener(this.layoutService.mainContainer, 'input', event => this.onComposerInput(event), true));
 
 		this._register(this.rosterService.onDidChangeActiveSession(sessionId => this.onActiveSession(sessionId)));
-		this.onActiveSession(this.rosterService.getActiveSessionId());
 
 		// Gate is the advertise consumer: false means this client will not offer workspace tools.
 		void this.workspaceToolsGate.shouldAdvertise();
@@ -125,7 +124,7 @@ class UaClientConversationChromeContribution extends Disposable implements IWork
 
 		if (shouldOpenPendingOnFocus(this.configurationService)) {
 			const pending = this.rosterService.getTurns(sessionId).find(turn =>
-				(turn.kind === 'confirmation' || turn.kind === 'question') && turn.status === 'pending');
+				turn.kind === 'confirmation' && turn.status === 'pending');
 			if (pending) {
 				this.revealService.revealItem(pending.id);
 			}

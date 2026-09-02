@@ -250,6 +250,22 @@ suite('Settings UA TOC', () => {
 		assert.ok(!keys.includes('connection.host'));
 		assert.ok(!keys.includes('connection.port'));
 		assert.ok(!keys.includes('ua.client.display.placeholder'));
-		assert.ok(!keys.some(key => key.startsWith('ua.client.')));
+		assert.ok(!keys.some(key => key.startsWith('ua.engine.')));
+		const clientKeys = keys.filter(key => key.startsWith('ua.client.')).sort();
+		assert.deepStrictEqual(clientKeys, [
+			'ua.client.chatInput.autoFocus',
+			'ua.client.chatInput.restoreDrafts',
+			'ua.client.clientTools.advertiseWorkspaceTools',
+			'ua.client.clientTools.showInvocationDetails',
+			'ua.client.display.conversationDensity',
+			'ua.client.display.showAgentIdentity',
+			'ua.client.keyboardEnter.behavior',
+			'ua.client.notifications.permissionRequests',
+			'ua.client.notifications.turnCompleted',
+			'ua.client.permissions.confirmBeforeExternalOpen',
+			'ua.client.permissions.openPendingOnFocus',
+			'ua.client.startup.openConversation',
+			'ua.client.startup.restoreLastSession',
+		]);
 	});
 });
