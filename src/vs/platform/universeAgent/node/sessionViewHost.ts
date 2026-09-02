@@ -15,6 +15,7 @@ import {
 	type ConversationWriteMessage,
 	type DetailFetchOutcome,
 	type ItemAttribution,
+	type ItemCompactedAttribution,
 	type ParsedDetailRef,
 } from '../common/conversationViewFrame.js';
 import type { IUniverseAgentSessionViewFrameEvent } from '../common/universeAgentSessionView.js';
@@ -25,6 +26,13 @@ import type { CorrelationRef, ViewFrameSink } from './sessionCore/messages.js';
 import type { SessionId, ViewFrame, ViewLeaseId } from '../common/sessionView/types.js';
 import type { AttemptId } from './sessionCore/ports.js';
 import { demuxSessionStreamPayload } from './sessionStreamDemux.js';
+import {
+	iterL2EnvelopesFromStreamPayload,
+	normalizeAttributionBranchReason,
+	projectCompactFactsFromBranchReasonEnvelope,
+	projectCompactFactsFromRangeReplaced,
+	type CompactedEnvelopeFacts,
+} from './compactedAttribution.js';
 import {
 	createSessionViewDiagnosticsPort,
 	createSessionViewIdPort,
@@ -54,8 +62,10 @@ type ToolAttributionHint = {
 	readonly toolCallId?: string;
 	readonly agentId?: string;
 	readonly role?: ItemAttribution['role'];
-	/** Protocol `branch_reason`; only set when the envelope names one. */
+	/** Protocol `branch_reason`; compact tokens are normalized to `'compact'`. */
 	readonly branchReason?: string;
+	/** P2b: three turn ids + optional SummaryBlock text. Browser never sets this. */
+	readonly compacted?: ItemCompactedAttribution;
 };
 
 type ActiveLease = {
@@ -329,6 +339,7 @@ export class SessionViewHost extends Disposable {
 
 		this.captureToolAttributionHint(sessionId, payload);
 		this.captureEnvelopeAttributionHint(sessionId, payload);
+		this.captureRangeReplacedCompactHint(sessionId, payload);
 		this.captureDetailRefHint(sessionId, payload);
 	}
 
@@ -356,36 +367,83 @@ export class SessionViewHost extends Disposable {
 	}
 
 	private captureEnvelopeAttributionHint(sessionId: string, payload: unknown): void {
-		if (payload === null || typeof payload !== 'object' || Array.isArray(payload)) {
+		const envelopes = iterL2EnvelopesFromStreamPayload(payload);
+		if (envelopes.length === 0 && isBareHistoryEnvelope(payload)) {
+			this.mergeEnvelopeHint(sessionId, payload);
 			return;
 		}
-		const record = payload as Record<string, unknown>;
-		const appended = record.envelope_appended ?? record.envelopeAppended;
-		if (!appended || typeof appended !== 'object') {
+		for (const envelope of envelopes) {
+			this.mergeEnvelopeHint(sessionId, envelope);
+		}
+	}
+
+	/**
+	 * Path 1 producer: `branch_reason='compact'` (or wire `compaction`) on an L2 envelope.
+	 * Non-compact branch_reason / role / agent_id still land as ordinary attribution.
+	 */
+	private mergeEnvelopeHint(sessionId: string, envelope: unknown): void {
+		if (envelope === null || typeof envelope !== 'object' || Array.isArray(envelope)) {
 			return;
 		}
-		const envelope = readPayloadField(appended, 'envelope');
-		if (!envelope || typeof envelope !== 'object' || Array.isArray(envelope)) {
+		const compact = projectCompactFactsFromBranchReasonEnvelope(envelope);
+		if (compact) {
+			this.mergeCompactFactsHint(sessionId, compact);
 			return;
 		}
 		const id = readPayloadField(envelope, 'id');
 		if (typeof id !== 'string' || !id) {
 			return;
 		}
-		const branchReason = readPayloadField(envelope, 'branch_reason', 'branchReason');
+		const branchReason = normalizeAttributionBranchReason(readPayloadField(envelope, 'branch_reason', 'branchReason'));
 		const agentId = readPayloadField(envelope, 'agent_id', 'agentId');
-		const roleRaw = readPayloadField(envelope, 'role');
-		const role = normalizeAttributionRole(roleRaw);
-		if (typeof branchReason !== 'string' && !role && typeof agentId !== 'string') {
+		const role = normalizeAttributionRole(readPayloadField(envelope, 'role'));
+		if (!branchReason && !role && typeof agentId !== 'string') {
 			return;
 		}
-		const hints = this.toolAttributionHints.get(sessionId) ?? [];
-		hints.push({
+		this.mergeHint(sessionId, {
 			itemId: id,
 			role,
 			agentId: typeof agentId === 'string' ? agentId : undefined,
-			branchReason: typeof branchReason === 'string' && branchReason ? branchReason : undefined,
+			branchReason,
 		});
+	}
+
+	/**
+	 * Path 2 producer: `EnvelopeRangeReplaced(reason=COMPACT)` alone is sufficient.
+	 * BRANCH_NOTICE is not consulted for identity.
+	 */
+	private captureRangeReplacedCompactHint(sessionId: string, payload: unknown): void {
+		for (const facts of projectCompactFactsFromRangeReplaced(payload)) {
+			this.mergeCompactFactsHint(sessionId, facts);
+		}
+	}
+
+	private mergeCompactFactsHint(sessionId: string, facts: CompactedEnvelopeFacts): void {
+		this.mergeHint(sessionId, {
+			itemId: facts.itemId,
+			role: facts.role,
+			agentId: facts.agentId,
+			branchReason: facts.branchReason,
+			compacted: facts.compacted,
+		});
+	}
+
+	private mergeHint(sessionId: string, incoming: ToolAttributionHint): void {
+		const hints = this.toolAttributionHints.get(sessionId) ?? [];
+		const index = hints.findIndex(hint => hint.itemId === incoming.itemId);
+		if (index < 0) {
+			hints.push(incoming);
+		} else {
+			const existing = hints[index];
+			hints[index] = {
+				itemId: incoming.itemId,
+				toolCallId: incoming.toolCallId ?? existing.toolCallId,
+				agentId: incoming.agentId ?? existing.agentId,
+				role: incoming.role ?? existing.role,
+				branchReason: incoming.branchReason ?? existing.branchReason,
+				compacted: incoming.compacted ?? existing.compacted,
+			};
+		}
 		this.toolAttributionHints.set(sessionId, hints);
 	}
 
@@ -440,14 +498,9 @@ export class SessionViewHost extends Disposable {
 			for (const item of frame.body.snapshot.timeline) {
 				const id = String(item.id);
 				if (!attributionMap.has(id)) {
-					const hint = hints.find(h => h.itemId === id || h.toolCallId === id);
+					const hint = findAttributionHint(hints, id, item.turnId);
 					const role = hint?.role ?? 'assistant';
-					const attribution: ItemAttribution = {
-						role,
-						...(hint?.toolCallId ? { toolCallId: hint.toolCallId } : {}),
-						...(hint?.agentId ? { agentId: hint.agentId } : {}),
-						...(hint?.branchReason ? { branchReason: hint.branchReason } : {}),
-					};
+					const attribution = attributionFromHint(hint, role);
 					attributionMap.set(id, attribution);
 					attributionPatches.push({ op: 'upsertAttribution', itemId: id, attribution });
 				}
@@ -457,15 +510,10 @@ export class SessionViewHost extends Disposable {
 				if (patch.op === 'upsertTimelineItem') {
 					const id = String(patch.item.id);
 					const summary = patch.item.summary;
-					if (summary.kind === 'tool') {
-						const hint = hints.find(h => h.itemId === id || h.toolCallId === id);
-						const toolCallId = hint?.toolCallId;
-						const attribution: ItemAttribution = {
-							role: hint?.role ?? 'tool',
-							...(toolCallId ? { toolCallId } : {}),
-							...(hint?.agentId ? { agentId: hint.agentId } : {}),
-							...(hint?.branchReason ? { branchReason: hint.branchReason } : {}),
-						};
+					const hint = findAttributionHint(hints, id, patch.item.turnId);
+					const isCompactRow = hint?.branchReason === 'compact' || hint?.compacted !== undefined;
+					if (summary.kind === 'tool' || isCompactRow) {
+						const attribution = attributionFromHint(hint, hint?.role ?? (summary.kind === 'tool' ? 'tool' : 'system'));
 						attributionMap.set(id, attribution);
 						attributionPatches.push({ op: 'upsertAttribution', itemId: id, attribution });
 					}
@@ -631,6 +679,10 @@ export class SessionViewHost extends Disposable {
 				cursorSeq: row.cursorSeq,
 				payload: row.payload,
 			}));
+			for (const row of envelopes) {
+				this.captureEnvelopeAttributionHint(sessionId, row.payload);
+				this.captureRangeReplacedCompactHint(sessionId, row.payload);
+			}
 			this.core.post(sid, {
 				t: 'historyResult',
 				attemptId: intent.attemptId,
@@ -647,6 +699,37 @@ export class SessionViewHost extends Disposable {
 		}
 		this.drainIntents(sessionId);
 	}
+}
+
+function attributionFromHint(hint: ToolAttributionHint | undefined, role: ItemAttribution['role']): ItemAttribution {
+	return {
+		role,
+		...(hint?.toolCallId ? { toolCallId: hint.toolCallId } : {}),
+		...(hint?.agentId ? { agentId: hint.agentId } : {}),
+		...(hint?.branchReason ? { branchReason: hint.branchReason } : {}),
+		...(hint?.compacted ? { compacted: hint.compacted } : {}),
+	};
+}
+
+function findAttributionHint(hints: readonly ToolAttributionHint[], itemId: string, turnId?: string): ToolAttributionHint | undefined {
+	return hints.find(hint =>
+		hint.itemId === itemId
+		|| hint.toolCallId === itemId
+		|| hint.compacted?.compactBranchTurnId === itemId
+		|| (turnId !== undefined && hint.compacted?.compactBranchTurnId === String(turnId))
+	);
+}
+
+function isBareHistoryEnvelope(payload: unknown): boolean {
+	if (payload === null || typeof payload !== 'object' || Array.isArray(payload)) {
+		return false;
+	}
+	const id = readPayloadField(payload, 'id');
+	if (typeof id !== 'string' || !id) {
+		return false;
+	}
+	return readPayloadField(payload, 'blocks') !== undefined
+		|| readPayloadField(payload, 'branch_reason', 'branchReason') !== undefined;
 }
 
 function normalizeAttributionRole(value: unknown): ItemAttribution['role'] | undefined {

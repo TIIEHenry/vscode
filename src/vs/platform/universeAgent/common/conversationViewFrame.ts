@@ -127,11 +127,29 @@ export interface ItemAttribution {
 	readonly parentToolCallId?: string;
 	/**
 	 * Envelope `branch_reason` when demuxed from the protocol.
-	 * `compact` / `compaction` marks a compacted trajectory row — never inferred.
+	 * Compact / compaction wire tokens are normalized to `'compact'` — never inferred
+	 * from titles or L3. Path-2 `EnvelopeRangeReplaced(reason=COMPACT)` also writes this.
 	 */
 	readonly branchReason?: string;
+	/**
+	 * P2b compacted span (closed three turn ids + optional SummaryBlock text).
+	 * Produced only by the node host from L2 `CompactedSpanBlock` / `SummaryBlock`.
+	 * Browser stubs never emit this.
+	 */
+	readonly compacted?: ItemCompactedAttribution;
 	/** Set only by the stub fixture source; keeps PRD-003.3 "Stub" chrome without reading titles. */
 	readonly stub?: true;
+}
+
+/**
+ * L2 compacted span projected onto a timeline item (M7 P2b).
+ * Three turn ids are a closed set — do not invent a fourth.
+ */
+export interface ItemCompactedAttribution {
+	readonly anchorTurnId: string;
+	readonly foldedLeafTurnId: string;
+	readonly compactBranchTurnId: string;
+	readonly summary?: string;
 }
 
 export type AttributionPatch =

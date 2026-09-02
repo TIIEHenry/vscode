@@ -253,7 +253,7 @@ function mapGetHistoryResponse(wire: GetHistoryResponseWire): UniverseAgentGetHi
 	return {
 		envelopes: (wire.envelopes ?? []).map(envelope => ({
 			cursorSeq: envelope.cursor_seq ?? '',
-			payload: envelope.payload,
+			payload: envelope.payload !== undefined && envelope.payload !== null ? envelope.payload : envelope,
 		})),
 		nextCursorSeq: wire.next_cursor_seq,
 	};
