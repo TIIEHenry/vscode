@@ -5,6 +5,7 @@
 
 import './media/conversationSubAgentOverlay.css';
 import { $, addDisposableListener, append, EventHelper, EventType, isHTMLElement } from '../../../../base/browser/dom.js';
+import { handleConversationOverlayTab } from './conversationConfirmationSeat.js';
 import { Button } from '../../../../base/browser/ui/button/button.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { Emitter } from '../../../../base/common/event.js';
@@ -69,6 +70,7 @@ export class ConversationSubAgentOverlay extends Disposable {
 		this.element.setAttribute('role', 'dialog');
 		this.element.setAttribute('aria-modal', 'false');
 		this.element.setAttribute(conversationSubAgentOverlayMaximizedAttribute, 'false');
+		this.element.tabIndex = -1;
 		this.element.hidden = true;
 		this.renderChrome();
 	}
@@ -150,7 +152,9 @@ export class ConversationSubAgentOverlay extends Disposable {
 			if (event.key === 'Escape') {
 				event.stopPropagation();
 				this.close();
+				return;
 			}
+			handleConversationOverlayTab(this.element, event);
 		}));
 	}
 

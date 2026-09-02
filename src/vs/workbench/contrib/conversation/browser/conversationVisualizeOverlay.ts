@@ -13,6 +13,7 @@ import { localize } from '../../../../nls.js';
 import { defaultButtonStyles } from '../../../../platform/theme/browser/defaultStyles.js';
 import { ILayoutService } from '../../../../platform/layout/browser/layoutService.js';
 import { IWebviewService } from '../../webview/browser/webview.js';
+import { handleConversationOverlayTab } from './conversationConfirmationSeat.js';
 import {
 	ConversationMermaidExtensionInfo,
 	createMermaidHostContext,
@@ -114,8 +115,13 @@ export class ConversationVisualizeOverlay extends Disposable {
 				this.close();
 			}
 		}));
+		session.add(addDisposableListener(overlay, 'keydown', (e) => {
+			handleConversationOverlayTab(overlay, e);
+		}));
 
+		overlay.tabIndex = -1;
 		this.overlayElement = overlay;
+		closeButton.focus();
 	}
 
 	close(): void {

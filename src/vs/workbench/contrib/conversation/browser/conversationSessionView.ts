@@ -75,6 +75,8 @@ export interface ConversationQuestionOptionItem {
 	readonly id: string;
 	readonly title: string;
 	readonly options: readonly string[];
+	readonly multiSelect?: boolean;
+	readonly allowCustom?: boolean;
 }
 
 export interface ConversationSessionViewProjection {
@@ -349,24 +351,28 @@ function timelineItemToEntry(
 			return { id, kind: 'confirmation', text: summary.title, status, ...agent, ...turn };
 		}
 		case 'question': {
+			const askMultiSelect = summary.multiSelect === true;
+			const askAllowCustom = summary.allowCustom === true;
 			const questionItems = (summary.items ?? [])
 				.filter(item => item.id.length > 0)
-				.map(item => ({
-					id: item.id,
-					title: item.title,
-					options: item.optionsPreview ?? [],
-				}));
+				.map(item => {
+					const multiSelect = item.multiSelect === true || askMultiSelect;
+					const allowCustom = item.allowCustom === true || askAllowCustom;
+					return {
+						id: item.id,
+						title: item.title,
+						options: item.optionsPreview ?? [],
+						...(multiSelect ? { multiSelect: true as const } : {}),
+						...(allowCustom ? { allowCustom: true as const } : {}),
+					};
+				});
 			const options = [
 				...(summary.optionsPreview ?? []),
 				...questionItems.flatMap(item => item.options),
 			].filter((value, index, all) => value.length > 0 && all.indexOf(value) === index);
-			const hasMultiOrCustom = summary.multiSelect === true
-				|| summary.allowCustom === true
-				|| (summary.items ?? []).some(item => item.multiSelect === true || item.allowCustom === true);
 			const answerKeysValid = summary.answerKeysValid === true
-				&& !hasMultiOrCustom
 				&& questionItems.length > 0
-				&& questionItems.every(item => item.options.length > 0);
+				&& questionItems.every(item => item.options.length > 0 || item.allowCustom === true);
 			const questionRequestId = resolveQuestionRequestId(id, pendingIds);
 			return {
 				id, kind: 'question', text: summary.title,

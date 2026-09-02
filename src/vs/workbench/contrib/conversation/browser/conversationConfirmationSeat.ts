@@ -3,9 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { $, addDisposableListener, append } from '../../../../base/browser/dom.js';
+import { $, addDisposableListener, append, getActiveElement, getWindow } from '../../../../base/browser/dom.js';
+import { StandardKeyboardEvent } from '../../../../base/browser/keyboardEvent.js';
 import { Button } from '../../../../base/browser/ui/button/button.js';
-import { KeyCode } from '../../../../base/common/keyCodes.js';
+import { KeyCode, KeyMod } from '../../../../base/common/keyCodes.js';
 import { Disposable, DisposableStore } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
 import { defaultButtonStyles } from '../../../../platform/theme/browser/defaultStyles.js';
@@ -88,6 +89,59 @@ export function wireConversationSeatOptionKeys(
 			}));
 		}
 	});
+}
+
+const OVERLAY_FOCUSABLE = 'button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), a[href], iframe, [tabindex]:not([tabindex="-1"])';
+
+function isOverlayFocusable(container: HTMLElement, element: HTMLElement): boolean {
+	if (!element.isConnected || element.getAttribute('aria-hidden') === 'true' || element.tabIndex === -1 || element.hasAttribute('disabled')) {
+		return false;
+	}
+	const style = getWindow(container).getComputedStyle(element);
+	return style.display !== 'none' && style.visibility !== 'hidden';
+}
+
+/** Focusable controls inside an overlay, in DOM order. */
+export function collectConversationOverlayFocusable(container: HTMLElement): HTMLElement[] {
+	// eslint-disable-next-line no-restricted-syntax -- overlay owns this subtree
+	return [...container.querySelectorAll<HTMLElement>(OVERLAY_FOCUSABLE)].filter(element => isOverlayFocusable(container, element));
+}
+
+/**
+ * Cycle Tab / Shift+Tab inside `container` so focus does not leak to the workbench.
+ * Returns true when the event was handled.
+ */
+export function handleConversationOverlayTab(container: HTMLElement, event: KeyboardEvent): boolean {
+	const standard = new StandardKeyboardEvent(event);
+	if (!standard.equals(KeyCode.Tab) && !standard.equals(KeyMod.Shift | KeyCode.Tab)) {
+		return false;
+	}
+
+	const focusable = collectConversationOverlayFocusable(container);
+	event.preventDefault();
+	event.stopPropagation();
+
+	if (focusable.length === 0) {
+		if (container.tabIndex < 0) {
+			container.tabIndex = 0;
+		}
+		container.focus();
+		return true;
+	}
+
+	const active = getActiveElement();
+	const currentIndex = active instanceof HTMLElement
+		? focusable.findIndex(element => element === active || element.contains(active))
+		: -1;
+	let nextIndex: number;
+	if (currentIndex === -1) {
+		nextIndex = standard.shiftKey ? focusable.length - 1 : 0;
+	} else {
+		const delta = standard.shiftKey ? -1 : 1;
+		nextIndex = (currentIndex + delta + focusable.length) % focusable.length;
+	}
+	focusable[nextIndex].focus();
+	return true;
 }
 
 /**

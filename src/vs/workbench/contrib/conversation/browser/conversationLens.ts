@@ -31,8 +31,7 @@ import { projectSnapshotToEntries, formatSyncChromeLabel } from './conversationS
 import type { ConversationTimelineEntry } from './conversationSessionView.js';
 import { attachReviewEntries, computeReviewNavSidecarApplied, IConversationReviewNavService } from '../common/conversationReviewEntry.js';
 import { ConversationSessionViewFrameCoalescer } from './conversationSessionViewFrameCoalescer.js';
-import type { ConversationViewFrameApplied } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
-import type { IConversationSessionViewLease } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
+import type { ConversationQuestionRespondAnswers, ConversationViewFrameApplied, IConversationSessionViewLease } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
 import type { SyncChrome } from '../../../../platform/universeAgent/common/sessionView/index.js';
 import {
 	collectConversationTrajectoryTurnIds,
@@ -578,7 +577,7 @@ export class ConversationLens extends Disposable {
 		this.prefirstHero.hidden = true;
 		this.timelineTree = this._register(this.instantiationService.createInstance(ConversationTimelineTree, this.readingColumn, {
 			onResolveConfirmation: (turnId, status) => this.resolveConfirmation(turnId, status),
-			onQuestionRespond: (turnId, requestId, answers) => this.resolveQuestion(turnId, requestId, answers),
+			onQuestionRespond: (turnId, requestId, answers, customText) => this.resolveQuestion(turnId, requestId, answers, customText),
 			onCopyTurn: (_turnId, text) => this.copyTurn(text),
 			onDeleteTurn: turnId => this.deleteTurn(turnId),
 			onEditUserTurn: turnId => this.beginTurnEdit(turnId),
@@ -1553,12 +1552,13 @@ export class ConversationLens extends Disposable {
 		this.focusTimelineRecord(turnId);
 	}
 
-	private resolveQuestion(turnId: string, requestId: string, answers: Readonly<Record<string, string>>): void {
+	private resolveQuestion(turnId: string, requestId: string, answers: ConversationQuestionRespondAnswers, customText?: string): void {
 		const lease = this.sessionViewLease ?? this.stubService.acquireSessionView(this.stubService.getActiveSessionId());
 		const outcome = lease.post({
 			kind: 'questionRespond',
 			requestId,
 			answers,
+			...(customText !== undefined ? { customText } : {}),
 		});
 		if (outcome && !outcome.accepted) {
 			this.showPostFailure(outcome.reason);
