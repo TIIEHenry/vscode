@@ -3,8 +3,8 @@ title: "Agent Host 系统概览"
 type: overview
 status: accepted
 phase: N/A
-updated: 2026-08-30
-summary: "AHP 是 vscode 侧宿主进程协议；IAgentHostService 连进程；Chat 与 Sessions 是两套 facade，不是 UniverseAgent session-core"
+updated: 2026-09-02
+summary: "AHP 是 vscode 侧宿主进程协议；IAgentHostService 连进程；UA gRPC adapter 在 platform/universeAgent（AHP 仍非会话权威）；Chat 与 Sessions 是两套 facade"
 ---
 
 # Agent Host 系统概览
@@ -12,6 +12,8 @@ summary: "AHP 是 vscode 侧宿主进程协议；IAgentHostService 连进程；C
 > 导航见 [系统索引](INDEX.md)。Sessions 侧适配以 [AGENT_HOST_SESSIONS_PROVIDER.md](../../../src/vs/sessions/contrib/providers/agentHost/AGENT_HOST_SESSIONS_PROVIDER.md) 为 **SSOT**，下文只定向、不复述 provider 契约。多聊编排就近规格：[platform/agentHost/AGENTS.md](../../../src/vs/platform/agentHost/AGENTS.md)。
 
 Agent Host 是本仓库里的 **vscode 侧进程与协议**：独立宿主跑 `IAgent` harness（Copilot / Claude / Codex），工作台与 Agents Window 经 MessagePort / 远端代理说话。它**不是** B2 的 session-core；UniverseAgent 才是引擎权威。
+
+**UniverseAgent 传输 adapter** 在 `src/vs/platform/universeAgent/`（`IUniverseAgentConnection` + node gRPC 客户端 + electron-main ProxyChannel；见 [ADR-003](../../../dev/decisions/003-engine-adapter-boundary.md)）。Conversation roster 同 token 替换在 `contrib/conversation`。**AHP（`IAgentHostService`）仍非 UA 会话权威**——StatusBar / Engine 页 / roster 活数据只看 UA 连接态，禁止把 AHP 已连接当成引擎已接通。
 
 ```text
 Chat Widget / Agents Window UI
@@ -114,8 +116,8 @@ Shared process 登记对应的 `*MainService` channel（如 `SSH_REMOTE_AGENT_HO
 
 | 名称 | Owner | 角色 |
 |------|-------|------|
-| UniverseAgent session | 外仓 desktop-domain | **引擎与 session-core 唯一权威** |
-| AHP session / `AgentService` | `platform/agentHost` 进程 | vscode 侧协议实体与编排 |
+| UniverseAgent session | 外仓 desktop-domain + `platform/universeAgent` adapter | **引擎与 session-core 唯一权威** |
+| AHP session / `AgentService` | `platform/agentHost` 进程 | vscode 侧协议实体与编排；**≠ UA session id** |
 | `IChatModel` / `sessionResource` | `workbench/contrib/chat` | 编辑器 Chat 持久化投影 |
 | `ISession` / `ISessionsService` | `vs/sessions` | Agents Window 目录 facade |
 

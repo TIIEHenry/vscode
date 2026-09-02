@@ -4,22 +4,26 @@ type: reference
 status: accepted
 phase: N/A
 updated: 2026-09-02
-summary: "已知 gRPC 服务 / RPC 名与本仓用途（§1–4 来自已签收 customizations-engine）；能力探测三态；协议缺口；§5 会话面对照已签收的 m6 / ADR-003 / stream-timeline，RPC 名待 M6-A 实测回填——权威在外仓"
+summary: "已知 gRPC 服务 / RPC 名与本仓用途；§1 Conversation 传输（A1/A2 已合入）与 Engine catalog（customizations-engine，catalog 扩展 RPC 待槽 A）；§5 会话面对照已用 HEAD 实测 RPC 回填"
 ---
 
 # UniverseAgent 引擎协议面（本仓消费口径）
 
-> 导航：[索引](INDEX.md)。RPC 名以外仓 proto 为准；本页列出的名称来自 [customizations-engine](../../../dev/plans/customizations-engine.md)（2026-09-01 三轮审查签收）。凡写「须查明」的行表示本仓尚无可引用的事实，R5 研究必须填掉。
+> 导航：[索引](INDEX.md)。RPC 名以外仓 proto 为准。§1 **Conversation 传输**行来自 `platform/universeAgent/node/grpc/grpcTransport.ts`（`UniverseAgentGrpcServices`，A1/A2 @ HEAD）。§1 **Engine catalog** 行仍来自 [customizations-engine](../../../dev/plans/customizations-engine.md)（2026-09-01 签收）；`ListAgentProfiles` / `ListMcpServers` / `ListTools` 等 **尚未**进 platform 传输面（槽 A catalog RPC 未合入前不得写进「已落地」）。
 
 ## 1. 已知服务与 RPC
 
 | 服务 | RPC | 本仓消费面 | 备注 |
 |------|-----|-----------|------|
-| Connect / handshake | `ConnectResponse.capabilities.methods` | 能力探测入口 | 没有 `supported_methods` 字段；不要为 IDE 显隐键扩 proto |
-| `ToolService` | `ListSkills` / `SkillInfo` / `SetSkillEnabled` | Engine 页 Skills：列表（`source ∈ bundled/user/project`）、正文、启停 | 无独立 Create RPC；写文件后 `ListSkills` 刷新。Root `<available_skills>` 会话冻结，开关不热切换 |
-| `ToolService` | `ListTools` / `ToolInfo` | Engine 页 Tools 目录 | 无 `SetToolEnabled`；启用集写 profile `tools.json` |
-| `AgentService` | `ListAgentProfiles(project_path?)` / `SaveAgentProfile` / `DeleteAgentProfile` / `ResetAgentProfile` | Engine 页 Agents（profile 目录：`AGENTS.md` + `tools.json` + `model.json`） | BUILT_IN 只可 Reset |
-| `McpService` | `ListMcpServers(work_dir?, enabled_only?)` / `AddMcpServer` / `UpdateMcpServer` / `RemoveMcpServer` / `ToggleMcpServer` | Engine 页 MCP **定义**（scope global / project） | `GetMcpServerStatuses` / `GetMcpServerTools` 是运行态，不在 Engine 页 |
+| `SystemService` | `Connect` / `GetAuthNonce` | `IUniverseAgentConnection.connect`；握手、`session_token`、`ConnectResponse.capabilities.methods` | 无 `supported_methods` 字段；DeviceAuth 走 `ConnectWithDeviceAuth`（transport 内） |
+| `SessionService` | `List` / `Create` / `Delete` / `GetHistory` / `SessionEventStream` | Conversation roster + 时间线 fold 输入（`GetHistory` + 流 → session-core Actor → `ViewFrame`） | 无 `SwitchSession`；切换 = IDE 客户端投影。标题 proto 为 `AgentService.Rename`，**HEAD adapter 未接** |
+| `AgentService` | `Chat` | 发送 + 流内 permission / question / clientTool 应答（Chat 双向流） | 权限 cleanup 亦走 Chat 臂；`PermissionService.Respond` 为备选（见 stream-timeline S5 注释） |
+| `AgentService` | `Tree` | Navigator Agent 树（**host-only**，不经 renderer `IUniverseAgentConnection`） | m6 §11；`UNIMPLEMENTED` → `agentTree=UNSUPPORTED` |
+| `TeamService` | `MemberStatus` / `TaskList` / `TeamInfo` | Navigator Team 段（renderer `IUniverseAgentConnection.team`） | m6 §11 A1 unary |
+| `ToolService` | `ListSkills` / `SkillInfo` / `SetSkillEnabled` | A1 传输已接；Engine 页 Skills（E1）消费 | 无独立 Create RPC；写文件后 `ListSkills` 刷新 |
+| `ToolService` | `ListTools` / `ToolInfo` | Engine 页 Tools 目录（**catalog 传输待槽 A**） | 无 `SetToolEnabled`；启用集写 profile `tools.json` |
+| `AgentService` | `ListAgentProfiles` / `SaveAgentProfile` / `DeleteAgentProfile` / `ResetAgentProfile` | Engine 页 Agents（**catalog 传输待槽 A**） | BUILT_IN 只可 Reset |
+| `McpService` | `ListMcpServers` / … | Engine 页 MCP 定义（**catalog 传输待槽 A**） | `GetMcpServerStatuses` / `GetMcpServerTools` 是运行态，不在 Engine 页 |
 | `PluginService` | `List` / `Info` / `Enable` / `Reload` / `Unload` | Plugins 节（v1 延后） | Local 模式 UNSUPPORTED |
 | Local `RulesBridge` | list / create / update / delete / preview / health × global / workDir（12）+ `defaultAgentHome()` | Engine 页 Rules（Instructions） | **Remote gRPC 不存在**；默认 `Unsupported` |
 | `MemoryService` | — | 不在 Engine 页；未来独立 pane | 与 Instructions 分家 |
@@ -33,6 +37,7 @@ UA 侧 `EngineSettingsCapabilities` / `CapabilitySupport`：`SUPPORTED | UNSUPPO
 | `skills` · `mcp` · `plugins` · `globalRules` | UA 已有（`GrpcCapabilityProbe` + UNIMPLEMENTED 降级） | 直接消费三态 |
 | `agentProfiles` | UA `BridgeCapabilities` 上是 Boolean | IDE 折算成三态 |
 | `projectRules` · `tools` · `hooksMetadata` | UA 无 | **IDE 本地推导**（对应 RPC 是否 UNIMPLEMENTED、Connect 是否成功）；禁止扩 proto |
+| `agentTree` · `team` | IDE 推导（m6 §11） | `AgentService.Tree` / `TeamService.MemberStatus` probe；UNIMPLEMENTED → UNSUPPORTED |
 | IDE 传输失败 | 非 UA 概念 | 独立态；**不得**映射为 UNSUPPORTED 或空列表 |
 
 无连接（PRD-008 未接通）：一律按「无列表」渲染，不用 Stub 填 `UNKNOWN`。
@@ -59,23 +64,24 @@ UA 侧 `EngineSettingsCapabilities` / `CapabilitySupport`：`SUPPORTED | UNSUPPO
 | 独立 CreateSkill / 写正文 RPC（或「写后刷新」约定） | E1 新建技能 |
 | vscode 侧能力探测等价物 | E1 全部（IDE 自己补，不是引擎缺口） |
 
-## 5. Conversation 会话面（R5 草案已覆盖大半，签收后回填）
+## 5. Conversation 会话面（A1/A2 @ HEAD 回填）
 
-[IConversationRosterService](../../systems/conversation/stub-and-fixtures.md) 需要的引擎面，R5 草案 [m6-engine-wave §3](../../../dev/plans/m6-engine-wave.md) 已逐行对照（例如时间线 = `SessionService.GetHistory(cursor_seq)` + `SessionEventStream`；队列 = `AgentService.EnqueueQueueItem` 族；Goal = `PermissionService.SetSessionGoal`），adapter 落层见 [ADR-003](../../../dev/decisions/003-engine-adapter-boundary.md)（`platform/universeAgent`）；时间线 / 发送 / 权限的流形态见 [conversation-stream-timeline](../../../dev/plans/conversation-stream-timeline.md)。三文已于 2026-09-02 `accepted`；**M6-A1 / A2 实施 commit 时**把实测确认的 RPC 名回填到 §1 表，并把下表「须查明」列改成事实或「引擎缺口」（m6 §10 知识层清单）：
+[IConversationRosterService](../../systems/conversation/stub-and-fixtures.md) 需要的引擎面；adapter 落层 [ADR-003](../../../dev/decisions/003-engine-adapter-boundary.md)（`platform/universeAgent`）；时间线 / 发送 / 权限流形态 [conversation-stream-timeline](../../../dev/plans/conversation-stream-timeline.md)。下表「HEAD 事实」来自 m6-engine-wave §3 与 `platform/universeAgent` + `ConversationEngineRosterService` 合入代码：
 
-| IDE 需要 | 对应 stub 方法 | 须查明 / 草案答案位置 |
-|----------|----------------|--------|
-| 会话枚举 / 创建 / 切换 / 重命名 / 删除 | `getSessions` … `deleteSession` | 服务与 RPC；是否按 `workDir` 过滤；标题权威 |
-| 回合流（用户 / 助手 / thinking / tool / subtool / visualization） | `getTurns`、`onDidChangeSession` | 流式 RPC 形态；回合 id 稳定性；断线重连补齐策略 |
-| 轨迹记录（context 注入、SYSTEM、compacted、附带 block / chip） | `getTrajectoryRecords` | 是否与回合流同源；`compacted` 分段如何暴露 |
-| 权限请求 / 回执 | `resolveConfirmation`、`countPendingConfirmations` | 请求推送形态；allow / skip 回执 RPC；超时与撤回 |
-| MessageQueue | `getMessageQueueState` 与五个操作 | 队列是否在引擎侧；hold / pause 语义是否存在 |
-| AutoDrive / Task 列表 | `getAutoDriveTasks` | 权威是否存在；无则 Inbox 整槽省略 |
-| fork / 子代理 catalog（`ChatOrigin` 四 kind、`parentChatId`、`ChatInteractivity`） | `IConversationSessionChatService` fixture | 协议 `origin.chat` 字段；SideChat / ReadOnly / Hidden 何时出现 |
-| `visualize` 工具输出 | `visualizeArgsFromMermaidTool` | 工具名与 payload 形状；只映射 `visualization` kind |
-| 引擎连接态 | `isEngineConnected` | Connect 生命周期事件；三态与传输失败如何暴露给 StatusBar / Engine 页 |
-| Route / AgentProfile / Model / Permission / Tools 选项 | Composer 各下拉 | 策略表 RPC；无则诚实空 |
-| 本地会话缓存与引擎权威切换 | [PRD-017](../../product/requirements.md#prd-017-本地会话持久化) | 是否需要 IDE 侧持久化；冲突规则 |
+| IDE 需要 | 对应 stub 方法 | HEAD 事实 |
+|----------|----------------|-----------|
+| 会话枚举 / 创建 / 删除 | `getSessions` … `deleteSession` | `SessionService.List` / `Create` / `Delete`；`work_dir` 过滤随 Connect。已连接时首次 `List` 完成前 roster **不**含 stub 种子行 |
+| 切换 / 重命名 | `switchSession` / `renameSession` | 切换 = 客户端 `activeSessionId` 投影（**无** `SwitchSession` RPC）。重命名 HEAD 仍走本地 `renameSession`；proto `AgentService.Rename` **未接** |
+| 回合流（用户 / 助手 / thinking / tool / …） | `getTurns`、`onDidChangeSession` | `SessionService.GetHistory`（`cursor_seq`）+ `SessionEventStream` → session-core fold → `ViewFrame`；renderer 经 `IUniverseAgentSessionView` / `acquireSessionView` |
+| 轨迹记录 | `getTrajectoryRecords` | 接通前 = turns 投影 ∪ Stub fixture；活 Event fold = M6-D / stream-timeline S6 |
+| 权限请求 / 回执 | `resolveConfirmation`、`countPendingConfirmations` | 流内 L4 `permission_request` → `pendingActions`；应答经 `AgentService.Chat` 臂（`permissionRespond` fact）；`PermissionService.Respond` 为文档化备选 |
+| MessageQueue | `getMessageQueueState` 与五个操作 | **仍 fixture**；`AgentService.EnqueueQueueItem` 族未进 roster adapter |
+| AutoDrive / Task 列表 | `getAutoDriveTasks` | **仍 fixture**；`PermissionService.SetSessionGoal` 未接 |
+| fork / 子代理 catalog | `IConversationSessionChatService` fixture | `AgentService.Tree` host 首拉 + 事件再拉（§11）；活 fork catalog / `Fork` **未**假装已接通 |
+| `visualize` 工具输出 | fixture / tool turn | 仍 stub / 本地 fixture；引擎工具名待 T4+ |
+| 引擎连接态 | `isEngineConnected` | `SystemService.Connect` 成功 + 非空 `session_token` + 活 channel；pairing-pending → false。StatusBar 文案 = `IUniverseAgentConnection.getConnectionPhase()`（H4b）；connected 芯片 command → Engine pane，否则 Connection |
+| Route / AgentProfile / Model / Permission / Tools 选项 | Composer 各下拉 | 无引擎 = 诚实空；接通后仍待 catalog / 策略 RPC（槽 A） |
+| 本地会话缓存与引擎权威切换 | PRD-017 | D13 @ HEAD：`conversation.roster.v1` @ `StorageScope.WORKSPACE` + `StorageTarget.MACHINE`；引擎接通后本地存 stub + UA 断连快照（`source` 字段） |
 
 ## 6. 维护
 

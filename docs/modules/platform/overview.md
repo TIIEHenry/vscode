@@ -3,8 +3,8 @@ title: "platform 层概览"
 type: overview
 status: accepted
 phase: N/A
-updated: 2026-08-30
-summary: "platform 层角色、可导入范围、DI 约定，以及 instantiation / configuration / commands / agentHost 等代表服务"
+updated: 2026-09-02
+summary: "platform 层角色、可导入范围、DI 约定，以及 instantiation / configuration / commands / agentHost / universeAgent 等代表服务"
 ---
 
 # platform 层概览
@@ -118,6 +118,16 @@ registerSingleton(IUriIdentityService, UriIdentityService, InstantiationType.Del
 - 另有 `IRemoteAgentHostService`、`ITunnelAgentHostService`、`ISSHRemoteAgentHostService`、`IWSLRemoteAgentHostService`、`ICloudSandboxAgentHostService` 等按宿主形态拆分的标识
 
 协议状态机在 `agentHost/common/state/`（生成代码来自 `agent-host-protocol`）。工作台 Chat / Sessions UI 消费这些服务，细节见 [Chat 系统](../../systems/chat/INDEX.md)。就近规格：`src/vs/platform/agentHost/AGENTS.md`。
+
+### UniverseAgent（本仓库 M6-A1）
+
+`universeAgent/` 是 **UniverseAgent gRPC 传输 adapter**（[ADR-003](../../../dev/decisions/003-engine-adapter-boundary.md)），与 `agentHost/` **隔离命名**——不得继承 `IAgentHostService` / `IAgentConnection`：
+
+- `IUniverseAgentConnection`（`common`）：Connect 生命周期、`isEngineConnected`（`session_token` + 活 channel）、能力三态、session / chat / team unary 面；renderer 经 electron-main ProxyChannel 代理
+- `universeAgent/node`：`@grpc/grpc-js` 客户端（`SystemService` / `SessionService` / `AgentService` / `TeamService` / `ToolService` 传输）；`sessionCore` Actor fold；host-only `AgentService.Tree`
+- 消费者：`contrib/conversation` 同 token roster（`ConversationEngineRosterService`）、UA Preferences panes、StatusBar 连接态（H4b）
+
+**AHP 仍非 UA 会话权威**；引擎协议面见 [engine-protocol-surface](../../reference/universe-agent/engine-protocol-surface.md)；系统边界见 [agent-host overview](../../systems/agent-host/overview.md)。
 
 同层相邻、但更窄的目录：
 

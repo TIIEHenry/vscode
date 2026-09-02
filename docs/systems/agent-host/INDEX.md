@@ -3,13 +3,13 @@ title: "Agent Host 系统索引"
 type: index
 status: accepted
 phase: N/A
-updated: 2026-08-30
-summary: "跨层 Agent Host：AHP 协议、宿主进程、IAgentHostService，以及 Chat / Sessions 两套 facade"
+updated: 2026-09-02
+summary: "跨层 Agent Host：AHP 协议、宿主进程、IAgentHostService；UA adapter 在 platform/universeAgent（AHP 非权威）；Chat / Sessions 两套 facade"
 ---
 
 # Agent Host
 
-VS Code 侧的 Agent Host 是独立进程加上 **Agent Host Protocol（AHP）**：renderer / Agents Window 经 platform 服务连上宿主，再由 Chat 与 Sessions 各自投影成自己的会话 facade。它**不是** B2 的 session-core；引擎权威是 UniverseAgent。
+VS Code 侧的 Agent Host 是独立进程加上 **Agent Host Protocol（AHP）**：renderer / Agents Window 经 platform 服务连上宿主，再由 Chat 与 Sessions 各自投影成自己的会话 facade。它**不是** B2 的 session-core；引擎权威是 UniverseAgent（传输 adapter 在 `platform/universeAgent/`，见 [agent-host overview](overview.md)）。
 
 ## 涉及分层
 
