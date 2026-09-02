@@ -4,7 +4,7 @@ type: plan
 status: implemented
 phase: N/A
 updated: 2026-09-02
-summary: "SessionBar 对话|轨迹 tablist；stub 投影 + fixture；轨迹表 + 检查器 + 过程折默认展开；T1–T3 @ `b08ca9de`–`3e2ac61f`；T5a reveal 子集 @ `f66c36c9`；T4 blocked PRD-008；T5 搜索/虚拟化/Overview 仍 Deferred"
+summary: "SessionBar 对话|轨迹 tablist；T1–T3 @ `b08ca9de`–`3e2ac61f`；T5a @ `f66c36c9`；**T4** Event fold @ `5104678e`；**T5** 搜索/虚拟化 @ `94267eef`；Overview / DetailRef 全文 / `compacted` emit 仍 Deferred"
 ---
 
 # Conversation 轨迹透镜
@@ -15,7 +15,7 @@ summary: "SessionBar 对话|轨迹 tablist；stub 投影 + fixture；轨迹表 +
 > 内容对照（只取 view-model / 记录种类，不搬 React）：sibling `deepseek-harness/packages/client/ui-trajectory/`。  
 > 透镜组装：[page-access-schemes.md](page-access-schemes.md) §4 三槽冻结；本方案只在 SessionBar 加闭集切换、在 `timeline` 槽换阅读面。  
 > 本方案 Grok 只读审查（Approve with changes）已当轮改入；2026-09-01 用户签收。Opus 5.0 因账单未付未跑。  
-> **签收：** T1–T3 已合入（`b08ca9de`–`3e2ac61f`）；T5a reveal 子集 @ `f66c36c9`；T4 blocked PRD-008；T5 搜索/虚拟化/Overview 仍 Deferred。
+> **签收：** T1–T3 已合入（`b08ca9de`–`3e2ac61f`）；T5a reveal 子集 @ `f66c36c9`；**T4** Event fold 替换 fixture @ `5104678e`；**T5** 搜索/虚拟化 @ `94267eef`；Overview 瀑布条 / DetailRef 全文 / `compacted` demux 投影 **仍 Deferred**（stream-timeline §6 G2/G3）。
 
 **Goal：** 在默认 Code 窗口 `CONVERSATION_PART` 上提供不可关闭的「对话 | 轨迹」两页。对话页是压缩阅读。轨迹页是同一会话的详细列表，强制显示对话隐去的注入 / chip / 环境，并对长工具段复用过程折 overlay（默认展开）。无引擎用 stub fixture，不冒充已接引擎。
 
@@ -212,11 +212,11 @@ interface ConversationTrajectoryRecord {
 | T1 | tablist + 300px 合同 + 持久化 + **任意**空记录会话空态 + 切会话保持透镜 + Inbox 从轨迹切回对话 | `conversationLens.test.ts` | 否 |
 | T2 | stub 投影 + fixture（context / sourceBlocks / system，均 Stub 文案）+ 对话负向断言 + 独立 import 扫描 | `conversationTrajectory.test.ts` + `conversationTrajectoryImportBoundaries.test.ts` | 否 |
 | T3 | 轨迹表 + 检查器 + tool/subtool 缩进 + **过程折 overlay（默认展开；SYSTEM/context 在折外）** | `conversationTrajectoryUi.test.ts` | 否 |
-| T4 | 引擎 Event fold 替换 fixture（含真 tool 树） | **blocked on PRD-008** | 是 |
+| T4 | 引擎 Event fold 替换 fixture（含真 tool 树） | **已落** @ `5104678e`（`projectSnapshotToTrajectory`；有界 preview，非 DetailRef 全文） | 是 |
 | T5a | 对话 ↔ 轨迹双向 reveal（非 Inbox）：turn 菜单 View in Trajectory；轨迹行链回对话并 `revealTurn` / `revealRecord` | lens + 轨迹导航 wiring（`f66c36c9`；无专属测试文件） | 否 |
-| T5 | 搜索、虚拟化、Overview | Deferred | 是 |
+| T5 | 搜索、虚拟化、Overview | **部分已落** @ `94267eef`（搜索 + 虚拟化 + PRD-020 超限提示）；**Overview / DetailRef 全文 / `compacted` emit 仍 Deferred** | 是 |
 
-**Implemented：** **T1–T3**（`b08ca9de`–`3e2ac61f`）；**T5a** reveal 子集（`f66c36c9`）。T4 否（blocked on PRD-008）；**T5** 搜索/虚拟化/Overview 仍 Deferred。
+**Implemented：** **T1–T3**（`b08ca9de`–`3e2ac61f`）；**T5a**（`f66c36c9`）；**T4**（`5104678e`）；**T5** 搜索/虚拟化（`94267eef`）。**仍 Deferred：** Overview 瀑布条；DetailRef 按需全文（G3）；`compacted` 行 demux 投影（G2/G3）。
 
 T1 与 page-access / M5：**不**改 `agentSessionsActions.ts`、roster `onDidOpen`、Chat 路由。SessionBar 只加 tablist + 上列收缩。**不**提前删 SelectBox。
 

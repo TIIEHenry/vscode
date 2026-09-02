@@ -4,7 +4,7 @@ type: plan
 status: accepted
 phase: N/A
 updated: 2026-09-02
-summary: "PRD-023 实施方案（规则 16 三轮 Cursor CLI Grok 审查后签收；R1 / R2 / R4a ReadyToImplement）：Review tab 不等「review 引擎」——它是 Changes 同一变更集的只导航面（Desktop UI-INV-09 / ADR-043 口径，本仓分叉：审阅进度放 Review 而非 Changes），加三样东西：窗口内存审阅进度（键 repoRoot+uri+etag，etag=mtime+size 代理，内容变即失效，不落盘、不回写、不做门禁）、引擎接通后由 A2 demux 产出的归一化文件改动事件 → 归因 chip（装饰不改列表）、助手回合尾「查看更改」导航行（物化 own-data，断连保留）；基线 = commit HEAD（含 sources-changes-diff F1–F3 三宿主分派）；R1 / R2 / R4a 无引擎可开，R3 / R4b 排 M6-A2 / S2 后；缺口 G-REV-1"
+summary: "PRD-023：R1–R4b 已落 @ `05007b60`–`f1065288`；R5 验收 + 知识层待冒烟；缺口 G-REV-1"
 ---
 
 # Sources Review：只导航审阅面
@@ -13,7 +13,7 @@ summary: "PRD-023 实施方案（规则 16 三轮 Cursor CLI Grok 审查后签�
 > **基线**：本稿相对 **commit HEAD**（含 [sources-changes-diff](sources-changes-diff.md) F1–F3 已落：`sourcesChangeEntryOpen.ts` 三宿主分派、`ConversationDiffReviewInput`、Panel Diff 视图；含 stream-timeline S1 的 `platform/universeAgent/common/sessionView`）。不以未 checkout 的工作树为准。  
 > **对照合同（`source`，不隐式继承）**：Desktop [ADR-043](../../../UniverseAgentDesktop/dev/decisions/043-agent-change-disposition-and-review-progress.md)：Review 只导航（UI-INV-09）；审阅进度是 scope-local own-data，键 `(scopeKeyId, path, contentHash)`，内容变即失效，不落盘、不回写引擎、不进会话事实、不做 Send / Commit 门禁（INV-DISP-2 / 6）；无 correlation 时禁止「本轮改动」文案（INV-DISP-3）；Discard 归 Changes owner。Desktop [ui-interaction-spec](../../../UniverseAgentDesktop/docs/product/ui-interaction-spec.md) `UI-REVIEW-01`：助手回合尾「查看更改」只打开 Sources（优先 Review），无 capability 则省略。**本仓分叉**：Desktop 把审阅进度放在 Changes owner；本仓 PRD-023 把它放在 **Review**——这是 Review tab 的存在理由，Changes 保持纯 stage / commit 面。  
 > **不推翻**：[ADR-005](../decisions/005-changes-diff-owner.md)（Diff 默认归属可设；开 Diff 不自动撑开已收起的 Sources）；[sources-changes-diff](sources-changes-diff.md) F1–F5（本稿不碰 `sourcesChangeEntryOpen.ts` / Diff input / Panel 视图）；[conversation-stream-timeline](conversation-stream-timeline.md)（不改 session-core 类型；`projectSnapshotToEntries` 签名不加参数）。  
-> **审查记录**：见文末。规则 16 三轮已过（第三轮无 Critical，Important 全部改入），2026-09-02 用户授权「用 Cursor CLI Grok 审查、架构由本会话裁定」，据此 `accepted`。**ReadyToImplement：R1 / R2 / R4a**（无引擎，域 `contrib/sources/**`，与 sources-changes-diff F4–F5 不同文件）；R3 / R4b 等 M6-A2（含 §8 增量）与 stream-timeline S2。
+> **审查记录**：见文末。规则 16 三轮已过（第三轮无 Critical，Important 全部改入），2026-09-02 用户授权「用 Cursor CLI Grok 审查、架构由本会话裁定」，据此 `accepted`。**R1–R4b 代码已落** @ `05007b60`–`f1065288`；**R5** 验收（V-R1–V-R6）+ §7 知识层仍待冒烟证据。
 
 ## 0. 目标与非目标
 
@@ -129,11 +129,11 @@ summary: "PRD-023 实施方案（规则 16 三轮 Cursor CLI Grok 审查后签�
 
 | 切片 | 做什么 | 硬依赖 | 测试 / Exit |
 |------|--------|--------|-------------|
-| **R1 审阅进度** | `ISourcesReviewProgressService` + 键 / etag 失效 / rename 清理 + 行 ● / ○ + 两行行高与 a11y + 三个标记动作 + 「已审阅 x / y」+「仅未审阅」toggle + Review `onDidOpen` 成功后自动标记 | 无（HEAD 三参数调用点已在；可立即开） | 新 `sourcesReviewProgress.test.ts`：同 key 幂等；etag 变 → 失效；repo 不同互不影响；stat 失败 etag `''`；资源消失清键；`IStorageService` import 扫描 + 运行时 mock 零调用。新 `sourcesReviewList.test.ts`：行状态 / 计数 / toggle；Review 打开成功才标记、失败不标；Changes 打开不标 |
-| **R2 文案与知识层改口** | §2.8 三处（PRD-005 除外） | 无（可与 R1 并行） | strings 单测更新；`check-docs-health` 0 warning |
-| **R4a Sources 命令 + path-set** | `sources.review.showForPaths`；`selectTab` public；§2.7 path-set；新 `sourcesReview.contribution.ts`（**不**塞进 `sources.contribution.ts`） | 无硬依赖（建议与 R1 同工位，不阻塞；无引擎可开） | 命令单测：Sources 隐藏时被显示；tab 切到 review；path-set 生效且与文本 filter AND；「清除」置空；Files / Changes filter 行为不变 |
-| **R3 归因 sidecar** | 消费 `onDidFileMutation` → 分桶 sidecar；chip 渲染 + Turn n 算法；work_dir 匹配；断连保留；`conversation.revealItem`（若 navigator N3 未建） | M6-A2 含 §8 增量（host join 表 + pending + settle + 重播种回填 + `ItemAttribution.toolCallId`）；S1 lease | 新 `sourcesReviewAttribution.test.ts`：fixture 事件 + fake lease 快照 → chip 数 / 去重 / `+n` / Turn n = 快照中 `role==='user'` 且 orderKey ≤ 工具项的条数 / `toolCallId` 反查不到时只显 agent；work_dir 不同 → 零 chip；断连 → chip 保留、列表不变；从未连接 → 零 chip；`revealItem` 经 attribution 反查、查不到静默 |
-| **R4b 「查看更改」行** | reviewNav 幂等物化（settle 信号）+ `attachReviewEntries(entries, snapshot, reviewNav)` + `'reviewNav'` kind + 透镜订阅 sidecar `onDidChange` + 帧类 B / A + 调 R4a | R3 + stream-timeline **S2**（`applyEntries` / `diffProjections` 与 contrib 侧 kind 存在）| 新 `conversationReviewEntry.test.ts`：无 mutation → 无行；无 SCM → 无行；work_dir 不匹配 → 无行；**未 settle → 无行，`turn_completed` 后出现**；迟到 snapshot → N 递增、id 不变、判为帧类 A；新增 / 删除 → 帧类 B；插入点在该 turn 最后一条 L2 entry（含 tool）之后；该 turn 尚无 entry → 本帧不插；无新帧只有 sidecar 变化也重渲染；过程折不吞该 kind；`entriesToLegacyTurns` 丢弃该 kind；断连后行保留 |
+| **R1 审阅进度** **已落** @ `05007b60` | `ISourcesReviewProgressService` + 键 / etag 失效 / rename 清理 + 行 ● / ○ + 两行行高与 a11y + 三个标记动作 + 「已审阅 x / y」+「仅未审阅」toggle + Review `onDidOpen` 成功后自动标记 | 无（HEAD 三参数调用点已在；可立即开） | 新 `sourcesReviewProgress.test.ts`：同 key 幂等；etag 变 → 失效；repo 不同互不影响；stat 失败 etag `''`；资源消失清键；`IStorageService` import 扫描 + 运行时 mock 零调用。新 `sourcesReviewList.test.ts`：行状态 / 计数 / toggle；Review 打开成功才标记、失败不标；Changes 打开不标 |
+| **R2 文案与知识层改口** **已落** @ `05007b60` | §2.8 三处（PRD-005 除外） | 无（可与 R1 并行） | strings 单测更新；`check-docs-health` 0 warning |
+| **R4a Sources 命令 + path-set** **已落** @ `05007b60` | `sources.review.showForPaths`；`selectTab` public；§2.7 path-set；新 `sourcesReview.contribution.ts`（**不**塞进 `sources.contribution.ts`） | 无硬依赖（建议与 R1 同工位，不阻塞；无引擎可开） | 命令单测：Sources 隐藏时被显示；tab 切到 review；path-set 生效且与文本 filter AND；「清除」置空；Files / Changes filter 行为不变 |
+| **R3 归因 sidecar** **已落** @ `c7091b8e` | 消费 `onDidFileMutation` → 分桶 sidecar；chip 渲染 + Turn n 算法；work_dir 匹配；断连保留；`conversation.revealItem`（若 navigator N3 未建） | M6-A2 含 §8 增量（host join 表 + pending + settle + 重播种回填 + `ItemAttribution.toolCallId`）；S1 lease | 新 `sourcesReviewAttribution.test.ts`：fixture 事件 + fake lease 快照 → chip 数 / 去重 / `+n` / Turn n = 快照中 `role==='user'` 且 orderKey ≤ 工具项的条数 / `toolCallId` 反查不到时只显 agent；work_dir 不同 → 零 chip；断连 → chip 保留、列表不变；从未连接 → 零 chip；`revealItem` 经 attribution 反查、查不到静默 |
+| **R4b 「查看更改」行** **已落** @ `f1065288` | reviewNav 幂等物化（settle 信号）+ `attachReviewEntries(entries, snapshot, reviewNav)` + `'reviewNav'` kind + 透镜订阅 sidecar `onDidChange` + 帧类 B / A + 调 R4a | R3 + stream-timeline **S2**（`applyEntries` / `diffProjections` 与 contrib 侧 kind 存在）| 新 `conversationReviewEntry.test.ts`：无 mutation → 无行；无 SCM → 无行；work_dir 不匹配 → 无行；**未 settle → 无行，`turn_completed` 后出现**；迟到 snapshot → N 递增、id 不变、判为帧类 A；新增 / 删除 → 帧类 B；插入点在该 turn 最后一条 L2 entry（含 tool）之后；该 turn 尚无 entry → 本帧不插；无新帧只有 sidecar 变化也重渲染；过程折不吞该 kind；`entriesToLegacyTurns` 丢弃该 kind；断连后行保留 |
 | **R5 验收 + 知识层** | §4 V-R1–V-R6；§7 知识层；engine-protocol-surface §1 / §4 回填 | R1–R4 | 证据目录；0 warning |
 
 冲突域：R1 / R2 / R4a 只改 `sourcesReviewList.ts`、`sourcesReviewListStrings.ts`、`sourcesTabsHost.ts`（`selectTab` 可见性）与新文件；**不改** `sourcesChangeEntryOpen.ts` / `sourcesChangesList.ts` / `sourcesChangesModel.ts` / Diff input / Panel 视图 / `sources.contribution.ts`。R3 只读 connection 接口。R4b 改 `contrib/conversation`，须在 S2 之后由同工位做。

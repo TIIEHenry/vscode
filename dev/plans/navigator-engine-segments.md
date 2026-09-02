@@ -4,7 +4,7 @@ type: plan
 status: accepted
 phase: N/A
 updated: 2026-09-02
-summary: "PRD-022 实施方案（规则 16 三轮 Cursor CLI Grok 审查后签收）：Navigator 三段从诚实空接到 UA 活数据——Projects = Engine → work_dir → Session 只读树（roster 同一份数据）；Agents Hierarchy 只读会话视图 lease 的 liveAgentTree（Tree 拉取含首拉归 M6-A2 host，contrib 零 RPC）；Activity = lease timeline ∪ overlay 的 tool 项；Team = 从同一棵树发现 manager → connection 三个 team unary（对 m6 的增量修订 §9）；Inspect 经 IAgentInspectService 选中总线；无引擎三段与 HEAD 一致；v1 只读；根 chatId 仍 'default'、非根逐字 ≡ agent_id；切片 N1–N5 全排 M6-A2 后；缺口 G-NAV-1 / G-NAV-2"
+summary: "PRD-022 实施方案：N1–N4 已落 @ `87b6ec09`；N5 隔离 profile 验收 + 知识层待冒烟；缺口 G-NAV-1 / G-NAV-2"
 ---
 
 # Navigator 引擎段：Projects / Agents / Team
@@ -14,7 +14,7 @@ summary: "PRD-022 实施方案（规则 16 三轮 Cursor CLI Grok 审查后签�
 > **上游**：[PRD-008](../../docs/product/requirements.md#prd-008-引擎与会话权威) `blocked`；全部切片排在 [m6-engine-wave](m6-engine-wave.md) **M6-A2** 合入之后。本稿 §9 对 m6 A2 有**增量修订**（host 拉 Agent 树、connection 暴露 team unary 与一个 IDE 侧事件），须随本稿同批签收。  
 > **不推翻**：[page-access-schemes §5.4](page-access-schemes.md)（Navigator 四段 = Sidebar 发现面；inspect 只进 Panel；Engines 不进 Activity；不升格 L1；Projects 不做第二份 flat roster；Agents 不用 `AICustomizationManagementEditor` / `IChatAgentService`）；[ADR-003](../decisions/003-engine-adapter-boundary.md)（`contrib/**` 禁 import `platform/universeAgent/node/**`；同 token 演进）；[conversation-stream-timeline](conversation-stream-timeline.md)（lease 是显示写源；不改 session-core 类型）；[ADR-006](../decisions/006-shell-invariants.md)。  
 > **权威**：RPC 名与字段以外仓 `grpc-api/src/main/proto` 为准（§2 只写消息名与字段，不写行号）；签收后回填 [engine-protocol-surface](../../docs/reference/universe-agent/engine-protocol-surface.md) §1 / §2 / §4。  
-> **审查记录**：见文末。规则 16 三轮已过（第三轮无 Critical，Important 全部改入），2026-09-02 用户授权「用 Cursor CLI Grok 审查、架构由本会话裁定」，据此 `accepted`。**ReadyToImplement：无**——N1–N5 全部硬依赖 M6-A2（含 §9 增量）合入；A2 之前只能做 §8 知识层准备。
+> **审查记录**：见文末。规则 16 三轮已过（第三轮无 Critical，Important 全部改入），2026-09-02 用户授权「用 Cursor CLI Grok 审查、架构由本会话裁定」，据此 `accepted`。**N1–N4 代码已落** @ `87b6ec09`；**N5** 隔离 profile 验收（V-N1–V-N6）+ §8 知识层仍待冒烟证据。
 
 ## 0. 目标与非目标
 
@@ -163,10 +163,10 @@ summary: "PRD-022 实施方案（规则 16 三轮 Cursor CLI Grok 审查后签�
 
 | 切片 | 做什么 | 硬依赖 | 测试 / Exit |
 |------|--------|--------|-------------|
-| **N1 Projects 树** | `NavigatorProjectsView` 改三层树；引擎根 + 唯一 work_dir 组（G-NAV-1 未补）+ 本地文件夹组；会话行 `switchSession`；能力 / 传输态文案 | M6-A2 roster 同 token（`getSessions` / `switchSession` / `onDidChangeSessions`）+ connection 快照 `workDir` | 新 `navigatorProjectsTree.test.ts`：无引擎只剩本地组且行为同 HEAD；有引擎三层结构、切会话只调 roster 一次、`sessionList` UNSUPPORTED 文案、断连保留快照；HEAD `navigatorProjectsList.test.ts` 不回归 |
-| **N2 Agents Hierarchy + Inspect 总线** | 读 `liveAgentTree`；节点字段；`IAgentInspectService` + 四模板 + 空态改口；Reveal 分支 | M6-A2（host 填 `liveAgentTree` 含首拉；§9 `requestAgentTreeRefresh`；§2.6 id 约定：根 `'default'` 例外 + 非根惰性 `registerSubAgentChat` 用 `agent_id`，**禁止预同步 catalog**） | 新 `navigatorAgentsHierarchy.test.ts`：fake lease 快照三层 `liveAgentTree` → 树三层、类型图标、状态 glyph、`UNKNOWN` 状态文案；`agentTree` UNSUPPORTED 文案；只有根 → 「只有根 Agent」；`agentInspectPanel.test.ts` 增 `setTarget` 四模板与空态断言；Reveal 三分支 mock `IConversationSessionChatService` |
-| **N3 Agents Activity** | `timeline ∪ overlay` tool 项；lease 生命周期；reveal；200 条上限 | S1 `acquireSessionView` 已合入（A2 之后已是事实，不是独立闸门）+ `conversation.revealItem` 命令；引擎活数据随 M6-A2（S4 已含于 A2） | 新 `navigatorAgentsActivity.test.ts`：只有 overlay 工具行时列表非空；去重；排序；超 200 条截断文案；`!isEngineConnected` → HEAD 空态；视图 dispose 后 fake lease 计数归零；无 `post` 调用（负向 mock） |
-| **N4 Team** | manager 发现（同一棵树）→ `team.memberStatus` / `taskList`；`liveTeamId` 有值才 `teamInfo`；`onDidChangeTeamRuntime` 刷新；多 manager 分组 | N2 + §9 connection team unary 与事件（A1/A2） | 新 `navigatorTeam.test.ts`：树含 MEMBER 子节点 → 各调一次；无 MEMBER → 「当前会话没有团队」；`liveTeamId` 空 → 不调 `teamInfo`；事件后 250 ms 内重取一次；`team` UNSUPPORTED 文案；**仅 Team 可见、Agents lease 计数为 0 时**，fake lease 仍读到含 MEMBER 的树并各调一次 unary（不借用 Agents 叶） |
+| **N1 Projects 树** **已落** @ `87b6ec09` | `NavigatorProjectsView` 改三层树；引擎根 + 唯一 work_dir 组（G-NAV-1 未补）+ 本地文件夹组；会话行 `switchSession`；能力 / 传输态文案 | M6-A2 roster 同 token（`getSessions` / `switchSession` / `onDidChangeSessions`）+ connection 快照 `workDir` | 新 `navigatorProjectsTree.test.ts`：无引擎只剩本地组且行为同 HEAD；有引擎三层结构、切会话只调 roster 一次、`sessionList` UNSUPPORTED 文案、断连保留快照；HEAD `navigatorProjectsList.test.ts` 不回归 |
+| **N2 Agents Hierarchy + Inspect 总线** **已落** @ `87b6ec09` | 读 `liveAgentTree`；节点字段；`IAgentInspectService` + 四模板 + 空态改口；Reveal 分支 | M6-A2（host 填 `liveAgentTree` 含首拉；§9 `requestAgentTreeRefresh`；§2.6 id 约定：根 `'default'` 例外 + 非根惰性 `registerSubAgentChat` 用 `agent_id`，**禁止预同步 catalog**） | 新 `navigatorAgentsHierarchy.test.ts`：fake lease 快照三层 `liveAgentTree` → 树三层、类型图标、状态 glyph、`UNKNOWN` 状态文案；`agentTree` UNSUPPORTED 文案；只有根 → 「只有根 Agent」；`agentInspectPanel.test.ts` 增 `setTarget` 四模板与空态断言；Reveal 三分支 mock `IConversationSessionChatService` |
+| **N3 Agents Activity** **已落** @ `87b6ec09` | `timeline ∪ overlay` tool 项；lease 生命周期；reveal；200 条上限 | S1 `acquireSessionView` 已合入（A2 之后已是事实，不是独立闸门）+ `conversation.revealItem` 命令；引擎活数据随 M6-A2（S4 已含于 A2） | 新 `navigatorAgentsActivity.test.ts`：只有 overlay 工具行时列表非空；去重；排序；超 200 条截断文案；`!isEngineConnected` → HEAD 空态；视图 dispose 后 fake lease 计数归零；无 `post` 调用（负向 mock） |
+| **N4 Team** **已落** @ `87b6ec09` | manager 发现（同一棵树）→ `team.memberStatus` / `taskList`；`liveTeamId` 有值才 `teamInfo`；`onDidChangeTeamRuntime` 刷新；多 manager 分组 | N2 + §9 connection team unary 与事件（A1/A2） | 新 `navigatorTeam.test.ts`：树含 MEMBER 子节点 → 各调一次；无 MEMBER → 「当前会话没有团队」；`liveTeamId` 空 → 不调 `teamInfo`；事件后 250 ms 内重取一次；`team` UNSUPPORTED 文案；**仅 Team 可见、Agents lease 计数为 0 时**，fake lease 仍读到含 MEMBER 的树并各调一次 unary（不借用 Agents 叶） |
 | **N5 隔离 profile 验收 + 知识层** | §5 V-N1–V-N6；§8 知识层；engine-protocol-surface §1 / §2 / §4 回填 | N1–N4 | 证据目录 `dev/progress/dN-evidence/`；`check-docs-health` 0 warning |
 
 冲突域：N1–N4 只改 `contrib/navigator/**` 与其测试，外加 `contrib/conversation` 的一条新命令 `conversation.revealItem`（N3，与 sources-review 共用，谁先落谁建）。**不**改 `platform/universeAgent/**`——§9 所列 connection / host 增量归 **M6-A2 切片**实施，是本稿对 m6 的修订，不是本稿切片；N2 / N4 的硬前置就是那些增量已合入。

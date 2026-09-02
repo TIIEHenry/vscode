@@ -4,7 +4,7 @@ type: plan
 status: accepted
 phase: M6
 updated: 2026-09-02
-summary: "R5 方案（2026-09-02 用户委托裁决签收）：platform 传输 adapter + 同 token roster 投影；history 经 session-core fold；AHP 非权威；能力三态；切片 M6-A1 platform → M6-A2 contrib 接线 → page-access 5 → E1 → T4；§11 并入 navigator / sources-review 增量（team unary、Agent 树首拉、文件改动 join、agentTree/team 键）"
+summary: "R5 签收：A1–A2/B/D 代码已落；C E1 部分（Skills list/toggle + Agents/MCP/Tools List）；Save/CRUD/tools.json 未落；PRD-008 仍 accepted"
 ---
 
 # M6 引擎波
@@ -16,7 +16,7 @@ summary: "R5 方案（2026-09-02 用户委托裁决签收）：platform 传输 a
 > **能力矩阵 SSOT：** [customizations-engine.md](customizations-engine.md) §2 / §3.7。本稿不重开 catalog 权威。  
 > **AHP：** [agent-host overview](../../docs/systems/agent-host/overview.md) — `IAgentHostService` 不是 UA session-core。
 
-**签收（2026-09-02）：** 规则 16 只读审查 Approve with changes 已全部改入（见文末审查记录）；用户委托裁决「分析 loop 阻塞、解禁后续」，据此本稿与 ADR-003 同批升 `accepted`。**M6-A1 ReadyToImplement**（可与 stream-timeline S1–S3 并行）；M6-A2 在 S3 合入后开；M6-B/C/D 按 §8 串行。本稿 **不改** `src/`。
+**签收（2026-09-02）：** 规则 16 只读审查 Approve with changes 已全部改入（见文末审查记录）；用户委托裁决「分析 loop 阻塞、解禁后续」，据此本稿与 ADR-003 同批升 `accepted`。**代码已落：** **A1** @ `25ed2c28`、**A2** @ `fbce0d84`（含 stream-timeline S4/S5）、**B** @ `42d523f1`、**D** @ `5104678e`；**C E1 部分** @ `8bfc299e`/`4833c008`（Skills list/toggle + Agents/MCP/Tools **List**；Save/CRUD/tools.json **未落**）。PRD-008 仍须冒烟才升 `implemented`。
 
 ---
 
@@ -28,7 +28,7 @@ summary: "R5 方案（2026-09-02 用户委托裁决签收）：platform 传输 a
 2. Engine 页（`ua.engine`）能按能力三态显隐 catalog；无连接时仍是诚实空 + Test（PRD-007）。
 3. 轨迹透镜能用引擎 Event fold 替换 fixture（T4），且不经过 AHP / `IChatModel`。
 
-**M6 完成线（已签收，可实施）：** M6-A1 platform 传输 → M6-A2 adapter 同 token 替换 stub 实现（含 stream-timeline S4 / S5）→ page-access 切片 5 UI 状态机 → E1 Skills list/toggle → trajectory T4（S6）。PRD-008 仍须启动冒烟证据才升 `implemented`。
+**M6 完成线（已签收，可实施）：** M6-A1 platform 传输 → M6-A2 adapter 同 token 替换 stub 实现（含 stream-timeline S4 / S5）→ page-access 切片 5 UI 状态机 → E1 Skills list/toggle → trajectory T4（S6）。**代码状态 @ HEAD：** A1–A2 / B / D **已落**；C **部分**（list/toggle，非完整 E1 验收）。PRD-008 仍须启动冒烟证据才升 `implemented`。
 
 ---
 
@@ -189,7 +189,7 @@ stream-timeline S1 → S2 → S3（工位 D，串行）      M6-A1 platform/univ
                                        → M6-D trajectory T4（= stream-timeline S6）
 ```
 
-### M6-A1 — platform adapter（本波新建；**不改 `contrib/`**）
+### M6-A1 — platform adapter **已落** @ `25ed2c28`
 
 **做什么：** 新建 `src/vs/platform/universeAgent/`：`common` 契约 `IUniverseAgentConnection`（Connect 生命周期、能力三态快照、session / chat / permission / catalog TS 面）；`node` gRPC 客户端（`@grpc/grpc-js`；生成 / 手写 stub）+ `SystemService.Connect` + `GrpcCapabilityProbe` 等价探测 + `SessionService.List/Create/Delete` + `GetHistory` / `SessionEventStream` / `AgentService.Chat` 的传输原语；`electron-browser` ProxyChannel 代理（**非** agentHost UtilityProcess；宿主进程 main / shared / 新 utility 由本刀实施定并写入 ADR-003 审查记录）。`isEngineConnected` = `session_token` + 活 channel（pairing-pending → false）。**history / stream 不自建投影**：本刀只暴露传输与订阅端口，fold 归 S1 落下的 `node/sessionCore` Actor（`historyResult` → fold → baseline）。
 
@@ -197,7 +197,7 @@ stream-timeline S1 → S2 → S3（工位 D，串行）      M6-A1 platform/univ
 
 **验证：** platform 单测 mock channel：Connect 成功 + token + 活 channel → `isEngineConnected===true`；pairing-pending → false；`GrpcCapabilityProbe` UNIMPLEMENTED on skills → `UNSUPPORTED`（非 methods 命中 alone）；transport 失败 → `transport: failed` 而非空列表。`npm run compile` + `npm run eslint`（`local/code-layering` 对 `platform/universeAgent/**` 为 error）绿。
 
-### M6-A2 — contrib 接线（S3 与 A1 合入后）
+### M6-A2 — contrib 接线 **已落** @ `fbce0d84`（S3 与 A1 合入后）
 
 **做什么：** 引擎实现类替换 `registerSingleton(IConversationRosterService, …)`，同 token；**`GetHistory` 经 session-core `historyResult` 进 Actor，由 fold 产 baseline 帧，不另写 roster 投影**（2026-09-02 按 [conversation-stream-timeline §9](conversation-stream-timeline.md) 替换原「`GetHistory` 只读投影到 roster」）；含该稿 **S4**（`SessionEventStream` 订阅 + demux + attribution + Actor + lease over ProxyChannel）与 **S5**（Chat 写路径 + outbox + `heartbeat_ack` + permission / question / clientTool respond）。**发送链（本刀必改）：**
 
@@ -212,7 +212,7 @@ stream-timeline S1 → S2 → S3（工位 D，串行）      M6-A1 platform/univ
 
 **验证：** 断连 / 已连接 `deleteSession` 不回填 stub 种子到 UA catalog；已连接 `appendStubEchoAssistant` 被拒；`conversationLens.test.ts` 全绿；S4 隔离 profile 冒烟（hello → live、gap → syncing → live、断连 → closed 快照）。**分层门：** ESLint `local/code-layering` + S1 的 platform 级 boundary 测（`src/vs/workbench/**`、`src/vs/sessions/**` 生产文件禁 import `platform/universeAgent/node/**`）；`valid-layers-check` 是 API / lib 检查，不承担此职（[D8](../progress/deferred-gaps.md) 豁免期内不作门禁）。
 
-### M6-B — page-access 切片 5（**仅 UI 合同**）
+### M6-B — page-access 切片 5 **已落** @ `42d523f1`（**仅 UI 合同**）
 
 父方案 [page-access-schemes §10 切片 5](page-access-schemes.md)：**adapter 同 token 与发送/ roster 行为已在 M6-A2 落地**；本刀 **只改 UI 状态机与验收**，不重开 gRPC / roster 实现。
 
@@ -224,13 +224,13 @@ stream-timeline S1 → S2 → S3（工位 D，串行）      M6-A1 platform/univ
 
 **验证：** 父方案切片 5 Tests + 负向 send 测（断言 UI 合同，不断言 adapter 内部）。
 
-### M6-C — customizations E1
+### M6-C — customizations E1 **部分已落** @ `8bfc299e`/`4833c008`
 
-[customizations-engine §8.3](customizations-engine.md) 六条产品验收。依赖 A1 的 `skills` 三态探测与 A2 的连接态。H0–H3 donor 已落，禁止改扫描根到 `{AgentHome}`。
+[customizations-engine §8.3](customizations-engine.md) 六条产品验收仍待冒烟。**已落：** Skills list/toggle；Agents/MCP/Tools **List**（MCP toggle enablement）。**未落：** `SaveAgentProfile`、profile `tools.json`、MCP 定义 CRUD。H0–H3 donor 已落，禁止改扫描根到 `{AgentHome}`。
 
-### M6-D — trajectory T4
+### M6-D — trajectory T4 **已落** @ `5104678e`（= stream-timeline S6）
 
-[conversation-trajectory-lens](conversation-trajectory-lens.md) T4：Event fold 替换 fixture（含真 tool 树）= [conversation-stream-timeline](conversation-stream-timeline.md) S6（`GetHistory` + `DetailRef` 全文、`compacted` 投影、子代理按 attribution 过滤；依赖其 §6 G2 / G3 上游缺口）。依赖 A2 的 history/stream 与 B 的活 turns。`compacted` 仍预留、折外。visualize T4（PRD-014）**不**绑死本刀，可在 D 后跟随。
+[conversation-trajectory-lens](conversation-trajectory-lens.md) T4：Event fold 替换 fixture（含真 tool 树）= [conversation-stream-timeline](conversation-stream-timeline.md) S6（`projectSnapshotToTrajectory`；**G2/G3 仍 open**— DetailRef 全文 / `compacted` emit 未闭合）。依赖 A2 的 history/stream 与 B 的活 turns。`compacted` 仍预留、折外。visualize T4（PRD-014）**不**绑死本刀，可在 D 后跟随。
 
 ---
 
