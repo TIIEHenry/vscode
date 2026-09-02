@@ -71,3 +71,18 @@ export function groupSkillsBySource(skills: readonly UniverseAgentSkillSummary[]
 
 /** True when catalog rows must not be shown (E1 negative paths). */
 export const shouldHideSkillCatalogRows = shouldHideCatalogRows;
+
+export function getDefaultNewSkillName(): string {
+	return `new-skill-${Date.now()}`;
+}
+
+export function getDefaultNewSkillContent(skillName: string): string {
+	return [
+		'---',
+		'enabled: true',
+		'---',
+		`# ${skillName}`,
+		'',
+		localize('ua.engineSkillNewDefaultBody', "Describe what this skill does."),
+	].join('\n');
+}
