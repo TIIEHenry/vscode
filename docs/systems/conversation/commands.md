@@ -33,9 +33,10 @@ summary: "四钮、Conversation、Sources、Sessions roster、UA Preferences、�
 | `workbench.action.conversation.splitSessionWindow` | Split Conversation Editor（类别 Conversation） | 当前叶内开 `CONVERSATION_SIDE_GROUP`；F1 | `Ctrl/Cmd+\`（`conversationPartFocus`） |
 | `workbench.action.conversation.nextChatTab` | Open Next Conversation Chat | 当前 Conversation 叶内下一 chat tab / 下一 split 列；不打到 Preview | `Ctrl+PageDown`（mac `Cmd+Alt+→`） |
 | `workbench.action.conversation.previousChatTab` | Open Previous Conversation Chat | 当前 Conversation 叶内上一 chat tab / 上一 split 列 | `Ctrl+PageUp`（mac `Cmd+Alt+←`） |
+| Conversation chat tablist ← / → | 焦点在 chat tablist 上 | 只切同组 tab（循环）；Home / End 到首尾；不跨 split 列、不打到 Preview | 组件内键处理（`conversationSplitActions.contribution.ts`） |
 | SessionBar ← / → | 按钮；鼠标侧键 4 / 5（`event.button` 3 / 4） | 每个 Conversation `IEditorPart` 自有导航栈 | 鼠标侧键 |
 | SessionBar「关非根」 | 按钮 | `closeNonRootTabs` | 无 |
-| 子代理对话框：popout / maximize / close | overlay 按钮 | `promoteSubAgentDialog` / `toggleSubAgentDialogMaximized` / `closeSubAgentDialog` | 无 |
+| 子代理对话框：popout / maximize / close | overlay 按钮；Esc | Esc 先关局部 inspector，再关对话框，不关根会话 | Esc（组件内） |
 | 「对话 \| 轨迹」 | pane 内透镜切换 | 持久化到 workspace storage | 无 |
 | Composer | Enter 发送；Shift+Enter 换行；Esc 退出 turnEdit / queueEdit；↑ / ↓ 浏览输入历史 | 见 [composer-and-inbox](composer-and-inbox.md) | 组件内键处理 |
 | 图示卡全屏 | Expand diagram；Esc 关闭 | overlay Close + Reset | 组件内键处理 |
@@ -101,11 +102,11 @@ Sources 无独立命令；tab 切换为 title 区 tab strip 点击（`nextSource
 
 | 控件 | 实现文件 |
 |------|----------|
-| 延伸 chat tab / SessionBar 窗口导航（← / →） | `conversationNavigation.contribution.ts` |
+| 延伸 chat tab / SessionBar 窗口导航（← / →） | `conversationNavigation.contribution.ts`、`conversationSplitActions.contribution.ts`（tablist 左右键） |
 | 「对话 \| 轨迹」透镜 tablist | `conversationLens.ts` |
 | 过程折（Process steps） | `conversationProcessFold.ts`、`conversationTimelineTree.ts` |
 | 权限 / 确认座位（confirmation seat） | `conversationConfirmationSeat.ts` |
 | Composer 底栏 Permission 下拉 | `conversationLens.ts`（文案 `conversationLensDockStrings.ts`） |
 | 子代理对话框 overlay | `conversationSubAgentOverlay.ts` |
 
-**仍缺（PRD-018 其余项）**：延伸 chat tab 左右键、子代理对话框 / 「对话 \| 轨迹」透镜 / 过程折 / 权限座位的**部分默认键盘快捷键**（aria 名已部分落地，见上表）；`showConversationPart`、关非根仍无默认键位。`split` 与 chat tab 的 `Ctrl+\\` / `Ctrl+PageDown` 已在 `conversationPartFocus` 时接管，不再只打到 Preview。约束与目标见 [PRD-018](../../product/requirements.md#prd-018-键盘可达与辅助功能)（`accepted`）。
+**仍缺（PRD-018 其余项）**：「对话 \| 轨迹」透镜 / 过程折 / 权限座位的**部分默认键盘快捷键**（aria 名已部分落地，见上表）；`showConversationPart`、关非根仍无默认键位。`split` 与 chat tab 的 `Ctrl+\\` / `Ctrl+PageDown` 已在 `conversationPartFocus` 时接管；chat tablist 左右键与子代理 Esc（先 inspector 再对话框）已落。约束与目标见 [PRD-018](../../product/requirements.md#prd-018-键盘可达与辅助功能)（`accepted`）。

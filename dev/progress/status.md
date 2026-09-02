@@ -11,7 +11,7 @@ summary: "2026-09-02 用户委托裁决解禁：R5 m6-engine-wave + ADR-003 acce
 
 ## Current Session
 
-- **B 槽 Q5 键盘 / question（本工位）：** question 投影不再因 `multiSelect`/`allowCustom` 关掉提交座位；checkbox + 自定义输入走 `questionRespond` 的 `selectedLabels[]`/`customText`。visualize / 子代理 overlay 打开抢焦点并 Tab 循环。Conversation 获焦时 `Ctrl+\\` / `Ctrl+PageDown` 作用于 chat tab / split，不打到 Preview。
+- **B 槽 Q5 键盘 / question（本工位）：** question 投影不再因 `multiSelect`/`allowCustom` 关掉提交座位；checkbox + 自定义输入走 `questionRespond` 的 `selectedLabels[]`/`customText`。visualize / 子代理 overlay 打开抢焦点并 Tab 循环。Conversation 获焦时 `Ctrl+\\` / `Ctrl+PageDown` 作用于 chat tab / split，不打到 Preview。chat tablist 左右键只切同组 tab；子代理 Escape 先关局部 inspector，再关对话框，不关根会话。
 - **集成 HEAD：** `4a607cc2` — **agent-ide**（loop/B R5 签收、loop/C Diff F1–F2、loop/D S1 scaffold 已并入；**主仓工作树 `src/` 尚未 checkout 到该 HEAD**，见下条 Blockers「工作树同步」；开新波前各槽须 rebase 到本次裁决 commit 之后）。
 - **已闭里程碑：** 壳层 PRD-001–016 / M5 / D1–D7 / **D11**；R6 closed @ [ADR-005](../decisions/005-changes-diff-owner.md)；**R5 closed**：[m6-engine-wave](../plans/m6-engine-wave.md) + [ADR-003](../decisions/003-engine-adapter-boundary.md) `accepted` @2026-09-02。
 - **Loop 阻塞裁决（2026-09-02，用户委托「你来裁决」）：** loop 卡在四件只有人类能拍的事——① R5 两稿规则 16 已过却「待人类签收」，压住 M6 全波 + PRD-008 + stream-timeline S4–S6；② PRD-017–020 `proposed` 待签收，其中 PRD-017 存储落点、PRD-020 上限「待用户裁定」；③ D8 `valid-layers-check` 环境红挂在集成门禁里，每轮 closeout 都产生无法闭合的红项；④ D9 terminal 行需人工。**裁决**：R5 签收 `accepted` 并同批并入 stream-timeline §9；M6-A 拆 **A1 platform（与 S1–S3 并行）/ A2 contrib 接线（S3 + A1 后）**；PRD-017–020 全部 `accepted`（017 落点 `WORKSPACE`+`MACHINE`、不迁移；020 上限 1,000 / 5,000 写死；实施登记 D13 / D14 / D15 / D10，不阻塞 M6）；D8 降 P3 并豁免为门禁（[health-gates](health-gates.md) 改 `compile` + `eslint`）；D9 降 P3 出 Blockers。ADR-003 两处实施期选定（宿主进程、权限应答臂）由 M6-A2 补进其审查记录，不再等人类。

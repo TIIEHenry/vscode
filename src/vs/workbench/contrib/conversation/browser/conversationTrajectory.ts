@@ -477,6 +477,14 @@ export class ConversationTrajectory extends Disposable implements ITrajectoryTab
 		closeButton.setAttribute('aria-label', conversationTrajectoryInspectorClose);
 		closeButton.classList.add(...ThemeIcon.asClassNameArray(Codicon.close));
 		this._register(addDisposableListener(closeButton, 'click', () => this.dismissInspectorOverlay()));
+		this._register(addDisposableListener(this.host, 'keydown', e => {
+			if (e.key !== 'Escape' || this.inspector.hidden) {
+				return;
+			}
+			e.preventDefault();
+			e.stopPropagation();
+			this.dismissInspectorOverlay();
+		}));
 
 		this.inspectorContent = append(this.inspector, $('.conversation-lens-trajectory-inspector-content'));
 	}
@@ -532,6 +540,15 @@ export class ConversationTrajectory extends Disposable implements ITrajectoryTab
 		this.detailInspector.clearSession();
 		this.processFoldOuterExpanded.clear();
 		this.closeInspector();
+	}
+
+	/** Closes the local inspector if open. Does not change the session or selected record. */
+	tryDismissInspector(): boolean {
+		if (this.inspector.hidden) {
+			return false;
+		}
+		this.dismissInspectorOverlay();
+		return true;
 	}
 
 	refreshDetailInspector(): void {

@@ -312,6 +312,11 @@ export class ConversationLens extends Disposable {
 		this.dockTextarea?.focus();
 	}
 
+	/** Closes the trajectory inspector if it is open. Does not close the session. */
+	tryDismissLocalInspector(): boolean {
+		return this.trajectoryView?.tryDismissInspector() ?? false;
+	}
+
 	revealTimelineItem(itemId: string): void {
 		this.lastRevealItemId = itemId;
 		if (this.lensId !== 'conversation') {

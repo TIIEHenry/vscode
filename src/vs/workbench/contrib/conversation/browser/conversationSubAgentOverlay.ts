@@ -57,6 +57,7 @@ export class ConversationSubAgentOverlay extends Disposable {
 	private closeButton!: Button;
 	private breadcrumb!: ConversationAgentBreadcrumbBox;
 	private readonly lensDisposables = this._register(new DisposableStore());
+	private lens: ConversationLens | undefined;
 	private state: IConversationSubAgentOverlayState | undefined;
 	private maximized = false;
 
@@ -150,7 +151,11 @@ export class ConversationSubAgentOverlay extends Disposable {
 		this.body = append(this.card, $('.conversation-subagent-overlay-body'));
 		this._register(addDisposableListener(this.element, EventType.KEY_DOWN, event => {
 			if (event.key === 'Escape') {
+				event.preventDefault();
 				event.stopPropagation();
+				if (this.lens?.tryDismissLocalInspector()) {
+					return;
+				}
 				this.close();
 				return;
 			}
@@ -172,6 +177,7 @@ export class ConversationSubAgentOverlay extends Disposable {
 		this.closeButton.focus();
 
 		this.lensDisposables.clear();
+		this.lens = undefined;
 		this.body.replaceChildren();
 		const timeline = append(this.body, $('.conversation-timeline'));
 		timeline.setAttribute('data-conversation-slot', 'timeline');
@@ -180,7 +186,8 @@ export class ConversationSubAgentOverlay extends Disposable {
 		// Detached S3 harnesses are not inside `.monaco-workbench`; skip the full lens there.
 		if (this.element.closest('.monaco-workbench')) {
 			const filterAgentId = state.chatId !== 'default' ? state.chatId : undefined;
-			this.lensDisposables.add(this.instantiationService.createInstance(ConversationLens, { sessionBar: this.sessionBar, timeline, dock, filterAgentId }));
+			this.lens = this.instantiationService.createInstance(ConversationLens, { sessionBar: this.sessionBar, timeline, dock, filterAgentId });
+			this.lensDisposables.add(this.lens);
 		}
 	}
 
@@ -221,6 +228,7 @@ export class ConversationSubAgentOverlay extends Disposable {
 		this.maximizeButton.setTitle(localize('conversationSubAgentOverlayMaximize', "Maximize"));
 		this.maximizeButton.element.setAttribute('aria-pressed', 'false');
 		this.lensDisposables.clear();
+		this.lens = undefined;
 		this.body.replaceChildren();
 		this.breadcrumb.setItems([]);
 		this._onDidClose.fire();
