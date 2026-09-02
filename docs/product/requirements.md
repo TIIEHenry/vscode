@@ -4,7 +4,7 @@ type: demand
 status: accepted
 phase: N/A
 updated: 2026-09-02
-summary: "PRD-001–PRD-016：默认窗产品壳已接受；session 窗口 S1–S6 已落、S3c 对话框 chrome 已写；Agents 窗口 Chat 并排已接受；引擎、Diff、产品身份未决或阻塞"
+summary: "PRD-001–PRD-016：默认窗产品壳已接受；session 窗口 S1–S6 已落、S3c 对话框 chrome 已写；Agents 窗口 Chat 并排已接受；PRD-009 Diff 归属已接受（默认 Preview，可移对话窗口/底部）；引擎、产品身份未决或阻塞"
 ---
 
 # Agent IDE 产品需求
@@ -189,7 +189,21 @@ PRD-001 至 PRD-007 的代码已在 M0–M3 合入，但 D4 启动冒烟（T1–
   7. 窗口并列是第二个会话（第二扇中间叶）；隐藏该窗后只剩一个会话窗口；再打开该会话窗口回来。两扇窗共用右边同一个 Preview，不是 Agents 窗口里的双会话孪生。
   8. Conversation 聚焦时 ←→ 与鼠标 4/5 在 chat tab / 对话框之间导航；Preview 聚焦时仍是文件历史。默认后退关闭延伸 tab 或关掉对话框，不关根 tab。
   9. 「对话 | 轨迹」是每个 tab / 对话框内的透镜，不是与 chat tab 平级的第三条。
-- **依赖或未决**：活 fork / 子代理 catalog 依赖 PRD-008。形态见 [ADR-002](../../dev/decisions/002-conversation-session-windows.md)（`accepted`）。方案见 [conversation-session-windows](../../dev/plans/conversation-session-windows.md)（S1–S6 `implemented`；S3c 对话框 chrome 已写）。不改变 Agents 窗口 [PRD-011](#prd-011-chat-并排比对)。本条修正 [PRD-012](#prd-012-conversation-轨迹透镜)：「对话 | 轨迹」是每个 chat 页 / 子代理对话框的页 chrome；[PRD-002](#prd-002-会话上下文) SelectBox 仍是窗口 chrome。窗口并列共享同一个 Preview / Sources / Panel，不是 ADR-001 的双 session 孪生。
+- **依赖或未决**：活 fork / 子代理 catalog 依赖 PRD-008。形态见 [ADR-002](../../dev/decisions/002-conversation-session-windows.md)（`accepted`）。方案见 [conversation-session-windows](../../dev/plans/conversation-session-windows.md)（S1–S6 `implemented`；S3c 对话框 chrome 已写）。不改变 Agents 窗口 [PRD-011](#prd-011-chat-并排比对)。本条修正 [PRD-012](#prd-012-conversation-轨迹透镜)：「对话 | 轨迹」是每个 chat 页 / 子代理对话框的页 chrome；[PRD-002](#prd-002-会话上下文) SelectBox 仍是窗口 chrome。窗口并列共享同一个 Preview / Sources / Panel，不是 ADR-001 的双 session 孪生。「文件仍在右边 Preview」的唯一例外是用户显式移入的 Diff 审阅页，见 [PRD-009](#prd-009-changes-与-diff)。
+
+### PRD-009 Changes 与 Diff
+
+- **状态**：`accepted`
+- **用户价值**：用户能在 Sources Changes 里看到 Agent 改过的文件，点开文件级 Diff 审阅；Diff 默认开在 Preview，但用户可以把它挪到正在对话的中间窗口或底部，不必为了审阅离开对话。
+- **用户可观察陈述**：Sources 的 Changes 列表列出工作区变更；点击一行在 Preview 打开该文件的 Diff。每个已打开的 Diff 都能由用户显式「移到对话窗口」或「移到底部」，也能移回 Preview；用户可以把默认归属改成三者之一。移入对话窗口的 Diff 是该会话窗口里的一张可关闭延伸 tab，只用于审阅；普通文件仍只在 Preview 打开。
+- **产品验收标准**：
+  1. 点击 Changes 行，Diff 出现在 Preview（End 上格），不是替换中心 Conversation，也不自动撑开已收起的 Sources。
+  2. 对已打开的 Diff 执行「移到对话窗口」后，它成为当前会话窗口的一张延伸 tab，原对话根 tab 仍在且仍不可关闭；关闭该 Diff tab 不影响对话；后退可关掉它。
+  3. 对话窗口里的 Diff 是审阅面：能看、能 revert / accept 变更、能「在 Preview 打开」进入可编辑状态；不能在对话窗口内直接编辑文件正文。
+  4. 「移到底部」后 Diff 出现在底部 Panel 的产品 Diff 视图中；Panel 因用户动作显示不算违反四钮互斥；再「移到 Preview / 对话窗口」能回去。
+  5. 焦点在 Conversation 时，从 Changes 或任何默认路径打开 Diff 仍落 Preview；只有用户显式动作或已设的默认归属才把 Diff 送进对话窗口或底部。
+  6. 无引擎时 Changes 来自本地 SCM 诚实枚举；没有仓库或没有变更时写空态，不造假变更，不出现「Agent 改了 N 个文件」之类文案。
+- **依赖或未决**：形态见 [ADR-005](../../dev/decisions/005-changes-diff-owner.md)。「Agent 改过的文件」这层归因（哪些变更来自哪一轮）依赖 PRD-008；本条只约束 Diff 的打开与移动。本仓不再沿用外仓 ADR-047「Diff 只在底部 Panel」的单一归属。
 
 ## 未决或阻塞
 
@@ -200,14 +214,6 @@ PRD-001 至 PRD-007 的代码已在 M0–M3 合入，但 D4 启动冒烟（T1–
 - **用户可观察陈述**：用户发送后由引擎产生助手回合与工具请求；会话列表来自引擎诚实枚举。
 - **产品验收标准**：未决。在引擎接线方案接受之前，本条不算成功，也不许占位界面冒充已接通。
 - **依赖或未决**：引擎未接入本产品；禁止用内置 Chat 会话模型顶替引擎权威。
-
-### PRD-009 Changes 与 Diff
-
-- **状态**：`blocked`
-- **用户价值**：用户需要在配套区域审阅 Agent 改过的文件。
-- **用户可观察陈述**：Sources 有 Changes；文件级 Diff 有明确打开位置。
-- **产品验收标准**：未决。在 Diff owner 选定之前，本条不算成功。
-- **依赖或未决**：本仓 Diff 深查看仍落在编辑器区域，对照合同要底部面板；这是未选分叉，不是「已实现但待验证」。
 
 ### PRD-010 产品身份
 
