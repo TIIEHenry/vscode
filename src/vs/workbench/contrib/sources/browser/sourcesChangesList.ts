@@ -17,12 +17,13 @@ import { KeyCode } from '../../../../base/common/keyCodes.js';
 import { localize } from '../../../../nls.js';
 import { CommandsRegistry } from '../../../../platform/commands/common/commands.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
-import { EditorOpenSource } from '../../../../platform/editor/common/editor.js';
+import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { WorkbenchList } from '../../../../platform/list/browser/listService.js';
 import { defaultButtonStyles } from '../../../../platform/theme/browser/defaultStyles.js';
 import { ResourceLabels, IResourceLabel } from '../../../browser/labels.js';
-import { ACTIVE_GROUP, IEditorService } from '../../../services/editor/common/editorService.js';
+import { IEditorService } from '../../../services/editor/common/editorService.js';
+import { IQuickDiffService } from '../../scm/common/quickDiff.js';
 import { ISCMRepository, ISCMService } from '../../scm/common/scm.js';
 import {
 	SOURCES_GIT_COMMIT_COMMAND,
@@ -33,39 +34,14 @@ import {
 } from '../common/sourcesChangesGit.js';
 import { filterSourcesEntries } from '../common/sourcesFilterModel.js';
 import { collectSourcesChangeEntries, ISourcesChangeEntry } from '../common/sourcesChangesModel.js';
+import { ISourcesDiffPanelService } from '../common/sourcesDiffPanelService.js';
+import { openSourcesChangeEntry, ISourcesChangeEntryOpenOptions } from './sourcesChangeEntryOpen.js';
 import { SourcesListFilterBox } from './sourcesListFilterBox.js';
 
 const $ = dom.$;
 
-export interface ISourcesChangeEntryOpenOptions {
-	readonly preserveFocus?: boolean;
-	readonly pinned?: boolean;
-}
-
-/** Open a Changes/Review row via SCM working-tree diff when possible (same as SCM view). */
-export async function openSourcesChangeEntry(
-	entry: ISourcesChangeEntry,
-	editorService: IEditorService,
-	options: ISourcesChangeEntryOpenOptions,
-): Promise<void> {
-	if (entry.scmResource) {
-		await entry.scmResource.open(!!options.preserveFocus);
-		if (options.pinned) {
-			const activeEditorPane = editorService.activeEditorPane;
-			activeEditorPane?.group.pinEditor(activeEditorPane.input);
-		}
-		return;
-	}
-
-	await editorService.openEditor({
-		resource: entry.resource,
-		options: {
-			preserveFocus: options.preserveFocus,
-			pinned: options.pinned,
-			source: EditorOpenSource.USER,
-		},
-	}, ACTIVE_GROUP);
-}
+export type { ISourcesChangeEntryOpenOptions };
+export { openSourcesChangeEntry };
 
 type SourcesChangeRowAction = 'stage' | 'unstage';
 
@@ -209,6 +185,9 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		@IEditorService private readonly editorService: IEditorService,
 		@ICommandService private readonly commandService: ICommandService,
 		@IInstantiationService private readonly instantiationService: IInstantiationService,
+		@IQuickDiffService private readonly quickDiffService: IQuickDiffService,
+		@IConfigurationService private readonly configurationService: IConfigurationService,
+		@ISourcesDiffPanelService private readonly sourcesDiffPanelService: ISourcesDiffPanelService,
 	) {
 		super();
 
@@ -368,7 +347,13 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 				return;
 			}
 
-			await openSourcesChangeEntry(element, this.editorService, {
+			await openSourcesChangeEntry(element, {
+				editorService: this.editorService,
+				quickDiffService: this.quickDiffService,
+				configurationService: this.configurationService,
+				instantiationService: this.instantiationService,
+				sourcesDiffPanelService: this.sourcesDiffPanelService,
+			}, {
 				preserveFocus: e.editorOptions.preserveFocus,
 				pinned: e.editorOptions.pinned,
 			});

@@ -20,7 +20,7 @@ import { HistoryService } from '../../../../services/history/browser/historyServ
 import { IHistoryService } from '../../../../services/history/common/history.js';
 import { createEditorParts, registerTestEditor, TestFileEditorInput, workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { SideBySideEditorInput } from '../../../../common/editor/sideBySideEditorInput.js';
-import { ConversationChatInput, getConversationChatResource, getDefaultConversationChatResource } from '../../browser/conversationChatInput.js';
+import { ConversationChatInput, getConversationChatResource } from '../../browser/conversationChatInput.js';
 import { ConversationDiffReviewInput } from '../../../sources/browser/conversationDiffReviewInput.js';
 import { ConversationNavigationService } from '../../browser/conversationNavigationService.js';
 import { CONVERSATION_CLOSE_CHILD_ON_BACK_SETTING } from '../../common/conversationNavigation.js';

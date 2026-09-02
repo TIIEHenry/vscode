@@ -45,7 +45,7 @@ export class ConversationDiffReviewPane extends EditorPane {
 		}
 	}
 
-	override layout(_dimension: DOMRectReadOnly): void {
+	override layout(_dimension: { width: number; height: number }): void {
 		// Stub pane: no embedded diff widget until a later slice wires content.
 	}
 }

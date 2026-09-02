@@ -13,6 +13,8 @@ import {
 	isSourcesChangeUnstageable,
 } from '../../common/sourcesChangesGit.js';
 import { collectSourcesChangeEntries, ISourcesChangeRepositoryLike } from '../../common/sourcesChangesModel.js';
+import { resolveSourcesChangeRef, pickQuickDiffOriginalResource } from '../../common/sourcesChangeRef.js';
+import { IQuickDiffService } from '../../../scm/common/quickDiff.js';
 
 suite('Sources - Changes list projection', () => {
 
@@ -91,5 +93,47 @@ suite('Sources - Changes list projection', () => {
 
 		assert.deepStrictEqual(collectStageTargetUris(entries).map(uri => uri.path), [unstaged.path, untracked.path]);
 		assert.deepStrictEqual(collectUnstageTargetUris(entries).map(uri => uri.path), [staged.path]);
+	});
+
+	test('resolveSourcesChangeRef uses first quick diff original resource', async function () {
+		const modified = toResource.call(this, '/project/src/a.ts');
+		const original = toResource.call(this, '/project/.git/a.ts');
+		const entry = collectSourcesChangeEntries([
+			createRepo([{ id: 'workingTree', label: 'Changes', resources: [modified] }]),
+		])[0];
+
+		const ref = await resolveSourcesChangeRef(entry, {
+			getQuickDiffs: async () => [{ originalResource: original, id: 'git', label: 'Git', kind: 'primary' }],
+		} as unknown as IQuickDiffService);
+
+		assert.strictEqual(ref.modified.toString(), modified.toString());
+		assert.strictEqual(ref.original?.toString(), original.toString());
+		assert.strictEqual(ref.groupId, 'workingTree');
+	});
+
+	test('resolveSourcesChangeRef leaves original undefined without quick diff', async function () {
+		const modified = toResource.call(this, '/project/new.txt');
+		const entry = collectSourcesChangeEntries([
+			createRepo([{ id: 'untracked', label: 'Untracked Changes', resources: [modified] }]),
+		])[0];
+
+		const ref = await resolveSourcesChangeRef(entry, {
+			getQuickDiffs: async () => [],
+		} as unknown as IQuickDiffService);
+
+		assert.strictEqual(ref.modified.toString(), modified.toString());
+		assert.strictEqual(ref.original, undefined);
+	});
+
+	test('pickQuickDiffOriginalResource prefers git provider', function () {
+		const gitOriginal = toResource.call(this, '/project/.git/a.ts');
+		const otherOriginal = toResource.call(this, '/project/other/a.ts');
+
+		const picked = pickQuickDiffOriginalResource([
+			{ originalResource: otherOriginal, id: 'other', label: 'Other', kind: 'contributed' },
+			{ originalResource: gitOriginal, id: 'git', label: 'Git', kind: 'primary' },
+		]);
+
+		assert.strictEqual(picked?.toString(), gitOriginal.toString());
 	});
 });

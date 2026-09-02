@@ -11,13 +11,16 @@ import { RunOnceScheduler } from '../../../../base/common/async.js';
 import { Event } from '../../../../base/common/event.js';
 import { Disposable, DisposableMap, DisposableStore } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
+import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { WorkbenchList } from '../../../../platform/list/browser/listService.js';
 import { ResourceLabels, IResourceLabel } from '../../../browser/labels.js';
 import { IEditorService } from '../../../services/editor/common/editorService.js';
+import { IQuickDiffService } from '../../scm/common/quickDiff.js';
 import { ISCMRepository, ISCMService } from '../../scm/common/scm.js';
 import { filterSourcesEntries } from '../common/sourcesFilterModel.js';
 import { collectSourcesReviewEntries, ISourcesReviewEntry } from '../common/sourcesReviewModel.js';
+import { ISourcesDiffPanelService } from '../common/sourcesDiffPanelService.js';
 import { openSourcesChangeEntry } from './sourcesChangesList.js';
 import { SourcesListFilterBox } from './sourcesListFilterBox.js';
 import { sourcesReviewListHeaderHint } from './sourcesReviewListStrings.js';
@@ -90,6 +93,9 @@ export class SourcesReviewList extends Disposable {
 		@ISCMService private readonly scmService: ISCMService,
 		@IEditorService private readonly editorService: IEditorService,
 		@IInstantiationService private readonly instantiationService: IInstantiationService,
+		@IQuickDiffService private readonly quickDiffService: IQuickDiffService,
+		@IConfigurationService private readonly configurationService: IConfigurationService,
+		@ISourcesDiffPanelService private readonly sourcesDiffPanelService: ISourcesDiffPanelService,
 	) {
 		super();
 
@@ -176,7 +182,13 @@ export class SourcesReviewList extends Disposable {
 				return;
 			}
 
-			await openSourcesChangeEntry(element, this.editorService, {
+			await openSourcesChangeEntry(element, {
+				editorService: this.editorService,
+				quickDiffService: this.quickDiffService,
+				configurationService: this.configurationService,
+				instantiationService: this.instantiationService,
+				sourcesDiffPanelService: this.sourcesDiffPanelService,
+			}, {
 				preserveFocus: e.editorOptions.preserveFocus,
 				pinned: false,
 			});
