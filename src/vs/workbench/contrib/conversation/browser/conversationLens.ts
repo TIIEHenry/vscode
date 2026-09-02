@@ -87,6 +87,7 @@ import { showConversationPart } from './conversationSessionStatus.js';
 import { IConversationRosterService } from './conversationStubService.js';
 import { ConversationMermaidExtensionInfo, resolveConversationMermaidExtension } from './conversationMermaidHost.js';
 import { ConversationVisualizeOverlay } from './conversationVisualizeOverlay.js';
+import { IConversationTimelineRevealService } from './conversationTimelineRevealService.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { IExtensionService } from '../../../services/extensions/common/extensions.js';
 import { IWebviewService } from '../../webview/browser/webview.js';
@@ -211,8 +212,11 @@ export class ConversationLens extends Disposable {
 		@IStorageService private readonly storageService: IStorageService,
 		@IExtensionService private readonly extensionService: IExtensionService,
 		@IWebviewService private readonly webviewService: IWebviewService,
+		@IConversationTimelineRevealService revealService: IConversationTimelineRevealService,
 	) {
 		super();
+
+		this._register(revealService.registerLens(this));
 
 		this.slotHosts = slots;
 		this.visualizeOverlay = this._register(this.instantiationService.createInstance(ConversationVisualizeOverlay));
@@ -274,6 +278,20 @@ export class ConversationLens extends Disposable {
 
 	focusDockInput(): void {
 		this.dockTextarea?.focus();
+	}
+
+	revealTimelineItem(itemId: string): void {
+		if (this.lensId !== 'conversation') {
+			this.lensId = 'conversation';
+			this.storageService.store(CONVERSATION_LENS_ID_STORAGE_KEY, 'conversation', StorageScope.WORKSPACE, StorageTarget.MACHINE);
+			this.updateLensTabs();
+			this.trajectoryView.hide();
+			this.timelineTree.show();
+		}
+		if (this.inputMaximized) {
+			this.setInputMaximized(false);
+		}
+		this.timelineTree.revealTurn(itemId);
 	}
 
 	setInputMaximized(maximized: boolean): void {

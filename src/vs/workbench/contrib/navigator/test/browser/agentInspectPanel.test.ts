@@ -23,11 +23,13 @@ import {
 } from '../../browser/agentInspectIds.js';
 import { AGENT_INSPECT_VIEW_CONTAINER } from '../../browser/agentInspect.contribution.js';
 import '../../browser/agentInspect.contribution.js';
+import { AgentInspectService } from '../../browser/agentInspectService.js';
 import { AgentInspectView, IAgentInspectEntry } from '../../browser/agentInspectView.js';
+import { IAgentInspectService } from '../../common/agentInspect.js';
 import '../../browser/navigator.contribution.js';
 import { NAVIGATOR_AGENTS_VIEW_ID, NAVIGATOR_TEAM_VIEW_ID } from '../../browser/navigatorStubView.js';
 
-const INSPECT_EMPTY_COPY = 'No inspect target yet';
+const INSPECT_EMPTY_COPY = '在 Agents 或 Team 里选择一项';
 
 suite('Agent inspect panel', () => {
 
@@ -46,45 +48,8 @@ suite('Agent inspect panel', () => {
 
 	async function mountView(): Promise<AgentInspectView> {
 		const instantiationService = workbenchInstantiationService(undefined, store);
-		const stubViewContainer = {
-			id: 'agent-inspect-test-container',
-			title: { value: 'Inspect', original: 'Inspect' },
-		} as ViewContainer;
-		instantiationService.stub(IViewDescriptorService, {
-			onDidChangeLocation: Event.None,
-			getViewLocationById(_id: string): ViewContainerLocation {
-				return ViewContainerLocation.Panel;
-			},
-			getViewDescriptorById(_id: string): null {
-				return null;
-			},
-			getViewContainerByViewId(_id: string): ViewContainer | null {
-				return stubViewContainer;
-			},
-			getViewContainerModel(_viewContainer: ViewContainer): IViewContainerModel {
-				return {
-					title: stubViewContainer.title.value,
-					onDidChangeContainerInfo: Event.None,
-				} as IViewContainerModel;
-			},
-			getDefaultContainerById(_id: string): ViewContainer | null {
-				return stubViewContainer;
-			},
-		});
-
-		const view = store.add(instantiationService.createInstance(AgentInspectView, {
-			id: AGENT_INSPECT_VIEW_ID,
-			title: 'Inspect',
-		}));
-		const container = document.createElement('div');
-		view.render();
-		container.appendChild(view.element);
-		view.setExpanded(true);
-		view.setVisible(true);
-
-		await new Promise<void>(resolve => setTimeout(resolve, 0));
-
-		return view;
+		instantiationService.stub(IAgentInspectService, store.add(instantiationService.createInstance(AgentInspectService)));
+		return mountViewWithService(instantiationService);
 	}
 
 	test('Inspect container and view register on Panel', () => {
@@ -188,6 +153,72 @@ suite('Agent inspect panel', () => {
 		assert.ok(!/open chat/i.test(combined), 'welcome must not mention Open Chat');
 		assert.ok(!/\(command:/.test(combined), 'welcome must not include command buttons');
 	});
+
+	test('setTarget agent template renders inspect fields', async () => {
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		const inspectService = store.add(instantiationService.createInstance(AgentInspectService));
+		instantiationService.stub(IAgentInspectService, inspectService);
+
+		const view = await mountViewWithService(instantiationService);
+		inspectService.setTarget({
+			kind: 'agent',
+			node: {
+				agentId: 'sub:1',
+				name: 'Worker',
+				type: 'AGENT_TYPE_SUB',
+				status: 'AGENT_STATUS_IDLE',
+				model: 'gpt',
+				turnCount: 3,
+				createdAt: 100,
+				children: [],
+			},
+		});
+
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		const labels = getViewEntries(view).map(entry => entry.label);
+		assert.ok(labels.some(label => label.includes('agent_id: sub:1')));
+		assert.ok(labels.some(label => label.includes('name: Worker')));
+	});
+
+	async function mountViewWithService(instantiationService: ReturnType<typeof workbenchInstantiationService>): Promise<AgentInspectView> {
+		const stubViewContainer = {
+			id: 'agent-inspect-test-container',
+			title: { value: 'Inspect', original: 'Inspect' },
+		} as ViewContainer;
+		instantiationService.stub(IViewDescriptorService, {
+			onDidChangeLocation: Event.None,
+			getViewLocationById(_id: string): ViewContainerLocation {
+				return ViewContainerLocation.Panel;
+			},
+			getViewDescriptorById(_id: string): null {
+				return null;
+			},
+			getViewContainerByViewId(_id: string): ViewContainer | null {
+				return stubViewContainer;
+			},
+			getViewContainerModel(_viewContainer: ViewContainer): IViewContainerModel {
+				return {
+					title: stubViewContainer.title.value,
+					onDidChangeContainerInfo: Event.None,
+				} as IViewContainerModel;
+			},
+			getDefaultContainerById(_id: string): ViewContainer | null {
+				return stubViewContainer;
+			},
+		});
+
+		const view = store.add(instantiationService.createInstance(AgentInspectView, {
+			id: AGENT_INSPECT_VIEW_ID,
+			title: 'Inspect',
+		}));
+		const container = document.createElement('div');
+		view.render();
+		container.appendChild(view.element);
+		view.setExpanded(true);
+		view.setVisible(true);
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		return view;
+	}
 
 	test('mounted view has WorkbenchList and no stub or chat widgets', async () => {
 		const view = await mountView();

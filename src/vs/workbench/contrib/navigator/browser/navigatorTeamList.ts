@@ -7,6 +7,7 @@ import './media/navigatorTeamList.css';
 import * as dom from '../../../../base/browser/dom.js';
 import { IListRenderer, IListVirtualDelegate } from '../../../../base/browser/ui/list/list.js';
 import { IListAccessibilityProvider } from '../../../../base/browser/ui/list/listWidget.js';
+import { RunOnceScheduler } from '../../../../base/common/async.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { localize, localize2 } from '../../../../nls.js';
 import { MenuId, registerAction2 } from '../../../../platform/actions/common/actions.js';
@@ -20,15 +21,26 @@ import { IKeybindingService } from '../../../../platform/keybinding/common/keybi
 import { WorkbenchList } from '../../../../platform/list/browser/listService.js';
 import { IOpenerService } from '../../../../platform/opener/common/opener.js';
 import { IThemeService } from '../../../../platform/theme/common/themeService.js';
+import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { IViewPaneOptions, ViewAction, ViewPane } from '../../../browser/parts/views/viewPane.js';
 import { IViewDescriptorService } from '../../../common/views.js';
 import { IViewsService } from '../../../services/views/common/viewsService.js';
+import { IConversationRosterService } from '../../conversation/browser/conversationStubService.js';
+import { IAgentInspectService } from '../common/agentInspect.js';
+import { asNavigatorEngineConnection, getNavigatorCapability } from '../common/navigatorEngineBridge.js';
 import { matchesNavigatorTeamInlineFilter } from '../common/navigatorTeamInlineFilter.js';
+import {
+	findManagerNodes,
+	INavigatorTeamMemberEntry,
+	INavigatorTeamTaskEntry,
+} from '../common/navigatorTeamData.js';
 import {
 	AGENT_INSPECT_VIEW_ID,
 	OPEN_NAVIGATOR_TEAM_INSPECT_COMMAND_ID,
 } from './agentInspectIds.js';
 import { NavigatorTeamInlineFilterBox } from './navigatorTeamInlineFilterBox.js';
+import { NavigatorSessionLeaseHolder } from './navigatorSessionLeaseHolder.js';
+import { revealNavigatorAgentInConversation } from './navigatorReveal.js';
 import { NAVIGATOR_TEAM_VIEW_ID } from './navigatorStubView.js';
 
 const $ = dom.$;
@@ -46,12 +58,7 @@ export interface INavigatorTeamMember {
 	readonly label: string;
 }
 
-interface INavigatorTeamTask {
-	readonly id: string;
-	readonly label: string;
-}
-
-class TeamMemberDelegate implements IListVirtualDelegate<INavigatorTeamMember> {
+class TeamMemberDelegate implements IListVirtualDelegate<INavigatorTeamMemberEntry> {
 	getHeight(): number {
 		return 22;
 	}
@@ -65,16 +72,15 @@ interface ITeamMemberTemplateData {
 	readonly label: HTMLElement;
 }
 
-class TeamMemberRenderer implements IListRenderer<INavigatorTeamMember, ITeamMemberTemplateData> {
+class TeamMemberRenderer implements IListRenderer<INavigatorTeamMemberEntry, ITeamMemberTemplateData> {
 	static readonly TEMPLATE_ID = 'navigatorTeamMember';
-
 	readonly templateId = TeamMemberRenderer.TEMPLATE_ID;
 
 	renderTemplate(container: HTMLElement): ITeamMemberTemplateData {
 		return { label: dom.append(container, $('.navigator-team-member-label')) };
 	}
 
-	renderElement(member: INavigatorTeamMember, _index: number, templateData: ITeamMemberTemplateData): void {
+	renderElement(member: INavigatorTeamMemberEntry, _index: number, templateData: ITeamMemberTemplateData): void {
 		templateData.label.textContent = member.label;
 	}
 
@@ -83,17 +89,17 @@ class TeamMemberRenderer implements IListRenderer<INavigatorTeamMember, ITeamMem
 	}
 }
 
-class TeamMemberAccessibilityProvider implements IListAccessibilityProvider<INavigatorTeamMember> {
+class TeamMemberAccessibilityProvider implements IListAccessibilityProvider<INavigatorTeamMemberEntry> {
 	getWidgetAriaLabel(): string {
 		return localize('navigatorTeamMembers.ariaLabel', "Team members");
 	}
 
-	getAriaLabel(member: INavigatorTeamMember): string {
+	getAriaLabel(member: INavigatorTeamMemberEntry): string {
 		return member.label;
 	}
 }
 
-class TeamTaskDelegate implements IListVirtualDelegate<INavigatorTeamTask> {
+class TeamTaskDelegate implements IListVirtualDelegate<INavigatorTeamTaskEntry> {
 	getHeight(): number {
 		return 22;
 	}
@@ -107,16 +113,15 @@ interface ITeamTaskTemplateData {
 	readonly label: HTMLElement;
 }
 
-class TeamTaskRenderer implements IListRenderer<INavigatorTeamTask, ITeamTaskTemplateData> {
+class TeamTaskRenderer implements IListRenderer<INavigatorTeamTaskEntry, ITeamTaskTemplateData> {
 	static readonly TEMPLATE_ID = 'navigatorTeamTask';
-
 	readonly templateId = TeamTaskRenderer.TEMPLATE_ID;
 
 	renderTemplate(container: HTMLElement): ITeamTaskTemplateData {
 		return { label: dom.append(container, $('.navigator-team-task-label')) };
 	}
 
-	renderElement(task: INavigatorTeamTask, _index: number, templateData: ITeamTaskTemplateData): void {
+	renderElement(task: INavigatorTeamTaskEntry, _index: number, templateData: ITeamTaskTemplateData): void {
 		templateData.label.textContent = task.label;
 	}
 
@@ -125,12 +130,12 @@ class TeamTaskRenderer implements IListRenderer<INavigatorTeamTask, ITeamTaskTem
 	}
 }
 
-class TeamTaskAccessibilityProvider implements IListAccessibilityProvider<INavigatorTeamTask> {
+class TeamTaskAccessibilityProvider implements IListAccessibilityProvider<INavigatorTeamTaskEntry> {
 	getWidgetAriaLabel(): string {
 		return localize('navigatorTeamTasks.ariaLabel', "Team tasks");
 	}
 
-	getAriaLabel(task: INavigatorTeamTask): string {
+	getAriaLabel(task: INavigatorTeamTaskEntry): string {
 		return task.label;
 	}
 }
@@ -142,6 +147,8 @@ export class NavigatorTeamView extends ViewPane {
 	private subview: NavigatorTeamSubview = 'members';
 	private readonly membersContextKey: IContextKey<boolean>;
 	private readonly tasksContextKey: IContextKey<boolean>;
+	private readonly leaseHolder: NavigatorSessionLeaseHolder;
+	private readonly refreshScheduler: RunOnceScheduler;
 
 	private filterBox: NavigatorTeamInlineFilterBox | undefined;
 	private filterQuery = '';
@@ -149,14 +156,16 @@ export class NavigatorTeamView extends ViewPane {
 	private membersBody: HTMLElement | undefined;
 	private membersEmpty: HTMLElement | undefined;
 	private membersListContainer: HTMLElement | undefined;
-	private membersList: WorkbenchList<INavigatorTeamMember> | undefined;
-	private memberEntries: INavigatorTeamMember[] = [];
+	private membersList: WorkbenchList<INavigatorTeamMemberEntry> | undefined;
+	private memberEntries: INavigatorTeamMemberEntry[] = [];
 
 	private tasksBody: HTMLElement | undefined;
 	private tasksEmpty: HTMLElement | undefined;
 	private tasksListContainer: HTMLElement | undefined;
-	private tasksList: WorkbenchList<INavigatorTeamTask> | undefined;
-	private taskEntries: INavigatorTeamTask[] = [];
+	private tasksList: WorkbenchList<INavigatorTeamTaskEntry> | undefined;
+	private taskEntries: INavigatorTeamTaskEntry[] = [];
+
+	private teamInfoCallCount = 0;
 
 	constructor(
 		options: IViewPaneOptions,
@@ -169,16 +178,42 @@ export class NavigatorTeamView extends ViewPane {
 		@IOpenerService openerService: IOpenerService,
 		@IThemeService themeService: IThemeService,
 		@IHoverService hoverService: IHoverService,
+		@IConversationRosterService private readonly rosterService: IConversationRosterService,
+		@IUniverseAgentConnection private readonly uaConnection: IUniverseAgentConnection,
+		@IAgentInspectService private readonly inspectService: IAgentInspectService,
 	) {
 		super(options, keybindingService, contextMenuService, configurationService, contextKeyService, viewDescriptorService, instantiationService, openerService, themeService, hoverService);
 
 		this.membersContextKey = NAVIGATOR_TEAM_SUBVIEW_MEMBERS_KEY.bindTo(this.scopedContextKeyService);
 		this.tasksContextKey = NAVIGATOR_TEAM_SUBVIEW_TASKS_KEY.bindTo(this.scopedContextKeyService);
+		this.leaseHolder = this._register(new NavigatorSessionLeaseHolder(this.rosterService, () => this.scheduleRefresh()));
+		this.refreshScheduler = this._register(new RunOnceScheduler(() => void this.refreshTeamData(), 250));
+		this._register(this.rosterService.onDidChangeActiveSession(() => this.scheduleRefresh()));
+		this._register(this.rosterService.onDidChangeEngineConnection(() => this.scheduleRefresh()));
+
+		const teamRuntime = asNavigatorEngineConnection(this.uaConnection).onDidChangeTeamRuntime;
+		if (teamRuntime) {
+			this._register(teamRuntime(e => {
+				if (e.sessionId === this.rosterService.getActiveSessionId()) {
+					this.scheduleRefresh();
+				}
+			}));
+		}
+
 		this.updateSubviewContextKeys();
+	}
+
+	override setVisible(visible: boolean): void {
+		super.setVisible(visible);
+		this.leaseHolder.setVisible(visible);
 	}
 
 	getActiveSubview(): NavigatorTeamSubview {
 		return this.subview;
+	}
+
+	getTeamInfoCallCountForTest(): number {
+		return this.teamInfoCallCount;
 	}
 
 	showMembers(): void {
@@ -225,16 +260,15 @@ export class NavigatorTeamView extends ViewPane {
 		this.membersEmpty.textContent = localize('navigatorTeamMembers.empty', "No team members yet");
 		this.membersListContainer = dom.append(this.membersBody, $('.navigator-team-list'));
 		this.ensureMembersList();
-		this.setMemberEntries([]);
 
 		this.tasksBody = dom.append(container, $('.navigator-team-subview'));
 		this.tasksEmpty = dom.append(this.tasksBody, $('.navigator-stub-empty'));
 		this.tasksEmpty.textContent = localize('navigatorTeamTasks.empty', "No tasks yet");
 		this.tasksListContainer = dom.append(this.tasksBody, $('.navigator-team-tasks-list'));
 		this.ensureTasksList();
-		this.setTaskEntries([]);
 
 		this.updateSubviewVisibility();
+		this.scheduleRefresh();
 	}
 
 	protected override layoutBody(height: number, width: number): void {
@@ -247,60 +281,168 @@ export class NavigatorTeamView extends ViewPane {
 		}
 	}
 
-	private ensureMembersList(): WorkbenchList<INavigatorTeamMember> {
+	private scheduleRefresh(): void {
+		this.refreshScheduler.schedule();
+	}
+
+	private ensureMembersList(): WorkbenchList<INavigatorTeamMemberEntry> {
 		if (this.membersList) {
 			return this.membersList;
 		}
-
-		const delegate = new TeamMemberDelegate();
-		const renderer = new TeamMemberRenderer();
 
 		this.membersList = this._register(this.instantiationService.createInstance(
 			WorkbenchList,
 			'NavigatorTeamMembers',
 			this.membersListContainer!,
-			delegate,
-			[renderer],
+			new TeamMemberDelegate(),
+			[new TeamMemberRenderer()],
 			{
-				identityProvider: { getId: (member: INavigatorTeamMember) => member.id },
+				identityProvider: { getId: (member: INavigatorTeamMemberEntry) => member.id },
 				accessibilityProvider: new TeamMemberAccessibilityProvider(),
+				openOnSingleClick: true,
+			},
+		)) as WorkbenchList<INavigatorTeamMemberEntry>;
+
+		this._register(this.membersList.onDidOpen(e => {
+			if (!e.element) {
+				return;
 			}
-		)) as WorkbenchList<INavigatorTeamMember>;
+			this.inspectService.setTarget({ kind: 'member', info: e.element });
+			void this.instantiationService.invokeFunction(accessor => revealNavigatorAgentInConversation(accessor, e.element!.memberAgentId, e.element!.memberName));
+		}));
 
 		return this.membersList;
 	}
 
-	private ensureTasksList(): WorkbenchList<INavigatorTeamTask> {
+	private ensureTasksList(): WorkbenchList<INavigatorTeamTaskEntry> {
 		if (this.tasksList) {
 			return this.tasksList;
 		}
-
-		const delegate = new TeamTaskDelegate();
-		const renderer = new TeamTaskRenderer();
 
 		this.tasksList = this._register(this.instantiationService.createInstance(
 			WorkbenchList,
 			'NavigatorTeamTasks',
 			this.tasksListContainer!,
-			delegate,
-			[renderer],
+			new TeamTaskDelegate(),
+			[new TeamTaskRenderer()],
 			{
-				identityProvider: { getId: (task: INavigatorTeamTask) => task.id },
+				identityProvider: { getId: (task: INavigatorTeamTaskEntry) => task.id },
 				accessibilityProvider: new TeamTaskAccessibilityProvider(),
+			},
+		)) as WorkbenchList<INavigatorTeamTaskEntry>;
+
+		this._register(this.tasksList.onDidOpen(e => {
+			if (e.element) {
+				this.inspectService.setTarget({ kind: 'task', task: e.element });
 			}
-		)) as WorkbenchList<INavigatorTeamTask>;
+		}));
 
 		return this.tasksList;
 	}
 
-	private setMemberEntries(entries: INavigatorTeamMember[]): void {
+	private async refreshTeamData(): Promise<void> {
+		if (!this.rosterService.isEngineConnected()) {
+			this.setMemberEntries([], localize('navigatorTeamMembers.empty', "No team members yet"));
+			this.setTaskEntries([], localize('navigatorTeamTasks.empty', "No tasks yet"));
+			return;
+		}
+
+		const lease = this.leaseHolder.getLease();
+		const liveTree = lease?.snapshot.liveAgentTree;
+		const agentTreeCapability = getNavigatorCapability(this.uaConnection, 'agentTree');
+
+		if (agentTreeCapability === 'UNSUPPORTED') {
+			const msg = localize('navigatorTeam.noAgentTree', "当前引擎不提供 Agent 树，无法列出团队");
+			this.setMemberEntries([], msg);
+			this.setTaskEntries([], msg);
+			return;
+		}
+
+		const managers = findManagerNodes(liveTree);
+		if (managers.length === 0) {
+			this.setMemberEntries([], localize('navigatorTeam.noTeam', "当前会话没有团队"));
+			this.setTaskEntries([], localize('navigatorTeam.noTeam', "当前会话没有团队"));
+			return;
+		}
+
+		const teamCapability = getNavigatorCapability(this.uaConnection, 'team');
+		if (teamCapability === 'UNSUPPORTED') {
+			const msg = localize('navigatorTeam.unsupported', "当前引擎不提供 Team");
+			this.setMemberEntries([], msg);
+			this.setTaskEntries([], msg);
+			return;
+		}
+
+		const teamApi = asNavigatorEngineConnection(this.uaConnection).team;
+		if (!teamApi) {
+			this.setMemberEntries([], localize('navigatorTeam.loading', "正在读取…"));
+			this.setTaskEntries([], localize('navigatorTeam.loading', "正在读取…"));
+			return;
+		}
+
+		const sessionId = this.rosterService.getActiveSessionId();
+		const liveTeamId = lease?.snapshot.liveTeamId;
+		const members: INavigatorTeamMemberEntry[] = [];
+		const tasks: INavigatorTeamTaskEntry[] = [];
+
+		for (const manager of managers) {
+			let managerLabel = manager.name || manager.agentId;
+			if (liveTeamId !== undefined) {
+				try {
+					this.teamInfoCallCount++;
+					const info = await teamApi.teamInfo(sessionId, manager.agentId, liveTeamId);
+					if (info?.status) {
+						managerLabel = `${managerLabel} (${info.status})`;
+					}
+				} catch {
+					// keep manager name only
+				}
+			}
+
+			const memberRows = await teamApi.memberStatus(sessionId, manager.agentId);
+			for (const row of memberRows) {
+				const prefix = managers.length > 1 ? `${managerLabel}: ` : '';
+				members.push({
+					...row,
+					id: `member:${row.memberAgentId}`,
+					label: `${prefix}${row.memberName} · ${row.status}`,
+					managerAgentId: manager.agentId,
+					managerName: manager.name || manager.agentId,
+				});
+			}
+
+			const taskRows = await teamApi.taskList(sessionId, manager.agentId);
+			for (const row of taskRows) {
+				const blocked = row.status === 'BLOCKED' && row.blockedBy ? ` · ${row.blockedBy}` : '';
+				const prefix = managers.length > 1 ? `${managerLabel}: ` : '';
+				tasks.push({
+					...row,
+					id: `task:${row.taskId}`,
+					label: `${prefix}${row.subject || row.taskId} · ${row.status}${blocked}`,
+					managerAgentId: manager.agentId,
+					managerName: manager.name || manager.agentId,
+				});
+			}
+		}
+
+		this.setMemberEntries(members, members.length === 0 ? localize('navigatorTeamMembers.emptyConnected', "No team members yet") : undefined);
+		this.setTaskEntries(tasks, tasks.length === 0 ? localize('navigatorTeamTasks.emptyConnected', "No tasks yet") : undefined);
+	}
+
+	private setMemberEntries(entries: INavigatorTeamMemberEntry[], emptyMessage?: string): void {
 		this.memberEntries = entries;
+		if (emptyMessage !== undefined && this.membersEmpty) {
+			this.membersEmpty.textContent = emptyMessage;
+		}
 		this.applyFilterToMembers();
 		this.updateMembersDisplay();
 	}
 
-	private setTaskEntries(entries: INavigatorTeamTask[]): void {
+	private setTaskEntries(entries: INavigatorTeamTaskEntry[], emptyMessage?: string): void {
 		this.taskEntries = entries;
+		if (emptyMessage !== undefined && this.tasksEmpty) {
+			this.tasksEmpty.textContent = emptyMessage;
+		}
 		this.applyFilterToTasks();
 		this.updateTasksDisplay();
 	}
@@ -315,7 +457,6 @@ export class NavigatorTeamView extends ViewPane {
 		if (!list) {
 			return;
 		}
-
 		const filtered = this.memberEntries.filter(entry => matchesNavigatorTeamInlineFilter(entry.label, this.filterQuery));
 		list.splice(0, list.length, filtered);
 	}
@@ -325,7 +466,6 @@ export class NavigatorTeamView extends ViewPane {
 		if (!list) {
 			return;
 		}
-
 		const filtered = this.taskEntries.filter(entry => matchesNavigatorTeamInlineFilter(entry.label, this.filterQuery));
 		list.splice(0, list.length, filtered);
 	}
@@ -334,7 +474,6 @@ export class NavigatorTeamView extends ViewPane {
 		if (!this.membersEmpty || !this.membersListContainer) {
 			return;
 		}
-
 		const isEmpty = this.memberEntries.length === 0;
 		this.membersEmpty.style.display = isEmpty ? 'block' : 'none';
 		this.membersListContainer.style.display = isEmpty ? 'none' : 'block';
@@ -344,7 +483,6 @@ export class NavigatorTeamView extends ViewPane {
 		if (!this.tasksEmpty || !this.tasksListContainer) {
 			return;
 		}
-
 		const isEmpty = this.taskEntries.length === 0;
 		this.tasksEmpty.style.display = isEmpty ? 'block' : 'none';
 		this.tasksListContainer.style.display = isEmpty ? 'none' : 'block';
