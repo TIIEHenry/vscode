@@ -5,7 +5,15 @@
 
 import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { StorageScope } from '../../../../../platform/storage/common/storage.js';
+import { TestStorageService } from '../../../../test/common/workbenchTestServices.js';
+import { formatSyncChromeLabel } from '../../browser/conversationSessionView.js';
+import { CONVERSATION_ROSTER_STORAGE_KEY } from '../../browser/conversationRosterStorage.js';
 import { ConversationStubService } from '../../browser/conversationStubService.js';
+
+function createPersistedService(storage: TestStorageService): ConversationStubService {
+	return new ConversationStubService(storage);
+}
 
 suite('ConversationStubService', () => {
 
@@ -195,5 +203,55 @@ suite('ConversationStubService', () => {
 		assert.strictEqual(service.getSessions().length, initialSessionCount);
 		assert.strictEqual(service.getActiveSessionId(), sessionId);
 		assert.strictEqual(service.getTurns(sessionId).length, 0);
+	});
+
+	test('persists local sessions, active session, turns, and permission state across restart', () => {
+		const storage = store.add(new TestStorageService());
+		const first = store.add(createPersistedService(storage));
+		const createdId = first.createSession();
+		first.renameSession(createdId, 'Persisted session');
+		const user = first.appendUserTurn(createdId, 'Remember this');
+		assert.ok(user);
+		const confirmation = first.appendConfirmationTurn(createdId, 'Allow write?');
+		assert.ok(confirmation);
+		first.resolveConfirmation(createdId, confirmation!.id, 'allowed');
+		first.switchSession(createdId);
+
+		const second = store.add(createPersistedService(storage));
+		assert.strictEqual(second.getSessions().length, first.getSessions().length);
+		assert.strictEqual(second.getActiveSessionId(), createdId);
+		assert.strictEqual(second.getSessions().find(session => session.id === createdId)?.title, 'Persisted session');
+		assert.deepStrictEqual(second.getTurns(createdId).map(turn => [turn.kind, turn.text, turn.status]), [
+			['user', 'Remember this', undefined],
+			['confirmation', 'Allow write?', 'allowed'],
+		]);
+		assert.ok(storage.get(CONVERSATION_ROSTER_STORAGE_KEY, StorageScope.WORKSPACE)?.includes('"source":"local"'));
+	});
+
+	test('labels local sessions as local source and never shows synced chrome', () => {
+		const storage = store.add(new TestStorageService());
+		const service = store.add(createPersistedService(storage));
+		const sessionId = service.getActiveSessionId();
+
+		assert.strictEqual(service.getSessionSource(sessionId), 'local');
+		assert.deepStrictEqual(service.getSessionSync(sessionId), { kind: 'idle' });
+		assert.strictEqual(formatSyncChromeLabel(service.getSessionSync(sessionId)), undefined);
+	});
+
+	test('engine-cache sessions use engine-cache source and closed sync chrome', () => {
+		const storage = store.add(new TestStorageService());
+		const service = store.add(createPersistedService(storage));
+		service['model'].upsertCachedSession({
+			id: 'ua-session-1',
+			title: 'Cached UA session',
+			source: 'engine-cache',
+			turns: [{ id: 'ua-u1', kind: 'user', text: 'Cached turn' }],
+		});
+
+		assert.strictEqual(service.getSessionSource('ua-session-1'), 'engine-cache');
+		const sync = service.getSessionSync('ua-session-1');
+		assert.strictEqual(sync.kind, 'closed');
+		assert.notStrictEqual(formatSyncChromeLabel(sync), undefined);
+		assert.ok(!formatSyncChromeLabel(sync)?.includes('Connected'));
 	});
 });

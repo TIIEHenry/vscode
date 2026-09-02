@@ -5,11 +5,26 @@
 
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
+import { localize } from '../../../../nls.js';
 import { createDecorator } from '../../../../platform/instantiation/common/instantiation.js';
+import { IStorageService } from '../../../../platform/storage/common/storage.js';
 import type { IConversationSessionViewLease } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
 import type { SyncChrome } from '../../../../platform/universeAgent/common/sessionView/index.js';
 import { ConversationStubFrameSource } from './conversationStubFrameSource.js';
-import { ConversationStubModel, ConversationStubSession, ConversationStubTurn } from './conversationStubModel.js';
+import {
+	buildLocalSessionsFromModel,
+	loadConversationRosterStorage,
+	persistedSessionsToStubSessions,
+	saveConversationRosterStorage,
+	type ConversationRosterStorageV1,
+	type ConversationSessionSource,
+} from './conversationRosterStorage.js';
+import {
+	ConversationStubModel,
+	ConversationStubSession,
+	ConversationStubTurn,
+	getConversationStubNextTurnId,
+} from './conversationStubModel.js';
 import {
 	mergeTrajectoryFixtureExtras,
 	projectTurnsToTrajectory,
@@ -43,6 +58,7 @@ export interface IConversationRosterService {
 	getTurns(sessionId: string): readonly ConversationStubTurn[];
 	getTrajectoryRecords(sessionId: string): readonly ConversationTrajectoryRecord[];
 	getSessionSync(sessionId: string): SyncChrome;
+	getSessionSource(sessionId: string): ConversationSessionSource;
 	appendUserTurn(sessionId: string, text: string): ConversationStubTurn | undefined;
 	appendStubEchoAssistant(sessionId: string, text: string): ConversationStubTurn | undefined;
 	appendConfirmationTurn(sessionId: string, text: string): ConversationStubTurn | undefined;
@@ -81,8 +97,10 @@ export class ConversationStubService extends Disposable implements IConversation
 
 	declare readonly _serviceBrand: undefined;
 
-	private readonly model = new ConversationStubModel();
+	protected readonly model: ConversationStubModel;
 	private engineConnected = false;
+	protected readonly storageService: IStorageService | undefined;
+	protected readonly loadedStorage: ConversationRosterStorageV1 | undefined;
 
 	protected readonly _onDidChangeActiveSession = this._register(new Emitter<string>());
 	readonly onDidChangeActiveSession = this._onDidChangeActiveSession.event;
@@ -93,7 +111,27 @@ export class ConversationStubService extends Disposable implements IConversation
 	protected readonly _onDidChangeEngineConnection = this._register(new Emitter<boolean>());
 	readonly onDidChangeEngineConnection = this._onDidChangeEngineConnection.event;
 
-	protected frameSource = this._register(new ConversationStubFrameSource(this.model, sessionId => this._onDidChangeSession.fire(sessionId)));
+	protected frameSource!: ConversationStubFrameSource;
+
+	constructor(storageService?: IStorageService) {
+		super();
+		this.storageService = storageService;
+		this.loadedStorage = storageService ? loadConversationRosterStorage(storageService) : undefined;
+		const localSessions = this.loadedStorage?.localSessions;
+		if (localSessions && localSessions.length > 0) {
+			this.model = new ConversationStubModel(
+				persistedSessionsToStubSessions(localSessions),
+				this.loadedStorage.activeSessionId,
+				this.loadedStorage.nextTurnId,
+			);
+		} else {
+			this.model = new ConversationStubModel();
+		}
+		this.frameSource = this._register(new ConversationStubFrameSource(this.model, sessionId => {
+			this._onDidChangeSession.fire(sessionId);
+			this.persistLocalRoster();
+		}));
+	}
 
 	protected useTestFrameSource(source: ConversationStubFrameSource): void {
 		this.frameSource = source;
@@ -117,7 +155,7 @@ export class ConversationStubService extends Disposable implements IConversation
 	}
 
 	getSessions(): readonly ConversationStubSession[] {
-		return this.model.getSessions();
+		return this.model.getSessions().filter(session => session.source !== 'engine-cache');
 	}
 
 	getActiveSessionId(): string {
@@ -135,6 +173,7 @@ export class ConversationStubService extends Disposable implements IConversation
 		if (previous !== current) {
 			this._onDidChangeActiveSession.fire(current);
 		}
+		this.persistLocalRoster();
 	}
 
 	createSession(): string {
@@ -145,6 +184,7 @@ export class ConversationStubService extends Disposable implements IConversation
 			this._onDidChangeActiveSession.fire(current);
 		}
 		this._onDidChangeSession.fire(sessionId);
+		this.persistLocalRoster();
 		return sessionId;
 	}
 
@@ -152,6 +192,7 @@ export class ConversationStubService extends Disposable implements IConversation
 		const changed = this.model.renameSession(sessionId, title);
 		if (changed) {
 			this._onDidChangeSession.fire(sessionId);
+			this.persistLocalRoster();
 		}
 		return changed;
 	}
@@ -170,6 +211,7 @@ export class ConversationStubService extends Disposable implements IConversation
 		if (previousActive !== currentActive && currentActive !== sessionId) {
 			this._onDidChangeSession.fire(currentActive);
 		}
+		this.persistLocalRoster();
 		return true;
 	}
 
@@ -184,14 +226,55 @@ export class ConversationStubService extends Disposable implements IConversation
 	}
 
 	getSessionSync(sessionId: string): SyncChrome {
+		if (this.getSessionSource(sessionId) === 'engine-cache') {
+			return {
+				kind: 'closed',
+				reason: localize('conversationRoster.engineCacheReason', "Cached snapshot (read-only)"),
+			};
+		}
 		return this.frameSource.project(sessionId).snapshot.sync;
+	}
+
+	getSessionSource(sessionId: string): ConversationSessionSource {
+		return this.model.getSessionSource(sessionId);
+	}
+
+	protected persistLocalRoster(): void {
+		if (!this.storageService || this.shouldSkipLocalPersistence()) {
+			return;
+		}
+		const existing = loadConversationRosterStorage(this.storageService);
+		saveConversationRosterStorage(this.storageService, {
+			version: 1,
+			wasEverConnected: existing?.wasEverConnected ?? this.loadedStorage?.wasEverConnected ?? false,
+			activeSessionId: this.model.getActiveSessionId(),
+			nextTurnId: getConversationStubNextTurnId(),
+			localSessions: buildLocalSessionsFromModel(this.model),
+			engineCache: existing?.engineCache ?? this.loadedStorage?.engineCache,
+		});
+	}
+
+	protected shouldSkipLocalPersistence(): boolean {
+		return false;
+	}
+
+	protected saveRosterStorage(state: ConversationRosterStorageV1): void {
+		if (!this.storageService) {
+			return;
+		}
+		saveConversationRosterStorage(this.storageService, state);
+	}
+
+	private notifySessionChanged(sessionId: string): void {
+		this.frameSource.refresh(sessionId);
+		this._onDidChangeSession.fire(sessionId);
+		this.persistLocalRoster();
 	}
 
 	appendUserTurn(sessionId: string, text: string): ConversationStubTurn | undefined {
 		const turn = this.model.appendUserTurn(sessionId, text);
 		if (turn) {
-			this.frameSource.refresh(sessionId);
-			this._onDidChangeSession.fire(sessionId);
+			this.notifySessionChanged(sessionId);
 		}
 		return turn;
 	}
@@ -199,8 +282,7 @@ export class ConversationStubService extends Disposable implements IConversation
 	appendStubEchoAssistant(sessionId: string, text: string): ConversationStubTurn | undefined {
 		const turn = this.model.appendStubEchoAssistant(sessionId, text);
 		if (turn) {
-			this.frameSource.refresh(sessionId);
-			this._onDidChangeSession.fire(sessionId);
+			this.notifySessionChanged(sessionId);
 		}
 		return turn;
 	}
@@ -208,8 +290,7 @@ export class ConversationStubService extends Disposable implements IConversation
 	appendConfirmationTurn(sessionId: string, text: string): ConversationStubTurn | undefined {
 		const turn = this.model.appendConfirmationTurn(sessionId, text);
 		if (turn) {
-			this.frameSource.refresh(sessionId);
-			this._onDidChangeSession.fire(sessionId);
+			this.notifySessionChanged(sessionId);
 		}
 		return turn;
 	}
@@ -217,8 +298,7 @@ export class ConversationStubService extends Disposable implements IConversation
 	appendThinkingTurn(sessionId: string, text: string): ConversationStubTurn | undefined {
 		const turn = this.model.appendThinkingTurn(sessionId, text);
 		if (turn) {
-			this.frameSource.refresh(sessionId);
-			this._onDidChangeSession.fire(sessionId);
+			this.notifySessionChanged(sessionId);
 		}
 		return turn;
 	}
@@ -226,8 +306,7 @@ export class ConversationStubService extends Disposable implements IConversation
 	appendToolTurn(sessionId: string, text: string): ConversationStubTurn | undefined {
 		const turn = this.model.appendToolTurn(sessionId, text);
 		if (turn) {
-			this.frameSource.refresh(sessionId);
-			this._onDidChangeSession.fire(sessionId);
+			this.notifySessionChanged(sessionId);
 		}
 		return turn;
 	}
@@ -247,8 +326,7 @@ export class ConversationStubService extends Disposable implements IConversation
 	deleteTurn(sessionId: string, turnId: string): boolean {
 		const deleted = this.model.deleteTurn(sessionId, turnId);
 		if (deleted) {
-			this.frameSource.refresh(sessionId);
-			this._onDidChangeSession.fire(sessionId);
+			this.notifySessionChanged(sessionId);
 		}
 		return deleted;
 	}
@@ -256,8 +334,7 @@ export class ConversationStubService extends Disposable implements IConversation
 	updateUserTurnText(sessionId: string, turnId: string, text: string): boolean {
 		const updated = this.model.updateUserTurnText(sessionId, turnId, text);
 		if (updated) {
-			this.frameSource.refresh(sessionId);
-			this._onDidChangeSession.fire(sessionId);
+			this.notifySessionChanged(sessionId);
 		}
 		return updated;
 	}

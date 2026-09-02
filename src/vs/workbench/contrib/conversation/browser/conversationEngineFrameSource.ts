@@ -21,6 +21,7 @@ import {
 	type ReplicaCursor,
 	type SessionViewSnapshot,
 } from '../../../../platform/universeAgent/common/sessionView/index.js';
+import { type ConversationSessionViewProjection } from '../../../contrib/conversation/browser/conversationSessionView.js';
 
 /**
  * Engine-backed frame source (stream-timeline S4): proxies lease + frames from
@@ -48,6 +49,20 @@ export class ConversationEngineFrameSource extends Disposable implements IConver
 			acquired => this.leases.set(acquired, lease),
 		);
 		return lease;
+	}
+
+	/** Last replica for a session when a lease is still held (UA disconnect cache). */
+	getCachedProjection(sessionId: string): ConversationSessionViewProjection | undefined {
+		for (const lease of this.leases.values()) {
+			if (lease.sessionId === sessionId) {
+				return {
+					snapshot: lease.snapshot,
+					attribution: lease.attribution,
+					details: lease.details,
+				};
+			}
+		}
+		return undefined;
 	}
 }
 
