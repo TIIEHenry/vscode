@@ -45,6 +45,8 @@ import type {
 	UniverseAgentSetSkillEnabledResult,
 	UniverseAgentSkillInfoRequest,
 	UniverseAgentSkillInfoResult,
+	UniverseAgentSaveSkillContentRequest,
+	UniverseAgentSaveSkillContentResult,
 	UniverseAgentTeamInfo,
 	UniverseAgentTeamMemberInfo,
 	UniverseAgentTeamTaskInfo,
@@ -132,6 +134,9 @@ export interface IUniverseAgentConnection {
 	setSkillEnabled(request: UniverseAgentSetSkillEnabledRequest): Promise<UniverseAgentSetSkillEnabledResult>;
 
 	getSkillInfo(request: UniverseAgentSkillInfoRequest): Promise<UniverseAgentSkillInfoResult>;
+
+	/** Engine-backed catalog write; absent until transport wires SaveSkillContent (slot A). */
+	saveSkillContent?(request: UniverseAgentSaveSkillContentRequest): Promise<UniverseAgentSaveSkillContentResult>;
 
 	listAgentProfiles(request?: UniverseAgentListAgentProfilesRequest): Promise<UniverseAgentListAgentProfilesResult>;
 

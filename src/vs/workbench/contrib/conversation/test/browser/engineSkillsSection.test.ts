@@ -12,6 +12,7 @@ import type {
 	UniverseAgentConnectionSnapshot,
 	UniverseAgentCapabilitySnapshot,
 	UniverseAgentListSkillsResult,
+	UniverseAgentSaveSkillContentRequest,
 } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { EngineSkillsSection } from '../../browser/engineSkillsSection.js';
@@ -25,6 +26,8 @@ suite('EngineSkillsSection (E1)', () => {
 		connected?: boolean;
 		skillsSupport?: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN';
 		listSkills?: () => Promise<UniverseAgentListSkillsResult>;
+		getSkillInfo?: (request: { skillName: string }) => Promise<{ name: string; content: string; source: 'bundled' | 'user' | 'project' | 'unknown'; enabled: boolean }>;
+		saveSkillContent?: (request: UniverseAgentSaveSkillContentRequest) => Promise<{ ok: boolean }>;
 	} = {}): IUniverseAgentConnection & { setConnected(value: boolean): void } {
 		const capabilities: UniverseAgentCapabilitySnapshot = {
 			...createEmptyCapabilitySnapshot(),
@@ -73,7 +76,8 @@ suite('EngineSkillsSection (E1)', () => {
 				skills: [{ name: 'demo-skill', source: 'bundled', enabled: true }],
 			})),
 			setSkillEnabled: async () => ({ ok: true }),
-			getSkillInfo: async () => ({ name: 'demo-skill', content: '# Demo', source: 'bundled', enabled: true }),
+			getSkillInfo: options.getSkillInfo ?? (async () => ({ name: 'demo-skill', content: '# Demo', source: 'bundled', enabled: true })),
+			saveSkillContent: options.saveSkillContent ?? (async () => ({ ok: true })),
 			listAgentProfiles: async () => ({ profiles: [] }),
 			saveAgentProfile: async (request) => ({ profile: request.profile }),
 			deleteAgentProfile: async () => ({ ok: true }),
@@ -99,6 +103,10 @@ suite('EngineSkillsSection (E1)', () => {
 		const section = store.add(instantiationService.createInstance(EngineSkillsSection, parent));
 		section.layout(640, 400);
 		return section;
+	}
+
+	async function flushMicrotasks(): Promise<void> {
+		await new Promise(resolve => setTimeout(resolve, 0));
 	}
 
 	test('disconnected hides skills section (§8.3 #5 honest empty)', async () => {
@@ -138,5 +146,92 @@ suite('EngineSkillsSection (E1)', () => {
 		assert.strictEqual(section.getMode(), 'disconnected');
 		assert.strictEqual(section.getListEntryCount(), 0);
 		assert.strictEqual(section.getDomNode().style.display, 'none');
+	});
+
+	test('SUPPORTED connected saveSelectedSkillBody calls saveSkillContent RPC', async () => {
+		let saveCalled = false;
+		let savedContent = '';
+		const connection = createConnectionStub({
+			connected: true,
+			skillsSupport: 'SUPPORTED',
+			listSkills: async () => ({
+				skills: [{ name: 'user-skill', source: 'user', enabled: true }],
+			}),
+			getSkillInfo: async (request) => ({
+				name: request.skillName,
+				content: '# Original',
+				source: 'user',
+				enabled: true,
+			}),
+			saveSkillContent: async (request) => {
+				saveCalled = true;
+				savedContent = request.content;
+				return { ok: true };
+			},
+		});
+		const section = mountSection(connection);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'supported');
+		assert.strictEqual(section.canWrite(), true);
+		assert.ok(section.isBodyEditorVisible());
+
+		section.selectSkillForTest('user-skill');
+		await flushMicrotasks();
+
+		const textarea = section.getDomNode().querySelector('textarea.engine-skill-body-textarea') as HTMLTextAreaElement;
+		assert.ok(textarea);
+		assert.strictEqual(textarea.value, '# Original');
+		assert.strictEqual(section.isSaveToolbarVisible(), true);
+
+		textarea.value = '# Updated body';
+		const ok = await section.saveSelectedSkillBody();
+		assert.ok(saveCalled);
+		assert.strictEqual(savedContent, '# Updated body');
+		assert.strictEqual(ok, true);
+	});
+
+	test('bundled skill body is read-only and does not show save toolbar', async () => {
+		const connection = createConnectionStub({
+			connected: true,
+			skillsSupport: 'SUPPORTED',
+			getSkillInfo: async () => ({
+				name: 'demo-skill',
+				content: '# Bundled',
+				source: 'bundled',
+				enabled: true,
+			}),
+		});
+		const section = mountSection(connection);
+		await flushMicrotasks();
+
+		section.selectSkillForTest('demo-skill');
+		await flushMicrotasks();
+
+		const textarea = section.getDomNode().querySelector('textarea.engine-skill-body-textarea') as HTMLTextAreaElement;
+		assert.ok(textarea.readOnly);
+		assert.strictEqual(section.isSaveToolbarVisible(), false);
+
+		const ok = await section.saveSelectedSkillBody('# hack');
+		assert.strictEqual(ok, false);
+	});
+
+	test('disconnected saveSelectedSkillBody does not call saveSkillContent RPC', async () => {
+		let saveCalled = false;
+		const connection = createConnectionStub({
+			connected: false,
+			skillsSupport: 'SUPPORTED',
+			saveSkillContent: async () => {
+				saveCalled = true;
+				return { ok: true };
+			},
+		});
+		const section = mountSection(connection);
+		await flushMicrotasks();
+
+		const ok = await section.saveSelectedSkillBody('# should not save');
+		assert.strictEqual(saveCalled, false);
+		assert.strictEqual(ok, false);
+		assert.strictEqual(section.canWrite(), false);
 	});
 });

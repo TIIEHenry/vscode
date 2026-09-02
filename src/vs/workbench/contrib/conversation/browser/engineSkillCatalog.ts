@@ -27,6 +27,10 @@ export function getSkillsUnsupportedCopy(reason?: string): string {
 
 export const getSkillsUnknownCopy = getCatalogUnknownCopy;
 
+export function canEditSkillBody(source: UniverseAgentSkillSource): boolean {
+	return source === 'user' || source === 'project';
+}
+
 export function getSkillToggleFreezeNotice(): string {
 	return localize(
 		'ua.engineSkillToggleFreezeNotice',

@@ -210,6 +210,17 @@ export interface UniverseAgentSkillInfoResult {
 	readonly enabled: boolean;
 }
 
+/** Write SKILL.md body via engine catalog (ToolService.SaveSkillContent; customizations-engine §3.1). */
+export interface UniverseAgentSaveSkillContentRequest {
+	readonly skillName: string;
+	readonly content: string;
+}
+
+export interface UniverseAgentSaveSkillContentResult {
+	readonly ok: boolean;
+	readonly reason?: string;
+}
+
 /** Agent profile source from AgentService.ListAgentProfiles (customizations-engine §3.2). */
 export type UniverseAgentAgentProfileSource = 'built_in' | 'user' | 'project' | 'unknown';
 
