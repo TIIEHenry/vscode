@@ -159,9 +159,9 @@ fixture 可见字符串必须含 **Stub**（PRD-007 / PRD-013.4）。例如 thin
 | P3 | 展开 Thinking / 工具 payload；Stub 文案 | 上 | 否 |
 | P3t | **轨迹**挂同一 chrome，默认展开；SYSTEM/context 在折外 | `conversationTrajectoryUi.test.ts`（与轨迹 T3 同测，**同一 PR 文件互斥**） | 否 |
 | P4 | 引擎 admitted turnId 连续段替换 fixture | **blocked on PRD-008** | 是 |
-| P5 | sticky 面包屑、缺口折叠、executing 限高内滚 | Deferred（ADR-046 决策 8 内滚属引擎 live） | 是 |
+| P5 | sticky 面包屑、缺口折叠、executing 限高内滚 | **由 M7 [conversation-ui-closeout Q4](conversation-ui-closeout.md) 承接**（2026-09-02；Q4 不承接 P4） | 是 |
 
-**Implemented：** **P1–P3、P3t**（`19f3e7ba`–`42fa941e`）。P4–P5 否（P4 blocked on PRD-008；P5 Deferred）。
+**Implemented：** **P1–P3、P3t**（`19f3e7ba`–`42fa941e`）。P4 否（blocked on PRD-008）；P5 由 M7 conversation-ui-closeout Q4 承接（2026-09-02）。
 
 与轨迹：**不能**假设文件级并行。P2 / P3t / 轨迹 T1–T3 都可能改 `conversationLens.ts`、`conversationStubModel.ts`。**同一 PR 禁止**两人同时改这些文件。推荐：过程折 P1–P3 → 轨迹 T2（投影 reasoning/tool）→ T3/P3t（轨迹 overlay + subtool）。
 

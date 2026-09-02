@@ -1,0 +1,45 @@
+```
+Verdict: Approve with changes
+
+Round-1 follow-up:
+- C1 Resolved — P0 现含 Hub browser stub、`unsupported_environment`、并把 `connectionHub.contribution.ts` 的 electron-browser import 移到 `workbench.desktop.main.ts`；看板 P 所有权与 protocol-surface §1b 末段 / §2 Web 段已同步。HEAD 代码仍是旧状（待 P0 落地），不是方案漏项。
+- I1 Resolved — Client 执行整槽改 B（Wave 3 B4 = CS-*）；看板依赖矩阵 CS 不依赖 P、依赖 Q5a/Q5b；A 不再列 `conversationLens*`。
+- I2 Resolved — Connection pane / Hub contrib / IdentityStrip / stub 帧源 / Sources Review 命令已入所有权；仲裁写明 P0 只动 Hub import 一行。
+- I3 Resolved — P2a 写明 stub `requestDetail` 由 B 在 Q2 实施；看板 B 拥有 `conversationStubFrameSource.ts`。
+- I4 Resolved — 载体写死 `ItemAttribution.branchReason` + `compacted{anchorTurnId,foldedLeafTurnId,compactBranchTurnId,summary?}`；行身份只来自 L2；Chat 流仅可选 token 富化。
+- I5 Resolved — Wave 0 表有「browser 断连实现同步」列；protocol-surface §2 要求同提交同步 `browser/`。
+- I6 Resolved — §2 与 health-gates 均限定「逐条点名」且目前仅 `settingsUaToc.test.ts:253`；禁止事后追认。
+- I7 Resolved — §5.1 已按面拆判定标准（Client / Nav / Sources / Diff 口径已分开）。改入后对 Connection 的套用见下方新 I1。
+- I8 Resolved — 总方案 §2 分层改为「阻塞该冲突域合入」，与 health-gates 一致。
+
+Critical:
+（无）
+
+Important:
+- I1 [总方案 §5.1] 「Connection 页具备 §1.1 六态」把 Engine catalog 六态套到 Connection，完成线再次不可判定。证据：总方案 §1 只给 Engine 页定义 disconnected/loading/unsupported/failed/empty/ready（定义指针向 engine-preferences §2）；不存在 §1.1；A 方案 E2-1 对 Connection 的完成线是省略 Hub/Direct/SAS/Test（`connectionPreferencesPane.ts:219-250` 今天无条件画这些控件）；桌面权威是 `ConnectionPhase` 五 kind（`connectionHubTypes.ts:28-33`），没有 catalog 的 empty/ready。建议：§5.1 Connection 只要求 Web/`unsupported_environment` 省略桌面连接控件，桌面以 `ConnectionPhase` 为准，不套 catalog 六态。
+
+Minor:
+- M1 [总方案 §5.1] 引用不存在的「§1.1」。未核实实施者是否会自行对照 §1 第 1 条。建议改成「engine-preferences §2 六态」。
+- M2 [总方案 §4 P2a] 成功态 `DetailFetchOutcome` 无 `content`/`body`，也未写明 host 必须 `upsertDetail(body=FetchToolDetailResponse.content)`。B 的 full 判定要 `details.get(ref)` 有体（conversation-ui-closeout §3）。`DetailPatch` 现有 `body`（`conversationViewFrame.ts:62-64`），可推断，但不写会死在「Promise 已 ok、map 仍空」。建议补一句：success 先发 upsertDetail 再 settle Promise。
+- M3 [总方案 §4 P0] 未写明 Web 用 `registerSingleton` 挂 `platform/universeAgent/browser/**`，禁止在 `workbench.web.main.ts` 调用 `registerMainProcessRemoteService`。桌面先例只有后者（`electron-browser/universeAgentHubService.ts:6-10`）。抄进 web.main 会把 C1 变回来。另：Hub 文案写「login / connect 拒绝」，Hub 接口无 `connect`（`hub.ts:66-111`），connect/connectProfile 在 `IUniverseAgentConnection`。
+- M4 [看板所有权] Q6 点名 `ConversationEditorPane.layout`（`conversationEditorPane.ts:96-98` 今天只排 breadcrumb），看板 B 未列该文件。T1 的 `conversationPart.ts` 加载点已在仲裁 #8；K2 新 contribution 的 import 点 `sources.contribution.ts:10-11` 仍无主。不是双写，是停工点。
+- M5 [status.md M7 裁定句] 「分层破坏硬阻塞」未加「冲突域」限定（`status.md:17`），与已对齐的总方案 §2 / health-gates:28 不一致。未核实写者是否会据此冻结全部槽。
+- M6 [总方案 §4 P2b] 路径二写成 `EnvelopeRangeReplaced(COMPACT)` **且** `BRANCH_NOTICE`。proto 上前者是独立事件（`message_envelope.proto:605-616`，`RangeReplaceReasonProto.COMPACT=3`），后者是 envelope type 或 `BranchTopologyNotified.notice`（`:28`、`:630`）。合取是否总成立未核实；若 compact 可只有 RangeReplaced，demux 会丢行。
+
+Cross-doc:
+- X1 与 engine-preferences-completion §1 / E2-1：父方案 §5.1 要 Connection 具备 catalog 六态，A 方案要省略控件并以 phase/reason 判定。以 A 为准改父方案（见 I1）。
+- X2 与 health-gates / 总方案 §2：分层冲突域已对齐；仅 status.md 裁定句仍写全局硬阻塞（见 M5）。第一轮 X1–X5 其余项已随 C1/I1/I4/I6/I8 闭合，不重复。
+
+Verified OK:
+- P0 前提仍成立：`platform/universeAgent/` 无 `browser/`；`workbench.web.main.ts` 无 UA；`workbench.desktop.main.ts:60-61` 仅 Connection/SessionView 的 electron-browser 注册；Hub 经 `connectionHub.contribution.ts:6` → `uaPreferencesPanes.contribution.ts:23` → `conversation.contribution.ts:9` → `workbench.common.main.ts:232` 进 Web。
+- common.main 仍加载 conversation/navigator/sources（`:232/:235/:274`）；生产注入存在：StatusBar `conversationSessionStatusBar.ts:39`、Roster `conversationEngineRosterService.ts:7-8`、Navigator 三视图、Sources `sourcesReviewAttributionService.ts:48`、Connection pane `:207-208` 同时注入 Hub+Connection。
+- `HubAuthStatus` 已有 `unavailable`（`hub.ts:19`）；`ConnectionFailureCode` 尚无 `unsupported_environment`（`connectionHubTypes.ts:7-24`），属 P0 计划增量。
+- HEAD Engine 仍四节（`enginePreferencesPane.ts:56-59`）；`plugins` 仍固定 M6-A1 UNSUPPORTED（`grpcCapabilityProbe.ts:101-103`）；capability 键无 `mcpRuntime`/`models`/`providerConfig`（`universeAgentTypes.ts:10-20`）；lease 无 `requestDetail`；`ItemAttribution` 无 `branchReason`/`compacted`；sessionCore/demux 无 compact。
+- Client TOC 七组 pattern + `properties: {}`（`uaClientSettings.ts:10-17`；`settingsLayout.ts:481-517`）；`settingsUaToc.test.ts:253` 仍负向 `ua.client.*`。
+- Wave 0 RPC 仍在 proto：`ListModels`、`GetMcpServerStatuses`/`GetMcpServerTools`、`PluginService.{List,Info,Enable,Reload,Unload,ScanNew}`、`FetchToolDetail`（response 含 `content`/`truncated`/`total_bytes`）；`CompactedSpanBlock` 三 turn id、`branch_reason`、`ContextCompactedEvent` 字段与方案一致。`SubscribeToolDetail`/`FetchToolUsageDetail`/`Compact` 已排除。
+- 五份子方案「平台前置」与 Wave 0 五刀（含 P0 Hub）一一对应；未发现额外 RPC 绑定被 UI 依赖却未进 Wave 0。
+- 文件所有权已覆盖第一轮点名文件；Client 归 B 后无 A/B 双写 `conversationLens*`。P/A 对 `connectionHub.contribution.ts` 的分割（P0 一行 vs 其余）写清。
+- 非阻塞政策：点名断言豁免已写入总方案 §2 与 health-gates；红测不挡下切片、挡 PRD `implemented`；secret/权限全局硬门；分层改冲突域。D15 Track 已是 M7，Exit 为 P0+E2-1。D12/D17 行与方案方向一致。
+- §6 不纳入与子方案一致（H6、G-ENG-1/2/3 不画表单、会话级 SwitchModel、SubscribeToolDetail/FetchToolUsageDetail/Compact、无 fixture）。
+- 诚实降级 / 分层（renderer 只 import common）/ 不用 Copilot·IMcpService / 凭据不进 settings.json：总方案 §5–§6 未要求假数据；P0 明确 `unsupported_environment` ≠ `transport_failed`。
+```

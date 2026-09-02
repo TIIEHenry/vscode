@@ -3,8 +3,8 @@ title: "设置两套主面：本地 Client / Engine；Singularity 设置在 vsco
 type: plan
 status: implemented
 phase: N/A
-updated: 2026-09-01
-summary: "本地 vs Engine 两套主设置面；C5 TOC→OpenEditor 已落；donor H0–H3 已落；E1 blocked PRD-008"
+updated: 2026-09-02
+summary: "本地 vs Engine 两套主设置面已定；C5/H0–H3 与 E1 四节主体已落，M7 补 Engine 九节与 Client 七组真实设置"
 ---
 
 # 设置两套主面：本地 / Engine
@@ -14,7 +14,7 @@ summary: "本地 vs Engine 两套主设置面；C5 TOC→OpenEditor 已落；don
 
 **Goal：** 钉死两页各装什么。不实施。
 
-本稿 `implemented`（C5 + donor H0–H3 @ `77d6e7cc`）。Engine catalog **E1 blocked PRD-008**。
+本稿宿主与两主面边界 `implemented`（C5 + donor H0–H3 @ `77d6e7cc`）。Engine catalog E1 的 Skills/Agents/MCP Definitions/Tools 主体已落；九节完整内容转 [engine-preferences-completion](engine-preferences-completion.md)，Client 七组真实设置转 [client-settings-completion](client-settings-completion.md)。两份 M7 方案不重开本稿宿主。
 
 ## 0. 人类约束（2026-09-01）
 
@@ -33,7 +33,7 @@ summary: "本地 vs Engine 两套主设置面；C5 TOC→OpenEditor 已落；don
 
 Engine ua.engine：Provider / Model / Skill catalog / Agent Profile /
   Rules（= Instructions）/ Hooks / MCP 定义 / 引擎工具。
-  无引擎 = 诚实空 + Test。禁止本机 Copilot 盘冒充已连。
+  无引擎 = 诚实空（零条目、零写按钮；九节导航仍可达）+ Open Connection。禁止本机 Copilot 盘冒充已连。
 
 HEAD ua.customizations pane = 禁止的第三宿主（TOC 今天仍打开它）。
 ```
@@ -55,7 +55,7 @@ HEAD ua.customizations pane = 禁止的第三宿主（TOC 今天仍打开它）�
 | Hook 点位 + 引擎侧定义 | `ua.engine` |
 | MCP **定义** CRUD（引擎权威） | `ua.engine` |
 | 引擎 / Profile 工具 enablement | `ua.engine` |
-| 无引擎 | **整页诚实空 + Test**。禁止在 Engine 页扫本机文件当 catalog/Stub「快接上了」 |
+| 无引擎 | **整页诚实空**（= 零条目、零写按钮；九节左栏导航仍可达，M7 E2-1 废止整节隐藏）。禁止在 Engine 页扫本机文件当 catalog/Stub「快接上了」 |
 | 打开某份 UA markdown / `tools.json` 来编辑 | `AICustomizationManagementEditor`（文件工具）。可从 Engine 某行「在编辑器中打开」 |
 | 本地 vscode MCP / 工作区普通 md | 不是 Engine catalog；donor 若列出须当普通文件，文案不得写引擎 |
 

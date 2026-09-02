@@ -4,7 +4,7 @@ type: reference
 status: accepted
 phase: N/A
 updated: 2026-09-02
-summary: "已知 gRPC 服务 / RPC 名与本仓用途；§1 Conversation（A1/A2）+ Device Grant；§1b Web 断连（M7 P0）+ P1a MCP/Plugins + P2a DetailRef；Engine catalog list/toggle + 写 RPC @ f49615a1；§7 Engine 页四节；§5 会话面对照；§11 Navigator/Review；§4 G-NAV-* / G-REV-*"
+summary: "已知 gRPC 服务 / RPC 名与本仓用途；§1 Conversation（A1/A2）+ Device Grant；§1b P0 Web 断连 + P1a/P2a 已绑定、P1b/P2b 待接；Engine catalog list/toggle + 写 RPC @ f49615a1；§7 Engine 页四节；§5 会话面对照；§11 Navigator/Review；§4 G-NAV-* / G-REV-* / G-ENG-*"
 ---
 
 # UniverseAgent 引擎协议面（本仓消费口径）
@@ -28,36 +28,31 @@ summary: "已知 gRPC 服务 / RPC 名与本仓用途；§1 Conversation（A1/A2
 | `ToolService` | `SaveSkillContent` | **@ HEAD** node gRPC @ `45fa7a35`/`040c823d` + common 可选 `saveSkillContent?` @ `f3f2d366` + **UI** textarea/Save @ `f3f2d366`/`3e986bde` | USER/PROJECT 可编、BUNDLED 只读；断连/`UNSUPPORTED` 不渲染；probe/`UNIMPLEMENTED` 时 `saveSkillContent?` 缺席、Save 隐藏；运行时 `UNIMPLEMENTED` → `{ ok: false }` |
 | `ToolService` | `ListTools` / `ToolInfo` | **@ HEAD** `listTools` → `EngineToolsSection` 目录 + profile 启用 checkbox | 无 `SetToolEnabled`；enablement 经 `SaveAgentProfile` → `{profileDir}/tools.json`（`engineToolProfile.ts` @ `f49615a1`） |
 | `AgentService` | `ListAgentProfiles` / `SaveAgentProfile` / `DeleteAgentProfile` / `ResetAgentProfile` | **@ HEAD** list + 写 RPC → `EngineAgentsSection`（New/Delete/Reset 工具栏 + **`AGENTS.md` 全文编辑器** @ `9419f583`） | 选中 profile textarea + Save → `SaveAgentProfile`；断连/`UNSUPPORTED` 不渲染；built_in 只读；built_in 不可 Delete、仅 Reset |
-| `McpService` | `ListMcpServers` / `ToggleMcpServer` / `AddMcpServer` / `UpdateMcpServer` / `RemoveMcpServer` | **@ HEAD** list + toggle + 定义 CRUD → `EngineMcpSection` | 运行态 RPC 见 §1b（M7 P1a） |
+| `McpService` | `ListMcpServers` / `ToggleMcpServer` / `AddMcpServer` / `UpdateMcpServer` / `RemoveMcpServer` | **@ HEAD** list + toggle + 定义 CRUD → `EngineMcpSection` | 运行态 RPC 见 §1b（M7 P1a / E2-4） |
 | `PluginService` | `List` / `Info` / `Enable` / `Reload` / `Unload` / `ScanNew` | Plugins 节（M7 E2-5；见 §1b） | Local 模式 Singularity 标 UNSUPPORTED；IDE 以 `List` probe 决定三态 |
-| Local `RulesBridge` | list / create / update / delete / preview / health × global / workDir（12）+ `defaultAgentHome()` | Engine 页 Rules（Instructions） | **Remote gRPC 不存在**；默认 `Unsupported`；Engine 页 Rules list **未**在本 slice |
+| Local `RulesBridge` | list / create / update / delete / preview / health × global / workDir（12）+ `defaultAgentHome()` | **本仓不可达**：`RulesBridge` 是 Desktop/Singularity 进程内接口，IDE 只经 gRPC | **Remote gRPC 不存在** → Engine 页 Rules 一律 `UNSUPPORTED`（见 §4 G-ENG-2）。`PermissionService.GetSessionRules` / `SyncPermissionRule` / `PromotePermissionRule` 是**权限规则**，不得冒充 Instructions |
 | `MemoryService` | — | 不在 Engine 页；未来独立 pane | 与 Instructions 分家 |
 
-## 1b. Web 断连（M7 P0）
+## 1b. M7 协议面（P0/P1a/P2a 已绑定；P1b/P2b 待接）
 
-非 RPC：`IUniverseAgentConnection` / `IUniverseAgentSessionView` / `IUniverseAgentHubService` 在 Web 以 **`registerSingleton`** 注册（**禁止** `registerMainProcessRemoteService`），实现位于 `platform/universeAgent/browser/`。
+非 RPC：`IUniverseAgentConnection` / `IUniverseAgentSessionView` / `IUniverseAgentHubService` 在 Web 以 **`registerSingleton`** 注册（**禁止** `registerMainProcessRemoteService`），实现位于 `platform/universeAgent/browser/`。`connectionHub.contribution.ts` **不再**静态 import electron-browser Hub；该注册仅在 `workbench.desktop.main.ts`。
 
-| 服务 | Web 诚实断连 | 备注 |
-|------|--------------|------|
-| `IUniverseAgentConnection` | `isEngineConnected()=false`；transport `idle`；全部 `Event` 为 `Event.None`；capability snapshot **含全部已有键**且均 `UNSUPPORTED`，reason「Web 不支持本机 Engine 连接」；`connect()` 不 throw、返回无 token 的 `{ methods: [], events: [] }`；`connectProfile` 返回 `ok:false`、`code: 'unsupported_environment'`（`ConnectionFailureCode` 新增，非 `transport_failed`）；`getConnectionPhase` = `{ kind: 'disconnected' }`；其余方法 reject 为 `unsupported_environment` | `workbench.web.main.ts` 注册 |
-| `IUniverseAgentSessionView` | 空 lease（可 acquire，不投帧；`post` → `not_authenticated`；`requestDetail` 恒 `{ ok:false, reason:'unavailable' }`） | 同上 |
-| `IUniverseAgentHubService` | `getAuthStatus` = `unavailable`；`login` / `addDirectAddressProfile` 等 mutating 方法一律 `ok:false` + 环境码；profiles = `[]`；`isEncryptionAvailable()` = `true`（避免冒充密钥环问题）；不回显凭据 | `connectionHub.contribution.ts` **不再**静态 import `electron-browser/universeAgentHubService`；该注册仅在 `workbench.desktop.main.ts` |
+| 服务 | Web 诚实断连（**P0 已落**） | 备注 |
+|------|------------------------------|------|
+| `IUniverseAgentConnection` | transport `idle`；capability 已有键全 `UNSUPPORTED` reason「Web 不支持本机 Engine 连接」；`connect()` 不 throw、无 token；`connectProfile` `{ ok:false, code:'unsupported_environment' }`；`getConnectionPhase` = `disconnected` | `workbench.web.main.ts` |
+| `IUniverseAgentSessionView` | 空 lease；`requestDetail` 恒 `{ ok:false, reason:'unavailable' }` | 同上 |
+| `IUniverseAgentHubService` | `getAuthStatus=unavailable`；mutating `ok:false`；不回显凭据 | 同上 |
 
-后续 P 切片新增 capability 键或方法时，**同一提交**须同步本目录 browser 断连实现。
+| 服务 | RPC | 本仓消费面 | P 切片 | 状态 |
+|------|-----|-----------|--------|------|
+| `McpService` | `GetMcpServerStatuses` / `GetMcpServerTools` | Engine Runtime tab | **P1a** `getMcpServerStatuses` / `getMcpServerTools`；`mcpRuntime` | **已绑定** |
+| `PluginService` | `List` / `Info` / `Enable` / `Reload` / `Unload` / `ScanNew` | Engine Plugins | **P1a** 八方法；`plugins` 由 `List` 真探测 | **已绑定** |
+| `AgentService` | `FetchToolDetail(..., subscribe=false)` | Conversation DetailRef | **P2a** `requestDetail` + `DetailPatch.truncated/totalBytes`；browser 恒 unavailable；stub 源由 B Q2 接通 | **已绑定** |
+| `ConfigService` | `ListModels` | Engine Model 组 | **P1b** `listModels()`；`models` | 待接 |
+| `ConfigService` | `Get` / `Set` / `Watch` | Provider 候选 | P1b 只加 `providerConfig`，G-ENG-1 前固定 `UNSUPPORTED` | 待接 |
+| L2 compact 事件 | `branch_reason` / `CompactedSpanBlock` / `RangeReplaced(COMPACT)` | 轨迹 compacted | **P2b** | 待接 |
 
-### P1a 已绑定（MCP 运行态 + Plugins）
-
-| 服务 | RPC | 线上消息要点 | 本仓消费面（M7） | P 切片 / IDE 方法 | 备注 |
-|------|-----|--------------|------------------|------------------|------|
-| `McpService` | `GetMcpServerStatuses` | `McpServerStatus{ server_id, status DISCONNECTED/CONNECTING/CONNECTED/ERROR, error_message, last_connected_at }` + `checked_at`；另有 `MCP_STATUS_UNSPECIFIED=0` | Engine 页 MCP 节 **Runtime** tab | **P1a** `getMcpServerStatuses()`；能力键 `mcpRuntime` | 与 Definitions 共享 `server_id`；不得读 vscode `IMcpService`；`UNSPECIFIED` 映射为 failed，不画第五态 |
-| `McpService` | `GetMcpServerTools(server_id, force_refresh)` | `McpToolDefinition{ name, description, input_schema_json }` + `total` + `cached_at` | Runtime tab 每服务器工具列表 | **P1a** `getMcpServerTools(serverId, forceRefresh)` | `cached_at` 展示为「上次刷新」 |
-| `PluginService` | `List` / `Info` / `Enable` / `Reload` / `Unload` / `ScanNew` | `PluginSummary{ id, display_name, version, source, hook_count, status ACTIVE/DISABLED/ERROR, loaded_at }`；`Info` 附 `PluginHookEntry{ hook_type, priority, class_name }`；`ScanNewPluginsResponse{ new_plugins, skipped_count }`；写操作要求 operator，否则 `PERMISSION_DENIED` | Engine 页 Plugins 节 | **P1a** `listPlugins()` / `getPluginInfo(id)` / `enablePlugin(id)` / `reloadPlugin(id)` / `unloadPlugin(id)` / `scanNewPlugins()`；`plugins` 由 `List` 真探测 | `source` 为 JAR/DEX 文件名或 `embedded`（现网实现可能回 `"plugin"`，UI 只按 wire 值判断）；`Info.hooks` 现网可能为空，空就空表；无安装市场 |
-
-### P2a 已绑定（DetailRef 通道）
-
-| 服务 | RPC | 线上消息要点 | 本仓消费面（M7） | P 切片 / IDE 方法 | 备注 |
-|------|-----|--------------|------------------|------------------|------|
-| `AgentService` | `FetchToolDetail(session_id, tool_call_id, detail_kind, ref_id, mime_type?, revision?, offset?, length?, tail_bytes?, subscribe)` | `FetchToolDetailResponse{ success, content, revision?, truncated, total_bytes?, mime_type?, error_message }` | Conversation **DetailRef 按需通道**（G3 数据源） | **P2a** `IUniverseAgentSessionView.requestDetail(leaseId, ref) → Promise<DetailFetchOutcome>`；`DetailPatch{ ref, body, truncated?, totalBytes? }`；`IConversationSessionViewLease.requestDetail?`（stub 源由 B 在 Q2 接通实施） | Host-only：`DetailRef` JSON `{ toolCallId, detailKind, refId }`（或 compact `{ tc, k, r }`）→ `FetchToolDetail(subscribe=false)`。成功先写入 host `leaseDetails` 并在 outcome 带 `content`，再 settle（调用方据此 upsert `details.get(ref)`）。`success=false` / 传输错 → failed；方法未广告 / `UNIMPLEMENTED` → unavailable。browser lease 恒 unavailable。**禁止** `subscribe=true`；不注入 `ViewFrame`（避免抢走 Actor `frameId`） |
+**不存在的 RPC：** Provider CRUD；Instructions Rules gRPC；`ListHookPoints`；Skill 独立 Create；Agent profile `model.json` 写路径。会话级 `SwitchModel` 不进 Engine 页。`SubscribeToolDetail` / `FetchToolUsageDetail` / `Compact` 手动触发 M7 不接。
 
 ## 2. 能力探测
 
@@ -70,15 +65,17 @@ UA 侧 `EngineSettingsCapabilities` / `CapabilitySupport`：`SUPPORTED | UNSUPPO
 | `agentProfiles` | Connect 广告 + `AgentService.ListAgentProfiles` probe | 同上 → Agents 节（IDE 三态，非 UA Boolean 直出） |
 | `tools` | Connect 广告 + `ToolService.ListTools` probe | 同上 → Tools 节 |
 | `agentTree` · `team` | IDE 推导（m6 §11） | `AgentService.Tree` / `TeamService.MemberStatus` probe |
-| `mcpRuntime`（**M7 P1a 新增**） | IDE 推导 | Connect 广告 `McpService.GetMcpServerStatuses` + probe；与 `mcp` 分开，Definitions 可用而 Runtime 不可用是合法状态 |
-| `plugins` | UA 侧键 | **M7 P1a**：Connect 广告 `PluginService.List` + probe；探测不到则诚实 `UNSUPPORTED`（`method not advertised` / `UNIMPLEMENTED`），不得假 ready |
-| `globalRules` | UA 侧键 / IDE 矩阵 | 固定 `UNSUPPORTED`（无 Rules RPC / `probe not implemented in M6-A1`）；不随 P1a 改变 |
-| `projectRules` · `hooksMetadata` | UA 无握手字段 | 固定 `UNSUPPORTED`（`probe not implemented in M6-A1`）；不随 P1a 改变 |
-| IDE 传输失败 | 非 UA 概念 | 独立态；list RPC `catch` → 传输失败文案，**不得**映射为 UNSUPPORTED 或「0 条」 |
+| `mcpRuntime`（**M7 P1a**） | IDE 推导 | Connect 广告 `McpService.GetMcpServerStatuses` + probe；与 `mcp` 分开 |
+| `plugins` | UA 侧键 | **P1a 已探测** `PluginService.List`；未广告 / `UNIMPLEMENTED` → 诚实 `UNSUPPORTED`，不得假 ready |
+| `globalRules` · `projectRules` | UA 侧键 / IDE 矩阵 | 固定 `UNSUPPORTED`（G-ENG-2）；不随 M7 改变 |
+| `hooksMetadata` | UA 无握手字段 | 固定 `UNSUPPORTED`；不随 M7 改变 |
+| `models`（**M7 P1b**） | IDE 推导 | 待接：`ConfigService.ListModels` |
+| `providerConfig`（**M7 P1b**） | IDE 推导 | G-ENG-1 闭合前固定 `UNSUPPORTED` |
+| IDE 传输失败 | 非 UA 概念 | list RPC `catch` → 传输失败文案，**不得**映射为 UNSUPPORTED 或「0 条」 |
 
-**Web 形态（P0）：** `workbench.web.main.ts` 以 `registerSingleton` 注册三者（`platform/universeAgent/browser/`）。transport `idle`；capability snapshot **含全部已有键**且均 `UNSUPPORTED` reason「Web 不支持本机 Engine 连接」；`connect()` 不 throw、返回无 token 的 `{ methods: [], events: [] }`；`connectProfile` 返回 `ok:false` 且 `code` 为 `unsupported_environment`（非 `transport_failed`）；`getConnectionPhase` 为 `disconnected`；Hub `getAuthStatus` 为 `unavailable`、login / addDirectAddressProfile 拒绝且不回显凭据；session view 空 lease。Hub 的 electron-browser 注册只在 `workbench.desktop.main.ts`，已移出 common 链。这是 PRD-019 / D15 前置。
+**Web 形态（P0 已落）：** `workbench.web.main.ts` 以 `registerSingleton` 注册三者（`platform/universeAgent/browser/`）。Hub 的 electron-browser 注册只在 `workbench.desktop.main.ts`。后续 P 切片新增键或方法须同一提交同步 browser 断连。
 
-Connect 后 `probeEngineCapabilities`：**仅**广告了 method 且 probe 非 `UNIMPLEMENTED` 才升 `SUPPORTED`。无连接（PRD-008 未接通证据）：catalog 节 **disconnected**（隐藏），不用 Stub 填 `UNKNOWN`。
+Connect 后 `probeEngineCapabilities`：**仅**广告了 method 且 probe 非 `UNIMPLEMENTED` 才升 `SUPPORTED`。无连接：catalog 节 **disconnected**（E2-1 起节可达、零条目零写按钮），不用 Stub 填 `UNKNOWN`。
 
 ## 3. 引擎磁盘布局（进程内，IDE 断连时禁止扫）
 
@@ -100,12 +97,15 @@ Connect 后 `probeEngineCapabilities`：**仅**广告了 method 且 probe 非 `U
 | **G-NAV-1** | `SessionSummary` / `SessionInfoResponse` 无 `work_dir` | Projects 按项目分组；IDE 未补前用 connection `workDir` 单组。见 [navigator-engine-segments §7](../../../dev/plans/navigator-engine-segments.md) |
 | **G-NAV-2** | 无 `ListTeams(session_id)`；`team_id` 只在不落库事件出现 | 重连后 `liveTeamId` 空 → 节标题省略团队状态；Members/Tasks 仍可用 |
 | **G-REV-1** | 持久化历史无归一化 `file_mutation`（L3 不落库；L2 路径在 `arguments_json`） | 归因 / reviewNav 仅限本连接（含重播种）。见 [sources-review-progress §6](../../../dev/plans/sources-review-progress.md) |
-| Rules Remote gRPC | Remote 模式 Instructions | — |
-| `ListHookPoints`（或握手带版本化点位表） | Engine 页 Hooks「来自引擎」 | — |
-| 独立 CreateSkill RPC（或等价新建 UI） | E1 新建技能 | Skill **新建** UI 未在本 slice |
+| **G-ENG-1** Provider 配置键合同 | Engine 页 Provider 组的读/写/测试 | 引擎只有通用 `ConfigService.Get/Set` 与 `TestModelProfile`，没有 Provider 列表 / 凭据已配置查询；需引擎仓给出 provider 相关 config key 与"已配置但不回显"语义。闭合前 Provider 组 unsupported |
+| **G-ENG-2** Rules Remote gRPC | Engine 页 Rules（Instructions） | `RulesBridge` 仅 Desktop 进程内；IDE 一律 unsupported。原「Rules Remote gRPC」行合并至此 |
+| **G-ENG-3** `ListHookPoints`（或握手带版本化点位表） | Engine 页 Hooks「来自引擎」 | 原行改编号；闭合前 Hooks 节只显示 unsupported |
+| **G-ENG-4** Agent profile `model.json` 写路径 | Agents 节 Model 子 tab | `SaveAgentProfileRequest.AgentProfileProto` 无 `model` / `modelType` / `maxTurns`，引擎 mapper 写死 null；Model 子 tab 在引擎补字段前只能是 unsupported |
+| **G-CONV-1** compact 事实进入 session-core | 轨迹 `compacted` 记录 | proto 已有 L2 `branch_reason` / `CompactedSpanBlock` / `RangeReplaced(COMPACT)`；`ContextCompactedEvent` 只在 Chat 流。缺 host demux 与 `ItemAttribution.branchReason` / `compacted` 生产者（M7 **P2b**） |
+| 独立 CreateSkill RPC（或等价新建 UI） | E1 新建技能 | Skill **新建** UI 已落 @ `e6167c45`（写文件后 `ListSkills` 刷新）；独立 RPC 仍缺 |
 | `SaveSkillContent` node gRPC 传输 | —（**已闭** @ `45fa7a35`/`040c823d`） | `grpcClient` / `grpcTransport` / `universeAgentConnectionService` 动态绑定；单测 `universeAgentConnection.test.ts` |
 | Agent profile `tools.json` / `model.json` 独立 UI | Engine 页目录三件套附件编辑 | `AGENTS.md` 正文 @ `9419f583` 已落；`tools.json` 经 Tools 节 checkbox；`model.json` 仍无独立编辑器 |
-| `plugins` IDE probe | Plugins Engine 节 | **M7 P1a 已闭**（`PluginService.List` 探测）；`globalRules` 无 RPC，见 G-ENG-2，不排 probe |
+| `plugins` IDE probe | Plugins Engine 节 | **M7 P1a 已闭**（`PluginService.List` 探测）；`globalRules` 无 RPC，见 G-ENG-2 |
 
 ## 5. Conversation 会话面（A1/A2 @ HEAD 回填）
 

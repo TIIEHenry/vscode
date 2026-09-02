@@ -1,0 +1,40 @@
+核对完第二轮改入与 HEAD：方向成立，完成线可判定，没有会做出假 UI 或挡住 I2/I3a 开工的缺口。
+
+```
+Verdict: Approve
+
+Round-2 follow-up:
+- I1 Resolved — I4 完成线改为点名路径 `rg` 零命中；Welcome/Onboarding/issue/extensions 字面列入 I4；看板 C 已扩权「仅字符串」。
+- I2 Resolved — I5 触发为 `isNew(APPLICATION)`（或无 `User/settings.json`）且旧目录存在且 `source !== dest`，加 `offered`；Web 省略。
+- I3 Resolved — darwin*/Appx Publisher 拆到 I6；Windows 字段改为 `win32x64AppId` 等实名并含 `darwinProfilePayloadUUID`；I2/I3b 完成线不再含无合法值的发行身份。
+- I4 Resolved — I3b 写明 snap `prime: -usr/share/icons`、只验收 `snap/gui` 单图；I4 列入 `debian/templates.template`。
+- I5 Resolved — 常量下沉 `platform/product/common/universeAgentScheme.ts`（看板 C）；node 测不 import browser contrib。
+- M1 Resolved — I2 完成线含必须重跑 gulp electron、remote-cli `@@APPNAME@@`/`@@SERVERDATAFOLDER@@`。
+- M2 Resolved — I3b 点名 `electron.ts:152-153` HelpBook。
+- M3 Resolved — I5 注册在 `workbench.desktop.main.ts`、不碰 P 的 UA 行。
+- M4 NotResolved — §3.1 仍写 `environmentService.ts:56`（实为 `common/environmentService.ts:56`），`engineTrustStore.ts:116` 仍是 `get`；锚点语义仍对，不挡开工。
+- M5 Resolved — `&UniverseAgentStudio` 加速键 U 已写「有意」。
+- X1 Resolved — I2 完成线含 `page-access-schemes.md`；该文 :959 已改口。
+- X2 Resolved — 看板 C 已列 welcomeOnboarding / welcomeWalkthrough / issueReporterOverlay / extensions.contribution 字面替换。
+
+Critical:
+（无）
+
+Important:
+（无）
+
+Minor:
+- M1 [§4.2.1] 仍写 hicolor「打包进 deb/rpm/snap」；I3b 已排除 snap。实施以 I3b 为准。
+- M2 [§2] 「handler 不改」与 I2「handler 改 import」并立；路由不变，文件要改 import。
+- M3 [§6 I2] 找不到的路径写成 `.build/electron/UniverseAgentStudio`，那是 Darwin `nameLong`；Linux 是 `applicationName` → `.build/electron/universe-agent-studio`（`scripts/code.sh:24-26`，`electron.ts:239`）。必须重跑 gulp electron 这一句仍成立。
+
+Verified OK:
+- `product.json:2-36` 仍是 Code - OSS；`urlProtocol=code-oss`；Windows 实字段 `win32x64AppId` 等；`darwinProfilePayloadUUID:30`。
+- `UNIVERSE_AGENT_SCHEME` 仍在 `universeAgentDeepLink.contribution.ts:15`；`universeAgentScheme.ts` 尚未落地（属 I2）。
+- I4 点名行仍在：`onboardingVariationA.ts:192`、`vs_code_editor_walkthrough.ts:47`、`issueReporterOverlay.ts:757`、`extensions.contribution.ts:965`、`templates.template:4`。
+- snap：`snapcraft.yaml:58` 排除 icons；gulp 只放 `snap/gui/*.png`（`gulpfile.vscode.linux.ts:255-257`）。
+- Appx `Publisher` 仍是 Microsoft（`AppxManifest.xml:18,23`），归 I6。
+- I5 触发锚点：`gettingStarted.ts:1015` `isNew(APPLICATION)`；`userDataPath.ts:47-49` 开发态仍 `code-oss-dev`。
+- 看板 C 已含 `universeAgentScheme.ts`、I5 contrib、Welcome/Onboarding 字面、`code-icon.svg`。
+- 分层/安全/RPC：无 renderer 碰 gRPC；无 Copilot/MCP 顶替；无发明引擎 RPC。
+```

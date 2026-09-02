@@ -1,0 +1,30 @@
+核对完毕：第二轮完成线大多已改入，但 Q2 无 P2a 姿态在 §7 / 切片完成线仍互相打架。
+
+```
+Verdict: Approve with changes
+```
+
+Q5a 树/座位合同已可开工；**Q2 壳开工前**必须先把无 P2a 姿态收成一套（否则会按「一律 unavailable」或按 §7 去实现尚不存在的 `requestDetail`）。无新 Critical。
+
+Round-2 follow-up:
+- I1 [§7 / §8 Q2 壳] **NotResolved** — §8 壳/接通、§3、看板、总方案 B1 已把 loading / stub `requestDetail` 挪到接通并禁止改 platform，但 §7「未合入姿态」仍写 loading + stub `requestDetail` 由 Q2 自己实施（`conversation-ui-closeout.md:101`）；Q2 壳完成线「无 requestDetail 时一律 unavailable」（`:109`）又盖掉 preview / 预填 full。
+- I2 [§6 / §8 Q5a] **Resolved** — 树改吃 entry 或扩 turn（含 `retryable` / `typeName` / `items` + `answerKeysValid`）、独立 `ConversationQuestionSeat`、禁止复用 Allow/Skip；HEAD 缺口仍在（`conversationTimelineTree.ts:721-726` / `:240-250`，`conversationStubModel.ts:23-35`，`conversationSessionView.ts:305-308`），属实施范围。
+- M1 [§2 / §8 Q1] **Resolved** — Q1 完成线已写带 `turnId` 夹具；stub 不写 `turnId`（`conversationSessionView.ts:114-199`）不验收聚合。
+- M2 [§3] **Resolved** — §3 `full` 含帧源预填（`:55`）；与 Q2 壳完成线冲突并入下方 I1。
+- M3 [§8 Q5a] **Resolved** — Q5a 点名 `getConversationTurnRoleLabel`（`conversationTrajectoryList.ts:83-99`）。
+
+Critical:
+（无）
+
+Important:
+- I1 [§7 / §8 Q2 壳] 无 P2a 时三处说法不一致，按完成线或 §7 会做出假 unavailable、或去改/duck-type `IConversationSessionViewLease`（HEAD `conversationViewFrame.ts:19-30` 无 `requestDetail`）。证据：`:101` vs `:109` vs `:53-57`；看板与总方案 B1 已是 preview / unavailable、接通等 P2a。建议：§7 未合入姿态改为「Q2 壳：有界 preview；无 DetailRef / 不能取 → unavailable；`details` 已有未 truncated 体 → full；无 loading、无 stub `requestDetail`」；Q2 壳完成线删「一律 unavailable」，与此对齐。
+
+Minor:
+- M1 [他文 process-fold] P5 行已标 Q4 承接，但 Implemented 仍写「P5 Deferred」（`conversation-process-fold.md:162-164`）。未阻止本方案开工。
+- M2 [看板] §10 新建 `conversationQuestionSeat*`，看板 B 所有权未列（总方案冲突域以看板为准）。未核实是否有意用 `conversationConfirmationSeat*` glob 覆盖。
+- M3 [§8 Q5a] 「消费 entry」分支只写不丢 `summary.items`，未点名把 `answerKeysValid` 拷进 `ConversationTimelineEntry`（今日接口无此字段，`conversationSessionView.ts:41-62`；summary 端态必填见 `sessionView/types.ts:127-137`）。扩 turn 分支已写。未阻止开工。
+
+Verified OK:
+- I2 / M1 / M3 完成线与 a11y 独立提问座位、Q5a/Q5b/Q6 划分仍对齐。
+- §3 六态、P2a 合同、Q2 接通依赖 P2a、不改 `platform/universeAgent/**` 与看板 Q2 行一致。
+- HEAD：lease 无 `requestDetail`；树仍吃 `ConversationStubTurn`；question 投影仍丢 `items`。

@@ -1,0 +1,35 @@
+```
+Verdict: Approve
+
+Round-2 follow-up:
+- I1 Resolved — 看板 B 与 Conversation §10 已列 `conversationEditorPane*` / `conversationEditor.contribution.ts`；Q6 完成线为叶级 `ConversationEditorPane.layout`。
+- I2 Resolved — K2 命令对齐 `openSourcesChangeEntry` / `markReviewed` / `markUnreviewed` / `markAllReviewed`；删 `moveToHost`；import 落 `sources.contribution.ts`；看板 C 已收这些路径。选中行转发的实现类见下方 Minor。
+- I3 Resolved — Q5b 完成线含 `IAccessibleViewService`；§9 有「完整回合可经 Accessible View 朗读」。
+- I4 Resolved — Q5b / §9 写死 trap 根 = `overlay.element`，overlay 自备透镜 tab / 标题行；可在 overlay 内自建 host 再交给 `ConversationLens`，不必把 Part `sessionBar` 纳入陷阱。
+- I5 Resolved — §9 时间线已含 `system`。
+- M1 Resolved — §9 标明末 tab `nextEditor` 离开 Conversation 不判 fail。
+- M2 Resolved — 总方案 P0 与 protocol-surface 已钉 mutating `ok:false`、profiles `[]`、`isEncryptionAvailable()=true`。
+- M3 Resolved — T1 选择器为 `.monaco-workbench.hc-black` / `.hc-light`。
+- M4 Resolved — L1 依赖含 CS-2；§9 Composer 项归 CS-2。
+- M5 Resolved — 总方案 P0 已写 `isEngineConnected()=false` 与 `Event.None`。
+- X1 Resolved — Wave 1 A1 / Wave 3 A3 / status.md / Engine E2-1 完成线：省略只在 E2-1。
+- X2 Resolved — 同 I1。
+- X3 Resolved — 同 I3。
+
+Critical:
+（无）
+
+Important:
+（无；无开工前必须再改的项）
+
+Minor:
+- M1 [§3 / §9 vs §8 K2] I2 改稿后残留：§3 Diff/Review 仍写「宿主移动均有 command」；§9 写「四命令」。K2 现为三命令且明确不造 moveToHost。验收与键盘表按 K2 三命令即可，不要判缺第四条。
+- M2 [§8 K2] `ISourcesReviewListHost` 的实现类是 `SourcesTabsHost`（`sourcesTabsHost.ts:34`），不是 `sourcesReviewList.ts`。K2 扩 `getSelectedEntry()` 时必须在 TabsHost 转发；看板 C 文件列表未点名该文件。K2 动手时补一行所有权即可，不挡 K1/T1/Wave 1。
+- M3 [§7] 「由 A 在 E2-1 / E2-7 … 省略」是旧句残留；完成线与看板已是只在 E2-1。A 以 Engine 方案为准。
+
+Verified OK:
+- Web 仍无 UA 注册：`workbench.desktop.main.ts:60-61` 有 Connection/SessionView；`workbench.web.main.ts` 无 UA；Hub 经 `connectionHub.contribution.ts:6` → common 链；`platform/universeAgent/browser/` 不存在。
+- 看板 B 含 `conversationEditorPane*`；C 含 K2 文件与 `ua-common.css`；T1 不改 B/A CSS。
+- Q5b trap / Accessible View、Q6 叶宽、§9 kind（含 `system`）与 HEAD `ConversationTimelineEntryKind` / `ConversationTrajectoryKind` 一致。
+- P0 合同在总方案：idle、全键 UNSUPPORTED、`connect()` 无 token 不 throw、`connectProfile` `unsupported_environment`、Hub mutating 拒绝、`isEncryptionAvailable()=true`、`isEngineConnected()=false`、`Event.None`。`ConnectionFailureCode` 尚无该枚举（P0 新增成立）。
+```

@@ -1,0 +1,43 @@
+```
+Verdict: Approve with changes
+
+Critical:
+- C1 [§2/§3/§6 I2/I5] 方案把 `dataFolderName`（`~/.vscode-oss`）当成「产品数据目录 / settings / secret」所在处，与运行时事实不符；按此实施，I2 默认开发启动仍会继续读写 Code OSS 的 secret 存储。证据：Electron userData 由 `getUserDataPath(args, product.nameShort)` 决定（`src/main.ts:57`、`src/vs/platform/environment/node/environmentService.ts:20`）；`VSCODE_DEV` 时 **忽略** `nameShort`，硬编码 `productName = 'code-oss-dev'`（`userDataPath.ts:47-49`）；`scripts/code.sh` 设 `VSCODE_DEV=1`。settings / keybindings / snippets / profiles 在 `userDataPath/User/`（`environmentService.ts:56`、`userDataProfile.ts:196-198`），`state.vscdb` 在 profile `globalStorage`（`storageMain.ts:285-289`）。Hub refresh / 客户端身份 / engine trust / connection profiles 全部写 `StorageScope.APPLICATION`（`hubSessionStore.ts:260-265` 键 `universeAgent.secret.hubRefresh.*`；`clientIdentityStore.ts:139`；`engineTrustStore.ts:17,116`；`connectionProfileStore.ts:25,153`）；vscode secret 同库、前缀 `secret://`（`secrets.ts:19-25`）。`dataFolderName` 只覆盖 `~/…/extensions`、`argv.json`、`policy.json`（`environmentService.ts:94-101,147,274`）。§3「不自动复制整个 `.vscode-oss`」因此既打不中 settings，也挡不住 secret。建议改法：写清两棵树（`~/{dataFolderName}` vs `{appData}/{nameShort|code-oss-dev}`）；I2 必须改 `userDataPath.ts` 的 `code-oss-dev` 并登记为 C 扩权（该文件不在看板 C 所有权）；I5 源路径写死旧 userData（开发 `code-oss-dev`、发行 `Code - OSS`），只拷 `settings.json` / `keybindings.json` / `snippets/`，profiles 排除 `globalStorage` 与 `state.vscdb`；I2 完成线加上「开发启动的 userData 不再是 `code-oss-dev`」。
+
+Important:
+- I1 [§6 I2] 完成线只写 `scripts/code.sh` 与 `scripts/code-server.sh`，漏了：改 `applicationName`/`nameLong` 后须重跑 gulp electron（`scripts/code.sh:20-26` 用 json 里的 name 拼 `.build/electron/…`）；CLI `--help`（`src/vs/code/node/cli.ts:94-95`）；tunnel 二进制名（`codeTunnelCliProcess.ts:40`、`cli.ts:80`）；remote-cli 模板（`build/gulpfile.vscode.ts` / `gulpfile.reh.ts` 的 `@@APPNAME@@` / `@@SERVERDATAFOLDER@@`）；以及 `product.ts:43-49` 的 `-dev` 后缀与 `product.ts:79-85` Web/空配置回退仍写死 `code-oss`。建议：I2 完成线列这些入口，并写明未重打包时的失败现象。
+- I2 [§2 断言测试] `product.urlProtocol === UNIVERSE_AGENT_SCHEME` 放进 `universeAgentDeepLink.contribution.ts` 的 browser 单测不可靠。Renderer 读的是 `IProductService`（`desktop.main.ts:193-194`、`web.main.ts:289`），来自 sandbox/`_VSCODE_PRODUCT_JSON` 的 `product` 模块；`workbenchTestServices.ts:1345` 的测试替身是 `{ ...product }`，browser 单测常走 `product.ts:79-85` 回退而不是仓内 `product.json`。OS 协议注册走 `productService.urlProtocol`（`electronUrlListener.ts:57`），与 handler 常量今日已经分裂（`product.json:36` `code-oss` vs `universeAgentDeepLink.contribution.ts:15`）。建议：node/构建测试直接读仓内 `product.json` 与导出常量；I2 同步改 `product.ts` 回退；browser 层最多再测 handler 用该常量。
+- I3 [§3/§6 I5] 「首次启动可提供一次显式迁移入口」无宿主、无触发条件、无完成线文件。Welcome/Getting Started 在 `contrib/welcomeGettingStarted`（`gettingStarted.css:8` 引用 `code-icon.svg`），不在看板 C 所有权。建议：钉死「首启对话框（空 userData 且探测到旧目录时一次）」或「Welcome 一块 + 命令」，列出将改的 contrib 路径并扩权；写「不出现则视为 I5 未完成」。
+- I4 [§4.2] 「≤48px 粗线派生」不可复现：未给出目标 stroke（源为 `stroke-width="3"` / viewBox 512，`singularity.svg:5`）、是否保留内三角（`svg:9`）、辐射线选择器、48px 是否含边界、ICO/ICNS 各档哪些用粗线。`build/` 无 icns/ico 生成先例（仅消费 `resources/darwin/code.icns`、`resources/win32/code.ico`：`electron.ts:149,240`；`iconutil`/`png2icns` 无匹配）。Linux CI 不能跑 `iconutil`。建议：脚本写死倍数/去线规则与尺寸表，并指定跨平台工具（禁止只依赖 macOS `iconutil`）。
+- I5 [§4.1/§6 I4 vs 单源] `singular-white.svg` 不是主源反色：无中心点、无从圆心出发的三条辐射线（`singular-white.svg:5-17` vs `singularity.svg:5-24`）。I4「行内用 white 或主源，随主题切换」会在 About/Welcome 放出第二套几何。建议：浅底变体由 `universe-agent-studio.svg` 反色生成，删掉对 `singular-white.svg` 的引用。
+- I6 [§4.2/§6 I3b/§7] 三平台产物清单不完整，且 I3b「无需改模板」会留下用户可见 VS Code 品牌，与 I4「主品牌残留清零」冲突。漏项：`resources/server/manifest.json` 的 `name`/`short_name`（现为 `Code - OSS`，`manifest.json:2-3`）；`resources/win32/VisualElementsManifest.xml` 的 `ShortDisplayName="Code - OSS"`（`:8`）；Appx `Publisher`/`PublisherDisplayName` 仍为 Microsoft（`AppxManifest.xml:18,23`）；Inno wizard `resources/win32/inno-{big,small}-*.bmp`（`build/win32/code.iss:23-24`）；`code.appdata.xml` / `debian/control.template` / `rpm/code.spec.template` / `snapcraft.yaml` 正文仍是 Visual Studio Code（非 `@@NAME@@`）；Linux 只有单张 pixmap `code.png`（`gulpfile.vscode.linux.ts:69-70`），没有 hicolor 16/24/32 槽，§7「任务栏 16/24/32px 粗线生效」在 Linux 不会发生。建议：I3a/I3b/I4 按文件列出替换项；模板里非占位的 VS Code 文案归 I4；Linux 多尺寸须另装 hicolor 或写明只验收大图缩放。
+- I7 [§5/§7] 「内置扩展发布者 / notices 保留」不可判定。建议完成线写成：根 `LICENSE.txt`、`ThirdPartyNotices.txt` 不得删改版权人；`product.json` `builtInExtensions[].metadata.publisherName` 保持 `ms-vscode`；不改 `extensions/*/package.json` 的 publisher。
+- I8 [§2/§8 GUID/Bundle] GUID / AppUserModelId / Darwin bundle id **不**决定 userData；同机覆盖来自 `nameShort` 与 `userDataPath.ts`（见 C1）。占位 bundle id 与发行 id 不一致时：打包构建若 `nameShort`/`dataFolderName` 相同会共享目录；macOS `safeStorage` 按 bundle id 封密钥，后换发行 id 会导致同一 `state.vscdb` 里的 Hub/secret 密文无法解密。`product.json` 仍有未点名的 `win32DirName`/`win32RegValueName`/`win32*AppId`/`win32Tunnel*Mutex`/`darwinProfileUUID`。建议：开发占位与发行必须在 **第一次打包前** 定死 bundle id（或明确「占位包不得持久化 secret」）；I2 表补全全部 Windows/Darwin 标识字段。
+- I9 [§6 I4] I4 未覆盖应用内主图标 `src/vs/workbench/browser/media/code-icon.svg`（VS Code 丝带标），titlebar / Getting Started / banner / onboarding 均引用（`titlebarpart.css:293`、`gettingStarted.css:8` 等）；该路径也不在看板 C 所有权。不改则窗口标题已换、标题栏仍是 Code 标。建议：I3a 从单源生成此 SVG（或 CSS 改指 `resources/brand/…`），并扩权。
+- I10 [§6 并行] 「I2、I5 可并行」在 C1 修正后仍要求 I5 把旧路径写死为 Code OSS 常量，不能读「当前 `dataFolderName`」。建议：I5 依赖 I2 合入后的探测，或 I5 源路径写死、与 I2 无读取耦合。
+
+Minor:
+- M1 [§2] `urlProtocol=universe-agent` 后，`docs/glossary.md`、`docs/systems/conversation/commands.md:59` 的「不绑 `product.urlProtocol`」将过时；实施时按规则 3c 改口。未核实其它知识层副本。
+- M2 [§4/I3b] `build/lib/electron.ts:146-147` `companyName`/`copyright` 仍为 Microsoft，打包 About/签名元数据会残留；未核实发行是否另有 overlay。
+- M3 [§4.2] 工作区 glob 未看到 `code.png`/`code.ico`/`code.icns`/`favicon.ico`（可能 LFS/未拉取）；I3a 应允许「首次生成而非覆盖」。未核实 git-lfs 状态。
+- M4 [§2] `win32ShellNameShort` 现为 `C&ode - OSS`（`product.json:25`），加速键规则方案未写。
+
+Cross-doc:
+- X1 与 `docs/glossary.md` / `commands.md`「深链不绑 `urlProtocol`」：本方案 I2 要把二者绑成 `universe-agent`；方向正确，须在 I2 知识层同步，方案未列。
+- X2 与本方案 I3b「模板无需改」vs I4/PRD-010「主品牌残留清零」：deb/rpm/snap/appdata 用户可见文案仍是 Visual Studio Code（见 I6）。
+- X3 与看板 C 所有权：I2/I4/I5 实际要动 `platform/environment/node/userDataPath.ts`、`platform/product/common/product.ts`、`workbench/browser/media/code-icon.svg`、Welcome contrib；看板只写了 `product.json`/`resources/**`/`build/**`。父方案 C 槽冲突域同样偏窄。
+- X4 与总方案 §2/§5、本方案 §7：测试失败不阻塞切片、阻止 PRD 升 `implemented` — 一致，无矛盾。
+
+Verified OK:
+- `product.json:2-36` 仍为 Code - OSS 名、`code-oss` 协议、`.vscode-oss*` 目录、Microsoft GUID/bundle（现状断言成立）。
+- `UNIVERSE_AGENT_SCHEME === 'universe-agent'`（`universeAgentDeepLink.contribution.ts:15`）；未知页打开 Client Settings（与 page-access-schemes「fail-closed」口径一致）。
+- 深链文件归 C（看板冲突仲裁 5）；handler 不改的目标成立。
+- `--user-data-dir` 优先于默认路径（`userDataPath.ts:67-69`）。
+- `server.main.ts:41` 用 `product.serverDataFolderName`；`scripts/code-server.sh` 为开发 server 入口。
+- Linux gulp 用 `product.json` 替换 `@@NAME@@`/`@@NAME_LONG@@`/`@@ICON@@`/`@@URLPROTOCOL@@`（`gulpfile.vscode.linux.ts:51-56`）；desktop/url-handler 模板占位存在。
+- 品牌源 `singularity.svg` 与 §4.1 几何描述一致（512、`#546E7A` rx112、白线宽 3、r188、六边+三角+辐射+中心 r12）。
+- 文件类型图标保持上游（`electron.ts:154+` `darwinBundleDocumentTypes`）合理。
+- PRD-010 验收 1–4 与方案目标对齐；图标源已裁定。
+- I3b 依赖 I3a；验证失败记 D17、不升 PRD `implemented` — 与 M7 总方案一致。
+- 不把 Copilot/Chat/MCP/Extension 数据当 UA 面；本方案无此类替换。
+```

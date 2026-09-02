@@ -1,0 +1,50 @@
+```
+Verdict: Approve with changes
+
+Round-1 follow-up:
+- C1 Resolved — Client 执行槽改为 B（Wave 3 B4 = CS-*）；看板仲裁 4 / closeout §10 不再与 A 抢 conversationLens* 等文件。
+- I1 Resolved — 五刀名与 IDE 方法在总方案 §4、看板矩阵、Engine/Conversation 前置、protocol-surface §1b/§2/§4 对齐（含 scanNewPlugins / listModels / providerConfig / requestDetail / branchReason；plugins probe 已改 P1a）。
+- I2 Resolved — Client 切片改为 CS-1…CS-6；总方案/看板 C1 只表示 Wave 内产品身份序号。
+- I3 Resolved — 原点名文件已入所有权表（Connection pane→A，IdentityStrip/roster/stub→B，Sources 命令/`layoutActions.ts`→C，`conversation.contribution.ts` 仅 B）。残留见新 I3。
+- I4 Resolved — 总方案 §1 与 Engine §2 / plans INDEX 均为 disconnected/loading/unsupported/failed/empty/ready 六态；a11y §9 已分列对话页 kind 与轨迹 kind；MCP 四态 + UNSPECIFIED→failed 已写死。知识层四态隐藏见新 I4。
+- I5 Resolved — Wave 2 改为「壳可先、真数据等 P」；status.md Next 保留 P1a/P1b；Q5a/Q5b/Q6 进入 Wave 2，L1 在 Wave 3。Q2 接通未进 Wave 表见新 I2。
+- I6 Resolved — PRD-026 验收 2 已改为 9 键行为句，不再写「Client Tools 广告」。
+- I7 Resolved — traceability 汇总 PRD-018 改为待 M7 a11y；`dev/parallel/INDEX.md` 已含 P 槽。
+- I8 Resolved — PRD-019 前置改为 M7 P0 + E2-1；D15 Track = M7。
+
+Critical:
+（无。两槽不会再按两份互相覆盖的文件合同同时开工。）
+
+Important:
+- I1 [m7-ui-completion-wave §3/§4 Wave 1 A1 vs Wave 3 A3 ↔ engine-preferences E2-1 ↔ a11y W1] Web 省略桌面控件写进了两刀。P0 解锁与 Engine E2-1 完成线都把省略放在 E2-1（Wave 1，可与 P0 并行、P0 后才算 Web 诚实）；总方案 Wave 3 A3 与 status.md Next 又把同一省略算进 E2-7。W1（Wave 3 C）依赖「E2-1 已省略」。若 A 按 Wave 3 把省略留到 E2-7，C 会在同一波按「E2-1 已完成」跑 Web 冒烟。证据：m7-ui-completion-wave.md:67, :80, :92；engine-preferences-completion.md:152；accessibility-responsive-ui.md:40, :110；status.md:34。建议：省略只留 E2-1；E2-7 只保留 RWD-2 与文案；W1 依赖写成 P0 + E2-1。
+- I2 [conversation-ui-closeout §8 ↔ 总方案 Wave 1/2/3 ↔ 看板] Q2 拆成「壳 / 接通」后，接通刀没有 Wave 座位。总方案 Wave 1 只有「Q1 + Q2 壳」，Wave 2/3 无 Q2 接通；看板矩阵只有一行「B Q2」且「未合入姿态」停在 preview/不可用；仅 status.md:35 写「Q2 接通（随 P2a）」。P2a 合入后 B 按总方案会以为 Wave 2 已不含 DetailRef 接通。建议：Wave 2（或 P2a 当日）显式加「B：Q2 接通」，看板把 Q2 拆成壳/接通两行。
+- I3 [conversation-ui-closeout Q6 / client-settings CS-1 ↔ 看板所有权] `conversationEditorPane.ts` 被 Q6（叶宽 `.is-narrow`）和 CS-1（`ConversationEditorPane` 打开时 autoFocus）点名，看板 B 的 glob 没有它（只有 `conversationLens*` 等）。两刀同属 B、有 Wave 间隔，不是双主，但是无主。证据：conversation-ui-closeout.md:115；client-settings-completion.md:35；m7-ui-completion.md:21；源文件 `src/vs/workbench/contrib/conversation/browser/conversationEditorPane.ts`。建议：看板 B 补 `conversationEditorPane*`。
+- I4 [engine-catalog §2 / protocol-surface §2 ↔ Engine E2-1] 知识层仍把断连写成 catalog **整节隐藏**，与 E2-1「废止 hide-on-disconnect、九节左栏可达」对冲。A 若按 engine-catalog SSOT 开工会留下 hide。证据：engine-catalog.md:36；engine-protocol-surface.md:84；engine-preferences-completion.md:41, :152。建议：§2/§84 标明「HEAD；E2-1 废止隐藏」，或把 M7 disconnected 改成「左栏可达、右栏零条目」。
+
+Minor:
+- M1 [traceability PRD-013 行 ↔ closeout §5] 追踪表仍写「live P4/P5 进入 M7」；closeout 声明 Q4 不是旧 P4/P5，旧 P4 仍 blocked on PRD-008。不是双槽合同，V 可能按旧编号找切片。证据：traceability.md:31；conversation-ui-closeout.md:75。
+- M2 [conversation-stream-timeline §6 G3] 仍写「M7 P2」，现合同是 P2a。规则 3c 未到。证据：conversation-stream-timeline.md:297。
+- M3 [lens-and-trajectory] 仍写 permission/question 不进轨迹、`branchReason='compact'` 跳过；closeout Q5a/Q3 已要求落地时改。与第一轮 M5 相同，未恶化。证据：lens-and-trajectory.md:49, :55。
+- M4 [总方案 §5.1] 「具备 §1.1 六态」无 §1.1 小节（六态在 §1 第 1 条）。证据：m7-ui-completion-wave.md:103。
+- M5 [status.md summary] 「Engine/Client、Conversation…三 UI 槽」易读成 Client 仍在 A；Next 表已正确（B 含 CS-*）。证据：status.md:7, :34-35。
+- M6 [Engine §6] 证据缺失时写「方案保持 `accepted`」，当前 frontmatter 仍是 `review`。指升格后的门禁，不是现在状态。证据：engine-preferences-completion.md:164 vs :4。
+- M7 [a11y L1 ↔ Client CS-2] §9 清单含「两种 Enter 模式」（CS-2），L1 依赖表只有 Q5b/Q6、E2-7；二者同在 Wave 3。C 只复核不改 B 文件。证据：accessibility-responsive-ui.md:111, :118；m7-ui-completion-wave.md:93-94。
+- M8 [engine-catalog §4] MCP 运行态仍写「后续运行态切片」，§5 已是 P1a。未核实实施者是否会读 §4 停工。证据：engine-catalog.md:59 vs :74。
+
+Cross-doc:
+- X1 总方案 Wave 3 A3 / status.md「E2-7 含 Web 省略」vs Engine E2-1 / P0 解锁「省略在 E2-1」vs W1「依赖 E2-1」。同 I1。
+- X2 closeout Q2 接通 vs 总方案/看板 Wave 表无接通刀。同 I2。
+- X3 engine-catalog §2 / protocol-surface §2「disconnected 隐藏」vs Engine E2-1 / PRD-025 九节可达。同 I4。
+- X4 traceability PRD-013「live P4/P5 进入 M7」vs closeout Q4 不承接旧 P4/P5。同 M1。
+- X5 stream-timeline G3「M7 P2」vs 四处合同「P2a」。同 M2。
+
+Verified OK:
+- 六份方案 `status: review`、`updated: 2026-09-02`；看板 pending（方案 review）；status.md 待第三轮后升 `accepted`；对应 PRD 为 `accepted`。
+- P 五刀顺序四处均为 P0→P1a→P2a→P1b→P2b；IDE 方法名与能力键 `mcpRuntime`/`models`/`providerConfig` 已出现在总方案、看板矩阵、Engine 前置、§1b/§2。
+- Client 已是 B + CS-*；9 键闭集；PRD-026 验收 2 已去掉广告键；traceability PRD-026 行写 9 键、B 槽。
+- PRD-019 / D15 前置均为 P0 + E2-1；D15 Track=M7；D12 开且图标源已裁定；D14 closed 且 a11y 不把它当全部可达性完成；D17 开。
+- 分层/安全合同未改：UI 只 import `platform/universeAgent/common`；gRPC 在 node；凭据不进 settings.json；Permissions 不自动批准。
+- HEAD 代码事实仍成立：`workbench.desktop.main.ts:60-61` 注册 UA Connection/SessionView；`workbench.web.main.ts` 无 UA；`connectionHub.contribution.ts:6` 静态 import electron-browser Hub；`IUniverseAgentConnection` 无 MCP 运行态/`listModels`；capability 键无 `mcpRuntime`/`models`/`providerConfig`（universeAgentTypes.ts:10-20）；草稿为内存 Map（conversationLens.ts:199, :779）；Enter 为 `Enter && !shiftKey`（:769）；process fold 已渲染 payload（:160-211）。
+- 轨迹 kind：closeout Overview 用 `message`/`thinking`/`tool/subtool`；a11y §9 已分开列出 `ConversationTimelineEntryKind`（含 `assistant`/`thinking`/`tool`）与 `ConversationTrajectoryKind`。
+- `dev/parallel/INDEX.md`、`dev/plans/INDEX.md` m7 行已提 P 槽；B = Conversation→Client。
+```

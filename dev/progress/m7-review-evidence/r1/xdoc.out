@@ -1,0 +1,53 @@
+Verdict: Approve with changes
+
+方向正确（P 槽串行、UI 先 unsupported 再接线、PRD-025 九节可达=壳、Client 11 键已改口），但不能按当前合同并行开工：A 的 Client 消费点与 B 的 Conversation 文件所有权互相覆盖。
+
+Critical:
+- C1 [client-settings-completion §2/§5 ↔ 看板「文件所有权」/ 冲突仲裁 3 ↔ conversation-ui-closeout §10] A 槽 Client C2–C5 要改 B 槽独占文件，两槽会按两份合同同时改同一批源。Client 把密度/草稿/Enter 写进 `conversationLens.ts`、身份开关写进 `ConversationIdentityStrip`、通知/pending 写进座位、client-tool 详情写进时间线，且写「本方案不依赖 P」也未写「由 B 实施」。看板 B 独占 `conversationLens*` / `conversationConfirmationSeat*` / `conversationTimelineTree*` / `media/conversationLens.css`；closeout §10 禁止 Engine Settings 顺手改这些文件，但 Client 同属 A。Wave 2 的 A3 与 B2/Q4 会撞车。证据：client-settings-completion.md:31–41, :69–78；m7-ui-completion.md:20–21, :36；conversation-ui-closeout.md:119；`conversationLens.ts:199, :769`。建议：看板把消费点标成「A 只注册键，接线由 B 在 Q4/Q5 实施」或把这些文件按切片转交给 A，并写清互斥窗口。
+
+Important:
+- I1 [m7-ui-completion-wave §4 ↔ 看板依赖矩阵 ↔ engine/conversation 平台前置 ↔ engine-protocol-surface §1b/§2/§4] P 槽五刀顺序在总方案/看板/`status.md` Next 一致（P0→P1a→P2a→P1b→P2b），但名称与方法表四处不对齐。protocol-surface §1b 引言写「按 P1/P2 切片绑定」，§2 把 `plugins`/`mcpRuntime`/`models`/`providerConfig` 都标成「M7 P1」，§4 G-CONV-1 写「M7 P2」；看板 P1b 只写「模型注册表」，不提 `providerConfig`/`listModels`；§1b 用 RPC 名 `ScanNew`/`FetchToolDetail`，总方案/Engine 用 IDE 名 `scanNewPlugins`/`requestDetail`。A 若把 P1a 当成「P1 完成」会去接 `listModels`（接口尚无此方法，见 `universeAgentConnection.ts:78-160`）。§4 仍写 `globalRules`/`plugins` probe「待后续切片」，与 P1a「`plugins` 真探测」对冲。建议：§1b/§2/§4 与看板 P 行列出与总方案相同的五刀名和 IDE 方法名；删掉「待后续」或改成「P1a」。
+- I2 [client-settings C1–C6 ↔ 总方案 Wave 1 C1 ↔ 看板入口「A1/B1/C1」] 切片号撞车。总方案/看板的 C1 是产品身份（I2/I3a，C 槽）；Client 的 C1 是注册 11 键（A 槽，应对总方案 A3）。A 读看板「C1 与 P0 同时开工」可能把 Client C1 当 Wave 1。建议：Client 切片改成 CS-1… 或 A3-1…。
+- I3 [文件所有权表缺主] 子方案点名但看板无主：`connectionPreferencesPane*`（a11y A11Y-3/RWD-2、Engine E2-7）；`conversationIdentityStrip*`（Client C2、a11y SessionBar）；`conversation.contribution.ts` / `layoutActions.ts`（K1 四钮键位在 `layoutActions.ts:350`）；Sources Review/Diff（K2）；`conversationEngineRosterService.ts`（Client `restoreLastSession`）；`workbench/browser/parts/conversation/conversationPart.ts`（`startup.openConversation`）。K1 还写「命令注册 C、实现 B」，`conversation.contribution.ts` 会双写。建议：补所有权或写「由 X 实施」。
+- I4 [术语] Engine 状态机份数/命名不一致。总方案 §1 是 loading/empty/unsupported/error/ready 五类；Engine §2 与 plans INDEX 是 disconnected/loading/unsupported/failed/empty/ready 六态；PRD-025 用户陈述是加载/空/不可用/失败/可用，断连单列。轨迹 kind：closeout 用 `message`/`thinking`/`tool/subtool`；a11y §9 用 `assistant`/`reasoning`/`tool`。DetailRef 六态（preview/loading/full/partial/unavailable/failed）只在 closeout §3，看板 Q2 降级只有 preview+不可用。MCP 四态（DISCONNECTED/CONNECTING/CONNECTED/ERROR）与 capability 键在 Engine §3.7 与 protocol-surface §1b/§2 一致。
+- I5 [切片依赖 vs Wave] 总方案 Wave 2 写「A2 Model（P1b 后）」，Engine §5 写 E2-2/E2-4/E2-5「UI 也不等待 P：先落壳」。看板入口像要等 P，矩阵又允许 unsupported 壳。`status.md` Next 把 Model/MCP/Plugins 收成「随 P1」，抹掉 P1a/P1b。E2-2 放 Wave 2、依赖排在 P2a 之后的 P1b 合理（P 串行），但「等 P 才开工」和「先落壳」必须统一。Q5（A11Y-1/2、RWD-1、四 kind）未出现在 Wave 1/2/3，C 的 L1 却依赖 Q5/Q6 与 E2-7。
+- I6 [PRD-026 验收 2] 验收正文仍是「Client Tools 广告按设置生效」（requirements.md:364），方案已删 `ua.client.clientTools.advertiseWorkspaceTools`（client-settings-completion.md:47-48）。依赖或未决把广告改读为「详情显隐」（requirements.md:368），但 V 槽仍可能按验收 2 去找广告键。traceability PRD-026 行未提 11 键或已删键。建议：把验收 2 改成与 11 键闭集相同的句子。
+- I7 [规则 16 / 知识层] 六份 M7 方案 frontmatter 均为 `review`，正文规则 16 与 `status.md`「待第二轮」一致；对应 PRD 为 `accepted`、方案为 `review`，这是对的。traceability 文末「已接受、部分已实施」仍写「PRD-018 其余待 M6-B 后」（traceability.md:52），与同行 PRD-018「待 M7」和 a11y「D14 只证明四钮/F6」矛盾。`dev/parallel/INDEX.md` 仍写「三开发槽」，漏 P。
+- I8 [PRD-019 旧前置] PRD-019 依赖仍写「M6-A2 合入后跑一次」D15（requirements.md:272），同段 HEAD 事实已改为 P0。D15 行 Track 仍是 `M6`（deferred-gaps.md:32）。V 槽可能在无 P0 时跑 Web 冒烟。
+
+Minor:
+- M1 [日期/HEAD] 各文档 `updated: 2026-09-02` 一致。`83b279a0` 只出现在 `status.md:7, :14`，与当前 HEAD 一致；方案只写「HEAD」不写 SHA，不构成冲突。
+- M2 [PRD-025 九节] 验收 1「九节可达」与 unsupported 壳已在依赖或未决对齐（requirements.md:355），与 Engine E2-1/总方案 §5.2 一致。不是缺口。
+- M3 [a11y「14 处」] `workbench.common.main.ts` 本身不注入服务，只 import contrib（:232, :235, :274）；`@IUniverseAgentConnection` 在三个 contrib 生产文件中确为 14 处。表述略松，事实成立。
+- M4 [MCP UNSPECIFIED] proto `McpConnectionStatus` 另有 `MCP_STATUS_UNSPECIFIED=0`（mcp_service.proto:42-47），方案四态未写如何展示。未核实 UI 是否会落到 0。
+- M5 [lens-and-trajectory] 知识层仍写 permission/question 不进轨迹、compacted 跳过（lens-and-trajectory.md:49, :55），与 Q5/P2b 计划相对；closeout 已要求落地时改该页。规则 3c 未提前触发。
+- M6 [plans INDEX] m7 行摘要未提 P 槽（INDEX.md:23），与总方案 §3 不完全同句。
+
+Cross-doc:
+- X1 protocol-surface §1b/§2「P1/P2」vs 总方案/看板「P0/P1a/P1b/P2a/P2b」：能力键 `models`/`providerConfig` 被卷进「P1」，与 P1a（MCP/Plugins）不是同一刀。
+- X2 protocol-surface §4「plugins probe 待后续」vs 总方案 P1a / Engine 前置 / traceability PRD-025「Plugins 走 P1a」。
+- X3 总方案 §1 五类状态（error）vs Engine §2 六态（failed + disconnected）vs PRD-025 五词+断连。
+- X4 Client 切片 C1 vs 总方案/看板 C1（产品身份）。
+- X5 Client 消费点 vs 看板 B 所有权 / closeout §10。
+- X6 PRD-026 验收 2「广告」vs Client 方案删键；改读只在依赖或未决。
+- X7 PRD-019「M6-A2 后跑 D15」vs D15/a11y/总方案「P0 前置」。
+- X8 traceability 汇总 PRD-018「待 M6-B」vs 表内 M7 a11y / D14 closed。
+- X9 看板 P1b 不提 `providerConfig`/`listModels`，总方案 P1b 与 Engine 前置有。
+- X10 看板 Q2 不提 `requestDetail`，总方案 P2a 与 closeout §7 有；§1b 只有 `FetchToolDetail`。
+- X11 看板 P2b 不提 `branchReason`，总方案 P2b、closeout §4、protocol-surface §1b/G-CONV-1 有。
+- X12 `dev/parallel/INDEX.md`「三开发槽」vs 总方案五槽（P+A+B+C+V）。
+- X13 Q5 未进 Wave 表 vs a11y L1 依赖 Q5/Q6。
+
+Verified OK:
+- HEAD `83b279a0` 与 `status.md` 一致。
+- P0 前提成立：`workbench.desktop.main.ts:60-61` 注册 UA；`workbench.web.main.ts` 无 UA；无 `platform/universeAgent/browser/`。
+- `IUniverseAgentConnection` 无 MCP 运行态/Plugins/`listModels`（universeAgentConnection.ts:78-160）；lease 无 `requestDetail`（conversationViewFrame.ts:19-29）；`ItemAttribution` 无 `branchReason`（:38-46）；轨迹本地 `branchReason==='compact'` 仍 `continue`（conversationTrajectoryModel.ts:129-132）；permission/question 丢弃、error→message、unknown→context（:205-213）。
+- Engine 现状：四节 + `(height-220)/4`（enginePreferencesPane.ts:34-37, :86）；`plugins/globalRules/projectRules/hooksMetadata` 固定 UNSUPPORTED（grpcCapabilityProbe.ts:101-104）；capability 键集合尚无 `mcpRuntime`/`models`/`providerConfig`（universeAgentTypes.ts:10-20）。
+- Client 现状：`properties: {}`（uaClientSettings.ts:16）；TOC 七组+emptyCopy（settingsLayout.ts:481-518）；`settingsUaToc.test.ts:253` 负向断言 `ua.client.*`。
+- 草稿确为内存 Map；Enter 为 `Enter && !shiftKey`（conversationLens.ts:199, :769）。
+- `product.json` 仍为 Code - OSS / `urlProtocol: code-oss`（:2-36）；handler `UNIVERSE_AGENT_SCHEME='universe-agent'`。
+- proto 字段与方案一致：`GetMcpServerStatuses`/`GetMcpServerTools`、`PluginService.List/Info/Enable/Reload/Unload/ScanNew`、`PluginSummary`/`PluginHookEntry`、`ListModels`/`ModelEntryProto`、`FetchToolDetail`+`truncated`/`total_bytes`、`CompactedSpanBlock` 三 turn id、`ContextCompactedEvent` 的 summary/messages_before|after/tokens、`branch_reason`。
+- 总方案/看板/`status.md` 五刀顺序相同；E2-2→P1b、E2-4/5→P1a、Q2→P2a、Q3→P2b、WEB-1→P0 的依赖矩阵与子方案前置表一致。
+- PRD-025 九节可达=unsupported 壳、G-ENG-1/2/3 不画表单，与 Engine/总方案 §5.2 一致。
+- 六份方案 `status: review` + 规则 16「第二轮」与看板 pending、`status.md` 待第二轮一致；D12 开、I1 完成、图标源已裁定；D15 开且依赖 P0；D17 开且对应非阻塞政策；D14 closed 且 a11y 不把它当成可达性完成。
+- 分层合同一致：UI 只 import `platform/universeAgent/common`；gRPC 在 node；P 写 browser 断连。安全合同一致：凭据不进 settings.json、Permissions 不自动批准。
