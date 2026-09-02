@@ -260,7 +260,6 @@ export class SessionActor {
 	private draining = false
 
 	private connectionUp = false
-	private connectionGeneration = 0
 	private currentAttemptId: AttemptId | null = null
 	private lingerTimerId: TimerId | null = null
 	/**
@@ -328,14 +327,6 @@ export class SessionActor {
 	 */
 	private pendingRewriteHelloLastMutatedFromSeq: number | null = null
 	private historyRequestSeq = 0
-	/**
-	 * Prefix hole declared on gap_too_large consume (INV-HGW-4).
-	 * Cleared with stream hello anchor; no repair/resume path in this slice.
-	 */
-	private prefixHole: {
-		readonly fromExclusive: number
-		readonly toExclusive: number
-	} | null = null
 	/**
 	 * ADR-019 private L2 seq→timeline index (INV-SSR-APPLY-4/12/15).
 	 * Never pushed to ViewPatch / snapshot. Cleared with stream hello anchor.
@@ -606,7 +597,6 @@ export class SessionActor {
 	 */
 	private onConnectionUp(connectionGeneration: number): void {
 		this.connectionUp = true
-		this.connectionGeneration = connectionGeneration
 		const allowOpen = !this.subscriptionFailed
 		this.snapshot = {
 			...this.snapshot,
@@ -1443,17 +1433,6 @@ export class SessionActor {
 		return agentId
 	}
 
-	private blockRespondMissingAgentId(args: {
-		readonly kind: 'permissionRespond' | 'clientToolRespond' | 'questionRespond'
-		readonly requestId: string
-	}): void {
-		this.deps.diagnostics.warn('chat respond missing agent attribution', {
-			sessionId: this.sessionId,
-			kind: args.kind,
-			requestId: args.requestId,
-		})
-	}
-
 	/**
 	 * ADR-012 §6.2 producer: bounded upsertLocalSend before write/outbox.
 	 * Returns true iff the optimistic row was admitted (callers arm the §4.1
@@ -1687,11 +1666,6 @@ export class SessionActor {
 			sessionId: String(this.sessionId),
 			arm: streamEventArmLabel(event),
 		})
-	}
-
-	/** INV-SSR-APPLY-12: sole assignment site for private seq→id index. */
-	private commitSeqIndex(next: Map<number, TimelineItemId>): void {
-		this.seqIndex = next
 	}
 
 	/** INV-SSR-APPLY-15: aggregate commit for seqIndex + l2State mirror. */
@@ -2247,7 +2221,6 @@ export class SessionActor {
 		if (this.localSeqCursor.known && plan.fromExclusive > this.localSeqCursor.lastAppliedSeq) {
 			const fromExclusive = this.localSeqCursor.lastAppliedSeq
 			const toExclusive = plan.fromExclusive
-			this.prefixHole = { fromExclusive, toExclusive }
 			// ports.ts DiagnosticMetric closed union hard-banned this slice — widen (MF-1).
 			this.deps.diagnostics.count('history.prefix_hole_declared' as DiagnosticMetric, {
 				sessionId: String(this.sessionId),
@@ -2457,7 +2430,6 @@ export class SessionActor {
 		this.lastStreamHello = null
 		this.pendingHistoryRequestId = null
 		this.pendingRewriteHelloLastMutatedFromSeq = null
-		this.prefixHole = null
 		this.clearSeqIndex()
 	}
 
