@@ -10,6 +10,7 @@ import {
 	ConversationQueueItemHoldReason,
 	createEmptyMessageQueueState,
 } from './conversationMessageQueueModel.js';
+import type { ConversationSessionSource } from './conversationRosterStorage.js';
 import {
 	ConversationTrajectoryRecord,
 	mergeTrajectoryFixtureExtras,
@@ -35,6 +36,8 @@ export interface ConversationStubSession {
 	readonly id: string;
 	title: string;
 	turns: ConversationStubTurn[];
+	/** PRD-017: `local` stub vs read-only UA disconnect cache. */
+	source?: ConversationSessionSource;
 }
 
 function createUntitledFixtureTurns(): ConversationStubTurn[] {
@@ -145,11 +148,13 @@ function createSeedSessions(): ConversationStubSession[] {
 			id: 'untitled',
 			title: localize('conversationLens.sessionUntitled', "Untitled session"),
 			turns: createUntitledFixtureTurns(),
+			source: 'local',
 		},
 		{
 			id: 'visualize',
 			title: localize('conversationStub.visualizeSessionTitle', "Visualize (Stub)"),
 			turns: createVisualizeFixtureTurns(),
+			source: 'local',
 		},
 	];
 }
@@ -158,6 +163,14 @@ function createSeedSessions(): ConversationStubSession[] {
 export const CONVERSATION_STUB_SEED_SESSIONS: readonly ConversationStubSession[] = createSeedSessions();
 
 let nextTurnId = 1;
+
+export function getConversationStubNextTurnId(): number {
+	return nextTurnId;
+}
+
+export function setConversationStubNextTurnId(value: number): void {
+	nextTurnId = value;
+}
 
 function nextId(prefix: string): string {
 	return `${prefix}-${nextTurnId++}`;
@@ -177,14 +190,60 @@ export class ConversationStubModel {
 	private activeSessionId: string;
 	private readonly sessionExtras = new Map<string, ConversationStubSessionExtras>();
 
-	constructor() {
-		this.sessions = createSeedSessions().map(session => ({
+	constructor(initialSessions?: readonly ConversationStubSession[], activeSessionId?: string, nextTurnIdValue?: number) {
+		const seed = initialSessions ?? createSeedSessions();
+		this.sessions = seed.map(session => ({
 			...session,
+			source: session.source ?? 'local',
 			turns: session.turns.map(turn => ({ ...turn })),
 		}));
-		this.activeSessionId = this.sessions[0].id;
-		nextTurnId = 100;
+		this.activeSessionId = activeSessionId && this.sessions.some(s => s.id === activeSessionId)
+			? activeSessionId
+			: this.sessions[0]?.id ?? 'untitled';
+		if (typeof nextTurnIdValue === 'number' && nextTurnIdValue > 0) {
+			nextTurnId = nextTurnIdValue;
+		} else {
+			nextTurnId = 100;
+		}
+		this.sessionExtras.clear();
 		for (const session of this.sessions) {
+			this.ensureSessionExtras(session.id);
+		}
+	}
+
+	getSessionSource(sessionId: string): ConversationSessionSource {
+		return this.sessions.find(session => session.id === sessionId)?.source ?? 'local';
+	}
+
+	replaceSessionCatalog(sessions: readonly ConversationStubSession[], activeSessionId: string, nextTurnIdValue?: number): void {
+		this.sessions.length = 0;
+		for (const session of sessions) {
+			this.sessions.push({
+				...session,
+				source: session.source ?? 'local',
+				turns: session.turns.map(turn => ({ ...turn })),
+			});
+			this.ensureSessionExtras(session.id);
+		}
+		this.activeSessionId = this.sessions.some(s => s.id === activeSessionId)
+			? activeSessionId
+			: this.sessions[0]?.id ?? activeSessionId;
+		if (typeof nextTurnIdValue === 'number' && nextTurnIdValue > 0) {
+			nextTurnId = nextTurnIdValue;
+		}
+	}
+
+	upsertCachedSession(session: ConversationStubSession): void {
+		const index = this.sessions.findIndex(s => s.id === session.id);
+		const copy: ConversationStubSession = {
+			...session,
+			source: session.source ?? 'engine-cache',
+			turns: session.turns.map(turn => ({ ...turn })),
+		};
+		if (index >= 0) {
+			this.sessions[index] = copy;
+		} else {
+			this.sessions.push(copy);
 			this.ensureSessionExtras(session.id);
 		}
 	}
@@ -219,7 +278,7 @@ export class ConversationStubModel {
 	createSession(): string {
 		const id = nextId('session');
 		const title = this.createUniqueNewSessionTitle();
-		this.sessions.push({ id, title, turns: [] });
+		this.sessions.push({ id, title, turns: [], source: 'local' });
 		this.ensureSessionExtras(id);
 		this.activeSessionId = id;
 		return id;
@@ -253,6 +312,7 @@ export class ConversationStubModel {
 				id,
 				title: localize('conversationLens.sessionUntitled', "Untitled session"),
 				turns: [],
+				source: 'local',
 			});
 			this.ensureSessionExtras(id);
 			this.activeSessionId = id;
