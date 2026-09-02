@@ -1226,6 +1226,8 @@ export class ConversationLens extends Disposable {
 		this.sessionViewLease = lease;
 		const coalescer = this.sessionViewLifetime.add(new ConversationSessionViewFrameCoalescer(applied => this.applySessionViewTimeline(applied)));
 		this.sessionViewLifetime.add(lease.onDidApplyFrame(applied => coalescer.push(applied)));
+		// Baseline fires during lease construction, before the listener above is attached.
+		this.applySessionViewTimeline({ kind: 'baseline' });
 	}
 
 	private applySessionViewTimeline(applied: ConversationViewFrameApplied): void {
