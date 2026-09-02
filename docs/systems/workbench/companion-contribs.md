@@ -91,7 +91,7 @@ Desktop IA §4：
 
 S1 合法路径：树继续由 Sidebar Explorer 拥有；End Sources 做 **只读/点击打开** 的列表投影，打开目标仍是 Preview（`EDITOR_PART`），不复制 `IExplorerService` 真相。
 
-**M1 已落：** `contrib/sources`（`SourcesTabsHost` + `SourcesFilesList` / `SourcesChangesList` / `SourcesReviewList`）在 `SOURCES_PART` 槽内提供 **Files \| Changes \| Review** tab strip；Files 为列表投影，Changes / Review 为 **SCM 资源列表投影**（只读清单，非 stub 占位）；Review 无 stage/commit 写操作，审阅进度为窗口内存 own-data（见 [sources-review-progress](../../../dev/plans/sources-review-progress.md) R1）；树权威仍在 Sidebar Explorer。Diff 深查看默认 **EDITOR_PART** Preview；经显式动作可移 Conversation 只读审阅 tab 或 Panel 产品 Diff 视图（§5；F1–F3 已落）。
+**M1 已落：** `contrib/sources`（`SourcesTabsHost` + `SourcesFilesList` / `SourcesChangesList` / `SourcesReviewList`）在 `SOURCES_PART` 槽内提供 **Files \| Changes \| Review** tab strip；Files 为列表投影，Changes / Review 为 **SCM 资源列表投影**（只读清单，非 stub 占位）。**Review 无写操作**：无 stage/commit/Discard；审阅进度为窗口内存 own-data（`ISourcesReviewProgressService`，R1 @ HEAD），**不入** SCM 状态、不参与 commit 门禁；引擎接通后归因 chip（R3）与 Conversation `reviewNav` 行（R4）只导航回 Sources / 对话轨迹。树权威仍在 Sidebar Explorer。Diff 深查看默认 **EDITOR_PART** Preview；经显式动作可移 Conversation 只读审阅 tab 或 Panel 产品 Diff 视图（§5；F1–F3 已落）。
 
 ## 5. Diff 深查看 ↔ Changes 清单（映射张力）
 

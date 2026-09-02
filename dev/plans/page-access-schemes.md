@@ -3,7 +3,7 @@ title: "页面接入方案：Settings / 会话列表 / 透镜 / Navigator tab"
 type: plan
 status: implemented
 phase: N/A
-updated: 2026-09-01
+updated: 2026-09-02
 summary: "B2 壳之后页面接入；切片 1a–4 已落；切片 5 blocked PRD-008"
 origin: multi-party-design-review
 mpdr:
@@ -419,23 +419,23 @@ ACTIVITYBAR_PART 图标 → 一个 ViewContainer → ViewPaneContainer → 一�
 
 | 阶段 | UI | vscode 零件 |
 |------|-----|-------------|
-| 无引擎 | empty + Open Folder / Recent CTA | `registerViewWelcomeContent` + command |
-| 有本地工作区、无 UA | Recent + Current folders | `IWorkspacesService` + `WorkbenchList` / 两级树。**不是** UA session catalog |
-| 有引擎 | Engine → Project → Session **只读发现** | `WorkbenchAsyncDataTree`；Engine = **分组轴**；只发 `switchSession`，不持久化第二份 catalog |
+| 无引擎 | empty + Open Folder / Recent CTA；有工作区时仅「本地文件夹」组 | `registerViewWelcomeContent` + `WorkbenchObjectTree`（`local-folder` 叶） |
+| 有引擎 | Engine → work_dir → Session **只读发现** | 同树换 `buildNavigatorProjectsTree`：`IConversationRosterService` + connection `workDir`；只 `switchSession`。方案 [navigator-engine-segments §2.1](navigator-engine-segments.md) |
 
 **禁止：** 第二份 flat roster；`IChatModel` 冒充 Project；Engine 设置 / Files 浏览进本 tab。
 
 #### Agents
 
-- 意图：当前 session agent 发现；inspect → Bottom Panel。
-- 无引擎：honest empty。有引擎：`WorkbenchAsyncDataTree` hierarchy + 可选 Activity `WorkbenchList`。
-- **禁止：** `AICustomizationManagementEditor` Agents（文件型定义）；`IChatAgentService` participant 列表；Agent Detail 为 Preview L1。
-- **inspect：** 专用 Panel 容器 `workbench.panel.agentInspect` + 叶 `workbench.panel.agentInspect.view` + `AgentInspectView`（§1.3 / §15 B3）。默认折叠；打开 inspect 时 `openPanel`。**v1 单叶**：Agents/Team 共用同一叶（同一 view id + 同一 ctor）；第二叶 id **本轮不钉**，留给切片 3（可与 §9.6 EH 矩阵一起定）。
+- 意图：当前 session agent 发现；inspect → Bottom Panel（`IAgentInspectService`）。
+- 无引擎：honest empty（Activity **不**读 stub lease tool 行）。
+- 有引擎：叶可见时 1 个 lease——Hierarchy = `liveAgentTree`（host 填，contrib 零 Tree RPC）；Activity = lease timeline ∪ overlay tool 项。方案 [navigator-engine-segments §2.2–2.3](navigator-engine-segments.md)。
+- **禁止：** `AICustomizationManagementEditor` Agents；`IChatAgentService` participant 列表；Agent Detail 为 Preview L1。
+- **inspect：** Panel 容器 `workbench.panel.agentInspect` + 叶 `workbench.panel.agentInspect.view` + `AgentInspectView`（§1.3 / §15 B3）。**v1 单叶**；**第二叶不需要**（留白已关）。
 
 #### Team
 
-- 有引擎：`WorkbenchList` Members + 可选 Tasks 叶；inspect 同 Agents（同一 Panel 容器可复用叶或第二叶，不新开 Preview）。
-- **禁止：** SCM Accounts / Extensions 市场 / Preview Surface / 伪造 `team.*` RPC。
+- 有引擎：从同一 `liveAgentTree` 发现 manager → `IUniverseAgentConnection.team` 三个只读 unary；`liveTeamId` 有值才 `teamInfo`；inspect 同 Agents 单叶。方案 [navigator-engine-segments §2.4](navigator-engine-segments.md)。
+- **禁止：** SCM Accounts / Extensions 市场 / Preview Surface / contrib 自打 gRPC。
 
 #### Engines
 
