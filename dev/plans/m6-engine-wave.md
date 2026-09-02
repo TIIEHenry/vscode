@@ -57,12 +57,12 @@ HEAD 公开契约在 `IConversationRosterService`（`conversationStubService.ts`
 | 握手 | `isEngineConnected()` / `setEngineConnected`（测试可写布尔） | `SystemService.Connect` → `ConnectResponse`（`capabilities.methods` / `events`，**无** proto 字段 `supported_methods`；`session_token`；`work_dir`） | stub 无握手、无 token、无 methods 广告。生产 **`isEngineConnected()` = 非空 `session_token` + 活 channel**（Connect 成功且 transport 未死）；**pairing-pending 不算 connected**。禁止 UI 手拨 |
 | 会话目录 | `getSessions` / `createSession` / `deleteSession` / `renameSession` | `SessionService.List` / `Create` / `Delete`；标题 `AgentService.Rename` | stub 两颗种子（`untitled` / `visualize`）；UA 分页 + `SessionListFilter` + shelve。**无** `SwitchSession` RPC。**已连接时**首次 `List` 完成前 **不得**把 stub 种子投影进 UA catalog |
 | 当前会话 | `getActiveSessionId` / `switchSession` + `onDidChangeActiveSession` | 客户端投影：本地 active id + `Resume`/`GetHistory`/`SessionEventStream` | switch 是 IDE 选择，不是引擎命令。禁止第二份 active id（page-access B11 / navigator INV） |
-| 时间线 | `getTurns` 同步数组 | `SessionService.GetHistory`（`cursor_seq`）+ `SessionEventStream` | stub 是闭集 `user/assistant/confirmation/thinking/tool/visualization`；UA 是信封流。接通后 `appendStubEchoAssistant` **禁止**再写助手回合 |
-| 发送 | `appendUserTurn` 本地 push | `AgentService.Chat` 双向流（`session_id` + payload） | 发送链 = UA adapter，**禁止** `IChatService.sendRequest`（page-access 已钉） |
-| 权限 | `appendConfirmationTurn` / `resolveConfirmation` 本地状态 | 流内权限事件 + `PermissionService.Respond` | 无引擎时只改本地（PRD-004）；接通后必须打到引擎，禁止「已授权」文案在 Respond 失败时出现 |
+| 时间线 | `getTurns` 同步数组 | `SessionService.GetHistory`（`cursor_seq`）+ `SessionEventStream`；经 session-core fold；renderer 只吃 `ViewFrame`（细则见 [conversation-stream-timeline.md](conversation-stream-timeline.md)） | stub 是闭集 `user/assistant/confirmation/thinking/tool/visualization`；UA 是信封流。接通后 `appendStubEchoAssistant` **禁止**再写助手回合 |
+| 发送 | `appendUserTurn` 本地 push | `AgentService.Chat` 双向流（`session_id` + payload）；三键分立（`message_id` / `operation_id` / `originLeaseId`）；outbox 沿 ADR-012 | 发送链 = UA adapter，**禁止** `IChatService.sendRequest`（page-access 已钉） |
+| 权限 | `appendConfirmationTurn` / `resolveConfirmation` 本地状态 | 流内权限事件 + `PermissionService.Respond`；L4 `permission_request` → `pendingActions`；应答走 Chat 臂或 `Respond`（M6-A 定） | 无引擎时只改本地（PRD-004）；接通后必须打到引擎，禁止「已授权」文案在 Respond 失败时出现 |
 | 轨迹 | `getTrajectoryRecords` = turns 投影 ∪ Stub fixture | 同一 Event 窗口 fold（trajectory T4） | T1–T3 fixture 带 `Stub`；接通后替换，断连不得把 fixture 混进 UA session id |
 | 队列 / AutoDrive | `getMessageQueueState` / `setMessageQueueFixture` / `getAutoDriveTasks` | `AgentService.EnqueueQueueItem` 等队列 RPC；Goal 走 `PermissionService.SetSessionGoal` | HEAD 是 fixture。本波 adapter **保留接口**；活队列可在切片 5 后跟随，不得用 fixture 冒充引擎队列 |
-| 变更事件 | `onDidChangeSession` / `onDidChangeEngineConnection` | stream + capability revision | 投影层继续发这两事件，让 View / SessionBar / StatusBar 零改注入点 |
+| 变更事件 | `onDidChangeSession` / `onDidChangeEngineConnection` | stream + capability revision | 投影层继续发这两事件，让 View / SessionBar / StatusBar 零改注入点；细粒度通道 `acquireSessionView`（同 token，见 [conversation-stream-timeline.md](conversation-stream-timeline.md)） |
 | 多 agent / fork | 无 | `AgentService.List` / `Tree` / `Fork`；PRD-016 活 catalog | 本波不假装已 fork；窗口 chrome 已落，活数据跟随 |
 
 **AgentService / ToolService / McpService 的 catalog RPC 不进 roster 接口。** 它们是 Engine 页与运行时 catalog，经 platform 连接服务调用，不塞进 `IConversationRosterService`（避免 Preferences pane 与 Conversation UI 抢同一上帝接口）。
@@ -188,7 +188,7 @@ M6-A adapter
 
 ### M6-A — adapter（本波新建）
 
-**做什么：** `platform/universeAgent`（`node` gRPC 客户端 + `electron-browser` ProxyChannel，**非** agentHost UtilityProcess）连接 + Connect + `GrpcCapabilityProbe` + `SessionService.List/Create/Delete` + `GetHistory` 只读投影到 roster；实现类替换 stub；`isEngineConnected` = `session_token` + 活 channel（pairing-pending → false）。**发送链（本刀必改）：**
+**做什么：** `platform/universeAgent`（`node` gRPC 客户端 + `electron-browser` ProxyChannel，**非** agentHost UtilityProcess）连接 + Connect + `GrpcCapabilityProbe` + `SessionService.List/Create/Delete` + `GetHistory` 经 session-core `historyResult` 进 Actor，由 fold 产 baseline（**不**另写 roster 投影；时间线细则见 [conversation-stream-timeline.md](conversation-stream-timeline.md) S4）；实现类替换 stub；`isEngineConnected` = `session_token` + 活 channel（pairing-pending → false）。**发送链（本刀必改）：**
 
 - `conversationLens.submitDraft`：**未连接** → 现有 stub echo；**已连接** → fail-closed（拒发 + 诚实句），**不得**调用 `appendStubEchoAssistant`。
 - `IConversationRosterService.appendStubEchoAssistant`：**已连接时 service 层 reject/throw**（或 no-op + 断言），禁止写入助手回合。
@@ -218,7 +218,7 @@ M6-A adapter
 
 ### M6-D — trajectory T4
 
-[conversation-trajectory-lens](conversation-trajectory-lens.md) T4：Event fold 替换 fixture（含真 tool 树）。依赖 A 的 history/stream 与 B 的活 turns。`compacted` 仍预留、折外。visualize T4（PRD-014）**不**绑死本刀，可在 D 后跟随。
+[conversation-trajectory-lens](conversation-trajectory-lens.md) T4：Event fold 替换 fixture（含真 tool 树）。依赖 A 的 history/stream 与 B 的活 turns。`compacted` 仍预留、折外。visualize T4（PRD-014）**不**绑死本刀，可在 D 后跟随。轨迹全文 / `compacted` 投影 / visualize 类型化见 [conversation-stream-timeline.md](conversation-stream-timeline.md) S6 与 G2 / G3。
 
 ---
 
@@ -247,6 +247,7 @@ M6-A adapter
 - [PRD-007](../../docs/product/requirements.md#prd-007-诚实降级) · [PRD-008](../../docs/product/requirements.md#prd-008-引擎与会话权威)
 - [page-access-schemes.md](page-access-schemes.md) §10 切片 5 · B10 · B11
 - [customizations-engine.md](customizations-engine.md)
+- [conversation-stream-timeline.md](conversation-stream-timeline.md)（M6 时间线专章，`accepted`）
 - [conversation-trajectory-lens.md](conversation-trajectory-lens.md)
 - [agent-host overview](../../docs/systems/agent-host/overview.md)
 - 外仓只读：`UniverseAgent/grpc-api/src/main/proto/{system,session,agent,tool,mcp}_service.proto` · Singularity `GrpcCapabilityProbe`
