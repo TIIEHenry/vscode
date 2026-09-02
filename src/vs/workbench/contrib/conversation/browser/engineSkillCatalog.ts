@@ -5,44 +5,27 @@
 
 import { localize } from '../../../../nls.js';
 import type {
-	UniverseAgentCapabilitySupport,
 	UniverseAgentSkillSource,
 	UniverseAgentSkillSummary,
 } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
+import {
+	type EngineCatalogPaneMode,
+	getCatalogUnsupportedCopy,
+	getCatalogUnknownCopy,
+	resolveEngineCatalogPaneMode,
+	shouldHideCatalogRows,
+} from './engineCatalog.js';
 
 /** Engine Skills pane rendering mode (customizations-engine §2 / §8.3). */
-export type EngineSkillsPaneMode = 'disconnected' | 'unsupported' | 'unknown' | 'supported';
+export type EngineSkillsPaneMode = EngineCatalogPaneMode;
 
-export function resolveEngineSkillsPaneMode(
-	isConnected: boolean,
-	skillsSupport: UniverseAgentCapabilitySupport,
-): EngineSkillsPaneMode {
-	if (!isConnected) {
-		return 'disconnected';
-	}
-	if (skillsSupport === 'SUPPORTED') {
-		return 'supported';
-	}
-	if (skillsSupport === 'UNKNOWN') {
-		return 'unknown';
-	}
-	return 'unsupported';
-}
+export const resolveEngineSkillsPaneMode = resolveEngineCatalogPaneMode;
 
 export function getSkillsUnsupportedCopy(reason?: string): string {
-	if (reason) {
-		return localize(
-			'ua.engineSkillsUnsupportedWithReason',
-			"The current engine does not expose a skills API ({0}).",
-			reason,
-		);
-	}
-	return localize('ua.engineSkillsUnsupported', "The current engine does not expose a skills API.");
+	return getCatalogUnsupportedCopy(localize('ua.engineSkillsFeatureLabel', "a skills API"), reason);
 }
 
-export function getSkillsUnknownCopy(): string {
-	return localize('ua.engineSkillsUnknown', "Confirming engine skills capability…");
-}
+export const getSkillsUnknownCopy = getCatalogUnknownCopy;
 
 export function getSkillToggleFreezeNotice(): string {
 	return localize(
@@ -83,6 +66,4 @@ export function groupSkillsBySource(skills: readonly UniverseAgentSkillSummary[]
 }
 
 /** True when catalog rows must not be shown (E1 negative paths). */
-export function shouldHideSkillCatalogRows(mode: EngineSkillsPaneMode): boolean {
-	return mode !== 'supported';
-}
+export const shouldHideSkillCatalogRows = shouldHideCatalogRows;

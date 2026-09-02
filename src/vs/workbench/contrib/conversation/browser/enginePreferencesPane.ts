@@ -13,6 +13,9 @@ import { IUniverseAgentConnection } from '../../../../platform/universeAgent/com
 import { defaultButtonStyles } from '../../../../platform/theme/browser/defaultStyles.js';
 import type { IPreferencesEditorPane } from '../../preferences/browser/preferencesEditorRegistry.js';
 import { EngineSkillsSection } from './engineSkillsSection.js';
+import { EngineAgentsSection } from './engineAgentsSection.js';
+import { EngineMcpSection } from './engineMcpSection.js';
+import { EngineToolsSection } from './engineToolsSection.js';
 import { resolveEngineSkillsPaneMode } from './engineSkillCatalog.js';
 
 /** Honest Test Engine result — no engine probe, no fake success. */
@@ -29,6 +32,9 @@ export class EnginePreferencesPane extends Disposable implements IPreferencesEdi
 	private readonly container: HTMLElement;
 	private readonly emptyWelcome: HTMLElement;
 	private readonly skillsSection: EngineSkillsSection;
+	private readonly agentsSection: EngineAgentsSection;
+	private readonly mcpSection: EngineMcpSection;
+	private readonly toolsSection: EngineToolsSection;
 	private readonly testStatus: HTMLElement;
 
 	constructor(
@@ -48,6 +54,9 @@ export class EnginePreferencesPane extends Disposable implements IPreferencesEdi
 		this.emptyWelcome.style.opacity = '0.8';
 
 		this.skillsSection = this._register(instantiationService.createInstance(EngineSkillsSection, this.container));
+		this.agentsSection = this._register(instantiationService.createInstance(EngineAgentsSection, this.container));
+		this.mcpSection = this._register(instantiationService.createInstance(EngineMcpSection, this.container));
+		this.toolsSection = this._register(instantiationService.createInstance(EngineToolsSection, this.container));
 
 		const testRow = DOM.append(this.container, DOM.$('.engine-test-row'));
 		const testButton = this._register(new Button(testRow, defaultButtonStyles));
@@ -74,8 +83,12 @@ export class EnginePreferencesPane extends Disposable implements IPreferencesEdi
 
 	layout(dimension: DOM.Dimension): void {
 		this.container.style.height = `${dimension.height}px`;
-		const skillsHeight = Math.max(0, dimension.height - 160);
-		this.skillsSection.layout(dimension.width - 48, skillsHeight);
+		const catalogHeight = Math.max(80, Math.floor((dimension.height - 220) / 4));
+		const width = dimension.width - 48;
+		this.skillsSection.layout(width, catalogHeight);
+		this.agentsSection.layout(width, catalogHeight);
+		this.mcpSection.layout(width, catalogHeight);
+		this.toolsSection.layout(width, catalogHeight);
 	}
 
 	search(_text: string): void {

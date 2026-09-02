@@ -38,6 +38,7 @@ suite('EngineSkillsSection (E1)', () => {
 			sessionToken: connected ? 'tok' : undefined,
 			pairingPending: false,
 			channelAlive: connected,
+			sharedFsRootSent: false,
 			capabilities,
 		});
 
@@ -51,6 +52,14 @@ suite('EngineSkillsSection (E1)', () => {
 			onDidChangeConnection: onDidChangeConnection.event,
 			onDidFileMutation: Event.None,
 			onDidTurnSettle: Event.None,
+			onDidChangeTeamRuntime: Event.None,
+			requestAgentTreeRefresh: () => { },
+			getNavigatorCapability: () => 'UNKNOWN' as const,
+			team: {
+				memberStatus: async () => [],
+				taskList: async () => [],
+				teamInfo: async () => undefined,
+			},
 			connect: async () => ({ methods: [], events: [], sessionToken: 'tok' }),
 			connectProfile: async () => ({ ok: false, code: 'transport_failed', reason: 'stub' }),
 			disconnect: async () => { connected = false; onDidChangeConnection.fire(snapshot()); },
@@ -65,6 +74,10 @@ suite('EngineSkillsSection (E1)', () => {
 			})),
 			setSkillEnabled: async () => ({ ok: true }),
 			getSkillInfo: async () => ({ name: 'demo-skill', content: '# Demo', source: 'bundled', enabled: true }),
+			listAgentProfiles: async () => ({ profiles: [] }),
+			listMcpServers: async () => ({ servers: [] }),
+			toggleMcpServer: async () => ({ ok: true }),
+			listTools: async () => ({ tools: [] }),
 			setConnected(value: boolean) {
 				connected = value;
 				onDidChangeConnection.fire(snapshot());

@@ -142,7 +142,7 @@ export class EngineSkillsSection extends Disposable {
 
 	constructor(
 		parent: HTMLElement,
-		private readonly connection: IUniverseAgentConnection,
+		@IUniverseAgentConnection private readonly connection: IUniverseAgentConnection,
 		@IInstantiationService instantiationService: IInstantiationService,
 	) {
 		super();

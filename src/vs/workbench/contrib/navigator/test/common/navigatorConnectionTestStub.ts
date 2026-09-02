@@ -46,6 +46,10 @@ export function createNavigatorConnectionTestStub(
 		listSkills: async () => ({ skills: [] }),
 		setSkillEnabled: async () => ({ ok: true }),
 		getSkillInfo: async () => ({ name: '', content: '', source: 'unknown' as const, enabled: false }),
+		listAgentProfiles: async () => ({ profiles: [] }),
+		listMcpServers: async () => ({ servers: [] }),
+		toggleMcpServer: async () => ({ ok: true }),
+		listTools: async () => ({ tools: [] }),
 		...overrides,
 	};
 }

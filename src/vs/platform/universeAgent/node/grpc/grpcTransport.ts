@@ -16,6 +16,13 @@ import type {
 	UniverseAgentListSessionsRequest,
 	UniverseAgentListSessionsResult,
 	UniverseAgentListSkillsResult,
+	UniverseAgentListAgentProfilesRequest,
+	UniverseAgentListAgentProfilesResult,
+	UniverseAgentListMcpServersRequest,
+	UniverseAgentListMcpServersResult,
+	UniverseAgentListToolsResult,
+	UniverseAgentToggleMcpServerRequest,
+	UniverseAgentToggleMcpServerResult,
 	UniverseAgentSessionEvent,
 	UniverseAgentSetSkillEnabledRequest,
 	UniverseAgentSetSkillEnabledResult,
@@ -107,6 +114,14 @@ export interface IUniverseAgentGrpcTransport {
 
 	getSkillInfo(request: UniverseAgentSkillInfoRequest): Promise<UniverseAgentSkillInfoResult>;
 
+	listAgentProfiles(request: UniverseAgentListAgentProfilesRequest): Promise<UniverseAgentListAgentProfilesResult>;
+
+	listMcpServers(request: UniverseAgentListMcpServersRequest): Promise<UniverseAgentListMcpServersResult>;
+
+	toggleMcpServer(request: UniverseAgentToggleMcpServerRequest): Promise<UniverseAgentToggleMcpServerResult>;
+
+	listTools(): Promise<UniverseAgentListToolsResult>;
+
 	/** Host-only: AgentService.Tree (m6 §11 A1). */
 	fetchAgentTree(sessionId: string): Promise<UniverseAgentAgentTreeNode | undefined>;
 
@@ -136,6 +151,12 @@ export const UniverseAgentGrpcServices = {
 		service: 'universeagent.agent.v1.AgentService',
 		Chat: 'Chat',
 		Tree: 'Tree',
+		ListAgentProfiles: 'ListAgentProfiles',
+	},
+	Mcp: {
+		service: 'universeagent.mcp.v1.McpService',
+		ListMcpServers: 'ListMcpServers',
+		ToggleMcpServer: 'ToggleMcpServer',
 	},
 	Team: {
 		service: 'universeagent.team.v1.TeamService',
@@ -148,5 +169,6 @@ export const UniverseAgentGrpcServices = {
 		ListSkills: 'ListSkills',
 		SkillInfo: 'SkillInfo',
 		SetSkillEnabled: 'SetSkillEnabled',
+		ListTools: 'ListTools',
 	},
 } as const;

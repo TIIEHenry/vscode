@@ -21,6 +21,13 @@ import type {
 	UniverseAgentListSessionsRequest,
 	UniverseAgentListSessionsResult,
 	UniverseAgentListSkillsResult,
+	UniverseAgentListAgentProfilesRequest,
+	UniverseAgentListAgentProfilesResult,
+	UniverseAgentListMcpServersRequest,
+	UniverseAgentListMcpServersResult,
+	UniverseAgentListToolsResult,
+	UniverseAgentToggleMcpServerRequest,
+	UniverseAgentToggleMcpServerResult,
 	UniverseAgentSessionEvent,
 	UniverseAgentSetSkillEnabledRequest,
 	UniverseAgentSetSkillEnabledResult,
@@ -113,4 +120,12 @@ export interface IUniverseAgentConnection {
 	setSkillEnabled(request: UniverseAgentSetSkillEnabledRequest): Promise<UniverseAgentSetSkillEnabledResult>;
 
 	getSkillInfo(request: UniverseAgentSkillInfoRequest): Promise<UniverseAgentSkillInfoResult>;
+
+	listAgentProfiles(request?: UniverseAgentListAgentProfilesRequest): Promise<UniverseAgentListAgentProfilesResult>;
+
+	listMcpServers(request?: UniverseAgentListMcpServersRequest): Promise<UniverseAgentListMcpServersResult>;
+
+	toggleMcpServer(request: UniverseAgentToggleMcpServerRequest): Promise<UniverseAgentToggleMcpServerResult>;
+
+	listTools(): Promise<UniverseAgentListToolsResult>;
 }
