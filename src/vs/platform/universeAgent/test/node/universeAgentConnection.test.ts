@@ -20,7 +20,7 @@ import type {
 	UniverseAgentListSessionsResult,
 	UniverseAgentSessionEvent,
 } from '../../common/universeAgentTypes.js';
-import { GrpcStatusCode, IUniverseAgentGrpcTransport, UniverseAgentTransportError } from '../../node/grpc/grpcTransport.js';
+import { GrpcStatusCode, IUniverseAgentGrpcTransport, UniverseAgentAuthNonceRequest, UniverseAgentAuthNonceResult, UniverseAgentConnectRequest, UniverseAgentConnectResult, UniverseAgentDeviceAuthConnectRequest, UniverseAgentTransportError } from '../../node/grpc/grpcTransport.js';
 import { UniverseAgentConnectionService } from '../../node/universeAgentConnectionService.js';
 
 class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
@@ -51,6 +51,22 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 			sessionToken: 'token-1',
 			workDir: '/tmp/work',
 			methods: ['ToolService.ListSkills'],
+			events: [],
+		};
+	}
+
+	async getAuthNonce(_request: UniverseAgentAuthNonceRequest): Promise<UniverseAgentAuthNonceResult> {
+		return {
+			authNonce: new Uint8Array(32),
+			engineIdentityId: 'engine-id',
+			engineCertFingerprint: 'a'.repeat(64),
+		};
+	}
+
+	async connectWithDeviceAuth(_request: UniverseAgentDeviceAuthConnectRequest): Promise<UniverseAgentConnectResult> {
+		return {
+			sessionToken: 'token-1',
+			methods: [],
 			events: [],
 		};
 	}

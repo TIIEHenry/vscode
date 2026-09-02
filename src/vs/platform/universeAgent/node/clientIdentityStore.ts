@@ -8,28 +8,13 @@ import { IEncryptionMainService } from '../../encryption/common/encryptionServic
 import { IApplicationStorageMainService } from '../../storage/electron-main/storageMainService.js';
 import { StorageScope, StorageTarget } from '../../storage/common/storage.js';
 import { createEd25519DeviceAuthSigner, type Ed25519PrivateKeyMaterial } from './deviceGrant/device-grant-crypto.js';
-import type { DeviceAuthTranscriptInput } from './deviceGrant/device-grant-crypto.js';
+import type { ClientIdentityMaterial, ClientIdentityStoreState, IClientIdentityStore } from './clientIdentityTypes.js';
+
+export type { ClientIdentityMaterial, ClientIdentityStoreState, IClientIdentityStore } from './clientIdentityTypes.js';
 
 const DEVICE_IDENTITY_STORAGE_KEY = 'universeAgent.secret.deviceIdentity';
 const IDENTITY_ID_PATTERN = /^[0-9a-f]{64}$/;
 const ED25519_PUBLIC_RAW_LEN = 32;
-
-export type ClientIdentityMaterial = {
-	readonly clientIdentityId: string;
-	readonly clientPublicKey: Uint8Array;
-	readonly privateKeyPkcs8: Uint8Array;
-};
-
-export type ClientIdentityStoreState =
-	| { readonly kind: 'ready'; readonly identity: ClientIdentityMaterial }
-	| { readonly kind: 'encryption_unavailable' }
-	| { readonly kind: 'corrupt'; readonly reason: string };
-
-export interface IClientIdentityStore {
-	getState(): Promise<ClientIdentityStoreState>;
-	getOrCreateIdentity(): Promise<ClientIdentityStoreState>;
-	createSigner(): Promise<((input: DeviceAuthTranscriptInput) => Uint8Array) | undefined>;
-}
 
 type StoredDeviceIdentityEnvelope = {
 	readonly clientIdentityId: string;

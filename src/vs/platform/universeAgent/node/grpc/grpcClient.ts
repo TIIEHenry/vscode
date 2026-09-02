@@ -22,9 +22,13 @@ import type {
 import {
 	GrpcStatusCode,
 	IUniverseAgentGrpcTransport,
+	UniverseAgentAuthNonceRequest,
+	UniverseAgentAuthNonceResult,
+	UniverseAgentDeviceAuthConnectRequest,
 	UniverseAgentGrpcServices,
 	UniverseAgentTransportError,
 } from './grpcTransport.js';
+import { createPinnedChannelOptions, createPinnedTlsChannelCredentials, type UniverseAgentPinnedTlsTarget } from '../universeAgentChannel.js';
 
 interface ConnectResponseWire {
 	session_token?: string;
@@ -35,6 +39,20 @@ interface ConnectResponseWire {
 		methods?: string[];
 		events?: string[];
 	};
+}
+
+interface AuthNonceResponseWire {
+	auth_nonce?: string;
+	engine_identity_id?: string;
+	engine_cert_fingerprint?: string;
+	expires_at_ms?: number;
+}
+
+interface DeviceAuthWire {
+	client_identity_id?: string;
+	client_public_key?: string;
+	auth_nonce?: string;
+	signature?: string;
 }
 
 interface ListSessionsResponseWire {
@@ -138,6 +156,26 @@ function mapConnectResponse(wire: ConnectResponseWire): UniverseAgentConnectResu
 	};
 }
 
+function bytesToBase64(bytes: Uint8Array): string {
+	return Buffer.from(bytes).toString('base64');
+}
+
+function base64ToBytes(value: string | undefined): Uint8Array {
+	if (!value) {
+		return new Uint8Array(0);
+	}
+	return Uint8Array.from(Buffer.from(value, 'base64'));
+}
+
+function mapAuthNonceResponse(wire: AuthNonceResponseWire): UniverseAgentAuthNonceResult {
+	return {
+		authNonce: base64ToBytes(wire.auth_nonce),
+		engineIdentityId: wire.engine_identity_id ?? '',
+		engineCertFingerprint: wire.engine_cert_fingerprint ?? '',
+		expiresAtMs: wire.expires_at_ms,
+	};
+}
+
 function mapListSessionsResponse(wire: ListSessionsResponseWire): UniverseAgentListSessionsResult {
 	return {
 		sessions: (wire.sessions ?? []).map(session => ({
@@ -166,6 +204,7 @@ function mapGetHistoryResponse(wire: GetHistoryResponseWire): UniverseAgentGetHi
 export interface GrpcUniverseAgentClientOptions {
 	readonly address: string;
 	readonly credentials?: grpc.ChannelCredentials;
+	readonly channelOptions?: grpc.ChannelOptions;
 }
 
 /**
@@ -180,6 +219,7 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 		this._channel = new grpc.Client(
 			options.address,
 			options.credentials ?? grpc.credentials.createInsecure(),
+			options.channelOptions,
 		);
 	}
 
@@ -198,6 +238,42 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			protocol_version: request.protocolVersion,
 			work_dir: request.workDir,
 		});
+		return mapConnectResponse(wire);
+	}
+
+	async getAuthNonce(request: UniverseAgentAuthNonceRequest): Promise<UniverseAgentAuthNonceResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, AuthNonceResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.System.service,
+			UniverseAgentGrpcServices.System.GetAuthNonce,
+		);
+		const wire = await unary({
+			client_identity_id: request.clientIdentityId,
+			client_public_key: bytesToBase64(request.clientPublicKey),
+		});
+		return mapAuthNonceResponse(wire);
+	}
+
+	async connectWithDeviceAuth(request: UniverseAgentDeviceAuthConnectRequest): Promise<UniverseAgentConnectResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, ConnectResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.System.service,
+			UniverseAgentGrpcServices.System.Connect,
+		);
+		const deviceAuth: DeviceAuthWire = {
+			client_identity_id: request.clientIdentityId,
+			client_public_key: bytesToBase64(request.clientPublicKey),
+			auth_nonce: bytesToBase64(request.authNonce),
+			signature: bytesToBase64(request.signature),
+		};
+		const payload: Record<string, unknown> = {
+			protocol_version: request.protocolVersion,
+			device_auth: deviceAuth,
+		};
+		if (request.pairingPhase === 'formal') {
+			payload.supported_tools = [];
+		}
+		const wire = await unary(payload);
 		return mapConnectResponse(wire);
 	}
 
@@ -291,4 +367,12 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 
 export function createGrpcUniverseAgentClient(address: string): IUniverseAgentGrpcTransport {
 	return new GrpcUniverseAgentClient({ address });
+}
+
+export function createPinnedGrpcUniverseAgentClient(target: UniverseAgentPinnedTlsTarget): IUniverseAgentGrpcTransport {
+	return new GrpcUniverseAgentClient({
+		address: target.address,
+		credentials: createPinnedTlsChannelCredentials(target.tls),
+		channelOptions: createPinnedChannelOptions(target.sslTargetNameOverride),
+	});
 }
