@@ -17,6 +17,7 @@ import {
 import type { ConnectionProfile, IConnectionProfileStore } from './connectionProfileStore.js';
 import type { IClientIdentityStore } from './clientIdentityTypes.js';
 import { createEngineTrustRecord, type EngineTrustRecord, type IEngineTrustStore } from './engineTrustStore.js';
+import type { IssueRelayTicketFn } from './connectionResolver.js';
 import type { IUniverseAgentGrpcTransport } from './grpc/grpcTransport.js';
 
 const PAIRING_PROVISIONAL_ENGINE_ID = 'pairing-provisional';
@@ -79,6 +80,8 @@ export type PairingOrchestratorDeps = {
 		readonly leafSha256Hex: string;
 		readonly displayName: string;
 	}) => Promise<boolean>;
+	/** Hub pairing S1/S2/S6 relay ticket issuance; injected by ConnectionResolver (H3). */
+	readonly issueRelayTicket?: IssueRelayTicketFn;
 	readonly nowMs?: () => number;
 };
 
