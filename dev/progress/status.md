@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-02
-summary: "loop/merge 已合入 M7 代码与 accepted 方案；P0/P1a/P1b/P2a/P2b、E2-1–E2-2/E2-4–E2-7、Q2/Q3/Q5a、I2–I5/I3b 已落；Q4 未完；测试债 D17/D18 旁路"
+summary: "loop/merge 已合入 M7 代码与 accepted 方案；P0/P1a/P1b/P2a/P2b、E2-1–E2-2/E2-4–E2-7、Q2–Q5a、I2–I5/I3b 已落；Q5b 未完；测试债 D17/D18 旁路"
 ---
 
 # Development Progress
@@ -16,8 +16,8 @@ summary: "loop/merge 已合入 M7 代码与 accepted 方案；P0/P1a/P1b/P2a/P2b
 - **未验证不等于未开发：** PRD-008、Diff F4、Navigator N5、Review R5、Hub H4a、Web D15 仍缺证据；它们进入 V 槽，不再冻结 UI 主线。
 - **M7 产品裁定：** 测试失败不阻塞后续 UI 切片；数据损坏、权限绕过、secret 泄漏为全局硬门；无法编译/启动与分层破坏只阻塞该**冲突域**合入（与 [health-gates](health-gates.md) 一致）。新失败统一记 [D17](deferred-gaps.md)；I3b 安装包未验记 [D18](deferred-gaps.md)。
 - **M7 方案：** 六份子方案 **2026-09-02 升 `accepted`**（规则 16 四轮，见各方案文末）。
-- **本波已落代码（loop/merge）：** P0 Web 三服务断连；P1a MCP 运行态/Plugins 真探测；P1b `listModels` + `providerConfig` 固定 unsupported；P2a DetailRef `requestDetail`；P2b L2 compacted 归因投影；Q2 接通 Detail 六态 + stub/engine `requestDetail`；Q3 compacted 只消费 attribution、零伪造；Q5a 四 kind 不再洗白 + 独立提问座位；E2-1 废止 hide-on-disconnect + 六态 + Web 省略桌面控件；E2-2 Model 只读注册表 + Provider 零输入；E2-4/E2-5 Runtime/Plugins 接真方法；E2-6 四节迁入保持选中/dirty + Agents Model unsupported；E2-7 窄宽度 `.is-narrow` + 跨面断连文案对齐；I2 userData `universe-agent-studio-dev`；I3a 品牌源与生成；I3b deb/rpm hicolor + electron 元数据；I4 点名路径去 Code - OSS；I5 从 code-oss-dev 迁 settings/keybindings/snippets。
-- **未完：** Q4 live 过程折（B 槽进行中）、Q5b 键盘 ARIA、W1 Web 冒烟。
+- **本波已落代码（loop/merge）：** P0 Web 三服务断连；P1a MCP 运行态/Plugins 真探测；P1b `listModels` + `providerConfig` 固定 unsupported；P2a DetailRef `requestDetail`；P2b L2 compacted 归因投影；Q2 接通 Detail 六态 + stub/engine `requestDetail`；Q3 compacted 只消费 attribution、零伪造；Q4 live 过程折按 `fold:${firstId}` 保留展开；Q5a 四 kind 不再洗白 + 独立提问座位；E2-1 废止 hide-on-disconnect + 六态 + Web 省略桌面控件；E2-2 Model 只读注册表 + Provider 零输入；E2-4/E2-5 Runtime/Plugins 接真方法；E2-6 四节迁入保持选中/dirty + Agents Model unsupported；E2-7 窄宽度 `.is-narrow` + 跨面断连文案对齐；I2 userData `universe-agent-studio-dev`；I3a 品牌源与生成；I3b deb/rpm hicolor + electron 元数据；I4 点名路径去 Code - OSS；I5 从 code-oss-dev 迁 settings/keybindings/snippets。
+- **未完：** Q5b 键盘 ARIA、Q6 窄宽度跨面、W1 Web 冒烟。
 
 ## Blockers
 
