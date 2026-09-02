@@ -8,14 +8,11 @@ import { localize } from '../../../../nls.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { INotificationService, Severity } from '../../../../platform/notification/common/notification.js';
 import { IWorkbenchEnvironmentService } from '../../../services/environment/common/environmentService.js';
-import { IWorkbenchLayoutService, Parts } from '../../../services/layout/browser/layoutService.js';
 import { IWorkbenchContribution, registerWorkbenchContribution2, WorkbenchPhase } from '../../../common/contributions.js';
-import { IConversationPartService } from '../../../browser/parts/conversation/conversationPart.js';
 import { IConversationRosterService } from './conversationStubService.js';
 import {
 	shouldNotifyPermissionRequests,
 	shouldNotifyTurnCompleted,
-	shouldOpenConversationOnStartup,
 	shouldRestoreLastSessionOnStartup,
 } from '../common/uaClientSettingsHelpers.js';
 import { ConversationStubTurn } from './conversationStubModel.js';
@@ -28,8 +25,6 @@ class UaClientStartupContribution extends Disposable implements IWorkbenchContri
 		@IConfigurationService private readonly configurationService: IConfigurationService,
 		@IConversationRosterService private readonly rosterService: IConversationRosterService,
 		@IWorkbenchEnvironmentService private readonly environmentService: IWorkbenchEnvironmentService,
-		@IWorkbenchLayoutService private readonly layoutService: IWorkbenchLayoutService,
-		@IConversationPartService private readonly conversationPartService: IConversationPartService,
 	) {
 		super();
 
@@ -47,13 +42,6 @@ class UaClientStartupContribution extends Disposable implements IWorkbenchContri
 			} else if (this.rosterService.getActiveSessionId() !== sessions[0].id) {
 				this.rosterService.switchSession(sessions[0].id);
 			}
-		}
-
-		if (shouldOpenConversationOnStartup(this.configurationService)) {
-			if (!this.layoutService.isVisible(Parts.CONVERSATION_PART)) {
-				this.layoutService.setPartHidden(false, Parts.CONVERSATION_PART);
-			}
-			this.conversationPartService.focus();
 		}
 	}
 }

@@ -4,7 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { localize } from '../../../../nls.js';
+import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { IStorageService } from '../../../../platform/storage/common/storage.js';
+import { shouldRestoreLastSessionOnStartup } from '../common/uaClientSettingsHelpers.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { IUniverseAgentSessionView } from '../../../../platform/universeAgent/common/universeAgentSessionView.js';
 import type { IConversationSessionViewLease } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
@@ -44,8 +46,9 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		@IUniverseAgentSessionView sessionView: IUniverseAgentSessionView,
 		@IUaClientWorkspaceToolsGate private readonly workspaceToolsGate: IUaClientWorkspaceToolsGate,
 		@IStorageService storageService?: IStorageService,
+		@IConfigurationService configurationService?: IConfigurationService,
 	) {
-		super(storageService);
+		super(storageService, configurationService);
 		this.engineFrameSource = this._register(new ConversationEngineFrameSource(sessionView));
 		this.restoreEngineCacheFromStorage();
 		this._register(uaConnection.onDidChangeConnection(() => this.onUaConnectionChanged()));
@@ -267,7 +270,8 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 			turns: session.turns.map(turn => ({ ...turn })),
 			source: 'engine-cache' as const,
 		}));
-		this.activeEngineSessionId = cache.activeSessionId && this.engineSessions.some(session => session.id === cache.activeSessionId)
+		const restoreLast = shouldRestoreLastSessionOnStartup(this.configurationService);
+		this.activeEngineSessionId = restoreLast && cache.activeSessionId && this.engineSessions.some(session => session.id === cache.activeSessionId)
 			? cache.activeSessionId
 			: this.engineSessions[0]?.id;
 		this.listCompleted = true;

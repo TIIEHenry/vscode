@@ -114,6 +114,7 @@ import {
 } from './uaClientComposerDrafts.js';
 import {
 	applyConversationDensityClass,
+	getUaClientKeyboardEnterBehavior,
 	shouldRestoreComposerDrafts,
 	UA_CLIENT_DISPLAY_CONVERSATION_DENSITY,
 } from '../common/uaClientSettingsHelpers.js';
@@ -868,9 +869,12 @@ export class ConversationLens extends Disposable {
 				this.exitInputHistoryBrowse();
 				return;
 			}
-			if (e.keyCode === KeyCode.Enter && !e.shiftKey) {
-				e.preventDefault();
-				this.submitDraft();
+			if (e.keyCode === KeyCode.Enter) {
+				const sendOnEnter = getUaClientKeyboardEnterBehavior(this.configurationService) !== 'newline';
+				if (sendOnEnter ? !e.shiftKey : e.shiftKey) {
+					e.preventDefault();
+					this.submitDraft();
+				}
 			}
 		}));
 		this._register(this.sendButton.onDidClick(() => this.submitDraft()));
