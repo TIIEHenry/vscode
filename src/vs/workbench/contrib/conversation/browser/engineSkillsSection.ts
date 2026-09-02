@@ -10,26 +10,25 @@ import { IListRenderer, IListVirtualDelegate } from '../../../../base/browser/ui
 import { IListAccessibilityProvider } from '../../../../base/browser/ui/list/listWidget.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
+import { ICommandService } from '../../../../platform/commands/common/commands.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { WorkbenchList } from '../../../../platform/list/browser/listService.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import type { UniverseAgentSkillSource, UniverseAgentSkillSummary } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { defaultButtonStyles, defaultCheckboxStyles } from '../../../../platform/theme/browser/defaultStyles.js';
-import { canPerformCatalogWrite } from './engineCatalog.js';
+import { canPerformCatalogWrite, canShowCatalogRows } from './engineCatalog.js';
+import { EngineCatalogStatusWidget } from './engineCatalogStatus.js';
 import {
 	EngineSkillsPaneMode,
 	canEditSkillBody,
 	getDefaultNewSkillContent,
 	getDefaultNewSkillName,
 	getSkillSourceGroupLabel,
-	getSkillsUnknownCopy,
-	getSkillsUnsupportedCopy,
 	getSkillToggleFreezeNotice,
 	groupSkillsBySource,
 	resolveEngineSkillsPaneMode,
-	shouldHideSkillCatalogRows,
 } from './engineSkillCatalog.js';
-import { getEngineSectionDisconnectedCopy } from './engineSectionChrome.js';
+import { OPEN_CONNECTION_PREFERENCES_COMMAND_ID } from '../common/uaPreferencesPanes.js';
 
 const $ = DOM.$;
 
@@ -139,7 +138,7 @@ export class EngineSkillsSection extends Disposable {
 
 	private readonly container: HTMLElement;
 	private readonly heading: HTMLElement;
-	private readonly statusMessage: HTMLElement;
+	private readonly status: EngineCatalogStatusWidget;
 	private readonly freezeNotice: HTMLElement;
 	private readonly writeToolbar: HTMLElement;
 	private readonly listContainer: HTMLElement;
@@ -162,6 +161,7 @@ export class EngineSkillsSection extends Disposable {
 		parent: HTMLElement,
 		@IUniverseAgentConnection private readonly connection: IUniverseAgentConnection,
 		@IInstantiationService instantiationService: IInstantiationService,
+		@ICommandService private readonly commandService: ICommandService,
 	) {
 		super();
 		this.instantiationService = instantiationService;
@@ -173,8 +173,7 @@ export class EngineSkillsSection extends Disposable {
 		this.heading.textContent = localize('ua.engineSkillsSectionTitle', "Skills");
 		this.heading.style.display = 'none';
 
-		this.statusMessage = DOM.append(this.container, $('.engine-skills-status'));
-		this.statusMessage.style.display = 'none';
+		this.status = this._register(new EngineCatalogStatusWidget(this.container));
 
 		this.freezeNotice = DOM.append(this.container, $('.engine-skills-freeze-notice'));
 		this.freezeNotice.textContent = getSkillToggleFreezeNotice();
@@ -332,48 +331,78 @@ export class EngineSkillsSection extends Disposable {
 	}
 
 	private async refresh(): Promise<void> {
-		this.clearCatalogPresentation();
-
 		const capabilities = this.connection.getCapabilitySnapshot();
-		this.mode = resolveEngineSkillsPaneMode(
-			this.connection.isEngineConnected(),
-			capabilities.skills.support,
-		);
+		const connected = this.connection.isEngineConnected();
+		const support = capabilities.skills.support;
 
-		if (this.mode === 'disconnected') {
-			this.statusMessage.style.display = '';
-			this.statusMessage.textContent = getEngineSectionDisconnectedCopy();
+		if (!connected) {
+			this.clearCatalogPresentation();
+			this.mode = resolveEngineSkillsPaneMode(false, support);
+			this.renderStatus();
 			return;
 		}
 
-		if (shouldHideSkillCatalogRows(this.mode)) {
-			this.statusMessage.style.display = '';
-			this.statusMessage.textContent = this.mode === 'unknown'
-				? getSkillsUnknownCopy()
-				: getSkillsUnsupportedCopy(capabilities.skills.reason);
+		if (support === 'UNSUPPORTED') {
+			this.clearCatalogPresentation();
+			this.mode = resolveEngineSkillsPaneMode(true, support);
+			this.renderStatus({ reason: capabilities.skills.reason });
 			return;
 		}
 
-		this.freezeNotice.style.display = '';
-		this.writeToolbar.style.display = this.canWrite() && !!this.connection.saveSkillContent ? '' : 'none';
-		this.listContainer.style.display = '';
-		this.bodyEditor.style.display = '';
+		if (support === 'UNKNOWN') {
+			this.mode = resolveEngineSkillsPaneMode(true, support, { kind: 'none' });
+			this.writeToolbar.style.display = 'none';
+			this.renderStatus({ loadingKind: 'capability' });
+			return;
+		}
+
+		this.mode = resolveEngineSkillsPaneMode(true, support, { kind: 'inFlight' });
+		this.writeToolbar.style.display = 'none';
+		this.renderStatus({ loadingKind: 'list' });
 
 		try {
 			const result = await this.connection.listSkills();
-			if (this.mode !== 'supported' || !this.connection.isEngineConnected()) {
+			if (!this.connection.isEngineConnected()) {
 				this.clearCatalogPresentation();
+				this.mode = resolveEngineSkillsPaneMode(false, support);
+				this.renderStatus();
 				return;
 			}
 			this.setSkills(result.skills);
-		} catch {
+			this.mode = resolveEngineSkillsPaneMode(true, support, {
+				kind: 'success',
+				itemCount: result.skills.length,
+			});
+			this.freezeNotice.style.display = '';
+			this.writeToolbar.style.display = this.canWrite() && !!this.connection.saveSkillContent ? '' : 'none';
+			this.listContainer.style.display = canShowCatalogRows(this.mode) ? '' : 'none';
+			this.bodyEditor.style.display = canShowCatalogRows(this.mode) ? '' : 'none';
+			this.renderStatus();
+		} catch (error) {
 			this.clearCatalogPresentation();
-			this.statusMessage.style.display = '';
-			this.statusMessage.textContent = localize(
-				'ua.engineSkillsTransportFailed',
-				"Could not load skills from the engine.",
-			);
+			this.mode = resolveEngineSkillsPaneMode(true, support, {
+				kind: 'failed',
+				error: error instanceof Error ? error.message : undefined,
+			});
+			this.renderStatus({
+				reason: error instanceof Error ? error.message : undefined,
+				onRetry: () => void this.refresh(),
+			});
 		}
+	}
+
+	private renderStatus(options?: { reason?: string; loadingKind?: 'capability' | 'list'; onRetry?: () => void }): void {
+		this.status.render({
+			mode: this.mode,
+			featureLabel: localize('ua.engineSkillsFeatureLabel', "a skills API"),
+			emptyCopy: localize('ua.engineSkillsEmpty', "No skills yet."),
+			reason: options?.reason,
+			loadingKind: options?.loadingKind,
+			onRetry: options?.onRetry,
+			onOpenConnection: this.mode === 'disconnected'
+				? () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID)
+				: undefined,
+		});
 	}
 
 	private ensureList(): WorkbenchList<EngineSkillListEntry> {
@@ -416,8 +445,7 @@ export class EngineSkillsSection extends Disposable {
 		this.selectedSkill = undefined;
 		this.loadedBodySource = undefined;
 		this.bodyLoadGeneration++;
-		this.statusMessage.style.display = 'none';
-		this.statusMessage.textContent = '';
+		this.status.hide();
 		this.freezeNotice.style.display = 'none';
 		this.writeToolbar.style.display = 'none';
 		this.listContainer.style.display = 'none';
@@ -470,7 +498,7 @@ export class EngineSkillsSection extends Disposable {
 	}
 
 	private async toggleSkill(skill: UniverseAgentSkillSummary, enabled: boolean): Promise<void> {
-		if (this.mode !== 'supported' || !this.connection.isEngineConnected()) {
+		if (!canShowCatalogRows(this.mode) || !this.connection.isEngineConnected()) {
 			return;
 		}
 		try {
@@ -486,7 +514,7 @@ export class EngineSkillsSection extends Disposable {
 	}
 
 	private async loadSkillBody(skill: UniverseAgentSkillSummary): Promise<void> {
-		if (this.mode !== 'supported' || !this.connection.isEngineConnected()) {
+		if (!canShowCatalogRows(this.mode) || !this.connection.isEngineConnected()) {
 			this.clearBodyEditor();
 			return;
 		}
@@ -496,7 +524,7 @@ export class EngineSkillsSection extends Disposable {
 		try {
 			const info = await this.connection.getSkillInfo({ skillName: skill.name });
 			if (generation !== this.bodyLoadGeneration
-				|| this.mode !== 'supported'
+				|| !canShowCatalogRows(this.mode)
 				|| !this.connection.isEngineConnected()
 				|| this.selectedSkill?.name !== skill.name) {
 				return;

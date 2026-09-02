@@ -4,8 +4,14 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as DOM from '../../../../base/browser/dom.js';
+import { isWeb } from '../../../../base/common/platform.js';
 import { localize } from '../../../../nls.js';
 import type { UniverseAgentCapabilitySupport } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
+
+/** P0 未合入前用 isWeb 门控；不得据此声称 Web 已诚实。 */
+export function shouldDrawDesktopConnectionControls(): boolean {
+	return !isWeb;
+}
 
 const $ = DOM.$;
 

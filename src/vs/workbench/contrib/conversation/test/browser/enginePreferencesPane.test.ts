@@ -106,16 +106,26 @@ suite('EnginePreferencesPane', () => {
 		container.remove();
 	});
 
-	test('disconnected pane hides skills section and does not seed catalog rows', async () => {
+	test('disconnected pane keeps nine-section navigation with zero catalog rows and zero write buttons', async () => {
 		const pane = mountPane(false);
 		const container = pane.getDomNode();
 		await new Promise(resolve => setTimeout(resolve, 0));
 
+		const navLabels = [...container.querySelectorAll('.engine-preferences-nav-label')].map(el => el.textContent);
+		assert.strictEqual(navLabels.length, 9);
+
+		pane.selectSection('skills');
 		const skillsSection = container.querySelector('.engine-skills-section') as HTMLElement;
 		assert.ok(skillsSection);
-		assert.strictEqual(skillsSection.style.display, 'none');
+		assert.strictEqual(skillsSection.style.display, '');
+		assert.strictEqual(skillsSection.querySelectorAll('.engine-skill-row').length, 0);
+		const writeToolbar = skillsSection.querySelector('.engine-catalog-write-toolbar') as HTMLElement | null;
+		if (writeToolbar) {
+			assert.strictEqual(writeToolbar.style.display, 'none');
+		}
 
 		const combined = container.textContent ?? '';
+		assert.ok(!/Engine is connected\./.test(combined), 'pane must not wash disconnect into connected');
 		assert.ok(!/copilot/i.test(combined), 'pane must not mention Copilot');
 		assert.ok(!/open chat/i.test(combined), 'pane must not mention Open Chat');
 		assert.ok(!/sync/i.test(combined.toLowerCase()), 'pane must not claim synced catalog when disconnected');

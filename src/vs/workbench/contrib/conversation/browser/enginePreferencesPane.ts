@@ -26,7 +26,8 @@ import { EngineProviderModelSection } from './engineProviderModelSection.js';
 import { EngineRulesSection } from './engineRulesSection.js';
 import { EngineSkillsSection } from './engineSkillsSection.js';
 import { EngineToolsSection } from './engineToolsSection.js';
-import { getEngineSectionDisconnectedCopy } from './engineSectionChrome.js';
+import { getConnectionPhaseStatusBarText } from './conversationSessionStatus.js';
+import { getEngineSectionDisconnectedCopy, shouldDrawDesktopConnectionControls } from './engineSectionChrome.js';
 import {
 	ENGINE_PREFERENCES_NAV_ENTRIES,
 	type EnginePreferencesSectionId,
@@ -130,20 +131,27 @@ export class EnginePreferencesPane extends Disposable implements IPreferencesEdi
 		this.testStatus.setAttribute('role', 'status');
 		this.testStatus.setAttribute('aria-live', 'polite');
 		this._register(testButton.onDidClick(() => {
-			this.testStatus.textContent = this.connectionService.isEngineConnected()
-				? localize('ua.engineTestConnected', "Engine is connected.")
-				: getEngineTestStatusText();
+			this.testStatus.textContent = getConnectionPhaseStatusBarText(
+				this.connectionService.getConnectionPhase(),
+			);
 		}));
+		if (!shouldDrawDesktopConnectionControls()) {
+			testRow.style.display = 'none';
+		}
 
 		this.disconnectedBanner = DOM.append(this.container, $('.engine-preferences-disconnected-banner'));
 		this.disconnectedBanner.style.display = 'none';
 		this.disconnectedCopy = DOM.append(this.disconnectedBanner, $('.engine-preferences-disconnected-copy'));
 		this.disconnectedActions = DOM.append(this.disconnectedBanner, $('.engine-preferences-disconnected-actions'));
-		const bannerTestButton = this._register(new Button(this.disconnectedActions, defaultButtonStyles));
-		bannerTestButton.label = localize('ua.engineTest', "Test Engine");
-		this._register(bannerTestButton.onDidClick(() => {
-			this.testStatus.textContent = getEngineTestStatusText();
-		}));
+		if (shouldDrawDesktopConnectionControls()) {
+			const bannerTestButton = this._register(new Button(this.disconnectedActions, defaultButtonStyles));
+			bannerTestButton.label = localize('ua.engineTest', "Test Engine");
+			this._register(bannerTestButton.onDidClick(() => {
+				this.testStatus.textContent = getConnectionPhaseStatusBarText(
+					this.connectionService.getConnectionPhase(),
+				);
+			}));
+		}
 		const bannerOpenConnection = this._register(new Button(this.disconnectedActions, defaultButtonStyles));
 		bannerOpenConnection.label = localize('ua.engineOpenConnection', "Open Connection");
 		this._register(bannerOpenConnection.onDidClick(() => {
@@ -226,7 +234,7 @@ export class EnginePreferencesPane extends Disposable implements IPreferencesEdi
 		this.sections.set(id, section);
 	}
 
-	private selectSection(id: EnginePreferencesSectionId): void {
+	selectSection(id: EnginePreferencesSectionId): void {
 		this.activeSectionId = id;
 		this.detailTitle.textContent = getEnginePreferencesSectionLabel(id);
 		for (const [sectionId, section] of this.sections) {

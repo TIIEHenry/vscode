@@ -6,15 +6,12 @@
 import * as DOM from '../../../../base/browser/dom.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
+import { ICommandService } from '../../../../platform/commands/common/commands.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
-import {
-	getCatalogUnknownCopy,
-	getCatalogUnsupportedCopy,
-} from './engineCatalog.js';
-import {
-	getEngineSectionApiUnavailableCopy,
-	getEngineSectionDisconnectedCopy,
-} from './engineSectionChrome.js';
+import { resolveEngineCatalogPaneMode } from './engineCatalog.js';
+import { EngineCatalogStatusWidget } from './engineCatalogStatus.js';
+import { getEngineSectionApiUnavailableCopy } from './engineSectionChrome.js';
+import { OPEN_CONNECTION_PREFERENCES_COMMAND_ID } from '../common/uaPreferencesPanes.js';
 
 const $ = DOM.$;
 
@@ -24,7 +21,7 @@ const MODEL_FEATURE = localize('ua.engineModelFeatureLabel', "model profiles");
 export class EngineProviderModelSection extends Disposable {
 
 	private readonly container: HTMLElement;
-	private readonly statusMessage: HTMLElement;
+	private readonly status: EngineCatalogStatusWidget;
 	private readonly form: HTMLElement;
 	private readonly providerTypeInput: HTMLInputElement;
 	private readonly endpointInput: HTMLInputElement;
@@ -34,14 +31,14 @@ export class EngineProviderModelSection extends Disposable {
 	constructor(
 		parent: HTMLElement,
 		@IUniverseAgentConnection private readonly connection: IUniverseAgentConnection,
+		@ICommandService private readonly commandService: ICommandService,
 	) {
 		super();
 
 		this.container = DOM.append(parent, $('.engine-provider-model-section'));
 		this.container.style.display = 'none';
 
-		this.statusMessage = DOM.append(this.container, $('.engine-section-status'));
-		this.statusMessage.style.display = 'none';
+		this.status = this._register(new EngineCatalogStatusWidget(this.container));
 
 		this.form = DOM.append(this.container, $('.engine-provider-model-form'));
 
@@ -87,25 +84,38 @@ export class EngineProviderModelSection extends Disposable {
 	}
 
 	private render(): void {
-		this.hideStatus();
 		this.setFormDisabled(true);
+		this.form.style.display = 'none';
 
 		if (!this.connection.isEngineConnected()) {
-			this.showStatus(getEngineSectionDisconnectedCopy());
+			this.status.render({
+				mode: 'disconnected',
+				onOpenConnection: () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID),
+			});
 			return;
 		}
 
 		const capabilities = this.connection.getCapabilitySnapshot();
-		if (capabilities.agentProfiles.support === 'UNKNOWN') {
-			this.showStatus(getCatalogUnknownCopy());
+		const mode = resolveEngineCatalogPaneMode(true, capabilities.agentProfiles.support);
+		if (mode === 'loading') {
+			this.status.render({ mode, loadingKind: 'capability', featureLabel: MODEL_FEATURE });
+			return;
+		}
+		if (mode === 'unsupported') {
+			this.status.render({
+				mode,
+				featureLabel: MODEL_FEATURE,
+				reason: capabilities.agentProfiles.reason,
+			});
 			return;
 		}
 
 		// Provider/Model APIs are not on IUniverseAgentConnection yet.
-		this.showStatus(getEngineSectionApiUnavailableCopy(`${PROVIDER_FEATURE} / ${MODEL_FEATURE}`));
-		if (capabilities.agentProfiles.support === 'UNSUPPORTED') {
-			this.showStatus(getCatalogUnsupportedCopy(MODEL_FEATURE, capabilities.agentProfiles.reason));
-		}
+		this.status.render({
+			mode: 'unsupported',
+			featureLabel: `${PROVIDER_FEATURE} / ${MODEL_FEATURE}`,
+			reason: getEngineSectionApiUnavailableCopy(`${PROVIDER_FEATURE} / ${MODEL_FEATURE}`),
+		});
 	}
 
 	private setFormDisabled(disabled: boolean): void {
@@ -116,13 +126,4 @@ export class EngineProviderModelSection extends Disposable {
 		this.modelList.textContent = localize('ua.engineModelListEmpty', "No model profiles available.");
 	}
 
-	private showStatus(message: string): void {
-		this.statusMessage.style.display = '';
-		this.statusMessage.textContent = message;
-	}
-
-	private hideStatus(): void {
-		this.statusMessage.style.display = 'none';
-		this.statusMessage.textContent = '';
-	}
 }
