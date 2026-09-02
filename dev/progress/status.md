@@ -11,12 +11,12 @@ summary: "loop/merge 集成：D11 closed；D8 open（TS lib）；D9 partial；R5
 
 ## Current Session
 
-- **集成 HEAD：** merge 工位集成中（`loop/merge` ← agent-ide + loop/A–C）。
+- **集成 HEAD：** `707479cb` — **agent-ide**（`loop/merge` 已并入；工位 A–C + D8 文档已对齐）。
 - **已闭里程碑：** 壳层 PRD-001–016 / M5 / D1–D7 / **D11**；R5 草案 [m6-engine-wave](../plans/m6-engine-wave.md) + [ADR-003](../decisions/003-engine-adapter-boundary.md)（`draft`，待规则 16）。
 
 ## Blockers
 
-- **valid-layers-check：** Node v26.7.0 环境红；`.nvmrc` 钉 24.18.0，疑为版本不匹配 → [D8](deferred-gaps.md)
+- **valid-layers-check：** v24.18.0 下仍红（TS lib / checker 对齐问题，非单纯 Node 误跑）→ [D8](deferred-gaps.md)
 - **EH 矩阵：** panel + decoration **已实测** @ [d9](d5-evidence/smoke-d9-0001/)；`terminal` xterm 自动化 blocked → [D9](deferred-gaps.md)
 - **PRD-008：** `blocked`；[m6-engine-wave](../plans/m6-engine-wave.md) + [ADR-003](../decisions/003-engine-adapter-boundary.md) **草案 done**，待规则 16 → [R5](research-queue.md)
 - **PRD-009：** `blocked`；[ADR-004](../decisions/004-diff-owner.md) **草案 done**，待规则 16 → [R6](research-queue.md)
