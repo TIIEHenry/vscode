@@ -36,6 +36,7 @@ import {
 import { promptSasConfirmDialog } from './connectionPreferencesPaneSas.js';
 import { getConnectionPhaseStatusBarText } from './conversationSessionStatus.js';
 import {
+	getUnsupportedEnvironmentCopy,
 	PREFERENCES_PANE_COMPACT_WIDTH,
 	PREFERENCES_PANE_NARROW_WIDTH,
 	shouldDrawDesktopConnectionControls,
@@ -205,6 +206,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 	private readonly connectionPhaseLabel: HTMLElement;
 	private readonly testStatus: HTMLElement;
 	private readonly testSection: HTMLElement;
+	private readonly environmentNotice: HTMLElement;
 	private entries: IConnectionProfileEntry[] = [];
 	private hubDevices: HubDeviceProjection[] = [];
 	private connectionPhase: ConnectionPhase = { kind: 'disconnected' };
@@ -229,6 +231,11 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 
 		const title = DOM.append(this.container, DOM.$('h2'));
 		title.textContent = localize('ua.connectionPaneTitle', "Connection");
+
+		this.environmentNotice = DOM.append(this.container, DOM.$('.connection-environment-notice'));
+		this.environmentNotice.setAttribute('role', 'status');
+		this.environmentNotice.textContent = getUnsupportedEnvironmentCopy();
+		this.environmentNotice.style.display = 'none';
 
 		// Zone 1 — Hub account
 		this.hubAccountSection = DOM.append(this.container, DOM.$('.connection-zone.connection-hub-account'));
@@ -406,7 +413,10 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		this._register(this.hubService.onDidChangeAuthStatus(() => this.renderHubAccount()));
 		this._register(this.hubService.onDidChangeDirectory(() => this.renderHubDirectory()));
 		this._register(this.hubService.onDidChangeProfiles(() => this.renderProfiles()));
-		this._register(this.connectionService.onDidChangeConnection(() => this.renderConnectionPhase()));
+		this._register(this.connectionService.onDidChangeConnection(() => {
+			this.renderConnectionPhase();
+			this.applyDesktopConnectionControlVisibility();
+		}));
 
 		this.renderHubAccount();
 		this.renderHubDirectory();
@@ -416,12 +426,25 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		void this.initializeState();
 	}
 
+	private desktopConnectionControlContext() {
+		return {
+			phase: this.connectionService.getConnectionPhase(),
+			snapshot: this.connectionService.getConnectionSnapshot(),
+			capabilities: this.connectionService.getCapabilitySnapshot(),
+		};
+	}
+
 	private applyDesktopConnectionControlVisibility(): void {
-		const drawDesktop = shouldDrawDesktopConnectionControls();
+		const drawDesktop = shouldDrawDesktopConnectionControls(this.desktopConnectionControlContext());
 		this.hubAccountSection.style.display = drawDesktop ? '' : 'none';
-		this.hubDevicesSection.style.display = drawDesktop ? '' : 'none';
 		this.directAddressSection.style.display = drawDesktop ? '' : 'none';
 		this.testSection.style.display = drawDesktop ? '' : 'none';
+		this.environmentNotice.style.display = drawDesktop ? 'none' : '';
+		if (!drawDesktop) {
+			this.hubDevicesSection.style.display = 'none';
+			return;
+		}
+		this.hubDevicesSection.style.display = this.hubService.getAuthStatus().kind === 'signedOut' ? 'none' : '';
 	}
 
 	private async initializeState(): Promise<void> {
@@ -588,7 +611,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 			this.renderConnectionPhase();
 			return;
 		}
-		if (result.ok && result.pairingPending && shouldDrawDesktopConnectionControls()) {
+		if (result.ok && result.pairingPending && shouldDrawDesktopConnectionControls(this.desktopConnectionControlContext())) {
 			const confirmed = await promptSasConfirmDialog(this.dialogService, {
 				displayName: profile?.displayName ?? profileId,
 				sasCode: readHandshakeSasCode(result),
@@ -643,7 +666,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 			this.hubDevices = [];
 		}
 		this.hubDevicesList.splice(0, this.hubDevicesList.length, this.hubDevices);
-		if (shouldDrawDesktopConnectionControls()) {
+		if (shouldDrawDesktopConnectionControls(this.desktopConnectionControlContext())) {
 			this.hubDevicesSection.style.display = this.hubService.getAuthStatus().kind === 'signedOut' ? 'none' : '';
 		}
 	}

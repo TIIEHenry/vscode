@@ -28,6 +28,8 @@ import { EngineSkillsSection } from './engineSkillsSection.js';
 import { EngineToolsSection } from './engineToolsSection.js';
 import { getConnectionPhaseStatusBarText } from './conversationSessionStatus.js';
 import {
+	getUnsupportedEnvironmentCopy,
+	isUnsupportedLocalEngineEnvironment,
 	PREFERENCES_PANE_COMPACT_WIDTH,
 	PREFERENCES_PANE_NARROW_WIDTH,
 	shouldDrawDesktopConnectionControls,
@@ -107,8 +109,10 @@ export class EnginePreferencesPane extends Disposable implements IPreferencesEdi
 	private readonly detailBody: HTMLElement;
 	private readonly testStatus: HTMLElement;
 
+	private readonly testRow: HTMLElement;
 	private readonly disconnectedCopy: HTMLElement;
 	private readonly disconnectedActions: HTMLElement;
+	private readonly bannerTestButton: Button | undefined;
 
 	private readonly sections = new Map<EnginePreferencesSectionId, IEngineSectionHost & Disposable>();
 	private activeSectionId: EnginePreferencesSectionId = 'overview';
@@ -128,10 +132,10 @@ export class EnginePreferencesPane extends Disposable implements IPreferencesEdi
 		const title = DOM.append(this.container, $('h2.engine-preferences-title'));
 		title.textContent = localize('ua.enginePaneTitle', "Engine");
 
-		const testRow = DOM.append(this.container, $('.engine-test-row'));
-		const testButton = this._register(new Button(testRow, defaultButtonStyles));
+		this.testRow = DOM.append(this.container, $('.engine-test-row'));
+		const testButton = this._register(new Button(this.testRow, defaultButtonStyles));
 		testButton.label = localize('ua.engineTest', "Test Engine");
-		this.testStatus = DOM.append(testRow, $('.engine-test-status'));
+		this.testStatus = DOM.append(this.testRow, $('.engine-test-status'));
 		this.testStatus.setAttribute('role', 'status');
 		this.testStatus.setAttribute('aria-live', 'polite');
 		this._register(testButton.onDidClick(() => {
@@ -140,24 +144,20 @@ export class EnginePreferencesPane extends Disposable implements IPreferencesEdi
 				this.connectionService.getConnectionSnapshot().pairingPending,
 			);
 		}));
-		if (!shouldDrawDesktopConnectionControls()) {
-			testRow.style.display = 'none';
-		}
 
 		this.disconnectedBanner = DOM.append(this.container, $('.engine-preferences-disconnected-banner'));
 		this.disconnectedBanner.style.display = 'none';
 		this.disconnectedCopy = DOM.append(this.disconnectedBanner, $('.engine-preferences-disconnected-copy'));
 		this.disconnectedActions = DOM.append(this.disconnectedBanner, $('.engine-preferences-disconnected-actions'));
-		if (shouldDrawDesktopConnectionControls()) {
-			const bannerTestButton = this._register(new Button(this.disconnectedActions, defaultButtonStyles));
-			bannerTestButton.label = localize('ua.engineTest', "Test Engine");
-			this._register(bannerTestButton.onDidClick(() => {
-				this.testStatus.textContent = getEngineTestStatusText(
-					this.connectionService.getConnectionPhase(),
-					this.connectionService.getConnectionSnapshot().pairingPending,
-				);
-			}));
-		}
+		const bannerTestButton = this._register(new Button(this.disconnectedActions, defaultButtonStyles));
+		bannerTestButton.label = localize('ua.engineTest', "Test Engine");
+		this._register(bannerTestButton.onDidClick(() => {
+			this.testStatus.textContent = getEngineTestStatusText(
+				this.connectionService.getConnectionPhase(),
+				this.connectionService.getConnectionSnapshot().pairingPending,
+			);
+		}));
+		this.bannerTestButton = bannerTestButton;
 		const bannerOpenConnection = this._register(new Button(this.disconnectedActions, defaultButtonStyles));
 		bannerOpenConnection.label = localize('ua.engineOpenConnection', "Open Connection");
 		this._register(bannerOpenConnection.onDidClick(() => {
@@ -302,9 +302,29 @@ export class EnginePreferencesPane extends Disposable implements IPreferencesEdi
 		return Math.max(160, this.lastLayoutHeight - 160);
 	}
 
+	private desktopConnectionControlContext() {
+		return {
+			phase: this.connectionService.getConnectionPhase(),
+			snapshot: this.connectionService.getConnectionSnapshot(),
+			capabilities: this.connectionService.getCapabilitySnapshot(),
+		};
+	}
+
 	private updateDisconnectedBanner(): void {
+		const context = this.desktopConnectionControlContext();
+		const unsupportedEnvironment = isUnsupportedLocalEngineEnvironment(context);
+		const drawDesktop = shouldDrawDesktopConnectionControls(context);
+		this.testRow.style.display = drawDesktop ? '' : 'none';
+		if (this.bannerTestButton) {
+			this.bannerTestButton.element.style.display = drawDesktop ? '' : 'none';
+		}
+
 		const disconnected = !this.connectionService.isEngineConnected();
-		this.disconnectedBanner.style.display = disconnected ? '' : 'none';
+		this.disconnectedBanner.style.display = disconnected || unsupportedEnvironment ? '' : 'none';
+		if (unsupportedEnvironment) {
+			this.disconnectedCopy.textContent = getUnsupportedEnvironmentCopy();
+			return;
+		}
 		if (disconnected) {
 			this.disconnectedCopy.textContent = getConnectionPhaseStatusBarText(
 				this.connectionService.getConnectionPhase(),
