@@ -32,8 +32,8 @@ CONVERSATION_PART
 
 - 资源：`conversation-chat:/session/<sessionKey>/chat/<chatId>`；`chatId === 'default'` 为根。TypeId `workbench.editors.conversationChatInput`。
 - 根 tab 实现 `IEditorCloseHandler`，用户关闭被拦；窗口 chrome「关非根」调用 `closeNonRootTabs`，不 `closeGroup` 根组。
-- **围栏**（`common/conversationEditorRouting.ts`）：`isBlockedFromConversationGroup` 对 `ChatEditorInput`、任何非 `ConversationChatInput` 的 `EditorInput`、scheme 不是 `conversation-chat` 的 untyped input 均返回 true；`editorGroupFinder` 把被拦 input 改落主 `EDITOR_PART` 活动组。因此文件 / untitled / Diff / Copilot Chat 都在 Preview 打开。
-- **已登记的例外**（[ADR-005](../../../dev/decisions/005-changes-diff-owner.md) `accepted`，实施 plan [sources-changes-diff](../../../dev/plans/sources-changes-diff.md)）：围栏白名单加第二类 input——**只读 Diff 审阅 input**（`ConversationDiffReviewInput`），只经显式动作（「移到对话窗口」、tab 拖入、用户设的默认归属）进入；默认 `openEditor` / `ACTIVE_GROUP` / `SIDE_GROUP` 仍落 Preview。它是普通延伸 tab：可关、后退可关、「关非根」一起关。落地后本节 §2 首条须改口。
+- **围栏**（`common/conversationEditorRouting.ts`）：`isBlockedFromConversationGroup` 对 `ChatEditorInput`、任何非白名单的 `EditorInput`、scheme 不是 `conversation-chat` 的 untyped input 均返回 true；`editorGroupFinder` 把被拦 input 改落主 `EDITOR_PART` 活动组。因此文件 / untitled / Copilot Chat 以及**默认路径**下的 Diff 都在 Preview 打开。
+- **已登记的例外**（[ADR-005](../../../dev/decisions/005-changes-diff-owner.md) `accepted`，[sources-changes-diff](../../../dev/plans/sources-changes-diff.md) **F1 已落**）：围栏白名单第二类 — **只读 Diff 审阅 input**（`ConversationDiffReviewInput`），只经显式动作（`sources.diff.moveToConversation`、Changes/Review 行点击且 `sources.diff.defaultOwner=conversation`）进入 Conversation 组；**不**放开 tab 拖入（plan §2.6）。默认 `openEditor` / `ACTIVE_GROUP` / `SIDE_GROUP` 仍落 Preview。它是普通延伸 tab：可关、后退可关、「关非根」一起关；`isConversationExtensionTab` 与 fork 延伸 tab 同姿态。
 
 ## 3. chat catalog：root / fork / tool / sideChat
 

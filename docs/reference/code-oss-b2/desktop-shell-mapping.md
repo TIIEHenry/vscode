@@ -45,7 +45,7 @@ StatusBar
 | Navigator body | `SIDEBAR_PART`（Activity 默认 **Files** = Explorer `VIEW_CONTAINER`，`isDefault: true`；另四个 **独立** 非 default 容器 Sessions / Projects / Agents / Team。**不含** Run and Debug / Source Control / Testing / Extensions / Voice Transcripts / Voice Event Stream——六者 `IsSessionsWindowContext` 门闩；Test Results 与 Debug Console 仍在 Panel） | Files = Explorer 权威；Sessions = 独立容器 `workbench.view.sessions` stub roster（见 [session-roster-reuse](session-roster-reuse.md)）；**M5 切片 2**：选行 → `switchSession` → 显示 `CONVERSATION_PART` → focus（Conversation 隐藏时亦成立）；Projects/Agents/Team = 独立容器 honest empty。子页按 vscode 零件重设计见 [navigator-tabs-access](navigator-tabs-access.md)（draft） | `toggleRegion('navigatorBody')` ≙ `setSideBarHidden` + 记宽 |
 | Conversation | **`CONVERSATION_PART`**（`contrib/conversation` 透镜骨架：SessionBar / stub 时间线 / stub dock） | 独立中心 Part | 无引擎接线；不是 ChatEditor；**M5 切片 1** 默认窗 New/Open Chat 经 `chatShellRouting.focusConversationPart` 路由至此 |
 | Preview | `EDITOR_PART`（End 列） | **同一 `EDITOR_PART` 已挪到 End** | 与 File tabs **同构**（spike §3.1）；出厂 **`workbench.startupEditor` = `none`**，Preview 不自动打开 VS Code Welcome（Command Palette 仍可打开）；空 Preview watermark 无 Open Chat，出厂 **`workbench.editor.empty.hint` = `hidden`**（空 untitled 编辑器不显示 VS Code empty hint chrome；用户可改为 `text`）；出厂 **`editor.inlineSuggest.enabled` = `false`**（Preview 内不自动显示 Copilot 式 ghost-text 补全，用户可开启） |
-| Sources | 无独立格。默认 Code 窗口 Sidebar SCM Activity 已门闩；Changes 清单 + stage/unstage/commit 在 End | **`SOURCES_PART`**（End 下格；`contrib/sources` **Files \| Changes \| Review** tab strip） | Files 列表已落；Changes = SCM 资源列表 + **stage/unstage/commit**（`git.stage` / `git.unstage` / `git.commit` / `acceptInputCommand`）→ Preview（`openEditor`，非 Diff）；Review = SCM 资源只读列表 → Preview（`SourcesReviewList`）；Sidebar SCM 容器仍注册供 Agents Window；Diff 深查看仍 **EDITOR_PART** FORK（ADR-047） |
+| Sources | 无独立格。默认 Code 窗口 Sidebar SCM Activity 已门闩；Changes 清单 + stage/unstage/commit 在 End | **`SOURCES_PART`**（End 下格；`contrib/sources` **Files \| Changes \| Review** tab strip） | Files 列表已落；Changes = SCM 资源列表 + **stage/unstage/commit**；Review = SCM 资源只读列表（`SourcesReviewList`）；Changes/Review 行点击经 `openSourcesChangeEntry` 按 `sources.diff.defaultOwner` 分派（默认 Preview Diff）；三宿主 `moveTo*` 已落（F1–F3）；Sidebar SCM 容器仍注册供 Agents Window |
 | Bottom Panel | `PANEL_PART` | 保留；**不进四钮** | 对齐 ADR-047 / ADR-052 决策 3 |
 | StatusBar | `STATUSBAR_PART` | 保留 | 保留 Part；默认窗口不显示 Copilot StatusBar 条目（INV-NO-COPILOT）；**Conversation stub chip** `status.conversation.session`（stub 会话标题 / No session，非 Copilot） |
 | 右缘 rail | `AUXILIARYBAR_PART` | **合同默认关**（INV-052-NO-RIGHT-RAIL） | 布局类扩展爱往这里打，记入 EH 矩阵；Chat 容器仍挂 Aux 但 **`isDefault: false`**，出厂 hidden（M2） |
@@ -63,9 +63,9 @@ StatusBar
 | Nav | `toggleRegion('navigatorBody')` | `workbench.action.toggleSidebarVisibility` → `setPartHidden(SIDEBAR)`；**已注册** `LayoutControlMenu` | 无 persist 宽的单一 `toggleRegion` |
 | Conv | `toggleRegion('conversation')` | `workbench.action.toggleConversation` → `setPartHidden(CONVERSATION_PART)`；**已注册** `LayoutControlMenu` | — |
 | Prev | `toggleRegion('preview')` | `workbench.action.toggleEditorVisibility` → `setPartHidden(EDITOR_PART)`；**已注册** `LayoutControlMenu` | 不再强制开 Panel |
-| Src | `toggleRegion('sources')` | `workbench.action.toggleSources` → `setPartHidden(SOURCES_PART)`；**已注册** `LayoutControlMenu` | Files / Changes / Review tab strip 已落（Changes / Review = SCM 列表 → Preview）；Diff 路由未改 |
+| Src | `toggleRegion('sources')` | `workbench.action.toggleSources` → `setPartHidden(SOURCES_PART)`；**已注册** `LayoutControlMenu` | Files / Changes / Review tab strip 已落；Changes/Review 行 → `openSourcesChangeEntry` 三分派（默认 Preview Diff；F1–F3 已落） |
 
-> **HEAD**：默认窗口已有 Conversation 透镜 + End 列（Editor 上 / Sources **Files \| Changes \| Review** 下）+ titlebar 产品四钮（主簇仅 **Navigator / Conversation / Preview / Sources**；Panel / Aux 退 submenu）。Changes / Review = SCM 资源列表打开 Preview；Diff 仍 **EDITOR_PART** FORK。**M5 切片 1–4 已落**：`chatShellRouting` 默认窗路由、roster show+focus、`IAgentHostMcpServer` platform 下沉；**D4 closed** @ [rerun-2230](../../../dev/progress/d4-evidence/rerun-2230/) V1–V8。**D5 EH 探针仍 open** → [deferred-gaps](../../../dev/progress/deferred-gaps.md)。
+> **HEAD**：默认窗口已有 Conversation 透镜 + End 列（Editor 上 / Sources **Files \| Changes \| Review** 下）+ titlebar 产品四钮（主簇仅 **Navigator / Conversation / Preview / Sources**；Panel / Aux 退 submenu）。Changes / Review 行点击默认 Preview Diff，经显式动作或 `sources.diff.defaultOwner` 可进 Conversation 只读审阅 tab 或 Panel 产品 Diff 视图（[ADR-005](../../../dev/decisions/005-changes-diff-owner.md) F1–F3 已落）。**M5 切片 1–4 已落**：`chatShellRouting` 默认窗路由、roster show+focus、`IAgentHostMcpServer` platform 下沉；**D4 closed** @ [rerun-2230](../../../dev/progress/d4-evidence/rerun-2230/) V1–V8。**D5 EH 探针仍 open** → [deferred-gaps](../../../dev/progress/deferred-gaps.md)。
 
 `INV-052-NO-DUAL-HIDE`：Conversation ∨ Workbench(Preview∨Sources) 至少一个可见。  
 本仓默认（M0）：**Conversation ∨ (Editor ∨ Sources)** 至少一个可见（`forceShownAgentShellPart`）。Panel 不进此公式。
@@ -88,7 +88,7 @@ sessions / agent-host 配套功能面**默认保留绝大部分**（Customizatio
 ## 5. 合法同构（应保留）
 
 - Preview ⇄ `EDITOR_PART` + 原生 tabs + `IEditorService`
-- Bottom Panel ⇄ `PANEL_PART`（Diff 深查看按 ADR-047）
+- Bottom Panel ⇄ `PANEL_PART`（含 Panel 产品 Diff 视图 `SourcesDiffPanelView` 重宿主；默认 Diff 仍 Preview，见 [ADR-005](../../../dev/decisions/005-changes-diff-owner.md)）
 - Activity 图标 rail ⇄ `ACTIVITYBAR_PART`（左边图标 tab，不搬 IDEA 竖排字）
 - StatusBar ⇄ `STATUSBAR_PART`
 

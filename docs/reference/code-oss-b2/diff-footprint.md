@@ -63,9 +63,9 @@ M0 拓扑手术的直接代码面：
 
 ## Diff owner（PRD-009 / R6）
 
-HEAD 产品 Diff 深查看走 End 列 `EDITOR_PART`（`openSourcesChangeEntry` → `ISCMResource.open` / `MultiDiffEditor`）。外仓对照合同（ADR-047）要 `PANEL_PART` 单一归属，本仓 **未采纳**。
+HEAD 产品 Diff 深查看默认走 End 列 `EDITOR_PART` Preview（`openSourcesChangeEntry` → `ISCMResource.open` / `DiffEditorInput`）；经显式动作或 `sources.diff.defaultOwner` 可进 Conversation 只读审阅 tab（`ConversationDiffReviewInput`）或底部 Panel 产品 Diff 视图（`SourcesDiffPanelView`，重宿主）。外仓对照合同（ADR-047）的 **Panel 单一归属** 本仓 **未采纳**；本仓采纳的是 ADR-005 三宿主模型（默认 Preview + 可移 Conversation / Panel 产品视图）。
 
-Owner 裁决：[ADR-005](../../../dev/decisions/005-changes-diff-owner.md)（`accepted` @2026-09-02）— 默认 Preview（即 HEAD 路径）；用户显式动作可移入 Conversation 只读审阅 tab 或底部 Panel 产品 Diff 视图（重宿主）。[ADR-004](../../../dev/decisions/004-diff-owner.md)（原推荐 B 单一 Panel）已 `superseded`。实施见 [sources-changes-diff](../../../dev/plans/sources-changes-diff.md)；F1–F3 落地后本页可重测 footprint。
+Owner 裁决：[ADR-005](../../../dev/decisions/005-changes-diff-owner.md)（`accepted` @2026-09-02）— 默认 Preview；用户显式动作或默认归属设置可移入 Conversation 只读审阅 tab 或底部 Panel 产品 Diff 视图（重宿主，非第三个 EditorPart）。[ADR-004](../../../dev/decisions/004-diff-owner.md)（原推荐 B 单一 Panel）已 `superseded`。[sources-changes-diff](../../../dev/plans/sources-changes-diff.md) **F1–F3 已落**；F4 隔离 profile 冒烟待验后本页可重测 footprint。
 
 ## 相关文档
 
