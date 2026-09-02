@@ -20,13 +20,15 @@ import { ConversationConfirmationSeat } from './conversationConfirmationSeat.js'
 import { conversationLensTurnCopy, conversationLensTurnDelete, conversationLensPinnedUserPromptAria, conversationLensPinnedUserPromptCopyAria, conversationLensTurnViewInTrajectory } from './conversationLensSessionBarStrings.js';
 import { ConversationMermaidExtensionInfo, createMermaidHostContext } from './conversationMermaidHost.js';
 import { renderProcessFoldSpan } from './conversationProcessFold.js';
-import { getConversationTurnAriaLabel } from './conversationAccessibility.js';
 import { ProcessFoldSpan, projectProcessFoldSpans, stripOverlayAttributionPrefix, summarizeProcessSteps } from './conversationProcessFoldModel.js';
 import { ConversationStubTurn } from './conversationStubModel.js';
 import type { ConversationViewFrameApplied } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
 import {
 	ConversationTimelineEntry,
 	entriesToRenderableTurns,
+	getConversationEntryAriaLabel,
+	getConversationHonestFields,
+	getConversationHonestKind,
 	stubTurnsToEntries,
 } from './conversationSessionView.js';
 import { computeTimelineApplyPlan } from './conversationTimelineApply.js';
@@ -89,7 +91,8 @@ class ConversationTimelineDelegate implements IListVirtualDelegate<ConversationT
 		if (this.heights.has(key)) {
 			return this.heights.get(key)!;
 		}
-		if (element.turn.kind === 'reviewNav') {
+		const kind = getConversationHonestKind(element.turn);
+		if (kind === 'reviewNav' || kind === 'question' || kind === 'error' || kind === 'unknown' || kind === 'system') {
 			return 36;
 		}
 		return element.variant === 'process-fold' ? 40 : 72;
@@ -201,12 +204,20 @@ class ConversationTimelineRenderer implements ITreeRenderer<ConversationTimeline
 			button.textContent = turn.text;
 			button.setAttribute('data-turn-id', turn.id);
 			button.setAttribute('data-kind', turn.kind);
+			button.setAttribute('aria-label', getConversationEntryAriaLabel(turn));
 			if (this.onReviewNavClick && turn.reviewNavPaths && turn.reviewNavPaths.length > 0) {
 				templateData.disposables.add(addDisposableListener(button, 'click', (e) => {
 					e.stopPropagation();
 					this.onReviewNavClick!(turn.reviewNavPaths!);
 				}));
 			}
+			this.scheduleHeightUpdate(item, templateData.container);
+			return;
+		}
+
+		const honestKind = getConversationHonestKind(turn);
+		if (honestKind === 'question' || honestKind === 'error' || honestKind === 'unknown' || honestKind === 'system') {
+			renderHonestTimelineRow(templateData.container, turn, honestKind);
 			this.scheduleHeightUpdate(item, templateData.container);
 			return;
 		}
@@ -236,6 +247,8 @@ class ConversationTimelineRenderer implements ITreeRenderer<ConversationTimeline
 					}
 				},
 			}, templateData.disposables);
+			const visualizeRoot = templateData.container.querySelector('.conversation-visualize-card') as HTMLElement | null;
+			visualizeRoot?.setAttribute('aria-label', getConversationEntryAriaLabel(turn));
 			this.scheduleHeightUpdate(item, templateData.container);
 			return;
 		}
@@ -252,8 +265,9 @@ class ConversationTimelineRenderer implements ITreeRenderer<ConversationTimeline
 					: undefined,
 			}));
 			seat.element.setAttribute('data-turn-id', turn.id);
-			seat.element.classList.add('conversation-lens-turn');
+			seat.element.classList.add('conversation-lens-turn', 'conversation-lens-turn--permission');
 			seat.element.setAttribute('data-kind', turn.kind);
+			seat.element.setAttribute('data-honest-kind', 'permission');
 			this.confirmationSeats.set(turn.id, seat);
 			templateData.container.appendChild(seat.element);
 		} else if (turn.kind === 'thinking' || turn.kind === 'tool') {
@@ -493,6 +507,54 @@ class ConversationTimelineRenderer implements ITreeRenderer<ConversationTimeline
 	}
 }
 
+function renderHonestTimelineRow(
+	container: HTMLElement,
+	turn: ConversationStubTurn,
+	kind: 'question' | 'error' | 'unknown' | 'system',
+): void {
+	const fields = getConversationHonestFields(turn);
+	const el = append(container, $(`div.conversation-lens-turn.conversation-lens-turn--${kind}`));
+	el.setAttribute('data-kind', kind);
+	el.setAttribute('data-honest-kind', kind);
+	el.setAttribute('data-turn-id', turn.id);
+	el.setAttribute('role', 'group');
+	el.setAttribute('aria-label', getConversationEntryAriaLabel(turn));
+
+	const header = append(el, $('.conversation-lens-turn-header'));
+	header.textContent = getConversationTurnRoleLabel(kind);
+	if (fields.agentId && fields.agentId !== 'default') {
+		const identity = append(header, $('span.conversation-lens-turn-agent-identity'));
+		identity.textContent = fields.agentId;
+	}
+
+	if (kind === 'error') {
+		const status = append(header, $('span.conversation-lens-turn-honest-status'));
+		status.textContent = fields.retryable
+			? localize('conversationLens.errorRetryableBadge', "Retryable")
+			: localize('conversationLens.errorNotRetryableBadge', "Not retryable");
+	} else if (kind === 'unknown') {
+		const status = append(header, $('span.conversation-lens-turn-honest-status'));
+		status.textContent = fields.typeName || localize('conversationLens.unknownTypeBadge', "Unknown type");
+	} else if (kind === 'question') {
+		const status = append(header, $('span.conversation-lens-turn-honest-status'));
+		status.textContent = turn.status === 'allowed'
+			? localize('conversationLens.questionAnsweredBadge', "Answered")
+			: localize('conversationLens.questionPendingBadge', "Input needed");
+	}
+
+	const body = append(el, $('.conversation-lens-turn-body.conversation-lens-turn-body--honest'));
+	body.textContent = turn.text;
+	if (kind === 'question' && turn.payload) {
+		const options = append(el, $('ul.conversation-lens-question-options'));
+		options.setAttribute('role', 'list');
+		for (const option of turn.payload.split(' · ')) {
+			const item = append(options, $('li.conversation-lens-question-option'));
+			item.setAttribute('role', 'listitem');
+			item.textContent = option;
+		}
+	}
+}
+
 function appendTurnTrajectoryButton(
 	parent: HTMLElement,
 	turnId: string,
@@ -573,6 +635,10 @@ export class ConversationTimelineTree extends Disposable {
 	private _scrollLock = true;
 	private flatItems: readonly ConversationTimelineFlatItem[] = [];
 	private pinnedUserState: PinnedUserPromptState | undefined;
+	private pendingRevealTurnId: string | undefined;
+	private pendingRevealRelativeTop = 0.5;
+	private lastRevealTurnId: string | undefined;
+	private lastLayoutCollapsed = true;
 
 	constructor(
 		parent: HTMLElement,
@@ -676,7 +742,7 @@ export class ConversationTimelineTree extends Disposable {
 								summarizeProcessSteps(item.processFoldSpan),
 							);
 						}
-						return getConversationTurnAriaLabel(item.turn);
+						return getConversationEntryAriaLabel(item.turn);
 					},
 					getWidgetAriaLabel: () => localize('conversationLens.timeline', "Conversation timeline"),
 				},
@@ -829,6 +895,7 @@ export class ConversationTimelineTree extends Disposable {
 			}
 			this.renderEmptyState(turns.length === 0);
 			this.updatePinnedUserPromptVisibility();
+			this.flushPendingReveal();
 		});
 	}
 
@@ -881,6 +948,7 @@ export class ConversationTimelineTree extends Disposable {
 		}
 		this.renderEmptyState(turns.length === 0);
 		this.updatePinnedUserPromptVisibility();
+		this.flushPendingReveal();
 	}
 
 	private indexTurnItems(turns: readonly ConversationStubTurn[], items: readonly IObjectTreeElement<ConversationTimelineItem>[]): void {
@@ -994,11 +1062,21 @@ export class ConversationTimelineTree extends Disposable {
 	}
 
 	revealTurn(turnId: string, relativeTop = 0.5): void {
-		const item = this.turnItems.get(turnId);
+		this.pendingRevealTurnId = turnId;
+		this.pendingRevealRelativeTop = relativeTop;
+		this.lastRevealTurnId = turnId;
+		this.flushPendingReveal();
+	}
+
+	private flushPendingReveal(): void {
+		if (!this.pendingRevealTurnId) {
+			return;
+		}
+		const item = this.turnItems.get(this.pendingRevealTurnId);
 		if (!item) {
 			return;
 		}
-		this.revealTurnElement(item, relativeTop);
+		this.revealTurnElement(item, this.pendingRevealRelativeTop);
 	}
 
 	private revealTurnElement(item: ConversationTimelineItem, relativeTop = 0.5, attempt = 0): void {
@@ -1064,8 +1142,14 @@ export class ConversationTimelineTree extends Disposable {
 	}
 
 	layout(height: number, width: number): void {
+		const wasCollapsed = this.lastLayoutCollapsed;
+		this.lastLayoutCollapsed = width < 1 || height < 1;
 		this.tree.layout(height, width);
 		this.refreshScrollChrome();
+		this.flushPendingReveal();
+		if (wasCollapsed && !this.lastLayoutCollapsed && this.lastRevealTurnId) {
+			this.revealTurn(this.lastRevealTurnId);
+		}
 	}
 
 	private renderEmptyState(empty: boolean): void {

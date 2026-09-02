@@ -72,6 +72,7 @@ export function renderProcessFoldSpan(
 	header.setAttribute('aria-expanded', String(outerExpanded));
 
 	const chevron = append(header, $('span.conversation-process-fold-chevron'));
+	chevron.setAttribute('aria-hidden', 'true');
 	chevron.classList.add(...ThemeIcon.asClassNameArray(Codicon.chevronRight));
 	chevron.classList.toggle('conversation-process-fold-chevron--expanded', outerExpanded);
 
@@ -138,6 +139,7 @@ function renderThinkingNode(
 	header.setAttribute('aria-expanded', String(thinkingExpanded));
 
 	const chevron = append(header, $('span.conversation-process-fold-chevron'));
+	chevron.setAttribute('aria-hidden', 'true');
 	chevron.classList.add(...ThemeIcon.asClassNameArray(Codicon.chevronRight));
 	chevron.classList.toggle('conversation-process-fold-chevron--expanded', thinkingExpanded);
 
@@ -211,6 +213,7 @@ function renderToolRow(
 	}
 
 	const chevron = append(header, $('span.conversation-process-fold-tool-chevron'));
+	chevron.setAttribute('aria-hidden', 'true');
 	if (hasPayload) {
 		chevron.classList.add(...ThemeIcon.asClassNameArray(Codicon.chevronRight));
 		chevron.classList.toggle('conversation-process-fold-chevron--expanded', toolExpanded);
@@ -219,6 +222,7 @@ function renderToolRow(
 	}
 
 	const icon = append(header, $('span.conversation-process-fold-tool-icon'));
+	icon.setAttribute('aria-hidden', 'true');
 	icon.appendChild(renderIcon(resolveToolStatusIcon(turn, options)));
 
 	const name = append(header, $('span.conversation-process-fold-tool-name'));

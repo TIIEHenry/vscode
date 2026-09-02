@@ -80,14 +80,22 @@ class TrajectoryAccessibilityProvider implements IListAccessibilityProvider<Conv
 }
 
 /** Role label for trajectory rows and tree headers. */
-export function getConversationTurnRoleLabel(kind: StubTurnKind): string {
+export function getConversationTurnRoleLabel(kind: StubTurnKind | string): string {
 	switch (kind) {
 		case 'user':
 			return localize('conversationLens.turnYou', "You");
 		case 'assistant':
 			return localize('conversationLens.turnAgent', "Agent");
 		case 'confirmation':
-			return localize('conversationLens.turnConfirmation', "Confirmation");
+			return localize('conversationLens.turnPermission', "Permission");
+		case 'question':
+			return localize('conversationLens.turnQuestion', "Question");
+		case 'error':
+			return localize('conversationLens.turnError', "Error");
+		case 'unknown':
+			return localize('conversationLens.turnUnknown', "Unknown");
+		case 'system':
+			return localize('conversationLens.turnSystem', "System");
 		case 'thinking':
 			return localize('conversationLens.turnThinking', "Thinking");
 		case 'tool':
@@ -96,6 +104,8 @@ export function getConversationTurnRoleLabel(kind: StubTurnKind): string {
 			return localize('conversationVisualize.turnLabel', "Visualize");
 		case 'reviewNav':
 			return localize('conversationReviewEntry.turnLabel', "Review");
+		default:
+			return localize('conversationLens.turnAgent', "Agent");
 	}
 }
 

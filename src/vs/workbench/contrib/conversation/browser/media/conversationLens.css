@@ -1938,3 +1938,146 @@
 .monaco-workbench .part.conversation .conversation-review-nav:hover {
 	text-decoration: underline;
 }
+
+/* Q5/Q6 — honest row kinds, narrow width, inspector Back */
+.monaco-workbench .part.conversation .conversation-lens-reading-column {
+	container-type: inline-size;
+	container-name: conversation-reading;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-turn--question,
+.monaco-workbench .part.conversation .conversation-lens-turn--error,
+.monaco-workbench .part.conversation .conversation-lens-turn--unknown,
+.monaco-workbench .part.conversation .conversation-lens-turn--system,
+.monaco-workbench .part.conversation .conversation-lens-turn--permission {
+	min-width: 0;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-turn-honest-status {
+	margin-inline-start: 6px;
+	padding: 0 5px;
+	border-radius: 3px;
+	font-size: 10px;
+	font-weight: 600;
+	text-transform: none;
+	letter-spacing: normal;
+	color: var(--vscode-badge-foreground);
+	background-color: var(--vscode-badge-background);
+}
+
+.monaco-workbench .part.conversation .conversation-lens-turn-body--honest {
+	min-width: 0;
+	overflow-wrap: anywhere;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-question-options {
+	margin: 0;
+	padding: 0 0 0 18px;
+	font-size: 12px;
+	color: var(--vscode-descriptionForeground);
+}
+
+.monaco-workbench .part.conversation .conversation-lens-turn--error {
+	border-left: 2px solid var(--vscode-errorForeground);
+	padding-inline-start: 8px;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-turn--unknown {
+	border-left: 2px solid var(--vscode-descriptionForeground);
+	padding-inline-start: 8px;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-turn--question {
+	border-left: 2px solid var(--vscode-textLink-foreground);
+	padding-inline-start: 8px;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-trajectory-inspector-back {
+	display: none;
+	margin: 0 8px 0 0;
+	padding: 2px 8px;
+	border: 1px solid var(--vscode-button-border, var(--vscode-contrastBorder, transparent));
+	border-radius: 2px;
+	background: var(--vscode-button-secondaryBackground);
+	color: var(--vscode-button-secondaryForeground);
+	cursor: pointer;
+	font-size: 11px;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-trajectory--inspector-overlay .conversation-lens-trajectory-inspector-back {
+	display: inline-flex;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-trajectory--inspector-overlay {
+	position: relative;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-trajectory--inspector-overlay .conversation-lens-trajectory-table {
+	visibility: hidden;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-trajectory--inspector-overlay .conversation-lens-trajectory-inspector {
+	position: absolute;
+	inset: 0;
+	z-index: 3;
+	max-height: none;
+	overflow: auto;
+	background-color: var(--vscode-editor-background);
+}
+
+.monaco-workbench .part.conversation .conversation-lens-trajectory-inspector .conversation-lens-composer,
+.monaco-workbench .part.conversation .conversation-lens-trajectory-inspector .conversation-lens-composer-cluster {
+	display: none;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-reading-column .conversation-lens-composer ~ .conversation-lens-composer {
+	display: none;
+}
+
+@container conversation-reading (max-width: 599px) {
+	.conversation-lens-turn-header {
+		flex-wrap: wrap;
+	}
+
+	.conversation-lens-turn-body--user-bubble,
+	.conversation-review-nav,
+	.conversation-visualize-card,
+	.conversation-lens-confirmation-seat,
+	.conversation-lens-turn--question,
+	.conversation-lens-turn--error,
+	.conversation-lens-turn--unknown,
+	.conversation-lens-turn--system {
+		max-width: 100%;
+	}
+
+	.conversation-lens-trajectory-inspector-header {
+		gap: 8px;
+	}
+}
+
+@container conversation-reading (max-width: 299px) {
+	.conversation-lens-turn-actions {
+		opacity: 1;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.monaco-workbench .part.conversation .conversation-process-fold-chevron,
+	.monaco-workbench .part.conversation .conversation-process-fold-tool-chevron {
+		transition: none;
+	}
+
+	.monaco-workbench .part.conversation .conversation-process-fold-tool--executing .conversation-process-fold-tool-icon.codicon-loading {
+		animation: none;
+	}
+}
+
+.monaco-workbench.hc-black .part.conversation .conversation-lens-turn--error,
+.monaco-workbench.hc-light .part.conversation .conversation-lens-turn--error,
+.monaco-workbench.hc-black .part.conversation .conversation-lens-turn--question,
+.monaco-workbench.hc-light .part.conversation .conversation-lens-turn--question,
+.monaco-workbench.hc-black .part.conversation .conversation-lens-confirmation-seat,
+.monaco-workbench.hc-light .part.conversation .conversation-lens-confirmation-seat {
+	outline: 1px solid var(--vscode-contrastBorder);
+	outline-offset: -1px;
+}

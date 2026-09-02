@@ -209,6 +209,8 @@ export class ConversationLens extends Disposable {
 	private sessionViewLease: IConversationSessionViewLease | undefined;
 	private readonly sessionViewLifetime = this._register(new DisposableStore());
 	private lastAttachedEntries: ConversationTimelineEntry[] = [];
+	private lastRevealItemId: string | undefined;
+	private lastReadingWidth = 0;
 
 	constructor(
 		slots: IConversationLensSlots,
@@ -226,7 +228,9 @@ export class ConversationLens extends Disposable {
 	) {
 		super();
 
-		this._register(revealService.registerLens(this));
+		if (!slots.filterAgentId) {
+			this._register(revealService.registerLens(this));
+		}
 		this._register(this.reviewNavService.onDidChange(() => {
 			this.applySessionViewTimeline({ kind: 'patches', changedIds: new Set() }, { sidecarOnly: true });
 		}));
@@ -246,6 +250,7 @@ export class ConversationLens extends Disposable {
 		if (slots.sessionBar) {
 			this.mountSessionBar(slots.sessionBar);
 		}
+		this.bindReadingColumnLayout();
 
 		this.lensId = this.loadLensId();
 		this.updateLensTabs();
@@ -309,6 +314,7 @@ export class ConversationLens extends Disposable {
 	}
 
 	revealTimelineItem(itemId: string): void {
+		this.lastRevealItemId = itemId;
 		if (this.lensId !== 'conversation') {
 			this.lensId = 'conversation';
 			this.storageService.store(CONVERSATION_LENS_ID_STORAGE_KEY, 'conversation', StorageScope.WORKSPACE, StorageTarget.MACHINE);
@@ -320,6 +326,17 @@ export class ConversationLens extends Disposable {
 			this.setInputMaximized(false);
 		}
 		this.timelineTree.revealTurn(itemId);
+	}
+
+	layout(height: number, width: number): void {
+		const restored = this.lastReadingWidth < 1 && width > 0;
+		this.lastReadingWidth = width;
+		this.applyConversationWidth(width);
+		this.timelineTree.layout(height, width);
+		this.trajectoryView.layout(height, width);
+		if (restored && this.lastRevealItemId && this.lensId === 'conversation') {
+			this.timelineTree.revealTurn(this.lastRevealItemId);
+		}
 	}
 
 	setInputMaximized(maximized: boolean): void {
@@ -416,6 +433,7 @@ export class ConversationLens extends Disposable {
 
 		const leading = append(bar, $('.conversation-lens-session-bar-leading'));
 		const icon = append(leading, $('span.conversation-lens-session-icon'));
+		icon.setAttribute('aria-hidden', 'true');
 		icon.classList.add(...ThemeIcon.asClassNameArray(Codicon.commentDiscussion));
 
 		this.lensTablist = append(leading, $('.conversation-lens-lens-tabs'));
@@ -1378,6 +1396,39 @@ export class ConversationLens extends Disposable {
 		this.updateSyncChrome(this.sessionViewLease.snapshot.sync);
 		this.updateConversationPhase();
 		this.syncComposerPlacement();
+	}
+
+	private bindReadingColumnLayout(): void {
+		const targetWindow = getWindow(this.readingColumn);
+		if (typeof targetWindow.ResizeObserver !== 'function') {
+			return;
+		}
+		const observer = new targetWindow.ResizeObserver(entries => {
+			for (const entry of entries) {
+				const width = Math.floor(entry.contentRect.width);
+				const height = Math.floor(entry.contentRect.height);
+				const restored = this.lastReadingWidth < 1 && width > 0;
+				this.lastReadingWidth = width;
+				this.applyConversationWidth(width);
+				this.timelineTree.layout(height, width);
+				this.trajectoryView.layout(height, width);
+				if (restored && this.lastRevealItemId && this.lensId === 'conversation') {
+					this.timelineTree.revealTurn(this.lastRevealItemId);
+				}
+			}
+		});
+		observer.observe(this.readingColumn);
+		this._register(toDisposable(() => observer.disconnect()));
+	}
+
+	private applyConversationWidth(width: number): void {
+		const bucket = width >= 900 ? 'full' : width >= 600 ? 'medium' : width >= 300 ? 'narrow' : 'min';
+		this.readingColumn.dataset.conversationWidth = bucket;
+		this.slotHosts.timeline.dataset.conversationWidth = bucket;
+		this.slotHosts.dock.dataset.conversationWidth = bucket;
+		if (this.slotHosts.sessionBar) {
+			this.slotHosts.sessionBar.dataset.conversationWidth = bucket;
+		}
 	}
 
 	private updateSyncChrome(sync: SyncChrome): void {
