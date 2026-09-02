@@ -243,6 +243,59 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		assert.strictEqual(ok, false);
 	});
 
+	test('Agents: connected saveAgentsMarkdown persists body via SaveAgentProfile', async () => {
+		const saves: UniverseAgentSaveAgentProfileRequest[] = [];
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+			listAgentProfiles: async () => ({
+				profiles: [{ id: 'demo', name: 'Demo Agent', source: 'user' as const, summary: 'Short' }],
+			}),
+			saveAgentProfile: async (request) => {
+				saves.push(request);
+				return {
+					profile: {
+						...request.profile,
+						systemPrompt: request.profile.systemPrompt ?? '# loaded from engine',
+					},
+				};
+			},
+		});
+		const section = mountAgentsSection(connection);
+		await flushMicrotasks();
+
+		await section.selectProfileByIdForTest('demo');
+		assert.ok(section.isAgentsEditorVisible());
+		section.setAgentsMarkdownValue('---\nsummary: Updated\n---\n# Agent body');
+		const ok = await section.saveAgentsMarkdown();
+		assert.strictEqual(ok, true);
+		const bodySave = saves.find(save => save.profile.systemPrompt === '# Agent body');
+		assert.ok(bodySave);
+		assert.strictEqual(bodySave!.profile.summary, 'Updated');
+	});
+
+	test('Agents: disconnected saveAgentsMarkdown does not call Save', async () => {
+		let saveCalled = false;
+		const connection = createConnectionStub({
+			connected: false,
+			capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+			listAgentProfiles: async () => ({
+				profiles: [{ id: 'demo', name: 'Demo Agent', source: 'user' as const }],
+			}),
+			saveAgentProfile: async (request) => {
+				saveCalled = true;
+				return { profile: request.profile };
+			},
+		});
+		const section = mountAgentsSection(connection);
+		await flushMicrotasks();
+
+		const ok = await section.saveAgentsMarkdown();
+		assert.strictEqual(saveCalled, false);
+		assert.strictEqual(ok, false);
+		assert.strictEqual(section.isAgentsEditorVisible(), false);
+	});
+
 	test('MCP: write RPC stubs reachable when connected (no SetToolEnabled)', async () => {
 		let addCalled = false;
 		let removeCalled = false;

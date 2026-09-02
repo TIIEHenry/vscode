@@ -23,6 +23,7 @@ import {
 	resolveEngineCatalogPaneMode,
 	shouldHideCatalogRows,
 } from './engineCatalog.js';
+import { formatAgentsMarkdown, parseAgentsMarkdown } from './engineAgentAgentsMd.js';
 import { summaryToProfileDetail } from './engineToolProfile.js';
 
 const $ = DOM.$;
@@ -146,11 +147,18 @@ export class EngineAgentsSection extends Disposable {
 	private readonly statusMessage: HTMLElement;
 	private readonly writeToolbar: HTMLElement;
 	private readonly listContainer: HTMLElement;
+	private readonly agentsEditorContainer: HTMLElement;
+	private readonly agentsEditorLabel: HTMLElement;
+	private readonly agentsEditorTextarea: HTMLTextAreaElement;
+	private readonly agentsEditorToolbar: HTMLElement;
+	private readonly agentsEditorSaveButton: Button;
+	private readonly agentsEditorStatus: HTMLElement;
 	private readonly list: WorkbenchList<EngineAgentListEntry>;
 
 	private mode: EngineCatalogPaneMode = 'disconnected';
 	private listEntries: EngineAgentListEntry[] = [];
 	private selectedProfile: UniverseAgentAgentProfileSummary | undefined;
+	private agentsEditorLoadGeneration = 0;
 
 	constructor(
 		parent: HTMLElement,
@@ -200,9 +208,24 @@ export class EngineAgentsSection extends Disposable {
 			},
 		)) as WorkbenchList<EngineAgentListEntry>;
 
+		this.agentsEditorContainer = DOM.append(this.container, $('.engine-agents-editor'));
+		this.agentsEditorContainer.style.display = 'none';
+		this.agentsEditorLabel = DOM.append(this.agentsEditorContainer, $('.engine-agents-editor-label'));
+		this.agentsEditorLabel.textContent = localize('ua.engineAgentsMdEditorLabel', "AGENTS.md");
+		this.agentsEditorTextarea = DOM.append(this.agentsEditorContainer, $('textarea.engine-agents-editor-textarea')) as HTMLTextAreaElement;
+		this.agentsEditorTextarea.spellcheck = false;
+		this.agentsEditorTextarea.setAttribute('aria-label', localize('ua.engineAgentsMdEditorAria', "AGENTS.md body for selected agent profile"));
+		this.agentsEditorToolbar = DOM.append(this.agentsEditorContainer, $('.engine-agents-editor-toolbar'));
+		this.agentsEditorSaveButton = this._register(new Button(this.agentsEditorToolbar, defaultButtonStyles));
+		this.agentsEditorSaveButton.label = localize('ua.engineAgentsMdSave', "Save AGENTS.md");
+		this._register(this.agentsEditorSaveButton.onDidClick(() => void this.saveAgentsMarkdown()));
+		this.agentsEditorStatus = DOM.append(this.agentsEditorContainer, $('.engine-agents-editor-status'));
+		this.agentsEditorStatus.style.display = 'none';
+
 		this._register(this.list.onDidChangeSelection(e => {
 			const entry = e.elements[0];
 			this.selectedProfile = entry?.kind === 'profile' ? entry.profile : undefined;
+			void this.loadAgentsEditorForSelection();
 		}));
 
 		this._register(this.connection.onDidChangeConnection(() => {
@@ -214,6 +237,7 @@ export class EngineAgentsSection extends Disposable {
 
 	layout(width: number, listHeight: number): void {
 		this.list.layout(Math.max(80, listHeight), width);
+		this.agentsEditorTextarea.style.width = `${Math.max(0, width)}px`;
 	}
 
 	getDomNode(): HTMLElement {
@@ -234,6 +258,29 @@ export class EngineAgentsSection extends Disposable {
 
 	isWriteToolbarVisible(): boolean {
 		return this.writeToolbar.style.display !== 'none';
+	}
+
+	isAgentsEditorVisible(): boolean {
+		return this.agentsEditorContainer.style.display !== 'none';
+	}
+
+	getAgentsMarkdownValue(): string {
+		return this.agentsEditorTextarea.value;
+	}
+
+	setAgentsMarkdownValue(value: string): void {
+		this.agentsEditorTextarea.value = value;
+	}
+
+	async selectProfileByIdForTest(id: string): Promise<void> {
+		const index = this.listEntries.findIndex(entry => entry.kind === 'profile' && entry.profile.id === id);
+		if (index < 0) {
+			this.selectedProfile = undefined;
+			this.clearAgentsEditor();
+			return;
+		}
+		this.list.setSelection([index]);
+		await this.loadAgentsEditorForSelection();
 	}
 
 	async createProfile(profile?: UniverseAgentAgentProfileDetail): Promise<boolean> {
@@ -295,6 +342,9 @@ export class EngineAgentsSection extends Disposable {
 				return false;
 			}
 			await this.refresh();
+			if (this.selectedProfile) {
+				await this.loadAgentsEditorForSelection();
+			}
 			return true;
 		} catch {
 			return false;
@@ -322,6 +372,19 @@ export class EngineAgentsSection extends Disposable {
 		} catch {
 			return false;
 		}
+	}
+
+	async saveAgentsMarkdown(): Promise<boolean> {
+		if (!this.canWrite() || !this.selectedProfile || this.selectedProfile.source === 'built_in') {
+			return false;
+		}
+		const profileId = this.selectedProfile.id;
+		const parsed = parseAgentsMarkdown(this.agentsEditorTextarea.value);
+		const ok = await this.saveSelectedProfile(parsed);
+		if (ok) {
+			await this.selectProfileByIdForTest(profileId);
+		}
+		return ok;
 	}
 
 	private async refresh(): Promise<void> {
@@ -373,6 +436,60 @@ export class EngineAgentsSection extends Disposable {
 		this.statusMessage.textContent = '';
 		this.listContainer.style.display = 'none';
 		this.writeToolbar.style.display = 'none';
+		this.clearAgentsEditor();
+	}
+
+	private clearAgentsEditor(): void {
+		this.agentsEditorLoadGeneration++;
+		this.agentsEditorContainer.style.display = 'none';
+		this.agentsEditorTextarea.value = '';
+		this.agentsEditorTextarea.readOnly = true;
+		this.agentsEditorSaveButton.enabled = false;
+		this.agentsEditorStatus.style.display = 'none';
+		this.agentsEditorStatus.textContent = '';
+	}
+
+	private async loadAgentsEditorForSelection(): Promise<void> {
+		const generation = ++this.agentsEditorLoadGeneration;
+		this.agentsEditorStatus.style.display = 'none';
+		this.agentsEditorStatus.textContent = '';
+
+		if (this.mode !== 'supported' || !this.connection.isEngineConnected() || !this.selectedProfile) {
+			this.agentsEditorContainer.style.display = 'none';
+			this.agentsEditorTextarea.value = '';
+			this.agentsEditorTextarea.readOnly = true;
+			this.agentsEditorSaveButton.enabled = false;
+			return;
+		}
+
+		const selected = this.selectedProfile;
+		this.agentsEditorContainer.style.display = '';
+		this.agentsEditorTextarea.readOnly = selected.source === 'built_in';
+		this.agentsEditorSaveButton.enabled = this.canWrite() && selected.source !== 'built_in';
+		this.agentsEditorTextarea.value = formatAgentsMarkdown(summaryToProfileDetail(selected));
+
+		try {
+			const result = await this.connection.saveAgentProfile({
+				profile: {
+					id: selected.id,
+					name: selected.name,
+					source: selected.source,
+				},
+			});
+			if (generation !== this.agentsEditorLoadGeneration || this.selectedProfile?.id !== selected.id) {
+				return;
+			}
+			this.agentsEditorTextarea.value = formatAgentsMarkdown(result.profile);
+		} catch {
+			if (generation !== this.agentsEditorLoadGeneration || this.selectedProfile?.id !== selected.id) {
+				return;
+			}
+			this.agentsEditorStatus.style.display = '';
+			this.agentsEditorStatus.textContent = localize(
+				'ua.engineAgentsMdLoadFailed',
+				"Could not load AGENTS.md from the engine.",
+			);
+		}
 	}
 
 	private setProfiles(profiles: readonly UniverseAgentAgentProfileSummary[]): void {
