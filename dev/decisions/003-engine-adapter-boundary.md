@@ -66,4 +66,4 @@ summary: "UA gRPC 客户端落 platform/universeAgent（common 含 vendored sess
 - 2026-09-02：R5 签收 @ 工位 B（loop 波内与 M6 方案同升 `accepted`，合入 `agent-ide` @ `5b10e789`）。
 - 2026-09-02：**主仓裁决确认 `accepted`**（用户委托「分析 loop 阻塞、解禁后续」）。与 M6 方案同批。
 - 2026-09-02：**M6-A1 宿主进程选定 = electron-main**（connection-hub 签收 @2026-09-02；理由见 [connection-hub-client §3.2](../plans/connection-hub-client.md#32-落层adr-003-的增量不改其-decision-编号)）。`platform/universeAgent/node/**` 保持进程无关；gRPC channel + ProxyChannel 装配在 `code/electron-main/app.ts`。
-- 2026-09-02：**宿主进程选定（Consequences 预留项之一，用户委托「架构你定」）：UA gRPC 宿主 = electron-main**；[connection-hub-client](../plans/connection-hub-client.md) §3.2 给出理由（`safeStorage` 原生宿主、Desktop 同款、ProxyChannel 最短）与迁 UtilityProcess 的阈值。附加约束：Connection Hub 客户端（HTTP / TLS pin / Ed25519 / 密钥）**与 gRPC channel 同宿主**，`platform/universeAgent/node/**` 保持进程无关。权限应答臂仍待 M6-A2。
+- 2026-09-02：**权限应答选定 = Chat 臂 `PermissionResponse`**（M6-A2 @2026-09-02；与 session-core Actor `permissionRespond` → `chatStreamWrite` 一致；**不**双写 `PermissionService.Respond`）。

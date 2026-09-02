@@ -25,9 +25,10 @@ import './conversationSessionWindow.contribution.js';
 import { CONVERSATION_SESSIONS_VIEW_ID, ConversationSessionsView } from './conversationSessionsView.js';
 import { ConversationSessionStatusBarContribution, registerConversationSessionStatusBar } from './conversationSessionStatusBar.js';
 import { registerUaPreferencesNavigationActions } from './uaPreferencesNavigation.js';
-import { ConversationStubService, IConversationRosterService } from './conversationStubService.js';
+import { ConversationEngineRosterService } from './conversationEngineRosterService.js';
+import { IConversationRosterService } from './conversationStubService.js';
 
-registerSingleton(IConversationRosterService, ConversationStubService, InstantiationType.Delayed);
+registerSingleton(IConversationRosterService, ConversationEngineRosterService, InstantiationType.Delayed);
 
 export const CONVERSATION_SESSIONS_CONTAINER_ID = 'workbench.view.sessions';
 

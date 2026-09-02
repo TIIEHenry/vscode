@@ -46,7 +46,7 @@ export interface GrpcCapabilityProbeInput {
  * a runtime probe must not return UNIMPLEMENTED (m6 §5).
  */
 export async function probeEngineCapabilities(input: GrpcCapabilityProbeInput): Promise<UniverseAgentCapabilitySnapshot> {
-	const snapshot = emptySnapshot();
+	const snapshot: Record<UniverseAgentCapabilityKey, UniverseAgentCapabilityEntry> = emptySnapshot();
 	const methodSet = new Set(input.methods);
 
 	for (const key of Object.keys(PROBE_TARGETS) as UniverseAgentCapabilityKey[]) {
