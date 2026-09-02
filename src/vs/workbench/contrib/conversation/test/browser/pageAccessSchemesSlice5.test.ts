@@ -22,6 +22,8 @@ import { IClipboardService } from '../../../../../platform/clipboard/common/clip
 import { TestClipboardService } from '../../../../../platform/clipboard/test/common/testClipboardService.js';
 import { ConversationLens } from '../../browser/conversationLens.js';
 import { ConversationStubService, IConversationRosterService } from '../../browser/conversationStubService.js';
+import { IConversationTimelineRevealService } from '../../browser/conversationTimelineRevealService.js';
+import { IConversationReviewNavService } from '../../common/conversationReviewEntry.js';
 import { getConversationSessionStatusText } from '../../browser/conversationSessionStatus.js';
 
 suite('Page access schemes slice 5 (UI contract)', () => {
@@ -49,6 +51,16 @@ suite('Page access schemes slice 5 (UI contract)', () => {
 		const storageService = store.add(new TestStorageService());
 		instantiationService.stub(IStorageService, storageService);
 		instantiationService.stub(IConversationRosterService, stubService);
+		instantiationService.stub(IConversationTimelineRevealService, {
+			_serviceBrand: undefined,
+			registerLens: () => ({ dispose: () => { } }),
+			revealItem: () => { },
+		});
+		instantiationService.stub(IConversationReviewNavService, {
+			_serviceBrand: undefined,
+			onDidChange: Event.None,
+			getReviewNavForSession: () => [],
+		});
 		instantiationService.stub(IClipboardService, new TestClipboardService());
 		if (chatService) {
 			instantiationService.stub(IChatService, chatService);
