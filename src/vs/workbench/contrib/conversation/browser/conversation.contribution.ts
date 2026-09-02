@@ -5,7 +5,11 @@
 
 import './media/conversationLens.css';
 import './media/conversationVisualize.css';
+import './media/uaClientConversationChrome.css';
 import './uaClientSettings.contribution.js';
+import './uaClientSettingsStartup.contribution.js';
+import './uaClientConversationChrome.contribution.js';
+import './uaClientWorkspaceToolsGate.js';
 import './uaPreferencesPanes.contribution.js';
 import './universeAgentDeepLink.contribution.js';
 import { Codicon } from '../../../../base/common/codicons.js';

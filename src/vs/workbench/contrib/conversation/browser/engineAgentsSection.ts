@@ -23,6 +23,7 @@ import {
 	resolveEngineCatalogPaneMode,
 	shouldHideCatalogRows,
 } from './engineCatalog.js';
+import { getEngineSectionDisconnectedCopy } from './engineSectionChrome.js';
 import { formatAgentsMarkdown, parseAgentsMarkdown } from './engineAgentAgentsMd.js';
 import { summaryToProfileDetail } from './engineToolProfile.js';
 
@@ -144,6 +145,7 @@ function groupProfilesBySource(profiles: readonly UniverseAgentAgentProfileSumma
 export class EngineAgentsSection extends Disposable {
 
 	private readonly container: HTMLElement;
+	private readonly heading: HTMLElement;
 	private readonly statusMessage: HTMLElement;
 	private readonly writeToolbar: HTMLElement;
 	private readonly listContainer: HTMLElement;
@@ -159,6 +161,7 @@ export class EngineAgentsSection extends Disposable {
 	private listEntries: EngineAgentListEntry[] = [];
 	private selectedProfile: UniverseAgentAgentProfileSummary | undefined;
 	private agentsEditorLoadGeneration = 0;
+	private sectionActive = false;
 
 	constructor(
 		parent: HTMLElement,
@@ -170,8 +173,9 @@ export class EngineAgentsSection extends Disposable {
 		this.container = DOM.append(parent, $('.engine-agents-section.engine-catalog-section'));
 		this.container.style.display = 'none';
 
-		const heading = DOM.append(this.container, $('h3'));
-		heading.textContent = localize('ua.engineAgentsSectionTitle', "Agents");
+		this.heading = DOM.append(this.container, $('h3.engine-section-heading'));
+		this.heading.textContent = localize('ua.engineAgentsSectionTitle', "Agents");
+		this.heading.style.display = 'none';
 
 		this.statusMessage = DOM.append(this.container, $('.engine-catalog-status'));
 		this.statusMessage.style.display = 'none';
@@ -242,6 +246,19 @@ export class EngineAgentsSection extends Disposable {
 
 	getDomNode(): HTMLElement {
 		return this.container;
+	}
+
+	setSectionActive(active: boolean): void {
+		this.sectionActive = active;
+		this.updateContainerVisibility();
+	}
+
+	setShowSectionHeading(show: boolean): void {
+		this.heading.style.display = show ? '' : 'none';
+	}
+
+	private updateContainerVisibility(): void {
+		this.container.style.display = this.sectionActive ? '' : 'none';
 	}
 
 	getMode(): EngineCatalogPaneMode {
@@ -398,11 +415,10 @@ export class EngineAgentsSection extends Disposable {
 		);
 
 		if (this.mode === 'disconnected') {
-			this.container.style.display = 'none';
+			this.statusMessage.style.display = '';
+			this.statusMessage.textContent = getEngineSectionDisconnectedCopy();
 			return;
 		}
-
-		this.container.style.display = '';
 
 		if (shouldHideCatalogRows(this.mode)) {
 			this.statusMessage.style.display = '';

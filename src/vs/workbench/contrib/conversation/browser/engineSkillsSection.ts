@@ -29,6 +29,7 @@ import {
 	resolveEngineSkillsPaneMode,
 	shouldHideSkillCatalogRows,
 } from './engineSkillCatalog.js';
+import { getEngineSectionDisconnectedCopy } from './engineSectionChrome.js';
 
 const $ = DOM.$;
 
@@ -137,6 +138,7 @@ class EngineSkillListAccessibilityProvider implements IListAccessibilityProvider
 export class EngineSkillsSection extends Disposable {
 
 	private readonly container: HTMLElement;
+	private readonly heading: HTMLElement;
 	private readonly statusMessage: HTMLElement;
 	private readonly freezeNotice: HTMLElement;
 	private readonly writeToolbar: HTMLElement;
@@ -154,6 +156,7 @@ export class EngineSkillsSection extends Disposable {
 	private selectedSkill: UniverseAgentSkillSummary | undefined;
 	private loadedBodySource: UniverseAgentSkillSource | undefined;
 	private bodyLoadGeneration = 0;
+	private sectionActive = false;
 
 	constructor(
 		parent: HTMLElement,
@@ -166,8 +169,9 @@ export class EngineSkillsSection extends Disposable {
 		this.container = DOM.append(parent, $('.engine-skills-section'));
 		this.container.style.display = 'none';
 
-		const heading = DOM.append(this.container, $('h3'));
-		heading.textContent = localize('ua.engineSkillsSectionTitle', "Skills");
+		this.heading = DOM.append(this.container, $('h3.engine-section-heading'));
+		this.heading.textContent = localize('ua.engineSkillsSectionTitle', "Skills");
+		this.heading.style.display = 'none';
 
 		this.statusMessage = DOM.append(this.container, $('.engine-skills-status'));
 		this.statusMessage.style.display = 'none';
@@ -219,6 +223,19 @@ export class EngineSkillsSection extends Disposable {
 
 	getDomNode(): HTMLElement {
 		return this.container;
+	}
+
+	setSectionActive(active: boolean): void {
+		this.sectionActive = active;
+		this.updateContainerVisibility();
+	}
+
+	setShowSectionHeading(show: boolean): void {
+		this.heading.style.display = show ? '' : 'none';
+	}
+
+	private updateContainerVisibility(): void {
+		this.container.style.display = this.sectionActive ? '' : 'none';
 	}
 
 	getMode(): EngineSkillsPaneMode {
@@ -324,11 +341,10 @@ export class EngineSkillsSection extends Disposable {
 		);
 
 		if (this.mode === 'disconnected') {
-			this.container.style.display = 'none';
+			this.statusMessage.style.display = '';
+			this.statusMessage.textContent = getEngineSectionDisconnectedCopy();
 			return;
 		}
-
-		this.container.style.display = '';
 
 		if (shouldHideSkillCatalogRows(this.mode)) {
 			this.statusMessage.style.display = '';

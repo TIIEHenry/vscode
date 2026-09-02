@@ -24,8 +24,12 @@ import {
 	resolveEngineCatalogPaneMode,
 	shouldHideCatalogRows,
 } from './engineCatalog.js';
+import { getEngineSectionDisconnectedCopy } from './engineSectionChrome.js';
+import { EngineMcpRuntimePanel } from './engineMcpRuntimePanel.js';
 
 const $ = DOM.$;
+
+type EngineMcpTab = 'definitions' | 'runtime';
 
 const MCP_FEATURE = localize('ua.engineMcpFeatureLabel', "MCP server definitions");
 
@@ -165,6 +169,13 @@ function groupMcpServersByOrigin(servers: readonly UniverseAgentMcpServerSummary
 export class EngineMcpSection extends Disposable {
 
 	private readonly container: HTMLElement;
+	private readonly heading: HTMLElement;
+	private readonly tabBar: HTMLElement;
+	private readonly definitionsTab: HTMLButtonElement;
+	private readonly runtimeTab: HTMLButtonElement;
+	private readonly definitionsPanel: HTMLElement;
+	private readonly runtimePanelHost: HTMLElement;
+	private readonly runtimePanel: EngineMcpRuntimePanel;
 	private readonly statusMessage: HTMLElement;
 	private readonly writeToolbar: HTMLElement;
 	private readonly listContainer: HTMLElement;
@@ -174,6 +185,8 @@ export class EngineMcpSection extends Disposable {
 	private mode: EngineCatalogPaneMode = 'disconnected';
 	private listEntries: EngineMcpListEntry[] = [];
 	private selectedServer: UniverseAgentMcpServerSummary | undefined;
+	private activeTab: EngineMcpTab = 'definitions';
+	private sectionActive = false;
 
 	constructor(
 		parent: HTMLElement,
@@ -186,13 +199,26 @@ export class EngineMcpSection extends Disposable {
 		this.container = DOM.append(parent, $('.engine-mcp-section.engine-catalog-section'));
 		this.container.style.display = 'none';
 
-		const heading = DOM.append(this.container, $('h3'));
-		heading.textContent = localize('ua.engineMcpSectionTitle', "MCP Servers");
+		this.heading = DOM.append(this.container, $('h3.engine-section-heading'));
+		this.heading.textContent = localize('ua.engineMcpSectionTitle', "MCP Servers");
+		this.heading.style.display = 'none';
 
-		this.statusMessage = DOM.append(this.container, $('.engine-catalog-status'));
+		this.tabBar = DOM.append(this.container, $('.engine-mcp-tab-bar'));
+		this.definitionsTab = DOM.append(this.tabBar, $('button.engine-mcp-tab')) as HTMLButtonElement;
+		this.definitionsTab.type = 'button';
+		this.definitionsTab.textContent = localize('ua.engineMcpTabDefinitions', "Definitions");
+		this.runtimeTab = DOM.append(this.tabBar, $('button.engine-mcp-tab')) as HTMLButtonElement;
+		this.runtimeTab.type = 'button';
+		this.runtimeTab.textContent = localize('ua.engineMcpTabRuntime', "Runtime");
+		this._register(DOM.addDisposableListener(this.definitionsTab, 'click', () => this.setActiveTab('definitions')));
+		this._register(DOM.addDisposableListener(this.runtimeTab, 'click', () => this.setActiveTab('runtime')));
+
+		this.definitionsPanel = DOM.append(this.container, $('.engine-mcp-definitions-panel'));
+
+		this.statusMessage = DOM.append(this.definitionsPanel, $('.engine-catalog-status'));
 		this.statusMessage.style.display = 'none';
 
-		this.writeToolbar = DOM.append(this.container, $('.engine-catalog-write-toolbar'));
+		this.writeToolbar = DOM.append(this.definitionsPanel, $('.engine-catalog-write-toolbar'));
 		this.writeToolbar.style.display = 'none';
 		const addButton = this._register(new Button(this.writeToolbar, defaultButtonStyles));
 		addButton.label = localize('ua.engineMcpAdd', "Add");
@@ -204,17 +230,34 @@ export class EngineMcpSection extends Disposable {
 		updateButton.label = localize('ua.engineMcpUpdate', "Update");
 		this._register(updateButton.onDidClick(() => void this.updateSelectedServer()));
 
-		this.listContainer = DOM.append(this.container, $('.engine-catalog-list'));
+		this.listContainer = DOM.append(this.definitionsPanel, $('.engine-catalog-list'));
+
+		this.runtimePanelHost = DOM.append(this.container, $('.engine-mcp-runtime-host'));
+		this.runtimePanel = this._register(instantiationService.createInstance(EngineMcpRuntimePanel, this.runtimePanelHost));
 
 		this._register(this.connection.onDidChangeConnection(() => {
 			void this.refresh();
+			this.runtimePanel.render();
 		}));
 
+		this.setActiveTab('definitions');
 		void this.refresh();
+	}
+
+	private setActiveTab(tab: EngineMcpTab): void {
+		this.activeTab = tab;
+		this.definitionsTab.classList.toggle('engine-mcp-tab--active', tab === 'definitions');
+		this.runtimeTab.classList.toggle('engine-mcp-tab--active', tab === 'runtime');
+		this.definitionsPanel.style.display = tab === 'definitions' ? '' : 'none';
+		this.runtimePanel.setVisible(tab === 'runtime');
+		if (tab === 'runtime') {
+			this.runtimePanel.render();
+		}
 	}
 
 	layout(width: number, listHeight: number): void {
 		this.list?.layout(Math.max(80, listHeight), width);
+		this.runtimePanel.layout(width, listHeight);
 	}
 
 	override dispose(): void {
@@ -224,6 +267,19 @@ export class EngineMcpSection extends Disposable {
 
 	getDomNode(): HTMLElement {
 		return this.container;
+	}
+
+	setSectionActive(active: boolean): void {
+		this.sectionActive = active;
+		this.updateContainerVisibility();
+	}
+
+	setShowSectionHeading(show: boolean): void {
+		this.heading.style.display = show ? '' : 'none';
+	}
+
+	private updateContainerVisibility(): void {
+		this.container.style.display = this.sectionActive ? '' : 'none';
 	}
 
 	getMode(): EngineCatalogPaneMode {
@@ -354,11 +410,10 @@ export class EngineMcpSection extends Disposable {
 		);
 
 		if (this.mode === 'disconnected') {
-			this.container.style.display = 'none';
+			this.statusMessage.style.display = '';
+			this.statusMessage.textContent = getEngineSectionDisconnectedCopy();
 			return;
 		}
-
-		this.container.style.display = '';
 
 		if (shouldHideCatalogRows(this.mode)) {
 			this.statusMessage.style.display = '';

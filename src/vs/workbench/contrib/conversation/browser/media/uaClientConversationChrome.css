@@ -1,0 +1,32 @@
+/* Client display chrome — density and client-tool detail visibility. */
+
+body.ua-client-density-compact .conversation-lens-turn,
+.conversation-lens-density--compact .conversation-lens-turn {
+	gap: 2px;
+}
+
+body.ua-client-density-compact .conversation-lens-turn-body--reading-text,
+.conversation-lens-density--compact .conversation-lens-turn-body--reading-text {
+	line-height: 1.35;
+}
+
+body.ua-client-density-compact .conversation-process-fold-tool,
+body.ua-client-density-compact .conversation-process-fold-thinking,
+.conversation-lens-density--compact .conversation-process-fold-tool,
+.conversation-lens-density--compact .conversation-process-fold-thinking {
+	margin-block: 1px;
+}
+
+body.ua-client-density-compact .conversation-lens-timeline-row,
+.conversation-lens-density--compact .conversation-lens-timeline-row {
+	padding-block: 2px;
+}
+
+body.ua-client-hide-tool-details .conversation-process-fold-tool-body,
+body.ua-client-hide-tool-details .conversation-lens-trajectory-inspector-section-body {
+	display: none !important;
+}
+
+body.ua-client-hide-agent-identity .conversation-lens-turn-agent-identity {
+	display: none;
+}

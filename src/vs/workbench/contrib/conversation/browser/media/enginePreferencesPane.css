@@ -3,12 +3,172 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+.monaco-workbench .engine-preferences-pane {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+	padding: 16px 20px;
+	box-sizing: border-box;
+}
+
+.monaco-workbench .engine-preferences-title {
+	margin: 0 0 12px 0;
+	font-size: 20px;
+	font-weight: 600;
+}
+
+.monaco-workbench .engine-preferences-disconnected-banner {
+	margin-bottom: 12px;
+	padding: 10px 12px;
+	border: 1px solid var(--vscode-inputValidation-warningBorder);
+	background: var(--vscode-inputValidation-warningBackground);
+	border-radius: 4px;
+	font-size: 12px;
+}
+
+.monaco-workbench .engine-preferences-disconnected-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin-top: 8px;
+}
+
+.monaco-workbench .engine-preferences-body {
+	display: flex;
+	flex: 1 1 auto;
+	min-height: 0;
+	gap: 16px;
+}
+
+.monaco-workbench .engine-preferences-pane--narrow .engine-preferences-body {
+	flex-direction: column;
+}
+
+.monaco-workbench .engine-preferences-pane--narrow .engine-preferences-nav {
+	flex: 0 0 auto;
+	min-width: 0;
+	width: 100%;
+	border-right: none;
+	border-bottom: 1px solid var(--vscode-panel-border);
+}
+
+.monaco-workbench .engine-preferences-nav {
+	flex: 0 0 200px;
+	min-width: 180px;
+	border-right: 1px solid var(--vscode-panel-border);
+}
+
+.monaco-workbench .engine-preferences-nav-row {
+	padding: 2px 8px;
+}
+
+.monaco-workbench .engine-preferences-nav-label {
+	font-size: 13px;
+}
+
+.monaco-workbench .engine-preferences-detail {
+	flex: 1 1 auto;
+	min-width: 0;
+	display: flex;
+	flex-direction: column;
+	min-height: 0;
+}
+
+.monaco-workbench .engine-preferences-detail-title {
+	margin: 0 0 12px 0;
+	font-size: 15px;
+	font-weight: 600;
+}
+
+.monaco-workbench .engine-preferences-detail-body {
+	flex: 1 1 auto;
+	min-height: 0;
+	overflow: auto;
+}
+
+.monaco-workbench .engine-section-status,
+.monaco-workbench .engine-overview-grid,
+.monaco-workbench .engine-provider-model-form,
+.monaco-workbench .engine-rules-scopes,
+.monaco-workbench .engine-hooks-layout,
+.monaco-workbench .engine-plugins-list,
+.monaco-workbench .engine-mcp-runtime-panel {
+	font-size: 12px;
+}
+
+.monaco-workbench .engine-overview-row,
+.monaco-workbench .engine-overview-capability-row {
+	display: flex;
+	gap: 12px;
+	padding: 4px 0;
+}
+
+.monaco-workbench .engine-overview-label,
+.monaco-workbench .engine-overview-capability-name {
+	flex: 0 0 140px;
+	opacity: 0.85;
+}
+
+.monaco-workbench .engine-provider-model-group {
+	margin-bottom: 16px;
+}
+
+.monaco-workbench .engine-provider-model-field {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	margin-bottom: 8px;
+}
+
+.monaco-workbench .engine-provider-model-input {
+	max-width: 420px;
+}
+
+.monaco-workbench .engine-rules-scopes,
+.monaco-workbench .engine-hooks-layout {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 16px;
+}
+
+.monaco-workbench .engine-mcp-tab-bar {
+	display: flex;
+	gap: 4px;
+	margin-bottom: 8px;
+}
+
+.monaco-workbench .engine-mcp-tab {
+	border: 1px solid var(--vscode-panel-border);
+	background: var(--vscode-button-secondaryBackground);
+	color: var(--vscode-button-secondaryForeground);
+	padding: 4px 10px;
+	font-size: 12px;
+	cursor: pointer;
+}
+
+.monaco-workbench .engine-mcp-tab--active {
+	background: var(--vscode-button-background);
+	color: var(--vscode-button-foreground);
+}
+
+.monaco-workbench .engine-test-row {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	margin-top: 12px;
+}
+
+.monaco-workbench .engine-test-status {
+	font-size: 12px;
+	opacity: 0.85;
+}
+
 .monaco-workbench .engine-skills-section {
-	margin-top: 16px;
+	margin-top: 0;
 }
 
 .monaco-workbench .engine-catalog-section {
-	margin-top: 16px;
+	margin-top: 0;
 }
 
 .monaco-workbench .engine-skills-section h3,
