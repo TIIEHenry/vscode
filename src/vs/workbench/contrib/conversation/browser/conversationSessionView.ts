@@ -322,8 +322,18 @@ function timelineItemToEntry(
 			const status: ConfirmationStatus = pendingIds.has(id) ? 'pending' : summary.decision === 'allow' ? 'allowed' : summary.decision === 'deny' ? 'skipped' : 'pending';
 			return { id, kind: 'confirmation', text: summary.title, status, ...agent, ...turn };
 		}
-		case 'question':
-			return { id, kind: 'question', text: summary.title, status: summary.answered ? 'allowed' : 'pending', ...agent, ...turn };
+		case 'question': {
+			const options = [
+				...(summary.optionsPreview ?? []),
+				...(summary.items ?? []).flatMap(item => [item.title, ...(item.optionsPreview ?? [])]),
+			].filter((value, index, all) => value.length > 0 && all.indexOf(value) === index);
+			return {
+				id, kind: 'question', text: summary.title,
+				status: summary.answered ? 'allowed' : 'pending',
+				...(options.length > 0 ? { payload: options.join(' · ') } : {}),
+				...agent, ...turn,
+			};
+		}
 		case 'error':
 			return { id, kind: 'error', text: summary.title, retryable: summary.retryable, ...(summary.code !== undefined ? { summary: summary.code } : {}), ...agent, ...turn };
 		case 'unknown':
@@ -378,20 +388,109 @@ function isStubTurnKind(kind: ConversationTimelineEntryKind): kind is StubTurnKi
 	return kind === 'user' || kind === 'assistant' || kind === 'confirmation' || kind === 'thinking' || kind === 'tool' || kind === 'visualization';
 }
 
-/** Maps a product entry to a renderer turn; non-stub kinds degrade to assistant chrome. */
+function isHonestRowKind(kind: ConversationTimelineEntryKind): boolean {
+	return kind === 'question' || kind === 'error' || kind === 'unknown' || kind === 'system' || kind === 'reviewNav';
+}
+
+/** Extra fields carried on renderable turns for honest row kinds (Q5). */
+export interface ConversationHonestTurnFields {
+	readonly retryable?: boolean;
+	readonly typeName?: string;
+	readonly agentId?: string;
+}
+
+export function getConversationHonestKind(turn: ConversationStubTurn): ConversationTimelineEntryKind {
+	return turn.kind as ConversationTimelineEntryKind;
+}
+
+export function getConversationHonestFields(turn: ConversationStubTurn): ConversationHonestTurnFields {
+	return turn as ConversationStubTurn & ConversationHonestTurnFields;
+}
+
+/** Readable name for a timeline / trajectory row (role, agent, status, summary). */
+export function getConversationEntryAriaLabel(turn: ConversationStubTurn): string {
+	const kind = getConversationHonestKind(turn);
+	const fields = getConversationHonestFields(turn);
+	const summary = turn.text.trim() || localize('conversationSessionView.emptySummary', "(empty)");
+	const agent = fields.agentId && fields.agentId !== 'default'
+		? localize('conversationSessionView.ariaAgent', ", Agent {0}", fields.agentId)
+		: '';
+	const streaming = turn.streaming
+		? localize('conversationSessionView.ariaInProgress', ", in progress")
+		: '';
+
+	switch (kind) {
+		case 'confirmation': {
+			const status = turn.status === 'allowed'
+				? localize('conversationSessionView.permissionAllowed', "allowed")
+				: turn.status === 'skipped'
+					? localize('conversationSessionView.permissionSkipped', "skipped")
+					: localize('conversationSessionView.permissionPending', "pending");
+			return localize('conversationSessionView.permissionAria', "Permission, {0}{1}{2}: {3}", status, agent, streaming, summary);
+		}
+		case 'question': {
+			const status = turn.status === 'allowed'
+				? localize('conversationSessionView.questionAnswered', "answered")
+				: localize('conversationSessionView.questionPending', "pending");
+			return localize('conversationSessionView.questionAria', "Question, {0}{1}{2}: {3}", status, agent, streaming, summary);
+		}
+		case 'error': {
+			const retry = fields.retryable
+				? localize('conversationSessionView.errorRetryable', "retryable")
+				: localize('conversationSessionView.errorNotRetryable', "not retryable");
+			return localize('conversationSessionView.errorAria', "Error, {0}{1}{2}: {3}", retry, agent, streaming, summary);
+		}
+		case 'unknown': {
+			const typeName = fields.typeName || localize('conversationSessionView.unknownType', "unknown type");
+			return localize('conversationSessionView.unknownAria', "Unknown content, {0}{1}{2}: {3}", typeName, agent, streaming, summary);
+		}
+		case 'visualization': {
+			const title = turn.visualize?.title || summary;
+			return localize('conversationSessionView.visualizeAria', "Visualization, {0}{1}{2}", title, agent, streaming);
+		}
+		case 'reviewNav':
+			return localize('conversationSessionView.reviewNavAria', "Review, {0}{1}", summary, agent);
+		case 'system':
+			return localize('conversationSessionView.systemAria', "System{0}{1}: {2}", agent, streaming, summary);
+		default:
+			return localize(
+				'conversationSessionView.turnAria',
+				"{0}{1}{2}: {3}",
+				kind === 'user'
+					? localize('conversationSessionView.roleUser', "You")
+					: kind === 'thinking'
+						? localize('conversationSessionView.roleThinking', "Thinking")
+						: kind === 'tool'
+							? localize('conversationSessionView.roleTool', "Tool")
+							: localize('conversationSessionView.roleAssistant', "Agent"),
+				agent,
+				streaming,
+				summary,
+			);
+	}
+}
+
+/** Maps a product entry to a renderer turn; honest kinds stay distinct. */
 export function entryToRenderableTurn(entry: ConversationTimelineEntry): ConversationStubTurn {
+	const honest: ConversationHonestTurnFields = {
+		...(entry.agentId !== undefined ? { agentId: entry.agentId } : {}),
+		...(entry.retryable !== undefined ? { retryable: entry.retryable } : {}),
+		...(entry.typeName !== undefined ? { typeName: entry.typeName } : {}),
+	};
+
 	if (entry.kind === 'reviewNav') {
 		return {
 			id: entry.id,
 			kind: 'reviewNav',
 			text: entry.text,
 			reviewNavPaths: entry.reviewNavPaths,
-		};
+			...honest,
+		} as ConversationStubTurn;
 	}
-	if (isStubTurnKind(entry.kind)) {
+	if (isStubTurnKind(entry.kind) || isHonestRowKind(entry.kind)) {
 		return {
 			id: entry.id,
-			kind: entry.kind,
+			kind: entry.kind as StubTurnKind,
 			text: entry.text,
 			...(entry.status !== undefined ? { status: entry.status } : {}),
 			...(entry.stubEcho ? { stubEcho: true } : {}),
@@ -402,14 +501,16 @@ export function entryToRenderableTurn(entry: ConversationTimelineEntry): Convers
 			...(entry.streaming ? { streaming: true } : {}),
 			...(entry.toolStatus !== undefined ? { toolStatus: entry.toolStatus } : {}),
 			...(entry.turnId !== undefined ? { turnId: entry.turnId } : {}),
-		};
+			...honest,
+		} as ConversationStubTurn;
 	}
 	return {
 		id: entry.id,
 		kind: 'assistant',
 		text: entry.text,
 		stubEcho: true,
-	};
+		...honest,
+	} as ConversationStubTurn;
 }
 
 export function entriesToRenderableTurns(entries: readonly ConversationTimelineEntry[]): ConversationStubTurn[] {

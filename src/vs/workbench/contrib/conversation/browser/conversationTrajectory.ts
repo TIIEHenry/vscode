@@ -46,12 +46,15 @@ export const conversationTrajectoryKindSubtool = localize('conversationTrajector
 export const conversationTrajectoryKindThinking = localize('conversationTrajectory.kindThinking', "THINKING");
 export const conversationTrajectoryKindCompacted = localize('conversationTrajectory.kindCompacted', "COMPACTED");
 export const conversationTrajectoryKindPermission = localize('conversationTrajectory.kindPermission', "PERMISSION");
+export const conversationTrajectoryKindQuestion = localize('conversationTrajectory.kindQuestion', "QUESTION");
 export const conversationTrajectoryKindError = localize('conversationTrajectory.kindError', "ERROR");
+export const conversationTrajectoryKindUnknown = localize('conversationTrajectory.kindUnknown', "UNKNOWN");
 
 export const conversationTrajectoryInspectorSummary = localize('conversationTrajectory.inspectorSummary', "Summary");
 export const conversationTrajectoryInspectorPayload = localize('conversationTrajectory.inspectorPayload', "Payload");
 export const conversationTrajectoryInspectorResult = localize('conversationTrajectory.inspectorResult', "Result");
 export const conversationTrajectoryInspectorClose = localize('conversationTrajectory.inspectorClose', "Close inspector");
+export const conversationTrajectoryInspectorBack = localize('conversationTrajectory.inspectorBack', "Back");
 export const conversationTrajectoryTableKindColumn = localize('conversationTrajectory.tableKind', "Kind");
 export const conversationTrajectoryTablePreviewColumn = localize('conversationTrajectory.tablePreview', "Preview");
 export const conversationTrajectorySearchPlaceholder = localize('conversationTrajectory.searchPlaceholder', "Search trajectory");
@@ -93,8 +96,12 @@ export function getTrajectoryKindLabel(kind: ConversationTrajectoryKind): string
 			return conversationTrajectoryKindCompacted;
 		case 'permission':
 			return conversationTrajectoryKindPermission;
+		case 'question':
+			return conversationTrajectoryKindQuestion;
 		case 'error':
 			return conversationTrajectoryKindError;
+		case 'unknown':
+			return conversationTrajectoryKindUnknown;
 	}
 }
 
@@ -106,6 +113,14 @@ export function getTrajectoryRecordPreview(record: ConversationTrajectoryRecord)
 			return parts.join(' · ');
 		}
 		return record.text.trim() || localize('conversationTrajectory.compactedEmptyPreview', "(compacted)");
+	}
+	if (record.kind === 'unknown') {
+		const typeName = record.messageSource?.kind;
+		const unknownText = record.text.trim();
+		if (typeName && unknownText) {
+			return `${typeName}: ${unknownText}`;
+		}
+		return typeName || unknownText || localize('conversationTrajectory.unknownEmptyPreview', "(unknown)");
 	}
 	if (record.kind === 'user' && record.sourceBlocks?.length) {
 		const chips = record.sourceBlocks.map(block => block.toolName ?? block.content).join(', ');
@@ -231,10 +246,20 @@ class TrajectoryFoldRenderer implements IListRenderer<TrajectoryTableDisplayItem
 		header.setAttribute('role', 'button');
 
 		const chevron = append(header, $('span.conversation-process-fold-chevron'));
+		chevron.setAttribute('aria-hidden', 'true');
 		chevron.classList.add(...ThemeIcon.asClassNameArray(Codicon.chevronRight));
 
 		const summary = append(header, $('span.conversation-process-fold-summary'));
 		const children = append(root, $('div.conversation-process-fold-children'));
+
+		const toggleFold = (e: Event) => {
+			e.stopPropagation();
+			const spanId = root.dataset.foldId;
+			if (spanId) {
+				this.host.onToggleFold(spanId);
+			}
+		};
+		this.renderDisposables.add(addDisposableListener(header, 'click', toggleFold));
 
 		return { root, header, chevron, summary, children };
 	}
@@ -249,6 +274,10 @@ class TrajectoryFoldRenderer implements IListRenderer<TrajectoryTableDisplayItem
 		templateData.root.dataset.foldId = span.id;
 		templateData.header.setAttribute('aria-expanded', String(expanded));
 		templateData.summary.textContent = summarizeTrajectoryProcessSteps(span, { showLiveChrome: this.host.showLiveChrome() });
+		const summaryText = templateData.summary.textContent ?? '';
+		templateData.header.setAttribute('aria-label', expanded
+			? localize('conversationProcessFold.outerHeaderExpanded', "Process steps, {0}, expanded", summaryText)
+			: localize('conversationProcessFold.outerHeaderCollapsed', "Process steps, {0}, collapsed", summaryText));
 		templateData.chevron.classList.toggle('conversation-process-fold-chevron--expanded', expanded);
 		templateData.children.hidden = !expanded;
 		clearNode(templateData.children);
@@ -259,11 +288,6 @@ class TrajectoryFoldRenderer implements IListRenderer<TrajectoryTableDisplayItem
 				populateTrajectoryRecordRow(row, record, this.host.selectedRecordId);
 			}
 		}
-
-		this.renderDisposables.add(addDisposableListener(templateData.header, 'click', (e) => {
-			e.stopPropagation();
-			this.host.onToggleFold(span.id);
-		}));
 	}
 
 	disposeTemplate(): void {
@@ -318,9 +342,13 @@ export class ConversationTrajectory extends Disposable implements ITrajectoryTab
 	private searchQuery = '';
 	private omittedCount = 0;
 	private pendingRevealRecordId: string | undefined;
+	private lastRevealedRecordId: string | undefined;
+	private inspectorOverlayScrollTop = 0;
+	private lastLayoutCollapsed = true;
 	private listHeight = 0;
 	private listWidth = 0;
 	private visible = false;
+	private inspectorBackButton!: HTMLButtonElement;
 
 	constructor(
 		parent: HTMLElement,
@@ -434,6 +462,13 @@ export class ConversationTrajectory extends Disposable implements ITrajectoryTab
 		this.inspector.hidden = true;
 
 		const inspectorHeader = append(this.inspector, $('.conversation-lens-trajectory-inspector-header'));
+		this.inspectorBackButton = append(inspectorHeader, $('button.conversation-lens-trajectory-inspector-back')) as HTMLButtonElement;
+		this.inspectorBackButton.type = 'button';
+		this.inspectorBackButton.textContent = conversationTrajectoryInspectorBack;
+		this.inspectorBackButton.setAttribute('aria-label', conversationTrajectoryInspectorBack);
+		this.inspectorBackButton.hidden = true;
+		this._register(addDisposableListener(this.inspectorBackButton, 'click', () => this.dismissInspectorOverlay()));
+
 		const inspectorTitle = append(inspectorHeader, $('span.conversation-lens-trajectory-inspector-title'));
 		inspectorTitle.textContent = localize('conversationTrajectory.inspectorTitle', "Inspector");
 
@@ -441,7 +476,7 @@ export class ConversationTrajectory extends Disposable implements ITrajectoryTab
 		closeButton.type = 'button';
 		closeButton.setAttribute('aria-label', conversationTrajectoryInspectorClose);
 		closeButton.classList.add(...ThemeIcon.asClassNameArray(Codicon.close));
-		this._register(addDisposableListener(closeButton, 'click', () => this.closeInspector()));
+		this._register(addDisposableListener(closeButton, 'click', () => this.dismissInspectorOverlay()));
 
 		this.inspectorContent = append(this.inspector, $('.conversation-lens-trajectory-inspector-content'));
 	}
@@ -470,6 +505,9 @@ export class ConversationTrajectory extends Disposable implements ITrajectoryTab
 	show(): void {
 		this.visible = true;
 		this.host.hidden = false;
+		if (this.lastRevealedRecordId) {
+			this.scrollRecordIntoView(this.lastRevealedRecordId);
+		}
 	}
 
 	hide(): void {
@@ -522,7 +560,8 @@ export class ConversationTrajectory extends Disposable implements ITrajectoryTab
 			segmentEl.setAttribute('role', 'listitem');
 			segmentEl.dataset.segmentKind = segment.kind;
 			segmentEl.title = segment.label;
-			append(segmentEl, $('span.conversation-lens-trajectory-overview-segment-glyph'));
+			const glyph = append(segmentEl, $('span.conversation-lens-trajectory-overview-segment-glyph'));
+			glyph.setAttribute('aria-hidden', 'true');
 			append(segmentEl, $('span.conversation-lens-trajectory-overview-segment-label')).textContent = segment.label;
 			this.overviewDisposables.add(addDisposableListener(segmentEl, 'click', () => {
 				const targetId = segment.recordIds[0];
@@ -565,16 +604,23 @@ export class ConversationTrajectory extends Disposable implements ITrajectoryTab
 		}
 
 		this.pendingRevealRecordId = recordId;
+		this.lastRevealedRecordId = recordId;
 		this.selectedRecordIdHolder.current = recordId;
 		this.refreshTable();
 		this.selectRecord(record, false);
 	}
 
 	layout(height: number, width: number): void {
+		const wasCollapsed = this.lastLayoutCollapsed;
+		this.lastLayoutCollapsed = width < 1 || height < 1;
 		this.listHeight = Math.max(0, height - 200);
 		this.listWidth = width;
+		this.syncInspectorOverlay();
 		if (this.displayItems.length > 0) {
 			this.list.layout(this.listHeight, this.listWidth);
+		}
+		if (wasCollapsed && !this.lastLayoutCollapsed && this.lastRevealedRecordId) {
+			this.scrollRecordIntoView(this.lastRevealedRecordId);
 		}
 	}
 
@@ -654,8 +700,35 @@ export class ConversationTrajectory extends Disposable implements ITrajectoryTab
 		this.openInspector(record);
 	}
 
+	private isNarrowWidth(): boolean {
+		return this.listWidth > 0 && this.listWidth < 600;
+	}
+
+	private syncInspectorOverlay(): void {
+		const open = !this.inspector.hidden;
+		const overlay = open && this.isNarrowWidth();
+		this.host.classList.toggle('conversation-lens-trajectory--narrow', this.isNarrowWidth() || (this.listWidth > 0 && this.listWidth < 600));
+		this.host.classList.toggle('conversation-lens-trajectory--inspector-open', open);
+		this.host.classList.toggle('conversation-lens-trajectory--inspector-overlay', overlay);
+		this.inspectorBackButton.hidden = !overlay;
+	}
+
+	private dismissInspectorOverlay(): void {
+		this.inspector.hidden = true;
+		clearNode(this.inspectorContent);
+		this.syncInspectorOverlay();
+		this.syncTrajectoryRowSelectionStyles();
+		if (this.isNarrowWidth()) {
+			this.list.scrollTop = this.inspectorOverlayScrollTop;
+		}
+	}
+
 	private openInspector(record: ConversationTrajectoryRecord): void {
+		if (this.inspector.hidden && this.isNarrowWidth()) {
+			this.inspectorOverlayScrollTop = this.list.scrollTop;
+		}
 		this.inspector.hidden = false;
+		this.syncInspectorOverlay();
 		clearNode(this.inspectorContent);
 
 		const detailView = this.detailInspector.resolve(record, this.options.detailContext);
@@ -696,9 +769,7 @@ export class ConversationTrajectory extends Disposable implements ITrajectoryTab
 
 	private closeInspector(): void {
 		this.selectedRecordIdHolder.current = undefined;
-		this.inspector.hidden = true;
-		clearNode(this.inspectorContent);
-		this.syncTrajectoryRowSelectionStyles();
+		this.dismissInspectorOverlay();
 	}
 
 	/** T5 virtual list `rerender()` does not re-run row renderers; sync selection chrome in DOM. */

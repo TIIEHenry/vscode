@@ -44,7 +44,9 @@ export type ConversationTrajectoryKind =
 	| 'subtool'
 	| 'thinking'
 	| 'permission'
-	| 'error';
+	| 'question'
+	| 'error'
+	| 'unknown';
 
 export interface ConversationTrajectoryBlock {
 	readonly type: string;
@@ -382,13 +384,18 @@ function timelineItemToTrajectoryRecord(
 				...(summary.argPreview !== undefined ? { inputDetail: summary.argPreview } : {}),
 			}, item);
 		case 'question':
-			return undefined;
+			return withDetailRef({
+				id,
+				kind: 'question',
+				text: summary.title,
+				...(summary.optionsPreview?.length ? { inputDetail: summary.optionsPreview.join(' · ') } : {}),
+			}, item);
 		case 'error':
 			return withDetailRef({ id, kind: 'error', text: summary.title }, item);
 		case 'usage':
 			return { id, kind: 'context', text: summary.title, messageSource: { kind: 'usage' } };
 		case 'unknown':
-			return { id, kind: 'context', text: summary.rawContent, messageSource: { kind: summary.typeName } };
+			return { id, kind: 'unknown', text: summary.rawContent, messageSource: { kind: summary.typeName } };
 		case 'generic':
 			return undefined;
 	}
@@ -430,7 +437,6 @@ export function collectTrajectoryTurnIdsFromSnapshot(snapshot: SessionViewSnapsh
 	for (const item of snapshot.timeline) {
 		switch (item.summary.kind) {
 			case 'permission':
-			case 'question':
 			case 'usage':
 			case 'generic':
 				continue;
