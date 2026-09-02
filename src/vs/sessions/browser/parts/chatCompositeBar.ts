@@ -290,7 +290,7 @@ export class ChatCompositeBar extends Disposable {
 		const delegate = this._delegate;
 		const session = delegate?.session;
 		const tab = $('.chat-composite-bar-tab.modern-ui-editor-tab');
-		tab.tabIndex = 0;
+		tab.tabIndex = -1;
 		tab.setAttribute('role', 'tab');
 		tab.draggable = true;
 		// Expose the bound chat resource for diagnostics / test automation.
@@ -398,7 +398,9 @@ export class ChatCompositeBar extends Disposable {
 			if (e.key === 'Enter' || e.key === ' ') {
 				e.preventDefault();
 				this._delegate?.openChat(chat.resource);
+				return;
 			}
+			this._handleTabListNavigation(e);
 		}));
 
 		this._tabDisposables.add(addDisposableListener(tab, EventType.AUXCLICK, e => {
@@ -622,10 +624,41 @@ export class ChatCompositeBar extends Disposable {
 			const isActive = tab.chat.resource.toString() === activeChatId;
 			tab.element.classList.toggle('active', isActive);
 			tab.element.setAttribute('aria-selected', String(isActive));
+			tab.element.tabIndex = isActive ? 0 : -1;
 			if (isActive) {
 				tab.element.scrollIntoView({ block: 'nearest', inline: 'nearest' });
 			}
 		}
+	}
+
+	private _handleTabListNavigation(e: KeyboardEvent): void {
+		const currentIndex = this._tabs.findIndex(t => t.element === e.currentTarget);
+		if (currentIndex === -1 || this._tabs.length === 0) {
+			return;
+		}
+		let nextIndex: number | undefined;
+		switch (e.key) {
+			case 'ArrowRight':
+			case 'ArrowDown':
+				nextIndex = (currentIndex + 1) % this._tabs.length;
+				break;
+			case 'ArrowLeft':
+			case 'ArrowUp':
+				nextIndex = (currentIndex - 1 + this._tabs.length) % this._tabs.length;
+				break;
+			case 'Home':
+				nextIndex = 0;
+				break;
+			case 'End':
+				nextIndex = this._tabs.length - 1;
+				break;
+			default:
+				return;
+		}
+		e.preventDefault();
+		const nextTab = this._tabs[nextIndex];
+		nextTab.element.focus();
+		this._delegate?.openChat(nextTab.chat.resource);
 	}
 
 	private _revealActiveTab(): void {

@@ -8,7 +8,7 @@ import { Button } from '../../../../base/browser/ui/button/button.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
 import { defaultButtonStyles } from '../../../../platform/theme/browser/defaultStyles.js';
-import { ConfirmationStatus } from './conversationStubModel.js';
+import { getConversationConfirmationSeatAriaLabel } from './conversationAccessibility.js';
 
 export interface IConversationConfirmationSeatOptions {
 	readonly message: string;
@@ -33,7 +33,7 @@ export class ConversationConfirmationSeat extends Disposable {
 
 		this.element = $('.conversation-lens-confirmation-seat');
 		this.element.setAttribute('role', 'group');
-		this.element.setAttribute('aria-label', localize('conversationLens.confirmationSeat', "Confirmation"));
+		this.element.setAttribute('aria-label', getConversationConfirmationSeatAriaLabel(options.status, options.message));
 
 		const summary = append(this.element, $('.conversation-lens-confirmation-summary'));
 		const pendingLabel = append(summary, $('span.conversation-lens-confirmation-pending'));
@@ -50,12 +50,14 @@ export class ConversationConfirmationSeat extends Disposable {
 
 		if (isPending && options.onAllow && options.onSkip) {
 			const actions = append(this.element, $('.conversation-lens-confirmation-actions'));
-			const allow = this._register(new Button(actions, defaultButtonStyles));
-			allow.label = localize('conversationLens.allow', "Allow");
+			const allowLabel = localize('conversationLens.allow', "Allow");
+			const allow = this._register(new Button(actions, { ...defaultButtonStyles, ariaLabel: allowLabel }));
+			allow.label = allowLabel;
 			this._register(allow.onDidClick(() => options.onAllow!()));
 
-			const skip = this._register(new Button(actions, { ...defaultButtonStyles, secondary: true }));
-			skip.label = localize('conversationLens.skip', "Skip");
+			const skipLabel = localize('conversationLens.skip', "Skip");
+			const skip = this._register(new Button(actions, { ...defaultButtonStyles, secondary: true, ariaLabel: skipLabel }));
+			skip.label = skipLabel;
 			this._register(skip.onDidClick(() => options.onSkip!()));
 		}
 	}
