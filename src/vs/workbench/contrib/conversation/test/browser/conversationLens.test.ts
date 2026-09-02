@@ -362,6 +362,7 @@ suite('ConversationLens', () => {
 			revealItem: () => { },
 			getAccessibleTurnContent: () => undefined,
 			focusAccessibleTurn: () => { },
+			scrollToFirstPendingConfirmation: () => { },
 		});
 		instantiationService.stub(IConversationReviewNavService, {
 			_serviceBrand: undefined,

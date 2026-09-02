@@ -9,6 +9,8 @@ import {
 	UA_CLIENT_CHAT_INPUT_RESTORE_DRAFTS,
 	UA_CLIENT_DISPLAY_CONVERSATION_DENSITY,
 	UA_CLIENT_KEYBOARD_ENTER_BEHAVIOR,
+	UA_CLIENT_NOTIFICATIONS_PERMISSION_REQUESTS,
+	UA_CLIENT_NOTIFICATIONS_TURN_COMPLETED,
 	UA_CLIENT_STARTUP_RESTORE_LAST_SESSION,
 	type UaClientConversationDensity,
 	type UaClientKeyboardEnterBehavior,
@@ -55,7 +57,7 @@ export function getUaClientKeyboardEnterBehavior(configurationService?: IConfigu
 	return configurationService.getValue<string>(UA_CLIENT_KEYBOARD_ENTER_BEHAVIOR) === 'newline' ? 'newline' : 'send';
 }
 
-/** CS-3+ / deleted-key helpers: defaults only until those slices register keys. */
+/** CS-4+ / deleted-key helpers: defaults only until those slices register keys. */
 export function shouldShowAgentIdentity(_configurationService?: IConfigurationService): boolean {
 	return true;
 }
@@ -65,12 +67,18 @@ export function shouldOpenConversationOnStartup(_configurationService?: IConfigu
 	return true;
 }
 
-export function shouldNotifyPermissionRequests(_configurationService?: IConfigurationService): boolean {
-	return true;
+export function shouldNotifyPermissionRequests(configurationService?: IConfigurationService): boolean {
+	if (!configurationService) {
+		return true;
+	}
+	return configurationService.getValue<boolean>(UA_CLIENT_NOTIFICATIONS_PERMISSION_REQUESTS) !== false;
 }
 
-export function shouldNotifyTurnCompleted(_configurationService?: IConfigurationService): boolean {
-	return false;
+export function shouldNotifyTurnCompleted(configurationService?: IConfigurationService): boolean {
+	if (!configurationService) {
+		return false;
+	}
+	return configurationService.getValue<boolean>(UA_CLIENT_NOTIFICATIONS_TURN_COMPLETED) === true;
 }
 
 export function shouldOpenPendingOnFocus(_configurationService?: IConfigurationService): boolean {

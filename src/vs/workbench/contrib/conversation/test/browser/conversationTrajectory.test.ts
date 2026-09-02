@@ -103,6 +103,7 @@ suite('ConversationTrajectory', () => {
 			revealItem: () => { },
 			getAccessibleTurnContent: () => undefined,
 			focusAccessibleTurn: () => { },
+			scrollToFirstPendingConfirmation: () => { },
 		});
 		instantiationService.stub(IClipboardService, clipboardService);
 		instantiationService.stub(ICommandService, new class implements ICommandService {

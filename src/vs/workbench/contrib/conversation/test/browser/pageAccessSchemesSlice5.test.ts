@@ -60,6 +60,7 @@ suite('Page access schemes slice 5 (UI contract)', () => {
 			revealItem: () => { },
 			getAccessibleTurnContent: () => undefined,
 			focusAccessibleTurn: () => { },
+			scrollToFirstPendingConfirmation: () => { },
 		});
 		instantiationService.stub(IConversationReviewNavService, {
 			_serviceBrand: undefined,

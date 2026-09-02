@@ -89,6 +89,7 @@ import {
 	InputHistoryDirection,
 	navigateInputHistoryBrowse,
 } from './conversationInputHistory.js';
+import { findFirstPendingConfirmationTurnId, scrollToFirstPendingConfirmation as applyPendingConfirmationScroll } from './conversationPendingSeat.js';
 import { showConversationPart } from './conversationSessionStatus.js';
 import { IConversationRosterService } from './conversationStubService.js';
 import { ConversationMermaidExtensionInfo, resolveConversationMermaidExtension } from './conversationMermaidHost.js';
@@ -1698,20 +1699,25 @@ export class ConversationLens extends Disposable {
 		this.inboxOverlay.render();
 	}
 
-	private scrollToFirstPendingConfirmation(): void {
-		if (this.lensId === 'trajectory') {
-			this.setLensId('conversation');
+	scrollToFirstPendingConfirmation(): void {
+		applyPendingConfirmationScroll({
+			lensId: this.lensId,
+			showConversationLens: () => this.setLensId('conversation'),
+			inputMaximized: this.inputMaximized,
+			setInputMaximized: maximized => this.setInputMaximized(maximized),
+			findFirstPendingConfirmationTurnId: () => this.findFirstPendingConfirmationTurnId(),
+			getConfirmationElement: turnId => this.timelineTree.getConfirmationElement(turnId),
+		});
+	}
+
+	private findFirstPendingConfirmationTurnId(): string | undefined {
+		const fromEntries = this.lastAttachedEntries.find(entry =>
+			(entry.kind === 'confirmation' || entry.kind === 'question') && entry.status === 'pending'
+		);
+		if (fromEntries) {
+			return fromEntries.id;
 		}
-		if (this.inputMaximized) {
-			this.setInputMaximized(false);
-		}
-		const pending = this.stubService.getTurns(this.stubService.getActiveSessionId())
-			.find(t => t.kind === 'confirmation' && t.status === 'pending');
-		if (!pending) {
-			return;
-		}
-		const seat = this.timelineTree.getConfirmationElement(pending.id);
-		seat?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+		return findFirstPendingConfirmationTurnId(this.stubService.getTurns(this.stubService.getActiveSessionId()));
 	}
 
 	private resolveConfirmation(turnId: string, status: 'allowed' | 'skipped'): void {
