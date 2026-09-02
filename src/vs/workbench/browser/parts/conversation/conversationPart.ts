@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import './media/conversationPart.css';
+import './media/ua-common.css';
 import { $, append } from '../../../../base/browser/dom.js';
 import { LayoutPriority } from '../../../../base/browser/ui/splitview/splitview.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
