@@ -72,7 +72,7 @@ summary: "本仓库核心术语的单一事实源：分层、Parts、Agent UI �
 | **四钮** | titlebar 右上 `LayoutControlMenu` 的 Navigator / Conversation / Preview / Sources 显隐钮；Panel / Aux 退到 submenu。 | [commands](systems/conversation/commands.md) |
 | **INV-052-NO-DUAL-HIDE** | `Conversation ∨ (Editor ∨ Sources)` 至少一个可见；由 `enforceAgentShellVisible` 维持。 | [ADR-006](../dev/decisions/006-shell-invariants.md) |
 | **INV-NO-COPILOT** | 产品 Conversation 零 import Copilot Chat Widget / 输入 / 会话模型；默认窗不以 Copilot 为入口。 | [ADR-006](../dev/decisions/006-shell-invariants.md) |
-| **Engine pane / `ua.engine`** | vscode Preferences 内的 UA 引擎页（与 `ua.connection` 并列）：Skills / Agents / Rules / Hooks / MCP / Tools 的产品主面；无引擎诚实空 + Test。 | [settings-two-surfaces](../dev/plans/settings-two-surfaces.md) · [customizations-engine](../dev/plans/customizations-engine.md) |
+| **Engine pane / `ua.engine`** | vscode Preferences 内的 UA 引擎页（与 `ua.connection` 并列）：Skills / Agents / Rules / Hooks / MCP / Tools 的产品主面；无引擎 catalog 节隐藏；UNSUPPORTED 诚实空。list/toggle @ HEAD 见 [engine-catalog](systems/workbench/engine-catalog.md)。 | [settings-two-surfaces](../dev/plans/settings-two-surfaces.md) · [customizations-engine](../dev/plans/customizations-engine.md) |
 | **`universe-agent://`** | 页面访问 scheme（`IURLHandler`），`universe-agent://settings/<page>` 打开对应 Settings 页；不绑 `product.urlProtocol`。 | [commands §4](systems/conversation/commands.md) · [page-access-schemes](../dev/plans/page-access-schemes.md) |
 | **Navigator tab** | Activity 上一段 = Sidebar 一个 `ViewContainer`（Files / Sessions / Projects / Agents / Team）。子页按 vscode 列表/树重设计，不抄 Compose panel。 | [navigator-tabs-access](reference/code-oss-b2/navigator-tabs-access.md) |
 

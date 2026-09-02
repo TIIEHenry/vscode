@@ -19,7 +19,8 @@ summary: "本仓消费 UniverseAgent 引擎（外仓）协议面的导航：已�
 
 | 页 | 内容 |
 |----|------|
-| [engine-protocol-surface.md](engine-protocol-surface.md) | 已知服务与 RPC、能力探测三态、本仓消费口径、协议缺口、R5 须查明的会话面清单 |
+| [engine-protocol-surface.md](engine-protocol-surface.md) | 已知服务与 RPC、能力探测三态、本仓消费口径、协议缺口、会话面清单 |
+| [engine-catalog §](../../systems/workbench/engine-catalog.md) | Engine 页 catalog UI 规格（list/toggle @ HEAD；写 RPC 边界） |
 
 ## 红线（摘自 ADR-006 壳不变量、ADR-003 adapter 边界草案与 customizations-engine）
 

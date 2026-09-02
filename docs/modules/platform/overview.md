@@ -123,9 +123,9 @@ registerSingleton(IUriIdentityService, UriIdentityService, InstantiationType.Del
 
 `universeAgent/` 是 **UniverseAgent gRPC 传输 adapter**（[ADR-003](../../../dev/decisions/003-engine-adapter-boundary.md)），与 `agentHost/` **隔离命名**——不得继承 `IAgentHostService` / `IAgentConnection`：
 
-- `IUniverseAgentConnection`（`common`）：Connect 生命周期、`isEngineConnected`（`session_token` + 活 channel）、能力三态、session / chat / team unary 面；renderer 经 electron-main ProxyChannel 代理
-- `universeAgent/node`：`@grpc/grpc-js` 客户端（`SystemService` / `SessionService` / `AgentService` / `TeamService` / `ToolService` 传输）；`sessionCore` Actor fold；host-only `AgentService.Tree`
-- 消费者：`contrib/conversation` 同 token roster（`ConversationEngineRosterService`）、UA Preferences panes、StatusBar 连接态（H4b）
+- `IUniverseAgentConnection`（`common`）：Connect 生命周期、`isEngineConnected`（`session_token` + 活 channel）、`getCapabilitySnapshot()`（`grpcCapabilityProbe`：`skills` / `agentProfiles` / `mcp` / `tools` / `agentTree` / `team`）、session / chat / team / **catalog list** 面；renderer 经 electron-main ProxyChannel 代理
+- `universeAgent/node`：`@grpc/grpc-js` 客户端（`SystemService` / `SessionService` / `AgentService` / `TeamService` / `ToolService` / `McpService` 传输）；catalog @ HEAD = `ListSkills` · `SetSkillEnabled` · `ListAgentProfiles` · `ListMcpServers` · `ToggleMcpServer` · `ListTools`（**写 RPC 待槽 A**）；`sessionCore` Actor fold；host-only `AgentService.Tree`
+- 消费者：`contrib/conversation` roster（`ConversationEngineRosterService`）、UA Preferences panes（[engine-catalog](../../systems/workbench/engine-catalog.md)）、StatusBar 连接态（H4b）
 
 **AHP 仍非 UA 会话权威**；引擎协议面见 [engine-protocol-surface](../../reference/universe-agent/engine-protocol-surface.md)；系统边界见 [agent-host overview](../../systems/agent-host/overview.md)。
 
