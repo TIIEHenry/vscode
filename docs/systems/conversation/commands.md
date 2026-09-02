@@ -4,7 +4,7 @@ type: reference
 status: accepted
 phase: N/A
 updated: 2026-09-02
-summary: "四钮、Conversation、Sources、Sessions roster、UA Preferences、深链的用户可见命令清单；四钮默认键位（D14）；设置键与默认值"
+summary: "四钮、Conversation、Sources、Sessions roster、UA Preferences、深链的用户可见命令清单；四钮默认键位与 F6 part 循环（D14）；设置键与默认值"
 ---
 
 # Agent IDE 壳命令、菜单落点与快捷键
@@ -21,7 +21,7 @@ summary: "四钮、Conversation、Sources、Sessions roster、UA Preferences、�
 | `workbench.action.toggleSources` | Toggle Sources Visibility | `LayoutControlMenu`「Sources」；View › Appearance；F1 | `Ctrl/Cmd+Alt+Shift+S` |
 | Panel / Auxiliary Bar toggles | 上游命令 | 退到 `LayoutControlMenuSubmenu`（D7） | 上游继承 |
 
-四钮之外，Conversation / Sources 区域内各有本地 hide（−）控件（`partRegionHideControl.ts`），Preview 的本地 hide 是 editor title 动作；全部经 `setPartHidden` 走同一 Layout 路径。互斥规则见 [ADR-006](../../../dev/decisions/006-shell-invariants.md)。
+四钮之外，Conversation / Sources 区域内各有本地 hide（−）控件（`partRegionHideControl.ts`），Preview 的本地 hide 是 editor title 动作；全部经 `setPartHidden` 走同一 Layout 路径。互斥规则见 [ADR-006](../../../dev/decisions/006-shell-invariants.md)。壳级 Part 焦点循环（F6）见 [§7](#7-键盘可达性现状)。
 
 ## 2. Conversation（`contrib/conversation`）
 
@@ -75,7 +75,7 @@ Sources 无独立命令；tab 切换为 title 区 tab strip 点击（`nextSource
 
 ## 7. 键盘可达性现状
 
-**四钮默认键位（D14 @2026-09-02）** — 注册于 `layoutActions.ts`，Keyboard Shortcuts 可见；须不与 Open Conversation（`Ctrl+Alt+I` / mac `Cmd+Ctrl+I`）或 Navigator（`Ctrl/Cmd+B`）冲突：
+**四钮默认键位（D14 @2026-09-02）** — 注册于 `workbench/browser/actions/layoutActions.ts`（`ProductLayoutToggleKeybindingPrimary`），Keyboard Shortcuts 可见；须不与 Open Conversation（`Ctrl+Alt+I` / mac `Cmd+Ctrl+I`）或 Navigator（`Ctrl/Cmd+B`）冲突：
 
 | 区域 | 命令 id | 默认键位 |
 |------|---------|----------|
@@ -86,4 +86,24 @@ Sources 无独立命令；tab 切换为 title 区 tab strip 点击（`nextSource
 
 隐藏 Conversation 后可用 **`Ctrl/Cmd+Alt+Shift+C`**（toggle）或 **`Ctrl+Alt+I`**（Open Conversation，显示并聚焦）纯键盘回到对话。
 
-**仍缺（PRD-018 其余项，D14 未闭）**：F6 / Shift+F6 part 焦点循环；chat tab / 子代理对话框 / 「对话 \| 轨迹」透镜 / 过程折 / 权限座位键盘可达与 aria 名；`showConversationPart`、split、关非根仍无默认键位。约束与目标见 [PRD-018](../../product/requirements.md#prd-018-键盘可达与辅助功能)（`accepted`）。
+**Part 焦点循环（D14 @2026-09-02）** — 键位注册于 `workbench/browser/actions/navigationActions.ts`；名义顺序与隐藏跳过逻辑于 `workbench/services/layout/browser/layoutService.ts`（`MAIN_WINDOW_PART_FOCUS_CYCLE`、`resolveVisiblePartFocusNeighbour`、`getDefaultPartFocusTarget`）：
+
+| 命令 id | 标题 | 默认键位 |
+|---------|------|----------|
+| `workbench.action.focusNextPart` | Focus Next Part | `F6` |
+| `workbench.action.focusPreviousPart` | Focus Previous Part | `Shift+F6` |
+
+主窗口名义顺序（`F6` 正向）：Activity Bar → Navigator（Sidebar）→ **Conversation** → **Preview**（Editor）→ **Sources** → Panel → Auxiliary Bar → Status Bar。Conversation / Preview / Sources 经 `setPartHidden` 隐藏时，`resolveVisiblePartFocusNeighbour` 会跳过不可见 part，**F6 不会落到隐藏的 Agent 壳区域**。当前无 workbench part 持焦时，默认落到第一个可见的 Conversation / Preview / Sources（`getDefaultPartFocusTarget`）。
+
+**对话区内 aria（实现文件索引）** — 下列 chrome 已有 `aria-label` / `role="tablist"` 等；默认键盘快捷键仍见下方「仍缺」：
+
+| 控件 | 实现文件 |
+|------|----------|
+| 延伸 chat tab / SessionBar 窗口导航（← / →） | `conversationNavigation.contribution.ts` |
+| 「对话 \| 轨迹」透镜 tablist | `conversationLens.ts` |
+| 过程折（Process steps） | `conversationProcessFold.ts`、`conversationTimelineTree.ts` |
+| 权限 / 确认座位（confirmation seat） | `conversationConfirmationSeat.ts` |
+| Composer 底栏 Permission 下拉 | `conversationLens.ts`（文案 `conversationLensDockStrings.ts`） |
+| 子代理对话框 overlay | `conversationSubAgentOverlay.ts` |
+
+**仍缺（PRD-018 其余项）**：延伸 chat tab / 子代理对话框 / 「对话 \| 轨迹」透镜 / 过程折 / 权限座位的**默认键盘快捷键**（aria 名已部分落地，见上表）；`showConversationPart`、split、关非根仍无默认键位。约束与目标见 [PRD-018](../../product/requirements.md#prd-018-键盘可达与辅助功能)（`accepted`）。

@@ -77,5 +77,5 @@ summary: "三层：Part 槽宿主 → contrib 产品 chrome → 会话数据服�
 
 - 会话与回合在内存，重启即丢（[PRD-017](../../product/requirements.md#prd-017-本地会话持久化) `proposed`）。
 - 助手回合是本地 echo，UI 与 fixture 文案带 `Stub`；引擎连接态恒为断开（StatusBar「Engine not connected」）。
-- 四钮与本系统命令均无默认快捷键（[PRD-018](../../product/requirements.md#prd-018-键盘可达与辅助功能) `proposed`；[commands](commands.md)）。
+- 四钮默认键位与 F6 / Shift+F6 part 循环已登记（[commands §7](commands.md#7-键盘可达性现状)；[PRD-018](../../product/requirements.md#prd-018-键盘可达与辅助功能) `accepted`）；Conversation 内透镜 / 过程折 / 权限座位等仍缺默认键位。
 - `contrib/conversation` 注册于 `workbench.common.main.ts`，Web 入口理论共用但无冒烟证据（[PRD-019](../../product/requirements.md#prd-019-web--远程窗口一致性)）。
