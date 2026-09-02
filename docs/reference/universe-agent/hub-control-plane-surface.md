@@ -71,7 +71,7 @@ refresh + csrf 经 `IEncryptionMainService`（`safeStorage`）加密后写 `IApp
 | pane | `IUniverseAgentHubService.isEncryptionAvailable()` → 诚实提示「Secure storage unavailable — sign in again after restart.」（`connectionPreferencesPane`） |
 | 配对 / DeviceAuth | 无可用身份 ⇒ 连接路径 fail-closed（对齐 ADR-261 §5） |
 
-**`refreshIfNeeded`：** store 已实现单飞 refresh（读持久化 secret → `POST /auth/refresh` → 轮换 refresh 写回）。**启动时从磁盘恢复 Hub 登录态、以及 access 过期 / 401 时自动调用 refreshIfNeeded** 仍由槽 A 实施，**未**在本切片挂接；重启后须重新登录直至该路径落地。
+**`refreshIfNeeded`：** store 已实现单飞 refresh（读持久化 secret → `POST /auth/refresh` → 轮换 refresh 写回）。**启动恢复已落 @ `dba63c70`（合入 `17968447`）：** `UniverseAgentHubService` 构造时经 `restorePersistedHubSessionIfNeeded` / `whenStartupRestoreComplete` 扫描 `listPersistedHubBaseUrls()`；有加密 refresh 且 access 过期则调用 `refreshIfNeeded`——成功 → `signedIn` 并 `refreshDirectory`；refresh 401/403 → `authExpired`；无持久化 → `signedOut`（单测见 `universeAgentHubService.test.ts`）。**运行中**目录 / resolver 遇 401 **尚未**自动 refresh（仍报 `authExpired`）。
 
 ## 4. 设备目录 DTO（`GET /devices` 条目）
 
