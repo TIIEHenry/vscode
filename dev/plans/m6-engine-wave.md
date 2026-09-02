@@ -4,7 +4,7 @@ type: plan
 status: accepted
 phase: M6
 updated: 2026-09-02
-summary: "R5 方案（2026-09-02 用户委托裁决签收）：platform 传输 adapter + 同 token roster 投影；history 经 session-core fold；AHP 非权威；能力三态；切片 M6-A1 platform → M6-A2 contrib 接线 → page-access 5 → E1 → T4"
+summary: "R5 方案（2026-09-02 用户委托裁决签收）：platform 传输 adapter + 同 token roster 投影；history 经 session-core fold；AHP 非权威；能力三态；切片 M6-A1 platform → M6-A2 contrib 接线 → page-access 5 → E1 → T4；§11 并入 navigator / sources-review 增量（team unary、Agent 树首拉、文件改动 join、agentTree/team 键）"
 ---
 
 # M6 引擎波
@@ -255,9 +255,26 @@ stream-timeline S1 → S2 → S3（工位 D，串行）      M6-A1 platform/univ
 
 ---
 
+## 11. 增量修订：Navigator 引擎段 / Sources Review（2026-09-02 同批签收，A1 / A2 实施须并入）
+
+来自 [navigator-engine-segments §9](navigator-engine-segments.md) 与 [sources-review-progress §8](sources-review-progress.md)（两稿 `accepted`）。**不改** §2 非目标（PRD-016 活 fork catalog 仍不进本波）、不改 session-core 类型、不改 A1「不自建投影」。
+
+| 切片 | 增量 |
+|------|------|
+| **A1** renderer 面 `IUniverseAgentConnection` | `team.memberStatus(sessionId, agentId)` / `team.taskList(sessionId, agentId)` / `team.teamInfo(sessionId, agentId, teamId)` 三个只读 unary；`requestAgentTreeRefresh(sessionId)`（转 host）；事件 `onDidChangeTeamRuntime: Event<{ sessionId }>`；事件类型 `onDidFileMutation: Event<IFileMutationRecord>`（A1 实现 `Event.None`，禁止发未 join 的 L3 snapshot）；连接快照暴露 `workDir` 与「本次 Connect 是否发送 `shared_fs_root`」 |
+| **A1** node 客户端 | 加 `AgentService.Tree(AgentTreeRequest{session_id})`（**仅 host 调用**，不进 renderer 面）；`TeamService.MemberStatus / TaskList / TeamInfo` |
+| **A2** host：Agent 树 | 拉 `Tree` 并 post `agentTreeBound`（`type / status` 写 proto 枚举名字串）。**必拉**：`SessionEventStream` 订阅成功 / 首个 lease / `switchSession` 立即一次；禁止 `SessionInfo.root_agent` 充当初拉。**再拉**：L3 `sub_agent_activity.set_status` / `sub_agent_completed` / `detached_child_phase` / `multi_agent_status` / `turn_lifecycle`、L2 `branch_topology_notified`、`requestAgentTreeRefresh`；250 ms 合并、in-flight 去重；`UNIMPLEMENTED` → `agentTree=UNSUPPORTED` 且本连接不再重试。`team_created` → post `teamIdBound`；L3 `multi_agent_status` 任一臂 → `onDidChangeTeamRuntime` |
+| **A2** host：文件改动 join（demux / fold 旁路，与 attribution 同层） | session 内 `tool_call_id → { turnId, agentId }` 表（`ToolCallLifecycleEvent` 写表）；`tool_runtime_snapshot.payload.file_mutation_payload` 查表产出 `IFileMutationRecord`，未命中进 pending；`RuntimeOverlaySnapshotEvent.tool_runtime_snapshots` 重播种只补 path / operation、查表回填、去重；`TurnCompletedChange.assistant_turn_id` 到达后 settle 该 turn 记录的 `turnId`；fold 产出帧时写 `ItemAttribution.toolCallId?`（`conversationViewFrame.ts`，vscode 类型；overlay 卸挂换成 L2 项时新 id 也写） |
+| **A2** catalog | 根仍 `'default'`（不改 URI / 面包屑 / 不可关根 tab）；一旦登记非根 catalog 项（含惰性 `registerSubAgentChat`），id 逐字 ≡ `AgentInfo.agent_id`；**不**交付活 fork 列表 / 预同步 catalog |
+| **A2** 验证 | 假连接、无 L3 → 快照有一层根 `liveAgentTree`、Tree ≥ 1；`sub_agent_completed` → 树更新一次；`UNIMPLEMENTED` 后 Tree 计数不增；lifecycle + snapshot → 一条完整记录；先 snapshot 后 lifecycle → 先 pending 再产出；`turn_completed` 后 turnId = `assistant_turn_id`；重播种不重复；帧 attribution 带 `toolCallId`；非根 catalog id ≡ `agent_id`、根仍 `'default'` |
+| **§5** 能力三态 | 加 IDE 推导键 `agentTree`（`Tree` UNIMPLEMENTED → UNSUPPORTED）/ `team`（`MemberStatus` UNIMPLEMENTED → UNSUPPORTED）；非 UNIMPLEMENTED 失败不改三态 |
+
+---
+
 ## 相关文档
 
 - [PRD-007](../../docs/product/requirements.md#prd-007-诚实降级) · [PRD-008](../../docs/product/requirements.md#prd-008-引擎与会话权威)
+- [navigator-engine-segments.md](navigator-engine-segments.md) · [sources-review-progress.md](sources-review-progress.md)（§11 增量来源）
 - [page-access-schemes.md](page-access-schemes.md) §10 切片 5 · B10 · B11
 - [customizations-engine.md](customizations-engine.md)
 - [conversation-stream-timeline.md](conversation-stream-timeline.md)（M6 时间线专章，`accepted`）
@@ -272,3 +289,4 @@ stream-timeline S1 → S2 → S3（工位 D，串行）      M6-A1 platform/univ
 - 2026-09-02：规则 16 只读审查 **Approve with changes**（工位 B @ `bfe24b48`）。已钉：`isEngineConnected` = token + 活 channel；pairing-pending 非 connected；stub 种子 `untitled`/`visualize`；首次 List 前不投影 stub；M6-A `submitDraft`/echo fail-closed；`deleteSession` 已连接不回填 stub；SUPPORTED 须 `GrpcCapabilityProbe` 非 UNIMPLEMENTED；gRPC 宿主 node + ProxyChannel；切片 5 UI-only；ADR-003 一窗一 UA session。
 - 2026-09-02：R5 签收 @ 工位 B（loop 波内并入 §9 并升 `accepted`，合入 `agent-ide` @ `5b10e789`）。
 - 2026-09-02：**主仓裁决确认 `accepted`**（用户委托「分析 loop 阻塞、解禁后续」；规则 16 已跑且全部改入，无未决 Critical）。同批裁定：M6-A 拆 **A1 platform**（与 stream-timeline S1–S3 并行）/ **A2 contrib 接线**（S3 + A1 合入后）；分层门 = `code-layering` + boundary 测，`valid-layers-check` 在 D8 豁免期内不作门禁；PRD-017 本地持久化落点见 [requirements PRD-017](../../docs/product/requirements.md#prd-017-本地会话持久化)（A2 接通后本地副本降为缓存）。ADR-003 同批 `accepted`。
+- 2026-09-02：并入 §11 增量修订（navigator-engine-segments §9 + sources-review-progress §8，两稿规则 16 三轮后 `accepted`）：A1 team unary / `requestAgentTreeRefresh` / 两事件 / node `Tree`；A2 host 首拉 + 再拉 Agent 树、文件改动 join 表、catalog id 约定；§5 加 `agentTree` / `team` 键。非目标不变。

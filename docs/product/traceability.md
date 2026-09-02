@@ -4,7 +4,7 @@ type: reference
 status: accepted
 phase: N/A
 updated: 2026-09-02
-summary: "PRD-001–021 追踪；PRD-003/004/007 增补验收指向 conversation-stream-timeline；系统规格列改指 systems/conversation 与 systems/sources；PRD-008 m6-engine-wave + ADR-003 accepted（M6-A1 可开）；PRD-009 accepted（ADR-005）；PRD-017–021 accepted（实施 D13–D15 / D10）"
+summary: "PRD-001–021 追踪；PRD-003/004/007 增补验收指向 conversation-stream-timeline；系统规格列改指 systems/conversation 与 systems/sources；PRD-008 m6-engine-wave + ADR-003 accepted（M6-A1 可开）；PRD-009 accepted（ADR-005）；PRD-017–021 accepted（实施 D13–D15 / D10）；PRD-022/023 accepted（navigator-engine-segments / sources-review-progress 三轮审查后签收）"
 ---
 
 # 产品需求追踪
@@ -19,7 +19,7 @@ summary: "PRD-001–021 追踪；PRD-003/004/007 增补验收指向 conversation
 | [PRD-002](requirements.md#prd-002-会话上下文) | `accepted` | [session-windows](../systems/conversation/session-windows.md) · [stub-and-fixtures](../systems/conversation/stub-and-fixtures.md) · [session-roster-reuse](../reference/code-oss-b2/session-roster-reuse.md) | [m2](../../dev/plans/m2-product-shell.md) · [page-access-schemes](../../dev/plans/page-access-schemes.md) | D4 V5 PASS；roster 单测 |
 | [PRD-003](requirements.md#prd-003-时间线与输入) | `accepted` | [lens-and-trajectory](../systems/conversation/lens-and-trajectory.md) · [composer-and-inbox](../systems/conversation/composer-and-inbox.md) | [m2](../../dev/plans/m2-product-shell.md) · [conversation-empty-hero](../../dev/plans/conversation-empty-hero.md) · 验收 4–5：[conversation-stream-timeline](../../dev/plans/conversation-stream-timeline.md) S2/S3 | D4 PASS；T1–T6 单测；验收 4–5 待验证 |
 | [PRD-004](requirements.md#prd-004-权限座位) | `accepted` | [lens-and-trajectory §2](../systems/conversation/lens-and-trajectory.md) · [stub-and-fixtures §5](../systems/conversation/stub-and-fixtures.md) | [m2](../../dev/plans/m2-product-shell.md) · 验收 4–5：[conversation-stream-timeline](../../dev/plans/conversation-stream-timeline.md) S3/S5 | D4 PASS；验收 4–5 待验证 |
-| [PRD-005](requirements.md#prd-005-preview-与-sources) | `accepted` | [sources overview](../systems/sources/overview.md) · [parts-and-grid](../systems/workbench/parts-and-grid.md) | [m1](../../dev/plans/m1-shell-followon.md) · [m2](../../dev/plans/m2-product-shell.md)（Changes / Review tab） | D4 V8 PASS（Files/Changes/Review tab）；`contrib/sources/test` 8 文件 |
+| [PRD-005](requirements.md#prd-005-preview-与-sources) | `accepted` | [sources overview](../systems/sources/overview.md) · [parts-and-grid](../systems/workbench/parts-and-grid.md)；Review 语义见 PRD-023 | [m1](../../dev/plans/m1-shell-followon.md) · [m2](../../dev/plans/m2-product-shell.md)（Changes / Review tab） | D4 V8 PASS（Files/Changes/Review tab）；`contrib/sources/test` 8 文件 |
 | [PRD-006](requirements.md#prd-006-默认无-copilot--chat-冒充) | `accepted` | [agent-ui](../systems/chat/agent-ui.md) · [views-and-composites](../systems/workbench/views-and-composites.md) | [m5](../../dev/plans/m5-ui-shell-hardening.md) · [page-access-schemes](../../dev/plans/page-access-schemes.md) · [settings-two-surfaces](../../dev/plans/settings-two-surfaces.md) | D4 V6 PASS；H0–H3 已落 |
 | [PRD-007](requirements.md#prd-007-诚实降级) | `accepted` | [composer-and-inbox §7](../systems/conversation/composer-and-inbox.md) · [stub-and-fixtures](../systems/conversation/stub-and-fixtures.md) · [ADR-006](../../dev/decisions/006-shell-invariants.md) | [m2](../../dev/plans/m2-product-shell.md) · 验收 4–5：[conversation-stream-timeline](../../dev/plans/conversation-stream-timeline.md) S3 | D4 PASS；验收 4–5 待验证 |
 | [PRD-008](requirements.md#prd-008-引擎与会话权威) | `blocked`（方案已签收，待接通证据） | [agent-host](../systems/agent-host/INDEX.md) · [ADR-003](../../dev/decisions/003-engine-adapter-boundary.md) (`accepted` @2026-09-02) | [m6-engine-wave](../../dev/plans/m6-engine-wave.md) (`accepted`；M6-A1 ReadyToImplement，A2 待 S3 + A1) · [conversation-stream-timeline](../../dev/plans/conversation-stream-timeline.md) S4–S6 | 无；升 `implemented` 须 M6-A2 隔离 profile 启动冒烟 |
@@ -36,6 +36,8 @@ summary: "PRD-001–021 追踪；PRD-003/004/007 增补验收指向 conversation
 | [PRD-019](requirements.md#prd-019-web--远程窗口一致性) | `accepted` | [conversation overview §5](../systems/conversation/overview.md) | [D15](../../dev/progress/deferred-gaps.md)（M6-A2 后 Web 冒烟） | 无 Web 冒烟证据 |
 | [PRD-020](requirements.md#prd-020-规模与性能上限) | `accepted` | [lens-and-trajectory §3](../systems/conversation/lens-and-trajectory.md) | [D10](../../dev/progress/deferred-gaps.md)（上限已裁定 1,000 / 5,000；M6-D 后） | 无 |
 | [PRD-021](requirements.md#prd-021-未知内容与错误的诚实呈现) | `accepted` | [lens-and-trajectory](../systems/conversation/lens-and-trajectory.md) | [conversation-stream-timeline §3.3](../../dev/plans/conversation-stream-timeline.md) | 待验证（S1–S3 单测；活数据随 S4） |
+| [PRD-022](requirements.md#prd-022-navigator-引擎段) | `accepted` | [activity-and-sidebar §5](../systems/workbench/activity-and-sidebar.md) · [navigator-tabs-access](../reference/code-oss-b2/navigator-tabs-access.md) · [engine-protocol-surface](../reference/universe-agent/engine-protocol-surface.md)（G-NAV-1 / G-NAV-2 待回填） | [navigator-engine-segments](../../dev/plans/navigator-engine-segments.md)（`accepted` @2026-09-02；N1–N5 全排 M6-A2 后，含其 §9 对 m6 的增量） | 无；HEAD 三段诚实空 |
+| [PRD-023](requirements.md#prd-023-sources-review-审阅进度与归因) | `accepted` | [sources overview](../systems/sources/overview.md)（Review 行待 R2 改口）· Desktop ADR-043 作 `source` | [sources-review-progress](../../dev/plans/sources-review-progress.md)（`accepted` @2026-09-02；R1 / R2 / R4a ReadyToImplement；R3 / R4b 随 M6-A2 + S2） | 无；HEAD Review = Changes 同集只读列表 |
 
 ## 状态分桶
 
@@ -44,5 +46,6 @@ summary: "PRD-001–021 追踪；PRD-003/004/007 增补验收指向 conversation
 | 代码已落、D4 已验 | PRD-001–PRD-016（除 blocked） |
 | EH 探针已验 | D5 closed @ [wave3](../../dev/progress/d5-evidence/smoke-wave3-0001/)（YAML / Todo Tree / js-debug PASS） |
 | 阻塞 / 未决 | PRD-008（方案已签收；待 M6-A2 接通证据）、PRD-009 实施（sources-changes-diff F1–F5）、页面接入切片 5（M6-B）、customizations E1（M6-C） |
-| 已接受、实施延期 | PRD-017–020（非功能需求；D13 / D14 / D15 / D10，均不阻塞 M6） |
+| 已接受、实施延期 | PRD-017–020（非功能需求；D13 / D14 / D15 / D10，均不阻塞 M6）；PRD-022（N1–N5 排 M6-A2 后）；PRD-023 R3 / R4b（随 M6-A2 + S2） |
+| 已接受、可立即开 | PRD-023 R1 / R2 / R4a（无引擎，`contrib/sources/**`） |
 | 仅提议 | PRD-010（已裁决名称，排引擎波后，[D12](../../dev/progress/deferred-gaps.md)） |

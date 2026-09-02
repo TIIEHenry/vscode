@@ -4,7 +4,7 @@ type: demand
 status: accepted
 phase: N/A
 updated: 2026-09-02
-summary: "PRD-001–PRD-016 默认窗产品壳已接受；PRD-003/004/007 增流式、提问座位、两层连接态验收；PRD-005 收进 Changes/Review 列表；PRD-002 Route 以 PRD-015 为准；PRD-009 Diff 归属已接受；PRD-017–021 accepted（017 存储落点 / 020 上限已裁定）；PRD-008 接线方案已签收、本条仍 blocked 待接通证据；产品身份排引擎波后"
+summary: "PRD-001–PRD-016 默认窗产品壳已接受；PRD-003/004/007 增流式、提问座位、两层连接态验收；PRD-005 收进 Changes/Review 列表；PRD-002 Route 以 PRD-015 为准；PRD-009 Diff 归属已接受；PRD-017–021 accepted（017 存储落点 / 020 上限已裁定）；PRD-008 接线方案已签收、本条仍 blocked 待接通证据；产品身份排引擎波后；PRD-022 Navigator 引擎段 / PRD-023 Sources Review 审阅进度与归因 accepted（方案三轮审查后签收；PRD-005 Review 句改口）"
 ---
 
 # Agent IDE 产品需求
@@ -68,7 +68,7 @@ summary: "PRD-001–PRD-016 默认窗产品壳已接受；PRD-003/004/007 增流
 
 - **状态**：`accepted`
 - **用户价值**：用户需要看文件时，能在配套区域打开预览、文件列表和变更列表，而不把编辑器当成主流程。
-- **用户可观察陈述**：窗口右侧配套区域上方是 Preview，下方是 Sources，Sources 有 **Files | Changes | Review** 三个 tab。Files 是工作区文件的只读列表投影；Changes 是 SCM 变更资源的列表投影，可以在列表里 stage / unstage 并在底部一行 commit；Review 是同一变更集的只读列表，面板顶有说明该面只读、review 引擎未接线。Files 行点击在 Preview 打开文件本体；Changes / Review 行点击打开该文件的 Diff，归属与移动规则见 [PRD-009](#prd-009-changes-与-diff)。各 tab 顶有文件名 / 路径子串筛选。
+- **用户可观察陈述**：窗口右侧配套区域上方是 Preview，下方是 Sources，Sources 有 **Files | Changes | Review** 三个 tab。Files 是工作区文件的只读列表投影；Changes 是 SCM 变更资源的列表投影，可以在列表里 stage / unstage 并在底部一行 commit；Review 是同一变更集的只导航列表，面板顶有说明该面只读；审阅进度与归因见 [PRD-023](#prd-023-sources-review-审阅进度与归因)。Files 行点击在 Preview 打开文件本体；Changes / Review 行点击打开该文件的 Diff，归属与移动规则见 [PRD-009](#prd-009-changes-与-diff)。各 tab 顶有文件名 / 路径子串筛选。
 - **产品验收标准**：
   1. Files 列表是只读投影，不是再造一棵与资源管理器对等的主工作区；资源管理器仍是导航区文件树的权威。
   2. Changes 的 stage / unstage / commit 走 SCM 提供者（git）已有命令，不另造 SCM 状态。
@@ -287,6 +287,38 @@ PRD-001 至 PRD-007 的代码已在 M0–M3 合入，但 D4 启动冒烟（T1–
   2. 错误行的重试按钮只在引擎标记可重试时出现；不可重试的错误只显示说明。
   3. 无引擎时不构造假未知块或假错误来演示这两种行。
 - **依赖或未决**：活数据依赖 PRD-008。对应 session-core `unknown` / `error` 两种记录（Desktop ADR-307 诚实降级镜像）。实施见 [conversation-stream-timeline](../../dev/plans/conversation-stream-timeline.md) §3.3。2026-09-02 随该方案签收新增。
+
+## 引擎接通后的配套面（2026-09-02 新增）
+
+以下两条给「壳已落、内容等引擎」的两处面板补产品陈述。此前 Navigator 的 Projects / Agents / Team 与 Sources Review 只有容器与诚实空态，引擎接通后该显示什么没有需求正文，M6 序列也未排它们。两条随对应方案过规则 16 三轮后于 2026-09-02 签收为 `accepted`（用户授权「架构由本会话裁定」）。
+
+### PRD-022 Navigator 引擎段
+
+- **状态**：`accepted`
+- **用户价值**：引擎接通后，用户能在左侧导航区看清「我在哪个项目的哪个会话、这个会话里有哪些 Agent 在跑、团队成员和任务到哪一步」，并从这里定位到对话里对应的位置，而不必在对话时间线里翻找。
+- **用户可观察陈述**：Navigator 的 Projects 段按引擎 → 工作目录 → 会话三层只读显示引擎会话（引擎提供工作目录时按它分组，否则全部会话挂在引擎当前工作目录下），本地最近文件夹仍是独立一组；点会话行切换当前会话。Agents 段显示当前会话的 Agent 层级树（类型、状态、模型、回合数）与工具活动列表；点「Reveal in Conversation」在对话窗口内打开该子代理。Team 段显示当前会话里每个 manager 的成员与任务板；成员状态与任务状态按引擎字面显示。Agents / Team 任一行「Inspect」在底部 Inspect Panel 显示该项字段详情。三段全部只读，没有 Kill / 新建成员 / 发消息等指挥操作。
+- **产品验收标准**：
+  1. 无引擎时三段与今天一致（Projects 本地文件夹、Agents / Team 诚实空），不出现「正在读取」。
+  2. 引擎接通后 Projects 里点会话与 Sessions 列表、SessionBar 是同一个当前会话，不出现第二份当前会话。
+  3. 引擎 fork 出子代理后 Agents 树更新；Reveal 打开的是 PRD-016 的居中子代理对话框（该子代理已开成延伸 tab 时聚焦该 tab；根 Agent 时聚焦根 tab），不是 Preview tab、不是新根会话。
+  4. 引擎不提供 Agent 树或 Team 能力时，对应段写「当前引擎不提供 …」，不用空列表冒充「没有 agent / 没有团队」；当前会话只有根 Agent 时写「只有根 Agent」而不是「no agents」。
+  5. 引擎断开后三段保留断开前内容并标明「显示为断开前快照」；不写「已同步」。
+  6. 三段与 Inspect Panel 里没有任何会改变引擎状态的按钮。
+- **依赖或未决**：活数据依赖 PRD-008（M6-A2 之后）。方案见 [navigator-engine-segments](../../dev/plans/navigator-engine-segments.md)（`accepted` @2026-09-02；N1–N5 全排 M6-A2 后）。按工作目录分组依赖引擎补 `SessionSummary.work_dir`（缺口 G-NAV-1）；重连后团队整体状态依赖引擎补 `ListTeams`（缺口 G-NAV-2）。Agent 树只读会话视图（由 M6-A2 host 填充）；成员与任务经引擎连接层的三个只读查询取得（实现在 M6-A1 / A2，导航区不直接碰协议）；团队整体状态仅在会话视图已有 team id 时查询。根 Agent 对应对话窗口的根 tab；非根子代理 / 成员的对话 id 逐字等于引擎 `agent_id`。指挥类操作（Kill / StartMember / MessageMember / TaskUpdate）不在本条，需另立需求与权限座位设计。Desktop 侧这三段同样是 not-wired 空 chrome，本条无外仓需求可继承。
+
+### PRD-023 Sources Review 审阅进度与归因
+
+- **状态**：`accepted`
+- **用户价值**：用户审阅一批变更时能记住「哪些已经看过、还剩哪些」，引擎接通后还能看出「哪些是这一轮 Agent 改的」并一键回到对话里那一步；Review 不再只是 Changes 去掉按钮的复印件。
+- **用户可观察陈述**：Sources Review 列出与 Changes 相同的变更集，每行带审阅状态（未审阅 / 已审阅）；从 Review 行打开 Diff 即标为已审阅，也可手动标记或全部标记；文件内容再变化时该行回到未审阅。面板顶显示「已审阅 x / y」并可只看未审阅。引擎接通且能匹配到当前工作区时，被 Agent 改过的行带「Turn n · agent」归因标签，点击回到对话里对应的工具行；助手回合改了文件后，该回合下方出现「查看更改（N 个文件）」入口，点击打开 Sources Review 并预填这些路径。Review 仍然只导航：没有 stage / discard / commit，也没有评审意见或批准状态。
+- **产品验收标准**：
+  1. 审阅状态只保存在本窗口内存里：重载窗口后全部回到未审阅；不写本机存储，不回写引擎；审阅状态（已审阅 / 未审阅）不出现在会话时间线——「查看更改」是导航行，不是审阅状态。
+  2. 审阅状态不影响 Changes 的 stage / commit，也不阻止发送；文案只用「已审阅 / 未审阅」，不用「已验证 / 已批准」。
+  3. 从未连接引擎时没有归因标签、没有「查看更改」入口、没有任何「Agent 改了 N 个文件」文案；审阅状态功能仍完整可用。已连接后断开时，此前已出现的归因标签与「查看更改」入口保留、点击仍可用（走本地 SCM），但不再新增。
+  4. 引擎工作目录与当前工作区不同（或远程引擎无共享文件系统）时，面板顶写明列表来自本地 SCM、未做归因；不改用引擎侧的变更列表。
+  5. 归因标签是装饰：列表的成员与顺序仍由本地 SCM 决定，Agent 未改过的本地改动不带标签也不带「未归因」占位。
+  6. 面板顶的只读说明不再写「review 引擎未接线」——Review 的产品定义里不存在 review 引擎。
+- **依赖或未决**：审阅进度 = 验收 1、2 与验收 3 的前半句，无引擎即可实施；归因标签 = 验收 5；「查看更改」= 用户陈述与验收 3 后半句；工作目录不匹配 = 验收 4；文案 = 验收 6。归因与「查看更改」依赖 PRD-008（M6-A2 之后）及 [conversation-stream-timeline](../../dev/plans/conversation-stream-timeline.md) S2 / S4。方案见 [sources-review-progress](../../dev/plans/sources-review-progress.md)（`accepted` @2026-09-02；R1 / R2 / R4a 无引擎可开）。对照 Desktop ADR-043（Review 只导航、审阅进度 scope-local、不做门禁）与 UI-INV-09 / UI-REVIEW-01，作为 `source` 引用；本仓分叉：审阅进度放在 Review 而非 Changes。历史会话的归因依赖引擎在 `GetHistory` 里带归一化的文件改动载荷（缺口 G-REV-1）。PRD-005 用户陈述中「review 引擎未接线」一句已随本条签收改口。
 
 ## 明确排除（不是需求）
 
