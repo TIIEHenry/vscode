@@ -361,6 +361,19 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		return this._hub.confirmDeviceCode(code);
 	}
 
+	addDirectAddressProfile(input: {
+		readonly host: string;
+		readonly port: number;
+		readonly displayName?: string;
+		readonly allowPrivateNetwork?: boolean;
+	}) {
+		return this._hub.addDirectAddressProfile(input);
+	}
+
+	forgetConnectionProfile(profileId: string) {
+		return this._hub.forgetConnectionProfile(profileId);
+	}
+
 	isEncryptionAvailable() {
 		return this._hub.isEncryptionAvailable();
 	}

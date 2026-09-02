@@ -76,6 +76,24 @@
 	min-width: 160px;
 }
 
+.monaco-workbench .connection-preferences-pane .connection-direct-address-hint {
+	opacity: 0.75;
+	font-size: 12px;
+	margin-bottom: 8px;
+}
+
+.monaco-workbench .connection-preferences-pane .connection-direct-address-status {
+	opacity: 0.85;
+	margin-top: 4px;
+}
+
+.monaco-workbench .connection-preferences-pane .connection-profile-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin-top: 8px;
+}
+
 .monaco-workbench .connection-remote-io-hint {
 	opacity: 0.75;
 	font-size: 12px;

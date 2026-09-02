@@ -180,10 +180,17 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 	private readonly hubDevicesSection: HTMLElement;
 	private readonly hubDevicesListContainer: HTMLElement;
 	private readonly hubDevicesList: WorkbenchList<HubDeviceProjection>;
+	private readonly directAddressSection: HTMLElement;
+	private readonly directHostInput: HTMLInputElement;
+	private readonly directPortInput: HTMLInputElement;
+	private readonly directNameInput: HTMLInputElement;
+	private readonly directAllowPrivateCheckbox: HTMLInputElement;
+	private readonly directAddressStatus: HTMLElement;
 	private readonly profilesSection: HTMLElement;
 	private readonly emptyWelcome: HTMLElement;
 	private readonly listContainer: HTMLElement;
 	private readonly list: WorkbenchList<IConnectionProfileEntry>;
+	private readonly profileActionsRow: HTMLElement;
 	private readonly connectionPhaseLabel: HTMLElement;
 	private readonly testStatus: HTMLElement;
 	private entries: IConnectionProfileEntry[] = [];
@@ -263,6 +270,53 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 			},
 		)) as WorkbenchList<HubDeviceProjection>;
 
+		// Zone 2b — Direct Address (debug / fallback; no Hub ticket)
+		this.directAddressSection = DOM.append(this.container, DOM.$('.connection-zone.connection-direct-address'));
+		DOM.append(this.directAddressSection, DOM.$('h3')).textContent = localize('ua.connectionDirectAddressHeading', "Direct Address");
+		const directHint = DOM.append(this.directAddressSection, DOM.$('.connection-direct-address-hint'));
+		directHint.textContent = localize(
+			'ua.connectionDirectAddressHint',
+			"Manual host and port for debugging or fallback. Private networks are blocked unless explicitly allowed.",
+		);
+
+		const directHostRow = DOM.append(this.directAddressSection, DOM.$('.connection-field-row'));
+		DOM.append(directHostRow, DOM.$('label')).textContent = localize('ua.connectionDirectHost', "Host");
+		this.directHostInput = DOM.append(directHostRow, DOM.$('input.connection-field-input')) as HTMLInputElement;
+		this.directHostInput.placeholder = '203.0.113.10';
+
+		const directPortRow = DOM.append(this.directAddressSection, DOM.$('.connection-field-row'));
+		DOM.append(directPortRow, DOM.$('label')).textContent = localize('ua.connectionDirectPort', "Port");
+		this.directPortInput = DOM.append(directPortRow, DOM.$('input.connection-field-input')) as HTMLInputElement;
+		this.directPortInput.type = 'number';
+		this.directPortInput.min = '1';
+		this.directPortInput.max = '65535';
+		this.directPortInput.placeholder = '7443';
+
+		const directNameRow = DOM.append(this.directAddressSection, DOM.$('.connection-field-row'));
+		DOM.append(directNameRow, DOM.$('label')).textContent = localize('ua.connectionDirectDisplayName', "Name");
+		this.directNameInput = DOM.append(directNameRow, DOM.$('input.connection-field-input')) as HTMLInputElement;
+		this.directNameInput.placeholder = localize('ua.connectionDirectDisplayNamePlaceholder', "Optional label");
+
+		const directAllowRow = DOM.append(this.directAddressSection, DOM.$('.connection-field-row'));
+		this.directAllowPrivateCheckbox = DOM.append(directAllowRow, DOM.$('input')) as HTMLInputElement;
+		this.directAllowPrivateCheckbox.type = 'checkbox';
+		this.directAllowPrivateCheckbox.id = 'connection-allow-private-network';
+		const allowLabel = DOM.append(directAllowRow, DOM.$('label')) as HTMLLabelElement;
+		allowLabel.setAttribute('for', 'connection-allow-private-network');
+		allowLabel.textContent = localize('ua.connectionAllowPrivateNetwork', "Allow private / loopback networks");
+
+		const directActions = DOM.append(this.directAddressSection, DOM.$('.connection-hub-actions'));
+		const addDirectButton = this._register(new Button(directActions, defaultButtonStyles));
+		addDirectButton.label = localize('ua.connectionDirectAdd', "Add");
+		this._register(addDirectButton.onDidClick(() => this.handleAddDirectAddress()));
+
+		const connectDirectButton = this._register(new Button(directActions, defaultButtonStyles));
+		connectDirectButton.label = localize('ua.connectionDirectConnect', "Connect");
+		this._register(connectDirectButton.onDidClick(() => this.handleConnectDirectAddress()));
+
+		this.directAddressStatus = DOM.append(this.directAddressSection, DOM.$('.connection-direct-address-status'));
+		this.directAddressStatus.setAttribute('role', 'status');
+
 		// Zone 3 — Connection profiles
 		this.profilesSection = DOM.append(this.container, DOM.$('.connection-zone.connection-profiles'));
 		DOM.append(this.profilesSection, DOM.$('h3')).textContent = localize('ua.connectionProfilesHeading', "Connection profiles");
@@ -283,6 +337,26 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 				accessibilityProvider: new ConnectionProfilesAccessibilityProvider(),
 			},
 		)) as WorkbenchList<IConnectionProfileEntry>;
+
+		this.profileActionsRow = DOM.append(this.profilesSection, DOM.$('.connection-profile-actions'));
+		const connectProfileButton = this._register(new Button(this.profileActionsRow, defaultButtonStyles));
+		connectProfileButton.label = localize('ua.connectionProfileConnect', "Connect");
+		this._register(connectProfileButton.onDidClick(() => this.handleConnectSelectedProfile()));
+
+		const disconnectButton = this._register(new Button(this.profileActionsRow, defaultButtonStyles));
+		disconnectButton.label = localize('ua.connectionProfileDisconnect', "Disconnect");
+		this._register(disconnectButton.onDidClick(() => this.handleDisconnect()));
+
+		const forgetButton = this._register(new Button(this.profileActionsRow, defaultButtonStyles));
+		forgetButton.label = localize('ua.connectionProfileForget', "Forget this Engine");
+		this._register(forgetButton.onDidClick(() => this.handleForgetSelectedProfile()));
+
+		this._register(this.list.onDidChangeSelection(e => {
+			const selected = e.elements[0];
+			if (selected) {
+				this.activeProfileId = selected.id;
+			}
+		}));
 
 		// Zone 4 — Test Connection + Remote I/O hint
 		const testSection = DOM.append(this.container, DOM.$('.connection-zone.connection-test-section'));
@@ -364,6 +438,106 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		await this.hubService.refreshDirectory();
 	}
 
+	private async handleAddDirectAddress(): Promise<void> {
+		const host = this.directHostInput.value.trim();
+		const port = Number(this.directPortInput.value);
+		const displayName = this.directNameInput.value.trim() || undefined;
+		const allowPrivateNetwork = this.directAllowPrivateCheckbox.checked;
+		const result = await this.hubService.addDirectAddressProfile({ host, port, displayName, allowPrivateNetwork });
+		if (!result.ok) {
+			this.directAddressStatus.textContent = result.reason;
+			return;
+		}
+		this.activeProfileId = result.profileId;
+		this.directAddressStatus.textContent = localize('ua.connectionDirectAdded', "Direct address profile added.");
+		this.renderProfiles();
+	}
+
+	private async handleConnectDirectAddress(): Promise<void> {
+		const host = this.directHostInput.value.trim();
+		const port = Number(this.directPortInput.value);
+		if (!host || !Number.isInteger(port)) {
+			this.directAddressStatus.textContent = localize('ua.connectionDirectInvalid', "Enter a valid host and port.");
+			return;
+		}
+
+		let profileId = this.activeProfileId;
+		const profiles = this.hubService.listConnectionProfiles();
+		const existing = profiles.find(p =>
+			p.targetKind === 'directAddress' && p.displayName === (this.directNameInput.value.trim() || `${host}:${port}`));
+		if (existing) {
+			profileId = existing.profileId;
+		} else {
+			const added = await this.hubService.addDirectAddressProfile({
+				host,
+				port,
+				displayName: this.directNameInput.value.trim() || undefined,
+				allowPrivateNetwork: this.directAllowPrivateCheckbox.checked,
+			});
+			if (!added.ok) {
+				this.directAddressStatus.textContent = added.reason;
+				return;
+			}
+			profileId = added.profileId;
+		}
+
+		this.activeProfileId = profileId;
+		await this.connectProfileWithPairing(profileId);
+		this.renderProfiles();
+	}
+
+	private async handleConnectSelectedProfile(): Promise<void> {
+		if (!this.activeProfileId) {
+			this.testStatus.textContent = localize('ua.connectionNoActiveProfile', "Select a connection profile first.");
+			return;
+		}
+		await this.connectProfileWithPairing(this.activeProfileId);
+		this.renderProfiles();
+	}
+
+	private async handleDisconnect(): Promise<void> {
+		await this.connectionService.disconnect();
+		this.renderConnectionPhase();
+	}
+
+	private async handleForgetSelectedProfile(): Promise<void> {
+		if (!this.activeProfileId) {
+			return;
+		}
+		await this.connectionService.disconnect().catch(() => undefined);
+		const result = await this.hubService.forgetConnectionProfile(this.activeProfileId);
+		if (!result.ok) {
+			this.testStatus.textContent = result.reason;
+			return;
+		}
+		this.activeProfileId = undefined;
+		this.renderProfiles();
+		this.renderConnectionPhase();
+	}
+
+	private async connectProfileWithPairing(profileId: string): Promise<void> {
+		this.activeProfileId = profileId;
+		const profiles = this.hubService.listConnectionProfiles();
+		const profile = profiles.find(p => p.profileId === profileId);
+		const result = await this.connectionService.connectProfile(profileId);
+		if (!result.ok) {
+			this.testStatus.textContent = result.reason;
+			this.renderConnectionPhase();
+			return;
+		}
+		if (result.ok && result.pairingPending) {
+			const confirmed = await promptSasConfirmDialog(this.dialogService, {
+				displayName: profile?.displayName ?? profileId,
+				sasCode: 'XXXX-XXXX',
+				engineIdentityId: profileId,
+			});
+			if (!confirmed.confirmed) {
+				await this.connectionService.disconnect();
+			}
+		}
+		this.renderConnectionPhase();
+	}
+
 	private async handleConnectDevice(device: HubDeviceProjection): Promise<void> {
 		const existing = this.hubService.listConnectionProfiles().find(p => p.displayName === device.name);
 		const profileId = existing?.profileId;
@@ -372,19 +546,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 			return;
 		}
 
-		this.activeProfileId = profileId;
-		const result = await this.connectionService.connectProfile(profileId);
-		if (result.ok && result.pairingPending) {
-			const confirmed = await promptSasConfirmDialog(this.dialogService, {
-				displayName: device.name,
-				sasCode: 'XXXX-XXXX',
-				engineIdentityId: device.engineIdentityId ?? device.id,
-			});
-			if (!confirmed.confirmed) {
-				await this.connectionService.disconnect();
-			}
-		}
-		this.renderConnectionPhase();
+		await this.connectProfileWithPairing(profileId);
 		this.renderProfiles();
 	}
 
@@ -454,5 +616,6 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		const isEmpty = this.entries.length === 0;
 		this.emptyWelcome.style.display = isEmpty ? '' : 'none';
 		this.listContainer.style.display = isEmpty ? 'none' : '';
+		this.profileActionsRow.style.display = isEmpty ? 'none' : '';
 	}
 }

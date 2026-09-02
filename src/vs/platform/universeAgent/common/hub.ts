@@ -46,6 +46,10 @@ export type HubOperationResult =
 	| { readonly ok: true }
 	| { readonly ok: false; readonly code: string; readonly reason: string };
 
+export type HubDirectAddressResult =
+	| { readonly ok: true; readonly profileId: string }
+	| { readonly ok: false; readonly code: string; readonly reason: string };
+
 /** Connection profile summary for renderer — no trust leaf / secrets. */
 export type ConnectionProfileProjection = {
 	readonly profileId: string;
@@ -92,6 +96,16 @@ export interface IUniverseAgentHubService {
 	revokeDevice(deviceId: string): Promise<HubOperationResult>;
 
 	confirmDeviceCode(code: string): Promise<HubOperationResult>;
+
+	/** Create a directAddress profile (no Hub ticket path). */
+	addDirectAddressProfile(input: {
+		readonly host: string;
+		readonly port: number;
+		readonly displayName?: string;
+		readonly allowPrivateNetwork?: boolean;
+	}): Promise<HubDirectAddressResult>;
+
+	forgetConnectionProfile(profileId: string): Promise<HubOperationResult>;
 
 	isEncryptionAvailable(): Promise<boolean>;
 }

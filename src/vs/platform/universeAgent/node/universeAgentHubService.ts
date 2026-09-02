@@ -10,6 +10,7 @@ import type {
 	ConnectionProfileProjection,
 	HubAuthStatus,
 	HubDeviceProjection,
+	HubDirectAddressResult,
 	HubDirectoryStatus,
 	HubLoginResult,
 	HubOperationResult,
@@ -287,6 +288,40 @@ export class UniverseAgentHubService extends Disposable implements IUniverseAgen
 			return { ok: false, code: result.code, reason: result.reason };
 		}
 		await this.refreshDirectory();
+		return { ok: true };
+	}
+
+	async addDirectAddressProfile(input: {
+		readonly host: string;
+		readonly port: number;
+		readonly displayName?: string;
+		readonly allowPrivateNetwork?: boolean;
+	}): Promise<HubDirectAddressResult> {
+		const host = input.host.trim();
+		if (!host) {
+			return { ok: false, code: 'direct_address_invalid', reason: 'host is required' };
+		}
+		if (!Number.isInteger(input.port) || input.port < 1 || input.port > 65535) {
+			return { ok: false, code: 'direct_address_invalid', reason: 'port must be between 1 and 65535' };
+		}
+		const displayName = input.displayName?.trim() || `${host}:${input.port}`;
+		const profile = this._connectionProfileStore.createDraft({
+			displayName,
+			target: { kind: 'directAddress', host, port: input.port },
+			allowPrivateNetwork: input.allowPrivateNetwork ?? false,
+		});
+		this._connectionProfileStore.put(profile);
+		this._fireProfilesChanged();
+		return { ok: true, profileId: profile.profileId };
+	}
+
+	async forgetConnectionProfile(profileId: string): Promise<HubOperationResult> {
+		const profile = this._connectionProfileStore.get(profileId);
+		if (!profile) {
+			return { ok: false, code: 'profile_not_found', reason: `connection profile not found: ${profileId}` };
+		}
+		this._connectionProfileStore.remove(profileId);
+		this._fireProfilesChanged();
 		return { ok: true };
 	}
 
