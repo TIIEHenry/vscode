@@ -5,7 +5,7 @@
 
 import { localize2 } from '../../../nls.js';
 import { IEditorGroupsService, GroupDirection, GroupLocation, IFindGroupScope } from '../../services/editor/common/editorGroupsService.js';
-import { IWorkbenchLayoutService, Parts } from '../../services/layout/browser/layoutService.js';
+import { getDefaultPartFocusTarget, getNominalPartFocusNeighbour, IWorkbenchLayoutService, Parts, resolveVisiblePartFocusNeighbour } from '../../services/layout/browser/layoutService.js';
 import { Action2, IAction2Options, registerAction2 } from '../../../platform/actions/common/actions.js';
 import { Categories } from '../../../platform/action/common/actionCommonCategories.js';
 import { Direction } from '../../../base/browser/ui/grid/grid.js';
@@ -18,7 +18,6 @@ import { ViewContainerLocation } from '../../common/views.js';
 import { KeybindingWeight } from '../../../platform/keybinding/common/keybindingsRegistry.js';
 import { ServicesAccessor } from '../../../platform/instantiation/common/instantiation.js';
 import { getActiveWindow } from '../../../base/browser/dom.js';
-import { isAuxiliaryWindow } from '../../../base/browser/window.js';
 
 abstract class BaseNavigationAction extends Action2 {
 
@@ -256,53 +255,7 @@ abstract class BaseFocusAction extends Action2 {
 
 	private findVisibleNeighbour(layoutService: IWorkbenchLayoutService, part: Parts, next: boolean): Parts {
 		const activeWindow = getActiveWindow();
-		const windowIsAuxiliary = isAuxiliaryWindow(activeWindow);
-
-		let neighbour: Parts;
-		if (windowIsAuxiliary) {
-			switch (part) {
-				case Parts.EDITOR_PART:
-					neighbour = Parts.STATUSBAR_PART;
-					break;
-				default:
-					neighbour = Parts.EDITOR_PART;
-			}
-		} else {
-			switch (part) {
-				case Parts.EDITOR_PART:
-					neighbour = next ? Parts.SOURCES_PART : Parts.CONVERSATION_PART;
-					break;
-				case Parts.SOURCES_PART:
-					neighbour = next ? Parts.PANEL_PART : Parts.EDITOR_PART;
-					break;
-				case Parts.CONVERSATION_PART:
-					neighbour = next ? Parts.EDITOR_PART : Parts.SIDEBAR_PART;
-					break;
-				case Parts.PANEL_PART:
-					neighbour = next ? Parts.AUXILIARYBAR_PART : Parts.EDITOR_PART;
-					break;
-				case Parts.AUXILIARYBAR_PART:
-					neighbour = next ? Parts.STATUSBAR_PART : Parts.PANEL_PART;
-					break;
-				case Parts.STATUSBAR_PART:
-					neighbour = next ? Parts.ACTIVITYBAR_PART : Parts.AUXILIARYBAR_PART;
-					break;
-				case Parts.ACTIVITYBAR_PART:
-					neighbour = next ? Parts.SIDEBAR_PART : Parts.STATUSBAR_PART;
-					break;
-				case Parts.SIDEBAR_PART:
-					neighbour = next ? Parts.CONVERSATION_PART : Parts.ACTIVITYBAR_PART;
-					break;
-				default:
-					neighbour = Parts.CONVERSATION_PART;
-			}
-		}
-
-		if (layoutService.isVisible(neighbour, activeWindow) || neighbour === Parts.EDITOR_PART || neighbour === Parts.CONVERSATION_PART || neighbour === Parts.SOURCES_PART) {
-			return neighbour;
-		}
-
-		return this.findVisibleNeighbour(layoutService, neighbour, next);
+		return resolveVisiblePartFocusNeighbour(layoutService, part, next, activeWindow);
 	}
 
 	private focusNextOrPreviousPart(layoutService: IWorkbenchLayoutService, editorService: IEditorService, next: boolean): void {
@@ -325,7 +278,10 @@ abstract class BaseFocusAction extends Action2 {
 			currentlyFocusedPart = Parts.PANEL_PART;
 		}
 
-		layoutService.focusPart(currentlyFocusedPart ? this.findVisibleNeighbour(layoutService, currentlyFocusedPart, next) : Parts.CONVERSATION_PART, getActiveWindow());
+		layoutService.focusPart(
+			currentlyFocusedPart ? this.findVisibleNeighbour(layoutService, currentlyFocusedPart, next) : getDefaultPartFocusTarget(layoutService, getActiveWindow()),
+			getActiveWindow()
+		);
 	}
 }
 
