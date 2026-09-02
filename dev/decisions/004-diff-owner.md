@@ -1,17 +1,19 @@
 ---
 title: "ADR-004 Diff 深查看宿主：底部 Panel 专用容器"
 type: decision
-status: draft
+status: superseded
 phase: N/A
 updated: 2026-09-02
-summary: "PRD-009 Diff owner：推荐 B（PANEL_PART 专用容器，对照 Desktop ADR-047）；否决 A（HEAD 编辑器区）与 C（Sources Changes 内嵌）。draft，待签收。"
+summary: "PRD-009 Diff owner：推荐 B（PANEL_PART 专用容器，对照 Desktop ADR-047）；否决 A（HEAD 编辑器区）与 C（Sources Changes 内嵌）。已被 ADR-005 取代。"
 ---
+
+> **Superseded by [ADR-005](005-changes-diff-owner.md) @ 2026-09-02**（user decision: default Preview, movable to conversation/panel — NOT exclusive Panel B）
 
 # ADR-004 Diff 深查看宿主
 
 ## 状态
 
-`draft`（2026-09-02。推荐 B，**未签收**。签收前不得改绑 `openSourcesChangeEntry` / SCM Diff 路由，也不得把 PRD-009 标 `accepted`。）
+`superseded`（2026-09-02。原推荐 B，**未签收**；用户裁决见 [ADR-005](005-changes-diff-owner.md)。）
 
 关联：[PRD-009](../../docs/product/requirements.md#prd-009-changes-与-diff) · [R6](../progress/research-queue.md) · [diff-footprint](../../docs/reference/code-oss-b2/diff-footprint.md) · [companion-contribs §5](../../docs/systems/workbench/companion-contribs.md) · [parts-and-grid](../../docs/systems/workbench/parts-and-grid.md) · 外仓 [Desktop ADR-047](../../../UniverseAgentDesktop/dev/decisions/047-typed-slot-hosts-and-vscode-bottom-panel.md) · [ADR-051](../../../UniverseAgentDesktop/dev/decisions/051-workbench-preview-and-sources.md)
 
