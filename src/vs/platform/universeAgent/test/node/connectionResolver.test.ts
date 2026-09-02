@@ -385,4 +385,171 @@ suite('ConnectionResolver', () => {
 			assert.strictEqual(result.endpoint.path, 'direct');
 		}
 	});
+
+	test('expired access refreshes then directory resolve succeeds', async () => {
+		const sessionApplyTime = FIXTURE_NOW_MS;
+		const expiredNow = FIXTURE_NOW_MS + 900_000;
+		const hubSessionStore = new InMemoryHubSessionStore();
+		await hubSessionStore.applyAuthSession(HUB_BASE, {
+			accessToken: 'expired-token',
+			expiresIn: 900,
+			csrfToken: 'csrf-token',
+			mustChangePassword: false,
+			user: { id: 'usr-1', email: 'user@example.com', role: 'USER', status: 'ACTIVE' },
+		}, sessionApplyTime, 'refresh-token');
+
+		const identity = mintTestIdentity();
+		let devicesFetchCount = 0;
+		const http = {
+			fetch: async (url: string, init?: { readonly headers?: Readonly<Record<string, string>> }) => {
+				if (url.includes('/auth/refresh')) {
+					return {
+						status: 200,
+						headers: { getSetCookie: () => ['hub_refresh=rotated-refresh; Path=/; HttpOnly'] },
+						json: async () => ({
+							accessToken: 'fresh-token',
+							expiresIn: 900,
+							csrfToken: 'csrf-token',
+							mustChangePassword: false,
+							user: { id: 'usr-1', email: 'user@example.com', role: 'USER', status: 'ACTIVE' },
+						}),
+					};
+				}
+				if (url.includes('/devices')) {
+					devicesFetchCount++;
+					assert.strictEqual(init?.headers?.Authorization, 'Bearer fresh-token');
+					return {
+						status: 200,
+						json: async () => ({
+							devices: [{
+								id: HUB_DEVICE_ID,
+								name: 'Engine',
+								presence: 'ONLINE',
+								engineStatus: 'SERVING',
+								engineIdentityId: FIXTURE_DEVICE.engineIdentityId,
+								certFingerprint: FIXTURE_DEVICE.certFingerprint,
+								ipv4: FIXTURE_DEVICE.ipv4,
+								ipv6: null,
+								enginePort: FIXTURE_DEVICE.enginePort,
+								revoked: false,
+								lastHeartbeatAt: FIXTURE_DEVICE.lastHeartbeatAt,
+							}],
+						}),
+					};
+				}
+				throw new Error(`unexpected fetch url: ${url}`);
+			},
+		};
+
+		const resolver = createConnectionResolver({
+			connectionProfileStore: new InMemoryConnectionProfileStore([hubProfile()]),
+			hubSessionStore,
+			clientIdentityStore: new TestClientIdentityStore(identity),
+			http,
+			issueRelayTicketFn: async () => ({
+				ok: true as const,
+				ticketId: 'ticket-after-refresh',
+				authority: FIXTURE_AUTHORITY,
+				expiresAtMs: Date.parse(FIXTURE_TICKET_EXPIRES_AT),
+			}),
+			nowMs: () => expiredNow,
+		});
+
+		const result = await resolver.resolve(PROFILE_ID);
+		assert.ok(result.ok);
+		if (result.ok) {
+			assert.strictEqual(result.endpoint.relayTicketId, 'ticket-after-refresh');
+		}
+		assert.strictEqual(devicesFetchCount, 1);
+	});
+
+	test('directory 401 with refresh failure returns hub_auth_expired without retry storm', async () => {
+		const hubSessionStore = new InMemoryHubSessionStore();
+		await hubSessionStore.applyAuthSession(HUB_BASE, {
+			accessToken: 'stale-token',
+			expiresIn: 900,
+			csrfToken: 'csrf-token',
+			mustChangePassword: false,
+			user: { id: 'usr-1', email: 'user@example.com', role: 'USER', status: 'ACTIVE' },
+		}, FIXTURE_NOW_MS, 'refresh-token');
+
+		const identity = mintTestIdentity();
+		let devicesFetchCount = 0;
+		let refreshFetchCount = 0;
+		const http = {
+			fetch: async (url: string) => {
+				if (url.includes('/auth/refresh')) {
+					refreshFetchCount++;
+					return { status: 401, json: async () => ({}) };
+				}
+				if (url.includes('/devices')) {
+					devicesFetchCount++;
+					return { status: 401, json: async () => ({}) };
+				}
+				throw new Error(`unexpected fetch url: ${url}`);
+			},
+		};
+
+		const resolver = createConnectionResolver({
+			connectionProfileStore: new InMemoryConnectionProfileStore([hubProfile()]),
+			hubSessionStore,
+			clientIdentityStore: new TestClientIdentityStore(identity),
+			http,
+			issueRelayTicketFn: async () => ({
+				ok: false as const,
+				code: 'hub_ticket_failed',
+				reason: 'must not issue ticket when auth expired',
+			}),
+			nowMs: () => FIXTURE_NOW_MS + 1000,
+		});
+
+		const result = await resolver.resolve(PROFILE_ID);
+		assert.ok(!result.ok);
+		if (!result.ok) {
+			assert.strictEqual(result.code, 'hub_auth_expired');
+		}
+		assert.strictEqual(devicesFetchCount, 1);
+		assert.strictEqual(refreshFetchCount, 1);
+	});
+
+	test('expired access with refresh 401 skips directory call', async () => {
+		const hubSessionStore = new InMemoryHubSessionStore();
+		await hubSessionStore.applyAuthSession(HUB_BASE, {
+			accessToken: 'expired-token',
+			expiresIn: 900,
+			csrfToken: 'csrf-token',
+			mustChangePassword: false,
+			user: { id: 'usr-1', email: 'user@example.com', role: 'USER', status: 'ACTIVE' },
+		}, FIXTURE_NOW_MS, 'refresh-token');
+
+		const identity = mintTestIdentity();
+		let devicesFetchCount = 0;
+		const http = {
+			fetch: async (url: string) => {
+				if (url.includes('/auth/refresh')) {
+					return { status: 401, json: async () => ({}) };
+				}
+				if (url.includes('/devices')) {
+					devicesFetchCount++;
+					return { status: 200, json: async () => ({ devices: [] }) };
+				}
+				throw new Error(`unexpected fetch url: ${url}`);
+			},
+		};
+
+		const resolver = createConnectionResolver({
+			connectionProfileStore: new InMemoryConnectionProfileStore([hubProfile()]),
+			hubSessionStore,
+			clientIdentityStore: new TestClientIdentityStore(identity),
+			http,
+			nowMs: () => FIXTURE_NOW_MS + 900_000,
+		});
+
+		const result = await resolver.resolve(PROFILE_ID);
+		assert.ok(!result.ok);
+		if (!result.ok) {
+			assert.strictEqual(result.code, 'hub_auth_expired');
+		}
+		assert.strictEqual(devicesFetchCount, 0);
+	});
 });

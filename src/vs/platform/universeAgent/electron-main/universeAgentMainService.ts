@@ -33,6 +33,7 @@ export class UniverseAgentConnectionService extends UniverseAgentConnectionServi
 				connectionProfileStore,
 				hubSessionStore,
 				clientIdentityStore,
+				http: { fetch: globalThis.fetch.bind(globalThis) },
 			}),
 		});
 	}

@@ -28,6 +28,7 @@ import {
 	type HubDirectoryHttp,
 } from './hubDirectoryClient.js';
 import { InMemoryHubSessionStore, type IHubSessionStore } from './hubSessionStore.js';
+import { withHubAccessRetry } from './hubAuthAccess.js';
 import type { IStorageService } from '../../storage/common/storage.js';
 
 export type UniverseAgentHubServiceOptions = {
@@ -222,14 +223,32 @@ export class UniverseAgentHubService extends Disposable implements IUniverseAgen
 			return this._directoryStatus;
 		}
 		const auth = this.getAuthStatus();
-		if (auth.kind === 'signedOut' || auth.kind === 'mustChangePassword') {
+		if (auth.kind === 'mustChangePassword') {
 			this._directoryStatus = { kind: 'idle' };
 			this._fireDirectoryChanged();
 			return this._directoryStatus;
 		}
+		if (auth.kind === 'signedOut') {
+			const hasAccessToken = this._hubSessionStore.getAccessTokenForHub(hubBaseUrl, this._nowMs()) !== null;
+			const hasPersistedRefresh = this._hubSessionStore.listPersistedHubBaseUrls().includes(hubBaseUrl);
+			if (!hasAccessToken && !hasPersistedRefresh) {
+				this._directoryStatus = { kind: 'idle' };
+				this._fireDirectoryChanged();
+				return this._directoryStatus;
+			}
+		}
 
-		const token = this._hubSessionStore.getAccessTokenForHub(hubBaseUrl, this._nowMs());
-		if (!token) {
+		const result = await withHubAccessRetry(
+			{
+				store: this._hubSessionStore,
+				hubBaseUrl,
+				nowMs: this._nowMs(),
+				http: this._http,
+			},
+			accessToken => listHubDevices({ hubBaseUrl, accessToken }, this._http),
+		);
+
+		if ('authExpired' in result && result.authExpired) {
 			this._directoryAuthExpired = true;
 			this._directoryStatus = { kind: 'authExpired' };
 			this._fireAuthChanged();
@@ -237,12 +256,8 @@ export class UniverseAgentHubService extends Disposable implements IUniverseAgen
 			return this._directoryStatus;
 		}
 
-		const result = await listHubDevices({ hubBaseUrl, accessToken: token }, this._http);
 		if (!result.ok) {
-			if (result.code === 'hub_session_required' || result.code === 'hub_forbidden') {
-				this._directoryAuthExpired = true;
-				this._directoryStatus = { kind: 'authExpired' };
-			} else if (result.code === 'hub_directory_http_failed') {
+			if (result.code === 'hub_directory_http_failed') {
 				this._directoryStatus = { kind: 'unreachable', reason: result.reason };
 			} else {
 				this._directoryStatus = { kind: 'error', code: result.code, reason: result.reason };
@@ -262,15 +277,59 @@ export class UniverseAgentHubService extends Disposable implements IUniverseAgen
 		return this._directoryStatus;
 	}
 
+	private async _runHubControlPlaneMutation(
+		mutation: (accessToken: string) => Promise<HubOperationResult>,
+	): Promise<HubOperationResult> {
+		const hubBaseUrl = this._activeHubBaseUrl;
+		if (!hubBaseUrl) {
+			return { ok: false, code: 'hub_session_required', reason: 'not signed in to a Hub' };
+		}
+
+		const result = await withHubAccessRetry(
+			{
+				store: this._hubSessionStore,
+				hubBaseUrl,
+				nowMs: this._nowMs(),
+				http: this._http,
+			},
+			async accessToken => {
+				const mutationResult = await mutation(accessToken);
+				if (mutationResult.ok) {
+					return { ok: true as const, value: undefined };
+				}
+				return mutationResult;
+			},
+		);
+
+		if ('authExpired' in result && result.authExpired) {
+			this._directoryAuthExpired = true;
+			this._directoryStatus = { kind: 'authExpired' };
+			this._fireAuthChanged();
+			this._fireDirectoryChanged();
+			return { ok: false, code: 'hub_session_required', reason: 'hub session expired' };
+		}
+
+		if (result.ok) {
+			return { ok: true };
+		}
+
+		return { ok: false, code: result.code, reason: result.reason };
+	}
+
 	async renameDevice(deviceId: string, name: string): Promise<HubOperationResult> {
 		const hubBaseUrl = this._activeHubBaseUrl;
-		const token = hubBaseUrl ? this._hubSessionStore.getAccessTokenForHub(hubBaseUrl, this._nowMs()) : null;
-		if (!hubBaseUrl || !token) {
+		if (!hubBaseUrl) {
 			return { ok: false, code: 'hub_session_required', reason: 'hub session required' };
 		}
-		const result = await renameHubDevice({ hubBaseUrl, accessToken: token, hubDeviceId: deviceId, name }, this._http);
+		const result = await this._runHubControlPlaneMutation(async accessToken => {
+			const apiResult = await renameHubDevice({ hubBaseUrl, accessToken, hubDeviceId: deviceId, name }, this._http);
+			if (!apiResult.ok) {
+				return { ok: false, code: apiResult.code, reason: apiResult.reason };
+			}
+			return { ok: true };
+		});
 		if (!result.ok) {
-			return { ok: false, code: result.code, reason: result.reason };
+			return result;
 		}
 		await this.refreshDirectory();
 		return { ok: true };
@@ -278,13 +337,18 @@ export class UniverseAgentHubService extends Disposable implements IUniverseAgen
 
 	async revokeDevice(deviceId: string): Promise<HubOperationResult> {
 		const hubBaseUrl = this._activeHubBaseUrl;
-		const token = hubBaseUrl ? this._hubSessionStore.getAccessTokenForHub(hubBaseUrl, this._nowMs()) : null;
-		if (!hubBaseUrl || !token) {
+		if (!hubBaseUrl) {
 			return { ok: false, code: 'hub_session_required', reason: 'hub session required' };
 		}
-		const result = await revokeHubDevice({ hubBaseUrl, accessToken: token, hubDeviceId: deviceId }, this._http);
+		const result = await this._runHubControlPlaneMutation(async accessToken => {
+			const apiResult = await revokeHubDevice({ hubBaseUrl, accessToken, hubDeviceId: deviceId }, this._http);
+			if (!apiResult.ok) {
+				return { ok: false, code: apiResult.code, reason: apiResult.reason };
+			}
+			return { ok: true };
+		});
 		if (!result.ok) {
-			return { ok: false, code: result.code, reason: result.reason };
+			return result;
 		}
 		await this.refreshDirectory();
 		return { ok: true };
@@ -292,13 +356,18 @@ export class UniverseAgentHubService extends Disposable implements IUniverseAgen
 
 	async confirmDeviceCode(code: string): Promise<HubOperationResult> {
 		const hubBaseUrl = this._activeHubBaseUrl;
-		const token = hubBaseUrl ? this._hubSessionStore.getAccessTokenForHub(hubBaseUrl, this._nowMs()) : null;
-		if (!hubBaseUrl || !token) {
+		if (!hubBaseUrl) {
 			return { ok: false, code: 'hub_session_required', reason: 'hub session required' };
 		}
-		const result = await confirmHubDeviceCode({ hubBaseUrl, accessToken: token, code }, this._http);
+		const result = await this._runHubControlPlaneMutation(async accessToken => {
+			const apiResult = await confirmHubDeviceCode({ hubBaseUrl, accessToken, deviceCode: code }, this._http);
+			if (!apiResult.ok) {
+				return { ok: false, code: apiResult.code, reason: apiResult.reason };
+			}
+			return { ok: true };
+		});
 		if (!result.ok) {
-			return { ok: false, code: result.code, reason: result.reason };
+			return result;
 		}
 		await this.refreshDirectory();
 		return { ok: true };
