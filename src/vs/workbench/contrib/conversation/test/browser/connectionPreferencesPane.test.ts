@@ -27,7 +27,8 @@ import {
 	SAS_FORBIDDEN_BUTTON_PATTERNS,
 } from '../../browser/connectionPreferencesPaneLabels.js';
 import { promptSasConfirmDialog } from '../../browser/connectionPreferencesPaneSas.js';
-import { getConversationEngineStatusText } from '../../browser/conversationSessionStatus.js';
+import { getConnectionPhaseStatusBarText, getConversationEngineStatusText } from '../../browser/conversationSessionStatus.js';
+import { Dimension } from '../../../../../base/browser/dom.js';
 
 const CONNECTION_EMPTY_COPY = 'No connection profiles yet';
 const FAKE_PROFILE_LABELS = ['Local Engine', 'Home Server'];
@@ -147,8 +148,9 @@ suite('ConnectionPreferencesPane', () => {
 		return pane;
 	}
 
-	test('getConnectionTestStatusText returns honest not-connected copy', () => {
-		assert.strictEqual(getConnectionTestStatusText(), 'Not connected — no engine.');
+	test('getConnectionTestStatusText reuses StatusBar phase copy', () => {
+		assert.strictEqual(getConnectionTestStatusText(), getConnectionPhaseStatusBarText({ kind: 'disconnected' }));
+		assert.strictEqual(getConnectionTestStatusText({ kind: 'connected', path: 'direct' }), 'Engine · Direct');
 	});
 
 	test('getConnectionEmptyCopy returns honest roster-empty copy', () => {
@@ -323,7 +325,26 @@ suite('ConnectionPreferencesPane', () => {
 		assert.strictEqual(badge.textContent, getHubAuthStatusLabel({ kind: 'signedIn', email: 'user@hub.example' }));
 		const phase = container.querySelector('.connection-phase-label') as HTMLElement;
 		assert.ok(phase);
-		assert.strictEqual(phase.textContent, 'Not connected');
+		assert.strictEqual(phase.textContent, getConnectionPhaseStatusBarText({ kind: 'disconnected' }));
+		container.remove();
+	});
+
+	test('layout under 600px applies is-narrow from pane width', () => {
+		const pane = mountPane();
+		const container = pane.getDomNode();
+
+		pane.layout(new Dimension(599, 800));
+		assert.ok(container.classList.contains('is-narrow'));
+		assert.ok(!container.classList.contains('is-compact'));
+
+		pane.layout(new Dimension(299, 800));
+		assert.ok(container.classList.contains('is-narrow'));
+		assert.ok(container.classList.contains('is-compact'));
+
+		pane.layout(new Dimension(600, 800));
+		assert.ok(!container.classList.contains('is-narrow'));
+		assert.ok(!container.classList.contains('is-compact'));
+
 		container.remove();
 	});
 });

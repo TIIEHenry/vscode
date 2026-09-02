@@ -34,7 +34,12 @@ import {
 	readHandshakeSasCode,
 } from './connectionPreferencesPaneLabels.js';
 import { promptSasConfirmDialog } from './connectionPreferencesPaneSas.js';
-import { shouldDrawDesktopConnectionControls } from './engineSectionChrome.js';
+import { getConnectionPhaseStatusBarText } from './conversationSessionStatus.js';
+import {
+	PREFERENCES_PANE_COMPACT_WIDTH,
+	PREFERENCES_PANE_NARROW_WIDTH,
+	shouldDrawDesktopConnectionControls,
+} from './engineSectionChrome.js';
 
 const $ = DOM.$;
 
@@ -44,12 +49,9 @@ export interface IConnectionProfileEntry {
 	readonly stateLabel: string;
 }
 
-/** Honest Test Connection result — no engine probe, no fake success. */
-export function getConnectionTestStatusText(hasActiveProfile: boolean): string {
-	if (!hasActiveProfile) {
-		return localize('ua.connectionTestNotConnected', "Not connected — no engine.");
-	}
-	return localize('ua.connectionTestProbePending', "Probe not run for active profile.");
+/** Test Connection 结果与 StatusBar / Engine 共用 H4b 文案。 */
+export function getConnectionTestStatusText(phase?: ConnectionPhase, pairingPending = false): string {
+	return getConnectionPhaseStatusBarText(phase ?? { kind: 'disconnected' }, pairingPending);
 }
 
 export function getConnectionEmptyCopy(): string {
@@ -224,7 +226,6 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		super();
 
 		this.container = DOM.$('.connection-preferences-pane');
-		this.container.style.padding = '24px';
 
 		const title = DOM.append(this.container, DOM.$('h2'));
 		title.textContent = localize('ua.connectionPaneTitle', "Connection");
@@ -393,7 +394,10 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		this.testStatus.setAttribute('role', 'status');
 		this.testStatus.setAttribute('aria-live', 'polite');
 		this._register(testButton.onDidClick(() => {
-			this.testStatus.textContent = getConnectionTestStatusText(!!this.activeProfileId);
+			this.testStatus.textContent = getConnectionTestStatusText(
+				this.connectionService.getConnectionPhase(),
+				this.connectionService.getConnectionSnapshot().pairingPending,
+			);
 		}));
 
 		const remoteIoHint = DOM.append(this.container, DOM.$('.connection-remote-io-hint'));
@@ -435,9 +439,12 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 
 	layout(dimension: DOM.Dimension): void {
 		this.container.style.height = `${dimension.height}px`;
+		this.container.classList.toggle('is-narrow', dimension.width < PREFERENCES_PANE_NARROW_WIDTH);
+		this.container.classList.toggle('is-compact', dimension.width < PREFERENCES_PANE_COMPACT_WIDTH);
 		const listHeight = Math.max(0, Math.floor((dimension.height - 520) / 2));
-		this.hubDevicesList.layout(listHeight, dimension.width - 48);
-		this.list.layout(listHeight, dimension.width - 48);
+		const listWidth = Math.max(0, dimension.width - 48);
+		this.hubDevicesList.layout(listHeight, listWidth);
+		this.list.layout(listHeight, listWidth);
 	}
 
 	search(_text: string): void {
@@ -671,7 +678,10 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 
 	private renderConnectionPhase(): void {
 		this.connectionPhase = this.connectionService.getConnectionPhase();
-		this.connectionPhaseLabel.textContent = getConnectionPhasePaneLabel(this.connectionPhase);
+		this.connectionPhaseLabel.textContent = getConnectionPhasePaneLabel(
+			this.connectionPhase,
+			this.connectionService.getConnectionSnapshot().pairingPending,
+		);
 	}
 
 	private setEntries(entries: IConnectionProfileEntry[]): void {
