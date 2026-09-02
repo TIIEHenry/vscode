@@ -37,6 +37,7 @@ import { IExplorerService } from '../../../files/browser/files.js';
 import { ISCMService } from '../../../scm/common/scm.js';
 import { IStorageService } from '../../../../../platform/storage/common/storage.js';
 import { TestStorageService } from '../../../../test/common/workbenchTestServices.js';
+import { IConversationReviewNavService } from '../../common/conversationReviewEntry.js';
 
 function turn(id: string, kind: ConversationStubTurn['kind'], text = id, status?: ConversationStubTurn['status']): ConversationStubTurn {
 	return status ? { id, kind, text, status } : { id, kind, text };
@@ -118,6 +119,11 @@ suite('ConversationTrajectory', () => {
 			registerSCMProvider: () => { throw new Error('not implemented'); },
 			getRepository: () => undefined,
 		} as unknown as ISCMService);
+		instantiationService.stub(IConversationReviewNavService, {
+			_serviceBrand: undefined,
+			onDidChange: Event.None,
+			getReviewNavForSession: () => [],
+		});
 		const part = store.add(instantiationService.createInstance(ConversationPart));
 		const parent = document.createElement('div');
 		parent.classList.add('monaco-workbench');
@@ -234,6 +240,11 @@ suite('ConversationTrajectory', () => {
 	test('conversation lens hides trajectory fixture copy on the Conversation page', async () => {
 		const { stubService, layoutReadingColumn, slots } = mountLens();
 		const sessionId = stubService.getActiveSessionId();
+		assert.strictEqual(sessionId, 'untitled');
+
+		for (const turn of [...stubService.getTurns(sessionId)]) {
+			stubService.deleteTurn(sessionId, turn.id);
+		}
 
 		stubService.appendUserTurn(sessionId, 'Only the user prompt belongs here');
 		stubService.appendThinkingTurn(sessionId, 'Stub: hidden thinking');

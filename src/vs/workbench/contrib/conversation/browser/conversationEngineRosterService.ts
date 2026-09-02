@@ -12,6 +12,7 @@ import { ConversationEngineFrameSource } from './conversationEngineFrameSource.j
 import {
 	buildLocalSessionsFromModel,
 	loadConversationRosterStorage,
+	type ConversationRosterEngineCache,
 	type PersistedConversationSession,
 } from './conversationRosterStorage.js';
 import { entriesToLegacyTurns, projectSnapshotToEntries } from './conversationSessionView.js';
@@ -303,18 +304,40 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 
 	private persistEngineAwareRoster(
 		wasEverConnected = this.wasEverConnected,
-		engineCache = loadConversationRosterStorage(this.storageService!)?.engineCache,
+		engineCache?: ConversationRosterEngineCache,
 	): void {
 		if (!this.storageService) {
 			return;
 		}
+		const resolvedEngineCache = engineCache ?? this.buildPersistedEngineCache();
 		this.saveRosterStorage({
 			version: 1,
 			wasEverConnected,
 			activeSessionId: this.wasEverConnected ? (this.activeEngineSessionId ?? super.getActiveSessionId()) : this.model.getActiveSessionId(),
 			nextTurnId: getConversationStubNextTurnId(),
 			localSessions: buildLocalSessionsFromModel(this.model),
-			engineCache,
+			engineCache: resolvedEngineCache,
 		});
+	}
+
+	private buildPersistedEngineCache(): ConversationRosterEngineCache | undefined {
+		if (this.engineSessions.length === 0) {
+			return loadConversationRosterStorage(this.storageService!)?.engineCache;
+		}
+		return {
+			activeSessionId: this.activeEngineSessionId,
+			sessions: this.engineSessions.map(session => {
+				const projection = this.engineFrameSource.getCachedProjection(session.id);
+				const turns = projection
+					? entriesToLegacyTurns(projectSnapshotToEntries(projection.snapshot, projection.attribution, projection.details))
+					: session.turns;
+				return {
+					id: session.id,
+					title: session.title,
+					turns: turns.map(turn => ({ ...turn })),
+					source: 'engine-cache' as const,
+				};
+			}),
+		};
 	}
 }

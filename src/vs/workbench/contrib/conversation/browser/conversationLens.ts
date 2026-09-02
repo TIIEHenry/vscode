@@ -582,7 +582,6 @@ export class ConversationLens extends Disposable {
 		trajectoryHost.id = 'conversation-lens-panel-trajectory';
 		trajectoryHost.setAttribute('role', 'tabpanel');
 		trajectoryHost.setAttribute('aria-labelledby', 'conversation-lens-tab-trajectory');
-		this.updateLensTabs();
 	}
 
 	private mountDock(host: HTMLElement): void {
@@ -1212,6 +1211,9 @@ export class ConversationLens extends Disposable {
 	}
 
 	private updateLensTabs(): void {
+		if (!this.lensTabConversation || !this.lensTabTrajectory) {
+			return;
+		}
 		const isConversation = this.lensId === 'conversation';
 		this.lensTabConversation.setAttribute('aria-selected', String(isConversation));
 		this.lensTabTrajectory.setAttribute('aria-selected', String(!isConversation));
