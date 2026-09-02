@@ -33,6 +33,7 @@ mkdir -p %{buildroot}%{_datadir}/applications
 mkdir -p %{buildroot}%{_datadir}/appdata
 mkdir -p %{buildroot}%{_datadir}/mime/packages
 mkdir -p %{buildroot}%{_datadir}/pixmaps
+mkdir -p %{buildroot}%{_datadir}/icons
 mkdir -p %{buildroot}%{_datadir}/bash-completion/completions
 mkdir -p %{buildroot}%{_datadir}/zsh/site-functions
 # Application
@@ -44,6 +45,7 @@ cp -r usr/share/applications/%{name}-url-handler.desktop %{buildroot}%{_datadir}
 cp -r usr/share/appdata/%{name}.appdata.xml %{buildroot}%{_datadir}/appdata
 cp -r usr/share/mime/packages/%{name}-workspace.xml %{buildroot}%{_datadir}/mime/packages/%{name}-workspace.xml
 cp -r usr/share/pixmaps/@@ICON@@.png %{buildroot}%{_datadir}/pixmaps
+cp -r usr/share/icons/* %{buildroot}%{_datadir}/icons
 # Shell completions
 cp usr/share/bash-completion/completions/%{name} %{buildroot}%{_datadir}/bash-completion/completions/%{name}
 cp usr/share/zsh/site-functions/_%{name} %{buildroot}%{_datadir}/zsh/site-functions/_%{name}
@@ -88,5 +90,6 @@ update-mime-database %{_datadir}/mime &> /dev/null || :
 %{_datadir}/appdata/%{name}.appdata.xml
 %{_datadir}/mime/packages/%{name}-workspace.xml
 %{_datadir}/pixmaps/@@ICON@@.png
+%{_datadir}/icons/hicolor/*/apps/@@ICON@@.png
 %{_datadir}/bash-completion/completions/%{name}
 %{_datadir}/zsh/site-functions/_%{name}
