@@ -11,7 +11,7 @@ summary: "loop/merge 集成：D11 closed；D8 open（TS lib）；D9 partial；R6
 
 ## Current Session
 
-- **集成 HEAD：** `707479cb` — **agent-ide**（`loop/merge` 已并入；工位 A–C + D8 文档已对齐）。
+- **集成 HEAD：** `b13ba7a2` — **agent-ide**（`loop/merge` 已并入；工位 A–C + D8 文档已对齐）。
 - **已闭里程碑：** 壳层 PRD-001–016 / M5 / D1–D7 / **D11**；R6 closed @ [ADR-005](../decisions/005-changes-diff-owner.md)；**R5 closed** @ [m6-engine-wave](../plans/m6-engine-wave.md) + [ADR-003](../decisions/003-engine-adapter-boundary.md)（`accepted`，stream-timeline §9 已并入）。
 - **文档补齐波（2026-09-02，主仓）：** 新建 [systems/conversation](../../docs/systems/conversation/INDEX.md)（6 页）与 [systems/sources](../../docs/systems/sources/INDEX.md)、[reference/universe-agent](../../docs/reference/universe-agent/INDEX.md)、[壳冒烟验证指南](../../docs/guides/shell-smoke-verification.md)、[ADR-006 壳不变量](../decisions/006-shell-invariants.md)（追溯登记）；PRD-005 收进 Changes/Review、PRD-002 Route 以 PRD-015 为准、PRD-007 验收 2 对齐、新增 **PRD-017–020** 非功能需求（`proposed`，待签收）；修正 agent-ui / parts-and-grid / chat INDEX / glossary 中「PRD-015 未实施」「D4/D5 open」「Changes 不走 Diff」等过时陈述；DOCUMENTATION 规则 3c（状态翻转后扫知识层）、规则 4 / 7 改指 status + evidence / `dev/archive/`；`check-docs-health.py` 纳管两新系统。Cursor CLI 只读审查 **Approve with changes**，3 Critical + 8 Important 已改入。
 
