@@ -1,0 +1,38 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+import { Event } from '../../../base/common/event.js';
+import { InstantiationType, registerSingleton } from '../../instantiation/common/extensions.js';
+import type { ConversationWriteMessage, PostOutcome } from '../common/conversationViewFrame.js';
+import { IUniverseAgentSessionView } from '../common/universeAgentSessionView.js';
+
+/**
+ * Web has no Engine host. Leases are accepted so consumers can hold an id, but
+ * they never receive frames and writes are not authenticated.
+ */
+export class WebUniverseAgentSessionView implements IUniverseAgentSessionView {
+
+	declare readonly _serviceBrand: undefined;
+
+	readonly onDidApplyFrame = Event.None;
+
+	async acquireLease(sessionId: string): Promise<string> {
+		return `web-empty:${sessionId}`;
+	}
+
+	async releaseLease(_leaseId: string): Promise<void> {
+		// Empty lease: nothing to tear down.
+	}
+
+	async post(_leaseId: string, _msg: ConversationWriteMessage): Promise<PostOutcome> {
+		return { accepted: false, reason: 'not_authenticated' };
+	}
+
+	async requestResync(_leaseId: string): Promise<void> {
+		// Empty lease: no replica to resync.
+	}
+}
+
+registerSingleton(IUniverseAgentSessionView, WebUniverseAgentSessionView, InstantiationType.Delayed);

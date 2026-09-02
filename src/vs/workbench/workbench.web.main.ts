@@ -73,6 +73,9 @@ import './services/auxiliaryWindow/browser/auxiliaryWindowService.js';
 import './services/power/browser/powerService.js';
 import './services/localTranscription/browser/localTranscriptionService.js';
 import '../platform/sandbox/browser/sandboxHelperService.js';
+import '../platform/universeAgent/browser/universeAgentConnectionService.js';
+import '../platform/universeAgent/browser/universeAgentSessionViewService.js';
+import '../platform/universeAgent/browser/universeAgentHubService.js';
 
 import { InstantiationType, registerSingleton } from '../platform/instantiation/common/extensions.js';
 import { IAccessibilityService } from '../platform/accessibility/common/accessibility.js';
