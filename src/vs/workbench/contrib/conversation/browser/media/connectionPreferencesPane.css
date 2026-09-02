@@ -82,7 +82,8 @@
 }
 
 .monaco-workbench .connection-preferences-pane .connection-hub-auth-badge,
-.monaco-workbench .connection-preferences-pane .connection-phase-label {
+.monaco-workbench .connection-preferences-pane .connection-phase-label,
+.monaco-workbench .connection-preferences-pane .connection-environment-notice {
 	opacity: 0.85;
 	margin-bottom: 8px;
 }

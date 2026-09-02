@@ -20,6 +20,12 @@ import {
 	IConnectionProfileEntry,
 } from '../../browser/connectionPreferencesPane.js';
 import {
+	getUnsupportedEnvironmentCopy,
+	shouldDrawDesktopConnectionControls,
+} from '../../browser/engineSectionChrome.js';
+import { createWebUnsupportedCapabilitySnapshot, WEB_UNSUPPORTED_REASON } from '../../../../../platform/universeAgent/browser/webUnsupported.js';
+import type { UniverseAgentCapabilitySnapshot, UniverseAgentConnectionSnapshot } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
+import {
 	canConnectHubDevice,
 	getHubAuthStatusLabel,
 	getHubDeviceRowStatusLabel,
@@ -344,6 +350,70 @@ suite('ConnectionPreferencesPane', () => {
 		pane.layout(new Dimension(600, 800));
 		assert.ok(!container.classList.contains('is-narrow'));
 		assert.ok(!container.classList.contains('is-compact'));
+
+		container.remove();
+	});
+
+	test('E2-1: desktop disconnected still draws Hub / Direct / Test', () => {
+		assert.strictEqual(shouldDrawDesktopConnectionControls({ phase: { kind: 'disconnected' } }), true);
+
+		const pane = mountPane();
+		const container = pane.getDomNode();
+		const hub = container.querySelector('.connection-hub-account') as HTMLElement;
+		const direct = container.querySelector('.connection-direct-address') as HTMLElement;
+		const test = container.querySelector('.connection-test-section') as HTMLElement;
+		const notice = container.querySelector('.connection-environment-notice') as HTMLElement;
+
+		assert.ok(hub);
+		assert.ok(direct);
+		assert.ok(test);
+		assert.notStrictEqual(hub.style.display, 'none');
+		assert.notStrictEqual(direct.style.display, 'none');
+		assert.notStrictEqual(test.style.display, 'none');
+		assert.strictEqual(notice.style.display, 'none');
+		assert.ok(!(hub.textContent ?? '').includes(getUnsupportedEnvironmentCopy()));
+
+		container.remove();
+	});
+
+	test('E2-1: Web unsupported_environment omits desktop controls and shows named copy', () => {
+		const capabilities = createWebUnsupportedCapabilitySnapshot();
+		const snapshot: UniverseAgentConnectionSnapshot = {
+			transport: 'idle',
+			pairingPending: false,
+			channelAlive: false,
+			sharedFsRootSent: false,
+			capabilities,
+		};
+
+		assert.strictEqual(shouldDrawDesktopConnectionControls({
+			phase: { kind: 'disconnected' },
+			snapshot,
+			capabilities,
+		}), false);
+		assert.strictEqual(shouldDrawDesktopConnectionControls({
+			phase: { kind: 'failed', code: 'unsupported_environment', reason: WEB_UNSUPPORTED_REASON },
+		}), false);
+
+		const pane = mountPane(undefined, {
+			getConnectionPhase: () => ({ kind: 'disconnected' }),
+			getCapabilitySnapshot: () => capabilities as UniverseAgentCapabilitySnapshot,
+			getConnectionSnapshot: () => snapshot,
+		});
+		const container = pane.getDomNode();
+		const hub = container.querySelector('.connection-hub-account') as HTMLElement;
+		const devices = container.querySelector('.connection-hub-devices') as HTMLElement;
+		const direct = container.querySelector('.connection-direct-address') as HTMLElement;
+		const test = container.querySelector('.connection-test-section') as HTMLElement;
+		const notice = container.querySelector('.connection-environment-notice') as HTMLElement;
+
+		assert.strictEqual(hub.style.display, 'none');
+		assert.strictEqual(devices.style.display, 'none');
+		assert.strictEqual(direct.style.display, 'none');
+		assert.strictEqual(test.style.display, 'none');
+		assert.notStrictEqual(notice.style.display, 'none');
+		assert.strictEqual(notice.textContent, getUnsupportedEnvironmentCopy());
+		assert.strictEqual(getUnsupportedEnvironmentCopy(), '此环境不支持本机 Engine 连接');
 
 		container.remove();
 	});

@@ -13,6 +13,9 @@ import {
 	EnginePreferencesPane,
 	getEngineTestStatusText,
 } from '../../browser/enginePreferencesPane.js';
+import { getUnsupportedEnvironmentCopy } from '../../browser/engineSectionChrome.js';
+import { createWebUnsupportedCapabilitySnapshot, WEB_UNSUPPORTED_REASON } from '../../../../../platform/universeAgent/browser/webUnsupported.js';
+import type { UniverseAgentCapabilitySnapshot, UniverseAgentConnectionSnapshot } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { getConnectionPhaseStatusBarText } from '../../browser/conversationSessionStatus.js';
 import { Dimension } from '../../../../../base/browser/dom.js';
 
@@ -23,7 +26,7 @@ suite('EnginePreferencesPane', () => {
 
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
-	function createConnectionStub(connected = false): IUniverseAgentConnection {
+	function createConnectionStub(connected = false, overrides: Partial<IUniverseAgentConnection> = {}): IUniverseAgentConnection {
 		const capabilities = createEmptyCapabilitySnapshot();
 		return {
 			_serviceBrand: undefined,
@@ -81,12 +84,13 @@ suite('EnginePreferencesPane', () => {
 			removeMcpServer: async () => ({ ok: true }),
 			listTools: async () => ({ tools: [] }),
 			listModels: async () => ({ models: [] }),
+			...overrides,
 		};
 	}
 
-	function mountPane(connected = false): EnginePreferencesPane {
+	function mountPane(connected = false, overrides: Partial<IUniverseAgentConnection> = {}): EnginePreferencesPane {
 		const instantiationService = workbenchInstantiationService(undefined, store);
-		instantiationService.stub(IUniverseAgentConnection, createConnectionStub(connected));
+		instantiationService.stub(IUniverseAgentConnection, createConnectionStub(connected, overrides));
 		const pane = store.add(instantiationService.createInstance(EnginePreferencesPane));
 		const container = pane.getDomNode();
 		document.body.appendChild(container);
@@ -146,6 +150,7 @@ suite('EnginePreferencesPane', () => {
 	test('disconnected pane keeps nine-section navigation with zero catalog rows and zero write buttons', async () => {
 		const pane = mountPane(false);
 		const container = pane.getDomNode();
+		pane.layout(new Dimension(900, 800));
 		await new Promise(resolve => setTimeout(resolve, 0));
 
 		const navLabels = [...container.querySelectorAll('.engine-preferences-nav-label')].map(el => el.textContent);
@@ -208,6 +213,56 @@ suite('EnginePreferencesPane', () => {
 		testButton.click();
 		assert.strictEqual(testStatus.textContent, getEngineTestStatusText());
 		assert.notStrictEqual(testStatus.textContent, 'Connected');
+
+		container.remove();
+	});
+
+	test('E2-1: desktop disconnected still draws Test Engine and Engine not connected', () => {
+		const pane = mountPane(false);
+		const container = pane.getDomNode();
+
+		const testRow = container.querySelector('.engine-test-row') as HTMLElement;
+		const testButton = container.querySelector('.engine-test-row .monaco-button') as HTMLButtonElement;
+		const banner = container.querySelector('.engine-preferences-disconnected-copy') as HTMLElement;
+		assert.ok(testRow);
+		assert.ok(testButton);
+		assert.notStrictEqual(testRow.style.display, 'none');
+		assert.strictEqual(banner.textContent, ENGINE_DISCONNECTED_COPY);
+		assert.notStrictEqual(banner.textContent, getUnsupportedEnvironmentCopy());
+		assert.ok((container.textContent ?? '').includes('Open Connection'));
+
+		container.remove();
+	});
+
+	test('E2-1: Web unsupported_environment omits Test Engine and shows named copy', () => {
+		const capabilities = createWebUnsupportedCapabilitySnapshot();
+		const snapshot: UniverseAgentConnectionSnapshot = {
+			transport: 'idle',
+			pairingPending: false,
+			channelAlive: false,
+			sharedFsRootSent: false,
+			capabilities,
+		};
+		const pane = mountPane(false, {
+			getConnectionPhase: () => ({ kind: 'disconnected' }),
+			getCapabilitySnapshot: () => capabilities as UniverseAgentCapabilitySnapshot,
+			getConnectionSnapshot: () => snapshot,
+			connectProfile: async () => ({ ok: false, code: 'unsupported_environment', reason: WEB_UNSUPPORTED_REASON }),
+		});
+		const container = pane.getDomNode();
+
+		const testRow = container.querySelector('.engine-test-row') as HTMLElement;
+		const banner = container.querySelector('.engine-preferences-disconnected-copy') as HTMLElement;
+		const bannerTest = [...container.querySelectorAll('.engine-preferences-disconnected-actions .monaco-button')]
+			.find(el => (el.textContent ?? '').includes('Test Engine')) as HTMLElement | undefined;
+
+		assert.ok(testRow);
+		assert.strictEqual(testRow.style.display, 'none');
+		assert.ok(bannerTest);
+		assert.strictEqual(bannerTest.style.display, 'none');
+		assert.strictEqual(banner.textContent, getUnsupportedEnvironmentCopy());
+		assert.strictEqual(getUnsupportedEnvironmentCopy(), '此环境不支持本机 Engine 连接');
+		assert.notStrictEqual(banner.textContent, ENGINE_DISCONNECTED_COPY);
 
 		container.remove();
 	});

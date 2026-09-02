@@ -4,13 +4,56 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as DOM from '../../../../base/browser/dom.js';
-import { isWeb } from '../../../../base/common/platform.js';
 import { localize } from '../../../../nls.js';
-import type { UniverseAgentCapabilitySupport } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
+import type { ConnectionPhase } from '../../../../platform/universeAgent/common/connectionHubTypes.js';
+import type {
+	UniverseAgentCapabilitySnapshot,
+	UniverseAgentCapabilitySupport,
+	UniverseAgentConnectionSnapshot,
+} from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 
-/** P0 未合入前用 isWeb 门控；不得据此声称 Web 已诚实。 */
-export function shouldDrawDesktopConnectionControls(): boolean {
-	return !isWeb;
+/** P0 capability / connectProfile reason；UI 只对照 common 符号，不 import browser stub。 */
+const LOCAL_ENGINE_UNSUPPORTED_REASON = 'Web 不支持本机 Engine 连接';
+
+export interface IDesktopConnectionControlContext {
+	readonly phase: ConnectionPhase;
+	readonly snapshot?: UniverseAgentConnectionSnapshot;
+	readonly capabilities?: UniverseAgentCapabilitySnapshot;
+}
+
+function capabilityMarksUnsupportedEnvironment(capabilities: UniverseAgentCapabilitySnapshot | undefined): boolean {
+	if (!capabilities) {
+		return false;
+	}
+	for (const entry of Object.values(capabilities)) {
+		if (entry && typeof entry === 'object' && 'reason' in entry && entry.reason === LOCAL_ENGINE_UNSUPPORTED_REASON) {
+			return true;
+		}
+	}
+	return false;
+}
+
+/**
+ * 省略桌面连接控件当且仅当环境不支持本机 Engine。
+ * 桌面 `disconnected` 不是省略条件。
+ */
+export function isUnsupportedLocalEngineEnvironment(context: IDesktopConnectionControlContext): boolean {
+	if (context.phase.kind === 'failed' && context.phase.code === 'unsupported_environment') {
+		return true;
+	}
+	if (capabilityMarksUnsupportedEnvironment(context.capabilities)) {
+		return true;
+	}
+	return capabilityMarksUnsupportedEnvironment(context.snapshot?.capabilities);
+}
+
+export function shouldDrawDesktopConnectionControls(context: IDesktopConnectionControlContext): boolean {
+	return !isUnsupportedLocalEngineEnvironment(context);
+}
+
+/** a11y §7 / E2-1：Web 与 unsupported_environment 的产品文案，不是 capability reason 原文。 */
+export function getUnsupportedEnvironmentCopy(): string {
+	return localize('ua.unsupportedLocalEngineEnvironment', "此环境不支持本机 Engine 连接");
 }
 
 /** a11y RWD-2：叶级 pane `layout(dimension).width`，不是 Part 宽。 */
