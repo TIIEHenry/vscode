@@ -4,8 +4,11 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { Emitter } from '../../../../../base/common/event.js';
+import { Emitter, Event } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import type { ConnectionPhase } from '../../../../../platform/universeAgent/common/connectionHubTypes.js';
+import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
+import type { UniverseAgentConnectionSnapshot } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { IWorkbenchEnvironmentService } from '../../../../services/environment/common/environmentService.js';
 import { IStatusbarEntry, IStatusbarService, StatusbarAlignment } from '../../../../services/statusbar/browser/statusbar.js';
 import { IWorkbenchLayoutService } from '../../../../services/layout/browser/layoutService.js';
@@ -20,7 +23,38 @@ import { OPEN_CONNECTION_PREFERENCES_COMMAND_ID, OPEN_ENGINE_PREFERENCES_COMMAND
 suite('Conversation Session StatusBar', () => {
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
-	function mountStatusBar(stubService: IConversationRosterService): Map<string, IStatusbarEntry> {
+	function createConnectionStub(overrides: Partial<IUniverseAgentConnection> = {}): IUniverseAgentConnection {
+		return {
+			_serviceBrand: undefined,
+			isEngineConnected: () => false,
+			getConnectionPhase: () => ({ kind: 'disconnected' }),
+			getTransportState: () => 'idle',
+			getConnectionSnapshot: () => ({
+				transport: 'idle',
+				pairingPending: false,
+				channelAlive: false,
+				capabilities: { methods: [], toolFamilies: [] },
+			}),
+			getCapabilitySnapshot: () => ({ methods: [], toolFamilies: [] }),
+			onDidChangeConnection: Event.None,
+			onDidFileMutation: Event.None,
+			connect: async () => ({ sessionToken: undefined, workDir: undefined, methods: [] }),
+			connectProfile: async () => ({ ok: false, code: 'transport_failed', reason: 'stub' }),
+			disconnect: async () => { },
+			listSessions: async () => ({ sessions: [] }),
+			createSession: async () => ({ sessionId: 's' }),
+			deleteSession: async () => { },
+			getHistory: async () => ({ events: [] }),
+			subscribeSessionEventStream: () => ({ dispose: () => { } }),
+			chat: async () => { },
+			...overrides,
+		};
+	}
+
+	function mountStatusBar(
+		stubService: IConversationRosterService,
+		connectionOverrides: Partial<IUniverseAgentConnection> = {},
+	): Map<string, IStatusbarEntry> {
 		registerConversationSessionStatusBar();
 
 		const entries = new Map<string, IStatusbarEntry>();
@@ -50,6 +84,7 @@ suite('Conversation Session StatusBar', () => {
 
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		instantiationService.stub(IConversationRosterService, stubService);
+		instantiationService.stub(IUniverseAgentConnection, createConnectionStub(connectionOverrides));
 		instantiationService.stub(IStatusbarService, statusbarService);
 		instantiationService.stub(IWorkbenchLayoutService, layoutService);
 		instantiationService.stub(IWorkbenchEnvironmentService, environmentService);
@@ -65,72 +100,117 @@ suite('Conversation Session StatusBar', () => {
 		return typeof entry.command === 'string' ? entry.command : entry.command.id;
 	}
 
-	test('engine entry exposes openConnectionPreferences when disconnected', () => {
+	function createRosterStub(isEngineConnected: () => boolean): IConversationRosterService {
 		const onDidChangeActiveSession = new Emitter<string>();
 		const onDidChangeSession = new Emitter<string>();
 		const onDidChangeEngineConnection = new Emitter<boolean>();
 
-		const stubService = {
+		return {
 			_serviceBrand: undefined,
 			onDidChangeActiveSession: onDidChangeActiveSession.event,
 			onDidChangeSession: onDidChangeSession.event,
 			onDidChangeEngineConnection: onDidChangeEngineConnection.event,
 			getActiveSessionId: () => 'untitled',
 			getActiveSession: () => ({ id: 'untitled', title: 'Untitled', turns: [] }),
-			isEngineConnected: () => false,
+			isEngineConnected,
 		} as unknown as IConversationRosterService;
+	}
 
-		const entries = mountStatusBar(stubService);
+	test('engine entry exposes openConnectionPreferences when disconnected', () => {
+		const entries = mountStatusBar(createRosterStub(() => false));
 		const engineEntry = entries.get(ConversationSessionStatusBarContribution.ENGINE_ENTRY_ID);
 		assert.strictEqual(getEngineCommandId(engineEntry), OPEN_CONNECTION_PREFERENCES_COMMAND_ID);
 		assert.strictEqual(engineEntry?.text, 'Engine not connected');
 	});
 
 	test('engine entry exposes openEnginePreferences when connected', () => {
-		const onDidChangeActiveSession = new Emitter<string>();
-		const onDidChangeSession = new Emitter<string>();
-		const onDidChangeEngineConnection = new Emitter<boolean>();
-
-		const stubService = {
-			_serviceBrand: undefined,
-			onDidChangeActiveSession: onDidChangeActiveSession.event,
-			onDidChangeSession: onDidChangeSession.event,
-			onDidChangeEngineConnection: onDidChangeEngineConnection.event,
-			getActiveSessionId: () => 'untitled',
-			getActiveSession: () => ({ id: 'untitled', title: 'Untitled', turns: [] }),
-			isEngineConnected: () => true,
-		} as unknown as IConversationRosterService;
-
-		const entries = mountStatusBar(stubService);
+		const entries = mountStatusBar(
+			createRosterStub(() => true),
+			{
+				isEngineConnected: () => true,
+				getConnectionPhase: () => ({ kind: 'connected', path: 'hubRelay' }),
+			},
+		);
 		const engineEntry = entries.get(ConversationSessionStatusBarContribution.ENGINE_ENTRY_ID);
 		assert.strictEqual(getEngineCommandId(engineEntry), OPEN_ENGINE_PREFERENCES_COMMAND_ID);
-		assert.strictEqual(engineEntry?.text, 'Engine connected');
+		assert.strictEqual(engineEntry?.text, 'Engine · Hub relay');
 	});
 
 	test('engine entry command switches when engine connection changes', () => {
-		const onDidChangeActiveSession = new Emitter<string>();
-		const onDidChangeSession = new Emitter<string>();
 		const onDidChangeEngineConnection = new Emitter<boolean>();
 		let connected = false;
 
 		const stubService = {
 			_serviceBrand: undefined,
-			onDidChangeActiveSession: onDidChangeActiveSession.event,
-			onDidChangeSession: onDidChangeSession.event,
+			onDidChangeActiveSession: Event.None,
+			onDidChangeSession: Event.None,
 			onDidChangeEngineConnection: onDidChangeEngineConnection.event,
 			getActiveSessionId: () => 'untitled',
 			getActiveSession: () => ({ id: 'untitled', title: 'Untitled', turns: [] }),
 			isEngineConnected: () => connected,
 		} as unknown as IConversationRosterService;
 
-		const entries = mountStatusBar(stubService);
+		const onDidChangeConnection = new Emitter<UniverseAgentConnectionSnapshot>();
+		let phase: ConnectionPhase = { kind: 'disconnected' };
+
+		const entries = mountStatusBar(stubService, {
+			onDidChangeConnection: onDidChangeConnection.event,
+			isEngineConnected: () => connected,
+			getConnectionPhase: () => phase,
+		});
+
 		assert.strictEqual(getEngineCommandId(entries.get(ConversationSessionStatusBarContribution.ENGINE_ENTRY_ID)), OPEN_CONNECTION_PREFERENCES_COMMAND_ID);
 
 		connected = true;
+		phase = { kind: 'connected', path: 'hubRelay' };
 		onDidChangeEngineConnection.fire(true);
+		onDidChangeConnection.fire({
+			transport: 'ok',
+			sessionToken: 'tok',
+			pairingPending: false,
+			channelAlive: true,
+			capabilities: { methods: [], toolFamilies: [] },
+		});
 
 		const engineEntry = entries.get(ConversationSessionStatusBarContribution.ENGINE_ENTRY_ID);
 		assert.strictEqual(getEngineCommandId(engineEntry), OPEN_ENGINE_PREFERENCES_COMMAND_ID);
-		assert.strictEqual(engineEntry?.text, 'Engine connected');
+		assert.strictEqual(engineEntry?.text, 'Engine · Hub relay');
+	});
+
+	suite('H4b ConnectionPhase status copy', () => {
+		const phaseCases: Array<{ readonly phase: ConnectionPhase; readonly expected: string }> = [
+			{ phase: { kind: 'disconnected' }, expected: 'Engine not connected' },
+			{ phase: { kind: 'connecting', reason: 'initial' }, expected: 'Connecting…' },
+			{ phase: { kind: 'connecting', reason: 'transport_lost' }, expected: 'Reconnecting…' },
+			{ phase: { kind: 'connected', path: 'hubRelay' }, expected: 'Engine · Hub relay' },
+			{ phase: { kind: 'connected', path: 'direct' }, expected: 'Engine · Direct' },
+			{ phase: { kind: 'failed', code: 'pin_mismatch', reason: 'pin' }, expected: 'Pin mismatch' },
+		];
+
+		for (const { phase, expected } of phaseCases) {
+			test(`phase ${phase.kind} shows "${expected}"`, () => {
+				const entries = mountStatusBar(createRosterStub(() => false), {
+					getConnectionPhase: () => phase,
+				});
+				const engineEntry = entries.get(ConversationSessionStatusBarContribution.ENGINE_ENTRY_ID);
+				assert.strictEqual(engineEntry?.text, expected);
+				assert.strictEqual(getEngineCommandId(engineEntry), OPEN_CONNECTION_PREFERENCES_COMMAND_ID);
+			});
+		}
+
+		test('pairing pending keeps Engine not connected even when phase is connecting', () => {
+			const entries = mountStatusBar(createRosterStub(() => false), {
+				getConnectionPhase: () => ({ kind: 'connecting', reason: 'initial' }),
+				getConnectionSnapshot: () => ({
+					transport: 'ok',
+					pairingPending: true,
+					channelAlive: true,
+					capabilities: { methods: [], toolFamilies: [] },
+				}),
+			});
+			const engineEntry = entries.get(ConversationSessionStatusBarContribution.ENGINE_ENTRY_ID);
+			assert.strictEqual(engineEntry?.text, 'Engine not connected');
+			assert.strictEqual(getEngineCommandId(engineEntry), OPEN_CONNECTION_PREFERENCES_COMMAND_ID);
+		});
 	});
 });

@@ -12,8 +12,9 @@ import { IWorkbenchContribution } from '../../../common/contributions.js';
 import { IWorkbenchEnvironmentService } from '../../../services/environment/common/environmentService.js';
 import { IWorkbenchLayoutService, Parts } from '../../../services/layout/browser/layoutService.js';
 import { IStatusbarEntry, IStatusbarEntryAccessor, IStatusbarService, StatusbarAlignment } from '../../../services/statusbar/browser/statusbar.js';
+import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import {
-	getConversationEngineStatusText,
+	getConnectionPhaseStatusBarText,
 	getConversationModelEchoStatusText,
 	getConversationSessionStatusText,
 	shouldShowConversationModelEchoInStatusBar,
@@ -35,6 +36,7 @@ export class ConversationSessionStatusBarContribution extends Disposable impleme
 
 	constructor(
 		@IConversationRosterService private readonly stubService: IConversationRosterService,
+		@IUniverseAgentConnection private readonly uaConnection: IUniverseAgentConnection,
 		@IStatusbarService private readonly statusbarService: IStatusbarService,
 		@IWorkbenchLayoutService private readonly layoutService: IWorkbenchLayoutService,
 		@IWorkbenchEnvironmentService private readonly environmentService: IWorkbenchEnvironmentService,
@@ -63,6 +65,7 @@ export class ConversationSessionStatusBarContribution extends Disposable impleme
 
 		this._register(this.stubService.onDidChangeActiveSession(() => this.updateSessionEntry()));
 		this._register(this.stubService.onDidChangeEngineConnection(() => this.updateEngineEntry()));
+		this._register(this.uaConnection.onDidChangeConnection(() => this.updateEngineEntry()));
 		this._register(this.stubService.onDidChangeSession(sessionId => {
 			if (sessionId === this.stubService.getActiveSessionId()) {
 				this.updateSessionEntry();
@@ -118,7 +121,11 @@ export class ConversationSessionStatusBarContribution extends Disposable impleme
 
 	private createEngineEntry(): IStatusbarEntry {
 		const connected = this.stubService.isEngineConnected();
-		const text = getConversationEngineStatusText(connected);
+		const snapshot = this.uaConnection.getConnectionSnapshot();
+		const text = getConnectionPhaseStatusBarText(
+			this.uaConnection.getConnectionPhase(),
+			snapshot.pairingPending,
+		);
 		const commandId = connected ? OPEN_ENGINE_PREFERENCES_COMMAND_ID : OPEN_CONNECTION_PREFERENCES_COMMAND_ID;
 		return {
 			name: localize('conversationStatus.engineName', "Engine"),
