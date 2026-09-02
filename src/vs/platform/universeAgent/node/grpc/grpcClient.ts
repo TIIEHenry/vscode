@@ -25,6 +25,19 @@ import type {
 	UniverseAgentSkillInfoResult,
 	UniverseAgentSkillSource,
 	UniverseAgentSkillSummary,
+	UniverseAgentListAgentProfilesRequest,
+	UniverseAgentListAgentProfilesResult,
+	UniverseAgentAgentProfileSource,
+	UniverseAgentAgentProfileSummary,
+	UniverseAgentListMcpServersRequest,
+	UniverseAgentListMcpServersResult,
+	UniverseAgentMcpServerOrigin,
+	UniverseAgentMcpTransport,
+	UniverseAgentMcpServerSummary,
+	UniverseAgentToggleMcpServerRequest,
+	UniverseAgentToggleMcpServerResult,
+	UniverseAgentListToolsResult,
+	UniverseAgentToolSummary,
 	UniverseAgentAgentTreeNode,
 	UniverseAgentTeamInfo,
 	UniverseAgentTeamMemberInfo,
@@ -276,6 +289,138 @@ function mapSkillInfoResponse(wire: SkillInfoResponseWire): UniverseAgentSkillIn
 		content: wire.content ?? '',
 		source: mapSkillSource(wire.source),
 		enabled: wire.enabled === true,
+	};
+}
+
+interface ListAgentProfilesResponseWire {
+	profiles?: Array<{
+		id?: string;
+		name?: string;
+		source?: string;
+		summary?: string;
+		enabled?: boolean;
+	}>;
+}
+
+function mapAgentProfileSource(source: string | undefined): UniverseAgentAgentProfileSource {
+	switch (source?.toLowerCase()) {
+		case 'built_in':
+		case 'builtin':
+			return 'built_in';
+		case 'user':
+			return 'user';
+		case 'project':
+			return 'project';
+		default:
+			return 'unknown';
+	}
+}
+
+function mapAgentProfileSummary(wire: NonNullable<ListAgentProfilesResponseWire['profiles']>[number]): UniverseAgentAgentProfileSummary {
+	return {
+		id: wire.id ?? '',
+		name: wire.name ?? '',
+		source: mapAgentProfileSource(wire.source),
+		summary: wire.summary,
+		enabled: wire.enabled,
+	};
+}
+
+function mapListAgentProfilesResponse(wire: ListAgentProfilesResponseWire): UniverseAgentListAgentProfilesResult {
+	return {
+		profiles: (wire.profiles ?? []).map(mapAgentProfileSummary),
+	};
+}
+
+interface ListMcpServersResponseWire {
+	servers?: Array<{
+		id?: string;
+		name?: string;
+		transport?: string;
+		origin?: string;
+		enabled?: boolean;
+		effective_enabled?: boolean;
+		has_project_override?: boolean;
+	}>;
+}
+
+function mapMcpOrigin(origin: string | undefined): UniverseAgentMcpServerOrigin {
+	switch (origin?.toLowerCase()) {
+		case 'global':
+			return 'global';
+		case 'project':
+			return 'project';
+		default:
+			return 'unknown';
+	}
+}
+
+function mapMcpTransport(transport: string | undefined): UniverseAgentMcpTransport {
+	switch (transport?.toLowerCase()) {
+		case 'stdio':
+			return 'stdio';
+		case 'sse':
+			return 'sse';
+		case 'streamable_http':
+			return 'streamable_http';
+		default:
+			return 'unknown';
+	}
+}
+
+function mapMcpServerSummary(wire: NonNullable<ListMcpServersResponseWire['servers']>[number]): UniverseAgentMcpServerSummary {
+	return {
+		id: wire.id ?? '',
+		name: wire.name ?? '',
+		transport: mapMcpTransport(wire.transport),
+		origin: mapMcpOrigin(wire.origin),
+		enabled: wire.enabled === true,
+		effectiveEnabled: wire.effective_enabled,
+		hasProjectOverride: wire.has_project_override,
+	};
+}
+
+function mapListMcpServersResponse(wire: ListMcpServersResponseWire): UniverseAgentListMcpServersResult {
+	return {
+		servers: (wire.servers ?? []).map(mapMcpServerSummary),
+	};
+}
+
+interface ToggleMcpServerResponseWire {
+	ok?: boolean;
+	reason?: string;
+}
+
+function mapToggleMcpServerResponse(wire: ToggleMcpServerResponseWire): UniverseAgentToggleMcpServerResult {
+	return {
+		ok: wire.ok === true,
+		reason: wire.reason,
+	};
+}
+
+interface ListToolsResponseWire {
+	tools?: Array<{
+		name?: string;
+		description?: string;
+		category?: string;
+		destructive?: boolean;
+		requires_permission?: boolean;
+	}>;
+}
+
+function mapToolSummary(wire: NonNullable<ListToolsResponseWire['tools']>[number]): UniverseAgentToolSummary {
+	return {
+		name: wire.name ?? '',
+		description: wire.description,
+		category: wire.category,
+		destructive: wire.destructive,
+		requiresPermission: wire.requires_permission,
+	};
+}
+
+function mapListToolsResponse(wire: ListToolsResponseWire): UniverseAgentListToolsResult {
+	return {
+		tools: (wire.tools ?? []).map(mapToolSummary),
 	};
 }
 
@@ -559,6 +704,65 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 		);
 		const wire = await unary({ skill_name: request.skillName });
 		return mapSkillInfoResponse(wire);
+	}
+
+	async listAgentProfiles(request: UniverseAgentListAgentProfilesRequest): Promise<UniverseAgentListAgentProfilesResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, ListAgentProfilesResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.Agent.service,
+			UniverseAgentGrpcServices.Agent.ListAgentProfiles,
+		);
+		const payload: Record<string, unknown> = {};
+		if (request.projectPath) {
+			payload.project_path = request.projectPath;
+		}
+		const wire = await unary(payload);
+		return mapListAgentProfilesResponse(wire);
+	}
+
+	async listMcpServers(request: UniverseAgentListMcpServersRequest): Promise<UniverseAgentListMcpServersResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, ListMcpServersResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.Mcp.service,
+			UniverseAgentGrpcServices.Mcp.ListMcpServers,
+		);
+		const payload: Record<string, unknown> = {};
+		if (request.workDir) {
+			payload.work_dir = request.workDir;
+		}
+		if (request.enabledOnly !== undefined) {
+			payload.enabled_only = request.enabledOnly;
+		}
+		const wire = await unary(payload);
+		return mapListMcpServersResponse(wire);
+	}
+
+	async toggleMcpServer(request: UniverseAgentToggleMcpServerRequest): Promise<UniverseAgentToggleMcpServerResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, ToggleMcpServerResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.Mcp.service,
+			UniverseAgentGrpcServices.Mcp.ToggleMcpServer,
+		);
+		const payload: Record<string, unknown> = {
+			id: request.id,
+			enabled: request.enabled,
+			scope: request.scope,
+		};
+		if (request.workDir) {
+			payload.work_dir = request.workDir;
+		}
+		const wire = await unary(payload);
+		return mapToggleMcpServerResponse(wire);
+	}
+
+	async listTools(): Promise<UniverseAgentListToolsResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, ListToolsResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.Tool.service,
+			UniverseAgentGrpcServices.Tool.ListTools,
+		);
+		const wire = await unary({});
+		return mapListToolsResponse(wire);
 	}
 
 	async fetchAgentTree(sessionId: string): Promise<UniverseAgentAgentTreeNode | undefined> {

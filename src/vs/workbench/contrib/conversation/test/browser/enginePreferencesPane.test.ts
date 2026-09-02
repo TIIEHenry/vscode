@@ -34,12 +34,21 @@ suite('EnginePreferencesPane', () => {
 				sessionToken: connected ? 'tok' : undefined,
 				pairingPending: false,
 				channelAlive: connected,
+				sharedFsRootSent: false,
 				capabilities,
 			}),
 			getCapabilitySnapshot: () => capabilities,
 			onDidChangeConnection: Event.None,
 			onDidFileMutation: Event.None,
 			onDidTurnSettle: Event.None,
+			onDidChangeTeamRuntime: Event.None,
+			requestAgentTreeRefresh: () => { },
+			getNavigatorCapability: () => 'UNKNOWN' as const,
+			team: {
+				memberStatus: async () => [],
+				taskList: async () => [],
+				teamInfo: async () => undefined,
+			},
 			connect: async () => ({ methods: [], events: [], sessionToken: 'tok' }),
 			connectProfile: async () => ({ ok: false, code: 'transport_failed', reason: 'stub' }),
 			disconnect: async () => { },
@@ -52,6 +61,10 @@ suite('EnginePreferencesPane', () => {
 			listSkills: async () => ({ skills: [] }),
 			setSkillEnabled: async () => ({ ok: true }),
 			getSkillInfo: async () => ({ name: '', content: '', source: 'unknown', enabled: false }),
+			listAgentProfiles: async () => ({ profiles: [] }),
+			listMcpServers: async () => ({ servers: [] }),
+			toggleMcpServer: async () => ({ ok: true }),
+			listTools: async () => ({ tools: [] }),
 		};
 	}
 

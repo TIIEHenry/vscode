@@ -24,6 +24,13 @@ import type {
 	UniverseAgentListSessionsRequest,
 	UniverseAgentListSessionsResult,
 	UniverseAgentListSkillsResult,
+	UniverseAgentListAgentProfilesRequest,
+	UniverseAgentListAgentProfilesResult,
+	UniverseAgentListMcpServersRequest,
+	UniverseAgentListMcpServersResult,
+	UniverseAgentListToolsResult,
+	UniverseAgentToggleMcpServerRequest,
+	UniverseAgentToggleMcpServerResult,
 	UniverseAgentSessionEvent,
 	UniverseAgentSetSkillEnabledRequest,
 	UniverseAgentSetSkillEnabledResult,
@@ -391,6 +398,33 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 
 	async getSkillInfo(request: UniverseAgentSkillInfoRequest): Promise<UniverseAgentSkillInfoResult> {
 		return this._withTransport(transport => transport.getSkillInfo(request));
+	}
+
+	async listAgentProfiles(request: UniverseAgentListAgentProfilesRequest = {}): Promise<UniverseAgentListAgentProfilesResult> {
+		const workDir = this.getConnectionSnapshot().workDir;
+		return this._withTransport(transport => transport.listAgentProfiles({
+			projectPath: request.projectPath ?? workDir,
+		}));
+	}
+
+	async listMcpServers(request: UniverseAgentListMcpServersRequest = {}): Promise<UniverseAgentListMcpServersResult> {
+		const workDir = request.workDir ?? this.getConnectionSnapshot().workDir;
+		return this._withTransport(transport => transport.listMcpServers({
+			...request,
+			workDir,
+		}));
+	}
+
+	async toggleMcpServer(request: UniverseAgentToggleMcpServerRequest): Promise<UniverseAgentToggleMcpServerResult> {
+		const workDir = request.workDir ?? this.getConnectionSnapshot().workDir;
+		return this._withTransport(transport => transport.toggleMcpServer({
+			...request,
+			workDir: request.scope === 'project' ? workDir : request.workDir,
+		}));
+	}
+
+	async listTools(): Promise<UniverseAgentListToolsResult> {
+		return this._withTransport(transport => transport.listTools());
 	}
 
 	getActiveHubBaseUrl(): string | undefined {

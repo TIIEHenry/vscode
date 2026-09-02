@@ -209,3 +209,71 @@ export interface UniverseAgentSkillInfoResult {
 	readonly source: UniverseAgentSkillSource;
 	readonly enabled: boolean;
 }
+
+/** Agent profile source from AgentService.ListAgentProfiles (customizations-engine §3.2). */
+export type UniverseAgentAgentProfileSource = 'built_in' | 'user' | 'project' | 'unknown';
+
+export interface UniverseAgentAgentProfileSummary {
+	readonly id: string;
+	readonly name: string;
+	readonly source: UniverseAgentAgentProfileSource;
+	readonly summary?: string;
+	readonly enabled?: boolean;
+}
+
+export interface UniverseAgentListAgentProfilesRequest {
+	readonly projectPath?: string;
+}
+
+export interface UniverseAgentListAgentProfilesResult {
+	readonly profiles: readonly UniverseAgentAgentProfileSummary[];
+}
+
+/** MCP definition origin from McpService.ListMcpServers (customizations-engine §3.5). */
+export type UniverseAgentMcpServerOrigin = 'global' | 'project' | 'unknown';
+
+export type UniverseAgentMcpTransport = 'stdio' | 'sse' | 'streamable_http' | 'unknown';
+
+export interface UniverseAgentMcpServerSummary {
+	readonly id: string;
+	readonly name: string;
+	readonly transport: UniverseAgentMcpTransport;
+	readonly origin: UniverseAgentMcpServerOrigin;
+	readonly enabled: boolean;
+	readonly effectiveEnabled?: boolean;
+	readonly hasProjectOverride?: boolean;
+}
+
+export interface UniverseAgentListMcpServersRequest {
+	readonly workDir?: string;
+	readonly enabledOnly?: boolean;
+}
+
+export interface UniverseAgentListMcpServersResult {
+	readonly servers: readonly UniverseAgentMcpServerSummary[];
+}
+
+export interface UniverseAgentToggleMcpServerRequest {
+	readonly id: string;
+	readonly enabled: boolean;
+	readonly scope: 'global' | 'project';
+	readonly workDir?: string;
+}
+
+export interface UniverseAgentToggleMcpServerResult {
+	readonly ok: boolean;
+	readonly reason?: string;
+}
+
+/** Engine tool directory entry from ToolService.ListTools (customizations-engine §3.6). */
+export interface UniverseAgentToolSummary {
+	readonly name: string;
+	readonly description?: string;
+	readonly category?: string;
+	readonly destructive?: boolean;
+	readonly requiresPermission?: boolean;
+}
+
+export interface UniverseAgentListToolsResult {
+	readonly tools: readonly UniverseAgentToolSummary[];
+}
