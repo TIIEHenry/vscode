@@ -97,6 +97,7 @@ export class EnginePreferencesPane extends Disposable implements IPreferencesEdi
 
 	private readonly container: HTMLElement;
 	private readonly disconnectedBanner: HTMLElement;
+	private readonly emptyWelcome: HTMLElement;
 	private readonly navList: WorkbenchList<typeof ENGINE_PREFERENCES_NAV_ENTRIES[number]>;
 	private readonly detailTitle: HTMLElement;
 	private readonly detailBody: HTMLElement;
@@ -148,6 +149,10 @@ export class EnginePreferencesPane extends Disposable implements IPreferencesEdi
 		this._register(bannerOpenConnection.onDidClick(() => {
 			void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID);
 		}));
+
+		this.emptyWelcome = DOM.append(this.container, $('.engine-empty-welcome'));
+		this.emptyWelcome.textContent = getEngineEmptyCopy();
+		this.emptyWelcome.style.display = 'none';
 
 		const body = DOM.append(this.container, $('.engine-preferences-body'));
 		const navHost = DOM.append(body, $('.engine-preferences-nav'));
@@ -247,6 +252,7 @@ export class EnginePreferencesPane extends Disposable implements IPreferencesEdi
 	private updateDisconnectedBanner(): void {
 		const disconnected = !this.connectionService.isEngineConnected();
 		this.disconnectedBanner.style.display = disconnected ? '' : 'none';
+		this.emptyWelcome.style.display = disconnected ? '' : 'none';
 		if (disconnected) {
 			this.disconnectedCopy.textContent = getEngineSectionDisconnectedCopy();
 		}

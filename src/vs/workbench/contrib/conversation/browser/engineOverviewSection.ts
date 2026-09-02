@@ -103,8 +103,8 @@ export class EngineOverviewSection extends Disposable {
 		// Overview uses pane detail title only.
 	}
 
-	layout(_width: number, _height: number): void {
-		// Static summary; no nested list layout.
+	layout(width: number, _height: number): void {
+		this.container.classList.toggle('engine-overview-section--narrow', width < 400);
 	}
 
 	private render(): void {
