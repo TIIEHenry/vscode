@@ -10,6 +10,7 @@ import type {
 	PostOutcome,
 	ConversationViewFrameApplied,
 	ConversationWriteMessage,
+	DetailFetchOutcome,
 	ItemAttribution,
 	IConversationSessionViewLease,
 	ConversationViewFrame,
@@ -195,6 +196,15 @@ class StubSessionViewLease extends Disposable implements IConversationSessionVie
 	requestResync(): void {
 		this.producerProjection = this.source.project(this.sessionId);
 		this.applyBaseline(this.producerProjection);
+	}
+
+	async requestDetail(ref: string): Promise<DetailFetchOutcome> {
+		const body = this._details.get(ref) ?? this.source.project(this.sessionId).details.get(ref);
+		if (body === undefined) {
+			return { ok: false, reason: 'unavailable' };
+		}
+		this._details.set(ref, body);
+		return { ok: true, truncated: false, content: body };
 	}
 
 	/** @internal */

@@ -4,7 +4,7 @@ type: architecture
 status: accepted
 phase: N/A
 updated: 2026-09-02
-summary: "ConversationEditorPane 页 chrome；「对话 | 轨迹」双透镜；帧源 projectSnapshotToTrajectory + T5 搜索/虚拟化；子代理 filterAgentId；compacted/DetailRef/Overview 仍 Deferred；PRD-003 / 012 / 013 / 014 / 020"
+summary: "ConversationEditorPane 页 chrome；「对话 | 轨迹」双透镜；帧源 projectSnapshotToTrajectory + T5 搜索/虚拟化；子代理 filterAgentId；DetailRef 六态经 P2a requestDetail；compacted/Overview 仍 Deferred；PRD-003 / 012 / 013 / 014 / 020"
 ---
 
 # Conversation 透镜、时间线与轨迹
@@ -48,12 +48,13 @@ summary: "ConversationEditorPane 页 chrome；「对话 | 轨迹」双透镜；�
 
 `ConversationTrajectoryKind = system | user | context | compacted | message | tool | subtool | thinking`。`projectSnapshotToTrajectory` 把 session-core `TimelineItemView` + **attribution sidecar**（role / agentId / toolCallId / parentToolCallId）映射为轨迹行：`text+role=system` → `system`，`reasoning` → `thinking`，`tool` → `tool`（经 `finalizeToolTree` 可升为缩进 `subtool`），`permission` / `question` / `generic` 不进轨迹。**confirmation 与 visualization** 仍不投影（对话页专属）。
 
+**DetailRef（Q2 接通）：** 局部 inspector 六态 — `preview` / `loading`（本地 in-flight；lease 无 `requestDetail` 永不 loading）/ `full` / `partial`（`truncated=true` + 字节数）/ `unavailable` / `failed`+Retry。成功先 `upsertDetail(ref, content)` 再 settle；UI 读 `details` + outcome。stub 帧源本地 `requestDetail`；引擎 lease 代理 `IUniverseAgentSessionView.requestDetail`。搜索 haystack 仍用有界 preview。
+
 **仍 Deferred / 预留（勿写进「已接通引擎全文」）：**
 
 | 项 | HEAD 姿态 |
 |----|-----------|
 | `compacted` kind | 类型与过程折规则已定义；`branchReason='compact'` 行在 demux 投影前**跳过**，不 emit（S6 待 M6-D） |
-| DetailRef / G3 全文 | 检查器与搜索 haystack 只用 `TimelineItemSummary` 有界预览（`argPreview` / `resultPreview` 等）；`_details` sidecar **未**当权威正文 |
 | Overview 瀑布时间条 | harness 有、本仓未做（T5 子集之外，仍随 M6-D） |
 | 活 Event fold 替换 fixture | 完整 T4 仍 blocked on [PRD-008](../../product/requirements.md#prd-008-引擎与会话权威)（M6-D）；HEAD 仅为帧源上的纯函数投影 + stub fixture |
 

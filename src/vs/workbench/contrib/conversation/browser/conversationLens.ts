@@ -600,9 +600,15 @@ export class ConversationLens extends Disposable {
 			onNavigateToLinkedTurn: turnId => this.navigateToTurnFromTrajectory(turnId),
 			showLiveChrome: () => this.stubService.isEngineConnected(),
 			detailContext: {
-				supportsDetailFetch: () => this.stubService.isEngineConnected(),
+				supportsDetailFetch: () => typeof this.sessionViewLease?.requestDetail === 'function',
 				getDetailBody: ref => this.sessionViewLease?.details.get(ref),
-				requestDetail: () => this.sessionViewLease?.requestResync(),
+				requestDetail: ref => {
+					const lease = this.sessionViewLease;
+					if (!lease?.requestDetail) {
+						return Promise.resolve({ ok: false as const, reason: 'unavailable' as const });
+					}
+					return lease.requestDetail(ref);
+				},
 			},
 		}));
 		this.timelineTree.domNode.id = 'conversation-lens-panel-conversation';

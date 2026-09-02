@@ -8,7 +8,7 @@ import { IListRenderer, IListVirtualDelegate } from '../../../../base/browser/ui
 import { IListAccessibilityProvider } from '../../../../base/browser/ui/list/listWidget.js';
 import { RunOnceScheduler } from '../../../../base/common/async.js';
 import { Codicon } from '../../../../base/common/codicons.js';
-import { Disposable, DisposableStore } from '../../../../base/common/lifecycle.js';
+import { Disposable, DisposableStore, toDisposable } from '../../../../base/common/lifecycle.js';
 import { ThemeIcon } from '../../../../base/common/themables.js';
 import { localize } from '../../../../nls.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
@@ -32,6 +32,7 @@ import {
 import {
 	conversationTrajectoryCompactedDiscardedNotice,
 	conversationTrajectoryDetailLoading,
+	conversationTrajectoryDetailRetry,
 	ITrajectoryDetailContext,
 	TrajectoryDetailInspectorModel,
 	TrajectoryDetailInspectorState,
@@ -140,6 +141,7 @@ export const conversationTrajectoryOverviewCollapse = localize('conversationTraj
 export const conversationTrajectoryOverviewExpand = localize('conversationTrajectory.overviewExpand', "Expand overview");
 export const conversationTrajectoryInspectorPreview = localize('conversationTrajectory.inspectorPreview', "Preview");
 export const conversationTrajectoryInspectorFull = localize('conversationTrajectory.inspectorFull', "Full content");
+export const conversationTrajectoryInspectorPartial = localize('conversationTrajectory.inspectorPartial', "Partial content");
 export const conversationTrajectoryInspectorStatus = localize('conversationTrajectory.inspectorStatus', "Status");
 
 export interface IConversationTrajectoryOptions {
@@ -330,6 +332,7 @@ export class ConversationTrajectory extends Disposable implements ITrajectoryTab
 	private readonly inspector: HTMLElement;
 	private readonly inspectorContent: HTMLElement;
 	private readonly renderDisposables = this._register(new DisposableStore());
+	private readonly inspectorDisposables = this._register(new DisposableStore());
 	private readonly overviewDisposables = this._register(new DisposableStore());
 	private readonly processFoldOuterExpanded = new Map<string, boolean>();
 	private readonly selectedRecordIdHolder = { current: undefined as string | undefined };
@@ -487,6 +490,9 @@ export class ConversationTrajectory extends Disposable implements ITrajectoryTab
 		}));
 
 		this.inspectorContent = append(this.inspector, $('.conversation-lens-trajectory-inspector-content'));
+
+		this._register(toDisposable(() => this.detailInspector.dispose()));
+		this._register(this.detailInspector.onDidChange(() => this.refreshDetailInspector()));
 	}
 
 	get selectedRecordId(): string | undefined {
@@ -746,6 +752,7 @@ export class ConversationTrajectory extends Disposable implements ITrajectoryTab
 		}
 		this.inspector.hidden = false;
 		this.syncInspectorOverlay();
+		this.inspectorDisposables.clear();
 		clearNode(this.inspectorContent);
 
 		const detailView = this.detailInspector.resolve(record, this.options.detailContext);
@@ -761,12 +768,23 @@ export class ConversationTrajectory extends Disposable implements ITrajectoryTab
 
 		if (detailView.state === 'full' && detailView.fullText !== undefined) {
 			appendInspectorSection(this.inspectorContent, conversationTrajectoryInspectorFull, detailView.fullText);
+		} else if (detailView.state === 'partial' && detailView.boundedText) {
+			appendInspectorSection(this.inspectorContent, conversationTrajectoryInspectorPartial, detailView.boundedText);
 		} else if (detailView.truncated && detailView.boundedText) {
 			appendInspectorSection(this.inspectorContent, conversationTrajectoryInspectorPreview, detailView.boundedText);
 		} else if (detailView.state === 'loading') {
 			const loading = append(this.inspectorContent, $('.conversation-lens-trajectory-inspector-loading'));
 			loading.textContent = conversationTrajectoryDetailLoading;
 			loading.setAttribute('role', 'status');
+		}
+
+		if (detailView.canRetry && record.detailRef) {
+			const retry = append(this.inspectorContent, $('button.conversation-lens-trajectory-inspector-retry')) as HTMLButtonElement;
+			retry.type = 'button';
+			retry.textContent = conversationTrajectoryDetailRetry;
+			retry.setAttribute('aria-label', conversationTrajectoryDetailRetry);
+			const detailRef = record.detailRef;
+			this.inspectorDisposables.add(addDisposableListener(retry, 'click', () => this.detailInspector.retry(detailRef)));
 		}
 
 		if (record.kind === 'compacted') {
@@ -880,6 +898,8 @@ function getInspectorStateLabel(state: TrajectoryDetailInspectorState): string {
 			return localize('conversationTrajectory.inspectorStateLoading', "Loading");
 		case 'full':
 			return localize('conversationTrajectory.inspectorStateFull', "Full");
+		case 'partial':
+			return localize('conversationTrajectory.inspectorStatePartial', "Partial");
 		case 'unavailable':
 			return localize('conversationTrajectory.inspectorStateUnavailable', "Unavailable");
 		case 'failed':
