@@ -255,17 +255,7 @@ suite('Settings UA TOC', () => {
 		assert.deepStrictEqual(clientKeys, [
 			'ua.client.chatInput.autoFocus',
 			'ua.client.chatInput.restoreDrafts',
-			'ua.client.clientTools.advertiseWorkspaceTools',
-			'ua.client.clientTools.showInvocationDetails',
 			'ua.client.display.conversationDensity',
-			'ua.client.display.showAgentIdentity',
-			'ua.client.keyboardEnter.behavior',
-			'ua.client.notifications.permissionRequests',
-			'ua.client.notifications.turnCompleted',
-			'ua.client.permissions.confirmBeforeExternalOpen',
-			'ua.client.permissions.openPendingOnFocus',
-			'ua.client.startup.openConversation',
-			'ua.client.startup.restoreLastSession',
 		]);
 	});
 });

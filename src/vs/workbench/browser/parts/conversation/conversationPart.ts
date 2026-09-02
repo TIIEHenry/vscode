@@ -8,6 +8,7 @@ import { $, append } from '../../../../base/browser/dom.js';
 import { LayoutPriority } from '../../../../base/browser/ui/splitview/splitview.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { localize } from '../../../../nls.js';
+import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { InstantiationType, registerSingleton } from '../../../../platform/instantiation/common/extensions.js';
 import { createDecorator } from '../../../../platform/instantiation/common/instantiation.js';
 import { IStorageService } from '../../../../platform/storage/common/storage.js';
@@ -74,6 +75,7 @@ export class ConversationPart extends Part implements IConversationPartService {
 		@IThemeService themeService: IThemeService,
 		@IStorageService storageService: IStorageService,
 		@IWorkbenchLayoutService layoutService: IWorkbenchLayoutService,
+		@IConfigurationService private readonly configurationService: IConfigurationService,
 	) {
 		super(Parts.CONVERSATION_PART, { hasTitle: false }, themeService, storageService, layoutService);
 	}
@@ -125,10 +127,12 @@ export class ConversationPart extends Part implements IConversationPartService {
 	focus(): void {
 		const dockInput = this.getContainer()?.querySelector('textarea.conversation-lens-dock-input') as HTMLTextAreaElement | null;
 		if (dockInput) {
-			dockInput.focus();
-			return;
+			if (this.configurationService.getValue<boolean>('ua.client.chatInput.autoFocus') !== false) {
+				dockInput.focus();
+			}
+		} else {
+			this.getContainer()?.focus();
 		}
-		this.getContainer()?.focus();
 	}
 
 	toJSON(): object {
