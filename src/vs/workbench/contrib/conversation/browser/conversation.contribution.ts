@@ -8,6 +8,7 @@ import './media/conversationVisualize.css';
 import './media/uaClientConversationChrome.css';
 import './uaClientSettings.contribution.js';
 import './uaClientSettingsStartup.contribution.js';
+import './conversationNotifications.contribution.js';
 import './uaClientConversationChrome.contribution.js';
 import './uaClientWorkspaceToolsGate.js';
 import './uaPreferencesPanes.contribution.js';

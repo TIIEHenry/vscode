@@ -103,6 +103,7 @@ suite('ConversationLens reveal navigation (T5a)', () => {
 			revealItem: () => { },
 			getAccessibleTurnContent: () => undefined,
 			focusAccessibleTurn: () => { },
+			scrollToFirstPendingConfirmation: () => { },
 		});
 		instantiationService.stub(IConversationReviewNavService, {
 			_serviceBrand: undefined,

@@ -11,6 +11,8 @@ import {
 	UA_CLIENT_CHAT_INPUT_RESTORE_DRAFTS,
 	UA_CLIENT_DISPLAY_CONVERSATION_DENSITY,
 	UA_CLIENT_KEYBOARD_ENTER_BEHAVIOR,
+	UA_CLIENT_NOTIFICATIONS_PERMISSION_REQUESTS,
+	UA_CLIENT_NOTIFICATIONS_TURN_COMPLETED,
 	UA_CLIENT_STARTUP_RESTORE_LAST_SESSION,
 } from './uaClientSettingsKeys.js';
 
@@ -73,6 +75,24 @@ export function registerUaClientSettings(): void {
 				description: localize(
 					'ua.client.keyboardEnter.behavior',
 					"Choose whether Enter sends the Composer draft or inserts a newline (window scope). Shift+Enter performs the other action so both modes keep a keyboard-only send path. Applies immediately.",
+				),
+				scope: ConfigurationScope.WINDOW,
+			},
+			[UA_CLIENT_NOTIFICATIONS_PERMISSION_REQUESTS]: {
+				type: 'boolean',
+				default: true,
+				description: localize(
+					'ua.client.notifications.permissionRequests',
+					"Show a window toast when an inactive session gets a permission or question seat (window scope). A session is inactive when it is not the active session or Conversation is hidden. Click the toast to open that session and locate the seat. Does not grant, deny, Allow, or Skip. Applies immediately. Not an operating-system notification.",
+				),
+				scope: ConfigurationScope.WINDOW,
+			},
+			[UA_CLIENT_NOTIFICATIONS_TURN_COMPLETED]: {
+				type: 'boolean',
+				default: false,
+				description: localize(
+					'ua.client.notifications.turnCompleted',
+					"Show a window toast when an inactive engine session finishes a turn (window scope). A session is inactive when it is not the active session or Conversation is hidden. Local stub sessions do not produce this toast. Applies immediately. Not an operating-system notification.",
 				),
 				scope: ConfigurationScope.WINDOW,
 			},

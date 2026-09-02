@@ -16,6 +16,7 @@ export interface IConversationTimelineRevealService {
 	revealItem(itemId: string): void;
 	getAccessibleTurnContent(): string | undefined;
 	focusAccessibleTurn(): void;
+	scrollToFirstPendingConfirmation(): void;
 }
 
 export class ConversationTimelineRevealService extends Disposable implements IConversationTimelineRevealService {
@@ -45,6 +46,10 @@ export class ConversationTimelineRevealService extends Disposable implements ICo
 
 	focusAccessibleTurn(): void {
 		this.primaryLens?.focusAccessibleTurn();
+	}
+
+	scrollToFirstPendingConfirmation(): void {
+		this.primaryLens?.scrollToFirstPendingConfirmation();
 	}
 }
 

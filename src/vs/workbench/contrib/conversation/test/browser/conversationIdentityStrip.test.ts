@@ -176,6 +176,7 @@ suite('ConversationIdentityStrip', () => {
 			revealItem: () => { },
 			getAccessibleTurnContent: () => undefined,
 			focusAccessibleTurn: () => { },
+			scrollToFirstPendingConfirmation: () => { },
 		});
 		instantiationService.stub(IConversationReviewNavService, {
 			_serviceBrand: undefined,
@@ -261,6 +262,7 @@ suite('ConversationIdentityStrip', () => {
 			revealItem: () => { },
 			getAccessibleTurnContent: () => undefined,
 			focusAccessibleTurn: () => { },
+			scrollToFirstPendingConfirmation: () => { },
 		});
 		instantiationService.stub(IConversationReviewNavService, {
 			_serviceBrand: undefined,

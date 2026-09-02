@@ -257,6 +257,8 @@ suite('Settings UA TOC', () => {
 			'ua.client.chatInput.restoreDrafts',
 			'ua.client.display.conversationDensity',
 			'ua.client.keyboardEnter.behavior',
+			'ua.client.notifications.permissionRequests',
+			'ua.client.notifications.turnCompleted',
 			'ua.client.startup.restoreLastSession',
 		]);
 	});
