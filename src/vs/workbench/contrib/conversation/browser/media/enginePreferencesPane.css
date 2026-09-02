@@ -78,6 +78,43 @@
 	min-width: 160px;
 }
 
+.monaco-workbench .engine-skill-body-editor {
+	margin-top: 12px;
+}
+
+.monaco-workbench .engine-skill-body-toolbar {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin-bottom: 8px;
+}
+
+.monaco-workbench .engine-skill-body-textarea {
+	box-sizing: border-box;
+	width: 100%;
+	min-height: 160px;
+	max-height: 320px;
+	padding: 8px;
+	border: 1px solid var(--vscode-panel-border);
+	border-radius: 4px;
+	font-family: var(--monaco-monospace-font);
+	font-size: 12px;
+	line-height: 1.4;
+	resize: vertical;
+	background: var(--vscode-input-background);
+	color: var(--vscode-input-foreground);
+}
+
+.monaco-workbench .engine-skill-body-textarea:read-only {
+	opacity: 0.9;
+}
+
+.monaco-workbench .engine-skill-body-status {
+	margin-top: 6px;
+	font-size: 12px;
+	opacity: 0.85;
+}
+
 .monaco-workbench .engine-skill-body-preview {
 	margin-top: 12px;
 	padding: 8px;
