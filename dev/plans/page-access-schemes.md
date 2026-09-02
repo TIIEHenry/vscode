@@ -215,7 +215,7 @@ MCP 运行态若另有页，标为后续切片，不发明第二 MCP UI。
 | Desktop | 本仓 v1 |
 |---------|---------|
 | AppTabBar 齿轮 | titlebar / 菜单 Preferences；**不**在 SessionBar 加第二齿轮 |
-| StatusBar profile | **`status.conversation.engine`**（HEAD 已注册，文案恒「Engine not connected」）→ **v1 芯片可点**（无引擎亦然）→ command `workbench.action.openConnectionPreferences` → Preferences **Connection** pane 空态 + CTA。**有引擎改开 Engine pane 从切片 5 才启用**；v1–切片 4 **永远** Connection。**不用** `status.conversation.model`（Dock owner，Conversation 可见时省略） |
+| StatusBar profile | **`status.conversation.engine`**（文案 = `getConnectionPhaseStatusBarText`；HEAD 已注册）→ **芯片可点**（无引擎亦然）→ B10：`isEngineConnected()` → Engine pane，否则 Connection。**`ConversationIdentityStrip` 引擎 chip 同文案与同路由**。**不用** `status.conversation.model`（Dock owner，Conversation 可见时省略） |
 | `universe-agent://settings/<page>` | 路由表见下 |
 
 **深链路由表（双宿主，ADR-037 fail-closed；handler / 别名见 §15 B9）：**
@@ -972,24 +972,34 @@ getCommonlyUsedData(
 
 **「未滚动」CI：** mock `IPreferencesService.openSettings`；unknown / client 路径 assert 调用参数 **不包含** `revealSetting`，且 `query` 为 `undefined`。不依赖 SettingsEditor2 内部 view state。
 
-### 15.10 B10 — StatusBar command 与状态机
+### 15.10 B10 — Engine chip command 与 ConnectionPhase 路由
+
+**适用表面（同契约）：**
+
+| 表面 | 文案 SSOT | 点击路由 |
+|------|-----------|----------|
+| StatusBar `status.conversation.engine` | `getConnectionPhaseStatusBarText(phase, pairingPending)`（`conversationSessionStatus.ts`；H4b） | 见下 |
+| `ConversationIdentityStrip` 引擎 chip | **同上** | **同上** |
 
 | 项 | 钉死 |
 |----|------|
 | Action | `workbench.action.openConnectionPreferences` → `openUaPaneReplacingClientSettings(..., 'ua.connection')` |
 | Action | `workbench.action.openEnginePreferences` → 同上 Engine |
-| StatusBar `command` | `{ id: 'workbench.action.openConnectionPreferences', title: '' }` |
+| StatusBar `command` | 运行时按 B10 选上列 action id（非静态单一 command） |
+| Identity strip 点击 | `commandService.executeCommand` 同上 B10 分支（`conversationIdentityStrip.ts`） |
 
-**状态机：**
+**状态机（文案 + 路由共用）：**
 
 ```text
-v1 / 切片 1b–4（无引擎信号）：永远 Connection pane
-切片 5+（adapter 提供 connected）：connected → Engine pane；否则 Connection
+文案：IUniverseAgentConnection.getConnectionPhase() + pairingPending → getConnectionPhaseStatusBarText
+路由：IConversationRosterService.isEngineConnected()（session_token + 活 channel）
+  → true：workbench.action.openEnginePreferences（Engine pane）
+  → false：workbench.action.openConnectionPreferences（Connection pane）
 ```
 
-v1 **不**发明 `engineConnected` 探测。芯片无引擎亦可点。
+pairing-pending / connecting **不算** connected；芯片无引擎亦可点 Connection pane。
 
-**CI（unit，不 launch）：** `conversationSessionStatusBar` 测 `createEngineEntry().command.id === 'workbench.action.openConnectionPreferences'`；command 测 spy `openPreferences` 收到 `{ paneId: 'ua.connection' }`。
+**CI（unit，不 launch）：** `conversationSessionStatusBar.test.ts`（StatusBar B10 路由 + H4b 各 phase 文案）；`conversationIdentityStrip.test.ts`（身份条引擎 chip 同文案函数、同 openEngine/openConnection command）。
 
 ### 15.11 B11 — roster token / 并行 / M5
 

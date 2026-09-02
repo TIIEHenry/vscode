@@ -50,6 +50,7 @@ summary: "三层：Part 槽宿主 → contrib 产品 chrome → 会话数据服�
 | `conversationEditorRouting.ts`（common） | `isBlockedFromConversationGroup` 等 | ADR-002 围栏：非 `ConversationChatInput` 一律弹回 Preview |
 | `ConversationEditorPane` | `conversationEditorPane.ts` | `workbench.editor.conversationChat`；页 chrome 宿主 |
 | `ConversationLens` | `conversationLens.ts` | SessionBar + 时间线 + Dock 的组装体；持久化当前透镜 id（`StorageScope.WORKSPACE`） |
+| `ConversationIdentityStrip` | `conversationIdentityStrip.ts` | 阅读列顶身份条（PreFirst 居中区 / Active 列顶）；引擎 chip 与 StatusBar `status.conversation.engine` 共用 `getConnectionPhaseStatusBarText`（H4b）与 B10 pane 路由 |
 | `IConversationRosterService` | `conversationStubService.ts` | 会话数据契约（见 [stub-and-fixtures](stub-and-fixtures.md)） |
 | `ConversationSessionsView` | `conversationSessionsView.ts` | Navigator「Sessions」容器（`workbench.view.sessions`）内的 roster |
 | `UniverseAgentDeepLinkHandler` | `universeAgentDeepLink.contribution.ts` | `universe-agent://` URL handler → Settings 页（[page-access-schemes](../../../dev/plans/page-access-schemes.md)） |
@@ -76,6 +77,6 @@ summary: "三层：Part 槽宿主 → contrib 产品 chrome → 会话数据服�
 ## 5. 当前边界（无引擎）
 
 - 会话与回合在内存，重启即丢（[PRD-017](../../product/requirements.md#prd-017-本地会话持久化) `proposed`）。
-- 助手回合是本地 echo，UI 与 fixture 文案带 `Stub`；引擎连接态恒为断开（StatusBar「Engine not connected」）。
+- 助手回合是本地 echo，UI 与 fixture 文案带 `Stub`；引擎 chip（身份条 + StatusBar）文案由 `IUniverseAgentConnection.getConnectionPhase()` 经 `getConnectionPhaseStatusBarText` 驱动（[connection-hub H4b](../../../dev/plans/connection-hub-client.md)）；stub 期默认 disconnected，点击路由同 B10（connected → Engine pane，否则 Connection）。
 - 四钮默认键位与 F6 / Shift+F6 part 循环已登记（[commands §7](commands.md#7-键盘可达性现状)；[PRD-018](../../product/requirements.md#prd-018-键盘可达与辅助功能) `accepted`）；Conversation 内透镜 / 过程折 / 权限座位等仍缺默认键位。
 - `contrib/conversation` 注册于 `workbench.common.main.ts`，Web 入口理论共用但无冒烟证据（[PRD-019](../../product/requirements.md#prd-019-web--远程窗口一致性)）。
