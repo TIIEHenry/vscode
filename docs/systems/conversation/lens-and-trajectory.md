@@ -4,7 +4,7 @@ type: architecture
 status: accepted
 phase: N/A
 updated: 2026-09-02
-summary: "ConversationEditorPane 页 chrome；「对话 | 轨迹」双透镜；ConversationTimelineTree + 单点 content adapter；轨迹记录八种 kind；过程折 span overlay；visualize 图示卡与 mermaid 降级；PRD-003 / 012 / 013 / 014 系统规格"
+summary: "ConversationEditorPane 页 chrome；「对话 | 轨迹」双透镜；帧源 projectSnapshotToTrajectory + T5 搜索/虚拟化；子代理 filterAgentId；compacted/DetailRef/Overview 仍 Deferred；PRD-003 / 012 / 013 / 014 / 020"
 ---
 
 # Conversation 透镜、时间线与轨迹
@@ -33,16 +33,49 @@ summary: "ConversationEditorPane 页 chrome；「对话 | 轨迹」双透镜；C
 
 ## 3. 轨迹透镜
 
-模型：`conversationTrajectoryModel.ts`。
+> 帧源与 shim 合同：[conversation-stream-timeline §3.3 / S6](../../../dev/plans/conversation-stream-timeline.md)（`accepted`）。切片对照：[conversation-trajectory-lens §4 T4/T5](../../../dev/plans/conversation-trajectory-lens.md)。
 
-- `ConversationTrajectoryKind = system | user | context | compacted | message | tool | subtool | thinking`。
-- `projectTurnsToTrajectory(turns)` 把 stub 回合投影成记录；**confirmation 与 visualization 不投影**（座位与图示卡是对话页专属）。
-- `mergeTrajectoryFixtureExtras` 补入 stub 期才有的 system / context / subtool 记录，文案常量带 `Stub`（`CONVERSATION_TRAJECTORY_STUB_*`）；引擎接通后此函数应由 adapter 提供的真实记录取代。
-- 双向 reveal（T5a）：`findTurnIdForTrajectoryRecord` / `findTrajectoryRecordIdForTurn` 让两页互跳到同一条；fixture-only 行返回 `undefined`。
+### 3.1 数据路径（HEAD）
 
-视图：`conversationTrajectory.ts` + `conversationTrajectoryList.ts`。选中一行打开**局部检查器**（pane 内，不占 Bottom Panel）。父子工具时 `subtool` 相对 `tool` 再缩进。pending 权限或新 Diff **不**自动切到轨迹（验收 6）。无引擎且该会话无 fixture 时写诚实空态（验收 7）。
+| 层 | 文件 | 行为 |
+|----|------|------|
+| 契约 | `conversationStubService.ts` | `getTrajectoryRecords(sessionId, options?: { filterAgentId? })` |
+| 帧源投影 | `conversationTrajectoryModel.ts` | `projectSnapshotToTrajectory(snapshot, attribution, details, options)` — **T4 / stream-timeline S6 子集** |
+| 旧回合投影 | 同上 | `projectTurnsToTrajectory(turns)` — UA 断连或无 cached projection 时的回退 |
+| Stub 服务 | `ConversationStubService` | `frameSource.project` → `projectSnapshotToTrajectory`；仅 `shouldMergeTrajectoryFixtureExtras`（`untitled` 且未连接）时 `mergeTrajectoryFixtureExtras` |
+| 引擎 roster | `ConversationEngineRosterService` | 已连接 UA 会话：cached snapshot → `projectSnapshotToTrajectory`（**永不** merge stub fixture）；否则 `projectTurnsToTrajectory(getTurns())` |
+| 透镜 | `conversationLens.ts` | 读 roster；子代理 overlay 经 `IConversationLensSlots.filterAgentId` 传入 `trajectoryProjectionOptions()` |
 
-T5 搜索 / 虚拟化 / Overview 瀑布条延期为 [D10](../../../dev/progress/deferred-gaps.md)（[PRD-020](../../product/requirements.md#prd-020-规模与性能上限)）。
+`ConversationTrajectoryKind = system | user | context | compacted | message | tool | subtool | thinking`。`projectSnapshotToTrajectory` 把 session-core `TimelineItemView` + **attribution sidecar**（role / agentId / toolCallId / parentToolCallId）映射为轨迹行：`text+role=system` → `system`，`reasoning` → `thinking`，`tool` → `tool`（经 `finalizeToolTree` 可升为缩进 `subtool`），`permission` / `question` / `generic` 不进轨迹。**confirmation 与 visualization** 仍不投影（对话页专属）。
+
+**仍 Deferred / 预留（勿写进「已接通引擎全文」）：**
+
+| 项 | HEAD 姿态 |
+|----|-----------|
+| `compacted` kind | 类型与过程折规则已定义；`branchReason='compact'` 行在 demux 投影前**跳过**，不 emit（S6 待 M6-D） |
+| DetailRef / G3 全文 | 检查器与搜索 haystack 只用 `TimelineItemSummary` 有界预览（`argPreview` / `resultPreview` 等）；`_details` sidecar **未**当权威正文 |
+| Overview 瀑布时间条 | harness 有、本仓未做（T5 子集之外，仍随 M6-D） |
+| 活 Event fold 替换 fixture | 完整 T4 仍 blocked on [PRD-008](../../product/requirements.md#prd-008-引擎与会话权威)（M6-D）；HEAD 仅为帧源上的纯函数投影 + stub fixture |
+
+Stub fixture：`mergeTrajectoryFixtureExtras` 仅 seed `untitled`、且 `!isEngineConnected()` 时插入带 `Stub` 的 system / context / sourceBlocks / subtool（`CONVERSATION_TRAJECTORY_STUB_*`）。`createSession()` 等无 extras → 空态。
+
+**子代理过滤（PRD-016）：** `filterAgentId` 保留无归属的 `user` 行 + attribution 中 `agentId` 匹配项；根 tab 不传 filter。`conversationSubAgentOverlay.ts` 把对话框 `chatId` 注入 `ConversationLens`。
+
+**双向 reveal（T5a @ `f66c36c9`）：** `findTurnIdForTrajectoryRecord` / `findTrajectoryRecordIdForTurn`；纯 fixture 行返回 `undefined`。
+
+### 3.2 视图与 T5（搜索 / 虚拟化 / 上限）
+
+| 组件 | 文件 | 职责 |
+|------|------|------|
+| 轨迹表 + 检查器 | `conversationTrajectory.ts` | 工具栏搜索、`WorkbenchList` 虚拟化表、过程折 overlay（默认展开）、局部检查器 |
+| MessageNavigator | `conversationTrajectoryList.ts` | SessionBar History 的回合索引列表（**不是**轨迹透镜主表） |
+
+- **搜索（T5）：** 工具栏 `input[type=search]`，debounce；`filterTrajectoryRecordsBySearch` 匹配 kind / text / blocks / 检查器字段。
+- **虚拟化（T5）：** `buildTrajectoryTableDisplayItems` 产出 record / fold 行 → `WorkbenchList<TrajectoryTableDisplayItem>`。
+- **规模上限（PRD-020）：** `CONVERSATION_TRAJECTORY_RECORD_LIMIT = 5000`；超出保留最近段并显示诚实 `limitNotice`（`applyTrajectoryRecordLimit`）。
+- **Overview 瀑布条：** 仍 **Deferred**（[conversation-trajectory-lens §3.5](../../../dev/plans/conversation-trajectory-lens.md)）。
+
+选中一行打开**局部检查器**（pane 内，不占 Bottom Panel）。`subtool` 相对父 `tool` 再缩进。pending 权限或新 Diff **不**自动切到轨迹（验收 6）。任意零记录会话 → 诚实空态（验收 7）。
 
 ## 4. 过程折（overlay，不是列表身份）
 
@@ -68,9 +101,10 @@ T5 搜索 / 虚拟化 / Overview 瀑布条延期为 [D10](../../../dev/progress/
 | 003 | 1–3 | §2 时间线树；发送链见 [composer-and-inbox](composer-and-inbox.md)；stub 回复 `stubEcho` 标记 |
 | 012 | 1 双页不可关、默认对话 | §1 `ConversationLens` 透镜切换 + 持久化 |
 | 012 | 2 对话页不含注入 / SYSTEM | §2 末段 |
-| 012 | 3 轨迹至少一条 context / 带 block 的 user / SYSTEM；局部检查器 | §3 fixture extras + 检查器 |
+| 012 | 3 轨迹至少一条 context / 带 block 的 user / SYSTEM；局部检查器 | §3.1 fixture extras + §3.2 检查器 |
 | 012 | 4–5 过程折默认展开、subtool 缩进 | §4 / §3 |
-| 012 | 6–8 不自动切轨迹、诚实空、非 Copilot | §3 |
+| 012 | 6–8 不自动切轨迹、诚实空、非 Copilot | §3.2 |
+| 020 | 2 轨迹搜索与虚拟化 | §3.2（Overview 仍 Deferred） |
 | 013 | 1–5 | §4 |
 | 014 | 1–5 | §5 |
 

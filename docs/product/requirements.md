@@ -275,7 +275,7 @@ PRD-001 至 PRD-007 的代码已在 M0–M3 合入，但 D4 启动冒烟（T1–
 - **产品验收标准**：
   1. 上述规模下发送一条消息到出现在时间线 ≤ 200 ms（本机、无引擎）。
   2. 轨迹页在上限规模有搜索与虚拟化（PRD-012 T5）。
-- **依赖或未决**：上限数值按初值写死，不再等裁定。实施仍是 [D10](../../dev/progress/deferred-gaps.md)（PRD-012 T5），触发条件改为「M6-D 轨迹 T4 合入后」——引擎真数据到来前虚拟化无意义；验收 1 的 200 ms 在 [conversation-stream-timeline](../../dev/plans/conversation-stream-timeline.md) S2 三类帧增量落地后用 1,000 回合 fixture 测一次并记 D10。
+- **依赖或未决**：上限数值按初值写死，不再等裁定。**HEAD：** 轨迹页 T5 搜索、虚拟化、`CONVERSATION_TRAJECTORY_RECORD_LIMIT = 5000` 诚实截断已实施（[D10](../../dev/progress/deferred-gaps.md) 已闭；Overview 瀑布条仍 Deferred）。验收 1 的 200 ms 须在 [conversation-stream-timeline](../../dev/plans/conversation-stream-timeline.md) S2 三类帧增量落地后，用 1,000 回合 fixture 测一次并记入 D10 退出记录。
 
 ### PRD-021 未知内容与错误的诚实呈现
 

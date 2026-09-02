@@ -4,7 +4,7 @@ type: architecture
 status: accepted
 phase: N/A
 updated: 2026-09-02
-summary: "IConversationRosterService 契约分组；D13 持久化（conversation.roster.v1）；A1/A2 连接态与 adapter 替换约束"
+summary: "IConversationRosterService 契约分组；getTrajectoryRecords + filterAgentId；帧源 projectSnapshotToTrajectory；D13 持久化；A1/A2 连接态与 adapter 替换约束"
 ---
 
 # Conversation 会话数据契约
@@ -26,7 +26,7 @@ summary: "IConversationRosterService 契约分组；D13 持久化（conversation
 | 事件 | `onDidChangeActiveSession(sessionId)` · `onDidChangeSession(sessionId)` · `onDidChangeEngineConnection(boolean)` |
 | 会话 | `getSessions()` · `getActiveSessionId()` · `getActiveSession()` · `switchSession` · `createSession` · `renameSession` · `deleteSession` |
 | 回合 | `getTurns(sessionId)` · `appendUserTurn` · `updateUserTurnText` · `deleteTurn` |
-| 轨迹 | `getTrajectoryRecords(sessionId)` |
+| 轨迹 | `getTrajectoryRecords(sessionId, options?: { filterAgentId? })` — 经 `ConversationStubFrameSource.project` → `projectSnapshotToTrajectory`（[stream-timeline S1/S6](../../../dev/plans/conversation-stream-timeline.md)）；见 [lens-and-trajectory §3.1](lens-and-trajectory.md) |
 | 权限 | `resolveConfirmation(sessionId, turnId, 'allowed' \| 'skipped')` · `countPendingConfirmations` |
 | MessageQueue | `getMessageQueueState` · `pauseMessageQueue` · `resumeMessageQueue` · `clearMessageQueue` · `holdMessageQueueItem` · `releaseMessageQueueItemHold` · `updateMessageQueueItemContent` |
 | AutoDrive | `getAutoDriveTasks` · `getAutoDriveTaskCount` |
@@ -46,7 +46,7 @@ summary: "IConversationRosterService 契约分组；D13 持久化（conversation
 - `ConversationStubSession { id, title, turns[] }`。
 - `ConversationStubTurn { id, kind, text, status?, stubEcho?, toolName?, summary?, payload?, visualize? }`；`kind ∈ user | assistant | confirmation | thinking | tool | visualization`；`status ∈ pending | allowed | skipped`（仅 confirmation）。
 - fixture 会话由 `createUntitledFixtureTurns()` 等生成，含 thinking / tool / confirmation / visualization 回合，所有 stub 文案带 `Stub`；这是 PRD-012 / 013 / 014 验收里「种子会话」的来源。
-- 轨迹记录类型见 [lens-and-trajectory §3](lens-and-trajectory.md)。
+- 轨迹记录类型与投影规则见 [lens-and-trajectory §3](lens-and-trajectory.md)。HEAD：`getTurns` / `getTrajectoryRecords` 均从同一帧源 snapshot 派生（`entriesToLegacyTurns` / `projectSnapshotToTrajectory`）；UA 引擎会话不 merge stub trajectory fixture。
 
 ## 4. 持久化事实
 

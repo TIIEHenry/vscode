@@ -4,7 +4,7 @@ type: reference
 status: accepted
 phase: N/A
 updated: 2026-09-02
-summary: "PRD-001–021 追踪；PRD-008 blocked（M6-C E1 catalog list/toggle @ HEAD，不升 implemented）；PRD-017/020 D13/D10 已实施；系统规格含 engine-catalog"
+summary: "PRD-001–021 追踪；PRD-008 blocked（M6-C E1 catalog list/toggle @ HEAD，不升 implemented）；PRD-017/020 部分已实施；系统规格含 engine-catalog"
 ---
 
 # 产品需求追踪
@@ -26,7 +26,7 @@ summary: "PRD-001–021 追踪；PRD-008 blocked（M6-C E1 catalog list/toggle @
 | [PRD-009](requirements.md#prd-009-changes-与-diff) | `accepted` | [parts-and-grid §5](../systems/workbench/parts-and-grid.md) · [editor-part-tabs §4](../systems/workbench/editor-part-tabs.md) · [companion-contribs §5](../systems/workbench/companion-contribs.md) · [sources overview §4](../systems/sources/overview.md) · [session-windows §2](../systems/conversation/session-windows.md) | [ADR-005](../../dev/decisions/005-changes-diff-owner.md)（`accepted`）· [sources-changes-diff](../../dev/plans/sources-changes-diff.md)（F1–F3/F5 `implemented`；F4 冒烟待验） | F1–F3 单测：`conversationEditorRouting.test.ts` · `conversationEditorFence.test.ts` · `conversationSessionChat.test.ts` · `conversationNavigation.test.ts` · `conversationEditorAggregation.test.ts` · `sourcesChangesModel.test.ts` · `sourcesChangesList.test.ts` · `sourcesDiffPanel.test.ts`；D4 式 V-F1–V-F7 待 F4 |
 | [PRD-010](requirements.md#prd-010-产品身份) | `proposed` | 无 | 无 | 无 |
 | [PRD-011](requirements.md#prd-011-chat-并排比对) | `accepted` | `src/vs/sessions/LAYOUT.md` · [ADR-001](../../dev/decisions/001-chat-compare-form.md) | [chat-compare-split](../../dev/plans/chat-compare-split.md) | D4 PASS |
-| [PRD-012](requirements.md#prd-012-conversation-轨迹透镜) | `accepted` | [lens-and-trajectory §3](../systems/conversation/lens-and-trajectory.md) | [conversation-trajectory-lens](../../dev/plans/conversation-trajectory-lens.md) | D4 PASS；T1–T3 单测；T5a reveal 子集 @ `f66c36c9`（T5 搜索/虚拟化/Overview 仍 Deferred） |
+| [PRD-012](requirements.md#prd-012-conversation-轨迹透镜) | `accepted` | [lens-and-trajectory §3](../systems/conversation/lens-and-trajectory.md) | [conversation-trajectory-lens](../../dev/plans/conversation-trajectory-lens.md) · [stream-timeline S6](../../dev/plans/conversation-stream-timeline.md) | D4 PASS；T1–T3 单测；T5a @ `f66c36c9`；T5 搜索/虚拟化/5k 上限 @ HEAD；T4 部分（`projectSnapshotToTrajectory` 帧源投影；活 Event fold 仍 blocked PRD-008）；`compacted` / DetailRef(G3) / Overview 瀑布仍 Deferred |
 | [PRD-013](requirements.md#prd-013-conversation-过程折) | `accepted` | [lens-and-trajectory §4](../systems/conversation/lens-and-trajectory.md) | [conversation-process-fold](../../dev/plans/conversation-process-fold.md) | D4 PASS；单测 |
 | [PRD-014](requirements.md#prd-014-conversation-图示卡visualize) | `accepted` | [lens-and-trajectory §5](../systems/conversation/lens-and-trajectory.md) | [thinkrail-visualize-port](../../dev/plans/thinkrail-visualize-port.md) | D4 PASS；单测 |
 | [PRD-015](requirements.md#prd-015-conversation-空会话与输入面) | `accepted` | [composer-and-inbox](../systems/conversation/composer-and-inbox.md) | [conversation-empty-hero](../../dev/plans/conversation-empty-hero.md) (`implemented`) | T1–T6 单测；D4 PASS |
@@ -34,7 +34,7 @@ summary: "PRD-001–021 追踪；PRD-008 blocked（M6-C E1 catalog list/toggle @
 | [PRD-017](requirements.md#prd-017-本地会话持久化) | `accepted` | [stub-and-fixtures §4](../systems/conversation/stub-and-fixtures.md) | [m6-engine-wave](../../dev/plans/m6-engine-wave.md) A2 · D13 已实施 | `conversationRosterStorage` + `conversationStubService.test.ts` / `conversationEngineRosterService.test.ts` 持久化单测 |
 | [PRD-018](requirements.md#prd-018-键盘可达与辅助功能) | `accepted` | [commands §7](../systems/conversation/commands.md) | D14 四钮默认键位已实施；F6 / 透镜 / 权限座位等待 M6-B 后 | 四钮键位 @ `layoutActions.ts`；[commands §7](../systems/conversation/commands.md) |
 | [PRD-019](requirements.md#prd-019-web--远程窗口一致性) | `accepted` | [conversation overview §5](../systems/conversation/overview.md) | [D15](../../dev/progress/deferred-gaps.md)（M6-A2 后 Web 冒烟） | 无 Web 冒烟证据 |
-| [PRD-020](requirements.md#prd-020-规模与性能上限) | `accepted` | [lens-and-trajectory §3](../systems/conversation/lens-and-trajectory.md) | D10 轨迹搜索 / 虚拟化已实施；Overview 瀑布条仍随 M6-D | `conversationTrajectory.test.ts` · `conversationTrajectoryUi.test.ts` |
+| [PRD-020](requirements.md#prd-020-规模与性能上限) | `accepted` | [lens-and-trajectory §3.2](../systems/conversation/lens-and-trajectory.md) | [conversation-trajectory-lens T5](../../dev/plans/conversation-trajectory-lens.md) · D10 搜索/虚拟化/5k 上限已闭 | `conversationTrajectory.test.ts` · `conversationTrajectoryUi.test.ts`；Overview 瀑布仍 Deferred；验收 1（1k 回合 ≤200 ms）待 stream-timeline S2 |
 | [PRD-021](requirements.md#prd-021-未知内容与错误的诚实呈现) | `accepted` | [lens-and-trajectory](../systems/conversation/lens-and-trajectory.md) | [conversation-stream-timeline §3.3](../../dev/plans/conversation-stream-timeline.md) | 待验证（S1–S3 单测；活数据随 S4） |
 | [PRD-022](requirements.md#prd-022-navigator-引擎段) | `accepted` | [activity-and-sidebar §5.1](../systems/workbench/activity-and-sidebar.md) · [navigator-tabs-access](../reference/code-oss-b2/navigator-tabs-access.md) · [engine-protocol-surface §4/§11](../reference/universe-agent/engine-protocol-surface.md)（G-NAV-1 / G-NAV-2） | [navigator-engine-segments](../../dev/plans/navigator-engine-segments.md)（N1–N4 @ HEAD；N5 冒烟未做） | 无引擎三段诚实空；N5 隔离 profile 未验、不升 `implemented` |
 | [PRD-023](requirements.md#prd-023-sources-review-审阅进度与归因) | `accepted` | [sources overview](../systems/sources/overview.md) · [companion-contribs §4](../systems/workbench/companion-contribs.md) · [engine-protocol-surface §4/§11](../reference/universe-agent/engine-protocol-surface.md)（G-REV-1）；Desktop ADR-043 作 `source` | [sources-review-progress](../../dev/plans/sources-review-progress.md)（R1–R4 @ HEAD；R5 冒烟未做） | 无引擎审阅进度可用；归因/reviewNav 需引擎；R5 未验、不升 `implemented` |
@@ -46,6 +46,6 @@ summary: "PRD-001–021 追踪；PRD-008 blocked（M6-C E1 catalog list/toggle @
 | 代码已落、D4 已验 | PRD-001–PRD-016（除 blocked） |
 | EH 探针已验 | D5 closed @ [wave3](../../dev/progress/d5-evidence/smoke-wave3-0001/)（YAML / Todo Tree / js-debug PASS） |
 | 阻塞 / 未决 | PRD-008（方案已签收；待 M6-A2 接通证据）、PRD-009 F4 隔离 profile 冒烟（升 `implemented` 须 V-F1–V-F7）、页面接入切片 5（M6-B）、customizations E1 **写路径**（槽 A：SaveAgentProfile / MCP CRUD / tools.json；list/toggle @ HEAD 已知识层回填） |
-| 已接受、部分已实施 | PRD-017 / PRD-020（D13 / D10 已闭）；PRD-018 四钮键位已落、其余待 M6-B 后；PRD-022 N1–N4 / PRD-023 R1–R4 代码 @ HEAD（N5 / R5 冒烟未做） |
+| 已接受、部分已实施 | PRD-017（D13 已闭）/ PRD-020（T5 搜索·虚拟化·5k 上限已闭；Overview 与验收 1 待 S2/M6-D）；PRD-012（T5 子集已闭；T4 帧源投影已落、活 fold 待 PRD-008）；PRD-018 四钮键位已落、其余待 M6-B 后；PRD-022 N1–N4 / PRD-023 R1–R4 代码 @ HEAD（N5 / R5 冒烟未做） |
 | 已接受、实施延期 | PRD-019（D15 Web 冒烟） |
 | 仅提议 | PRD-010（已裁决名称，排引擎波后，[D12](../../dev/progress/deferred-gaps.md)） |
