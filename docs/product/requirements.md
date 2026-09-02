@@ -3,7 +3,7 @@ title: "Agent IDE 产品需求"
 type: demand
 status: accepted
 phase: N/A
-updated: 2026-09-01
+updated: 2026-09-02
 summary: "PRD-001–PRD-016：默认窗产品壳已接受；session 窗口 S1–S6 已落、S3c 对话框 chrome 已写；Agents 窗口 Chat 并排已接受；引擎、Diff、产品身份未决或阻塞"
 ---
 
@@ -215,7 +215,7 @@ PRD-001 至 PRD-007 的代码已在 M0–M3 合入，但 D4 启动冒烟（T1–
 - **用户价值**：窗口名称、图标与发行身份应是本产品，而不是上游 Code - OSS 默认身份。
 - **用户可观察陈述**：用户能从窗口标题与图标认出 Agent IDE。
 - **产品验收标准**：未决。本批不改产品名称与图标。
-- **依赖或未决**：产品身份与扩展分发尚未决策。
+- **依赖或未决**：**已裁决 @2026-09-02**：产品名 **UniverseAgentStudio**；图标复用 UniverseAgentDesktop / Singularity 现有资产。落地排在引擎波（PRD-008 接通）之后，见 [D12](../../dev/progress/deferred-gaps.md)。扩展分发仍未决（且明确排除完整市场分发）。
 
 ## 明确排除（不是需求）
 
