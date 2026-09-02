@@ -61,3 +61,14 @@
 # Vendored third-party libraries
 src/vs/base/common/lit-html/**
 src/vs/base/common/signals-core/**
+
+# Vendored Universe Agent session-core (synced from Desktop)
+src/vs/platform/universeAgent/common/sessionView/**
+src/vs/platform/universeAgent/node/sessionCore/**
+
+# Vendored from sibling UniverseAgentDesktop/packages/session-core (scripts/sync-universe-agent-session-core.ts);
+# the VS Code-owned index.ts barrels stay linted.
+src/vs/platform/universeAgent/common/sessionView/**
+!src/vs/platform/universeAgent/common/sessionView/index.ts
+src/vs/platform/universeAgent/node/sessionCore/**
+!src/vs/platform/universeAgent/node/sessionCore/index.ts

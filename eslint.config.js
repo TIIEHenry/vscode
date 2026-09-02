@@ -381,6 +381,46 @@ export default defineConfig(
 			'local/code-no-untyped-meta-access': 'warn',
 		}
 	},
+	// Universe Agent platform layering — renderer must not reach node fold runtime.
+	{
+		files: [
+			'src/vs/platform/universeAgent/**/*.ts',
+		],
+		ignores: [
+			'src/vs/platform/universeAgent/node/sessionCore/**',
+			'src/vs/platform/universeAgent/common/sessionView/**',
+		],
+		plugins: {
+			'local': pluginLocal,
+		},
+		rules: {
+			'local/code-layering': [
+				'error',
+				{
+					'common': [],
+					'node': [
+						'common'
+					],
+					'browser': [
+						'common'
+					],
+					'electron-browser': [
+						'common',
+						'browser'
+					],
+					'electron-utility': [
+						'common',
+						'node'
+					],
+					'electron-main': [
+						'common',
+						'node',
+						'electron-utility'
+					]
+				}
+			],
+		}
+	},
 	// Strict no explicit `any`
 	{
 		files: [
@@ -2963,6 +3003,48 @@ export default defineConfig(
 					'message': `Avoid casting with 'as sinon.SinonStub'. Prefer typed stubs from 'sinon.stub(...)' or capture the stub in a typed variable.`
 				},
 			],
+		}
+	},
+	{
+		// UniverseAgent adapter (dev/plans/conversation-stream-timeline.md §3.1 / ADR-003):
+		// the vendored session-core Actor lives in `node/`; renderer-side layers must never
+		// see it. Promote the repo-wide layering rule from warn to error for this domain so
+		// `common` / `browser` / `electron-browser` importing `node` fails the lint gate.
+		files: [
+			'src/vs/platform/universeAgent/**/*.ts'
+		],
+		languageOptions: {
+			parser: tseslint.parser,
+		},
+		plugins: {
+			'local': pluginLocal,
+		},
+		rules: {
+			'local/code-layering': [
+				'error',
+				{
+					'common': [],
+					'node': [
+						'common'
+					],
+					'browser': [
+						'common'
+					],
+					'electron-browser': [
+						'common',
+						'browser'
+					],
+					'electron-utility': [
+						'common',
+						'node'
+					],
+					'electron-main': [
+						'common',
+						'node',
+						'electron-utility'
+					]
+				}
+			]
 		}
 	},
 	// Forbid new JavaScript files - use TypeScript instead.

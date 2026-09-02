@@ -91,6 +91,8 @@ export const indentationFilter = Object.freeze<string[]>([
 	'!src/vs/base/browser/dompurify/*',
 	'!src/vs/base/common/lit-html/**',
 	'!src/vs/base/common/signals-core/**',
+	'!src/vs/platform/universeAgent/common/sessionView/!(index).ts',
+	'!src/vs/platform/universeAgent/node/sessionCore/!(index).ts',
 	'!src/vs/base/common/marked/marked.js',
 	'!src/vs/base/common/semver/semver.js',
 	'!src/vs/base/node/terminateProcess.sh',
@@ -225,6 +227,9 @@ export const copyrightFilter = Object.freeze<string[]>([
 	// vendored third-party libraries
 	'!src/vs/base/common/lit-html/**',
 	'!src/vs/base/common/signals-core/**',
+	// vendored from sibling UniverseAgentDesktop/packages/session-core (upstream header kept)
+	'!src/vs/platform/universeAgent/common/sessionView/!(index).ts',
+	'!src/vs/platform/universeAgent/node/sessionCore/!(index).ts',
 
 	// extensions/copilot has its own code style
 	'!extensions/copilot/**',
