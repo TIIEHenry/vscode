@@ -101,6 +101,22 @@
 	overflow: auto;
 }
 
+.monaco-workbench .engine-catalog-status-widget {
+	font-size: 12px;
+	margin-bottom: 8px;
+}
+
+.monaco-workbench .engine-catalog-status-message {
+	opacity: 0.85;
+}
+
+.monaco-workbench .engine-catalog-status-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin-top: 8px;
+}
+
 .monaco-workbench .engine-section-status,
 .monaco-workbench .engine-overview-grid,
 .monaco-workbench .engine-provider-model-form,

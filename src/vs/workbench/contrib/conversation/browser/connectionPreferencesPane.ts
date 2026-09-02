@@ -17,6 +17,7 @@ import { defaultButtonStyles } from '../../../../platform/theme/browser/defaultS
 import type { ConnectionPhase } from '../../../../platform/universeAgent/common/connectionHubTypes.js';
 import type { ConnectionProfileProjection, HubDeviceProjection } from '../../../../platform/universeAgent/common/hub.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
+import type { IPreferencesEditorPane } from '../../preferences/browser/preferencesEditorRegistry.js';
 import { IUniverseAgentHubService } from '../../../../platform/universeAgent/common/hub.js';
 import {
 	canConnectHubDevice,
@@ -33,6 +34,7 @@ import {
 	readHandshakeSasCode,
 } from './connectionPreferencesPaneLabels.js';
 import { promptSasConfirmDialog } from './connectionPreferencesPaneSas.js';
+import { shouldDrawDesktopConnectionControls } from './engineSectionChrome.js';
 
 const $ = DOM.$;
 
@@ -200,6 +202,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 	private readonly profileActionsRow: HTMLElement;
 	private readonly connectionPhaseLabel: HTMLElement;
 	private readonly testStatus: HTMLElement;
+	private readonly testSection: HTMLElement;
 	private entries: IConnectionProfileEntry[] = [];
 	private hubDevices: HubDeviceProjection[] = [];
 	private connectionPhase: ConnectionPhase = { kind: 'disconnected' };
@@ -380,7 +383,8 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		}));
 
 		// Zone 4 — Test Connection + Remote I/O hint
-		const testSection = DOM.append(this.container, DOM.$('.connection-zone.connection-test-section'));
+		this.testSection = DOM.append(this.container, DOM.$('.connection-zone.connection-test-section'));
+		const testSection = this.testSection;
 		DOM.append(testSection, DOM.$('h3')).textContent = localize('ua.connectionTestHeading', "Test Connection");
 		const testRow = DOM.append(testSection, DOM.$('.connection-test-row'));
 		const testButton = this._register(new Button(testRow, defaultButtonStyles));
@@ -404,7 +408,16 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		this.renderHubDirectory();
 		this.renderProfiles();
 		this.renderConnectionPhase();
+		this.applyDesktopConnectionControlVisibility();
 		void this.initializeState();
+	}
+
+	private applyDesktopConnectionControlVisibility(): void {
+		const drawDesktop = shouldDrawDesktopConnectionControls();
+		this.hubAccountSection.style.display = drawDesktop ? '' : 'none';
+		this.hubDevicesSection.style.display = drawDesktop ? '' : 'none';
+		this.directAddressSection.style.display = drawDesktop ? '' : 'none';
+		this.testSection.style.display = drawDesktop ? '' : 'none';
 	}
 
 	private async initializeState(): Promise<void> {
@@ -568,7 +581,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 			this.renderConnectionPhase();
 			return;
 		}
-		if (result.ok && result.pairingPending) {
+		if (result.ok && result.pairingPending && shouldDrawDesktopConnectionControls()) {
 			const confirmed = await promptSasConfirmDialog(this.dialogService, {
 				displayName: profile?.displayName ?? profileId,
 				sasCode: readHandshakeSasCode(result),
@@ -623,7 +636,9 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 			this.hubDevices = [];
 		}
 		this.hubDevicesList.splice(0, this.hubDevicesList.length, this.hubDevices);
-		this.hubDevicesSection.style.display = this.hubService.getAuthStatus().kind === 'signedOut' ? 'none' : '';
+		if (shouldDrawDesktopConnectionControls()) {
+			this.hubDevicesSection.style.display = this.hubService.getAuthStatus().kind === 'signedOut' ? 'none' : '';
+		}
 	}
 
 	private renderProfiles(): void {

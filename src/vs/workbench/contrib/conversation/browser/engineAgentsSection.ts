@@ -9,6 +9,7 @@ import { IListRenderer, IListVirtualDelegate } from '../../../../base/browser/ui
 import { IListAccessibilityProvider } from '../../../../base/browser/ui/list/listWidget.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
+import { ICommandService } from '../../../../platform/commands/common/commands.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { WorkbenchList } from '../../../../platform/list/browser/listService.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
@@ -17,15 +18,13 @@ import { defaultButtonStyles } from '../../../../platform/theme/browser/defaultS
 import {
 	type EngineCatalogPaneMode,
 	canPerformCatalogWrite,
-	getCatalogTransportFailedCopy,
-	getCatalogUnsupportedCopy,
-	getCatalogUnknownCopy,
+	canShowCatalogRows,
 	resolveEngineCatalogPaneMode,
-	shouldHideCatalogRows,
 } from './engineCatalog.js';
-import { getEngineSectionDisconnectedCopy } from './engineSectionChrome.js';
+import { EngineCatalogStatusWidget } from './engineCatalogStatus.js';
 import { formatAgentsMarkdown, parseAgentsMarkdown } from './engineAgentAgentsMd.js';
 import { summaryToProfileDetail } from './engineToolProfile.js';
+import { OPEN_CONNECTION_PREFERENCES_COMMAND_ID } from '../common/uaPreferencesPanes.js';
 
 const $ = DOM.$;
 
@@ -146,7 +145,7 @@ export class EngineAgentsSection extends Disposable {
 
 	private readonly container: HTMLElement;
 	private readonly heading: HTMLElement;
-	private readonly statusMessage: HTMLElement;
+	private readonly status: EngineCatalogStatusWidget;
 	private readonly writeToolbar: HTMLElement;
 	private readonly listContainer: HTMLElement;
 	private readonly agentsEditorContainer: HTMLElement;
@@ -167,6 +166,7 @@ export class EngineAgentsSection extends Disposable {
 		parent: HTMLElement,
 		@IUniverseAgentConnection private readonly connection: IUniverseAgentConnection,
 		@IInstantiationService instantiationService: IInstantiationService,
+		@ICommandService private readonly commandService: ICommandService,
 	) {
 		super();
 
@@ -177,8 +177,7 @@ export class EngineAgentsSection extends Disposable {
 		this.heading.textContent = localize('ua.engineAgentsSectionTitle', "Agents");
 		this.heading.style.display = 'none';
 
-		this.statusMessage = DOM.append(this.container, $('.engine-catalog-status'));
-		this.statusMessage.style.display = 'none';
+		this.status = this._register(new EngineCatalogStatusWidget(this.container));
 
 		this.writeToolbar = DOM.append(this.container, $('.engine-catalog-write-toolbar'));
 		this.writeToolbar.style.display = 'none';
@@ -405,51 +404,83 @@ export class EngineAgentsSection extends Disposable {
 	}
 
 	private async refresh(): Promise<void> {
-		this.clearCatalogPresentation();
 		this.selectedProfile = undefined;
-
 		const capabilities = this.connection.getCapabilitySnapshot();
-		this.mode = resolveEngineCatalogPaneMode(
-			this.connection.isEngineConnected(),
-			capabilities.agentProfiles.support,
-		);
+		const connected = this.connection.isEngineConnected();
+		const support = capabilities.agentProfiles.support;
 
-		if (this.mode === 'disconnected') {
-			this.statusMessage.style.display = '';
-			this.statusMessage.textContent = getEngineSectionDisconnectedCopy();
+		if (!connected) {
+			this.clearCatalogPresentation();
+			this.mode = resolveEngineCatalogPaneMode(false, support);
+			this.renderStatus();
 			return;
 		}
 
-		if (shouldHideCatalogRows(this.mode)) {
-			this.statusMessage.style.display = '';
-			this.statusMessage.textContent = this.mode === 'unknown'
-				? getCatalogUnknownCopy()
-				: getCatalogUnsupportedCopy(AGENTS_FEATURE, capabilities.agentProfiles.reason);
+		if (support === 'UNSUPPORTED') {
+			this.clearCatalogPresentation();
+			this.mode = resolveEngineCatalogPaneMode(true, support);
+			this.renderStatus({ reason: capabilities.agentProfiles.reason });
 			return;
 		}
 
-		this.listContainer.style.display = '';
-		this.writeToolbar.style.display = canPerformCatalogWrite(this.mode) ? '' : 'none';
+		if (support === 'UNKNOWN') {
+			this.mode = resolveEngineCatalogPaneMode(true, support);
+			this.writeToolbar.style.display = 'none';
+			this.renderStatus({ loadingKind: 'capability' });
+			return;
+		}
+
+		this.mode = resolveEngineCatalogPaneMode(true, support, { kind: 'inFlight' });
+		this.writeToolbar.style.display = 'none';
+		this.renderStatus({ loadingKind: 'list' });
 
 		try {
 			const result = await this.connection.listAgentProfiles();
-			if (this.mode !== 'supported' || !this.connection.isEngineConnected()) {
+			if (!this.connection.isEngineConnected()) {
 				this.clearCatalogPresentation();
+				this.mode = resolveEngineCatalogPaneMode(false, support);
+				this.renderStatus();
 				return;
 			}
 			this.setProfiles(result.profiles);
-		} catch {
+			this.mode = resolveEngineCatalogPaneMode(true, support, {
+				kind: 'success',
+				itemCount: result.profiles.length,
+			});
+			this.listContainer.style.display = canShowCatalogRows(this.mode) ? '' : 'none';
+			this.writeToolbar.style.display = canPerformCatalogWrite(this.mode) ? '' : 'none';
+			this.renderStatus();
+		} catch (error) {
 			this.clearCatalogPresentation();
-			this.statusMessage.style.display = '';
-			this.statusMessage.textContent = getCatalogTransportFailedCopy(AGENTS_FEATURE);
+			this.mode = resolveEngineCatalogPaneMode(true, support, {
+				kind: 'failed',
+				error: error instanceof Error ? error.message : undefined,
+			});
+			this.renderStatus({
+				reason: error instanceof Error ? error.message : undefined,
+				onRetry: () => void this.refresh(),
+			});
 		}
+	}
+
+	private renderStatus(options?: { reason?: string; loadingKind?: 'capability' | 'list'; onRetry?: () => void }): void {
+		this.status.render({
+			mode: this.mode,
+			featureLabel: AGENTS_FEATURE,
+			emptyCopy: localize('ua.engineAgentsEmpty', "No agent profiles yet."),
+			reason: options?.reason,
+			loadingKind: options?.loadingKind,
+			onRetry: options?.onRetry,
+			onOpenConnection: this.mode === 'disconnected'
+				? () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID)
+				: undefined,
+		});
 	}
 
 	private clearCatalogPresentation(): void {
 		this.listEntries = [];
 		this.list.splice(0, this.list.length, []);
-		this.statusMessage.style.display = 'none';
-		this.statusMessage.textContent = '';
+		this.status.hide();
 		this.listContainer.style.display = 'none';
 		this.writeToolbar.style.display = 'none';
 		this.clearAgentsEditor();
@@ -470,7 +501,7 @@ export class EngineAgentsSection extends Disposable {
 		this.agentsEditorStatus.style.display = 'none';
 		this.agentsEditorStatus.textContent = '';
 
-		if (this.mode !== 'supported' || !this.connection.isEngineConnected() || !this.selectedProfile) {
+		if (!canShowCatalogRows(this.mode) || !this.connection.isEngineConnected() || !this.selectedProfile) {
 			this.agentsEditorContainer.style.display = 'none';
 			this.agentsEditorTextarea.value = '';
 			this.agentsEditorTextarea.readOnly = true;

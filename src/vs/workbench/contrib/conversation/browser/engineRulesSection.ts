@@ -6,9 +6,12 @@
 import * as DOM from '../../../../base/browser/dom.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
+import { ICommandService } from '../../../../platform/commands/common/commands.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
-import { getCatalogUnknownCopy, getCatalogUnsupportedCopy } from './engineCatalog.js';
-import { getEngineSectionApiUnavailableCopy, getEngineSectionDisconnectedCopy } from './engineSectionChrome.js';
+import { resolveEngineCatalogPaneMode } from './engineCatalog.js';
+import { EngineCatalogStatusWidget } from './engineCatalogStatus.js';
+import { getEngineSectionApiUnavailableCopy } from './engineSectionChrome.js';
+import { OPEN_CONNECTION_PREFERENCES_COMMAND_ID } from '../common/uaPreferencesPanes.js';
 
 const $ = DOM.$;
 
@@ -17,20 +20,20 @@ const RULES_FEATURE = localize('ua.engineRulesFeatureLabel', "rules catalog");
 export class EngineRulesSection extends Disposable {
 
 	private readonly container: HTMLElement;
-	private readonly statusMessage: HTMLElement;
+	private readonly status: EngineCatalogStatusWidget;
 	private readonly scopePanels: HTMLElement;
 
 	constructor(
 		parent: HTMLElement,
 		@IUniverseAgentConnection private readonly connection: IUniverseAgentConnection,
+		@ICommandService private readonly commandService: ICommandService,
 	) {
 		super();
 
 		this.container = DOM.append(parent, $('.engine-rules-section'));
 		this.container.style.display = 'none';
 
-		this.statusMessage = DOM.append(this.container, $('.engine-section-status'));
-		this.statusMessage.style.display = 'none';
+		this.status = this._register(new EngineCatalogStatusWidget(this.container));
 
 		this.scopePanels = DOM.append(this.container, $('.engine-rules-scopes'));
 		this.scopePanels.style.display = 'none';
@@ -66,39 +69,45 @@ export class EngineRulesSection extends Disposable {
 	}
 
 	private render(): void {
-		this.hideStatus();
 		this.scopePanels.style.display = 'none';
 
 		if (!this.connection.isEngineConnected()) {
-			this.showStatus(getEngineSectionDisconnectedCopy());
+			this.status.render({
+				mode: 'disconnected',
+				onOpenConnection: () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID),
+			});
 			return;
 		}
 
 		const capabilities = this.connection.getCapabilitySnapshot();
 		const global = capabilities.globalRules;
 		const project = capabilities.projectRules;
+		const support = global.support === 'UNKNOWN' || project.support === 'UNKNOWN'
+			? 'UNKNOWN'
+			: global.support === 'UNSUPPORTED' && project.support === 'UNSUPPORTED'
+				? 'UNSUPPORTED'
+				: 'SUPPORTED';
+		const mode = resolveEngineCatalogPaneMode(true, support);
 
-		if (global.support === 'UNKNOWN' || project.support === 'UNKNOWN') {
-			this.showStatus(getCatalogUnknownCopy());
+		if (mode === 'loading') {
+			this.status.render({ mode, loadingKind: 'capability', featureLabel: RULES_FEATURE });
 			return;
 		}
 
-		if (global.support === 'UNSUPPORTED' && project.support === 'UNSUPPORTED') {
-			this.showStatus(getCatalogUnsupportedCopy(RULES_FEATURE, global.reason ?? project.reason));
+		if (mode === 'unsupported') {
+			this.status.render({
+				mode,
+				featureLabel: RULES_FEATURE,
+				reason: global.reason ?? project.reason,
+			});
 			return;
 		}
 
 		// Capability may be SUPPORTED but list CRUD API is not wired on IUniverseAgentConnection.
-		this.showStatus(getEngineSectionApiUnavailableCopy(RULES_FEATURE));
-	}
-
-	private showStatus(message: string): void {
-		this.statusMessage.style.display = '';
-		this.statusMessage.textContent = message;
-	}
-
-	private hideStatus(): void {
-		this.statusMessage.style.display = 'none';
-		this.statusMessage.textContent = '';
+		this.status.render({
+			mode: 'unsupported',
+			featureLabel: RULES_FEATURE,
+			reason: getEngineSectionApiUnavailableCopy(RULES_FEATURE),
+		});
 	}
 }

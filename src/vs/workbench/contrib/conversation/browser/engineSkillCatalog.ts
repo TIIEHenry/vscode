@@ -69,7 +69,10 @@ export function groupSkillsBySource(skills: readonly UniverseAgentSkillSummary[]
 	return groups;
 }
 
-/** True when catalog rows must not be shown (E1 negative paths). */
+/**
+ * @deprecated E2-1 abolished hide-on-disconnect. Use canShowCatalogRows.
+ * Kept so unnamed engineSkillCatalog tests compile.
+ */
 export const shouldHideSkillCatalogRows = shouldHideCatalogRows;
 
 export function getDefaultNewSkillName(): string {

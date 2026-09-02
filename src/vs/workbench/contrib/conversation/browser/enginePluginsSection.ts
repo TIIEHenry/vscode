@@ -6,9 +6,12 @@
 import * as DOM from '../../../../base/browser/dom.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
+import { ICommandService } from '../../../../platform/commands/common/commands.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
-import { getCatalogUnknownCopy, getCatalogUnsupportedCopy } from './engineCatalog.js';
-import { getEngineSectionApiUnavailableCopy, getEngineSectionDisconnectedCopy } from './engineSectionChrome.js';
+import { resolveEngineCatalogPaneMode } from './engineCatalog.js';
+import { EngineCatalogStatusWidget } from './engineCatalogStatus.js';
+import { getEngineSectionApiUnavailableCopy } from './engineSectionChrome.js';
+import { OPEN_CONNECTION_PREFERENCES_COMMAND_ID } from '../common/uaPreferencesPanes.js';
 
 const $ = DOM.$;
 
@@ -17,20 +20,20 @@ const PLUGINS_FEATURE = localize('ua.enginePluginsFeatureLabel', "engine plugins
 export class EnginePluginsSection extends Disposable {
 
 	private readonly container: HTMLElement;
-	private readonly statusMessage: HTMLElement;
+	private readonly status: EngineCatalogStatusWidget;
 	private readonly listPlaceholder: HTMLElement;
 
 	constructor(
 		parent: HTMLElement,
 		@IUniverseAgentConnection private readonly connection: IUniverseAgentConnection,
+		@ICommandService private readonly commandService: ICommandService,
 	) {
 		super();
 
 		this.container = DOM.append(parent, $('.engine-plugins-section'));
 		this.container.style.display = 'none';
 
-		this.statusMessage = DOM.append(this.container, $('.engine-section-status'));
-		this.statusMessage.style.display = 'none';
+		this.status = this._register(new EngineCatalogStatusWidget(this.container));
 
 		this.listPlaceholder = DOM.append(this.container, $('.engine-plugins-list'));
 		this.listPlaceholder.style.display = 'none';
@@ -57,35 +60,31 @@ export class EnginePluginsSection extends Disposable {
 	}
 
 	private render(): void {
-		this.hideStatus();
 		this.listPlaceholder.style.display = 'none';
 
 		if (!this.connection.isEngineConnected()) {
-			this.showStatus(getEngineSectionDisconnectedCopy());
+			this.status.render({
+				mode: 'disconnected',
+				onOpenConnection: () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID),
+			});
 			return;
 		}
 
 		const plugins = this.connection.getCapabilitySnapshot().plugins;
-		if (plugins.support === 'UNKNOWN') {
-			this.showStatus(getCatalogUnknownCopy());
+		const mode = resolveEngineCatalogPaneMode(true, plugins.support);
+		if (mode === 'loading') {
+			this.status.render({ mode, loadingKind: 'capability', featureLabel: PLUGINS_FEATURE });
+			return;
+		}
+		if (mode === 'unsupported') {
+			this.status.render({ mode, featureLabel: PLUGINS_FEATURE, reason: plugins.reason });
 			return;
 		}
 
-		if (plugins.support === 'UNSUPPORTED') {
-			this.showStatus(getCatalogUnsupportedCopy(PLUGINS_FEATURE, plugins.reason));
-			return;
-		}
-
-		this.showStatus(getEngineSectionApiUnavailableCopy(PLUGINS_FEATURE));
-	}
-
-	private showStatus(message: string): void {
-		this.statusMessage.style.display = '';
-		this.statusMessage.textContent = message;
-	}
-
-	private hideStatus(): void {
-		this.statusMessage.style.display = 'none';
-		this.statusMessage.textContent = '';
+		this.status.render({
+			mode: 'unsupported',
+			featureLabel: PLUGINS_FEATURE,
+			reason: getEngineSectionApiUnavailableCopy(PLUGINS_FEATURE),
+		});
 	}
 }

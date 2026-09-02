@@ -10,6 +10,7 @@ import { IListRenderer, IListVirtualDelegate } from '../../../../base/browser/ui
 import { IListAccessibilityProvider } from '../../../../base/browser/ui/list/listWidget.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
+import { ICommandService } from '../../../../platform/commands/common/commands.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { WorkbenchList } from '../../../../platform/list/browser/listService.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
@@ -18,14 +19,12 @@ import { defaultButtonStyles, defaultCheckboxStyles } from '../../../../platform
 import {
 	type EngineCatalogPaneMode,
 	canPerformCatalogWrite,
-	getCatalogTransportFailedCopy,
-	getCatalogUnsupportedCopy,
-	getCatalogUnknownCopy,
+	canShowCatalogRows,
 	resolveEngineCatalogPaneMode,
-	shouldHideCatalogRows,
 } from './engineCatalog.js';
-import { getEngineSectionDisconnectedCopy } from './engineSectionChrome.js';
+import { EngineCatalogStatusWidget } from './engineCatalogStatus.js';
 import { EngineMcpRuntimePanel } from './engineMcpRuntimePanel.js';
+import { OPEN_CONNECTION_PREFERENCES_COMMAND_ID } from '../common/uaPreferencesPanes.js';
 
 const $ = DOM.$;
 
@@ -176,7 +175,7 @@ export class EngineMcpSection extends Disposable {
 	private readonly definitionsPanel: HTMLElement;
 	private readonly runtimePanelHost: HTMLElement;
 	private readonly runtimePanel: EngineMcpRuntimePanel;
-	private readonly statusMessage: HTMLElement;
+	private readonly status: EngineCatalogStatusWidget;
 	private readonly writeToolbar: HTMLElement;
 	private readonly listContainer: HTMLElement;
 	private readonly instantiationService: IInstantiationService;
@@ -192,6 +191,7 @@ export class EngineMcpSection extends Disposable {
 		parent: HTMLElement,
 		@IUniverseAgentConnection private readonly connection: IUniverseAgentConnection,
 		@IInstantiationService instantiationService: IInstantiationService,
+		@ICommandService private readonly commandService: ICommandService,
 	) {
 		super();
 		this.instantiationService = instantiationService;
@@ -215,8 +215,7 @@ export class EngineMcpSection extends Disposable {
 
 		this.definitionsPanel = DOM.append(this.container, $('.engine-mcp-definitions-panel'));
 
-		this.statusMessage = DOM.append(this.definitionsPanel, $('.engine-catalog-status'));
-		this.statusMessage.style.display = 'none';
+		this.status = this._register(new EngineCatalogStatusWidget(this.definitionsPanel));
 
 		this.writeToolbar = DOM.append(this.definitionsPanel, $('.engine-catalog-write-toolbar'));
 		this.writeToolbar.style.display = 'none';
@@ -400,51 +399,83 @@ export class EngineMcpSection extends Disposable {
 	}
 
 	private async refresh(): Promise<void> {
-		this.clearCatalogPresentation();
 		this.selectedServer = undefined;
-
 		const capabilities = this.connection.getCapabilitySnapshot();
-		this.mode = resolveEngineCatalogPaneMode(
-			this.connection.isEngineConnected(),
-			capabilities.mcp.support,
-		);
+		const connected = this.connection.isEngineConnected();
+		const support = capabilities.mcp.support;
 
-		if (this.mode === 'disconnected') {
-			this.statusMessage.style.display = '';
-			this.statusMessage.textContent = getEngineSectionDisconnectedCopy();
+		if (!connected) {
+			this.clearCatalogPresentation();
+			this.mode = resolveEngineCatalogPaneMode(false, support);
+			this.renderStatus();
 			return;
 		}
 
-		if (shouldHideCatalogRows(this.mode)) {
-			this.statusMessage.style.display = '';
-			this.statusMessage.textContent = this.mode === 'unknown'
-				? getCatalogUnknownCopy()
-				: getCatalogUnsupportedCopy(MCP_FEATURE, capabilities.mcp.reason);
+		if (support === 'UNSUPPORTED') {
+			this.clearCatalogPresentation();
+			this.mode = resolveEngineCatalogPaneMode(true, support);
+			this.renderStatus({ reason: capabilities.mcp.reason });
 			return;
 		}
 
-		this.listContainer.style.display = '';
-		this.writeToolbar.style.display = canPerformCatalogWrite(this.mode) ? '' : 'none';
+		if (support === 'UNKNOWN') {
+			this.mode = resolveEngineCatalogPaneMode(true, support);
+			this.writeToolbar.style.display = 'none';
+			this.renderStatus({ loadingKind: 'capability' });
+			return;
+		}
+
+		this.mode = resolveEngineCatalogPaneMode(true, support, { kind: 'inFlight' });
+		this.writeToolbar.style.display = 'none';
+		this.renderStatus({ loadingKind: 'list' });
 
 		try {
 			const result = await this.connection.listMcpServers();
-			if (this.mode !== 'supported' || !this.connection.isEngineConnected()) {
+			if (!this.connection.isEngineConnected()) {
 				this.clearCatalogPresentation();
+				this.mode = resolveEngineCatalogPaneMode(false, support);
+				this.renderStatus();
 				return;
 			}
 			this.setServers(result.servers);
-		} catch {
+			this.mode = resolveEngineCatalogPaneMode(true, support, {
+				kind: 'success',
+				itemCount: result.servers.length,
+			});
+			this.listContainer.style.display = canShowCatalogRows(this.mode) ? '' : 'none';
+			this.writeToolbar.style.display = canPerformCatalogWrite(this.mode) ? '' : 'none';
+			this.renderStatus();
+		} catch (error) {
 			this.clearCatalogPresentation();
-			this.statusMessage.style.display = '';
-			this.statusMessage.textContent = getCatalogTransportFailedCopy(MCP_FEATURE);
+			this.mode = resolveEngineCatalogPaneMode(true, support, {
+				kind: 'failed',
+				error: error instanceof Error ? error.message : undefined,
+			});
+			this.renderStatus({
+				reason: error instanceof Error ? error.message : undefined,
+				onRetry: () => void this.refresh(),
+			});
 		}
+	}
+
+	private renderStatus(options?: { reason?: string; loadingKind?: 'capability' | 'list'; onRetry?: () => void }): void {
+		this.status.render({
+			mode: this.mode,
+			featureLabel: MCP_FEATURE,
+			emptyCopy: localize('ua.engineMcpEmpty', "No MCP servers yet."),
+			reason: options?.reason,
+			loadingKind: options?.loadingKind,
+			onRetry: options?.onRetry,
+			onOpenConnection: this.mode === 'disconnected'
+				? () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID)
+				: undefined,
+		});
 	}
 
 	private clearCatalogPresentation(): void {
 		this.listEntries = [];
 		this.list?.splice(0, this.list?.length ?? 0, []);
-		this.statusMessage.style.display = 'none';
-		this.statusMessage.textContent = '';
+		this.status.hide();
 		this.listContainer.style.display = 'none';
 		this.writeToolbar.style.display = 'none';
 	}
@@ -467,7 +498,7 @@ export class EngineMcpSection extends Disposable {
 	}
 
 	private async toggleServer(server: UniverseAgentMcpServerSummary, enabled: boolean): Promise<void> {
-		if (this.mode !== 'supported' || !this.connection.isEngineConnected()) {
+		if (!canShowCatalogRows(this.mode) || !this.connection.isEngineConnected()) {
 			return;
 		}
 		const scope = server.origin === 'project' ? 'project' : 'global';

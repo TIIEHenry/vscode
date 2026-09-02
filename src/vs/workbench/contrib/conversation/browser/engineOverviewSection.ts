@@ -4,18 +4,14 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as DOM from '../../../../base/browser/dom.js';
-import { Button } from '../../../../base/browser/ui/button/button.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
-import { defaultButtonStyles } from '../../../../platform/theme/browser/defaultStyles.js';
-import { getConnectionPhasePaneLabel } from './connectionPreferencesPaneLabels.js';
 import { OPEN_CONNECTION_PREFERENCES_COMMAND_ID } from '../common/uaPreferencesPanes.js';
-import {
-	formatCapabilitySupportLabel,
-	getEngineSectionDisconnectedCopy,
-} from './engineSectionChrome.js';
+import { getConnectionPhaseStatusBarText } from './conversationSessionStatus.js';
+import { EngineCatalogStatusWidget } from './engineCatalogStatus.js';
+import { formatCapabilitySupportLabel } from './engineSectionChrome.js';
 import type { UniverseAgentCapabilityKey, UniverseAgentTransportState } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 
 const $ = DOM.$;
@@ -69,7 +65,7 @@ export class EngineOverviewSection extends Disposable {
 
 	private readonly container: HTMLElement;
 	private readonly summaryGrid: HTMLElement;
-	private readonly statusMessage: HTMLElement;
+	private readonly status: EngineCatalogStatusWidget;
 
 	constructor(
 		parent: HTMLElement,
@@ -81,8 +77,7 @@ export class EngineOverviewSection extends Disposable {
 		this.container = DOM.append(parent, $('.engine-overview-section'));
 		this.container.style.display = 'none';
 
-		this.statusMessage = DOM.append(this.container, $('.engine-section-status'));
-		this.statusMessage.style.display = 'none';
+		this.status = this._register(new EngineCatalogStatusWidget(this.container));
 
 		this.summaryGrid = DOM.append(this.container, $('.engine-overview-grid'));
 		this.summaryGrid.style.display = 'none';
@@ -109,10 +104,15 @@ export class EngineOverviewSection extends Disposable {
 
 	private render(): void {
 		this.summaryGrid.style.display = 'none';
-		this.hideStatus();
+		this.status.hide();
 
 		if (!this.connection.isEngineConnected()) {
-			this.showDisconnectedStatus();
+			this.status.render({
+				mode: 'disconnected',
+				onOpenConnection: () => {
+					void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID);
+				},
+			});
 			return;
 		}
 
@@ -121,7 +121,7 @@ export class EngineOverviewSection extends Disposable {
 		this.summaryGrid.style.display = '';
 		DOM.clearNode(this.summaryGrid);
 
-		this.appendSummaryRow(localize('ua.engineOverviewConnection', "Connection"), getConnectionPhasePaneLabel(phase));
+		this.appendSummaryRow(localize('ua.engineOverviewConnection', "Connection"), getConnectionPhaseStatusBarText(phase));
 		this.appendSummaryRow(localize('ua.engineOverviewWorkDir', "Working directory"), snapshot.workDir ?? localize('ua.engineOverviewWorkDirUnknown', "Unknown"));
 		this.appendSummaryRow(localize('ua.engineOverviewTransport', "Transport"), getOverviewTransportLabel(snapshot.transport));
 		this.appendSummaryRow(
@@ -134,7 +134,12 @@ export class EngineOverviewSection extends Disposable {
 		);
 
 		if (snapshot.transport === 'failed') {
-			this.showStatus(localize('ua.engineOverviewTransportFailedCopy', "Engine transport failed. Retry from Connection preferences."));
+			this.status.render({
+				mode: 'failed',
+				featureLabel: localize('ua.engineOverviewTransportFeature', "engine transport"),
+				reason: localize('ua.engineOverviewTransportFailedCopy', "Engine transport failed. Retry from Connection preferences."),
+				onRetry: () => this.render(),
+			});
 		}
 
 		const capabilitiesHeading = DOM.append(this.summaryGrid, $('.engine-overview-capabilities-heading'));
@@ -158,27 +163,4 @@ export class EngineOverviewSection extends Disposable {
 		DOM.append(row, $('.engine-overview-value')).textContent = value;
 	}
 
-	private showDisconnectedStatus(): void {
-		this.statusMessage.style.display = '';
-		DOM.clearNode(this.statusMessage);
-		this.statusMessage.textContent = getEngineSectionDisconnectedCopy();
-
-		const actions = DOM.append(this.statusMessage, $('.engine-section-status-actions'));
-		const openConnection = this._register(new Button(actions, defaultButtonStyles));
-		openConnection.label = localize('ua.engineOpenConnection', "Open Connection");
-		this._register(openConnection.onDidClick(() => {
-			void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID);
-		}));
-	}
-
-	private showStatus(message: string): void {
-		this.statusMessage.style.display = '';
-		DOM.clearNode(this.statusMessage);
-		this.statusMessage.textContent = message;
-	}
-
-	private hideStatus(): void {
-		this.statusMessage.style.display = 'none';
-		DOM.clearNode(this.statusMessage);
-	}
 }

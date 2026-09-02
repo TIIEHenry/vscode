@@ -6,9 +6,12 @@
 import * as DOM from '../../../../base/browser/dom.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
+import { ICommandService } from '../../../../platform/commands/common/commands.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
-import { getCatalogUnknownCopy } from './engineCatalog.js';
-import { getEngineSectionApiUnavailableCopy, getEngineSectionDisconnectedCopy } from './engineSectionChrome.js';
+import { resolveEngineCatalogPaneMode } from './engineCatalog.js';
+import { EngineCatalogStatusWidget } from './engineCatalogStatus.js';
+import { getEngineSectionApiUnavailableCopy } from './engineSectionChrome.js';
+import { OPEN_CONNECTION_PREFERENCES_COMMAND_ID } from '../common/uaPreferencesPanes.js';
 
 const $ = DOM.$;
 
@@ -17,20 +20,20 @@ const HOOKS_FEATURE = localize('ua.engineHooksFeatureLabel', "hook metadata");
 export class EngineHooksSection extends Disposable {
 
 	private readonly container: HTMLElement;
-	private readonly statusMessage: HTMLElement;
+	private readonly status: EngineCatalogStatusWidget;
 	private readonly layoutHost: HTMLElement;
 
 	constructor(
 		parent: HTMLElement,
 		@IUniverseAgentConnection private readonly connection: IUniverseAgentConnection,
+		@ICommandService private readonly commandService: ICommandService,
 	) {
 		super();
 
 		this.container = DOM.append(parent, $('.engine-hooks-section'));
 		this.container.style.display = 'none';
 
-		this.statusMessage = DOM.append(this.container, $('.engine-section-status'));
-		this.statusMessage.style.display = 'none';
+		this.status = this._register(new EngineCatalogStatusWidget(this.container));
 
 		this.layoutHost = DOM.append(this.container, $('.engine-hooks-layout'));
 		this.layoutHost.style.display = 'none';
@@ -66,38 +69,38 @@ export class EngineHooksSection extends Disposable {
 	}
 
 	private render(): void {
-		this.hideStatus();
 		this.layoutHost.style.display = 'none';
 
 		if (!this.connection.isEngineConnected()) {
-			this.showStatus(getEngineSectionDisconnectedCopy());
+			this.status.render({
+				mode: 'disconnected',
+				onOpenConnection: () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID),
+			});
 			return;
 		}
 
 		const hooksMetadata = this.connection.getCapabilitySnapshot().hooksMetadata;
-		if (hooksMetadata.support === 'UNKNOWN') {
-			this.showStatus(getCatalogUnknownCopy());
+		const mode = resolveEngineCatalogPaneMode(true, hooksMetadata.support);
+		if (mode === 'loading') {
+			this.status.render({ mode, loadingKind: 'capability', featureLabel: HOOKS_FEATURE });
+			return;
+		}
+		if (mode === 'unsupported') {
+			this.status.render({
+				mode,
+				featureLabel: HOOKS_FEATURE,
+				reason: hooksMetadata.reason ?? localize(
+					'ua.engineHooksMetadataUnsupported',
+					"Current engine does not provide hook metadata.",
+				),
+			});
 			return;
 		}
 
-		if (hooksMetadata.support === 'UNSUPPORTED') {
-			this.showStatus(localize(
-				'ua.engineHooksMetadataUnsupported',
-				"Current engine does not provide hook metadata.",
-			));
-			return;
-		}
-
-		this.showStatus(getEngineSectionApiUnavailableCopy(HOOKS_FEATURE));
-	}
-
-	private showStatus(message: string): void {
-		this.statusMessage.style.display = '';
-		this.statusMessage.textContent = message;
-	}
-
-	private hideStatus(): void {
-		this.statusMessage.style.display = 'none';
-		this.statusMessage.textContent = '';
+		this.status.render({
+			mode: 'unsupported',
+			featureLabel: HOOKS_FEATURE,
+			reason: getEngineSectionApiUnavailableCopy(HOOKS_FEATURE),
+		});
 	}
 }
