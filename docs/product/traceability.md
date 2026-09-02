@@ -46,7 +46,7 @@ summary: "PRD-001–024 追踪；PRD-008 blocked（M6-C E1 catalog list/toggle +
 |------|----------|
 | 代码已落、D4 已验 | PRD-001–PRD-016（除 blocked） |
 | EH 探针已验 | D5 closed @ [wave3](../../dev/progress/d5-evidence/smoke-wave3-0001/)（YAML / Todo Tree / js-debug PASS） |
-| 阻塞 / 未决 | PRD-008（方案已签收；待 M6-A2 接通证据与隔离 profile 冒烟）、PRD-009 F4 隔离 profile 冒烟（升 `implemented` 须 V-F1–V-F7）、页面接入切片 5（M6-B）、customizations E1 **产品验收**（`AGENTS.md` 全文编辑器、Skill 新建/正文 UI、MCP 运行态；list/toggle/写 RPC @ `f49615a1` 已知识层回填） |
+| 阻塞 / 未决 | PRD-008（方案已签收；待 M6-A2 接通证据与隔离 profile 冒烟）、PRD-009 F4 隔离 profile 冒烟（升 `implemented` 须 V-F1–V-F7）、页面接入切片 5（M6-B）、customizations E1 **产品验收**（Skill 新建/正文 UI、MCP 运行态、Plugins；list/toggle/写 RPC @ `f49615a1`、`AGENTS.md` 编辑器 @ `9419f583` 已知识层回填） |
 | 已接受、部分已实施 | PRD-017（D13 已闭）/ PRD-020（T5 搜索·虚拟化·5k 上限已闭；Overview 与验收 1 待 S2/M6-D）；PRD-012（T5 子集已闭；T4 帧源投影已落、活 fold 待 PRD-008）；PRD-018 四钮键位已落、其余待 M6-B 后；PRD-022 N1–N4 / PRD-023 R1–R4 代码 @ HEAD（N5 / R5 冒烟未做） |
 | 已接受、实施延期 | PRD-019（D15 Web 冒烟） |
 | 仅提议 | PRD-010（已裁决名称，排引擎波后，[D12](../../dev/progress/deferred-gaps.md)）· PRD-024（Connection Hub；H0 docs @ HEAD；H4a 冒烟前不升 `accepted`→`implemented`） |

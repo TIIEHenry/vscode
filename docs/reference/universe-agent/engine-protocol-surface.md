@@ -25,7 +25,7 @@ summary: "已知 gRPC 服务 / RPC 名与本仓用途；§1 Conversation（A1/A2
 | L3 `tool_runtime_snapshot` | `payload.file_mutation_payload` + `ToolCallLifecycleEvent` join | Sources Review 归因 chip / `reviewNav` 物化（**host-only** demux；contrib 消费 `onDidFileMutation`） | m6 §11 A2；禁止解析 L2 `arguments_json`；历史见 **G-REV-1** |
 | `ToolService` | `ListSkills` / `SkillInfo` / `SetSkillEnabled` | **@ HEAD** 传输 + `EngineSkillsSection` list/toggle（E1） | 无独立 Create RPC；写文件后 `ListSkills` 刷新；Skill 正文/新建 UI 未在本 slice |
 | `ToolService` | `ListTools` / `ToolInfo` | **@ HEAD** `listTools` → `EngineToolsSection` 目录 + profile 启用 checkbox | 无 `SetToolEnabled`；enablement 经 `SaveAgentProfile` → `{profileDir}/tools.json`（`engineToolProfile.ts` @ `f49615a1`） |
-| `AgentService` | `ListAgentProfiles` / `SaveAgentProfile` / `DeleteAgentProfile` / `ResetAgentProfile` | **@ HEAD** list + 写 RPC → `EngineAgentsSection`（New/Delete/Reset 工具栏） | **无** `AGENTS.md` 全文编辑器；built_in 不可 Delete、仅 Reset |
+| `AgentService` | `ListAgentProfiles` / `SaveAgentProfile` / `DeleteAgentProfile` / `ResetAgentProfile` | **@ HEAD** list + 写 RPC → `EngineAgentsSection`（New/Delete/Reset 工具栏 + **`AGENTS.md` 全文编辑器** @ `9419f583`） | 选中 profile textarea + Save → `SaveAgentProfile`；断连/`UNSUPPORTED` 不渲染；built_in 只读；built_in 不可 Delete、仅 Reset |
 | `McpService` | `ListMcpServers` / `ToggleMcpServer` / `AddMcpServer` / `UpdateMcpServer` / `RemoveMcpServer` | **@ HEAD** list + toggle + 定义 CRUD → `EngineMcpSection` | `GetMcpServerStatuses` / `GetMcpServerTools` 运行态，**不在** Engine 页 |
 | `PluginService` | `List` / `Info` / `Enable` / `Reload` / `Unload` | Plugins 节（v1 延后） | Local 模式 UNSUPPORTED |
 | Local `RulesBridge` | list / create / update / delete / preview / health × global / workDir（12）+ `defaultAgentHome()` | Engine 页 Rules（Instructions） | **Remote gRPC 不存在**；默认 `Unsupported`；Engine 页 Rules list **未**在本 slice |
@@ -71,7 +71,7 @@ Connect 后 `probeEngineCapabilities`：**仅**广告了 method 且 probe 非 `U
 | Rules Remote gRPC | Remote 模式 Instructions | — |
 | `ListHookPoints`（或握手带版本化点位表） | Engine 页 Hooks「来自引擎」 | — |
 | 独立 CreateSkill / 写正文 RPC（或「写后刷新」约定） | E1 新建技能 UI | list/toggle 已接；新建/编辑 UI 未在本 slice |
-| Agent profile 全文编辑器 | Engine 页 `AGENTS.md` 三件套 UI | 写 RPC @ `f49615a1` 已进传输；目录正文编辑器 **未**在本 slice |
+| Agent profile `tools.json` / `model.json` 独立 UI | Engine 页目录三件套附件编辑 | `AGENTS.md` 正文 @ `9419f583` 已落；`tools.json` 经 Tools 节 checkbox；`model.json` 仍无独立编辑器 |
 | `globalRules` / `plugins` IDE probe | Rules / Plugins Engine 节 | 待后续切片；Today 诚实 UNSUPPORTED |
 
 ## 5. Conversation 会话面（A1/A2 @ HEAD 回填）

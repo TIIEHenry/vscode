@@ -4,7 +4,7 @@ type: plan
 status: accepted
 phase: N/A
 updated: 2026-09-02
-summary: "Engine 页 catalog 权威；E1 部分已落（Skills list/toggle @ 8bfc299e；Agents/MCP/Tools List @ 4833c008；Save/CRUD/tools.json 写路径 @ f49615a1）；PRD-008 未升 implemented"
+summary: "Engine 页 catalog 权威；E1 部分已落（Skills list/toggle @ 8bfc299e；Agents/MCP/Tools List @ 4833c008；Save/CRUD/tools.json @ f49615a1；AGENTS.md 全文编辑器 @ 9419f583）；PRD-008 未升 implemented"
 ---
 
 # Agent Customizations 引擎面
@@ -16,7 +16,7 @@ summary: "Engine 页 catalog 权威；E1 部分已落（Skills list/toggle @ 8bf
 
 **Goal：** 把 Engine 页各节钉到 UniverseAgent 的 SSOT 与传输面；列出最小协议。无引擎时 **不要**在 Engine 页或 Customizations Overview 扫盘当 catalog。
 
-本稿 `accepted`（2026-09-01）。规则 16 三轮 Grok 4.6（Opus 不可用）。第三轮 Approve with changes 已改入。**E1 部分已落** @ `8bfc299e`/`4833c008`/`f49615a1`（Skills list/toggle；Agents/MCP/Tools **List** + MCP `ToggleMcpServer`；Agents Save/Delete/Reset、MCP Add·Update·Remove、Tools 经 `SaveAgentProfile`/`engineToolProfile.ts`）；**未落**：`AGENTS.md` 全文编辑器、Skill 新建/正文 UI、MCP 运行态、§8.3 六条产品验收与 PRD-008 隔离 profile 冒烟仍待。H0–H3 在 host-ui。
+本稿 `accepted`（2026-09-01）。规则 16 三轮 Grok 4.6（Opus 不可用）。第三轮 Approve with changes 已改入。**E1 部分已落** @ `8bfc299e`/`4833c008`/`f49615a1`/`9419f583`（Skills list/toggle；Agents/MCP/Tools **List** + MCP `ToggleMcpServer`；Agents Save/Delete/Reset、MCP Add·Update·Remove、Tools 经 `SaveAgentProfile`/`engineToolProfile.ts`；**Agents `AGENTS.md` 全文编辑器**—选中 profile 的 textarea + Save 走 `SaveAgentProfile`，断连/`UNSUPPORTED` 不渲染；单测 connected 保存 / disconnected 不调 Save @ `9419f583`/`3756d04e`）；**未落**：Skill 新建/正文 UI（槽 B）、MCP 运行态、Plugins、§8.3 六条产品验收与 PRD-008 隔离 profile 冒烟仍待。H0–H3 在 host-ui。
 
 ---
 
@@ -248,7 +248,7 @@ H0（donor：去 Copilot 文案 / Overview 去预填 / 不画 Tools CLI）
 ```
 
 - H0–H3 **可以**在无引擎时做；只动 donor chrome，**遵守 §4（Engine 页不扫盘）**。H1 **不得**把 `IPromptsService` 扫描根改到 `{AgentHome}` / `.universe-agent`。  
-- **E1 部分已落** @ `8bfc299e`/`4833c008`/`f49615a1`：**Skills** list/toggle；**Agents / MCP / Tools List**（MCP toggle enablement）；**Agents Save/Delete/Reset**、**MCP Add/Update/Remove**、**Tools profile 启用集**（`SaveAgentProfile` + `engineToolProfile.ts`）。**未落**：`AGENTS.md` 全文编辑器、Skill 新建/正文 UI、MCP 运行态；§8.3 六条验收 + 断开诚实空仍待 PRD-008 隔离 profile 冒烟。  
+- **E1 部分已落** @ `8bfc299e`/`4833c008`/`f49615a1`/`9419f583`：**Skills** list/toggle；**Agents / MCP / Tools List**（MCP toggle enablement）；**Agents Save/Delete/Reset**、**MCP Add/Update/Remove**、**Tools profile 启用集**（`SaveAgentProfile` + `engineToolProfile.ts`）；**Agents `AGENTS.md` 全文编辑器**（textarea + Save → `SaveAgentProfile`；断连/`UNSUPPORTED` 不渲染）@ `9419f583`/`3756d04e`。**未落**：Skill 新建/正文 UI（槽 B）、MCP 运行态、Plugins；§8.3 六条验收 + 断开诚实空仍待 PRD-008 隔离 profile 冒烟。  
 - Plugins 整节不在 H1–E1。
 
 ### 8.2 H1 — donor chrome 卫生（不是 Engine catalog 交付）
@@ -263,7 +263,7 @@ PRD-008 接通 **且** `skills=SUPPORTED` **之前**：Engine 页无 catalog（�
 
 ### 8.3 E1 验收（产品语言，禁止「某 class 接上了」当成功）
 
-**代码已落（部分）：** @ `8bfc299e` Skills list/toggle；@ `4833c008` Agents/MCP/Tools **List**（MCP toggle only）；@ `f49615a1` Agents Save/Delete/Reset、MCP 定义 CRUD、Tools profile 启用集（`SaveAgentProfile`）。**未落：** `AGENTS.md` 全文编辑器、Skill 新建/正文 UI、MCP 运行态；§8.3 产品验收与隔离 profile 冒烟仍待 PRD-008 证据。
+**代码已落（部分）：** @ `8bfc299e` Skills list/toggle；@ `4833c008` Agents/MCP/Tools **List**（MCP toggle only）；@ `f49615a1` Agents Save/Delete/Reset、MCP 定义 CRUD、Tools profile 启用集（`SaveAgentProfile`）；@ `9419f583`/`3756d04e` Agents **`AGENTS.md` 全文编辑器**（选中 profile textarea + Save → `SaveAgentProfile`；断连/`UNSUPPORTED` 不渲染；单测 connected 保存 / disconnected 不调 Save）。**未落：** Skill 新建/正文 UI（槽 B）、MCP 运行态、Plugins；§8.3 产品验收与隔离 profile 冒烟仍待 PRD-008 证据。
 
 在 **UniverseAgent 已连接** 且 `skills=SUPPORTED` 时：
 
