@@ -54,16 +54,16 @@ export function canShowCatalogRows(mode: EngineCatalogPaneMode): boolean {
 }
 
 /** Write paths (Save/Delete/CRUD / New/Add) when empty or ready (§2). */
-export function canPerformCatalogWrite(mode: EngineCatalogPaneMode | 'unknown' | 'supported'): boolean {
-	return mode === 'empty' || mode === 'ready' || mode === 'supported';
+export function canPerformCatalogWrite(mode: EngineCatalogPaneMode): boolean {
+	return mode === 'empty' || mode === 'ready';
 }
 
 /**
  * @deprecated E2-1 abolished hide-on-disconnect. Navigation stays reachable;
- * use {@link canShowCatalogRows} for list visibility. Kept so unnamed tests compile.
+ * use {@link canShowCatalogRows} for list visibility.
  */
-export function shouldHideCatalogRows(mode: EngineCatalogPaneMode | 'unknown' | 'supported'): boolean {
-	return mode !== 'ready' && mode !== 'supported';
+export function shouldHideCatalogRows(mode: EngineCatalogPaneMode): boolean {
+	return mode !== 'ready';
 }
 
 export function getCatalogUnsupportedCopy(featureLabel: string, reason?: string): string {

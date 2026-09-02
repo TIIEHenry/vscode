@@ -26,6 +26,7 @@ import {
 	getSkillSourceGroupLabel,
 	getSkillToggleFreezeNotice,
 	groupSkillsBySource,
+	isSkillBodyDirty,
 	resolveEngineSkillsPaneMode,
 } from './engineSkillCatalog.js';
 import { OPEN_CONNECTION_PREFERENCES_COMMAND_ID } from '../common/uaPreferencesPanes.js';
@@ -154,6 +155,8 @@ export class EngineSkillsSection extends Disposable {
 	private listEntries: EngineSkillListEntry[] = [];
 	private selectedSkill: UniverseAgentSkillSummary | undefined;
 	private loadedBodySource: UniverseAgentSkillSource | undefined;
+	private loadedBodyText: string | undefined;
+	private bodyDirty = false;
 	private bodyLoadGeneration = 0;
 	private sectionActive = false;
 
@@ -200,6 +203,9 @@ export class EngineSkillsSection extends Disposable {
 		this.bodyTextarea.rows = 10;
 		this.bodyTextarea.spellcheck = false;
 		this.bodyTextarea.setAttribute('aria-label', localize('ua.engineSkillBodyEditor', "Skill body"));
+		this._register(DOM.addDisposableListener(this.bodyTextarea, 'input', () => {
+			this.bodyDirty = isSkillBodyDirty(this.bodyTextarea.value, this.loadedBodyText);
+		}));
 
 		this.bodyStatus = DOM.append(this.bodyEditor, $('.engine-skill-body-status'));
 		this.bodyStatus.style.display = 'none';
@@ -265,6 +271,14 @@ export class EngineSkillsSection extends Disposable {
 		return this.bodyTextarea.value;
 	}
 
+	getSelectedSkillName(): string | undefined {
+		return this.selectedSkill?.name;
+	}
+
+	isSkillBodyDirty(): boolean {
+		return this.bodyDirty;
+	}
+
 	/** Test hook: programmatically select a skill row by name. */
 	selectSkillForTest(name: string): void {
 		if (!this.list) {
@@ -319,6 +333,8 @@ export class EngineSkillsSection extends Disposable {
 				return false;
 			}
 			this.hideBodyStatus();
+			this.loadedBodyText = payload;
+			this.bodyDirty = false;
 			await this.loadSkillBody(this.selectedSkill);
 			return true;
 		} catch {
@@ -379,7 +395,7 @@ export class EngineSkillsSection extends Disposable {
 			this.bodyEditor.style.display = canShowCatalogRows(this.mode) ? '' : 'none';
 			this.renderStatus();
 		} catch (error) {
-			this.clearCatalogPresentation();
+			this.writeToolbar.style.display = 'none';
 			this.mode = resolveEngineSkillsPaneMode(true, support, {
 				kind: 'failed',
 				error: error instanceof Error ? error.message : undefined,
@@ -444,6 +460,8 @@ export class EngineSkillsSection extends Disposable {
 		this.list?.splice(0, this.list?.length ?? 0, []);
 		this.selectedSkill = undefined;
 		this.loadedBodySource = undefined;
+		this.loadedBodyText = undefined;
+		this.bodyDirty = false;
 		this.bodyLoadGeneration++;
 		this.status.hide();
 		this.freezeNotice.style.display = 'none';
@@ -457,6 +475,8 @@ export class EngineSkillsSection extends Disposable {
 		this.bodyTextarea.value = '';
 		this.bodyTextarea.readOnly = true;
 		this.bodyToolbar.style.display = 'none';
+		this.loadedBodyText = undefined;
+		this.bodyDirty = false;
 		this.hideBodyStatus();
 	}
 
@@ -490,11 +510,34 @@ export class EngineSkillsSection extends Disposable {
 		this.listEntries = entries;
 		if (entries.length === 0) {
 			this.list?.splice(0, this.list?.length ?? 0, []);
-			this.clearBodyEditor();
+			if (!this.bodyDirty) {
+				this.clearBodyEditor();
+			}
 			return;
 		}
 		const list = this.ensureList();
 		list.splice(0, list.length, entries);
+		this.restoreSkillSelection();
+	}
+
+	private restoreSkillSelection(): void {
+		const name = this.selectedSkill?.name;
+		if (!name || !this.list) {
+			return;
+		}
+		const index = this.listEntries.findIndex(entry => entry.kind === 'skill' && entry.skill.name === name);
+		if (index < 0) {
+			this.selectedSkill = undefined;
+			if (!this.bodyDirty) {
+				this.clearBodyEditor();
+			}
+			return;
+		}
+		const entry = this.listEntries[index];
+		if (entry?.kind === 'skill') {
+			this.selectedSkill = entry.skill;
+		}
+		this.list.setSelection([index]);
 	}
 
 	private async toggleSkill(skill: UniverseAgentSkillSummary, enabled: boolean): Promise<void> {
@@ -515,7 +558,13 @@ export class EngineSkillsSection extends Disposable {
 
 	private async loadSkillBody(skill: UniverseAgentSkillSummary): Promise<void> {
 		if (!canShowCatalogRows(this.mode) || !this.connection.isEngineConnected()) {
-			this.clearBodyEditor();
+			if (!this.bodyDirty) {
+				this.clearBodyEditor();
+			}
+			return;
+		}
+		if (this.bodyDirty && this.selectedSkill?.name === skill.name) {
+			this.updateBodyEditorChrome(this.loadedBodySource ?? skill.source);
 			return;
 		}
 		const generation = ++this.bodyLoadGeneration;
@@ -530,7 +579,9 @@ export class EngineSkillsSection extends Disposable {
 				return;
 			}
 			this.loadedBodySource = info.source;
+			this.loadedBodyText = info.content;
 			this.bodyTextarea.value = info.content;
+			this.bodyDirty = false;
 			this.updateBodyEditorChrome(info.source);
 		} catch {
 			if (generation !== this.bodyLoadGeneration || this.selectedSkill?.name !== skill.name) {

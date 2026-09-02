@@ -31,6 +31,11 @@ export function canEditSkillBody(source: UniverseAgentSkillSource): boolean {
 	return source === 'user' || source === 'project';
 }
 
+/** True when the body editor differs from the last successfully loaded content. */
+export function isSkillBodyDirty(current: string, loaded: string | undefined): boolean {
+	return loaded !== undefined && current !== loaded;
+}
+
 export function getSkillToggleFreezeNotice(): string {
 	return localize(
 		'ua.engineSkillToggleFreezeNotice',

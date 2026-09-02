@@ -141,8 +141,9 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 	test('canPerformCatalogWrite is false when disconnected or unsupported', () => {
 		assert.strictEqual(canPerformCatalogWrite('disconnected'), false);
 		assert.strictEqual(canPerformCatalogWrite('unsupported'), false);
-		assert.strictEqual(canPerformCatalogWrite('unknown'), false);
-		assert.strictEqual(canPerformCatalogWrite('supported'), true);
+		assert.strictEqual(canPerformCatalogWrite('loading'), false);
+		assert.strictEqual(canPerformCatalogWrite('ready'), true);
+		assert.strictEqual(canPerformCatalogWrite('empty'), true);
 	});
 
 	for (const [label, capabilityKey, featureLabel] of [

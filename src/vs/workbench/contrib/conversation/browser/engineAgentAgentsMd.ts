@@ -3,7 +3,20 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { localize } from '../../../../nls.js';
 import type { UniverseAgentAgentProfileDetail } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
+
+/** G-ENG-4: SaveAgentProfile proto does not carry model.json. */
+export function getAgentProfileModelUnsupportedReason(): string {
+	return localize(
+		'ua.engineAgentModelUnsupportedReason',
+		"Engine 的 SaveAgentProfile 不承载 model.json",
+	);
+}
+
+export function isAgentsMarkdownDirty(current: string, loaded: string | undefined): boolean {
+	return loaded !== undefined && current !== loaded;
+}
 
 const FRONTMATTER_PATTERN = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/;
 
