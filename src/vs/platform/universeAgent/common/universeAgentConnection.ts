@@ -23,8 +23,20 @@ import type {
 	UniverseAgentListSkillsResult,
 	UniverseAgentListAgentProfilesRequest,
 	UniverseAgentListAgentProfilesResult,
+	UniverseAgentSaveAgentProfileRequest,
+	UniverseAgentSaveAgentProfileResult,
+	UniverseAgentDeleteAgentProfileRequest,
+	UniverseAgentDeleteAgentProfileResult,
+	UniverseAgentResetAgentProfileRequest,
+	UniverseAgentResetAgentProfileResult,
 	UniverseAgentListMcpServersRequest,
 	UniverseAgentListMcpServersResult,
+	UniverseAgentAddMcpServerRequest,
+	UniverseAgentAddMcpServerResult,
+	UniverseAgentUpdateMcpServerRequest,
+	UniverseAgentUpdateMcpServerResult,
+	UniverseAgentRemoveMcpServerRequest,
+	UniverseAgentRemoveMcpServerResult,
 	UniverseAgentListToolsResult,
 	UniverseAgentToggleMcpServerRequest,
 	UniverseAgentToggleMcpServerResult,
@@ -123,7 +135,19 @@ export interface IUniverseAgentConnection {
 
 	listAgentProfiles(request?: UniverseAgentListAgentProfilesRequest): Promise<UniverseAgentListAgentProfilesResult>;
 
+	saveAgentProfile(request: UniverseAgentSaveAgentProfileRequest): Promise<UniverseAgentSaveAgentProfileResult>;
+
+	deleteAgentProfile(request: UniverseAgentDeleteAgentProfileRequest): Promise<UniverseAgentDeleteAgentProfileResult>;
+
+	resetAgentProfile(request: UniverseAgentResetAgentProfileRequest): Promise<UniverseAgentResetAgentProfileResult>;
+
 	listMcpServers(request?: UniverseAgentListMcpServersRequest): Promise<UniverseAgentListMcpServersResult>;
+
+	addMcpServer(request: UniverseAgentAddMcpServerRequest): Promise<UniverseAgentAddMcpServerResult>;
+
+	updateMcpServer(request: UniverseAgentUpdateMcpServerRequest): Promise<UniverseAgentUpdateMcpServerResult>;
+
+	removeMcpServer(request: UniverseAgentRemoveMcpServerRequest): Promise<UniverseAgentRemoveMcpServerResult>;
 
 	toggleMcpServer(request: UniverseAgentToggleMcpServerRequest): Promise<UniverseAgentToggleMcpServerResult>;
 

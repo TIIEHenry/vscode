@@ -18,6 +18,7 @@ import type {
 	UniverseAgentGetHistoryResult,
 	UniverseAgentListSessionsRequest,
 	UniverseAgentListSessionsResult,
+	UniverseAgentSaveAgentProfileRequest,
 	UniverseAgentSessionEvent,
 } from '../../common/universeAgentTypes.js';
 import { GrpcStatusCode, IUniverseAgentGrpcTransport, UniverseAgentAuthNonceRequest, UniverseAgentAuthNonceResult, UniverseAgentDeviceAuthConnectRequest, UniverseAgentTransportError } from '../../node/grpc/grpcTransport.js';
@@ -124,11 +125,35 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 		return { profiles: [] };
 	}
 
+	async saveAgentProfile(request: UniverseAgentSaveAgentProfileRequest) {
+		return { profile: request.profile };
+	}
+
+	async deleteAgentProfile() {
+		return { ok: true };
+	}
+
+	async resetAgentProfile() {
+		return { ok: true };
+	}
+
 	async listMcpServers() {
 		return { servers: [] };
 	}
 
 	async toggleMcpServer() {
+		return { ok: true };
+	}
+
+	async addMcpServer() {
+		return { ok: true };
+	}
+
+	async updateMcpServer() {
+		return { ok: true };
+	}
+
+	async removeMcpServer() {
 		return { ok: true };
 	}
 

@@ -18,8 +18,20 @@ import type {
 	UniverseAgentListSkillsResult,
 	UniverseAgentListAgentProfilesRequest,
 	UniverseAgentListAgentProfilesResult,
+	UniverseAgentSaveAgentProfileRequest,
+	UniverseAgentSaveAgentProfileResult,
+	UniverseAgentDeleteAgentProfileRequest,
+	UniverseAgentDeleteAgentProfileResult,
+	UniverseAgentResetAgentProfileRequest,
+	UniverseAgentResetAgentProfileResult,
 	UniverseAgentListMcpServersRequest,
 	UniverseAgentListMcpServersResult,
+	UniverseAgentAddMcpServerRequest,
+	UniverseAgentAddMcpServerResult,
+	UniverseAgentUpdateMcpServerRequest,
+	UniverseAgentUpdateMcpServerResult,
+	UniverseAgentRemoveMcpServerRequest,
+	UniverseAgentRemoveMcpServerResult,
 	UniverseAgentListToolsResult,
 	UniverseAgentToggleMcpServerRequest,
 	UniverseAgentToggleMcpServerResult,
@@ -116,7 +128,19 @@ export interface IUniverseAgentGrpcTransport {
 
 	listAgentProfiles(request: UniverseAgentListAgentProfilesRequest): Promise<UniverseAgentListAgentProfilesResult>;
 
+	saveAgentProfile(request: UniverseAgentSaveAgentProfileRequest): Promise<UniverseAgentSaveAgentProfileResult>;
+
+	deleteAgentProfile(request: UniverseAgentDeleteAgentProfileRequest): Promise<UniverseAgentDeleteAgentProfileResult>;
+
+	resetAgentProfile(request: UniverseAgentResetAgentProfileRequest): Promise<UniverseAgentResetAgentProfileResult>;
+
 	listMcpServers(request: UniverseAgentListMcpServersRequest): Promise<UniverseAgentListMcpServersResult>;
+
+	addMcpServer(request: UniverseAgentAddMcpServerRequest): Promise<UniverseAgentAddMcpServerResult>;
+
+	updateMcpServer(request: UniverseAgentUpdateMcpServerRequest): Promise<UniverseAgentUpdateMcpServerResult>;
+
+	removeMcpServer(request: UniverseAgentRemoveMcpServerRequest): Promise<UniverseAgentRemoveMcpServerResult>;
 
 	toggleMcpServer(request: UniverseAgentToggleMcpServerRequest): Promise<UniverseAgentToggleMcpServerResult>;
 
@@ -152,11 +176,17 @@ export const UniverseAgentGrpcServices = {
 		Chat: 'Chat',
 		Tree: 'Tree',
 		ListAgentProfiles: 'ListAgentProfiles',
+		SaveAgentProfile: 'SaveAgentProfile',
+		DeleteAgentProfile: 'DeleteAgentProfile',
+		ResetAgentProfile: 'ResetAgentProfile',
 	},
 	Mcp: {
 		service: 'universeagent.mcp.v1.McpService',
 		ListMcpServers: 'ListMcpServers',
 		ToggleMcpServer: 'ToggleMcpServer',
+		AddMcpServer: 'AddMcpServer',
+		UpdateMcpServer: 'UpdateMcpServer',
+		RemoveMcpServer: 'RemoveMcpServer',
 	},
 	Team: {
 		service: 'universeagent.team.v1.TeamService',

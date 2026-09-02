@@ -29,13 +29,27 @@ import type {
 	UniverseAgentListAgentProfilesResult,
 	UniverseAgentAgentProfileSource,
 	UniverseAgentAgentProfileSummary,
+	UniverseAgentAgentProfileDetail,
+	UniverseAgentSaveAgentProfileRequest,
+	UniverseAgentSaveAgentProfileResult,
+	UniverseAgentDeleteAgentProfileRequest,
+	UniverseAgentDeleteAgentProfileResult,
+	UniverseAgentResetAgentProfileRequest,
+	UniverseAgentResetAgentProfileResult,
 	UniverseAgentListMcpServersRequest,
 	UniverseAgentListMcpServersResult,
 	UniverseAgentMcpServerOrigin,
 	UniverseAgentMcpTransport,
 	UniverseAgentMcpServerSummary,
+	UniverseAgentMcpServerConfig,
 	UniverseAgentToggleMcpServerRequest,
 	UniverseAgentToggleMcpServerResult,
+	UniverseAgentAddMcpServerRequest,
+	UniverseAgentAddMcpServerResult,
+	UniverseAgentUpdateMcpServerRequest,
+	UniverseAgentUpdateMcpServerResult,
+	UniverseAgentRemoveMcpServerRequest,
+	UniverseAgentRemoveMcpServerResult,
 	UniverseAgentListToolsResult,
 	UniverseAgentToolSummary,
 	UniverseAgentAgentTreeNode,
@@ -299,6 +313,15 @@ interface ListAgentProfilesResponseWire {
 		source?: string;
 		summary?: string;
 		enabled?: boolean;
+		disabled_tools?: string[];
+		enabled_tools?: string[];
+		whitelist_mode?: boolean;
+		description?: string;
+		system_prompt?: string;
+		permission_mode?: string;
+		usage?: string;
+		detail_level?: string;
+		builtin_default?: boolean;
 	}>;
 }
 
@@ -316,6 +339,41 @@ function mapAgentProfileSource(source: string | undefined): UniverseAgentAgentPr
 	}
 }
 
+function mapAgentProfileSourceToWire(source: UniverseAgentAgentProfileSource | undefined): string | undefined {
+	if (!source) {
+		return undefined;
+	}
+	switch (source) {
+		case 'built_in':
+			return 'BUILT_IN';
+		case 'user':
+			return 'USER';
+		case 'project':
+			return 'PROJECT';
+		default:
+			return undefined;
+	}
+}
+
+function mapAgentProfileDetail(wire: NonNullable<ListAgentProfilesResponseWire['profiles']>[number]): UniverseAgentAgentProfileDetail {
+	return {
+		id: wire.id ?? '',
+		name: wire.name ?? '',
+		description: wire.description,
+		systemPrompt: wire.system_prompt,
+		disabledTools: wire.disabled_tools,
+		enabledTools: wire.enabled_tools,
+		permissionMode: wire.permission_mode,
+		summary: wire.summary,
+		usage: wire.usage,
+		detailLevel: wire.detail_level,
+		source: mapAgentProfileSource(wire.source),
+		enabled: wire.enabled,
+		whitelistMode: wire.whitelist_mode,
+		builtinDefault: wire.builtin_default,
+	};
+}
+
 function mapAgentProfileSummary(wire: NonNullable<ListAgentProfilesResponseWire['profiles']>[number]): UniverseAgentAgentProfileSummary {
 	return {
 		id: wire.id ?? '',
@@ -323,12 +381,189 @@ function mapAgentProfileSummary(wire: NonNullable<ListAgentProfilesResponseWire[
 		source: mapAgentProfileSource(wire.source),
 		summary: wire.summary,
 		enabled: wire.enabled,
+		disabledTools: wire.disabled_tools,
+		enabledTools: wire.enabled_tools,
+		whitelistMode: wire.whitelist_mode,
 	};
+}
+
+function mapAgentProfileDetailToWire(profile: UniverseAgentAgentProfileDetail): Record<string, unknown> {
+	const wire: Record<string, unknown> = {
+		id: profile.id,
+		name: profile.name,
+	};
+	if (profile.description !== undefined) {
+		wire.description = profile.description;
+	}
+	if (profile.systemPrompt !== undefined) {
+		wire.system_prompt = profile.systemPrompt;
+	}
+	if (profile.disabledTools !== undefined) {
+		wire.disabled_tools = [...profile.disabledTools];
+	}
+	if (profile.enabledTools !== undefined) {
+		wire.enabled_tools = [...profile.enabledTools];
+	}
+	if (profile.permissionMode !== undefined) {
+		wire.permission_mode = profile.permissionMode;
+	}
+	if (profile.summary !== undefined) {
+		wire.summary = profile.summary;
+	}
+	if (profile.usage !== undefined) {
+		wire.usage = profile.usage;
+	}
+	if (profile.detailLevel !== undefined) {
+		wire.detail_level = profile.detailLevel;
+	}
+	const source = mapAgentProfileSourceToWire(profile.source);
+	if (source !== undefined) {
+		wire.source = source;
+	}
+	if (profile.enabled !== undefined) {
+		wire.enabled = profile.enabled;
+	}
+	if (profile.whitelistMode !== undefined) {
+		wire.whitelist_mode = profile.whitelistMode;
+	}
+	if (profile.builtinDefault !== undefined) {
+		wire.builtin_default = profile.builtinDefault;
+	}
+	return wire;
 }
 
 function mapListAgentProfilesResponse(wire: ListAgentProfilesResponseWire): UniverseAgentListAgentProfilesResult {
 	return {
 		profiles: (wire.profiles ?? []).map(mapAgentProfileSummary),
+	};
+}
+
+interface SaveAgentProfileResponseWire {
+	profile?: ListAgentProfilesResponseWire['profiles'] extends (infer T)[] | undefined ? T : never;
+}
+
+function mapSaveAgentProfileResponse(wire: SaveAgentProfileResponseWire): UniverseAgentSaveAgentProfileResult {
+	const profileWire = wire.profile;
+	if (!profileWire) {
+		return { profile: { id: '', name: '' } };
+	}
+	return { profile: mapAgentProfileDetail(profileWire) };
+}
+
+interface DeleteAgentProfileResponseWire {
+	success?: boolean;
+}
+
+function mapDeleteAgentProfileResponse(wire: DeleteAgentProfileResponseWire): UniverseAgentDeleteAgentProfileResult {
+	return { ok: wire.success === true };
+}
+
+interface ResetAgentProfileResponseWire {
+	success?: boolean;
+	profile?: NonNullable<ListAgentProfilesResponseWire['profiles']>[number];
+}
+
+function mapResetAgentProfileResponse(wire: ResetAgentProfileResponseWire): UniverseAgentResetAgentProfileResult {
+	return {
+		ok: wire.success === true,
+		profile: wire.profile ? mapAgentProfileDetail(wire.profile) : undefined,
+	};
+}
+
+function mapMcpTransportToWire(transport: UniverseAgentMcpTransport): string {
+	switch (transport) {
+		case 'stdio':
+			return 'STDIO';
+		case 'sse':
+			return 'SSE';
+		case 'streamable_http':
+			return 'STREAMABLE_HTTP';
+		default:
+			return 'STDIO';
+	}
+}
+
+function mapMcpServerConfigToWire(config: UniverseAgentMcpServerConfig): Record<string, unknown> {
+	const wire: Record<string, unknown> = {
+		name: config.name,
+		transport: mapMcpTransportToWire(config.transport),
+	};
+	if (config.id !== undefined) {
+		wire.id = config.id;
+	}
+	if (config.command !== undefined) {
+		wire.command = config.command;
+	}
+	if (config.args !== undefined) {
+		wire.args = [...config.args];
+	}
+	if (config.env !== undefined) {
+		wire.env = { ...config.env };
+	}
+	if (config.url !== undefined) {
+		wire.url = config.url;
+	}
+	if (config.enabled !== undefined) {
+		wire.enabled = config.enabled;
+	}
+	return wire;
+}
+
+function mapMcpServerConfigFromWire(wire: Record<string, unknown> | undefined): UniverseAgentMcpServerConfig | undefined {
+	if (!wire) {
+		return undefined;
+	}
+	return {
+		id: typeof wire.id === 'string' ? wire.id : undefined,
+		name: typeof wire.name === 'string' ? wire.name : '',
+		transport: mapMcpTransport(typeof wire.transport === 'string' ? wire.transport : undefined),
+		command: typeof wire.command === 'string' ? wire.command : undefined,
+		args: Array.isArray(wire.args) ? wire.args.filter((arg): arg is string => typeof arg === 'string') : undefined,
+		env: wire.env && typeof wire.env === 'object' ? wire.env as Record<string, string> : undefined,
+		url: typeof wire.url === 'string' ? wire.url : undefined,
+		enabled: wire.enabled === true,
+	};
+}
+
+interface AddMcpServerResponseWire {
+	success?: boolean;
+	error_message?: string;
+	assigned_id?: string;
+}
+
+function mapAddMcpServerResponse(wire: AddMcpServerResponseWire): UniverseAgentAddMcpServerResult {
+	return {
+		ok: wire.success === true,
+		reason: wire.error_message,
+		assignedId: wire.assigned_id,
+	};
+}
+
+interface UpdateMcpServerResponseWire {
+	success?: boolean;
+	error_message?: string;
+	updated_config?: Record<string, unknown>;
+}
+
+function mapUpdateMcpServerResponse(wire: UpdateMcpServerResponseWire): UniverseAgentUpdateMcpServerResult {
+	return {
+		ok: wire.success === true,
+		reason: wire.error_message,
+		config: mapMcpServerConfigFromWire(wire.updated_config),
+	};
+}
+
+interface RemoveMcpServerResponseWire {
+	success?: boolean;
+	error_message?: string;
+	removed_name?: string;
+}
+
+function mapRemoveMcpServerResponse(wire: RemoveMcpServerResponseWire): UniverseAgentRemoveMcpServerResult {
+	return {
+		ok: wire.success === true,
+		reason: wire.error_message,
+		removedName: wire.removed_name,
 	};
 }
 
@@ -387,14 +622,14 @@ function mapListMcpServersResponse(wire: ListMcpServersResponseWire): UniverseAg
 }
 
 interface ToggleMcpServerResponseWire {
-	ok?: boolean;
-	reason?: string;
+	success?: boolean;
+	error_message?: string;
 }
 
 function mapToggleMcpServerResponse(wire: ToggleMcpServerResponseWire): UniverseAgentToggleMcpServerResult {
 	return {
-		ok: wire.ok === true,
-		reason: wire.reason,
+		ok: wire.success === true,
+		reason: wire.error_message,
 	};
 }
 
@@ -720,6 +955,38 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 		return mapListAgentProfilesResponse(wire);
 	}
 
+	async saveAgentProfile(request: UniverseAgentSaveAgentProfileRequest): Promise<UniverseAgentSaveAgentProfileResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, SaveAgentProfileResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.Agent.service,
+			UniverseAgentGrpcServices.Agent.SaveAgentProfile,
+		);
+		const wire = await unary({
+			profile: mapAgentProfileDetailToWire(request.profile),
+		});
+		return mapSaveAgentProfileResponse(wire);
+	}
+
+	async deleteAgentProfile(request: UniverseAgentDeleteAgentProfileRequest): Promise<UniverseAgentDeleteAgentProfileResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, DeleteAgentProfileResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.Agent.service,
+			UniverseAgentGrpcServices.Agent.DeleteAgentProfile,
+		);
+		const wire = await unary({ id: request.id });
+		return mapDeleteAgentProfileResponse(wire);
+	}
+
+	async resetAgentProfile(request: UniverseAgentResetAgentProfileRequest): Promise<UniverseAgentResetAgentProfileResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, ResetAgentProfileResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.Agent.service,
+			UniverseAgentGrpcServices.Agent.ResetAgentProfile,
+		);
+		const wire = await unary({ id: request.id });
+		return mapResetAgentProfileResponse(wire);
+	}
+
 	async listMcpServers(request: UniverseAgentListMcpServersRequest): Promise<UniverseAgentListMcpServersResult> {
 		const unary = makeUnaryClient<Record<string, unknown>, ListMcpServersResponseWire>(
 			this._channel,
@@ -744,7 +1011,7 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			UniverseAgentGrpcServices.Mcp.ToggleMcpServer,
 		);
 		const payload: Record<string, unknown> = {
-			id: request.id,
+			server_id: request.id,
 			enabled: request.enabled,
 			scope: request.scope,
 		};
@@ -753,6 +1020,61 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 		}
 		const wire = await unary(payload);
 		return mapToggleMcpServerResponse(wire);
+	}
+
+	async addMcpServer(request: UniverseAgentAddMcpServerRequest): Promise<UniverseAgentAddMcpServerResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, AddMcpServerResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.Mcp.service,
+			UniverseAgentGrpcServices.Mcp.AddMcpServer,
+		);
+		const payload: Record<string, unknown> = {
+			config: mapMcpServerConfigToWire(request.config),
+			test_connection: request.testConnection === true,
+			scope: request.scope,
+		};
+		if (request.workDir) {
+			payload.work_dir = request.workDir;
+		}
+		const wire = await unary(payload);
+		return mapAddMcpServerResponse(wire);
+	}
+
+	async updateMcpServer(request: UniverseAgentUpdateMcpServerRequest): Promise<UniverseAgentUpdateMcpServerResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, UpdateMcpServerResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.Mcp.service,
+			UniverseAgentGrpcServices.Mcp.UpdateMcpServer,
+		);
+		const payload: Record<string, unknown> = {
+			server_id: request.serverId,
+			config: mapMcpServerConfigToWire(request.config),
+			restart_connection: request.restartConnection === true,
+			scope: request.scope,
+		};
+		if (request.workDir) {
+			payload.work_dir = request.workDir;
+		}
+		const wire = await unary(payload);
+		return mapUpdateMcpServerResponse(wire);
+	}
+
+	async removeMcpServer(request: UniverseAgentRemoveMcpServerRequest): Promise<UniverseAgentRemoveMcpServerResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, RemoveMcpServerResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.Mcp.service,
+			UniverseAgentGrpcServices.Mcp.RemoveMcpServer,
+		);
+		const payload: Record<string, unknown> = {
+			server_id: request.serverId,
+			force: request.force === true,
+			scope: request.scope,
+		};
+		if (request.workDir) {
+			payload.work_dir = request.workDir;
+		}
+		const wire = await unary(payload);
+		return mapRemoveMcpServerResponse(wire);
 	}
 
 	async listTools(): Promise<UniverseAgentListToolsResult> {

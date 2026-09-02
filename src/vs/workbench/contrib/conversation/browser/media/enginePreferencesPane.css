@@ -59,6 +59,25 @@
 	opacity: 0.75;
 }
 
+.monaco-workbench .engine-catalog-write-toolbar {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin-bottom: 8px;
+}
+
+.monaco-workbench .engine-tools-profile-row {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin-bottom: 8px;
+	font-size: 12px;
+}
+
+.monaco-workbench .engine-tools-profile-select {
+	min-width: 160px;
+}
+
 .monaco-workbench .engine-skill-body-preview {
 	margin-top: 12px;
 	padding: 8px;

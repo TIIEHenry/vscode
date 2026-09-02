@@ -219,6 +219,54 @@ export interface UniverseAgentAgentProfileSummary {
 	readonly source: UniverseAgentAgentProfileSource;
 	readonly summary?: string;
 	readonly enabled?: boolean;
+	readonly disabledTools?: readonly string[];
+	readonly enabledTools?: readonly string[];
+	readonly whitelistMode?: boolean;
+}
+
+/** Full agent profile from SaveAgentProfile / ResetAgentProfile (customizations-engine §3.2). */
+export interface UniverseAgentAgentProfileDetail {
+	readonly id: string;
+	readonly name: string;
+	readonly description?: string;
+	readonly systemPrompt?: string;
+	readonly disabledTools?: readonly string[];
+	readonly enabledTools?: readonly string[];
+	readonly permissionMode?: string;
+	readonly summary?: string;
+	readonly usage?: string;
+	readonly detailLevel?: string;
+	readonly source?: UniverseAgentAgentProfileSource;
+	readonly enabled?: boolean;
+	readonly whitelistMode?: boolean;
+	readonly builtinDefault?: boolean;
+}
+
+export interface UniverseAgentSaveAgentProfileRequest {
+	readonly profile: UniverseAgentAgentProfileDetail;
+}
+
+export interface UniverseAgentSaveAgentProfileResult {
+	readonly profile: UniverseAgentAgentProfileDetail;
+}
+
+export interface UniverseAgentDeleteAgentProfileRequest {
+	readonly id: string;
+}
+
+export interface UniverseAgentDeleteAgentProfileResult {
+	readonly ok: boolean;
+	readonly reason?: string;
+}
+
+export interface UniverseAgentResetAgentProfileRequest {
+	readonly id: string;
+}
+
+export interface UniverseAgentResetAgentProfileResult {
+	readonly ok: boolean;
+	readonly reason?: string;
+	readonly profile?: UniverseAgentAgentProfileDetail;
 }
 
 export interface UniverseAgentListAgentProfilesRequest {
@@ -263,6 +311,57 @@ export interface UniverseAgentToggleMcpServerRequest {
 export interface UniverseAgentToggleMcpServerResult {
 	readonly ok: boolean;
 	readonly reason?: string;
+}
+
+export interface UniverseAgentMcpServerConfig {
+	readonly id?: string;
+	readonly name: string;
+	readonly transport: UniverseAgentMcpTransport;
+	readonly command?: string;
+	readonly args?: readonly string[];
+	readonly env?: Readonly<Record<string, string>>;
+	readonly url?: string;
+	readonly enabled?: boolean;
+}
+
+export interface UniverseAgentAddMcpServerRequest {
+	readonly config: UniverseAgentMcpServerConfig;
+	readonly testConnection?: boolean;
+	readonly scope: 'global' | 'project';
+	readonly workDir?: string;
+}
+
+export interface UniverseAgentAddMcpServerResult {
+	readonly ok: boolean;
+	readonly reason?: string;
+	readonly assignedId?: string;
+}
+
+export interface UniverseAgentUpdateMcpServerRequest {
+	readonly serverId: string;
+	readonly config: UniverseAgentMcpServerConfig;
+	readonly restartConnection?: boolean;
+	readonly scope: 'global' | 'project';
+	readonly workDir?: string;
+}
+
+export interface UniverseAgentUpdateMcpServerResult {
+	readonly ok: boolean;
+	readonly reason?: string;
+	readonly config?: UniverseAgentMcpServerConfig;
+}
+
+export interface UniverseAgentRemoveMcpServerRequest {
+	readonly serverId: string;
+	readonly force?: boolean;
+	readonly scope: 'global' | 'project';
+	readonly workDir?: string;
+}
+
+export interface UniverseAgentRemoveMcpServerResult {
+	readonly ok: boolean;
+	readonly reason?: string;
+	readonly removedName?: string;
 }
 
 /** Engine tool directory entry from ToolService.ListTools (customizations-engine §3.6). */

@@ -75,8 +75,14 @@ class MockUniverseAgentConnection extends Disposable implements IUniverseAgentCo
 	async setSkillEnabled() { return { ok: true }; }
 	async getSkillInfo() { return { name: '', content: '', source: 'unknown' as const, enabled: false }; }
 	async listAgentProfiles() { return { profiles: [] }; }
+	async saveAgentProfile(request: { profile: { id: string; name: string } }) { return { profile: request.profile }; }
+	async deleteAgentProfile() { return { ok: true }; }
+	async resetAgentProfile() { return { ok: true }; }
 	async listMcpServers() { return { servers: [] }; }
 	async toggleMcpServer() { return { ok: true }; }
+	async addMcpServer() { return { ok: true }; }
+	async updateMcpServer() { return { ok: true }; }
+	async removeMcpServer() { return { ok: true }; }
 	async listTools() { return { tools: [] }; }
 }
 

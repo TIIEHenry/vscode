@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as DOM from '../../../../base/browser/dom.js';
+import { Button } from '../../../../base/browser/ui/button/button.js';
 import { IListRenderer, IListVirtualDelegate } from '../../../../base/browser/ui/list/list.js';
 import { IListAccessibilityProvider } from '../../../../base/browser/ui/list/listWidget.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
@@ -11,15 +12,18 @@ import { localize } from '../../../../nls.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { WorkbenchList } from '../../../../platform/list/browser/listService.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
-import type { UniverseAgentAgentProfileSource, UniverseAgentAgentProfileSummary } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
+import type { UniverseAgentAgentProfileDetail, UniverseAgentAgentProfileSource, UniverseAgentAgentProfileSummary } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
+import { defaultButtonStyles } from '../../../../platform/theme/browser/defaultStyles.js';
 import {
 	type EngineCatalogPaneMode,
+	canPerformCatalogWrite,
 	getCatalogTransportFailedCopy,
 	getCatalogUnsupportedCopy,
 	getCatalogUnknownCopy,
 	resolveEngineCatalogPaneMode,
 	shouldHideCatalogRows,
 } from './engineCatalog.js';
+import { summaryToProfileDetail } from './engineToolProfile.js';
 
 const $ = DOM.$;
 
@@ -140,11 +144,13 @@ export class EngineAgentsSection extends Disposable {
 
 	private readonly container: HTMLElement;
 	private readonly statusMessage: HTMLElement;
+	private readonly writeToolbar: HTMLElement;
 	private readonly listContainer: HTMLElement;
 	private readonly list: WorkbenchList<EngineAgentListEntry>;
 
 	private mode: EngineCatalogPaneMode = 'disconnected';
 	private listEntries: EngineAgentListEntry[] = [];
+	private selectedProfile: UniverseAgentAgentProfileSummary | undefined;
 
 	constructor(
 		parent: HTMLElement,
@@ -161,6 +167,18 @@ export class EngineAgentsSection extends Disposable {
 
 		this.statusMessage = DOM.append(this.container, $('.engine-catalog-status'));
 		this.statusMessage.style.display = 'none';
+
+		this.writeToolbar = DOM.append(this.container, $('.engine-catalog-write-toolbar'));
+		this.writeToolbar.style.display = 'none';
+		const newButton = this._register(new Button(this.writeToolbar, defaultButtonStyles));
+		newButton.label = localize('ua.engineAgentsNew', "New");
+		this._register(newButton.onDidClick(() => void this.createProfile()));
+		const deleteButton = this._register(new Button(this.writeToolbar, defaultButtonStyles));
+		deleteButton.label = localize('ua.engineAgentsDelete', "Delete");
+		this._register(deleteButton.onDidClick(() => void this.deleteSelectedProfile()));
+		const resetButton = this._register(new Button(this.writeToolbar, defaultButtonStyles));
+		resetButton.label = localize('ua.engineAgentsReset', "Reset");
+		this._register(resetButton.onDidClick(() => void this.resetSelectedProfile()));
 
 		this.listContainer = DOM.append(this.container, $('.engine-catalog-list'));
 		this.list = this._register(instantiationService.createInstance(
@@ -181,6 +199,11 @@ export class EngineAgentsSection extends Disposable {
 				accessibilityProvider: new EngineAgentListAccessibilityProvider(),
 			},
 		)) as WorkbenchList<EngineAgentListEntry>;
+
+		this._register(this.list.onDidChangeSelection(e => {
+			const entry = e.elements[0];
+			this.selectedProfile = entry?.kind === 'profile' ? entry.profile : undefined;
+		}));
 
 		this._register(this.connection.onDidChangeConnection(() => {
 			void this.refresh();
@@ -205,8 +228,105 @@ export class EngineAgentsSection extends Disposable {
 		return this.listEntries.filter(entry => entry.kind === 'profile').length;
 	}
 
+	canWrite(): boolean {
+		return canPerformCatalogWrite(this.mode) && this.connection.isEngineConnected();
+	}
+
+	isWriteToolbarVisible(): boolean {
+		return this.writeToolbar.style.display !== 'none';
+	}
+
+	async createProfile(profile?: UniverseAgentAgentProfileDetail): Promise<boolean> {
+		if (!this.canWrite()) {
+			return false;
+		}
+		const payload = profile ?? {
+			id: `agent-${Date.now()}`,
+			name: localize('ua.engineAgentsNewDefaultName', "New Agent"),
+			source: 'user' as const,
+			summary: '',
+			enabled: true,
+		};
+		try {
+			const result = await this.connection.saveAgentProfile({ profile: payload });
+			if (!this.canWrite()) {
+				return false;
+			}
+			if (!result.profile.id) {
+				return false;
+			}
+			await this.refresh();
+			return true;
+		} catch {
+			return false;
+		}
+	}
+
+	async deleteSelectedProfile(): Promise<boolean> {
+		if (!this.canWrite() || !this.selectedProfile) {
+			return false;
+		}
+		if (this.selectedProfile.source === 'built_in') {
+			return false;
+		}
+		try {
+			const result = await this.connection.deleteAgentProfile({ id: this.selectedProfile.id });
+			if (!result.ok) {
+				return false;
+			}
+			this.selectedProfile = undefined;
+			await this.refresh();
+			return true;
+		} catch {
+			return false;
+		}
+	}
+
+	async resetSelectedProfile(): Promise<boolean> {
+		if (!this.canWrite() || !this.selectedProfile) {
+			return false;
+		}
+		if (this.selectedProfile.source !== 'built_in') {
+			return false;
+		}
+		try {
+			const result = await this.connection.resetAgentProfile({ id: this.selectedProfile.id });
+			if (!result.ok) {
+				return false;
+			}
+			await this.refresh();
+			return true;
+		} catch {
+			return false;
+		}
+	}
+
+	async saveSelectedProfile(updates: Partial<UniverseAgentAgentProfileDetail> = {}): Promise<boolean> {
+		if (!this.canWrite() || !this.selectedProfile) {
+			return false;
+		}
+		if (this.selectedProfile.source === 'built_in') {
+			return false;
+		}
+		const profile: UniverseAgentAgentProfileDetail = {
+			...summaryToProfileDetail(this.selectedProfile),
+			...updates,
+		};
+		try {
+			const result = await this.connection.saveAgentProfile({ profile });
+			if (!result.profile.id) {
+				return false;
+			}
+			await this.refresh();
+			return true;
+		} catch {
+			return false;
+		}
+	}
+
 	private async refresh(): Promise<void> {
 		this.clearCatalogPresentation();
+		this.selectedProfile = undefined;
 
 		const capabilities = this.connection.getCapabilitySnapshot();
 		this.mode = resolveEngineCatalogPaneMode(
@@ -230,6 +350,7 @@ export class EngineAgentsSection extends Disposable {
 		}
 
 		this.listContainer.style.display = '';
+		this.writeToolbar.style.display = canPerformCatalogWrite(this.mode) ? '' : 'none';
 
 		try {
 			const result = await this.connection.listAgentProfiles();
@@ -251,6 +372,7 @@ export class EngineAgentsSection extends Disposable {
 		this.statusMessage.style.display = 'none';
 		this.statusMessage.textContent = '';
 		this.listContainer.style.display = 'none';
+		this.writeToolbar.style.display = 'none';
 	}
 
 	private setProfiles(profiles: readonly UniverseAgentAgentProfileSummary[]): void {
