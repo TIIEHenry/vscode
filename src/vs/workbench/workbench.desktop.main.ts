@@ -212,6 +212,9 @@ import './contrib/keybindingsExport/electron-browser/keybindingsExport.contribut
 // System-wide (OS global) Keybindings
 import './contrib/keybindings/electron-browser/systemWideKeybindings.contribution.js';
 
+// Universe Agent: Code - OSS userData migration (I5)
+import './contrib/universeAgentMigration/electron-browser/universeAgentMigration.contribution.js';
+
 //#endregion
 
 
