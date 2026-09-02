@@ -168,9 +168,7 @@ class TrajectoryRecordRenderer implements IListRenderer<TrajectoryTableDisplayIt
 		if (element.type !== 'record') {
 			return;
 		}
-		populateTrajectoryRecordRow(templateData.row, element.record, this.host.selectedRecordId, record => {
-			this.host.onSelectRecord(record, true);
-		}, this.renderDisposables);
+		populateTrajectoryRecordRow(templateData.row, element.record, this.host.selectedRecordId);
 	}
 
 	disposeTemplate(): void {
@@ -223,9 +221,7 @@ class TrajectoryFoldRenderer implements IListRenderer<TrajectoryTableDisplayItem
 		if (expanded) {
 			for (const record of span.records) {
 				const row = append(templateData.children, $('.conversation-lens-trajectory-record-row'));
-				populateTrajectoryRecordRow(row, record, this.host.selectedRecordId, recordToSelect => {
-					this.host.onSelectRecord(recordToSelect, true);
-				}, this.renderDisposables);
+				populateTrajectoryRecordRow(row, record, this.host.selectedRecordId);
 			}
 		}
 
@@ -351,10 +347,19 @@ export class ConversationTrajectory extends Disposable implements ITrajectoryTab
 			},
 		)) as WorkbenchList<TrajectoryTableDisplayItem>;
 
-		this._register(this.list.onDidOpen(e => {
-			if (e.element?.type === 'record') {
-				this.selectRecord(e.element.record, true);
+		this._register(addDisposableListener(this.tableScroll, 'click', (e) => {
+			this.activateRecordFromTableRow(e.target as HTMLElement);
+		}));
+		this._register(addDisposableListener(this.tableScroll, 'keydown', (e) => {
+			if (e.key !== 'Enter' && e.key !== ' ') {
+				return;
 			}
+			const row = this.resolveTrajectoryRecordRow(e.target as HTMLElement);
+			if (!row) {
+				return;
+			}
+			e.preventDefault();
+			this.activateRecordFromTableRow(row);
 		}));
 
 		this.searchScheduler = this._register(new RunOnceScheduler(() => {
@@ -530,7 +535,7 @@ export class ConversationTrajectory extends Disposable implements ITrajectoryTab
 		}
 
 		this.selectedRecordIdHolder.current = record.id;
-		this.list.rerender();
+		this.syncTrajectoryRowSelectionStyles();
 		this.openInspector(record);
 	}
 
@@ -555,7 +560,41 @@ export class ConversationTrajectory extends Disposable implements ITrajectoryTab
 		this.selectedRecordIdHolder.current = undefined;
 		this.inspector.hidden = true;
 		clearNode(this.inspectorContent);
-		this.list.rerender();
+		this.syncTrajectoryRowSelectionStyles();
+	}
+
+	/** T5 virtual list `rerender()` does not re-run row renderers; sync selection chrome in DOM. */
+	private syncTrajectoryRowSelectionStyles(): void {
+		const selectedId = this.selectedRecordIdHolder.current;
+		for (const row of this.host.querySelectorAll('.conversation-lens-trajectory-record-row')) {
+			const recordId = row.getAttribute('data-record-id');
+			const selected = !!selectedId && recordId === selectedId;
+			row.classList.toggle('conversation-lens-trajectory-record-row--selected', selected);
+			row.setAttribute('aria-selected', String(selected));
+		}
+	}
+
+	private resolveTrajectoryRecordRow(target: HTMLElement): HTMLElement | undefined {
+		const row = target.closest('.conversation-lens-trajectory-record-row');
+		if (!row || !this.tableScroll.contains(row)) {
+			return undefined;
+		}
+		return row as HTMLElement;
+	}
+
+	private activateRecordFromTableRow(target: HTMLElement): void {
+		const row = this.resolveTrajectoryRecordRow(target);
+		if (!row) {
+			return;
+		}
+		const recordId = row.getAttribute('data-record-id');
+		if (!recordId) {
+			return;
+		}
+		const record = this.currentRecords.find(candidate => candidate.id === recordId);
+		if (record) {
+			this.selectRecord(record, true);
+		}
 	}
 }
 
@@ -563,8 +602,6 @@ function populateTrajectoryRecordRow(
 	row: HTMLElement,
 	record: ConversationTrajectoryRecord,
 	selectedRecordId: string | undefined,
-	onSelect: (record: ConversationTrajectoryRecord) => void,
-	renderDisposables: DisposableStore,
 ): void {
 	clearNode(row);
 	row.setAttribute('data-record-id', record.id);
@@ -593,15 +630,6 @@ function populateTrajectoryRecordRow(
 	const selected = selectedRecordId === record.id;
 	row.classList.toggle('conversation-lens-trajectory-record-row--selected', selected);
 	row.setAttribute('aria-selected', String(selected));
-
-	const select = () => onSelect(record);
-	renderDisposables.add(addDisposableListener(row, 'click', select));
-	renderDisposables.add(addDisposableListener(row, 'keydown', (e) => {
-		if (e.key === 'Enter' || e.key === ' ') {
-			e.preventDefault();
-			select();
-		}
-	}));
 }
 
 function appendInspectorSection(parent: HTMLElement, title: string, body: string): void {
