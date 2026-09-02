@@ -28,6 +28,7 @@ export class UniverseAgentConnectionService extends UniverseAgentConnectionServi
 			hubSessionStore,
 			clientIdentityStore,
 			connectionProfileStore,
+			storageReady: applicationStorage.whenReady,
 			connectionResolver: createConnectionResolver({
 				connectionProfileStore,
 				hubSessionStore,
