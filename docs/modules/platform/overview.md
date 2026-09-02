@@ -123,11 +123,13 @@ registerSingleton(IUriIdentityService, UriIdentityService, InstantiationType.Del
 
 `universeAgent/` 是 **UniverseAgent gRPC 传输 adapter**（[ADR-003](../../../dev/decisions/003-engine-adapter-boundary.md)），与 `agentHost/` **隔离命名**——不得继承 `IAgentHostService` / `IAgentConnection`：
 
-- `IUniverseAgentConnection`（`common`）：Connect 生命周期、`isEngineConnected`（`session_token` + 活 channel）、`getCapabilitySnapshot()`（`grpcCapabilityProbe`：`skills` / `agentProfiles` / `mcp` / `tools` / `agentTree` / `team`）、session / chat / team / **catalog list** 面；renderer 经 electron-main ProxyChannel 代理
-- `universeAgent/node`：`@grpc/grpc-js` 客户端（`SystemService` / `SessionService` / `AgentService` / `TeamService` / `ToolService` / `McpService` 传输）；catalog @ HEAD = `ListSkills` · `SetSkillEnabled` · `ListAgentProfiles` · `ListMcpServers` · `ToggleMcpServer` · `ListTools`（**写 RPC 待槽 A**）；`sessionCore` Actor fold；host-only `AgentService.Tree`
+- `IUniverseAgentConnection`（`common`）：Connect 生命周期、`isEngineConnected`（`session_token` + 活 channel）、`getConnectionPhase()`、`getCapabilitySnapshot()`（`grpcCapabilityProbe`：`skills` / `agentProfiles` / `mcp` / `tools` / `agentTree` / `team`）、session / chat / team / **catalog list** 面；renderer 经 electron-main ProxyChannel 代理
+- `IUniverseAgentHubService`（`common`）：Hub 控制面投影（登录 / 目录 / 设备管理）；**不**暴露 token / ticket / 私钥
+- `universeAgent/node`：`@grpc/grpc-js` 客户端（`SystemService` / `SessionService` / …）；**`hub/`**（vendored Desktop：auth / relay-ticket / host-normalize）、**`deviceGrant/`**（transcript / SAS / tls-pin / observe-candidate-leaf）、`hubDirectoryClient` / `hubSessionStore` / `clientIdentityStore` / `engineTrustStore` / `connectionProfileStore` / `connectionResolver` / `pairingOrchestrator`；catalog @ HEAD = `ListSkills` · `SetSkillEnabled` · …（**写 RPC 待槽 A**）；`sessionCore` Actor fold；host-only `AgentService.Tree`
+- 宿主：**electron-main**（[ADR-003](../../../dev/decisions/003-engine-adapter-boundary.md)；Hub 客户端与 gRPC 同宿主）；`node/**` 保持进程无关
 - 消费者：`contrib/conversation` roster（`ConversationEngineRosterService`）、UA Preferences panes（[engine-catalog](../../systems/workbench/engine-catalog.md)）、StatusBar 连接态（H4b）
 
-**AHP 仍非 UA 会话权威**；引擎协议面见 [engine-protocol-surface](../../reference/universe-agent/engine-protocol-surface.md)；系统边界见 [agent-host overview](../../systems/agent-host/overview.md)。
+**AHP 仍非 UA 会话权威**；引擎 gRPC 面见 [engine-protocol-surface](../../reference/universe-agent/engine-protocol-surface.md)；Hub 控制面见 [hub-control-plane-surface](../../reference/universe-agent/hub-control-plane-surface.md)；系统边界见 [agent-host overview](../../systems/agent-host/overview.md)。
 
 同层相邻、但更窄的目录：
 

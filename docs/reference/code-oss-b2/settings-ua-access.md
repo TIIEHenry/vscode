@@ -4,7 +4,7 @@ type: reference
 status: accepted
 phase: N/A
 updated: 2026-09-02
-summary: "混合宿主：Client SettingsEditor2 + Connection/Engine Preferences pane；C5 与 donor H0–H3 已落；M6-C E1 catalog list/toggle @ ad4be0ea（写路径待槽 A）；产品目录见 settings-two-surfaces"
+summary: "混合宿主：Client SettingsEditor2 + Connection/Engine Preferences pane；C5 与 donor H0–H3 已落；M6-C E1 catalog list/toggle @ ad4be0ea（写路径待槽 A）；Connection pane 四区空态见 connection-hub-client §4.2；产品目录见 settings-two-surfaces"
 ---
 
 # Settings 接入：UA 设置项如何挂进 vscode Preferences
@@ -115,7 +115,18 @@ MCP：vscode 本地 `mcp.json` 可在 donor 当普通文件；引擎 MCP 定义 
 
 ## 7. 首次连接 / 无引擎
 
-Client Settings **无连接也可开**（Singularity 原则）。**选定：** Connection 空态 = 打开 Preferences **Connection pane**（`ConnectionPreferencesPane`），诚实「not connected」+ Test Connection 占位；**不是**滚到 Settings Connection 分组，**不是** vscode Welcome walkthrough（INV-NO-COPILOT）。
+Client Settings **无连接也可开**（Singularity 原则）。**选定：** Connection 空态 = 打开 Preferences **Connection pane**（`ConnectionPreferencesPane`），按 [connection-hub-client §4.2](../../../dev/plans/connection-hub-client.md#42-uaconnection-pane-内容替换今日占位宿主与-id-不变) 四区诚实占位（**不是**滚到 Settings Connection 分组，**不是** vscode Welcome walkthrough，INV-NO-COPILOT）：
+
+| 区 | 未登录 / 无 profile 空态 |
+|----|--------------------------|
+| Hub 账号 | 表单（`hubBaseUrl`、邮箱、密码、登录）；加密不可用 → 提示重启需重登 |
+| 设备列表 | 整节省略（未登录） |
+| Direct Address | host:port 添加入口；默认拒 RFC1918 除非勾 `allowPrivateNetwork` |
+| 连接 profiles | 「No connection profiles yet」 |
+| Test Connection | 无 active profile → 「Not connected — no engine.」；不假成功 |
+| Remote I/O | 常显一行：远程 Engine 时文件 / Shell 在本机执行 |
+
+Hub 登录态与引擎连接态 **各说各的**（PRD-007 验收 4 再叠 Hub 账号层）：Hub `signedIn` 但 `ConnectionPhase` 非 `connected` 时，StatusBar 仍为「Engine not connected」。Web 形态：`IUniverseAgentHubService` = `unavailable`，pane 显示「本形态不支持连接引擎」，不画登录表单（PRD-019 / PRD-024 验收 7）。
 
 ## 8. 非目标
 

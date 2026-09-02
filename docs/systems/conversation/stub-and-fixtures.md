@@ -4,7 +4,7 @@ type: architecture
 status: accepted
 phase: N/A
 updated: 2026-09-02
-summary: "IConversationRosterService 契约分组；getTrajectoryRecords + filterAgentId；帧源 projectSnapshotToTrajectory；D13 持久化；A1/A2 连接态与 adapter 替换约束"
+summary: "IConversationRosterService 契约分组；getTrajectoryRecords + filterAgentId；帧源 projectSnapshotToTrajectory；D13 持久化；A1/A2 连接态、Hub 路径与 ConnectionPhase、adapter 替换约束"
 ---
 
 # Conversation 会话数据契约
@@ -61,7 +61,18 @@ summary: "IConversationRosterService 契约分组；getTrajectoryRecords + filte
 2. **夹具方法的去向**（按 ADR-003 决策 4 / m6-engine-wave M6-A2）：接口**保留不拆**（规则 16 审查与签收均未要求另拆 fixture 接口；此问题已闭）；引擎实现对 §2 夹具组的语义是——已连接时 `appendStubEchoAssistant` 在 service 层拒写（reject / throw 或 no-op + 断言），`set*Fixture` / `setEngineConnected` 不得影响 UA session。stub 本身在 [conversation-stream-timeline](../../../dev/plans/conversation-stream-timeline.md) S1–S3 改为同契约的**帧源**，旧读方法在 S3 变为 shim。
 3. **事件语义**：`onDidChangeSession` 今天是「某会话内容变了」的粗粒度信号；引擎流式回合到达时要么沿用（UI 全量重投影），要么在方案里定义细粒度事件并同步改 `ConversationTimelineTree` 的 diff 策略。
 4. **权限**：`resolveConfirmation` 只改本地状态；adapter 必须把它变成向引擎发送授权 / 拒绝，并在回执前保持 pending 可见（PRD-004 验收 3 反向：不得在无回执时宣称已授权）。
-5. **连接态三态**：生产 `isEngineConnected()` = `IUniverseAgentConnection.isEngineConnected()` = 非空 `session_token` + 活 channel（pairing-pending → false）。StatusBar 文案由 `getConnectionPhase()` + pairing 映射（[connection-hub-client §4.2](../../../dev/plans/connection-hub-client.md) H4b；`conversationSessionStatus.ts`）。**切片 5 / B10：** connected → command `workbench.action.openEnginePreferences`；否则 → `workbench.action.openConnectionPreferences`。能力三态快照在 `IUniverseAgentConnection.getCapabilitySnapshot()`；传输失败在 `getTransportState()`，**不得** `catch → emptyList()` 冒充引擎返回 0 条。
+5. **连接态与 Hub 路径**：生产 `isEngineConnected()` = `IUniverseAgentConnection.isEngineConnected()` = 非空 `session_token` + 活 channel（**pairing-pending → false**；Hub 登录 / ticket 签发成功 **均不算** connected，上游 I1）。`getConnectionPhase()` 返回 `ConnectionPhase`（[connection-hub-client §3.3](../../../dev/plans/connection-hub-client.md#33-领域模型ts-契约)）：
+
+   | `ConnectionPhase` | `isEngineConnected` | StatusBar（H4b） | 路径标签 |
+   |-------------------|---------------------|------------------|----------|
+   | `disconnected` | false | Engine not connected | — |
+   | `connecting{initial\|transport_lost}` | false | Connecting… / Reconnecting… | — |
+   | `connected{path}` | true | Engine · Hub relay / Engine · Direct / loopback | `hubRelay` = 经 Hub ticket 中继；`direct` = DirectAddress 或 loopback；**H6 GUA 直连 v2 未做** |
+   | `failed{code}` | false | 码对应短句 | — |
+   | `closed` | false | Engine not connected | — |
+   | `pairing` sidecar（非 phase） | false | Engine not connected | SAS 对话框；不写 trust 直至用户确认 |
+
+   Hub 账号态（`signedOut` / `signedIn` / `mustChangePassword` / `hub_auth_expired`）与上表 **正交**（[connection-hub-client §3.7](../../../dev/plans/connection-hub-client.md#37-两个正交状态与-presence-矩阵)）。**切片 5 / B10：** connected → command `workbench.action.openEnginePreferences`；否则 → `workbench.action.openConnectionPreferences`。能力三态在 `getCapabilitySnapshot()`；传输失败在 `getTransportState()`，**不得** `catch → emptyList()` 冒充引擎返回 0 条。
 6. **诚实降级**：断连时 UI 必须回到诚实空，不显示上次 RPC 缓存并写「已同步」（PRD-007；customizations-engine E1 验收 5 同理）。
 7. **不得**用 `IChatModel`、AHP（`IAgentHostService` / `IAgentConnection`）、`copilotChatSessions` 实现本契约（[ADR-006](../../../dev/decisions/006-shell-invariants.md) INV-NO-COPILOT；[agent-host overview](../agent-host/overview.md)）。
 

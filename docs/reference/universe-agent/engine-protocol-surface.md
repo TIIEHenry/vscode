@@ -4,7 +4,7 @@ type: reference
 status: accepted
 phase: N/A
 updated: 2026-09-02
-summary: "已知 gRPC 服务 / RPC 名与本仓用途；§1 Conversation（A1/A2）与 Engine catalog list-only（M6-C @ ad4be0ea）；§7 Engine 页三节；§5 会话面对照；§11 Navigator/Review；§4 G-NAV-* / G-REV-*"
+summary: "已知 gRPC 服务 / RPC 名与本仓用途；§1 Conversation（A1/A2）+ Device Grant（GetAuthNonce / Connect.device_auth / pairing）；Engine catalog list-only（M6-C @ ad4be0ea）；§7 Engine 页三节；§5 会话面对照；§11 Navigator/Review；§4 G-NAV-* / G-REV-*"
 ---
 
 # UniverseAgent 引擎协议面（本仓消费口径）
@@ -15,7 +15,9 @@ summary: "已知 gRPC 服务 / RPC 名与本仓用途；§1 Conversation（A1/A2
 
 | 服务 | RPC | 本仓消费面 | 备注 |
 |------|-----|-----------|------|
-| `SystemService` | `Connect` / `GetAuthNonce` | `IUniverseAgentConnection.connect`；握手、`session_token`、`ConnectResponse.capabilities.methods` | 无 `supported_methods` 字段；DeviceAuth 走 `ConnectWithDeviceAuth`（transport 内） |
+| `SystemService` | `GetAuthNonce` | `IUniverseAgentConnection.connect` / pairing orchestrator S2–S4 | 请求：`client_identity_id`、`client_public_key` → `auth_nonce` + `engine_cert_fingerprint`（**transcript 只用本地 TLS 观测指纹**，自述值不一致 fail-closed） |
+| `SystemService` | `Connect` + `device_auth` | 同上；非 loopback 一律 DeviceAuth | `DeviceAuth{ client_identity_id, client_public_key, auth_nonce, signature }`；transcript = `engineIdentityId ‖ 观测 leaf 指纹 ‖ authNonce ‖ clientIdentityId ‖ protocolVersion`；`supported_tools=[]` 于 provisional 首配 |
+| `SystemService` | `ConnectResponse` | `session_token` → `isEngineConnected()`；capabilities | 已 Grant：`session_token` 非空 → connected。**未配对**：`pairing_nonce` + `sas_code`（Crockford `XXXX-XXXX`），**无** `session_token`；pairing-pending ≠ connected（ADR-003 D7）。S4 意外 token → 丢弃、recoverTrust |
 | `SessionService` | `List` / `Create` / `Delete` / `GetHistory` / `SessionEventStream` | Conversation roster + 时间线 fold 输入（`GetHistory` + 流 → session-core Actor → `ViewFrame`） | 无 `SwitchSession`；切换 = IDE 客户端投影。标题 proto 为 `AgentService.Rename`，**HEAD adapter 未接** |
 | `AgentService` | `Chat` | 发送 + 流内 permission / question / clientTool 应答（Chat 双向流） | 权限 cleanup 亦走 Chat 臂；`PermissionService.Respond` 为备选（见 stream-timeline S5 注释） |
 | `AgentService` | `Tree` | Navigator Agent 树（**host-only**，不经 renderer `IUniverseAgentConnection`） | m6 §11；`UNIMPLEMENTED` → `agentTree=UNSUPPORTED` |

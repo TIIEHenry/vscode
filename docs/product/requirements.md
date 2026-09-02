@@ -4,7 +4,7 @@ type: demand
 status: accepted
 phase: N/A
 updated: 2026-09-02
-summary: "PRD-001–PRD-016 默认窗产品壳已接受；PRD-003/004/007 增流式、提问座位、两层连接态验收；PRD-005 收进 Changes/Review 列表；PRD-002 Route 以 PRD-015 为准；PRD-009 Diff 归属已接受；PRD-017–021 accepted（017 存储落点 / 020 上限已裁定）；PRD-008 接线方案已签收、本条仍 blocked 待接通证据；产品身份排引擎波后；PRD-022 Navigator 引擎段 / PRD-023 Sources Review 审阅进度与归因 accepted（方案三轮审查后签收；PRD-005 Review 句改口）"
+summary: "PRD-001–PRD-016 默认窗产品壳已接受；PRD-003/004/007 增流式、提问座位、两层连接态验收；PRD-005 收进 Changes/Review 列表；PRD-002 Route 以 PRD-015 为准；PRD-009 Diff 归属已接受；PRD-017–021 accepted（017 存储落点 / 020 上限已裁定）；PRD-008 接线方案已签收、本条仍 blocked 待接通证据；产品身份排引擎波后；PRD-022 Navigator 引擎段 / PRD-023 Sources Review 审阅进度与归因 accepted；PRD-024 Connection Hub 远程引擎连接 proposed（H0 @2026-09-02）"
 ---
 
 # Agent IDE 产品需求
@@ -319,6 +319,22 @@ PRD-001 至 PRD-007 的代码已在 M0–M3 合入，但 D4 启动冒烟（T1–
   5. 归因标签是装饰：列表的成员与顺序仍由本地 SCM 决定，Agent 未改过的本地改动不带标签也不带「未归因」占位。
   6. 面板顶的只读说明不再写「review 引擎未接线」——Review 的产品定义里不存在 review 引擎。
 - **依赖或未决**：审阅进度 = 验收 1、2 与验收 3 的前半句，无引擎即可实施；归因标签 = 验收 5；「查看更改」= 用户陈述与验收 3 后半句；工作目录不匹配 = 验收 4；文案 = 验收 6。归因与「查看更改」依赖 PRD-008（M6-A2 之后）及 [conversation-stream-timeline](../../dev/plans/conversation-stream-timeline.md) S2 / S4。方案见 [sources-review-progress](../../dev/plans/sources-review-progress.md)（`accepted` @2026-09-02；R1 / R2 / R4a 无引擎可开）。对照 Desktop ADR-043（Review 只导航、审阅进度 scope-local、不做门禁）与 UI-INV-09 / UI-REVIEW-01，作为 `source` 引用；本仓分叉：审阅进度放在 Review 而非 Changes。历史会话的归因依赖引擎在 `GetHistory` 里带归一化的文件改动载荷（缺口 G-REV-1）。PRD-005 用户陈述中「review 引擎未接线」一句已随本条签收改口。
+
+### PRD-024 远程引擎连接（Connection Hub）
+
+- **状态**：`proposed`
+- **用户价值**：用户在 IDE 里用 Hub 账号找到自己的 Engine 设备并安全连接，不装 VPN、不填 IP；首配需人工核对一次短码，之后零交互。
+- **用户可观察陈述**：Connection 页能登录 Hub、列出设备（离线 / Engine 异常 / 可用三态）、对可用设备发起连接；首配弹出 8 字符 SAS 需与 Engine 端核对，无「跳过」；连接成功后状态栏显示引擎名与路径（「Engine · Hub relay」/「Engine · Direct」）——**连接级不使用「已连接」措辞**，该词按 [PRD-007](#prd-007-诚实降级) 验收 4 仅归会话标题条；Hub 登录过期与 Hub 不可达文案不同。手填 DirectAddress（host:port）走同一套 TLS pin + Device Grant，不签 relay ticket。
+- **产品验收标准**：
+  1. 未登录 / 登录过期 / 不可达三种 Hub 态文案互不混用。
+  2. `NOT_SERVING` 设备无连接按钮。
+  3. SAS 对话框无跳过，取消不写 trust。
+  4. 错误 pin 握手失败、正确 pin 成功、nonce 主机名不妨碍握手（S21）。
+  5. 重启 IDE 后已配对设备重连无 SAS。
+  6. 状态栏文案集合中不含「已连接 / connected」字样；Hub 登录态为真但引擎未连时，状态栏仍为「Engine not connected」且会话标题条不出现「已连接」。
+  7. Web 形态不画连接控件。
+- **可测方式**：①②③⑥⑦ 单测（pane / StatusBar 文案表 + 负向断言）；④ mock TLS 单测；⑤ 隔离 profile 重启冒烟（真 Hub）。
+- **依赖或未决**：活数据依赖 [PRD-008](#prd-008-引擎与会话权威)（M6-A1/A2）；上游 Hub 部署与 Engine `--hub --enroll`。v1 中继 + DirectAddress；HubDevice 经 Hub 的 GUA / 公网 IPv4 自动直连（ADR-374 Phase 3）**不在 v1**，见 [connection-hub-client](../../dev/plans/connection-hub-client.md) 切片 H6。方案 @2026-09-02 `accepted`；H1–H5 代码 @ HEAD；H4a 真 Hub 冒烟为升 `implemented` 证据门槛。
 
 ## 明确排除（不是需求）
 

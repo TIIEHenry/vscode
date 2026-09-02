@@ -4,7 +4,7 @@ type: concept
 status: accepted
 phase: N/A
 updated: 2026-09-02
-summary: "本仓库核心术语的单一事实源：分层、Parts、Agent UI 宿主、Conversation 系统术语（SessionBar / 叶 / Composer / Inbox / MessageQueue / stub）、不变量、能力三态、页面接入与文档约定"
+summary: "本仓库核心术语的单一事实源：分层、Parts、Agent UI 宿主、Conversation 系统术语（SessionBar / 叶 / Composer / Inbox / MessageQueue / stub）、Connection Hub（Hub / Client / SAS / Grant / DirectAddress）、不变量、能力三态、页面接入与文档约定"
 ---
 
 # 术语表
@@ -75,5 +75,10 @@ summary: "本仓库核心术语的单一事实源：分层、Parts、Agent UI �
 | **Engine pane / `ua.engine`** | vscode Preferences 内的 UA 引擎页（与 `ua.connection` 并列）：Skills / Agents / Rules / Hooks / MCP / Tools 的产品主面；无引擎 catalog 节隐藏；UNSUPPORTED 诚实空。list/toggle @ HEAD 见 [engine-catalog](systems/workbench/engine-catalog.md)。 | [settings-two-surfaces](../dev/plans/settings-two-surfaces.md) · [customizations-engine](../dev/plans/customizations-engine.md) |
 | **`universe-agent://`** | 页面访问 scheme（`IURLHandler`），`universe-agent://settings/<page>` 打开对应 Settings 页；不绑 `product.urlProtocol`。 | [commands §4](systems/conversation/commands.md) · [page-access-schemes](../dev/plans/page-access-schemes.md) |
 | **Navigator tab** | Activity 上一段 = Sidebar 一个 `ViewContainer`（Files / Sessions / Projects / Agents / Team）。子页按 vscode 列表/树重设计，不抄 Compose panel。 | [navigator-tabs-access](reference/code-oss-b2/navigator-tabs-access.md) |
+| **Hub** | Connection Hub：上游 HTTPS 控制面 + relay ticket 数据面；提供账号登录、设备目录与到中继 authority 的传输，**不是**会话权威、不持有可冒充客户端的凭证。 | [connection-hub-client](../dev/plans/connection-hub-client.md) · [hub-control-plane-surface](reference/universe-agent/hub-control-plane-surface.md) |
+| **Client 设备** | Hub 体系里 IDE / Singularity / UniverseAgentDesktop 的角色：用 Hub 发现 Engine、经 relay 或直连拨号，用 Device Grant 向 Engine 证明身份。不是 Engine 侧的 `hub-client` 隧道模块。 | [connection-hub-client §0](../dev/plans/connection-hub-client.md) |
+| **SAS** | Short Authentication String：首配时 Engine 与 Client 双端须人工核对的一致短码（Crockford base32，`XXXX-XXXX`）；**不可跳过**；输入串绑定 `engineIdentityId`、观测 leaf 指纹、`clientPublicKey`、`pairing_nonce`、协议版本。 | [connection-hub-client §3.4](../dev/plans/connection-hub-client.md) · [engine-protocol-surface §1](reference/universe-agent/engine-protocol-surface.md) |
+| **Grant** | Engine 本地对 Client 公钥的访问授权（Device Grant，ADR-261）；`Connect` 握手成功后下发 `session_token`。吊销后 IDE 须 `failed(grant_revoked)`，不自动重配。 | [connection-hub-client §3.1](../dev/plans/connection-hub-client.md) · [ADR-003](../dev/decisions/003-engine-adapter-boundary.md) |
+| **DirectAddress** | 用户手填 `host:port` 的远程 Engine 入口（上游 Phase 0）；不经 Hub、不签 relay ticket，认证与中继路径同套 TLS pin + Device Grant。与 ADR-374「HubDevice 下 GUA 自动直连」不是同一概念。 | [connection-hub-client §3.8](../dev/plans/connection-hub-client.md) |
 
 上游产品与贡献流程不在本表展开，见 [How to Contribute](https://github.com/microsoft/vscode/wiki/How-to-Contribute) 与 [快速开始](guides/getting-started.md)。

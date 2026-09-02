@@ -4,7 +4,7 @@ type: reference
 status: accepted
 phase: N/A
 updated: 2026-09-02
-summary: "PRD-001–021 追踪；PRD-008 blocked（M6-C E1 catalog list/toggle @ HEAD，不升 implemented）；PRD-017/020 部分已实施；系统规格含 engine-catalog"
+summary: "PRD-001–024 追踪；PRD-008 blocked（M6-C E1 catalog list/toggle @ HEAD，不升 implemented）；PRD-024 proposed（Connection Hub H0）；PRD-017/020 部分已实施；系统规格含 engine-catalog 与 hub-control-plane-surface"
 ---
 
 # 产品需求追踪
@@ -38,6 +38,7 @@ summary: "PRD-001–021 追踪；PRD-008 blocked（M6-C E1 catalog list/toggle @
 | [PRD-021](requirements.md#prd-021-未知内容与错误的诚实呈现) | `accepted` | [lens-and-trajectory](../systems/conversation/lens-and-trajectory.md) | [conversation-stream-timeline §3.3](../../dev/plans/conversation-stream-timeline.md) | 待验证（S1–S3 单测；活数据随 S4） |
 | [PRD-022](requirements.md#prd-022-navigator-引擎段) | `accepted` | [activity-and-sidebar §5.1](../systems/workbench/activity-and-sidebar.md) · [navigator-tabs-access](../reference/code-oss-b2/navigator-tabs-access.md) · [engine-protocol-surface §4/§11](../reference/universe-agent/engine-protocol-surface.md)（G-NAV-1 / G-NAV-2） | [navigator-engine-segments](../../dev/plans/navigator-engine-segments.md)（N1–N4 @ HEAD；N5 冒烟未做） | 无引擎三段诚实空；N5 隔离 profile 未验、不升 `implemented` |
 | [PRD-023](requirements.md#prd-023-sources-review-审阅进度与归因) | `accepted` | [sources overview](../systems/sources/overview.md) · [companion-contribs §4](../systems/workbench/companion-contribs.md) · [engine-protocol-surface §4/§11](../reference/universe-agent/engine-protocol-surface.md)（G-REV-1）；Desktop ADR-043 作 `source` | [sources-review-progress](../../dev/plans/sources-review-progress.md)（R1–R4 @ HEAD；R5 冒烟未做） | 无引擎审阅进度可用；归因/reviewNav 需引擎；R5 未验、不升 `implemented` |
+| [PRD-024](requirements.md#prd-024-远程引擎连接connection-hub) | `proposed` | [hub-control-plane-surface §](../reference/universe-agent/hub-control-plane-surface.md) · [engine-protocol-surface §1](../reference/universe-agent/engine-protocol-surface.md)（GetAuthNonce / DeviceAuth / pairing） · [settings-ua-access §7](../reference/code-oss-b2/settings-ua-access.md) · [stub-and-fixtures §5](../systems/conversation/stub-and-fixtures.md) · [ADR-003](../../dev/decisions/003-engine-adapter-boundary.md)（宿主 electron-main） | [connection-hub-client](../../dev/plans/connection-hub-client.md)（H0 docs @ HEAD；H1–H5 代码 @ HEAD；H4a 真 Hub 冒烟未做；**H6 GUA 直连 v2 未做**） | 无 PRD-024 真 Hub 冒烟证据；不升 `implemented` |
 
 ## 状态分桶
 
@@ -48,4 +49,4 @@ summary: "PRD-001–021 追踪；PRD-008 blocked（M6-C E1 catalog list/toggle @
 | 阻塞 / 未决 | PRD-008（方案已签收；待 M6-A2 接通证据）、PRD-009 F4 隔离 profile 冒烟（升 `implemented` 须 V-F1–V-F7）、页面接入切片 5（M6-B）、customizations E1 **写路径**（槽 A：SaveAgentProfile / MCP CRUD / tools.json；list/toggle @ HEAD 已知识层回填） |
 | 已接受、部分已实施 | PRD-017（D13 已闭）/ PRD-020（T5 搜索·虚拟化·5k 上限已闭；Overview 与验收 1 待 S2/M6-D）；PRD-012（T5 子集已闭；T4 帧源投影已落、活 fold 待 PRD-008）；PRD-018 四钮键位已落、其余待 M6-B 后；PRD-022 N1–N4 / PRD-023 R1–R4 代码 @ HEAD（N5 / R5 冒烟未做） |
 | 已接受、实施延期 | PRD-019（D15 Web 冒烟） |
-| 仅提议 | PRD-010（已裁决名称，排引擎波后，[D12](../../dev/progress/deferred-gaps.md)） |
+| 仅提议 | PRD-010（已裁决名称，排引擎波后，[D12](../../dev/progress/deferred-gaps.md)）· PRD-024（Connection Hub；H0 docs @ HEAD；H4a 冒烟前不升 `accepted`→`implemented`） |
