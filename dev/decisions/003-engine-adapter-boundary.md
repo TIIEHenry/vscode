@@ -34,21 +34,23 @@ summary: "UA gRPC 客户端落 platform/universeAgent；IConversationRosterServi
 
 1. **新 platform 服务域** `src/vs/platform/universeAgent/`（名字不得含 `agentHost`）：
    - `common`：`IUniverseAgentConnection`（或同等）— Connect 生命周期、能力三态快照、session/chat/permission/catalog 的 **TS 契约**。不出现 DOM，不出现 Conversation 零件。
-   - `node`：gRPC channel 与生成/手写 stub。renderer **禁止** import 此子树。
-   - `electron-browser`（及需要时 `electron-main` / shared）：ProxyChannel 代理，对标 `LocalAgentHostServiceClient` 的装配方式，而不是复用其类型。
-2. **AHP 隔离：** 禁止 UA adapter 继承 `IAgentHostService` 或实现 `IAgentConnection`。`IAgentHostService` 已连接 ≠ UA 已连接。Agents Window Chat 可继续走 AHP；默认窗 Conversation **只**走 UA。
-3. **Roster 同 token：** 公开类型保持 `IConversationRosterService`；decorator id **保持 `'conversationStubService'`**。`IConversationStubService` 继续是 type alias。引擎实现 **替换** `registerSingleton` 的类，不注册第二 token。View / SessionBar / StatusBar 注入点不变。
-4. **Catalog 不进 roster：** `ToolService` / `ListAgentProfiles` / `McpService` 定义面挂在 platform 连接上，由 `ua.engine` 消费。禁止把 Skills 列表塞进 `getSessions()`。
-5. **`workbench/services`：** 允许日后增加极薄的窗口生命周期装配（仿 `WorkbenchAgentHostService`），**禁止**把 gRPC 面或 roster 接口定义在该层。v1 可无此目录。
-6. **断连：** 从未连接 = stub 种子诚实占位；已连接后断连 = 保留 UA 快照只读 + Engine 页空，不回填 `untitled`/`tour`。细则见 M6 方案 §6。
+   - `node`：gRPC channel 与生成/手写 stub（`@grpc/grpc-js` 客户端）。renderer **禁止** import 此子树。
+   - `electron-browser`（及需要时 `electron-main` / shared）：**ProxyChannel 代理**到 renderer，装配方式可对表 `LocalAgentHostServiceClient`。**不得**把 UA gRPC 塞进 agentHost UtilityProcess / `agentHostMain` 子进程。
+2. **AHP 隔离：** 禁止 UA adapter 继承 `IAgentHostService` 或实现 `IAgentConnection`。`IAgentHostService` 已连接 ≠ UA 已连接。**Agents Window** Chat 可继续走 AHP；**默认 Code 窗口** Conversation **只**走 UA。
+3. **一窗一 UA session（接通后）：** 默认窗在 UA Connect 成功后，**一个窗口对应一个 UA `SessionService` session**（roster 投影与 `getActiveSessionId` 单源）。Agents Window 仍按 AHP「一窗一 AH session」；两套 id 空间 **禁止**互填。
+4. **Roster 同 token：** 公开类型保持 `IConversationRosterService`；decorator id **保持 `'conversationStubService'`**。`IConversationStubService` 继续是 type alias。引擎实现 **替换** `registerSingleton` 的类，不注册第二 token。View / SessionBar / StatusBar 注入点不变。
+5. **Catalog 不进 roster：** `ToolService` / `ListAgentProfiles` / `McpService` 定义面挂在 platform 连接上，由 `ua.engine` 消费。禁止把 Skills 列表塞进 `getSessions()`。
+6. **`workbench/services`：** 允许日后增加极薄的窗口生命周期装配（仿 `WorkbenchAgentHostService`），**禁止**把 gRPC 面或 roster 接口定义在该层。v1 可无此目录。
+7. **连接态：** 生产 `isEngineConnected()` = 非空 `session_token` + 活 channel；**pairing-pending 不算 connected**。已连接时首次 `SessionService.List` 完成前 **不得**把 stub 种子（`untitled` / `visualize`）投影进 UA catalog。
+8. **断连：** 从未连接 = stub 种子（`untitled` / `visualize`）诚实占位；已连接后断连 = 保留 UA 快照只读 + Engine 页空，不回填 stub 种子 id。已连接时 `deleteSession` 末条 **不得**再创建 stub id。细则见 M6 方案 §6。
 
 ## Consequences
 
 - 分层：`contrib/conversation` 只依赖 `platform/universeAgent/common`（经 electron-browser 代理）。`valid-layers-check` 必须拒绝 contrib → `universeAgent/node`。
 - sessions 层将来若要 UA，只注入 platform 契约，**不得** import `contrib/conversation`。
-- 不推翻 [ADR-001](001-chat-compare-form.md) / [ADR-002](002-conversation-session-windows.md)。ADR-002 里「一张 session 窗口 = 一个 AH session」在 **无引擎** 时仍是 stub session；接通后改为 **一个 UA `SessionService` session**。AHP `createChat` fork 不是默认窗权威。
+- 不推翻 [ADR-001](001-chat-compare-form.md) / [ADR-002](002-conversation-session-windows.md)。ADR-002 里「一张 session 窗口 = 一个 AH session」在 **无引擎** 时仍是 stub session；**UA Connect 成功后**默认窗改为 **一窗一 UA `SessionService` session**（Agents Window 仍 AHP）。AHP `createChat` fork 不是默认窗权威。
 - token 全仓替换 **永久不做**（零收益、非 extension API）。M5「不迁 ADR-003 token」与本决策一致：保留 id。
-- 实施前须规则 16 将 [m6-engine-wave.md](../plans/m6-engine-wave.md) 从 `draft` 推到 `accepted`。本 ADR 同期升 `accepted`。
+- 实施前须规则 16 将 [m6-engine-wave.md](../plans/m6-engine-wave.md) 从 `draft` 推到 `accepted`。本 ADR 同期升 `accepted`。**2026-09-02 规则 16 审查已跑（Approve with changes）；两稿仍 `draft`，待人类签收。**
 
 ## Alternatives
 
@@ -56,3 +58,7 @@ summary: "UA gRPC 客户端落 platform/universeAgent；IConversationRosterServi
 - **形态 2（只在 contrib/conversation）：** Engine pane 虽同 contrib，但把 HTTP/2 客户端和 Conversation UI 绑死；sessions 无法复用；测试与 layers 更脏。拒绝。
 - **形态 4（挤进 AHP）：** 直接违反 agent-host overview 与 PRD-008「禁止用内置 Chat 会话模型顶替引擎权威」。否决。
 - **改 decorator id 为 `conversationRosterService`：** page-access B11 已拒绝；本 ADR 确认。
+
+## 审查记录
+
+- 2026-09-02：规则 16 只读审查 **Approve with changes**（工位 B @ `bfe24b48`）。与 [m6-engine-wave.md](../plans/m6-engine-wave.md) 同期改稿。本 ADR **仍 `draft`**，待人类签收后与 M6 方案同升 `accepted`。
