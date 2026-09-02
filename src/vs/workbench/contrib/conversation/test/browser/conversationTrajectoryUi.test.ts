@@ -20,6 +20,7 @@ import {
 } from '../../browser/conversationTrajectory.js';
 import { ConversationStubService, IConversationRosterService } from '../../browser/conversationStubService.js';
 import { IConversationTimelineRevealService } from '../../browser/conversationTimelineRevealService.js';
+import { IConversationReviewNavService } from '../../common/conversationReviewEntry.js';
 import {
 	CONVERSATION_TRAJECTORY_RECORD_LIMIT,
 	CONVERSATION_TRAJECTORY_STUB_CONTEXT_TEXT,
@@ -77,6 +78,11 @@ suite('ConversationTrajectoryUi', () => {
 			_serviceBrand: undefined,
 			registerLens: () => ({ dispose: () => { } }),
 			revealItem: () => { },
+		});
+		instantiationService.stub(IConversationReviewNavService, {
+			_serviceBrand: undefined,
+			onDidChange: Event.None,
+			getReviewNavForSession: () => [],
 		});
 		instantiationService.stub(IClipboardService, clipboardService);
 		instantiationService.stub(ICommandService, new class implements ICommandService {
