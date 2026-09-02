@@ -3,10 +3,91 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-.monaco-workbench .connection-list {
+.monaco-workbench .connection-preferences-pane .connection-zone {
+	margin-bottom: 20px;
+}
+
+.monaco-workbench .connection-preferences-pane .connection-zone h3 {
+	font-size: 13px;
+	font-weight: 600;
+	margin: 0 0 8px 0;
+}
+
+.monaco-workbench .connection-preferences-pane .connection-field-row {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	margin-bottom: 8px;
+}
+
+.monaco-workbench .connection-preferences-pane .connection-field-row label {
+	min-width: 72px;
+	opacity: 0.9;
+}
+
+.monaco-workbench .connection-preferences-pane .connection-field-input {
+	flex: 1;
+	max-width: 360px;
+}
+
+.monaco-workbench .connection-preferences-pane .connection-hub-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin-top: 8px;
+}
+
+.monaco-workbench .connection-preferences-pane .connection-hub-auth-badge,
+.monaco-workbench .connection-preferences-pane .connection-phase-label {
+	opacity: 0.85;
+	margin-bottom: 8px;
+}
+
+.monaco-workbench .connection-preferences-pane .connection-hub-directory-banner {
+	color: var(--vscode-errorForeground);
+	margin-bottom: 8px;
+}
+
+.monaco-workbench .connection-preferences-pane .connection-hub-encryption-hint {
+	opacity: 0.75;
+	margin-top: 8px;
+	font-size: 12px;
+}
+
+.monaco-workbench .connection-list,
+.monaco-workbench .connection-hub-devices-list {
 	height: 100%;
 }
 
-.monaco-workbench .connection-list .monaco-list-row .connection-profile-label {
+.monaco-workbench .connection-list .monaco-list-row .connection-profile-label,
+.monaco-workbench .connection-hub-devices-list .connection-hub-device-row {
 	padding-left: 8px;
+	display: flex;
+	align-items: center;
+	gap: 12px;
+}
+
+.monaco-workbench .connection-hub-device-name {
+	flex: 1;
+}
+
+.monaco-workbench .connection-hub-device-status {
+	opacity: 0.85;
+	min-width: 160px;
+}
+
+.monaco-workbench .connection-remote-io-hint {
+	opacity: 0.75;
+	font-size: 12px;
+	margin-top: 12px;
+}
+
+.monaco-workbench .connection-test-row {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+}
+
+.monaco-workbench .connection-test-status {
+	opacity: 0.85;
 }

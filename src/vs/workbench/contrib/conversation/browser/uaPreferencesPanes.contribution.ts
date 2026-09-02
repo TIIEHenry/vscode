@@ -20,6 +20,7 @@ import {
 	UA_ENGINE_PANE_ID,
 	UA_ENGINE_PANE_ORDER,
 } from '../common/uaPreferencesPanes.js';
+import './connectionHub.contribution.js';
 import { ConnectionPreferencesPane } from './connectionPreferencesPane.js';
 import { EnginePreferencesPane } from './enginePreferencesPane.js';
 

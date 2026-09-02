@@ -31,8 +31,10 @@ import type { ConnectionResolver } from './connectionResolver.js';
 import { runDeviceAuthHandshake } from './deviceAuthHandshake.js';
 import type { IClientIdentityStore } from './clientIdentityTypes.js';
 import type { IConnectionProfileStore } from './connectionProfileStore.js';
+import type { IUniverseAgentHubService } from '../common/hub.js';
+import { UniverseAgentHubService, type UniverseAgentHubServiceOptions } from './universeAgentHubService.js';
 
-export interface UniverseAgentConnectionServiceOptions {
+export interface UniverseAgentConnectionServiceOptions extends UniverseAgentHubServiceOptions {
 	readonly loopbackAddress?: string;
 	readonly createTransport?: (address: string) => IUniverseAgentGrpcTransport;
 	readonly connectionResolver?: ConnectionResolver;
@@ -44,11 +46,13 @@ function isPairingPending(sessionToken: string | undefined, pairingNonce: string
 	return !sessionToken && !!pairingNonce;
 }
 
-export class UniverseAgentConnectionService extends Disposable implements IUniverseAgentConnection {
+export class UniverseAgentConnectionService extends Disposable implements IUniverseAgentConnection, IUniverseAgentHubService {
 
 	declare readonly _serviceBrand: undefined;
 
 	readonly onDidFileMutation = Event.None;
+
+	private readonly _hub: UniverseAgentHubService;
 
 	private readonly _onDidChangeConnection = this._register(new Emitter<UniverseAgentConnectionSnapshot>());
 	readonly onDidChangeConnection = this._onDidChangeConnection.event;
@@ -70,6 +74,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 
 	constructor(options: UniverseAgentConnectionServiceOptions = {}) {
 		super();
+		this._hub = this._register(new UniverseAgentHubService(options));
 		this._loopbackAddress = options.loopbackAddress ?? '127.0.0.1:50051';
 		this._createTransport = options.createTransport ?? createGrpcUniverseAgentClient;
 		this._connectionResolver = options.connectionResolver;
@@ -81,6 +86,10 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		return !!this._sessionToken
 			&& !this._pairingPending
 			&& !!this._transport?.isChannelAlive;
+	}
+
+	getConnectionPhase(): ConnectionPhase {
+		return this._connectionPhase;
 	}
 
 	getTransportState(): UniverseAgentTransportState {
@@ -290,6 +299,70 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 
 	async chat(request: UniverseAgentChatRequest, onResponse: (response: UniverseAgentChatResponse) => void): Promise<void> {
 		await this._withTransport(transport => transport.chat(request, onResponse));
+	}
+
+	getActiveHubBaseUrl(): string | undefined {
+		return this._hub.getActiveHubBaseUrl();
+	}
+
+	setActiveHubBaseUrl(hubBaseUrl: string | undefined): void {
+		this._hub.setActiveHubBaseUrl(hubBaseUrl);
+	}
+
+	getAuthStatus() {
+		return this._hub.getAuthStatus();
+	}
+
+	getDirectoryStatus() {
+		return this._hub.getDirectoryStatus();
+	}
+
+	listConnectionProfiles() {
+		return this._hub.listConnectionProfiles();
+	}
+
+	get onDidChangeAuthStatus() {
+		return this._hub.onDidChangeAuthStatus;
+	}
+
+	get onDidChangeDirectory() {
+		return this._hub.onDidChangeDirectory;
+	}
+
+	get onDidChangeProfiles() {
+		return this._hub.onDidChangeProfiles;
+	}
+
+	login(hubBaseUrl: string, email: string, password: string) {
+		return this._hub.login(hubBaseUrl, email, password);
+	}
+
+	logout() {
+		return this._hub.logout();
+	}
+
+	changePassword(oldPassword: string, newPassword: string) {
+		return this._hub.changePassword(oldPassword, newPassword);
+	}
+
+	refreshDirectory() {
+		return this._hub.refreshDirectory();
+	}
+
+	renameDevice(deviceId: string, name: string) {
+		return this._hub.renameDevice(deviceId, name);
+	}
+
+	revokeDevice(deviceId: string) {
+		return this._hub.revokeDevice(deviceId);
+	}
+
+	confirmDeviceCode(code: string) {
+		return this._hub.confirmDeviceCode(code);
+	}
+
+	isEncryptionAvailable() {
+		return this._hub.isEncryptionAvailable();
 	}
 
 	override dispose(): void {
