@@ -12,6 +12,8 @@ import { ConversationLens } from '../../browser/conversationLens.js';
 import { ConversationTimelineTree } from '../../browser/conversationTimelineTree.js';
 import { ConversationTrajectory } from '../../browser/conversationTrajectory.js';
 import { ConversationStubService, IConversationRosterService } from '../../browser/conversationStubService.js';
+import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
+import { createConversationConnectionTestStub } from '../common/conversationConnectionTestStub.js';
 import { IConversationTimelineRevealService } from '../../browser/conversationTimelineRevealService.js';
 import {
 	CONVERSATION_TRAJECTORY_RECORD_LIMIT,
@@ -94,6 +96,7 @@ suite('ConversationTrajectory', () => {
 		const stubService = store.add(new ConversationStubService());
 		const clipboardService = new TestClipboardService();
 		instantiationService.stub(IConversationRosterService, stubService);
+		instantiationService.stub(IUniverseAgentConnection, createConversationConnectionTestStub());
 		instantiationService.stub(IConversationTimelineRevealService, {
 			_serviceBrand: undefined,
 			registerLens: () => ({ dispose: () => { } }),
