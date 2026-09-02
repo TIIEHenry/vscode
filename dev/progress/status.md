@@ -4,13 +4,14 @@ type: progress
 status: active
 phase: M6
 updated: 2026-09-02
-summary: "2026-09-02 用户委托裁决解禁：R5 m6-engine-wave + ADR-003 accepted（M6-A1 可开、A2 待 S3+A1）；PRD-017–020 accepted（D13–D15）；D8 豁免为门禁降 P3；D9 出 Blockers；Blockers 仅剩 PRD-008 待接通证据。可并行：S1–S3（D）/ M6-A1（A）/ Diff F1–F5（C）"
+summary: "C 槽 I3b：hicolor 进 deb/rpm、electron 元数据改本产品；三平台完整 gulp 打包未跑（D17）。其余：R5/ADR-003 accepted；PRD-017–020 accepted；D8 豁免门禁。"
 ---
 
 # Development Progress
 
 ## Current Session
 
+- **C 槽 I3b 品牌打包接线（本工位，`loop/C` @ `c9f4417c`）：** `gulpfile.vscode.linux.ts` 把 I3a `resources/linux/icons/hicolor/{16..512}` 打进 **deb/rpm**（snap 仍只放 `snap/gui` 单图，`prime: -usr/share/icons`）；rpm spec `%install/%files` 同步列出。`electron.ts` `companyName`/`copyright`/`darwinHelpBookFolder`/`darwinHelpBookName` 改 `product.nameLong`。desktop / VisualElements `ShortDisplayName` / Inno 位图路径 / `manifest.json` name 已由 I2+I3a 对齐，本 slice 未重写。未跑完整 gulp 三平台打包 → [D17](deferred-gaps.md)。
 - **B 槽 Q5 键盘 / question（本工位）：** question 投影不再因 `multiSelect`/`allowCustom` 关掉提交座位；checkbox + 自定义输入走 `questionRespond` 的 `selectedLabels[]`/`customText`。visualize / 子代理 overlay 打开抢焦点并 Tab 循环。Conversation 获焦时 `Ctrl+\\` / `Ctrl+PageDown` 作用于 chat tab / split，不打到 Preview。chat tablist 左右键只切同组 tab；子代理 Escape 先关局部 inspector，再关对话框，不关根会话。
 - **集成 HEAD：** `4a607cc2` — **agent-ide**（loop/B R5 签收、loop/C Diff F1–F2、loop/D S1 scaffold 已并入；**主仓工作树 `src/` 尚未 checkout 到该 HEAD**，见下条 Blockers「工作树同步」；开新波前各槽须 rebase 到本次裁决 commit 之后）。
 - **已闭里程碑：** 壳层 PRD-001–016 / M5 / D1–D7 / **D11**；R6 closed @ [ADR-005](../decisions/005-changes-diff-owner.md)；**R5 closed**：[m6-engine-wave](../plans/m6-engine-wave.md) + [ADR-003](../decisions/003-engine-adapter-boundary.md) `accepted` @2026-09-02。

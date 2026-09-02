@@ -24,6 +24,12 @@ const commit = getVersion(root);
 
 const linuxPackageRevision = Math.floor(new Date().getTime() / 1000);
 
+/** I3a hicolor set → `/usr/share/icons` for deb/rpm only. Snap keeps a single `snap/gui` pixmap. */
+function linuxHicolorIcons(destPrefix: string) {
+	return gulp.src('resources/linux/icons/hicolor/**', { base: 'resources/linux/icons' })
+		.pipe(rename(function (p) { p.dirname = destPrefix + p.dirname; }));
+}
+
 function getDebPackageArch(arch: string): string {
 	switch (arch) {
 		case 'x64': return 'amd64';
@@ -69,6 +75,8 @@ function prepareDebPackage(arch: string) {
 		const icon = gulp.src('resources/linux/code.png', { base: '.' })
 			.pipe(rename('usr/share/pixmaps/' + product.linuxIconName + '.png'));
 
+		const hicolor = linuxHicolorIcons('usr/share/icons/');
+
 		const bash_completion = gulp.src('resources/completions/bash/code')
 			.pipe(replace('@@APPNAME@@', product.applicationName))
 			.pipe(rename('usr/share/bash-completion/completions/' + product.applicationName));
@@ -113,7 +121,7 @@ function prepareDebPackage(arch: string) {
 			.pipe(replace('@@NAME@@', product.applicationName))
 			.pipe(rename('DEBIAN/templates'));
 
-		const all = es.merge(control, templates, postinst, postrm, prerm, desktops, appdata, workspaceMime, icon, bash_completion, zsh_completion, code);
+		const all = es.merge(control, templates, postinst, postrm, prerm, desktops, appdata, workspaceMime, icon, hicolor, bash_completion, zsh_completion, code);
 
 		return all.pipe(vfs.dest(destination));
 	};
@@ -179,6 +187,8 @@ function prepareRpmPackage(arch: string) {
 		const icon = gulp.src('resources/linux/code.png', { base: '.' })
 			.pipe(rename('BUILD/usr/share/pixmaps/' + product.linuxIconName + '.png'));
 
+		const hicolor = linuxHicolorIcons('BUILD/usr/share/icons/');
+
 		const bash_completion = gulp.src('resources/completions/bash/code')
 			.pipe(replace('@@APPNAME@@', product.applicationName))
 			.pipe(rename('BUILD/usr/share/bash-completion/completions/' + product.applicationName));
@@ -208,7 +218,7 @@ function prepareRpmPackage(arch: string) {
 		const specIcon = gulp.src('resources/linux/rpm/code.xpm', { base: '.' })
 			.pipe(rename('SOURCES/' + product.applicationName + '.xpm'));
 
-		const all = es.merge(code, desktops, appdata, workspaceMime, icon, bash_completion, zsh_completion, spec, specIcon);
+		const all = es.merge(code, desktops, appdata, workspaceMime, icon, hicolor, bash_completion, zsh_completion, spec, specIcon);
 
 		return all.pipe(vfs.dest(getRpmBuildPath(rpmArch)));
 	};
