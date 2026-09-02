@@ -2,15 +2,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="UniverseAgentStudio">
   <rect width="512" height="512" rx="112" fill="#546E7A"/>
 
-  <g fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+  <g fill="none" stroke="#FFFFFF" stroke-width="24" stroke-linecap="round" stroke-linejoin="round">
     <circle cx="256" cy="256" r="188"/>
 
     <polygon points="256,392 374,324 374,188 256,120 138,188 138,324"/>
     <polygon points="256,334 200,217 312,217"/>
-
-    <line x1="256" y1="256" x2="256" y2="334"/>
-    <line x1="256" y1="256" x2="200" y2="217"/>
-    <line x1="256" y1="256" x2="312" y2="217"/>
 
     <line x1="256" y1="334" x2="256" y2="392"/>
     <line x1="256" y1="334" x2="138" y2="324"/>
@@ -21,5 +17,5 @@
     <line x1="312" y1="217" x2="256" y2="120"/>
   </g>
 
-  <circle cx="256" cy="256" r="12" fill="#FFFFFF" stroke="none"/>
+  <circle cx="256" cy="256" r="20" fill="#FFFFFF" stroke="none"/>
 </svg>
