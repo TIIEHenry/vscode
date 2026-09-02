@@ -55,6 +55,8 @@ import { revealNavigatorAgentInConversation } from './navigatorReveal.js';
 
 const $ = dom.$;
 
+const AGENTS_FILTER_NO_MATCH = localize('navigatorAgents.noMatch', "无匹配");
+
 export const NAVIGATOR_AGENTS_VIEW_ID = 'workbench.view.navigatorAgents';
 
 export type NavigatorAgentsSubview = 'hierarchy' | 'activity';
@@ -163,6 +165,7 @@ export class NavigatorAgentsView extends ViewPane {
 
 	private hierarchyBody: HTMLElement | undefined;
 	private hierarchyEmpty: HTMLElement | undefined;
+	private hierarchyHonestEmpty = localize('navigatorAgentsHierarchy.empty', "No agents — no engine.");
 	private hierarchyNote: HTMLElement | undefined;
 	private hierarchyTreeContainer: HTMLElement | undefined;
 	private hierarchyTree: WorkbenchObjectTree<INavigatorAgentsHierarchyNode, void> | undefined;
@@ -170,6 +173,7 @@ export class NavigatorAgentsView extends ViewPane {
 
 	private activityBody: HTMLElement | undefined;
 	private activityEmpty: HTMLElement | undefined;
+	private activityHonestEmpty = localize('navigatorAgentsActivity.empty', "No tool activity — no engine.");
 	private activityNote: HTMLElement | undefined;
 	private activityListContainer: HTMLElement | undefined;
 	private activityList: WorkbenchList<INavigatorAgentsActivityItem> | undefined;
@@ -423,6 +427,7 @@ export class NavigatorAgentsView extends ViewPane {
 	): void {
 		this.hierarchyEntries = entries;
 		if (emptyMessage !== undefined) {
+			this.hierarchyHonestEmpty = emptyMessage;
 			this.hierarchyEmpty!.textContent = emptyMessage;
 		}
 		this.setHierarchyNote(noteMessage);
@@ -437,6 +442,7 @@ export class NavigatorAgentsView extends ViewPane {
 	): void {
 		this.activityEntries = entries;
 		if (emptyMessage !== undefined) {
+			this.activityHonestEmpty = emptyMessage;
 			this.activityEmpty!.textContent = emptyMessage;
 		}
 		if (noteMessage) {
@@ -469,6 +475,16 @@ export class NavigatorAgentsView extends ViewPane {
 	private applyFilter(): void {
 		this.applyFilterToHierarchy();
 		this.applyFilterToActivity();
+		this.updateHierarchyDisplay();
+		this.updateActivityDisplay();
+	}
+
+	private hasActiveFilter(): boolean {
+		return this.filterQuery.trim().length > 0;
+	}
+
+	private filteredHierarchyCount(): number {
+		return this.hierarchyTree?.getNode(null)?.children.length ?? 0;
 	}
 
 	private applyFilterToHierarchy(): void {
@@ -538,21 +554,30 @@ export class NavigatorAgentsView extends ViewPane {
 	}
 
 	private updateHierarchyDisplay(): void {
-		if (!this.hierarchyEmpty || !this.hierarchyTreeContainer) {
+		if (!this.hierarchyEmpty || !this.hierarchyTreeContainer || !this.hierarchyBody) {
 			return;
 		}
 
-		const isEmpty = this.hierarchyEntries.length === 0;
+		const unfilteredEmpty = this.hierarchyEntries.length === 0;
+		const filterMiss = !unfilteredEmpty && this.hasActiveFilter() && this.filteredHierarchyCount() === 0;
+		const isEmpty = unfilteredEmpty || filterMiss;
+		this.hierarchyEmpty.textContent = filterMiss ? AGENTS_FILTER_NO_MATCH : this.hierarchyHonestEmpty;
+		this.hierarchyBody.classList.toggle('is-empty', isEmpty);
 		this.hierarchyEmpty.style.display = isEmpty ? 'block' : 'none';
 		this.hierarchyTreeContainer.style.display = isEmpty ? 'none' : 'block';
 	}
 
 	private updateActivityDisplay(): void {
-		if (!this.activityEmpty || !this.activityListContainer) {
+		if (!this.activityEmpty || !this.activityListContainer || !this.activityBody) {
 			return;
 		}
 
-		const isEmpty = this.activityEntries.length === 0;
+		const filteredCount = this.activityList?.length ?? 0;
+		const unfilteredEmpty = this.activityEntries.length === 0;
+		const filterMiss = !unfilteredEmpty && this.hasActiveFilter() && filteredCount === 0;
+		const isEmpty = unfilteredEmpty || filterMiss;
+		this.activityEmpty.textContent = filterMiss ? AGENTS_FILTER_NO_MATCH : this.activityHonestEmpty;
+		this.activityBody.classList.toggle('is-empty', isEmpty);
 		this.activityEmpty.style.display = isEmpty ? 'block' : 'none';
 		this.activityListContainer.style.display = isEmpty ? 'none' : 'block';
 	}

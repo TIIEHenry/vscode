@@ -45,6 +45,10 @@ import { NAVIGATOR_TEAM_VIEW_ID } from './navigatorStubView.js';
 
 const $ = dom.$;
 
+const TEAM_MEMBERS_NO_ENGINE = localize('navigatorTeamMembers.empty', "No team members — no engine.");
+const TEAM_TASKS_NO_ENGINE = localize('navigatorTeamTasks.empty', "No tasks — no engine.");
+const TEAM_FILTER_NO_MATCH = localize('navigatorTeam.noMatch', "无匹配");
+
 export type NavigatorTeamSubview = 'members' | 'tasks';
 
 export const NAVIGATOR_TEAM_SHOW_MEMBERS_COMMAND_ID = 'workbench.action.navigatorTeam.showMembers';
@@ -155,12 +159,14 @@ export class NavigatorTeamView extends ViewPane {
 
 	private membersBody: HTMLElement | undefined;
 	private membersEmpty: HTMLElement | undefined;
+	private membersHonestEmpty = TEAM_MEMBERS_NO_ENGINE;
 	private membersListContainer: HTMLElement | undefined;
 	private membersList: WorkbenchList<INavigatorTeamMemberEntry> | undefined;
 	private memberEntries: INavigatorTeamMemberEntry[] = [];
 
 	private tasksBody: HTMLElement | undefined;
 	private tasksEmpty: HTMLElement | undefined;
+	private tasksHonestEmpty = TEAM_TASKS_NO_ENGINE;
 	private tasksListContainer: HTMLElement | undefined;
 	private tasksList: WorkbenchList<INavigatorTeamTaskEntry> | undefined;
 	private taskEntries: INavigatorTeamTaskEntry[] = [];
@@ -254,16 +260,18 @@ export class NavigatorTeamView extends ViewPane {
 
 		this.membersBody = dom.append(container, $('.navigator-team-subview'));
 		this.membersEmpty = dom.append(this.membersBody, $('.navigator-stub-empty'));
-		this.membersEmpty.textContent = localize('navigatorTeamMembers.empty', "No team members yet");
+		this.membersEmpty.textContent = TEAM_MEMBERS_NO_ENGINE;
 		this.membersListContainer = dom.append(this.membersBody, $('.navigator-team-list'));
 		this.ensureMembersList();
 
 		this.tasksBody = dom.append(container, $('.navigator-team-subview'));
 		this.tasksEmpty = dom.append(this.tasksBody, $('.navigator-stub-empty'));
-		this.tasksEmpty.textContent = localize('navigatorTeamTasks.empty', "No tasks yet");
+		this.tasksEmpty.textContent = TEAM_TASKS_NO_ENGINE;
 		this.tasksListContainer = dom.append(this.tasksBody, $('.navigator-team-tasks-list'));
 		this.ensureTasksList();
 
+		this.updateMembersDisplay();
+		this.updateTasksDisplay();
 		this.updateSubviewVisibility();
 		this.scheduleRefresh();
 	}
@@ -339,8 +347,8 @@ export class NavigatorTeamView extends ViewPane {
 
 	private async refreshTeamData(): Promise<void> {
 		if (!this.rosterService.isEngineConnected()) {
-			this.setMemberEntries([], localize('navigatorTeamMembers.empty', "No team members yet"));
-			this.setTaskEntries([], localize('navigatorTeamTasks.empty', "No tasks yet"));
+			this.setMemberEntries([], TEAM_MEMBERS_NO_ENGINE);
+			this.setTaskEntries([], TEAM_TASKS_NO_ENGINE);
 			return;
 		}
 
@@ -422,8 +430,11 @@ export class NavigatorTeamView extends ViewPane {
 
 	private setMemberEntries(entries: INavigatorTeamMemberEntry[], emptyMessage?: string): void {
 		this.memberEntries = entries;
-		if (emptyMessage !== undefined && this.membersEmpty) {
-			this.membersEmpty.textContent = emptyMessage;
+		if (emptyMessage !== undefined) {
+			this.membersHonestEmpty = emptyMessage;
+			if (this.membersEmpty) {
+				this.membersEmpty.textContent = emptyMessage;
+			}
 		}
 		this.applyFilterToMembers();
 		this.updateMembersDisplay();
@@ -431,8 +442,11 @@ export class NavigatorTeamView extends ViewPane {
 
 	private setTaskEntries(entries: INavigatorTeamTaskEntry[], emptyMessage?: string): void {
 		this.taskEntries = entries;
-		if (emptyMessage !== undefined && this.tasksEmpty) {
-			this.tasksEmpty.textContent = emptyMessage;
+		if (emptyMessage !== undefined) {
+			this.tasksHonestEmpty = emptyMessage;
+			if (this.tasksEmpty) {
+				this.tasksEmpty.textContent = emptyMessage;
+			}
 		}
 		this.applyFilterToTasks();
 		this.updateTasksDisplay();
@@ -441,6 +455,12 @@ export class NavigatorTeamView extends ViewPane {
 	private applyFilter(): void {
 		this.applyFilterToMembers();
 		this.applyFilterToTasks();
+		this.updateMembersDisplay();
+		this.updateTasksDisplay();
+	}
+
+	private hasActiveFilter(): boolean {
+		return this.filterQuery.trim().length > 0;
 	}
 
 	private applyFilterToMembers(): void {
@@ -462,19 +482,29 @@ export class NavigatorTeamView extends ViewPane {
 	}
 
 	private updateMembersDisplay(): void {
-		if (!this.membersEmpty || !this.membersListContainer) {
+		if (!this.membersEmpty || !this.membersListContainer || !this.membersBody) {
 			return;
 		}
-		const isEmpty = this.memberEntries.length === 0;
+		const filteredCount = this.membersList?.length ?? 0;
+		const unfilteredEmpty = this.memberEntries.length === 0;
+		const filterMiss = !unfilteredEmpty && this.hasActiveFilter() && filteredCount === 0;
+		const isEmpty = unfilteredEmpty || filterMiss;
+		this.membersEmpty.textContent = filterMiss ? TEAM_FILTER_NO_MATCH : this.membersHonestEmpty;
+		this.membersBody.classList.toggle('is-empty', isEmpty);
 		this.membersEmpty.style.display = isEmpty ? 'block' : 'none';
 		this.membersListContainer.style.display = isEmpty ? 'none' : 'block';
 	}
 
 	private updateTasksDisplay(): void {
-		if (!this.tasksEmpty || !this.tasksListContainer) {
+		if (!this.tasksEmpty || !this.tasksListContainer || !this.tasksBody) {
 			return;
 		}
-		const isEmpty = this.taskEntries.length === 0;
+		const filteredCount = this.tasksList?.length ?? 0;
+		const unfilteredEmpty = this.taskEntries.length === 0;
+		const filterMiss = !unfilteredEmpty && this.hasActiveFilter() && filteredCount === 0;
+		const isEmpty = unfilteredEmpty || filterMiss;
+		this.tasksEmpty.textContent = filterMiss ? TEAM_FILTER_NO_MATCH : this.tasksHonestEmpty;
+		this.tasksBody.classList.toggle('is-empty', isEmpty);
 		this.tasksEmpty.style.display = isEmpty ? 'block' : 'none';
 		this.tasksListContainer.style.display = isEmpty ? 'none' : 'block';
 	}

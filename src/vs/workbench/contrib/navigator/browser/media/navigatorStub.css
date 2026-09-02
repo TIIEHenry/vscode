@@ -33,3 +33,12 @@
 	flex: 1;
 	min-height: 0;
 }
+
+.monaco-workbench .navigator-agents-subview.is-empty > .navigator-agents-hierarchy-tree,
+.monaco-workbench .navigator-agents-subview.is-empty > .navigator-agents-activity-list {
+	display: none;
+}
+
+.monaco-workbench .navigator-agents-subview:not(.is-empty) > .navigator-stub-empty {
+	display: none;
+}
