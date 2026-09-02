@@ -35,6 +35,17 @@ const CSRF_HEADER = 'X-CSRF-Token';
 const SECRET_KEY_PREFIX = 'universeAgent.secret.hubRefresh.';
 const HUB_AUTH_TIMEOUT_MS = 10_000;
 
+export function hubBaseUrlFromRefreshSecretStorageKey(key: string): string | undefined {
+	if (!key.startsWith(SECRET_KEY_PREFIX)) {
+		return undefined;
+	}
+	try {
+		return decodeURIComponent(key.slice(SECRET_KEY_PREFIX.length));
+	} catch {
+		return undefined;
+	}
+}
+
 export function isHubSessionTokenExpired(expiresAtMs: number, nowMs: number, bufferMs = 60_000): boolean {
 	if (!Number.isFinite(expiresAtMs) || !Number.isFinite(nowMs)) {
 		return true;
@@ -167,6 +178,7 @@ export interface IHubSessionStore {
 	applyAuthSession(hubBaseUrl: string, session: ParsedAuthSessionV1, nowMs: number, refreshToken?: string): Promise<void>;
 	clear(hubBaseUrl: string): Promise<void>;
 	refreshIfNeeded(hubBaseUrl: string, nowMs: number, http?: HubRefreshHttp): Promise<HubRefreshResult | { readonly ok: true; readonly skipped: true }>;
+	listPersistedHubBaseUrls(): string[];
 	isEncryptionAvailable(): Promise<boolean>;
 }
 
@@ -182,6 +194,18 @@ export class HubSessionStore implements IHubSessionStore {
 
 	async isEncryptionAvailable(): Promise<boolean> {
 		return this.encryptionService.isEncryptionAvailable();
+	}
+
+	listPersistedHubBaseUrls(): string[] {
+		const keys = this.applicationStorage.keys(StorageScope.APPLICATION, StorageTarget.MACHINE);
+		const urls: string[] = [];
+		for (const key of keys) {
+			const hubBaseUrl = hubBaseUrlFromRefreshSecretStorageKey(key);
+			if (hubBaseUrl && this.applicationStorage.get(key, StorageScope.APPLICATION)) {
+				urls.push(hubBaseUrl);
+			}
+		}
+		return urls;
 	}
 
 	getAccessTokenForHub(hubBaseUrl: string, nowMs: number): string | null {
@@ -342,6 +366,10 @@ export class InMemoryHubSessionStore implements IHubSessionStore {
 
 	async isEncryptionAvailable(): Promise<boolean> {
 		return this.encryptionAvailable;
+	}
+
+	listPersistedHubBaseUrls(): string[] {
+		return [...this.refreshSecrets.keys()];
 	}
 
 	getAccessTokenForHub(hubBaseUrl: string, nowMs: number): string | null {

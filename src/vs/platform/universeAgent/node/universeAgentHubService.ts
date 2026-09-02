@@ -36,6 +36,10 @@ export type UniverseAgentHubServiceOptions = {
 	readonly storageService?: IStorageService;
 	readonly http?: HubAuthHttp & HubDirectoryHttp;
 	readonly nowMs?: () => number;
+	/** When set, startup restore waits for main-process application storage init. */
+	readonly storageReady?: Promise<void>;
+	/** Test hook: skip constructor-triggered Hub session restore. */
+	readonly skipStartupRestore?: boolean;
 };
 
 function projectDevice(device: HubDevice): HubDeviceProjection {
@@ -95,10 +99,14 @@ export class UniverseAgentHubService extends Disposable implements IUniverseAgen
 	private readonly _connectionProfileStore: IConnectionProfileStore;
 	private readonly _http: HubAuthHttp & HubDirectoryHttp;
 	private readonly _nowMs: () => number;
+	private readonly _storageReady: Promise<void> | undefined;
+	private readonly _skipStartupRestore: boolean;
 
 	private _activeHubBaseUrl: string | undefined;
 	private _directoryStatus: HubDirectoryStatus = { kind: 'idle' };
 	private _directoryAuthExpired = false;
+
+	readonly whenStartupRestoreComplete: Promise<void>;
 
 	constructor(options: UniverseAgentHubServiceOptions = {}) {
 		super();
@@ -112,6 +120,11 @@ export class UniverseAgentHubService extends Disposable implements IUniverseAgen
 		}
 		this._http = options.http ?? { fetch: globalThis.fetch.bind(globalThis) };
 		this._nowMs = options.nowMs ?? Date.now;
+		this._storageReady = options.storageReady;
+		this._skipStartupRestore = options.skipStartupRestore ?? false;
+		this.whenStartupRestoreComplete = this._skipStartupRestore
+			? Promise.resolve()
+			: this.restorePersistedHubSessionIfNeeded();
 	}
 
 	getActiveHubBaseUrl(): string | undefined {
@@ -327,6 +340,38 @@ export class UniverseAgentHubService extends Disposable implements IUniverseAgen
 
 	async isEncryptionAvailable(): Promise<boolean> {
 		return this._hubSessionStore.isEncryptionAvailable();
+	}
+
+	/**
+	 * On IDE startup: discover encrypted refresh material and call {@link IHubSessionStore.refreshIfNeeded}.
+	 * Fail-closed — refresh failure leaves Hub auth unsigned-in.
+	 */
+	async restorePersistedHubSessionIfNeeded(): Promise<void> {
+		if (this._storageReady) {
+			await this._storageReady;
+		}
+
+		const hubBaseUrls = this._hubSessionStore.listPersistedHubBaseUrls();
+		if (hubBaseUrls.length === 0) {
+			return;
+		}
+
+		// v1: single Hub bucket — deterministic pick when multiple keys exist.
+		const hubBaseUrl = [...hubBaseUrls].sort()[0];
+		this._activeHubBaseUrl = hubBaseUrl;
+		this._directoryAuthExpired = false;
+
+		const result = await this._hubSessionStore.refreshIfNeeded(hubBaseUrl, this._nowMs(), this._http);
+		if (!result.ok) {
+			if (result.code === 'hub_auth_http_failed' && /\bHTTP (401|403)\b/.test(result.reason)) {
+				this._directoryAuthExpired = true;
+			}
+			this._fireAuthChanged();
+			return;
+		}
+
+		this._fireAuthChanged();
+		await this.refreshDirectory();
 	}
 
 	private _fireAuthChanged(): void {
