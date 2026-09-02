@@ -43,7 +43,7 @@ export interface ProcessFoldDomOptions {
 	readonly setToolExpanded: (turnId: string, expanded: boolean) => void;
 	readonly onViewInTrajectory?: (turnId: string) => void;
 	readonly onLayoutChange: () => void;
-	/** When false (stub fixture), omit loading / live / duration chrome (PRD-013 P4/P5). */
+	/** When false (stub fixture), omit loading / live / duration chrome (Q4). */
 	readonly showLiveChrome: boolean;
 }
 
@@ -83,16 +83,8 @@ export function renderProcessFoldSpan(
 	const children = append(root, $('div.conversation-process-fold-children'));
 	children.hidden = !outerExpanded;
 
-	for (const node of span.nodes) {
-		if (node.kind === 'thinking') {
-			renderThinkingNode(children, node, options, disposables);
-		} else {
-			renderToolRow(children, node.turn, false, options, disposables);
-		}
-	}
-
 	const syncSticky = (): void => {
-		if (!outerExpanded || !options.isOuterExpanded(span.id)) {
+		if (!options.isOuterExpanded(span.id)) {
 			stickyBreadcrumb.hidden = true;
 			return;
 		}
@@ -102,6 +94,22 @@ export function renderProcessFoldSpan(
 			stickySummary.textContent = summary.textContent ?? '';
 		}
 	};
+
+	const childOptions: ProcessFoldDomOptions = {
+		...options,
+		onLayoutChange: () => {
+			syncSticky();
+			options.onLayoutChange();
+		},
+	};
+
+	for (const node of span.nodes) {
+		if (node.kind === 'thinking') {
+			renderThinkingNode(children, node, childOptions, disposables);
+		} else {
+			renderToolRow(children, node.turn, false, childOptions, disposables);
+		}
+	}
 
 	disposables.add(addDisposableListener(children, 'scroll', () => syncSticky()));
 
@@ -147,7 +155,7 @@ function renderThinkingNode(
 	label.textContent = conversationProcessFoldThinkingLabel;
 
 	const summary = append(header, $('span.conversation-process-fold-thinking-summary'));
-	summary.textContent = turn.text;
+	summary.textContent = formatThinkingSummary(turn, options);
 	syncProcessFoldThinkingAria(header, summary.textContent ?? '', thinkingExpanded);
 
 	appendProcessFoldTrajectoryJump(thinking, turn.id, options, disposables);
@@ -258,6 +266,14 @@ function renderToolRow(
 			options.onLayoutChange();
 		}));
 	}
+}
+
+function formatThinkingSummary(turn: ConversationStubTurn, options: ProcessFoldDomOptions): string {
+	const base = turn.text;
+	if (!options.showLiveChrome || !turn.streaming) {
+		return base;
+	}
+	return localize('conversationProcessFold.thinkingLoading', "{0} · Loading", base);
 }
 
 function isExecutingTurn(turn: ConversationStubTurn, options: ProcessFoldDomOptions): boolean {

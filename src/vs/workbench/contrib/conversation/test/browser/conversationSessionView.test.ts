@@ -10,6 +10,7 @@ import type { SessionViewSnapshot } from '../../../../../platform/universeAgent/
 import {
 	diffProjections,
 	entriesToLegacyTurns,
+	entryToRenderableTurn,
 	projectSnapshotToEntries,
 	stubTurnsToSnapshot,
 } from '../../browser/conversationSessionView.js';
@@ -29,6 +30,19 @@ suite('conversationSessionView (S1)', () => {
 		for (const session of CONVERSATION_STUB_SEED_SESSIONS) {
 			assert.deepStrictEqual(roundTrip(session.id, session.turns), session.turns, session.id);
 		}
+	});
+
+	test('entryToRenderableTurn forwards streaming and toolStatus to the render turn', () => {
+		const turn = entryToRenderableTurn({
+			id: 'overlay:1',
+			kind: 'tool',
+			text: 'read',
+			toolName: 'read',
+			streaming: true,
+			toolStatus: 'running',
+		});
+		assert.strictEqual(turn.streaming, true);
+		assert.strictEqual(turn.toolStatus, 'running');
 	});
 
 	test('stub snapshot never claims a live sync or streaming rows', () => {

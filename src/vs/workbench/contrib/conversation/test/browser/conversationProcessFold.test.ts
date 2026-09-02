@@ -148,6 +148,25 @@ suite('ConversationProcessFold', () => {
 		}
 	});
 
+	test('projectProcessFoldSpans uses fold:${firstId} including overlay ids', () => {
+		const spans = projectProcessFoldSpans([
+			turn('overlay:block-1', 'thinking', 'live think'),
+			{ id: 'overlay:block-2', kind: 'tool', text: 'read', toolName: 'read', streaming: true, toolStatus: 'running' },
+		]);
+		assert.strictEqual(spans.length, 1);
+		assert.strictEqual(spans[0]!.id, 'fold:overlay:block-1');
+		assert.deepStrictEqual(spans[0]!.turnIds, ['overlay:block-1', 'overlay:block-2']);
+	});
+
+	test('projectProcessFoldSpans does not rewrite span id via turnId', () => {
+		const spans = projectProcessFoldSpans([
+			{ id: 't1', kind: 'thinking', text: 'a', turnId: 'turn-9' },
+			{ id: 'tool1', kind: 'tool', text: 'b', turnId: 'turn-9', toolName: 'read' },
+		]);
+		assert.strictEqual(spans.length, 1);
+		assert.strictEqual(spans[0]!.id, 'fold:t1');
+	});
+
 	test('summarizeProcessSteps includes Stub prefix and step counts', () => {
 		const turns = [
 			turn('u1', 'user'),
@@ -163,6 +182,10 @@ suite('ConversationProcessFold', () => {
 		assert.ok(summary.startsWith('Stub · 4 steps ·'));
 		assert.ok(summary.includes('thinking ×2'));
 		assert.ok(summary.includes('tool ×2'));
+		assert.ok(!/loading|live|ms\b/i.test(summary));
+		const live = summarizeProcessSteps(spans[0]!, { showLiveChrome: true });
+		assert.ok(!live.startsWith('Stub'));
+		assert.ok(!/loading|live|ms\b/i.test(live));
 	});
 
 	function record(id: string, kind: ConversationTrajectoryRecord['kind'], text = id, extra?: Partial<ConversationTrajectoryRecord>): ConversationTrajectoryRecord {

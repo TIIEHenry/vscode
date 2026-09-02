@@ -22,7 +22,7 @@ import { ConversationQuestionSeat } from './conversationQuestionSeat.js';
 import { conversationLensTurnCopy, conversationLensTurnDelete, conversationLensPinnedUserPromptAria, conversationLensPinnedUserPromptCopyAria, conversationLensTurnViewInTrajectory } from './conversationLensSessionBarStrings.js';
 import { ConversationMermaidExtensionInfo, createMermaidHostContext } from './conversationMermaidHost.js';
 import { renderProcessFoldSpan } from './conversationProcessFold.js';
-import { ProcessFoldSpan, projectProcessFoldSpans, stripOverlayAttributionPrefix, summarizeProcessSteps } from './conversationProcessFoldModel.js';
+import { ProcessFoldSpan, projectProcessFoldSpans, summarizeProcessSteps } from './conversationProcessFoldModel.js';
 import { ConversationStubTurn } from './conversationStubModel.js';
 import type { ConversationQuestionRespondAnswers, ConversationViewFrameApplied } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
 import {
@@ -445,31 +445,6 @@ class ConversationTimelineRenderer implements ITreeRenderer<ConversationTimeline
 		this.processFoldToolExpanded.clear();
 	}
 
-	migrateProcessFoldExpandState(fromTurnId: string, toTurnId: string): void {
-		if (fromTurnId === toTurnId) {
-			return;
-		}
-		this.migrateExpandMap(this.processFoldThinkingExpanded, fromTurnId, toTurnId);
-		this.migrateExpandMap(this.processFoldToolExpanded, fromTurnId, toTurnId);
-		const fromStable = stripOverlayAttributionPrefix(fromTurnId);
-		const toStable = stripOverlayAttributionPrefix(toTurnId);
-		this.migrateExpandMap(this.processFoldThinkingExpanded, fromStable, toStable);
-		this.migrateExpandMap(this.processFoldToolExpanded, fromStable, toStable);
-		if (fromTurnId.startsWith('fold:') || toTurnId.startsWith('fold:')) {
-			this.migrateExpandMap(this.processFoldOuterExpanded, fromTurnId, toTurnId);
-			return;
-		}
-		this.migrateExpandMap(this.processFoldOuterExpanded, `fold:${fromTurnId}`, `fold:${toTurnId}`);
-		this.migrateExpandMap(this.processFoldOuterExpanded, `fold:${fromStable}`, `fold:${toStable}`);
-	}
-
-	private migrateExpandMap(map: Map<string, boolean>, fromTurnId: string, toTurnId: string): void {
-		if (map.has(fromTurnId)) {
-			map.set(toTurnId, map.get(fromTurnId)!);
-			map.delete(fromTurnId);
-		}
-	}
-
 	clearVisualizeExpanded(): void {
 		this.visualizeExpanded.clear();
 	}
@@ -764,7 +739,7 @@ export class ConversationTimelineTree extends Disposable {
 							return localize(
 								'conversationProcessFold.accessibility',
 								"Process steps: {0}",
-								summarizeProcessSteps(item.processFoldSpan),
+								summarizeProcessSteps(item.processFoldSpan, { showLiveChrome: options.showLiveChrome?.() ?? false }),
 							);
 						}
 						return getConversationEntryAriaLabel(item.turn);
@@ -927,19 +902,7 @@ export class ConversationTimelineTree extends Disposable {
 	private pruneExpandedState(removedTreeIds: ReadonlySet<string>, turns: readonly ConversationStubTurn[]): void {
 		const knownIds = this.collectKnownExpandedIds(turns);
 		for (const removedId of removedTreeIds) {
-			if (removedId.startsWith('overlay:')) {
-				const blockId = removedId.slice('overlay:'.length);
-				if (knownIds.has(blockId)) {
-					this.renderer.migrateProcessFoldExpandState(removedId, blockId);
-				}
-			}
-			if (removedId.startsWith('fold:overlay:')) {
-				const blockId = removedId.slice('fold:overlay:'.length);
-				const nextFold = `fold:${blockId}`;
-				if (knownIds.has(nextFold) || knownIds.has(blockId)) {
-					this.renderer.migrateProcessFoldExpandState(removedId, nextFold);
-				}
-			}
+			// Q4: overlay ↔ L2 is uncorrelated. Span id change resets expand; do not infer a counterpart.
 			knownIds.delete(removedId);
 		}
 		this.renderer.pruneConfirmationSeats(knownIds);
