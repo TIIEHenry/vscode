@@ -17,7 +17,7 @@ summary: "四钮、Conversation、Sources Review 三命令、Sessions roster、U
 |---------|------|------|----------|
 | `workbench.action.toggleSidebarVisibility` | Navigator（产品名；上游 Toggle Primary Side Bar） | titlebar `LayoutControlMenu` 首钮；View › Appearance | `Ctrl/Cmd+B`（上游继承） |
 | `workbench.action.toggleConversation` | Toggle Conversation Visibility | `LayoutControlMenu`「Conversation」；View › Appearance；F1 | `Ctrl/Cmd+Alt+Shift+C` |
-| `workbench.action.toggleEditorVisibility` | Toggle Editor Area Visibility | `LayoutControlMenu`「Preview」（四钮之一，`CreateToggleLayoutItem`）；`LayoutControlMenuSubmenu` 亦有；Preview editor title 上的 Hide / Show Preview（`MenuId.EditorTitle` / `EditorTitleContext`）；F1 | `Ctrl/Cmd+Alt+Shift+P` |
+| `workbench.action.toggleEditorVisibility` | Toggle Preview Visibility | `LayoutControlMenu`「Preview」（四钮之一，`CreateToggleLayoutItem`）；`LayoutControlMenuSubmenu` 亦有；Preview editor title 上的 Hide / Show Preview（`MenuId.EditorTitle` / `EditorTitleContext`）；F1 | `Ctrl/Cmd+Alt+Shift+P` |
 | `workbench.action.toggleSources` | Toggle Sources Visibility | `LayoutControlMenu`「Sources」；View › Appearance；F1 | `Ctrl/Cmd+Alt+Shift+S` |
 | Panel / Auxiliary Bar toggles | 上游命令 | 退到 `LayoutControlMenuSubmenu`（D7） | 上游继承 |
 
