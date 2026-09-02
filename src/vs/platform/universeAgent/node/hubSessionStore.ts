@@ -177,7 +177,12 @@ export interface IHubSessionStore {
 	requiresPasswordChange(hubBaseUrl: string, nowMs: number): boolean;
 	applyAuthSession(hubBaseUrl: string, session: ParsedAuthSessionV1, nowMs: number, refreshToken?: string): Promise<void>;
 	clear(hubBaseUrl: string): Promise<void>;
-	refreshIfNeeded(hubBaseUrl: string, nowMs: number, http?: HubRefreshHttp): Promise<HubRefreshResult | { readonly ok: true; readonly skipped: true }>;
+	refreshIfNeeded(
+		hubBaseUrl: string,
+		nowMs: number,
+		http?: HubRefreshHttp,
+		options?: { readonly force?: boolean },
+	): Promise<HubRefreshResult | { readonly ok: true; readonly skipped: true }>;
 	listPersistedHubBaseUrls(): string[];
 	isEncryptionAvailable(): Promise<boolean>;
 }
@@ -271,6 +276,7 @@ export class HubSessionStore implements IHubSessionStore {
 		hubBaseUrl: string,
 		nowMs: number,
 		http?: HubRefreshHttp,
+		options?: { readonly force?: boolean },
 	): Promise<HubRefreshResult | { readonly ok: true; readonly skipped: true }> {
 		const key = hubBaseUrlIdentityKey(hubBaseUrl);
 		const existing = this.refreshFlights.get(key);
@@ -278,7 +284,7 @@ export class HubSessionStore implements IHubSessionStore {
 			return existing;
 		}
 
-		const flight = this.doRefreshIfNeeded(hubBaseUrl, nowMs, http);
+		const flight = this.doRefreshIfNeeded(hubBaseUrl, nowMs, http, options?.force === true);
 		this.refreshFlights.set(key, flight);
 		try {
 			return await flight;
@@ -291,9 +297,10 @@ export class HubSessionStore implements IHubSessionStore {
 		hubBaseUrl: string,
 		nowMs: number,
 		http?: HubRefreshHttp,
+		force = false,
 	): Promise<HubRefreshResult | { readonly ok: true; readonly skipped: true }> {
 		const bucket = this.readBucket(hubBaseUrl, nowMs);
-		if (bucket && !isHubSessionTokenExpired(bucket.expiresAtMs, nowMs)) {
+		if (!force && bucket && !isHubSessionTokenExpired(bucket.expiresAtMs, nowMs)) {
 			return { ok: true, skipped: true };
 		}
 
@@ -426,13 +433,14 @@ export class InMemoryHubSessionStore implements IHubSessionStore {
 		hubBaseUrl: string,
 		nowMs: number,
 		http?: HubRefreshHttp,
+		options?: { readonly force?: boolean },
 	): Promise<HubRefreshResult | { readonly ok: true; readonly skipped: true }> {
 		const key = hubBaseUrlIdentityKey(hubBaseUrl);
 		const existing = this.refreshFlights.get(key);
 		if (existing) {
 			return existing;
 		}
-		const flight = this.doRefreshIfNeeded(hubBaseUrl, nowMs, http);
+		const flight = this.doRefreshIfNeeded(hubBaseUrl, nowMs, http, options?.force === true);
 		this.refreshFlights.set(key, flight);
 		try {
 			return await flight;
@@ -445,9 +453,10 @@ export class InMemoryHubSessionStore implements IHubSessionStore {
 		hubBaseUrl: string,
 		nowMs: number,
 		http?: HubRefreshHttp,
+		force = false,
 	): Promise<HubRefreshResult | { readonly ok: true; readonly skipped: true }> {
 		const bucket = this.readBucket(hubBaseUrl, nowMs);
-		if (bucket && !isHubSessionTokenExpired(bucket.expiresAtMs, nowMs)) {
+		if (!force && bucket && !isHubSessionTokenExpired(bucket.expiresAtMs, nowMs)) {
 			return { ok: true, skipped: true };
 		}
 		if (!this.encryptionAvailable) {

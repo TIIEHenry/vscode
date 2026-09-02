@@ -10,7 +10,8 @@ import type { ConnectionProfile, IConnectionProfileStore } from './connectionPro
 import type { PinnedTlsPlanInput } from './deviceGrant/tls-pin.js';
 import { listHubDevices, type HubDevice, type HubDirectoryHttp } from './hubDirectoryClient.js';
 import { issueHubRelayTicket, type HubRelayTicketHttp, type IssueHubRelayTicketResult } from './hub/hub-relay-ticket-client.js';
-import type { IHubSessionStore } from './hubSessionStore.js';
+import type { HubRefreshHttp, IHubSessionStore } from './hubSessionStore.js';
+import { withHubAccessRetry } from './hubAuthAccess.js';
 
 const DEFAULT_HUB_RELAY_PORT = 443;
 
@@ -47,6 +48,7 @@ export type ConnectionResolverDeps = {
 	readonly connectionProfileStore: IConnectionProfileStore;
 	readonly hubSessionStore: IHubSessionStore;
 	readonly clientIdentityStore: IClientIdentityStore;
+	readonly http?: HubDirectoryHttp & HubRelayTicketHttp & HubRefreshHttp;
 	readonly listDevices?: (
 		input: { readonly hubBaseUrl: string; readonly accessToken: string },
 		http?: HubDirectoryHttp,
@@ -134,12 +136,14 @@ export class ConnectionResolver {
 	private readonly ticketCache = new Map<string, CachedRelayTicket>();
 	private readonly listDevices: NonNullable<ConnectionResolverDeps['listDevices']>;
 	private readonly issueRelayTicketFn: NonNullable<ConnectionResolverDeps['issueRelayTicketFn']>;
+	private readonly http: HubDirectoryHttp & HubRelayTicketHttp & HubRefreshHttp | undefined;
 	private readonly resolveHost: (host: string) => Promise<string>;
 	private readonly nowMs: () => number;
 
 	constructor(private readonly deps: ConnectionResolverDeps) {
 		this.listDevices = deps.listDevices ?? listHubDevices;
 		this.issueRelayTicketFn = deps.issueRelayTicketFn ?? issueHubRelayTicket;
+		this.http = deps.http;
 		this.resolveHost = deps.resolveHost ?? (async host => host);
 		this.nowMs = deps.nowMs ?? Date.now;
 	}
@@ -267,15 +271,162 @@ export class ConnectionResolver {
 			};
 		}
 
-		const accessToken = this.deps.hubSessionStore.getAccessTokenForHub(hubBaseUrl, this.nowMs());
-		if (!accessToken) {
+		if (!this.http) {
+			const accessToken = this.deps.hubSessionStore.getAccessTokenForHub(hubBaseUrl, this.nowMs());
+			if (!accessToken) {
+				return {
+					ok: false,
+					code: 'hub_session_required',
+					reason: 'hub signed-in session is required',
+					allowRelayFallback,
+				};
+			}
+			return this.resolveHubDeviceWithToken(profile, forceNewTicket, accessToken, allowRelayFallback);
+		}
+
+		const directoryAccess = await withHubAccessRetry(
+			{
+				store: this.deps.hubSessionStore,
+				hubBaseUrl,
+				nowMs: this.nowMs(),
+				http: this.http,
+			},
+			accessToken => this.listDevices({ hubBaseUrl, accessToken }, this.http),
+		);
+
+		if ('authExpired' in directoryAccess && directoryAccess.authExpired) {
 			return {
 				ok: false,
-				code: 'hub_session_required',
-				reason: 'hub signed-in session is required',
+				code: 'hub_auth_expired',
+				reason: 'hub session expired during directory lookup',
 				allowRelayFallback,
 			};
 		}
+
+		if (!directoryAccess.ok) {
+			return {
+				ok: false,
+				code: mapDirectoryDenialToFailure(directoryAccess.code),
+				reason: directoryAccess.reason,
+				allowRelayFallback,
+			};
+		}
+
+		const device = directoryAccess.value.find(entry => entry.id === hubDeviceId);
+		if (!device) {
+			return {
+				ok: false,
+				code: 'hub_device_not_in_directory',
+				reason: `hub device ${hubDeviceId} not found in live directory`,
+				allowRelayFallback,
+			};
+		}
+
+		const deviceFailure = this.validateHubDevicePresence(device);
+		if (deviceFailure) {
+			return deviceFailure;
+		}
+
+		if (!profile.trust) {
+			return {
+				ok: false,
+				code: 'pairing_required',
+				reason: 'hub device dial requires pairing orchestrator when trust is missing',
+				allowRelayFallback,
+			};
+		}
+
+		const identity = await this.deps.clientIdentityStore.getOrCreateIdentity();
+		if (identity.kind !== 'ready') {
+			return {
+				ok: false,
+				code: 'trust_missing',
+				reason: `client identity unavailable: ${identity.kind}`,
+				allowRelayFallback,
+			};
+		}
+
+		const cacheKey = `${hubBaseUrl}::${hubDeviceId}`;
+		const now = this.nowMs();
+		let ticket: CachedRelayTicket | undefined;
+		if (!forceNewTicket) {
+			ticket = this.readCachedTicket(cacheKey, now);
+		}
+		if (!ticket) {
+			const ticketResult = await withHubAccessRetry(
+				{
+					store: this.deps.hubSessionStore,
+					hubBaseUrl,
+					nowMs: now,
+					http: this.http,
+				},
+				accessToken => this.issueRelayTicketFn({
+					hubBaseUrl,
+					hubDeviceId,
+					clientIdentityId: identity.identity.clientIdentityId,
+					accessToken,
+					nowMs: now,
+				}, this.http).then(issued => {
+					if (!issued.ok) {
+						return issued;
+					}
+					return { ok: true as const, value: issued };
+				}),
+			);
+
+			if ('authExpired' in ticketResult && ticketResult.authExpired) {
+				return {
+					ok: false,
+					code: 'hub_auth_expired',
+					reason: 'hub session expired during relay ticket issuance',
+					allowRelayFallback,
+				};
+			}
+
+			if (!ticketResult.ok) {
+				return {
+					ok: false,
+					code: mapTicketDenialToFailure(ticketResult.code),
+					reason: ticketResult.reason,
+					allowRelayFallback,
+				};
+			}
+
+			const issued = ticketResult.value;
+			ticket = {
+				ticketId: issued.ticketId,
+				authority: issued.authority,
+				expiresAtMs: issued.expiresAtMs,
+			};
+			this.ticketCache.set(cacheKey, ticket);
+		}
+
+		const authorityHost = relayAuthorityHost(ticket!.authority);
+		const resolvedIp = await this.resolveHost(authorityHost);
+		return {
+			ok: true,
+			allowRelayFallback,
+			endpoint: {
+				attemptId: randomUUID(),
+				authority: authorityHost,
+				port: DEFAULT_HUB_RELAY_PORT,
+				resolvedIp,
+				servername: authorityHost,
+				relayTicketId: ticket.ticketId,
+				tls: tlsPlanFromProfileTrust(profile),
+				expiresAtMs: ticket.expiresAtMs,
+				path: 'hubRelay',
+			},
+		};
+	}
+
+	private async resolveHubDeviceWithToken(
+		profile: ConnectionProfile,
+		forceNewTicket: boolean,
+		accessToken: string,
+		allowRelayFallback: boolean,
+	): Promise<ConnectionResolveResult> {
+		const { hubBaseUrl, hubDeviceId } = profile.target;
 
 		const directory = await this.listDevices({ hubBaseUrl, accessToken });
 		if (!directory.ok) {
