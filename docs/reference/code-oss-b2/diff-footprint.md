@@ -4,7 +4,7 @@ type: reference
 status: accepted
 phase: M0
 updated: 2026-09-02
-summary: "相对 fork main pin 004a1fbb 的文件数与 LOC；M0 拓扑已合入 b5631393；PRD-009 Diff owner 见 ADR-004 draft"
+summary: "相对 fork main pin 004a1fbb 的文件数与 LOC；M0 拓扑已合入 b5631393；PRD-009 Diff owner 已裁决 ADR-005（默认 Preview，可移动）"
 ---
 
 # Diff footprint
@@ -63,12 +63,12 @@ M0 拓扑手术的直接代码面：
 
 ## Diff owner（PRD-009 / R6）
 
-HEAD 产品 Diff 深查看仍走 End 列 `EDITOR_PART`（`openSourcesChangeEntry` → `ISCMResource.open` / `MultiDiffEditor`）。对照合同要 `PANEL_PART`。
+HEAD 产品 Diff 深查看走 End 列 `EDITOR_PART`（`openSourcesChangeEntry` → `ISCMResource.open` / `MultiDiffEditor`）。外仓对照合同（ADR-047）要 `PANEL_PART` 单一归属，本仓 **未采纳**。
 
-Owner 裁决草案：[ADR-004](../../../dev/decisions/004-diff-owner.md)（`draft`）**推荐 B** — 底部 Panel 专用容器；否决 A（维持编辑器区）与 C（Sources Changes 内嵌）。签收前 **不**改绑打开路径，本页 **不**因此重测 footprint。
+Owner 裁决：[ADR-005](../../../dev/decisions/005-changes-diff-owner.md)（`accepted` @2026-09-02）— 默认 Preview（即 HEAD 路径）；用户显式动作可移入 Conversation 只读审阅 tab 或底部 Panel 产品 Diff 视图（重宿主）。[ADR-004](../../../dev/decisions/004-diff-owner.md)（原推荐 B 单一 Panel）已 `superseded`。实施见 [sources-changes-diff](../../../dev/plans/sources-changes-diff.md)；F1–F3 落地后本页可重测 footprint。
 
 ## 相关文档
 
 - [spike-t1-t3-code-facts](spike-t1-t3-code-facts.md) · [m0-topology-surgery](../../../dev/plans/m0-topology-surgery.md)
 - [worktree-pool](../../../dev/progress/worktree-pool.md) · [deferred-gaps](../../../dev/progress/deferred-gaps.md)
-- [ADR-004 Diff owner](../../../dev/decisions/004-diff-owner.md) · [R6](../../../dev/progress/research-queue.md)
+- [ADR-005 Diff owner](../../../dev/decisions/005-changes-diff-owner.md) · [R6](../../../dev/progress/research-queue.md)

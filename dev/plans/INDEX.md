@@ -4,7 +4,7 @@ type: index
 status: accepted
 phase: N/A
 updated: 2026-09-02
-summary: "dev/plans 导航：M4/M5 implemented；M6 引擎波 draft；切片 5/E1/T4 仍 blocked PRD-008"
+summary: "dev/plans 导航：M4/M5 implemented；M6 引擎波 draft；sources-changes-diff accepted（F1–F5 待开）；切片 5/E1/T4 仍 blocked PRD-008"
 ---
 
 # 方案
@@ -20,6 +20,7 @@ summary: "dev/plans 导航：M4/M5 implemented；M6 引擎波 draft；切片 5/E
 | [m4-validation-wave.md](m4-validation-wave.md) | `implemented` | D3/D4/D5 closed；D3 valid-layers 环境红仍记 D2 脚注 |
 | [m5-ui-shell-hardening.md](m5-ui-shell-hardening.md) | `implemented` | 切片 1–5 @ 18b5e8d7；D4/D5 closed；valid-layers environment-blocked（Node v26.7.0） |
 | [m6-engine-wave.md](m6-engine-wave.md) | `draft` | R5：platform UA adapter + 同 token roster；切片 A→B page-access 5→E1→T4 |
+| [sources-changes-diff.md](sources-changes-diff.md) | `accepted` | PRD-009 / ADR-005：Changes 行 → Preview Diff；`ConversationDiffReviewInput` 只读审阅 tab；Panel Diff 视图重宿主；切片 F1–F5（用户免除规则 16） |
 | [chat-compare-split.md](chat-compare-split.md) | `implemented` | PRD-011 并排比对已落；D4 已验 |
 | [page-access-schemes.md](page-access-schemes.md) | `implemented` | 切片 1a–4 已落；切片 5 blocked PRD-008 |
 | [settings-two-surfaces.md](settings-two-surfaces.md) | `implemented` | C5 + donor H0–H3 已落；E1 blocked PRD-008 |

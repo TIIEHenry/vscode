@@ -3,8 +3,8 @@ title: "配套 IDE 设施：files / SCM / terminal / debug"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-08-31
-summary: "Explorer、SCM/git、Terminal、Debug 是配套设施不是 Conversation；Sources 三 tab 已在 contrib/sources；Changes/Review SCM 列表投影；Diff FORK 仍 parked"
+updated: 2026-09-02
+summary: "Explorer、SCM/git、Terminal、Debug 是配套设施不是 Conversation；Sources 三 tab 已在 contrib/sources；Changes/Review SCM 列表投影；Diff 归属已由 ADR-005 裁决（默认 Preview，可移对话窗口/底部），实施待 plan"
 ---
 
 # 配套 IDE 设施：files / SCM / terminal / debug
@@ -111,7 +111,7 @@ Desktop（IA §4 + ADR-047）：
 | 文件级 Diff | `PANEL_PART` 临时 tab | `EDITOR_PART` Diff 编辑器 |
 | 开 Diff 是否撑开 Sources | 不得自动撑开已收起的下格 | 无下格；打开 Diff 占用中心编辑器 |
 
-B2 不要把「SCM 已能出 Diff」读成 ADR-047 已满足：出 Diff 的 **槽错了**。Preview 继续承载 File 编辑；Diff 要从 editor 习惯改绑到底栏，才与「Diff 不进 L1、不进 Changes」一致。QuickDiff 可留在 File 编辑器作行内提示，不能替代 Panel 深查看。
+**本仓裁决（[ADR-005](../../../dev/decisions/005-changes-diff-owner.md) @2026-09-02，[PRD-009](../../product/requirements.md#prd-009-changes-与-diff) `accepted`）：** 上表「Desktop 目标」列的 `PANEL_PART` 单一归属 **不再是本仓目标**。Diff 默认 Preview（`EDITOR_PART`，即 HEAD 现状）；用户显式动作可把它 **移入 Conversation 延伸 tab（只读审阅 input，围栏白名单第二类）** 或 **移到底部 Panel 产品 Diff 视图（重宿主，不是第三个 EditorPart）**，并可设默认归属。ADR-047 保留两条：不做 Changes 内嵌 inline diff；开 Diff 不自动撑开已收起的 Sources 下格。QuickDiff 仍留在 File 编辑器作行内提示。实施方案 `dev/plans/sources-changes-diff.md` 待写；HEAD 尚无「移到…」动作。
 
 ## 6. 相关文档
 

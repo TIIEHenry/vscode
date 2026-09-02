@@ -3,7 +3,7 @@ title: "Agent IDE 产品愿景"
 type: concept
 status: accepted
 phase: N/A
-updated: 2026-08-31
+updated: 2026-09-02
 summary: "本仓 Agent IDE：主流程在 Conversation，配套按完整 IDE 配齐；当前范围是无引擎默认窗产品壳"
 ---
 
@@ -59,7 +59,7 @@ summary: "本仓 Agent IDE：主流程在 Conversation，配套按完整 IDE 配
 
 - 不在本层系统迁移 UniverseAgentDesktop 的全部产品文档（信息架构全文、交互规格全文、外仓功能对照全表）
 - 不把引擎、远程连接或会话权威写成已交付
-- 不裁定 Changes / Diff 深查看归属（仍是未选分叉）
+- 不把 Diff 做成第二个主工作区：Diff 归属已裁决（[PRD-009](requirements.md#prd-009-changes-与-diff)：默认 Preview，可移对话窗口 / 底部），但对话窗口里的 Diff 只是审阅面，不是可编辑文件的编辑器
 - 不改产品名称与图标，不接扩展市场分发
 - 不把 Agents Window 升为生产入口
 - 不重写 M0–M4 历史方案，不把实现文件表搬进本目录
