@@ -10,7 +10,7 @@ import { Extensions as ConfigurationExtensions, IConfigurationRegistry } from '.
 import { Registry } from '../../../../../platform/registry/common/platform.js';
 import '../../../../browser/workbench.contribution.js';
 import '../../../../contrib/welcomeGettingStarted/browser/gettingStarted.contribution.js';
-import { COMPACT_FLOATING_PANEL_MARGIN, COMPACT_FLOATING_PANEL_OUTER_MARGIN, FLOATING_PANEL_INNER_MARGIN, FLOATING_PANEL_MARGIN, createDefaultZenModeExitInfo, forceShownAgentShellPart, getFloatingEditorVerticalMargins, getFloatingOuterEdgeOwners, getFloatingPaneCompositeHorizontalMargins, getFloatingPaneCompositeVerticalMargins, getFloatingPanelMargin, getFloatingPanelOuterMargin, getFloatingSidebarSiblingToEditorStatus, isFloatingTopEdgeExposed, isHorizontal, type PanelAlignment, Parts, Position } from '../../browser/layoutService.js';
+import { COMPACT_FLOATING_PANEL_MARGIN, COMPACT_FLOATING_PANEL_OUTER_MARGIN, FLOATING_PANEL_INNER_MARGIN, FLOATING_PANEL_MARGIN, createDefaultZenModeExitInfo, forceShownAgentShellPart, getDefaultPartFocusTarget, getFloatingEditorVerticalMargins, getFloatingOuterEdgeOwners, getFloatingPaneCompositeHorizontalMargins, getFloatingPaneCompositeVerticalMargins, getFloatingPanelMargin, getFloatingPanelOuterMargin, getFloatingSidebarSiblingToEditorStatus, getNominalPartFocusNeighbour, isFloatingTopEdgeExposed, isHorizontal, MAIN_WINDOW_PART_FOCUS_CYCLE, type PanelAlignment, Parts, Position, resolveVisiblePartFocusNeighbour } from '../../browser/layoutService.js';
 import { TestLayoutService } from '../../../../test/browser/workbenchTestServices.js';
 
 suite('LayoutService - isFloatingTopEdgeExposed', () => {
@@ -557,6 +557,92 @@ suite('LayoutService - auxiliary bar maximize End column', () => {
 		assert.strictEqual(forceShownAgentShellPart(Parts.EDITOR_PART, auxMaximizeVisibility), undefined);
 		assert.strictEqual(forceShownAgentShellPart(Parts.SOURCES_PART, auxMaximizeVisibility), undefined);
 		assert.strictEqual(forceShownAgentShellPart(Parts.CONVERSATION_PART, auxMaximizeVisibility), undefined);
+	});
+});
+
+suite('LayoutService - F6 part focus cycle', () => {
+
+	ensureNoDisposablesAreLeakedInTestSuite();
+
+	class VisibilityLayoutService extends TestLayoutService {
+		visibleParts = new Set<Parts>([
+			Parts.ACTIVITYBAR_PART,
+			Parts.SIDEBAR_PART,
+			Parts.CONVERSATION_PART,
+			Parts.EDITOR_PART,
+			Parts.SOURCES_PART,
+			Parts.PANEL_PART,
+			Parts.AUXILIARYBAR_PART,
+			Parts.STATUSBAR_PART,
+		]);
+
+		override isVisible(part: Parts): boolean {
+			return this.visibleParts.has(part);
+		}
+	}
+
+	test('main-window cycle includes Conversation, Preview, and Sources in order', () => {
+		const conversationIndex = MAIN_WINDOW_PART_FOCUS_CYCLE.indexOf(Parts.CONVERSATION_PART);
+		const editorIndex = MAIN_WINDOW_PART_FOCUS_CYCLE.indexOf(Parts.EDITOR_PART);
+		const sourcesIndex = MAIN_WINDOW_PART_FOCUS_CYCLE.indexOf(Parts.SOURCES_PART);
+
+		assert.ok(conversationIndex >= 0);
+		assert.ok(editorIndex >= 0);
+		assert.ok(sourcesIndex >= 0);
+		assert.ok(conversationIndex < editorIndex);
+		assert.ok(editorIndex < sourcesIndex);
+	});
+
+	test('nominal neighbours chain Conversation → Preview → Sources forward', () => {
+		assert.strictEqual(getNominalPartFocusNeighbour(Parts.CONVERSATION_PART, true, false), Parts.EDITOR_PART);
+		assert.strictEqual(getNominalPartFocusNeighbour(Parts.EDITOR_PART, true, false), Parts.SOURCES_PART);
+		assert.strictEqual(getNominalPartFocusNeighbour(Parts.SOURCES_PART, true, false), Parts.PANEL_PART);
+	});
+
+	test('hidden Conversation is skipped forward from Navigator', () => {
+		const layoutService = new VisibilityLayoutService();
+		layoutService.visibleParts.delete(Parts.CONVERSATION_PART);
+
+		assert.strictEqual(
+			resolveVisiblePartFocusNeighbour(layoutService, Parts.SIDEBAR_PART, true),
+			Parts.EDITOR_PART,
+		);
+	});
+
+	test('hidden Conversation is skipped backward from Preview', () => {
+		const layoutService = new VisibilityLayoutService();
+		layoutService.visibleParts.delete(Parts.CONVERSATION_PART);
+
+		assert.strictEqual(
+			resolveVisiblePartFocusNeighbour(layoutService, Parts.EDITOR_PART, false),
+			Parts.SIDEBAR_PART,
+		);
+	});
+
+	test('shown Conversation re-enters the cycle from Navigator', () => {
+		const layoutService = new VisibilityLayoutService();
+
+		assert.strictEqual(
+			resolveVisiblePartFocusNeighbour(layoutService, Parts.SIDEBAR_PART, true),
+			Parts.CONVERSATION_PART,
+		);
+	});
+
+	test('hidden Preview is skipped backward from Sources', () => {
+		const layoutService = new VisibilityLayoutService();
+		layoutService.visibleParts.delete(Parts.EDITOR_PART);
+
+		assert.strictEqual(
+			resolveVisiblePartFocusNeighbour(layoutService, Parts.SOURCES_PART, false),
+			Parts.CONVERSATION_PART,
+		);
+	});
+
+	test('default focus target prefers visible agent-shell parts when Conversation is hidden', () => {
+		const layoutService = new VisibilityLayoutService();
+		layoutService.visibleParts.delete(Parts.CONVERSATION_PART);
+
+		assert.strictEqual(getDefaultPartFocusTarget(layoutService), Parts.EDITOR_PART);
 	});
 });
 

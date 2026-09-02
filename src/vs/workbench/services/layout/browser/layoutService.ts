@@ -65,6 +65,101 @@ export function forceShownAgentShellPart(justHid: AgentShellPart, visible: IAgen
 	return Parts.CONVERSATION_PART;
 }
 
+/**
+ * Main-window F6 / Shift+F6 focus cycle. Conversation, Preview (Editor), and Sources
+ * occupy the center / End column band between Navigator and Panel.
+ */
+export const MAIN_WINDOW_PART_FOCUS_CYCLE: readonly Parts[] = [
+	Parts.ACTIVITYBAR_PART,
+	Parts.SIDEBAR_PART,
+	Parts.CONVERSATION_PART,
+	Parts.EDITOR_PART,
+	Parts.SOURCES_PART,
+	Parts.PANEL_PART,
+	Parts.AUXILIARYBAR_PART,
+	Parts.STATUSBAR_PART,
+];
+
+export function getNominalPartFocusNeighbour(part: Parts, next: boolean, auxiliaryWindow: boolean): Parts {
+	if (auxiliaryWindow) {
+		switch (part) {
+			case Parts.EDITOR_PART:
+				return Parts.STATUSBAR_PART;
+			default:
+				return Parts.EDITOR_PART;
+		}
+	}
+
+	switch (part) {
+		case Parts.EDITOR_PART:
+			return next ? Parts.SOURCES_PART : Parts.CONVERSATION_PART;
+		case Parts.SOURCES_PART:
+			return next ? Parts.PANEL_PART : Parts.EDITOR_PART;
+		case Parts.CONVERSATION_PART:
+			return next ? Parts.EDITOR_PART : Parts.SIDEBAR_PART;
+		case Parts.PANEL_PART:
+			return next ? Parts.AUXILIARYBAR_PART : Parts.EDITOR_PART;
+		case Parts.AUXILIARYBAR_PART:
+			return next ? Parts.STATUSBAR_PART : Parts.PANEL_PART;
+		case Parts.STATUSBAR_PART:
+			return next ? Parts.ACTIVITYBAR_PART : Parts.AUXILIARYBAR_PART;
+		case Parts.ACTIVITYBAR_PART:
+			return next ? Parts.SIDEBAR_PART : Parts.STATUSBAR_PART;
+		case Parts.SIDEBAR_PART:
+			return next ? Parts.CONVERSATION_PART : Parts.ACTIVITYBAR_PART;
+		default:
+			return Parts.CONVERSATION_PART;
+	}
+}
+
+/**
+ * Walk the nominal F6 cycle until a visible neighbour is found. Hidden Conversation /
+ * Preview / Sources are skipped so F6 never lands on a hidden agent-shell part.
+ */
+export function resolveVisiblePartFocusNeighbour(
+	layoutService: IWorkbenchLayoutService,
+	part: Parts,
+	next: boolean,
+	targetWindow: Window = mainWindow,
+): Parts {
+	const auxiliaryWindow = isAuxiliaryWindow(targetWindow);
+	let current = part;
+
+	for (let i = 0; i < MAIN_WINDOW_PART_FOCUS_CYCLE.length; i++) {
+		const neighbour = getNominalPartFocusNeighbour(current, next, auxiliaryWindow);
+		if (layoutService.isVisible(neighbour, targetWindow)) {
+			return neighbour;
+		}
+		current = neighbour;
+	}
+
+	return part;
+}
+
+/** Default F6 target when no workbench part currently owns focus. */
+export function getDefaultPartFocusTarget(
+	layoutService: IWorkbenchLayoutService,
+	targetWindow: Window = mainWindow,
+): Parts {
+	if (layoutService.isVisible(Parts.CONVERSATION_PART, targetWindow)) {
+		return Parts.CONVERSATION_PART;
+	}
+	if (layoutService.isVisible(Parts.EDITOR_PART, targetWindow)) {
+		return Parts.EDITOR_PART;
+	}
+	if (layoutService.isVisible(Parts.SOURCES_PART, targetWindow)) {
+		return Parts.SOURCES_PART;
+	}
+
+	for (const cyclePart of MAIN_WINDOW_PART_FOCUS_CYCLE) {
+		if (layoutService.isVisible(cyclePart, targetWindow)) {
+			return cyclePart;
+		}
+	}
+
+	return Parts.EDITOR_PART;
+}
+
 export interface IZenModeExitInfoWasVisible {
 	auxiliaryBar: boolean;
 	panel: boolean;
