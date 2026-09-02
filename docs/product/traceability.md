@@ -4,7 +4,7 @@ type: reference
 status: accepted
 phase: N/A
 updated: 2026-09-02
-summary: "PRD-001–016 追踪；PRD-012 T5a reveal @ f66c36c9；PRD-016 S1–S6 已落、S3c @ 18b5e8d7；D4 已验（rerun-2230）；D5 已闭（wave3）；E1/PRD-008 blocked"
+summary: "PRD-001–016 追踪；PRD-008 接线方案 m6-engine-wave + ADR-003 仍 draft；E1/切片 5/T4 仍 blocked"
 ---
 
 # 产品需求追踪
@@ -22,7 +22,7 @@ summary: "PRD-001–016 追踪；PRD-012 T5a reveal @ f66c36c9；PRD-016 S1–S6
 | [PRD-005](requirements.md#prd-005-preview-与-sources-files) | `accepted` | [parts-and-grid](../systems/workbench/parts-and-grid.md) | [m1](../../dev/plans/m1-shell-followon.md) | D4 V8 PASS（Files/Changes/Review tab） |
 | [PRD-006](requirements.md#prd-006-默认无-copilot--chat-冒充) | `accepted` | [agent-ui](../systems/chat/agent-ui.md) · [views-and-composites](../systems/workbench/views-and-composites.md) | [m5](../../dev/plans/m5-ui-shell-hardening.md) · [page-access-schemes](../../dev/plans/page-access-schemes.md) · [settings-two-surfaces](../../dev/plans/settings-two-surfaces.md) | D4 V6 PASS；H0–H3 已落 |
 | [PRD-007](requirements.md#prd-007-诚实降级) | `accepted` | [agent-ui](../systems/chat/agent-ui.md) | [m2](../../dev/plans/m2-product-shell.md) | D4 PASS |
-| [PRD-008](requirements.md#prd-008-引擎与会话权威) | `blocked` | [agent-host](../systems/agent-host/INDEX.md) | 无本仓已接受的引擎实施方案 | 无 |
+| [PRD-008](requirements.md#prd-008-引擎与会话权威) | `blocked` | [agent-host](../systems/agent-host/INDEX.md) · [ADR-003](../../dev/decisions/003-engine-adapter-boundary.md) (`draft`) | [m6-engine-wave](../../dev/plans/m6-engine-wave.md) (`draft`；规则 16 前不实施) | 无 |
 | [PRD-009](requirements.md#prd-009-changes-与-diff) | `blocked` | [diff-footprint](../reference/code-oss-b2/diff-footprint.md) | FORK 未选 | 无 |
 | [PRD-010](requirements.md#prd-010-产品身份) | `proposed` | 无 | 无 | 无 |
 | [PRD-011](requirements.md#prd-011-chat-并排比对) | `accepted` | `src/vs/sessions/LAYOUT.md` · [ADR-001](../../dev/decisions/001-chat-compare-form.md) | [chat-compare-split](../../dev/plans/chat-compare-split.md) | D4 PASS |
