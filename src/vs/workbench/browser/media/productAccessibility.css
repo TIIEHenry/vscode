@@ -47,6 +47,17 @@
 	padding-left: 6px;
 }
 
+/* Session-level sync chrome (SessionBar) vs Engine connection (StatusBar) */
+.monaco-workbench .part.conversation .conversation-lens-session-sync-badge {
+	border-left: 1px solid var(--vscode-widget-border);
+	padding-left: 6px;
+}
+
+.monaco-workbench.hc-black .part.conversation .conversation-lens-session-sync-badge,
+.monaco-workbench.hc-light .part.conversation .conversation-lens-session-sync-badge {
+	border-left-color: var(--vscode-contrastBorder);
+}
+
 /* Reduced motion: disable non-essential workbench transitions */
 @media (prefers-reduced-motion: reduce) {
 	.monaco-workbench,
