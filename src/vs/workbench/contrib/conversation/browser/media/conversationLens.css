@@ -673,12 +673,46 @@
 
 .monaco-workbench .part.conversation .conversation-lens-trajectory-overview-segment[data-segment-kind="user"] .conversation-lens-trajectory-overview-segment-glyph {
 	border-radius: 50%;
+	background-color: var(--vscode-charts-blue);
 }
 
-.monaco-workbench .part.conversation .conversation-lens-trajectory-overview-segment[data-segment-kind="tool"] .conversation-lens-trajectory-overview-segment-glyph,
+.monaco-workbench .part.conversation .conversation-lens-trajectory-overview-segment[data-segment-kind="assistant"] .conversation-lens-trajectory-overview-segment-glyph {
+	border-radius: 2px;
+	background-color: var(--vscode-charts-purple);
+}
+
 .monaco-workbench .part.conversation .conversation-lens-trajectory-overview-segment[data-segment-kind="reasoning"] .conversation-lens-trajectory-overview-segment-glyph {
 	border-radius: 0;
 	transform: rotate(45deg);
+	background-color: var(--vscode-charts-orange);
+}
+
+.monaco-workbench .part.conversation .conversation-lens-trajectory-overview-segment[data-segment-kind="tool"] .conversation-lens-trajectory-overview-segment-glyph {
+	border-radius: 0;
+	background-color: var(--vscode-charts-green);
+}
+
+.monaco-workbench .part.conversation .conversation-lens-trajectory-overview-segment[data-segment-kind="permission"] .conversation-lens-trajectory-overview-segment-glyph {
+	width: 0;
+	height: 0;
+	border-radius: 0;
+	background-color: transparent;
+	border-left: 6px solid transparent;
+	border-right: 6px solid transparent;
+	border-bottom: 10px solid var(--vscode-charts-yellow);
+}
+
+.monaco-workbench .part.conversation .conversation-lens-trajectory-overview-segment[data-segment-kind="error"] .conversation-lens-trajectory-overview-segment-glyph {
+	border-radius: 1px;
+	background-color: var(--vscode-charts-red);
+	transform: rotate(45deg);
+}
+
+.monaco-workbench .part.conversation .conversation-lens-trajectory-overview-segment[data-segment-kind="compacted"] .conversation-lens-trajectory-overview-segment-glyph {
+	border-radius: 999px;
+	width: 14px;
+	height: 8px;
+	background-color: var(--vscode-descriptionForeground);
 }
 
 .monaco-workbench .part.conversation .conversation-lens-trajectory-overview-segment-label {

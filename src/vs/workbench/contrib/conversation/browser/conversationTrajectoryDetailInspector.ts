@@ -22,6 +22,8 @@ export interface TrajectoryDetailInspectorViewModel {
 	readonly state: TrajectoryDetailInspectorState;
 	readonly previewText: string;
 	readonly fullText: string | undefined;
+	/** Bounded body when the fetch is truncated — never labeled Full. */
+	readonly boundedText?: string;
 	readonly statusMessage: string | undefined;
 	readonly truncated: boolean;
 }
@@ -34,9 +36,11 @@ interface DetailCacheEntry {
 export class TrajectoryDetailInspectorModel {
 
 	private readonly cache = new Map<string, DetailCacheEntry>();
-	private readonly pendingRefs = new Set<string>();
+	private readonly pendingRefs = new Map<string, number>();
+	private sessionEpoch = 0;
 
 	clearSession(): void {
+		this.sessionEpoch++;
 		this.cache.clear();
 		this.pendingRefs.clear();
 	}
@@ -60,22 +64,26 @@ export class TrajectoryDetailInspectorModel {
 
 		const cached = this.cache.get(detailRef);
 		if (cached?.state === 'failed') {
-			return this.viewModelFromBody('failed', previewText, cached.body, conversationTrajectoryDetailFailed, false);
+			return this.viewModelFromBody('failed', previewText, cached.body, conversationTrajectoryDetailFailed);
 		}
 		if (cached?.state === 'full' && cached.body !== undefined) {
-			return this.viewModelFromBody('full', previewText, cached.body, undefined, false);
+			return this.viewModelFromBody('full', previewText, cached.body, undefined);
+		}
+		if (cached?.state === 'preview' && cached.body !== undefined) {
+			return this.viewModelFromBody('preview', previewText, cached.body, conversationTrajectoryDetailTruncatedNotice);
 		}
 
 		const body = context?.getDetailBody(detailRef);
 		if (body !== undefined) {
-			this.cache.set(detailRef, { state: 'full', body });
+			const truncated = body.length > TRAJECTORY_INSPECTOR_MAX_DOM_CHARS;
+			this.cache.set(detailRef, { state: truncated ? 'preview' : 'full', body });
 			this.pendingRefs.delete(detailRef);
-			return this.viewModelFromBody('full', previewText, body, undefined, false);
+			return this.viewModelFromBody(truncated ? 'preview' : 'full', previewText, body, truncated ? conversationTrajectoryDetailTruncatedNotice : undefined);
 		}
 
 		if (context?.supportsDetailFetch()) {
 			if (!this.pendingRefs.has(detailRef)) {
-				this.pendingRefs.add(detailRef);
+				this.pendingRefs.set(detailRef, this.sessionEpoch);
 				context.requestDetail?.(detailRef);
 			}
 			return {
@@ -96,7 +104,10 @@ export class TrajectoryDetailInspectorModel {
 		};
 	}
 
-	markFailed(detailRef: string): void {
+	markFailed(detailRef: string, epoch?: number): void {
+		if (epoch !== undefined && epoch !== this.sessionEpoch) {
+			return;
+		}
 		this.cache.set(detailRef, { state: 'failed' });
 		this.pendingRefs.delete(detailRef);
 	}
@@ -106,21 +117,30 @@ export class TrajectoryDetailInspectorModel {
 		previewText: string,
 		body: string | undefined,
 		statusMessage: string | undefined,
-		_truncated: boolean,
 	): TrajectoryDetailInspectorViewModel {
 		if (!body) {
 			return { state, previewText, fullText: undefined, statusMessage, truncated: false };
 		}
 		const truncated = body.length > TRAJECTORY_INSPECTOR_MAX_DOM_CHARS;
-		const fullText = truncated
+		const displayText = truncated
 			? body.slice(0, TRAJECTORY_INSPECTOR_MAX_DOM_CHARS) + conversationTrajectoryDetailTruncatedSuffix
 			: body;
+		if (truncated) {
+			return {
+				state: 'preview',
+				previewText,
+				fullText: undefined,
+				boundedText: displayText,
+				statusMessage: statusMessage ?? conversationTrajectoryDetailTruncatedNotice,
+				truncated: true,
+			};
+		}
 		return {
 			state,
 			previewText,
-			fullText,
+			fullText: state === 'full' ? displayText : undefined,
 			statusMessage,
-			truncated,
+			truncated: false,
 		};
 	}
 }
@@ -143,6 +163,11 @@ export const conversationTrajectoryDetailFailed = localize(
 export const conversationTrajectoryDetailTruncatedSuffix = localize(
 	'conversationTrajectory.detailTruncated',
 	"\n\n… (content truncated for display)",
+);
+
+export const conversationTrajectoryDetailTruncatedNotice = localize(
+	'conversationTrajectory.detailTruncatedNotice',
+	"Showing a bounded preview. This is not the full content.",
 );
 
 export const conversationTrajectoryCompactedDiscardedNotice = localize(

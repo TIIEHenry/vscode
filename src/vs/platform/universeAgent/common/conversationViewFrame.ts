@@ -41,6 +41,13 @@ export interface ItemAttribution {
 	readonly agentPath?: readonly string[];
 	/** Join table correlation for revealItem (m6 §11). */
 	readonly toolCallId?: string;
+	/** Nested tool parent when the envelope / lifecycle names one. */
+	readonly parentToolCallId?: string;
+	/**
+	 * Envelope `branch_reason` when demuxed from the protocol.
+	 * `compact` / `compaction` marks a compacted trajectory row — never inferred.
+	 */
+	readonly branchReason?: string;
 	/** Set only by the stub fixture source; keeps PRD-003.3 "Stub" chrome without reading titles. */
 	readonly stub?: true;
 }

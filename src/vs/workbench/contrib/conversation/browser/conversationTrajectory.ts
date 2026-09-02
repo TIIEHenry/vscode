@@ -130,6 +130,8 @@ export const conversationTrajectoryInspectorStatus = localize('conversationTraje
 export interface IConversationTrajectoryOptions {
 	readonly onNavigateToLinkedTurn?: (turnId: string) => void;
 	readonly detailContext?: ITrajectoryDetailContext;
+	/** When false (stub fixture), omit live / duration chrome and keep Stub prefix. */
+	readonly showLiveChrome?: () => boolean;
 }
 
 interface ITrajectoryRecordTemplateData {
@@ -147,6 +149,7 @@ interface ITrajectoryFoldTemplateData {
 interface ITrajectoryTableHost {
 	readonly selectedRecordId: string | undefined;
 	isFoldExpanded(spanId: string): boolean;
+	showLiveChrome(): boolean;
 	onSelectRecord(record: ConversationTrajectoryRecord, navigateToConversation: boolean): void;
 	onToggleFold(spanId: string): void;
 }
@@ -245,7 +248,7 @@ class TrajectoryFoldRenderer implements IListRenderer<TrajectoryTableDisplayItem
 		const expanded = this.host.isFoldExpanded(span.id);
 		templateData.root.dataset.foldId = span.id;
 		templateData.header.setAttribute('aria-expanded', String(expanded));
-		templateData.summary.textContent = summarizeTrajectoryProcessSteps(span);
+		templateData.summary.textContent = summarizeTrajectoryProcessSteps(span, { showLiveChrome: this.host.showLiveChrome() });
 		templateData.chevron.classList.toggle('conversation-process-fold-chevron--expanded', expanded);
 		templateData.children.hidden = !expanded;
 		clearNode(templateData.children);
@@ -303,6 +306,7 @@ export class ConversationTrajectory extends Disposable implements ITrajectoryTab
 	private readonly inspector: HTMLElement;
 	private readonly inspectorContent: HTMLElement;
 	private readonly renderDisposables = this._register(new DisposableStore());
+	private readonly overviewDisposables = this._register(new DisposableStore());
 	private readonly processFoldOuterExpanded = new Map<string, boolean>();
 	private readonly selectedRecordIdHolder = { current: undefined as string | undefined };
 	private readonly linkedTurnIds = { current: new Set<string>() };
@@ -450,6 +454,10 @@ export class ConversationTrajectory extends Disposable implements ITrajectoryTab
 		return this.processFoldOuterExpanded.get(spanId) ?? true;
 	}
 
+	showLiveChrome(): boolean {
+		return this.options.showLiveChrome?.() ?? false;
+	}
+
 	onSelectRecord(record: ConversationTrajectoryRecord, navigateToConversation: boolean): void {
 		this.selectRecord(record, navigateToConversation);
 	}
@@ -484,6 +492,7 @@ export class ConversationTrajectory extends Disposable implements ITrajectoryTab
 
 	clearSessionState(): void {
 		this.detailInspector.clearSession();
+		this.processFoldOuterExpanded.clear();
 		this.closeInspector();
 	}
 
@@ -499,6 +508,7 @@ export class ConversationTrajectory extends Disposable implements ITrajectoryTab
 	}
 
 	private refreshOverview(): void {
+		this.overviewDisposables.clear();
 		clearNode(this.overviewTrack);
 		const { segments } = buildTrajectoryOverviewSegments(this.currentRecords);
 		this.overviewSegments = segments;
@@ -514,7 +524,7 @@ export class ConversationTrajectory extends Disposable implements ITrajectoryTab
 			segmentEl.title = segment.label;
 			append(segmentEl, $('span.conversation-lens-trajectory-overview-segment-glyph'));
 			append(segmentEl, $('span.conversation-lens-trajectory-overview-segment-label')).textContent = segment.label;
-			this.renderDisposables.add(addDisposableListener(segmentEl, 'click', () => {
+			this.overviewDisposables.add(addDisposableListener(segmentEl, 'click', () => {
 				const targetId = segment.recordIds[0];
 				if (targetId) {
 					this.revealRecord(targetId);
@@ -661,6 +671,8 @@ export class ConversationTrajectory extends Disposable implements ITrajectoryTab
 
 		if (detailView.state === 'full' && detailView.fullText !== undefined) {
 			appendInspectorSection(this.inspectorContent, conversationTrajectoryInspectorFull, detailView.fullText);
+		} else if (detailView.truncated && detailView.boundedText) {
+			appendInspectorSection(this.inspectorContent, conversationTrajectoryInspectorPreview, detailView.boundedText);
 		} else if (detailView.state === 'loading') {
 			const loading = append(this.inspectorContent, $('.conversation-lens-trajectory-inspector-loading'));
 			loading.textContent = conversationTrajectoryDetailLoading;

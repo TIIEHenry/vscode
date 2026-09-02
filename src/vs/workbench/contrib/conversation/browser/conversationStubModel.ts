@@ -36,6 +36,8 @@ export interface ConversationStubTurn {
 	readonly streaming?: boolean;
 	/** Tool execution status for live process-fold chrome. */
 	readonly toolStatus?: 'pending' | 'running' | 'completed' | 'failed' | 'cancelled';
+	/** L1 turn id when the snapshot admits one; never inferred. */
+	readonly turnId?: string;
 }
 
 export interface ConversationStubSession {

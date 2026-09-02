@@ -73,7 +73,7 @@ export function projectProcessFoldSpans(turns: readonly ConversationStubTurn[]):
 		}
 
 		spans.push({
-			id: `fold:${segment[0]!.id}`,
+			id: processFoldSpanId(segment),
 			startIndex,
 			endIndex,
 			turnIds: segment.map(turn => turn.id),
@@ -94,6 +94,34 @@ export function projectProcessFoldSpans(turns: readonly ConversationStubTurn[]):
 
 	finalizeSpan(turns.length);
 	return spans;
+}
+
+/** Overlay attribution keys share the L2 item id after the `overlay:` prefix (stream-timeline §3.3). */
+export function stripOverlayAttributionPrefix(id: string): string {
+	return id.startsWith('overlay:') ? id.slice('overlay:'.length) : id;
+}
+
+/** Stable process-fold span id: same admitted turn stays one span across overlay → L2. */
+export function processFoldSpanId(segment: readonly ConversationStubTurn[]): string {
+	const admittedTurnId = sharedAdmittedTurnId(segment);
+	if (admittedTurnId) {
+		return `fold:turn:${admittedTurnId}`;
+	}
+	const firstId = segment[0]?.id;
+	return `fold:${firstId ? stripOverlayAttributionPrefix(firstId) : 'empty'}`;
+}
+
+function sharedAdmittedTurnId(segment: readonly ConversationStubTurn[]): string | undefined {
+	const admitted = new Set<string>();
+	for (const turn of segment) {
+		if (turn.turnId) {
+			admitted.add(turn.turnId);
+		}
+	}
+	if (admitted.size !== 1) {
+		return undefined;
+	}
+	return [...admitted][0];
 }
 
 const TRAJECTORY_PROCESS_FOLD_KINDS: ReadonlySet<ConversationTrajectoryKind> = new Set(['thinking', 'tool', 'subtool']);
@@ -219,10 +247,15 @@ function collectTrajectoryStepNames(span: TrajectoryProcessFoldSpan): string[] {
 	});
 }
 
-/** Outer process-fold header summary for trajectory records (must include Stub per PRD-013). */
-export function summarizeTrajectoryProcessSteps(span: TrajectoryProcessFoldSpan): string {
+/** Outer process-fold header summary for trajectory records. Stub prefix only when no engine live chrome. */
+export function summarizeTrajectoryProcessSteps(span: TrajectoryProcessFoldSpan, options?: { readonly showLiveChrome?: boolean }): string {
 	const stepCount = span.records.length;
 	const stepSummary = formatStepNameCounts(collectTrajectoryStepNames(span));
+	if (options?.showLiveChrome) {
+		return stepSummary.length > 0
+			? `${stepCount} steps · ${stepSummary}`
+			: `${stepCount} steps`;
+	}
 	return stepSummary.length > 0
 		? `Stub · ${stepCount} steps · ${stepSummary}`
 		: `Stub · ${stepCount} steps`;

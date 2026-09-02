@@ -49,6 +49,9 @@ type ToolAttributionHint = {
 	readonly itemId: string;
 	readonly toolCallId?: string;
 	readonly agentId?: string;
+	readonly role?: ItemAttribution['role'];
+	/** Protocol `branch_reason`; only set when the envelope names one. */
+	readonly branchReason?: string;
 };
 
 type ActiveLease = {
@@ -288,6 +291,7 @@ export class SessionViewHost extends Disposable {
 		});
 
 		this.captureToolAttributionHint(sessionId, payload);
+		this.captureEnvelopeAttributionHint(sessionId, payload);
 	}
 
 	private captureToolAttributionHint(sessionId: string, payload: unknown): void {
@@ -313,6 +317,40 @@ export class SessionViewHost extends Disposable {
 		}
 	}
 
+	private captureEnvelopeAttributionHint(sessionId: string, payload: unknown): void {
+		if (payload === null || typeof payload !== 'object' || Array.isArray(payload)) {
+			return;
+		}
+		const record = payload as Record<string, unknown>;
+		const appended = record.envelope_appended ?? record.envelopeAppended;
+		if (!appended || typeof appended !== 'object') {
+			return;
+		}
+		const envelope = readPayloadField(appended, 'envelope');
+		if (!envelope || typeof envelope !== 'object' || Array.isArray(envelope)) {
+			return;
+		}
+		const id = readPayloadField(envelope, 'id');
+		if (typeof id !== 'string' || !id) {
+			return;
+		}
+		const branchReason = readPayloadField(envelope, 'branch_reason', 'branchReason');
+		const agentId = readPayloadField(envelope, 'agent_id', 'agentId');
+		const roleRaw = readPayloadField(envelope, 'role');
+		const role = normalizeAttributionRole(roleRaw);
+		if (typeof branchReason !== 'string' && !role && typeof agentId !== 'string') {
+			return;
+		}
+		const hints = this.toolAttributionHints.get(sessionId) ?? [];
+		hints.push({
+			itemId: id,
+			role,
+			agentId: typeof agentId === 'string' ? agentId : undefined,
+			branchReason: typeof branchReason === 'string' && branchReason ? branchReason : undefined,
+		});
+		this.toolAttributionHints.set(sessionId, hints);
+	}
+
 	private onFrameEnqueued(leaseId: ViewLeaseId, sessionId: string, frame: ViewFrame): void {
 		const attributionMap = this.leaseAttribution.get(String(leaseId)) ?? new Map();
 		const attributionPatches: Array<NonNullable<ConversationViewFrame['attribution']>[number]> = [];
@@ -322,10 +360,13 @@ export class SessionViewHost extends Disposable {
 				const id = String(item.id);
 				if (!attributionMap.has(id)) {
 					const hint = hints.find(h => h.itemId === id || h.toolCallId === id);
-					const role = 'assistant' as const;
-					const attribution: ItemAttribution = hint?.toolCallId
-						? { role, toolCallId: hint.toolCallId, agentId: hint.agentId }
-						: { role };
+					const role = hint?.role ?? 'assistant';
+					const attribution: ItemAttribution = {
+						role,
+						...(hint?.toolCallId ? { toolCallId: hint.toolCallId } : {}),
+						...(hint?.agentId ? { agentId: hint.agentId } : {}),
+						...(hint?.branchReason ? { branchReason: hint.branchReason } : {}),
+					};
 					attributionMap.set(id, attribution);
 					attributionPatches.push({ op: 'upsertAttribution', itemId: id, attribution });
 				}
@@ -338,9 +379,12 @@ export class SessionViewHost extends Disposable {
 					if (summary.kind === 'tool') {
 						const hint = hints.find(h => h.itemId === id || h.toolCallId === id);
 						const toolCallId = hint?.toolCallId;
-						const attribution: ItemAttribution = toolCallId
-							? { role: 'tool', toolCallId, agentId: hint?.agentId }
-							: { role: 'tool' };
+						const attribution: ItemAttribution = {
+							role: hint?.role ?? 'tool',
+							...(toolCallId ? { toolCallId } : {}),
+							...(hint?.agentId ? { agentId: hint.agentId } : {}),
+							...(hint?.branchReason ? { branchReason: hint.branchReason } : {}),
+						};
 						attributionMap.set(id, attribution);
 						attributionPatches.push({ op: 'upsertAttribution', itemId: id, attribution });
 					}
@@ -521,6 +565,24 @@ export class SessionViewHost extends Disposable {
 			});
 		}
 		this.drainIntents(sessionId);
+	}
+}
+
+function normalizeAttributionRole(value: unknown): ItemAttribution['role'] | undefined {
+	if (typeof value !== 'string') {
+		return undefined;
+	}
+	switch (value.toLowerCase()) {
+		case 'user':
+			return 'user';
+		case 'assistant':
+			return 'assistant';
+		case 'system':
+			return 'system';
+		case 'tool':
+			return 'tool';
+		default:
+			return undefined;
 	}
 }
 

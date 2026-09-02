@@ -575,6 +575,7 @@ export class ConversationLens extends Disposable {
 		}));
 		this.trajectoryView = this._register(this.instantiationService.createInstance(ConversationTrajectory, this.readingColumn, {
 			onNavigateToLinkedTurn: turnId => this.navigateToTurnFromTrajectory(turnId),
+			showLiveChrome: () => this.stubService.isEngineConnected(),
 			detailContext: {
 				supportsDetailFetch: () => this.stubService.isEngineConnected(),
 				getDetailBody: ref => this.sessionViewLease?.details.get(ref),
