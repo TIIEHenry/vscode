@@ -15,6 +15,7 @@ import { Disposable, DisposableMap, DisposableStore } from '../../../../base/com
 import { URI } from '../../../../base/common/uri.js';
 import { localize } from '../../../../nls.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
+import { ICommandService } from '../../../../platform/commands/common/commands.js';
 import { IContextMenuService } from '../../../../platform/contextview/browser/contextView.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { WorkbenchList } from '../../../../platform/list/browser/listService.js';
@@ -35,6 +36,11 @@ import {
 	ISourcesReviewProgressService,
 } from '../common/sourcesReviewProgress.js';
 import { ISourcesDiffPanelService } from '../common/sourcesDiffPanelService.js';
+import {
+	CONVERSATION_REVEAL_ITEM_COMMAND,
+	IReviewAttributionChipDisplay,
+	ISourcesReviewAttributionService,
+} from '../common/sourcesReviewAttribution.js';
 import { openSourcesChangeEntry } from './sourcesChangesList.js';
 import { SourcesListFilterBox } from './sourcesListFilterBox.js';
 import { sourcesReviewListHeaderHint } from './sourcesReviewListStrings.js';
@@ -56,11 +62,14 @@ class SourcesReviewDelegate implements IListVirtualDelegate<ISourcesReviewEntry>
 interface ISourcesReviewTemplateData {
 	readonly container: HTMLElement;
 	readonly label: IResourceLabel;
+	readonly attribution: HTMLElement;
 	readonly reviewState: HTMLElement;
 }
 
 interface ISourcesReviewRendererDelegate {
 	isReviewed(entry: ISourcesReviewEntry): boolean;
+	getChips(entry: ISourcesReviewEntry): readonly IReviewAttributionChipDisplay[];
+	onChipClick(toolCallId: string): void;
 }
 
 class SourcesReviewRenderer implements IListRenderer<ISourcesReviewEntry, ISourcesReviewTemplateData> {
@@ -76,9 +85,11 @@ class SourcesReviewRenderer implements IListRenderer<ISourcesReviewEntry, ISourc
 	renderTemplate(container: HTMLElement): ISourcesReviewTemplateData {
 		container.classList.add('sources-review-row');
 		const label = this.labels.create(container, { supportDescriptionHighlights: true });
+		const attribution = dom.append(container, $('.sources-review-attribution'));
+		attribution.setAttribute('aria-hidden', 'true');
 		const reviewState = dom.append(container, $('.sources-review-state'));
 		reviewState.setAttribute('aria-hidden', 'true');
-		return { container, label, reviewState };
+		return { container, label, attribution, reviewState };
 	}
 
 	renderElement(element: ISourcesReviewEntry, _index: number, templateData: ISourcesReviewTemplateData): void {
@@ -92,6 +103,26 @@ class SourcesReviewRenderer implements IListRenderer<ISourcesReviewEntry, ISourc
 		templateData.reviewState.textContent = reviewed ? '○' : '●';
 		templateData.reviewState.classList.toggle('reviewed', reviewed);
 		templateData.reviewState.classList.toggle('unreviewed', !reviewed);
+
+		dom.clearNode(templateData.attribution);
+		const chips = this.delegate.getChips(element);
+		for (const chip of chips) {
+			if (chip.overflow) {
+				const overflow = dom.append(templateData.attribution, $('span.sources-review-attribution-chip.overflow'));
+				overflow.textContent = chip.label;
+				continue;
+			}
+
+			const button = dom.append(templateData.attribution, $('button.sources-review-attribution-chip')) as HTMLButtonElement;
+			button.type = 'button';
+			button.textContent = chip.label;
+			button.title = chip.label;
+			button.addEventListener('click', event => {
+				event.preventDefault();
+				event.stopPropagation();
+				this.delegate.onChipClick(chip.toolCallId);
+			});
+		}
 	}
 
 	disposeTemplate(templateData: ISourcesReviewTemplateData): void {
@@ -111,7 +142,11 @@ class SourcesReviewAccessibilityProvider implements IListAccessibilityProvider<I
 		const reviewState = this.delegate.isReviewed(element)
 			? localize('sourcesReviewList.reviewed', "reviewed")
 			: localize('sourcesReviewList.unreviewed', "unreviewed");
-		return `${element.name}, ${element.description}, ${reviewState}`;
+		const chips = this.delegate.getChips(element);
+		const attribution = chips.length > 0
+			? `, ${chips.map(chip => chip.label).join(', ')}`
+			: '';
+		return `${element.name}, ${element.description}, ${reviewState}${attribution}`;
 	}
 }
 
@@ -137,9 +172,12 @@ export class SourcesReviewList extends Disposable {
 	private unreviewedOnly = false;
 	private visibleEntries: ISourcesReviewEntry[] = [];
 	private allEntries: ISourcesReviewEntry[] = [];
+	private chipMap = new Map<string, readonly IReviewAttributionChipDisplay[]>();
 
 	private readonly rendererDelegate: ISourcesReviewRendererDelegate = {
 		isReviewed: (entry) => this.isEntryReviewed(entry),
+		getChips: (entry) => this.chipMap.get(entry.resource.toString()) ?? [],
+		onChipClick: (toolCallId) => void this.revealAttributionItem(toolCallId),
 	};
 
 	constructor(
@@ -151,6 +189,8 @@ export class SourcesReviewList extends Disposable {
 		@IConfigurationService private readonly configurationService: IConfigurationService,
 		@ISourcesDiffPanelService private readonly sourcesDiffPanelService: ISourcesDiffPanelService,
 		@ISourcesReviewProgressService private readonly reviewProgressService: ISourcesReviewProgressService,
+		@ISourcesReviewAttributionService private readonly attributionService: ISourcesReviewAttributionService,
+		@ICommandService private readonly commandService: ICommandService,
 		@IContextMenuService private readonly contextMenuService: IContextMenuService,
 	) {
 		super();
@@ -204,6 +244,7 @@ export class SourcesReviewList extends Disposable {
 
 		this.refreshScheduler = this._register(new RunOnceScheduler(() => void this.refresh(), 250));
 		this._register(this.reviewProgressService.onDidChange(() => this.scheduleRefresh()));
+		this._register(this.attributionService.onDidChange(() => this.scheduleRefresh()));
 		this.scheduleRefresh();
 
 		this._register(this.scmService.onDidAddRepository(repo => {
@@ -285,6 +326,27 @@ export class SourcesReviewList extends Disposable {
 		const key = this.entryKeys.get(entry.resource.toString());
 		if (key) {
 			this.reviewProgressService.markUnreviewed(key);
+		}
+	}
+
+	private updateHeaderHint(): void {
+		const parts = [sourcesReviewListHeaderHint];
+		const attributionSuffix = this.attributionService.getAttributionHeaderSuffix();
+		if (attributionSuffix) {
+			parts.push(attributionSuffix);
+		}
+		const workDirNote = this.attributionService.getWorkDirMismatchNote();
+		if (workDirNote) {
+			parts.push(workDirNote);
+		}
+		this.headerHint.textContent = parts.join(' ');
+	}
+
+	private async revealAttributionItem(toolCallId: string): Promise<void> {
+		try {
+			await this.commandService.executeCommand(CONVERSATION_REVEAL_ITEM_COMMAND, { toolCallId });
+		} catch {
+			// revealItem contract: missing command or lookup miss → silent return
 		}
 	}
 
@@ -415,6 +477,9 @@ export class SourcesReviewList extends Disposable {
 			this.unreviewedOnly,
 			entry => this.isEntryReviewed(entry),
 		);
+
+		this.chipMap = new Map(this.attributionService.buildChipMapForEntries(this.allEntries));
+		this.updateHeaderHint();
 
 		const hasAnyEntries = this.allEntries.length > 0;
 		const hasVisibleEntries = this.visibleEntries.length > 0;
