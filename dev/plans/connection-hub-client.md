@@ -4,7 +4,7 @@ type: plan
 status: accepted
 phase: M6+
 updated: 2026-09-02
-summary: "IDE 扮演 Hub Client 设备；切片 H0–H5 已落 @ `058ed9d0`–`83df4497`；H6 GUA 直连仍 v2；H4a 真 Hub 冒烟 / PRD-024 implemented 未签收"
+summary: "IDE 扮演 Hub Client 设备；切片 H0–H5 已落 @ `058ed9d0`–`83df4497`；H1b 启动 refresh 恢复 @ `dba63c70`；H6 GUA 直连仍 v2；H4a 真 Hub 冒烟 / PRD-024 implemented 未签收"
 ---
 
 # Connection Hub 客户端接入
@@ -244,7 +244,7 @@ connect(profileId)
 | 项 | 裁定 | 理由 |
 |----|------|------|
 | access token | **仅内存**（node 宿主），随 `hubBaseUrl` 分桶；`expiresAtMs` 由 `expiresIn` 推导 | Desktop ADR-026 同款 |
-| refresh + csrf | **加密持久化**（main 侧等价 secret 存储，见 §3.6 落点行；加密不可用则内存、并诚实提示「重启需重登」）；`POST /auth/refresh` 单飞、按需（access 过期或 401 一次） | **与 Desktop 不同、与 Singularity 相同**：Hub access 默认 **15 min**，IDE 进程长命且 I4 自动重连每次要新 ticket；不持久化 refresh 会让每次网络抖动都变成「请重新登录」 |
+| refresh + csrf | **加密持久化**（main 侧等价 secret 存储，见 §3.6 落点行；加密不可用则内存、并诚实提示「重启需重登」）；`POST /auth/refresh` 单飞；**启动时** access 过期则 `restorePersistedHubSessionIfNeeded` → `refreshIfNeeded`（@ `dba63c70`） | **与 Desktop 不同、与 Singularity 相同**：Hub access 默认 **15 min**，IDE 进程长命且 I4 自动重连每次要新 ticket；不持久化 refresh 会让每次网络抖动都变成「请重新登录」；**运行中** 401 自动 refresh **未做** |
 | logout | `POST /auth/logout`（Bearer）+ 清内存 + 删 secret + 清目录快照；**不删**身份私钥与 trust（另有「忘记此 Engine」） | 上游 §1.4 本地数据边界 |
 | `mustChangePassword` | 存会话但 `hub_password_change_required`：禁 ticket、禁目录写操作；pane 引导改密 | ADR-318 |
 | renderer 可见 | 仅 `HubAuthStatus`（`signedOut | signedIn{email} | mustChangePassword`） | 无 token / cookie / csrf 过 IPC |
@@ -366,7 +366,8 @@ H4a 的关门不依赖 StatusBar：pane 自身显示 `ConnectionPhase`，PRD-024
 |------|--------|------|--------|
 | **H0** **已落** @ `01cd5018` | PRD-024 `proposed`（编号以落盘时下一空号为准）、traceability、glossary；ADR-003 审查记录已补「宿主 = electron-main；Hub 客户端同宿主」（本轮已写入，H0 只需核对） | `check-docs-health.py` 0 warning | docs（`requirements.md` / `traceability.md` 当前有 W3-r 在途改动，H0 须等其合入或同一写者） |
 | **H1** **已落** @ `058ed9d0` | vendor Desktop `deviceGrant/**`、`hub/**`（sync 脚本 + `SYNC.md`）；`clientIdentityStore` / `engineTrustStore` / `connectionProfileStore` / `hubSessionStore`（含 refresh）；`hubDirectoryClient` | **KAT-1 / KAT-2** 断言（SAS 码 `0H4X-JVFQ` / `C1RD-95QA`，transcript sha256 对齐 ADR-261 §3b）；AuthSession / ticket 合同负例；refresh 单飞；secret 不可用 fail-closed | `platform/universeAgent/node/{deviceGrant,hub,*Store,hubDirectoryClient}.ts`；`package.json`（若需 sync 脚本依赖） |
-| **H1a** **已落** @ `321a4e0b` | electron-main 装配加密 `HubSessionStore` / `ClientIdentityStore`（§3.5 / §3.6）；`loginHub` 解析 `hub_refresh` Set-Cookie → `applyAuthSession` 加密落盘；不可加密时 refresh / 身份**不落盘**、pane 诚实报错。**不含**启动 `refreshIfNeeded` 恢复（槽 A） | `hubSessionStore.test.ts`：加密落盘 / `clear` 删 secret / 不可用时不 persist；`ClientIdentityStore` 不可用时不 persist | `electron-main/universeAgentMainService.ts`、`node/hub/hub-auth-client.ts` |
+| **H1a** **已落** @ `321a4e0b` | electron-main 装配加密 `HubSessionStore` / `ClientIdentityStore`（§3.5 / §3.6）；`loginHub` 解析 `hub_refresh` Set-Cookie → `applyAuthSession` 加密落盘；不可加密时 refresh / 身份**不落盘**、pane 诚实报错 | `hubSessionStore.test.ts`：加密落盘 / `clear` 删 secret / 不可用时不 persist；`ClientIdentityStore` 不可用时不 persist | `electron-main/universeAgentMainService.ts`、`node/hub/hub-auth-client.ts` |
+| **H1b** **已落** @ `dba63c70`（合入 `17968447`） | 启动 `restorePersistedHubSessionIfNeeded` / `whenStartupRestoreComplete` / `listPersistedHubBaseUrls`：有加密 refresh → `refreshIfNeeded`；成功 → `signedIn`；401/403 → `authExpired`；无持久化 → `signedOut` | `universeAgentHubService.test.ts`：构造时恢复 / 401→authExpired / 无持久化→signedOut | `node/universeAgentHubService.ts` |
 | **H2** **已落** @ `18da9100` | `universeAgentChannel` 增 pinned TLS 分支（leaf DER 为 ca + `checkServerIdentity` 指纹 + `ssl_target_name_override`）；`GetAuthNonce` + `DeviceAuth` Connect；`pairingOrchestrator`（S1–S7 + recoverTrust） | mock TLS server：错误 pin 失败 / 正确 pin 成功 / nonce 主机名不妨碍（S21）；观测指纹 ≠ 自述指纹 → fail-closed；pairing 返回不置 connected；S4 意外 token 不 install | `universeAgentChannel.ts`（与 A1 共文件，**A1 合入后**开） |
 | **H3** **已落** @ `7ebd7618` | `connectionResolver`（live 目录判定、ticket、4xx / 网络错分流、`allowRelayFallback` 随返回）；transport 断 → 重新解析；`IUniverseAgentConnection.connect(profileId)` | 单测：目录缺 id / revoked 拒拨；401 → `hub_auth_expired` 且不签 ticket；ticket TTL 过期不复用；重连产生新 ticket | `connectionResolver.ts`、`universeAgentConnection*.ts` |
 | **H4a** **已落** @ `127c0586` | pane 四区 + SAS 对话框；ProxyChannel 增 hub 面；**不改** StatusBar | `connectionPreferencesPane.test.ts` 扩：矩阵六行文案、SAS 无第三按钮、Hub 登录态不改 `isEngineConnected`；`conversationSessionStatusBar` 既有测加一条负向断言「Hub signedIn + `connected` 前，entry 文案仍 `Engine not connected`」；隔离 profile 冒烟对**真 Hub**（`connection-hub` 本地 `go run` + Engine `--hub --enroll`）：登录 → 列表 → SAS → 连接 → roster 出现 UA 会话（需 M6-A2 已合入；否则只验到 `connected`） | `contrib/conversation/browser/connectionPreferencesPane*.ts`、`common/uaPreferencesPanes.ts`、`electron-browser` 代理 |
