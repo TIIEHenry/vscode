@@ -69,6 +69,18 @@
 	background-color: var(--vscode-toolbar-activeBackground, var(--vscode-list-hoverBackground));
 }
 
+.monaco-workbench .part.conversation .conversation-lens-session-sync-badge {
+	flex-shrink: 0;
+	padding: 0 5px;
+	border-radius: 2px;
+	font-size: 10px;
+	font-weight: 600;
+	text-transform: none;
+	letter-spacing: normal;
+	color: var(--vscode-descriptionForeground);
+	background-color: var(--vscode-badge-background, var(--vscode-toolbar-hoverBackground));
+}
+
 .monaco-workbench .part.conversation .conversation-lens-session-title-wrap {
 	flex: 1;
 	min-width: 0;
@@ -1225,6 +1237,14 @@
 	font-size: 11px;
 	line-height: 20px;
 	border-radius: 4px;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-inbox-sync {
+	flex-shrink: 0;
+	padding: 0 4px;
+	font-size: 11px;
+	font-weight: 600;
+	color: var(--vscode-descriptionForeground);
 }
 
 .monaco-workbench .part.conversation .conversation-lens-inbox-pending {

@@ -95,6 +95,20 @@ suite('conversationSessionView (S1)', () => {
 		assert.deepStrictEqual(diff.attribution.map(p => p.op === 'upsertAttribution' ? p.itemId : `-${p.itemId}`), ['a1']);
 	});
 
+	test('diffProjections emits localPendingSend patches', () => {
+		const before = stubTurnsToSnapshot('s', [{ id: 'u1', kind: 'user', text: 'a' }]);
+		const after: typeof before = {
+			...before,
+			snapshot: {
+				...before.snapshot,
+				localPendingSends: [{ operationId: 'op-1' as SessionViewSnapshot['localPendingSends'][number]['operationId'], summary: { kind: 'text', title: 'You', preview: 'pending' } }],
+			},
+		};
+		const diff = diffProjections(before, after);
+		assert.deepStrictEqual(diff.patches.map(p => p.op), ['upsertLocalSend']);
+		assert.deepStrictEqual([...diff.changedIds], ['send:op-1']);
+	});
+
 	test('acquireSessionView lease mirrors roster mutations through session-core frames', () => {
 		const service = store.add(new ConversationStubService());
 		const sessionId = service.getActiveSessionId();
@@ -120,7 +134,7 @@ suite('conversationSessionView (S1)', () => {
 		assert.strictEqual(applied.length, 1);
 	});
 
-	test('lease.post(submitInput) writes through the same stub path as the Dock', () => {
+	test('lease.post(submitInput) writes through the same stub path as the Dock', async () => {
 		const service = store.add(new ConversationStubService());
 		const sessionId = service.getActiveSessionId();
 		const lease = store.add(service.acquireSessionView(sessionId));
@@ -128,10 +142,17 @@ suite('conversationSessionView (S1)', () => {
 
 		const outcome = lease.post({ kind: 'submitInput', text: 'ping' });
 		assert.strictEqual(outcome.accepted, true);
+		assert.ok(lease.snapshot.localPendingSends.length === 1);
+		const pendingEntries = projectSnapshotToEntries(lease.snapshot, lease.attribution, lease.details);
+		assert.ok(pendingEntries.some(entry => entry.pending && entry.text === 'ping'));
+
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+
 		const turns = service.getTurns(sessionId);
 		assert.strictEqual(turns.length, before + 2);
 		assert.deepStrictEqual(turns.slice(-2).map(t => [t.kind, t.stubEcho ?? false]), [['user', false], ['assistant', true]]);
 		assert.deepStrictEqual(lease.snapshot.sync, { kind: 'idle' });
+		assert.strictEqual(lease.snapshot.localPendingSends.length, 0);
 	});
 
 	test('lease.post(permissionRespond) resolves the pending seat', () => {

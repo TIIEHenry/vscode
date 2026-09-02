@@ -33,6 +33,7 @@ import {
 	conversationMessageQueuePendingCount,
 } from './conversationMessageQueueModel.js';
 import { IConversationRosterService } from './conversationStubService.js';
+import { formatSyncChromeLabel } from './conversationSessionView.js';
 
 export const conversationLensInboxOverlayClass = 'conversation-lens-inbox-overlay';
 
@@ -58,6 +59,7 @@ export class ConversationInboxOverlay extends Disposable {
 	private readonly goalButton!: Button;
 	private readonly stopButton!: Button;
 	private readonly pendingButton!: HTMLButtonElement;
+	private readonly syncStatus!: HTMLElement;
 
 	private openPanel: InboxListPanel | undefined;
 	private listContextView: IOpenContextView | undefined;
@@ -102,6 +104,10 @@ export class ConversationInboxOverlay extends Disposable {
 		this.pendingButton.hidden = true;
 		this._register(addDisposableListener(this.pendingButton, 'click', () => this.delegate.onScrollToPendingConfirmation()));
 
+		this.syncStatus = append(this.leftCluster, $('span.conversation-lens-inbox-sync'));
+		this.syncStatus.hidden = true;
+		this.syncStatus.setAttribute('aria-live', 'polite');
+
 		const stopContainer = append(this.rightCluster, $('.conversation-lens-inbox-stop'));
 		this.stopButton = this._register(new Button(stopContainer, {
 			...defaultButtonStyles,
@@ -130,9 +136,23 @@ export class ConversationInboxOverlay extends Disposable {
 		this.renderTaskChip(taskCount);
 		this.renderQueueChip(queueState);
 		this.renderPending(pendingConfirmations);
+		this.renderSyncStatus(this.stubService.getSessionSync(sessionId));
 
 		if (this.openPanel && this.listContextView) {
 			this.refreshOpenListPanel();
+		}
+	}
+
+	private renderSyncStatus(sync: ReturnType<IConversationRosterService['getSessionSync']>): void {
+		const label = formatSyncChromeLabel(sync);
+		if (label) {
+			this.syncStatus.hidden = false;
+			this.syncStatus.textContent = label;
+			this.syncStatus.setAttribute('aria-label', label);
+		} else {
+			this.syncStatus.hidden = true;
+			this.syncStatus.textContent = '';
+			this.syncStatus.removeAttribute('aria-label');
 		}
 	}
 

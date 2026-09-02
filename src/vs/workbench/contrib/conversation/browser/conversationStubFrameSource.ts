@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Emitter, Event } from '../../../../base/common/event.js';
+import { Emitter } from '../../../../base/common/event.js';
 import { Disposable, DisposableStore } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
 import type {
@@ -18,6 +18,8 @@ import type {
 import {
 	applyViewFrame,
 	createEmptyReplica,
+	type OperationId,
+	type PendingSendView,
 	type ReplicaCursor,
 	type SessionId,
 	type SessionViewSnapshot,
@@ -31,23 +33,23 @@ import { ConversationStubModel } from './conversationStubModel.js';
  * No-engine frame source (dev/plans/conversation-stream-timeline.md §3.6).
  *
  * Projects stub fixture turns into session-core `ViewFrame`s so the timeline has a
- * single render path. Every model mutation (signalled through the roster's
- * `onDidChangeSession`) is diffed by id into idempotent patches and applied to each
- * lease's replica through the vendored `applyViewFrame`. The stub never reports
- * `sync: live`, never streams, and marks every non-user row as Stub via attribution
- * (PRD-007 / PRD-013.4).
+ * single render path. Writes go through `post` (submitInput shows optimistic
+ * localPendingSends then supersedes into durable timeline rows). The stub never
+ * reports `sync: live`, never streams, and marks every non-user row as Stub via
+ * attribution (PRD-007 / PRD-013.4).
  */
 export class ConversationStubFrameSource extends Disposable implements IConversationViewFrameSource {
 
 	private readonly leases = new Map<string, Set<StubSessionViewLease>>();
 	private nextLeaseId = 1;
+	private nextOperationId = 1;
+	private readonly pendingSendsBySession = new Map<string, readonly PendingSendView[]>();
 
 	constructor(
-		private readonly model: ConversationStubModel,
-		onDidChangeSession: Event<string>,
+		protected readonly model: ConversationStubModel,
+		private readonly onSessionChanged: (sessionId: string) => void,
 	) {
 		super();
-		this._register(onDidChangeSession(sessionId => this.refresh(sessionId)));
 	}
 
 	acquire(sessionId: string): IConversationSessionViewLease {
@@ -73,7 +75,30 @@ export class ConversationStubFrameSource extends Disposable implements IConversa
 
 	/** @internal */
 	project(sessionId: string): ConversationSessionViewProjection {
-		return stubTurnsToSnapshot(sessionId, this.model.getTurns(sessionId));
+		const base = stubTurnsToSnapshot(sessionId, this.model.getTurns(sessionId));
+		const pending = this.pendingSendsBySession.get(sessionId);
+		if (!pending || pending.length === 0) {
+			return base;
+		}
+		return {
+			...base,
+			snapshot: {
+				...base.snapshot,
+				localPendingSends: pending,
+			},
+		};
+	}
+
+	/** Reconcile every lease after fixture-only mutations (tests / deleteTurn / …). */
+	refresh(sessionId: string): void {
+		const set = this.leases.get(sessionId);
+		if (!set) {
+			return;
+		}
+		const next = this.project(sessionId);
+		for (const lease of set) {
+			lease.reconcile(next);
+		}
 	}
 
 	/** @internal */
@@ -83,30 +108,46 @@ export class ConversationStubFrameSource extends Disposable implements IConversa
 		}
 		switch (msg.kind) {
 			case 'submitInput':
-				this.model.appendUserTurn(sessionId, msg.text);
-				this.model.appendStubEchoAssistant(sessionId, localize('conversationLens.stubEcho', "Stub echo — no engine connected."));
-				break;
+				return this.writeSubmitInput(sessionId, msg.text);
 			case 'permissionRespond':
 				this.model.resolveConfirmation(sessionId, msg.requestId, msg.decision === 'allow' ? 'allowed' : 'skipped');
+				this.refresh(sessionId);
+				this.onSessionChanged(sessionId);
 				break;
 			case 'questionRespond':
 			case 'clientToolRespond':
 				// The stub fixture has no ask-user questions or client tools; accept as a no-op, never invent a record.
 				break;
 		}
-		this.refresh(sessionId);
 		return { accepted: true, correlation: { id: `stub:${sessionId}:${Date.now()}` } };
 	}
 
-	private refresh(sessionId: string): void {
-		const set = this.leases.get(sessionId);
-		if (!set) {
-			return;
-		}
-		const next = this.project(sessionId);
-		for (const lease of set) {
-			lease.reconcile(next);
-		}
+	private writeSubmitInput(sessionId: string, text: string): PostOutcome {
+		const operationId = `stub-op-${this.nextOperationId++}` as OperationId;
+		const send: PendingSendView = {
+			operationId,
+			summary: {
+				kind: 'text',
+				title: localize('conversationSessionView.roleUser', "You"),
+				preview: text,
+			},
+		};
+		this.pendingSendsBySession.set(sessionId, [send]);
+		this.refresh(sessionId);
+		this.onSessionChanged(sessionId);
+
+		setTimeout(() => {
+			if (!this.pendingSendsBySession.has(sessionId)) {
+				return;
+			}
+			this.pendingSendsBySession.delete(sessionId);
+			this.model.appendUserTurn(sessionId, text);
+			this.model.appendStubEchoAssistant(sessionId, localize('conversationLens.stubEcho', "Stub echo — no engine connected."));
+			this.refresh(sessionId);
+			this.onSessionChanged(sessionId);
+		}, 0);
+
+		return { accepted: true, correlation: { id: String(operationId) } };
 	}
 }
 

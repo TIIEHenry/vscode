@@ -7,8 +7,17 @@ import { Emitter, Event } from '../../../../base/common/event.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { createDecorator } from '../../../../platform/instantiation/common/instantiation.js';
 import type { IConversationSessionViewLease } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
+import type { SyncChrome } from '../../../../platform/universeAgent/common/sessionView/index.js';
 import { ConversationStubFrameSource } from './conversationStubFrameSource.js';
 import { ConversationStubModel, ConversationStubSession, ConversationStubTurn } from './conversationStubModel.js';
+import {
+	mergeTrajectoryFixtureExtras,
+	projectTurnsToTrajectory,
+} from './conversationTrajectoryModel.js';
+import {
+	entriesToLegacyTurns,
+	projectSnapshotToEntries,
+} from './conversationSessionView.js';
 import { ConversationTrajectoryRecord } from './conversationTrajectoryModel.js';
 import {
 	ConversationMessageQueueState,
@@ -33,6 +42,7 @@ export interface IConversationRosterService {
 	deleteSession(sessionId: string): boolean;
 	getTurns(sessionId: string): readonly ConversationStubTurn[];
 	getTrajectoryRecords(sessionId: string): readonly ConversationTrajectoryRecord[];
+	getSessionSync(sessionId: string): SyncChrome;
 	appendUserTurn(sessionId: string, text: string): ConversationStubTurn | undefined;
 	appendStubEchoAssistant(sessionId: string, text: string): ConversationStubTurn | undefined;
 	appendConfirmationTurn(sessionId: string, text: string): ConversationStubTurn | undefined;
@@ -83,7 +93,24 @@ export class ConversationStubService extends Disposable implements IConversation
 	private readonly _onDidChangeEngineConnection = this._register(new Emitter<boolean>());
 	readonly onDidChangeEngineConnection = this._onDidChangeEngineConnection.event;
 
-	private readonly frameSource = this._register(new ConversationStubFrameSource(this.model, this.onDidChangeSession));
+	protected frameSource = this._register(new ConversationStubFrameSource(this.model, sessionId => this._onDidChangeSession.fire(sessionId)));
+
+	protected useTestFrameSource(source: ConversationStubFrameSource): void {
+		this.frameSource = source;
+	}
+
+	/** Used by test/browser to construct TestConversationFrameSource against this roster. */
+	createTestFrameSourceCallback(): { readonly model: ConversationStubModel; readonly onSessionChanged: (sessionId: string) => void } {
+		return {
+			model: this.model,
+			onSessionChanged: sessionId => this._onDidChangeSession.fire(sessionId),
+		};
+	}
+
+	/** Swaps the fixture frame producer (test/browser only). */
+	wireTestFrameSource(source: ConversationStubFrameSource): void {
+		this.useTestFrameSource(source);
+	}
 
 	acquireSessionView(sessionId: string): IConversationSessionViewLease {
 		return this.frameSource.acquire(sessionId);
@@ -147,16 +174,23 @@ export class ConversationStubService extends Disposable implements IConversation
 	}
 
 	getTurns(sessionId: string): readonly ConversationStubTurn[] {
-		return this.model.getTurns(sessionId);
+		const projection = this.frameSource.project(sessionId);
+		return entriesToLegacyTurns(projectSnapshotToEntries(projection.snapshot, projection.attribution, projection.details));
 	}
 
 	getTrajectoryRecords(sessionId: string): readonly ConversationTrajectoryRecord[] {
-		return this.model.getTrajectoryRecords(sessionId);
+		const turns = this.getTurns(sessionId);
+		return mergeTrajectoryFixtureExtras(sessionId, projectTurnsToTrajectory(turns));
+	}
+
+	getSessionSync(sessionId: string): SyncChrome {
+		return this.frameSource.project(sessionId).snapshot.sync;
 	}
 
 	appendUserTurn(sessionId: string, text: string): ConversationStubTurn | undefined {
 		const turn = this.model.appendUserTurn(sessionId, text);
 		if (turn) {
+			this.frameSource.refresh(sessionId);
 			this._onDidChangeSession.fire(sessionId);
 		}
 		return turn;
@@ -165,6 +199,7 @@ export class ConversationStubService extends Disposable implements IConversation
 	appendStubEchoAssistant(sessionId: string, text: string): ConversationStubTurn | undefined {
 		const turn = this.model.appendStubEchoAssistant(sessionId, text);
 		if (turn) {
+			this.frameSource.refresh(sessionId);
 			this._onDidChangeSession.fire(sessionId);
 		}
 		return turn;
@@ -173,6 +208,7 @@ export class ConversationStubService extends Disposable implements IConversation
 	appendConfirmationTurn(sessionId: string, text: string): ConversationStubTurn | undefined {
 		const turn = this.model.appendConfirmationTurn(sessionId, text);
 		if (turn) {
+			this.frameSource.refresh(sessionId);
 			this._onDidChangeSession.fire(sessionId);
 		}
 		return turn;
@@ -181,6 +217,7 @@ export class ConversationStubService extends Disposable implements IConversation
 	appendThinkingTurn(sessionId: string, text: string): ConversationStubTurn | undefined {
 		const turn = this.model.appendThinkingTurn(sessionId, text);
 		if (turn) {
+			this.frameSource.refresh(sessionId);
 			this._onDidChangeSession.fire(sessionId);
 		}
 		return turn;
@@ -189,23 +226,28 @@ export class ConversationStubService extends Disposable implements IConversation
 	appendToolTurn(sessionId: string, text: string): ConversationStubTurn | undefined {
 		const turn = this.model.appendToolTurn(sessionId, text);
 		if (turn) {
+			this.frameSource.refresh(sessionId);
 			this._onDidChangeSession.fire(sessionId);
 		}
 		return turn;
 	}
 
 	resolveConfirmation(sessionId: string, turnId: string, status: 'allowed' | 'skipped'): void {
-		this.model.resolveConfirmation(sessionId, turnId, status);
-		this._onDidChangeSession.fire(sessionId);
+		this.frameSource.write(sessionId, {
+			kind: 'permissionRespond',
+			requestId: turnId,
+			decision: status === 'allowed' ? 'allow' : 'deny',
+		});
 	}
 
 	countPendingConfirmations(sessionId: string): number {
-		return this.model.countPendingConfirmations(sessionId);
+		return this.frameSource.project(sessionId).snapshot.pendingActions.length;
 	}
 
 	deleteTurn(sessionId: string, turnId: string): boolean {
 		const deleted = this.model.deleteTurn(sessionId, turnId);
 		if (deleted) {
+			this.frameSource.refresh(sessionId);
 			this._onDidChangeSession.fire(sessionId);
 		}
 		return deleted;
@@ -214,6 +256,7 @@ export class ConversationStubService extends Disposable implements IConversation
 	updateUserTurnText(sessionId: string, turnId: string, text: string): boolean {
 		const updated = this.model.updateUserTurnText(sessionId, turnId, text);
 		if (updated) {
+			this.frameSource.refresh(sessionId);
 			this._onDidChangeSession.fire(sessionId);
 		}
 		return updated;

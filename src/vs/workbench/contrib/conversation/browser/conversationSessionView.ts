@@ -15,6 +15,7 @@ import type {
 	PendingActionView,
 	SessionId,
 	SessionViewSnapshot,
+	SyncChrome,
 	TimelineItemId,
 	TimelineItemView,
 	ViewPatch,
@@ -82,6 +83,22 @@ function roleTitle(role: ItemAttribution['role']): string {
 		case 'assistant': return localize('conversationSessionView.roleAssistant', "Agent");
 		case 'system': return localize('conversationSessionView.roleSystem', "System");
 		case 'tool': return localize('conversationSessionView.roleTool', "Tool");
+	}
+}
+
+/** Session-level sync chrome label for SessionBar / Inbox (PRD-007). Only `live` may say “connected”. */
+export function formatSyncChromeLabel(sync: SyncChrome): string | undefined {
+	switch (sync.kind) {
+		case 'idle':
+			return undefined;
+		case 'syncing':
+			return localize('conversationSessionView.syncSyncing', "Syncing");
+		case 'live':
+			return localize('conversationSessionView.syncLive', "Connected");
+		case 'degraded':
+			return localize('conversationSessionView.syncDegraded', "Degraded: {0}", sync.reason);
+		case 'closed':
+			return localize('conversationSessionView.syncClosed', "Disconnected: {0}", sync.reason);
 	}
 }
 
@@ -427,6 +444,21 @@ export function diffProjections(prev: ConversationSessionViewProjection, next: C
 	for (const [key, action] of prevPending) {
 		patches.push({ op: 'removePendingAction', requestId: action.requestId });
 		changedIds.add(`pending:${key}`);
+	}
+
+	const prevSends = new Map(prev.snapshot.localPendingSends.map(send => [String(send.operationId), send] as const));
+	for (const send of next.snapshot.localPendingSends) {
+		const key = String(send.operationId);
+		const before = prevSends.get(key);
+		if (!before || !sameData(before, send)) {
+			patches.push({ op: 'upsertLocalSend', send });
+			changedIds.add(`send:${key}`);
+		}
+		prevSends.delete(key);
+	}
+	for (const [key, send] of prevSends) {
+		patches.push({ op: 'removeLocalSend', operationId: send.operationId });
+		changedIds.add(`send:${key}`);
 	}
 
 	if (!sameData(prev.snapshot.sync, next.snapshot.sync)) {

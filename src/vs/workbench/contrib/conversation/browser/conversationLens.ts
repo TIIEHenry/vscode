@@ -24,10 +24,11 @@ import { ConversationIdentityStrip } from './conversationIdentityStrip.js';
 import { ConversationInboxOverlay } from './conversationInboxOverlay.js';
 import { ConversationTimelineTree } from './conversationTimelineTree.js';
 import { ConversationTrajectory } from './conversationTrajectory.js';
-import { projectSnapshotToEntries } from './conversationSessionView.js';
+import { projectSnapshotToEntries, formatSyncChromeLabel } from './conversationSessionView.js';
 import { ConversationSessionViewFrameCoalescer } from './conversationSessionViewFrameCoalescer.js';
 import type { ConversationViewFrameApplied } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
 import type { IConversationSessionViewLease } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
+import type { SyncChrome } from '../../../../platform/universeAgent/common/sessionView/index.js';
 import {
 	collectConversationTrajectoryTurnIds,
 	findTrajectoryRecordIdForTurn,
@@ -45,6 +46,9 @@ import {
 	conversationLensDockMoreTitle,
 	conversationLensDockNoAttachments,
 	conversationLensDockNoModel,
+	conversationLensPostFailedMailboxFull,
+	conversationLensPostFailedNoSession,
+	conversationLensPostFailedNotAuthenticated,
 	conversationLensDockNoRoute,
 	conversationLensDockNoTemplates,
 	conversationLensDockNoTools,
@@ -167,6 +171,9 @@ export class ConversationLens extends Disposable {
 	private prefirstHero!: HTMLElement;
 	private dockRoot!: HTMLElement;
 	private gateRow!: HTMLElement;
+	private gateLabel!: HTMLElement;
+	private sessionSyncBadge!: HTMLElement;
+	private sendFailureTimeout: ReturnType<typeof setTimeout> | undefined;
 	private composer!: HTMLElement;
 	private composerEditHeader!: HTMLElement;
 	private composerEditTitle!: HTMLElement;
@@ -380,6 +387,10 @@ export class ConversationLens extends Disposable {
 		this._register(addDisposableListener(this.lensTabConversation, 'click', () => this.setLensId('conversation')));
 		this._register(addDisposableListener(this.lensTabTrajectory, 'click', () => this.setLensId('trajectory')));
 
+		this.sessionSyncBadge = append(leading, $('span.conversation-lens-session-sync-badge'));
+		this.sessionSyncBadge.hidden = true;
+		this.sessionSyncBadge.setAttribute('aria-live', 'polite');
+
 		const titleWrap = append(leading, $('.conversation-lens-session-title-wrap'));
 		this.sessionTitleButton = append(titleWrap, $('button.conversation-lens-session-title')) as HTMLButtonElement;
 		this.sessionTitleButton.type = 'button';
@@ -516,7 +527,8 @@ export class ConversationLens extends Disposable {
 		this.gateRow = append(this.dockRoot, $('.conversation-lens-dock-gate-row'));
 		this.gateRow.setAttribute('role', 'status');
 		this.gateRow.setAttribute('aria-label', conversationLensDockEngineNotConnected);
-		append(this.gateRow, $('span.conversation-lens-dock-gate-label')).textContent = conversationLensDockEngineNotConnected;
+		this.gateLabel = append(this.gateRow, $('span.conversation-lens-dock-gate-label'));
+		this.gateLabel.textContent = conversationLensDockEngineNotConnected;
 
 		this.inboxOverlay = this._register(this.instantiationService.createInstance(ConversationInboxOverlay, this.dockRoot, {
 			onQueueItemHold: itemId => this.beginQueueEdit(itemId),
@@ -1243,8 +1255,44 @@ export class ConversationLens extends Disposable {
 		if (this.lensId === 'trajectory') {
 			this.refreshTrajectoryRecords(this.sessionViewLease.sessionId);
 		}
+		this.updateSyncChrome(this.sessionViewLease.snapshot.sync);
 		this.updateConversationPhase();
 		this.syncComposerPlacement();
+	}
+
+	private updateSyncChrome(sync: SyncChrome): void {
+		const label = formatSyncChromeLabel(sync);
+		if (this.sessionSyncBadge) {
+			if (label) {
+				this.sessionSyncBadge.hidden = false;
+				this.sessionSyncBadge.textContent = label;
+				this.sessionSyncBadge.setAttribute('aria-label', label);
+			} else {
+				this.sessionSyncBadge.hidden = true;
+				this.sessionSyncBadge.textContent = '';
+				this.sessionSyncBadge.removeAttribute('aria-label');
+			}
+		}
+		this.renderInboxStatus();
+	}
+
+	private showPostFailure(reason: 'mailbox_full' | 'no_such_session' | 'not_authenticated'): void {
+		const message = reason === 'mailbox_full'
+			? conversationLensPostFailedMailboxFull
+			: reason === 'not_authenticated'
+				? conversationLensPostFailedNotAuthenticated
+				: conversationLensPostFailedNoSession;
+		this.gateRow.hidden = false;
+		this.gateLabel.textContent = message;
+		this.gateRow.setAttribute('aria-label', message);
+		if (this.sendFailureTimeout) {
+			clearTimeout(this.sendFailureTimeout);
+		}
+		this.sendFailureTimeout = setTimeout(() => {
+			this.sendFailureTimeout = undefined;
+			this.gateLabel.textContent = conversationLensDockEngineNotConnected;
+			this.gateRow.setAttribute('aria-label', conversationLensDockEngineNotConnected);
+		}, 4000);
 	}
 
 	private updateSessionTitle(): void {
@@ -1319,7 +1367,14 @@ export class ConversationLens extends Disposable {
 	}
 
 	private resolveConfirmation(turnId: string, status: 'allowed' | 'skipped'): void {
-		this.stubService.resolveConfirmation(this.stubService.getActiveSessionId(), turnId, status);
+		const outcome = this.sessionViewLease?.post({
+			kind: 'permissionRespond',
+			requestId: turnId,
+			decision: status === 'allowed' ? 'allow' : 'deny',
+		});
+		if (outcome && !outcome.accepted) {
+			this.showPostFailure(outcome.reason);
+		}
 	}
 
 	private copyTurn(text: string): void {
@@ -1381,8 +1436,12 @@ export class ConversationLens extends Disposable {
 			return;
 		}
 		const sessionId = this.stubService.getActiveSessionId();
-		this.stubService.appendUserTurn(sessionId, text);
-		this.stubService.appendStubEchoAssistant(sessionId, localize('conversationLens.stubEcho', "Stub echo — no engine connected."));
+		const lease = this.sessionViewLease ?? this.stubService.acquireSessionView(sessionId);
+		const outcome = lease.post({ kind: 'submitInput', text });
+		if (!outcome.accepted) {
+			this.showPostFailure(outcome.reason);
+			return;
+		}
 		this.drafts.set(sessionId, '');
 		this.dockTextarea.value = '';
 		this.resetInputHistoryBrowse();

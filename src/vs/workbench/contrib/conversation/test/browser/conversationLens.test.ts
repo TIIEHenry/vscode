@@ -55,6 +55,8 @@ import {
 import { conversationLensVoiceTranscriptBarClass } from '../../browser/conversationVoiceTranscriptBar.js';
 import { conversationLensSessionBarConversationTab, conversationLensSessionBarDeleteSession, conversationLensSessionBarNewSession, conversationLensSessionBarNoTrajectory, conversationLensSessionBarRenameTitle, conversationLensSessionBarRouteLabel, conversationLensSessionBarTrajectoryTab, conversationLensPinnedUserPromptAria, conversationLensPinnedUserPromptCopyAria } from '../../browser/conversationLensSessionBarStrings.js';
 import { ConversationStubService, IConversationRosterService } from '../../browser/conversationStubService.js';
+import { entriesToLegacyTurns, projectSnapshotToEntries } from '../../browser/conversationSessionView.js';
+import { TestConversationFrameSource } from './testConversationFrameSource.js';
 import { conversationIdentityStripClass } from '../../browser/conversationIdentityStrip.js';
 import { getConversationSessionStatusText } from '../../browser/conversationSessionStatus.js';
 import { shouldRenderTurnAsMarkdown } from '../../browser/conversationTurnMarkdown.js';
@@ -320,6 +322,13 @@ suite('ConversationLens', () => {
 		textarea.value = message;
 		textarea.dispatchEvent(new globalThis.Event('input', { bubbles: true }));
 		sendButton.click();
+	}
+
+	async function sendDockDraftAndFlush(slots: IConversationLensSlots, message: string, layoutReadingColumn?: () => void): Promise<void> {
+		sendDockDraft(slots, message);
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		layoutReadingColumn?.();
+		await flushTimelineHeightUpdates();
 	}
 
 	function dispatchDockKeydown(textarea: HTMLTextAreaElement, keyCode: KeyCode): void {
@@ -1705,7 +1714,12 @@ suite('ConversationLens', () => {
 		const { part, stubService } = mountLens();
 		const slots = getLensSlots(part);
 		const sessionId = stubService.createSession();
-		sendDockDraft(slots, 'seed active composer');
+		await sendDockDraftAndFlush(slots, 'seed active composer');
+
+		const { model, onSessionChanged } = stubService.createTestFrameSourceCallback();
+		const testSource = store.add(new TestConversationFrameSource(model, onSessionChanged));
+		stubService.wireTestFrameSource(testSource);
+		assert.deepStrictEqual(stubService.getSessionSync(sessionId), { kind: 'idle' });
 
 		const trailing = getComposerBottomBar(slots).querySelector('.conversation-lens-dock-bottom-trailing')!;
 		const children = Array.from(trailing.children).map(node => (node as HTMLElement).className);
@@ -1720,6 +1734,7 @@ suite('ConversationLens', () => {
 
 		stubService.setEngineConnected(true);
 		assert.strictEqual(getDockMicButton(slots).getAttribute('aria-disabled'), 'false');
+		assert.deepStrictEqual(stubService.getSessionSync(sessionId), { kind: 'idle' });
 
 		stubService.setMessageQueueFixture(sessionId, {
 			items: [{ id: 'q1', content: 'Queued item', status: 'PENDING', hold: undefined, uploadProgress: undefined, retryCount: 0, lastError: undefined, locked: false, pinned: false }],
@@ -1755,7 +1770,11 @@ suite('ConversationLens', () => {
 	test('T6 Voice: recording mic uses filled surface and stop title', () => {
 		const { part, stubService } = mountLens();
 		const slots = getLensSlots(part);
-		stubService.createSession();
+		const sessionId = stubService.createSession();
+		const { model, onSessionChanged } = stubService.createTestFrameSourceCallback();
+		const testSource = store.add(new TestConversationFrameSource(model, onSessionChanged));
+		stubService.wireTestFrameSource(testSource);
+		assert.deepStrictEqual(stubService.getSessionSync(sessionId), { kind: 'idle' });
 		stubService.setEngineConnected(true);
 
 		const micButton = getDockMicButton(slots);
@@ -1765,6 +1784,37 @@ suite('ConversationLens', () => {
 		micButton.click();
 		assert.ok(micButton.classList.contains('conversation-lens-dock-control--filled'));
 		assert.strictEqual(micButton.getAttribute('aria-label'), conversationLensDockMicStopTitle);
+	});
+
+	test('S3 send: dock post shows pending user row then supersedes to durable turns', async () => {
+		const { part, stubService, layoutReadingColumn } = mountLens();
+		const slots = getLensSlots(part);
+		const sessionId = stubService.createSession();
+
+		sendDockDraft(slots, 'pending then durable');
+		layoutReadingColumn();
+		await flushAnimationFrames();
+		assert.ok(queryTimeline(slots, '.conversation-lens-turn[data-kind="user"]'));
+
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		layoutReadingColumn();
+		await flushTimelineHeightUpdates();
+
+		assert.ok(queryTimeline(slots, '.conversation-lens-turn[data-kind="user"]'));
+		assert.ok(queryTimeline(slots, '.conversation-lens-turn[data-kind="assistant"]'));
+		assert.strictEqual(stubService.getSessionSync(sessionId).kind, 'idle');
+		assert.strictEqual(slots.sessionBar.querySelector('.conversation-lens-session-sync-badge')?.hasAttribute('hidden'), true);
+	});
+
+	test('S3 shim: getTurns matches lease projection after fixture writes', () => {
+		const service = store.add(new ConversationStubService());
+		const sessionId = service.createSession();
+		service.appendUserTurn(sessionId, 'shim check');
+		const lease = store.add(service.acquireSessionView(sessionId));
+		assert.deepStrictEqual(
+			service.getTurns(sessionId),
+			entriesToLegacyTurns(projectSnapshotToEntries(lease.snapshot, lease.attribution, lease.details)),
+		);
 	});
 
 	test('dock input history recalls sent user drafts with ArrowUp and ArrowDown on empty composer', () => {
