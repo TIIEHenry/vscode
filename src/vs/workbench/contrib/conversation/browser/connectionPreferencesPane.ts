@@ -24,6 +24,13 @@ import {
 	getHubAuthStatusLabel,
 	getHubDeviceRowStatusLabel,
 	getHubDirectoryBannerLabel,
+	getHubMustChangePasswordHint,
+	HUB_CHANGE_PASSWORD_BUTTON_LABEL,
+	HUB_CURRENT_PASSWORD_FIELD_LABEL,
+	HUB_LOGIN_BUTTON_LABEL,
+	HUB_NEW_PASSWORD_FIELD_LABEL,
+	HUB_PASSWORD_FIELD_LABEL,
+	readHandshakeSasCode,
 } from './connectionPreferencesPaneLabels.js';
 import { promptSasConfirmDialog } from './connectionPreferencesPaneSas.js';
 
@@ -200,7 +207,10 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 
 	private readonly hubBaseUrlInput: HTMLInputElement;
 	private readonly hubEmailInput: HTMLInputElement;
+	private readonly hubPasswordLabel: HTMLElement;
 	private readonly hubPasswordInput: HTMLInputElement;
+	private readonly hubNewPasswordInput: HTMLInputElement;
+	private readonly hubLoginButton: Button;
 
 	constructor(
 		@IInstantiationService instantiationService: IInstantiationService,
@@ -235,14 +245,25 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		this.hubEmailInput.placeholder = 'you@example.com';
 
 		const passwordRow = DOM.append(this.hubAccountSection, DOM.$('.connection-field-row'));
-		DOM.append(passwordRow, DOM.$('label')).textContent = localize('ua.connectionHubPassword', "Password");
+		this.hubPasswordLabel = DOM.append(passwordRow, DOM.$('label'));
+		this.hubPasswordLabel.textContent = HUB_PASSWORD_FIELD_LABEL;
 		this.hubPasswordInput = DOM.append(passwordRow, DOM.$('input.connection-field-input')) as HTMLInputElement;
 		this.hubPasswordInput.type = 'password';
 
+		const hubNewPasswordRow = DOM.append(this.hubAccountSection, DOM.$('.connection-field-row.connection-hub-new-password-row'));
+		DOM.append(hubNewPasswordRow, DOM.$('label')).textContent = HUB_NEW_PASSWORD_FIELD_LABEL;
+		this.hubNewPasswordInput = DOM.append(hubNewPasswordRow, DOM.$('input.connection-field-input')) as HTMLInputElement;
+		this.hubNewPasswordInput.type = 'password';
+		this.hubNewPasswordInput.autocomplete = 'new-password';
+
+		const hubMustChangeHint = DOM.append(this.hubAccountSection, DOM.$('.connection-hub-must-change-hint'));
+		hubMustChangeHint.setAttribute('role', 'status');
+		hubMustChangeHint.textContent = getHubMustChangePasswordHint();
+
 		const hubActions = DOM.append(this.hubAccountSection, DOM.$('.connection-hub-actions'));
-		const loginButton = this._register(new Button(hubActions, defaultButtonStyles));
-		loginButton.label = localize('ua.connectionHubLogin', "Sign in");
-		this._register(loginButton.onDidClick(() => this.handleLogin()));
+		this.hubLoginButton = this._register(new Button(hubActions, defaultButtonStyles));
+		this.hubLoginButton.label = HUB_LOGIN_BUTTON_LABEL;
+		this._register(this.hubLoginButton.onDidClick(() => this.handleLogin()));
 
 		const logoutButton = this._register(new Button(hubActions, defaultButtonStyles));
 		logoutButton.label = localize('ua.connectionHubLogout', "Sign out");
@@ -415,6 +436,10 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 	}
 
 	private async handleLogin(): Promise<void> {
+		if (this.hubService.getAuthStatus().kind === 'mustChangePassword') {
+			await this.handleChangePassword();
+			return;
+		}
 		const hubBaseUrl = this.hubBaseUrlInput.value.trim();
 		const email = this.hubEmailInput.value.trim();
 		const password = this.hubPasswordInput.value;
@@ -424,13 +449,31 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 			this.hubAuthBadge.textContent = result.reason;
 			return;
 		}
+		this.renderHubAccount();
+		if (this.hubService.getAuthStatus().kind === 'mustChangePassword') {
+			return;
+		}
 		this.hubPasswordInput.value = '';
+		this.hubNewPasswordInput.value = '';
+	}
+
+	private async handleChangePassword(): Promise<void> {
+		const oldPassword = this.hubPasswordInput.value;
+		const newPassword = this.hubNewPasswordInput.value;
+		const result = await this.hubService.changePassword(oldPassword, newPassword);
+		if (!result.ok) {
+			this.hubAuthBadge.textContent = result.reason;
+			return;
+		}
+		this.hubPasswordInput.value = '';
+		this.hubNewPasswordInput.value = '';
 		this.renderHubAccount();
 	}
 
 	private async handleLogout(): Promise<void> {
 		await this.hubService.logout();
 		this.hubPasswordInput.value = '';
+		this.hubNewPasswordInput.value = '';
 		this.renderHubAccount();
 	}
 
@@ -528,7 +571,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		if (result.ok && result.pairingPending) {
 			const confirmed = await promptSasConfirmDialog(this.dialogService, {
 				displayName: profile?.displayName ?? profileId,
-				sasCode: 'XXXX-XXXX',
+				sasCode: readHandshakeSasCode(result),
 				engineIdentityId: profileId,
 			});
 			if (!confirmed.confirmed) {
@@ -553,9 +596,19 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 	private renderHubAccount(): void {
 		const status = this.hubService.getAuthStatus();
 		this.hubAuthBadge.textContent = getHubAuthStatusLabel(status);
-		const signedIn = status.kind === 'signedIn' || status.kind === 'mustChangePassword';
-		this.hubEmailInput.disabled = signedIn;
-		this.hubPasswordInput.disabled = status.kind === 'signedIn';
+		const mustChangePassword = status.kind === 'mustChangePassword';
+		const signedIn = status.kind === 'signedIn';
+		this.hubAccountSection.classList.toggle('must-change-password', mustChangePassword);
+		this.hubEmailInput.disabled = signedIn || mustChangePassword;
+		this.hubPasswordInput.disabled = signedIn;
+		this.hubPasswordLabel.textContent = mustChangePassword
+			? HUB_CURRENT_PASSWORD_FIELD_LABEL
+			: HUB_PASSWORD_FIELD_LABEL;
+		this.hubNewPasswordInput.disabled = !mustChangePassword;
+		this.hubLoginButton.label = mustChangePassword
+			? HUB_CHANGE_PASSWORD_BUTTON_LABEL
+			: HUB_LOGIN_BUTTON_LABEL;
+		this.hubLoginButton.enabled = !signedIn;
 	}
 
 	private renderHubDirectory(): void {

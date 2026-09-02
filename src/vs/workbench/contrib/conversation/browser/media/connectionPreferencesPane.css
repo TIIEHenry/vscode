@@ -48,10 +48,24 @@
 	margin-bottom: 8px;
 }
 
-.monaco-workbench .connection-preferences-pane .connection-hub-encryption-hint {
+.monaco-workbench .connection-preferences-pane .connection-hub-encryption-hint,
+.monaco-workbench .connection-preferences-pane .connection-hub-must-change-hint {
 	opacity: 0.75;
 	margin-top: 8px;
 	font-size: 12px;
+}
+
+.monaco-workbench .connection-preferences-pane .connection-hub-new-password-row,
+.monaco-workbench .connection-preferences-pane .connection-hub-must-change-hint {
+	display: none;
+}
+
+.monaco-workbench .connection-preferences-pane .connection-hub-account.must-change-password .connection-hub-new-password-row {
+	display: flex;
+}
+
+.monaco-workbench .connection-preferences-pane .connection-hub-account.must-change-password .connection-hub-must-change-hint {
+	display: block;
 }
 
 .monaco-workbench .connection-list,
