@@ -18,7 +18,7 @@ summary: "HEAD 0476e10d：壳层 PRD-001–016 全落、D1–D7 全闭、工位�
 ## Blockers
 
 - **valid-layers-check：** Node v26.7.0 环境红；`.nvmrc` 钉 24.18.0，疑为版本不匹配 → [D8](deferred-gaps.md)
-- **EH 矩阵：** panel / terminal / decoration 次级探针仍待实测 → [D9](deferred-gaps.md)
+- **EH 矩阵：** panel + decoration **已实测** @ [d9](d5-evidence/smoke-d9-0001/)；`terminal` xterm 自动化 blocked → [D9](deferred-gaps.md)
 - **PRD-008 / PRD-009：** `blocked`；无已接受的引擎接线方案、Diff owner 未选 → [R5 / R6](research-queue.md)
 
 ## Next（后续开发任务排期，2026-09-02）
@@ -29,7 +29,7 @@ summary: "HEAD 0476e10d：壳层 PRD-001–016 全落、D1–D7 全闭、工位�
 |:---|:-----|:-----|:------------|:---------|
 | 0a | **D8** `nvm use`（24.18.0）后重跑 `npm run valid-layers-check`；仍红则定位 TS lib 差异 | infra | 门禁绿或落 root cause | merge |
 | 0b | **D11** 收编未跟踪 `d4-evidence/82582fe8`、`rerun-2221`（补 README 或删）；修 `plans/INDEX.md` 指向不存在的 `dev/roadmap/` | docs | `git status` 干净；`check-docs-health` 0 warning | 主仓 |
-| 0c | **D9** EH 矩阵 panel / terminal / `editor/decoration` 探针（复用 `launch-with-probes.sh`） | docs/验证 | 矩阵三行改「已实测」 | A |
+| 0c | **D9** EH 矩阵 panel / terminal / `editor/decoration` 探针 | docs/验证 | panel + decoration **已实测**；terminal 待人工 | A |
 | 1 | **R5** PRD-008 引擎接线发现：UA gRPC 面 vs 现有 `IConversationStubService` 契约；adapter 落层（`platform`/`workbench/services`）；能力探测三态 | research → plan + ADR-003 草案 | plan `accepted`（规则 16 独立审查） | B |
 | 2 | **R6** PRD-009 Diff owner 裁决（编辑器区 vs 底部 Panel vs Sources Changes 内嵌） | research → ADR-004 | ADR `accepted` | C |
 | 3 | ~~R7~~ PRD-010 产品身份 — **已裁决**：名 **UniverseAgentStudio**，图标复用 Desktop/Singularity 资产，**引擎波后再改**（[D12](deferred-gaps.md)） | 已决 | M6 闭后开 plan | — |

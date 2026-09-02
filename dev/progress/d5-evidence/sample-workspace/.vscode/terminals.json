@@ -1,0 +1,9 @@
+{
+	"autorun": true,
+	"terminals": [
+		{
+			"name": "D9 probe",
+			"command": "echo d9-terminal-probe"
+		}
+	]
+}

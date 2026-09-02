@@ -1,0 +1,15 @@
+### Result
+{
+  "panelVisible": false,
+  "panelHtml": "Drag a view here to display."
+}
+### Ran Playwright code
+```js
+await page.evaluate('() => (\n(() => {\n  const panel = document.querySelector(\'.part.panel\');\n  return { panelVisible: !!panel && panel.offsetHeight > 0, panelHtml: panel?.innerText?.slice(0,200) };\n})())');
+```
+### Page
+- Page URL: vscode-file://vscode-app/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/code/electron-browser/workbench/workbench-dev.html
+- Page Title: sample-workspace - Code - OSS Dev
+- Console: 14 errors, 0 warnings
+### Events
+- New console entries: .playwright-cli/console-2026-09-02T00-30-30-507Z.log#L303

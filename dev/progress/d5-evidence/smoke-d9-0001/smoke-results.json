@@ -1,0 +1,101 @@
+{
+  "meta": {
+    "date": "2026-09-02",
+    "wave": "smoke-d9-0001",
+    "worktree": "/home/clarence/Projects/Agents/vscode-WorkTrees/A",
+    "compileWorktree": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge",
+    "branch": "loop/A",
+    "head": "01dee834fbfa5dd56b219d65a03c1eda7b2915bc",
+    "probeExtDir": "/tmp/d5-probe-ext-vsix",
+    "probes": {
+      "panel": "zhangmo8.git-panel",
+      "terminal": "fabiospampinato.vscode-terminals",
+      "decoration": "usernamehw.errorlens"
+    },
+    "pwSession": "d5-d9-2204310",
+    "evidenceDir": "dev/progress/d5-evidence/smoke-d9-0001"
+  },
+  "launch": {
+    "pid": 2204430,
+    "cdpPort": 39649,
+    "extHostPort": 41089,
+    "mainPort": 46143,
+    "agentHostPort": 42313,
+    "userDataDir": "/tmp/code-oss-dev-20260902-083659-2204315-kaKWDu/user-data",
+    "extensionsDir": "/tmp/code-oss-dev-20260902-083659-2204315-kaKWDu/user-data/extensions",
+    "sharedDataDir": "/tmp/code-oss-dev-20260902-083659-2204315-kaKWDu/shared-data",
+    "runDir": "/tmp/code-oss-dev-20260902-083659-2204315-kaKWDu",
+    "logFile": "/tmp/code-oss-dev-20260902-083659-2204315-kaKWDu/code.log",
+    "repo": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge",
+    "agents": false,
+    "timings": {
+      "profileMs": 168,
+      "preLaunchMs": 18,
+      "cdpReadyMs": 368,
+      "totalMs": 554
+    }
+  },
+  "checks": [
+    {
+      "id": "panel-git-panel",
+      "description": "zhangmo8.git-panel viewsContainers.panel + views(panel) land in PANEL_PART",
+      "result": "PASS",
+      "notes": {
+        "panelPart": true,
+        "panelHeight": 300,
+        "panelTabs": [
+          "Ports",
+          "Git Panel",
+          "Inspect"
+        ],
+        "panelHeadings": [
+          "Git Panel",
+          "Git Panel",
+          "Git Changes"
+        ],
+        "gitPanelTab": true,
+        "bodySnippet": "PORTS\nGIT PANEL\nINSPECT\nGIT PANEL\nGIT CHANGES"
+      }
+    },
+    {
+      "id": "terminal-autorun",
+      "description": "fabiospampinato.vscode-terminals onStartup/autorun \u2192 terminal in Panel",
+      "result": "FAIL",
+      "notes": {
+        "panelVisible": true,
+        "terminalDom": false,
+        "xtermRows": 0,
+        "hasD9Probe": false,
+        "hasTerminalTab": false,
+        "panelTabs": [
+          "Ports",
+          "Git Panel",
+          "Inspect"
+        ],
+        "panelSnippet": "PORTS\nGIT PANEL\nINSPECT\nGIT PANEL\nGIT CHANGES",
+        "startup": {
+          "panelHeight": 0,
+          "terminalDom": false,
+          "xtermRows": 0,
+          "hasD9Probe": false,
+          "bodyHasTerminal": false
+        },
+        "logSnippet": ""
+      }
+    },
+    {
+      "id": "editor-decoration",
+      "description": "usernamehw.errorlens + TS syntax error decorations in EDITOR_PART",
+      "result": "PASS",
+      "notes": {
+        "title": "d5-probe-todo.js - sample-workspace - Code - OSS Dev",
+        "squiggleDecorations": 1,
+        "errorLensInline": true,
+        "todoInBuffer": true,
+        "hasExpectedError": true,
+        "sampleText": "//\u00a0D9\u00a0editor/decoration\u00a0probe\u00a0\u2014\u00a0TODO\u00a0highlight\u00a0+\u00a0Error\u00a0Lens\u00a0on\u00a0syntax\u00a0error\u00a0below|//\u00a0TODO(d9):\u00a0probe\u00a0decoration|const\u00a0broken\u00a0=\u00a0;|"
+      }
+    }
+  ],
+  "overall": "PARTIAL"
+}

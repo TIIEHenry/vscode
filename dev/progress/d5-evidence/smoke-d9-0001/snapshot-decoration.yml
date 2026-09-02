@@ -1,0 +1,497 @@
+### Page
+- Page URL: vscode-file://vscode-app/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/code/electron-browser/workbench/workbench-dev.html
+- Page Title: d5-probe-todo.js - sample-workspace - Code - OSS Dev
+- Console: 17 errors, 5 warnings
+### Snapshot
+```yaml
+- application [ref=e2]:
+  - generic [ref=e6]:
+    - generic [ref=e8]:
+      - menubar [ref=e12]:
+        - menuitem "File" [ref=e13]:
+          - generic [ref=e14]: File
+        - menuitem "Edit" [ref=e15]:
+          - generic [ref=e16]: Edit
+        - menuitem "Selection" [ref=e17]:
+          - generic [ref=e18]: Selection
+        - menuitem "View" [ref=e19]:
+          - generic [ref=e20]: View
+        - menuitem "Go" [ref=e21]:
+          - generic [ref=e22]: Go
+        - menuitem "Help" [ref=e23]:
+          - generic [ref=e24]: Help
+      - toolbar [ref=e30]:
+        - button "Go Back (Ctrl+Alt+-)" [disabled] [ref=e31]: 
+        - button "Go Forward (Ctrl+Shift+-)" [disabled] [ref=e32]: 
+        - listitem [ref=e33] [cursor=pointer]:
+          - toolbar [ref=e36]:
+            - button "sample-workspace" [ref=e37]:
+              - generic [ref=e38]: 
+              - generic [ref=e39]: sample-workspace
+      - toolbar "Title actions" [ref=e44]:
+        - button "Customize Layout..." [ref=e45] [cursor=pointer]: 
+        - button "Navigator (Ctrl+B)" [pressed] [ref=e46] [cursor=pointer]: 
+        - button "Conversation" [pressed] [ref=e47] [cursor=pointer]: 
+        - button "Preview" [pressed] [ref=e48] [cursor=pointer]: 
+        - button "Sources" [pressed] [ref=e49] [cursor=pointer]: 
+    - generic [ref=e56]:
+      - generic [ref=e58]:
+        - tablist "Active View Switcher" [ref=e61]:
+          - tab "Files (Ctrl+Shift+E)" [expanded] [selected] [ref=e62] [cursor=pointer]:
+            - generic "Files (Ctrl+Shift+E)" [ref=e63]: 
+          - tab "Search (Ctrl+Shift+F)" [ref=e64] [cursor=pointer]:
+            - generic "Search (Ctrl+Shift+F)" [ref=e65]: 
+          - tab "TODOs" [ref=e66] [cursor=pointer]:
+            - generic "TODOs" [ref=e67]
+          - tab "Git Panel" [ref=e68] [cursor=pointer]:
+            - generic "Git Panel" [ref=e69]: 
+          - tab "Sessions" [ref=e70] [cursor=pointer]:
+            - generic "Sessions" [ref=e71]: 
+          - tab "Projects" [ref=e72] [cursor=pointer]:
+            - generic "Projects" [ref=e73]: 
+          - tab "Agents" [ref=e74] [cursor=pointer]:
+            - generic "Agents" [ref=e75]: 
+          - tab "Team" [ref=e76] [cursor=pointer]:
+            - generic "Team" [ref=e77]: 
+        - toolbar "Manage" [ref=e80]:
+          - button "Accounts" [ref=e81] [cursor=pointer]:
+            - generic "Accounts" [ref=e82]: 
+          - button "Manage" [ref=e83] [cursor=pointer]:
+            - generic "Manage" [ref=e84]: 
+      - generic [ref=e85]:
+        - generic [ref=e86]:
+          - heading "Files" [level=2] [ref=e88]
+          - toolbar "Files actions" [ref=e92]:
+            - button "Views and More Actions..." [ref=e95] [cursor=pointer]: 
+          - generic:
+            - generic:
+              - generic:
+                - toolbar
+        - generic [ref=e100]:
+          - generic [ref=e102]:
+            - 'button "Explorer Section: sample-workspace" [expanded] [ref=e103] [cursor=pointer]':
+              - generic [ref=e104]: 
+              - text: 
+              - 'heading "Explorer Section: sample-workspace" [level=3] [ref=e105]': sample-workspace
+              - text:    
+            - generic [ref=e106]:
+              - generic [ref=e107]:
+                - generic [ref=e109]: 
+                - list [ref=e111]:
+                  - listitem [ref=e112] [cursor=pointer]:
+                    - generic [ref=e113]: Root
+                    - generic [ref=e114]: 
+                  - listitem [ref=e115] [cursor=pointer]:
+                    - generic [ref=e116]: home
+                    - generic [ref=e117]: 
+                  - listitem [ref=e118] [cursor=pointer]:
+                    - generic [ref=e119]: clarence
+                    - generic [ref=e120]: 
+                  - listitem [ref=e121] [cursor=pointer]:
+                    - generic [ref=e122]: Projects
+                    - generic [ref=e123]: 
+                  - listitem [ref=e124] [cursor=pointer]:
+                    - generic [ref=e125]: Agents
+                    - generic [ref=e126]: 
+                  - listitem [ref=e127] [cursor=pointer]:
+                    - generic [ref=e128]: vscode-WorkTrees
+                    - generic [ref=e129]: 
+                  - listitem [ref=e130] [cursor=pointer]:
+                    - generic [ref=e131]: merge
+                    - generic [ref=e132]: 
+                  - listitem [ref=e133] [cursor=pointer]:
+                    - generic [ref=e134]: dev
+                    - generic [ref=e135]: 
+                  - listitem [ref=e136] [cursor=pointer]:
+                    - generic [ref=e137]: progress
+                    - generic [ref=e138]: 
+                  - listitem [ref=e139] [cursor=pointer]:
+                    - generic [ref=e140]: d5-evidence
+                    - generic [ref=e141]: 
+                  - listitem [ref=e142] [cursor=pointer]:
+                    - generic [ref=e143]: sample-workspace
+                    - generic [ref=e144]: 
+              - generic [ref=e145]:
+                - generic [ref=e147]: 
+                - textbox "Filter files" [ref=e148]
+                - text: 
+              - tree "Files Explorer" [ref=e150]:
+                - generic [ref=e151]:
+                  - treeitem ".vscode" [level=1] [ref=e152] [cursor=pointer]:
+                    - generic [ref=e153]:
+                      - generic [ref=e154]: 
+                      - generic "~/Projects/Agents/vscode-WorkTrees/merge/dev/progress/d5-evidence/sample-workspace/.vscode" [ref=e156]:
+                        - generic [ref=e159]: .vscode
+                  - treeitem "d5-probe-debug.js" [level=1] [ref=e160] [cursor=pointer]:
+                    - generic "~/Projects/Agents/vscode-WorkTrees/merge/dev/progress/d5-evidence/sample-workspace/d5-probe-debug.js" [ref=e163]:
+                      - text: 
+                      - generic [ref=e166]: d5-probe-debug.js
+                  - treeitem "d5-probe-sample.yaml" [level=1] [ref=e167] [cursor=pointer]:
+                    - generic "~/Projects/Agents/vscode-WorkTrees/merge/dev/progress/d5-evidence/sample-workspace/d5-probe-sample.yaml" [ref=e170]:
+                      - text: 
+                      - generic [ref=e173]: d5-probe-sample.yaml
+                  - treeitem "d5-probe-todo.js" [level=1] [selected] [ref=e174] [cursor=pointer]:
+                    - generic "~/Projects/Agents/vscode-WorkTrees/merge/dev/progress/d5-evidence/sample-workspace/d5-probe-todo.js • 1 problem in this file" [ref=e750]:
+                      - text: 
+                      - generic [ref=e180]: d5-probe-todo.js
+                      - text: "1"
+          - button "Outline Section" [ref=e183] [cursor=pointer]:
+            - generic [ref=e184]: 
+            - text: 
+            - heading "Outline" [level=3] [ref=e185]
+            - text:  
+          - button "Timeline Section" [ref=e188] [cursor=pointer]:
+            - generic [ref=e189]: 
+            - text: 
+            - heading "Timeline" [level=3] [ref=e190]
+            - text:    
+      - generic [ref=e197]:
+        - generic [ref=e199]:
+          - toolbar [ref=e202]:
+            - button "Hide Conversation" [ref=e203] [cursor=pointer]: 
+          - generic [ref=e204]:
+            - generic [ref=e205]:
+              - navigation "Conversation history" [ref=e206]:
+                - button "Go Back" [disabled] [ref=e207]: 
+                - button "Go Forward" [disabled] [ref=e208]: 
+                - button "Close extension tabs" [disabled] [ref=e209]: 
+              - banner [ref=e210]:
+                - generic [ref=e211]:
+                  - generic [ref=e212]: 
+                  - tablist [ref=e213]:
+                    - tab "Conversation" [selected] [ref=e214] [cursor=pointer]
+                    - tab "Trajectory" [ref=e215] [cursor=pointer]
+                  - generic:
+                    - button "Rename session"
+                - generic [ref=e217]:
+                  - generic [ref=e218]:
+                    - combobox "Route" [ref=e219] [cursor=pointer]:
+                      - option "No route" [selected]
+                      - option "Balanced"
+                      - option "Speed"
+                      - option "Quality"
+                    - text: 
+                  - generic [ref=e220]: Session
+                  - generic [ref=e221]:
+                    - combobox "Switch session" [ref=e222] [cursor=pointer]:
+                      - option "Untitled session" [selected]
+                      - option "Visualize (Stub)"
+                    - text: 
+                  - button "New session" [ref=e224]: 
+                  - button "Delete session" [ref=e226]: 
+            - generic:
+              - generic:
+                - generic:
+                  - generic "Conversation, The editor could not be opened due to an unexpected error. Please consult the log for more details." [ref=e231]:
+                    - generic [ref=e233]: 
+                    - generic [ref=e234]: The editor could not be opened due to an unexpected error. Please consult the log for more details.
+                    - generic [ref=e235]:
+                      - button "Try Again" [ref=e236] [cursor=pointer]
+                      - button "Show Logs" [ref=e237] [cursor=pointer]
+                  - text:    
+        - generic [ref=e550]:
+          - generic [ref=e551]:
+            - tablist "Active View Switcher" [ref=e555]:
+              - tab "Ports" [ref=e556] [cursor=pointer]:
+                - generic "Ports" [ref=e557]
+              - tab "Git Panel" [expanded] [selected] [ref=e558] [cursor=pointer]:
+                - generic "Git Panel" [ref=e559]
+              - tab "Inspect" [ref=e560] [cursor=pointer]:
+                - generic "Inspect" [ref=e561]
+            - toolbar "Git Panel actions" [ref=e565]:
+              - button "Views and More Actions..." [ref=e568] [cursor=pointer]: 
+            - toolbar [ref=e573]:
+              - button "Maximize Panel" [ref=e574] [cursor=pointer]: 
+              - button "Hide Panel (Ctrl+J)" [ref=e575] [cursor=pointer]: 
+          - generic [ref=e581]:
+            - generic [ref=e583]:
+              - button "Git Panel Section" [expanded] [ref=e584] [cursor=pointer]:
+                - generic [ref=e585]: 
+                - text: 
+                - heading "Git Panel" [level=3] [ref=e586]
+                - toolbar "Git Panel actions" [ref=e590]:
+                  - button "Clear Selection" [ref=e751]: 
+                  - button "Refresh History" [ref=e752]: 
+                  - button "Show Repository Statistics" [ref=e753]: 
+                  - button "Go to Commit by Hash" [ref=e754]: 
+                  - button "Back to HEAD" [ref=e755]: 
+              - document [ref=e596]
+            - generic [ref=e598]:
+              - button "Git Changes Section" [expanded] [ref=e599] [cursor=pointer]:
+                - generic [ref=e600]: 
+                - text: 
+                - heading "Git Changes" [level=3] [ref=e601]
+                - text: 
+              - tree "Git Changes" [ref=e605]
+      - generic [ref=e243]:
+        - main [ref=e245]:
+          - generic [ref=e756]:
+            - generic [ref=e757] [cursor=pointer]:
+              - generic [ref=e758]:
+                - tablist [ref=e759]:
+                  - tab "d5-probe-todo.js, preview" [selected] [ref=e760]:
+                    - generic "d5-probe-todo.js" [ref=e761]:
+                      - text: 
+                      - generic [ref=e763]: d5-probe-todo.js
+                      - text: "1"
+                    - toolbar "Tab actions" [ref=e766]:
+                      - button "Close (Ctrl+W)" [ref=e767]: 
+                - toolbar "Editor actions" [ref=e771]:
+                  - button "Split Editor Right (Ctrl+\\) [Alt] Split Editor Down" [ref=e772]: 
+                  - button "Hide Preview" [pressed] [ref=e773]: 
+                  - button "More Actions..." [ref=e776]: 
+              - list [ref=e779]:
+                - listitem [ref=e780]:
+                  - generic "~/Projects/Agents/vscode-WorkTrees/merge/dev/progress/d5-evidence/sample-workspace/d5-probe-todo.js • 1 problem in this file" [ref=e781]:
+                    - text: 
+                    - generic [ref=e783]: d5-probe-todo.js
+                  - generic [ref=e784]: 
+                - listitem [ref=e785]:
+                  - generic [ref=e786]: …
+                  - text: 
+            - generic "d5-probe-todo.js, preview" [ref=e788]:
+              - code [ref=e789]:
+                - generic [ref=e790]:
+                  - textbox "The editor is not accessible at this time. To enable screen reader optimized mode, use Shift+Alt+F4"
+                  - textbox [ref=e791]
+                  - generic [ref=e794]:
+                    - generic [ref=e795]:
+                      - generic [ref=e797] [cursor=pointer]: 
+                      - generic [ref=e798]: "1"
+                    - generic [ref=e800]: "2"
+                    - generic [ref=e802]: "3"
+                    - generic [ref=e804]: "4"
+                  - generic [ref=e813]:
+                    - generic [ref=e815]: // D9 editor/decoration probe — TODO highlight + Error Lens on syntax error below
+                    - generic [ref=e817]: "// TODO(d9): probe decoration"
+                    - generic [ref=e819]:
+                      - text: const broken = ;
+                      - generic [ref=e820]: Expression expected.
+        - generic [ref=e260]:
+          - generic [ref=e261]:
+            - tablist "Sources tabs" [ref=e263]:
+              - tab "Files" [selected] [ref=e264] [cursor=pointer]
+              - tab "Changes" [ref=e265] [cursor=pointer]
+              - tab "Review" [ref=e266] [cursor=pointer]
+            - toolbar [ref=e269]:
+              - button "Hide Sources" [ref=e270] [cursor=pointer]: 
+          - generic [ref=e272]:
+            - tabpanel "Files" [ref=e273]:
+              - textbox "Filter files" [ref=e275]
+              - list "Sources Files" [ref=e277]
+            - tabpanel "Changes" [ref=e279]:
+              - generic [ref=e281]: No source control repository.
+              - text:  
+    - status [ref=e283]:
+      - generic [ref=e285]:
+        - generic "Notifications" [ref=e286]:
+          - button "Notifications" [ref=e287] [cursor=pointer]:
+            - generic [ref=e288]: 
+        - 'generic "Conversation session: Untitled session" [ref=e289]':
+          - 'button "Conversation session: Untitled session" [ref=e290] [cursor=pointer]': Untitled session
+        - 'generic "Engine: Engine not connected" [ref=e291]':
+          - 'status "Engine: Engine not connected" [ref=e292] [cursor=pointer]': Engine not connected
+        - generic "JavaScript" [ref=e828]:
+          - button "JavaScript" [ref=e829] [cursor=pointer]
+        - 'generic "Editor Language Status: No jsconfig, next: 6.0.3, TypeScript version" [ref=e830]':
+          - 'button "Editor Language Status: No jsconfig, next: 6.0.3, TypeScript version" [ref=e831] [cursor=pointer]':
+            - generic [ref=e832]: 
+        - generic "LF" [ref=e833]:
+          - button "LF" [ref=e834] [cursor=pointer]
+        - generic "UTF-8" [ref=e835]:
+          - button "UTF-8" [ref=e836] [cursor=pointer]
+        - 'generic "Spaces: 4" [ref=e837]':
+          - 'button "Spaces: 4" [ref=e838] [cursor=pointer]'
+        - generic "Ln 1, Col 1" [ref=e839]:
+          - button "Ln 1, Col 1" [ref=e840] [cursor=pointer]
+  - generic [ref=e293]:
+    - alert [ref=e294]: "Info: A git repository was found in the parent folders of the workspace or the open file(s). Would you like to open the repository?"
+    - alert
+  - text:       
+  - iframe [active] [ref=e608]:
+    - document [ref=f1e1]:
+      - iframe [active] [ref=f1e2]:
+        - document [active] [ref=f2e1]:
+          - generic [ref=f2e3]:
+            - generic [ref=f2e4]:
+              - button "History" [ref=f2e5] [cursor=pointer]:
+                - img [ref=f2e6]
+                - generic [ref=f2e8]: History
+              - button "Stash 3" [ref=f2e9] [cursor=pointer]:
+                - img [ref=f2e10]
+                - generic [ref=f2e12]: Stash
+                - generic [ref=f2e13]: "3"
+              - button "Branches 8" [ref=f2e14] [cursor=pointer]:
+                - img [ref=f2e15]
+                - generic [ref=f2e17]: Branches
+                - generic [ref=f2e18]: "8"
+              - button "Remotes 1" [ref=f2e19] [cursor=pointer]:
+                - img [ref=f2e20]
+                - generic [ref=f2e22]: Remotes
+                - generic [ref=f2e23]: "1"
+            - generic [ref=f2e25]:
+              - generic [ref=f2e26]:
+                - textbox "Search commit message or SHA..." [ref=f2e27]
+                - button "Search" [ref=f2e28] [cursor=pointer]:
+                  - img [ref=f2e29]
+              - button "All branches" [ref=f2e32] [cursor=pointer]:
+                - generic [ref=f2e33]: All branches
+              - button "All authors" [ref=f2e35] [cursor=pointer]:
+                - generic [ref=f2e36]: All authors
+              - button "File History" [ref=f2e37] [cursor=pointer]:
+                - generic [ref=f2e39]: File History
+            - generic [ref=f2e41]:
+              - listitem [ref=f2e42]:
+                - generic [ref=f2e43]: Refs
+                - generic [ref=f2e45]: Graph
+                - generic [ref=f2e47]: CommitId
+                - generic [ref=f2e49]: Message
+                - generic [ref=f2e51]: Changes
+                - generic [ref=f2e53]: Author
+                - generic [ref=f2e55]: Date
+                - button "Show columns" [ref=f2e58] [cursor=pointer]:
+                  - img
+              - generic [ref=f2e60]:
+                - listitem [ref=f2e62] [cursor=pointer]:
+                  - generic "(refs/loop/B)" [ref=f2e65]:
+                    - generic [ref=f2e66]: (refs/loop/B)
+                  - generic:
+                    - generic:
+                      - generic:
+                        - img
+                  - generic [ref=f2e67]: 5e27c00
+                  - generic [ref=f2e68]: "docs(r5): draft M6 engine wave plan and ADR-003"
+                  - generic [ref=f2e70]:
+                    - generic [ref=f2e71]: 7 files
+                    - generic [ref=f2e72]: "+320"
+                    - generic [ref=f2e73]: "-12"
+                  - generic [ref=f2e74]: clarence
+                  - generic [ref=f2e75]: 2026-09-02 08:27
+                - listitem [ref=f2e77] [cursor=pointer]:
+                  - generic "(refs/loop/C)" [ref=f2e80]:
+                    - generic [ref=f2e81]: (refs/loop/C)
+                  - generic:
+                    - generic:
+                      - generic:
+                        - img
+                  - generic [ref=f2e82]: da63a23
+                  - generic [ref=f2e83]: "docs(r6): draft ADR-004 diff owner options"
+                  - generic [ref=f2e85]:
+                    - generic [ref=f2e86]: 4 files
+                    - generic [ref=f2e87]: "+125"
+                    - generic [ref=f2e88]: "-5"
+                  - generic [ref=f2e89]: clarence
+                  - generic [ref=f2e90]: 2026-09-02 08:23
+                - listitem [ref=f2e92] [cursor=pointer]:
+                  - generic "(HEAD -> refs/loop/merge)" [ref=f2e95]:
+                    - generic [ref=f2e96]: (HEAD -> refs/loop/merge)
+                  - generic:
+                    - generic:
+                      - generic:
+                        - img
+                  - generic [ref=f2e97]: fdcb0e5
+                  - generic [ref=f2e98]: "docs(progress): D8 valid-layers-check still fails on Node 24.18.0"
+                  - generic [ref=f2e100]:
+                    - generic [ref=f2e101]: 1 files
+                    - generic [ref=f2e102]: "+28"
+                    - generic [ref=f2e103]: "-2"
+                  - generic [ref=f2e104]: clarence
+                  - generic [ref=f2e105]: 2026-09-02 08:22
+                - listitem [ref=f2e107] [cursor=pointer]:
+                  - generic "(refs/agent-ide)" [ref=f2e110]:
+                    - generic [ref=f2e111]: (refs/agent-ide)
+                  - generic:
+                    - generic:
+                      - generic:
+                        - img
+                  - generic [ref=f2e112]: a8e9760
+                  - generic [ref=f2e113]: "docs(d11): ingest d4-evidence dirs and fix plans INDEX roadmap link"
+                  - generic [ref=f2e115]:
+                    - generic [ref=f2e116]: 3 files
+                    - generic [ref=f2e117]: "+5"
+                    - generic [ref=f2e118]: "-6"
+                  - generic [ref=f2e119]: clarence
+                  - generic [ref=f2e120]: 2026-09-02 08:20
+                - listitem [ref=f2e122] [cursor=pointer]:
+                  - generic [ref=f2e124]:
+                    - generic "(refs/loop/D" [ref=f2e125]:
+                      - generic [ref=f2e126]: (refs/loop/D
+                    - generic [ref=f2e127]: "+1"
+                  - generic:
+                    - generic:
+                      - generic:
+                        - img
+                  - generic [ref=f2e128]: 01dee83
+                  - generic [ref=f2e129]: "docs(progress): schedule M6 engine wave and D8–D12 follow-ups"
+                  - generic [ref=f2e131]:
+                    - generic [ref=f2e132]: 4 files
+                    - generic [ref=f2e133]: "+36"
+                    - generic [ref=f2e134]: "-10"
+                  - generic [ref=f2e135]: clarence
+                  - generic [ref=f2e136]: 2026-09-02 08:16
+                - listitem [ref=f2e138] [cursor=pointer]:
+                  - generic:
+                    - generic:
+                      - generic:
+                        - img
+                  - generic [ref=f2e141]: "0476e10"
+                  - generic [ref=f2e142]: "docs: sync status.md to integration HEAD"
+                  - generic [ref=f2e144]:
+                    - generic [ref=f2e145]: 1 files
+                    - generic [ref=f2e146]: "+5"
+                    - generic [ref=f2e147]: "-4"
+                  - generic [ref=f2e148]: clarence
+                  - generic [ref=f2e149]: 2026-09-02 07:31
+                - listitem [ref=f2e151] [cursor=pointer]:
+                  - generic:
+                    - generic:
+                      - generic:
+                        - img
+                  - generic [ref=f2e154]: adc12cc
+                  - generic [ref=f2e155]: "docs: sync worktree-pool integration HEAD @ c9716e28"
+                  - generic [ref=f2e157]:
+                    - generic [ref=f2e158]: 1 files
+                    - generic [ref=f2e159]: "+2"
+                    - generic [ref=f2e160]: "-2"
+                  - generic [ref=f2e161]: clarence
+                  - generic [ref=f2e162]: 2026-09-02 03:17
+                - listitem [ref=f2e164] [cursor=pointer]:
+                  - generic:
+                    - generic:
+                      - generic:
+                        - img
+                  - generic [ref=f2e167]: c9716e2
+                  - generic [ref=f2e168]: "docs: sync worktree-pool integration HEAD"
+                  - generic [ref=f2e170]:
+                    - generic [ref=f2e171]: 1 files
+                    - generic [ref=f2e172]: "+2"
+                    - generic [ref=f2e173]: "-2"
+                  - generic [ref=f2e174]: clarence
+                  - generic [ref=f2e175]: 2026-09-02 03:11
+                - listitem [ref=f2e177] [cursor=pointer]:
+                  - generic:
+                    - generic:
+                      - generic:
+                        - img
+                  - generic [ref=f2e180]: aa71c27
+                  - generic [ref=f2e181]: "docs(d2): refresh worktree pool compile baseline @ a047fe35"
+                  - generic [ref=f2e183]:
+                    - generic [ref=f2e184]: 1 files
+                    - generic [ref=f2e185]: "+1"
+                    - generic [ref=f2e186]: "-1"
+                  - generic [ref=f2e187]: clarence
+                  - generic [ref=f2e188]: 2026-09-02 03:08
+                - listitem [ref=f2e190] [cursor=pointer]:
+                  - generic:
+                    - generic:
+                      - generic:
+                        - img
+                  - generic [ref=f2e193]: a047fe3
+                  - generic [ref=f2e194]: "docs: sync worktree-pool HEAD @ 2700b38e"
+                  - generic [ref=f2e196]:
+                    - generic [ref=f2e197]: 1 files
+                    - generic [ref=f2e198]: "+2"
+                    - generic [ref=f2e199]: "-2"
+                  - generic [ref=f2e200]: clarence
+                  - generic [ref=f2e201]: 2026-09-02 02:57
+```

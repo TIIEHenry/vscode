@@ -1,0 +1,8 @@
+{
+  "title": "d5-probe-todo.js - sample-workspace - Code - OSS Dev",
+  "squiggleDecorations": 1,
+  "errorLensInline": true,
+  "todoInBuffer": true,
+  "hasExpectedError": true,
+  "sampleText": "// D9 editor/decoration probe — TODO highlight + Error Lens on syntax error below|// TODO(d9): probe decoration|const broken = ;|"
+}

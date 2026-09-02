@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-02
-summary: "P2/P3 延期缺口 SSOT；D1–D7 已闭；D8 valid-layers Node 版本 / D9 EH 次级探针 / D10 T5 / D11 证据目录收编 / D12 产品身份（UniverseAgentStudio，引擎波后）open"
+summary: "P2/P3 延期缺口 SSOT；D1–D7 已闭；D8 valid-layers / D9 EH 次级探针 partial / D10 T5 / D11 证据目录 / D12 产品身份 open"
 ---
 
 # Deferred Gaps
@@ -23,7 +23,7 @@ summary: "P2/P3 延期缺口 SSOT；D1–D7 已闭；D8 valid-layers Node 版本
 | D6 | P3 | **Diff footprint 刷新** | slot C 已于 `b283fe19` 重测 `b5631393` | 页已更新 | docs | closed |
 | D7 | P3 | titlebar LayoutControlMenu 产品四钮与原生 Panel/Aux 共存 | `2dcd5a0a` 已从 LayoutControlMenu 去掉 Panel/Aux；留 submenu | 默认窗只见四钮 | M0 | closed |
 | D8 | P2 | **`valid-layers-check` 环境红**（`EditContext`/`GPUBufferUsage`/`FileSystemHandle` TS lib 报错） | 历次在 Node v26.7.0 跑；`.nvmrc` 钉 **24.18.0**，疑为版本不匹配而非代码问题 | merge 槽 `nvm use` 后 `npm run valid-layers-check` 绿；若仍红则定位 lib 差异并记 root cause | infra | open |
-| D9 | P2 | **EH 矩阵次级探针**：`viewsContainers.panel` / `views`(panel) / `terminal` profiles·`onStartup` / 命令 + `editor/decoration` | wave3 只覆盖 LSP + Sidebar 布局 + js-debug；panel/terminal 探针未选 | 选定探针扩展，复用 `d5-evidence/launch-with-probes.sh`；[eh-surface-matrix](../../docs/reference/code-oss-b2/eh-surface-matrix.md) 四行改「已实测 @\<date\>」 | docs | open |
+| D9 | P2 | **EH 矩阵次级探针**：`viewsContainers.panel` / `views`(panel) / `terminal` profiles·`onStartup` / 命令 + `editor/decoration` | wave3 只覆盖 LSP + Sidebar 布局 + js-debug；panel/terminal 探针未选 | panel + decoration **已实测 @2026-09-02**（[d9](d5-evidence/smoke-d9-0001/)）；`terminal` 扩展已装但 xterm 自动化 blocked → 矩阵 terminal 行仍 **待实测** | docs | open |
 | D10 | P3 | **PRD-012 T5** 轨迹搜索 / 虚拟化 / Overview 瀑布条 | fixture 三位数以下普通 DOM 够用；用户未要 | 记录数上千或用户提出；实施后 [conversation-trajectory-lens](../plans/conversation-trajectory-lens.md) T5 行转 implemented | M6+ | open |
 | D12 | P3 | **PRD-010 产品身份落地**：`product.json` `nameShort`/`nameLong`/`applicationName`/`dataFolderName`/`win32AppUserModelId`/`urlProtocol` 一族 + 图标资产 | 用户裁决 @2026-09-02：名称 **UniverseAgentStudio**，图标复用 UniverseAgentDesktop / Singularity 资产；**排在引擎波（R5/M6）之后**，避免与接线同期改发行身份 | M6 引擎波闭后开 plan；`urlProtocol` 与 page-access 已选 `universe-agent` scheme 的关系在 plan 内裁定；窗口标题与图标可识别为 UniverseAgentStudio | product | open |
 | D11 | P3 | **证据目录与索引卫生**：未跟踪 `d4-evidence/82582fe8`、`d4-evidence/rerun-2221`；`plans/INDEX.md` 指向不存在的 `dev/roadmap/` | 首轮验收产物未收编；roadmap 目录从未建立 | 两目录补 README 收编或删除，`git status` 干净；INDEX 改指 `status.md` Next 段；`check-docs-health` 0 warning | docs | open |
@@ -173,7 +173,23 @@ $REPO/scripts/code-cli.sh --extensions-dir="$EXT_DIR" \
 
 **TODOs 澄清：** Agent IDE 预留 Activity **TODOs** 与扩展探针共用槽位；自动化以 **TODOs: Tree** 为可见性判据（非独立 “Todo Tree” pane 标题）。
 
-**下一步：** 矩阵 panel/terminal/decoration 行；确认 gruntfuggly 贡献是否仅通过该 Tree 视图暴露。
+**下一步：** ~~矩阵 panel/terminal/decoration 行~~ → D9 @ [smoke-d9-0001](d5-evidence/smoke-d9-0001/)（panel + decoration PASS；terminal blocked）。
+
+## D9 EH 次级探针（2026-09-02，merge launch / loop/A 证据）
+
+**探针：** `zhangmo8.git-panel` · `fabiospampinato.vscode-terminals` · `usernamehw.errorlens` @ `/tmp/d5-probe-ext-vsix`
+
+**Launch：** `bash dev/progress/d5-evidence/smoke-d9-0001/run-smoke.sh`
+
+**证据：** [d5-evidence/smoke-d9-0001](d5-evidence/smoke-d9-0001/)
+
+| 检查 | 结果 | 备注 |
+|------|------|------|
+| git-panel → Panel **Git Panel** tab + views | **PASS** | `panelHeight` 300；与产品 Ports/Inspect 共存 |
+| vscode-terminals autorun | **FAIL** | 无 xterm；Playwright 无法可靠 Toggle Terminal |
+| errorlens + `d5-probe-todo.js` | **PASS** | squiggles + inline Error Lens |
+
+**Blocker（terminal）：** 需人工确认 `Terminals: Run` / autorun 或改进 CDP 命令执行后再标矩阵 terminal 行「已实测」。
 
 ## D5 EH 探针冒烟记录（2026-09-01 rerun-2348，merge launch / loop/A 证据）
 
