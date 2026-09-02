@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-02
-summary: "P2/P3 延期缺口 SSOT；D1–D7 已闭；D8 valid-layers Node 版本 / D9 EH 次级探针 / D10 T5 / D11 证据目录收编 / D12 产品身份（UniverseAgentStudio，引擎波后）open"
+summary: "P2/P3 延期缺口 SSOT；D1–D7 已闭；D8 valid-layers TS lib（非 Node）仍 open / D9 EH 次级探针 / D10 T5 / D11 证据目录收编 / D12 产品身份（UniverseAgentStudio，引擎波后）open"
 ---
 
 # Deferred Gaps
@@ -22,7 +22,7 @@ summary: "P2/P3 延期缺口 SSOT；D1–D7 已闭；D8 valid-layers Node 版本
 | D5 | P2 | **EH 探针冒烟**（LSP + layout 类扩展） | — | 三探针行 **已实测 @2026-09-02**（[wave3](d5-evidence/smoke-wave3-0001/)）；panel/terminal 记入矩阵 **待实测**，不阻塞本行 | M4 | closed |
 | D6 | P3 | **Diff footprint 刷新** | slot C 已于 `b283fe19` 重测 `b5631393` | 页已更新 | docs | closed |
 | D7 | P3 | titlebar LayoutControlMenu 产品四钮与原生 Panel/Aux 共存 | `2dcd5a0a` 已从 LayoutControlMenu 去掉 Panel/Aux；留 submenu | 默认窗只见四钮 | M0 | closed |
-| D8 | P2 | **`valid-layers-check` 环境红**（`EditContext`/`GPUBufferUsage`/`FileSystemHandle` TS lib 报错） | 历次在 Node v26.7.0 跑；`.nvmrc` 钉 **24.18.0**，疑为版本不匹配而非代码问题 | merge 槽 `nvm use` 后 `npm run valid-layers-check` 绿；若仍红则定位 lib 差异并记 root cause | infra | open |
+| D8 | P2 | **`valid-layers-check` 环境红**（`EditContext`/`GPUBufferUsage`/`FileSystemHandle` TS lib 报错） | D8 复测 @2026-09-02：`nvm use 24.18.0` + 显式 PATH 仍 **FAIL**（166× TS）；见下方 D8 节 root cause | `layersTypeCheck`（TS7 `@typescript/native`）与 tsconfig lib/includes 对齐后绿；或记录可接受的 infra 豁免 | infra | open |
 | D9 | P2 | **EH 矩阵次级探针**：`viewsContainers.panel` / `views`(panel) / `terminal` profiles·`onStartup` / 命令 + `editor/decoration` | wave3 只覆盖 LSP + Sidebar 布局 + js-debug；panel/terminal 探针未选 | 选定探针扩展，复用 `d5-evidence/launch-with-probes.sh`；[eh-surface-matrix](../../docs/reference/code-oss-b2/eh-surface-matrix.md) 四行改「已实测 @\<date\>」 | docs | open |
 | D10 | P3 | **PRD-012 T5** 轨迹搜索 / 虚拟化 / Overview 瀑布条 | fixture 三位数以下普通 DOM 够用；用户未要 | 记录数上千或用户提出；实施后 [conversation-trajectory-lens](../plans/conversation-trajectory-lens.md) T5 行转 implemented | M6+ | open |
 | D12 | P3 | **PRD-010 产品身份落地**：`product.json` `nameShort`/`nameLong`/`applicationName`/`dataFolderName`/`win32AppUserModelId`/`urlProtocol` 一族 + 图标资产 | 用户裁决 @2026-09-02：名称 **UniverseAgentStudio**，图标复用 UniverseAgentDesktop / Singularity 资产；**排在引擎波（R5/M6）之后**，避免与接线同期改发行身份 | M6 引擎波闭后开 plan；`urlProtocol` 与 page-access 已选 `universe-agent` scheme 的关系在 plan 内裁定；窗口标题与图标可识别为 UniverseAgentStudio | product | open |
@@ -191,6 +191,32 @@ $REPO/scripts/code-cli.sh --extensions-dir="$EXT_DIR" \
 **矩阵：** [eh-surface-matrix](../../docs/reference/code-oss-b2/eh-surface-matrix.md) 探针行仍为 **探针已选**（整体 smoke 未 PASS）。
 
 **下一步：** Todo Tree 与 Agent IDE activity 槽位冲突排查；js-debug 需 workspace `launch.json` 或稳定 picker 自动化后重跑。
+
+
+## D8 `valid-layers-check` 复测（2026-09-02，merge 工位 / `loop/merge`）
+
+**路径**：`/home/clarence/Projects/Agents/vscode-WorkTrees/merge` · **SHA**：`01dee834`
+
+| 步骤 | 结果 |
+|------|------|
+| `.nvmrc` | `24.18.0` |
+| `nvm use 24.18.0`（默认 PATH） | `node -v` → **v26.7.0**（`~/.local/bin/node` 优先于 nvm） |
+| `PATH=$NVM_DIR/versions/node/v24.18.0/bin:…` 后 `node -v` | **v24.18.0** |
+| `npm run valid-layers-check` | **FAIL**（exit 1；约 166 条 `error TS`） |
+
+**失败签名（与历次 v26.7.0 相同族）**：
+
+- `EditContext` / `editContext` / `TextFormatUpdateEvent` / `CharacterBoundsUpdateEvent`
+- `GPUBufferUsage` / `GPUTextureUsage`（editor GPU 路径）
+- `FileSystemHandle.queryPermission` / `showDirectoryPicker` / `DataTransferItem.getAsFileSystemHandle`
+
+**Root cause（当前判断）**：
+
+1. **非 Node 运行时版本问题**：在钉死的 **v24.18.0** 下仍全量失败，排除「仅 v26 误跑」假因。
+2. **PATH 陷阱**：仅 `nvm use` 不足以保证 `npm`/`node` 用 nvm 版本；自动化须前置 nvm bin 或 `hash -r`。
+3. **类型检查层**：`valid-layers-check` 第二阶段为 `build/checker/layersTypeCheck.ts`，通过 `process.execPath` 调 **TS7**（`@typescript/native` 的 `tsc`）按 `build/checker/tsconfig.*.json` 检查；`tsconfig.browser.json` 已声明 `DOM` lib 并 include `@webgpu/types` 与 `@types/wicg-file-system-access`，但 checker 仍报上述符号缺失 → **TS lib / include 解析或 TS7 与仓库 DOM 类型预期未对齐**（非 merge 分支业务层违规）。
+
+**下一步**：对照 upstream `valid-layers-check` 绿环境（Node PATH + `@typescript/native` 版本）；必要时补 `src/typings` 或修 checker tsconfig；D3 行曾绿需与当前 SHA  diff checker 依赖。
 
 ## 维护规则
 
