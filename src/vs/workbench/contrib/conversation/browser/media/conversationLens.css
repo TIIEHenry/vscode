@@ -2246,3 +2246,31 @@
 	outline: 1px solid var(--vscode-contrastBorder);
 	outline-offset: -1px;
 }
+
+/* CS-1 conversationDensity — `.density-compact` is toggled on the lens host; process-fold roots inherit. */
+.monaco-workbench .density-compact .conversation-lens-turn {
+	gap: 2px;
+}
+
+.monaco-workbench .density-compact .conversation-lens-turn-body--reading-text {
+	line-height: 1.35;
+}
+
+.monaco-workbench .density-compact .conversation-lens-timeline-row {
+	padding-bottom: 4px;
+}
+
+.monaco-workbench .density-compact .conversation-process-fold {
+	gap: 0;
+	margin-block: 1px;
+}
+
+.monaco-workbench .density-compact .conversation-process-fold-header,
+.monaco-workbench .density-compact .conversation-process-fold-thinking-header {
+	padding-block: 2px;
+}
+
+.monaco-workbench .density-compact .conversation-process-fold-tool,
+.monaco-workbench .density-compact .conversation-process-fold-thinking {
+	margin-block: 1px;
+}

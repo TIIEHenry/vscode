@@ -7,6 +7,7 @@ import './media/conversationEditorPane.css';
 import { $, append } from '../../../../base/browser/dom.js';
 import { CancellationToken } from '../../../../base/common/cancellation.js';
 import { DisposableStore } from '../../../../base/common/lifecycle.js';
+import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { IEditorOptions } from '../../../../platform/editor/common/editor.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { IStorageService } from '../../../../platform/storage/common/storage.js';
@@ -21,6 +22,7 @@ import { ConversationChatInput, parseConversationChatResource } from './conversa
 import { CONVERSATION_LEAF_COMPACT_WIDTH, CONVERSATION_LEAF_NARROW_WIDTH } from './conversationNarrowLayout.js';
 import { IConversationSessionChatService } from './conversationSessionChatService.js';
 import { IConversationPartService } from '../../../browser/parts/conversation/conversationPart.js';
+import { shouldAutoFocusComposer } from '../common/uaClientSettingsHelpers.js';
 
 export class ConversationEditorPane extends EditorPane {
 
@@ -42,6 +44,7 @@ export class ConversationEditorPane extends EditorPane {
 		@IInstantiationService private readonly paneInstantiationService: IInstantiationService,
 		@IConversationPartService private readonly conversationPartService: IConversationPartService,
 		@IConversationSessionChatService private readonly sessionChatService: IConversationSessionChatService,
+		@IConfigurationService private readonly configurationService: IConfigurationService,
 	) {
 		super(ConversationEditorPane.ID, group, telemetryService, themeService, storageService);
 	}
@@ -110,6 +113,8 @@ export class ConversationEditorPane extends EditorPane {
 	}
 
 	override focus(): void {
-		this.lens?.focusDockInput();
+		if (shouldAutoFocusComposer(this.configurationService)) {
+			this.lens?.focusDockInput();
+		}
 	}
 }

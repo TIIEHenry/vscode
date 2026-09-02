@@ -66,6 +66,8 @@ summary: "PRD-015 系统规格：PreFirst 居中 / Active 列底同一张 Compos
 
 `conversationInputHistory.ts`：Composer 内 ↑ / ↓ 浏览历史输入（仅 `compose` 且光标在首 / 末行时），Escape 退出浏览。按会话隔离。
 
+未发送草稿在 `ua.client.chatInput.restoreDrafts` 为 true 时按 workspace + `${sessionId}/${chatId}` 写入 `conversation.drafts.v1`（`StorageScope.WORKSPACE` + `StorageTarget.MACHINE`）；根叶与 overlay 透镜不共用。删除会话或 roster 中消失的 id 会同步清持久化。
+
 ## 7. StatusBar 芯片（`conversationSessionStatusBar.ts` / `conversationSessionStatus.ts`）
 
 | id | 文案 | 规则 |

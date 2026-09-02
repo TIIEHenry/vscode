@@ -75,7 +75,7 @@ Sources 无独立命令；tab 切换为 title 区 tab strip 点击（`nextSource
 | `chat.titleBar.signIn.enabled` | `false` | 出厂关：titlebar 无 Copilot Sign In |
 | `chat.agentsControl.enabled` | `hidden` | 出厂关：无 Agent Status 命令中心 chrome |
 | `editor.inlineSuggest.enabled` | `false` | 出厂关：Preview 内无 ghost-text |
-| UA 客户端设置组（`uaClientSettings.ts`） | 各自默认 | display / chat-input / startup / keyboard-enter / notifications / permissions / client-tools；宿主为 `SettingsEditor2` |
+| UA 客户端设置组（`uaClientSettings.ts`） | 见下 | CS-1 已注册三键（均为 `ConfigurationScope.WINDOW`）：`ua.client.display.conversationDensity`（comfortable / compact）、`ua.client.chatInput.restoreDrafts`、`ua.client.chatInput.autoFocus`。Startup / Keyboard Enter / Notifications / Permissions / Client Tools 尚未注册。宿主为 `SettingsEditor2` |
 
 ## 7. 键盘可达性现状
 

@@ -104,6 +104,19 @@ import {
 	isConversationLeafCompact,
 	isConversationLeafNarrow,
 } from './conversationNarrowLayout.js';
+import {
+	loadUaClientComposerDraft,
+	pruneUaClientComposerDrafts,
+	removeUaClientComposerDraftsForSession,
+	sessionIdFromUaClientComposerDraftEntryKey,
+	storeUaClientComposerDraft,
+	uaClientComposerDraftEntryKey,
+} from './uaClientComposerDrafts.js';
+import {
+	applyConversationDensityClass,
+	shouldRestoreComposerDrafts,
+	UA_CLIENT_DISPLAY_CONVERSATION_DENSITY,
+} from '../common/uaClientSettingsHelpers.js';
 
 const CONVERSATION_LENS_ID_STORAGE_KEY = 'conversation.lensId';
 
@@ -255,6 +268,14 @@ export class ConversationLens extends Disposable {
 		if (slots.sessionBar) {
 			this.mountSessionBar(slots.sessionBar);
 		}
+		this.applyConversationDensity();
+		this.restoreComposerDraftToInput();
+		this.pruneOrphanComposerDrafts();
+		this._register(this.configurationService.onDidChangeConfiguration(event => {
+			if (event.affectsConfiguration(UA_CLIENT_DISPLAY_CONVERSATION_DENSITY)) {
+				this.applyConversationDensity();
+			}
+		}));
 		this.bindReadingColumnLayout();
 
 		this.lensId = this.loadLensId();
@@ -266,6 +287,7 @@ export class ConversationLens extends Disposable {
 
 		this._register(this.stubService.onDidChangeActiveSession(sessionId => this.applyActiveSession(sessionId)));
 		this._register(this.stubService.onDidChangeSession(sessionId => {
+			this.pruneOrphanComposerDrafts();
 			this.refreshSessionSelectOptions();
 			if (this.shouldRefreshActiveSessionChrome(sessionId)) {
 				if (!this.sessionTitleEditing) {
@@ -304,7 +326,11 @@ export class ConversationLens extends Disposable {
 		if (this.filterAgentId === agentId) {
 			return;
 		}
+		if (this.dockTextarea && this.composerPolicy === 'compose') {
+			this.writeComposerDraft(this.stubService.getActiveSessionId(), this.dockTextarea.value);
+		}
 		this.filterAgentId = agentId;
+		this.restoreComposerDraftToInput();
 		if (this.lensId === 'trajectory') {
 			this.refreshTrajectoryRecords(this.stubService.getActiveSessionId());
 		}
@@ -852,7 +878,7 @@ export class ConversationLens extends Disposable {
 			if (this.inputHistoryBrowse.browseIndex >= 0) {
 				this.inputHistoryBrowse = createInputHistoryBrowseState();
 			}
-			this.drafts.set(this.stubService.getActiveSessionId(), this.dockTextarea.value);
+			this.writeComposerDraft(this.stubService.getActiveSessionId(), this.dockTextarea.value);
 			this.updateSendEnabled();
 		}));
 
@@ -1078,7 +1104,7 @@ export class ConversationLens extends Disposable {
 		this.editingQueueItemId = undefined;
 		this.timelineTree.setEditingTurnId(undefined);
 		this.dockTextarea.value = restoreComposeDraft
-			? (this.composeDraftSnapshot || this.drafts.get(sessionId) || '')
+			? (this.composeDraftSnapshot || this.readComposerDraft(sessionId) || '')
 			: '';
 		this.composeDraftSnapshot = '';
 		this.syncComposerPlacement();
@@ -1178,9 +1204,9 @@ export class ConversationLens extends Disposable {
 			this.setVoiceClips(sessionId, remaining);
 			const draft = this.stubService.getActiveSessionId() === sessionId && this.composerPolicy === 'compose'
 				? this.dockTextarea.value
-				: (this.drafts.get(sessionId) ?? '');
+				: this.readComposerDraft(sessionId);
 			const nextDraft = appendVoiceTextToDraft(draft, phrase);
-			this.drafts.set(sessionId, nextDraft);
+			this.writeComposerDraft(sessionId, nextDraft);
 			if (this.stubService.getActiveSessionId() === sessionId && this.composerPolicy === 'compose') {
 				this.dockTextarea.value = nextDraft;
 				this.updateSendEnabled();
@@ -1258,7 +1284,7 @@ export class ConversationLens extends Disposable {
 		const previousId = this.stubService.getActiveSessionId();
 		if (previousId !== sessionId) {
 			this.visualizeOverlay.close();
-			this.drafts.set(previousId, this.dockTextarea.value);
+			this.writeComposerDraft(previousId, this.dockTextarea.value);
 			this.stubService.switchSession(sessionId);
 		}
 		this.instantiationService.invokeFunction(showConversationPart);
@@ -1385,13 +1411,13 @@ export class ConversationLens extends Disposable {
 	}
 
 	private createNewSession(): void {
-		this.drafts.set(this.stubService.getActiveSessionId(), this.dockTextarea.value);
+		this.writeComposerDraft(this.stubService.getActiveSessionId(), this.dockTextarea.value);
 		this.stubService.createSession();
 	}
 
 	private deleteActiveSession(): void {
 		const sessionId = this.stubService.getActiveSessionId();
-		this.drafts.delete(sessionId);
+		this.deleteComposerDraftsForSession(sessionId);
 		this.stubService.deleteSession(sessionId);
 	}
 
@@ -1403,7 +1429,7 @@ export class ConversationLens extends Disposable {
 		this.refreshSessionSelectOptions();
 		this.syncSessionConfigSelects(sessionId);
 		this.updateSessionTitle();
-		this.dockTextarea.value = this.drafts.get(sessionId) ?? '';
+		this.dockTextarea.value = this.readComposerDraft(sessionId);
 		this.bindSessionView(sessionId);
 		this.renderInboxStatus();
 		this.renderVoiceTranscriptBar();
@@ -1453,6 +1479,7 @@ export class ConversationLens extends Disposable {
 		this.updateSyncChrome(this.sessionViewLease.snapshot.sync);
 		this.updateConversationPhase();
 		this.syncComposerPlacement();
+		this.applyConversationDensity();
 	}
 
 	private bindReadingColumnLayout(): void {
@@ -1476,6 +1503,75 @@ export class ConversationLens extends Disposable {
 		});
 		observer.observe(this.readingColumn);
 		this._register(toDisposable(() => observer.disconnect()));
+	}
+
+	private composerChatId(): string {
+		return this.filterAgentId ?? 'default';
+	}
+
+	private draftMapKey(sessionId: string): string {
+		return uaClientComposerDraftEntryKey(sessionId, this.composerChatId());
+	}
+
+	private readComposerDraft(sessionId: string): string {
+		const key = this.draftMapKey(sessionId);
+		if (this.drafts.has(key)) {
+			return this.drafts.get(key) ?? '';
+		}
+		if (!shouldRestoreComposerDrafts(this.configurationService)) {
+			return '';
+		}
+		const stored = loadUaClientComposerDraft(this.storageService, sessionId, this.composerChatId());
+		this.drafts.set(key, stored);
+		return stored;
+	}
+
+	private writeComposerDraft(sessionId: string, text: string): void {
+		this.drafts.set(this.draftMapKey(sessionId), text);
+		if (shouldRestoreComposerDrafts(this.configurationService)) {
+			storeUaClientComposerDraft(this.storageService, sessionId, this.composerChatId(), text);
+		}
+	}
+
+	private restoreComposerDraftToInput(): void {
+		if (!this.dockTextarea || this.composerPolicy !== 'compose') {
+			return;
+		}
+		this.dockTextarea.value = this.readComposerDraft(this.stubService.getActiveSessionId());
+		this.updateSendEnabled();
+	}
+
+	private deleteComposerDraftsForSession(sessionId: string): void {
+		for (const key of [...this.drafts.keys()]) {
+			if (sessionIdFromUaClientComposerDraftEntryKey(key) === sessionId) {
+				this.drafts.delete(key);
+			}
+		}
+		removeUaClientComposerDraftsForSession(this.storageService, sessionId);
+	}
+
+	private pruneOrphanComposerDrafts(): void {
+		const liveIds = this.stubService.getSessions().map(session => session.id);
+		const live = new Set(liveIds);
+		for (const key of [...this.drafts.keys()]) {
+			if (!live.has(sessionIdFromUaClientComposerDraftEntryKey(key))) {
+				this.drafts.delete(key);
+			}
+		}
+		pruneUaClientComposerDrafts(this.storageService, liveIds);
+	}
+
+	private applyConversationDensity(): void {
+		applyConversationDensityClass(this.slotHosts.timeline, this.configurationService);
+		if (this.readingColumn) {
+			applyConversationDensityClass(this.readingColumn, this.configurationService);
+		}
+		if (this.timelineTree?.domNode) {
+			applyConversationDensityClass(this.timelineTree.domNode, this.configurationService);
+		}
+		for (const root of this.slotHosts.timeline.querySelectorAll<HTMLElement>('[data-process-fold]')) {
+			applyConversationDensityClass(root, this.configurationService);
+		}
 	}
 
 	private applyConversationWidth(width: number): void {
@@ -1676,7 +1772,7 @@ export class ConversationLens extends Disposable {
 		}
 		this.inputHistoryBrowse = result.state;
 		this.dockTextarea.value = result.textareaValue;
-		this.drafts.set(this.stubService.getActiveSessionId(), result.textareaValue);
+		this.writeComposerDraft(this.stubService.getActiveSessionId(), result.textareaValue);
 		return true;
 	}
 
@@ -1687,7 +1783,7 @@ export class ConversationLens extends Disposable {
 		}
 		this.inputHistoryBrowse = result.state;
 		this.dockTextarea.value = result.textareaValue;
-		this.drafts.set(this.stubService.getActiveSessionId(), result.textareaValue);
+		this.writeComposerDraft(this.stubService.getActiveSessionId(), result.textareaValue);
 	}
 
 	private submitDraft(): void {
@@ -1713,7 +1809,7 @@ export class ConversationLens extends Disposable {
 			this.showPostFailure(outcome.reason);
 			return;
 		}
-		this.drafts.set(sessionId, '');
+		this.writeComposerDraft(sessionId, '');
 		this.dockTextarea.value = '';
 		this.resetInputHistoryBrowse();
 	}
