@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Event } from '../../../base/common/event.js';
-import type { IFileMutationRecord, UniverseAgentAgentTreeNode } from './universeAgentTypes.js';
+import type { IFileMutationRecord, ITurnSettleSignal, UniverseAgentAgentTreeNode } from './universeAgentTypes.js';
 
 /**
  * Electron-main-only surface for SessionViewHost (m6 §11).
@@ -21,6 +21,8 @@ export interface IUniverseAgentHostConnection {
 	isAgentTreeUnsupported(): boolean;
 
 	notifyFileMutation(record: IFileMutationRecord): void;
+
+	notifyTurnSettle(signal: ITurnSettleSignal): void;
 
 	notifyTeamRuntimeChange(sessionId: string): void;
 }

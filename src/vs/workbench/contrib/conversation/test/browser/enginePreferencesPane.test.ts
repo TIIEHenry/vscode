@@ -39,6 +39,7 @@ suite('EnginePreferencesPane', () => {
 			getCapabilitySnapshot: () => capabilities,
 			onDidChangeConnection: Event.None,
 			onDidFileMutation: Event.None,
+			onDidTurnSettle: Event.None,
 			connect: async () => ({ methods: [], events: [], sessionToken: 'tok' }),
 			connectProfile: async () => ({ ok: false, code: 'transport_failed', reason: 'stub' }),
 			disconnect: async () => { },

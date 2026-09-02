@@ -31,6 +31,7 @@ import type {
 	UniverseAgentTeamTaskInfo,
 	UniverseAgentTransportState,
 	IFileMutationRecord,
+	ITurnSettleSignal,
 	UniverseAgentCapabilitySupport,
 } from './universeAgentTypes.js';
 
@@ -70,6 +71,9 @@ export interface IUniverseAgentConnection {
 
 	/** File mutations after host join (m6 §11 A2); never raw L3 snapshots. */
 	readonly onDidFileMutation: Event<IFileMutationRecord>;
+
+	/** Turn settle after TurnCompletedChange.assistant_turn_id (m6 §11 A2 / PRD-023 §2.4). */
+	readonly onDidTurnSettle: Event<ITurnSettleSignal>;
 
 	/** L3 multi_agent_status demux (m6 §11 A2). */
 	readonly onDidChangeTeamRuntime: Event<{ readonly sessionId: string }>;

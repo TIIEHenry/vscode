@@ -106,6 +106,26 @@ suite('FileMutationJoin', () => {
 		assert.strictEqual((emitted[emitted.length - 1] as { turnId: string }).turnId, 'assistant-turn-3');
 	});
 
+	test('turn_completed invokes onTurnSettle when runtime and assistant ids present', () => {
+		const join = new FileMutationJoin('sess-settle');
+		const settled: unknown[] = [];
+		join.handleStreamPayload({
+			turn_completed: { turn_id: 'runtime-1', assistant_turn_id: 'assistant-1' },
+		}, () => { }, signal => settled.push(signal));
+
+		assert.deepStrictEqual(settled, [{ runtimeTurnId: 'runtime-1', assistantTurnId: 'assistant-1' }]);
+	});
+
+	test('lifecycle without turn_completed does not invoke onTurnSettle', () => {
+		const join = new FileMutationJoin('sess-no-settle');
+		const settled: unknown[] = [];
+		join.handleStreamPayload({
+			tool_call_lifecycle: { tool_call_id: 'tc', turn_id: 'turn-1', agent_id: 'agent' },
+		}, () => { }, signal => settled.push(signal));
+
+		assert.strictEqual(settled.length, 0);
+	});
+
 	test('reseed overlay snapshots dedupe by toolCallId+path+operation', () => {
 		const join = new FileMutationJoin('sess-4');
 		const emitted: unknown[] = [];

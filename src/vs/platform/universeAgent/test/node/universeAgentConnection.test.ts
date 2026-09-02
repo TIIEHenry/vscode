@@ -238,6 +238,25 @@ suite('UniverseAgentConnectionService', () => {
 		service.dispose();
 	});
 
+	test('onDidTurnSettle fires from host notifyTurnSettle', () => {
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => new MockUniverseAgentGrpcTransport(),
+		});
+		const signals: unknown[] = [];
+		store.add(service.onDidTurnSettle(s => signals.push(s)));
+		service.notifyTurnSettle({
+			sessionId: 's1',
+			runtimeTurnId: 'runtime-1',
+			assistantTurnId: 'assistant-1',
+		});
+		assert.deepStrictEqual(signals, [{
+			sessionId: 's1',
+			runtimeTurnId: 'runtime-1',
+			assistantTurnId: 'assistant-1',
+		}]);
+		service.dispose();
+	});
+
 	test('agentTree UNIMPLEMENTED probe → UNSUPPORTED capability', async () => {
 		const transport = new MockUniverseAgentGrpcTransport({
 			connect: async () => ({

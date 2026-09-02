@@ -103,6 +103,7 @@ suite('NavigatorProjectsView', () => {
 			getCapabilitySnapshot: () => ({} as UniverseAgentConnectionSnapshot['capabilities']),
 			onDidChangeConnection: Event.None,
 			onDidFileMutation: Event.None,
+			onDidTurnSettle: Event.None,
 			connect: async () => ({ methods: [], events: [] }),
 			connectProfile: async () => ({ ok: false as const, code: 'transport_failed' as const, reason: 'test' }),
 			getConnectionPhase: () => ({ kind: 'disconnected' as const }),

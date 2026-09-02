@@ -3,8 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Emitter, Event } from '../../../../base/common/event.js';
-import { Disposable, IDisposable } from '../../../../base/common/lifecycle.js';
+import { Emitter } from '../../../../base/common/event.js';
+import { Disposable } from '../../../../base/common/lifecycle.js';
 import { Iterable } from '../../../../base/common/iterator.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import type { UniverseAgentConnectionSnapshot } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
@@ -26,24 +26,6 @@ interface IMutableFileMutationRecord extends IFileMutationRecord {
 	turnId: string;
 }
 
-function subscribeFileMutations(
-	connection: IUniverseAgentConnection,
-	listener: (record: IFileMutationRecord) => void,
-): IDisposable {
-	const event = connection.onDidFileMutation as unknown as Event<IFileMutationRecord>;
-	return event(listener);
-}
-
-function subscribeTurnSettle(
-	connection: IUniverseAgentConnection,
-	listener: (signal: ITurnSettleSignal) => void,
-): IDisposable {
-	const extended = connection as IUniverseAgentConnection & { readonly onDidTurnSettle?: Event<ITurnSettleSignal> };
-	if (!extended.onDidTurnSettle) {
-		return Disposable.None;
-	}
-	return extended.onDidTurnSettle(listener);
-}
 
 export class ConversationReviewNavService extends Disposable implements IConversationReviewNavService {
 
@@ -66,11 +48,11 @@ export class ConversationReviewNavService extends Disposable implements IConvers
 
 		this.connectionSnapshot = connection.getConnectionSnapshot();
 
-		this._register(subscribeFileMutations(connection, record => {
+		this._register(connection.onDidFileMutation(record => {
 			this.ingestMutation(record);
 		}));
 
-		this._register(subscribeTurnSettle(connection, signal => {
+		this._register(connection.onDidTurnSettle(signal => {
 			this.applyTurnSettle(signal);
 		}));
 

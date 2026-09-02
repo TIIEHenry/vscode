@@ -10,6 +10,7 @@ import type { IUniverseAgentConnection } from '../../common/universeAgentConnect
 import type { IUniverseAgentHostConnection } from '../../common/universeAgentHostConnection.js';
 import type {
 	IFileMutationRecord,
+	ITurnSettleSignal,
 	UniverseAgentAgentTreeNode,
 	UniverseAgentConnectionSnapshot,
 } from '../../common/universeAgentTypes.js';
@@ -35,6 +36,7 @@ class TestConnection implements IUniverseAgentConnection {
 	private readonly streamListeners = new Map<string, ((event: { payload: unknown }) => void)[]>();
 
 	readonly onDidFileMutation = Event.None;
+	readonly onDidTurnSettle = Event.None;
 	readonly onDidChangeTeamRuntime = Event.None;
 	readonly team = {
 		memberStatus: async () => [],
@@ -91,6 +93,7 @@ class TestHost implements IUniverseAgentHostConnection {
 	treeFetchCount = 0;
 	agentTreeUnsupported = false;
 	fileMutations: IFileMutationRecord[] = [];
+	turnSettleSignals: ITurnSettleSignal[] = [];
 	teamRuntimeEvents: string[] = [];
 
 	constructor(private readonly treeProvider: () => Promise<UniverseAgentAgentTreeNode | undefined>) {
@@ -110,6 +113,10 @@ class TestHost implements IUniverseAgentHostConnection {
 
 	notifyFileMutation(record: IFileMutationRecord): void {
 		this.fileMutations.push(record);
+	}
+
+	notifyTurnSettle(signal: ITurnSettleSignal): void {
+		this.turnSettleSignals.push(signal);
 	}
 
 	notifyTeamRuntimeChange(sessionId: string): void {
@@ -202,5 +209,41 @@ suite('SessionViewHost navigator §11', () => {
 		connection.pushStreamEvent('sess-e', { multi_agent_status: { team_aborted: { team_id: 1 } } });
 
 		assert.deepStrictEqual(host.teamRuntimeEvents, ['sess-e']);
+	});
+
+	test('turn_completed stream → turn settle via host', () => {
+		const connection = new TestConnection();
+		const host = new TestHost(async () => ROOT_TREE);
+		const viewHost = store.add(new SessionViewHost(connection, host));
+
+		viewHost.onEngineConnectionChanged();
+		viewHost.acquireLease('sess-f');
+		connection.pushStreamEvent('sess-f', {
+			tool_call_lifecycle: { tool_call_id: 'tc-y', turn_id: 'runtime-y', agent_id: 'agent-y' },
+		});
+		connection.pushStreamEvent('sess-f', {
+			turn_completed: { turn_id: 'runtime-y', assistant_turn_id: 'assistant-y' },
+		});
+
+		assert.strictEqual(host.turnSettleSignals.length, 1);
+		assert.deepStrictEqual(host.turnSettleSignals[0], {
+			sessionId: 'sess-f',
+			runtimeTurnId: 'runtime-y',
+			assistantTurnId: 'assistant-y',
+		});
+	});
+
+	test('lifecycle without turn_completed → no turn settle', () => {
+		const connection = new TestConnection();
+		const host = new TestHost(async () => ROOT_TREE);
+		const viewHost = store.add(new SessionViewHost(connection, host));
+
+		viewHost.onEngineConnectionChanged();
+		viewHost.acquireLease('sess-g');
+		connection.pushStreamEvent('sess-g', {
+			tool_call_lifecycle: { tool_call_id: 'tc-z', turn_id: 'runtime-z', agent_id: 'agent-z' },
+		});
+
+		assert.strictEqual(host.turnSettleSignals.length, 0);
 	});
 });

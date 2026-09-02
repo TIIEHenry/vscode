@@ -81,6 +81,7 @@ suite('Sources - review attribution', () => {
 				capabilities: {} as never,
 			}),
 			onDidFileMutation: mutationEmitter.event,
+			onDidTurnSettle: Event.None,
 			onDidChangeConnection: connectionChangeEmitter.event,
 		} as unknown as IUniverseAgentConnection;
 
@@ -197,6 +198,7 @@ suite('Sources - review attribution', () => {
 				capabilities: {} as never,
 			}),
 			onDidFileMutation: mutationEmitter.event,
+			onDidTurnSettle: Event.None,
 			onDidChangeConnection: connectionChangeEmitter.event,
 		} as unknown as IUniverseAgentConnection;
 

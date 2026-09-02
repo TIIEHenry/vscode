@@ -131,6 +131,13 @@ export interface IFileMutationRecord {
 	};
 }
 
+/** Turn settle signal after TurnCompletedChange.assistant_turn_id (m6 §11 / PRD-023 §2.4). */
+export interface ITurnSettleSignal {
+	readonly sessionId: string;
+	readonly runtimeTurnId: string;
+	readonly assistantTurnId: string;
+}
+
 export interface UniverseAgentTeamMemberInfo {
 	readonly memberName: string;
 	readonly memberAgentId: string;
