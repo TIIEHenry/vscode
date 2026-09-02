@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import './agentInspectService.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { localize, localize2 } from '../../../../nls.js';
 import { SyncDescriptor } from '../../../../platform/instantiation/common/descriptors.js';
@@ -51,7 +52,7 @@ viewsRegistry.registerViews([{
 }], AGENT_INSPECT_VIEW_CONTAINER);
 
 viewsRegistry.registerViewWelcomeContent(AGENT_INSPECT_VIEW_ID, {
-	content: localize('agentInspectWelcome', "No inspect target yet"),
+	content: localize('agentInspectWelcome', "在 Agents 或 Team 里选择一项"),
 	group: ViewContentGroups.Open,
 	order: 1,
 });

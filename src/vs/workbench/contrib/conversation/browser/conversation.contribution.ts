@@ -22,6 +22,8 @@ import './conversationNavigation.contribution.js';
 import './conversationSplitActions.contribution.js';
 import './conversationSessionChat.contribution.js';
 import './conversationSessionWindow.contribution.js';
+import './conversationRevealItem.contribution.js';
+import './conversationTimelineRevealService.js';
 import { CONVERSATION_SESSIONS_VIEW_ID, ConversationSessionsView } from './conversationSessionsView.js';
 import { ConversationSessionStatusBarContribution, registerConversationSessionStatusBar } from './conversationSessionStatusBar.js';
 import { registerUaPreferencesNavigationActions } from './uaPreferencesNavigation.js';

@@ -4,6 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import './media/navigatorStub.css';
+import './navigatorAgentsView.js';
+import './agentInspectService.js';
 import './agentInspect.contribution.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { localize, localize2, ILocalizedString } from '../../../../nls.js';

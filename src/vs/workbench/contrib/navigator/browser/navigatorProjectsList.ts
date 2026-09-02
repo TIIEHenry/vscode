@@ -5,10 +5,10 @@
 
 import './media/navigatorProjectsList.css';
 import * as dom from '../../../../base/browser/dom.js';
-import { IListRenderer, IListVirtualDelegate } from '../../../../base/browser/ui/list/list.js';
-import { IListAccessibilityProvider } from '../../../../base/browser/ui/list/listWidget.js';
+import { RenderIndentGuides } from '../../../../base/browser/ui/tree/abstractTree.js';
+import { ITreeNode, ITreeRenderer } from '../../../../base/browser/ui/tree/tree.js';
+import { IListVirtualDelegate } from '../../../../base/browser/ui/list/list.js';
 import { splitRecentLabel } from '../../../../base/common/labels.js';
-import { URI } from '../../../../base/common/uri.js';
 import { localize } from '../../../../nls.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { IContextKeyService } from '../../../../platform/contextkey/common/contextkey.js';
@@ -17,78 +17,88 @@ import { IHoverService } from '../../../../platform/hover/browser/hover.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { IKeybindingService } from '../../../../platform/keybinding/common/keybinding.js';
 import { Verbosity, ILabelService } from '../../../../platform/label/common/label.js';
-import { WorkbenchList } from '../../../../platform/list/browser/listService.js';
+import { WorkbenchObjectTree } from '../../../../platform/list/browser/listService.js';
 import { IOpenerService } from '../../../../platform/opener/common/opener.js';
 import { IThemeService } from '../../../../platform/theme/common/themeService.js';
-import { IWindowOpenable } from '../../../../platform/window/common/window.js';
+import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { isRecentFolder, IWorkspacesService } from '../../../../platform/workspaces/common/workspaces.js';
 import { IWorkspaceContextService } from '../../../../platform/workspace/common/workspace.js';
 import { ResourceLabels, IResourceLabel } from '../../../browser/labels.js';
 import { IViewPaneOptions, ViewPane } from '../../../browser/parts/views/viewPane.js';
 import { IViewDescriptorService } from '../../../common/views.js';
 import { IHostService } from '../../../services/host/browser/host.js';
+import { IConversationPartService } from '../../../browser/parts/conversation/conversationPart.js';
+import { IWorkbenchLayoutService, Parts } from '../../../services/layout/browser/layoutService.js';
+import { IConversationRosterService } from '../../conversation/browser/conversationStubService.js';
 import { matchesNavigatorProjectsInlineFilter } from '../common/navigatorProjectsInlineFilter.js';
+import { buildNavigatorProjectsTree, countLocalFolders, INavigatorLocalFolderEntry, INavigatorProjectsTreeNode } from '../common/navigatorProjectsTree.js';
+import { getNavigatorCapability } from '../common/navigatorEngineBridge.js';
 import { NavigatorProjectsInlineFilterBox } from './navigatorProjectsInlineFilterBox.js';
 import { NAVIGATOR_PROJECTS_VIEW_ID } from './navigatorStubView.js';
 
 const $ = dom.$;
 
-export interface INavigatorProjectEntry {
-	readonly id: string;
-	readonly resource: URI;
-	readonly name: string;
-	readonly description?: string;
-	readonly openable: IWindowOpenable;
-	readonly remoteAuthority?: string;
-}
+export type { INavigatorLocalFolderEntry };
 
-class ProjectsDelegate implements IListVirtualDelegate<INavigatorProjectEntry> {
+class ProjectsTreeDelegate implements IListVirtualDelegate<INavigatorProjectsTreeNode> {
 	getHeight(): number {
 		return 22;
 	}
 
-	getTemplateId(): string {
-		return 'navigatorProject';
+	getTemplateId(element: INavigatorProjectsTreeNode): string {
+		return element.kind === 'local-folder' ? 'navigatorProjectFolder' : 'navigatorProjectNode';
 	}
 }
 
-interface IProjectTemplateData {
-	readonly container: HTMLElement;
+interface IProjectFolderTemplateData {
 	readonly label: IResourceLabel;
 }
 
-class ProjectsRenderer implements IListRenderer<INavigatorProjectEntry, IProjectTemplateData> {
-	static readonly TEMPLATE_ID = 'navigatorProject';
+interface IProjectNodeTemplateData {
+	readonly label: HTMLElement;
+}
 
-	readonly templateId = ProjectsRenderer.TEMPLATE_ID;
+class ProjectFolderRenderer implements ITreeRenderer<INavigatorProjectsTreeNode, void, IProjectFolderTemplateData> {
+	static readonly TEMPLATE_ID = 'navigatorProjectFolder';
+	readonly templateId = ProjectFolderRenderer.TEMPLATE_ID;
 
 	constructor(private readonly labels: ResourceLabels) { }
 
-	renderTemplate(container: HTMLElement): IProjectTemplateData {
+	renderTemplate(container: HTMLElement): IProjectFolderTemplateData {
 		const label = this.labels.create(container, { supportDescriptionHighlights: true });
-		return { container, label };
+		return { label };
 	}
 
-	renderElement(entry: INavigatorProjectEntry, _index: number, templateData: IProjectTemplateData): void {
+	renderElement(node: ITreeNode<INavigatorProjectsTreeNode, void>, _index: number, templateData: IProjectFolderTemplateData): void {
+		const entry = node.element;
 		templateData.label.setResource({
-			resource: entry.resource,
-			name: entry.name,
+			resource: entry.resource!,
+			name: entry.label,
 			description: entry.description,
 		}, { hideIcon: false });
 	}
 
-	disposeTemplate(templateData: IProjectTemplateData): void {
+	disposeTemplate(templateData: IProjectFolderTemplateData): void {
 		templateData.label.dispose();
 	}
 }
 
-class ProjectsAccessibilityProvider implements IListAccessibilityProvider<INavigatorProjectEntry> {
-	getWidgetAriaLabel(): string {
-		return localize('navigatorProjectsView.ariaLabel', "Projects");
+class ProjectNodeRenderer implements ITreeRenderer<INavigatorProjectsTreeNode, void, IProjectNodeTemplateData> {
+	static readonly TEMPLATE_ID = 'navigatorProjectNode';
+	readonly templateId = ProjectNodeRenderer.TEMPLATE_ID;
+
+	renderTemplate(container: HTMLElement): IProjectNodeTemplateData {
+		return { label: dom.append(container, $('.navigator-projects-node-label')) };
 	}
 
-	getAriaLabel(entry: INavigatorProjectEntry): string {
-		return entry.description ? `${entry.name}, ${entry.description}` : entry.name;
+	renderElement(node: ITreeNode<INavigatorProjectsTreeNode, void>, _index: number, templateData: IProjectNodeTemplateData): void {
+		templateData.label.textContent = node.element.description
+			? `${node.element.label} — ${node.element.description}`
+			: node.element.label;
+	}
+
+	disposeTemplate(): void {
+		// noop
 	}
 }
 
@@ -96,11 +106,13 @@ export class NavigatorProjectsView extends ViewPane {
 
 	static readonly ID = NAVIGATOR_PROJECTS_VIEW_ID;
 
-	private list: WorkbenchList<INavigatorProjectEntry> | undefined;
-	private listContainer: HTMLElement | undefined;
+	private tree: WorkbenchObjectTree<INavigatorProjectsTreeNode, void> | undefined;
+	private treeContainer: HTMLElement | undefined;
 	private filterBox: NavigatorProjectsInlineFilterBox | undefined;
 	private filterQuery = '';
-	private entries: INavigatorProjectEntry[] = [];
+	private treeNodes: INavigatorProjectsTreeNode[] = [];
+	private localFolderEntries: INavigatorLocalFolderEntry[] = [];
+	private wasEverConnected = false;
 
 	constructor(
 		options: IViewPaneOptions,
@@ -108,6 +120,10 @@ export class NavigatorProjectsView extends ViewPane {
 		@IWorkspacesService private readonly workspacesService: IWorkspacesService,
 		@ILabelService private readonly labelService: ILabelService,
 		@IHostService private readonly hostService: IHostService,
+		@IConversationRosterService private readonly rosterService: IConversationRosterService,
+		@IUniverseAgentConnection private readonly uaConnection: IUniverseAgentConnection,
+		@IWorkbenchLayoutService private readonly layoutService: IWorkbenchLayoutService,
+		@IConversationPartService private readonly conversationPartService: IConversationPartService,
 		@IKeybindingService keybindingService: IKeybindingService,
 		@IContextMenuService contextMenuService: IContextMenuService,
 		@IConfigurationService configurationService: IConfigurationService,
@@ -124,10 +140,19 @@ export class NavigatorProjectsView extends ViewPane {
 		this._register(this.contextService.onDidChangeWorkspaceFolders(() => this.refresh()));
 		this._register(this.workspacesService.onDidChangeRecentlyOpened(() => this.refresh()));
 		this._register(this.labelService.onDidChangeFormatters(() => this.refresh()));
+		this._register(this.rosterService.onDidChangeSession(() => this.refresh()));
+		this._register(this.rosterService.onDidChangeActiveSession(() => this.refresh()));
+		this._register(this.rosterService.onDidChangeEngineConnection(connected => {
+			if (connected) {
+				this.wasEverConnected = true;
+			}
+			this.refresh();
+		}));
+		this._register(this.uaConnection.onDidChangeConnection(() => this.refresh()));
 	}
 
 	override shouldShowWelcome(): boolean {
-		return this.entries.length === 0;
+		return countLocalFolders(this.treeNodes) === 0 && !this.rosterService.isEngineConnected() && !this.wasEverConnected;
 	}
 
 	protected override renderBody(container: HTMLElement): void {
@@ -144,101 +169,162 @@ export class NavigatorProjectsView extends ViewPane {
 		this.filterBox.setVisible(false);
 		this._register(this.filterBox.onDidChange(query => {
 			this.filterQuery = query;
-			this.applyFilterToList();
+			this.applyFilterToTree();
 		}));
 
-		this.listContainer = dom.append(container, $('.navigator-projects-list'));
-		this.ensureList();
+		this.treeContainer = dom.append(container, $('.navigator-projects-list'));
+		this.ensureTree();
 		this.refresh();
 	}
 
 	protected override layoutBody(height: number, width: number): void {
 		super.layoutBody(height, width);
-		const filterHeight = this.entries.length > 0 ? NavigatorProjectsInlineFilterBox.HEIGHT : 0;
-		this.list?.layout(height - filterHeight, width);
+		const filterHeight = this.treeNodes.length > 0 ? NavigatorProjectsInlineFilterBox.HEIGHT : 0;
+		this.tree?.layout(height - filterHeight, width);
 	}
 
-	private ensureList(): WorkbenchList<INavigatorProjectEntry> {
-		if (this.list) {
-			return this.list;
+	private ensureTree(): WorkbenchObjectTree<INavigatorProjectsTreeNode, void> {
+		if (this.tree) {
+			return this.tree;
 		}
 
 		const labels = this._register(this.instantiationService.createInstance(ResourceLabels, { onDidChangeVisibility: this.onDidChangeBodyVisibility }));
-		const delegate = new ProjectsDelegate();
-		const renderer = new ProjectsRenderer(labels);
+		const delegate = new ProjectsTreeDelegate();
 
-		this.list = this._register(this.instantiationService.createInstance(
-			WorkbenchList,
+		this.tree = this._register(this.instantiationService.createInstance(
+			WorkbenchObjectTree<INavigatorProjectsTreeNode, void>,
 			'NavigatorProjects',
-			this.listContainer!,
+			this.treeContainer!,
 			delegate,
-			[renderer],
+			[
+				new ProjectFolderRenderer(labels),
+				new ProjectNodeRenderer(),
+			],
 			{
-				identityProvider: { getId: (entry: INavigatorProjectEntry) => entry.id },
-				accessibilityProvider: new ProjectsAccessibilityProvider(),
-				openOnSingleClick: true,
-			}
-		)) as WorkbenchList<INavigatorProjectEntry>;
+				identityProvider: { getId: (node: INavigatorProjectsTreeNode) => node.id },
+				horizontalScrolling: false,
+				hideTwistiesOfChildlessElements: true,
+				renderIndentGuides: RenderIndentGuides.None,
+				accessibilityProvider: {
+					getAriaLabel: (node: INavigatorProjectsTreeNode) => node.description ? `${node.label}, ${node.description}` : node.label,
+					getWidgetAriaLabel: () => localize('navigatorProjectsView.ariaLabel', "Projects"),
+				},
+			},
+		));
 
-		this._register(this.list.onDidOpen(e => this.openProjectEntry(e.element, e.browserEvent)));
+		this._register(this.tree.onDidOpen(e => this.openTreeNode(e.element, e.browserEvent)));
 
-		return this.list;
+		return this.tree;
 	}
 
-	private openProjectEntry(entry: INavigatorProjectEntry | undefined, browserEvent?: UIEvent): void {
-		if (!entry) {
+	private openTreeNode(node: INavigatorProjectsTreeNode | undefined, browserEvent?: UIEvent): void {
+		if (!node) {
 			return;
 		}
-
-		const mouseEvent = browserEvent instanceof MouseEvent ? browserEvent : undefined;
-		void this.hostService.openWindow([entry.openable], {
-			forceNewWindow: !!(mouseEvent && (mouseEvent.ctrlKey || mouseEvent.metaKey)),
-			forceReuseWindow: !!(mouseEvent && mouseEvent.altKey),
-			remoteAuthority: entry.remoteAuthority ?? null,
-		});
+		if (node.kind === 'session' && node.sessionId) {
+			this.rosterService.switchSession(node.sessionId);
+			if (!this.layoutService.isVisible(Parts.CONVERSATION_PART)) {
+				this.layoutService.setPartHidden(false, Parts.CONVERSATION_PART);
+			}
+			this.conversationPartService.focus();
+			return;
+		}
+		if (node.kind === 'local-folder' && node.openable) {
+			const mouseEvent = browserEvent instanceof MouseEvent ? browserEvent : undefined;
+			void this.hostService.openWindow([node.openable], {
+				forceNewWindow: !!(mouseEvent && (mouseEvent.ctrlKey || mouseEvent.metaKey)),
+				forceReuseWindow: !!(mouseEvent && mouseEvent.altKey),
+				remoteAuthority: node.remoteAuthority ?? null,
+			});
+		}
 	}
 
 	private refresh(): void {
-		const currentEntries = this.getCurrentFolderEntries();
-		this.setEntries(currentEntries);
-		void this.appendRecentEntries();
+		void this.rebuildTree();
 	}
 
-	private async appendRecentEntries(): Promise<void> {
-		const recentEntries = await this.getRecentFolderEntries();
-		this.setEntries([...this.getCurrentFolderEntries(), ...recentEntries]);
-	}
+	private async rebuildTree(): Promise<void> {
+		this.localFolderEntries = [
+			...this.getCurrentFolderEntries(),
+			...(await this.getRecentFolderEntries()),
+		];
 
-	private setEntries(entries: INavigatorProjectEntry[]): void {
-		const hadEntries = this.entries.length > 0;
-		this.entries = entries;
-		const hasEntries = entries.length > 0;
-
-		this.filterBox?.setVisible(hasEntries);
-
-		if (this.list) {
-			this.applyFilterToList();
+		const engineConnected = this.rosterService.isEngineConnected();
+		if (engineConnected) {
+			this.wasEverConnected = true;
 		}
 
-		if (hadEntries !== hasEntries) {
-			this._onDidChangeViewWelcomeState.fire();
-		}
+		const snapshot = this.uaConnection.getConnectionSnapshot();
+		this.treeNodes = buildNavigatorProjectsTree({
+			engineConnected,
+			wasEverConnected: this.wasEverConnected,
+			transportFailed: snapshot.transport === 'failed',
+			sessionListCapability: getNavigatorCapability(this.uaConnection, 'sessionList'),
+			workDir: snapshot.workDir,
+			sessions: this.rosterService.getSessions(),
+			localFolders: this.localFolderEntries,
+		});
+
+		this.filterBox?.setVisible(this.treeNodes.length > 0);
+		this.applyFilterToTree();
+		this._onDidChangeViewWelcomeState.fire();
 	}
 
-	private applyFilterToList(): void {
-		if (!this.list) {
+	private applyFilterToTree(): void {
+		const tree = this.tree;
+		if (!tree) {
 			return;
 		}
-
-		const filtered = this.getFilteredEntries();
-		this.list.splice(0, this.list.length, filtered);
+		const filtered = this.filterTreeNodes(this.treeNodes);
+		tree.setChildren(null, filtered.map(element => ({
+			element,
+			collapsible: (element.children?.length ?? 0) > 0,
+			children: this.mapFilteredChildren(element, filtered),
+		})));
 	}
 
-	private getFilteredEntries(): INavigatorProjectEntry[] {
-		return this.entries.filter(entry => matchesNavigatorProjectsInlineFilter(entry.name, entry.description, this.filterQuery));
+	private mapFilteredChildren(
+		parent: INavigatorProjectsTreeNode,
+		filteredRoots: INavigatorProjectsTreeNode[],
+	): { element: INavigatorProjectsTreeNode; collapsible: boolean; children: ReturnType<NavigatorProjectsView['mapFilteredChildren']> }[] {
+		const parentInFiltered = this.findNodeById(filteredRoots, parent.id) ?? parent;
+		return (parentInFiltered.children ?? []).map(child => ({
+			element: child,
+			collapsible: (child.children?.length ?? 0) > 0,
+			children: this.mapFilteredChildren(child, filteredRoots),
+		}));
 	}
 
-	private getCurrentFolderEntries(): INavigatorProjectEntry[] {
+	private findNodeById(nodes: readonly INavigatorProjectsTreeNode[], id: string): INavigatorProjectsTreeNode | undefined {
+		for (const node of nodes) {
+			if (node.id === id) {
+				return node;
+			}
+			const nested = node.children ? this.findNodeById(node.children, id) : undefined;
+			if (nested) {
+				return nested;
+			}
+		}
+		return undefined;
+	}
+
+	private filterTreeNodes(nodes: readonly INavigatorProjectsTreeNode[]): INavigatorProjectsTreeNode[] {
+		const result: INavigatorProjectsTreeNode[] = [];
+		for (const node of nodes) {
+			const filteredChildren = node.children ? this.filterTreeNodes(node.children) : undefined;
+			const workDirTail = node.description?.split(/[/\\]/).pop();
+			const matchesSelf = matchesNavigatorProjectsInlineFilter(node.label, workDirTail ?? node.description, this.filterQuery);
+			if (matchesSelf || (filteredChildren && filteredChildren.length > 0)) {
+				result.push({
+					...node,
+					children: filteredChildren && filteredChildren.length > 0 ? filteredChildren : (matchesSelf ? node.children : filteredChildren),
+				});
+			}
+		}
+		return result;
+	}
+
+	private getCurrentFolderEntries(): INavigatorLocalFolderEntry[] {
 		return this.contextService.getWorkspace().folders.map(folder => {
 			const fullLabel = this.labelService.getWorkspaceLabel(folder.uri, { verbose: Verbosity.LONG });
 			const { name, parentPath } = splitRecentLabel(fullLabel);
@@ -253,10 +339,10 @@ export class NavigatorProjectsView extends ViewPane {
 		});
 	}
 
-	private async getRecentFolderEntries(): Promise<INavigatorProjectEntry[]> {
+	private async getRecentFolderEntries(): Promise<INavigatorLocalFolderEntry[]> {
 		const recentlyOpened = await this.workspacesService.getRecentlyOpened();
 		const currentUris = new Set(this.contextService.getWorkspace().folders.map(folder => folder.uri.toString()));
-		const entries: INavigatorProjectEntry[] = [];
+		const entries: INavigatorLocalFolderEntry[] = [];
 
 		for (const recent of recentlyOpened.workspaces) {
 			if (!isRecentFolder(recent)) {
@@ -281,5 +367,10 @@ export class NavigatorProjectsView extends ViewPane {
 		}
 
 		return entries;
+	}
+
+	/** @internal test helper — flat local folder entries (HEAD-compatible). */
+	getLocalFolderEntries(): INavigatorLocalFolderEntry[] {
+		return this.localFolderEntries;
 	}
 }

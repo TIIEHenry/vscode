@@ -19,6 +19,8 @@ import { IOpenerService } from '../../../../platform/opener/common/opener.js';
 import { IThemeService } from '../../../../platform/theme/common/themeService.js';
 import { IViewPaneOptions, ViewPane } from '../../../browser/parts/views/viewPane.js';
 import { IViewDescriptorService } from '../../../common/views.js';
+import { AgentInspectTarget, IAgentInspectService } from '../common/agentInspect.js';
+import { formatAgentStatusLabel, formatAgentTypeShort } from '../common/navigatorAgentHierarchy.js';
 import { AGENT_INSPECT_VIEW_ID } from './agentInspectIds.js';
 
 const $ = dom.$;
@@ -44,7 +46,6 @@ interface IInspectTemplateData {
 
 class InspectRenderer implements IListRenderer<IAgentInspectEntry, IInspectTemplateData> {
 	static readonly TEMPLATE_ID = 'agentInspectEntry';
-
 	readonly templateId = InspectRenderer.TEMPLATE_ID;
 
 	renderTemplate(container: HTMLElement): IInspectTemplateData {
@@ -70,6 +71,50 @@ class InspectAccessibilityProvider implements IListAccessibilityProvider<IAgentI
 	}
 }
 
+function entriesFromTarget(target: AgentInspectTarget | undefined): IAgentInspectEntry[] {
+	if (!target) {
+		return [];
+	}
+	switch (target.kind) {
+		case 'agent':
+			return [
+				{ id: 'agent_id', label: `agent_id: ${target.node.agentId}` },
+				{ id: 'name', label: `name: ${target.node.name}` },
+				{ id: 'type', label: `type: ${formatAgentTypeShort(target.node.type)}` },
+				{ id: 'status', label: `status: ${formatAgentStatusLabel(target.node.status)}` },
+				{ id: 'model', label: `model: ${target.node.model}` },
+				{ id: 'turn_count', label: `turn_count: ${target.node.turnCount}` },
+				{ id: 'created_at', label: `created_at: ${target.node.createdAt}` },
+			];
+		case 'member':
+			return [
+				{ id: 'member_name', label: `member_name: ${target.info.memberName}` },
+				{ id: 'member_agent_id', label: `member_agent_id: ${target.info.memberAgentId}` },
+				{ id: 'status', label: `status: ${target.info.status}` },
+				{ id: 'preset', label: `preset: ${target.info.preset}` },
+				{ id: 'dynamic', label: `dynamic: ${target.info.dynamic}` },
+				{ id: 'turn_count', label: `turn_count: ${target.info.turnCount}` },
+			];
+		case 'task':
+			return [
+				{ id: 'task_id', label: `task_id: ${target.task.taskId}` },
+				{ id: 'subject', label: `subject: ${target.task.subject}` },
+				{ id: 'owner', label: `owner: ${target.task.owner}` },
+				{ id: 'status', label: `status: ${target.task.status}` },
+				{ id: 'blocked_by', label: `blocked_by: ${target.task.blockedBy}` },
+				{ id: 'last_message', label: `last_message: ${target.task.lastMessage}` },
+				{ id: 'description', label: `description: ${target.task.description}` },
+			];
+		case 'activity':
+			return [
+				{ id: 'tool', label: `tool: ${target.item.toolName}` },
+				{ id: 'agent', label: `agent: ${target.item.agentId ?? ''}` },
+				{ id: 'status', label: `status: ${target.item.status}` },
+				{ id: 'itemId', label: `itemId: ${target.item.itemId}` },
+			];
+	}
+}
+
 export class AgentInspectView extends ViewPane {
 
 	static readonly ID = AGENT_INSPECT_VIEW_ID;
@@ -77,6 +122,7 @@ export class AgentInspectView extends ViewPane {
 	private list: WorkbenchList<IAgentInspectEntry> | undefined;
 	private listContainer: HTMLElement | undefined;
 	private entries: IAgentInspectEntry[] = [];
+	private staleNote: HTMLElement | undefined;
 
 	constructor(
 		options: IViewPaneOptions,
@@ -89,8 +135,10 @@ export class AgentInspectView extends ViewPane {
 		@IOpenerService openerService: IOpenerService,
 		@IThemeService themeService: IThemeService,
 		@IHoverService hoverService: IHoverService,
+		@IAgentInspectService private readonly inspectService: IAgentInspectService,
 	) {
 		super(options, keybindingService, contextMenuService, configurationService, contextKeyService, viewDescriptorService, instantiationService, openerService, themeService, hoverService);
+		this._register(this.inspectService.onDidChangeTarget(() => this.renderTarget()));
 	}
 
 	override shouldShowWelcome(): boolean {
@@ -100,9 +148,11 @@ export class AgentInspectView extends ViewPane {
 	protected override renderBody(container: HTMLElement): void {
 		super.renderBody(container);
 
+		this.staleNote = dom.append(container, $('.agent-inspect-stale-note'));
+		this.staleNote.style.display = 'none';
 		this.listContainer = dom.append(container, $('.agent-inspect-list'));
 		this.ensureList();
-		this.setEntries([]);
+		this.renderTarget();
 	}
 
 	protected override layoutBody(height: number, width: number): void {
@@ -115,22 +165,24 @@ export class AgentInspectView extends ViewPane {
 			return this.list;
 		}
 
-		const delegate = new InspectDelegate();
-		const renderer = new InspectRenderer();
-
 		this.list = this._register(this.instantiationService.createInstance(
 			WorkbenchList,
 			'AgentInspect',
 			this.listContainer!,
-			delegate,
-			[renderer],
+			new InspectDelegate(),
+			[new InspectRenderer()],
 			{
 				identityProvider: { getId: (entry: IAgentInspectEntry) => entry.id },
 				accessibilityProvider: new InspectAccessibilityProvider(),
-			}
+			},
 		)) as WorkbenchList<IAgentInspectEntry>;
 
 		return this.list;
+	}
+
+	private renderTarget(): void {
+		const target = this.inspectService.getTarget();
+		this.setEntries(entriesFromTarget(target));
 	}
 
 	private setEntries(entries: IAgentInspectEntry[]): void {

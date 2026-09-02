@@ -7,15 +7,20 @@ import assert from 'assert';
 import { Event } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { URI } from '../../../../../base/common/uri.js';
-import { WorkbenchList } from '../../../../../platform/list/browser/listService.js';
+import { WorkbenchObjectTree } from '../../../../../platform/list/browser/listService.js';
+import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
+import type { UniverseAgentConnectionSnapshot } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { IRecentlyOpened, IWorkspacesService } from '../../../../../platform/workspaces/common/workspaces.js';
 import { IWorkspaceContextService, WorkbenchState } from '../../../../../platform/workspace/common/workspace.js';
 import { testWorkspace, Workspace } from '../../../../../platform/workspace/test/common/testWorkspace.js';
 import { IViewContainerModel, IViewDescriptorService, ViewContainer, ViewContainerLocation } from '../../../../common/views.js';
+import { IConversationPartService } from '../../../../browser/parts/conversation/conversationPart.js';
+import { IWorkbenchLayoutService } from '../../../../services/layout/browser/layoutService.js';
 import { TestContextService } from '../../../../test/common/workbenchTestServices.js';
 import { TestWorkspacesService, workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
+import { ConversationStubService, IConversationRosterService } from '../../../conversation/browser/conversationStubService.js';
 import { NAVIGATOR_PROJECTS_VIEW_ID } from '../../browser/navigatorStubView.js';
-import { INavigatorProjectEntry, NavigatorProjectsView } from '../../browser/navigatorProjectsList.js';
+import { INavigatorLocalFolderEntry, NavigatorProjectsView } from '../../browser/navigatorProjectsList.js';
 import { CONVERSATION_STUB_SEED_SESSIONS } from '../../../conversation/browser/conversationStubModel.js';
 
 suite('NavigatorProjectsView', () => {
@@ -32,12 +37,28 @@ suite('NavigatorProjectsView', () => {
 		}
 	}
 
-	function getViewList(view: NavigatorProjectsView): WorkbenchList<INavigatorProjectEntry> {
-		return (view as unknown as { list: WorkbenchList<INavigatorProjectEntry> }).list;
+	function getViewTree(view: NavigatorProjectsView): WorkbenchObjectTree<unknown, void> {
+		return (view as unknown as { tree: WorkbenchObjectTree<unknown, void> }).tree;
 	}
 
-	function getViewEntries(view: NavigatorProjectsView): INavigatorProjectEntry[] {
-		return (view as unknown as { entries: INavigatorProjectEntry[] }).entries;
+	function getViewEntries(view: NavigatorProjectsView): INavigatorLocalFolderEntry[] {
+		return (view as unknown as { getLocalFolderEntries: () => INavigatorLocalFolderEntry[] }).getLocalFolderEntries();
+	}
+
+	function countTreeLeaves(view: NavigatorProjectsView): number {
+		const tree = getViewTree(view);
+		const root = tree.getNode(null);
+		let count = 0;
+		const visit = (node: typeof root): void => {
+			for (const child of node?.children ?? []) {
+				if (!child.children.length) {
+					count++;
+				}
+				visit(child);
+			}
+		};
+		visit(root);
+		return count;
 	}
 
 	function getFilterInput(view: NavigatorProjectsView): HTMLInputElement | null {
@@ -60,12 +81,44 @@ suite('NavigatorProjectsView', () => {
 	async function mountView(options?: {
 		contextService?: TestContextService;
 		workspacesService?: IWorkspacesService;
+		rosterService?: ConversationStubService;
 	}): Promise<NavigatorProjectsView> {
 		const contextService = options?.contextService ?? new TestContextService(new Workspace('empty-workspace', []));
 		const workspacesService = options?.workspacesService ?? new TestWorkspacesService();
+		const rosterService = store.add(options?.rosterService ?? new ConversationStubService());
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		instantiationService.stub(IWorkspaceContextService, contextService);
 		instantiationService.stub(IWorkspacesService, workspacesService);
+		instantiationService.stub(IConversationRosterService, rosterService);
+		instantiationService.stub(IUniverseAgentConnection, {
+			_serviceBrand: undefined,
+			isEngineConnected: () => false,
+			getTransportState: () => 'idle' as const,
+			getConnectionSnapshot: (): UniverseAgentConnectionSnapshot => ({
+				transport: 'idle',
+				pairingPending: false,
+				channelAlive: false,
+				capabilities: {} as UniverseAgentConnectionSnapshot['capabilities'],
+			}),
+			getCapabilitySnapshot: () => ({} as UniverseAgentConnectionSnapshot['capabilities']),
+			onDidChangeConnection: Event.None,
+			onDidFileMutation: Event.None,
+			connect: async () => ({ methods: [], events: [] }),
+			connectProfile: async () => ({ ok: false as const, code: 'transport_failed' as const, reason: 'test' }),
+			getConnectionPhase: () => ({ kind: 'disconnected' as const }),
+			disconnect: async () => { },
+			listSessions: async () => ({ sessions: [] }),
+			createSession: async () => ({ sessionId: 's' }),
+			deleteSession: async () => { },
+			getHistory: async () => ({ envelopes: [] }),
+			subscribeSessionEventStream: () => ({ dispose: () => { } }),
+			chat: async () => { },
+		});
+		instantiationService.stub(IWorkbenchLayoutService, {
+			isVisible: () => true,
+			setPartHidden: async () => { },
+		});
+		instantiationService.stub(IConversationPartService, { focus: () => { } });
 		const stubViewContainer = {
 			id: 'navigator-projects-test-container',
 			title: { value: 'Projects', original: 'Projects' },
@@ -124,8 +177,8 @@ suite('NavigatorProjectsView', () => {
 		assert.strictEqual(entries[0].resource.toString(), folderUri.toString());
 		assert.ok(entries[0].id.startsWith('current:'));
 
-		const list = getViewList(view);
-		assert.strictEqual(list.length, 1);
+		const list = countTreeLeaves(view);
+		assert.strictEqual(list, 1);
 		assert.strictEqual(contextService.getWorkbenchState(), WorkbenchState.FOLDER);
 	});
 
@@ -161,7 +214,7 @@ suite('NavigatorProjectsView', () => {
 		const view = await mountView({ contextService, workspacesService });
 
 		assert.strictEqual(getViewEntries(view).length, 2);
-		assert.strictEqual(getViewList(view).length, 2);
+		assert.strictEqual(countTreeLeaves(view), 2);
 	});
 
 	test('query matches name case-insensitively', async () => {
@@ -170,10 +223,10 @@ suite('NavigatorProjectsView', () => {
 		const view = await mountView({ contextService });
 
 		await setFilterQuery(view, 'demo');
-		assert.strictEqual(getViewList(view).length, 1);
+		assert.strictEqual(countTreeLeaves(view), 1);
 
 		await setFilterQuery(view, 'DEMO');
-		assert.strictEqual(getViewList(view).length, 1);
+		assert.strictEqual(countTreeLeaves(view), 1);
 	});
 
 	test('query matches description parent path', async () => {
@@ -185,8 +238,8 @@ suite('NavigatorProjectsView', () => {
 		const view = await mountView({ workspacesService });
 
 		await setFilterQuery(view, 'my-projects');
-		assert.strictEqual(getViewList(view).length, 1);
-		assert.strictEqual(getViewList(view).element(0).name, 'alpha');
+		assert.strictEqual(countTreeLeaves(view), 1);
+		assert.strictEqual(getViewEntries(view)[0]?.name, 'alpha');
 	});
 
 	test('non-match yields empty list and keeps welcome hidden when recents exist', async () => {
@@ -198,7 +251,7 @@ suite('NavigatorProjectsView', () => {
 		const view = await mountView({ workspacesService });
 
 		await setFilterQuery(view, 'zzz-no-match');
-		assert.strictEqual(getViewList(view).length, 0);
+		assert.strictEqual(countTreeLeaves(view), 0);
 		assert.strictEqual(view.shouldShowWelcome(), false);
 		assert.strictEqual(getViewEntries(view).length, 1);
 	});
@@ -212,10 +265,10 @@ suite('NavigatorProjectsView', () => {
 		const view = await mountView({ workspacesService });
 
 		await setFilterQuery(view, 'zzz-no-match');
-		assert.strictEqual(getViewList(view).length, 0);
+		assert.strictEqual(countTreeLeaves(view), 0);
 
 		await setFilterQuery(view, '');
-		assert.strictEqual(getViewList(view).length, 1);
+		assert.strictEqual(countTreeLeaves(view), 1);
 	});
 
 	test('filter input is shown when entries exist', async () => {

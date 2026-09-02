@@ -10,6 +10,14 @@ import { isIMenuItem, MenuId, MenuRegistry } from '../../../../../platform/actio
 import { WorkbenchList, WorkbenchObjectTree } from '../../../../../platform/list/browser/listService.js';
 import { Registry } from '../../../../../platform/registry/common/platform.js';
 import { Extensions as ViewExtensions, IViewContainerModel, IViewDescriptorService, IViewsRegistry, ViewContainer, ViewContainerLocation } from '../../../../common/views.js';
+import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
+import type { UniverseAgentConnectionSnapshot } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
+import { ConversationStubService, IConversationRosterService } from '../../../conversation/browser/conversationStubService.js';
+import { IAgentInspectService } from '../../common/agentInspect.js';
+import { AgentInspectService } from '../../browser/agentInspectService.js';
+import { ICommandService } from '../../../../../platform/commands/common/commands.js';
+import type { INavigatorAgentsHierarchyNode } from '../../common/navigatorAgentHierarchy.js';
+import type { INavigatorAgentsActivityItem } from '../../common/navigatorAgentsActivity.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { OPEN_NAVIGATOR_AGENTS_INSPECT_COMMAND_ID } from '../../browser/agentInspectIds.js';
 import '../../browser/navigator.contribution.js';
@@ -18,7 +26,7 @@ import {
 	NAVIGATOR_AGENTS_SHOW_HIERARCHY_COMMAND_ID,
 	NAVIGATOR_AGENTS_VIEW_ID,
 	NavigatorAgentsView,
-} from '../../browser/navigatorStubView.js';
+} from '../../browser/navigatorAgentsView.js';
 
 suite('Navigator Agents subviews', () => {
 
@@ -26,6 +34,33 @@ suite('Navigator Agents subviews', () => {
 
 	function mountAgentsView(): NavigatorAgentsView {
 		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IConversationRosterService, store.add(new ConversationStubService()));
+		instantiationService.stub(IAgentInspectService, store.add(instantiationService.createInstance(AgentInspectService)) as IAgentInspectService);
+		instantiationService.stub(ICommandService, { executeCommand: async () => undefined });
+		instantiationService.stub(IUniverseAgentConnection, {
+			_serviceBrand: undefined,
+			isEngineConnected: () => false,
+			getTransportState: () => 'idle' as const,
+			getConnectionSnapshot: (): UniverseAgentConnectionSnapshot => ({
+				transport: 'idle',
+				pairingPending: false,
+				channelAlive: false,
+				capabilities: {} as UniverseAgentConnectionSnapshot['capabilities'],
+			}),
+			getCapabilitySnapshot: () => ({} as UniverseAgentConnectionSnapshot['capabilities']),
+			onDidChangeConnection: Event.None,
+			onDidFileMutation: Event.None,
+			connect: async () => ({ methods: [], events: [] }),
+			connectProfile: async () => ({ ok: false as const, code: 'transport_failed' as const, reason: 'test' }),
+			getConnectionPhase: () => ({ kind: 'disconnected' as const }),
+			disconnect: async () => { },
+			listSessions: async () => ({ sessions: [] }),
+			createSession: async () => ({ sessionId: 's' }),
+			deleteSession: async () => { },
+			getHistory: async () => ({ envelopes: [] }),
+			subscribeSessionEventStream: () => ({ dispose: () => { } }),
+			chat: async () => { },
+		});
 		const stubViewContainer = {
 			id: 'navigator-agents-test-container',
 			title: { value: 'Agents', original: 'Agents' },
@@ -68,12 +103,38 @@ suite('Navigator Agents subviews', () => {
 		return view.element.querySelector('.navigator-agents-inline-filter-input');
 	}
 
+	function hierarchyNode(id: string, label: string): INavigatorAgentsHierarchyNode {
+		return {
+			id,
+			label,
+			agentId: id,
+			type: 'AGENT_TYPE_SUB',
+			status: 'AGENT_STATUS_IDLE',
+			model: 'm',
+			turnCount: 0,
+			source: {
+				agentId: id,
+				name: label,
+				type: 'AGENT_TYPE_SUB',
+				status: 'AGENT_STATUS_IDLE',
+				model: 'm',
+				turnCount: 0,
+				createdAt: 0,
+				children: [],
+			},
+		};
+	}
+
+	function activityItem(id: string, label: string): INavigatorAgentsActivityItem {
+		return { id, label, toolName: label, status: 'completed', itemId: id };
+	}
+
 	function setHierarchyEntries(view: NavigatorAgentsView, entries: { id: string; label: string }[]): void {
-		(view as unknown as { setHierarchyEntries: (entries: { id: string; label: string }[]) => void }).setHierarchyEntries(entries);
+		(view as unknown as { setHierarchyEntries: (entries: INavigatorAgentsHierarchyNode[]) => void }).setHierarchyEntries(entries.map(entry => hierarchyNode(entry.id, entry.label)));
 	}
 
 	function setActivityEntries(view: NavigatorAgentsView, entries: { id: string; label: string }[]): void {
-		(view as unknown as { setActivityEntries: (entries: { id: string; label: string }[]) => void }).setActivityEntries(entries);
+		(view as unknown as { setActivityEntries: (entries: INavigatorAgentsActivityItem[]) => void }).setActivityEntries(entries.map(entry => activityItem(entry.id, entry.label)));
 	}
 
 	async function setFilterQuery(view: NavigatorAgentsView, query: string): Promise<void> {
