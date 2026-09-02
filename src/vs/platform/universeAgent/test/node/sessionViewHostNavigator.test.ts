@@ -117,6 +117,10 @@ class TestHost implements IUniverseAgentHostConnection {
 	constructor(private readonly treeProvider: () => Promise<UniverseAgentAgentTreeNode | undefined>) {
 	}
 
+	async fetchToolDetail() {
+		return { ok: false as const, reason: 'unavailable' as const };
+	}
+
 	async fetchAgentTree(_sessionId: string): Promise<UniverseAgentAgentTreeNode | undefined> {
 		this.treeFetchCount += 1;
 		if (this.agentTreeUnsupported) {

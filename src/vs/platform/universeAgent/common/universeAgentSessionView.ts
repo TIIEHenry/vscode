@@ -9,6 +9,7 @@ import type {
 	ConversationViewFrame,
 	ConversationViewFrameApplied,
 	ConversationWriteMessage,
+	DetailFetchOutcome,
 	PostOutcome,
 } from './conversationViewFrame.js';
 
@@ -40,4 +41,10 @@ export interface IUniverseAgentSessionView {
 	post(leaseId: string, msg: ConversationWriteMessage): Promise<PostOutcome>;
 
 	requestResync(leaseId: string): Promise<void>;
+
+	/**
+	 * P2a DetailRef channel. Success includes `content` so the renderer can
+	 * upsert `details` before settling the lease Promise (no ViewFrame inject).
+	 */
+	requestDetail(leaseId: string, ref: string): Promise<DetailFetchOutcome>;
 }

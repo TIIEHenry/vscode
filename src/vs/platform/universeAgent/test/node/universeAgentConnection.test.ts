@@ -207,6 +207,10 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 		return undefined;
 	}
 
+	async fetchToolDetail() {
+		return { success: false, content: '', truncated: false };
+	}
+
 	async memberStatus() {
 		return [];
 	}

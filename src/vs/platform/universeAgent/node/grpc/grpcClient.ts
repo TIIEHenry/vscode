@@ -69,6 +69,8 @@ import type {
 	UniverseAgentListToolsResult,
 	UniverseAgentToolSummary,
 	UniverseAgentAgentTreeNode,
+	UniverseAgentFetchToolDetailRequest,
+	UniverseAgentFetchToolDetailWireResult,
 	UniverseAgentTeamInfo,
 	UniverseAgentTeamMemberInfo,
 	UniverseAgentTeamTaskInfo,
@@ -903,6 +905,14 @@ interface AgentTreeResponseWire {
 	root?: AgentInfoWire;
 }
 
+interface FetchToolDetailResponseWire {
+	success?: boolean;
+	content?: string;
+	truncated?: boolean;
+	total_bytes?: number;
+	error_message?: string;
+}
+
 function mapAgentTreeNode(wire: AgentInfoWire | undefined): UniverseAgentAgentTreeNode | undefined {
 	if (!wire) {
 		return undefined;
@@ -1420,6 +1430,30 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 		);
 		const wire = await unary({});
 		return mapListToolsResponse(wire);
+	}
+
+	async fetchToolDetail(request: UniverseAgentFetchToolDetailRequest): Promise<UniverseAgentFetchToolDetailWireResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, FetchToolDetailResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.Agent.service,
+			UniverseAgentGrpcServices.Agent.FetchToolDetail,
+		);
+		const wire = await unary({
+			session_id: request.sessionId,
+			tool_call_id: request.toolCallId,
+			detail_kind: request.detailKind,
+			ref_id: request.refId,
+			subscribe: false,
+		});
+		return {
+			success: wire.success === true,
+			content: wire.content ?? '',
+			truncated: wire.truncated === true,
+			...(typeof wire.total_bytes === 'number' && Number.isFinite(wire.total_bytes)
+				? { totalBytes: wire.total_bytes }
+				: {}),
+			...(wire.error_message ? { errorMessage: wire.error_message } : {}),
+		};
 	}
 
 	async fetchAgentTree(sessionId: string): Promise<UniverseAgentAgentTreeNode | undefined> {

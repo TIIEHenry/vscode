@@ -102,6 +102,7 @@ class MockUniverseAgentSessionView implements IUniverseAgentSessionView {
 	async releaseLease() { }
 	async post() { return { accepted: true as const, correlation: { id: 'mock' } }; }
 	async requestResync() { }
+	async requestDetail() { return { ok: false as const, reason: 'unavailable' as const }; }
 }
 
 function createService(connection: MockUniverseAgentConnection, storage?: TestStorageService): ConversationEngineRosterService {

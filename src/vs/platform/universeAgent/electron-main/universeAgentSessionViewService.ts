@@ -9,7 +9,7 @@ import type {
 	IUniverseAgentSessionView,
 	IUniverseAgentSessionViewFrameEvent,
 } from '../common/universeAgentSessionView.js';
-import type { ConversationWriteMessage, PostOutcome } from '../common/conversationViewFrame.js';
+import type { ConversationWriteMessage, DetailFetchOutcome, PostOutcome } from '../common/conversationViewFrame.js';
 import { SessionViewHost } from '../node/sessionViewHost.js';
 
 export class UniverseAgentSessionViewService extends Disposable implements IUniverseAgentSessionView {
@@ -47,6 +47,10 @@ export class UniverseAgentSessionViewService extends Disposable implements IUniv
 	requestResync(leaseId: string): Promise<void> {
 		this.host.requestResync(leaseId);
 		return Promise.resolve();
+	}
+
+	requestDetail(leaseId: string, ref: string): Promise<DetailFetchOutcome> {
+		return this.host.requestDetail(leaseId, ref);
 	}
 }
 

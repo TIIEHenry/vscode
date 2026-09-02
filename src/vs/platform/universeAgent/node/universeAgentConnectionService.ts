@@ -60,12 +60,14 @@ import type {
 	UniverseAgentSaveSkillContentResult,
 	UniverseAgentTransportState,
 	UniverseAgentAgentTreeNode,
+	UniverseAgentFetchToolDetailRequest,
+	UniverseAgentFetchToolDetailResult,
 	IFileMutationRecord,
 	ITurnSettleSignal,
 } from '../common/universeAgentTypes.js';
 import { createEmptyCapabilitySnapshot, probeEngineCapabilities } from './grpcCapabilityProbe.js';
 import { createGrpcUniverseAgentClient, createPinnedGrpcUniverseAgentClient } from './grpc/grpcClient.js';
-import { GrpcStatusCode, IUniverseAgentGrpcTransport, isTransportFailureCode, UniverseAgentGrpcServices, UniverseAgentSaveSkillContentMethodKey, UniverseAgentTransportError } from './grpc/grpcTransport.js';
+import { GrpcStatusCode, IUniverseAgentGrpcTransport, isTransportFailureCode, UniverseAgentFetchToolDetailMethodKey, UniverseAgentGrpcServices, UniverseAgentSaveSkillContentMethodKey, UniverseAgentTransportError } from './grpc/grpcTransport.js';
 import type { ConnectionResolver } from './connectionResolver.js';
 import { runDeviceAuthHandshake } from './deviceAuthHandshake.js';
 import type { IClientIdentityStore } from './clientIdentityTypes.js';
@@ -115,6 +117,8 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 	private _sharedFsRootSent = false;
 	private _pairingPending = false;
 	private _agentTreeProbeUnsupported = false;
+	private _fetchToolDetailUnsupported = false;
+	private _advertisedMethods: readonly string[] = [];
 	private _capabilities: UniverseAgentCapabilitySnapshot = createEmptyCapabilitySnapshot();
 	private _connectionPhase: ConnectionPhase = { kind: 'disconnected' };
 	private _activeProfileId: string | undefined;
@@ -198,6 +202,33 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		return this._agentTreeProbeUnsupported || this._capabilities.agentTree.support === 'UNSUPPORTED';
 	}
 
+	async fetchToolDetail(request: UniverseAgentFetchToolDetailRequest): Promise<UniverseAgentFetchToolDetailResult> {
+		if (!this.isEngineConnected() || !this._transport) {
+			return { ok: false, reason: 'failed', message: 'Engine not connected' };
+		}
+		if (this._fetchToolDetailUnsupported || !this._advertisedMethods.includes(UniverseAgentFetchToolDetailMethodKey)) {
+			return { ok: false, reason: 'unavailable' };
+		}
+		try {
+			const wire = await this._transport.fetchToolDetail(request);
+			if (!wire.success) {
+				return { ok: false, reason: 'failed', message: wire.errorMessage };
+			}
+			return {
+				ok: true,
+				content: wire.content,
+				truncated: wire.truncated,
+				...(wire.totalBytes !== undefined ? { totalBytes: wire.totalBytes } : {}),
+			};
+		} catch (error) {
+			if (error instanceof UniverseAgentTransportError && error.code === GrpcStatusCode.UNIMPLEMENTED) {
+				this._fetchToolDetailUnsupported = true;
+				return { ok: false, reason: 'unavailable' };
+			}
+			return { ok: false, reason: 'failed', message: error instanceof Error ? error.message : undefined };
+		}
+	}
+
 	notifyFileMutation(record: IFileMutationRecord): void {
 		this._onDidFileMutation.fire(record);
 	}
@@ -220,6 +251,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 			this._workDir = result.workDir;
 			this._pairingPending = isPairingPending(result.sessionToken, result.pairingNonce);
 			this._transportState = 'ok';
+			this._rememberAdvertisedMethods(result.methods);
 			if (!this._pairingPending && this._transport) {
 				this._capabilities = await probeEngineCapabilities({
 					methods: result.methods,
@@ -351,6 +383,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 			this._workDir = handshake.result.workDir;
 			this._pairingPending = false;
 			this._transportState = 'ok';
+			this._rememberAdvertisedMethods(handshake.result.methods);
 			this._capabilities = await probeEngineCapabilities({
 				methods: handshake.result.methods,
 				transport: this._transport,
@@ -380,6 +413,8 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		this._sharedFsRootSent = false;
 		this._pairingPending = false;
 		this._agentTreeProbeUnsupported = false;
+		this._fetchToolDetailUnsupported = false;
+		this._advertisedMethods = [];
 		this._clearSaveSkillContentBinding();
 		this._transportState = 'idle';
 		this._capabilities = createEmptyCapabilitySnapshot();
@@ -656,6 +691,11 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 
 	private _fireSnapshotChanged(): void {
 		this._onDidChangeConnection.fire(this._buildSnapshot());
+	}
+
+	private _rememberAdvertisedMethods(methods: readonly string[]): void {
+		this._advertisedMethods = methods;
+		this._fetchToolDetailUnsupported = false;
 	}
 
 	private async _refreshSaveSkillContentBinding(methods: readonly string[]): Promise<void> {

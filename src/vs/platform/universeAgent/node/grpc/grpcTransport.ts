@@ -51,6 +51,8 @@ import type {
 	UniverseAgentSkillInfoRequest,
 	UniverseAgentSkillInfoResult,
 	UniverseAgentAgentTreeNode,
+	UniverseAgentFetchToolDetailRequest,
+	UniverseAgentFetchToolDetailWireResult,
 	UniverseAgentTeamInfo,
 	UniverseAgentTeamMemberInfo,
 	UniverseAgentTeamTaskInfo,
@@ -177,6 +179,9 @@ export interface IUniverseAgentGrpcTransport {
 	/** Host-only: AgentService.Tree (m6 §11 A1). */
 	fetchAgentTree(sessionId: string): Promise<UniverseAgentAgentTreeNode | undefined>;
 
+	/** Host-only: AgentService.FetchToolDetail (M7 P2a). Always `subscribe=false`. */
+	fetchToolDetail(request: UniverseAgentFetchToolDetailRequest): Promise<UniverseAgentFetchToolDetailWireResult>;
+
 	memberStatus(sessionId: string, agentId: string): Promise<readonly UniverseAgentTeamMemberInfo[]>;
 
 	taskList(sessionId: string, agentId: string): Promise<readonly UniverseAgentTeamTaskInfo[]>;
@@ -207,6 +212,7 @@ export const UniverseAgentGrpcServices = {
 		SaveAgentProfile: 'SaveAgentProfile',
 		DeleteAgentProfile: 'DeleteAgentProfile',
 		ResetAgentProfile: 'ResetAgentProfile',
+		FetchToolDetail: 'FetchToolDetail',
 	},
 	Mcp: {
 		service: 'universeagent.mcp.v1.McpService',
@@ -245,3 +251,6 @@ export const UniverseAgentGrpcServices = {
 
 /** ConnectResponse.capabilities.methods advertisement key for SaveSkillContent. */
 export const UniverseAgentSaveSkillContentMethodKey = 'ToolService.SaveSkillContent';
+
+/** ConnectResponse.capabilities.methods advertisement key for FetchToolDetail. */
+export const UniverseAgentFetchToolDetailMethodKey = 'AgentService.FetchToolDetail';

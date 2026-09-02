@@ -27,6 +27,88 @@ export interface IConversationSessionViewLease extends IDisposable {
 	/** `accepted` ≠ delivered to the engine (Desktop ADR-012 INV-CHAT-3). */
 	post(msg: ConversationWriteMessage): PostOutcome;
 	requestResync(): void;
+	/**
+	 * P2a DetailRef channel. Engine / Web leases implement this; stub frame source
+	 * waits for Conversation Q2 接通 (do not add a local stub here).
+	 */
+	requestDetail?(ref: string): Promise<DetailFetchOutcome>;
+}
+
+/** Lease / IPC outcome for `requestDetail` (M7 P2a). */
+export type DetailFetchOutcome =
+	| { readonly ok: true; readonly truncated: boolean; readonly totalBytes?: number; readonly content?: string }
+	| { readonly ok: false; readonly reason: 'unavailable' | 'failed'; readonly message?: string };
+
+/** Wire fields for `AgentService.FetchToolDetail.detail_kind` (UniverseAgent ToolDetailKind). */
+export const ToolDetailKind = {
+	TOOL_DETAIL: 1,
+	ARTIFACT: 2,
+	TRANSCRIPT: 3,
+	TERMINAL_BUFFER: 4,
+	DIFF: 5,
+	BROWSER_STATE: 6,
+	SHELL_SESSION_BUFFER: 7,
+} as const;
+
+/** Parsed `DetailRef` → FetchToolDetail identity (session-core encoding). */
+export interface ParsedDetailRef {
+	readonly toolCallId: string;
+	readonly detailKind: number;
+	readonly refId: string;
+}
+
+/**
+ * Encode a session-core `DetailRef` as JSON
+ * `{ toolCallId, detailKind, refId }`. Host parses this to call FetchToolDetail.
+ */
+export function encodeDetailRef(parts: ParsedDetailRef): string {
+	return JSON.stringify({
+		toolCallId: parts.toolCallId,
+		detailKind: parts.detailKind,
+		refId: parts.refId,
+	});
+}
+
+/** Parse {@link encodeDetailRef} JSON, or compact `{ tc, k, r }`. */
+export function parseDetailRef(ref: string): ParsedDetailRef | undefined {
+	if (!ref) {
+		return undefined;
+	}
+	try {
+		const value = JSON.parse(ref) as Record<string, unknown>;
+		if (value === null || typeof value !== 'object' || Array.isArray(value)) {
+			return undefined;
+		}
+		const toolCallId = readStringField(value, 'toolCallId', 'tc');
+		const refId = readStringField(value, 'refId', 'r');
+		const detailKind = readNumberField(value, 'detailKind', 'k');
+		if (!toolCallId || !refId || detailKind === undefined) {
+			return undefined;
+		}
+		return { toolCallId, detailKind, refId };
+	} catch {
+		return undefined;
+	}
+}
+
+function readStringField(record: Record<string, unknown>, ...keys: string[]): string | undefined {
+	for (const key of keys) {
+		const value = record[key];
+		if (typeof value === 'string' && value) {
+			return value;
+		}
+	}
+	return undefined;
+}
+
+function readNumberField(record: Record<string, unknown>, ...keys: string[]): number | undefined {
+	for (const key of keys) {
+		const value = record[key];
+		if (typeof value === 'number' && Number.isFinite(value)) {
+			return value;
+		}
+	}
+	return undefined;
 }
 
 /**
@@ -64,10 +146,10 @@ export function overlayAttributionKey(blockId: string): string {
 /**
  * Out-of-band bodies for `TimelineItemView.detail` handles (INV-SPC-13 keeps
  * bodies out of summaries). The stub source resolves every handle locally; the
- * engine adapter fills them via the DetailRef channel (plan §6 G3, slice S6).
+ * engine adapter fills them via the DetailRef channel (M7 P2a `requestDetail`).
  */
 export type DetailPatch =
-	| { readonly op: 'upsertDetail'; readonly ref: string; readonly body: string }
+	| { readonly op: 'upsertDetail'; readonly ref: string; readonly body: string; readonly truncated?: boolean; readonly totalBytes?: number }
 	| { readonly op: 'removeDetail'; readonly ref: string };
 
 export interface ConversationViewFrame {

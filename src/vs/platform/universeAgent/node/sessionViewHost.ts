@@ -7,11 +7,15 @@ import { Emitter } from '../../../base/common/event.js';
 import { Disposable } from '../../../base/common/lifecycle.js';
 import type { IUniverseAgentConnection } from '../common/universeAgentConnection.js';
 import type { IUniverseAgentHostConnection } from '../common/universeAgentHostConnection.js';
-import type {
-	ConversationViewFrame,
-	ConversationViewFrameApplied,
-	ConversationWriteMessage,
-	ItemAttribution,
+import {
+	parseDetailRef,
+	ToolDetailKind,
+	type ConversationViewFrame,
+	type ConversationViewFrameApplied,
+	type ConversationWriteMessage,
+	type DetailFetchOutcome,
+	type ItemAttribution,
+	type ParsedDetailRef,
 } from '../common/conversationViewFrame.js';
 import type { IUniverseAgentSessionViewFrameEvent } from '../common/universeAgentSessionView.js';
 import { createSessionCore, type SessionCore } from './sessionCore/session-core.js';
@@ -107,6 +111,8 @@ export class SessionViewHost extends Disposable {
 	private readonly core: SessionCore;
 	private readonly leases = new Map<string, ActiveLease>();
 	private readonly leaseAttribution = new Map<string, Map<string, ItemAttribution>>();
+	private readonly leaseDetails = new Map<string, Map<string, string>>();
+	private readonly capturedDetails = new Map<string, Map<string, ParsedDetailRef>>();
 	private readonly streams = new Map<string, ActiveStream>();
 	private readonly sessionSidecars = new Map<string, SessionSidecar>();
 	private readonly toolAttributionHints = new Map<string, ToolAttributionHint[]>();
@@ -146,6 +152,7 @@ export class SessionViewHost extends Disposable {
 		this.drainIntents(sessionId);
 		this.leases.set(String(leaseId), { sessionId, leaseId, sink });
 		this.leaseAttribution.set(String(leaseId), new Map());
+		this.leaseDetails.set(String(leaseId), new Map());
 		this.ensureSessionSidecar(sessionId);
 		if (this.connectionUp) {
 			this.postConnectionUp(sessionId);
@@ -161,6 +168,7 @@ export class SessionViewHost extends Disposable {
 		}
 		this.leases.delete(leaseId);
 		this.leaseAttribution.delete(leaseId);
+		this.leaseDetails.delete(leaseId);
 		const outcome = this.core.post(binding.sessionId as SessionId, { t: 'releaseLease', leaseId: binding.leaseId });
 		if (outcome.accepted) {
 			this.drainIntents(binding.sessionId);
@@ -191,6 +199,35 @@ export class SessionViewHost extends Disposable {
 		}
 		this.core.post(binding.sessionId as SessionId, { t: 'requestResync', leaseId: binding.leaseId });
 		this.drainIntents(binding.sessionId);
+	}
+
+	async requestDetail(leaseId: string, ref: string): Promise<DetailFetchOutcome> {
+		const binding = this.leases.get(leaseId);
+		if (!binding) {
+			return { ok: false, reason: 'failed', message: 'no such lease' };
+		}
+		const parsed = parseDetailRef(ref) ?? this.lookupCapturedDetail(binding.sessionId, ref);
+		if (!parsed) {
+			return { ok: false, reason: 'failed', message: 'unparseable DetailRef' };
+		}
+		const result = await this.host.fetchToolDetail({
+			sessionId: binding.sessionId,
+			toolCallId: parsed.toolCallId,
+			detailKind: parsed.detailKind,
+			refId: parsed.refId,
+		});
+		if (!result.ok) {
+			return result;
+		}
+		const details = this.leaseDetails.get(leaseId) ?? new Map();
+		details.set(ref, result.content);
+		this.leaseDetails.set(leaseId, details);
+		return {
+			ok: true,
+			truncated: result.truncated,
+			content: result.content,
+			...(result.totalBytes !== undefined ? { totalBytes: result.totalBytes } : {}),
+		};
 	}
 
 	onEngineConnectionChanged(): void {
@@ -292,6 +329,7 @@ export class SessionViewHost extends Disposable {
 
 		this.captureToolAttributionHint(sessionId, payload);
 		this.captureEnvelopeAttributionHint(sessionId, payload);
+		this.captureDetailRefHint(sessionId, payload);
 	}
 
 	private captureToolAttributionHint(sessionId: string, payload: unknown): void {
@@ -349,6 +387,49 @@ export class SessionViewHost extends Disposable {
 			branchReason: typeof branchReason === 'string' && branchReason ? branchReason : undefined,
 		});
 		this.toolAttributionHints.set(sessionId, hints);
+	}
+
+	private captureDetailRefHint(sessionId: string, payload: unknown): void {
+		if (payload === null || typeof payload !== 'object' || Array.isArray(payload)) {
+			return;
+		}
+		const record = payload as Record<string, unknown>;
+		const snapshot = record.tool_runtime_snapshot ?? record.toolRuntimeSnapshot ?? record;
+		if (snapshot === null || typeof snapshot !== 'object' || Array.isArray(snapshot)) {
+			return;
+		}
+		const toolCallId = readPayloadField(snapshot, 'tool_call_id', 'toolCallId');
+		if (typeof toolCallId !== 'string' || !toolCallId) {
+			return;
+		}
+		const refFields = [
+			readPayloadField(snapshot, 'detail_ref', 'detailRef'),
+			readPayloadField(snapshot, 'output_ref', 'outputRef'),
+			readPayloadField(snapshot, 'preview_ref', 'previewRef'),
+			readPayloadField(snapshot, 'page_ref', 'pageRef'),
+			readPayloadField(snapshot, 'transcript_ref', 'transcriptRef'),
+		];
+		const filePayload = readPayloadField(snapshot, 'file_mutation_payload', 'fileMutationPayload');
+		if (filePayload && typeof filePayload === 'object') {
+			refFields.push(readPayloadField(filePayload, 'preview_ref', 'previewRef'));
+		}
+		for (const field of refFields) {
+			const parsed = readCapturedDetailRef(toolCallId, field);
+			if (parsed) {
+				this.storeCapturedDetail(sessionId, parsed);
+			}
+		}
+	}
+
+	private storeCapturedDetail(sessionId: string, parsed: ParsedDetailRef): void {
+		const bySession = this.capturedDetails.get(sessionId) ?? new Map();
+		bySession.set(parsed.refId, parsed);
+		bySession.set(parsed.toolCallId, parsed);
+		this.capturedDetails.set(sessionId, bySession);
+	}
+
+	private lookupCapturedDetail(sessionId: string, ref: string): ParsedDetailRef | undefined {
+		return this.capturedDetails.get(sessionId)?.get(ref);
 	}
 
 	private onFrameEnqueued(leaseId: ViewLeaseId, sessionId: string, frame: ViewFrame): void {
@@ -584,6 +665,19 @@ function normalizeAttributionRole(value: unknown): ItemAttribution['role'] | und
 		default:
 			return undefined;
 	}
+}
+
+function readCapturedDetailRef(toolCallId: string, value: unknown): ParsedDetailRef | undefined {
+	if (value === null || typeof value !== 'object' || Array.isArray(value)) {
+		return undefined;
+	}
+	const refId = readPayloadField(value, 'ref_id', 'refId');
+	if (typeof refId !== 'string' || !refId) {
+		return undefined;
+	}
+	const kind = readPayloadField(value, 'kind', 'detail_kind', 'detailKind');
+	const detailKind = typeof kind === 'number' && Number.isFinite(kind) ? kind : ToolDetailKind.TOOL_DETAIL;
+	return { toolCallId, detailKind, refId };
 }
 
 function readPayloadField(record: object, ...keys: string[]): unknown {
