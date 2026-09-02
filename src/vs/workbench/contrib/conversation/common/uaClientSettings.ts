@@ -9,6 +9,7 @@ import { Registry } from '../../../../platform/registry/common/platform.js';
 import {
 	UA_CLIENT_CHAT_INPUT_AUTO_FOCUS,
 	UA_CLIENT_CHAT_INPUT_RESTORE_DRAFTS,
+	UA_CLIENT_CLIENT_TOOLS_SHOW_TOOL_INVOCATION_DETAILS,
 	UA_CLIENT_DISPLAY_CONVERSATION_DENSITY,
 	UA_CLIENT_KEYBOARD_ENTER_BEHAVIOR,
 	UA_CLIENT_NOTIFICATIONS_PERMISSION_REQUESTS,
@@ -103,6 +104,15 @@ export function registerUaClientSettings(): void {
 				description: localize(
 					'ua.client.permissions.openPendingOnFocus',
 					"When returning to Conversation (switching session or focusing the Conversation part), scroll to the first pending permission or question seat if one exists (window scope). Does not grant, deny, Allow, or Skip. Applies immediately.",
+				),
+				scope: ConfigurationScope.WINDOW,
+			},
+			[UA_CLIENT_CLIENT_TOOLS_SHOW_TOOL_INVOCATION_DETAILS]: {
+				type: 'boolean',
+				default: true,
+				description: localize(
+					'ua.client.clientTools.showToolInvocationDetails',
+					"Show argument and result details on every process-fold tool row, including client-tool rows (window scope). After projection, tool rows are not split into client-tool vs Engine tool. Turning this off shows only the tool name and status and does not make the row expandable. Applies immediately in open Conversation views. Does not change whether Engine tools are available or granted.",
 				),
 				scope: ConfigurationScope.WINDOW,
 			},

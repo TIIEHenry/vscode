@@ -78,6 +78,7 @@ export interface IConversationTimelineTreeOptions {
 	readonly contentAdapter?: IConversationTurnContentAdapter;
 	readonly paddingBottom?: number;
 	readonly showLiveChrome?: () => boolean;
+	readonly showToolInvocationDetails?: () => boolean;
 }
 
 interface ITurnTemplateData {
@@ -150,6 +151,7 @@ class ConversationTimelineRenderer implements ITreeRenderer<ConversationTimeline
 		private readonly onOpenVisualizeFullscreen: ((source: string, title?: string) => void) | undefined,
 		private readonly getMermaidExtensionInfo: () => ConversationMermaidExtensionInfo | undefined,
 		private readonly showLiveChrome: () => boolean,
+		private readonly showToolInvocationDetails: () => boolean,
 		private readonly webviewService: IWebviewService,
 		private readonly getTimelineScrollHost: () => HTMLElement | undefined,
 		private readonly onHeightChange: (item: ConversationTimelineItem, height: number) => void,
@@ -172,6 +174,7 @@ class ConversationTimelineRenderer implements ITreeRenderer<ConversationTimeline
 			renderProcessFoldSpan(templateData.container, span, {
 				defaultOuterExpanded: false,
 				showLiveChrome: this.showLiveChrome(),
+				showToolInvocationDetails: this.showToolInvocationDetails(),
 				isOuterExpanded: (spanId) => this.processFoldOuterExpanded.get(spanId) ?? false,
 				setOuterExpanded: (spanId, expanded) => {
 					if (expanded) {
@@ -704,6 +707,7 @@ export class ConversationTimelineTree extends Disposable {
 			options.onOpenVisualizeFullscreen,
 			() => this.mermaidExtensionInfo,
 			() => options.showLiveChrome?.() ?? false,
+			() => options.showToolInvocationDetails?.() ?? true,
 			this.webviewService,
 			() => this.scrollHost,
 			(item, height) => this.safeUpdateElementHeight(item, height),
@@ -990,6 +994,10 @@ export class ConversationTimelineTree extends Disposable {
 				}
 			}
 		}
+	}
+
+	refreshPresentation(): void {
+		this.refreshTurnPresentation();
 	}
 
 	setEditingTurnId(turnId: string | undefined): void {

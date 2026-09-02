@@ -113,10 +113,12 @@ import {
 	storeUaClientComposerDraft,
 	uaClientComposerDraftEntryKey,
 } from './uaClientComposerDrafts.js';
+import { UA_CLIENT_CLIENT_TOOLS_SHOW_TOOL_INVOCATION_DETAILS } from '../common/uaClientSettingsKeys.js';
 import {
 	applyConversationDensityClass,
 	getUaClientKeyboardEnterBehavior,
 	shouldRestoreComposerDrafts,
+	shouldShowClientToolInvocationDetails,
 	UA_CLIENT_DISPLAY_CONVERSATION_DENSITY,
 } from '../common/uaClientSettingsHelpers.js';
 
@@ -276,6 +278,9 @@ export class ConversationLens extends Disposable {
 		this._register(this.configurationService.onDidChangeConfiguration(event => {
 			if (event.affectsConfiguration(UA_CLIENT_DISPLAY_CONVERSATION_DENSITY)) {
 				this.applyConversationDensity();
+			}
+			if (event.affectsConfiguration(UA_CLIENT_CLIENT_TOOLS_SHOW_TOOL_INVOCATION_DETAILS)) {
+				this.timelineTree.refreshPresentation();
 			}
 		}));
 		this.bindReadingColumnLayout();
@@ -663,6 +668,7 @@ export class ConversationLens extends Disposable {
 			},
 			onOpenVisualizeFullscreen: (source, title) => this.openVisualizeOverlay(source, title),
 			showLiveChrome: () => this.stubService.isEngineConnected(),
+			showToolInvocationDetails: () => shouldShowClientToolInvocationDetails(this.configurationService),
 		}));
 		this.trajectoryView = this._register(this.instantiationService.createInstance(ConversationTrajectory, this.readingColumn, {
 			onNavigateToLinkedTurn: turnId => this.navigateToTurnFromTrajectory(turnId),

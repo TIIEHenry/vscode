@@ -7,6 +7,7 @@ import { IConfigurationService } from '../../../../platform/configuration/common
 import {
 	UA_CLIENT_CHAT_INPUT_AUTO_FOCUS,
 	UA_CLIENT_CHAT_INPUT_RESTORE_DRAFTS,
+	UA_CLIENT_CLIENT_TOOLS_SHOW_TOOL_INVOCATION_DETAILS,
 	UA_CLIENT_DISPLAY_CONVERSATION_DENSITY,
 	UA_CLIENT_KEYBOARD_ENTER_BEHAVIOR,
 	UA_CLIENT_NOTIFICATIONS_PERMISSION_REQUESTS,
@@ -58,7 +59,7 @@ export function getUaClientKeyboardEnterBehavior(configurationService?: IConfigu
 	return configurationService.getValue<string>(UA_CLIENT_KEYBOARD_ENTER_BEHAVIOR) === 'newline' ? 'newline' : 'send';
 }
 
-/** Deleted-key / CS-5 helpers: defaults only until those slices register keys. */
+/** Deleted-key helpers: defaults only; do not read unregistered settings. */
 export function shouldShowAgentIdentity(_configurationService?: IConfigurationService): boolean {
 	return true;
 }
@@ -97,6 +98,9 @@ export function shouldAdvertiseWorkspaceTools(_configurationService?: IConfigura
 	return true;
 }
 
-export function shouldShowClientToolInvocationDetails(_configurationService?: IConfigurationService): boolean {
-	return true;
+export function shouldShowClientToolInvocationDetails(configurationService?: IConfigurationService): boolean {
+	if (!configurationService) {
+		return true;
+	}
+	return configurationService.getValue<boolean>(UA_CLIENT_CLIENT_TOOLS_SHOW_TOOL_INVOCATION_DETAILS) !== false;
 }
