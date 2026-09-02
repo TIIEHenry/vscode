@@ -17,7 +17,14 @@ import type {
 	UniverseAgentGetHistoryResult,
 	UniverseAgentListSessionsRequest,
 	UniverseAgentListSessionsResult,
+	UniverseAgentListSkillsResult,
 	UniverseAgentSessionEvent,
+	UniverseAgentSetSkillEnabledRequest,
+	UniverseAgentSetSkillEnabledResult,
+	UniverseAgentSkillInfoRequest,
+	UniverseAgentSkillInfoResult,
+	UniverseAgentSkillSource,
+	UniverseAgentSkillSummary,
 } from '../../common/universeAgentTypes.js';
 import {
 	GrpcStatusCode,
@@ -201,6 +208,73 @@ function mapGetHistoryResponse(wire: GetHistoryResponseWire): UniverseAgentGetHi
 	};
 }
 
+interface ListSkillsResponseWire {
+	skills?: Array<{
+		name?: string;
+		description?: string;
+		source?: string;
+		enabled?: boolean;
+		slash_enabled?: boolean;
+	}>;
+}
+
+interface SetSkillEnabledResponseWire {
+	ok?: boolean;
+	reason?: string;
+}
+
+interface SkillInfoResponseWire {
+	name?: string;
+	content?: string;
+	source?: string;
+	enabled?: boolean;
+}
+
+function mapSkillSource(source: string | undefined): UniverseAgentSkillSource {
+	switch (source?.toLowerCase()) {
+		case 'bundled':
+			return 'bundled';
+		case 'user':
+			return 'user';
+		case 'project':
+			return 'project';
+		default:
+			return 'unknown';
+	}
+}
+
+function mapSkillSummary(wire: NonNullable<ListSkillsResponseWire['skills']>[number]): UniverseAgentSkillSummary {
+	return {
+		name: wire.name ?? '',
+		description: wire.description,
+		source: mapSkillSource(wire.source),
+		enabled: wire.enabled === true,
+		slashEnabled: wire.slash_enabled,
+	};
+}
+
+function mapListSkillsResponse(wire: ListSkillsResponseWire): UniverseAgentListSkillsResult {
+	return {
+		skills: (wire.skills ?? []).map(mapSkillSummary),
+	};
+}
+
+function mapSetSkillEnabledResponse(wire: SetSkillEnabledResponseWire): UniverseAgentSetSkillEnabledResult {
+	return {
+		ok: wire.ok === true,
+		reason: wire.reason,
+	};
+}
+
+function mapSkillInfoResponse(wire: SkillInfoResponseWire): UniverseAgentSkillInfoResult {
+	return {
+		name: wire.name ?? '',
+		content: wire.content ?? '',
+		source: mapSkillSource(wire.source),
+		enabled: wire.enabled === true,
+	};
+}
+
 export interface GrpcUniverseAgentClientOptions {
 	readonly address: string;
 	readonly credentials?: grpc.ChannelCredentials;
@@ -362,6 +436,39 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			UniverseAgentGrpcServices.Agent.Chat,
 		);
 		await bidi({ session_id: request.sessionId, payload: request.payload }, onResponse);
+	}
+
+	async listSkills(): Promise<UniverseAgentListSkillsResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, ListSkillsResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.Tool.service,
+			UniverseAgentGrpcServices.Tool.ListSkills,
+		);
+		const wire = await unary({});
+		return mapListSkillsResponse(wire);
+	}
+
+	async setSkillEnabled(request: UniverseAgentSetSkillEnabledRequest): Promise<UniverseAgentSetSkillEnabledResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, SetSkillEnabledResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.Tool.service,
+			UniverseAgentGrpcServices.Tool.SetSkillEnabled,
+		);
+		const wire = await unary({
+			skill_name: request.skillName,
+			enabled: request.enabled,
+		});
+		return mapSetSkillEnabledResponse(wire);
+	}
+
+	async getSkillInfo(request: UniverseAgentSkillInfoRequest): Promise<UniverseAgentSkillInfoResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, SkillInfoResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.Tool.service,
+			UniverseAgentGrpcServices.Tool.SkillInfo,
+		);
+		const wire = await unary({ skill_name: request.skillName });
+		return mapSkillInfoResponse(wire);
 	}
 }
 

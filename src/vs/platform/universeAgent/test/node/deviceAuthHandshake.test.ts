@@ -81,6 +81,18 @@ class MockDeviceAuthTransport implements IUniverseAgentGrpcTransport {
 
 	async chat(): Promise<void> {
 	}
+
+	async listSkills() {
+		return { skills: [] };
+	}
+
+	async setSkillEnabled() {
+		return { ok: true };
+	}
+
+	async getSkillInfo() {
+		return { name: '', content: '', source: 'unknown' as const, enabled: false };
+	}
 }
 
 suite('deviceAuthHandshake SEC-3', () => {

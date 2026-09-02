@@ -4,14 +4,15 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { Event } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
-import { WorkbenchList } from '../../../../../platform/list/browser/listService.js';
+import { createEmptyCapabilitySnapshot } from '../../../../../platform/universeAgent/node/grpcCapabilityProbe.js';
+import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import {
 	EnginePreferencesPane,
 	getEngineEmptyCopy,
 	getEngineTestStatusText,
-	IEngineEntry,
 } from '../../browser/enginePreferencesPane.js';
 
 const ENGINE_EMPTY_COPY = 'No engines yet';
@@ -21,16 +22,41 @@ suite('EnginePreferencesPane', () => {
 
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
-	function getPaneList(pane: EnginePreferencesPane): WorkbenchList<IEngineEntry> {
-		return (pane as unknown as { list: WorkbenchList<IEngineEntry> }).list;
+	function createConnectionStub(connected = false): IUniverseAgentConnection {
+		const capabilities = createEmptyCapabilitySnapshot();
+		return {
+			_serviceBrand: undefined,
+			isEngineConnected: () => connected,
+			getConnectionPhase: () => ({ kind: connected ? 'connected' : 'disconnected', path: 'loopback' }),
+			getTransportState: () => (connected ? 'ok' : 'idle'),
+			getConnectionSnapshot: () => ({
+				transport: connected ? 'ok' : 'idle',
+				sessionToken: connected ? 'tok' : undefined,
+				pairingPending: false,
+				channelAlive: connected,
+				capabilities,
+			}),
+			getCapabilitySnapshot: () => capabilities,
+			onDidChangeConnection: Event.None,
+			onDidFileMutation: Event.None,
+			connect: async () => ({ methods: [], events: [], sessionToken: 'tok' }),
+			connectProfile: async () => ({ ok: false, code: 'transport_failed', reason: 'stub' }),
+			disconnect: async () => { },
+			listSessions: async () => ({ sessions: [] }),
+			createSession: async () => ({ sessionId: 's' }),
+			deleteSession: async () => { },
+			getHistory: async () => ({ envelopes: [] }),
+			subscribeSessionEventStream: () => ({ dispose: () => { } }),
+			chat: async () => { },
+			listSkills: async () => ({ skills: [] }),
+			setSkillEnabled: async () => ({ ok: true }),
+			getSkillInfo: async () => ({ name: '', content: '', source: 'unknown', enabled: false }),
+		};
 	}
 
-	function getPaneEntries(pane: EnginePreferencesPane): IEngineEntry[] {
-		return (pane as unknown as { entries: IEngineEntry[] }).entries;
-	}
-
-	function mountPane(): EnginePreferencesPane {
+	function mountPane(connected = false): EnginePreferencesPane {
 		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IUniverseAgentConnection, createConnectionStub(connected));
 		const pane = store.add(instantiationService.createInstance(EnginePreferencesPane));
 		const container = pane.getDomNode();
 		document.body.appendChild(container);
@@ -45,8 +71,8 @@ suite('EnginePreferencesPane', () => {
 		assert.strictEqual(getEngineEmptyCopy(), ENGINE_EMPTY_COPY);
 	});
 
-	test('pane title remains Engine with honest empty welcome', () => {
-		const pane = mountPane();
+	test('pane title remains Engine with honest empty welcome when disconnected', () => {
+		const pane = mountPane(false);
 		const container = pane.getDomNode();
 
 		const title = container.querySelector('h2') as HTMLElement;
@@ -60,46 +86,38 @@ suite('EnginePreferencesPane', () => {
 		container.remove();
 	});
 
-	test('pane has empty WorkbenchList without service-disconnected wording in welcome', () => {
-		const pane = mountPane();
+	test('disconnected pane hides skills section and does not seed catalog rows', async () => {
+		const pane = mountPane(false);
 		const container = pane.getDomNode();
-		const list = getPaneList(pane);
+		await new Promise(resolve => setTimeout(resolve, 0));
 
-		assert.ok(list instanceof WorkbenchList, 'Engine pane must construct WorkbenchList');
-		assert.ok(container.querySelector('.engine-list'));
-		assert.deepStrictEqual(getPaneEntries(pane), []);
-		assert.strictEqual(list.length, 0);
-
-		assert.strictEqual(container.querySelector('.engine-empty-state'), null);
-
-		const emptyWelcome = container.querySelector('.engine-empty-welcome') as HTMLElement;
-		const welcomeText = emptyWelcome.textContent ?? '';
-		assert.ok(!/not connected/i.test(welcomeText), 'empty welcome must not say not connected');
-		assert.ok(!/not connected — no engine/i.test(welcomeText), 'empty welcome must not use test-status disconnected copy');
+		const skillsSection = container.querySelector('.engine-skills-section') as HTMLElement;
+		assert.ok(skillsSection);
+		assert.strictEqual(skillsSection.style.display, 'none');
 
 		const combined = container.textContent ?? '';
 		assert.ok(!/copilot/i.test(combined), 'pane must not mention Copilot');
 		assert.ok(!/open chat/i.test(combined), 'pane must not mention Open Chat');
+		assert.ok(!/sync/i.test(combined.toLowerCase()), 'pane must not claim synced catalog when disconnected');
 
 		container.remove();
 	});
 
 	test('pane has no chat widgets or editable engine fields', () => {
-		const pane = mountPane();
+		const pane = mountPane(false);
 		const container = pane.getDomNode();
 
 		assert.strictEqual(container.querySelector('.chat-widget'), null);
 		assert.strictEqual(container.querySelector('.chat-setup'), null);
 		assert.strictEqual(container.querySelector('.engine-field-row'), null);
 		assert.strictEqual(container.querySelector('.engine-field-input'), null);
-		assert.strictEqual(container.querySelector('.monaco-checkbox'), null);
 		assert.ok(!/\(command:/.test(container.innerHTML), 'pane must not include command buttons');
 
 		container.remove();
 	});
 
 	test('pane does not seed fake engine rows', () => {
-		const pane = mountPane();
+		const pane = mountPane(false);
 		const container = pane.getDomNode();
 		const combined = container.textContent ?? '';
 
@@ -107,14 +125,11 @@ suite('EnginePreferencesPane', () => {
 			assert.ok(!combined.includes(label), `pane must not seed fake ${label} row`);
 		}
 
-		assert.strictEqual(getPaneEntries(pane).length, 0);
-		assert.strictEqual(getPaneList(pane).length, 0);
-
 		container.remove();
 	});
 
-	test('Test Engine click surfaces honest status without faking success', () => {
-		const pane = mountPane();
+	test('Test Engine click surfaces honest status without faking success when disconnected', () => {
+		const pane = mountPane(false);
 		const container = pane.getDomNode();
 
 		const testButton = container.querySelector('.engine-test-row .monaco-button') as HTMLButtonElement;

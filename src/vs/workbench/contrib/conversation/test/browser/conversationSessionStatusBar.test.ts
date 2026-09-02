@@ -47,6 +47,9 @@ suite('Conversation Session StatusBar', () => {
 			getHistory: async () => ({ events: [] }),
 			subscribeSessionEventStream: () => ({ dispose: () => { } }),
 			chat: async () => { },
+			listSkills: async () => ({ skills: [] }),
+			setSkillEnabled: async () => ({ ok: true }),
+			getSkillInfo: async () => ({ name: '', content: '', source: 'unknown', enabled: false }),
 			...overrides,
 		};
 	}

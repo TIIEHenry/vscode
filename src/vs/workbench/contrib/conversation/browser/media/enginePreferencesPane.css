@@ -3,10 +3,59 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-.monaco-workbench .engine-list {
-	height: 100%;
+.monaco-workbench .engine-skills-section {
+	margin-top: 16px;
 }
 
-.monaco-workbench .engine-list .monaco-list-row .engine-entry-label {
-	padding-left: 8px;
+.monaco-workbench .engine-skills-section h3 {
+	margin: 0 0 8px 0;
+	font-size: 13px;
+	font-weight: 600;
+}
+
+.monaco-workbench .engine-skills-status,
+.monaco-workbench .engine-skills-freeze-notice {
+	opacity: 0.85;
+	margin-bottom: 8px;
+	font-size: 12px;
+}
+
+.monaco-workbench .engine-skills-list {
+	min-height: 120px;
+}
+
+.monaco-workbench .engine-skill-group-label {
+	padding: 4px 8px;
+	font-size: 11px;
+	font-weight: 600;
+	opacity: 0.8;
+	text-transform: uppercase;
+}
+
+.monaco-workbench .engine-skill-row {
+	display: flex;
+	align-items: flex-start;
+	gap: 8px;
+	padding: 4px 8px;
+}
+
+.monaco-workbench .engine-skill-name {
+	font-size: 13px;
+}
+
+.monaco-workbench .engine-skill-description {
+	font-size: 11px;
+	opacity: 0.75;
+}
+
+.monaco-workbench .engine-skill-body-preview {
+	margin-top: 12px;
+	padding: 8px;
+	border: 1px solid var(--vscode-panel-border);
+	border-radius: 4px;
+	font-family: var(--monaco-monospace-font);
+	font-size: 12px;
+	white-space: pre-wrap;
+	max-height: 240px;
+	overflow: auto;
 }

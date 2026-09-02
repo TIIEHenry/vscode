@@ -20,7 +20,12 @@ import type {
 	UniverseAgentGetHistoryResult,
 	UniverseAgentListSessionsRequest,
 	UniverseAgentListSessionsResult,
+	UniverseAgentListSkillsResult,
 	UniverseAgentSessionEvent,
+	UniverseAgentSetSkillEnabledRequest,
+	UniverseAgentSetSkillEnabledResult,
+	UniverseAgentSkillInfoRequest,
+	UniverseAgentSkillInfoResult,
 	UniverseAgentTransportState,
 } from './universeAgentTypes.js';
 
@@ -72,4 +77,10 @@ export interface IUniverseAgentConnection {
 	subscribeSessionEventStream(sessionId: string, listener: (event: UniverseAgentSessionEvent) => void): { dispose(): void };
 
 	chat(request: UniverseAgentChatRequest, onResponse: (response: UniverseAgentChatResponse) => void): Promise<void>;
+
+	listSkills(): Promise<UniverseAgentListSkillsResult>;
+
+	setSkillEnabled(request: UniverseAgentSetSkillEnabledRequest): Promise<UniverseAgentSetSkillEnabledResult>;
+
+	getSkillInfo(request: UniverseAgentSkillInfoRequest): Promise<UniverseAgentSkillInfoResult>;
 }
