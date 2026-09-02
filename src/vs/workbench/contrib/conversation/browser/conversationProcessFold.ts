@@ -15,6 +15,24 @@ import { ProcessFoldNode, ProcessFoldSpan, summarizeProcessSteps } from './conve
 
 export const conversationProcessFoldThinkingLabel = localize('conversationProcessFold.thinking', "Thinking");
 
+function syncProcessFoldOuterAria(header: HTMLElement, summaryText: string, expanded: boolean): void {
+	header.setAttribute('aria-label', expanded
+		? localize('conversationProcessFold.outerHeaderExpanded', "Process steps, {0}, expanded", summaryText)
+		: localize('conversationProcessFold.outerHeaderCollapsed', "Process steps, {0}, collapsed", summaryText));
+}
+
+function syncProcessFoldThinkingAria(header: HTMLElement, summaryText: string, expanded: boolean): void {
+	header.setAttribute('aria-label', expanded
+		? localize('conversationProcessFold.thinkingHeaderExpanded', "Thinking, {0}, expanded", summaryText)
+		: localize('conversationProcessFold.thinkingHeaderCollapsed', "Thinking, {0}, collapsed", summaryText));
+}
+
+function syncProcessFoldToolAria(header: HTMLElement, toolName: string, summaryText: string, expanded: boolean): void {
+	header.setAttribute('aria-label', expanded
+		? localize('conversationProcessFold.toolHeaderExpanded', "Tool {0}, {1}, expanded", toolName, summaryText)
+		: localize('conversationProcessFold.toolHeaderCollapsed', "Tool {0}, {1}, collapsed", toolName, summaryText));
+}
+
 export interface ProcessFoldDomOptions {
 	readonly defaultOuterExpanded: boolean;
 	readonly isOuterExpanded: (spanId: string) => boolean;
@@ -53,6 +71,7 @@ export function renderProcessFoldSpan(
 
 	const summary = append(header, $('span.conversation-process-fold-summary'));
 	summary.textContent = summarizeProcessSteps(span);
+	syncProcessFoldOuterAria(header, summary.textContent ?? '', outerExpanded);
 
 	const children = append(root, $('div.conversation-process-fold-children'));
 	children.hidden = !outerExpanded;
@@ -70,6 +89,7 @@ export function renderProcessFoldSpan(
 		const next = !options.isOuterExpanded(span.id);
 		options.setOuterExpanded(span.id, next);
 		header.setAttribute('aria-expanded', String(next));
+		syncProcessFoldOuterAria(header, summary.textContent ?? '', next);
 		children.hidden = !next;
 		chevron.classList.toggle('conversation-process-fold-chevron--expanded', next);
 		options.onLayoutChange();
@@ -103,6 +123,7 @@ function renderThinkingNode(
 
 	const summary = append(header, $('span.conversation-process-fold-thinking-summary'));
 	summary.textContent = turn.text;
+	syncProcessFoldThinkingAria(header, summary.textContent ?? '', thinkingExpanded);
 
 	appendProcessFoldTrajectoryJump(thinking, turn.id, options, disposables);
 
@@ -121,6 +142,7 @@ function renderThinkingNode(
 		const next = !options.isThinkingExpanded(turn.id);
 		options.setThinkingExpanded(turn.id, next);
 		header.setAttribute('aria-expanded', String(next));
+		syncProcessFoldThinkingAria(header, summary.textContent ?? '', next);
 		body.hidden = !next;
 		tools.hidden = !next;
 		chevron.classList.toggle('conversation-process-fold-chevron--expanded', next);
@@ -174,6 +196,12 @@ function renderToolRow(
 
 	const summary = append(header, $('span.conversation-process-fold-tool-summary'));
 	summary.textContent = turn.summary ?? turn.text;
+	const toolName = turn.toolName ?? turn.kind;
+	if (hasPayload) {
+		syncProcessFoldToolAria(header, toolName, summary.textContent ?? '', toolExpanded);
+	} else {
+		header.setAttribute('aria-label', localize('conversationProcessFold.toolHeaderStatic', "Tool {0}, {1}", toolName, summary.textContent ?? ''));
+	}
 
 	appendProcessFoldTrajectoryJump(row, turn.id, options, disposables);
 
@@ -187,6 +215,7 @@ function renderToolRow(
 			const next = !options.isToolExpanded(turn.id);
 			options.setToolExpanded(turn.id, next);
 			header.setAttribute('aria-expanded', String(next));
+			syncProcessFoldToolAria(header, toolName, summary.textContent ?? '', next);
 			body.hidden = !next;
 			chevron.classList.toggle('conversation-process-fold-chevron--expanded', next);
 			options.onLayoutChange();

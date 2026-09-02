@@ -36,7 +36,7 @@ import {
 } from '../../browser/conversationChatInput.js';
 import { ConversationSessionChatService, IConversationSessionChatService } from '../../browser/conversationSessionChatService.js';
 import { isConversationExtensionTab } from '../../common/conversationEditorRouting.js';
-import { conversationSubAgentOverlayClass, conversationSubAgentOverlayBackdropClass, conversationSubAgentOverlayCardClass, conversationSubAgentOverlayMaximizeClass, conversationSubAgentOverlayMaximizedAttribute, conversationSubAgentOverlayPopoutClass } from '../../browser/conversationSubAgentOverlay.js';
+import { conversationSubAgentOverlayClass, conversationSubAgentOverlayBackdropClass, conversationSubAgentOverlayCardClass, conversationSubAgentOverlayMaximizeClass, conversationSubAgentOverlayMaximizedAttribute, conversationSubAgentOverlayPopoutClass, conversationSubAgentOverlayTitleId } from '../../browser/conversationSubAgentOverlay.js';
 import { ConversationStubService, IConversationRosterService } from '../../browser/conversationStubService.js';
 import { ConversationDiffReviewInput } from '../../../sources/browser/conversationDiffReviewInput.js';
 import { ConversationDiffReviewInputTypeId } from '../../../sources/common/conversationDiffReviewInput.js';
@@ -447,7 +447,9 @@ suite('Conversation session chat (S3)', () => {
 		assert.strictEqual(sessionChatService.isSubAgentDialogOpen(), true);
 		const overlay = sessionWindow.querySelector(`.${conversationSubAgentOverlayClass}:not([hidden])`) as HTMLElement | null;
 		assert.ok(overlay);
-		assert.strictEqual(overlay.getAttribute('aria-modal'), 'false');
+		assert.strictEqual(overlay.getAttribute('aria-modal'), 'true');
+		assert.strictEqual(overlay.getAttribute('aria-labelledby'), conversationSubAgentOverlayTitleId);
+		assert.strictEqual(overlay.querySelector(`#${conversationSubAgentOverlayTitleId}`)?.textContent, 'Research sub-agent');
 		assert.strictEqual(overlay.getAttribute(conversationSubAgentOverlayMaximizedAttribute), 'false');
 		assert.ok(overlay.querySelector(`.${conversationSubAgentOverlayCardClass}`));
 		assert.ok(overlay.querySelector(`.${conversationSubAgentOverlayBackdropClass}`));

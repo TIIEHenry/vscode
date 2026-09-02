@@ -1185,6 +1185,40 @@ suite('ConversationLens', () => {
 		assert.strictEqual(slots.timeline.querySelector('.conversation-lens-trajectory')!.hasAttribute('hidden'), true);
 	});
 
+	test('SessionBar exposes lens tablist, session title, confirmation, and process fold aria', async () => {
+		const { part, stubService, layoutReadingColumn } = mountLens();
+		const slots = getLensSlots(part);
+		const sessionId = stubService.createSession();
+		stubService.appendThinkingTurn(sessionId, 'Weighing options');
+		await seedPendingConfirmation(stubService, layoutReadingColumn);
+
+		const tablist = slots.sessionBar.querySelector('.conversation-lens-lens-tabs[role="tablist"]') as HTMLElement;
+		assert.ok(tablist.getAttribute('aria-label')?.includes('Conversation lens'));
+		const conversationTab = getLensTab(slots, 'conversation');
+		const trajectoryTab = getLensTab(slots, 'trajectory');
+		assert.strictEqual(conversationTab.getAttribute('aria-controls'), 'conversation-lens-panel-conversation');
+		assert.strictEqual(trajectoryTab.getAttribute('aria-controls'), 'conversation-lens-panel-trajectory');
+		assert.strictEqual(conversationTab.tabIndex, 0);
+		assert.strictEqual(trajectoryTab.tabIndex, -1);
+
+		const titleButton = slots.sessionBar.querySelector('.conversation-lens-session-title') as HTMLButtonElement;
+		assert.ok(titleButton.getAttribute('aria-label')?.includes('Session title:'));
+
+		conversationTab.focus();
+		conversationTab.dispatchEvent(new KeyboardEvent('keydown', { keyCode: KeyCode.RightArrow, bubbles: true, cancelable: true }));
+		assert.strictEqual(trajectoryTab.getAttribute('aria-selected'), 'true');
+		assert.strictEqual(document.activeElement, trajectoryTab);
+
+		const seat = queryTimeline(slots, '.conversation-lens-confirmation-seat') as HTMLElement;
+		const seatAria = seat.getAttribute('aria-label') ?? '';
+		assert.ok(seatAria.includes('confirmation pending'));
+		assert.ok(seatAria.includes('Input needed'));
+		assert.ok(seatAria.includes('Write README.md?'));
+
+		const foldHeader = queryTimeline(slots, '.conversation-process-fold-header') as HTMLElement;
+		assert.ok(foldHeader.getAttribute('aria-label')?.includes('Process steps'));
+	});
+
 	test('SessionBar lens tabs stay visible at 300px minimum width with 22px bar height', () => {
 		const { part } = mountLens({ layoutWidth: LENS_MIN_WIDTH });
 		const slots = getLensSlots(part);

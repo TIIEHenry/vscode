@@ -405,18 +405,22 @@ export class ConversationLens extends Disposable {
 
 		this.lensTablist = append(leading, $('.conversation-lens-lens-tabs'));
 		this.lensTablist.setAttribute('role', 'tablist');
+		this.lensTablist.setAttribute('aria-label', localize('conversationLens.lensTabs', "Conversation lens"));
 		this.lensTabConversation = append(this.lensTablist, $('button.conversation-lens-lens-tab')) as HTMLButtonElement;
 		this.lensTabConversation.type = 'button';
+		this.lensTabConversation.id = 'conversation-lens-tab-conversation';
 		this.lensTabConversation.setAttribute('role', 'tab');
 		this.lensTabConversation.setAttribute('data-lens-id', 'conversation');
 		this.lensTabConversation.textContent = conversationLensSessionBarConversationTab;
 		this.lensTabTrajectory = append(this.lensTablist, $('button.conversation-lens-lens-tab')) as HTMLButtonElement;
 		this.lensTabTrajectory.type = 'button';
+		this.lensTabTrajectory.id = 'conversation-lens-tab-trajectory';
 		this.lensTabTrajectory.setAttribute('role', 'tab');
 		this.lensTabTrajectory.setAttribute('data-lens-id', 'trajectory');
 		this.lensTabTrajectory.textContent = conversationLensSessionBarTrajectoryTab;
 		this._register(addDisposableListener(this.lensTabConversation, 'click', () => this.setLensId('conversation')));
 		this._register(addDisposableListener(this.lensTabTrajectory, 'click', () => this.setLensId('trajectory')));
+		this._register(addDisposableListener(this.lensTablist, 'keydown', event => this.handleLensTablistKeyDown(event)));
 
 		this.sessionSyncBadge = append(leading, $('span.conversation-lens-session-sync-badge'));
 		this.sessionSyncBadge.hidden = true;
@@ -556,6 +560,14 @@ export class ConversationLens extends Disposable {
 		this.trajectoryView = this._register(this.instantiationService.createInstance(ConversationTrajectory, this.readingColumn, {
 			onNavigateToLinkedTurn: turnId => this.navigateToTurnFromTrajectory(turnId),
 		}));
+		this.timelineTree.domNode.id = 'conversation-lens-panel-conversation';
+		this.timelineTree.domNode.setAttribute('role', 'tabpanel');
+		this.timelineTree.domNode.setAttribute('aria-labelledby', 'conversation-lens-tab-conversation');
+		const trajectoryHost = this.readingColumn.querySelector('.conversation-lens-trajectory') as HTMLElement;
+		trajectoryHost.id = 'conversation-lens-panel-trajectory';
+		trajectoryHost.setAttribute('role', 'tabpanel');
+		trajectoryHost.setAttribute('aria-labelledby', 'conversation-lens-tab-trajectory');
+		this.updateLensTabs();
 	}
 
 	private mountDock(host: HTMLElement): void {
@@ -1188,8 +1200,35 @@ export class ConversationLens extends Disposable {
 		const isConversation = this.lensId === 'conversation';
 		this.lensTabConversation.setAttribute('aria-selected', String(isConversation));
 		this.lensTabTrajectory.setAttribute('aria-selected', String(!isConversation));
+		this.lensTabConversation.setAttribute('aria-controls', 'conversation-lens-panel-conversation');
+		this.lensTabTrajectory.setAttribute('aria-controls', 'conversation-lens-panel-trajectory');
 		this.lensTabConversation.tabIndex = isConversation ? 0 : -1;
 		this.lensTabTrajectory.tabIndex = isConversation ? -1 : 0;
+	}
+
+	private handleLensTablistKeyDown(event: KeyboardEvent): void {
+		const target = event.target;
+		if (target !== this.lensTabConversation && target !== this.lensTabTrajectory) {
+			return;
+		}
+		let next: ConversationLensId | undefined;
+		if (event.keyCode === KeyCode.RightArrow || event.keyCode === KeyCode.LeftArrow) {
+			event.preventDefault();
+			next = this.lensId === 'conversation' ? 'trajectory' : 'conversation';
+		} else if (event.keyCode === KeyCode.Home) {
+			event.preventDefault();
+			next = 'conversation';
+		} else if (event.keyCode === KeyCode.End) {
+			event.preventDefault();
+			next = 'trajectory';
+		}
+		if (!next) {
+			return;
+		}
+		if (next !== this.lensId) {
+			this.setLensId(next);
+		}
+		(next === 'conversation' ? this.lensTabConversation : this.lensTabTrajectory).focus();
 	}
 
 	private updateReadingColumn(): void {
@@ -1362,6 +1401,7 @@ export class ConversationLens extends Disposable {
 	private updateSessionTitle(): void {
 		const title = this.stubService.getActiveSession().title;
 		this.sessionTitleButton.textContent = title;
+		this.sessionTitleButton.setAttribute('aria-label', localize('conversationLens.sessionTitleAria', "Session title: {0}", title));
 		this.sessionTitleLive.textContent = title;
 	}
 

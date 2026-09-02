@@ -20,7 +20,8 @@ import { ConversationConfirmationSeat } from './conversationConfirmationSeat.js'
 import { conversationLensTurnCopy, conversationLensTurnDelete, conversationLensPinnedUserPromptAria, conversationLensPinnedUserPromptCopyAria, conversationLensTurnViewInTrajectory } from './conversationLensSessionBarStrings.js';
 import { ConversationMermaidExtensionInfo, createMermaidHostContext } from './conversationMermaidHost.js';
 import { renderProcessFoldSpan } from './conversationProcessFold.js';
-import { ProcessFoldSpan, projectProcessFoldSpans } from './conversationProcessFoldModel.js';
+import { getConversationTurnAriaLabel } from './conversationAccessibility.js';
+import { ProcessFoldSpan, projectProcessFoldSpans, summarizeProcessSteps } from './conversationProcessFoldModel.js';
 import { ConversationStubTurn } from './conversationStubModel.js';
 import type { ConversationViewFrameApplied } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
 import {
@@ -634,17 +635,14 @@ export class ConversationTimelineTree extends Disposable {
 				setRowLineHeight: false,
 				accessibilityProvider: {
 					getAriaLabel: (item: ConversationTimelineItem) => {
-						if (item.variant === 'process-fold') {
-							return localize('conversationProcessFold.accessibility', "Process steps");
+						if (item.variant === 'process-fold' && item.processFoldSpan) {
+							return localize(
+								'conversationProcessFold.accessibility',
+								"Process steps: {0}",
+								summarizeProcessSteps(item.processFoldSpan),
+							);
 						}
-						const turn = item.turn;
-						if (turn.kind === 'confirmation') {
-							return localize('conversationLens.confirmationSeat', "Confirmation");
-						}
-						if (turn.kind === 'visualization') {
-							return localize('conversationVisualize.accessibility', "Visualize");
-						}
-						return getConversationTurnRoleLabel(turn.kind);
+						return getConversationTurnAriaLabel(item.turn);
 					},
 					getWidgetAriaLabel: () => localize('conversationLens.timeline', "Conversation timeline"),
 				},

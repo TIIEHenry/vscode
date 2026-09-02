@@ -24,6 +24,7 @@ export const conversationSubAgentOverlayPopoutClass = 'conversation-subagent-ove
 export const conversationSubAgentOverlayMaximizeClass = 'conversation-subagent-overlay-maximize';
 export const conversationSubAgentOverlayCloseClass = 'conversation-subagent-overlay-close';
 export const conversationSubAgentOverlayMaximizedAttribute = 'data-maximized';
+export const conversationSubAgentOverlayTitleId = 'conversation-subagent-overlay-title';
 
 export interface IConversationSubAgentOverlayState {
 	readonly sessionKey: string;
@@ -52,6 +53,7 @@ export class ConversationSubAgentOverlay extends Disposable {
 	private descriptionElement!: HTMLElement;
 	private body!: HTMLElement;
 	private maximizeButton!: Button;
+	private closeButton!: Button;
 	private breadcrumb!: ConversationAgentBreadcrumbBox;
 	private readonly lensDisposables = this._register(new DisposableStore());
 	private state: IConversationSubAgentOverlayState | undefined;
@@ -87,6 +89,7 @@ export class ConversationSubAgentOverlay extends Disposable {
 		const icon = append(title, $('span.conversation-subagent-overlay-icon'));
 		icon.classList.add(...ThemeIcon.asClassNameArray(Codicon.commentDiscussion));
 		this.nameElement = append(title, $('span.conversation-subagent-overlay-name'));
+		this.nameElement.id = conversationSubAgentOverlayTitleId;
 		this.descriptionElement = append(title, $('span.conversation-subagent-overlay-description'));
 
 		const actions = append(this.header, $('.conversation-subagent-overlay-actions'));
@@ -123,9 +126,11 @@ export class ConversationSubAgentOverlay extends Disposable {
 			small: true,
 			secondary: true,
 			title: localize('conversationSubAgentOverlayClose', "Close"),
+			ariaLabel: localize('conversationSubAgentOverlayClose', "Close"),
 		}));
 		closeButton.icon = Codicon.close;
 		closeButton.element.classList.add(conversationSubAgentOverlayCloseClass);
+		this.closeButton = closeButton;
 		this._register(closeButton.onDidClick(() => this.close()));
 
 		this._register(addDisposableListener(this.header, EventType.DBLCLICK, event => {
@@ -153,11 +158,14 @@ export class ConversationSubAgentOverlay extends Disposable {
 		this.state = state;
 		this.setMaximized(false);
 		this.element.hidden = false;
-		this.element.setAttribute('aria-label', state.title);
+		this.element.setAttribute('aria-modal', 'true');
+		this.element.setAttribute('aria-labelledby', conversationSubAgentOverlayTitleId);
+		this.element.removeAttribute('aria-label');
 		this.nameElement.textContent = state.title;
 		this.descriptionElement.textContent = state.sessionTitle;
 		this.breadcrumb.setItems([...state.breadcrumb]);
 		this.breadcrumb.layout(this.card.clientWidth);
+		this.closeButton.focus();
 
 		this.lensDisposables.clear();
 		this.body.replaceChildren();
@@ -199,6 +207,8 @@ export class ConversationSubAgentOverlay extends Disposable {
 			return;
 		}
 		this.element.hidden = true;
+		this.element.setAttribute('aria-modal', 'false');
+		this.element.removeAttribute('aria-labelledby');
 		this.state = undefined;
 		this.maximized = false;
 		this.element.setAttribute(conversationSubAgentOverlayMaximizedAttribute, 'false');

@@ -186,12 +186,15 @@ export class ConversationInboxOverlay extends Disposable {
 	private renderPending(pending: number): void {
 		if (pending > 0) {
 			this.pendingButton.hidden = false;
-			this.pendingButton.textContent = pending === 1
+			const label = pending === 1
 				? localize('conversationLens.inboxOnePending', "1 confirmation pending")
 				: localize('conversationLens.inboxManyPending', "{0} confirmations pending", pending);
+			this.pendingButton.textContent = label;
+			this.pendingButton.setAttribute('aria-label', label);
 		} else {
 			this.pendingButton.hidden = true;
 			this.pendingButton.textContent = '';
+			this.pendingButton.removeAttribute('aria-label');
 		}
 	}
 

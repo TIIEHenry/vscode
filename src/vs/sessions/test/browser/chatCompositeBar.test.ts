@@ -396,4 +396,23 @@ suite('Sessions - ChatCompositeBar', () => {
 			payload: { sessionId: session.sessionId, resource: secondaryChat.resource.toString() },
 		});
 	});
+
+	test('chat tabs use roving tabindex and arrow keys move focus', () => {
+		const { sessionsService, tabs } = createHarness(disposables);
+		const mainResource = tabs[0].dataset.chatResource!;
+		const secondaryResource = tabs[1].dataset.chatResource!;
+
+		assert.strictEqual(tabs[0].tabIndex, 0);
+		assert.strictEqual(tabs[1].tabIndex, -1);
+
+		tabs[0].focus();
+		tabs[0].dispatchEvent(new KeyboardEvent(EventType.KEY_DOWN, { key: 'ArrowRight', bubbles: true, cancelable: true }));
+
+		assert.strictEqual(document.activeElement, tabs[1]);
+		assert.deepStrictEqual(sessionsService.openedChats.map(uri => uri.toString()), [secondaryResource]);
+
+		tabs[1].dispatchEvent(new KeyboardEvent(EventType.KEY_DOWN, { key: 'Home', bubbles: true, cancelable: true }));
+		assert.strictEqual(document.activeElement, tabs[0]);
+		assert.deepStrictEqual(sessionsService.openedChats.map(uri => uri.toString()), [secondaryResource, mainResource]);
+	});
 });
