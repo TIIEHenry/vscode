@@ -52,6 +52,15 @@
 	border-bottom: 1px solid var(--vscode-panel-border);
 }
 
+.monaco-workbench .engine-preferences-pane--narrow .engine-rules-scopes,
+.monaco-workbench .engine-preferences-pane--narrow .engine-hooks-layout {
+	grid-template-columns: 1fr;
+}
+
+.monaco-workbench .engine-preferences-pane--narrow .engine-provider-model-input {
+	max-width: none;
+}
+
 .monaco-workbench .engine-preferences-nav {
 	flex: 0 0 200px;
 	min-width: 180px;

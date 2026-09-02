@@ -151,6 +151,8 @@ export class EnginePreferencesPane extends Disposable implements IPreferencesEdi
 
 		const body = DOM.append(this.container, $('.engine-preferences-body'));
 		const navHost = DOM.append(body, $('.engine-preferences-nav'));
+		navHost.setAttribute('role', 'navigation');
+		navHost.setAttribute('aria-label', localize('ua.enginePreferencesNavHost', "Engine preferences sections"));
 		this.navList = this._register(instantiationService.createInstance(
 			WorkbenchList,
 			'EnginePreferencesNav',
@@ -160,6 +162,9 @@ export class EnginePreferencesPane extends Disposable implements IPreferencesEdi
 			{
 				identityProvider: { getId: (entry: typeof ENGINE_PREFERENCES_NAV_ENTRIES[number]) => entry.id },
 				accessibilityProvider: new EngineNavAccessibilityProvider(),
+				keyboardNavigationLabelProvider: { getKeyboardNavigationLabel: (entry: typeof ENGINE_PREFERENCES_NAV_ENTRIES[number]) => entry.label },
+				keyboardSupport: true,
+				multipleSelectionSupport: false,
 				openOnSingleClick: true,
 			},
 		)) as WorkbenchList<typeof ENGINE_PREFERENCES_NAV_ENTRIES[number]>;
@@ -179,6 +184,17 @@ export class EnginePreferencesPane extends Disposable implements IPreferencesEdi
 		this.registerSection('plugins', this._register(instantiationService.createInstance(EnginePluginsSection, this.detailBody)));
 		this.registerSection('tools', this._register(instantiationService.createInstance(EngineToolsSection, this.detailBody)));
 
+		this._register(this.navList.onDidChangeFocus(e => {
+			const entry = e.elements[0] as typeof ENGINE_PREFERENCES_NAV_ENTRIES[number] | undefined;
+			if (!entry) {
+				return;
+			}
+			const index = ENGINE_PREFERENCES_NAV_ENTRIES.findIndex(item => item.id === entry.id);
+			if (index >= 0 && this.navList.getSelection()[0] !== index) {
+				this.navList.setSelection([index]);
+			}
+			this.selectSection(entry.id);
+		}));
 		this._register(this.navList.onDidChangeSelection(e => {
 			const entry = e.elements[0] as typeof ENGINE_PREFERENCES_NAV_ENTRIES[number] | undefined;
 			if (entry) {
@@ -195,6 +211,7 @@ export class EnginePreferencesPane extends Disposable implements IPreferencesEdi
 			this.updateDisconnectedBanner();
 		}));
 
+		this.navList.setFocus([0]);
 		this.navList.setSelection([0]);
 		this.selectSection('overview');
 		this.updateDisconnectedBanner();
