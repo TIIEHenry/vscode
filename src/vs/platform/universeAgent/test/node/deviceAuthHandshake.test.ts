@@ -94,6 +94,10 @@ class MockDeviceAuthTransport implements IUniverseAgentGrpcTransport {
 		return { name: '', content: '', source: 'unknown' as const, enabled: false };
 	}
 
+	async saveSkillContent() {
+		return { ok: true };
+	}
+
 	async listAgentProfiles() { return { profiles: [] }; }
 	async saveAgentProfile(request: { profile: { id: string; name: string } }) { return { profile: request.profile }; }
 	async deleteAgentProfile() { return { ok: true }; }

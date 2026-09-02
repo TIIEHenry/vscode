@@ -135,7 +135,7 @@ export interface IUniverseAgentConnection {
 
 	getSkillInfo(request: UniverseAgentSkillInfoRequest): Promise<UniverseAgentSkillInfoResult>;
 
-	/** Engine-backed catalog write; absent until transport wires SaveSkillContent (slot A). */
+	/** Engine-backed catalog write; bound after Connect advertises ToolService.SaveSkillContent and probe OK. */
 	saveSkillContent?(request: UniverseAgentSaveSkillContentRequest): Promise<UniverseAgentSaveSkillContentResult>;
 
 	listAgentProfiles(request?: UniverseAgentListAgentProfilesRequest): Promise<UniverseAgentListAgentProfilesResult>;

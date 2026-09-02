@@ -20,8 +20,10 @@ import type {
 	UniverseAgentListSessionsResult,
 	UniverseAgentSaveAgentProfileRequest,
 	UniverseAgentSessionEvent,
+	UniverseAgentSaveSkillContentRequest,
+	UniverseAgentSaveSkillContentResult,
 } from '../../common/universeAgentTypes.js';
-import { GrpcStatusCode, IUniverseAgentGrpcTransport, UniverseAgentAuthNonceRequest, UniverseAgentAuthNonceResult, UniverseAgentDeviceAuthConnectRequest, UniverseAgentTransportError } from '../../node/grpc/grpcTransport.js';
+import { GrpcStatusCode, IUniverseAgentGrpcTransport, UniverseAgentAuthNonceRequest, UniverseAgentAuthNonceResult, UniverseAgentDeviceAuthConnectRequest, UniverseAgentGrpcServices, UniverseAgentTransportError } from '../../node/grpc/grpcTransport.js';
 import { UniverseAgentConnectionService } from '../../node/universeAgentConnectionService.js';
 import { InMemoryHubSessionStore } from '../../node/hubSessionStore.js';
 
@@ -34,6 +36,7 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 			connect?: (request: UniverseAgentConnectRequest) => Promise<UniverseAgentConnectResult>;
 			probeRpc?: (service: string, method: string) => Promise<number>;
 			listSessions?: (request: UniverseAgentListSessionsRequest) => Promise<UniverseAgentListSessionsResult>;
+			saveSkillContent?: (request: UniverseAgentSaveSkillContentRequest) => Promise<UniverseAgentSaveSkillContentResult>;
 		} = {},
 	) { }
 
@@ -119,6 +122,13 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 
 	async getSkillInfo() {
 		return { name: '', content: '', source: 'unknown' as const, enabled: false };
+	}
+
+	async saveSkillContent(request: UniverseAgentSaveSkillContentRequest): Promise<UniverseAgentSaveSkillContentResult> {
+		if (this.handlers.saveSkillContent) {
+			return this.handlers.saveSkillContent(request);
+		}
+		return { ok: true };
 	}
 
 	async listAgentProfiles() {
@@ -337,6 +347,98 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(service.getAuthStatus().kind, 'signedIn');
 		assert.strictEqual(service.isEngineConnected(), false);
 		assert.strictEqual(service.getConnectionPhase().kind, 'disconnected');
+		service.dispose();
+	});
+
+	test('SaveSkillContent advertised + probe OK => saveSkillContent writes via transport', async () => {
+		let saved: UniverseAgentSaveSkillContentRequest | undefined;
+		const transport = new MockUniverseAgentGrpcTransport({
+			connect: async () => ({
+				sessionToken: 'token-1',
+				methods: ['ToolService.ListSkills', 'ToolService.SaveSkillContent'],
+				events: [],
+			}),
+			probeRpc: async (_service, method) => {
+				if (method === UniverseAgentGrpcServices.Tool.SaveSkillContent) {
+					return GrpcStatusCode.OK;
+				}
+				return GrpcStatusCode.OK;
+			},
+			saveSkillContent: async (request) => {
+				saved = request;
+				return { ok: true };
+			},
+		});
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		assert.strictEqual(typeof service.saveSkillContent, 'function');
+		const result = await service.saveSkillContent!({
+			skillName: 'demo-skill',
+			content: '# Demo',
+		});
+		assert.strictEqual(result.ok, true);
+		assert.deepStrictEqual(saved, { skillName: 'demo-skill', content: '# Demo' });
+		service.dispose();
+	});
+
+	test('SaveSkillContent UNIMPLEMENTED probe => saveSkillContent absent', async () => {
+		const transport = new MockUniverseAgentGrpcTransport({
+			connect: async () => ({
+				sessionToken: 'token-1',
+				methods: ['ToolService.ListSkills', 'ToolService.SaveSkillContent'],
+				events: [],
+			}),
+			probeRpc: async (_service, method) => {
+				if (method === UniverseAgentGrpcServices.Tool.SaveSkillContent) {
+					return GrpcStatusCode.UNIMPLEMENTED;
+				}
+				return GrpcStatusCode.OK;
+			},
+		});
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		assert.strictEqual(service.saveSkillContent, undefined);
+		service.dispose();
+	});
+
+	test('saveSkillContent runtime UNIMPLEMENTED => ok false without throwing', async () => {
+		const transport = new MockUniverseAgentGrpcTransport({
+			connect: async () => ({
+				sessionToken: 'token-1',
+				methods: ['ToolService.ListSkills', 'ToolService.SaveSkillContent'],
+				events: [],
+			}),
+			probeRpc: async (_service, method) => {
+				if (method === UniverseAgentGrpcServices.Tool.SaveSkillContent) {
+					return GrpcStatusCode.OK;
+				}
+				return GrpcStatusCode.OK;
+			},
+			saveSkillContent: async () => {
+				throw new UniverseAgentTransportError(GrpcStatusCode.UNIMPLEMENTED, 'SaveSkillContent not implemented');
+			},
+		});
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		const result = await service.saveSkillContent!({
+			skillName: 'demo-skill',
+			content: '# Demo',
+		});
+		assert.strictEqual(result.ok, false);
+		assert.strictEqual(result.reason, 'UNIMPLEMENTED');
+		assert.strictEqual(service.saveSkillContent, undefined);
 		service.dispose();
 	});
 });
