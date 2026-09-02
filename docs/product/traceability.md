@@ -4,33 +4,37 @@ type: reference
 status: accepted
 phase: N/A
 updated: 2026-09-02
-summary: "PRD-001–016 追踪；PRD-008 接线方案 m6-engine-wave + ADR-003 仍 draft；E1/切片 5/T4 仍 blocked"
+summary: "PRD-001–020 追踪；系统规格列改指 systems/conversation 与 systems/sources；PRD-008 m6-engine-wave + ADR-003 draft；PRD-009 accepted（ADR-005）；PRD-017–020 proposed"
 ---
 
 # 产品需求追踪
 
 > 只链接事实来源，不复制 [requirements.md](requirements.md) 或方案正文。没有验证证据的需求标「待验证」，不以产品状态 `accepted` 代替验证结论。  
 > **页面接入 precedence：** Settings / roster / 透镜 / Navigator 的结构性决策以 [page-access-schemes.md](../../dev/plans/page-access-schemes.md)（`implemented`；切片 1a–4 代码已落）为准。  
-> **透镜组装：** [conversation-lens-assembly.md](../reference/code-oss-b2/conversation-lens-assembly.md)（`accepted`）— PRD-015/016 已落代码。
+> **系统规格 SSOT：** 产品 Conversation 见 [systems/conversation](../systems/conversation/INDEX.md)，Sources 见 [systems/sources](../systems/sources/INDEX.md)；[conversation-lens-assembly](../reference/code-oss-b2/conversation-lens-assembly.md) 与 [agent-ui](../systems/chat/agent-ui.md) 退为 donor 对照与 Copilot 边界参考。
 
 | PRD-ID | 产品状态 | 系统/架构规格 | 实施方案 | 测试或验证证据 |
 |--------|----------|---------------|----------|----------------|
-| [PRD-001](requirements.md#prd-001-以-conversation-为中心) | `accepted` | [agent-ui](../systems/chat/agent-ui.md) · [parts-and-grid](../systems/workbench/parts-and-grid.md) | [m0](../../dev/plans/m0-topology-surgery.md) · [m1](../../dev/plans/m1-shell-followon.md) · [m2](../../dev/plans/m2-product-shell.md) | D4 V1–V8 PASS [rerun-2230](../../dev/progress/d4-evidence/rerun-2230/) |
-| [PRD-002](requirements.md#prd-002-会话上下文) | `accepted` | [agent-ui](../systems/chat/agent-ui.md) · [session-roster-reuse](../reference/code-oss-b2/session-roster-reuse.md) · [conversation-lens-assembly](../reference/code-oss-b2/conversation-lens-assembly.md) | [m2](../../dev/plans/m2-product-shell.md) · [page-access-schemes](../../dev/plans/page-access-schemes.md) | D4 V5 PASS；roster 单测 |
-| [PRD-003](requirements.md#prd-003-时间线与输入) | `accepted` | [conversation-lens-assembly](../reference/code-oss-b2/conversation-lens-assembly.md) · [agent-ui](../systems/chat/agent-ui.md) | [m2](../../dev/plans/m2-product-shell.md) · [conversation-empty-hero](../../dev/plans/conversation-empty-hero.md) | D4 PASS；T1–T6 单测 |
-| [PRD-004](requirements.md#prd-004-权限座位) | `accepted` | [agent-ui](../systems/chat/agent-ui.md) · [conversation-lens-assembly](../reference/code-oss-b2/conversation-lens-assembly.md) | [m2](../../dev/plans/m2-product-shell.md) | D4 PASS |
-| [PRD-005](requirements.md#prd-005-preview-与-sources-files) | `accepted` | [parts-and-grid](../systems/workbench/parts-and-grid.md) | [m1](../../dev/plans/m1-shell-followon.md) | D4 V8 PASS（Files/Changes/Review tab） |
+| [PRD-001](requirements.md#prd-001-以-conversation-为中心) | `accepted` | [conversation overview](../systems/conversation/overview.md) · [parts-and-grid](../systems/workbench/parts-and-grid.md) · [ADR-006](../../dev/decisions/006-shell-invariants.md) | [m0](../../dev/plans/m0-topology-surgery.md) · [m1](../../dev/plans/m1-shell-followon.md) · [m2](../../dev/plans/m2-product-shell.md) | D4 V1–V8 PASS [rerun-2230](../../dev/progress/d4-evidence/rerun-2230/) |
+| [PRD-002](requirements.md#prd-002-会话上下文) | `accepted` | [session-windows](../systems/conversation/session-windows.md) · [stub-and-fixtures](../systems/conversation/stub-and-fixtures.md) · [session-roster-reuse](../reference/code-oss-b2/session-roster-reuse.md) | [m2](../../dev/plans/m2-product-shell.md) · [page-access-schemes](../../dev/plans/page-access-schemes.md) | D4 V5 PASS；roster 单测 |
+| [PRD-003](requirements.md#prd-003-时间线与输入) | `accepted` | [lens-and-trajectory](../systems/conversation/lens-and-trajectory.md) · [composer-and-inbox](../systems/conversation/composer-and-inbox.md) | [m2](../../dev/plans/m2-product-shell.md) · [conversation-empty-hero](../../dev/plans/conversation-empty-hero.md) | D4 PASS；T1–T6 单测 |
+| [PRD-004](requirements.md#prd-004-权限座位) | `accepted` | [lens-and-trajectory §2](../systems/conversation/lens-and-trajectory.md) · [stub-and-fixtures §5](../systems/conversation/stub-and-fixtures.md) | [m2](../../dev/plans/m2-product-shell.md) | D4 PASS |
+| [PRD-005](requirements.md#prd-005-preview-与-sources) | `accepted` | [sources overview](../systems/sources/overview.md) · [parts-and-grid](../systems/workbench/parts-and-grid.md) | [m1](../../dev/plans/m1-shell-followon.md) · [m2](../../dev/plans/m2-product-shell.md)（Changes / Review tab） | D4 V8 PASS（Files/Changes/Review tab）；`contrib/sources/test` 8 文件 |
 | [PRD-006](requirements.md#prd-006-默认无-copilot--chat-冒充) | `accepted` | [agent-ui](../systems/chat/agent-ui.md) · [views-and-composites](../systems/workbench/views-and-composites.md) | [m5](../../dev/plans/m5-ui-shell-hardening.md) · [page-access-schemes](../../dev/plans/page-access-schemes.md) · [settings-two-surfaces](../../dev/plans/settings-two-surfaces.md) | D4 V6 PASS；H0–H3 已落 |
-| [PRD-007](requirements.md#prd-007-诚实降级) | `accepted` | [agent-ui](../systems/chat/agent-ui.md) | [m2](../../dev/plans/m2-product-shell.md) | D4 PASS |
+| [PRD-007](requirements.md#prd-007-诚实降级) | `accepted` | [composer-and-inbox §7](../systems/conversation/composer-and-inbox.md) · [stub-and-fixtures](../systems/conversation/stub-and-fixtures.md) · [ADR-006](../../dev/decisions/006-shell-invariants.md) | [m2](../../dev/plans/m2-product-shell.md) | D4 PASS |
 | [PRD-008](requirements.md#prd-008-引擎与会话权威) | `blocked` | [agent-host](../systems/agent-host/INDEX.md) · [ADR-003](../../dev/decisions/003-engine-adapter-boundary.md) (`draft`) | [m6-engine-wave](../../dev/plans/m6-engine-wave.md) (`draft`；规则 16 前不实施) | 无 |
-| [PRD-009](requirements.md#prd-009-changes-与-diff) | `blocked` | [diff-footprint](../reference/code-oss-b2/diff-footprint.md) | FORK 未选 | 无 |
+| [PRD-009](requirements.md#prd-009-changes-与-diff) | `accepted` | [sources overview §4](../systems/sources/overview.md) · [session-windows §2](../systems/conversation/session-windows.md) · [diff-footprint](../reference/code-oss-b2/diff-footprint.md) | [ADR-005](../../dev/decisions/005-changes-diff-owner.md)（`accepted`）· [sources-changes-diff](../../dev/plans/sources-changes-diff.md)（F1–F5 待实施） | 无（待 D4 式验收） |
 | [PRD-010](requirements.md#prd-010-产品身份) | `proposed` | 无 | 无 | 无 |
 | [PRD-011](requirements.md#prd-011-chat-并排比对) | `accepted` | `src/vs/sessions/LAYOUT.md` · [ADR-001](../../dev/decisions/001-chat-compare-form.md) | [chat-compare-split](../../dev/plans/chat-compare-split.md) | D4 PASS |
-| [PRD-012](requirements.md#prd-012-conversation-轨迹透镜) | `accepted` | [conversation-lens-assembly](../reference/code-oss-b2/conversation-lens-assembly.md) | [conversation-trajectory-lens](../../dev/plans/conversation-trajectory-lens.md) | D4 PASS；T1–T3 单测；T5a reveal 子集 @ `f66c36c9`（T5 搜索/虚拟化/Overview 仍 Deferred） |
-| [PRD-013](requirements.md#prd-013-conversation-过程折) | `accepted` | [conversation-lens-assembly](../reference/code-oss-b2/conversation-lens-assembly.md) | [conversation-process-fold](../../dev/plans/conversation-process-fold.md) | D4 PASS；单测 |
-| [PRD-014](requirements.md#prd-014-conversation-图示卡visualize) | `accepted` | [conversation-lens-assembly](../reference/code-oss-b2/conversation-lens-assembly.md) | [thinkrail-visualize-port](../../dev/plans/thinkrail-visualize-port.md) | D4 PASS；单测 |
-| [PRD-015](requirements.md#prd-015-conversation-空会话与输入面) | `accepted` | [conversation-lens-assembly](../reference/code-oss-b2/conversation-lens-assembly.md) §4 | [conversation-empty-hero](../../dev/plans/conversation-empty-hero.md) (`implemented`) | T1–T6 单测；D4 PASS |
-| [PRD-016](requirements.md#prd-016-conversation-session-窗口与-chat-tab) | `accepted` | [parts-and-grid](../systems/workbench/parts-and-grid.md) · [editor-part-tabs](../systems/workbench/editor-part-tabs.md) · [agent-ui](../systems/chat/agent-ui.md) | [conversation-session-windows](../../dev/plans/conversation-session-windows.md)（S1–S6 `implemented`；S3c @ `18b5e8d7`）· [ADR-002](../../dev/decisions/002-conversation-session-windows.md) | S1–S6 单测；D4 PASS；S3c @ `18b5e8d7` 单测 |
+| [PRD-012](requirements.md#prd-012-conversation-轨迹透镜) | `accepted` | [lens-and-trajectory §3](../systems/conversation/lens-and-trajectory.md) | [conversation-trajectory-lens](../../dev/plans/conversation-trajectory-lens.md) | D4 PASS；T1–T3 单测；T5a reveal 子集 @ `f66c36c9`（T5 搜索/虚拟化/Overview 仍 Deferred） |
+| [PRD-013](requirements.md#prd-013-conversation-过程折) | `accepted` | [lens-and-trajectory §4](../systems/conversation/lens-and-trajectory.md) | [conversation-process-fold](../../dev/plans/conversation-process-fold.md) | D4 PASS；单测 |
+| [PRD-014](requirements.md#prd-014-conversation-图示卡visualize) | `accepted` | [lens-and-trajectory §5](../systems/conversation/lens-and-trajectory.md) | [thinkrail-visualize-port](../../dev/plans/thinkrail-visualize-port.md) | D4 PASS；单测 |
+| [PRD-015](requirements.md#prd-015-conversation-空会话与输入面) | `accepted` | [composer-and-inbox](../systems/conversation/composer-and-inbox.md) | [conversation-empty-hero](../../dev/plans/conversation-empty-hero.md) (`implemented`) | T1–T6 单测；D4 PASS |
+| [PRD-016](requirements.md#prd-016-conversation-session-窗口与-chat-tab) | `accepted` | [session-windows](../systems/conversation/session-windows.md) · [editor-part-tabs](../systems/workbench/editor-part-tabs.md) | [conversation-session-windows](../../dev/plans/conversation-session-windows.md)（S1–S6 `implemented`；S3c @ `18b5e8d7`）· [ADR-002](../../dev/decisions/002-conversation-session-windows.md) | S1–S6 单测；D4 PASS；S3c @ `18b5e8d7` 单测 |
+| [PRD-017](requirements.md#prd-017-本地会话持久化) | `proposed` | [stub-and-fixtures §4](../systems/conversation/stub-and-fixtures.md) | 无（存储落点在 R5 签收时裁定） | 无；HEAD 纯内存 |
+| [PRD-018](requirements.md#prd-018-键盘可达与辅助功能) | `proposed` | [commands §7](../systems/conversation/commands.md) | 无 | 无；四钮 / Conversation 命令无默认键位 |
+| [PRD-019](requirements.md#prd-019-web--远程窗口一致性) | `proposed` | [conversation overview §5](../systems/conversation/overview.md) | 无 | 无 Web 冒烟证据 |
+| [PRD-020](requirements.md#prd-020-规模与性能上限) | `proposed` | [lens-and-trajectory §3](../systems/conversation/lens-and-trajectory.md) | [D10](../../dev/progress/deferred-gaps.md) | 无 |
 
 ## 状态分桶
 
@@ -38,5 +42,5 @@ summary: "PRD-001–016 追踪；PRD-008 接线方案 m6-engine-wave + ADR-003 �
 |------|----------|
 | 代码已落、D4 已验 | PRD-001–PRD-016（除 blocked） |
 | EH 探针已验 | D5 closed @ [wave3](../../dev/progress/d5-evidence/smoke-wave3-0001/)（YAML / Todo Tree / js-debug PASS） |
-| 阻塞 / 未决 | PRD-008、PRD-009、页面接入切片 5、customizations E1 |
-| 仅提议 | PRD-010 |
+| 阻塞 / 未决 | PRD-008（R5 草案待规则 16）、PRD-009 实施（sources-changes-diff）、页面接入切片 5、customizations E1 |
+| 仅提议 | PRD-010（已裁决名称，排引擎波后）、PRD-017–020（非功能需求，待签收） |

@@ -4,7 +4,7 @@ type: demand
 status: accepted
 phase: N/A
 updated: 2026-09-02
-summary: "PRD-001–PRD-016：默认窗产品壳已接受；session 窗口 S1–S6 已落、S3c 对话框 chrome 已写；Agents 窗口 Chat 并排已接受；PRD-009 Diff 归属已接受（默认 Preview，可移对话窗口/底部）；引擎、产品身份未决或阻塞"
+summary: "PRD-001–PRD-016 默认窗产品壳已接受；PRD-005 收进 Changes/Review 列表；PRD-002 Route 以 PRD-015 为准；PRD-009 Diff 归属已接受（默认 Preview，可移对话窗口/底部）；PRD-017–020 非功能需求 proposed；引擎、产品身份未决或阻塞"
 ---
 
 # Agent IDE 产品需求
@@ -30,12 +30,13 @@ summary: "PRD-001–PRD-016：默认窗产品壳已接受；session 窗口 S1–
 
 - **状态**：`accepted`
 - **用户价值**：用户知道自己在哪个会话里，并能在多个会话之间切换。
-- **用户可观察陈述**：会话标题条显示当前会话标题；用户可以在至少两个本地会话之间切换；无 History / Route / Snapshots 能力时这些控件不出现。
+- **用户可观察陈述**：会话标题条显示当前会话标题；用户可以在至少两个本地会话之间切换；无 History / Snapshots 能力时这些控件不出现。Route 控件的位置与无引擎行为以 [PRD-015](#prd-015-conversation-空会话与输入面) 为准（Active 态在 SessionBar，无引擎时为诚实空或 stub 选项，不伪装成已接到引擎策略表）。
 - **产品验收标准**：
   1. 切换会话后，时间线换成该会话的内容。
   2. 没有云端或引擎会话权威时，不出现「已同步远程会话」之类文案。
   3. 导航区里可以有配套会话列表，但它不是中心工作区。
-- **依赖或未决**：真实会话权威依赖引擎（PRD-008），本条只约束无引擎时的本地上下文。
+  4. History / Snapshots 在无能力时整槽省略；不与 Route 混用同一条「不出现」规则。
+- **依赖或未决**：真实会话权威依赖引擎（PRD-008），本条只约束无引擎时的本地上下文。会话跨重启是否保留见 [PRD-017](#prd-017-本地会话持久化)。2026-09-02 修订：原文「无 Route 能力时不出现」与 PRD-015「Active 态 Route 在 SessionBar」冲突，以 PRD-015 为准。
 
 ### PRD-003 时间线与输入
 
@@ -59,16 +60,17 @@ summary: "PRD-001–PRD-016：默认窗产品壳已接受；session 窗口 S1–
   3. 无引擎时只改变本地状态，不声称已向远端授权。
 - **依赖或未决**：真实引擎权限请求依赖 PRD-008。
 
-### PRD-005 Preview 与 Sources Files
+### PRD-005 Preview 与 Sources
 
 - **状态**：`accepted`
-- **用户价值**：用户需要看文件时，能在配套区域打开预览和文件列表，而不把编辑器当成主流程。
-- **用户可观察陈述**：窗口右侧配套区域上方是 Preview，下方是 Sources 的文件列表；点击列表中的文件会在 Preview 打开。
+- **用户价值**：用户需要看文件时，能在配套区域打开预览、文件列表和变更列表，而不把编辑器当成主流程。
+- **用户可观察陈述**：窗口右侧配套区域上方是 Preview，下方是 Sources，Sources 有 **Files | Changes | Review** 三个 tab。Files 是工作区文件的只读列表投影；Changes 是 SCM 变更资源的列表投影，可以在列表里 stage / unstage 并在底部一行 commit；Review 是同一变更集的只读列表，面板顶有说明该面只读、review 引擎未接线。Files 行点击在 Preview 打开文件本体；Changes / Review 行点击打开该文件的 Diff，归属与移动规则见 [PRD-009](#prd-009-changes-与-diff)。各 tab 顶有文件名 / 路径子串筛选。
 - **产品验收标准**：
-  1. Files 列表是只读投影，不是再造一棵与资源管理器对等的主工作区。
-  2. 资源管理器仍是导航区文件树的权威。
-  3. 本条不包含 Changes / Diff 完成（见 PRD-009）。
-- **依赖或未决**：无。
+  1. Files 列表是只读投影，不是再造一棵与资源管理器对等的主工作区；资源管理器仍是导航区文件树的权威。
+  2. Changes 的 stage / unstage / commit 走 SCM 提供者（git）已有命令，不另造 SCM 状态。
+  3. 本条只管三个列表与 Files 的打开；Diff 的打开位置、移动与审阅能力全部属 PRD-009，本条不重复验收。
+  4. Review 不显示假 review comment 或假评审状态；无 SCM 提供者时三个 tab 诚实空。
+- **依赖或未决**：Diff 归属见 PRD-009。HEAD 的 Changes / Review 行在有 SCM 资源时已经经 `ISCMResource.open()` 在 Preview 打开 Diff（即 ADR-005 的默认归属），「移到对话窗口 / 底部」与默认归属设置待 `sources-changes-diff` plan；Review 引擎见 PRD-008。2026-09-02 修订：把已落地的 Changes / Review 列表投影收进本条；原文只写 Files，代码先于需求，属规则 10a 的补录。
 
 ### PRD-006 默认无 Copilot / Chat 冒充
 
@@ -88,7 +90,7 @@ summary: "PRD-001–PRD-016：默认窗产品壳已接受；session 窗口 S1–
 - **用户可观察陈述**：没有队列/任务权威时，收件箱不显示假任务列表；没有引擎时，界面不显示已连接引擎。
 - **产品验收标准**：
   1. Queue / Tasks 要么整槽省略，要么诚实空（例如 “No queue”）。
-  2. 无可用能力时，History / Route / Snapshots 不画假按钮。
+  2. 无可用能力时，History / Snapshots 不画假按钮；Route 按 [PRD-015](#prd-015-conversation-空会话与输入面) 允许诚实空或带 Stub 标识的本地选项，但不得暗示已接到引擎策略表。
   3. 文档与 UI 都不把未完成的引擎或 Diff 写成已齐。
 - **依赖或未决**：无。
 
@@ -130,7 +132,7 @@ PRD-001 至 PRD-007 的代码已在 M0–M3 合入，但 D4 启动冒烟（T1–
   6. pending 权限或新 Diff **不**自动切到轨迹。
   7. 无引擎、该会话也无 fixture 记录时，轨迹写诚实空态，不造假 Run，不空白标签页。
   8. 轨迹不是 Copilot Chat / ChatEditor / Bottom Panel inspect。
-- **依赖或未决**：活数据依赖 PRD-008。过程折是显示优化，见 [PRD-013](#prd-013-conversation-过程折)；记录身份仍是各行，折壳不是列表键。「对话 | 轨迹」挂在每个 chat 页，见 [PRD-016](#prd-016-conversation-session-窗口与-chat-tab)。HEAD 仍是 Conversation 标题条单透镜，签收后随 session 窗口切片落地。
+- **依赖或未决**：活数据依赖 PRD-008。过程折是显示优化，见 [PRD-013](#prd-013-conversation-过程折)；记录身份仍是各行，折壳不是列表键。「对话 | 轨迹」挂在每个 chat 页，见 [PRD-016](#prd-016-conversation-session-窗口与-chat-tab)。「对话 | 轨迹」已随 PRD-016 S1–S6 落在每个 chat 页 / 子代理对话框的页 chrome（`ConversationEditorPane`）。
 
 ### PRD-013 Conversation 过程折
 
@@ -222,6 +224,52 @@ PRD-001 至 PRD-007 的代码已在 M0–M3 合入，但 D4 启动冒烟（T1–
 - **用户可观察陈述**：用户能从窗口标题与图标认出 Agent IDE。
 - **产品验收标准**：未决。本批不改产品名称与图标。
 - **依赖或未决**：**已裁决 @2026-09-02**：产品名 **UniverseAgentStudio**；图标复用 UniverseAgentDesktop / Singularity 现有资产。落地排在引擎波（PRD-008 接通）之后，见 [D12](../../dev/progress/deferred-gaps.md)。扩展分发仍未决（且明确排除完整市场分发）。
+
+## 非功能需求（2026-09-02 新增，待签收）
+
+以下四条约束贯穿 PRD-001–016，本批以 `proposed` 起草；签收后转 `accepted`。它们回答「产品在重启、键盘、Web、大会话四种情形下应该怎样」，此前需求正文对这些完全沉默，实现只能各自猜。
+
+### PRD-017 本地会话持久化
+
+- **状态**：`proposed`
+- **用户价值**：用户重启后还能找到昨天的本地会话，而不是每次从空白开始。
+- **用户可观察陈述**：无引擎时，本地会话（标题、回合、权限记录）与 Conversation 的 session 窗口布局在重启后恢复；界面明确它们是本机存储，不写「已同步」。引擎接通后，会话权威切换到引擎，本地副本只作缓存并如此标注。
+- **产品验收标准**：
+  1. 重启后会话列表、当前会话与各会话回合与重启前一致。
+  2. Conversation 显隐、session 窗口叶与 chat tab 结构恢复（PRD-016 验收 2 的跨重启版）。
+  3. 无引擎时不出现远端同步文案；引擎接通后本地缓存不得冒充引擎回报。
+- **依赖或未决**：HEAD 的 `IConversationRosterService` 是纯内存（只有透镜选择持久化到 `StorageScope.WORKSPACE`）；存储落点（workspace / profile / 引擎）与引擎接通后的迁移规则须在 R5 方案内裁定。
+
+### PRD-018 键盘可达与辅助功能
+
+- **状态**：`proposed`
+- **用户价值**：不用鼠标也能在四个区域之间切换、在 Conversation 的 tab / 对话框 / 透镜之间移动。
+- **用户可观察陈述**：四钮各有默认快捷键；Conversation、Preview、Sources 都进入 F6 / Shift+F6 的 part 焦点循环；chat tab、子代理对话框、「对话 | 轨迹」透镜、过程折、权限座位均可键盘操作并有可读的 aria 名称。
+- **产品验收标准**：
+  1. `workbench.action.toggleConversation` / `toggleSources` / `toggleEditorVisibility` / Navigator 各有默认键位且在 Keyboard Shortcuts 里可见。
+  2. 隐藏 Conversation 后仅靠键盘能回到对话（PRD-001 验收 3 的键盘版）。
+  3. 屏幕阅读器能读出会话标题、回合角色、权限请求状态。
+- **依赖或未决**：HEAD 只有 `workbench.action.chat.open`（Open Conversation，`Ctrl+Alt+I` / mac `Cmd+Ctrl+I`）能靠键盘显示并聚焦 Conversation；四钮 toggle、split、关非根均无默认键位。新键位须避开已占用的 Open Conversation 键与上游 `Ctrl/Cmd+B`（Navigator）。
+
+### PRD-019 Web / 远程窗口一致性
+
+- **状态**：`proposed`
+- **用户价值**：通过 `server` / Web 入口打开时，看到的仍是同一个 Agent IDE，而不是退化成上游编辑器。
+- **用户可观察陈述**：Web 与远程窗口的默认中心同样是 Conversation，四钮与 Sources 存在；某个能力在该形态不可用时诚实省略，不画假控件。
+- **产品验收标准**：
+  1. Web 入口启动后 PRD-001 验收 1–3 成立。
+  2. 依赖桌面进程的能力（如本机引擎进程）在 Web 下省略或明示不可用。
+- **依赖或未决**：`contrib/conversation` / `contrib/sources` 注册在 `workbench.common.main.ts`，理论上 Web 共用；尚无任何 Web 冒烟证据。
+
+### PRD-020 规模与性能上限
+
+- **状态**：`proposed`
+- **用户价值**：长会话不卡输入，轨迹页记录上千条仍可滚动与检索。
+- **用户可观察陈述**：对话与轨迹列表在回合 / 记录数达到既定上限（初值：对话 1,000 回合、轨迹 5,000 记录）时仍保持可滚动、输入不阻塞；超限时诚实提示而非静默截断。
+- **产品验收标准**：
+  1. 上述规模下发送一条消息到出现在时间线 ≤ 200 ms（本机、无引擎）。
+  2. 轨迹页在上限规模有搜索与虚拟化（PRD-012 T5）。
+- **依赖或未决**：D10 延期项；上限数值待用户裁定。
 
 ## 明确排除（不是需求）
 

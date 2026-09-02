@@ -5,7 +5,7 @@ status: accepted
 phase: M5
 created: 2026-08-30
 updated: 2026-09-02
-summary: "仓外 vscode-WorkTrees 工位表；merge + A–D 全 idle；集成分支 HEAD @ 07f3ee32"
+summary: "仓外 vscode-WorkTrees 工位表；merge + A–D 全 idle；集成分支 HEAD @ c9716e28"
 ---
 
 # Loop 并行工位池（本仓）
@@ -20,7 +20,7 @@ summary: "仓外 vscode-WorkTrees 工位表；merge + A–D 全 idle；集成分
 | 主仓 | `/home/clarence/Projects/Agents/vscode` |
 | 工位根 `$WT_ROOT` | `/home/clarence/Projects/Agents/vscode-WorkTrees` |
 | 集成分支（当前） | **`agent-ide`**（merge 槽对齐此分支；非上游 `main`） |
-| 集成本次 HEAD | 对齐 `agent-ide` **`07f3ee32`** |
+| 集成本次 HEAD | 对齐 `agent-ide` **`c9716e28`** |
 | 工位池 compile 基线 | **`a047fe35`** @ merge 槽 · `npm run compile` **PASS**（0 errors，~25s，2026-09-02） |
 
 ## 槽位表（2026-09-02 · 全 idle）
