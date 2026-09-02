@@ -5,13 +5,24 @@
 
 import { ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js';
 import { Action2, registerAction2 } from '../../../../platform/actions/common/actions.js';
-import { localize2 } from '../../../../nls.js';
+import { localize, localize2 } from '../../../../nls.js';
+import { INotificationService } from '../../../../platform/notification/common/notification.js';
 import { overlayAttributionKey } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
 import { showConversationPart } from './conversationSessionStatus.js';
 import { IConversationRosterService } from './conversationStubService.js';
 import { IConversationTimelineRevealService } from './conversationTimelineRevealService.js';
 
 export const CONVERSATION_REVEAL_ITEM_COMMAND_ID = 'conversation.revealItem';
+
+/** User-visible copy when reveal cannot resolve a conversation step. */
+export const conversationRevealItemNotFound = localize(
+	'conversationReveal.itemNotFound',
+	"This step was not found in the conversation",
+);
+
+export function notifyConversationRevealItemNotFound(notificationService: INotificationService): void {
+	notificationService.info(conversationRevealItemNotFound);
+}
 
 interface ConversationRevealItemArgs {
 	readonly itemId?: string;
@@ -44,6 +55,7 @@ registerAction2(class ConversationRevealItemAction extends Action2 {
 				itemId = resolveItemIdFromToolCallId(lease, args.toolCallId);
 			}
 			if (!itemId) {
+				notifyConversationRevealItemNotFound(accessor.get(INotificationService));
 				return;
 			}
 			revealService.revealItem(itemId);

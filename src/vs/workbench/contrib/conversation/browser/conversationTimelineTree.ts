@@ -15,6 +15,7 @@ import { WorkbenchObjectTree } from '../../../../platform/list/browser/listServi
 import { asCssVariable, asCssVariableWithDefault, buttonSecondaryBackground, buttonSecondaryForeground } from '../../../../platform/theme/common/colorRegistry.js';
 import { defaultButtonStyles } from '../../../../platform/theme/browser/defaultStyles.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
+import { INotificationService } from '../../../../platform/notification/common/notification.js';
 import { IWebviewService } from '../../webview/browser/webview.js';
 import { ConversationConfirmationSeat, wireConversationSeatOptionKeys } from './conversationConfirmationSeat.js';
 import { getConversationQuestionSeatAriaLabel } from './conversationAccessibility.js';
@@ -787,6 +788,7 @@ export class ConversationTimelineTree extends Disposable {
 	private pendingRevealRelativeTop = 0.5;
 	private lastRevealTurnId: string | undefined;
 	private lastLayoutCollapsed = true;
+	private revealMissNotifiedFor: string | undefined;
 
 	constructor(
 		parent: HTMLElement,
@@ -1223,9 +1225,29 @@ export class ConversationTimelineTree extends Disposable {
 		}
 		const item = this.turnItems.get(this.pendingRevealTurnId);
 		if (!item) {
+			this.notifyPendingRevealMiss();
 			return;
 		}
+		this.revealMissNotifiedFor = undefined;
 		this.revealTurnElement(item, this.pendingRevealRelativeTop);
+	}
+
+	private notifyPendingRevealMiss(): void {
+		const pendingId = this.pendingRevealTurnId;
+		if (!pendingId || this.revealMissNotifiedFor === pendingId) {
+			return;
+		}
+		// Keep waiting until a frame has been applied so layout-before-apply does not flash.
+		if (this.currentEntries.length === 0 && this.currentTurns.length === 0 && this.turnItems.size === 0) {
+			return;
+		}
+		this.revealMissNotifiedFor = pendingId;
+		this.instantiationService.invokeFunction(accessor => {
+			accessor.get(INotificationService).info(localize(
+				'conversationReveal.itemNotFound',
+				"This step was not found in the conversation",
+			));
+		});
 	}
 
 	private revealTurnElement(item: ConversationTimelineItem, relativeTop = 0.5, attempt = 0): void {
