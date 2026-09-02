@@ -4,13 +4,16 @@
  *--------------------------------------------------------------------------------------------*/
 
 import './media/sourcesTabs.css';
+import './sourcesReview.contribution.js';
 import * as dom from '../../../../base/browser/dom.js';
 import { StandardKeyboardEvent } from '../../../../base/browser/keyboardEvent.js';
 import { KeyCode } from '../../../../base/common/keyCodes.js';
+import { URI } from '../../../../base/common/uri.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { DEFAULT_SOURCES_TAB, nextSourcesTab, SOURCES_TAB_ORDER, SourcesTabId } from '../common/sourcesTabs.js';
+import { ISourcesReviewHostService, ISourcesReviewListHost } from '../common/sourcesReviewHostService.js';
 import { SourcesChangesList } from './sourcesChangesList.js';
 import { SourcesFilesList } from './sourcesFilesList.js';
 import { SourcesReviewList } from './sourcesReviewList.js';
@@ -28,22 +31,55 @@ const TAB_DESCRIPTORS: readonly ISourcesTabDescriptor[] = [
 	{ id: SourcesTabId.Review, label: localize('sourcesTab.review', "Review") },
 ];
 
-export class SourcesTabsHost extends Disposable {
+export class SourcesTabsHost extends Disposable implements ISourcesReviewListHost {
 
 	private selectedTab: SourcesTabId = DEFAULT_SOURCES_TAB;
 	private readonly tabButtons = new Map<SourcesTabId, HTMLElement>();
 	private readonly tabPanels = new Map<SourcesTabId, HTMLElement>();
+	private reviewList: SourcesReviewList | undefined;
 
 	constructor(
 		private readonly tabHost: HTMLElement,
 		private readonly contentHost: HTMLElement,
 		@IInstantiationService private readonly instantiationService: IInstantiationService,
+		@ISourcesReviewHostService reviewHostService: ISourcesReviewHostService,
 	) {
 		super();
+
+		reviewHostService.registerReviewListHost(this);
 
 		this.renderTabStrip();
 		this.renderPanels();
 		this.selectTab(DEFAULT_SOURCES_TAB, false);
+	}
+
+	override dispose(): void {
+		this.instantiationService.invokeFunction(accessor => {
+			accessor.get(ISourcesReviewHostService).registerReviewListHost(undefined);
+		});
+		super.dispose();
+	}
+
+	selectReviewTab(): void {
+		this.selectTab(SourcesTabId.Review, true);
+	}
+
+	setPathFilter(paths: URI[] | undefined): void {
+		this.reviewList?.setPathFilter(paths);
+	}
+
+	selectTab(tabId: SourcesTabId, focusTab: boolean): void {
+		if (this.selectedTab === tabId && !focusTab) {
+			this.updateTabPresentation();
+			return;
+		}
+
+		this.selectedTab = tabId;
+		this.updateTabPresentation();
+
+		if (focusTab) {
+			this.tabButtons.get(tabId)?.focus();
+		}
 	}
 
 	private renderTabStrip(): void {
@@ -93,7 +129,7 @@ export class SourcesTabsHost extends Disposable {
 		this._register(this.instantiationService.createInstance(SourcesChangesList, changesPanel));
 
 		const reviewPanel = this.tabPanels.get(SourcesTabId.Review)!;
-		this._register(this.instantiationService.createInstance(SourcesReviewList, reviewPanel));
+		this.reviewList = this._register(this.instantiationService.createInstance(SourcesReviewList, reviewPanel));
 	}
 
 	private onTabListKeyDown(event: StandardKeyboardEvent): void {
@@ -132,20 +168,6 @@ export class SourcesTabsHost extends Disposable {
 
 		if (nextTab !== undefined) {
 			this.selectTab(nextTab, true);
-		}
-	}
-
-	private selectTab(tabId: SourcesTabId, focusTab: boolean): void {
-		if (this.selectedTab === tabId && !focusTab) {
-			this.updateTabPresentation();
-			return;
-		}
-
-		this.selectedTab = tabId;
-		this.updateTabPresentation();
-
-		if (focusTab) {
-			this.tabButtons.get(tabId)?.focus();
 		}
 	}
 

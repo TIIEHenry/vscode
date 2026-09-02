@@ -27,7 +27,7 @@ SOURCES_PART（End 列下格；minimum 尺寸与 hide − 控件在 Part）
 |-----|-------------------|--------------------|--------|--------|----------|
 | Files | `sourcesFilesModel.ts` | `sourcesFilesList.ts` | 工作区文件的**平铺**只读投影（不是树） | `IEditorService.openEditor` → Preview | 无 |
 | Changes | `sourcesChangesModel.ts::collectSourcesChangeEntries` | `sourcesChangesList.ts` | `ISCMService` 各仓库资源组的资源 | `openSourcesChangeEntry`：有 `scmResource` → `ISCMResource.open()`（git = `vscode.diff` → **Preview Diff**）；否则 `openEditor` 文件本体 | 行内 / 选中 **stage** / **unstage**（`git.stage` / `git.unstage`，仅对 git 可 stage / 已 staged 组，`sourcesChangesGit.ts`）；底部 **commit** 行写 SCM input 并跑 `provider.acceptInputCommand` 或 `git.commit` |
-| Review | `sourcesReviewModel.ts::collectSourcesReviewEntries` | `sourcesReviewList.ts` | 与 Changes **同一批** SCM 资源 | 同 Changes（`openSourcesChangeEntry`，Preview Diff） | 无；面板顶 header hint 写明只读、Preview ≠ Diff、review 引擎未接线 |
+| Review | `sourcesReviewModel.ts::collectSourcesReviewEntries` | `sourcesReviewList.ts` | 与 Changes **同一批** SCM 资源 | 同 Changes（`openSourcesChangeEntry`，Preview Diff） | 窗口内存审阅进度（●/○）；Mark reviewed / Mark all；`sources.review.showForPaths` path-set；无写回 SCM |
 
 三个面板顶部都有紧凑 filter（`sourcesListFilterBox.ts` / `common/sourcesFilterModel.ts::filterSourcesEntries`，按文件名 / 路径子串）。
 
@@ -38,7 +38,7 @@ SOURCES_PART（End 列下格；minimum 尺寸与 hide − 控件在 Part）
 | Files 无工作区 | `No workspace files. Flat Explorer list projection—not a file tree or Chat.` |
 | 筛选无匹配 | `No matching files.` / `No matching changes.` |
 | 无 SCM 提供者 | Changes / Review 空列表；不造假变更 |
-| Review | header hint `Read-only list. Review engine not connected.`；**无假 review comment** |
+| Review | header hint `Read-only. Review progress is kept for this window only.`；**无假 review comment** |
 
 ## 4. 边界
 
@@ -46,7 +46,7 @@ SOURCES_PART（End 列下格；minimum 尺寸与 hide − 控件在 Part）
 - **不是** SCM 视图：不维护自己的 staged 状态；stage / unstage / commit 全部是 git 扩展命令的调用面。
 - **Diff 归属**：HEAD 的 Changes / Review 行点击：有 SCM 资源时走 `ISCMResource.open()`（git 提供者即 `vscode.diff` → Preview 里的 `DiffEditorInput`，与 SCM 视图相同）；无 SCM 资源时 `openEditor` 打开文件本体。这正是 [ADR-005](../../../dev/decisions/005-changes-diff-owner.md) 裁决的**默认归属 = Preview**（选项 A 保留）。ADR-005 新增的部分——用户显式动作可把 Diff 移入 Conversation 只读审阅 tab（`ConversationDiffReviewInput`）或底部 Panel 产品 Diff 视图（重宿主），以及可设默认归属——尚未实施，切片见 [sources-changes-diff](../../../dev/plans/sources-changes-diff.md) F1–F5。Sources 自身不做 inline diff（选项 C 已否决）。
 - **不自动撑开**：打开 Diff / 文件不得把已收起的 Sources 下格撑开（companion-contribs §5）。
-- **Review 引擎**：评审能力依赖 PRD-008；今天 Review 只是同一变更集的第二个只读视角。
+- **Review**：只导航面；审阅进度窗口内存（不落盘）；归因装饰依赖 PRD-008（引擎接通后）。
 
 ## 5. 与 PRD-005 验收的对应
 
@@ -59,4 +59,4 @@ SOURCES_PART（End 列下格；minimum 尺寸与 hide − 控件在 Part）
 
 ## 6. 测试与验证
 
-`contrib/sources/test/browser/`：`sourcesTabs`、`sourcesFilesModel`、`sourcesFilesListStrings`、`sourcesFilterModel`、`sourcesChangesModel`、`sourcesChangesList`、`sourcesReviewModel`、`sourcesReviewListStrings`。D4 目视 V8（三 tab 可见，[shell-smoke-verification](../../guides/shell-smoke-verification.md)）。
+`contrib/sources/test/browser/`：`sourcesTabs`、`sourcesFilesModel`、`sourcesFilesListStrings`、`sourcesFilterModel`、`sourcesChangesModel`、`sourcesChangesList`、`sourcesReviewModel`、`sourcesReviewListStrings`、`sourcesReviewProgress`、`sourcesReviewList`、`sourcesReviewShowForPaths`。
