@@ -4,22 +4,22 @@ type: progress
 status: active
 phase: M5
 updated: 2026-09-02
-summary: "HEAD 0476e10d：壳层 PRD-001–016 全落、D1–D7/D11 全闭、工位池全 idle；后续排期 = 引擎波（R5/R6/R7 研究）+ 工具链尾巴（D8–D10/D12）"
+summary: "loop/merge 集成：D11 closed；D8 open（TS lib）；D9 partial；R5/R6 草案待规则 16"
 ---
 
 # Development Progress
 
 ## Current Session
 
-- **集成 HEAD：** `0476e10d` — **agent-ide** 集成线；工位池与 merge 槽已对齐 `adc12ccf`/`c9716e28`。
-- **已闭里程碑：** S3c @ `18b5e8d7`；S4 @ `28f1af5a`；S5 @ `3e287e65`；S6 @ `569ce371`；T5a @ `c7b2c17a` / `f66c36c9`；M5 **implemented** @ `9f67fb5a`；**D2** 工位池 compile 基线闭 @ `a047fe35`（记录 `aa71c27f`）。
-- **无 in-flight 切片。** 壳层方案全部 `implemented`；下一波须先过研究/决策再开实施。
+- **集成 HEAD：** merge 工位集成中（`loop/merge` ← agent-ide + loop/A–C）。
+- **已闭里程碑：** 壳层 PRD-001–016 / M5 / D1–D7 / **D11**；R5 草案 [m6-engine-wave](../plans/m6-engine-wave.md) + [ADR-003](../decisions/003-engine-adapter-boundary.md)（`draft`，待规则 16）。
 
 ## Blockers
 
 - **valid-layers-check：** Node v26.7.0 环境红；`.nvmrc` 钉 24.18.0，疑为版本不匹配 → [D8](deferred-gaps.md)
 - **EH 矩阵：** panel + decoration **已实测** @ [d9](d5-evidence/smoke-d9-0001/)；`terminal` xterm 自动化 blocked → [D9](deferred-gaps.md)
-- **PRD-008 / PRD-009：** `blocked`；无已接受的引擎接线方案、Diff owner 未选 → [R5 / R6](research-queue.md)
+- **PRD-008：** `blocked`；[m6-engine-wave](../plans/m6-engine-wave.md) + [ADR-003](../decisions/003-engine-adapter-boundary.md) **草案 done**，待规则 16 → [R5](research-queue.md)
+- **PRD-009：** `blocked`；Diff owner 未决 → [R6](research-queue.md)
 
 ## Next（后续开发任务排期，2026-09-02）
 
@@ -27,10 +27,10 @@ summary: "HEAD 0476e10d：壳层 PRD-001–016 全落、D1–D7/D11 全闭、工
 
 | 序 | 任务 | 类型 | 产出 / Exit | 工位建议 |
 |:---|:-----|:-----|:------------|:---------|
-| 0a | **D8** `nvm use`（24.18.0）后重跑 `npm run valid-layers-check`；仍红则定位 TS lib 差异 | infra | 门禁绿或落 root cause | merge |
-| 0b | ~~**D11**~~ 证据目录收编 + `plans/INDEX.md` 修链 — **closed** | docs | ✅ @ agent-ide | 主仓 |
-| 0c | **D9** EH 矩阵 panel / terminal / `editor/decoration` 探针 | docs/验证 | **partial**：panel + decoration 已实测；terminal 待人工 | A |
-| 1 | **R5** PRD-008 引擎接线发现：UA gRPC 面 vs 现有 `IConversationStubService` 契约；adapter 落层（`platform`/`workbench/services`）；能力探测三态 | research → plan + ADR-003 草案 | plan `accepted`（规则 16 独立审查） | B |
+| 0a | **D8** `valid-layers-check` TS lib 对齐（非 Node 误跑）；见 [D8](deferred-gaps.md) 复测 | infra | **仍 open** | merge |
+| 0b | ~~**D11**~~ 证据目录收编 + `plans/INDEX.md` 修链 — **closed** | docs | ✅ | 主仓 |
+| 0c | **D9** EH 矩阵 panel / terminal / `editor/decoration` | docs/验证 | **partial**（panel + decoration 已实测；terminal 待人工） | A |
+| 1 | **R5 签收** [m6-engine-wave](../plans/m6-engine-wave.md) + [ADR-003](../decisions/003-engine-adapter-boundary.md) 规则 16 只读审查 | review | 草案 **done**；两文 `accepted` 或保持 draft | 独立 reviewer |
 | 2 | **R6** PRD-009 Diff owner 裁决（编辑器区 vs 底部 Panel vs Sources Changes 内嵌） | research → ADR-004 | ADR `accepted` | C |
 | 3 | ~~R7~~ PRD-010 产品身份 — **已裁决**：名 **UniverseAgentStudio**，图标复用 Desktop/Singularity 资产，**引擎波后再改**（[D12](deferred-gaps.md)） | 已决 | M6 闭后开 plan | — |
 | 4 | **M6 引擎波实施**（R5 签收后）：adapter 同 token 替换 stub → page-access 切片 5 → customizations E1 → trajectory T4 → Engine pane 能力探测 | 实施 | 各方案 blocked 行转 `implemented`；D4 式隔离 profile 验收 | A–D 并行 |

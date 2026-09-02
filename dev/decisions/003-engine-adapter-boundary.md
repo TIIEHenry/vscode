@@ -1,0 +1,58 @@
+---
+title: "ADR-003 引擎 adapter 边界：platform 传输 vs roster token"
+type: decision
+status: draft
+phase: M6
+updated: 2026-09-02
+summary: "UA gRPC 客户端落 platform/universeAgent；IConversationRosterService 同 token 投影；AHP 非权威；不改 conversationStubService decorator id"
+---
+
+# ADR-003 引擎 adapter 边界
+
+## Context
+
+[PRD-008](../../docs/product/requirements.md#prd-008-引擎与会话权威) 要把默认窗 Conversation 从本地 stub 接到 UniverseAgent。HEAD 事实：
+
+- 产品会话契约是 `IConversationRosterService`，`createDecorator` id **`'conversationStubService'`**，实现类 `ConversationStubService` 在 `contrib/conversation`（[page-access B11](../plans/page-access-schemes.md)）。
+- vscode 侧已有 **Agent Host Protocol**：`IAgentHostService` ⊂ `IAgentConnection`，进程在 `platform/agentHost`。[agent-host overview](../../docs/systems/agent-host/overview.md) 写明 AHP **不是** UA session-core。
+- Engine / Connection 产品面是 Preferences pane（`ua.engine` / `ua.connection`），与 Conversation 透镜同属默认窗，但 **不得** import `contrib/` 内部以外的上帝接口去扫 catalog。
+- 沙箱 renderer 不能直接持 HTTP/2 gRPC；UA 权威面是 `SystemService.Connect`、`SessionService`、`AgentService.Chat`、`PermissionService`、`ToolService`、`McpService`。
+- M5 曾写「不迁 ADR-003 token」：本 ADR 就是那条预留决策，用来钉 **落层 + token**，不是改名运动。
+
+候选：
+
+1. **整包放 `workbench/services/universeAgent`**：工作台 ambient 服务，contrib 注入。
+2. **整包放 `contrib/conversation`**：在 stub 旁长出 gRPC。
+3. **传输与探测放 `platform/universeAgent`，roster 投影留 contrib、同 token**（对照 agentHost：platform 协议 + 上层 facade）。
+4. **扩展 `IAgentHostService` / 实现 `IAgentConnection`**，把 UA 假装成另一种 harness。
+
+实施方案：[m6-engine-wave.md](../plans/m6-engine-wave.md)（`draft`）。
+
+## Decision
+
+选形态 3。
+
+1. **新 platform 服务域** `src/vs/platform/universeAgent/`（名字不得含 `agentHost`）：
+   - `common`：`IUniverseAgentConnection`（或同等）— Connect 生命周期、能力三态快照、session/chat/permission/catalog 的 **TS 契约**。不出现 DOM，不出现 Conversation 零件。
+   - `node`：gRPC channel 与生成/手写 stub。renderer **禁止** import 此子树。
+   - `electron-browser`（及需要时 `electron-main` / shared）：ProxyChannel 代理，对标 `LocalAgentHostServiceClient` 的装配方式，而不是复用其类型。
+2. **AHP 隔离：** 禁止 UA adapter 继承 `IAgentHostService` 或实现 `IAgentConnection`。`IAgentHostService` 已连接 ≠ UA 已连接。Agents Window Chat 可继续走 AHP；默认窗 Conversation **只**走 UA。
+3. **Roster 同 token：** 公开类型保持 `IConversationRosterService`；decorator id **保持 `'conversationStubService'`**。`IConversationStubService` 继续是 type alias。引擎实现 **替换** `registerSingleton` 的类，不注册第二 token。View / SessionBar / StatusBar 注入点不变。
+4. **Catalog 不进 roster：** `ToolService` / `ListAgentProfiles` / `McpService` 定义面挂在 platform 连接上，由 `ua.engine` 消费。禁止把 Skills 列表塞进 `getSessions()`。
+5. **`workbench/services`：** 允许日后增加极薄的窗口生命周期装配（仿 `WorkbenchAgentHostService`），**禁止**把 gRPC 面或 roster 接口定义在该层。v1 可无此目录。
+6. **断连：** 从未连接 = stub 种子诚实占位；已连接后断连 = 保留 UA 快照只读 + Engine 页空，不回填 `untitled`/`tour`。细则见 M6 方案 §6。
+
+## Consequences
+
+- 分层：`contrib/conversation` 只依赖 `platform/universeAgent/common`（经 electron-browser 代理）。`valid-layers-check` 必须拒绝 contrib → `universeAgent/node`。
+- sessions 层将来若要 UA，只注入 platform 契约，**不得** import `contrib/conversation`。
+- 不推翻 [ADR-001](001-chat-compare-form.md) / [ADR-002](002-conversation-session-windows.md)。ADR-002 里「一张 session 窗口 = 一个 AH session」在 **无引擎** 时仍是 stub session；接通后改为 **一个 UA `SessionService` session**。AHP `createChat` fork 不是默认窗权威。
+- token 全仓替换 **永久不做**（零收益、非 extension API）。M5「不迁 ADR-003 token」与本决策一致：保留 id。
+- 实施前须规则 16 将 [m6-engine-wave.md](../plans/m6-engine-wave.md) 从 `draft` 推到 `accepted`。本 ADR 同期升 `accepted`。
+
+## Alternatives
+
+- **形态 1（workbench/services 整包）：** 能被 contrib 注入，但 sessions 与 `code` 入口拿不到无 workbench 依赖的协议客户端；gRPC node 实现塞进 services 违反「platform = 跨进程基础服务」。拒绝作为主边界。
+- **形态 2（只在 contrib/conversation）：** Engine pane 虽同 contrib，但把 HTTP/2 客户端和 Conversation UI 绑死；sessions 无法复用；测试与 layers 更脏。拒绝。
+- **形态 4（挤进 AHP）：** 直接违反 agent-host overview 与 PRD-008「禁止用内置 Chat 会话模型顶替引擎权威」。否决。
+- **改 decorator id 为 `conversationRosterService`：** page-access B11 已拒绝；本 ADR 确认。

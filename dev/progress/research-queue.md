@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-02
-summary: "待研究队列 SSOT；R1–R4 页面接入已闭；R5 引擎接线 / R6 Diff owner open；R7 产品身份已裁决转 D12。"
+summary: "待研究队列 SSOT；R1–R5 已闭（R5 草案 m6-engine-wave + ADR-003）；R6 Diff owner 仍 open；R7 转 D12。"
 ---
 
 # Research Queue
@@ -20,7 +20,7 @@ summary: "待研究队列 SSOT；R1–R4 页面接入已闭；R5 引擎接线 / 
 | R2 | 会话列表复用零件 | ADR-061 只写姿态；stub roster 无「复用哪个类」 | 对照 `ConversationSessionsView` vs `agentSessions` | [session-roster-reuse](../../docs/reference/code-oss-b2/session-roster-reuse.md) | closed |
 | R3 | Conversation 透镜组装 | widget-parts 有零件无三槽装法 | 对照 `ConversationLens` vs `ChatWidget` | [conversation-lens-assembly](../../docs/reference/code-oss-b2/conversation-lens-assembly.md) | closed |
 | R4 | Navigator tab 子页重设计 | 壳映射只写 stub；Singularity panel 不能原样搬 | 对照五段 ViewContainer vs Explorer/树/列表 | [navigator-tabs-access](../../docs/reference/code-oss-b2/navigator-tabs-access.md) | closed |
-| R5 | PRD-008 引擎接线 | 全部 blocked 项（page-access 切片 5、customizations E1、trajectory T4、PRD-002/003/004 活数据）唯一上游；无本仓已接受方案 | ① UA gRPC 面（`AgentService`/`ToolService`/`McpService`/Connect capabilities）vs 现有 `IConversationStubService` 契约（`getSessions`/`switchSession`/… 两事件）差距；② adapter 落层：`platform/` 还是 `workbench/services/`，与 AHP（`IAgentHostService`）的边界（AHP 不是权威，见 [agent-host overview](../../docs/systems/agent-host/overview.md)）；③ 能力探测三态 `SUPPORTED/UNSUPPORTED/UNKNOWN` 在 vscode 侧的等价物（[customizations-engine §2/§3.7](../plans/customizations-engine.md)）；④ 断连回退与诚实空（PRD-007） | plan `dev/plans/m6-engine-wave.md` + ADR-003（adapter 边界与 token） | open |
+| R5 | PRD-008 引擎接线 | 全部 blocked 项（page-access 切片 5、customizations E1、trajectory T4、PRD-002/003/004 活数据）唯一上游 | 草案已落：[m6-engine-wave](../plans/m6-engine-wave.md) · [ADR-003](../decisions/003-engine-adapter-boundary.md)。规则 16 审查后升 `accepted` 才实施 | [m6-engine-wave](../plans/m6-engine-wave.md) + [ADR-003](../decisions/003-engine-adapter-boundary.md)（均 `draft`） | closed |
 | R6 | PRD-009 Diff owner | Sources Changes 与文件级 Diff 打开位置未选；对照合同要底部面板，HEAD 落编辑器区 | 三选项：A 编辑器区 Diff editor（HEAD 现状）· B 底部 Panel 专用容器（对照 Desktop ADR-047）· C Sources Changes 内嵌 inline diff。评估：与四钮互斥（`enforceAgentShellVisible`）、Preview 归属、EH `viewsContainers.panel` 冲突行 | ADR-004 + [diff-footprint](../../docs/reference/code-oss-b2/diff-footprint.md) 更新 | open |
 | R7 | PRD-010 产品身份 | `proposed` 挂起；影响 `product.json`、窗口标题、图标、`urlProtocol`（page-access 已选 `universe-agent` scheme 不绑 `product.urlProtocol`） | **已裁决 @2026-09-02**：产品名 **UniverseAgentStudio**；图标复用 UniverseAgentDesktop / Singularity 现有资产；**本轮不改**，等引擎波（R5）接通后再做 | 转 [D12](deferred-gaps.md) | closed |
 
