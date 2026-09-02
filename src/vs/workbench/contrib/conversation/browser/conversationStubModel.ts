@@ -18,11 +18,22 @@ import {
 } from './conversationTrajectoryModel.js';
 
 export type StubTurnKind = 'user' | 'assistant' | 'confirmation' | 'thinking' | 'tool' | 'visualization' | 'reviewNav';
+/** Honest conversation-page kinds (Q5a); never washed to assistant / Stub. */
+export type ConversationHonestTurnKind = 'question' | 'error' | 'unknown' | 'system';
+export type ConversationTurnKind = StubTurnKind | ConversationHonestTurnKind;
 export type ConfirmationStatus = 'pending' | 'allowed' | 'skipped';
+
+export interface ConversationQuestionOptionItem {
+	readonly id: string;
+	readonly title: string;
+	readonly options: readonly string[];
+	readonly multiSelect?: boolean;
+	readonly allowCustom?: boolean;
+}
 
 export interface ConversationStubTurn {
 	readonly id: string;
-	readonly kind: StubTurnKind;
+	readonly kind: ConversationTurnKind;
 	readonly text: string;
 	readonly status?: ConfirmationStatus;
 	readonly stubEcho?: boolean;
@@ -40,6 +51,18 @@ export interface ConversationStubTurn {
 	readonly toolStatus?: 'pending' | 'running' | 'completed' | 'failed' | 'cancelled';
 	/** L1 turn id when the snapshot admits one; never inferred. */
 	readonly turnId?: string;
+	/** `error` rows: engine-declared retryability; absent = not retryable. */
+	readonly retryable?: boolean;
+	/** `unknown` rows: verbatim upstream type name. */
+	readonly typeName?: string;
+	/** `unknown` rows: bounded raw content (also mirrored on `text`). */
+	readonly rawContent?: string;
+	/** Ask-user items (verbatim `items[].id`); omitted when the snapshot has none. */
+	readonly questionItems?: readonly ConversationQuestionOptionItem[];
+	/** `true` only when the snapshot admits a submit-safe single-select answer map. */
+	readonly answerKeysValid?: boolean;
+	/** Parent questionId for `questionRespond`; not the compound display row id. */
+	readonly questionRequestId?: string;
 }
 
 export interface ConversationStubSession {

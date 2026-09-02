@@ -4,7 +4,7 @@ type: architecture
 status: accepted
 phase: N/A
 updated: 2026-09-02
-summary: "ConversationEditorPane 页 chrome；「对话 | 轨迹」双透镜；帧源 projectSnapshotToTrajectory + T5 搜索/虚拟化；子代理 filterAgentId；DetailRef 六态经 P2a requestDetail；compacted/Overview 仍 Deferred；PRD-003 / 012 / 013 / 014 / 020"
+summary: "ConversationEditorPane 页 chrome；「对话 | 轨迹」双透镜；帧源 projectSnapshotToTrajectory + T5 搜索/虚拟化；子代理 filterAgentId；DetailRef 六态经 P2a requestDetail；轨迹含 permission/question/error/unknown；compacted/Overview 仍 Deferred；PRD-003 / 012 / 013 / 014 / 020 / 021"
 ---
 
 # Conversation 透镜、时间线与轨迹
@@ -27,6 +27,7 @@ summary: "ConversationEditorPane 页 chrome；「对话 | 轨迹」双透镜；�
 | 用户卡 | `conversationUserBubbleCollapse.ts` | 用户回合展示为纯文本卡；点卡进入编辑（PRD-015 验收 6） |
 | 置顶提示 | `conversationPinnedUserPrompt.ts` | 滚动时把当前可见段落对应的用户提问钉在列顶（对齐 Singularity `PinnedUserPromptState`） |
 | 权限座位 | `conversationConfirmationSeat.ts` | Allow / Skip；处理后按钮消失、记录留在列表（PRD-004）；不是可回收 virt 行 |
+| 提问座位 | `conversationQuestionSeat.ts` | 独立 ask-user 座位（选项 / Submit）；**禁止复用 Allow/Skip**（PRD-004.4）；不标 Stub |
 | 图示卡 | `conversationVisualizeCard.ts` | §5 |
 
 对话透镜**不含**：context 注入卡、环境 / SYSTEM 全文、工具 schema 目录；用户回合只显示正文（PRD-012 验收 2）。这些都在轨迹页。
@@ -46,7 +47,7 @@ summary: "ConversationEditorPane 页 chrome；「对话 | 轨迹」双透镜；�
 | 引擎 roster | `ConversationEngineRosterService` | 已连接 UA 会话：cached snapshot → `projectSnapshotToTrajectory`（**永不** merge stub fixture）；否则 `projectTurnsToTrajectory(getTurns())` |
 | 透镜 | `conversationLens.ts` | 读 roster；子代理 overlay 经 `IConversationLensSlots.filterAgentId` 传入 `trajectoryProjectionOptions()` |
 
-`ConversationTrajectoryKind = system | user | context | compacted | message | tool | subtool | thinking`。`projectSnapshotToTrajectory` 把 session-core `TimelineItemView` + **attribution sidecar**（role / agentId / toolCallId / parentToolCallId）映射为轨迹行：`text+role=system` → `system`，`reasoning` → `thinking`，`tool` → `tool`（经 `finalizeToolTree` 可升为缩进 `subtool`），`permission` / `question` / `generic` 不进轨迹。**confirmation 与 visualization** 仍不投影（对话页专属）。
+`ConversationTrajectoryKind = system | user | context | compacted | message | tool | subtool | thinking | permission | question | error | unknown`。`projectSnapshotToTrajectory` 把 session-core `TimelineItemView` + **attribution sidecar**（role / agentId / toolCallId / parentToolCallId）映射为轨迹行：`text+role=system` → `system`，`reasoning` → `thinking`，`tool` → `tool`（经 `finalizeToolTree` 可升为缩进 `subtool`），`permission` / `question` / `error` / `unknown` 各为独立 kind（请求/答案摘要、`retryable`、`typeName`+`rawContent`）；`generic` 不进轨迹。**confirmation 与 visualization** 仍不从 stub turns 投影（对话页专属座位 / 图示卡）；引擎 snapshot 的 `permission` / `question` **进轨迹**，但不进过程折、也不自动切页（PRD-012）。
 
 **DetailRef（Q2 接通）：** 局部 inspector 六态 — `preview` / `loading`（本地 in-flight；lease 无 `requestDetail` 永不 loading）/ `full` / `partial`（`truncated=true` + 字节数）/ `unavailable` / `failed`+Retry。成功先 `upsertDetail(ref, content)` 再 settle；UI 读 `details` + outcome。stub 帧源本地 `requestDetail`；引擎 lease 代理 `IUniverseAgentSessionView.requestDetail`。搜索 haystack 仍用有界 preview。
 
@@ -82,8 +83,8 @@ Stub fixture：`mergeTrajectoryFixtureExtras` 仅 seed `untitled`、且 `!isEngi
 
 模型：`conversationProcessFoldModel.ts`。
 
-- 对话页：`projectProcessFoldSpans(turns)` — 连续 thinking / tool 成一个 span；user、assistant、confirmation 打断。`nestThinkingTools` 把工具行缩进到最近的 thinking 下。
-- 轨迹页：`projectTrajectoryProcessFoldSpans(records)` — thinking / tool / subtool 成 span；user、context、system、message、compacted 打断，**始终在折外**。
+- 对话页：`projectProcessFoldSpans(turns)` — 连续 thinking / tool 成一个 span；user、assistant、confirmation、question、error、unknown、system 打断。`nestThinkingTools` 把工具行缩进到最近的 thinking 下。
+- 轨迹页：`projectTrajectoryProcessFoldSpans(records)` — thinking / tool / subtool 成 span；user、context、system、message、compacted、permission、question、error、unknown 打断，**始终在折外**。
 - 外层摘要 `summarizeProcessSteps` / `summarizeTrajectoryProcessSteps` 必含 `Stub`（PRD-013 验收 4），无假耗时。
 - 默认态：对话页收起，轨迹页展开（验收 2）。视图 `conversationProcessFold.ts`；两页共用 overlay 辅助函数，宿主 DOM 各自一套。
 - 折壳不是 Copilot Chat 列表行，也不是 `groupIdentity`；分组按 Desktop ADR-046「平行 span overlay」。

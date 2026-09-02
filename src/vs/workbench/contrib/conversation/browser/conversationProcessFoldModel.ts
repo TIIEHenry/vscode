@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { ConversationTrajectoryKind, ConversationTrajectoryRecord } from './conversationTrajectoryModel.js';
-import { ConversationStubTurn, StubTurnKind } from './conversationStubModel.js';
+import { ConversationStubTurn, ConversationTurnKind } from './conversationStubModel.js';
 
 export interface ProcessFoldSpan {
 	readonly id: string;
@@ -18,9 +18,10 @@ export type ProcessFoldNode =
 	| { readonly kind: 'thinking'; readonly turn: ConversationStubTurn; readonly tools: readonly ConversationStubTurn[] }
 	| { readonly kind: 'tool'; readonly turn: ConversationStubTurn };
 
-const PROCESS_FOLD_KINDS: ReadonlySet<StubTurnKind> = new Set(['thinking', 'tool']);
+/** Only thinking/tool enter a conversation process-fold span; all other kinds break it. */
+const PROCESS_FOLD_KINDS: ReadonlySet<ConversationTurnKind> = new Set(['thinking', 'tool']);
 
-function isProcessFoldKind(kind: StubTurnKind): kind is 'thinking' | 'tool' {
+function isProcessFoldKind(kind: ConversationTurnKind): kind is 'thinking' | 'tool' {
 	return PROCESS_FOLD_KINDS.has(kind);
 }
 
@@ -53,7 +54,8 @@ export function nestThinkingTools(turns: readonly ConversationStubTurn[]): Proce
 
 /**
  * Projects parallel process-fold spans over a turn timeline (ADR-046 span overlay).
- * Continuous thinking/tool runs form one span; user, assistant, and confirmation break spans.
+ * Continuous thinking/tool runs form one span. user, assistant, confirmation,
+ * question, error, unknown, system, visualization, and reviewNav break spans.
  */
 export function projectProcessFoldSpans(turns: readonly ConversationStubTurn[]): ProcessFoldSpan[] {
 	const spans: ProcessFoldSpan[] = [];
@@ -124,6 +126,11 @@ function sharedAdmittedTurnId(segment: readonly ConversationStubTurn[]): string 
 	return [...admitted][0];
 }
 
+/**
+ * Trajectory process-fold whitelist is thinking|tool|subtool only.
+ * Q5a kinds (permission / question / error / unknown) are not in this set, so
+ * they interrupt a span the same way user / context / system / message / compacted do.
+ */
 const TRAJECTORY_PROCESS_FOLD_KINDS: ReadonlySet<ConversationTrajectoryKind> = new Set(['thinking', 'tool', 'subtool']);
 
 function isTrajectoryProcessFoldKind(kind: ConversationTrajectoryKind): kind is 'thinking' | 'tool' | 'subtool' {
@@ -140,7 +147,7 @@ export interface TrajectoryProcessFoldSpan {
 
 /**
  * Projects parallel process-fold spans over trajectory records (thinking / tool / subtool).
- * user, context, system, message, and compacted break spans.
+ * user, context, system, message, compacted, permission, question, error, and unknown break spans.
  */
 export function projectTrajectoryProcessFoldSpans(records: readonly ConversationTrajectoryRecord[]): TrajectoryProcessFoldSpan[] {
 	const spans: TrajectoryProcessFoldSpan[] = [];

@@ -69,7 +69,7 @@ export function getConversationTurnAriaLabel(turn: ConversationStubTurn): string
 	if (turn.kind === 'confirmation') {
 		return getConversationPermissionSeatAriaLabel(turn.status ?? 'pending', turn.text);
 	}
-	if ((turn.kind as string) === 'question') {
+	if (turn.kind === 'question') {
 		return getConversationQuestionSeatAriaLabel(turn.status ?? 'pending', turn.text);
 	}
 	return localize(

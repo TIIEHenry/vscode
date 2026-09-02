@@ -17,8 +17,8 @@ import { defaultButtonStyles } from '../../../../platform/theme/browser/defaultS
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { INotificationService } from '../../../../platform/notification/common/notification.js';
 import { IWebviewService } from '../../webview/browser/webview.js';
-import { ConversationConfirmationSeat, wireConversationSeatOptionKeys } from './conversationConfirmationSeat.js';
-import { getConversationQuestionSeatAriaLabel } from './conversationAccessibility.js';
+import { ConversationConfirmationSeat } from './conversationConfirmationSeat.js';
+import { ConversationQuestionSeat } from './conversationQuestionSeat.js';
 import { conversationLensTurnCopy, conversationLensTurnDelete, conversationLensPinnedUserPromptAria, conversationLensPinnedUserPromptCopyAria, conversationLensTurnViewInTrajectory } from './conversationLensSessionBarStrings.js';
 import { ConversationMermaidExtensionInfo, createMermaidHostContext } from './conversationMermaidHost.js';
 import { renderProcessFoldSpan } from './conversationProcessFold.js';
@@ -130,6 +130,7 @@ class ConversationTimelineRenderer implements ITreeRenderer<ConversationTimeline
 	readonly templateId = ConversationTimelineRenderer.TEMPLATE_ID;
 
 	private readonly confirmationSeats = new Map<string, ConversationConfirmationSeat>();
+	private readonly questionSeats = new Map<string, ConversationQuestionSeat>();
 	private readonly userBubbleExpanded = new Map<string, boolean>();
 	private readonly processFoldOuterExpanded = new Map<string, boolean>();
 	private readonly processFoldThinkingExpanded = new Map<string, boolean>();
@@ -220,8 +221,28 @@ class ConversationTimelineRenderer implements ITreeRenderer<ConversationTimeline
 		}
 
 		const honestKind = getConversationHonestKind(turn);
-		if (honestKind === 'question' || honestKind === 'error' || honestKind === 'unknown' || honestKind === 'system') {
-			renderHonestTimelineRow(templateData.container, turn, honestKind, templateData.disposables, this.onQuestionRespond);
+		if (honestKind === 'question') {
+			const fields = getConversationHonestFields(turn);
+			const seat = templateData.disposables.add(new ConversationQuestionSeat({
+				message: turn.text,
+				status: turn.status ?? 'pending',
+				questionItems: fields.questionItems,
+				answerKeysValid: fields.answerKeysValid,
+				questionRequestId: fields.questionRequestId,
+				payload: turn.payload,
+				agentId: fields.agentId,
+				onRespond: turn.status !== 'allowed' && this.onQuestionRespond
+					? (requestId, answers, customText) => this.onQuestionRespond!(turn.id, requestId, answers, customText)
+					: undefined,
+			}));
+			seat.element.setAttribute('data-turn-id', turn.id);
+			this.questionSeats.set(turn.id, seat);
+			templateData.container.appendChild(seat.element);
+			this.scheduleHeightUpdate(item, templateData.container);
+			return;
+		}
+		if (honestKind === 'error' || honestKind === 'unknown' || honestKind === 'system') {
+			renderHonestTimelineRow(templateData.container, turn, honestKind, templateData.disposables);
 			this.scheduleHeightUpdate(item, templateData.container);
 			return;
 		}
@@ -400,7 +421,7 @@ class ConversationTimelineRenderer implements ITreeRenderer<ConversationTimeline
 	}
 
 	getConfirmationElement(turnId: string): HTMLElement | undefined {
-		return this.confirmationSeats.get(turnId)?.element;
+		return this.confirmationSeats.get(turnId)?.element ?? this.questionSeats.get(turnId)?.element;
 	}
 
 	clearConfirmationSeats(): void {
@@ -408,6 +429,10 @@ class ConversationTimelineRenderer implements ITreeRenderer<ConversationTimeline
 			seat.dispose();
 		}
 		this.confirmationSeats.clear();
+		for (const seat of this.questionSeats.values()) {
+			seat.dispose();
+		}
+		this.questionSeats.clear();
 	}
 
 	clearUserBubbleExpanded(): void {
@@ -490,6 +515,12 @@ class ConversationTimelineRenderer implements ITreeRenderer<ConversationTimeline
 				this.confirmationSeats.delete(id);
 			}
 		}
+		for (const [id, seat] of this.questionSeats) {
+			if (!knownIds.has(id)) {
+				seat.dispose();
+				this.questionSeats.delete(id);
+			}
+		}
 	}
 
 	private applyUserBubbleCollapseState(body: HTMLElement, text: string, expanded: boolean): void {
@@ -514,9 +545,8 @@ class ConversationTimelineRenderer implements ITreeRenderer<ConversationTimeline
 function renderHonestTimelineRow(
 	container: HTMLElement,
 	turn: ConversationStubTurn,
-	kind: 'question' | 'error' | 'unknown' | 'system',
-	disposables: DisposableStore,
-	onQuestionRespond: ((turnId: string, requestId: string, answers: ConversationQuestionRespondAnswers, customText?: string) => void) | undefined,
+	kind: 'error' | 'unknown' | 'system',
+	_disposables: DisposableStore,
 ): void {
 	const fields = getConversationHonestFields(turn);
 	const el = append(container, $(`div.conversation-lens-turn.conversation-lens-turn--${kind}`));
@@ -524,10 +554,8 @@ function renderHonestTimelineRow(
 	el.setAttribute('data-honest-kind', kind);
 	el.setAttribute('data-turn-id', turn.id);
 	el.tabIndex = 0;
-	el.setAttribute('role', kind === 'question' ? 'region' : 'group');
-	el.setAttribute('aria-label', kind === 'question'
-		? getConversationQuestionSeatAriaLabel(turn.status ?? 'pending', turn.text)
-		: getConversationEntryAriaLabel(turn));
+	el.setAttribute('role', 'group');
+	el.setAttribute('aria-label', getConversationEntryAriaLabel(turn));
 
 	const header = append(el, $('.conversation-lens-turn-header'));
 	header.textContent = getConversationTurnRoleLabel(kind);
@@ -543,165 +571,11 @@ function renderHonestTimelineRow(
 			: localize('conversationLens.errorNotRetryableBadge', "Not retryable");
 	} else if (kind === 'unknown') {
 		const status = append(header, $('span.conversation-lens-turn-honest-status'));
-		status.textContent = fields.typeName || localize('conversationLens.unknownTypeBadge', "Unknown type");
-	} else if (kind === 'question') {
-		const status = append(header, $('span.conversation-lens-turn-honest-status'));
-		status.textContent = turn.status === 'allowed'
-			? localize('conversationLens.questionAnsweredBadge', "Answered")
-			: localize('conversationLens.questionPendingBadge', "Input needed");
+		status.textContent = fields.typeName || fields.rawContent || localize('conversationLens.unknownTypeBadge', "Unknown type");
 	}
 
 	const body = append(el, $('.conversation-lens-turn-body.conversation-lens-turn-body--honest'));
-	body.textContent = turn.text;
-	if (kind === 'question') {
-		renderQuestionOptions(el, turn, fields, disposables, onQuestionRespond);
-	}
-}
-
-function renderQuestionOptions(
-	el: HTMLElement,
-	turn: ConversationStubTurn,
-	fields: ReturnType<typeof getConversationHonestFields>,
-	disposables: DisposableStore,
-	onQuestionRespond: ((turnId: string, requestId: string, answers: ConversationQuestionRespondAnswers, customText?: string) => void) | undefined,
-): void {
-	const items = fields.questionItems ?? [];
-	const requestId = fields.questionRequestId;
-	const respond = onQuestionRespond;
-	const canSubmit = turn.status !== 'allowed'
-		&& fields.answerKeysValid === true
-		&& requestId !== undefined
-		&& items.length > 0
-		&& respond !== undefined;
-
-	if (!canSubmit || requestId === undefined || respond === undefined) {
-		if (!turn.payload) {
-			return;
-		}
-		const options = append(el, $('ul.conversation-lens-question-options'));
-		options.setAttribute('role', 'list');
-		for (const option of turn.payload.split(' · ')) {
-			const item = append(options, $('li.conversation-lens-question-option'));
-			item.setAttribute('role', 'listitem');
-			item.textContent = option;
-		}
-		return;
-	}
-
-	const selections = new Map<string, string[]>();
-	let customText = '';
-	const needsExplicitSubmit = items.some(item => item.multiSelect === true || item.allowCustom === true);
-	const required = items.filter(item => item.options.length > 0 && item.multiSelect !== true);
-	const collectAnswers = (): ConversationQuestionRespondAnswers => {
-		const answers: Record<string, { readonly selectedLabels: readonly string[] }> = {};
-		for (const item of items) {
-			answers[item.id] = { selectedLabels: selections.get(item.id) ?? [] };
-		}
-		return answers;
-	};
-	const submit = (): void => {
-		respond(turn.id, requestId, collectAnswers(), customText);
-	};
-	const submitIfComplete = (): void => {
-		if (needsExplicitSubmit) {
-			return;
-		}
-		if (required.some(item => !selections.has(item.id))) {
-			return;
-		}
-		submit();
-	};
-
-	for (const item of items) {
-		if (item.multiSelect === true && item.options.length > 0) {
-			const group = append(el, $('div.conversation-lens-question-options'));
-			group.setAttribute('role', 'group');
-			group.setAttribute('aria-label', item.title || turn.text);
-			const boxes: HTMLElement[] = [];
-			const chosen = new Set<string>();
-			for (const option of item.options) {
-				const box = append(group, $('div.conversation-lens-question-option'));
-				box.setAttribute('role', 'checkbox');
-				box.setAttribute('aria-checked', 'false');
-				box.textContent = option;
-				boxes.push(box);
-			}
-			const sync = (): void => {
-				selections.set(item.id, [...chosen]);
-				boxes.forEach((box, index) => {
-					const label = item.options[index];
-					box.setAttribute('aria-checked', label !== undefined && chosen.has(label) ? 'true' : 'false');
-				});
-			};
-			wireConversationSeatOptionKeys(boxes, disposables, {
-				onActivate: index => {
-					const label = item.options[index];
-					if (label === undefined) {
-						return;
-					}
-					if (chosen.has(label)) {
-						chosen.delete(label);
-					} else {
-						chosen.add(label);
-					}
-					sync();
-				},
-			});
-			continue;
-		}
-
-		if (item.options.length > 0) {
-			const group = append(el, $('div.conversation-lens-question-options'));
-			group.setAttribute('role', 'radiogroup');
-			group.setAttribute('aria-label', item.title || turn.text);
-			const radios: HTMLElement[] = [];
-			for (const option of item.options) {
-				const radio = append(group, $('div.conversation-lens-question-option'));
-				radio.setAttribute('role', 'radio');
-				radio.textContent = option;
-				radios.push(radio);
-			}
-			wireConversationSeatOptionKeys(radios, disposables, {
-				role: 'radio',
-				onActivate: index => {
-					const label = item.options[index];
-					if (label === undefined) {
-						return;
-					}
-					selections.set(item.id, [label]);
-					if (!needsExplicitSubmit && required.length === 1) {
-						submit();
-						return;
-					}
-					submitIfComplete();
-				},
-			});
-		}
-	}
-
-	if (items.some(item => item.allowCustom === true)) {
-		const input = append(el, $('input.conversation-lens-question-custom')) as HTMLInputElement;
-		input.type = 'text';
-		input.setAttribute('aria-label', localize('conversationLens.questionCustomAnswer', "Custom answer"));
-		disposables.add(addDisposableListener(input, 'input', () => {
-			customText = input.value;
-		}));
-		disposables.add(addDisposableListener(input, 'keydown', e => {
-			if (e.key === 'Enter') {
-				e.preventDefault();
-				e.stopPropagation();
-				submit();
-			}
-		}));
-	}
-
-	if (needsExplicitSubmit) {
-		const actions = append(el, $('div.conversation-lens-question-actions'));
-		const submitLabel = localize('conversationLens.questionSubmit', "Submit");
-		const submitButton = disposables.add(new Button(actions, { ...defaultButtonStyles, ariaLabel: submitLabel }));
-		submitButton.label = submitLabel;
-		disposables.add(submitButton.onDidClick(() => submit()));
-	}
+	body.textContent = kind === 'unknown' ? (fields.rawContent ?? turn.text) : turn.text;
 }
 
 function appendTurnTrajectoryButton(
