@@ -147,7 +147,8 @@ export function handleConversationOverlayTab(container: HTMLElement, event: Keyb
 /**
  * Timeline permission seat (Allow / Skip, pending summary, Input needed).
  * Not ChatConfirmationWidget: no IChatModel, no engine, no Copilot setup.
- * Allow/Skip are a decision toolbar, not question answers.
+ * Allow/Skip are a decision toolbar, not question answers — ask-user uses
+ * ConversationQuestionSeat (different role/name; never reuse these buttons).
  */
 export class ConversationConfirmationSeat extends Disposable {
 

@@ -10,7 +10,7 @@ import { Disposable } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { WorkbenchList } from '../../../../platform/list/browser/listService.js';
-import { ConversationStubTurn, StubTurnKind } from './conversationStubModel.js';
+import { ConversationStubTurn, ConversationTurnKind } from './conversationStubModel.js';
 import {
 	conversationLensSessionBarNoTrajectory,
 	conversationLensSessionBarTrajectoryListAria,
@@ -79,8 +79,8 @@ class TrajectoryAccessibilityProvider implements IListAccessibilityProvider<Conv
 	}
 }
 
-/** Role label for trajectory rows and tree headers. */
-export function getConversationTurnRoleLabel(kind: StubTurnKind | string): string {
+/** Role label for trajectory rows and tree headers. Exhaustive on {@link ConversationTurnKind}. */
+export function getConversationTurnRoleLabel(kind: ConversationTurnKind | string): string {
 	switch (kind) {
 		case 'user':
 			return localize('conversationLens.turnYou', "You");
@@ -105,7 +105,7 @@ export function getConversationTurnRoleLabel(kind: StubTurnKind | string): strin
 		case 'reviewNav':
 			return localize('conversationReviewEntry.turnLabel', "Review");
 		default:
-			return localize('conversationLens.turnAgent', "Agent");
+			return kind;
 	}
 }
 

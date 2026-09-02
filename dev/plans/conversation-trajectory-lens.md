@@ -98,11 +98,12 @@ T1 断言：宿主宽 300px 时两枚 tab `offsetWidth > 0`；bar 计算高度�
 
 ### 3.3 轨迹记录种类（本仓闭集）
 
-对照 harness `TrajectoryCellKind`，本仓加 `thinking`（过程折用，DSH 表无此格）。
+对照 harness `TrajectoryCellKind`，本仓加 `thinking`（过程折用，DSH 表无此格），以及 Q5a 的 `permission` / `question` / `error` / `unknown`。
 
 **T1–T2 必出现：** `user` / `context` / `system` / `message`（PRD-012.3）。  
 **T3 必出现：** 一对 Stub **`tool` + 缩进 `subtool`**，以及过程折 overlay（默认展开）；context / SYSTEM 在折外。  
-**T4：** 活数据替换 fixture。`compacted` 仍预留，且始终在折外。
+**T4：** 活数据替换 fixture。`compacted` 仍预留，且始终在折外。  
+**Q5a：** `permission` / `question` / `error` / `unknown` **进轨迹**独立 kind（搜索 haystack、reveal、5000 截断一并计入）。PRD-012 禁止的是自动切页与进过程折，**不是**轨迹出现权限/提问记录。
 
 | kind | 对话页 | 轨迹页 | 来源 |
 |------|--------|--------|------|
@@ -114,11 +115,15 @@ T1 断言：宿主宽 300px 时两枚 tab `offsetWidth > 0`；bar 计算高度�
 | `subtool` | 过程折内缩进（不另起一层 Activity） | 相对父 `tool` 再缩进 | `parentCallId` |
 | `thinking` | 对话 `reasoning` 投影 | 过程折内 Thinking 层（**本仓扩展**，DSH `TrajectoryCellKind` 无此项） | 思考块 |
 | `compacted` | 不渲染 | 预留 | compaction |
+| `permission` | 独立权限座位（Allow / Skip） | 记录 + 请求/决定摘要 | snapshot `permission` |
+| `question` | 独立提问座位（非 Allow/Skip，不标 Stub） | 记录 + 选项/答案摘要 | snapshot `question` |
+| `error` | 独立诚实行；按 `retryable` 显示重试 | 独立 kind | snapshot `error` |
+| `unknown` | 独立诚实行；读 `typeName` / `rawContent` | 独立 kind | snapshot `unknown` |
 
 每条记录字段（本仓 `ConversationTrajectoryRecord`，对照 `TrajectoryCellProps` / `TrajectorySourceBlock`，**不**抄 React props，**不** import `dsh-client-runtime` 的 `ConversationPromptSnapshot`）：
 
 ```ts
-type ConversationTrajectoryKind = 'system' | 'user' | 'context' | 'compacted' | 'message' | 'tool' | 'subtool' | 'thinking';
+type ConversationTrajectoryKind = 'system' | 'user' | 'context' | 'compacted' | 'message' | 'tool' | 'subtool' | 'thinking' | 'permission' | 'question' | 'error' | 'unknown';
 
 interface ConversationTrajectoryBlock {
 	readonly type: string;      // harness: 'text' | 'image' | 'tool-call' | …
@@ -150,7 +155,7 @@ interface ConversationTrajectoryRecord {
 
 **tool / subtool 缩进：** 在过程折 **内部** 再套 harness 调用树。`subtool` 的 `parentCallId` 指向父 `callId`，`padding-inline-start: 12px * depth`。
 
-**过程折 overlay（轨迹分析）：** 与 PRD-013 **同一套** `projectProcessFoldSpans` / 折 chrome。切段 kinds = `thinking` | `tool` | `subtool`；`user` / `context` / `system` / `message` / `compacted` **切开且不得藏进折内**。轨迹默认 **展开**（分析）；对话默认收起。折壳不是列表行键。T3 必须能收起长工具段，收起后 header 仍含 Stub，折外仍能看见 SYSTEM / context。
+**过程折 overlay（轨迹分析）：** 与 PRD-013 **同一套** `projectProcessFoldSpans` / 折 chrome。切段 kinds = `thinking` | `tool` | `subtool`；`user` / `context` / `system` / `message` / `compacted` / `permission` / `question` / `error` / `unknown` **切开且不得藏进折内**。轨迹默认 **展开**（分析）；对话默认收起。折壳不是列表行键。T3 必须能收起长工具段，收起后 header 仍含 Stub，折外仍能看见 SYSTEM / context。
 
 ### 3.4 Stub fixture（无引擎必有）
 

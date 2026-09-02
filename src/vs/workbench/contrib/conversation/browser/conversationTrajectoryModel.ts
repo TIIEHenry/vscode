@@ -84,7 +84,9 @@ export const CONVERSATION_TRAJECTORY_STUB_SOURCE_BLOCK_CONTENT = 'Stub: README.m
 export const CONVERSATION_TRAJECTORY_STUB_SUBTOOL_TEXT = 'Stub: nested dispatch';
 
 /**
- * Projects admitted stub turns into trajectory records. Confirmation turns are omitted.
+ * Projects admitted stub turns into trajectory records.
+ * confirmation / visualization / reviewNav stay conversation-page only;
+ * question / error / unknown / system project as their own kinds.
  */
 export function projectTurnsToTrajectory(turns: readonly ConversationStubTurn[]): ConversationTrajectoryRecord[] {
 	const records: ConversationTrajectoryRecord[] = [];
@@ -107,6 +109,8 @@ export function projectTurnsToTrajectory(turns: readonly ConversationStubTurn[])
 				});
 				break;
 			case 'confirmation':
+			case 'visualization':
+			case 'reviewNav':
 				break;
 			case 'thinking':
 				records.push({
@@ -124,7 +128,36 @@ export function projectTurnsToTrajectory(turns: readonly ConversationStubTurn[])
 					depth: 0,
 				});
 				break;
-			case 'visualization':
+			case 'question':
+				records.push({
+					id: turn.id,
+					kind: 'question',
+					text: turn.text,
+					...(turn.payload ? { inputDetail: turn.payload } : {}),
+				});
+				break;
+			case 'error':
+				records.push({
+					id: turn.id,
+					kind: 'error',
+					text: turn.text,
+					...(turn.retryable ? { result: 'retryable' } : {}),
+				});
+				break;
+			case 'unknown':
+				records.push({
+					id: turn.id,
+					kind: 'unknown',
+					text: turn.rawContent ?? turn.text,
+					...(turn.typeName ? { messageSource: { kind: turn.typeName } } : {}),
+				});
+				break;
+			case 'system':
+				records.push({
+					id: turn.id,
+					kind: 'system',
+					text: turn.text,
+				});
 				break;
 		}
 	}
@@ -381,17 +414,34 @@ function timelineItemToTrajectoryRecord(
 				id,
 				kind: 'permission',
 				text: summary.title,
+				messageSource: { kind: summary.permissionKind },
 				...(summary.argPreview !== undefined ? { inputDetail: summary.argPreview } : {}),
+				...(summary.optionsPreview?.length ? { promptDetail: summary.optionsPreview.join(' · ') } : {}),
+				...(summary.decision ? { result: summary.decision } : {}),
 			}, item);
-		case 'question':
+		case 'question': {
+			const optionLabels = [
+				...(summary.optionsPreview ?? []),
+				...summary.items.flatMap(item => item.optionsPreview ?? []),
+			].filter((value, index, all) => value.length > 0 && all.indexOf(value) === index);
+			const itemTitles = summary.items.map(item => item.title).filter(title => title.length > 0);
 			return withDetailRef({
 				id,
 				kind: 'question',
 				text: summary.title,
-				...(summary.optionsPreview?.length ? { inputDetail: summary.optionsPreview.join(' · ') } : {}),
+				...(optionLabels.length ? { inputDetail: optionLabels.join(' · ') } : {}),
+				...(itemTitles.length ? { promptDetail: itemTitles.join(' · ') } : {}),
+				...(summary.answered ? { result: 'answered' } : {}),
 			}, item);
+		}
 		case 'error':
-			return withDetailRef({ id, kind: 'error', text: summary.title }, item);
+			return withDetailRef({
+				id,
+				kind: 'error',
+				text: summary.title,
+				...(summary.code !== undefined ? { inputDetail: summary.code } : {}),
+				...(summary.retryable ? { result: 'retryable' } : {}),
+			}, item);
 		case 'usage':
 			return { id, kind: 'context', text: summary.title, messageSource: { kind: 'usage' } };
 		case 'unknown':
@@ -436,11 +486,11 @@ export function collectTrajectoryTurnIdsFromSnapshot(snapshot: SessionViewSnapsh
 	const ids = new Set<string>();
 	for (const item of snapshot.timeline) {
 		switch (item.summary.kind) {
-			case 'permission':
 			case 'usage':
 			case 'generic':
 				continue;
 			default:
+				// Q5a: permission / question / error / unknown stay on the reveal set.
 				ids.add(String(item.id));
 		}
 	}

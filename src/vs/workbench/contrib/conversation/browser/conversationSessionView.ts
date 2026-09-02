@@ -21,7 +21,7 @@ import type {
 	ViewPatch,
 } from '../../../../platform/universeAgent/common/sessionView/index.js';
 import { ConversationVisualizeArgs } from '../common/conversationVisualize.js';
-import { ConfirmationStatus, ConversationStubTurn, StubTurnKind } from './conversationStubModel.js';
+import { ConfirmationStatus, ConversationQuestionOptionItem, ConversationStubTurn, ConversationTurnKind, StubTurnKind } from './conversationStubModel.js';
 
 /**
  * Product view model for the Conversation timeline
@@ -36,7 +36,8 @@ import { ConfirmationStatus, ConversationStubTurn, StubTurnKind } from './conver
  * `stubTurnsToSnapshot`, so the stub and the engine share one render path.
  */
 
-export type ConversationTimelineEntryKind = StubTurnKind | 'system' | 'question' | 'error' | 'unknown' | 'reviewNav';
+export type ConversationTimelineEntryKind = ConversationTurnKind;
+export type { ConversationQuestionOptionItem };
 
 export interface ConversationTimelineEntry {
 	readonly id: string;
@@ -59,6 +60,8 @@ export interface ConversationTimelineEntry {
 	readonly retryable?: boolean;
 	/** `unknown` entries: verbatim upstream type name. */
 	readonly typeName?: string;
+	/** `unknown` entries: bounded raw content (also mirrored on `text`). */
+	readonly rawContent?: string;
 	/** `reviewNav` entries: workspace file URIs (string form) opened via Sources Review. */
 	readonly reviewNavPaths?: readonly string[];
 	/** Ask-user items (verbatim `items[].id`); omitted when the snapshot has none. */
@@ -69,14 +72,6 @@ export interface ConversationTimelineEntry {
 	readonly questionRequestId?: string;
 	/** L1 turn id when the snapshot admits one; never inferred. */
 	readonly turnId?: string;
-}
-
-export interface ConversationQuestionOptionItem {
-	readonly id: string;
-	readonly title: string;
-	readonly options: readonly string[];
-	readonly multiSelect?: boolean;
-	readonly allowCustom?: boolean;
 }
 
 export interface ConversationSessionViewProjection {
@@ -200,6 +195,10 @@ export function stubTurnsToSnapshot(sessionId: string, turns: readonly Conversat
 				attribution.set(turn.id, { role: 'assistant', stub: true });
 				break;
 			}
+			default:
+				// Honest kinds (question / error / unknown / system) and reviewNav
+				// are snapshot-projected, not stub-fixture sources.
+				break;
 		}
 	});
 
@@ -387,7 +386,7 @@ function timelineItemToEntry(
 		case 'error':
 			return { id, kind: 'error', text: summary.title, retryable: summary.retryable, ...(summary.code !== undefined ? { summary: summary.code } : {}), ...agent, ...turn };
 		case 'unknown':
-			return { id, kind: 'unknown', text: summary.rawContent, typeName: summary.typeName, ...agent, ...turn };
+			return { id, kind: 'unknown', text: summary.rawContent, typeName: summary.typeName, rawContent: summary.rawContent, ...agent, ...turn };
 		case 'usage':
 		case 'generic':
 			// usage feeds the context ring / trajectory, not the conversation page; generic must not be produced by a production fold.
@@ -438,14 +437,11 @@ function isStubTurnKind(kind: ConversationTimelineEntryKind): kind is StubTurnKi
 	return kind === 'user' || kind === 'assistant' || kind === 'confirmation' || kind === 'thinking' || kind === 'tool' || kind === 'visualization';
 }
 
-function isHonestRowKind(kind: ConversationTimelineEntryKind): boolean {
-	return kind === 'question' || kind === 'error' || kind === 'unknown' || kind === 'system' || kind === 'reviewNav';
-}
-
-/** Extra fields carried on renderable turns for honest row kinds (Q5). */
+/** Extra fields carried on renderable turns for honest row kinds (Q5a). */
 export interface ConversationHonestTurnFields {
 	readonly retryable?: boolean;
 	readonly typeName?: string;
+	readonly rawContent?: string;
 	readonly agentId?: string;
 	readonly questionItems?: readonly ConversationQuestionOptionItem[];
 	readonly answerKeysValid?: boolean;
@@ -453,11 +449,11 @@ export interface ConversationHonestTurnFields {
 }
 
 export function getConversationHonestKind(turn: ConversationStubTurn): ConversationTimelineEntryKind {
-	return turn.kind as ConversationTimelineEntryKind;
+	return turn.kind;
 }
 
 export function getConversationHonestFields(turn: ConversationStubTurn): ConversationHonestTurnFields {
-	return turn as ConversationStubTurn & ConversationHonestTurnFields;
+	return turn;
 }
 
 /** Readable name for a timeline / trajectory row (role, agent, status, summary). */
@@ -523,51 +519,33 @@ export function getConversationEntryAriaLabel(turn: ConversationStubTurn): strin
 	}
 }
 
-/** Maps a product entry to a renderer turn; honest kinds stay distinct. */
+/**
+ * Maps a product entry to a renderer turn.
+ * Q5a: preserve kind and honest fields; never wash to assistant + stubEcho.
+ */
 export function entryToRenderableTurn(entry: ConversationTimelineEntry): ConversationStubTurn {
-	const honest: ConversationHonestTurnFields = {
+	return {
+		id: entry.id,
+		kind: entry.kind,
+		text: entry.text,
+		...(entry.status !== undefined ? { status: entry.status } : {}),
+		...(entry.stubEcho ? { stubEcho: true } : {}),
+		...(entry.toolName !== undefined ? { toolName: entry.toolName } : {}),
+		...(entry.summary !== undefined ? { summary: entry.summary } : {}),
+		...(entry.payload !== undefined ? { payload: entry.payload } : {}),
+		...(entry.visualize !== undefined ? { visualize: entry.visualize } : {}),
+		...(entry.streaming ? { streaming: true } : {}),
+		...(entry.toolStatus !== undefined ? { toolStatus: entry.toolStatus } : {}),
+		...(entry.turnId !== undefined ? { turnId: entry.turnId } : {}),
 		...(entry.agentId !== undefined ? { agentId: entry.agentId } : {}),
 		...(entry.retryable !== undefined ? { retryable: entry.retryable } : {}),
 		...(entry.typeName !== undefined ? { typeName: entry.typeName } : {}),
+		...(entry.rawContent !== undefined ? { rawContent: entry.rawContent } : {}),
 		...(entry.questionItems !== undefined ? { questionItems: entry.questionItems } : {}),
 		...(entry.answerKeysValid !== undefined ? { answerKeysValid: entry.answerKeysValid } : {}),
 		...(entry.questionRequestId !== undefined ? { questionRequestId: entry.questionRequestId } : {}),
+		...(entry.reviewNavPaths !== undefined ? { reviewNavPaths: entry.reviewNavPaths } : {}),
 	};
-
-	if (entry.kind === 'reviewNav') {
-		return {
-			id: entry.id,
-			kind: 'reviewNav',
-			text: entry.text,
-			reviewNavPaths: entry.reviewNavPaths,
-			...honest,
-		} as ConversationStubTurn;
-	}
-	if (isStubTurnKind(entry.kind) || isHonestRowKind(entry.kind)) {
-		return {
-			id: entry.id,
-			kind: entry.kind as StubTurnKind,
-			text: entry.text,
-			...(entry.status !== undefined ? { status: entry.status } : {}),
-			...(entry.stubEcho ? { stubEcho: true } : {}),
-			...(entry.toolName !== undefined ? { toolName: entry.toolName } : {}),
-			...(entry.summary !== undefined ? { summary: entry.summary } : {}),
-			...(entry.payload !== undefined ? { payload: entry.payload } : {}),
-			...(entry.visualize !== undefined ? { visualize: entry.visualize } : {}),
-			...(entry.streaming ? { streaming: true } : {}),
-			...(entry.toolStatus !== undefined ? { toolStatus: entry.toolStatus } : {}),
-			...(entry.turnId !== undefined ? { turnId: entry.turnId } : {}),
-			...(entry.agentId !== undefined ? { agentId: entry.agentId } : {}),
-			...honest,
-		} as ConversationStubTurn;
-	}
-	return {
-		id: entry.id,
-		kind: 'assistant',
-		text: entry.text,
-		stubEcho: true,
-		...honest,
-	} as ConversationStubTurn;
 }
 
 export function entriesToRenderableTurns(entries: readonly ConversationTimelineEntry[]): ConversationStubTurn[] {
@@ -585,6 +563,15 @@ export function stubTurnsToEntries(turns: readonly ConversationStubTurn[]): Conv
 		...(turn.summary !== undefined ? { summary: turn.summary } : {}),
 		...(turn.payload !== undefined ? { payload: turn.payload } : {}),
 		...(turn.visualize !== undefined ? { visualize: turn.visualize } : {}),
+		...(turn.agentId !== undefined ? { agentId: turn.agentId } : {}),
+		...(turn.retryable !== undefined ? { retryable: turn.retryable } : {}),
+		...(turn.typeName !== undefined ? { typeName: turn.typeName } : {}),
+		...(turn.rawContent !== undefined ? { rawContent: turn.rawContent } : {}),
+		...(turn.questionItems !== undefined ? { questionItems: turn.questionItems } : {}),
+		...(turn.answerKeysValid !== undefined ? { answerKeysValid: turn.answerKeysValid } : {}),
+		...(turn.questionRequestId !== undefined ? { questionRequestId: turn.questionRequestId } : {}),
+		...(turn.reviewNavPaths !== undefined ? { reviewNavPaths: turn.reviewNavPaths } : {}),
+		...(turn.turnId !== undefined ? { turnId: turn.turnId } : {}),
 	}));
 }
 

@@ -1383,6 +1383,17 @@
 	gap: 6px;
 }
 
+/* Question seat — independent from confirmation (no Allow/Skip). */
+.monaco-workbench .part.conversation .conversation-lens-question-seat {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	padding: 8px;
+	border: 1px solid var(--vscode-widget-border, var(--vscode-contrastBorder, transparent));
+	border-radius: 2px;
+	background-color: var(--vscode-input-background);
+}
+
 /* Dock — sticky compact composer (Desktop §8.3 honest chrome, no engine) */
 .monaco-workbench .part.conversation .conversation-lens-dock {
 	flex-shrink: 0;
@@ -2117,6 +2128,7 @@
 	.conversation-review-nav,
 	.conversation-visualize-card,
 	.conversation-lens-confirmation-seat,
+	.conversation-lens-question-seat,
 	.conversation-lens-turn--question,
 	.conversation-lens-turn--error,
 	.conversation-lens-turn--unknown,
@@ -2150,6 +2162,8 @@
 .monaco-workbench.hc-light .part.conversation .conversation-lens-turn--error,
 .monaco-workbench.hc-black .part.conversation .conversation-lens-turn--question,
 .monaco-workbench.hc-light .part.conversation .conversation-lens-turn--question,
+.monaco-workbench.hc-black .part.conversation .conversation-lens-question-seat,
+.monaco-workbench.hc-light .part.conversation .conversation-lens-question-seat,
 .monaco-workbench.hc-black .part.conversation .conversation-lens-confirmation-seat,
 .monaco-workbench.hc-light .part.conversation .conversation-lens-confirmation-seat {
 	outline: 1px solid var(--vscode-contrastBorder);
