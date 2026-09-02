@@ -1,10 +1,9 @@
 name: @@NAME@@
 version: '@@VERSION@@'
-summary: Code editing. Redefined.
+summary: UniverseAgentStudio agent IDE.
 description: |
-  Visual Studio Code is a new choice of tool that combines the
-  simplicity of a code editor with what developers need for the core
-  edit-build-debug cycle.
+  UniverseAgentStudio is an agent development IDE built on the Code - OSS
+  editor platform.
 
 architectures:
   - build-on: amd64

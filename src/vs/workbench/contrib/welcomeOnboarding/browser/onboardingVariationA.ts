@@ -921,7 +921,7 @@ export class OnboardingVariationA extends Disposable implements IOnboardingServi
 			this._createKbd(localize('onboarding.personalize.tip.shift', "Shift")),
 			'+',
 			this._createKbd(localize('onboarding.personalize.tip.p', "P")),
-			localize('onboarding.personalize.tip.suffix', " to access all VS Code commands."),
+			localize('onboarding.personalize.tip.suffix', " to access all UniverseAgentStudio commands."),
 		);
 	}
 

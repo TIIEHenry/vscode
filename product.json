@@ -168,7 +168,7 @@
 	"onboardingKeymaps": [
 		{
 			"id": "vscode",
-			"label": "VS Code",
+			"label": "UniverseAgentStudio",
 			"description": "Default keyboard mapping"
 		},
 		{
