@@ -22,6 +22,7 @@ import type {
 } from '../../common/universeAgentTypes.js';
 import { GrpcStatusCode, IUniverseAgentGrpcTransport, UniverseAgentAuthNonceRequest, UniverseAgentAuthNonceResult, UniverseAgentConnectRequest, UniverseAgentConnectResult, UniverseAgentDeviceAuthConnectRequest, UniverseAgentTransportError } from '../../node/grpc/grpcTransport.js';
 import { UniverseAgentConnectionService } from '../../node/universeAgentConnectionService.js';
+import { InMemoryHubSessionStore } from '../../node/hubSessionStore.js';
 
 class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 
@@ -197,6 +198,24 @@ suite('UniverseAgentConnectionService', () => {
 		});
 
 		assert.strictEqual(service.onDidFileMutation, Event.None);
+		service.dispose();
+	});
+
+	test('Hub signedIn does not set isEngineConnected (H4a connection-state honesty)', async () => {
+		const hubSessionStore = new InMemoryHubSessionStore();
+		const service = new UniverseAgentConnectionService({ hubSessionStore });
+		await hubSessionStore.applyAuthSession('https://hub.example.com', {
+			accessToken: 'token',
+			expiresIn: 3600,
+			csrfToken: 'csrf',
+			mustChangePassword: false,
+			user: { id: 'u1', email: 'a@example.com', role: 'user', status: 'active' },
+		}, Date.now());
+		service.setActiveHubBaseUrl('https://hub.example.com');
+
+		assert.strictEqual(service.getAuthStatus().kind, 'signedIn');
+		assert.strictEqual(service.isEngineConnected(), false);
+		assert.strictEqual(service.getConnectionPhase().kind, 'disconnected');
 		service.dispose();
 	});
 });

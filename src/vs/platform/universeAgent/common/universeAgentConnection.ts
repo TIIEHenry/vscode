@@ -5,7 +5,7 @@
 
 import { Event } from '../../../base/common/event.js';
 import { createDecorator } from '../../instantiation/common/instantiation.js';
-import type { UniverseAgentConnectProfileResult } from './connectionHubTypes.js';
+import type { ConnectionPhase, UniverseAgentConnectProfileResult } from './connectionHubTypes.js';
 import type {
 	UniverseAgentCapabilitySnapshot,
 	UniverseAgentChatRequest,
@@ -55,6 +55,9 @@ export interface IUniverseAgentConnection {
 
 	/** Hub / DirectAddress profile dial via live resolver (connection-hub H3). */
 	connectProfile(profileId: string, options?: { readonly reconnect?: boolean }): Promise<UniverseAgentConnectProfileResult>;
+
+	/** Connection-level phase for pane (StatusBar uses this in H4b). */
+	getConnectionPhase(): ConnectionPhase;
 
 	disconnect(): Promise<void>;
 

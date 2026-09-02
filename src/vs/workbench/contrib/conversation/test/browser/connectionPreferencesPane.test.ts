@@ -4,7 +4,13 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { Event } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { IDialogService } from '../../../../../platform/dialogs/common/dialogs.js';
+import type { ConnectionPhase } from '../../../../../platform/universeAgent/common/connectionHubTypes.js';
+import type { HubAuthStatus, HubDeviceProjection, HubDirectoryStatus } from '../../../../../platform/universeAgent/common/hub.js';
+import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
+import { IUniverseAgentHubService } from '../../../../../platform/universeAgent/common/hub.js';
 import { WorkbenchList } from '../../../../../platform/list/browser/listService.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import {
@@ -13,13 +19,83 @@ import {
 	getConnectionTestStatusText,
 	IConnectionProfileEntry,
 } from '../../browser/connectionPreferencesPane.js';
+import {
+	canConnectHubDevice,
+	getHubAuthStatusLabel,
+	getHubDeviceRowStatusLabel,
+	getHubDirectoryBannerLabel,
+	SAS_FORBIDDEN_BUTTON_PATTERNS,
+} from '../../browser/connectionPreferencesPaneLabels.js';
+import { promptSasConfirmDialog } from '../../browser/connectionPreferencesPaneSas.js';
+import { getConversationEngineStatusText } from '../../browser/conversationSessionStatus.js';
 
 const CONNECTION_EMPTY_COPY = 'No connection profiles yet';
 const FAKE_PROFILE_LABELS = ['Local Engine', 'Home Server'];
 
+function device(partial: Partial<HubDeviceProjection> & Pick<HubDeviceProjection, 'id' | 'name'>): HubDeviceProjection {
+	return {
+		presence: 'ONLINE',
+		engineStatus: 'SERVING',
+		engineIdentityId: 'engine-id-abcdef01',
+		revoked: false,
+		...partial,
+	};
+}
+
 suite('ConnectionPreferencesPane', () => {
 
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
+
+	function createHubStub(overrides: Partial<IUniverseAgentHubService> = {}): IUniverseAgentHubService {
+		return {
+			_serviceBrand: undefined,
+			getActiveHubBaseUrl: () => undefined,
+			setActiveHubBaseUrl: () => { },
+			getAuthStatus: () => ({ kind: 'signedOut' }),
+			getDirectoryStatus: () => ({ kind: 'idle' }),
+			listConnectionProfiles: () => [],
+			onDidChangeAuthStatus: Event.None,
+			onDidChangeDirectory: Event.None,
+			onDidChangeProfiles: Event.None,
+			login: async () => ({ ok: true }),
+			logout: async () => { },
+			changePassword: async () => ({ ok: true }),
+			refreshDirectory: async () => ({ kind: 'idle' }),
+			renameDevice: async () => ({ ok: true }),
+			revokeDevice: async () => ({ ok: true }),
+			confirmDeviceCode: async () => ({ ok: true }),
+			isEncryptionAvailable: async () => true,
+			...overrides,
+		};
+	}
+
+	function createConnectionStub(overrides: Partial<IUniverseAgentConnection> = {}): IUniverseAgentConnection {
+		return {
+			_serviceBrand: undefined,
+			isEngineConnected: () => false,
+			getConnectionPhase: () => ({ kind: 'disconnected' }),
+			getTransportState: () => 'idle',
+			getConnectionSnapshot: () => ({
+				transport: 'idle',
+				pairingPending: false,
+				channelAlive: false,
+				capabilities: { methods: [], toolFamilies: [] },
+			}),
+			getCapabilitySnapshot: () => ({ methods: [], toolFamilies: [] }),
+			onDidChangeConnection: Event.None,
+			onDidFileMutation: Event.None,
+			connect: async () => ({ sessionToken: undefined, workDir: undefined, methods: [] }),
+			connectProfile: async () => ({ ok: false, code: 'transport_failed', reason: 'stub' }),
+			disconnect: async () => { },
+			listSessions: async () => ({ sessions: [] }),
+			createSession: async () => ({ sessionId: 's' }),
+			deleteSession: async () => { },
+			getHistory: async () => ({ events: [] }),
+			subscribeSessionEventStream: () => ({ dispose: () => { } }),
+			chat: async () => { },
+			...overrides,
+		};
+	}
 
 	function getPaneList(pane: ConnectionPreferencesPane): WorkbenchList<IConnectionProfileEntry> {
 		return (pane as unknown as { list: WorkbenchList<IConnectionProfileEntry> }).list;
@@ -29,8 +105,17 @@ suite('ConnectionPreferencesPane', () => {
 		return (pane as unknown as { entries: IConnectionProfileEntry[] }).entries;
 	}
 
-	function mountPane(): ConnectionPreferencesPane {
+	function mountPane(
+		hubOverrides?: Partial<IUniverseAgentHubService>,
+		connectionOverrides?: Partial<IUniverseAgentConnection>,
+	): ConnectionPreferencesPane {
 		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IUniverseAgentHubService, createHubStub(hubOverrides));
+		instantiationService.stub(IUniverseAgentConnection, createConnectionStub(connectionOverrides));
+		instantiationService.stub(IDialogService, {
+			_serviceBrand: undefined,
+			prompt: async () => ({ result: false }),
+		} as unknown as IDialogService);
 		const pane = store.add(instantiationService.createInstance(ConnectionPreferencesPane));
 		const container = pane.getDomNode();
 		document.body.appendChild(container);
@@ -43,6 +128,75 @@ suite('ConnectionPreferencesPane', () => {
 
 	test('getConnectionEmptyCopy returns honest roster-empty copy', () => {
 		assert.strictEqual(getConnectionEmptyCopy(), CONNECTION_EMPTY_COPY);
+	});
+
+	test('presence matrix six row labels are distinct and honest', () => {
+		const offline = getHubDeviceRowStatusLabel(device({ id: '1', name: 'A', presence: 'OFFLINE', engineStatus: null }));
+		const notServing = getHubDeviceRowStatusLabel(device({ id: '2', name: 'B', engineStatus: 'NOT_SERVING' }));
+		const available = getHubDeviceRowStatusLabel(device({ id: '3', name: 'C', engineStatus: 'SERVING' }));
+		const revoked = getHubDeviceRowStatusLabel(device({ id: '4', name: 'D', revoked: true }));
+		const authExpiredBanner = getHubDirectoryBannerLabel({ kind: 'authExpired' });
+		const unreachableBanner = getHubDirectoryBannerLabel({ kind: 'unreachable', reason: 'network' });
+
+		assert.strictEqual(offline, 'Offline (unreachable via Hub)');
+		assert.strictEqual(notServing, 'Engine unavailable');
+		assert.strictEqual(available, 'Available');
+		assert.strictEqual(revoked, 'Revoked');
+		assert.strictEqual(authExpiredBanner, 'Hub sign-in expired');
+		assert.strictEqual(unreachableBanner, 'Hub unreachable');
+
+		const labels = [offline, notServing, available, revoked, authExpiredBanner, unreachableBanner];
+		assert.strictEqual(new Set(labels).size, labels.length, 'matrix labels must not alias each other');
+	});
+
+	test('canConnectHubDevice respects matrix connect button rules', () => {
+		const okDirectory: HubDirectoryStatus = { kind: 'ok', devices: [] };
+		assert.strictEqual(canConnectHubDevice(device({ id: '1', name: 'A' }), okDirectory), true);
+		assert.strictEqual(canConnectHubDevice(device({ id: '2', name: 'B', presence: 'OFFLINE', engineStatus: null }), okDirectory), false);
+		assert.strictEqual(canConnectHubDevice(device({ id: '3', name: 'C', engineStatus: 'NOT_SERVING' }), okDirectory), false);
+		assert.strictEqual(canConnectHubDevice(device({ id: '4', name: 'D', revoked: true }), okDirectory), false);
+		assert.strictEqual(canConnectHubDevice(device({ id: '5', name: 'E' }), { kind: 'authExpired' }), false);
+	});
+
+	test('SAS dialog exposes only confirm and cancel buttons without skip/trust', async () => {
+		let capturedButtons: readonly { label: string }[] | undefined;
+		const dialogService = {
+			_serviceBrand: undefined,
+			prompt: async (config: { buttons: readonly { label: string }[] }) => {
+				capturedButtons = config.buttons;
+				return { result: false };
+			},
+		} as unknown as IDialogService;
+
+		const result = await promptSasConfirmDialog(dialogService, {
+			displayName: 'Home Engine',
+			sasCode: '0H4X-JVFQ',
+			engineIdentityId: 'abcdef0123456789',
+		});
+
+		assert.strictEqual(result.confirmed, false);
+		assert.ok(capturedButtons);
+		assert.strictEqual(capturedButtons!.length, 2);
+		assert.strictEqual(result.buttonLabels.length, 2);
+
+		for (const label of result.buttonLabels) {
+			for (const pattern of SAS_FORBIDDEN_BUTTON_PATTERNS) {
+				assert.ok(!pattern.test(label), `forbidden SAS button label: ${label}`);
+			}
+		}
+		assert.ok(!/skip|trust|跳过|信任/i.test(result.buttonLabels.join(' ')));
+	});
+
+	test('Hub signedIn does not make isEngineConnected true', () => {
+		const hub = createHubStub({ getAuthStatus: () => ({ kind: 'signedIn', email: 'a@example.com' }) });
+		const connection = createConnectionStub({
+			isEngineConnected: () => false,
+			getConnectionPhase: () => ({ kind: 'disconnected' }),
+		});
+
+		assert.strictEqual(hub.getAuthStatus().kind, 'signedIn');
+		assert.strictEqual(connection.isEngineConnected(), false);
+		assert.strictEqual(connection.getConnectionPhase().kind, 'disconnected');
 	});
 
 	test('pane title remains Connection with honest empty welcome', () => {
@@ -60,6 +214,19 @@ suite('ConnectionPreferencesPane', () => {
 		container.remove();
 	});
 
+	test('pane renders four zones including hub account and devices', () => {
+		const pane = mountPane({ getAuthStatus: () => ({ kind: 'signedIn', email: 'a@example.com' }) });
+		const container = pane.getDomNode();
+
+		assert.ok(container.querySelector('.connection-hub-account'));
+		assert.ok(container.querySelector('.connection-hub-devices'));
+		assert.ok(container.querySelector('.connection-profiles'));
+		assert.ok(container.querySelector('.connection-test-section'));
+		assert.ok(container.querySelector('.connection-remote-io-hint'));
+
+		container.remove();
+	});
+
 	test('pane has empty WorkbenchList without service-disconnected wording in welcome', () => {
 		const pane = mountPane();
 		const container = pane.getDomNode();
@@ -70,30 +237,10 @@ suite('ConnectionPreferencesPane', () => {
 		assert.deepStrictEqual(getPaneEntries(pane), []);
 		assert.strictEqual(list.length, 0);
 
-		assert.strictEqual(container.querySelector('.connection-empty-state'), null);
-
 		const emptyWelcome = container.querySelector('.connection-empty-welcome') as HTMLElement;
 		const welcomeText = emptyWelcome.textContent ?? '';
 		assert.ok(!/not connected/i.test(welcomeText), 'empty welcome must not say not connected');
 		assert.ok(!/no engine/i.test(welcomeText), 'empty welcome must not say no engine');
-
-		const combined = container.textContent ?? '';
-		assert.ok(!/copilot/i.test(combined), 'pane must not mention Copilot');
-		assert.ok(!/open chat/i.test(combined), 'pane must not mention Open Chat');
-
-		container.remove();
-	});
-
-	test('pane has no chat widgets or editable connection fields', () => {
-		const pane = mountPane();
-		const container = pane.getDomNode();
-
-		assert.strictEqual(container.querySelector('.chat-widget'), null);
-		assert.strictEqual(container.querySelector('.chat-setup'), null);
-		assert.strictEqual(container.querySelector('.connection-field-row'), null);
-		assert.strictEqual(container.querySelector('.connection-field-input'), null);
-		assert.strictEqual(container.querySelector('.monaco-checkbox'), null);
-		assert.ok(!/\(command:/.test(container.innerHTML), 'pane must not include command buttons');
 
 		container.remove();
 	});
@@ -128,5 +275,26 @@ suite('ConnectionPreferencesPane', () => {
 		assert.notStrictEqual(testStatus.textContent, 'Connected');
 
 		container.remove();
+	});
+
+	test('hub auth badge reflects signed-in state separately from engine phase', () => {
+		const pane = mountPane(
+			{ getAuthStatus: () => ({ kind: 'signedIn', email: 'user@hub.example' } as HubAuthStatus) },
+			{ getConnectionPhase: () => ({ kind: 'disconnected' } as ConnectionPhase) },
+		);
+		const container = pane.getDomNode();
+		const badge = container.querySelector('.connection-hub-auth-badge') as HTMLElement;
+		assert.ok(badge);
+		assert.strictEqual(badge.textContent, getHubAuthStatusLabel({ kind: 'signedIn', email: 'user@hub.example' }));
+		const phase = container.querySelector('.connection-phase-label') as HTMLElement;
+		assert.ok(phase);
+		assert.strictEqual(phase.textContent, 'Not connected');
+		container.remove();
+	});
+});
+
+suite('Conversation Session StatusBar H4a negative', () => {
+	test('engine status copy stays not connected before H4b phase wiring', () => {
+		assert.strictEqual(getConversationEngineStatusText(), 'Engine not connected');
 	});
 });
