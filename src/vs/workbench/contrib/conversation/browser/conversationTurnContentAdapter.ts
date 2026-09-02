@@ -4,10 +4,16 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { MarkdownString } from '../../../../base/common/htmlContent.js';
+import { addDisposableListener } from '../../../../base/browser/dom.js';
 import { DisposableStore, IDisposable } from '../../../../base/common/lifecycle.js';
+import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
+import { IDialogService } from '../../../../platform/dialogs/common/dialogs.js';
+import { IOpenerService } from '../../../../platform/opener/common/opener.js';
 import { IMarkdownRendererService } from '../../../../platform/markdown/browser/markdownRenderer.js';
+import { URI } from '../../../../base/common/uri.js';
 import { ConversationStubTurn } from './conversationStubModel.js';
 import { shouldRenderTurnAsMarkdown } from './conversationTurnMarkdown.js';
+import { openUaClientExternalLink } from './uaClientExternalLink.js';
 
 /**
  * Single adapter boundary for timeline turn bodies. Production code may import
@@ -22,6 +28,9 @@ export class ConversationTurnContentAdapter implements IConversationTurnContentA
 
 	constructor(
 		@IMarkdownRendererService private readonly markdownRendererService: IMarkdownRendererService,
+		@IConfigurationService private readonly configurationService: IConfigurationService,
+		@IDialogService private readonly dialogService: IDialogService,
+		@IOpenerService private readonly openerService: IOpenerService,
 	) { }
 
 	renderTurnBody(turn: ConversationStubTurn, container: HTMLElement): IDisposable {
@@ -32,6 +41,20 @@ export class ConversationTurnContentAdapter implements IConversationTurnContentA
 				undefined,
 				container,
 			));
+			store.add(addDisposableListener(container, 'click', (event) => {
+				const anchor = (event.target as HTMLElement | null)?.closest('a');
+				if (!anchor?.href) {
+					return;
+				}
+				event.preventDefault();
+				event.stopPropagation();
+				void openUaClientExternalLink(
+					URI.parse(anchor.href),
+					this.configurationService,
+					this.dialogService,
+					this.openerService,
+				);
+			}));
 		} else {
 			container.textContent = turn.text;
 		}

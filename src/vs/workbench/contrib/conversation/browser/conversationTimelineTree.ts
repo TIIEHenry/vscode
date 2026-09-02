@@ -285,6 +285,10 @@ class ConversationTimelineRenderer implements ITreeRenderer<ConversationTimeline
 
 			const header = append(el, $('.conversation-lens-turn-header'));
 			header.textContent = getConversationTurnRoleLabel(turn.kind);
+			if (turn.agentId && turn.agentId !== 'default') {
+				const identity = append(header, $('span.conversation-lens-turn-agent-identity'));
+				identity.textContent = turn.agentId;
+			}
 
 			if (turn.kind === 'user' && this.onViewInTrajectory) {
 				appendTurnTrajectoryButton(header, turn.id, this.onViewInTrajectory, templateData.disposables, 'conversation-lens-turn-header-trajectory');
