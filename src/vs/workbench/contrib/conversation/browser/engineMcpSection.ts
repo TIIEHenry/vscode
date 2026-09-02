@@ -293,6 +293,10 @@ export class EngineMcpSection extends Disposable {
 		return canPerformCatalogWrite(this.mode) && this.connection.isEngineConnected();
 	}
 
+	getSelectedServerId(): string | undefined {
+		return this.selectedServer?.id;
+	}
+
 	isWriteToolbarVisible(): boolean {
 		return this.writeToolbar.style.display !== 'none';
 	}
@@ -399,7 +403,6 @@ export class EngineMcpSection extends Disposable {
 	}
 
 	private async refresh(): Promise<void> {
-		this.selectedServer = undefined;
 		const capabilities = this.connection.getCapabilitySnapshot();
 		const connected = this.connection.isEngineConnected();
 		const support = capabilities.mcp.support;
@@ -446,7 +449,7 @@ export class EngineMcpSection extends Disposable {
 			this.writeToolbar.style.display = canPerformCatalogWrite(this.mode) ? '' : 'none';
 			this.renderStatus();
 		} catch (error) {
-			this.clearCatalogPresentation();
+			this.writeToolbar.style.display = 'none';
 			this.mode = resolveEngineCatalogPaneMode(true, support, {
 				kind: 'failed',
 				error: error instanceof Error ? error.message : undefined,
@@ -475,6 +478,7 @@ export class EngineMcpSection extends Disposable {
 	private clearCatalogPresentation(): void {
 		this.listEntries = [];
 		this.list?.splice(0, this.list?.length ?? 0, []);
+		this.selectedServer = undefined;
 		this.status.hide();
 		this.listContainer.style.display = 'none';
 		this.writeToolbar.style.display = 'none';
@@ -491,10 +495,29 @@ export class EngineMcpSection extends Disposable {
 		this.listEntries = entries;
 		if (entries.length === 0) {
 			this.list?.splice(0, this.list?.length ?? 0, []);
+			this.selectedServer = undefined;
 			return;
 		}
 		const list = this.ensureList();
 		list.splice(0, list.length, entries);
+		this.restoreServerSelection();
+	}
+
+	private restoreServerSelection(): void {
+		const id = this.selectedServer?.id;
+		if (!id || !this.list) {
+			return;
+		}
+		const index = this.listEntries.findIndex(entry => entry.kind === 'server' && entry.server.id === id);
+		if (index < 0) {
+			this.selectedServer = undefined;
+			return;
+		}
+		const entry = this.listEntries[index];
+		if (entry?.kind === 'server') {
+			this.selectedServer = entry.server;
+		}
+		this.list.setSelection([index]);
 	}
 
 	private async toggleServer(server: UniverseAgentMcpServerSummary, enabled: boolean): Promise<void> {

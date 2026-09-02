@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as DOM from '../../../../base/browser/dom.js';
+import { Button } from '../../../../base/browser/ui/button/button.js';
 import { Checkbox } from '../../../../base/browser/ui/toggle/toggle.js';
 import { IListRenderer, IListVirtualDelegate } from '../../../../base/browser/ui/list/list.js';
 import { IListAccessibilityProvider } from '../../../../base/browser/ui/list/listWidget.js';
@@ -14,7 +15,7 @@ import { IInstantiationService } from '../../../../platform/instantiation/common
 import { WorkbenchList } from '../../../../platform/list/browser/listService.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import type { UniverseAgentAgentProfileSummary, UniverseAgentToolSummary } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
-import { defaultCheckboxStyles } from '../../../../platform/theme/browser/defaultStyles.js';
+import { defaultButtonStyles, defaultCheckboxStyles } from '../../../../platform/theme/browser/defaultStyles.js';
 import {
 	type EngineCatalogPaneMode,
 	canPerformCatalogWrite,
@@ -22,22 +23,57 @@ import {
 	resolveEngineCatalogPaneMode,
 } from './engineCatalog.js';
 import { EngineCatalogStatusWidget } from './engineCatalogStatus.js';
-import { applyToolEnablementChange, isToolEnabledInProfile, summaryToProfileDetail } from './engineToolProfile.js';
+import {
+	applyToolEnablementChange,
+	applyToolEnablementChanges,
+	groupToolsForCatalog,
+	isToolEnabledInProfile,
+	summaryToProfileDetail,
+	toolEnablementPendingKey,
+	type EngineToolCatalogGroup,
+} from './engineToolProfile.js';
 import { OPEN_CONNECTION_PREFERENCES_COMMAND_ID } from '../common/uaPreferencesPanes.js';
 
 const $ = DOM.$;
 
 const TOOLS_FEATURE = localize('ua.engineToolsFeatureLabel', "engine tools");
 
-type EngineToolListEntry = { readonly kind: 'tool'; readonly tool: UniverseAgentToolSummary };
+type EngineToolListEntry =
+	| { readonly kind: 'group'; readonly group: EngineToolCatalogGroup; readonly label: string }
+	| { readonly kind: 'tool'; readonly tool: UniverseAgentToolSummary };
 
 class EngineToolListDelegate implements IListVirtualDelegate<EngineToolListEntry> {
-	getHeight(_entry: EngineToolListEntry): number {
-		return 36;
+	getHeight(entry: EngineToolListEntry): number {
+		return entry.kind === 'group' ? 28 : 36;
 	}
 
-	getTemplateId(_entry: EngineToolListEntry): string {
-		return 'toolRow';
+	getTemplateId(entry: EngineToolListEntry): string {
+		return entry.kind === 'group' ? 'toolGroup' : 'toolRow';
+	}
+}
+
+interface IToolGroupTemplateData {
+	readonly label: HTMLElement;
+}
+
+class EngineToolGroupRenderer implements IListRenderer<EngineToolListEntry, IToolGroupTemplateData> {
+	static readonly TEMPLATE_ID = 'toolGroup';
+	readonly templateId = EngineToolGroupRenderer.TEMPLATE_ID;
+
+	renderTemplate(container: HTMLElement): IToolGroupTemplateData {
+		container.classList.add('engine-catalog-group');
+		return { label: DOM.append(container, $('.engine-catalog-group-label')) };
+	}
+
+	renderElement(entry: EngineToolListEntry, _index: number, templateData: IToolGroupTemplateData): void {
+		if (entry.kind !== 'group') {
+			return;
+		}
+		templateData.label.textContent = entry.label;
+	}
+
+	disposeTemplate(): void {
+		// noop
 	}
 }
 
@@ -82,6 +118,9 @@ class EngineToolRowRenderer implements IListRenderer<EngineToolListEntry, IToolR
 	}
 
 	renderElement(entry: EngineToolListEntry, _index: number, templateData: IToolRowTemplateData): void {
+		if (entry.kind !== 'tool') {
+			return;
+		}
 		templateData.tool = entry.tool;
 		(templateData.row as unknown as { __tool?: UniverseAgentToolSummary }).__tool = entry.tool;
 		templateData.name.textContent = entry.tool.name;
@@ -112,7 +151,7 @@ class EngineToolListAccessibilityProvider implements IListAccessibilityProvider<
 	}
 
 	getAriaLabel(entry: EngineToolListEntry): string {
-		return entry.tool.name;
+		return entry.kind === 'group' ? entry.label : entry.tool.name;
 	}
 }
 
@@ -122,6 +161,8 @@ export class EngineToolsSection extends Disposable {
 	private readonly heading: HTMLElement;
 	private readonly status: EngineCatalogStatusWidget;
 	private readonly profileSelect: HTMLSelectElement;
+	private readonly writeToolbar: HTMLElement;
+	private readonly saveButton: Button;
 	private readonly listContainer: HTMLElement;
 	private readonly instantiationService: IInstantiationService;
 	private list: WorkbenchList<EngineToolListEntry> | undefined;
@@ -130,6 +171,7 @@ export class EngineToolsSection extends Disposable {
 	private listEntries: EngineToolListEntry[] = [];
 	private profiles: UniverseAgentAgentProfileSummary[] = [];
 	private activeProfile: UniverseAgentAgentProfileSummary | undefined;
+	private readonly pendingEnablement = new Map<string, boolean>();
 	private sectionActive = false;
 
 	constructor(
@@ -157,8 +199,15 @@ export class EngineToolsSection extends Disposable {
 		this._register(DOM.addDisposableListener(this.profileSelect, 'change', () => {
 			const profileId = this.profileSelect.value;
 			this.activeProfile = this.profiles.find(profile => profile.id === profileId);
+			this.updateSaveChrome();
 			this.list?.rerender();
 		}));
+
+		this.writeToolbar = DOM.append(this.container, $('.engine-catalog-write-toolbar'));
+		this.writeToolbar.style.display = 'none';
+		this.saveButton = this._register(new Button(this.writeToolbar, defaultButtonStyles));
+		this.saveButton.label = localize('ua.engineToolsSave', "Save");
+		this._register(this.saveButton.onDidClick(() => void this.savePendingEnablement()));
 
 		this.listContainer = DOM.append(this.container, $('.engine-catalog-list'));
 
@@ -200,7 +249,7 @@ export class EngineToolsSection extends Disposable {
 	}
 
 	getListEntryCount(): number {
-		return this.listEntries.length;
+		return this.listEntries.filter(entry => entry.kind === 'tool').length;
 	}
 
 	canWrite(): boolean {
@@ -216,6 +265,67 @@ export class EngineToolsSection extends Disposable {
 
 	getActiveProfileId(): string | undefined {
 		return this.activeProfile?.id;
+	}
+
+	isToolEnablementDirty(): boolean {
+		if (!this.activeProfile) {
+			return false;
+		}
+		const prefix = `${this.activeProfile.id}\u0000`;
+		for (const key of this.pendingEnablement.keys()) {
+			if (key.startsWith(prefix)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	isSaveToolbarVisible(): boolean {
+		return this.writeToolbar.style.display !== 'none';
+	}
+
+	async savePendingEnablement(): Promise<boolean> {
+		if (!this.canWrite() || !this.activeProfile) {
+			return false;
+		}
+		const profileId = this.activeProfile.id;
+		const prefix = `${profileId}\u0000`;
+		const changes: Array<{ readonly toolName: string; readonly enabled: boolean }> = [];
+		for (const [key, enabled] of this.pendingEnablement) {
+			if (key.startsWith(prefix)) {
+				changes.push({ toolName: key.slice(prefix.length), enabled });
+			}
+		}
+		if (changes.length === 0) {
+			return true;
+		}
+		const profile = applyToolEnablementChanges(summaryToProfileDetail(this.activeProfile), changes);
+		try {
+			const result = await this.connection.saveAgentProfile({ profile });
+			if (!result.profile.id) {
+				return false;
+			}
+			this.activeProfile = {
+				...this.activeProfile,
+				disabledTools: result.profile.disabledTools,
+				enabledTools: result.profile.enabledTools,
+				whitelistMode: result.profile.whitelistMode,
+			};
+			const index = this.profiles.findIndex(entry => entry.id === profileId);
+			if (index >= 0) {
+				this.profiles[index] = this.activeProfile;
+			}
+			for (const key of [...this.pendingEnablement.keys()]) {
+				if (key.startsWith(prefix)) {
+					this.pendingEnablement.delete(key);
+				}
+			}
+			this.updateSaveChrome();
+			this.list?.rerender();
+			return true;
+		} catch {
+			return false;
+		}
 	}
 
 	async toggleTool(tool: UniverseAgentToolSummary, enabled: boolean): Promise<boolean> {
@@ -242,6 +352,8 @@ export class EngineToolsSection extends Disposable {
 			if (index >= 0) {
 				this.profiles[index] = this.activeProfile;
 			}
+			this.pendingEnablement.delete(toolEnablementPendingKey(this.activeProfile.id, tool.name));
+			this.updateSaveChrome();
 			this.list?.rerender();
 			return true;
 		} catch {
@@ -253,7 +365,26 @@ export class EngineToolsSection extends Disposable {
 		if (!this.activeProfile) {
 			return true;
 		}
+		const pending = this.pendingEnablement.get(toolEnablementPendingKey(this.activeProfile.id, toolName));
+		if (pending !== undefined) {
+			return pending;
+		}
 		return isToolEnabledInProfile(toolName, this.activeProfile);
+	}
+
+	private setPendingEnablement(tool: UniverseAgentToolSummary, enabled: boolean): void {
+		if (!this.activeProfile || !this.canWrite()) {
+			return;
+		}
+		this.pendingEnablement.set(toolEnablementPendingKey(this.activeProfile.id, tool.name), enabled);
+		this.updateSaveChrome();
+		this.list?.rerender();
+	}
+
+	private updateSaveChrome(): void {
+		const visible = this.canWrite();
+		this.writeToolbar.style.display = visible ? '' : 'none';
+		this.saveButton.enabled = visible && this.isToolEnablementDirty();
 	}
 
 	private ensureList(): WorkbenchList<EngineToolListEntry> {
@@ -263,14 +394,19 @@ export class EngineToolsSection extends Disposable {
 				'EngineTools',
 				this.listContainer,
 				new EngineToolListDelegate(),
-				[new EngineToolRowRenderer(
-					() => this.canWrite(),
-					toolName => this.isToolEnabled(toolName),
-					(tool, enabled) => void this.toggleTool(tool, enabled),
-				)],
+				[
+					new EngineToolGroupRenderer(),
+					new EngineToolRowRenderer(
+						() => this.canWrite(),
+						toolName => this.isToolEnabled(toolName),
+						(tool, enabled) => this.setPendingEnablement(tool, enabled),
+					),
+				],
 				{
 					identityProvider: {
-						getId: (entry: EngineToolListEntry) => `tool:${entry.tool.name}`,
+						getId: (entry: EngineToolListEntry) => entry.kind === 'group'
+							? `group:${entry.group}`
+							: `tool:${entry.tool.name}`,
 					},
 					accessibilityProvider: new EngineToolListAccessibilityProvider(),
 				},
@@ -280,8 +416,6 @@ export class EngineToolsSection extends Disposable {
 	}
 
 	private async refresh(): Promise<void> {
-		this.activeProfile = undefined;
-		this.profiles = [];
 		const capabilities = this.connection.getCapabilitySnapshot();
 		const connected = this.connection.isEngineConnected();
 		const support = capabilities.tools.support;
@@ -302,11 +436,13 @@ export class EngineToolsSection extends Disposable {
 
 		if (support === 'UNKNOWN') {
 			this.mode = resolveEngineCatalogPaneMode(true, support);
+			this.updateSaveChrome();
 			this.renderStatus({ loadingKind: 'capability' });
 			return;
 		}
 
 		this.mode = resolveEngineCatalogPaneMode(true, support, { kind: 'inFlight' });
+		this.updateSaveChrome();
 		this.renderStatus({ loadingKind: 'list' });
 
 		try {
@@ -328,9 +464,10 @@ export class EngineToolsSection extends Disposable {
 				itemCount: toolsResult.tools.length,
 			});
 			this.listContainer.style.display = canShowCatalogRows(this.mode) ? '' : 'none';
+			this.updateSaveChrome();
 			this.renderStatus();
 		} catch (error) {
-			this.clearCatalogPresentation();
+			this.updateSaveChrome();
 			this.mode = resolveEngineCatalogPaneMode(true, support, {
 				kind: 'failed',
 				error: error instanceof Error ? error.message : undefined,
@@ -357,10 +494,12 @@ export class EngineToolsSection extends Disposable {
 	}
 
 	private populateProfileSelect(): void {
+		const previousId = this.activeProfile?.id;
 		this.profileSelect.textContent = '';
 		if (this.profiles.length === 0) {
 			this.profileSelect.style.display = 'none';
 			this.activeProfile = undefined;
+			this.updateSaveChrome();
 			return;
 		}
 		this.profileSelect.style.display = '';
@@ -370,21 +509,38 @@ export class EngineToolsSection extends Disposable {
 			option.textContent = profile.name || profile.id;
 			this.profileSelect.appendChild(option);
 		}
-		this.activeProfile = this.profiles[0];
+		this.activeProfile = this.profiles.find(profile => profile.id === previousId) ?? this.profiles[0];
 		this.profileSelect.value = this.activeProfile.id;
+		this.updateSaveChrome();
 	}
 
 	private clearCatalogPresentation(): void {
 		this.listEntries = [];
 		this.list?.splice(0, this.list?.length ?? 0, []);
+		this.activeProfile = undefined;
+		this.profiles = [];
+		this.pendingEnablement.clear();
 		this.status.hide();
 		this.listContainer.style.display = 'none';
 		this.profileSelect.style.display = 'none';
 		this.profileSelect.textContent = '';
+		this.updateSaveChrome();
 	}
 
 	private setTools(tools: readonly UniverseAgentToolSummary[]): void {
-		const entries: EngineToolListEntry[] = tools.map(tool => ({ kind: 'tool', tool }));
+		const entries: EngineToolListEntry[] = [];
+		for (const group of groupToolsForCatalog(tools)) {
+			entries.push({
+				kind: 'group',
+				group: group.group,
+				label: group.group === 'client'
+					? localize('ua.engineToolsClientGroup', "Client tools")
+					: localize('ua.engineToolsEngineGroup', "Engine tools"),
+			});
+			for (const tool of group.tools) {
+				entries.push({ kind: 'tool', tool });
+			}
+		}
 		this.listEntries = entries;
 		if (entries.length === 0) {
 			this.list?.splice(0, this.list?.length ?? 0, []);
