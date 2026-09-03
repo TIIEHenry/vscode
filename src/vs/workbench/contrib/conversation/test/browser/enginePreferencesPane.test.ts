@@ -55,6 +55,8 @@ suite('EnginePreferencesPane', () => {
 			},
 			connect: async () => ({ methods: [], events: [], sessionToken: 'tok' }),
 			connectProfile: async () => ({ ok: false, code: 'transport_failed', reason: 'stub' }),
+			confirmPairing: async () => ({ ok: false, code: 'transport_failed', reason: 'stub' }),
+			cancelPairing: async () => { },
 			disconnect: async () => { },
 			listSessions: async () => ({ sessions: [] }),
 			createSession: async () => ({ sessionId: 's' }),

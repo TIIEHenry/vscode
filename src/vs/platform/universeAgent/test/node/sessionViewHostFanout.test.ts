@@ -6,8 +6,7 @@
 import assert from 'assert';
 import { Event } from '../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
-import { emptySessionViewSnapshot } from '../../common/sessionView/empty-snapshot.js';
-import type { ViewFrame, ViewLeaseId, SessionId } from '../../common/sessionView/types.js';
+import type { ViewFrame, ViewLeaseId } from '../../common/sessionView/types.js';
 import type { IUniverseAgentSessionViewFrameEvent } from '../../common/universeAgentSessionView.js';
 import type { DiagnosticMetric, DiagnosticsPort } from '../../node/sessionCore/ports.js';
 import { SessionViewHost } from '../../node/sessionViewHost.js';
@@ -38,19 +37,6 @@ function makePatchFrame(leaseId: string, sessionId: string, frameId: number): Vi
 		body: {
 			kind: 'patches',
 			patches: [{ op: 'setSyncChrome', sync: { kind: 'live' } }],
-		},
-	};
-}
-
-function makeBaselineFrame(leaseId: string, sessionId: string): ViewFrame {
-	return {
-		leaseId: leaseId as ViewLeaseId,
-		generation: 1,
-		frameId: 1,
-		version: 1,
-		body: {
-			kind: 'baseline',
-			snapshot: emptySessionViewSnapshot(sessionId as SessionId),
 		},
 	};
 }

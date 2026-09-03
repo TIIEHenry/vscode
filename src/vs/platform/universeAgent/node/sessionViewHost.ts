@@ -72,7 +72,7 @@ type ActiveLease = {
 	readonly sessionId: string;
 	readonly leaseId: ViewLeaseId;
 	readonly sink: ViewFrameSink;
-	readonly emitter: Emitter<IUniverseAgentSessionViewFrameEvent>;
+	emitter: Emitter<IUniverseAgentSessionViewFrameEvent>;
 	readonly pending: IUniverseAgentSessionViewFrameEvent[];
 	hadSubscriber: boolean;
 	needsBaseline: boolean;

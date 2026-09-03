@@ -544,7 +544,7 @@ function createHubDevicePairingProfile(): ConnectionProfile {
 
 suite('UniverseAgentConnectionService pairing (GC-1b)', () => {
 
-	const store = ensureNoDisposablesAreLeakedInTestSuite();
+	ensureNoDisposablesAreLeakedInTestSuite();
 
 	test('hubDevice without trust returns pairingPending with handshake sasCode', async () => {
 		const profile = createHubDevicePairingProfile();
