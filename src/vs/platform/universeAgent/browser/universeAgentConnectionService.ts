@@ -5,7 +5,7 @@
 
 import { Event } from '../../../base/common/event.js';
 import { InstantiationType, registerSingleton } from '../../instantiation/common/extensions.js';
-import type { ConnectionPhase, UniverseAgentConnectProfileResult } from '../common/connectionHubTypes.js';
+import type { ConnectionPhase, ConnectionProbeResult, UniverseAgentConnectProfileResult } from '../common/connectionHubTypes.js';
 import {
 	IUniverseAgentConnection,
 	type IUniverseAgentTeamApi,
@@ -131,6 +131,10 @@ export class WebUniverseAgentConnection implements IUniverseAgentConnection {
 
 	async cancelPairing(): Promise<void> {
 		return rejectUnsupportedEnvironment();
+	}
+
+	async probeConnectionProfile(_profileId: string): Promise<ConnectionProbeResult> {
+		return { ok: false, code: WEB_UNSUPPORTED_CODE, reason: WEB_UNSUPPORTED_REASON };
 	}
 
 	getConnectionPhase(): ConnectionPhase {

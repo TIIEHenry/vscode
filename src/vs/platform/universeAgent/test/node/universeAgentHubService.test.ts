@@ -336,3 +336,59 @@ suite('UniverseAgentHubService addHubDeviceProfile', () => {
 		service.dispose();
 	});
 });
+
+suite('UniverseAgentHubService revokeDevice (GC-2)', () => {
+
+	ensureNoDisposablesAreLeakedInTestSuite();
+
+	const FIXTURE_SESSION: ParsedAuthSessionV1 = {
+		accessToken: 'hub-access-token',
+		expiresIn: 900,
+		csrfToken: 'csrf-token',
+		mustChangePassword: false,
+		user: {
+			id: 'usr_1',
+			email: 'user@example.com',
+			role: 'USER',
+			status: 'ACTIVE',
+		},
+	};
+
+	const HUB_BASE = 'https://hub.example.com';
+	const FIXTURE_NOW_MS = 1_700_000_000_000;
+
+	test('revokeDevice marks matching hubDevice profiles revoked', async () => {
+		const profileStore = new TestConnectionProfileStore();
+		const profile = profileStore.createDraft({
+			displayName: 'Studio',
+			target: { kind: 'hubDevice', hubBaseUrl: HUB_BASE, accountId: 'usr_1', hubDeviceId: 'dev-1' },
+		});
+		profileStore.put(profile);
+		const hubSessionStore = new InMemoryHubSessionStore();
+		await hubSessionStore.applyAuthSession(HUB_BASE, FIXTURE_SESSION, FIXTURE_NOW_MS, 'refresh-token');
+		const service = new UniverseAgentHubService({
+			hubSessionStore,
+			connectionProfileStore: profileStore,
+			nowMs: () => FIXTURE_NOW_MS,
+			skipStartupRestore: true,
+			http: {
+				fetch: async (url: string) => {
+					if (url.includes('/revoke')) {
+						return { status: 200, json: async () => ({}) };
+					}
+					if (url.includes('/devices')) {
+						return { status: 200, json: async () => ({ devices: [] }) };
+					}
+					throw new Error(`unexpected fetch url: ${url}`);
+				},
+			},
+		});
+		service.setActiveHubBaseUrl(HUB_BASE);
+		const result = await service.revokeDevice('dev-1');
+		assert.strictEqual(result.ok, true);
+		const stored = profileStore.get(profile.profileId);
+		assert.ok(stored);
+		assert.strictEqual(stored?.state, 'revoked');
+		service.dispose();
+	});
+});

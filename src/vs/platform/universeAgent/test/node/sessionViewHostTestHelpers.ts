@@ -50,6 +50,7 @@ export class TestConnection implements IUniverseAgentConnection {
 	async connectProfile() { return { ok: false as const, code: 'transport_failed' as const, reason: 'test' }; }
 	async confirmPairing() { return { ok: false as const, code: 'transport_failed' as const, reason: 'test' }; }
 	async cancelPairing() { }
+	async probeConnectionProfile() { return { ok: false as const, code: 'transport_failed' as const, reason: 'test' }; }
 	async disconnect() { this.connected = false; }
 	async listSessions() { return { sessions: [] }; }
 	async createSession() { return { sessionId: 's' }; }

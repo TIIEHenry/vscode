@@ -66,6 +66,7 @@ class MockUniverseAgentConnection extends Disposable implements IUniverseAgentCo
 	async connectProfile() { return { ok: false as const, code: 'transport_failed' as const, reason: 'stub' }; }
 	async confirmPairing() { return { ok: false as const, code: 'transport_failed' as const, reason: 'stub' }; }
 	async cancelPairing() { }
+	async probeConnectionProfile() { return { ok: false as const, code: 'transport_failed' as const, reason: 'stub' }; }
 	async disconnect() { this.setConnected(false); }
 	async listSessions() { return { sessions: this.sessions.map(s => ({ sessionId: s.sessionId, title: s.title })) }; }
 	async createSession() { return { sessionId: 'ua-new' }; }

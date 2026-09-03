@@ -33,6 +33,10 @@ export type ConnectionPhase =
 	| { readonly kind: 'failed'; readonly code: ConnectionFailureCode; readonly reason: string }
 	| { readonly kind: 'closed' };
 
+export type ConnectionProbeResult =
+	| { readonly ok: true; readonly path: ConnectionPath; readonly authority: string; readonly latencyMs: number }
+	| { readonly ok: false; readonly code: ConnectionFailureCode; readonly reason: string };
+
 export type UniverseAgentConnectProfileResult =
 	| {
 		readonly ok: true;

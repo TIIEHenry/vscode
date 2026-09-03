@@ -26,6 +26,7 @@ import { GrpcStatusCode, IUniverseAgentGrpcTransport, UniverseAgentAuthNonceRequ
 import type { IUniverseAgentConnection } from '../../common/universeAgentConnection.js';
 import { UniverseAgentConnectionService } from '../../node/universeAgentConnectionService.js';
 import type { ConnectionProfile, IConnectionProfileStore } from '../../node/connectionProfileStore.js';
+import type { IClientIdentityStore } from '../../node/clientIdentityTypes.js';
 import { createEngineTrustRecord } from '../../node/engineTrustStore.js';
 import type { ConnectionResolver } from '../../node/connectionResolver.js';
 import type { PairingOrchestrator } from '../../node/pairingOrchestrator.js';
@@ -486,6 +487,117 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(result.ok, false);
 		assert.strictEqual(result.reason, 'UNIMPLEMENTED');
 		assert.strictEqual(connection.saveSkillContent, undefined);
+		service.dispose();
+	});
+});
+
+suite('UniverseAgentConnectionService probeConnectionProfile (GC-3)', () => {
+
+	const store = ensureNoDisposablesAreLeakedInTestSuite();
+
+	const identityStore: IClientIdentityStore = {
+		getState: async () => ({
+			kind: 'ready',
+			identity: {
+				clientIdentityId: 'a'.repeat(64),
+				clientPublicKey: new Uint8Array(32),
+				privateKeyPkcs8: new Uint8Array(32),
+			},
+		}),
+		getOrCreateIdentity: async () => ({
+			kind: 'ready',
+			identity: {
+				clientIdentityId: 'a'.repeat(64),
+				clientPublicKey: new Uint8Array(32),
+				privateKeyPkcs8: new Uint8Array(32),
+			},
+		}),
+		createSigner: async () => undefined,
+	};
+
+	test('resolver failure code passes through', async () => {
+		const service = new UniverseAgentConnectionService({
+			connectionResolver: {
+				resolve: async () => ({
+					ok: false as const,
+					code: 'hub_device_revoked' as const,
+					reason: 'device revoked',
+					allowRelayFallback: false,
+				}),
+				createIssueRelayTicketHook: () => async () => ({ ok: false as const, code: 'hub_session_required' as const, reason: 'test' }),
+			},
+			clientIdentityStore: identityStore,
+			createTransport: () => new MockUniverseAgentGrpcTransport(),
+		});
+		const result = await service.probeConnectionProfile('profile-1');
+		assert.deepStrictEqual(result, { ok: false, code: 'hub_device_revoked', reason: 'device revoked' });
+		service.dispose();
+	});
+
+	test('getAuthNonce success leaves phase and live transport unchanged', async () => {
+		let connectCalls = 0;
+		let probeTransportClosed = false;
+		class ProbeMockTransport extends MockUniverseAgentGrpcTransport {
+			override close(): void {
+				probeTransportClosed = true;
+				super.close();
+			}
+
+			override async connect(): Promise<UniverseAgentConnectResult> {
+				connectCalls++;
+				return super.connect({ clientId: 'x', protocolVersion: '1' });
+			}
+
+			override async connectWithDeviceAuth(): Promise<UniverseAgentConnectResult> {
+				connectCalls++;
+				return super.connectWithDeviceAuth({
+					clientIdentityId: 'a'.repeat(64),
+					clientPublicKey: new Uint8Array(32),
+					authNonce: new Uint8Array(32),
+					signature: new Uint8Array(64),
+					engineIdentityId: 'engine-id',
+					protocolVersion: '1',
+				});
+			}
+		}
+
+		const liveTransport = new ProbeMockTransport();
+		const service = new UniverseAgentConnectionService({
+			connectionResolver: {
+				resolve: async () => ({
+					ok: true as const,
+					allowRelayFallback: false,
+					endpoint: {
+						attemptId: 'a1',
+						authority: '203.0.113.10:7443',
+						port: 7443,
+						resolvedIp: '203.0.113.10',
+						servername: '203.0.113.10',
+						tls: null,
+						path: 'direct' as const,
+					},
+				}),
+				createIssueRelayTicketHook: () => async () => ({ ok: false as const, code: 'hub_session_required' as const, reason: 'test' }),
+			},
+			clientIdentityStore: identityStore,
+			createTransport: address => address === '203.0.113.10:7443' ? new ProbeMockTransport() : liveTransport,
+		});
+
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		const phaseBefore = service.getConnectionPhase();
+		const transportBefore = (service as unknown as { _transport: MockUniverseAgentGrpcTransport })._transport;
+
+		const result = await service.probeConnectionProfile('profile-1');
+		assert.strictEqual(result.ok, true);
+		if (result.ok) {
+			assert.strictEqual(result.path, 'direct');
+			assert.strictEqual(result.authority, '203.0.113.10:7443');
+			assert.ok(result.latencyMs >= 0);
+		}
+		assert.strictEqual(connectCalls, 1, 'probe must not invoke Connect');
+		assert.strictEqual(probeTransportClosed, true);
+		assert.strictEqual(service.getConnectionPhase(), phaseBefore);
+		assert.strictEqual((service as unknown as { _transport: MockUniverseAgentGrpcTransport })._transport, transportBefore);
 		service.dispose();
 	});
 });

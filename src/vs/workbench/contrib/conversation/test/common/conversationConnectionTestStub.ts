@@ -60,6 +60,7 @@ export function createConversationConnectionTestStub(
 		connectProfile: async () => ({ ok: false, code: 'transport_failed', reason: 'stub' }),
 		confirmPairing: async () => ({ ok: false, code: 'transport_failed', reason: 'stub' }),
 		cancelPairing: async () => { },
+		probeConnectionProfile: async () => ({ ok: false, code: 'transport_failed', reason: 'stub' }),
 		disconnect: async () => { },
 		listSessions: async () => ({ sessions: [] }),
 		createSession: async () => ({ sessionId: 's' }),

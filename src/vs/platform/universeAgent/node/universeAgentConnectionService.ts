@@ -5,7 +5,7 @@
 
 import { Emitter } from '../../../base/common/event.js';
 import { Disposable } from '../../../base/common/lifecycle.js';
-import type { ConnectionPhase, ConnectionFailureCode, UniverseAgentConnectProfileResult } from '../common/connectionHubTypes.js';
+import type { ConnectionPhase, ConnectionFailureCode, ConnectionProbeResult, UniverseAgentConnectProfileResult } from '../common/connectionHubTypes.js';
 import type { IUniverseAgentConnection, IUniverseAgentTeamApi, UniverseAgentNavigatorCapabilityKey } from '../common/universeAgentConnection.js';
 import type { IUniverseAgentHostConnection } from '../common/universeAgentHostConnection.js';
 import type {
@@ -483,6 +483,74 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		await this.disconnect();
 	}
 
+	async probeConnectionProfile(profileId: string): Promise<ConnectionProbeResult> {
+		if (!this._connectionResolver || !this._clientIdentityStore) {
+			return {
+				ok: false,
+				code: 'transport_failed',
+				reason: 'connection resolver is not configured',
+			};
+		}
+
+		const phaseBefore = this._connectionPhase;
+		const transportBefore = this._transport;
+
+		const resolved = await this._connectionResolver.resolve(profileId);
+		if (!resolved.ok) {
+			return { ok: false, code: resolved.code, reason: resolved.reason };
+		}
+
+		const endpoint = resolved.endpoint;
+		const dialAddress = `${endpoint.resolvedIp}:${endpoint.port}`;
+		let probeTransport: IUniverseAgentGrpcTransport;
+		if (endpoint.tls) {
+			probeTransport = createPinnedGrpcUniverseAgentClient({
+				address: dialAddress,
+				tls: endpoint.tls,
+				sslTargetNameOverride: endpoint.servername,
+			});
+		} else {
+			probeTransport = this._createTransport(dialAddress);
+		}
+
+		const identityState = await this._clientIdentityStore.getOrCreateIdentity();
+		if (identityState.kind !== 'ready') {
+			probeTransport.close();
+			return {
+				ok: false,
+				code: 'trust_missing',
+				reason: `client identity unavailable: ${identityState.kind}`,
+			};
+		}
+
+		const startMs = Date.now();
+		const probeTimeoutMs = 10_000;
+		try {
+			await Promise.race([
+				probeTransport.getAuthNonce({
+					clientIdentityId: identityState.identity.clientIdentityId,
+					clientPublicKey: identityState.identity.clientPublicKey,
+				}),
+				new Promise<never>((_, reject) => {
+					setTimeout(() => reject(new Error('probe timed out after 10s')), probeTimeoutMs);
+				}),
+			]);
+			return {
+				ok: true,
+				path: endpoint.path,
+				authority: endpoint.authority,
+				latencyMs: Date.now() - startMs,
+			};
+		} catch (error) {
+			return this._mapProbeTransportError(error);
+		} finally {
+			probeTransport.close();
+			// Guard: probe must not mutate live connection state.
+			this._connectionPhase = phaseBefore;
+			this._transport = transportBefore;
+		}
+	}
+
 	async disconnect(): Promise<void> {
 		this._transport?.close();
 		this._transport = undefined;
@@ -690,7 +758,17 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 	}
 
 	revokeDevice(deviceId: string) {
-		return this._hub.revokeDevice(deviceId);
+		const activeProfileId = this._activeProfileId;
+		const wasConnected = this._connectionPhase.kind === 'connected' || this._connectionPhase.kind === 'connecting';
+		return this._hub.revokeDevice(deviceId).then(async result => {
+			if (result.ok && wasConnected && activeProfileId) {
+				const profile = this._connectionProfileStore?.get(activeProfileId);
+				if (profile?.target.kind === 'hubDevice' && profile.target.hubDeviceId === deviceId) {
+					await this.disconnect();
+				}
+			}
+			return result;
+		});
 	}
 
 	confirmDeviceCode(code: string) {
@@ -874,6 +952,17 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 			default:
 				return 'transport_failed';
 		}
+	}
+
+	private _mapProbeTransportError(error: unknown): ConnectionProbeResult {
+		if (error instanceof UniverseAgentTransportError) {
+			return { ok: false, code: 'transport_failed', reason: error.message };
+		}
+		return {
+			ok: false,
+			code: 'transport_failed',
+			reason: error instanceof Error ? error.message : String(error),
+		};
 	}
 
 	private _rememberAdvertisedMethods(methods: readonly string[]): void {
