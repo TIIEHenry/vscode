@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-04
-summary: "PermissionService.SetSessionGoal / CancelSessionGoal 进 gRPC catalog；roster 接通后转发 Create；D16 Lens+identity 共享 harness；Inbox Stop Cancel"
+summary: "槽 B：AgentService.Fork 进 gRPC catalog + node unary；不改用户 Fork tab / roster"
 ---
 
 # Development Progress
@@ -13,7 +13,7 @@ summary: "PermissionService.SetSessionGoal / CancelSessionGoal 进 gRPC catalog�
 
 - **槽 merge：** Inbox Stop 两边保留：末条 streaming 否则 `root`；仅 connected+streaming；generating 文案 + connection 重绘。
 - **槽 A / `loop/A`：** 接通后 `createSession` 转发已进传输的 `SessionService.Create`，用返回 `sessionId` 入引擎目录并切活动会话（同步返回 `''`，不把旧 active / stub `untitled` 冒充新会话）；空 id 忽略；断连缓存不发 unary、不造 stub 种子。此前 Inbox Stop 转发 `AgentService.Cancel`。
-- **槽 B / `loop/B`：** D16：`conversationLens.test.ts` 与 identity 单测改走共享 `conversationLensLayoutHarness`（ResizeObserver 拦截 + layout flush），after-each 与 reveal / trajectory 套同式。此前抽出 harness 接到 reveal / trajectory / trajectoryUi；进口界扫；`openChatStream` close-gate。
+- **槽 B / `loop/B`：** 把 `AgentService.Fork` 写入 gRPC catalog（`universeagent.agent.v1.AgentService`），node unary `forkAgent`（snake_case `session_id`/`parent_agent_id`/`name`/`task`/`model_type`/`system_prompt`，空父 id 线为 `root`；响应 `success`/`agent_id`）。合同可选。不改 roster / 用户 Fork tab（仍本地 `registerForkChat`）。测：catalog + 转发 / 失败映射。此前 D16 Lens+identity 共享 harness。
 - **槽 C / `loop/C`：** 把 `PermissionService.SetSessionGoal` / `CancelSessionGoal` 写入 gRPC catalog（`universeagent.session.v1.PermissionService`），node unary `setSessionGoal` / `cancelSessionGoal`（snake_case `session_id`/`goal`，响应 `success`/`error`）。合同可选，不改 roster / Inbox Goal（钮仍诚实禁用）。测：catalog + 转发 / 失败映射。此前 ContinueGeneration + Rename + Cancel catalog。
 - **槽 D / `loop/D`：** D16 leftover：`conversationIdentityStrip.test.ts` 改走共享 `conversationLensLayoutHarness`（ResizeObserver loop 拦截 + layout flush），after-each 与 reveal/trajectory 同式。不改 Inbox/Cancel/roster。此前 engine-catalog 诚实回填；Overview 隐藏 Provider 行；roster 接通后转发 Rename。
 
@@ -23,7 +23,7 @@ summary: "PermissionService.SetSessionGoal / CancelSessionGoal 进 gRPC catalog�
 |----|------|------|------|
 | merge | `vscode-WorkTrees/merge` | `loop/merge` | Inbox Stop 合成 + compile 绿；本会话：A+B+C+D + Create + exhaustiveness 复绿 |
 | A | `vscode-WorkTrees/A` | `loop/A` | roster 接通后转发 SessionService.Create；Inbox Stop Cancel + Lens 夹具 |
-| B | `vscode-WorkTrees/B` | `loop/B` | D16 conversationLens + identity 共享 layout harness |
+| B | `vscode-WorkTrees/B` | `loop/B` | AgentService.Fork catalog + node unary；不改用户 Fork tab |
 | C | `vscode-WorkTrees/C` | `loop/C` | PermissionService.SetSessionGoal / CancelSessionGoal catalog |
 | D | `vscode-WorkTrees/D` | `loop/D` | Overview 隐藏 Provider 行；roster 接通后转发 Rename；D16 identity 接入共享 layout harness |
 | edit | `Projects/Agents/vscode` | `agent-ide` | 请自行对齐 |
@@ -41,6 +41,6 @@ summary: "PermissionService.SetSessionGoal / CancelSessionGoal 进 gRPC catalog�
 | I6 | 发行标识等发布方 |
 | H4a | 真 Hub 冒烟后才升 PRD-024 `implemented` |
 | V | D16：Lens / identity 已接共享 harness；剩 `conversationLens.test.ts` DOM/codicon 断言债；D17 与产品验证 |
-| SessionEventStream close | 三路宿主 `onClosed` 已齐：SessionEventStream → `streamClosed`；Chat → `chatStreamDown`；ContinueGeneration 只拆句柄。connection 测现覆盖 Chat / EventStream / Continue 三路 close gate（remote 一次、dispose 静音）。**传输已进** `ContinueGeneration`、`Rename`、`Cancel`、`SessionService.Create`、`PermissionService.SetSessionGoal` / `CancelSessionGoal`；roster 接通后已转发 Create / Rename / Cancel（Create 用引擎 id；Inbox Stop 仅 connected+streaming 启用；未指定 agent 用末条 streaming 否则 `root`）。**Inbox Goal / roster 尚未转发 SetSessionGoal** |
+| SessionEventStream close | 三路宿主 `onClosed` 已齐：SessionEventStream → `streamClosed`；Chat → `chatStreamDown`；ContinueGeneration 只拆句柄。connection 测现覆盖 Chat / EventStream / Continue 三路 close gate（remote 一次、dispose 静音）。**传输已进** `ContinueGeneration`、`Rename`、`Cancel`、`SessionService.Create`、`PermissionService.SetSessionGoal` / `CancelSessionGoal`、`AgentService.Fork`；roster 接通后已转发 Create / Rename / Cancel（Create 用引擎 id；Inbox Stop 仅 connected+streaming 启用；未指定 agent 用末条 streaming 否则 `root`）。**Inbox Goal / roster 尚未转发 SetSessionGoal**；**用户 Fork tab / `registerForkChat` 尚未转发 Fork** |
 
 **不做：** H6、完整插件市场、fixture 冒充 Engine、为全绿冻结 UI、引擎仓新增 RPC、会话级模型策略 UI、F3 同窗共享 lease（D22）。

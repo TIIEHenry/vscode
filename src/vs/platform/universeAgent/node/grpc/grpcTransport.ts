@@ -22,6 +22,8 @@ import type {
 	UniverseAgentSetSessionGoalResult,
 	UniverseAgentCancelSessionGoalRequest,
 	UniverseAgentCancelSessionGoalResult,
+	UniverseAgentForkAgentRequest,
+	UniverseAgentForkAgentResult,
 	UniverseAgentGetHistoryRequest,
 	UniverseAgentGetHistoryResult,
 	UniverseAgentListSessionsRequest,
@@ -149,6 +151,8 @@ export interface IUniverseAgentGrpcTransport {
 
 	cancelSessionGoal(request: UniverseAgentCancelSessionGoalRequest): Promise<UniverseAgentCancelSessionGoalResult>;
 
+	forkAgent(request: UniverseAgentForkAgentRequest): Promise<UniverseAgentForkAgentResult>;
+
 	getHistory(request: UniverseAgentGetHistoryRequest): Promise<UniverseAgentGetHistoryResult>;
 
 	subscribeSessionEventStream(
@@ -257,6 +261,7 @@ export const UniverseAgentGrpcServices = {
 		ContinueGeneration: 'ContinueGeneration',
 		Rename: 'Rename',
 		Cancel: 'Cancel',
+		Fork: 'Fork',
 		Tree: 'Tree',
 		ListAgentProfiles: 'ListAgentProfiles',
 		SaveAgentProfile: 'SaveAgentProfile',

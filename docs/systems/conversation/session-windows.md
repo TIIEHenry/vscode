@@ -37,7 +37,7 @@ CONVERSATION_PART
 
 ## 3. chat catalog：root / fork / tool / sideChat
 
-`IConversationSessionChatService` 按 session 维护 `IConversationSessionChatEntry[]`（`chatId`、`title`、`originKind ∈ user | fork | tool | sideChat`、`parentChatId`），与协议 `ChatOrigin` 四 kind 对齐。stub 期 catalog 来自内存 fixture。引擎接通后 **GC-4**：roster 观察活动会话 lease 的 `liveAgentTree` 预同步非根 catalog（`chatId` ≡ `agent_id`，根不登记）。`Fork` RPC 与完整活会话权威仍依赖 PRD-008。
+`IConversationSessionChatService` 按 session 维护 `IConversationSessionChatEntry[]`（`chatId`、`title`、`originKind ∈ user | fork | tool | sideChat`、`parentChatId`），与协议 `ChatOrigin` 四 kind 对齐。stub 期 catalog 来自内存 fixture。引擎接通后 **GC-4**：roster 观察活动会话 lease 的 `liveAgentTree` 预同步非根 catalog（`chatId` ≡ `agent_id`，根不登记）。传输 `forkAgent?` **已进** `AgentService.Fork` catalog + node unary；用户 Fork tab 仍走本地 `registerForkChat`，完整活会话权威仍依赖 PRD-008。
 
 | 用户动作 | 服务调用 | 结果 |
 |----------|----------|------|

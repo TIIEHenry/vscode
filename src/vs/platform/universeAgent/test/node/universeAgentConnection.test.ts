@@ -23,6 +23,8 @@ import type {
 	UniverseAgentSetSessionGoalResult,
 	UniverseAgentCancelSessionGoalRequest,
 	UniverseAgentCancelSessionGoalResult,
+	UniverseAgentForkAgentRequest,
+	UniverseAgentForkAgentResult,
 	UniverseAgentGetHistoryRequest,
 	UniverseAgentGetHistoryResult,
 	UniverseAgentListSessionsRequest,
@@ -151,6 +153,14 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 	async cancelSessionGoal(request: UniverseAgentCancelSessionGoalRequest): Promise<UniverseAgentCancelSessionGoalResult> {
 		this.cancelGoalCalls.push(request);
 		return this.cancelGoalResult;
+	}
+
+	readonly forkCalls: UniverseAgentForkAgentRequest[] = [];
+	forkResult: UniverseAgentForkAgentResult = { ok: true, agentId: 'sub:reviewer' };
+
+	async forkAgent(request: UniverseAgentForkAgentRequest): Promise<UniverseAgentForkAgentResult> {
+		this.forkCalls.push(request);
+		return this.forkResult;
 	}
 
 	async getHistory(_request: UniverseAgentGetHistoryRequest): Promise<UniverseAgentGetHistoryResult> {
@@ -422,6 +432,11 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Permission.service, 'universeagent.session.v1.PermissionService');
 	});
 
+	test('UniverseAgentGrpcServices lists Agent.Fork', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.Fork, 'Fork');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+	});
+
 	test('renameSession forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
@@ -491,6 +506,24 @@ suite('UniverseAgentConnectionService', () => {
 		const failed = await service.cancelSessionGoal({ sessionId: 'sess-2' });
 		assert.deepStrictEqual(failed, { ok: false, message: 'no goal' });
 		assert.strictEqual(transport.cancelGoalCalls[1]?.sessionId, 'sess-2');
+		service.dispose();
+	});
+
+	test('forkAgent forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		const result = await service.forkAgent({ sessionId: 'sess-1', name: 'reviewer', task: 'Review the diff' });
+		assert.deepStrictEqual(transport.forkCalls, [{ sessionId: 'sess-1', name: 'reviewer', task: 'Review the diff' }]);
+		assert.deepStrictEqual(result, { ok: true, agentId: 'sub:reviewer' });
+
+		transport.forkResult = { ok: false };
+		const failed = await service.forkAgent({ sessionId: 'sess-2', parentAgentId: 'sub:a' });
+		assert.deepStrictEqual(failed, { ok: false });
+		assert.strictEqual(transport.forkCalls[1]?.parentAgentId, 'sub:a');
 		service.dispose();
 	});
 

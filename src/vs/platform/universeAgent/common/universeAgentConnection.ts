@@ -27,6 +27,8 @@ import type {
 	UniverseAgentSetSessionGoalResult,
 	UniverseAgentCancelSessionGoalRequest,
 	UniverseAgentCancelSessionGoalResult,
+	UniverseAgentForkAgentRequest,
+	UniverseAgentForkAgentResult,
 	UniverseAgentGetHistoryRequest,
 	UniverseAgentGetHistoryResult,
 	UniverseAgentListSessionsRequest,
@@ -173,6 +175,12 @@ export interface IUniverseAgentConnection {
 
 	/** PermissionService.CancelSessionGoal unary. Optional with `setSessionGoal`. */
 	cancelSessionGoal?(request: UniverseAgentCancelSessionGoalRequest): Promise<UniverseAgentCancelSessionGoalResult>;
+
+	/**
+	 * AgentService.Fork unary (create SubAgent). Optional so Web / tests can omit
+	 * until chat catalog forwards it. Not the user Fork tab (`registerForkChat`).
+	 */
+	forkAgent?(request: UniverseAgentForkAgentRequest): Promise<UniverseAgentForkAgentResult>;
 
 	getHistory(request: UniverseAgentGetHistoryRequest): Promise<UniverseAgentGetHistoryResult>;
 
