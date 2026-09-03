@@ -54,6 +54,7 @@ class InspectRenderer implements IListRenderer<IAgentInspectEntry, IInspectTempl
 
 	renderElement(entry: IAgentInspectEntry, _index: number, templateData: IInspectTemplateData): void {
 		templateData.label.textContent = entry.label;
+		templateData.label.title = entry.label;
 	}
 
 	disposeTemplate(): void {
@@ -68,6 +69,41 @@ class InspectAccessibilityProvider implements IListAccessibilityProvider<IAgentI
 
 	getAriaLabel(entry: IAgentInspectEntry): string {
 		return entry.label;
+	}
+}
+
+const INSPECT_TITLE = localize('agentInspectView.title', "Inspect");
+
+export function inspectTitleFromTarget(target: AgentInspectTarget | undefined): string {
+	if (!target) {
+		return INSPECT_TITLE;
+	}
+	switch (target.kind) {
+		case 'agent':
+			return localize('agentInspectView.titleAgent', "Inspect: {0}", target.node.name || target.node.agentId);
+		case 'member':
+			return localize('agentInspectView.titleMember', "Inspect: {0}", target.info.memberName);
+		case 'task':
+			return localize('agentInspectView.titleTask', "Inspect: {0}", target.task.subject || target.task.taskId);
+		case 'activity':
+			return localize('agentInspectView.titleActivity', "Inspect: {0}", target.item.toolName);
+	}
+}
+
+export function isInspectTargetStale(
+	target: AgentInspectTarget | undefined,
+	liveAgentIds: ReadonlySet<string> | undefined,
+): boolean {
+	if (!target || liveAgentIds === undefined) {
+		return false;
+	}
+	switch (target.kind) {
+		case 'agent':
+			return !liveAgentIds.has(target.node.agentId);
+		case 'member':
+			return !liveAgentIds.has(target.info.memberAgentId);
+		default:
+			return false;
 	}
 }
 
@@ -139,6 +175,7 @@ export class AgentInspectView extends ViewPane {
 	) {
 		super(options, keybindingService, contextMenuService, configurationService, contextKeyService, viewDescriptorService, instantiationService, openerService, themeService, hoverService);
 		this._register(this.inspectService.onDidChangeTarget(() => this.renderTarget()));
+		this._register(this.inspectService.onDidChangeLiveAgentIds(() => this.renderTarget()));
 	}
 
 	override shouldShowWelcome(): boolean {
@@ -149,6 +186,7 @@ export class AgentInspectView extends ViewPane {
 		super.renderBody(container);
 
 		this.staleNote = dom.append(container, $('.agent-inspect-stale-note'));
+		this.staleNote.textContent = localize('agentInspectView.staleTarget', "已不在当前树中");
 		this.staleNote.style.display = 'none';
 		this.listContainer = dom.append(container, $('.agent-inspect-list'));
 		this.ensureList();
@@ -157,6 +195,8 @@ export class AgentInspectView extends ViewPane {
 
 	protected override layoutBody(height: number, width: number): void {
 		super.layoutBody(height, width);
+		this.element.classList.toggle('is-narrow', width > 0 && width < 600);
+		this.element.classList.toggle('is-compact', width > 0 && width < 300);
 		this.list?.layout(height, width);
 	}
 
@@ -182,6 +222,11 @@ export class AgentInspectView extends ViewPane {
 
 	private renderTarget(): void {
 		const target = this.inspectService.getTarget();
+		this.updateTitle(inspectTitleFromTarget(target));
+		const stale = isInspectTargetStale(target, this.inspectService.getLiveAgentIds());
+		if (this.staleNote) {
+			this.staleNote.style.display = stale ? '' : 'none';
+		}
 		this.setEntries(entriesFromTarget(target));
 	}
 

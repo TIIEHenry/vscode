@@ -40,9 +40,11 @@ import {
 	formatAgentStatusLabel,
 	formatAgentTypeShort,
 	INavigatorAgentsHierarchyNode,
+	collectLiveAgentTreeAgentIds,
 	isRootOnlyAgentTree,
 	liveAgentTreeToHierarchyNodes,
 } from '../common/navigatorAgentHierarchy.js';
+import { getNavigatorAgentTreePendingCopy } from '../common/navigatorAgentTreeEmptyState.js';
 import { getNavigatorCapability } from '../common/navigatorEngineBridge.js';
 import { matchesNavigatorAgentsInlineFilter } from '../common/navigatorAgentsInlineFilter.js';
 import {
@@ -63,9 +65,11 @@ export type NavigatorAgentsSubview = 'hierarchy' | 'activity';
 
 export const NAVIGATOR_AGENTS_SHOW_HIERARCHY_COMMAND_ID = 'workbench.action.navigatorAgents.showHierarchy';
 export const NAVIGATOR_AGENTS_SHOW_ACTIVITY_COMMAND_ID = 'workbench.action.navigatorAgents.showActivity';
+export const NAVIGATOR_AGENTS_REFRESH_COMMAND_ID = 'workbench.action.navigatorAgents.refresh';
 
 export const NAVIGATOR_AGENTS_SUBVIEW_HIERARCHY_KEY = new RawContextKey<boolean>('navigatorAgentsSubview.hierarchy', true);
 export const NAVIGATOR_AGENTS_SUBVIEW_ACTIVITY_KEY = new RawContextKey<boolean>('navigatorAgentsSubview.activity', false);
+export const UA_ENGINE_CONNECTED_KEY = new RawContextKey<boolean>('ua.engineConnected', false);
 
 class AgentsHierarchyDelegate implements IListVirtualDelegate<INavigatorAgentsHierarchyNode> {
 	getHeight(): number {
@@ -158,6 +162,7 @@ export class NavigatorAgentsView extends ViewPane {
 	private subview: NavigatorAgentsSubview = 'hierarchy';
 	private readonly hierarchyContextKey: IContextKey<boolean>;
 	private readonly activityContextKey: IContextKey<boolean>;
+	private readonly engineConnectedContextKey: IContextKey<boolean>;
 	private readonly leaseHolder: NavigatorSessionLeaseHolder;
 
 	private filterBox: NavigatorAgentsInlineFilterBox | undefined;
@@ -201,15 +206,23 @@ export class NavigatorAgentsView extends ViewPane {
 
 		this.hierarchyContextKey = NAVIGATOR_AGENTS_SUBVIEW_HIERARCHY_KEY.bindTo(this.scopedContextKeyService);
 		this.activityContextKey = NAVIGATOR_AGENTS_SUBVIEW_ACTIVITY_KEY.bindTo(this.scopedContextKeyService);
+		this.engineConnectedContextKey = UA_ENGINE_CONNECTED_KEY.bindTo(this.scopedContextKeyService);
 		this.leaseHolder = this._register(new NavigatorSessionLeaseHolder(this.rosterService, () => this.refreshFromLease()));
-		this._register(this.rosterService.onDidChangeEngineConnection(() => this.refreshFromLease()));
+		this._register(this.rosterService.onDidChangeEngineConnection(() => {
+			this.updateEngineConnectedContextKey();
+			this.refreshFromLease();
+		}));
 		this._register(this.rosterService.onDidChangeActiveSession(() => this.refreshFromLease()));
 		this.updateSubviewContextKeys();
+		this.updateEngineConnectedContextKey();
 	}
 
 	override setVisible(visible: boolean): void {
 		super.setVisible(visible);
 		this.leaseHolder.setVisible(visible);
+		if (!visible) {
+			this.inspectService.setLiveAgentIds('agents', undefined);
+		}
 	}
 
 	getActiveSubview(): NavigatorAgentsSubview {
@@ -232,6 +245,18 @@ export class NavigatorAgentsView extends ViewPane {
 		this.subview = 'activity';
 		this.updateSubviewContextKeys();
 		this.updateSubviewVisibility();
+	}
+
+	refreshAgentTree(): void {
+		const sessionId = this.rosterService.getActiveSessionId();
+		if (this.rosterService.isEngineConnected() && sessionId) {
+			this.uaConnection.requestAgentTreeRefresh(sessionId);
+		}
+		this.refreshFromLease();
+	}
+
+	private updateEngineConnectedContextKey(): void {
+		this.engineConnectedContextKey.set(this.rosterService.isEngineConnected());
 	}
 
 	protected override renderBody(container: HTMLElement): void {
@@ -354,12 +379,14 @@ export class NavigatorAgentsView extends ViewPane {
 		this.lastLiveAgentTree = liveTree;
 
 		if (!engineConnected) {
+			this.inspectService.setLiveAgentIds('agents', undefined);
 			this.setHierarchyState([], localize('navigatorAgentsHierarchy.empty', "No agents — no engine."));
 			this.setActivityState([], localize('navigatorAgentsActivity.empty', "No tool activity — no engine."));
 			return;
 		}
 
 		if (!this.rosterService.getActiveSessionId()) {
+			this.inspectService.setLiveAgentIds('agents', undefined);
 			this.setHierarchyState([], localize('navigatorAgentsHierarchy.noSession', "当前没有会话"));
 			this.setActivityState([], localize('navigatorAgentsActivity.emptyConnected', "No tool activity yet."));
 			return;
@@ -369,22 +396,28 @@ export class NavigatorAgentsView extends ViewPane {
 		const transportFailed = this.uaConnection.getConnectionSnapshot().transport === 'failed';
 
 		if (agentTreeCapability === 'UNSUPPORTED') {
+			this.inspectService.setLiveAgentIds('agents', undefined);
 			this.setHierarchyState([], localize('navigatorAgentsHierarchy.unsupported', "当前引擎不提供 Agent 树"));
 			this.setActivityFromSnapshot(snapshot, lease?.attribution);
 			return;
 		}
 
 		if (transportFailed && !liveTree) {
+			this.inspectService.setLiveAgentIds('agents', undefined);
 			this.setHierarchyState([], localize('navigatorAgentsHierarchy.transportFailed', "连接失败"));
 			this.setActivityFromSnapshot(snapshot, lease?.attribution);
 			return;
 		}
 
-		if (!liveTree) {
-			this.setHierarchyState([], localize('navigatorAgentsHierarchy.loading', "正在读取 Agent 树…"));
+		const pendingCopy = getNavigatorAgentTreePendingCopy(agentTreeCapability, liveTree);
+		if (pendingCopy) {
+			this.inspectService.setLiveAgentIds('agents', undefined);
+			this.setHierarchyState([], pendingCopy);
 			this.setActivityFromSnapshot(snapshot, lease?.attribution);
 			return;
 		}
+
+		this.inspectService.setLiveAgentIds('agents', collectLiveAgentTreeAgentIds(liveTree!));
 
 		if (transportFailed) {
 			this.setHierarchyNote(localize('navigatorAgentsHierarchy.staleSnapshot', "显示为断开前快照"));
@@ -392,7 +425,7 @@ export class NavigatorAgentsView extends ViewPane {
 			this.setHierarchyNote(undefined);
 		}
 
-		const rootNode = liveAgentTreeToHierarchyNodes(liveTree);
+		const rootNode = liveAgentTreeToHierarchyNodes(liveTree!);
 		if (isRootOnlyAgentTree(liveTree)) {
 			this.setHierarchyState([rootNode], undefined, localize('navigatorAgentsHierarchy.rootOnly', "只有根 Agent"));
 		} else {
@@ -639,6 +672,28 @@ registerAction2(class NavigatorAgentsShowActivityAction extends ViewAction<Navig
 
 	override runInView(_accessor: ServicesAccessor, view: NavigatorAgentsView): void {
 		view.showActivity();
+	}
+});
+
+registerAction2(class NavigatorAgentsRefreshAction extends ViewAction<NavigatorAgentsView> {
+	constructor() {
+		super({
+			id: NAVIGATOR_AGENTS_REFRESH_COMMAND_ID,
+			viewId: NAVIGATOR_AGENTS_VIEW_ID,
+			title: localize2('navigatorAgentsView.refresh', "Refresh"),
+			icon: Codicon.refresh,
+			precondition: UA_ENGINE_CONNECTED_KEY,
+			menu: {
+				id: MenuId.ViewTitle,
+				group: 'navigation',
+				order: 0,
+				when: ContextKeyExpr.equals('view', NAVIGATOR_AGENTS_VIEW_ID),
+			},
+		});
+	}
+
+	override runInView(_accessor: ServicesAccessor, view: NavigatorAgentsView): void {
+		view.refreshAgentTree();
 	}
 });
 

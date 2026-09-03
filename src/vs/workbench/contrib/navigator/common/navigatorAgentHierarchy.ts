@@ -70,3 +70,37 @@ export function isRootOnlyAgentTree(tree: LiveAgentTreeNodeView | undefined): bo
 	return tree.children.length === 0;
 }
 
+export function findLiveAgentNode(
+	tree: LiveAgentTreeNodeView | undefined,
+	agentId: string,
+): LiveAgentTreeNodeView | undefined {
+	if (!tree) {
+		return undefined;
+	}
+	if (tree.agentId === agentId) {
+		return tree;
+	}
+	for (const child of tree.children) {
+		const found = findLiveAgentNode(child, agentId);
+		if (found) {
+			return found;
+		}
+	}
+	return undefined;
+}
+
+export function collectLiveAgentTreeAgentIds(tree: LiveAgentTreeNodeView | undefined): ReadonlySet<string> | undefined {
+	if (!tree) {
+		return undefined;
+	}
+	const ids = new Set<string>();
+	const visit = (node: LiveAgentTreeNodeView): void => {
+		ids.add(node.agentId);
+		for (const child of node.children) {
+			visit(child);
+		}
+	};
+	visit(tree);
+	return ids;
+}
+

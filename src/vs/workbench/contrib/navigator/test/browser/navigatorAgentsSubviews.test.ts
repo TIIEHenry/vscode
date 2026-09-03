@@ -24,8 +24,10 @@ import '../../browser/navigator.contribution.js';
 import {
 	NAVIGATOR_AGENTS_SHOW_ACTIVITY_COMMAND_ID,
 	NAVIGATOR_AGENTS_SHOW_HIERARCHY_COMMAND_ID,
+	NAVIGATOR_AGENTS_REFRESH_COMMAND_ID,
 	NAVIGATOR_AGENTS_VIEW_ID,
 	NavigatorAgentsView,
+	UA_ENGINE_CONNECTED_KEY,
 } from '../../browser/navigatorAgentsView.js';
 
 suite('Navigator Agents subviews', () => {
@@ -122,15 +124,118 @@ suite('Navigator Agents subviews', () => {
 		await new Promise<void>(resolve => setTimeout(resolve, 0));
 	}
 
-	test('ViewTitle registers Hierarchy, Activity, and Inspect actions for Agents', () => {
+	test('ViewTitle registers Hierarchy, Activity, Refresh, and Inspect actions for Agents', () => {
 		const viewTitleItems = MenuRegistry.getMenuItems(MenuId.ViewTitle).filter(isIMenuItem);
 		const hierarchyItem = viewTitleItems.find(item => item.command.id === NAVIGATOR_AGENTS_SHOW_HIERARCHY_COMMAND_ID);
 		const activityItem = viewTitleItems.find(item => item.command.id === NAVIGATOR_AGENTS_SHOW_ACTIVITY_COMMAND_ID);
+		const refreshItem = viewTitleItems.find(item => item.command.id === NAVIGATOR_AGENTS_REFRESH_COMMAND_ID);
 		const inspectItem = viewTitleItems.find(item => item.command.id === OPEN_NAVIGATOR_AGENTS_INSPECT_COMMAND_ID);
 
 		assert.ok(hierarchyItem, 'Agents ViewTitle must expose Hierarchy');
 		assert.ok(activityItem, 'Agents ViewTitle must expose Activity');
+		assert.ok(refreshItem, 'Agents ViewTitle must expose Refresh');
 		assert.ok(inspectItem, 'Agents ViewTitle must still expose Inspect');
+	});
+
+	test('Refresh asks the connection to reload the live agent tree', () => {
+		let refreshedSessionId: string | undefined;
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		const roster = store.add(new ConversationStubService());
+		roster.setEngineConnected(true);
+		instantiationService.stub(IConversationRosterService, roster);
+		instantiationService.stub(IAgentInspectService, store.add(instantiationService.createInstance(AgentInspectService)) as IAgentInspectService);
+		instantiationService.stub(ICommandService, { executeCommand: async () => undefined });
+		instantiationService.stub(IUniverseAgentConnection, createNavigatorConnectionTestStub({
+			requestAgentTreeRefresh: sessionId => {
+				refreshedSessionId = sessionId;
+			},
+		}));
+		const stubViewContainer = {
+			id: 'navigator-agents-test-container',
+			title: { value: 'Agents', original: 'Agents' },
+		} as ViewContainer;
+		instantiationService.stub(IViewDescriptorService, {
+			onDidChangeLocation: Event.None,
+			getViewLocationById(_id: string): ViewContainerLocation {
+				return ViewContainerLocation.Sidebar;
+			},
+			getViewDescriptorById(_id: string): null {
+				return null;
+			},
+			getViewContainerByViewId(_id: string): ViewContainer | null {
+				return stubViewContainer;
+			},
+			getViewContainerModel(_viewContainer: ViewContainer): IViewContainerModel {
+				return {
+					title: stubViewContainer.title.value,
+					onDidChangeContainerInfo: Event.None,
+				} as IViewContainerModel;
+			},
+			getDefaultContainerById(_id: string): ViewContainer | null {
+				return stubViewContainer;
+			},
+		});
+		const view = store.add(instantiationService.createInstance(NavigatorAgentsView, {
+			id: NAVIGATOR_AGENTS_VIEW_ID,
+			title: 'Agents',
+		}));
+		view.render();
+		document.createElement('div').appendChild(view.element);
+		view.setExpanded(true);
+		view.setVisible(true);
+		view.refreshAgentTree();
+		assert.strictEqual(refreshedSessionId, roster.getActiveSessionId());
+	});
+
+	test('Refresh is unavailable when engine is disconnected', () => {
+		let refreshCalls = 0;
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		const roster = store.add(new ConversationStubService());
+		roster.setEngineConnected(false);
+		instantiationService.stub(IConversationRosterService, roster);
+		instantiationService.stub(IAgentInspectService, store.add(instantiationService.createInstance(AgentInspectService)) as IAgentInspectService);
+		instantiationService.stub(ICommandService, { executeCommand: async () => undefined });
+		instantiationService.stub(IUniverseAgentConnection, createNavigatorConnectionTestStub({
+			requestAgentTreeRefresh: () => {
+				refreshCalls++;
+			},
+		}));
+		const stubViewContainer = {
+			id: 'navigator-agents-test-container',
+			title: { value: 'Agents', original: 'Agents' },
+		} as ViewContainer;
+		instantiationService.stub(IViewDescriptorService, {
+			onDidChangeLocation: Event.None,
+			getViewLocationById(_id: string): ViewContainerLocation {
+				return ViewContainerLocation.Sidebar;
+			},
+			getViewDescriptorById(_id: string): null {
+				return null;
+			},
+			getViewContainerByViewId(_id: string): ViewContainer | null {
+				return stubViewContainer;
+			},
+			getViewContainerModel(_viewContainer: ViewContainer): IViewContainerModel {
+				return {
+					title: stubViewContainer.title.value,
+					onDidChangeContainerInfo: Event.None,
+				} as IViewContainerModel;
+			},
+			getDefaultContainerById(_id: string): ViewContainer | null {
+				return stubViewContainer;
+			},
+		});
+		const view = store.add(instantiationService.createInstance(NavigatorAgentsView, {
+			id: NAVIGATOR_AGENTS_VIEW_ID,
+			title: 'Agents',
+		}));
+		view.render();
+		document.createElement('div').appendChild(view.element);
+		view.setExpanded(true);
+		view.setVisible(true);
+		assert.strictEqual(UA_ENGINE_CONNECTED_KEY.getValue(view['scopedContextKeyService']), false);
+		view.refreshAgentTree();
+		assert.strictEqual(refreshCalls, 0);
 	});
 
 	test('defaults to Hierarchy subview with honest empty state', () => {

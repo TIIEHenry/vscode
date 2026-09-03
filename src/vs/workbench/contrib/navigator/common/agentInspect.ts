@@ -17,9 +17,14 @@ export type AgentInspectTarget =
 	| { readonly kind: 'task'; readonly task: INavigatorTeamTaskInfo }
 	| { readonly kind: 'activity'; readonly item: INavigatorAgentsActivityItem };
 
+export type AgentInspectLiveAgentIdSource = 'agents' | 'team';
+
 export interface IAgentInspectService {
 	readonly _serviceBrand: undefined;
 	readonly onDidChangeTarget: Event<AgentInspectTarget | undefined>;
+	readonly onDidChangeLiveAgentIds: Event<void>;
 	getTarget(): AgentInspectTarget | undefined;
 	setTarget(target: AgentInspectTarget | undefined): void;
+	setLiveAgentIds(source: AgentInspectLiveAgentIdSource, ids: ReadonlySet<string> | undefined): void;
+	getLiveAgentIds(): ReadonlySet<string> | undefined;
 }

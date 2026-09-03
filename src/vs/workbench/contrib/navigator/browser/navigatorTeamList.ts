@@ -31,9 +31,11 @@ import { getNavigatorCapability } from '../common/navigatorEngineBridge.js';
 import { matchesNavigatorTeamInlineFilter } from '../common/navigatorTeamInlineFilter.js';
 import {
 	findManagerNodes,
+	getTeamTreeEmptyCopy,
 	INavigatorTeamMemberEntry,
 	INavigatorTeamTaskEntry,
 } from '../common/navigatorTeamData.js';
+import { collectLiveAgentTreeAgentIds } from '../common/navigatorAgentHierarchy.js';
 import {
 	AGENT_INSPECT_VIEW_ID,
 	OPEN_NAVIGATOR_TEAM_INSPECT_COMMAND_ID,
@@ -209,6 +211,9 @@ export class NavigatorTeamView extends ViewPane {
 	override setVisible(visible: boolean): void {
 		super.setVisible(visible);
 		this.leaseHolder.setVisible(visible);
+		if (!visible) {
+			this.inspectService.setLiveAgentIds('team', undefined);
+		}
 	}
 
 	getActiveSubview(): NavigatorTeamSubview {
@@ -347,6 +352,7 @@ export class NavigatorTeamView extends ViewPane {
 
 	private async refreshTeamData(): Promise<void> {
 		if (!this.rosterService.isEngineConnected()) {
+			this.inspectService.setLiveAgentIds('team', undefined);
 			this.setMemberEntries([], TEAM_MEMBERS_NO_ENGINE);
 			this.setTaskEntries([], TEAM_TASKS_NO_ENGINE);
 			return;
@@ -356,19 +362,17 @@ export class NavigatorTeamView extends ViewPane {
 		const liveTree = lease?.snapshot.liveAgentTree;
 		const agentTreeCapability = getNavigatorCapability(this.uaConnection, 'agentTree');
 
-		if (agentTreeCapability === 'UNSUPPORTED') {
-			const msg = localize('navigatorTeam.noAgentTree', "当前引擎不提供 Agent 树，无法列出团队");
-			this.setMemberEntries([], msg);
-			this.setTaskEntries([], msg);
+		const treeEmpty = getTeamTreeEmptyCopy(agentTreeCapability, liveTree);
+		if (treeEmpty) {
+			this.inspectService.setLiveAgentIds('team', undefined);
+			this.setMemberEntries([], treeEmpty);
+			this.setTaskEntries([], treeEmpty);
 			return;
 		}
 
-		const managers = findManagerNodes(liveTree);
-		if (managers.length === 0) {
-			this.setMemberEntries([], localize('navigatorTeam.noTeam', "当前会话没有团队"));
-			this.setTaskEntries([], localize('navigatorTeam.noTeam', "当前会话没有团队"));
-			return;
-		}
+		this.inspectService.setLiveAgentIds('team', collectLiveAgentTreeAgentIds(liveTree!));
+
+		const managers = findManagerNodes(liveTree!);
 
 		const teamCapability = getNavigatorCapability(this.uaConnection, 'team');
 		if (teamCapability === 'UNSUPPORTED') {
