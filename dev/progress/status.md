@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-04
-summary: "Chat onClosed；D16 进口界扫 src；ContinueGeneration 进 gRPC"
+summary: "Chat onClosed；D16 进口界+deleteTurn；ContinueGeneration 进 gRPC"
 ---
 
 # Development Progress
@@ -13,8 +13,8 @@ summary: "Chat onClosed；D16 进口界扫 src；ContinueGeneration 进 gRPC"
 
 - **槽 A / `loop/A`：** Chat remote/error → `chatStreamDown`；EventStream remote/error → `streamClosed`。
 - **槽 B / `loop/B`：** 桩补 `onClosed`；D16 进口界改扫 `src/`。
-- **槽 C / `loop/C`：** ContinueGeneration 进 gRPC catalog + node `openContinuationStream`；宿主 `onClosed` 只拆句柄，不折 `streamClosed`。
-- **槽 D / `loop/D`：** engine-catalog 九节诚实回填。
+- **槽 C / `loop/C`：** ContinueGeneration 进 gRPC catalog + node `openContinuationStream`。
+- **槽 D / `loop/D`：** engine-catalog 诚实回填；D16 stub `deleteTurn` 改走 `createSession()`。
 
 ## 槽位（与 `git worktree list` 对照）
 
@@ -24,7 +24,7 @@ summary: "Chat onClosed；D16 进口界扫 src；ContinueGeneration 进 gRPC"
 | A | `vscode-WorkTrees/A` | `loop/A` | Chat `chatStreamDown` + EventStream `streamClosed` |
 | B | `vscode-WorkTrees/B` | `loop/B` | 桩 `onClosed` + D16 进口界扫 src |
 | C | `vscode-WorkTrees/C` | `loop/C` | ContinueGeneration 进 gRPC catalog |
-| D | `vscode-WorkTrees/D` | `loop/D` | engine-catalog 九节诚实回填 |
+| D | `vscode-WorkTrees/D` | `loop/D` | engine-catalog 回填 + stub deleteTurn |
 | edit | `Projects/Agents/vscode` | `agent-ide` | 请自行对齐 |
 
 ## Blockers
