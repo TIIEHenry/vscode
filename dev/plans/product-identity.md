@@ -3,8 +3,8 @@ title: "UniverseAgentStudio 产品身份方案"
 type: plan
 status: accepted
 phase: M7
-updated: 2026-09-02
-summary: "落实 PRD-010：窗口名称、应用标识、数据目录、协议与跨平台图标统一为 UniverseAgentStudio；用户 2026-09-02 裁定以 Singular/logo/singularity.svg（Singularity 标识）为唯一品牌源，I3 解除阻塞"
+updated: 2026-09-03
+summary: "I2–I5 / I3a / I3b 代码已落；I6 Darwin/Appx 发行标识等发布方；D18 安装包未验；方案仍 accepted"
 ---
 
 # UniverseAgentStudio 产品身份方案

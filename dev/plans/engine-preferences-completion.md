@@ -3,8 +3,8 @@ title: "Engine Preferences UI 完成方案"
 type: plan
 status: accepted
 phase: M7
-updated: 2026-09-02
-summary: "把 ua.engine 从四段纵向列表补成完整的 Overview、Provider & Model、Skills、Agents、Rules、Hooks、MCP、Plugins、Tools 九节；Model 走 ConfigService.ListModels 只读注册表，Provider/Rules/Hooks/Agent model.json 在引擎补 RPC 前保持 unsupported 完整态；MCP 运行态与 Plugins 依赖 P1a；Connection 面的 Web 省略与窄宽度也归本方案（A 槽）"
+updated: 2026-09-03
+summary: "E2-1–E2-7 代码已落：九节六态、Model 只读注册表、Web 按 phase/capability 省略桌面控件、窄宽度；Provider/Rules/Hooks 仍 unsupported；产品验证未做，方案仍 accepted"
 ---
 
 # Engine Preferences UI 完成方案

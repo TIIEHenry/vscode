@@ -4,7 +4,7 @@ type: reference
 status: accepted
 phase: N/A
 updated: 2026-09-03
-summary: "混合宿主已落；Client 9 键闭集已注册；CS-6 代码完成线已落（非法 enum 回默认、已删键迁移、七组无 emptyCopy）；PRD-026 仍 accepted，待 §6 产品验证"
+summary: "混合宿主已落；Client 9 键与 Engine E2-1–E2-7 代码完成线已落；PRD-025/026 仍 accepted，待产品验证"
 ---
 
 # Settings 接入：UA 设置项如何挂进 vscode Preferences
@@ -52,7 +52,7 @@ Desktop：Overlay `OverlayKind.settings`；齿轮在 AppTabBar；StatusBar profi
 | Connection | Profile 列表、host/port/TLS、Test Connection | Settings TOC **链接行**（`SettingsTreeNavigationLinkElement`，`navigationLinks[]` in `tocData`）→ command `workbench.action.openConnectionPreferences` → 关 Client 模态 → `openPreferences({ paneId: 'ua.connection' })`。**禁止**普通 setting key；**禁止** settings 树内非 setting 自定义 renderer | 切片占位 = 内存 UI（`ConnectionPreferencesPane`）；引擎 adapter 后经 UA；本仓无第二套 |
 | Engine | Provider / Model / Skill catalog / Agent Profile / Rules / Hooks / MCP 定义 / 引擎工具 | Settings TOC **链接行** → `openPreferences({ paneId: 'ua.engine' })`。catalog 产品面见 [settings-two-surfaces.md](../../../dev/plans/settings-two-surfaces.md)。**允许进 `IConfigurationRegistry` 的 Engine 键 = 空集 `[]`** | 引擎侧，非第二套会话真相 |
 
-**HEAD 与 M7：** `registerUaClientSettings()` 已注册九键（均为 `WINDOW`），含 `ua.client.clientTools.showToolInvocationDetails`（过程折全部 tool 行 payload 显隐；不改变 Engine 工具是否可用）。未注册已删键 `advertiseWorkspaceTools` / `showAgentIdentity` / `confirmBeforeExternalOpen` / `openConversation`。CS-6 **代码完成线**已落：`IConfigurationMigrationRegistry` 把非法 `conversationDensity` / `keyboardEnter.behavior` 回默认，并把上述已删键从 settings.json 清掉；七组有真实键后不再渲染 `SettingsTreeEmptyCopyElement`；搜索走 `SettingsEditor2`（description / enum / keywords）。§6 产品验证（重载、草稿不进 Sync、两种 Enter、通知语义、300px 目视）未做，**PRD-026 仍为 `accepted`，不升 `implemented`**。由 [PRD-025](../../product/requirements.md#prd-025-engine-设置完整性) / [engine-preferences-completion](../../../dev/plans/engine-preferences-completion.md) 补 Engine 九节与全状态矩阵。
+**HEAD 与 M7：** `registerUaClientSettings()` 已注册九键（均为 `WINDOW`），含 `ua.client.clientTools.showToolInvocationDetails`（过程折全部 tool 行 payload 显隐；不改变 Engine 工具是否可用）。未注册已删键 `advertiseWorkspaceTools` / `showAgentIdentity` / `confirmBeforeExternalOpen` / `openConversation`。CS-6 **代码完成线**已落：`IConfigurationMigrationRegistry` 把非法 `conversationDensity` / `keyboardEnter.behavior` 回默认，并把上述已删键从 settings.json 清掉；七组有真实键后不再渲染 `SettingsTreeEmptyCopyElement`；搜索走 `SettingsEditor2`（description / enum / keywords）。§6 产品验证（重载、草稿不进 Sync、两种 Enter、通知语义、300px 目视）未做，**PRD-026 仍为 `accepted`，不升 `implemented`**。[PRD-025](../../product/requirements.md#prd-025-engine-设置完整性) / [engine-preferences-completion](../../../dev/plans/engine-preferences-completion.md) 的 E2-1–E2-7 九节六态 **代码已落**，产品验证未做。
 
 **TOC 链接允许族（签收形态 A，钉死）：** HEAD 新增 `SettingsTreeNavigationLinkElement`（`settingsTreeModels.ts` / `SettingNavigationLinkRenderer` in `settingsTree.ts`）——仅 `label` + `commandId`，零内嵌控件。Connection / Engine / Customizations「Open …」三行同族。走 group 级 `ITOCEntry.command` 备选 **须人类回签**。
 

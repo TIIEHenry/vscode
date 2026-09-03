@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-03
-summary: "P2/P3 延期缺口 SSOT；M7 D17 验证债；D18 I3b 打包未验；D19 L1 源码残留；D20 CS-6 Settings 300px 目视；D12/D15/D16 不冻结 UI 主线"
+summary: "延期缺口 SSOT；D15 前置 P0+E2-1 已落只欠 W1 冒烟；D17–D20 / D8 / D9 / D12 / D16 不冻结 UI 主线"
 ---
 
 # Deferred Gaps
@@ -29,7 +29,7 @@ summary: "P2/P3 延期缺口 SSOT；M7 D17 验证债；D18 I3b 打包未验；D1
 | D11 | P3 | **证据目录与索引卫生**：未跟踪 `d4-evidence/82582fe8`、`d4-evidence/rerun-2221`；`plans/INDEX.md` 指向不存在的 `dev/roadmap/` | 首轮验收产物未收编；roadmap 目录从未建立 | 两目录补 README 收编或删除，`git status` 干净；INDEX 改指 `status.md` Next 段；`check-docs-health` 0 warning | docs | closed |
 | D13 | P2 | **PRD-017 本地会话持久化**（`accepted` @2026-09-02） | 落点已裁定：`StorageScope.WORKSPACE` + `StorageTarget.MACHINE`；引擎接通后不迁移，本地只存 stub 会话 + UA 断连快照缓存并标 `source` | S3 合入后作为独立切片（同工位串行）：重启后会话列表 / 当前会话 / 回合 / 权限记录一致；session 窗口布局恢复；无引擎无「已同步」文案；单测 + D4 式隔离 profile 重启验收 | M6 | closed |
 | D14 | P3 | **PRD-018 第一阶段**：四钮默认键位 + F6 Part 焦点循环 | 键位选定属 M6-B 后续；本行不代表全部 chat tab / dialog / seat ARIA 已完成 | 四 toggle 命令可见且不冲突；F6 循环已落；其余可达性转 [M7 a11y/RWD](../plans/accessibility-responsive-ui.md) | M6+ | closed |
-| D15 | P3 | **PRD-019 Web 冒烟**（`accepted` @2026-09-02）：验证义务，非新功能 | 尚无 Web 冒烟证据。**2026-09-02 审查发现前置缺口：** `IUniverseAgentConnection` / `IUniverseAgentSessionView` 只在 `workbench.desktop.main.ts` 注册，`workbench.web.main.ts` 无对应行、无 `platform/universeAgent/browser/`；`IUniverseAgentHubService` 的 electron-browser 注册经 `connectionHub.contribution.ts` 静态 import 进 common 链；`contrib/conversation` / `navigator` / `sources` 生产文件注入这些服务 → Web 今天产品 contrib 在创建时抛错（壳仍在）。由 [M7 P0](../plans/m7-ui-completion-wave.md) 补三服务 browser 诚实实现、Engine E2-1 省略桌面控件后本行才可跑 | M7 P0 + E2-1 合入后：`scripts/code-web.sh`（或 `server` 入口）启动 → D4 式 V1–V3 断言通过；`IUniverseAgentConnection` 在 Web 报 `disconnected`、不画连接控件；证据目录 `d15-evidence/` | M7 | open |
+| D15 | P3 | **PRD-019 Web 冒烟**（`accepted` @2026-09-02）：验证义务，非新功能 | P0 browser 三服务与 E2-1 Web 省略桌面控件 **代码已落**；用户裁定先不复杂测试，W1 不当主线。尚无 `d15-evidence/` | `scripts/code-web.sh`（或 `server` 入口）启动 → D4 式 V1–V3 断言通过；`IUniverseAgentConnection` 在 Web 报 `disconnected`、不画连接控件；证据目录 `d15-evidence/` | M7 | open |
 | D16 | P2 | **conversation 单测基线红**：`conversationLens.test.ts` 11 个失败（DOM 高度 0 / codicon 选择器 / 种子会话数 `1 !== 2` 等）、`conversationIdentityStrip.test.ts` 1 个、`conversationStubService.test.ts` 3 个（假定种子会话为空，实际 `untitled` 有 7 条 fixture），在 **不含** stream-timeline S1 改动的 HEAD `0649602d` 上同样失败；另 `conversationImportBoundaries.test.ts` 用 `__dirname` 指向 `out/` 扫 `.ts`，疑似空扫假绿（`universeAgentImportBoundaries.test.ts` 已改用 `FileAccess` + 扫描计数断言，可参照） | 2026-09-02 S1 实施时发现；已顺手修两处启动级问题（Lens 夹具缺 `registerPart`/`isVisible` → `TestLayoutService`；`getVisibleTimelineIndices` 对 `lastVisibleElement` 越界防御），剩余为断言级过时 | 逐条分类：过时断言改测 / 产品 bug 修码；stream-timeline S2 退出条件「Lens 全绿」以本行闭合为前提，或改为「S2 不新增失败」 | M6 / conversation | open |
 | D17 | P2 | **M7 非阻塞验证债总账**：单测、E2E、视觉、a11y、性能与缺失 Engine/Hub/Web 证据 | 用户裁定测试不阻塞 UI 开发；若每条红测都成为 blocker，会再次冻结不冲突 UI 槽 | 每项记录首次 SHA、场景、baseline/新增、owner、关闭证据；普通失败不进 `status` Blockers，只阻止对应 PRD/plan 升 `implemented` | M7 verification | open |
 | D18 | P2 | **I3b 三平台安装包未验**：hicolor 已进 deb/rpm gulp+spec，`electron.ts` 已改公司名/HelpBook；未跑 prepare-deb/rpm、snapcraft、Inno、darwin 打包 | 委派先不复杂测试；本机缺 fakeroot/rpmbuild/Inno/macOS | V 槽确认八档 hicolor 进包，Win/mac 检查 ico/bmp/icns 与 exe/plist 元数据 | product / packaging | open |

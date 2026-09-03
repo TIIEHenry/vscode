@@ -3,38 +3,51 @@ title: "Development Progress"
 type: progress
 status: active
 phase: M7
-updated: 2026-09-02
-summary: "loop/merge 已合入 M7 代码与 accepted 方案；P/A/B/C 主线切片已落（含 CS-1–CS-6、E2-1 Web 省略收口）；PRD-026 仍 accepted；D17–D20 / W1 旁路"
+updated: 2026-09-03
+summary: "关仓 P0–P7：本地 MERGE_SHA 5c53e8ba，字母槽 idle；origin 推送被 SSH 拒绝，merge 未 parked；W1/I6/D17–D20 旁路；PRD 仍 accepted"
 ---
 
 # Development Progress
 
 ## Current Session
 
-- **集成 HEAD：** `loop/merge` 已并入 `agent-ide` 的 M7 accepted 方案（`b772de6f`）与字母槽实现。推送后以本合并提交为准。
-- **M6 代码事实：** A1/A2、page-access B、trajectory D、stream-timeline S1–S6、Hub H0–H5、Navigator N1–N4、Sources Review R1–R4b、Diff F1–F3/F5 均已落；Engine E1 已有 Skills/Agents/MCP Definitions/Tools 读写主体。
-- **未验证不等于未开发：** PRD-008、Diff F4、Navigator N5、Review R5、Hub H4a、Web D15 仍缺证据；它们进入 V 槽，不再冻结 UI 主线。
-- **M7 产品裁定：** 测试失败不阻塞后续 UI 切片；数据损坏、权限绕过、secret 泄漏为全局硬门；无法编译/启动与分层破坏只阻塞该**冲突域**合入（与 [health-gates](health-gates.md) 一致）。新失败统一记 [D17](deferred-gaps.md)；I3b 安装包未验记 [D18](deferred-gaps.md)。
-- **M7 方案：** 六份子方案 **2026-09-02 升 `accepted`**（规则 16 四轮，见各方案文末）。
-- **本波已落代码（loop/merge）：** P0 Web 三服务断连；P1a MCP 运行态/Plugins 真探测；P1b `listModels` + `providerConfig` 固定 unsupported；P2a DetailRef `requestDetail`；P2b L2 compacted 归因投影；Q2 接通 Detail 六态 + stub/engine `requestDetail`；Q3 compacted 只消费 attribution、零伪造；Q4 live 过程折按 `fold:${firstId}` 保留展开；Q5a 四 kind 不再洗白 + 独立提问座位；Q5b 键盘 Escape 分层 + Accessible View；Q6 叶宽打 `.is-narrow` / `.is-compact` + 300px 保住输入/Back/reveal；E2-1 废止 hide-on-disconnect + 六态 + Web 省略桌面控件；E2-2 Model 只读注册表 + Provider 零输入；E2-4/E2-5 Runtime/Plugins 接真方法；E2-6 四节迁入保持选中/dirty + Agents Model unsupported；E2-7 窄宽度 `.is-narrow` + 跨面断连文案对齐；I2 userData `universe-agent-studio-dev`；I3a 品牌源与生成；I3b deb/rpm hicolor + electron 元数据；I4 点名路径去 Code - OSS；I5 从 code-oss-dev 迁 settings/keybindings/snippets；K1 四钮键位与 Keyboard Shortcuts 已对齐；K2 Sources Review 三命令接到选中行；CS-1…CS-6 Client Settings 九键 + 迁移 + 七组无 emptyCopy（PRD-026 仍 `accepted`）；T1 `ua-common.css` 高对比度 token + `.ua-motion`；L1 §9 源码复核见 [a11y-rwd-l1.md](a11y-rwd-l1.md)。
-- **未完：** W1 Web 冒烟不挡主线；I6 发行标识等发布方；D19 余项（无动画节点 / Preferences HC / Connection 不造 Back）；Settings 300px 目视见 [D20](deferred-gaps.md)。 E2-1 Web 省略已按 phase/capability 收口。
+- **关仓（人类明文「收尾」）：** P0–P7 已跑。本地 `MERGE_SHA` = `5c53e8ba`。人类工位未代对齐。
+- **P0 盘点：** merge / A / B / C / D / 人类工位均在 `5c53e8ba`；字母槽与 merge 工作区干净。人类工位仅有未跟踪 `.idea/` / `*.iml`（Excluded）。
+- **P1–P2：** 无在途代码；记 `already-committed`。无新 tip 合入。
+- **P3 stash：** 三条均保留（不确定 / 像他人 slice，不 drop）：`idx`、`temp: merge loop/A before agent-ide`、`pre loop/D T3 merge`。内容是过时 INDEX / page-access 文档，相对 HEAD 无独有完成线。
+- **P4：** `skipped-no-stash-commits`。
+- **P5：** `git push origin loop/merge` 失败：`kex_exchange_identification: Connection closed by remote host`（GitHub SSH）。未改 git config / remote。merge **不能**标 `parked`。
+- **P6：** 字母槽已在 `$MERGE_SHA`，未 `checkout -B`。
+- **P7：** 本文件与看板 / 追踪表按「代码已落 ≠ 已验证」对齐。人类工位请自行确认后对齐 `5c53e8ba`。
+- **M7 代码完成线（本地）：** P0–P2b、E2-1–E2-7（含 Web 按 phase/capability 省略桌面控件）、Q1–Q6、CS-1–CS-6、I2–I5 / I3a / I3b、K1 / K2 / T1 / L1。方案与 PRD **保持 `accepted`**。
+- **未完 / 旁路：** W1 Web 冒烟（D15）；I6 发行标识等发布方；D17 验证债；D18 安装包未验；D19 余项（无动画节点 / Preferences HC / Connection 不造 Back）；D20 Settings 300px 目视。
+
+## 槽位（与 `git worktree list` 对照）
+
+| 槽 | 路径 | 分支 | HEAD | 状态 |
+|----|------|------|------|------|
+| merge | `vscode-WorkTrees/merge` | `loop/merge` | `5c53e8ba` | 干净；**未 parked**（远端未到此 SHA） |
+| A | `vscode-WorkTrees/A` | `loop/A` | `5c53e8ba` | `idle` |
+| B | `vscode-WorkTrees/B` | `loop/B` | `5c53e8ba` | `idle` |
+| C | `vscode-WorkTrees/C` | `loop/C` | `5c53e8ba` | `idle` |
+| D | `vscode-WorkTrees/D` | `loop/D` | `5c53e8ba` | `idle` |
+| edit | `Projects/Agents/vscode` | `agent-ide` | `5c53e8ba` | 人类工位；仅 IDE 垃圾未跟踪 |
 
 ## Blockers
 
 - 当前没有阻塞全部 M7 UI 开发的代码项。
-- 子域硬阻塞只按 [health-gates](health-gates.md) §开发继续规则判定。
-- 非阻塞账：[D8](deferred-gaps.md) valid-layers、D9 terminal、D15 Web 证据（依赖 P0）、D16 基线红、D17 M7 验证债。
+- 关仓未完成项：origin 推送被 SSH 拒绝；网络恢复后从 merge 槽推 `loop/merge`。
+- 非阻塞账：[D8](deferred-gaps.md) valid-layers、D9 terminal、D15 Web 证据、D16 基线红、D17–D20。
 
 ## Next
 
-规则 16 已完成（2026-09-02），按 [并行看板](../parallel/active/m7-ui-completion.md) 开一平台槽、三 UI 槽与一验证槽：
+M7 UI 主线代码已尽；不再发明切片。网络恢复后只推远程。剩余：
 
-| 槽 | 顺序 | 方案 |
-|----|------|------|
-| P | P0 Web 断连（Connection + SessionView + Hub）→ P1a MCP 运行态/Plugins → P2a DetailRef → P1b 模型注册表 → P2b compacted；每刀同步 browser 实现 | [总波 §4 Wave 0](../plans/m7-ui-completion-wave.md) · [protocol-surface §1b](../../docs/reference/universe-agent/engine-protocol-surface.md) |
-| A | E2-1（两栏宿主 + 废止 hide-on-disconnect + **Web 省略桌面控件**，P0 后）/ E2-3 Rules/Hooks 壳 → E2-2/E2-4/E2-5 壳先落、真数据随 P1b/P1a → E2-6 迁入 → E2-7 窄宽度（RWD-2）与文案 | [Engine](../plans/engine-preferences-completion.md) |
-| B | Q1 Overview + Q2 壳（preview/unavailable）→ Q3 compacted（随 P2b）/ Q4 live fold / Q5a 四 kind + 停止洗白 / Q2 接通（随 P2a）→ Q5b 键盘 ARIA / Q6 窄宽度跨面 → CS-1…CS-6 Client Settings | [Conversation](../plans/conversation-ui-closeout.md) · [Client](../plans/client-settings-completion.md) |
-| C | I2 + I3a 标识与图标脚本 / K1 → T1 / K2 / I4 / I5 → W1 Web 冒烟（随 P0 + E2-1）/ I3b / L1 清单复核 | [Identity](../plans/product-identity.md) · [A11y/RWD](../plans/accessibility-responsive-ui.md) |
-| V | M6 证据、D16/D17、各 M7 回归；不抢生产文件 | [Deferred gaps](deferred-gaps.md) |
+| 项 | 说明 |
+|----|------|
+| W1 / D15 | Web 冒烟，不挡主线 |
+| I6 | Darwin/Appx 发行标识等发布方，不编造 |
+| V | D16/D17 与各面产品验证；不抢生产文件 |
+| D19 / D20 | 源码残留与 Settings 300px 目视 |
 
-**不做：** H6 GUA 自动直连、完整插件/Skill 市场、用 fixture 冒充 Engine、为追求全绿冻结不冲突 UI 槽、引擎仓侧新增 RPC（只登记 G-ENG-1/2/3）、会话级模型策略 UI。
+**不做：** H6 GUA 自动直连、完整插件/Skill 市场、用 fixture 冒充 Engine、为追求全绿冻结 UI、引擎仓侧新增 RPC、会话级模型策略 UI。

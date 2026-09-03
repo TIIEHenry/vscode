@@ -3,8 +3,8 @@ title: "M7 UI 完成波：产品面闭集与非阻塞验证"
 type: plan
 status: accepted
 phase: M7
-updated: 2026-09-02
-summary: "以 UI 完成为主线：P 槽承接 platform/universeAgent 合同（Web 断连含 Hub、MCP 运行态/Plugins、DetailRef、模型注册表、compacted）；A=Engine/Connection，B=Conversation→Client Settings 消费点，C=品牌/键位/主题/Web 冒烟；测试债旁路记录，不阻塞后续 UI 切片"
+updated: 2026-09-03
+summary: "M7 UI 代码完成线已尽（P0–P2b / E2 / Q / CS / I2–I5 / K/T/L1）；W1 冒烟与 I6 未完；方案仍 accepted，测试债旁路不升 implemented"
 ---
 
 # M7 UI 完成波

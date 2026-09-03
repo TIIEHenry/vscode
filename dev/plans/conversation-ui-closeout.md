@@ -3,8 +3,8 @@ title: "Conversation UI 收口方案"
 type: plan
 status: accepted
 phase: M7
-updated: 2026-09-02
-summary: "补齐轨迹 Overview、DetailRef 六态（经 P2a requestDetail 合同接 FetchToolDetail）、compacted（经 P2b，行身份只来自 L2）、live 过程折、轨迹 permission/question/error/unknown 独立 kind 并停止对话页把它们洗成 assistant；A11Y-1/2 与 RWD-1 的 Conversation 部分在 Q5b/Q6 实施"
+updated: 2026-09-03
+summary: "Q1–Q6 代码已落：Overview、DetailRef 六态、compacted、live fold、四 kind 停止洗白、键盘 ARIA、窄宽度；产品验证未做，方案仍 accepted"
 ---
 
 # Conversation UI 收口方案

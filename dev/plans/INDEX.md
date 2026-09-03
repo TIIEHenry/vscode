@@ -3,8 +3,8 @@ title: "方案索引"
 type: index
 status: accepted
 phase: N/A
-updated: 2026-09-02
-summary: "dev/plans 导航：M6 代码主体已落；M7 UI 完成波六份方案经四轮审查升 accepted（P/A/B/C 四槽），覆盖 Engine/Client/Conversation/品牌/可达性，测试债旁路不阻塞开发"
+updated: 2026-09-03
+summary: "dev/plans 导航：M7 UI 代码完成线已尽（P/A/B/C）；六份方案仍 accepted（缺产品验证）；W1/I6/V 旁路"
 ---
 
 # 方案
@@ -20,12 +20,12 @@ summary: "dev/plans 导航：M6 代码主体已落；M7 UI 完成波六份方案
 | [m4-validation-wave.md](m4-validation-wave.md) | `implemented` | D3/D4/D5 closed；D3 valid-layers 环境红仍记 D2 脚注 |
 | [m5-ui-shell-hardening.md](m5-ui-shell-hardening.md) | `implemented` | 切片 1–5 @ 18b5e8d7；D4/D5 closed；valid-layers environment-blocked（Node v26.7.0） |
 | [m6-engine-wave.md](m6-engine-wave.md) | `accepted` | A1–A2/B/D 已落；C 已落 Skills/Agents/MCP/Tools 读写主体与正文编辑，九节 UI 余量转 M7；PRD-008 仍须冒烟才升 `implemented` |
-| [m7-ui-completion-wave.md](m7-ui-completion-wave.md) | `accepted` | UI 主线：P platform/universeAgent 合同（Web 断连、MCP 运行态/Plugins、DetailRef、模型注册表、compacted）、A Engine/Connection、B Conversation→Client Settings、C 品牌/键位/主题/Web 冒烟；V 槽测试债非阻塞 |
-| [engine-preferences-completion.md](engine-preferences-completion.md) | `accepted` | `ua.engine` 九节六态闭集；Model = ListModels 只读注册表，Provider/Rules/Hooks/Agent model.json 恒 unsupported（G-ENG-1/2/3/4）；Connection 面 Web 省略与窄宽度归 A |
-| [client-settings-completion.md](client-settings-completion.md) | `accepted` | `ua.client` 七组 9 键与消费点同切片落地（B 槽执行），禁止 placeholder/Connection/Engine secret |
-| [conversation-ui-closeout.md](conversation-ui-closeout.md) | `accepted` | 轨迹 Overview（派生 view-model）、DetailRef 六态（P2a）、compacted（P2b，只认 L2）、live process fold、四 kind + 对话页停止洗白、A11Y-1/2 与 RWD-1 |
-| [product-identity.md](product-identity.md) | `accepted` | UniverseAgentStudio 名称、两棵数据目录树（userData 由 nameShort 决定）、协议、单源图标（Singularity 标识）与跨平台发行身份 |
-| [accessibility-responsive-ui.md](accessibility-responsive-ui.md) | `accepted` | 键盘、ARIA、焦点、300px/200% zoom、高对比度与 Web/远程；合同 + 清单，实施分布 B/A/C，WEB-1 依赖 P0 + E2-1 |
+| [m7-ui-completion-wave.md](m7-ui-completion-wave.md) | `accepted` | UI 主线代码已落（P0–P2b / E2 / Q / CS / I2–I5 / K/T/L1）；W1 冒烟与 I6 发行标识未完；V 槽测试债非阻塞；不升 `implemented` |
+| [engine-preferences-completion.md](engine-preferences-completion.md) | `accepted` | E2-1–E2-7 **代码已落**：九节六态、Web 按 phase/capability 省略桌面控件、窄宽度；Provider/Rules/Hooks 仍 unsupported；产品验证未做 |
+| [client-settings-completion.md](client-settings-completion.md) | `accepted` | CS-1–CS-6 **代码已落**（9 键 + 迁移 + 七组无 emptyCopy）；PRD-026 §6 产品验证未做 |
+| [conversation-ui-closeout.md](conversation-ui-closeout.md) | `accepted` | Q1–Q6 **代码已落**：Overview、DetailRef 六态、compacted、live fold、四 kind 停止洗白、键盘 ARIA、窄宽度；产品验证未做 |
+| [product-identity.md](product-identity.md) | `accepted` | I2–I5 / I3a / I3b **代码已落**；I6 Darwin/Appx 发行标识等发布方；D18 安装包未验 |
+| [accessibility-responsive-ui.md](accessibility-responsive-ui.md) | `accepted` | K1/K2/T1/L1 与 B/A 合同切片 **代码已落**；W1 Web 冒烟未跑；D19 残留 |
 | [conversation-stream-timeline.md](conversation-stream-timeline.md) | `accepted` | M6 时间线专章：**S1–S6 代码已落** @ `a64caf1c`–`5104678e`；**G2/G3** 上游缺口仍记 §6；PRD-008 未升 `implemented` |
 | [sources-changes-diff.md](sources-changes-diff.md) | `accepted` | PRD-009 / ADR-005：Changes 行 → Preview Diff；`ConversationDiffReviewInput` 只读审阅 tab；Panel Diff 视图重宿主；切片 F1–F5（用户免除规则 16） |
 | [connection-hub-client.md](connection-hub-client.md) | `accepted` | Hub Client 接入：**H0–H5 已落** @ `058ed9d0`–`83df4497`；**H6** GUA 直连仍 v2；H4a 真 Hub 冒烟 / PRD-024 `implemented` 未签收 |
@@ -33,11 +33,11 @@ summary: "dev/plans 导航：M6 代码主体已落；M7 UI 完成波六份方案
 | [sources-review-progress.md](sources-review-progress.md) | `accepted` | PRD-023：**R1–R4b 已落** @ `05007b60`–`f1065288`；**R5** 验收 + 知识层待冒烟；缺口 G-REV-1 |
 | [chat-compare-split.md](chat-compare-split.md) | `implemented` | PRD-011 并排比对已落；D4 已验 |
 | [page-access-schemes.md](page-access-schemes.md) | `implemented` | 切片 1a–5 已落；M7 不重开混合宿主、同 token 与 Navigator 拓扑 |
-| [settings-two-surfaces.md](settings-two-surfaces.md) | `implemented` | 两主面边界 + C5/H0–H3 已落；Engine/Client 内容完成转 M7 |
+| [settings-two-surfaces.md](settings-two-surfaces.md) | `implemented` | 两主面边界 + C5/H0–H3 已落；Engine E2 / Client CS 代码完成线见 M7 方案（仍 accepted） |
 | [customizations-host-ui.md](customizations-host-ui.md) | `implemented` | H0–H3 donor chrome @ `77d6e7cc` |
-| [customizations-engine.md](customizations-engine.md) | `accepted` | E1 已落 Skills/Agents/MCP/Tools 读写主体；MCP Runtime/Plugins 与九节宿主转 M7 Engine 完成方案 |
+| [customizations-engine.md](customizations-engine.md) | `accepted` | E1 已落 Skills/Agents/MCP/Tools 读写主体；九节宿主由 M7 E2-1–E2-7 承接（代码已落） |
 | [product-requirements-layer.md](product-requirements-layer.md) | `implemented` | 建立本仓产品需求 SSOT |
-| [conversation-trajectory-lens.md](conversation-trajectory-lens.md) | `implemented` | PRD-012 T1–T3 + **T4** @ `5104678e` + **T5** 搜索/虚拟化 @ `94267eef`；Overview / DetailRef 全文 / `compacted` emit 仍 Deferred |
+| [conversation-trajectory-lens.md](conversation-trajectory-lens.md) | `implemented` | PRD-012 T1–T3 + **T4** @ `5104678e` + **T5** 搜索/虚拟化 @ `94267eef`；Overview / DetailRef / compacted 由 M7 Q1–Q3 承接（代码已落，产品验证未做） |
 | [conversation-process-fold.md](conversation-process-fold.md) | `implemented` | PRD-013 P1–P3/P3t @ `19f3e7ba`–`42fa941e` |
 | [thinkrail-visualize-port.md](thinkrail-visualize-port.md) | `implemented` | PRD-014 T1–T3 @ `5cad7c3b`–`0eb470f2` |
 | [conversation-empty-hero.md](conversation-empty-hero.md) | `implemented` | PRD-015 T1–T6 @ `ea0104c0`–`d4064ba0` · [canvas](conversation-empty-hero.canvas.tsx) |

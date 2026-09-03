@@ -3,8 +3,8 @@ title: "可访问性与响应式 UI 完成方案"
 type: plan
 status: accepted
 phase: M7
-updated: 2026-09-02
-summary: "完成 PRD-018/019 的键盘、ARIA、焦点、窄宽度、高对比度与 Web/远程一致性；C 槽出合同与清单并直接落 keybindings/主题/Web 冒烟，Conversation 与 Engine 部分由 B/A 在各自切片实施；WEB-1 依赖 P0 补 Web 侧 IUniverseAgentConnection 注册"
+updated: 2026-09-03
+summary: "K1/K2/T1/L1 与 Q5b/Q6/E2-1/E2-7 代码已落；W1 Web 冒烟未跑；D19 残留；方案仍 accepted"
 ---
 
 # 可访问性与响应式 UI 完成方案
