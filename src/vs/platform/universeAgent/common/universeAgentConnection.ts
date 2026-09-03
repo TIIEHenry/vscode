@@ -167,7 +167,7 @@ export interface IUniverseAgentConnection {
 
 	/**
 	 * PermissionService.SetSessionGoal unary (Inbox Goal). Optional so Web / tests
-	 * can omit until roster forwards it.
+	 * can omit it; engine roster no-ops when absent.
 	 */
 	setSessionGoal?(request: UniverseAgentSetSessionGoalRequest): Promise<UniverseAgentSetSessionGoalResult>;
 

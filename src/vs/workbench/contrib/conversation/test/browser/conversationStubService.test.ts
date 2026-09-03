@@ -89,6 +89,14 @@ suite('ConversationStubService', () => {
 		assert.strictEqual(service.cancelGeneration(service.getActiveSessionId(), 'root'), false);
 	});
 
+	test('setSessionGoal stays local no-op without engine', () => {
+		const service = store.add(new ConversationStubService());
+		const sessionId = service.getActiveSessionId();
+		assert.strictEqual(service.setSessionGoal(sessionId, 'Ship the slice'), false);
+		assert.strictEqual(service.cancelSessionGoal(sessionId), false);
+		assert.strictEqual(service.getSessionGoal(sessionId), undefined);
+	});
+
 	test('deleteSession removes a non-active session without changing active', () => {
 		const service = store.add(new ConversationStubService());
 		const activeId = service.getActiveSessionId();

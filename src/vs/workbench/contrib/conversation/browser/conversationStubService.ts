@@ -67,6 +67,12 @@ export interface IConversationRosterService {
 	renameSession(sessionId: string, title: string): boolean;
 	/** AgentService.Cancel. Engine-connected forwards unary; stub / disconnected cache returns false. */
 	cancelGeneration(sessionId: string, agentId?: string): boolean;
+	/** PermissionService.SetSessionGoal. Engine-connected forwards unary; stub / disconnected cache returns false. */
+	setSessionGoal(sessionId: string, goal: string): boolean;
+	/** PermissionService.CancelSessionGoal. Engine-connected forwards unary; stub / disconnected cache returns false. */
+	cancelSessionGoal(sessionId: string): boolean;
+	/** Last locally applied engine goal for this session, if any. Stub / never-connected is always undefined. */
+	getSessionGoal(sessionId: string): string | undefined;
 	deleteSession(sessionId: string): boolean;
 	getTurns(sessionId: string): readonly ConversationStubTurn[];
 	getTrajectoryRecords(sessionId: string, options?: TrajectoryProjectionOptions): readonly ConversationTrajectoryRecord[];
@@ -217,6 +223,18 @@ export class ConversationStubService extends Disposable implements IConversation
 
 	cancelGeneration(_sessionId: string, _agentId?: string): boolean {
 		return false;
+	}
+
+	setSessionGoal(_sessionId: string, _goal: string): boolean {
+		return false;
+	}
+
+	cancelSessionGoal(_sessionId: string): boolean {
+		return false;
+	}
+
+	getSessionGoal(_sessionId: string): string | undefined {
+		return undefined;
 	}
 
 	deleteSession(sessionId: string): boolean {

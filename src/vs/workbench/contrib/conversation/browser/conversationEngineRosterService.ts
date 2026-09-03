@@ -46,6 +46,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	private listCompleted = false;
 	private wasEverConnected = false;
 	private testEngineConnected: boolean | undefined;
+	private readonly sessionGoals = new Map<string, string>();
 
 	constructor(
 		@IUniverseAgentConnection private readonly uaConnection: IUniverseAgentConnection,
@@ -194,6 +195,33 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		return super.cancelGeneration(sessionId, agentId);
 	}
 
+	override setSessionGoal(sessionId: string, goal: string): boolean {
+		if (this.isEngineConnected()) {
+			return this.setEngineSessionGoal(sessionId, goal, true);
+		}
+		if (this.wasEverConnected) {
+			return this.setEngineSessionGoal(sessionId, goal, false);
+		}
+		return super.setSessionGoal(sessionId, goal);
+	}
+
+	override cancelSessionGoal(sessionId: string): boolean {
+		if (this.isEngineConnected()) {
+			return this.cancelEngineSessionGoal(sessionId, true);
+		}
+		if (this.wasEverConnected) {
+			return this.cancelEngineSessionGoal(sessionId, false);
+		}
+		return super.cancelSessionGoal(sessionId);
+	}
+
+	override getSessionGoal(sessionId: string): string | undefined {
+		if (this.isEngineConnected() || this.wasEverConnected) {
+			return this.sessionGoals.get(sessionId);
+		}
+		return super.getSessionGoal(sessionId);
+	}
+
 	override deleteSession(sessionId: string): boolean {
 		if (this.isEngineConnected()) {
 			return this.deleteEngineSession(sessionId, true);
@@ -258,6 +286,45 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		return false;
 	}
 
+	private setEngineSessionGoal(sessionId: string, goal: string, callRemote: boolean): boolean {
+		const trimmed = goal.trim();
+		if (!trimmed) {
+			return false;
+		}
+		if (!this.engineSessions.some(session => session.id === sessionId)) {
+			return false;
+		}
+		if (this.sessionGoals.get(sessionId) === trimmed) {
+			return false;
+		}
+		if (callRemote) {
+			if (!this.uaConnection.setSessionGoal) {
+				return false;
+			}
+			void this.uaConnection.setSessionGoal({ sessionId, goal: trimmed });
+			this.sessionGoals.set(sessionId, trimmed);
+			this._onDidChangeSession.fire(sessionId);
+			return true;
+		}
+		return false;
+	}
+
+	private cancelEngineSessionGoal(sessionId: string, callRemote: boolean): boolean {
+		if (!this.engineSessions.some(session => session.id === sessionId)) {
+			return false;
+		}
+		if (callRemote) {
+			if (!this.uaConnection.cancelSessionGoal) {
+				return false;
+			}
+			void this.uaConnection.cancelSessionGoal({ sessionId });
+			this.sessionGoals.delete(sessionId);
+			this._onDidChangeSession.fire(sessionId);
+			return true;
+		}
+		return false;
+	}
+
 	private lastStreamingAgentId(sessionId: string): string | undefined {
 		const turns = this.getTurns(sessionId);
 		for (let i = turns.length - 1; i >= 0; i--) {
@@ -297,6 +364,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		}
 		const wasActive = this.getActiveSessionId() === sessionId;
 		this.engineSessions = this.engineSessions.filter(s => s.id !== sessionId);
+		this.sessionGoals.delete(sessionId);
 		if (callRemote) {
 			void this.uaConnection.deleteSession({ sessionId });
 		}
