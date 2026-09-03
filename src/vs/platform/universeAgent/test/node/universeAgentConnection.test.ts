@@ -45,6 +45,8 @@ import type {
 	UniverseAgentEditMessageResult,
 	UniverseAgentSendClientToolResponseRequest,
 	UniverseAgentSendClientToolResponseResult,
+	UniverseAgentListSnapshotsRequest,
+	UniverseAgentListSnapshotsResult,
 	UniverseAgentToolInfoRequest,
 	UniverseAgentToolInfoResult,
 	UniverseAgentGetHistoryRequest,
@@ -283,6 +285,14 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 	async sendClientToolResponse(request: UniverseAgentSendClientToolResponseRequest): Promise<UniverseAgentSendClientToolResponseResult> {
 		this.sendClientToolResponseCalls.push(request);
 		return this.sendClientToolResponseResult;
+	}
+
+	readonly listSnapshotsCalls: UniverseAgentListSnapshotsRequest[] = [];
+	listSnapshotsResult: UniverseAgentListSnapshotsResult = { snapshots: [] };
+
+	async listSnapshots(request: UniverseAgentListSnapshotsRequest): Promise<UniverseAgentListSnapshotsResult> {
+		this.listSnapshotsCalls.push(request);
+		return this.listSnapshotsResult;
 	}
 
 	async getHistory(_request: UniverseAgentGetHistoryRequest): Promise<UniverseAgentGetHistoryResult> {
@@ -624,6 +634,11 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
 	});
 
+	test('UniverseAgentGrpcServices lists Agent.ListSnapshots', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.ListSnapshots, 'ListSnapshots');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+	});
+
 	test('renameSession forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
@@ -926,6 +941,29 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(transport.sendClientToolResponseCalls[1]?.isError, true);
 		assert.strictEqual(transport.sendClientToolResponseCalls[1]?.metadataJson, '{"note":"fail"}');
 		assert.deepStrictEqual(transport.sendClientToolResponseCalls[1]?.canvasRefs, [{ canvasId: 'c1', revisionId: 'r1', title: 'Board' }]);
+		service.dispose();
+	});
+
+	test('listSnapshots forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.listSnapshotsResult = {
+			snapshots: [{ id: 'snap-1', sessionId: 'sess-1', title: 'Before refactor', turnCount: 3 }],
+		};
+		const result = await service.listSnapshots({ sessionId: 'sess-1' });
+		assert.deepStrictEqual(transport.listSnapshotsCalls, [{ sessionId: 'sess-1' }]);
+		assert.deepStrictEqual(result, {
+			snapshots: [{ id: 'snap-1', sessionId: 'sess-1', title: 'Before refactor', turnCount: 3 }],
+		});
+
+		transport.listSnapshotsResult = { snapshots: [] };
+		const empty = await service.listSnapshots({ sessionId: '' });
+		assert.deepStrictEqual(empty, { snapshots: [] });
+		assert.strictEqual(transport.listSnapshotsCalls[1]?.sessionId, '');
 		service.dispose();
 	});
 

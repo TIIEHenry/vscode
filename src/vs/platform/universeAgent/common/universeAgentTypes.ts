@@ -295,6 +295,28 @@ export interface UniverseAgentSendClientToolResponseResult {
 	readonly message?: string;
 }
 
+/** One row from AgentService.ListSnapshots (SessionSnapshotInfo). */
+export interface UniverseAgentSessionSnapshotInfo {
+	readonly id: string;
+	readonly sessionId: string;
+	readonly title: string;
+	readonly description?: string;
+	readonly createdAt?: number;
+	readonly turnCount?: number;
+	readonly tokenCount?: number;
+	readonly modelId?: string;
+	readonly isAuto?: boolean;
+}
+
+/** AgentService.ListSnapshots — session checkpoints (≠ SessionBar History turn index). */
+export interface UniverseAgentListSnapshotsRequest {
+	readonly sessionId: string;
+}
+
+export interface UniverseAgentListSnapshotsResult {
+	readonly snapshots: readonly UniverseAgentSessionSnapshotInfo[];
+}
+
 export interface UniverseAgentGetHistoryRequest {
 	readonly sessionId: string;
 	readonly cursorSeq?: string;

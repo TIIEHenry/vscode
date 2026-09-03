@@ -49,6 +49,8 @@ import type {
 	UniverseAgentEditMessageResult,
 	UniverseAgentSendClientToolResponseRequest,
 	UniverseAgentSendClientToolResponseResult,
+	UniverseAgentListSnapshotsRequest,
+	UniverseAgentListSnapshotsResult,
 	UniverseAgentGetHistoryRequest,
 	UniverseAgentGetHistoryResult,
 	UniverseAgentListSessionsRequest,
@@ -276,6 +278,13 @@ export interface IUniverseAgentConnection {
 	 * slice; timeline / roster still post Chat-arm `clientToolRespond`.
 	 */
 	sendClientToolResponse?(request: UniverseAgentSendClientToolResponseRequest): Promise<UniverseAgentSendClientToolResponseResult>;
+
+	/**
+	 * AgentService.ListSnapshots unary (session checkpoints). Optional so Web /
+	 * tests can omit it. Catalog + node transport only this slice; SessionBar
+	 * History stays the turn index and does not list engine snapshots.
+	 */
+	listSnapshots?(request: UniverseAgentListSnapshotsRequest): Promise<UniverseAgentListSnapshotsResult>;
 
 	getHistory(request: UniverseAgentGetHistoryRequest): Promise<UniverseAgentGetHistoryResult>;
 

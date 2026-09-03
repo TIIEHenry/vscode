@@ -44,6 +44,8 @@ import type {
 	UniverseAgentEditMessageResult,
 	UniverseAgentSendClientToolResponseRequest,
 	UniverseAgentSendClientToolResponseResult,
+	UniverseAgentListSnapshotsRequest,
+	UniverseAgentListSnapshotsResult,
 	UniverseAgentGetHistoryRequest,
 	UniverseAgentGetHistoryResult,
 	UniverseAgentListSessionsRequest,
@@ -203,6 +205,8 @@ export interface IUniverseAgentGrpcTransport {
 
 	sendClientToolResponse(request: UniverseAgentSendClientToolResponseRequest): Promise<UniverseAgentSendClientToolResponseResult>;
 
+	listSnapshots(request: UniverseAgentListSnapshotsRequest): Promise<UniverseAgentListSnapshotsResult>;
+
 	getHistory(request: UniverseAgentGetHistoryRequest): Promise<UniverseAgentGetHistoryResult>;
 
 	subscribeSessionEventStream(
@@ -329,6 +333,7 @@ export const UniverseAgentGrpcServices = {
 		EditMessage: 'EditMessage',
 		RespondQuestion: 'RespondQuestion',
 		SendClientToolResponse: 'SendClientToolResponse',
+		ListSnapshots: 'ListSnapshots',
 		Tree: 'Tree',
 		ListAgentProfiles: 'ListAgentProfiles',
 		SaveAgentProfile: 'SaveAgentProfile',
