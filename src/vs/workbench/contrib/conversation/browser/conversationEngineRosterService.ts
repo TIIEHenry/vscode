@@ -165,16 +165,11 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 
 	override createSession(): string {
 		if (this.isEngineConnected()) {
-			void this.uaConnection.createSession({
-				title: localize('conversationLens.sessionNew', "New session"),
-			}).then(result => {
-				this.engineSessions = [...this.engineSessions, { id: result.sessionId, title: localize('conversationLens.sessionNew', "New session"), turns: [], source: 'engine-cache' }];
-				this.activeEngineSessionId = result.sessionId;
-				this._onDidChangeSession.fire(result.sessionId);
-				this._onDidChangeActiveSession.fire(result.sessionId);
-				this.persistEngineAwareRoster();
-			});
-			return super.getActiveSessionId();
+			this.createEngineSession(true);
+			return '';
+		}
+		if (this.wasEverConnected) {
+			return '';
 		}
 		return super.createSession();
 	}
@@ -225,6 +220,30 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 
 	protected override shouldSkipLocalPersistence(): boolean {
 		return this.wasEverConnected;
+	}
+
+	private createEngineSession(callRemote: boolean): void {
+		if (!callRemote) {
+			return;
+		}
+		const title = localize('conversationLens.sessionNew', "New session");
+		void this.uaConnection.createSession({ title }).then(result => {
+			const sessionId = result.sessionId?.trim();
+			if (!sessionId) {
+				return;
+			}
+			if (this.engineSessions.some(session => session.id === sessionId)) {
+				this.activeEngineSessionId = sessionId;
+				this._onDidChangeActiveSession.fire(sessionId);
+				this.persistEngineAwareRoster();
+				return;
+			}
+			this.engineSessions = [...this.engineSessions, { id: sessionId, title, turns: [], source: 'engine-cache' }];
+			this.activeEngineSessionId = sessionId;
+			this._onDidChangeSession.fire(sessionId);
+			this._onDidChangeActiveSession.fire(sessionId);
+			this.persistEngineAwareRoster();
+		});
 	}
 
 	private cancelEngineGeneration(sessionId: string, agentId: string | undefined, callRemote: boolean): boolean {

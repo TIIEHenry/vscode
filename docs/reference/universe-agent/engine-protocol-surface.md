@@ -4,7 +4,7 @@ type: reference
 status: accepted
 phase: N/A
 updated: 2026-09-04
-summary: "已知 gRPC 服务 / RPC 名与本仓用途；§4 含 G-CORE-1；§5 会话面含 onDynamicDidApplyFrame 首帧缓冲与 confirmPairing/cancelPairing/probeConnectionProfile；SessionEventStream onClosed 折 Actor streamClosed；ContinueGeneration / Rename / Cancel 已进 gRPC catalog；roster 接通后转发 Rename 与 Cancel（Inbox Stop 仅 connected+streaming）；G-NAV-* / G-REV-* / G-ENG-*；G-CONV-1 已消费 attribution"
+summary: "已知 gRPC 服务 / RPC 名与本仓用途；§4 含 G-CORE-1；§5 会话面含 onDynamicDidApplyFrame 首帧缓冲与 confirmPairing/cancelPairing/probeConnectionProfile；SessionEventStream onClosed 折 Actor streamClosed；ContinueGeneration / Rename / Cancel 已进 gRPC catalog；roster 接通后转发 Create / Rename / Cancel（Inbox Stop 仅 connected+streaming）；G-NAV-* / G-REV-* / G-ENG-*；G-CONV-1 已消费 attribution"
 ---
 
 # UniverseAgent 引擎协议面（本仓消费口径）
@@ -118,7 +118,7 @@ Connect 后 `probeEngineCapabilities`：**仅**广告了 method 且 probe 非 `U
 
 | IDE 需要 | 对应 stub 方法 | HEAD 事实 |
 |----------|----------------|-----------|
-| 会话枚举 / 创建 / 删除 | `getSessions` … `deleteSession` | `SessionService.List` / `Create` / `Delete`；`work_dir` 过滤随 Connect。已连接时首次 `List` 完成前 roster **不**含 stub 种子行 |
+| 会话枚举 / 创建 / 删除 | `getSessions` … `deleteSession` | `SessionService.List` / `Create` / `Delete`；`work_dir` 过滤随 Connect。已连接时首次 `List` 完成前 roster **不**含 stub 种子行。**ConversationEngineRosterService.createSession** 接通后转发 `SessionService.Create`，用引擎返回的 `sessionId` 入目录并切活动会话（同步返回 `''`，不把旧 active / stub `untitled` 冒充新会话）；空 id 忽略；断连缓存不发 unary、不造 stub 种子 |
 | 切换 / 重命名 | `switchSession` / `renameSession` | 切换 = 客户端 `activeSessionId` 投影（**无** `SwitchSession` RPC）。传输 `IUniverseAgentConnection.renameSession` **已接** `AgentService.Rename`。**ConversationEngineRosterService** 接通后 `renameSession` 转发该 unary 并更新引擎目录标题；未接通 / 从未连过仍走 stub 本地标题 |
 | 回合流（用户 / 助手 / thinking / tool / …） | `getTurns`、`onDidChangeSession` | `SessionService.GetHistory`（`cursor_seq`）+ `SessionEventStream` → session-core fold → `ViewFrame`；renderer 经 `IUniverseAgentSessionView.acquireLease` + **`onDynamicDidApplyFrame(leaseId)`**（F1 @ `c37bbc6e`：宿主 per-lease 事件；订阅前该 lease 的帧入 `pending`，首个 listener 按序 flush，首帧为 baseline；未知 / 已释放 id → `Event.None`）。已删除全局 `onDidApplyFrame`；渲染端**不**再按 leaseId 过滤全窗广播 |
 | 轨迹记录 | `getTrajectoryRecords(sessionId, { filterAgentId? }?)` | HEAD：`projectSnapshotToTrajectory(snapshot, attribution, details, options)` 从 lease/帧源投影；stub 仅 `untitled` 且未连接时 ∪ fixture extras（**无** compacted 伪造行）；UA 会话**不** merge fixture；**P2a** `requestDetail` / `FetchToolDetail` 通道已接通（renderer 帧源 upsert `outcome.content`；stub 本地 `requestDetail`）；**P2b** 已投影 `ItemAttribution.compacted`（browser 不产出）；**Q3** 消费 attribution emit `compacted` 行（未投影则零行）。Overview 瀑布 Deferred。活 Event fold 全文仍 M6-D / PRD-008 |

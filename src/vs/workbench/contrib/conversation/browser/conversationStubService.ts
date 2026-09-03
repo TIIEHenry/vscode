@@ -62,6 +62,7 @@ export interface IConversationRosterService {
 	getActiveSessionId(): string;
 	getActiveSession(): ConversationStubSession;
 	switchSession(sessionId: string): void;
+	/** SessionService.Create. Engine-connected forwards unary and catalogs the returned id; stub / disconnected cache stays local / no-op. */
 	createSession(): string;
 	renameSession(sessionId: string, title: string): boolean;
 	/** AgentService.Cancel. Engine-connected forwards unary; stub / disconnected cache returns false. */
