@@ -493,7 +493,7 @@ suite('UniverseAgentConnectionService', () => {
 
 suite('UniverseAgentConnectionService probeConnectionProfile (GC-3)', () => {
 
-	const store = ensureNoDisposablesAreLeakedInTestSuite();
+	ensureNoDisposablesAreLeakedInTestSuite();
 
 	const identityStore: IClientIdentityStore = {
 		getState: async () => ({
@@ -516,16 +516,17 @@ suite('UniverseAgentConnectionService probeConnectionProfile (GC-3)', () => {
 	};
 
 	test('resolver failure code passes through', async () => {
+		const mockResolver = {
+			resolve: async () => ({
+				ok: false as const,
+				code: 'hub_device_revoked' as const,
+				reason: 'device revoked',
+				allowRelayFallback: false,
+			}),
+			createIssueRelayTicketHook: () => async () => ({ ok: false as const, code: 'hub_session_required' as const, reason: 'test' }),
+		};
 		const service = new UniverseAgentConnectionService({
-			connectionResolver: {
-				resolve: async () => ({
-					ok: false as const,
-					code: 'hub_device_revoked' as const,
-					reason: 'device revoked',
-					allowRelayFallback: false,
-				}),
-				createIssueRelayTicketHook: () => async () => ({ ok: false as const, code: 'hub_session_required' as const, reason: 'test' }),
-			},
+			connectionResolver: mockResolver as unknown as ConnectionResolver,
 			clientIdentityStore: identityStore,
 			createTransport: () => new MockUniverseAgentGrpcTransport(),
 		});
@@ -555,30 +556,32 @@ suite('UniverseAgentConnectionService probeConnectionProfile (GC-3)', () => {
 					clientPublicKey: new Uint8Array(32),
 					authNonce: new Uint8Array(32),
 					signature: new Uint8Array(64),
-					engineIdentityId: 'engine-id',
 					protocolVersion: '1',
 				});
 			}
 		}
 
 		const liveTransport = new ProbeMockTransport();
+		const mockResolver = {
+			resolve: async () => ({
+				ok: true as const,
+				allowRelayFallback: false,
+				endpoint: {
+					attemptId: 'a1',
+					authority: '203.0.113.10:7443',
+					port: 7443,
+					resolvedIp: '203.0.113.10',
+					servername: '203.0.113.10',
+					relayTicketId: null,
+					tls: null,
+					expiresAtMs: Date.now() + 60_000,
+					path: 'direct' as const,
+				},
+			}),
+			createIssueRelayTicketHook: () => async () => ({ ok: false as const, code: 'hub_session_required' as const, reason: 'test' }),
+		};
 		const service = new UniverseAgentConnectionService({
-			connectionResolver: {
-				resolve: async () => ({
-					ok: true as const,
-					allowRelayFallback: false,
-					endpoint: {
-						attemptId: 'a1',
-						authority: '203.0.113.10:7443',
-						port: 7443,
-						resolvedIp: '203.0.113.10',
-						servername: '203.0.113.10',
-						tls: null,
-						path: 'direct' as const,
-					},
-				}),
-				createIssueRelayTicketHook: () => async () => ({ ok: false as const, code: 'hub_session_required' as const, reason: 'test' }),
-			},
+			connectionResolver: mockResolver as unknown as ConnectionResolver,
 			clientIdentityStore: identityStore,
 			createTransport: address => address === '203.0.113.10:7443' ? new ProbeMockTransport() : liveTransport,
 		});
