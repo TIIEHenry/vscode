@@ -14,6 +14,8 @@ import type {
 	UniverseAgentCreateSessionRequest,
 	UniverseAgentCreateSessionResult,
 	UniverseAgentDeleteSessionRequest,
+	UniverseAgentRenameSessionRequest,
+	UniverseAgentRenameSessionResult,
 	UniverseAgentGetHistoryRequest,
 	UniverseAgentGetHistoryResult,
 	UniverseAgentListSessionsRequest,
@@ -133,6 +135,8 @@ export interface IUniverseAgentGrpcTransport {
 
 	deleteSession(request: UniverseAgentDeleteSessionRequest): Promise<void>;
 
+	renameSession(request: UniverseAgentRenameSessionRequest): Promise<UniverseAgentRenameSessionResult>;
+
 	getHistory(request: UniverseAgentGetHistoryRequest): Promise<UniverseAgentGetHistoryResult>;
 
 	subscribeSessionEventStream(
@@ -234,6 +238,7 @@ export const UniverseAgentGrpcServices = {
 		service: 'universeagent.agent.v1.AgentService',
 		Chat: 'Chat',
 		ContinueGeneration: 'ContinueGeneration',
+		Rename: 'Rename',
 		Tree: 'Tree',
 		ListAgentProfiles: 'ListAgentProfiles',
 		SaveAgentProfile: 'SaveAgentProfile',

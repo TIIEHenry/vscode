@@ -71,6 +71,7 @@ export function createConversationConnectionTestStub(
 		listSessions: async () => ({ sessions: [] }),
 		createSession: async () => ({ sessionId: 's' }),
 		deleteSession: async () => { },
+		renameSession: async () => ({ ok: false, message: 'stub' }),
 		getHistory: async () => ({ envelopes: [] }),
 		subscribeSessionEventStream: (
 			_sessionId: string,

@@ -15,6 +15,8 @@ import type {
 	UniverseAgentCreateSessionRequest,
 	UniverseAgentCreateSessionResult,
 	UniverseAgentDeleteSessionRequest,
+	UniverseAgentRenameSessionRequest,
+	UniverseAgentRenameSessionResult,
 	UniverseAgentGetHistoryRequest,
 	UniverseAgentGetHistoryResult,
 	UniverseAgentListSessionsRequest,
@@ -111,6 +113,14 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 	}
 
 	async deleteSession(_request: UniverseAgentDeleteSessionRequest): Promise<void> {
+	}
+
+	readonly renameCalls: UniverseAgentRenameSessionRequest[] = [];
+	renameResult: UniverseAgentRenameSessionResult = { ok: true };
+
+	async renameSession(request: UniverseAgentRenameSessionRequest): Promise<UniverseAgentRenameSessionResult> {
+		this.renameCalls.push(request);
+		return this.renameResult;
 	}
 
 	async getHistory(_request: UniverseAgentGetHistoryRequest): Promise<UniverseAgentGetHistoryResult> {
@@ -346,6 +356,29 @@ suite('UniverseAgentConnectionService', () => {
 	test('UniverseAgentGrpcServices lists Agent.ContinueGeneration', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.ContinueGeneration, 'ContinueGeneration');
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+	});
+
+	test('UniverseAgentGrpcServices lists Agent.Rename', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.Rename, 'Rename');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+	});
+
+	test('renameSession forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		const result = await service.renameSession({ sessionId: 'sess-1', title: 'New title' });
+		assert.deepStrictEqual(transport.renameCalls, [{ sessionId: 'sess-1', title: 'New title' }]);
+		assert.deepStrictEqual(result, { ok: true });
+
+		transport.renameResult = { ok: false, message: 'not found' };
+		const failed = await service.renameSession({ sessionId: 'sess-1', title: '' });
+		assert.deepStrictEqual(failed, { ok: false, message: 'not found' });
+		assert.strictEqual(transport.renameCalls[1]?.title, '');
+		service.dispose();
 	});
 
 	test('openContinuationStream forwards request and transport onClosed', async () => {

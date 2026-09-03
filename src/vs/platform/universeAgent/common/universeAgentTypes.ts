@@ -79,6 +79,17 @@ export interface UniverseAgentDeleteSessionRequest {
 	readonly sessionId: string;
 }
 
+/** AgentService.Rename request; empty `title` clears a custom session title. */
+export interface UniverseAgentRenameSessionRequest {
+	readonly sessionId: string;
+	readonly title: string;
+}
+
+export interface UniverseAgentRenameSessionResult {
+	readonly ok: boolean;
+	readonly message?: string;
+}
+
 export interface UniverseAgentGetHistoryRequest {
 	readonly sessionId: string;
 	readonly cursorSeq?: string;
