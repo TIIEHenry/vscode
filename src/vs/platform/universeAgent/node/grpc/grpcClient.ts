@@ -10,6 +10,8 @@ import type {
 	UniverseAgentChatRequest,
 	UniverseAgentChatResponse,
 	UniverseAgentChatStream,
+	UniverseAgentContinueGenerationRequest,
+	UniverseAgentContinuationStream,
 	UniverseAgentConnectRequest,
 	UniverseAgentConnectResult,
 	UniverseAgentCreateSessionRequest,
@@ -1268,6 +1270,24 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			UniverseAgentGrpcServices.Agent.Chat,
 		);
 		return open(sessionId, onResponse, onClosed);
+	}
+
+	openContinuationStream(
+		request: UniverseAgentContinueGenerationRequest,
+		onResponse: (response: UniverseAgentChatResponse) => void,
+		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
+	): UniverseAgentContinuationStream {
+		const stream = makeServerStreamClient<Record<string, unknown>, UniverseAgentChatResponse>(
+			this._channel,
+			UniverseAgentGrpcServices.Agent.service,
+			UniverseAgentGrpcServices.Agent.ContinueGeneration,
+		);
+		return stream({
+			session_id: request.sessionId,
+			agent_id: request.agentId,
+			turn_id: request.turnId,
+			message_id: request.messageId,
+		}, onResponse, onClosed);
 	}
 
 	async listSkills(): Promise<UniverseAgentListSkillsResult> {
