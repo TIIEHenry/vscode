@@ -821,6 +821,12 @@ export class SessionViewHost extends Disposable {
 		this.postAndDrain(sessionId as SessionId, { t: 'timerFired', timerId });
 	}
 
+	/**
+	 * Resident Chat bidi: optional connection hook opens the handle; missing hook
+	 * still echoes `chatStreamUp` so Actor writes fall back to one-shot `chat()`.
+	 * Remote/error `onClosed` drops the handle and posts `chatStreamDown` (Actor
+	 * may re-ensure the same generation). Local dispose / connection-down is silent.
+	 */
 	private openResidentChat(sessionId: string, chatAttemptId: AttemptId): void {
 		const existing = this.chatStreams.get(sessionId);
 		if (existing && existing.chatAttemptId === chatAttemptId) {
@@ -838,13 +844,24 @@ export class SessionViewHost extends Disposable {
 		}
 
 		let disposed = false;
-		const handle: UniverseAgentChatStream = open.call(this.connection, sessionId, () => { }, () => {
-			if (disposed) {
-				return;
-			}
-			this.chatStreams.delete(sessionId);
-			this.postChatLifecycle(sessionId, 'chatStreamDown', chatAttemptId);
-		});
+		const handle: UniverseAgentChatStream = open.call(
+			this.connection,
+			sessionId,
+			() => { },
+			cause => {
+				if (disposed || (cause.kind !== 'remote' && cause.kind !== 'error')) {
+					return;
+				}
+				this.chatStreams.delete(sessionId);
+				this.diagnostics.warn('openChatStream closed', {
+					sessionId,
+					chatAttemptId: String(chatAttemptId),
+					kind: cause.kind,
+					...(cause.kind === 'error' ? { message: cause.message } : {}),
+				});
+				this.postChatLifecycle(sessionId, 'chatStreamDown', chatAttemptId);
+			},
+		);
 		this.chatStreams.set(sessionId, {
 			chatAttemptId,
 			write: payload => handle.write(payload),

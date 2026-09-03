@@ -168,6 +168,7 @@ export interface IUniverseAgentConnection {
 	/**
 	 * Resident Chat bidi (ADR-012). Optional so tests / Web can keep one-shot `chat()`.
 	 * Host posts `chatStreamUp` after open (or when this method is absent) and writes on the handle.
+	 * Remote/error `onClosed` posts `chatStreamDown`; local dispose / connection-down is silent.
 	 */
 	openChatStream?(
 		sessionId: string,
