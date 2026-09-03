@@ -4,14 +4,14 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-04
-summary: "D16 identity 夹具；Chat onClosed 门；ContinueGeneration；Rename catalog；Overview 隐藏 Provider 行"
+summary: "D16 Lens 夹具补叶宽 layout + ResizeObserver；Rename catalog；Overview 隐藏 Provider 行"
 ---
 
 # Development Progress
 
 ## Current Session
 
-- **槽 A / `loop/A`：** D16 identity 夹具绿（10/10）；Chat remote/error → `chatStreamDown`。
+- **槽 A / `loop/A`：** D16 Lens 夹具：sessionBar 给实测宽、`lens.layout` 走叶宽（300px 才能落到 `is-narrow`），拦住 ResizeObserver loop；删非末会话 / 窄宽 / permission aria 过时断言已改。`conversationLens.test.ts` **21 passing**（剩断言与 after-each 债）。identity 已绿。
 - **槽 B / `loop/B`：** 进口界扫 `src/`；`openChatStream` close-gate 合同测（remote 一次、dispose 静音）。
 - **槽 C / `loop/C`：** ContinueGeneration + `AgentService.Rename` 进 gRPC catalog；node unary `renameSession`（空 title 清自定义标题）。Web stub `unsupported_environment`。roster / Lens 仍本地改标题。
 - **槽 D / `loop/D`：** engine-catalog 诚实回填；D16 stub `deleteTurn` 改走 `createSession()`；Overview 按 E2 隐藏 Provider 行（G-ENG-1 前不画 Unavailable 假摘要）。
@@ -21,7 +21,7 @@ summary: "D16 identity 夹具；Chat onClosed 门；ContinueGeneration；Rename 
 | 槽 | 路径 | 分支 | 状态 |
 |----|------|------|------|
 | merge | `vscode-WorkTrees/merge` | `loop/merge` | 本会话：A+B+C+D + exhaustiveness 复绿 |
-| A | `vscode-WorkTrees/A` | `loop/A` | D16 identity 夹具 + Chat onClosed |
+| A | `vscode-WorkTrees/A` | `loop/A` | D16 Lens 叶宽夹具 + ResizeObserver |
 | B | `vscode-WorkTrees/B` | `loop/B` | 进口界扫 src + Chat close-gate 测 |
 | C | `vscode-WorkTrees/C` | `loop/C` | ContinueGeneration + AgentService.Rename 进 gRPC catalog |
 | D | `vscode-WorkTrees/D` | `loop/D` | Overview 隐藏 Provider 行 |
