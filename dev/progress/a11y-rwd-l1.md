@@ -3,8 +3,8 @@ title: "A11y / RWD L1 源码复核记录"
 type: progress
 status: in_progress
 phase: M7
-updated: 2026-09-02
-summary: "对照 accessibility-responsive-ui.md §9 逐项源码判定；THEME 与 Connection 窄宽为 partial；不宣称 PRD-018 / 整份 a11y 完成"
+updated: 2026-09-04
+summary: "对照 accessibility-responsive-ui.md §9 逐项源码判定；THEME 与 Connection 窄宽仍 partial；GC-7 已把 Preferences 模态纳入 T1 HC 描边；不宣称 PRD-018 / 整份 a11y 完成"
 ---
 
 # A11y / RWD L1 源码复核
@@ -24,7 +24,7 @@ summary: "对照 accessibility-responsive-ui.md §9 逐项源码判定；THEME �
 | partial | 2 |
 | fail | 0 |
 
-partial 两项：Engine/Connection 300px（Connection 无左导航 Back）；高对比度 / reduced-motion（T1 公共文件已落，B 挂了部分 `.ua-motion`，A 未挂；T1 选择器未覆盖 Preferences pane）。
+partial 两项：Engine/Connection 300px（Connection 无左导航 Back）；高对比度 / reduced-motion（T1 公共文件已落，B 挂了部分 `.ua-motion`，A 未挂）。**GC-7（2026-09-04）：** D19(2) 原先成立——`ua-common.css` 只从 `conversationPart.ts` 引入且选择器只打 `.part.conversation` / `.part.sources`，Preferences 模态（`.preferences-editor`）无描边。已把 `ua-common.css` 挂到 `style.ts`（与 `productAccessibility.css` 同链），并给 `.preferences-editor` 补 focus/selected 描边；`productAccessibility.css` 同步加 Preferences 按钮 focus 加粗。未新开 D 项；D19 仍因 (1) `.ua-motion`、(3) Connection Back 保持 open。
 
 ---
 
@@ -192,9 +192,9 @@ partial 两项：Engine/Connection 300px（Connection 无左导航 Back）；高
 
 **A 未挂：** `contrib/conversation` 内 `.ua-motion` 仅上述 B 文件。Engine / Connection pane **零** `.ua-motion`。其 CSS 目前也无 `transition`/`animation`，故减动缺口是合同未完成，不是「现有 shimmer 仍在转」。
 
-**HC 覆盖缺口：** T1 描边选择器只打 `.part.conversation` / `.part.sources`。Engine / Connection Preferences pane **不在**这些 part 下，T1 不给它们 focus/selected/error 描边。B 在 `conversationLens.css` 给 question/confirmation/error 座位另加了 HC outline（文字状态仍在，不完全靠色）。
+**HC 覆盖（GC-7 后）：** T1 描边选择器现含 `.preferences-editor`（Engine / Connection pane 宿主）。引入链：`workbench/browser/style.ts` → `productAccessibility.css` + `ua-common.css`（后者仍由 `conversationPart.ts` 再 import 一次）。未跑目视/axe（§10 / D17）。
 
-**缺口：** 见 [D19](deferred-gaps.md)。手测 / axe 未跑，不记为 §10 硬阻塞，归 D17。
+**仍缺：** A 未挂 `.ua-motion`；Connection 300px 无左导航 Back。见 [D19](deferred-gaps.md) (1)(3)。
 
 ---
 

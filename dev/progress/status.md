@@ -3,7 +3,7 @@ title: "Development Progress"
 type: progress
 status: active
 phase: M7
-updated: 2026-09-03
+updated: 2026-09-04
 summary: "P5 compile 已绿（Node 24.18.0）；类型对齐提交后从 merge 推 origin；字母槽 idle；edit 请自行对齐"
 ---
 
@@ -28,7 +28,7 @@ summary: "P5 compile 已绿（Node 24.18.0）；类型对齐提交后从 merge �
 ## Blockers
 
 - 无代码硬阻塞。远端是否 parked 以 merge 槽 push 结果为准。
-- 非阻塞账：[D8](deferred-gaps.md)–[D20](deferred-gaps.md)（D8/D9/D12/D15–D20）。
+- 非阻塞账：[D8](deferred-gaps.md)–[D21](deferred-gaps.md)（D8/D9/D12/D15–D21）。
 
 ## Next
 
