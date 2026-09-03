@@ -4,7 +4,7 @@ type: reference
 status: accepted
 phase: N/A
 updated: 2026-09-04
-summary: "九节两栏 @ HEAD：Overview / Provider & Model / Skills / Agents / Rules / Hooks / MCP / Plugins / Tools；六态；GC-6 Model 摘要已落；PRD-025 待产品验证"
+summary: "九节两栏 @ HEAD：Overview / Provider & Model / Skills / Agents / Rules / Hooks / MCP / Plugins / Tools；六态；GC-6 Model 摘要已落；Overview Provider 行 G-ENG-1 前省略；PRD-025 待产品验证"
 ---
 
 # Engine 页 Customizations catalog（`ua.engine`）
@@ -52,7 +52,7 @@ summary: "九节两栏 @ HEAD：Overview / Provider & Model / Skills / Agents / 
 
 | 节 | 传输（`platform/universeAgent`） | Engine UI | 备注 |
 |----|-----------------------------------|-----------|------|
-| **Overview** | 读 snapshot + 可选 `listModels()` | `EngineOverviewSection`：Connection / workDir / Transport；Model 行在 `models=SUPPORTED` 时取已启用数（GC-6）；capability 产品文案。**不**暴露 token / 地址 / ticket | Provider 行 HEAD 仍画「Unavailable — this client has no provider API yet.」（方案原文「G-ENG-1 前不显示」尚未改口到隐藏） |
+| **Overview** | 读 snapshot + 可选 `listModels()` | `EngineOverviewSection`：Connection / workDir / Transport；Model 行在 `models=SUPPORTED` 时取已启用数（GC-6）；capability 产品文案。**不**暴露 token / 地址 / ticket | Provider 行 G-ENG-1 前**不画**（E2 §3.1）；不出现 Unavailable 假摘要、不出现 provider 名或计数 |
 | **Provider & Model** | `listModels()`（`include_disabled=true`） | `EngineProviderModelSection`：Provider 组零列表零输入、CONNECTED+SUPPORTED 也折成 unsupported。Model 按 `provider` 分组只读列表；禁用灰显；无 Enable/Disable | 脚注「provider 名来自模型注册表，不代表已配置凭据」。会话级 SwitchModel **不**画在本页 |
 | **Skills** | `ListSkills` · `SetSkillEnabled` · `saveSkillContent?` | 分组 list + 开关 + USER/PROJECT textarea + Save；BUNDLED 只读；connected 且 `SUPPORTED` 时 New | list/toggle @ `8bfc299e`；正文 @ `f3f2d366`；node 传输 @ `45fa7a35`；新建 @ `e6167c45` |
 | **Agents** | `ListAgentProfiles` · `Save` / `Delete` / `Reset` | 分组 list + New/Delete/Reset + `AGENTS.md` textarea + Save | 写入口 @ `7f10e65c` / `f49615a1`；`AGENTS.md` @ `9419f583`。profile `model.json` **无**独立编辑器（G-ENG-4） |
@@ -79,7 +79,7 @@ summary: "九节两栏 @ HEAD：Overview / Provider & Model / Skills / Agents / 
 
 | 节 | HEAD UI | 仍缺 |
 |----|---------|------|
-| Overview | 已有；GC-6 Model 计数 | Provider 行按方案应隐藏；产品验证 |
+| Overview | 已有；GC-6 Model 计数；Provider 行已隐藏 | 产品验证 |
 | Provider & Model | Model 只读注册表；Provider unsupported | G-ENG-1 凭据合同 |
 | Skills / Agents / Tools | 已有 list/toggle/写 | Composer 下拉；Agents Model 子 tab 仍 unsupported |
 | Rules | unsupported 壳 | G-ENG-2 |

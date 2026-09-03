@@ -17,6 +17,22 @@ import {
 } from '../../browser/engineOverviewSection.js';
 import { createConversationConnectionTestStub, createEmptyTestCapabilitySnapshot } from '../common/conversationConnectionTestStub.js';
 
+function overviewRowValue(root: HTMLElement, label: string): HTMLElement | null {
+	for (const row of root.querySelectorAll('.engine-overview-row')) {
+		if (row.querySelector('.engine-overview-label')?.textContent === label) {
+			return row.querySelector('.engine-overview-value') as HTMLElement | null;
+		}
+	}
+	return null;
+}
+
+function assertProviderRowOmitted(text: string, root: HTMLElement): void {
+	assert.strictEqual(overviewRowValue(root, 'Provider'), null, text);
+	assert.ok(!text.includes('Unavailable — this client has no provider API yet.'), text);
+	assert.ok(!text.includes('openai'), text);
+	assert.ok(!text.includes('anthropic'), text);
+}
+
 suite('EngineOverviewSection', () => {
 
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
@@ -58,11 +74,8 @@ suite('EngineOverviewSection', () => {
 		await new Promise<void>(resolve => setTimeout(resolve, 0));
 		const text = section.getDomNode().textContent ?? '';
 		assert.ok(text.includes('Unavailable — this client has no model profile API yet.'), text);
-		assert.ok(text.includes('Unavailable — this client has no provider API yet.'), text);
-		assert.ok(!/\d/.test(text.split('Provider')[1]?.split('Model')[0] ?? ''), text);
-		assert.ok(!text.includes('openai'), text);
-		assert.ok(!text.includes('anthropic'), text);
-		const modelValue = section.getDomNode().querySelector('.engine-overview-row:nth-child(5) .engine-overview-value') as HTMLElement | null;
+		assertProviderRowOmitted(text, section.getDomNode());
+		const modelValue = overviewRowValue(section.getDomNode(), 'Model');
 		assert.strictEqual(modelValue?.title, 'no registry RPC');
 		parent.remove();
 	});
@@ -90,7 +103,7 @@ suite('EngineOverviewSection', () => {
 		await new Promise<void>(resolve => setTimeout(resolve, 0));
 		const text = section.getDomNode().textContent ?? '';
 		assert.ok(text.includes('正在确认引擎能力…'), text);
-		assert.ok(text.includes('Unavailable — this client has no provider API yet.'), text);
+		assertProviderRowOmitted(text, section.getDomNode());
 		parent.remove();
 	});
 
@@ -126,9 +139,7 @@ suite('EngineOverviewSection', () => {
 		const text = section.getDomNode().textContent ?? '';
 		assert.strictEqual(listModelsCalls, 1);
 		assert.ok(text.includes('3 models'), text);
-		assert.ok(text.includes('Unavailable — this client has no provider API yet.'), text);
-		assert.ok(!text.includes('openai'), text);
-		assert.ok(!text.includes('anthropic'), text);
+		assertProviderRowOmitted(text, section.getDomNode());
 		parent.remove();
 	});
 

@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-04
-summary: "D16 identity 夹具；Chat onClosed 门；ContinueGeneration；Rename catalog；进口界+deleteTurn"
+summary: "D16 identity 夹具；Chat onClosed 门；ContinueGeneration；Rename catalog；Overview 隐藏 Provider 行"
 ---
 
 # Development Progress
@@ -14,17 +14,17 @@ summary: "D16 identity 夹具；Chat onClosed 门；ContinueGeneration；Rename 
 - **槽 A / `loop/A`：** D16 identity 夹具绿（10/10）；Chat remote/error → `chatStreamDown`。
 - **槽 B / `loop/B`：** 进口界扫 `src/`；`openChatStream` close-gate 合同测（remote 一次、dispose 静音）。
 - **槽 C / `loop/C`：** ContinueGeneration + `AgentService.Rename` 进 gRPC catalog；node unary `renameSession`（空 title 清自定义标题）。Web stub `unsupported_environment`。roster / Lens 仍本地改标题。
-- **槽 D / `loop/D`：** engine-catalog 诚实回填；D16 stub `deleteTurn` 改走 `createSession()`。
+- **槽 D / `loop/D`：** engine-catalog 诚实回填；D16 stub `deleteTurn` 改走 `createSession()`；Overview 按 E2 隐藏 Provider 行（G-ENG-1 前不画 Unavailable 假摘要）。
 
 ## 槽位（与 `git worktree list` 对照）
 
 | 槽 | 路径 | 分支 | 状态 |
 |----|------|------|------|
-| merge | `vscode-WorkTrees/merge` | `loop/merge` | 本会话：A+B+C + exhaustiveness 复绿 |
+| merge | `vscode-WorkTrees/merge` | `loop/merge` | 本会话：A+B+C+D + exhaustiveness 复绿 |
 | A | `vscode-WorkTrees/A` | `loop/A` | D16 identity 夹具 + Chat onClosed |
 | B | `vscode-WorkTrees/B` | `loop/B` | 进口界扫 src + Chat close-gate 测 |
 | C | `vscode-WorkTrees/C` | `loop/C` | ContinueGeneration + AgentService.Rename 进 gRPC catalog |
-| D | `vscode-WorkTrees/D` | `loop/D` | engine-catalog 回填 + stub deleteTurn |
+| D | `vscode-WorkTrees/D` | `loop/D` | Overview 隐藏 Provider 行 |
 | edit | `Projects/Agents/vscode` | `agent-ide` | 请自行对齐 |
 
 ## Blockers
