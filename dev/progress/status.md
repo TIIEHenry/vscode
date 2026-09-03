@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-04
-summary: "D16 conversationLens.test.ts 接入共享 ResizeObserver / layout flush harness；Rename/Cancel catalog；roster 接通后转发 Rename 与 Inbox Stop Cancel"
+summary: "D16 conversationLens.test.ts 与 identity 接入共享 ResizeObserver / layout flush harness；Rename/Cancel catalog；roster 接通后转发 Rename 与 Inbox Stop Cancel"
 ---
 
 # Development Progress
@@ -12,20 +12,20 @@ summary: "D16 conversationLens.test.ts 接入共享 ResizeObserver / layout flus
 ## Current Session
 
 - **槽 merge：** Inbox Stop 两边保留：末条 streaming 否则 `root`；仅 connected+streaming；generating 文案 + connection 重绘。
-- **槽 A：** Inbox Stop 转发 Cancel；D16 Lens 夹具。
-- **槽 B：** 共享 Lens harness（reveal/trajectory）。
-- **槽 C：** `conversationLens.test.ts` 接入共享 harness；ContinueGeneration + Rename + Cancel catalog。
-- **槽 D / `loop/D`：** engine-catalog 诚实回填；D16 stub `deleteTurn` 改走 `createSession()`；Overview 按 E2 隐藏 Provider 行（G-ENG-1 前不画 Unavailable 假摘要）。**ConversationEngineRosterService.renameSession** 接通后转发已进 catalog 的 `AgentService.Rename`（空/未变/未知 id 不发；断连缓存只改本地）。Lens 未接通仍走本地标题。
+- **槽 A / `loop/A`：** Inbox Stop：接通后 roster 转发已进 catalog 的 `AgentService.Cancel`（默认 `agentId=root`；未知 session / 断连缓存不发）。控件接通可点，未接通仍「Not generating」。此前 D16 Lens 夹具 21 passing。
+- **槽 B / `loop/B`：** D16 其余 Lens 夹具：抽出 `conversationLensLayoutHarness`（ResizeObserver loop 拦截 + layout flush），接到 reveal / trajectory / trajectoryUi。不改 `conversationLens.test.ts`。此前进口界扫 `src/`；`openChatStream` close-gate 合同测（remote 一次、dispose 静音）。
+- **槽 C / `loop/C`：** `conversationLens.test.ts` 接入共享 harness；ContinueGeneration + `AgentService.Rename` + `AgentService.Cancel` 进 gRPC catalog；node unary `renameSession`（空 title 清自定义标题）与 `cancelGeneration`（`session_id` + `agent_id`）。Web stub `unsupported_environment`。Inbox Stop 仍诚实降级。测：catalog + 转发 / 失败映射。
+- **槽 D / `loop/D`：** D16 leftover：`conversationIdentityStrip.test.ts` 改走共享 `conversationLensLayoutHarness`（ResizeObserver loop 拦截 + layout flush），after-each 与 reveal/trajectory 同式。不改 Inbox/Cancel/roster。此前 engine-catalog 诚实回填；Overview 隐藏 Provider 行；roster 接通后转发 Rename。
 
 ## 槽位（与 `git worktree list` 对照）
 
 | 槽 | 路径 | 分支 | 状态 |
 |----|------|------|------|
-| merge | `vscode-WorkTrees/merge` | `loop/merge` | Inbox Stop 合成 + compile 绿 |
-| A | `vscode-WorkTrees/A` | `loop/A` | Inbox Stop + Lens 夹具 |
-| B | `vscode-WorkTrees/B` | `loop/B` | 共享 Lens harness |
-| C | `vscode-WorkTrees/C` | `loop/C` | Lens 测接 harness + RPC catalog |
-| D | `vscode-WorkTrees/D` | `loop/D` | Overview 隐藏 Provider 行；roster 接通后转发 Rename |
+| merge | `vscode-WorkTrees/merge` | `loop/merge` | Inbox Stop 合成 + compile 绿；本会话：A+B+C+D + exhaustiveness 复绿 |
+| A | `vscode-WorkTrees/A` | `loop/A` | Inbox Stop 转发 AgentService.Cancel + Lens 夹具 |
+| B | `vscode-WorkTrees/B` | `loop/B` | D16 其余 Lens 夹具套共享 harness |
+| C | `vscode-WorkTrees/C` | `loop/C` | Lens 测接 harness + ContinueGeneration + Rename + Cancel catalog |
+| D | `vscode-WorkTrees/D` | `loop/D` | Overview 隐藏 Provider 行；roster 接通后转发 Rename；D16 identity 接入共享 layout harness |
 | edit | `Projects/Agents/vscode` | `agent-ide` | 请自行对齐 |
 
 ## Blockers
@@ -40,7 +40,7 @@ summary: "D16 conversationLens.test.ts 接入共享 ResizeObserver / layout flus
 | W1 / D15 | Web 冒烟 |
 | I6 | 发行标识等发布方 |
 | H4a | 真 Hub 冒烟后才升 PRD-024 `implemented` |
-| V | D16 Lens 已接共享 harness；剩 DOM/codicon 断言债；D17 与产品验证 |
-| SessionEventStream close | 三路 `onClosed` 已齐。传输已进 ContinueGeneration / Rename / Cancel；roster 转发 Rename 与 Inbox Stop Cancel |
+| V | D16 Lens 与 identity 已接共享 harness；剩 DOM/codicon 断言债；D17 与产品验证 |
+| SessionEventStream close | 三路宿主 `onClosed` 已齐：SessionEventStream → `streamClosed`；Chat → `chatStreamDown`；ContinueGeneration 只拆句柄。connection 测现覆盖 Chat / EventStream / Continue 三路 close gate（remote 一次、dispose 静音）。**传输已进** `ContinueGeneration`、`Rename`、`Cancel`；roster 接通后已转发 Rename 与 Inbox Stop Cancel unary |
 
 **不做：** H6、完整插件市场、fixture 冒充 Engine、为全绿冻结 UI、引擎仓新增 RPC、会话级模型策略 UI、F3 同窗共享 lease（D22）。

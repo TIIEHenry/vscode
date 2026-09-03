@@ -41,6 +41,7 @@ import { OPEN_CONNECTION_PREFERENCES_COMMAND_ID, OPEN_ENGINE_PREFERENCES_COMMAND
 import { IClipboardService } from '../../../../../platform/clipboard/common/clipboardService.js';
 import { TestClipboardService } from '../../../../../platform/clipboard/test/common/testClipboardService.js';
 import { createConversationConnectionTestStub, createEmptyTestCapabilitySnapshot } from '../common/conversationConnectionTestStub.js';
+import { flushConversationLensLayout, installConversationLensResizeObserverHarness } from './conversationLensLayoutHarness.js';
 
 const LENS_LAYOUT_WIDTH = 640;
 const LENS_LAYOUT_HEIGHT = 480;
@@ -49,27 +50,10 @@ suite('ConversationIdentityStrip', () => {
 
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
-	function ignoreResizeObserverLoop(event: ErrorEvent): void {
-		if (event.message.includes('ResizeObserver loop')) {
-			event.preventDefault();
-		}
-	}
-
-	suiteSetup(() => {
-		window.addEventListener('error', ignoreResizeObserverLoop);
-	});
-
-	suiteTeardown(() => {
-		window.removeEventListener('error', ignoreResizeObserverLoop);
-	});
-
-	async function flushLensLayout(): Promise<void> {
-		await new Promise<void>(resolve => setTimeout(resolve, 20));
-		await new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
-	}
+	installConversationLensResizeObserverHarness();
 
 	teardown(async () => {
-		await flushLensLayout();
+		await flushConversationLensLayout();
 	});
 
 	function layoutReadingColumn(lens: ConversationLens, slots: IConversationLensSlots): void {
