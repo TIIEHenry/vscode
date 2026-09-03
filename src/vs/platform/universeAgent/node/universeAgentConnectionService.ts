@@ -34,6 +34,8 @@ import type {
 	UniverseAgentCancelSessionGoalResult,
 	UniverseAgentRespondPermissionRequest,
 	UniverseAgentRespondPermissionResult,
+	UniverseAgentRespondQuestionRequest,
+	UniverseAgentRespondQuestionResult,
 	UniverseAgentEnqueueQueueItemRequest,
 	UniverseAgentEditQueueItemRequest,
 	UniverseAgentHoldQueueItemRequest,
@@ -659,6 +661,10 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 
 	async respondPermission(request: UniverseAgentRespondPermissionRequest): Promise<UniverseAgentRespondPermissionResult> {
 		return this._withTransport(transport => transport.respondPermission(request));
+	}
+
+	async respondQuestion(request: UniverseAgentRespondQuestionRequest): Promise<UniverseAgentRespondQuestionResult> {
+		return this._withTransport(transport => transport.respondQuestion(request));
 	}
 
 	async enqueueQueueItem(request: UniverseAgentEnqueueQueueItemRequest): Promise<UniverseAgentQueueMutationResult> {

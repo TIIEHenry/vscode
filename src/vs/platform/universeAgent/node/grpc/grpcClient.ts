@@ -29,6 +29,9 @@ import type {
 	UniverseAgentCancelSessionGoalResult,
 	UniverseAgentRespondPermissionRequest,
 	UniverseAgentRespondPermissionResult,
+	UniverseAgentRespondQuestionRequest,
+	UniverseAgentRespondQuestionResult,
+	UniverseAgentQuestionAnswer,
 	UniverseAgentEnqueueQueueItemRequest,
 	UniverseAgentEditQueueItemRequest,
 	UniverseAgentHoldQueueItemRequest,
@@ -199,6 +202,19 @@ function queuePriorityWire(priority: UniverseAgentQueuePriority | undefined): nu
 		default:
 			return 0;
 	}
+}
+
+function questionAnswersWire(
+	answers: Readonly<Record<string, UniverseAgentQuestionAnswer>> | undefined,
+): Record<string, { selected_labels: string[] }> {
+	const wire: Record<string, { selected_labels: string[] }> = {};
+	if (!answers) {
+		return wire;
+	}
+	for (const [itemId, answer] of Object.entries(answers)) {
+		wire[itemId] = { selected_labels: [...answer.selectedLabels] };
+	}
+	return wire;
 }
 
 interface GetHistoryResponseWire {
@@ -1402,6 +1418,26 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			request_id: request.requestId,
 			granted: request.granted === true,
 			metadata_json: request.metadataJson ?? '',
+		});
+		return {
+			ok: wire.success === true,
+			message: wire.error,
+		};
+	}
+
+	async respondQuestion(request: UniverseAgentRespondQuestionRequest): Promise<UniverseAgentRespondQuestionResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, { success?: boolean; error?: string }>(
+			this._channel,
+			UniverseAgentGrpcServices.Agent.service,
+			UniverseAgentGrpcServices.Agent.RespondQuestion,
+		);
+		const wire = await unary({
+			session_id: request.sessionId,
+			response: {
+				question_id: request.questionId,
+				answers: questionAnswersWire(request.answers),
+				custom_text: request.customText ?? '',
+			},
 		});
 		return {
 			ok: wire.success === true,

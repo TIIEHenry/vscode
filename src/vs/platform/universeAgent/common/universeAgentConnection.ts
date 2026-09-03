@@ -31,6 +31,8 @@ import type {
 	UniverseAgentCancelSessionGoalResult,
 	UniverseAgentRespondPermissionRequest,
 	UniverseAgentRespondPermissionResult,
+	UniverseAgentRespondQuestionRequest,
+	UniverseAgentRespondQuestionResult,
 	UniverseAgentEnqueueQueueItemRequest,
 	UniverseAgentEditQueueItemRequest,
 	UniverseAgentHoldQueueItemRequest,
@@ -207,6 +209,13 @@ export interface IUniverseAgentConnection {
 	 * `permissionRespond`.
 	 */
 	respondPermission?(request: UniverseAgentRespondPermissionRequest): Promise<UniverseAgentRespondPermissionResult>;
+
+	/**
+	 * AgentService.RespondQuestion unary (ADR-325 ask_user reply). Optional so
+	 * Web / tests can omit it. Catalog + node transport only this slice;
+	 * timeline / roster still post Chat-arm `questionRespond`.
+	 */
+	respondQuestion?(request: UniverseAgentRespondQuestionRequest): Promise<UniverseAgentRespondQuestionResult>;
 
 	/** AgentService.EnqueueQueueItem. Engine roster forwards when connected. */
 	enqueueQueueItem(request: UniverseAgentEnqueueQueueItemRequest): Promise<UniverseAgentQueueMutationResult>;
