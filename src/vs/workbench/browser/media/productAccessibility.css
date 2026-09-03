@@ -36,7 +36,11 @@
 .monaco-workbench.hc-black .part.conversation .part-region-hide-actions .action-label:focus,
 .monaco-workbench.hc-light .part.conversation .part-region-hide-actions .action-label:focus,
 .monaco-workbench.hc-black .part.sources .part-region-hide-actions .action-label:focus,
-.monaco-workbench.hc-light .part.sources .part-region-hide-actions .action-label:focus {
+.monaco-workbench.hc-light .part.sources .part-region-hide-actions .action-label:focus,
+.monaco-workbench.hc-black .preferences-editor .action-label:focus,
+.monaco-workbench.hc-light .preferences-editor .action-label:focus,
+.monaco-workbench.hc-black .preferences-editor .monaco-button:focus,
+.monaco-workbench.hc-light .preferences-editor .monaco-button:focus {
 	outline-width: 2px;
 	outline-offset: 1px;
 }

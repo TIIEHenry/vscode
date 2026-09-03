@@ -28,11 +28,15 @@
 	--ua-status-pending: var(--vscode-editorWarning-foreground);
 }
 
-/* High contrast: focus / selected / error / pending must differ by stroke, not hue alone. */
+/* High contrast: focus / selected / error / pending must differ by stroke, not hue alone.
+ * Preferences editor (Engine / Connection panes) is not under .part.conversation / .part.sources;
+ * it lives in .preferences-editor (GC-7 / D19(2)). */
 .monaco-workbench.hc-black .part.conversation :focus-visible,
 .monaco-workbench.hc-light .part.conversation :focus-visible,
 .monaco-workbench.hc-black .part.sources :focus-visible,
-.monaco-workbench.hc-light .part.sources :focus-visible {
+.monaco-workbench.hc-light .part.sources :focus-visible,
+.monaco-workbench.hc-black .preferences-editor :focus-visible,
+.monaco-workbench.hc-light .preferences-editor :focus-visible {
 	outline: 2px solid var(--ua-status-focus);
 	outline-offset: 1px;
 }
@@ -41,10 +45,14 @@
 .monaco-workbench.hc-light .part.conversation [aria-selected="true"],
 .monaco-workbench.hc-black .part.sources [aria-selected="true"],
 .monaco-workbench.hc-light .part.sources [aria-selected="true"],
+.monaco-workbench.hc-black .preferences-editor [aria-selected="true"],
+.monaco-workbench.hc-light .preferences-editor [aria-selected="true"],
 .monaco-workbench.hc-black .part.conversation .monaco-list-row.selected,
 .monaco-workbench.hc-light .part.conversation .monaco-list-row.selected,
 .monaco-workbench.hc-black .part.sources .monaco-list-row.selected,
-.monaco-workbench.hc-light .part.sources .monaco-list-row.selected {
+.monaco-workbench.hc-light .part.sources .monaco-list-row.selected,
+.monaco-workbench.hc-black .preferences-editor .monaco-list-row.selected,
+.monaco-workbench.hc-light .preferences-editor .monaco-list-row.selected {
 	outline: 2px solid var(--vscode-contrastBorder);
 	outline-offset: -2px;
 	color: var(--ua-status-selected-fg);

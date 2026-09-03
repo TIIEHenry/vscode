@@ -5,6 +5,7 @@
 
 import './media/style.css';
 import './media/productAccessibility.css';
+import './parts/conversation/media/ua-common.css';
 import { registerThemingParticipant } from '../../platform/theme/common/themeService.js';
 import { WORKBENCH_BACKGROUND, TITLE_BAR_ACTIVE_BACKGROUND } from '../common/theme.js';
 import { isWeb, isIOS } from '../../base/common/platform.js';

@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-04
-summary: "槽 A 知识层回填：ff-only merge d98d888a；F1/F2 + GC-1–GC-6 方案标 implemented；D21/D22 入账"
+summary: "F1/F2+GC-1–7 合入 merge；知识层回填；D21/D22 入账；GC-7 Preferences HC；lease.post 等宿主结果"
 ---
 
 # Development Progress
@@ -26,7 +26,7 @@ summary: "槽 A 知识层回填：ff-only merge d98d888a；F1/F2 + GC-1–GC-6 �
 
 ## Blockers
 
-- 无代码硬阻塞。
+- 无代码硬阻塞。远端是否 parked 以 merge 槽 push 结果为准。
 - 非阻塞账：[D8](deferred-gaps.md)–[D22](deferred-gaps.md)（D8/D9/D12/D15–D22）。
 
 ## Next

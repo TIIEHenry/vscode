@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-04
-summary: "延期缺口 SSOT；D21 Agent 树首拉失败轴；D22 同窗共享 lease（F3）；D15 前置 P0+E2-1 已落只欠 W1 冒烟；D17–D20 / D8 / D9 / D12 / D16 不冻结 UI 主线"
+summary: "延期缺口 SSOT；D21 树首拉失败；D22 F3 同窗共享 lease；D19(2) GC-7 已收；D15 欠 W1；不冻结 UI 主线"
 ---
 
 # Deferred Gaps
@@ -33,10 +33,10 @@ summary: "延期缺口 SSOT；D21 Agent 树首拉失败轴；D22 同窗共享 le
 | D16 | P2 | **conversation 单测基线红**：`conversationLens.test.ts` 11 个失败（DOM 高度 0 / codicon 选择器 / 种子会话数 `1 !== 2` 等）、`conversationIdentityStrip.test.ts` 1 个、`conversationStubService.test.ts` 3 个（假定种子会话为空，实际 `untitled` 有 7 条 fixture），在 **不含** stream-timeline S1 改动的 HEAD `0649602d` 上同样失败；另 `conversationImportBoundaries.test.ts` 用 `__dirname` 指向 `out/` 扫 `.ts`，疑似空扫假绿（`universeAgentImportBoundaries.test.ts` 已改用 `FileAccess` + 扫描计数断言，可参照） | 2026-09-02 S1 实施时发现；已顺手修两处启动级问题（Lens 夹具缺 `registerPart`/`isVisible` → `TestLayoutService`；`getVisibleTimelineIndices` 对 `lastVisibleElement` 越界防御），剩余为断言级过时 | 逐条分类：过时断言改测 / 产品 bug 修码；stream-timeline S2 退出条件「Lens 全绿」以本行闭合为前提，或改为「S2 不新增失败」 | M6 / conversation | open |
 | D17 | P2 | **M7 非阻塞验证债总账**：单测、E2E、视觉、a11y、性能与缺失 Engine/Hub/Web 证据 | 用户裁定测试不阻塞 UI 开发；若每条红测都成为 blocker，会再次冻结不冲突 UI 槽 | 每项记录首次 SHA、场景、baseline/新增、owner、关闭证据；普通失败不进 `status` Blockers，只阻止对应 PRD/plan 升 `implemented` | M7 verification | open |
 | D18 | P2 | **I3b 三平台安装包未验**：hicolor 已进 deb/rpm gulp+spec，`electron.ts` 已改公司名/HelpBook；未跑 prepare-deb/rpm、snapcraft、Inno、darwin 打包 | 委派先不复杂测试；本机缺 fakeroot/rpmbuild/Inno/macOS | V 槽确认八档 hicolor 进包，Win/mac 检查 ico/bmp/icns 与 exe/plist 元数据 | product / packaging | open |
-| D19 | P2 | **L1 源码复核残留**（[a11y-rwd-l1.md](a11y-rwd-l1.md)）：(1) A 未在 Engine/Connection 挂 `.ua-motion`；(2) T1 HC 选择器只打 `.part.conversation`/`.part.sources`，Preferences pane 无描边；(3) Connection 300px 无左导航 Back。**(4) Web 省略门控与点名文案已在 E2-1 收口**（`shouldDrawDesktopConnectionControls` 读 phase / capability / `unsupported_environment`，不再用 `isWeb`） | L1 只做源码清单，不改 B/A 生产文件；不阻塞 CS-3 或 W1 | A 挂 class 或方案改口「无动画节点」；T1 或 A 给 pane 补 HC；Connection Back 落地或 §9 改合同。手测/axe/Web 冒烟失败仍记 D17/D15，不并入本行 | M7 a11y | open |
+| D19 | P2 | **L1 源码复核残留**（[a11y-rwd-l1.md](a11y-rwd-l1.md)）：(1) A 未在 Engine/Connection 挂 `.ua-motion`；(2) **已收口 @ GC-7 2026-09-04**（`style.ts` 引入 `ua-common.css`，T1 + `productAccessibility.css` 覆盖 `.preferences-editor`）；(3) Connection 300px 无左导航 Back。**(4) Web 省略门控与点名文案已在 E2-1 收口**（`shouldDrawDesktopConnectionControls` 读 phase / capability / `unsupported_environment`，不再用 `isWeb`） | L1 只做源码清单；不阻塞 CS-3 或 W1 | A 挂 class 或方案改口「无动画节点」；Connection Back 落地或 §9 改合同。手测/axe/Web 冒烟失败仍记 D17/D15，不并入本行 | M7 a11y | open |
 | D20 | P2 | **CS-6 Settings 默认窗 300px 目视**：搜索框与 Client 七组标题在缩到约 300px 时是否仍可见；`SettingsEditor2` 在宽度低于 700px 已隐藏 TOC，源码未见 UA 专用挤占，但本轮禁止 electron / playwright | CS-6 代码完成线不阻塞；§6 产品验证另含重载 / 草稿不进 Sync / 两种 Enter / 通知语义 | 隔离 profile 打开默认窗 Settings，缩到 300px，确认搜索框与 Client 组标题仍可见、无 emptyCopy；失败记入 D17 证据，不并入本行关闭条件 | M7 verification | open |
-| D21 | P2 | **Host 暴露 Agent 树首拉失败态**（GC-5b 失败轴）：`AgentService.Tree` 第一次 unary 失败时，Navigator Hierarchy / Team 无法与「正在读取」区分，只能靠连接态或空树。闭合前**禁止**用 connection `transport` 冒充树拉取失败 | GC-5 已用共享 empty-state 函数画 loading；失败轴需 host 把 Tree 首拉错误投到 renderer，本轮未做 | `IUniverseAgentConnection` 或 session-view 暴露树首拉失败（一次 / 连接）；Hierarchy 与 Team 共用该判定；单测覆盖失败 ≠ 「没有团队」/ 「只有根」 | M7 navigator | open |
-| D22 | P3 | **同窗口同会话多 lease 渲染端共享**（[session-view-frame-fanout](../plans/session-view-frame-fanout.md) F3）：F1 已按 lease 扇出；同窗多个 chat tab / overlay 仍各持宿主 lease，重复收 baseline/patch | F1/F2 Exit 不含此项；共享层须收口 `post` / `requestDetail` 语义 | 同窗同 session 多 UI lease 共用一个宿主 lease；单测：第二 lease 不触发第二次 `acquireLease` | M7 conversation | open |
+| D21 | P2 | **Host 暴露 Agent 树首拉失败态**（GC-5b；对齐 [navigator-engine-segments §3](../plans/navigator-engine-segments.md)）：renderer 拿不到 `AgentService.Tree` 首拉失败；host `scheduleAgentTreeRefresh` 失败只在 capability 区分 UNIMPLEMENTED。共用空态已预留 `treeFetchFailed?: boolean`，**信号仍缺**。闭合前**禁止**用 connection `transport` 冒充树拉取失败 | 归订阅流 Actor 回路；GC-5 已画 loading | host 经 lease 快照或 connection 事件提供 `treeFetchFailed`；两叶共用；单测：失败 ≠ 「没有团队」/ 「正在读取」 | M7 navigator | open |
+| D22 | P3 | **同窗口同会话多 lease 渲染端共享**（[session-view-frame-fanout](../plans/session-view-frame-fanout.md) F3）：F1 已按 lease 扇出；同窗多 UI 仍各持宿主 lease | F1/F2 Exit 不含；须收口 `post` / `requestDetail` | 同窗同 session 共用一个宿主 lease；第二 lease 不二次 `acquireLease` | M7 conversation | open |
 
 ## D2 工位池 compile 基线（2026-09-02，merge 工位 / `loop/merge`）
 
