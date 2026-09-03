@@ -4,7 +4,7 @@ type: architecture
 status: accepted
 phase: N/A
 updated: 2026-09-04
-summary: "PRD-016 / ADR-002 的系统规格：Part 内最多两叶 session 窗口；fork / 子代理 catalog（GC-4 观察 liveAgentTree；接通后 Fork 转 AgentService.Fork；Kill 已进 catalog、roster 未转发）；overlay、面包屑、导航栈、split"
+summary: "PRD-016 / ADR-002 的系统规格：Part 内最多两叶 session 窗口；fork / 子代理 catalog（GC-4 观察 liveAgentTree；接通后 Fork 转 AgentService.Fork；接通后 Kill 转 AgentService.Kill，空 agentId 不默认 root）；overlay、面包屑、导航栈、split"
 ---
 
 # Conversation session 窗口与 chat tab
@@ -37,11 +37,12 @@ CONVERSATION_PART
 
 ## 3. chat catalog：root / fork / tool / sideChat
 
-`IConversationSessionChatService` 按 session 维护 `IConversationSessionChatEntry[]`（`chatId`、`title`、`originKind ∈ user | fork | tool | sideChat`、`parentChatId`），与协议 `ChatOrigin` 四 kind 对齐。stub 期 catalog 来自内存 fixture。引擎接通后 **GC-4**：roster 观察活动会话 lease 的 `liveAgentTree` 预同步非根 catalog（`chatId` ≡ `agent_id`，根不登记）。传输 `forkAgent?` **已进** `AgentService.Fork` catalog + node unary。接通后用户 Fork 动作转发 `IConversationRosterService.forkSubAgent` → 该 unary（空父 id 用末条 streaming 否则 `root`），**不**开本地 Fork tab、不造 catalog id；未接通仍走 `registerForkChat`。传输 `killAgent?` **已进** `AgentService.Kill` catalog + node unary；roster / 用户动作未转发。完整活会话权威仍依赖 PRD-008。
+`IConversationSessionChatService` 按 session 维护 `IConversationSessionChatEntry[]`（`chatId`、`title`、`originKind ∈ user | fork | tool | sideChat`、`parentChatId`），与协议 `ChatOrigin` 四 kind 对齐。stub 期 catalog 来自内存 fixture。引擎接通后 **GC-4**：roster 观察活动会话 lease 的 `liveAgentTree` 预同步非根 catalog（`chatId` ≡ `agent_id`，根不登记）。传输 `forkAgent?` **已进** `AgentService.Fork` catalog + node unary。接通后用户 Fork 动作转发 `IConversationRosterService.forkSubAgent` → 该 unary（空父 id 用末条 streaming 否则 `root`），**不**开本地 Fork tab、不造 catalog id；未接通仍走 `registerForkChat`。传输 `killAgent?` **已进** `AgentService.Kill` catalog + node unary。接通后用户 Kill 动作转发 `IConversationRosterService.killSubAgent` → 该 unary（空 agentId 原样上线、不默认 `root`），**不**造本地 catalog 变更；未接通仍 no-op。完整活会话权威仍依赖 PRD-008。
 
 | 用户动作 | 服务调用 | 结果 |
 |----------|----------|------|
 | Fork（`ForkConversationAction` 的 Conversation 版） | `registerForkChat` → `openForkTab` | 同 session 新增一张**延伸 tab**；不产生第二个根会话 |
+| Kill（`ConversationKillSubAgentAction`） | 接通后 `killSubAgent` → `AgentService.Kill` | 不造本地 catalog 变更；空 agentId 原样上线、不默认 `root`；未接通 no-op |
 | 点击时间线里的子代理 | `openSubAgent` | 叶内**居中对话框**（`ConversationSubAgentOverlay`：backdrop + card + popout / maximize / close），父对话仍在底下；**不**加 tab |
 | 对话框「铺满」 | `toggleSubAgentDialogMaximized` | 仍是 overlay，仍只有根 tab |
 | 对话框「打开为 tab」 | `promoteSubAgentDialog` → `openExtensionTab` | 关对话框，加一张延伸 tab |

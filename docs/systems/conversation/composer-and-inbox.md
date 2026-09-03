@@ -94,4 +94,4 @@ summary: "PRD-015 系统规格：PreFirst 居中 / Active 列底同一张 Compos
 
 ## 9. 测试
 
-`conversationLens.test.ts`（T1–T6）、`conversationInboxOverlay.test.ts`（Stop 禁用 / 接通 streaming 转发；Goal 禁用 / 接通转发 Set / 取消不发 / 清空确认 Cancel）、`conversationIdentityStrip.test.ts`、`conversationInputHistory.test.ts`、`conversationSessionStatus.test.ts`、`conversationSessionStatusBar.test.ts`、`conversationStubService.test.ts`（队列 / hold / cancel·goal no-op）、`conversationEngineRosterService.test.ts`（接通转发 Cancel / SetSessionGoal / MessageQueue 五操作 + Edit）。
+`conversationLens.test.ts`（T1–T6）、`conversationInboxOverlay.test.ts`（Stop 禁用 / 接通 streaming 转发；Goal 禁用 / 接通转发 Set / 取消不发 / 清空确认 Cancel）、`conversationIdentityStrip.test.ts`、`conversationInputHistory.test.ts`、`conversationSessionStatus.test.ts`、`conversationSessionStatusBar.test.ts`、`conversationStubService.test.ts`（队列 / hold / cancel·goal no-op）、`conversationEngineRosterService.test.ts`（接通转发 Cancel / SetSessionGoal / Fork / Kill / CancelToolCall / MessageQueue 五操作 + Edit）。

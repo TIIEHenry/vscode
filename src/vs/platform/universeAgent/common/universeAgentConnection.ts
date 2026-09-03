@@ -234,7 +234,9 @@ export interface IUniverseAgentConnection {
 
 	/**
 	 * AgentService.Kill unary (terminate SubAgent). Optional so Web / tests can
-	 * omit it. Transport only — roster / catalog UI is not forwarded yet.
+	 * omit it; engine roster no-ops when absent. Connected Kill action / roster
+	 * `killSubAgent` forwards this unary. Empty `agentId` is sent as-is (not
+	 * defaulted to `root`). Distinct from Cancel / CancelToolCall.
 	 */
 	killAgent?(request: UniverseAgentKillAgentRequest): Promise<UniverseAgentKillAgentResult>;
 

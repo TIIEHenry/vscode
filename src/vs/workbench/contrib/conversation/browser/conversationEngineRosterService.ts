@@ -237,6 +237,16 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		return super.forkSubAgent(sessionId, options);
 	}
 
+	override killSubAgent(sessionId: string, options?: { agentId?: string; force?: boolean }): boolean {
+		if (this.isEngineConnected()) {
+			return this.killEngineSubAgent(sessionId, options, true);
+		}
+		if (this.wasEverConnected) {
+			return this.killEngineSubAgent(sessionId, options, false);
+		}
+		return super.killSubAgent(sessionId, options);
+	}
+
 	override cancelToolCall(sessionId: string, options: { toolCallId: string; agentId?: string }): boolean {
 		if (this.isEngineConnected()) {
 			return this.cancelEngineToolCall(sessionId, options, true);
@@ -451,6 +461,31 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 				parentAgentId,
 				...(name ? { name } : {}),
 				...(task ? { task } : {}),
+			});
+			return true;
+		}
+		return false;
+	}
+
+	private killEngineSubAgent(
+		sessionId: string,
+		options: { agentId?: string; force?: boolean } | undefined,
+		callRemote: boolean,
+	): boolean {
+		if (!this.engineSessions.some(session => session.id === sessionId)) {
+			return false;
+		}
+		if (callRemote) {
+			if (!this.uaConnection.killAgent) {
+				return false;
+			}
+			const agentId = options?.agentId !== undefined
+				? options.agentId.trim()
+				: (this.lastStreamingAgentId(sessionId) ?? '');
+			void this.uaConnection.killAgent({
+				sessionId,
+				agentId,
+				...(options?.force === true ? { force: true } : {}),
 			});
 			return true;
 		}

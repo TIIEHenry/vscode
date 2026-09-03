@@ -81,6 +81,14 @@ export interface IConversationRosterService {
 	 */
 	forkSubAgent(sessionId: string, options?: { name?: string; task?: string; parentAgentId?: string }): boolean;
 	/**
+	 * AgentService.Kill (terminate SubAgent; ≠ Cancel / CancelToolCall).
+	 * Engine-connected forwards unary. Empty `agentId` is sent as-is (not
+	 * defaulted to `root`); omitted uses last streaming else empty. Does not
+	 * invent a local catalog change. Stub / disconnected cache / missing hook
+	 * returns false.
+	 */
+	killSubAgent(sessionId: string, options?: { agentId?: string; force?: boolean }): boolean;
+	/**
 	 * AgentService.CancelToolCall (per-tool cancel; ≠ session-turn Cancel).
 	 * Engine-connected forwards unary (empty agent → last streaming else
 	 * `root`). Empty `toolCallId` / stub / disconnected cache / missing hook
@@ -265,6 +273,10 @@ export class ConversationStubService extends Disposable implements IConversation
 	}
 
 	forkSubAgent(_sessionId: string, _options?: { name?: string; task?: string; parentAgentId?: string }): boolean {
+		return false;
+	}
+
+	killSubAgent(_sessionId: string, _options?: { agentId?: string; force?: boolean }): boolean {
 		return false;
 	}
 
