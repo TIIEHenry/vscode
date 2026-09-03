@@ -58,6 +58,7 @@ export class TestConnection implements IUniverseAgentConnection {
 	async listSessions() { return { sessions: [] }; }
 	async createSession() { return { sessionId: 's' }; }
 	async deleteSession() { }
+	async renameSession() { return { ok: false, message: 'test' }; }
 	async getHistory() { return { envelopes: [] }; }
 	subscribeSessionEventStream(
 		sessionId: string,

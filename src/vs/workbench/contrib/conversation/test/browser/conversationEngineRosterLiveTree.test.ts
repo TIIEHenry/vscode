@@ -76,6 +76,7 @@ class MockUniverseAgentConnection extends Disposable {
 	async listSessions() { return { sessions: this.sessions.map(s => ({ sessionId: s.sessionId, title: s.title })) }; }
 	async createSession() { return { sessionId: 'ua-new' }; }
 	async deleteSession() { }
+	async renameSession() { return { ok: false, message: 'stub' }; }
 	async getHistory() { return { envelopes: [] }; }
 	subscribeSessionEventStream(
 		_sessionId: string,

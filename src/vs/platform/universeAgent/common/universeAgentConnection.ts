@@ -19,6 +19,8 @@ import type {
 	UniverseAgentCreateSessionRequest,
 	UniverseAgentCreateSessionResult,
 	UniverseAgentDeleteSessionRequest,
+	UniverseAgentRenameSessionRequest,
+	UniverseAgentRenameSessionResult,
 	UniverseAgentGetHistoryRequest,
 	UniverseAgentGetHistoryResult,
 	UniverseAgentListSessionsRequest,
@@ -150,6 +152,9 @@ export interface IUniverseAgentConnection {
 	createSession(request: UniverseAgentCreateSessionRequest): Promise<UniverseAgentCreateSessionResult>;
 
 	deleteSession(request: UniverseAgentDeleteSessionRequest): Promise<void>;
+
+	/** AgentService.Rename unary. Roster still uses local `renameSession` until adapter wiring. */
+	renameSession(request: UniverseAgentRenameSessionRequest): Promise<UniverseAgentRenameSessionResult>;
 
 	getHistory(request: UniverseAgentGetHistoryRequest): Promise<UniverseAgentGetHistoryResult>;
 
