@@ -286,6 +286,14 @@ suite('ConversationStubService', () => {
 		assert.strictEqual(formatSyncChromeLabel(service.getSessionSync(sessionId)), undefined);
 	});
 
+	test('never-connected AutoDrive still accepts fixture', () => {
+		const service = store.add(new ConversationStubService());
+		const sessionId = service.getActiveSessionId();
+		service.setAutoDriveTaskFixture(sessionId, ['Fix lint']);
+		assert.deepStrictEqual(service.getAutoDriveTasks(sessionId), ['Fix lint']);
+		assert.strictEqual(service.getAutoDriveTaskCount(sessionId), 1);
+	});
+
 	test('engine-cache sessions use engine-cache source and closed sync chrome', () => {
 		const storage = store.add(new TestStorageService());
 		const service = store.add(createPersistedService(storage));

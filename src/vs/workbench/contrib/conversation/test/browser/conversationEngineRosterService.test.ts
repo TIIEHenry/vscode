@@ -862,4 +862,34 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		assert.strictEqual(connection.releaseQueueCalls.length, 0);
 		assert.strictEqual(connection.editQueueCalls.length, 0);
 	});
+
+	test('connected AutoDrive ignores fixture and stays empty', async () => {
+		const storage = store.add(new TestStorageService());
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
+		const service = store.add(createService(connection, storage));
+		connection.setConnected(true);
+		service.setEngineConnected(true);
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+		service.setAutoDriveTaskFixture('ua-only', ['Fix lint', 'Ship']);
+		assert.deepStrictEqual(service.getAutoDriveTasks('ua-only'), []);
+		assert.strictEqual(service.getAutoDriveTaskCount('ua-only'), 0);
+	});
+
+	test('disconnected after engine AutoDrive stays empty and ignores fixture', async () => {
+		const storage = store.add(new TestStorageService());
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
+		const service = store.add(createService(connection, storage));
+		connection.setConnected(true);
+		service.setEngineConnected(true);
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		connection.setConnected(false);
+		service.setEngineConnected(false);
+
+		service.setAutoDriveTaskFixture('ua-only', ['Fix lint']);
+		assert.deepStrictEqual(service.getAutoDriveTasks('ua-only'), []);
+		assert.strictEqual(service.getAutoDriveTaskCount('ua-only'), 0);
+	});
 });

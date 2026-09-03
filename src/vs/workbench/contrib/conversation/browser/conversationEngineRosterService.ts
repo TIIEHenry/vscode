@@ -281,6 +281,27 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		super.setMessageQueueFixture(sessionId, state);
 	}
 
+	override getAutoDriveTasks(sessionId: string): readonly string[] {
+		if (this.isEngineConnected() || this.wasEverConnected) {
+			return [];
+		}
+		return super.getAutoDriveTasks(sessionId);
+	}
+
+	override getAutoDriveTaskCount(sessionId: string): number {
+		if (this.isEngineConnected() || this.wasEverConnected) {
+			return 0;
+		}
+		return super.getAutoDriveTaskCount(sessionId);
+	}
+
+	override setAutoDriveTaskFixture(sessionId: string, tasks: readonly string[]): void {
+		if (this.isEngineConnected() || this.wasEverConnected) {
+			return;
+		}
+		super.setAutoDriveTaskFixture(sessionId, tasks);
+	}
+
 	override pauseMessageQueue(sessionId: string): void {
 		if (this.isEngineConnected()) {
 			this.forwardEngineQueueRef(sessionId, true, () => this.uaConnection.pauseQueue({ sessionId }));

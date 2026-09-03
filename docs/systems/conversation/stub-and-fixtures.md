@@ -4,7 +4,7 @@ type: architecture
 status: accepted
 phase: N/A
 updated: 2026-09-04
-summary: "IConversationRosterService 契约分组；getTrajectoryRecords + filterAgentId；帧源 projectSnapshotToTrajectory；D13 持久化；引擎 roster 接通后转发 Create / Rename / Cancel / SetSessionGoal / Fork / Kill / CancelToolCall / Respond / MessageQueue 五操作 + Edit + Enqueue（Inbox Stop 仅 connected+streaming；Inbox Goal 仅 connected；Fork / Kill 不造本地 catalog id；Kill 空 agentId 原样上线不默认 root，省略用末条 streaming 否则空串；时间线执行中工具行转 CancelToolCall；权限座接通后转 PermissionService.Respond，未接通仍 Chat 臂；队列无 GetQueue 显示空）；Engine Tools 选中行读 ToolInfo 只读详情；A1/A2 连接态"
+summary: "IConversationRosterService 契约分组；getTrajectoryRecords + filterAgentId；帧源 projectSnapshotToTrajectory；D13 持久化；引擎 roster 接通后转发 Create / Rename / Cancel / SetSessionGoal / Fork / Kill / CancelToolCall / Respond / MessageQueue 五操作 + Edit + Enqueue（Inbox Stop 仅 connected+streaming；Inbox Goal 仅 connected；Fork / Kill 不造本地 catalog id；Kill 空 agentId 原样上线不默认 root，省略用末条 streaming 否则空串；时间线执行中工具行转 CancelToolCall；权限座接通后转 PermissionService.Respond，未接通仍 Chat 臂；队列无 GetQueue 显示空；Inbox AutoDrive 接通 / 断连缓存诚实空）；Engine Tools 选中行读 ToolInfo 只读详情；A1/A2 连接态"
 ---
 
 # Conversation 会话数据契约
@@ -29,7 +29,7 @@ summary: "IConversationRosterService 契约分组；getTrajectoryRecords + filte
 | 轨迹 | `getTrajectoryRecords(sessionId, options?: { filterAgentId? })` — 经 `ConversationStubFrameSource.project` → `projectSnapshotToTrajectory`（[stream-timeline S1/S6](../../../dev/plans/conversation-stream-timeline.md)）；见 [lens-and-trajectory §3.1](lens-and-trajectory.md) |
 | 权限 | `resolveConfirmation(sessionId, turnId, 'allowed' \| 'skipped')` · `countPendingConfirmations`（接通后转 `PermissionService.Respond`，`granted` = allowed；空 id / 未知 session / 断连缓存 / 无 hook false，不双写 Chat 臂；未接通仍写本地 `permissionRespond`） |
 | MessageQueue | `getMessageQueueState` · `enqueueMessageQueueItem` · `pauseMessageQueue` · `resumeMessageQueue` · `clearMessageQueue` · `holdMessageQueueItem` · `releaseMessageQueueItemHold` · `updateMessageQueueItemContent`（引擎接通后转 Enqueue / Pause / Resume / Clear / Hold / Release / Edit；未知 id / 空 item / 空正文 / 断连缓存不发。无 GetQueue，接通后 `getMessageQueueState` 诚实空。stub / 从未连过 Enqueue 本地 no-op，其余仍 fixture） |
-| AutoDrive | `getAutoDriveTasks` · `getAutoDriveTaskCount` |
+| AutoDrive | `getAutoDriveTasks` · `getAutoDriveTaskCount`（引擎接通 / 断连缓存诚实空，不把 fixture 冒充引擎任务；Inbox 无任务列表 RPC。stub / 从未连过仍 fixture） |
 | 连接态 | `isEngineConnected()` |
 
 **测试 / stub 夹具**（只在无引擎或单测中有意义，**不应**出现在引擎 adapter 的公共面）：

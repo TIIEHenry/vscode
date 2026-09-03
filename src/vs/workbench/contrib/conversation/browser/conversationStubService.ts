@@ -143,6 +143,12 @@ export interface IConversationRosterService {
 	holdMessageQueueItem(sessionId: string, itemId: string, hold: ConversationQueueItemHoldReason): void;
 	/** AgentService.ReleaseQueueItemHold. Engine-connected forwards unary; empty item / unknown id / disconnected cache no-ops. */
 	releaseMessageQueueItemHold(sessionId: string, itemId: string): void;
+	/**
+	 * Inbox AutoDrive task labels. Engine-connected / disconnected cache is
+	 * empty — Inbox has no task-list RPC (Team.TaskList stays Navigator).
+	 * Fixture must not pose as engine tasks. Stub / never-connected still
+	 * uses {@link setAutoDriveTaskFixture}.
+	 */
 	getAutoDriveTasks(sessionId: string): readonly string[];
 	getAutoDriveTaskCount(sessionId: string): number;
 	setAutoDriveTaskFixture(sessionId: string, tasks: readonly string[]): void;
