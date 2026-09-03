@@ -238,6 +238,29 @@ export interface UniverseAgentDeleteMessageResult {
 	readonly removedTurnCount?: number;
 }
 
+/** Canvas ref on AgentService.SendClientToolResponse (ClientToolResponse.canvas_refs). */
+export interface UniverseAgentCanvasRef {
+	readonly canvasId: string;
+	readonly revisionId: string;
+	readonly title: string;
+	readonly sourceHash?: string;
+}
+
+/** AgentService.SendClientToolResponse — unary client-tool reply (ADR-325; ≠ Chat-arm clientToolRespond). */
+export interface UniverseAgentSendClientToolResponseRequest {
+	readonly sessionId: string;
+	readonly callId: string;
+	readonly isError?: boolean;
+	readonly content?: string;
+	readonly metadataJson?: string;
+	readonly canvasRefs?: readonly UniverseAgentCanvasRef[];
+}
+
+export interface UniverseAgentSendClientToolResponseResult {
+	readonly ok: boolean;
+	readonly message?: string;
+}
+
 export interface UniverseAgentGetHistoryRequest {
 	readonly sessionId: string;
 	readonly cursorSeq?: string;

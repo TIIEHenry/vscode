@@ -43,6 +43,9 @@ import type {
 	UniverseAgentKillAgentResult,
 	UniverseAgentDeleteMessageRequest,
 	UniverseAgentDeleteMessageResult,
+	UniverseAgentCanvasRef,
+	UniverseAgentSendClientToolResponseRequest,
+	UniverseAgentSendClientToolResponseResult,
 	UniverseAgentGetHistoryRequest,
 	UniverseAgentGetHistoryResult,
 	UniverseAgentListSessionsRequest,
@@ -197,6 +200,20 @@ function queuePriorityWire(priority: UniverseAgentQueuePriority | undefined): nu
 		default:
 			return 0;
 	}
+}
+
+function canvasRefsWire(refs: readonly UniverseAgentCanvasRef[] | undefined): Array<{
+	canvas_id: string;
+	revision_id: string;
+	title: string;
+	source_hash?: string;
+}> {
+	return (refs ?? []).map(ref => ({
+		canvas_id: ref.canvasId,
+		revision_id: ref.revisionId,
+		title: ref.title,
+		...(ref.sourceHash !== undefined ? { source_hash: ref.sourceHash } : {}),
+	}));
 }
 
 interface GetHistoryResponseWire {
@@ -1518,6 +1535,28 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			message: wire.message,
 			...(currentTurnId ? { currentTurnId } : {}),
 			...(typeof wire.removed_turn_count === 'number' ? { removedTurnCount: wire.removed_turn_count } : {}),
+		};
+	}
+
+	async sendClientToolResponse(request: UniverseAgentSendClientToolResponseRequest): Promise<UniverseAgentSendClientToolResponseResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, { success?: boolean; error?: string }>(
+			this._channel,
+			UniverseAgentGrpcServices.Agent.service,
+			UniverseAgentGrpcServices.Agent.SendClientToolResponse,
+		);
+		const wire = await unary({
+			session_id: request.sessionId,
+			response: {
+				call_id: request.callId,
+				is_error: request.isError === true,
+				content: request.content ?? '',
+				metadata_json: request.metadataJson ?? '',
+				canvas_refs: canvasRefsWire(request.canvasRefs),
+			},
+		});
+		return {
+			ok: wire.success === true,
+			message: wire.error,
 		};
 	}
 

@@ -46,6 +46,8 @@ import type {
 	UniverseAgentKillAgentResult,
 	UniverseAgentDeleteMessageRequest,
 	UniverseAgentDeleteMessageResult,
+	UniverseAgentSendClientToolResponseRequest,
+	UniverseAgentSendClientToolResponseResult,
 	UniverseAgentGetHistoryRequest,
 	UniverseAgentGetHistoryResult,
 	UniverseAgentListSessionsRequest,
@@ -697,6 +699,10 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 
 	async deleteMessage(request: UniverseAgentDeleteMessageRequest): Promise<UniverseAgentDeleteMessageResult> {
 		return this._withTransport(transport => transport.deleteMessage(request));
+	}
+
+	async sendClientToolResponse(request: UniverseAgentSendClientToolResponseRequest): Promise<UniverseAgentSendClientToolResponseResult> {
+		return this._withTransport(transport => transport.sendClientToolResponse(request));
 	}
 
 	async getHistory(request: UniverseAgentGetHistoryRequest): Promise<UniverseAgentGetHistoryResult> {
