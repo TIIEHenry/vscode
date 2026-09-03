@@ -29,6 +29,7 @@ class BufferedMockUniverseAgentSessionView implements IUniverseAgentSessionView 
 
 	private readonly channels = new Map<string, LeaseChannel>();
 	readonly releaseLeaseCalls: string[] = [];
+	readonly acknowledgeCalls: Array<{ readonly leaseId: string; readonly generation: number; readonly frameId: number; readonly appliedVersion: number }> = [];
 
 	onDynamicDidApplyFrame(leaseId: string) {
 		return this.getOrCreateChannel(leaseId).emitter.event;
@@ -51,6 +52,10 @@ class BufferedMockUniverseAgentSessionView implements IUniverseAgentSessionView 
 	}
 
 	async requestResync(_leaseId: string): Promise<void> { }
+
+	async acknowledge(leaseId: string, ack: { readonly generation: number; readonly frameId: number; readonly appliedVersion: number }): Promise<void> {
+		this.acknowledgeCalls.push({ leaseId, ...ack });
+	}
 
 	async requestDetail(_leaseId: string, _ref: string): Promise<DetailFetchOutcome> {
 		return { ok: false, reason: 'unavailable' };
@@ -121,6 +126,7 @@ class PostOutcomeMockSessionView implements IUniverseAgentSessionView {
 		correlation: { id: 'host-corr' },
 	});
 	lastPost: { readonly leaseId: string; readonly msg: ConversationWriteMessage } | undefined;
+	readonly acknowledgeCalls: Array<{ readonly leaseId: string; readonly generation: number; readonly frameId: number; readonly appliedVersion: number }> = [];
 
 	onDynamicDidApplyFrame(_leaseId: string) {
 		return Event.None;
@@ -138,6 +144,10 @@ class PostOutcomeMockSessionView implements IUniverseAgentSessionView {
 	}
 
 	async requestResync(_leaseId: string): Promise<void> { }
+
+	async acknowledge(leaseId: string, ack: { readonly generation: number; readonly frameId: number; readonly appliedVersion: number }): Promise<void> {
+		this.acknowledgeCalls.push({ leaseId, ...ack });
+	}
 
 	async requestDetail(_leaseId: string, _ref: string): Promise<DetailFetchOutcome> {
 		return { ok: false, reason: 'unavailable' };
@@ -246,5 +256,28 @@ suite('ConversationEngineFrameSource per-lease subscribe (F1)', () => {
 
 		await new Promise<void>(resolve => setTimeout(resolve, 0));
 		assert.deepStrictEqual(sessionView.releaseLeaseCalls, ['lease:sess-dispose']);
+	});
+
+	test('successful apply acknowledges with cursor generation/frameId/version', async () => {
+		const sessionView = new BufferedMockUniverseAgentSessionView();
+		const source = store.add(new ConversationEngineFrameSource(sessionView));
+		const lease = store.add(source.acquire('sess-ack'));
+
+		store.add(lease.onDidApplyFrame(() => { }));
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+		assert.ok(sessionView.acknowledgeCalls.length >= 2);
+		assert.deepStrictEqual(sessionView.acknowledgeCalls[0], {
+			leaseId: 'lease:sess-ack',
+			generation: 1,
+			frameId: 1,
+			appliedVersion: 1,
+		});
+		assert.deepStrictEqual(sessionView.acknowledgeCalls[1], {
+			leaseId: 'lease:sess-ack',
+			generation: 1,
+			frameId: 2,
+			appliedVersion: 2,
+		});
 	});
 });

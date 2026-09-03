@@ -176,6 +176,13 @@ class EngineSessionViewLease extends Disposable implements IConversationSessionV
 			}
 		}
 		this._onDidApplyFrame.fire(applied);
+		if (this.leaseId) {
+			void this.sessionView.acknowledge(this.leaseId, {
+				generation: this.cursor.generation,
+				frameId: this.cursor.frameId,
+				appliedVersion: this.cursor.version,
+			});
+		}
 	}
 
 	override dispose(): void {
