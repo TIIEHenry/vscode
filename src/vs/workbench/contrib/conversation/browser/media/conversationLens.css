@@ -1247,6 +1247,37 @@
 	grid-column: 1;
 }
 
+.monaco-workbench .part.conversation .conversation-process-fold-tool-cancel {
+	flex-shrink: 0;
+	align-self: center;
+	border: none;
+	background: transparent;
+	color: var(--vscode-descriptionForeground);
+	cursor: pointer;
+	padding: 2px;
+	border-radius: 4px;
+}
+
+.monaco-workbench .part.conversation .conversation-process-fold-tool-cancel:hover,
+.monaco-workbench .part.conversation .conversation-process-fold-tool-cancel:focus-visible {
+	color: var(--vscode-foreground);
+	background-color: var(--vscode-toolbar-hoverBackground);
+}
+
+.monaco-workbench .part.conversation .conversation-process-fold-tool > .conversation-process-fold-tool-cancel {
+	grid-column: 2;
+	grid-row: 1;
+}
+
+.monaco-workbench .part.conversation .conversation-process-fold-tool:has(> .conversation-process-fold-tool-cancel) > .conversation-process-fold-trajectory-jump {
+	grid-column: 3;
+	grid-row: 1;
+}
+
+.monaco-workbench .part.conversation .conversation-process-fold-tool:has(> .conversation-process-fold-tool-cancel) {
+	grid-template-columns: minmax(0, 1fr) auto auto;
+}
+
 .monaco-workbench .part.conversation .conversation-process-fold-tool > .conversation-process-fold-trajectory-jump {
 	grid-column: 2;
 	grid-row: 1;

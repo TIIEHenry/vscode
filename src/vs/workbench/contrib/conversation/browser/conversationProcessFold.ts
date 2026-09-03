@@ -14,6 +14,7 @@ import { ConversationStubTurn } from './conversationStubModel.js';
 import { ProcessFoldNode, ProcessFoldSpan, summarizeProcessSteps } from './conversationProcessFoldModel.js';
 
 export const conversationProcessFoldThinkingLabel = localize('conversationProcessFold.thinking', "Thinking");
+export const conversationProcessFoldToolCancel = localize('conversationProcessFold.toolCancel', "Cancel Tool");
 
 function syncProcessFoldOuterAria(header: HTMLElement, summaryText: string, expanded: boolean): void {
 	header.setAttribute('aria-label', expanded
@@ -42,6 +43,8 @@ export interface ProcessFoldDomOptions {
 	readonly isToolExpanded: (turnId: string) => boolean;
 	readonly setToolExpanded: (turnId: string, expanded: boolean) => void;
 	readonly onViewInTrajectory?: (turnId: string) => void;
+	/** Live executing tool row → AgentService.CancelToolCall (timeline). */
+	readonly onCancelToolCall?: (turn: ConversationStubTurn) => void;
 	readonly onLayoutChange: () => void;
 	/** When false (stub fixture), omit loading / live / duration chrome (Q4). */
 	readonly showLiveChrome: boolean;
@@ -251,6 +254,7 @@ function renderToolRow(
 		header.setAttribute('aria-label', localize('conversationProcessFold.toolHeaderStatic', "Tool {0}, {1}", toolName, summary.textContent ?? ''));
 	}
 
+	appendProcessFoldToolCancel(row, turn, executing, options, disposables);
 	appendProcessFoldTrajectoryJump(row, turn.id, options, disposables);
 
 	if (hasPayload) {
@@ -325,6 +329,28 @@ function formatToolSummary(turn: ConversationStubTurn, options: ProcessFoldDomOp
 		default:
 			return base;
 	}
+}
+
+function appendProcessFoldToolCancel(
+	parent: HTMLElement,
+	turn: ConversationStubTurn,
+	executing: boolean,
+	options: ProcessFoldDomOptions,
+	disposables: DisposableStore,
+): void {
+	if (!executing || !options.onCancelToolCall || !turn.id.trim()) {
+		return;
+	}
+	const cancel = append(parent, $('button.conversation-process-fold-tool-cancel')) as HTMLButtonElement;
+	cancel.type = 'button';
+	cancel.classList.add(...ThemeIcon.asClassNameArray(Codicon.debugStop));
+	cancel.title = conversationProcessFoldToolCancel;
+	cancel.setAttribute('aria-label', conversationProcessFoldToolCancel);
+	cancel.setAttribute('data-tool-call-id', turn.id);
+	disposables.add(addDisposableListener(cancel, 'click', (e) => {
+		e.stopPropagation();
+		options.onCancelToolCall!(turn);
+	}));
 }
 
 function appendProcessFoldTrajectoryJump(
