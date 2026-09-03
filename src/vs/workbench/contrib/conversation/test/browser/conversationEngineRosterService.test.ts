@@ -121,12 +121,36 @@ class MockUniverseAgentConnection extends Disposable implements IUniverseAgentCo
 		return { ok: true };
 	}
 	async enqueueQueueItem() { return { ok: false, error: 'stub' }; }
-	async pauseQueue() { return { ok: false, error: 'stub' }; }
-	async resumeQueue() { return { ok: false, error: 'stub' }; }
-	async clearQueue() { return { ok: false, error: 'stub' }; }
-	async holdQueueItem() { return { ok: false, error: 'stub' }; }
-	async releaseQueueItemHold() { return { ok: false, error: 'stub' }; }
-	async editQueueItem() { return { ok: false, error: 'stub' }; }
+	readonly pauseQueueCalls: { sessionId: string }[] = [];
+	async pauseQueue(request: { sessionId: string }) {
+		this.pauseQueueCalls.push({ sessionId: request.sessionId });
+		return { ok: true };
+	}
+	readonly resumeQueueCalls: { sessionId: string }[] = [];
+	async resumeQueue(request: { sessionId: string }) {
+		this.resumeQueueCalls.push({ sessionId: request.sessionId });
+		return { ok: true };
+	}
+	readonly clearQueueCalls: { sessionId: string }[] = [];
+	async clearQueue(request: { sessionId: string }) {
+		this.clearQueueCalls.push({ sessionId: request.sessionId });
+		return { ok: true };
+	}
+	readonly holdQueueCalls: { sessionId: string; itemId: string; reason: string }[] = [];
+	async holdQueueItem(request: { sessionId: string; itemId: string; reason: string }) {
+		this.holdQueueCalls.push({ sessionId: request.sessionId, itemId: request.itemId, reason: request.reason });
+		return { ok: true };
+	}
+	readonly releaseQueueCalls: { sessionId: string; itemId: string }[] = [];
+	async releaseQueueItemHold(request: { sessionId: string; itemId: string }) {
+		this.releaseQueueCalls.push({ sessionId: request.sessionId, itemId: request.itemId });
+		return { ok: true };
+	}
+	readonly editQueueCalls: { sessionId: string; itemId: string; text: string }[] = [];
+	async editQueueItem(request: { sessionId: string; itemId: string; text: string }) {
+		this.editQueueCalls.push({ sessionId: request.sessionId, itemId: request.itemId, text: request.text });
+		return { ok: true };
+	}
 	async getHistory() { return { envelopes: [] }; }
 	subscribeSessionEventStream(
 		_sessionId: string,
@@ -599,5 +623,85 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		assert.strictEqual(service.cancelGeneration('ua-only'), false);
 		assert.strictEqual(service.cancelGeneration('ua-only', 'root'), false);
 		assert.strictEqual(connection.cancelCalls.length, 0);
+	});
+
+	test('connected MessageQueue mutations forward AgentService queue unaries', async () => {
+		const storage = store.add(new TestStorageService());
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
+		const service = store.add(createService(connection, storage));
+		connection.setConnected(true);
+		service.setEngineConnected(true);
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+		service.setMessageQueueFixture('ua-only', {
+			items: [{
+				id: 'q1',
+				content: 'fixture',
+				status: 'PENDING',
+				hold: undefined,
+				uploadProgress: undefined,
+				retryCount: 0,
+				lastError: undefined,
+				locked: false,
+				pinned: false,
+			}],
+			isPaused: false,
+			isProcessing: false,
+		});
+		assert.deepStrictEqual(service.getMessageQueueState('ua-only'), {
+			items: [],
+			isPaused: false,
+			isProcessing: false,
+		});
+
+		service.pauseMessageQueue('ua-only');
+		service.resumeMessageQueue('ua-only');
+		service.clearMessageQueue('ua-only');
+		service.holdMessageQueueItem('ua-only', '  q1  ', 'EDITING');
+		service.releaseMessageQueueItemHold('ua-only', '  q1  ');
+		assert.strictEqual(service.updateMessageQueueItemContent('ua-only', '  q1  ', '  later  '), true);
+		assert.deepStrictEqual(connection.pauseQueueCalls, [{ sessionId: 'ua-only' }]);
+		assert.deepStrictEqual(connection.resumeQueueCalls, [{ sessionId: 'ua-only' }]);
+		assert.deepStrictEqual(connection.clearQueueCalls, [{ sessionId: 'ua-only' }]);
+		assert.deepStrictEqual(connection.holdQueueCalls, [{ sessionId: 'ua-only', itemId: 'q1', reason: 'EDITING' }]);
+		assert.deepStrictEqual(connection.releaseQueueCalls, [{ sessionId: 'ua-only', itemId: 'q1' }]);
+		assert.deepStrictEqual(connection.editQueueCalls, [{ sessionId: 'ua-only', itemId: 'q1', text: 'later' }]);
+
+		service.pauseMessageQueue('missing');
+		service.holdMessageQueueItem('ua-only', '   ', 'EDITING');
+		service.releaseMessageQueueItemHold('missing', 'q1');
+		assert.strictEqual(service.updateMessageQueueItemContent('ua-only', 'q1', '   '), false);
+		assert.strictEqual(service.updateMessageQueueItemContent('missing', 'q1', 'Nope'), false);
+		assert.strictEqual(connection.pauseQueueCalls.length, 1);
+		assert.strictEqual(connection.holdQueueCalls.length, 1);
+		assert.strictEqual(connection.releaseQueueCalls.length, 1);
+		assert.strictEqual(connection.editQueueCalls.length, 1);
+	});
+
+	test('disconnected after engine MessageQueue skips unary and stays empty', async () => {
+		const storage = store.add(new TestStorageService());
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
+		const service = store.add(createService(connection, storage));
+		connection.setConnected(true);
+		service.setEngineConnected(true);
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		connection.setConnected(false);
+		service.setEngineConnected(false);
+
+		service.pauseMessageQueue('ua-only');
+		service.resumeMessageQueue('ua-only');
+		service.clearMessageQueue('ua-only');
+		service.holdMessageQueueItem('ua-only', 'q1', 'EDITING');
+		service.releaseMessageQueueItemHold('ua-only', 'q1');
+		assert.strictEqual(service.updateMessageQueueItemContent('ua-only', 'q1', 'later'), false);
+		assert.deepStrictEqual(service.getMessageQueueState('ua-only').items, []);
+		assert.strictEqual(connection.pauseQueueCalls.length, 0);
+		assert.strictEqual(connection.resumeQueueCalls.length, 0);
+		assert.strictEqual(connection.clearQueueCalls.length, 0);
+		assert.strictEqual(connection.holdQueueCalls.length, 0);
+		assert.strictEqual(connection.releaseQueueCalls.length, 0);
+		assert.strictEqual(connection.editQueueCalls.length, 0);
 	});
 });

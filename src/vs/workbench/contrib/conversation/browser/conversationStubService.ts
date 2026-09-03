@@ -101,13 +101,26 @@ export interface IConversationRosterService {
 	countPendingConfirmations(sessionId: string): number;
 	deleteTurn(sessionId: string, turnId: string): boolean;
 	updateUserTurnText(sessionId: string, turnId: string, text: string): boolean;
+	/**
+	 * AgentService.EditQueueItem. Engine-connected forwards unary (empty /
+	 * unknown id / disconnected cache false). Stub / never-connected stays local.
+	 */
 	updateMessageQueueItemContent(sessionId: string, itemId: string, content: string): boolean;
+	/**
+	 * Queue display. Engine-connected / disconnected cache is empty — no
+	 * GetQueue RPC, so fixture must not pose as the engine queue.
+	 */
 	getMessageQueueState(sessionId: string): ConversationMessageQueueState;
 	setMessageQueueFixture(sessionId: string, state: ConversationMessageQueueState): void;
+	/** AgentService.PauseQueue. Engine-connected forwards unary; disconnected cache no-ops. */
 	pauseMessageQueue(sessionId: string): void;
+	/** AgentService.ResumeQueue. Engine-connected forwards unary; disconnected cache no-ops. */
 	resumeMessageQueue(sessionId: string): void;
+	/** AgentService.ClearQueue. Engine-connected forwards unary; disconnected cache no-ops. */
 	clearMessageQueue(sessionId: string): void;
+	/** AgentService.HoldQueueItem. Engine-connected forwards unary; empty item / unknown id / disconnected cache no-ops. */
 	holdMessageQueueItem(sessionId: string, itemId: string, hold: ConversationQueueItemHoldReason): void;
+	/** AgentService.ReleaseQueueItemHold. Engine-connected forwards unary; empty item / unknown id / disconnected cache no-ops. */
 	releaseMessageQueueItemHold(sessionId: string, itemId: string): void;
 	getAutoDriveTasks(sessionId: string): readonly string[];
 	getAutoDriveTaskCount(sessionId: string): number;

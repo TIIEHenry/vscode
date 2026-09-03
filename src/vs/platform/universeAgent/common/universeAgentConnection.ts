@@ -203,25 +203,26 @@ export interface IUniverseAgentConnection {
 	 */
 	respondPermission?(request: UniverseAgentRespondPermissionRequest): Promise<UniverseAgentRespondPermissionResult>;
 
-	/** AgentService.EnqueueQueueItem. Transport only — roster Inbox queue stays fixture. */
+	/** AgentService.EnqueueQueueItem. Transport only — roster has no enqueue surface. */
+
 	enqueueQueueItem(request: UniverseAgentEnqueueQueueItemRequest): Promise<UniverseAgentQueueMutationResult>;
 
-	/** AgentService.PauseQueue. Transport only — roster Inbox queue stays fixture. */
+	/** AgentService.PauseQueue. Engine roster forwards when connected. */
 	pauseQueue(request: UniverseAgentQueueRefRequest): Promise<UniverseAgentQueueMutationResult>;
 
-	/** AgentService.ResumeQueue. Transport only — roster Inbox queue stays fixture. */
+	/** AgentService.ResumeQueue. Engine roster forwards when connected. */
 	resumeQueue(request: UniverseAgentQueueRefRequest): Promise<UniverseAgentQueueMutationResult>;
 
-	/** AgentService.ClearQueue. Transport only — roster Inbox queue stays fixture. */
+	/** AgentService.ClearQueue. Engine roster forwards when connected. */
 	clearQueue(request: UniverseAgentQueueRefRequest): Promise<UniverseAgentQueueMutationResult>;
 
-	/** AgentService.HoldQueueItem. Transport only — roster Inbox queue stays fixture. */
+	/** AgentService.HoldQueueItem. Engine roster forwards when connected. */
 	holdQueueItem(request: UniverseAgentHoldQueueItemRequest): Promise<UniverseAgentQueueMutationResult>;
 
-	/** AgentService.ReleaseQueueItemHold. Transport only — roster Inbox queue stays fixture. */
+	/** AgentService.ReleaseQueueItemHold. Engine roster forwards when connected. */
 	releaseQueueItemHold(request: UniverseAgentQueueItemRefRequest): Promise<UniverseAgentQueueMutationResult>;
 
-	/** AgentService.EditQueueItem. Transport only — roster Inbox queue stays fixture. */
+	/** AgentService.EditQueueItem. Engine roster forwards when connected. */
 	editQueueItem(request: UniverseAgentEditQueueItemRequest): Promise<UniverseAgentQueueMutationResult>;
 
 	/**
