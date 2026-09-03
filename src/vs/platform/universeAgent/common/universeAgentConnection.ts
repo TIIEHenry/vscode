@@ -41,6 +41,8 @@ import type {
 	UniverseAgentForkAgentResult,
 	UniverseAgentKillAgentRequest,
 	UniverseAgentKillAgentResult,
+	UniverseAgentDeleteMessageRequest,
+	UniverseAgentDeleteMessageResult,
 	UniverseAgentGetHistoryRequest,
 	UniverseAgentGetHistoryResult,
 	UniverseAgentListSessionsRequest,
@@ -239,6 +241,13 @@ export interface IUniverseAgentConnection {
 	 * defaulted to `root`). Distinct from Cancel / CancelToolCall.
 	 */
 	killAgent?(request: UniverseAgentKillAgentRequest): Promise<UniverseAgentKillAgentResult>;
+
+	/**
+	 * AgentService.DeleteMessage unary (delete turn + subtree). Optional so Web /
+	 * tests can omit it. ConversationEngineRosterService.deleteTurn forwards this
+	 * when connected; empty `turnId` / disconnected / stub stay local or no-op.
+	 */
+	deleteMessage?(request: UniverseAgentDeleteMessageRequest): Promise<UniverseAgentDeleteMessageResult>;
 
 	getHistory(request: UniverseAgentGetHistoryRequest): Promise<UniverseAgentGetHistoryResult>;
 

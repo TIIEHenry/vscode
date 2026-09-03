@@ -221,6 +221,23 @@ export interface UniverseAgentKillAgentResult {
 	readonly message?: string;
 }
 
+/** AgentService.DeleteMessage — delete a turn and its subtree (≠ session Delete). */
+export interface UniverseAgentDeleteMessageRequest {
+	readonly sessionId: string;
+	readonly turnId: string;
+	/** Owning agent; empty/omitted wires as `root`. */
+	readonly agentId?: string;
+	/** Client idempotency key; empty lets the engine hash content. */
+	readonly operationId?: string;
+}
+
+export interface UniverseAgentDeleteMessageResult {
+	readonly ok: boolean;
+	readonly message?: string;
+	readonly currentTurnId?: string;
+	readonly removedTurnCount?: number;
+}
+
 export interface UniverseAgentGetHistoryRequest {
 	readonly sessionId: string;
 	readonly cursorSeq?: string;

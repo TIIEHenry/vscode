@@ -129,6 +129,15 @@ class MockUniverseAgentConnection extends Disposable implements IUniverseAgentCo
 		});
 		return { ok: true };
 	}
+	readonly deleteMessageCalls: { sessionId: string; turnId: string; agentId?: string }[] = [];
+	async deleteMessage(request: { sessionId: string; turnId: string; agentId?: string }) {
+		this.deleteMessageCalls.push({
+			sessionId: request.sessionId,
+			turnId: request.turnId,
+			agentId: request.agentId,
+		});
+		return { ok: true };
+	}
 	readonly respondPermissionCalls: { sessionId: string; requestId: string; granted: boolean }[] = [];
 	async respondPermission(request: { sessionId: string; requestId: string; granted: boolean }) {
 		this.respondPermissionCalls.push({
@@ -725,6 +734,66 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 
 		assert.strictEqual(service.cancelToolCall('ua-only', { toolCallId: 'tc-1' }), false);
 		assert.strictEqual(connection.cancelToolCallCalls.length, 0);
+	});
+
+	test('connected deleteTurn forwards AgentService.DeleteMessage', async () => {
+		const storage = store.add(new TestStorageService());
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
+		const service = store.add(createService(connection, storage));
+		connection.setConnected(true);
+		service.setEngineConnected(true);
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+		assert.strictEqual(service.deleteTurn('ua-only', '  turn-1  '), true);
+		assert.deepStrictEqual(connection.deleteMessageCalls, [{
+			sessionId: 'ua-only',
+			turnId: 'turn-1',
+			agentId: 'root',
+		}]);
+		assert.strictEqual(service.deleteTurn('ua-only', '   '), false);
+		assert.strictEqual(service.deleteTurn('missing', 'turn-2'), false);
+		assert.strictEqual(connection.deleteMessageCalls.length, 1);
+		(connection as { deleteMessage?: unknown }).deleteMessage = undefined;
+		assert.strictEqual(service.deleteTurn('ua-only', 'turn-3'), false);
+		assert.strictEqual(connection.deleteMessageCalls.length, 1);
+	});
+
+	test('connected deleteTurn uses last streaming agent when omitted', async () => {
+		const storage = store.add(new TestStorageService());
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
+		const service = store.add(createService(connection, storage));
+		connection.setConnected(true);
+		service.setEngineConnected(true);
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+		const originalGetTurns = service.getTurns.bind(service);
+		service.getTurns = (sessionId: string) => {
+			if (sessionId === 'ua-only') {
+				return [{ id: 'a1', kind: 'assistant', text: 'live', streaming: true, agentId: 'sub:live' }];
+			}
+			return originalGetTurns(sessionId);
+		};
+
+		assert.strictEqual(service.deleteTurn('ua-only', 'turn-live'), true);
+		assert.strictEqual(connection.deleteMessageCalls[0]?.agentId, 'sub:live');
+		assert.strictEqual(connection.deleteMessageCalls[0]?.turnId, 'turn-live');
+	});
+
+	test('disconnected after engine deleteTurn skips unary', async () => {
+		const storage = store.add(new TestStorageService());
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
+		const service = store.add(createService(connection, storage));
+		connection.setConnected(true);
+		service.setEngineConnected(true);
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		connection.setConnected(false);
+		service.setEngineConnected(false);
+
+		assert.strictEqual(service.deleteTurn('ua-only', 'turn-1'), false);
+		assert.strictEqual(connection.deleteMessageCalls.length, 0);
 	});
 
 	test('disconnected after engine killSubAgent skips unary', async () => {

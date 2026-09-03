@@ -36,6 +36,8 @@ import type {
 	UniverseAgentForkAgentResult,
 	UniverseAgentKillAgentRequest,
 	UniverseAgentKillAgentResult,
+	UniverseAgentDeleteMessageRequest,
+	UniverseAgentDeleteMessageResult,
 	UniverseAgentGetHistoryRequest,
 	UniverseAgentGetHistoryResult,
 	UniverseAgentListSessionsRequest,
@@ -187,6 +189,8 @@ export interface IUniverseAgentGrpcTransport {
 
 	killAgent(request: UniverseAgentKillAgentRequest): Promise<UniverseAgentKillAgentResult>;
 
+	deleteMessage(request: UniverseAgentDeleteMessageRequest): Promise<UniverseAgentDeleteMessageResult>;
+
 	getHistory(request: UniverseAgentGetHistoryRequest): Promise<UniverseAgentGetHistoryResult>;
 
 	subscribeSessionEventStream(
@@ -309,6 +313,7 @@ export const UniverseAgentGrpcServices = {
 		EditQueueItem: 'EditQueueItem',
 		Fork: 'Fork',
 		Kill: 'Kill',
+		DeleteMessage: 'DeleteMessage',
 		Tree: 'Tree',
 		ListAgentProfiles: 'ListAgentProfiles',
 		SaveAgentProfile: 'SaveAgentProfile',
