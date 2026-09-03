@@ -309,7 +309,9 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 	}
 
 	async connectProfile(profileId: string, options: { readonly reconnect?: boolean } = {}): Promise<UniverseAgentConnectProfileResult> {
-		if (!this._connectionResolver || !this._clientIdentityStore) {
+		// Pairing path (pairing_required → orchestrator) only needs the resolver + orchestrator.
+		// Client identity is required later for formal/pinned dial after trust exists.
+		if (!this._connectionResolver) {
 			return {
 				ok: false,
 				code: 'transport_failed',
@@ -333,6 +335,13 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 			this._connectionPhase = { kind: 'failed', code: resolved.code, reason: resolved.reason };
 			this._fireSnapshotChanged();
 			return { ok: false, code: resolved.code, reason: resolved.reason };
+		}
+
+		if (!this._clientIdentityStore) {
+			const reason = 'client identity store is not configured';
+			this._connectionPhase = { kind: 'failed', code: 'trust_missing', reason };
+			this._fireSnapshotChanged();
+			return { ok: false, code: 'trust_missing', reason };
 		}
 
 		this._transport?.close();
