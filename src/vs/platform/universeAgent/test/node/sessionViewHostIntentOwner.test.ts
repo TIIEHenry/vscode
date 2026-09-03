@@ -5,6 +5,8 @@
 
 import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
+import type { IUniverseAgentSessionViewFrameEvent } from '../../common/universeAgentSessionView.js';
+import type { ViewPatch } from '../../common/sessionView/types.js';
 import type { DiagnosticMetric, DiagnosticsPort } from '../../node/sessionCore/ports.js';
 import { SessionViewHost } from '../../node/sessionViewHost.js';
 import { TestConnection, TestHost } from './sessionViewHostTestHelpers.js';
@@ -58,6 +60,27 @@ suite('SessionViewHost intent ownership (F2)', () => {
 			connection.streamSubscriptions.indexOf('sess-a') < connection.streamSubscriptions.indexOf('sess-b'),
 			'sess-a stream must open before sess-b when acquired in that order',
 		);
+	});
+
+	test('submitInput local-send operationId uses IdPort write: correlation', async () => {
+		const connection = new TestConnection();
+		const host = new TestHost(async () => undefined);
+		const viewHost = store.add(new SessionViewHost(connection, host, { orphanTimeoutMs: 0 }));
+		viewHost.onEngineConnectionChanged();
+		const leaseId = viewHost.acquireLease('sess-write-corr');
+
+		const frames: IUniverseAgentSessionViewFrameEvent[] = [];
+		store.add(viewHost.onDynamicDidApplyFrame(leaseId)(e => frames.push(e)));
+		await new Promise<void>(resolve => queueMicrotask(() => resolve()));
+
+		const outcome = viewHost.post(leaseId, { kind: 'submitInput', text: 'corr-check' });
+		assert.strictEqual(outcome.accepted, true);
+
+		const sends = frames.flatMap(event => {
+			const body = event.frame.frame.body;
+			return body.kind === 'patches' ? body.patches : [];
+		}).filter((patch): patch is Extract<ViewPatch, { op: 'upsertLocalSend' }> => patch.op === 'upsertLocalSend');
+		assert.ok(sends.some(patch => String(patch.send.operationId).startsWith('write:')));
 	});
 
 	test('startTimer from linger emits intent.unhandled instead of silent drop', () => {
