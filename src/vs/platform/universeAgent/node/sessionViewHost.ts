@@ -25,12 +25,8 @@ import { isChatCoreIntent, isHistoryFillCoreIntent } from './sessionCore/intents
 import type { CoreMessage, CorrelationRef, PostOutcome, ViewFrameAck, ViewFrameSink } from './sessionCore/messages.js';
 import type { SessionId, ViewFrame, ViewLeaseId } from '../common/sessionView/types.js';
 import type { AttemptId, DiagnosticMetric, DiagnosticsPort } from './sessionCore/ports.js';
-<<<<<<< HEAD
-import { demuxSessionStreamPayload, localFactFromQuestionArm } from './sessionStreamDemux.js';
-=======
 import type { UniverseAgentChatStream } from '../common/universeAgentTypes.js';
-import { demuxSessionStreamPayload } from './sessionStreamDemux.js';
->>>>>>> loop/D
+import { demuxSessionStreamPayload, localFactFromQuestionArm } from './sessionStreamDemux.js';
 import { OverlayDeltaJoin } from './overlayDeltaJoin.js';
 import {
 	iterL2EnvelopesFromStreamPayload,
