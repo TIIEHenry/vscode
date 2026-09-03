@@ -40,6 +40,8 @@ import type {
 	UniverseAgentQueueRefRequest,
 	UniverseAgentForkAgentRequest,
 	UniverseAgentForkAgentResult,
+	UniverseAgentKillAgentRequest,
+	UniverseAgentKillAgentResult,
 	UniverseAgentGetHistoryRequest,
 	UniverseAgentGetHistoryResult,
 	UniverseAgentListSessionsRequest,
@@ -679,6 +681,10 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 
 	async forkAgent(request: UniverseAgentForkAgentRequest): Promise<UniverseAgentForkAgentResult> {
 		return this._withTransport(transport => transport.forkAgent(request));
+	}
+
+	async killAgent(request: UniverseAgentKillAgentRequest): Promise<UniverseAgentKillAgentResult> {
+		return this._withTransport(transport => transport.killAgent(request));
 	}
 
 	async getHistory(request: UniverseAgentGetHistoryRequest): Promise<UniverseAgentGetHistoryResult> {

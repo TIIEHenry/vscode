@@ -33,6 +33,8 @@ import type {
 	UniverseAgentQueueRefRequest,
 	UniverseAgentForkAgentRequest,
 	UniverseAgentForkAgentResult,
+	UniverseAgentKillAgentRequest,
+	UniverseAgentKillAgentResult,
 	UniverseAgentToolInfoRequest,
 	UniverseAgentToolInfoResult,
 	UniverseAgentGetHistoryRequest,
@@ -223,6 +225,14 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 	async forkAgent(request: UniverseAgentForkAgentRequest): Promise<UniverseAgentForkAgentResult> {
 		this.forkCalls.push(request);
 		return this.forkResult;
+	}
+
+	readonly killCalls: UniverseAgentKillAgentRequest[] = [];
+	killResult: UniverseAgentKillAgentResult = { ok: true };
+
+	async killAgent(request: UniverseAgentKillAgentRequest): Promise<UniverseAgentKillAgentResult> {
+		this.killCalls.push(request);
+		return this.killResult;
 	}
 
 	async getHistory(_request: UniverseAgentGetHistoryRequest): Promise<UniverseAgentGetHistoryResult> {
@@ -536,6 +546,11 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Tool.service, 'universeagent.tool.v1.ToolService');
 	});
 
+	test('UniverseAgentGrpcServices lists Agent.Kill', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.Kill, 'Kill');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+	});
+
 	test('renameSession forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
@@ -698,6 +713,24 @@ suite('UniverseAgentConnectionService', () => {
 		const missing = await service.getToolInfo({ toolName: 'missing' });
 		assert.deepStrictEqual(missing, { name: '', aliases: [] });
 		assert.strictEqual(transport.toolInfoCalls[1]?.toolName, 'missing');
+		service.dispose();
+	});
+
+	test('killAgent forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		const result = await service.killAgent({ sessionId: 'sess-1', agentId: 'sub:reviewer', force: true });
+		assert.deepStrictEqual(transport.killCalls, [{ sessionId: 'sess-1', agentId: 'sub:reviewer', force: true }]);
+		assert.deepStrictEqual(result, { ok: true });
+
+		transport.killResult = { ok: false, message: 'not found' };
+		const failedKill = await service.killAgent({ sessionId: 'sess-2', agentId: '' });
+		assert.deepStrictEqual(failedKill, { ok: false, message: 'not found' });
+		assert.strictEqual(transport.killCalls[1]?.agentId, '');
 		service.dispose();
 	});
 

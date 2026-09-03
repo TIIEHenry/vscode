@@ -193,6 +193,20 @@ export interface UniverseAgentForkAgentResult {
 	readonly agentId?: string;
 }
 
+/** AgentService.Kill — terminate a SubAgent. Distinct from Cancel / CancelToolCall. */
+export interface UniverseAgentKillAgentRequest {
+	readonly sessionId: string;
+	/** Agent to terminate. Empty is forwarded as-is (not defaulted to `root`). */
+	readonly agentId: string;
+	/** Force-kill without waiting for the current turn. */
+	readonly force?: boolean;
+}
+
+export interface UniverseAgentKillAgentResult {
+	readonly ok: boolean;
+	readonly message?: string;
+}
+
 export interface UniverseAgentGetHistoryRequest {
 	readonly sessionId: string;
 	readonly cursorSeq?: string;
