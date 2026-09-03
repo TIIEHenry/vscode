@@ -4,7 +4,7 @@ type: reference
 status: accepted
 phase: N/A
 updated: 2026-09-04
-summary: "已知 gRPC 服务 / RPC 名与本仓用途；§4 含 G-CORE-1；§5 会话面含 onDynamicDidApplyFrame 首帧缓冲与 confirmPairing/cancelPairing/probeConnectionProfile；SessionEventStream onClosed 折 Actor streamClosed；ContinueGeneration 与 Rename 已进 gRPC catalog；G-NAV-* / G-REV-* / G-ENG-*；G-CONV-1 已消费 attribution"
+summary: "已知 gRPC 服务 / RPC 名与本仓用途；§4 含 G-CORE-1；§5 会话面含 onDynamicDidApplyFrame 首帧缓冲与 confirmPairing/cancelPairing/probeConnectionProfile；SessionEventStream onClosed 折 Actor streamClosed；ContinueGeneration / Rename / Cancel 已进 gRPC catalog；G-NAV-* / G-REV-* / G-ENG-*；G-CONV-1 已消费 attribution"
 ---
 
 # UniverseAgent 引擎协议面（本仓消费口径）
@@ -22,6 +22,7 @@ summary: "已知 gRPC 服务 / RPC 名与本仓用途；§4 含 G-CORE-1；§5 �
 | `AgentService` | `Chat` | 发送 + 流内 permission / question / clientTool 应答（Chat 双向流） | 权限 cleanup 亦走 Chat 臂；`PermissionService.Respond` 为备选（见 stream-timeline S5 注释） |
 | `AgentService` | `ContinueGeneration` | 宿主 `openContinuationStream?`（ADR-028）；时间线仍走 `SessionEventStream` | **已进** `UniverseAgentGrpcServices.Agent` + node `openContinuationStream`（server-stream `ChatResponse`）。宿主 remote/error `onClosed` 拆句柄并 warn，**不** `postAndDrain(streamClosed)`（那条闸是 SessionEventStream）；断连 / 替换先本地 dispose。Web / 无 hook 仍计 `intent.unhandled` |
 | `AgentService` | `Rename` | `IUniverseAgentConnection.renameSession`（unary） | **已进** `UniverseAgentGrpcServices.Agent` + node snake_case `session_id`/`title`；空 title 清自定义标题。Web stub `unsupported_environment`。Conversation roster **仍**本地 `renameSession`，本切片不改 Lens / stub 标题路径 |
+| `AgentService` | `Cancel` | `IUniverseAgentConnection.cancelGeneration`（unary） | **已进** `UniverseAgentGrpcServices.Agent` + node snake_case `session_id`/`agent_id`。会话回合 Stop（≠ `CancelToolCall`）。Web stub `unsupported_environment`。Inbox Stop **仍**诚实降级，本切片不改 Composer / stub |
 | `AgentService` | `Tree` | Navigator Agent 树（**host-only**，不经 renderer `IUniverseAgentConnection`） | m6 §11；`UNIMPLEMENTED` → `agentTree=UNSUPPORTED` |
 | `AgentService` | `FetchToolDetail` | Conversation DetailRef 按需通道（**host-only**，lease `requestDetail`） | **P2a**；见 §1b；`subscribe=false` |
 | `TeamService` | `MemberStatus` / `TaskList` / `TeamInfo` | Navigator Team 段（renderer `IUniverseAgentConnection.team`） | m6 §11 A1 unary |
@@ -122,6 +123,7 @@ Connect 后 `probeEngineCapabilities`：**仅**广告了 method 且 probe 非 `U
 | 回合流（用户 / 助手 / thinking / tool / …） | `getTurns`、`onDidChangeSession` | `SessionService.GetHistory`（`cursor_seq`）+ `SessionEventStream` → session-core fold → `ViewFrame`；renderer 经 `IUniverseAgentSessionView.acquireLease` + **`onDynamicDidApplyFrame(leaseId)`**（F1 @ `c37bbc6e`：宿主 per-lease 事件；订阅前该 lease 的帧入 `pending`，首个 listener 按序 flush，首帧为 baseline；未知 / 已释放 id → `Event.None`）。已删除全局 `onDidApplyFrame`；渲染端**不**再按 leaseId 过滤全窗广播 |
 | 轨迹记录 | `getTrajectoryRecords(sessionId, { filterAgentId? }?)` | HEAD：`projectSnapshotToTrajectory(snapshot, attribution, details, options)` 从 lease/帧源投影；stub 仅 `untitled` 且未连接时 ∪ fixture extras（**无** compacted 伪造行）；UA 会话**不** merge fixture；**P2a** `requestDetail` / `FetchToolDetail` 通道已接通（renderer 帧源 upsert `outcome.content`；stub 本地 `requestDetail`）；**P2b** 已投影 `ItemAttribution.compacted`（browser 不产出）；**Q3** 消费 attribution emit `compacted` 行（未投影则零行）。Overview 瀑布 Deferred。活 Event fold 全文仍 M6-D / PRD-008 |
 | 权限请求 / 回执 | `resolveConfirmation`、`countPendingConfirmations` | 流内 L4 `permission_request` → `pendingActions`；应答经 `AgentService.Chat` 臂（`permissionRespond` fact）；`PermissionService.Respond` 为文档化备选 |
+| Inbox Stop | （无独立 stub 方法） | 传输 `IUniverseAgentConnection.cancelGeneration` **已接** `AgentService.Cancel`；Inbox Stop 控件 **仍**诚实降级，未切引擎 unary |
 | MessageQueue | `getMessageQueueState` 与五个操作 | **仍 fixture**；`AgentService.EnqueueQueueItem` 族未进 roster adapter |
 | AutoDrive / Task 列表 | `getAutoDriveTasks` | **仍 fixture**；`PermissionService.SetSessionGoal` 未接 |
 | fork / 子代理 catalog | `IConversationSessionChatService` + roster `onDidChangeLiveAgentTree` | GC-4 @ `22ce3013`：roster 观察活动会话 lease 的 **`liveAgentTree` 唯一源**预同步 catalog（`chatId` ≡ `agent_id`，根不登记）；`AgentService.Tree` 仍 host 首拉 + 事件再拉（§11）。`Fork` RPC **未**接 |

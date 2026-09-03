@@ -24,6 +24,8 @@ import type {
 	UniverseAgentDeleteSessionRequest,
 	UniverseAgentRenameSessionRequest,
 	UniverseAgentRenameSessionResult,
+	UniverseAgentCancelGenerationRequest,
+	UniverseAgentCancelGenerationResult,
 	UniverseAgentGetHistoryRequest,
 	UniverseAgentGetHistoryResult,
 	UniverseAgentListSessionsRequest,
@@ -165,6 +167,10 @@ export class WebUniverseAgentConnection implements IUniverseAgentConnection {
 	}
 
 	renameSession(_request: UniverseAgentRenameSessionRequest): Promise<UniverseAgentRenameSessionResult> {
+		return rejectUnsupportedEnvironment();
+	}
+
+	cancelGeneration(_request: UniverseAgentCancelGenerationRequest): Promise<UniverseAgentCancelGenerationResult> {
 		return rejectUnsupportedEnvironment();
 	}
 

@@ -90,6 +90,17 @@ export interface UniverseAgentRenameSessionResult {
 	readonly message?: string;
 }
 
+/** AgentService.Cancel request; session-turn stop (Inbox Stop). Distinct from CancelToolCall. */
+export interface UniverseAgentCancelGenerationRequest {
+	readonly sessionId: string;
+	readonly agentId: string;
+}
+
+export interface UniverseAgentCancelGenerationResult {
+	readonly ok: boolean;
+	readonly message?: string;
+}
+
 export interface UniverseAgentGetHistoryRequest {
 	readonly sessionId: string;
 	readonly cursorSeq?: string;

@@ -76,6 +76,7 @@ suite('EngineSkillsSection (E1)', () => {
 			createSession: async () => ({ sessionId: 's' }),
 			deleteSession: async () => { },
 			renameSession: async () => ({ ok: false, message: 'stub' }),
+			cancelGeneration: async () => ({ ok: false, message: 'stub' }),
 			getHistory: async () => ({ envelopes: [] }),
 			subscribeSessionEventStream: (
 				_sessionId: string,
