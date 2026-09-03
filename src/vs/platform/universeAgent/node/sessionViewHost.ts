@@ -719,7 +719,7 @@ export class SessionViewHost extends Disposable {
 				} else if (isHistoryFillCoreIntent(intent)) {
 					void this.fillHistory(sessionId, intent);
 				} else {
-					this.markIntentUnhandled(sessionId, intent.do);
+					this.markIntentUnhandled(sessionId, (intent as CoreIntent).do);
 				}
 				break;
 		}
