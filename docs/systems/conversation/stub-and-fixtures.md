@@ -3,8 +3,8 @@ title: "Conversation 会话数据契约：IConversationRosterService、stub 与�
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-09-02
-summary: "IConversationRosterService 契约分组；getTrajectoryRecords + filterAgentId；帧源 projectSnapshotToTrajectory；D13 持久化；A1/A2 连接态、Hub 路径与 ConnectionPhase、adapter 替换约束"
+updated: 2026-09-04
+summary: "IConversationRosterService 契约分组；getTrajectoryRecords + filterAgentId；帧源 projectSnapshotToTrajectory；D13 持久化；引擎 roster Rename 转发 AgentService.Rename；A1/A2 连接态"
 ---
 
 # Conversation 会话数据契约
@@ -24,7 +24,7 @@ summary: "IConversationRosterService 契约分组；getTrajectoryRecords + filte
 | 组 | 成员 |
 |----|------|
 | 事件 | `onDidChangeActiveSession(sessionId)` · `onDidChangeSession(sessionId)` · `onDidChangeEngineConnection(boolean)` |
-| 会话 | `getSessions()` · `getActiveSessionId()` · `getActiveSession()` · `switchSession` · `createSession` · `renameSession` · `deleteSession` |
+| 会话 | `getSessions()` · `getActiveSessionId()` · `getActiveSession()` · `switchSession` · `createSession` · `renameSession`（引擎接通后转 `AgentService.Rename`） · `deleteSession` |
 | 回合 | `getTurns(sessionId)` · `appendUserTurn` · `updateUserTurnText` · `deleteTurn` |
 | 轨迹 | `getTrajectoryRecords(sessionId, options?: { filterAgentId? })` — 经 `ConversationStubFrameSource.project` → `projectSnapshotToTrajectory`（[stream-timeline S1/S6](../../../dev/plans/conversation-stream-timeline.md)）；见 [lens-and-trajectory §3.1](lens-and-trajectory.md) |
 | 权限 | `resolveConfirmation(sessionId, turnId, 'allowed' \| 'skipped')` · `countPendingConfirmations` |
