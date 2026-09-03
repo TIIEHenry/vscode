@@ -133,7 +133,11 @@ export interface IUniverseAgentGrpcTransport {
 
 	getHistory(request: UniverseAgentGetHistoryRequest): Promise<UniverseAgentGetHistoryResult>;
 
-	subscribeSessionEventStream(sessionId: string, listener: (event: UniverseAgentSessionEvent) => void): { dispose(): void };
+	subscribeSessionEventStream(
+		sessionId: string,
+		listener: (event: UniverseAgentSessionEvent) => void,
+		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
+	): { dispose(): void };
 
 	chat(request: UniverseAgentChatRequest, onResponse: (response: UniverseAgentChatResponse) => void): Promise<void>;
 

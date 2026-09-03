@@ -5,6 +5,7 @@
 
 import * as grpc from '@grpc/grpc-js';
 import { DisposableStore } from '../../../../base/common/lifecycle.js';
+import { createStreamCloseGate } from '../../common/sessionStreamClose.js';
 import type {
 	UniverseAgentChatRequest,
 	UniverseAgentChatResponse,
@@ -168,10 +169,15 @@ function makeServerStreamClient<TRequest, TEvent>(
 	channel: grpc.Client,
 	servicePath: string,
 	method: string,
-): (request: TRequest, listener: (event: TEvent) => void) => { dispose(): void } {
+): (
+	request: TRequest,
+	listener: (event: TEvent) => void,
+	onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
+) => { dispose(): void } {
 	const path = `/${servicePath}/${method}`;
-	return (request: TRequest, listener: (event: TEvent) => void) => {
+	return (request, listener, onClosed) => {
 		const disposables = new DisposableStore();
+		const gate = createStreamCloseGate(onClosed);
 		const call = channel.makeServerStreamRequest(
 			path,
 			(value: TRequest) => Buffer.from(JSON.stringify(value ?? {})),
@@ -179,8 +185,22 @@ function makeServerStreamClient<TRequest, TEvent>(
 			request,
 		);
 		call.on('data', (data: TEvent) => listener(data));
-		call.on('error', () => { /* stream errors surface on next RPC for v1 */ });
-		disposables.add({ dispose: () => call.cancel() });
+		call.on('error', (error: grpc.ServiceError) => {
+			if (gate.closed) {
+				return;
+			}
+			const message = typeof error?.message === 'string' && error.message ? error.message : 'stream error';
+			gate.finish({ kind: 'error', message });
+		});
+		call.on('end', () => {
+			gate.finish({ kind: 'remote' });
+		});
+		disposables.add({
+			dispose: () => {
+				gate.closeLocal();
+				call.cancel();
+			},
+		});
 		return disposables;
 	};
 }
@@ -201,38 +221,31 @@ function makeResidentBidiStreamClient<TResponse>(
 			(value: Record<string, unknown>) => Buffer.from(JSON.stringify(value ?? {})),
 			(buffer: Buffer) => JSON.parse(buffer.toString('utf8')) as TResponse,
 		);
-		let closed = false;
-		const finish = (cause: UniverseAgentSessionStreamCloseCause): void => {
-			if (closed) {
-				return;
-			}
-			closed = true;
-			onClosed?.(cause);
-		};
+		const gate = createStreamCloseGate(onClosed);
 		call.on('data', (data: TResponse) => onResponse(data));
 		call.on('error', (error: grpc.ServiceError) => {
-			if (closed) {
+			if (gate.closed) {
 				return;
 			}
 			const message = typeof error?.message === 'string' && error.message ? error.message : 'stream error';
-			finish({ kind: 'error', message });
+			gate.finish({ kind: 'error', message });
 		});
 		call.on('end', () => {
-			finish({ kind: 'remote' });
+			gate.finish({ kind: 'remote' });
 		});
 		return {
 			write(payload: unknown): void {
-				if (closed) {
+				if (gate.closed) {
 					return;
 				}
 				call.write({ session_id: sessionId, payload });
 			},
 			dispose(): void {
-				if (closed) {
+				if (gate.closed) {
 					call.cancel();
 					return;
 				}
-				closed = true;
+				gate.closeLocal();
 				call.end();
 				call.cancel();
 			},
@@ -1222,13 +1235,17 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 		return mapGetHistoryResponse(wire);
 	}
 
-	subscribeSessionEventStream(sessionId: string, listener: (event: UniverseAgentSessionEvent) => void): { dispose(): void } {
+	subscribeSessionEventStream(
+		sessionId: string,
+		listener: (event: UniverseAgentSessionEvent) => void,
+		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
+	): { dispose(): void } {
 		const stream = makeServerStreamClient<Record<string, unknown>, UniverseAgentSessionEvent>(
 			this._channel,
 			UniverseAgentGrpcServices.Session.service,
 			UniverseAgentGrpcServices.Session.SessionEventStream,
 		);
-		return stream({ session_id: sessionId }, listener);
+		return stream({ session_id: sessionId }, listener, onClosed);
 	}
 
 	async chat(request: UniverseAgentChatRequest, onResponse: (response: UniverseAgentChatResponse) => void): Promise<void> {

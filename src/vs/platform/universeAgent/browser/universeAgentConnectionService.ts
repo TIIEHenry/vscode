@@ -56,6 +56,7 @@ import type {
 	UniverseAgentToggleMcpServerRequest,
 	UniverseAgentToggleMcpServerResult,
 	UniverseAgentSessionEvent,
+	UniverseAgentSessionStreamCloseCause,
 	UniverseAgentSetSkillEnabledRequest,
 	UniverseAgentSetSkillEnabledResult,
 	UniverseAgentSkillInfoRequest,
@@ -165,7 +166,11 @@ export class WebUniverseAgentConnection implements IUniverseAgentConnection {
 		return rejectUnsupportedEnvironment();
 	}
 
-	subscribeSessionEventStream(_sessionId: string, _listener: (event: UniverseAgentSessionEvent) => void): { dispose(): void } {
+	subscribeSessionEventStream(
+		_sessionId: string,
+		_listener: (event: UniverseAgentSessionEvent) => void,
+		_onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
+	): { dispose(): void } {
 		throw new UniverseAgentUnsupportedEnvironmentError();
 	}
 

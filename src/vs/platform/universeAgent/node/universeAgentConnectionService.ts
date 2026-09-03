@@ -611,9 +611,13 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		return this._withTransport(transport => transport.getHistory(request));
 	}
 
-	subscribeSessionEventStream(sessionId: string, listener: (event: UniverseAgentSessionEvent) => void): { dispose(): void } {
+	subscribeSessionEventStream(
+		sessionId: string,
+		listener: (event: UniverseAgentSessionEvent) => void,
+		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
+	): { dispose(): void } {
 		this._assertTransportReady();
-		return this._transport!.subscribeSessionEventStream(sessionId, listener);
+		return this._transport!.subscribeSessionEventStream(sessionId, listener, onClosed);
 	}
 
 	async chat(request: UniverseAgentChatRequest, onResponse: (response: UniverseAgentChatResponse) => void): Promise<void> {

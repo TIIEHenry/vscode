@@ -100,8 +100,8 @@ export interface UniverseAgentSessionEvent {
 }
 
 /**
- * Close cause for resident Chat bidi (`openChatStream` only).
- * Not used by tip `subscribeSessionEventStream` (no onClosed contract).
+ * Close cause for resident streams (`openChatStream`, `openContinuationStream`,
+ * `subscribeSessionEventStream`). Local dispose / cancel does not fire this.
  */
 export type UniverseAgentSessionStreamCloseCause =
 	| { readonly kind: 'remote' }

@@ -153,7 +153,15 @@ export interface IUniverseAgentConnection {
 
 	getHistory(request: UniverseAgentGetHistoryRequest): Promise<UniverseAgentGetHistoryResult>;
 
-	subscribeSessionEventStream(sessionId: string, listener: (event: UniverseAgentSessionEvent) => void): { dispose(): void };
+	/**
+	 * SessionService.SessionEventStream. Optional `onClosed` matches Chat /
+	 * ContinueGeneration (`remote` / `error`). Local dispose does not invoke it.
+	 */
+	subscribeSessionEventStream(
+		sessionId: string,
+		listener: (event: UniverseAgentSessionEvent) => void,
+		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
+	): { dispose(): void };
 
 	chat(request: UniverseAgentChatRequest, onResponse: (response: UniverseAgentChatResponse) => void): Promise<void>;
 
