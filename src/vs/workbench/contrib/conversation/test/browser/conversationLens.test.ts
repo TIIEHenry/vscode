@@ -76,25 +76,14 @@ import { ILayoutService } from '../../../../../platform/layout/browser/layoutSer
 import { IWebviewService } from '../../../webview/browser/webview.js';
 import { IConversationTimelineRevealService } from '../../browser/conversationTimelineRevealService.js';
 import { IConversationReviewNavService } from '../../common/conversationReviewEntry.js';
+import { flushConversationLensLayout, installConversationLensResizeObserverHarness } from './conversationLensLayoutHarness.js';
 
 suite('ConversationLens', () => {
 
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
 	const lensSlotsByPart = new WeakMap<ConversationPart, IConversationLensSlots>();
 
-	function ignoreResizeObserverLoop(event: ErrorEvent): void {
-		if (event.message.includes('ResizeObserver loop')) {
-			event.preventDefault();
-		}
-	}
-
-	suiteSetup(() => {
-		window.addEventListener('error', ignoreResizeObserverLoop);
-	});
-
-	suiteTeardown(() => {
-		window.removeEventListener('error', ignoreResizeObserverLoop);
-	});
+	installConversationLensResizeObserverHarness();
 
 	function getLensSlots(part: ConversationPart): IConversationLensSlots {
 		const slots = lensSlotsByPart.get(part);
@@ -103,7 +92,7 @@ suite('ConversationLens', () => {
 	}
 
 	async function flushTimelineHeightUpdates(): Promise<void> {
-		await new Promise<void>(resolve => setTimeout(resolve, 20));
+		await flushConversationLensLayout();
 	}
 
 	async function flushAnimationFrames(): Promise<void> {
@@ -125,8 +114,7 @@ suite('ConversationLens', () => {
 	}
 
 	teardown(async () => {
-		await flushTimelineHeightUpdates();
-		await flushAnimationFrames();
+		await flushConversationLensLayout();
 	});
 
 	const LENS_LAYOUT_WIDTH = 640;
