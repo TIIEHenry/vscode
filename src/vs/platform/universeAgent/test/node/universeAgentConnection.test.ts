@@ -143,12 +143,30 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 	async chat(_request: UniverseAgentChatRequest, _onResponse: (response: UniverseAgentChatResponse) => void): Promise<void> {
 	}
 
+	private _chatGate: ReturnType<typeof createStreamCloseGate> | undefined;
+	readonly chatOpens: string[] = [];
+
 	openChatStream(
-		_sessionId: string,
+		sessionId: string,
 		_onResponse: (response: UniverseAgentChatResponse) => void,
-		_onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
+		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
 	): UniverseAgentChatStream {
-		return { write() { }, dispose() { } };
+		this.chatOpens.push(sessionId);
+		const gate = createStreamCloseGate(onClosed);
+		this._chatGate = gate;
+		return {
+			write() { },
+			dispose: () => {
+				gate.closeLocal();
+				if (this._chatGate === gate) {
+					this._chatGate = undefined;
+				}
+			},
+		};
+	}
+
+	fireChatClosed(cause: UniverseAgentSessionStreamCloseCause): void {
+		this._chatGate?.finish(cause);
 	}
 
 	private _continuationGate: ReturnType<typeof createStreamCloseGate> | undefined;
@@ -346,6 +364,38 @@ suite('UniverseAgentConnectionService', () => {
 	test('UniverseAgentGrpcServices lists Agent.ContinueGeneration', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.ContinueGeneration, 'ContinueGeneration');
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+	});
+
+	test('openChatStream forwards transport onClosed', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		const seen: UniverseAgentSessionStreamCloseCause[] = [];
+		const handle = service.openChatStream('sess-1', () => { }, cause => seen.push(cause));
+		assert.deepStrictEqual(transport.chatOpens, ['sess-1']);
+		transport.fireChatClosed({ kind: 'remote' });
+		transport.fireChatClosed({ kind: 'error', message: 'late' });
+		assert.deepStrictEqual(seen, [{ kind: 'remote' }]);
+		handle.dispose();
+		service.dispose();
+	});
+
+	test('openChatStream dispose silences later onClosed', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		const seen: UniverseAgentSessionStreamCloseCause[] = [];
+		const handle = service.openChatStream('sess-1', () => { }, cause => seen.push(cause));
+		handle.dispose();
+		transport.fireChatClosed({ kind: 'error', message: 'CANCELLED' });
+		assert.deepStrictEqual(seen, []);
+		service.dispose();
 	});
 
 	test('openContinuationStream forwards request and transport onClosed', async () => {
