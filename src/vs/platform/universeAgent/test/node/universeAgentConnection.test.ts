@@ -33,6 +33,8 @@ import { createEngineTrustRecord } from '../../node/engineTrustStore.js';
 import type { ConnectionResolver } from '../../node/connectionResolver.js';
 import type { PairingOrchestrator } from '../../node/pairingOrchestrator.js';
 import { InMemoryHubSessionStore } from '../../node/hubSessionStore.js';
+import type { ParsedAuthSessionV1 } from '../../node/hub/hub-auth-client.js';
+import { randomUUID } from 'node:crypto';
 
 class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 
@@ -454,6 +456,56 @@ suite('UniverseAgentConnectionService', () => {
 		await assert.rejects(() => service.fetchAgentTree('s1'));
 		assert.strictEqual(service.isAgentTreeFetchFailed(), false);
 		assert.strictEqual(service.isAgentTreeUnsupported(), true);
+		service.dispose();
+	});
+
+	test('disconnect clears isAgentTreeFetchFailed (D21)', async () => {
+		const transport = new MockUniverseAgentGrpcTransport({
+			connect: async () => ({
+				sessionToken: 'token-1',
+				methods: ['AgentService.Tree'],
+				events: [],
+			}),
+			probeRpc: async () => GrpcStatusCode.OK,
+			fetchAgentTree: async () => {
+				throw new UniverseAgentTransportError(13, 'tree boom');
+			},
+		});
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await assert.rejects(() => service.fetchAgentTree('s1'));
+		assert.strictEqual(service.isAgentTreeFetchFailed(), true);
+
+		await service.disconnect();
+		assert.strictEqual(service.isAgentTreeFetchFailed(), false);
+		service.dispose();
+	});
+
+	test('isAgentTreeFetchFailed flip fires onDidChangeConnection (D21)', async () => {
+		const transport = new MockUniverseAgentGrpcTransport({
+			connect: async () => ({
+				sessionToken: 'token-1',
+				methods: ['AgentService.Tree'],
+				events: [],
+			}),
+			probeRpc: async () => GrpcStatusCode.OK,
+			fetchAgentTree: async () => {
+				throw new UniverseAgentTransportError(13, 'tree boom');
+			},
+		});
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		let fires = 0;
+		store.add(service.onDidChangeConnection(() => { fires++; }));
+		const before = fires;
+		await assert.rejects(() => service.fetchAgentTree('s1'));
+		assert.strictEqual(service.isAgentTreeFetchFailed(), true);
+		assert.ok(fires > before, 'tree-fetch failure must notify connection listeners');
 		service.dispose();
 	});
 
@@ -976,6 +1028,136 @@ suite('UniverseAgentConnectionService pairing (GC-1b)', () => {
 			assert.strictEqual(started.sessionToken, undefined);
 		}
 		assert.strictEqual(service.isEngineConnected(), false);
+		service.dispose();
+	});
+});
+
+class RevokeTestProfileStore implements IConnectionProfileStore {
+	private profiles: ConnectionProfile[] = [];
+
+	list(): ConnectionProfile[] {
+		return [...this.profiles];
+	}
+
+	get(profileId: string): ConnectionProfile | undefined {
+		return this.profiles.find(p => p.profileId === profileId);
+	}
+
+	put(profile: ConnectionProfile): void {
+		this.profiles = this.profiles.filter(p => p.profileId !== profile.profileId);
+		this.profiles.push(profile);
+	}
+
+	remove(profileId: string): void {
+		this.profiles = this.profiles.filter(p => p.profileId !== profileId);
+	}
+
+	createDraft(input: {
+		readonly displayName: string;
+		readonly target: ConnectionProfile['target'];
+		readonly allowPrivateNetwork?: boolean;
+	}): ConnectionProfile {
+		return {
+			profileId: randomUUID(),
+			displayName: input.displayName,
+			target: input.target,
+			trust: null,
+			state: 'active',
+			allowPrivateNetwork: input.allowPrivateNetwork ?? false,
+		};
+	}
+}
+
+suite('UniverseAgentConnectionService revokeDevice disconnect (GC-2)', () => {
+
+	ensureNoDisposablesAreLeakedInTestSuite();
+
+	const HUB_BASE = 'https://hub.example.com';
+	const FIXTURE_NOW_MS = 1_700_000_000_000;
+	const FIXTURE_SESSION: ParsedAuthSessionV1 = {
+		accessToken: 'hub-access-token',
+		expiresIn: 900,
+		csrfToken: 'csrf-token',
+		mustChangePassword: false,
+		user: {
+			id: 'usr_1',
+			email: 'user@example.com',
+			role: 'USER',
+			status: 'ACTIVE',
+		},
+	};
+
+	async function createConnectedHubDeviceService(hubDeviceId: string): Promise<{
+		readonly service: UniverseAgentConnectionService;
+		readonly profileId: string;
+		readonly transport: MockUniverseAgentGrpcTransport;
+	}> {
+		const profileStore = new RevokeTestProfileStore();
+		const profile = profileStore.createDraft({
+			displayName: 'Studio',
+			target: { kind: 'hubDevice', hubBaseUrl: HUB_BASE, accountId: 'usr_1', hubDeviceId },
+		});
+		profileStore.put({ ...profile, state: 'active', trust: null });
+		const hubSessionStore = new InMemoryHubSessionStore();
+		await hubSessionStore.applyAuthSession(HUB_BASE, FIXTURE_SESSION, FIXTURE_NOW_MS, 'refresh-token');
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			hubSessionStore,
+			connectionProfileStore: profileStore,
+			nowMs: () => FIXTURE_NOW_MS,
+			skipStartupRestore: true,
+			createTransport: () => transport,
+			http: {
+				fetch: async (url: string) => {
+					if (url.includes('/revoke')) {
+						return { status: 200, json: async () => ({}) };
+					}
+					if (url.includes('/devices')) {
+						return { status: 200, json: async () => ({ devices: [] }) };
+					}
+					throw new Error(`unexpected fetch url: ${url}`);
+				},
+			},
+		});
+		service.setActiveHubBaseUrl(HUB_BASE);
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		(service as unknown as { _activeProfileId: string })._activeProfileId = profile.profileId;
+		assert.strictEqual(service.isEngineConnected(), true);
+		return { service, profileId: profile.profileId, transport };
+	}
+
+	test('revoke of connected hubDevice profile disconnects once', async () => {
+		const { service, profileId, transport } = await createConnectedHubDeviceService('dev-1');
+		let closeCount = 0;
+		const originalClose = transport.close.bind(transport);
+		(transport as { close(): void }).close = () => {
+			closeCount++;
+			originalClose();
+		};
+
+		const result = await service.revokeDevice('dev-1');
+		assert.strictEqual(result.ok, true);
+		assert.strictEqual(service.isEngineConnected(), false);
+		assert.strictEqual(service.getConnectionPhase().kind, 'closed');
+		assert.strictEqual(closeCount, 1);
+		const stored = (service as unknown as { _connectionProfileStore: IConnectionProfileStore })._connectionProfileStore.get(profileId);
+		assert.strictEqual(stored?.state, 'revoked');
+		service.dispose();
+	});
+
+	test('revoke of a different hubDevice does not disconnect', async () => {
+		const { service, transport } = await createConnectedHubDeviceService('dev-active');
+		let closeCount = 0;
+		const originalClose = transport.close.bind(transport);
+		(transport as { close(): void }).close = () => {
+			closeCount++;
+			originalClose();
+		};
+
+		const result = await service.revokeDevice('dev-other');
+		assert.strictEqual(result.ok, true);
+		assert.strictEqual(service.isEngineConnected(), true);
+		assert.strictEqual(closeCount, 0);
 		service.dispose();
 	});
 });
