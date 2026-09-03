@@ -172,7 +172,7 @@ suite('ConversationStubService', () => {
 
 	test('deleteTurn removes one turn and returns false for unknown id', () => {
 		const service = store.add(new ConversationStubService());
-		const sessionId = service.getActiveSessionId();
+		const sessionId = service.createSession();
 		const user = service.appendUserTurn(sessionId, 'Hello');
 		const assistant = service.appendStubEchoAssistant(sessionId, 'Echo');
 		assert.ok(user);
@@ -194,7 +194,7 @@ suite('ConversationStubService', () => {
 
 	test('deleteTurn on last turn does not create a session', () => {
 		const service = store.add(new ConversationStubService());
-		const sessionId = service.getActiveSessionId();
+		const sessionId = service.createSession();
 		const initialSessionCount = service.getSessions().length;
 		const user = service.appendUserTurn(sessionId, 'Only message');
 		assert.ok(user);
