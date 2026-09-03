@@ -10,6 +10,7 @@ import type {
 	UniverseAgentCapabilitySnapshot,
 	UniverseAgentChatRequest,
 	UniverseAgentChatResponse,
+	UniverseAgentChatStream,
 	UniverseAgentConnectRequest,
 	UniverseAgentConnectResult,
 	UniverseAgentConnectionSnapshot,
@@ -50,6 +51,7 @@ import type {
 	UniverseAgentToggleMcpServerRequest,
 	UniverseAgentToggleMcpServerResult,
 	UniverseAgentSessionEvent,
+	UniverseAgentSessionStreamCloseCause,
 	UniverseAgentSetSkillEnabledRequest,
 	UniverseAgentSetSkillEnabledResult,
 	UniverseAgentSkillInfoRequest,
@@ -152,6 +154,16 @@ export interface IUniverseAgentConnection {
 	subscribeSessionEventStream(sessionId: string, listener: (event: UniverseAgentSessionEvent) => void): { dispose(): void };
 
 	chat(request: UniverseAgentChatRequest, onResponse: (response: UniverseAgentChatResponse) => void): Promise<void>;
+
+	/**
+	 * Resident Chat bidi (ADR-012). Optional so tests / Web can keep one-shot `chat()`.
+	 * Host posts `chatStreamUp` after open (or when this method is absent) and writes on the handle.
+	 */
+	openChatStream?(
+		sessionId: string,
+		onResponse: (response: UniverseAgentChatResponse) => void,
+		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
+	): UniverseAgentChatStream;
 
 	listSkills(): Promise<UniverseAgentListSkillsResult>;
 

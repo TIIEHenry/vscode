@@ -8,6 +8,7 @@ import { DisposableStore } from '../../../../base/common/lifecycle.js';
 import type {
 	UniverseAgentChatRequest,
 	UniverseAgentChatResponse,
+	UniverseAgentChatStream,
 	UniverseAgentConnectRequest,
 	UniverseAgentConnectResult,
 	UniverseAgentCreateSessionRequest,
@@ -19,6 +20,7 @@ import type {
 	UniverseAgentListSessionsResult,
 	UniverseAgentListSkillsResult,
 	UniverseAgentSessionEvent,
+	UniverseAgentSessionStreamCloseCause,
 	UniverseAgentSetSkillEnabledRequest,
 	UniverseAgentSetSkillEnabledResult,
 	UniverseAgentSaveSkillContentRequest,
@@ -180,6 +182,61 @@ function makeServerStreamClient<TRequest, TEvent>(
 		call.on('error', () => { /* stream errors surface on next RPC for v1 */ });
 		disposables.add({ dispose: () => call.cancel() });
 		return disposables;
+	};
+}
+
+function makeResidentBidiStreamClient<TResponse>(
+	channel: grpc.Client,
+	servicePath: string,
+	method: string,
+): (
+	sessionId: string,
+	onResponse: (response: TResponse) => void,
+	onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
+) => UniverseAgentChatStream {
+	const path = `/${servicePath}/${method}`;
+	return (sessionId, onResponse, onClosed) => {
+		const call = channel.makeBidiStreamRequest(
+			path,
+			(value: Record<string, unknown>) => Buffer.from(JSON.stringify(value ?? {})),
+			(buffer: Buffer) => JSON.parse(buffer.toString('utf8')) as TResponse,
+		);
+		let closed = false;
+		const finish = (cause: UniverseAgentSessionStreamCloseCause): void => {
+			if (closed) {
+				return;
+			}
+			closed = true;
+			onClosed?.(cause);
+		};
+		call.on('data', (data: TResponse) => onResponse(data));
+		call.on('error', (error: grpc.ServiceError) => {
+			if (closed) {
+				return;
+			}
+			const message = typeof error?.message === 'string' && error.message ? error.message : 'stream error';
+			finish({ kind: 'error', message });
+		});
+		call.on('end', () => {
+			finish({ kind: 'remote' });
+		});
+		return {
+			write(payload: unknown): void {
+				if (closed) {
+					return;
+				}
+				call.write({ session_id: sessionId, payload });
+			},
+			dispose(): void {
+				if (closed) {
+					call.cancel();
+					return;
+				}
+				closed = true;
+				call.end();
+				call.cancel();
+			},
+		};
 	};
 }
 
@@ -1181,6 +1238,19 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			UniverseAgentGrpcServices.Agent.Chat,
 		);
 		await bidi({ session_id: request.sessionId, payload: request.payload }, onResponse);
+	}
+
+	openChatStream(
+		sessionId: string,
+		onResponse: (response: UniverseAgentChatResponse) => void,
+		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
+	): UniverseAgentChatStream {
+		const open = makeResidentBidiStreamClient<UniverseAgentChatResponse>(
+			this._channel,
+			UniverseAgentGrpcServices.Agent.service,
+			UniverseAgentGrpcServices.Agent.Chat,
+		);
+		return open(sessionId, onResponse, onClosed);
 	}
 
 	async listSkills(): Promise<UniverseAgentListSkillsResult> {
