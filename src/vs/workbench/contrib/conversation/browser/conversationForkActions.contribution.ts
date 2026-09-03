@@ -11,8 +11,9 @@ import { isDefaultCodeWindow } from '../../chat/browser/chatShellRouting.js';
 import { IChatSessionsService } from '../../chat/common/chatSessionsService.js';
 import { getChatSessionType } from '../../chat/common/model/chatUri.js';
 import { IConversationSessionChatService } from './conversationSessionChatService.js';
+import { IConversationRosterService } from './conversationStubService.js';
 
-registerAction2(class ConversationForkConversationAction extends ForkConversationAction {
+export class ConversationForkConversationAction extends ForkConversationAction {
 	protected override async _tryForkAsChat(
 		instantiationService: IInstantiationService,
 		sourceSessionResource: import('../../../../base/common/uri.js').URI,
@@ -21,6 +22,11 @@ registerAction2(class ConversationForkConversationAction extends ForkConversatio
 		return instantiationService.invokeFunction(async accessor => {
 			if (!isDefaultCodeWindow(accessor)) {
 				return false;
+			}
+
+			const roster = accessor.get(IConversationRosterService);
+			if (roster.isEngineConnected()) {
+				return roster.forkSubAgent(roster.getActiveSessionId());
 			}
 
 			const chatSessionsService = accessor.get(IChatSessionsService);
@@ -48,10 +54,15 @@ registerAction2(class ConversationForkConversationAction extends ForkConversatio
 			if (!isDefaultCodeWindow(accessor)) {
 				return super._openForkedSession(instantiationService, parentSessionResource, forkedSessionResource);
 			}
+			if (accessor.get(IConversationRosterService).isEngineConnected()) {
+				return;
+			}
 			await accessor.get(IConversationSessionChatService).openForkTab(forkedSessionResource);
 		});
 	}
-});
+}
+
+registerAction2(ConversationForkConversationAction);
 
 export function isDefaultConversationWindow(accessor: ServicesAccessor): boolean {
 	return isDefaultCodeWindow(accessor);

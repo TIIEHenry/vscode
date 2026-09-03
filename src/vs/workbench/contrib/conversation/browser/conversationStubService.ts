@@ -73,6 +73,13 @@ export interface IConversationRosterService {
 	cancelSessionGoal(sessionId: string): boolean;
 	/** Last locally applied engine goal for this session, if any. Stub / never-connected is always undefined. */
 	getSessionGoal(sessionId: string): string | undefined;
+	/**
+	 * AgentService.Fork (create SubAgent). Engine-connected forwards unary
+	 * (empty parent → last streaming agent else `root`). Does not invent a
+	 * local catalog id — liveAgentTree remains the catalog source.
+	 * Stub / disconnected cache / missing hook returns false.
+	 */
+	forkSubAgent(sessionId: string, options?: { name?: string; task?: string; parentAgentId?: string }): boolean;
 	deleteSession(sessionId: string): boolean;
 	getTurns(sessionId: string): readonly ConversationStubTurn[];
 	getTrajectoryRecords(sessionId: string, options?: TrajectoryProjectionOptions): readonly ConversationTrajectoryRecord[];
@@ -235,6 +242,10 @@ export class ConversationStubService extends Disposable implements IConversation
 
 	getSessionGoal(_sessionId: string): string | undefined {
 		return undefined;
+	}
+
+	forkSubAgent(_sessionId: string, _options?: { name?: string; task?: string; parentAgentId?: string }): boolean {
+		return false;
 	}
 
 	deleteSession(sessionId: string): boolean {

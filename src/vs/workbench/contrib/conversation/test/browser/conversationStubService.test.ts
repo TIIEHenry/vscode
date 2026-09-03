@@ -97,6 +97,12 @@ suite('ConversationStubService', () => {
 		assert.strictEqual(service.getSessionGoal(sessionId), undefined);
 	});
 
+	test('forkSubAgent stays local no-op without engine', () => {
+		const service = store.add(new ConversationStubService());
+		assert.strictEqual(service.forkSubAgent(service.getActiveSessionId(), { name: 'reviewer' }), false);
+		assert.strictEqual(service.forkSubAgent(service.getActiveSessionId()), false);
+	});
+
 	test('deleteSession removes a non-active session without changing active', () => {
 		const service = store.add(new ConversationStubService());
 		const activeId = service.getActiveSessionId();

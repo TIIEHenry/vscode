@@ -222,6 +222,16 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		return super.getSessionGoal(sessionId);
 	}
 
+	override forkSubAgent(sessionId: string, options?: { name?: string; task?: string; parentAgentId?: string }): boolean {
+		if (this.isEngineConnected()) {
+			return this.forkEngineSubAgent(sessionId, options, true);
+		}
+		if (this.wasEverConnected) {
+			return this.forkEngineSubAgent(sessionId, options, false);
+		}
+		return super.forkSubAgent(sessionId, options);
+	}
+
 	override deleteSession(sessionId: string): boolean {
 		if (this.isEngineConnected()) {
 			return this.deleteEngineSession(sessionId, true);
@@ -320,6 +330,32 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 			void this.uaConnection.cancelSessionGoal({ sessionId });
 			this.sessionGoals.delete(sessionId);
 			this._onDidChangeSession.fire(sessionId);
+			return true;
+		}
+		return false;
+	}
+
+	private forkEngineSubAgent(
+		sessionId: string,
+		options: { name?: string; task?: string; parentAgentId?: string } | undefined,
+		callRemote: boolean,
+	): boolean {
+		if (!this.engineSessions.some(session => session.id === sessionId)) {
+			return false;
+		}
+		if (callRemote) {
+			if (!this.uaConnection.forkAgent) {
+				return false;
+			}
+			const parentAgentId = options?.parentAgentId?.trim() || this.lastStreamingAgentId(sessionId) || 'root';
+			const name = options?.name?.trim();
+			const task = options?.task?.trim();
+			void this.uaConnection.forkAgent({
+				sessionId,
+				parentAgentId,
+				...(name ? { name } : {}),
+				...(task ? { task } : {}),
+			});
 			return true;
 		}
 		return false;

@@ -101,6 +101,16 @@ class MockUniverseAgentConnection extends Disposable implements IUniverseAgentCo
 		this.cancelGoalCalls.push({ sessionId: request.sessionId });
 		return { ok: true };
 	}
+	readonly forkCalls: { sessionId: string; parentAgentId?: string; name?: string; task?: string }[] = [];
+	async forkAgent(request: { sessionId: string; parentAgentId?: string; name?: string; task?: string }) {
+		this.forkCalls.push({
+			sessionId: request.sessionId,
+			parentAgentId: request.parentAgentId,
+			name: request.name,
+			task: request.task,
+		});
+		return { ok: true, agentId: 'sub:reviewer' };
+	}
 	async enqueueQueueItem() { return { ok: false, error: 'stub' }; }
 	async pauseQueue() { return { ok: false, error: 'stub' }; }
 	async resumeQueue() { return { ok: false, error: 'stub' }; }
@@ -424,6 +434,64 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		assert.deepStrictEqual(connection.cancelGoalCalls, [{ sessionId: 'ua-only' }]);
 		assert.strictEqual(service.cancelSessionGoal('missing'), false);
 		assert.strictEqual(connection.cancelGoalCalls.length, 1);
+	});
+
+	test('connected forkSubAgent forwards AgentService.Fork', async () => {
+		const storage = store.add(new TestStorageService());
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
+		const service = store.add(createService(connection, storage));
+		connection.setConnected(true);
+		service.setEngineConnected(true);
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+		assert.strictEqual(service.forkSubAgent('ua-only', { name: '  reviewer  ', task: '  Review the diff  ' }), true);
+		assert.deepStrictEqual(connection.forkCalls, [{
+			sessionId: 'ua-only',
+			parentAgentId: 'root',
+			name: 'reviewer',
+			task: 'Review the diff',
+		}]);
+		assert.strictEqual(service.forkSubAgent('ua-only', { parentAgentId: '  sub:a  ' }), true);
+		assert.strictEqual(connection.forkCalls[1]?.parentAgentId, 'sub:a');
+		assert.strictEqual(service.forkSubAgent('missing', { name: 'Nope' }), false);
+		assert.strictEqual(connection.forkCalls.length, 2);
+	});
+
+	test('connected forkSubAgent uses last streaming agent as parent', async () => {
+		const storage = store.add(new TestStorageService());
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
+		const service = store.add(createService(connection, storage));
+		connection.setConnected(true);
+		service.setEngineConnected(true);
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+		const originalGetTurns = service.getTurns.bind(service);
+		service.getTurns = (sessionId: string) => {
+			if (sessionId === 'ua-only') {
+				return [{ id: 'a1', kind: 'assistant', text: 'live', streaming: true, agentId: 'sub:live' }];
+			}
+			return originalGetTurns(sessionId);
+		};
+
+		assert.strictEqual(service.forkSubAgent('ua-only'), true);
+		assert.strictEqual(connection.forkCalls[0]?.parentAgentId, 'sub:live');
+	});
+
+	test('disconnected after engine forkSubAgent skips unary', async () => {
+		const storage = store.add(new TestStorageService());
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
+		const service = store.add(createService(connection, storage));
+		connection.setConnected(true);
+		service.setEngineConnected(true);
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		connection.setConnected(false);
+		service.setEngineConnected(false);
+
+		assert.strictEqual(service.forkSubAgent('ua-only', { name: 'reviewer' }), false);
+		assert.strictEqual(connection.forkCalls.length, 0);
 	});
 
 	test('disconnected after engine setSessionGoal skips unary', async () => {

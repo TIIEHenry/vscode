@@ -7,7 +7,6 @@ import assert from 'assert';
 import { timeout } from '../../../../../base/common/async.js';
 import { Emitter } from '../../../../../base/common/event.js';
 import { CancellationToken } from '../../../../../base/common/cancellation.js';
-import { CancellationTokenSource } from '../../../../../base/common/cancellation.js';
 import { DisposableStore, IDisposable, toDisposable } from '../../../../../base/common/lifecycle.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
@@ -46,6 +45,7 @@ import { ForkConversationAction } from '../../../chat/browser/actions/chatForkAc
 import { isDefaultCodeWindow } from '../../../chat/browser/chatShellRouting.js';
 import { IChatSessionsService } from '../../../chat/common/chatSessionsService.js';
 import { getChatSessionType } from '../../../chat/common/model/chatUri.js';
+import { CancellationTokenSource } from '../../../../../base/common/cancellation.js';
 
 const TEST_CONVERSATION_CHAT_EDITOR_ID = 'workbench.editor.conversationChat.test';
 
@@ -185,6 +185,19 @@ suite('Conversation session chat (S3)', () => {
 		}
 	}
 
+	class ConnectedForkRoster extends ConversationStubService {
+		readonly forkCalls: { sessionId: string }[] = [];
+
+		override isEngineConnected(): boolean {
+			return true;
+		}
+
+		override forkSubAgent(sessionId: string): boolean {
+			this.forkCalls.push({ sessionId });
+			return true;
+		}
+	}
+
 	class TestConversationSessionChatService extends ConversationSessionChatService {
 		override async openExtensionTab(sessionKey: string, chatId: string, options?: { title?: string }): Promise<void> {
 			const part = this.getConversationPart(sessionKey);
@@ -290,6 +303,11 @@ suite('Conversation session chat (S3)', () => {
 					return undefined;
 				}
 
+				const roster = accessor.get(IConversationRosterService);
+				if (roster.isEngineConnected()) {
+					return { handled: roster.forkSubAgent(roster.getActiveSessionId()) };
+				}
+
 				const chatSessionsService = accessor.get(IChatSessionsService);
 				if (!chatSessionsService.getContentProviderSchemes().includes(getChatSessionType(sourceSessionResource))) {
 					return undefined;
@@ -303,6 +321,9 @@ suite('Conversation session chat (S3)', () => {
 
 			if (!context) {
 				return false;
+			}
+			if ('handled' in context) {
+				return context.handled;
 			}
 
 			const cts = new CancellationTokenSource();
@@ -437,6 +458,38 @@ suite('Conversation session chat (S3)', () => {
 		assert.strictEqual(forkCalls, 1);
 		assert.strictEqual(conversationPart.activeGroup.count, 2);
 		assert.ok(sessionChatService.findOpenTabForChat(SESSION_KEY, 'peer-1'));
+	});
+
+	test('connected fork action forwards AgentService.Fork and skips local fork tab', async () => {
+		const roster = store.add(new ConnectedForkRoster());
+		const { instantiationService, conversationPart, sessionChatService } = await createHarness(roster);
+		instantiationService.stub(IWorkbenchEnvironmentService, upcastPartial<IWorkbenchEnvironmentService>({ isSessionsWindow: false }));
+		instantiationService.stub(IConversationSessionChatService, sessionChatService);
+		instantiationService.stub(IConversationRosterService, roster);
+
+		let forkCalls = 0;
+		instantiationService.stub(IChatSessionsService, upcastPartial<IChatSessionsService>({
+			getContentProviderSchemes: () => ['agent-host-copilot'],
+			forkChatSession: async () => {
+				forkCalls++;
+				return {
+					resource: URI.parse('agent-host-copilot:/fork-source#peer-1'),
+					label: 'Forked peer',
+					iconPath: undefined,
+					timing: { created: 0, lastRequestStarted: 0, lastRequestEnded: 0 },
+				};
+			},
+		}));
+
+		const handled = await new TestConversationForkAction().tryForkAsChat(
+			instantiationService,
+			URI.parse('agent-host-copilot:/fork-source'),
+		);
+		assert.strictEqual(handled, true);
+		assert.deepStrictEqual(roster.forkCalls, [{ sessionId: roster.getActiveSessionId() }]);
+		assert.strictEqual(forkCalls, 0);
+		assert.strictEqual(conversationPart.activeGroup.count, 1);
+		assert.strictEqual(sessionChatService.getCatalog(SESSION_KEY).length, 0);
 	});
 
 	function makeLiveAgentTree(children: LiveAgentTreeNodeView[] = []): LiveAgentTreeNodeView {

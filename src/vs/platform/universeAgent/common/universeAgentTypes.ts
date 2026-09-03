@@ -163,7 +163,7 @@ export interface UniverseAgentQueueMutationResult {
 	readonly itemId?: string;
 }
 
-/** AgentService.Fork request — create a SubAgent. Distinct from user Fork tab (`registerForkChat`). */
+/** AgentService.Fork request — create a SubAgent. Connected Fork action forwards this; disconnected Fork tab stays local `registerForkChat`. */
 export interface UniverseAgentForkAgentRequest {
 	readonly sessionId: string;
 	/** Parent agent; empty/omitted wires as `root`. */

@@ -205,7 +205,8 @@ export interface IUniverseAgentConnection {
 
 	/**
 	 * AgentService.Fork unary (create SubAgent). Optional so Web / tests can omit
-	 * until chat catalog forwards it. Not the user Fork tab (`registerForkChat`).
+	 * it; engine roster no-ops when absent. Connected Fork action forwards this
+	 * unary; local `registerForkChat` stays the disconnected Fork-tab path.
 	 */
 	forkAgent?(request: UniverseAgentForkAgentRequest): Promise<UniverseAgentForkAgentResult>;
 
