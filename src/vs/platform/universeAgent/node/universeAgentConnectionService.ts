@@ -48,6 +48,8 @@ import type {
 	UniverseAgentDeleteMessageResult,
 	UniverseAgentEditMessageRequest,
 	UniverseAgentEditMessageResult,
+	UniverseAgentListSnapshotsRequest,
+	UniverseAgentListSnapshotsResult,
 	UniverseAgentGetHistoryRequest,
 	UniverseAgentGetHistoryResult,
 	UniverseAgentListSessionsRequest,
@@ -703,6 +705,10 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 
 	async editMessage(request: UniverseAgentEditMessageRequest): Promise<UniverseAgentEditMessageResult> {
 		return this._withTransport(transport => transport.editMessage(request));
+	}
+
+	async listSnapshots(request: UniverseAgentListSnapshotsRequest): Promise<UniverseAgentListSnapshotsResult> {
+		return this._withTransport(transport => transport.listSnapshots(request));
 	}
 
 	async getHistory(request: UniverseAgentGetHistoryRequest): Promise<UniverseAgentGetHistoryResult> {

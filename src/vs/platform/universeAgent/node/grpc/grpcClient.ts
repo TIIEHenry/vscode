@@ -45,6 +45,8 @@ import type {
 	UniverseAgentDeleteMessageResult,
 	UniverseAgentEditMessageRequest,
 	UniverseAgentEditMessageResult,
+	UniverseAgentListSnapshotsRequest,
+	UniverseAgentListSnapshotsResult,
 	UniverseAgentGetHistoryRequest,
 	UniverseAgentGetHistoryResult,
 	UniverseAgentListSessionsRequest,
@@ -163,6 +165,22 @@ interface ListSessionsResponseWire {
 
 interface CreateSessionResponseWire {
 	session_id?: string;
+}
+
+interface SessionSnapshotInfoWire {
+	id?: string;
+	session_id?: string;
+	title?: string;
+	description?: string;
+	created_at?: number;
+	turn_count?: number;
+	token_count?: number;
+	model_id?: string;
+	is_auto?: boolean;
+}
+
+interface ListSnapshotsResponseWire {
+	snapshots?: SessionSnapshotInfoWire[];
 }
 
 interface QueueMutationResponseWire {
@@ -384,6 +402,22 @@ function mapListSessionsResponse(wire: ListSessionsResponseWire): UniverseAgentL
 			model: session.model,
 		})),
 		totalCount: wire.total_count,
+	};
+}
+
+function mapListSnapshotsResponse(wire: ListSnapshotsResponseWire): UniverseAgentListSnapshotsResult {
+	return {
+		snapshots: (wire.snapshots ?? []).map(snapshot => ({
+			id: snapshot.id ?? '',
+			sessionId: snapshot.session_id ?? '',
+			title: snapshot.title ?? '',
+			description: snapshot.description,
+			createdAt: snapshot.created_at,
+			turnCount: snapshot.turn_count,
+			tokenCount: snapshot.token_count,
+			modelId: snapshot.model_id,
+			isAuto: snapshot.is_auto,
+		})),
 	};
 }
 
@@ -1540,6 +1574,18 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			ok: wire.success === true,
 			message: wire.message,
 		};
+	}
+
+	async listSnapshots(request: UniverseAgentListSnapshotsRequest): Promise<UniverseAgentListSnapshotsResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, ListSnapshotsResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.Agent.service,
+			UniverseAgentGrpcServices.Agent.ListSnapshots,
+		);
+		const wire = await unary({
+			session_id: request.sessionId,
+		});
+		return mapListSnapshotsResponse(wire);
 	}
 
 	async getHistory(request: UniverseAgentGetHistoryRequest): Promise<UniverseAgentGetHistoryResult> {

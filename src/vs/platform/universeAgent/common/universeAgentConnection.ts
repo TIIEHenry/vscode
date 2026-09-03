@@ -45,6 +45,8 @@ import type {
 	UniverseAgentDeleteMessageResult,
 	UniverseAgentEditMessageRequest,
 	UniverseAgentEditMessageResult,
+	UniverseAgentListSnapshotsRequest,
+	UniverseAgentListSnapshotsResult,
 	UniverseAgentGetHistoryRequest,
 	UniverseAgentGetHistoryResult,
 	UniverseAgentListSessionsRequest,
@@ -258,6 +260,13 @@ export interface IUniverseAgentConnection {
 	 * empty text / disconnected / stub stay local or no-op.
 	 */
 	editMessage?(request: UniverseAgentEditMessageRequest): Promise<UniverseAgentEditMessageResult>;
+
+	/**
+	 * AgentService.ListSnapshots unary (session checkpoints). Optional so Web /
+	 * tests can omit it. Catalog + node transport only this slice; SessionBar
+	 * History stays the turn index and does not list engine snapshots.
+	 */
+	listSnapshots?(request: UniverseAgentListSnapshotsRequest): Promise<UniverseAgentListSnapshotsResult>;
 
 	getHistory(request: UniverseAgentGetHistoryRequest): Promise<UniverseAgentGetHistoryResult>;
 

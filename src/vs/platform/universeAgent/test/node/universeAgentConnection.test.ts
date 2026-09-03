@@ -41,6 +41,8 @@ import type {
 	UniverseAgentDeleteMessageResult,
 	UniverseAgentEditMessageRequest,
 	UniverseAgentEditMessageResult,
+	UniverseAgentListSnapshotsRequest,
+	UniverseAgentListSnapshotsResult,
 	UniverseAgentToolInfoRequest,
 	UniverseAgentToolInfoResult,
 	UniverseAgentGetHistoryRequest,
@@ -263,6 +265,14 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 	async editMessage(request: UniverseAgentEditMessageRequest): Promise<UniverseAgentEditMessageResult> {
 		this.editMessageCalls.push(request);
 		return this.editMessageResult;
+	}
+
+	readonly listSnapshotsCalls: UniverseAgentListSnapshotsRequest[] = [];
+	listSnapshotsResult: UniverseAgentListSnapshotsResult = { snapshots: [] };
+
+	async listSnapshots(request: UniverseAgentListSnapshotsRequest): Promise<UniverseAgentListSnapshotsResult> {
+		this.listSnapshotsCalls.push(request);
+		return this.listSnapshotsResult;
 	}
 
 	async getHistory(_request: UniverseAgentGetHistoryRequest): Promise<UniverseAgentGetHistoryResult> {
@@ -595,6 +605,11 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
 	});
 
+	test('UniverseAgentGrpcServices lists Agent.ListSnapshots', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.ListSnapshots, 'ListSnapshots');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+	});
+
 	test('renameSession forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
@@ -830,6 +845,29 @@ suite('UniverseAgentConnectionService', () => {
 		const failed = await service.editMessage({ sessionId: 'sess-2', turnId: 'turn-2', newContent: 'nope' });
 		assert.deepStrictEqual(failed, { ok: false, message: 'not found' });
 		assert.strictEqual(transport.editMessageCalls[1]?.turnId, 'turn-2');
+		service.dispose();
+	});
+
+	test('listSnapshots forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.listSnapshotsResult = {
+			snapshots: [{ id: 'snap-1', sessionId: 'sess-1', title: 'Before refactor', turnCount: 3 }],
+		};
+		const result = await service.listSnapshots({ sessionId: 'sess-1' });
+		assert.deepStrictEqual(transport.listSnapshotsCalls, [{ sessionId: 'sess-1' }]);
+		assert.deepStrictEqual(result, {
+			snapshots: [{ id: 'snap-1', sessionId: 'sess-1', title: 'Before refactor', turnCount: 3 }],
+		});
+
+		transport.listSnapshotsResult = { snapshots: [] };
+		const empty = await service.listSnapshots({ sessionId: '' });
+		assert.deepStrictEqual(empty, { snapshots: [] });
+		assert.strictEqual(transport.listSnapshotsCalls[1]?.sessionId, '');
 		service.dispose();
 	});
 
