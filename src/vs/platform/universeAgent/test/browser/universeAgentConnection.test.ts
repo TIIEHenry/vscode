@@ -105,6 +105,8 @@ suite('Web universeAgent disconnect (P0)', () => {
 		assert.strictEqual(typeof sessionView.onDynamicDidApplyFrame, 'function');
 		assert.strictEqual(sessionView.onDynamicDidApplyFrame(leaseId), Event.None);
 		assert.strictEqual(sessionView.onDynamicDidApplyFrame('unknown'), Event.None);
+		assert.strictEqual(typeof sessionView.acknowledge, 'function');
+		await sessionView.acknowledge(leaseId, { generation: 1, frameId: 1, appliedVersion: 1 });
 		const post = await sessionView.post(leaseId, { kind: 'submitInput', text: 'hi' });
 		assert.strictEqual(post.accepted, false);
 		const detail = await sessionView.requestDetail(leaseId, '{"toolCallId":"tc","detailKind":1,"refId":"tc"}');

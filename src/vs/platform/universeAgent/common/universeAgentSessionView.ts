@@ -46,6 +46,9 @@ export interface IUniverseAgentSessionView {
 
 	requestResync(leaseId: string): Promise<void>;
 
+	/** Delivery-rhythm ack after the renderer applied a frame (Actor `frameAck`). */
+	acknowledge(leaseId: string, ack: { readonly generation: number; readonly frameId: number; readonly appliedVersion: number }): Promise<void>;
+
 	/**
 	 * P2a DetailRef channel. Success includes `content` so the renderer can
 	 * upsert `details` before settling the lease Promise (no ViewFrame inject).

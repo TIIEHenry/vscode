@@ -106,6 +106,7 @@ class MockUniverseAgentSessionView implements IUniverseAgentSessionView {
 	async releaseLease() { }
 	async post() { return { accepted: true as const, correlation: { id: 'mock' } }; }
 	async requestResync() { }
+	async acknowledge() { }
 	async requestDetail() { return { ok: false as const, reason: 'unavailable' as const }; }
 }
 

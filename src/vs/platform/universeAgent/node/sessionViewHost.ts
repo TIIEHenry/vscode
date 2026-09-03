@@ -22,10 +22,11 @@ import type { IUniverseAgentSessionViewFrameEvent } from '../common/universeAgen
 import { createSessionCore, type SessionCore } from './sessionCore/session-core.js';
 import type { CoreIntent, HistoryFillCoreIntent } from './sessionCore/intents.js';
 import { isChatCoreIntent, isHistoryFillCoreIntent } from './sessionCore/intents.js';
-import type { CoreMessage, CorrelationRef, PostOutcome, ViewFrameSink } from './sessionCore/messages.js';
+import type { CoreMessage, CorrelationRef, PostOutcome, ViewFrameAck, ViewFrameSink } from './sessionCore/messages.js';
 import type { SessionId, ViewFrame, ViewLeaseId } from '../common/sessionView/types.js';
 import type { AttemptId, DiagnosticMetric, DiagnosticsPort } from './sessionCore/ports.js';
 import { demuxSessionStreamPayload } from './sessionStreamDemux.js';
+import { OverlayDeltaJoin } from './overlayDeltaJoin.js';
 import {
 	iterL2EnvelopesFromStreamPayload,
 	normalizeAttributionBranchReason,
@@ -55,6 +56,7 @@ type ActiveStream = {
 type SessionSidecar = {
 	readonly tree: AgentTreeCoordinator;
 	readonly fileJoin: FileMutationJoin;
+	readonly overlayDelta: OverlayDeltaJoin;
 };
 
 type ToolAttributionHint = {
@@ -237,6 +239,22 @@ export class SessionViewHost extends Disposable {
 		this.postAndDrain(binding.sessionId as SessionId, { t: 'requestResync', leaseId: binding.leaseId });
 	}
 
+	/** Delivery-rhythm ack after renderer apply; unknown lease is silent. */
+	acknowledge(leaseId: string, ack: ViewFrameAck): void {
+		const binding = this.leases.get(leaseId);
+		if (!binding) {
+			return;
+		}
+		this.postAndDrain(binding.sessionId as SessionId, {
+			t: 'frameAck',
+			leaseId: binding.leaseId,
+			generation: ack.generation,
+			frameId: ack.frameId,
+			appliedVersion: ack.appliedVersion,
+			...(ack.effectIds !== undefined ? { effectIds: ack.effectIds } : {}),
+		});
+	}
+
 	async requestDetail(leaseId: string, ref: string): Promise<DetailFetchOutcome> {
 		const binding = this.leases.get(leaseId);
 		if (!binding) {
@@ -306,6 +324,7 @@ export class SessionViewHost extends Disposable {
 			sidecar = {
 				tree: new AgentTreeCoordinator(sessionId, this.host),
 				fileJoin: new FileMutationJoin(sessionId),
+				overlayDelta: new OverlayDeltaJoin(),
 			};
 			this.sessionSidecars.set(sessionId, sidecar);
 		}
@@ -683,7 +702,11 @@ export class SessionViewHost extends Disposable {
 				this.scheduleAgentTreeRefresh(sessionId, true);
 			}
 			this.handleHostStreamPayload(sessionId, event.payload);
-			const arms = demuxSessionStreamPayload(event.payload);
+			const sidecar = this.ensureSessionSidecar(sessionId);
+			const arms = [
+				...demuxSessionStreamPayload(event.payload),
+				...sidecar.overlayDelta.handlePayload(event.payload),
+			];
 			for (const arm of arms) {
 				if (arm && typeof arm === 'object' && (arm as { arm?: string }).arm === 'heartbeat') {
 					void this.sendHeartbeatAck(sessionId);

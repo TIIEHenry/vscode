@@ -37,6 +37,10 @@ export class WebUniverseAgentSessionView implements IUniverseAgentSessionView {
 		// Empty lease: no replica to resync.
 	}
 
+	async acknowledge(_leaseId: string, _ack: { readonly generation: number; readonly frameId: number; readonly appliedVersion: number }): Promise<void> {
+		// Empty lease: no Actor to ack.
+	}
+
 	async requestDetail(_leaseId: string, _ref: string): Promise<DetailFetchOutcome> {
 		return { ok: false, reason: 'unavailable' };
 	}
