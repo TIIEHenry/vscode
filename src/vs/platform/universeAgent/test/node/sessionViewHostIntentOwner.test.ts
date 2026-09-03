@@ -4,19 +4,36 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { timeout } from '../../../../base/common/async.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import type { IUniverseAgentSessionViewFrameEvent } from '../../common/universeAgentSessionView.js';
 import type { ViewPatch } from '../../common/sessionView/types.js';
-import type { DiagnosticMetric, DiagnosticsPort } from '../../node/sessionCore/ports.js';
+import type { DiagnosticMetric, DiagnosticsPort, TimerId } from '../../node/sessionCore/ports.js';
 import { SessionViewHost } from '../../node/sessionViewHost.js';
+import { NodeSchedulerPort } from '../../node/sessionViewHostPorts.js';
 import { TestConnection, TestHost } from './sessionViewHostTestHelpers.js';
+
+const LINGER_MS = 8;
 
 class TrackingConnection extends TestConnection {
 	readonly streamSubscriptions: string[] = [];
+	private readonly streamHandles: { readonly sessionId: string; disposed: boolean }[] = [];
 
 	override subscribeSessionEventStream(sessionId: string, listener: (event: { payload: unknown }) => void) {
 		this.streamSubscriptions.push(sessionId);
-		return super.subscribeSessionEventStream(sessionId, listener);
+		const handle = { sessionId, disposed: false };
+		this.streamHandles.push(handle);
+		const inner = super.subscribeSessionEventStream(sessionId, listener);
+		return {
+			dispose: () => {
+				handle.disposed = true;
+				inner.dispose();
+			},
+		};
+	}
+
+	get activeStreamCount(): number {
+		return this.streamHandles.filter(stream => !stream.disposed).length;
 	}
 }
 
@@ -33,6 +50,16 @@ class CountingDiagnostics implements DiagnosticsPort {
 	}
 
 	warn(): void { }
+}
+
+async function waitFor(predicate: () => boolean, timeoutMs = 250): Promise<void> {
+	const start = Date.now();
+	while (!predicate()) {
+		if (Date.now() - start > timeoutMs) {
+			throw new Error('timed out waiting for condition');
+		}
+		await timeout(4);
+	}
 }
 
 suite('SessionViewHost intent ownership (F2)', () => {
@@ -83,20 +110,52 @@ suite('SessionViewHost intent ownership (F2)', () => {
 		assert.ok(sends.some(patch => String(patch.send.operationId).startsWith('write:')));
 	});
 
-	test('startTimer from linger emits intent.unhandled instead of silent drop', () => {
-		const connection = new TestConnection();
+	test('NodeSchedulerPort onFire runs; cancelTimer suppresses fire', async () => {
+		const fired: string[] = [];
+		const scheduler = new NodeSchedulerPort(id => fired.push(String(id)));
+		store.add(scheduler);
+		scheduler.startTimer('keep:' as TimerId, 1);
+		scheduler.startTimer('drop:' as TimerId, 1);
+		scheduler.cancelTimer('drop:' as TimerId);
+		await waitFor(() => fired.includes('keep:'));
+		assert.deepStrictEqual(fired, ['keep:']);
+	});
+
+	test('last lease release closes the gRPC subscription after linger via postAndDrain timerFired', async () => {
+		const connection = new TrackingConnection();
 		const host = new TestHost(async () => undefined);
 		const diagnostics = new CountingDiagnostics();
 		const viewHost = store.add(new SessionViewHost(connection, host, {
 			orphanTimeoutMs: 0,
+			lingerMs: LINGER_MS,
 			diagnostics,
 		}));
 
 		viewHost.onEngineConnectionChanged();
 		const leaseId = viewHost.acquireLease('sess-linger');
-		viewHost.releaseLease(leaseId);
+		assert.strictEqual(connection.activeStreamCount, 1);
 
-		assert.strictEqual(diagnostics.counts.get('intent.unhandled'), 1);
-		assert.strictEqual(diagnostics.labeledCounts.get('intent.unhandled:startTimer'), 1);
+		viewHost.releaseLease(leaseId);
+		assert.strictEqual(connection.activeStreamCount, 1, 'stream must linger until the timer fires');
+		assert.strictEqual(diagnostics.counts.get('intent.unhandled'), undefined);
+
+		await waitFor(() => connection.activeStreamCount === 0);
+		assert.strictEqual(connection.activeStreamCount, 0);
+	});
+
+	test('re-acquire during linger cancels closeStream', async () => {
+		const connection = new TrackingConnection();
+		const host = new TestHost(async () => undefined);
+		const viewHost = store.add(new SessionViewHost(connection, host, {
+			orphanTimeoutMs: 0,
+			lingerMs: LINGER_MS,
+		}));
+
+		viewHost.onEngineConnectionChanged();
+		const first = viewHost.acquireLease('sess-reacquire');
+		viewHost.releaseLease(first);
+		viewHost.acquireLease('sess-reacquire');
+		await timeout(LINGER_MS + 20);
+		assert.strictEqual(connection.activeStreamCount, 1);
 	});
 });

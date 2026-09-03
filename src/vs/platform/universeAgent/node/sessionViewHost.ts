@@ -24,7 +24,7 @@ import type { CoreIntent, HistoryFillCoreIntent } from './sessionCore/intents.js
 import { isChatCoreIntent, isHistoryFillCoreIntent } from './sessionCore/intents.js';
 import type { CoreMessage, CorrelationRef, PostOutcome, ViewFrameAck, ViewFrameSink } from './sessionCore/messages.js';
 import type { SessionId, ViewFrame, ViewLeaseId } from '../common/sessionView/types.js';
-import type { AttemptId, DiagnosticMetric, DiagnosticsPort } from './sessionCore/ports.js';
+import type { AttemptId, DiagnosticMetric, DiagnosticsPort, TimerId } from './sessionCore/ports.js';
 import type { UniverseAgentChatStream } from '../common/universeAgentTypes.js';
 import { demuxSessionStreamPayload, localFactFromQuestionArm } from './sessionStreamDemux.js';
 import { OverlayDeltaJoin } from './overlayDeltaJoin.js';
@@ -94,6 +94,10 @@ export type SessionViewHostOptions = {
 	/** Max buffered frames per lease before resync. Default 64. */
 	readonly pendingFrameLimit?: number;
 	readonly diagnostics?: DiagnosticsPort;
+	/** Actor linger after last lease release (session-core default 30s). */
+	readonly lingerMs?: number;
+	/** Queued chat flush timeout (session-core default 30s). */
+	readonly chatFlushTimeoutMs?: number;
 };
 
 const DEFAULT_ORPHAN_TIMEOUT_MS = 5000;
@@ -140,7 +144,7 @@ function chatPayloadFromWrite(payload: unknown): Record<string, unknown> {
  */
 export class SessionViewHost extends Disposable {
 
-	private readonly scheduler = this._register(new NodeSchedulerPort());
+	private readonly scheduler = this._register(new NodeSchedulerPort(timerId => this.onHostTimerFired(timerId)));
 	private readonly ids = createSessionViewIdPort();
 	private readonly diagnostics: DiagnosticsPort;
 	private readonly orphanTimeoutMs: number;
@@ -154,6 +158,8 @@ export class SessionViewHost extends Disposable {
 	private readonly chatStreams = new Map<string, ActiveChatStream>();
 	private readonly sessionSidecars = new Map<string, SessionSidecar>();
 	private readonly toolAttributionHints = new Map<string, ToolAttributionHint[]>();
+	/** Owner session for Actor linger / chat-flush timers (async fire → postAndDrain). */
+	private readonly timerOwners = new Map<TimerId, string>();
 	private connectionGeneration = 0;
 	private connectionUp = false;
 
@@ -170,6 +176,8 @@ export class SessionViewHost extends Disposable {
 			scheduler: this.scheduler,
 			ids: this.ids,
 			diagnostics: this.diagnostics,
+			lingerMs: options.lingerMs,
+			chatFlushTimeoutMs: options.chatFlushTimeoutMs,
 		});
 		this._register(host.onRequestAgentTreeRefresh(({ sessionId }) => {
 			this.scheduleAgentTreeRefresh(sessionId);
@@ -681,6 +689,14 @@ export class SessionViewHost extends Disposable {
 				this.streams.delete(`${sessionId}:${intent.attemptId}`);
 				break;
 			}
+			case 'startTimer':
+				this.timerOwners.set(intent.timerId, sessionId);
+				this.scheduler.startTimer(intent.timerId, intent.delayMs);
+				break;
+			case 'cancelTimer':
+				this.scheduler.cancelTimer(intent.timerId);
+				this.timerOwners.delete(intent.timerId);
+				break;
 			case 'ensureChatStream':
 				this.openResidentChat(sessionId, intent.chatAttemptId);
 				break;
@@ -697,6 +713,15 @@ export class SessionViewHost extends Disposable {
 				}
 				break;
 		}
+	}
+
+	private onHostTimerFired(timerId: TimerId): void {
+		const sessionId = this.timerOwners.get(timerId);
+		this.timerOwners.delete(timerId);
+		if (!sessionId) {
+			return;
+		}
+		this.postAndDrain(sessionId as SessionId, { t: 'timerFired', timerId });
 	}
 
 	private openResidentChat(sessionId: string, chatAttemptId: AttemptId): void {
