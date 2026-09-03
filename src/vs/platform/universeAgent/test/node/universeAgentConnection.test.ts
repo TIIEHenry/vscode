@@ -25,6 +25,10 @@ import type {
 import { GrpcStatusCode, IUniverseAgentGrpcTransport, UniverseAgentAuthNonceRequest, UniverseAgentAuthNonceResult, UniverseAgentDeviceAuthConnectRequest, UniverseAgentGrpcServices, UniverseAgentTransportError } from '../../node/grpc/grpcTransport.js';
 import type { IUniverseAgentConnection } from '../../common/universeAgentConnection.js';
 import { UniverseAgentConnectionService } from '../../node/universeAgentConnectionService.js';
+import type { ConnectionProfile, IConnectionProfileStore } from '../../node/connectionProfileStore.js';
+import { createEngineTrustRecord } from '../../node/engineTrustStore.js';
+import type { ConnectionResolver } from '../../node/connectionResolver.js';
+import type { PairingOrchestrator } from '../../node/pairingOrchestrator.js';
 import { InMemoryHubSessionStore } from '../../node/hubSessionStore.js';
 
 class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
@@ -482,6 +486,301 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(result.ok, false);
 		assert.strictEqual(result.reason, 'UNIMPLEMENTED');
 		assert.strictEqual(connection.saveSkillContent, undefined);
+		service.dispose();
+	});
+});
+
+const PAIRING_PROFILE_ID = '11111111-1111-4111-8111-111111111111';
+
+class PairingTestProfileStore implements IConnectionProfileStore {
+	constructor(private profile: ConnectionProfile) { }
+
+	list(): ConnectionProfile[] {
+		return [this.profile];
+	}
+
+	get(profileId: string): ConnectionProfile | undefined {
+		return profileId === this.profile.profileId ? this.profile : undefined;
+	}
+
+	put(profile: ConnectionProfile): void {
+		this.profile = profile;
+	}
+
+	remove(_profileId: string): void {
+	}
+
+	createDraft(input: {
+		readonly displayName: string;
+		readonly target: ConnectionProfile['target'];
+		readonly allowPrivateNetwork?: boolean;
+	}): ConnectionProfile {
+		return {
+			profileId: PAIRING_PROFILE_ID,
+			displayName: input.displayName,
+			target: input.target,
+			trust: null,
+			state: 'pairingPending',
+			allowPrivateNetwork: input.allowPrivateNetwork ?? false,
+		};
+	}
+}
+
+function createHubDevicePairingProfile(): ConnectionProfile {
+	return {
+		profileId: PAIRING_PROFILE_ID,
+		displayName: 'Studio',
+		target: {
+			kind: 'hubDevice',
+			hubBaseUrl: 'https://hub.example.com',
+			accountId: 'usr_1',
+			hubDeviceId: 'dev-1',
+		},
+		trust: null,
+		state: 'pairingPending',
+		allowPrivateNetwork: false,
+	};
+}
+
+suite('UniverseAgentConnectionService pairing (GC-1b)', () => {
+
+	const store = ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('hubDevice without trust returns pairingPending with handshake sasCode', async () => {
+		const profile = createHubDevicePairingProfile();
+		const profileStore = new PairingTestProfileStore(profile);
+		const mockResolver = {
+			resolve: async (_profileId: string, options?: { readonly forPairing?: boolean }) => {
+				if (options?.forPairing) {
+					return {
+						ok: true as const,
+						allowRelayFallback: true,
+						endpoint: {
+							attemptId: 'a1',
+							authority: 'relay.example.com',
+							port: 443,
+							resolvedIp: '203.0.113.1',
+							servername: 'relay.example.com',
+							relayTicketId: 'ticket-1',
+							tls: null,
+							expiresAtMs: Date.now() + 60_000,
+							path: 'hubRelay' as const,
+						},
+					};
+				}
+				return {
+					ok: false as const,
+					code: 'pairing_required' as const,
+					reason: 'pairing required',
+					allowRelayFallback: true,
+				};
+			},
+			createIssueRelayTicketHook: () => async () => ({ ok: false as const, code: 'hub_session_required' as const, reason: 'test' }),
+		};
+		const mockOrchestrator = {
+			startPairing: async () => ({
+				ok: true as const,
+				awaitingUserConfirm: true,
+				snapshot: {
+					phase: 'awaiting_sas_confirm' as const,
+					profileId: PAIRING_PROFILE_ID,
+					sasCode: 'ABCD-EFGH',
+					engineIdentityId: 'eng-handshake-id',
+					sessionTokenInstalled: false,
+				},
+			}),
+			confirmSas: async () => ({ ok: false as const, code: 'unused', reason: 'unused' }),
+			confirmRecoverTrust: async () => ({ ok: false as const, code: 'unused', reason: 'unused' }),
+			getSnapshot: () => undefined,
+			abandonRecoverTrust: () => { },
+		};
+
+		const service = new UniverseAgentConnectionService({
+			connectionProfileStore: profileStore,
+			connectionResolver: mockResolver as unknown as ConnectionResolver,
+			pairingOrchestrator: mockOrchestrator as unknown as PairingOrchestrator,
+		});
+
+		const result = await service.connectProfile(PAIRING_PROFILE_ID);
+		assert.strictEqual(result.ok, true);
+		if (result.ok) {
+			assert.strictEqual(result.pairingPending, true);
+			assert.strictEqual(result.sasCode, 'ABCD-EFGH');
+			assert.strictEqual(result.engineIdentityId, 'eng-handshake-id');
+		}
+		assert.notStrictEqual(service.getConnectionPhase().kind, 'connected');
+		service.dispose();
+	});
+
+	test('confirmPairing writes trust; cancelPairing leaves trust null', async () => {
+		const leafDer = new Uint8Array([1, 2, 3, 4]);
+		const trust = createEngineTrustRecord({
+			leafDer,
+			engineIdentityId: 'eng-handshake-id',
+			establishedAt: Date.now(),
+		});
+		let profile = createHubDevicePairingProfile();
+		const profileStore = new PairingTestProfileStore(profile);
+		let confirmCalls = 0;
+		const mockOrchestrator = {
+			startPairing: async () => ({
+				ok: true as const,
+				awaitingUserConfirm: true,
+				snapshot: {
+					phase: 'awaiting_sas_confirm' as const,
+					profileId: PAIRING_PROFILE_ID,
+					sasCode: 'ABCD-EFGH',
+					engineIdentityId: 'eng-handshake-id',
+					sessionTokenInstalled: false,
+				},
+			}),
+			confirmSas: async () => {
+				confirmCalls++;
+				profileStore.put({ ...profile, trust, state: 'active' });
+				return {
+					ok: true as const,
+					snapshot: {
+						phase: 'idle' as const,
+						profileId: PAIRING_PROFILE_ID,
+						sessionTokenInstalled: false,
+					},
+					trust,
+					sessionToken: 'session-token',
+				};
+			},
+			confirmRecoverTrust: async () => ({ ok: false as const, code: 'no_recover_trust', reason: 'test' }),
+			getSnapshot: () => ({
+				phase: 'awaiting_sas_confirm' as const,
+				profileId: PAIRING_PROFILE_ID,
+				sasCode: 'ABCD-EFGH',
+				engineIdentityId: 'eng-handshake-id',
+				sessionTokenInstalled: false,
+			}),
+			abandonRecoverTrust: () => { },
+		};
+		const mockResolver = {
+			resolve: async (_profileId: string, options?: { readonly forPairing?: boolean }) => {
+				if (options?.forPairing || profileStore.get(PAIRING_PROFILE_ID)?.trust) {
+					return {
+						ok: true as const,
+						allowRelayFallback: true,
+						endpoint: {
+							attemptId: 'a1',
+							authority: 'relay.example.com',
+							port: 443,
+							resolvedIp: '203.0.113.1',
+							servername: 'relay.example.com',
+							relayTicketId: 'ticket-1',
+							tls: profileStore.get(PAIRING_PROFILE_ID)?.trust ? {
+								trustAnchorLeafDer: leafDer,
+								expectedLeafSha256Hex: trust.leafSha256Hex,
+								hostnameVerification: 'replaced-by-pin' as const,
+							} : null,
+							expiresAtMs: Date.now() + 60_000,
+							path: 'hubRelay' as const,
+						},
+					};
+				}
+				return {
+					ok: false as const,
+					code: 'pairing_required' as const,
+					reason: 'pairing required',
+					allowRelayFallback: true,
+				};
+			},
+			createIssueRelayTicketHook: () => async () => ({ ok: false as const, code: 'hub_session_required' as const, reason: 'test' }),
+		};
+
+		const service = new UniverseAgentConnectionService({
+			connectionProfileStore: profileStore,
+			connectionResolver: mockResolver as unknown as ConnectionResolver,
+			pairingOrchestrator: mockOrchestrator as unknown as PairingOrchestrator,
+			clientIdentityStore: {
+				getState: async () => ({ kind: 'encryption_unavailable' as const }),
+				getOrCreateIdentity: async () => ({ kind: 'encryption_unavailable' as const }),
+				createSigner: async () => undefined,
+			},
+		});
+
+		await service.connectProfile(PAIRING_PROFILE_ID);
+		await service.confirmPairing();
+		assert.strictEqual(confirmCalls, 1);
+		assert.strictEqual(profileStore.get(PAIRING_PROFILE_ID)?.trust?.engineIdentityId, 'eng-handshake-id');
+
+		profile = createHubDevicePairingProfile();
+		const cancelStore = new PairingTestProfileStore(profile);
+		const cancelService = new UniverseAgentConnectionService({
+			connectionProfileStore: cancelStore,
+			connectionResolver: mockResolver as unknown as ConnectionResolver,
+			pairingOrchestrator: mockOrchestrator as unknown as PairingOrchestrator,
+		});
+		await cancelService.connectProfile(PAIRING_PROFILE_ID);
+		await cancelService.cancelPairing();
+		assert.strictEqual(cancelStore.get(PAIRING_PROFILE_ID)?.trust, null);
+		assert.strictEqual(cancelService.getConnectionPhase().kind, 'closed');
+		cancelService.dispose();
+		service.dispose();
+	});
+
+	test('S4 recoverTrust branch does not install session token on startPairing', async () => {
+		const profileStore = new PairingTestProfileStore(createHubDevicePairingProfile());
+		const mockOrchestrator = {
+			startPairing: async () => ({
+				ok: true as const,
+				awaitingUserConfirm: true,
+				snapshot: {
+					phase: 'recover_trust' as const,
+					profileId: PAIRING_PROFILE_ID,
+					engineIdentityId: 'eng-recover',
+					sessionTokenInstalled: false,
+				},
+			}),
+			confirmSas: async () => ({ ok: false as const, code: 'no_active_pairing', reason: 'test' }),
+			confirmRecoverTrust: async () => ({ ok: true as const, snapshot: { phase: 'idle' as const, profileId: PAIRING_PROFILE_ID, sessionTokenInstalled: false } }),
+			getSnapshot: () => ({
+				phase: 'recover_trust' as const,
+				profileId: PAIRING_PROFILE_ID,
+				engineIdentityId: 'eng-recover',
+				sessionTokenInstalled: false,
+			}),
+			abandonRecoverTrust: () => { },
+		};
+		const mockResolver = {
+			resolve: async (_profileId: string, options?: { readonly forPairing?: boolean }) => {
+				if (options?.forPairing) {
+					return {
+						ok: true as const,
+						allowRelayFallback: true,
+						endpoint: {
+							attemptId: 'a1',
+							authority: 'relay.example.com',
+							port: 443,
+							resolvedIp: '203.0.113.1',
+							servername: 'relay.example.com',
+							relayTicketId: 'ticket-1',
+							tls: null,
+							expiresAtMs: Date.now() + 60_000,
+							path: 'hubRelay' as const,
+						},
+					};
+				}
+				return { ok: false as const, code: 'pairing_required' as const, reason: 'pairing', allowRelayFallback: true };
+			},
+			createIssueRelayTicketHook: () => async () => ({ ok: false as const, code: 'hub_session_required' as const, reason: 'test' }),
+		};
+		const service = new UniverseAgentConnectionService({
+			connectionProfileStore: profileStore,
+			connectionResolver: mockResolver as unknown as ConnectionResolver,
+			pairingOrchestrator: mockOrchestrator as unknown as PairingOrchestrator,
+		});
+
+		const started = await service.connectProfile(PAIRING_PROFILE_ID);
+		assert.strictEqual(started.ok, true);
+		if (started.ok) {
+			assert.strictEqual(started.pairingPending, true);
+			assert.strictEqual(started.sessionToken, undefined);
+		}
+		assert.strictEqual(service.isEngineConnected(), false);
 		service.dispose();
 	});
 });

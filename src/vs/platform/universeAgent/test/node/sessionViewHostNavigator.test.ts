@@ -63,6 +63,8 @@ class TestConnection implements IUniverseAgentConnection {
 	getNavigatorCapability() { return 'UNKNOWN' as const; }
 	async connect() { return { methods: [], events: [] }; }
 	async connectProfile() { return { ok: false as const, code: 'transport_failed' as const, reason: 'test' }; }
+	async confirmPairing() { return { ok: false as const, code: 'transport_failed' as const, reason: 'test' }; }
+	async cancelPairing() { }
 	async disconnect() { this.connected = false; }
 	async listSessions() { return { sessions: [] }; }
 	async createSession() { return { sessionId: 's' }; }

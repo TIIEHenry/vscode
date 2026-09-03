@@ -9,7 +9,7 @@ import {
 	IUniverseAgentHubService,
 	type ConnectionProfileProjection,
 	type HubAuthStatus,
-	type HubDirectAddressResult,
+	type HubProfileResult,
 	type HubDirectoryStatus,
 	type HubLoginResult,
 	type HubOperationResult,
@@ -78,7 +78,14 @@ export class WebUniverseAgentHubService implements IUniverseAgentHubService {
 		readonly port: number;
 		readonly displayName?: string;
 		readonly allowPrivateNetwork?: boolean;
-	}): Promise<HubDirectAddressResult> {
+	}): Promise<HubProfileResult> {
+		return hubUnsupportedResult();
+	}
+
+	async addHubDeviceProfile(_input: {
+		readonly hubDeviceId: string;
+		readonly displayName?: string;
+	}): Promise<HubProfileResult> {
 		return hubUnsupportedResult();
 	}
 

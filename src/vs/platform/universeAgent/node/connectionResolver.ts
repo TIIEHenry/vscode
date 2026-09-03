@@ -176,7 +176,7 @@ export class ConnectionResolver {
 		};
 	}
 
-	async resolve(profileId: string, options: { readonly forceNewTicket?: boolean } = {}): Promise<ConnectionResolveResult> {
+	async resolve(profileId: string, options: { readonly forceNewTicket?: boolean; readonly forPairing?: boolean } = {}): Promise<ConnectionResolveResult> {
 		const profile = this.deps.connectionProfileStore.get(profileId);
 		if (!profile) {
 			return {
@@ -187,13 +187,15 @@ export class ConnectionResolver {
 			};
 		}
 
+		const forPairing = options.forPairing === true;
+
 		switch (profile.target.kind) {
 			case 'loopback':
 				return this.resolveLoopback(profile);
 			case 'directAddress':
-				return this.resolveDirectAddress(profile);
+				return this.resolveDirectAddress(profile, forPairing);
 			case 'hubDevice':
-				return this.resolveHubDevice(profile, options.forceNewTicket === true);
+				return this.resolveHubDevice(profile, options.forceNewTicket === true, forPairing);
 		}
 	}
 
@@ -229,7 +231,7 @@ export class ConnectionResolver {
 		};
 	}
 
-	private async resolveDirectAddress(profile: ConnectionProfile): Promise<ConnectionResolveResult> {
+	private async resolveDirectAddress(profile: ConnectionProfile, forPairing: boolean): Promise<ConnectionResolveResult> {
 		if (profile.target.kind !== 'directAddress') {
 			return {
 				ok: false,
@@ -248,11 +250,30 @@ export class ConnectionResolver {
 			};
 		}
 		if (!profile.trust) {
+			if (!forPairing) {
+				return {
+					ok: false,
+					code: 'pairing_required',
+					reason: 'direct address dial requires pairing orchestrator when trust is missing',
+					allowRelayFallback: false,
+				};
+			}
+			const resolvedIp = await this.resolveHost(host);
+			const now = this.nowMs();
 			return {
-				ok: false,
-				code: 'trust_missing',
-				reason: 'direct address dial requires engine trust',
+				ok: true,
 				allowRelayFallback: false,
+				endpoint: {
+					attemptId: randomUUID(),
+					authority: host,
+					port,
+					resolvedIp,
+					servername: host,
+					relayTicketId: null,
+					tls: null,
+					expiresAtMs: now + 60_000,
+					path: 'direct',
+				},
 			};
 		}
 		const resolvedIp = await this.resolveHost(host);
@@ -274,7 +295,7 @@ export class ConnectionResolver {
 		};
 	}
 
-	private async resolveHubDevice(profile: ConnectionProfile, forceNewTicket: boolean): Promise<ConnectionResolveResult> {
+	private async resolveHubDevice(profile: ConnectionProfile, forceNewTicket: boolean, forPairing: boolean): Promise<ConnectionResolveResult> {
 		if (profile.target.kind !== 'hubDevice') {
 			return {
 				ok: false,
@@ -305,7 +326,7 @@ export class ConnectionResolver {
 					allowRelayFallback,
 				};
 			}
-			return this.resolveHubDeviceWithToken(profile, forceNewTicket, accessToken, allowRelayFallback);
+			return this.resolveHubDeviceWithToken(profile, forceNewTicket, accessToken, allowRelayFallback, forPairing);
 		}
 
 		const directoryAccess = await withHubAccessRetry(
@@ -351,7 +372,7 @@ export class ConnectionResolver {
 			return deviceFailure;
 		}
 
-		if (!profile.trust) {
+		if (!profile.trust && !forPairing) {
 			return {
 				ok: false,
 				code: 'pairing_required',
@@ -439,7 +460,7 @@ export class ConnectionResolver {
 				resolvedIp,
 				servername: authorityHost,
 				relayTicketId: ticket.ticketId,
-				tls: tlsPlanFromProfileTrust(profile),
+				tls: forPairing && !profile.trust ? null : tlsPlanFromProfileTrust(profile),
 				expiresAtMs: ticket.expiresAtMs,
 				path: 'hubRelay',
 			},
@@ -451,6 +472,7 @@ export class ConnectionResolver {
 		forceNewTicket: boolean,
 		accessToken: string,
 		allowRelayFallback: boolean,
+		forPairing: boolean,
 	): Promise<ConnectionResolveResult> {
 		if (profile.target.kind !== 'hubDevice') {
 			return {
@@ -487,7 +509,7 @@ export class ConnectionResolver {
 			return deviceFailure;
 		}
 
-		if (!profile.trust) {
+		if (!profile.trust && !forPairing) {
 			return {
 				ok: false,
 				code: 'pairing_required',
@@ -548,7 +570,7 @@ export class ConnectionResolver {
 				resolvedIp,
 				servername: authorityHost,
 				relayTicketId: ticket.ticketId,
-				tls: tlsPlanFromProfileTrust(profile),
+				tls: forPairing && !profile.trust ? null : tlsPlanFromProfileTrust(profile),
 				expiresAtMs: ticket.expiresAtMs,
 				path: 'hubRelay',
 			},
