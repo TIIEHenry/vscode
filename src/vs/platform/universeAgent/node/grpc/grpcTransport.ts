@@ -18,6 +18,12 @@ import type {
 	UniverseAgentRenameSessionResult,
 	UniverseAgentCancelGenerationRequest,
 	UniverseAgentCancelGenerationResult,
+	UniverseAgentEnqueueQueueItemRequest,
+	UniverseAgentEditQueueItemRequest,
+	UniverseAgentHoldQueueItemRequest,
+	UniverseAgentQueueItemRefRequest,
+	UniverseAgentQueueMutationResult,
+	UniverseAgentQueueRefRequest,
 	UniverseAgentGetHistoryRequest,
 	UniverseAgentGetHistoryResult,
 	UniverseAgentListSessionsRequest,
@@ -141,6 +147,20 @@ export interface IUniverseAgentGrpcTransport {
 
 	cancelGeneration(request: UniverseAgentCancelGenerationRequest): Promise<UniverseAgentCancelGenerationResult>;
 
+	enqueueQueueItem(request: UniverseAgentEnqueueQueueItemRequest): Promise<UniverseAgentQueueMutationResult>;
+
+	pauseQueue(request: UniverseAgentQueueRefRequest): Promise<UniverseAgentQueueMutationResult>;
+
+	resumeQueue(request: UniverseAgentQueueRefRequest): Promise<UniverseAgentQueueMutationResult>;
+
+	clearQueue(request: UniverseAgentQueueRefRequest): Promise<UniverseAgentQueueMutationResult>;
+
+	holdQueueItem(request: UniverseAgentHoldQueueItemRequest): Promise<UniverseAgentQueueMutationResult>;
+
+	releaseQueueItemHold(request: UniverseAgentQueueItemRefRequest): Promise<UniverseAgentQueueMutationResult>;
+
+	editQueueItem(request: UniverseAgentEditQueueItemRequest): Promise<UniverseAgentQueueMutationResult>;
+
 	getHistory(request: UniverseAgentGetHistoryRequest): Promise<UniverseAgentGetHistoryResult>;
 
 	subscribeSessionEventStream(
@@ -244,6 +264,13 @@ export const UniverseAgentGrpcServices = {
 		ContinueGeneration: 'ContinueGeneration',
 		Rename: 'Rename',
 		Cancel: 'Cancel',
+		EnqueueQueueItem: 'EnqueueQueueItem',
+		PauseQueue: 'PauseQueue',
+		ResumeQueue: 'ResumeQueue',
+		ClearQueue: 'ClearQueue',
+		HoldQueueItem: 'HoldQueueItem',
+		ReleaseQueueItemHold: 'ReleaseQueueItemHold',
+		EditQueueItem: 'EditQueueItem',
 		Tree: 'Tree',
 		ListAgentProfiles: 'ListAgentProfiles',
 		SaveAgentProfile: 'SaveAgentProfile',

@@ -91,6 +91,13 @@ class MockUniverseAgentConnection extends Disposable implements IUniverseAgentCo
 		this.cancelCalls.push({ sessionId: request.sessionId, agentId: request.agentId });
 		return { ok: true };
 	}
+	async enqueueQueueItem() { return { ok: false, error: 'stub' }; }
+	async pauseQueue() { return { ok: false, error: 'stub' }; }
+	async resumeQueue() { return { ok: false, error: 'stub' }; }
+	async clearQueue() { return { ok: false, error: 'stub' }; }
+	async holdQueueItem() { return { ok: false, error: 'stub' }; }
+	async releaseQueueItemHold() { return { ok: false, error: 'stub' }; }
+	async editQueueItem() { return { ok: false, error: 'stub' }; }
 	async getHistory() { return { envelopes: [] }; }
 	subscribeSessionEventStream(
 		_sessionId: string,

@@ -26,6 +26,12 @@ import type {
 	UniverseAgentRenameSessionResult,
 	UniverseAgentCancelGenerationRequest,
 	UniverseAgentCancelGenerationResult,
+	UniverseAgentEnqueueQueueItemRequest,
+	UniverseAgentEditQueueItemRequest,
+	UniverseAgentHoldQueueItemRequest,
+	UniverseAgentQueueItemRefRequest,
+	UniverseAgentQueueMutationResult,
+	UniverseAgentQueueRefRequest,
 	UniverseAgentGetHistoryRequest,
 	UniverseAgentGetHistoryResult,
 	UniverseAgentListSessionsRequest,
@@ -619,6 +625,34 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 
 	async cancelGeneration(request: UniverseAgentCancelGenerationRequest): Promise<UniverseAgentCancelGenerationResult> {
 		return this._withTransport(transport => transport.cancelGeneration(request));
+	}
+
+	async enqueueQueueItem(request: UniverseAgentEnqueueQueueItemRequest): Promise<UniverseAgentQueueMutationResult> {
+		return this._withTransport(transport => transport.enqueueQueueItem(request));
+	}
+
+	async pauseQueue(request: UniverseAgentQueueRefRequest): Promise<UniverseAgentQueueMutationResult> {
+		return this._withTransport(transport => transport.pauseQueue(request));
+	}
+
+	async resumeQueue(request: UniverseAgentQueueRefRequest): Promise<UniverseAgentQueueMutationResult> {
+		return this._withTransport(transport => transport.resumeQueue(request));
+	}
+
+	async clearQueue(request: UniverseAgentQueueRefRequest): Promise<UniverseAgentQueueMutationResult> {
+		return this._withTransport(transport => transport.clearQueue(request));
+	}
+
+	async holdQueueItem(request: UniverseAgentHoldQueueItemRequest): Promise<UniverseAgentQueueMutationResult> {
+		return this._withTransport(transport => transport.holdQueueItem(request));
+	}
+
+	async releaseQueueItemHold(request: UniverseAgentQueueItemRefRequest): Promise<UniverseAgentQueueMutationResult> {
+		return this._withTransport(transport => transport.releaseQueueItemHold(request));
+	}
+
+	async editQueueItem(request: UniverseAgentEditQueueItemRequest): Promise<UniverseAgentQueueMutationResult> {
+		return this._withTransport(transport => transport.editQueueItem(request));
 	}
 
 	async getHistory(request: UniverseAgentGetHistoryRequest): Promise<UniverseAgentGetHistoryResult> {

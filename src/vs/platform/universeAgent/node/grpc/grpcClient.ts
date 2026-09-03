@@ -21,6 +21,14 @@ import type {
 	UniverseAgentRenameSessionResult,
 	UniverseAgentCancelGenerationRequest,
 	UniverseAgentCancelGenerationResult,
+	UniverseAgentEnqueueQueueItemRequest,
+	UniverseAgentEditQueueItemRequest,
+	UniverseAgentHoldQueueItemRequest,
+	UniverseAgentQueueHoldReason,
+	UniverseAgentQueueItemRefRequest,
+	UniverseAgentQueueMutationResult,
+	UniverseAgentQueuePriority,
+	UniverseAgentQueueRefRequest,
 	UniverseAgentGetHistoryRequest,
 	UniverseAgentGetHistoryResult,
 	UniverseAgentListSessionsRequest,
@@ -137,6 +145,42 @@ interface ListSessionsResponseWire {
 
 interface CreateSessionResponseWire {
 	session_id?: string;
+}
+
+interface QueueMutationResponseWire {
+	ok?: boolean;
+	error?: string;
+	op_id?: string;
+	item_id?: string;
+}
+
+function queueRefWire(request: UniverseAgentQueueRefRequest): Record<string, unknown> {
+	return {
+		session_id: request.sessionId,
+		op_id: request.opId ?? '',
+	};
+}
+
+function queueItemRefWire(request: UniverseAgentQueueItemRefRequest): Record<string, unknown> {
+	return {
+		...queueRefWire(request),
+		item_id: request.itemId,
+	};
+}
+
+function queueHoldReasonWire(reason: UniverseAgentQueueHoldReason): number {
+	return reason === 'EDITING' ? 1 : 0;
+}
+
+function queuePriorityWire(priority: UniverseAgentQueuePriority | undefined): number {
+	switch (priority) {
+		case 'HIGH':
+			return 1;
+		case 'LOW':
+			return 2;
+		default:
+			return 0;
+	}
 }
 
 interface GetHistoryResponseWire {
@@ -1256,6 +1300,61 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 		return {
 			ok: wire.success === true,
 			message: wire.message,
+		};
+	}
+
+	async enqueueQueueItem(request: UniverseAgentEnqueueQueueItemRequest): Promise<UniverseAgentQueueMutationResult> {
+		return this._queueMutation(UniverseAgentGrpcServices.Agent.EnqueueQueueItem, {
+			session_id: request.sessionId,
+			op_id: request.opId ?? '',
+			client_message_id: request.clientMessageId ?? '',
+			text: request.text,
+			priority: queuePriorityWire(request.priority),
+		});
+	}
+
+	async pauseQueue(request: UniverseAgentQueueRefRequest): Promise<UniverseAgentQueueMutationResult> {
+		return this._queueMutation(UniverseAgentGrpcServices.Agent.PauseQueue, queueRefWire(request));
+	}
+
+	async resumeQueue(request: UniverseAgentQueueRefRequest): Promise<UniverseAgentQueueMutationResult> {
+		return this._queueMutation(UniverseAgentGrpcServices.Agent.ResumeQueue, queueRefWire(request));
+	}
+
+	async clearQueue(request: UniverseAgentQueueRefRequest): Promise<UniverseAgentQueueMutationResult> {
+		return this._queueMutation(UniverseAgentGrpcServices.Agent.ClearQueue, queueRefWire(request));
+	}
+
+	async holdQueueItem(request: UniverseAgentHoldQueueItemRequest): Promise<UniverseAgentQueueMutationResult> {
+		return this._queueMutation(UniverseAgentGrpcServices.Agent.HoldQueueItem, {
+			...queueItemRefWire(request),
+			reason: queueHoldReasonWire(request.reason),
+		});
+	}
+
+	async releaseQueueItemHold(request: UniverseAgentQueueItemRefRequest): Promise<UniverseAgentQueueMutationResult> {
+		return this._queueMutation(UniverseAgentGrpcServices.Agent.ReleaseQueueItemHold, queueItemRefWire(request));
+	}
+
+	async editQueueItem(request: UniverseAgentEditQueueItemRequest): Promise<UniverseAgentQueueMutationResult> {
+		return this._queueMutation(UniverseAgentGrpcServices.Agent.EditQueueItem, {
+			...queueItemRefWire(request),
+			text: request.text,
+		});
+	}
+
+	private async _queueMutation(method: string, wire: Record<string, unknown>): Promise<UniverseAgentQueueMutationResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, QueueMutationResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.Agent.service,
+			method,
+		);
+		const result = await unary(wire);
+		return {
+			ok: result.ok === true,
+			error: result.error,
+			opId: result.op_id,
+			itemId: result.item_id,
 		};
 	}
 

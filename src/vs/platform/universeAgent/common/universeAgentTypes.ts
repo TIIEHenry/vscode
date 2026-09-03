@@ -101,6 +101,47 @@ export interface UniverseAgentCancelGenerationResult {
 	readonly message?: string;
 }
 
+/** AgentService queue hold reason (QueueItemHoldReasonProto). */
+export type UniverseAgentQueueHoldReason = 'NONE' | 'EDITING';
+
+/** AgentService queue priority (QueuePriorityProto). */
+export type UniverseAgentQueuePriority = 'NORMAL' | 'HIGH' | 'LOW';
+
+/** Shared session+op id for queue mutation RPCs. */
+export interface UniverseAgentQueueRefRequest {
+	readonly sessionId: string;
+	readonly opId?: string;
+}
+
+export interface UniverseAgentQueueItemRefRequest extends UniverseAgentQueueRefRequest {
+	readonly itemId: string;
+}
+
+/** AgentService.EnqueueQueueItem. */
+export interface UniverseAgentEnqueueQueueItemRequest extends UniverseAgentQueueRefRequest {
+	readonly text: string;
+	readonly clientMessageId?: string;
+	readonly priority?: UniverseAgentQueuePriority;
+}
+
+/** AgentService.HoldQueueItem. */
+export interface UniverseAgentHoldQueueItemRequest extends UniverseAgentQueueItemRefRequest {
+	readonly reason: UniverseAgentQueueHoldReason;
+}
+
+/** AgentService.EditQueueItem. */
+export interface UniverseAgentEditQueueItemRequest extends UniverseAgentQueueItemRefRequest {
+	readonly text: string;
+}
+
+/** Shared QueueMutationResponse. */
+export interface UniverseAgentQueueMutationResult {
+	readonly ok: boolean;
+	readonly error?: string;
+	readonly opId?: string;
+	readonly itemId?: string;
+}
+
 export interface UniverseAgentGetHistoryRequest {
 	readonly sessionId: string;
 	readonly cursorSeq?: string;

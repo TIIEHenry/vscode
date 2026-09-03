@@ -56,7 +56,7 @@ summary: "PRD-015 系统规格：PreFirst 居中 / Active 列底同一张 Compos
 - 项状态 `UPLOADING | UPLOAD_FAILED | PENDING | SENDING | FAILED`；hold 原因 `EDITING`。
 - 队列级操作：`pauseMessageQueue` / `resumeMessageQueue` / `clearMessageQueue`；项级 `holdMessageQueueItem` / `releaseMessageQueueItemHold` / `updateMessageQueueItemContent`。
 - `conversationMessageQueuePendingCount` 供 Inbox 徽标。
-- stub 期状态由 `setMessageQueueFixture` 注入；真正的入队 / 出队由引擎驱动（PRD-008）。
+- stub 期状态由 `setMessageQueueFixture` 注入；传输已有 `AgentService.EnqueueQueueItem` 族，roster / Inbox **不**转发，避免 fixture 冒充引擎队列。
 
 ## 5. 语音转写条
 

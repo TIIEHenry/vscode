@@ -73,6 +73,13 @@ export function createConversationConnectionTestStub(
 		deleteSession: async () => { },
 		renameSession: async () => ({ ok: false, message: 'stub' }),
 		cancelGeneration: async () => ({ ok: false, message: 'stub' }),
+		enqueueQueueItem: async () => ({ ok: false, error: 'stub' }),
+		pauseQueue: async () => ({ ok: false, error: 'stub' }),
+		resumeQueue: async () => ({ ok: false, error: 'stub' }),
+		clearQueue: async () => ({ ok: false, error: 'stub' }),
+		holdQueueItem: async () => ({ ok: false, error: 'stub' }),
+		releaseQueueItemHold: async () => ({ ok: false, error: 'stub' }),
+		editQueueItem: async () => ({ ok: false, error: 'stub' }),
 		getHistory: async () => ({ envelopes: [] }),
 		subscribeSessionEventStream: (
 			_sessionId: string,
