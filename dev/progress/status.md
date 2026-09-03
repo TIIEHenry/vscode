@@ -4,29 +4,29 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-04
-summary: "槽 A 快进 merge 后收口 D19(1)：Engine/Connection 无动画节点；D19(3) Connection Back 仍开"
+summary: "槽 B 关 D21：connection 暴露 Agent 树首拉失败；Hierarchy/Team 共用失败 note"
 ---
 
 # Development Progress
 
 ## Current Session
 
-- **槽 A / `loop/A`：** `git merge --ff-only loop/merge` 已快进到当前 merge HEAD。
-- **本 commit：** **D19(1)** 方案改口：Engine / Connection pane 无 `transition`/`animation`，不挂空 `.ua-motion`（CSS 文件头 + `ua-common.css` 注释 + [accessibility-responsive-ui](../plans/accessibility-responsive-ui.md) §6/§9）。**未做 D19(3)**：Connection 无 Engine 式 nav list，§9「左导航可返回」对 Connection 合同不明，不发明 Back。未跑 `npm run compile`。
+- **槽 B / `loop/B`：** `git merge --ff-only loop/merge` 已快进。
+- **本 commit：** **D21** — `IUniverseAgentConnection.isAgentTreeFetchFailed()`；node `fetchAgentTree` 非 UNIMPLEMENTED 失败置位、成功清除；共用空态失败 note；Agents 不再用 `transport === 'failed'` 作树失败轴。未跑 `npm run compile`。
 
 ## 槽位（与 `git worktree list` 对照）
 
 | 槽 | 路径 | 分支 | 状态 |
 |----|------|------|------|
-| merge | `vscode-WorkTrees/merge` | `loop/merge` | 至少 `d98d888a` |
-| A | `vscode-WorkTrees/A` | `loop/A` | 本会话：D19(1) |
-| B–D | `vscode-WorkTrees/{B–D}` | `loop/{B–D}` | 以各槽 `git` 为准 |
+| merge | `vscode-WorkTrees/merge` | `loop/merge` | 以 merge 槽 `git` 为准 |
+| B | `vscode-WorkTrees/B` | `loop/B` | 本会话：D21 |
+| A/C/D | `vscode-WorkTrees/{A,C,D}` | `loop/{A,C,D}` | 以各槽 `git` 为准 |
 | edit | `Projects/Agents/vscode` | `agent-ide` | 请自行对齐 |
 
 ## Blockers
 
 - 无代码硬阻塞。远端是否 parked 以 merge 槽 push 结果为准。
-- 非阻塞账：[D8](deferred-gaps.md)–[D22](deferred-gaps.md)（D8/D9/D12/D15–D22）。
+- 非阻塞账：[D8](deferred-gaps.md)–[D22](deferred-gaps.md)（D8/D9/D12/D15–D20/D22；**D21 closed**）。
 
 ## Next
 

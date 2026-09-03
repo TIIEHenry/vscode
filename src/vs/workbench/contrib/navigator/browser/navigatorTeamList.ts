@@ -198,6 +198,7 @@ export class NavigatorTeamView extends ViewPane {
 		this.refreshScheduler = this._register(new RunOnceScheduler(() => void this.refreshTeamData(), 250));
 		this._register(this.rosterService.onDidChangeActiveSession(() => this.scheduleRefresh()));
 		this._register(this.rosterService.onDidChangeEngineConnection(() => this.scheduleRefresh()));
+		this._register(this.uaConnection.onDidChangeConnection(() => this.scheduleRefresh()));
 
 		this._register(this.uaConnection.onDidChangeTeamRuntime(e => {
 			if (e.sessionId === this.rosterService.getActiveSessionId()) {
@@ -361,8 +362,9 @@ export class NavigatorTeamView extends ViewPane {
 		const lease = this.leaseHolder.getLease();
 		const liveTree = lease?.snapshot.liveAgentTree;
 		const agentTreeCapability = getNavigatorCapability(this.uaConnection, 'agentTree');
+		const treeFetchFailed = this.uaConnection.isAgentTreeFetchFailed();
 
-		const treeEmpty = getTeamTreeEmptyCopy(agentTreeCapability, liveTree);
+		const treeEmpty = getTeamTreeEmptyCopy(agentTreeCapability, liveTree, treeFetchFailed);
 		if (treeEmpty) {
 			this.inspectService.setLiveAgentIds('team', undefined);
 			this.setMemberEntries([], treeEmpty);

@@ -63,6 +63,24 @@ suite('NavigatorTeam (N4)', () => {
 		assert.ok(!getTeamTreeEmptyCopy('SUPPORTED', undefined)?.includes('没有团队'));
 	});
 
+	test('treeFetchFailed is fail note, not loading or no-team', () => {
+		const fail = getTeamTreeEmptyCopy('SUPPORTED', undefined, true);
+		assert.strictEqual(fail, '读取 Agent 树失败');
+		assert.ok(!fail?.includes('正在读取'));
+		assert.ok(!fail?.includes('没有团队'));
+		assert.strictEqual(
+			getNavigatorAgentTreePendingCopy('SUPPORTED', undefined, true),
+			getTeamTreeEmptyCopy('SUPPORTED', undefined, true),
+		);
+		assert.strictEqual(
+			getNavigatorAgentTreePendingCopy('UNKNOWN', undefined, true),
+			getTeamTreeEmptyCopy('UNKNOWN', undefined, true),
+		);
+		// Success path still clears to empty/no-team when tree arrived.
+		assert.strictEqual(getTeamTreeEmptyCopy('SUPPORTED', { ...treeWithManager, children: [] }, true), '当前会话没有团队');
+		assert.strictEqual(getNavigatorAgentTreePendingCopy('SUPPORTED', treeWithManager, true), undefined);
+	});
+
 	test('Hierarchy and Team share the same loading empty copy', () => {
 		assert.strictEqual(
 			getNavigatorAgentTreePendingCopy('SUPPORTED', undefined),
@@ -71,6 +89,17 @@ suite('NavigatorTeam (N4)', () => {
 		assert.strictEqual(
 			getNavigatorAgentTreePendingCopy('UNKNOWN', undefined),
 			getTeamTreeEmptyCopy('UNKNOWN', undefined),
+		);
+	});
+
+	test('Hierarchy and Team share the same fail empty copy (D21)', () => {
+		assert.strictEqual(
+			getNavigatorAgentTreePendingCopy('SUPPORTED', undefined, true),
+			getTeamTreeEmptyCopy('SUPPORTED', undefined, true),
+		);
+		assert.notStrictEqual(
+			getNavigatorAgentTreePendingCopy('SUPPORTED', undefined, true),
+			getNavigatorAgentTreePendingCopy('SUPPORTED', undefined, false),
 		);
 	});
 

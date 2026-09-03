@@ -63,6 +63,7 @@ class MockUniverseAgentConnection extends Disposable {
 	getCapabilitySnapshot() { return this.getConnectionSnapshot().capabilities; }
 	requestAgentTreeRefresh() { }
 	getNavigatorCapability() { return 'UNKNOWN' as const; }
+	isAgentTreeFetchFailed() { return false; }
 	async connect() { return { methods: [], events: [], sessionToken: 'tok' }; }
 	async connectProfile() { return { ok: false as const, code: 'transport_failed' as const, reason: 'stub' }; }
 	async confirmPairing() { return { ok: false as const, code: 'transport_failed' as const, reason: 'stub' }; }

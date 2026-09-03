@@ -122,6 +122,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 	private _sharedFsRootSent = false;
 	private _pairingPending = false;
 	private _agentTreeProbeUnsupported = false;
+	private _agentTreeFetchFailed = false;
 	private _fetchToolDetailUnsupported = false;
 	private _advertisedMethods: readonly string[] = [];
 	private _capabilities: UniverseAgentCapabilitySnapshot = createEmptyCapabilitySnapshot();
@@ -207,15 +208,20 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 			return undefined;
 		}
 		try {
-			return await this._withTransport(transport => transport.fetchAgentTree(sessionId));
+			const root = await this._withTransport(transport => transport.fetchAgentTree(sessionId));
+			this._setAgentTreeFetchFailed(false);
+			return root;
 		} catch (error) {
 			if (error instanceof UniverseAgentTransportError && error.code === GrpcStatusCode.UNIMPLEMENTED) {
 				this._agentTreeProbeUnsupported = true;
+				this._setAgentTreeFetchFailed(false);
 				this._capabilities = {
 					...this._capabilities,
 					agentTree: { support: 'UNSUPPORTED', reason: 'UNIMPLEMENTED' },
 				};
 				this._fireSnapshotChanged();
+			} else {
+				this._setAgentTreeFetchFailed(true);
 			}
 			throw error;
 		}
@@ -223,6 +229,10 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 
 	isAgentTreeUnsupported(): boolean {
 		return this._agentTreeProbeUnsupported || this._capabilities.agentTree.support === 'UNSUPPORTED';
+	}
+
+	isAgentTreeFetchFailed(): boolean {
+		return this._agentTreeFetchFailed;
 	}
 
 	async fetchToolDetail(request: UniverseAgentFetchToolDetailRequest): Promise<UniverseAgentFetchToolDetailResult> {
@@ -285,6 +295,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 			this._connectionPhase = this._pairingPending
 				? { kind: 'connecting', reason: 'initial' }
 				: { kind: 'connected', path: 'loopback' };
+			this._agentTreeFetchFailed = false;
 			this._fireSnapshotChanged();
 			return result;
 		} catch (error) {
@@ -417,6 +428,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 			});
 			await this._refreshSaveSkillContentBinding(handshake.result.methods);
 			this._connectionPhase = { kind: 'connected', path: endpoint.path };
+			this._agentTreeFetchFailed = false;
 			this._fireSnapshotChanged();
 			return {
 				ok: true,
@@ -559,6 +571,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		this._sharedFsRootSent = false;
 		this._pairingPending = false;
 		this._agentTreeProbeUnsupported = false;
+		this._agentTreeFetchFailed = false;
 		this._fetchToolDetailUnsupported = false;
 		this._advertisedMethods = [];
 		this._clearSaveSkillContentBinding();
@@ -854,6 +867,14 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 			channelAlive: !!this._transport?.isChannelAlive,
 			capabilities: this._capabilities,
 		};
+	}
+
+	private _setAgentTreeFetchFailed(failed: boolean): void {
+		if (this._agentTreeFetchFailed === failed) {
+			return;
+		}
+		this._agentTreeFetchFailed = failed;
+		this._fireSnapshotChanged();
 	}
 
 	private _fireSnapshotChanged(): void {

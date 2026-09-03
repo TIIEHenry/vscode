@@ -114,6 +114,12 @@ export interface IUniverseAgentConnection {
 	/** Navigator capability three-state (IDE-derived keys). */
 	getNavigatorCapability(key: UniverseAgentNavigatorCapabilityKey): UniverseAgentCapabilitySupport;
 
+	/**
+	 * True after a connected AgentService.Tree pull failed for a reason other than UNIMPLEMENTED.
+	 * Cleared on a successful Tree pull (or UNIMPLEMENTED → capability UNSUPPORTED). Not transport state.
+	 */
+	isAgentTreeFetchFailed(): boolean;
+
 	readonly team: IUniverseAgentTeamApi;
 
 	connect(request: UniverseAgentConnectRequest): Promise<UniverseAgentConnectResult>;

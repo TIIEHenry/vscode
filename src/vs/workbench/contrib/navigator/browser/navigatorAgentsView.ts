@@ -213,6 +213,8 @@ export class NavigatorAgentsView extends ViewPane {
 			this.refreshFromLease();
 		}));
 		this._register(this.rosterService.onDidChangeActiveSession(() => this.refreshFromLease()));
+		// Tree first-fetch fail/clear fires via connection snapshot (D21), not lease patches.
+		this._register(this.uaConnection.onDidChangeConnection(() => this.refreshFromLease()));
 		this.updateSubviewContextKeys();
 		this.updateEngineConnectedContextKey();
 	}
@@ -393,6 +395,7 @@ export class NavigatorAgentsView extends ViewPane {
 		}
 
 		const agentTreeCapability = getNavigatorCapability(this.uaConnection, 'agentTree');
+		const treeFetchFailed = this.uaConnection.isAgentTreeFetchFailed();
 		const transportFailed = this.uaConnection.getConnectionSnapshot().transport === 'failed';
 
 		if (agentTreeCapability === 'UNSUPPORTED') {
@@ -402,14 +405,7 @@ export class NavigatorAgentsView extends ViewPane {
 			return;
 		}
 
-		if (transportFailed && !liveTree) {
-			this.inspectService.setLiveAgentIds('agents', undefined);
-			this.setHierarchyState([], localize('navigatorAgentsHierarchy.transportFailed', "连接失败"));
-			this.setActivityFromSnapshot(snapshot, lease?.attribution);
-			return;
-		}
-
-		const pendingCopy = getNavigatorAgentTreePendingCopy(agentTreeCapability, liveTree);
+		const pendingCopy = getNavigatorAgentTreePendingCopy(agentTreeCapability, liveTree, treeFetchFailed);
 		if (pendingCopy) {
 			this.inspectService.setLiveAgentIds('agents', undefined);
 			this.setHierarchyState([], pendingCopy);
@@ -419,6 +415,7 @@ export class NavigatorAgentsView extends ViewPane {
 
 		this.inspectService.setLiveAgentIds('agents', collectLiveAgentTreeAgentIds(liveTree!));
 
+		// Stale note is connection-transport axis; tree-fail uses isAgentTreeFetchFailed (D21).
 		if (transportFailed) {
 			this.setHierarchyNote(localize('navigatorAgentsHierarchy.staleSnapshot', "显示为断开前快照"));
 		} else {

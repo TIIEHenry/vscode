@@ -4,7 +4,7 @@ type: plan
 status: implemented
 phase: M7
 updated: 2026-09-04
-summary: "GC-1–GC-6 已落（merge d98d888a）：hubDevice/配对、设备动作与 probe、catalog 观察 lease、Navigator/Inspect、Overview Model；PRD-024 仍待真 Hub 冒烟；D21 树首拉失败轴"
+summary: "GC-1–GC-6 已落（merge d98d888a）：hubDevice/配对、设备动作与 probe、catalog 观察 lease、Navigator/Inspect、Overview Model；PRD-024 仍待真 Hub 冒烟；D21 已闭（connection.isAgentTreeFetchFailed）"
 ---
 
 # M7 缺口收口
@@ -169,7 +169,7 @@ summary: "GC-1–GC-6 已落（merge d98d888a）：hubDevice/配对、设备动�
 - [conversation-session-windows §3.3](conversation-session-windows.md)：「Agent spawn → catalog 有 chat」标已落（GC-4）。**已回填** @ 2026-09-04。
 - [engine-preferences-completion §3.1](engine-preferences-completion.md)：Model 摘要标已落；Provider 摘要仍「G-ENG-1 前不显示」，不改口。**已回填** @ 2026-09-04。
 - [traceability](../../docs/product/traceability.md)：PRD-016 / PRD-022 / PRD-024 / PRD-025 行「代码已落」范围更新。**已回填** @ 2026-09-04。
-- [deferred-gaps](../progress/deferred-gaps.md)：新增 **D21** host 暴露 Agent 树首拉失败态（GC-5b 失败轴）；GC-7 结果写入 a11y-rwd-l1。**D21 已登记**；GC-7 未在本 merge 切片内，不改 a11y 账。
+- [deferred-gaps](../progress/deferred-gaps.md)：新增 **D21** host 暴露 Agent 树首拉失败态（GC-5b 失败轴）；GC-7 结果写入 a11y-rwd-l1。**D21 已闭**（`IUniverseAgentConnection.isAgentTreeFetchFailed`，非 lease 字段、非 transport 错轴）；GC-7 未在本 merge 切片内，不改 a11y 账。
 - [engine-protocol-surface §5](../../docs/reference/universe-agent/engine-protocol-surface.md)：`IUniverseAgentConnection` 新增 `confirmPairing` / `cancelPairing` / `probeConnectionProfile` 三方法登记。**已回填** @ 2026-09-04。
 
 ## 相关

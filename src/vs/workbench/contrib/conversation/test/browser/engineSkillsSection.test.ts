@@ -58,6 +58,7 @@ suite('EngineSkillsSection (E1)', () => {
 			onDidChangeTeamRuntime: Event.None,
 			requestAgentTreeRefresh: () => { },
 			getNavigatorCapability: () => 'UNKNOWN' as const,
+			isAgentTreeFetchFailed: () => false,
 			team: {
 				memberStatus: async () => [],
 				taskList: async () => [],

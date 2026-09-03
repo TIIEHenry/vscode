@@ -79,6 +79,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 			onDidChangeTeamRuntime: Event.None,
 			requestAgentTreeRefresh: () => { },
 			getNavigatorCapability: () => 'UNKNOWN' as const,
+			isAgentTreeFetchFailed: () => false,
 			team: {
 				memberStatus: async () => [],
 				taskList: async () => [],

@@ -61,6 +61,7 @@ class TestConnection implements IUniverseAgentConnection {
 	readonly onDidChangeConnection = Event.None;
 	requestAgentTreeRefresh(): void { }
 	getNavigatorCapability() { return 'UNKNOWN' as const; }
+	isAgentTreeFetchFailed(): boolean { return false; }
 	async connect() { return { methods: [], events: [] }; }
 	async connectProfile() { return { ok: false as const, code: 'transport_failed' as const, reason: 'test' }; }
 	async confirmPairing() { return { ok: false as const, code: 'transport_failed' as const, reason: 'test' }; }

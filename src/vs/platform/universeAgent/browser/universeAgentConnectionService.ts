@@ -117,6 +117,10 @@ export class WebUniverseAgentConnection implements IUniverseAgentConnection {
 		return 'UNSUPPORTED';
 	}
 
+	isAgentTreeFetchFailed(): boolean {
+		return false;
+	}
+
 	async connect(_request: UniverseAgentConnectRequest): Promise<UniverseAgentConnectResult> {
 		return { methods: [], events: [] };
 	}

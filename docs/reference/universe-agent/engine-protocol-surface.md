@@ -152,6 +152,7 @@ Connect 后 `probeEngineCapabilities`：**仅**广告了 method 且 probe 非 `U
 | `team.*` unary + `onDidChangeTeamRuntime` | A1 传输 + A2 demux L3 `multi_agent_status` | Navigator Team Members/Tasks |
 | `tool_call_id` join 表 + `onDidFileMutation` + turn settle | A2 host（`ToolCallLifecycleEvent` + L3 snapshot + `assistant_turn_id` settle） | Sources Review 归因 chip；`ItemAttribution.toolCallId` → `conversation.revealItem` |
 | `onDidChangeTeamRuntime` / `requestAgentTreeRefresh` | connection（A1 类型；A2 实现） | Navigator Team / Agents Refresh |
+| `isAgentTreeFetchFailed`（D21） | connection：`AgentService.Tree` 非 UNIMPLEMENTED 失败置位、成功清除；经 `onDidChangeConnection` 通知 | Hierarchy / Team 共用空态失败 note（**非** lease 快照字段；**非** `transport === 'failed'`） |
 
 协议缺口 **G-NAV-1 / G-NAV-2 / G-REV-1** 见 §4。
 

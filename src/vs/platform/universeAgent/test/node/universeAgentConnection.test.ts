@@ -42,6 +42,7 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 			probeRpc?: (service: string, method: string) => Promise<number>;
 			listSessions?: (request: UniverseAgentListSessionsRequest) => Promise<UniverseAgentListSessionsResult>;
 			saveSkillContent?: (request: UniverseAgentSaveSkillContentRequest) => Promise<UniverseAgentSaveSkillContentResult>;
+			fetchAgentTree?: (sessionId: string) => Promise<import('../../common/universeAgentTypes.js').UniverseAgentAgentTreeNode | undefined>;
 		} = {},
 	) { }
 
@@ -212,7 +213,10 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 		return { models: [] };
 	}
 
-	async fetchAgentTree() {
+	async fetchAgentTree(sessionId: string) {
+		if (this.handlers.fetchAgentTree) {
+			return this.handlers.fetchAgentTree(sessionId);
+		}
 		return undefined;
 	}
 
@@ -374,6 +378,72 @@ suite('UniverseAgentConnectionService', () => {
 		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
 
 		assert.strictEqual(service.getCapabilitySnapshot().agentTree.support, 'UNSUPPORTED');
+		service.dispose();
+	});
+
+	test('AgentService.Tree non-UNIMPLEMENTED failure sets isAgentTreeFetchFailed (D21)', async () => {
+		let treeMode: 'fail' | 'ok' = 'fail';
+		const transport = new MockUniverseAgentGrpcTransport({
+			connect: async () => ({
+				sessionToken: 'token-1',
+				methods: ['AgentService.Tree'],
+				events: [],
+			}),
+			probeRpc: async () => GrpcStatusCode.OK,
+			fetchAgentTree: async () => {
+				if (treeMode === 'fail') {
+					throw new UniverseAgentTransportError(13, 'tree boom');
+				}
+				return {
+					agentId: 'root',
+					name: 'Root',
+					type: 'AGENT_TYPE_ROOT',
+					status: 'AGENT_STATUS_IDLE',
+					model: '',
+					turnCount: 0,
+					createdAt: 0,
+					children: [],
+				};
+			},
+		});
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		assert.strictEqual(service.isAgentTreeFetchFailed(), false);
+		assert.strictEqual(service.getTransportState(), 'ok');
+
+		await assert.rejects(() => service.fetchAgentTree('s1'));
+		assert.strictEqual(service.isAgentTreeFetchFailed(), true);
+		assert.strictEqual(service.getTransportState(), 'ok');
+		assert.strictEqual(service.isEngineConnected(), true);
+
+		treeMode = 'ok';
+		const root = await service.fetchAgentTree('s1');
+		assert.ok(root);
+		assert.strictEqual(service.isAgentTreeFetchFailed(), false);
+		service.dispose();
+	});
+
+	test('AgentService.Tree UNIMPLEMENTED does not set isAgentTreeFetchFailed', async () => {
+		const transport = new MockUniverseAgentGrpcTransport({
+			connect: async () => ({
+				sessionToken: 'token-1',
+				methods: ['AgentService.Tree'],
+				events: [],
+			}),
+			probeRpc: async () => GrpcStatusCode.OK,
+			fetchAgentTree: async () => {
+				throw new UniverseAgentTransportError(GrpcStatusCode.UNIMPLEMENTED, 'no tree');
+			},
+		});
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await assert.rejects(() => service.fetchAgentTree('s1'));
+		assert.strictEqual(service.isAgentTreeFetchFailed(), false);
+		assert.strictEqual(service.isAgentTreeUnsupported(), true);
 		service.dispose();
 	});
 

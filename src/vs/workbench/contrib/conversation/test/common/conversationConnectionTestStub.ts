@@ -51,6 +51,7 @@ export function createConversationConnectionTestStub(
 		onDidChangeTeamRuntime: Event.None,
 		requestAgentTreeRefresh: () => { },
 		getNavigatorCapability: () => 'UNKNOWN',
+		isAgentTreeFetchFailed: () => false,
 		team: {
 			memberStatus: async () => [],
 			taskList: async () => [],
