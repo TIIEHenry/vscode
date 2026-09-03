@@ -60,6 +60,11 @@ type ActiveChatStream = {
 	readonly dispose: () => void;
 };
 
+type ActiveContinuationStream = {
+	readonly messageId: string;
+	readonly dispose: () => void;
+};
+
 type SessionSidecar = {
 	readonly tree: AgentTreeCoordinator;
 	readonly fileJoin: FileMutationJoin;
@@ -156,6 +161,7 @@ export class SessionViewHost extends Disposable {
 	private readonly capturedDetails = new Map<string, Map<string, ParsedDetailRef>>();
 	private readonly streams = new Map<string, ActiveStream>();
 	private readonly chatStreams = new Map<string, ActiveChatStream>();
+	private readonly continuationStreams = new Map<string, ActiveContinuationStream>();
 	private readonly sessionSidecars = new Map<string, SessionSidecar>();
 	private readonly toolAttributionHints = new Map<string, ToolAttributionHint[]>();
 	/** Owner session for Actor linger / chat-flush timers (async fire → postAndDrain). */
@@ -317,6 +323,10 @@ export class SessionViewHost extends Disposable {
 				stream.dispose();
 			}
 			this.chatStreams.clear();
+			for (const stream of this.continuationStreams.values()) {
+				stream.dispose();
+			}
+			this.continuationStreams.clear();
 			for (const binding of this.leases.values()) {
 				this.postAndDrain(binding.sessionId as SessionId, {
 					t: 'connectionDown',
@@ -728,6 +738,9 @@ export class SessionViewHost extends Disposable {
 	/**
 	 * SAFE ContinueGeneration host: call optional connection hook when present;
 	 * otherwise count + warn so product can see the gap (no silent drop).
+	 * Timeline still arrives on SessionEventStream; ChatResponse acks are ignored.
+	 * Remote/error `onClosed` drops the handle only — never folds Actor `streamClosed`
+	 * (that gate is SessionEventStream). Local dispose / connection-down is silent.
 	 */
 	private openContinuation(
 		sessionId: string,
@@ -743,9 +756,11 @@ export class SessionViewHost extends Disposable {
 			});
 			return;
 		}
+		this.continuationStreams.get(sessionId)?.dispose();
+		this.continuationStreams.delete(sessionId);
 		try {
-			// Timeline still arrives on SessionEventStream; ChatResponse acks are ignored here.
-			open.call(
+			let disposed = false;
+			const handle = open.call(
 				this.connection,
 				{
 					sessionId,
@@ -754,7 +769,26 @@ export class SessionViewHost extends Disposable {
 					messageId: intent.messageId,
 				},
 				() => { },
+				cause => {
+					if (disposed || (cause.kind !== 'remote' && cause.kind !== 'error')) {
+						return;
+					}
+					this.continuationStreams.delete(sessionId);
+					this.diagnostics.warn('openContinuationStream closed', {
+						sessionId,
+						correlation: String(intent.correlation),
+						kind: cause.kind,
+						...(cause.kind === 'error' ? { message: cause.message } : {}),
+					});
+				},
 			);
+			this.continuationStreams.set(sessionId, {
+				messageId: intent.messageId,
+				dispose: () => {
+					disposed = true;
+					handle.dispose();
+				},
+			});
 		} catch (error) {
 			this.diagnostics.warn('openContinuationStream failed', {
 				sessionId,
