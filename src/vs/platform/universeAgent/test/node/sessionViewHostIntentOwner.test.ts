@@ -64,7 +64,7 @@ type HostInternals = {
 	postAndDrain(sessionId: string, msg: { readonly t: 'localFact'; readonly fact: unknown }): { accepted: boolean };
 };
 
-function closedChromeFromFrames(frames: readonly IUniverseAgentSessionViewFrameEvent[]): SyncChrome[] {
+function closedChromeFromFrames(frames: readonly IUniverseAgentSessionViewFrameEvent[]): Extract<SyncChrome, { kind: 'closed' }>[] {
 	return frames.flatMap(event => {
 		const body = event.frame.frame.body;
 		if (body.kind !== 'patches') {
