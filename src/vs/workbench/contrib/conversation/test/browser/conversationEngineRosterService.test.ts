@@ -570,12 +570,12 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 			force: true,
 		}]);
 		assert.strictEqual(service.killSubAgent('ua-only'), true);
+		assert.notStrictEqual(connection.killCalls[1]?.agentId, 'root');
 		assert.strictEqual(connection.killCalls[1]?.agentId, '');
 		assert.strictEqual(connection.killCalls[1]?.force, undefined);
-		assert.ok(connection.killCalls[1]?.agentId !== 'root');
 		assert.strictEqual(service.killSubAgent('ua-only', { agentId: '   ' }), true);
+		assert.notStrictEqual(connection.killCalls[2]?.agentId, 'root');
 		assert.strictEqual(connection.killCalls[2]?.agentId, '');
-		assert.ok(connection.killCalls[2]?.agentId !== 'root');
 		assert.strictEqual(service.killSubAgent('missing', { agentId: 'sub:a' }), false);
 		assert.strictEqual(connection.killCalls.length, 3);
 	});
@@ -590,8 +590,8 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		await new Promise<void>(resolve => setTimeout(resolve, 0));
 
 		assert.strictEqual(service.killSubAgent('ua-only'), true);
+		assert.notStrictEqual(connection.killCalls[0]?.agentId, 'root');
 		assert.strictEqual(connection.killCalls[0]?.agentId, '');
-		assert.ok(connection.killCalls[0]?.agentId !== 'root');
 	});
 
 	test('connected killSubAgent uses last streaming agent when omitted and never defaults to root', async () => {
@@ -604,8 +604,8 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		await new Promise<void>(resolve => setTimeout(resolve, 0));
 
 		assert.strictEqual(service.killSubAgent('ua-only'), true);
+		assert.notStrictEqual(connection.killCalls[0]?.agentId, 'root');
 		assert.strictEqual(connection.killCalls[0]?.agentId, '');
-		assert.ok(connection.killCalls[0]?.agentId !== 'root');
 
 		const originalGetTurns = service.getTurns.bind(service);
 		service.getTurns = (sessionId: string) => {
