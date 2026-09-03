@@ -47,8 +47,9 @@ import { NAVIGATOR_TEAM_VIEW_ID } from './navigatorStubView.js';
 
 const $ = dom.$;
 
-const TEAM_MEMBERS_NO_ENGINE = localize('navigatorTeamMembers.empty', "No team members — no engine.");
-const TEAM_TASKS_NO_ENGINE = localize('navigatorTeamTasks.empty', "No tasks — no engine.");
+/** PRD-022 / navigator-engine-segments §3: Team 未连接 = HEAD 「No team members yet」, not Agents' "— no engine." */
+const TEAM_MEMBERS_EMPTY_COPY = localize('navigatorTeamMembers.emptyConnected', "No team members yet");
+const TEAM_TASKS_EMPTY_COPY = localize('navigatorTeamTasks.emptyConnected', "No tasks yet");
 const TEAM_FILTER_NO_MATCH = localize('navigatorTeam.noMatch', "无匹配");
 
 export type NavigatorTeamSubview = 'members' | 'tasks';
@@ -161,14 +162,14 @@ export class NavigatorTeamView extends ViewPane {
 
 	private membersBody: HTMLElement | undefined;
 	private membersEmpty: HTMLElement | undefined;
-	private membersHonestEmpty = TEAM_MEMBERS_NO_ENGINE;
+	private membersHonestEmpty = TEAM_MEMBERS_EMPTY_COPY;
 	private membersListContainer: HTMLElement | undefined;
 	private membersList: WorkbenchList<INavigatorTeamMemberEntry> | undefined;
 	private memberEntries: INavigatorTeamMemberEntry[] = [];
 
 	private tasksBody: HTMLElement | undefined;
 	private tasksEmpty: HTMLElement | undefined;
-	private tasksHonestEmpty = TEAM_TASKS_NO_ENGINE;
+	private tasksHonestEmpty = TEAM_TASKS_EMPTY_COPY;
 	private tasksListContainer: HTMLElement | undefined;
 	private tasksList: WorkbenchList<INavigatorTeamTaskEntry> | undefined;
 	private taskEntries: INavigatorTeamTaskEntry[] = [];
@@ -266,13 +267,13 @@ export class NavigatorTeamView extends ViewPane {
 
 		this.membersBody = dom.append(container, $('.navigator-team-subview'));
 		this.membersEmpty = dom.append(this.membersBody, $('.navigator-stub-empty'));
-		this.membersEmpty.textContent = TEAM_MEMBERS_NO_ENGINE;
+		this.membersEmpty.textContent = TEAM_MEMBERS_EMPTY_COPY;
 		this.membersListContainer = dom.append(this.membersBody, $('.navigator-team-list'));
 		this.ensureMembersList();
 
 		this.tasksBody = dom.append(container, $('.navigator-team-subview'));
 		this.tasksEmpty = dom.append(this.tasksBody, $('.navigator-stub-empty'));
-		this.tasksEmpty.textContent = TEAM_TASKS_NO_ENGINE;
+		this.tasksEmpty.textContent = TEAM_TASKS_EMPTY_COPY;
 		this.tasksListContainer = dom.append(this.tasksBody, $('.navigator-team-tasks-list'));
 		this.ensureTasksList();
 
@@ -354,8 +355,8 @@ export class NavigatorTeamView extends ViewPane {
 	private async refreshTeamData(): Promise<void> {
 		if (!this.rosterService.isEngineConnected()) {
 			this.inspectService.setLiveAgentIds('team', undefined);
-			this.setMemberEntries([], TEAM_MEMBERS_NO_ENGINE);
-			this.setTaskEntries([], TEAM_TASKS_NO_ENGINE);
+			this.setMemberEntries([], TEAM_MEMBERS_EMPTY_COPY);
+			this.setTaskEntries([], TEAM_TASKS_EMPTY_COPY);
 			return;
 		}
 
@@ -430,8 +431,8 @@ export class NavigatorTeamView extends ViewPane {
 			}
 		}
 
-		this.setMemberEntries(members, members.length === 0 ? localize('navigatorTeamMembers.emptyConnected', "No team members yet") : undefined);
-		this.setTaskEntries(tasks, tasks.length === 0 ? localize('navigatorTeamTasks.emptyConnected', "No tasks yet") : undefined);
+		this.setMemberEntries(members, members.length === 0 ? TEAM_MEMBERS_EMPTY_COPY : undefined);
+		this.setTaskEntries(tasks, tasks.length === 0 ? TEAM_TASKS_EMPTY_COPY : undefined);
 	}
 
 	private setMemberEntries(entries: INavigatorTeamMemberEntry[], emptyMessage?: string): void {
