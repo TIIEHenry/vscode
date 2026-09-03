@@ -703,16 +703,79 @@ export class SessionViewHost extends Disposable {
 			case 'closeChatStream':
 				this.closeResidentChat(sessionId, intent.chatAttemptId);
 				break;
+			case 'openContinuationStream':
+				this.openContinuation(sessionId, intent);
+				break;
+			case 'unaryCommand':
+				// Transport has no unary dispatcher on this slice (ADR-029 stage A stays observable).
+				this.markIntentUnhandled(sessionId, intent.do, {
+					commandId: intent.commandId,
+					correlation: String(intent.correlation),
+				});
+				break;
 			default:
 				if (isChatCoreIntent(intent) && intent.do === 'chatStreamWrite') {
 					void this.writeChat(sessionId, intent.correlation, intent.payload, intent.chatAttemptId);
 				} else if (isHistoryFillCoreIntent(intent)) {
 					void this.fillHistory(sessionId, intent);
 				} else {
-					this.diagnostics.count('intent.unhandled', { do: intent.do });
+					this.markIntentUnhandled(sessionId, intent.do);
 				}
 				break;
 		}
+	}
+
+	/**
+	 * SAFE ContinueGeneration host: call optional connection hook when present;
+	 * otherwise count + warn so product can see the gap (no silent drop).
+	 */
+	private openContinuation(
+		sessionId: string,
+		intent: Extract<CoreIntent, { do: 'openContinuationStream' }>,
+	): void {
+		const open = this.connection.openContinuationStream;
+		if (typeof open !== 'function') {
+			this.markIntentUnhandled(sessionId, intent.do, {
+				correlation: String(intent.correlation),
+				agentId: intent.agentId,
+				turnId: intent.turnId,
+				messageId: intent.messageId,
+			});
+			return;
+		}
+		try {
+			// Timeline still arrives on SessionEventStream; ChatResponse acks are ignored here.
+			open.call(
+				this.connection,
+				{
+					sessionId,
+					agentId: intent.agentId,
+					turnId: intent.turnId,
+					messageId: intent.messageId,
+				},
+				() => { },
+			);
+		} catch (error) {
+			this.diagnostics.warn('openContinuationStream failed', {
+				sessionId,
+				correlation: String(intent.correlation),
+				error: error instanceof Error ? error.message : String(error),
+			});
+			this.diagnostics.count('intent.unhandled', { do: intent.do });
+		}
+	}
+
+	private markIntentUnhandled(
+		sessionId: string,
+		doName: CoreIntent['do'],
+		fields: Readonly<Record<string, unknown>> = {},
+	): void {
+		this.diagnostics.count('intent.unhandled', { do: doName });
+		this.diagnostics.warn(`Unhandled core intent: ${doName}`, {
+			sessionId,
+			do: doName,
+			...fields,
+		});
 	}
 
 	private onHostTimerFired(timerId: TimerId): void {

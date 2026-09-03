@@ -122,6 +122,19 @@ export interface UniverseAgentChatStream {
 	dispose(): void;
 }
 
+/** AgentService.ContinueGeneration request (ADR-028); server-stream ChatResponse. */
+export interface UniverseAgentContinueGenerationRequest {
+	readonly sessionId: string;
+	readonly agentId: string;
+	readonly turnId: string;
+	readonly messageId: string;
+}
+
+/** Server-stream handle for ContinueGeneration (client does not write). */
+export interface UniverseAgentContinuationStream {
+	dispose(): void;
+}
+
 export interface UniverseAgentConnectionSnapshot {
 	readonly transport: UniverseAgentTransportState;
 	readonly sessionToken?: string;
