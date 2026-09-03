@@ -9,7 +9,7 @@ summary: "已知 gRPC 服务 / RPC 名与本仓用途；§4 含 G-CORE-1；§5 �
 
 # UniverseAgent 引擎协议面（本仓消费口径）
 
-> 导航：[索引](INDEX.md)。RPC 名以外仓 proto 为准。§1 **Conversation 传输**行来自 `platform/universeAgent/node/grpc/grpcTransport.ts`（`UniverseAgentGrpcServices`，A1/A2 @ HEAD）。§1 **Engine catalog** 与 §7 UI 口径来自 [customizations-engine](../../../dev/plans/customizations-engine.md) 与 [engine-catalog §3](../../systems/workbench/engine-catalog.md)（list/toggle @ `4833c008`/`8bfc299e`；Skills 正文 UI + `saveSkillContent?` @ `f3f2d366`；Agents Save/Delete/Reset、MCP Add/Update/Remove、Tools 经 `SaveAgentProfile` @ `f49615a1`）。
+> 导航：[索引](INDEX.md)。RPC 名以外仓 proto 为准。§1 **Conversation 传输**行来自 `platform/universeAgent/node/grpc/grpcTransport.ts`（`UniverseAgentGrpcServices`，A1/A2 @ HEAD）。§1 **Engine catalog** 与 §7 UI 口径来自 [customizations-engine](../../../dev/plans/customizations-engine.md) 与 [engine-catalog](../../systems/workbench/engine-catalog.md)（九节两栏 + 六态 @ HEAD；Skills 正文 + `saveSkillContent?` @ `f3f2d366`；Agents/MCP/Tools 写 @ `f49615a1`；GC-6 Overview Model @ `f583073b`）。
 
 ## 1. 已知服务与 RPC
 
@@ -130,18 +130,25 @@ Connect 后 `probeEngineCapabilities`：**仅**广告了 method 且 probe 非 `U
 | Route / AgentProfile / Model / Permission / Tools 选项 | Composer 各下拉 | 无引擎 = 诚实空；Engine 页 Agents **list-only** 已接，Composer 下拉 **仍**待 profile/策略切片 |
 | 本地会话缓存与引擎权威切换 | PRD-017 | D13 @ HEAD：`conversation.roster.v1` @ `StorageScope.WORKSPACE` + `StorageTarget.MACHINE`；引擎接通后本地存 stub + UA 断连快照（`source` 字段） |
 
-## 7. Engine catalog 消费面（M6-C @ HEAD `f49615a1`）
+## 7. Engine catalog 消费面（九节 @ HEAD；写路径自 `f49615a1`）
 
-系统规格：[engine-catalog](../../systems/workbench/engine-catalog.md)。代码锚：`engineCatalog.ts` · `engineSkillCatalog.ts` · `engineSkillsSection.ts` · `engineAgentsSection.ts` · `engineMcpSection.ts` · `engineToolsSection.ts` · `engineToolProfile.ts`。
+系统规格：[engine-catalog](../../systems/workbench/engine-catalog.md)。代码锚：`enginePreferencesPane.ts` · `engineCatalog.ts` · `engineOverviewSection.ts` · `engineProviderModelSection.ts` · `engineSkillsSection.ts` · `engineAgentsSection.ts` · `engineRulesSection.ts` · `engineHooksSection.ts` · `engineMcpSection.ts` · `enginePluginsSection.ts` · `engineToolsSection.ts`。
 
 | 能力键 | List RPC | Toggle / 写 | Engine 页 @ HEAD |
 |--------|----------|--------------|------------------|
-| `skills` | `ListSkills` · `SkillInfo` | `SetSkillEnabled` · `SaveSkillContent`（node 传输 @ `45fa7a35`/`040c823d`；`saveSkillContent?` 契约 @ `f3f2d366`） | 分组 list + 开关 + 正文 textarea（读 `SkillInfo`；Save 在 `saveSkillContent?` 存在且 `supported` 时展示） |
+| （Overview 聚合） | snapshot + 可选 `ListModels` | 无 | Connection / workDir / Transport / capability 摘要；GC-6 Model 计数 @ `f583073b` |
+| `providerConfig` | **无**（G-ENG-1） | 无 | Provider 组 unsupported 完整态；零输入 |
+| `models` | `ListModels`（`include_disabled=true`） | 无 | Provider & Model 节只读注册表；Overview 计数 |
+| `skills` | `ListSkills` · `SkillInfo` | `SetSkillEnabled` · `SaveSkillContent`（node 传输 @ `45fa7a35`/`040c823d`；`saveSkillContent?` 契约 @ `f3f2d366`） | 分组 list + 开关 + 正文 textarea（Save 在 `saveSkillContent?` 存在且可写时展示） |
 | `agentProfiles` | `ListAgentProfiles` | `SaveAgentProfile` / `DeleteAgentProfile` / `ResetAgentProfile` | 分组 list + New/Delete/Reset + **`AGENTS.md` 全文编辑器** @ `9419f583` |
-| `mcp` | `ListMcpServers` | `ToggleMcpServer` · `AddMcpServer` / `UpdateMcpServer` / `RemoveMcpServer` | 分组 list + 启用 checkbox + Add/Update/Remove 工具栏 |
+| `globalRules` / `projectRules` | **无**（G-ENG-2） | 无 | Rules 节壳；已连接 unsupported |
+| `hooksMetadata` | **无**（G-ENG-3） | 无 | Hooks 节壳；已连接 unsupported |
+| `mcp` | `ListMcpServers` | `ToggleMcpServer` · `AddMcpServer` / `UpdateMcpServer` / `RemoveMcpServer` | Definitions tab：分组 list + checkbox + CRUD 工具栏 |
+| `mcpRuntime` | `GetMcpServerStatuses` / `GetMcpServerTools` | Refresh | Runtime tab（P1a） |
+| `plugins` | `PluginService.List` | `Enable` / `Reload` / `Unload` / `ScanNew` | 列表 + 启停/重载/扫描；无 marketplace |
 | `tools` | `ListTools` | `SaveAgentProfile`（profile `tools.json`） | 目录 + profile 下拉 + 启用 checkbox |
 
-断连 / `UNSUPPORTED` / `UNKNOWN` / 传输失败四路径须与 customizations-engine §2 一致；**禁止** Copilot 盘或 vscode `IMcpService` 顶替 UA 定义面。
+断连 / unsupported / loading / failed / empty / ready 六态见 engine-catalog §2；**禁止** Copilot 盘或 vscode `IMcpService` 顶替 UA 定义面。
 
 ## 11. Navigator / Review host 面（m6 §11 @ HEAD）
 
