@@ -13,6 +13,8 @@ import type {
 	UniverseAgentCapabilitySnapshot,
 	UniverseAgentListSkillsResult,
 	UniverseAgentSaveSkillContentRequest,
+	UniverseAgentSessionEvent,
+	UniverseAgentSessionStreamCloseCause,
 } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { EngineSkillsSection } from '../../browser/engineSkillsSection.js';
@@ -74,7 +76,11 @@ suite('EngineSkillsSection (E1)', () => {
 			createSession: async () => ({ sessionId: 's' }),
 			deleteSession: async () => { },
 			getHistory: async () => ({ envelopes: [] }),
-			subscribeSessionEventStream: () => ({ dispose: () => { } }),
+			subscribeSessionEventStream: (
+				_sessionId: string,
+				_listener: (event: UniverseAgentSessionEvent) => void,
+				_onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
+			) => ({ dispose: () => { } }),
 			chat: async () => { },
 			listSkills: options.listSkills ?? (async () => ({
 				skills: [{ name: 'demo-skill', source: 'bundled', enabled: true }],

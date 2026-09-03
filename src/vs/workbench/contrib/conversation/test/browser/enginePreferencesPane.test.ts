@@ -15,7 +15,12 @@ import {
 } from '../../browser/enginePreferencesPane.js';
 import { getUnsupportedEnvironmentCopy } from '../../browser/engineSectionChrome.js';
 import { createWebUnsupportedCapabilitySnapshot, WEB_UNSUPPORTED_REASON } from '../../../../../platform/universeAgent/browser/webUnsupported.js';
-import type { UniverseAgentCapabilitySnapshot, UniverseAgentConnectionSnapshot } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
+import type {
+	UniverseAgentCapabilitySnapshot,
+	UniverseAgentConnectionSnapshot,
+	UniverseAgentSessionEvent,
+	UniverseAgentSessionStreamCloseCause,
+} from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { getConnectionPhaseStatusBarText } from '../../browser/conversationSessionStatus.js';
 import { Dimension } from '../../../../../base/browser/dom.js';
 
@@ -64,7 +69,11 @@ suite('EnginePreferencesPane', () => {
 			createSession: async () => ({ sessionId: 's' }),
 			deleteSession: async () => { },
 			getHistory: async () => ({ envelopes: [] }),
-			subscribeSessionEventStream: () => ({ dispose: () => { } }),
+			subscribeSessionEventStream: (
+				_sessionId: string,
+				_listener: (event: UniverseAgentSessionEvent) => void,
+				_onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
+			) => ({ dispose: () => { } }),
 			chat: async () => { },
 			listSkills: async () => ({ skills: [] }),
 			setSkillEnabled: async () => ({ ok: true }),

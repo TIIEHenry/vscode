@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-04
-summary: "槽 A：宿主把 SessionEventStream onClosed remote/error 经 postAndDrain 折成 Actor streamClosed"
+summary: "合入槽 A streamClosed 折 remote/error 与槽 B 测试桩 onClosed"
 ---
 
 # Development Progress
@@ -12,6 +12,7 @@ summary: "槽 A：宿主把 SessionEventStream onClosed remote/error 经 postAnd
 ## Current Session
 
 - **槽 A / `loop/A`：** ff-merge `loop/merge` `bfaac2b0`（含槽 C `onClosed` 合同）后，`SessionViewHost.openStream` 把 `subscribeSessionEventStream` 的 remote/error `onClosed` 经 `postAndDrain` 折成 Actor `streamClosed`；Actor 再 `closeStream` 拆订阅。本地 linger dispose 不回调、不折 chrome。测：`sessionViewHostIntentOwner`。
+- **槽 B / `loop/B`：** 对齐 `loop/merge` `bfaac2b0` 后，把剩余 conversation / navigator / engine 与 grpc 测试桩的 `subscribeSessionEventStream` 补上第三参 `onClosed`（`UniverseAgentSessionStreamCloseCause`）。**未改**宿主接线。
 - **槽 C / `loop/C`：** `subscribeSessionEventStream` 第三参 `onClosed` 与 Chat bidi 共用 `createStreamCloseGate`（已合入 merge）。
 
 ## 槽位（与 `git worktree list` 对照）
@@ -20,7 +21,7 @@ summary: "槽 A：宿主把 SessionEventStream onClosed remote/error 经 postAnd
 |----|------|------|------|
 | merge | `vscode-WorkTrees/merge` | `loop/merge` | 本会话：A+B + exhaustiveness 复绿 |
 | A | `vscode-WorkTrees/A` | `loop/A` | 宿主 `streamClosed` 折 remote/error |
-| B | `vscode-WorkTrees/B` | `loop/B` | ua-motion a11y 收口（已合） |
+| B | `vscode-WorkTrees/B` | `loop/B` | 测试桩对齐 SessionEventStream `onClosed` |
 | C | `vscode-WorkTrees/C` | `loop/C` | SessionEventStream `onClosed` 合同+传输 |
 | D | `vscode-WorkTrees/D` | `loop/D` | 以该槽 `git` 为准 |
 | edit | `Projects/Agents/vscode` | `agent-ide` | 请自行对齐 |

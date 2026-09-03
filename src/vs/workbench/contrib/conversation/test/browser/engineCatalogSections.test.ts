@@ -21,6 +21,8 @@ import type {
 	UniverseAgentAddMcpServerRequest,
 	UniverseAgentUpdateMcpServerRequest,
 	UniverseAgentRemoveMcpServerRequest,
+	UniverseAgentSessionEvent,
+	UniverseAgentSessionStreamCloseCause,
 } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { EngineAgentsSection } from '../../browser/engineAgentsSection.js';
@@ -95,7 +97,11 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 			createSession: async () => ({ sessionId: 's' }),
 			deleteSession: async () => { },
 			getHistory: async () => ({ envelopes: [] }),
-			subscribeSessionEventStream: () => ({ dispose: () => { } }),
+			subscribeSessionEventStream: (
+				_sessionId: string,
+				_listener: (event: UniverseAgentSessionEvent) => void,
+				_onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
+			) => ({ dispose: () => { } }),
 			chat: async () => { },
 			listSkills: async () => ({ skills: [] }),
 			setSkillEnabled: async () => ({ ok: true }),
