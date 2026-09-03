@@ -198,8 +198,9 @@ export interface IUniverseAgentConnection {
 
 	/**
 	 * PermissionService.Respond unary (permission seat reply). Optional so Web /
-	 * tests can omit it. Transport only — roster still posts Chat-arm
-	 * `permissionRespond`; this unary is not forwarded yet.
+	 * tests can omit it. ConversationEngineRosterService.resolveConfirmation
+	 * forwards this when connected; disconnected / stub still posts Chat-arm
+	 * `permissionRespond`.
 	 */
 	respondPermission?(request: UniverseAgentRespondPermissionRequest): Promise<UniverseAgentRespondPermissionResult>;
 

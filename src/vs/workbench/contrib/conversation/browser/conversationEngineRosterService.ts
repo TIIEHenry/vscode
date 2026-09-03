@@ -338,6 +338,16 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		return super.updateMessageQueueItemContent(sessionId, itemId, content);
 	}
 
+	override resolveConfirmation(sessionId: string, turnId: string, status: 'allowed' | 'skipped'): boolean {
+		if (this.isEngineConnected()) {
+			return this.respondEnginePermission(sessionId, turnId, status, true);
+		}
+		if (this.wasEverConnected) {
+			return this.respondEnginePermission(sessionId, turnId, status, false);
+		}
+		return super.resolveConfirmation(sessionId, turnId, status);
+	}
+
 	override deleteSession(sessionId: string): boolean {
 		if (this.isEngineConnected()) {
 			return this.deleteEngineSession(sessionId, true);
@@ -484,6 +494,33 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 				sessionId,
 				agentId,
 				...(options?.force ? { force: true } : {}),
+			});
+			return true;
+		}
+		return false;
+	}
+
+	private respondEnginePermission(
+		sessionId: string,
+		turnId: string,
+		status: 'allowed' | 'skipped',
+		callRemote: boolean,
+	): boolean {
+		const requestId = turnId.trim();
+		if (!requestId) {
+			return false;
+		}
+		if (!this.engineSessions.some(session => session.id === sessionId)) {
+			return false;
+		}
+		if (callRemote) {
+			if (!this.uaConnection.respondPermission) {
+				return false;
+			}
+			void this.uaConnection.respondPermission({
+				sessionId,
+				requestId,
+				granted: status === 'allowed',
 			});
 			return true;
 		}

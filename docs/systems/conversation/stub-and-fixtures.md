@@ -4,7 +4,7 @@ type: architecture
 status: accepted
 phase: N/A
 updated: 2026-09-04
-summary: "IConversationRosterService 契约分组；getTrajectoryRecords + filterAgentId；帧源 projectSnapshotToTrajectory；D13 持久化；引擎 roster 接通后转发 Create / Rename / Cancel / SetSessionGoal / Fork / Kill / CancelToolCall / MessageQueue 五操作 + Edit（Inbox Stop 仅 connected+streaming；Inbox Goal 仅 connected；Fork 不造本地 catalog id；Kill 空 agent 不默认 root；时间线执行中工具行转 CancelToolCall；队列无 GetQueue 显示空）；PermissionService.Respond / Enqueue 仅传输；A1/A2 连接态"
+summary: "IConversationRosterService 契约分组；getTrajectoryRecords + filterAgentId；帧源 projectSnapshotToTrajectory；D13 持久化；引擎 roster 接通后转发 Create / Rename / Cancel / SetSessionGoal / Fork / Kill / CancelToolCall / Respond / MessageQueue 五操作 + Edit（Inbox Stop 仅 connected+streaming；Inbox Goal 仅 connected；Fork 不造本地 catalog id；Kill 空 agent 不默认 root；时间线执行中工具行转 CancelToolCall；权限座接通后转 PermissionService.Respond，未接通仍 Chat 臂；队列无 GetQueue 显示空）；Enqueue 仅传输；Engine Tools 选中行读 ToolInfo 只读详情；A1/A2 连接态"
 ---
 
 # Conversation 会话数据契约
@@ -27,7 +27,7 @@ summary: "IConversationRosterService 契约分组；getTrajectoryRecords + filte
 | 会话 | `getSessions()` · `getActiveSessionId()` · `getActiveSession()` · `switchSession` · `createSession`（引擎接通后转 `SessionService.Create`，目录用返回的 `sessionId`，同步返回空串；stub / 断连缓存不造引擎行） · `renameSession`（引擎接通后转 `AgentService.Rename`） · `cancelGeneration`（引擎接通后转 `AgentService.Cancel`，未指定 agent 用末条 streaming 否则 `root`；stub / 断连缓存 false） · `cancelToolCall`（引擎接通后转 `AgentService.CancelToolCall`；空 `toolCallId` / stub / 断连缓存 / 无 hook false；未指定 agent 用末条 streaming 否则 `root`；时间线执行中工具行转发） · `setSessionGoal` / `cancelSessionGoal` / `getSessionGoal`（引擎接通后转 `PermissionService.SetSessionGoal` / `CancelSessionGoal`；空/未变/未知 id / 断连缓存 / 无 hook false；`getSessionGoal` 只记本机上次成功 set） · `forkSubAgent`（引擎接通后转 `AgentService.Fork`；空父 id 用末条 streaming 否则 `root`；不造本地 catalog id，catalog 仍走 liveAgentTree；stub / 断连缓存 / 无 hook false） · `killSubAgent`（引擎接通后转 `AgentService.Kill`；空 `agentId` 原样上线、**不**默认 `root`；≠ Cancel / CancelToolCall；stub / 断连缓存 / 无 hook false） · `deleteSession` |
 | 回合 | `getTurns(sessionId)` · `appendUserTurn` · `updateUserTurnText` · `deleteTurn` |
 | 轨迹 | `getTrajectoryRecords(sessionId, options?: { filterAgentId? })` — 经 `ConversationStubFrameSource.project` → `projectSnapshotToTrajectory`（[stream-timeline S1/S6](../../../dev/plans/conversation-stream-timeline.md)）；见 [lens-and-trajectory §3.1](lens-and-trajectory.md) |
-| 权限 | `resolveConfirmation(sessionId, turnId, 'allowed' \| 'skipped')` · `countPendingConfirmations`（回执仍走 Chat 臂 `permissionRespond`；传输 `respondPermission?` 已进 `PermissionService.Respond`，roster 不转发） |
+| 权限 | `resolveConfirmation(sessionId, turnId, 'allowed' \| 'skipped')` · `countPendingConfirmations`（接通后转 `PermissionService.Respond`，`granted` = allowed；空 id / 未知 session / 断连缓存 / 无 hook false，不双写 Chat 臂；未接通仍写本地 `permissionRespond`） |
 | MessageQueue | `getMessageQueueState` · `pauseMessageQueue` · `resumeMessageQueue` · `clearMessageQueue` · `holdMessageQueueItem` · `releaseMessageQueueItemHold` · `updateMessageQueueItemContent`（引擎接通后转 Pause / Resume / Clear / Hold / Release / Edit；未知 id / 空 item / 空正文 / 断连缓存不发。无 GetQueue，接通后 `getMessageQueueState` 诚实空。`EnqueueQueueItem` 仍仅传输。stub / 从未连过仍 fixture） |
 | AutoDrive | `getAutoDriveTasks` · `getAutoDriveTaskCount` |
 | 连接态 | `isEngineConnected()` |

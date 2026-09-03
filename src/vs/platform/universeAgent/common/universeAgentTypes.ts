@@ -135,7 +135,7 @@ export interface UniverseAgentCancelSessionGoalResult {
 	readonly message?: string;
 }
 
-/** PermissionService.Respond — unary permission reply (Chat-arm permissionRespond remains the live path). */
+/** PermissionService.Respond — unary permission reply (connected roster forwards; stub still uses Chat-arm permissionRespond). */
 export interface UniverseAgentRespondPermissionRequest {
 	readonly sessionId: string;
 	readonly requestId: string;
