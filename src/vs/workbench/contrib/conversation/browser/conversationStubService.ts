@@ -64,6 +64,8 @@ export interface IConversationRosterService {
 	switchSession(sessionId: string): void;
 	createSession(): string;
 	renameSession(sessionId: string, title: string): boolean;
+	/** Inbox Stop. Engine-connected forwards AgentService.Cancel; stub returns false. */
+	cancelGeneration(sessionId: string, agentId?: string): boolean;
 	deleteSession(sessionId: string): boolean;
 	getTurns(sessionId: string): readonly ConversationStubTurn[];
 	getTrajectoryRecords(sessionId: string, options?: TrajectoryProjectionOptions): readonly ConversationTrajectoryRecord[];
@@ -210,6 +212,10 @@ export class ConversationStubService extends Disposable implements IConversation
 			this.persistLocalRoster();
 		}
 		return changed;
+	}
+
+	cancelGeneration(_sessionId: string, _agentId?: string): boolean {
+		return false;
 	}
 
 	deleteSession(sessionId: string): boolean {

@@ -189,6 +189,16 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		return super.renameSession(sessionId, title);
 	}
 
+	override cancelGeneration(sessionId: string, agentId?: string): boolean {
+		if (this.isEngineConnected()) {
+			return this.cancelEngineGeneration(sessionId, agentId ?? 'root', true);
+		}
+		if (this.wasEverConnected) {
+			return false;
+		}
+		return super.cancelGeneration(sessionId, agentId);
+	}
+
 	override deleteSession(sessionId: string): boolean {
 		if (this.isEngineConnected()) {
 			return this.deleteEngineSession(sessionId, true);
@@ -232,6 +242,17 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		}
 		this._onDidChangeSession.fire(sessionId);
 		this.persistEngineAwareRoster();
+		return true;
+	}
+
+	private cancelEngineGeneration(sessionId: string, agentId: string, callRemote: boolean): boolean {
+		const session = this.engineSessions.find(s => s.id === sessionId);
+		if (!session) {
+			return false;
+		}
+		if (callRemote) {
+			void this.uaConnection.cancelGeneration({ sessionId, agentId });
+		}
 		return true;
 	}
 

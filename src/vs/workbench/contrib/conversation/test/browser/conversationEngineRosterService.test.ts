@@ -81,7 +81,11 @@ class MockUniverseAgentConnection extends Disposable implements IUniverseAgentCo
 		this.renameCalls.push({ sessionId: request.sessionId, title: request.title });
 		return { ok: true };
 	}
-	async cancelGeneration() { return { ok: false, message: 'stub' }; }
+	readonly cancelCalls: { sessionId: string; agentId: string }[] = [];
+	async cancelGeneration(request: { sessionId: string; agentId: string }) {
+		this.cancelCalls.push({ sessionId: request.sessionId, agentId: request.agentId });
+		return { ok: true };
+	}
 	async getHistory() { return { envelopes: [] }; }
 	subscribeSessionEventStream(
 		_sessionId: string,
@@ -294,5 +298,37 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		assert.strictEqual(service.renameSession('ua-only', 'Cached title'), true);
 		assert.strictEqual(service.getSessions()[0]?.title, 'Cached title');
 		assert.strictEqual(connection.renameCalls.length, 0);
+	});
+
+	test('connected cancelGeneration forwards AgentService.Cancel', async () => {
+		const storage = store.add(new TestStorageService());
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
+		const service = store.add(createService(connection, storage));
+		connection.setConnected(true);
+		service.setEngineConnected(true);
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+		assert.strictEqual(service.cancelGeneration('ua-only'), true);
+		assert.deepStrictEqual(connection.cancelCalls, [{ sessionId: 'ua-only', agentId: 'root' }]);
+		assert.strictEqual(service.cancelGeneration('ua-only', 'sub:a'), true);
+		assert.deepStrictEqual(connection.cancelCalls[1], { sessionId: 'ua-only', agentId: 'sub:a' });
+		assert.strictEqual(service.cancelGeneration('missing'), false);
+		assert.strictEqual(connection.cancelCalls.length, 2);
+	});
+
+	test('disconnected after engine cancelGeneration skips unary', async () => {
+		const storage = store.add(new TestStorageService());
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
+		const service = store.add(createService(connection, storage));
+		connection.setConnected(true);
+		service.setEngineConnected(true);
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		connection.setConnected(false);
+		service.setEngineConnected(false);
+
+		assert.strictEqual(service.cancelGeneration('ua-only'), false);
+		assert.strictEqual(connection.cancelCalls.length, 0);
 	});
 });

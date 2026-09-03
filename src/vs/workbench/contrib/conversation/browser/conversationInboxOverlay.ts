@@ -19,6 +19,7 @@ import {
 	conversationLensDockInboxTaskLabel,
 	conversationLensDockNoGoal,
 	conversationLensDockStop,
+	conversationLensDockStopGenerating,
 	conversationLensDockStopNotGenerating,
 	conversationLensInboxQueueClear,
 	conversationLensInboxQueueEditingTag,
@@ -119,6 +120,10 @@ export class ConversationInboxOverlay extends Disposable {
 		this.stopButton.label = conversationLensDockStop;
 		this.stopButton.element.classList.add('conversation-lens-inbox-chip', 'conversation-lens-inbox-stop-button');
 		this.stopButton.setAriaLabel(`${conversationLensDockStop}, ${conversationLensDockStopNotGenerating}`);
+		this._register(this.stopButton.onDidClick(() => {
+			this.stubService.cancelGeneration(this.stubService.getActiveSessionId());
+		}));
+		this._register(this.stubService.onDidChangeEngineConnection(() => this.render()));
 
 		this.render();
 	}
@@ -137,6 +142,7 @@ export class ConversationInboxOverlay extends Disposable {
 		this.renderQueueChip(queueState);
 		this.renderPending(pendingConfirmations);
 		this.renderSyncStatus(this.stubService.getSessionSync(sessionId));
+		this.renderStopButton();
 
 		if (this.openPanel && this.listContextView) {
 			this.refreshOpenListPanel();
@@ -181,6 +187,18 @@ export class ConversationInboxOverlay extends Disposable {
 		this.queueChip.textContent = `${conversationLensDockInboxQueueLabel} · ${label}`;
 		this.queueChip.setAttribute('aria-label', `${conversationLensDockInboxQueueLabel}, ${label}`);
 		this.queueChip.setAttribute('aria-pressed', String(this.openPanel === 'queue'));
+	}
+
+	private renderStopButton(): void {
+		const connected = this.stubService.isEngineConnected();
+		this.stopButton.enabled = connected;
+		if (connected) {
+			this.stopButton.setTitle(conversationLensDockStop);
+			this.stopButton.setAriaLabel(`${conversationLensDockStop}, ${conversationLensDockStopGenerating}`);
+		} else {
+			this.stopButton.setTitle(conversationLensDockStopNotGenerating);
+			this.stopButton.setAriaLabel(`${conversationLensDockStop}, ${conversationLensDockStopNotGenerating}`);
+		}
 	}
 
 	private renderPending(pending: number): void {

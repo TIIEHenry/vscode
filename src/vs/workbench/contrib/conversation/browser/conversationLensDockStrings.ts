@@ -54,6 +54,7 @@ export const conversationLensDockControlHeightPx = 32;
 export const conversationLensDockRestoreTimeline = localize('conversationLens.dockRestoreTimeline', "Restore timeline");
 export const conversationLensDockStop = localize('conversationLens.dockStop', "Stop");
 export const conversationLensDockStopNotGenerating = localize('conversationLens.dockStopNotGenerating', "Not generating");
+export const conversationLensDockStopGenerating = localize('conversationLens.dockStopGenerating', "Stop generating");
 export const conversationLensPostFailedMailboxFull = localize('conversationLens.postFailedMailboxFull', "Message not sent — inbox full. Try again.");
 export const conversationLensPostFailedNotAuthenticated = localize('conversationLens.postFailedNotAuthenticated', "Message not sent — not signed in.");
 export const conversationLensPostFailedNoSession = localize('conversationLens.postFailedNoSession', "Message not sent — session not found.");
