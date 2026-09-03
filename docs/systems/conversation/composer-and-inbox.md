@@ -4,7 +4,7 @@ type: architecture
 status: accepted
 phase: N/A
 updated: 2026-09-04
-summary: "PRD-015 系统规格：PreFirst 居中 / Active 列底同一张 Composer；三种 composerPolicy；身份条 XOR；Inbox 左右分簇与 MessageQueue 状态机；Stop 仅 connected+streaming 时转 AgentService.Cancel；Goal 传输已进 SetSessionGoal、Inbox 尚未转发；语音转写条；输入历史；StatusBar 芯片与诚实降级"
+summary: "PRD-015 系统规格：PreFirst 居中 / Active 列底同一张 Composer；三种 composerPolicy；身份条 XOR；Inbox 左右分簇与 MessageQueue 状态机；Stop 仅 connected+streaming 时转 AgentService.Cancel；Goal 接通后转 SetSessionGoal / CancelSessionGoal；语音转写条；输入历史；StatusBar 芯片与诚实降级"
 ---
 
 # Conversation Composer、身份条与 Inbox
@@ -48,7 +48,7 @@ summary: "PRD-015 系统规格：PreFirst 居中 / Active 列底同一张 Compos
 - 无权威时整槽省略或诚实空（「No queue」），不造假任务（PRD-007 / PRD-015 验收 5）。
 - Task 列表数据 = `getAutoDriveTasks` / `getAutoDriveTaskCount`（stub 期由 `setAutoDriveTaskFixture` 注入）。
 - Stop：未接通或时间线无 `streaming` 行时禁用（「Not generating」）。接通且有 streaming 行时启用，点击 `IConversationRosterService.cancelGeneration` → 引擎 `AgentService.Cancel`（未指定 agent 用末条 streaming 否则 `root`）。上下文环在引擎接通前无权威，按诚实降级处理。
-- Goal：无权威时诚实禁用（「No goal」）。传输已进 `PermissionService.SetSessionGoal` / `CancelSessionGoal`（`IUniverseAgentConnection.setSessionGoal?`）；roster / Inbox 尚未转发，不假装已设目标。
+- Goal：未接通时诚实禁用（「No goal」）。接通后启用；点开 `IQuickInputService` 输入。非空确认 → `IConversationRosterService.setSessionGoal` → 引擎 `PermissionService.SetSessionGoal`（空 / 未变 / 未知 session / 断连缓存不发）。已有本地目标时清空确认 → `cancelSessionGoal` → `PermissionService.CancelSessionGoal`。取消输入框不发 unary。无 `GetSessionGoal`，按钮文案只反映本机上次成功 set。
 
 ## 4. MessageQueue 状态机
 
@@ -94,4 +94,4 @@ summary: "PRD-015 系统规格：PreFirst 居中 / Active 列底同一张 Compos
 
 ## 9. 测试
 
-`conversationLens.test.ts`（T1–T6）、`conversationInboxOverlay.test.ts`（Stop 禁用 / 接通 streaming 转发）、`conversationIdentityStrip.test.ts`、`conversationInputHistory.test.ts`、`conversationSessionStatus.test.ts`、`conversationSessionStatusBar.test.ts`、`conversationStubService.test.ts`（队列 / hold / cancel no-op）、`conversationEngineRosterService.test.ts`（接通转发 Cancel）。
+`conversationLens.test.ts`（T1–T6）、`conversationInboxOverlay.test.ts`（Stop 禁用 / 接通 streaming 转发；Goal 禁用 / 接通转发 Set / 取消不发 / 清空确认 Cancel）、`conversationIdentityStrip.test.ts`、`conversationInputHistory.test.ts`、`conversationSessionStatus.test.ts`、`conversationSessionStatusBar.test.ts`、`conversationStubService.test.ts`（队列 / hold / cancel·goal no-op）、`conversationEngineRosterService.test.ts`（接通转发 Cancel / SetSessionGoal）。

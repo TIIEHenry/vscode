@@ -91,6 +91,16 @@ class MockUniverseAgentConnection extends Disposable implements IUniverseAgentCo
 		this.cancelCalls.push({ sessionId: request.sessionId, agentId: request.agentId });
 		return { ok: true };
 	}
+	readonly setGoalCalls: { sessionId: string; goal: string }[] = [];
+	async setSessionGoal(request: { sessionId: string; goal: string }) {
+		this.setGoalCalls.push({ sessionId: request.sessionId, goal: request.goal });
+		return { ok: true };
+	}
+	readonly cancelGoalCalls: { sessionId: string }[] = [];
+	async cancelSessionGoal(request: { sessionId: string }) {
+		this.cancelGoalCalls.push({ sessionId: request.sessionId });
+		return { ok: true };
+	}
 	async enqueueQueueItem() { return { ok: false, error: 'stub' }; }
 	async pauseQueue() { return { ok: false, error: 'stub' }; }
 	async resumeQueue() { return { ok: false, error: 'stub' }; }
@@ -388,6 +398,50 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		assert.strictEqual(service.getSessions().length, 1);
 		assert.strictEqual(service.getSessions()[0]?.id, 'ua-only');
 		assert.ok(!service.getSessions().some(session => session.id === 'untitled'));
+	});
+
+	test('connected setSessionGoal forwards PermissionService.SetSessionGoal', async () => {
+		const storage = store.add(new TestStorageService());
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
+		const service = store.add(createService(connection, storage));
+		connection.setConnected(true);
+		service.setEngineConnected(true);
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+		let fired = '';
+		store.add(service.onDidChangeSession(id => { fired = id; }));
+		assert.strictEqual(service.setSessionGoal('ua-only', '  Ship the slice  '), true);
+		assert.strictEqual(service.getSessionGoal('ua-only'), 'Ship the slice');
+		assert.strictEqual(fired, 'ua-only');
+		assert.deepStrictEqual(connection.setGoalCalls, [{ sessionId: 'ua-only', goal: 'Ship the slice' }]);
+		assert.strictEqual(service.setSessionGoal('ua-only', 'Ship the slice'), false);
+		assert.strictEqual(service.setSessionGoal('ua-only', '   '), false);
+		assert.strictEqual(service.setSessionGoal('missing', 'Nope'), false);
+		assert.strictEqual(connection.setGoalCalls.length, 1);
+		assert.strictEqual(service.cancelSessionGoal('ua-only'), true);
+		assert.strictEqual(service.getSessionGoal('ua-only'), undefined);
+		assert.deepStrictEqual(connection.cancelGoalCalls, [{ sessionId: 'ua-only' }]);
+		assert.strictEqual(service.cancelSessionGoal('missing'), false);
+		assert.strictEqual(connection.cancelGoalCalls.length, 1);
+	});
+
+	test('disconnected after engine setSessionGoal skips unary', async () => {
+		const storage = store.add(new TestStorageService());
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
+		const service = store.add(createService(connection, storage));
+		connection.setConnected(true);
+		service.setEngineConnected(true);
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		connection.setConnected(false);
+		service.setEngineConnected(false);
+
+		assert.strictEqual(service.setSessionGoal('ua-only', 'Cached goal'), false);
+		assert.strictEqual(service.cancelSessionGoal('ua-only'), false);
+		assert.strictEqual(service.getSessionGoal('ua-only'), undefined);
+		assert.strictEqual(connection.setGoalCalls.length, 0);
+		assert.strictEqual(connection.cancelGoalCalls.length, 0);
 	});
 
 	test('disconnected after engine cancelGeneration skips unary', async () => {

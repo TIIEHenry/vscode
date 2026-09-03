@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-04
-summary: "PermissionService.SetSessionGoal / CancelSessionGoal 与 MessageQueue 族进 gRPC catalog；roster 接通后转发 Create/Rename/Cancel；队列 UI 仍 fixture；Inbox Goal 尚未转发；D16 Lens+identity 共享 harness"
+summary: "Inbox Goal 接通后转发 SetSessionGoal / CancelSessionGoal；MessageQueue 族进 gRPC catalog（队列 UI 仍 fixture）；Create / Rename / Cancel 已转发；D16 Lens+identity 共享 harness"
 ---
 
 # Development Progress
@@ -12,7 +12,7 @@ summary: "PermissionService.SetSessionGoal / CancelSessionGoal 与 MessageQueue 
 ## Current Session
 
 - **槽 merge：** Inbox Stop 两边保留：末条 streaming 否则 `root`；仅 connected+streaming；generating 文案 + connection 重绘。
-- **槽 A / `loop/A`：** 接通后 `createSession` 转发已进传输的 `SessionService.Create`，用返回 `sessionId` 入引擎目录并切活动会话（同步返回 `''`，不把旧 active / stub `untitled` 冒充新会话）；空 id 忽略；断连缓存不发 unary、不造 stub 种子。此前 Inbox Stop 转发 `AgentService.Cancel`。
+- **槽 A / `loop/A`：** 接通后 Inbox Goal / roster 转发已进 catalog 的 `PermissionService.SetSessionGoal` / `CancelSessionGoal`（空/未变/未知 session / 断连缓存 / 无 hook 不发）。Goal 钮仅 connected 启用；输入非空 set，已有本地目标时清空 cancel；取消输入框不发。无 `GetSessionGoal`，文案只记本机上次成功 set。未接通 stub 诚实 no-op。此前 `createSession` 转发 `SessionService.Create`。
 - **槽 B / `loop/B`：** D16：`conversationLens.test.ts` 与 identity 单测改走共享 `conversationLensLayoutHarness`（ResizeObserver 拦截 + layout flush），after-each 与 reveal / trajectory 套同式。此前抽出 harness 接到 reveal / trajectory / trajectoryUi；进口界扫；`openChatStream` close-gate。
 - **槽 C / `loop/C`：** 把 `PermissionService.SetSessionGoal` / `CancelSessionGoal` 写入 gRPC catalog（`universeagent.session.v1.PermissionService`），node unary `setSessionGoal` / `cancelSessionGoal`（snake_case `session_id`/`goal`，响应 `success`/`error`）。合同可选，不改 roster / Inbox Goal（钮仍诚实禁用）。测：catalog + 转发 / 失败映射。此前 ContinueGeneration + Rename + Cancel catalog。
 - **槽 D / `loop/D`：** 把 Inbox 对齐的 `AgentService` 队列族（`EnqueueQueueItem` / `PauseQueue` / `ResumeQueue` / `ClearQueue` / `HoldQueueItem` / `ReleaseQueueItemHold` / `EditQueueItem`）写入 gRPC catalog + node unary + Web `unsupported_environment`。roster / Inbox **仍 fixture**，不把本地队列冒充引擎。测：catalog 字面 + 转发/失败映射。此前 D16 identity 共享 harness；roster 转发 Create / Rename / Cancel。
@@ -22,7 +22,7 @@ summary: "PermissionService.SetSessionGoal / CancelSessionGoal 与 MessageQueue 
 | 槽 | 路径 | 分支 | 状态 |
 |----|------|------|------|
 | merge | `vscode-WorkTrees/merge` | `loop/merge` | Inbox Stop 合成 + compile 绿；本会话：A+B+C+D + Create + exhaustiveness 复绿 |
-| A | `vscode-WorkTrees/A` | `loop/A` | roster 接通后转发 SessionService.Create；Inbox Stop Cancel + Lens 夹具 |
+| A | `vscode-WorkTrees/A` | `loop/A` | Inbox Goal 转发 SetSessionGoal / CancelSessionGoal |
 | B | `vscode-WorkTrees/B` | `loop/B` | D16 conversationLens + identity 共享 layout harness |
 | C | `vscode-WorkTrees/C` | `loop/C` | PermissionService.SetSessionGoal / CancelSessionGoal catalog |
 | D | `vscode-WorkTrees/D` | `loop/D` | MessageQueue 族进 gRPC catalog；roster 仍 fixture |
@@ -41,6 +41,6 @@ summary: "PermissionService.SetSessionGoal / CancelSessionGoal 与 MessageQueue 
 | I6 | 发行标识等发布方 |
 | H4a | 真 Hub 冒烟后才升 PRD-024 `implemented` |
 | V | D16：Lens / identity 已接共享 harness；剩 `conversationLens.test.ts` DOM/codicon 断言债；D17 与产品验证 |
-| SessionEventStream close | 三路宿主 `onClosed` 已齐：SessionEventStream → `streamClosed`；Chat → `chatStreamDown`；ContinueGeneration 只拆句柄。connection 测现覆盖 Chat / EventStream / Continue 三路 close gate（remote 一次、dispose 静音）。**传输已进** `ContinueGeneration`、`Rename`、`Cancel`、`SessionService.Create`、`PermissionService.SetSessionGoal` / `CancelSessionGoal`、**MessageQueue 族七 unary**；roster 接通后已转发 Create / Rename / Cancel（Create 用引擎 id；Inbox Stop 仅 connected+streaming 启用；未指定 agent 用末条 streaming 否则 `root`）。**Inbox Goal / roster 尚未转发 SetSessionGoal**；队列 UI 仍 fixture |
+| SessionEventStream close | 三路宿主 `onClosed` 已齐：SessionEventStream → `streamClosed`；Chat → `chatStreamDown`；ContinueGeneration 只拆句柄。connection 测现覆盖 Chat / EventStream / Continue 三路 close gate（remote 一次、dispose 静音）。**传输已进** `ContinueGeneration`、`Rename`、`Cancel`、`SessionService.Create`、`PermissionService.SetSessionGoal` / `CancelSessionGoal`、**MessageQueue 族七 unary**；roster 接通后已转发 Create / Rename / Cancel / SetSessionGoal（Create 用引擎 id；Inbox Stop 仅 connected+streaming；Inbox Goal 仅 connected 启用；未指定 agent 用末条 streaming 否则 `root`）。队列 UI 仍 fixture |
 
 **不做：** H6、完整插件市场、fixture 冒充 Engine、为全绿冻结 UI、引擎仓新增 RPC、会话级模型策略 UI、F3 同窗共享 lease（D22）。

@@ -10,9 +10,12 @@ import { AnchorPosition } from '../../../../base/common/layout.js';
 import { Disposable, toDisposable } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
 import { IContextViewService, IOpenContextView } from '../../../../platform/contextview/browser/contextView.js';
+import { IQuickInputService } from '../../../../platform/quickinput/common/quickInput.js';
 import { defaultButtonStyles } from '../../../../platform/theme/browser/defaultStyles.js';
 import {
 	conversationLensDockGoal,
+	conversationLensDockGoalPlaceholder,
+	conversationLensDockGoalPrompt,
 	conversationLensDockInboxNoQueue,
 	conversationLensDockInboxNoTasks,
 	conversationLensDockInboxQueueLabel,
@@ -70,6 +73,7 @@ export class ConversationInboxOverlay extends Disposable {
 		private readonly delegate: IConversationInboxOverlayDelegate,
 		@IConversationRosterService private readonly stubService: IConversationRosterService,
 		@IContextViewService private readonly contextViewService: IContextViewService,
+		@IQuickInputService private readonly quickInputService: IQuickInputService,
 	) {
 		super();
 
@@ -99,6 +103,7 @@ export class ConversationInboxOverlay extends Disposable {
 		this.goalButton.label = conversationLensDockNoGoal;
 		this.goalButton.element.classList.add('conversation-lens-inbox-chip', 'conversation-lens-inbox-goal-button');
 		this.goalButton.setAriaLabel(`${conversationLensDockGoal}, ${conversationLensDockNoGoal}`);
+		this._register(this.goalButton.onDidClick(() => void this.onGoalClicked()));
 
 		this.pendingButton = append(this.leftCluster, $('button.conversation-lens-inbox-pending')) as HTMLButtonElement;
 		this.pendingButton.type = 'button';
@@ -122,6 +127,7 @@ export class ConversationInboxOverlay extends Disposable {
 		this.stopButton.setAriaLabel(`${conversationLensDockStop}, ${conversationLensDockStopNotGenerating}`);
 		this._register(this.stopButton.onDidClick(() => this.onStopClicked()));
 		this._register(this.stubService.onDidChangeEngineConnection(() => this.render()));
+		this._register(this.stubService.onDidChangeSession(() => this.render()));
 
 		this.render();
 	}
@@ -140,6 +146,7 @@ export class ConversationInboxOverlay extends Disposable {
 		this.renderQueueChip(queueState);
 		this.renderPending(pendingConfirmations);
 		this.renderSyncStatus(this.stubService.getSessionSync(sessionId));
+		this.renderGoal(sessionId);
 		this.renderStop(sessionId);
 
 		if (this.openPanel && this.listContextView) {
@@ -189,6 +196,40 @@ export class ConversationInboxOverlay extends Disposable {
 
 	private isGenerating(sessionId: string): boolean {
 		return this.stubService.isEngineConnected() && this.stubService.getTurns(sessionId).some(turn => turn.streaming);
+	}
+
+	private renderGoal(sessionId: string): void {
+		const connected = this.stubService.isEngineConnected();
+		const goal = this.stubService.getSessionGoal(sessionId)?.trim();
+		const label = goal || conversationLensDockNoGoal;
+		this.goalButton.enabled = connected;
+		this.goalButton.label = label;
+		this.goalButton.setTitle(label);
+		this.goalButton.setAriaLabel(`${conversationLensDockGoal}, ${label}`);
+	}
+
+	private async onGoalClicked(): Promise<void> {
+		if (!this.stubService.isEngineConnected()) {
+			return;
+		}
+		const sessionId = this.stubService.getActiveSessionId();
+		const current = this.stubService.getSessionGoal(sessionId);
+		const next = await this.quickInputService.input({
+			title: conversationLensDockGoal,
+			prompt: conversationLensDockGoalPrompt,
+			placeHolder: conversationLensDockGoalPlaceholder,
+			value: current,
+		});
+		if (next === undefined) {
+			return;
+		}
+		const trimmed = next.trim();
+		if (trimmed) {
+			this.stubService.setSessionGoal(sessionId, trimmed);
+		} else if (current) {
+			this.stubService.cancelSessionGoal(sessionId);
+		}
+		this.render();
 	}
 
 	private renderStop(sessionId: string): void {
