@@ -82,6 +82,7 @@
 }
 
 .monaco-workbench .connection-preferences-pane .connection-hub-auth-badge,
+.monaco-workbench .connection-preferences-pane .connection-hub-device-code-status,
 .monaco-workbench .connection-preferences-pane .connection-phase-label,
 .monaco-workbench .connection-preferences-pane .connection-environment-notice {
 	opacity: 0.85;
@@ -151,6 +152,17 @@
 	flex-wrap: wrap;
 	gap: 8px;
 	margin-top: 8px;
+}
+
+.monaco-workbench .connection-preferences-pane .connection-hub-device-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin-top: 8px;
+}
+
+.monaco-workbench .connection-preferences-pane.is-compact .connection-hub-device-actions {
+	width: 100%;
 }
 
 .monaco-workbench .connection-remote-io-hint {

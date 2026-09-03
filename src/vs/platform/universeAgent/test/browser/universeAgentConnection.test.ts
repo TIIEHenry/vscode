@@ -88,6 +88,16 @@ suite('Web universeAgent disconnect (P0)', () => {
 		await assert.rejects(() => connection.cancelPairing(), (error: unknown) => error instanceof Error && error.message === WEB_UNSUPPORTED_REASON);
 	});
 
+	test('probeConnectionProfile uses unsupported_environment', async () => {
+		const connection = new WebUniverseAgentConnection();
+		const result = await connection.probeConnectionProfile('profile-1');
+		assert.strictEqual(result.ok, false);
+		if (!result.ok) {
+			assert.strictEqual(result.code, WEB_UNSUPPORTED_CODE);
+			assert.strictEqual(result.reason, WEB_UNSUPPORTED_REASON);
+		}
+	});
+
 	test('session view lease is empty', async () => {
 		const sessionView = new WebUniverseAgentSessionView();
 		const leaseId = await sessionView.acquireLease('sess-1');

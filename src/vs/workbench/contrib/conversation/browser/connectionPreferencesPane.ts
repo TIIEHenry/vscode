@@ -14,7 +14,7 @@ import { IDialogService } from '../../../../platform/dialogs/common/dialogs.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { WorkbenchList } from '../../../../platform/list/browser/listService.js';
 import { defaultButtonStyles } from '../../../../platform/theme/browser/defaultStyles.js';
-import type { ConnectionPhase } from '../../../../platform/universeAgent/common/connectionHubTypes.js';
+import type { ConnectionPhase, ConnectionProbeResult } from '../../../../platform/universeAgent/common/connectionHubTypes.js';
 import type { ConnectionProfileProjection, HubDeviceProjection } from '../../../../platform/universeAgent/common/hub.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import type { IPreferencesEditorPane } from '../../preferences/browser/preferencesEditorRegistry.js';
@@ -53,6 +53,13 @@ export interface IConnectionProfileEntry {
 /** Test Connection 结果与 StatusBar / Engine 共用 H4b 文案。 */
 export function getConnectionTestStatusText(phase?: ConnectionPhase, pairingPending = false): string {
 	return getConnectionPhaseStatusBarText(phase ?? { kind: 'disconnected' }, pairingPending);
+}
+
+export function formatConnectionProbeStatus(result: ConnectionProbeResult): string {
+	if (result.ok) {
+		return localize('ua.connectionTestOk', "Reachable · {0} · {1} ms", result.path, result.latencyMs);
+	}
+	return result.reason;
 }
 
 export function getConnectionEmptyCopy(): string {
@@ -188,10 +195,16 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 	private readonly container: HTMLElement;
 	private readonly hubAccountSection: HTMLElement;
 	private readonly hubAuthBadge: HTMLElement;
+	private readonly hubDeviceCodeStatus: HTMLElement;
 	private readonly hubDirectoryBanner: HTMLElement;
 	private readonly hubDevicesSection: HTMLElement;
 	private readonly hubDevicesListContainer: HTMLElement;
 	private readonly hubDevicesList: WorkbenchList<HubDeviceProjection>;
+	private readonly deviceActionsRow: HTMLElement;
+	private readonly renameDeviceButton: Button;
+	private readonly revokeDeviceButton: Button;
+	private readonly confirmDeviceCodeInput: HTMLInputElement;
+	private readonly confirmDeviceCodeButton: Button;
 	private readonly directAddressSection: HTMLElement;
 	private readonly directHostInput: HTMLInputElement;
 	private readonly directPortInput: HTMLInputElement;
@@ -242,6 +255,8 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		DOM.append(this.hubAccountSection, DOM.$('h3')).textContent = localize('ua.connectionHubAccountHeading', "Hub account");
 		this.hubAuthBadge = DOM.append(this.hubAccountSection, DOM.$('.connection-hub-auth-badge'));
 		this.hubAuthBadge.setAttribute('role', 'status');
+		this.hubDeviceCodeStatus = DOM.append(this.hubAccountSection, DOM.$('.connection-hub-device-code-status'));
+		this.hubDeviceCodeStatus.setAttribute('role', 'status');
 
 		const hubUrlRow = DOM.append(this.hubAccountSection, DOM.$('.connection-field-row'));
 		DOM.append(hubUrlRow, DOM.$('label')).textContent = localize('ua.connectionHubBaseUrl', "Hub URL");
@@ -284,6 +299,16 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		refreshButton.label = localize('ua.connectionHubRefreshDevices', "Refresh devices");
 		this._register(refreshButton.onDidClick(() => this.refreshHubDirectory()));
 
+		const deviceCodeRow = DOM.append(this.hubAccountSection, DOM.$('.connection-field-row.connection-hub-device-code'));
+		DOM.append(deviceCodeRow, DOM.$('label')).textContent = localize('ua.connectionConfirmDeviceCodeLabel', "Device code");
+		this.confirmDeviceCodeInput = DOM.append(deviceCodeRow, DOM.$('input.connection-field-input')) as HTMLInputElement;
+		this.confirmDeviceCodeInput.type = 'text';
+		this.confirmDeviceCodeInput.placeholder = localize('ua.connectionConfirmDeviceCodePlaceholder', "Device code");
+		this.confirmDeviceCodeInput.setAttribute('aria-label', localize('ua.connectionConfirmDeviceCodeAria', "Confirm device code"));
+		this.confirmDeviceCodeButton = this._register(new Button(deviceCodeRow, defaultButtonStyles));
+		this.confirmDeviceCodeButton.label = localize('ua.connectionConfirmDeviceCode', "Confirm");
+		this._register(this.confirmDeviceCodeButton.onDidClick(() => void this.handleConfirmDeviceCode()));
+
 		// Zone 2 — Device list
 		this.hubDevicesSection = DOM.append(this.container, DOM.$('.connection-zone.connection-hub-devices'));
 		DOM.append(this.hubDevicesSection, DOM.$('h3')).textContent = localize('ua.connectionDevicesHeading', "Devices");
@@ -301,6 +326,15 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 				accessibilityProvider: new HubDevicesAccessibilityProvider(),
 			},
 		)) as WorkbenchList<HubDeviceProjection>;
+		this._register(this.hubDevicesList.onDidChangeSelection(() => this.updateDeviceActions()));
+
+		this.deviceActionsRow = DOM.append(this.hubDevicesSection, DOM.$('.connection-hub-device-actions'));
+		this.renameDeviceButton = this._register(new Button(this.deviceActionsRow, { ...defaultButtonStyles, secondary: true }));
+		this.renameDeviceButton.label = localize('ua.connectionDeviceRename', "Rename");
+		this._register(this.renameDeviceButton.onDidClick(() => void this.handleRenameSelectedDevice()));
+		this.revokeDeviceButton = this._register(new Button(this.deviceActionsRow, { ...defaultButtonStyles, secondary: true }));
+		this.revokeDeviceButton.label = localize('ua.connectionDeviceRevoke', "Revoke");
+		this._register(this.revokeDeviceButton.onDidClick(() => void this.handleRevokeSelectedDevice()));
 
 		// Zone 2b — Direct Address (debug / fallback; no Hub ticket)
 		this.directAddressSection = DOM.append(this.container, DOM.$('.connection-zone.connection-direct-address'));
@@ -396,16 +430,11 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		DOM.append(testSection, DOM.$('h3')).textContent = localize('ua.connectionTestHeading', "Test Connection");
 		const testRow = DOM.append(testSection, DOM.$('.connection-test-row'));
 		const testButton = this._register(new Button(testRow, defaultButtonStyles));
-		testButton.label = localize('ua.connectionTest', "Test Connection");
+		testButton.label = localize('ua.connectionTestActiveProfile', "Test active profile");
 		this.testStatus = DOM.append(testRow, DOM.$('.connection-test-status'));
 		this.testStatus.setAttribute('role', 'status');
 		this.testStatus.setAttribute('aria-live', 'polite');
-		this._register(testButton.onDidClick(() => {
-			this.testStatus.textContent = getConnectionTestStatusText(
-				this.connectionService.getConnectionPhase(),
-				this.connectionService.getConnectionSnapshot().pairingPending,
-			);
-		}));
+		this._register(testButton.onDidClick(() => void this.handleTestConnection()));
 
 		const remoteIoHint = DOM.append(this.container, DOM.$('.connection-remote-io-hint'));
 		remoteIoHint.textContent = getConnectionRemoteIoHintCopy();
@@ -643,6 +672,94 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		this.renderProfiles();
 	}
 
+	private getSelectedDevice(): HubDeviceProjection | undefined {
+		return this.hubDevicesList.getSelectedElements()[0] ?? this.hubDevices[0];
+	}
+
+	private updateDeviceActions(): void {
+		const device = this.getSelectedDevice();
+		const hasDevice = !!device && !device.revoked;
+		this.renameDeviceButton.enabled = hasDevice;
+		this.revokeDeviceButton.enabled = !!device && !device.revoked;
+	}
+
+	private async handleTestConnection(): Promise<void> {
+		if (!this.activeProfileId) {
+			this.testStatus.textContent = getConnectionTestStatusText();
+			return;
+		}
+		this.testStatus.textContent = localize('ua.connectionTestRunning', "Testing…");
+		const result = await this.connectionService.probeConnectionProfile(this.activeProfileId);
+		this.testStatus.textContent = formatConnectionProbeStatus(result);
+	}
+
+	private async handleRenameSelectedDevice(): Promise<void> {
+		const device = this.getSelectedDevice();
+		if (!device || device.revoked) {
+			return;
+		}
+		const input = await this.dialogService.input({
+			type: 'question',
+			message: localize('ua.connectionRenameDeviceTitle', "Rename device"),
+			inputs: [{ type: 'text', value: device.name, placeholder: localize('ua.connectionRenameDevicePlaceholder', "Device name") }],
+			primaryButton: localize('ua.connectionRenameDeviceConfirm', "Rename"),
+		});
+		const name = input.confirmed ? input.values?.[0]?.trim() : undefined;
+		if (!name || name === device.name) {
+			return;
+		}
+		const result = await this.hubService.renameDevice(device.id, name);
+		if (!result.ok) {
+			this.hubDirectoryBanner.textContent = result.reason;
+			this.hubDirectoryBanner.style.display = '';
+			return;
+		}
+		await this.hubService.refreshDirectory();
+	}
+
+	private async handleRevokeSelectedDevice(): Promise<void> {
+		const device = this.getSelectedDevice();
+		if (!device || device.revoked) {
+			return;
+		}
+		const confirm = await this.dialogService.confirm({
+			type: 'warning',
+			message: localize('ua.connectionRevokeDeviceTitle', "Revoke {0}?", device.name),
+			detail: localize(
+				'ua.connectionRevokeDeviceDetail',
+				"This device will no longer connect through the Hub. Local paired profiles will be marked as Revoked.",
+			),
+			primaryButton: localize('ua.connectionRevokeDeviceConfirm', "Revoke"),
+		});
+		if (!confirm.confirmed) {
+			return;
+		}
+		const result = await this.hubService.revokeDevice(device.id);
+		if (!result.ok) {
+			this.hubDirectoryBanner.textContent = result.reason;
+			this.hubDirectoryBanner.style.display = '';
+			return;
+		}
+		await this.hubService.refreshDirectory();
+		this.renderProfiles();
+	}
+
+	private async handleConfirmDeviceCode(): Promise<void> {
+		const code = this.confirmDeviceCodeInput.value.trim();
+		if (!code) {
+			this.hubDeviceCodeStatus.textContent = localize('ua.connectionConfirmDeviceCodeEmpty', "Enter a device code first.");
+			return;
+		}
+		const result = await this.hubService.confirmDeviceCode(code);
+		this.hubDeviceCodeStatus.textContent = result.ok
+			? localize('ua.connectionConfirmDeviceCodeOk', "Device code confirmed")
+			: result.reason;
+		if (result.ok) {
+			this.confirmDeviceCodeInput.value = '';
+			await this.hubService.refreshDirectory();
+		}
+	}
+
 	private renderHubAccount(): void {
 		const status = this.hubService.getAuthStatus();
 		this.hubAuthBadge.textContent = getHubAuthStatusLabel(status);
@@ -659,6 +776,9 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 			? HUB_CHANGE_PASSWORD_BUTTON_LABEL
 			: HUB_LOGIN_BUTTON_LABEL;
 		this.hubLoginButton.enabled = !signedIn;
+		const deviceCodeEnabled = signedIn;
+		this.confirmDeviceCodeInput.disabled = !deviceCodeEnabled;
+		this.confirmDeviceCodeButton.enabled = deviceCodeEnabled;
 	}
 
 	private renderHubDirectory(): void {
@@ -676,6 +796,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		if (shouldDrawDesktopConnectionControls(this.desktopConnectionControlContext())) {
 			this.hubDevicesSection.style.display = this.hubService.getAuthStatus().kind === 'signedOut' ? 'none' : '';
 		}
+		this.updateDeviceActions();
 	}
 
 	private renderProfiles(): void {

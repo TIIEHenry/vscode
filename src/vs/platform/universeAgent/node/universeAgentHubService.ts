@@ -351,6 +351,7 @@ export class UniverseAgentHubService extends Disposable implements IUniverseAgen
 			return result;
 		}
 		await this.refreshDirectory();
+		this._markHubDeviceProfilesRevoked(deviceId);
 		return { ok: true };
 	}
 
@@ -489,6 +490,23 @@ export class UniverseAgentHubService extends Disposable implements IUniverseAgen
 
 	private _fireDirectoryChanged(): void {
 		this._onDidChangeDirectory.fire(this._directoryStatus);
+	}
+
+	private _markHubDeviceProfilesRevoked(hubDeviceId: string): void {
+		let changed = false;
+		for (const profile of this._connectionProfileStore.list()) {
+			if (
+				profile.target.kind === 'hubDevice'
+				&& profile.target.hubDeviceId === hubDeviceId
+				&& profile.state !== 'revoked'
+			) {
+				this._connectionProfileStore.put({ ...profile, state: 'revoked' });
+				changed = true;
+			}
+		}
+		if (changed) {
+			this._fireProfilesChanged();
+		}
 	}
 
 	private _fireProfilesChanged(): void {

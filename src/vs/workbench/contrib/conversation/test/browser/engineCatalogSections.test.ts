@@ -88,6 +88,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 			connectProfile: async () => ({ ok: false, code: 'transport_failed', reason: 'stub' }),
 			confirmPairing: async () => ({ ok: false, code: 'transport_failed', reason: 'stub' }),
 			cancelPairing: async () => { },
+			probeConnectionProfile: async () => ({ ok: false, code: 'transport_failed', reason: 'stub' }),
 			disconnect: async () => { connected = false; onDidChangeConnection.fire(snapshot()); },
 			listSessions: async () => ({ sessions: [] }),
 			createSession: async () => ({ sessionId: 's' }),

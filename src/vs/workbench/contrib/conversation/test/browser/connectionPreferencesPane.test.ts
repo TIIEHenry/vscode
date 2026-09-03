@@ -15,6 +15,7 @@ import { WorkbenchList } from '../../../../../platform/list/browser/listService.
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import {
 	ConnectionPreferencesPane,
+	formatConnectionProbeStatus,
 	getConnectionEmptyCopy,
 	getConnectionTestStatusText,
 	IConnectionProfileEntry,
@@ -102,6 +103,8 @@ suite('ConnectionPreferencesPane', () => {
 		instantiationService.stub(IDialogService, {
 			_serviceBrand: undefined,
 			prompt: async () => ({ result: false }),
+			confirm: async () => ({ confirmed: true }),
+			input: async () => ({ confirmed: true, values: ['Renamed Studio'] }),
 		} as unknown as IDialogService);
 		const pane = store.add(instantiationService.createInstance(ConnectionPreferencesPane));
 		const container = pane.getDomNode();
@@ -112,6 +115,14 @@ suite('ConnectionPreferencesPane', () => {
 	test('getConnectionTestStatusText reuses StatusBar phase copy', () => {
 		assert.strictEqual(getConnectionTestStatusText(), getConnectionPhaseStatusBarText({ kind: 'disconnected' }));
 		assert.strictEqual(getConnectionTestStatusText({ kind: 'connected', path: 'direct' }), 'Engine · Direct');
+		assert.strictEqual(
+			formatConnectionProbeStatus({ ok: true, path: 'direct', authority: '203.0.113.1:7443', latencyMs: 42 }),
+			'Reachable · direct · 42 ms',
+		);
+		assert.strictEqual(
+			formatConnectionProbeStatus({ ok: false, code: 'transport_failed', reason: 'timeout' }),
+			'timeout',
+		);
 	});
 
 	test('getConnectionEmptyCopy returns honest roster-empty copy', () => {
@@ -258,7 +269,7 @@ suite('ConnectionPreferencesPane', () => {
 		container.remove();
 	});
 
-	test('Test Connection click surfaces honest status without faking success', () => {
+	test('Test Connection without active profile keeps honest disconnected copy', () => {
 		const pane = mountPane();
 		const container = pane.getDomNode();
 
@@ -272,6 +283,38 @@ suite('ConnectionPreferencesPane', () => {
 		assert.strictEqual(testStatus.textContent, getConnectionTestStatusText());
 		assert.notStrictEqual(testStatus.textContent, 'Connected');
 
+		container.remove();
+	});
+
+	test('Test active profile calls probeConnectionProfile once', async () => {
+		let probedProfileId: string | undefined;
+		const pane = mountPane({
+			listConnectionProfiles: () => [{
+				profileId: 'profile-1',
+				displayName: 'Studio',
+				state: 'active',
+				hasTrust: true,
+				targetKind: 'hubDevice',
+			}],
+		}, {
+			probeConnectionProfile: async profileId => {
+				probedProfileId = profileId;
+				return { ok: true, path: 'hubRelay', authority: 'relay.example.com', latencyMs: 12 };
+			},
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		await Promise.resolve();
+		(pane as unknown as { activeProfileId: string }).activeProfileId = 'profile-1';
+
+		const testButton = container.querySelector('.connection-test-row .monaco-button') as HTMLButtonElement | null;
+		assert.ok(testButton);
+		testButton.click();
+		await Promise.resolve();
+		await Promise.resolve();
+		assert.strictEqual(probedProfileId, 'profile-1');
+		const status = container.querySelector('.connection-test-status');
+		assert.strictEqual(status?.textContent, 'Reachable · hubRelay · 12 ms');
 		container.remove();
 	});
 
@@ -498,6 +541,170 @@ suite('ConnectionPreferencesPane', () => {
 		(pane as unknown as { activeProfileId: string }).activeProfileId = 'hub-profile-1';
 		await (pane as unknown as { connectProfileWithPairing(profileId: string): Promise<void> }).connectProfileWithPairing('hub-profile-1');
 		assert.strictEqual(confirmCalls, 1);
+		container.remove();
+	});
+
+	test('revoked device row disables Rename and Revoke', async () => {
+		const pane = mountPane({
+			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
+			getDirectoryStatus: () => ({
+				kind: 'ok',
+				devices: [device({ id: 'dev-1', name: 'Studio', revoked: true })],
+			}),
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		await Promise.resolve();
+
+		const rename = [...container.querySelectorAll('.connection-hub-device-actions .monaco-button')]
+			.find(button => button.textContent === 'Rename') as HTMLButtonElement | undefined;
+		const revoke = [...container.querySelectorAll('.connection-hub-device-actions .monaco-button')]
+			.find(button => button.textContent === 'Revoke') as HTMLButtonElement | undefined;
+		assert.ok(rename);
+		assert.ok(revoke);
+		assert.strictEqual(rename.disabled, true);
+		assert.strictEqual(revoke.disabled, true);
+		container.remove();
+	});
+
+	test('device Rename cancel does not call hub rename', async () => {
+		let renamed = false;
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IUniverseAgentHubService, createHubStub({
+			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
+			getDirectoryStatus: () => ({ kind: 'ok', devices: [device({ id: 'dev-1', name: 'Studio' })] }),
+			renameDevice: async () => {
+				renamed = true;
+				return { ok: true };
+			},
+		}));
+		instantiationService.stub(IUniverseAgentConnection, createConnectionStub());
+		instantiationService.stub(IDialogService, {
+			_serviceBrand: undefined,
+			prompt: async () => ({ result: false }),
+			confirm: async () => ({ confirmed: true }),
+			input: async () => ({ confirmed: false, values: ['Studio'] }),
+		} as unknown as IDialogService);
+		const pane = store.add(instantiationService.createInstance(ConnectionPreferencesPane));
+		const container = pane.getDomNode();
+		document.body.appendChild(container);
+		pane.layout(new Dimension(800, 800));
+		await Promise.resolve();
+
+		const rename = [...container.querySelectorAll('.connection-hub-device-actions .monaco-button')]
+			.find(button => button.textContent === 'Rename') as HTMLButtonElement | undefined;
+		assert.ok(rename);
+		rename.click();
+		await Promise.resolve();
+		await Promise.resolve();
+		assert.strictEqual(renamed, false);
+		container.remove();
+	});
+
+	test('device Revoke confirm rejected does not call hub revoke', async () => {
+		let revoked = false;
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IUniverseAgentHubService, createHubStub({
+			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
+			getDirectoryStatus: () => ({ kind: 'ok', devices: [device({ id: 'dev-1', name: 'Studio' })] }),
+			revokeDevice: async () => {
+				revoked = true;
+				return { ok: true };
+			},
+		}));
+		instantiationService.stub(IUniverseAgentConnection, createConnectionStub());
+		instantiationService.stub(IDialogService, {
+			_serviceBrand: undefined,
+			prompt: async () => ({ result: false }),
+			confirm: async () => ({ confirmed: false }),
+			input: async () => ({ confirmed: true, values: ['Renamed Studio'] }),
+		} as unknown as IDialogService);
+		const pane = store.add(instantiationService.createInstance(ConnectionPreferencesPane));
+		const container = pane.getDomNode();
+		document.body.appendChild(container);
+		pane.layout(new Dimension(800, 800));
+		await Promise.resolve();
+
+		const revoke = [...container.querySelectorAll('.connection-hub-device-actions .monaco-button')]
+			.find(button => button.textContent === 'Revoke') as HTMLButtonElement | undefined;
+		assert.ok(revoke);
+		revoke.click();
+		await Promise.resolve();
+		await Promise.resolve();
+		assert.strictEqual(revoked, false);
+		container.remove();
+	});
+
+	test('confirmDeviceCode success clears input', async () => {
+		const pane = mountPane({
+			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
+			confirmDeviceCode: async () => ({ ok: true }),
+		});
+		const container = pane.getDomNode();
+		const codeInput = container.querySelector('.connection-hub-device-code input') as HTMLInputElement | null;
+		const confirm = [...container.querySelectorAll('.connection-hub-device-code .monaco-button')]
+			.find(button => button.textContent === 'Confirm') as HTMLButtonElement | undefined;
+		assert.ok(codeInput);
+		assert.ok(confirm);
+		codeInput.value = 'ABCD-1234';
+		confirm.click();
+		await Promise.resolve();
+		await Promise.resolve();
+		assert.strictEqual(codeInput.value, '');
+		container.remove();
+	});
+
+	test('device Rename / Revoke / Confirm call hub methods', async () => {
+		let renamed: { id: string; name: string } | undefined;
+		let revoked: string | undefined;
+		let confirmed: string | undefined;
+		const pane = mountPane({
+			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
+			getDirectoryStatus: () => ({ kind: 'ok', devices: [device({ id: 'dev-1', name: 'Studio' })] }),
+			renameDevice: async (id, name) => {
+				renamed = { id, name };
+				return { ok: true };
+			},
+			revokeDevice: async id => {
+				revoked = id;
+				return { ok: true };
+			},
+			confirmDeviceCode: async code => {
+				confirmed = code;
+				return { ok: true };
+			},
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		await Promise.resolve();
+
+		const rename = [...container.querySelectorAll('.connection-hub-device-actions .monaco-button')]
+			.find(button => button.textContent === 'Rename') as HTMLButtonElement | undefined;
+		const revoke = [...container.querySelectorAll('.connection-hub-device-actions .monaco-button')]
+			.find(button => button.textContent === 'Revoke') as HTMLButtonElement | undefined;
+		const confirm = [...container.querySelectorAll('.connection-hub-device-code .monaco-button')]
+			.find(button => button.textContent === 'Confirm') as HTMLButtonElement | undefined;
+		const codeInput = container.querySelector('.connection-hub-device-code input') as HTMLInputElement | null;
+		assert.ok(rename);
+		assert.ok(revoke);
+		assert.ok(confirm);
+		assert.ok(codeInput);
+
+		rename.click();
+		await Promise.resolve();
+		await Promise.resolve();
+		assert.deepStrictEqual(renamed, { id: 'dev-1', name: 'Renamed Studio' });
+
+		revoke.click();
+		await Promise.resolve();
+		await Promise.resolve();
+		assert.strictEqual(revoked, 'dev-1');
+
+		codeInput.value = 'ABCD-1234';
+		confirm.click();
+		await Promise.resolve();
+		await Promise.resolve();
+		assert.strictEqual(confirmed, 'ABCD-1234');
 		container.remove();
 	});
 });

@@ -5,7 +5,7 @@
 
 import { Event } from '../../../base/common/event.js';
 import { createDecorator } from '../../instantiation/common/instantiation.js';
-import type { ConnectionPhase, UniverseAgentConnectProfileResult } from './connectionHubTypes.js';
+import type { ConnectionPhase, ConnectionProbeResult, UniverseAgentConnectProfileResult } from './connectionHubTypes.js';
 import type {
 	UniverseAgentCapabilitySnapshot,
 	UniverseAgentChatRequest,
@@ -126,6 +126,9 @@ export interface IUniverseAgentConnection {
 
 	/** Abandon in-flight pairing and disconnect (no trust write). */
 	cancelPairing(): Promise<void>;
+
+	/** Independent TLS channel probe to GetAuthNonce only (connection-hub §4.2). */
+	probeConnectionProfile(profileId: string): Promise<ConnectionProbeResult>;
 
 	/** Connection-level phase for pane (StatusBar uses this in H4b). */
 	getConnectionPhase(): ConnectionPhase;
