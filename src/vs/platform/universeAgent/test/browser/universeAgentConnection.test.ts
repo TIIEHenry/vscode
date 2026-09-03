@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { Event } from '../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import { WebUniverseAgentConnection } from '../../browser/universeAgentConnectionService.js';
 import { WebUniverseAgentHubService } from '../../browser/universeAgentHubService.js';
@@ -81,6 +82,9 @@ suite('Web universeAgent disconnect (P0)', () => {
 		const sessionView = new WebUniverseAgentSessionView();
 		const leaseId = await sessionView.acquireLease('sess-1');
 		assert.ok(leaseId.startsWith('web-empty:'));
+		assert.strictEqual(typeof sessionView.onDynamicDidApplyFrame, 'function');
+		assert.strictEqual(sessionView.onDynamicDidApplyFrame(leaseId), Event.None);
+		assert.strictEqual(sessionView.onDynamicDidApplyFrame('unknown'), Event.None);
 		const post = await sessionView.post(leaseId, { kind: 'submitInput', text: 'hi' });
 		assert.strictEqual(post.accepted, false);
 		const detail = await sessionView.requestDetail(leaseId, '{"toolCallId":"tc","detailKind":1,"refId":"tc"}');

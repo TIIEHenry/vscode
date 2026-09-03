@@ -36,10 +36,6 @@ export class ConversationEngineFrameSource extends Disposable implements IConver
 		private readonly sessionView: IUniverseAgentSessionView,
 	) {
 		super();
-		this._register(sessionView.onDidApplyFrame(event => {
-			const lease = this.leases.get(event.leaseId);
-			lease?.onHostFrame(event.frame, event.applied);
-		}));
 	}
 
 	acquire(sessionId: string): IConversationSessionViewLease {
@@ -90,6 +86,8 @@ class EngineSessionViewLease extends Disposable implements IConversationSessionV
 		this.ready = this.sessionView.acquireLease(sessionId).then(id => {
 			this.leaseId = id;
 			this.connected = true;
+			this.lifetime.add(this.sessionView.onDynamicDidApplyFrame(id)(event =>
+				this.onHostFrame(event.frame, event.applied)));
 			this.onAcquired(id);
 		});
 		this.lifetime.add({ dispose: () => {

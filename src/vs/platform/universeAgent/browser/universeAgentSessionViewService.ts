@@ -6,7 +6,7 @@
 import { Event } from '../../../base/common/event.js';
 import { InstantiationType, registerSingleton } from '../../instantiation/common/extensions.js';
 import type { ConversationWriteMessage, DetailFetchOutcome, PostOutcome } from '../common/conversationViewFrame.js';
-import { IUniverseAgentSessionView } from '../common/universeAgentSessionView.js';
+import { IUniverseAgentSessionView, type IUniverseAgentSessionViewFrameEvent } from '../common/universeAgentSessionView.js';
 
 /**
  * Web has no Engine host. Leases are accepted so consumers can hold an id, but
@@ -17,7 +17,9 @@ export class WebUniverseAgentSessionView implements IUniverseAgentSessionView {
 
 	declare readonly _serviceBrand: undefined;
 
-	readonly onDidApplyFrame = Event.None;
+	onDynamicDidApplyFrame(_leaseId: string): Event<IUniverseAgentSessionViewFrameEvent> {
+		return Event.None;
+	}
 
 	async acquireLease(sessionId: string): Promise<string> {
 		return `web-empty:${sessionId}`;

@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Emitter } from '../../../base/common/event.js';
+import { Emitter, Event } from '../../../base/common/event.js';
 import { Disposable } from '../../../base/common/lifecycle.js';
 import type { IUniverseAgentConnection } from '../common/universeAgentConnection.js';
 import type { IUniverseAgentHostConnection } from '../common/universeAgentHostConnection.js';
@@ -24,7 +24,7 @@ import type { CoreIntent, HistoryFillCoreIntent } from './sessionCore/intents.js
 import { isChatCoreIntent, isHistoryFillCoreIntent } from './sessionCore/intents.js';
 import type { CorrelationRef, ViewFrameSink } from './sessionCore/messages.js';
 import type { SessionId, ViewFrame, ViewLeaseId } from '../common/sessionView/types.js';
-import type { AttemptId } from './sessionCore/ports.js';
+import type { AttemptId, DiagnosticMetric, DiagnosticsPort } from './sessionCore/ports.js';
 import { demuxSessionStreamPayload } from './sessionStreamDemux.js';
 import {
 	iterL2EnvelopesFromStreamPayload,
@@ -72,7 +72,23 @@ type ActiveLease = {
 	readonly sessionId: string;
 	readonly leaseId: ViewLeaseId;
 	readonly sink: ViewFrameSink;
+	readonly emitter: Emitter<IUniverseAgentSessionViewFrameEvent>;
+	readonly pending: IUniverseAgentSessionViewFrameEvent[];
+	hadSubscriber: boolean;
+	needsBaseline: boolean;
+	orphanTimer?: ReturnType<typeof setTimeout>;
 };
+
+export type SessionViewHostOptions = {
+	/** Auto-release leases that never gain a subscriber. `0` disables. Default 5000. */
+	readonly orphanTimeoutMs?: number;
+	/** Max buffered frames per lease before resync. Default 64. */
+	readonly pendingFrameLimit?: number;
+	readonly diagnostics?: DiagnosticsPort;
+};
+
+const DEFAULT_ORPHAN_TIMEOUT_MS = 5000;
+const DEFAULT_PENDING_FRAME_LIMIT = 64;
 
 function writeMessageToCoreFact(msg: ConversationWriteMessage, leaseId: ViewLeaseId): unknown {
 	switch (msg.kind) {
@@ -117,7 +133,9 @@ export class SessionViewHost extends Disposable {
 
 	private readonly scheduler = this._register(new NodeSchedulerPort());
 	private readonly ids = createSessionViewIdPort();
-	private readonly diagnostics = createSessionViewDiagnosticsPort();
+	private readonly diagnostics: DiagnosticsPort;
+	private readonly orphanTimeoutMs: number;
+	private readonly pendingFrameLimit: number;
 	private readonly core: SessionCore;
 	private readonly leases = new Map<string, ActiveLease>();
 	private readonly leaseAttribution = new Map<string, Map<string, ItemAttribution>>();
@@ -129,14 +147,15 @@ export class SessionViewHost extends Disposable {
 	private connectionGeneration = 0;
 	private connectionUp = false;
 
-	private readonly _onDidApplyFrame = this._register(new Emitter<IUniverseAgentSessionViewFrameEvent>());
-	readonly onDidApplyFrame = this._onDidApplyFrame.event;
-
 	constructor(
 		private readonly connection: IUniverseAgentConnection,
 		private readonly host: IUniverseAgentHostConnection,
+		options: SessionViewHostOptions = {},
 	) {
 		super();
+		this.diagnostics = options.diagnostics ?? createSessionViewDiagnosticsPort();
+		this.orphanTimeoutMs = options.orphanTimeoutMs ?? DEFAULT_ORPHAN_TIMEOUT_MS;
+		this.pendingFrameLimit = options.pendingFrameLimit ?? DEFAULT_PENDING_FRAME_LIMIT;
 		this.core = createSessionCore({
 			scheduler: this.scheduler,
 			ids: this.ids,
@@ -147,6 +166,10 @@ export class SessionViewHost extends Disposable {
 		}));
 	}
 
+	onDynamicDidApplyFrame(leaseId: string): Event<IUniverseAgentSessionViewFrameEvent> {
+		return this.leases.get(leaseId)?.emitter.event ?? Event.None;
+	}
+
 	acquireLease(sessionId: string): string {
 		const leaseId = this.ids.nextAttemptId() as unknown as ViewLeaseId;
 		const sid = sessionId as SessionId;
@@ -155,14 +178,18 @@ export class SessionViewHost extends Disposable {
 			enqueue: frame => this.onFrameEnqueued(leaseId, sessionId, frame),
 			acknowledge: () => { },
 		};
+		const binding = this.createActiveLease(sessionId, leaseId, sink);
+		this.leases.set(String(leaseId), binding);
+		this.leaseAttribution.set(String(leaseId), new Map());
+		this.leaseDetails.set(String(leaseId), new Map());
 		const outcome = this.core.post(sid, { t: 'acquireLease', leaseId, sink });
 		if (!outcome.accepted) {
+			this.releaseLease(String(leaseId));
+			this.leaseAttribution.delete(String(leaseId));
+			this.leaseDetails.delete(String(leaseId));
 			throw new Error(`acquireLease rejected: ${outcome.reason}`);
 		}
 		this.drainIntents(sessionId);
-		this.leases.set(String(leaseId), { sessionId, leaseId, sink });
-		this.leaseAttribution.set(String(leaseId), new Map());
-		this.leaseDetails.set(String(leaseId), new Map());
 		this.ensureSessionSidecar(sessionId);
 		if (this.connectionUp) {
 			this.postConnectionUp(sessionId);
@@ -176,6 +203,11 @@ export class SessionViewHost extends Disposable {
 		if (!binding) {
 			return;
 		}
+		if (binding.orphanTimer !== undefined) {
+			clearTimeout(binding.orphanTimer);
+		}
+		binding.pending.length = 0;
+		binding.emitter.dispose();
 		this.leases.delete(leaseId);
 		this.leaseAttribution.delete(leaseId);
 		this.leaseDetails.delete(leaseId);
@@ -539,7 +571,67 @@ export class SessionViewHost extends Disposable {
 		} else {
 			applied = { kind: 'effects', effects: frame.body.effects };
 		}
-		this._onDidApplyFrame.fire({ leaseId: String(leaseId), sessionId, frame: viewFrame, applied });
+		const event: IUniverseAgentSessionViewFrameEvent = { leaseId: String(leaseId), sessionId, frame: viewFrame, applied };
+		const binding = this.leases.get(String(leaseId));
+		if (!binding) {
+			return;
+		}
+		if (binding.emitter.hasListeners()) {
+			binding.emitter.fire(event);
+		} else {
+			binding.pending.push(event);
+			if (binding.pending.length > this.pendingFrameLimit) {
+				binding.pending.length = 0;
+				binding.needsBaseline = true;
+				this.diagnostics.count('view.pending_overflow' as DiagnosticMetric);
+			}
+		}
+	}
+
+	private createActiveLease(sessionId: string, leaseId: ViewLeaseId, sink: ViewFrameSink): ActiveLease {
+		const pending: IUniverseAgentSessionViewFrameEvent[] = [];
+		const binding: ActiveLease = {
+			sessionId,
+			leaseId,
+			sink,
+			emitter: undefined!,
+			pending,
+			hadSubscriber: false,
+			needsBaseline: false,
+		};
+
+		const emitter = new Emitter<IUniverseAgentSessionViewFrameEvent>({
+			onDidAddFirstListener: () => {
+				binding.hadSubscriber = true;
+				if (binding.orphanTimer !== undefined) {
+					clearTimeout(binding.orphanTimer);
+					binding.orphanTimer = undefined;
+				}
+				queueMicrotask(() => {
+					if (binding.needsBaseline) {
+						binding.needsBaseline = false;
+						this.requestResync(String(leaseId));
+						return;
+					}
+					for (const queued of pending) {
+						emitter.fire(queued);
+					}
+					pending.length = 0;
+				});
+			},
+		});
+		binding.emitter = emitter;
+
+		if (this.orphanTimeoutMs > 0) {
+			binding.orphanTimer = setTimeout(() => {
+				if (!binding.hadSubscriber) {
+					this.diagnostics.count('view.lease_orphaned' as DiagnosticMetric);
+					this.releaseLease(String(leaseId));
+				}
+			}, this.orphanTimeoutMs);
+		}
+
+		return binding;
 	}
 
 	private drainIntents(sessionId: string): void {

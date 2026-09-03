@@ -3,9 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import assert from 'assert';
 import { Emitter, Event } from '../../../../base/common/event.js';
-import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import type { IUniverseAgentConnection } from '../../common/universeAgentConnection.js';
 import type { IUniverseAgentHostConnection } from '../../common/universeAgentHostConnection.js';
 import type {
@@ -14,23 +12,10 @@ import type {
 	UniverseAgentAgentTreeNode,
 	UniverseAgentConnectionSnapshot,
 } from '../../common/universeAgentTypes.js';
-import { AgentTreeCoordinator, flushAgentTreeCoordinator } from '../../node/agentTreeCoordinator.js';
 import { GrpcStatusCode, UniverseAgentTransportError } from '../../node/grpc/grpcTransport.js';
 import { createEmptyCapabilitySnapshot } from '../../node/grpcCapabilityProbe.js';
-import { SessionViewHost } from '../../node/sessionViewHost.js';
 
-const ROOT_TREE: UniverseAgentAgentTreeNode = {
-	agentId: 'root',
-	name: 'Root',
-	type: 'AGENT_TYPE_ROOT',
-	status: 'AGENT_STATUS_IDLE',
-	model: 'test-model',
-	turnCount: 0,
-	createdAt: 0,
-	children: [],
-};
-
-class TestConnection implements IUniverseAgentConnection {
+export class TestConnection implements IUniverseAgentConnection {
 	declare readonly _serviceBrand: undefined;
 	private connected = true;
 	private readonly streamListeners = new Map<string, ((event: { payload: unknown }) => void)[]>();
@@ -105,7 +90,7 @@ class TestConnection implements IUniverseAgentConnection {
 	}
 }
 
-class TestHost implements IUniverseAgentHostConnection {
+export class TestHost implements IUniverseAgentHostConnection {
 	private readonly _onRequestAgentTreeRefresh = new Emitter<{ readonly sessionId: string }>();
 	readonly onRequestAgentTreeRefresh = this._onRequestAgentTreeRefresh.event;
 
@@ -150,123 +135,3 @@ class TestHost implements IUniverseAgentHostConnection {
 		this._onRequestAgentTreeRefresh.fire({ sessionId });
 	}
 }
-
-function getTreeCoordinator(viewHost: SessionViewHost, sessionId: string): AgentTreeCoordinator {
-	const sidecars = (viewHost as unknown as { sessionSidecars: Map<string, { tree: AgentTreeCoordinator }> }).sessionSidecars;
-	return sidecars.get(sessionId)!.tree;
-}
-
-suite('SessionViewHost navigator §11', () => {
-
-	const store = ensureNoDisposablesAreLeakedInTestSuite();
-
-	test('first lease → Tree fetch ≥ 1 without L3', async () => {
-		const connection = new TestConnection();
-		const host = new TestHost(async () => ROOT_TREE);
-		const viewHost = store.add(new SessionViewHost(connection, host, { orphanTimeoutMs: 0 }));
-
-		viewHost.onEngineConnectionChanged();
-		viewHost.acquireLease('sess-a');
-		await flushAgentTreeCoordinator(getTreeCoordinator(viewHost, 'sess-a'));
-
-		assert.ok(host.treeFetchCount >= 1);
-	});
-
-	test('UNIMPLEMENTED → Tree fetch count stops increasing', async () => {
-		const connection = new TestConnection();
-		const host = new TestHost(async () => ROOT_TREE);
-		host.agentTreeUnsupported = true;
-		const viewHost = store.add(new SessionViewHost(connection, host, { orphanTimeoutMs: 0 }));
-
-		viewHost.onEngineConnectionChanged();
-		viewHost.acquireLease('sess-b');
-		const tree = getTreeCoordinator(viewHost, 'sess-b');
-		await tree.pullNow(() => { });
-		const countAfterFirst = host.treeFetchCount;
-		await tree.pullNow(() => { });
-		assert.strictEqual(host.treeFetchCount, countAfterFirst);
-	});
-
-	test('sub_agent_completed schedules additional tree fetch', async () => {
-		const connection = new TestConnection();
-		const host = new TestHost(async () => ROOT_TREE);
-		const viewHost = store.add(new SessionViewHost(connection, host, { orphanTimeoutMs: 0 }));
-
-		viewHost.onEngineConnectionChanged();
-		viewHost.acquireLease('sess-c');
-		await flushAgentTreeCoordinator(getTreeCoordinator(viewHost, 'sess-c'));
-		const before = host.treeFetchCount;
-		connection.pushStreamEvent('sess-c', { sub_agent_completed: {} });
-		await flushAgentTreeCoordinator(getTreeCoordinator(viewHost, 'sess-c'));
-		assert.ok(host.treeFetchCount > before);
-	});
-
-	test('lifecycle + snapshot stream → file mutation via host', () => {
-		const connection = new TestConnection();
-		const host = new TestHost(async () => ROOT_TREE);
-		const viewHost = store.add(new SessionViewHost(connection, host, { orphanTimeoutMs: 0 }));
-
-		viewHost.onEngineConnectionChanged();
-		viewHost.acquireLease('sess-d');
-		connection.pushStreamEvent('sess-d', {
-			tool_call_lifecycle: { tool_call_id: 'tc-x', turn_id: 'turn-x', agent_id: 'agent-x' },
-		});
-		connection.pushStreamEvent('sess-d', {
-			tool_runtime_snapshot: {
-				tool_call_id: 'tc-x',
-				payload: { file_mutation_payload: { path: 'f.ts', operation: 'edit' } },
-			},
-		});
-
-		assert.strictEqual(host.fileMutations.length, 1);
-		assert.strictEqual(host.fileMutations[0]!.toolCallId, 'tc-x');
-	});
-
-	test('multi_agent_status → team runtime notification', () => {
-		const connection = new TestConnection();
-		const host = new TestHost(async () => ROOT_TREE);
-		const viewHost = store.add(new SessionViewHost(connection, host, { orphanTimeoutMs: 0 }));
-
-		viewHost.onEngineConnectionChanged();
-		viewHost.acquireLease('sess-e');
-		connection.pushStreamEvent('sess-e', { multi_agent_status: { team_aborted: { team_id: 1 } } });
-
-		assert.deepStrictEqual(host.teamRuntimeEvents, ['sess-e']);
-	});
-
-	test('turn_completed stream → turn settle via host', () => {
-		const connection = new TestConnection();
-		const host = new TestHost(async () => ROOT_TREE);
-		const viewHost = store.add(new SessionViewHost(connection, host, { orphanTimeoutMs: 0 }));
-
-		viewHost.onEngineConnectionChanged();
-		viewHost.acquireLease('sess-f');
-		connection.pushStreamEvent('sess-f', {
-			tool_call_lifecycle: { tool_call_id: 'tc-y', turn_id: 'runtime-y', agent_id: 'agent-y' },
-		});
-		connection.pushStreamEvent('sess-f', {
-			turn_completed: { turn_id: 'runtime-y', assistant_turn_id: 'assistant-y' },
-		});
-
-		assert.strictEqual(host.turnSettleSignals.length, 1);
-		assert.deepStrictEqual(host.turnSettleSignals[0], {
-			sessionId: 'sess-f',
-			runtimeTurnId: 'runtime-y',
-			assistantTurnId: 'assistant-y',
-		});
-	});
-
-	test('lifecycle without turn_completed → no turn settle', () => {
-		const connection = new TestConnection();
-		const host = new TestHost(async () => ROOT_TREE);
-		const viewHost = store.add(new SessionViewHost(connection, host, { orphanTimeoutMs: 0 }));
-
-		viewHost.onEngineConnectionChanged();
-		viewHost.acquireLease('sess-g');
-		connection.pushStreamEvent('sess-g', {
-			tool_call_lifecycle: { tool_call_id: 'tc-z', turn_id: 'runtime-z', agent_id: 'agent-z' },
-		});
-
-		assert.strictEqual(host.turnSettleSignals.length, 0);
-	});
-});

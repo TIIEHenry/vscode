@@ -32,7 +32,11 @@ export interface IUniverseAgentSessionView {
 
 	readonly _serviceBrand: undefined;
 
-	readonly onDidApplyFrame: Event<IUniverseAgentSessionViewFrameEvent>;
+	/**
+	 * Per-lease frame stream. Frames enqueued before the first listener attaches
+	 * are buffered host-side and flushed on attach.
+	 */
+	onDynamicDidApplyFrame(leaseId: string): Event<IUniverseAgentSessionViewFrameEvent>;
 
 	acquireLease(sessionId: string): Promise<string>;
 
