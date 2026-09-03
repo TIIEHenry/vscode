@@ -101,6 +101,19 @@ export interface UniverseAgentCancelGenerationResult {
 	readonly message?: string;
 }
 
+/** AgentService.CancelToolCall — per-tool cancel (≠ session-turn Cancel). */
+export interface UniverseAgentCancelToolCallRequest {
+	readonly sessionId: string;
+	/** Owning agent; empty/omitted wires as `root`. */
+	readonly agentId?: string;
+	readonly toolCallId: string;
+}
+
+export interface UniverseAgentCancelToolCallResult {
+	readonly ok: boolean;
+	readonly message?: string;
+}
+
 /** PermissionService.SetSessionGoal request (Inbox Goal). */
 export interface UniverseAgentSetSessionGoalRequest {
 	readonly sessionId: string;

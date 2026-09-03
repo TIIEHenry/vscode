@@ -23,6 +23,8 @@ import type {
 	UniverseAgentRenameSessionResult,
 	UniverseAgentCancelGenerationRequest,
 	UniverseAgentCancelGenerationResult,
+	UniverseAgentCancelToolCallRequest,
+	UniverseAgentCancelToolCallResult,
 	UniverseAgentSetSessionGoalRequest,
 	UniverseAgentSetSessionGoalResult,
 	UniverseAgentCancelSessionGoalRequest,
@@ -172,6 +174,12 @@ export interface IUniverseAgentConnection {
 
 	/** AgentService.Cancel unary. Engine roster + Inbox Stop forward when connected. */
 	cancelGeneration(request: UniverseAgentCancelGenerationRequest): Promise<UniverseAgentCancelGenerationResult>;
+
+	/**
+	 * AgentService.CancelToolCall unary (per-tool cancel). Optional so Web / tests
+	 * can omit it; timeline UI is not forwarded yet.
+	 */
+	cancelToolCall?(request: UniverseAgentCancelToolCallRequest): Promise<UniverseAgentCancelToolCallResult>;
 
 	/**
 	 * PermissionService.SetSessionGoal unary (Inbox Goal). Optional so Web / tests

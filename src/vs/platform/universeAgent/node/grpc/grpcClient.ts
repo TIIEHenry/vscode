@@ -21,6 +21,8 @@ import type {
 	UniverseAgentRenameSessionResult,
 	UniverseAgentCancelGenerationRequest,
 	UniverseAgentCancelGenerationResult,
+	UniverseAgentCancelToolCallRequest,
+	UniverseAgentCancelToolCallResult,
 	UniverseAgentSetSessionGoalRequest,
 	UniverseAgentSetSessionGoalResult,
 	UniverseAgentCancelSessionGoalRequest,
@@ -1302,6 +1304,23 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 		const wire = await unary({
 			session_id: request.sessionId,
 			agent_id: request.agentId,
+		});
+		return {
+			ok: wire.success === true,
+			message: wire.message,
+		};
+	}
+
+	async cancelToolCall(request: UniverseAgentCancelToolCallRequest): Promise<UniverseAgentCancelToolCallResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, { success?: boolean; message?: string }>(
+			this._channel,
+			UniverseAgentGrpcServices.Agent.service,
+			UniverseAgentGrpcServices.Agent.CancelToolCall,
+		);
+		const wire = await unary({
+			session_id: request.sessionId,
+			agent_id: request.agentId?.trim() || 'root',
+			tool_call_id: request.toolCallId,
 		});
 		return {
 			ok: wire.success === true,
