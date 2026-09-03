@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-04
-summary: "合入槽 A/B/C onClosed 与槽 D engine-catalog 九节诚实回填"
+summary: "槽 B：D16 四份 conversation 进口界测改扫 src/，去掉 out/ 空扫假绿"
 ---
 
 # Development Progress
@@ -12,7 +12,7 @@ summary: "合入槽 A/B/C onClosed 与槽 D engine-catalog 九节诚实回填"
 ## Current Session
 
 - **槽 A / `loop/A`：** ff-merge `loop/merge` `bfaac2b0`（含槽 C `onClosed` 合同）后，`SessionViewHost.openStream` 把 `subscribeSessionEventStream` 的 remote/error `onClosed` 经 `postAndDrain` 折成 Actor `streamClosed`；Actor 再 `closeStream` 拆订阅。本地 linger dispose 不回调、不折 chrome。测：`sessionViewHostIntentOwner`。
-- **槽 B / `loop/B`：** 对齐 `loop/merge` `bfaac2b0` 后，把剩余 conversation / navigator / engine 与 grpc 测试桩的 `subscribeSessionEventStream` 补上第三参 `onClosed`（`UniverseAgentSessionStreamCloseCause`）。**未改**宿主接线。
+- **槽 B / `loop/B`：** ff-merge `loop/merge` `20f58df7` 后，D16 进口界空扫假绿：四份 `*ImportBoundaries.test.ts` 不再用 `__dirname` 扫 `out/` 的 `.ts`；共用 `conversationImportBoundaryScan` 走 `import.meta.url` → 仓根 `src/vs/workbench/contrib/conversation`，并断言 `>=80` 个生产文件。与槽 A 的 Chat `onClosed` 宿主接线文件不交。**未改** `sessionViewHost`。
 - **槽 C / `loop/C`：** ff-merge `loop/merge` `9688b303` 后，`SessionViewHost.openContinuation` 把 optional `openContinuationStream` 的 remote/error `onClosed` 接到句柄表：拆句柄并 warn，**不**折 Actor `streamClosed`（时间线仍走 SessionEventStream）。断连 / 再次 Continue 先本地 dispose。测：`sessionViewHostContinuationClose`。
 - **槽 D / `loop/D`：** ff-merge `loop/merge` `9688b303` 后，按 git 回填知识层 [engine-catalog](../../docs/systems/workbench/engine-catalog.md)：九节两栏 + 六态已是 HEAD，不是「M7 未实施 / Overview 无」。卫星句（glossary / workbench INDEX / protocol §7 / settings-ua-access）同步改口。PRD-025 仍 `accepted`。
 
@@ -22,7 +22,7 @@ summary: "合入槽 A/B/C onClosed 与槽 D engine-catalog 九节诚实回填"
 |----|------|------|------|
 | merge | `vscode-WorkTrees/merge` | `loop/merge` | 本会话：A+B + exhaustiveness 复绿 |
 | A | `vscode-WorkTrees/A` | `loop/A` | 宿主 `streamClosed` 折 remote/error |
-| B | `vscode-WorkTrees/B` | `loop/B` | 测试桩对齐 SessionEventStream `onClosed` |
+| B | `vscode-WorkTrees/B` | `loop/B` | D16 进口界测改扫 `src/` |
 | C | `vscode-WorkTrees/C` | `loop/C` | ContinueGeneration 宿主 `onClosed` |
 | D | `vscode-WorkTrees/D` | `loop/D` | engine-catalog 九节诚实回填 |
 | edit | `Projects/Agents/vscode` | `agent-ide` | 请自行对齐 |
