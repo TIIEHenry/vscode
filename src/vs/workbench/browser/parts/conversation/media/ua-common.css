@@ -8,7 +8,8 @@
  * Selectors must be `.monaco-workbench.hc-black` / `.monaco-workbench.hc-light`
  * (see workbench/browser/media/style.css:129), not a UA root class.
  *
- * Status tokens alias workbench colors. B/A attach `.ua-motion` on animated nodes.
+ * Status tokens alias workbench colors. Hang `.ua-motion` only on animated nodes
+ * (conversation chevrons today). Engine / Connection panes have none (D19(1)).
  */
 
 .monaco-workbench {
@@ -73,7 +74,7 @@
 	outline-offset: 1px;
 }
 
-/* B/A hang this class on shimmer / chevron / spin nodes. */
+/* Hang on shimmer / chevron / spin nodes only. Engine / Connection: none today. */
 .ua-motion {
 	/* marker */
 }

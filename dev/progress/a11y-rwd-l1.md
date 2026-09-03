@@ -4,7 +4,7 @@ type: progress
 status: in_progress
 phase: M7
 updated: 2026-09-04
-summary: "对照 accessibility-responsive-ui.md §9 逐项源码判定；THEME 与 Connection 窄宽仍 partial；GC-7 已把 Preferences 模态纳入 T1 HC 描边；不宣称 PRD-018 / 整份 a11y 完成"
+summary: "对照 accessibility-responsive-ui.md §9；D19(1) 改口 Engine/Connection 无动画节点；Connection 300px Back 仍 partial；不宣称 PRD-018 / 整份 a11y 完成"
 ---
 
 # A11y / RWD L1 源码复核
@@ -24,7 +24,7 @@ summary: "对照 accessibility-responsive-ui.md §9 逐项源码判定；THEME �
 | partial | 2 |
 | fail | 0 |
 
-partial 两项：Engine/Connection 300px（Connection 无左导航 Back）；高对比度 / reduced-motion（T1 公共文件已落，B 挂了部分 `.ua-motion`，A 未挂）。**GC-7（2026-09-04）：** D19(2) 原先成立——`ua-common.css` 只从 `conversationPart.ts` 引入且选择器只打 `.part.conversation` / `.part.sources`，Preferences 模态（`.preferences-editor`）无描边。已把 `ua-common.css` 挂到 `style.ts`（与 `productAccessibility.css` 同链），并给 `.preferences-editor` 补 focus/selected 描边；`productAccessibility.css` 同步加 Preferences 按钮 focus 加粗。未新开 D 项；D19 仍因 (1) `.ua-motion`、(3) Connection Back 保持 open。
+partial 两项：Engine/Connection 300px（Connection 无左导航 Back）；高对比度 / reduced-motion（T1 公共文件已落，B 挂了部分 `.ua-motion`；conversation 选择器级 `transition` 仍在）。**GC-7（2026-09-04）：** D19(2) 原先成立——`ua-common.css` 只从 `conversationPart.ts` 引入且选择器只打 `.part.conversation` / `.part.sources`，Preferences 模态（`.preferences-editor`）无描边。已把 `ua-common.css` 挂到 `style.ts`（与 `productAccessibility.css` 同链），并给 `.preferences-editor` 补 focus/selected 描边；`productAccessibility.css` 同步加 Preferences 按钮 focus 加粗。**D19(1)（2026-09-04）：** 方案改口「Engine / Connection 无动画节点」——两 pane CSS 无 `transition` / `animation` / `@keyframes`，文件头注明不挂空 `.ua-motion`。未新开 D 项；D19 仍因 (3) Connection Back 保持 open。
 
 ---
 
@@ -170,7 +170,7 @@ partial 两项：Engine/Connection 300px（Connection 无左导航 Back）；高
 
 **缺口：** 无默认 keybinding（合同未要求）。
 
-### 8. 高对比度与 reduced-motion 下状态仍可区分（T1 + B/A 挂 class）
+### 8. 高对比度与 reduced-motion 下状态仍可区分（T1 + B 挂 class；A 无动画节点）
 
 **Verdict:** partial
 
@@ -190,11 +190,11 @@ partial 两项：Engine/Connection 300px（Connection 无左导航 Back）；高
 
 **B 未完全交给 `.ua-motion`：** `conversationLens.css` 与 `conversationVisualize.css` 仍把 `transition: transform 0.15s` 绑在 `.conversation-process-fold-chevron` / `-tool-chevron` / `.conversation-visualize-chevron` 上。挂了 class 的节点会被 T1 关掉动画；未挂的动画节点不会。
 
-**A 未挂：** `contrib/conversation` 内 `.ua-motion` 仅上述 B 文件。Engine / Connection pane **零** `.ua-motion`。其 CSS 目前也无 `transition`/`animation`，故减动缺口是合同未完成，不是「现有 shimmer 仍在转」。
+**A / D19(1) 改口：** Engine / Connection pane CSS 无 `transition`/`animation`/`@keyframes`（`enginePreferencesPane.css` / `connectionPreferencesPane.css` 文件头已钉死）。不挂空 `.ua-motion`。减动对这两页是 no-op，不是漏关 shimmer。
 
 **HC 覆盖（GC-7 后）：** T1 描边选择器现含 `.preferences-editor`（Engine / Connection pane 宿主）。引入链：`workbench/browser/style.ts` → `productAccessibility.css` + `ua-common.css`（后者仍由 `conversationPart.ts` 再 import 一次）。未跑目视/axe（§10 / D17）。
 
-**仍缺：** A 未挂 `.ua-motion`；Connection 300px 无左导航 Back。见 [D19](deferred-gaps.md) (1)(3)。
+**仍缺：** Connection 300px 无左导航 Back（D19(3)）；conversation 选择器级 `transition` 仍部分未交给 `.ua-motion`（B，不并入 D19）。
 
 ---
 
@@ -206,6 +206,6 @@ partial 两项：Engine/Connection 300px（Connection 无左导航 Back）；高
 
 ## 不升格
 
-- 不改 `dev/plans/accessibility-responsive-ui.md` checkbox / status。
+- 已改 [accessibility-responsive-ui.md](../plans/accessibility-responsive-ui.md) §6/§9/T1 完成线以钉死 D19(1)；方案 `status` 仍 `accepted`（W1 / D19(3) 未完）。
 - 不把 PRD-018 / PRD-019 标为 `implemented`。
 - L1 本身是复核记录，不是整包 a11y 完成证明。

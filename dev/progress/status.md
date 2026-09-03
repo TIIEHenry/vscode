@@ -4,23 +4,22 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-04
-summary: "F1/F2+GC-1–7 合入 merge；知识层回填；D21/D22 入账；GC-7 Preferences HC；lease.post 等宿主结果"
+summary: "槽 A 快进 merge 后收口 D19(1)：Engine/Connection 无动画节点；D19(3) Connection Back 仍开"
 ---
 
 # Development Progress
 
 ## Current Session
 
-- **槽 A / `loop/A`：** `git merge --ff-only loop/merge` → **`d98d888a`**（`merge: GC-6 Overview Model row from slot A`）。
-- **merge 已含代码：** F1 `c37bbc6e`（`onDynamicDidApplyFrame` + 宿主首帧缓冲）· F2 `917a7f8d`（`postAndDrain`）· GC-1/1b `a551fdef` · GC-2/3 `f74e151f` · GC-4 `22ce3013` · GC-5 `2eb56cc4` · GC-6 `f583073b` / `d98d888a`。
-- **本 commit：** 知识层回填两份已签收方案（不发明产品行为）。`session-view-frame-fanout` / `m7-gap-closeout` → `implemented`。登记 **G-CORE-1**、会话面动态事件与配对/探测方法；stream-timeline 改口宿主 per-lease + 缓冲；Hub/Navigator/session-windows/Overview/traceability 对齐「代码已落」范围。**D21**（树首拉失败）· **D22**（F3 同窗共享 lease）。PRD-024 **仍** `proposed`（真 Hub 冒烟未做）。未跑 `npm run compile`。
+- **槽 A / `loop/A`：** `git merge --ff-only loop/merge` 已快进到当前 merge HEAD。
+- **本 commit：** **D19(1)** 方案改口：Engine / Connection pane 无 `transition`/`animation`，不挂空 `.ua-motion`（CSS 文件头 + `ua-common.css` 注释 + [accessibility-responsive-ui](../plans/accessibility-responsive-ui.md) §6/§9）。**未做 D19(3)**：Connection 无 Engine 式 nav list，§9「左导航可返回」对 Connection 合同不明，不发明 Back。未跑 `npm run compile`。
 
 ## 槽位（与 `git worktree list` 对照）
 
 | 槽 | 路径 | 分支 | 状态 |
 |----|------|------|------|
 | merge | `vscode-WorkTrees/merge` | `loop/merge` | 至少 `d98d888a` |
-| A | `vscode-WorkTrees/A` | `loop/A` | 本会话：docs 回填 |
+| A | `vscode-WorkTrees/A` | `loop/A` | 本会话：D19(1) |
 | B–D | `vscode-WorkTrees/{B–D}` | `loop/{B–D}` | 以各槽 `git` 为准 |
 | edit | `Projects/Agents/vscode` | `agent-ide` | 请自行对齐 |
 

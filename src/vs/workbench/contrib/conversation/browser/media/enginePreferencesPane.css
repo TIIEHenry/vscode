@@ -3,6 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+/*
+ * D19(1) / E2-7: this pane has no transition, animation, or @keyframes.
+ * Do not hang empty `.ua-motion` — reduced-motion is a no-op until a node animates.
+ */
+
 .monaco-workbench .engine-preferences-pane {
 	display: flex;
 	flex-direction: column;

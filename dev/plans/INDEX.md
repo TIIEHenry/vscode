@@ -27,7 +27,7 @@ summary: "dev/plans 导航：F1/F2 与 GC-1–GC-6 方案已 implemented；其�
 | [client-settings-completion.md](client-settings-completion.md) | `accepted` | CS-1–CS-6 **代码已落**（9 键 + 迁移 + 七组无 emptyCopy）；PRD-026 §6 产品验证未做 |
 | [conversation-ui-closeout.md](conversation-ui-closeout.md) | `accepted` | Q1–Q6 **代码已落**：Overview、DetailRef 六态、compacted、live fold、四 kind 停止洗白、键盘 ARIA、窄宽度；产品验证未做 |
 | [product-identity.md](product-identity.md) | `accepted` | I2–I5 / I3a / I3b **代码已落**；I6 Darwin/Appx 发行标识等发布方；D18 安装包未验 |
-| [accessibility-responsive-ui.md](accessibility-responsive-ui.md) | `accepted` | K1/K2/T1/L1 与 B/A 合同切片 **代码已落**；W1 Web 冒烟未跑；D19 残留 |
+| [accessibility-responsive-ui.md](accessibility-responsive-ui.md) | `accepted` | K1/K2/T1/L1 与 B/A 合同切片 **代码已落**；W1 Web 冒烟未跑；D19 仅剩 Connection 300px Back |
 | [conversation-stream-timeline.md](conversation-stream-timeline.md) | `accepted` | M6 时间线专章：**S1–S6 代码已落** @ `a64caf1c`–`5104678e`；**G2/G3** 上游缺口仍记 §6；PRD-008 未升 `implemented` |
 | [sources-changes-diff.md](sources-changes-diff.md) | `accepted` | PRD-009 / ADR-005：Changes 行 → Preview Diff；`ConversationDiffReviewInput` 只读审阅 tab；Panel Diff 视图重宿主；切片 F1–F5（用户免除规则 16） |
 | [connection-hub-client.md](connection-hub-client.md) | `accepted` | Hub Client 接入：**H0–H5 已落**；**GC-1b/2/3** 配对/设备动作/probe 已落；**H6** GUA 直连仍 v2；H4a 真 Hub 冒烟 / PRD-024 `implemented` 未签收 |
