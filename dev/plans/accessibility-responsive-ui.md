@@ -4,7 +4,7 @@ type: plan
 status: accepted
 phase: M7
 updated: 2026-09-04
-summary: "K1/K2/T1/L1 与 Q5b/Q6/E2-1/E2-7 代码已落；D19(1) 改口无动画节点；W1 未跑；D19(3) Connection Back 仍开；方案仍 accepted"
+summary: "K1/K2/T1/L1 与 Q5b/Q6/E2-1/E2-7 代码已落；D19 全收（含 (3) Connection 单栏滚动改口）；W1 未跑；方案仍 accepted"
 ---
 
 # 可访问性与响应式 UI 完成方案
@@ -52,7 +52,7 @@ C 对 B/A 实施的切片提供验收清单（§9）并复核，不直接改 B/A
 | 过程折 | button + `aria-expanded`；Enter/Space 切换 |
 | permission/question | 选项组可方向键移动；提交后焦点回记录，不跳到页面顶 |
 | Composer | Tab 进入工具栏；Enter 行为服从 `ua.client.keyboardEnter.behavior`；发送始终有键盘路径 |
-| Engine/Connection | 左导航与内容分区可跳转；列表选择不自动触发危险动作 |
+| Engine/Connection | Engine：左导航与内容分区可跳转；Connection：单栏分区表单可滚动（无左导航）；列表选择不自动触发危险动作 |
 | Diff/Review | 行打开、切换已审阅、全部标记已审阅有 command/键盘路径（K2 三命令；不造「宿主移动」） |
 
 ## 4. ARIA 与可读名称
@@ -81,6 +81,7 @@ C 对 B/A 实施的切片提供验收清单（§9）并复核，不直接改 B/A
 - 不用横向滚动隐藏主要 CTA。
 - SessionBar 标题可截断，但 Conversation/Trajectory tabs、同步态与 Back 仍可达。
 - Engine Preferences 在窄宽度切单栏并可返回（A 在 E2-7 实施）；不把九节继续纵向压成固定高度。
+- Connection Preferences 窄宽保持**单栏滚动**（无左导航 / 详情覆盖 / Back；产品形态本就是 Hub / Direct / Test 分区表单，不套 Engine nav 模式）；表单不溢出（A E2-7；D19(3) 改口）。
 - 轨迹 inspector 窄时覆盖表并带 Back；关闭后恢复原选中与滚动（B 在 Q6 实施）。
 - zoom 200% 下没有不可关闭的 overlay。
 
@@ -117,7 +118,7 @@ C 对 B/A 实施的切片提供验收清单（§9）并复核，不直接改 B/A
 - chat tabs 经 editor group 命令可切（组内最后一 tab 继续 `nextEditor` 会离开 Conversation 到下一 group，属 vscode 既有行为，不判 fail）；透镜 tablist 左右键可切；对话框 trap 根为 `overlay.element`、Tab wrap 与 Escape 顺序正确（B Q5b）。
 - 座位提交后焦点回记录（B Q5b）；Composer Tab 进入工具栏、两种 Enter 模式均可发送（B CS-2）。
 - Conversation 叶 300px：主输入、Back、透镜 tabs 可达；inspector 覆盖可返回；多叶时每叶独立判定（B Q6）。
-- Engine / Connection 300px：左导航可返回，表单不溢出（A E2-7）。
+- Engine 300px：左导航可返回，表单不溢出（A E2-7）。Connection 300px：单栏滚动（无左导航 / Back），表单不溢出（A E2-7；D19(3) 改口）。
 - Web：Connection / Engine 页无桌面连接控件（A E2-1）；Sources Review 三命令可键盘触发（C K2）。
 - 高对比度与 reduced-motion 下状态仍可区分（C T1 + B 对 conversation 动画节点挂 class；Engine / Connection 无动画节点，不挂空 `.ua-motion`）。
 
