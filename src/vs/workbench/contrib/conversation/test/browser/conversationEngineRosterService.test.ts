@@ -503,23 +503,6 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		assert.strictEqual(connection.forkCalls.length, 0);
 	});
 
-	test('disconnected after engine setSessionGoal skips unary', async () => {
-		const storage = store.add(new TestStorageService());
-		const connection = store.add(new MockUniverseAgentConnection());
-		connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
-		const service = store.add(createService(connection, storage));
-		connection.setConnected(true);
-		service.setEngineConnected(true);
-		await new Promise<void>(resolve => setTimeout(resolve, 0));
-		connection.setConnected(false);
-		service.setEngineConnected(false);
-
-		assert.strictEqual(service.setSessionGoal('ua-only', 'Cached goal'), false);
-		assert.strictEqual(service.cancelSessionGoal('ua-only'), false);
-		assert.strictEqual(service.getSessionGoal('ua-only'), undefined);
-		assert.strictEqual(connection.setGoalCalls.length, 0);
-		assert.strictEqual(connection.cancelGoalCalls.length, 0);
-	});
 
 	test('connected cancelToolCall forwards AgentService.CancelToolCall', async () => {
 		const storage = store.add(new TestStorageService());
@@ -582,6 +565,24 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 
 		assert.strictEqual(service.cancelToolCall('ua-only', { toolCallId: 'tc-1' }), false);
 		assert.strictEqual(connection.cancelToolCallCalls.length, 0);
+	});
+
+	test('disconnected after engine setSessionGoal skips unary', async () => {
+		const storage = store.add(new TestStorageService());
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
+		const service = store.add(createService(connection, storage));
+		connection.setConnected(true);
+		service.setEngineConnected(true);
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		connection.setConnected(false);
+		service.setEngineConnected(false);
+
+		assert.strictEqual(service.setSessionGoal('ua-only', 'Cached goal'), false);
+		assert.strictEqual(service.cancelSessionGoal('ua-only'), false);
+		assert.strictEqual(service.getSessionGoal('ua-only'), undefined);
+		assert.strictEqual(connection.setGoalCalls.length, 0);
+		assert.strictEqual(connection.cancelGoalCalls.length, 0);
 	});
 
 	test('disconnected after engine cancelGeneration skips unary', async () => {

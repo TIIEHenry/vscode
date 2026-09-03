@@ -27,6 +27,8 @@ import type {
 	UniverseAgentSetSessionGoalResult,
 	UniverseAgentCancelSessionGoalRequest,
 	UniverseAgentCancelSessionGoalResult,
+	UniverseAgentRespondPermissionRequest,
+	UniverseAgentRespondPermissionResult,
 	UniverseAgentEnqueueQueueItemRequest,
 	UniverseAgentEditQueueItemRequest,
 	UniverseAgentHoldQueueItemRequest,
@@ -1378,6 +1380,24 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 		);
 		const wire = await unary({
 			session_id: request.sessionId,
+		});
+		return {
+			ok: wire.success === true,
+			message: wire.error,
+		};
+	}
+
+	async respondPermission(request: UniverseAgentRespondPermissionRequest): Promise<UniverseAgentRespondPermissionResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, { success?: boolean; error?: string }>(
+			this._channel,
+			UniverseAgentGrpcServices.Permission.service,
+			UniverseAgentGrpcServices.Permission.Respond,
+		);
+		const wire = await unary({
+			session_id: request.sessionId,
+			request_id: request.requestId,
+			granted: request.granted === true,
+			metadata_json: request.metadataJson ?? '',
 		});
 		return {
 			ok: wire.success === true,

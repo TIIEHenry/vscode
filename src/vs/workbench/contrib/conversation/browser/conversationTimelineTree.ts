@@ -73,7 +73,7 @@ export interface IConversationTimelineTreeOptions {
 	readonly onDeleteTurn?: (turnId: string) => void;
 	readonly onEditUserTurn?: (turnId: string) => void;
 	readonly onViewInTrajectory?: (turnId: string) => void;
-	readonly onCancelToolCall?: (turnId: string, agentId?: string) => void;
+	readonly onCancelToolCall?: (turn: ConversationStubTurn) => void;
 	readonly onReviewNavClick?: (paths: readonly string[]) => void;
 	readonly onOpenVisualizeFullscreen?: (source: string, title?: string) => void;
 	readonly contentAdapter?: IConversationTurnContentAdapter;
@@ -147,7 +147,7 @@ class ConversationTimelineRenderer implements ITreeRenderer<ConversationTimeline
 		private readonly onDeleteTurn: ((turnId: string) => void) | undefined,
 		private readonly onEditUserTurn: ((turnId: string) => void) | undefined,
 		private readonly onViewInTrajectory: ((turnId: string) => void) | undefined,
-		private readonly onCancelToolCall: ((turnId: string, agentId?: string) => void) | undefined,
+		private readonly onCancelToolCall: ((turn: ConversationStubTurn) => void) | undefined,
 		private readonly onReviewNavClick: ((paths: readonly string[]) => void) | undefined,
 		private readonly getEditingTurnId: () => string | undefined,
 		private readonly onOpenVisualizeFullscreen: ((source: string, title?: string) => void) | undefined,
@@ -202,9 +202,7 @@ class ConversationTimelineRenderer implements ITreeRenderer<ConversationTimeline
 					}
 				},
 				onViewInTrajectory: this.onViewInTrajectory,
-				onCancelToolCall: this.onCancelToolCall
-					? (toolTurn) => this.onCancelToolCall!(toolTurn.id, toolTurn.agentId)
-					: undefined,
+				onCancelToolCall: this.onCancelToolCall,
 				onLayoutChange: () => this.scheduleHeightUpdate(item, templateData.container),
 			}, templateData.disposables);
 			this.scheduleHeightUpdate(item, templateData.container);

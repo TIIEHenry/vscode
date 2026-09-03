@@ -661,10 +661,7 @@ export class ConversationLens extends Disposable {
 			onDeleteTurn: turnId => this.deleteTurn(turnId),
 			onEditUserTurn: turnId => this.beginTurnEdit(turnId),
 			onViewInTrajectory: turnId => this.navigateToTrajectoryFromTurn(turnId),
-			onCancelToolCall: (turnId, agentId) => this.stubService.cancelToolCall(
-				this.stubService.getActiveSessionId(),
-				{ toolCallId: turnId, ...(agentId ? { agentId } : {}) },
-			),
+			onCancelToolCall: turn => this.cancelToolCall(turn),
 			onReviewNavClick: paths => {
 				void this.commandService.executeCommand(
 					SOURCES_REVIEW_SHOW_FOR_PATHS_COMMAND,
@@ -1770,6 +1767,18 @@ export class ConversationLens extends Disposable {
 
 	private deleteTurn(turnId: string): void {
 		this.stubService.deleteTurn(this.stubService.getActiveSessionId(), turnId);
+	}
+
+	private cancelToolCall(turn: { readonly id: string; readonly agentId?: string }): void {
+		const toolCallId = turn.id.trim();
+		if (!toolCallId) {
+			return;
+		}
+		const agentId = turn.agentId?.trim();
+		this.stubService.cancelToolCall(this.stubService.getActiveSessionId(), {
+			toolCallId,
+			...(agentId ? { agentId } : {}),
+		});
 	}
 
 	private resetInputHistoryBrowse(): void {

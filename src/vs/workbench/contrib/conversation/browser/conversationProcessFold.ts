@@ -14,7 +14,7 @@ import { ConversationStubTurn } from './conversationStubModel.js';
 import { ProcessFoldNode, ProcessFoldSpan, summarizeProcessSteps } from './conversationProcessFoldModel.js';
 
 export const conversationProcessFoldThinkingLabel = localize('conversationProcessFold.thinking', "Thinking");
-export const conversationProcessFoldToolCancel = localize('conversationProcessFold.toolCancel', "Cancel tool");
+export const conversationProcessFoldToolCancel = localize('conversationProcessFold.toolCancel', "Cancel Tool");
 
 function syncProcessFoldOuterAria(header: HTMLElement, summaryText: string, expanded: boolean): void {
 	header.setAttribute('aria-label', expanded
@@ -254,7 +254,7 @@ function renderToolRow(
 		header.setAttribute('aria-label', localize('conversationProcessFold.toolHeaderStatic', "Tool {0}, {1}", toolName, summary.textContent ?? ''));
 	}
 
-	appendProcessFoldToolCancel(header, turn, executing, options, disposables);
+	appendProcessFoldToolCancel(row, turn, executing, options, disposables);
 	appendProcessFoldTrajectoryJump(row, turn.id, options, disposables);
 
 	if (hasPayload) {
@@ -338,7 +338,7 @@ function appendProcessFoldToolCancel(
 	options: ProcessFoldDomOptions,
 	disposables: DisposableStore,
 ): void {
-	if (!executing || !options.onCancelToolCall) {
+	if (!executing || !options.onCancelToolCall || !turn.id.trim()) {
 		return;
 	}
 	const cancel = append(parent, $('button.conversation-process-fold-tool-cancel')) as HTMLButtonElement;

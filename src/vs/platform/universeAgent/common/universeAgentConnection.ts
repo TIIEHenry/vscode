@@ -29,6 +29,8 @@ import type {
 	UniverseAgentSetSessionGoalResult,
 	UniverseAgentCancelSessionGoalRequest,
 	UniverseAgentCancelSessionGoalResult,
+	UniverseAgentRespondPermissionRequest,
+	UniverseAgentRespondPermissionResult,
 	UniverseAgentEnqueueQueueItemRequest,
 	UniverseAgentEditQueueItemRequest,
 	UniverseAgentHoldQueueItemRequest,
@@ -193,6 +195,13 @@ export interface IUniverseAgentConnection {
 
 	/** PermissionService.CancelSessionGoal unary. Optional with `setSessionGoal`. */
 	cancelSessionGoal?(request: UniverseAgentCancelSessionGoalRequest): Promise<UniverseAgentCancelSessionGoalResult>;
+
+	/**
+	 * PermissionService.Respond unary (permission seat reply). Optional so Web /
+	 * tests can omit it. Transport only — roster still posts Chat-arm
+	 * `permissionRespond`; this unary is not forwarded yet.
+	 */
+	respondPermission?(request: UniverseAgentRespondPermissionRequest): Promise<UniverseAgentRespondPermissionResult>;
 
 	/** AgentService.EnqueueQueueItem. Transport only — roster Inbox queue stays fixture. */
 	enqueueQueueItem(request: UniverseAgentEnqueueQueueItemRequest): Promise<UniverseAgentQueueMutationResult>;
