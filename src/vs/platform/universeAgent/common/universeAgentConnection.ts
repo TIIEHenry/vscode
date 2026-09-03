@@ -155,10 +155,10 @@ export interface IUniverseAgentConnection {
 
 	deleteSession(request: UniverseAgentDeleteSessionRequest): Promise<void>;
 
-	/** AgentService.Rename unary. Roster still uses local `renameSession` until adapter wiring. */
+	/** AgentService.Rename unary. Engine roster forwards when connected. */
 	renameSession(request: UniverseAgentRenameSessionRequest): Promise<UniverseAgentRenameSessionResult>;
 
-	/** AgentService.Cancel unary. Inbox Stop still honest-degrades until adapter wiring. */
+	/** AgentService.Cancel unary. Engine roster + Inbox Stop forward when connected. */
 	cancelGeneration(request: UniverseAgentCancelGenerationRequest): Promise<UniverseAgentCancelGenerationResult>;
 
 	getHistory(request: UniverseAgentGetHistoryRequest): Promise<UniverseAgentGetHistoryResult>;

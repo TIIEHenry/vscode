@@ -3,8 +3,8 @@ title: "Conversation Composer、身份条与 Inbox"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-09-02
-summary: "PRD-015 系统规格：PreFirst 居中 / Active 列底同一张 Composer；三种 composerPolicy；身份条 XOR；Inbox 左右分簇与 MessageQueue 状态机；语音转写条；输入历史；StatusBar 芯片与诚实降级"
+updated: 2026-09-04
+summary: "PRD-015 系统规格：PreFirst 居中 / Active 列底同一张 Composer；三种 composerPolicy；身份条 XOR；Inbox 左右分簇与 MessageQueue 状态机；Stop 接通后转 AgentService.Cancel；语音转写条；输入历史；StatusBar 芯片与诚实降级"
 ---
 
 # Conversation Composer、身份条与 Inbox
@@ -47,7 +47,7 @@ summary: "PRD-015 系统规格：PreFirst 居中 / Active 列底同一张 Compos
 
 - 无权威时整槽省略或诚实空（「No queue」），不造假任务（PRD-007 / PRD-015 验收 5）。
 - Task 列表数据 = `getAutoDriveTasks` / `getAutoDriveTaskCount`（stub 期由 `setAutoDriveTaskFixture` 注入）。
-- Stop 与上下文环在引擎接通前无权威，按诚实降级处理。
+- Stop：未接通或时间线无 `streaming` 行时禁用（「Not generating」）。接通且有 streaming 行时启用，点击 `IConversationRosterService.cancelGeneration` → 引擎 `AgentService.Cancel`。上下文环在引擎接通前无权威，按诚实降级处理。
 
 ## 4. MessageQueue 状态机
 
@@ -93,4 +93,4 @@ summary: "PRD-015 系统规格：PreFirst 居中 / Active 列底同一张 Compos
 
 ## 9. 测试
 
-`conversationLens.test.ts`（T1–T6）、`conversationIdentityStrip.test.ts`、`conversationInputHistory.test.ts`、`conversationSessionStatus.test.ts`、`conversationSessionStatusBar.test.ts`、`conversationStubService.test.ts`（队列 / hold）。
+`conversationLens.test.ts`（T1–T6）、`conversationInboxOverlay.test.ts`（Stop 禁用 / 接通 streaming 转发）、`conversationIdentityStrip.test.ts`、`conversationInputHistory.test.ts`、`conversationSessionStatus.test.ts`、`conversationSessionStatusBar.test.ts`、`conversationStubService.test.ts`（队列 / hold / cancel no-op）、`conversationEngineRosterService.test.ts`（接通转发 Cancel）。

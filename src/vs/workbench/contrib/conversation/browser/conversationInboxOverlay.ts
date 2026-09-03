@@ -119,6 +119,7 @@ export class ConversationInboxOverlay extends Disposable {
 		this.stopButton.label = conversationLensDockStop;
 		this.stopButton.element.classList.add('conversation-lens-inbox-chip', 'conversation-lens-inbox-stop-button');
 		this.stopButton.setAriaLabel(`${conversationLensDockStop}, ${conversationLensDockStopNotGenerating}`);
+		this._register(this.stopButton.onDidClick(() => this.onStopClicked()));
 
 		this.render();
 	}
@@ -137,6 +138,7 @@ export class ConversationInboxOverlay extends Disposable {
 		this.renderQueueChip(queueState);
 		this.renderPending(pendingConfirmations);
 		this.renderSyncStatus(this.stubService.getSessionSync(sessionId));
+		this.renderStop(sessionId);
 
 		if (this.openPanel && this.listContextView) {
 			this.refreshOpenListPanel();
@@ -181,6 +183,29 @@ export class ConversationInboxOverlay extends Disposable {
 		this.queueChip.textContent = `${conversationLensDockInboxQueueLabel} · ${label}`;
 		this.queueChip.setAttribute('aria-label', `${conversationLensDockInboxQueueLabel}, ${label}`);
 		this.queueChip.setAttribute('aria-pressed', String(this.openPanel === 'queue'));
+	}
+
+	private isGenerating(sessionId: string): boolean {
+		return this.stubService.isEngineConnected() && this.stubService.getTurns(sessionId).some(turn => turn.streaming);
+	}
+
+	private renderStop(sessionId: string): void {
+		const generating = this.isGenerating(sessionId);
+		this.stopButton.enabled = generating;
+		if (generating) {
+			this.stopButton.setTitle(conversationLensDockStop);
+			this.stopButton.setAriaLabel(conversationLensDockStop);
+		} else {
+			this.stopButton.setTitle(conversationLensDockStopNotGenerating);
+			this.stopButton.setAriaLabel(`${conversationLensDockStop}, ${conversationLensDockStopNotGenerating}`);
+		}
+	}
+
+	private onStopClicked(): void {
+		const sessionId = this.stubService.getActiveSessionId();
+		if (this.isGenerating(sessionId)) {
+			this.stubService.cancelGeneration(sessionId);
+		}
 	}
 
 	private renderPending(pending: number): void {

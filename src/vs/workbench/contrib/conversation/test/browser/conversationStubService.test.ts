@@ -82,6 +82,11 @@ suite('ConversationStubService', () => {
 		assert.strictEqual(service.renameSession('missing', 'Nope'), false);
 	});
 
+	test('cancelGeneration stays local no-op without engine', () => {
+		const service = store.add(new ConversationStubService());
+		assert.strictEqual(service.cancelGeneration(service.getActiveSessionId(), 'root'), false);
+	});
+
 	test('deleteSession removes a non-active session without changing active', () => {
 		const service = store.add(new ConversationStubService());
 		const activeId = service.getActiveSessionId();
