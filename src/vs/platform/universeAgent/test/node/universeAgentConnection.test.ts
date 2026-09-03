@@ -47,6 +47,8 @@ import type {
 	UniverseAgentSendClientToolResponseResult,
 	UniverseAgentListSnapshotsRequest,
 	UniverseAgentListSnapshotsResult,
+	UniverseAgentCreateSnapshotRequest,
+	UniverseAgentCreateSnapshotResult,
 	UniverseAgentToolInfoRequest,
 	UniverseAgentToolInfoResult,
 	UniverseAgentGetHistoryRequest,
@@ -293,6 +295,14 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 	async listSnapshots(request: UniverseAgentListSnapshotsRequest): Promise<UniverseAgentListSnapshotsResult> {
 		this.listSnapshotsCalls.push(request);
 		return this.listSnapshotsResult;
+	}
+
+	readonly createSnapshotCalls: UniverseAgentCreateSnapshotRequest[] = [];
+	createSnapshotResult: UniverseAgentCreateSnapshotResult = { ok: true };
+
+	async createSnapshot(request: UniverseAgentCreateSnapshotRequest): Promise<UniverseAgentCreateSnapshotResult> {
+		this.createSnapshotCalls.push(request);
+		return this.createSnapshotResult;
 	}
 
 	async getHistory(_request: UniverseAgentGetHistoryRequest): Promise<UniverseAgentGetHistoryResult> {
@@ -639,6 +649,11 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
 	});
 
+	test('UniverseAgentGrpcServices lists Agent.CreateSnapshot', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.CreateSnapshot, 'CreateSnapshot');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+	});
+
 	test('renameSession forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
@@ -965,6 +980,66 @@ suite('UniverseAgentConnectionService', () => {
 		const empty = await service.listSnapshots({ sessionId: '' });
 		assert.deepStrictEqual(empty, { snapshots: [] });
 		assert.strictEqual(transport.listSnapshotsCalls[1]?.sessionId, '');
+		service.dispose();
+	});
+
+	test('createSnapshot forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.createSnapshotResult = {
+			ok: true,
+			snapshot: { id: 'snap-1', sessionId: 'sess-1', title: 'Before refactor', description: 'note' },
+		};
+		const result = await service.createSnapshot({
+			sessionId: 'sess-1',
+			title: 'Before refactor',
+			description: 'note',
+		});
+		assert.deepStrictEqual(transport.createSnapshotCalls, [{
+			sessionId: 'sess-1',
+			title: 'Before refactor',
+			description: 'note',
+		}]);
+		assert.deepStrictEqual(result, {
+			ok: true,
+			snapshot: { id: 'snap-1', sessionId: 'sess-1', title: 'Before refactor', description: 'note' },
+		});
+
+		transport.createSnapshotResult = { ok: false, message: 'denied' };
+		const failed = await service.createSnapshot({ sessionId: '', title: '' });
+		assert.deepStrictEqual(failed, { ok: false, message: 'denied' });
+		assert.strictEqual(transport.createSnapshotCalls[1]?.sessionId, '');
+		assert.strictEqual(transport.createSnapshotCalls[1]?.title, '');
+		service.dispose();
+	});
+
+	test('createSnapshot forwards turnCount snapshot and empty-title failure', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.createSnapshotResult = {
+			ok: true,
+			snapshot: { id: 'snap-1', sessionId: 'sess-1', title: 'Before refactor', turnCount: 3 },
+		};
+		const result = await service.createSnapshot({ sessionId: 'sess-1', title: 'Before refactor', description: 'checkpoint' });
+		assert.deepStrictEqual(transport.createSnapshotCalls, [{ sessionId: 'sess-1', title: 'Before refactor', description: 'checkpoint' }]);
+		assert.deepStrictEqual(result, {
+			ok: true,
+			snapshot: { id: 'snap-1', sessionId: 'sess-1', title: 'Before refactor', turnCount: 3 },
+		});
+
+		transport.createSnapshotResult = { ok: false, message: 'empty title' };
+		const failed = await service.createSnapshot({ sessionId: '', title: '' });
+		assert.deepStrictEqual(failed, { ok: false, message: 'empty title' });
+		assert.strictEqual(transport.createSnapshotCalls[1]?.sessionId, '');
+		assert.strictEqual(transport.createSnapshotCalls[1]?.title, '');
 		service.dispose();
 	});
 

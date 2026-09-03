@@ -53,6 +53,9 @@ import type {
 	UniverseAgentSendClientToolResponseResult,
 	UniverseAgentListSnapshotsRequest,
 	UniverseAgentListSnapshotsResult,
+	UniverseAgentCreateSnapshotRequest,
+	UniverseAgentCreateSnapshotResult,
+	UniverseAgentSessionSnapshotInfo,
 	UniverseAgentGetHistoryRequest,
 	UniverseAgentGetHistoryResult,
 	UniverseAgentListSessionsRequest,
@@ -187,6 +190,12 @@ interface SessionSnapshotInfoWire {
 
 interface ListSnapshotsResponseWire {
 	snapshots?: SessionSnapshotInfoWire[];
+}
+
+interface CreateSnapshotResponseWire {
+	success?: boolean;
+	snapshot?: SessionSnapshotInfoWire;
+	error_message?: string;
 }
 
 interface QueueMutationResponseWire {
@@ -438,19 +447,32 @@ function mapListSessionsResponse(wire: ListSessionsResponseWire): UniverseAgentL
 	};
 }
 
+function mapSessionSnapshotInfo(snapshot: SessionSnapshotInfoWire | undefined): UniverseAgentSessionSnapshotInfo {
+	return {
+		id: snapshot?.id ?? '',
+		sessionId: snapshot?.session_id ?? '',
+		title: snapshot?.title ?? '',
+		description: snapshot?.description,
+		createdAt: snapshot?.created_at,
+		turnCount: snapshot?.turn_count,
+		tokenCount: snapshot?.token_count,
+		modelId: snapshot?.model_id,
+		isAuto: snapshot?.is_auto,
+	};
+}
+
 function mapListSnapshotsResponse(wire: ListSnapshotsResponseWire): UniverseAgentListSnapshotsResult {
 	return {
-		snapshots: (wire.snapshots ?? []).map(snapshot => ({
-			id: snapshot.id ?? '',
-			sessionId: snapshot.session_id ?? '',
-			title: snapshot.title ?? '',
-			description: snapshot.description,
-			createdAt: snapshot.created_at,
-			turnCount: snapshot.turn_count,
-			tokenCount: snapshot.token_count,
-			modelId: snapshot.model_id,
-			isAuto: snapshot.is_auto,
-		})),
+		snapshots: (wire.snapshots ?? []).map(snapshot => mapSessionSnapshotInfo(snapshot)),
+	};
+}
+
+function mapCreateSnapshotResponse(wire: CreateSnapshotResponseWire): UniverseAgentCreateSnapshotResult {
+	const snapshot = wire.snapshot ? mapSessionSnapshotInfo(wire.snapshot) : undefined;
+	return {
+		ok: wire.success === true,
+		message: wire.error_message,
+		...(snapshot ? { snapshot } : {}),
 	};
 }
 
@@ -1661,6 +1683,20 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			session_id: request.sessionId,
 		});
 		return mapListSnapshotsResponse(wire);
+	}
+
+	async createSnapshot(request: UniverseAgentCreateSnapshotRequest): Promise<UniverseAgentCreateSnapshotResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, CreateSnapshotResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.Agent.service,
+			UniverseAgentGrpcServices.Agent.CreateSnapshot,
+		);
+		const wire = await unary({
+			session_id: request.sessionId,
+			title: request.title,
+			description: request.description ?? '',
+		});
+		return mapCreateSnapshotResponse(wire);
 	}
 
 	async getHistory(request: UniverseAgentGetHistoryRequest): Promise<UniverseAgentGetHistoryResult> {

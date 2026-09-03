@@ -51,6 +51,8 @@ import type {
 	UniverseAgentSendClientToolResponseResult,
 	UniverseAgentListSnapshotsRequest,
 	UniverseAgentListSnapshotsResult,
+	UniverseAgentCreateSnapshotRequest,
+	UniverseAgentCreateSnapshotResult,
 	UniverseAgentGetHistoryRequest,
 	UniverseAgentGetHistoryResult,
 	UniverseAgentListSessionsRequest,
@@ -287,6 +289,14 @@ export interface IUniverseAgentConnection {
 	 * History stays the turn index and does not list engine snapshots.
 	 */
 	listSnapshots?(request: UniverseAgentListSnapshotsRequest): Promise<UniverseAgentListSnapshotsResult>;
+
+	/**
+	 * AgentService.CreateSnapshot unary (persist a session checkpoint). Optional
+	 * so Web / tests can omit it. Catalog + node transport only this slice;
+	 * SessionBar History stays the turn index. Restore / Delete snapshot stay
+	 * out of catalog.
+	 */
+	createSnapshot?(request: UniverseAgentCreateSnapshotRequest): Promise<UniverseAgentCreateSnapshotResult>;
 
 	getHistory(request: UniverseAgentGetHistoryRequest): Promise<UniverseAgentGetHistoryResult>;
 
