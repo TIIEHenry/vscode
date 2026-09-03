@@ -103,6 +103,12 @@ suite('ConversationStubService', () => {
 		assert.strictEqual(service.forkSubAgent(service.getActiveSessionId()), false);
 	});
 
+	test('killSubAgent stays local no-op without engine', () => {
+		const service = store.add(new ConversationStubService());
+		assert.strictEqual(service.killSubAgent(service.getActiveSessionId(), { agentId: 'sub:a', force: true }), false);
+		assert.strictEqual(service.killSubAgent(service.getActiveSessionId()), false);
+	});
+
 	test('cancelToolCall stays local no-op without engine', () => {
 		const service = store.add(new ConversationStubService());
 		assert.strictEqual(service.cancelToolCall(service.getActiveSessionId(), { toolCallId: 'tc-1' }), false);

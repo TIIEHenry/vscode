@@ -14,7 +14,7 @@ import { ICommandService } from '../../../../platform/commands/common/commands.j
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { WorkbenchList } from '../../../../platform/list/browser/listService.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
-import type { UniverseAgentAgentProfileSummary, UniverseAgentToolSummary } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
+import type { UniverseAgentAgentProfileSummary, UniverseAgentToolInfoResult, UniverseAgentToolSummary } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { defaultButtonStyles, defaultCheckboxStyles } from '../../../../platform/theme/browser/defaultStyles.js';
 import {
 	type EngineCatalogPaneMode,
@@ -164,6 +164,7 @@ export class EngineToolsSection extends Disposable {
 	private readonly writeToolbar: HTMLElement;
 	private readonly saveButton: Button;
 	private readonly listContainer: HTMLElement;
+	private readonly infoHost: HTMLElement;
 	private readonly instantiationService: IInstantiationService;
 	private list: WorkbenchList<EngineToolListEntry> | undefined;
 
@@ -173,6 +174,8 @@ export class EngineToolsSection extends Disposable {
 	private activeProfile: UniverseAgentAgentProfileSummary | undefined;
 	private readonly pendingEnablement = new Map<string, boolean>();
 	private sectionActive = false;
+	private selectedToolName: string | undefined;
+	private infoLoadGeneration = 0;
 
 	constructor(
 		parent: HTMLElement,
@@ -210,6 +213,10 @@ export class EngineToolsSection extends Disposable {
 		this._register(this.saveButton.onDidClick(() => void this.savePendingEnablement()));
 
 		this.listContainer = DOM.append(this.container, $('.engine-catalog-list'));
+		this.infoHost = DOM.append(this.container, $('.engine-tools-info'));
+		this.infoHost.style.display = 'none';
+		this.infoHost.setAttribute('role', 'region');
+		this.infoHost.setAttribute('aria-label', localize('ua.engineToolsInfoRegion', "Tool details"));
 
 		this._register(this.connection.onDidChangeConnection(() => {
 			void this.refresh();
@@ -282,6 +289,30 @@ export class EngineToolsSection extends Disposable {
 
 	isSaveToolbarVisible(): boolean {
 		return this.writeToolbar.style.display !== 'none';
+	}
+
+	isToolInfoVisible(): boolean {
+		return this.infoHost.style.display !== 'none';
+	}
+
+	getToolInfoDetailText(): string | undefined {
+		if (!this.isToolInfoVisible()) {
+			return undefined;
+		}
+		return this.infoHost.textContent ?? undefined;
+	}
+
+	selectTool(toolName: string): boolean {
+		const name = toolName.trim();
+		if (!name || !this.list) {
+			return false;
+		}
+		const index = this.listEntries.findIndex(entry => entry.kind === 'tool' && entry.tool.name === name);
+		if (index < 0) {
+			return false;
+		}
+		this.list.setSelection([index]);
+		return true;
 	}
 
 	async savePendingEnablement(): Promise<boolean> {
@@ -411,6 +442,16 @@ export class EngineToolsSection extends Disposable {
 					accessibilityProvider: new EngineToolListAccessibilityProvider(),
 				},
 			)) as WorkbenchList<EngineToolListEntry>;
+			this._register(this.list.onDidChangeSelection(e => {
+				const entry = e.elements[0];
+				if (entry?.kind === 'tool') {
+					this.selectedToolName = entry.tool.name;
+					void this.loadToolInfo(entry.tool.name);
+				} else {
+					this.selectedToolName = undefined;
+					this.clearToolInfo();
+				}
+			}));
 		}
 		return this.list;
 	}
@@ -520,11 +561,70 @@ export class EngineToolsSection extends Disposable {
 		this.activeProfile = undefined;
 		this.profiles = [];
 		this.pendingEnablement.clear();
+		this.selectedToolName = undefined;
+		this.clearToolInfo();
 		this.status.hide();
 		this.listContainer.style.display = 'none';
 		this.profileSelect.style.display = 'none';
 		this.profileSelect.textContent = '';
 		this.updateSaveChrome();
+	}
+
+	private clearToolInfo(): void {
+		this.infoLoadGeneration++;
+		this.infoHost.textContent = '';
+		this.infoHost.style.display = 'none';
+	}
+
+	private async loadToolInfo(toolName: string): Promise<void> {
+		const name = toolName.trim();
+		if (!name || !this.connection.getToolInfo || !canShowCatalogRows(this.mode) || !this.connection.isEngineConnected()) {
+			this.clearToolInfo();
+			return;
+		}
+		const generation = ++this.infoLoadGeneration;
+		try {
+			const info = await this.connection.getToolInfo({ toolName: name });
+			if (generation !== this.infoLoadGeneration || this.selectedToolName !== toolName) {
+				return;
+			}
+			this.renderToolInfo(info);
+		} catch {
+			if (generation !== this.infoLoadGeneration || this.selectedToolName !== toolName) {
+				return;
+			}
+			this.infoHost.textContent = localize('ua.engineToolsInfoFailed', "Could not load tool details from the engine.");
+			this.infoHost.style.display = '';
+		}
+	}
+
+	private renderToolInfo(info: UniverseAgentToolInfoResult): void {
+		this.infoHost.textContent = '';
+		const title = DOM.append(this.infoHost, $('.engine-tools-info-name'));
+		title.textContent = info.name || this.selectedToolName || '';
+		if (info.description) {
+			DOM.append(this.infoHost, $('.engine-tools-info-description')).textContent = info.description;
+		}
+		const meta: string[] = [];
+		if (info.category) {
+			meta.push(info.category);
+		}
+		if (info.aliases.length) {
+			meta.push(localize('ua.engineToolsInfoAliases', "Aliases: {0}", info.aliases.join(', ')));
+		}
+		if (info.destructive) {
+			meta.push(localize('ua.engineToolsInfoDestructive', "Destructive"));
+		}
+		if (info.requiresPermission) {
+			meta.push(localize('ua.engineToolsInfoPermission', "Requires permission"));
+		}
+		if (info.inputSchemaJson?.trim()) {
+			meta.push(localize('ua.engineToolsInfoHasSchema', "Has input schema"));
+		}
+		if (meta.length) {
+			DOM.append(this.infoHost, $('.engine-tools-info-meta')).textContent = meta.join(' · ');
+		}
+		this.infoHost.style.display = '';
 	}
 
 	private setTools(tools: readonly UniverseAgentToolSummary[]): void {

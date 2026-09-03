@@ -111,6 +111,15 @@ class MockUniverseAgentConnection extends Disposable implements IUniverseAgentCo
 		});
 		return { ok: true, agentId: 'sub:reviewer' };
 	}
+	readonly killCalls: { sessionId: string; agentId: string; force?: boolean }[] = [];
+	async killAgent(request: { sessionId: string; agentId: string; force?: boolean }) {
+		this.killCalls.push({
+			sessionId: request.sessionId,
+			agentId: request.agentId,
+			force: request.force,
+		});
+		return { ok: true };
+	}
 	readonly cancelToolCallCalls: { sessionId: string; agentId?: string; toolCallId: string }[] = [];
 	async cancelToolCall(request: { sessionId: string; agentId?: string; toolCallId: string }) {
 		this.cancelToolCallCalls.push({
@@ -527,6 +536,40 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		assert.strictEqual(connection.forkCalls.length, 0);
 	});
 
+	test('connected killSubAgent forwards AgentService.Kill', async () => {
+		const storage = store.add(new TestStorageService());
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
+		const service = store.add(createService(connection, storage));
+		connection.setConnected(true);
+		service.setEngineConnected(true);
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+		assert.strictEqual(service.killSubAgent('ua-only', { agentId: '  sub:reviewer  ', force: true }), true);
+		assert.deepStrictEqual(connection.killCalls, [{
+			sessionId: 'ua-only',
+			agentId: 'sub:reviewer',
+			force: true,
+		}]);
+		assert.strictEqual(service.killSubAgent('ua-only'), true);
+		assert.strictEqual(connection.killCalls[1]?.agentId, '');
+		assert.strictEqual(connection.killCalls[1]?.force, undefined);
+		assert.strictEqual(service.killSubAgent('missing', { agentId: 'sub:a' }), false);
+		assert.strictEqual(connection.killCalls.length, 2);
+	});
+
+	test('connected killSubAgent does not default empty agent to root', async () => {
+		const storage = store.add(new TestStorageService());
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
+		const service = store.add(createService(connection, storage));
+		connection.setConnected(true);
+		service.setEngineConnected(true);
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+		assert.strictEqual(service.killSubAgent('ua-only'), true);
+		assert.strictEqual(connection.killCalls[0]?.agentId, '');
+	});
 
 	test('connected cancelToolCall forwards AgentService.CancelToolCall', async () => {
 		const storage = store.add(new TestStorageService());
@@ -589,6 +632,21 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 
 		assert.strictEqual(service.cancelToolCall('ua-only', { toolCallId: 'tc-1' }), false);
 		assert.strictEqual(connection.cancelToolCallCalls.length, 0);
+	});
+
+	test('disconnected after engine killSubAgent skips unary', async () => {
+		const storage = store.add(new TestStorageService());
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
+		const service = store.add(createService(connection, storage));
+		connection.setConnected(true);
+		service.setEngineConnected(true);
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		connection.setConnected(false);
+		service.setEngineConnected(false);
+
+		assert.strictEqual(service.killSubAgent('ua-only', { agentId: 'sub:reviewer' }), false);
+		assert.strictEqual(connection.killCalls.length, 0);
 	});
 
 	test('disconnected after engine setSessionGoal skips unary', async () => {
