@@ -267,6 +267,16 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		return super.deleteTurn(sessionId, turnId);
 	}
 
+	override updateUserTurnText(sessionId: string, turnId: string, text: string): boolean {
+		if (this.isEngineConnected()) {
+			return this.editEngineMessage(sessionId, turnId, text, true);
+		}
+		if (this.wasEverConnected) {
+			return this.editEngineMessage(sessionId, turnId, text, false);
+		}
+		return super.updateUserTurnText(sessionId, turnId, text);
+	}
+
 	override enqueueMessageQueueItem(sessionId: string, text: string, options?: { priority?: 'NORMAL' | 'HIGH' | 'LOW'; opId?: string }): boolean {
 		if (this.isEngineConnected()) {
 			return this.enqueueEngineQueueItem(sessionId, text, options, true);
@@ -669,6 +679,31 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 			itemId: id,
 			text: trimmed,
 		}));
+	}
+
+	private editEngineMessage(sessionId: string, turnId: string, text: string, callRemote: boolean): boolean {
+		const trimmedTurnId = turnId.trim();
+		const trimmedText = text.trim();
+		if (!trimmedTurnId || !trimmedText) {
+			return false;
+		}
+		if (!this.engineSessions.some(session => session.id === sessionId)) {
+			return false;
+		}
+		if (callRemote) {
+			if (!this.uaConnection.editMessage) {
+				return false;
+			}
+			const agentId = this.lastStreamingAgentId(sessionId) || 'root';
+			void this.uaConnection.editMessage({
+				sessionId,
+				turnId: trimmedTurnId,
+				newContent: trimmedText,
+				agentId,
+			});
+			return true;
+		}
+		return false;
 	}
 
 	private lastStreamingAgentId(sessionId: string): string | undefined {

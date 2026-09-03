@@ -39,6 +39,8 @@ import type {
 	UniverseAgentKillAgentResult,
 	UniverseAgentDeleteMessageRequest,
 	UniverseAgentDeleteMessageResult,
+	UniverseAgentEditMessageRequest,
+	UniverseAgentEditMessageResult,
 	UniverseAgentToolInfoRequest,
 	UniverseAgentToolInfoResult,
 	UniverseAgentGetHistoryRequest,
@@ -253,6 +255,14 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 	async deleteMessage(request: UniverseAgentDeleteMessageRequest): Promise<UniverseAgentDeleteMessageResult> {
 		this.deleteMessageCalls.push(request);
 		return this.deleteMessageResult;
+	}
+
+	readonly editMessageCalls: UniverseAgentEditMessageRequest[] = [];
+	editMessageResult: UniverseAgentEditMessageResult = { ok: true };
+
+	async editMessage(request: UniverseAgentEditMessageRequest): Promise<UniverseAgentEditMessageResult> {
+		this.editMessageCalls.push(request);
+		return this.editMessageResult;
 	}
 
 	async getHistory(_request: UniverseAgentGetHistoryRequest): Promise<UniverseAgentGetHistoryResult> {
@@ -578,6 +588,10 @@ suite('UniverseAgentConnectionService', () => {
 
 	test('UniverseAgentGrpcServices lists Agent.DeleteMessage', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.DeleteMessage, 'DeleteMessage');
+	});
+
+	test('UniverseAgentGrpcServices lists Agent.EditMessage', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.EditMessage, 'EditMessage');
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
 	});
 
@@ -798,6 +812,24 @@ suite('UniverseAgentConnectionService', () => {
 		const failed = await service.deleteMessage({ sessionId: 'sess-2', turnId: 'turn-2' });
 		assert.deepStrictEqual(failed, { ok: false, message: 'not found' });
 		assert.strictEqual(transport.deleteMessageCalls[1]?.turnId, 'turn-2');
+		service.dispose();
+	});
+
+	test('editMessage forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		const result = await service.editMessage({ sessionId: 'sess-1', turnId: 'turn-1', newContent: 'later', agentId: 'sub:a' });
+		assert.deepStrictEqual(transport.editMessageCalls, [{ sessionId: 'sess-1', turnId: 'turn-1', newContent: 'later', agentId: 'sub:a' }]);
+		assert.deepStrictEqual(result, { ok: true });
+
+		transport.editMessageResult = { ok: false, message: 'not found' };
+		const failed = await service.editMessage({ sessionId: 'sess-2', turnId: 'turn-2', newContent: 'nope' });
+		assert.deepStrictEqual(failed, { ok: false, message: 'not found' });
+		assert.strictEqual(transport.editMessageCalls[1]?.turnId, 'turn-2');
 		service.dispose();
 	});
 

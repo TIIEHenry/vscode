@@ -43,6 +43,8 @@ import type {
 	UniverseAgentKillAgentResult,
 	UniverseAgentDeleteMessageRequest,
 	UniverseAgentDeleteMessageResult,
+	UniverseAgentEditMessageRequest,
+	UniverseAgentEditMessageResult,
 	UniverseAgentGetHistoryRequest,
 	UniverseAgentGetHistoryResult,
 	UniverseAgentListSessionsRequest,
@@ -1518,6 +1520,25 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			message: wire.message,
 			...(currentTurnId ? { currentTurnId } : {}),
 			...(typeof wire.removed_turn_count === 'number' ? { removedTurnCount: wire.removed_turn_count } : {}),
+		};
+	}
+
+	async editMessage(request: UniverseAgentEditMessageRequest): Promise<UniverseAgentEditMessageResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, { success?: boolean; message?: string }>(
+			this._channel,
+			UniverseAgentGrpcServices.Agent.service,
+			UniverseAgentGrpcServices.Agent.EditMessage,
+		);
+		const wire = await unary({
+			session_id: request.sessionId,
+			turn_id: request.turnId,
+			new_content: request.newContent,
+			agent_id: request.agentId?.trim() || 'root',
+			operation_id: request.operationId ?? '',
+		});
+		return {
+			ok: wire.success === true,
+			message: wire.message,
 		};
 	}
 
