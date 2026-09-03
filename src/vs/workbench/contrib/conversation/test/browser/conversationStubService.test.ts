@@ -124,6 +124,14 @@ suite('ConversationStubService', () => {
 		assert.strictEqual(service.resolveConfirmation(sessionId, 'req-2', 'skipped'), true);
 	});
 
+	test('respondClientTool stays local without engine', () => {
+		const service = store.add(new ConversationStubService());
+		const sessionId = service.getActiveSessionId();
+		assert.strictEqual(service.respondClientTool(sessionId, '   ', { content: '{}' }), false);
+		assert.strictEqual(service.respondClientTool(sessionId, 'call-1', { content: '{"ok":true}' }), true);
+		assert.strictEqual(service.respondClientTool(sessionId, 'call-2', { isError: true }), true);
+	});
+
 	test('enqueueMessageQueueItem stays local no-op without engine', () => {
 		const service = store.add(new ConversationStubService());
 		assert.strictEqual(service.enqueueMessageQueueItem(service.getActiveSessionId(), 'later', { priority: 'HIGH' }), false);

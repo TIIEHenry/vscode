@@ -399,6 +399,16 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		return super.resolveConfirmation(sessionId, turnId, status);
 	}
 
+	override respondClientTool(sessionId: string, callId: string, options?: { content?: string; isError?: boolean; metadataJson?: string }): boolean {
+		if (this.isEngineConnected()) {
+			return this.sendEngineClientToolResponse(sessionId, callId, options, true);
+		}
+		if (this.wasEverConnected) {
+			return this.sendEngineClientToolResponse(sessionId, callId, options, false);
+		}
+		return super.respondClientTool(sessionId, callId, options);
+	}
+
 	override deleteSession(sessionId: string): boolean {
 		if (this.isEngineConnected()) {
 			return this.deleteEngineSession(sessionId, true);
@@ -547,6 +557,37 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 				sessionId,
 				agentId,
 				...(options?.force === true ? { force: true } : {}),
+			});
+			return true;
+		}
+		return false;
+	}
+
+	private sendEngineClientToolResponse(
+		sessionId: string,
+		callId: string,
+		options: { content?: string; isError?: boolean; metadataJson?: string } | undefined,
+		callRemote: boolean,
+	): boolean {
+		const trimmedCallId = callId.trim();
+		if (!trimmedCallId) {
+			return false;
+		}
+		if (!this.engineSessions.some(session => session.id === sessionId)) {
+			return false;
+		}
+		if (callRemote) {
+			if (!this.uaConnection.sendClientToolResponse) {
+				return false;
+			}
+			const content = options?.content;
+			const metadataJson = options?.metadataJson;
+			void this.uaConnection.sendClientToolResponse({
+				sessionId,
+				callId: trimmedCallId,
+				...(options?.isError === true ? { isError: true } : {}),
+				...(content !== undefined ? { content } : {}),
+				...(metadataJson !== undefined ? { metadataJson } : {}),
 			});
 			return true;
 		}

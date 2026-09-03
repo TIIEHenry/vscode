@@ -274,8 +274,9 @@ export interface IUniverseAgentConnection {
 
 	/**
 	 * AgentService.SendClientToolResponse unary (ADR-325 client-tool reply).
-	 * Optional so Web / tests can omit it. Catalog + node transport only this
-	 * slice; timeline / roster still post Chat-arm `clientToolRespond`.
+	 * Optional so Web / tests can omit it. ConversationEngineRosterService
+	 * `respondClientTool` forwards this when connected; empty `callId` /
+	 * disconnected / stub stay local Chat-arm `clientToolRespond` or no-op.
 	 */
 	sendClientToolResponse?(request: UniverseAgentSendClientToolResponseRequest): Promise<UniverseAgentSendClientToolResponseResult>;
 

@@ -157,6 +157,17 @@ class MockUniverseAgentConnection extends Disposable implements IUniverseAgentCo
 		});
 		return { ok: true };
 	}
+	readonly sendClientToolResponseCalls: { sessionId: string; callId: string; content?: string; isError?: boolean; metadataJson?: string }[] = [];
+	async sendClientToolResponse(request: { sessionId: string; callId: string; content?: string; isError?: boolean; metadataJson?: string }) {
+		this.sendClientToolResponseCalls.push({
+			sessionId: request.sessionId,
+			callId: request.callId,
+			content: request.content,
+			isError: request.isError,
+			metadataJson: request.metadataJson,
+		});
+		return { ok: true };
+	}
 	readonly enqueueCalls: { sessionId: string; text: string; priority?: string; opId?: string }[] = [];
 	async enqueueQueueItem(request: { sessionId: string; text: string; priority?: string; opId?: string }) {
 		this.enqueueCalls.push({
@@ -777,6 +788,54 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		(connection as { respondPermission?: unknown }).respondPermission = undefined;
 		assert.strictEqual(service.resolveConfirmation('ua-only', 'req-4', 'allowed'), false);
 		assert.strictEqual(connection.respondPermissionCalls.length, 2);
+	});
+
+	test('connected respondClientTool forwards AgentService.SendClientToolResponse', async () => {
+		const storage = store.add(new TestStorageService());
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
+		const service = store.add(createService(connection, storage));
+		connection.setConnected(true);
+		service.setEngineConnected(true);
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+		assert.strictEqual(service.respondClientTool('ua-only', '  call-1  ', { content: '{"ok":true}', isError: false }), true);
+		assert.deepStrictEqual(connection.sendClientToolResponseCalls, [{
+			sessionId: 'ua-only',
+			callId: 'call-1',
+			content: '{"ok":true}',
+			isError: undefined,
+			metadataJson: undefined,
+		}]);
+		assert.strictEqual(service.respondClientTool('ua-only', 'call-2', { content: 'boom', isError: true, metadataJson: '{"src":"ide"}' }), true);
+		assert.deepStrictEqual(connection.sendClientToolResponseCalls[1], {
+			sessionId: 'ua-only',
+			callId: 'call-2',
+			content: 'boom',
+			isError: true,
+			metadataJson: '{"src":"ide"}',
+		});
+		assert.strictEqual(service.respondClientTool('ua-only', '   ', { content: 'Nope' }), false);
+		assert.strictEqual(service.respondClientTool('missing', 'call-3', { content: 'Nope' }), false);
+		assert.strictEqual(connection.sendClientToolResponseCalls.length, 2);
+		(connection as { sendClientToolResponse?: unknown }).sendClientToolResponse = undefined;
+		assert.strictEqual(service.respondClientTool('ua-only', 'call-4', { content: 'Nope' }), false);
+		assert.strictEqual(connection.sendClientToolResponseCalls.length, 2);
+	});
+
+	test('disconnected after engine respondClientTool skips unary', async () => {
+		const storage = store.add(new TestStorageService());
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
+		const service = store.add(createService(connection, storage));
+		connection.setConnected(true);
+		service.setEngineConnected(true);
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		connection.setConnected(false);
+		service.setEngineConnected(false);
+
+		assert.strictEqual(service.respondClientTool('ua-only', 'call-1', { content: '{}' }), false);
+		assert.strictEqual(connection.sendClientToolResponseCalls.length, 0);
 	});
 
 	test('disconnected after engine resolveConfirmation skips unary', async () => {

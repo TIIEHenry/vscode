@@ -103,6 +103,14 @@ export interface IConversationRosterService {
 	 * `permissionRespond`.
 	 */
 	resolveConfirmation(sessionId: string, turnId: string, status: 'allowed' | 'skipped'): boolean;
+	/**
+	 * AgentService.SendClientToolResponse (client-tool seat; ≠ Chat-arm
+	 * `clientToolRespond`). Engine-connected forwards unary. Empty `callId` /
+	 * unknown session / disconnected cache / missing hook returns false and
+	 * does not post Chat-arm. Stub / never-connected still writes local
+	 * `clientToolRespond`.
+	 */
+	respondClientTool(sessionId: string, callId: string, options?: { content?: string; isError?: boolean; metadataJson?: string }): boolean;
 	deleteSession(sessionId: string): boolean;
 	/**
 	 * AgentService.DeleteMessage (turn + subtree; ≠ session Delete).
@@ -447,6 +455,19 @@ export class ConversationStubService extends Disposable implements IConversation
 			kind: 'permissionRespond',
 			requestId,
 			decision: status === 'allowed' ? 'allow' : 'deny',
+		});
+		return true;
+	}
+
+	respondClientTool(sessionId: string, callId: string, options?: { content?: string; isError?: boolean; metadataJson?: string }): boolean {
+		const requestId = callId.trim();
+		if (!requestId) {
+			return false;
+		}
+		this.frameSource.write(sessionId, {
+			kind: 'clientToolRespond',
+			requestId,
+			resultJson: options?.content ?? '',
 		});
 		return true;
 	}

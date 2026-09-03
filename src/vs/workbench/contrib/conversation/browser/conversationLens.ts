@@ -1828,6 +1828,16 @@ export class ConversationLens extends Disposable {
 	}
 
 	private postBound(msg: ConversationWriteMessage): Promise<PostOutcome> {
+		if (msg.kind === 'clientToolRespond' && this.stubService.isEngineConnected()) {
+			const forwarded = this.stubService.respondClientTool(
+				this.stubService.getActiveSessionId(),
+				msg.requestId,
+				{ content: msg.resultJson },
+			);
+			return Promise.resolve(forwarded
+				? { accepted: true, correlation: { id: `clientTool:${msg.requestId}` } }
+				: { accepted: false, reason: 'no_such_session' });
+		}
 		const lease = this.sessionViewLease;
 		if (!lease) {
 			return Promise.resolve({ accepted: false, reason: 'no_such_session' });
