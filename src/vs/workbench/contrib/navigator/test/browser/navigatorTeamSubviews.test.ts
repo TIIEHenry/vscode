@@ -121,10 +121,12 @@ suite('Navigator Team subviews', () => {
 		assert.strictEqual(membersEmpty?.textContent, TEAM_MEMBERS_EMPTY_COPY);
 		assert.ok(!membersEmpty?.textContent?.match(/copilot/i));
 		assert.ok(!membersEmpty?.textContent?.match(/not connected/i));
+		assert.ok(!membersEmpty?.textContent?.includes('no engine'), 'Team keeps HEAD "No team members yet"; Agents owns the "— no engine" copy');
 
 		const tasksEmpty = view.element.querySelector('.navigator-team-subview:not(.active) .navigator-stub-empty');
 		assert.ok(tasksEmpty);
 		assert.strictEqual(tasksEmpty?.textContent, TEAM_TASKS_EMPTY_COPY);
+		assert.ok(!tasksEmpty?.textContent?.includes('no engine'));
 	});
 
 	test('showTasks reveals Tasks empty list', () => {
@@ -140,6 +142,7 @@ suite('Navigator Team subviews', () => {
 		const tasksEmpty = activeSubview?.querySelector('.navigator-stub-empty');
 		assert.ok(tasksEmpty);
 		assert.strictEqual(tasksEmpty?.textContent, TEAM_TASKS_EMPTY_COPY);
+		assert.ok(!tasksEmpty?.textContent?.includes('no engine'));
 		assert.ok(!tasksEmpty?.textContent?.match(/copilot/i));
 		assert.ok(!tasksEmpty?.textContent?.match(/open chat/i));
 		assert.ok(!/\(command:/.test(tasksEmpty?.textContent ?? ''));
