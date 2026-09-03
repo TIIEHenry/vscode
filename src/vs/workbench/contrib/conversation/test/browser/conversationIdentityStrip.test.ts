@@ -23,6 +23,7 @@ import { IConversationTimelineRevealService } from '../../browser/conversationTi
 import { IConversationReviewNavService } from '../../common/conversationReviewEntry.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { ConversationLens } from '../../browser/conversationLens.js';
+import { ConversationTimelineTree } from '../../browser/conversationTimelineTree.js';
 import {
 	conversationIdentityBranchChipClass,
 	conversationIdentityEngineChipClass,
@@ -47,6 +48,53 @@ const LENS_LAYOUT_HEIGHT = 480;
 suite('ConversationIdentityStrip', () => {
 
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
+
+	function ignoreResizeObserverLoop(event: ErrorEvent): void {
+		if (event.message.includes('ResizeObserver loop')) {
+			event.preventDefault();
+		}
+	}
+
+	suiteSetup(() => {
+		window.addEventListener('error', ignoreResizeObserverLoop);
+	});
+
+	suiteTeardown(() => {
+		window.removeEventListener('error', ignoreResizeObserverLoop);
+	});
+
+	async function flushLensLayout(): Promise<void> {
+		await new Promise<void>(resolve => setTimeout(resolve, 20));
+		await new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+	}
+
+	teardown(async () => {
+		await flushLensLayout();
+	});
+
+	function layoutReadingColumn(lens: ConversationLens, slots: IConversationLensSlots): void {
+		const readingColumn = slots.timeline.querySelector('.conversation-lens-reading-column') as HTMLElement | null;
+		const timelineScroll = slots.timeline.querySelector('.conversation-lens-timeline-scroll') as HTMLElement | null;
+		const contentHost = slots.timeline.querySelector('.conversation-lens-timeline-content') as HTMLElement | null;
+		const treeContainer = slots.timeline.querySelector('.conversation-timeline-tree') as HTMLElement | null;
+		if (readingColumn) {
+			readingColumn.style.width = `${LENS_LAYOUT_WIDTH}px`;
+			readingColumn.style.height = `${LENS_LAYOUT_HEIGHT}px`;
+		}
+		if (timelineScroll) {
+			timelineScroll.style.height = `${LENS_LAYOUT_HEIGHT - 120}px`;
+			timelineScroll.style.minHeight = `${LENS_LAYOUT_HEIGHT - 120}px`;
+		}
+		if (contentHost) {
+			contentHost.style.display = '';
+			contentHost.style.minHeight = `${LENS_LAYOUT_HEIGHT - 120}px`;
+		}
+		if (treeContainer) {
+			treeContainer.style.height = `${LENS_LAYOUT_HEIGHT - 120}px`;
+		}
+		const timelineTree = (lens as unknown as { timelineTree: ConversationTimelineTree }).timelineTree;
+		timelineTree.layout(LENS_LAYOUT_HEIGHT - 120, LENS_LAYOUT_WIDTH);
+	}
 
 	function createConnectionStub(overrides: Partial<IUniverseAgentConnection> = {}): IUniverseAgentConnection {
 		return createConversationConnectionTestStub(overrides);
@@ -101,7 +149,7 @@ suite('ConversationIdentityStrip', () => {
 		commandService?: ICommandService;
 		stubService?: ConversationStubService;
 		connectionOverrides?: Partial<IUniverseAgentConnection>;
-	}): { part: ConversationPart; slots: IConversationLensSlots; commandService: ICommandService; stubService: ConversationStubService } {
+	}): { part: ConversationPart; slots: IConversationLensSlots; commandService: ICommandService; stubService: ConversationStubService; lens: ConversationLens } {
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		const storageService = store.add(new TestStorageService());
 		instantiationService.stub(IStorageService, storageService);
@@ -165,9 +213,10 @@ suite('ConversationIdentityStrip', () => {
 		parent.appendChild(slots.timeline);
 		parent.appendChild(slots.dock);
 		part.layout(LENS_LAYOUT_WIDTH, LENS_LAYOUT_HEIGHT, 0, 0);
-		store.add(instantiationService.createInstance(ConversationLens, slots));
+		const lens = store.add(instantiationService.createInstance(ConversationLens, slots));
+		layoutReadingColumn(lens, slots);
 
-		return { part, slots, commandService, stubService };
+		return { part, slots, commandService, stubService, lens };
 	}
 
 	function getReadingColumn(slots: IConversationLensSlots): HTMLElement {
@@ -193,68 +242,10 @@ suite('ConversationIdentityStrip', () => {
 	});
 
 	test('PreFirst: identity strip mounts in prefirst hero above composer, not at column top', () => {
-		const instantiationService = workbenchInstantiationService(undefined, store);
-		const storageService = store.add(new TestStorageService());
-		instantiationService.stub(IStorageService, storageService);
-		const stubService = store.add(new ConversationStubService());
-		const clipboardService = new TestClipboardService();
-		const commandService = new class implements ICommandService {
-			declare readonly _serviceBrand: undefined;
-			readonly executed: string[] = [];
-			onWillExecuteCommand = Event.None;
-			onDidExecuteCommand = Event.None;
-			executeCommand<T>(id: string): Promise<T | undefined> {
-				this.executed.push(id);
-				return Promise.resolve(undefined);
-			}
-		}();
-		instantiationService.stub(IConversationRosterService, stubService);
-		instantiationService.stub(IUniverseAgentConnection, createConnectionStub());
-		instantiationService.stub(IConversationTimelineRevealService, {
-			_serviceBrand: undefined,
-			registerLens: () => ({ dispose: () => { } }),
-			revealItem: () => { },
-			getAccessibleTurnContent: () => undefined,
-			focusAccessibleTurn: () => { },
-			scrollToFirstPendingConfirmation: () => { },
-		});
-		instantiationService.stub(IConversationReviewNavService, {
-			_serviceBrand: undefined,
-			onDidChange: Event.None,
-			getReviewNavForSession: () => [],
-		});
-		instantiationService.stub(IClipboardService, clipboardService);
-		instantiationService.stub(ICommandService, commandService);
-		instantiationService.stub(IExplorerService, {
-			_serviceBrand: undefined,
-			select: async () => { },
-		} as unknown as IExplorerService);
-		instantiationService.stub(ISCMService, createEmptyScmService());
-
-		const part = store.add(instantiationService.createInstance(ConversationPart));
-		const parent = document.createElement('div');
-		parent.classList.add('monaco-workbench');
-		parent.style.width = `${LENS_LAYOUT_WIDTH}px`;
-		parent.style.height = `${LENS_LAYOUT_HEIGHT}px`;
-		document.body.appendChild(parent);
-		store.add(toDisposable(() => parent.remove()));
-		part.create(parent);
-		const partSlots = part.getSlots();
-		assert.ok(partSlots);
-		const slots: IConversationLensSlots = {
-			sessionBar: partSlots.sessionBar,
-			timeline: document.createElement('div'),
-			dock: document.createElement('div'),
-		};
-		slots.timeline.classList.add('conversation-timeline', 'part', 'conversation');
-		slots.dock.classList.add('conversation-dock');
-		parent.appendChild(slots.timeline);
-		parent.appendChild(slots.dock);
-		part.layout(LENS_LAYOUT_WIDTH, LENS_LAYOUT_HEIGHT, 0, 0);
-		store.add(instantiationService.createInstance(ConversationLens, slots));
-
+		const { slots, stubService, lens } = mountLens();
 		const emptySessionId = stubService.createSession();
 		assert.strictEqual(stubService.getTurns(emptySessionId).length, 0);
+		layoutReadingColumn(lens, slots);
 
 		const readingColumn = getReadingColumn(slots);
 		const prefirstHero = readingColumn.querySelector(`.${conversationLensPrefirstHeroClass}`) as HTMLElement | null;
