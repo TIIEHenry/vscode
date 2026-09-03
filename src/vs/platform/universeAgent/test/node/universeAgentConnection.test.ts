@@ -17,6 +17,8 @@ import type {
 	UniverseAgentDeleteSessionRequest,
 	UniverseAgentRenameSessionRequest,
 	UniverseAgentRenameSessionResult,
+	UniverseAgentCancelGenerationRequest,
+	UniverseAgentCancelGenerationResult,
 	UniverseAgentGetHistoryRequest,
 	UniverseAgentGetHistoryResult,
 	UniverseAgentListSessionsRequest,
@@ -121,6 +123,14 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 	async renameSession(request: UniverseAgentRenameSessionRequest): Promise<UniverseAgentRenameSessionResult> {
 		this.renameCalls.push(request);
 		return this.renameResult;
+	}
+
+	readonly cancelCalls: UniverseAgentCancelGenerationRequest[] = [];
+	cancelResult: UniverseAgentCancelGenerationResult = { ok: true };
+
+	async cancelGeneration(request: UniverseAgentCancelGenerationRequest): Promise<UniverseAgentCancelGenerationResult> {
+		this.cancelCalls.push(request);
+		return this.cancelResult;
 	}
 
 	async getHistory(_request: UniverseAgentGetHistoryRequest): Promise<UniverseAgentGetHistoryResult> {
@@ -381,6 +391,11 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
 	});
 
+	test('UniverseAgentGrpcServices lists Agent.Cancel', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.Cancel, 'Cancel');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+	});
+
 	test('renameSession forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
@@ -396,6 +411,24 @@ suite('UniverseAgentConnectionService', () => {
 		const failed = await service.renameSession({ sessionId: 'sess-1', title: '' });
 		assert.deepStrictEqual(failed, { ok: false, message: 'not found' });
 		assert.strictEqual(transport.renameCalls[1]?.title, '');
+		service.dispose();
+	});
+
+	test('cancelGeneration forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		const result = await service.cancelGeneration({ sessionId: 'sess-1', agentId: 'root' });
+		assert.deepStrictEqual(transport.cancelCalls, [{ sessionId: 'sess-1', agentId: 'root' }]);
+		assert.deepStrictEqual(result, { ok: true });
+
+		transport.cancelResult = { ok: false, message: 'not running' };
+		const failed = await service.cancelGeneration({ sessionId: 'sess-1', agentId: 'sub:a' });
+		assert.deepStrictEqual(failed, { ok: false, message: 'not running' });
+		assert.strictEqual(transport.cancelCalls[1]?.agentId, 'sub:a');
 		service.dispose();
 	});
 

@@ -77,6 +77,7 @@ class MockUniverseAgentConnection extends Disposable implements IUniverseAgentCo
 	async createSession() { return { sessionId: 'ua-new' }; }
 	async deleteSession() { }
 	async renameSession() { return { ok: false, message: 'stub' }; }
+	async cancelGeneration() { return { ok: false, message: 'stub' }; }
 	async getHistory() { return { envelopes: [] }; }
 	subscribeSessionEventStream(
 		_sessionId: string,

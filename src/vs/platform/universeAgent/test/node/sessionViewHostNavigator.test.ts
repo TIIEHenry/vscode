@@ -73,6 +73,7 @@ class TestConnection implements IUniverseAgentConnection {
 	async createSession() { return { sessionId: 's' }; }
 	async deleteSession() { }
 	async renameSession() { return { ok: false, message: 'test' }; }
+	async cancelGeneration() { return { ok: false, message: 'test' }; }
 	async getHistory() { return { envelopes: [] }; }
 	subscribeSessionEventStream(
 		sessionId: string,
