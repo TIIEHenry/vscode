@@ -4,7 +4,7 @@ type: reference
 status: accepted
 phase: N/A
 updated: 2026-09-04
-summary: "九节两栏 @ HEAD：Overview / Provider & Model / Skills / Agents / Rules / Hooks / MCP / Plugins / Tools；六态；GC-6 Model 摘要已落；Overview Provider 行 G-ENG-1 前省略；PRD-025 待产品验证"
+summary: "九节两栏 @ HEAD：Overview / Provider & Model / Skills / Agents / Rules / Hooks / MCP / Plugins / Tools；六态；GC-6 Model 摘要已落；Overview Provider 行 G-ENG-1 前省略；Tools 选中行读 ToolInfo 只读详情；PRD-025 待产品验证"
 ---
 
 # Engine 页 Customizations catalog（`ua.engine`）
@@ -60,7 +60,7 @@ summary: "九节两栏 @ HEAD：Overview / Provider & Model / Skills / Agents / 
 | **Hooks** | **无** metadata RPC | `EngineHooksSection`：Definitions / Hook points 壳；已连接一律 unsupported | 不抄 `points.md`、不读 `{AgentHome}/hooks.json` |
 | **MCP Servers** | 定义：`List` / `Toggle` / `Add` / `Update` / `Remove`。运行态：`getMcpServerStatuses` / `getMcpServerTools` | Definitions tab + Runtime tab | 定义 CRUD @ `f49615a1`；Runtime @ E2-4 / P1a。不混 vscode `IMcpService` |
 | **Plugins** | `listPlugins` · `enablePlugin` · `reloadPlugin` · `unloadPlugin` · `scanNewPlugins` | `EnginePluginsSection`：列表 + 启停/重载/扫描（方法存在且 `canWrite` 才画） | P1a 真探测；**无** Browse Marketplace |
-| **Tools** | `ListTools` · `SaveAgentProfile`（`tools.json`）。`ToolInfo` 已进 catalog + node unary，**页上仍 list-only** | 目录 + profile 下拉 + 启用 checkbox | profile 启用集 @ `7f10e65c` / `f49615a1`；不画 schema 编辑器 |
+| **Tools** | `ListTools` · `SaveAgentProfile`（`tools.json`）。`ToolInfo` 已进 catalog + node unary；**选中行**在 `getToolInfo?` 存在时拉只读详情 | 目录 + profile 下拉 + 启用 checkbox + 只读详情（aliases / 标志 / description；有 schema 只提示不可编） | profile 启用集 @ `7f10e65c` / `f49615a1`；无 hook 仍 list-only；不画 schema 编辑器 |
 
 单测：`engineCatalogSections.test.ts` · `engineOverviewSection.test.ts` · `enginePreferencesPane.test.ts` · `engineSkillsSection.test.ts` · `engineAgentAgentsMd.test.ts` · `engineToolProfile.test.ts`。
 

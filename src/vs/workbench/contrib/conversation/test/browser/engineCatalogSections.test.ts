@@ -14,6 +14,8 @@ import type {
 	UniverseAgentListAgentProfilesResult,
 	UniverseAgentListMcpServersResult,
 	UniverseAgentListToolsResult,
+	UniverseAgentToolInfoRequest,
+	UniverseAgentToolInfoResult,
 	UniverseAgentSaveAgentProfileRequest,
 	UniverseAgentSaveAgentProfileResult,
 	UniverseAgentDeleteAgentProfileRequest,
@@ -45,6 +47,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		listAgentProfiles?: () => Promise<UniverseAgentListAgentProfilesResult>;
 		listMcpServers?: () => Promise<UniverseAgentListMcpServersResult>;
 		listTools?: () => Promise<UniverseAgentListToolsResult>;
+		getToolInfo?: (request: UniverseAgentToolInfoRequest) => Promise<UniverseAgentToolInfoResult>;
 		saveAgentProfile?: (request: UniverseAgentSaveAgentProfileRequest) => Promise<UniverseAgentSaveAgentProfileResult>;
 		deleteAgentProfile?: (request: UniverseAgentDeleteAgentProfileRequest) => Promise<{ ok: boolean }>;
 		resetAgentProfile?: (request: UniverseAgentResetAgentProfileRequest) => Promise<{ ok: boolean }>;
@@ -135,6 +138,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 			updateMcpServer: options.updateMcpServer ?? (async () => ({ ok: true })),
 			removeMcpServer: options.removeMcpServer ?? (async () => ({ ok: true })),
 			listTools: options.listTools ?? (async () => ({ tools: [] })),
+			getToolInfo: options.getToolInfo,
 			listModels: async () => ({ models: [] }),
 			setConnected(value: boolean) {
 				connected = value;
@@ -403,5 +407,76 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		const ok = await section.toggleTool({ name: 'read_file' }, false);
 		assert.strictEqual(saveCalled, false);
 		assert.strictEqual(ok, false);
+	});
+
+	test('Tools: selecting a row calls getToolInfo and shows read-only detail', async () => {
+		const toolInfoCalls: string[] = [];
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { tools: { support: 'SUPPORTED' } },
+			listTools: async () => ({
+				tools: [{ name: 'bash', description: 'list copy', category: 'shell' }],
+			}),
+			getToolInfo: async (request) => {
+				toolInfoCalls.push(request.toolName);
+				return {
+					name: 'bash',
+					description: 'Run a command',
+					category: 'shell',
+					inputSchemaJson: '{"type":"object"}',
+					destructive: true,
+					requiresPermission: true,
+					aliases: ['sh'],
+				};
+			},
+		});
+		const parent = document.createElement('div');
+		document.body.appendChild(parent);
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IUniverseAgentConnection, connection);
+		const section = store.add(instantiationService.createInstance(EngineToolsSection, parent));
+		section.layout(640, 120);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getListEntryCount(), 1);
+		assert.strictEqual(section.isToolDetailVisible(), false);
+		section.selectToolForTest('bash');
+		await flushMicrotasks();
+
+		assert.deepStrictEqual(toolInfoCalls, ['bash']);
+		assert.strictEqual(section.getSelectedToolName(), 'bash');
+		assert.strictEqual(section.isToolDetailVisible(), true);
+		const detail = section.getToolDetailText();
+		assert.ok(detail.includes('bash'));
+		assert.ok(detail.includes('Run a command'));
+		assert.ok(detail.includes('Aliases: sh'));
+		assert.ok(detail.includes('Destructive'));
+		assert.ok(detail.includes('Requires permission'));
+		assert.ok(detail.includes('not editable here'));
+		assert.ok(!detail.includes('{"type":"object"}'));
+	});
+
+	test('Tools: missing getToolInfo keeps list-only (no detail pane)', async () => {
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { tools: { support: 'SUPPORTED' } },
+			listTools: async () => ({
+				tools: [{ name: 'bash', description: 'list copy' }],
+			}),
+		});
+		const parent = document.createElement('div');
+		document.body.appendChild(parent);
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IUniverseAgentConnection, connection);
+		const section = store.add(instantiationService.createInstance(EngineToolsSection, parent));
+		section.layout(640, 120);
+		await flushMicrotasks();
+
+		section.selectToolForTest('bash');
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getSelectedToolName(), 'bash');
+		assert.strictEqual(section.isToolDetailVisible(), false);
+		assert.strictEqual(section.getToolDetailText(), '');
 	});
 });

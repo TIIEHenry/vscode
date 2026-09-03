@@ -14,7 +14,7 @@ import { ICommandService } from '../../../../platform/commands/common/commands.j
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { WorkbenchList } from '../../../../platform/list/browser/listService.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
-import type { UniverseAgentAgentProfileSummary, UniverseAgentToolSummary } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
+import type { UniverseAgentAgentProfileSummary, UniverseAgentToolInfoResult, UniverseAgentToolSummary } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { defaultButtonStyles, defaultCheckboxStyles } from '../../../../platform/theme/browser/defaultStyles.js';
 import {
 	type EngineCatalogPaneMode,
@@ -164,6 +164,12 @@ export class EngineToolsSection extends Disposable {
 	private readonly writeToolbar: HTMLElement;
 	private readonly saveButton: Button;
 	private readonly listContainer: HTMLElement;
+	private readonly detail: HTMLElement;
+	private readonly detailTitle: HTMLElement;
+	private readonly detailMeta: HTMLElement;
+	private readonly detailDescription: HTMLElement;
+	private readonly detailSchemaNote: HTMLElement;
+	private readonly detailStatus: HTMLElement;
 	private readonly instantiationService: IInstantiationService;
 	private list: WorkbenchList<EngineToolListEntry> | undefined;
 
@@ -171,6 +177,8 @@ export class EngineToolsSection extends Disposable {
 	private listEntries: EngineToolListEntry[] = [];
 	private profiles: UniverseAgentAgentProfileSummary[] = [];
 	private activeProfile: UniverseAgentAgentProfileSummary | undefined;
+	private selectedTool: UniverseAgentToolSummary | undefined;
+	private infoLoadGeneration = 0;
 	private readonly pendingEnablement = new Map<string, boolean>();
 	private sectionActive = false;
 
@@ -210,6 +218,15 @@ export class EngineToolsSection extends Disposable {
 		this._register(this.saveButton.onDidClick(() => void this.savePendingEnablement()));
 
 		this.listContainer = DOM.append(this.container, $('.engine-catalog-list'));
+
+		this.detail = DOM.append(this.container, $('.engine-tool-detail'));
+		this.detail.style.display = 'none';
+		this.detailTitle = DOM.append(this.detail, $('.engine-tool-detail-title'));
+		this.detailMeta = DOM.append(this.detail, $('.engine-tool-detail-meta'));
+		this.detailDescription = DOM.append(this.detail, $('.engine-tool-detail-description'));
+		this.detailSchemaNote = DOM.append(this.detail, $('.engine-tool-detail-schema-note'));
+		this.detailStatus = DOM.append(this.detail, $('.engine-tool-detail-status'));
+		this.detailStatus.style.display = 'none';
 
 		this._register(this.connection.onDidChangeConnection(() => {
 			void this.refresh();
@@ -282,6 +299,38 @@ export class EngineToolsSection extends Disposable {
 
 	isSaveToolbarVisible(): boolean {
 		return this.writeToolbar.style.display !== 'none';
+	}
+
+	isToolDetailVisible(): boolean {
+		return this.detail.style.display !== 'none';
+	}
+
+	getSelectedToolName(): string | undefined {
+		return this.selectedTool?.name;
+	}
+
+	getToolDetailText(): string {
+		if (!this.isToolDetailVisible()) {
+			return '';
+		}
+		return [
+			this.detailTitle.textContent,
+			this.detailMeta.textContent,
+			this.detailDescription.textContent,
+			this.detailSchemaNote.textContent,
+			this.detailStatus.style.display === 'none' ? '' : this.detailStatus.textContent,
+		].filter(part => !!part).join('\n');
+	}
+
+	/** Test hook: programmatically select a tool row by name. */
+	selectToolForTest(name: string): void {
+		if (!this.list) {
+			return;
+		}
+		const index = this.listEntries.findIndex(entry => entry.kind === 'tool' && entry.tool.name === name);
+		if (index >= 0) {
+			this.list.setSelection([index]);
+		}
 	}
 
 	async savePendingEnablement(): Promise<boolean> {
@@ -411,6 +460,16 @@ export class EngineToolsSection extends Disposable {
 					accessibilityProvider: new EngineToolListAccessibilityProvider(),
 				},
 			)) as WorkbenchList<EngineToolListEntry>;
+			this._register(this.list.onDidChangeSelection(e => {
+				const entry = e.elements[0];
+				if (entry?.kind === 'tool') {
+					this.selectedTool = entry.tool;
+					void this.loadToolInfo(entry.tool);
+				} else {
+					this.selectedTool = undefined;
+					this.clearToolDetail();
+				}
+			}));
 		}
 		return this.list;
 	}
@@ -519,11 +578,13 @@ export class EngineToolsSection extends Disposable {
 		this.list?.splice(0, this.list?.length ?? 0, []);
 		this.activeProfile = undefined;
 		this.profiles = [];
+		this.selectedTool = undefined;
 		this.pendingEnablement.clear();
 		this.status.hide();
 		this.listContainer.style.display = 'none';
 		this.profileSelect.style.display = 'none';
 		this.profileSelect.textContent = '';
+		this.clearToolDetail();
 		this.updateSaveChrome();
 	}
 
@@ -544,9 +605,108 @@ export class EngineToolsSection extends Disposable {
 		this.listEntries = entries;
 		if (entries.length === 0) {
 			this.list?.splice(0, this.list?.length ?? 0, []);
+			this.selectedTool = undefined;
+			this.clearToolDetail();
 			return;
 		}
 		const list = this.ensureList();
 		list.splice(0, list.length, entries);
+		this.restoreToolSelection();
+	}
+
+	private restoreToolSelection(): void {
+		const name = this.selectedTool?.name;
+		if (!name || !this.list) {
+			return;
+		}
+		const index = this.listEntries.findIndex(entry => entry.kind === 'tool' && entry.tool.name === name);
+		if (index < 0) {
+			this.selectedTool = undefined;
+			this.clearToolDetail();
+			return;
+		}
+		const entry = this.listEntries[index];
+		if (entry?.kind === 'tool') {
+			this.selectedTool = entry.tool;
+		}
+		this.list.setSelection([index]);
+	}
+
+	private async loadToolInfo(tool: UniverseAgentToolSummary): Promise<void> {
+		if (!this.connection.getToolInfo || !canShowCatalogRows(this.mode) || !this.connection.isEngineConnected()) {
+			this.clearToolDetail();
+			return;
+		}
+		const generation = ++this.infoLoadGeneration;
+		this.detail.style.display = '';
+		this.detailTitle.textContent = tool.name;
+		this.detailMeta.textContent = '';
+		this.detailDescription.textContent = '';
+		this.detailSchemaNote.textContent = '';
+		this.hideDetailStatus();
+		try {
+			const info = await this.connection.getToolInfo({ toolName: tool.name });
+			if (generation !== this.infoLoadGeneration
+				|| !canShowCatalogRows(this.mode)
+				|| !this.connection.isEngineConnected()
+				|| this.selectedTool?.name !== tool.name) {
+				return;
+			}
+			if (!info.name) {
+				this.showDetailStatus(localize('ua.engineToolDetailMissing', "Engine returned no details for this tool."));
+				return;
+			}
+			this.renderToolDetail(info);
+		} catch {
+			if (generation !== this.infoLoadGeneration || this.selectedTool?.name !== tool.name) {
+				return;
+			}
+			this.showDetailStatus(localize('ua.engineToolDetailLoadFailed', "Could not load tool details from the engine."));
+		}
+	}
+
+	private renderToolDetail(info: UniverseAgentToolInfoResult): void {
+		this.detailTitle.textContent = info.name;
+		const meta: string[] = [];
+		if (info.category) {
+			meta.push(info.category);
+		}
+		if (info.aliases.length > 0) {
+			meta.push(localize('ua.engineToolDetailAliases', "Aliases: {0}", info.aliases.join(', ')));
+		}
+		if (info.destructive) {
+			meta.push(localize('ua.engineToolDetailDestructive', "Destructive"));
+		}
+		if (info.requiresPermission) {
+			meta.push(localize('ua.engineToolDetailRequiresPermission', "Requires permission"));
+		}
+		this.detailMeta.textContent = meta.join(' · ');
+		this.detailDescription.textContent = info.description ?? '';
+		this.detailSchemaNote.textContent = info.inputSchemaJson
+			? localize('ua.engineToolDetailHasSchema', "Input schema is provided by the engine (not editable here).")
+			: '';
+		this.hideDetailStatus();
+		this.detail.style.display = '';
+	}
+
+	private clearToolDetail(): void {
+		this.infoLoadGeneration++;
+		this.detail.style.display = 'none';
+		this.detailTitle.textContent = '';
+		this.detailMeta.textContent = '';
+		this.detailDescription.textContent = '';
+		this.detailSchemaNote.textContent = '';
+		this.hideDetailStatus();
+	}
+
+	private showDetailStatus(message: string): void {
+		this.detail.style.display = '';
+		this.detailStatus.textContent = message;
+		this.detailStatus.style.display = '';
+	}
+
+	private hideDetailStatus(): void {
+		this.detailStatus.textContent = '';
+		this.detailStatus.style.display = 'none';
 	}
 }

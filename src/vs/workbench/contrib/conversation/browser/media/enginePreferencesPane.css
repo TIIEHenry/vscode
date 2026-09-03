@@ -369,6 +369,29 @@
 	min-width: 160px;
 }
 
+.monaco-workbench .engine-tool-detail {
+	margin-top: 12px;
+	font-size: 12px;
+}
+
+.monaco-workbench .engine-tool-detail-title {
+	font-size: 13px;
+	font-weight: 600;
+	margin-bottom: 4px;
+}
+
+.monaco-workbench .engine-tool-detail-meta,
+.monaco-workbench .engine-tool-detail-schema-note,
+.monaco-workbench .engine-tool-detail-status {
+	opacity: 0.8;
+	margin-bottom: 4px;
+}
+
+.monaco-workbench .engine-tool-detail-description {
+	white-space: pre-wrap;
+	margin-bottom: 4px;
+}
+
 .monaco-workbench .engine-skill-body-editor {
 	margin-top: 12px;
 }
