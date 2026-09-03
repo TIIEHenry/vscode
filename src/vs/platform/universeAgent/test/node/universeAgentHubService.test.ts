@@ -4,8 +4,10 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { randomUUID } from 'node:crypto';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import type { ParsedAuthSessionV1 } from '../../node/hub/hub-auth-client.js';
+import type { ConnectionProfile, IConnectionProfileStore } from '../../node/connectionProfileStore.js';
 import { InMemoryHubSessionStore } from '../../node/hubSessionStore.js';
 import { UniverseAgentHubService } from '../../node/universeAgentHubService.js';
 
@@ -215,3 +217,122 @@ suite('UniverseAgentHubService runtime refresh', () => {
 });
 
 const FIXTURE_NOW_MS = Date.parse('2026-01-01T00:00:00Z');
+
+class TestConnectionProfileStore implements IConnectionProfileStore {
+	private profiles: ConnectionProfile[] = [];
+
+	list(): ConnectionProfile[] {
+		return [...this.profiles];
+	}
+
+	get(profileId: string): ConnectionProfile | undefined {
+		return this.profiles.find(p => p.profileId === profileId);
+	}
+
+	put(profile: ConnectionProfile): void {
+		this.profiles = this.profiles.filter(p => p.profileId !== profile.profileId);
+		this.profiles.push(profile);
+	}
+
+	remove(profileId: string): void {
+		this.profiles = this.profiles.filter(p => p.profileId !== profileId);
+	}
+
+	createDraft(input: {
+		readonly displayName: string;
+		readonly target: ConnectionProfile['target'];
+		readonly allowPrivateNetwork?: boolean;
+	}): ConnectionProfile {
+		const profile: ConnectionProfile = {
+			profileId: randomUUID(),
+			displayName: input.displayName,
+			target: input.target,
+			trust: null,
+			state: 'pairingPending',
+			allowPrivateNetwork: input.allowPrivateNetwork ?? false,
+		};
+		this.put(profile);
+		return profile;
+	}
+}
+
+suite('UniverseAgentHubService addHubDeviceProfile', () => {
+
+	ensureNoDisposablesAreLeakedInTestSuite();
+
+	const FIXTURE_SESSION: ParsedAuthSessionV1 = {
+		accessToken: 'hub-access-token',
+		expiresIn: 900,
+		csrfToken: 'csrf-token',
+		mustChangePassword: false,
+		user: {
+			id: 'usr_1',
+			email: 'user@example.com',
+			role: 'USER',
+			status: 'ACTIVE',
+		},
+	};
+
+	const HUB_BASE = 'https://hub.example.com';
+
+	test('signedIn creates hubDevice profile with accountId userId and reuses same id', async () => {
+		const profileStore = new TestConnectionProfileStore();
+		const hubSessionStore = new InMemoryHubSessionStore();
+		await hubSessionStore.applyAuthSession(HUB_BASE, FIXTURE_SESSION, FIXTURE_NOW_MS, 'refresh-token');
+		const service = new UniverseAgentHubService({
+			hubSessionStore,
+			connectionProfileStore: profileStore,
+			nowMs: () => FIXTURE_NOW_MS,
+			skipStartupRestore: true,
+		});
+		service.setActiveHubBaseUrl(HUB_BASE);
+
+		const first = await service.addHubDeviceProfile({ hubDeviceId: 'dev-1', displayName: 'Studio' });
+		const second = await service.addHubDeviceProfile({ hubDeviceId: 'dev-1', displayName: 'Studio' });
+		assert.strictEqual(first.ok, true);
+		assert.strictEqual(second.ok, true);
+		if (first.ok && second.ok) {
+			assert.strictEqual(first.profileId, second.profileId);
+			const stored = profileStore.get(first.profileId);
+			assert.ok(stored && stored.target.kind === 'hubDevice');
+			if (stored.target.kind === 'hubDevice') {
+				assert.strictEqual(stored.target.accountId, 'usr_1');
+				assert.strictEqual(stored.target.hubDeviceId, 'dev-1');
+			}
+		}
+		service.dispose();
+	});
+
+	test('signedOut refuses with hub_session_required', async () => {
+		const service = new UniverseAgentHubService({
+			hubSessionStore: new InMemoryHubSessionStore(),
+			skipStartupRestore: true,
+		});
+		const result = await service.addHubDeviceProfile({ hubDeviceId: 'dev-1' });
+		assert.strictEqual(result.ok, false);
+		if (!result.ok) {
+			assert.strictEqual(result.code, 'hub_session_required');
+		}
+		service.dispose();
+	});
+
+	test('mustChangePassword refuses with hub_password_change_required', async () => {
+		const hubSessionStore = new InMemoryHubSessionStore();
+		await hubSessionStore.applyAuthSession(HUB_BASE, {
+			...FIXTURE_SESSION,
+			mustChangePassword: true,
+		}, FIXTURE_NOW_MS, 'refresh-token');
+		const service = new UniverseAgentHubService({
+			hubSessionStore,
+			nowMs: () => FIXTURE_NOW_MS,
+			skipStartupRestore: true,
+		});
+		service.setActiveHubBaseUrl(HUB_BASE);
+		const result = await service.addHubDeviceProfile({ hubDeviceId: 'dev-1' });
+		assert.strictEqual(result.ok, false);
+		if (!result.ok) {
+			assert.strictEqual(result.code, 'hub_password_change_required');
+		}
+		service.dispose();
+	});
+});

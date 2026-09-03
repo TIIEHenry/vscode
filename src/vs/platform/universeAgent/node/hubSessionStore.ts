@@ -173,6 +173,7 @@ export async function refreshHubAuthSession(
 
 export interface IHubSessionStore {
 	getAccessTokenForHub(hubBaseUrl: string, nowMs: number): string | null;
+	getAccountIdForHub(hubBaseUrl: string, nowMs: number): string | null;
 	getStatusForHub(hubBaseUrl: string, nowMs: number): HubAuthStatusProjection;
 	requiresPasswordChange(hubBaseUrl: string, nowMs: number): boolean;
 	applyAuthSession(hubBaseUrl: string, session: ParsedAuthSessionV1, nowMs: number, refreshToken?: string): Promise<void>;
@@ -216,6 +217,11 @@ export class HubSessionStore implements IHubSessionStore {
 	getAccessTokenForHub(hubBaseUrl: string, nowMs: number): string | null {
 		const bucket = this.readBucket(hubBaseUrl, nowMs);
 		return bucket?.accessToken ?? null;
+	}
+
+	getAccountIdForHub(hubBaseUrl: string, nowMs: number): string | null {
+		const bucket = this.readBucket(hubBaseUrl, nowMs);
+		return bucket?.userId ?? null;
 	}
 
 	getStatusForHub(hubBaseUrl: string, nowMs: number): HubAuthStatusProjection {
@@ -381,6 +387,10 @@ export class InMemoryHubSessionStore implements IHubSessionStore {
 
 	getAccessTokenForHub(hubBaseUrl: string, nowMs: number): string | null {
 		return this.readBucket(hubBaseUrl, nowMs)?.accessToken ?? null;
+	}
+
+	getAccountIdForHub(hubBaseUrl: string, nowMs: number): string | null {
+		return this.readBucket(hubBaseUrl, nowMs)?.userId ?? null;
 	}
 
 	getStatusForHub(hubBaseUrl: string, nowMs: number): HubAuthStatusProjection {

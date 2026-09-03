@@ -35,6 +35,8 @@ export function createNavigatorConnectionTestStub(
 		},
 		connect: async () => ({ methods: [], events: [] }),
 		connectProfile: async () => ({ ok: false as const, code: 'transport_failed' as const, reason: 'test' }),
+		confirmPairing: async () => ({ ok: false as const, code: 'transport_failed' as const, reason: 'test' }),
+		cancelPairing: async () => { },
 		getConnectionPhase: () => ({ kind: 'disconnected' as const }),
 		disconnect: async () => { },
 		listSessions: async () => ({ sessions: [] }),

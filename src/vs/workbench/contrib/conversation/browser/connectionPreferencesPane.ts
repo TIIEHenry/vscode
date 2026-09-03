@@ -615,24 +615,31 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 			const confirmed = await promptSasConfirmDialog(this.dialogService, {
 				displayName: profile?.displayName ?? profileId,
 				sasCode: readHandshakeSasCode(result),
-				engineIdentityId: profileId,
+				engineIdentityId: result.engineIdentityId ?? profileId,
 			});
-			if (!confirmed.confirmed) {
-				await this.connectionService.disconnect();
+			if (confirmed.confirmed) {
+				const confirmResult = await this.connectionService.confirmPairing();
+				if (!confirmResult.ok) {
+					this.testStatus.textContent = confirmResult.reason;
+				}
+			} else {
+				await this.connectionService.cancelPairing();
 			}
 		}
 		this.renderConnectionPhase();
 	}
 
 	private async handleConnectDevice(device: HubDeviceProjection): Promise<void> {
-		const existing = this.hubService.listConnectionProfiles().find(p => p.displayName === device.name);
-		const profileId = existing?.profileId;
-		if (!profileId) {
-			this.testStatus.textContent = localize('ua.connectionNoProfileForDevice', "No profile for device — pairing wiring pending.");
+		const result = await this.hubService.addHubDeviceProfile({
+			hubDeviceId: device.id,
+			displayName: device.name,
+		});
+		if (!result.ok) {
+			this.testStatus.textContent = result.reason;
 			return;
 		}
 
-		await this.connectProfileWithPairing(profileId);
+		await this.connectProfileWithPairing(result.profileId);
 		this.renderProfiles();
 	}
 

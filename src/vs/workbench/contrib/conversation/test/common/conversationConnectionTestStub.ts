@@ -58,6 +58,8 @@ export function createConversationConnectionTestStub(
 		},
 		connect: async () => ({ sessionToken: undefined, workDir: undefined, methods: [], events: [] }),
 		connectProfile: async () => ({ ok: false, code: 'transport_failed', reason: 'stub' }),
+		confirmPairing: async () => ({ ok: false, code: 'transport_failed', reason: 'stub' }),
+		cancelPairing: async () => { },
 		disconnect: async () => { },
 		listSessions: async () => ({ sessions: [] }),
 		createSession: async () => ({ sessionId: 's' }),

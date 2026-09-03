@@ -10,7 +10,7 @@ import type {
 	ConnectionProfileProjection,
 	HubAuthStatus,
 	HubDeviceProjection,
-	HubDirectAddressResult,
+	HubProfileResult,
 	HubDirectoryStatus,
 	HubLoginResult,
 	HubOperationResult,
@@ -378,7 +378,7 @@ export class UniverseAgentHubService extends Disposable implements IUniverseAgen
 		readonly port: number;
 		readonly displayName?: string;
 		readonly allowPrivateNetwork?: boolean;
-	}): Promise<HubDirectAddressResult> {
+	}): Promise<HubProfileResult> {
 		const host = input.host.trim();
 		if (!host) {
 			return { ok: false, code: 'direct_address_invalid', reason: 'host is required' };
@@ -391,6 +391,46 @@ export class UniverseAgentHubService extends Disposable implements IUniverseAgen
 			displayName,
 			target: { kind: 'directAddress', host, port: input.port },
 			allowPrivateNetwork: input.allowPrivateNetwork ?? false,
+		});
+		this._connectionProfileStore.put(profile);
+		this._fireProfilesChanged();
+		return { ok: true, profileId: profile.profileId };
+	}
+
+	async addHubDeviceProfile(input: {
+		readonly hubDeviceId: string;
+		readonly displayName?: string;
+	}): Promise<HubProfileResult> {
+		const hubDeviceId = input.hubDeviceId.trim();
+		if (!hubDeviceId) {
+			return { ok: false, code: 'hub_device_invalid', reason: 'hub device id is required' };
+		}
+		const hubBaseUrl = this._activeHubBaseUrl;
+		if (!hubBaseUrl) {
+			return { ok: false, code: 'hub_session_required', reason: 'hub session required' };
+		}
+		if (this._hubSessionStore.requiresPasswordChange(hubBaseUrl, this._nowMs())) {
+			return { ok: false, code: 'hub_password_change_required', reason: 'hub password change required before adding a device profile' };
+		}
+		const auth = this.getAuthStatus();
+		if (auth.kind !== 'signedIn') {
+			return { ok: false, code: 'hub_session_required', reason: 'hub session required' };
+		}
+		const accountId = this._hubSessionStore.getAccountIdForHub(hubBaseUrl, this._nowMs());
+		if (!accountId) {
+			return { ok: false, code: 'hub_session_required', reason: 'hub account id unavailable' };
+		}
+		const existing = this._connectionProfileStore.list().find(profile =>
+			profile.target.kind === 'hubDevice'
+			&& profile.target.hubBaseUrl === hubBaseUrl
+			&& profile.target.hubDeviceId === hubDeviceId
+		);
+		if (existing) {
+			return { ok: true, profileId: existing.profileId };
+		}
+		const profile = this._connectionProfileStore.createDraft({
+			displayName: input.displayName?.trim() || hubDeviceId,
+			target: { kind: 'hubDevice', hubBaseUrl, accountId, hubDeviceId },
 		});
 		this._connectionProfileStore.put(profile);
 		this._fireProfilesChanged();

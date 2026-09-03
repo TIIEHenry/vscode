@@ -73,6 +73,7 @@ suite('ConnectionPreferencesPane', () => {
 			revokeDevice: async () => ({ ok: true }),
 			confirmDeviceCode: async () => ({ ok: true }),
 			addDirectAddressProfile: async () => ({ ok: true, profileId: 'direct-profile-1' }),
+			addHubDeviceProfile: async () => ({ ok: true, profileId: 'hub-profile-1' }),
 			forgetConnectionProfile: async () => ({ ok: true }),
 			isEncryptionAvailable: async () => true,
 			...overrides,
@@ -369,6 +370,134 @@ suite('ConnectionPreferencesPane', () => {
 		assert.strictEqual(notice.textContent, getUnsupportedEnvironmentCopy());
 		assert.strictEqual(getUnsupportedEnvironmentCopy(), '此环境不支持本机 Engine 连接');
 
+		container.remove();
+	});
+
+	test('device Connect creates a hubDevice profile then dials it', async () => {
+		let added: { readonly hubDeviceId: string; readonly displayName?: string } | undefined;
+		let connectedProfileId: string | undefined;
+		const pane = mountPane({
+			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
+			getDirectoryStatus: () => ({ kind: 'ok', devices: [device({ id: 'dev-1', name: 'Studio' })] }),
+			addHubDeviceProfile: async input => {
+				added = input;
+				return { ok: true, profileId: 'hub-profile-1' };
+			},
+		}, {
+			connectProfile: async profileId => {
+				connectedProfileId = profileId;
+				return { ok: true, path: 'hubRelay', pairingPending: false };
+			},
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		await Promise.resolve();
+
+		const connectButton = container.querySelector('.connection-hub-device-row .monaco-button') as HTMLButtonElement | null;
+		assert.ok(connectButton);
+		connectButton.click();
+		await Promise.resolve();
+		await Promise.resolve();
+
+		assert.deepStrictEqual(added, { hubDeviceId: 'dev-1', displayName: 'Studio' });
+		assert.strictEqual(connectedProfileId, 'hub-profile-1');
+		container.remove();
+	});
+
+	test('device Connect failure writes testStatus', async () => {
+		const pane = mountPane({
+			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
+			getDirectoryStatus: () => ({ kind: 'ok', devices: [device({ id: 'dev-1', name: 'Studio' })] }),
+			addHubDeviceProfile: async () => ({ ok: false, code: 'hub_session_required', reason: 'hub session required' }),
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		await Promise.resolve();
+
+		const connectButton = container.querySelector('.connection-hub-device-row .monaco-button') as HTMLButtonElement | null;
+		assert.ok(connectButton);
+		connectButton.click();
+		await Promise.resolve();
+		await Promise.resolve();
+
+		const testStatus = container.querySelector('.connection-test-status') as HTMLElement;
+		assert.strictEqual(testStatus.textContent, 'hub session required');
+		container.remove();
+	});
+
+	test('SAS cancel calls cancelPairing once', async () => {
+		let cancelCalls = 0;
+		const pane = mountPane({
+			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
+			listConnectionProfiles: () => [{
+				profileId: 'hub-profile-1',
+				displayName: 'Studio',
+				state: 'pairingPending',
+				hasTrust: false,
+				targetKind: 'hubDevice',
+			}],
+		}, {
+			connectProfile: async () => ({
+				ok: true,
+				path: 'hubRelay',
+				pairingPending: true,
+				sasCode: 'ABCD-EFGH',
+				engineIdentityId: '0123456789abcdef',
+			}),
+			cancelPairing: async () => {
+				cancelCalls++;
+			},
+		});
+		const container = pane.getDomNode();
+		(pane as unknown as { activeProfileId: string }).activeProfileId = 'hub-profile-1';
+		await (pane as unknown as { connectProfileWithPairing(profileId: string): Promise<void> }).connectProfileWithPairing('hub-profile-1');
+		assert.strictEqual(cancelCalls, 1);
+		container.remove();
+	});
+
+	test('SAS confirm calls confirmPairing once with handshake sasCode', async () => {
+		let confirmCalls = 0;
+		const handshakeSas = 'ABCD-EFGH';
+		const handshakeEngineId = '0123456789abcdef';
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IUniverseAgentHubService, createHubStub({
+			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
+			listConnectionProfiles: () => [{
+				profileId: 'hub-profile-1',
+				displayName: 'Studio',
+				state: 'pairingPending',
+				hasTrust: false,
+				targetKind: 'hubDevice',
+			}],
+		}));
+		instantiationService.stub(IUniverseAgentConnection, createConnectionStub({
+			connectProfile: async () => ({
+				ok: true,
+				path: 'hubRelay',
+				pairingPending: true,
+				sasCode: handshakeSas,
+				engineIdentityId: handshakeEngineId,
+			}),
+			confirmPairing: async () => {
+				confirmCalls++;
+				return { ok: true, path: 'hubRelay', pairingPending: false, sessionToken: 'tok' };
+			},
+		}));
+		instantiationService.stub(IDialogService, {
+			_serviceBrand: undefined,
+			prompt: async (config: { detail?: string; buttons: readonly { run: () => boolean }[] }) => {
+				assert.ok(config.detail?.includes(handshakeSas));
+				assert.ok(!config.detail?.includes('directory-engine-id'));
+				return { result: config.buttons[0].run() };
+			},
+		} as unknown as IDialogService);
+
+		const pane = store.add(instantiationService.createInstance(ConnectionPreferencesPane));
+		const container = pane.getDomNode();
+		document.body.appendChild(container);
+		(pane as unknown as { activeProfileId: string }).activeProfileId = 'hub-profile-1';
+		await (pane as unknown as { connectProfileWithPairing(profileId: string): Promise<void> }).connectProfileWithPairing('hub-profile-1');
+		assert.strictEqual(confirmCalls, 1);
 		container.remove();
 	});
 });

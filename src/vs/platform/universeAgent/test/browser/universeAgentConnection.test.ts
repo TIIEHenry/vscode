@@ -77,6 +77,16 @@ suite('Web universeAgent disconnect (P0)', () => {
 		}
 	});
 
+	test('confirmPairing and cancelPairing use unsupported_environment', async () => {
+		const connection = new WebUniverseAgentConnection();
+		const confirm = await connection.confirmPairing();
+		assert.strictEqual(confirm.ok, false);
+		if (!confirm.ok) {
+			assert.strictEqual(confirm.code, WEB_UNSUPPORTED_CODE);
+		}
+		await assert.rejects(() => connection.cancelPairing(), (error: unknown) => error instanceof Error && error.message === WEB_UNSUPPORTED_REASON);
+	});
+
 	test('session view lease is empty', async () => {
 		const sessionView = new WebUniverseAgentSessionView();
 		const leaseId = await sessionView.acquireLease('sess-1');
@@ -108,6 +118,12 @@ suite('Web universeAgent disconnect (P0)', () => {
 		assert.strictEqual(direct.ok, false);
 		if (!direct.ok) {
 			assert.strictEqual(direct.code, WEB_UNSUPPORTED_CODE);
+		}
+
+		const hubDevice = await hub.addHubDeviceProfile({ hubDeviceId: 'dev-1', displayName: 'Studio' });
+		assert.strictEqual(hubDevice.ok, false);
+		if (!hubDevice.ok) {
+			assert.strictEqual(hubDevice.code, WEB_UNSUPPORTED_CODE);
 		}
 	});
 });

@@ -40,6 +40,9 @@ export type UniverseAgentConnectProfileResult =
 		readonly sessionToken?: string;
 		readonly workDir?: string;
 		readonly pairingPending: boolean;
+		/** From handshake GetAuthNonce / Connect — not Hub directory. */
+		readonly sasCode?: string;
+		readonly engineIdentityId?: string;
 	}
 	| {
 		readonly ok: false;

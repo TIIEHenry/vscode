@@ -5,7 +5,7 @@
 
 import { Emitter } from '../../../base/common/event.js';
 import { Disposable } from '../../../base/common/lifecycle.js';
-import type { ConnectionPhase, UniverseAgentConnectProfileResult } from '../common/connectionHubTypes.js';
+import type { ConnectionPhase, ConnectionFailureCode, UniverseAgentConnectProfileResult } from '../common/connectionHubTypes.js';
 import type { IUniverseAgentConnection, IUniverseAgentTeamApi, UniverseAgentNavigatorCapabilityKey } from '../common/universeAgentConnection.js';
 import type { IUniverseAgentHostConnection } from '../common/universeAgentHostConnection.js';
 import type {
@@ -72,7 +72,9 @@ import { GrpcStatusCode, IUniverseAgentGrpcTransport, isTransportFailureCode, Un
 import type { ConnectionResolver } from './connectionResolver.js';
 import { runDeviceAuthHandshake } from './deviceAuthHandshake.js';
 import type { IClientIdentityStore } from './clientIdentityTypes.js';
-import type { IConnectionProfileStore } from './connectionProfileStore.js';
+import type { ConnectionProfile, IConnectionProfileStore } from './connectionProfileStore.js';
+import type { IEngineTrustStore } from './engineTrustStore.js';
+import { createPairingOrchestrator, isPairingOrchestratorProfile, PairingOrchestrator, type PairingDialEndpoint } from './pairingOrchestrator.js';
 import type { IUniverseAgentHubService } from '../common/hub.js';
 import { UniverseAgentHubService, type UniverseAgentHubServiceOptions } from './universeAgentHubService.js';
 
@@ -82,6 +84,8 @@ export interface UniverseAgentConnectionServiceOptions extends UniverseAgentHubS
 	readonly connectionResolver?: ConnectionResolver;
 	readonly connectionProfileStore?: IConnectionProfileStore;
 	readonly clientIdentityStore?: IClientIdentityStore;
+	readonly engineTrustStore?: IEngineTrustStore;
+	readonly pairingOrchestrator?: PairingOrchestrator;
 }
 
 function isPairingPending(sessionToken: string | undefined, pairingNonce: string | undefined): boolean {
@@ -129,6 +133,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 	private readonly _connectionResolver: ConnectionResolver | undefined;
 	private readonly _connectionProfileStore: IConnectionProfileStore | undefined;
 	private readonly _clientIdentityStore: IClientIdentityStore | undefined;
+	private readonly _pairingOrchestrator: PairingOrchestrator | undefined;
 
 	constructor(options: UniverseAgentConnectionServiceOptions = {}) {
 		super();
@@ -138,6 +143,23 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		this._connectionResolver = options.connectionResolver;
 		this._connectionProfileStore = options.connectionProfileStore;
 		this._clientIdentityStore = options.clientIdentityStore;
+		if (options.pairingOrchestrator) {
+			this._pairingOrchestrator = options.pairingOrchestrator;
+		} else if (this._clientIdentityStore && this._connectionProfileStore && options.engineTrustStore) {
+			this._pairingOrchestrator = createPairingOrchestrator({
+				clientIdentityStore: this._clientIdentityStore,
+				engineTrustStore: options.engineTrustStore,
+				connectionProfileStore: this._connectionProfileStore,
+				createPinnedTransport: ({ endpoint, tls }) => createPinnedGrpcUniverseAgentClient({
+					address: `${endpoint.host}:${endpoint.port}`,
+					tls,
+					sslTargetNameOverride: endpoint.servername,
+				}),
+				issueRelayTicket: this._connectionResolver?.createIssueRelayTicketHook(),
+				confirmSas: async () => true,
+				confirmRecoverTrust: async () => true,
+			});
+		}
 		this.team = {
 			memberStatus: (sessionId, agentId) => this._withTransport(t => t.memberStatus(sessionId, agentId)),
 			taskList: (sessionId, agentId) => this._withTransport(t => t.taskList(sessionId, agentId)),
@@ -289,6 +311,10 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 
 		const resolved = await this._connectionResolver.resolve(profileId, { forceNewTicket: reconnect });
 		if (!resolved.ok) {
+			const profile = this._connectionProfileStore?.get(profileId);
+			if (resolved.code === 'pairing_required' && profile && isPairingOrchestratorProfile(profile)) {
+				return this._startProfilePairing(profileId, profile, reconnect);
+			}
 			this._connectionPhase = { kind: 'failed', code: resolved.code, reason: resolved.reason };
 			this._fireSnapshotChanged();
 			return { ok: false, code: resolved.code, reason: resolved.reason };
@@ -404,6 +430,57 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 			const reason = error instanceof Error ? error.message : String(error);
 			return { ok: false, code: 'transport_failed', reason };
 		}
+	}
+
+	async confirmPairing(): Promise<UniverseAgentConnectProfileResult> {
+		if (!this._pairingOrchestrator) {
+			return {
+				ok: false,
+				code: 'transport_failed',
+				reason: 'pairing orchestrator is not configured',
+			};
+		}
+
+		const snapshot = this._pairingOrchestrator.getSnapshot();
+		const profileId = this._activeProfileId;
+		if (!snapshot || !profileId) {
+			return {
+				ok: false,
+				code: 'transport_failed',
+				reason: 'no pairing awaiting confirmation',
+			};
+		}
+
+		const confirmResult = snapshot.phase === 'recover_trust'
+			? await this._pairingOrchestrator.confirmRecoverTrust()
+			: await this._pairingOrchestrator.confirmSas();
+
+		if (!confirmResult.ok) {
+			const code = this._mapPairingFailureCode(confirmResult.code);
+			this._connectionPhase = { kind: 'failed', code, reason: confirmResult.reason };
+			this._fireSnapshotChanged();
+			return { ok: false, code, reason: confirmResult.reason };
+		}
+
+		if (confirmResult.snapshot.phase === 'grant_pending') {
+			this._pairingPending = true;
+			this._connectionPhase = { kind: 'connecting', reason: 'initial' };
+			this._fireSnapshotChanged();
+			return {
+				ok: true,
+				path: 'direct',
+				pairingPending: true,
+				engineIdentityId: confirmResult.snapshot.engineIdentityId,
+			};
+		}
+
+		this._pairingPending = false;
+		return this.connectProfile(profileId);
+	}
+
+	async cancelPairing(): Promise<void> {
+		this._pairingOrchestrator?.abandonRecoverTrust();
+		await this.disconnect();
 	}
 
 	async disconnect(): Promise<void> {
@@ -629,6 +706,13 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		return this._hub.addDirectAddressProfile(input);
 	}
 
+	addHubDeviceProfile(input: {
+		readonly hubDeviceId: string;
+		readonly displayName?: string;
+	}) {
+		return this._hub.addHubDeviceProfile(input);
+	}
+
 	forgetConnectionProfile(profileId: string) {
 		return this._hub.forgetConnectionProfile(profileId);
 	}
@@ -696,6 +780,100 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 
 	private _fireSnapshotChanged(): void {
 		this._onDidChangeConnection.fire(this._buildSnapshot());
+	}
+
+	private async _startProfilePairing(
+		profileId: string,
+		profile: ConnectionProfile,
+		reconnect: boolean,
+	): Promise<UniverseAgentConnectProfileResult> {
+		if (!this._pairingOrchestrator || !this._connectionResolver) {
+			return {
+				ok: false,
+				code: 'transport_failed',
+				reason: 'pairing orchestrator is not configured',
+			};
+		}
+
+		this._connectionPhase = {
+			kind: 'connecting',
+			reason: reconnect ? 'transport_lost' : 'initial',
+		};
+		this._activeProfileId = profileId;
+
+		const pairingResolved = await this._connectionResolver.resolve(profileId, {
+			forceNewTicket: true,
+			forPairing: true,
+		});
+		if (!pairingResolved.ok) {
+			this._connectionPhase = { kind: 'failed', code: pairingResolved.code, reason: pairingResolved.reason };
+			this._fireSnapshotChanged();
+			return { ok: false, code: pairingResolved.code, reason: pairingResolved.reason };
+		}
+
+		const endpoint = pairingResolved.endpoint;
+		const pairingEndpoint: PairingDialEndpoint = {
+			host: endpoint.resolvedIp,
+			port: endpoint.port,
+			servername: endpoint.servername,
+		};
+
+		const startResult = await this._pairingOrchestrator.startPairing(profile, pairingEndpoint);
+		if (!startResult.ok) {
+			const code = this._mapPairingFailureCode(startResult.code);
+			this._connectionPhase = { kind: 'failed', code, reason: startResult.reason };
+			this._fireSnapshotChanged();
+			return { ok: false, code, reason: startResult.reason };
+		}
+
+		this._transport?.close();
+		this._transport = undefined;
+		this._sessionToken = undefined;
+		this._pairingPending = true;
+		this._transportState = 'idle';
+
+		const snapshot = startResult.snapshot;
+		if (snapshot.phase === 'recover_trust') {
+			this._fireSnapshotChanged();
+			return {
+				ok: true,
+				path: endpoint.path,
+				pairingPending: true,
+				engineIdentityId: snapshot.engineIdentityId,
+			};
+		}
+
+		this._fireSnapshotChanged();
+		return {
+			ok: true,
+			path: endpoint.path,
+			pairingPending: true,
+			sasCode: snapshot.sasCode,
+			engineIdentityId: snapshot.engineIdentityId,
+		};
+	}
+
+	private _mapPairingFailureCode(code: string): ConnectionFailureCode {
+		switch (code) {
+			case 'sas_mismatch':
+			case 'pin_mismatch':
+			case 'grant_pending':
+			case 'trust_missing':
+			case 'hub_session_required':
+			case 'hub_password_change_required':
+			case 'hub_auth_expired':
+			case 'hub_unreachable':
+			case 'hub_device_not_in_directory':
+			case 'hub_device_revoked':
+			case 'engine_not_serving':
+			case 'hub_ticket_failed':
+			case 'hub_rate_limited':
+			case 'private_network_denied':
+			case 'unsupported_environment':
+				return code;
+			default:
+				return 'transport_failed';
+		}
 	}
 
 	private _rememberAdvertisedMethods(methods: readonly string[]): void {

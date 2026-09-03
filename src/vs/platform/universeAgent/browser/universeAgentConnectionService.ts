@@ -125,6 +125,14 @@ export class WebUniverseAgentConnection implements IUniverseAgentConnection {
 		return { ok: false, code: WEB_UNSUPPORTED_CODE, reason: WEB_UNSUPPORTED_REASON };
 	}
 
+	async confirmPairing(): Promise<UniverseAgentConnectProfileResult> {
+		return { ok: false, code: WEB_UNSUPPORTED_CODE, reason: WEB_UNSUPPORTED_REASON };
+	}
+
+	async cancelPairing(): Promise<void> {
+		return rejectUnsupportedEnvironment();
+	}
+
 	getConnectionPhase(): ConnectionPhase {
 		return { kind: 'disconnected' };
 	}

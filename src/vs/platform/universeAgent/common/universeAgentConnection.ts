@@ -121,6 +121,12 @@ export interface IUniverseAgentConnection {
 	/** Hub / DirectAddress profile dial via live resolver (connection-hub H3). */
 	connectProfile(profileId: string, options?: { readonly reconnect?: boolean }): Promise<UniverseAgentConnectProfileResult>;
 
+	/** Complete SAS pairing after {@link connectProfile} returned `pairingPending: true`. */
+	confirmPairing(): Promise<UniverseAgentConnectProfileResult>;
+
+	/** Abandon in-flight pairing and disconnect (no trust write). */
+	cancelPairing(): Promise<void>;
+
 	/** Connection-level phase for pane (StatusBar uses this in H4b). */
 	getConnectionPhase(): ConnectionPhase;
 

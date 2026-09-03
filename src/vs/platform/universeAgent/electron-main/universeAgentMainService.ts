@@ -8,6 +8,7 @@ import { IApplicationStorageMainService } from '../../storage/electron-main/stor
 import { ClientIdentityStore } from '../node/clientIdentityStore.js';
 import { ConnectionProfileStore } from '../node/connectionProfileStore.js';
 import { createConnectionResolver } from '../node/connectionResolver.js';
+import { EngineTrustStore } from '../node/engineTrustStore.js';
 import { HubSessionStore } from '../node/hubSessionStore.js';
 import { UniverseAgentConnectionService as UniverseAgentConnectionServiceBase } from '../node/universeAgentConnectionService.js';
 
@@ -24,10 +25,12 @@ export class UniverseAgentConnectionService extends UniverseAgentConnectionServi
 		const hubSessionStore = new HubSessionStore(encryptionService, applicationStorage);
 		const clientIdentityStore = new ClientIdentityStore(encryptionService, applicationStorage);
 		const connectionProfileStore = new ConnectionProfileStore(applicationStorage);
+		const engineTrustStore = new EngineTrustStore(applicationStorage);
 		super({
 			hubSessionStore,
 			clientIdentityStore,
 			connectionProfileStore,
+			engineTrustStore,
 			storageReady: applicationStorage.whenReady,
 			connectionResolver: createConnectionResolver({
 				connectionProfileStore,
