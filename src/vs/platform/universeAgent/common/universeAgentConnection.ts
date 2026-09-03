@@ -47,6 +47,8 @@ import type {
 	UniverseAgentDeleteMessageResult,
 	UniverseAgentEditMessageRequest,
 	UniverseAgentEditMessageResult,
+	UniverseAgentSendClientToolResponseRequest,
+	UniverseAgentSendClientToolResponseResult,
 	UniverseAgentGetHistoryRequest,
 	UniverseAgentGetHistoryResult,
 	UniverseAgentListSessionsRequest,
@@ -267,6 +269,13 @@ export interface IUniverseAgentConnection {
 	 * empty text / disconnected / stub stay local or no-op.
 	 */
 	editMessage?(request: UniverseAgentEditMessageRequest): Promise<UniverseAgentEditMessageResult>;
+
+	/**
+	 * AgentService.SendClientToolResponse unary (ADR-325 client-tool reply).
+	 * Optional so Web / tests can omit it. Catalog + node transport only this
+	 * slice; timeline / roster still post Chat-arm `clientToolRespond`.
+	 */
+	sendClientToolResponse?(request: UniverseAgentSendClientToolResponseRequest): Promise<UniverseAgentSendClientToolResponseResult>;
 
 	getHistory(request: UniverseAgentGetHistoryRequest): Promise<UniverseAgentGetHistoryResult>;
 

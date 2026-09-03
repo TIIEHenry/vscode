@@ -43,6 +43,8 @@ import type {
 	UniverseAgentDeleteMessageResult,
 	UniverseAgentEditMessageRequest,
 	UniverseAgentEditMessageResult,
+	UniverseAgentSendClientToolResponseRequest,
+	UniverseAgentSendClientToolResponseResult,
 	UniverseAgentToolInfoRequest,
 	UniverseAgentToolInfoResult,
 	UniverseAgentGetHistoryRequest,
@@ -273,6 +275,14 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 	async editMessage(request: UniverseAgentEditMessageRequest): Promise<UniverseAgentEditMessageResult> {
 		this.editMessageCalls.push(request);
 		return this.editMessageResult;
+	}
+
+	readonly sendClientToolResponseCalls: UniverseAgentSendClientToolResponseRequest[] = [];
+	sendClientToolResponseResult: UniverseAgentSendClientToolResponseResult = { ok: true };
+
+	async sendClientToolResponse(request: UniverseAgentSendClientToolResponseRequest): Promise<UniverseAgentSendClientToolResponseResult> {
+		this.sendClientToolResponseCalls.push(request);
+		return this.sendClientToolResponseResult;
 	}
 
 	async getHistory(_request: UniverseAgentGetHistoryRequest): Promise<UniverseAgentGetHistoryResult> {
@@ -609,6 +619,11 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
 	});
 
+	test('UniverseAgentGrpcServices lists Agent.SendClientToolResponse', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.SendClientToolResponse, 'SendClientToolResponse');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+	});
+
 	test('renameSession forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
@@ -876,6 +891,41 @@ suite('UniverseAgentConnectionService', () => {
 		const failed = await service.editMessage({ sessionId: 'sess-2', turnId: 'turn-2', newContent: 'nope' });
 		assert.deepStrictEqual(failed, { ok: false, message: 'not found' });
 		assert.strictEqual(transport.editMessageCalls[1]?.turnId, 'turn-2');
+		service.dispose();
+	});
+
+	test('sendClientToolResponse forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		const result = await service.sendClientToolResponse({
+			sessionId: 'sess-1',
+			callId: 'call-1',
+			content: '{"ok":true}',
+		});
+		assert.deepStrictEqual(transport.sendClientToolResponseCalls, [{
+			sessionId: 'sess-1',
+			callId: 'call-1',
+			content: '{"ok":true}',
+		}]);
+		assert.deepStrictEqual(result, { ok: true });
+
+		transport.sendClientToolResponseResult = { ok: false, message: 'expired' };
+		const failed = await service.sendClientToolResponse({
+			sessionId: 'sess-1',
+			callId: '',
+			isError: true,
+			metadataJson: '{"note":"fail"}',
+			canvasRefs: [{ canvasId: 'c1', revisionId: 'r1', title: 'Board' }],
+		});
+		assert.deepStrictEqual(failed, { ok: false, message: 'expired' });
+		assert.strictEqual(transport.sendClientToolResponseCalls[1]?.callId, '');
+		assert.strictEqual(transport.sendClientToolResponseCalls[1]?.isError, true);
+		assert.strictEqual(transport.sendClientToolResponseCalls[1]?.metadataJson, '{"note":"fail"}');
+		assert.deepStrictEqual(transport.sendClientToolResponseCalls[1]?.canvasRefs, [{ canvasId: 'c1', revisionId: 'r1', title: 'Board' }]);
 		service.dispose();
 	});
 
