@@ -4,15 +4,16 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-04
-summary: "槽 A：宿主把 SessionEventStream onClosed remote/error 经 postAndDrain 折成 Actor streamClosed"
+summary: "槽 D：回填 engine-catalog 九节六态，对齐 git 已落的 E2/GC-6，去掉「Overview 无 / M7 未实施」"
 ---
 
 # Development Progress
 
 ## Current Session
 
-- **槽 A / `loop/A`：** ff-merge `loop/merge` `bfaac2b0`（含槽 C `onClosed` 合同）后，`SessionViewHost.openStream` 把 `subscribeSessionEventStream` 的 remote/error `onClosed` 经 `postAndDrain` 折成 Actor `streamClosed`；Actor 再 `closeStream` 拆订阅。本地 linger dispose 不回调、不折 chrome。测：`sessionViewHostIntentOwner`。
-- **槽 C / `loop/C`：** `subscribeSessionEventStream` 第三参 `onClosed` 与 Chat bidi 共用 `createStreamCloseGate`（已合入 merge）。
+- **槽 D / `loop/D`：** ff-merge `loop/merge` `9688b303` 后，按 git 回填知识层 [engine-catalog](../../docs/systems/workbench/engine-catalog.md)：九节两栏 + 六态已是 HEAD，不是「M7 未实施 / Overview 无」。卫星句（glossary / workbench INDEX / protocol §7 / settings-ua-access）同步改口。PRD-025 仍 `accepted`。
+- **槽 A：** 宿主把 SessionEventStream remote/error `onClosed` 经 `postAndDrain` 折成 Actor `streamClosed`（已在 merge）。
+- **槽 C：** `onClosed` 与 Chat bidi 共用 close gate（已在 merge）。
 
 ## 槽位（与 `git worktree list` 对照）
 
@@ -22,7 +23,7 @@ summary: "槽 A：宿主把 SessionEventStream onClosed remote/error 经 postAnd
 | A | `vscode-WorkTrees/A` | `loop/A` | 宿主 `streamClosed` 折 remote/error |
 | B | `vscode-WorkTrees/B` | `loop/B` | ua-motion a11y 收口（已合） |
 | C | `vscode-WorkTrees/C` | `loop/C` | SessionEventStream `onClosed` 合同+传输 |
-| D | `vscode-WorkTrees/D` | `loop/D` | 以该槽 `git` 为准 |
+| D | `vscode-WorkTrees/D` | `loop/D` | engine-catalog 九节诚实回填 |
 | edit | `Projects/Agents/vscode` | `agent-ide` | 请自行对齐 |
 
 ## Blockers

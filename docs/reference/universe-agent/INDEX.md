@@ -3,8 +3,8 @@ title: "UniverseAgent 引擎参考索引"
 type: index
 status: accepted
 phase: N/A
-updated: 2026-09-02
-summary: "本仓消费 UniverseAgent 引擎（外仓）协议面与 Connection Hub 控制面的导航：已知 gRPC / Hub REST / 能力探测 / 协议缺口汇总，以及 R5 接线研究要补的会话面清单；权威在外仓，本目录只登记本仓口径"
+updated: 2026-09-04
+summary: "本仓消费 UniverseAgent 引擎（外仓）协议面与 Connection Hub 控制面的导航：已知 gRPC / Hub REST / 能力探测 / 协议缺口汇总；Engine 页九节 UI 见 engine-catalog；权威在外仓，本目录只登记本仓口径"
 ---
 
 # UniverseAgent 引擎参考
@@ -21,7 +21,7 @@ summary: "本仓消费 UniverseAgent 引擎（外仓）协议面与 Connection H
 |----|------|
 | [engine-protocol-surface.md](engine-protocol-surface.md) | 已知 gRPC 服务与 RPC、Device Grant 握手、能力探测三态、本仓消费口径、协议缺口、会话面清单 |
 | [hub-control-plane-surface.md](hub-control-plane-surface.md) | Connection Hub HTTPS 控制面：AuthSession、设备目录、relay ticket、Hub 失败码 |
-| [engine-catalog §](../../systems/workbench/engine-catalog.md) | Engine 页 catalog UI 规格（list/toggle @ HEAD；写 RPC 边界） |
+| [engine-catalog §](../../systems/workbench/engine-catalog.md) | Engine 页九节 UI 规格（六态 + 写 RPC 边界 @ HEAD；PRD-025 待产品验证） |
 
 ## 红线（摘自 ADR-006 壳不变量、ADR-003 adapter 边界草案与 customizations-engine）
 

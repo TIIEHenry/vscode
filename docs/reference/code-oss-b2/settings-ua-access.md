@@ -3,7 +3,7 @@ title: "Settings 接入：UA 设置项如何挂进 vscode Preferences"
 type: reference
 status: accepted
 phase: N/A
-updated: 2026-09-03
+updated: 2026-09-04
 summary: "混合宿主已落；Client 9 键与 Engine E2-1–E2-7 代码完成线已落；PRD-025/026 仍 accepted，待产品验证"
 ---
 
@@ -78,10 +78,10 @@ Client 与 vscode 原生重叠的项 **不要双入口**：
 | 面 | 宿主 | 禁止 |
 |----|------|------|
 | 打开某份 UA markdown / `tools.json` | `AICustomizationManagementEditor`（`aiCustomization.openManagementEditor`，`RequiresModal`） | Settings TOC 再做一份 catalog 列表；默认窗构造 Plugins/Tools widget |
-| Skill/Agent catalog 等产品面 | Preferences **Engine pane**（[engine-catalog §3](../../systems/workbench/engine-catalog.md)：Skills list/toggle + Agents/MCP/Tools **List** + MCP toggle @ HEAD） | 把 Copilot Overview 当 Engine 首页；无引擎扫盘 Stub catalog；**不得**把槽 A 未合入的 Save/MCP CRUD/tools.json 写 UI 标成已接 |
+| Skill/Agent catalog 等产品面 | Preferences **Engine pane**（[engine-catalog §3](../../systems/workbench/engine-catalog.md)：九节两栏 + Skills/Agents/MCP/Tools/Plugins 写路径 @ HEAD） | 把 Copilot Overview 当 Engine 首页；无引擎扫盘 Stub catalog；不得把 Provider 凭据或 Rules/Hooks 列表标成已接 |
 | 跳转 | TOC「Open Customizations…」→ `aiCustomization.openManagementEditor`（C5 已落；**无**第三 Preferences pane） | 复制列表进 Settings 树 |
 
-MCP：vscode 本地 `mcp.json` 可在 donor 当普通文件；引擎 MCP 定义 CRUD 在 Engine 页。运行态另切片。
+MCP：vscode 本地 `mcp.json` 可在 donor 当普通文件；引擎 MCP 定义 CRUD 与 Runtime tab 都在 Engine 页 MCP Servers 节。
 
 ## 5. Copilot TOC 剥离（INV-NO-COPILOT）
 
