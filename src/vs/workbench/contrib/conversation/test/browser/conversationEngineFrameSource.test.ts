@@ -204,7 +204,8 @@ suite('ConversationEngineFrameSource post outcome', () => {
 		const lease = store.add(source.acquire('sess-d'));
 
 		const pending = lease.post({ kind: 'submitInput', text: 'queued' });
-		assert.strictEqual(sessionView.lastPost, undefined);
+		const lastPostBeforeAcquire = sessionView.lastPost;
+		assert.strictEqual(lastPostBeforeAcquire, undefined);
 		resolveAcquire('lease:sess-d');
 
 		assert.deepStrictEqual(await pending, { accepted: false, reason: 'no_such_session' });
