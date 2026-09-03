@@ -11,7 +11,7 @@ import { createDecorator } from '../../../../platform/instantiation/common/insta
 import { IStorageService } from '../../../../platform/storage/common/storage.js';
 import { shouldRestoreLastSessionOnStartup } from '../common/uaClientSettingsHelpers.js';
 import type { IConversationSessionViewLease } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
-import type { SyncChrome } from '../../../../platform/universeAgent/common/sessionView/index.js';
+import type { LiveAgentTreeNodeView, SyncChrome } from '../../../../platform/universeAgent/common/sessionView/index.js';
 import { ConversationStubFrameSource } from './conversationStubFrameSource.js';
 import {
 	buildLocalSessionsFromModel,
@@ -45,12 +45,18 @@ import {
 
 export const IConversationRosterService = createDecorator<IConversationRosterService>('conversationStubService');
 
+export interface ILiveAgentTreeChangeEvent {
+	readonly sessionId: string;
+	readonly tree: LiveAgentTreeNodeView;
+}
+
 export interface IConversationRosterService {
 	readonly _serviceBrand: undefined;
 
 	readonly onDidChangeActiveSession: Event<string>;
 	readonly onDidChangeSession: Event<string>;
 	readonly onDidChangeEngineConnection: Event<boolean>;
+	readonly onDidChangeLiveAgentTree: Event<ILiveAgentTreeChangeEvent>;
 
 	getSessions(): readonly ConversationStubSession[];
 	getActiveSessionId(): string;
@@ -115,6 +121,8 @@ export class ConversationStubService extends Disposable implements IConversation
 
 	protected readonly _onDidChangeEngineConnection = this._register(new Emitter<boolean>());
 	readonly onDidChangeEngineConnection = this._onDidChangeEngineConnection.event;
+
+	readonly onDidChangeLiveAgentTree = Event.None;
 
 	protected frameSource!: ConversationStubFrameSource;
 

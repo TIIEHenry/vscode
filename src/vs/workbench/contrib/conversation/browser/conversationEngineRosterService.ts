@@ -3,6 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { DisposableStore } from '../../../../base/common/lifecycle.js';
+import { Emitter } from '../../../../base/common/event.js';
 import { localize } from '../../../../nls.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { IStorageService } from '../../../../platform/storage/common/storage.js';
@@ -23,6 +25,7 @@ import { projectSnapshotToTrajectory, projectTurnsToTrajectory, type Conversatio
 import {
 	ConversationStubService,
 	IConversationRosterService,
+	type ILiveAgentTreeChangeEvent,
 } from './conversationStubService.js';
 import { ConversationStubSession, ConversationStubTurn, getConversationStubNextTurnId } from './conversationStubModel.js';
 
@@ -35,6 +38,9 @@ const STUB_SEED_IDS = new Set(['untitled', 'visualize']);
 export class ConversationEngineRosterService extends ConversationStubService implements IConversationRosterService {
 
 	private readonly engineFrameSource: ConversationEngineFrameSource;
+	private readonly liveTreeObservationStore = this._register(new DisposableStore());
+	protected readonly _onDidChangeLiveAgentTree = this._register(new Emitter<ILiveAgentTreeChangeEvent>());
+	override readonly onDidChangeLiveAgentTree = this._onDidChangeLiveAgentTree.event;
 	private engineSessions: ConversationStubSession[] = [];
 	private activeEngineSessionId: string | undefined;
 	private listCompleted = false;
@@ -52,6 +58,9 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		this.engineFrameSource = this._register(new ConversationEngineFrameSource(sessionView));
 		this.restoreEngineCacheFromStorage();
 		this._register(uaConnection.onDidChangeConnection(() => this.onUaConnectionChanged()));
+		this._register(this.onDidChangeActiveSession(() => this.bindLiveTreeObservationLease()));
+		this._register(this.onDidChangeEngineConnection(() => this.bindLiveTreeObservationLease()));
+		this.bindLiveTreeObservationLease();
 	}
 
 	override isEngineConnected(): boolean {
@@ -81,6 +90,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		} else {
 			this.listCompleted = this.engineSessions.length > 0;
 		}
+		this.bindLiveTreeObservationLease();
 	}
 
 	override getSessions(): readonly ConversationStubSession[] {
@@ -231,6 +241,29 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 			this.captureEngineCache();
 			this.listCompleted = this.engineSessions.length > 0;
 			this._onDidChangeEngineConnection.fire(false);
+		}
+		this.bindLiveTreeObservationLease();
+	}
+
+	private bindLiveTreeObservationLease(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
+		this.liveTreeObservationStore.clear();
+		if (!this.isEngineConnected()) {
+			return;
+		}
+		const sessionId = this.getActiveSessionId();
+		const lease = this.acquireSessionView(sessionId);
+		this.liveTreeObservationStore.add(lease);
+		this.liveTreeObservationStore.add(lease.onDidApplyFrame(() => this.emitLiveAgentTreeFromLease(lease)));
+		this.emitLiveAgentTreeFromLease(lease);
+	}
+
+	private emitLiveAgentTreeFromLease(lease: IConversationSessionViewLease): void {
+		const tree = lease.snapshot.liveAgentTree;
+		if (tree) {
+			this._onDidChangeLiveAgentTree.fire({ sessionId: lease.sessionId, tree });
 		}
 	}
 

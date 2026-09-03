@@ -5,6 +5,9 @@
 
 import { localize } from '../../../../nls.js';
 import type { LiveAgentTreeNodeView } from '../../../../platform/universeAgent/common/sessionView/index.js';
+import { isEngineRootAgentId } from '../../conversation/common/engineRootAgentId.js';
+
+export { isEngineRootAgentId };
 
 export interface INavigatorAgentsHierarchyNode {
 	readonly id: string;
@@ -67,6 +70,3 @@ export function isRootOnlyAgentTree(tree: LiveAgentTreeNodeView | undefined): bo
 	return tree.children.length === 0;
 }
 
-export function isEngineRootAgentId(agentId: string): boolean {
-	return agentId === 'root';
-}

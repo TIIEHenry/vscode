@@ -5,6 +5,7 @@
 
 import assert from 'assert';
 import { timeout } from '../../../../../base/common/async.js';
+import { Emitter } from '../../../../../base/common/event.js';
 import { CancellationToken } from '../../../../../base/common/cancellation.js';
 import { CancellationTokenSource } from '../../../../../base/common/cancellation.js';
 import { DisposableStore, IDisposable, toDisposable } from '../../../../../base/common/lifecycle.js';
@@ -37,7 +38,8 @@ import {
 import { ConversationSessionChatService, IConversationSessionChatService } from '../../browser/conversationSessionChatService.js';
 import { isConversationExtensionTab } from '../../common/conversationEditorRouting.js';
 import { conversationSubAgentOverlayClass, conversationSubAgentOverlayBackdropClass, conversationSubAgentOverlayCardClass, conversationSubAgentOverlayMaximizeClass, conversationSubAgentOverlayMaximizedAttribute, conversationSubAgentOverlayPopoutClass, conversationSubAgentOverlayTitleId } from '../../browser/conversationSubAgentOverlay.js';
-import { ConversationStubService, IConversationRosterService } from '../../browser/conversationStubService.js';
+import { ConversationStubService, IConversationRosterService, type ILiveAgentTreeChangeEvent } from '../../browser/conversationStubService.js';
+import type { LiveAgentTreeNodeView } from '../../../../../platform/universeAgent/common/sessionView/index.js';
 import { ConversationDiffReviewInput } from '../../../sources/browser/conversationDiffReviewInput.js';
 import { ConversationDiffReviewInputTypeId } from '../../../sources/common/conversationDiffReviewInput.js';
 import { ForkConversationAction } from '../../../chat/browser/actions/chatForkActions.js';
@@ -173,6 +175,15 @@ suite('Conversation session chat (S3)', () => {
 	const disposables = store as unknown as DisposableStore;
 	let conversationChatEditorRegistered: IDisposable | undefined;
 	let conversationDiffReviewEditorRegistered: IDisposable | undefined;
+
+	class TestRosterWithLiveTree extends ConversationStubService {
+		private readonly _onDidChangeLiveAgentTree = this._register(new Emitter<ILiveAgentTreeChangeEvent>());
+		override readonly onDidChangeLiveAgentTree = this._onDidChangeLiveAgentTree.event;
+
+		fireLiveTree(tree: LiveAgentTreeNodeView, sessionId = SESSION_KEY): void {
+			this._onDidChangeLiveAgentTree.fire({ sessionId, tree });
+		}
+	}
 
 	class TestConversationSessionChatService extends ConversationSessionChatService {
 		override async openExtensionTab(sessionKey: string, chatId: string, options?: { title?: string }): Promise<void> {
@@ -318,8 +329,7 @@ suite('Conversation session chat (S3)', () => {
 		}
 	});
 
-	async function createHarness() {
-		const rosterService = new ConversationStubService();
+	async function createHarness(rosterService: IConversationRosterService = new ConversationStubService()) {
 		const instantiationService = workbenchInstantiationService({
 			configurationService: () => new TestConfigurationService({
 				workbench: { editor: { enablePreview: false } },
@@ -357,7 +367,9 @@ suite('Conversation session chat (S3)', () => {
 		const sessionChatService = disposables.add(instantiationService.createInstance(TestConversationSessionChatService));
 		sessionChatService.mountSubAgentOverlay(SESSION_KEY, sessionWindow);
 		store.add(sessionChatService.registerPartListeners(conversationPart));
-		store.add(rosterService);
+		if (rosterService instanceof ConversationStubService) {
+			store.add(rosterService);
+		}
 
 		for (const editor of conversationPart.activeGroup.editors) {
 			if (editor instanceof ConversationChatInput) {
@@ -425,6 +437,104 @@ suite('Conversation session chat (S3)', () => {
 		assert.strictEqual(forkCalls, 1);
 		assert.strictEqual(conversationPart.activeGroup.count, 2);
 		assert.ok(sessionChatService.findOpenTabForChat(SESSION_KEY, 'peer-1'));
+	});
+
+	function makeLiveAgentTree(children: LiveAgentTreeNodeView[] = []): LiveAgentTreeNodeView {
+		return {
+			agentId: 'root',
+			name: 'Root',
+			type: 'AGENT_TYPE_ROOT',
+			status: 'AGENT_STATUS_IDLE',
+			model: 'm',
+			turnCount: 0,
+			createdAt: 0,
+			children,
+		};
+	}
+
+	function makeSubAgent(agentId: string, name: string, children: LiveAgentTreeNodeView[] = []): LiveAgentTreeNodeView {
+		return {
+			agentId,
+			name,
+			type: 'AGENT_TYPE_SUB',
+			status: 'AGENT_STATUS_IDLE',
+			model: 'm',
+			turnCount: 0,
+			createdAt: 0,
+			children,
+		};
+	}
+
+	test('live agent tree syncs non-root nodes into the catalog once', async () => {
+		const { sessionChatService } = await createHarness();
+		const tree = makeLiveAgentTree([makeSubAgent('research', 'Research')]);
+		sessionChatService.syncSubAgentsFromLiveTree(SESSION_KEY, tree);
+		sessionChatService.syncSubAgentsFromLiveTree(SESSION_KEY, tree);
+		const catalog = sessionChatService.getCatalog(SESSION_KEY);
+		assert.strictEqual(catalog.filter(entry => entry.chatId === 'research').length, 1);
+		assert.strictEqual(catalog.find(entry => entry.chatId === 'research')?.parentChatId, 'default');
+	});
+
+	test('onDidChangeLiveAgentTree registers sub-agent for openSubAgent without reveal', async () => {
+		const rosterService = store.add(new TestRosterWithLiveTree());
+		const { sessionChatService, sessionWindow } = await createHarness(rosterService);
+		const tree = makeLiveAgentTree([makeSubAgent('research', 'Research')]);
+		rosterService.fireLiveTree(tree);
+
+		await sessionChatService.openSubAgent(SESSION_KEY, 'research');
+
+		assert.strictEqual(sessionChatService.isSubAgentDialogOpen(), true);
+		const overlay = sessionWindow.querySelector(`.${conversationSubAgentOverlayClass}:not([hidden])`) as HTMLElement | null;
+		assert.ok(overlay);
+		assert.strictEqual(overlay.querySelector(`#${conversationSubAgentOverlayTitleId}`)?.textContent, 'Research');
+	});
+
+	test('onDidChangeLiveAgentTree resolves breadcrumb without reveal', async () => {
+		const rosterService = store.add(new TestRosterWithLiveTree());
+		const { sessionChatService } = await createHarness(rosterService);
+		const tree = makeLiveAgentTree([
+			makeSubAgent('research', 'Research', [makeSubAgent('web', 'Web search')]),
+		]);
+		rosterService.fireLiveTree(tree);
+
+		const breadcrumb = sessionChatService.getAgentHierarchyBreadcrumb(SESSION_KEY, 'web');
+		assert.deepStrictEqual(breadcrumb.map(item => item.chatId), ['default', 'research', 'web']);
+	});
+
+	test('onDidChangeLiveAgentTree does not register root agent', async () => {
+		const rosterService = store.add(new TestRosterWithLiveTree());
+		const { sessionChatService } = await createHarness(rosterService);
+		rosterService.fireLiveTree(makeLiveAgentTree());
+
+		const catalog = sessionChatService.getCatalog(SESSION_KEY);
+		assert.ok(!catalog.some(entry => entry.chatId === 'root' || entry.chatId === 'default'));
+	});
+
+	test('duplicate live tree event does not fire onDidChangeCatalog again', async () => {
+		const rosterService = store.add(new TestRosterWithLiveTree());
+		const { sessionChatService } = await createHarness(rosterService);
+		const tree = makeLiveAgentTree([makeSubAgent('research', 'Research')]);
+		let catalogChanges = 0;
+		store.add(sessionChatService.onDidChangeCatalog(() => catalogChanges++));
+
+		rosterService.fireLiveTree(tree);
+		rosterService.fireLiveTree(tree);
+
+		assert.strictEqual(catalogChanges, 1);
+	});
+
+	test('renamed sub-agent updates title and fires onDidChangeCatalog once', async () => {
+		const rosterService = store.add(new TestRosterWithLiveTree());
+		const { sessionChatService } = await createHarness(rosterService);
+		let catalogChanges = 0;
+		store.add(sessionChatService.onDidChangeCatalog(() => catalogChanges++));
+
+		rosterService.fireLiveTree(makeLiveAgentTree([makeSubAgent('research', 'Research')]));
+		rosterService.fireLiveTree(makeLiveAgentTree([makeSubAgent('research', 'Renamed research')]));
+
+		const entry = sessionChatService.getCatalog(SESSION_KEY).find(item => item.chatId === 'research');
+		assert.strictEqual(entry?.title, 'Renamed research');
+		assert.strictEqual(catalogChanges, 2);
 	});
 
 	test('sub-agent spawn registers catalog entry without opening a tab or dialog', async () => {
