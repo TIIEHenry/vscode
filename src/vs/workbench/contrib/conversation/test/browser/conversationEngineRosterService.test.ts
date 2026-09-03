@@ -75,7 +75,12 @@ class MockUniverseAgentConnection extends Disposable implements IUniverseAgentCo
 	async disconnect() { this.setConnected(false); }
 	async listSessions() { return { sessions: this.sessions.map(s => ({ sessionId: s.sessionId, title: s.title })) }; }
 	readonly renameCalls: { sessionId: string; title: string }[] = [];
-	async createSession() { return { sessionId: 'ua-new' }; }
+	readonly createCalls: { title?: string }[] = [];
+	createSessionResult: { sessionId: string } = { sessionId: 'ua-new' };
+	async createSession(request: { title?: string }) {
+		this.createCalls.push({ title: request.title });
+		return this.createSessionResult;
+	}
 	async deleteSession() { }
 	async renameSession(request: { sessionId: string; title: string }) {
 		this.renameCalls.push({ sessionId: request.sessionId, title: request.title });
@@ -318,6 +323,64 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		assert.strictEqual(service.cancelGeneration('missing'), false);
 		assert.strictEqual(service.cancelGeneration('missing', 'root'), false);
 		assert.strictEqual(connection.cancelCalls.length, 3);
+	});
+
+	test('connected createSession forwards SessionService.Create and catalogs the engine id', async () => {
+		const storage = store.add(new TestStorageService());
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
+		const service = store.add(createService(connection, storage));
+		connection.setConnected(true);
+		service.setEngineConnected(true);
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+		const previous = service.getActiveSessionId();
+		let fired = '';
+		store.add(service.onDidChangeActiveSession(id => { fired = id; }));
+		assert.strictEqual(service.createSession(), '');
+		assert.strictEqual(service.getActiveSessionId(), previous);
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+		assert.deepStrictEqual(connection.createCalls, [{ title: 'New session' }]);
+		assert.ok(service.getSessions().some(session => session.id === 'ua-new'));
+		assert.strictEqual(service.getActiveSessionId(), 'ua-new');
+		assert.strictEqual(fired, 'ua-new');
+		assert.ok(!service.getSessions().some(session => session.id === 'untitled'));
+	});
+
+	test('connected createSession ignores an empty engine id', async () => {
+		const storage = store.add(new TestStorageService());
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
+		connection.createSessionResult = { sessionId: '   ' };
+		const service = store.add(createService(connection, storage));
+		connection.setConnected(true);
+		service.setEngineConnected(true);
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+		assert.strictEqual(service.createSession(), '');
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		assert.strictEqual(connection.createCalls.length, 1);
+		assert.strictEqual(service.getSessions().length, 1);
+		assert.strictEqual(service.getSessions()[0]?.id, 'ua-only');
+	});
+
+	test('disconnected after engine createSession skips unary and does not seed stub', async () => {
+		const storage = store.add(new TestStorageService());
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
+		const service = store.add(createService(connection, storage));
+		connection.setConnected(true);
+		service.setEngineConnected(true);
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		connection.setConnected(false);
+		service.setEngineConnected(false);
+
+		assert.strictEqual(service.createSession(), '');
+		assert.strictEqual(connection.createCalls.length, 0);
+		assert.strictEqual(service.getSessions().length, 1);
+		assert.strictEqual(service.getSessions()[0]?.id, 'ua-only');
+		assert.ok(!service.getSessions().some(session => session.id === 'untitled'));
 	});
 
 	test('disconnected after engine cancelGeneration skips unary', async () => {
