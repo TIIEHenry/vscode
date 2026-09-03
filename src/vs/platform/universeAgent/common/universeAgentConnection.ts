@@ -41,6 +41,8 @@ import type {
 	UniverseAgentForkAgentResult,
 	UniverseAgentKillAgentRequest,
 	UniverseAgentKillAgentResult,
+	UniverseAgentEditMessageRequest,
+	UniverseAgentEditMessageResult,
 	UniverseAgentGetHistoryRequest,
 	UniverseAgentGetHistoryResult,
 	UniverseAgentListSessionsRequest,
@@ -239,6 +241,14 @@ export interface IUniverseAgentConnection {
 	 * defaulted to `root`). Distinct from Cancel / CancelToolCall.
 	 */
 	killAgent?(request: UniverseAgentKillAgentRequest): Promise<UniverseAgentKillAgentResult>;
+
+	/**
+	 * AgentService.EditMessage unary (edit user-turn text; ≠ EditQueueItem).
+	 * Optional so Web / tests can omit it. ConversationEngineRosterService
+	 * `updateUserTurnText` forwards this when connected; empty `turnId` /
+	 * empty text / disconnected / stub stay local or no-op.
+	 */
+	editMessage?(request: UniverseAgentEditMessageRequest): Promise<UniverseAgentEditMessageResult>;
 
 	getHistory(request: UniverseAgentGetHistoryRequest): Promise<UniverseAgentGetHistoryResult>;
 

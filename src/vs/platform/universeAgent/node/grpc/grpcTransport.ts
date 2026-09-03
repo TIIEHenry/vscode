@@ -36,6 +36,8 @@ import type {
 	UniverseAgentForkAgentResult,
 	UniverseAgentKillAgentRequest,
 	UniverseAgentKillAgentResult,
+	UniverseAgentEditMessageRequest,
+	UniverseAgentEditMessageResult,
 	UniverseAgentGetHistoryRequest,
 	UniverseAgentGetHistoryResult,
 	UniverseAgentListSessionsRequest,
@@ -187,6 +189,8 @@ export interface IUniverseAgentGrpcTransport {
 
 	killAgent(request: UniverseAgentKillAgentRequest): Promise<UniverseAgentKillAgentResult>;
 
+	editMessage(request: UniverseAgentEditMessageRequest): Promise<UniverseAgentEditMessageResult>;
+
 	getHistory(request: UniverseAgentGetHistoryRequest): Promise<UniverseAgentGetHistoryResult>;
 
 	subscribeSessionEventStream(
@@ -309,6 +313,7 @@ export const UniverseAgentGrpcServices = {
 		EditQueueItem: 'EditQueueItem',
 		Fork: 'Fork',
 		Kill: 'Kill',
+		EditMessage: 'EditMessage',
 		Tree: 'Tree',
 		ListAgentProfiles: 'ListAgentProfiles',
 		SaveAgentProfile: 'SaveAgentProfile',

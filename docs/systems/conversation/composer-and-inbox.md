@@ -4,7 +4,7 @@ type: architecture
 status: accepted
 phase: N/A
 updated: 2026-09-04
-summary: "PRD-015 系统规格：PreFirst 居中 / Active 列底同一张 Composer；三种 composerPolicy；身份条 XOR；Inbox 左右分簇与 MessageQueue 状态机；Stop 仅 connected+streaming 时转 AgentService.Cancel；Goal 接通后转 SetSessionGoal / CancelSessionGoal；MessageQueue 接通后转 Enqueue/Pause/Resume/Clear/Hold/Release/Edit（无 GetQueue 显示空）；语音转写条；输入历史；StatusBar 芯片与诚实降级"
+summary: "PRD-015 系统规格：PreFirst 居中 / Active 列底同一张 Composer；三种 composerPolicy；身份条 XOR；Inbox 左右分簇与 MessageQueue 状态机；Stop 仅 connected+streaming 时转 AgentService.Cancel；Goal 接通后转 SetSessionGoal / CancelSessionGoal；MessageQueue 接通后转 Enqueue/Pause/Resume/Clear/Hold/Release/Edit（无 GetQueue 显示空）；turnEdit 保存接通后转 AgentService.EditMessage（空 turnId / 空正文不发）；语音转写条；输入历史；StatusBar 芯片与诚实降级"
 ---
 
 # Conversation Composer、身份条与 Inbox
@@ -31,7 +31,7 @@ summary: "PRD-015 系统规格：PreFirst 居中 / Active 列底同一张 Compos
 `ConversationLens` 的私有字段 `composerPolicy ∈ 'compose' | 'turnEdit' | 'queueEdit'`（非导出 API，此处只描述状态机）：
 
 - `compose`：正常输入；Send → `IConversationRosterService.appendUserTurn`，无引擎时可追加 `appendStubEchoAssistant`（`stubEcho: true`，UI 标 Stub）。
-- `turnEdit`：点击时间线用户卡进入；保存走 `updateUserTurnText`；Escape / Exit 回 `compose`。
+- `turnEdit`：点击时间线用户卡进入；保存走 `updateUserTurnText`（接通后转 `AgentService.EditMessage`，空 `turnId` / 空正文不发；未接通仍本地改）；Escape / Exit 回 `compose`。
 - `queueEdit`：编辑 MessageQueue 项；进入时 `holdMessageQueueItem(..., 'EDITING')`，退出时 `releaseMessageQueueItemHold`；保存走 `updateMessageQueueItemContent`。
 
 列表内编辑与队列编辑**复用同一 Composer**（PRD-015 验收 6）；展示态用户卡没有按钮。

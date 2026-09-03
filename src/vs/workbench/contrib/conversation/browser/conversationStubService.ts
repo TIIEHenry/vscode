@@ -115,6 +115,12 @@ export interface IConversationRosterService {
 	appendToolTurn(sessionId: string, text: string): ConversationStubTurn | undefined;
 	countPendingConfirmations(sessionId: string): number;
 	deleteTurn(sessionId: string, turnId: string): boolean;
+	/**
+	 * AgentService.EditMessage (edit user-turn text; ≠ EditQueueItem).
+	 * Engine-connected forwards unary (empty `turnId` / empty text / unknown
+	 * session / disconnected cache / missing hook false). Stub /
+	 * never-connected stays local.
+	 */
 	updateUserTurnText(sessionId: string, turnId: string, text: string): boolean;
 	/**
 	 * AgentService.EnqueueQueueItem. Engine-connected forwards unary (empty

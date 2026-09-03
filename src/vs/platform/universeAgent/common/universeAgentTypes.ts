@@ -221,6 +221,22 @@ export interface UniverseAgentKillAgentResult {
 	readonly message?: string;
 }
 
+/** AgentService.EditMessage — edit a user turn's content (≠ EditQueueItem). */
+export interface UniverseAgentEditMessageRequest {
+	readonly sessionId: string;
+	readonly turnId: string;
+	readonly newContent: string;
+	/** Owning agent; empty/omitted wires as `root`. */
+	readonly agentId?: string;
+	/** Client idempotency key; empty lets the engine hash content. */
+	readonly operationId?: string;
+}
+
+export interface UniverseAgentEditMessageResult {
+	readonly ok: boolean;
+	readonly message?: string;
+}
+
 export interface UniverseAgentGetHistoryRequest {
 	readonly sessionId: string;
 	readonly cursorSeq?: string;

@@ -37,6 +37,8 @@ import type {
 	UniverseAgentForkAgentResult,
 	UniverseAgentKillAgentRequest,
 	UniverseAgentKillAgentResult,
+	UniverseAgentEditMessageRequest,
+	UniverseAgentEditMessageResult,
 	UniverseAgentToolInfoRequest,
 	UniverseAgentToolInfoResult,
 	UniverseAgentGetHistoryRequest,
@@ -243,6 +245,14 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 	async killAgent(request: UniverseAgentKillAgentRequest): Promise<UniverseAgentKillAgentResult> {
 		this.killCalls.push(request);
 		return this.killResult;
+	}
+
+	readonly editMessageCalls: UniverseAgentEditMessageRequest[] = [];
+	editMessageResult: UniverseAgentEditMessageResult = { ok: true };
+
+	async editMessage(request: UniverseAgentEditMessageRequest): Promise<UniverseAgentEditMessageResult> {
+		this.editMessageCalls.push(request);
+		return this.editMessageResult;
 	}
 
 	async getHistory(_request: UniverseAgentGetHistoryRequest): Promise<UniverseAgentGetHistoryResult> {
@@ -566,6 +576,11 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
 	});
 
+	test('UniverseAgentGrpcServices lists Agent.EditMessage', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.EditMessage, 'EditMessage');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+	});
+
 	test('renameSession forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
@@ -765,6 +780,24 @@ suite('UniverseAgentConnectionService', () => {
 		const failedKill = await service.killAgent({ sessionId: 'sess-2', agentId: '' });
 		assert.deepStrictEqual(failedKill, { ok: false, message: 'not found' });
 		assert.strictEqual(transport.killCalls[1]?.agentId, '');
+		service.dispose();
+	});
+
+	test('editMessage forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		const result = await service.editMessage({ sessionId: 'sess-1', turnId: 'turn-1', newContent: 'later', agentId: 'sub:a' });
+		assert.deepStrictEqual(transport.editMessageCalls, [{ sessionId: 'sess-1', turnId: 'turn-1', newContent: 'later', agentId: 'sub:a' }]);
+		assert.deepStrictEqual(result, { ok: true });
+
+		transport.editMessageResult = { ok: false, message: 'not found' };
+		const failed = await service.editMessage({ sessionId: 'sess-2', turnId: 'turn-2', newContent: 'nope' });
+		assert.deepStrictEqual(failed, { ok: false, message: 'not found' });
+		assert.strictEqual(transport.editMessageCalls[1]?.turnId, 'turn-2');
 		service.dispose();
 	});
 

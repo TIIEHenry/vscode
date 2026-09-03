@@ -120,6 +120,16 @@ class MockUniverseAgentConnection extends Disposable implements IUniverseAgentCo
 		});
 		return { ok: true };
 	}
+	readonly editMessageCalls: { sessionId: string; turnId: string; newContent: string; agentId?: string }[] = [];
+	async editMessage(request: { sessionId: string; turnId: string; newContent: string; agentId?: string }) {
+		this.editMessageCalls.push({
+			sessionId: request.sessionId,
+			turnId: request.turnId,
+			newContent: request.newContent,
+			agentId: request.agentId,
+		});
+		return { ok: true };
+	}
 	readonly cancelToolCallCalls: { sessionId: string; agentId?: string; toolCallId: string }[] = [];
 	async cancelToolCall(request: { sessionId: string; agentId?: string; toolCallId: string }) {
 		this.cancelToolCallCalls.push({
@@ -617,6 +627,69 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 
 		assert.strictEqual(service.killSubAgent('ua-only'), true);
 		assert.strictEqual(connection.killCalls[1]?.agentId, 'sub:live');
+	});
+
+	test('connected updateUserTurnText forwards AgentService.EditMessage', async () => {
+		const storage = store.add(new TestStorageService());
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
+		const service = store.add(createService(connection, storage));
+		connection.setConnected(true);
+		service.setEngineConnected(true);
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+		assert.strictEqual(service.updateUserTurnText('ua-only', '  turn-1  ', '  later  '), true);
+		assert.deepStrictEqual(connection.editMessageCalls, [{
+			sessionId: 'ua-only',
+			turnId: 'turn-1',
+			newContent: 'later',
+			agentId: 'root',
+		}]);
+		assert.strictEqual(service.updateUserTurnText('ua-only', '   ', 'Nope'), false);
+		assert.strictEqual(service.updateUserTurnText('ua-only', 'turn-2', '   '), false);
+		assert.strictEqual(service.updateUserTurnText('missing', 'turn-2', 'Nope'), false);
+		assert.strictEqual(connection.editMessageCalls.length, 1);
+		(connection as { editMessage?: unknown }).editMessage = undefined;
+		assert.strictEqual(service.updateUserTurnText('ua-only', 'turn-3', 'Nope'), false);
+		assert.strictEqual(connection.editMessageCalls.length, 1);
+	});
+
+	test('connected updateUserTurnText uses last streaming agent when omitted', async () => {
+		const storage = store.add(new TestStorageService());
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
+		const service = store.add(createService(connection, storage));
+		connection.setConnected(true);
+		service.setEngineConnected(true);
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+		const originalGetTurns = service.getTurns.bind(service);
+		service.getTurns = (sessionId: string) => {
+			if (sessionId === 'ua-only') {
+				return [{ id: 'a1', kind: 'assistant', text: 'live', streaming: true, agentId: 'sub:live' }];
+			}
+			return originalGetTurns(sessionId);
+		};
+
+		assert.strictEqual(service.updateUserTurnText('ua-only', 'turn-live', 'revised'), true);
+		assert.strictEqual(connection.editMessageCalls[0]?.agentId, 'sub:live');
+		assert.strictEqual(connection.editMessageCalls[0]?.turnId, 'turn-live');
+		assert.strictEqual(connection.editMessageCalls[0]?.newContent, 'revised');
+	});
+
+	test('disconnected after engine updateUserTurnText skips unary', async () => {
+		const storage = store.add(new TestStorageService());
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
+		const service = store.add(createService(connection, storage));
+		connection.setConnected(true);
+		service.setEngineConnected(true);
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		connection.setConnected(false);
+		service.setEngineConnected(false);
+
+		assert.strictEqual(service.updateUserTurnText('ua-only', 'turn-1', 'later'), false);
+		assert.strictEqual(connection.editMessageCalls.length, 0);
 	});
 
 
