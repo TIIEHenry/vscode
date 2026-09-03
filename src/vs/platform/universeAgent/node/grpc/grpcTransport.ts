@@ -22,6 +22,12 @@ import type {
 	UniverseAgentSetSessionGoalResult,
 	UniverseAgentCancelSessionGoalRequest,
 	UniverseAgentCancelSessionGoalResult,
+	UniverseAgentEnqueueQueueItemRequest,
+	UniverseAgentEditQueueItemRequest,
+	UniverseAgentHoldQueueItemRequest,
+	UniverseAgentQueueItemRefRequest,
+	UniverseAgentQueueMutationResult,
+	UniverseAgentQueueRefRequest,
 	UniverseAgentGetHistoryRequest,
 	UniverseAgentGetHistoryResult,
 	UniverseAgentListSessionsRequest,
@@ -148,6 +154,19 @@ export interface IUniverseAgentGrpcTransport {
 	setSessionGoal(request: UniverseAgentSetSessionGoalRequest): Promise<UniverseAgentSetSessionGoalResult>;
 
 	cancelSessionGoal(request: UniverseAgentCancelSessionGoalRequest): Promise<UniverseAgentCancelSessionGoalResult>;
+	enqueueQueueItem(request: UniverseAgentEnqueueQueueItemRequest): Promise<UniverseAgentQueueMutationResult>;
+
+	pauseQueue(request: UniverseAgentQueueRefRequest): Promise<UniverseAgentQueueMutationResult>;
+
+	resumeQueue(request: UniverseAgentQueueRefRequest): Promise<UniverseAgentQueueMutationResult>;
+
+	clearQueue(request: UniverseAgentQueueRefRequest): Promise<UniverseAgentQueueMutationResult>;
+
+	holdQueueItem(request: UniverseAgentHoldQueueItemRequest): Promise<UniverseAgentQueueMutationResult>;
+
+	releaseQueueItemHold(request: UniverseAgentQueueItemRefRequest): Promise<UniverseAgentQueueMutationResult>;
+
+	editQueueItem(request: UniverseAgentEditQueueItemRequest): Promise<UniverseAgentQueueMutationResult>;
 
 	getHistory(request: UniverseAgentGetHistoryRequest): Promise<UniverseAgentGetHistoryResult>;
 
@@ -257,6 +276,13 @@ export const UniverseAgentGrpcServices = {
 		ContinueGeneration: 'ContinueGeneration',
 		Rename: 'Rename',
 		Cancel: 'Cancel',
+		EnqueueQueueItem: 'EnqueueQueueItem',
+		PauseQueue: 'PauseQueue',
+		ResumeQueue: 'ResumeQueue',
+		ClearQueue: 'ClearQueue',
+		HoldQueueItem: 'HoldQueueItem',
+		ReleaseQueueItemHold: 'ReleaseQueueItemHold',
+		EditQueueItem: 'EditQueueItem',
 		Tree: 'Tree',
 		ListAgentProfiles: 'ListAgentProfiles',
 		SaveAgentProfile: 'SaveAgentProfile',

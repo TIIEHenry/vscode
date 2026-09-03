@@ -27,6 +27,12 @@ import type {
 	UniverseAgentSetSessionGoalResult,
 	UniverseAgentCancelSessionGoalRequest,
 	UniverseAgentCancelSessionGoalResult,
+	UniverseAgentEnqueueQueueItemRequest,
+	UniverseAgentEditQueueItemRequest,
+	UniverseAgentHoldQueueItemRequest,
+	UniverseAgentQueueItemRefRequest,
+	UniverseAgentQueueMutationResult,
+	UniverseAgentQueueRefRequest,
 	UniverseAgentGetHistoryRequest,
 	UniverseAgentGetHistoryResult,
 	UniverseAgentListSessionsRequest,
@@ -173,6 +179,28 @@ export interface IUniverseAgentConnection {
 
 	/** PermissionService.CancelSessionGoal unary. Optional with `setSessionGoal`. */
 	cancelSessionGoal?(request: UniverseAgentCancelSessionGoalRequest): Promise<UniverseAgentCancelSessionGoalResult>;
+	}
+
+	/** AgentService.EnqueueQueueItem. Transport only — roster Inbox queue stays fixture. */
+	enqueueQueueItem(request: UniverseAgentEnqueueQueueItemRequest): Promise<UniverseAgentQueueMutationResult>;
+
+	/** AgentService.PauseQueue. Transport only — roster Inbox queue stays fixture. */
+	pauseQueue(request: UniverseAgentQueueRefRequest): Promise<UniverseAgentQueueMutationResult>;
+
+	/** AgentService.ResumeQueue. Transport only — roster Inbox queue stays fixture. */
+	resumeQueue(request: UniverseAgentQueueRefRequest): Promise<UniverseAgentQueueMutationResult>;
+
+	/** AgentService.ClearQueue. Transport only — roster Inbox queue stays fixture. */
+	clearQueue(request: UniverseAgentQueueRefRequest): Promise<UniverseAgentQueueMutationResult>;
+
+	/** AgentService.HoldQueueItem. Transport only — roster Inbox queue stays fixture. */
+	holdQueueItem(request: UniverseAgentHoldQueueItemRequest): Promise<UniverseAgentQueueMutationResult>;
+
+	/** AgentService.ReleaseQueueItemHold. Transport only — roster Inbox queue stays fixture. */
+	releaseQueueItemHold(request: UniverseAgentQueueItemRefRequest): Promise<UniverseAgentQueueMutationResult>;
+
+	/** AgentService.EditQueueItem. Transport only — roster Inbox queue stays fixture. */
+	editQueueItem(request: UniverseAgentEditQueueItemRequest): Promise<UniverseAgentQueueMutationResult>;
 
 	getHistory(request: UniverseAgentGetHistoryRequest): Promise<UniverseAgentGetHistoryResult>;
 

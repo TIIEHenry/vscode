@@ -78,6 +78,13 @@ class MockUniverseAgentConnection extends Disposable {
 	async deleteSession() { }
 	async renameSession() { return { ok: false, message: 'stub' }; }
 	async cancelGeneration() { return { ok: false, message: 'stub' }; }
+	async enqueueQueueItem() { return { ok: false, error: 'stub' }; }
+	async pauseQueue() { return { ok: false, error: 'stub' }; }
+	async resumeQueue() { return { ok: false, error: 'stub' }; }
+	async clearQueue() { return { ok: false, error: 'stub' }; }
+	async holdQueueItem() { return { ok: false, error: 'stub' }; }
+	async releaseQueueItemHold() { return { ok: false, error: 'stub' }; }
+	async editQueueItem() { return { ok: false, error: 'stub' }; }
 	async getHistory() { return { envelopes: [] }; }
 	subscribeSessionEventStream(
 		_sessionId: string,

@@ -59,6 +59,18 @@ suite('Web universeAgent disconnect (P0)', () => {
 		await assert.rejects(() => connection.listModels(), (error: unknown) => error instanceof Error && error.message === WEB_UNSUPPORTED_REASON);
 	});
 
+	test('queue mutation methods reject unsupported_environment', async () => {
+		const connection = new WebUniverseAgentConnection();
+		const isUnsupported = (error: unknown) => error instanceof Error && error.message === WEB_UNSUPPORTED_REASON;
+		await assert.rejects(() => connection.enqueueQueueItem({ sessionId: 's', text: 'later' }), isUnsupported);
+		await assert.rejects(() => connection.pauseQueue({ sessionId: 's' }), isUnsupported);
+		await assert.rejects(() => connection.resumeQueue({ sessionId: 's' }), isUnsupported);
+		await assert.rejects(() => connection.clearQueue({ sessionId: 's' }), isUnsupported);
+		await assert.rejects(() => connection.holdQueueItem({ sessionId: 's', itemId: 'q', reason: 'EDITING' }), isUnsupported);
+		await assert.rejects(() => connection.releaseQueueItemHold({ sessionId: 's', itemId: 'q' }), isUnsupported);
+		await assert.rejects(() => connection.editQueueItem({ sessionId: 's', itemId: 'q', text: 'edit' }), isUnsupported);
+	});
+
 	test('connect() does not throw and returns no token', async () => {
 		const connection = new WebUniverseAgentConnection();
 		const result = await connection.connect({ clientId: 'web', protocolVersion: '1' });

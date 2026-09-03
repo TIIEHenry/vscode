@@ -23,6 +23,12 @@ import type {
 	UniverseAgentSetSessionGoalResult,
 	UniverseAgentCancelSessionGoalRequest,
 	UniverseAgentCancelSessionGoalResult,
+	UniverseAgentEnqueueQueueItemRequest,
+	UniverseAgentEditQueueItemRequest,
+	UniverseAgentHoldQueueItemRequest,
+	UniverseAgentQueueItemRefRequest,
+	UniverseAgentQueueMutationResult,
+	UniverseAgentQueueRefRequest,
 	UniverseAgentGetHistoryRequest,
 	UniverseAgentGetHistoryResult,
 	UniverseAgentListSessionsRequest,
@@ -151,6 +157,50 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 	async cancelSessionGoal(request: UniverseAgentCancelSessionGoalRequest): Promise<UniverseAgentCancelSessionGoalResult> {
 		this.cancelGoalCalls.push(request);
 		return this.cancelGoalResult;
+	}
+
+	readonly enqueueCalls: UniverseAgentEnqueueQueueItemRequest[] = [];
+	readonly pauseCalls: UniverseAgentQueueRefRequest[] = [];
+	readonly resumeCalls: UniverseAgentQueueRefRequest[] = [];
+	readonly clearCalls: UniverseAgentQueueRefRequest[] = [];
+	readonly holdCalls: UniverseAgentHoldQueueItemRequest[] = [];
+	readonly releaseHoldCalls: UniverseAgentQueueItemRefRequest[] = [];
+	readonly editCalls: UniverseAgentEditQueueItemRequest[] = [];
+	queueResult: UniverseAgentQueueMutationResult = { ok: true };
+
+	async enqueueQueueItem(request: UniverseAgentEnqueueQueueItemRequest): Promise<UniverseAgentQueueMutationResult> {
+		this.enqueueCalls.push(request);
+		return this.queueResult;
+	}
+
+	async pauseQueue(request: UniverseAgentQueueRefRequest): Promise<UniverseAgentQueueMutationResult> {
+		this.pauseCalls.push(request);
+		return this.queueResult;
+	}
+
+	async resumeQueue(request: UniverseAgentQueueRefRequest): Promise<UniverseAgentQueueMutationResult> {
+		this.resumeCalls.push(request);
+		return this.queueResult;
+	}
+
+	async clearQueue(request: UniverseAgentQueueRefRequest): Promise<UniverseAgentQueueMutationResult> {
+		this.clearCalls.push(request);
+		return this.queueResult;
+	}
+
+	async holdQueueItem(request: UniverseAgentHoldQueueItemRequest): Promise<UniverseAgentQueueMutationResult> {
+		this.holdCalls.push(request);
+		return this.queueResult;
+	}
+
+	async releaseQueueItemHold(request: UniverseAgentQueueItemRefRequest): Promise<UniverseAgentQueueMutationResult> {
+		this.releaseHoldCalls.push(request);
+		return this.queueResult;
+	}
+
+	async editQueueItem(request: UniverseAgentEditQueueItemRequest): Promise<UniverseAgentQueueMutationResult> {
+		this.editCalls.push(request);
+		return this.queueResult;
 	}
 
 	async getHistory(_request: UniverseAgentGetHistoryRequest): Promise<UniverseAgentGetHistoryResult> {
@@ -422,6 +472,17 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Permission.service, 'universeagent.session.v1.PermissionService');
 	});
 
+	test('UniverseAgentGrpcServices lists Agent queue mutation family', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.EnqueueQueueItem, 'EnqueueQueueItem');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.PauseQueue, 'PauseQueue');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.ResumeQueue, 'ResumeQueue');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.ClearQueue, 'ClearQueue');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.HoldQueueItem, 'HoldQueueItem');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.ReleaseQueueItemHold, 'ReleaseQueueItemHold');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.EditQueueItem, 'EditQueueItem');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+	});
+
 	test('renameSession forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
@@ -491,6 +552,36 @@ suite('UniverseAgentConnectionService', () => {
 		const failed = await service.cancelSessionGoal({ sessionId: 'sess-2' });
 		assert.deepStrictEqual(failed, { ok: false, message: 'no goal' });
 		assert.strictEqual(transport.cancelGoalCalls[1]?.sessionId, 'sess-2');
+		service.dispose();
+	});
+
+	test('queue mutations forward request and map result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		const enqueued = await service.enqueueQueueItem({ sessionId: 'sess-1', text: 'later', priority: 'HIGH', opId: 'op-1' });
+		assert.deepStrictEqual(transport.enqueueCalls, [{ sessionId: 'sess-1', text: 'later', priority: 'HIGH', opId: 'op-1' }]);
+		assert.deepStrictEqual(enqueued, { ok: true });
+
+		await service.pauseQueue({ sessionId: 'sess-1' });
+		await service.resumeQueue({ sessionId: 'sess-1' });
+		await service.clearQueue({ sessionId: 'sess-1' });
+		await service.holdQueueItem({ sessionId: 'sess-1', itemId: 'q-1', reason: 'EDITING' });
+		await service.releaseQueueItemHold({ sessionId: 'sess-1', itemId: 'q-1' });
+		await service.editQueueItem({ sessionId: 'sess-1', itemId: 'q-1', text: 'edited' });
+		assert.deepStrictEqual(transport.pauseCalls, [{ sessionId: 'sess-1' }]);
+		assert.deepStrictEqual(transport.resumeCalls, [{ sessionId: 'sess-1' }]);
+		assert.deepStrictEqual(transport.clearCalls, [{ sessionId: 'sess-1' }]);
+		assert.deepStrictEqual(transport.holdCalls, [{ sessionId: 'sess-1', itemId: 'q-1', reason: 'EDITING' }]);
+		assert.deepStrictEqual(transport.releaseHoldCalls, [{ sessionId: 'sess-1', itemId: 'q-1' }]);
+		assert.deepStrictEqual(transport.editCalls, [{ sessionId: 'sess-1', itemId: 'q-1', text: 'edited' }]);
+
+		transport.queueResult = { ok: false, error: 'busy' };
+		const failed = await service.pauseQueue({ sessionId: 'sess-1' });
+		assert.deepStrictEqual(failed, { ok: false, error: 'busy' });
 		service.dispose();
 	});
 

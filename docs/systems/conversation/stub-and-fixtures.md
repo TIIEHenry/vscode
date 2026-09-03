@@ -4,7 +4,7 @@ type: architecture
 status: accepted
 phase: N/A
 updated: 2026-09-04
-summary: "IConversationRosterService 契约分组；getTrajectoryRecords + filterAgentId；帧源 projectSnapshotToTrajectory；D13 持久化；引擎 roster 接通后转发 Create / Rename / Cancel（Inbox Stop 仅 connected+streaming）；A1/A2 连接态"
+summary: "IConversationRosterService 契约分组；getTrajectoryRecords + filterAgentId；帧源 projectSnapshotToTrajectory；D13 持久化；引擎 roster 接通后转发 Create / Rename / Cancel（Inbox Stop 仅 connected+streaming）；MessageQueue 仍 fixture（传输已有 Enqueue 族）；A1/A2 连接态"
 ---
 
 # Conversation 会话数据契约
@@ -28,7 +28,7 @@ summary: "IConversationRosterService 契约分组；getTrajectoryRecords + filte
 | 回合 | `getTurns(sessionId)` · `appendUserTurn` · `updateUserTurnText` · `deleteTurn` |
 | 轨迹 | `getTrajectoryRecords(sessionId, options?: { filterAgentId? })` — 经 `ConversationStubFrameSource.project` → `projectSnapshotToTrajectory`（[stream-timeline S1/S6](../../../dev/plans/conversation-stream-timeline.md)）；见 [lens-and-trajectory §3.1](lens-and-trajectory.md) |
 | 权限 | `resolveConfirmation(sessionId, turnId, 'allowed' \| 'skipped')` · `countPendingConfirmations` |
-| MessageQueue | `getMessageQueueState` · `pauseMessageQueue` · `resumeMessageQueue` · `clearMessageQueue` · `holdMessageQueueItem` · `releaseMessageQueueItemHold` · `updateMessageQueueItemContent` |
+| MessageQueue | `getMessageQueueState` · `pauseMessageQueue` · `resumeMessageQueue` · `clearMessageQueue` · `holdMessageQueueItem` · `releaseMessageQueueItemHold` · `updateMessageQueueItemContent`（仍 fixture；传输已有 `AgentService.EnqueueQueueItem` 族，roster 不转发） |
 | AutoDrive | `getAutoDriveTasks` · `getAutoDriveTaskCount` |
 | 连接态 | `isEngineConnected()` |
 

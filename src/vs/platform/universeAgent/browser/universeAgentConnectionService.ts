@@ -26,6 +26,12 @@ import type {
 	UniverseAgentRenameSessionResult,
 	UniverseAgentCancelGenerationRequest,
 	UniverseAgentCancelGenerationResult,
+	UniverseAgentEnqueueQueueItemRequest,
+	UniverseAgentEditQueueItemRequest,
+	UniverseAgentHoldQueueItemRequest,
+	UniverseAgentQueueItemRefRequest,
+	UniverseAgentQueueMutationResult,
+	UniverseAgentQueueRefRequest,
 	UniverseAgentGetHistoryRequest,
 	UniverseAgentGetHistoryResult,
 	UniverseAgentListSessionsRequest,
@@ -171,6 +177,34 @@ export class WebUniverseAgentConnection implements IUniverseAgentConnection {
 	}
 
 	cancelGeneration(_request: UniverseAgentCancelGenerationRequest): Promise<UniverseAgentCancelGenerationResult> {
+		return rejectUnsupportedEnvironment();
+	}
+
+	enqueueQueueItem(_request: UniverseAgentEnqueueQueueItemRequest): Promise<UniverseAgentQueueMutationResult> {
+		return rejectUnsupportedEnvironment();
+	}
+
+	pauseQueue(_request: UniverseAgentQueueRefRequest): Promise<UniverseAgentQueueMutationResult> {
+		return rejectUnsupportedEnvironment();
+	}
+
+	resumeQueue(_request: UniverseAgentQueueRefRequest): Promise<UniverseAgentQueueMutationResult> {
+		return rejectUnsupportedEnvironment();
+	}
+
+	clearQueue(_request: UniverseAgentQueueRefRequest): Promise<UniverseAgentQueueMutationResult> {
+		return rejectUnsupportedEnvironment();
+	}
+
+	holdQueueItem(_request: UniverseAgentHoldQueueItemRequest): Promise<UniverseAgentQueueMutationResult> {
+		return rejectUnsupportedEnvironment();
+	}
+
+	releaseQueueItemHold(_request: UniverseAgentQueueItemRefRequest): Promise<UniverseAgentQueueMutationResult> {
+		return rejectUnsupportedEnvironment();
+	}
+
+	editQueueItem(_request: UniverseAgentEditQueueItemRequest): Promise<UniverseAgentQueueMutationResult> {
 		return rejectUnsupportedEnvironment();
 	}
 
