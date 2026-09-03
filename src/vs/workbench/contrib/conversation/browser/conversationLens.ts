@@ -31,7 +31,7 @@ import { projectSnapshotToEntries, formatSyncChromeLabel } from './conversationS
 import type { ConversationTimelineEntry } from './conversationSessionView.js';
 import { attachReviewEntries, computeReviewNavSidecarApplied, IConversationReviewNavService } from '../common/conversationReviewEntry.js';
 import { ConversationSessionViewFrameCoalescer } from './conversationSessionViewFrameCoalescer.js';
-import type { ConversationQuestionRespondAnswers, ConversationViewFrameApplied, IConversationSessionViewLease } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
+import type { ConversationQuestionRespondAnswers, ConversationViewFrameApplied, ConversationWriteMessage, IConversationSessionViewLease, PostOutcome } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
 import type { SyncChrome } from '../../../../platform/universeAgent/common/sessionView/index.js';
 import {
 	collectConversationTrajectoryTurnIds,
@@ -230,6 +230,7 @@ export class ConversationLens extends Disposable {
 	private readonly visualizeOverlay: ConversationVisualizeOverlay;
 	private sessionViewLease: IConversationSessionViewLease | undefined;
 	private readonly sessionViewLifetime = this._register(new DisposableStore());
+	private submitInFlight = false;
 	private lastAttachedEntries: ConversationTimelineEntry[] = [];
 	private lastRevealItemId: string | undefined;
 	private lastReadingWidth = 0;
@@ -1727,29 +1728,27 @@ export class ConversationLens extends Disposable {
 		return findFirstPendingConfirmationTurnId(this.stubService.getTurns(this.stubService.getActiveSessionId()));
 	}
 
-	private resolveConfirmation(turnId: string, status: 'allowed' | 'skipped'): void {
-		const lease = this.sessionViewLease ?? this.stubService.acquireSessionView(this.stubService.getActiveSessionId());
-		const outcome = lease.post({
+	private async resolveConfirmation(turnId: string, status: 'allowed' | 'skipped'): Promise<void> {
+		const outcome = await this.postBound({
 			kind: 'permissionRespond',
 			requestId: turnId,
 			decision: status === 'allowed' ? 'allow' : 'deny',
 		});
-		if (outcome && !outcome.accepted) {
+		if (!outcome.accepted) {
 			this.showPostFailure(outcome.reason);
 			return;
 		}
 		this.focusTimelineRecord(turnId);
 	}
 
-	private resolveQuestion(turnId: string, requestId: string, answers: ConversationQuestionRespondAnswers, customText?: string): void {
-		const lease = this.sessionViewLease ?? this.stubService.acquireSessionView(this.stubService.getActiveSessionId());
-		const outcome = lease.post({
+	private async resolveQuestion(turnId: string, requestId: string, answers: ConversationQuestionRespondAnswers, customText?: string): Promise<void> {
+		const outcome = await this.postBound({
 			kind: 'questionRespond',
 			requestId,
 			answers,
 			...(customText !== undefined ? { customText } : {}),
 		});
-		if (outcome && !outcome.accepted) {
+		if (!outcome.accepted) {
 			this.showPostFailure(outcome.reason);
 			return;
 		}
@@ -1803,7 +1802,15 @@ export class ConversationLens extends Disposable {
 		this.writeComposerDraft(this.stubService.getActiveSessionId(), result.textareaValue);
 	}
 
-	private submitDraft(): void {
+	private postBound(msg: ConversationWriteMessage): Promise<PostOutcome> {
+		const lease = this.sessionViewLease;
+		if (!lease) {
+			return Promise.resolve({ accepted: false, reason: 'no_such_session' });
+		}
+		return lease.post(msg);
+	}
+
+	private async submitDraft(): Promise<void> {
 		if (this.composerPolicy === 'turnEdit') {
 			this.saveTurnEdit();
 			return;
@@ -1812,7 +1819,7 @@ export class ConversationLens extends Disposable {
 			this.saveQueueEdit();
 			return;
 		}
-		if (this.modelSelectedIndex === 0) {
+		if (this.modelSelectedIndex === 0 || this.submitInFlight) {
 			return;
 		}
 		const text = this.dockTextarea.value.trim();
@@ -1820,15 +1827,19 @@ export class ConversationLens extends Disposable {
 			return;
 		}
 		const sessionId = this.stubService.getActiveSessionId();
-		const lease = this.sessionViewLease ?? this.stubService.acquireSessionView(sessionId);
-		const outcome = lease.post({ kind: 'submitInput', text });
-		if (!outcome.accepted) {
-			this.showPostFailure(outcome.reason);
-			return;
+		this.submitInFlight = true;
+		try {
+			const outcome = await this.postBound({ kind: 'submitInput', text });
+			if (!outcome.accepted) {
+				this.showPostFailure(outcome.reason);
+				return;
+			}
+			this.writeComposerDraft(sessionId, '');
+			this.dockTextarea.value = '';
+			this.resetInputHistoryBrowse();
+		} finally {
+			this.submitInFlight = false;
 		}
-		this.writeComposerDraft(sessionId, '');
-		this.dockTextarea.value = '';
-		this.resetInputHistoryBrowse();
 	}
 
 	private saveTurnEdit(): void {

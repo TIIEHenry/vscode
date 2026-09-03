@@ -93,7 +93,7 @@ suite('Sources - review attribution', () => {
 			attribution,
 			details: new Map(),
 			onDidApplyFrame: Event.None,
-			post: () => ({ accepted: false, reason: 'no_such_session' }),
+			post: async () => ({ accepted: false, reason: 'no_such_session' }),
 			requestResync: () => undefined,
 			dispose: () => undefined,
 		};
@@ -208,7 +208,7 @@ suite('Sources - review attribution', () => {
 			attribution: makeAttribution([]),
 			details: new Map(),
 			onDidApplyFrame: Event.None,
-			post: () => ({ accepted: false, reason: 'no_such_session' }),
+			post: async () => ({ accepted: false, reason: 'no_such_session' }),
 			requestResync: () => undefined,
 			dispose: () => undefined,
 		};

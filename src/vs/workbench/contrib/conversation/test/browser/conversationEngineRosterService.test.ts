@@ -137,14 +137,14 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		);
 	});
 
-	test('unconnected path still uses stub frame source with stub echo', () => {
+	test('unconnected path still uses stub frame source with stub echo', async () => {
 		const connection = store.add(new MockUniverseAgentConnection());
 		const service = store.add(createService(connection));
 		const sessionId = service.getActiveSessionId();
 		const lease = store.add(service.acquireSessionView(sessionId));
 		assert.strictEqual(service.isEngineConnected(), false);
 
-		const outcome = lease.post({ kind: 'submitInput', text: 'hello stub' });
+		const outcome = await lease.post({ kind: 'submitInput', text: 'hello stub' });
 		assert.strictEqual(outcome.accepted, true);
 		assert.ok(service.getSessions().some(s => s.id === 'untitled'));
 	});

@@ -154,7 +154,7 @@ suite('conversationSessionView (S1)', () => {
 		const lease = store.add(service.acquireSessionView(sessionId));
 		const before = service.getTurns(sessionId).length;
 
-		const outcome = lease.post({ kind: 'submitInput', text: 'ping' });
+		const outcome = await lease.post({ kind: 'submitInput', text: 'ping' });
 		assert.strictEqual(outcome.accepted, true);
 		assert.ok(lease.snapshot.localPendingSends.length === 1);
 		const pendingEntries = projectSnapshotToEntries(lease.snapshot, lease.attribution, lease.details);
@@ -169,21 +169,21 @@ suite('conversationSessionView (S1)', () => {
 		assert.strictEqual(lease.snapshot.localPendingSends.length, 0);
 	});
 
-	test('lease.post(permissionRespond) resolves the pending seat', () => {
+	test('lease.post(permissionRespond) resolves the pending seat', async () => {
 		const service = store.add(new ConversationStubService());
 		const lease = store.add(service.acquireSessionView('untitled'));
 		assert.strictEqual(lease.snapshot.pendingActions.length, 1);
 		const requestId = String(lease.snapshot.pendingActions[0].requestId);
 
-		lease.post({ kind: 'permissionRespond', requestId, decision: 'deny' });
+		await lease.post({ kind: 'permissionRespond', requestId, decision: 'deny' });
 		assert.strictEqual(lease.snapshot.pendingActions.length, 0);
 		assert.strictEqual(service.getTurns('untitled').find(t => t.id === requestId)?.status, 'skipped');
 	});
 
-	test('post to an unknown session is rejected, not silently accepted', () => {
+	test('post to an unknown session is rejected, not silently accepted', async () => {
 		const service = store.add(new ConversationStubService());
 		const lease = store.add(service.acquireSessionView('nope'));
-		assert.deepStrictEqual(lease.post({ kind: 'submitInput', text: 'x' }), { accepted: false, reason: 'no_such_session' });
+		assert.deepStrictEqual(await lease.post({ kind: 'submitInput', text: 'x' }), { accepted: false, reason: 'no_such_session' });
 	});
 
 	test('stub lease requestDetail upserts local body then settles full', async () => {

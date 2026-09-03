@@ -73,7 +73,6 @@ class EngineSessionViewLease extends Disposable implements IConversationSessionV
 	readonly onDidApplyFrame = this._onDidApplyFrame.event;
 	private readonly lifetime = this._register(new DisposableStore());
 	leaseId = '';
-	private connected = false;
 	private readonly ready: Promise<void>;
 
 	constructor(
@@ -85,7 +84,6 @@ class EngineSessionViewLease extends Disposable implements IConversationSessionV
 		super();
 		this.ready = this.sessionView.acquireLease(sessionId).then(id => {
 			this.leaseId = id;
-			this.connected = true;
 			this.lifetime.add(this.sessionView.onDynamicDidApplyFrame(id)(event =>
 				this.onHostFrame(event.frame, event.applied)));
 			this.onAcquired(id);
@@ -110,13 +108,20 @@ class EngineSessionViewLease extends Disposable implements IConversationSessionV
 		return this._details;
 	}
 
-	post(msg: ConversationWriteMessage): PostOutcome {
-		if (!this.connected || !this.leaseId) {
-			void this.ready.then(() => void this.sessionView.post(this.leaseId, msg));
-			return { accepted: true, correlation: { id: `pending:${Date.now()}` } };
+	async post(msg: ConversationWriteMessage): Promise<PostOutcome> {
+		try {
+			await this.ready;
+		} catch {
+			return { accepted: false, reason: 'no_such_session' };
 		}
-		void this.sessionView.post(this.leaseId, msg);
-		return { accepted: true, correlation: { id: `post:${Date.now()}` } };
+		if (!this.leaseId) {
+			return { accepted: false, reason: 'no_such_session' };
+		}
+		try {
+			return await this.sessionView.post(this.leaseId, msg);
+		} catch {
+			return { accepted: false, reason: 'not_authenticated' };
+		}
 	}
 
 	requestResync(): void {
