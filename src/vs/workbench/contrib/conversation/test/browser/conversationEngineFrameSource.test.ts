@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { Emitter } from '../../../../../base/common/event.js';
+import { Emitter, Event } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { emptySessionViewSnapshot } from '../../../../../platform/universeAgent/common/sessionView/empty-snapshot.js';
 import type { SessionId, ViewLeaseId } from '../../../../../platform/universeAgent/common/sessionView/types.js';
@@ -111,6 +111,111 @@ class BufferedMockUniverseAgentSessionView implements IUniverseAgentSessionView 
 		};
 	}
 }
+
+class PostOutcomeMockSessionView implements IUniverseAgentSessionView {
+	declare readonly _serviceBrand: undefined;
+
+	acquireLeaseFn: (sessionId: string) => Promise<string> = async sessionId => `lease:${sessionId}`;
+	postFn: (leaseId: string, msg: ConversationWriteMessage) => Promise<PostOutcome> = async () => ({
+		accepted: true,
+		correlation: { id: 'host-corr' },
+	});
+	lastPost: { readonly leaseId: string; readonly msg: ConversationWriteMessage } | undefined;
+
+	onDynamicDidApplyFrame(_leaseId: string) {
+		return Event.None;
+	}
+
+	async acquireLease(sessionId: string): Promise<string> {
+		return this.acquireLeaseFn(sessionId);
+	}
+
+	async releaseLease(_leaseId: string): Promise<void> { }
+
+	async post(leaseId: string, msg: ConversationWriteMessage): Promise<PostOutcome> {
+		this.lastPost = { leaseId, msg };
+		return this.postFn(leaseId, msg);
+	}
+
+	async requestResync(_leaseId: string): Promise<void> { }
+
+	async requestDetail(_leaseId: string, _ref: string): Promise<DetailFetchOutcome> {
+		return { ok: false, reason: 'unavailable' };
+	}
+}
+
+suite('ConversationEngineFrameSource post outcome', () => {
+
+	const store = ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('returns the host PostOutcome instead of inventing accepted', async () => {
+		const sessionView = new PostOutcomeMockSessionView();
+		sessionView.postFn = async () => ({ accepted: false, reason: 'mailbox_full' });
+		const source = store.add(new ConversationEngineFrameSource(sessionView));
+		const lease = store.add(source.acquire('sess-a'));
+
+		const outcome = await lease.post({ kind: 'submitInput', text: 'hello' });
+		assert.deepStrictEqual(outcome, { accepted: false, reason: 'mailbox_full' });
+		assert.strictEqual(sessionView.lastPost?.leaseId, 'lease:sess-a');
+		assert.deepStrictEqual(sessionView.lastPost?.msg, { kind: 'submitInput', text: 'hello' });
+	});
+
+	test('surfaces not_authenticated from the host', async () => {
+		const sessionView = new PostOutcomeMockSessionView();
+		sessionView.postFn = async () => ({ accepted: false, reason: 'not_authenticated' });
+		const source = store.add(new ConversationEngineFrameSource(sessionView));
+		const lease = store.add(source.acquire('sess-b'));
+
+		assert.deepStrictEqual(await lease.post({ kind: 'submitInput', text: 'x' }), {
+			accepted: false,
+			reason: 'not_authenticated',
+		});
+	});
+
+	test('returns host correlation when accepted', async () => {
+		const sessionView = new PostOutcomeMockSessionView();
+		const source = store.add(new ConversationEngineFrameSource(sessionView));
+		const lease = store.add(source.acquire('sess-c'));
+
+		assert.deepStrictEqual(await lease.post({ kind: 'submitInput', text: 'ok' }), {
+			accepted: true,
+			correlation: { id: 'host-corr' },
+		});
+	});
+
+	test('waits for acquireLease then still returns the host rejection', async () => {
+		const sessionView = new PostOutcomeMockSessionView();
+		let resolveAcquire!: (id: string) => void;
+		sessionView.acquireLeaseFn = () => new Promise<string>(resolve => {
+			resolveAcquire = resolve;
+		});
+		sessionView.postFn = async () => ({ accepted: false, reason: 'no_such_session' });
+		const source = store.add(new ConversationEngineFrameSource(sessionView));
+		const lease = store.add(source.acquire('sess-d'));
+
+		const pending = lease.post({ kind: 'submitInput', text: 'queued' });
+		assert.strictEqual(sessionView.lastPost, undefined);
+		resolveAcquire('lease:sess-d');
+
+		assert.deepStrictEqual(await pending, { accepted: false, reason: 'no_such_session' });
+		assert.strictEqual(sessionView.lastPost?.leaseId, 'lease:sess-d');
+	});
+
+	test('acquireLease failure is no_such_session, not silent accepted', async () => {
+		const sessionView = new PostOutcomeMockSessionView();
+		sessionView.acquireLeaseFn = async () => {
+			throw new Error('acquire failed');
+		};
+		const source = store.add(new ConversationEngineFrameSource(sessionView));
+		const lease = store.add(source.acquire('sess-e'));
+
+		assert.deepStrictEqual(await lease.post({ kind: 'submitInput', text: 'nope' }), {
+			accepted: false,
+			reason: 'no_such_session',
+		});
+		assert.strictEqual(sessionView.lastPost, undefined);
+	});
+});
 
 suite('ConversationEngineFrameSource per-lease subscribe (F1)', () => {
 

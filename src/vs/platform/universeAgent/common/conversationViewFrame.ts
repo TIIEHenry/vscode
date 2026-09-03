@@ -24,8 +24,11 @@ export interface IConversationSessionViewLease extends IDisposable {
 	/** Resolved `DetailRef` bodies; absent ref = not fetched yet (render the bounded preview, never invent). */
 	readonly details: ReadonlyMap<string, string>;
 	readonly onDidApplyFrame: Event<ConversationViewFrameApplied>;
-	/** `accepted` ≠ delivered to the engine (Desktop ADR-012 INV-CHAT-3). */
-	post(msg: ConversationWriteMessage): PostOutcome;
+	/**
+	 * `accepted` ≠ delivered to the engine (Desktop ADR-012 INV-CHAT-3).
+	 * Async because the engine lease is IPC; stub resolves in the same turn.
+	 */
+	post(msg: ConversationWriteMessage): Promise<PostOutcome>;
 	requestResync(): void;
 	/**
 	 * P2a DetailRef channel. Engine / Web leases implement this; stub frame source

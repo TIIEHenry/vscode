@@ -189,7 +189,7 @@ class StubSessionViewLease extends Disposable implements IConversationSessionVie
 		return this._details;
 	}
 
-	post(msg: ConversationWriteMessage): PostOutcome {
+	async post(msg: ConversationWriteMessage): Promise<PostOutcome> {
 		return this.source.write(this.sessionId, msg);
 	}
 

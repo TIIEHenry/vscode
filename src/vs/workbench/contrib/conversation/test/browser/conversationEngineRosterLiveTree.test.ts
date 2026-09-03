@@ -130,7 +130,7 @@ class TrackingSessionViewLease extends Disposable implements IConversationSessio
 		super.dispose();
 	}
 
-	post() { return { accepted: true as const, correlation: { id: 'mock' } }; }
+	async post() { return { accepted: true as const, correlation: { id: 'mock' } }; }
 	requestResync() { }
 }
 
