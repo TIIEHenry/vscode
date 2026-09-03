@@ -247,7 +247,7 @@ class TrajectoryFoldRenderer implements IListRenderer<TrajectoryTableDisplayItem
 		header.type = 'button';
 		header.setAttribute('role', 'button');
 
-		const chevron = append(header, $('span.conversation-process-fold-chevron'));
+		const chevron = append(header, $('span.conversation-process-fold-chevron.ua-motion'));
 		chevron.setAttribute('aria-hidden', 'true');
 		chevron.classList.add(...ThemeIcon.asClassNameArray(Codicon.chevronRight));
 

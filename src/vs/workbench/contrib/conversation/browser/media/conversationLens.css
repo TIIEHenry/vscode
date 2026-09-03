@@ -830,6 +830,9 @@
 .monaco-workbench .part.conversation .conversation-process-fold-chevron {
 	flex-shrink: 0;
 	color: var(--vscode-descriptionForeground);
+}
+
+.monaco-workbench .part.conversation .conversation-process-fold-chevron.ua-motion {
 	transition: transform 0.15s ease;
 }
 
@@ -911,6 +914,9 @@
 .monaco-workbench .part.conversation .conversation-process-fold-tool-chevron {
 	flex-shrink: 0;
 	color: var(--vscode-descriptionForeground);
+}
+
+.monaco-workbench .part.conversation .conversation-process-fold-tool-chevron.ua-motion {
 	transition: transform 0.15s ease;
 }
 
@@ -1000,6 +1006,9 @@
 .monaco-workbench .part.conversation .conversation-process-fold-chevron {
 	flex-shrink: 0;
 	color: var(--vscode-descriptionForeground);
+}
+
+.monaco-workbench .part.conversation .conversation-process-fold-chevron.ua-motion {
 	transition: transform 0.15s ease;
 }
 
@@ -2225,11 +2234,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-	.monaco-workbench .part.conversation .conversation-process-fold-chevron,
-	.monaco-workbench .part.conversation .conversation-process-fold-tool-chevron {
-		transition: none;
-	}
-
+	/* Chevron transitions hang only on `.ua-motion` (T1 / ua-common.css). Keep
+	 * the loading spinner kill — that animation is not gated by `.ua-motion`. */
 	.monaco-workbench .part.conversation .conversation-process-fold-tool--executing .conversation-process-fold-tool-icon.codicon-loading {
 		animation: none;
 	}

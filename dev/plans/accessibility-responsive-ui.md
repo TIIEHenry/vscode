@@ -4,7 +4,7 @@ type: plan
 status: accepted
 phase: M7
 updated: 2026-09-04
-summary: "K1/K2/T1/L1 与 Q5b/Q6/E2-1/E2-7 代码已落；D19 全收（含 (3) Connection 单栏滚动改口）；W1 未跑；方案仍 accepted"
+summary: "K1/K2/T1/L1 与 Q5b/Q6/E2-1/E2-7 代码已落；D19 全收；conversation chevron transition 已收口到 .ua-motion；W1 未跑；方案仍 accepted"
 ---
 
 # 可访问性与响应式 UI 完成方案
@@ -89,7 +89,7 @@ C 对 B/A 实施的切片提供验收清单（§9）并复核，不直接改 B/A
 
 - 所有新 UI 只用 workbench color token。
 - 高对比度下 focus outline、选中、错误、pending 可区分；C 在公共文件 `src/vs/workbench/browser/parts/conversation/media/ua-common.css`（`conversationPart.ts` import 一行）提供 `.hc-black / .hc-light` 下的 UA 状态 token 覆盖。
-- `prefers-reduced-motion` 下禁用非必要 shimmer/平滑位移；流式仍用文字状态。公共文件提供 `@media (prefers-reduced-motion: reduce) .ua-motion { transition: none; animation: none }`；**B（Q5b）给 conversation 动画节点挂 `.ua-motion`**——今天 `conversationLens.css` 等仍把 `transition` 绑在选择器上，C 不改这些文件，T1 完成线只到公共文件落地。**A（E2-7）Engine / Connection pane 无 `transition` / `animation` / `@keyframes`，不挂空 `.ua-motion`（D19(1) 改口）。**
+- `prefers-reduced-motion` 下禁用非必要 shimmer/平滑位移；流式仍用文字状态。公共文件提供 `@media (prefers-reduced-motion: reduce) .ua-motion { transition: none; animation: none }`；**B（Q5b）给 conversation 动画节点挂 `.ua-motion`**，且 chevron `transition` 只写在 `.…chevron.ua-motion`（不再绑裸选择器；轨迹折同挂）。**A（E2-7）Engine / Connection pane 无 `transition` / `animation` / `@keyframes`，不挂空 `.ua-motion`（D19(1) 改口）。**
 - 状态不能只靠红/绿或动画表达。
 
 ## 7. Web / 远程

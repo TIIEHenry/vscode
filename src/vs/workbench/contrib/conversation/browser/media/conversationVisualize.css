@@ -35,6 +35,9 @@
 .monaco-workbench .part.conversation .conversation-visualize-chevron {
 	flex-shrink: 0;
 	font-size: 12px;
+}
+
+.monaco-workbench .part.conversation .conversation-visualize-chevron.ua-motion {
 	transition: transform 0.15s ease;
 }
 

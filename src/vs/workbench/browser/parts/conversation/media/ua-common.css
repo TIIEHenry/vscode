@@ -9,7 +9,8 @@
  * (see workbench/browser/media/style.css:129), not a UA root class.
  *
  * Status tokens alias workbench colors. Hang `.ua-motion` only on animated nodes
- * (conversation chevrons today). Engine / Connection panes have none (D19(1)).
+ * (conversation chevrons; transition CSS is scoped to `.…chevron.ua-motion`).
+ * Engine / Connection panes have none (D19(1)).
  */
 
 .monaco-workbench {

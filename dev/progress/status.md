@@ -4,23 +4,24 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-04
-summary: "槽 A：GC-1b connectProfile 配对门禁不再误拦无 identity store"
+summary: "merge：GC-1b identity gate + ua-motion chevron；handleIntent default 穷尽后编译复绿"
 ---
 
 # Development Progress
 
 ## Current Session
 
-- **槽 A / `loop/A`：** `git merge --ff-only loop/merge` 已快进（含 timer / recoverTrust / continuation）。
-- **本 commit：** Actor 残留已薄（unaryCommand 仍无 dispatcher）；修 GC-1b：`connectProfile` 仅在 formal dial 前要求 `clientIdentityStore`，`pairing_required` 可走 orchestrator。未跑全量 compile。
+- **merge / `loop/merge`：** 合入槽 A `4c8235e6`（GC-1b `connectProfile` pairing gate）与槽 B `d19e2783`（chevron `transition` 只挂 `.ua-motion`）。
+- **本 commit：** `handleIntent` default 在 `startTimer` / `openContinuationStream` 入 switch 后穷尽为 `never`，对 `intent.do` 做 `CoreIntent` 断言以保持未处理可观测；compile 0。
 
 ## 槽位（与 `git worktree list` 对照）
 
 | 槽 | 路径 | 分支 | 状态 |
 |----|------|------|------|
-| merge | `vscode-WorkTrees/merge` | `loop/merge` | 以 merge 槽 `git` 为准 |
-| A | `vscode-WorkTrees/A` | `loop/A` | 本会话：GC-1b pairing gate |
-| B/C/D | `vscode-WorkTrees/{B,C,D}` | `loop/{B,C,D}` | 以各槽 `git` 为准 |
+| merge | `vscode-WorkTrees/merge` | `loop/merge` | 本会话：A+B + exhaustiveness 复绿 |
+| A | `vscode-WorkTrees/A` | `loop/A` | GC-1b pairing gate（已合） |
+| B | `vscode-WorkTrees/B` | `loop/B` | ua-motion a11y 收口（已合） |
+| C/D | `vscode-WorkTrees/{C,D}` | `loop/{C,D}` | 以各槽 `git` 为准 |
 | edit | `Projects/Agents/vscode` | `agent-ide` | 请自行对齐 |
 
 ## Blockers
