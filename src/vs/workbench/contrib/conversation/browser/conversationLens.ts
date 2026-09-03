@@ -661,6 +661,10 @@ export class ConversationLens extends Disposable {
 			onDeleteTurn: turnId => this.deleteTurn(turnId),
 			onEditUserTurn: turnId => this.beginTurnEdit(turnId),
 			onViewInTrajectory: turnId => this.navigateToTrajectoryFromTurn(turnId),
+			onCancelToolCall: (turnId, agentId) => this.stubService.cancelToolCall(
+				this.stubService.getActiveSessionId(),
+				{ toolCallId: turnId, ...(agentId ? { agentId } : {}) },
+			),
 			onReviewNavClick: paths => {
 				void this.commandService.executeCommand(
 					SOURCES_REVIEW_SHOW_FOR_PATHS_COMMAND,
