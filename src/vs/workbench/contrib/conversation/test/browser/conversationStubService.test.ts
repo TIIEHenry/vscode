@@ -109,6 +109,14 @@ suite('ConversationStubService', () => {
 		assert.strictEqual(service.cancelToolCall(service.getActiveSessionId(), { toolCallId: 'tc-1', agentId: 'sub:a' }), false);
 	});
 
+	test('resolveConfirmation stays local without engine', () => {
+		const service = store.add(new ConversationStubService());
+		const sessionId = service.getActiveSessionId();
+		assert.strictEqual(service.resolveConfirmation(sessionId, '   ', 'allowed'), false);
+		assert.strictEqual(service.resolveConfirmation(sessionId, 'req-1', 'allowed'), true);
+		assert.strictEqual(service.resolveConfirmation(sessionId, 'req-2', 'skipped'), true);
+	});
+
 	test('deleteSession removes a non-active session without changing active', () => {
 		const service = store.add(new ConversationStubService());
 		const activeId = service.getActiveSessionId();

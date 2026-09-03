@@ -120,6 +120,15 @@ class MockUniverseAgentConnection extends Disposable implements IUniverseAgentCo
 		});
 		return { ok: true };
 	}
+	readonly respondPermissionCalls: { sessionId: string; requestId: string; granted: boolean }[] = [];
+	async respondPermission(request: { sessionId: string; requestId: string; granted: boolean }) {
+		this.respondPermissionCalls.push({
+			sessionId: request.sessionId,
+			requestId: request.requestId,
+			granted: request.granted,
+		});
+		return { ok: true };
+	}
 	async enqueueQueueItem() { return { ok: false, error: 'stub' }; }
 	async pauseQueue() { return { ok: false, error: 'stub' }; }
 	async resumeQueue() { return { ok: false, error: 'stub' }; }
@@ -550,6 +559,50 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		assert.strictEqual(service.cancelToolCall('ua-only', { toolCallId: 'tc-live' }), true);
 		assert.strictEqual(connection.cancelToolCallCalls[0]?.agentId, 'sub:live');
 		assert.strictEqual(connection.cancelToolCallCalls[0]?.toolCallId, 'tc-live');
+	});
+
+	test('connected resolveConfirmation forwards PermissionService.Respond', async () => {
+		const storage = store.add(new TestStorageService());
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
+		const service = store.add(createService(connection, storage));
+		connection.setConnected(true);
+		service.setEngineConnected(true);
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+		assert.strictEqual(service.resolveConfirmation('ua-only', '  req-1  ', 'allowed'), true);
+		assert.deepStrictEqual(connection.respondPermissionCalls, [{
+			sessionId: 'ua-only',
+			requestId: 'req-1',
+			granted: true,
+		}]);
+		assert.strictEqual(service.resolveConfirmation('ua-only', 'req-2', 'skipped'), true);
+		assert.deepStrictEqual(connection.respondPermissionCalls[1], {
+			sessionId: 'ua-only',
+			requestId: 'req-2',
+			granted: false,
+		});
+		assert.strictEqual(service.resolveConfirmation('ua-only', '   ', 'allowed'), false);
+		assert.strictEqual(service.resolveConfirmation('missing', 'req-3', 'allowed'), false);
+		assert.strictEqual(connection.respondPermissionCalls.length, 2);
+		(connection as { respondPermission?: unknown }).respondPermission = undefined;
+		assert.strictEqual(service.resolveConfirmation('ua-only', 'req-4', 'allowed'), false);
+		assert.strictEqual(connection.respondPermissionCalls.length, 2);
+	});
+
+	test('disconnected after engine resolveConfirmation skips unary', async () => {
+		const storage = store.add(new TestStorageService());
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
+		const service = store.add(createService(connection, storage));
+		connection.setConnected(true);
+		service.setEngineConnected(true);
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		connection.setConnected(false);
+		service.setEngineConnected(false);
+
+		assert.strictEqual(service.resolveConfirmation('ua-only', 'req-1', 'allowed'), false);
+		assert.strictEqual(connection.respondPermissionCalls.length, 0);
 	});
 
 	test('disconnected after engine cancelToolCall skips unary', async () => {

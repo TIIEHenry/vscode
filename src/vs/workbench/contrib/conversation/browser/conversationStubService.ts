@@ -87,6 +87,14 @@ export interface IConversationRosterService {
 	 * returns false.
 	 */
 	cancelToolCall(sessionId: string, options: { toolCallId: string; agentId?: string }): boolean;
+	/**
+	 * PermissionService.Respond (permission seat; ≠ Chat-arm `permissionRespond`).
+	 * Engine-connected forwards unary (`granted` = allowed). Empty `turnId` /
+	 * unknown session / disconnected cache / missing hook returns false and
+	 * does not post Chat-arm. Stub / never-connected still writes local
+	 * `permissionRespond`.
+	 */
+	resolveConfirmation(sessionId: string, turnId: string, status: 'allowed' | 'skipped'): boolean;
 	deleteSession(sessionId: string): boolean;
 	getTurns(sessionId: string): readonly ConversationStubTurn[];
 	getTrajectoryRecords(sessionId: string, options?: TrajectoryProjectionOptions): readonly ConversationTrajectoryRecord[];
@@ -97,7 +105,6 @@ export interface IConversationRosterService {
 	appendConfirmationTurn(sessionId: string, text: string): ConversationStubTurn | undefined;
 	appendThinkingTurn(sessionId: string, text: string): ConversationStubTurn | undefined;
 	appendToolTurn(sessionId: string, text: string): ConversationStubTurn | undefined;
-	resolveConfirmation(sessionId: string, turnId: string, status: 'allowed' | 'skipped'): void;
 	countPendingConfirmations(sessionId: string): number;
 	deleteTurn(sessionId: string, turnId: string): boolean;
 	updateUserTurnText(sessionId: string, turnId: string, text: string): boolean;
@@ -377,12 +384,17 @@ export class ConversationStubService extends Disposable implements IConversation
 		return turn;
 	}
 
-	resolveConfirmation(sessionId: string, turnId: string, status: 'allowed' | 'skipped'): void {
+	resolveConfirmation(sessionId: string, turnId: string, status: 'allowed' | 'skipped'): boolean {
+		const requestId = turnId.trim();
+		if (!requestId) {
+			return false;
+		}
 		this.frameSource.write(sessionId, {
 			kind: 'permissionRespond',
-			requestId: turnId,
+			requestId,
 			decision: status === 'allowed' ? 'allow' : 'deny',
 		});
+		return true;
 	}
 
 	countPendingConfirmations(sessionId: string): number {

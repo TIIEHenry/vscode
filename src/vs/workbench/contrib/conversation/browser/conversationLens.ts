@@ -1730,6 +1730,18 @@ export class ConversationLens extends Disposable {
 	}
 
 	private async resolveConfirmation(turnId: string, status: 'allowed' | 'skipped'): Promise<void> {
+		if (this.stubService.isEngineConnected()) {
+			const forwarded = this.stubService.resolveConfirmation(
+				this.stubService.getActiveSessionId(),
+				turnId,
+				status,
+			);
+			if (!forwarded) {
+				return;
+			}
+			this.focusTimelineRecord(turnId);
+			return;
+		}
 		const outcome = await this.postBound({
 			kind: 'permissionRespond',
 			requestId: turnId,
