@@ -123,6 +123,12 @@ suite('ConversationStubService', () => {
 		assert.strictEqual(service.resolveConfirmation(sessionId, 'req-2', 'skipped'), true);
 	});
 
+	test('enqueueMessageQueueItem stays local no-op without engine', () => {
+		const service = store.add(new ConversationStubService());
+		assert.strictEqual(service.enqueueMessageQueueItem(service.getActiveSessionId(), 'later', { priority: 'HIGH' }), false);
+		assert.strictEqual(service.enqueueMessageQueueItem(service.getActiveSessionId(), 'later'), false);
+	});
+
 	test('deleteSession removes a non-active session without changing active', () => {
 		const service = store.add(new ConversationStubService());
 		const activeId = service.getActiveSessionId();
