@@ -40,6 +40,7 @@ import { ISCMService } from '../../../scm/common/scm.js';
 import { IStorageService } from '../../../../../platform/storage/common/storage.js';
 import { TestStorageService } from '../../../../test/common/workbenchTestServices.js';
 import { IConversationReviewNavService } from '../../common/conversationReviewEntry.js';
+import { flushConversationLensLayout, installConversationLensResizeObserverHarness } from './conversationLensLayoutHarness.js';
 
 function turn(id: string, kind: ConversationStubTurn['kind'], text = id, status?: ConversationStubTurn['status']): ConversationStubTurn {
 	return status ? { id, kind, text, status } : { id, kind, text };
@@ -52,9 +53,15 @@ suite('ConversationTrajectory', () => {
 	const LENS_LAYOUT_WIDTH = 640;
 	const LENS_LAYOUT_HEIGHT = 480;
 
+	installConversationLensResizeObserverHarness();
+
 	async function flushTimelineHeightUpdates(): Promise<void> {
-		await new Promise<void>(resolve => setTimeout(resolve, 20));
+		await flushConversationLensLayout();
 	}
+
+	teardown(async () => {
+		await flushConversationLensLayout();
+	});
 
 	function getTimelineScroll(slots: IConversationLensSlots): HTMLElement {
 		const scroll = slots.timeline.querySelector('.conversation-lens-timeline-scroll');

@@ -27,6 +27,7 @@ import { IStorageService, StorageScope } from '../../../../../platform/storage/c
 import { TestStorageService } from '../../../../test/common/workbenchTestServices.js';
 import { IExtensionService } from '../../../../services/extensions/common/extensions.js';
 import { IWebviewService } from '../../../webview/browser/webview.js';
+import { flushConversationLensLayout, installConversationLensResizeObserverHarness } from './conversationLensLayoutHarness.js';
 
 suite('ConversationLens reveal navigation (T5a)', () => {
 
@@ -35,8 +36,10 @@ suite('ConversationLens reveal navigation (T5a)', () => {
 	const LENS_LAYOUT_WIDTH = 640;
 	const LENS_LAYOUT_HEIGHT = 480;
 
+	installConversationLensResizeObserverHarness();
+
 	async function flushTimelineHeightUpdates(): Promise<void> {
-		await new Promise<void>(resolve => setTimeout(resolve, 20));
+		await flushConversationLensLayout();
 	}
 
 	async function flushAnimationFrames(): Promise<void> {
@@ -44,8 +47,7 @@ suite('ConversationLens reveal navigation (T5a)', () => {
 	}
 
 	teardown(async () => {
-		await flushTimelineHeightUpdates();
-		await flushAnimationFrames();
+		await flushConversationLensLayout();
 	});
 
 	function getLensTab(slots: IConversationLensSlots, lensId: 'conversation' | 'trajectory'): HTMLButtonElement {
