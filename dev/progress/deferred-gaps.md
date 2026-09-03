@@ -4,8 +4,8 @@ type: progress
 status: accepted
 phase: N/A
 created: 2026-08-30
-updated: 2026-09-03
-summary: "延期缺口 SSOT；D15 前置 P0+E2-1 已落只欠 W1 冒烟；D17–D20 / D8 / D9 / D12 / D16 不冻结 UI 主线"
+updated: 2026-09-04
+summary: "延期缺口 SSOT；D21 Agent 树首拉失败轴；D22 同窗共享 lease（F3）；D15 前置 P0+E2-1 已落只欠 W1 冒烟；D17–D20 / D8 / D9 / D12 / D16 不冻结 UI 主线"
 ---
 
 # Deferred Gaps
@@ -35,6 +35,8 @@ summary: "延期缺口 SSOT；D15 前置 P0+E2-1 已落只欠 W1 冒烟；D17–
 | D18 | P2 | **I3b 三平台安装包未验**：hicolor 已进 deb/rpm gulp+spec，`electron.ts` 已改公司名/HelpBook；未跑 prepare-deb/rpm、snapcraft、Inno、darwin 打包 | 委派先不复杂测试；本机缺 fakeroot/rpmbuild/Inno/macOS | V 槽确认八档 hicolor 进包，Win/mac 检查 ico/bmp/icns 与 exe/plist 元数据 | product / packaging | open |
 | D19 | P2 | **L1 源码复核残留**（[a11y-rwd-l1.md](a11y-rwd-l1.md)）：(1) A 未在 Engine/Connection 挂 `.ua-motion`；(2) T1 HC 选择器只打 `.part.conversation`/`.part.sources`，Preferences pane 无描边；(3) Connection 300px 无左导航 Back。**(4) Web 省略门控与点名文案已在 E2-1 收口**（`shouldDrawDesktopConnectionControls` 读 phase / capability / `unsupported_environment`，不再用 `isWeb`） | L1 只做源码清单，不改 B/A 生产文件；不阻塞 CS-3 或 W1 | A 挂 class 或方案改口「无动画节点」；T1 或 A 给 pane 补 HC；Connection Back 落地或 §9 改合同。手测/axe/Web 冒烟失败仍记 D17/D15，不并入本行 | M7 a11y | open |
 | D20 | P2 | **CS-6 Settings 默认窗 300px 目视**：搜索框与 Client 七组标题在缩到约 300px 时是否仍可见；`SettingsEditor2` 在宽度低于 700px 已隐藏 TOC，源码未见 UA 专用挤占，但本轮禁止 electron / playwright | CS-6 代码完成线不阻塞；§6 产品验证另含重载 / 草稿不进 Sync / 两种 Enter / 通知语义 | 隔离 profile 打开默认窗 Settings，缩到 300px，确认搜索框与 Client 组标题仍可见、无 emptyCopy；失败记入 D17 证据，不并入本行关闭条件 | M7 verification | open |
+| D21 | P2 | **Host 暴露 Agent 树首拉失败态**（GC-5b 失败轴）：`AgentService.Tree` 第一次 unary 失败时，Navigator Hierarchy / Team 无法与「正在读取」区分，只能靠连接态或空树。闭合前**禁止**用 connection `transport` 冒充树拉取失败 | GC-5 已用共享 empty-state 函数画 loading；失败轴需 host 把 Tree 首拉错误投到 renderer，本轮未做 | `IUniverseAgentConnection` 或 session-view 暴露树首拉失败（一次 / 连接）；Hierarchy 与 Team 共用该判定；单测覆盖失败 ≠ 「没有团队」/ 「只有根」 | M7 navigator | open |
+| D22 | P3 | **同窗口同会话多 lease 渲染端共享**（[session-view-frame-fanout](../plans/session-view-frame-fanout.md) F3）：F1 已按 lease 扇出；同窗多个 chat tab / overlay 仍各持宿主 lease，重复收 baseline/patch | F1/F2 Exit 不含此项；共享层须收口 `post` / `requestDetail` 语义 | 同窗同 session 多 UI lease 共用一个宿主 lease；单测：第二 lease 不触发第二次 `acquireLease` | M7 conversation | open |
 
 ## D2 工位池 compile 基线（2026-09-02，merge 工位 / `loop/merge`）
 

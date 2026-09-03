@@ -3,8 +3,8 @@ title: "UniverseAgent 引擎协议面（本仓消费口径）"
 type: reference
 status: accepted
 phase: N/A
-updated: 2026-09-02
-summary: "已知 gRPC 服务 / RPC 名与本仓用途；§1 Conversation（A1/A2）+ Device Grant；§1b P0/P1a/P1b/P2a/P2b 已绑定；Engine catalog list/toggle + 写 RPC @ f49615a1；§7 Engine 页四节；§5 会话面对照；§11 Navigator/Review；§4 G-NAV-* / G-REV-* / G-ENG-*；G-CONV-1 生产者 P2b + 轨迹 Q3 已消费 attribution"
+updated: 2026-09-04
+summary: "已知 gRPC 服务 / RPC 名与本仓用途；§4 含 G-CORE-1；§5 会话面含 onDynamicDidApplyFrame 首帧缓冲与 confirmPairing/cancelPairing/probeConnectionProfile；G-NAV-* / G-REV-* / G-ENG-*；G-CONV-1 已消费 attribution"
 ---
 
 # UniverseAgent 引擎协议面（本仓消费口径）
@@ -41,7 +41,7 @@ summary: "已知 gRPC 服务 / RPC 名与本仓用途；§1 Conversation（A1/A2
 | 服务 | Web 诚实断连（**P0 已落**） | 备注 |
 |------|------------------------------|------|
 | `IUniverseAgentConnection` | transport `idle`；capability 已有键全 `UNSUPPORTED` reason「Web 不支持本机 Engine 连接」；`connect()` 不 throw、无 token；`connectProfile` `{ ok:false, code:'unsupported_environment' }`；`getConnectionPhase` = `disconnected` | `workbench.web.main.ts` |
-| `IUniverseAgentSessionView` | 空 lease；`requestDetail` 恒 `{ ok:false, reason:'unavailable' }` | 同上 |
+| `IUniverseAgentSessionView` | 空 lease；`onDynamicDidApplyFrame` 恒 `Event.None`；`requestDetail` 恒 `{ ok:false, reason:'unavailable' }` | 同上 |
 | `IUniverseAgentHubService` | `getAuthStatus=unavailable`；mutating `ok:false`；不回显凭据 | 同上 |
 
 | 服务 | RPC | 本仓消费面 | P 切片 | 状态 |
@@ -102,6 +102,7 @@ Connect 后 `probeEngineCapabilities`：**仅**广告了 method 且 probe 非 `U
 | **G-ENG-2** Rules Remote gRPC | Engine 页 Rules（Instructions） | `RulesBridge` 仅 Desktop 进程内；IDE 一律 unsupported。原「Rules Remote gRPC」行合并至此 |
 | **G-ENG-3** `ListHookPoints`（或握手带版本化点位表） | Engine 页 Hooks「来自引擎」 | 原行改编号；闭合前 Hooks 节只显示 unsupported |
 | **G-ENG-4** Agent profile `model.json` 写路径 | Agents 节 Model 子 tab | `SaveAgentProfileRequest.AgentProfileProto` 无 `model` / `modelType` / `maxTurns`，引擎 mapper 写死 null；Model 子 tab 在引擎补字段前只能是 unsupported |
+| **G-CORE-1** session-core `CoreIntent` 无 `sessionId`；`takeIntents()` 为全局队列 | 多会话并发时 intent 归属只能靠「`core.post` 后立刻 drain」不变量 | **来源 vendored session-core，非 gRPC**。F2 @ `917a7f8d` 以宿主 `postAndDrain` 门禁守住该不变量并对未实现 intent 计 `intent.unhandled`。闭合建议：上游在 `emitIntent` 盖 `sessionId`，或提供 `takeIntents(sessionId)`；闭合后宿主归属退化为只读 `intent.sessionId`。见 [session-view-frame-fanout](../../../dev/plans/session-view-frame-fanout.md) |
 | **G-CONV-1** compact 事实进入 session-core | 轨迹 `compacted` 记录 | **P2b 生产者已落** + **Q3 已消费**：host 只从 L2 取行身份（`branch_reason` compact / `EnvelopeRangeReplaced(reason=COMPACT)` 单独成立）→ `ItemAttribution.branchReason:'compact'` + `compacted{…}`。轨迹 `projectSnapshotToTrajectory` 只据此 emit；无 attribution 则零行。`ContextCompactedEvent` 仍非显示源、不订阅 |
 | 独立 CreateSkill RPC（或等价新建 UI） | E1 新建技能 | Skill **新建** UI 已落 @ `e6167c45`（写文件后 `ListSkills` 刷新）；独立 RPC 仍缺 |
 | `SaveSkillContent` node gRPC 传输 | —（**已闭** @ `45fa7a35`/`040c823d`） | `grpcClient` / `grpcTransport` / `universeAgentConnectionService` 动态绑定；单测 `universeAgentConnection.test.ts` |
@@ -116,14 +117,15 @@ Connect 后 `probeEngineCapabilities`：**仅**广告了 method 且 probe 非 `U
 |----------|----------------|-----------|
 | 会话枚举 / 创建 / 删除 | `getSessions` … `deleteSession` | `SessionService.List` / `Create` / `Delete`；`work_dir` 过滤随 Connect。已连接时首次 `List` 完成前 roster **不**含 stub 种子行 |
 | 切换 / 重命名 | `switchSession` / `renameSession` | 切换 = 客户端 `activeSessionId` 投影（**无** `SwitchSession` RPC）。重命名 HEAD 仍走本地 `renameSession`；proto `AgentService.Rename` **未接** |
-| 回合流（用户 / 助手 / thinking / tool / …） | `getTurns`、`onDidChangeSession` | `SessionService.GetHistory`（`cursor_seq`）+ `SessionEventStream` → session-core fold → `ViewFrame`；renderer 经 `IUniverseAgentSessionView` / `acquireSessionView` |
+| 回合流（用户 / 助手 / thinking / tool / …） | `getTurns`、`onDidChangeSession` | `SessionService.GetHistory`（`cursor_seq`）+ `SessionEventStream` → session-core fold → `ViewFrame`；renderer 经 `IUniverseAgentSessionView.acquireLease` + **`onDynamicDidApplyFrame(leaseId)`**（F1 @ `c37bbc6e`：宿主 per-lease 事件；订阅前该 lease 的帧入 `pending`，首个 listener 按序 flush，首帧为 baseline；未知 / 已释放 id → `Event.None`）。已删除全局 `onDidApplyFrame`；渲染端**不**再按 leaseId 过滤全窗广播 |
 | 轨迹记录 | `getTrajectoryRecords(sessionId, { filterAgentId? }?)` | HEAD：`projectSnapshotToTrajectory(snapshot, attribution, details, options)` 从 lease/帧源投影；stub 仅 `untitled` 且未连接时 ∪ fixture extras（**无** compacted 伪造行）；UA 会话**不** merge fixture；**P2a** `requestDetail` / `FetchToolDetail` 通道已接通（renderer 帧源 upsert `outcome.content`；stub 本地 `requestDetail`）；**P2b** 已投影 `ItemAttribution.compacted`（browser 不产出）；**Q3** 消费 attribution emit `compacted` 行（未投影则零行）。Overview 瀑布 Deferred。活 Event fold 全文仍 M6-D / PRD-008 |
 | 权限请求 / 回执 | `resolveConfirmation`、`countPendingConfirmations` | 流内 L4 `permission_request` → `pendingActions`；应答经 `AgentService.Chat` 臂（`permissionRespond` fact）；`PermissionService.Respond` 为文档化备选 |
 | MessageQueue | `getMessageQueueState` 与五个操作 | **仍 fixture**；`AgentService.EnqueueQueueItem` 族未进 roster adapter |
 | AutoDrive / Task 列表 | `getAutoDriveTasks` | **仍 fixture**；`PermissionService.SetSessionGoal` 未接 |
-| fork / 子代理 catalog | `IConversationSessionChatService` fixture | `AgentService.Tree` host 首拉 + 事件再拉（§11）；活 fork catalog / `Fork` **未**假装已接通 |
+| fork / 子代理 catalog | `IConversationSessionChatService` + roster `onDidChangeLiveAgentTree` | GC-4 @ `22ce3013`：roster 观察活动会话 lease 的 **`liveAgentTree` 唯一源**预同步 catalog（`chatId` ≡ `agent_id`，根不登记）；`AgentService.Tree` 仍 host 首拉 + 事件再拉（§11）。`Fork` RPC **未**接 |
 | `visualize` 工具输出 | fixture / tool turn | 仍 stub / 本地 fixture；引擎工具名待 T4+ |
 | 引擎连接态 | `isEngineConnected` | `SystemService.Connect` 成功 + 非空 `session_token` + 活 channel；pairing-pending → false。StatusBar 文案 = `IUniverseAgentConnection.getConnectionPhase()`（H4b）；connected 芯片 command → Engine pane，否则 Connection |
+| 配对确认 / 取消 / 探测 | `IUniverseAgentConnection` | **GC-1b / GC-3** @ `a551fdef` / `f74e151f`：`confirmPairing()` 写 trust 并完成拨号；`cancelPairing()` 不写 trust、断开 pairing-pending；`probeConnectionProfile(profileId)` 对 active profile 建独立探测链只调 `GetAuthNonce`，**不** `Connect`、不改 `ConnectionPhase`。Web stub 三方法均为 `unsupported_environment` |
 | Route / AgentProfile / Model / Permission / Tools 选项 | Composer 各下拉 | 无引擎 = 诚实空；Engine 页 Agents **list-only** 已接，Composer 下拉 **仍**待 profile/策略切片 |
 | 本地会话缓存与引擎权威切换 | PRD-017 | D13 @ HEAD：`conversation.roster.v1` @ `StorageScope.WORKSPACE` + `StorageTarget.MACHINE`；引擎接通后本地存 stub + UA 断连快照（`source` 字段） |
 

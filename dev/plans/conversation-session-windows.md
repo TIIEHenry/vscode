@@ -3,8 +3,8 @@ title: "默认窗 Conversation：session 窗口与 chat tab"
 type: plan
 status: implemented
 phase: N/A
-updated: 2026-09-02
-summary: "S1–S6 已落（S6 知识层签收 @ loop/C）；S3c @ 18b5e8d7、S4 @ 28f1af5a、S5 @ 3e287e65 已合入 agent-ide"
+updated: 2026-09-04
+summary: "S1–S6 已落；GC-4 catalog-on-spawn（roster 观察 liveAgentTree）已落 @ 22ce3013"
 ---
 
 # 默认窗 Conversation：session 窗口与 chat tab
@@ -143,7 +143,7 @@ EDITOR_PART（Preview / MainEditorPart）：默认 openEditor、ACTIVE_GROUP、S
 ### 3.3 同 session：Fork 默认 tab；子代理对话框 / 打开为 tab 才 tab
 
 1. 用户 Fork → 默认窗 workbench 调 `IAgentConnection.createChat` / `_forkSession`（`agentHostSessionHandler.ts`）→ `openEditor(ConversationChatInput, CONVERSATION_GROUP)` 加 tab 并激活（不自动拆列）。**不**走 `agentHostForkActions.ts` / `openChatToSide`。
-2. Agent spawn 子代理 → catalog 有 chat、时间线可点；**不加 tab、不弹对话框**。
+2. Agent spawn 子代理 → catalog 有 chat、时间线可点；**不加 tab、不弹对话框**。**已落（GC-4 @ `22ce3013`）**：roster 观察活动会话 lease 的 `liveAgentTree` 预同步 catalog（`chatId` ≡ `agent_id`，根不登记）。
 3. 用户点击子代理：
    - 若该 chat **已有**延伸 tab → 激活该 tab，**不**再开对话框。
    - 否则 → **session 叶 overlay**（§3.3 对话框合同）。

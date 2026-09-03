@@ -3,8 +3,8 @@ title: "Conversation session 窗口与 chat tab"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-09-02
-summary: "PRD-016 / ADR-002 的系统规格：Part 内最多两叶 session 窗口，每叶嵌 Conversation IEditorPart；ConversationChatInput 围栏；fork / 子代理 / sideChat catalog；overlay、面包屑、导航栈、split"
+updated: 2026-09-04
+summary: "PRD-016 / ADR-002 的系统规格：Part 内最多两叶 session 窗口；fork / 子代理 catalog（GC-4 观察 liveAgentTree）；overlay、面包屑、导航栈、split"
 ---
 
 # Conversation session 窗口与 chat tab
@@ -37,7 +37,7 @@ CONVERSATION_PART
 
 ## 3. chat catalog：root / fork / tool / sideChat
 
-`IConversationSessionChatService` 按 session 维护 `IConversationSessionChatEntry[]`（`chatId`、`title`、`originKind ∈ user | fork | tool | sideChat`、`parentChatId`），与协议 `ChatOrigin` 四 kind 对齐。stub 期 catalog 来自内存 fixture；活数据依赖 PRD-008。
+`IConversationSessionChatService` 按 session 维护 `IConversationSessionChatEntry[]`（`chatId`、`title`、`originKind ∈ user | fork | tool | sideChat`、`parentChatId`），与协议 `ChatOrigin` 四 kind 对齐。stub 期 catalog 来自内存 fixture。引擎接通后 **GC-4**：roster 观察活动会话 lease 的 `liveAgentTree` 预同步非根 catalog（`chatId` ≡ `agent_id`，根不登记）。`Fork` RPC 与完整活会话权威仍依赖 PRD-008。
 
 | 用户动作 | 服务调用 | 结果 |
 |----------|----------|------|

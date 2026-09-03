@@ -3,7 +3,7 @@ title: "Workbench UI 框架：Parts、Grid、显隐"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-09-02
+updated: 2026-09-04
 summary: "默认 Code 窗口的 Part 枚举、SerializableGrid、Conversation∨(Editor∨Sources)；INV-TOPO：中心叶仍是 CONVERSATION_PART；对话 tab 走嵌套 Conversation IEditorPart（PRD-016 S1–S6 已落）"
 ---
 
@@ -105,7 +105,7 @@ CSS class：`LayoutClasses.MAIN_EDITOR_AREA_HIDDEN` / `CONVERSATION_HIDDEN` 等�
 3. **互斥** — `setEditorHidden` / `setConversationHidden` / `setSourcesHidden` / `enforceAgentShellVisible`：Conversation ∨ (Editor ∨ Sources)。Panel 不再被强制弹出。
 4. **注册** — `Parts.CONVERSATION_PART` / `SOURCES_PART`；`ConversationPart` / `SourcesPart` eager singleton；`createWorkbenchLayout` view map；`workbench.ts` `createPart` 循环。
 5. **四钮（D7）** — `layoutActions.ts`：主簇 `LayoutControlMenu` 仅 **Navigator / Conversation / Preview / Sources**（产品名标签）；Panel / Aux 退到 `LayoutControlMenuSubmenu`。
-6. **Conversation session 窗口** — [PRD-016](../../product/requirements.md#prd-016-conversation-session-窗口与-chat-tab) S1–S6：`ConversationPart` 自管最多两叶 session 窗口（`IConversationSessionWindowService`）；每叶内嵌 Conversation `IEditorPart` + `ConversationChatInput` 默认根 tab（关闭拦截器）；timeline/dock 与「对话\|轨迹」在 `ConversationEditorPane` / 子代理 overlay；Part 级 SessionBar 保留 SelectBox、←→、关非根与 roster「打开到旁边」。非 `ChatEditor` / `ChatViewPane`。活 fork/子代理 catalog 仍依赖 PRD-008；stub 期 catalog 用内存 fixture。
+6. **Conversation session 窗口** — [PRD-016](../../product/requirements.md#prd-016-conversation-session-窗口与-chat-tab) S1–S6：`ConversationPart` 自管最多两叶 session 窗口（`IConversationSessionWindowService`）；每叶内嵌 Conversation `IEditorPart` + `ConversationChatInput` 默认根 tab（关闭拦截器）；timeline/dock 与「对话\|轨迹」在 `ConversationEditorPane` / 子代理 overlay；Part 级 SessionBar 保留 SelectBox、←→、关非根与 roster「打开到旁边」。非 `ChatEditor` / `ChatViewPane`。子代理 catalog **GC-4** 由 roster 观察 `liveAgentTree` 预同步；`Fork` RPC / 完整会话权威仍依赖 PRD-008；stub 期 catalog 用内存 fixture。
 7. **Sources tabs** — `contrib/sources`：title 区 **Files \| Changes \| Review** tab strip；各 tab 面板顶有紧凑 **filter** 输入（`filterSourcesEntries`）。Files = `SourcesFilesList` 只读列表投影（`openEditor` → Preview）；Changes = `SourcesChangesList` SCM 变更资源列表（行点击 `openSourcesChangeEntry` 按 `sources.diff.defaultOwner` 分派：默认 Preview Diff；`conversation` → `ConversationDiffReviewInput`；`panel` → `SourcesDiffPanelView`；行内 / 选中 **stage/unstage** 经 `git.stage` / `git.unstage`；底部 **commit** 行走 `acceptInputCommand` / `git.commit`）；Review = `SourcesReviewList` 同一批 SCM 资源只读列表（同一打开路径）。三宿主间 `sources.diff.moveToConversation` / `moveToPanel` / `moveToPreview` 已落（[sources-changes-diff](../../../dev/plans/sources-changes-diff.md) F1–F3）。系统正文见 [Sources 系统](../sources/overview.md)。
 8. **storage keys** — `workbench.conversation.hidden`、`workbench.sources.hidden`（runtime）、`workbench.editor.size` / `workbench.sources.size`（End 列）。Workbench grid 每次启动从描述符重建，不读旧 grid JSON。
 9. **辅助窗口** — 仍复用 `EDITOR_PART`；Conversation / Sources 只在主窗口。

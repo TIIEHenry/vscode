@@ -3,8 +3,8 @@ title: "Connection Hub 客户端接入：IDE 作为 Hub Client 设备"
 type: plan
 status: accepted
 phase: M6+
-updated: 2026-09-02
-summary: "IDE 扮演 Hub Client 设备；切片 H0–H5 已落 @ `058ed9d0`–`83df4497`；H1b 启动 + 运行中 refresh @ `dba63c70` / `23fd9d70`；H6 GUA 直连仍 v2；H4a 真 Hub 冒烟 / PRD-024 implemented 未签收"
+updated: 2026-09-04
+summary: "IDE 扮演 Hub Client 设备；H0–H5 已落；GC-1b 配对接入 connectProfile、GC-2 设备动作、GC-3 probe 已落；H6 仍 v2；H4a 真 Hub 冒烟 / PRD-024 implemented 未签收"
 ---
 
 # Connection Hub 客户端接入
@@ -12,7 +12,7 @@ summary: "IDE 扮演 Hub Client 设备；切片 H0–H5 已落 @ `058ed9d0`–`8
 > **上游事实（外仓只读）：** `UniverseAgent/dev/plans/connection-hub/{architecture,backend,frontend}.md`、`UniverseAgent/dev/decisions/{261,318,374,375}-*.md`、`UniverseAgent/grpc-api/src/main/proto/{system_service,common}.proto`、`UniverseAgent/connection-hub/docs/config.md`。  
 > **Donor（外仓只读）：** `UniverseAgentDesktop/apps/desktop/src/main/engine/**`（ADR-025 relay ticket / ADR-026 Hub 登录 / ADR-027 TLS 首配 orchestrator）与 `UniverseAgentDesktop/docs/architecture/connection-and-auth.md`；Singularity `shared/connection/ConnectionResolver.kt`、`shared/hub/HubApiClient.kt`（Kotlin，只移植逻辑）。  
 > **本仓边界：** [ADR-003](../decisions/003-engine-adapter-boundary.md)（adapter 落层）· [m6-engine-wave](m6-engine-wave.md) M6-A1（gRPC 宿主）· [page-access-schemes](page-access-schemes.md) §2.2 / §15.10（`ua.connection` pane、StatusBar B10）· [PRD-007](../../docs/product/requirements.md#prd-007-诚实降级) 验收 4–5 · [PRD-008](../../docs/product/requirements.md#prd-008-引擎与会话权威)。  
-> **状态：** `accepted` @2026-09-02。**H0–H5 代码已落**（`058ed9d0`–`83df4497`）；**H6** 仍 v2。H4a 真 Hub 冒烟 / PRD-024 升 `implemented` 仍待验。
+> **状态：** `accepted` @2026-09-02。**H0–H5 代码已落**（`058ed9d0`–`83df4497`）；**H6** 仍 v2。H4a 真 Hub 冒烟 / PRD-024 升 `implemented` 仍待验。**GC-1b / GC-2 / GC-3**（H2/H4a 残留）已落，见 §4.2 / §5。
 
 ---
 
@@ -334,11 +334,11 @@ v1 **中继 + DirectAddress**，GUA 直连留 v2。理由：上游直连整项�
 
 | 区 | 内容 | 空 / 错误态 |
 |----|------|-------------|
-| Hub 账号 | `hubBaseUrl` 输入（默认空，无预填）、邮箱 / 密码、登录 / 注销 / 改密；状态徽标 | 未登录：只显示表单；加密不可用：提示重启需重登 |
-| 设备列表 | §3.7 矩阵；重命名 / 吊销（二次确认）/ 「确认设备码」入口 | 未登录：整节省略；目录失败：按 §3.7 文案 |
+| Hub 账号 | `hubBaseUrl` 输入（默认空，无预填）、邮箱 / 密码、登录 / 注销 / 改密；状态徽标；**确认设备码**入口（GC-2 @ `f74e151f` **已落**） | 未登录：只显示表单；加密不可用：提示重启需重登 |
+| 设备列表 | §3.7 矩阵；重命名 / 吊销（二次确认）（GC-2 **已落**）；「确认设备码」 | 未登录：整节省略；目录失败：按 §3.7 文案 |
 | Direct Address | host:port 添加（定位调试 / 降级，不是主路径；默认拒 RFC1918 除非显式勾 `allowPrivateNetwork`） | — |
-| 连接 profiles | 已配对 / 待配对 / 已吊销列表；「连接 / 断开 / 忘记此 Engine」 | 空：「No connection profiles yet」（现文案保留） |
-| Test Connection | 改为对**当前 active profile** 跑序列 A 第 1–3 步（不 Connect），报告到 `GetAuthNonce` 成功与否；无 profile 时仍「Not connected — no engine.」 | 不假成功 |
+| 连接 profiles | 已配对 / 待配对 / 已吊销列表；「连接 / 断开 / 忘记此 Engine」。Hub 可用设备 Connect 建 `hubDevice` profile 并 `connectProfile`（GC-1）；遇 `pairing_required` 走 `startPairing`，SAS 确认 `confirmPairing` / 取消 `cancelPairing`（**GC-1b，H2/H4a 残留，已落** @ `a551fdef`） | 空：「No connection profiles yet」（现文案保留） |
+| Test Connection | 对**当前 active profile** 调 `probeConnectionProfile`：独立探测链跑到 `GetAuthNonce`（不 `Connect`、不改 phase）（**GC-3 已落** @ `f74e151f`）；无 profile 时仍「Not connected — no engine.」 | 不假成功 |
 | Remote I/O 提示 | 连接远程 Engine 时文件 / Shell 在**本机**执行的说明（上游 §4.3） | 常显一行 |
 
 SAS 对话框：`IDialogService.prompt`，正文含 Engine 显示名、`XXXX-XXXX`、`engineIdentityId` 前 8 位；按钮「已核对一致」/「取消」；**不含**「跳过」「信任」之类第三按钮。
@@ -368,14 +368,14 @@ H4a 的关门不依赖 StatusBar：pane 自身显示 `ConnectionPhase`，PRD-024
 | **H1** **已落** @ `058ed9d0` | vendor Desktop `deviceGrant/**`、`hub/**`（sync 脚本 + `SYNC.md`）；`clientIdentityStore` / `engineTrustStore` / `connectionProfileStore` / `hubSessionStore`（含 refresh）；`hubDirectoryClient` | **KAT-1 / KAT-2** 断言（SAS 码 `0H4X-JVFQ` / `C1RD-95QA`，transcript sha256 对齐 ADR-261 §3b）；AuthSession / ticket 合同负例；refresh 单飞；secret 不可用 fail-closed | `platform/universeAgent/node/{deviceGrant,hub,*Store,hubDirectoryClient}.ts`；`package.json`（若需 sync 脚本依赖） |
 | **H1a** **已落** @ `321a4e0b` | electron-main 装配加密 `HubSessionStore` / `ClientIdentityStore`（§3.5 / §3.6）；`loginHub` 解析 `hub_refresh` Set-Cookie → `applyAuthSession` 加密落盘；不可加密时 refresh / 身份**不落盘**、pane 诚实报错 | `hubSessionStore.test.ts`：加密落盘 / `clear` 删 secret / 不可用时不 persist；`ClientIdentityStore` 不可用时不 persist | `electron-main/universeAgentMainService.ts`、`node/hub/hub-auth-client.ts` |
 | **H1b** **已落** @ `dba63c70`（启动，合入 `17968447`）· 运行中 refresh @ `23fd9d70`（合入 `a00fafc7`） | 启动：`restorePersistedHubSessionIfNeeded` / `whenStartupRestoreComplete` / `listPersistedHubBaseUrls`；运行中：`withHubAccessRetry`（access TTL 过期或控制面 401/403 → `refreshIfNeeded({ force })` 单次重试）——目录 / ticket / 控制面 mutation；refresh 401/403 → `authExpired` / `hub_auth_expired` | `universeAgentHubService.test.ts` + `connectionResolver.test.ts`：启动恢复 / 运行中 expired access refresh 成功 / refresh 401→authExpired | `hubAuthAccess.ts`、`universeAgentHubService.ts`、`connectionResolver.ts` |
-| **H2** **已落** @ `18da9100` | `universeAgentChannel` 增 pinned TLS 分支（leaf DER 为 ca + `checkServerIdentity` 指纹 + `ssl_target_name_override`）；`GetAuthNonce` + `DeviceAuth` Connect；`pairingOrchestrator`（S1–S7 + recoverTrust） | mock TLS server：错误 pin 失败 / 正确 pin 成功 / nonce 主机名不妨碍（S21）；观测指纹 ≠ 自述指纹 → fail-closed；pairing 返回不置 connected；S4 意外 token 不 install | `universeAgentChannel.ts`（与 A1 共文件，**A1 合入后**开） |
+| **H2** **已落** @ `18da9100` | `universeAgentChannel` 增 pinned TLS 分支（leaf DER 为 ca + `checkServerIdentity` 指纹 + `ssl_target_name_override`）；`GetAuthNonce` + `DeviceAuth` Connect；`pairingOrchestrator`（S1–S7 + recoverTrust）。**GC-1b 残留已落** @ `a551fdef`：生产 `connectProfile` 接入 `startPairing` + 合同 `confirmPairing` / `cancelPairing`（orchestrator 本体不改） | mock TLS server：错误 pin 失败 / 正确 pin 成功 / nonce 主机名不妨碍（S21）；观测指纹 ≠ 自述指纹 → fail-closed；pairing 返回不置 connected；S4 意外 token 不 install | `universeAgentChannel.ts`（与 A1 共文件，**A1 合入后**开） |
 | **H3** **已落** @ `7ebd7618` | `connectionResolver`（live 目录判定、ticket、4xx / 网络错分流、`allowRelayFallback` 随返回）；transport 断 → 重新解析；`IUniverseAgentConnection.connect(profileId)` | 单测：目录缺 id / revoked 拒拨；401 → `hub_auth_expired` 且不签 ticket；ticket TTL 过期不复用；重连产生新 ticket | `connectionResolver.ts`、`universeAgentConnection*.ts` |
-| **H4a** **已落** @ `127c0586` | pane 四区 + SAS 对话框；ProxyChannel 增 hub 面；**不改** StatusBar | `connectionPreferencesPane.test.ts` 扩：矩阵六行文案、SAS 无第三按钮、Hub 登录态不改 `isEngineConnected`；`conversationSessionStatusBar` 既有测加一条负向断言「Hub signedIn + `connected` 前，entry 文案仍 `Engine not connected`」；隔离 profile 冒烟对**真 Hub**（`connection-hub` 本地 `go run` + Engine `--hub --enroll`）：登录 → 列表 → SAS → 连接 → roster 出现 UA 会话（需 M6-A2 已合入；否则只验到 `connected`） | `contrib/conversation/browser/connectionPreferencesPane*.ts`、`common/uaPreferencesPanes.ts`、`electron-browser` 代理 |
+| **H4a** **已落** @ `127c0586` | pane 四区 + SAS 对话框；ProxyChannel 增 hub 面；**不改** StatusBar。**残留已落：** SAS 确认/取消接到 `confirmPairing`/`cancelPairing`（GC-1b）；设备 Rename/Revoke/设备码（GC-2）；Test Connection → `probeConnectionProfile`（GC-3） | `connectionPreferencesPane.test.ts` 扩：矩阵六行文案、SAS 无第三按钮、Hub 登录态不改 `isEngineConnected`；`conversationSessionStatusBar` 既有测加一条负向断言「Hub signedIn + `connected` 前，entry 文案仍 `Engine not connected`」；隔离 profile 冒烟对**真 Hub**（`connection-hub` 本地 `go run` + Engine `--hub --enroll`）：登录 → 列表 → SAS → 连接 → roster 出现 UA 会话（需 M6-A2 已合入；否则只验到 `connected`） | `contrib/conversation/browser/connectionPreferencesPane*.ts`、`common/uaPreferencesPanes.ts`、`electron-browser` 代理 |
 | **H4b** **已落** @ `dd28cbc3` | StatusBar 文案随 `ConnectionPhase`（§4.2）；B10 command 不变 | `conversationSessionStatusBar` 单测：六态文案；pairing 中仍「Engine not connected」 | `conversationSessionStatusBar.ts`（**排 M6-B 之后**，同文件单写者） |
 | **H5** **已落** @ `83df4497` | DirectAddress 添加 / 配对 / 连接；`allowPrivateNetwork` | 无 ticket 路径；RFC1918 默认拒 | pane + resolver |
 | **H6**（v2） | GUA / 公网 IPv4 探测优先、快照直连、`TeardownHubDirect` header、路径标签「Direct」 | 上游 ADR-374 S13 环境矩阵 | resolver + channel |
 
-**已落：** **H0–H5**（`058ed9d0`–`83df4497`；H0 知识层 @ `01cd5018`）。**H6** 仍 v2。H4a **真 Hub 冒烟**（`dev/progress/h4a-evidence/`）与 PRD-024 升 `implemented` **未签收**。
+**已落：** **H0–H5**（`058ed9d0`–`83df4497`；H0 知识层 @ `01cd5018`）。**GC-1 / GC-1b / GC-2 / GC-3**（H2/H4a 接线残留）已落 @ `a551fdef`–`f74e151f`。**H6** 仍 v2。H4a **真 Hub 冒烟**（`dev/progress/h4a-evidence/`）与 PRD-024 升 `implemented` **未签收**。
 
 PRD-008 升 `implemented` 的启动冒烟证据可来自 loopback（M6-A2）；**PRD-024 的证据必须来自 H4a 真 Hub 冒烟**，两者不互替。
 

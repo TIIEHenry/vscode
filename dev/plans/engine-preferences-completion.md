@@ -3,8 +3,8 @@ title: "Engine Preferences UI 完成方案"
 type: plan
 status: accepted
 phase: M7
-updated: 2026-09-03
-summary: "E2-1–E2-7 代码已落：九节六态、Model 只读注册表、Web 按 phase/capability 省略桌面控件、窄宽度；Provider/Rules/Hooks 仍 unsupported；产品验证未做，方案仍 accepted"
+updated: 2026-09-04
+summary: "E2-1–E2-7 代码已落；GC-6 Overview Model 摘要已落；Provider 仍 G-ENG-1 前不显示；Rules/Hooks unsupported；产品验证未做，方案仍 accepted"
 ---
 
 # Engine Preferences UI 完成方案
@@ -65,7 +65,8 @@ summary: "E2-1–E2-7 代码已落：九节六态、Model 只读注册表、Web 
 ### 3.1 Overview
 
 - 显示 Engine 名、连接路径（Hub relay / Direct / loopback）、工作目录、capability 摘要。
-- Model 摘要只在 `models=SUPPORTED` 且 E2-2 落地后显示注册表已启用模型数；Provider 摘要在 G-ENG-1 前不显示。
+- Model 摘要只在 `models=SUPPORTED` 且 E2-2 落地后显示注册表已启用模型数。**已落（GC-6 @ `f583073b` / `d98d888a`）**：Overview 从 `listModels` 取已启用数。
+- Provider 摘要在 G-ENG-1 前不显示（GC-6 **不**改口；Provider 行保持隐藏）。
 - 不显示 Hub access token、地址、ticket 或 session token。
 - capability 只显示 `SUPPORTED / UNSUPPORTED / UNKNOWN` 的产品文案，不展示协议枚举。
 

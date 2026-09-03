@@ -3,8 +3,8 @@ title: "Conversation 订阅流与时间线增量模型（M6 时间线专章）"
 type: plan
 status: accepted
 phase: M6
-updated: 2026-09-02
-summary: "m6-engine-wave / ADR-003 时间线专章：S1–S6 代码已落 @ `a64caf1c`–`5104678e`；G2/G3 上游缺口仍 open；PRD-008 未升 implemented"
+updated: 2026-09-04
+summary: "m6-engine-wave / ADR-003 时间线专章：S1–S6 代码已落；F1 宿主 per-lease 动态事件 + 首帧缓冲；G2/G3 上游缺口仍 open；PRD-008 未升 implemented"
 ---
 
 # Conversation 订阅流与时间线增量模型
@@ -73,7 +73,8 @@ UniverseAgent 引擎
   → demux（proto → domain arm）+ attribution（role / agent_id / agent_path）
   → session-core Actor（per-session；L1–L4 fold；lease 集合；linger）
   → ConversationViewFrame = { frame: ViewFrame, attribution?: AttributionPatch[] }
-  │ electron-browser ProxyChannel（per-window，per-lease 有序）
+  │ electron-main ProxyChannel 动态事件 `onDynamicDidApplyFrame(leaseId)`
+  │ （宿主 per-lease 过滤 + 订阅前缓冲；IPC 按帧发送，不乘窗口数）
   ▼
 [renderer / workbench]
   IConversationRosterService.acquireSessionView(sessionId)  ← 同 token
@@ -148,6 +149,7 @@ export type ConversationWriteMessage =
 - `isEngineConnected()` 语义按 ADR-003 §7 / m6 §5（连接级）；本稿不改。`onDidChangeEngineConnection` 不变。
 - `sync.kind` 是会话级订阅态，来自 lease；**不**并入 `isEngineConnected`。
 - attribution 是 vscode 自有 sidecar，不改 session-core 类型；上游若把 role / agent 投进 `TimelineItemView`（[§6 G1/G4](#6-契约缺口需上游补vscode-不得自造)），sidecar 退场。
+- **帧 IPC（F1 @ `c37bbc6e`）：** 宿主 `IUniverseAgentSessionView.onDynamicDidApplyFrame(leaseId)`；该 lease 在首个订阅者到来前的帧入宿主 `pending`，`onDidAddFirstListener` 按序 flush（首帧为 baseline）。渲染端只订自己的 leaseId。**不再**全窗广播 `onDidApplyFrame`、**不再**由渲染端按 leaseId 过滤。同窗多 lease 共享 session-core 订阅仍见 [§3.8](#38-断连--重连--诚实)；渲染端共享 lease 未做（[D22](../progress/deferred-gaps.md)）。
 
 ### 3.3 产品视图模型 `projectSnapshotToEntries(snapshot, attribution)`
 
@@ -261,7 +263,7 @@ S3 前**不改**公开形状。**同步点写死：**
 
 - 连接级 StatusBar 芯片 / Engine 页仍按 `isEngineConnected()` 与能力三态（m6 §5、customizations-engine §2）；两层各说各的，**互不代称**。
 - 非预期 `frameId` / `generation` → `requestResync` → 等新 baseline；renderer 不补洞、不重排。
-- 多 chat tab / 对话框 / split（PRD-016）= 同 session 多 lease，共享一条订阅；最后一个 lease 释放进 linger（默认 30s）。
+- 多 chat tab / 对话框 / split（PRD-016）= 同 session 多 lease，共享一条 **session-core** 订阅；最后一个 lease 释放进 linger（默认 30s）。帧出站是宿主 **per-lease** 动态事件（上节 F1），不是渲染端过滤。
 
 ## 4. 切片
 
