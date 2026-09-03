@@ -15,6 +15,7 @@ import type {
 	UniverseAgentConnectResult,
 	UniverseAgentDeviceAuthConnectRequest,
 } from '../../node/grpc/grpcTransport.js';
+import type { UniverseAgentSessionStreamCloseCause } from '../../common/universeAgentTypes.js';
 
 const ED25519_PUBLIC_RAW_LEN = 32;
 
@@ -75,7 +76,11 @@ class MockDeviceAuthTransport implements IUniverseAgentGrpcTransport {
 		return { envelopes: [] };
 	}
 
-	subscribeSessionEventStream(): { dispose(): void } {
+	subscribeSessionEventStream(
+		_sessionId: string,
+		_listener: (event: { payload: unknown }) => void,
+		_onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
+	): { dispose(): void } {
 		return { dispose: () => { } };
 	}
 

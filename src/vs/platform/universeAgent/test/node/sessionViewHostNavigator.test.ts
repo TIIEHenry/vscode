@@ -13,6 +13,7 @@ import type {
 	ITurnSettleSignal,
 	UniverseAgentAgentTreeNode,
 	UniverseAgentConnectionSnapshot,
+	UniverseAgentSessionStreamCloseCause,
 } from '../../common/universeAgentTypes.js';
 import { AgentTreeCoordinator, flushAgentTreeCoordinator } from '../../node/agentTreeCoordinator.js';
 import { GrpcStatusCode, UniverseAgentTransportError } from '../../node/grpc/grpcTransport.js';
@@ -72,7 +73,11 @@ class TestConnection implements IUniverseAgentConnection {
 	async createSession() { return { sessionId: 's' }; }
 	async deleteSession() { }
 	async getHistory() { return { envelopes: [] }; }
-	subscribeSessionEventStream(sessionId: string, listener: (event: { payload: unknown }) => void) {
+	subscribeSessionEventStream(
+		sessionId: string,
+		listener: (event: { payload: unknown }) => void,
+		_onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
+	) {
 		const list = this.streamListeners.get(sessionId) ?? [];
 		list.push(listener);
 		this.streamListeners.set(sessionId, list);

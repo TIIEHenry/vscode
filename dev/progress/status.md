@@ -4,13 +4,14 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-04
-summary: "槽 C：subscribeSessionEventStream 补 onClosed（合同+传输）；宿主未折 streamClosed"
+summary: "槽 B：conversation/navigator/engine 与 grpc 测试桩对齐 SessionEventStream onClosed"
 ---
 
 # Development Progress
 
 ## Current Session
 
+- **槽 B / `loop/B`：** 对齐 `loop/merge` `bfaac2b0` 后，把剩余 conversation / navigator / engine 与 grpc 测试桩的 `subscribeSessionEventStream` 补上第三参 `onClosed`（`UniverseAgentSessionStreamCloseCause`）。**未改**宿主接线。
 - **槽 C / `loop/C`：** 对齐 `loop/merge` `a9fd77d4` 后补 `subscribeSessionEventStream` 第三参 `onClosed`（与 Chat / ContinueGeneration 同 `UniverseAgentSessionStreamCloseCause`）。`makeServerStreamClient` 用共用 `createStreamCloseGate`：远端 `end`→`remote`、`error`→`error`；本地 dispose 先 `closeLocal` 以免 CANCELLED 再回调。连接服务原样转发。**未改** `sessionViewHost`（不声称 Actor 已收 `streamClosed`）。
 - **merge / `loop/merge`：** 合入槽 A `4c8235e6`（GC-1b `connectProfile` pairing gate）与槽 B `d19e2783`（chevron `transition` 只挂 `.ua-motion`）。
 
@@ -20,7 +21,7 @@ summary: "槽 C：subscribeSessionEventStream 补 onClosed（合同+传输）；
 |----|------|------|------|
 | merge | `vscode-WorkTrees/merge` | `loop/merge` | 本会话：A+B + exhaustiveness 复绿 |
 | A | `vscode-WorkTrees/A` | `loop/A` | GC-1b pairing gate（已合） |
-| B | `vscode-WorkTrees/B` | `loop/B` | ua-motion a11y 收口（已合） |
+| B | `vscode-WorkTrees/B` | `loop/B` | 测试桩对齐 SessionEventStream `onClosed` |
 | C | `vscode-WorkTrees/C` | `loop/C` | SessionEventStream `onClosed` 合同+传输 |
 | D | `vscode-WorkTrees/D` | `loop/D` | 以该槽 `git` 为准 |
 | edit | `Projects/Agents/vscode` | `agent-ide` | 请自行对齐 |

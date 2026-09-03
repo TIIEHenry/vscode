@@ -10,7 +10,11 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/tes
 import { StorageScope } from '../../../../../platform/storage/common/storage.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { IUniverseAgentSessionView } from '../../../../../platform/universeAgent/common/universeAgentSessionView.js';
-import type { UniverseAgentConnectionSnapshot } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
+import type {
+	UniverseAgentConnectionSnapshot,
+	UniverseAgentSessionEvent,
+	UniverseAgentSessionStreamCloseCause,
+} from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { TestStorageService } from '../../../../test/common/workbenchTestServices.js';
 import { ConversationEngineRosterService } from '../../browser/conversationEngineRosterService.js';
 import { CONVERSATION_ROSTER_STORAGE_KEY } from '../../browser/conversationRosterStorage.js';
@@ -73,7 +77,11 @@ class MockUniverseAgentConnection extends Disposable implements IUniverseAgentCo
 	async createSession() { return { sessionId: 'ua-new' }; }
 	async deleteSession() { }
 	async getHistory() { return { envelopes: [] }; }
-	subscribeSessionEventStream() { return { dispose: () => { } }; }
+	subscribeSessionEventStream(
+		_sessionId: string,
+		_listener: (event: UniverseAgentSessionEvent) => void,
+		_onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
+	) { return { dispose: () => { } }; }
 	async chat() { }
 	async listSkills() { return { skills: [] }; }
 	async setSkillEnabled() { return { ok: true }; }

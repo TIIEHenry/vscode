@@ -7,6 +7,7 @@ import assert from 'assert';
 import { timeout } from '../../../../base/common/async.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import type { IUniverseAgentSessionViewFrameEvent } from '../../common/universeAgentSessionView.js';
+import type { UniverseAgentSessionStreamCloseCause } from '../../common/universeAgentTypes.js';
 import type { ViewPatch } from '../../common/sessionView/types.js';
 import type { DiagnosticMetric, DiagnosticsPort, TimerId } from '../../node/sessionCore/ports.js';
 import { SessionViewHost } from '../../node/sessionViewHost.js';
@@ -19,11 +20,15 @@ class TrackingConnection extends TestConnection {
 	readonly streamSubscriptions: string[] = [];
 	private readonly streamHandles: { readonly sessionId: string; disposed: boolean }[] = [];
 
-	override subscribeSessionEventStream(sessionId: string, listener: (event: { payload: unknown }) => void) {
+	override subscribeSessionEventStream(
+		sessionId: string,
+		listener: (event: { payload: unknown }) => void,
+		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
+	) {
 		this.streamSubscriptions.push(sessionId);
 		const handle = { sessionId, disposed: false };
 		this.streamHandles.push(handle);
-		const inner = super.subscribeSessionEventStream(sessionId, listener);
+		const inner = super.subscribeSessionEventStream(sessionId, listener, onClosed);
 		return {
 			dispose: () => {
 				handle.disposed = true;

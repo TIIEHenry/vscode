@@ -5,7 +5,11 @@
 
 import { Event } from '../../../../../base/common/event.js';
 import type { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
-import type { UniverseAgentConnectionSnapshot } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
+import type {
+	UniverseAgentConnectionSnapshot,
+	UniverseAgentSessionEvent,
+	UniverseAgentSessionStreamCloseCause,
+} from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 
 export function createNavigatorConnectionTestStub(
 	overrides: Partial<IUniverseAgentConnection> = {},
@@ -45,7 +49,11 @@ export function createNavigatorConnectionTestStub(
 		createSession: async () => ({ sessionId: 's' }),
 		deleteSession: async () => { },
 		getHistory: async () => ({ envelopes: [] }),
-		subscribeSessionEventStream: () => ({ dispose: () => { } }),
+		subscribeSessionEventStream: (
+			_sessionId: string,
+			_listener: (event: UniverseAgentSessionEvent) => void,
+			_onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
+		) => ({ dispose: () => { } }),
 		chat: async () => { },
 		listSkills: async () => ({ skills: [] }),
 		setSkillEnabled: async () => ({ ok: true }),
