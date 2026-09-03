@@ -431,9 +431,6 @@ suite('UniverseAgentConnectionService', () => {
 		service.dispose();
 	});
 
-		service.dispose();
-	});
-
 	test('openContinuationStream forwards request and transport onClosed', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
