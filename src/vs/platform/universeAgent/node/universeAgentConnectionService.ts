@@ -26,6 +26,10 @@ import type {
 	UniverseAgentRenameSessionResult,
 	UniverseAgentCancelGenerationRequest,
 	UniverseAgentCancelGenerationResult,
+	UniverseAgentSetSessionGoalRequest,
+	UniverseAgentSetSessionGoalResult,
+	UniverseAgentCancelSessionGoalRequest,
+	UniverseAgentCancelSessionGoalResult,
 	UniverseAgentGetHistoryRequest,
 	UniverseAgentGetHistoryResult,
 	UniverseAgentListSessionsRequest,
@@ -619,6 +623,14 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 
 	async cancelGeneration(request: UniverseAgentCancelGenerationRequest): Promise<UniverseAgentCancelGenerationResult> {
 		return this._withTransport(transport => transport.cancelGeneration(request));
+	}
+
+	async setSessionGoal(request: UniverseAgentSetSessionGoalRequest): Promise<UniverseAgentSetSessionGoalResult> {
+		return this._withTransport(transport => transport.setSessionGoal(request));
+	}
+
+	async cancelSessionGoal(request: UniverseAgentCancelSessionGoalRequest): Promise<UniverseAgentCancelSessionGoalResult> {
+		return this._withTransport(transport => transport.cancelSessionGoal(request));
 	}
 
 	async getHistory(request: UniverseAgentGetHistoryRequest): Promise<UniverseAgentGetHistoryResult> {

@@ -21,6 +21,10 @@ import type {
 	UniverseAgentRenameSessionResult,
 	UniverseAgentCancelGenerationRequest,
 	UniverseAgentCancelGenerationResult,
+	UniverseAgentSetSessionGoalRequest,
+	UniverseAgentSetSessionGoalResult,
+	UniverseAgentCancelSessionGoalRequest,
+	UniverseAgentCancelSessionGoalResult,
 	UniverseAgentGetHistoryRequest,
 	UniverseAgentGetHistoryResult,
 	UniverseAgentListSessionsRequest,
@@ -1256,6 +1260,37 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 		return {
 			ok: wire.success === true,
 			message: wire.message,
+		};
+	}
+
+	async setSessionGoal(request: UniverseAgentSetSessionGoalRequest): Promise<UniverseAgentSetSessionGoalResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, { success?: boolean; error?: string }>(
+			this._channel,
+			UniverseAgentGrpcServices.Permission.service,
+			UniverseAgentGrpcServices.Permission.SetSessionGoal,
+		);
+		const wire = await unary({
+			session_id: request.sessionId,
+			goal: request.goal,
+		});
+		return {
+			ok: wire.success === true,
+			message: wire.error,
+		};
+	}
+
+	async cancelSessionGoal(request: UniverseAgentCancelSessionGoalRequest): Promise<UniverseAgentCancelSessionGoalResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, { success?: boolean; error?: string }>(
+			this._channel,
+			UniverseAgentGrpcServices.Permission.service,
+			UniverseAgentGrpcServices.Permission.CancelSessionGoal,
+		);
+		const wire = await unary({
+			session_id: request.sessionId,
+		});
+		return {
+			ok: wire.success === true,
+			message: wire.error,
 		};
 	}
 

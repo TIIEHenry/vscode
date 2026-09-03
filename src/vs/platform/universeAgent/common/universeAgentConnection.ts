@@ -23,6 +23,10 @@ import type {
 	UniverseAgentRenameSessionResult,
 	UniverseAgentCancelGenerationRequest,
 	UniverseAgentCancelGenerationResult,
+	UniverseAgentSetSessionGoalRequest,
+	UniverseAgentSetSessionGoalResult,
+	UniverseAgentCancelSessionGoalRequest,
+	UniverseAgentCancelSessionGoalResult,
 	UniverseAgentGetHistoryRequest,
 	UniverseAgentGetHistoryResult,
 	UniverseAgentListSessionsRequest,
@@ -160,6 +164,15 @@ export interface IUniverseAgentConnection {
 
 	/** AgentService.Cancel unary. Engine roster + Inbox Stop forward when connected. */
 	cancelGeneration(request: UniverseAgentCancelGenerationRequest): Promise<UniverseAgentCancelGenerationResult>;
+
+	/**
+	 * PermissionService.SetSessionGoal unary (Inbox Goal). Optional so Web / tests
+	 * can omit until roster forwards it.
+	 */
+	setSessionGoal?(request: UniverseAgentSetSessionGoalRequest): Promise<UniverseAgentSetSessionGoalResult>;
+
+	/** PermissionService.CancelSessionGoal unary. Optional with `setSessionGoal`. */
+	cancelSessionGoal?(request: UniverseAgentCancelSessionGoalRequest): Promise<UniverseAgentCancelSessionGoalResult>;
 
 	getHistory(request: UniverseAgentGetHistoryRequest): Promise<UniverseAgentGetHistoryResult>;
 

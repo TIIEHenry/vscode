@@ -18,6 +18,10 @@ import type {
 	UniverseAgentRenameSessionResult,
 	UniverseAgentCancelGenerationRequest,
 	UniverseAgentCancelGenerationResult,
+	UniverseAgentSetSessionGoalRequest,
+	UniverseAgentSetSessionGoalResult,
+	UniverseAgentCancelSessionGoalRequest,
+	UniverseAgentCancelSessionGoalResult,
 	UniverseAgentGetHistoryRequest,
 	UniverseAgentGetHistoryResult,
 	UniverseAgentListSessionsRequest,
@@ -141,6 +145,10 @@ export interface IUniverseAgentGrpcTransport {
 
 	cancelGeneration(request: UniverseAgentCancelGenerationRequest): Promise<UniverseAgentCancelGenerationResult>;
 
+	setSessionGoal(request: UniverseAgentSetSessionGoalRequest): Promise<UniverseAgentSetSessionGoalResult>;
+
+	cancelSessionGoal(request: UniverseAgentCancelSessionGoalRequest): Promise<UniverseAgentCancelSessionGoalResult>;
+
 	getHistory(request: UniverseAgentGetHistoryRequest): Promise<UniverseAgentGetHistoryResult>;
 
 	subscribeSessionEventStream(
@@ -237,6 +245,11 @@ export const UniverseAgentGrpcServices = {
 		Delete: 'Delete',
 		GetHistory: 'GetHistory',
 		SessionEventStream: 'SessionEventStream',
+	},
+	Permission: {
+		service: 'universeagent.session.v1.PermissionService',
+		SetSessionGoal: 'SetSessionGoal',
+		CancelSessionGoal: 'CancelSessionGoal',
 	},
 	Agent: {
 		service: 'universeagent.agent.v1.AgentService',

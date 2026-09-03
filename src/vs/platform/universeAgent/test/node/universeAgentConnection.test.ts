@@ -19,6 +19,10 @@ import type {
 	UniverseAgentRenameSessionResult,
 	UniverseAgentCancelGenerationRequest,
 	UniverseAgentCancelGenerationResult,
+	UniverseAgentSetSessionGoalRequest,
+	UniverseAgentSetSessionGoalResult,
+	UniverseAgentCancelSessionGoalRequest,
+	UniverseAgentCancelSessionGoalResult,
 	UniverseAgentGetHistoryRequest,
 	UniverseAgentGetHistoryResult,
 	UniverseAgentListSessionsRequest,
@@ -131,6 +135,22 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 	async cancelGeneration(request: UniverseAgentCancelGenerationRequest): Promise<UniverseAgentCancelGenerationResult> {
 		this.cancelCalls.push(request);
 		return this.cancelResult;
+	}
+
+	readonly setGoalCalls: UniverseAgentSetSessionGoalRequest[] = [];
+	setGoalResult: UniverseAgentSetSessionGoalResult = { ok: true };
+
+	async setSessionGoal(request: UniverseAgentSetSessionGoalRequest): Promise<UniverseAgentSetSessionGoalResult> {
+		this.setGoalCalls.push(request);
+		return this.setGoalResult;
+	}
+
+	readonly cancelGoalCalls: UniverseAgentCancelSessionGoalRequest[] = [];
+	cancelGoalResult: UniverseAgentCancelSessionGoalResult = { ok: true };
+
+	async cancelSessionGoal(request: UniverseAgentCancelSessionGoalRequest): Promise<UniverseAgentCancelSessionGoalResult> {
+		this.cancelGoalCalls.push(request);
+		return this.cancelGoalResult;
 	}
 
 	async getHistory(_request: UniverseAgentGetHistoryRequest): Promise<UniverseAgentGetHistoryResult> {
@@ -396,6 +416,12 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
 	});
 
+	test('UniverseAgentGrpcServices lists Permission.SetSessionGoal', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Permission.SetSessionGoal, 'SetSessionGoal');
+		assert.strictEqual(UniverseAgentGrpcServices.Permission.CancelSessionGoal, 'CancelSessionGoal');
+		assert.strictEqual(UniverseAgentGrpcServices.Permission.service, 'universeagent.session.v1.PermissionService');
+	});
+
 	test('renameSession forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
@@ -429,6 +455,42 @@ suite('UniverseAgentConnectionService', () => {
 		const failed = await service.cancelGeneration({ sessionId: 'sess-1', agentId: 'sub:a' });
 		assert.deepStrictEqual(failed, { ok: false, message: 'not running' });
 		assert.strictEqual(transport.cancelCalls[1]?.agentId, 'sub:a');
+		service.dispose();
+	});
+
+	test('setSessionGoal forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		const result = await service.setSessionGoal({ sessionId: 'sess-1', goal: 'Ship the slice' });
+		assert.deepStrictEqual(transport.setGoalCalls, [{ sessionId: 'sess-1', goal: 'Ship the slice' }]);
+		assert.deepStrictEqual(result, { ok: true });
+
+		transport.setGoalResult = { ok: false, message: 'empty goal' };
+		const failed = await service.setSessionGoal({ sessionId: 'sess-1', goal: '' });
+		assert.deepStrictEqual(failed, { ok: false, message: 'empty goal' });
+		assert.strictEqual(transport.setGoalCalls[1]?.goal, '');
+		service.dispose();
+	});
+
+	test('cancelSessionGoal forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		const result = await service.cancelSessionGoal({ sessionId: 'sess-1' });
+		assert.deepStrictEqual(transport.cancelGoalCalls, [{ sessionId: 'sess-1' }]);
+		assert.deepStrictEqual(result, { ok: true });
+
+		transport.cancelGoalResult = { ok: false, message: 'no goal' };
+		const failed = await service.cancelSessionGoal({ sessionId: 'sess-2' });
+		assert.deepStrictEqual(failed, { ok: false, message: 'no goal' });
+		assert.strictEqual(transport.cancelGoalCalls[1]?.sessionId, 'sess-2');
 		service.dispose();
 	});
 

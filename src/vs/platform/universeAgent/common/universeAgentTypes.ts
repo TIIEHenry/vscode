@@ -101,6 +101,27 @@ export interface UniverseAgentCancelGenerationResult {
 	readonly message?: string;
 }
 
+/** PermissionService.SetSessionGoal request (Inbox Goal). */
+export interface UniverseAgentSetSessionGoalRequest {
+	readonly sessionId: string;
+	readonly goal: string;
+}
+
+export interface UniverseAgentSetSessionGoalResult {
+	readonly ok: boolean;
+	readonly message?: string;
+}
+
+/** PermissionService.CancelSessionGoal request. */
+export interface UniverseAgentCancelSessionGoalRequest {
+	readonly sessionId: string;
+}
+
+export interface UniverseAgentCancelSessionGoalResult {
+	readonly ok: boolean;
+	readonly message?: string;
+}
+
 export interface UniverseAgentGetHistoryRequest {
 	readonly sessionId: string;
 	readonly cursorSeq?: string;
