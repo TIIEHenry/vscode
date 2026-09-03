@@ -4,7 +4,7 @@ type: architecture
 status: accepted
 phase: N/A
 updated: 2026-09-04
-summary: "IConversationRosterService 契约分组；getTrajectoryRecords + filterAgentId；帧源 projectSnapshotToTrajectory；D13 持久化；引擎 roster 接通后转发 Create / Rename / Cancel / SetSessionGoal / Fork（Inbox Stop 仅 connected+streaming；Inbox Goal 仅 connected；Fork 不造本地 catalog id）；MessageQueue 仍 fixture（传输已有 Enqueue 族）；A1/A2 连接态"
+summary: "IConversationRosterService 契约分组；getTrajectoryRecords + filterAgentId；帧源 projectSnapshotToTrajectory；D13 持久化；引擎 roster 接通后转发 Create / Rename / Cancel / SetSessionGoal / Fork（Inbox Stop 仅 connected+streaming；Inbox Goal 仅 connected；Fork 不造本地 catalog id）；MessageQueue 仍 fixture（传输已有 Enqueue 族）；Kill 已进 catalog、roster 未转发；A1/A2 连接态"
 ---
 
 # Conversation 会话数据契约
@@ -24,7 +24,7 @@ summary: "IConversationRosterService 契约分组；getTrajectoryRecords + filte
 | 组 | 成员 |
 |----|------|
 | 事件 | `onDidChangeActiveSession(sessionId)` · `onDidChangeSession(sessionId)` · `onDidChangeEngineConnection(boolean)` |
-| 会话 | `getSessions()` · `getActiveSessionId()` · `getActiveSession()` · `switchSession` · `createSession`（引擎接通后转 `SessionService.Create`，目录用返回的 `sessionId`，同步返回空串；stub / 断连缓存不造引擎行） · `renameSession`（引擎接通后转 `AgentService.Rename`） · `cancelGeneration`（引擎接通后转 `AgentService.Cancel`，未指定 agent 用末条 streaming 否则 `root`；stub / 断连缓存 false） · `setSessionGoal` / `cancelSessionGoal` / `getSessionGoal`（引擎接通后转 `PermissionService.SetSessionGoal` / `CancelSessionGoal`；空/未变/未知 id / 断连缓存 / 无 hook false；`getSessionGoal` 只记本机上次成功 set） · `forkSubAgent`（引擎接通后转 `AgentService.Fork`；空父 id 用末条 streaming 否则 `root`；不造本地 catalog id，catalog 仍走 liveAgentTree；stub / 断连缓存 / 无 hook false） · `deleteSession` |
+| 会话 | `getSessions()` · `getActiveSessionId()` · `getActiveSession()` · `switchSession` · `createSession`（引擎接通后转 `SessionService.Create`，目录用返回的 `sessionId`，同步返回空串；stub / 断连缓存不造引擎行） · `renameSession`（引擎接通后转 `AgentService.Rename`） · `cancelGeneration`（引擎接通后转 `AgentService.Cancel`，未指定 agent 用末条 streaming 否则 `root`；stub / 断连缓存 false） · `setSessionGoal` / `cancelSessionGoal` / `getSessionGoal`（引擎接通后转 `PermissionService.SetSessionGoal` / `CancelSessionGoal`；空/未变/未知 id / 断连缓存 / 无 hook false；`getSessionGoal` 只记本机上次成功 set） · `forkSubAgent`（引擎接通后转 `AgentService.Fork`；空父 id 用末条 streaming 否则 `root`；不造本地 catalog id，catalog 仍走 liveAgentTree；stub / 断连缓存 / 无 hook false） · `deleteSession`。传输 `killAgent?` **已进** `AgentService.Kill`；roster **未**转发 |
 | 回合 | `getTurns(sessionId)` · `appendUserTurn` · `updateUserTurnText` · `deleteTurn` |
 | 轨迹 | `getTrajectoryRecords(sessionId, options?: { filterAgentId? })` — 经 `ConversationStubFrameSource.project` → `projectSnapshotToTrajectory`（[stream-timeline S1/S6](../../../dev/plans/conversation-stream-timeline.md)）；见 [lens-and-trajectory §3.1](lens-and-trajectory.md) |
 | 权限 | `resolveConfirmation(sessionId, turnId, 'allowed' \| 'skipped')` · `countPendingConfirmations` |

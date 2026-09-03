@@ -35,6 +35,8 @@ import type {
 	UniverseAgentQueueRefRequest,
 	UniverseAgentForkAgentRequest,
 	UniverseAgentForkAgentResult,
+	UniverseAgentKillAgentRequest,
+	UniverseAgentKillAgentResult,
 	UniverseAgentGetHistoryRequest,
 	UniverseAgentGetHistoryResult,
 	UniverseAgentListSessionsRequest,
@@ -209,6 +211,12 @@ export interface IUniverseAgentConnection {
 	 * unary; local `registerForkChat` stays the disconnected Fork-tab path.
 	 */
 	forkAgent?(request: UniverseAgentForkAgentRequest): Promise<UniverseAgentForkAgentResult>;
+
+	/**
+	 * AgentService.Kill unary (terminate SubAgent). Optional so Web / tests can
+	 * omit it. Transport only — roster / catalog UI is not forwarded yet.
+	 */
+	killAgent?(request: UniverseAgentKillAgentRequest): Promise<UniverseAgentKillAgentResult>;
 
 	getHistory(request: UniverseAgentGetHistoryRequest): Promise<UniverseAgentGetHistoryResult>;
 

@@ -35,6 +35,8 @@ import type {
 	UniverseAgentQueueRefRequest,
 	UniverseAgentForkAgentRequest,
 	UniverseAgentForkAgentResult,
+	UniverseAgentKillAgentRequest,
+	UniverseAgentKillAgentResult,
 	UniverseAgentGetHistoryRequest,
 	UniverseAgentGetHistoryResult,
 	UniverseAgentListSessionsRequest,
@@ -1413,6 +1415,23 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 		return {
 			ok: wire.success === true,
 			...(agentId ? { agentId } : {}),
+		};
+	}
+
+	async killAgent(request: UniverseAgentKillAgentRequest): Promise<UniverseAgentKillAgentResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, { success?: boolean; message?: string }>(
+			this._channel,
+			UniverseAgentGrpcServices.Agent.service,
+			UniverseAgentGrpcServices.Agent.Kill,
+		);
+		const wire = await unary({
+			session_id: request.sessionId,
+			agent_id: request.agentId,
+			force: request.force === true,
+		});
+		return {
+			ok: wire.success === true,
+			message: wire.message,
 		};
 	}
 

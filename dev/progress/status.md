@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-04
-summary: "接通后 Fork 动作转发 AgentService.Fork；Inbox Goal 转发 SetSessionGoal；MessageQueue 族已进 catalog、队列 UI 仍 fixture；Create / Rename / Cancel 已转发；D16 Lens+identity 共享 harness"
+summary: "槽 D：AgentService.Kill 进 gRPC catalog + node unary；roster / 用户动作未转发；Fork / MessageQueue / Inbox Goal 已在 merge"
 ---
 
 # Development Progress
@@ -15,7 +15,7 @@ summary: "接通后 Fork 动作转发 AgentService.Fork；Inbox Goal 转发 SetS
 - **槽 A / `loop/A`：** 接通后用户 Fork 动作 / roster `forkSubAgent` 转发已进 catalog 的 `AgentService.Fork`（未知 session / 断连缓存 / 无 hook 不发；未指定 parent 用末条 streaming 否则 `root`）。不造本地 catalog id、不开 Fork tab（catalog 仍 liveAgentTree）。未接通仍本地 `registerForkChat`。此前 Inbox Goal 转发 SetSessionGoal / CancelSessionGoal。
 - **槽 B / `loop/B`：** 把 `AgentService.Fork` 写入 gRPC catalog（`universeagent.agent.v1.AgentService`），node unary `forkAgent`（snake_case `session_id`/`parent_agent_id`/`name`/`task`/`model_type`/`system_prompt`，空父 id 线为 `root`；响应 `success`/`agent_id`）。合同可选。不改 roster / 用户 Fork tab（仍本地 `registerForkChat`）。测：catalog + 转发 / 失败映射。此前 D16 Lens+identity 共享 harness。
 - **槽 C / `loop/C`：** 把 `PermissionService.SetSessionGoal` / `CancelSessionGoal` 写入 gRPC catalog（`universeagent.session.v1.PermissionService`），node unary `setSessionGoal` / `cancelSessionGoal`（snake_case `session_id`/`goal`，响应 `success`/`error`）。合同可选，不改 roster / Inbox Goal（钮仍诚实禁用）。测：catalog + 转发 / 失败映射。此前 ContinueGeneration + Rename + Cancel catalog。
-- **槽 D / `loop/D`：** 把 Inbox 对齐的 `AgentService` 队列族（`EnqueueQueueItem` / `PauseQueue` / `ResumeQueue` / `ClearQueue` / `HoldQueueItem` / `ReleaseQueueItemHold` / `EditQueueItem`）写入 gRPC catalog + node unary + Web `unsupported_environment`。roster / Inbox **仍 fixture**，不把本地队列冒充引擎。测：catalog 字面 + 转发/失败映射。此前 D16 identity 共享 harness；roster 转发 Create / Rename / Cancel。
+- **槽 D / `loop/D`：** 把 `AgentService.Kill` 写入 gRPC catalog（`universeagent.agent.v1.AgentService`），node unary `killAgent`（snake_case `session_id`/`agent_id`/`force`；空 agent id 原样上线，不默认 `root`；响应 `success`/`message`）。合同可选。**不改** roster / 用户动作（≠ Cancel / CancelToolCall）。测：catalog + 转发 / 失败映射。此前 MessageQueue 族 catalog；roster 仍 fixture。
 
 ## 槽位（与 `git worktree list` 对照）
 
@@ -25,7 +25,7 @@ summary: "接通后 Fork 动作转发 AgentService.Fork；Inbox Goal 转发 SetS
 | A | `vscode-WorkTrees/A` | `loop/A` | 接通后 Fork 转发 AgentService.Fork；未接通仍本地 Fork tab |
 | B | `vscode-WorkTrees/B` | `loop/B` | AgentService.Fork catalog + node unary；不改用户 Fork tab |
 | C | `vscode-WorkTrees/C` | `loop/C` | PermissionService.SetSessionGoal / CancelSessionGoal catalog |
-| D | `vscode-WorkTrees/D` | `loop/D` | MessageQueue 族进 gRPC catalog；roster 仍 fixture |
+| D | `vscode-WorkTrees/D` | `loop/D` | AgentService.Kill catalog + node unary；roster 未转发 |
 | edit | `Projects/Agents/vscode` | `agent-ide` | 请自行对齐 |
 
 ## Blockers
@@ -41,6 +41,6 @@ summary: "接通后 Fork 动作转发 AgentService.Fork；Inbox Goal 转发 SetS
 | I6 | 发行标识等发布方 |
 | H4a | 真 Hub 冒烟后才升 PRD-024 `implemented` |
 | V | D16：Lens / identity 已接共享 harness；剩 `conversationLens.test.ts` DOM/codicon 断言债；D17 与产品验证 |
-| SessionEventStream close | 三路宿主 `onClosed` 已齐：SessionEventStream → `streamClosed`；Chat → `chatStreamDown`；ContinueGeneration 只拆句柄。connection 测现覆盖 Chat / EventStream / Continue 三路 close gate（remote 一次、dispose 静音）。**传输已进** `ContinueGeneration`、`Rename`、`Cancel`、`SessionService.Create`、`PermissionService.SetSessionGoal` / `CancelSessionGoal`、**MessageQueue 族七 unary**、`AgentService.Fork`；roster 接通后已转发 Create / Rename / Cancel / SetSessionGoal / **Fork**（Create 用引擎 id；Inbox Stop 仅 connected+streaming；Inbox Goal 仅 connected 启用；未指定 agent / Fork parent 用末条 streaming 否则 `root`；Fork 不造本地 catalog id）。队列 UI 仍 fixture；未接通 Fork tab 仍 `registerForkChat` |
+| SessionEventStream close | 三路宿主 `onClosed` 已齐：SessionEventStream → `streamClosed`；Chat → `chatStreamDown`；ContinueGeneration 只拆句柄。connection 测现覆盖 Chat / EventStream / Continue 三路 close gate（remote 一次、dispose 静音）。**传输已进** `ContinueGeneration`、`Rename`、`Cancel`、`SessionService.Create`、`PermissionService.SetSessionGoal` / `CancelSessionGoal`、**MessageQueue 族七 unary**、`AgentService.Fork`、`AgentService.Kill`；roster 接通后已转发 Create / Rename / Cancel / SetSessionGoal / **Fork**（Create 用引擎 id；Inbox Stop 仅 connected+streaming；Inbox Goal 仅 connected 启用；未指定 agent / Fork parent 用末条 streaming 否则 `root`；Fork 不造本地 catalog id）。队列 UI 仍 fixture；Kill **未**转发；未接通 Fork tab 仍 `registerForkChat` |
 
 **不做：** H6、完整插件市场、fixture 冒充 Engine、为全绿冻结 UI、引擎仓新增 RPC、会话级模型策略 UI、F3 同窗共享 lease（D22）。
