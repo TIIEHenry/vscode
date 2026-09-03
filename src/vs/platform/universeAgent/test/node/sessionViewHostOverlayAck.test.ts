@@ -43,6 +43,31 @@ suite('SessionViewHost overlay delta + frameAck', () => {
 		assert.ok(overlays.some(patch => String(patch.block.blockId) === 'turn-delta'));
 	});
 
+	test('runtime_overlay_snapshot lights overlay via demux (join yields nothing)', async () => {
+		const connection = new TestConnection();
+		const viewHost = store.add(new SessionViewHost(connection, new TestHost(async () => undefined), { orphanTimeoutMs: 0 }));
+		viewHost.onEngineConnectionChanged();
+		const leaseId = viewHost.acquireLease('sess-snap');
+
+		const frames: IUniverseAgentSessionViewFrameEvent[] = [];
+		store.add(viewHost.onDynamicDidApplyFrame(leaseId)(e => frames.push(e)));
+		await new Promise<void>(resolve => queueMicrotask(() => resolve()));
+
+		connection.pushStreamEvent('sess-snap', {
+			runtime_overlay_snapshot: {
+				active_turn: {
+					turn_id: 'turn-snap',
+					streaming_text: 'from-snap',
+					thinking_text: '',
+				},
+				pending: [],
+			},
+		});
+
+		const overlays = patchesOf(frames).filter((patch): patch is Extract<ViewPatch, { op: 'upsertOverlayBlock' }> => patch.op === 'upsertOverlayBlock');
+		assert.ok(overlays.some(patch => String(patch.block.blockId) === 'turn-snap'));
+	});
+
 	test('acknowledge posts frameAck without throwing; unknown lease is silent', () => {
 		const connection = new TestConnection();
 		const viewHost = store.add(new SessionViewHost(connection, new TestHost(async () => undefined), { orphanTimeoutMs: 0 }));

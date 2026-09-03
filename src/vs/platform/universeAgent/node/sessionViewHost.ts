@@ -25,7 +25,7 @@ import { isChatCoreIntent, isHistoryFillCoreIntent } from './sessionCore/intents
 import type { CoreMessage, CorrelationRef, PostOutcome, ViewFrameAck, ViewFrameSink } from './sessionCore/messages.js';
 import type { SessionId, ViewFrame, ViewLeaseId } from '../common/sessionView/types.js';
 import type { AttemptId, DiagnosticMetric, DiagnosticsPort } from './sessionCore/ports.js';
-import { demuxSessionStreamPayload } from './sessionStreamDemux.js';
+import { demuxSessionStreamPayload, localFactFromQuestionArm } from './sessionStreamDemux.js';
 import { OverlayDeltaJoin } from './overlayDeltaJoin.js';
 import {
 	iterL2EnvelopesFromStreamPayload,
@@ -717,6 +717,10 @@ export class SessionViewHost extends Disposable {
 					attemptId,
 					event: arm,
 				});
+				const questionFact = localFactFromQuestionArm(arm);
+				if (questionFact) {
+					this.postAndDrain(sessionId as SessionId, { t: 'localFact', fact: questionFact });
+				}
 			}
 		});
 		this.streams.set(key, { attemptId, sessionId, dispose: () => subscription.dispose() });
