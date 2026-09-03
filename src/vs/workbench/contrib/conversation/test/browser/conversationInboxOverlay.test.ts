@@ -42,7 +42,7 @@ class GoalRoster extends ConversationStubService {
 		return true;
 	}
 
-	override getSessionGoal(): string | undefined {
+	override getSessionGoal(_sessionId: string): string | undefined {
 		return this.goal;
 	}
 }

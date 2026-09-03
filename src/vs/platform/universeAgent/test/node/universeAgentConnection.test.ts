@@ -614,7 +614,7 @@ suite('UniverseAgentConnectionService', () => {
 		transport.forkResult = { ok: false };
 		const failedFork = await service.forkAgent({ sessionId: 'sess-2', parentAgentId: 'sub:a' });
 		assert.deepStrictEqual(failedFork, { ok: false });
-		assert.strictEqual(transport.forkCalls[1]?.parentAgentId, 'sub:a');
+		assert.strictEqual((transport.forkCalls as readonly UniverseAgentForkAgentRequest[])[1]?.parentAgentId, 'sub:a');
 		service.dispose();
 	});
 
