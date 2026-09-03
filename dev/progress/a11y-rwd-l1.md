@@ -4,7 +4,7 @@ type: progress
 status: in_progress
 phase: M7
 updated: 2026-09-04
-summary: "对照 accessibility-responsive-ui.md §9；D19 全收（含 (3) Connection 单栏滚动改口）；HC/reduced-motion 仍 partial（B conversation 选择器级 transition）；不宣称 PRD-018 / 整份 a11y 完成"
+summary: "对照 accessibility-responsive-ui.md §9；D19 全收；HC/reduced-motion 源码合同 pass（chevron transition 仅 `.ua-motion`）；不宣称 PRD-018 / 整份 a11y 完成"
 ---
 
 # A11y / RWD L1 源码复核
@@ -20,11 +20,11 @@ summary: "对照 accessibility-responsive-ui.md §9；D19 全收（含 (3) Conne
 
 | 档 | 条数 |
 |:---|:-----|
-| pass | 7 |
-| partial | 1 |
+| pass | 8 |
+| partial | 0 |
 | fail | 0 |
 
-partial 一项：高对比度 / reduced-motion（T1 公共文件已落，B 挂了部分 `.ua-motion`；conversation 选择器级 `transition` 仍在）。**GC-7（2026-09-04）：** D19(2) 原先成立——`ua-common.css` 只从 `conversationPart.ts` 引入且选择器只打 `.part.conversation` / `.part.sources`，Preferences 模态（`.preferences-editor`）无描边。已把 `ua-common.css` 挂到 `style.ts`（与 `productAccessibility.css` 同链），并给 `.preferences-editor` 补 focus/selected 描边；`productAccessibility.css` 同步加 Preferences 按钮 focus 加粗。**D19(1)（2026-09-04）：** 方案改口「Engine / Connection 无动画节点」——两 pane CSS 无 `transition` / `animation` / `@keyframes`，文件头注明不挂空 `.ua-motion`。**D19(3)（2026-09-04）：** §5/§9 改口 Connection 窄宽为单栏滚动（无左导航/Back）；与实现一致，本条升 pass。D19 已 closed。
+原 partial（高对比度 / reduced-motion）已于 **2026-09-04 槽 B** 收口：conversation chevron `transition` 只挂在 `.ua-motion`；轨迹折补挂 class；选择器级 reduce 规则删掉（改由 T1）。**GC-7（2026-09-04）：** D19(2) 原先成立——`ua-common.css` 只从 `conversationPart.ts` 引入且选择器只打 `.part.conversation` / `.part.sources`，Preferences 模态（`.preferences-editor`）无描边。已把 `ua-common.css` 挂到 `style.ts`（与 `productAccessibility.css` 同链），并给 `.preferences-editor` 补 focus/selected 描边；`productAccessibility.css` 同步加 Preferences 按钮 focus 加粗。**D19(1)（2026-09-04）：** 方案改口「Engine / Connection 无动画节点」——两 pane CSS 无 `transition` / `animation` / `@keyframes`，文件头注明不挂空 `.ua-motion`。**D19(3)（2026-09-04）：** §5/§9 改口 Connection 窄宽为单栏滚动（无左导航/Back）；与实现一致，本条升 pass。D19 已 closed。
 
 ---
 
@@ -173,7 +173,7 @@ partial 一项：高对比度 / reduced-motion（T1 公共文件已落，B 挂�
 
 ### 8. 高对比度与 reduced-motion 下状态仍可区分（T1 + B 挂 class；A 无动画节点）
 
-**Verdict:** partial
+**Verdict:** pass（源码合同；未跑目视/axe）
 
 **不得假装：** 仅有 T1 公共 CSS 就等于「状态仍可区分」。`.ua-motion { transition: none }` 只作用于挂了该类的节点。
 
@@ -183,19 +183,18 @@ partial 一项：高对比度 / reduced-motion（T1 公共文件已落，B 挂�
 - `conversationPart.ts` import `./media/ua-common.css`。
 - 200% overlay：dialog `max-width/height: 100%`；chrome `pointer-events` 分层。
 
-**B 已挂（部分）：**
+**B 已挂（2026-09-04 收口）：**
 
-- `conversationProcessFold.ts`：chevron / tool icon 带 `.ua-motion`。
-- `conversationVisualizeCard.ts`：chevron 带 `.ua-motion`。
-- `conversationLens.css` 另有对本折 chevron 的 reduce 规则（选择器级，不依赖 class）。
-
-**B 未完全交给 `.ua-motion`：** `conversationLens.css` 与 `conversationVisualize.css` 仍把 `transition: transform 0.15s` 绑在 `.conversation-process-fold-chevron` / `-tool-chevron` / `.conversation-visualize-chevron` 上。挂了 class 的节点会被 T1 关掉动画；未挂的动画节点不会。
+- `conversationProcessFold.ts` / `conversationTrajectory.ts` / `conversationVisualizeCard.ts`：chevron（及 tool icon）带 `.ua-motion`。
+- `conversationLens.css` / `conversationVisualize.css`：`transition: transform` 只写在 `.…chevron.ua-motion`；裸 chevron 选择器无 transition。
+- 选择器级 chevron `prefers-reduced-motion` 规则已删（交 T1）；保留 tool loading spinner 的 `animation: none`。
+- 合同测：`conversationUaMotionContract.test.ts`。
 
 **A / D19(1) 改口：** Engine / Connection pane CSS 无 `transition`/`animation`/`@keyframes`（`enginePreferencesPane.css` / `connectionPreferencesPane.css` 文件头已钉死）。不挂空 `.ua-motion`。减动对这两页是 no-op，不是漏关 shimmer。
 
 **HC 覆盖（GC-7 后）：** T1 描边选择器现含 `.preferences-editor`（Engine / Connection pane 宿主）。引入链：`workbench/browser/style.ts` → `productAccessibility.css` + `ua-common.css`（后者仍由 `conversationPart.ts` 再 import 一次）。未跑目视/axe（§10 / D17）。
 
-**仍缺：** conversation 选择器级 `transition` 仍部分未交给 `.ua-motion`（B，不并入 D19；D19 已 closed）。
+**仍缺：** 无（本条源码合同）；手测/axe/W1 仍归 §10 / D17 / D15。
 
 ---
 
