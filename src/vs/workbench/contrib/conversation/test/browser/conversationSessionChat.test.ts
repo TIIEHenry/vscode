@@ -323,7 +323,7 @@ suite('Conversation session chat (S3)', () => {
 				return false;
 			}
 			if ('handled' in context) {
-				return context.handled;
+				return context.handled === true;
 			}
 
 			const cts = new CancellationTokenSource();

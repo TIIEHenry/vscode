@@ -31,6 +31,8 @@ import type {
 	UniverseAgentQueueRefRequest,
 	UniverseAgentForkAgentRequest,
 	UniverseAgentForkAgentResult,
+	UniverseAgentToolInfoRequest,
+	UniverseAgentToolInfoResult,
 	UniverseAgentGetHistoryRequest,
 	UniverseAgentGetHistoryResult,
 	UniverseAgentListSessionsRequest,
@@ -385,6 +387,22 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 		return { tools: [] };
 	}
 
+	readonly toolInfoCalls: UniverseAgentToolInfoRequest[] = [];
+	toolInfoResult: UniverseAgentToolInfoResult = {
+		name: 'bash',
+		description: 'Run a command',
+		category: 'shell',
+		inputSchemaJson: '{"type":"object"}',
+		destructive: true,
+		requiresPermission: true,
+		aliases: ['sh'],
+	};
+
+	async getToolInfo(request: UniverseAgentToolInfoRequest): Promise<UniverseAgentToolInfoResult> {
+		this.toolInfoCalls.push(request);
+		return this.toolInfoResult;
+	}
+
 	async listModels() {
 		return { models: [] };
 	}
@@ -496,6 +514,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('UniverseAgentGrpcServices lists Agent.Fork', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.Fork, 'Fork');
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+	});
+
+	test('UniverseAgentGrpcServices lists Tool.ToolInfo', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Tool.ToolInfo, 'ToolInfo');
+		assert.strictEqual(UniverseAgentGrpcServices.Tool.service, 'universeagent.tool.v1.ToolService');
 	});
 
 	test('renameSession forwards request and maps result', async () => {
@@ -615,6 +638,32 @@ suite('UniverseAgentConnectionService', () => {
 		const failedFork = await service.forkAgent({ sessionId: 'sess-2', parentAgentId: 'sub:a' });
 		assert.deepStrictEqual(failedFork, { ok: false });
 		assert.strictEqual((transport.forkCalls as readonly UniverseAgentForkAgentRequest[])[1]?.parentAgentId, 'sub:a');
+		service.dispose();
+	});
+
+	test('getToolInfo forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		const result = await service.getToolInfo({ toolName: 'bash' });
+		assert.deepStrictEqual(transport.toolInfoCalls, [{ toolName: 'bash' }]);
+		assert.deepStrictEqual(result, {
+			name: 'bash',
+			description: 'Run a command',
+			category: 'shell',
+			inputSchemaJson: '{"type":"object"}',
+			destructive: true,
+			requiresPermission: true,
+			aliases: ['sh'],
+		});
+
+		transport.toolInfoResult = { name: '', aliases: [] };
+		const missing = await service.getToolInfo({ toolName: 'missing' });
+		assert.deepStrictEqual(missing, { name: '', aliases: [] });
+		assert.strictEqual(transport.toolInfoCalls[1]?.toolName, 'missing');
 		service.dispose();
 	});
 

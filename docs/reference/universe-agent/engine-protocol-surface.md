@@ -4,7 +4,7 @@ type: reference
 status: accepted
 phase: N/A
 updated: 2026-09-04
-summary: "已知 gRPC 服务 / RPC 名与本仓用途；§4 含 G-CORE-1；§5 会话面含 onDynamicDidApplyFrame 首帧缓冲与 confirmPairing/cancelPairing/probeConnectionProfile；SessionEventStream onClosed 折 Actor streamClosed；ContinueGeneration / Rename / Cancel / SetSessionGoal / MessageQueue 族 / Fork 已进 gRPC catalog；roster 接通后转发 Create / Rename / Cancel / SetSessionGoal / Fork（Inbox Stop 仅 connected+streaming；Inbox Goal 接通后可设/清；Fork 不造本地 catalog id）；队列 UI 仍 fixture；未接通 Fork tab 仍本地 registerForkChat；G-NAV-* / G-REV-* / G-ENG-*；G-CONV-1 已消费 attribution"
+summary: "已知 gRPC 服务 / RPC 名与本仓用途；§4 含 G-CORE-1；§5 会话面含 onDynamicDidApplyFrame 首帧缓冲与 confirmPairing/cancelPairing/probeConnectionProfile；SessionEventStream onClosed 折 Actor streamClosed；ContinueGeneration / Rename / Cancel / SetSessionGoal / MessageQueue 族 / Fork / ToolInfo 已进 gRPC catalog；roster 接通后转发 Create / Rename / Cancel / SetSessionGoal / Fork（Inbox Stop 仅 connected+streaming；Inbox Goal 接通后可设/清；Fork 不造本地 catalog id）；队列 UI 仍 fixture；未接通 Fork tab 仍本地 registerForkChat；Engine Tools 仍 list-only；G-NAV-* / G-REV-* / G-ENG-*；G-CONV-1 已消费 attribution"
 ---
 
 # UniverseAgent 引擎协议面（本仓消费口径）
@@ -32,7 +32,7 @@ summary: "已知 gRPC 服务 / RPC 名与本仓用途；§4 含 G-CORE-1；§5 �
 | L3 `tool_runtime_snapshot` | `payload.file_mutation_payload` + `ToolCallLifecycleEvent` join | Sources Review 归因 chip / `reviewNav` 物化（**host-only** demux；contrib 消费 `onDidFileMutation`） | m6 §11 A2；禁止解析 L2 `arguments_json`；历史见 **G-REV-1** |
 | `ToolService` | `ListSkills` / `SkillInfo` / `SetSkillEnabled` | **@ HEAD** 传输 + `EngineSkillsSection` list/toggle + 正文 **读**（E1） | 无独立 Create RPC；写文件后 `ListSkills` 刷新 |
 | `ToolService` | `SaveSkillContent` | **@ HEAD** node gRPC @ `45fa7a35`/`040c823d` + common 可选 `saveSkillContent?` @ `f3f2d366` + **UI** textarea/Save @ `f3f2d366`/`3e986bde` | USER/PROJECT 可编、BUNDLED 只读；断连/`UNSUPPORTED` 不渲染；probe/`UNIMPLEMENTED` 时 `saveSkillContent?` 缺席、Save 隐藏；运行时 `UNIMPLEMENTED` → `{ ok: false }` |
-| `ToolService` | `ListTools` / `ToolInfo` | **@ HEAD** `listTools` → `EngineToolsSection` 目录 + profile 启用 checkbox | 无 `SetToolEnabled`；enablement 经 `SaveAgentProfile` → `{profileDir}/tools.json`（`engineToolProfile.ts` @ `f49615a1`） |
+| `ToolService` | `ListTools` / `ToolInfo` | **@ HEAD** `listTools` → `EngineToolsSection` 目录 + profile 启用 checkbox。`IUniverseAgentConnection.getToolInfo?` **已进** `UniverseAgentGrpcServices.Tool` + node unary `getToolInfo`（snake_case `tool_name`；响应 name / description / category / `input_schema_json` / destructive / `requires_permission` / aliases）。合同可选。**Engine Tools 仍 list-only**，不把 schema 画成新编辑器 | 无 `SetToolEnabled`；enablement 经 `SaveAgentProfile` → `{profileDir}/tools.json`（`engineToolProfile.ts` @ `f49615a1`） |
 | `AgentService` | `ListAgentProfiles` / `SaveAgentProfile` / `DeleteAgentProfile` / `ResetAgentProfile` | **@ HEAD** list + 写 RPC → `EngineAgentsSection`（New/Delete/Reset 工具栏 + **`AGENTS.md` 全文编辑器** @ `9419f583`） | 选中 profile textarea + Save → `SaveAgentProfile`；断连/`UNSUPPORTED` 不渲染；built_in 只读；built_in 不可 Delete、仅 Reset |
 | `McpService` | `ListMcpServers` / `ToggleMcpServer` / `AddMcpServer` / `UpdateMcpServer` / `RemoveMcpServer` | **@ HEAD** list + toggle + 定义 CRUD → `EngineMcpSection` | 运行态 RPC 见 §1b（M7 P1a / E2-4） |
 | `PluginService` | `List` / `Info` / `Enable` / `Reload` / `Unload` / `ScanNew` | Plugins 节（M7 E2-5；见 §1b） | Local 模式 Singularity 标 UNSUPPORTED；IDE 以 `List` probe 决定三态 |
@@ -153,7 +153,7 @@ Connect 后 `probeEngineCapabilities`：**仅**广告了 method 且 probe 非 `U
 | `mcp` | `ListMcpServers` | `ToggleMcpServer` · `AddMcpServer` / `UpdateMcpServer` / `RemoveMcpServer` | Definitions tab：分组 list + checkbox + CRUD 工具栏 |
 | `mcpRuntime` | `GetMcpServerStatuses` / `GetMcpServerTools` | Refresh | Runtime tab（P1a） |
 | `plugins` | `PluginService.List` | `Enable` / `Reload` / `Unload` / `ScanNew` | 列表 + 启停/重载/扫描；无 marketplace |
-| `tools` | `ListTools` | `SaveAgentProfile`（profile `tools.json`） | 目录 + profile 下拉 + 启用 checkbox |
+| `tools` | `ListTools`（`ToolInfo` 传输已进、页上未消费） | `SaveAgentProfile`（profile `tools.json`） | 目录 + profile 下拉 + 启用 checkbox |
 
 断连 / unsupported / loading / failed / empty / ready 六态见 engine-catalog §2；**禁止** Copilot 盘或 vscode `IMcpService` 顶替 UA 定义面。
 

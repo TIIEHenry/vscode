@@ -65,6 +65,8 @@ import type {
 	UniverseAgentRemoveMcpServerRequest,
 	UniverseAgentRemoveMcpServerResult,
 	UniverseAgentListToolsResult,
+	UniverseAgentToolInfoRequest,
+	UniverseAgentToolInfoResult,
 	UniverseAgentListModelsResult,
 	UniverseAgentToggleMcpServerRequest,
 	UniverseAgentToggleMcpServerResult,
@@ -293,6 +295,12 @@ export interface IUniverseAgentConnection {
 	toggleMcpServer(request: UniverseAgentToggleMcpServerRequest): Promise<UniverseAgentToggleMcpServerResult>;
 
 	listTools(): Promise<UniverseAgentListToolsResult>;
+
+	/**
+	 * ToolService.ToolInfo unary. Optional so Web / tests can omit until
+	 * Engine Tools detail forwards it. ListTools catalog stays list-only.
+	 */
+	getToolInfo?(request: UniverseAgentToolInfoRequest): Promise<UniverseAgentToolInfoResult>;
 
 	/** ConfigService.ListModels — always `include_disabled=true` (Engine Model registry). */
 	listModels(): Promise<UniverseAgentListModelsResult>;
