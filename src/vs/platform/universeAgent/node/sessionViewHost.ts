@@ -99,12 +99,12 @@ export type SessionViewHostOptions = {
 const DEFAULT_ORPHAN_TIMEOUT_MS = 5000;
 const DEFAULT_PENDING_FRAME_LIMIT = 64;
 
-function writeMessageToCoreFact(msg: ConversationWriteMessage, leaseId: ViewLeaseId): unknown {
+function writeMessageToCoreFact(msg: ConversationWriteMessage, leaseId: ViewLeaseId, correlation: CorrelationRef): unknown {
 	switch (msg.kind) {
 		case 'submitInput':
 			return {
 				kind: 'submitInput',
-				correlation: `corr:${Date.now()}` as CorrelationRef,
+				correlation,
 				payload: { text: msg.text, originLeaseId: leaseId },
 			};
 		case 'permissionRespond':
@@ -231,7 +231,7 @@ export class SessionViewHost extends Disposable {
 		if (!this.connection.isEngineConnected()) {
 			return { accepted: false as const, reason: 'not_authenticated' as const };
 		}
-		const fact = writeMessageToCoreFact(msg, binding.leaseId);
+		const fact = writeMessageToCoreFact(msg, binding.leaseId, this.ids.nextWriteId() as unknown as CorrelationRef);
 		const outcome = this.postAndDrain(binding.sessionId as SessionId, { t: 'localFact', fact });
 		if (outcome.accepted) {
 			return { accepted: true as const, correlation: { id: String(outcome.correlation) } };
