@@ -540,6 +540,22 @@ export interface UniverseAgentListToolsResult {
 	readonly tools: readonly UniverseAgentToolSummary[];
 }
 
+/** ToolService.ToolInfo request — detail for one catalog tool. */
+export interface UniverseAgentToolInfoRequest {
+	readonly toolName: string;
+}
+
+/** ToolService.ToolInfo response (schema + aliases; no enablement). */
+export interface UniverseAgentToolInfoResult {
+	readonly name: string;
+	readonly description?: string;
+	readonly category?: string;
+	readonly inputSchemaJson?: string;
+	readonly destructive?: boolean;
+	readonly requiresPermission?: boolean;
+	readonly aliases: readonly string[];
+}
+
 /**
  * ConfigService.ListModels registry row. Wire fields only — no invented
  * context-window or capability-tag properties (protocol-surface §1b P1b).

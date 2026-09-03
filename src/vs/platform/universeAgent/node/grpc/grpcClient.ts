@@ -90,6 +90,8 @@ import type {
 	UniverseAgentRemoveMcpServerRequest,
 	UniverseAgentRemoveMcpServerResult,
 	UniverseAgentListToolsResult,
+	UniverseAgentToolInfoRequest,
+	UniverseAgentToolInfoResult,
 	UniverseAgentListModelsResult,
 	UniverseAgentModelEntry,
 	UniverseAgentToolSummary,
@@ -1018,6 +1020,28 @@ function mapListToolsResponse(wire: ListToolsResponseWire): UniverseAgentListToo
 	};
 }
 
+interface ToolInfoResponseWire {
+	name?: string;
+	description?: string;
+	category?: string;
+	input_schema_json?: string;
+	destructive?: boolean;
+	requires_permission?: boolean;
+	aliases?: string[];
+}
+
+function mapToolInfoResponse(wire: ToolInfoResponseWire): UniverseAgentToolInfoResult {
+	return {
+		name: wire.name ?? '',
+		description: wire.description,
+		category: wire.category,
+		inputSchemaJson: wire.input_schema_json,
+		destructive: wire.destructive,
+		requiresPermission: wire.requires_permission,
+		aliases: wire.aliases ?? [],
+	};
+}
+
 interface ListModelsResponseWire {
 	models?: Array<{
 		id?: string;
@@ -1766,6 +1790,16 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 		);
 		const wire = await unary({});
 		return mapListToolsResponse(wire);
+	}
+
+	async getToolInfo(request: UniverseAgentToolInfoRequest): Promise<UniverseAgentToolInfoResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, ToolInfoResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.Tool.service,
+			UniverseAgentGrpcServices.Tool.ToolInfo,
+		);
+		const wire = await unary({ tool_name: request.toolName });
+		return mapToolInfoResponse(wire);
 	}
 
 	async listModels(): Promise<UniverseAgentListModelsResult> {

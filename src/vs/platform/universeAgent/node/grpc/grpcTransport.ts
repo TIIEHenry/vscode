@@ -60,6 +60,8 @@ import type {
 	UniverseAgentRemoveMcpServerRequest,
 	UniverseAgentRemoveMcpServerResult,
 	UniverseAgentListToolsResult,
+	UniverseAgentToolInfoRequest,
+	UniverseAgentToolInfoResult,
 	UniverseAgentListModelsResult,
 	UniverseAgentToggleMcpServerRequest,
 	UniverseAgentToggleMcpServerResult,
@@ -238,6 +240,9 @@ export interface IUniverseAgentGrpcTransport {
 
 	listTools(): Promise<UniverseAgentListToolsResult>;
 
+	/** ToolService.ToolInfo unary (snake_case `tool_name`). */
+	getToolInfo(request: UniverseAgentToolInfoRequest): Promise<UniverseAgentToolInfoResult>;
+
 	/** ConfigService.ListModels — always `include_disabled=true`. */
 	listModels(): Promise<UniverseAgentListModelsResult>;
 
@@ -331,6 +336,7 @@ export const UniverseAgentGrpcServices = {
 		SetSkillEnabled: 'SetSkillEnabled',
 		SaveSkillContent: 'SaveSkillContent',
 		ListTools: 'ListTools',
+		ToolInfo: 'ToolInfo',
 	},
 } as const;
 
