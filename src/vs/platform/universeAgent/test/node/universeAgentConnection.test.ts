@@ -921,7 +921,7 @@ suite('UniverseAgentConnectionService', () => {
 			callId: 'call-1',
 			content: '{"ok":true}',
 		});
-		assert.deepStrictEqual(transport.sendClientToolResponseCalls, [{
+		assert.deepStrictEqual([...transport.sendClientToolResponseCalls], [{
 			sessionId: 'sess-1',
 			callId: 'call-1',
 			content: '{"ok":true}',
@@ -937,10 +937,11 @@ suite('UniverseAgentConnectionService', () => {
 			canvasRefs: [{ canvasId: 'c1', revisionId: 'r1', title: 'Board' }],
 		});
 		assert.deepStrictEqual(failed, { ok: false, message: 'expired' });
-		assert.strictEqual(transport.sendClientToolResponseCalls[1]?.callId, '');
-		assert.strictEqual(transport.sendClientToolResponseCalls[1]?.isError, true);
-		assert.strictEqual(transport.sendClientToolResponseCalls[1]?.metadataJson, '{"note":"fail"}');
-		assert.deepStrictEqual(transport.sendClientToolResponseCalls[1]?.canvasRefs, [{ canvasId: 'c1', revisionId: 'r1', title: 'Board' }]);
+		const second: UniverseAgentSendClientToolResponseRequest | undefined = transport.sendClientToolResponseCalls[1];
+		assert.strictEqual(second?.callId, '');
+		assert.strictEqual(second?.isError, true);
+		assert.strictEqual(second?.metadataJson, '{"note":"fail"}');
+		assert.deepStrictEqual(second?.canvasRefs, [{ canvasId: 'c1', revisionId: 'r1', title: 'Board' }]);
 		service.dispose();
 	});
 
