@@ -74,9 +74,13 @@ class MockUniverseAgentConnection extends Disposable implements IUniverseAgentCo
 	async probeConnectionProfile() { return { ok: false as const, code: 'transport_failed' as const, reason: 'stub' }; }
 	async disconnect() { this.setConnected(false); }
 	async listSessions() { return { sessions: this.sessions.map(s => ({ sessionId: s.sessionId, title: s.title })) }; }
+	readonly renameCalls: { sessionId: string; title: string }[] = [];
 	async createSession() { return { sessionId: 'ua-new' }; }
 	async deleteSession() { }
-	async renameSession() { return { ok: false, message: 'stub' }; }
+	async renameSession(request: { sessionId: string; title: string }) {
+		this.renameCalls.push({ sessionId: request.sessionId, title: request.title });
+		return { ok: true };
+	}
 	async getHistory() { return { envelopes: [] }; }
 	subscribeSessionEventStream(
 		_sessionId: string,
@@ -252,5 +256,42 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 
 		const records = service.getTrajectoryRecords('ua-only');
 		assert.ok(!records.some(record => record.kind === 'system' && record.text.includes('Stub')));
+	});
+
+	test('connected renameSession forwards AgentService.Rename and updates title', async () => {
+		const storage = store.add(new TestStorageService());
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
+		const service = store.add(createService(connection, storage));
+		connection.setConnected(true);
+		service.setEngineConnected(true);
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+		let fired = '';
+		store.add(service.onDidChangeSession(id => { fired = id; }));
+		assert.strictEqual(service.renameSession('ua-only', '  Renamed UA  '), true);
+		assert.strictEqual(service.getSessions()[0]?.title, 'Renamed UA');
+		assert.strictEqual(fired, 'ua-only');
+		assert.deepStrictEqual(connection.renameCalls, [{ sessionId: 'ua-only', title: 'Renamed UA' }]);
+		assert.strictEqual(service.renameSession('ua-only', 'Renamed UA'), false);
+		assert.strictEqual(service.renameSession('ua-only', '   '), false);
+		assert.strictEqual(service.renameSession('missing', 'Nope'), false);
+		assert.strictEqual(connection.renameCalls.length, 1);
+	});
+
+	test('disconnected after engine renameSession stays local and skips unary', async () => {
+		const storage = store.add(new TestStorageService());
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
+		const service = store.add(createService(connection, storage));
+		connection.setConnected(true);
+		service.setEngineConnected(true);
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		connection.setConnected(false);
+		service.setEngineConnected(false);
+
+		assert.strictEqual(service.renameSession('ua-only', 'Cached title'), true);
+		assert.strictEqual(service.getSessions()[0]?.title, 'Cached title');
+		assert.strictEqual(connection.renameCalls.length, 0);
 	});
 });

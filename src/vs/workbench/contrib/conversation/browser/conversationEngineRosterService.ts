@@ -179,6 +179,16 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		return super.createSession();
 	}
 
+	override renameSession(sessionId: string, title: string): boolean {
+		if (this.isEngineConnected()) {
+			return this.renameEngineSession(sessionId, title, true);
+		}
+		if (this.wasEverConnected) {
+			return this.renameEngineSession(sessionId, title, false);
+		}
+		return super.renameSession(sessionId, title);
+	}
+
 	override deleteSession(sessionId: string): boolean {
 		if (this.isEngineConnected()) {
 			return this.deleteEngineSession(sessionId, true);
@@ -205,6 +215,24 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 
 	protected override shouldSkipLocalPersistence(): boolean {
 		return this.wasEverConnected;
+	}
+
+	private renameEngineSession(sessionId: string, title: string, callRemote: boolean): boolean {
+		const trimmed = title.trim();
+		if (!trimmed) {
+			return false;
+		}
+		const session = this.engineSessions.find(s => s.id === sessionId);
+		if (!session || session.title === trimmed) {
+			return false;
+		}
+		session.title = trimmed;
+		if (callRemote) {
+			void this.uaConnection.renameSession({ sessionId, title: trimmed });
+		}
+		this._onDidChangeSession.fire(sessionId);
+		this.persistEngineAwareRoster();
+		return true;
 	}
 
 	private deleteEngineSession(sessionId: string, callRemote: boolean): boolean {
