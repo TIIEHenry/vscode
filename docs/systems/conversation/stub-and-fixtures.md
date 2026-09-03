@@ -4,7 +4,7 @@ type: architecture
 status: accepted
 phase: N/A
 updated: 2026-09-04
-summary: "IConversationRosterService 契约分组；getTrajectoryRecords + filterAgentId；帧源 projectSnapshotToTrajectory；D13 持久化；引擎 roster 接通后转发 Create / Rename / Cancel / SetSessionGoal / Fork / Kill / CancelToolCall / MessageQueue 五操作 + Edit（Inbox Stop 仅 connected+streaming；Inbox Goal 仅 connected；Fork 不造本地 catalog id；Kill 空 agent 不默认 root；时间线执行中工具行转 CancelToolCall；队列无 GetQueue 显示空）；PermissionService.Respond / Enqueue 仅传输；A1/A2 连接态"
+summary: "IConversationRosterService 契约分组；getTrajectoryRecords + filterAgentId；帧源 projectSnapshotToTrajectory；D13 持久化；引擎 roster 接通后转发 Create / Rename / Cancel / SetSessionGoal / Fork / Kill / CancelToolCall / MessageQueue 五操作 + Edit + Enqueue（Inbox Stop 仅 connected+streaming；Inbox Goal 仅 connected；Fork 不造本地 catalog id；Kill 空 agent 不默认 root；时间线执行中工具行转 CancelToolCall；队列无 GetQueue 显示空）；PermissionService.Respond 仅传输；A1/A2 连接态"
 ---
 
 # Conversation 会话数据契约
@@ -28,7 +28,7 @@ summary: "IConversationRosterService 契约分组；getTrajectoryRecords + filte
 | 回合 | `getTurns(sessionId)` · `appendUserTurn` · `updateUserTurnText` · `deleteTurn` |
 | 轨迹 | `getTrajectoryRecords(sessionId, options?: { filterAgentId? })` — 经 `ConversationStubFrameSource.project` → `projectSnapshotToTrajectory`（[stream-timeline S1/S6](../../../dev/plans/conversation-stream-timeline.md)）；见 [lens-and-trajectory §3.1](lens-and-trajectory.md) |
 | 权限 | `resolveConfirmation(sessionId, turnId, 'allowed' \| 'skipped')` · `countPendingConfirmations`（回执仍走 Chat 臂 `permissionRespond`；传输 `respondPermission?` 已进 `PermissionService.Respond`，roster 不转发） |
-| MessageQueue | `getMessageQueueState` · `pauseMessageQueue` · `resumeMessageQueue` · `clearMessageQueue` · `holdMessageQueueItem` · `releaseMessageQueueItemHold` · `updateMessageQueueItemContent`（引擎接通后转 Pause / Resume / Clear / Hold / Release / Edit；未知 id / 空 item / 空正文 / 断连缓存不发。无 GetQueue，接通后 `getMessageQueueState` 诚实空。`EnqueueQueueItem` 仍仅传输。stub / 从未连过仍 fixture） |
+| MessageQueue | `getMessageQueueState` · `enqueueMessageQueueItem` · `pauseMessageQueue` · `resumeMessageQueue` · `clearMessageQueue` · `holdMessageQueueItem` · `releaseMessageQueueItemHold` · `updateMessageQueueItemContent`（引擎接通后转 Enqueue / Pause / Resume / Clear / Hold / Release / Edit；未知 id / 空 item / 空正文 / 断连缓存不发。无 GetQueue，接通后 `getMessageQueueState` 诚实空。stub / 从未连过 Enqueue 本地 no-op，其余仍 fixture） |
 | AutoDrive | `getAutoDriveTasks` · `getAutoDriveTaskCount` |
 | 连接态 | `isEngineConnected()` |
 

@@ -203,8 +203,7 @@ export interface IUniverseAgentConnection {
 	 */
 	respondPermission?(request: UniverseAgentRespondPermissionRequest): Promise<UniverseAgentRespondPermissionResult>;
 
-	/** AgentService.EnqueueQueueItem. Transport only — roster has no enqueue surface. */
-
+	/** AgentService.EnqueueQueueItem. Engine roster forwards when connected. */
 	enqueueQueueItem(request: UniverseAgentEnqueueQueueItemRequest): Promise<UniverseAgentQueueMutationResult>;
 
 	/** AgentService.PauseQueue. Engine roster forwards when connected. */

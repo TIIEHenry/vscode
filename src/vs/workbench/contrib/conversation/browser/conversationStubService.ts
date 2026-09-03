@@ -108,6 +108,12 @@ export interface IConversationRosterService {
 	deleteTurn(sessionId: string, turnId: string): boolean;
 	updateUserTurnText(sessionId: string, turnId: string, text: string): boolean;
 	/**
+	 * AgentService.EnqueueQueueItem. Engine-connected forwards unary (empty
+	 * text / unknown id / disconnected cache false). Stub / never-connected
+	 * is a local no-op — fixture has no enqueue surface.
+	 */
+	enqueueMessageQueueItem(sessionId: string, text: string, options?: { priority?: 'NORMAL' | 'HIGH' | 'LOW'; opId?: string }): boolean;
+	/**
 	 * AgentService.EditQueueItem. Engine-connected forwards unary (empty /
 	 * unknown id / disconnected cache false). Stub / never-connected stays local.
 	 */
@@ -279,6 +285,10 @@ export class ConversationStubService extends Disposable implements IConversation
 	}
 
 	cancelToolCall(_sessionId: string, _options: { toolCallId: string; agentId?: string }): boolean {
+		return false;
+	}
+
+	enqueueMessageQueueItem(_sessionId: string, _text: string, _options?: { priority?: 'NORMAL' | 'HIGH' | 'LOW'; opId?: string }): boolean {
 		return false;
 	}
 

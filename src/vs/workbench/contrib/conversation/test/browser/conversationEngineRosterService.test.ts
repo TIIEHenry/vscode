@@ -129,7 +129,16 @@ class MockUniverseAgentConnection extends Disposable implements IUniverseAgentCo
 		});
 		return { ok: true };
 	}
-	async enqueueQueueItem() { return { ok: false, error: 'stub' }; }
+	readonly enqueueCalls: { sessionId: string; text: string; priority?: string; opId?: string }[] = [];
+	async enqueueQueueItem(request: { sessionId: string; text: string; priority?: string; opId?: string }) {
+		this.enqueueCalls.push({
+			sessionId: request.sessionId,
+			text: request.text,
+			priority: request.priority,
+			opId: request.opId,
+		});
+		return { ok: true };
+	}
 	readonly pauseQueueCalls: { sessionId: string }[] = [];
 	async pauseQueue(request: { sessionId: string }) {
 		this.pauseQueueCalls.push({ sessionId: request.sessionId });
@@ -713,12 +722,14 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 			isProcessing: false,
 		});
 
+		assert.strictEqual(service.enqueueMessageQueueItem('ua-only', '  later  ', { priority: 'HIGH', opId: '  op-1  ' }), true);
 		service.pauseMessageQueue('ua-only');
 		service.resumeMessageQueue('ua-only');
 		service.clearMessageQueue('ua-only');
 		service.holdMessageQueueItem('ua-only', '  q1  ', 'EDITING');
 		service.releaseMessageQueueItemHold('ua-only', '  q1  ');
 		assert.strictEqual(service.updateMessageQueueItemContent('ua-only', '  q1  ', '  later  '), true);
+		assert.deepStrictEqual(connection.enqueueCalls, [{ sessionId: 'ua-only', text: 'later', priority: 'HIGH', opId: 'op-1' }]);
 		assert.deepStrictEqual(connection.pauseQueueCalls, [{ sessionId: 'ua-only' }]);
 		assert.deepStrictEqual(connection.resumeQueueCalls, [{ sessionId: 'ua-only' }]);
 		assert.deepStrictEqual(connection.clearQueueCalls, [{ sessionId: 'ua-only' }]);
@@ -726,11 +737,14 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		assert.deepStrictEqual(connection.releaseQueueCalls, [{ sessionId: 'ua-only', itemId: 'q1' }]);
 		assert.deepStrictEqual(connection.editQueueCalls, [{ sessionId: 'ua-only', itemId: 'q1', text: 'later' }]);
 
+		assert.strictEqual(service.enqueueMessageQueueItem('ua-only', '   '), false);
+		assert.strictEqual(service.enqueueMessageQueueItem('missing', 'Nope'), false);
 		service.pauseMessageQueue('missing');
 		service.holdMessageQueueItem('ua-only', '   ', 'EDITING');
 		service.releaseMessageQueueItemHold('missing', 'q1');
 		assert.strictEqual(service.updateMessageQueueItemContent('ua-only', 'q1', '   '), false);
 		assert.strictEqual(service.updateMessageQueueItemContent('missing', 'q1', 'Nope'), false);
+		assert.strictEqual(connection.enqueueCalls.length, 1);
 		assert.strictEqual(connection.pauseQueueCalls.length, 1);
 		assert.strictEqual(connection.holdQueueCalls.length, 1);
 		assert.strictEqual(connection.releaseQueueCalls.length, 1);
@@ -748,6 +762,7 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		connection.setConnected(false);
 		service.setEngineConnected(false);
 
+		assert.strictEqual(service.enqueueMessageQueueItem('ua-only', 'later'), false);
 		service.pauseMessageQueue('ua-only');
 		service.resumeMessageQueue('ua-only');
 		service.clearMessageQueue('ua-only');
@@ -755,6 +770,7 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		service.releaseMessageQueueItemHold('ua-only', 'q1');
 		assert.strictEqual(service.updateMessageQueueItemContent('ua-only', 'q1', 'later'), false);
 		assert.deepStrictEqual(service.getMessageQueueState('ua-only').items, []);
+		assert.strictEqual(connection.enqueueCalls.length, 0);
 		assert.strictEqual(connection.pauseQueueCalls.length, 0);
 		assert.strictEqual(connection.resumeQueueCalls.length, 0);
 		assert.strictEqual(connection.clearQueueCalls.length, 0);

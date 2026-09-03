@@ -257,6 +257,16 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		return super.cancelToolCall(sessionId, options);
 	}
 
+	override enqueueMessageQueueItem(sessionId: string, text: string, options?: { priority?: 'NORMAL' | 'HIGH' | 'LOW'; opId?: string }): boolean {
+		if (this.isEngineConnected()) {
+			return this.enqueueEngineQueueItem(sessionId, text, options, true);
+		}
+		if (this.wasEverConnected) {
+			return this.enqueueEngineQueueItem(sessionId, text, options, false);
+		}
+		return super.enqueueMessageQueueItem(sessionId, text, options);
+	}
+
 	override getMessageQueueState(sessionId: string): ConversationMessageQueueState {
 		if (this.isEngineConnected() || this.wasEverConnected) {
 			return createEmptyMessageQueueState();
@@ -539,6 +549,25 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 			return true;
 		}
 		return false;
+	}
+
+	private enqueueEngineQueueItem(
+		sessionId: string,
+		text: string,
+		options: { priority?: 'NORMAL' | 'HIGH' | 'LOW'; opId?: string } | undefined,
+		callRemote: boolean,
+	): boolean {
+		const trimmed = text.trim();
+		if (!trimmed) {
+			return false;
+		}
+		const opId = options?.opId?.trim();
+		return this.forwardEngineQueueRef(sessionId, callRemote, () => this.uaConnection.enqueueQueueItem({
+			sessionId,
+			text: trimmed,
+			...(options?.priority ? { priority: options.priority } : {}),
+			...(opId ? { opId } : {}),
+		}));
 	}
 
 	private editEngineQueueItem(sessionId: string, itemId: string, content: string, callRemote: boolean): boolean {

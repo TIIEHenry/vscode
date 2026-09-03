@@ -115,6 +115,12 @@ suite('ConversationStubService', () => {
 		assert.strictEqual(service.cancelToolCall(service.getActiveSessionId(), { toolCallId: 'tc-1', agentId: 'sub:a' }), false);
 	});
 
+	test('enqueueMessageQueueItem stays local no-op without engine', () => {
+		const service = store.add(new ConversationStubService());
+		assert.strictEqual(service.enqueueMessageQueueItem(service.getActiveSessionId(), 'later', { priority: 'HIGH' }), false);
+		assert.strictEqual(service.enqueueMessageQueueItem(service.getActiveSessionId(), 'later'), false);
+	});
+
 	test('deleteSession removes a non-active session without changing active', () => {
 		const service = store.add(new ConversationStubService());
 		const activeId = service.getActiveSessionId();
