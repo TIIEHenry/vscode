@@ -32,8 +32,10 @@ import {
 	HUB_NEW_PASSWORD_FIELD_LABEL,
 	HUB_PASSWORD_FIELD_LABEL,
 	readHandshakeSasCode,
+	isRecoverTrustConnectResult,
+	readRecoverTrustLeafFingerprint,
 } from './connectionPreferencesPaneLabels.js';
-import { promptSasConfirmDialog } from './connectionPreferencesPaneSas.js';
+import { promptRecoverTrustConfirmDialog, promptSasConfirmDialog } from './connectionPreferencesPaneSas.js';
 import { getConnectionPhaseStatusBarText } from './conversationSessionStatus.js';
 import {
 	getUnsupportedEnvironmentCopy,
@@ -641,18 +643,45 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 			return;
 		}
 		if (result.ok && result.pairingPending && shouldDrawDesktopConnectionControls(this.desktopConnectionControlContext())) {
-			const confirmed = await promptSasConfirmDialog(this.dialogService, {
-				displayName: profile?.displayName ?? profileId,
-				sasCode: readHandshakeSasCode(result),
-				engineIdentityId: result.engineIdentityId ?? profileId,
-			});
-			if (confirmed.confirmed) {
-				const confirmResult = await this.connectionService.confirmPairing();
-				if (!confirmResult.ok) {
-					this.testStatus.textContent = confirmResult.reason;
+			const displayName = profile?.displayName ?? profileId;
+			const engineIdentityId = result.engineIdentityId ?? profileId;
+			if (isRecoverTrustConnectResult(result)) {
+				const leafSha256Hex = readRecoverTrustLeafFingerprint(result);
+				if (!leafSha256Hex) {
+					this.testStatus.textContent = localize(
+						'ua.connectionRecoverTrustMissingFingerprint',
+						"Trust recovery requires the observed certificate fingerprint.",
+					);
+					await this.connectionService.cancelPairing();
+				} else {
+					const confirmed = await promptRecoverTrustConfirmDialog(this.dialogService, {
+						displayName,
+						engineIdentityId,
+						leafSha256Hex,
+					});
+					if (confirmed.confirmed) {
+						const confirmResult = await this.connectionService.confirmPairing();
+						if (!confirmResult.ok) {
+							this.testStatus.textContent = confirmResult.reason;
+						}
+					} else {
+						await this.connectionService.cancelPairing();
+					}
 				}
 			} else {
-				await this.connectionService.cancelPairing();
+				const confirmed = await promptSasConfirmDialog(this.dialogService, {
+					displayName,
+					sasCode: readHandshakeSasCode(result),
+					engineIdentityId,
+				});
+				if (confirmed.confirmed) {
+					const confirmResult = await this.connectionService.confirmPairing();
+					if (!confirmResult.ok) {
+						this.testStatus.textContent = confirmResult.reason;
+					}
+				} else {
+					await this.connectionService.cancelPairing();
+				}
 			}
 		}
 		this.renderConnectionPhase();

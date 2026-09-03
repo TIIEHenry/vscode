@@ -31,6 +31,8 @@ import {
 	getHubAuthStatusLabel,
 	getHubDeviceRowStatusLabel,
 	getHubDirectoryBannerLabel,
+	isRecoverTrustConnectResult,
+	RECOVER_TRUST_CONFIRM_BUTTON_LABEL,
 	SAS_FORBIDDEN_BUTTON_PATTERNS,
 } from '../../browser/connectionPreferencesPaneLabels.js';
 import { createConversationConnectionTestStub } from '../common/conversationConnectionTestStub.js';
@@ -542,6 +544,78 @@ suite('ConnectionPreferencesPane', () => {
 		await (pane as unknown as { connectProfileWithPairing(profileId: string): Promise<void> }).connectProfileWithPairing('hub-profile-1');
 		assert.strictEqual(confirmCalls, 1);
 		container.remove();
+	});
+
+	test('recoverTrust confirm shows identity+fingerprint dialog then confirmPairing', async () => {
+		let confirmCalls = 0;
+		let promptedTitle: string | undefined;
+		let promptedDetail: string | undefined;
+		const leafFp = 'a'.repeat(64);
+		const engineId = 'eng-recover-identity-01';
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IUniverseAgentHubService, createHubStub({
+			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
+			listConnectionProfiles: () => [{
+				profileId: 'hub-profile-1',
+				displayName: 'Studio',
+				state: 'pairingPending',
+				hasTrust: false,
+				targetKind: 'hubDevice',
+			}],
+		}));
+		instantiationService.stub(IUniverseAgentConnection, createConnectionStub({
+			connectProfile: async () => ({
+				ok: true,
+				path: 'hubRelay',
+				pairingPending: true,
+				recoverTrust: true,
+				engineIdentityId: engineId,
+				leafSha256Hex: leafFp,
+			}),
+			confirmPairing: async () => {
+				confirmCalls++;
+				return { ok: true, path: 'hubRelay', pairingPending: false, sessionToken: 'tok' };
+			},
+		}));
+		instantiationService.stub(IDialogService, {
+			_serviceBrand: undefined,
+			prompt: async (config: { message?: string; detail?: string; buttons: readonly { label: string; run: () => boolean }[] }) => {
+				promptedTitle = config.message;
+				promptedDetail = config.detail;
+				assert.ok(config.detail?.includes(engineId));
+				assert.ok(config.detail?.includes(leafFp));
+				assert.ok(config.detail?.includes('does not use a pairing code'));
+				assert.ok(!config.detail?.includes('ABCD-EFGH'));
+				assert.ok(config.buttons.some(b => b.label === RECOVER_TRUST_CONFIRM_BUTTON_LABEL));
+				return { result: config.buttons[0].run() };
+			},
+		} as unknown as IDialogService);
+
+		const pane = store.add(instantiationService.createInstance(ConnectionPreferencesPane));
+		const container = pane.getDomNode();
+		document.body.appendChild(container);
+		(pane as unknown as { activeProfileId: string }).activeProfileId = 'hub-profile-1';
+		await (pane as unknown as { connectProfileWithPairing(profileId: string): Promise<void> }).connectProfileWithPairing('hub-profile-1');
+		assert.strictEqual(confirmCalls, 1);
+		assert.ok(promptedTitle?.includes('Studio'));
+		assert.ok(promptedDetail);
+		container.remove();
+	});
+
+	test('isRecoverTrustConnectResult requires fingerprint path without SAS', () => {
+		assert.strictEqual(isRecoverTrustConnectResult({
+			ok: true,
+			pairingPending: true,
+			recoverTrust: true,
+			leafSha256Hex: 'ab',
+			engineIdentityId: 'id',
+		}), true);
+		assert.strictEqual(isRecoverTrustConnectResult({
+			ok: true,
+			pairingPending: true,
+			sasCode: 'ABCD-EFGH',
+			engineIdentityId: 'id',
+		}), false);
 	});
 
 	test('revoked device row disables Rename and Revoke', async () => {

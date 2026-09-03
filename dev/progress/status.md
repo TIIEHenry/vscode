@@ -4,23 +4,23 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-04
-summary: "槽 B：GC-2 revoke→disconnect Exit 测 + D21 失败态边沿测"
+summary: "槽 C：recoverTrust 身份+指纹确认对话框（ADR-031）接到 pane"
 ---
 
 # Development Progress
 
 ## Current Session
 
-- **槽 B / `loop/B`：** `git merge --ff-only loop/merge` 已快进。
-- **本 commit：** D19/G-NAV 不可做；补 [m7-gap-closeout](../plans/m7-gap-closeout.md) **GC-2 Exit**（连接中 Hub 设备 revoke → `disconnect` 一次；异设备不拆）与 **D21** 边沿（`disconnect` 清 `isAgentTreeFetchFailed`；失败翻转入 `onDidChangeConnection`）。未跑 `npm run compile`；node 单测跑绿新增项。
+- **槽 C / `loop/C`：** `git merge --ff-only loop/merge` 已快进。
+- **本 commit：** Connection pane 对 S4 `recoverTrust` 走独立 identity+fingerprint 对话框（Desktop ADR-031 文案；0× SAS），确认仍 `confirmPairing` / 取消 `cancelPairing`；`connectProfile` 返回 `recoverTrust` + `leafSha256Hex`。node 侧 `confirmRecoverTrust` 钩子仍 auto-approve（与 `confirmSas` 同形：pane 已确认）。未跑全量 compile；pane 新增测绿。
 
 ## 槽位（与 `git worktree list` 对照）
 
 | 槽 | 路径 | 分支 | 状态 |
 |----|------|------|------|
 | merge | `vscode-WorkTrees/merge` | `loop/merge` | 以 merge 槽 `git` 为准 |
-| B | `vscode-WorkTrees/B` | `loop/B` | 本会话：GC-2/D21 测 |
-| A/C/D | `vscode-WorkTrees/{A,C,D}` | `loop/{A,C,D}` | 以各槽 `git` 为准 |
+| C | `vscode-WorkTrees/C` | `loop/C` | 本会话：recoverTrust 对话框 |
+| A/B/D | `vscode-WorkTrees/{A,B,D}` | `loop/{A,B,D}` | 以各槽 `git` 为准 |
 | edit | `Projects/Agents/vscode` | `agent-ide` | 请自行对齐 |
 
 ## Blockers

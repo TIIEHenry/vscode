@@ -138,3 +138,53 @@ export function formatSasDialogBody(input: {
 		idPrefix,
 	);
 }
+
+/** Desktop ADR-031 recoverTrust — identity + fingerprint; no SAS. */
+export const RECOVER_TRUST_CONFIRM_BUTTON_LABEL = localize('ua.connectionRecoverTrustConfirm', "Recover trust");
+export const RECOVER_TRUST_CANCEL_BUTTON_LABEL = localize('ua.connectionRecoverTrustCancel', "Cancel");
+
+export function readRecoverTrustLeafFingerprint(source: unknown): string | undefined {
+	if (!source || typeof source !== 'object') {
+		return undefined;
+	}
+	const leaf = (source as { readonly leafSha256Hex?: unknown }).leafSha256Hex;
+	if (typeof leaf !== 'string') {
+		return undefined;
+	}
+	const trimmed = leaf.trim();
+	return trimmed.length > 0 ? trimmed : undefined;
+}
+
+export function isRecoverTrustConnectResult(source: unknown): boolean {
+	if (!source || typeof source !== 'object') {
+		return false;
+	}
+	const result = source as {
+		readonly recoverTrust?: unknown;
+		readonly pairingPending?: unknown;
+		readonly leafSha256Hex?: unknown;
+		readonly sasCode?: unknown;
+	};
+	if (result.recoverTrust === true) {
+		return true;
+	}
+	// Fallback: pairing pending with leaf fingerprint and no handshake SAS.
+	return result.pairingPending === true
+		&& typeof result.leafSha256Hex === 'string'
+		&& result.leafSha256Hex.trim().length > 0
+		&& !readHandshakeSasCode(source);
+}
+
+export function formatRecoverTrustDialogBody(input: {
+	readonly displayName: string;
+	readonly engineIdentityId: string;
+	readonly leafSha256Hex: string;
+}): string {
+	return localize(
+		'ua.connectionRecoverTrustBody',
+		"Engine identity: {0}\nCertificate fingerprint (SHA-256): {1}\n\nThis does not create a new Engine Grant and does not use a pairing code (SAS).\nConfirm only if you recognize Engine \"{2}\".",
+		input.engineIdentityId,
+		input.leafSha256Hex,
+		input.displayName,
+	);
+}

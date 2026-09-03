@@ -979,6 +979,7 @@ suite('UniverseAgentConnectionService pairing (GC-1b)', () => {
 					phase: 'recover_trust' as const,
 					profileId: PAIRING_PROFILE_ID,
 					engineIdentityId: 'eng-recover',
+					leafSha256Hex: 'b'.repeat(64),
 					sessionTokenInstalled: false,
 				},
 			}),
@@ -988,6 +989,7 @@ suite('UniverseAgentConnectionService pairing (GC-1b)', () => {
 				phase: 'recover_trust' as const,
 				profileId: PAIRING_PROFILE_ID,
 				engineIdentityId: 'eng-recover',
+				leafSha256Hex: 'b'.repeat(64),
 				sessionTokenInstalled: false,
 			}),
 			abandonRecoverTrust: () => { },
@@ -1025,7 +1027,11 @@ suite('UniverseAgentConnectionService pairing (GC-1b)', () => {
 		assert.strictEqual(started.ok, true);
 		if (started.ok) {
 			assert.strictEqual(started.pairingPending, true);
+			assert.strictEqual(started.recoverTrust, true);
+			assert.strictEqual(started.engineIdentityId, 'eng-recover');
+			assert.strictEqual(started.leafSha256Hex, 'b'.repeat(64));
 			assert.strictEqual(started.sessionToken, undefined);
+			assert.strictEqual(started.sasCode, undefined);
 		}
 		assert.strictEqual(service.isEngineConnected(), false);
 		service.dispose();

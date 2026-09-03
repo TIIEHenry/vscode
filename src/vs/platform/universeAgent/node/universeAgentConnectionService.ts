@@ -159,6 +159,8 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 					sslTargetNameOverride: endpoint.servername,
 				}),
 				issueRelayTicket: this._connectionResolver?.createIssueRelayTicketHook(),
+				// Pane owns native confirm dialogs (SAS / recoverTrust) before confirmPairing();
+				// these hooks stay auto-approve as the second gate, matching Desktop Main mailbox.
 				confirmSas: async () => true,
 				confirmRecoverTrust: async () => true,
 			});
@@ -949,7 +951,9 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 				ok: true,
 				path: endpoint.path,
 				pairingPending: true,
+				recoverTrust: true,
 				engineIdentityId: snapshot.engineIdentityId,
+				leafSha256Hex: snapshot.leafSha256Hex,
 			};
 		}
 

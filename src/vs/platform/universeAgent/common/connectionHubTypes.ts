@@ -47,6 +47,13 @@ export type UniverseAgentConnectProfileResult =
 		/** From handshake GetAuthNonce / Connect — not Hub directory. */
 		readonly sasCode?: string;
 		readonly engineIdentityId?: string;
+		/**
+		 * S4 unexpected session_token → recoverTrust (Desktop ADR-031).
+		 * When true: no sasCode; confirm via identity + leaf fingerprint dialog.
+		 */
+		readonly recoverTrust?: boolean;
+		/** Observed leaf SHA-256 hex; required when {@link recoverTrust} is true. */
+		readonly leafSha256Hex?: string;
 	}
 	| {
 		readonly ok: false;
