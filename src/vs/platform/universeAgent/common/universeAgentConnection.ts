@@ -216,8 +216,9 @@ export interface IUniverseAgentConnection {
 
 	/**
 	 * AgentService.RespondQuestion unary (ADR-325 ask_user reply). Optional so
-	 * Web / tests can omit it. Catalog + node transport only this slice;
-	 * timeline / roster still post Chat-arm `questionRespond`.
+	 * Web / tests can omit it. ConversationEngineRosterService.respondQuestion
+	 * forwards this when connected; disconnected / stub still posts Chat-arm
+	 * `questionRespond`.
 	 */
 	respondQuestion?(request: UniverseAgentRespondQuestionRequest): Promise<UniverseAgentRespondQuestionResult>;
 

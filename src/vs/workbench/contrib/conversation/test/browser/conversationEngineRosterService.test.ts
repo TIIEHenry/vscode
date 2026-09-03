@@ -168,6 +168,16 @@ class MockUniverseAgentConnection extends Disposable implements IUniverseAgentCo
 		});
 		return { ok: true };
 	}
+	readonly respondQuestionCalls: { sessionId: string; questionId: string; answers?: Readonly<Record<string, { readonly selectedLabels: readonly string[] }>>; customText?: string }[] = [];
+	async respondQuestion(request: { sessionId: string; questionId: string; answers?: Readonly<Record<string, { readonly selectedLabels: readonly string[] }>>; customText?: string }) {
+		this.respondQuestionCalls.push({
+			sessionId: request.sessionId,
+			questionId: request.questionId,
+			answers: request.answers,
+			customText: request.customText,
+		});
+		return { ok: true };
+	}
 	readonly enqueueCalls: { sessionId: string; text: string; priority?: string; opId?: string }[] = [];
 	async enqueueQueueItem(request: { sessionId: string; text: string; priority?: string; opId?: string }) {
 		this.enqueueCalls.push({
@@ -836,6 +846,52 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 
 		assert.strictEqual(service.respondClientTool('ua-only', 'call-1', { content: '{}' }), false);
 		assert.strictEqual(connection.sendClientToolResponseCalls.length, 0);
+	});
+
+	test('connected respondQuestion forwards AgentService.RespondQuestion', async () => {
+		const storage = store.add(new TestStorageService());
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
+		const service = store.add(createService(connection, storage));
+		connection.setConnected(true);
+		service.setEngineConnected(true);
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+		assert.strictEqual(service.respondQuestion('ua-only', '  q-1  ', { itemA: { selectedLabels: ['yes'] } }, 'other'), true);
+		assert.deepStrictEqual(connection.respondQuestionCalls, [{
+			sessionId: 'ua-only',
+			questionId: 'q-1',
+			answers: { itemA: { selectedLabels: ['yes'] } },
+			customText: 'other',
+		}]);
+		assert.strictEqual(service.respondQuestion('ua-only', 'q-2'), true);
+		assert.deepStrictEqual(connection.respondQuestionCalls[1], {
+			sessionId: 'ua-only',
+			questionId: 'q-2',
+			answers: undefined,
+			customText: undefined,
+		});
+		assert.strictEqual(service.respondQuestion('ua-only', '   ', { itemA: { selectedLabels: ['yes'] } }), false);
+		assert.strictEqual(service.respondQuestion('missing', 'q-3'), false);
+		assert.strictEqual(connection.respondQuestionCalls.length, 2);
+		(connection as { respondQuestion?: unknown }).respondQuestion = undefined;
+		assert.strictEqual(service.respondQuestion('ua-only', 'q-4'), false);
+		assert.strictEqual(connection.respondQuestionCalls.length, 2);
+	});
+
+	test('disconnected after engine respondQuestion skips unary', async () => {
+		const storage = store.add(new TestStorageService());
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
+		const service = store.add(createService(connection, storage));
+		connection.setConnected(true);
+		service.setEngineConnected(true);
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		connection.setConnected(false);
+		service.setEngineConnected(false);
+
+		assert.strictEqual(service.respondQuestion('ua-only', 'q-1', { itemA: { selectedLabels: ['yes'] } }), false);
+		assert.strictEqual(connection.respondQuestionCalls.length, 0);
 	});
 
 	test('disconnected after engine resolveConfirmation skips unary', async () => {

@@ -10,7 +10,7 @@ import { IConfigurationService } from '../../../../platform/configuration/common
 import { createDecorator } from '../../../../platform/instantiation/common/instantiation.js';
 import { IStorageService } from '../../../../platform/storage/common/storage.js';
 import { shouldRestoreLastSessionOnStartup } from '../common/uaClientSettingsHelpers.js';
-import type { IConversationSessionViewLease } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
+import type { ConversationQuestionRespondAnswers, IConversationSessionViewLease } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
 import type { LiveAgentTreeNodeView, SyncChrome } from '../../../../platform/universeAgent/common/sessionView/index.js';
 import { ConversationStubFrameSource } from './conversationStubFrameSource.js';
 import {
@@ -111,6 +111,14 @@ export interface IConversationRosterService {
 	 * `clientToolRespond`.
 	 */
 	respondClientTool(sessionId: string, callId: string, options?: { content?: string; isError?: boolean; metadataJson?: string }): boolean;
+	/**
+	 * AgentService.RespondQuestion (ask-user seat; ≠ Chat-arm `questionRespond`,
+	 * ≠ Permission.Respond). Engine-connected forwards unary. Empty
+	 * `questionId` / unknown session / disconnected cache / missing hook
+	 * returns false and does not post Chat-arm. Stub / never-connected still
+	 * writes local `questionRespond`.
+	 */
+	respondQuestion(sessionId: string, questionId: string, answers?: ConversationQuestionRespondAnswers, customText?: string): boolean;
 	deleteSession(sessionId: string): boolean;
 	/**
 	 * AgentService.DeleteMessage (turn + subtree; ≠ session Delete).
@@ -468,6 +476,20 @@ export class ConversationStubService extends Disposable implements IConversation
 			kind: 'clientToolRespond',
 			requestId,
 			resultJson: options?.content ?? '',
+		});
+		return true;
+	}
+
+	respondQuestion(sessionId: string, questionId: string, answers?: ConversationQuestionRespondAnswers, customText?: string): boolean {
+		const requestId = questionId.trim();
+		if (!requestId) {
+			return false;
+		}
+		this.frameSource.write(sessionId, {
+			kind: 'questionRespond',
+			requestId,
+			answers: answers ?? {},
+			...(customText !== undefined ? { customText } : {}),
 		});
 		return true;
 	}

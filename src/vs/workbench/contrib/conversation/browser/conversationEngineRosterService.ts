@@ -11,7 +11,7 @@ import { IStorageService } from '../../../../platform/storage/common/storage.js'
 import { shouldRestoreLastSessionOnStartup } from '../common/uaClientSettingsHelpers.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { IUniverseAgentSessionView } from '../../../../platform/universeAgent/common/universeAgentSessionView.js';
-import type { IConversationSessionViewLease } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
+import type { ConversationQuestionRespondAnswers, IConversationSessionViewLease } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
 import { ConversationEngineFrameSource } from './conversationEngineFrameSource.js';
 import { IUaClientWorkspaceToolsGate } from './uaClientWorkspaceToolsGate.js';
 import {
@@ -409,6 +409,16 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		return super.respondClientTool(sessionId, callId, options);
 	}
 
+	override respondQuestion(sessionId: string, questionId: string, answers?: ConversationQuestionRespondAnswers, customText?: string): boolean {
+		if (this.isEngineConnected()) {
+			return this.respondEngineQuestion(sessionId, questionId, answers, customText, true);
+		}
+		if (this.wasEverConnected) {
+			return this.respondEngineQuestion(sessionId, questionId, answers, customText, false);
+		}
+		return super.respondQuestion(sessionId, questionId, answers, customText);
+	}
+
 	override deleteSession(sessionId: string): boolean {
 		if (this.isEngineConnected()) {
 			return this.deleteEngineSession(sessionId, true);
@@ -615,6 +625,35 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 				sessionId,
 				requestId,
 				granted: status === 'allowed',
+			});
+			return true;
+		}
+		return false;
+	}
+
+	private respondEngineQuestion(
+		sessionId: string,
+		questionId: string,
+		answers: ConversationQuestionRespondAnswers | undefined,
+		customText: string | undefined,
+		callRemote: boolean,
+	): boolean {
+		const trimmedQuestionId = questionId.trim();
+		if (!trimmedQuestionId) {
+			return false;
+		}
+		if (!this.engineSessions.some(session => session.id === sessionId)) {
+			return false;
+		}
+		if (callRemote) {
+			if (!this.uaConnection.respondQuestion) {
+				return false;
+			}
+			void this.uaConnection.respondQuestion({
+				sessionId,
+				questionId: trimmedQuestionId,
+				...(answers !== undefined ? { answers } : {}),
+				...(customText !== undefined ? { customText } : {}),
 			});
 			return true;
 		}

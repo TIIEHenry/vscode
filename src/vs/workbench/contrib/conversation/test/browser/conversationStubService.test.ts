@@ -132,6 +132,14 @@ suite('ConversationStubService', () => {
 		assert.strictEqual(service.respondClientTool(sessionId, 'call-2', { isError: true }), true);
 	});
 
+	test('respondQuestion stays local without engine', () => {
+		const service = store.add(new ConversationStubService());
+		const sessionId = service.getActiveSessionId();
+		assert.strictEqual(service.respondQuestion(sessionId, '   ', { itemA: { selectedLabels: ['yes'] } }), false);
+		assert.strictEqual(service.respondQuestion(sessionId, 'q-1', { itemA: { selectedLabels: ['yes'] } }, 'other'), true);
+		assert.strictEqual(service.respondQuestion(sessionId, 'q-2'), true);
+	});
+
 	test('enqueueMessageQueueItem stays local no-op without engine', () => {
 		const service = store.add(new ConversationStubService());
 		assert.strictEqual(service.enqueueMessageQueueItem(service.getActiveSessionId(), 'later', { priority: 'HIGH' }), false);

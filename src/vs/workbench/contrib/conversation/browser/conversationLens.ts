@@ -1755,6 +1755,19 @@ export class ConversationLens extends Disposable {
 	}
 
 	private async resolveQuestion(turnId: string, requestId: string, answers: ConversationQuestionRespondAnswers, customText?: string): Promise<void> {
+		if (this.stubService.isEngineConnected()) {
+			const forwarded = this.stubService.respondQuestion(
+				this.stubService.getActiveSessionId(),
+				requestId,
+				answers,
+				customText,
+			);
+			if (!forwarded) {
+				return;
+			}
+			this.focusTimelineRecord(turnId);
+			return;
+		}
 		const outcome = await this.postBound({
 			kind: 'questionRespond',
 			requestId,
