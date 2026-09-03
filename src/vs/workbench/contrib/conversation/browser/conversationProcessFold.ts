@@ -256,7 +256,6 @@ function renderToolRow(
 
 	appendProcessFoldToolCancel(row, turn, executing, options, disposables);
 	appendProcessFoldTrajectoryJump(row, turn.id, options, disposables);
-	appendProcessFoldToolCancel(row, turn, executing, options, disposables);
 
 	if (hasPayload) {
 		const body = append(row, $('div.conversation-process-fold-tool-body'));
@@ -374,23 +373,3 @@ function appendProcessFoldTrajectoryJump(
 	}));
 }
 
-function appendProcessFoldToolCancel(
-	parent: HTMLElement,
-	turn: ConversationStubTurn,
-	executing: boolean,
-	options: ProcessFoldDomOptions,
-	disposables: DisposableStore,
-): void {
-	if (!executing || !options.onCancelToolCall || !turn.id.trim()) {
-		return;
-	}
-	const cancel = append(parent, $('button.conversation-process-fold-tool-cancel')) as HTMLButtonElement;
-	cancel.type = 'button';
-	cancel.classList.add(...ThemeIcon.asClassNameArray(Codicon.debugStop));
-	cancel.title = conversationProcessFoldToolCancel;
-	cancel.setAttribute('aria-label', conversationProcessFoldToolCancel);
-	disposables.add(addDisposableListener(cancel, 'click', (e) => {
-		e.stopPropagation();
-		options.onCancelToolCall!(turn);
-	}));
-}
