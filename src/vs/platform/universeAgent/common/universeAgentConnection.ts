@@ -11,6 +11,8 @@ import type {
 	UniverseAgentChatRequest,
 	UniverseAgentChatResponse,
 	UniverseAgentChatStream,
+	UniverseAgentContinueGenerationRequest,
+	UniverseAgentContinuationStream,
 	UniverseAgentConnectRequest,
 	UniverseAgentConnectResult,
 	UniverseAgentConnectionSnapshot,
@@ -164,6 +166,16 @@ export interface IUniverseAgentConnection {
 		onResponse: (response: UniverseAgentChatResponse) => void,
 		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
 	): UniverseAgentChatStream;
+
+	/**
+	 * AgentService.ContinueGeneration server-stream (ADR-028). Optional until transport wires it.
+	 * Host opens when present; otherwise counts `intent.unhandled` for `openContinuationStream`.
+	 */
+	openContinuationStream?(
+		request: UniverseAgentContinueGenerationRequest,
+		onResponse: (response: UniverseAgentChatResponse) => void,
+		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
+	): UniverseAgentContinuationStream;
 
 	listSkills(): Promise<UniverseAgentListSkillsResult>;
 

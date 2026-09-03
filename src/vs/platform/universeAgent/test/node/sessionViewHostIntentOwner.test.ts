@@ -40,6 +40,7 @@ class TrackingConnection extends TestConnection {
 class CountingDiagnostics implements DiagnosticsPort {
 	readonly counts = new Map<string, number>();
 	readonly labeledCounts = new Map<string, number>();
+	readonly warnings: { readonly message: string; readonly fields: Readonly<Record<string, unknown>> }[] = [];
 
 	count(metric: DiagnosticMetric, labels?: Readonly<Record<string, string>>): void {
 		this.counts.set(metric, (this.counts.get(metric) ?? 0) + 1);
@@ -49,7 +50,18 @@ class CountingDiagnostics implements DiagnosticsPort {
 		}
 	}
 
-	warn(): void { }
+	warn(message: string, fields: Readonly<Record<string, unknown>>): void {
+		this.warnings.push({ message, fields });
+	}
+}
+
+type HostInternals = {
+	postAndDrain(sessionId: string, msg: { readonly t: 'localFact'; readonly fact: unknown }): { accepted: boolean };
+};
+
+function postLocalFact(viewHost: SessionViewHost, sessionId: string, fact: unknown): void {
+	const outcome = (viewHost as unknown as HostInternals).postAndDrain(sessionId, { t: 'localFact', fact });
+	assert.strictEqual(outcome.accepted, true, `localFact ${String((fact as { kind?: string }).kind)} must be accepted`);
 }
 
 async function waitFor(predicate: () => boolean, timeoutMs = 250): Promise<void> {
@@ -157,5 +169,89 @@ suite('SessionViewHost intent ownership (F2)', () => {
 		viewHost.acquireLease('sess-reacquire');
 		await timeout(LINGER_MS + 20);
 		assert.strictEqual(connection.activeStreamCount, 1);
+	});
+
+	test('continueGeneration counts intent.unhandled openContinuationStream when transport lacks hook', () => {
+		const connection = new TestConnection();
+		const host = new TestHost(async () => undefined);
+		const diagnostics = new CountingDiagnostics();
+		const viewHost = store.add(new SessionViewHost(connection, host, {
+			orphanTimeoutMs: 0,
+			diagnostics,
+		}));
+		viewHost.onEngineConnectionChanged();
+		viewHost.acquireLease('sess-cg');
+
+		postLocalFact(viewHost, 'sess-cg', {
+			kind: 'continueGeneration',
+			agentId: 'agent-root',
+			turnId: 'turn-1',
+			messageId: 'msg-1',
+		});
+
+		assert.strictEqual(diagnostics.labeledCounts.get('intent.unhandled:openContinuationStream'), 1);
+		assert.ok(diagnostics.warnings.some(w =>
+			w.message.includes('openContinuationStream') && w.fields.do === 'openContinuationStream'
+		));
+	});
+
+	test('openContinuationStream hook runs without intent.unhandled when connection provides it', () => {
+		const calls: { sessionId: string; agentId: string; turnId: string; messageId: string }[] = [];
+		const connection = new class extends TestConnection {
+			openContinuationStream(
+				request: { sessionId: string; agentId: string; turnId: string; messageId: string },
+			): { dispose(): void } {
+				calls.push({ ...request });
+				return { dispose: () => { } };
+			}
+		}();
+
+		const host = new TestHost(async () => undefined);
+		const diagnostics = new CountingDiagnostics();
+		const viewHost = store.add(new SessionViewHost(connection, host, {
+			orphanTimeoutMs: 0,
+			diagnostics,
+		}));
+		viewHost.onEngineConnectionChanged();
+		viewHost.acquireLease('sess-cg-hook');
+
+		postLocalFact(viewHost, 'sess-cg-hook', {
+			kind: 'continueGeneration',
+			agentId: 'agent-root',
+			turnId: 'turn-2',
+			messageId: 'msg-2',
+		});
+
+		assert.deepStrictEqual(calls, [{
+			sessionId: 'sess-cg-hook',
+			agentId: 'agent-root',
+			turnId: 'turn-2',
+			messageId: 'msg-2',
+		}]);
+		assert.strictEqual(diagnostics.counts.get('intent.unhandled'), undefined);
+	});
+
+	test('regenerateTurn counts intent.unhandled unaryCommand (no unary dispatcher yet)', () => {
+		const connection = new TestConnection();
+		const host = new TestHost(async () => undefined);
+		const diagnostics = new CountingDiagnostics();
+		const viewHost = store.add(new SessionViewHost(connection, host, {
+			orphanTimeoutMs: 0,
+			diagnostics,
+		}));
+		viewHost.onEngineConnectionChanged();
+		viewHost.acquireLease('sess-rg');
+
+		postLocalFact(viewHost, 'sess-rg', {
+			kind: 'regenerateTurn',
+			userTurnId: 'user-turn-1',
+			preservedContent: 'hello again',
+			correlation: 'write:regen-1',
+		});
+
+		assert.strictEqual(diagnostics.labeledCounts.get('intent.unhandled:unaryCommand'), 1);
+		assert.ok(diagnostics.warnings.some(w =>
+			w.message.includes('unaryCommand') && w.fields.commandId === 'agent.editMessage'
+		));
 	});
 });
