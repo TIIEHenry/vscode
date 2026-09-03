@@ -18,6 +18,8 @@ import type {
 	UniverseAgentRenameSessionResult,
 	UniverseAgentCancelGenerationRequest,
 	UniverseAgentCancelGenerationResult,
+	UniverseAgentCancelToolCallRequest,
+	UniverseAgentCancelToolCallResult,
 	UniverseAgentSetSessionGoalRequest,
 	UniverseAgentSetSessionGoalResult,
 	UniverseAgentCancelSessionGoalRequest,
@@ -155,6 +157,8 @@ export interface IUniverseAgentGrpcTransport {
 
 	cancelGeneration(request: UniverseAgentCancelGenerationRequest): Promise<UniverseAgentCancelGenerationResult>;
 
+	cancelToolCall(request: UniverseAgentCancelToolCallRequest): Promise<UniverseAgentCancelToolCallResult>;
+
 	setSessionGoal(request: UniverseAgentSetSessionGoalRequest): Promise<UniverseAgentSetSessionGoalResult>;
 
 	cancelSessionGoal(request: UniverseAgentCancelSessionGoalRequest): Promise<UniverseAgentCancelSessionGoalResult>;
@@ -285,6 +289,7 @@ export const UniverseAgentGrpcServices = {
 		ContinueGeneration: 'ContinueGeneration',
 		Rename: 'Rename',
 		Cancel: 'Cancel',
+		CancelToolCall: 'CancelToolCall',
 		EnqueueQueueItem: 'EnqueueQueueItem',
 		PauseQueue: 'PauseQueue',
 		ResumeQueue: 'ResumeQueue',

@@ -19,6 +19,8 @@ import type {
 	UniverseAgentRenameSessionResult,
 	UniverseAgentCancelGenerationRequest,
 	UniverseAgentCancelGenerationResult,
+	UniverseAgentCancelToolCallRequest,
+	UniverseAgentCancelToolCallResult,
 	UniverseAgentSetSessionGoalRequest,
 	UniverseAgentSetSessionGoalResult,
 	UniverseAgentCancelSessionGoalRequest,
@@ -145,6 +147,14 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 	async cancelGeneration(request: UniverseAgentCancelGenerationRequest): Promise<UniverseAgentCancelGenerationResult> {
 		this.cancelCalls.push(request);
 		return this.cancelResult;
+	}
+
+	readonly cancelToolCallCalls: UniverseAgentCancelToolCallRequest[] = [];
+	cancelToolCallResult: UniverseAgentCancelToolCallResult = { ok: true };
+
+	async cancelToolCall(request: UniverseAgentCancelToolCallRequest): Promise<UniverseAgentCancelToolCallResult> {
+		this.cancelToolCallCalls.push(request);
+		return this.cancelToolCallResult;
 	}
 
 	readonly setGoalCalls: UniverseAgentSetSessionGoalRequest[] = [];
@@ -494,6 +504,11 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
 	});
 
+	test('UniverseAgentGrpcServices lists Agent.CancelToolCall', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.CancelToolCall, 'CancelToolCall');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+	});
+
 	test('UniverseAgentGrpcServices lists Permission.SetSessionGoal', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Permission.SetSessionGoal, 'SetSessionGoal');
 		assert.strictEqual(UniverseAgentGrpcServices.Permission.CancelSessionGoal, 'CancelSessionGoal');
@@ -554,6 +569,25 @@ suite('UniverseAgentConnectionService', () => {
 		const failed = await service.cancelGeneration({ sessionId: 'sess-1', agentId: 'sub:a' });
 		assert.deepStrictEqual(failed, { ok: false, message: 'not running' });
 		assert.strictEqual(transport.cancelCalls[1]?.agentId, 'sub:a');
+		service.dispose();
+	});
+
+	test('cancelToolCall forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		const result = await service.cancelToolCall({ sessionId: 'sess-1', toolCallId: 'tc-1' });
+		assert.deepStrictEqual(transport.cancelToolCallCalls, [{ sessionId: 'sess-1', toolCallId: 'tc-1' }]);
+		assert.deepStrictEqual(result, { ok: true });
+
+		transport.cancelToolCallResult = { ok: false, message: 'not in flight' };
+		const failed = await service.cancelToolCall({ sessionId: 'sess-1', agentId: 'sub:a', toolCallId: 'tc-2' });
+		assert.deepStrictEqual(failed, { ok: false, message: 'not in flight' });
+		assert.strictEqual(transport.cancelToolCallCalls[1]?.agentId, 'sub:a');
+		assert.strictEqual(transport.cancelToolCallCalls[1]?.toolCallId, 'tc-2');
 		service.dispose();
 	});
 
