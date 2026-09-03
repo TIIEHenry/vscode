@@ -88,6 +88,8 @@ export type DiagnosticMetric =
 	 *   no_session_version | stale_cover
 	 */
 	| 'stream.range_replaced_cursor_skip'
+	/** Host `handleIntent` default branch: intent not executed on this slice. */
+	| 'intent.unhandled'
 
 export interface DiagnosticsPort {
 	count(metric: DiagnosticMetric, labels?: Readonly<Record<string, string>>): void

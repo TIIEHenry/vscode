@@ -22,7 +22,7 @@ import type { IUniverseAgentSessionViewFrameEvent } from '../common/universeAgen
 import { createSessionCore, type SessionCore } from './sessionCore/session-core.js';
 import type { CoreIntent, HistoryFillCoreIntent } from './sessionCore/intents.js';
 import { isChatCoreIntent, isHistoryFillCoreIntent } from './sessionCore/intents.js';
-import type { CorrelationRef, ViewFrameSink } from './sessionCore/messages.js';
+import type { CoreMessage, CorrelationRef, PostOutcome, ViewFrameSink } from './sessionCore/messages.js';
 import type { SessionId, ViewFrame, ViewLeaseId } from '../common/sessionView/types.js';
 import type { AttemptId, DiagnosticMetric, DiagnosticsPort } from './sessionCore/ports.js';
 import { demuxSessionStreamPayload } from './sessionStreamDemux.js';
@@ -182,14 +182,13 @@ export class SessionViewHost extends Disposable {
 		this.leases.set(String(leaseId), binding);
 		this.leaseAttribution.set(String(leaseId), new Map());
 		this.leaseDetails.set(String(leaseId), new Map());
-		const outcome = this.core.post(sid, { t: 'acquireLease', leaseId, sink });
+		const outcome = this.postAndDrain(sid, { t: 'acquireLease', leaseId, sink });
 		if (!outcome.accepted) {
 			this.releaseLease(String(leaseId));
 			this.leaseAttribution.delete(String(leaseId));
 			this.leaseDetails.delete(String(leaseId));
 			throw new Error(`acquireLease rejected: ${outcome.reason}`);
 		}
-		this.drainIntents(sessionId);
 		this.ensureSessionSidecar(sessionId);
 		if (this.connectionUp) {
 			this.postConnectionUp(sessionId);
@@ -211,10 +210,7 @@ export class SessionViewHost extends Disposable {
 		this.leases.delete(leaseId);
 		this.leaseAttribution.delete(leaseId);
 		this.leaseDetails.delete(leaseId);
-		const outcome = this.core.post(binding.sessionId as SessionId, { t: 'releaseLease', leaseId: binding.leaseId });
-		if (outcome.accepted) {
-			this.drainIntents(binding.sessionId);
-		}
+		this.postAndDrain(binding.sessionId as SessionId, { t: 'releaseLease', leaseId: binding.leaseId });
 	}
 
 	post(leaseId: string, msg: ConversationWriteMessage) {
@@ -226,9 +222,8 @@ export class SessionViewHost extends Disposable {
 			return { accepted: false as const, reason: 'not_authenticated' as const };
 		}
 		const fact = writeMessageToCoreFact(msg, binding.leaseId);
-		const outcome = this.core.post(binding.sessionId as SessionId, { t: 'localFact', fact });
+		const outcome = this.postAndDrain(binding.sessionId as SessionId, { t: 'localFact', fact });
 		if (outcome.accepted) {
-			this.drainIntents(binding.sessionId);
 			return { accepted: true as const, correlation: { id: String(outcome.correlation) } };
 		}
 		return { accepted: false as const, reason: outcome.reason };
@@ -239,8 +234,7 @@ export class SessionViewHost extends Disposable {
 		if (!binding) {
 			return;
 		}
-		this.core.post(binding.sessionId as SessionId, { t: 'requestResync', leaseId: binding.leaseId });
-		this.drainIntents(binding.sessionId);
+		this.postAndDrain(binding.sessionId as SessionId, { t: 'requestResync', leaseId: binding.leaseId });
 	}
 
 	async requestDetail(leaseId: string, ref: string): Promise<DetailFetchOutcome> {
@@ -286,11 +280,10 @@ export class SessionViewHost extends Disposable {
 			}
 			this.streams.clear();
 			for (const binding of this.leases.values()) {
-				this.core.post(binding.sessionId as SessionId, {
+				this.postAndDrain(binding.sessionId as SessionId, {
 					t: 'connectionDown',
 					reason: { kind: 'transport' },
 				});
-				this.drainIntents(binding.sessionId);
 			}
 		}
 	}
@@ -298,13 +291,12 @@ export class SessionViewHost extends Disposable {
 	private postConnectionUp(sessionId: string): void {
 		const sid = sessionId as SessionId;
 		this.core.ensureSession(sid);
-		const outcome = this.core.post(sid, {
+		const outcome = this.postAndDrain(sid, {
 			t: 'connectionUp',
 			connectionGeneration: this.connectionGeneration,
 		});
 		if (outcome.accepted) {
-			this.core.post(sid, { t: 'localFact', fact: { kind: 'rootAgentBound', agentId: 'default' } });
-			this.drainIntents(sessionId);
+			this.postAndDrain(sid, { t: 'localFact', fact: { kind: 'rootAgentBound', agentId: 'default' } });
 		}
 	}
 
@@ -322,8 +314,7 @@ export class SessionViewHost extends Disposable {
 
 	private postAgentTreeBound(sessionId: string, fact: AgentTreeBoundFact): void {
 		const sid = sessionId as SessionId;
-		this.core.post(sid, { t: 'localFact', fact });
-		this.drainIntents(sessionId);
+		this.postAndDrain(sid, { t: 'localFact', fact });
 	}
 
 	private scheduleAgentTreeRefresh(sessionId: string, immediate = false): void {
@@ -348,11 +339,10 @@ export class SessionViewHost extends Disposable {
 
 		const teamId = readTeamCreatedTeamId(payload);
 		if (teamId !== undefined) {
-			this.core.post(sessionId as SessionId, {
+			this.postAndDrain(sessionId as SessionId, {
 				t: 'localFact',
 				fact: { kind: 'teamIdBound', teamId },
 			});
-			this.drainIntents(sessionId);
 		}
 
 		if (isMultiAgentStatusPayload(payload)) {
@@ -634,6 +624,14 @@ export class SessionViewHost extends Disposable {
 		return binding;
 	}
 
+	private postAndDrain(sessionId: string, msg: CoreMessage): PostOutcome {
+		const outcome = this.core.post(sessionId as SessionId, msg);
+		if (outcome.accepted) {
+			this.drainIntents(sessionId);
+		}
+		return outcome;
+	}
+
 	private drainIntents(sessionId: string): void {
 		const intents = this.core.takeIntents();
 		for (const intent of intents) {
@@ -653,24 +651,24 @@ export class SessionViewHost extends Disposable {
 				break;
 			}
 			case 'ensureChatStream':
-				this.core.post(sessionId as SessionId, {
+				this.postAndDrain(sessionId as SessionId, {
 					t: 'localFact',
 					fact: { kind: 'chatStreamUp', chatAttemptId: intent.chatAttemptId },
 				});
-				this.drainIntents(sessionId);
 				break;
 			case 'closeChatStream':
-				this.core.post(sessionId as SessionId, {
+				this.postAndDrain(sessionId as SessionId, {
 					t: 'localFact',
 					fact: { kind: 'chatStreamDown', chatAttemptId: intent.chatAttemptId },
 				});
-				this.drainIntents(sessionId);
 				break;
 			default:
 				if (isChatCoreIntent(intent) && intent.do === 'chatStreamWrite') {
 					void this.writeChat(sessionId, intent.correlation, intent.payload);
 				} else if (isHistoryFillCoreIntent(intent)) {
 					void this.fillHistory(sessionId, intent);
+				} else {
+					this.diagnostics.count('intent.unhandled', { do: intent.do });
 				}
 				break;
 		}
@@ -691,12 +689,11 @@ export class SessionViewHost extends Disposable {
 					void this.sendHeartbeatAck(sessionId);
 					continue;
 				}
-				this.core.post(sessionId as SessionId, {
+				this.postAndDrain(sessionId as SessionId, {
 					t: 'streamEvent',
 					attemptId,
 					event: arm,
 				});
-				this.drainIntents(sessionId);
 			}
 		});
 		this.streams.set(key, { attemptId, sessionId, dispose: () => subscription.dispose() });
@@ -719,7 +716,7 @@ export class SessionViewHost extends Disposable {
 	private async writeChat(sessionId: string, correlation: CorrelationRef, payload: unknown): Promise<void> {
 		const sid = sessionId as SessionId;
 		if (!this.connection.isEngineConnected()) {
-			this.core.post(sid, {
+			this.postAndDrain(sid, {
 				t: 'localFact',
 				fact: {
 					kind: 'inputDelivery',
@@ -728,7 +725,6 @@ export class SessionViewHost extends Disposable {
 					errorMessage: 'Engine not connected',
 				},
 			});
-			this.drainIntents(sessionId);
 			return;
 		}
 		try {
@@ -736,7 +732,7 @@ export class SessionViewHost extends Disposable {
 				sessionId,
 				payload: chatPayloadFromWrite(payload),
 			}, () => {
-				this.core.post(sid, {
+				this.postAndDrain(sid, {
 					t: 'localFact',
 					fact: {
 						kind: 'inputDelivery',
@@ -744,10 +740,9 @@ export class SessionViewHost extends Disposable {
 						status: 'written',
 					},
 				});
-				this.drainIntents(sessionId);
 			});
 		} catch {
-			this.core.post(sid, {
+			this.postAndDrain(sid, {
 				t: 'localFact',
 				fact: {
 					kind: 'inputDelivery',
@@ -756,7 +751,6 @@ export class SessionViewHost extends Disposable {
 					errorMessage: 'Chat write failed',
 				},
 			});
-			this.drainIntents(sessionId);
 		}
 	}
 
@@ -775,21 +769,20 @@ export class SessionViewHost extends Disposable {
 				this.captureEnvelopeAttributionHint(sessionId, row.payload);
 				this.captureRangeReplacedCompactHint(sessionId, row.payload);
 			}
-			this.core.post(sid, {
+			this.postAndDrain(sid, {
 				t: 'historyResult',
 				attemptId: intent.attemptId,
 				requestId: intent.requestId,
 				result: { ok: true, envelopes },
 			});
 		} catch {
-			this.core.post(sid, {
+			this.postAndDrain(sid, {
 				t: 'historyResult',
 				attemptId: intent.attemptId,
 				requestId: intent.requestId,
 				result: { ok: false, code: 'transport_failed' },
 			});
 		}
-		this.drainIntents(sessionId);
 	}
 }
 
