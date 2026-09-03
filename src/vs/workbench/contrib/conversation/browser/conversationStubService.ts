@@ -80,6 +80,12 @@ export interface IConversationRosterService {
 	 * Stub / disconnected cache / missing hook returns false.
 	 */
 	forkSubAgent(sessionId: string, options?: { name?: string; task?: string; parentAgentId?: string }): boolean;
+	/**
+	 * AgentService.Kill (terminate SubAgent). Engine-connected forwards unary.
+	 * Empty `agentId` is sent as-is (not defaulted to `root`; ≠ Cancel).
+	 * Stub / disconnected cache / missing hook returns false.
+	 */
+	killSubAgent(sessionId: string, options?: { agentId?: string; force?: boolean }): boolean;
 	deleteSession(sessionId: string): boolean;
 	getTurns(sessionId: string): readonly ConversationStubTurn[];
 	getTrajectoryRecords(sessionId: string, options?: TrajectoryProjectionOptions): readonly ConversationTrajectoryRecord[];
@@ -245,6 +251,10 @@ export class ConversationStubService extends Disposable implements IConversation
 	}
 
 	forkSubAgent(_sessionId: string, _options?: { name?: string; task?: string; parentAgentId?: string }): boolean {
+		return false;
+	}
+
+	killSubAgent(_sessionId: string, _options?: { agentId?: string; force?: boolean }): boolean {
 		return false;
 	}
 
