@@ -1,10 +1,10 @@
 ---
 title: "M7 UI 完成波并行看板"
 type: roadmap
-status: active
+status: completed
 phase: M7
 updated: 2026-09-03
-summary: "M7 UI 代码完成线已尽（P0–P2b / E2 / Q / CS / I2–I5 / K/T/L1）；槽位 idle；余 W1/I6/V；看板仍 active，不因缺测升 completed"
+summary: "M7 UI 代码完成线已尽；关仓归档。余 W1/I6/V 进 deferred-gaps；P5 compile 红未 push，merge 未 parked"
 ---
 
 # M7 UI 完成波并行看板
@@ -16,11 +16,11 @@ summary: "M7 UI 代码完成线已尽（P0–P2b / E2 / Q / CS / I2–I5 / K/T/L
 
 | 槽 | 当前任务 | 状态 | 文件所有权 |
 |----|----------|------|------------|
-| P | P0–P2b 代码已落 | idle @ `5c53e8ba` | `platform/universeAgent/**`（含新建 `browser/`）、`workbench.web.main.ts` / `workbench.desktop.main.ts` 的 UA 注册行、`connectionHub.contribution.ts` 中对 electron-browser 的 import（P0 一次性移出）、`engine-protocol-surface.md` §1b/§2、`universeAgentConnection.test.ts` |
-| A | E2-1 … E2-7 代码已落（含 Web 按 phase/capability 省略桌面控件） | idle @ `5c53e8ba` | `enginePreferencesPane*`、`engine*Section*`、`engineCatalog.ts`、`engineSkillCatalog.ts`、`engineToolProfile.ts`、`engineAgentAgentsMd.ts`、`media/enginePreferencesPane.css`、`connectionPreferencesPane*`、`connectionPreferencesPaneLabels.ts`、`connectionPreferencesPaneSas.ts`、`uaPreferencesPanes.contribution.ts`、`connectionHub.contribution.ts`（除 P0 那一行） |
-| B | Q1 … Q6 + CS-1 … CS-6 代码已落 | idle @ `5c53e8ba` | `conversationLens*`、`conversationLensDockStrings.ts`、`conversationTrajectory*`、`conversationProcessFold*`、`conversationTimelineTree*`、`conversationConfirmationSeat*`、`conversationQuestionSeat*`（Q5a 新建）、`conversationSubAgentOverlay*`、`conversationVisualize*`、`conversationSessionView.ts`、`conversationStubModel.ts`、`conversationStubService.ts`、`conversationStubFrameSource.ts`、`conversationEngineRosterService.ts`、`conversationRosterStorage.ts`、`conversationIdentityStrip*`、`conversationAccessibility.ts`、`conversationEditorPane*`、`conversationEditor.contribution.ts`、`conversation.contribution.ts`（chat tab 命令注册、通知 contribution 挂载）、`conversationNotifications.contribution.ts`（CS-3 新建）、`media/conversationLens.css`、`uaClientSettings*`、`settingsLayout.ts` UA 段、`settingsUaToc.test.ts`；`conversationPart.ts` 的 `focus()` 一处经看板转交给 CS-1 |
-| C | I2–I5 / I3a / I3b / K1 / K2 / T1 / L1 代码已落；余 W1 冒烟、I6 等发布方 | idle @ `5c53e8ba` | `product.json`、`platform/product/common/product.ts` 回退、`platform/environment/node/userDataPath.ts`（开发态目录名）、`resources/**`、`build/**` 品牌产物与图标脚本、`workbench/browser/media/code-icon.svg`、`layoutActions.ts` 四钮键位、`workbench/browser/parts/conversation/media/ua-common.css`（T1 公共规则）、`contrib/sources/**` 中 K2 触及的文件（新建 `sourcesReviewCommands.contribution.ts`、`sources.contribution.ts` 的 import 一行、`sourcesReviewHostService.ts` / `sourcesTabsHost.ts` / `sourcesReviewList.ts` 为暴露选中行而做的接口扩展）、迁移入口 contrib（I5 新建，注册在 `workbench.desktop.main.ts`，不碰 P 的 UA 行）、`platform/product/common/universeAgentScheme.ts`（I2 新建，下沉 `UNIVERSE_AGENT_SCHEME`）、`contrib/welcomeOnboarding` / `welcomeWalkthrough` / `issueReporterOverlay.ts` / `extensions.contribution.ts` 中 I4 的**字面文案替换**（仅字符串，不改逻辑）、`universeAgentDeepLink.contribution.ts`、Web 冒烟脚本与 `d15-evidence/` |
-| V | 验证债与 evidence | active | test/evidence 文件；默认不改 P/A/B/C 生产文件 |
+| P | P0–P2b 代码已落 | idle @ `861e509f` | `platform/universeAgent/**`（含新建 `browser/`）、`workbench.web.main.ts` / `workbench.desktop.main.ts` 的 UA 注册行、`connectionHub.contribution.ts` 中对 electron-browser 的 import（P0 一次性移出）、`engine-protocol-surface.md` §1b/§2、`universeAgentConnection.test.ts` |
+| A | E2-1 … E2-7 代码已落（含 Web 按 phase/capability 省略桌面控件） | idle @ `861e509f` | `enginePreferencesPane*`、`engine*Section*`、`engineCatalog.ts`、`engineSkillCatalog.ts`、`engineToolProfile.ts`、`engineAgentAgentsMd.ts`、`media/enginePreferencesPane.css`、`connectionPreferencesPane*`、`connectionPreferencesPaneLabels.ts`、`connectionPreferencesPaneSas.ts`、`uaPreferencesPanes.contribution.ts`、`connectionHub.contribution.ts`（除 P0 那一行） |
+| B | Q1 … Q6 + CS-1 … CS-6 代码已落 | idle @ `861e509f` | `conversationLens*`、`conversationLensDockStrings.ts`、`conversationTrajectory*`、`conversationProcessFold*`、`conversationTimelineTree*`、`conversationConfirmationSeat*`、`conversationQuestionSeat*`（Q5a 新建）、`conversationSubAgentOverlay*`、`conversationVisualize*`、`conversationSessionView.ts`、`conversationStubModel.ts`、`conversationStubService.ts`、`conversationStubFrameSource.ts`、`conversationEngineRosterService.ts`、`conversationRosterStorage.ts`、`conversationIdentityStrip*`、`conversationAccessibility.ts`、`conversationEditorPane*`、`conversationEditor.contribution.ts`、`conversation.contribution.ts`（chat tab 命令注册、通知 contribution 挂载）、`conversationNotifications.contribution.ts`（CS-3 新建）、`media/conversationLens.css`、`uaClientSettings*`、`settingsLayout.ts` UA 段、`settingsUaToc.test.ts`；`conversationPart.ts` 的 `focus()` 一处经看板转交给 CS-1 |
+| C | I2–I5 / I3a / I3b / K1 / K2 / T1 / L1 代码已落；余 W1 冒烟、I6 等发布方 | idle @ `861e509f` | `product.json`、`platform/product/common/product.ts` 回退、`platform/environment/node/userDataPath.ts`（开发态目录名）、`resources/**`、`build/**` 品牌产物与图标脚本、`workbench/browser/media/code-icon.svg`、`layoutActions.ts` 四钮键位、`workbench/browser/parts/conversation/media/ua-common.css`（T1 公共规则）、`contrib/sources/**` 中 K2 触及的文件（新建 `sourcesReviewCommands.contribution.ts`、`sources.contribution.ts` 的 import 一行、`sourcesReviewHostService.ts` / `sourcesTabsHost.ts` / `sourcesReviewList.ts` 为暴露选中行而做的接口扩展）、迁移入口 contrib（I5 新建，注册在 `workbench.desktop.main.ts`，不碰 P 的 UA 行）、`platform/product/common/universeAgentScheme.ts`（I2 新建，下沉 `UNIVERSE_AGENT_SCHEME`）、`contrib/welcomeOnboarding` / `welcomeWalkthrough` / `issueReporterOverlay.ts` / `extensions.contribution.ts` 中 I4 的**字面文案替换**（仅字符串，不改逻辑）、`universeAgentDeepLink.contribution.ts`、Web 冒烟脚本与 `d15-evidence/` |
+| V | 验证债与 evidence；看板结束后仍走 deferred-gaps | released | test/evidence 文件；默认不改 P/A/B/C 生产文件 |
 
 `conversationSessionStatus*.ts`（StatusBar 文案）默认归 C；A 的 E2-7 需要改 Engine 文案时先经看板转交。
 
@@ -67,4 +67,4 @@ summary: "M7 UI 代码完成线已尽（P0–P2b / E2 / Q / CS / I2–I5 / K/T/L
 
 ## 完成
 
-P 槽五刀与三个 UI 槽切片全部代码落地后，本看板转 `completed` 并移入 `dev/parallel/archive/`；V 槽可继续清债，不影响看板结束，但 PRD 状态仍取决于证据。
+**已归档 @2026-09-03。** P 槽五刀与三个 UI 槽切片代码已落地；V / W1 / I6 走 [deferred-gaps](../../progress/deferred-gaps.md)。PRD 仍 `accepted`。关仓 P5 compile 红，未 push，不得宣称 wave 完成。

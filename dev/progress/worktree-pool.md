@@ -2,16 +2,16 @@
 title: "Loop 并行工位池（本仓）"
 type: progress
 status: accepted
-phase: M5
+phase: M7
 created: 2026-08-30
-updated: 2026-09-02
-summary: "仓外 vscode-WorkTrees 工位表；merge + A–D 全 idle；集成分支 HEAD @ c9716e28"
+updated: 2026-09-03
+summary: "仓外 vscode-WorkTrees；merge + A–D idle；集成分支 agent-ide @ 861e509f；P5 compile 红未 parked"
 ---
 
 # Loop 并行工位池（本仓）
 
-> **通用规则 SSOT**：[`dev/loop/worktrees.md`](../loop/worktrees.md)（槽语义、合并流程、门禁）。  
-> **本文**：本仓路径、分支、槽占用快照（Loop tick 更新；**不**改套件正文）。
+> **通用规则 SSOT**：[`dev/loop/worktrees.md`](../loop/worktrees.md)。  
+> **本文**：本仓路径、分支、槽占用快照。
 
 ## 路径与基线
 
@@ -20,31 +20,29 @@ summary: "仓外 vscode-WorkTrees 工位表；merge + A–D 全 idle；集成分
 | 主仓 | `/home/clarence/Projects/Agents/vscode` |
 | 工位根 `$WT_ROOT` | `/home/clarence/Projects/Agents/vscode-WorkTrees` |
 | 集成分支（当前） | **`agent-ide`**（merge 槽对齐此分支；非上游 `main`） |
-| 集成本次 HEAD | 对齐 `agent-ide` **`c9716e28`** |
-| 工位池 compile 基线 | **`a047fe35`** @ merge 槽 · `npm run compile` **PASS**（0 errors，~25s，2026-09-02） |
+| 集成本次 HEAD | 本地 `861e509f`（关仓 P7 文档提交另计） |
+| 工位池 compile | **`861e509f`** @ merge · `npm run compile` **FAIL**（2026-09-03，~82× TS，缺 `@grpc/grpc-js`） |
+| 上次 compile 绿 | **`a047fe35`** @ merge · PASS（2026-09-02） |
 
-## 槽位表（2026-09-02 · 全 idle）
+## 槽位表（2026-09-03 · 关仓）
 
 | 槽 | 路径 | 分支 | 状态 | 切片 | 互斥域 |
 |:---|:-----|:-----|:-----|:-----|--------|
-| merge | `vscode-WorkTrees/merge` | `loop/merge` | **idle** | — | — |
+| merge | `vscode-WorkTrees/merge` | `loop/merge` | **未 parked** | — | — |
 | A | `vscode-WorkTrees/A` | `loop/A` | **idle** | — | — |
 | B | `vscode-WorkTrees/B` | `loop/B` | **idle** | — | — |
 | C | `vscode-WorkTrees/C` | `loop/C` | **idle** | — | — |
 | D | `vscode-WorkTrees/D` | `loop/D` | **idle** | — | — |
 
-并行 slice 归属记在 `status.md` 或 parallel board；**槽字母不绑定模块**。
+并行归属见 [status.md](status.md)。M7 看板已归档：[m7-ui-completion](../parallel/archive/m7-ui-completion.md)。
 
 ## 扩容（E–J）
-
-套件上限为 **1 merge + 10 字母槽**（`A`…`J`）。本仓首建仅 **A–D**。需扩容时，在基线绿且 `git worktree list` 确认无重复路径后：
 
 ```bash
 REPO_ROOT="/home/clarence/Projects/Agents/vscode"
 WT_ROOT="/home/clarence/Projects/Agents/vscode-WorkTrees"
 BASE="agent-ide"
 SLOT=E
-
 git -C "$REPO_ROOT" worktree add "$WT_ROOT/$SLOT" -b "loop/$SLOT" "$BASE"
 ```
 

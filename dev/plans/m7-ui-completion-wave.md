@@ -15,7 +15,7 @@ summary: "M7 UI 代码完成线已尽（P0–P2b / E2 / Q / CS / I2–I5 / K/T/L
 > [PRD-019](../../docs/product/requirements.md#prd-019-web--远程窗口一致性)、
 > [PRD-025](../../docs/product/requirements.md#prd-025-engine-设置完整性)、
 > [PRD-026](../../docs/product/requirements.md#prd-026-client-设置完整性)，以及 Conversation 既有 PRD。
-> **并行看板：** [m7-ui-completion](../parallel/active/m7-ui-completion.md)。
+> **并行看板：** [m7-ui-completion](../parallel/archive/m7-ui-completion.md)（已归档）。
 > **引擎面依据：** [engine-protocol-surface §1b / §2 / §4](../../docs/reference/universe-agent/engine-protocol-surface.md)（2026-09-02 对照 `UniverseAgent/grpc-api/src/main/proto` 核对）。
 
 ## 1. 目标
