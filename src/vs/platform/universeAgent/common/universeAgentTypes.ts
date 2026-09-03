@@ -317,6 +317,17 @@ export interface UniverseAgentListSnapshotsResult {
 	readonly snapshots: readonly UniverseAgentSessionSnapshotInfo[];
 }
 
+/** AgentService.RestoreSnapshot — restore a session checkpoint (≠ ListSnapshots / SessionBar History). */
+export interface UniverseAgentRestoreSnapshotRequest {
+	readonly sessionId: string;
+	readonly snapshotId: string;
+}
+
+export interface UniverseAgentRestoreSnapshotResult {
+	readonly ok: boolean;
+	readonly message?: string;
+}
+
 export interface UniverseAgentGetHistoryRequest {
 	readonly sessionId: string;
 	readonly cursorSeq?: string;
