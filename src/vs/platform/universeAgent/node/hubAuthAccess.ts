@@ -10,7 +10,7 @@ export function isHubControlPlaneAuthDenial(code: string): boolean {
 }
 
 export function isHubRefreshAuthFailure(result: HubRefreshResult): boolean {
-	return result.code === 'hub_auth_http_failed' && /\bHTTP (401|403)\b/.test(result.reason);
+	return !result.ok && result.code === 'hub_auth_http_failed' && /\bHTTP (401|403)\b/.test(result.reason);
 }
 
 export type HubAccessRetryOutcome<T, E extends { readonly ok: false; readonly code: string; readonly reason: string }> =

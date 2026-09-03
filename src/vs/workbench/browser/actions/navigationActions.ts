@@ -5,7 +5,7 @@
 
 import { localize2 } from '../../../nls.js';
 import { IEditorGroupsService, GroupDirection, GroupLocation, IFindGroupScope } from '../../services/editor/common/editorGroupsService.js';
-import { getDefaultPartFocusTarget, getNominalPartFocusNeighbour, IWorkbenchLayoutService, Parts, resolveVisiblePartFocusNeighbour } from '../../services/layout/browser/layoutService.js';
+import { getDefaultPartFocusTarget, IWorkbenchLayoutService, Parts, resolveVisiblePartFocusNeighbour } from '../../services/layout/browser/layoutService.js';
 import { Action2, IAction2Options, registerAction2 } from '../../../platform/actions/common/actions.js';
 import { Categories } from '../../../platform/action/common/actionCommonCategories.js';
 import { Direction } from '../../../base/browser/ui/grid/grid.js';

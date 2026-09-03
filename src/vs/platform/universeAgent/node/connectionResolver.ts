@@ -198,6 +198,14 @@ export class ConnectionResolver {
 	}
 
 	private async resolveLoopback(profile: ConnectionProfile): Promise<ConnectionResolveResult> {
+		if (profile.target.kind !== 'loopback') {
+			return {
+				ok: false,
+				code: 'trust_missing',
+				reason: 'expected loopback connection target',
+				allowRelayFallback: false,
+			};
+		}
 		const socketOrPort = profile.target.socketOrPort;
 		const authority = typeof socketOrPort === 'number' ? `127.0.0.1:${socketOrPort}` : String(socketOrPort);
 		const [host, portRaw] = authority.includes(':') ? authority.split(':') : [authority, ''];
@@ -222,6 +230,14 @@ export class ConnectionResolver {
 	}
 
 	private async resolveDirectAddress(profile: ConnectionProfile): Promise<ConnectionResolveResult> {
+		if (profile.target.kind !== 'directAddress') {
+			return {
+				ok: false,
+				code: 'trust_missing',
+				reason: 'expected directAddress connection target',
+				allowRelayFallback: false,
+			};
+		}
 		const { host, port } = profile.target;
 		if (!profile.allowPrivateNetwork && isPrivateOrLoopbackHost(host)) {
 			return {
@@ -259,6 +275,14 @@ export class ConnectionResolver {
 	}
 
 	private async resolveHubDevice(profile: ConnectionProfile, forceNewTicket: boolean): Promise<ConnectionResolveResult> {
+		if (profile.target.kind !== 'hubDevice') {
+			return {
+				ok: false,
+				code: 'trust_missing',
+				reason: 'expected hubDevice connection target',
+				allowRelayFallback: true,
+			};
+		}
 		const { hubBaseUrl, hubDeviceId } = profile.target;
 		const allowRelayFallback = true;
 
@@ -294,7 +318,7 @@ export class ConnectionResolver {
 			accessToken => this.listDevices({ hubBaseUrl, accessToken }, this.http),
 		);
 
-		if ('authExpired' in directoryAccess && directoryAccess.authExpired) {
+		if ('authExpired' in directoryAccess) {
 			return {
 				ok: false,
 				code: 'hub_auth_expired',
@@ -353,7 +377,9 @@ export class ConnectionResolver {
 			ticket = this.readCachedTicket(cacheKey, now);
 		}
 		if (!ticket) {
-			const ticketResult = await withHubAccessRetry(
+			type IssuedTicket = Extract<IssueHubRelayTicketResult, { ok: true }>;
+			type TicketDenial = Extract<IssueHubRelayTicketResult, { ok: false }>;
+			const ticketResult = await withHubAccessRetry<IssuedTicket, TicketDenial>(
 				{
 					store: this.deps.hubSessionStore,
 					hubBaseUrl,
@@ -366,7 +392,7 @@ export class ConnectionResolver {
 					clientIdentityId: identity.identity.clientIdentityId,
 					accessToken,
 					nowMs: now,
-				}, this.http).then(issued => {
+				}, this.http).then((issued: IssueHubRelayTicketResult): { readonly ok: true; readonly value: IssuedTicket } | TicketDenial => {
 					if (!issued.ok) {
 						return issued;
 					}
@@ -374,7 +400,7 @@ export class ConnectionResolver {
 				}),
 			);
 
-			if ('authExpired' in ticketResult && ticketResult.authExpired) {
+			if ('authExpired' in ticketResult) {
 				return {
 					ok: false,
 					code: 'hub_auth_expired',
@@ -426,6 +452,14 @@ export class ConnectionResolver {
 		accessToken: string,
 		allowRelayFallback: boolean,
 	): Promise<ConnectionResolveResult> {
+		if (profile.target.kind !== 'hubDevice') {
+			return {
+				ok: false,
+				code: 'trust_missing',
+				reason: 'expected hubDevice connection target',
+				allowRelayFallback,
+			};
+		}
 		const { hubBaseUrl, hubDeviceId } = profile.target;
 
 		const directory = await this.listDevices({ hubBaseUrl, accessToken });

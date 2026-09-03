@@ -32,6 +32,7 @@ import {
 	getHubDirectoryBannerLabel,
 	SAS_FORBIDDEN_BUTTON_PATTERNS,
 } from '../../browser/connectionPreferencesPaneLabels.js';
+import { createConversationConnectionTestStub } from '../common/conversationConnectionTestStub.js';
 import { promptSasConfirmDialog } from '../../browser/connectionPreferencesPaneSas.js';
 import { getConnectionPhaseStatusBarText, getConversationEngineStatusText } from '../../browser/conversationSessionStatus.js';
 import { Dimension } from '../../../../../base/browser/dom.js';
@@ -79,54 +80,7 @@ suite('ConnectionPreferencesPane', () => {
 	}
 
 	function createConnectionStub(overrides: Partial<IUniverseAgentConnection> = {}): IUniverseAgentConnection {
-		return {
-			_serviceBrand: undefined,
-			isEngineConnected: () => false,
-			getConnectionPhase: () => ({ kind: 'disconnected' }),
-			getTransportState: () => 'idle',
-			getConnectionSnapshot: () => ({
-				transport: 'idle',
-				pairingPending: false,
-				channelAlive: false,
-				capabilities: { methods: [], toolFamilies: [] },
-			}),
-			getCapabilitySnapshot: () => ({ methods: [], toolFamilies: [] }),
-			onDidChangeConnection: Event.None,
-			onDidFileMutation: Event.None,
-			onDidTurnSettle: Event.None,
-			connect: async () => ({ sessionToken: undefined, workDir: undefined, methods: [] }),
-			connectProfile: async () => ({ ok: false, code: 'transport_failed', reason: 'stub' }),
-			disconnect: async () => { },
-			listSessions: async () => ({ sessions: [] }),
-			createSession: async () => ({ sessionId: 's' }),
-			deleteSession: async () => { },
-			getHistory: async () => ({ events: [] }),
-			subscribeSessionEventStream: () => ({ dispose: () => { } }),
-			chat: async () => { },
-			listSkills: async () => ({ skills: [] }),
-			setSkillEnabled: async () => ({ ok: true }),
-			getSkillInfo: async () => ({ name: '', content: '', source: 'unknown', enabled: false }),
-			listAgentProfiles: async () => ({ profiles: [] }),
-			saveAgentProfile: async (request) => ({ profile: request.profile }),
-			deleteAgentProfile: async () => ({ ok: true }),
-			resetAgentProfile: async () => ({ ok: true }),
-			listMcpServers: async () => ({ servers: [] }),
-			getMcpServerStatuses: async () => ({ statuses: [] }),
-			getMcpServerTools: async () => ({ tools: [] }),
-			listPlugins: async () => ({ plugins: [] }),
-			getPluginInfo: async () => ({ summary: { id: '', displayName: '', version: '', source: '', hookCount: 0, status: 'unknown' as const }, hooks: [] }),
-			enablePlugin: async () => ({ plugin: { id: '', displayName: '', version: '', source: '', hookCount: 0, status: 'unknown' as const } }),
-			reloadPlugin: async () => ({ plugin: { id: '', displayName: '', version: '', source: '', hookCount: 0, status: 'unknown' as const } }),
-			unloadPlugin: async () => ({ removedHookCount: 0 }),
-			scanNewPlugins: async () => ({ newPlugins: [], skippedCount: 0 }),
-			toggleMcpServer: async () => ({ ok: true }),
-			addMcpServer: async () => ({ ok: true }),
-			updateMcpServer: async () => ({ ok: true }),
-			removeMcpServer: async () => ({ ok: true }),
-			listTools: async () => ({ tools: [] }),
-			listModels: async () => ({ models: [] }),
-			...overrides,
-		};
+		return createConversationConnectionTestStub(overrides);
 	}
 
 	function getPaneList(pane: ConnectionPreferencesPane): WorkbenchList<IConnectionProfileEntry> {

@@ -27,7 +27,6 @@ import {
 } from './conversationTrajectoryModel.js';
 import {
 	buildTrajectoryOverviewSegments,
-	TrajectoryOverviewSegment,
 } from './conversationTrajectoryOverview.js';
 import {
 	conversationTrajectoryCompactedDiscardedNotice,
@@ -205,7 +204,7 @@ class TrajectoryRecordRenderer implements IListRenderer<TrajectoryTableDisplayIt
 
 	constructor(
 		private readonly host: ITrajectoryTableHost,
-		private readonly renderDisposables: DisposableStore,
+		_renderDisposables: DisposableStore,
 	) { }
 
 	renderTemplate(container: HTMLElement): ITrajectoryRecordTemplateData {
@@ -324,7 +323,6 @@ export class ConversationTrajectory extends Disposable implements ITrajectoryTab
 	private readonly overviewToggle: HTMLButtonElement;
 	private readonly overviewTrack: HTMLElement;
 	private overviewExpanded = true;
-	private overviewSegments: readonly TrajectoryOverviewSegment[] = [];
 	private readonly detailInspector = new TrajectoryDetailInspectorModel();
 	private readonly searchInput: HTMLInputElement;
 	private readonly limitNotice: HTMLElement;
@@ -573,7 +571,6 @@ export class ConversationTrajectory extends Disposable implements ITrajectoryTab
 		this.overviewDisposables.clear();
 		clearNode(this.overviewTrack);
 		const { segments } = buildTrajectoryOverviewSegments(this.currentRecords);
-		this.overviewSegments = segments;
 		this.overviewHost.hidden = segments.length === 0;
 		if (segments.length === 0) {
 			return;

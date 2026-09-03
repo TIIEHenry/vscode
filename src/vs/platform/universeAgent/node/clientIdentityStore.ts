@@ -7,7 +7,7 @@ import { createHash, createPrivateKey, generateKeyPairSync, type KeyObject } fro
 import { IEncryptionMainService } from '../../encryption/common/encryptionService.js';
 import { IApplicationStorageMainService } from '../../storage/electron-main/storageMainService.js';
 import { StorageScope, StorageTarget } from '../../storage/common/storage.js';
-import { createEd25519DeviceAuthSigner, type Ed25519PrivateKeyMaterial } from './deviceGrant/device-grant-crypto.js';
+import { createEd25519DeviceAuthSigner, type DeviceAuthTranscriptInput, type Ed25519PrivateKeyMaterial } from './deviceGrant/device-grant-crypto.js';
 import type { ClientIdentityMaterial, ClientIdentityStoreState, IClientIdentityStore } from './clientIdentityTypes.js';
 
 export type { ClientIdentityMaterial, ClientIdentityStoreState, IClientIdentityStore } from './clientIdentityTypes.js';

@@ -59,6 +59,8 @@ import type {
 	UniverseAgentTeamTaskInfo,
 } from '../../common/universeAgentTypes.js';
 
+export type { UniverseAgentConnectResult } from '../../common/universeAgentTypes.js';
+
 export interface UniverseAgentAuthNonceRequest {
 	readonly clientIdentityId: string;
 	readonly clientPublicKey: Uint8Array;

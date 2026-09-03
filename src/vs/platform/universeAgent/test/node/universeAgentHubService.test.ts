@@ -53,9 +53,10 @@ suite('UniverseAgentHubService startup restore', () => {
 		await service.whenStartupRestoreComplete;
 
 		assert.strictEqual(service.getActiveHubBaseUrl(), HUB_BASE);
-		assert.strictEqual(service.getAuthStatus().kind, 'signedIn');
-		if (service.getAuthStatus().kind === 'signedIn') {
-			assert.strictEqual(service.getAuthStatus().email, 'user@example.com');
+		const status = service.getAuthStatus();
+		assert.strictEqual(status.kind, 'signedIn');
+		if (status.kind === 'signedIn') {
+			assert.strictEqual(status.email, 'user@example.com');
 		}
 		service.dispose();
 	});

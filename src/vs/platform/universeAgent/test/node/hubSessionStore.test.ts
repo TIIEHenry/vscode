@@ -50,6 +50,8 @@ class TestEncryptionService implements IEncryptionMainService {
 class TestApplicationStorageMainService implements Pick<IApplicationStorageMainService, 'get' | 'store' | 'remove'> {
 	private readonly data = new Map<string, string>();
 
+	get(key: string, scope: StorageScope, fallbackValue: string): string;
+	get(key: string, scope: StorageScope, fallbackValue?: string): string | undefined;
 	get(key: string, _scope: StorageScope, fallbackValue?: string): string | undefined {
 		return this.data.get(key) ?? fallbackValue;
 	}

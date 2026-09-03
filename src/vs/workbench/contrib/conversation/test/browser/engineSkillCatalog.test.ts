@@ -27,28 +27,28 @@ suite('engineSkillCatalog (E1)', () => {
 		assert.strictEqual(shouldHideSkillCatalogRows('unsupported'), true);
 	});
 
-	test('connected + UNKNOWN => no catalog rows', () => {
-		assert.strictEqual(resolveEngineSkillsPaneMode(true, 'UNKNOWN'), 'unknown');
-		assert.strictEqual(shouldHideSkillCatalogRows('unknown'), true);
+	test('connected + UNKNOWN => loading mode hides catalog rows', () => {
+		assert.strictEqual(resolveEngineSkillsPaneMode(true, 'UNKNOWN'), 'loading');
+		assert.strictEqual(shouldHideSkillCatalogRows('loading'), true);
 	});
 
-	test('connected + SUPPORTED => supported mode shows catalog rows', () => {
-		assert.strictEqual(resolveEngineSkillsPaneMode(true, 'SUPPORTED'), 'supported');
-		assert.strictEqual(shouldHideSkillCatalogRows('supported'), false);
+	test('connected + SUPPORTED + listed items => ready mode shows catalog rows', () => {
+		assert.strictEqual(resolveEngineSkillsPaneMode(true, 'SUPPORTED', { kind: 'success', itemCount: 1 }), 'ready');
+		assert.strictEqual(shouldHideSkillCatalogRows('ready'), false);
 	});
 
-	test('disconnect after connect must not keep supported mode when disconnected (§8.3 #5)', () => {
+	test('disconnect after connect must not keep ready mode when disconnected (§8.3 #5)', () => {
 		const capabilities: UniverseAgentConnectionSnapshot['capabilities'] = {
 			...createEmptyCapabilitySnapshot(),
 			skills: { support: 'SUPPORTED' },
 		};
 
-		assert.strictEqual(resolveEngineSkillsPaneMode(true, capabilities.skills.support), 'supported');
-		assert.strictEqual(resolveEngineSkillsPaneMode(false, capabilities.skills.support), 'disconnected');
+		assert.strictEqual(resolveEngineSkillsPaneMode(true, capabilities.skills.support, { kind: 'success', itemCount: 1 }), 'ready');
+		assert.strictEqual(resolveEngineSkillsPaneMode(false, capabilities.skills.support, { kind: 'success', itemCount: 1 }), 'disconnected');
 		assert.strictEqual(shouldHideSkillCatalogRows('disconnected'), true);
 	});
 
-	test('connection snapshot transition clears supported rendering path', () => {
+	test('connection snapshot transition clears ready rendering path', () => {
 		const capabilities: UniverseAgentConnectionSnapshot['capabilities'] = {
 			...createEmptyCapabilitySnapshot(),
 			skills: { support: 'SUPPORTED' },
@@ -59,15 +59,17 @@ suite('engineSkillCatalog (E1)', () => {
 		const getMode = () => resolveEngineSkillsPaneMode(
 			connected,
 			capabilities.skills.support,
+			{ kind: 'success', itemCount: 1 },
 		);
 
-		assert.strictEqual(getMode(), 'supported');
+		assert.strictEqual(getMode(), 'ready');
 
 		connected = false;
 		onDidChangeConnection.fire({
 			transport: 'idle',
 			pairingPending: false,
 			channelAlive: false,
+			sharedFsRootSent: false,
 			capabilities,
 		});
 

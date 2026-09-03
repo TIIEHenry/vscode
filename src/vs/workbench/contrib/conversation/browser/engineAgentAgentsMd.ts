@@ -90,7 +90,13 @@ export function parseAgentsMarkdown(content: string): Partial<UniverseAgentAgent
 
 	const frontmatter = parseSimpleFrontmatter(match[1]);
 	const body = match[2];
-	const updates: Partial<UniverseAgentAgentProfileDetail> = { systemPrompt: body };
+	const updates: {
+		systemPrompt: string;
+		summary?: string;
+		usage?: string;
+		detailLevel?: string;
+		description?: string;
+	} = { systemPrompt: body };
 
 	if (frontmatter.summary !== undefined) {
 		updates.summary = frontmatter.summary;

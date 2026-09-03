@@ -226,6 +226,7 @@ suite('conversationReviewEntry (R4b)', () => {
 				workDir: root.fsPath,
 				pairingPending: false,
 				channelAlive: false,
+				sharedFsRootSent: false,
 				capabilities: {} as never,
 			}),
 			onDidFileMutation: mutationEmitter.event,
@@ -259,6 +260,7 @@ suite('conversationReviewEntry (R4b)', () => {
 			workDir: root.fsPath,
 			pairingPending: false,
 			channelAlive: false,
+			sharedFsRootSent: false,
 			capabilities: {} as never,
 		});
 		assert.deepStrictEqual(service.getReviewNavForSession('session-1'), beforeDisconnect);

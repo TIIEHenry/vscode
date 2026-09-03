@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { Event } from '../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import type {
 	UniverseAgentChatRequest,
@@ -24,6 +23,7 @@ import type {
 	UniverseAgentSaveSkillContentResult,
 } from '../../common/universeAgentTypes.js';
 import { GrpcStatusCode, IUniverseAgentGrpcTransport, UniverseAgentAuthNonceRequest, UniverseAgentAuthNonceResult, UniverseAgentDeviceAuthConnectRequest, UniverseAgentGrpcServices, UniverseAgentTransportError } from '../../node/grpc/grpcTransport.js';
+import type { IUniverseAgentConnection } from '../../common/universeAgentConnection.js';
 import { UniverseAgentConnectionService } from '../../node/universeAgentConnectionService.js';
 import { InMemoryHubSessionStore } from '../../node/hubSessionStore.js';
 
@@ -415,8 +415,9 @@ suite('UniverseAgentConnectionService', () => {
 
 		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
 
-		assert.strictEqual(typeof service.saveSkillContent, 'function');
-		const result = await service.saveSkillContent!({
+		const connection: IUniverseAgentConnection = service;
+		assert.strictEqual(typeof connection.saveSkillContent, 'function');
+		const result = await connection.saveSkillContent!({
 			skillName: 'demo-skill',
 			content: '# Demo',
 		});
@@ -445,7 +446,8 @@ suite('UniverseAgentConnectionService', () => {
 
 		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
 
-		assert.strictEqual(service.saveSkillContent, undefined);
+		const connection: IUniverseAgentConnection = service;
+		assert.strictEqual(connection.saveSkillContent, undefined);
 		service.dispose();
 	});
 
@@ -472,13 +474,14 @@ suite('UniverseAgentConnectionService', () => {
 
 		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
 
-		const result = await service.saveSkillContent!({
+		const connection: IUniverseAgentConnection = service;
+		const result = await connection.saveSkillContent!({
 			skillName: 'demo-skill',
 			content: '# Demo',
 		});
 		assert.strictEqual(result.ok, false);
 		assert.strictEqual(result.reason, 'UNIMPLEMENTED');
-		assert.strictEqual(service.saveSkillContent, undefined);
+		assert.strictEqual(connection.saveSkillContent, undefined);
 		service.dispose();
 	});
 });

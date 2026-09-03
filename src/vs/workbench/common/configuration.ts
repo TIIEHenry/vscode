@@ -58,7 +58,7 @@ export const Extensions = {
 	ConfigurationMigration: 'base.contributions.configuration.migration'
 };
 
-type ConfigurationValue = { value: unknown | undefined /* Remove */ };
+export type ConfigurationValue = { value: unknown | undefined /* Remove */ };
 export type ConfigurationKeyValuePairs = [string, ConfigurationValue][];
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type ConfigurationMigrationFn = (value: any, valueAccessor: (key: string) => any) => ConfigurationValue | ConfigurationKeyValuePairs | Promise<ConfigurationValue | ConfigurationKeyValuePairs>;

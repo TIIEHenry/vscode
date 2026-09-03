@@ -5,7 +5,7 @@ status: accepted
 phase: M7
 created: 2026-08-30
 updated: 2026-09-03
-summary: "仓外 vscode-WorkTrees；merge + A–D idle；集成分支 agent-ide @ 861e509f；P5 compile 红未 parked"
+summary: "仓外 vscode-WorkTrees；merge + A–D idle；P5 compile PASS @ Node 24.18.0"
 ---
 
 # Loop 并行工位池（本仓）
@@ -20,9 +20,8 @@ summary: "仓外 vscode-WorkTrees；merge + A–D idle；集成分支 agent-ide 
 | 主仓 | `/home/clarence/Projects/Agents/vscode` |
 | 工位根 `$WT_ROOT` | `/home/clarence/Projects/Agents/vscode-WorkTrees` |
 | 集成分支（当前） | **`agent-ide`**（merge 槽对齐此分支；非上游 `main`） |
-| 集成本次 HEAD | 本地 `861e509f`（关仓 P7 文档提交另计） |
-| 工位池 compile | **`861e509f`** @ merge · `npm run compile` **FAIL**（2026-09-03，~82× TS，缺 `@grpc/grpc-js`） |
-| 上次 compile 绿 | **`a047fe35`** @ merge · PASS（2026-09-02） |
+| 集成本次 HEAD | 见本提交（compile 复绿后的 merge HEAD） |
+| 工位池 compile | **本提交** @ merge · `npm run compile` **PASS**（2026-09-03，Node v24.18.0，0 errors） |
 
 ## 槽位表（2026-09-03 · 关仓）
 

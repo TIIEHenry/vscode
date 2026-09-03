@@ -37,6 +37,7 @@ const FIXTURE_DEVICE: HubDevice = {
 type TestIdentityMaterial = {
 	readonly clientIdentityId: string;
 	readonly clientPublicKey: Uint8Array;
+	readonly privateKeyPkcs8: Uint8Array;
 };
 
 function mintTestIdentity(): TestIdentityMaterial {
@@ -44,7 +45,7 @@ function mintTestIdentity(): TestIdentityMaterial {
 	const spki = publicKey.export({ type: 'spki', format: 'der' });
 	const clientPublicKey = Uint8Array.from(spki.subarray(spki.length - 32));
 	const clientIdentityId = createHash('sha256').update(clientPublicKey).digest('hex');
-	return { clientIdentityId, clientPublicKey };
+	return { clientIdentityId, clientPublicKey, privateKeyPkcs8: new Uint8Array() };
 }
 
 class TestClientIdentityStore implements IClientIdentityStore {
@@ -337,7 +338,7 @@ suite('ConnectionResolver', () => {
 			profile: directAddressProfile(),
 			issueRelayTicketFn: async () => {
 				issueCount++;
-				return { ok: false, code: 'hub_ticket_failed', reason: 'must not issue ticket for direct address' };
+				return { ok: false, code: 'hub_ticket_http_failed', reason: 'must not issue ticket for direct address' };
 			},
 		});
 
@@ -497,7 +498,7 @@ suite('ConnectionResolver', () => {
 			http,
 			issueRelayTicketFn: async () => ({
 				ok: false as const,
-				code: 'hub_ticket_failed',
+				code: 'hub_ticket_http_failed',
 				reason: 'must not issue ticket when auth expired',
 			}),
 			nowMs: () => FIXTURE_NOW_MS + 1000,

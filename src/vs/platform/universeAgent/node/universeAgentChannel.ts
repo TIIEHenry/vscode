@@ -5,7 +5,7 @@
 
 import * as grpc from '@grpc/grpc-js';
 import { createPinnedServerIdentityCheck, type PinnedTlsPlanInput, verifyPinnedTlsPlan } from './deviceGrant/tls-pin.js';
-import { createPinnedTlsSecureContext, derToPemCertificate } from './pinnedTlsChannel.js';
+import { createPinnedTlsSecureContext } from './pinnedTlsChannel.js';
 
 export type UniverseAgentPinnedTlsTarget = {
 	readonly address: string;

@@ -585,7 +585,7 @@ export class EngineAgentsSection extends Disposable {
 		}
 		try {
 			const result = await this.connection.listTools();
-			this.agentTools = result.tools;
+			this.agentTools = [...result.tools];
 		} catch {
 			this.agentTools = [];
 		}

@@ -5,33 +5,64 @@
 
 import { Event } from '../../../../../base/common/event.js';
 import type { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
+import type { UniverseAgentCapabilitySnapshot, UniverseAgentConnectionSnapshot } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
+
+const UNKNOWN = { support: 'UNKNOWN' as const };
+
+export function createEmptyTestCapabilitySnapshot(): UniverseAgentCapabilitySnapshot {
+	return {
+		skills: UNKNOWN,
+		mcp: UNKNOWN,
+		mcpRuntime: UNKNOWN,
+		plugins: UNKNOWN,
+		models: UNKNOWN,
+		providerConfig: UNKNOWN,
+		globalRules: UNKNOWN,
+		agentProfiles: UNKNOWN,
+		projectRules: UNKNOWN,
+		tools: UNKNOWN,
+		hooksMetadata: UNKNOWN,
+		agentTree: UNKNOWN,
+		team: UNKNOWN,
+	};
+}
 
 /** Minimal IUniverseAgentConnection stub for conversation browser tests (IdentityStrip / Lens mount). */
 export function createConversationConnectionTestStub(
 	overrides: Partial<IUniverseAgentConnection> = {},
 ): IUniverseAgentConnection {
+	const capabilities = createEmptyTestCapabilitySnapshot();
 	return {
 		_serviceBrand: undefined,
 		isEngineConnected: () => false,
 		getConnectionPhase: () => ({ kind: 'disconnected' }),
 		getTransportState: () => 'idle',
-		getConnectionSnapshot: () => ({
+		getConnectionSnapshot: (): UniverseAgentConnectionSnapshot => ({
 			transport: 'idle',
 			pairingPending: false,
 			channelAlive: false,
-			capabilities: { methods: [], toolFamilies: [] },
+			sharedFsRootSent: false,
+			capabilities,
 		}),
-		getCapabilitySnapshot: () => ({ methods: [], toolFamilies: [] }),
+		getCapabilitySnapshot: () => capabilities,
 		onDidChangeConnection: Event.None,
 		onDidFileMutation: Event.None,
 		onDidTurnSettle: Event.None,
-		connect: async () => ({ sessionToken: undefined, workDir: undefined, methods: [] }),
+		onDidChangeTeamRuntime: Event.None,
+		requestAgentTreeRefresh: () => { },
+		getNavigatorCapability: () => 'UNKNOWN',
+		team: {
+			memberStatus: async () => [],
+			taskList: async () => [],
+			teamInfo: async () => undefined,
+		},
+		connect: async () => ({ sessionToken: undefined, workDir: undefined, methods: [], events: [] }),
 		connectProfile: async () => ({ ok: false, code: 'transport_failed', reason: 'stub' }),
 		disconnect: async () => { },
 		listSessions: async () => ({ sessions: [] }),
 		createSession: async () => ({ sessionId: 's' }),
 		deleteSession: async () => { },
-		getHistory: async () => ({ events: [] }),
+		getHistory: async () => ({ envelopes: [] }),
 		subscribeSessionEventStream: () => ({ dispose: () => { } }),
 		chat: async () => { },
 		listSkills: async () => ({ skills: [] }),

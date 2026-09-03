@@ -184,7 +184,6 @@ export class EngineMcpSection extends Disposable {
 	private mode: EngineCatalogPaneMode = 'disconnected';
 	private listEntries: EngineMcpListEntry[] = [];
 	private selectedServer: UniverseAgentMcpServerSummary | undefined;
-	private activeTab: EngineMcpTab = 'definitions';
 	private sectionActive = false;
 
 	constructor(
@@ -244,7 +243,6 @@ export class EngineMcpSection extends Disposable {
 	}
 
 	private setActiveTab(tab: EngineMcpTab): void {
-		this.activeTab = tab;
 		this.definitionsTab.classList.toggle('engine-mcp-tab--active', tab === 'definitions');
 		this.runtimeTab.classList.toggle('engine-mcp-tab--active', tab === 'runtime');
 		this.definitionsPanel.style.display = tab === 'definitions' ? '' : 'none';

@@ -248,7 +248,7 @@ export class UniverseAgentHubService extends Disposable implements IUniverseAgen
 			accessToken => listHubDevices({ hubBaseUrl, accessToken }, this._http),
 		);
 
-		if ('authExpired' in result && result.authExpired) {
+		if ('authExpired' in result) {
 			this._directoryAuthExpired = true;
 			this._directoryStatus = { kind: 'authExpired' };
 			this._fireAuthChanged();
@@ -301,7 +301,7 @@ export class UniverseAgentHubService extends Disposable implements IUniverseAgen
 			},
 		);
 
-		if ('authExpired' in result && result.authExpired) {
+		if ('authExpired' in result) {
 			this._directoryAuthExpired = true;
 			this._directoryStatus = { kind: 'authExpired' };
 			this._fireAuthChanged();
