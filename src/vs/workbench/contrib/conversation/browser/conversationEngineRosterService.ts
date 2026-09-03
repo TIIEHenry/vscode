@@ -242,6 +242,16 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		return super.killSubAgent(sessionId, options);
 	}
 
+	override cancelToolCall(sessionId: string, options: { toolCallId: string; agentId?: string }): boolean {
+		if (this.isEngineConnected()) {
+			return this.cancelEngineToolCall(sessionId, options, true);
+		}
+		if (this.wasEverConnected) {
+			return this.cancelEngineToolCall(sessionId, options, false);
+		}
+		return super.cancelToolCall(sessionId, options);
+	}
+
 	override deleteSession(sessionId: string): boolean {
 		if (this.isEngineConnected()) {
 			return this.deleteEngineSession(sessionId, true);
@@ -388,6 +398,33 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 				sessionId,
 				agentId,
 				...(options?.force ? { force: true } : {}),
+			});
+			return true;
+		}
+		return false;
+	}
+
+	private cancelEngineToolCall(
+		sessionId: string,
+		options: { toolCallId: string; agentId?: string },
+		callRemote: boolean,
+	): boolean {
+		const toolCallId = options.toolCallId.trim();
+		if (!toolCallId) {
+			return false;
+		}
+		if (!this.engineSessions.some(session => session.id === sessionId)) {
+			return false;
+		}
+		if (callRemote) {
+			if (!this.uaConnection.cancelToolCall) {
+				return false;
+			}
+			const agentId = options.agentId?.trim();
+			void this.uaConnection.cancelToolCall({
+				sessionId,
+				toolCallId,
+				...(agentId ? { agentId } : {}),
 			});
 			return true;
 		}

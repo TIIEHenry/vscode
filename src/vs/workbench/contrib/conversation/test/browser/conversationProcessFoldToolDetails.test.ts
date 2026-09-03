@@ -7,7 +7,7 @@ import assert from 'assert';
 import { DisposableStore } from '../../../../../base/common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { TestConfigurationService } from '../../../../../platform/configuration/test/common/testConfigurationService.js';
-import { ProcessFoldDomOptions, renderProcessFoldSpan } from '../../browser/conversationProcessFold.js';
+import { ProcessFoldDomOptions, conversationProcessFoldToolCancel, renderProcessFoldSpan } from '../../browser/conversationProcessFold.js';
 import { ProcessFoldSpan } from '../../browser/conversationProcessFoldModel.js';
 import { ConversationStubTurn } from '../../browser/conversationStubModel.js';
 import { UA_CLIENT_CLIENT_TOOLS_SHOW_TOOL_INVOCATION_DETAILS } from '../../common/uaClientSettingsKeys.js';
@@ -99,5 +99,33 @@ suite('ConversationProcessFoldToolDetails', () => {
 		assert.strictEqual(header.getAttribute('aria-expanded'), null);
 		assert.strictEqual(row.querySelector('.conversation-process-fold-tool-body'), null);
 		assert.ok(!(header as HTMLButtonElement).onclick);
+	});
+
+	test('executing live tool row shows Cancel tool and fires onCancelToolCall', () => {
+		const cancelled: string[] = [];
+		const turn = toolTurn({ toolStatus: 'running', streaming: true, agentId: 'sub:a' });
+		const container = renderFold(foldOptions({
+			showLiveChrome: true,
+			onCancelToolCall: called => cancelled.push(called.id),
+		}), toolSpan(turn));
+		const button = container.querySelector('.conversation-process-fold-tool-cancel') as HTMLButtonElement;
+		assert.ok(button);
+		assert.strictEqual(button.getAttribute('aria-label'), conversationProcessFoldToolCancel);
+		button.click();
+		assert.deepStrictEqual(cancelled, [turn.id]);
+	});
+
+	test('completed or stub tool row omits Cancel tool', () => {
+		const liveCompleted = renderFold(foldOptions({
+			showLiveChrome: true,
+			onCancelToolCall: () => { },
+		}));
+		assert.strictEqual(liveCompleted.querySelector('.conversation-process-fold-tool-cancel'), null);
+
+		const stubRunning = renderFold(foldOptions({
+			showLiveChrome: false,
+			onCancelToolCall: () => { },
+		}), toolSpan(toolTurn({ toolStatus: 'running', streaming: true })));
+		assert.strictEqual(stubRunning.querySelector('.conversation-process-fold-tool-cancel'), null);
 	});
 });

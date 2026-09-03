@@ -86,6 +86,13 @@ export interface IConversationRosterService {
 	 * Stub / disconnected cache / missing hook returns false.
 	 */
 	killSubAgent(sessionId: string, options?: { agentId?: string; force?: boolean }): boolean;
+	/**
+	 * AgentService.CancelToolCall (per-tool cancel; ≠ session-turn Cancel).
+	 * Engine-connected forwards unary. Empty `toolCallId` does not send.
+	 * Empty `agentId` is omitted (transport wires `root`). Stub /
+	 * disconnected cache / missing hook returns false.
+	 */
+	cancelToolCall(sessionId: string, options: { toolCallId: string; agentId?: string }): boolean;
 	deleteSession(sessionId: string): boolean;
 	getTurns(sessionId: string): readonly ConversationStubTurn[];
 	getTrajectoryRecords(sessionId: string, options?: TrajectoryProjectionOptions): readonly ConversationTrajectoryRecord[];
@@ -255,6 +262,10 @@ export class ConversationStubService extends Disposable implements IConversation
 	}
 
 	killSubAgent(_sessionId: string, _options?: { agentId?: string; force?: boolean }): boolean {
+		return false;
+	}
+
+	cancelToolCall(_sessionId: string, _options: { toolCallId: string; agentId?: string }): boolean {
 		return false;
 	}
 

@@ -120,6 +120,15 @@ class MockUniverseAgentConnection extends Disposable implements IUniverseAgentCo
 		});
 		return { ok: true };
 	}
+	readonly cancelToolCallCalls: { sessionId: string; toolCallId: string; agentId?: string }[] = [];
+	async cancelToolCall(request: { sessionId: string; toolCallId: string; agentId?: string }) {
+		this.cancelToolCallCalls.push({
+			sessionId: request.sessionId,
+			toolCallId: request.toolCallId,
+			agentId: request.agentId,
+		});
+		return { ok: true };
+	}
 	async enqueueQueueItem() { return { ok: false, error: 'stub' }; }
 	async pauseQueue() { return { ok: false, error: 'stub' }; }
 	async resumeQueue() { return { ok: false, error: 'stub' }; }
@@ -544,6 +553,44 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 
 		assert.strictEqual(service.killSubAgent('ua-only'), true);
 		assert.strictEqual(connection.killCalls[0]?.agentId, '');
+	});
+
+	test('connected cancelToolCall forwards AgentService.CancelToolCall', async () => {
+		const storage = store.add(new TestStorageService());
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
+		const service = store.add(createService(connection, storage));
+		connection.setConnected(true);
+		service.setEngineConnected(true);
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+		assert.strictEqual(service.cancelToolCall('ua-only', { toolCallId: '  tc-1  ', agentId: '  sub:a  ' }), true);
+		assert.deepStrictEqual(connection.cancelToolCallCalls, [{
+			sessionId: 'ua-only',
+			toolCallId: 'tc-1',
+			agentId: 'sub:a',
+		}]);
+		assert.strictEqual(service.cancelToolCall('ua-only', { toolCallId: 'tc-2' }), true);
+		assert.strictEqual(connection.cancelToolCallCalls[1]?.toolCallId, 'tc-2');
+		assert.strictEqual(connection.cancelToolCallCalls[1]?.agentId, undefined);
+		assert.strictEqual(service.cancelToolCall('ua-only', { toolCallId: '   ' }), false);
+		assert.strictEqual(service.cancelToolCall('missing', { toolCallId: 'tc-3' }), false);
+		assert.strictEqual(connection.cancelToolCallCalls.length, 2);
+	});
+
+	test('disconnected after engine cancelToolCall skips unary', async () => {
+		const storage = store.add(new TestStorageService());
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
+		const service = store.add(createService(connection, storage));
+		connection.setConnected(true);
+		service.setEngineConnected(true);
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		connection.setConnected(false);
+		service.setEngineConnected(false);
+
+		assert.strictEqual(service.cancelToolCall('ua-only', { toolCallId: 'tc-1' }), false);
+		assert.strictEqual(connection.cancelToolCallCalls.length, 0);
 	});
 
 	test('disconnected after engine killSubAgent skips unary', async () => {

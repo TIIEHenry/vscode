@@ -14,6 +14,7 @@ import { ConversationStubTurn } from './conversationStubModel.js';
 import { ProcessFoldNode, ProcessFoldSpan, summarizeProcessSteps } from './conversationProcessFoldModel.js';
 
 export const conversationProcessFoldThinkingLabel = localize('conversationProcessFold.thinking', "Thinking");
+export const conversationProcessFoldToolCancel = localize('conversationProcessFold.toolCancel', "Cancel Tool");
 
 function syncProcessFoldOuterAria(header: HTMLElement, summaryText: string, expanded: boolean): void {
 	header.setAttribute('aria-label', expanded
@@ -42,6 +43,8 @@ export interface ProcessFoldDomOptions {
 	readonly isToolExpanded: (turnId: string) => boolean;
 	readonly setToolExpanded: (turnId: string, expanded: boolean) => void;
 	readonly onViewInTrajectory?: (turnId: string) => void;
+	/** Per-tool cancel (AgentService.CancelToolCall). Only used while live chrome is executing. */
+	readonly onCancelToolCall?: (turn: ConversationStubTurn) => void;
 	readonly onLayoutChange: () => void;
 	/** When false (stub fixture), omit loading / live / duration chrome (Q4). */
 	readonly showLiveChrome: boolean;
@@ -252,6 +255,7 @@ function renderToolRow(
 	}
 
 	appendProcessFoldTrajectoryJump(row, turn.id, options, disposables);
+	appendProcessFoldToolCancel(row, turn, executing, options, disposables);
 
 	if (hasPayload) {
 		const body = append(row, $('div.conversation-process-fold-tool-body'));
@@ -344,5 +348,26 @@ function appendProcessFoldTrajectoryJump(
 	disposables.add(addDisposableListener(jump, 'click', (e) => {
 		e.stopPropagation();
 		options.onViewInTrajectory!(turnId);
+	}));
+}
+
+function appendProcessFoldToolCancel(
+	parent: HTMLElement,
+	turn: ConversationStubTurn,
+	executing: boolean,
+	options: ProcessFoldDomOptions,
+	disposables: DisposableStore,
+): void {
+	if (!executing || !options.onCancelToolCall || !turn.id.trim()) {
+		return;
+	}
+	const cancel = append(parent, $('button.conversation-process-fold-tool-cancel')) as HTMLButtonElement;
+	cancel.type = 'button';
+	cancel.classList.add(...ThemeIcon.asClassNameArray(Codicon.debugStop));
+	cancel.title = conversationProcessFoldToolCancel;
+	cancel.setAttribute('aria-label', conversationProcessFoldToolCancel);
+	disposables.add(addDisposableListener(cancel, 'click', (e) => {
+		e.stopPropagation();
+		options.onCancelToolCall!(turn);
 	}));
 }
