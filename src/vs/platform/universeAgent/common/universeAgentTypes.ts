@@ -149,6 +149,24 @@ export interface UniverseAgentRespondPermissionResult {
 	readonly message?: string;
 }
 
+/** One item answer for AgentService.RespondQuestion (QuestionAnswer.selected_labels). */
+export interface UniverseAgentQuestionAnswer {
+	readonly selectedLabels: readonly string[];
+}
+
+/** AgentService.RespondQuestion — unary question reply (ADR-325; ≠ Chat-arm questionRespond). */
+export interface UniverseAgentRespondQuestionRequest {
+	readonly sessionId: string;
+	readonly questionId: string;
+	readonly answers?: Readonly<Record<string, UniverseAgentQuestionAnswer>>;
+	readonly customText?: string;
+}
+
+export interface UniverseAgentRespondQuestionResult {
+	readonly ok: boolean;
+	readonly message?: string;
+}
+
 /** AgentService queue hold reason (QueueItemHoldReasonProto). */
 export type UniverseAgentQueueHoldReason = 'NONE' | 'EDITING';
 

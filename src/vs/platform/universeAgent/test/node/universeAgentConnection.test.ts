@@ -27,6 +27,8 @@ import type {
 	UniverseAgentCancelSessionGoalResult,
 	UniverseAgentRespondPermissionRequest,
 	UniverseAgentRespondPermissionResult,
+	UniverseAgentRespondQuestionRequest,
+	UniverseAgentRespondQuestionResult,
 	UniverseAgentEnqueueQueueItemRequest,
 	UniverseAgentEditQueueItemRequest,
 	UniverseAgentHoldQueueItemRequest,
@@ -183,6 +185,14 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 	async respondPermission(request: UniverseAgentRespondPermissionRequest): Promise<UniverseAgentRespondPermissionResult> {
 		this.respondPermissionCalls.push(request);
 		return this.respondPermissionResult;
+	}
+
+	readonly respondQuestionCalls: UniverseAgentRespondQuestionRequest[] = [];
+	respondQuestionResult: UniverseAgentRespondQuestionResult = { ok: true };
+
+	async respondQuestion(request: UniverseAgentRespondQuestionRequest): Promise<UniverseAgentRespondQuestionResult> {
+		this.respondQuestionCalls.push(request);
+		return this.respondQuestionResult;
 	}
 
 	readonly enqueueCalls: UniverseAgentEnqueueQueueItemRequest[] = [];
@@ -566,6 +576,11 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
 	});
 
+	test('UniverseAgentGrpcServices lists Agent.RespondQuestion', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.RespondQuestion, 'RespondQuestion');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+	});
+
 	test('renameSession forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
@@ -673,6 +688,37 @@ suite('UniverseAgentConnectionService', () => {
 		assert.deepStrictEqual(failed, { ok: false, message: 'expired' });
 		assert.strictEqual(transport.respondPermissionCalls[1]?.granted, false);
 		assert.strictEqual(transport.respondPermissionCalls[1]?.metadataJson, '{"note":"deny"}');
+		service.dispose();
+	});
+
+	test('respondQuestion forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		const result = await service.respondQuestion({
+			sessionId: 'sess-1',
+			questionId: 'q-1',
+			answers: { q_0: { selectedLabels: ['A'] } },
+		});
+		assert.deepStrictEqual(transport.respondQuestionCalls, [{
+			sessionId: 'sess-1',
+			questionId: 'q-1',
+			answers: { q_0: { selectedLabels: ['A'] } },
+		}]);
+		assert.deepStrictEqual(result, { ok: true });
+
+		transport.respondQuestionResult = { ok: false, message: 'expired' };
+		const failed = await service.respondQuestion({
+			sessionId: 'sess-1',
+			questionId: '',
+			customText: 'other',
+		});
+		assert.deepStrictEqual(failed, { ok: false, message: 'expired' });
+		assert.strictEqual(transport.respondQuestionCalls[1]?.questionId, '');
+		assert.strictEqual(transport.respondQuestionCalls[1]?.customText, 'other');
 		service.dispose();
 	});
 
