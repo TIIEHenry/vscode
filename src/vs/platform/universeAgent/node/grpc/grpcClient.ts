@@ -33,6 +33,8 @@ import type {
 	UniverseAgentQueueMutationResult,
 	UniverseAgentQueuePriority,
 	UniverseAgentQueueRefRequest,
+	UniverseAgentForkAgentRequest,
+	UniverseAgentForkAgentResult,
 	UniverseAgentGetHistoryRequest,
 	UniverseAgentGetHistoryResult,
 	UniverseAgentListSessionsRequest,
@@ -1390,6 +1392,27 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			error: result.error,
 			opId: result.op_id,
 			itemId: result.item_id,
+		};
+	}
+
+	async forkAgent(request: UniverseAgentForkAgentRequest): Promise<UniverseAgentForkAgentResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, { success?: boolean; agent_id?: string }>(
+			this._channel,
+			UniverseAgentGrpcServices.Agent.service,
+			UniverseAgentGrpcServices.Agent.Fork,
+		);
+		const wire = await unary({
+			session_id: request.sessionId,
+			parent_agent_id: request.parentAgentId?.trim() || 'root',
+			name: request.name ?? '',
+			task: request.task ?? '',
+			model_type: request.modelType ?? '',
+			system_prompt: request.systemPrompt ?? '',
+		});
+		const agentId = wire.agent_id?.trim();
+		return {
+			ok: wire.success === true,
+			...(agentId ? { agentId } : {}),
 		};
 	}
 

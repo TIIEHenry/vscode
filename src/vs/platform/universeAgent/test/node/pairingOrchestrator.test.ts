@@ -153,6 +153,10 @@ class RecordingMockTransport implements IUniverseAgentGrpcTransport {
 		return { ok: false, error: 'test' };
 	}
 
+	async forkAgent(): Promise<{ ok: false }> {
+		return { ok: false };
+	}
+
 	async getHistory(): Promise<{ envelopes: [] }> {
 		return { envelopes: [] };
 	}

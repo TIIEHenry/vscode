@@ -163,6 +163,23 @@ export interface UniverseAgentQueueMutationResult {
 	readonly itemId?: string;
 }
 
+/** AgentService.Fork request — create a SubAgent. Distinct from user Fork tab (`registerForkChat`). */
+export interface UniverseAgentForkAgentRequest {
+	readonly sessionId: string;
+	/** Parent agent; empty/omitted wires as `root`. */
+	readonly parentAgentId?: string;
+	readonly name?: string;
+	readonly task?: string;
+	readonly modelType?: string;
+	readonly systemPrompt?: string;
+}
+
+export interface UniverseAgentForkAgentResult {
+	readonly ok: boolean;
+	/** New SubAgent id (e.g. `sub:name`) when `ok`. */
+	readonly agentId?: string;
+}
+
 export interface UniverseAgentGetHistoryRequest {
 	readonly sessionId: string;
 	readonly cursorSeq?: string;

@@ -33,6 +33,8 @@ import type {
 	UniverseAgentQueueItemRefRequest,
 	UniverseAgentQueueMutationResult,
 	UniverseAgentQueueRefRequest,
+	UniverseAgentForkAgentRequest,
+	UniverseAgentForkAgentResult,
 	UniverseAgentGetHistoryRequest,
 	UniverseAgentGetHistoryResult,
 	UniverseAgentListSessionsRequest,
@@ -179,7 +181,6 @@ export interface IUniverseAgentConnection {
 
 	/** PermissionService.CancelSessionGoal unary. Optional with `setSessionGoal`. */
 	cancelSessionGoal?(request: UniverseAgentCancelSessionGoalRequest): Promise<UniverseAgentCancelSessionGoalResult>;
-	}
 
 	/** AgentService.EnqueueQueueItem. Transport only — roster Inbox queue stays fixture. */
 	enqueueQueueItem(request: UniverseAgentEnqueueQueueItemRequest): Promise<UniverseAgentQueueMutationResult>;
@@ -201,6 +202,12 @@ export interface IUniverseAgentConnection {
 
 	/** AgentService.EditQueueItem. Transport only — roster Inbox queue stays fixture. */
 	editQueueItem(request: UniverseAgentEditQueueItemRequest): Promise<UniverseAgentQueueMutationResult>;
+
+	/**
+	 * AgentService.Fork unary (create SubAgent). Optional so Web / tests can omit
+	 * until chat catalog forwards it. Not the user Fork tab (`registerForkChat`).
+	 */
+	forkAgent?(request: UniverseAgentForkAgentRequest): Promise<UniverseAgentForkAgentResult>;
 
 	getHistory(request: UniverseAgentGetHistoryRequest): Promise<UniverseAgentGetHistoryResult>;
 

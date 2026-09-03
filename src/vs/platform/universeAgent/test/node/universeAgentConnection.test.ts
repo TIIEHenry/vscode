@@ -29,6 +29,8 @@ import type {
 	UniverseAgentQueueItemRefRequest,
 	UniverseAgentQueueMutationResult,
 	UniverseAgentQueueRefRequest,
+	UniverseAgentForkAgentRequest,
+	UniverseAgentForkAgentResult,
 	UniverseAgentGetHistoryRequest,
 	UniverseAgentGetHistoryResult,
 	UniverseAgentListSessionsRequest,
@@ -201,6 +203,14 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 	async editQueueItem(request: UniverseAgentEditQueueItemRequest): Promise<UniverseAgentQueueMutationResult> {
 		this.editCalls.push(request);
 		return this.queueResult;
+	}
+
+	readonly forkCalls: UniverseAgentForkAgentRequest[] = [];
+	forkResult: UniverseAgentForkAgentResult = { ok: true, agentId: 'sub:reviewer' };
+
+	async forkAgent(request: UniverseAgentForkAgentRequest): Promise<UniverseAgentForkAgentResult> {
+		this.forkCalls.push(request);
+		return this.forkResult;
 	}
 
 	async getHistory(_request: UniverseAgentGetHistoryRequest): Promise<UniverseAgentGetHistoryResult> {
@@ -483,6 +493,11 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
 	});
 
+	test('UniverseAgentGrpcServices lists Agent.Fork', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.Fork, 'Fork');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+	});
+
 	test('renameSession forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
@@ -582,6 +597,24 @@ suite('UniverseAgentConnectionService', () => {
 		transport.queueResult = { ok: false, error: 'busy' };
 		const failed = await service.pauseQueue({ sessionId: 'sess-1' });
 		assert.deepStrictEqual(failed, { ok: false, error: 'busy' });
+		service.dispose();
+	});
+
+	test('forkAgent forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		const result = await service.forkAgent({ sessionId: 'sess-1', name: 'reviewer', task: 'Review the diff' });
+		assert.deepStrictEqual(transport.forkCalls, [{ sessionId: 'sess-1', name: 'reviewer', task: 'Review the diff' }]);
+		assert.deepStrictEqual(result, { ok: true, agentId: 'sub:reviewer' });
+
+		transport.forkResult = { ok: false };
+		const failedFork = await service.forkAgent({ sessionId: 'sess-2', parentAgentId: 'sub:a' });
+		assert.deepStrictEqual(failedFork, { ok: false });
+		assert.strictEqual(transport.forkCalls[1]?.parentAgentId, 'sub:a');
 		service.dispose();
 	});
 
