@@ -13,6 +13,7 @@ import type {
 	UniverseAgentCapabilitySupport,
 	UniverseAgentChatRequest,
 	UniverseAgentChatResponse,
+	UniverseAgentChatStream,
 	UniverseAgentConnectRequest,
 	UniverseAgentConnectResult,
 	UniverseAgentConnectionSnapshot,
@@ -53,6 +54,7 @@ import type {
 	UniverseAgentToggleMcpServerRequest,
 	UniverseAgentToggleMcpServerResult,
 	UniverseAgentSessionEvent,
+	UniverseAgentSessionStreamCloseCause,
 	UniverseAgentSetSkillEnabledRequest,
 	UniverseAgentSetSkillEnabledResult,
 	UniverseAgentSkillInfoRequest,
@@ -605,6 +607,15 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 
 	async chat(request: UniverseAgentChatRequest, onResponse: (response: UniverseAgentChatResponse) => void): Promise<void> {
 		await this._withTransport(transport => transport.chat(request, onResponse));
+	}
+
+	openChatStream(
+		sessionId: string,
+		onResponse: (response: UniverseAgentChatResponse) => void,
+		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
+	): UniverseAgentChatStream {
+		this._assertTransportReady();
+		return this._transport!.openChatStream(sessionId, onResponse, onClosed);
 	}
 
 	async listSkills(): Promise<UniverseAgentListSkillsResult> {

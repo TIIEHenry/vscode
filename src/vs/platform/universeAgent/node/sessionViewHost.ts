@@ -25,6 +25,7 @@ import { isChatCoreIntent, isHistoryFillCoreIntent } from './sessionCore/intents
 import type { CoreMessage, CorrelationRef, PostOutcome, ViewFrameAck, ViewFrameSink } from './sessionCore/messages.js';
 import type { SessionId, ViewFrame, ViewLeaseId } from '../common/sessionView/types.js';
 import type { AttemptId, DiagnosticMetric, DiagnosticsPort } from './sessionCore/ports.js';
+import type { UniverseAgentChatStream } from '../common/universeAgentTypes.js';
 import { demuxSessionStreamPayload } from './sessionStreamDemux.js';
 import { OverlayDeltaJoin } from './overlayDeltaJoin.js';
 import {
@@ -51,6 +52,12 @@ type ActiveStream = {
 	readonly attemptId: AttemptId;
 	readonly dispose: () => void;
 	readonly sessionId: string;
+};
+
+type ActiveChatStream = {
+	readonly chatAttemptId: AttemptId;
+	readonly write: (payload: unknown) => void;
+	readonly dispose: () => void;
 };
 
 type SessionSidecar = {
@@ -144,6 +151,7 @@ export class SessionViewHost extends Disposable {
 	private readonly leaseDetails = new Map<string, Map<string, string>>();
 	private readonly capturedDetails = new Map<string, Map<string, ParsedDetailRef>>();
 	private readonly streams = new Map<string, ActiveStream>();
+	private readonly chatStreams = new Map<string, ActiveChatStream>();
 	private readonly sessionSidecars = new Map<string, SessionSidecar>();
 	private readonly toolAttributionHints = new Map<string, ToolAttributionHint[]>();
 	private connectionGeneration = 0;
@@ -297,6 +305,10 @@ export class SessionViewHost extends Disposable {
 				stream.dispose();
 			}
 			this.streams.clear();
+			for (const stream of this.chatStreams.values()) {
+				stream.dispose();
+			}
+			this.chatStreams.clear();
 			for (const binding of this.leases.values()) {
 				this.postAndDrain(binding.sessionId as SessionId, {
 					t: 'connectionDown',
@@ -670,20 +682,14 @@ export class SessionViewHost extends Disposable {
 				break;
 			}
 			case 'ensureChatStream':
-				this.postAndDrain(sessionId as SessionId, {
-					t: 'localFact',
-					fact: { kind: 'chatStreamUp', chatAttemptId: intent.chatAttemptId },
-				});
+				this.openResidentChat(sessionId, intent.chatAttemptId);
 				break;
 			case 'closeChatStream':
-				this.postAndDrain(sessionId as SessionId, {
-					t: 'localFact',
-					fact: { kind: 'chatStreamDown', chatAttemptId: intent.chatAttemptId },
-				});
+				this.closeResidentChat(sessionId, intent.chatAttemptId);
 				break;
 			default:
 				if (isChatCoreIntent(intent) && intent.do === 'chatStreamWrite') {
-					void this.writeChat(sessionId, intent.correlation, intent.payload);
+					void this.writeChat(sessionId, intent.correlation, intent.payload, intent.chatAttemptId);
 				} else if (isHistoryFillCoreIntent(intent)) {
 					void this.fillHistory(sessionId, intent);
 				} else {
@@ -691,6 +697,57 @@ export class SessionViewHost extends Disposable {
 				}
 				break;
 		}
+	}
+
+	private openResidentChat(sessionId: string, chatAttemptId: AttemptId): void {
+		const existing = this.chatStreams.get(sessionId);
+		if (existing && existing.chatAttemptId === chatAttemptId) {
+			this.postChatLifecycle(sessionId, 'chatStreamUp', chatAttemptId);
+			return;
+		}
+		existing?.dispose();
+		this.chatStreams.delete(sessionId);
+
+		const open = this.connection.openChatStream;
+		if (typeof open !== 'function') {
+			// Echo Up so Actor write gate opens; writes fall back to one-shot chat().
+			this.postChatLifecycle(sessionId, 'chatStreamUp', chatAttemptId);
+			return;
+		}
+
+		let disposed = false;
+		const handle: UniverseAgentChatStream = open.call(this.connection, sessionId, () => { }, () => {
+			if (disposed) {
+				return;
+			}
+			this.chatStreams.delete(sessionId);
+			this.postChatLifecycle(sessionId, 'chatStreamDown', chatAttemptId);
+		});
+		this.chatStreams.set(sessionId, {
+			chatAttemptId,
+			write: payload => handle.write(payload),
+			dispose: () => {
+				disposed = true;
+				handle.dispose();
+			},
+		});
+		this.postChatLifecycle(sessionId, 'chatStreamUp', chatAttemptId);
+	}
+
+	private closeResidentChat(sessionId: string, chatAttemptId: AttemptId): void {
+		const stream = this.chatStreams.get(sessionId);
+		if (stream && stream.chatAttemptId === chatAttemptId) {
+			stream.dispose();
+			this.chatStreams.delete(sessionId);
+		}
+		this.postChatLifecycle(sessionId, 'chatStreamDown', chatAttemptId);
+	}
+
+	private postChatLifecycle(sessionId: string, kind: 'chatStreamUp' | 'chatStreamDown', chatAttemptId: AttemptId): void {
+		this.postAndDrain(sessionId as SessionId, {
+			t: 'localFact',
+			fact: { kind, chatAttemptId },
+		});
 	}
 
 	private openStream(sessionId: string, attemptId: AttemptId): void {
@@ -726,6 +783,11 @@ export class SessionViewHost extends Disposable {
 		if (!this.connection.isEngineConnected()) {
 			return;
 		}
+		const resident = this.chatStreams.get(sessionId);
+		if (resident) {
+			resident.write({ heartbeat_ack: {} });
+			return;
+		}
 		try {
 			await this.connection.chat({
 				sessionId,
@@ -736,18 +798,31 @@ export class SessionViewHost extends Disposable {
 		}
 	}
 
-	private async writeChat(sessionId: string, correlation: CorrelationRef, payload: unknown): Promise<void> {
+	private async writeChat(sessionId: string, correlation: CorrelationRef, payload: unknown, chatAttemptId: AttemptId): Promise<void> {
 		const sid = sessionId as SessionId;
-		if (!this.connection.isEngineConnected()) {
+		const mark = (status: 'written' | 'failed', errorMessage?: string) => {
 			this.postAndDrain(sid, {
 				t: 'localFact',
 				fact: {
 					kind: 'inputDelivery',
 					messageId: String(correlation),
-					status: 'failed',
-					errorMessage: 'Engine not connected',
+					status,
+					...(errorMessage !== undefined ? { errorMessage } : {}),
 				},
 			});
+		};
+		if (!this.connection.isEngineConnected()) {
+			mark('failed', 'Engine not connected');
+			return;
+		}
+		const resident = this.chatStreams.get(sessionId);
+		if (resident && resident.chatAttemptId === chatAttemptId) {
+			try {
+				resident.write(chatPayloadFromWrite(payload));
+				mark('written');
+			} catch {
+				mark('failed', 'Chat write failed');
+			}
 			return;
 		}
 		try {
@@ -755,25 +830,10 @@ export class SessionViewHost extends Disposable {
 				sessionId,
 				payload: chatPayloadFromWrite(payload),
 			}, () => {
-				this.postAndDrain(sid, {
-					t: 'localFact',
-					fact: {
-						kind: 'inputDelivery',
-						messageId: String(correlation),
-						status: 'written',
-					},
-				});
+				mark('written');
 			});
 		} catch {
-			this.postAndDrain(sid, {
-				t: 'localFact',
-				fact: {
-					kind: 'inputDelivery',
-					messageId: String(correlation),
-					status: 'failed',
-					errorMessage: 'Chat write failed',
-				},
-			});
+			mark('failed', 'Chat write failed');
 		}
 	}
 

@@ -99,6 +99,14 @@ export interface UniverseAgentSessionEvent {
 	readonly payload: unknown;
 }
 
+/**
+ * Close cause for resident Chat bidi (`openChatStream` only).
+ * Not used by tip `subscribeSessionEventStream` (no onClosed contract).
+ */
+export type UniverseAgentSessionStreamCloseCause =
+	| { readonly kind: 'remote' }
+	| { readonly kind: 'error'; readonly message: string };
+
 export interface UniverseAgentChatRequest {
 	readonly sessionId: string;
 	readonly payload: unknown;
@@ -106,6 +114,12 @@ export interface UniverseAgentChatRequest {
 
 export interface UniverseAgentChatResponse {
 	readonly payload: unknown;
+}
+
+/** Resident AgentService.Chat bidi (ADR-012). One-shot `chat()` still exists for probes. */
+export interface UniverseAgentChatStream {
+	write(payload: unknown): void;
+	dispose(): void;
 }
 
 export interface UniverseAgentConnectionSnapshot {
