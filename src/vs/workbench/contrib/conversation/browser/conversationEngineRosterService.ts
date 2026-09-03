@@ -27,6 +27,11 @@ import {
 	IConversationRosterService,
 	type ILiveAgentTreeChangeEvent,
 } from './conversationStubService.js';
+import {
+	createEmptyMessageQueueState,
+	type ConversationMessageQueueState,
+	type ConversationQueueItemHoldReason,
+} from './conversationMessageQueueModel.js';
 import { ConversationStubSession, ConversationStubTurn, getConversationStubNextTurnId } from './conversationStubModel.js';
 
 const STUB_SEED_IDS = new Set(['untitled', 'visualize']);
@@ -232,6 +237,87 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		return super.forkSubAgent(sessionId, options);
 	}
 
+	override getMessageQueueState(sessionId: string): ConversationMessageQueueState {
+		if (this.isEngineConnected() || this.wasEverConnected) {
+			return createEmptyMessageQueueState();
+		}
+		return super.getMessageQueueState(sessionId);
+	}
+
+	override setMessageQueueFixture(sessionId: string, state: ConversationMessageQueueState): void {
+		if (this.isEngineConnected() || this.wasEverConnected) {
+			return;
+		}
+		super.setMessageQueueFixture(sessionId, state);
+	}
+
+	override pauseMessageQueue(sessionId: string): void {
+		if (this.isEngineConnected()) {
+			this.forwardEngineQueueRef(sessionId, true, () => this.uaConnection.pauseQueue({ sessionId }));
+			return;
+		}
+		if (!this.wasEverConnected) {
+			super.pauseMessageQueue(sessionId);
+		}
+	}
+
+	override resumeMessageQueue(sessionId: string): void {
+		if (this.isEngineConnected()) {
+			this.forwardEngineQueueRef(sessionId, true, () => this.uaConnection.resumeQueue({ sessionId }));
+			return;
+		}
+		if (!this.wasEverConnected) {
+			super.resumeMessageQueue(sessionId);
+		}
+	}
+
+	override clearMessageQueue(sessionId: string): void {
+		if (this.isEngineConnected()) {
+			this.forwardEngineQueueRef(sessionId, true, () => this.uaConnection.clearQueue({ sessionId }));
+			return;
+		}
+		if (!this.wasEverConnected) {
+			super.clearMessageQueue(sessionId);
+		}
+	}
+
+	override holdMessageQueueItem(sessionId: string, itemId: string, hold: ConversationQueueItemHoldReason): void {
+		if (this.isEngineConnected()) {
+			this.forwardEngineQueueItem(sessionId, itemId, true, id => this.uaConnection.holdQueueItem({
+				sessionId,
+				itemId: id,
+				reason: hold,
+			}));
+			return;
+		}
+		if (!this.wasEverConnected) {
+			super.holdMessageQueueItem(sessionId, itemId, hold);
+		}
+	}
+
+	override releaseMessageQueueItemHold(sessionId: string, itemId: string): void {
+		if (this.isEngineConnected()) {
+			this.forwardEngineQueueItem(sessionId, itemId, true, id => this.uaConnection.releaseQueueItemHold({
+				sessionId,
+				itemId: id,
+			}));
+			return;
+		}
+		if (!this.wasEverConnected) {
+			super.releaseMessageQueueItemHold(sessionId, itemId);
+		}
+	}
+
+	override updateMessageQueueItemContent(sessionId: string, itemId: string, content: string): boolean {
+		if (this.isEngineConnected()) {
+			return this.editEngineQueueItem(sessionId, itemId, content, true);
+		}
+		if (this.wasEverConnected) {
+			return false;
+		}
+		return super.updateMessageQueueItemContent(sessionId, itemId, content);
+	}
+
 	override deleteSession(sessionId: string): boolean {
 		if (this.isEngineConnected()) {
 			return this.deleteEngineSession(sessionId, true);
@@ -359,6 +445,46 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 			return true;
 		}
 		return false;
+	}
+
+	private forwardEngineQueueRef(sessionId: string, callRemote: boolean, send: () => void): boolean {
+		if (!this.engineSessions.some(session => session.id === sessionId)) {
+			return false;
+		}
+		if (callRemote) {
+			send();
+			this._onDidChangeSession.fire(sessionId);
+			return true;
+		}
+		return false;
+	}
+
+	private forwardEngineQueueItem(sessionId: string, itemId: string, callRemote: boolean, send: (itemId: string) => void): boolean {
+		const trimmedId = itemId.trim();
+		if (!trimmedId) {
+			return false;
+		}
+		if (!this.engineSessions.some(session => session.id === sessionId)) {
+			return false;
+		}
+		if (callRemote) {
+			send(trimmedId);
+			this._onDidChangeSession.fire(sessionId);
+			return true;
+		}
+		return false;
+	}
+
+	private editEngineQueueItem(sessionId: string, itemId: string, content: string, callRemote: boolean): boolean {
+		const trimmed = content.trim();
+		if (!trimmed) {
+			return false;
+		}
+		return this.forwardEngineQueueItem(sessionId, itemId, callRemote, id => this.uaConnection.editQueueItem({
+			sessionId,
+			itemId: id,
+			text: trimmed,
+		}));
 	}
 
 	private lastStreamingAgentId(sessionId: string): string | undefined {

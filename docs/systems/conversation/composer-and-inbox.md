@@ -4,7 +4,7 @@ type: architecture
 status: accepted
 phase: N/A
 updated: 2026-09-04
-summary: "PRD-015 系统规格：PreFirst 居中 / Active 列底同一张 Composer；三种 composerPolicy；身份条 XOR；Inbox 左右分簇与 MessageQueue 状态机；Stop 仅 connected+streaming 时转 AgentService.Cancel；Goal 接通后转 SetSessionGoal / CancelSessionGoal；语音转写条；输入历史；StatusBar 芯片与诚实降级"
+summary: "PRD-015 系统规格：PreFirst 居中 / Active 列底同一张 Composer；三种 composerPolicy；身份条 XOR；Inbox 左右分簇与 MessageQueue 状态机；Stop 仅 connected+streaming 时转 AgentService.Cancel；Goal 接通后转 SetSessionGoal / CancelSessionGoal；MessageQueue 接通后转 Pause/Resume/Clear/Hold/Release/Edit（无 GetQueue 显示空）；语音转写条；输入历史；StatusBar 芯片与诚实降级"
 ---
 
 # Conversation Composer、身份条与 Inbox
@@ -57,7 +57,7 @@ summary: "PRD-015 系统规格：PreFirst 居中 / Active 列底同一张 Compos
 - 项状态 `UPLOADING | UPLOAD_FAILED | PENDING | SENDING | FAILED`；hold 原因 `EDITING`。
 - 队列级操作：`pauseMessageQueue` / `resumeMessageQueue` / `clearMessageQueue`；项级 `holdMessageQueueItem` / `releaseMessageQueueItemHold` / `updateMessageQueueItemContent`。
 - `conversationMessageQueuePendingCount` 供 Inbox 徽标。
-- stub 期状态由 `setMessageQueueFixture` 注入；传输已有 `AgentService.EnqueueQueueItem` 族，roster / Inbox **不**转发，避免 fixture 冒充引擎队列。
+- stub / 从未连过：状态由 `setMessageQueueFixture` 注入。引擎接通后 Inbox 操作转发 `AgentService` Pause / Resume / Clear / Hold / Release / Edit（未知 session / 空 item / 空正文 / 断连缓存不发）。无 GetQueue，接通后列表诚实空，不把 fixture 冒充引擎队列。`EnqueueQueueItem` 仍仅传输。
 
 ## 5. 语音转写条
 
@@ -94,4 +94,4 @@ summary: "PRD-015 系统规格：PreFirst 居中 / Active 列底同一张 Compos
 
 ## 9. 测试
 
-`conversationLens.test.ts`（T1–T6）、`conversationInboxOverlay.test.ts`（Stop 禁用 / 接通 streaming 转发；Goal 禁用 / 接通转发 Set / 取消不发 / 清空确认 Cancel）、`conversationIdentityStrip.test.ts`、`conversationInputHistory.test.ts`、`conversationSessionStatus.test.ts`、`conversationSessionStatusBar.test.ts`、`conversationStubService.test.ts`（队列 / hold / cancel·goal no-op）、`conversationEngineRosterService.test.ts`（接通转发 Cancel / SetSessionGoal）。
+`conversationLens.test.ts`（T1–T6）、`conversationInboxOverlay.test.ts`（Stop 禁用 / 接通 streaming 转发；Goal 禁用 / 接通转发 Set / 取消不发 / 清空确认 Cancel）、`conversationIdentityStrip.test.ts`、`conversationInputHistory.test.ts`、`conversationSessionStatus.test.ts`、`conversationSessionStatusBar.test.ts`、`conversationStubService.test.ts`（队列 / hold / cancel·goal no-op）、`conversationEngineRosterService.test.ts`（接通转发 Cancel / SetSessionGoal / MessageQueue 五操作 + Edit）。
