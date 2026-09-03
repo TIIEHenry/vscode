@@ -13,8 +13,10 @@ import { GroupIdentifier, IEditorIdentifier } from '../../../common/editor.js';
 import { IEditorGroupsService, IConversationEditorPart, preferredSideBySideGroupDirection } from '../../../services/editor/common/editorGroupsService.js';
 import { CONVERSATION_GROUP, IEditorService } from '../../../services/editor/common/editorService.js';
 import { buildAgentHierarchyBreadcrumb, IConversationAgentBreadcrumbItem } from '../common/conversationAgentHierarchy.js';
+import { collectLiveAgentTreeCatalogEntries } from '../common/conversationLiveAgentCatalog.js';
 import { isConversationExtensionTab } from '../common/conversationEditorRouting.js';
 import { IConversationSessionChatEntry } from '../common/conversationSessionChat.js';
+import type { LiveAgentTreeNodeView } from '../../../../platform/universeAgent/common/sessionView/index.js';
 import {
 	ConversationChatInput,
 	deriveConversationChatIdFromForkResource,
@@ -49,6 +51,8 @@ export interface IConversationSessionChatService {
 	registerForkChat(sessionKey: string, chatId: string, title: string): IConversationSessionChatEntry;
 
 	registerSubAgentChat(sessionKey: string, chatId: string, title: string, parentChatId?: string): IConversationSessionChatEntry;
+
+	syncSubAgentsFromLiveTree(sessionKey: string, tree: LiveAgentTreeNodeView): void;
 
 	openForkTab(forkedResource: URI, title?: string): Promise<void>;
 
@@ -98,6 +102,9 @@ export class ConversationSessionChatService extends Disposable implements IConve
 		@IConfigurationService private readonly configurationService: IConfigurationService,
 	) {
 		super();
+		this._register(this.rosterService.onDidChangeLiveAgentTree(event => {
+			this.syncSubAgentsFromLiveTree(event.sessionId, event.tree);
+		}));
 	}
 
 	mountSubAgentOverlay(sessionKey: string, sessionWindowHost: HTMLElement): void {
@@ -277,6 +284,37 @@ export class ConversationSessionChatService extends Disposable implements IConve
 
 	registerSubAgentChat(sessionKey: string, chatId: string, title: string, parentChatId = 'default'): IConversationSessionChatEntry {
 		return this.registerChat(sessionKey, chatId, title, 'tool', parentChatId);
+	}
+
+	syncSubAgentsFromLiveTree(sessionKey: string, tree: LiveAgentTreeNodeView): void {
+		let sessionCatalog = this.catalog.get(sessionKey);
+		if (!sessionCatalog) {
+			sessionCatalog = new Map();
+			this.catalog.set(sessionKey, sessionCatalog);
+		}
+		let changed = false;
+		for (const entry of collectLiveAgentTreeCatalogEntries(tree)) {
+			const existing = sessionCatalog.get(entry.chatId);
+			if (existing) {
+				if (existing.title !== entry.title) {
+					sessionCatalog.set(entry.chatId, { ...existing, title: entry.title });
+					changed = true;
+				}
+				continue;
+			}
+			sessionCatalog.set(entry.chatId, {
+				sessionKey,
+				chatId: entry.chatId,
+				title: entry.title,
+				originKind: 'tool',
+				parentChatId: entry.parentChatId,
+			});
+			changed = true;
+		}
+		if (changed) {
+			this._onDidChangeCatalog.fire(sessionKey);
+			this.fireCloseNonRootStateChange();
+		}
 	}
 
 	private registerChat(
