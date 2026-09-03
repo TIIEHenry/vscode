@@ -104,6 +104,14 @@ export interface IConversationRosterService {
 	 */
 	resolveConfirmation(sessionId: string, turnId: string, status: 'allowed' | 'skipped'): boolean;
 	deleteSession(sessionId: string): boolean;
+	/**
+	 * AgentService.DeleteMessage (turn + subtree; ≠ session Delete).
+	 * Engine-connected forwards unary (empty agent → last streaming else
+	 * `root`). Empty `turnId` / unknown session / disconnected cache / missing
+	 * hook returns false and does not delete locally. Stub / never-connected
+	 * still deletes the local turn.
+	 */
+	deleteTurn(sessionId: string, turnId: string): boolean;
 	getTurns(sessionId: string): readonly ConversationStubTurn[];
 	getTrajectoryRecords(sessionId: string, options?: TrajectoryProjectionOptions): readonly ConversationTrajectoryRecord[];
 	getSessionSync(sessionId: string): SyncChrome;
@@ -114,7 +122,6 @@ export interface IConversationRosterService {
 	appendThinkingTurn(sessionId: string, text: string): ConversationStubTurn | undefined;
 	appendToolTurn(sessionId: string, text: string): ConversationStubTurn | undefined;
 	countPendingConfirmations(sessionId: string): number;
-	deleteTurn(sessionId: string, turnId: string): boolean;
 	updateUserTurnText(sessionId: string, turnId: string, text: string): boolean;
 	/**
 	 * AgentService.EnqueueQueueItem. Engine-connected forwards unary (empty

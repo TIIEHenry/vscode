@@ -257,6 +257,16 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		return super.cancelToolCall(sessionId, options);
 	}
 
+	override deleteTurn(sessionId: string, turnId: string): boolean {
+		if (this.isEngineConnected()) {
+			return this.deleteEngineMessage(sessionId, turnId, true);
+		}
+		if (this.wasEverConnected) {
+			return this.deleteEngineMessage(sessionId, turnId, false);
+		}
+		return super.deleteTurn(sessionId, turnId);
+	}
+
 	override enqueueMessageQueueItem(sessionId: string, text: string, options?: { priority?: 'NORMAL' | 'HIGH' | 'LOW'; opId?: string }): boolean {
 		if (this.isEngineConnected()) {
 			return this.enqueueEngineQueueItem(sessionId, text, options, true);
@@ -555,6 +565,25 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 				requestId,
 				granted: status === 'allowed',
 			});
+			return true;
+		}
+		return false;
+	}
+
+	private deleteEngineMessage(sessionId: string, turnId: string, callRemote: boolean): boolean {
+		const trimmedTurnId = turnId.trim();
+		if (!trimmedTurnId) {
+			return false;
+		}
+		if (!this.engineSessions.some(session => session.id === sessionId)) {
+			return false;
+		}
+		if (callRemote) {
+			if (!this.uaConnection.deleteMessage) {
+				return false;
+			}
+			const agentId = this.lastStreamingAgentId(sessionId) || 'root';
+			void this.uaConnection.deleteMessage({ sessionId, turnId: trimmedTurnId, agentId });
 			return true;
 		}
 		return false;
