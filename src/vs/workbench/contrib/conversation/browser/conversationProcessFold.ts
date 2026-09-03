@@ -43,7 +43,7 @@ export interface ProcessFoldDomOptions {
 	readonly isToolExpanded: (turnId: string) => boolean;
 	readonly setToolExpanded: (turnId: string, expanded: boolean) => void;
 	readonly onViewInTrajectory?: (turnId: string) => void;
-	/** Per-tool cancel (AgentService.CancelToolCall). Only used while live chrome is executing. */
+	/** Live executing tool row → AgentService.CancelToolCall (timeline). */
 	readonly onCancelToolCall?: (turn: ConversationStubTurn) => void;
 	readonly onLayoutChange: () => void;
 	/** When false (stub fixture), omit loading / live / duration chrome (Q4). */
@@ -254,6 +254,7 @@ function renderToolRow(
 		header.setAttribute('aria-label', localize('conversationProcessFold.toolHeaderStatic', "Tool {0}, {1}", toolName, summary.textContent ?? ''));
 	}
 
+	appendProcessFoldToolCancel(row, turn, executing, options, disposables);
 	appendProcessFoldTrajectoryJump(row, turn.id, options, disposables);
 	appendProcessFoldToolCancel(row, turn, executing, options, disposables);
 
@@ -329,6 +330,28 @@ function formatToolSummary(turn: ConversationStubTurn, options: ProcessFoldDomOp
 		default:
 			return base;
 	}
+}
+
+function appendProcessFoldToolCancel(
+	parent: HTMLElement,
+	turn: ConversationStubTurn,
+	executing: boolean,
+	options: ProcessFoldDomOptions,
+	disposables: DisposableStore,
+): void {
+	if (!executing || !options.onCancelToolCall || !turn.id.trim()) {
+		return;
+	}
+	const cancel = append(parent, $('button.conversation-process-fold-tool-cancel')) as HTMLButtonElement;
+	cancel.type = 'button';
+	cancel.classList.add(...ThemeIcon.asClassNameArray(Codicon.debugStop));
+	cancel.title = conversationProcessFoldToolCancel;
+	cancel.setAttribute('aria-label', conversationProcessFoldToolCancel);
+	cancel.setAttribute('data-tool-call-id', turn.id);
+	disposables.add(addDisposableListener(cancel, 'click', (e) => {
+		e.stopPropagation();
+		options.onCancelToolCall!(turn);
+	}));
 }
 
 function appendProcessFoldTrajectoryJump(

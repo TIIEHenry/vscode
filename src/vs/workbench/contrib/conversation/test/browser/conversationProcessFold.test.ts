@@ -4,7 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { DisposableStore } from '../../../../../base/common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { conversationProcessFoldToolCancel, renderProcessFoldSpan } from '../../browser/conversationProcessFold.js';
 import { nestThinkingTools, projectProcessFoldSpans, projectTrajectoryProcessFoldSpans, summarizeProcessSteps, summarizeTrajectoryProcessSteps } from '../../browser/conversationProcessFoldModel.js';
 import { ConversationTrajectoryRecord } from '../../browser/conversationTrajectoryModel.js';
 import { ConversationStubTurn } from '../../browser/conversationStubModel.js';
@@ -223,5 +225,63 @@ suite('ConversationProcessFold', () => {
 		assert.ok(summary.includes('thinking'));
 		assert.ok(summary.includes('tool'));
 		assert.ok(summary.includes('subtool'));
+	});
+
+	test('executing tool row cancel forwards turn identity', () => {
+		const turns: ConversationStubTurn[] = [{
+			id: 'tc-1',
+			kind: 'tool',
+			text: 'read',
+			toolStatus: 'running',
+			agentId: 'sub:a',
+		}];
+		const span = projectProcessFoldSpans(turns)[0];
+		assert.ok(span);
+		const calls: ConversationStubTurn[] = [];
+		const disposables = new DisposableStore();
+		const host = document.createElement('div');
+		renderProcessFoldSpan(host, span, {
+			defaultOuterExpanded: true,
+			isOuterExpanded: () => true,
+			setOuterExpanded: () => { },
+			isThinkingExpanded: () => false,
+			setThinkingExpanded: () => { },
+			isToolExpanded: () => false,
+			setToolExpanded: () => { },
+			onLayoutChange: () => { },
+			showLiveChrome: true,
+			onCancelToolCall: turn => { calls.push(turn); },
+		}, disposables);
+		const button = host.querySelector('.conversation-process-fold-tool-cancel') as HTMLButtonElement | null;
+		assert.ok(button);
+		assert.strictEqual(button.getAttribute('aria-label'), conversationProcessFoldToolCancel);
+		assert.strictEqual(button.getAttribute('data-tool-call-id'), 'tc-1');
+		button.click();
+		assert.strictEqual(calls.length, 1);
+		assert.strictEqual(calls[0]?.id, 'tc-1');
+		assert.strictEqual(calls[0]?.agentId, 'sub:a');
+		disposables.dispose();
+	});
+
+	test('stub fixture tool row has no cancel control', () => {
+		const turns: ConversationStubTurn[] = [{ id: 'tool1', kind: 'tool', text: 'read' }];
+		const span = projectProcessFoldSpans(turns)[0];
+		assert.ok(span);
+		const disposables = new DisposableStore();
+		const host = document.createElement('div');
+		renderProcessFoldSpan(host, span, {
+			defaultOuterExpanded: true,
+			isOuterExpanded: () => true,
+			setOuterExpanded: () => { },
+			isThinkingExpanded: () => false,
+			setThinkingExpanded: () => { },
+			isToolExpanded: () => false,
+			setToolExpanded: () => { },
+			onLayoutChange: () => { },
+			showLiveChrome: false,
+			onCancelToolCall: () => { },
+		}, disposables);
+		assert.strictEqual(host.querySelector('.conversation-process-fold-tool-cancel'), null);
+		disposables.dispose();
 	});
 });

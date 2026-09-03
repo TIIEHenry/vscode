@@ -24,6 +24,8 @@ import type {
 	UniverseAgentSetSessionGoalResult,
 	UniverseAgentCancelSessionGoalRequest,
 	UniverseAgentCancelSessionGoalResult,
+	UniverseAgentRespondPermissionRequest,
+	UniverseAgentRespondPermissionResult,
 	UniverseAgentEnqueueQueueItemRequest,
 	UniverseAgentEditQueueItemRequest,
 	UniverseAgentHoldQueueItemRequest,
@@ -164,6 +166,9 @@ export interface IUniverseAgentGrpcTransport {
 	setSessionGoal(request: UniverseAgentSetSessionGoalRequest): Promise<UniverseAgentSetSessionGoalResult>;
 
 	cancelSessionGoal(request: UniverseAgentCancelSessionGoalRequest): Promise<UniverseAgentCancelSessionGoalResult>;
+
+	respondPermission(request: UniverseAgentRespondPermissionRequest): Promise<UniverseAgentRespondPermissionResult>;
+
 	enqueueQueueItem(request: UniverseAgentEnqueueQueueItemRequest): Promise<UniverseAgentQueueMutationResult>;
 
 	pauseQueue(request: UniverseAgentQueueRefRequest): Promise<UniverseAgentQueueMutationResult>;
@@ -286,6 +291,7 @@ export const UniverseAgentGrpcServices = {
 		service: 'universeagent.session.v1.PermissionService',
 		SetSessionGoal: 'SetSessionGoal',
 		CancelSessionGoal: 'CancelSessionGoal',
+		Respond: 'Respond',
 	},
 	Agent: {
 		service: 'universeagent.agent.v1.AgentService',

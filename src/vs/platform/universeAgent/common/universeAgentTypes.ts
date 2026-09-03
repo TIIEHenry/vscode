@@ -135,6 +135,20 @@ export interface UniverseAgentCancelSessionGoalResult {
 	readonly message?: string;
 }
 
+/** PermissionService.Respond — unary permission reply (Chat-arm permissionRespond remains the live path). */
+export interface UniverseAgentRespondPermissionRequest {
+	readonly sessionId: string;
+	readonly requestId: string;
+	/** Proto `granted`; allow=true, deny=false. */
+	readonly granted: boolean;
+	readonly metadataJson?: string;
+}
+
+export interface UniverseAgentRespondPermissionResult {
+	readonly ok: boolean;
+	readonly message?: string;
+}
+
 /** AgentService queue hold reason (QueueItemHoldReasonProto). */
 export type UniverseAgentQueueHoldReason = 'NONE' | 'EDITING';
 

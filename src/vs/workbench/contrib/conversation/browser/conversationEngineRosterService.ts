@@ -420,12 +420,8 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 			if (!this.uaConnection.cancelToolCall) {
 				return false;
 			}
-			const agentId = options.agentId?.trim();
-			void this.uaConnection.cancelToolCall({
-				sessionId,
-				toolCallId,
-				...(agentId ? { agentId } : {}),
-			});
+			const agentId = options.agentId?.trim() || this.lastStreamingAgentId(sessionId) || 'root';
+			void this.uaConnection.cancelToolCall({ sessionId, agentId, toolCallId });
 			return true;
 		}
 		return false;
