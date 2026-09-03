@@ -177,8 +177,8 @@ export interface IUniverseAgentConnection {
 	): UniverseAgentChatStream;
 
 	/**
-	 * AgentService.ContinueGeneration server-stream (ADR-028). Optional until transport wires it.
-	 * Host opens when present; otherwise counts `intent.unhandled` for `openContinuationStream`.
+	 * AgentService.ContinueGeneration server-stream (ADR-028). Node gRPC implements this;
+	 * Web / tests may omit it (host then counts `intent.unhandled`).
 	 */
 	openContinuationStream?(
 		request: UniverseAgentContinueGenerationRequest,

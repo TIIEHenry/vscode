@@ -7,6 +7,8 @@ import type {
 	UniverseAgentChatRequest,
 	UniverseAgentChatResponse,
 	UniverseAgentChatStream,
+	UniverseAgentContinueGenerationRequest,
+	UniverseAgentContinuationStream,
 	UniverseAgentConnectRequest,
 	UniverseAgentConnectResult,
 	UniverseAgentCreateSessionRequest,
@@ -147,6 +149,12 @@ export interface IUniverseAgentGrpcTransport {
 		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
 	): UniverseAgentChatStream;
 
+	openContinuationStream(
+		request: UniverseAgentContinueGenerationRequest,
+		onResponse: (response: UniverseAgentChatResponse) => void,
+		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
+	): UniverseAgentContinuationStream;
+
 	listSkills(): Promise<UniverseAgentListSkillsResult>;
 
 	setSkillEnabled(request: UniverseAgentSetSkillEnabledRequest): Promise<UniverseAgentSetSkillEnabledResult>;
@@ -225,6 +233,7 @@ export const UniverseAgentGrpcServices = {
 	Agent: {
 		service: 'universeagent.agent.v1.AgentService',
 		Chat: 'Chat',
+		ContinueGeneration: 'ContinueGeneration',
 		Tree: 'Tree',
 		ListAgentProfiles: 'ListAgentProfiles',
 		SaveAgentProfile: 'SaveAgentProfile',

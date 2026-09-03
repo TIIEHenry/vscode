@@ -4,7 +4,7 @@ type: reference
 status: accepted
 phase: N/A
 updated: 2026-09-04
-summary: "已知 gRPC 服务 / RPC 名与本仓用途；§4 含 G-CORE-1；§5 会话面含 onDynamicDidApplyFrame 首帧缓冲与 confirmPairing/cancelPairing/probeConnectionProfile；SessionEventStream onClosed 折 Actor streamClosed；ContinueGeneration 宿主 onClosed 只拆句柄不折 chrome；G-NAV-* / G-REV-* / G-ENG-*；G-CONV-1 已消费 attribution"
+summary: "已知 gRPC 服务 / RPC 名与本仓用途；§4 含 G-CORE-1；§5 会话面含 onDynamicDidApplyFrame 首帧缓冲与 confirmPairing/cancelPairing/probeConnectionProfile；SessionEventStream onClosed 折 Actor streamClosed；ContinueGeneration 已进 gRPC catalog + 宿主 onClosed 只拆句柄不折 chrome；G-NAV-* / G-REV-* / G-ENG-*；G-CONV-1 已消费 attribution"
 ---
 
 # UniverseAgent 引擎协议面（本仓消费口径）
@@ -20,7 +20,7 @@ summary: "已知 gRPC 服务 / RPC 名与本仓用途；§4 含 G-CORE-1；§5 �
 | `SystemService` | `ConnectResponse` | `session_token` → `isEngineConnected()`；capabilities | 已 Grant：`session_token` 非空 → connected。**未配对**：`pairing_nonce` + `sas_code`（Crockford `XXXX-XXXX`），**无** `session_token`；pairing-pending ≠ connected（ADR-003 D7）。S4 意外 token → 丢弃、recoverTrust |
 | `SessionService` | `List` / `Create` / `Delete` / `GetHistory` / `SessionEventStream` | Conversation roster + 时间线 fold 输入（`GetHistory` + 流 → session-core Actor → `ViewFrame`） | 无 `SwitchSession`；切换 = IDE 客户端投影。标题 proto 为 `AgentService.Rename`，**HEAD adapter 未接**。`subscribeSessionEventStream` 第三参 `onClosed` 与 Chat bidi 同因（`remote` / `error`）；本地 dispose 不回调。宿主 `openStream` 把 remote/error 经 `postAndDrain` 折成 Actor `streamClosed` |
 | `AgentService` | `Chat` | 发送 + 流内 permission / question / clientTool 应答（Chat 双向流） | 权限 cleanup 亦走 Chat 臂；`PermissionService.Respond` 为备选（见 stream-timeline S5 注释） |
-| `AgentService` | `ContinueGeneration` | 宿主 `openContinuationStream?`（ADR-028）；时间线仍走 `SessionEventStream` | **传输未进** `UniverseAgentGrpcServices`。宿主在 hook 存在时持句柄：remote/error `onClosed` 拆句柄并 warn，**不** `postAndDrain(streamClosed)`（那条闸是 SessionEventStream）；断连 / 替换先本地 dispose。缺 hook 仍计 `intent.unhandled` |
+| `AgentService` | `ContinueGeneration` | 宿主 `openContinuationStream?`（ADR-028）；时间线仍走 `SessionEventStream` | **已进** `UniverseAgentGrpcServices.Agent` + node `openContinuationStream`（server-stream `ChatResponse`）。宿主 remote/error `onClosed` 拆句柄并 warn，**不** `postAndDrain(streamClosed)`（那条闸是 SessionEventStream）；断连 / 替换先本地 dispose。Web / 无 hook 仍计 `intent.unhandled` |
 | `AgentService` | `Tree` | Navigator Agent 树（**host-only**，不经 renderer `IUniverseAgentConnection`） | m6 §11；`UNIMPLEMENTED` → `agentTree=UNSUPPORTED` |
 | `AgentService` | `FetchToolDetail` | Conversation DetailRef 按需通道（**host-only**，lease `requestDetail`） | **P2a**；见 §1b；`subscribe=false` |
 | `TeamService` | `MemberStatus` / `TaskList` / `TeamInfo` | Navigator Team 段（renderer `IUniverseAgentConnection.team`） | m6 §11 A1 unary |
