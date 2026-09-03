@@ -23,6 +23,8 @@ import type {
 	UniverseAgentRemoveMcpServerRequest,
 	UniverseAgentSessionEvent,
 	UniverseAgentSessionStreamCloseCause,
+	UniverseAgentToolInfoRequest,
+	UniverseAgentToolInfoResult,
 } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { EngineAgentsSection } from '../../browser/engineAgentsSection.js';
@@ -51,6 +53,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		addMcpServer?: (request: UniverseAgentAddMcpServerRequest) => Promise<{ ok: boolean }>;
 		updateMcpServer?: (request: UniverseAgentUpdateMcpServerRequest) => Promise<{ ok: boolean }>;
 		removeMcpServer?: (request: UniverseAgentRemoveMcpServerRequest) => Promise<{ ok: boolean }>;
+		getToolInfo?: (request: UniverseAgentToolInfoRequest) => Promise<UniverseAgentToolInfoResult>;
 	} = {}): IUniverseAgentConnection & { setConnected(value: boolean): void } {
 		const capabilities: UniverseAgentCapabilitySnapshot = {
 			...createEmptyCapabilitySnapshot(),
@@ -135,6 +138,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 			updateMcpServer: options.updateMcpServer ?? (async () => ({ ok: true })),
 			removeMcpServer: options.removeMcpServer ?? (async () => ({ ok: true })),
 			listTools: options.listTools ?? (async () => ({ tools: [] })),
+			getToolInfo: options.getToolInfo,
 			listModels: async () => ({ models: [] }),
 			setConnected(value: boolean) {
 				connected = value;
@@ -403,5 +407,64 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		const ok = await section.toggleTool({ name: 'read_file' }, false);
 		assert.strictEqual(saveCalled, false);
 		assert.strictEqual(ok, false);
+	});
+
+	test('Tools: selecting a row loads ToolInfo detail without a schema editor', async () => {
+		const calls: string[] = [];
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { tools: { support: 'SUPPORTED' } },
+			listTools: async () => ({ tools: [{ name: 'bash', description: 'list desc', category: 'shell' }] }),
+			getToolInfo: async (request) => {
+				calls.push(request.toolName);
+				return {
+					name: 'bash',
+					description: 'Run a command',
+					category: 'shell',
+					destructive: true,
+					requiresPermission: true,
+					aliases: ['sh'],
+					inputSchemaJson: '{"type":"object"}',
+				};
+			},
+		});
+		const parent = document.createElement('div');
+		document.body.appendChild(parent);
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IUniverseAgentConnection, connection);
+		const section = store.add(instantiationService.createInstance(EngineToolsSection, parent));
+		section.setSectionActive(true);
+		section.layout(640, 160);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.selectTool('bash'), true);
+		await flushMicrotasks();
+		assert.deepStrictEqual(calls, ['bash']);
+		const detail = section.getToolInfoDetailText() ?? '';
+		assert.ok(detail.includes('Run a command'));
+		assert.ok(detail.includes('Destructive'));
+		assert.ok(detail.includes('Requires permission'));
+		assert.ok(detail.includes('Has input schema'));
+		assert.strictEqual(parent.querySelector('textarea'), null);
+	});
+
+	test('Tools: missing getToolInfo hook hides detail', async () => {
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { tools: { support: 'SUPPORTED' } },
+			listTools: async () => ({ tools: [{ name: 'bash' }] }),
+		});
+		const parent = document.createElement('div');
+		document.body.appendChild(parent);
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IUniverseAgentConnection, connection);
+		const section = store.add(instantiationService.createInstance(EngineToolsSection, parent));
+		section.setSectionActive(true);
+		section.layout(640, 160);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.selectTool('bash'), true);
+		await flushMicrotasks();
+		assert.strictEqual(section.isToolInfoVisible(), false);
 	});
 });
