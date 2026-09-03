@@ -4,22 +4,22 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-04
-summary: "槽 C：subscribeSessionEventStream 补 onClosed（合同+传输）；宿主未折 streamClosed"
+summary: "槽 A：宿主把 SessionEventStream onClosed remote/error 经 postAndDrain 折成 Actor streamClosed"
 ---
 
 # Development Progress
 
 ## Current Session
 
-- **槽 C / `loop/C`：** 对齐 `loop/merge` `a9fd77d4` 后补 `subscribeSessionEventStream` 第三参 `onClosed`（与 Chat / ContinueGeneration 同 `UniverseAgentSessionStreamCloseCause`）。`makeServerStreamClient` 用共用 `createStreamCloseGate`：远端 `end`→`remote`、`error`→`error`；本地 dispose 先 `closeLocal` 以免 CANCELLED 再回调。连接服务原样转发。**未改** `sessionViewHost`（不声称 Actor 已收 `streamClosed`）。
-- **merge / `loop/merge`：** 合入槽 A `4c8235e6`（GC-1b `connectProfile` pairing gate）与槽 B `d19e2783`（chevron `transition` 只挂 `.ua-motion`）。
+- **槽 A / `loop/A`：** ff-merge `loop/merge` `bfaac2b0`（含槽 C `onClosed` 合同）后，`SessionViewHost.openStream` 把 `subscribeSessionEventStream` 的 remote/error `onClosed` 经 `postAndDrain` 折成 Actor `streamClosed`；Actor 再 `closeStream` 拆订阅。本地 linger dispose 不回调、不折 chrome。测：`sessionViewHostIntentOwner`。
+- **槽 C / `loop/C`：** `subscribeSessionEventStream` 第三参 `onClosed` 与 Chat bidi 共用 `createStreamCloseGate`（已合入 merge）。
 
 ## 槽位（与 `git worktree list` 对照）
 
 | 槽 | 路径 | 分支 | 状态 |
 |----|------|------|------|
 | merge | `vscode-WorkTrees/merge` | `loop/merge` | 本会话：A+B + exhaustiveness 复绿 |
-| A | `vscode-WorkTrees/A` | `loop/A` | GC-1b pairing gate（已合） |
+| A | `vscode-WorkTrees/A` | `loop/A` | 宿主 `streamClosed` 折 remote/error |
 | B | `vscode-WorkTrees/B` | `loop/B` | ua-motion a11y 收口（已合） |
 | C | `vscode-WorkTrees/C` | `loop/C` | SessionEventStream `onClosed` 合同+传输 |
 | D | `vscode-WorkTrees/D` | `loop/D` | 以该槽 `git` 为准 |
@@ -38,6 +38,6 @@ summary: "槽 C：subscribeSessionEventStream 补 onClosed（合同+传输）；
 | I6 | 发行标识等发布方 |
 | H4a | 真 Hub 冒烟后才升 PRD-024 `implemented` |
 | V | D16/D17 与产品验证 |
-| SessionEventStream close | 宿主把 `onClosed` 折成 Actor `streamClosed`（本切片只落合同+传输） |
+| SessionEventStream close | 宿主已折 remote/error → Actor `streamClosed`；continuation `onClosed` 仍未接线 |
 
 **不做：** H6、完整插件市场、fixture 冒充 Engine、为全绿冻结 UI、引擎仓新增 RPC、会话级模型策略 UI、F3 同窗共享 lease（D22）。

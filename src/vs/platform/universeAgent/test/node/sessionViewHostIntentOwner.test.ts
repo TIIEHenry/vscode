@@ -7,7 +7,8 @@ import assert from 'assert';
 import { timeout } from '../../../../base/common/async.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import type { IUniverseAgentSessionViewFrameEvent } from '../../common/universeAgentSessionView.js';
-import type { ViewPatch } from '../../common/sessionView/types.js';
+import type { SyncChrome, ViewPatch } from '../../common/sessionView/types.js';
+import type { UniverseAgentSessionStreamCloseCause } from '../../common/universeAgentTypes.js';
 import type { DiagnosticMetric, DiagnosticsPort, TimerId } from '../../node/sessionCore/ports.js';
 import { SessionViewHost } from '../../node/sessionViewHost.js';
 import { NodeSchedulerPort } from '../../node/sessionViewHostPorts.js';
@@ -19,11 +20,15 @@ class TrackingConnection extends TestConnection {
 	readonly streamSubscriptions: string[] = [];
 	private readonly streamHandles: { readonly sessionId: string; disposed: boolean }[] = [];
 
-	override subscribeSessionEventStream(sessionId: string, listener: (event: { payload: unknown }) => void) {
+	override subscribeSessionEventStream(
+		sessionId: string,
+		listener: (event: { payload: unknown }) => void,
+		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
+	) {
 		this.streamSubscriptions.push(sessionId);
 		const handle = { sessionId, disposed: false };
 		this.streamHandles.push(handle);
-		const inner = super.subscribeSessionEventStream(sessionId, listener);
+		const inner = super.subscribeSessionEventStream(sessionId, listener, onClosed);
 		return {
 			dispose: () => {
 				handle.disposed = true;
@@ -58,6 +63,16 @@ class CountingDiagnostics implements DiagnosticsPort {
 type HostInternals = {
 	postAndDrain(sessionId: string, msg: { readonly t: 'localFact'; readonly fact: unknown }): { accepted: boolean };
 };
+
+function closedChromeFromFrames(frames: readonly IUniverseAgentSessionViewFrameEvent[]): SyncChrome[] {
+	return frames.flatMap(event => {
+		const body = event.frame.frame.body;
+		if (body.kind !== 'patches') {
+			return [];
+		}
+		return body.patches.filter((patch): patch is Extract<ViewPatch, { op: 'setSyncChrome' }> => patch.op === 'setSyncChrome');
+	}).map(patch => patch.sync).filter((sync): sync is Extract<SyncChrome, { kind: 'closed' }> => sync.kind === 'closed');
+}
 
 function postLocalFact(viewHost: SessionViewHost, sessionId: string, fact: unknown): void {
 	const outcome = (viewHost as unknown as HostInternals).postAndDrain(sessionId, { t: 'localFact', fact });
@@ -253,5 +268,61 @@ suite('SessionViewHost intent ownership (F2)', () => {
 		assert.ok(diagnostics.warnings.some(w =>
 			w.message.includes('unaryCommand') && w.fields.commandId === 'agent.editMessage'
 		));
+	});
+
+	test('remote SessionEventStream close posts streamClosed and folds sync.closed remote', async () => {
+		const connection = new TrackingConnection();
+		const host = new TestHost(async () => undefined);
+		const viewHost = store.add(new SessionViewHost(connection, host, { orphanTimeoutMs: 0 }));
+		viewHost.onEngineConnectionChanged();
+		const leaseId = viewHost.acquireLease('sess-remote-close');
+
+		const frames: IUniverseAgentSessionViewFrameEvent[] = [];
+		store.add(viewHost.onDynamicDidApplyFrame(leaseId)(e => frames.push(e)));
+		await new Promise<void>(resolve => queueMicrotask(() => resolve()));
+
+		assert.strictEqual(connection.activeStreamCount, 1);
+		connection.fireStreamClosed('sess-remote-close', { kind: 'remote' });
+
+		assert.ok(closedChromeFromFrames(frames).some(sync => sync.reason === 'remote'));
+		assert.strictEqual(connection.activeStreamCount, 0, 'actor closeStream must dispose the subscription');
+	});
+
+	test('error SessionEventStream close folds sync.closed with the error message', async () => {
+		const connection = new TrackingConnection();
+		const host = new TestHost(async () => undefined);
+		const viewHost = store.add(new SessionViewHost(connection, host, { orphanTimeoutMs: 0 }));
+		viewHost.onEngineConnectionChanged();
+		const leaseId = viewHost.acquireLease('sess-error-close');
+
+		const frames: IUniverseAgentSessionViewFrameEvent[] = [];
+		store.add(viewHost.onDynamicDidApplyFrame(leaseId)(e => frames.push(e)));
+		await new Promise<void>(resolve => queueMicrotask(() => resolve()));
+
+		connection.fireStreamClosed('sess-error-close', { kind: 'error', message: 'rst reset' });
+
+		assert.ok(closedChromeFromFrames(frames).some(sync => sync.reason === 'rst reset'));
+		assert.strictEqual(connection.activeStreamCount, 0);
+	});
+
+	test('local linger dispose does not fold streamClosed remote/error chrome', async () => {
+		const connection = new TrackingConnection();
+		const host = new TestHost(async () => undefined);
+		const viewHost = store.add(new SessionViewHost(connection, host, {
+			orphanTimeoutMs: 0,
+			lingerMs: LINGER_MS,
+		}));
+		viewHost.onEngineConnectionChanged();
+		const leaseId = viewHost.acquireLease('sess-local-close');
+
+		const frames: IUniverseAgentSessionViewFrameEvent[] = [];
+		store.add(viewHost.onDynamicDidApplyFrame(leaseId)(e => frames.push(e)));
+		await new Promise<void>(resolve => queueMicrotask(() => resolve()));
+
+		viewHost.releaseLease(leaseId);
+		await waitFor(() => connection.activeStreamCount === 0);
+		connection.fireStreamClosed('sess-local-close', { kind: 'remote' });
+
+		assert.deepStrictEqual(closedChromeFromFrames(frames), []);
 	});
 });

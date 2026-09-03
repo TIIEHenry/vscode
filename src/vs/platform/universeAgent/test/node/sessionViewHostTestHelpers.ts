@@ -11,6 +11,7 @@ import type {
 	ITurnSettleSignal,
 	UniverseAgentAgentTreeNode,
 	UniverseAgentConnectionSnapshot,
+	UniverseAgentSessionStreamCloseCause,
 } from '../../common/universeAgentTypes.js';
 import { GrpcStatusCode, UniverseAgentTransportError } from '../../node/grpc/grpcTransport.js';
 import { createEmptyCapabilitySnapshot } from '../../node/grpcCapabilityProbe.js';
@@ -19,6 +20,7 @@ export class TestConnection implements IUniverseAgentConnection {
 	declare readonly _serviceBrand: undefined;
 	private connected = true;
 	private readonly streamListeners = new Map<string, ((event: { payload: unknown }) => void)[]>();
+	private readonly streamCloseListeners = new Map<string, ((cause: UniverseAgentSessionStreamCloseCause) => void)[]>();
 
 	readonly onDidFileMutation = Event.None;
 	readonly onDidTurnSettle = Event.None;
@@ -57,11 +59,39 @@ export class TestConnection implements IUniverseAgentConnection {
 	async createSession() { return { sessionId: 's' }; }
 	async deleteSession() { }
 	async getHistory() { return { envelopes: [] }; }
-	subscribeSessionEventStream(sessionId: string, listener: (event: { payload: unknown }) => void) {
+	subscribeSessionEventStream(
+		sessionId: string,
+		listener: (event: { payload: unknown }) => void,
+		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
+	) {
 		const list = this.streamListeners.get(sessionId) ?? [];
 		list.push(listener);
 		this.streamListeners.set(sessionId, list);
-		return { dispose: () => { } };
+		if (onClosed) {
+			const closes = this.streamCloseListeners.get(sessionId) ?? [];
+			closes.push(onClosed);
+			this.streamCloseListeners.set(sessionId, closes);
+		}
+		return {
+			dispose: () => {
+				this.streamListeners.set(
+					sessionId,
+					(this.streamListeners.get(sessionId) ?? []).filter(item => item !== listener),
+				);
+				if (onClosed) {
+					this.streamCloseListeners.set(
+						sessionId,
+						(this.streamCloseListeners.get(sessionId) ?? []).filter(item => item !== onClosed),
+					);
+				}
+			},
+		};
+	}
+
+	fireStreamClosed(sessionId: string, cause: UniverseAgentSessionStreamCloseCause): void {
+		for (const listener of [...(this.streamCloseListeners.get(sessionId) ?? [])]) {
+			listener(cause);
+		}
 	}
 	async chat() { }
 	async listSkills() { return { skills: [] }; }

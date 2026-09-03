@@ -841,6 +841,7 @@ export class SessionViewHost extends Disposable {
 	private openStream(sessionId: string, attemptId: AttemptId): void {
 		const key = `${sessionId}:${attemptId}`;
 		let streamOpened = false;
+		let closedPosted = false;
 		const subscription = this.connection.subscribeSessionEventStream(sessionId, event => {
 			if (!streamOpened) {
 				streamOpened = true;
@@ -867,6 +868,16 @@ export class SessionViewHost extends Disposable {
 					this.postAndDrain(sessionId as SessionId, { t: 'localFact', fact: questionFact });
 				}
 			}
+		}, cause => {
+			if (closedPosted || (cause.kind !== 'remote' && cause.kind !== 'error')) {
+				return;
+			}
+			closedPosted = true;
+			this.postAndDrain(sessionId as SessionId, {
+				t: 'streamClosed',
+				attemptId,
+				cause,
+			});
 		});
 		this.streams.set(key, { attemptId, sessionId, dispose: () => subscription.dispose() });
 	}
