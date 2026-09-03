@@ -191,10 +191,10 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 
 	override cancelGeneration(sessionId: string, agentId?: string): boolean {
 		if (this.isEngineConnected()) {
-			return this.cancelEngineGeneration(sessionId, agentId ?? 'root', true);
+			return this.cancelEngineGeneration(sessionId, agentId, true);
 		}
 		if (this.wasEverConnected) {
-			return false;
+			return this.cancelEngineGeneration(sessionId, agentId, false);
 		}
 		return super.cancelGeneration(sessionId, agentId);
 	}
@@ -227,6 +227,32 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		return this.wasEverConnected;
 	}
 
+	private cancelEngineGeneration(sessionId: string, agentId: string | undefined, callRemote: boolean): boolean {
+		if (!this.engineSessions.some(session => session.id === sessionId)) {
+			return false;
+		}
+		const resolved = agentId?.trim() || this.lastStreamingAgentId(sessionId) || 'root';
+		if (callRemote) {
+			void this.uaConnection.cancelGeneration({ sessionId, agentId: resolved });
+			return true;
+		}
+		return false;
+	}
+
+	private lastStreamingAgentId(sessionId: string): string | undefined {
+		const turns = this.getTurns(sessionId);
+		for (let i = turns.length - 1; i >= 0; i--) {
+			const turn = turns[i];
+			if (turn?.streaming) {
+				const id = turn.agentId?.trim();
+				if (id) {
+					return id;
+				}
+			}
+		}
+		return undefined;
+	}
+
 	private renameEngineSession(sessionId: string, title: string, callRemote: boolean): boolean {
 		const trimmed = title.trim();
 		if (!trimmed) {
@@ -242,17 +268,6 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		}
 		this._onDidChangeSession.fire(sessionId);
 		this.persistEngineAwareRoster();
-		return true;
-	}
-
-	private cancelEngineGeneration(sessionId: string, agentId: string, callRemote: boolean): boolean {
-		const session = this.engineSessions.find(s => s.id === sessionId);
-		if (!session) {
-			return false;
-		}
-		if (callRemote) {
-			void this.uaConnection.cancelGeneration({ sessionId, agentId });
-		}
 		return true;
 	}
 

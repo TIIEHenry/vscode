@@ -309,12 +309,15 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		service.setEngineConnected(true);
 		await new Promise<void>(resolve => setTimeout(resolve, 0));
 
-		assert.strictEqual(service.cancelGeneration('ua-only'), true);
-		assert.deepStrictEqual(connection.cancelCalls, [{ sessionId: 'ua-only', agentId: 'root' }]);
+		assert.strictEqual(service.cancelGeneration('ua-only', '  sub:a  '), true);
+		assert.deepStrictEqual(connection.cancelCalls, [{ sessionId: 'ua-only', agentId: 'sub:a' }]);
 		assert.strictEqual(service.cancelGeneration('ua-only', 'sub:a'), true);
 		assert.deepStrictEqual(connection.cancelCalls[1], { sessionId: 'ua-only', agentId: 'sub:a' });
+		assert.strictEqual(service.cancelGeneration('ua-only'), true);
+		assert.deepStrictEqual(connection.cancelCalls[2], { sessionId: 'ua-only', agentId: 'root' });
 		assert.strictEqual(service.cancelGeneration('missing'), false);
-		assert.strictEqual(connection.cancelCalls.length, 2);
+		assert.strictEqual(service.cancelGeneration('missing', 'root'), false);
+		assert.strictEqual(connection.cancelCalls.length, 3);
 	});
 
 	test('disconnected after engine cancelGeneration skips unary', async () => {
@@ -329,6 +332,7 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		service.setEngineConnected(false);
 
 		assert.strictEqual(service.cancelGeneration('ua-only'), false);
+		assert.strictEqual(service.cancelGeneration('ua-only', 'root'), false);
 		assert.strictEqual(connection.cancelCalls.length, 0);
 	});
 });

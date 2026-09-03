@@ -158,7 +158,7 @@ export interface IUniverseAgentConnection {
 	/** AgentService.Rename unary. Engine roster forwards this when connected. */
 	renameSession(request: UniverseAgentRenameSessionRequest): Promise<UniverseAgentRenameSessionResult>;
 
-	/** AgentService.Cancel unary. Engine roster Inbox Stop forwards this when connected. */
+	/** AgentService.Cancel unary. Engine roster + Inbox Stop forward when connected. */
 	cancelGeneration(request: UniverseAgentCancelGenerationRequest): Promise<UniverseAgentCancelGenerationResult>;
 
 	getHistory(request: UniverseAgentGetHistoryRequest): Promise<UniverseAgentGetHistoryResult>;

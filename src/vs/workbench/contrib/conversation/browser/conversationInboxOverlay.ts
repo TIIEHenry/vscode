@@ -120,9 +120,7 @@ export class ConversationInboxOverlay extends Disposable {
 		this.stopButton.label = conversationLensDockStop;
 		this.stopButton.element.classList.add('conversation-lens-inbox-chip', 'conversation-lens-inbox-stop-button');
 		this.stopButton.setAriaLabel(`${conversationLensDockStop}, ${conversationLensDockStopNotGenerating}`);
-		this._register(this.stopButton.onDidClick(() => {
-			this.stubService.cancelGeneration(this.stubService.getActiveSessionId());
-		}));
+		this._register(this.stopButton.onDidClick(() => this.onStopClicked()));
 		this._register(this.stubService.onDidChangeEngineConnection(() => this.render()));
 
 		this.render();
@@ -142,7 +140,7 @@ export class ConversationInboxOverlay extends Disposable {
 		this.renderQueueChip(queueState);
 		this.renderPending(pendingConfirmations);
 		this.renderSyncStatus(this.stubService.getSessionSync(sessionId));
-		this.renderStopButton();
+		this.renderStop(sessionId);
 
 		if (this.openPanel && this.listContextView) {
 			this.refreshOpenListPanel();
@@ -189,15 +187,26 @@ export class ConversationInboxOverlay extends Disposable {
 		this.queueChip.setAttribute('aria-pressed', String(this.openPanel === 'queue'));
 	}
 
-	private renderStopButton(): void {
-		const connected = this.stubService.isEngineConnected();
-		this.stopButton.enabled = connected;
-		if (connected) {
+	private isGenerating(sessionId: string): boolean {
+		return this.stubService.isEngineConnected() && this.stubService.getTurns(sessionId).some(turn => turn.streaming);
+	}
+
+	private renderStop(sessionId: string): void {
+		const generating = this.isGenerating(sessionId);
+		this.stopButton.enabled = generating;
+		if (generating) {
 			this.stopButton.setTitle(conversationLensDockStop);
 			this.stopButton.setAriaLabel(`${conversationLensDockStop}, ${conversationLensDockStopGenerating}`);
 		} else {
 			this.stopButton.setTitle(conversationLensDockStopNotGenerating);
 			this.stopButton.setAriaLabel(`${conversationLensDockStop}, ${conversationLensDockStopNotGenerating}`);
+		}
+	}
+
+	private onStopClicked(): void {
+		const sessionId = this.stubService.getActiveSessionId();
+		if (this.isGenerating(sessionId)) {
+			this.stubService.cancelGeneration(sessionId);
 		}
 	}
 

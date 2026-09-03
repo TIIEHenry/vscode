@@ -64,7 +64,7 @@ export interface IConversationRosterService {
 	switchSession(sessionId: string): void;
 	createSession(): string;
 	renameSession(sessionId: string, title: string): boolean;
-	/** Inbox Stop. Engine-connected forwards AgentService.Cancel; stub returns false. */
+	/** AgentService.Cancel. Engine-connected forwards unary; stub / disconnected cache returns false. */
 	cancelGeneration(sessionId: string, agentId?: string): boolean;
 	deleteSession(sessionId: string): boolean;
 	getTurns(sessionId: string): readonly ConversationStubTurn[];
