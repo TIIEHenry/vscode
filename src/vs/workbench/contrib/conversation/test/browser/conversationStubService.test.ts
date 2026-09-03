@@ -106,6 +106,7 @@ suite('ConversationStubService', () => {
 	test('killSubAgent stays local no-op without engine', () => {
 		const service = store.add(new ConversationStubService());
 		assert.strictEqual(service.killSubAgent(service.getActiveSessionId(), { agentId: 'sub:a', force: true }), false);
+		assert.strictEqual(service.killSubAgent(service.getActiveSessionId(), { agentId: 'sub:reviewer' }), false);
 		assert.strictEqual(service.killSubAgent(service.getActiveSessionId()), false);
 	});
 

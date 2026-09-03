@@ -499,11 +499,13 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 			if (!this.uaConnection.killAgent) {
 				return false;
 			}
-			const agentId = options?.agentId?.trim() ?? '';
+			const agentId = options?.agentId !== undefined
+				? options.agentId.trim()
+				: (this.lastStreamingAgentId(sessionId) ?? '');
 			void this.uaConnection.killAgent({
 				sessionId,
 				agentId,
-				...(options?.force ? { force: true } : {}),
+				...(options?.force === true ? { force: true } : {}),
 			});
 			return true;
 		}

@@ -81,9 +81,11 @@ export interface IConversationRosterService {
 	 */
 	forkSubAgent(sessionId: string, options?: { name?: string; task?: string; parentAgentId?: string }): boolean;
 	/**
-	 * AgentService.Kill (terminate SubAgent). Engine-connected forwards unary.
-	 * Empty `agentId` is sent as-is (not defaulted to `root`; ≠ Cancel).
-	 * Stub / disconnected cache / missing hook returns false.
+	 * AgentService.Kill (terminate SubAgent; ≠ Cancel / CancelToolCall).
+	 * Engine-connected forwards unary. Empty `agentId` is sent as-is (not
+	 * defaulted to `root`); omitted uses last streaming else empty. Does not
+	 * invent a local catalog change. Stub / disconnected cache / missing hook
+	 * returns false.
 	 */
 	killSubAgent(sessionId: string, options?: { agentId?: string; force?: boolean }): boolean;
 	/**

@@ -572,8 +572,12 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		assert.strictEqual(service.killSubAgent('ua-only'), true);
 		assert.strictEqual(connection.killCalls[1]?.agentId, '');
 		assert.strictEqual(connection.killCalls[1]?.force, undefined);
+		assert.ok(connection.killCalls[1]?.agentId !== 'root');
+		assert.strictEqual(service.killSubAgent('ua-only', { agentId: '   ' }), true);
+		assert.strictEqual(connection.killCalls[2]?.agentId, '');
+		assert.ok(connection.killCalls[2]?.agentId !== 'root');
 		assert.strictEqual(service.killSubAgent('missing', { agentId: 'sub:a' }), false);
-		assert.strictEqual(connection.killCalls.length, 2);
+		assert.strictEqual(connection.killCalls.length, 3);
 	});
 
 	test('connected killSubAgent does not default empty agent to root', async () => {
@@ -587,7 +591,34 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 
 		assert.strictEqual(service.killSubAgent('ua-only'), true);
 		assert.strictEqual(connection.killCalls[0]?.agentId, '');
+		assert.ok(connection.killCalls[0]?.agentId !== 'root');
 	});
+
+	test('connected killSubAgent uses last streaming agent when omitted and never defaults to root', async () => {
+		const storage = store.add(new TestStorageService());
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
+		const service = store.add(createService(connection, storage));
+		connection.setConnected(true);
+		service.setEngineConnected(true);
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+		assert.strictEqual(service.killSubAgent('ua-only'), true);
+		assert.strictEqual(connection.killCalls[0]?.agentId, '');
+		assert.ok(connection.killCalls[0]?.agentId !== 'root');
+
+		const originalGetTurns = service.getTurns.bind(service);
+		service.getTurns = (sessionId: string) => {
+			if (sessionId === 'ua-only') {
+				return [{ id: 'a1', kind: 'assistant', text: 'live', streaming: true, agentId: 'sub:live' }];
+			}
+			return originalGetTurns(sessionId);
+		};
+
+		assert.strictEqual(service.killSubAgent('ua-only'), true);
+		assert.strictEqual(connection.killCalls[1]?.agentId, 'sub:live');
+	});
+
 
 	test('connected cancelToolCall forwards AgentService.CancelToolCall', async () => {
 		const storage = store.add(new TestStorageService());
