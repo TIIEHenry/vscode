@@ -6,8 +6,8 @@
 /**
  * D16: mounting ConversationLens in jsdom fires ResizeObserver loop errors
  * that mocha treats as Uncaught and aborts the rest of the suite.
- * Identity strip already installs this locally; remaining Lens-mounting
- * suites (except conversationLens.test.ts) share the same gate.
+ * Lens-mounting suites share this gate (conversationLens / identity /
+ * reveal / trajectory / trajectoryUi).
  */
 
 export function ignoreConversationLensResizeObserverLoop(event: ErrorEvent): void {
