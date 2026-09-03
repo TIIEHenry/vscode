@@ -8,6 +8,7 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/c
 import type {
 	UniverseAgentChatRequest,
 	UniverseAgentChatResponse,
+	UniverseAgentChatStream,
 	UniverseAgentConnectRequest,
 	UniverseAgentConnectResult,
 	UniverseAgentCreateSessionRequest,
@@ -19,6 +20,7 @@ import type {
 	UniverseAgentListSessionsResult,
 	UniverseAgentSaveAgentProfileRequest,
 	UniverseAgentSessionEvent,
+	UniverseAgentSessionStreamCloseCause,
 	UniverseAgentSaveSkillContentRequest,
 	UniverseAgentSaveSkillContentResult,
 } from '../../common/universeAgentTypes.js';
@@ -116,6 +118,14 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 	}
 
 	async chat(_request: UniverseAgentChatRequest, _onResponse: (response: UniverseAgentChatResponse) => void): Promise<void> {
+	}
+
+	openChatStream(
+		_sessionId: string,
+		_onResponse: (response: UniverseAgentChatResponse) => void,
+		_onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
+	): UniverseAgentChatStream {
+		return { write() { }, dispose() { } };
 	}
 
 	async listSkills() {
