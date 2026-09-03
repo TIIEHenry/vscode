@@ -37,6 +37,7 @@ import { IExplorerService } from '../../../files/browser/files.js';
 import { ISCMService } from '../../../scm/common/scm.js';
 import { IStorageService } from '../../../../../platform/storage/common/storage.js';
 import { TestStorageService } from '../../../../test/common/workbenchTestServices.js';
+import { flushConversationLensLayout, installConversationLensResizeObserverHarness } from './conversationLensLayoutHarness.js';
 
 suite('ConversationTrajectoryUi', () => {
 
@@ -45,9 +46,15 @@ suite('ConversationTrajectoryUi', () => {
 	const LENS_LAYOUT_WIDTH = 640;
 	const LENS_LAYOUT_HEIGHT = 480;
 
+	installConversationLensResizeObserverHarness();
+
 	async function flushTimelineHeightUpdates(): Promise<void> {
-		await new Promise<void>(resolve => setTimeout(resolve, 20));
+		await flushConversationLensLayout();
 	}
+
+	teardown(async () => {
+		await flushConversationLensLayout();
+	});
 
 	function getLensTab(slots: IConversationLensSlots, lensId: 'conversation' | 'trajectory'): HTMLButtonElement {
 		const tab = slots.sessionBar!.querySelector(`button[data-lens-id="${lensId}"]`);
