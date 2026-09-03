@@ -25,6 +25,8 @@ import type {
 	UniverseAgentSetSessionGoalResult,
 	UniverseAgentCancelSessionGoalRequest,
 	UniverseAgentCancelSessionGoalResult,
+	UniverseAgentRespondPermissionRequest,
+	UniverseAgentRespondPermissionResult,
 	UniverseAgentEnqueueQueueItemRequest,
 	UniverseAgentEditQueueItemRequest,
 	UniverseAgentHoldQueueItemRequest,
@@ -173,6 +175,14 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 	async cancelSessionGoal(request: UniverseAgentCancelSessionGoalRequest): Promise<UniverseAgentCancelSessionGoalResult> {
 		this.cancelGoalCalls.push(request);
 		return this.cancelGoalResult;
+	}
+
+	readonly respondPermissionCalls: UniverseAgentRespondPermissionRequest[] = [];
+	respondPermissionResult: UniverseAgentRespondPermissionResult = { ok: true };
+
+	async respondPermission(request: UniverseAgentRespondPermissionRequest): Promise<UniverseAgentRespondPermissionResult> {
+		this.respondPermissionCalls.push(request);
+		return this.respondPermissionResult;
 	}
 
 	readonly enqueueCalls: UniverseAgentEnqueueQueueItemRequest[] = [];
@@ -525,6 +535,11 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Permission.service, 'universeagent.session.v1.PermissionService');
 	});
 
+	test('UniverseAgentGrpcServices lists Permission.Respond', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Permission.Respond, 'Respond');
+		assert.strictEqual(UniverseAgentGrpcServices.Permission.service, 'universeagent.session.v1.PermissionService');
+	});
+
 	test('UniverseAgentGrpcServices lists Agent queue mutation family', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.EnqueueQueueItem, 'EnqueueQueueItem');
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.PauseQueue, 'PauseQueue');
@@ -639,6 +654,25 @@ suite('UniverseAgentConnectionService', () => {
 		const failed = await service.cancelSessionGoal({ sessionId: 'sess-2' });
 		assert.deepStrictEqual(failed, { ok: false, message: 'no goal' });
 		assert.strictEqual(transport.cancelGoalCalls[1]?.sessionId, 'sess-2');
+		service.dispose();
+	});
+
+	test('respondPermission forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		const result = await service.respondPermission({ sessionId: 'sess-1', requestId: 'req-1', granted: true });
+		assert.deepStrictEqual(transport.respondPermissionCalls, [{ sessionId: 'sess-1', requestId: 'req-1', granted: true }]);
+		assert.deepStrictEqual(result, { ok: true });
+
+		transport.respondPermissionResult = { ok: false, message: 'expired' };
+		const failed = await service.respondPermission({ sessionId: 'sess-1', requestId: 'req-2', granted: false, metadataJson: '{"note":"deny"}' });
+		assert.deepStrictEqual(failed, { ok: false, message: 'expired' });
+		assert.strictEqual(transport.respondPermissionCalls[1]?.granted, false);
+		assert.strictEqual(transport.respondPermissionCalls[1]?.metadataJson, '{"note":"deny"}');
 		service.dispose();
 	});
 
