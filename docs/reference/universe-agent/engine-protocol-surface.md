@@ -9,7 +9,7 @@ summary: "已知 gRPC 服务 / RPC 名与本仓用途；§4 含 G-CORE-1；§5 �
 
 # UniverseAgent 引擎协议面（本仓消费口径）
 
-> 导航：[索引](INDEX.md)。RPC 名以外仓 proto 为准。§1 **Conversation 传输**行来自 `platform/universeAgent/node/grpc/grpcTransport.ts`（`UniverseAgentGrpcServices`，A1/A2 @ HEAD）。§1 **Engine catalog** 与 §7 UI 口径来自 [customizations-engine](../../../dev/plans/customizations-engine.md) 与 [engine-catalog](../../systems/workbench/engine-catalog.md)（九节两栏 + 六态 @ HEAD；Skills 正文 + `saveSkillContent?` @ `f3f2d366`；Agents/MCP/Tools 写 @ `f49615a1`；GC-6 Overview Model @ `f583073b`）。
+> 导航：[索引](INDEX.md)。RPC 名以外仓 proto 为准。§1 **Conversation 传输**行来自 `platform/universeAgent/node/grpc/grpcTransport.ts`（`UniverseAgentGrpcServices`，A1/A2 @ HEAD）。§1 **Engine catalog** 与 §7 UI 口径来自 [customizations-engine](../../../dev/plans/customizations-engine.md) 与 [engine-catalog](../../systems/workbench/engine-catalog.md)（九节两栏 + 六态 @ HEAD；Skills 正文 + `saveSkillContent?` @ `f3f2d366`；Agents/MCP/Tools 写 @ `f49615a1`；GC-6 Overview Model @ `f583073b`；Overview Provider 行 G-ENG-1 前省略）。
 
 ## 1. 已知服务与 RPC
 
@@ -136,7 +136,7 @@ Connect 后 `probeEngineCapabilities`：**仅**广告了 method 且 probe 非 `U
 
 | 能力键 | List RPC | Toggle / 写 | Engine 页 @ HEAD |
 |--------|----------|--------------|------------------|
-| （Overview 聚合） | snapshot + 可选 `ListModels` | 无 | Connection / workDir / Transport / capability 摘要；GC-6 Model 计数 @ `f583073b` |
+| （Overview 聚合） | snapshot + 可选 `ListModels` | 无 | Connection / workDir / Transport / capability 摘要；GC-6 Model 计数；Provider 行 G-ENG-1 前省略 |
 | `providerConfig` | **无**（G-ENG-1） | 无 | Provider 组 unsupported 完整态；零输入 |
 | `models` | `ListModels`（`include_disabled=true`） | 无 | Provider & Model 节只读注册表；Overview 计数 |
 | `skills` | `ListSkills` · `SkillInfo` | `SetSkillEnabled` · `SaveSkillContent`（node 传输 @ `45fa7a35`/`040c823d`；`saveSkillContent?` 契约 @ `f3f2d366`） | 分组 list + 开关 + 正文 textarea（Save 在 `saveSkillContent?` 存在且可写时展示） |

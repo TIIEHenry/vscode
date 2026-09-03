@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-04
-summary: "D16 identity 夹具绿；Chat onClosed；进口界+deleteTurn；ContinueGeneration 进 gRPC"
+summary: "槽 D：Overview 按 E2 隐藏 Provider 行；G-ENG-1 前不再画 Unavailable 假摘要"
 ---
 
 # Development Progress
@@ -14,7 +14,7 @@ summary: "D16 identity 夹具绿；Chat onClosed；进口界+deleteTurn；Contin
 - **槽 A / `loop/A`：** D16 identity 夹具：timeline `layout` + ResizeObserver loop 拦截，`conversationIdentityStrip.test.ts` 10/10。此前 Chat remote/error → `chatStreamDown`。
 - **槽 B / `loop/B`：** 桩补 `onClosed`；D16 进口界改扫 `src/`。
 - **槽 C / `loop/C`：** ContinueGeneration 进 gRPC catalog + node `openContinuationStream`。
-- **槽 D / `loop/D`：** engine-catalog 诚实回填；D16 stub `deleteTurn` 改走 `createSession()`。
+- **槽 D / `loop/D`：** ff-merge `loop/merge` `eeac80a1` 后，Engine Overview 按 [engine-preferences-completion §3.1](../plans/engine-preferences-completion.md) 去掉 Provider 行（G-ENG-1 前不画 Unavailable 假摘要 / provider 名或计数）。Model 行与 GC-6 不变。测：`engineOverviewSection`。未动 D16 Lens、未动 gRPC catalog。
 
 ## 槽位（与 `git worktree list` 对照）
 
@@ -24,7 +24,7 @@ summary: "D16 identity 夹具绿；Chat onClosed；进口界+deleteTurn；Contin
 | A | `vscode-WorkTrees/A` | `loop/A` | D16 identity 夹具绿 |
 | B | `vscode-WorkTrees/B` | `loop/B` | 桩 `onClosed` + D16 进口界扫 src |
 | C | `vscode-WorkTrees/C` | `loop/C` | ContinueGeneration 进 gRPC catalog |
-| D | `vscode-WorkTrees/D` | `loop/D` | engine-catalog 回填 + stub deleteTurn |
+| D | `vscode-WorkTrees/D` | `loop/D` | Overview 隐藏 Provider 行 |
 | edit | `Projects/Agents/vscode` | `agent-ide` | 请自行对齐 |
 
 ## Blockers

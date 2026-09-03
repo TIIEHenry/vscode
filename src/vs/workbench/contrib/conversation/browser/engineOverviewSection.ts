@@ -19,11 +19,6 @@ import type {
 
 const $ = DOM.$;
 
-const PROVIDER_UNAVAILABLE = localize(
-	'ua.engineOverviewProviderUnavailable',
-	"Unavailable — this client has no provider API yet.",
-);
-
 function getOverviewCapabilityLabel(key: UniverseAgentCapabilityKey): string {
 	switch (key) {
 		case 'skills':
@@ -231,7 +226,7 @@ export class EngineOverviewSection extends Disposable {
 		this.appendSummaryRow(localize('ua.engineOverviewConnection', "Connection"), getConnectionPhaseStatusBarText(phase));
 		this.appendSummaryRow(localize('ua.engineOverviewWorkDir', "Working directory"), snapshot.workDir ?? localize('ua.engineOverviewWorkDirUnknown', "Unknown"));
 		this.appendSummaryRow(localize('ua.engineOverviewTransport', "Transport"), getOverviewTransportLabel(snapshot.transport));
-		this.appendSummaryRow(localize('ua.engineOverviewProvider', "Provider"), PROVIDER_UNAVAILABLE);
+		// G-ENG-1: Provider summary stays omitted until a provider-config contract exists.
 		this.appendSummaryRow(localize('ua.engineOverviewModel', "Model"), modelValue, modelTitle);
 
 		if (snapshot.transport === 'failed') {
