@@ -114,6 +114,16 @@ export interface UniverseAgentShelveSessionResult {
 	readonly message?: string;
 }
 
+/** SessionService.Purge — permanently erase a session (≠ Delete / Shelve / Unshelve / Export). */
+export interface UniverseAgentPurgeSessionRequest {
+	readonly sessionId: string;
+}
+
+export interface UniverseAgentPurgeSessionResult {
+	readonly ok: boolean;
+	readonly message?: string;
+}
+
 /** AgentService.Rename request; empty `title` clears a custom session title. */
 export interface UniverseAgentRenameSessionRequest {
 	readonly sessionId: string;

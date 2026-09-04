@@ -25,6 +25,8 @@ import type {
 	UniverseAgentResumeSessionResult,
 	UniverseAgentShelveSessionRequest,
 	UniverseAgentShelveSessionResult,
+	UniverseAgentPurgeSessionRequest,
+	UniverseAgentPurgeSessionResult,
 	UniverseAgentRenameSessionRequest,
 	UniverseAgentRenameSessionResult,
 	UniverseAgentCancelGenerationRequest,
@@ -219,6 +221,13 @@ export interface IUniverseAgentConnection {
 	 * `sessionId` is sent as-is. No Conversation roster / UI. ≠ Delete / Unshelve / Resume.
 	 */
 	shelveSession?(request: UniverseAgentShelveSessionRequest): Promise<UniverseAgentShelveSessionResult>;
+
+	/**
+	 * SessionService.Purge unary (permanently erase a session). Optional so
+	 * Web / tests can omit it. Catalog + node transport only this slice; empty
+	 * `sessionId` is sent as-is. No Conversation roster / UI. ≠ Delete / Shelve / Unshelve / Export.
+	 */
+	purgeSession?(request: UniverseAgentPurgeSessionRequest): Promise<UniverseAgentPurgeSessionResult>;
 
 	/** AgentService.Rename unary. Engine roster forwards this when connected. */
 	renameSession(request: UniverseAgentRenameSessionRequest): Promise<UniverseAgentRenameSessionResult>;
