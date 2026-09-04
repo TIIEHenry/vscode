@@ -674,6 +674,25 @@ export interface UniverseAgentFireTriggerWebhookResult {
 	readonly reason: string;
 }
 
+/** AgentService.TestModelProfile — model-profile connectivity probe (≠ SwitchWorkDir / ListModels / SwitchModel / Config.Get / Config.Set). */
+export interface UniverseAgentTestModelProfileRequest {
+	readonly providerId: string;
+	readonly modelId: string;
+	/** Proto `api_key`. Empty sent as-is. */
+	readonly apiKey: string;
+	/** Proto `base_url`. Empty sent as-is. */
+	readonly baseUrl: string;
+	readonly protocol: string;
+	/** Proto `params` map. Empty sent as-is. */
+	readonly params: Readonly<Record<string, string>>;
+}
+
+export interface UniverseAgentTestModelProfileResult {
+	readonly ok: boolean;
+	/** Proto `error_message`. */
+	readonly message?: string;
+}
+
 /** PermissionService.SetSessionGoal request (Inbox Goal). */
 export interface UniverseAgentSetSessionGoalRequest {
 	readonly sessionId: string;
