@@ -7,7 +7,7 @@ import assert from 'assert';
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
-import type { UniverseAgentListSnapshotsRequest, UniverseAgentSessionSnapshotInfo } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
+import type { UniverseAgentConnectionSnapshot, UniverseAgentListSnapshotsRequest, UniverseAgentSessionSnapshotInfo } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import {
 	canRequestEngineSnapshots,
@@ -26,7 +26,7 @@ import {
 	conversationLensSessionBarSnapshotsUnavailableNoSession,
 } from '../../browser/conversationLensSessionBarStrings.js';
 import { IConversationRosterService } from '../../browser/conversationStubService.js';
-import { createConversationConnectionTestStub } from '../common/conversationConnectionTestStub.js';
+import { createConversationConnectionTestStub, createEmptyTestCapabilitySnapshot } from '../common/conversationConnectionTestStub.js';
 
 suite('ConversationEngineSnapshotsList', () => {
 
@@ -186,10 +186,17 @@ suite('ConversationEngineSnapshotsList', () => {
 
 	test('connection drop while open clears rows and does not keep fixture data', async () => {
 		let connected = true;
-		const onDidChangeConnection = new Emitter<void>();
+		const onDidChangeConnection = new Emitter<UniverseAgentConnectionSnapshot>();
+		const dropSnapshot: UniverseAgentConnectionSnapshot = {
+			transport: 'idle',
+			pairingPending: false,
+			channelAlive: false,
+			sharedFsRootSent: false,
+			capabilities: createEmptyTestCapabilitySnapshot(),
+		};
 		const { list, overlayParent } = mountList(createConversationConnectionTestStub({
 			isEngineConnected: () => connected,
-			onDidChangeConnection: onDidChangeConnection.event as IUniverseAgentConnection['onDidChangeConnection'],
+			onDidChangeConnection: onDidChangeConnection.event,
 			listSnapshots: async () => ({
 				snapshots: [{ id: 'live-1', sessionId: 'sess-1', title: 'Live', createdAt: 2, turnCount: 1 }],
 			}),
@@ -198,7 +205,7 @@ suite('ConversationEngineSnapshotsList', () => {
 		await Promise.resolve();
 		assert.ok(snapshotRow(overlayParent, 'live-1'));
 		connected = false;
-		onDidChangeConnection.fire();
+		onDidChangeConnection.fire(dropSnapshot);
 		await Promise.resolve();
 		assert.strictEqual(snapshotRow(overlayParent, 'live-1'), null);
 		assert.ok(overlayParent.textContent?.includes(conversationLensSessionBarSnapshotsUnavailableDisconnected));
