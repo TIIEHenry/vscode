@@ -286,6 +286,8 @@ import type {
 	UniverseAgentReadGitFileDiffResult,
 	UniverseAgentWriteGitStagePathsRequest,
 	UniverseAgentWriteGitWriteResult,
+	UniverseAgentGetGlobalUsageResult,
+	UniverseAgentTokenUsageData,
 	UniverseAgentListModelsResult,
 	UniverseAgentGetConfigRequest,
 	UniverseAgentGetConfigResult,
@@ -2808,6 +2810,40 @@ function mapWriteGitWriteResponse(wire: WriteGitWriteResponseWire): UniverseAgen
 	};
 }
 
+interface TokenUsageDataWire {
+	input_tokens?: number | string;
+	output_tokens?: number | string;
+	thinking_tokens?: number | string;
+	cache_read_tokens?: number | string;
+	cache_write_tokens?: number | string;
+	total_cost_micros?: number | string;
+	currency?: string;
+	request_count?: number | string;
+}
+
+interface GetGlobalUsageResponseWire {
+	usage?: TokenUsageDataWire;
+}
+
+function mapTokenUsageData(wire: TokenUsageDataWire | undefined): UniverseAgentTokenUsageData {
+	return {
+		inputTokens: requiredInt64(wire?.input_tokens),
+		outputTokens: requiredInt64(wire?.output_tokens),
+		thinkingTokens: requiredInt64(wire?.thinking_tokens),
+		cacheReadTokens: requiredInt64(wire?.cache_read_tokens),
+		cacheWriteTokens: requiredInt64(wire?.cache_write_tokens),
+		totalCostMicros: requiredInt64(wire?.total_cost_micros),
+		currency: wire?.currency ?? '',
+		requestCount: requiredInt64(wire?.request_count),
+	};
+}
+
+function mapGetGlobalUsageResponse(wire: GetGlobalUsageResponseWire): UniverseAgentGetGlobalUsageResult {
+	return {
+		usage: mapTokenUsageData(wire.usage),
+	};
+}
+
 interface ListModelsResponseWire {
 	models?: Array<{
 		id?: string;
@@ -4782,6 +4818,16 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			commands: request.commands.map(command => ({ argv: [...command.argv] })),
 		});
 		return mapWriteGitWriteResponse(wire);
+	}
+
+	async getGlobalUsage(): Promise<UniverseAgentGetGlobalUsageResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, GetGlobalUsageResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.TokenUsage.service,
+			UniverseAgentGrpcServices.TokenUsage.GetGlobalUsage,
+		);
+		const wire = await unary({});
+		return mapGetGlobalUsageResponse(wire);
 	}
 
 	async setPermissionPolicy(request: UniverseAgentSetPermissionPolicyRequest): Promise<UniverseAgentSetPermissionPolicyResult> {

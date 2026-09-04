@@ -2071,6 +2071,26 @@ export interface UniverseAgentWriteGitWriteResult {
 }
 
 /**
+ * TokenUsageService.GetGlobalUsage — proto `GetGlobalUsageRequest` /
+ * `GetGlobalUsageResponse` + `TokenUsageData` only. Empty request `{}`.
+ * Empty `currency` mapped as-is. ≠ GetSessionUsage / Agent.Usage.
+ */
+export interface UniverseAgentTokenUsageData {
+	readonly inputTokens: number;
+	readonly outputTokens: number;
+	readonly thinkingTokens: number;
+	readonly cacheReadTokens: number;
+	readonly cacheWriteTokens: number;
+	readonly totalCostMicros: number;
+	readonly currency: string;
+	readonly requestCount: number;
+}
+
+export interface UniverseAgentGetGlobalUsageResult {
+	readonly usage: UniverseAgentTokenUsageData;
+}
+
+/**
  * ConfigService.SetPermissionPolicy — session/tool policy write
  * (≠ SwitchModel / ListModels / Get / Set / GetModelPreferences /
  * SetModelPreferences / SetPermissionMode).

@@ -224,6 +224,7 @@ import type {
 	UniverseAgentReadGitFileDiffResult,
 	UniverseAgentWriteGitStagePathsRequest,
 	UniverseAgentWriteGitWriteResult,
+	UniverseAgentGetGlobalUsageResult,
 	UniverseAgentSetPermissionPolicyRequest,
 	UniverseAgentSetPermissionPolicyResult,
 	UniverseAgentListModelsResult,
@@ -1224,6 +1225,17 @@ export interface IUniverseAgentConnection {
 	 * WriteGitApplyHunks.
 	 */
 	writeGitStagePaths?(request: UniverseAgentWriteGitStagePathsRequest): Promise<UniverseAgentWriteGitWriteResult>;
+
+	/**
+	 * TokenUsageService.GetGlobalUsage unary. Optional so Web / tests can
+	 * omit it. Catalog + node transport only this slice; empty request
+	 * `{}`. Empty `currency` mapped as-is. Proto fields only
+	 * (`GetGlobalUsageRequest` / `GetGlobalUsageResponse` +
+	 * `TokenUsageData`). No Conversation roster / UI / Engine Preferences /
+	 * Composer.
+	 * ≠ GetSessionUsage / Agent.Usage.
+	 */
+	getGlobalUsage?(): Promise<UniverseAgentGetGlobalUsageResult>;
 
 	/**
 	 * ConfigService.SetPermissionPolicy unary (session/tool Ask/Agent/Permit

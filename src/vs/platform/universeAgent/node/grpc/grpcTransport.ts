@@ -219,6 +219,7 @@ import type {
 	UniverseAgentReadGitFileDiffResult,
 	UniverseAgentWriteGitStagePathsRequest,
 	UniverseAgentWriteGitWriteResult,
+	UniverseAgentGetGlobalUsageResult,
 	UniverseAgentSetPermissionPolicyRequest,
 	UniverseAgentSetPermissionPolicyResult,
 	UniverseAgentListModelsResult,
@@ -637,6 +638,9 @@ export interface IUniverseAgentGrpcTransport {
 	/** GitService.WriteGitStagePaths unary (snake_case `session_id`/`commands[].argv`). Empty ids sent as-is. */
 	writeGitStagePaths(request: UniverseAgentWriteGitStagePathsRequest): Promise<UniverseAgentWriteGitWriteResult>;
 
+	/** TokenUsageService.GetGlobalUsage unary (empty request `{}`). Empty currency mapped as-is. */
+	getGlobalUsage(): Promise<UniverseAgentGetGlobalUsageResult>;
+
 	/** ConfigService.SetPermissionPolicy unary (snake_case `session_id`/`tool_name`/`policy`). Empty ids sent as-is. */
 	setPermissionPolicy(request: UniverseAgentSetPermissionPolicyRequest): Promise<UniverseAgentSetPermissionPolicyResult>;
 
@@ -848,6 +852,10 @@ export const UniverseAgentGrpcServices = {
 		ReadGitChanges: 'ReadGitChanges',
 		ReadGitFileDiff: 'ReadGitFileDiff',
 		WriteGitStagePaths: 'WriteGitStagePaths',
+	},
+	TokenUsage: {
+		service: 'universeagent.tokenusage.v1.TokenUsageService',
+		GetGlobalUsage: 'GetGlobalUsage',
 	},
 } as const;
 

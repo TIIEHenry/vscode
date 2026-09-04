@@ -199,6 +199,7 @@ import type {
 	UniverseAgentReadGitFileDiffResult,
 	UniverseAgentWriteGitStagePathsRequest,
 	UniverseAgentWriteGitWriteResult,
+	UniverseAgentGetGlobalUsageResult,
 	UniverseAgentGetHistoryRequest,
 	UniverseAgentGetHistoryResult,
 	UniverseAgentListSessionsRequest,
@@ -1416,6 +1417,25 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 		return this.writeGitStagePathsResult;
 	}
 
+	getGlobalUsageCalls = 0;
+	getGlobalUsageResult: UniverseAgentGetGlobalUsageResult = {
+		usage: {
+			inputTokens: 0,
+			outputTokens: 0,
+			thinkingTokens: 0,
+			cacheReadTokens: 0,
+			cacheWriteTokens: 0,
+			totalCostMicros: 0,
+			currency: '',
+			requestCount: 0,
+		},
+	};
+
+	async getGlobalUsage(): Promise<UniverseAgentGetGlobalUsageResult> {
+		this.getGlobalUsageCalls++;
+		return this.getGlobalUsageResult;
+	}
+
 	async listModels() {
 		return { models: [] };
 	}
@@ -1832,6 +1852,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('UniverseAgentGrpcServices lists Git.WriteGitStagePaths', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Git.WriteGitStagePaths, 'WriteGitStagePaths');
 		assert.strictEqual(UniverseAgentGrpcServices.Git.service, 'universeagent.git.v1.GitService');
+	});
+
+	test('UniverseAgentGrpcServices lists TokenUsage.GetGlobalUsage', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.TokenUsage.GetGlobalUsage, 'GetGlobalUsage');
+		assert.strictEqual(UniverseAgentGrpcServices.TokenUsage.service, 'universeagent.tokenusage.v1.TokenUsageService');
 	});
 
 	test('UniverseAgentGrpcServices lists Agent.Kill', () => {
@@ -4490,6 +4515,49 @@ suite('UniverseAgentConnectionService', () => {
 		await service.writeGitStagePaths(emptyCommandsRequest);
 		assert.strictEqual(transport.writeGitStagePathsCalls[2]?.sessionId, '');
 		assert.deepStrictEqual(transport.writeGitStagePathsCalls[2]?.commands, []);
+		service.dispose();
+	});
+
+	test('getGlobalUsage forwards empty request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.getGlobalUsageResult = {
+			usage: {
+				inputTokens: 11,
+				outputTokens: 22,
+				thinkingTokens: 3,
+				cacheReadTokens: 4,
+				cacheWriteTokens: 5,
+				totalCostMicros: 600,
+				currency: 'USD',
+				requestCount: 7,
+			},
+		};
+		const result = await service.getGlobalUsage();
+		assert.strictEqual(transport.getGlobalUsageCalls, 1);
+		assert.deepStrictEqual(result, transport.getGlobalUsageResult);
+
+		transport.getGlobalUsageResult = {
+			usage: {
+				inputTokens: 0,
+				outputTokens: 0,
+				thinkingTokens: 0,
+				cacheReadTokens: 0,
+				cacheWriteTokens: 0,
+				totalCostMicros: 0,
+				currency: '',
+				requestCount: 0,
+			},
+		};
+		const empty = await service.getGlobalUsage();
+		assert.strictEqual(transport.getGlobalUsageCalls, 2);
+		assert.strictEqual(empty.usage.currency, '');
+		assert.strictEqual(empty.usage.inputTokens, 0);
+		assert.strictEqual(empty.usage.requestCount, 0);
 		service.dispose();
 	});
 
