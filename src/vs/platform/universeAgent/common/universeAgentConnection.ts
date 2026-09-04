@@ -226,6 +226,8 @@ import type {
 	UniverseAgentWriteGitCommitRequest,
 	UniverseAgentWriteGitApplyHunksRequest,
 	UniverseAgentWriteGitWriteResult,
+	UniverseAgentMemorySearchRequest,
+	UniverseAgentMemorySearchResult,
 	UniverseAgentSetPermissionPolicyRequest,
 	UniverseAgentSetPermissionPolicyResult,
 	UniverseAgentListModelsResult,
@@ -1251,6 +1253,19 @@ export interface IUniverseAgentConnection {
 	 * WriteGitCommit.
 	 */
 	writeGitApplyHunks?(request: UniverseAgentWriteGitApplyHunksRequest): Promise<UniverseAgentWriteGitWriteResult>;
+
+	/**
+	 * MemoryService.Search unary. Optional so Web / tests can omit it.
+	 * Catalog + node transport only this slice; empty `scope` / `query` /
+	 * `keywords` are sent as-is. `limit` 0 sent as-is. Empty `category` /
+	 * `filename` / `title` / `snippet` / `scope` mapped as-is. Proto
+	 * fields only (`MemorySearchRequest` / `MemorySearchResponse` +
+	 * `MemorySearchResult`). No Conversation roster / UI / Engine
+	 * Preferences / Composer.
+	 * ≠ Save / SearchDeep / Read / List / Delete / Reflect / Rebuild /
+	 * Revert / History.
+	 */
+	searchMemory?(request: UniverseAgentMemorySearchRequest): Promise<UniverseAgentMemorySearchResult>;
 
 	/**
 	 * ConfigService.SetPermissionPolicy unary (session/tool Ask/Agent/Permit

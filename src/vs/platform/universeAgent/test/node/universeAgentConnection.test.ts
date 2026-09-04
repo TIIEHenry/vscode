@@ -201,6 +201,8 @@ import type {
 	UniverseAgentWriteGitCommitRequest,
 	UniverseAgentWriteGitApplyHunksRequest,
 	UniverseAgentWriteGitWriteResult,
+	UniverseAgentMemorySearchRequest,
+	UniverseAgentMemorySearchResult,
 	UniverseAgentGetHistoryRequest,
 	UniverseAgentGetHistoryResult,
 	UniverseAgentListSessionsRequest,
@@ -1448,6 +1450,16 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 		return this.writeGitApplyHunksResult;
 	}
 
+	readonly searchMemoryCalls: UniverseAgentMemorySearchRequest[] = [];
+	searchMemoryResult: UniverseAgentMemorySearchResult = {
+		results: [],
+	};
+
+	async searchMemory(request: UniverseAgentMemorySearchRequest): Promise<UniverseAgentMemorySearchResult> {
+		this.searchMemoryCalls.push(request);
+		return this.searchMemoryResult;
+	}
+
 	async listModels() {
 		return { models: [] };
 	}
@@ -1874,6 +1886,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('UniverseAgentGrpcServices lists Git.WriteGitApplyHunks', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Git.WriteGitApplyHunks, 'WriteGitApplyHunks');
 		assert.strictEqual(UniverseAgentGrpcServices.Git.service, 'universeagent.git.v1.GitService');
+	});
+
+	test('UniverseAgentGrpcServices lists Memory.Search', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Memory.Search, 'Search');
+		assert.strictEqual(UniverseAgentGrpcServices.Memory.service, 'universeagent.memory.v1.MemoryService');
 	});
 
 	test('UniverseAgentGrpcServices lists Agent.Kill', () => {
@@ -4645,6 +4662,78 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(transport.writeGitApplyHunksCalls[2]?.sessionId, '');
 		assert.deepStrictEqual(transport.writeGitApplyHunksCalls[2]?.argv, []);
 		assert.deepStrictEqual(transport.writeGitApplyHunksCalls[2]?.patches, []);
+		service.dispose();
+	});
+
+	test('searchMemory forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.searchMemoryResult = {
+			results: [{
+				category: 'facts',
+				filename: 'note.md',
+				title: 'Note',
+				score: 0.8,
+				snippet: 'hit',
+				forgot: false,
+				scope: 'project',
+			}],
+		};
+		const request = {
+			scope: 'project',
+			query: 'note',
+			keywords: ['alpha'],
+			limit: 10,
+		};
+		const result = await service.searchMemory(request);
+		assert.deepStrictEqual(transport.searchMemoryCalls, [request]);
+		assert.deepStrictEqual(result, transport.searchMemoryResult);
+
+		transport.searchMemoryResult = {
+			results: [{
+				category: '',
+				filename: '',
+				title: '',
+				score: 0,
+				snippet: '',
+				forgot: false,
+				scope: '',
+			}],
+		};
+		const emptyRequest = {
+			scope: '',
+			query: '',
+			keywords: [''],
+			limit: 0,
+		};
+		const empty = await service.searchMemory(emptyRequest);
+		assert.strictEqual(transport.searchMemoryCalls[1]?.scope, '');
+		assert.strictEqual(transport.searchMemoryCalls[1]?.query, '');
+		assert.deepStrictEqual(transport.searchMemoryCalls[1]?.keywords, ['']);
+		assert.strictEqual(transport.searchMemoryCalls[1]?.limit, 0);
+		assert.strictEqual(empty.results[0]?.category, '');
+		assert.strictEqual(empty.results[0]?.filename, '');
+		assert.strictEqual(empty.results[0]?.title, '');
+		assert.strictEqual(empty.results[0]?.score, 0);
+		assert.strictEqual(empty.results[0]?.snippet, '');
+		assert.strictEqual(empty.results[0]?.forgot, false);
+		assert.strictEqual(empty.results[0]?.scope, '');
+
+		const emptyListsRequest = {
+			scope: '',
+			query: '',
+			keywords: [],
+			limit: 0,
+		};
+		transport.searchMemoryResult = { results: [] };
+		const emptyLists = await service.searchMemory(emptyListsRequest);
+		assert.strictEqual(transport.searchMemoryCalls[2]?.scope, '');
+		assert.deepStrictEqual(transport.searchMemoryCalls[2]?.keywords, []);
+		assert.deepStrictEqual(emptyLists.results, []);
 		service.dispose();
 	});
 

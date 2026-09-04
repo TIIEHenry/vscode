@@ -288,6 +288,9 @@ import type {
 	UniverseAgentWriteGitCommitRequest,
 	UniverseAgentWriteGitApplyHunksRequest,
 	UniverseAgentWriteGitWriteResult,
+	UniverseAgentMemorySearchRequest,
+	UniverseAgentMemorySearchResult,
+	UniverseAgentMemorySearchEntry,
 	UniverseAgentListModelsResult,
 	UniverseAgentGetConfigRequest,
 	UniverseAgentGetConfigResult,
@@ -2810,6 +2813,43 @@ function mapWriteGitWriteResponse(wire: WriteGitWriteResponseWire): UniverseAgen
 	};
 }
 
+interface MemorySearchResultWire {
+	category?: string;
+	filename?: string;
+	title?: string;
+	score?: number | string;
+	snippet?: string;
+	forgot?: boolean;
+	scope?: string;
+}
+
+interface MemorySearchResponseWire {
+	results?: MemorySearchResultWire[];
+}
+
+function requiredDouble(value: number | string | undefined): number {
+	const n = typeof value === 'number' ? value : Number(value);
+	return Number.isFinite(n) ? n : 0;
+}
+
+function mapMemorySearchEntry(wire: MemorySearchResultWire): UniverseAgentMemorySearchEntry {
+	return {
+		category: wire.category ?? '',
+		filename: wire.filename ?? '',
+		title: wire.title ?? '',
+		score: requiredDouble(wire.score),
+		snippet: wire.snippet ?? '',
+		forgot: wire.forgot === true,
+		scope: wire.scope ?? '',
+	};
+}
+
+function mapMemorySearchResponse(wire: MemorySearchResponseWire): UniverseAgentMemorySearchResult {
+	return {
+		results: (wire.results ?? []).map(mapMemorySearchEntry),
+	};
+}
+
 interface ListModelsResponseWire {
 	models?: Array<{
 		id?: string;
@@ -4813,6 +4853,21 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			patches: [...request.patches],
 		});
 		return mapWriteGitWriteResponse(wire);
+	}
+
+	async searchMemory(request: UniverseAgentMemorySearchRequest): Promise<UniverseAgentMemorySearchResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, MemorySearchResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.Memory.service,
+			UniverseAgentGrpcServices.Memory.Search,
+		);
+		const wire = await unary({
+			scope: request.scope,
+			query: request.query,
+			keywords: [...request.keywords],
+			limit: request.limit,
+		});
+		return mapMemorySearchResponse(wire);
 	}
 
 	async setPermissionPolicy(request: UniverseAgentSetPermissionPolicyRequest): Promise<UniverseAgentSetPermissionPolicyResult> {

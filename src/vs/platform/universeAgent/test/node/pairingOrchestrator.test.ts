@@ -569,6 +569,9 @@ class RecordingMockTransport implements IUniverseAgentGrpcTransport {
 	async writeGitApplyHunks() {
 		return { supported: false, reason: '', success: false, errorMessage: '', exitCode: 0, stdout: '' };
 	}
+	async searchMemory() {
+		return { results: [] };
+	}
 	async listModels() { return { models: [] }; }
 	async getConfig(): Promise<{ values: Record<string, string>; scope: '' }> {
 		return { values: {}, scope: '' };
