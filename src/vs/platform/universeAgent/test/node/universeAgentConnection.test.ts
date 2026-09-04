@@ -180,6 +180,8 @@ import type {
 	UniverseAgentListCommandsResult,
 	UniverseAgentGetCommandDefRequest,
 	UniverseAgentGetCommandDefResult,
+	UniverseAgentListFilesRequest,
+	UniverseAgentListFilesResult,
 	UniverseAgentGetHistoryRequest,
 	UniverseAgentGetHistoryResult,
 	UniverseAgentListSessionsRequest,
@@ -1262,6 +1264,14 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 		return this.getCommandDefResult;
 	}
 
+	readonly listFilesCalls: UniverseAgentListFilesRequest[] = [];
+	listFilesResult: UniverseAgentListFilesResult = { entries: [], total: 0 };
+
+	async listFiles(request: UniverseAgentListFilesRequest): Promise<UniverseAgentListFilesResult> {
+		this.listFilesCalls.push(request);
+		return this.listFilesResult;
+	}
+
 	async listModels() {
 		return { models: [] };
 	}
@@ -1628,6 +1638,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('UniverseAgentGrpcServices lists Tool.GetCommandDef', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Tool.GetCommandDef, 'GetCommandDef');
 		assert.strictEqual(UniverseAgentGrpcServices.Tool.service, 'universeagent.tool.v1.ToolService');
+	});
+
+	test('UniverseAgentGrpcServices lists File.ListFiles', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.File.ListFiles, 'ListFiles');
+		assert.strictEqual(UniverseAgentGrpcServices.File.service, 'agentservice.FileService');
 	});
 
 	test('UniverseAgentGrpcServices lists Agent.Kill', () => {
@@ -3821,6 +3836,70 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(empty.skillSource, '');
 		assert.strictEqual(empty.source, '');
 		assert.deepStrictEqual(empty.mcpArgumentNames, []);
+		service.dispose();
+	});
+
+	test('listFiles forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.listFilesResult = {
+			entries: [{
+				name: 'readme.md',
+				path: 'docs/readme.md',
+				isDirectory: false,
+				size: 128,
+				lastModified: 1_700_000_000,
+				mimeType: 'text/markdown',
+			}],
+			total: 1,
+		};
+		const result = await service.listFiles({
+			path: 'docs',
+			sessionId: 's1',
+			recursive: true,
+			pattern: '*.md',
+			maxResults: 50,
+		});
+		assert.deepStrictEqual(transport.listFilesCalls, [{
+			path: 'docs',
+			sessionId: 's1',
+			recursive: true,
+			pattern: '*.md',
+			maxResults: 50,
+		}]);
+		assert.deepStrictEqual(result, transport.listFilesResult);
+
+		transport.listFilesResult = {
+			entries: [{
+				name: '',
+				path: '',
+				isDirectory: false,
+				size: 0,
+				lastModified: 0,
+				mimeType: '',
+			}],
+			total: 0,
+		};
+		const empty = await service.listFiles({
+			path: '',
+			sessionId: '',
+			recursive: false,
+			pattern: '',
+			maxResults: 0,
+		});
+		assert.strictEqual(transport.listFilesCalls[1]?.path, '');
+		assert.strictEqual(transport.listFilesCalls[1]?.sessionId, '');
+		assert.strictEqual(transport.listFilesCalls[1]?.pattern, '');
+		assert.strictEqual(transport.listFilesCalls[1]?.recursive, false);
+		assert.strictEqual(transport.listFilesCalls[1]?.maxResults, 0);
+		assert.strictEqual(empty.entries[0]?.name, '');
+		assert.strictEqual(empty.entries[0]?.path, '');
+		assert.strictEqual(empty.entries[0]?.mimeType, '');
+		assert.strictEqual(empty.total, 0);
 		service.dispose();
 	});
 

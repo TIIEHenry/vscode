@@ -1864,6 +1864,34 @@ export interface UniverseAgentGetCommandDefResult {
 }
 
 /**
+ * FileService.ListFiles — workspace file catalog (proto package
+ * `agentservice`). Empty `path` / `session_id` / `pattern` sent as-is.
+ * `recursive` false / `max_results` 0 sent as-is.
+ * ≠ ReadFile / GetFileInfo / WriteFile / ForceWriteFile / AgentMerge.
+ */
+export interface UniverseAgentListFilesRequest {
+	readonly path: string;
+	readonly sessionId: string;
+	readonly recursive: boolean;
+	readonly pattern: string;
+	readonly maxResults: number;
+}
+
+export interface UniverseAgentFileEntry {
+	readonly name: string;
+	readonly path: string;
+	readonly isDirectory: boolean;
+	readonly size: number;
+	readonly lastModified: number;
+	readonly mimeType: string;
+}
+
+export interface UniverseAgentListFilesResult {
+	readonly entries: readonly UniverseAgentFileEntry[];
+	readonly total: number;
+}
+
+/**
  * ConfigService.SetPermissionPolicy — session/tool policy write
  * (≠ SwitchModel / ListModels / Get / Set / GetModelPreferences /
  * SetModelPreferences / SetPermissionMode).

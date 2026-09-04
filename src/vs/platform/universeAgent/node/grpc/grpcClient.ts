@@ -264,6 +264,9 @@ import type {
 	UniverseAgentListCommandsResult,
 	UniverseAgentGetCommandDefRequest,
 	UniverseAgentGetCommandDefResult,
+	UniverseAgentFileEntry,
+	UniverseAgentListFilesRequest,
+	UniverseAgentListFilesResult,
 	UniverseAgentListModelsResult,
 	UniverseAgentGetConfigRequest,
 	UniverseAgentGetConfigResult,
@@ -2596,6 +2599,36 @@ function mapGetCommandDefResponse(wire: GetCommandDefResponseWire): UniverseAgen
 	};
 }
 
+interface ListFilesResponseWire {
+	entries?: Array<{
+		name?: string;
+		path?: string;
+		is_directory?: boolean;
+		size?: number | string;
+		last_modified?: number | string;
+		mime_type?: string;
+	}>;
+	total?: number;
+}
+
+function mapFileEntry(wire: NonNullable<ListFilesResponseWire['entries']>[number]): UniverseAgentFileEntry {
+	return {
+		name: wire.name ?? '',
+		path: wire.path ?? '',
+		isDirectory: wire.is_directory === true,
+		size: requiredInt64(wire.size),
+		lastModified: requiredInt64(wire.last_modified),
+		mimeType: wire.mime_type ?? '',
+	};
+}
+
+function mapListFilesResponse(wire: ListFilesResponseWire): UniverseAgentListFilesResult {
+	return {
+		entries: (wire.entries ?? []).map(mapFileEntry),
+		total: wire.total ?? 0,
+	};
+}
+
 interface ListModelsResponseWire {
 	models?: Array<{
 		id?: string;
@@ -4428,6 +4461,22 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 		);
 		const wire = await unary({ command_name: request.commandName });
 		return mapGetCommandDefResponse(wire);
+	}
+
+	async listFiles(request: UniverseAgentListFilesRequest): Promise<UniverseAgentListFilesResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, ListFilesResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.File.service,
+			UniverseAgentGrpcServices.File.ListFiles,
+		);
+		const wire = await unary({
+			path: request.path,
+			session_id: request.sessionId,
+			recursive: request.recursive,
+			pattern: request.pattern,
+			max_results: request.maxResults,
+		});
+		return mapListFilesResponse(wire);
 	}
 
 	async setPermissionPolicy(request: UniverseAgentSetPermissionPolicyRequest): Promise<UniverseAgentSetPermissionPolicyResult> {

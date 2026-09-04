@@ -535,6 +535,7 @@ class RecordingMockTransport implements IUniverseAgentGrpcTransport {
 	async getCommandDef() {
 		return { name: '', source: '' as const, template: '', agent: '', model: '', subtask: false, mcpServerId: '', mcpPromptName: '', mcpArgumentNames: [], skillSource: '' };
 	}
+	async listFiles() { return { entries: [], total: 0 }; }
 	async listModels() { return { models: [] }; }
 	async getConfig(): Promise<{ values: Record<string, string>; scope: '' }> {
 		return { values: {}, scope: '' };

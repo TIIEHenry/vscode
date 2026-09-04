@@ -205,6 +205,8 @@ import type {
 	UniverseAgentListCommandsResult,
 	UniverseAgentGetCommandDefRequest,
 	UniverseAgentGetCommandDefResult,
+	UniverseAgentListFilesRequest,
+	UniverseAgentListFilesResult,
 	UniverseAgentSetPermissionPolicyRequest,
 	UniverseAgentSetPermissionPolicyResult,
 	UniverseAgentListModelsResult,
@@ -1100,6 +1102,16 @@ export interface IUniverseAgentConnection {
 	 * ≠ ListCommands / ListSkills / ListTools / ToolInfo / ResolveModel.
 	 */
 	getCommandDef?(request: UniverseAgentGetCommandDefRequest): Promise<UniverseAgentGetCommandDefResult>;
+
+	/**
+	 * FileService.ListFiles unary. Optional so Web / tests can omit it.
+	 * Catalog + node transport only this slice; empty `path` /
+	 * `sessionId` / `pattern` are sent as-is. `recursive` false /
+	 * `maxResults` 0 are sent as-is. No Conversation roster / UI /
+	 * Explorer / Engine Preferences.
+	 * ≠ ReadFile / GetFileInfo / WriteFile / ForceWriteFile / AgentMerge.
+	 */
+	listFiles?(request: UniverseAgentListFilesRequest): Promise<UniverseAgentListFilesResult>;
 
 	/**
 	 * ConfigService.SetPermissionPolicy unary (session/tool Ask/Agent/Permit
