@@ -104,6 +104,16 @@ export interface UniverseAgentResumeSessionResult {
 	readonly rootAgent?: UniverseAgentAgentTreeNode;
 }
 
+/** SessionService.Unshelve — restore a shelved session to the listed set (≠ Shelve / Resume / Delete). */
+export interface UniverseAgentUnshelveSessionRequest {
+	readonly sessionId: string;
+}
+
+export interface UniverseAgentUnshelveSessionResult {
+	readonly ok: boolean;
+	readonly message?: string;
+}
+
 /** AgentService.Rename request; empty `title` clears a custom session title. */
 export interface UniverseAgentRenameSessionRequest {
 	readonly sessionId: string;
