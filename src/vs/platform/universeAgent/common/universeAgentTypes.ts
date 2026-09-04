@@ -1984,6 +1984,23 @@ export interface UniverseAgentAgentMergeResult {
 }
 
 /**
+ * GitService.ReadGitSummary — proto `ReadGitSummaryRequest` /
+ * `ReadGitSummaryResponse` only. Empty `session_id` pass through as-is.
+ * ≠ ReadGitChanges / ReadGitFileDiff / WriteGitStagePaths / WriteGitCommit /
+ * WriteGitApplyHunks.
+ */
+export interface UniverseAgentReadGitSummaryRequest {
+	readonly sessionId: string;
+}
+
+export interface UniverseAgentReadGitSummaryResult {
+	readonly supported: boolean;
+	readonly reason: string;
+	readonly branch: string;
+	readonly changeCount: number;
+}
+
+/**
  * ConfigService.SetPermissionPolicy — session/tool policy write
  * (≠ SwitchModel / ListModels / Get / Set / GetModelPreferences /
  * SetModelPreferences / SetPermissionMode).

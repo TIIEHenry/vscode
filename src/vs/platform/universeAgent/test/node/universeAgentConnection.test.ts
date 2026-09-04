@@ -191,6 +191,8 @@ import type {
 	UniverseAgentForceWriteFileRequest,
 	UniverseAgentAgentMergeRequest,
 	UniverseAgentAgentMergeResult,
+	UniverseAgentReadGitSummaryRequest,
+	UniverseAgentReadGitSummaryResult,
 	UniverseAgentGetHistoryRequest,
 	UniverseAgentGetHistoryResult,
 	UniverseAgentListSessionsRequest,
@@ -1354,6 +1356,19 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 		return this.agentMergeResult;
 	}
 
+	readonly readGitSummaryCalls: UniverseAgentReadGitSummaryRequest[] = [];
+	readGitSummaryResult: UniverseAgentReadGitSummaryResult = {
+		supported: false,
+		reason: '',
+		branch: '',
+		changeCount: 0,
+	};
+
+	async readGitSummary(request: UniverseAgentReadGitSummaryRequest): Promise<UniverseAgentReadGitSummaryResult> {
+		this.readGitSummaryCalls.push(request);
+		return this.readGitSummaryResult;
+	}
+
 	async listModels() {
 		return { models: [] };
 	}
@@ -1750,6 +1765,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('UniverseAgentGrpcServices lists File.AgentMerge', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.File.AgentMerge, 'AgentMerge');
 		assert.strictEqual(UniverseAgentGrpcServices.File.service, 'universeagent.file.v1.FileService');
+	});
+
+	test('UniverseAgentGrpcServices lists Git.ReadGitSummary', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Git.ReadGitSummary, 'ReadGitSummary');
+		assert.strictEqual(UniverseAgentGrpcServices.Git.service, 'universeagent.git.v1.GitService');
 	});
 
 	test('UniverseAgentGrpcServices lists Agent.Kill', () => {
@@ -4236,6 +4256,40 @@ suite('UniverseAgentConnectionService', () => {
 		assert.deepStrictEqual(transport.agentMergeCalls[1]?.currentContent, new Uint8Array(0));
 		assert.deepStrictEqual(transport.agentMergeCalls[1]?.userContent, new Uint8Array(0));
 		assert.strictEqual(mergeEmpty.accepted, false);
+		service.dispose();
+	});
+
+	test('readGitSummary forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.readGitSummaryResult = {
+			supported: true,
+			reason: '',
+			branch: 'loop/A',
+			changeCount: 3,
+		};
+		const request = { sessionId: 'sess-1' };
+		const result = await service.readGitSummary(request);
+		assert.deepStrictEqual(transport.readGitSummaryCalls, [request]);
+		assert.deepStrictEqual(result, transport.readGitSummaryResult);
+
+		transport.readGitSummaryResult = {
+			supported: false,
+			reason: '',
+			branch: '',
+			changeCount: 0,
+		};
+		const emptyRequest = { sessionId: '' };
+		const empty = await service.readGitSummary(emptyRequest);
+		assert.strictEqual(transport.readGitSummaryCalls[1]?.sessionId, '');
+		assert.strictEqual(empty.supported, false);
+		assert.strictEqual(empty.reason, '');
+		assert.strictEqual(empty.branch, '');
+		assert.strictEqual(empty.changeCount, 0);
 		service.dispose();
 	});
 

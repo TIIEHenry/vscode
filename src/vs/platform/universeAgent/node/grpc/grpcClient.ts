@@ -277,6 +277,8 @@ import type {
 	UniverseAgentForceWriteFileRequest,
 	UniverseAgentAgentMergeRequest,
 	UniverseAgentAgentMergeResult,
+	UniverseAgentReadGitSummaryRequest,
+	UniverseAgentReadGitSummaryResult,
 	UniverseAgentListModelsResult,
 	UniverseAgentGetConfigRequest,
 	UniverseAgentGetConfigResult,
@@ -2715,6 +2717,22 @@ function mapAgentMergeResponse(wire: AgentMergeResponseWire): UniverseAgentAgent
 	};
 }
 
+interface ReadGitSummaryResponseWire {
+	supported?: boolean;
+	reason?: string;
+	branch?: string;
+	change_count?: number | string;
+}
+
+function mapReadGitSummaryResponse(wire: ReadGitSummaryResponseWire): UniverseAgentReadGitSummaryResult {
+	return {
+		supported: wire.supported === true,
+		reason: wire.reason ?? '',
+		branch: wire.branch ?? '',
+		changeCount: requiredInt64(wire.change_count),
+	};
+}
+
 interface ListModelsResponseWire {
 	models?: Array<{
 		id?: string;
@@ -4638,6 +4656,18 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			user_content: bytesToBase64(request.userContent),
 		});
 		return mapAgentMergeResponse(wire);
+	}
+
+	async readGitSummary(request: UniverseAgentReadGitSummaryRequest): Promise<UniverseAgentReadGitSummaryResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, ReadGitSummaryResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.Git.service,
+			UniverseAgentGrpcServices.Git.ReadGitSummary,
+		);
+		const wire = await unary({
+			session_id: request.sessionId,
+		});
+		return mapReadGitSummaryResponse(wire);
 	}
 
 	async setPermissionPolicy(request: UniverseAgentSetPermissionPolicyRequest): Promise<UniverseAgentSetPermissionPolicyResult> {
