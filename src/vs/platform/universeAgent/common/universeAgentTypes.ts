@@ -434,6 +434,17 @@ export interface UniverseAgentListAgentsResult {
 	readonly agents: readonly UniverseAgentAgentTreeNode[];
 }
 
+/** AgentService.Pause — pause agent generation (≠ PauseQueue / Cancel / SuspendLoop / Resume / Back). */
+export interface UniverseAgentPauseAgentRequest {
+	readonly sessionId: string;
+	readonly agentId: string;
+}
+
+export interface UniverseAgentPauseAgentResult {
+	readonly ok: boolean;
+	readonly message?: string;
+}
+
 /** AgentService.Rename request; empty `title` clears a custom session title. */
 export interface UniverseAgentRenameSessionRequest {
 	readonly sessionId: string;

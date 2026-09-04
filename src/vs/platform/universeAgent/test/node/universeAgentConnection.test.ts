@@ -41,6 +41,8 @@ import type {
 	UniverseAgentUsageResult,
 	UniverseAgentListAgentsRequest,
 	UniverseAgentListAgentsResult,
+	UniverseAgentPauseAgentRequest,
+	UniverseAgentPauseAgentResult,
 	UniverseAgentRenameSessionRequest,
 	UniverseAgentRenameSessionResult,
 	UniverseAgentCancelGenerationRequest,
@@ -295,6 +297,14 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 	async listAgents(request: UniverseAgentListAgentsRequest): Promise<UniverseAgentListAgentsResult> {
 		this.listAgentsCalls.push(request);
 		return this.listAgentsResult;
+	}
+
+	readonly pauseAgentCalls: UniverseAgentPauseAgentRequest[] = [];
+	pauseAgentResult: UniverseAgentPauseAgentResult = { ok: true };
+
+	async pauseAgent(request: UniverseAgentPauseAgentRequest): Promise<UniverseAgentPauseAgentResult> {
+		this.pauseAgentCalls.push(request);
+		return this.pauseAgentResult;
 	}
 
 	readonly renameCalls: UniverseAgentRenameSessionRequest[] = [];
@@ -903,6 +913,11 @@ suite('UniverseAgentConnectionService', () => {
 
 	test('UniverseAgentGrpcServices lists Agent.List', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.List, 'List');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+	});
+
+	test('UniverseAgentGrpcServices lists Agent.Pause', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.Pause, 'Pause');
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
 	});
 
@@ -1753,6 +1768,26 @@ suite('UniverseAgentConnectionService', () => {
 		const empty = await service.listAgents({ sessionId: '' });
 		assert.deepStrictEqual(empty, { agents: [] });
 		assert.strictEqual(transport.listAgentsCalls[1]?.sessionId, '');
+		service.dispose();
+	});
+
+	test('pauseAgent forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.pauseAgentResult = { ok: true, message: 'paused' };
+		const result = await service.pauseAgent({ sessionId: 'sess-1', agentId: 'root' });
+		assert.deepStrictEqual(transport.pauseAgentCalls, [{ sessionId: 'sess-1', agentId: 'root' }]);
+		assert.deepStrictEqual(result, transport.pauseAgentResult);
+
+		transport.pauseAgentResult = { ok: false, message: 'already idle' };
+		const empty = await service.pauseAgent({ sessionId: '', agentId: '' });
+		assert.deepStrictEqual(empty, transport.pauseAgentResult);
+		assert.strictEqual(transport.pauseAgentCalls[1]?.sessionId, '');
+		assert.strictEqual(transport.pauseAgentCalls[1]?.agentId, '');
 		service.dispose();
 	});
 

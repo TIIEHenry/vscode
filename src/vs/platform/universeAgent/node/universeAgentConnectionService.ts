@@ -48,6 +48,8 @@ import type {
 	UniverseAgentUsageResult,
 	UniverseAgentListAgentsRequest,
 	UniverseAgentListAgentsResult,
+	UniverseAgentPauseAgentRequest,
+	UniverseAgentPauseAgentResult,
 	UniverseAgentRenameSessionRequest,
 	UniverseAgentRenameSessionResult,
 	UniverseAgentCancelGenerationRequest,
@@ -727,6 +729,10 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 
 	async listAgents(request: UniverseAgentListAgentsRequest): Promise<UniverseAgentListAgentsResult> {
 		return this._withTransport(transport => transport.listAgents(request));
+	}
+
+	async pauseAgent(request: UniverseAgentPauseAgentRequest): Promise<UniverseAgentPauseAgentResult> {
+		return this._withTransport(transport => transport.pauseAgent(request));
 	}
 
 	async renameSession(request: UniverseAgentRenameSessionRequest): Promise<UniverseAgentRenameSessionResult> {

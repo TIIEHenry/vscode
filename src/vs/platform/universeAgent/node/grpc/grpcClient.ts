@@ -59,6 +59,8 @@ import type {
 	UniverseAgentProfileUsage,
 	UniverseAgentListAgentsRequest,
 	UniverseAgentListAgentsResult,
+	UniverseAgentPauseAgentRequest,
+	UniverseAgentPauseAgentResult,
 	UniverseAgentRenameSessionRequest,
 	UniverseAgentRenameSessionResult,
 	UniverseAgentCancelGenerationRequest,
@@ -2358,6 +2360,22 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			session_id: request.sessionId,
 		});
 		return mapListAgentsResponse(wire);
+	}
+
+	async pauseAgent(request: UniverseAgentPauseAgentRequest): Promise<UniverseAgentPauseAgentResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, { success?: boolean; message?: string }>(
+			this._channel,
+			UniverseAgentGrpcServices.Agent.service,
+			UniverseAgentGrpcServices.Agent.Pause,
+		);
+		const wire = await unary({
+			session_id: request.sessionId,
+			agent_id: request.agentId,
+		});
+		return {
+			ok: wire.success === true,
+			message: wire.message,
+		};
 	}
 
 	async renameSession(request: UniverseAgentRenameSessionRequest): Promise<UniverseAgentRenameSessionResult> {

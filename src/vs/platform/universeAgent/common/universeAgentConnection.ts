@@ -45,6 +45,8 @@ import type {
 	UniverseAgentUsageResult,
 	UniverseAgentListAgentsRequest,
 	UniverseAgentListAgentsResult,
+	UniverseAgentPauseAgentRequest,
+	UniverseAgentPauseAgentResult,
 	UniverseAgentRenameSessionRequest,
 	UniverseAgentRenameSessionResult,
 	UniverseAgentCancelGenerationRequest,
@@ -318,6 +320,14 @@ export interface IUniverseAgentConnection {
 	 * ≠ Tree / Status / ListAgentProfiles / ListSnapshots.
 	 */
 	listAgents?(request: UniverseAgentListAgentsRequest): Promise<UniverseAgentListAgentsResult>;
+
+	/**
+	 * AgentService.Pause unary (PauseResponse.success → ok). Optional so Web /
+	 * tests can omit it. Catalog + node transport only this slice; empty
+	 * `sessionId` / `agentId` are sent as-is. No Conversation roster / UI.
+	 * ≠ PauseQueue / Cancel / SuspendLoop / Resume / Back.
+	 */
+	pauseAgent?(request: UniverseAgentPauseAgentRequest): Promise<UniverseAgentPauseAgentResult>;
 
 	/** AgentService.Rename unary. Engine roster forwards this when connected. */
 	renameSession(request: UniverseAgentRenameSessionRequest): Promise<UniverseAgentRenameSessionResult>;
