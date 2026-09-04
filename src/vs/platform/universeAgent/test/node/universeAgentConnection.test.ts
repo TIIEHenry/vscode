@@ -109,6 +109,8 @@ import type {
 	UniverseAgentSetPermissionModeResult,
 	UniverseAgentTaskUpdateRequest,
 	UniverseAgentTaskUpdateResult,
+	UniverseAgentTaskCancelRequest,
+	UniverseAgentTaskCancelResult,
 	UniverseAgentRespondQuestionRequest,
 	UniverseAgentRespondQuestionResult,
 	UniverseAgentEnqueueQueueItemRequest,
@@ -599,6 +601,14 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 	async taskUpdate(request: UniverseAgentTaskUpdateRequest): Promise<UniverseAgentTaskUpdateResult> {
 		this.taskUpdateCalls.push(request);
 		return this.taskUpdateResult;
+	}
+
+	readonly taskCancelCalls: UniverseAgentTaskCancelRequest[] = [];
+	taskCancelResult: UniverseAgentTaskCancelResult = { ok: true };
+
+	async taskCancel(request: UniverseAgentTaskCancelRequest): Promise<UniverseAgentTaskCancelResult> {
+		this.taskCancelCalls.push(request);
+		return this.taskCancelResult;
 	}
 
 	readonly respondQuestionCalls: UniverseAgentRespondQuestionRequest[] = [];
@@ -1268,6 +1278,11 @@ suite('UniverseAgentConnectionService', () => {
 
 	test('UniverseAgentGrpcServices lists Team.TaskUpdate', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Team.TaskUpdate, 'TaskUpdate');
+		assert.strictEqual(UniverseAgentGrpcServices.Team.service, 'universeagent.team.v1.TeamService');
+	});
+
+	test('UniverseAgentGrpcServices lists Team.TaskCancel', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Team.TaskCancel, 'TaskCancel');
 		assert.strictEqual(UniverseAgentGrpcServices.Team.service, 'universeagent.team.v1.TeamService');
 	});
 
@@ -2961,6 +2976,39 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(transport.taskUpdateCalls[1]?.taskId, '');
 		assert.strictEqual(transport.taskUpdateCalls[1]?.newStatus, '');
 		assert.strictEqual(transport.taskUpdateCalls[1]?.message, '');
+		service.dispose();
+	});
+
+	test('taskCancel forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.taskCancelResult = { ok: true, message: 'cancelled' };
+		const result = await service.taskCancel({
+			sessionId: 'sess-1',
+			agentId: 'agent-1',
+			taskId: 'task-1',
+		});
+		assert.deepStrictEqual(transport.taskCancelCalls, [{
+			sessionId: 'sess-1',
+			agentId: 'agent-1',
+			taskId: 'task-1',
+		}]);
+		assert.deepStrictEqual(result, { ok: true, message: 'cancelled' });
+
+		transport.taskCancelResult = { ok: false, message: '' };
+		const empty = await service.taskCancel({
+			sessionId: '',
+			agentId: '',
+			taskId: '',
+		});
+		assert.deepStrictEqual(empty, { ok: false, message: '' });
+		assert.strictEqual(transport.taskCancelCalls[1]?.sessionId, '');
+		assert.strictEqual(transport.taskCancelCalls[1]?.agentId, '');
+		assert.strictEqual(transport.taskCancelCalls[1]?.taskId, '');
 		service.dispose();
 	});
 

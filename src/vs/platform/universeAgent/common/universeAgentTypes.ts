@@ -878,6 +878,18 @@ export interface UniverseAgentTaskUpdateResult {
 	readonly message?: string;
 }
 
+/** TeamService.TaskCancel — Manager cancel of blackboard task (≠ TaskList / TaskUpdate / MemberStatus / TeamInfo / SetPermissionMode). */
+export interface UniverseAgentTaskCancelRequest {
+	readonly sessionId: string;
+	readonly agentId: string;
+	readonly taskId: string;
+}
+
+export interface UniverseAgentTaskCancelResult {
+	readonly ok: boolean;
+	readonly message?: string;
+}
+
 /** One item answer for AgentService.RespondQuestion (QuestionAnswer.selected_labels). */
 export interface UniverseAgentQuestionAnswer {
 	readonly selectedLabels: readonly string[];

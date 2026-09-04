@@ -116,6 +116,8 @@ import type {
 	UniverseAgentSetPermissionModeResult,
 	UniverseAgentTaskUpdateRequest,
 	UniverseAgentTaskUpdateResult,
+	UniverseAgentTaskCancelRequest,
+	UniverseAgentTaskCancelResult,
 	UniverseAgentRespondQuestionRequest,
 	UniverseAgentRespondQuestionResult,
 	UniverseAgentEnqueueQueueItemRequest,
@@ -628,6 +630,15 @@ export interface IUniverseAgentConnection {
 	 * ≠ TaskList / TaskCancel / MemberStatus / TeamInfo / SetPermissionMode.
 	 */
 	taskUpdate?(request: UniverseAgentTaskUpdateRequest): Promise<UniverseAgentTaskUpdateResult>;
+
+	/**
+	 * TeamService.TaskCancel unary (blackboard task cancel). Optional so Web /
+	 * tests can omit it. Catalog + node transport only this slice; empty
+	 * `sessionId` / `agentId` / `taskId` are sent as-is. No Conversation roster
+	 * / UI / Navigator Team.
+	 * ≠ TaskList / TaskUpdate / MemberStatus / TeamInfo / SetPermissionMode.
+	 */
+	taskCancel?(request: UniverseAgentTaskCancelRequest): Promise<UniverseAgentTaskCancelResult>;
 
 	/**
 	 * AgentService.RespondQuestion unary (ADR-325 ask_user reply). Optional so
