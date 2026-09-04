@@ -44,6 +44,8 @@ import type {
 	UniverseAgentListAgentsResult,
 	UniverseAgentAgentHistoryRequest,
 	UniverseAgentAgentHistoryResult,
+	UniverseAgentPruneRequest,
+	UniverseAgentPruneResult,
 	UniverseAgentRenameSessionRequest,
 	UniverseAgentRenameSessionResult,
 	UniverseAgentCancelGenerationRequest,
@@ -306,6 +308,14 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 	async getAgentHistory(request: UniverseAgentAgentHistoryRequest): Promise<UniverseAgentAgentHistoryResult> {
 		this.getAgentHistoryCalls.push(request);
 		return this.getAgentHistoryResult;
+	}
+
+	readonly pruneCalls: UniverseAgentPruneRequest[] = [];
+	pruneResult: UniverseAgentPruneResult = { ok: true, removedCount: 0 };
+
+	async prune(request: UniverseAgentPruneRequest): Promise<UniverseAgentPruneResult> {
+		this.pruneCalls.push(request);
+		return this.pruneResult;
 	}
 
 	readonly renameCalls: UniverseAgentRenameSessionRequest[] = [];
@@ -952,6 +962,11 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
 	});
 
+	test('UniverseAgentGrpcServices lists Agent.Prune', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.Prune, 'Prune');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+	});
+
 	test('renameSession forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
@@ -1588,6 +1603,26 @@ suite('UniverseAgentConnectionService', () => {
 		assert.deepStrictEqual(empty, transport.getAgentHistoryResult);
 		assert.strictEqual(transport.getAgentHistoryCalls[1]?.sessionId, '');
 		assert.strictEqual(transport.getAgentHistoryCalls[1]?.agentId, '');
+		service.dispose();
+	});
+
+	test('prune forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.pruneResult = { ok: true, message: 'pruned', removedCount: 3 };
+		const result = await service.prune({ sessionId: 'sess-1', agentId: 'root' });
+		assert.deepStrictEqual(transport.pruneCalls, [{ sessionId: 'sess-1', agentId: 'root' }]);
+		assert.deepStrictEqual(result, transport.pruneResult);
+
+		transport.pruneResult = { ok: false, message: 'busy', removedCount: 0 };
+		const empty = await service.prune({ sessionId: '', agentId: '' });
+		assert.deepStrictEqual(empty, transport.pruneResult);
+		assert.strictEqual(transport.pruneCalls[1]?.sessionId, '');
+		assert.strictEqual(transport.pruneCalls[1]?.agentId, '');
 		service.dispose();
 	});
 

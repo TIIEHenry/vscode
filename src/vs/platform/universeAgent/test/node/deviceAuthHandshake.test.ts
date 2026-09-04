@@ -128,6 +128,10 @@ class MockDeviceAuthTransport implements IUniverseAgentGrpcTransport {
 		return { entries: [], total: 0 };
 	}
 
+	async prune(): Promise<{ ok: false; message: 'test'; removedCount: 0 }> {
+		return { ok: false, message: 'test', removedCount: 0 };
+	}
+
 	async renameSession(): Promise<{ ok: false; message: 'test' }> {
 		return { ok: false, message: 'test' };
 	}

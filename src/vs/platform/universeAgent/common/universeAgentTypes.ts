@@ -454,6 +454,18 @@ export interface UniverseAgentAgentHistoryResult {
 	readonly total: number;
 }
 
+/** AgentService.Prune — drop inactive conversation branches (≠ Reset / Back / Compact). */
+export interface UniverseAgentPruneRequest {
+	readonly sessionId: string;
+	readonly agentId: string;
+}
+
+export interface UniverseAgentPruneResult {
+	readonly ok: boolean;
+	readonly message?: string;
+	readonly removedCount: number;
+}
+
 /** AgentService.Rename request; empty `title` clears a custom session title. */
 export interface UniverseAgentRenameSessionRequest {
 	readonly sessionId: string;
