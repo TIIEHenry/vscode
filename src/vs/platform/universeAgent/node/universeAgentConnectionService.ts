@@ -16,6 +16,8 @@ import type {
 	UniverseAgentChatStream,
 	UniverseAgentContinueGenerationRequest,
 	UniverseAgentContinuationStream,
+	UniverseAgentRegenerateRequest,
+	UniverseAgentRegenerateStream,
 	UniverseAgentConnectRequest,
 	UniverseAgentConnectResult,
 	UniverseAgentConnectionSnapshot,
@@ -48,6 +50,8 @@ import type {
 	UniverseAgentUsageResult,
 	UniverseAgentListAgentsRequest,
 	UniverseAgentListAgentsResult,
+	UniverseAgentAgentHistoryRequest,
+	UniverseAgentAgentHistoryResult,
 	UniverseAgentRenameSessionRequest,
 	UniverseAgentRenameSessionResult,
 	UniverseAgentCancelGenerationRequest,
@@ -729,6 +733,10 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		return this._withTransport(transport => transport.listAgents(request));
 	}
 
+	async getAgentHistory(request: UniverseAgentAgentHistoryRequest): Promise<UniverseAgentAgentHistoryResult> {
+		return this._withTransport(transport => transport.getAgentHistory(request));
+	}
+
 	async renameSession(request: UniverseAgentRenameSessionRequest): Promise<UniverseAgentRenameSessionResult> {
 		return this._withTransport(transport => transport.renameSession(request));
 	}
@@ -858,6 +866,15 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 	): UniverseAgentContinuationStream {
 		this._assertTransportReady();
 		return this._transport!.openContinuationStream(request, onResponse, onClosed);
+	}
+
+	openRegenerateStream(
+		request: UniverseAgentRegenerateRequest,
+		onResponse: (response: UniverseAgentChatResponse) => void,
+		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
+	): UniverseAgentRegenerateStream {
+		this._assertTransportReady();
+		return this._transport!.openRegenerateStream(request, onResponse, onClosed);
 	}
 
 	async listSkills(): Promise<UniverseAgentListSkillsResult> {

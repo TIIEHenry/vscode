@@ -12,6 +12,8 @@ import type {
 	UniverseAgentChatStream,
 	UniverseAgentContinueGenerationRequest,
 	UniverseAgentContinuationStream,
+	UniverseAgentRegenerateRequest,
+	UniverseAgentRegenerateStream,
 	UniverseAgentConnectRequest,
 	UniverseAgentConnectResult,
 	UniverseAgentCreateSessionRequest,
@@ -45,6 +47,9 @@ import type {
 	UniverseAgentResolveAnchorResult,
 	UniverseAgentUsageRequest,
 	UniverseAgentUsageResult,
+	UniverseAgentAgentHistoryRequest,
+	UniverseAgentAgentHistoryResult,
+	UniverseAgentAgentHistoryEntry,
 	UniverseAgentAgentUsage,
 	UniverseAgentRecentRequestSpan,
 	UniverseAgentContextWindowInfo,
@@ -546,6 +551,18 @@ interface UsageResponseWire {
 	context_window?: ContextWindowInfoWire;
 	session_usage?: SessionUsageInfoWire;
 	recent_request_spans?: RecentRequestSpanWire[];
+}
+
+interface HistoryEntryWire {
+	role?: string;
+	content?: string;
+	timestamp?: number | string;
+	agent_id?: string;
+}
+
+interface HistoryResponseWire {
+	entries?: HistoryEntryWire[];
+	total?: number;
 }
 
 interface QueueMutationResponseWire {
@@ -1263,6 +1280,22 @@ function mapUsageResponse(wire: UsageResponseWire): UniverseAgentUsageResult {
 		contextWindow: wire.context_window ? mapContextWindowInfo(wire.context_window) : undefined,
 		sessionUsage: wire.session_usage ? mapSessionUsageInfo(wire.session_usage) : undefined,
 		recentRequestSpans: (wire.recent_request_spans ?? []).map(item => mapRecentRequestSpan(item)),
+	};
+}
+
+function mapHistoryEntry(item: HistoryEntryWire | undefined): UniverseAgentAgentHistoryEntry {
+	return {
+		role: item?.role ?? '',
+		content: item?.content ?? '',
+		timestamp: requiredInt64(item?.timestamp),
+		agentId: item?.agent_id ?? '',
+	};
+}
+
+function mapHistoryResponse(wire: HistoryResponseWire): UniverseAgentAgentHistoryResult {
+	return {
+		entries: (wire.entries ?? []).map(item => mapHistoryEntry(item)),
+		total: wire.total ?? 0,
 	};
 }
 
@@ -2360,6 +2393,21 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 		return mapListAgentsResponse(wire);
 	}
 
+	async getAgentHistory(request: UniverseAgentAgentHistoryRequest): Promise<UniverseAgentAgentHistoryResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, HistoryResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.Agent.service,
+			UniverseAgentGrpcServices.Agent.History,
+		);
+		const wire = await unary({
+			session_id: request.sessionId,
+			agent_id: request.agentId,
+			limit: request.limit,
+			offset: request.offset,
+		});
+		return mapHistoryResponse(wire);
+	}
+
 	async renameSession(request: UniverseAgentRenameSessionRequest): Promise<UniverseAgentRenameSessionResult> {
 		const unary = makeUnaryClient<Record<string, unknown>, { success?: boolean; message?: string }>(
 			this._channel,
@@ -2756,6 +2804,24 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			this._channel,
 			UniverseAgentGrpcServices.Agent.service,
 			UniverseAgentGrpcServices.Agent.ContinueGeneration,
+		);
+		return stream({
+			session_id: request.sessionId,
+			agent_id: request.agentId,
+			turn_id: request.turnId,
+			message_id: request.messageId,
+		}, onResponse, onClosed);
+	}
+
+	openRegenerateStream(
+		request: UniverseAgentRegenerateRequest,
+		onResponse: (response: UniverseAgentChatResponse) => void,
+		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
+	): UniverseAgentRegenerateStream {
+		const stream = makeServerStreamClient<Record<string, unknown>, UniverseAgentChatResponse>(
+			this._channel,
+			UniverseAgentGrpcServices.Agent.service,
+			UniverseAgentGrpcServices.Agent.Regenerate,
 		);
 		return stream({
 			session_id: request.sessionId,

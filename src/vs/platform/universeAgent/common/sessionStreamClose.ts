@@ -6,7 +6,7 @@
 import type { UniverseAgentSessionStreamCloseCause } from './universeAgentTypes.js';
 
 /**
- * Once-only close gate shared by Chat bidi, ContinueGeneration, and SessionEventStream.
+ * Once-only close gate shared by Chat bidi, ContinueGeneration, Regenerate, and SessionEventStream.
  * Remote `end` / `error` notify `onClosed`; local dispose / cancel must call
  * {@link StreamCloseGate.closeLocal} first so a follow-up CANCELLED is silent.
  */

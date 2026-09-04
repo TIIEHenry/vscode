@@ -434,6 +434,26 @@ export interface UniverseAgentListAgentsResult {
 	readonly agents: readonly UniverseAgentAgentTreeNode[];
 }
 
+/** AgentService.History — paginated agent transcript (≠ Session.GetHistory). */
+export interface UniverseAgentAgentHistoryRequest {
+	readonly sessionId: string;
+	readonly agentId: string;
+	readonly limit: number;
+	readonly offset: number;
+}
+
+export interface UniverseAgentAgentHistoryEntry {
+	readonly role: string;
+	readonly content: string;
+	readonly timestamp: number;
+	readonly agentId: string;
+}
+
+export interface UniverseAgentAgentHistoryResult {
+	readonly entries: readonly UniverseAgentAgentHistoryEntry[];
+	readonly total: number;
+}
+
 /** AgentService.Rename request; empty `title` clears a custom session title. */
 export interface UniverseAgentRenameSessionRequest {
 	readonly sessionId: string;
@@ -754,7 +774,8 @@ export interface UniverseAgentSessionEvent {
 
 /**
  * Close cause for resident streams (`openChatStream`, `openContinuationStream`,
- * `subscribeSessionEventStream`). Local dispose / cancel does not fire this.
+ * `openRegenerateStream`, `subscribeSessionEventStream`). Local dispose /
+ * cancel does not fire this.
  */
 export type UniverseAgentSessionStreamCloseCause =
 	| { readonly kind: 'remote' }
@@ -785,6 +806,23 @@ export interface UniverseAgentContinueGenerationRequest {
 
 /** Server-stream handle for ContinueGeneration (client does not write). */
 export interface UniverseAgentContinuationStream {
+	dispose(): void;
+}
+
+/**
+ * AgentService.Regenerate request; proto `stream ChatResponse`.
+ * `messageId` is correlation only — never a new Chat User id.
+ * ≠ ContinueGeneration / ADR-029 regenerateTurn (EditMessage + submitInput).
+ */
+export interface UniverseAgentRegenerateRequest {
+	readonly sessionId: string;
+	readonly agentId: string;
+	readonly turnId: string;
+	readonly messageId: string;
+}
+
+/** Server-stream handle for Regenerate (client does not write). */
+export interface UniverseAgentRegenerateStream {
 	dispose(): void;
 }
 

@@ -124,6 +124,10 @@ class MockDeviceAuthTransport implements IUniverseAgentGrpcTransport {
 		return { agents: [] };
 	}
 
+	async getAgentHistory(): Promise<{ entries: []; total: 0 }> {
+		return { entries: [], total: 0 };
+	}
+
 	async renameSession(): Promise<{ ok: false; message: 'test' }> {
 		return { ok: false, message: 'test' };
 	}
@@ -239,6 +243,10 @@ class MockDeviceAuthTransport implements IUniverseAgentGrpcTransport {
 	}
 
 	openContinuationStream(): { dispose(): void } {
+		return { dispose() { } };
+	}
+
+	openRegenerateStream(): { dispose(): void } {
 		return { dispose() { } };
 	}
 

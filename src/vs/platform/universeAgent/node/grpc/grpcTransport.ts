@@ -9,6 +9,8 @@ import type {
 	UniverseAgentChatStream,
 	UniverseAgentContinueGenerationRequest,
 	UniverseAgentContinuationStream,
+	UniverseAgentRegenerateRequest,
+	UniverseAgentRegenerateStream,
 	UniverseAgentConnectRequest,
 	UniverseAgentConnectResult,
 	UniverseAgentCreateSessionRequest,
@@ -40,6 +42,8 @@ import type {
 	UniverseAgentUsageResult,
 	UniverseAgentListAgentsRequest,
 	UniverseAgentListAgentsResult,
+	UniverseAgentAgentHistoryRequest,
+	UniverseAgentAgentHistoryResult,
 	UniverseAgentRenameSessionRequest,
 	UniverseAgentRenameSessionResult,
 	UniverseAgentCancelGenerationRequest,
@@ -229,6 +233,8 @@ export interface IUniverseAgentGrpcTransport {
 
 	/** AgentService.Usage unary (snake_case `session_id`/`agent_id`). Empty ids sent as-is. */
 	getUsage(request: UniverseAgentUsageRequest): Promise<UniverseAgentUsageResult>;
+	/** AgentService.History unary (snake_case `session_id`/`agent_id`/`limit`/`offset`). Empty ids sent as-is. */
+	getAgentHistory(request: UniverseAgentAgentHistoryRequest): Promise<UniverseAgentAgentHistoryResult>;
 
 	/** AgentService.List unary (snake_case `session_id`). Empty ids sent as-is. */
 	listAgents(request: UniverseAgentListAgentsRequest): Promise<UniverseAgentListAgentsResult>;
@@ -302,6 +308,13 @@ export interface IUniverseAgentGrpcTransport {
 		onResponse: (response: UniverseAgentChatResponse) => void,
 		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
 	): UniverseAgentContinuationStream;
+
+	/** AgentService.Regenerate server-stream (snake_case ids). Empty ids sent as-is. */
+	openRegenerateStream(
+		request: UniverseAgentRegenerateRequest,
+		onResponse: (response: UniverseAgentChatResponse) => void,
+		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
+	): UniverseAgentRegenerateStream;
 
 	listSkills(): Promise<UniverseAgentListSkillsResult>;
 
@@ -399,6 +412,7 @@ export const UniverseAgentGrpcServices = {
 		service: 'universeagent.agent.v1.AgentService',
 		Chat: 'Chat',
 		ContinueGeneration: 'ContinueGeneration',
+		Regenerate: 'Regenerate',
 		Rename: 'Rename',
 		Cancel: 'Cancel',
 		CancelToolCall: 'CancelToolCall',
@@ -425,6 +439,7 @@ export const UniverseAgentGrpcServices = {
 		Compact: 'Compact',
 		Usage: 'Usage',
 		List: 'List',
+		History: 'History',
 		Tree: 'Tree',
 		ListAgentProfiles: 'ListAgentProfiles',
 		SaveAgentProfile: 'SaveAgentProfile',
