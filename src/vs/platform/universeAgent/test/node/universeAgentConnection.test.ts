@@ -115,6 +115,8 @@ import type {
 	UniverseAgentMessageMemberResult,
 	UniverseAgentCreateTeamRequest,
 	UniverseAgentCreateTeamResult,
+	UniverseAgentStartMemberRequest,
+	UniverseAgentStartMemberResult,
 	UniverseAgentRespondQuestionRequest,
 	UniverseAgentRespondQuestionResult,
 	UniverseAgentEnqueueQueueItemRequest,
@@ -629,6 +631,14 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 	async createTeam(request: UniverseAgentCreateTeamRequest): Promise<UniverseAgentCreateTeamResult> {
 		this.createTeamCalls.push(request);
 		return this.createTeamResult;
+	}
+
+	readonly startMemberCalls: UniverseAgentStartMemberRequest[] = [];
+	startMemberResult: UniverseAgentStartMemberResult = { memberAgentId: '', memberName: '', dynamic: false };
+
+	async startMember(request: UniverseAgentStartMemberRequest): Promise<UniverseAgentStartMemberResult> {
+		this.startMemberCalls.push(request);
+		return this.startMemberResult;
 	}
 
 	readonly respondQuestionCalls: UniverseAgentRespondQuestionRequest[] = [];
@@ -1313,6 +1323,11 @@ suite('UniverseAgentConnectionService', () => {
 
 	test('UniverseAgentGrpcServices lists Team.CreateTeam', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Team.CreateTeam, 'CreateTeam');
+		assert.strictEqual(UniverseAgentGrpcServices.Team.service, 'universeagent.team.v1.TeamService');
+	});
+
+	test('UniverseAgentGrpcServices lists Team.StartMember', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Team.StartMember, 'StartMember');
 		assert.strictEqual(UniverseAgentGrpcServices.Team.service, 'universeagent.team.v1.TeamService');
 	});
 
@@ -3109,6 +3124,55 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(transport.createTeamCalls[1]?.sessionId, '');
 		assert.strictEqual(transport.createTeamCalls[1]?.agentId, '');
 		assert.deepStrictEqual(transport.createTeamCalls[1]?.taskDescriptions, ['', '']);
+		service.dispose();
+	});
+
+	test('startMember forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.startMemberResult = { memberAgentId: 'member-1', memberName: 'worker', dynamic: true };
+		const result = await service.startMember({
+			sessionId: 'sess-1',
+			agentId: 'agent-1',
+			memberName: 'worker',
+			presetId: 'preset-1',
+			systemPrompt: 'do work',
+			modelType: 'fast',
+			dynamic: true,
+		});
+		assert.deepStrictEqual(transport.startMemberCalls, [{
+			sessionId: 'sess-1',
+			agentId: 'agent-1',
+			memberName: 'worker',
+			presetId: 'preset-1',
+			systemPrompt: 'do work',
+			modelType: 'fast',
+			dynamic: true,
+		}]);
+		assert.deepStrictEqual(result, { memberAgentId: 'member-1', memberName: 'worker', dynamic: true });
+
+		transport.startMemberResult = { memberAgentId: '', memberName: '', dynamic: false };
+		const empty = await service.startMember({
+			sessionId: '',
+			agentId: '',
+			memberName: '',
+			presetId: '',
+			systemPrompt: '',
+			modelType: '',
+			dynamic: false,
+		});
+		assert.deepStrictEqual(empty, { memberAgentId: '', memberName: '', dynamic: false });
+		assert.strictEqual(transport.startMemberCalls[1]?.sessionId, '');
+		assert.strictEqual(transport.startMemberCalls[1]?.agentId, '');
+		assert.strictEqual(transport.startMemberCalls[1]?.memberName, '');
+		assert.strictEqual(transport.startMemberCalls[1]?.presetId, '');
+		assert.strictEqual(transport.startMemberCalls[1]?.systemPrompt, '');
+		assert.strictEqual(transport.startMemberCalls[1]?.modelType, '');
+		assert.strictEqual(transport.startMemberCalls[1]?.dynamic, false);
 		service.dispose();
 	});
 

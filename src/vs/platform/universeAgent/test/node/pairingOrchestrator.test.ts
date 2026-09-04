@@ -292,6 +292,10 @@ class RecordingMockTransport implements IUniverseAgentGrpcTransport {
 		return { teamId: 0, memberCount: 0 };
 	}
 
+	async startMember(): Promise<{ memberAgentId: ''; memberName: ''; dynamic: false }> {
+		return { memberAgentId: '', memberName: '', dynamic: false };
+	}
+
 	async respondQuestion(): Promise<{ ok: false; message: 'test' }> {
 		return { ok: false, message: 'test' };
 	}
