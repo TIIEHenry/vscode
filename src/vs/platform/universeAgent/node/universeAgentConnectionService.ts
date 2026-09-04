@@ -58,6 +58,8 @@ import type {
 	UniverseAgentCreateSnapshotResult,
 	UniverseAgentRestoreSnapshotRequest,
 	UniverseAgentRestoreSnapshotResult,
+	UniverseAgentDeleteSnapshotRequest,
+	UniverseAgentDeleteSnapshotResult,
 	UniverseAgentGetHistoryRequest,
 	UniverseAgentGetHistoryResult,
 	UniverseAgentListSessionsRequest,
@@ -733,6 +735,10 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 
 	async restoreSnapshot(request: UniverseAgentRestoreSnapshotRequest): Promise<UniverseAgentRestoreSnapshotResult> {
 		return this._withTransport(transport => transport.restoreSnapshot(request));
+	}
+
+	async deleteSnapshot(request: UniverseAgentDeleteSnapshotRequest): Promise<UniverseAgentDeleteSnapshotResult> {
+		return this._withTransport(transport => transport.deleteSnapshot(request));
 	}
 
 	async getHistory(request: UniverseAgentGetHistoryRequest): Promise<UniverseAgentGetHistoryResult> {

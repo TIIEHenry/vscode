@@ -50,6 +50,8 @@ import type {
 	UniverseAgentCreateSnapshotResult,
 	UniverseAgentRestoreSnapshotRequest,
 	UniverseAgentRestoreSnapshotResult,
+	UniverseAgentDeleteSnapshotRequest,
+	UniverseAgentDeleteSnapshotResult,
 	UniverseAgentGetHistoryRequest,
 	UniverseAgentGetHistoryResult,
 	UniverseAgentListSessionsRequest,
@@ -215,6 +217,8 @@ export interface IUniverseAgentGrpcTransport {
 
 	restoreSnapshot(request: UniverseAgentRestoreSnapshotRequest): Promise<UniverseAgentRestoreSnapshotResult>;
 
+	deleteSnapshot(request: UniverseAgentDeleteSnapshotRequest): Promise<UniverseAgentDeleteSnapshotResult>;
+
 	getHistory(request: UniverseAgentGetHistoryRequest): Promise<UniverseAgentGetHistoryResult>;
 
 	subscribeSessionEventStream(
@@ -344,6 +348,7 @@ export const UniverseAgentGrpcServices = {
 		ListSnapshots: 'ListSnapshots',
 		CreateSnapshot: 'CreateSnapshot',
 		RestoreSnapshot: 'RestoreSnapshot',
+		DeleteSnapshot: 'DeleteSnapshot',
 		Tree: 'Tree',
 		ListAgentProfiles: 'ListAgentProfiles',
 		SaveAgentProfile: 'SaveAgentProfile',

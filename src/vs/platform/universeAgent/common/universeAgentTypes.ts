@@ -317,7 +317,7 @@ export interface UniverseAgentListSnapshotsResult {
 	readonly snapshots: readonly UniverseAgentSessionSnapshotInfo[];
 }
 
-/** AgentService.CreateSnapshot — persist a session checkpoint (≠ ListSnapshots / SessionBar History / Delete). */
+/** AgentService.CreateSnapshot — persist a session checkpoint (≠ ListSnapshots / SessionBar History). */
 export interface UniverseAgentCreateSnapshotRequest {
 	readonly sessionId: string;
 	readonly title: string;
@@ -330,13 +330,24 @@ export interface UniverseAgentCreateSnapshotResult {
 	readonly message?: string;
 }
 
-/** AgentService.RestoreSnapshot — restore a session checkpoint (≠ ListSnapshots / SessionBar History / Delete). */
+/** AgentService.RestoreSnapshot — restore a session checkpoint (≠ ListSnapshots / SessionBar History). */
 export interface UniverseAgentRestoreSnapshotRequest {
 	readonly sessionId: string;
 	readonly snapshotId: string;
 }
 
 export interface UniverseAgentRestoreSnapshotResult {
+	readonly ok: boolean;
+	readonly message?: string;
+}
+
+/** AgentService.DeleteSnapshot — drop a session checkpoint (≠ ListSnapshots / SessionBar History). */
+export interface UniverseAgentDeleteSnapshotRequest {
+	readonly sessionId: string;
+	readonly snapshotId: string;
+}
+
+export interface UniverseAgentDeleteSnapshotResult {
 	readonly ok: boolean;
 	readonly message?: string;
 }
