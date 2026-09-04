@@ -103,6 +103,8 @@ import type {
 	UniverseAgentRespondPermissionResult,
 	UniverseAgentSyncPermissionRuleRequest,
 	UniverseAgentSyncPermissionRuleResult,
+	UniverseAgentPromotePermissionRuleRequest,
+	UniverseAgentPromotePermissionRuleResult,
 	UniverseAgentRespondQuestionRequest,
 	UniverseAgentRespondQuestionResult,
 	UniverseAgentEnqueueQueueItemRequest,
@@ -348,8 +350,8 @@ export interface IUniverseAgentGrpcTransport {
 	/** PermissionService.SyncPermissionRule unary (snake_case `session_id`/`tool_name`/`scope`/`action`/`reason`). Empty ids sent as-is. */
 	syncPermissionRule(request: UniverseAgentSyncPermissionRuleRequest): Promise<UniverseAgentSyncPermissionRuleResult>;
 
-	/** PermissionService.SyncPermissionRule unary (snake_case `session_id`/`tool_name`/`scope`/`action`/`reason`). Empty ids sent as-is. */
-	syncPermissionRule(request: UniverseAgentSyncPermissionRuleRequest): Promise<UniverseAgentSyncPermissionRuleResult>;
+	/** PermissionService.PromotePermissionRule unary (snake_case `tool_name`/`scope`/`action`). Empty ids sent as-is. */
+	promotePermissionRule(request: UniverseAgentPromotePermissionRuleRequest): Promise<UniverseAgentPromotePermissionRuleResult>;
 
 	respondQuestion(request: UniverseAgentRespondQuestionRequest): Promise<UniverseAgentRespondQuestionResult>;
 
@@ -559,6 +561,7 @@ export const UniverseAgentGrpcServices = {
 		CancelSessionGoal: 'CancelSessionGoal',
 		Respond: 'Respond',
 		SyncPermissionRule: 'SyncPermissionRule',
+		PromotePermissionRule: 'PromotePermissionRule',
 	},
 	Agent: {
 		service: 'universeagent.agent.v1.AgentService',

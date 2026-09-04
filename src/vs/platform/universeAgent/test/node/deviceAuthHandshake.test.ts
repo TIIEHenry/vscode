@@ -227,6 +227,10 @@ class MockDeviceAuthTransport implements IUniverseAgentGrpcTransport {
 		return { ok: false, ruleId: '' };
 	}
 
+	async promotePermissionRule(): Promise<{ ok: false }> {
+		return { ok: false };
+	}
+
 	async respondQuestion(): Promise<{ ok: false; message: 'test' }> {
 		return { ok: false, message: 'test' };
 	}
