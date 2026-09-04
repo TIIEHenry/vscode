@@ -1049,6 +1049,67 @@ export type UniverseAgentSessionStreamCloseCause =
 	| { readonly kind: 'remote' }
 	| { readonly kind: 'error'; readonly message: string };
 
+/**
+ * AgentService.ChatSync — Gateway unary Chat (proto SessionInput).
+ * Empty `messageId` / `operationId` / `replyToId` / `modelProfileId` sent as-is.
+ * ≠ Chat bidi / SyncInputDelivery / ContinueGeneration / Resume.
+ */
+export interface UniverseAgentChatSyncSessionInput {
+	readonly messageId: string;
+	readonly text: string;
+	readonly delivery?: number;
+	readonly modelProfileId?: string;
+	readonly systemPrompt?: string;
+	readonly memoryEnabled?: boolean;
+	readonly thinkingEnabled?: boolean;
+	readonly replyToId?: string;
+	readonly operationId?: string;
+	readonly skillName?: string;
+	readonly skillScope?: string;
+	readonly skillCommandText?: string;
+}
+
+/** AgentService.ChatSync request (≠ Chat / SyncInputDelivery / ContinueGeneration / Resume). */
+export interface UniverseAgentChatSyncRequest {
+	readonly sessionId: string;
+	readonly agentId: string;
+	readonly sessionInput?: UniverseAgentChatSyncSessionInput;
+	readonly timeoutSeconds?: number;
+	readonly lastKnownMessageIds?: readonly string[];
+	readonly idempotencyKey?: string;
+}
+
+/** AgentService.ChatSync ToolResultEvent. */
+export interface UniverseAgentChatSyncToolResult {
+	readonly toolId: string;
+	readonly toolName: string;
+	readonly isError: boolean;
+	readonly content: string;
+	readonly durationMs: number;
+}
+
+/** AgentService.ChatSync InputDeliveryEvent. */
+export interface UniverseAgentChatSyncInputDeliveryEvent {
+	readonly messageId: string;
+	readonly status: number;
+	readonly errorCode: string;
+	readonly errorMessage: string;
+}
+
+/** AgentService.ChatSync response (ChatSyncResponse). */
+export interface UniverseAgentChatSyncResult {
+	readonly sessionId: string;
+	readonly agentId: string;
+	readonly text: string;
+	readonly stopReason: string;
+	readonly inputTokens: number;
+	readonly outputTokens: number;
+	readonly turnCount: number;
+	readonly toolResults: readonly UniverseAgentChatSyncToolResult[];
+	readonly error: string;
+	readonly inputDeliveryEvents: readonly UniverseAgentChatSyncInputDeliveryEvent[];
+}
+
 export interface UniverseAgentChatRequest {
 	readonly sessionId: string;
 	readonly payload: unknown;

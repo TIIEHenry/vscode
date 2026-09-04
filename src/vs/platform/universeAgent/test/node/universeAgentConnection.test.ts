@@ -8,6 +8,8 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/c
 import type {
 	UniverseAgentChatRequest,
 	UniverseAgentChatResponse,
+	UniverseAgentChatSyncRequest,
+	UniverseAgentChatSyncResult,
 	UniverseAgentChatStream,
 	UniverseAgentContinueGenerationRequest,
 	UniverseAgentRegenerateRequest,
@@ -739,6 +741,25 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 	async chat(_request: UniverseAgentChatRequest, _onResponse: (response: UniverseAgentChatResponse) => void): Promise<void> {
 	}
 
+	readonly chatSyncCalls: UniverseAgentChatSyncRequest[] = [];
+	chatSyncResult: UniverseAgentChatSyncResult = {
+		sessionId: '',
+		agentId: '',
+		text: '',
+		stopReason: '',
+		inputTokens: 0,
+		outputTokens: 0,
+		turnCount: 0,
+		toolResults: [],
+		error: '',
+		inputDeliveryEvents: [],
+	};
+
+	async chatSync(request: UniverseAgentChatSyncRequest): Promise<UniverseAgentChatSyncResult> {
+		this.chatSyncCalls.push(request);
+		return this.chatSyncResult;
+	}
+
 	private _chatGate: ReturnType<typeof createStreamCloseGate> | undefined;
 	readonly chatOpens: string[] = [];
 
@@ -1170,6 +1191,11 @@ suite('UniverseAgentConnectionService', () => {
 
 	test('UniverseAgentGrpcServices lists Agent.SetQueueItemForkAnchor', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.SetQueueItemForkAnchor, 'SetQueueItemForkAnchor');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+	});
+
+	test('UniverseAgentGrpcServices lists Agent.ChatSync', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.ChatSync, 'ChatSync');
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
 	});
 
@@ -2122,6 +2148,69 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(transport.setQueueItemForkAnchorCalls[1]?.opId, '');
 		assert.strictEqual(transport.setQueueItemForkAnchorCalls[1]?.forkFromTurnId, '');
 		assert.strictEqual(transport.setQueueItemForkAnchorCalls[1]?.forkFromPreview, '');
+		service.dispose();
+	});
+
+	test('chatSync forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.chatSyncResult = {
+			sessionId: 'sess-1',
+			agentId: 'root',
+			text: 'ok',
+			stopReason: 'end',
+			inputTokens: 1,
+			outputTokens: 2,
+			turnCount: 1,
+			toolResults: [],
+			error: '',
+			inputDeliveryEvents: [],
+		};
+		const result = await service.chatSync({
+			sessionId: 'sess-1',
+			agentId: 'root',
+			idempotencyKey: 'idemp-1',
+			lastKnownMessageIds: ['m-1'],
+			sessionInput: { messageId: 'm-new', text: 'hi' },
+		});
+		assert.deepStrictEqual(transport.chatSyncCalls, [{
+			sessionId: 'sess-1',
+			agentId: 'root',
+			idempotencyKey: 'idemp-1',
+			lastKnownMessageIds: ['m-1'],
+			sessionInput: { messageId: 'm-new', text: 'hi' },
+		}]);
+		assert.deepStrictEqual(result, transport.chatSyncResult);
+
+		transport.chatSyncResult = {
+			sessionId: '',
+			agentId: '',
+			text: '',
+			stopReason: '',
+			inputTokens: 0,
+			outputTokens: 0,
+			turnCount: 0,
+			toolResults: [],
+			error: 'empty',
+			inputDeliveryEvents: [],
+		};
+		const empty = await service.chatSync({
+			sessionId: '',
+			agentId: '',
+			idempotencyKey: '',
+			lastKnownMessageIds: [''],
+			sessionInput: { messageId: '', text: '' },
+		});
+		assert.deepStrictEqual(empty, transport.chatSyncResult);
+		assert.strictEqual(transport.chatSyncCalls[1]?.sessionId, '');
+		assert.strictEqual(transport.chatSyncCalls[1]?.agentId, '');
+		assert.strictEqual(transport.chatSyncCalls[1]?.idempotencyKey, '');
+		assert.deepStrictEqual(transport.chatSyncCalls[1]?.lastKnownMessageIds, ['']);
+		assert.strictEqual(transport.chatSyncCalls[1]?.sessionInput?.messageId, '');
 		service.dispose();
 	});
 

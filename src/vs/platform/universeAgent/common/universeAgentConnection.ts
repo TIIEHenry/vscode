@@ -10,6 +10,8 @@ import type {
 	UniverseAgentCapabilitySnapshot,
 	UniverseAgentChatRequest,
 	UniverseAgentChatResponse,
+	UniverseAgentChatSyncRequest,
+	UniverseAgentChatSyncResult,
 	UniverseAgentChatStream,
 	UniverseAgentContinueGenerationRequest,
 	UniverseAgentContinuationStream,
@@ -751,6 +753,16 @@ export interface IUniverseAgentConnection {
 	): { dispose(): void };
 
 	chat(request: UniverseAgentChatRequest, onResponse: (response: UniverseAgentChatResponse) => void): Promise<void>;
+
+	/**
+	 * AgentService.ChatSync unary (Gateway sync Chat).
+	 * Optional so Web / tests can omit it. Catalog + node transport only this
+	 * slice; empty `sessionId` / `agentId` / `idempotencyKey` /
+	 * `lastKnownMessageIds` / `sessionInput.messageId` are sent as-is. No
+	 * Conversation roster / UI.
+	 * ≠ Chat / SyncInputDelivery / ContinueGeneration / Resume.
+	 */
+	chatSync?(request: UniverseAgentChatSyncRequest): Promise<UniverseAgentChatSyncResult>;
 
 	/**
 	 * Resident Chat bidi (ADR-012). Optional so tests / Web can keep one-shot `chat()`.

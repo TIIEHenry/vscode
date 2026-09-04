@@ -9,6 +9,11 @@ import { createStreamCloseGate } from '../../common/sessionStreamClose.js';
 import type {
 	UniverseAgentChatRequest,
 	UniverseAgentChatResponse,
+	UniverseAgentChatSyncInputDeliveryEvent,
+	UniverseAgentChatSyncRequest,
+	UniverseAgentChatSyncResult,
+	UniverseAgentChatSyncSessionInput,
+	UniverseAgentChatSyncToolResult,
 	UniverseAgentChatStream,
 	UniverseAgentContinueGenerationRequest,
 	UniverseAgentContinuationStream,
@@ -1494,6 +1499,127 @@ function mapBranchResponse(wire: BranchResponseWire): UniverseAgentBranchResult 
 		currentBranch: wire.current_branch ?? 0,
 		totalBranches: wire.total_branches ?? 0,
 		currentTurnId: wire.current_turn_id,
+	};
+}
+
+function chatSyncSessionInputWire(input: UniverseAgentChatSyncSessionInput): Record<string, unknown> {
+	const wire: Record<string, unknown> = {
+		message_id: input.messageId,
+		text: input.text,
+	};
+	if (input.delivery !== undefined) {
+		wire.delivery = input.delivery;
+	}
+	if (input.modelProfileId !== undefined) {
+		wire.model_profile_id = input.modelProfileId;
+	}
+	if (input.systemPrompt !== undefined) {
+		wire.system_prompt = input.systemPrompt;
+	}
+	if (input.memoryEnabled !== undefined) {
+		wire.memory_enabled = input.memoryEnabled;
+	}
+	if (input.thinkingEnabled !== undefined) {
+		wire.thinking_enabled = input.thinkingEnabled;
+	}
+	if (input.replyToId !== undefined) {
+		wire.reply_to_id = input.replyToId;
+	}
+	if (input.operationId !== undefined) {
+		wire.operation_id = input.operationId;
+	}
+	if (input.skillName !== undefined) {
+		wire.skill_name = input.skillName;
+	}
+	if (input.skillScope !== undefined) {
+		wire.skill_scope = input.skillScope;
+	}
+	if (input.skillCommandText !== undefined) {
+		wire.skill_command_text = input.skillCommandText;
+	}
+	return wire;
+}
+
+function chatSyncRequestWire(request: UniverseAgentChatSyncRequest): Record<string, unknown> {
+	const wire: Record<string, unknown> = {
+		session_id: request.sessionId,
+		agent_id: request.agentId,
+		last_known_message_ids: request.lastKnownMessageIds ?? [],
+		idempotency_key: request.idempotencyKey ?? '',
+	};
+	if (request.timeoutSeconds !== undefined) {
+		wire.timeout_seconds = request.timeoutSeconds;
+	}
+	if (request.sessionInput) {
+		wire.session_input = chatSyncSessionInputWire(request.sessionInput);
+	}
+	return wire;
+}
+
+function mapChatSyncToolResult(item: {
+	tool_id?: string;
+	tool_name?: string;
+	is_error?: boolean;
+	content?: string;
+	duration_ms?: number | string;
+} | undefined): UniverseAgentChatSyncToolResult {
+	return {
+		toolId: item?.tool_id ?? '',
+		toolName: item?.tool_name ?? '',
+		isError: item?.is_error === true,
+		content: item?.content ?? '',
+		durationMs: requiredInt64(item?.duration_ms),
+	};
+}
+
+function mapChatSyncInputDeliveryEvent(item: {
+	message_id?: string;
+	status?: number;
+	error_code?: string;
+	error_message?: string;
+} | undefined): UniverseAgentChatSyncInputDeliveryEvent {
+	return {
+		messageId: item?.message_id ?? '',
+		status: item?.status ?? 0,
+		errorCode: item?.error_code ?? '',
+		errorMessage: item?.error_message ?? '',
+	};
+}
+
+function mapChatSyncResponse(wire: {
+	session_id?: string;
+	agent_id?: string;
+	text?: string;
+	stop_reason?: string;
+	input_tokens?: number | string;
+	output_tokens?: number | string;
+	turn_count?: number;
+	tool_results?: Array<{
+		tool_id?: string;
+		tool_name?: string;
+		is_error?: boolean;
+		content?: string;
+		duration_ms?: number | string;
+	}>;
+	error?: string;
+	input_delivery_events?: Array<{
+		message_id?: string;
+		status?: number;
+		error_code?: string;
+		error_message?: string;
+	}>;
+}): UniverseAgentChatSyncResult {
+	return {
+		sessionId: wire.session_id ?? '',
+		agentId: wire.agent_id ?? '',
+		text: wire.text ?? '',
+		stopReason: wire.stop_reason ?? '',
+		inputTokens: requiredInt64(wire.input_tokens),
+		outputTokens: requiredInt64(wire.output_tokens),
+		turnCount: wire.turn_count ?? 0,
+		toolResults: (wire.tool_results ?? []).map(item => mapChatSyncToolResult(item)),
+		error: wire.error ?? '',
+		inputDeliveryEvents: (wire.input_delivery_events ?? []).map(item => mapChatSyncInputDeliveryEvent(item)),
 	};
 }
 
@@ -3312,6 +3438,16 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			UniverseAgentGrpcServices.Agent.Chat,
 		);
 		await bidi({ session_id: request.sessionId, payload: request.payload }, onResponse);
+	}
+
+	async chatSync(request: UniverseAgentChatSyncRequest): Promise<UniverseAgentChatSyncResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, Parameters<typeof mapChatSyncResponse>[0]>(
+			this._channel,
+			UniverseAgentGrpcServices.Agent.service,
+			UniverseAgentGrpcServices.Agent.ChatSync,
+		);
+		const wire = await unary(chatSyncRequestWire(request));
+		return mapChatSyncResponse(wire);
 	}
 
 	openChatStream(

@@ -13,6 +13,8 @@ import type {
 	UniverseAgentCapabilitySupport,
 	UniverseAgentChatRequest,
 	UniverseAgentChatResponse,
+	UniverseAgentChatSyncRequest,
+	UniverseAgentChatSyncResult,
 	UniverseAgentChatStream,
 	UniverseAgentContinueGenerationRequest,
 	UniverseAgentContinuationStream,
@@ -990,6 +992,10 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 
 	async chat(request: UniverseAgentChatRequest, onResponse: (response: UniverseAgentChatResponse) => void): Promise<void> {
 		await this._withTransport(transport => transport.chat(request, onResponse));
+	}
+
+	async chatSync(request: UniverseAgentChatSyncRequest): Promise<UniverseAgentChatSyncResult> {
+		return this._withTransport(transport => transport.chatSync(request));
 	}
 
 	openChatStream(
