@@ -271,6 +271,9 @@ import type {
 	UniverseAgentReadFileResult,
 	UniverseAgentGetFileInfoRequest,
 	UniverseAgentGetFileInfoResult,
+	UniverseAgentWriteFileRequest,
+	UniverseAgentWriteFileResult,
+	UniverseAgentWriteFileStatus,
 	UniverseAgentListModelsResult,
 	UniverseAgentGetConfigRequest,
 	UniverseAgentGetConfigResult,
@@ -2661,6 +2664,44 @@ function mapGetFileInfoResponse(wire: GetFileInfoResponseWire): UniverseAgentGet
 	};
 }
 
+interface WriteFileResponseWire {
+	status?: string | number;
+	new_hash?: string;
+	size?: number | string;
+	modified_at?: number | string;
+	current_content?: string;
+	current_hash?: string;
+	merged_content?: string;
+}
+
+const WriteFileStatusByNumber: Record<number, UniverseAgentWriteFileStatus> = {
+	0: 'SAVED',
+	1: 'MERGED',
+	2: 'CONFLICT',
+};
+
+function mapWriteFileStatus(value: string | number | undefined): UniverseAgentWriteFileStatus {
+	if (typeof value === 'number') {
+		return WriteFileStatusByNumber[value] ?? 'SAVED';
+	}
+	if (value === 'MERGED' || value === 'CONFLICT' || value === 'SAVED') {
+		return value;
+	}
+	return 'SAVED';
+}
+
+function mapWriteFileResponse(wire: WriteFileResponseWire): UniverseAgentWriteFileResult {
+	return {
+		status: mapWriteFileStatus(wire.status),
+		newHash: wire.new_hash ?? '',
+		size: requiredInt64(wire.size),
+		modifiedAt: requiredInt64(wire.modified_at),
+		currentContent: base64ToBytes(wire.current_content),
+		currentHash: wire.current_hash ?? '',
+		mergedContent: base64ToBytes(wire.merged_content),
+	};
+}
+
 interface ListModelsResponseWire {
 	models?: Array<{
 		id?: string;
@@ -4538,6 +4579,22 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			session_id: request.sessionId,
 		});
 		return mapGetFileInfoResponse(wire);
+	}
+
+	async writeFile(request: UniverseAgentWriteFileRequest): Promise<UniverseAgentWriteFileResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, WriteFileResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.File.service,
+			UniverseAgentGrpcServices.File.WriteFile,
+		);
+		const wire = await unary({
+			path: request.path,
+			content: bytesToBase64(request.content),
+			base_hash: request.baseHash,
+			session_id: request.sessionId,
+			base_content: bytesToBase64(request.baseContent),
+		});
+		return mapWriteFileResponse(wire);
 	}
 
 	async setPermissionPolicy(request: UniverseAgentSetPermissionPolicyRequest): Promise<UniverseAgentSetPermissionPolicyResult> {
