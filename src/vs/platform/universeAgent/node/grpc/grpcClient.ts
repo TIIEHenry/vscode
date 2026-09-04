@@ -274,6 +274,7 @@ import type {
 	UniverseAgentWriteFileRequest,
 	UniverseAgentWriteFileResult,
 	UniverseAgentWriteFileStatus,
+	UniverseAgentForceWriteFileRequest,
 	UniverseAgentListModelsResult,
 	UniverseAgentGetConfigRequest,
 	UniverseAgentGetConfigResult,
@@ -4593,6 +4594,20 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			base_hash: request.baseHash,
 			session_id: request.sessionId,
 			base_content: bytesToBase64(request.baseContent),
+		});
+		return mapWriteFileResponse(wire);
+	}
+
+	async forceWriteFile(request: UniverseAgentForceWriteFileRequest): Promise<UniverseAgentWriteFileResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, WriteFileResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.File.service,
+			UniverseAgentGrpcServices.File.ForceWriteFile,
+		);
+		const wire = await unary({
+			path: request.path,
+			content: bytesToBase64(request.content),
+			session_id: request.sessionId,
 		});
 		return mapWriteFileResponse(wire);
 	}

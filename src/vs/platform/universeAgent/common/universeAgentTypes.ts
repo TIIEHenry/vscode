@@ -1955,6 +1955,17 @@ export interface UniverseAgentWriteFileResult {
 }
 
 /**
+ * FileService.ForceWriteFile — proto `ForceWriteFileRequest` / `WriteFileResponse` only.
+ * Empty `path` / `session_id` pass through as-is. Empty `content` sent as-is.
+ * ≠ ListFiles / ReadFile / GetFileInfo / WriteFile / AgentMerge.
+ */
+export interface UniverseAgentForceWriteFileRequest {
+	readonly path: string;
+	readonly content: Uint8Array;
+	readonly sessionId: string;
+}
+
+/**
  * ConfigService.SetPermissionPolicy — session/tool policy write
  * (≠ SwitchModel / ListModels / Get / Set / GetModelPreferences /
  * SetModelPreferences / SetPermissionMode).

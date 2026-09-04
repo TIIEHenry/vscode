@@ -188,6 +188,7 @@ import type {
 	UniverseAgentGetFileInfoResult,
 	UniverseAgentWriteFileRequest,
 	UniverseAgentWriteFileResult,
+	UniverseAgentForceWriteFileRequest,
 	UniverseAgentGetHistoryRequest,
 	UniverseAgentGetHistoryResult,
 	UniverseAgentListSessionsRequest,
@@ -1325,6 +1326,22 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 		return this.writeFileResult;
 	}
 
+	readonly forceWriteFileCalls: UniverseAgentForceWriteFileRequest[] = [];
+	forceWriteFileResult: UniverseAgentWriteFileResult = {
+		status: 'SAVED',
+		newHash: '',
+		size: 0,
+		modifiedAt: 0,
+		currentContent: new Uint8Array(0),
+		currentHash: '',
+		mergedContent: new Uint8Array(0),
+	};
+
+	async forceWriteFile(request: UniverseAgentForceWriteFileRequest): Promise<UniverseAgentWriteFileResult> {
+		this.forceWriteFileCalls.push(request);
+		return this.forceWriteFileResult;
+	}
+
 	async listModels() {
 		return { models: [] };
 	}
@@ -1710,6 +1727,11 @@ suite('UniverseAgentConnectionService', () => {
 
 	test('UniverseAgentGrpcServices lists File.WriteFile', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.File.WriteFile, 'WriteFile');
+		assert.strictEqual(UniverseAgentGrpcServices.File.service, 'universeagent.file.v1.FileService');
+	});
+
+	test('UniverseAgentGrpcServices lists File.ForceWriteFile', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.File.ForceWriteFile, 'ForceWriteFile');
 		assert.strictEqual(UniverseAgentGrpcServices.File.service, 'universeagent.file.v1.FileService');
 	});
 
@@ -4109,6 +4131,57 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(writeEmpty.currentHash, '');
 		assert.deepStrictEqual(writeEmpty.currentContent, new Uint8Array(0));
 		assert.deepStrictEqual(writeEmpty.mergedContent, new Uint8Array(0));
+		service.dispose();
+	});
+
+	test('forceWriteFile forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.forceWriteFileResult = {
+			status: 'SAVED',
+			newHash: 'hash-1',
+			size: 3,
+			modifiedAt: 100,
+			currentContent: new Uint8Array([97, 98, 99]),
+			currentHash: 'hash-1',
+			mergedContent: new Uint8Array(0),
+		};
+		const forceRequest = {
+			path: 'src/foo.ts',
+			content: new Uint8Array([97, 98, 99]),
+			sessionId: 'sess-1',
+		};
+		const forceResult = await service.forceWriteFile(forceRequest);
+		assert.deepStrictEqual(transport.forceWriteFileCalls, [forceRequest]);
+		assert.deepStrictEqual(forceResult, transport.forceWriteFileResult);
+
+		transport.forceWriteFileResult = {
+			status: 'SAVED',
+			newHash: '',
+			size: 0,
+			modifiedAt: 0,
+			currentContent: new Uint8Array(0),
+			currentHash: '',
+			mergedContent: new Uint8Array(0),
+		};
+		const forceEmptyRequest = {
+			path: '',
+			content: new Uint8Array(0),
+			sessionId: '',
+		};
+		const forceEmpty = await service.forceWriteFile(forceEmptyRequest);
+		assert.strictEqual(transport.forceWriteFileCalls[1]?.path, '');
+		assert.strictEqual(transport.forceWriteFileCalls[1]?.sessionId, '');
+		assert.deepStrictEqual(transport.forceWriteFileCalls[1]?.content, new Uint8Array(0));
+		assert.strictEqual(forceEmpty.status, 'SAVED');
+		assert.strictEqual(forceEmpty.newHash, '');
+		assert.strictEqual(forceEmpty.currentHash, '');
+		assert.deepStrictEqual(forceEmpty.currentContent, new Uint8Array(0));
+		assert.deepStrictEqual(forceEmpty.mergedContent, new Uint8Array(0));
 		service.dispose();
 	});
 
