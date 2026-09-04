@@ -93,6 +93,16 @@ export interface UniverseAgentSessionInfoResult {
 	readonly model: string;
 }
 
+/** SessionService.Shelve — park a session without deleting it (≠ Delete / Unshelve / Resume). */
+export interface UniverseAgentShelveSessionRequest {
+	readonly sessionId: string;
+}
+
+export interface UniverseAgentShelveSessionResult {
+	readonly ok: boolean;
+	readonly message?: string;
+}
+
 /** AgentService.Rename request; empty `title` clears a custom session title. */
 export interface UniverseAgentRenameSessionRequest {
 	readonly sessionId: string;

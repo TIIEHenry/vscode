@@ -76,6 +76,10 @@ class MockDeviceAuthTransport implements IUniverseAgentGrpcTransport {
 		return { sessionId: '', createdAt: 0, lastAccessedAt: 0, provider: '', model: '' };
 	}
 
+	async shelveSession(): Promise<{ ok: false; message: 'test' }> {
+		return { ok: false, message: 'test' };
+	}
+
 	async renameSession(): Promise<{ ok: false; message: 'test' }> {
 		return { ok: false, message: 'test' };
 	}
