@@ -276,6 +276,10 @@ class RecordingMockTransport implements IUniverseAgentGrpcTransport {
 		return { ok: false, error: 'test' };
 	}
 
+	async retryQueueItemUpload(): Promise<{ ok: false; error: 'test' }> {
+		return { ok: false, error: 'test' };
+	}
+
 	async pauseQueue(): Promise<{ ok: false; error: 'test' }> {
 		return { ok: false, error: 'test' };
 	}
