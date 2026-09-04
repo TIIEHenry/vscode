@@ -385,6 +385,26 @@ export interface UniverseAgentUsageResult {
 	readonly recentRequestSpans: readonly UniverseAgentRecentRequestSpan[];
 }
 
+/** AgentService.History — paginated agent transcript (≠ Session.GetHistory). */
+export interface UniverseAgentAgentHistoryRequest {
+	readonly sessionId: string;
+	readonly agentId: string;
+	readonly limit: number;
+	readonly offset: number;
+}
+
+export interface UniverseAgentAgentHistoryEntry {
+	readonly role: string;
+	readonly content: string;
+	readonly timestamp: number;
+	readonly agentId: string;
+}
+
+export interface UniverseAgentAgentHistoryResult {
+	readonly entries: readonly UniverseAgentAgentHistoryEntry[];
+	readonly total: number;
+}
+
 /** AgentService.Rename request; empty `title` clears a custom session title. */
 export interface UniverseAgentRenameSessionRequest {
 	readonly sessionId: string;

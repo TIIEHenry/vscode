@@ -37,6 +37,8 @@ import type {
 	UniverseAgentResolveAnchorResult,
 	UniverseAgentUsageRequest,
 	UniverseAgentUsageResult,
+	UniverseAgentAgentHistoryRequest,
+	UniverseAgentAgentHistoryResult,
 	UniverseAgentRenameSessionRequest,
 	UniverseAgentRenameSessionResult,
 	UniverseAgentCancelGenerationRequest,
@@ -275,6 +277,14 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 	async getUsage(request: UniverseAgentUsageRequest): Promise<UniverseAgentUsageResult> {
 		this.getUsageCalls.push(request);
 		return this.getUsageResult;
+	}
+
+	readonly getAgentHistoryCalls: UniverseAgentAgentHistoryRequest[] = [];
+	getAgentHistoryResult: UniverseAgentAgentHistoryResult = { entries: [], total: 0 };
+
+	async getAgentHistory(request: UniverseAgentAgentHistoryRequest): Promise<UniverseAgentAgentHistoryResult> {
+		this.getAgentHistoryCalls.push(request);
+		return this.getAgentHistoryResult;
 	}
 
 	readonly renameCalls: UniverseAgentRenameSessionRequest[] = [];
@@ -873,6 +883,11 @@ suite('UniverseAgentConnectionService', () => {
 
 	test('UniverseAgentGrpcServices lists Agent.Usage', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.Usage, 'Usage');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+	});
+
+	test('UniverseAgentGrpcServices lists Agent.History', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.History, 'History');
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
 	});
 
@@ -1484,6 +1499,34 @@ suite('UniverseAgentConnectionService', () => {
 		assert.deepStrictEqual(empty, transport.getUsageResult);
 		assert.strictEqual(transport.getUsageCalls[1]?.sessionId, '');
 		assert.strictEqual(transport.getUsageCalls[1]?.agentId, '');
+		service.dispose();
+	});
+
+	test('getAgentHistory forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.getAgentHistoryResult = {
+			entries: [{
+				role: 'user',
+				content: 'hello',
+				timestamp: 1,
+				agentId: 'root',
+			}],
+			total: 1,
+		};
+		const result = await service.getAgentHistory({ sessionId: 'sess-1', agentId: 'root', limit: 20, offset: 0 });
+		assert.deepStrictEqual(transport.getAgentHistoryCalls, [{ sessionId: 'sess-1', agentId: 'root', limit: 20, offset: 0 }]);
+		assert.deepStrictEqual(result, transport.getAgentHistoryResult);
+
+		transport.getAgentHistoryResult = { entries: [], total: 0 };
+		const empty = await service.getAgentHistory({ sessionId: '', agentId: '', limit: 0, offset: 0 });
+		assert.deepStrictEqual(empty, transport.getAgentHistoryResult);
+		assert.strictEqual(transport.getAgentHistoryCalls[1]?.sessionId, '');
+		assert.strictEqual(transport.getAgentHistoryCalls[1]?.agentId, '');
 		service.dispose();
 	});
 

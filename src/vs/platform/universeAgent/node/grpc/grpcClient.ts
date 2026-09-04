@@ -43,6 +43,9 @@ import type {
 	UniverseAgentResolveAnchorResult,
 	UniverseAgentUsageRequest,
 	UniverseAgentUsageResult,
+	UniverseAgentAgentHistoryRequest,
+	UniverseAgentAgentHistoryResult,
+	UniverseAgentAgentHistoryEntry,
 	UniverseAgentAgentUsage,
 	UniverseAgentRecentRequestSpan,
 	UniverseAgentContextWindowInfo,
@@ -510,6 +513,18 @@ interface UsageResponseWire {
 	context_window?: ContextWindowInfoWire;
 	session_usage?: SessionUsageInfoWire;
 	recent_request_spans?: RecentRequestSpanWire[];
+}
+
+interface HistoryEntryWire {
+	role?: string;
+	content?: string;
+	timestamp?: number | string;
+	agent_id?: string;
+}
+
+interface HistoryResponseWire {
+	entries?: HistoryEntryWire[];
+	total?: number;
 }
 
 interface QueueMutationResponseWire {
@@ -1177,6 +1192,22 @@ function mapUsageResponse(wire: UsageResponseWire): UniverseAgentUsageResult {
 		contextWindow: wire.context_window ? mapContextWindowInfo(wire.context_window) : undefined,
 		sessionUsage: wire.session_usage ? mapSessionUsageInfo(wire.session_usage) : undefined,
 		recentRequestSpans: (wire.recent_request_spans ?? []).map(item => mapRecentRequestSpan(item)),
+	};
+}
+
+function mapHistoryEntry(item: HistoryEntryWire | undefined): UniverseAgentAgentHistoryEntry {
+	return {
+		role: item?.role ?? '',
+		content: item?.content ?? '',
+		timestamp: requiredInt64(item?.timestamp),
+		agentId: item?.agent_id ?? '',
+	};
+}
+
+function mapHistoryResponse(wire: HistoryResponseWire): UniverseAgentAgentHistoryResult {
+	return {
+		entries: (wire.entries ?? []).map(item => mapHistoryEntry(item)),
+		total: wire.total ?? 0,
 	};
 }
 
@@ -2237,6 +2268,21 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			agent_id: request.agentId,
 		});
 		return mapUsageResponse(wire);
+	}
+
+	async getAgentHistory(request: UniverseAgentAgentHistoryRequest): Promise<UniverseAgentAgentHistoryResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, HistoryResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.Agent.service,
+			UniverseAgentGrpcServices.Agent.History,
+		);
+		const wire = await unary({
+			session_id: request.sessionId,
+			agent_id: request.agentId,
+			limit: request.limit,
+			offset: request.offset,
+		});
+		return mapHistoryResponse(wire);
 	}
 
 	async renameSession(request: UniverseAgentRenameSessionRequest): Promise<UniverseAgentRenameSessionResult> {
