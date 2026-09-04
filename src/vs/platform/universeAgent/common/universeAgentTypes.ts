@@ -2179,6 +2179,29 @@ export interface UniverseAgentMemorySearchResult {
 }
 
 /**
+ * MemoryService.SearchDeep — proto `MemorySearchDeepRequest` /
+ * `MemorySearchDeepResponse` + `MemorySearchResult` only. Empty `scope` /
+ * `query` / `keywords` / `categories` pass through as-is. `limit` 0 sent
+ * as-is. `include_content` false sent as-is. Empty `category` / `filename` /
+ * `title` / `snippet` / `scope` mapped as-is. Empty `searched_categories`
+ * mapped as-is. ≠ Save / Search / Read / List / Delete / Reflect / Rebuild /
+ * Revert / History.
+ */
+export interface UniverseAgentMemorySearchDeepRequest {
+	readonly scope: string;
+	readonly query: string;
+	readonly keywords: readonly string[];
+	readonly categories: readonly string[];
+	readonly limit: number;
+	readonly includeContent: boolean;
+}
+
+export interface UniverseAgentMemorySearchDeepResult {
+	readonly results: readonly UniverseAgentMemorySearchEntry[];
+	readonly searchedCategories: readonly string[];
+}
+
+/**
  * ConfigService.SetPermissionPolicy — session/tool policy write
  * (≠ SwitchModel / ListModels / Get / Set / GetModelPreferences /
  * SetModelPreferences / SetPermissionMode).

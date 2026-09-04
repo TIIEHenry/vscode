@@ -208,6 +208,8 @@ import type {
 	UniverseAgentSaveMemoryResult,
 	UniverseAgentMemorySearchRequest,
 	UniverseAgentMemorySearchResult,
+	UniverseAgentMemorySearchDeepRequest,
+	UniverseAgentMemorySearchDeepResult,
 	UniverseAgentGetHistoryRequest,
 	UniverseAgentGetHistoryResult,
 	UniverseAgentListSessionsRequest,
@@ -1515,6 +1517,17 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 		return this.searchMemoryResult;
 	}
 
+	readonly searchDeepMemoryCalls: UniverseAgentMemorySearchDeepRequest[] = [];
+	searchDeepMemoryResult: UniverseAgentMemorySearchDeepResult = {
+		results: [],
+		searchedCategories: [],
+	};
+
+	async searchDeepMemory(request: UniverseAgentMemorySearchDeepRequest): Promise<UniverseAgentMemorySearchDeepResult> {
+		this.searchDeepMemoryCalls.push(request);
+		return this.searchDeepMemoryResult;
+	}
+
 	async listModels() {
 		return { models: [] };
 	}
@@ -1960,6 +1973,11 @@ suite('UniverseAgentConnectionService', () => {
 
 	test('UniverseAgentGrpcServices lists Memory.Search', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Memory.Search, 'Search');
+		assert.strictEqual(UniverseAgentGrpcServices.Memory.service, 'universeagent.memory.v1.MemoryService');
+	});
+
+	test('UniverseAgentGrpcServices lists Memory.SearchDeep', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Memory.SearchDeep, 'SearchDeep');
 		assert.strictEqual(UniverseAgentGrpcServices.Memory.service, 'universeagent.memory.v1.MemoryService');
 	});
 
@@ -4938,6 +4956,92 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(transport.searchMemoryCalls[2]?.scope, '');
 		assert.deepStrictEqual(transport.searchMemoryCalls[2]?.keywords, []);
 		assert.deepStrictEqual(emptyLists.results, []);
+		service.dispose();
+	});
+
+	test('searchDeepMemory forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.searchDeepMemoryResult = {
+			results: [{
+				category: 'facts',
+				filename: 'note.md',
+				title: 'Note',
+				score: 0.8,
+				snippet: 'hit',
+				forgot: false,
+				scope: 'project',
+			}],
+			searchedCategories: ['facts'],
+		};
+		const request = {
+			scope: 'project',
+			query: 'note',
+			keywords: ['alpha'],
+			categories: ['facts'],
+			limit: 10,
+			includeContent: true,
+		};
+		const result = await service.searchDeepMemory(request);
+		assert.deepStrictEqual(transport.searchDeepMemoryCalls, [request]);
+		assert.deepStrictEqual(result, transport.searchDeepMemoryResult);
+
+		transport.searchDeepMemoryResult = {
+			results: [{
+				category: '',
+				filename: '',
+				title: '',
+				score: 0,
+				snippet: '',
+				forgot: false,
+				scope: '',
+			}],
+			searchedCategories: [''],
+		};
+		const emptyRequest = {
+			scope: '',
+			query: '',
+			keywords: [''],
+			categories: [''],
+			limit: 0,
+			includeContent: false,
+		};
+		const empty = await service.searchDeepMemory(emptyRequest);
+		assert.strictEqual(transport.searchDeepMemoryCalls[1]?.scope, '');
+		assert.strictEqual(transport.searchDeepMemoryCalls[1]?.query, '');
+		assert.deepStrictEqual(transport.searchDeepMemoryCalls[1]?.keywords, ['']);
+		assert.deepStrictEqual(transport.searchDeepMemoryCalls[1]?.categories, ['']);
+		assert.strictEqual(transport.searchDeepMemoryCalls[1]?.limit, 0);
+		assert.strictEqual(transport.searchDeepMemoryCalls[1]?.includeContent, false);
+		assert.strictEqual(empty.results[0]?.category, '');
+		assert.strictEqual(empty.results[0]?.filename, '');
+		assert.strictEqual(empty.results[0]?.title, '');
+		assert.strictEqual(empty.results[0]?.score, 0);
+		assert.strictEqual(empty.results[0]?.snippet, '');
+		assert.strictEqual(empty.results[0]?.forgot, false);
+		assert.strictEqual(empty.results[0]?.scope, '');
+		assert.deepStrictEqual(empty.searchedCategories, ['']);
+
+		const emptyListsRequest = {
+			scope: '',
+			query: '',
+			keywords: [],
+			categories: [],
+			limit: 0,
+			includeContent: false,
+		};
+		transport.searchDeepMemoryResult = { results: [], searchedCategories: [] };
+		const emptyLists = await service.searchDeepMemory(emptyListsRequest);
+		assert.strictEqual(transport.searchDeepMemoryCalls[2]?.scope, '');
+		assert.deepStrictEqual(transport.searchDeepMemoryCalls[2]?.keywords, []);
+		assert.deepStrictEqual(transport.searchDeepMemoryCalls[2]?.categories, []);
+		assert.strictEqual(transport.searchDeepMemoryCalls[2]?.includeContent, false);
+		assert.deepStrictEqual(emptyLists.results, []);
+		assert.deepStrictEqual(emptyLists.searchedCategories, []);
 		service.dispose();
 	});
 

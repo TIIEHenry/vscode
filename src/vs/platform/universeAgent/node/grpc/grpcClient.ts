@@ -297,6 +297,8 @@ import type {
 	UniverseAgentMemorySearchRequest,
 	UniverseAgentMemorySearchResult,
 	UniverseAgentMemorySearchEntry,
+	UniverseAgentMemorySearchDeepRequest,
+	UniverseAgentMemorySearchDeepResult,
 	UniverseAgentListModelsResult,
 	UniverseAgentGetConfigRequest,
 	UniverseAgentGetConfigResult,
@@ -2914,6 +2916,18 @@ function mapMemorySearchResponse(wire: MemorySearchResponseWire): UniverseAgentM
 	};
 }
 
+interface MemorySearchDeepResponseWire {
+	results?: MemorySearchResultWire[];
+	searched_categories?: Array<string | undefined>;
+}
+
+function mapMemorySearchDeepResponse(wire: MemorySearchDeepResponseWire): UniverseAgentMemorySearchDeepResult {
+	return {
+		results: (wire.results ?? []).map(mapMemorySearchEntry),
+		searchedCategories: (wire.searched_categories ?? []).map(category => category ?? ''),
+	};
+}
+
 interface ListModelsResponseWire {
 	models?: Array<{
 		id?: string;
@@ -4968,6 +4982,23 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			limit: request.limit,
 		});
 		return mapMemorySearchResponse(wire);
+	}
+
+	async searchDeepMemory(request: UniverseAgentMemorySearchDeepRequest): Promise<UniverseAgentMemorySearchDeepResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, MemorySearchDeepResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.Memory.service,
+			UniverseAgentGrpcServices.Memory.SearchDeep,
+		);
+		const wire = await unary({
+			scope: request.scope,
+			query: request.query,
+			keywords: [...request.keywords],
+			categories: [...request.categories],
+			limit: request.limit,
+			include_content: request.includeContent,
+		});
+		return mapMemorySearchDeepResponse(wire);
 	}
 
 	async setPermissionPolicy(request: UniverseAgentSetPermissionPolicyRequest): Promise<UniverseAgentSetPermissionPolicyResult> {

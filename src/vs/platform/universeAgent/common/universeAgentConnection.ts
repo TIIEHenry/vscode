@@ -233,6 +233,8 @@ import type {
 	UniverseAgentSaveMemoryResult,
 	UniverseAgentMemorySearchRequest,
 	UniverseAgentMemorySearchResult,
+	UniverseAgentMemorySearchDeepRequest,
+	UniverseAgentMemorySearchDeepResult,
 	UniverseAgentSetPermissionPolicyRequest,
 	UniverseAgentSetPermissionPolicyResult,
 	UniverseAgentListModelsResult,
@@ -1304,6 +1306,20 @@ export interface IUniverseAgentConnection {
 	 * Revert / History.
 	 */
 	searchMemory?(request: UniverseAgentMemorySearchRequest): Promise<UniverseAgentMemorySearchResult>;
+
+	/**
+	 * MemoryService.SearchDeep unary. Optional so Web / tests can omit it.
+	 * Catalog + node transport only this slice; empty `scope` / `query` /
+	 * `keywords` / `categories` are sent as-is. `limit` 0 sent as-is.
+	 * `include_content` false sent as-is. Empty `category` / `filename` /
+	 * `title` / `snippet` / `scope` mapped as-is. Empty `searched_categories`
+	 * mapped as-is. Proto fields only (`MemorySearchDeepRequest` /
+	 * `MemorySearchDeepResponse` + `MemorySearchResult`). No Conversation
+	 * roster / UI / Engine Preferences / Composer.
+	 * ≠ Save / Search / Read / List / Delete / Reflect / Rebuild / Revert /
+	 * History.
+	 */
+	searchDeepMemory?(request: UniverseAgentMemorySearchDeepRequest): Promise<UniverseAgentMemorySearchDeepResult>;
 
 	/**
 	 * ConfigService.SetPermissionPolicy unary (session/tool Ask/Agent/Permit
