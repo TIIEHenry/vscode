@@ -595,6 +595,9 @@ suite('ConversationLens', () => {
 		assert.ok(slots.timeline.querySelector('.conversation-lens-timeline'));
 		assert.ok(slots.dock.querySelector('.conversation-lens-dock'));
 		assert.ok(slots.sessionBar.querySelector('.conversation-lens-session-select'));
+		assert.ok(slots.sessionBar.querySelector('.conversation-lens-session-snapshots'));
+		assert.ok(slots.sessionBar.querySelector('.conversation-lens-lens-tab[data-lens-id="trajectory"]'));
+		assert.ok(slots.timeline.querySelector('.conversation-lens-trajectory'));
 		assert.ok(slots.dock.querySelector('.conversation-lens-dock-gate-row'));
 		assert.ok(slots.dock.querySelector('.conversation-lens-inbox-overlay'));
 		assert.ok(slots.dock.querySelector('textarea.conversation-lens-dock-input'));
@@ -608,6 +611,7 @@ suite('ConversationLens', () => {
 		assert.ok(slots.sessionBar.querySelector('.conversation-lens-session-title'));
 		assert.ok(slots.sessionBar.querySelector('.conversation-lens-lens-tabs[role="tablist"]'));
 		assert.ok(slots.sessionBar.querySelector('.conversation-lens-session-switcher-label'));
+		assert.ok(slots.sessionBar.querySelector('.conversation-lens-session-snapshots'));
 		assert.ok(getReadingColumn(slots));
 		assert.ok(slots.timeline.querySelector('.conversation-lens-timeline-scroll'));
 		assert.ok(slots.timeline.querySelector('.conversation-lens-timeline-content'));

@@ -24,6 +24,7 @@ import { defaultButtonStyles, defaultSelectBoxStyles } from '../../../../platfor
 import { hasNativeContextMenu } from '../../../../platform/window/common/window.js';
 import { IConversationLensSlots } from '../../../browser/parts/conversation/conversationPart.js';
 import { ConversationIdentityStrip } from './conversationIdentityStrip.js';
+import { ConversationEngineSnapshotsList } from './conversationEngineSnapshotsList.js';
 import { ConversationInboxOverlay } from './conversationInboxOverlay.js';
 import { ConversationTimelineTree } from './conversationTimelineTree.js';
 import { ConversationTrajectory } from './conversationTrajectory.js';
@@ -175,6 +176,7 @@ export class ConversationLens extends Disposable {
 	private timelineTree!: ConversationTimelineTree;
 	private trajectoryView!: ConversationTrajectory;
 	private inboxOverlay!: ConversationInboxOverlay;
+	private engineSnapshotsList: ConversationEngineSnapshotsList | undefined;
 	private dockTextarea!: HTMLTextAreaElement;
 	private sendButton!: Button;
 	private addButton!: Button;
@@ -605,6 +607,12 @@ export class ConversationLens extends Disposable {
 		}));
 		this.deleteSessionButton.icon = Codicon.trash;
 		this._register(this.deleteSessionButton.onDidClick(() => this.deleteActiveSession()));
+
+		this.engineSnapshotsList = this._register(this.instantiationService.createInstance(
+			ConversationEngineSnapshotsList,
+			controls,
+			this.readingColumn,
+		));
 
 		this._register(this.sessionSelectBox.onDidSelect(e => {
 			if (this.suppressSessionSelect) {
@@ -1297,6 +1305,7 @@ export class ConversationLens extends Disposable {
 		const previousId = this.stubService.getActiveSessionId();
 		if (previousId !== sessionId) {
 			this.visualizeOverlay.close();
+			this.engineSnapshotsList?.close();
 			this.writeComposerDraft(previousId, this.dockTextarea.value);
 			this.stubService.switchSession(sessionId);
 		}
@@ -1305,6 +1314,7 @@ export class ConversationLens extends Disposable {
 	}
 
 	private openVisualizeOverlay(source: string, title?: string): void {
+		this.engineSnapshotsList?.close();
 		this.visualizeOverlay.open({
 			source,
 			title,

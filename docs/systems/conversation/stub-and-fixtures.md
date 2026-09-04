@@ -32,6 +32,8 @@ summary: "IConversationRosterService 契约分组；getTrajectoryRecords + filte
 | AutoDrive | `getAutoDriveTasks` · `getAutoDriveTaskCount`（引擎接通 / 断连缓存诚实空，不把 fixture 冒充引擎任务；Inbox 无任务列表 RPC。stub / 从未连过仍 fixture） |
 | 连接态 | `isEngineConnected()` |
 
+引擎 snapshot 列表**不**经 roster：Conversation SessionBar extra control `ConversationEngineSnapshotsList` 直呼 `IUniverseAgentConnection.listSnapshots?`（接通 + 有 hook + 非空 sessionId 才发）。断连 / 无 hook 诚实 unavailable；空列表诚实空。**禁止** fixture snapshot 冒充引擎数据。≠ SessionBar History（`conversationTrajectoryList.ts` 回合索引）。无 Create / Restore / Delete。
+
 **测试 / stub 夹具**（只在无引擎或单测中有意义，**不应**出现在引擎 adapter 的公共面）：
 
 | 成员 | 用途 |
