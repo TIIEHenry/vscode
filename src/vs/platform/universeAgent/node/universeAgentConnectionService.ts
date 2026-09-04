@@ -111,6 +111,7 @@ import type {
 	UniverseAgentPinQueueItemRequest,
 	UniverseAgentSetQueueItemLockedRequest,
 	UniverseAgentInjectQueueItemRequest,
+	UniverseAgentSetQueueItemForkAnchorRequest,
 	UniverseAgentEditQueueItemRequest,
 	UniverseAgentHoldQueueItemRequest,
 	UniverseAgentQueueItemRefRequest,
@@ -904,6 +905,10 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 
 	async injectQueueItem(request: UniverseAgentInjectQueueItemRequest): Promise<UniverseAgentQueueMutationResult> {
 		return this._withTransport(transport => transport.injectQueueItem(request));
+	}
+
+	async setQueueItemForkAnchor(request: UniverseAgentSetQueueItemForkAnchorRequest): Promise<UniverseAgentQueueMutationResult> {
+		return this._withTransport(transport => transport.setQueueItemForkAnchor(request));
 	}
 
 	async pauseQueue(request: UniverseAgentQueueRefRequest): Promise<UniverseAgentQueueMutationResult> {

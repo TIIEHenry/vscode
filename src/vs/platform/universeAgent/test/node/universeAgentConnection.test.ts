@@ -101,6 +101,7 @@ import type {
 	UniverseAgentPinQueueItemRequest,
 	UniverseAgentSetQueueItemLockedRequest,
 	UniverseAgentInjectQueueItemRequest,
+	UniverseAgentSetQueueItemForkAnchorRequest,
 	UniverseAgentEditQueueItemRequest,
 	UniverseAgentHoldQueueItemRequest,
 	UniverseAgentQueueItemRefRequest,
@@ -534,6 +535,7 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 	readonly pinCalls: UniverseAgentPinQueueItemRequest[] = [];
 	readonly setQueueItemLockedCalls: UniverseAgentSetQueueItemLockedRequest[] = [];
 	readonly injectCalls: UniverseAgentInjectQueueItemRequest[] = [];
+	readonly setQueueItemForkAnchorCalls: UniverseAgentSetQueueItemForkAnchorRequest[] = [];
 	readonly pauseCalls: UniverseAgentQueueRefRequest[] = [];
 	readonly resumeCalls: UniverseAgentQueueRefRequest[] = [];
 	readonly clearCalls: UniverseAgentQueueRefRequest[] = [];
@@ -589,6 +591,11 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 
 	async injectQueueItem(request: UniverseAgentInjectQueueItemRequest): Promise<UniverseAgentQueueMutationResult> {
 		this.injectCalls.push(request);
+		return this.queueResult;
+	}
+
+	async setQueueItemForkAnchor(request: UniverseAgentSetQueueItemForkAnchorRequest): Promise<UniverseAgentQueueMutationResult> {
+		this.setQueueItemForkAnchorCalls.push(request);
 		return this.queueResult;
 	}
 
@@ -1158,6 +1165,11 @@ suite('UniverseAgentConnectionService', () => {
 
 	test('UniverseAgentGrpcServices lists Agent.InjectQueueItem', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.InjectQueueItem, 'InjectQueueItem');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+	});
+
+	test('UniverseAgentGrpcServices lists Agent.SetQueueItemForkAnchor', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.SetQueueItemForkAnchor, 'SetQueueItemForkAnchor');
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
 	});
 
@@ -2069,6 +2081,47 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(transport.injectCalls[1]?.sessionId, '');
 		assert.strictEqual(transport.injectCalls[1]?.itemId, '');
 		assert.strictEqual(transport.injectCalls[1]?.opId, '');
+		service.dispose();
+	});
+
+	test('setQueueItemForkAnchor forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.queueResult = { ok: true, opId: 'op-1', itemId: 'q-1' };
+		const result = await service.setQueueItemForkAnchor({
+			sessionId: 'sess-1',
+			itemId: 'q-1',
+			opId: 'op-1',
+			forkFromTurnId: 'turn-1',
+			forkFromPreview: 'hello',
+		});
+		assert.deepStrictEqual(transport.setQueueItemForkAnchorCalls, [{
+			sessionId: 'sess-1',
+			itemId: 'q-1',
+			opId: 'op-1',
+			forkFromTurnId: 'turn-1',
+			forkFromPreview: 'hello',
+		}]);
+		assert.deepStrictEqual(result, transport.queueResult);
+
+		transport.queueResult = { ok: false, error: 'empty' };
+		const empty = await service.setQueueItemForkAnchor({
+			sessionId: '',
+			itemId: '',
+			opId: '',
+			forkFromTurnId: '',
+			forkFromPreview: '',
+		});
+		assert.deepStrictEqual(empty, transport.queueResult);
+		assert.strictEqual(transport.setQueueItemForkAnchorCalls[1]?.sessionId, '');
+		assert.strictEqual(transport.setQueueItemForkAnchorCalls[1]?.itemId, '');
+		assert.strictEqual(transport.setQueueItemForkAnchorCalls[1]?.opId, '');
+		assert.strictEqual(transport.setQueueItemForkAnchorCalls[1]?.forkFromTurnId, '');
+		assert.strictEqual(transport.setQueueItemForkAnchorCalls[1]?.forkFromPreview, '');
 		service.dispose();
 	});
 

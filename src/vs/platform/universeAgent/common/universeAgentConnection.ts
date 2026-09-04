@@ -108,6 +108,7 @@ import type {
 	UniverseAgentPinQueueItemRequest,
 	UniverseAgentSetQueueItemLockedRequest,
 	UniverseAgentInjectQueueItemRequest,
+	UniverseAgentSetQueueItemForkAnchorRequest,
 	UniverseAgentEditQueueItemRequest,
 	UniverseAgentHoldQueueItemRequest,
 	UniverseAgentQueueItemRefRequest,
@@ -631,6 +632,15 @@ export interface IUniverseAgentConnection {
 	 * DeleteQueueItem.
 	 */
 	injectQueueItem?(request: UniverseAgentInjectQueueItemRequest): Promise<UniverseAgentQueueMutationResult>;
+
+	/**
+	 * AgentService.SetQueueItemForkAnchor unary (QueueMutationResponse.ok).
+	 * Optional so Web / tests can omit it. Catalog + node transport only this
+	 * slice; empty `sessionId` / `itemId` / `opId` are sent as-is. No
+	 * Conversation roster / UI.
+	 * ≠ PinQueueItem / SetQueueItemLocked / InjectQueueItem / HoldQueueItem.
+	 */
+	setQueueItemForkAnchor?(request: UniverseAgentSetQueueItemForkAnchorRequest): Promise<UniverseAgentQueueMutationResult>;
 
 	/** AgentService.PauseQueue. Engine roster forwards when connected. */
 	pauseQueue(request: UniverseAgentQueueRefRequest): Promise<UniverseAgentQueueMutationResult>;

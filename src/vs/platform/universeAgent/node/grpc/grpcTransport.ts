@@ -103,6 +103,7 @@ import type {
 	UniverseAgentPinQueueItemRequest,
 	UniverseAgentSetQueueItemLockedRequest,
 	UniverseAgentInjectQueueItemRequest,
+	UniverseAgentSetQueueItemForkAnchorRequest,
 	UniverseAgentEditQueueItemRequest,
 	UniverseAgentHoldQueueItemRequest,
 	UniverseAgentQueueItemRefRequest,
@@ -357,6 +358,9 @@ export interface IUniverseAgentGrpcTransport {
 	/** AgentService.InjectQueueItem unary (snake_case `session_id`/`item_id`/`op_id`). Empty ids sent as-is. */
 	injectQueueItem(request: UniverseAgentInjectQueueItemRequest): Promise<UniverseAgentQueueMutationResult>;
 
+	/** AgentService.SetQueueItemForkAnchor unary (snake_case `session_id`/`item_id`/`op_id`/`fork_from_turn_id`/`fork_from_preview`). Empty ids sent as-is. */
+	setQueueItemForkAnchor(request: UniverseAgentSetQueueItemForkAnchorRequest): Promise<UniverseAgentQueueMutationResult>;
+
 	pauseQueue(request: UniverseAgentQueueRefRequest): Promise<UniverseAgentQueueMutationResult>;
 
 	resumeQueue(request: UniverseAgentQueueRefRequest): Promise<UniverseAgentQueueMutationResult>;
@@ -549,6 +553,7 @@ export const UniverseAgentGrpcServices = {
 		PinQueueItem: 'PinQueueItem',
 		SetQueueItemLocked: 'SetQueueItemLocked',
 		InjectQueueItem: 'InjectQueueItem',
+		SetQueueItemForkAnchor: 'SetQueueItemForkAnchor',
 		PauseQueue: 'PauseQueue',
 		ResumeQueue: 'ResumeQueue',
 		ClearQueue: 'ClearQueue',

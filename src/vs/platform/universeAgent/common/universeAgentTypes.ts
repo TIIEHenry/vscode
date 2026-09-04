@@ -802,6 +802,14 @@ export interface UniverseAgentSetQueueItemLockedRequest extends UniverseAgentQue
 /** AgentService.InjectQueueItem — proto QueueItemRefRequest (≠ PinQueueItem / SetQueueItemLocked / RetryQueueItemUpload / DeleteQueueItem). */
 export type UniverseAgentInjectQueueItemRequest = UniverseAgentQueueItemRefRequest;
 
+/** AgentService.SetQueueItemForkAnchor — proto SetQueueItemForkAnchorRequest (≠ PinQueueItem / SetQueueItemLocked / InjectQueueItem / HoldQueueItem). */
+export interface UniverseAgentSetQueueItemForkAnchorRequest extends UniverseAgentQueueItemRefRequest {
+	/** Proto `fork_from_turn_id`. Empty sent as-is. */
+	readonly forkFromTurnId?: string;
+	/** Proto `fork_from_preview`. Empty sent as-is. */
+	readonly forkFromPreview?: string;
+}
+
 /** AgentService.EnqueueQueueItem. */
 export interface UniverseAgentEnqueueQueueItemRequest extends UniverseAgentQueueRefRequest {
 	readonly text: string;
