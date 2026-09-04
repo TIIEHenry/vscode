@@ -220,6 +220,10 @@ class RecordingMockTransport implements IUniverseAgentGrpcTransport {
 		return { ok: false, message: 'test' };
 	}
 
+	async fetchToolUsageDetail(): Promise<{ ok: false; toolCallId: ''; contextSources: []; message: 'test' }> {
+		return { ok: false, toolCallId: '', contextSources: [], message: 'test' };
+	}
+
 	async setSessionGoal(): Promise<{ ok: false; message: 'test' }> {
 		return { ok: false, message: 'test' };
 	}

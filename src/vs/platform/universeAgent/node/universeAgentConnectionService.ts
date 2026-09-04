@@ -82,6 +82,8 @@ import type {
 	UniverseAgentStopShellTaskResult,
 	UniverseAgentSendShellSessionClientControlRequest,
 	UniverseAgentSendShellSessionClientControlResult,
+	UniverseAgentFetchToolUsageDetailRequest,
+	UniverseAgentFetchToolUsageDetailResult,
 	UniverseAgentSetSessionGoalRequest,
 	UniverseAgentSetSessionGoalResult,
 	UniverseAgentCancelSessionGoalRequest,
@@ -812,6 +814,10 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 
 	async sendShellSessionClientControl(request: UniverseAgentSendShellSessionClientControlRequest): Promise<UniverseAgentSendShellSessionClientControlResult> {
 		return this._withTransport(transport => transport.sendShellSessionClientControl(request));
+	}
+
+	async fetchToolUsageDetail(request: UniverseAgentFetchToolUsageDetailRequest): Promise<UniverseAgentFetchToolUsageDetailResult> {
+		return this._withTransport(transport => transport.fetchToolUsageDetail(request));
 	}
 
 	async setSessionGoal(request: UniverseAgentSetSessionGoalRequest): Promise<UniverseAgentSetSessionGoalResult> {

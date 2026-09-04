@@ -636,6 +636,29 @@ export interface UniverseAgentSendShellSessionClientControlResult {
 	readonly deliveredToSubscribe?: boolean;
 }
 
+/** AgentService.FetchToolUsageDetail — on-demand context-source usage (≠ FetchToolDetail / SubscribeToolDetail / Usage / Compact). */
+export interface UniverseAgentFetchToolUsageDetailRequest {
+	readonly sessionId: string;
+	readonly toolCallId: string;
+}
+
+/** Proto `ContextSourceUsageProto`. `sourceType` is ContextSourceTypeProto name. */
+export interface UniverseAgentContextSourceUsage {
+	readonly sourceType: string;
+	readonly sourceAgentId?: string;
+	readonly sourceScopeId?: string;
+	readonly messageId?: string;
+	readonly estimatedTokens: number;
+}
+
+export interface UniverseAgentFetchToolUsageDetailResult {
+	readonly ok: boolean;
+	readonly toolCallId: string;
+	readonly contextSources: readonly UniverseAgentContextSourceUsage[];
+	/** Proto `error_message`. */
+	readonly message?: string;
+}
+
 /** PermissionService.SetSessionGoal request (Inbox Goal). */
 export interface UniverseAgentSetSessionGoalRequest {
 	readonly sessionId: string;

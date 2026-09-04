@@ -79,6 +79,8 @@ import type {
 	UniverseAgentStopShellTaskResult,
 	UniverseAgentSendShellSessionClientControlRequest,
 	UniverseAgentSendShellSessionClientControlResult,
+	UniverseAgentFetchToolUsageDetailRequest,
+	UniverseAgentFetchToolUsageDetailResult,
 	UniverseAgentSetSessionGoalRequest,
 	UniverseAgentSetSessionGoalResult,
 	UniverseAgentCancelSessionGoalRequest,
@@ -463,6 +465,15 @@ export interface IUniverseAgentConnection {
 	 * CancelToolCall / RunToolInBackground.
 	 */
 	sendShellSessionClientControl?(request: UniverseAgentSendShellSessionClientControlRequest): Promise<UniverseAgentSendShellSessionClientControlResult>;
+
+	/**
+	 * AgentService.FetchToolUsageDetail unary (FetchToolUsageDetailResponse.success
+	 * → ok). Optional so Web / tests can omit it. Catalog + node transport only
+	 * this slice; empty `sessionId` / `toolCallId` are sent as-is. No Conversation
+	 * roster / UI.
+	 * ≠ FetchToolDetail / SubscribeToolDetail / Usage / Compact.
+	 */
+	fetchToolUsageDetail?(request: UniverseAgentFetchToolUsageDetailRequest): Promise<UniverseAgentFetchToolUsageDetailResult>;
 
 	/**
 	 * PermissionService.SetSessionGoal unary (Inbox Goal). Optional so Web / tests

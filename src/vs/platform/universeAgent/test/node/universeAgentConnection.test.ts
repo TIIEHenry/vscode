@@ -73,6 +73,8 @@ import type {
 	UniverseAgentStopShellTaskResult,
 	UniverseAgentSendShellSessionClientControlRequest,
 	UniverseAgentSendShellSessionClientControlResult,
+	UniverseAgentFetchToolUsageDetailRequest,
+	UniverseAgentFetchToolUsageDetailResult,
 	UniverseAgentSetSessionGoalRequest,
 	UniverseAgentSetSessionGoalResult,
 	UniverseAgentCancelSessionGoalRequest,
@@ -439,6 +441,14 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 	async sendShellSessionClientControl(request: UniverseAgentSendShellSessionClientControlRequest): Promise<UniverseAgentSendShellSessionClientControlResult> {
 		this.sendShellSessionClientControlCalls.push(request);
 		return this.sendShellSessionClientControlResult;
+	}
+
+	readonly fetchToolUsageDetailCalls: UniverseAgentFetchToolUsageDetailRequest[] = [];
+	fetchToolUsageDetailResult: UniverseAgentFetchToolUsageDetailResult = { ok: true, toolCallId: '', contextSources: [] };
+
+	async fetchToolUsageDetail(request: UniverseAgentFetchToolUsageDetailRequest): Promise<UniverseAgentFetchToolUsageDetailResult> {
+		this.fetchToolUsageDetailCalls.push(request);
+		return this.fetchToolUsageDetailResult;
 	}
 
 	readonly setGoalCalls: UniverseAgentSetSessionGoalRequest[] = [];
@@ -951,6 +961,11 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
 	});
 
+	test('UniverseAgentGrpcServices lists Agent.FetchToolUsageDetail', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.FetchToolUsageDetail, 'FetchToolUsageDetail');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+	});
+
 	test('UniverseAgentGrpcServices lists Permission.SetSessionGoal', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Permission.SetSessionGoal, 'SetSessionGoal');
 		assert.strictEqual(UniverseAgentGrpcServices.Permission.CancelSessionGoal, 'CancelSessionGoal');
@@ -1288,6 +1303,35 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(transport.sendShellSessionClientControlCalls[1]?.toolCallId, '');
 		assert.strictEqual(transport.sendShellSessionClientControlCalls[1]?.refId, '');
 		assert.strictEqual(transport.sendShellSessionClientControlCalls[1]?.controlPayloadJson, '');
+		service.dispose();
+	});
+
+	test('fetchToolUsageDetail forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.fetchToolUsageDetailResult = {
+			ok: true,
+			toolCallId: 'tc-1',
+			contextSources: [{
+				sourceType: 'CONTEXT_SOURCE_TYPE_SELF_HISTORY',
+				sourceAgentId: 'root',
+				estimatedTokens: 12,
+			}],
+			message: '',
+		};
+		const result = await service.fetchToolUsageDetail({ sessionId: 'sess-1', toolCallId: 'tc-1' });
+		assert.deepStrictEqual(transport.fetchToolUsageDetailCalls, [{ sessionId: 'sess-1', toolCallId: 'tc-1' }]);
+		assert.deepStrictEqual(result, transport.fetchToolUsageDetailResult);
+
+		transport.fetchToolUsageDetailResult = { ok: false, toolCallId: '', contextSources: [], message: 'not found' };
+		const empty = await service.fetchToolUsageDetail({ sessionId: '', toolCallId: '' });
+		assert.deepStrictEqual(empty, transport.fetchToolUsageDetailResult);
+		assert.strictEqual(transport.fetchToolUsageDetailCalls[1]?.sessionId, '');
+		assert.strictEqual(transport.fetchToolUsageDetailCalls[1]?.toolCallId, '');
 		service.dispose();
 	});
 

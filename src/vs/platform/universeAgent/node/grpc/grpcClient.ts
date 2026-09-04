@@ -94,6 +94,9 @@ import type {
 	UniverseAgentStopShellTaskResult,
 	UniverseAgentSendShellSessionClientControlRequest,
 	UniverseAgentSendShellSessionClientControlResult,
+	UniverseAgentFetchToolUsageDetailRequest,
+	UniverseAgentFetchToolUsageDetailResult,
+	UniverseAgentContextSourceUsage,
 	UniverseAgentSetSessionGoalRequest,
 	UniverseAgentSetSessionGoalResult,
 	UniverseAgentCancelSessionGoalRequest,
@@ -350,6 +353,31 @@ const CompactOutcomeByNumber: Record<number, string> = {
 	6: 'COMPACT_OUTCOME_APPLIED_IN_FLIGHT',
 	7: 'COMPACT_OUTCOME_APPLIED_NOT_CONFIGURED',
 };
+
+const ContextSourceTypeByNumber: Record<number, string> = {
+	0: 'CONTEXT_SOURCE_TYPE_UNSPECIFIED',
+	1: 'CONTEXT_SOURCE_TYPE_SELF_HISTORY',
+	2: 'CONTEXT_SOURCE_TYPE_PARENT_INSTRUCTION',
+	3: 'CONTEXT_SOURCE_TYPE_AGENT_MESSAGE',
+	4: 'CONTEXT_SOURCE_TYPE_BLACKBOARD',
+	5: 'CONTEXT_SOURCE_TYPE_TOOL_RESULT',
+	6: 'CONTEXT_SOURCE_TYPE_SYSTEM',
+};
+
+interface ContextSourceUsageWire {
+	source_type?: string | number;
+	source_agent_id?: string;
+	source_scope_id?: string;
+	message_id?: string;
+	estimated_tokens?: number | string;
+}
+
+interface FetchToolUsageDetailResponseWire {
+	success?: boolean;
+	tool_call_id?: string;
+	context_sources?: ContextSourceUsageWire[];
+	error_message?: string;
+}
 
 interface SessionSnapshotInfoWire {
 	id?: string;
@@ -1020,6 +1048,35 @@ function mapCompactOutcome(value: string | number | undefined): string | undefin
 		return CompactOutcomeByNumber[value] ?? String(value);
 	}
 	return value;
+}
+
+function mapContextSourceType(value: string | number | undefined): string {
+	if (value === undefined || value === '') {
+		return 'CONTEXT_SOURCE_TYPE_UNSPECIFIED';
+	}
+	if (typeof value === 'number') {
+		return ContextSourceTypeByNumber[value] ?? String(value);
+	}
+	return value;
+}
+
+function mapContextSourceUsage(item: ContextSourceUsageWire | undefined): UniverseAgentContextSourceUsage {
+	return {
+		sourceType: mapContextSourceType(item?.source_type),
+		sourceAgentId: item?.source_agent_id,
+		sourceScopeId: item?.source_scope_id,
+		messageId: item?.message_id,
+		estimatedTokens: requiredInt64(item?.estimated_tokens),
+	};
+}
+
+function mapFetchToolUsageDetailResponse(wire: FetchToolUsageDetailResponseWire): UniverseAgentFetchToolUsageDetailResult {
+	return {
+		ok: wire.success === true,
+		toolCallId: wire.tool_call_id ?? '',
+		contextSources: (wire.context_sources ?? []).map(item => mapContextSourceUsage(item)),
+		message: wire.error_message,
+	};
 }
 
 function mapCompactResponse(wire: CompactResponseWire): UniverseAgentCompactResult {
@@ -2710,6 +2767,19 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			debounced: wire.debounced,
 			deliveredToSubscribe: wire.delivered_to_subscribe,
 		};
+	}
+
+	async fetchToolUsageDetail(request: UniverseAgentFetchToolUsageDetailRequest): Promise<UniverseAgentFetchToolUsageDetailResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, FetchToolUsageDetailResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.Agent.service,
+			UniverseAgentGrpcServices.Agent.FetchToolUsageDetail,
+		);
+		const wire = await unary({
+			session_id: request.sessionId,
+			tool_call_id: request.toolCallId,
+		});
+		return mapFetchToolUsageDetailResponse(wire);
 	}
 
 	async setSessionGoal(request: UniverseAgentSetSessionGoalRequest): Promise<UniverseAgentSetSessionGoalResult> {
