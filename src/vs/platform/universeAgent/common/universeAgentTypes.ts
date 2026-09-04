@@ -79,6 +79,17 @@ export interface UniverseAgentDeleteSessionRequest {
 	readonly sessionId: string;
 }
 
+/** SessionService.Resume — restore a persisted session (≠ Agent.ResumeQueue / Chat resume). */
+export interface UniverseAgentResumeSessionRequest {
+	readonly sessionId: string;
+}
+
+export interface UniverseAgentResumeSessionResult {
+	readonly ok: boolean;
+	readonly message?: string;
+	readonly rootAgent?: UniverseAgentAgentTreeNode;
+}
+
 /** AgentService.Rename request; empty `title` clears a custom session title. */
 export interface UniverseAgentRenameSessionRequest {
 	readonly sessionId: string;

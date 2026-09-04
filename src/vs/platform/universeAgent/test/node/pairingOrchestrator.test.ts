@@ -109,6 +109,10 @@ class RecordingMockTransport implements IUniverseAgentGrpcTransport {
 	async deleteSession(): Promise<void> {
 	}
 
+	async resumeSession(): Promise<{ ok: false; message: 'test' }> {
+		return { ok: false, message: 'test' };
+	}
+
 	async renameSession(): Promise<{ ok: false; message: 'test' }> {
 		return { ok: false, message: 'test' };
 	}

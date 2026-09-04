@@ -15,6 +15,8 @@ import type {
 	UniverseAgentCreateSessionRequest,
 	UniverseAgentCreateSessionResult,
 	UniverseAgentDeleteSessionRequest,
+	UniverseAgentResumeSessionRequest,
+	UniverseAgentResumeSessionResult,
 	UniverseAgentRenameSessionRequest,
 	UniverseAgentRenameSessionResult,
 	UniverseAgentCancelGenerationRequest,
@@ -153,6 +155,14 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 	}
 
 	async deleteSession(_request: UniverseAgentDeleteSessionRequest): Promise<void> {
+	}
+
+	readonly resumeSessionCalls: UniverseAgentResumeSessionRequest[] = [];
+	resumeSessionResult: UniverseAgentResumeSessionResult = { ok: true };
+
+	async resumeSession(request: UniverseAgentResumeSessionRequest): Promise<UniverseAgentResumeSessionResult> {
+		this.resumeSessionCalls.push(request);
+		return this.resumeSessionResult;
 	}
 
 	readonly renameCalls: UniverseAgentRenameSessionRequest[] = [];
@@ -699,6 +709,11 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
 	});
 
+	test('UniverseAgentGrpcServices lists Session.Resume', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Session.Resume, 'Resume');
+		assert.strictEqual(UniverseAgentGrpcServices.Session.service, 'universeagent.session.v1.SessionService');
+	});
+
 	test('renameSession forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
@@ -1169,6 +1184,37 @@ suite('UniverseAgentConnectionService', () => {
 		assert.deepStrictEqual(failed, { ok: false, message: 'denied' });
 		assert.strictEqual(transport.deleteSnapshotCalls[1]?.sessionId, '');
 		assert.strictEqual(transport.deleteSnapshotCalls[1]?.snapshotId, '');
+		service.dispose();
+	});
+
+	test('resumeSession forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.resumeSessionResult = {
+			ok: true,
+			rootAgent: {
+				agentId: 'root',
+				name: 'Root',
+				type: 'AGENT_TYPE_UNKNOWN',
+				status: 'AGENT_STATUS_UNKNOWN',
+				model: 'gpt',
+				turnCount: 2,
+				createdAt: 10,
+				children: [],
+			},
+		};
+		const result = await service.resumeSession({ sessionId: 'sess-1' });
+		assert.deepStrictEqual(transport.resumeSessionCalls, [{ sessionId: 'sess-1' }]);
+		assert.deepStrictEqual(result, transport.resumeSessionResult);
+
+		transport.resumeSessionResult = { ok: false, message: 'not found' };
+		const failed = await service.resumeSession({ sessionId: '' });
+		assert.deepStrictEqual(failed, { ok: false, message: 'not found' });
+		assert.strictEqual(transport.resumeSessionCalls[1]?.sessionId, '');
 		service.dispose();
 	});
 
