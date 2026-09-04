@@ -124,6 +124,7 @@ import type {
 	UniverseAgentRetryQueueItemUploadRequest,
 	UniverseAgentPinQueueItemRequest,
 	UniverseAgentSetQueueItemLockedRequest,
+	UniverseAgentInjectQueueItemRequest,
 	UniverseAgentEditQueueItemRequest,
 	UniverseAgentHoldQueueItemRequest,
 	UniverseAgentQueueHoldReason,
@@ -3052,6 +3053,10 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			...queueItemRefWire(request),
 			locked: request.locked,
 		});
+	}
+
+	async injectQueueItem(request: UniverseAgentInjectQueueItemRequest): Promise<UniverseAgentQueueMutationResult> {
+		return this._queueMutation(UniverseAgentGrpcServices.Agent.InjectQueueItem, queueItemRefWire(request));
 	}
 
 	async pauseQueue(request: UniverseAgentQueueRefRequest): Promise<UniverseAgentQueueMutationResult> {

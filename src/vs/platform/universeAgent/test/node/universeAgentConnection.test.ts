@@ -100,6 +100,7 @@ import type {
 	UniverseAgentRetryQueueItemUploadRequest,
 	UniverseAgentPinQueueItemRequest,
 	UniverseAgentSetQueueItemLockedRequest,
+	UniverseAgentInjectQueueItemRequest,
 	UniverseAgentEditQueueItemRequest,
 	UniverseAgentHoldQueueItemRequest,
 	UniverseAgentQueueItemRefRequest,
@@ -532,6 +533,7 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 	readonly retryQueueItemUploadCalls: UniverseAgentRetryQueueItemUploadRequest[] = [];
 	readonly pinCalls: UniverseAgentPinQueueItemRequest[] = [];
 	readonly setQueueItemLockedCalls: UniverseAgentSetQueueItemLockedRequest[] = [];
+	readonly injectCalls: UniverseAgentInjectQueueItemRequest[] = [];
 	readonly pauseCalls: UniverseAgentQueueRefRequest[] = [];
 	readonly resumeCalls: UniverseAgentQueueRefRequest[] = [];
 	readonly clearCalls: UniverseAgentQueueRefRequest[] = [];
@@ -582,6 +584,11 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 
 	async setQueueItemLocked(request: UniverseAgentSetQueueItemLockedRequest): Promise<UniverseAgentQueueMutationResult> {
 		this.setQueueItemLockedCalls.push(request);
+		return this.queueResult;
+	}
+
+	async injectQueueItem(request: UniverseAgentInjectQueueItemRequest): Promise<UniverseAgentQueueMutationResult> {
+		this.injectCalls.push(request);
 		return this.queueResult;
 	}
 
@@ -1146,6 +1153,11 @@ suite('UniverseAgentConnectionService', () => {
 
 	test('UniverseAgentGrpcServices lists Agent.SetQueueItemLocked', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.SetQueueItemLocked, 'SetQueueItemLocked');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+	});
+
+	test('UniverseAgentGrpcServices lists Agent.InjectQueueItem', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.InjectQueueItem, 'InjectQueueItem');
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
 	});
 
@@ -2024,6 +2036,39 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(transport.setQueueItemLockedCalls[1]?.itemId, '');
 		assert.strictEqual(transport.setQueueItemLockedCalls[1]?.opId, '');
 		assert.strictEqual(transport.setQueueItemLockedCalls[1]?.locked, false);
+		service.dispose();
+	});
+
+	test('injectQueueItem forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.queueResult = { ok: true, opId: 'op-1', itemId: 'q-1' };
+		const result = await service.injectQueueItem({
+			sessionId: 'sess-1',
+			itemId: 'q-1',
+			opId: 'op-1',
+		});
+		assert.deepStrictEqual(transport.injectCalls, [{
+			sessionId: 'sess-1',
+			itemId: 'q-1',
+			opId: 'op-1',
+		}]);
+		assert.deepStrictEqual(result, transport.queueResult);
+
+		transport.queueResult = { ok: false, error: 'empty' };
+		const empty = await service.injectQueueItem({
+			sessionId: '',
+			itemId: '',
+			opId: '',
+		});
+		assert.deepStrictEqual(empty, transport.queueResult);
+		assert.strictEqual(transport.injectCalls[1]?.sessionId, '');
+		assert.strictEqual(transport.injectCalls[1]?.itemId, '');
+		assert.strictEqual(transport.injectCalls[1]?.opId, '');
 		service.dispose();
 	});
 

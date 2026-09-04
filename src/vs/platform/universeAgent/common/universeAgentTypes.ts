@@ -799,6 +799,9 @@ export interface UniverseAgentSetQueueItemLockedRequest extends UniverseAgentQue
 	readonly locked: boolean;
 }
 
+/** AgentService.InjectQueueItem — proto QueueItemRefRequest (≠ PinQueueItem / SetQueueItemLocked / RetryQueueItemUpload / DeleteQueueItem). */
+export type UniverseAgentInjectQueueItemRequest = UniverseAgentQueueItemRefRequest;
+
 /** AgentService.EnqueueQueueItem. */
 export interface UniverseAgentEnqueueQueueItemRequest extends UniverseAgentQueueRefRequest {
 	readonly text: string;
