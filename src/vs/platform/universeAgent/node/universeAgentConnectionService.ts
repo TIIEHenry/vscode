@@ -30,6 +30,8 @@ import type {
 	UniverseAgentShelveSessionResult,
 	UniverseAgentUnshelveSessionRequest,
 	UniverseAgentUnshelveSessionResult,
+	UniverseAgentExportSessionRequest,
+	UniverseAgentExportSessionResult,
 	UniverseAgentAgentStatusRequest,
 	UniverseAgentAgentStatusResult,
 	UniverseAgentRenameSessionRequest,
@@ -675,6 +677,10 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 
 	async unshelveSession(request: UniverseAgentUnshelveSessionRequest): Promise<UniverseAgentUnshelveSessionResult> {
 		return this._withTransport(transport => transport.unshelveSession(request));
+	}
+
+	async exportSession(request: UniverseAgentExportSessionRequest): Promise<UniverseAgentExportSessionResult> {
+		return this._withTransport(transport => transport.exportSession(request));
 	}
 
 	async getAgentStatus(request: UniverseAgentAgentStatusRequest): Promise<UniverseAgentAgentStatusResult> {

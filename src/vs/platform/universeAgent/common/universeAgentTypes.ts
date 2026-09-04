@@ -124,6 +124,17 @@ export interface UniverseAgentUnshelveSessionResult {
 	readonly message?: string;
 }
 
+/** SessionService.Export — dump a session as markdown/json (≠ Shelve / Unshelve / Resume / Delete). */
+export interface UniverseAgentExportSessionRequest {
+	readonly sessionId: string;
+	readonly format: string;
+}
+
+export interface UniverseAgentExportSessionResult {
+	readonly content: string;
+	readonly format: string;
+}
+
 /** AgentService.Status — current AgentInfo for one session agent (≠ Session.Info / Tree). */
 export interface UniverseAgentAgentStatusRequest {
 	readonly sessionId: string;

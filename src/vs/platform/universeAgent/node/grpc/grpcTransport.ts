@@ -22,6 +22,8 @@ import type {
 	UniverseAgentShelveSessionResult,
 	UniverseAgentUnshelveSessionRequest,
 	UniverseAgentUnshelveSessionResult,
+	UniverseAgentExportSessionRequest,
+	UniverseAgentExportSessionResult,
 	UniverseAgentAgentStatusRequest,
 	UniverseAgentAgentStatusResult,
 	UniverseAgentRenameSessionRequest,
@@ -195,6 +197,8 @@ export interface IUniverseAgentGrpcTransport {
 	shelveSession(request: UniverseAgentShelveSessionRequest): Promise<UniverseAgentShelveSessionResult>;
 	/** SessionService.Unshelve unary (snake_case `session_id`). Empty ids sent as-is. */
 	unshelveSession(request: UniverseAgentUnshelveSessionRequest): Promise<UniverseAgentUnshelveSessionResult>;
+	/** SessionService.Export unary (snake_case `session_id`/`format`). Empty ids sent as-is. */
+	exportSession(request: UniverseAgentExportSessionRequest): Promise<UniverseAgentExportSessionResult>;
 	/** AgentService.Status unary (snake_case `session_id`/`agent_id`). Empty ids sent as-is. */
 	getAgentStatus(request: UniverseAgentAgentStatusRequest): Promise<UniverseAgentAgentStatusResult>;
 
@@ -347,6 +351,7 @@ export const UniverseAgentGrpcServices = {
 		Resume: 'Resume',
 		Shelve: 'Shelve',
 		Unshelve: 'Unshelve',
+		Export: 'Export',
 		GetHistory: 'GetHistory',
 		SessionEventStream: 'SessionEventStream',
 	},

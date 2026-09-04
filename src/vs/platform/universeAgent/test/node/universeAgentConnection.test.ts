@@ -23,6 +23,8 @@ import type {
 	UniverseAgentShelveSessionResult,
 	UniverseAgentUnshelveSessionRequest,
 	UniverseAgentUnshelveSessionResult,
+	UniverseAgentExportSessionRequest,
+	UniverseAgentExportSessionResult,
 	UniverseAgentAgentStatusRequest,
 	UniverseAgentAgentStatusResult,
 	UniverseAgentRenameSessionRequest,
@@ -201,6 +203,14 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 	async unshelveSession(request: UniverseAgentUnshelveSessionRequest): Promise<UniverseAgentUnshelveSessionResult> {
 		this.unshelveSessionCalls.push(request);
 		return this.unshelveSessionResult;
+	}
+
+	readonly exportSessionCalls: UniverseAgentExportSessionRequest[] = [];
+	exportSessionResult: UniverseAgentExportSessionResult = { content: '', format: '' };
+
+	async exportSession(request: UniverseAgentExportSessionRequest): Promise<UniverseAgentExportSessionResult> {
+		this.exportSessionCalls.push(request);
+		return this.exportSessionResult;
 	}
 
 	readonly getAgentStatusCalls: UniverseAgentAgentStatusRequest[] = [];
@@ -772,6 +782,11 @@ suite('UniverseAgentConnectionService', () => {
 
 	test('UniverseAgentGrpcServices lists Session.Unshelve', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Session.Unshelve, 'Unshelve');
+		assert.strictEqual(UniverseAgentGrpcServices.Session.service, 'universeagent.session.v1.SessionService');
+	});
+
+	test('UniverseAgentGrpcServices lists Session.Export', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Session.Export, 'Export');
 		assert.strictEqual(UniverseAgentGrpcServices.Session.service, 'universeagent.session.v1.SessionService');
 	});
 
@@ -1358,6 +1373,26 @@ suite('UniverseAgentConnectionService', () => {
 		const failed = await service.unshelveSession({ sessionId: '' });
 		assert.deepStrictEqual(failed, { ok: false, message: 'not found' });
 		assert.strictEqual(transport.unshelveSessionCalls[1]?.sessionId, '');
+		service.dispose();
+	});
+
+	test('exportSession forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.exportSessionResult = { content: '# sess', format: 'markdown' };
+		const result = await service.exportSession({ sessionId: 'sess-1', format: 'markdown' });
+		assert.deepStrictEqual(transport.exportSessionCalls, [{ sessionId: 'sess-1', format: 'markdown' }]);
+		assert.deepStrictEqual(result, { content: '# sess', format: 'markdown' });
+
+		transport.exportSessionResult = { content: '', format: '' };
+		const empty = await service.exportSession({ sessionId: '', format: '' });
+		assert.deepStrictEqual(empty, { content: '', format: '' });
+		assert.strictEqual(transport.exportSessionCalls[1]?.sessionId, '');
+		assert.strictEqual(transport.exportSessionCalls[1]?.format, '');
 		service.dispose();
 	});
 
