@@ -95,6 +95,8 @@ import type {
 	UniverseAgentTestModelProfileResult,
 	UniverseAgentSetConfigRequest,
 	UniverseAgentSetConfigResult,
+	UniverseAgentSetModelPreferencesRequest,
+	UniverseAgentSetModelPreferencesResult,
 	UniverseAgentSetSessionGoalRequest,
 	UniverseAgentSetSessionGoalResult,
 	UniverseAgentCancelSessionGoalRequest,
@@ -565,6 +567,14 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 	async setConfig(request: UniverseAgentSetConfigRequest): Promise<UniverseAgentSetConfigResult> {
 		this.setConfigCalls.push(request);
 		return this.setConfigResult;
+	}
+
+	readonly setModelPreferencesCalls: UniverseAgentSetModelPreferencesRequest[] = [];
+	setModelPreferencesResult: UniverseAgentSetModelPreferencesResult = { minLevel: 0, maxCost: '', minSpeed: '', strategy: '' };
+
+	async setModelPreferences(request: UniverseAgentSetModelPreferencesRequest): Promise<UniverseAgentSetModelPreferencesResult> {
+		this.setModelPreferencesCalls.push(request);
+		return this.setModelPreferencesResult;
 	}
 
 	readonly setGoalCalls: UniverseAgentSetSessionGoalRequest[] = [];
@@ -1356,6 +1366,11 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Config.service, 'universeagent.config.v1.ConfigService');
 	});
 
+	test('UniverseAgentGrpcServices lists Config.SetModelPreferences', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Config.SetModelPreferences, 'SetModelPreferences');
+		assert.strictEqual(UniverseAgentGrpcServices.Config.service, 'universeagent.config.v1.ConfigService');
+	});
+
 	test('UniverseAgentGrpcServices lists Agent.SubscribeToolDetail', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.SubscribeToolDetail, 'SubscribeToolDetail');
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
@@ -2033,6 +2048,47 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(transport.setConfigCalls[1]?.value, '');
 		assert.strictEqual(transport.setConfigCalls[1]?.scope, '');
 		assert.strictEqual(transport.setConfigCalls[1]?.sessionId, '');
+		service.dispose();
+	});
+
+	test('setModelPreferences forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.setModelPreferencesResult = { minLevel: 5, maxCost: 'middle', minSpeed: 'fast', strategy: 'level' };
+		const result = await service.setModelPreferences({
+			sessionId: 'sess-1',
+			minLevel: 5,
+			maxCost: 'middle',
+			minSpeed: 'fast',
+			strategy: 'level',
+		});
+		assert.deepStrictEqual(transport.setModelPreferencesCalls, [{
+			sessionId: 'sess-1',
+			minLevel: 5,
+			maxCost: 'middle',
+			minSpeed: 'fast',
+			strategy: 'level',
+		}]);
+		assert.deepStrictEqual(result, transport.setModelPreferencesResult);
+
+		transport.setModelPreferencesResult = { minLevel: 0, maxCost: '', minSpeed: '', strategy: '' };
+		const empty = await service.setModelPreferences({
+			sessionId: '',
+			minLevel: 0,
+			maxCost: '',
+			minSpeed: '',
+			strategy: '',
+		});
+		assert.deepStrictEqual(empty, transport.setModelPreferencesResult);
+		assert.strictEqual(transport.setModelPreferencesCalls[1]?.sessionId, '');
+		assert.strictEqual(transport.setModelPreferencesCalls[1]?.minLevel, 0);
+		assert.strictEqual(transport.setModelPreferencesCalls[1]?.maxCost, '');
+		assert.strictEqual(transport.setModelPreferencesCalls[1]?.minSpeed, '');
+		assert.strictEqual(transport.setModelPreferencesCalls[1]?.strategy, '');
 		service.dispose();
 	});
 

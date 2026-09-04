@@ -105,6 +105,8 @@ import type {
 	UniverseAgentTestModelProfileResult,
 	UniverseAgentSetConfigRequest,
 	UniverseAgentSetConfigResult,
+	UniverseAgentSetModelPreferencesRequest,
+	UniverseAgentSetModelPreferencesResult,
 	UniverseAgentSetSessionGoalRequest,
 	UniverseAgentSetSessionGoalResult,
 	UniverseAgentCancelSessionGoalRequest,
@@ -907,6 +909,10 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 
 	async setConfig(request: UniverseAgentSetConfigRequest): Promise<UniverseAgentSetConfigResult> {
 		return this._withTransport(transport => transport.setConfig(request));
+	}
+
+	async setModelPreferences(request: UniverseAgentSetModelPreferencesRequest): Promise<UniverseAgentSetModelPreferencesResult> {
+		return this._withTransport(transport => transport.setModelPreferences(request));
 	}
 
 	async setSessionGoal(request: UniverseAgentSetSessionGoalRequest): Promise<UniverseAgentSetSessionGoalResult> {

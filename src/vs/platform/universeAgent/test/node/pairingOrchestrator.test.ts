@@ -252,6 +252,10 @@ class RecordingMockTransport implements IUniverseAgentGrpcTransport {
 		return { ok: false, message: 'test' };
 	}
 
+	async setModelPreferences(): Promise<{ minLevel: 0; maxCost: ''; minSpeed: ''; strategy: '' }> {
+		return { minLevel: 0, maxCost: '', minSpeed: '', strategy: '' };
+	}
+
 	async setSessionGoal(): Promise<{ ok: false; message: 'test' }> {
 		return { ok: false, message: 'test' };
 	}

@@ -97,6 +97,8 @@ import type {
 	UniverseAgentTestModelProfileResult,
 	UniverseAgentSetConfigRequest,
 	UniverseAgentSetConfigResult,
+	UniverseAgentSetModelPreferencesRequest,
+	UniverseAgentSetModelPreferencesResult,
 	UniverseAgentSetSessionGoalRequest,
 	UniverseAgentSetSessionGoalResult,
 	UniverseAgentCancelSessionGoalRequest,
@@ -371,6 +373,8 @@ export interface IUniverseAgentGrpcTransport {
 	testModelProfile(request: UniverseAgentTestModelProfileRequest): Promise<UniverseAgentTestModelProfileResult>;
 	/** ConfigService.Set unary (snake_case `key`/`value`/`scope`/`session_id`). Empty ids sent as-is. */
 	setConfig(request: UniverseAgentSetConfigRequest): Promise<UniverseAgentSetConfigResult>;
+	/** ConfigService.SetModelPreferences unary (snake_case `session_id`/`min_level`/`max_cost`/`min_speed`/`strategy`). Empty ids sent as-is. */
+	setModelPreferences(request: UniverseAgentSetModelPreferencesRequest): Promise<UniverseAgentSetModelPreferencesResult>;
 
 	setSessionGoal(request: UniverseAgentSetSessionGoalRequest): Promise<UniverseAgentSetSessionGoalResult>;
 
@@ -729,6 +733,7 @@ export const UniverseAgentGrpcServices = {
 		ListModels: 'ListModels',
 		Set: 'Set',
 		SwitchModel: 'SwitchModel',
+		SetModelPreferences: 'SetModelPreferences',
 	},
 	Team: {
 		service: 'universeagent.team.v1.TeamService',
