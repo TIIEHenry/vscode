@@ -96,6 +96,7 @@ import type {
 	UniverseAgentReorderQueueRequest,
 	UniverseAgentDeleteQueueItemRequest,
 	UniverseAgentRetryQueueItemRequest,
+	UniverseAgentRetryAllFailedRequest,
 	UniverseAgentEditQueueItemRequest,
 	UniverseAgentHoldQueueItemRequest,
 	UniverseAgentQueueItemRefRequest,
@@ -524,6 +525,7 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 	readonly reorderCalls: UniverseAgentReorderQueueRequest[] = [];
 	readonly deleteCalls: UniverseAgentDeleteQueueItemRequest[] = [];
 	readonly retryCalls: UniverseAgentRetryQueueItemRequest[] = [];
+	readonly retryAllFailedCalls: UniverseAgentRetryAllFailedRequest[] = [];
 	readonly pauseCalls: UniverseAgentQueueRefRequest[] = [];
 	readonly resumeCalls: UniverseAgentQueueRefRequest[] = [];
 	readonly clearCalls: UniverseAgentQueueRefRequest[] = [];
@@ -554,6 +556,11 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 
 	async retryQueueItem(request: UniverseAgentRetryQueueItemRequest): Promise<UniverseAgentQueueMutationResult> {
 		this.retryCalls.push(request);
+		return this.queueResult;
+	}
+
+	async retryAllFailed(request: UniverseAgentRetryAllFailedRequest): Promise<UniverseAgentQueueMutationResult> {
+		this.retryAllFailedCalls.push(request);
 		return this.queueResult;
 	}
 
@@ -1098,6 +1105,11 @@ suite('UniverseAgentConnectionService', () => {
 
 	test('UniverseAgentGrpcServices lists Agent.RetryQueueItem', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.RetryQueueItem, 'RetryQueueItem');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+	});
+
+	test('UniverseAgentGrpcServices lists Agent.RetryAllFailed', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.RetryAllFailed, 'RetryAllFailed');
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
 	});
 
@@ -1844,6 +1856,35 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(transport.retryCalls[1]?.sessionId, '');
 		assert.strictEqual(transport.retryCalls[1]?.itemId, '');
 		assert.strictEqual(transport.retryCalls[1]?.opId, '');
+		service.dispose();
+	});
+
+	test('retryAllFailed forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.queueResult = { ok: true, opId: 'op-1' };
+		const result = await service.retryAllFailed({
+			sessionId: 'sess-1',
+			opId: 'op-1',
+		});
+		assert.deepStrictEqual(transport.retryAllFailedCalls, [{
+			sessionId: 'sess-1',
+			opId: 'op-1',
+		}]);
+		assert.deepStrictEqual(result, transport.queueResult);
+
+		transport.queueResult = { ok: false, error: 'empty' };
+		const empty = await service.retryAllFailed({
+			sessionId: '',
+			opId: '',
+		});
+		assert.deepStrictEqual(empty, transport.queueResult);
+		assert.strictEqual(transport.retryAllFailedCalls[1]?.sessionId, '');
+		assert.strictEqual(transport.retryAllFailedCalls[1]?.opId, '');
 		service.dispose();
 	});
 

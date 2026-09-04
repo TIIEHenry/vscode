@@ -120,6 +120,7 @@ import type {
 	UniverseAgentReorderQueueRequest,
 	UniverseAgentDeleteQueueItemRequest,
 	UniverseAgentRetryQueueItemRequest,
+	UniverseAgentRetryAllFailedRequest,
 	UniverseAgentEditQueueItemRequest,
 	UniverseAgentHoldQueueItemRequest,
 	UniverseAgentQueueHoldReason,
@@ -3029,6 +3030,10 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 
 	async retryQueueItem(request: UniverseAgentRetryQueueItemRequest): Promise<UniverseAgentQueueMutationResult> {
 		return this._queueMutation(UniverseAgentGrpcServices.Agent.RetryQueueItem, queueItemRefWire(request));
+	}
+
+	async retryAllFailed(request: UniverseAgentRetryAllFailedRequest): Promise<UniverseAgentQueueMutationResult> {
+		return this._queueMutation(UniverseAgentGrpcServices.Agent.RetryAllFailed, queueRefWire(request));
 	}
 
 	async pauseQueue(request: UniverseAgentQueueRefRequest): Promise<UniverseAgentQueueMutationResult> {
