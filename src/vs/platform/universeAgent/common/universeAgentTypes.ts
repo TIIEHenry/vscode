@@ -592,6 +592,20 @@ export interface UniverseAgentCancelToolCallResult {
 	readonly message?: string;
 }
 
+/** AgentService.RunToolInBackground — mid-flight sync→async promote (≠ CancelToolCall / StopShellTask / Cancel / Resume). */
+export interface UniverseAgentRunToolInBackgroundRequest {
+	readonly sessionId: string;
+	readonly agentId: string;
+	readonly toolCallId: string;
+}
+
+export interface UniverseAgentRunToolInBackgroundResult {
+	readonly ok: boolean;
+	readonly message?: string;
+	/** Proto `reason_code`; empty when success. */
+	readonly reasonCode?: string;
+}
+
 /** PermissionService.SetSessionGoal request (Inbox Goal). */
 export interface UniverseAgentSetSessionGoalRequest {
 	readonly sessionId: string;

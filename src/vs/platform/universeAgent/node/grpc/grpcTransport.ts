@@ -68,6 +68,8 @@ import type {
 	UniverseAgentCancelGenerationResult,
 	UniverseAgentCancelToolCallRequest,
 	UniverseAgentCancelToolCallResult,
+	UniverseAgentRunToolInBackgroundRequest,
+	UniverseAgentRunToolInBackgroundResult,
 	UniverseAgentSetSessionGoalRequest,
 	UniverseAgentSetSessionGoalResult,
 	UniverseAgentCancelSessionGoalRequest,
@@ -279,6 +281,8 @@ export interface IUniverseAgentGrpcTransport {
 	cancelGeneration(request: UniverseAgentCancelGenerationRequest): Promise<UniverseAgentCancelGenerationResult>;
 
 	cancelToolCall(request: UniverseAgentCancelToolCallRequest): Promise<UniverseAgentCancelToolCallResult>;
+	/** AgentService.RunToolInBackground unary (snake_case `session_id`/`agent_id`/`tool_call_id`). Empty ids sent as-is. */
+	runToolInBackground(request: UniverseAgentRunToolInBackgroundRequest): Promise<UniverseAgentRunToolInBackgroundResult>;
 
 	setSessionGoal(request: UniverseAgentSetSessionGoalRequest): Promise<UniverseAgentSetSessionGoalResult>;
 
@@ -458,6 +462,7 @@ export const UniverseAgentGrpcServices = {
 		Rename: 'Rename',
 		Cancel: 'Cancel',
 		CancelToolCall: 'CancelToolCall',
+		RunToolInBackground: 'RunToolInBackground',
 		EnqueueQueueItem: 'EnqueueQueueItem',
 		PauseQueue: 'PauseQueue',
 		ResumeQueue: 'ResumeQueue',
