@@ -29,6 +29,8 @@ import type {
 	UniverseAgentAgentStatusResult,
 	UniverseAgentTodoRequest,
 	UniverseAgentTodoResult,
+	UniverseAgentUsageRequest,
+	UniverseAgentUsageResult,
 	UniverseAgentRenameSessionRequest,
 	UniverseAgentRenameSessionResult,
 	UniverseAgentCancelGenerationRequest,
@@ -229,6 +231,20 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 	async getTodo(request: UniverseAgentTodoRequest): Promise<UniverseAgentTodoResult> {
 		this.getTodoCalls.push(request);
 		return this.getTodoResult;
+	}
+
+	readonly getUsageCalls: UniverseAgentUsageRequest[] = [];
+	getUsageResult: UniverseAgentUsageResult = {
+		totalInputTokens: 0,
+		totalOutputTokens: 0,
+		totalTurns: 0,
+		agentUsages: [],
+		recentRequestSpans: [],
+	};
+
+	async getUsage(request: UniverseAgentUsageRequest): Promise<UniverseAgentUsageResult> {
+		this.getUsageCalls.push(request);
+		return this.getUsageResult;
 	}
 
 	readonly renameCalls: UniverseAgentRenameSessionRequest[] = [];
@@ -810,6 +826,11 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
 	});
 
+	test('UniverseAgentGrpcServices lists Agent.Usage', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.Usage, 'Usage');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+	});
+
 	test('renameSession forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
@@ -1330,6 +1351,53 @@ suite('UniverseAgentConnectionService', () => {
 		assert.deepStrictEqual(empty, { items: [] });
 		assert.strictEqual(transport.getTodoCalls[1]?.sessionId, '');
 		assert.strictEqual(transport.getTodoCalls[1]?.agentId, '');
+		service.dispose();
+	});
+
+	test('getUsage forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.getUsageResult = {
+			totalInputTokens: 12,
+			totalOutputTokens: 34,
+			totalTurns: 2,
+			agentUsages: [{
+				agentId: 'root',
+				inputTokens: 12,
+				outputTokens: 34,
+				turns: 2,
+			}],
+			recentRequestSpans: [{
+				profileId: 'p1',
+				provider: 'openai',
+				modelId: 'gpt',
+				inputTokens: 8,
+				outputTokens: 16,
+				prefillMs: 1,
+				decodeMs: 2,
+				completedAtMs: 3,
+				usageKind: 'chat',
+			}],
+		};
+		const result = await service.getUsage({ sessionId: 'sess-1', agentId: 'root' });
+		assert.deepStrictEqual(transport.getUsageCalls, [{ sessionId: 'sess-1', agentId: 'root' }]);
+		assert.deepStrictEqual(result, transport.getUsageResult);
+
+		transport.getUsageResult = {
+			totalInputTokens: 0,
+			totalOutputTokens: 0,
+			totalTurns: 0,
+			agentUsages: [],
+			recentRequestSpans: [],
+		};
+		const empty = await service.getUsage({ sessionId: '', agentId: '' });
+		assert.deepStrictEqual(empty, transport.getUsageResult);
+		assert.strictEqual(transport.getUsageCalls[1]?.sessionId, '');
+		assert.strictEqual(transport.getUsageCalls[1]?.agentId, '');
 		service.dispose();
 	});
 
