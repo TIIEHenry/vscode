@@ -3,8 +3,8 @@ title: "Conversation 透镜、时间线与轨迹"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-09-02
-summary: "ConversationEditorPane 页 chrome；「对话 | 轨迹」双透镜；叶宽 `.is-narrow`（Q6/RWD-1）；子代理 overlay 自备 sessionBar；Accessible View；帧源投影与 Q4 live 过程折"
+updated: 2026-09-04
+summary: "ConversationEditorPane 页 chrome；「对话 | 轨迹」双透镜；SessionBar Snapshots 只读 listSnapshots（≠ History 回合索引）；叶宽 `.is-narrow`（Q6/RWD-1）；子代理 overlay 自备 sessionBar；Accessible View；帧源投影与 Q4 live 过程折"
 ---
 
 # Conversation 透镜、时间线与轨迹
@@ -77,7 +77,8 @@ Stub fixture：`mergeTrajectoryFixtureExtras` 仅 seed `untitled`、且 `!isEngi
 | 组件 | 文件 | 职责 |
 |------|------|------|
 | 轨迹表 + 检查器 | `conversationTrajectory.ts` | 工具栏搜索、`WorkbenchList` 虚拟化表、过程折 overlay（默认展开）、局部检查器 |
-| MessageNavigator | `conversationTrajectoryList.ts` | SessionBar History 的回合索引列表（**不是**轨迹透镜主表） |
+| MessageNavigator | `conversationTrajectoryList.ts` | SessionBar History 的回合索引列表（**不是**轨迹透镜主表，也**不是**引擎 snapshot） |
+| Engine snapshots | `conversationEngineSnapshotsList.ts` | SessionBar extra control + 只读 overlay；接通后 `listSnapshots?`；断连 / 无 hook / 空 sessionId 不发 |
 
 - **搜索（T5）：** 工具栏 `input[type=search]`，debounce；`filterTrajectoryRecordsBySearch` 匹配 kind / text / blocks / 检查器字段。
 - **虚拟化（T5）：** `buildTrajectoryTableDisplayItems` 产出 record / fold 行 → `WorkbenchList<TrajectoryTableDisplayItem>`。
@@ -120,4 +121,4 @@ Stub fixture：`mergeTrajectoryFixtureExtras` 仅 seed `untitled`、且 `!isEngi
 
 ## 7. 测试
 
-`conversationLens.test.ts`、`conversationLensRevealNavigation.test.ts`、`conversationTimelineScroll.test.ts`、`conversationTurnMarkdown.test.ts`、`conversationUserBubbleCollapse.test.ts`、`conversationPinnedUserPrompt.test.ts`、`conversationTrajectory*.test.ts`（含 `ImportBoundaries`）、`conversationProcessFold*.test.ts`、`conversationVisualize*.test.ts`。import 红线由 `conversationImportBoundaries.test.ts` 机械 enforce（[ADR-006](../../../dev/decisions/006-shell-invariants.md) INV-NO-COPILOT）。
+`conversationLens.test.ts`、`conversationEngineSnapshotsList.test.ts`、`conversationLensRevealNavigation.test.ts`、`conversationTimelineScroll.test.ts`、`conversationTurnMarkdown.test.ts`、`conversationUserBubbleCollapse.test.ts`、`conversationPinnedUserPrompt.test.ts`、`conversationTrajectory*.test.ts`（含 `ImportBoundaries`）、`conversationProcessFold*.test.ts`、`conversationVisualize*.test.ts`。import 红线由 `conversationImportBoundaries.test.ts` 机械 enforce（[ADR-006](../../../dev/decisions/006-shell-invariants.md) INV-NO-COPILOT）。

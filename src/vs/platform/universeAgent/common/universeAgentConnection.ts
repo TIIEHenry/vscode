@@ -287,8 +287,8 @@ export interface IUniverseAgentConnection {
 
 	/**
 	 * AgentService.ListSnapshots unary (session checkpoints). Optional so Web /
-	 * tests can omit it. Catalog + node transport only this slice; SessionBar
-	 * History stays the turn index and does not list engine snapshots.
+	 * tests can omit it. Conversation SessionBar extra control lists rows when
+	 * connected; SessionBar History stays the turn-index MessageNavigator.
 	 */
 	listSnapshots?(request: UniverseAgentListSnapshotsRequest): Promise<UniverseAgentListSnapshotsResult>;
 
