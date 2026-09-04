@@ -791,6 +791,22 @@ export interface UniverseAgentRespondPermissionResult {
 	readonly message?: string;
 }
 
+/** PermissionService.SyncPermissionRule — session-scoped tool rule sync (≠ Respond / SetSessionGoal / PromotePermissionRule / GetSessionRules). */
+export interface UniverseAgentSyncPermissionRuleRequest {
+	readonly sessionId: string;
+	readonly toolName: string;
+	readonly scope: string;
+	/** Proto `RuleAction` name (`ALLOW` / `DENY` / `RULE_ACTION_UNSPECIFIED`). Sent as-is. */
+	readonly action: string;
+	readonly reason: string;
+}
+
+export interface UniverseAgentSyncPermissionRuleResult {
+	readonly ok: boolean;
+	/** Proto `rule_id`. Empty sent as-is. */
+	readonly ruleId: string;
+}
+
 /** One item answer for AgentService.RespondQuestion (QuestionAnswer.selected_labels). */
 export interface UniverseAgentQuestionAnswer {
 	readonly selectedLabels: readonly string[];
