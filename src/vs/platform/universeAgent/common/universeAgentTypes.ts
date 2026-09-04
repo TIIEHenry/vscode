@@ -190,6 +190,15 @@ export interface UniverseAgentCompactResult {
 	readonly rejectReason?: string;
 }
 
+/** AgentService.List — flat AgentInfo roster for one session (≠ Tree / Status / ListAgentProfiles). */
+export interface UniverseAgentListAgentsRequest {
+	readonly sessionId: string;
+}
+
+export interface UniverseAgentListAgentsResult {
+	readonly agents: readonly UniverseAgentAgentTreeNode[];
+}
+
 /** AgentService.Rename request; empty `title` clears a custom session title. */
 export interface UniverseAgentRenameSessionRequest {
 	readonly sessionId: string;
