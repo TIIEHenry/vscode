@@ -104,6 +104,16 @@ export interface UniverseAgentResumeSessionResult {
 	readonly rootAgent?: UniverseAgentAgentTreeNode;
 }
 
+/** AgentService.Status — current AgentInfo for one session agent (≠ Session.Info / Tree). */
+export interface UniverseAgentAgentStatusRequest {
+	readonly sessionId: string;
+	readonly agentId: string;
+}
+
+export interface UniverseAgentAgentStatusResult {
+	readonly agent?: UniverseAgentAgentTreeNode;
+}
+
 /** AgentService.Rename request; empty `title` clears a custom session title. */
 export interface UniverseAgentRenameSessionRequest {
 	readonly sessionId: string;

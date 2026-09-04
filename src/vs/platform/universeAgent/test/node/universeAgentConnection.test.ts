@@ -19,6 +19,8 @@ import type {
 	UniverseAgentSessionInfoResult,
 	UniverseAgentResumeSessionRequest,
 	UniverseAgentResumeSessionResult,
+	UniverseAgentAgentStatusRequest,
+	UniverseAgentAgentStatusResult,
 	UniverseAgentRenameSessionRequest,
 	UniverseAgentRenameSessionResult,
 	UniverseAgentCancelGenerationRequest,
@@ -179,6 +181,14 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 	async resumeSession(request: UniverseAgentResumeSessionRequest): Promise<UniverseAgentResumeSessionResult> {
 		this.resumeSessionCalls.push(request);
 		return this.resumeSessionResult;
+	}
+
+	readonly getAgentStatusCalls: UniverseAgentAgentStatusRequest[] = [];
+	getAgentStatusResult: UniverseAgentAgentStatusResult = {};
+
+	async getAgentStatus(request: UniverseAgentAgentStatusRequest): Promise<UniverseAgentAgentStatusResult> {
+		this.getAgentStatusCalls.push(request);
+		return this.getAgentStatusResult;
 	}
 
 	readonly renameCalls: UniverseAgentRenameSessionRequest[] = [];
@@ -735,6 +745,11 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Session.service, 'universeagent.session.v1.SessionService');
 	});
 
+	test('UniverseAgentGrpcServices lists Agent.Status', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.Status, 'Status');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+	});
+
 	test('renameSession forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
@@ -1277,6 +1292,37 @@ suite('UniverseAgentConnectionService', () => {
 		const failed = await service.resumeSession({ sessionId: '' });
 		assert.deepStrictEqual(failed, { ok: false, message: 'not found' });
 		assert.strictEqual(transport.resumeSessionCalls[1]?.sessionId, '');
+		service.dispose();
+	});
+
+	test('getAgentStatus forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.getAgentStatusResult = {
+			agent: {
+				agentId: 'root',
+				name: 'Root',
+				type: 'AGENT_TYPE_UNKNOWN',
+				status: 'AGENT_STATUS_IDLE',
+				model: 'gpt',
+				turnCount: 2,
+				createdAt: 10,
+				children: [],
+			},
+		};
+		const result = await service.getAgentStatus({ sessionId: 'sess-1', agentId: 'root' });
+		assert.deepStrictEqual(transport.getAgentStatusCalls, [{ sessionId: 'sess-1', agentId: 'root' }]);
+		assert.deepStrictEqual(result, transport.getAgentStatusResult);
+
+		transport.getAgentStatusResult = {};
+		const empty = await service.getAgentStatus({ sessionId: '', agentId: '' });
+		assert.deepStrictEqual(empty, transport.getAgentStatusResult);
+		assert.strictEqual(transport.getAgentStatusCalls[1]?.sessionId, '');
+		assert.strictEqual(transport.getAgentStatusCalls[1]?.agentId, '');
 		service.dispose();
 	});
 

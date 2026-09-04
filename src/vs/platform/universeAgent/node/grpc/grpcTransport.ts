@@ -18,6 +18,8 @@ import type {
 	UniverseAgentSessionInfoResult,
 	UniverseAgentResumeSessionRequest,
 	UniverseAgentResumeSessionResult,
+	UniverseAgentAgentStatusRequest,
+	UniverseAgentAgentStatusResult,
 	UniverseAgentRenameSessionRequest,
 	UniverseAgentRenameSessionResult,
 	UniverseAgentCancelGenerationRequest,
@@ -184,6 +186,9 @@ export interface IUniverseAgentGrpcTransport {
 
 	/** SessionService.Resume unary (snake_case `session_id`). Empty ids sent as-is. */
 	resumeSession(request: UniverseAgentResumeSessionRequest): Promise<UniverseAgentResumeSessionResult>;
+
+	/** AgentService.Status unary (snake_case `session_id`/`agent_id`). Empty ids sent as-is. */
+	getAgentStatus(request: UniverseAgentAgentStatusRequest): Promise<UniverseAgentAgentStatusResult>;
 
 	renameSession(request: UniverseAgentRenameSessionRequest): Promise<UniverseAgentRenameSessionResult>;
 
@@ -366,6 +371,7 @@ export const UniverseAgentGrpcServices = {
 		CreateSnapshot: 'CreateSnapshot',
 		RestoreSnapshot: 'RestoreSnapshot',
 		DeleteSnapshot: 'DeleteSnapshot',
+		Status: 'Status',
 		Tree: 'Tree',
 		ListAgentProfiles: 'ListAgentProfiles',
 		SaveAgentProfile: 'SaveAgentProfile',
