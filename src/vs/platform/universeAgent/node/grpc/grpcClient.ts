@@ -55,6 +55,8 @@ import type {
 	UniverseAgentListSnapshotsResult,
 	UniverseAgentCreateSnapshotRequest,
 	UniverseAgentCreateSnapshotResult,
+	UniverseAgentDeleteSnapshotRequest,
+	UniverseAgentDeleteSnapshotResult,
 	UniverseAgentSessionSnapshotInfo,
 	UniverseAgentGetHistoryRequest,
 	UniverseAgentGetHistoryResult,
@@ -195,6 +197,11 @@ interface ListSnapshotsResponseWire {
 interface CreateSnapshotResponseWire {
 	success?: boolean;
 	snapshot?: SessionSnapshotInfoWire;
+	error_message?: string;
+}
+
+interface DeleteSnapshotResponseWire {
+	success?: boolean;
 	error_message?: string;
 }
 
@@ -473,6 +480,13 @@ function mapCreateSnapshotResponse(wire: CreateSnapshotResponseWire): UniverseAg
 		ok: wire.success === true,
 		message: wire.error_message,
 		...(snapshot ? { snapshot } : {}),
+	};
+}
+
+function mapDeleteSnapshotResponse(wire: DeleteSnapshotResponseWire): UniverseAgentDeleteSnapshotResult {
+	return {
+		ok: wire.success === true,
+		message: wire.error_message,
 	};
 }
 
@@ -1697,6 +1711,19 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			description: request.description ?? '',
 		});
 		return mapCreateSnapshotResponse(wire);
+	}
+
+	async deleteSnapshot(request: UniverseAgentDeleteSnapshotRequest): Promise<UniverseAgentDeleteSnapshotResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, DeleteSnapshotResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.Agent.service,
+			UniverseAgentGrpcServices.Agent.DeleteSnapshot,
+		);
+		const wire = await unary({
+			session_id: request.sessionId,
+			snapshot_id: request.snapshotId,
+		});
+		return mapDeleteSnapshotResponse(wire);
 	}
 
 	async getHistory(request: UniverseAgentGetHistoryRequest): Promise<UniverseAgentGetHistoryResult> {
