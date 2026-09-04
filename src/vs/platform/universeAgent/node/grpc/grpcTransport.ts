@@ -14,6 +14,8 @@ import type {
 	UniverseAgentCreateSessionRequest,
 	UniverseAgentCreateSessionResult,
 	UniverseAgentDeleteSessionRequest,
+	UniverseAgentSessionInfoRequest,
+	UniverseAgentSessionInfoResult,
 	UniverseAgentRenameSessionRequest,
 	UniverseAgentRenameSessionResult,
 	UniverseAgentCancelGenerationRequest,
@@ -173,6 +175,9 @@ export interface IUniverseAgentGrpcTransport {
 
 	deleteSession(request: UniverseAgentDeleteSessionRequest): Promise<void>;
 
+	/** SessionService.Info unary (snake_case `session_id`). Empty ids sent as-is. */
+	getSessionInfo(request: UniverseAgentSessionInfoRequest): Promise<UniverseAgentSessionInfoResult>;
+
 	renameSession(request: UniverseAgentRenameSessionRequest): Promise<UniverseAgentRenameSessionResult>;
 
 	cancelGeneration(request: UniverseAgentCancelGenerationRequest): Promise<UniverseAgentCancelGenerationResult>;
@@ -316,6 +321,7 @@ export const UniverseAgentGrpcServices = {
 		List: 'List',
 		Create: 'Create',
 		Delete: 'Delete',
+		Info: 'Info',
 		GetHistory: 'GetHistory',
 		SessionEventStream: 'SessionEventStream',
 	},
