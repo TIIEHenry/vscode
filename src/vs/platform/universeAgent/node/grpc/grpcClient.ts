@@ -59,6 +59,8 @@ import type {
 	UniverseAgentProfileUsage,
 	UniverseAgentListAgentsRequest,
 	UniverseAgentListAgentsResult,
+	UniverseAgentBackRequest,
+	UniverseAgentBackResult,
 	UniverseAgentRenameSessionRequest,
 	UniverseAgentRenameSessionResult,
 	UniverseAgentCancelGenerationRequest,
@@ -303,6 +305,12 @@ interface CompactResponseWire {
 
 interface ListAgentsResponseWire {
 	agents?: AgentInfoWire[];
+}
+
+interface BackResponseWire {
+	success?: boolean;
+	message?: string;
+	current_turn_id?: string;
 }
 
 const CompactOutcomeByNumber: Record<number, string> = {
@@ -2013,6 +2021,14 @@ function mapListAgentsResponse(wire: ListAgentsResponseWire): UniverseAgentListA
 	};
 }
 
+function mapBackResponse(wire: BackResponseWire): UniverseAgentBackResult {
+	return {
+		ok: wire.success === true,
+		message: wire.message,
+		currentTurnId: wire.current_turn_id,
+	};
+}
+
 interface MemberInfoWire {
 	member_name?: string;
 	member_agent_id?: string;
@@ -2358,6 +2374,20 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			session_id: request.sessionId,
 		});
 		return mapListAgentsResponse(wire);
+	}
+
+	async back(request: UniverseAgentBackRequest): Promise<UniverseAgentBackResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, BackResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.Agent.service,
+			UniverseAgentGrpcServices.Agent.Back,
+		);
+		const wire = await unary({
+			session_id: request.sessionId,
+			agent_id: request.agentId,
+			operation_id: request.operationId,
+		});
+		return mapBackResponse(wire);
 	}
 
 	async renameSession(request: UniverseAgentRenameSessionRequest): Promise<UniverseAgentRenameSessionResult> {

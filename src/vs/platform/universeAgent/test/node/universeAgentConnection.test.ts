@@ -41,6 +41,8 @@ import type {
 	UniverseAgentUsageResult,
 	UniverseAgentListAgentsRequest,
 	UniverseAgentListAgentsResult,
+	UniverseAgentBackRequest,
+	UniverseAgentBackResult,
 	UniverseAgentRenameSessionRequest,
 	UniverseAgentRenameSessionResult,
 	UniverseAgentCancelGenerationRequest,
@@ -295,6 +297,14 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 	async listAgents(request: UniverseAgentListAgentsRequest): Promise<UniverseAgentListAgentsResult> {
 		this.listAgentsCalls.push(request);
 		return this.listAgentsResult;
+	}
+
+	readonly backCalls: UniverseAgentBackRequest[] = [];
+	backResult: UniverseAgentBackResult = { ok: true };
+
+	async back(request: UniverseAgentBackRequest): Promise<UniverseAgentBackResult> {
+		this.backCalls.push(request);
+		return this.backResult;
 	}
 
 	readonly renameCalls: UniverseAgentRenameSessionRequest[] = [];
@@ -903,6 +913,11 @@ suite('UniverseAgentConnectionService', () => {
 
 	test('UniverseAgentGrpcServices lists Agent.List', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.List, 'List');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+	});
+
+	test('UniverseAgentGrpcServices lists Agent.Back', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.Back, 'Back');
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
 	});
 
@@ -1753,6 +1768,27 @@ suite('UniverseAgentConnectionService', () => {
 		const empty = await service.listAgents({ sessionId: '' });
 		assert.deepStrictEqual(empty, { agents: [] });
 		assert.strictEqual(transport.listAgentsCalls[1]?.sessionId, '');
+		service.dispose();
+	});
+
+	test('back forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.backResult = { ok: true, message: 'backed', currentTurnId: 'turn-parent' };
+		const result = await service.back({ sessionId: 'sess-1', agentId: 'root', operationId: 'op-1' });
+		assert.deepStrictEqual(transport.backCalls, [{ sessionId: 'sess-1', agentId: 'root', operationId: 'op-1' }]);
+		assert.deepStrictEqual(result, transport.backResult);
+
+		transport.backResult = { ok: false, message: 'empty leaf', currentTurnId: '' };
+		const empty = await service.back({ sessionId: '', agentId: '', operationId: '' });
+		assert.deepStrictEqual(empty, transport.backResult);
+		assert.strictEqual(transport.backCalls[1]?.sessionId, '');
+		assert.strictEqual(transport.backCalls[1]?.agentId, '');
+		assert.strictEqual(transport.backCalls[1]?.operationId, '');
 		service.dispose();
 	});
 

@@ -45,6 +45,8 @@ import type {
 	UniverseAgentUsageResult,
 	UniverseAgentListAgentsRequest,
 	UniverseAgentListAgentsResult,
+	UniverseAgentBackRequest,
+	UniverseAgentBackResult,
 	UniverseAgentRenameSessionRequest,
 	UniverseAgentRenameSessionResult,
 	UniverseAgentCancelGenerationRequest,
@@ -318,6 +320,15 @@ export interface IUniverseAgentConnection {
 	 * ≠ Tree / Status / ListAgentProfiles / ListSnapshots.
 	 */
 	listAgents?(request: UniverseAgentListAgentsRequest): Promise<UniverseAgentListAgentsResult>;
+
+	/**
+	 * AgentService.Back unary (revert to parent turn / delete current leaf).
+	 * Optional so Web / tests can omit it. Catalog + node transport only this
+	 * slice; empty `sessionId` / `agentId` / `operationId` are sent as-is. No
+	 * Conversation roster / UI.
+	 * ≠ Pause / PauseQueue / Prune / DeleteMessage / Reset / Branch.
+	 */
+	back?(request: UniverseAgentBackRequest): Promise<UniverseAgentBackResult>;
 
 	/** AgentService.Rename unary. Engine roster forwards this when connected. */
 	renameSession(request: UniverseAgentRenameSessionRequest): Promise<UniverseAgentRenameSessionResult>;

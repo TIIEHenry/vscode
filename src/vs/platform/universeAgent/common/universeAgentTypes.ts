@@ -434,6 +434,19 @@ export interface UniverseAgentListAgentsResult {
 	readonly agents: readonly UniverseAgentAgentTreeNode[];
 }
 
+/** AgentService.Back — revert to parent turn / delete current leaf (≠ Pause / PauseQueue / Prune / DeleteMessage). */
+export interface UniverseAgentBackRequest {
+	readonly sessionId: string;
+	readonly agentId: string;
+	readonly operationId: string;
+}
+
+export interface UniverseAgentBackResult {
+	readonly ok: boolean;
+	readonly message?: string;
+	readonly currentTurnId?: string;
+}
+
 /** AgentService.Rename request; empty `title` clears a custom session title. */
 export interface UniverseAgentRenameSessionRequest {
 	readonly sessionId: string;
