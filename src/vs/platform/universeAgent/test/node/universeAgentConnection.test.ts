@@ -113,6 +113,8 @@ import type {
 	UniverseAgentTaskCancelResult,
 	UniverseAgentMessageMemberRequest,
 	UniverseAgentMessageMemberResult,
+	UniverseAgentAbortTeamRequest,
+	UniverseAgentAbortTeamResult,
 	UniverseAgentRespondQuestionRequest,
 	UniverseAgentRespondQuestionResult,
 	UniverseAgentEnqueueQueueItemRequest,
@@ -619,6 +621,14 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 	async messageMember(request: UniverseAgentMessageMemberRequest): Promise<UniverseAgentMessageMemberResult> {
 		this.messageMemberCalls.push(request);
 		return this.messageMemberResult;
+	}
+
+	readonly abortCalls: UniverseAgentAbortTeamRequest[] = [];
+	abortResult: UniverseAgentAbortTeamResult = { ok: true, stoppedMembers: [] };
+
+	async abort(request: UniverseAgentAbortTeamRequest): Promise<UniverseAgentAbortTeamResult> {
+		this.abortCalls.push(request);
+		return this.abortResult;
 	}
 
 	readonly respondQuestionCalls: UniverseAgentRespondQuestionRequest[] = [];
@@ -1298,6 +1308,11 @@ suite('UniverseAgentConnectionService', () => {
 
 	test('UniverseAgentGrpcServices lists Team.MessageMember', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Team.MessageMember, 'MessageMember');
+		assert.strictEqual(UniverseAgentGrpcServices.Team.service, 'universeagent.team.v1.TeamService');
+	});
+
+	test('UniverseAgentGrpcServices lists Team.Abort', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Team.Abort, 'Abort');
 		assert.strictEqual(UniverseAgentGrpcServices.Team.service, 'universeagent.team.v1.TeamService');
 	});
 
@@ -3061,6 +3076,43 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(transport.messageMemberCalls[1]?.agentId, '');
 		assert.strictEqual(transport.messageMemberCalls[1]?.memberName, '');
 		assert.strictEqual(transport.messageMemberCalls[1]?.content, '');
+		service.dispose();
+	});
+
+	test('abort forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.abortResult = { ok: true, message: 'aborted', stoppedMembers: ['worker'] };
+		const result = await service.abort({
+			sessionId: 'sess-1',
+			agentId: 'agent-1',
+			teamId: 7,
+			reason: 'stop',
+		});
+		assert.deepStrictEqual(transport.abortCalls, [{
+			sessionId: 'sess-1',
+			agentId: 'agent-1',
+			teamId: 7,
+			reason: 'stop',
+		}]);
+		assert.deepStrictEqual(result, { ok: true, message: 'aborted', stoppedMembers: ['worker'] });
+
+		transport.abortResult = { ok: false, message: '', stoppedMembers: [] };
+		const empty = await service.abort({
+			sessionId: '',
+			agentId: '',
+			teamId: 0,
+			reason: '',
+		});
+		assert.deepStrictEqual(empty, { ok: false, message: '', stoppedMembers: [] });
+		assert.strictEqual(transport.abortCalls[1]?.sessionId, '');
+		assert.strictEqual(transport.abortCalls[1]?.agentId, '');
+		assert.strictEqual(transport.abortCalls[1]?.teamId, 0);
+		assert.strictEqual(transport.abortCalls[1]?.reason, '');
 		service.dispose();
 	});
 

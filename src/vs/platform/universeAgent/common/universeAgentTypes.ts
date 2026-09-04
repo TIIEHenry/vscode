@@ -905,6 +905,23 @@ export interface UniverseAgentMessageMemberResult {
 	readonly message?: string;
 }
 
+/** TeamService.Abort — abort entire Team (≠ KillMember / CreateTeam / StartMember / MessageMember / TaskCancel / TeamInfo). */
+export interface UniverseAgentAbortTeamRequest {
+	readonly sessionId: string;
+	readonly agentId: string;
+	/** Proto `team_id`. Zero sent as-is. */
+	readonly teamId: number;
+	/** Proto `reason`. Empty sent as-is. */
+	readonly reason: string;
+}
+
+export interface UniverseAgentAbortTeamResult {
+	readonly ok: boolean;
+	readonly message?: string;
+	/** Proto `stopped_members`. Empty list sent as-is. */
+	readonly stoppedMembers: readonly string[];
+}
+
 /** One item answer for AgentService.RespondQuestion (QuestionAnswer.selected_labels). */
 export interface UniverseAgentQuestionAnswer {
 	readonly selectedLabels: readonly string[];
