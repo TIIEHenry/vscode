@@ -117,6 +117,7 @@ import type {
 	UniverseAgentQuestionAnswer,
 	UniverseAgentEnqueueQueueItemRequest,
 	UniverseAgentInsertQueueItemRequest,
+	UniverseAgentReorderQueueRequest,
 	UniverseAgentEditQueueItemRequest,
 	UniverseAgentHoldQueueItemRequest,
 	UniverseAgentQueueHoldReason,
@@ -3009,6 +3010,14 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			text: request.text,
 			priority: queuePriorityWire(request.priority),
 			before_item_id: request.beforeItemId ?? '',
+		});
+	}
+
+	async reorderQueue(request: UniverseAgentReorderQueueRequest): Promise<UniverseAgentQueueMutationResult> {
+		return this._queueMutation(UniverseAgentGrpcServices.Agent.ReorderQueue, {
+			session_id: request.sessionId,
+			op_id: request.opId ?? '',
+			item_ids: request.itemIds ?? [],
 		});
 	}
 

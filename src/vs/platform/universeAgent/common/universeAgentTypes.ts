@@ -794,6 +794,12 @@ export interface UniverseAgentInsertQueueItemRequest extends UniverseAgentQueueR
 	readonly beforeItemId?: string;
 }
 
+/** AgentService.ReorderQueue — reorder existing items (≠ EnqueueQueueItem / InsertQueueItem / EditQueueItem / DeleteQueueItem). */
+export interface UniverseAgentReorderQueueRequest extends UniverseAgentQueueRefRequest {
+	/** Proto `item_ids`. Empty strings sent as-is. */
+	readonly itemIds?: readonly string[];
+}
+
 /** AgentService.HoldQueueItem. */
 export interface UniverseAgentHoldQueueItemRequest extends UniverseAgentQueueItemRefRequest {
 	readonly reason: UniverseAgentQueueHoldReason;
