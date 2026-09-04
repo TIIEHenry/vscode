@@ -101,6 +101,8 @@ import type {
 	UniverseAgentCancelSessionGoalResult,
 	UniverseAgentRespondPermissionRequest,
 	UniverseAgentRespondPermissionResult,
+	UniverseAgentGetSessionRulesRequest,
+	UniverseAgentGetSessionRulesResult,
 	UniverseAgentRespondQuestionRequest,
 	UniverseAgentRespondQuestionResult,
 	UniverseAgentEnqueueQueueItemRequest,
@@ -344,6 +346,9 @@ export interface IUniverseAgentGrpcTransport {
 
 	respondPermission(request: UniverseAgentRespondPermissionRequest): Promise<UniverseAgentRespondPermissionResult>;
 
+	/** PermissionService.GetSessionRules unary (snake_case `session_id`). Empty ids sent as-is. */
+	getSessionRules(request: UniverseAgentGetSessionRulesRequest): Promise<UniverseAgentGetSessionRulesResult>;
+
 	respondQuestion(request: UniverseAgentRespondQuestionRequest): Promise<UniverseAgentRespondQuestionResult>;
 
 	enqueueQueueItem(request: UniverseAgentEnqueueQueueItemRequest): Promise<UniverseAgentQueueMutationResult>;
@@ -551,6 +556,7 @@ export const UniverseAgentGrpcServices = {
 		SetSessionGoal: 'SetSessionGoal',
 		CancelSessionGoal: 'CancelSessionGoal',
 		Respond: 'Respond',
+		GetSessionRules: 'GetSessionRules',
 	},
 	Agent: {
 		service: 'universeagent.agent.v1.AgentService',

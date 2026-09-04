@@ -126,6 +126,9 @@ import type {
 	UniverseAgentCancelSessionGoalResult,
 	UniverseAgentRespondPermissionRequest,
 	UniverseAgentRespondPermissionResult,
+	UniverseAgentGetSessionRulesRequest,
+	UniverseAgentGetSessionRulesResult,
+	UniverseAgentSessionRule,
 	UniverseAgentRespondQuestionRequest,
 	UniverseAgentRespondQuestionResult,
 	UniverseAgentQuestionAnswer,
@@ -508,6 +511,21 @@ interface TodoItemWire {
 
 interface TodoResponseWire {
 	items?: TodoItemWire[];
+}
+
+interface SessionRuleWire {
+	id?: string;
+	tool_name?: string;
+	scope?: string;
+	action?: string | number;
+	reason?: string;
+	created_at?: number | string;
+	expires_at?: number | string;
+	source?: string | number;
+}
+
+interface GetSessionRulesResponseWire {
+	rules?: SessionRuleWire[];
 }
 
 interface EnvelopeAnchorWire {
@@ -1253,6 +1271,49 @@ function mapTodoItem(item: TodoItemWire | undefined): UniverseAgentTodoItem {
 function mapTodoResponse(wire: TodoResponseWire): UniverseAgentTodoResult {
 	return {
 		items: (wire.items ?? []).map(item => mapTodoItem(item)),
+	};
+}
+
+const RuleActionByNumber: Record<number, string> = {
+	0: 'RULE_ACTION_UNSPECIFIED',
+	1: 'ALLOW',
+	2: 'DENY',
+};
+
+const RuleSourceByNumber: Record<number, string> = {
+	0: 'RULE_SOURCE_UNSPECIFIED',
+	1: 'USER_INTERACTIVE',
+	2: 'LLM_REQUESTED',
+	3: 'GLOBAL_INHERITED',
+	4: 'SERVER_SYNCED',
+};
+
+function mapRuleEnum(value: string | number | undefined, byNumber: Record<number, string>): string {
+	if (value === undefined || value === '') {
+		return '';
+	}
+	if (typeof value === 'number') {
+		return byNumber[value] ?? String(value);
+	}
+	return value;
+}
+
+function mapSessionRule(wire: SessionRuleWire | undefined): UniverseAgentSessionRule {
+	return {
+		id: wire?.id ?? '',
+		toolName: wire?.tool_name ?? '',
+		scope: wire?.scope ?? '',
+		action: mapRuleEnum(wire?.action, RuleActionByNumber),
+		reason: wire?.reason ?? '',
+		createdAt: requiredInt64(wire?.created_at),
+		expiresAt: optionalInt64(wire?.expires_at),
+		source: mapRuleEnum(wire?.source, RuleSourceByNumber),
+	};
+}
+
+function mapGetSessionRulesResponse(wire: GetSessionRulesResponseWire): UniverseAgentGetSessionRulesResult {
+	return {
+		rules: (wire.rules ?? []).map(rule => mapSessionRule(rule)),
 	};
 }
 
@@ -3230,6 +3291,18 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			ok: wire.success === true,
 			message: wire.error,
 		};
+	}
+
+	async getSessionRules(request: UniverseAgentGetSessionRulesRequest): Promise<UniverseAgentGetSessionRulesResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, GetSessionRulesResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.Permission.service,
+			UniverseAgentGrpcServices.Permission.GetSessionRules,
+		);
+		const wire = await unary({
+			session_id: request.sessionId,
+		});
+		return mapGetSessionRulesResponse(wire);
 	}
 
 	async respondQuestion(request: UniverseAgentRespondQuestionRequest): Promise<UniverseAgentRespondQuestionResult> {

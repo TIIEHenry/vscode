@@ -99,6 +99,8 @@ import type {
 	UniverseAgentCancelSessionGoalResult,
 	UniverseAgentRespondPermissionRequest,
 	UniverseAgentRespondPermissionResult,
+	UniverseAgentGetSessionRulesRequest,
+	UniverseAgentGetSessionRulesResult,
 	UniverseAgentRespondQuestionRequest,
 	UniverseAgentRespondQuestionResult,
 	UniverseAgentEnqueueQueueItemRequest,
@@ -549,6 +551,14 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 	async respondPermission(request: UniverseAgentRespondPermissionRequest): Promise<UniverseAgentRespondPermissionResult> {
 		this.respondPermissionCalls.push(request);
 		return this.respondPermissionResult;
+	}
+
+	readonly getSessionRulesCalls: UniverseAgentGetSessionRulesRequest[] = [];
+	getSessionRulesResult: UniverseAgentGetSessionRulesResult = { rules: [] };
+
+	async getSessionRules(request: UniverseAgentGetSessionRulesRequest): Promise<UniverseAgentGetSessionRulesResult> {
+		this.getSessionRulesCalls.push(request);
+		return this.getSessionRulesResult;
 	}
 
 	readonly respondQuestionCalls: UniverseAgentRespondQuestionRequest[] = [];
@@ -1193,6 +1203,11 @@ suite('UniverseAgentConnectionService', () => {
 
 	test('UniverseAgentGrpcServices lists Permission.Respond', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Permission.Respond, 'Respond');
+		assert.strictEqual(UniverseAgentGrpcServices.Permission.service, 'universeagent.session.v1.PermissionService');
+	});
+
+	test('UniverseAgentGrpcServices lists Permission.GetSessionRules', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Permission.GetSessionRules, 'GetSessionRules');
 		assert.strictEqual(UniverseAgentGrpcServices.Permission.service, 'universeagent.session.v1.PermissionService');
 	});
 
@@ -2697,6 +2712,36 @@ suite('UniverseAgentConnectionService', () => {
 		const empty = await service.getSessionInfo({ sessionId: '' });
 		assert.deepStrictEqual(empty, transport.getSessionInfoResult);
 		assert.strictEqual(transport.getSessionInfoCalls[1]?.sessionId, '');
+		service.dispose();
+	});
+
+	test('getSessionRules forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.getSessionRulesResult = {
+			rules: [{
+				id: 'rule-1',
+				toolName: 'bash',
+				scope: 'session',
+				action: 'ALLOW',
+				reason: 'user',
+				createdAt: 1,
+				expiresAt: 2,
+				source: 'USER_INTERACTIVE',
+			}],
+		};
+		const result = await service.getSessionRules({ sessionId: 'sess-1' });
+		assert.deepStrictEqual(transport.getSessionRulesCalls, [{ sessionId: 'sess-1' }]);
+		assert.deepStrictEqual(result, transport.getSessionRulesResult);
+
+		transport.getSessionRulesResult = { rules: [] };
+		const empty = await service.getSessionRules({ sessionId: '' });
+		assert.deepStrictEqual(empty, { rules: [] });
+		assert.strictEqual(transport.getSessionRulesCalls[1]?.sessionId, '');
 		service.dispose();
 	});
 
