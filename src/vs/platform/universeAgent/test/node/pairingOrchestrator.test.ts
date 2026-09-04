@@ -121,6 +121,10 @@ class RecordingMockTransport implements IUniverseAgentGrpcTransport {
 		return { ok: false, message: 'test' };
 	}
 
+	async getTodo(): Promise<{ items: [] }> {
+		return { items: [] };
+	}
+
 	async renameSession(): Promise<{ ok: false; message: 'test' }> {
 		return { ok: false, message: 'test' };
 	}
