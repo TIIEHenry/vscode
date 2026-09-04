@@ -822,6 +822,28 @@ export interface UniverseAgentPromotePermissionRuleResult {
 	readonly ok: boolean;
 }
 
+/** PermissionService.GetSessionRules — list session permission rules (≠ SetSessionGoal / CancelSessionGoal / Respond / SyncPermissionRule / PromotePermissionRule). */
+export interface UniverseAgentGetSessionRulesRequest {
+	readonly sessionId: string;
+}
+
+export interface UniverseAgentSessionRule {
+	readonly id: string;
+	readonly toolName: string;
+	readonly scope: string;
+	/** RuleAction name, e.g. `ALLOW`. */
+	readonly action: string;
+	readonly reason: string;
+	readonly createdAt: number;
+	readonly expiresAt?: number;
+	/** RuleSource name, e.g. `USER_INTERACTIVE`. */
+	readonly source: string;
+}
+
+export interface UniverseAgentGetSessionRulesResult {
+	readonly rules: readonly UniverseAgentSessionRule[];
+}
+
 /** One item answer for AgentService.RespondQuestion (QuestionAnswer.selected_labels). */
 export interface UniverseAgentQuestionAnswer {
 	readonly selectedLabels: readonly string[];
