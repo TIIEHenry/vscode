@@ -105,6 +105,7 @@ import type {
 	UniverseAgentInsertQueueItemRequest,
 	UniverseAgentReorderQueueRequest,
 	UniverseAgentDeleteQueueItemRequest,
+	UniverseAgentRetryAllFailedRequest,
 	UniverseAgentEditQueueItemRequest,
 	UniverseAgentHoldQueueItemRequest,
 	UniverseAgentQueueItemRefRequest,
@@ -874,6 +875,10 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 
 	async deleteQueueItem(request: UniverseAgentDeleteQueueItemRequest): Promise<UniverseAgentQueueMutationResult> {
 		return this._withTransport(transport => transport.deleteQueueItem(request));
+	}
+
+	async retryAllFailed(request: UniverseAgentRetryAllFailedRequest): Promise<UniverseAgentQueueMutationResult> {
+		return this._withTransport(transport => transport.retryAllFailed(request));
 	}
 
 	async pauseQueue(request: UniverseAgentQueueRefRequest): Promise<UniverseAgentQueueMutationResult> {
