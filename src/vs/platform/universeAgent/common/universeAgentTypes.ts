@@ -161,6 +161,12 @@ export interface UniverseAgentTodoRequest {
 	readonly agentId: string;
 }
 
+/** AgentService.Compact — manual context compaction (≠ Todo / Status / Tree). */
+export interface UniverseAgentCompactRequest {
+	readonly sessionId: string;
+	readonly agentId: string;
+}
+
 export interface UniverseAgentTodoItem {
 	readonly id: string;
 	readonly content: string;
@@ -172,6 +178,16 @@ export interface UniverseAgentTodoItem {
 
 export interface UniverseAgentTodoResult {
 	readonly items: readonly UniverseAgentTodoItem[];
+}
+
+export interface UniverseAgentCompactResult {
+	readonly ok: boolean;
+	readonly message?: string;
+	readonly tokensBefore?: number;
+	readonly tokensAfter?: number;
+	/** CompactOutcomeProto name, e.g. `COMPACT_OUTCOME_SUCCEEDED`. */
+	readonly outcome?: string;
+	readonly rejectReason?: string;
 }
 
 /** AgentService.Rename request; empty `title` clears a custom session title. */

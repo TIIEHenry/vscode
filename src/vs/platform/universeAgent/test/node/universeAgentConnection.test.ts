@@ -31,6 +31,8 @@ import type {
 	UniverseAgentAgentStatusResult,
 	UniverseAgentTodoRequest,
 	UniverseAgentTodoResult,
+	UniverseAgentCompactRequest,
+	UniverseAgentCompactResult,
 	UniverseAgentRenameSessionRequest,
 	UniverseAgentRenameSessionResult,
 	UniverseAgentCancelGenerationRequest,
@@ -239,6 +241,14 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 	async getTodo(request: UniverseAgentTodoRequest): Promise<UniverseAgentTodoResult> {
 		this.getTodoCalls.push(request);
 		return this.getTodoResult;
+	}
+
+	readonly compactCalls: UniverseAgentCompactRequest[] = [];
+	compactResult: UniverseAgentCompactResult = { ok: true };
+
+	async compact(request: UniverseAgentCompactRequest): Promise<UniverseAgentCompactResult> {
+		this.compactCalls.push(request);
+		return this.compactResult;
 	}
 
 	readonly renameCalls: UniverseAgentRenameSessionRequest[] = [];
@@ -822,6 +832,11 @@ suite('UniverseAgentConnectionService', () => {
 
 	test('UniverseAgentGrpcServices lists Agent.Todo', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.Todo, 'Todo');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+	});
+
+	test('UniverseAgentGrpcServices lists Agent.Compact', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.Compact, 'Compact');
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
 	});
 
@@ -1501,6 +1516,33 @@ suite('UniverseAgentConnectionService', () => {
 		assert.deepStrictEqual(empty, transport.getAgentStatusResult);
 		assert.strictEqual(transport.getAgentStatusCalls[1]?.sessionId, '');
 		assert.strictEqual(transport.getAgentStatusCalls[1]?.agentId, '');
+		service.dispose();
+	});
+
+	test('compact forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.compactResult = {
+			ok: true,
+			message: 'compacted',
+			tokensBefore: 1200,
+			tokensAfter: 400,
+			outcome: 'COMPACT_OUTCOME_SUCCEEDED',
+			rejectReason: '',
+		};
+		const result = await service.compact({ sessionId: 'sess-1', agentId: 'root' });
+		assert.deepStrictEqual(transport.compactCalls, [{ sessionId: 'sess-1', agentId: 'root' }]);
+		assert.deepStrictEqual(result, transport.compactResult);
+
+		transport.compactResult = { ok: false, message: 'busy', outcome: 'COMPACT_OUTCOME_FAILED', rejectReason: 'ADMISSION_BUSY' };
+		const empty = await service.compact({ sessionId: '', agentId: '' });
+		assert.deepStrictEqual(empty, transport.compactResult);
+		assert.strictEqual(transport.compactCalls[1]?.sessionId, '');
+		assert.strictEqual(transport.compactCalls[1]?.agentId, '');
 		service.dispose();
 	});
 

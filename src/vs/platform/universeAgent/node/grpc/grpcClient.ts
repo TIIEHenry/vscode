@@ -34,6 +34,8 @@ import type {
 	UniverseAgentTodoRequest,
 	UniverseAgentTodoResult,
 	UniverseAgentTodoItem,
+	UniverseAgentCompactRequest,
+	UniverseAgentCompactResult,
 	UniverseAgentRenameSessionRequest,
 	UniverseAgentRenameSessionResult,
 	UniverseAgentCancelGenerationRequest,
@@ -238,6 +240,26 @@ interface ExportSessionResponseWire {
 interface StatusResponseWire {
 	agent?: AgentInfoWire;
 }
+
+interface CompactResponseWire {
+	success?: boolean;
+	message?: string;
+	tokens_before?: number;
+	tokens_after?: number;
+	outcome?: string | number;
+	reject_reason?: string;
+}
+
+const CompactOutcomeByNumber: Record<number, string> = {
+	0: 'COMPACT_OUTCOME_UNSPECIFIED',
+	1: 'COMPACT_OUTCOME_STARTED',
+	2: 'COMPACT_OUTCOME_SUCCEEDED',
+	3: 'COMPACT_OUTCOME_FAILED',
+	4: 'COMPACT_OUTCOME_APPLIED_PENDING_RETRY',
+	5: 'COMPACT_OUTCOME_APPLIED_DURABILITY_FAILED',
+	6: 'COMPACT_OUTCOME_APPLIED_IN_FLIGHT',
+	7: 'COMPACT_OUTCOME_APPLIED_NOT_CONFIGURED',
+};
 
 interface SessionSnapshotInfoWire {
 	id?: string;
@@ -652,6 +674,27 @@ function mapExportSessionResponse(wire: ExportSessionResponseWire): UniverseAgen
 function mapStatusResponse(wire: StatusResponseWire): UniverseAgentAgentStatusResult {
 	return {
 		agent: mapAgentTreeNode(wire.agent),
+	};
+}
+
+function mapCompactOutcome(value: string | number | undefined): string | undefined {
+	if (value === undefined || value === '') {
+		return undefined;
+	}
+	if (typeof value === 'number') {
+		return CompactOutcomeByNumber[value] ?? String(value);
+	}
+	return value;
+}
+
+function mapCompactResponse(wire: CompactResponseWire): UniverseAgentCompactResult {
+	return {
+		ok: wire.success === true,
+		message: wire.message,
+		tokensBefore: wire.tokens_before,
+		tokensAfter: wire.tokens_after,
+		outcome: mapCompactOutcome(wire.outcome),
+		rejectReason: wire.reject_reason,
 	};
 }
 
@@ -1707,6 +1750,19 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			agent_id: request.agentId,
 		});
 		return mapTodoResponse(wire);
+	}
+
+	async compact(request: UniverseAgentCompactRequest): Promise<UniverseAgentCompactResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, CompactResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.Agent.service,
+			UniverseAgentGrpcServices.Agent.Compact,
+		);
+		const wire = await unary({
+			session_id: request.sessionId,
+			agent_id: request.agentId,
+		});
+		return mapCompactResponse(wire);
 	}
 
 	async renameSession(request: UniverseAgentRenameSessionRequest): Promise<UniverseAgentRenameSessionResult> {
