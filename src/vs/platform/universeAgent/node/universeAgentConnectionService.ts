@@ -32,6 +32,8 @@ import type {
 	UniverseAgentUnshelveSessionResult,
 	UniverseAgentPurgeSessionRequest,
 	UniverseAgentPurgeSessionResult,
+	UniverseAgentExportSessionRequest,
+	UniverseAgentExportSessionResult,
 	UniverseAgentAgentStatusRequest,
 	UniverseAgentAgentStatusResult,
 	UniverseAgentTodoRequest,
@@ -683,6 +685,10 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 
 	async purgeSession(request: UniverseAgentPurgeSessionRequest): Promise<UniverseAgentPurgeSessionResult> {
 		return this._withTransport(transport => transport.purgeSession(request));
+	}
+
+	async exportSession(request: UniverseAgentExportSessionRequest): Promise<UniverseAgentExportSessionResult> {
+		return this._withTransport(transport => transport.exportSession(request));
 	}
 
 	async getAgentStatus(request: UniverseAgentAgentStatusRequest): Promise<UniverseAgentAgentStatusResult> {

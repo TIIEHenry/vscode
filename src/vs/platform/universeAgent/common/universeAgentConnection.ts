@@ -29,6 +29,8 @@ import type {
 	UniverseAgentUnshelveSessionResult,
 	UniverseAgentPurgeSessionRequest,
 	UniverseAgentPurgeSessionResult,
+	UniverseAgentExportSessionRequest,
+	UniverseAgentExportSessionResult,
 	UniverseAgentAgentStatusRequest,
 	UniverseAgentAgentStatusResult,
 	UniverseAgentTodoRequest,
@@ -241,6 +243,14 @@ export interface IUniverseAgentConnection {
 	 * `sessionId` is sent as-is. No Conversation roster / UI. ≠ Delete / Shelve / Unshelve / Export.
 	 */
 	purgeSession?(request: UniverseAgentPurgeSessionRequest): Promise<UniverseAgentPurgeSessionResult>;
+
+	/**
+	 * SessionService.Export unary (dump a session as markdown/json). Optional so
+	 * Web / tests can omit it. Catalog + node transport only this slice; empty
+	 * `sessionId` / `format` are sent as-is. No Conversation roster / UI.
+	 * ≠ Shelve / Unshelve / Resume / Delete.
+	 */
+	exportSession?(request: UniverseAgentExportSessionRequest): Promise<UniverseAgentExportSessionResult>;
 
 	/**
 	 * AgentService.Status unary (StatusResponse.agent → AgentInfo). Optional so
