@@ -184,6 +184,8 @@ import type {
 	UniverseAgentListFilesResult,
 	UniverseAgentReadFileRequest,
 	UniverseAgentReadFileResult,
+	UniverseAgentWriteFileRequest,
+	UniverseAgentWriteFileResult,
 	UniverseAgentGetHistoryRequest,
 	UniverseAgentGetHistoryResult,
 	UniverseAgentListSessionsRequest,
@@ -1288,6 +1290,22 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 		return this.readFileResult;
 	}
 
+	readonly writeFileCalls: UniverseAgentWriteFileRequest[] = [];
+	writeFileResult: UniverseAgentWriteFileResult = {
+		status: 'SAVED',
+		newHash: '',
+		size: 0,
+		modifiedAt: 0,
+		currentContent: new Uint8Array(0),
+		currentHash: '',
+		mergedContent: new Uint8Array(0),
+	};
+
+	async writeFile(request: UniverseAgentWriteFileRequest): Promise<UniverseAgentWriteFileResult> {
+		this.writeFileCalls.push(request);
+		return this.writeFileResult;
+	}
+
 	async listModels() {
 		return { models: [] };
 	}
@@ -1663,6 +1681,11 @@ suite('UniverseAgentConnectionService', () => {
 
 	test('UniverseAgentGrpcServices lists File.ReadFile', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.File.ReadFile, 'ReadFile');
+		assert.strictEqual(UniverseAgentGrpcServices.File.service, 'universeagent.file.v1.FileService');
+	});
+
+	test('UniverseAgentGrpcServices lists File.WriteFile', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.File.WriteFile, 'WriteFile');
 		assert.strictEqual(UniverseAgentGrpcServices.File.service, 'universeagent.file.v1.FileService');
 	});
 
@@ -3960,6 +3983,63 @@ suite('UniverseAgentConnectionService', () => {
 		assert.deepStrictEqual(empty.content, new Uint8Array(0));
 		assert.strictEqual(empty.mimeType, '');
 		assert.strictEqual(empty.contentHash, '');
+		service.dispose();
+	});
+
+	test('writeFile forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.writeFileResult = {
+			status: 'SAVED',
+			newHash: 'hash-1',
+			size: 3,
+			modifiedAt: 100,
+			currentContent: new Uint8Array([97, 98, 99]),
+			currentHash: 'hash-1',
+			mergedContent: new Uint8Array(0),
+		};
+		const request = {
+			path: 'src/foo.ts',
+			content: new Uint8Array([97, 98, 99]),
+			baseHash: 'base-1',
+			sessionId: 'sess-1',
+			baseContent: new Uint8Array([97]),
+		};
+		const result = await service.writeFile(request);
+		assert.deepStrictEqual(transport.writeFileCalls, [request]);
+		assert.deepStrictEqual(result, transport.writeFileResult);
+
+		transport.writeFileResult = {
+			status: 'SAVED',
+			newHash: '',
+			size: 0,
+			modifiedAt: 0,
+			currentContent: new Uint8Array(0),
+			currentHash: '',
+			mergedContent: new Uint8Array(0),
+		};
+		const emptyRequest = {
+			path: '',
+			content: new Uint8Array(0),
+			baseHash: '',
+			sessionId: '',
+			baseContent: new Uint8Array(0),
+		};
+		const empty = await service.writeFile(emptyRequest);
+		assert.strictEqual(transport.writeFileCalls[1]?.path, '');
+		assert.strictEqual(transport.writeFileCalls[1]?.sessionId, '');
+		assert.strictEqual(transport.writeFileCalls[1]?.baseHash, '');
+		assert.deepStrictEqual(transport.writeFileCalls[1]?.content, new Uint8Array(0));
+		assert.deepStrictEqual(transport.writeFileCalls[1]?.baseContent, new Uint8Array(0));
+		assert.strictEqual(empty.status, 'SAVED');
+		assert.strictEqual(empty.newHash, '');
+		assert.strictEqual(empty.currentHash, '');
+		assert.deepStrictEqual(empty.currentContent, new Uint8Array(0));
+		assert.deepStrictEqual(empty.mergedContent, new Uint8Array(0));
 		service.dispose();
 	});
 

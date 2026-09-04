@@ -212,6 +212,8 @@ import type {
 	UniverseAgentListFilesResult,
 	UniverseAgentReadFileRequest,
 	UniverseAgentReadFileResult,
+	UniverseAgentWriteFileRequest,
+	UniverseAgentWriteFileResult,
 	UniverseAgentSetPermissionPolicyRequest,
 	UniverseAgentSetPermissionPolicyResult,
 	UniverseAgentListModelsResult,
@@ -1290,6 +1292,10 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 
 	async readFile(request: UniverseAgentReadFileRequest): Promise<UniverseAgentReadFileResult> {
 		return this._withTransport(transport => transport.readFile(request));
+	}
+
+	async writeFile(request: UniverseAgentWriteFileRequest): Promise<UniverseAgentWriteFileResult> {
+		return this._withTransport(transport => transport.writeFile(request));
 	}
 
 	async setPermissionPolicy(request: UniverseAgentSetPermissionPolicyRequest): Promise<UniverseAgentSetPermissionPolicyResult> {

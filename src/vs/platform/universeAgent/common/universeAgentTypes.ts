@@ -1914,6 +1914,32 @@ export interface UniverseAgentReadFileResult {
 }
 
 /**
+ * FileService.WriteFile — proto `WriteFileRequest` / `WriteFileResponse` only.
+ * Empty `path` / `session_id` / `base_hash` pass through as-is. Empty
+ * `content` / `base_content` sent as-is.
+ * ≠ ListFiles / ReadFile / GetFileInfo / ForceWriteFile / AgentMerge.
+ */
+export type UniverseAgentWriteFileStatus = 'SAVED' | 'MERGED' | 'CONFLICT';
+
+export interface UniverseAgentWriteFileRequest {
+	readonly path: string;
+	readonly content: Uint8Array;
+	readonly baseHash: string;
+	readonly sessionId: string;
+	readonly baseContent: Uint8Array;
+}
+
+export interface UniverseAgentWriteFileResult {
+	readonly status: UniverseAgentWriteFileStatus;
+	readonly newHash: string;
+	readonly size: number;
+	readonly modifiedAt: number;
+	readonly currentContent: Uint8Array;
+	readonly currentHash: string;
+	readonly mergedContent: Uint8Array;
+}
+
+/**
  * ConfigService.SetPermissionPolicy — session/tool policy write
  * (≠ SwitchModel / ListModels / Get / Set / GetModelPreferences /
  * SetModelPreferences / SetPermissionMode).
