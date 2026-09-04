@@ -223,6 +223,8 @@ import type {
 	UniverseAgentReadGitFileDiffRequest,
 	UniverseAgentReadGitFileDiffResult,
 	UniverseAgentWriteGitStagePathsRequest,
+	UniverseAgentWriteGitCommitRequest,
+	UniverseAgentWriteGitApplyHunksRequest,
 	UniverseAgentWriteGitWriteResult,
 	UniverseAgentSetPermissionPolicyRequest,
 	UniverseAgentSetPermissionPolicyResult,
@@ -1224,6 +1226,31 @@ export interface IUniverseAgentConnection {
 	 * WriteGitApplyHunks.
 	 */
 	writeGitStagePaths?(request: UniverseAgentWriteGitStagePathsRequest): Promise<UniverseAgentWriteGitWriteResult>;
+
+	/**
+	 * GitService.WriteGitCommit unary. Optional so Web / tests can omit it.
+	 * Catalog + node transport only this slice; empty `sessionId` is sent
+	 * as-is. Empty `message` sent as-is. `signOff` / `amend` false sent
+	 * as-is. Proto fields only (`WriteGitCommitRequest` /
+	 * `WriteGitWriteResponse`: `supported` / `reason` / `success` /
+	 * `error_message` / `exit_code` / `stdout`). No Conversation roster /
+	 * UI / SCM / Engine Preferences / Composer.
+	 * ≠ ReadGitSummary / ReadGitChanges / ReadGitFileDiff /
+	 * WriteGitStagePaths / WriteGitApplyHunks.
+	 */
+	writeGitCommit?(request: UniverseAgentWriteGitCommitRequest): Promise<UniverseAgentWriteGitWriteResult>;
+
+	/**
+	 * GitService.WriteGitApplyHunks unary. Optional so Web / tests can omit it.
+	 * Catalog + node transport only this slice; empty `sessionId` is sent
+	 * as-is. Empty `argv` / empty `patches` sent as-is. Proto fields only
+	 * (`supported` / `reason` / `success` / `error_message` / `exit_code` /
+	 * `stdout`). No Conversation roster / UI / SCM / Engine Preferences /
+	 * Composer.
+	 * ≠ ReadGitSummary / ReadGitChanges / ReadGitFileDiff / WriteGitStagePaths /
+	 * WriteGitCommit.
+	 */
+	writeGitApplyHunks?(request: UniverseAgentWriteGitApplyHunksRequest): Promise<UniverseAgentWriteGitWriteResult>;
 
 	/**
 	 * ConfigService.SetPermissionPolicy unary (session/tool Ask/Agent/Permit

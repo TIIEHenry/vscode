@@ -226,6 +226,8 @@ import type {
 	UniverseAgentReadGitFileDiffRequest,
 	UniverseAgentReadGitFileDiffResult,
 	UniverseAgentWriteGitStagePathsRequest,
+	UniverseAgentWriteGitCommitRequest,
+	UniverseAgentWriteGitApplyHunksRequest,
 	UniverseAgentWriteGitWriteResult,
 	UniverseAgentSetPermissionPolicyRequest,
 	UniverseAgentSetPermissionPolicyResult,
@@ -1337,6 +1339,14 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 
 	async writeGitStagePaths(request: UniverseAgentWriteGitStagePathsRequest): Promise<UniverseAgentWriteGitWriteResult> {
 		return this._withTransport(transport => transport.writeGitStagePaths(request));
+	}
+
+	async writeGitCommit(request: UniverseAgentWriteGitCommitRequest): Promise<UniverseAgentWriteGitWriteResult> {
+		return this._withTransport(transport => transport.writeGitCommit(request));
+	}
+
+	async writeGitApplyHunks(request: UniverseAgentWriteGitApplyHunksRequest): Promise<UniverseAgentWriteGitWriteResult> {
+		return this._withTransport(transport => transport.writeGitApplyHunks(request));
 	}
 
 	async setPermissionPolicy(request: UniverseAgentSetPermissionPolicyRequest): Promise<UniverseAgentSetPermissionPolicyResult> {

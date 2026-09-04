@@ -285,6 +285,8 @@ import type {
 	UniverseAgentReadGitFileDiffRequest,
 	UniverseAgentReadGitFileDiffResult,
 	UniverseAgentWriteGitStagePathsRequest,
+	UniverseAgentWriteGitCommitRequest,
+	UniverseAgentWriteGitApplyHunksRequest,
 	UniverseAgentWriteGitWriteResult,
 	UniverseAgentListModelsResult,
 	UniverseAgentGetConfigRequest,
@@ -4780,6 +4782,35 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 		const wire = await unary({
 			session_id: request.sessionId,
 			commands: request.commands.map(command => ({ argv: [...command.argv] })),
+		});
+		return mapWriteGitWriteResponse(wire);
+	}
+
+	async writeGitCommit(request: UniverseAgentWriteGitCommitRequest): Promise<UniverseAgentWriteGitWriteResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, WriteGitWriteResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.Git.service,
+			UniverseAgentGrpcServices.Git.WriteGitCommit,
+		);
+		const wire = await unary({
+			session_id: request.sessionId,
+			message: request.message,
+			sign_off: request.signOff,
+			amend: request.amend,
+		});
+		return mapWriteGitWriteResponse(wire);
+	}
+
+	async writeGitApplyHunks(request: UniverseAgentWriteGitApplyHunksRequest): Promise<UniverseAgentWriteGitWriteResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, WriteGitWriteResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.Git.service,
+			UniverseAgentGrpcServices.Git.WriteGitApplyHunks,
+		);
+		const wire = await unary({
+			session_id: request.sessionId,
+			argv: [...request.argv],
+			patches: [...request.patches],
 		});
 		return mapWriteGitWriteResponse(wire);
 	}

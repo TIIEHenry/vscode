@@ -218,6 +218,8 @@ import type {
 	UniverseAgentReadGitFileDiffRequest,
 	UniverseAgentReadGitFileDiffResult,
 	UniverseAgentWriteGitStagePathsRequest,
+	UniverseAgentWriteGitCommitRequest,
+	UniverseAgentWriteGitApplyHunksRequest,
 	UniverseAgentWriteGitWriteResult,
 	UniverseAgentSetPermissionPolicyRequest,
 	UniverseAgentSetPermissionPolicyResult,
@@ -637,6 +639,12 @@ export interface IUniverseAgentGrpcTransport {
 	/** GitService.WriteGitStagePaths unary (snake_case `session_id`/`commands[].argv`). Empty ids sent as-is. */
 	writeGitStagePaths(request: UniverseAgentWriteGitStagePathsRequest): Promise<UniverseAgentWriteGitWriteResult>;
 
+	/** GitService.WriteGitCommit unary (snake_case `session_id`/`message`/`sign_off`/`amend`). Empty ids sent as-is. */
+	writeGitCommit(request: UniverseAgentWriteGitCommitRequest): Promise<UniverseAgentWriteGitWriteResult>;
+
+	/** GitService.WriteGitApplyHunks unary (snake_case `session_id`/`argv`/`patches`). Empty ids sent as-is. */
+	writeGitApplyHunks(request: UniverseAgentWriteGitApplyHunksRequest): Promise<UniverseAgentWriteGitWriteResult>;
+
 	/** ConfigService.SetPermissionPolicy unary (snake_case `session_id`/`tool_name`/`policy`). Empty ids sent as-is. */
 	setPermissionPolicy(request: UniverseAgentSetPermissionPolicyRequest): Promise<UniverseAgentSetPermissionPolicyResult>;
 
@@ -848,6 +856,8 @@ export const UniverseAgentGrpcServices = {
 		ReadGitChanges: 'ReadGitChanges',
 		ReadGitFileDiff: 'ReadGitFileDiff',
 		WriteGitStagePaths: 'WriteGitStagePaths',
+		WriteGitCommit: 'WriteGitCommit',
+		WriteGitApplyHunks: 'WriteGitApplyHunks',
 	},
 } as const;
 

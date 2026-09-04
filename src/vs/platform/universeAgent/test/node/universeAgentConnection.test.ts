@@ -198,6 +198,8 @@ import type {
 	UniverseAgentReadGitFileDiffRequest,
 	UniverseAgentReadGitFileDiffResult,
 	UniverseAgentWriteGitStagePathsRequest,
+	UniverseAgentWriteGitCommitRequest,
+	UniverseAgentWriteGitApplyHunksRequest,
 	UniverseAgentWriteGitWriteResult,
 	UniverseAgentGetHistoryRequest,
 	UniverseAgentGetHistoryResult,
@@ -1416,6 +1418,36 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 		return this.writeGitStagePathsResult;
 	}
 
+	readonly writeGitCommitCalls: UniverseAgentWriteGitCommitRequest[] = [];
+	writeGitCommitResult: UniverseAgentWriteGitWriteResult = {
+		supported: false,
+		reason: '',
+		success: false,
+		errorMessage: '',
+		exitCode: 0,
+		stdout: '',
+	};
+
+	async writeGitCommit(request: UniverseAgentWriteGitCommitRequest): Promise<UniverseAgentWriteGitWriteResult> {
+		this.writeGitCommitCalls.push(request);
+		return this.writeGitCommitResult;
+	}
+
+	readonly writeGitApplyHunksCalls: UniverseAgentWriteGitApplyHunksRequest[] = [];
+	writeGitApplyHunksResult: UniverseAgentWriteGitWriteResult = {
+		supported: false,
+		reason: '',
+		success: false,
+		errorMessage: '',
+		exitCode: 0,
+		stdout: '',
+	};
+
+	async writeGitApplyHunks(request: UniverseAgentWriteGitApplyHunksRequest): Promise<UniverseAgentWriteGitWriteResult> {
+		this.writeGitApplyHunksCalls.push(request);
+		return this.writeGitApplyHunksResult;
+	}
+
 	async listModels() {
 		return { models: [] };
 	}
@@ -1831,6 +1863,16 @@ suite('UniverseAgentConnectionService', () => {
 
 	test('UniverseAgentGrpcServices lists Git.WriteGitStagePaths', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Git.WriteGitStagePaths, 'WriteGitStagePaths');
+		assert.strictEqual(UniverseAgentGrpcServices.Git.service, 'universeagent.git.v1.GitService');
+	});
+
+	test('UniverseAgentGrpcServices lists Git.WriteGitCommit', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Git.WriteGitCommit, 'WriteGitCommit');
+		assert.strictEqual(UniverseAgentGrpcServices.Git.service, 'universeagent.git.v1.GitService');
+	});
+
+	test('UniverseAgentGrpcServices lists Git.WriteGitApplyHunks', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Git.WriteGitApplyHunks, 'WriteGitApplyHunks');
 		assert.strictEqual(UniverseAgentGrpcServices.Git.service, 'universeagent.git.v1.GitService');
 	});
 
@@ -4490,6 +4532,119 @@ suite('UniverseAgentConnectionService', () => {
 		await service.writeGitStagePaths(emptyCommandsRequest);
 		assert.strictEqual(transport.writeGitStagePathsCalls[2]?.sessionId, '');
 		assert.deepStrictEqual(transport.writeGitStagePathsCalls[2]?.commands, []);
+		service.dispose();
+	});
+
+	test('writeGitCommit forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.writeGitCommitResult = {
+			supported: true,
+			reason: '',
+			success: true,
+			errorMessage: '',
+			exitCode: 0,
+			stdout: 'committed',
+		};
+		const request = {
+			sessionId: 'sess-1',
+			message: 'fix: wire write',
+			signOff: true,
+			amend: false,
+		};
+		const result = await service.writeGitCommit(request);
+		assert.deepStrictEqual(transport.writeGitCommitCalls, [request]);
+		assert.deepStrictEqual(result, transport.writeGitCommitResult);
+
+		transport.writeGitCommitResult = {
+			supported: false,
+			reason: '',
+			success: false,
+			errorMessage: '',
+			exitCode: 0,
+			stdout: '',
+		};
+		const emptyRequest = {
+			sessionId: '',
+			message: '',
+			signOff: false,
+			amend: false,
+		};
+		const empty = await service.writeGitCommit(emptyRequest);
+		assert.strictEqual(transport.writeGitCommitCalls[1]?.sessionId, '');
+		assert.strictEqual(transport.writeGitCommitCalls[1]?.message, '');
+		assert.strictEqual(transport.writeGitCommitCalls[1]?.signOff, false);
+		assert.strictEqual(transport.writeGitCommitCalls[1]?.amend, false);
+		assert.strictEqual(empty.supported, false);
+		assert.strictEqual(empty.reason, '');
+		assert.strictEqual(empty.success, false);
+		assert.strictEqual(empty.errorMessage, '');
+		assert.strictEqual(empty.exitCode, 0);
+		assert.strictEqual(empty.stdout, '');
+		service.dispose();
+	});
+
+	test('writeGitApplyHunks forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.writeGitApplyHunksResult = {
+			supported: true,
+			reason: '',
+			success: true,
+			errorMessage: '',
+			exitCode: 0,
+			stdout: 'applied',
+		};
+		const request = {
+			sessionId: 'sess-1',
+			argv: ['apply', '--cached'],
+			patches: ['diff --git a/src/foo.ts b/src/foo.ts\n'],
+		};
+		const result = await service.writeGitApplyHunks(request);
+		assert.deepStrictEqual(transport.writeGitApplyHunksCalls, [request]);
+		assert.deepStrictEqual(result, transport.writeGitApplyHunksResult);
+
+		transport.writeGitApplyHunksResult = {
+			supported: false,
+			reason: '',
+			success: false,
+			errorMessage: '',
+			exitCode: 0,
+			stdout: '',
+		};
+		const emptyRequest = {
+			sessionId: '',
+			argv: [''],
+			patches: [''],
+		};
+		const empty = await service.writeGitApplyHunks(emptyRequest);
+		assert.strictEqual(transport.writeGitApplyHunksCalls[1]?.sessionId, '');
+		assert.deepStrictEqual(transport.writeGitApplyHunksCalls[1]?.argv, ['']);
+		assert.deepStrictEqual(transport.writeGitApplyHunksCalls[1]?.patches, ['']);
+		assert.strictEqual(empty.supported, false);
+		assert.strictEqual(empty.reason, '');
+		assert.strictEqual(empty.success, false);
+		assert.strictEqual(empty.errorMessage, '');
+		assert.strictEqual(empty.exitCode, 0);
+		assert.strictEqual(empty.stdout, '');
+
+		const emptyListsRequest = {
+			sessionId: '',
+			argv: [],
+			patches: [],
+		};
+		await service.writeGitApplyHunks(emptyListsRequest);
+		assert.strictEqual(transport.writeGitApplyHunksCalls[2]?.sessionId, '');
+		assert.deepStrictEqual(transport.writeGitApplyHunksCalls[2]?.argv, []);
+		assert.deepStrictEqual(transport.writeGitApplyHunksCalls[2]?.patches, []);
 		service.dispose();
 	});
 
