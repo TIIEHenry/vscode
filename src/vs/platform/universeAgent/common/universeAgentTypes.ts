@@ -778,6 +778,9 @@ export interface UniverseAgentQueueItemRefRequest extends UniverseAgentQueueRefR
 	readonly itemId: string;
 }
 
+/** AgentService.DeleteQueueItem — proto QueueItemRefRequest (≠ ReorderQueue / InsertQueueItem / RetryQueueItem / EditQueueItem). */
+export type UniverseAgentDeleteQueueItemRequest = UniverseAgentQueueItemRefRequest;
+
 /** AgentService.EnqueueQueueItem. */
 export interface UniverseAgentEnqueueQueueItemRequest extends UniverseAgentQueueRefRequest {
 	readonly text: string;

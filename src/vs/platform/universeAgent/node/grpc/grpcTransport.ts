@@ -96,6 +96,7 @@ import type {
 	UniverseAgentEnqueueQueueItemRequest,
 	UniverseAgentInsertQueueItemRequest,
 	UniverseAgentReorderQueueRequest,
+	UniverseAgentDeleteQueueItemRequest,
 	UniverseAgentEditQueueItemRequest,
 	UniverseAgentHoldQueueItemRequest,
 	UniverseAgentQueueItemRefRequest,
@@ -329,6 +330,9 @@ export interface IUniverseAgentGrpcTransport {
 	/** AgentService.ReorderQueue unary (snake_case `session_id`/`op_id`/`item_ids`). Empty ids sent as-is. */
 	reorderQueue(request: UniverseAgentReorderQueueRequest): Promise<UniverseAgentQueueMutationResult>;
 
+	/** AgentService.DeleteQueueItem unary (snake_case `session_id`/`item_id`/`op_id`). Empty ids sent as-is. */
+	deleteQueueItem(request: UniverseAgentDeleteQueueItemRequest): Promise<UniverseAgentQueueMutationResult>;
+
 	pauseQueue(request: UniverseAgentQueueRefRequest): Promise<UniverseAgentQueueMutationResult>;
 
 	resumeQueue(request: UniverseAgentQueueRefRequest): Promise<UniverseAgentQueueMutationResult>;
@@ -514,6 +518,7 @@ export const UniverseAgentGrpcServices = {
 		EnqueueQueueItem: 'EnqueueQueueItem',
 		InsertQueueItem: 'InsertQueueItem',
 		ReorderQueue: 'ReorderQueue',
+		DeleteQueueItem: 'DeleteQueueItem',
 		PauseQueue: 'PauseQueue',
 		ResumeQueue: 'ResumeQueue',
 		ClearQueue: 'ClearQueue',

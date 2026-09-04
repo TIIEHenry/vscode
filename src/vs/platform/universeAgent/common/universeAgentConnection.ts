@@ -101,6 +101,7 @@ import type {
 	UniverseAgentEnqueueQueueItemRequest,
 	UniverseAgentInsertQueueItemRequest,
 	UniverseAgentReorderQueueRequest,
+	UniverseAgentDeleteQueueItemRequest,
 	UniverseAgentEditQueueItemRequest,
 	UniverseAgentHoldQueueItemRequest,
 	UniverseAgentQueueItemRefRequest,
@@ -558,6 +559,15 @@ export interface IUniverseAgentConnection {
 	 * ≠ EnqueueQueueItem / InsertQueueItem / EditQueueItem / DeleteQueueItem.
 	 */
 	reorderQueue?(request: UniverseAgentReorderQueueRequest): Promise<UniverseAgentQueueMutationResult>;
+
+	/**
+	 * AgentService.DeleteQueueItem unary (QueueMutationResponse.ok).
+	 * Optional so Web / tests can omit it. Catalog + node transport only this
+	 * slice; empty `sessionId` / `itemId` / `opId` are sent as-is. No
+	 * Conversation roster / UI.
+	 * ≠ ReorderQueue / InsertQueueItem / RetryQueueItem / EditQueueItem.
+	 */
+	deleteQueueItem?(request: UniverseAgentDeleteQueueItemRequest): Promise<UniverseAgentQueueMutationResult>;
 
 	/** AgentService.PauseQueue. Engine roster forwards when connected. */
 	pauseQueue(request: UniverseAgentQueueRefRequest): Promise<UniverseAgentQueueMutationResult>;

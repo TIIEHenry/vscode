@@ -94,6 +94,7 @@ import type {
 	UniverseAgentEnqueueQueueItemRequest,
 	UniverseAgentInsertQueueItemRequest,
 	UniverseAgentReorderQueueRequest,
+	UniverseAgentDeleteQueueItemRequest,
 	UniverseAgentEditQueueItemRequest,
 	UniverseAgentHoldQueueItemRequest,
 	UniverseAgentQueueItemRefRequest,
@@ -520,6 +521,7 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 	readonly enqueueCalls: UniverseAgentEnqueueQueueItemRequest[] = [];
 	readonly insertCalls: UniverseAgentInsertQueueItemRequest[] = [];
 	readonly reorderCalls: UniverseAgentReorderQueueRequest[] = [];
+	readonly deleteCalls: UniverseAgentDeleteQueueItemRequest[] = [];
 	readonly pauseCalls: UniverseAgentQueueRefRequest[] = [];
 	readonly resumeCalls: UniverseAgentQueueRefRequest[] = [];
 	readonly clearCalls: UniverseAgentQueueRefRequest[] = [];
@@ -540,6 +542,11 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 
 	async reorderQueue(request: UniverseAgentReorderQueueRequest): Promise<UniverseAgentQueueMutationResult> {
 		this.reorderCalls.push(request);
+		return this.queueResult;
+	}
+
+	async deleteQueueItem(request: UniverseAgentDeleteQueueItemRequest): Promise<UniverseAgentQueueMutationResult> {
+		this.deleteCalls.push(request);
 		return this.queueResult;
 	}
 
@@ -1074,6 +1081,11 @@ suite('UniverseAgentConnectionService', () => {
 
 	test('UniverseAgentGrpcServices lists Agent.ReorderQueue', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.ReorderQueue, 'ReorderQueue');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+	});
+
+	test('UniverseAgentGrpcServices lists Agent.DeleteQueueItem', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.DeleteQueueItem, 'DeleteQueueItem');
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
 	});
 
@@ -1754,6 +1766,39 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(transport.reorderCalls[1]?.sessionId, '');
 		assert.strictEqual(transport.reorderCalls[1]?.opId, '');
 		assert.deepStrictEqual(transport.reorderCalls[1]?.itemIds, ['', '']);
+		service.dispose();
+	});
+
+	test('deleteQueueItem forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.queueResult = { ok: true, opId: 'op-1', itemId: 'q-1' };
+		const result = await service.deleteQueueItem({
+			sessionId: 'sess-1',
+			itemId: 'q-1',
+			opId: 'op-1',
+		});
+		assert.deepStrictEqual(transport.deleteCalls, [{
+			sessionId: 'sess-1',
+			itemId: 'q-1',
+			opId: 'op-1',
+		}]);
+		assert.deepStrictEqual(result, transport.queueResult);
+
+		transport.queueResult = { ok: false, error: 'empty' };
+		const empty = await service.deleteQueueItem({
+			sessionId: '',
+			itemId: '',
+			opId: '',
+		});
+		assert.deepStrictEqual(empty, transport.queueResult);
+		assert.strictEqual(transport.deleteCalls[1]?.sessionId, '');
+		assert.strictEqual(transport.deleteCalls[1]?.itemId, '');
+		assert.strictEqual(transport.deleteCalls[1]?.opId, '');
 		service.dispose();
 	});
 
