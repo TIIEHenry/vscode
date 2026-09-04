@@ -793,6 +793,12 @@ export type UniverseAgentRetryQueueItemUploadRequest = UniverseAgentQueueItemRef
 /** AgentService.PinQueueItem — proto QueueItemRefRequest (≠ RetryQueueItem / RetryQueueItemUpload / DeleteQueueItem / SetQueueItemLocked). */
 export type UniverseAgentPinQueueItemRequest = UniverseAgentQueueItemRefRequest;
 
+/** AgentService.SetQueueItemLocked — proto SetQueueItemLockedRequest (≠ PinQueueItem / InjectQueueItem / RetryQueueItemUpload / DeleteQueueItem). */
+export interface UniverseAgentSetQueueItemLockedRequest extends UniverseAgentQueueItemRefRequest {
+	/** Proto `locked`. Sent as-is. */
+	readonly locked: boolean;
+}
+
 /** AgentService.EnqueueQueueItem. */
 export interface UniverseAgentEnqueueQueueItemRequest extends UniverseAgentQueueRefRequest {
 	readonly text: string;
