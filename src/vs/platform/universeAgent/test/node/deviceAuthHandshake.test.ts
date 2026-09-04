@@ -151,6 +151,10 @@ class MockDeviceAuthTransport implements IUniverseAgentGrpcTransport {
 		return { snapshots: [] };
 	}
 
+	async listLoopSnapshots(): Promise<{ snapshots: [] }> {
+		return { snapshots: [] };
+	}
+
 	async createSnapshot(): Promise<{ ok: false; message: 'test' }> {
 		return { ok: false, message: 'test' };
 	}

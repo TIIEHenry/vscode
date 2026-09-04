@@ -51,6 +51,8 @@ import type {
 	UniverseAgentSendClientToolResponseResult,
 	UniverseAgentListSnapshotsRequest,
 	UniverseAgentListSnapshotsResult,
+	UniverseAgentListLoopSnapshotsRequest,
+	UniverseAgentListLoopSnapshotsResult,
 	UniverseAgentCreateSnapshotRequest,
 	UniverseAgentCreateSnapshotResult,
 	UniverseAgentRestoreSnapshotRequest,
@@ -293,6 +295,14 @@ export interface IUniverseAgentConnection {
 	 * connected; SessionBar History stays the turn-index MessageNavigator.
 	 */
 	listSnapshots?(request: UniverseAgentListSnapshotsRequest): Promise<UniverseAgentListSnapshotsResult>;
+
+	/**
+	 * AgentService.ListLoopSnapshots unary (LOOP_SNAPSHOT envelopes). Optional
+	 * so Web / tests can omit it. Catalog + node transport only this slice;
+	 * SessionBar History / Snapshots overlay stay unchanged. Empty sessionId /
+	 * loopId go on the wire as-is.
+	 */
+	listLoopSnapshots?(request: UniverseAgentListLoopSnapshotsRequest): Promise<UniverseAgentListLoopSnapshotsResult>;
 
 	/**
 	 * AgentService.CreateSnapshot unary (persist a session checkpoint). Optional

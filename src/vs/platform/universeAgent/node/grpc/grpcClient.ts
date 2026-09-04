@@ -53,6 +53,9 @@ import type {
 	UniverseAgentSendClientToolResponseResult,
 	UniverseAgentListSnapshotsRequest,
 	UniverseAgentListSnapshotsResult,
+	UniverseAgentListLoopSnapshotsRequest,
+	UniverseAgentListLoopSnapshotsResult,
+	UniverseAgentLoopSnapshotRecord,
 	UniverseAgentCreateSnapshotRequest,
 	UniverseAgentCreateSnapshotResult,
 	UniverseAgentSessionSnapshotInfo,
@@ -194,6 +197,24 @@ interface SessionSnapshotInfoWire {
 
 interface ListSnapshotsResponseWire {
 	snapshots?: SessionSnapshotInfoWire[];
+}
+
+interface LoopSnapshotRecordWire {
+	timestamp?: number;
+	turn_id?: string;
+	loop_id?: string;
+	iteration?: number;
+	max_iterations?: number;
+	goal?: string;
+	exit_condition?: string;
+	tmp_file_relative_path?: string;
+	is_exit?: boolean;
+	self_supervise?: string;
+	terminal_reason?: string;
+}
+
+interface ListLoopSnapshotsResponseWire {
+	snapshots?: LoopSnapshotRecordWire[];
 }
 
 interface CreateSnapshotResponseWire {
@@ -478,6 +499,28 @@ function mapSessionSnapshotInfo(snapshot: SessionSnapshotInfoWire | undefined): 
 function mapListSnapshotsResponse(wire: ListSnapshotsResponseWire): UniverseAgentListSnapshotsResult {
 	return {
 		snapshots: (wire.snapshots ?? []).map(snapshot => mapSessionSnapshotInfo(snapshot)),
+	};
+}
+
+function mapLoopSnapshotRecord(record: LoopSnapshotRecordWire | undefined): UniverseAgentLoopSnapshotRecord {
+	return {
+		timestamp: record?.timestamp,
+		turnId: record?.turn_id ?? '',
+		loopId: record?.loop_id ?? '',
+		iteration: record?.iteration,
+		maxIterations: record?.max_iterations,
+		goal: record?.goal ?? '',
+		exitCondition: record?.exit_condition ?? '',
+		tmpFileRelativePath: record?.tmp_file_relative_path ?? '',
+		isExit: record?.is_exit,
+		selfSupervise: record?.self_supervise,
+		terminalReason: record?.terminal_reason,
+	};
+}
+
+function mapListLoopSnapshotsResponse(wire: ListLoopSnapshotsResponseWire): UniverseAgentListLoopSnapshotsResult {
+	return {
+		snapshots: (wire.snapshots ?? []).map(record => mapLoopSnapshotRecord(record)),
 	};
 }
 
@@ -1711,6 +1754,19 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			session_id: request.sessionId,
 		});
 		return mapListSnapshotsResponse(wire);
+	}
+
+	async listLoopSnapshots(request: UniverseAgentListLoopSnapshotsRequest): Promise<UniverseAgentListLoopSnapshotsResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, ListLoopSnapshotsResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.Agent.service,
+			UniverseAgentGrpcServices.Agent.ListLoopSnapshots,
+		);
+		const wire = await unary({
+			session_id: request.sessionId,
+			loop_id: request.loopId,
+		});
+		return mapListLoopSnapshotsResponse(wire);
 	}
 
 	async createSnapshot(request: UniverseAgentCreateSnapshotRequest): Promise<UniverseAgentCreateSnapshotResult> {

@@ -317,6 +317,31 @@ export interface UniverseAgentListSnapshotsResult {
 	readonly snapshots: readonly UniverseAgentSessionSnapshotInfo[];
 }
 
+/** One row from AgentService.ListLoopSnapshots (LoopSnapshotRecord). */
+export interface UniverseAgentLoopSnapshotRecord {
+	readonly timestamp?: number;
+	readonly turnId: string;
+	readonly loopId: string;
+	readonly iteration?: number;
+	readonly maxIterations?: number;
+	readonly goal: string;
+	readonly exitCondition: string;
+	readonly tmpFileRelativePath: string;
+	readonly isExit?: boolean;
+	readonly selfSupervise?: string;
+	readonly terminalReason?: string;
+}
+
+/** AgentService.ListLoopSnapshots — LOOP_SNAPSHOT envelopes (≠ ListSnapshots / SessionBar History). */
+export interface UniverseAgentListLoopSnapshotsRequest {
+	readonly sessionId: string;
+	readonly loopId?: string;
+}
+
+export interface UniverseAgentListLoopSnapshotsResult {
+	readonly snapshots: readonly UniverseAgentLoopSnapshotRecord[];
+}
+
 /** AgentService.CreateSnapshot — persist a session checkpoint (≠ ListSnapshots / SessionBar History). */
 export interface UniverseAgentCreateSnapshotRequest {
 	readonly sessionId: string;
