@@ -2026,6 +2026,29 @@ export interface UniverseAgentReadGitChangesResult {
 }
 
 /**
+ * GitService.WriteGitCommit — proto `WriteGitCommitRequest` /
+ * `WriteGitWriteResponse` only. Empty `session_id` pass through as-is.
+ * Empty `message` sent as-is. `sign_off` / `amend` false sent as-is.
+ * ≠ ReadGitSummary / ReadGitChanges / ReadGitFileDiff / WriteGitStagePaths /
+ * WriteGitApplyHunks.
+ */
+export interface UniverseAgentWriteGitCommitRequest {
+	readonly sessionId: string;
+	readonly message: string;
+	readonly signOff: boolean;
+	readonly amend: boolean;
+}
+
+export interface UniverseAgentWriteGitWriteResult {
+	readonly supported: boolean;
+	readonly reason: string;
+	readonly success: boolean;
+	readonly errorMessage: string;
+	readonly exitCode: number;
+	readonly stdout: string;
+}
+
+/**
  * ConfigService.SetPermissionPolicy — session/tool policy write
  * (≠ SwitchModel / ListModels / Get / Set / GetModelPreferences /
  * SetModelPreferences / SetPermissionMode).

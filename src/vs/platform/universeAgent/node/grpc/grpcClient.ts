@@ -282,6 +282,8 @@ import type {
 	UniverseAgentGitChangeEntry,
 	UniverseAgentReadGitChangesRequest,
 	UniverseAgentReadGitChangesResult,
+	UniverseAgentWriteGitCommitRequest,
+	UniverseAgentWriteGitWriteResult,
 	UniverseAgentListModelsResult,
 	UniverseAgentGetConfigRequest,
 	UniverseAgentGetConfigResult,
@@ -2768,6 +2770,26 @@ function mapReadGitChangesResponse(wire: ReadGitChangesResponseWire): UniverseAg
 	};
 }
 
+interface WriteGitWriteResponseWire {
+	supported?: boolean;
+	reason?: string;
+	success?: boolean;
+	error_message?: string;
+	exit_code?: number | string;
+	stdout?: string;
+}
+
+function mapWriteGitWriteResponse(wire: WriteGitWriteResponseWire): UniverseAgentWriteGitWriteResult {
+	return {
+		supported: wire.supported === true,
+		reason: wire.reason ?? '',
+		success: wire.success === true,
+		errorMessage: wire.error_message ?? '',
+		exitCode: requiredInt64(wire.exit_code),
+		stdout: wire.stdout ?? '',
+	};
+}
+
 interface ListModelsResponseWire {
 	models?: Array<{
 		id?: string;
@@ -4715,6 +4737,21 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			session_id: request.sessionId,
 		});
 		return mapReadGitChangesResponse(wire);
+	}
+
+	async writeGitCommit(request: UniverseAgentWriteGitCommitRequest): Promise<UniverseAgentWriteGitWriteResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, WriteGitWriteResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.Git.service,
+			UniverseAgentGrpcServices.Git.WriteGitCommit,
+		);
+		const wire = await unary({
+			session_id: request.sessionId,
+			message: request.message,
+			sign_off: request.signOff,
+			amend: request.amend,
+		});
+		return mapWriteGitWriteResponse(wire);
 	}
 
 	async setPermissionPolicy(request: UniverseAgentSetPermissionPolicyRequest): Promise<UniverseAgentSetPermissionPolicyResult> {

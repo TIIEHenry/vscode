@@ -195,6 +195,8 @@ import type {
 	UniverseAgentReadGitSummaryResult,
 	UniverseAgentReadGitChangesRequest,
 	UniverseAgentReadGitChangesResult,
+	UniverseAgentWriteGitCommitRequest,
+	UniverseAgentWriteGitWriteResult,
 	UniverseAgentGetHistoryRequest,
 	UniverseAgentGetHistoryResult,
 	UniverseAgentListSessionsRequest,
@@ -1384,6 +1386,21 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 		return this.readGitChangesResult;
 	}
 
+	readonly writeGitCommitCalls: UniverseAgentWriteGitCommitRequest[] = [];
+	writeGitCommitResult: UniverseAgentWriteGitWriteResult = {
+		supported: false,
+		reason: '',
+		success: false,
+		errorMessage: '',
+		exitCode: 0,
+		stdout: '',
+	};
+
+	async writeGitCommit(request: UniverseAgentWriteGitCommitRequest): Promise<UniverseAgentWriteGitWriteResult> {
+		this.writeGitCommitCalls.push(request);
+		return this.writeGitCommitResult;
+	}
+
 	async listModels() {
 		return { models: [] };
 	}
@@ -1789,6 +1806,11 @@ suite('UniverseAgentConnectionService', () => {
 
 	test('UniverseAgentGrpcServices lists Git.ReadGitChanges', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Git.ReadGitChanges, 'ReadGitChanges');
+		assert.strictEqual(UniverseAgentGrpcServices.Git.service, 'universeagent.git.v1.GitService');
+	});
+
+	test('UniverseAgentGrpcServices lists Git.WriteGitCommit', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Git.WriteGitCommit, 'WriteGitCommit');
 		assert.strictEqual(UniverseAgentGrpcServices.Git.service, 'universeagent.git.v1.GitService');
 	});
 
@@ -4357,6 +4379,59 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(changesEmpty.entries[0]?.oldPath, '');
 		assert.strictEqual(changesEmpty.entries[0]?.kind, '');
 		assert.strictEqual(changesEmpty.entries[0]?.indexState, '');
+		service.dispose();
+	});
+
+	test('writeGitCommit forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.writeGitCommitResult = {
+			supported: true,
+			reason: '',
+			success: true,
+			errorMessage: '',
+			exitCode: 0,
+			stdout: 'committed',
+		};
+		const request = {
+			sessionId: 'sess-1',
+			message: 'fix: wire write',
+			signOff: true,
+			amend: false,
+		};
+		const result = await service.writeGitCommit(request);
+		assert.deepStrictEqual(transport.writeGitCommitCalls, [request]);
+		assert.deepStrictEqual(result, transport.writeGitCommitResult);
+
+		transport.writeGitCommitResult = {
+			supported: false,
+			reason: '',
+			success: false,
+			errorMessage: '',
+			exitCode: 0,
+			stdout: '',
+		};
+		const emptyRequest = {
+			sessionId: '',
+			message: '',
+			signOff: false,
+			amend: false,
+		};
+		const empty = await service.writeGitCommit(emptyRequest);
+		assert.strictEqual(transport.writeGitCommitCalls[1]?.sessionId, '');
+		assert.strictEqual(transport.writeGitCommitCalls[1]?.message, '');
+		assert.strictEqual(transport.writeGitCommitCalls[1]?.signOff, false);
+		assert.strictEqual(transport.writeGitCommitCalls[1]?.amend, false);
+		assert.strictEqual(empty.supported, false);
+		assert.strictEqual(empty.reason, '');
+		assert.strictEqual(empty.success, false);
+		assert.strictEqual(empty.errorMessage, '');
+		assert.strictEqual(empty.exitCode, 0);
+		assert.strictEqual(empty.stdout, '');
 		service.dispose();
 	});
 
