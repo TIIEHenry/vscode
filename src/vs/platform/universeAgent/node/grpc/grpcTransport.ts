@@ -26,6 +26,8 @@ import type {
 	UniverseAgentPurgeSessionResult,
 	UniverseAgentExportSessionRequest,
 	UniverseAgentExportSessionResult,
+	UniverseAgentResolveTurnRequest,
+	UniverseAgentResolveTurnResult,
 	UniverseAgentAgentStatusRequest,
 	UniverseAgentAgentStatusResult,
 	UniverseAgentTodoRequest,
@@ -36,6 +38,8 @@ import type {
 	UniverseAgentResolveAnchorResult,
 	UniverseAgentUsageRequest,
 	UniverseAgentUsageResult,
+	UniverseAgentListAgentsRequest,
+	UniverseAgentListAgentsResult,
 	UniverseAgentRenameSessionRequest,
 	UniverseAgentRenameSessionResult,
 	UniverseAgentCancelGenerationRequest,
@@ -211,6 +215,8 @@ export interface IUniverseAgentGrpcTransport {
 	purgeSession(request: UniverseAgentPurgeSessionRequest): Promise<UniverseAgentPurgeSessionResult>;
 	/** SessionService.Export unary (snake_case `session_id`/`format`). Empty ids sent as-is. */
 	exportSession(request: UniverseAgentExportSessionRequest): Promise<UniverseAgentExportSessionResult>;
+	/** SessionService.ResolveTurn unary (snake_case `session_id`/`turn_id`/`current_leaf_turn_id`). Empty ids sent as-is. */
+	resolveTurn(request: UniverseAgentResolveTurnRequest): Promise<UniverseAgentResolveTurnResult>;
 	/** AgentService.Status unary (snake_case `session_id`/`agent_id`). Empty ids sent as-is. */
 	getAgentStatus(request: UniverseAgentAgentStatusRequest): Promise<UniverseAgentAgentStatusResult>;
 	/** AgentService.Compact unary (snake_case `session_id`/`agent_id`). Empty ids sent as-is. */
@@ -223,6 +229,9 @@ export interface IUniverseAgentGrpcTransport {
 
 	/** AgentService.Usage unary (snake_case `session_id`/`agent_id`). Empty ids sent as-is. */
 	getUsage(request: UniverseAgentUsageRequest): Promise<UniverseAgentUsageResult>;
+
+	/** AgentService.List unary (snake_case `session_id`). Empty ids sent as-is. */
+	listAgents(request: UniverseAgentListAgentsRequest): Promise<UniverseAgentListAgentsResult>;
 
 	renameSession(request: UniverseAgentRenameSessionRequest): Promise<UniverseAgentRenameSessionResult>;
 
@@ -375,6 +384,7 @@ export const UniverseAgentGrpcServices = {
 		Unshelve: 'Unshelve',
 		Purge: 'Purge',
 		Export: 'Export',
+		ResolveTurn: 'ResolveTurn',
 		ResolveAnchor: 'ResolveAnchor',
 		GetHistory: 'GetHistory',
 		SessionEventStream: 'SessionEventStream',
@@ -414,6 +424,7 @@ export const UniverseAgentGrpcServices = {
 		Todo: 'Todo',
 		Compact: 'Compact',
 		Usage: 'Usage',
+		List: 'List',
 		Tree: 'Tree',
 		ListAgentProfiles: 'ListAgentProfiles',
 		SaveAgentProfile: 'SaveAgentProfile',

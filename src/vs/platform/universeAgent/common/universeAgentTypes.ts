@@ -145,6 +145,46 @@ export interface UniverseAgentExportSessionResult {
 	readonly format: string;
 }
 
+/** SessionService.ResolveTurn — turn→CHAT envelope lookup (≠ ResolveAnchor / GetHistory / Export). */
+export interface UniverseAgentResolveTurnRequest {
+	readonly sessionId: string;
+	readonly turnId: string;
+	readonly currentLeafTurnId: string;
+}
+
+export interface UniverseAgentResolveTurnHit {
+	readonly kind: 'hit';
+	readonly envelope: unknown;
+	readonly presence: string;
+	readonly generation?: number;
+}
+
+export interface UniverseAgentResolveTurnTombstone {
+	readonly kind: 'tombstone';
+	readonly sessionId: string;
+	readonly envelopeId: string;
+	readonly seq: number;
+	readonly turnId?: string;
+	readonly generation?: number;
+}
+
+export interface UniverseAgentResolveTurnExpired {
+	readonly kind: 'expired';
+	readonly sessionId: string;
+	readonly envelopeId: string;
+	readonly generation?: number;
+}
+
+export interface UniverseAgentResolveTurnUnspecified {
+	readonly kind: 'unspecified';
+}
+
+export type UniverseAgentResolveTurnResult =
+	| UniverseAgentResolveTurnHit
+	| UniverseAgentResolveTurnTombstone
+	| UniverseAgentResolveTurnExpired
+	| UniverseAgentResolveTurnUnspecified;
+
 /** AgentService.Status — current AgentInfo for one session agent (≠ Session.Info / Tree). */
 export interface UniverseAgentAgentStatusRequest {
 	readonly sessionId: string;
@@ -383,6 +423,15 @@ export interface UniverseAgentUsageResult {
 	readonly contextWindow?: UniverseAgentContextWindowInfo;
 	readonly sessionUsage?: UniverseAgentSessionUsageInfo;
 	readonly recentRequestSpans: readonly UniverseAgentRecentRequestSpan[];
+}
+
+/** AgentService.List — flat AgentInfo roster for one session (≠ Tree / Status / ListAgentProfiles). */
+export interface UniverseAgentListAgentsRequest {
+	readonly sessionId: string;
+}
+
+export interface UniverseAgentListAgentsResult {
+	readonly agents: readonly UniverseAgentAgentTreeNode[];
 }
 
 /** AgentService.Rename request; empty `title` clears a custom session title. */

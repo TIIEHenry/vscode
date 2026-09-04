@@ -31,6 +31,8 @@ import type {
 	UniverseAgentPurgeSessionResult,
 	UniverseAgentExportSessionRequest,
 	UniverseAgentExportSessionResult,
+	UniverseAgentResolveTurnRequest,
+	UniverseAgentResolveTurnResult,
 	UniverseAgentAgentStatusRequest,
 	UniverseAgentAgentStatusResult,
 	UniverseAgentTodoRequest,
@@ -41,6 +43,8 @@ import type {
 	UniverseAgentResolveAnchorResult,
 	UniverseAgentUsageRequest,
 	UniverseAgentUsageResult,
+	UniverseAgentListAgentsRequest,
+	UniverseAgentListAgentsResult,
 	UniverseAgentRenameSessionRequest,
 	UniverseAgentRenameSessionResult,
 	UniverseAgentCancelGenerationRequest,
@@ -259,6 +263,14 @@ export interface IUniverseAgentConnection {
 	exportSession?(request: UniverseAgentExportSessionRequest): Promise<UniverseAgentExportSessionResult>;
 
 	/**
+	 * SessionService.ResolveTurn unary (turn→CHAT envelope lookup). Optional so
+	 * Web / tests can omit it. Catalog + node transport only this slice; empty
+	 * `sessionId` / `turnId` / `currentLeafTurnId` are sent as-is. No Conversation
+	 * roster / UI. ≠ ResolveAnchor / GetHistory / Export.
+	 */
+	resolveTurn?(request: UniverseAgentResolveTurnRequest): Promise<UniverseAgentResolveTurnResult>;
+
+	/**
 	 * AgentService.Status unary (StatusResponse.agent → AgentInfo). Optional so
 	 * Web / tests can omit it. Catalog + node transport only this slice; empty
 	 * `sessionId` / `agentId` are sent as-is. No Conversation roster / UI.
@@ -298,6 +310,14 @@ export interface IUniverseAgentConnection {
 	 * ≠ Todo / Status / Tree / Compact / List.
 	 */
 	getUsage?(request: UniverseAgentUsageRequest): Promise<UniverseAgentUsageResult>;
+
+	/**
+	 * AgentService.List unary (ListAgentsResponse.agents → AgentInfo[]). Optional so
+	 * Web / tests can omit it. Catalog + node transport only this slice; empty
+	 * `sessionId` is sent as-is. No Conversation roster / UI.
+	 * ≠ Tree / Status / ListAgentProfiles / ListSnapshots.
+	 */
+	listAgents?(request: UniverseAgentListAgentsRequest): Promise<UniverseAgentListAgentsResult>;
 
 	/** AgentService.Rename unary. Engine roster forwards this when connected. */
 	renameSession(request: UniverseAgentRenameSessionRequest): Promise<UniverseAgentRenameSessionResult>;

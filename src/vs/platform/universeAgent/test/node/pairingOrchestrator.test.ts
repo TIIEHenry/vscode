@@ -133,6 +133,10 @@ class RecordingMockTransport implements IUniverseAgentGrpcTransport {
 		return { content: '', format: '' };
 	}
 
+	async resolveTurn(): Promise<{ kind: 'unspecified' }> {
+		return { kind: 'unspecified' };
+	}
+
 	async getAgentStatus(): Promise<{ agent: undefined }> {
 		return { agent: undefined };
 	}
@@ -151,6 +155,10 @@ class RecordingMockTransport implements IUniverseAgentGrpcTransport {
 
 	async getUsage(): Promise<{ totalInputTokens: 0; totalOutputTokens: 0; totalTurns: 0; agentUsages: []; recentRequestSpans: [] }> {
 		return { totalInputTokens: 0, totalOutputTokens: 0, totalTurns: 0, agentUsages: [], recentRequestSpans: [] };
+	}
+
+	async listAgents(): Promise<{ agents: [] }> {
+		return { agents: [] };
 	}
 
 	async renameSession(): Promise<{ ok: false; message: 'test' }> {

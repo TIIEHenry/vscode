@@ -34,6 +34,8 @@ import type {
 	UniverseAgentPurgeSessionResult,
 	UniverseAgentExportSessionRequest,
 	UniverseAgentExportSessionResult,
+	UniverseAgentResolveTurnRequest,
+	UniverseAgentResolveTurnResult,
 	UniverseAgentAgentStatusRequest,
 	UniverseAgentAgentStatusResult,
 	UniverseAgentTodoRequest,
@@ -44,6 +46,8 @@ import type {
 	UniverseAgentResolveAnchorResult,
 	UniverseAgentUsageRequest,
 	UniverseAgentUsageResult,
+	UniverseAgentListAgentsRequest,
+	UniverseAgentListAgentsResult,
 	UniverseAgentRenameSessionRequest,
 	UniverseAgentRenameSessionResult,
 	UniverseAgentCancelGenerationRequest,
@@ -697,6 +701,10 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		return this._withTransport(transport => transport.exportSession(request));
 	}
 
+	async resolveTurn(request: UniverseAgentResolveTurnRequest): Promise<UniverseAgentResolveTurnResult> {
+		return this._withTransport(transport => transport.resolveTurn(request));
+	}
+
 	async getAgentStatus(request: UniverseAgentAgentStatusRequest): Promise<UniverseAgentAgentStatusResult> {
 		return this._withTransport(transport => transport.getAgentStatus(request));
 	}
@@ -715,6 +723,10 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 
 	async getUsage(request: UniverseAgentUsageRequest): Promise<UniverseAgentUsageResult> {
 		return this._withTransport(transport => transport.getUsage(request));
+	}
+
+	async listAgents(request: UniverseAgentListAgentsRequest): Promise<UniverseAgentListAgentsResult> {
+		return this._withTransport(transport => transport.listAgents(request));
 	}
 
 	async renameSession(request: UniverseAgentRenameSessionRequest): Promise<UniverseAgentRenameSessionResult> {
