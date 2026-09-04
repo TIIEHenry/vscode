@@ -253,6 +253,8 @@ import type {
 	UniverseAgentToolInfoRequest,
 	UniverseAgentToolInfoResult,
 	UniverseAgentListModelsResult,
+	UniverseAgentSwitchModelRequest,
+	UniverseAgentSwitchModelResult,
 	UniverseAgentModelEntry,
 	UniverseAgentToolSummary,
 	UniverseAgentAgentTreeNode,
@@ -4274,6 +4276,33 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 		);
 		const wire = await unary({ include_disabled: true });
 		return mapListModelsResponse(wire);
+	}
+
+	async switchModel(request: UniverseAgentSwitchModelRequest): Promise<UniverseAgentSwitchModelResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, {
+			resolved_model_id?: string;
+			provider?: string;
+			level?: number;
+			cost?: string;
+			speed?: string;
+		}>(
+			this._channel,
+			UniverseAgentGrpcServices.Config.service,
+			UniverseAgentGrpcServices.Config.SwitchModel,
+		);
+		const wire = await unary({
+			session_id: request.sessionId,
+			agent_id: request.agentId,
+			model_type: request.modelType,
+			model_id: request.modelId,
+		});
+		return {
+			resolvedModelId: wire.resolved_model_id ?? '',
+			provider: wire.provider ?? '',
+			level: wire.level ?? 0,
+			cost: wire.cost ?? '',
+			speed: wire.speed ?? '',
+		};
 	}
 
 	async fetchToolDetail(request: UniverseAgentFetchToolDetailRequest): Promise<UniverseAgentFetchToolDetailWireResult> {

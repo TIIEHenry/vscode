@@ -194,6 +194,8 @@ import type {
 	UniverseAgentToolInfoRequest,
 	UniverseAgentToolInfoResult,
 	UniverseAgentListModelsResult,
+	UniverseAgentSwitchModelRequest,
+	UniverseAgentSwitchModelResult,
 	UniverseAgentToggleMcpServerRequest,
 	UniverseAgentToggleMcpServerResult,
 	UniverseAgentSessionEvent,
@@ -561,6 +563,9 @@ export interface IUniverseAgentGrpcTransport {
 	/** ConfigService.ListModels — always `include_disabled=true`. */
 	listModels(): Promise<UniverseAgentListModelsResult>;
 
+	/** ConfigService.SwitchModel unary (snake_case `session_id`/`agent_id`/`model_type`/`model_id`). Empty ids sent as-is. */
+	switchModel(request: UniverseAgentSwitchModelRequest): Promise<UniverseAgentSwitchModelResult>;
+
 	/** Host-only: AgentService.Tree (m6 §11 A1). */
 	fetchAgentTree(sessionId: string): Promise<UniverseAgentAgentTreeNode | undefined>;
 
@@ -700,6 +705,7 @@ export const UniverseAgentGrpcServices = {
 	Config: {
 		service: 'universeagent.config.v1.ConfigService',
 		ListModels: 'ListModels',
+		SwitchModel: 'SwitchModel',
 	},
 	Team: {
 		service: 'universeagent.team.v1.TeamService',

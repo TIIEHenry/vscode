@@ -199,6 +199,8 @@ import type {
 	UniverseAgentToolInfoRequest,
 	UniverseAgentToolInfoResult,
 	UniverseAgentListModelsResult,
+	UniverseAgentSwitchModelRequest,
+	UniverseAgentSwitchModelResult,
 	UniverseAgentToggleMcpServerRequest,
 	UniverseAgentToggleMcpServerResult,
 	UniverseAgentSessionEvent,
@@ -1046,4 +1048,14 @@ export interface IUniverseAgentConnection {
 
 	/** ConfigService.ListModels — always `include_disabled=true` (Engine Model registry). */
 	listModels(): Promise<UniverseAgentListModelsResult>;
+
+	/**
+	 * ConfigService.SwitchModel unary (session-scoped model switch). Optional
+	 * so Web / tests can omit it. Catalog + node transport only this slice;
+	 * empty `sessionId` / `agentId` / `modelType` / `modelId` are sent as-is.
+	 * No Conversation roster / UI / Engine Preferences / Composer.
+	 * ≠ ListModels / TestModelProfile / Config.Get / Config.Set /
+	 * GetModelPreferences / SetModelPreferences / SetPermissionPolicy.
+	 */
+	switchModel?(request: UniverseAgentSwitchModelRequest): Promise<UniverseAgentSwitchModelResult>;
 }
