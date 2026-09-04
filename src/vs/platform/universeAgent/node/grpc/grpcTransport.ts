@@ -208,6 +208,8 @@ import type {
 	UniverseAgentGetFileInfoResult,
 	UniverseAgentWriteFileRequest,
 	UniverseAgentWriteFileResult,
+	UniverseAgentAgentMergeRequest,
+	UniverseAgentAgentMergeResult,
 	UniverseAgentSetPermissionPolicyRequest,
 	UniverseAgentSetPermissionPolicyResult,
 	UniverseAgentListModelsResult,
@@ -608,6 +610,9 @@ export interface IUniverseAgentGrpcTransport {
 	/** FileService.WriteFile unary (snake_case `path`/`content`/`base_hash`/`session_id`/`base_content`). Empty ids sent as-is. */
 	writeFile(request: UniverseAgentWriteFileRequest): Promise<UniverseAgentWriteFileResult>;
 
+	/** FileService.AgentMerge unary (snake_case `session_id`/`path`/`base_content`/`current_content`/`user_content`). Empty ids sent as-is. */
+	agentMerge(request: UniverseAgentAgentMergeRequest): Promise<UniverseAgentAgentMergeResult>;
+
 	/** ConfigService.SetPermissionPolicy unary (snake_case `session_id`/`tool_name`/`policy`). Empty ids sent as-is. */
 	setPermissionPolicy(request: UniverseAgentSetPermissionPolicyRequest): Promise<UniverseAgentSetPermissionPolicyResult>;
 
@@ -810,6 +815,7 @@ export const UniverseAgentGrpcServices = {
 		ReadFile: 'ReadFile',
 		GetFileInfo: 'GetFileInfo',
 		WriteFile: 'WriteFile',
+		AgentMerge: 'AgentMerge',
 	},
 } as const;
 
