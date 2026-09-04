@@ -7,7 +7,7 @@ import { $, addDisposableListener, append, reset } from '../../../../base/browse
 import { Button } from '../../../../base/browser/ui/button/button.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { KeyCode } from '../../../../base/common/keyCodes.js';
-import { Disposable } from '../../../../base/common/lifecycle.js';
+import { Disposable, DisposableStore } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import type { UniverseAgentSessionSnapshotInfo } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
@@ -18,6 +18,7 @@ import {
 	conversationLensSessionBarSnapshotsEmpty,
 	conversationLensSessionBarSnapshotsLoading,
 	conversationLensSessionBarSnapshotsTitle,
+	conversationLensSessionBarSnapshotsRestore,
 	conversationLensSessionBarSnapshotsUnavailableDisconnected,
 	conversationLensSessionBarSnapshotsUnavailableNoHook,
 	conversationLensSessionBarSnapshotsUnavailableNoSession,
@@ -27,6 +28,7 @@ import { IConversationRosterService } from './conversationStubService.js';
 export const conversationLensSnapshotsButtonClass = 'conversation-lens-session-snapshots';
 export const conversationLensSnapshotsOverlayClass = 'conversation-lens-snapshots-overlay';
 export const conversationLensSnapshotsRowClass = 'conversation-lens-snapshots-row';
+export const conversationLensSnapshotsRestoreClass = 'conversation-lens-snapshots-restore';
 
 export function canRequestEngineSnapshots(
 	connected: boolean,
@@ -34,6 +36,16 @@ export function canRequestEngineSnapshots(
 	sessionId: string | undefined,
 ): boolean {
 	return connected && hasListSnapshots && !!sessionId;
+}
+
+/** Honest gate for overlay Restore → AgentService.RestoreSnapshot. */
+export function canRestoreEngineSnapshot(
+	connected: boolean,
+	hasRestoreSnapshot: boolean,
+	snapshotId: string | undefined,
+	sessionId: string | undefined,
+): boolean {
+	return connected && hasRestoreSnapshot && !!snapshotId?.trim() && !!sessionId?.trim();
 }
 
 export function formatEngineSnapshotCreatedAt(createdAt: number | undefined): string {
@@ -53,9 +65,10 @@ export function formatEngineSnapshotFailedCopy(reason: string): string {
 }
 
 /**
- * SessionBar extra control + read-only overlay for AgentService.ListSnapshots.
+ * SessionBar extra control + overlay for AgentService.ListSnapshots.
  * Distinct from SessionBar History ({@link ConversationTrajectoryList} turn index).
- * No Create / Restore / Delete actions.
+ * Restore on rows calls {@link IUniverseAgentConnection.restoreSnapshot};
+ * no Create / Delete.
  */
 export class ConversationEngineSnapshotsList extends Disposable {
 
@@ -64,6 +77,7 @@ export class ConversationEngineSnapshotsList extends Disposable {
 
 	private readonly button: Button;
 	private readonly body: HTMLElement;
+	private readonly rowDisposables = this._register(new DisposableStore());
 	private open = false;
 	private renderGeneration = 0;
 
@@ -210,7 +224,19 @@ export class ConversationEngineSnapshotsList extends Disposable {
 		return conversationLensSessionBarSnapshotsUnavailableDisconnected;
 	}
 
+	private restoreSnapshot(snapshotId: string): void {
+		const sessionId = this.roster.getActiveSessionId();
+		const connected = this.connection.isEngineConnected();
+		const restore = this.connection.restoreSnapshot;
+		const hasHook = typeof restore === 'function';
+		if (!canRestoreEngineSnapshot(connected, hasHook, snapshotId, sessionId) || !restore || !sessionId) {
+			return;
+		}
+		void restore.call(this.connection, { sessionId, snapshotId });
+	}
+
 	private paintStatus(text: string): void {
+		this.rowDisposables.clear();
 		reset(this.body);
 		const status = append(this.body, $('.conversation-lens-snapshots-status'));
 		status.setAttribute('role', 'status');
@@ -218,6 +244,7 @@ export class ConversationEngineSnapshotsList extends Disposable {
 	}
 
 	private paintSnapshots(snapshots: readonly UniverseAgentSessionSnapshotInfo[]): void {
+		this.rowDisposables.clear();
 		reset(this.body);
 		if (snapshots.length === 0) {
 			this.paintStatus(conversationLensSessionBarSnapshotsEmpty);
@@ -248,6 +275,19 @@ export class ConversationEngineSnapshotsList extends Disposable {
 			if (snapshot.turnCount !== undefined) {
 				turns.setAttribute('data-turn-count', String(snapshot.turnCount));
 			}
+
+			const restoreContainer = append(row, $(`.${conversationLensSnapshotsRestoreClass}`));
+			const restoreButton = this.rowDisposables.add(new Button(restoreContainer, {
+				...defaultButtonStyles,
+				supportIcons: true,
+				small: true,
+				secondary: true,
+				title: conversationLensSessionBarSnapshotsRestore,
+				ariaLabel: conversationLensSessionBarSnapshotsRestore,
+			}));
+			restoreButton.icon = Codicon.discard;
+			restoreButton.label = conversationLensSessionBarSnapshotsRestore;
+			this.rowDisposables.add(restoreButton.onDidClick(() => this.restoreSnapshot(snapshot.id)));
 		}
 	}
 }
