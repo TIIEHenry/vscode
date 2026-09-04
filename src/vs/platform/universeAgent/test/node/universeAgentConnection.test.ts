@@ -201,6 +201,8 @@ import type {
 	UniverseAgentWriteGitCommitRequest,
 	UniverseAgentWriteGitApplyHunksRequest,
 	UniverseAgentWriteGitWriteResult,
+	UniverseAgentSaveMemoryRequest,
+	UniverseAgentSaveMemoryResult,
 	UniverseAgentGetHistoryRequest,
 	UniverseAgentGetHistoryResult,
 	UniverseAgentListSessionsRequest,
@@ -1448,6 +1450,18 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 		return this.writeGitApplyHunksResult;
 	}
 
+	readonly saveMemoryCalls: UniverseAgentSaveMemoryRequest[] = [];
+	saveMemoryResult: UniverseAgentSaveMemoryResult = {
+		success: false,
+		message: '',
+		filePath: '',
+	};
+
+	async saveMemory(request: UniverseAgentSaveMemoryRequest): Promise<UniverseAgentSaveMemoryResult> {
+		this.saveMemoryCalls.push(request);
+		return this.saveMemoryResult;
+	}
+
 	async listModels() {
 		return { models: [] };
 	}
@@ -1874,6 +1888,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('UniverseAgentGrpcServices lists Git.WriteGitApplyHunks', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Git.WriteGitApplyHunks, 'WriteGitApplyHunks');
 		assert.strictEqual(UniverseAgentGrpcServices.Git.service, 'universeagent.git.v1.GitService');
+	});
+
+	test('UniverseAgentGrpcServices lists Memory.Save', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Memory.Save, 'Save');
+		assert.strictEqual(UniverseAgentGrpcServices.Memory.service, 'universeagent.memory.v1.MemoryService');
 	});
 
 	test('UniverseAgentGrpcServices lists Agent.Kill', () => {
@@ -4645,6 +4664,47 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(transport.writeGitApplyHunksCalls[2]?.sessionId, '');
 		assert.deepStrictEqual(transport.writeGitApplyHunksCalls[2]?.argv, []);
 		assert.deepStrictEqual(transport.writeGitApplyHunksCalls[2]?.patches, []);
+		service.dispose();
+	});
+
+	test('saveMemory forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.saveMemoryResult = {
+			success: true,
+			message: 'saved',
+			filePath: 'project/notes.md',
+		};
+		const request = {
+			scope: 'project',
+			content: 'remember this',
+			category: 'notes',
+		};
+		const result = await service.saveMemory(request);
+		assert.deepStrictEqual(transport.saveMemoryCalls, [request]);
+		assert.deepStrictEqual(result, transport.saveMemoryResult);
+
+		transport.saveMemoryResult = {
+			success: false,
+			message: '',
+			filePath: '',
+		};
+		const emptyRequest = {
+			scope: '',
+			content: '',
+			category: '',
+		};
+		const empty = await service.saveMemory(emptyRequest);
+		assert.strictEqual(transport.saveMemoryCalls[1]?.scope, '');
+		assert.strictEqual(transport.saveMemoryCalls[1]?.content, '');
+		assert.strictEqual(transport.saveMemoryCalls[1]?.category, '');
+		assert.strictEqual(empty.success, false);
+		assert.strictEqual(empty.message, '');
+		assert.strictEqual(empty.filePath, '');
 		service.dispose();
 	});
 

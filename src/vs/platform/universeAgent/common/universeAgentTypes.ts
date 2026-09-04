@@ -2098,6 +2098,24 @@ export interface UniverseAgentWriteGitApplyHunksRequest {
 }
 
 /**
+ * MemoryService.Save — proto `MemorySaveRequest` / `MemorySaveResponse` only.
+ * Empty `scope` / `content` / `category` pass through as-is.
+ * ≠ Search / SearchDeep / Read / List / Delete / Reflect / Rebuild / Revert /
+ * History.
+ */
+export interface UniverseAgentSaveMemoryRequest {
+	readonly scope: string;
+	readonly content: string;
+	readonly category: string;
+}
+
+export interface UniverseAgentSaveMemoryResult {
+	readonly success: boolean;
+	readonly message: string;
+	readonly filePath: string;
+}
+
+/**
  * ConfigService.SetPermissionPolicy — session/tool policy write
  * (≠ SwitchModel / ListModels / Get / Set / GetModelPreferences /
  * SetModelPreferences / SetPermissionMode).

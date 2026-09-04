@@ -221,6 +221,8 @@ import type {
 	UniverseAgentWriteGitCommitRequest,
 	UniverseAgentWriteGitApplyHunksRequest,
 	UniverseAgentWriteGitWriteResult,
+	UniverseAgentSaveMemoryRequest,
+	UniverseAgentSaveMemoryResult,
 	UniverseAgentSetPermissionPolicyRequest,
 	UniverseAgentSetPermissionPolicyResult,
 	UniverseAgentListModelsResult,
@@ -645,6 +647,9 @@ export interface IUniverseAgentGrpcTransport {
 	/** GitService.WriteGitApplyHunks unary (snake_case `session_id`/`argv`/`patches`). Empty ids sent as-is. */
 	writeGitApplyHunks(request: UniverseAgentWriteGitApplyHunksRequest): Promise<UniverseAgentWriteGitWriteResult>;
 
+	/** MemoryService.Save unary (snake_case `scope`/`content`/`category`). Empty ids sent as-is. */
+	saveMemory(request: UniverseAgentSaveMemoryRequest): Promise<UniverseAgentSaveMemoryResult>;
+
 	/** ConfigService.SetPermissionPolicy unary (snake_case `session_id`/`tool_name`/`policy`). Empty ids sent as-is. */
 	setPermissionPolicy(request: UniverseAgentSetPermissionPolicyRequest): Promise<UniverseAgentSetPermissionPolicyResult>;
 
@@ -858,6 +863,10 @@ export const UniverseAgentGrpcServices = {
 		WriteGitStagePaths: 'WriteGitStagePaths',
 		WriteGitCommit: 'WriteGitCommit',
 		WriteGitApplyHunks: 'WriteGitApplyHunks',
+	},
+	Memory: {
+		service: 'universeagent.memory.v1.MemoryService',
+		Save: 'Save',
 	},
 } as const;
 

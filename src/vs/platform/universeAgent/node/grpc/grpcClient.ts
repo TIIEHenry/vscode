@@ -288,6 +288,8 @@ import type {
 	UniverseAgentWriteGitCommitRequest,
 	UniverseAgentWriteGitApplyHunksRequest,
 	UniverseAgentWriteGitWriteResult,
+	UniverseAgentSaveMemoryRequest,
+	UniverseAgentSaveMemoryResult,
 	UniverseAgentListModelsResult,
 	UniverseAgentGetConfigRequest,
 	UniverseAgentGetConfigResult,
@@ -2810,6 +2812,20 @@ function mapWriteGitWriteResponse(wire: WriteGitWriteResponseWire): UniverseAgen
 	};
 }
 
+interface MemorySaveResponseWire {
+	success?: boolean;
+	message?: string;
+	file_path?: string;
+}
+
+function mapMemorySaveResponse(wire: MemorySaveResponseWire): UniverseAgentSaveMemoryResult {
+	return {
+		success: wire.success === true,
+		message: wire.message ?? '',
+		filePath: wire.file_path ?? '',
+	};
+}
+
 interface ListModelsResponseWire {
 	models?: Array<{
 		id?: string;
@@ -4813,6 +4829,20 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			patches: [...request.patches],
 		});
 		return mapWriteGitWriteResponse(wire);
+	}
+
+	async saveMemory(request: UniverseAgentSaveMemoryRequest): Promise<UniverseAgentSaveMemoryResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, MemorySaveResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.Memory.service,
+			UniverseAgentGrpcServices.Memory.Save,
+		);
+		const wire = await unary({
+			scope: request.scope,
+			content: request.content,
+			category: request.category,
+		});
+		return mapMemorySaveResponse(wire);
 	}
 
 	async setPermissionPolicy(request: UniverseAgentSetPermissionPolicyRequest): Promise<UniverseAgentSetPermissionPolicyResult> {

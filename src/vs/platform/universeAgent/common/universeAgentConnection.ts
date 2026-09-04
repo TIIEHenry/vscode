@@ -226,6 +226,8 @@ import type {
 	UniverseAgentWriteGitCommitRequest,
 	UniverseAgentWriteGitApplyHunksRequest,
 	UniverseAgentWriteGitWriteResult,
+	UniverseAgentSaveMemoryRequest,
+	UniverseAgentSaveMemoryResult,
 	UniverseAgentSetPermissionPolicyRequest,
 	UniverseAgentSetPermissionPolicyResult,
 	UniverseAgentListModelsResult,
@@ -1251,6 +1253,17 @@ export interface IUniverseAgentConnection {
 	 * WriteGitCommit.
 	 */
 	writeGitApplyHunks?(request: UniverseAgentWriteGitApplyHunksRequest): Promise<UniverseAgentWriteGitWriteResult>;
+
+	/**
+	 * MemoryService.Save unary. Optional so Web / tests can omit it.
+	 * Catalog + node transport only this slice; empty `scope` / `content` /
+	 * `category` are sent as-is. Proto fields only (`MemorySaveRequest` /
+	 * `MemorySaveResponse`: `success` / `message` / `file_path`). No
+	 * Conversation roster / UI / Engine Preferences / Composer / Memory pane.
+	 * ≠ Search / SearchDeep / Read / List / Delete / Reflect / Rebuild /
+	 * Revert / History.
+	 */
+	saveMemory?(request: UniverseAgentSaveMemoryRequest): Promise<UniverseAgentSaveMemoryResult>;
 
 	/**
 	 * ConfigService.SetPermissionPolicy unary (session/tool Ask/Agent/Permit
