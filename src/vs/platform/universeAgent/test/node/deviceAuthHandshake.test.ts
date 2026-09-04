@@ -313,6 +313,10 @@ class MockDeviceAuthTransport implements IUniverseAgentGrpcTransport {
 		return { dispose() { } };
 	}
 
+	openSubscribeToolDetailStream(): { dispose(): void } {
+		return { dispose() { } };
+	}
+
 	async listSkills() {
 		return { skills: [] };
 	}

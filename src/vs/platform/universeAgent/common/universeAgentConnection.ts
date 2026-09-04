@@ -17,6 +17,9 @@ import type {
 	UniverseAgentRegenerateStream,
 	UniverseAgentResumeRequest,
 	UniverseAgentResumeStream,
+	UniverseAgentSubscribeToolDetailRequest,
+	UniverseAgentSubscribeToolDetailChunk,
+	UniverseAgentSubscribeToolDetailStream,
 	UniverseAgentConnectRequest,
 	UniverseAgentConnectResult,
 	UniverseAgentConnectionSnapshot,
@@ -690,6 +693,19 @@ export interface IUniverseAgentConnection {
 		onResponse: (response: UniverseAgentChatResponse) => void,
 		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
 	): UniverseAgentResumeStream;
+
+	/**
+	 * AgentService.SubscribeToolDetail server-stream
+	 * (`stream SubscribeToolDetailChunk`). Optional so Web / tests can omit it.
+	 * Catalog + node transport only this slice; empty `sessionId` / `toolCallId`
+	 * / `refId` are sent as-is. No Conversation roster / UI.
+	 * ≠ FetchToolDetail / FetchToolUsageDetail / SendShellSessionClientControl.
+	 */
+	openSubscribeToolDetailStream?(
+		request: UniverseAgentSubscribeToolDetailRequest,
+		onResponse: (response: UniverseAgentSubscribeToolDetailChunk) => void,
+		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
+	): UniverseAgentSubscribeToolDetailStream;
 
 	listSkills(): Promise<UniverseAgentListSkillsResult>;
 

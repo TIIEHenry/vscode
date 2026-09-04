@@ -16,6 +16,9 @@ import type {
 	UniverseAgentRegenerateStream,
 	UniverseAgentResumeRequest,
 	UniverseAgentResumeStream,
+	UniverseAgentSubscribeToolDetailRequest,
+	UniverseAgentSubscribeToolDetailChunk,
+	UniverseAgentSubscribeToolDetailStream,
 	UniverseAgentConnectRequest,
 	UniverseAgentConnectResult,
 	UniverseAgentCreateSessionRequest,
@@ -392,6 +395,24 @@ const FireTriggerWebhookStatusByNumber: Record<number, string> = {
 	3: 'FIRE_TRIGGER_WEBHOOK_STATUS_REJECTED',
 	4: 'FIRE_TRIGGER_WEBHOOK_STATUS_SKIPPED',
 };
+
+const ToolDetailContentModeByNumber: Record<number, string> = {
+	0: 'TOOL_DETAIL_CONTENT_MODE_UNSPECIFIED',
+	1: 'TOOL_DETAIL_CONTENT_MODE_FULL_SNAPSHOT',
+	2: 'TOOL_DETAIL_CONTENT_MODE_APPEND_SLICE',
+};
+
+interface SubscribeToolDetailChunkWire {
+	success?: boolean;
+	error_message?: string;
+	content?: string;
+	revision?: number | string;
+	truncated?: boolean;
+	total_bytes?: number | string;
+	mime_type?: string;
+	eof?: boolean;
+	content_mode?: string | number;
+}
 interface SessionSnapshotInfoWire {
 	id?: string;
 	session_id?: string;
@@ -1090,6 +1111,31 @@ function mapContextSourceUsage(item: ContextSourceUsageWire | undefined): Univer
 		sourceScopeId: item?.source_scope_id,
 		messageId: item?.message_id,
 		estimatedTokens: requiredInt64(item?.estimated_tokens),
+	};
+}
+
+function mapToolDetailContentMode(value: string | number | undefined): string {
+	if (value === undefined) {
+		return 'TOOL_DETAIL_CONTENT_MODE_UNSPECIFIED';
+	}
+	if (typeof value === 'number') {
+		return ToolDetailContentModeByNumber[value] ?? String(value);
+	}
+	return value;
+}
+
+function mapSubscribeToolDetailChunk(wire: SubscribeToolDetailChunkWire): UniverseAgentSubscribeToolDetailChunk {
+	const totalBytes = optionalInt64(wire.total_bytes);
+	return {
+		success: wire.success === true,
+		errorMessage: wire.error_message ?? '',
+		content: wire.content ?? '',
+		revision: requiredInt64(wire.revision),
+		truncated: wire.truncated === true,
+		...(totalBytes !== undefined ? { totalBytes } : {}),
+		...(wire.mime_type !== undefined ? { mimeType: wire.mime_type } : {}),
+		eof: wire.eof === true,
+		contentMode: mapToolDetailContentMode(wire.content_mode),
 	};
 }
 
@@ -3263,6 +3309,27 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			session_id: request.sessionId,
 			agent_id: request.agentId,
 		}, onResponse, onClosed);
+	}
+
+	openSubscribeToolDetailStream(
+		request: UniverseAgentSubscribeToolDetailRequest,
+		onResponse: (response: UniverseAgentSubscribeToolDetailChunk) => void,
+		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
+	): UniverseAgentSubscribeToolDetailStream {
+		const stream = makeServerStreamClient<Record<string, unknown>, SubscribeToolDetailChunkWire>(
+			this._channel,
+			UniverseAgentGrpcServices.Agent.service,
+			UniverseAgentGrpcServices.Agent.SubscribeToolDetail,
+		);
+		return stream({
+			session_id: request.sessionId,
+			tool_call_id: request.toolCallId,
+			detail_kind: request.detailKind,
+			ref_id: request.refId,
+			from_revision: request.fromRevision,
+			...(request.mimeType !== undefined ? { mime_type: request.mimeType } : {}),
+			...(request.tailBytes !== undefined ? { tail_bytes: request.tailBytes } : {}),
+		}, wire => onResponse(mapSubscribeToolDetailChunk(wire)), onClosed);
 	}
 
 	async listSkills(): Promise<UniverseAgentListSkillsResult> {

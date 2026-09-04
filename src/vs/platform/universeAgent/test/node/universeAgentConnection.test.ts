@@ -12,6 +12,8 @@ import type {
 	UniverseAgentContinueGenerationRequest,
 	UniverseAgentRegenerateRequest,
 	UniverseAgentResumeRequest,
+	UniverseAgentSubscribeToolDetailRequest,
+	UniverseAgentSubscribeToolDetailChunk,
 	UniverseAgentConnectRequest,
 	UniverseAgentConnectResult,
 	UniverseAgentCreateSessionRequest,
@@ -768,6 +770,31 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 		this._resumeGate?.finish(cause);
 	}
 
+	private _subscribeToolDetailGate: ReturnType<typeof createStreamCloseGate> | undefined;
+	readonly subscribeToolDetailOpens: UniverseAgentSubscribeToolDetailRequest[] = [];
+
+	openSubscribeToolDetailStream(
+		request: UniverseAgentSubscribeToolDetailRequest,
+		_onResponse: (response: UniverseAgentSubscribeToolDetailChunk) => void,
+		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
+	): { dispose(): void } {
+		this.subscribeToolDetailOpens.push(request);
+		const gate = createStreamCloseGate(onClosed);
+		this._subscribeToolDetailGate = gate;
+		return {
+			dispose: () => {
+				gate.closeLocal();
+				if (this._subscribeToolDetailGate === gate) {
+					this._subscribeToolDetailGate = undefined;
+				}
+			},
+		};
+	}
+
+	fireSubscribeToolDetailClosed(cause: UniverseAgentSessionStreamCloseCause): void {
+		this._subscribeToolDetailGate?.finish(cause);
+	}
+
 	async listSkills() {
 		return { skills: [] };
 	}
@@ -1007,6 +1034,11 @@ suite('UniverseAgentConnectionService', () => {
 
 	test('UniverseAgentGrpcServices lists Agent.TestModelProfile', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.TestModelProfile, 'TestModelProfile');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+	});
+
+	test('UniverseAgentGrpcServices lists Agent.SubscribeToolDetail', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.SubscribeToolDetail, 'SubscribeToolDetail');
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
 	});
 
@@ -2677,6 +2709,67 @@ suite('UniverseAgentConnectionService', () => {
 		}, () => { }, cause => seen.push(cause));
 		handle.dispose();
 		transport.fireResumeClosed({ kind: 'error', message: 'CANCELLED' });
+		assert.deepStrictEqual(seen, []);
+		service.dispose();
+	});
+
+	test('openSubscribeToolDetailStream forwards request and transport onClosed', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		const seen: UniverseAgentSessionStreamCloseCause[] = [];
+		const handle = service.openSubscribeToolDetailStream({
+			sessionId: 'sess-1',
+			toolCallId: 'tc-1',
+			detailKind: 2,
+			refId: 'ref-9',
+			fromRevision: 3,
+		}, () => { }, cause => seen.push(cause));
+		assert.deepStrictEqual(transport.subscribeToolDetailOpens, [{
+			sessionId: 'sess-1',
+			toolCallId: 'tc-1',
+			detailKind: 2,
+			refId: 'ref-9',
+			fromRevision: 3,
+		}]);
+		transport.fireSubscribeToolDetailClosed({ kind: 'remote' });
+		transport.fireSubscribeToolDetailClosed({ kind: 'error', message: 'late' });
+		assert.deepStrictEqual(seen, [{ kind: 'remote' }]);
+
+		service.openSubscribeToolDetailStream({
+			sessionId: '',
+			toolCallId: '',
+			detailKind: 0,
+			refId: '',
+			fromRevision: 0,
+		}, () => { });
+		assert.strictEqual(transport.subscribeToolDetailOpens[1]?.sessionId, '');
+		assert.strictEqual(transport.subscribeToolDetailOpens[1]?.toolCallId, '');
+		assert.strictEqual(transport.subscribeToolDetailOpens[1]?.refId, '');
+		handle.dispose();
+		service.dispose();
+	});
+
+	test('openSubscribeToolDetailStream dispose silences later onClosed', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		const seen: UniverseAgentSessionStreamCloseCause[] = [];
+		const handle = service.openSubscribeToolDetailStream({
+			sessionId: 'sess-1',
+			toolCallId: 'tc-1',
+			detailKind: 0,
+			refId: 'ref-1',
+			fromRevision: 0,
+		}, () => { }, cause => seen.push(cause));
+		handle.dispose();
+		transport.fireSubscribeToolDetailClosed({ kind: 'error', message: 'CANCELLED' });
 		assert.deepStrictEqual(seen, []);
 		service.dispose();
 	});

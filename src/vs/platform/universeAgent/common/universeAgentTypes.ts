@@ -994,7 +994,8 @@ export interface UniverseAgentSessionEvent {
 
 /**
  * Close cause for resident streams (`openChatStream`, `openContinuationStream`,
- * `openRegenerateStream`, `openResumeStream`, `subscribeSessionEventStream`).
+ * `openRegenerateStream`, `openResumeStream`, `openSubscribeToolDetailStream`,
+ * `subscribeSessionEventStream`).
  * Local dispose / cancel does not fire this.
  */
 export type UniverseAgentSessionStreamCloseCause =
@@ -1057,6 +1058,44 @@ export interface UniverseAgentResumeRequest {
 
 /** Server-stream handle for Resume (client does not write). */
 export interface UniverseAgentResumeStream {
+	dispose(): void;
+}
+
+/**
+ * AgentService.SubscribeToolDetail request; proto `stream SubscribeToolDetailChunk`.
+ * Empty `sessionId` / `toolCallId` / `refId` are sent as-is.
+ * ≠ FetchToolDetail / FetchToolUsageDetail / SendShellSessionClientControl.
+ */
+export interface UniverseAgentSubscribeToolDetailRequest {
+	readonly sessionId: string;
+	readonly toolCallId: string;
+	/** Proto `detail_kind`. */
+	readonly detailKind: number;
+	/** Proto `ref_id`. Empty sent as-is. */
+	readonly refId: string;
+	/** Proto optional `mime_type`. */
+	readonly mimeType?: string;
+	/** Proto `from_revision`. */
+	readonly fromRevision: number;
+	/** Proto optional `tail_bytes`. */
+	readonly tailBytes?: number;
+}
+
+/** Proto `SubscribeToolDetailChunk`. `contentMode` is ToolDetailContentMode name. */
+export interface UniverseAgentSubscribeToolDetailChunk {
+	readonly success: boolean;
+	readonly errorMessage: string;
+	readonly content: string;
+	readonly revision: number;
+	readonly truncated: boolean;
+	readonly totalBytes?: number;
+	readonly mimeType?: string;
+	readonly eof: boolean;
+	readonly contentMode: string;
+}
+
+/** Server-stream handle for SubscribeToolDetail (client does not write). */
+export interface UniverseAgentSubscribeToolDetailStream {
 	dispose(): void;
 }
 

@@ -13,6 +13,9 @@ import type {
 	UniverseAgentRegenerateStream,
 	UniverseAgentResumeRequest,
 	UniverseAgentResumeStream,
+	UniverseAgentSubscribeToolDetailRequest,
+	UniverseAgentSubscribeToolDetailChunk,
+	UniverseAgentSubscribeToolDetailStream,
 	UniverseAgentConnectRequest,
 	UniverseAgentConnectResult,
 	UniverseAgentCreateSessionRequest,
@@ -386,6 +389,13 @@ export interface IUniverseAgentGrpcTransport {
 		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
 	): UniverseAgentResumeStream;
 
+	/** AgentService.SubscribeToolDetail server-stream (snake_case ids). Empty ids sent as-is. */
+	openSubscribeToolDetailStream(
+		request: UniverseAgentSubscribeToolDetailRequest,
+		onResponse: (response: UniverseAgentSubscribeToolDetailChunk) => void,
+		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
+	): UniverseAgentSubscribeToolDetailStream;
+
 	listSkills(): Promise<UniverseAgentListSkillsResult>;
 
 	setSkillEnabled(request: UniverseAgentSetSkillEnabledRequest): Promise<UniverseAgentSetSkillEnabledResult>;
@@ -532,6 +542,7 @@ export const UniverseAgentGrpcServices = {
 		DeleteAgentProfile: 'DeleteAgentProfile',
 		ResetAgentProfile: 'ResetAgentProfile',
 		FetchToolDetail: 'FetchToolDetail',
+		SubscribeToolDetail: 'SubscribeToolDetail',
 	},
 	Mcp: {
 		service: 'universeagent.mcp.v1.McpService',
