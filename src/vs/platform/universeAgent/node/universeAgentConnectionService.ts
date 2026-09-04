@@ -219,6 +219,8 @@ import type {
 	UniverseAgentForceWriteFileRequest,
 	UniverseAgentAgentMergeRequest,
 	UniverseAgentAgentMergeResult,
+	UniverseAgentReadGitChangesRequest,
+	UniverseAgentReadGitChangesResult,
 	UniverseAgentSetPermissionPolicyRequest,
 	UniverseAgentSetPermissionPolicyResult,
 	UniverseAgentListModelsResult,
@@ -1313,6 +1315,10 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 
 	async agentMerge(request: UniverseAgentAgentMergeRequest): Promise<UniverseAgentAgentMergeResult> {
 		return this._withTransport(transport => transport.agentMerge(request));
+	}
+
+	async readGitChanges(request: UniverseAgentReadGitChangesRequest): Promise<UniverseAgentReadGitChangesResult> {
+		return this._withTransport(transport => transport.readGitChanges(request));
 	}
 
 	async setPermissionPolicy(request: UniverseAgentSetPermissionPolicyRequest): Promise<UniverseAgentSetPermissionPolicyResult> {
