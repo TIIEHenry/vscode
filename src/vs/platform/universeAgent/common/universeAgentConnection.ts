@@ -229,6 +229,10 @@ import type {
 	UniverseAgentGetSessionUsageRequest,
 	UniverseAgentGetSessionUsageResult,
 	UniverseAgentGetGlobalUsageResult,
+	UniverseAgentSaveMemoryRequest,
+	UniverseAgentSaveMemoryResult,
+	UniverseAgentMemorySearchRequest,
+	UniverseAgentMemorySearchResult,
 	UniverseAgentSetPermissionPolicyRequest,
 	UniverseAgentSetPermissionPolicyResult,
 	UniverseAgentListModelsResult,
@@ -1276,6 +1280,30 @@ export interface IUniverseAgentConnection {
 	 * ≠ GetSessionUsage / Agent.Usage.
 	 */
 	getGlobalUsage?(): Promise<UniverseAgentGetGlobalUsageResult>;
+
+	/**
+	 * MemoryService.Save unary. Optional so Web / tests can omit it.
+	 * Catalog + node transport only this slice; empty `scope` / `content` /
+	 * `category` are sent as-is. Proto fields only (`MemorySaveRequest` /
+	 * `MemorySaveResponse`: `success` / `message` / `file_path`). No
+	 * Conversation roster / UI / Engine Preferences / Composer / Memory pane.
+	 * ≠ Search / SearchDeep / Read / List / Delete / Reflect / Rebuild /
+	 * Revert / History.
+	 */
+	saveMemory?(request: UniverseAgentSaveMemoryRequest): Promise<UniverseAgentSaveMemoryResult>;
+
+	/**
+	 * MemoryService.Search unary. Optional so Web / tests can omit it.
+	 * Catalog + node transport only this slice; empty `scope` / `query` /
+	 * `keywords` are sent as-is. `limit` 0 sent as-is. Empty `category` /
+	 * `filename` / `title` / `snippet` / `scope` mapped as-is. Proto
+	 * fields only (`MemorySearchRequest` / `MemorySearchResponse` +
+	 * `MemorySearchResult`). No Conversation roster / UI / Engine
+	 * Preferences / Composer.
+	 * ≠ Save / SearchDeep / Read / List / Delete / Reflect / Rebuild /
+	 * Revert / History.
+	 */
+	searchMemory?(request: UniverseAgentMemorySearchRequest): Promise<UniverseAgentMemorySearchResult>;
 
 	/**
 	 * ConfigService.SetPermissionPolicy unary (session/tool Ask/Agent/Permit

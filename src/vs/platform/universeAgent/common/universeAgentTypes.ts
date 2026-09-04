@@ -2132,6 +2132,53 @@ export interface UniverseAgentGetGlobalUsageResult {
 }
 
 /**
+ * MemoryService.Save — proto `MemorySaveRequest` / `MemorySaveResponse` only.
+ * Empty `scope` / `content` / `category` pass through as-is.
+ * ≠ Search / SearchDeep / Read / List / Delete / Reflect / Rebuild / Revert /
+ * History.
+ */
+export interface UniverseAgentSaveMemoryRequest {
+	readonly scope: string;
+	readonly content: string;
+	readonly category: string;
+}
+
+export interface UniverseAgentSaveMemoryResult {
+	readonly success: boolean;
+	readonly message: string;
+	readonly filePath: string;
+}
+
+/**
+ * MemoryService.Search — proto `MemorySearchRequest` /
+ * `MemorySearchResponse` + `MemorySearchResult` only. Empty `scope` /
+ * `query` / `keywords` pass through as-is. `limit` 0 sent as-is.
+ * Empty `category` / `filename` / `title` / `snippet` / `scope` mapped
+ * as-is. ≠ Save / SearchDeep / Read / List / Delete / Reflect / Rebuild /
+ * Revert / History.
+ */
+export interface UniverseAgentMemorySearchRequest {
+	readonly scope: string;
+	readonly query: string;
+	readonly keywords: readonly string[];
+	readonly limit: number;
+}
+
+export interface UniverseAgentMemorySearchEntry {
+	readonly category: string;
+	readonly filename: string;
+	readonly title: string;
+	readonly score: number;
+	readonly snippet: string;
+	readonly forgot: boolean;
+	readonly scope: string;
+}
+
+export interface UniverseAgentMemorySearchResult {
+	readonly results: readonly UniverseAgentMemorySearchEntry[];
+}
+
+/**
  * ConfigService.SetPermissionPolicy — session/tool policy write
  * (≠ SwitchModel / ListModels / Get / Set / GetModelPreferences /
  * SetModelPreferences / SetPermissionMode).
