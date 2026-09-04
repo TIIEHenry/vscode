@@ -77,6 +77,8 @@ import type {
 	UniverseAgentRunToolInBackgroundResult,
 	UniverseAgentStopShellTaskRequest,
 	UniverseAgentStopShellTaskResult,
+	UniverseAgentSendShellSessionClientControlRequest,
+	UniverseAgentSendShellSessionClientControlResult,
 	UniverseAgentSetSessionGoalRequest,
 	UniverseAgentSetSessionGoalResult,
 	UniverseAgentCancelSessionGoalRequest,
@@ -450,6 +452,17 @@ export interface IUniverseAgentConnection {
 	 * ≠ CancelToolCall / RunToolInBackground / Cancel / StopLoop.
 	 */
 	stopShellTask?(request: UniverseAgentStopShellTaskRequest): Promise<UniverseAgentStopShellTaskResult>;
+
+	/**
+	 * AgentService.SendShellSessionClientControl unary
+	 * (SendShellSessionClientControlResponse.success → ok). Optional so Web /
+	 * tests can omit it. Catalog + node transport only this slice; empty
+	 * `sessionId` / `toolCallId` / `refId` / `controlPayloadJson` are sent as-is.
+	 * No Conversation roster / UI.
+	 * ≠ StopShellTask / SubscribeToolDetail / FetchToolUsageDetail /
+	 * CancelToolCall / RunToolInBackground.
+	 */
+	sendShellSessionClientControl?(request: UniverseAgentSendShellSessionClientControlRequest): Promise<UniverseAgentSendShellSessionClientControlResult>;
 
 	/**
 	 * PermissionService.SetSessionGoal unary (Inbox Goal). Optional so Web / tests

@@ -71,6 +71,8 @@ import type {
 	UniverseAgentRunToolInBackgroundResult,
 	UniverseAgentStopShellTaskRequest,
 	UniverseAgentStopShellTaskResult,
+	UniverseAgentSendShellSessionClientControlRequest,
+	UniverseAgentSendShellSessionClientControlResult,
 	UniverseAgentSetSessionGoalRequest,
 	UniverseAgentSetSessionGoalResult,
 	UniverseAgentCancelSessionGoalRequest,
@@ -429,6 +431,14 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 	async stopShellTask(request: UniverseAgentStopShellTaskRequest): Promise<UniverseAgentStopShellTaskResult> {
 		this.stopShellTaskCalls.push(request);
 		return this.stopShellTaskResult;
+	}
+
+	readonly sendShellSessionClientControlCalls: UniverseAgentSendShellSessionClientControlRequest[] = [];
+	sendShellSessionClientControlResult: UniverseAgentSendShellSessionClientControlResult = { ok: true };
+
+	async sendShellSessionClientControl(request: UniverseAgentSendShellSessionClientControlRequest): Promise<UniverseAgentSendShellSessionClientControlResult> {
+		this.sendShellSessionClientControlCalls.push(request);
+		return this.sendShellSessionClientControlResult;
 	}
 
 	readonly setGoalCalls: UniverseAgentSetSessionGoalRequest[] = [];
@@ -936,6 +946,11 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
 	});
 
+	test('UniverseAgentGrpcServices lists Agent.SendShellSessionClientControl', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.SendShellSessionClientControl, 'SendShellSessionClientControl');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+	});
+
 	test('UniverseAgentGrpcServices lists Permission.SetSessionGoal', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Permission.SetSessionGoal, 'SetSessionGoal');
 		assert.strictEqual(UniverseAgentGrpcServices.Permission.CancelSessionGoal, 'CancelSessionGoal');
@@ -1224,6 +1239,55 @@ suite('UniverseAgentConnectionService', () => {
 		assert.deepStrictEqual(empty, transport.stopShellTaskResult);
 		assert.strictEqual(transport.stopShellTaskCalls[1]?.sessionId, '');
 		assert.strictEqual(transport.stopShellTaskCalls[1]?.taskId, '');
+		service.dispose();
+	});
+
+	test('sendShellSessionClientControl forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.sendShellSessionClientControlResult = {
+			ok: true,
+			message: '',
+			errorCode: '',
+			debounced: false,
+			deliveredToSubscribe: true,
+		};
+		const result = await service.sendShellSessionClientControl({
+			sessionId: 'sess-1',
+			toolCallId: 'tc-1',
+			refId: 'shell-1',
+			controlPayloadJson: '{"op":"resize"}',
+		});
+		assert.deepStrictEqual(transport.sendShellSessionClientControlCalls, [{
+			sessionId: 'sess-1',
+			toolCallId: 'tc-1',
+			refId: 'shell-1',
+			controlPayloadJson: '{"op":"resize"}',
+		}]);
+		assert.deepStrictEqual(result, transport.sendShellSessionClientControlResult);
+
+		transport.sendShellSessionClientControlResult = {
+			ok: false,
+			message: 'no subscribe',
+			errorCode: 'NO_SUBSCRIBE',
+			debounced: false,
+			deliveredToSubscribe: false,
+		};
+		const empty = await service.sendShellSessionClientControl({
+			sessionId: '',
+			toolCallId: '',
+			refId: '',
+			controlPayloadJson: '',
+		});
+		assert.deepStrictEqual(empty, transport.sendShellSessionClientControlResult);
+		assert.strictEqual(transport.sendShellSessionClientControlCalls[1]?.sessionId, '');
+		assert.strictEqual(transport.sendShellSessionClientControlCalls[1]?.toolCallId, '');
+		assert.strictEqual(transport.sendShellSessionClientControlCalls[1]?.refId, '');
+		assert.strictEqual(transport.sendShellSessionClientControlCalls[1]?.controlPayloadJson, '');
 		service.dispose();
 	});
 

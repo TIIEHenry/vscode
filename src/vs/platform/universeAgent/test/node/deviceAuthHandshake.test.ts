@@ -179,6 +179,10 @@ class MockDeviceAuthTransport implements IUniverseAgentGrpcTransport {
 		return { ok: false, message: 'test' };
 	}
 
+	async sendShellSessionClientControl(): Promise<{ ok: false; message: 'test' }> {
+		return { ok: false, message: 'test' };
+	}
+
 	async setSessionGoal(): Promise<{ ok: false; message: 'test' }> {
 		return { ok: false, message: 'test' };
 	}
