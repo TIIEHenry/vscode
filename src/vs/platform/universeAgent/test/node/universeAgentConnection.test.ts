@@ -11,6 +11,7 @@ import type {
 	UniverseAgentChatStream,
 	UniverseAgentContinueGenerationRequest,
 	UniverseAgentRegenerateRequest,
+	UniverseAgentResumeRequest,
 	UniverseAgentConnectRequest,
 	UniverseAgentConnectResult,
 	UniverseAgentCreateSessionRequest,
@@ -672,6 +673,31 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 		this._regenerateGate?.finish(cause);
 	}
 
+	private _resumeGate: ReturnType<typeof createStreamCloseGate> | undefined;
+	readonly resumeOpens: UniverseAgentResumeRequest[] = [];
+
+	openResumeStream(
+		request: UniverseAgentResumeRequest,
+		_onResponse: (response: UniverseAgentChatResponse) => void,
+		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
+	): { dispose(): void } {
+		this.resumeOpens.push(request);
+		const gate = createStreamCloseGate(onClosed);
+		this._resumeGate = gate;
+		return {
+			dispose: () => {
+				gate.closeLocal();
+				if (this._resumeGate === gate) {
+					this._resumeGate = undefined;
+				}
+			},
+		};
+	}
+
+	fireResumeClosed(cause: UniverseAgentSessionStreamCloseCause): void {
+		this._resumeGate?.finish(cause);
+	}
+
 	async listSkills() {
 		return { skills: [] };
 	}
@@ -1032,6 +1058,11 @@ suite('UniverseAgentConnectionService', () => {
 
 	test('UniverseAgentGrpcServices lists Agent.Pause', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.Pause, 'Pause');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+	});
+
+	test('UniverseAgentGrpcServices lists Agent.Resume', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.Resume, 'Resume');
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
 	});
 
@@ -2245,6 +2276,54 @@ suite('UniverseAgentConnectionService', () => {
 		}, () => { }, cause => seen.push(cause));
 		handle.dispose();
 		transport.fireRegenerateClosed({ kind: 'error', message: 'CANCELLED' });
+		assert.deepStrictEqual(seen, []);
+		service.dispose();
+	});
+
+	test('openResumeStream forwards request and transport onClosed', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		const seen: UniverseAgentSessionStreamCloseCause[] = [];
+		const handle = service.openResumeStream({
+			sessionId: 'sess-1',
+			agentId: 'agent-a',
+		}, () => { }, cause => seen.push(cause));
+		assert.deepStrictEqual(transport.resumeOpens, [{
+			sessionId: 'sess-1',
+			agentId: 'agent-a',
+		}]);
+		transport.fireResumeClosed({ kind: 'remote' });
+		transport.fireResumeClosed({ kind: 'error', message: 'late' });
+		assert.deepStrictEqual(seen, [{ kind: 'remote' }]);
+
+		service.openResumeStream({
+			sessionId: '',
+			agentId: '',
+		}, () => { });
+		assert.strictEqual(transport.resumeOpens[1]?.sessionId, '');
+		assert.strictEqual(transport.resumeOpens[1]?.agentId, '');
+		handle.dispose();
+		service.dispose();
+	});
+
+	test('openResumeStream dispose silences later onClosed', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		const seen: UniverseAgentSessionStreamCloseCause[] = [];
+		const handle = service.openResumeStream({
+			sessionId: 'sess-1',
+			agentId: 'agent-a',
+		}, () => { }, cause => seen.push(cause));
+		handle.dispose();
+		transport.fireResumeClosed({ kind: 'error', message: 'CANCELLED' });
 		assert.deepStrictEqual(seen, []);
 		service.dispose();
 	});

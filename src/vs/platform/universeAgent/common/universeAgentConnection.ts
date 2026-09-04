@@ -15,6 +15,8 @@ import type {
 	UniverseAgentContinuationStream,
 	UniverseAgentRegenerateRequest,
 	UniverseAgentRegenerateStream,
+	UniverseAgentResumeRequest,
+	UniverseAgentResumeStream,
 	UniverseAgentConnectRequest,
 	UniverseAgentConnectResult,
 	UniverseAgentConnectionSnapshot,
@@ -597,6 +599,18 @@ export interface IUniverseAgentConnection {
 		onResponse: (response: UniverseAgentChatResponse) => void,
 		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
 	): UniverseAgentRegenerateStream;
+
+	/**
+	 * AgentService.Resume server-stream (`stream ChatResponse`). Optional so
+	 * Web / tests can omit it. Catalog + node transport only this slice; empty
+	 * `sessionId` / `agentId` are sent as-is. No Conversation roster / UI.
+	 * ≠ Pause / ContinueGeneration / ResumeLoop / ResumeQueue / Session.Resume.
+	 */
+	openResumeStream?(
+		request: UniverseAgentResumeRequest,
+		onResponse: (response: UniverseAgentChatResponse) => void,
+		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
+	): UniverseAgentResumeStream;
 
 	listSkills(): Promise<UniverseAgentListSkillsResult>;
 

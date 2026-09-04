@@ -14,6 +14,8 @@ import type {
 	UniverseAgentContinuationStream,
 	UniverseAgentRegenerateRequest,
 	UniverseAgentRegenerateStream,
+	UniverseAgentResumeRequest,
+	UniverseAgentResumeStream,
 	UniverseAgentConnectRequest,
 	UniverseAgentConnectResult,
 	UniverseAgentCreateSessionRequest,
@@ -3014,6 +3016,22 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			agent_id: request.agentId,
 			turn_id: request.turnId,
 			message_id: request.messageId,
+		}, onResponse, onClosed);
+	}
+
+	openResumeStream(
+		request: UniverseAgentResumeRequest,
+		onResponse: (response: UniverseAgentChatResponse) => void,
+		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
+	): UniverseAgentResumeStream {
+		const stream = makeServerStreamClient<Record<string, unknown>, UniverseAgentChatResponse>(
+			this._channel,
+			UniverseAgentGrpcServices.Agent.service,
+			UniverseAgentGrpcServices.Agent.Resume,
+		);
+		return stream({
+			session_id: request.sessionId,
+			agent_id: request.agentId,
 		}, onResponse, onClosed);
 	}
 

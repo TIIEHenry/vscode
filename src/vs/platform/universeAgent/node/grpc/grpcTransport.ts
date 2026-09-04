@@ -11,6 +11,8 @@ import type {
 	UniverseAgentContinuationStream,
 	UniverseAgentRegenerateRequest,
 	UniverseAgentRegenerateStream,
+	UniverseAgentResumeRequest,
+	UniverseAgentResumeStream,
 	UniverseAgentConnectRequest,
 	UniverseAgentConnectResult,
 	UniverseAgentCreateSessionRequest,
@@ -349,6 +351,13 @@ export interface IUniverseAgentGrpcTransport {
 		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
 	): UniverseAgentRegenerateStream;
 
+	/** AgentService.Resume server-stream (snake_case ids). Empty ids sent as-is. */
+	openResumeStream(
+		request: UniverseAgentResumeRequest,
+		onResponse: (response: UniverseAgentChatResponse) => void,
+		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
+	): UniverseAgentResumeStream;
+
 	listSkills(): Promise<UniverseAgentListSkillsResult>;
 
 	setSkillEnabled(request: UniverseAgentSetSkillEnabledRequest): Promise<UniverseAgentSetSkillEnabledResult>;
@@ -474,6 +483,7 @@ export const UniverseAgentGrpcServices = {
 		List: 'List',
 		History: 'History',
 		Pause: 'Pause',
+		Resume: 'Resume',
 		Back: 'Back',
 		Prune: 'Prune',
 		Reset: 'Reset',

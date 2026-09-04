@@ -318,6 +318,10 @@ class RecordingMockTransport implements IUniverseAgentGrpcTransport {
 		return { dispose() { } };
 	}
 
+	openResumeStream(): { dispose(): void } {
+		return { dispose() { } };
+	}
+
 	async listSkills() {
 		return { skills: [] };
 	}

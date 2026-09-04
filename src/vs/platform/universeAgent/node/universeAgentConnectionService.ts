@@ -18,6 +18,8 @@ import type {
 	UniverseAgentContinuationStream,
 	UniverseAgentRegenerateRequest,
 	UniverseAgentRegenerateStream,
+	UniverseAgentResumeRequest,
+	UniverseAgentResumeStream,
 	UniverseAgentConnectRequest,
 	UniverseAgentConnectResult,
 	UniverseAgentConnectionSnapshot,
@@ -920,6 +922,15 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 	): UniverseAgentRegenerateStream {
 		this._assertTransportReady();
 		return this._transport!.openRegenerateStream(request, onResponse, onClosed);
+	}
+
+	openResumeStream(
+		request: UniverseAgentResumeRequest,
+		onResponse: (response: UniverseAgentChatResponse) => void,
+		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
+	): UniverseAgentResumeStream {
+		this._assertTransportReady();
+		return this._transport!.openResumeStream(request, onResponse, onClosed);
 	}
 
 	async listSkills(): Promise<UniverseAgentListSkillsResult> {

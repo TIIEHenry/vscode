@@ -877,8 +877,8 @@ export interface UniverseAgentSessionEvent {
 
 /**
  * Close cause for resident streams (`openChatStream`, `openContinuationStream`,
- * `openRegenerateStream`, `subscribeSessionEventStream`). Local dispose /
- * cancel does not fire this.
+ * `openRegenerateStream`, `openResumeStream`, `subscribeSessionEventStream`).
+ * Local dispose / cancel does not fire this.
  */
 export type UniverseAgentSessionStreamCloseCause =
 	| { readonly kind: 'remote' }
@@ -926,6 +926,20 @@ export interface UniverseAgentRegenerateRequest {
 
 /** Server-stream handle for Regenerate (client does not write). */
 export interface UniverseAgentRegenerateStream {
+	dispose(): void;
+}
+
+/**
+ * AgentService.Resume request; proto `stream ChatResponse`.
+ * ≠ Pause / ContinueGeneration / ResumeLoop / ResumeQueue / Session.Resume.
+ */
+export interface UniverseAgentResumeRequest {
+	readonly sessionId: string;
+	readonly agentId: string;
+}
+
+/** Server-stream handle for Resume (client does not write). */
+export interface UniverseAgentResumeStream {
 	dispose(): void;
 }
 
