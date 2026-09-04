@@ -69,6 +69,8 @@ import type {
 	UniverseAgentCancelToolCallResult,
 	UniverseAgentRunToolInBackgroundRequest,
 	UniverseAgentRunToolInBackgroundResult,
+	UniverseAgentStopShellTaskRequest,
+	UniverseAgentStopShellTaskResult,
 	UniverseAgentSetSessionGoalRequest,
 	UniverseAgentSetSessionGoalResult,
 	UniverseAgentCancelSessionGoalRequest,
@@ -419,6 +421,14 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 	async runToolInBackground(request: UniverseAgentRunToolInBackgroundRequest): Promise<UniverseAgentRunToolInBackgroundResult> {
 		this.runToolInBackgroundCalls.push(request);
 		return this.runToolInBackgroundResult;
+	}
+
+	readonly stopShellTaskCalls: UniverseAgentStopShellTaskRequest[] = [];
+	stopShellTaskResult: UniverseAgentStopShellTaskResult = { ok: true };
+
+	async stopShellTask(request: UniverseAgentStopShellTaskRequest): Promise<UniverseAgentStopShellTaskResult> {
+		this.stopShellTaskCalls.push(request);
+		return this.stopShellTaskResult;
 	}
 
 	readonly setGoalCalls: UniverseAgentSetSessionGoalRequest[] = [];
@@ -921,6 +931,11 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
 	});
 
+	test('UniverseAgentGrpcServices lists Agent.StopShellTask', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.StopShellTask, 'StopShellTask');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+	});
+
 	test('UniverseAgentGrpcServices lists Permission.SetSessionGoal', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Permission.SetSessionGoal, 'SetSessionGoal');
 		assert.strictEqual(UniverseAgentGrpcServices.Permission.CancelSessionGoal, 'CancelSessionGoal');
@@ -1189,6 +1204,26 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(transport.runToolInBackgroundCalls[1]?.sessionId, '');
 		assert.strictEqual(transport.runToolInBackgroundCalls[1]?.agentId, '');
 		assert.strictEqual(transport.runToolInBackgroundCalls[1]?.toolCallId, '');
+		service.dispose();
+	});
+
+	test('stopShellTask forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.stopShellTaskResult = { ok: true, message: 'stopped' };
+		const result = await service.stopShellTask({ sessionId: 'sess-1', taskId: 'task-1' });
+		assert.deepStrictEqual(transport.stopShellTaskCalls, [{ sessionId: 'sess-1', taskId: 'task-1' }]);
+		assert.deepStrictEqual(result, transport.stopShellTaskResult);
+
+		transport.stopShellTaskResult = { ok: false, message: 'not found' };
+		const empty = await service.stopShellTask({ sessionId: '', taskId: '' });
+		assert.deepStrictEqual(empty, transport.stopShellTaskResult);
+		assert.strictEqual(transport.stopShellTaskCalls[1]?.sessionId, '');
+		assert.strictEqual(transport.stopShellTaskCalls[1]?.taskId, '');
 		service.dispose();
 	});
 

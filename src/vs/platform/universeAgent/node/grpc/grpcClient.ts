@@ -90,6 +90,8 @@ import type {
 	UniverseAgentCancelToolCallResult,
 	UniverseAgentRunToolInBackgroundRequest,
 	UniverseAgentRunToolInBackgroundResult,
+	UniverseAgentStopShellTaskRequest,
+	UniverseAgentStopShellTaskResult,
 	UniverseAgentSetSessionGoalRequest,
 	UniverseAgentSetSessionGoalResult,
 	UniverseAgentCancelSessionGoalRequest,
@@ -2662,6 +2664,22 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			ok: wire.success === true,
 			message: wire.message,
 			reasonCode: wire.reason_code,
+		};
+	}
+
+	async stopShellTask(request: UniverseAgentStopShellTaskRequest): Promise<UniverseAgentStopShellTaskResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, { success?: boolean; message?: string }>(
+			this._channel,
+			UniverseAgentGrpcServices.Agent.service,
+			UniverseAgentGrpcServices.Agent.StopShellTask,
+		);
+		const wire = await unary({
+			session_id: request.sessionId,
+			task_id: request.taskId,
+		});
+		return {
+			ok: wire.success === true,
+			message: wire.message,
 		};
 	}
 

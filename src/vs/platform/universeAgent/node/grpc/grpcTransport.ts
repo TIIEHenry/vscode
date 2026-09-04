@@ -70,6 +70,8 @@ import type {
 	UniverseAgentCancelToolCallResult,
 	UniverseAgentRunToolInBackgroundRequest,
 	UniverseAgentRunToolInBackgroundResult,
+	UniverseAgentStopShellTaskRequest,
+	UniverseAgentStopShellTaskResult,
 	UniverseAgentSetSessionGoalRequest,
 	UniverseAgentSetSessionGoalResult,
 	UniverseAgentCancelSessionGoalRequest,
@@ -283,6 +285,8 @@ export interface IUniverseAgentGrpcTransport {
 	cancelToolCall(request: UniverseAgentCancelToolCallRequest): Promise<UniverseAgentCancelToolCallResult>;
 	/** AgentService.RunToolInBackground unary (snake_case `session_id`/`agent_id`/`tool_call_id`). Empty ids sent as-is. */
 	runToolInBackground(request: UniverseAgentRunToolInBackgroundRequest): Promise<UniverseAgentRunToolInBackgroundResult>;
+	/** AgentService.StopShellTask unary (snake_case `session_id`/`task_id`). Empty ids sent as-is. */
+	stopShellTask(request: UniverseAgentStopShellTaskRequest): Promise<UniverseAgentStopShellTaskResult>;
 
 	setSessionGoal(request: UniverseAgentSetSessionGoalRequest): Promise<UniverseAgentSetSessionGoalResult>;
 
@@ -463,6 +467,7 @@ export const UniverseAgentGrpcServices = {
 		Cancel: 'Cancel',
 		CancelToolCall: 'CancelToolCall',
 		RunToolInBackground: 'RunToolInBackground',
+		StopShellTask: 'StopShellTask',
 		EnqueueQueueItem: 'EnqueueQueueItem',
 		PauseQueue: 'PauseQueue',
 		ResumeQueue: 'ResumeQueue',

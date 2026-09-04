@@ -606,6 +606,17 @@ export interface UniverseAgentRunToolInBackgroundResult {
 	readonly reasonCode?: string;
 }
 
+/** AgentService.StopShellTask — stop ShellTask / subprocess after promote (≠ CancelToolCall / RunToolInBackground / Cancel / StopLoop). */
+export interface UniverseAgentStopShellTaskRequest {
+	readonly sessionId: string;
+	readonly taskId: string;
+}
+
+export interface UniverseAgentStopShellTaskResult {
+	readonly ok: boolean;
+	readonly message?: string;
+}
+
 /** PermissionService.SetSessionGoal request (Inbox Goal). */
 export interface UniverseAgentSetSessionGoalRequest {
 	readonly sessionId: string;
