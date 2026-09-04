@@ -1825,6 +1825,25 @@ export interface UniverseAgentGetConfigResult {
 	readonly scope: string;
 }
 
+/** ConfigService.SwitchModel — session-scoped model switch (≠ ListModels / TestModelProfile / Config.Get / Config.Set / GetModelPreferences / SetModelPreferences / SetPermissionPolicy). */
+export interface UniverseAgentSwitchModelRequest {
+	readonly sessionId: string;
+	readonly agentId: string;
+	/** Proto oneof `target.model_type`. Empty sent as-is. */
+	readonly modelType: string;
+	/** Proto oneof `target.model_id`. Empty sent as-is. */
+	readonly modelId: string;
+}
+
+export interface UniverseAgentSwitchModelResult {
+	/** Proto `resolved_model_id`. Empty sent as-is. */
+	readonly resolvedModelId: string;
+	readonly provider: string;
+	readonly level: number;
+	readonly cost: string;
+	readonly speed: string;
+}
+
 /**
  * MCP runtime connection status from McpService.GetMcpServerStatuses.
  * Proto `MCP_STATUS_UNSPECIFIED` maps to `failed` (no fifth UI state).

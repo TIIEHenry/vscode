@@ -257,6 +257,8 @@ import type {
 	UniverseAgentListModelsResult,
 	UniverseAgentGetConfigRequest,
 	UniverseAgentGetConfigResult,
+	UniverseAgentSwitchModelRequest,
+	UniverseAgentSwitchModelResult,
 	UniverseAgentModelEntry,
 	UniverseAgentToolSummary,
 	UniverseAgentAgentTreeNode,
@@ -4312,6 +4314,33 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 		return {
 			ok: wire.success === true,
 			message: wire.message,
+		};
+	}
+
+	async switchModel(request: UniverseAgentSwitchModelRequest): Promise<UniverseAgentSwitchModelResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, {
+			resolved_model_id?: string;
+			provider?: string;
+			level?: number;
+			cost?: string;
+			speed?: string;
+		}>(
+			this._channel,
+			UniverseAgentGrpcServices.Config.service,
+			UniverseAgentGrpcServices.Config.SwitchModel,
+		);
+		const wire = await unary({
+			session_id: request.sessionId,
+			agent_id: request.agentId,
+			model_type: request.modelType,
+			model_id: request.modelId,
+		});
+		return {
+			resolvedModelId: wire.resolved_model_id ?? '',
+			provider: wire.provider ?? '',
+			level: wire.level ?? 0,
+			cost: wire.cost ?? '',
+			speed: wire.speed ?? '',
 		};
 	}
 
