@@ -275,13 +275,15 @@
 	align-items: center;
 }
 
-.monaco-workbench .part.conversation .conversation-lens-snapshots-restore .monaco-button {
+.monaco-workbench .part.conversation .conversation-lens-snapshots-restore .monaco-button,
+.monaco-workbench .part.conversation .conversation-lens-snapshots-delete .monaco-button {
 	height: 20px;
 	min-width: 20px;
 	padding: 0 6px;
 }
 
-.monaco-workbench .part.conversation .conversation-lens-snapshots-restore .monaco-button .codicon {
+.monaco-workbench .part.conversation .conversation-lens-snapshots-restore .monaco-button .codicon,
+.monaco-workbench .part.conversation .conversation-lens-snapshots-delete .monaco-button .codicon {
 	margin: 0 2px 0 0;
 }
 

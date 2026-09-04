@@ -27,6 +27,7 @@ export const conversationLensSessionBarSnapshotsUnavailableNoSession = localize(
 export const conversationLensSessionBarSnapshotsEmpty = localize('conversationLens.sessionBarSnapshotsEmpty', "No engine snapshots for this session.");
 export const conversationLensSessionBarSnapshotsLoading = localize('conversationLens.sessionBarSnapshotsLoading', "Reading engine snapshots…");
 export const conversationLensSessionBarSnapshotsRestore = localize('conversationLens.sessionBarSnapshotsRestore', "Restore");
+export const conversationLensSessionBarSnapshotsDelete = localize('conversationLens.sessionBarSnapshotsDelete', "Delete");
 export const conversationLensTurnCopy = localize('conversationLens.copyTurn', "Copy message");
 export const conversationLensTurnDelete = localize('conversationLens.deleteTurn', "Delete message");
 export const conversationLensTurnViewInTrajectory = localize('conversationLens.viewInTrajectory', "View in trajectory");
