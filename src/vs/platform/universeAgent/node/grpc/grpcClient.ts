@@ -117,6 +117,7 @@ import type {
 	UniverseAgentQuestionAnswer,
 	UniverseAgentEnqueueQueueItemRequest,
 	UniverseAgentInsertQueueItemRequest,
+	UniverseAgentDeleteQueueItemRequest,
 	UniverseAgentEditQueueItemRequest,
 	UniverseAgentHoldQueueItemRequest,
 	UniverseAgentQueueHoldReason,
@@ -3010,6 +3011,10 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			priority: queuePriorityWire(request.priority),
 			before_item_id: request.beforeItemId ?? '',
 		});
+	}
+
+	async deleteQueueItem(request: UniverseAgentDeleteQueueItemRequest): Promise<UniverseAgentQueueMutationResult> {
+		return this._queueMutation(UniverseAgentGrpcServices.Agent.DeleteQueueItem, queueItemRefWire(request));
 	}
 
 	async pauseQueue(request: UniverseAgentQueueRefRequest): Promise<UniverseAgentQueueMutationResult> {
