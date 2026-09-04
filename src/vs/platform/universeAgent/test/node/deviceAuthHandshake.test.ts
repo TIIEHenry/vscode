@@ -80,6 +80,10 @@ class MockDeviceAuthTransport implements IUniverseAgentGrpcTransport {
 		return { ok: false, message: 'test' };
 	}
 
+	async prewarmSessions(): Promise<{ entries: [] }> {
+		return { entries: [] };
+	}
+
 	async shelveSession(): Promise<{ ok: false; message: 'test' }> {
 		return { ok: false, message: 'test' };
 	}

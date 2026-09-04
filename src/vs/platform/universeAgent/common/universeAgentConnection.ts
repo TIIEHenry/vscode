@@ -34,6 +34,8 @@ import type {
 	UniverseAgentSessionInfoResult,
 	UniverseAgentResumeSessionRequest,
 	UniverseAgentResumeSessionResult,
+	UniverseAgentPrewarmSessionsRequest,
+	UniverseAgentPrewarmSessionsResult,
 	UniverseAgentShelveSessionRequest,
 	UniverseAgentShelveSessionResult,
 	UniverseAgentUnshelveSessionRequest,
@@ -287,6 +289,14 @@ export interface IUniverseAgentConnection {
 	 * `sessionId` is sent as-is. No Conversation roster / UI. ≠ Agent.ResumeQueue.
 	 */
 	resumeSession?(request: UniverseAgentResumeSessionRequest): Promise<UniverseAgentResumeSessionResult>;
+
+	/**
+	 * SessionService.Prewarm unary (explicit session restore batch). Optional so
+	 * Web / tests can omit it. Catalog + node transport only this slice; empty
+	 * `sessionIds` (including empty strings) are sent as-is. No Conversation
+	 * roster / UI. ≠ Resume / Shelve / Unshelve / List.
+	 */
+	prewarmSessions?(request: UniverseAgentPrewarmSessionsRequest): Promise<UniverseAgentPrewarmSessionsResult>;
 
 	/**
 	 * SessionService.Shelve unary (park a session without deleting it). Optional so
