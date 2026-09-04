@@ -123,6 +123,7 @@ import type {
 	UniverseAgentRetryAllFailedRequest,
 	UniverseAgentRetryQueueItemUploadRequest,
 	UniverseAgentPinQueueItemRequest,
+	UniverseAgentInjectQueueItemRequest,
 	UniverseAgentEditQueueItemRequest,
 	UniverseAgentHoldQueueItemRequest,
 	UniverseAgentQueueHoldReason,
@@ -3044,6 +3045,10 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 
 	async pinQueueItem(request: UniverseAgentPinQueueItemRequest): Promise<UniverseAgentQueueMutationResult> {
 		return this._queueMutation(UniverseAgentGrpcServices.Agent.PinQueueItem, queueItemRefWire(request));
+	}
+
+	async injectQueueItem(request: UniverseAgentInjectQueueItemRequest): Promise<UniverseAgentQueueMutationResult> {
+		return this._queueMutation(UniverseAgentGrpcServices.Agent.InjectQueueItem, queueItemRefWire(request));
 	}
 
 	async pauseQueue(request: UniverseAgentQueueRefRequest): Promise<UniverseAgentQueueMutationResult> {
