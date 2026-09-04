@@ -204,6 +204,8 @@ import type {
 	UniverseAgentGetSessionUsageRequest,
 	UniverseAgentGetSessionUsageResult,
 	UniverseAgentGetGlobalUsageResult,
+	UniverseAgentMemoryListRequest,
+	UniverseAgentMemoryListResult,
 	UniverseAgentGetHistoryRequest,
 	UniverseAgentGetHistoryResult,
 	UniverseAgentListSessionsRequest,
@@ -1489,6 +1491,16 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 		return this.getGlobalUsageResult;
 	}
 
+	readonly listMemoryCalls: UniverseAgentMemoryListRequest[] = [];
+	listMemoryResult: UniverseAgentMemoryListResult = {
+		categories: [],
+	};
+
+	async listMemory(request: UniverseAgentMemoryListRequest): Promise<UniverseAgentMemoryListResult> {
+		this.listMemoryCalls.push(request);
+		return this.listMemoryResult;
+	}
+
 	async listModels() {
 		return { models: [] };
 	}
@@ -1925,6 +1937,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('UniverseAgentGrpcServices lists TokenUsage.GetGlobalUsage', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.TokenUsage.GetGlobalUsage, 'GetGlobalUsage');
 		assert.strictEqual(UniverseAgentGrpcServices.TokenUsage.service, 'universeagent.tokenusage.v1.TokenUsageService');
+	});
+
+	test('UniverseAgentGrpcServices lists Memory.List', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Memory.List, 'List');
+		assert.strictEqual(UniverseAgentGrpcServices.Memory.service, 'universeagent.memory.v1.MemoryService');
 	});
 
 	test('UniverseAgentGrpcServices lists Agent.Kill', () => {
@@ -4789,6 +4806,64 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(empty.usage.currency, '');
 		assert.strictEqual(empty.usage.inputTokens, 0);
 		assert.strictEqual(empty.usage.requestCount, 0);
+		service.dispose();
+	});
+
+	test('listMemory forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.listMemoryResult = {
+			categories: [{
+				category: 'notes',
+				files: [{
+					filename: 'note.md',
+					title: 'Note',
+					updatedAt: 1,
+				}],
+				fileCount: 1,
+			}],
+		};
+		const request = {
+			scope: 'project',
+			category: 'notes',
+		};
+		const result = await service.listMemory(request);
+		assert.deepStrictEqual(transport.listMemoryCalls, [request]);
+		assert.deepStrictEqual(result, transport.listMemoryResult);
+
+		transport.listMemoryResult = {
+			categories: [{
+				category: '',
+				files: [{
+					filename: '',
+					title: '',
+					updatedAt: 0,
+				}],
+				fileCount: 0,
+			}],
+		};
+		const emptyRequest = {
+			scope: '',
+			category: '',
+		};
+		const empty = await service.listMemory(emptyRequest);
+		assert.strictEqual(transport.listMemoryCalls[1]?.scope, '');
+		assert.strictEqual(transport.listMemoryCalls[1]?.category, '');
+		assert.strictEqual(empty.categories[0]?.category, '');
+		assert.strictEqual(empty.categories[0]?.fileCount, 0);
+		assert.strictEqual(empty.categories[0]?.files[0]?.filename, '');
+		assert.strictEqual(empty.categories[0]?.files[0]?.title, '');
+		assert.strictEqual(empty.categories[0]?.files[0]?.updatedAt, 0);
+
+		transport.listMemoryResult = { categories: [] };
+		const emptyLists = await service.listMemory(emptyRequest);
+		assert.strictEqual(transport.listMemoryCalls[2]?.scope, '');
+		assert.strictEqual(transport.listMemoryCalls[2]?.category, '');
+		assert.deepStrictEqual(emptyLists.categories, []);
 		service.dispose();
 	});
 

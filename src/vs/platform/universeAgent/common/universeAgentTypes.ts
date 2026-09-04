@@ -2132,6 +2132,35 @@ export interface UniverseAgentGetGlobalUsageResult {
 }
 
 /**
+ * MemoryService.List — proto `MemoryListRequest` / `MemoryListResponse` +
+ * `MemoryCategoryInfo` / `MemoryFileSummary` only. Empty `scope` /
+ * `category` pass through as-is. Empty `filename` / `title` / `category`
+ * mapped as-is. `updated_at` / `file_count` 0 mapped as-is.
+ * ≠ Save / Search / SearchDeep / Read / Delete / Reflect / Rebuild /
+ * Revert / History.
+ */
+export interface UniverseAgentMemoryListRequest {
+	readonly scope: string;
+	readonly category: string;
+}
+
+export interface UniverseAgentMemoryFileSummary {
+	readonly filename: string;
+	readonly title: string;
+	readonly updatedAt: number;
+}
+
+export interface UniverseAgentMemoryCategoryInfo {
+	readonly category: string;
+	readonly files: readonly UniverseAgentMemoryFileSummary[];
+	readonly fileCount: number;
+}
+
+export interface UniverseAgentMemoryListResult {
+	readonly categories: readonly UniverseAgentMemoryCategoryInfo[];
+}
+
+/**
  * ConfigService.SetPermissionPolicy — session/tool policy write
  * (≠ SwitchModel / ListModels / Get / Set / GetModelPreferences /
  * SetModelPreferences / SetPermissionMode).

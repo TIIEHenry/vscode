@@ -292,6 +292,10 @@ import type {
 	UniverseAgentGetSessionUsageResult,
 	UniverseAgentGetGlobalUsageResult,
 	UniverseAgentTokenUsageData,
+	UniverseAgentMemoryListRequest,
+	UniverseAgentMemoryListResult,
+	UniverseAgentMemoryCategoryInfo,
+	UniverseAgentMemoryFileSummary,
 	UniverseAgentListModelsResult,
 	UniverseAgentGetConfigRequest,
 	UniverseAgentGetConfigResult,
@@ -2858,6 +2862,44 @@ function mapGetGlobalUsageResponse(wire: GetGlobalUsageResponseWire): UniverseAg
 	};
 }
 
+interface MemoryFileSummaryWire {
+	filename?: string;
+	title?: string;
+	updated_at?: number | string;
+}
+
+interface MemoryCategoryInfoWire {
+	category?: string;
+	files?: MemoryFileSummaryWire[];
+	file_count?: number | string;
+}
+
+interface MemoryListResponseWire {
+	categories?: MemoryCategoryInfoWire[];
+}
+
+function mapMemoryFileSummary(wire: MemoryFileSummaryWire): UniverseAgentMemoryFileSummary {
+	return {
+		filename: wire.filename ?? '',
+		title: wire.title ?? '',
+		updatedAt: requiredInt64(wire.updated_at),
+	};
+}
+
+function mapMemoryCategoryInfo(wire: MemoryCategoryInfoWire): UniverseAgentMemoryCategoryInfo {
+	return {
+		category: wire.category ?? '',
+		files: (wire.files ?? []).map(mapMemoryFileSummary),
+		fileCount: requiredInt64(wire.file_count),
+	};
+}
+
+function mapMemoryListResponse(wire: MemoryListResponseWire): UniverseAgentMemoryListResult {
+	return {
+		categories: (wire.categories ?? []).map(mapMemoryCategoryInfo),
+	};
+}
+
 interface ListModelsResponseWire {
 	models?: Array<{
 		id?: string;
@@ -4883,6 +4925,19 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 		);
 		const wire = await unary({});
 		return mapGetGlobalUsageResponse(wire);
+	}
+
+	async listMemory(request: UniverseAgentMemoryListRequest): Promise<UniverseAgentMemoryListResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, MemoryListResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.Memory.service,
+			UniverseAgentGrpcServices.Memory.List,
+		);
+		const wire = await unary({
+			scope: request.scope,
+			category: request.category,
+		});
+		return mapMemoryListResponse(wire);
 	}
 
 	async setPermissionPolicy(request: UniverseAgentSetPermissionPolicyRequest): Promise<UniverseAgentSetPermissionPolicyResult> {

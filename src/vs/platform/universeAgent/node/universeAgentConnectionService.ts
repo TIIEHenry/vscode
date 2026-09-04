@@ -232,6 +232,8 @@ import type {
 	UniverseAgentGetSessionUsageRequest,
 	UniverseAgentGetSessionUsageResult,
 	UniverseAgentGetGlobalUsageResult,
+	UniverseAgentMemoryListRequest,
+	UniverseAgentMemoryListResult,
 	UniverseAgentSetPermissionPolicyRequest,
 	UniverseAgentSetPermissionPolicyResult,
 	UniverseAgentListModelsResult,
@@ -1358,6 +1360,10 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 
 	async getGlobalUsage(): Promise<UniverseAgentGetGlobalUsageResult> {
 		return this._withTransport(transport => transport.getGlobalUsage());
+	}
+
+	async listMemory(request: UniverseAgentMemoryListRequest): Promise<UniverseAgentMemoryListResult> {
+		return this._withTransport(transport => transport.listMemory(request));
 	}
 
 	async setPermissionPolicy(request: UniverseAgentSetPermissionPolicyRequest): Promise<UniverseAgentSetPermissionPolicyResult> {
