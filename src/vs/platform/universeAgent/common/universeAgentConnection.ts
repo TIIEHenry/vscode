@@ -19,6 +19,8 @@ import type {
 	UniverseAgentCreateSessionRequest,
 	UniverseAgentCreateSessionResult,
 	UniverseAgentDeleteSessionRequest,
+	UniverseAgentSessionInfoRequest,
+	UniverseAgentSessionInfoResult,
 	UniverseAgentRenameSessionRequest,
 	UniverseAgentRenameSessionResult,
 	UniverseAgentCancelGenerationRequest,
@@ -193,6 +195,13 @@ export interface IUniverseAgentConnection {
 
 	deleteSession(request: UniverseAgentDeleteSessionRequest): Promise<void>;
 
+	/**
+	 * SessionService.Info unary (session metadata + root AgentInfo). Optional so
+	 * Web / tests can omit it. Catalog + node transport only this slice; empty
+	 * `sessionId` is sent as-is. No Conversation roster / UI.
+	 */
+	getSessionInfo?(request: UniverseAgentSessionInfoRequest): Promise<UniverseAgentSessionInfoResult>;
+
 	/** AgentService.Rename unary. Engine roster forwards this when connected. */
 	renameSession(request: UniverseAgentRenameSessionRequest): Promise<UniverseAgentRenameSessionResult>;
 
@@ -323,8 +332,9 @@ export interface IUniverseAgentConnection {
 
 	/**
 	 * AgentService.DeleteSnapshot unary (drop a session checkpoint). Optional
-	 * so Web / tests can omit it. Catalog + node transport only this slice;
-	 * SessionBar History stays the turn index.
+	 * so Web / tests can omit it. Conversation SessionBar snapshots overlay
+	 * Delete confirms then forwards this when connected; empty snapshotId /
+	 * disconnected / no hook do not send. SessionBar History stays the turn index.
 	 */
 	deleteSnapshot?(request: UniverseAgentDeleteSnapshotRequest): Promise<UniverseAgentDeleteSnapshotResult>;
 

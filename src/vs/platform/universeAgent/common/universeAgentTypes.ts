@@ -79,6 +79,20 @@ export interface UniverseAgentDeleteSessionRequest {
 	readonly sessionId: string;
 }
 
+/** SessionService.Info — session metadata + root AgentInfo (≠ List / Create / Resume). */
+export interface UniverseAgentSessionInfoRequest {
+	readonly sessionId: string;
+}
+
+export interface UniverseAgentSessionInfoResult {
+	readonly sessionId: string;
+	readonly rootAgent?: UniverseAgentAgentTreeNode;
+	readonly createdAt: number;
+	readonly lastAccessedAt: number;
+	readonly provider: string;
+	readonly model: string;
+}
+
 /** AgentService.Rename request; empty `title` clears a custom session title. */
 export interface UniverseAgentRenameSessionRequest {
 	readonly sessionId: string;
