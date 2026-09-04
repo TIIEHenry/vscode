@@ -503,6 +503,17 @@ export interface UniverseAgentResetAgentResult {
 	readonly message?: string;
 }
 
+/** AgentService.SuspendLoop — hang loop control-flow (≠ Pause / PauseQueue / Cancel / Resume / ResumeLoop / Branch / StopLoop). */
+export interface UniverseAgentSuspendLoopRequest {
+	readonly sessionId: string;
+	readonly agentId: string;
+}
+
+export interface UniverseAgentSuspendLoopResult {
+	readonly ok: boolean;
+	readonly message?: string;
+}
+
 /** AgentService.Rename request; empty `title` clears a custom session title. */
 export interface UniverseAgentRenameSessionRequest {
 	readonly sessionId: string;

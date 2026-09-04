@@ -54,6 +54,8 @@ import type {
 	UniverseAgentPruneResult,
 	UniverseAgentResetAgentRequest,
 	UniverseAgentResetAgentResult,
+	UniverseAgentSuspendLoopRequest,
+	UniverseAgentSuspendLoopResult,
 	UniverseAgentAgentUsage,
 	UniverseAgentRecentRequestSpan,
 	UniverseAgentContextWindowInfo,
@@ -2497,6 +2499,22 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			session_id: request.sessionId,
 			agent_id: request.agentId,
 			clear_profile_only: request.clearProfileOnly === true,
+		});
+		return {
+			ok: wire.success === true,
+			message: wire.message,
+		};
+	}
+
+	async suspendLoop(request: UniverseAgentSuspendLoopRequest): Promise<UniverseAgentSuspendLoopResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, { success?: boolean; message?: string }>(
+			this._channel,
+			UniverseAgentGrpcServices.Agent.service,
+			UniverseAgentGrpcServices.Agent.SuspendLoop,
+		);
+		const wire = await unary({
+			session_id: request.sessionId,
+			agent_id: request.agentId,
 		});
 		return {
 			ok: wire.success === true,

@@ -52,6 +52,8 @@ import type {
 	UniverseAgentPruneResult,
 	UniverseAgentResetAgentRequest,
 	UniverseAgentResetAgentResult,
+	UniverseAgentSuspendLoopRequest,
+	UniverseAgentSuspendLoopResult,
 	UniverseAgentRenameSessionRequest,
 	UniverseAgentRenameSessionResult,
 	UniverseAgentCancelGenerationRequest,
@@ -344,6 +346,14 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 	async resetAgent(request: UniverseAgentResetAgentRequest): Promise<UniverseAgentResetAgentResult> {
 		this.resetAgentCalls.push(request);
 		return this.resetAgentResult;
+	}
+
+	readonly suspendLoopCalls: UniverseAgentSuspendLoopRequest[] = [];
+	suspendLoopResult: UniverseAgentSuspendLoopResult = { ok: true };
+
+	async suspendLoop(request: UniverseAgentSuspendLoopRequest): Promise<UniverseAgentSuspendLoopResult> {
+		this.suspendLoopCalls.push(request);
+		return this.suspendLoopResult;
 	}
 
 	readonly renameCalls: UniverseAgentRenameSessionRequest[] = [];
@@ -1002,6 +1012,11 @@ suite('UniverseAgentConnectionService', () => {
 
 	test('UniverseAgentGrpcServices lists Agent.Prune', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.Prune, 'Prune');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+	});
+
+	test('UniverseAgentGrpcServices lists Agent.SuspendLoop', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.SuspendLoop, 'SuspendLoop');
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
 	});
 
@@ -1945,6 +1960,26 @@ suite('UniverseAgentConnectionService', () => {
 		assert.deepStrictEqual(empty, transport.pauseAgentResult);
 		assert.strictEqual(transport.pauseAgentCalls[1]?.sessionId, '');
 		assert.strictEqual(transport.pauseAgentCalls[1]?.agentId, '');
+		service.dispose();
+	});
+
+	test('suspendLoop forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.suspendLoopResult = { ok: true, message: 'suspended' };
+		const result = await service.suspendLoop({ sessionId: 'sess-1', agentId: 'root' });
+		assert.deepStrictEqual(transport.suspendLoopCalls, [{ sessionId: 'sess-1', agentId: 'root' }]);
+		assert.deepStrictEqual(result, transport.suspendLoopResult);
+
+		transport.suspendLoopResult = { ok: false, message: 'already suspended' };
+		const empty = await service.suspendLoop({ sessionId: '', agentId: '' });
+		assert.deepStrictEqual(empty, transport.suspendLoopResult);
+		assert.strictEqual(transport.suspendLoopCalls[1]?.sessionId, '');
+		assert.strictEqual(transport.suspendLoopCalls[1]?.agentId, '');
 		service.dispose();
 	});
 
