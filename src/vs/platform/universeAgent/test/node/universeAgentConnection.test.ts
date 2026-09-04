@@ -191,6 +191,8 @@ import type {
 	UniverseAgentForceWriteFileRequest,
 	UniverseAgentAgentMergeRequest,
 	UniverseAgentAgentMergeResult,
+	UniverseAgentWriteGitStagePathsRequest,
+	UniverseAgentWriteGitWriteResult,
 	UniverseAgentGetHistoryRequest,
 	UniverseAgentGetHistoryResult,
 	UniverseAgentListSessionsRequest,
@@ -1354,6 +1356,21 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 		return this.agentMergeResult;
 	}
 
+	readonly writeGitStagePathsCalls: UniverseAgentWriteGitStagePathsRequest[] = [];
+	writeGitStagePathsResult: UniverseAgentWriteGitWriteResult = {
+		supported: false,
+		reason: '',
+		success: false,
+		errorMessage: '',
+		exitCode: 0,
+		stdout: '',
+	};
+
+	async writeGitStagePaths(request: UniverseAgentWriteGitStagePathsRequest): Promise<UniverseAgentWriteGitWriteResult> {
+		this.writeGitStagePathsCalls.push(request);
+		return this.writeGitStagePathsResult;
+	}
+
 	async listModels() {
 		return { models: [] };
 	}
@@ -1750,6 +1767,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('UniverseAgentGrpcServices lists File.AgentMerge', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.File.AgentMerge, 'AgentMerge');
 		assert.strictEqual(UniverseAgentGrpcServices.File.service, 'universeagent.file.v1.FileService');
+	});
+
+	test('UniverseAgentGrpcServices lists Git.WriteGitStagePaths', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Git.WriteGitStagePaths, 'WriteGitStagePaths');
+		assert.strictEqual(UniverseAgentGrpcServices.Git.service, 'universeagent.git.v1.GitService');
 	});
 
 	test('UniverseAgentGrpcServices lists Agent.Kill', () => {
@@ -4236,6 +4258,61 @@ suite('UniverseAgentConnectionService', () => {
 		assert.deepStrictEqual(transport.agentMergeCalls[1]?.currentContent, new Uint8Array(0));
 		assert.deepStrictEqual(transport.agentMergeCalls[1]?.userContent, new Uint8Array(0));
 		assert.strictEqual(mergeEmpty.accepted, false);
+		service.dispose();
+	});
+
+	test('writeGitStagePaths forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.writeGitStagePathsResult = {
+			supported: true,
+			reason: '',
+			success: true,
+			errorMessage: '',
+			exitCode: 0,
+			stdout: 'staged',
+		};
+		const request = {
+			sessionId: 'sess-1',
+			commands: [{ argv: ['add', 'src/foo.ts'] }],
+		};
+		const result = await service.writeGitStagePaths(request);
+		assert.deepStrictEqual(transport.writeGitStagePathsCalls, [request]);
+		assert.deepStrictEqual(result, transport.writeGitStagePathsResult);
+
+		transport.writeGitStagePathsResult = {
+			supported: false,
+			reason: '',
+			success: false,
+			errorMessage: '',
+			exitCode: 0,
+			stdout: '',
+		};
+		const emptyRequest = {
+			sessionId: '',
+			commands: [{ argv: [] }],
+		};
+		const empty = await service.writeGitStagePaths(emptyRequest);
+		assert.strictEqual(transport.writeGitStagePathsCalls[1]?.sessionId, '');
+		assert.deepStrictEqual(transport.writeGitStagePathsCalls[1]?.commands, [{ argv: [] }]);
+		assert.strictEqual(empty.supported, false);
+		assert.strictEqual(empty.reason, '');
+		assert.strictEqual(empty.success, false);
+		assert.strictEqual(empty.errorMessage, '');
+		assert.strictEqual(empty.exitCode, 0);
+		assert.strictEqual(empty.stdout, '');
+
+		const emptyCommandsRequest = {
+			sessionId: '',
+			commands: [],
+		};
+		await service.writeGitStagePaths(emptyCommandsRequest);
+		assert.strictEqual(transport.writeGitStagePathsCalls[2]?.sessionId, '');
+		assert.deepStrictEqual(transport.writeGitStagePathsCalls[2]?.commands, []);
 		service.dispose();
 	});
 

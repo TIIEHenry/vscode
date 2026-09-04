@@ -216,6 +216,8 @@ import type {
 	UniverseAgentForceWriteFileRequest,
 	UniverseAgentAgentMergeRequest,
 	UniverseAgentAgentMergeResult,
+	UniverseAgentWriteGitStagePathsRequest,
+	UniverseAgentWriteGitWriteResult,
 	UniverseAgentSetPermissionPolicyRequest,
 	UniverseAgentSetPermissionPolicyResult,
 	UniverseAgentListModelsResult,
@@ -1169,6 +1171,18 @@ export interface IUniverseAgentConnection {
 	 * ≠ ListFiles / ReadFile / GetFileInfo / WriteFile / ForceWriteFile.
 	 */
 	agentMerge?(request: UniverseAgentAgentMergeRequest): Promise<UniverseAgentAgentMergeResult>;
+
+	/**
+	 * GitService.WriteGitStagePaths unary. Optional so Web / tests can omit it.
+	 * Catalog + node transport only this slice; empty `sessionId` is sent
+	 * as-is. Empty `commands` / empty `argv` sent as-is. Proto fields only
+	 * (`supported` / `reason` / `success` / `error_message` / `exit_code` /
+	 * `stdout`). No Conversation roster / UI / SCM / Engine Preferences /
+	 * Composer.
+	 * ≠ ReadGitSummary / ReadGitChanges / ReadGitFileDiff / WriteGitCommit /
+	 * WriteGitApplyHunks.
+	 */
+	writeGitStagePaths?(request: UniverseAgentWriteGitStagePathsRequest): Promise<UniverseAgentWriteGitWriteResult>;
 
 	/**
 	 * ConfigService.SetPermissionPolicy unary (session/tool Ask/Agent/Permit

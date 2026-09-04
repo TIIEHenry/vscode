@@ -211,6 +211,8 @@ import type {
 	UniverseAgentForceWriteFileRequest,
 	UniverseAgentAgentMergeRequest,
 	UniverseAgentAgentMergeResult,
+	UniverseAgentWriteGitStagePathsRequest,
+	UniverseAgentWriteGitWriteResult,
 	UniverseAgentSetPermissionPolicyRequest,
 	UniverseAgentSetPermissionPolicyResult,
 	UniverseAgentListModelsResult,
@@ -617,6 +619,9 @@ export interface IUniverseAgentGrpcTransport {
 	/** FileService.AgentMerge unary (snake_case `session_id`/`path`/`base_content`/`current_content`/`user_content`). Empty ids sent as-is. */
 	agentMerge(request: UniverseAgentAgentMergeRequest): Promise<UniverseAgentAgentMergeResult>;
 
+	/** GitService.WriteGitStagePaths unary (snake_case `session_id`/`commands[].argv`). Empty ids sent as-is. */
+	writeGitStagePaths(request: UniverseAgentWriteGitStagePathsRequest): Promise<UniverseAgentWriteGitWriteResult>;
+
 	/** ConfigService.SetPermissionPolicy unary (snake_case `session_id`/`tool_name`/`policy`). Empty ids sent as-is. */
 	setPermissionPolicy(request: UniverseAgentSetPermissionPolicyRequest): Promise<UniverseAgentSetPermissionPolicyResult>;
 
@@ -821,6 +826,10 @@ export const UniverseAgentGrpcServices = {
 		WriteFile: 'WriteFile',
 		ForceWriteFile: 'ForceWriteFile',
 		AgentMerge: 'AgentMerge',
+	},
+	Git: {
+		service: 'universeagent.git.v1.GitService',
+		WriteGitStagePaths: 'WriteGitStagePaths',
 	},
 } as const;
 

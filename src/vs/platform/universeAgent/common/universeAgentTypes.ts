@@ -1984,6 +1984,31 @@ export interface UniverseAgentAgentMergeResult {
 }
 
 /**
+ * GitService.WriteGitStagePaths — proto `WriteGitStagePathsRequest` /
+ * `WriteGitWriteResponse` only. Empty `session_id` pass through as-is.
+ * Empty `commands` / empty `argv` sent as-is.
+ * ≠ ReadGitSummary / ReadGitChanges / ReadGitFileDiff / WriteGitCommit /
+ * WriteGitApplyHunks.
+ */
+export interface UniverseAgentGitArgvCommand {
+	readonly argv: readonly string[];
+}
+
+export interface UniverseAgentWriteGitStagePathsRequest {
+	readonly sessionId: string;
+	readonly commands: readonly UniverseAgentGitArgvCommand[];
+}
+
+export interface UniverseAgentWriteGitWriteResult {
+	readonly supported: boolean;
+	readonly reason: string;
+	readonly success: boolean;
+	readonly errorMessage: string;
+	readonly exitCode: number;
+	readonly stdout: string;
+}
+
+/**
  * ConfigService.SetPermissionPolicy — session/tool policy write
  * (≠ SwitchModel / ListModels / Get / Set / GetModelPreferences /
  * SetModelPreferences / SetPermissionMode).

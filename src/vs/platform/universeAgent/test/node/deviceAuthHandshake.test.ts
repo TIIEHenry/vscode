@@ -514,6 +514,9 @@ class MockDeviceAuthTransport implements IUniverseAgentGrpcTransport {
 	async agentMerge() {
 		return { accepted: false };
 	}
+	async writeGitStagePaths() {
+		return { supported: false, reason: '', success: false, errorMessage: '', exitCode: 0, stdout: '' };
+	}
 	async listModels() { return { models: [] }; }
 	async getConfig(): Promise<{ values: Record<string, string>; scope: '' }> {
 		return { values: {}, scope: '' };
