@@ -199,6 +199,8 @@ import type {
 	UniverseAgentToolInfoRequest,
 	UniverseAgentToolInfoResult,
 	UniverseAgentListModelsResult,
+	UniverseAgentGetConfigRequest,
+	UniverseAgentGetConfigResult,
 	UniverseAgentToggleMcpServerRequest,
 	UniverseAgentToggleMcpServerResult,
 	UniverseAgentSessionEvent,
@@ -1046,4 +1048,13 @@ export interface IUniverseAgentConnection {
 
 	/** ConfigService.ListModels — always `include_disabled=true` (Engine Model registry). */
 	listModels(): Promise<UniverseAgentListModelsResult>;
+
+	/**
+	 * ConfigService.Get unary (generic config read). Optional so Web / tests
+	 * can omit it. Catalog + node transport only this slice; empty `key` /
+	 * `scope` / `sessionId` are sent as-is. No Conversation roster / UI /
+	 * Engine Preferences.
+	 * ≠ Set / Watch / ListModels / SwitchModel / TestModelProfile.
+	 */
+	getConfig?(request: UniverseAgentGetConfigRequest): Promise<UniverseAgentGetConfigResult>;
 }

@@ -194,6 +194,8 @@ import type {
 	UniverseAgentToolInfoRequest,
 	UniverseAgentToolInfoResult,
 	UniverseAgentListModelsResult,
+	UniverseAgentGetConfigRequest,
+	UniverseAgentGetConfigResult,
 	UniverseAgentToggleMcpServerRequest,
 	UniverseAgentToggleMcpServerResult,
 	UniverseAgentSessionEvent,
@@ -561,6 +563,9 @@ export interface IUniverseAgentGrpcTransport {
 	/** ConfigService.ListModels — always `include_disabled=true`. */
 	listModels(): Promise<UniverseAgentListModelsResult>;
 
+	/** ConfigService.Get unary (snake_case `key`/`scope`/`session_id`). Empty ids sent as-is. */
+	getConfig(request: UniverseAgentGetConfigRequest): Promise<UniverseAgentGetConfigResult>;
+
 	/** Host-only: AgentService.Tree (m6 §11 A1). */
 	fetchAgentTree(sessionId: string): Promise<UniverseAgentAgentTreeNode | undefined>;
 
@@ -699,6 +704,7 @@ export const UniverseAgentGrpcServices = {
 	},
 	Config: {
 		service: 'universeagent.config.v1.ConfigService',
+		Get: 'Get',
 		ListModels: 'ListModels',
 	},
 	Team: {
