@@ -19,6 +19,8 @@ import type {
 	UniverseAgentDeleteSessionRequest,
 	UniverseAgentSessionInfoRequest,
 	UniverseAgentSessionInfoResult,
+	UniverseAgentResumeSessionRequest,
+	UniverseAgentResumeSessionResult,
 	UniverseAgentRenameSessionRequest,
 	UniverseAgentRenameSessionResult,
 	UniverseAgentCancelGenerationRequest,
@@ -192,6 +194,12 @@ interface SessionInfoResponseWire {
 	last_accessed_at?: number;
 	provider?: string;
 	model?: string;
+}
+
+interface ResumeSessionResponseWire {
+	success?: boolean;
+	message?: string;
+	root_agent?: AgentInfoWire;
 }
 
 interface SessionSnapshotInfoWire {
@@ -552,6 +560,14 @@ function mapCreateSnapshotResponse(wire: CreateSnapshotResponseWire): UniverseAg
 		ok: wire.success === true,
 		message: wire.error_message,
 		...(snapshot ? { snapshot } : {}),
+	};
+}
+
+function mapResumeSessionResponse(wire: ResumeSessionResponseWire): UniverseAgentResumeSessionResult {
+	return {
+		ok: wire.success === true,
+		message: wire.message,
+		rootAgent: mapAgentTreeNode(wire.root_agent),
 	};
 }
 
@@ -1503,6 +1519,18 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			session_id: request.sessionId,
 		});
 		return mapSessionInfoResponse(wire);
+	}
+
+	async resumeSession(request: UniverseAgentResumeSessionRequest): Promise<UniverseAgentResumeSessionResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, ResumeSessionResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.Session.service,
+			UniverseAgentGrpcServices.Session.Resume,
+		);
+		const wire = await unary({
+			session_id: request.sessionId,
+		});
+		return mapResumeSessionResponse(wire);
 	}
 
 	async renameSession(request: UniverseAgentRenameSessionRequest): Promise<UniverseAgentRenameSessionResult> {

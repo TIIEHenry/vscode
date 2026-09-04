@@ -21,6 +21,8 @@ import type {
 	UniverseAgentDeleteSessionRequest,
 	UniverseAgentSessionInfoRequest,
 	UniverseAgentSessionInfoResult,
+	UniverseAgentResumeSessionRequest,
+	UniverseAgentResumeSessionResult,
 	UniverseAgentRenameSessionRequest,
 	UniverseAgentRenameSessionResult,
 	UniverseAgentCancelGenerationRequest,
@@ -201,6 +203,13 @@ export interface IUniverseAgentConnection {
 	 * `sessionId` is sent as-is. No Conversation roster / UI.
 	 */
 	getSessionInfo?(request: UniverseAgentSessionInfoRequest): Promise<UniverseAgentSessionInfoResult>;
+
+	/**
+	 * SessionService.Resume unary (restore a persisted session). Optional so
+	 * Web / tests can omit it. Catalog + node transport only this slice; empty
+	 * `sessionId` is sent as-is. No Conversation roster / UI. ≠ Agent.ResumeQueue.
+	 */
+	resumeSession?(request: UniverseAgentResumeSessionRequest): Promise<UniverseAgentResumeSessionResult>;
 
 	/** AgentService.Rename unary. Engine roster forwards this when connected. */
 	renameSession(request: UniverseAgentRenameSessionRequest): Promise<UniverseAgentRenameSessionResult>;
