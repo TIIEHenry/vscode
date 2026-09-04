@@ -1984,6 +1984,26 @@ export interface UniverseAgentAgentMergeResult {
 }
 
 /**
+ * GitService.ReadGitFileDiff — proto `ReadGitFileDiffRequest` /
+ * `ReadGitFileDiffResponse` only. Empty `session_id` / `path` /
+ * `index_state` pass through as-is.
+ * ≠ ReadGitSummary / ReadGitChanges / WriteGitStagePaths /
+ * WriteGitCommit / WriteGitApplyHunks.
+ */
+export interface UniverseAgentReadGitFileDiffRequest {
+	readonly sessionId: string;
+	readonly path: string;
+	readonly indexState: string;
+}
+
+export interface UniverseAgentReadGitFileDiffResult {
+	readonly supported: boolean;
+	readonly reason: string;
+	readonly path: string;
+	readonly unifiedDiff: string;
+}
+
+/**
  * ConfigService.SetPermissionPolicy — session/tool policy write
  * (≠ SwitchModel / ListModels / Get / Set / GetModelPreferences /
  * SetModelPreferences / SetPermissionMode).

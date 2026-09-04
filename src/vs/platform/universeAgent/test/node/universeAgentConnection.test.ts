@@ -191,6 +191,8 @@ import type {
 	UniverseAgentForceWriteFileRequest,
 	UniverseAgentAgentMergeRequest,
 	UniverseAgentAgentMergeResult,
+	UniverseAgentReadGitFileDiffRequest,
+	UniverseAgentReadGitFileDiffResult,
 	UniverseAgentGetHistoryRequest,
 	UniverseAgentGetHistoryResult,
 	UniverseAgentListSessionsRequest,
@@ -1354,6 +1356,19 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 		return this.agentMergeResult;
 	}
 
+	readonly readGitFileDiffCalls: UniverseAgentReadGitFileDiffRequest[] = [];
+	readGitFileDiffResult: UniverseAgentReadGitFileDiffResult = {
+		supported: false,
+		reason: '',
+		path: '',
+		unifiedDiff: '',
+	};
+
+	async readGitFileDiff(request: UniverseAgentReadGitFileDiffRequest): Promise<UniverseAgentReadGitFileDiffResult> {
+		this.readGitFileDiffCalls.push(request);
+		return this.readGitFileDiffResult;
+	}
+
 	async listModels() {
 		return { models: [] };
 	}
@@ -1750,6 +1765,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('UniverseAgentGrpcServices lists File.AgentMerge', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.File.AgentMerge, 'AgentMerge');
 		assert.strictEqual(UniverseAgentGrpcServices.File.service, 'universeagent.file.v1.FileService');
+	});
+
+	test('UniverseAgentGrpcServices lists Git.ReadGitFileDiff', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Git.ReadGitFileDiff, 'ReadGitFileDiff');
+		assert.strictEqual(UniverseAgentGrpcServices.Git.service, 'universeagent.git.v1.GitService');
 	});
 
 	test('UniverseAgentGrpcServices lists Agent.Kill', () => {
@@ -4236,6 +4256,42 @@ suite('UniverseAgentConnectionService', () => {
 		assert.deepStrictEqual(transport.agentMergeCalls[1]?.currentContent, new Uint8Array(0));
 		assert.deepStrictEqual(transport.agentMergeCalls[1]?.userContent, new Uint8Array(0));
 		assert.strictEqual(mergeEmpty.accepted, false);
+		service.dispose();
+	});
+
+	test('readGitFileDiff forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.readGitFileDiffResult = {
+			supported: true,
+			reason: '',
+			path: 'src/foo.ts',
+			unifiedDiff: 'diff --git a/src/foo.ts b/src/foo.ts\n',
+		};
+		const request = { sessionId: 'sess-1', path: 'src/foo.ts', indexState: 'unstaged' };
+		const result = await service.readGitFileDiff(request);
+		assert.deepStrictEqual(transport.readGitFileDiffCalls, [request]);
+		assert.deepStrictEqual(result, transport.readGitFileDiffResult);
+
+		transport.readGitFileDiffResult = {
+			supported: false,
+			reason: '',
+			path: '',
+			unifiedDiff: '',
+		};
+		const emptyRequest = { sessionId: '', path: '', indexState: '' };
+		const empty = await service.readGitFileDiff(emptyRequest);
+		assert.strictEqual(transport.readGitFileDiffCalls[1]?.sessionId, '');
+		assert.strictEqual(transport.readGitFileDiffCalls[1]?.path, '');
+		assert.strictEqual(transport.readGitFileDiffCalls[1]?.indexState, '');
+		assert.strictEqual(empty.supported, false);
+		assert.strictEqual(empty.reason, '');
+		assert.strictEqual(empty.path, '');
+		assert.strictEqual(empty.unifiedDiff, '');
 		service.dispose();
 	});
 
