@@ -236,6 +236,8 @@ import type {
 	UniverseAgentMemoryListResult,
 	UniverseAgentDeleteMemoryRequest,
 	UniverseAgentDeleteMemoryResult,
+	UniverseAgentGetUploadProgressRequest,
+	UniverseAgentGetUploadProgressResult,
 	UniverseAgentSetPermissionPolicyRequest,
 	UniverseAgentSetPermissionPolicyResult,
 	UniverseAgentListModelsResult,
@@ -681,6 +683,9 @@ export interface IUniverseAgentGrpcTransport {
 	/** MemoryService.Delete unary (snake_case `scope`/`category`/`filename`). Empty ids sent as-is. */
 	deleteMemory(request: UniverseAgentDeleteMemoryRequest): Promise<UniverseAgentDeleteMemoryResult>;
 
+	/** FileTransferService.GetUploadProgress unary (snake_case `transfer_id`/`session_id`). Empty ids sent as-is. */
+	getUploadProgress(request: UniverseAgentGetUploadProgressRequest): Promise<UniverseAgentGetUploadProgressResult>;
+
 	/** ConfigService.SetPermissionPolicy unary (snake_case `session_id`/`tool_name`/`policy`). Empty ids sent as-is. */
 	setPermissionPolicy(request: UniverseAgentSetPermissionPolicyRequest): Promise<UniverseAgentSetPermissionPolicyResult>;
 
@@ -908,6 +913,10 @@ export const UniverseAgentGrpcServices = {
 		Read: 'Read',
 		List: 'List',
 		Delete: 'Delete',
+	},
+	FileTransfer: {
+		service: 'universeagent.filetransfer.v1.FileTransferService',
+		GetUploadProgress: 'GetUploadProgress',
 	},
 } as const;
 

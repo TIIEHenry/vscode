@@ -241,6 +241,8 @@ import type {
 	UniverseAgentMemoryListResult,
 	UniverseAgentDeleteMemoryRequest,
 	UniverseAgentDeleteMemoryResult,
+	UniverseAgentGetUploadProgressRequest,
+	UniverseAgentGetUploadProgressResult,
 	UniverseAgentSetPermissionPolicyRequest,
 	UniverseAgentSetPermissionPolicyResult,
 	UniverseAgentListModelsResult,
@@ -1363,6 +1365,17 @@ export interface IUniverseAgentConnection {
 	 * Revert / History.
 	 */
 	deleteMemory?(request: UniverseAgentDeleteMemoryRequest): Promise<UniverseAgentDeleteMemoryResult>;
+
+	/**
+	 * FileTransferService.GetUploadProgress unary. Optional so Web / tests
+	 * can omit it. Catalog + node transport only this slice; empty
+	 * `transferId` / `sessionId` are sent as-is. Proto fields only
+	 * (`UploadProgressRequest` / `UploadProgressResponse`: `exists` /
+	 * `bytes_received` / `partial_path`). No Conversation roster / UI /
+	 * Engine Preferences / Composer.
+	 * ≠ UploadAttachment / DownloadAttachment.
+	 */
+	getUploadProgress?(request: UniverseAgentGetUploadProgressRequest): Promise<UniverseAgentGetUploadProgressResult>;
 
 	/**
 	 * ConfigService.SetPermissionPolicy unary (session/tool Ask/Agent/Permit
