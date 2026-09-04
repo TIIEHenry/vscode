@@ -202,6 +202,7 @@ import type {
 	UniverseAgentListToolsResult,
 	UniverseAgentToolInfoRequest,
 	UniverseAgentToolInfoResult,
+	UniverseAgentListCommandsResult,
 	UniverseAgentSetPermissionPolicyRequest,
 	UniverseAgentSetPermissionPolicyResult,
 	UniverseAgentListModelsResult,
@@ -1077,6 +1078,15 @@ export interface IUniverseAgentConnection {
 	getToolInfo?(request: UniverseAgentToolInfoRequest): Promise<UniverseAgentToolInfoResult>;
 
 	/**
+	 * ToolService.ListCommands unary (empty request). Optional so Web /
+	 * tests can omit it. Catalog + node transport only this slice; empty
+	 * `name` / `agent` / `model` / `skill_source` are mapped as-is.
+	 * No Conversation roster / UI / Engine Preferences / Composer.
+	 * ≠ ListSkills / ListTools / ToolInfo / GetCommandDef / ResolveModel.
+	 */
+	listCommands?(): Promise<UniverseAgentListCommandsResult>;
+
+	/**
 	 * ConfigService.SetPermissionPolicy unary (session/tool Ask/Agent/Permit
 	 * policy write). Optional so Web / tests can omit it. Catalog + node
 	 * transport only this slice; empty `sessionId` / `toolName` are sent
@@ -1118,6 +1128,8 @@ export interface IUniverseAgentConnection {
 	 * SetPermissionPolicy.
 	 */
 	getModelPreferences?(request: UniverseAgentGetModelPreferencesRequest): Promise<UniverseAgentGetModelPreferencesResult>;
+
+	/**
 	 * ConfigService.ResolveModel unary (preview model resolution; does not
 	 * switch). Optional so Web / tests can omit it. Catalog + node
 	 * transport only this slice; empty `sessionId` / `type` are sent as-is.

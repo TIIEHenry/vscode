@@ -1808,6 +1808,37 @@ export interface UniverseAgentToolInfoResult {
 }
 
 /**
+ * ToolService.ListCommands — slash-command catalog (skill + CONFIG).
+ * Proto `SlashCommandSource`. Empty `name` / `agent` / `model` /
+ * `skill_source` pass through as-is.
+ * ≠ ListSkills / ListTools / ToolInfo / GetCommandDef / ResolveModel.
+ */
+export type UniverseAgentSlashCommandSource =
+	| 'SLASH_COMMAND_SOURCE_UNSPECIFIED'
+	| 'SLASH_COMMAND_SOURCE_SKILL'
+	| 'SLASH_COMMAND_SOURCE_CONFIG'
+	| 'SLASH_COMMAND_SOURCE_BUILTIN'
+	| 'SLASH_COMMAND_SOURCE_MCP'
+	| '';
+
+export interface UniverseAgentCommandSummary {
+	readonly name: string;
+	readonly description?: string;
+	readonly source: UniverseAgentSlashCommandSource;
+	readonly slashEnabled: boolean;
+	readonly agent: string;
+	readonly model: string;
+	readonly subtask: boolean;
+	/** Proto `skill_source`. Empty sent/mapped as-is (not remapped to unknown). */
+	readonly skillSource: string;
+}
+
+export interface UniverseAgentListCommandsResult {
+	readonly commands: readonly UniverseAgentCommandSummary[];
+	readonly total: number;
+}
+
+/**
  * ConfigService.SetPermissionPolicy — session/tool policy write
  * (≠ SwitchModel / ListModels / Get / Set / GetModelPreferences /
  * SetModelPreferences / SetPermissionMode).

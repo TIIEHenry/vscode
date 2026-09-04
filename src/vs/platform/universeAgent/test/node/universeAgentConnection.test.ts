@@ -175,6 +175,7 @@ import type {
 	UniverseAgentDeleteSnapshotResult,
 	UniverseAgentToolInfoRequest,
 	UniverseAgentToolInfoResult,
+	UniverseAgentListCommandsResult,
 	UniverseAgentGetHistoryRequest,
 	UniverseAgentGetHistoryResult,
 	UniverseAgentListSessionsRequest,
@@ -1205,6 +1206,14 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 		return this.toolInfoResult;
 	}
 
+	listCommandsCalls = 0;
+	listCommandsResult: UniverseAgentListCommandsResult = { commands: [], total: 0 };
+
+	async listCommands(): Promise<UniverseAgentListCommandsResult> {
+		this.listCommandsCalls += 1;
+		return this.listCommandsResult;
+	}
+
 	async listModels() {
 		return { models: [] };
 	}
@@ -1555,6 +1564,11 @@ suite('UniverseAgentConnectionService', () => {
 
 	test('UniverseAgentGrpcServices lists Tool.ToolInfo', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Tool.ToolInfo, 'ToolInfo');
+		assert.strictEqual(UniverseAgentGrpcServices.Tool.service, 'universeagent.tool.v1.ToolService');
+	});
+
+	test('UniverseAgentGrpcServices lists Tool.ListCommands', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Tool.ListCommands, 'ListCommands');
 		assert.strictEqual(UniverseAgentGrpcServices.Tool.service, 'universeagent.tool.v1.ToolService');
 	});
 
@@ -3650,6 +3664,54 @@ suite('UniverseAgentConnectionService', () => {
 		assert.deepStrictEqual(empty, { candidates: [], filtered: [] });
 		assert.strictEqual(transport.resolveModelCalls[1]?.sessionId, '');
 		assert.strictEqual(transport.resolveModelCalls[1]?.type, '');
+		service.dispose();
+	});
+
+	test('listCommands forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.listCommandsResult = {
+			commands: [{
+				name: 'review',
+				description: 'Review the diff',
+				source: 'SLASH_COMMAND_SOURCE_SKILL',
+				slashEnabled: true,
+				agent: 'code',
+				model: 'default',
+				subtask: false,
+				skillSource: 'user',
+			}],
+			total: 1,
+		};
+		const result = await service.listCommands();
+		assert.strictEqual(transport.listCommandsCalls, 1);
+		assert.deepStrictEqual(result, transport.listCommandsResult);
+
+		transport.listCommandsResult = {
+			commands: [{
+				name: '',
+				description: '',
+				source: '',
+				slashEnabled: false,
+				agent: '',
+				model: '',
+				subtask: false,
+				skillSource: '',
+			}],
+			total: 0,
+		};
+		const empty = await service.listCommands();
+		assert.strictEqual(transport.listCommandsCalls, 2);
+		assert.strictEqual(empty.commands[0]?.name, '');
+		assert.strictEqual(empty.commands[0]?.agent, '');
+		assert.strictEqual(empty.commands[0]?.model, '');
+		assert.strictEqual(empty.commands[0]?.skillSource, '');
+		assert.strictEqual(empty.commands[0]?.source, '');
+		assert.strictEqual(empty.total, 0);
 		service.dispose();
 	});
 
