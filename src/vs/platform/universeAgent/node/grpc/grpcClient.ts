@@ -126,6 +126,9 @@ import type {
 	UniverseAgentCancelSessionGoalResult,
 	UniverseAgentRespondPermissionRequest,
 	UniverseAgentRespondPermissionResult,
+	UniverseAgentPermissionRuleAction,
+	UniverseAgentSyncPermissionRuleRequest,
+	UniverseAgentSyncPermissionRuleResult,
 	UniverseAgentRespondQuestionRequest,
 	UniverseAgentRespondQuestionResult,
 	UniverseAgentQuestionAnswer,
@@ -735,6 +738,17 @@ function queuePriorityWire(priority: UniverseAgentQueuePriority | undefined): nu
 		case 'HIGH':
 			return 1;
 		case 'LOW':
+			return 2;
+		default:
+			return 0;
+	}
+}
+
+function permissionRuleActionWire(action: UniverseAgentPermissionRuleAction): number {
+	switch (action) {
+		case 'ALLOW':
+			return 1;
+		case 'DENY':
 			return 2;
 		default:
 			return 0;
@@ -3229,6 +3243,25 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 		return {
 			ok: wire.success === true,
 			message: wire.error,
+		};
+	}
+
+	async syncPermissionRule(request: UniverseAgentSyncPermissionRuleRequest): Promise<UniverseAgentSyncPermissionRuleResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, { success?: boolean; rule_id?: string }>(
+			this._channel,
+			UniverseAgentGrpcServices.Permission.service,
+			UniverseAgentGrpcServices.Permission.SyncPermissionRule,
+		);
+		const wire = await unary({
+			session_id: request.sessionId,
+			tool_name: request.toolName,
+			scope: request.scope,
+			action: permissionRuleActionWire(request.action),
+			reason: request.reason,
+		});
+		return {
+			ok: wire.success === true,
+			ruleId: wire.rule_id ?? '',
 		};
 	}
 
