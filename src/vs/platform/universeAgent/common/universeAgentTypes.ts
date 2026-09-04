@@ -785,6 +785,15 @@ export interface UniverseAgentEnqueueQueueItemRequest extends UniverseAgentQueue
 	readonly priority?: UniverseAgentQueuePriority;
 }
 
+/** AgentService.InsertQueueItem — insert before an existing item (≠ EnqueueQueueItem / ReorderQueue / EditQueueItem / SubscribeToolDetail). */
+export interface UniverseAgentInsertQueueItemRequest extends UniverseAgentQueueRefRequest {
+	readonly text: string;
+	readonly clientMessageId?: string;
+	readonly priority?: UniverseAgentQueuePriority;
+	/** Proto `before_item_id`. Empty sent as-is. */
+	readonly beforeItemId?: string;
+}
+
 /** AgentService.HoldQueueItem. */
 export interface UniverseAgentHoldQueueItemRequest extends UniverseAgentQueueItemRefRequest {
 	readonly reason: UniverseAgentQueueHoldReason;
