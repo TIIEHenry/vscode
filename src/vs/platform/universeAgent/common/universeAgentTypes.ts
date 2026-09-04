@@ -144,6 +144,25 @@ export interface UniverseAgentAgentStatusResult {
 	readonly agent?: UniverseAgentAgentTreeNode;
 }
 
+/** AgentService.Todo — current TODO list for one session agent (≠ Status / Tree). */
+export interface UniverseAgentTodoRequest {
+	readonly sessionId: string;
+	readonly agentId: string;
+}
+
+export interface UniverseAgentTodoItem {
+	readonly id: string;
+	readonly content: string;
+	readonly status: string;
+	readonly priority: number;
+	readonly requireConfirm: boolean;
+	readonly blocked: string;
+}
+
+export interface UniverseAgentTodoResult {
+	readonly items: readonly UniverseAgentTodoItem[];
+}
+
 /** AgentService.Rename request; empty `title` clears a custom session title. */
 export interface UniverseAgentRenameSessionRequest {
 	readonly sessionId: string;

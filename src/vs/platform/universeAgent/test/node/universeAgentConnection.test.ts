@@ -27,6 +27,8 @@ import type {
 	UniverseAgentPurgeSessionResult,
 	UniverseAgentAgentStatusRequest,
 	UniverseAgentAgentStatusResult,
+	UniverseAgentTodoRequest,
+	UniverseAgentTodoResult,
 	UniverseAgentRenameSessionRequest,
 	UniverseAgentRenameSessionResult,
 	UniverseAgentCancelGenerationRequest,
@@ -219,6 +221,14 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 	async getAgentStatus(request: UniverseAgentAgentStatusRequest): Promise<UniverseAgentAgentStatusResult> {
 		this.getAgentStatusCalls.push(request);
 		return this.getAgentStatusResult;
+	}
+
+	readonly getTodoCalls: UniverseAgentTodoRequest[] = [];
+	getTodoResult: UniverseAgentTodoResult = { items: [] };
+
+	async getTodo(request: UniverseAgentTodoRequest): Promise<UniverseAgentTodoResult> {
+		this.getTodoCalls.push(request);
+		return this.getTodoResult;
 	}
 
 	readonly renameCalls: UniverseAgentRenameSessionRequest[] = [];
@@ -795,6 +805,11 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Session.service, 'universeagent.session.v1.SessionService');
 	});
 
+	test('UniverseAgentGrpcServices lists Agent.Todo', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.Todo, 'Todo');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+	});
+
 	test('renameSession forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
@@ -1286,6 +1301,35 @@ suite('UniverseAgentConnectionService', () => {
 		const empty = await service.getSessionInfo({ sessionId: '' });
 		assert.deepStrictEqual(empty, transport.getSessionInfoResult);
 		assert.strictEqual(transport.getSessionInfoCalls[1]?.sessionId, '');
+		service.dispose();
+	});
+
+	test('getTodo forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.getTodoResult = {
+			items: [{
+				id: 'todo-1',
+				content: 'wire catalog',
+				status: 'in_progress',
+				priority: 1,
+				requireConfirm: true,
+				blocked: 'need review',
+			}],
+		};
+		const result = await service.getTodo({ sessionId: 'sess-1', agentId: 'root' });
+		assert.deepStrictEqual(transport.getTodoCalls, [{ sessionId: 'sess-1', agentId: 'root' }]);
+		assert.deepStrictEqual(result, transport.getTodoResult);
+
+		transport.getTodoResult = { items: [] };
+		const empty = await service.getTodo({ sessionId: '', agentId: '' });
+		assert.deepStrictEqual(empty, { items: [] });
+		assert.strictEqual(transport.getTodoCalls[1]?.sessionId, '');
+		assert.strictEqual(transport.getTodoCalls[1]?.agentId, '');
 		service.dispose();
 	});
 

@@ -29,6 +29,9 @@ import type {
 	UniverseAgentPurgeSessionResult,
 	UniverseAgentAgentStatusRequest,
 	UniverseAgentAgentStatusResult,
+	UniverseAgentTodoRequest,
+	UniverseAgentTodoResult,
+	UniverseAgentTodoItem,
 	UniverseAgentRenameSessionRequest,
 	UniverseAgentRenameSessionResult,
 	UniverseAgentCancelGenerationRequest,
@@ -277,6 +280,19 @@ interface RestoreSnapshotResponseWire {
 interface DeleteSnapshotResponseWire {
 	success?: boolean;
 	error_message?: string;
+}
+
+interface TodoItemWire {
+	id?: string;
+	content?: string;
+	status?: string;
+	priority?: number;
+	require_confirm?: boolean;
+	blocked?: string;
+}
+
+interface TodoResponseWire {
+	items?: TodoItemWire[];
 }
 
 interface QueueMutationResponseWire {
@@ -636,6 +652,23 @@ function mapDeleteSnapshotResponse(wire: DeleteSnapshotResponseWire): UniverseAg
 	return {
 		ok: wire.success === true,
 		message: wire.error_message,
+	};
+}
+
+function mapTodoItem(item: TodoItemWire | undefined): UniverseAgentTodoItem {
+	return {
+		id: item?.id ?? '',
+		content: item?.content ?? '',
+		status: item?.status ?? '',
+		priority: item?.priority ?? 0,
+		requireConfirm: item?.require_confirm === true,
+		blocked: item?.blocked ?? '',
+	};
+}
+
+function mapTodoResponse(wire: TodoResponseWire): UniverseAgentTodoResult {
+	return {
+		items: (wire.items ?? []).map(item => mapTodoItem(item)),
 	};
 }
 
@@ -1634,6 +1667,19 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			agent_id: request.agentId,
 		});
 		return mapStatusResponse(wire);
+	}
+
+	async getTodo(request: UniverseAgentTodoRequest): Promise<UniverseAgentTodoResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, TodoResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.Agent.service,
+			UniverseAgentGrpcServices.Agent.Todo,
+		);
+		const wire = await unary({
+			session_id: request.sessionId,
+			agent_id: request.agentId,
+		});
+		return mapTodoResponse(wire);
 	}
 
 	async renameSession(request: UniverseAgentRenameSessionRequest): Promise<UniverseAgentRenameSessionResult> {

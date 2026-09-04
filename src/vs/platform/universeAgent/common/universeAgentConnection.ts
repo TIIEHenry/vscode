@@ -31,6 +31,8 @@ import type {
 	UniverseAgentPurgeSessionResult,
 	UniverseAgentAgentStatusRequest,
 	UniverseAgentAgentStatusResult,
+	UniverseAgentTodoRequest,
+	UniverseAgentTodoResult,
 	UniverseAgentRenameSessionRequest,
 	UniverseAgentRenameSessionResult,
 	UniverseAgentCancelGenerationRequest,
@@ -247,6 +249,14 @@ export interface IUniverseAgentConnection {
 	 * ≠ Session.Info / Agent.Tree / FetchAgentStatus fold.
 	 */
 	getAgentStatus?(request: UniverseAgentAgentStatusRequest): Promise<UniverseAgentAgentStatusResult>;
+
+	/**
+	 * AgentService.Todo unary (TodoResponse.items → TodoItem[]). Optional so
+	 * Web / tests can omit it. Catalog + node transport only this slice; empty
+	 * `sessionId` / `agentId` are sent as-is. No Conversation roster / UI.
+	 * ≠ Status / Tree / Compact.
+	 */
+	getTodo?(request: UniverseAgentTodoRequest): Promise<UniverseAgentTodoResult>;
 
 	/** AgentService.Rename unary. Engine roster forwards this when connected. */
 	renameSession(request: UniverseAgentRenameSessionRequest): Promise<UniverseAgentRenameSessionResult>;
