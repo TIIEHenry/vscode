@@ -228,6 +228,10 @@ import type {
 	UniverseAgentSaveMemoryResult,
 	UniverseAgentMemorySearchRequest,
 	UniverseAgentMemorySearchResult,
+	UniverseAgentReadMemoryRequest,
+	UniverseAgentReadMemoryResult,
+	UniverseAgentMemoryListRequest,
+	UniverseAgentMemoryListResult,
 	UniverseAgentSetPermissionPolicyRequest,
 	UniverseAgentSetPermissionPolicyResult,
 	UniverseAgentListModelsResult,
@@ -662,6 +666,12 @@ export interface IUniverseAgentGrpcTransport {
 	/** MemoryService.Search unary (snake_case `scope`/`query`/`keywords`/`limit`). Empty ids sent as-is. */
 	searchMemory(request: UniverseAgentMemorySearchRequest): Promise<UniverseAgentMemorySearchResult>;
 
+	/** MemoryService.Read unary (snake_case `scope`/`category`/`filename`/`section`/`mode`/`forgot`). Empty ids sent as-is. */
+	readMemory(request: UniverseAgentReadMemoryRequest): Promise<UniverseAgentReadMemoryResult>;
+
+	/** MemoryService.List unary (snake_case `scope`/`category`). Empty ids sent as-is. */
+	listMemory(request: UniverseAgentMemoryListRequest): Promise<UniverseAgentMemoryListResult>;
+
 	/** ConfigService.SetPermissionPolicy unary (snake_case `session_id`/`tool_name`/`policy`). Empty ids sent as-is. */
 	setPermissionPolicy(request: UniverseAgentSetPermissionPolicyRequest): Promise<UniverseAgentSetPermissionPolicyResult>;
 
@@ -885,6 +895,8 @@ export const UniverseAgentGrpcServices = {
 		service: 'universeagent.memory.v1.MemoryService',
 		Save: 'Save',
 		Search: 'Search',
+		Read: 'Read',
+		List: 'List',
 	},
 } as const;
 

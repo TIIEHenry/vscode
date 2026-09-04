@@ -297,6 +297,13 @@ import type {
 	UniverseAgentMemorySearchRequest,
 	UniverseAgentMemorySearchResult,
 	UniverseAgentMemorySearchEntry,
+	UniverseAgentReadMemoryRequest,
+	UniverseAgentReadMemoryResult,
+	UniverseAgentMemoryFileMetadata,
+	UniverseAgentMemoryListRequest,
+	UniverseAgentMemoryListResult,
+	UniverseAgentMemoryCategoryInfo,
+	UniverseAgentMemoryFileSummary,
 	UniverseAgentListModelsResult,
 	UniverseAgentGetConfigRequest,
 	UniverseAgentGetConfigResult,
@@ -2914,6 +2921,78 @@ function mapMemorySearchResponse(wire: MemorySearchResponseWire): UniverseAgentM
 	};
 }
 
+interface MemoryFileMetadataWire {
+	category?: string;
+	filename?: string;
+	title?: string;
+	tags?: string[];
+	created_at?: number | string;
+	updated_at?: number | string;
+	version?: number | string;
+}
+
+interface MemoryReadResponseWire {
+	content?: string;
+	metadata?: MemoryFileMetadataWire;
+}
+
+function mapMemoryFileMetadata(wire: MemoryFileMetadataWire | undefined): UniverseAgentMemoryFileMetadata {
+	return {
+		category: wire?.category ?? '',
+		filename: wire?.filename ?? '',
+		title: wire?.title ?? '',
+		tags: [...(wire?.tags ?? [])],
+		createdAt: requiredInt64(wire?.created_at),
+		updatedAt: requiredInt64(wire?.updated_at),
+		version: requiredInt64(wire?.version),
+	};
+}
+
+function mapMemoryReadResponse(wire: MemoryReadResponseWire): UniverseAgentReadMemoryResult {
+	return {
+		content: wire.content ?? '',
+		metadata: mapMemoryFileMetadata(wire.metadata),
+	};
+}
+
+interface MemoryFileSummaryWire {
+	filename?: string;
+	title?: string;
+	updated_at?: number | string;
+}
+
+interface MemoryCategoryInfoWire {
+	category?: string;
+	files?: MemoryFileSummaryWire[];
+	file_count?: number | string;
+}
+
+interface MemoryListResponseWire {
+	categories?: MemoryCategoryInfoWire[];
+}
+
+function mapMemoryFileSummary(wire: MemoryFileSummaryWire): UniverseAgentMemoryFileSummary {
+	return {
+		filename: wire.filename ?? '',
+		title: wire.title ?? '',
+		updatedAt: requiredInt64(wire.updated_at),
+	};
+}
+
+function mapMemoryCategoryInfo(wire: MemoryCategoryInfoWire): UniverseAgentMemoryCategoryInfo {
+	return {
+		category: wire.category ?? '',
+		files: (wire.files ?? []).map(mapMemoryFileSummary),
+		fileCount: requiredInt64(wire.file_count),
+	};
+}
+
+function mapMemoryListResponse(wire: MemoryListResponseWire): UniverseAgentMemoryListResult {
+	return {
+		categories: (wire.categories ?? []).map(mapMemoryCategoryInfo),
+	};
+}
+
 interface ListModelsResponseWire {
 	models?: Array<{
 		id?: string;
@@ -4968,6 +5047,36 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			limit: request.limit,
 		});
 		return mapMemorySearchResponse(wire);
+	}
+
+	async readMemory(request: UniverseAgentReadMemoryRequest): Promise<UniverseAgentReadMemoryResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, MemoryReadResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.Memory.service,
+			UniverseAgentGrpcServices.Memory.Read,
+		);
+		const wire = await unary({
+			scope: request.scope,
+			category: request.category,
+			filename: request.filename,
+			section: request.section,
+			mode: request.mode,
+			forgot: request.forgot,
+		});
+		return mapMemoryReadResponse(wire);
+	}
+
+	async listMemory(request: UniverseAgentMemoryListRequest): Promise<UniverseAgentMemoryListResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, MemoryListResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.Memory.service,
+			UniverseAgentGrpcServices.Memory.List,
+		);
+		const wire = await unary({
+			scope: request.scope,
+			category: request.category,
+		});
+		return mapMemoryListResponse(wire);
 	}
 
 	async setPermissionPolicy(request: UniverseAgentSetPermissionPolicyRequest): Promise<UniverseAgentSetPermissionPolicyResult> {

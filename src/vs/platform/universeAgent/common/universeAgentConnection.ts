@@ -233,6 +233,10 @@ import type {
 	UniverseAgentSaveMemoryResult,
 	UniverseAgentMemorySearchRequest,
 	UniverseAgentMemorySearchResult,
+	UniverseAgentReadMemoryRequest,
+	UniverseAgentReadMemoryResult,
+	UniverseAgentMemoryListRequest,
+	UniverseAgentMemoryListResult,
 	UniverseAgentSetPermissionPolicyRequest,
 	UniverseAgentSetPermissionPolicyResult,
 	UniverseAgentListModelsResult,
@@ -1304,6 +1308,32 @@ export interface IUniverseAgentConnection {
 	 * Revert / History.
 	 */
 	searchMemory?(request: UniverseAgentMemorySearchRequest): Promise<UniverseAgentMemorySearchResult>;
+
+	/**
+	 * MemoryService.Read unary. Optional so Web / tests can omit it.
+	 * Catalog + node transport only this slice; empty `scope` / `category` /
+	 * `filename` / `section` / `mode` are sent as-is. `forgot` false sent
+	 * as-is. Proto fields only (`MemoryReadRequest` / `MemoryReadResponse` +
+	 * `MemoryFileMetadata`: `content` / `category` / `filename` / `title` /
+	 * `tags` / `created_at` / `updated_at` / `version`). No Conversation
+	 * roster / UI / Engine Preferences / Composer / Memory pane.
+	 * ≠ Save / Search / SearchDeep / List / Delete / Reflect / Rebuild /
+	 * Revert / History.
+	 */
+	readMemory?(request: UniverseAgentReadMemoryRequest): Promise<UniverseAgentReadMemoryResult>;
+
+	/**
+	 * MemoryService.List unary. Optional so Web / tests can omit it.
+	 * Catalog + node transport only this slice; empty `scope` / `category`
+	 * are sent as-is. Empty `filename` / `title` / `category` mapped as-is.
+	 * `updated_at` / `file_count` 0 mapped as-is. Proto fields only
+	 * (`MemoryListRequest` / `MemoryListResponse` + `MemoryCategoryInfo` /
+	 * `MemoryFileSummary`). No Conversation roster / UI / Engine
+	 * Preferences / Composer / Memory pane.
+	 * ≠ Save / Search / SearchDeep / Read / Delete / Reflect / Rebuild /
+	 * Revert / History.
+	 */
+	listMemory?(request: UniverseAgentMemoryListRequest): Promise<UniverseAgentMemoryListResult>;
 
 	/**
 	 * ConfigService.SetPermissionPolicy unary (session/tool Ask/Agent/Permit

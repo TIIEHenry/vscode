@@ -2179,6 +2179,67 @@ export interface UniverseAgentMemorySearchResult {
 }
 
 /**
+ * MemoryService.Read — proto `MemoryReadRequest` / `MemoryReadResponse` +
+ * `MemoryFileMetadata` only. Empty `scope` / `category` / `filename` /
+ * `section` / `mode` pass through as-is. `forgot` false sent as-is.
+ * Empty `content` / metadata strings / `tags` mapped as-is.
+ * ≠ Save / Search / SearchDeep / List / Delete / Reflect / Rebuild /
+ * Revert / History.
+ */
+export interface UniverseAgentReadMemoryRequest {
+	readonly scope: string;
+	readonly category: string;
+	readonly filename: string;
+	readonly section: string;
+	readonly mode: string;
+	readonly forgot: boolean;
+}
+
+export interface UniverseAgentMemoryFileMetadata {
+	readonly category: string;
+	readonly filename: string;
+	readonly title: string;
+	readonly tags: readonly string[];
+	readonly createdAt: number;
+	readonly updatedAt: number;
+	readonly version: number;
+}
+
+export interface UniverseAgentReadMemoryResult {
+	readonly content: string;
+	readonly metadata: UniverseAgentMemoryFileMetadata;
+}
+
+/**
+ * MemoryService.List — proto `MemoryListRequest` / `MemoryListResponse` +
+ * `MemoryCategoryInfo` / `MemoryFileSummary` only. Empty `scope` /
+ * `category` pass through as-is. Empty `filename` / `title` / `category`
+ * mapped as-is. `updated_at` / `file_count` 0 mapped as-is.
+ * ≠ Save / Search / SearchDeep / Read / Delete / Reflect / Rebuild /
+ * Revert / History.
+ */
+export interface UniverseAgentMemoryListRequest {
+	readonly scope: string;
+	readonly category: string;
+}
+
+export interface UniverseAgentMemoryFileSummary {
+	readonly filename: string;
+	readonly title: string;
+	readonly updatedAt: number;
+}
+
+export interface UniverseAgentMemoryCategoryInfo {
+	readonly category: string;
+	readonly files: readonly UniverseAgentMemoryFileSummary[];
+	readonly fileCount: number;
+}
+
+export interface UniverseAgentMemoryListResult {
+	readonly categories: readonly UniverseAgentMemoryCategoryInfo[];
+}
+
+/**
  * ConfigService.SetPermissionPolicy — session/tool policy write
  * (≠ SwitchModel / ListModels / Get / Set / GetModelPreferences /
  * SetModelPreferences / SetPermissionMode).
