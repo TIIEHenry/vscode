@@ -50,6 +50,8 @@ import type {
 	UniverseAgentAgentHistoryRequest,
 	UniverseAgentAgentHistoryResult,
 	UniverseAgentAgentHistoryEntry,
+	UniverseAgentResetAgentRequest,
+	UniverseAgentResetAgentResult,
 	UniverseAgentAgentUsage,
 	UniverseAgentRecentRequestSpan,
 	UniverseAgentContextWindowInfo,
@@ -2406,6 +2408,23 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			offset: request.offset,
 		});
 		return mapHistoryResponse(wire);
+	}
+
+	async resetAgent(request: UniverseAgentResetAgentRequest): Promise<UniverseAgentResetAgentResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, { success?: boolean; message?: string }>(
+			this._channel,
+			UniverseAgentGrpcServices.Agent.service,
+			UniverseAgentGrpcServices.Agent.Reset,
+		);
+		const wire = await unary({
+			session_id: request.sessionId,
+			agent_id: request.agentId,
+			clear_profile_only: request.clearProfileOnly === true,
+		});
+		return {
+			ok: wire.success === true,
+			message: wire.message,
+		};
 	}
 
 	async renameSession(request: UniverseAgentRenameSessionRequest): Promise<UniverseAgentRenameSessionResult> {

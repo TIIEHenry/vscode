@@ -44,6 +44,8 @@ import type {
 	UniverseAgentListAgentsResult,
 	UniverseAgentAgentHistoryRequest,
 	UniverseAgentAgentHistoryResult,
+	UniverseAgentResetAgentRequest,
+	UniverseAgentResetAgentResult,
 	UniverseAgentRenameSessionRequest,
 	UniverseAgentRenameSessionResult,
 	UniverseAgentCancelGenerationRequest,
@@ -306,6 +308,14 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 	async getAgentHistory(request: UniverseAgentAgentHistoryRequest): Promise<UniverseAgentAgentHistoryResult> {
 		this.getAgentHistoryCalls.push(request);
 		return this.getAgentHistoryResult;
+	}
+
+	readonly resetAgentCalls: UniverseAgentResetAgentRequest[] = [];
+	resetAgentResult: UniverseAgentResetAgentResult = { ok: true };
+
+	async resetAgent(request: UniverseAgentResetAgentRequest): Promise<UniverseAgentResetAgentResult> {
+		this.resetAgentCalls.push(request);
+		return this.resetAgentResult;
 	}
 
 	readonly renameCalls: UniverseAgentRenameSessionRequest[] = [];
@@ -952,6 +962,11 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
 	});
 
+	test('UniverseAgentGrpcServices lists Agent.Reset', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.Reset, 'Reset');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+	});
+
 	test('renameSession forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
@@ -1588,6 +1603,26 @@ suite('UniverseAgentConnectionService', () => {
 		assert.deepStrictEqual(empty, transport.getAgentHistoryResult);
 		assert.strictEqual(transport.getAgentHistoryCalls[1]?.sessionId, '');
 		assert.strictEqual(transport.getAgentHistoryCalls[1]?.agentId, '');
+		service.dispose();
+	});
+
+	test('resetAgent forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.resetAgentResult = { ok: true, message: 'reset' };
+		const result = await service.resetAgent({ sessionId: 'sess-1', agentId: 'root', clearProfileOnly: true });
+		assert.deepStrictEqual(transport.resetAgentCalls, [{ sessionId: 'sess-1', agentId: 'root', clearProfileOnly: true }]);
+		assert.deepStrictEqual(result, transport.resetAgentResult);
+
+		transport.resetAgentResult = { ok: false, message: 'already empty' };
+		const empty = await service.resetAgent({ sessionId: '', agentId: '' });
+		assert.deepStrictEqual(empty, transport.resetAgentResult);
+		assert.strictEqual(transport.resetAgentCalls[1]?.sessionId, '');
+		assert.strictEqual(transport.resetAgentCalls[1]?.agentId, '');
 		service.dispose();
 	});
 

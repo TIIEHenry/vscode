@@ -49,6 +49,8 @@ import type {
 	UniverseAgentListAgentsResult,
 	UniverseAgentAgentHistoryRequest,
 	UniverseAgentAgentHistoryResult,
+	UniverseAgentResetAgentRequest,
+	UniverseAgentResetAgentResult,
 	UniverseAgentRenameSessionRequest,
 	UniverseAgentRenameSessionResult,
 	UniverseAgentCancelGenerationRequest,
@@ -330,6 +332,14 @@ export interface IUniverseAgentConnection {
 	 * ≠ Session.GetHistory / Compact / Usage / ListSnapshots.
 	 */
 	getAgentHistory?(request: UniverseAgentAgentHistoryRequest): Promise<UniverseAgentAgentHistoryResult>;
+
+	/**
+	 * AgentService.Reset unary (ResetResponse.success → ok). Optional so Web /
+	 * tests can omit it. Catalog + node transport only this slice; empty
+	 * `sessionId` / `agentId` are sent as-is. No Conversation roster / UI.
+	 * ≠ ResetAgentProfile / Prune / Branch / Back / Pause.
+	 */
+	resetAgent?(request: UniverseAgentResetAgentRequest): Promise<UniverseAgentResetAgentResult>;
 
 	/** AgentService.Rename unary. Engine roster forwards this when connected. */
 	renameSession(request: UniverseAgentRenameSessionRequest): Promise<UniverseAgentRenameSessionResult>;

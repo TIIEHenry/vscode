@@ -454,6 +454,19 @@ export interface UniverseAgentAgentHistoryResult {
 	readonly total: number;
 }
 
+/** AgentService.Reset — reset conversation tree (≠ ResetAgentProfile / Prune / Branch / Back). */
+export interface UniverseAgentResetAgentRequest {
+	readonly sessionId: string;
+	readonly agentId: string;
+	/** true: only drop runtime profile binding (allow profile switch). */
+	readonly clearProfileOnly?: boolean;
+}
+
+export interface UniverseAgentResetAgentResult {
+	readonly ok: boolean;
+	readonly message?: string;
+}
+
 /** AgentService.Rename request; empty `title` clears a custom session title. */
 export interface UniverseAgentRenameSessionRequest {
 	readonly sessionId: string;
