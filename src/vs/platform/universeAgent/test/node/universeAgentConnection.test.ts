@@ -113,6 +113,8 @@ import type {
 	UniverseAgentTaskCancelResult,
 	UniverseAgentMessageMemberRequest,
 	UniverseAgentMessageMemberResult,
+	UniverseAgentCreateTeamRequest,
+	UniverseAgentCreateTeamResult,
 	UniverseAgentRespondQuestionRequest,
 	UniverseAgentRespondQuestionResult,
 	UniverseAgentEnqueueQueueItemRequest,
@@ -619,6 +621,14 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 	async messageMember(request: UniverseAgentMessageMemberRequest): Promise<UniverseAgentMessageMemberResult> {
 		this.messageMemberCalls.push(request);
 		return this.messageMemberResult;
+	}
+
+	readonly createTeamCalls: UniverseAgentCreateTeamRequest[] = [];
+	createTeamResult: UniverseAgentCreateTeamResult = { teamId: 0, memberCount: 0 };
+
+	async createTeam(request: UniverseAgentCreateTeamRequest): Promise<UniverseAgentCreateTeamResult> {
+		this.createTeamCalls.push(request);
+		return this.createTeamResult;
 	}
 
 	readonly respondQuestionCalls: UniverseAgentRespondQuestionRequest[] = [];
@@ -1298,6 +1308,11 @@ suite('UniverseAgentConnectionService', () => {
 
 	test('UniverseAgentGrpcServices lists Team.MessageMember', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Team.MessageMember, 'MessageMember');
+		assert.strictEqual(UniverseAgentGrpcServices.Team.service, 'universeagent.team.v1.TeamService');
+	});
+
+	test('UniverseAgentGrpcServices lists Team.CreateTeam', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Team.CreateTeam, 'CreateTeam');
 		assert.strictEqual(UniverseAgentGrpcServices.Team.service, 'universeagent.team.v1.TeamService');
 	});
 
@@ -3061,6 +3076,39 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(transport.messageMemberCalls[1]?.agentId, '');
 		assert.strictEqual(transport.messageMemberCalls[1]?.memberName, '');
 		assert.strictEqual(transport.messageMemberCalls[1]?.content, '');
+		service.dispose();
+	});
+
+	test('createTeam forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.createTeamResult = { teamId: 7, memberCount: 3 };
+		const result = await service.createTeam({
+			sessionId: 'sess-1',
+			agentId: 'agent-1',
+			taskDescriptions: ['write tests', 'review'],
+		});
+		assert.deepStrictEqual(transport.createTeamCalls, [{
+			sessionId: 'sess-1',
+			agentId: 'agent-1',
+			taskDescriptions: ['write tests', 'review'],
+		}]);
+		assert.deepStrictEqual(result, { teamId: 7, memberCount: 3 });
+
+		transport.createTeamResult = { teamId: 0, memberCount: 0 };
+		const empty = await service.createTeam({
+			sessionId: '',
+			agentId: '',
+			taskDescriptions: ['', ''],
+		});
+		assert.deepStrictEqual(empty, { teamId: 0, memberCount: 0 });
+		assert.strictEqual(transport.createTeamCalls[1]?.sessionId, '');
+		assert.strictEqual(transport.createTeamCalls[1]?.agentId, '');
+		assert.deepStrictEqual(transport.createTeamCalls[1]?.taskDescriptions, ['', '']);
 		service.dispose();
 	});
 

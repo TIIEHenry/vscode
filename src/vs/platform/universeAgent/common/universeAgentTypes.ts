@@ -905,6 +905,19 @@ export interface UniverseAgentMessageMemberResult {
 	readonly message?: string;
 }
 
+/** TeamService.CreateTeam — create Task Group (≠ TaskList / TaskUpdate / TaskCancel / MessageMember / MemberStatus / TeamInfo / StartMember). */
+export interface UniverseAgentCreateTeamRequest {
+	readonly sessionId: string;
+	readonly agentId: string;
+	/** Proto `task_descriptions`. Empty list / empty items sent as-is. */
+	readonly taskDescriptions: readonly string[];
+}
+
+export interface UniverseAgentCreateTeamResult {
+	readonly teamId: number;
+	readonly memberCount: number;
+}
+
 /** One item answer for AgentService.RespondQuestion (QuestionAnswer.selected_labels). */
 export interface UniverseAgentQuestionAnswer {
 	readonly selectedLabels: readonly string[];

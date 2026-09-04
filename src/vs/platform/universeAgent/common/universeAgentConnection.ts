@@ -120,6 +120,8 @@ import type {
 	UniverseAgentTaskCancelResult,
 	UniverseAgentMessageMemberRequest,
 	UniverseAgentMessageMemberResult,
+	UniverseAgentCreateTeamRequest,
+	UniverseAgentCreateTeamResult,
 	UniverseAgentRespondQuestionRequest,
 	UniverseAgentRespondQuestionResult,
 	UniverseAgentEnqueueQueueItemRequest,
@@ -650,6 +652,14 @@ export interface IUniverseAgentConnection {
 	 * ≠ TaskUpdate / TaskList / TaskCancel / MemberStatus / TeamInfo / CreateTeam.
 	 */
 	messageMember?(request: UniverseAgentMessageMemberRequest): Promise<UniverseAgentMessageMemberResult>;
+	 * TeamService.CreateTeam unary (Task Group create). Optional so Web /
+	 * tests can omit it. Catalog + node transport only this slice; empty
+	 * `sessionId` / `agentId` / `taskDescriptions` are sent as-is. No
+	 * Conversation roster / UI / Navigator Team.
+	 * ≠ TaskList / TaskUpdate / TaskCancel / MessageMember / MemberStatus /
+	 * TeamInfo / StartMember.
+	 */
+	createTeam?(request: UniverseAgentCreateTeamRequest): Promise<UniverseAgentCreateTeamResult>;
 
 	/**
 	 * AgentService.RespondQuestion unary (ADR-325 ask_user reply). Optional so
