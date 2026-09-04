@@ -674,6 +674,24 @@ export interface UniverseAgentFireTriggerWebhookResult {
 	readonly reason: string;
 }
 
+/** AgentService.InstallSessionDemoFake — ADR-264 session-scoped Demo Fake LLM install (≠ FireTriggerWebhook / ClearSessionDemoFake / ChatSync / SyncInputDelivery). */
+export interface UniverseAgentInstallSessionDemoFakeRequest {
+	readonly sessionId: string;
+	/** Proto `queues_payload` (bytes). Empty sent as-is. */
+	readonly queuesPayload: Uint8Array;
+	/** Proto `content_type`. Empty sent as-is. */
+	readonly contentType: string;
+	/** Proto `playbook_id`. Empty sent as-is. */
+	readonly playbookId: string;
+}
+
+export interface UniverseAgentInstallSessionDemoFakeResult {
+	readonly ok: boolean;
+	readonly message?: string;
+	/** Proto `reason_code`. */
+	readonly reasonCode: string;
+}
+
 /** AgentService.SwitchWorkDir — change agent work dir (≠ FireTriggerWebhook / TestModelProfile / Connect.work_dir). */
 export interface UniverseAgentSwitchWorkDirRequest {
 	readonly sessionId: string;

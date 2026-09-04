@@ -83,6 +83,8 @@ import type {
 	UniverseAgentFetchToolUsageDetailResult,
 	UniverseAgentFireTriggerWebhookRequest,
 	UniverseAgentFireTriggerWebhookResult,
+	UniverseAgentInstallSessionDemoFakeRequest,
+	UniverseAgentInstallSessionDemoFakeResult,
 	UniverseAgentSwitchWorkDirRequest,
 	UniverseAgentSwitchWorkDirResult,
 	UniverseAgentTestModelProfileRequest,
@@ -318,6 +320,8 @@ export interface IUniverseAgentGrpcTransport {
 	fetchToolUsageDetail(request: UniverseAgentFetchToolUsageDetailRequest): Promise<UniverseAgentFetchToolUsageDetailResult>;
 	/** AgentService.FireTriggerWebhook unary (snake_case `session_id`/`trigger_id`/`payload_json`). Empty ids sent as-is. */
 	fireTriggerWebhook(request: UniverseAgentFireTriggerWebhookRequest): Promise<UniverseAgentFireTriggerWebhookResult>;
+	/** AgentService.InstallSessionDemoFake unary (snake_case `session_id`/`queues_payload`/`content_type`/`playbook_id`). Empty ids sent as-is. */
+	installSessionDemoFake(request: UniverseAgentInstallSessionDemoFakeRequest): Promise<UniverseAgentInstallSessionDemoFakeResult>;
 	/** AgentService.SwitchWorkDir unary (snake_case `session_id`/`agent_id`/`new_work_dir`). Empty ids sent as-is. */
 	switchWorkDir(request: UniverseAgentSwitchWorkDirRequest): Promise<UniverseAgentSwitchWorkDirResult>;
 	/** AgentService.TestModelProfile unary (snake_case `provider_id`/`model_id`/`api_key`/`base_url`/`protocol`/`params`). Empty ids sent as-is. */
@@ -547,6 +551,7 @@ export const UniverseAgentGrpcServices = {
 		SendShellSessionClientControl: 'SendShellSessionClientControl',
 		FetchToolUsageDetail: 'FetchToolUsageDetail',
 		FireTriggerWebhook: 'FireTriggerWebhook',
+		InstallSessionDemoFake: 'InstallSessionDemoFake',
 		SwitchWorkDir: 'SwitchWorkDir',
 		TestModelProfile: 'TestModelProfile',
 		EnqueueQueueItem: 'EnqueueQueueItem',

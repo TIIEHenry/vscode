@@ -81,6 +81,8 @@ import type {
 	UniverseAgentFetchToolUsageDetailResult,
 	UniverseAgentFireTriggerWebhookRequest,
 	UniverseAgentFireTriggerWebhookResult,
+	UniverseAgentInstallSessionDemoFakeRequest,
+	UniverseAgentInstallSessionDemoFakeResult,
 	UniverseAgentSwitchWorkDirRequest,
 	UniverseAgentSwitchWorkDirResult,
 	UniverseAgentTestModelProfileRequest,
@@ -477,6 +479,14 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 	async fireTriggerWebhook(request: UniverseAgentFireTriggerWebhookRequest): Promise<UniverseAgentFireTriggerWebhookResult> {
 		this.fireTriggerWebhookCalls.push(request);
 		return this.fireTriggerWebhookResult;
+	}
+
+	readonly installSessionDemoFakeCalls: UniverseAgentInstallSessionDemoFakeRequest[] = [];
+	installSessionDemoFakeResult: UniverseAgentInstallSessionDemoFakeResult = { ok: true, reasonCode: '' };
+
+	async installSessionDemoFake(request: UniverseAgentInstallSessionDemoFakeRequest): Promise<UniverseAgentInstallSessionDemoFakeResult> {
+		this.installSessionDemoFakeCalls.push(request);
+		return this.installSessionDemoFakeResult;
 	}
 
 	readonly switchWorkDirCalls: UniverseAgentSwitchWorkDirRequest[] = [];
@@ -1116,6 +1126,11 @@ suite('UniverseAgentConnectionService', () => {
 
 	test('UniverseAgentGrpcServices lists Agent.FireTriggerWebhook', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.FireTriggerWebhook, 'FireTriggerWebhook');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+	});
+
+	test('UniverseAgentGrpcServices lists Agent.InstallSessionDemoFake', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.InstallSessionDemoFake, 'InstallSessionDemoFake');
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
 	});
 
@@ -2211,6 +2226,45 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(transport.chatSyncCalls[1]?.idempotencyKey, '');
 		assert.deepStrictEqual(transport.chatSyncCalls[1]?.lastKnownMessageIds, ['']);
 		assert.strictEqual(transport.chatSyncCalls[1]?.sessionInput?.messageId, '');
+		service.dispose();
+	});
+
+	test('installSessionDemoFake forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.installSessionDemoFakeResult = { ok: true, message: 'ok', reasonCode: 'OK' };
+		const queuesPayload = new Uint8Array([1, 2, 3]);
+		const result = await service.installSessionDemoFake({
+			sessionId: 'sess-1',
+			queuesPayload,
+			contentType: 'application/vnd.universe.scripted-queues.v1+json',
+			playbookId: 'pb-1',
+		});
+		assert.deepStrictEqual(transport.installSessionDemoFakeCalls, [{
+			sessionId: 'sess-1',
+			queuesPayload,
+			contentType: 'application/vnd.universe.scripted-queues.v1+json',
+			playbookId: 'pb-1',
+		}]);
+		assert.deepStrictEqual(result, transport.installSessionDemoFakeResult);
+
+		transport.installSessionDemoFakeResult = { ok: false, message: 'empty', reasonCode: 'INVALID_PAYLOAD' };
+		const emptyPayload = new Uint8Array(0);
+		const empty = await service.installSessionDemoFake({
+			sessionId: '',
+			queuesPayload: emptyPayload,
+			contentType: '',
+			playbookId: '',
+		});
+		assert.deepStrictEqual(empty, transport.installSessionDemoFakeResult);
+		assert.strictEqual(transport.installSessionDemoFakeCalls[1]?.sessionId, '');
+		assert.deepStrictEqual(transport.installSessionDemoFakeCalls[1]?.queuesPayload, emptyPayload);
+		assert.strictEqual(transport.installSessionDemoFakeCalls[1]?.contentType, '');
+		assert.strictEqual(transport.installSessionDemoFakeCalls[1]?.playbookId, '');
 		service.dispose();
 	});
 

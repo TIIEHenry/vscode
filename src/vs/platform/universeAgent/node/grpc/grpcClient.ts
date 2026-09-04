@@ -107,6 +107,8 @@ import type {
 	UniverseAgentContextSourceUsage,
 	UniverseAgentFireTriggerWebhookRequest,
 	UniverseAgentFireTriggerWebhookResult,
+	UniverseAgentInstallSessionDemoFakeRequest,
+	UniverseAgentInstallSessionDemoFakeResult,
 	UniverseAgentSwitchWorkDirRequest,
 	UniverseAgentSwitchWorkDirResult,
 	UniverseAgentTestModelProfileRequest,
@@ -3006,6 +3008,29 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			status: mapFireTriggerWebhookStatus(wire.status),
 			eventId: wire.event_id ?? '',
 			reason: wire.reason ?? '',
+		};
+	}
+
+	async installSessionDemoFake(request: UniverseAgentInstallSessionDemoFakeRequest): Promise<UniverseAgentInstallSessionDemoFakeResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, {
+			success?: boolean;
+			message?: string;
+			reason_code?: string;
+		}>(
+			this._channel,
+			UniverseAgentGrpcServices.Agent.service,
+			UniverseAgentGrpcServices.Agent.InstallSessionDemoFake,
+		);
+		const wire = await unary({
+			session_id: request.sessionId,
+			queues_payload: bytesToBase64(request.queuesPayload),
+			content_type: request.contentType,
+			playbook_id: request.playbookId,
+		});
+		return {
+			ok: wire.success === true,
+			message: wire.message,
+			reasonCode: wire.reason_code ?? '',
 		};
 	}
 

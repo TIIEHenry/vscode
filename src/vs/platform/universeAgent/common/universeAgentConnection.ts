@@ -88,6 +88,8 @@ import type {
 	UniverseAgentFetchToolUsageDetailResult,
 	UniverseAgentFireTriggerWebhookRequest,
 	UniverseAgentFireTriggerWebhookResult,
+	UniverseAgentInstallSessionDemoFakeRequest,
+	UniverseAgentInstallSessionDemoFakeResult,
 	UniverseAgentSwitchWorkDirRequest,
 	UniverseAgentSwitchWorkDirResult,
 	UniverseAgentTestModelProfileRequest,
@@ -504,6 +506,15 @@ export interface IUniverseAgentConnection {
 	 * ≠ FetchToolUsageDetail / SubscribeToolDetail / SwitchWorkDir.
 	 */
 	fireTriggerWebhook?(request: UniverseAgentFireTriggerWebhookRequest): Promise<UniverseAgentFireTriggerWebhookResult>;
+
+	/**
+	 * AgentService.InstallSessionDemoFake unary (InstallSessionDemoFakeResponse.success
+	 * → ok). Optional so Web / tests can omit it. Catalog + node transport only
+	 * this slice; empty `sessionId` / `playbookId` / `contentType` / `queuesPayload`
+	 * are sent as-is. No Conversation roster / UI.
+	 * ≠ FireTriggerWebhook / ClearSessionDemoFake / ChatSync / SyncInputDelivery.
+	 */
+	installSessionDemoFake?(request: UniverseAgentInstallSessionDemoFakeRequest): Promise<UniverseAgentInstallSessionDemoFakeResult>;
 
 	/**
 	 * AgentService.SwitchWorkDir unary (SwitchWorkDirResponse.success → ok).
