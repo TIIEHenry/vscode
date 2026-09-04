@@ -211,6 +211,8 @@ import type {
 	UniverseAgentSwitchModelResult,
 	UniverseAgentGetModelPreferencesRequest,
 	UniverseAgentGetModelPreferencesResult,
+	UniverseAgentResolveModelRequest,
+	UniverseAgentResolveModelResult,
 	UniverseAgentToggleMcpServerRequest,
 	UniverseAgentToggleMcpServerResult,
 	UniverseAgentSessionEvent,
@@ -1116,4 +1118,12 @@ export interface IUniverseAgentConnection {
 	 * SetPermissionPolicy.
 	 */
 	getModelPreferences?(request: UniverseAgentGetModelPreferencesRequest): Promise<UniverseAgentGetModelPreferencesResult>;
+	 * ConfigService.ResolveModel unary (preview model resolution; does not
+	 * switch). Optional so Web / tests can omit it. Catalog + node
+	 * transport only this slice; empty `sessionId` / `type` are sent as-is.
+	 * No Conversation roster / UI / Engine Preferences / Composer.
+	 * ≠ ListModels / SwitchModel / Config.Get / Config.Set /
+	 * GetModelPreferences / SetModelPreferences / Watch.
+	 */
+	resolveModel?(request: UniverseAgentResolveModelRequest): Promise<UniverseAgentResolveModelResult>;
 }

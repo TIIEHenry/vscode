@@ -266,6 +266,8 @@ import type {
 	UniverseAgentSwitchModelResult,
 	UniverseAgentGetModelPreferencesRequest,
 	UniverseAgentGetModelPreferencesResult,
+	UniverseAgentResolveModelRequest,
+	UniverseAgentResolveModelResult,
 	UniverseAgentModelEntry,
 	UniverseAgentToolSummary,
 	UniverseAgentAgentTreeNode,
@@ -2526,6 +2528,20 @@ function mapListModelsResponse(wire: ListModelsResponseWire): UniverseAgentListM
 	};
 }
 
+interface ResolveModelResponseWire {
+	selected?: NonNullable<ListModelsResponseWire['models']>[number];
+	candidates?: NonNullable<ListModelsResponseWire['models']>;
+	filtered?: NonNullable<ListModelsResponseWire['models']>;
+}
+
+function mapResolveModelResponse(wire: ResolveModelResponseWire): UniverseAgentResolveModelResult {
+	return {
+		...(wire.selected ? { selected: mapModelEntry(wire.selected) } : {}),
+		candidates: (wire.candidates ?? []).map(mapModelEntry),
+		filtered: (wire.filtered ?? []).map(mapModelEntry),
+	};
+}
+
 interface AgentInfoWire {
 	agent_id?: string;
 	name?: string;
@@ -4425,6 +4441,19 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			minSpeed: prefs?.min_speed ?? '',
 			strategy: prefs?.strategy ?? '',
 		};
+	}
+
+	async resolveModel(request: UniverseAgentResolveModelRequest): Promise<UniverseAgentResolveModelResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, ResolveModelResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.Config.service,
+			UniverseAgentGrpcServices.Config.ResolveModel,
+		);
+		const wire = await unary({
+			session_id: request.sessionId,
+			type: request.type,
+		});
+		return mapResolveModelResponse(wire);
 	}
 
 	async fetchToolDetail(request: UniverseAgentFetchToolDetailRequest): Promise<UniverseAgentFetchToolDetailWireResult> {

@@ -129,6 +129,8 @@ import type {
 	UniverseAgentGetConfigResult,
 	UniverseAgentSwitchModelRequest,
 	UniverseAgentSwitchModelResult,
+	UniverseAgentResolveModelRequest,
+	UniverseAgentResolveModelResult,
 	UniverseAgentSetPermissionPolicyRequest,
 	UniverseAgentSetPermissionPolicyResult,
 	UniverseAgentGetModelPreferencesRequest,
@@ -701,6 +703,14 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 	async switchModel(request: UniverseAgentSwitchModelRequest): Promise<UniverseAgentSwitchModelResult> {
 		this.switchModelCalls.push(request);
 		return this.switchModelResult;
+	}
+
+	readonly resolveModelCalls: UniverseAgentResolveModelRequest[] = [];
+	resolveModelResult: UniverseAgentResolveModelResult = { candidates: [], filtered: [] };
+
+	async resolveModel(request: UniverseAgentResolveModelRequest): Promise<UniverseAgentResolveModelResult> {
+		this.resolveModelCalls.push(request);
+		return this.resolveModelResult;
 	}
 
 	readonly setPermissionPolicyCalls: UniverseAgentSetPermissionPolicyRequest[] = [];
@@ -1449,6 +1459,11 @@ suite('UniverseAgentConnectionService', () => {
 
 	test('UniverseAgentGrpcServices lists Config.SwitchModel', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Config.SwitchModel, 'SwitchModel');
+		assert.strictEqual(UniverseAgentGrpcServices.Config.service, 'universeagent.config.v1.ConfigService');
+	});
+
+	test('UniverseAgentGrpcServices lists Config.ResolveModel', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Config.ResolveModel, 'ResolveModel');
 		assert.strictEqual(UniverseAgentGrpcServices.Config.service, 'universeagent.config.v1.ConfigService');
 	});
 
@@ -3581,6 +3596,60 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(transport.switchModelCalls[1]?.agentId, '');
 		assert.strictEqual(transport.switchModelCalls[1]?.modelType, '');
 		assert.strictEqual(transport.switchModelCalls[1]?.modelId, '');
+		service.dispose();
+	});
+
+	test('resolveModel forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.resolveModelResult = {
+			selected: {
+				id: 'claude-sonnet',
+				type: 'quality',
+				enabled: true,
+				level: 7,
+				provider: 'anthropic',
+				modelId: 'claude-sonnet-4',
+			},
+			candidates: [{
+				id: 'claude-sonnet',
+				type: 'quality',
+				enabled: true,
+				level: 7,
+				provider: 'anthropic',
+				modelId: 'claude-sonnet-4',
+			}],
+			filtered: [{
+				id: 'haiku',
+				type: 'fast',
+				enabled: true,
+				level: 3,
+				provider: 'anthropic',
+				modelId: 'claude-haiku',
+			}],
+		};
+		const result = await service.resolveModel({
+			sessionId: 'sess-1',
+			type: 'quality',
+		});
+		assert.deepStrictEqual(transport.resolveModelCalls, [{
+			sessionId: 'sess-1',
+			type: 'quality',
+		}]);
+		assert.deepStrictEqual(result, transport.resolveModelResult);
+
+		transport.resolveModelResult = { candidates: [], filtered: [] };
+		const empty = await service.resolveModel({
+			sessionId: '',
+			type: '',
+		});
+		assert.deepStrictEqual(empty, { candidates: [], filtered: [] });
+		assert.strictEqual(transport.resolveModelCalls[1]?.sessionId, '');
+		assert.strictEqual(transport.resolveModelCalls[1]?.type, '');
 		service.dispose();
 	});
 

@@ -1905,6 +1905,20 @@ export interface UniverseAgentGetModelPreferencesResult {
 	readonly strategy: string;
 }
 
+/** ConfigService.ResolveModel — preview resolution without switching (≠ ListModels / SwitchModel / Get / Set / GetModelPreferences / SetModelPreferences / Watch). */
+export interface UniverseAgentResolveModelRequest {
+	readonly sessionId: string;
+	/** Proto `type`. Empty sent as-is. */
+	readonly type: string;
+}
+
+export interface UniverseAgentResolveModelResult {
+	/** Proto `selected`. Absent when the engine omits it. */
+	readonly selected?: UniverseAgentModelEntry;
+	readonly candidates: readonly UniverseAgentModelEntry[];
+	readonly filtered: readonly UniverseAgentModelEntry[];
+}
+
 /**
  * MCP runtime connection status from McpService.GetMcpServerStatuses.
  * Proto `MCP_STATUS_UNSPECIFIED` maps to `failed` (no fifth UI state).
