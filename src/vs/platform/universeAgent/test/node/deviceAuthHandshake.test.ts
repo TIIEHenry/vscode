@@ -520,6 +520,12 @@ class MockDeviceAuthTransport implements IUniverseAgentGrpcTransport {
 	async readGitChanges() {
 		return { supported: false, reason: '', branch: '', entries: [] };
 	}
+	async readGitFileDiff() {
+		return { supported: false, reason: '', path: '', unifiedDiff: '' };
+	}
+	async writeGitStagePaths() {
+		return { supported: false, reason: '', success: false, errorMessage: '', exitCode: 0, stdout: '' };
+	}
 	async listModels() { return { models: [] }; }
 	async getConfig(): Promise<{ values: Record<string, string>; scope: '' }> {
 		return { values: {}, scope: '' };
