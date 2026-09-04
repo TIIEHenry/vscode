@@ -46,6 +46,8 @@ import type {
 	UniverseAgentSendClientToolResponseResult,
 	UniverseAgentListSnapshotsRequest,
 	UniverseAgentListSnapshotsResult,
+	UniverseAgentListLoopSnapshotsRequest,
+	UniverseAgentListLoopSnapshotsResult,
 	UniverseAgentCreateSnapshotRequest,
 	UniverseAgentCreateSnapshotResult,
 	UniverseAgentRestoreSnapshotRequest,
@@ -211,6 +213,8 @@ export interface IUniverseAgentGrpcTransport {
 
 	listSnapshots(request: UniverseAgentListSnapshotsRequest): Promise<UniverseAgentListSnapshotsResult>;
 
+	listLoopSnapshots(request: UniverseAgentListLoopSnapshotsRequest): Promise<UniverseAgentListLoopSnapshotsResult>;
+
 	createSnapshot(request: UniverseAgentCreateSnapshotRequest): Promise<UniverseAgentCreateSnapshotResult>;
 
 	restoreSnapshot(request: UniverseAgentRestoreSnapshotRequest): Promise<UniverseAgentRestoreSnapshotResult>;
@@ -342,6 +346,7 @@ export const UniverseAgentGrpcServices = {
 		RespondQuestion: 'RespondQuestion',
 		SendClientToolResponse: 'SendClientToolResponse',
 		ListSnapshots: 'ListSnapshots',
+		ListLoopSnapshots: 'ListLoopSnapshots',
 		CreateSnapshot: 'CreateSnapshot',
 		RestoreSnapshot: 'RestoreSnapshot',
 		Tree: 'Tree',

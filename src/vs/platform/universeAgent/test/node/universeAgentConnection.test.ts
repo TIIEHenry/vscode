@@ -47,6 +47,8 @@ import type {
 	UniverseAgentSendClientToolResponseResult,
 	UniverseAgentListSnapshotsRequest,
 	UniverseAgentListSnapshotsResult,
+	UniverseAgentListLoopSnapshotsRequest,
+	UniverseAgentListLoopSnapshotsResult,
 	UniverseAgentCreateSnapshotRequest,
 	UniverseAgentCreateSnapshotResult,
 	UniverseAgentRestoreSnapshotRequest,
@@ -297,6 +299,14 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 	async listSnapshots(request: UniverseAgentListSnapshotsRequest): Promise<UniverseAgentListSnapshotsResult> {
 		this.listSnapshotsCalls.push(request);
 		return this.listSnapshotsResult;
+	}
+
+	readonly listLoopSnapshotsCalls: UniverseAgentListLoopSnapshotsRequest[] = [];
+	listLoopSnapshotsResult: UniverseAgentListLoopSnapshotsResult = { snapshots: [] };
+
+	async listLoopSnapshots(request: UniverseAgentListLoopSnapshotsRequest): Promise<UniverseAgentListLoopSnapshotsResult> {
+		this.listLoopSnapshotsCalls.push(request);
+		return this.listLoopSnapshotsResult;
 	}
 
 	readonly createSnapshotCalls: UniverseAgentCreateSnapshotRequest[] = [];
@@ -659,6 +669,11 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
 	});
 
+	test('UniverseAgentGrpcServices lists Agent.ListLoopSnapshots', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.ListLoopSnapshots, 'ListLoopSnapshots');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+	});
+
 	test('UniverseAgentGrpcServices lists Agent.CreateSnapshot', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.CreateSnapshot, 'CreateSnapshot');
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
@@ -995,6 +1010,50 @@ suite('UniverseAgentConnectionService', () => {
 		const empty = await service.listSnapshots({ sessionId: '' });
 		assert.deepStrictEqual(empty, { snapshots: [] });
 		assert.strictEqual(transport.listSnapshotsCalls[1]?.sessionId, '');
+		service.dispose();
+	});
+
+	test('listLoopSnapshots forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.listLoopSnapshotsResult = {
+			snapshots: [{
+				timestamp: 1_700_000_000,
+				turnId: 'turn-1',
+				loopId: 'loop-1',
+				iteration: 2,
+				maxIterations: 8,
+				goal: 'finish',
+				exitCondition: 'done',
+				tmpFileRelativePath: 'tmp/loop.md',
+				isExit: false,
+			}],
+		};
+		const result = await service.listLoopSnapshots({ sessionId: 'sess-1', loopId: 'loop-1' });
+		assert.deepStrictEqual(transport.listLoopSnapshotsCalls, [{ sessionId: 'sess-1', loopId: 'loop-1' }]);
+		assert.deepStrictEqual(result, {
+			snapshots: [{
+				timestamp: 1_700_000_000,
+				turnId: 'turn-1',
+				loopId: 'loop-1',
+				iteration: 2,
+				maxIterations: 8,
+				goal: 'finish',
+				exitCondition: 'done',
+				tmpFileRelativePath: 'tmp/loop.md',
+				isExit: false,
+			}],
+		});
+
+		transport.listLoopSnapshotsResult = { snapshots: [] };
+		const empty = await service.listLoopSnapshots({ sessionId: '', loopId: '' });
+		assert.deepStrictEqual(empty, { snapshots: [] });
+		assert.strictEqual(transport.listLoopSnapshotsCalls[1]?.sessionId, '');
+		assert.strictEqual(transport.listLoopSnapshotsCalls[1]?.loopId, '');
 		service.dispose();
 	});
 
