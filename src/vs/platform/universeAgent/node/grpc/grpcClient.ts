@@ -262,6 +262,8 @@ import type {
 	UniverseAgentSlashCommandSource,
 	UniverseAgentCommandSummary,
 	UniverseAgentListCommandsResult,
+	UniverseAgentGetCommandDefRequest,
+	UniverseAgentGetCommandDefResult,
 	UniverseAgentListModelsResult,
 	UniverseAgentGetConfigRequest,
 	UniverseAgentGetConfigResult,
@@ -2543,6 +2545,36 @@ function mapListCommandsResponse(wire: ListCommandsResponseWire): UniverseAgentL
 	};
 }
 
+interface GetCommandDefResponseWire {
+	name?: string;
+	description?: string;
+	source?: string | number;
+	template?: string;
+	agent?: string;
+	model?: string;
+	subtask?: boolean;
+	mcp_server_id?: string;
+	mcp_prompt_name?: string;
+	mcp_argument_names?: string[];
+	skill_source?: string;
+}
+
+function mapGetCommandDefResponse(wire: GetCommandDefResponseWire): UniverseAgentGetCommandDefResult {
+	return {
+		name: wire.name ?? '',
+		description: wire.description,
+		source: mapSlashCommandSource(wire.source),
+		template: wire.template ?? '',
+		agent: wire.agent ?? '',
+		model: wire.model ?? '',
+		subtask: wire.subtask === true,
+		mcpServerId: wire.mcp_server_id ?? '',
+		mcpPromptName: wire.mcp_prompt_name ?? '',
+		mcpArgumentNames: wire.mcp_argument_names ?? [],
+		skillSource: wire.skill_source ?? '',
+	};
+}
+
 interface ListModelsResponseWire {
 	models?: Array<{
 		id?: string;
@@ -4365,6 +4397,16 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 		);
 		const wire = await unary({});
 		return mapListCommandsResponse(wire);
+	}
+
+	async getCommandDef(request: UniverseAgentGetCommandDefRequest): Promise<UniverseAgentGetCommandDefResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, GetCommandDefResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.Tool.service,
+			UniverseAgentGrpcServices.Tool.GetCommandDef,
+		);
+		const wire = await unary({ command_name: request.commandName });
+		return mapGetCommandDefResponse(wire);
 	}
 
 	async setPermissionPolicy(request: UniverseAgentSetPermissionPolicyRequest): Promise<UniverseAgentSetPermissionPolicyResult> {

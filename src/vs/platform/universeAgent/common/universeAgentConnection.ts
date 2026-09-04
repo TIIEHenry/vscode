@@ -203,6 +203,8 @@ import type {
 	UniverseAgentToolInfoRequest,
 	UniverseAgentToolInfoResult,
 	UniverseAgentListCommandsResult,
+	UniverseAgentGetCommandDefRequest,
+	UniverseAgentGetCommandDefResult,
 	UniverseAgentSetPermissionPolicyRequest,
 	UniverseAgentSetPermissionPolicyResult,
 	UniverseAgentListModelsResult,
@@ -1085,6 +1087,16 @@ export interface IUniverseAgentConnection {
 	 * ≠ ListSkills / ListTools / ToolInfo / GetCommandDef / ResolveModel.
 	 */
 	listCommands?(): Promise<UniverseAgentListCommandsResult>;
+
+	/**
+	 * ToolService.GetCommandDef unary. Optional so Web / tests can omit it.
+	 * Catalog + node transport only this slice; empty `commandName` /
+	 * `name` / `agent` / `model` / `template` / `mcp_server_id` /
+	 * `mcp_prompt_name` / `skill_source` are mapped as-is.
+	 * No Conversation roster / UI / Engine Preferences / Composer.
+	 * ≠ ListCommands / ListSkills / ListTools / ToolInfo / ResolveModel.
+	 */
+	getCommandDef?(request: UniverseAgentGetCommandDefRequest): Promise<UniverseAgentGetCommandDefResult>;
 
 	/**
 	 * ConfigService.SetPermissionPolicy unary (session/tool Ask/Agent/Permit

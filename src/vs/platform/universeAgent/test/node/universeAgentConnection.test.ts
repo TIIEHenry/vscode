@@ -176,6 +176,8 @@ import type {
 	UniverseAgentToolInfoRequest,
 	UniverseAgentToolInfoResult,
 	UniverseAgentListCommandsResult,
+	UniverseAgentGetCommandDefRequest,
+	UniverseAgentGetCommandDefResult,
 	UniverseAgentGetHistoryRequest,
 	UniverseAgentGetHistoryResult,
 	UniverseAgentListSessionsRequest,
@@ -1214,6 +1216,25 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 		return this.listCommandsResult;
 	}
 
+	readonly getCommandDefCalls: UniverseAgentGetCommandDefRequest[] = [];
+	getCommandDefResult: UniverseAgentGetCommandDefResult = {
+		name: '',
+		source: '',
+		template: '',
+		agent: '',
+		model: '',
+		subtask: false,
+		mcpServerId: '',
+		mcpPromptName: '',
+		mcpArgumentNames: [],
+		skillSource: '',
+	};
+
+	async getCommandDef(request: UniverseAgentGetCommandDefRequest): Promise<UniverseAgentGetCommandDefResult> {
+		this.getCommandDefCalls.push(request);
+		return this.getCommandDefResult;
+	}
+
 	async listModels() {
 		return { models: [] };
 	}
@@ -1569,6 +1590,11 @@ suite('UniverseAgentConnectionService', () => {
 
 	test('UniverseAgentGrpcServices lists Tool.ListCommands', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Tool.ListCommands, 'ListCommands');
+		assert.strictEqual(UniverseAgentGrpcServices.Tool.service, 'universeagent.tool.v1.ToolService');
+	});
+
+	test('UniverseAgentGrpcServices lists Tool.GetCommandDef', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Tool.GetCommandDef, 'GetCommandDef');
 		assert.strictEqual(UniverseAgentGrpcServices.Tool.service, 'universeagent.tool.v1.ToolService');
 	});
 
@@ -3712,6 +3738,57 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(empty.commands[0]?.skillSource, '');
 		assert.strictEqual(empty.commands[0]?.source, '');
 		assert.strictEqual(empty.total, 0);
+		service.dispose();
+	});
+
+	test('getCommandDef forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.getCommandDefResult = {
+			name: 'review',
+			description: 'Review the diff',
+			source: 'SLASH_COMMAND_SOURCE_SKILL',
+			template: 'Review $ARGUMENTS',
+			agent: 'code',
+			model: 'default',
+			subtask: false,
+			mcpServerId: 'mcp-1',
+			mcpPromptName: 'review',
+			mcpArgumentNames: ['path'],
+			skillSource: 'user',
+		};
+		const result = await service.getCommandDef({ commandName: 'review' });
+		assert.deepStrictEqual(transport.getCommandDefCalls, [{ commandName: 'review' }]);
+		assert.deepStrictEqual(result, transport.getCommandDefResult);
+
+		transport.getCommandDefResult = {
+			name: '',
+			description: '',
+			source: '',
+			template: '',
+			agent: '',
+			model: '',
+			subtask: false,
+			mcpServerId: '',
+			mcpPromptName: '',
+			mcpArgumentNames: [],
+			skillSource: '',
+		};
+		const empty = await service.getCommandDef({ commandName: '' });
+		assert.strictEqual(transport.getCommandDefCalls[1]?.commandName, '');
+		assert.strictEqual(empty.name, '');
+		assert.strictEqual(empty.agent, '');
+		assert.strictEqual(empty.model, '');
+		assert.strictEqual(empty.template, '');
+		assert.strictEqual(empty.mcpServerId, '');
+		assert.strictEqual(empty.mcpPromptName, '');
+		assert.strictEqual(empty.skillSource, '');
+		assert.strictEqual(empty.source, '');
+		assert.deepStrictEqual(empty.mcpArgumentNames, []);
 		service.dispose();
 	});
 

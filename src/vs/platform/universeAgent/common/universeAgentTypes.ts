@@ -1839,6 +1839,31 @@ export interface UniverseAgentListCommandsResult {
 }
 
 /**
+ * ToolService.GetCommandDef — slash-command detail (template + MCP).
+ * Proto `GetCommandDefRequest.command_name`. Empty `command_name` /
+ * `name` / `agent` / `model` / `template` / `mcp_server_id` /
+ * `mcp_prompt_name` / `skill_source` pass through as-is.
+ * ≠ ListCommands / ListSkills / ListTools / ToolInfo / ResolveModel.
+ */
+export interface UniverseAgentGetCommandDefRequest {
+	readonly commandName: string;
+}
+
+export interface UniverseAgentGetCommandDefResult {
+	readonly name: string;
+	readonly description?: string;
+	readonly source: UniverseAgentSlashCommandSource;
+	readonly template: string;
+	readonly agent: string;
+	readonly model: string;
+	readonly subtask: boolean;
+	readonly mcpServerId: string;
+	readonly mcpPromptName: string;
+	readonly mcpArgumentNames: readonly string[];
+	readonly skillSource: string;
+}
+
+/**
  * ConfigService.SetPermissionPolicy — session/tool policy write
  * (≠ SwitchModel / ListModels / Get / Set / GetModelPreferences /
  * SetModelPreferences / SetPermissionMode).

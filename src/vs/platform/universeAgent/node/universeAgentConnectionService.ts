@@ -206,6 +206,8 @@ import type {
 	UniverseAgentToolInfoRequest,
 	UniverseAgentToolInfoResult,
 	UniverseAgentListCommandsResult,
+	UniverseAgentGetCommandDefRequest,
+	UniverseAgentGetCommandDefResult,
 	UniverseAgentSetPermissionPolicyRequest,
 	UniverseAgentSetPermissionPolicyResult,
 	UniverseAgentListModelsResult,
@@ -1269,6 +1271,10 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 
 	async listCommands(): Promise<UniverseAgentListCommandsResult> {
 		return this._withTransport(transport => transport.listCommands());
+	}
+
+	async getCommandDef(request: UniverseAgentGetCommandDefRequest): Promise<UniverseAgentGetCommandDefResult> {
+		return this._withTransport(transport => transport.getCommandDef(request));
 	}
 
 	async setPermissionPolicy(request: UniverseAgentSetPermissionPolicyRequest): Promise<UniverseAgentSetPermissionPolicyResult> {
