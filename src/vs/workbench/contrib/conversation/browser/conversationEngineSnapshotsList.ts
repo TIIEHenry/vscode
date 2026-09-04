@@ -80,7 +80,9 @@ export function formatEngineSnapshotFailedCopy(reason: string): string {
 /**
  * SessionBar extra control + overlay for AgentService.ListSnapshots.
  * Distinct from SessionBar History ({@link ConversationTrajectoryList} turn index).
- * Restore on rows calls {@link IUniverseAgentConnection.restoreSnapshot}.
+ * Restore on rows calls {@link IUniverseAgentConnection.restoreSnapshot};
+ * a successful restore refreshes via {@link IUniverseAgentConnection.listSnapshots}
+ * and keeps the overlay open. Failed restore / no send does not refresh.
  * Delete on rows confirms then calls {@link IUniverseAgentConnection.deleteSnapshot};
  * no Create.
  */
@@ -247,7 +249,26 @@ export class ConversationEngineSnapshotsList extends Disposable {
 		if (!canRestoreEngineSnapshot(connected, hasHook, snapshotId, sessionId) || !restore || !sessionId) {
 			return;
 		}
-		void restore.call(this.connection, { sessionId, snapshotId });
+		void this.restoreThenRefreshList(restore, sessionId, snapshotId);
+	}
+
+	private async restoreThenRefreshList(
+		restore: NonNullable<IUniverseAgentConnection['restoreSnapshot']>,
+		sessionId: string,
+		snapshotId: string,
+	): Promise<void> {
+		try {
+			const result = await restore.call(this.connection, { sessionId, snapshotId });
+			if (!result.ok) {
+				return;
+			}
+		} catch {
+			return;
+		}
+		if (!this.open) {
+			return;
+		}
+		await this.refresh();
 	}
 
 	private async deleteSnapshot(snapshot: UniverseAgentSessionSnapshotInfo): Promise<void> {
