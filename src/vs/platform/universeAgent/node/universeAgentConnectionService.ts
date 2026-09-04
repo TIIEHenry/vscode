@@ -127,6 +127,8 @@ import type {
 	UniverseAgentCreateTeamResult,
 	UniverseAgentStartMemberRequest,
 	UniverseAgentStartMemberResult,
+	UniverseAgentKillMemberRequest,
+	UniverseAgentKillMemberResult,
 	UniverseAgentRespondQuestionRequest,
 	UniverseAgentRespondQuestionResult,
 	UniverseAgentEnqueueQueueItemRequest,
@@ -937,6 +939,10 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 
 	async startMember(request: UniverseAgentStartMemberRequest): Promise<UniverseAgentStartMemberResult> {
 		return this._withTransport(transport => transport.startMember(request));
+	}
+
+	async killMember(request: UniverseAgentKillMemberRequest): Promise<UniverseAgentKillMemberResult> {
+		return this._withTransport(transport => transport.killMember(request));
 	}
 
 	async respondQuestion(request: UniverseAgentRespondQuestionRequest): Promise<UniverseAgentRespondQuestionResult> {

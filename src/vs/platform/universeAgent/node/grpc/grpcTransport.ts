@@ -119,6 +119,8 @@ import type {
 	UniverseAgentCreateTeamResult,
 	UniverseAgentStartMemberRequest,
 	UniverseAgentStartMemberResult,
+	UniverseAgentKillMemberRequest,
+	UniverseAgentKillMemberResult,
 	UniverseAgentRespondQuestionRequest,
 	UniverseAgentRespondQuestionResult,
 	UniverseAgentEnqueueQueueItemRequest,
@@ -385,6 +387,9 @@ export interface IUniverseAgentGrpcTransport {
 
 	/** TeamService.StartMember unary (snake_case `session_id`/`agent_id`/`member_name`/`preset_id`/`system_prompt`/`model_type`/`dynamic`). Empty ids sent as-is. */
 	startMember(request: UniverseAgentStartMemberRequest): Promise<UniverseAgentStartMemberResult>;
+
+	/** TeamService.KillMember unary (snake_case `session_id`/`agent_id`/`member_name`). Empty ids sent as-is. */
+	killMember(request: UniverseAgentKillMemberRequest): Promise<UniverseAgentKillMemberResult>;
 
 	respondQuestion(request: UniverseAgentRespondQuestionRequest): Promise<UniverseAgentRespondQuestionResult>;
 
@@ -700,6 +705,7 @@ export const UniverseAgentGrpcServices = {
 		MessageMember: 'MessageMember',
 		CreateTeam: 'CreateTeam',
 		StartMember: 'StartMember',
+		KillMember: 'KillMember',
 		TeamInfo: 'TeamInfo',
 	},
 	Tool: {

@@ -147,6 +147,8 @@ import type {
 	UniverseAgentCreateTeamResult,
 	UniverseAgentStartMemberRequest,
 	UniverseAgentStartMemberResult,
+	UniverseAgentKillMemberRequest,
+	UniverseAgentKillMemberResult,
 	UniverseAgentRespondQuestionRequest,
 	UniverseAgentRespondQuestionResult,
 	UniverseAgentQuestionAnswer,
@@ -3488,6 +3490,23 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			memberAgentId: wire.member_agent_id ?? '',
 			memberName: wire.member_name ?? '',
 			dynamic: wire.dynamic === true,
+		};
+	}
+
+	async killMember(request: UniverseAgentKillMemberRequest): Promise<UniverseAgentKillMemberResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, { success?: boolean; message?: string }>(
+			this._channel,
+			UniverseAgentGrpcServices.Team.service,
+			UniverseAgentGrpcServices.Team.KillMember,
+		);
+		const wire = await unary({
+			session_id: request.sessionId,
+			agent_id: request.agentId,
+			member_name: request.memberName,
+		});
+		return {
+			ok: wire.success === true,
+			message: wire.message,
 		};
 	}
 

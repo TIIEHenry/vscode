@@ -117,6 +117,8 @@ import type {
 	UniverseAgentCreateTeamResult,
 	UniverseAgentStartMemberRequest,
 	UniverseAgentStartMemberResult,
+	UniverseAgentKillMemberRequest,
+	UniverseAgentKillMemberResult,
 	UniverseAgentRespondQuestionRequest,
 	UniverseAgentRespondQuestionResult,
 	UniverseAgentEnqueueQueueItemRequest,
@@ -639,6 +641,14 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 	async startMember(request: UniverseAgentStartMemberRequest): Promise<UniverseAgentStartMemberResult> {
 		this.startMemberCalls.push(request);
 		return this.startMemberResult;
+	}
+
+	readonly killMemberCalls: UniverseAgentKillMemberRequest[] = [];
+	killMemberResult: UniverseAgentKillMemberResult = { ok: true };
+
+	async killMember(request: UniverseAgentKillMemberRequest): Promise<UniverseAgentKillMemberResult> {
+		this.killMemberCalls.push(request);
+		return this.killMemberResult;
 	}
 
 	readonly respondQuestionCalls: UniverseAgentRespondQuestionRequest[] = [];
@@ -1328,6 +1338,11 @@ suite('UniverseAgentConnectionService', () => {
 
 	test('UniverseAgentGrpcServices lists Team.StartMember', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Team.StartMember, 'StartMember');
+		assert.strictEqual(UniverseAgentGrpcServices.Team.service, 'universeagent.team.v1.TeamService');
+	});
+
+	test('UniverseAgentGrpcServices lists Team.KillMember', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Team.KillMember, 'KillMember');
 		assert.strictEqual(UniverseAgentGrpcServices.Team.service, 'universeagent.team.v1.TeamService');
 	});
 
@@ -3173,6 +3188,39 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(transport.startMemberCalls[1]?.systemPrompt, '');
 		assert.strictEqual(transport.startMemberCalls[1]?.modelType, '');
 		assert.strictEqual(transport.startMemberCalls[1]?.dynamic, false);
+		service.dispose();
+	});
+
+	test('killMember forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.killMemberResult = { ok: true, message: 'stopped' };
+		const result = await service.killMember({
+			sessionId: 'sess-1',
+			agentId: 'agent-1',
+			memberName: 'worker',
+		});
+		assert.deepStrictEqual(transport.killMemberCalls, [{
+			sessionId: 'sess-1',
+			agentId: 'agent-1',
+			memberName: 'worker',
+		}]);
+		assert.deepStrictEqual(result, { ok: true, message: 'stopped' });
+
+		transport.killMemberResult = { ok: false, message: '' };
+		const empty = await service.killMember({
+			sessionId: '',
+			agentId: '',
+			memberName: '',
+		});
+		assert.deepStrictEqual(empty, { ok: false, message: '' });
+		assert.strictEqual(transport.killMemberCalls[1]?.sessionId, '');
+		assert.strictEqual(transport.killMemberCalls[1]?.agentId, '');
+		assert.strictEqual(transport.killMemberCalls[1]?.memberName, '');
 		service.dispose();
 	});
 
