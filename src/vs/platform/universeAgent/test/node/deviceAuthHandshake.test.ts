@@ -567,6 +567,9 @@ class MockDeviceAuthTransport implements IUniverseAgentGrpcTransport {
 	async deleteMemory() {
 		return { success: false, message: '' };
 	}
+	async reflectMemory() {
+		return { diagnoses: [], summary: '' };
+	}
 	async listModels() { return { models: [] }; }
 	async getConfig(): Promise<{ values: Record<string, string>; scope: '' }> {
 		return { values: {}, scope: '' };

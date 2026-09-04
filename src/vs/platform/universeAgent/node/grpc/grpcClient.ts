@@ -308,6 +308,9 @@ import type {
 	UniverseAgentMemoryFileSummary,
 	UniverseAgentDeleteMemoryRequest,
 	UniverseAgentDeleteMemoryResult,
+	UniverseAgentReflectMemoryRequest,
+	UniverseAgentReflectMemoryResult,
+	UniverseAgentMemoryReflectDiagnosis,
 	UniverseAgentListModelsResult,
 	UniverseAgentGetConfigRequest,
 	UniverseAgentGetConfigResult,
@@ -3021,6 +3024,36 @@ function mapMemoryDeleteResponse(wire: MemoryDeleteResponseWire): UniverseAgentD
 	};
 }
 
+interface MemoryReflectDiagnosisWire {
+	type?: string;
+	category?: string;
+	filename?: string;
+	description?: string;
+	suggestion?: string;
+}
+
+interface MemoryReflectResponseWire {
+	diagnoses?: MemoryReflectDiagnosisWire[];
+	summary?: string;
+}
+
+function mapMemoryReflectDiagnosis(wire: MemoryReflectDiagnosisWire): UniverseAgentMemoryReflectDiagnosis {
+	return {
+		type: wire.type ?? '',
+		category: wire.category ?? '',
+		filename: wire.filename ?? '',
+		description: wire.description ?? '',
+		suggestion: wire.suggestion ?? '',
+	};
+}
+
+function mapMemoryReflectResponse(wire: MemoryReflectResponseWire): UniverseAgentReflectMemoryResult {
+	return {
+		diagnoses: (wire.diagnoses ?? []).map(mapMemoryReflectDiagnosis),
+		summary: wire.summary ?? '',
+	};
+}
+
 interface ListModelsResponseWire {
 	models?: Array<{
 		id?: string;
@@ -5136,6 +5169,19 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			filename: request.filename,
 		});
 		return mapMemoryDeleteResponse(wire);
+	}
+
+	async reflectMemory(request: UniverseAgentReflectMemoryRequest): Promise<UniverseAgentReflectMemoryResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, MemoryReflectResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.Memory.service,
+			UniverseAgentGrpcServices.Memory.Reflect,
+		);
+		const wire = await unary({
+			scope: request.scope,
+			categories: [...request.categories],
+		});
+		return mapMemoryReflectResponse(wire);
 	}
 
 	async setPermissionPolicy(request: UniverseAgentSetPermissionPolicyRequest): Promise<UniverseAgentSetPermissionPolicyResult> {

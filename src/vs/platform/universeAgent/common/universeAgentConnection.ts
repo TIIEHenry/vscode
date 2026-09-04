@@ -241,6 +241,8 @@ import type {
 	UniverseAgentMemoryListResult,
 	UniverseAgentDeleteMemoryRequest,
 	UniverseAgentDeleteMemoryResult,
+	UniverseAgentReflectMemoryRequest,
+	UniverseAgentReflectMemoryResult,
 	UniverseAgentSetPermissionPolicyRequest,
 	UniverseAgentSetPermissionPolicyResult,
 	UniverseAgentListModelsResult,
@@ -1363,6 +1365,19 @@ export interface IUniverseAgentConnection {
 	 * Revert / History.
 	 */
 	deleteMemory?(request: UniverseAgentDeleteMemoryRequest): Promise<UniverseAgentDeleteMemoryResult>;
+
+	/**
+	 * MemoryService.Reflect unary. Optional so Web / tests can omit it.
+	 * Catalog + node transport only this slice; empty `scope` /
+	 * `categories` are sent as-is. Empty `type` / `category` /
+	 * `filename` / `description` / `suggestion` / `summary` mapped as-is.
+	 * Proto fields only (`MemoryReflectRequest` /
+	 * `MemoryReflectResponse` + `ReflectDiagnosis`). No Conversation
+	 * roster / UI / Engine Preferences / Composer / Memory pane.
+	 * ≠ Save / Search / SearchDeep / Read / List / Delete / Rebuild /
+	 * Revert / History.
+	 */
+	reflectMemory?(request: UniverseAgentReflectMemoryRequest): Promise<UniverseAgentReflectMemoryResult>;
 
 	/**
 	 * ConfigService.SetPermissionPolicy unary (session/tool Ask/Agent/Permit
