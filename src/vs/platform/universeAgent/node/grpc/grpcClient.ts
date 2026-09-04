@@ -101,6 +101,8 @@ import type {
 	UniverseAgentFireTriggerWebhookResult,
 	UniverseAgentSwitchWorkDirRequest,
 	UniverseAgentSwitchWorkDirResult,
+	UniverseAgentTestModelProfileRequest,
+	UniverseAgentTestModelProfileResult,
 	UniverseAgentSetSessionGoalRequest,
 	UniverseAgentSetSessionGoalResult,
 	UniverseAgentCancelSessionGoalRequest,
@@ -2848,6 +2850,30 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			message: wire.message,
 		};
 	}
+
+	async testModelProfile(request: UniverseAgentTestModelProfileRequest): Promise<UniverseAgentTestModelProfileResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, {
+			success?: boolean;
+			error_message?: string;
+		}>(
+			this._channel,
+			UniverseAgentGrpcServices.Agent.service,
+			UniverseAgentGrpcServices.Agent.TestModelProfile,
+		);
+		const wire = await unary({
+			provider_id: request.providerId,
+			model_id: request.modelId,
+			api_key: request.apiKey,
+			base_url: request.baseUrl,
+			protocol: request.protocol,
+			params: request.params,
+		});
+		return {
+			ok: wire.success === true,
+			message: wire.error_message,
+		};
+	}
+
 
 	async setSessionGoal(request: UniverseAgentSetSessionGoalRequest): Promise<UniverseAgentSetSessionGoalResult> {
 		const unary = makeUnaryClient<Record<string, unknown>, { success?: boolean; error?: string }>(

@@ -85,6 +85,8 @@ import type {
 	UniverseAgentFireTriggerWebhookResult,
 	UniverseAgentSwitchWorkDirRequest,
 	UniverseAgentSwitchWorkDirResult,
+	UniverseAgentTestModelProfileRequest,
+	UniverseAgentTestModelProfileResult,
 	UniverseAgentSetSessionGoalRequest,
 	UniverseAgentSetSessionGoalResult,
 	UniverseAgentCancelSessionGoalRequest,
@@ -496,6 +498,15 @@ export interface IUniverseAgentConnection {
 	 * ≠ FireTriggerWebhook / TestModelProfile / Connect.work_dir.
 	 */
 	switchWorkDir?(request: UniverseAgentSwitchWorkDirRequest): Promise<UniverseAgentSwitchWorkDirResult>;
+
+	/**
+	 * AgentService.TestModelProfile unary (TestModelProfileResponse.success → ok).
+	 * Optional so Web / tests can omit it. Catalog + node transport only this
+	 * slice; empty `providerId` / `modelId` / `apiKey` / `baseUrl` / `protocol`
+	 * are sent as-is. No Conversation / Engine Preferences UI.
+	 * ≠ SwitchWorkDir / ListModels / SwitchModel / Config.Get / Config.Set.
+	 */
+	testModelProfile?(request: UniverseAgentTestModelProfileRequest): Promise<UniverseAgentTestModelProfileResult>;
 
 	/**
 	 * PermissionService.SetSessionGoal unary (Inbox Goal). Optional so Web / tests

@@ -80,6 +80,8 @@ import type {
 	UniverseAgentFireTriggerWebhookResult,
 	UniverseAgentSwitchWorkDirRequest,
 	UniverseAgentSwitchWorkDirResult,
+	UniverseAgentTestModelProfileRequest,
+	UniverseAgentTestModelProfileResult,
 	UniverseAgentSetSessionGoalRequest,
 	UniverseAgentSetSessionGoalResult,
 	UniverseAgentCancelSessionGoalRequest,
@@ -303,6 +305,8 @@ export interface IUniverseAgentGrpcTransport {
 	fireTriggerWebhook(request: UniverseAgentFireTriggerWebhookRequest): Promise<UniverseAgentFireTriggerWebhookResult>;
 	/** AgentService.SwitchWorkDir unary (snake_case `session_id`/`agent_id`/`new_work_dir`). Empty ids sent as-is. */
 	switchWorkDir(request: UniverseAgentSwitchWorkDirRequest): Promise<UniverseAgentSwitchWorkDirResult>;
+	/** AgentService.TestModelProfile unary (snake_case `provider_id`/`model_id`/`api_key`/`base_url`/`protocol`/`params`). Empty ids sent as-is. */
+	testModelProfile(request: UniverseAgentTestModelProfileRequest): Promise<UniverseAgentTestModelProfileResult>;
 
 	setSessionGoal(request: UniverseAgentSetSessionGoalRequest): Promise<UniverseAgentSetSessionGoalResult>;
 
@@ -488,6 +492,7 @@ export const UniverseAgentGrpcServices = {
 		FetchToolUsageDetail: 'FetchToolUsageDetail',
 		FireTriggerWebhook: 'FireTriggerWebhook',
 		SwitchWorkDir: 'SwitchWorkDir',
+		TestModelProfile: 'TestModelProfile',
 		EnqueueQueueItem: 'EnqueueQueueItem',
 		PauseQueue: 'PauseQueue',
 		ResumeQueue: 'ResumeQueue',

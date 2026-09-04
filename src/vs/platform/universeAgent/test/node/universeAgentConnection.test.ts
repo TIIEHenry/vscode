@@ -79,6 +79,8 @@ import type {
 	UniverseAgentFireTriggerWebhookResult,
 	UniverseAgentSwitchWorkDirRequest,
 	UniverseAgentSwitchWorkDirResult,
+	UniverseAgentTestModelProfileRequest,
+	UniverseAgentTestModelProfileResult,
 	UniverseAgentSetSessionGoalRequest,
 	UniverseAgentSetSessionGoalResult,
 	UniverseAgentCancelSessionGoalRequest,
@@ -469,6 +471,14 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 	async switchWorkDir(request: UniverseAgentSwitchWorkDirRequest): Promise<UniverseAgentSwitchWorkDirResult> {
 		this.switchWorkDirCalls.push(request);
 		return this.switchWorkDirResult;
+	}
+
+	readonly testModelProfileCalls: UniverseAgentTestModelProfileRequest[] = [];
+	testModelProfileResult: UniverseAgentTestModelProfileResult = { ok: true };
+
+	async testModelProfile(request: UniverseAgentTestModelProfileRequest): Promise<UniverseAgentTestModelProfileResult> {
+		this.testModelProfileCalls.push(request);
+		return this.testModelProfileResult;
 	}
 
 	readonly setGoalCalls: UniverseAgentSetSessionGoalRequest[] = [];
@@ -993,6 +1003,10 @@ suite('UniverseAgentConnectionService', () => {
 
 	test('UniverseAgentGrpcServices lists Agent.SwitchWorkDir', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.SwitchWorkDir, 'SwitchWorkDir');
+	});
+
+	test('UniverseAgentGrpcServices lists Agent.TestModelProfile', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.TestModelProfile, 'TestModelProfile');
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
 	});
 
@@ -1448,6 +1462,52 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(transport.switchWorkDirCalls[1]?.newWorkDir, '');
 		service.dispose();
 	});
+
+	test('testModelProfile forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.testModelProfileResult = { ok: true, message: '' };
+		const result = await service.testModelProfile({
+			providerId: 'openai',
+			modelId: 'gpt-4',
+			apiKey: 'sk-test',
+			baseUrl: 'https://api.example',
+			protocol: 'openai',
+			params: { temperature: '0' },
+		});
+		assert.deepStrictEqual(transport.testModelProfileCalls, [{
+			providerId: 'openai',
+			modelId: 'gpt-4',
+			apiKey: 'sk-test',
+			baseUrl: 'https://api.example',
+			protocol: 'openai',
+			params: { temperature: '0' },
+		}]);
+		assert.deepStrictEqual(result, transport.testModelProfileResult);
+
+		transport.testModelProfileResult = { ok: false, message: 'refused' };
+		const empty = await service.testModelProfile({
+			providerId: '',
+			modelId: '',
+			apiKey: '',
+			baseUrl: '',
+			protocol: '',
+			params: {},
+		});
+		assert.deepStrictEqual(empty, transport.testModelProfileResult);
+		assert.strictEqual(transport.testModelProfileCalls[1]?.providerId, '');
+		assert.strictEqual(transport.testModelProfileCalls[1]?.modelId, '');
+		assert.strictEqual(transport.testModelProfileCalls[1]?.apiKey, '');
+		assert.strictEqual(transport.testModelProfileCalls[1]?.baseUrl, '');
+		assert.strictEqual(transport.testModelProfileCalls[1]?.protocol, '');
+		assert.deepStrictEqual(transport.testModelProfileCalls[1]?.params, {});
+		service.dispose();
+	});
+
 
 	test('setSessionGoal forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
