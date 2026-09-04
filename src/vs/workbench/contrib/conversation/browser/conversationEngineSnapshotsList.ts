@@ -84,6 +84,8 @@ export function formatEngineSnapshotFailedCopy(reason: string): string {
  * a successful restore refreshes via {@link IUniverseAgentConnection.listSnapshots}
  * and keeps the overlay open. Failed restore / no send does not refresh.
  * Delete on rows confirms then calls {@link IUniverseAgentConnection.deleteSnapshot};
+ * a confirmed successful delete refreshes via {@link IUniverseAgentConnection.listSnapshots}
+ * and keeps the overlay open. Cancel / failed delete / no send does not refresh.
  * no Create.
  */
 export class ConversationEngineSnapshotsList extends Disposable {
@@ -290,7 +292,26 @@ export class ConversationEngineSnapshotsList extends Disposable {
 		if (!this.canSendDelete(snapshot.id) || !remove || !sessionId) {
 			return;
 		}
-		void remove.call(this.connection, { sessionId, snapshotId: snapshot.id });
+		void this.deleteThenRefreshList(remove, sessionId, snapshot.id);
+	}
+
+	private async deleteThenRefreshList(
+		remove: NonNullable<IUniverseAgentConnection['deleteSnapshot']>,
+		sessionId: string,
+		snapshotId: string,
+	): Promise<void> {
+		try {
+			const result = await remove.call(this.connection, { sessionId, snapshotId });
+			if (!result.ok) {
+				return;
+			}
+		} catch {
+			return;
+		}
+		if (!this.open) {
+			return;
+		}
+		await this.refresh();
 	}
 
 	private canSendDelete(snapshotId: string): boolean {

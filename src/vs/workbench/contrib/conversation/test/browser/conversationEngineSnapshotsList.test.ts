@@ -464,13 +464,56 @@ suite('ConversationEngineSnapshotsList', () => {
 		assert.deepStrictEqual(deleteCalls, [{ sessionId: 'sess-1', snapshotId: 'snap-1' }]);
 	});
 
-	test('cancelled delete confirm does not send', async () => {
+	test('successful delete refreshes via listSnapshots and keeps overlay open', async () => {
 		const deleteCalls: UniverseAgentDeleteSnapshotRequest[] = [];
+		const listCalls: UniverseAgentListSnapshotsRequest[] = [];
+		const first: UniverseAgentSessionSnapshotInfo[] = [
+			{ id: 'snap-1', sessionId: 'sess-1', title: 'Before delete', createdAt: 1, turnCount: 2 },
+			{ id: 'snap-2', sessionId: 'sess-1', title: 'Keep', createdAt: 2, turnCount: 3 },
+		];
+		const after: UniverseAgentSessionSnapshotInfo[] = [
+			{ id: 'snap-2', sessionId: 'sess-1', title: 'Keep', createdAt: 2, turnCount: 3 },
+		];
 		const { list, overlayParent, confirmCalls } = mountList(createConversationConnectionTestStub({
 			isEngineConnected: () => true,
-			listSnapshots: async () => ({
-				snapshots: [{ id: 'snap-1', sessionId: 'sess-1', title: 'Before refactor', createdAt: 1, turnCount: 2 }],
-			}),
+			listSnapshots: async request => {
+				listCalls.push(request);
+				return { snapshots: listCalls.length === 1 ? first : after };
+			},
+			deleteSnapshot: async request => {
+				deleteCalls.push(request);
+				return { ok: true };
+			},
+		}), createRosterStub(), { confirmResult: true });
+		list.show();
+		await Promise.resolve();
+		assert.deepStrictEqual(listCalls, [{ sessionId: 'sess-1' }]);
+		assert.ok(snapshotRow(overlayParent, 'snap-1'));
+		assert.ok(snapshotRow(overlayParent, 'snap-2'));
+		deleteButton(snapshotRow(overlayParent, 'snap-1'))?.click();
+		await Promise.resolve();
+		await Promise.resolve();
+		await Promise.resolve();
+		assert.strictEqual(confirmCalls.length, 1);
+		assert.deepStrictEqual(deleteCalls, [{ sessionId: 'sess-1', snapshotId: 'snap-1' }]);
+		assert.deepStrictEqual(listCalls, [{ sessionId: 'sess-1' }, { sessionId: 'sess-1' }]);
+		assert.strictEqual(list.isOpen(), true);
+		assert.ok(!overlayParent.querySelector(`.${conversationLensSnapshotsOverlayClass}`)?.hasAttribute('hidden'));
+		assert.strictEqual(snapshotRow(overlayParent, 'snap-1'), null);
+		assert.ok(snapshotRow(overlayParent, 'snap-2'));
+	});
+
+	test('cancelled delete confirm does not send or refresh', async () => {
+		const deleteCalls: UniverseAgentDeleteSnapshotRequest[] = [];
+		const listCalls: UniverseAgentListSnapshotsRequest[] = [];
+		const { list, overlayParent, confirmCalls } = mountList(createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			listSnapshots: async request => {
+				listCalls.push(request);
+				return {
+					snapshots: [{ id: 'snap-1', sessionId: 'sess-1', title: 'Before refactor', createdAt: 1, turnCount: 2 }],
+				};
+			},
 			deleteSnapshot: async request => {
 				deleteCalls.push(request);
 				return { ok: true };
@@ -480,17 +523,71 @@ suite('ConversationEngineSnapshotsList', () => {
 		await Promise.resolve();
 		deleteButton(snapshotRow(overlayParent, 'snap-1'))?.click();
 		await Promise.resolve();
+		await Promise.resolve();
 		assert.strictEqual(confirmCalls.length, 1);
 		assert.deepStrictEqual(deleteCalls, []);
+		assert.deepStrictEqual(listCalls, [{ sessionId: 'sess-1' }]);
+		assert.strictEqual(list.isOpen(), true);
+		assert.ok(snapshotRow(overlayParent, 'snap-1'));
 	});
 
-	test('empty snapshotId delete does not send', async () => {
+	test('failed delete does not refresh list', async () => {
+		const listCalls: UniverseAgentListSnapshotsRequest[] = [];
+		const { list, overlayParent } = mountList(createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			listSnapshots: async request => {
+				listCalls.push(request);
+				return {
+					snapshots: [{ id: 'snap-1', sessionId: 'sess-1', title: 'Live', createdAt: 1, turnCount: 1 }],
+				};
+			},
+			deleteSnapshot: async () => ({ ok: false, message: 'denied' }),
+		}), createRosterStub(), { confirmResult: true });
+		list.show();
+		await Promise.resolve();
+		deleteButton(snapshotRow(overlayParent, 'snap-1'))?.click();
+		await Promise.resolve();
+		await Promise.resolve();
+		assert.deepStrictEqual(listCalls, [{ sessionId: 'sess-1' }]);
+		assert.strictEqual(list.isOpen(), true);
+		assert.ok(snapshotRow(overlayParent, 'snap-1'));
+	});
+
+	test('delete throw does not refresh list', async () => {
+		const listCalls: UniverseAgentListSnapshotsRequest[] = [];
+		const { list, overlayParent } = mountList(createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			listSnapshots: async request => {
+				listCalls.push(request);
+				return {
+					snapshots: [{ id: 'snap-1', sessionId: 'sess-1', title: 'Live', createdAt: 1, turnCount: 1 }],
+				};
+			},
+			deleteSnapshot: async () => {
+				throw new Error('transport reset');
+			},
+		}), createRosterStub(), { confirmResult: true });
+		list.show();
+		await Promise.resolve();
+		deleteButton(snapshotRow(overlayParent, 'snap-1'))?.click();
+		await Promise.resolve();
+		await Promise.resolve();
+		assert.deepStrictEqual(listCalls, [{ sessionId: 'sess-1' }]);
+		assert.strictEqual(list.isOpen(), true);
+		assert.ok(snapshotRow(overlayParent, 'snap-1'));
+	});
+
+	test('empty snapshotId delete does not send or refresh', async () => {
 		const deleteCalls: UniverseAgentDeleteSnapshotRequest[] = [];
+		const listCalls: UniverseAgentListSnapshotsRequest[] = [];
 		const { list, overlayParent, confirmCalls } = mountList(createConversationConnectionTestStub({
 			isEngineConnected: () => true,
-			listSnapshots: async () => ({
-				snapshots: [{ id: '', sessionId: 'sess-1', title: 'Nameless', createdAt: 1, turnCount: 1 }],
-			}),
+			listSnapshots: async request => {
+				listCalls.push(request);
+				return {
+					snapshots: [{ id: '', sessionId: 'sess-1', title: 'Nameless', createdAt: 1, turnCount: 1 }],
+				};
+			},
 			deleteSnapshot: async request => {
 				deleteCalls.push(request);
 				return { ok: true };
@@ -500,18 +597,24 @@ suite('ConversationEngineSnapshotsList', () => {
 		await Promise.resolve();
 		deleteButton(snapshotRow(overlayParent, ''))?.click();
 		await Promise.resolve();
+		await Promise.resolve();
 		assert.deepStrictEqual(confirmCalls, []);
 		assert.deepStrictEqual(deleteCalls, []);
+		assert.deepStrictEqual(listCalls, [{ sessionId: 'sess-1' }]);
 	});
 
-	test('disconnected delete does not send', async () => {
+	test('disconnected delete does not send or refresh', async () => {
 		let connected = true;
 		const deleteCalls: UniverseAgentDeleteSnapshotRequest[] = [];
+		const listCalls: UniverseAgentListSnapshotsRequest[] = [];
 		const { list, overlayParent, confirmCalls } = mountList(createConversationConnectionTestStub({
 			isEngineConnected: () => connected,
-			listSnapshots: async () => ({
-				snapshots: [{ id: 'snap-1', sessionId: 'sess-1', title: 'Live', createdAt: 1, turnCount: 1 }],
-			}),
+			listSnapshots: async request => {
+				listCalls.push(request);
+				return {
+					snapshots: [{ id: 'snap-1', sessionId: 'sess-1', title: 'Live', createdAt: 1, turnCount: 1 }],
+				};
+			},
 			deleteSnapshot: async request => {
 				deleteCalls.push(request);
 				return { ok: true };
@@ -522,33 +625,45 @@ suite('ConversationEngineSnapshotsList', () => {
 		connected = false;
 		deleteButton(snapshotRow(overlayParent, 'snap-1'))?.click();
 		await Promise.resolve();
+		await Promise.resolve();
 		assert.deepStrictEqual(confirmCalls, []);
 		assert.deepStrictEqual(deleteCalls, []);
+		assert.deepStrictEqual(listCalls, [{ sessionId: 'sess-1' }]);
 	});
 
-	test('no deleteSnapshot hook does not send', async () => {
+	test('no deleteSnapshot hook does not send or refresh', async () => {
+		const listCalls: UniverseAgentListSnapshotsRequest[] = [];
 		const { list, overlayParent, confirmCalls } = mountList(createConversationConnectionTestStub({
 			isEngineConnected: () => true,
-			listSnapshots: async () => ({
-				snapshots: [{ id: 'snap-1', sessionId: 'sess-1', title: 'Live', createdAt: 1, turnCount: 1 }],
-			}),
+			listSnapshots: async request => {
+				listCalls.push(request);
+				return {
+					snapshots: [{ id: 'snap-1', sessionId: 'sess-1', title: 'Live', createdAt: 1, turnCount: 1 }],
+				};
+			},
 		}), createRosterStub(), { confirmResult: true });
 		list.show();
 		await Promise.resolve();
 		deleteButton(snapshotRow(overlayParent, 'snap-1'))?.click();
 		await Promise.resolve();
+		await Promise.resolve();
 		assert.ok(snapshotRow(overlayParent, 'snap-1'));
 		assert.deepStrictEqual(confirmCalls, []);
+		assert.deepStrictEqual(listCalls, [{ sessionId: 'sess-1' }]);
 	});
 
-	test('empty session delete does not send', async () => {
+	test('empty session delete does not send or refresh', async () => {
 		let sessionId = 'sess-1';
 		const deleteCalls: UniverseAgentDeleteSnapshotRequest[] = [];
+		const listCalls: UniverseAgentListSnapshotsRequest[] = [];
 		const { list, overlayParent, confirmCalls } = mountList(createConversationConnectionTestStub({
 			isEngineConnected: () => true,
-			listSnapshots: async () => ({
-				snapshots: [{ id: 'snap-1', sessionId: 'sess-1', title: 'Live', createdAt: 1, turnCount: 1 }],
-			}),
+			listSnapshots: async request => {
+				listCalls.push(request);
+				return {
+					snapshots: [{ id: 'snap-1', sessionId: 'sess-1', title: 'Live', createdAt: 1, turnCount: 1 }],
+				};
+			},
 			deleteSnapshot: async request => {
 				deleteCalls.push(request);
 				return { ok: true };
@@ -559,7 +674,9 @@ suite('ConversationEngineSnapshotsList', () => {
 		sessionId = '';
 		deleteButton(snapshotRow(overlayParent, 'snap-1'))?.click();
 		await Promise.resolve();
+		await Promise.resolve();
 		assert.deepStrictEqual(confirmCalls, []);
 		assert.deepStrictEqual(deleteCalls, []);
+		assert.deepStrictEqual(listCalls, [{ sessionId: 'sess-1' }]);
 	});
 });
