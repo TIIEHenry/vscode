@@ -1864,6 +1864,28 @@ export interface UniverseAgentGetCommandDefResult {
 }
 
 /**
+ * FileService.ReadFile — proto `ReadFileRequest` / `ReadFileResponse` only.
+ * Empty `path` / `session_id` pass through as-is. `start_line` / `end_line`
+ * / `max_bytes` 0 sent as-is. ≠ ListFiles / GetFileInfo / WriteFile.
+ */
+export interface UniverseAgentReadFileRequest {
+	readonly path: string;
+	readonly sessionId: string;
+	readonly startLine: number;
+	readonly endLine: number;
+	readonly maxBytes: number;
+}
+
+export interface UniverseAgentReadFileResult {
+	/** Proto `content` (bytes). Empty mapped as empty bytes. */
+	readonly content: Uint8Array;
+	readonly totalSize: number;
+	readonly mimeType: string;
+	readonly lineCount: number;
+	readonly contentHash: string;
+}
+
+/**
  * ConfigService.SetPermissionPolicy — session/tool policy write
  * (≠ SwitchModel / ListModels / Get / Set / GetModelPreferences /
  * SetModelPreferences / SetPermissionMode).

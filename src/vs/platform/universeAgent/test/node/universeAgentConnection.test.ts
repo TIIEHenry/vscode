@@ -180,6 +180,8 @@ import type {
 	UniverseAgentListCommandsResult,
 	UniverseAgentGetCommandDefRequest,
 	UniverseAgentGetCommandDefResult,
+	UniverseAgentReadFileRequest,
+	UniverseAgentReadFileResult,
 	UniverseAgentGetHistoryRequest,
 	UniverseAgentGetHistoryResult,
 	UniverseAgentListSessionsRequest,
@@ -1262,6 +1264,20 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 		return this.getCommandDefResult;
 	}
 
+	readonly readFileCalls: UniverseAgentReadFileRequest[] = [];
+	readFileResult: UniverseAgentReadFileResult = {
+		content: new Uint8Array(0),
+		totalSize: 0,
+		mimeType: '',
+		lineCount: 0,
+		contentHash: '',
+	};
+
+	async readFile(request: UniverseAgentReadFileRequest): Promise<UniverseAgentReadFileResult> {
+		this.readFileCalls.push(request);
+		return this.readFileResult;
+	}
+
 	async listModels() {
 		return { models: [] };
 	}
@@ -1628,6 +1644,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('UniverseAgentGrpcServices lists Tool.GetCommandDef', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Tool.GetCommandDef, 'GetCommandDef');
 		assert.strictEqual(UniverseAgentGrpcServices.Tool.service, 'universeagent.tool.v1.ToolService');
+	});
+
+	test('UniverseAgentGrpcServices lists File.ReadFile', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.File.ReadFile, 'ReadFile');
+		assert.strictEqual(UniverseAgentGrpcServices.File.service, 'universeagent.file.v1.FileService');
 	});
 
 	test('UniverseAgentGrpcServices lists Agent.Kill', () => {
@@ -3821,6 +3842,45 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(empty.skillSource, '');
 		assert.strictEqual(empty.source, '');
 		assert.deepStrictEqual(empty.mcpArgumentNames, []);
+		service.dispose();
+	});
+
+	test('readFile forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.readFileResult = {
+			content: new Uint8Array([97, 98, 99]),
+			totalSize: 3,
+			mimeType: 'text/plain',
+			lineCount: 1,
+			contentHash: 'abc',
+		};
+		const request = { path: 'src/foo.ts', sessionId: 'sess-1', startLine: 1, endLine: 10, maxBytes: 1024 };
+		const result = await service.readFile(request);
+		assert.deepStrictEqual(transport.readFileCalls, [request]);
+		assert.deepStrictEqual(result, transport.readFileResult);
+
+		transport.readFileResult = {
+			content: new Uint8Array(0),
+			totalSize: 0,
+			mimeType: '',
+			lineCount: 0,
+			contentHash: '',
+		};
+		const emptyRequest = { path: '', sessionId: '', startLine: 0, endLine: 0, maxBytes: 0 };
+		const empty = await service.readFile(emptyRequest);
+		assert.strictEqual(transport.readFileCalls[1]?.path, '');
+		assert.strictEqual(transport.readFileCalls[1]?.sessionId, '');
+		assert.strictEqual(transport.readFileCalls[1]?.startLine, 0);
+		assert.strictEqual(transport.readFileCalls[1]?.endLine, 0);
+		assert.strictEqual(transport.readFileCalls[1]?.maxBytes, 0);
+		assert.deepStrictEqual(empty.content, new Uint8Array(0));
+		assert.strictEqual(empty.mimeType, '');
+		assert.strictEqual(empty.contentHash, '');
 		service.dispose();
 	});
 

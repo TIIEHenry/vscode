@@ -200,6 +200,8 @@ import type {
 	UniverseAgentListCommandsResult,
 	UniverseAgentGetCommandDefRequest,
 	UniverseAgentGetCommandDefResult,
+	UniverseAgentReadFileRequest,
+	UniverseAgentReadFileResult,
 	UniverseAgentSetPermissionPolicyRequest,
 	UniverseAgentSetPermissionPolicyResult,
 	UniverseAgentListModelsResult,
@@ -588,6 +590,9 @@ export interface IUniverseAgentGrpcTransport {
 	/** ToolService.GetCommandDef unary (snake_case `command_name`). Empty ids mapped as-is. */
 	getCommandDef(request: UniverseAgentGetCommandDefRequest): Promise<UniverseAgentGetCommandDefResult>;
 
+	/** FileService.ReadFile unary (snake_case `path`/`session_id`/`start_line`/`end_line`/`max_bytes`). Empty ids sent as-is. */
+	readFile(request: UniverseAgentReadFileRequest): Promise<UniverseAgentReadFileResult>;
+
 	/** ConfigService.SetPermissionPolicy unary (snake_case `session_id`/`tool_name`/`policy`). Empty ids sent as-is. */
 	setPermissionPolicy(request: UniverseAgentSetPermissionPolicyRequest): Promise<UniverseAgentSetPermissionPolicyResult>;
 
@@ -783,6 +788,10 @@ export const UniverseAgentGrpcServices = {
 		ToolInfo: 'ToolInfo',
 		ListCommands: 'ListCommands',
 		GetCommandDef: 'GetCommandDef',
+	},
+	File: {
+		service: 'universeagent.file.v1.FileService',
+		ReadFile: 'ReadFile',
 	},
 } as const;
 
