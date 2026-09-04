@@ -76,6 +76,8 @@ import type {
 	UniverseAgentSendShellSessionClientControlResult,
 	UniverseAgentFetchToolUsageDetailRequest,
 	UniverseAgentFetchToolUsageDetailResult,
+	UniverseAgentFireTriggerWebhookRequest,
+	UniverseAgentFireTriggerWebhookResult,
 	UniverseAgentSetSessionGoalRequest,
 	UniverseAgentSetSessionGoalResult,
 	UniverseAgentCancelSessionGoalRequest,
@@ -295,6 +297,8 @@ export interface IUniverseAgentGrpcTransport {
 	sendShellSessionClientControl(request: UniverseAgentSendShellSessionClientControlRequest): Promise<UniverseAgentSendShellSessionClientControlResult>;
 	/** AgentService.FetchToolUsageDetail unary (snake_case `session_id`/`tool_call_id`). Empty ids sent as-is. */
 	fetchToolUsageDetail(request: UniverseAgentFetchToolUsageDetailRequest): Promise<UniverseAgentFetchToolUsageDetailResult>;
+	/** AgentService.FireTriggerWebhook unary (snake_case `session_id`/`trigger_id`/`payload_json`). Empty ids sent as-is. */
+	fireTriggerWebhook(request: UniverseAgentFireTriggerWebhookRequest): Promise<UniverseAgentFireTriggerWebhookResult>;
 
 	setSessionGoal(request: UniverseAgentSetSessionGoalRequest): Promise<UniverseAgentSetSessionGoalResult>;
 
@@ -478,6 +482,7 @@ export const UniverseAgentGrpcServices = {
 		StopShellTask: 'StopShellTask',
 		SendShellSessionClientControl: 'SendShellSessionClientControl',
 		FetchToolUsageDetail: 'FetchToolUsageDetail',
+		FireTriggerWebhook: 'FireTriggerWebhook',
 		EnqueueQueueItem: 'EnqueueQueueItem',
 		PauseQueue: 'PauseQueue',
 		ResumeQueue: 'ResumeQueue',

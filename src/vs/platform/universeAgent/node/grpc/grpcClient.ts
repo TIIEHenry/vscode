@@ -97,6 +97,8 @@ import type {
 	UniverseAgentFetchToolUsageDetailRequest,
 	UniverseAgentFetchToolUsageDetailResult,
 	UniverseAgentContextSourceUsage,
+	UniverseAgentFireTriggerWebhookRequest,
+	UniverseAgentFireTriggerWebhookResult,
 	UniverseAgentSetSessionGoalRequest,
 	UniverseAgentSetSessionGoalResult,
 	UniverseAgentCancelSessionGoalRequest,
@@ -379,6 +381,13 @@ interface FetchToolUsageDetailResponseWire {
 	error_message?: string;
 }
 
+const FireTriggerWebhookStatusByNumber: Record<number, string> = {
+	0: 'FIRE_TRIGGER_WEBHOOK_STATUS_UNSPECIFIED',
+	1: 'FIRE_TRIGGER_WEBHOOK_STATUS_QUEUED',
+	2: 'FIRE_TRIGGER_WEBHOOK_STATUS_EXECUTED',
+	3: 'FIRE_TRIGGER_WEBHOOK_STATUS_REJECTED',
+	4: 'FIRE_TRIGGER_WEBHOOK_STATUS_SKIPPED',
+};
 interface SessionSnapshotInfoWire {
 	id?: string;
 	session_id?: string;
@@ -1056,6 +1065,16 @@ function mapContextSourceType(value: string | number | undefined): string {
 	}
 	if (typeof value === 'number') {
 		return ContextSourceTypeByNumber[value] ?? String(value);
+	}
+	return value;
+}
+
+function mapFireTriggerWebhookStatus(value: string | number | undefined): string {
+	if (value === undefined || value === '') {
+		return '';
+	}
+	if (typeof value === 'number') {
+		return FireTriggerWebhookStatusByNumber[value] ?? String(value);
 	}
 	return value;
 }
@@ -2780,6 +2799,28 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			tool_call_id: request.toolCallId,
 		});
 		return mapFetchToolUsageDetailResponse(wire);
+	}
+
+	async fireTriggerWebhook(request: UniverseAgentFireTriggerWebhookRequest): Promise<UniverseAgentFireTriggerWebhookResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, {
+			status?: string | number;
+			event_id?: string;
+			reason?: string;
+		}>(
+			this._channel,
+			UniverseAgentGrpcServices.Agent.service,
+			UniverseAgentGrpcServices.Agent.FireTriggerWebhook,
+		);
+		const wire = await unary({
+			session_id: request.sessionId,
+			trigger_id: request.triggerId,
+			payload_json: request.payloadJson,
+		});
+		return {
+			status: mapFireTriggerWebhookStatus(wire.status),
+			eventId: wire.event_id ?? '',
+			reason: wire.reason ?? '',
+		};
 	}
 
 	async setSessionGoal(request: UniverseAgentSetSessionGoalRequest): Promise<UniverseAgentSetSessionGoalResult> {

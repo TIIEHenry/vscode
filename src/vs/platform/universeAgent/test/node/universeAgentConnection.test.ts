@@ -75,6 +75,8 @@ import type {
 	UniverseAgentSendShellSessionClientControlResult,
 	UniverseAgentFetchToolUsageDetailRequest,
 	UniverseAgentFetchToolUsageDetailResult,
+	UniverseAgentFireTriggerWebhookRequest,
+	UniverseAgentFireTriggerWebhookResult,
 	UniverseAgentSetSessionGoalRequest,
 	UniverseAgentSetSessionGoalResult,
 	UniverseAgentCancelSessionGoalRequest,
@@ -449,6 +451,14 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 	async fetchToolUsageDetail(request: UniverseAgentFetchToolUsageDetailRequest): Promise<UniverseAgentFetchToolUsageDetailResult> {
 		this.fetchToolUsageDetailCalls.push(request);
 		return this.fetchToolUsageDetailResult;
+	}
+
+	readonly fireTriggerWebhookCalls: UniverseAgentFireTriggerWebhookRequest[] = [];
+	fireTriggerWebhookResult: UniverseAgentFireTriggerWebhookResult = { status: '', eventId: '', reason: '' };
+
+	async fireTriggerWebhook(request: UniverseAgentFireTriggerWebhookRequest): Promise<UniverseAgentFireTriggerWebhookResult> {
+		this.fireTriggerWebhookCalls.push(request);
+		return this.fireTriggerWebhookResult;
 	}
 
 	readonly setGoalCalls: UniverseAgentSetSessionGoalRequest[] = [];
@@ -966,6 +976,11 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
 	});
 
+	test('UniverseAgentGrpcServices lists Agent.FireTriggerWebhook', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.FireTriggerWebhook, 'FireTriggerWebhook');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+	});
+
 	test('UniverseAgentGrpcServices lists Permission.SetSessionGoal', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Permission.SetSessionGoal, 'SetSessionGoal');
 		assert.strictEqual(UniverseAgentGrpcServices.Permission.CancelSessionGoal, 'CancelSessionGoal');
@@ -1323,15 +1338,56 @@ suite('UniverseAgentConnectionService', () => {
 			}],
 			message: '',
 		};
-		const result = await service.fetchToolUsageDetail({ sessionId: 'sess-1', toolCallId: 'tc-1' });
+		const usageResult = await service.fetchToolUsageDetail({ sessionId: 'sess-1', toolCallId: 'tc-1' });
 		assert.deepStrictEqual(transport.fetchToolUsageDetailCalls, [{ sessionId: 'sess-1', toolCallId: 'tc-1' }]);
-		assert.deepStrictEqual(result, transport.fetchToolUsageDetailResult);
+		assert.deepStrictEqual(usageResult, transport.fetchToolUsageDetailResult);
 
 		transport.fetchToolUsageDetailResult = { ok: false, toolCallId: '', contextSources: [], message: 'not found' };
-		const empty = await service.fetchToolUsageDetail({ sessionId: '', toolCallId: '' });
-		assert.deepStrictEqual(empty, transport.fetchToolUsageDetailResult);
+		const usageEmpty = await service.fetchToolUsageDetail({ sessionId: '', toolCallId: '' });
+		assert.deepStrictEqual(usageEmpty, transport.fetchToolUsageDetailResult);
 		assert.strictEqual(transport.fetchToolUsageDetailCalls[1]?.sessionId, '');
 		assert.strictEqual(transport.fetchToolUsageDetailCalls[1]?.toolCallId, '');
+		service.dispose();
+	});
+
+	test('fireTriggerWebhook forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.fireTriggerWebhookResult = {
+			status: 'FIRE_TRIGGER_WEBHOOK_STATUS_QUEUED',
+			eventId: 'evt-1',
+			reason: '',
+		};
+		const result = await service.fireTriggerWebhook({
+			sessionId: 'sess-1',
+			triggerId: 'trig-1',
+			payloadJson: '{"k":1}',
+		});
+		assert.deepStrictEqual(transport.fireTriggerWebhookCalls, [{
+			sessionId: 'sess-1',
+			triggerId: 'trig-1',
+			payloadJson: '{"k":1}',
+		}]);
+		assert.deepStrictEqual(result, transport.fireTriggerWebhookResult);
+
+		transport.fireTriggerWebhookResult = {
+			status: 'FIRE_TRIGGER_WEBHOOK_STATUS_REJECTED',
+			eventId: '',
+			reason: 'not armed',
+		};
+		const empty = await service.fireTriggerWebhook({
+			sessionId: '',
+			triggerId: '',
+			payloadJson: '',
+		});
+		assert.deepStrictEqual(empty, transport.fireTriggerWebhookResult);
+		assert.strictEqual(transport.fireTriggerWebhookCalls[1]?.sessionId, '');
+		assert.strictEqual(transport.fireTriggerWebhookCalls[1]?.triggerId, '');
+		assert.strictEqual(transport.fireTriggerWebhookCalls[1]?.payloadJson, '');
 		service.dispose();
 	});
 
