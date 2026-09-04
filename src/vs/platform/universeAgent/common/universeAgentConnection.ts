@@ -104,6 +104,7 @@ import type {
 	UniverseAgentDeleteQueueItemRequest,
 	UniverseAgentRetryQueueItemRequest,
 	UniverseAgentRetryAllFailedRequest,
+	UniverseAgentPinQueueItemRequest,
 	UniverseAgentEditQueueItemRequest,
 	UniverseAgentHoldQueueItemRequest,
 	UniverseAgentQueueItemRefRequest,
@@ -589,6 +590,16 @@ export interface IUniverseAgentConnection {
 	 * ≠ RetryQueueItem / RetryQueueItemUpload / DeleteQueueItem / ReorderQueue.
 	 */
 	retryAllFailed?(request: UniverseAgentRetryAllFailedRequest): Promise<UniverseAgentQueueMutationResult>;
+
+	/**
+	 * AgentService.PinQueueItem unary (QueueMutationResponse.ok).
+	 * Optional so Web / tests can omit it. Catalog + node transport only this
+	 * slice; empty `sessionId` / `itemId` / `opId` are sent as-is. No
+	 * Conversation roster / UI.
+	 * ≠ RetryQueueItem / RetryQueueItemUpload / DeleteQueueItem /
+	 * SetQueueItemLocked.
+	 */
+	pinQueueItem?(request: UniverseAgentPinQueueItemRequest): Promise<UniverseAgentQueueMutationResult>;
 
 	/** AgentService.PauseQueue. Engine roster forwards when connected. */
 	pauseQueue(request: UniverseAgentQueueRefRequest): Promise<UniverseAgentQueueMutationResult>;

@@ -97,6 +97,7 @@ import type {
 	UniverseAgentDeleteQueueItemRequest,
 	UniverseAgentRetryQueueItemRequest,
 	UniverseAgentRetryAllFailedRequest,
+	UniverseAgentPinQueueItemRequest,
 	UniverseAgentEditQueueItemRequest,
 	UniverseAgentHoldQueueItemRequest,
 	UniverseAgentQueueItemRefRequest,
@@ -526,6 +527,7 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 	readonly deleteCalls: UniverseAgentDeleteQueueItemRequest[] = [];
 	readonly retryCalls: UniverseAgentRetryQueueItemRequest[] = [];
 	readonly retryAllFailedCalls: UniverseAgentRetryAllFailedRequest[] = [];
+	readonly pinCalls: UniverseAgentPinQueueItemRequest[] = [];
 	readonly pauseCalls: UniverseAgentQueueRefRequest[] = [];
 	readonly resumeCalls: UniverseAgentQueueRefRequest[] = [];
 	readonly clearCalls: UniverseAgentQueueRefRequest[] = [];
@@ -561,6 +563,11 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 
 	async retryAllFailed(request: UniverseAgentRetryAllFailedRequest): Promise<UniverseAgentQueueMutationResult> {
 		this.retryAllFailedCalls.push(request);
+		return this.queueResult;
+	}
+
+	async pinQueueItem(request: UniverseAgentPinQueueItemRequest): Promise<UniverseAgentQueueMutationResult> {
+		this.pinCalls.push(request);
 		return this.queueResult;
 	}
 
@@ -1110,6 +1117,11 @@ suite('UniverseAgentConnectionService', () => {
 
 	test('UniverseAgentGrpcServices lists Agent.RetryAllFailed', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.RetryAllFailed, 'RetryAllFailed');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+	});
+
+	test('UniverseAgentGrpcServices lists Agent.PinQueueItem', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.PinQueueItem, 'PinQueueItem');
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
 	});
 
@@ -1885,6 +1897,39 @@ suite('UniverseAgentConnectionService', () => {
 		assert.deepStrictEqual(empty, transport.queueResult);
 		assert.strictEqual(transport.retryAllFailedCalls[1]?.sessionId, '');
 		assert.strictEqual(transport.retryAllFailedCalls[1]?.opId, '');
+		service.dispose();
+	});
+
+	test('pinQueueItem forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.queueResult = { ok: true, opId: 'op-1', itemId: 'q-1' };
+		const result = await service.pinQueueItem({
+			sessionId: 'sess-1',
+			itemId: 'q-1',
+			opId: 'op-1',
+		});
+		assert.deepStrictEqual(transport.pinCalls, [{
+			sessionId: 'sess-1',
+			itemId: 'q-1',
+			opId: 'op-1',
+		}]);
+		assert.deepStrictEqual(result, transport.queueResult);
+
+		transport.queueResult = { ok: false, error: 'empty' };
+		const empty = await service.pinQueueItem({
+			sessionId: '',
+			itemId: '',
+			opId: '',
+		});
+		assert.deepStrictEqual(empty, transport.queueResult);
+		assert.strictEqual(transport.pinCalls[1]?.sessionId, '');
+		assert.strictEqual(transport.pinCalls[1]?.itemId, '');
+		assert.strictEqual(transport.pinCalls[1]?.opId, '');
 		service.dispose();
 	});
 

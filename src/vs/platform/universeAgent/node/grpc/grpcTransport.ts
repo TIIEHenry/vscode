@@ -99,6 +99,7 @@ import type {
 	UniverseAgentDeleteQueueItemRequest,
 	UniverseAgentRetryQueueItemRequest,
 	UniverseAgentRetryAllFailedRequest,
+	UniverseAgentPinQueueItemRequest,
 	UniverseAgentEditQueueItemRequest,
 	UniverseAgentHoldQueueItemRequest,
 	UniverseAgentQueueItemRefRequest,
@@ -341,6 +342,9 @@ export interface IUniverseAgentGrpcTransport {
 	/** AgentService.RetryAllFailed unary (snake_case `session_id`/`op_id`). Empty ids sent as-is. */
 	retryAllFailed(request: UniverseAgentRetryAllFailedRequest): Promise<UniverseAgentQueueMutationResult>;
 
+	/** AgentService.PinQueueItem unary (snake_case `session_id`/`item_id`/`op_id`). Empty ids sent as-is. */
+	pinQueueItem(request: UniverseAgentPinQueueItemRequest): Promise<UniverseAgentQueueMutationResult>;
+
 	pauseQueue(request: UniverseAgentQueueRefRequest): Promise<UniverseAgentQueueMutationResult>;
 
 	resumeQueue(request: UniverseAgentQueueRefRequest): Promise<UniverseAgentQueueMutationResult>;
@@ -529,6 +533,7 @@ export const UniverseAgentGrpcServices = {
 		DeleteQueueItem: 'DeleteQueueItem',
 		RetryQueueItem: 'RetryQueueItem',
 		RetryAllFailed: 'RetryAllFailed',
+		PinQueueItem: 'PinQueueItem',
 		PauseQueue: 'PauseQueue',
 		ResumeQueue: 'ResumeQueue',
 		ClearQueue: 'ClearQueue',
