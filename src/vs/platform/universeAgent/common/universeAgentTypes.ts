@@ -190,6 +190,201 @@ export interface UniverseAgentCompactResult {
 	readonly rejectReason?: string;
 }
 
+/** SessionService.ResolveAnchor — record-layer envelope anchor (ADR-317 §7.2; ≠ ResolveTurn / GetHistory). */
+export interface UniverseAgentEnvelopeAnchor {
+	readonly sessionId: string;
+	readonly envelopeId: string;
+	readonly generation?: number;
+}
+
+export type UniverseAgentAnchorResolveScope =
+	| 'ANCHOR_RESOLVE_SCOPE_UNSPECIFIED'
+	| 'ANCHOR_RESOLVE_SCOPE_ACTIVE'
+	| 'ANCHOR_RESOLVE_SCOPE_OFF_PATH'
+	| 'ANCHOR_RESOLVE_SCOPE_INCLUDING_ARCHIVED';
+
+export type UniverseAgentEnvelopeRecordPresence =
+	| 'ENVELOPE_RECORD_PRESENCE_UNSPECIFIED'
+	| 'ENVELOPE_RECORD_PRESENCE_ACTIVE_ON_PATH'
+	| 'ENVELOPE_RECORD_PRESENCE_ACTIVE_OFF_PATH'
+	| 'ENVELOPE_RECORD_PRESENCE_ARCHIVED';
+
+export interface UniverseAgentResolveAnchorRequest {
+	readonly anchor: UniverseAgentEnvelopeAnchor;
+	readonly scope: UniverseAgentAnchorResolveScope;
+	readonly currentLeafTurnId?: string;
+}
+
+export interface UniverseAgentAnchorHit {
+	/** MessageEnvelopeProto wire object; opaque this catalog slice. */
+	readonly envelope: unknown;
+	readonly presence: UniverseAgentEnvelopeRecordPresence;
+	readonly generation?: number;
+}
+
+export interface UniverseAgentAnchorTombstone {
+	readonly sessionId: string;
+	readonly envelopeId: string;
+	readonly seq: number;
+	readonly turnId?: string;
+	readonly generation?: number;
+}
+
+export interface UniverseAgentAnchorExpired {
+	readonly anchor: UniverseAgentEnvelopeAnchor;
+}
+
+export interface UniverseAgentResolveAnchorResult {
+	readonly hit?: UniverseAgentAnchorHit;
+	readonly tombstone?: UniverseAgentAnchorTombstone;
+	readonly expired?: UniverseAgentAnchorExpired;
+}
+
+/** AgentService.Usage — token usage for one session (empty agentId = session rollup). ≠ Todo / Status / Compact. */
+export interface UniverseAgentUsageRequest {
+	readonly sessionId: string;
+	readonly agentId: string;
+}
+
+export interface UniverseAgentAgentUsage {
+	readonly agentId: string;
+	readonly inputTokens: number;
+	readonly outputTokens: number;
+	readonly turns: number;
+}
+
+export interface UniverseAgentRecentRequestSpan {
+	readonly profileId: string;
+	readonly provider: string;
+	readonly modelId: string;
+	readonly inputTokens: number;
+	readonly outputTokens: number;
+	readonly prefillMs: number;
+	readonly decodeMs: number;
+	readonly completedAtMs: number;
+	readonly usageKind: string;
+}
+
+export interface UniverseAgentFixedOverheadInfo {
+	readonly toolDefinitionTokens: number;
+	readonly toolDefinitionCount: number;
+	readonly skillInjectTokens: number;
+	readonly mcpToolTokens: number;
+	readonly memoryInjectTokens: number;
+	readonly rulesInjectTokens: number;
+}
+
+export interface UniverseAgentSystemPromptPartInfo {
+	readonly id: string;
+	readonly label: string;
+	readonly tokens: number;
+	readonly cacheScope: string;
+	readonly volatility: string;
+}
+
+export interface UniverseAgentMessageBreakdownInfo {
+	readonly systemPromptTokens: number;
+	readonly userMessageCount: number;
+	readonly userMessageTokens: number;
+	readonly assistantCount: number;
+	readonly assistantTokens: number;
+	readonly toolResultCount: number;
+	readonly toolResultTokens: number;
+	readonly compactNoticeCount: number;
+	readonly compactNoticeTokens: number;
+}
+
+export interface UniverseAgentCompactInfo {
+	readonly compactCount: number;
+	readonly lastCompactTokensBefore: number;
+	readonly lastCompactTokensAfter: number;
+	readonly lastCompactTimeMs: number;
+}
+
+export interface UniverseAgentCacheInfo {
+	readonly totalCacheReadTokens: number;
+	readonly totalCacheCreationTokens: number;
+}
+
+export interface UniverseAgentContextWindowInfo {
+	readonly contextWindowSize: number;
+	readonly estimatedContextTokens: number;
+	readonly modelName: string;
+	readonly messageCount: number;
+	readonly breakdown?: UniverseAgentMessageBreakdownInfo;
+	readonly compact?: UniverseAgentCompactInfo;
+	readonly cache?: UniverseAgentCacheInfo;
+	readonly fixedOverhead?: UniverseAgentFixedOverheadInfo;
+	readonly systemPromptParts: readonly UniverseAgentSystemPromptPartInfo[];
+}
+
+export interface UniverseAgentModelUsage {
+	readonly modelId: string;
+	readonly modelName: string;
+	readonly provider: string;
+	readonly inputTokens: number;
+	readonly outputTokens: number;
+	readonly thinkingTokens: number;
+	readonly totalTokens: number;
+	readonly turnCount: number;
+}
+
+export interface UniverseAgentAgentUsageDetail {
+	readonly agentId: string;
+	readonly agentType: string;
+	readonly modelId: string;
+	readonly inputTokens: number;
+	readonly outputTokens: number;
+	readonly thinkingTokens: number;
+	readonly totalTokens: number;
+	readonly turnCount: number;
+}
+
+export interface UniverseAgentProfileUsage {
+	readonly profileId: string;
+	readonly profileName: string;
+	readonly provider: string;
+	readonly modelId: string;
+	readonly chatInputTokens: number;
+	readonly chatOutputTokens: number;
+	readonly compactInputTokens: number;
+	readonly compactOutputTokens: number;
+	readonly thinkingTokens: number;
+	readonly cacheReadTokens: number;
+	readonly cacheCreationTokens: number;
+	readonly totalTokens: number;
+	readonly conversationTurnCount: number;
+	readonly llmRequestCount: number;
+	readonly compactRequestCount: number;
+	readonly hasPostSwitchChat: boolean;
+	readonly recallInputTokens: number;
+	readonly recallOutputTokens: number;
+	readonly recallRequestCount: number;
+}
+
+export interface UniverseAgentSessionUsageInfo {
+	readonly totalInputTokens: number;
+	readonly totalOutputTokens: number;
+	readonly totalThinkingTokens: number;
+	readonly totalCacheReadTokens: number;
+	readonly totalCacheCreationTokens: number;
+	readonly totalTokens: number;
+	readonly totalTurns: number;
+	readonly modelUsages: readonly UniverseAgentModelUsage[];
+	readonly agentDetails: readonly UniverseAgentAgentUsageDetail[];
+	readonly profileUsages: readonly UniverseAgentProfileUsage[];
+}
+
+export interface UniverseAgentUsageResult {
+	readonly totalInputTokens: number;
+	readonly totalOutputTokens: number;
+	readonly totalTurns: number;
+	readonly agentUsages: readonly UniverseAgentAgentUsage[];
+	readonly contextWindow?: UniverseAgentContextWindowInfo;
+	readonly sessionUsage?: UniverseAgentSessionUsageInfo;
+	readonly recentRequestSpans: readonly UniverseAgentRecentRequestSpan[];
+}
+
 /** AgentService.Rename request; empty `title` clears a custom session title. */
 export interface UniverseAgentRenameSessionRequest {
 	readonly sessionId: string;

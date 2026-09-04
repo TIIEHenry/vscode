@@ -36,6 +36,25 @@ import type {
 	UniverseAgentTodoItem,
 	UniverseAgentCompactRequest,
 	UniverseAgentCompactResult,
+	UniverseAgentAnchorResolveScope,
+	UniverseAgentEnvelopeAnchor,
+	UniverseAgentEnvelopeRecordPresence,
+	UniverseAgentResolveAnchorRequest,
+	UniverseAgentResolveAnchorResult,
+	UniverseAgentUsageRequest,
+	UniverseAgentUsageResult,
+	UniverseAgentAgentUsage,
+	UniverseAgentRecentRequestSpan,
+	UniverseAgentContextWindowInfo,
+	UniverseAgentSessionUsageInfo,
+	UniverseAgentFixedOverheadInfo,
+	UniverseAgentSystemPromptPartInfo,
+	UniverseAgentMessageBreakdownInfo,
+	UniverseAgentCompactInfo,
+	UniverseAgentCacheInfo,
+	UniverseAgentModelUsage,
+	UniverseAgentAgentUsageDetail,
+	UniverseAgentProfileUsage,
 	UniverseAgentRenameSessionRequest,
 	UniverseAgentRenameSessionResult,
 	UniverseAgentCancelGenerationRequest,
@@ -322,6 +341,175 @@ interface TodoItemWire {
 
 interface TodoResponseWire {
 	items?: TodoItemWire[];
+}
+
+interface EnvelopeAnchorWire {
+	session_id?: string;
+	envelope_id?: string;
+	generation?: number | string;
+}
+
+interface AnchorHitWire {
+	envelope?: unknown;
+	presence?: number | string;
+	generation?: number | string;
+}
+
+interface AnchorTombstoneWire {
+	session_id?: string;
+	envelope_id?: string;
+	seq?: number | string;
+	turn_id?: string;
+	generation?: number | string;
+}
+
+interface AnchorExpiredWire {
+	anchor?: EnvelopeAnchorWire;
+}
+
+interface ResolveAnchorResponseWire {
+	hit?: AnchorHitWire;
+	tombstone?: AnchorTombstoneWire;
+	expired?: AnchorExpiredWire;
+}
+
+interface AgentUsageWire {
+	agent_id?: string;
+	input_tokens?: number;
+	output_tokens?: number;
+	turns?: number;
+}
+
+interface RecentRequestSpanWire {
+	profile_id?: string;
+	provider?: string;
+	model_id?: string;
+	input_tokens?: number;
+	output_tokens?: number;
+	prefill_ms?: number;
+	decode_ms?: number;
+	completed_at_ms?: number;
+	usage_kind?: string;
+}
+
+interface FixedOverheadInfoWire {
+	tool_definition_tokens?: number;
+	tool_definition_count?: number;
+	skill_inject_tokens?: number;
+	mcp_tool_tokens?: number;
+	memory_inject_tokens?: number;
+	rules_inject_tokens?: number;
+}
+
+interface SystemPromptPartInfoWire {
+	id?: string;
+	label?: string;
+	tokens?: number;
+	cache_scope?: string;
+	volatility?: string;
+}
+
+interface MessageBreakdownInfoWire {
+	system_prompt_tokens?: number;
+	user_message_count?: number;
+	user_message_tokens?: number;
+	assistant_count?: number;
+	assistant_tokens?: number;
+	tool_result_count?: number;
+	tool_result_tokens?: number;
+	compact_notice_count?: number;
+	compact_notice_tokens?: number;
+}
+
+interface CompactInfoWire {
+	compact_count?: number;
+	last_compact_tokens_before?: number;
+	last_compact_tokens_after?: number;
+	last_compact_time_ms?: number;
+}
+
+interface CacheInfoWire {
+	total_cache_read_tokens?: number;
+	total_cache_creation_tokens?: number;
+}
+
+interface ContextWindowInfoWire {
+	context_window_size?: number;
+	estimated_context_tokens?: number;
+	model_name?: string;
+	message_count?: number;
+	breakdown?: MessageBreakdownInfoWire;
+	compact?: CompactInfoWire;
+	cache?: CacheInfoWire;
+	fixed_overhead?: FixedOverheadInfoWire;
+	system_prompt_parts?: SystemPromptPartInfoWire[];
+}
+
+interface ModelUsageWire {
+	model_id?: string;
+	model_name?: string;
+	provider?: string;
+	input_tokens?: number;
+	output_tokens?: number;
+	thinking_tokens?: number;
+	total_tokens?: number;
+	turn_count?: number;
+}
+
+interface AgentUsageDetailWire {
+	agent_id?: string;
+	agent_type?: string;
+	model_id?: string;
+	input_tokens?: number;
+	output_tokens?: number;
+	thinking_tokens?: number;
+	total_tokens?: number;
+	turn_count?: number;
+}
+
+interface ProfileUsageWire {
+	profile_id?: string;
+	profile_name?: string;
+	provider?: string;
+	model_id?: string;
+	chat_input_tokens?: number;
+	chat_output_tokens?: number;
+	compact_input_tokens?: number;
+	compact_output_tokens?: number;
+	thinking_tokens?: number;
+	cache_read_tokens?: number;
+	cache_creation_tokens?: number;
+	total_tokens?: number;
+	conversation_turn_count?: number;
+	llm_request_count?: number;
+	compact_request_count?: number;
+	has_post_switch_chat?: boolean;
+	recall_input_tokens?: number;
+	recall_output_tokens?: number;
+	recall_request_count?: number;
+}
+
+interface SessionUsageInfoWire {
+	total_input_tokens?: number;
+	total_output_tokens?: number;
+	total_thinking_tokens?: number;
+	total_cache_read_tokens?: number;
+	total_cache_creation_tokens?: number;
+	total_tokens?: number;
+	total_turns?: number;
+	model_usages?: ModelUsageWire[];
+	agent_details?: AgentUsageDetailWire[];
+	profile_usages?: ProfileUsageWire[];
+}
+
+interface UsageResponseWire {
+	total_input_tokens?: number;
+	total_output_tokens?: number;
+	total_turns?: number;
+	agent_usages?: AgentUsageWire[];
+	context_window?: ContextWindowInfoWire;
+	session_usage?: SessionUsageInfoWire;
+	recent_request_spans?: RecentRequestSpanWire[];
 }
 
 interface QueueMutationResponseWire {
@@ -726,6 +914,269 @@ function mapTodoItem(item: TodoItemWire | undefined): UniverseAgentTodoItem {
 function mapTodoResponse(wire: TodoResponseWire): UniverseAgentTodoResult {
 	return {
 		items: (wire.items ?? []).map(item => mapTodoItem(item)),
+	};
+}
+
+function optionalInt64(value: number | string | undefined): number | undefined {
+	if (value === undefined || value === '') {
+		return undefined;
+	}
+	const n = typeof value === 'number' ? value : Number(value);
+	return Number.isFinite(n) ? n : undefined;
+}
+
+function requiredInt64(value: number | string | undefined): number {
+	return optionalInt64(value) ?? 0;
+}
+
+function anchorResolveScopeWire(scope: UniverseAgentAnchorResolveScope): number {
+	switch (scope) {
+		case 'ANCHOR_RESOLVE_SCOPE_ACTIVE':
+			return 1;
+		case 'ANCHOR_RESOLVE_SCOPE_OFF_PATH':
+			return 2;
+		case 'ANCHOR_RESOLVE_SCOPE_INCLUDING_ARCHIVED':
+			return 3;
+		default:
+			return 0;
+	}
+}
+
+function resolveAnchorRequestWire(request: UniverseAgentResolveAnchorRequest): Record<string, unknown> {
+	const anchor: Record<string, unknown> = {
+		session_id: request.anchor.sessionId,
+		envelope_id: request.anchor.envelopeId,
+	};
+	if (request.anchor.generation !== undefined) {
+		anchor.generation = request.anchor.generation;
+	}
+	const wire: Record<string, unknown> = {
+		anchor,
+		scope: anchorResolveScopeWire(request.scope),
+	};
+	if (request.currentLeafTurnId !== undefined) {
+		wire.current_leaf_turn_id = request.currentLeafTurnId;
+	}
+	return wire;
+}
+
+function mapEnvelopeAnchor(wire: EnvelopeAnchorWire | undefined): UniverseAgentEnvelopeAnchor {
+	const generation = optionalInt64(wire?.generation);
+	return {
+		sessionId: wire?.session_id ?? '',
+		envelopeId: wire?.envelope_id ?? '',
+		...(generation !== undefined ? { generation } : {}),
+	};
+}
+
+function mapEnvelopeRecordPresence(value: number | string | undefined): UniverseAgentEnvelopeRecordPresence {
+	if (value === 1 || value === 'ENVELOPE_RECORD_PRESENCE_ACTIVE_ON_PATH') {
+		return 'ENVELOPE_RECORD_PRESENCE_ACTIVE_ON_PATH';
+	}
+	if (value === 2 || value === 'ENVELOPE_RECORD_PRESENCE_ACTIVE_OFF_PATH') {
+		return 'ENVELOPE_RECORD_PRESENCE_ACTIVE_OFF_PATH';
+	}
+	if (value === 3 || value === 'ENVELOPE_RECORD_PRESENCE_ARCHIVED') {
+		return 'ENVELOPE_RECORD_PRESENCE_ARCHIVED';
+	}
+	return 'ENVELOPE_RECORD_PRESENCE_UNSPECIFIED';
+}
+
+function mapResolveAnchorResponse(wire: ResolveAnchorResponseWire): UniverseAgentResolveAnchorResult {
+	if (wire.hit) {
+		const generation = optionalInt64(wire.hit.generation);
+		return {
+			hit: {
+				envelope: wire.hit.envelope ?? {},
+				presence: mapEnvelopeRecordPresence(wire.hit.presence),
+				...(generation !== undefined ? { generation } : {}),
+			},
+		};
+	}
+	if (wire.tombstone) {
+		const generation = optionalInt64(wire.tombstone.generation);
+		return {
+			tombstone: {
+				sessionId: wire.tombstone.session_id ?? '',
+				envelopeId: wire.tombstone.envelope_id ?? '',
+				seq: requiredInt64(wire.tombstone.seq),
+				...(wire.tombstone.turn_id !== undefined ? { turnId: wire.tombstone.turn_id } : {}),
+				...(generation !== undefined ? { generation } : {}),
+			},
+		};
+	}
+	if (wire.expired) {
+		return {
+			expired: {
+				anchor: mapEnvelopeAnchor(wire.expired.anchor),
+			},
+		};
+	}
+	return {};
+}
+
+function mapAgentUsage(item: AgentUsageWire | undefined): UniverseAgentAgentUsage {
+	return {
+		agentId: item?.agent_id ?? '',
+		inputTokens: item?.input_tokens ?? 0,
+		outputTokens: item?.output_tokens ?? 0,
+		turns: item?.turns ?? 0,
+	};
+}
+
+function mapRecentRequestSpan(item: RecentRequestSpanWire | undefined): UniverseAgentRecentRequestSpan {
+	return {
+		profileId: item?.profile_id ?? '',
+		provider: item?.provider ?? '',
+		modelId: item?.model_id ?? '',
+		inputTokens: item?.input_tokens ?? 0,
+		outputTokens: item?.output_tokens ?? 0,
+		prefillMs: item?.prefill_ms ?? 0,
+		decodeMs: item?.decode_ms ?? 0,
+		completedAtMs: item?.completed_at_ms ?? 0,
+		usageKind: item?.usage_kind ?? '',
+	};
+}
+
+function mapFixedOverheadInfo(wire: FixedOverheadInfoWire): UniverseAgentFixedOverheadInfo {
+	return {
+		toolDefinitionTokens: wire.tool_definition_tokens ?? 0,
+		toolDefinitionCount: wire.tool_definition_count ?? 0,
+		skillInjectTokens: wire.skill_inject_tokens ?? 0,
+		mcpToolTokens: wire.mcp_tool_tokens ?? 0,
+		memoryInjectTokens: wire.memory_inject_tokens ?? 0,
+		rulesInjectTokens: wire.rules_inject_tokens ?? 0,
+	};
+}
+
+function mapSystemPromptPart(item: SystemPromptPartInfoWire | undefined): UniverseAgentSystemPromptPartInfo {
+	return {
+		id: item?.id ?? '',
+		label: item?.label ?? '',
+		tokens: item?.tokens ?? 0,
+		cacheScope: item?.cache_scope ?? '',
+		volatility: item?.volatility ?? '',
+	};
+}
+
+function mapMessageBreakdown(wire: MessageBreakdownInfoWire): UniverseAgentMessageBreakdownInfo {
+	return {
+		systemPromptTokens: wire.system_prompt_tokens ?? 0,
+		userMessageCount: wire.user_message_count ?? 0,
+		userMessageTokens: wire.user_message_tokens ?? 0,
+		assistantCount: wire.assistant_count ?? 0,
+		assistantTokens: wire.assistant_tokens ?? 0,
+		toolResultCount: wire.tool_result_count ?? 0,
+		toolResultTokens: wire.tool_result_tokens ?? 0,
+		compactNoticeCount: wire.compact_notice_count ?? 0,
+		compactNoticeTokens: wire.compact_notice_tokens ?? 0,
+	};
+}
+
+function mapCompactInfo(wire: CompactInfoWire): UniverseAgentCompactInfo {
+	return {
+		compactCount: wire.compact_count ?? 0,
+		lastCompactTokensBefore: wire.last_compact_tokens_before ?? 0,
+		lastCompactTokensAfter: wire.last_compact_tokens_after ?? 0,
+		lastCompactTimeMs: wire.last_compact_time_ms ?? 0,
+	};
+}
+
+function mapCacheInfo(wire: CacheInfoWire): UniverseAgentCacheInfo {
+	return {
+		totalCacheReadTokens: wire.total_cache_read_tokens ?? 0,
+		totalCacheCreationTokens: wire.total_cache_creation_tokens ?? 0,
+	};
+}
+
+function mapContextWindowInfo(wire: ContextWindowInfoWire): UniverseAgentContextWindowInfo {
+	return {
+		contextWindowSize: wire.context_window_size ?? 0,
+		estimatedContextTokens: wire.estimated_context_tokens ?? 0,
+		modelName: wire.model_name ?? '',
+		messageCount: wire.message_count ?? 0,
+		breakdown: wire.breakdown ? mapMessageBreakdown(wire.breakdown) : undefined,
+		compact: wire.compact ? mapCompactInfo(wire.compact) : undefined,
+		cache: wire.cache ? mapCacheInfo(wire.cache) : undefined,
+		fixedOverhead: wire.fixed_overhead ? mapFixedOverheadInfo(wire.fixed_overhead) : undefined,
+		systemPromptParts: (wire.system_prompt_parts ?? []).map(part => mapSystemPromptPart(part)),
+	};
+}
+
+function mapModelUsage(item: ModelUsageWire | undefined): UniverseAgentModelUsage {
+	return {
+		modelId: item?.model_id ?? '',
+		modelName: item?.model_name ?? '',
+		provider: item?.provider ?? '',
+		inputTokens: item?.input_tokens ?? 0,
+		outputTokens: item?.output_tokens ?? 0,
+		thinkingTokens: item?.thinking_tokens ?? 0,
+		totalTokens: item?.total_tokens ?? 0,
+		turnCount: item?.turn_count ?? 0,
+	};
+}
+
+function mapAgentUsageDetail(item: AgentUsageDetailWire | undefined): UniverseAgentAgentUsageDetail {
+	return {
+		agentId: item?.agent_id ?? '',
+		agentType: item?.agent_type ?? '',
+		modelId: item?.model_id ?? '',
+		inputTokens: item?.input_tokens ?? 0,
+		outputTokens: item?.output_tokens ?? 0,
+		thinkingTokens: item?.thinking_tokens ?? 0,
+		totalTokens: item?.total_tokens ?? 0,
+		turnCount: item?.turn_count ?? 0,
+	};
+}
+
+function mapProfileUsage(item: ProfileUsageWire | undefined): UniverseAgentProfileUsage {
+	return {
+		profileId: item?.profile_id ?? '',
+		profileName: item?.profile_name ?? '',
+		provider: item?.provider ?? '',
+		modelId: item?.model_id ?? '',
+		chatInputTokens: item?.chat_input_tokens ?? 0,
+		chatOutputTokens: item?.chat_output_tokens ?? 0,
+		compactInputTokens: item?.compact_input_tokens ?? 0,
+		compactOutputTokens: item?.compact_output_tokens ?? 0,
+		thinkingTokens: item?.thinking_tokens ?? 0,
+		cacheReadTokens: item?.cache_read_tokens ?? 0,
+		cacheCreationTokens: item?.cache_creation_tokens ?? 0,
+		totalTokens: item?.total_tokens ?? 0,
+		conversationTurnCount: item?.conversation_turn_count ?? 0,
+		llmRequestCount: item?.llm_request_count ?? 0,
+		compactRequestCount: item?.compact_request_count ?? 0,
+		hasPostSwitchChat: item?.has_post_switch_chat === true,
+		recallInputTokens: item?.recall_input_tokens ?? 0,
+		recallOutputTokens: item?.recall_output_tokens ?? 0,
+		recallRequestCount: item?.recall_request_count ?? 0,
+	};
+}
+
+function mapSessionUsageInfo(wire: SessionUsageInfoWire): UniverseAgentSessionUsageInfo {
+	return {
+		totalInputTokens: wire.total_input_tokens ?? 0,
+		totalOutputTokens: wire.total_output_tokens ?? 0,
+		totalThinkingTokens: wire.total_thinking_tokens ?? 0,
+		totalCacheReadTokens: wire.total_cache_read_tokens ?? 0,
+		totalCacheCreationTokens: wire.total_cache_creation_tokens ?? 0,
+		totalTokens: wire.total_tokens ?? 0,
+		totalTurns: wire.total_turns ?? 0,
+		modelUsages: (wire.model_usages ?? []).map(item => mapModelUsage(item)),
+		agentDetails: (wire.agent_details ?? []).map(item => mapAgentUsageDetail(item)),
+		profileUsages: (wire.profile_usages ?? []).map(item => mapProfileUsage(item)),
+	};
+}
+
+function mapUsageResponse(wire: UsageResponseWire): UniverseAgentUsageResult {
+	return {
+		totalInputTokens: wire.total_input_tokens ?? 0,
+		totalOutputTokens: wire.total_output_tokens ?? 0,
+		totalTurns: wire.total_turns ?? 0,
+		agentUsages: (wire.agent_usages ?? []).map(item => mapAgentUsage(item)),
+		contextWindow: wire.context_window ? mapContextWindowInfo(wire.context_window) : undefined,
+		sessionUsage: wire.session_usage ? mapSessionUsageInfo(wire.session_usage) : undefined,
+		recentRequestSpans: (wire.recent_request_spans ?? []).map(item => mapRecentRequestSpan(item)),
 	};
 }
 
@@ -1763,6 +2214,29 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			agent_id: request.agentId,
 		});
 		return mapCompactResponse(wire);
+	}
+
+	async resolveAnchor(request: UniverseAgentResolveAnchorRequest): Promise<UniverseAgentResolveAnchorResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, ResolveAnchorResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.Session.service,
+			UniverseAgentGrpcServices.Session.ResolveAnchor,
+		);
+		const wire = await unary(resolveAnchorRequestWire(request));
+		return mapResolveAnchorResponse(wire);
+	}
+
+	async getUsage(request: UniverseAgentUsageRequest): Promise<UniverseAgentUsageResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, UsageResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.Agent.service,
+			UniverseAgentGrpcServices.Agent.Usage,
+		);
+		const wire = await unary({
+			session_id: request.sessionId,
+			agent_id: request.agentId,
+		});
+		return mapUsageResponse(wire);
 	}
 
 	async renameSession(request: UniverseAgentRenameSessionRequest): Promise<UniverseAgentRenameSessionResult> {
