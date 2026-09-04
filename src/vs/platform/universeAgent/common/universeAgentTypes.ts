@@ -104,6 +104,23 @@ export interface UniverseAgentResumeSessionResult {
 	readonly rootAgent?: UniverseAgentAgentTreeNode;
 }
 
+/** SessionService.Prewarm — explicit session restore batch (≠ Resume / Shelve / Unshelve / List). */
+export interface UniverseAgentPrewarmSessionsRequest {
+	/** Proto `session_ids`. Empty list / empty ids sent as-is. */
+	readonly sessionIds: readonly string[];
+}
+
+export interface UniverseAgentPrewarmSessionEntry {
+	readonly sessionId: string;
+	/** PrewarmSessionOutcomeProto name, e.g. `PREWARM_SESSION_OUTCOME_RESTORED`. */
+	readonly outcome: string;
+	readonly message: string;
+}
+
+export interface UniverseAgentPrewarmSessionsResult {
+	readonly entries: readonly UniverseAgentPrewarmSessionEntry[];
+}
+
 /** SessionService.Shelve — park a session without deleting it (≠ Delete / Unshelve / Resume). */
 export interface UniverseAgentShelveSessionRequest {
 	readonly sessionId: string;

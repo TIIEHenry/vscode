@@ -35,6 +35,9 @@ import type {
 	UniverseAgentSessionInfoResult,
 	UniverseAgentResumeSessionRequest,
 	UniverseAgentResumeSessionResult,
+	UniverseAgentPrewarmSessionsRequest,
+	UniverseAgentPrewarmSessionsResult,
+	UniverseAgentPrewarmSessionEntry,
 	UniverseAgentShelveSessionRequest,
 	UniverseAgentShelveSessionResult,
 	UniverseAgentUnshelveSessionRequest,
@@ -300,6 +303,16 @@ interface ResumeSessionResponseWire {
 	success?: boolean;
 	message?: string;
 	root_agent?: AgentInfoWire;
+}
+
+interface PrewarmSessionEntryWire {
+	session_id?: string;
+	outcome?: string | number;
+	message?: string;
+}
+
+interface PrewarmSessionsResponseWire {
+	entries?: PrewarmSessionEntryWire[];
 }
 
 interface ShelveSessionResponseWire {
@@ -1015,6 +1028,38 @@ function mapResumeSessionResponse(wire: ResumeSessionResponseWire): UniverseAgen
 		ok: wire.success === true,
 		message: wire.message,
 		rootAgent: mapAgentTreeNode(wire.root_agent),
+	};
+}
+
+const PrewarmSessionOutcomeByNumber: Record<number, string> = {
+	0: 'PREWARM_SESSION_OUTCOME_UNSPECIFIED',
+	1: 'PREWARM_SESSION_OUTCOME_ALREADY_RESTORED',
+	2: 'PREWARM_SESSION_OUTCOME_RESTORED',
+	3: 'PREWARM_SESSION_OUTCOME_SKIPPED',
+	4: 'PREWARM_SESSION_OUTCOME_FAILED',
+};
+
+function mapPrewarmSessionOutcome(value: string | number | undefined): string {
+	if (value === undefined || value === '') {
+		return '';
+	}
+	if (typeof value === 'number') {
+		return PrewarmSessionOutcomeByNumber[value] ?? String(value);
+	}
+	return value;
+}
+
+function mapPrewarmSessionEntry(wire: PrewarmSessionEntryWire | undefined): UniverseAgentPrewarmSessionEntry {
+	return {
+		sessionId: wire?.session_id ?? '',
+		outcome: mapPrewarmSessionOutcome(wire?.outcome),
+		message: wire?.message ?? '',
+	};
+}
+
+function mapPrewarmSessionsResponse(wire: PrewarmSessionsResponseWire): UniverseAgentPrewarmSessionsResult {
+	return {
+		entries: (wire.entries ?? []).map(entry => mapPrewarmSessionEntry(entry)),
 	};
 }
 
@@ -2612,6 +2657,18 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			session_id: request.sessionId,
 		});
 		return mapResumeSessionResponse(wire);
+	}
+
+	async prewarmSessions(request: UniverseAgentPrewarmSessionsRequest): Promise<UniverseAgentPrewarmSessionsResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, PrewarmSessionsResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.Session.service,
+			UniverseAgentGrpcServices.Session.Prewarm,
+		);
+		const wire = await unary({
+			session_ids: request.sessionIds,
+		});
+		return mapPrewarmSessionsResponse(wire);
 	}
 
 	async shelveSession(request: UniverseAgentShelveSessionRequest): Promise<UniverseAgentShelveSessionResult> {
