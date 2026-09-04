@@ -247,6 +247,16 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		return super.killSubAgent(sessionId, options);
 	}
 
+	override createSnapshot(sessionId: string, options?: { title?: string; description?: string }): boolean {
+		if (this.isEngineConnected()) {
+			return this.createEngineSnapshot(sessionId, options, true);
+		}
+		if (this.wasEverConnected) {
+			return this.createEngineSnapshot(sessionId, options, false);
+		}
+		return super.createSnapshot(sessionId, options);
+	}
+
 	override cancelToolCall(sessionId: string, options: { toolCallId: string; agentId?: string }): boolean {
 		if (this.isEngineConnected()) {
 			return this.cancelEngineToolCall(sessionId, options, true);
@@ -542,6 +552,35 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 				parentAgentId,
 				...(name ? { name } : {}),
 				...(task ? { task } : {}),
+			});
+			return true;
+		}
+		return false;
+	}
+
+	private createEngineSnapshot(
+		sessionId: string,
+		options: { title?: string; description?: string } | undefined,
+		callRemote: boolean,
+	): boolean {
+		if (!sessionId.trim()) {
+			return false;
+		}
+		if (!this.engineSessions.some(session => session.id === sessionId)) {
+			return false;
+		}
+		if (callRemote) {
+			if (!this.uaConnection.createSnapshot) {
+				return false;
+			}
+			const title = options?.title !== undefined
+				? options.title
+				: localize('conversationCreateSnapshotDefaultTitle', "Snapshot");
+			const description = options?.description;
+			void this.uaConnection.createSnapshot({
+				sessionId,
+				title,
+				...(description !== undefined ? { description } : {}),
 			});
 			return true;
 		}

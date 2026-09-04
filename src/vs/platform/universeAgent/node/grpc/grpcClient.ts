@@ -55,8 +55,6 @@ import type {
 	UniverseAgentListSnapshotsResult,
 	UniverseAgentCreateSnapshotRequest,
 	UniverseAgentCreateSnapshotResult,
-	UniverseAgentDeleteSnapshotRequest,
-	UniverseAgentDeleteSnapshotResult,
 	UniverseAgentSessionSnapshotInfo,
 	UniverseAgentRestoreSnapshotRequest,
 	UniverseAgentRestoreSnapshotResult,

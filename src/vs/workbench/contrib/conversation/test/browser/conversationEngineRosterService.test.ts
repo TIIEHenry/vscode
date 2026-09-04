@@ -112,6 +112,15 @@ class MockUniverseAgentConnection extends Disposable implements IUniverseAgentCo
 		return { ok: true, agentId: 'sub:reviewer' };
 	}
 	readonly killCalls: { sessionId: string; agentId: string; force?: boolean }[] = [];
+	readonly createSnapshotCalls: { sessionId: string; title: string; description?: string }[] = [];
+	async createSnapshot(request: { sessionId: string; title: string; description?: string }) {
+		this.createSnapshotCalls.push({
+			sessionId: request.sessionId,
+			title: request.title,
+			description: request.description,
+		});
+		return { ok: true };
+	}
 	async killAgent(request: { sessionId: string; agentId: string; force?: boolean }) {
 		this.killCalls.push({
 			sessionId: request.sessionId,
@@ -997,6 +1006,50 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 
 		assert.strictEqual(service.killSubAgent('ua-only', { agentId: 'sub:reviewer' }), false);
 		assert.strictEqual(connection.killCalls.length, 0);
+	});
+
+	test('connected createSnapshot forwards AgentService.CreateSnapshot', async () => {
+		const storage = store.add(new TestStorageService());
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
+		const service = store.add(createService(connection, storage));
+		connection.setConnected(true);
+		service.setEngineConnected(true);
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+		assert.strictEqual(service.createSnapshot('ua-only', { title: 'Before refactor', description: 'checkpoint' }), true);
+		assert.deepStrictEqual(connection.createSnapshotCalls, [{
+			sessionId: 'ua-only',
+			title: 'Before refactor',
+			description: 'checkpoint',
+		}]);
+		assert.strictEqual(service.createSnapshot('ua-only'), true);
+		assert.strictEqual(connection.createSnapshotCalls[1]?.title, 'Snapshot');
+		assert.strictEqual(connection.createSnapshotCalls[1]?.description, undefined);
+		assert.strictEqual(service.createSnapshot('ua-only', { title: '' }), true);
+		assert.strictEqual(connection.createSnapshotCalls[2]?.title, '');
+		assert.strictEqual(service.createSnapshot('   ', { title: 'Nope' }), false);
+		assert.strictEqual(service.createSnapshot('', { title: 'Nope' }), false);
+		assert.strictEqual(service.createSnapshot('missing', { title: 'Nope' }), false);
+		assert.strictEqual(connection.createSnapshotCalls.length, 3);
+		(connection as { createSnapshot?: unknown }).createSnapshot = undefined;
+		assert.strictEqual(service.createSnapshot('ua-only', { title: 'Nope' }), false);
+		assert.strictEqual(connection.createSnapshotCalls.length, 3);
+	});
+
+	test('disconnected after engine createSnapshot skips unary', async () => {
+		const storage = store.add(new TestStorageService());
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
+		const service = store.add(createService(connection, storage));
+		connection.setConnected(true);
+		service.setEngineConnected(true);
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		connection.setConnected(false);
+		service.setEngineConnected(false);
+
+		assert.strictEqual(service.createSnapshot('ua-only', { title: 'Before refactor' }), false);
+		assert.strictEqual(connection.createSnapshotCalls.length, 0);
 	});
 
 	test('disconnected after engine setSessionGoal skips unary', async () => {
