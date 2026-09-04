@@ -7,13 +7,15 @@ import assert from 'assert';
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
-import type { UniverseAgentConnectionSnapshot, UniverseAgentListSnapshotsRequest, UniverseAgentSessionSnapshotInfo } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
+import type { UniverseAgentConnectionSnapshot, UniverseAgentListSnapshotsRequest, UniverseAgentRestoreSnapshotRequest, UniverseAgentSessionSnapshotInfo } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import {
 	canRequestEngineSnapshots,
+	canRestoreEngineSnapshot,
 	ConversationEngineSnapshotsList,
 	conversationLensSnapshotsButtonClass,
 	conversationLensSnapshotsOverlayClass,
+	conversationLensSnapshotsRestoreClass,
 	conversationLensSnapshotsRowClass,
 	formatEngineSnapshotCreatedAt,
 	formatEngineSnapshotFailedCopy,
@@ -21,6 +23,7 @@ import {
 import {
 	conversationLensSessionBarSnapshots,
 	conversationLensSessionBarSnapshotsEmpty,
+	conversationLensSessionBarSnapshotsRestore,
 	conversationLensSessionBarSnapshotsUnavailableDisconnected,
 	conversationLensSessionBarSnapshotsUnavailableNoHook,
 	conversationLensSessionBarSnapshotsUnavailableNoSession,
@@ -38,6 +41,17 @@ suite('ConversationEngineSnapshotsList', () => {
 		assert.strictEqual(canRequestEngineSnapshots(true, true, ''), false);
 		assert.strictEqual(canRequestEngineSnapshots(true, true, undefined), false);
 		assert.strictEqual(canRequestEngineSnapshots(true, true, 'sess-1'), true);
+	});
+
+	test('restore gate refuses empty snapshotId, disconnected, no hook, or empty session', () => {
+		assert.strictEqual(canRestoreEngineSnapshot(false, true, 'snap-1', 'sess-1'), false);
+		assert.strictEqual(canRestoreEngineSnapshot(true, false, 'snap-1', 'sess-1'), false);
+		assert.strictEqual(canRestoreEngineSnapshot(true, true, '', 'sess-1'), false);
+		assert.strictEqual(canRestoreEngineSnapshot(true, true, '   ', 'sess-1'), false);
+		assert.strictEqual(canRestoreEngineSnapshot(true, true, undefined, 'sess-1'), false);
+		assert.strictEqual(canRestoreEngineSnapshot(true, true, 'snap-1', ''), false);
+		assert.strictEqual(canRestoreEngineSnapshot(true, true, 'snap-1', undefined), false);
+		assert.strictEqual(canRestoreEngineSnapshot(true, true, 'snap-1', 'sess-1'), true);
 	});
 
 	test('created_at formatter keeps ISO and missing as honest dash', () => {
@@ -75,6 +89,10 @@ suite('ConversationEngineSnapshotsList', () => {
 
 	function snapshotRow(overlay: HTMLElement, id: string): HTMLElement | null {
 		return overlay.querySelector(`.${conversationLensSnapshotsRowClass}[data-snapshot-id="${id}"]`);
+	}
+
+	function restoreButton(row: HTMLElement | null): HTMLButtonElement | null {
+		return row?.querySelector(`.${conversationLensSnapshotsRestoreClass} .monaco-button`) as HTMLButtonElement | null;
 	}
 
 	test('SessionBar control is Snapshots, not History, and overlay starts closed', () => {
@@ -131,7 +149,7 @@ suite('ConversationEngineSnapshotsList', () => {
 		assert.ok(overlayParent.textContent?.includes(conversationLensSessionBarSnapshotsUnavailableNoSession));
 	});
 
-	test('connected listSnapshots paints id/title/created_at/turn_count and no mutate actions', async () => {
+	test('connected listSnapshots paints id/title/created_at/turn_count and restore, not create/delete', async () => {
 		const calls: UniverseAgentListSnapshotsRequest[] = [];
 		const snapshots: UniverseAgentSessionSnapshotInfo[] = [
 			{ id: 'snap-1', sessionId: 'sess-1', title: 'Before refactor', createdAt: 1_700_000_000, turnCount: 4 },
@@ -156,9 +174,12 @@ suite('ConversationEngineSnapshotsList', () => {
 		assert.strictEqual(first.querySelector('.conversation-lens-snapshots-created-at')?.textContent, formatEngineSnapshotCreatedAt(1_700_000_000));
 		assert.strictEqual(first.querySelector('.conversation-lens-snapshots-turn-count')?.textContent, '4');
 		assert.strictEqual(second.querySelector('.conversation-lens-snapshots-turn-count')?.textContent, '7');
+		assert.ok(restoreButton(first)?.textContent?.includes(conversationLensSessionBarSnapshotsRestore));
+		assert.ok(restoreButton(second));
 		const text = overlayParent.textContent ?? '';
-		assert.ok(!/create|restore|delete/i.test(text));
+		assert.ok(!/create|delete/i.test(text));
 		assert.strictEqual(overlayParent.querySelector('button.conversation-lens-snapshots-create'), null);
+		assert.strictEqual(overlayParent.querySelector('.conversation-lens-snapshots-delete'), null);
 	});
 
 	test('connected empty engine list is honest empty, not fixture rows', async () => {
@@ -209,5 +230,99 @@ suite('ConversationEngineSnapshotsList', () => {
 		await Promise.resolve();
 		assert.strictEqual(snapshotRow(overlayParent, 'live-1'), null);
 		assert.ok(overlayParent.textContent?.includes(conversationLensSessionBarSnapshotsUnavailableDisconnected));
+	});
+
+	test('connected restore with hook and known session sends RestoreSnapshot', async () => {
+		const restoreCalls: UniverseAgentRestoreSnapshotRequest[] = [];
+		const { list, overlayParent } = mountList(createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			listSnapshots: async () => ({
+				snapshots: [{ id: 'snap-1', sessionId: 'sess-1', title: 'Before refactor', createdAt: 1, turnCount: 2 }],
+			}),
+			restoreSnapshot: async request => {
+				restoreCalls.push(request);
+				return { ok: true };
+			},
+		}));
+		list.show();
+		await Promise.resolve();
+		restoreButton(snapshotRow(overlayParent, 'snap-1'))?.click();
+		await Promise.resolve();
+		assert.deepStrictEqual(restoreCalls, [{ sessionId: 'sess-1', snapshotId: 'snap-1' }]);
+	});
+
+	test('empty snapshotId restore does not send', async () => {
+		const restoreCalls: UniverseAgentRestoreSnapshotRequest[] = [];
+		const { list, overlayParent } = mountList(createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			listSnapshots: async () => ({
+				snapshots: [{ id: '', sessionId: 'sess-1', title: 'Nameless', createdAt: 1, turnCount: 1 }],
+			}),
+			restoreSnapshot: async request => {
+				restoreCalls.push(request);
+				return { ok: true };
+			},
+		}));
+		list.show();
+		await Promise.resolve();
+		restoreButton(snapshotRow(overlayParent, ''))?.click();
+		await Promise.resolve();
+		assert.deepStrictEqual(restoreCalls, []);
+	});
+
+	test('disconnected restore does not send', async () => {
+		let connected = true;
+		const restoreCalls: UniverseAgentRestoreSnapshotRequest[] = [];
+		const { list, overlayParent } = mountList(createConversationConnectionTestStub({
+			isEngineConnected: () => connected,
+			listSnapshots: async () => ({
+				snapshots: [{ id: 'snap-1', sessionId: 'sess-1', title: 'Live', createdAt: 1, turnCount: 1 }],
+			}),
+			restoreSnapshot: async request => {
+				restoreCalls.push(request);
+				return { ok: true };
+			},
+		}));
+		list.show();
+		await Promise.resolve();
+		connected = false;
+		restoreButton(snapshotRow(overlayParent, 'snap-1'))?.click();
+		await Promise.resolve();
+		assert.deepStrictEqual(restoreCalls, []);
+	});
+
+	test('no restoreSnapshot hook does not send', async () => {
+		const { list, overlayParent } = mountList(createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			listSnapshots: async () => ({
+				snapshots: [{ id: 'snap-1', sessionId: 'sess-1', title: 'Live', createdAt: 1, turnCount: 1 }],
+			}),
+		}));
+		list.show();
+		await Promise.resolve();
+		restoreButton(snapshotRow(overlayParent, 'snap-1'))?.click();
+		await Promise.resolve();
+		assert.ok(snapshotRow(overlayParent, 'snap-1'));
+	});
+
+	test('empty session restore does not send', async () => {
+		let sessionId = 'sess-1';
+		const restoreCalls: UniverseAgentRestoreSnapshotRequest[] = [];
+		const { list, overlayParent } = mountList(createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			listSnapshots: async () => ({
+				snapshots: [{ id: 'snap-1', sessionId: 'sess-1', title: 'Live', createdAt: 1, turnCount: 1 }],
+			}),
+			restoreSnapshot: async request => {
+				restoreCalls.push(request);
+				return { ok: true };
+			},
+		}), createRosterStub({ getActiveSessionId: () => sessionId }));
+		list.show();
+		await Promise.resolve();
+		sessionId = '';
+		restoreButton(snapshotRow(overlayParent, 'snap-1'))?.click();
+		await Promise.resolve();
+		assert.deepStrictEqual(restoreCalls, []);
 	});
 });

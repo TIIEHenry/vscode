@@ -302,8 +302,10 @@ export interface IUniverseAgentConnection {
 
 	/**
 	 * AgentService.RestoreSnapshot unary (restore a session checkpoint). Optional
-	 * so Web / tests can omit it. Catalog + node transport only this slice;
-	 * SessionBar History stays the turn index. Delete snapshot not in.
+	 * so Web / tests can omit it. Conversation SessionBar snapshots overlay
+	 * Restore forwards this when connected; empty snapshotId / disconnected /
+	 * no hook do not send. SessionBar History stays the turn index. Delete
+	 * snapshot not in.
 	 */
 	restoreSnapshot?(request: UniverseAgentRestoreSnapshotRequest): Promise<UniverseAgentRestoreSnapshotResult>;
 
