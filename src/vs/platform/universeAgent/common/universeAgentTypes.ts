@@ -1865,7 +1865,7 @@ export interface UniverseAgentGetCommandDefResult {
 
 /**
  * FileService.ListFiles — workspace file catalog (proto package
- * `agentservice`). Empty `path` / `session_id` / `pattern` sent as-is.
+ * `universeagent.file.v1`). Empty `path` / `session_id` / `pattern` sent as-is.
  * `recursive` false / `max_results` 0 sent as-is.
  * ≠ ReadFile / GetFileInfo / WriteFile / ForceWriteFile / AgentMerge.
  */
@@ -1889,6 +1889,28 @@ export interface UniverseAgentFileEntry {
 export interface UniverseAgentListFilesResult {
 	readonly entries: readonly UniverseAgentFileEntry[];
 	readonly total: number;
+}
+
+/**
+ * FileService.ReadFile — proto `ReadFileRequest` / `ReadFileResponse` only.
+ * Empty `path` / `session_id` pass through as-is. `start_line` / `end_line`
+ * / `max_bytes` 0 sent as-is. ≠ ListFiles / GetFileInfo / WriteFile.
+ */
+export interface UniverseAgentReadFileRequest {
+	readonly path: string;
+	readonly sessionId: string;
+	readonly startLine: number;
+	readonly endLine: number;
+	readonly maxBytes: number;
+}
+
+export interface UniverseAgentReadFileResult {
+	/** Proto `content` (bytes). Empty mapped as empty bytes. */
+	readonly content: Uint8Array;
+	readonly totalSize: number;
+	readonly mimeType: string;
+	readonly lineCount: number;
+	readonly contentHash: string;
 }
 
 /**
