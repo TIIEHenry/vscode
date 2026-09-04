@@ -107,6 +107,8 @@ import type {
 	UniverseAgentPromotePermissionRuleResult,
 	UniverseAgentGetSessionRulesRequest,
 	UniverseAgentGetSessionRulesResult,
+	UniverseAgentSetPermissionModeRequest,
+	UniverseAgentSetPermissionModeResult,
 	UniverseAgentRespondQuestionRequest,
 	UniverseAgentRespondQuestionResult,
 	UniverseAgentEnqueueQueueItemRequest,
@@ -358,6 +360,9 @@ export interface IUniverseAgentGrpcTransport {
 	/** PermissionService.GetSessionRules unary (snake_case `session_id`). Empty ids sent as-is. */
 	getSessionRules(request: UniverseAgentGetSessionRulesRequest): Promise<UniverseAgentGetSessionRulesResult>;
 
+	/** PermissionService.SetPermissionMode unary (snake_case `session_id`/`mode`). Empty ids sent as-is. */
+	setPermissionMode(request: UniverseAgentSetPermissionModeRequest): Promise<UniverseAgentSetPermissionModeResult>;
+
 	respondQuestion(request: UniverseAgentRespondQuestionRequest): Promise<UniverseAgentRespondQuestionResult>;
 
 	enqueueQueueItem(request: UniverseAgentEnqueueQueueItemRequest): Promise<UniverseAgentQueueMutationResult>;
@@ -568,6 +573,7 @@ export const UniverseAgentGrpcServices = {
 		SyncPermissionRule: 'SyncPermissionRule',
 		PromotePermissionRule: 'PromotePermissionRule',
 		GetSessionRules: 'GetSessionRules',
+		SetPermissionMode: 'SetPermissionMode',
 	},
 	Agent: {
 		service: 'universeagent.agent.v1.AgentService',

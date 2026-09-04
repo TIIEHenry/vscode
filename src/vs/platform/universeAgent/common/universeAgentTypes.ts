@@ -844,6 +844,24 @@ export interface UniverseAgentGetSessionRulesResult {
 	readonly rules: readonly UniverseAgentSessionRule[];
 }
 
+/** PermissionService.SetPermissionMode — session-scoped Ask/Agent/Permit gate (≠ SetSessionGoal / CancelSessionGoal / Respond / SyncPermissionRule / PromotePermissionRule / GetSessionRules). */
+export type UniverseAgentSessionToolPermissionMode =
+	| 'SESSION_TOOL_PERMISSION_MODE_UNSPECIFIED'
+	| 'SESSION_TOOL_PERMISSION_MODE_ASK'
+	| 'SESSION_TOOL_PERMISSION_MODE_AGENT'
+	| 'SESSION_TOOL_PERMISSION_MODE_PERMIT';
+
+export interface UniverseAgentSetPermissionModeRequest {
+	readonly sessionId: string;
+	/** Proto `SessionToolPermissionModeProto`. Wired to enum number. */
+	readonly mode: UniverseAgentSessionToolPermissionMode;
+}
+
+export interface UniverseAgentSetPermissionModeResult {
+	readonly ok: boolean;
+	readonly message?: string;
+}
+
 /** One item answer for AgentService.RespondQuestion (QuestionAnswer.selected_labels). */
 export interface UniverseAgentQuestionAnswer {
 	readonly selectedLabels: readonly string[];

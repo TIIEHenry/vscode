@@ -105,6 +105,8 @@ import type {
 	UniverseAgentPromotePermissionRuleResult,
 	UniverseAgentGetSessionRulesRequest,
 	UniverseAgentGetSessionRulesResult,
+	UniverseAgentSetPermissionModeRequest,
+	UniverseAgentSetPermissionModeResult,
 	UniverseAgentRespondQuestionRequest,
 	UniverseAgentRespondQuestionResult,
 	UniverseAgentEnqueueQueueItemRequest,
@@ -579,6 +581,14 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 	async getSessionRules(request: UniverseAgentGetSessionRulesRequest): Promise<UniverseAgentGetSessionRulesResult> {
 		this.getSessionRulesCalls.push(request);
 		return this.getSessionRulesResult;
+	}
+
+	readonly setPermissionModeCalls: UniverseAgentSetPermissionModeRequest[] = [];
+	setPermissionModeResult: UniverseAgentSetPermissionModeResult = { ok: true };
+
+	async setPermissionMode(request: UniverseAgentSetPermissionModeRequest): Promise<UniverseAgentSetPermissionModeResult> {
+		this.setPermissionModeCalls.push(request);
+		return this.setPermissionModeResult;
 	}
 
 	readonly respondQuestionCalls: UniverseAgentRespondQuestionRequest[] = [];
@@ -1238,6 +1248,11 @@ suite('UniverseAgentConnectionService', () => {
 
 	test('UniverseAgentGrpcServices lists Permission.GetSessionRules', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Permission.GetSessionRules, 'GetSessionRules');
+		assert.strictEqual(UniverseAgentGrpcServices.Permission.service, 'universeagent.session.v1.PermissionService');
+	});
+
+	test('UniverseAgentGrpcServices lists Permission.SetPermissionMode', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Permission.SetPermissionMode, 'SetPermissionMode');
 		assert.strictEqual(UniverseAgentGrpcServices.Permission.service, 'universeagent.session.v1.PermissionService');
 	});
 
@@ -2861,6 +2876,35 @@ suite('UniverseAgentConnectionService', () => {
 		const empty = await service.getSessionRules({ sessionId: '' });
 		assert.deepStrictEqual(empty, { rules: [] });
 		assert.strictEqual(transport.getSessionRulesCalls[1]?.sessionId, '');
+		service.dispose();
+	});
+
+	test('setPermissionMode forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.setPermissionModeResult = { ok: true };
+		const result = await service.setPermissionMode({
+			sessionId: 'sess-1',
+			mode: 'SESSION_TOOL_PERMISSION_MODE_ASK',
+		});
+		assert.deepStrictEqual(transport.setPermissionModeCalls, [{
+			sessionId: 'sess-1',
+			mode: 'SESSION_TOOL_PERMISSION_MODE_ASK',
+		}]);
+		assert.deepStrictEqual(result, { ok: true });
+
+		transport.setPermissionModeResult = { ok: false, message: 'denied' };
+		const empty = await service.setPermissionMode({
+			sessionId: '',
+			mode: 'SESSION_TOOL_PERMISSION_MODE_UNSPECIFIED',
+		});
+		assert.deepStrictEqual(empty, { ok: false, message: 'denied' });
+		assert.strictEqual(transport.setPermissionModeCalls[1]?.sessionId, '');
+		assert.strictEqual(transport.setPermissionModeCalls[1]?.mode, 'SESSION_TOOL_PERMISSION_MODE_UNSPECIFIED');
 		service.dispose();
 	});
 

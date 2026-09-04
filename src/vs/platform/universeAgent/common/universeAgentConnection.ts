@@ -112,6 +112,8 @@ import type {
 	UniverseAgentPromotePermissionRuleResult,
 	UniverseAgentGetSessionRulesRequest,
 	UniverseAgentGetSessionRulesResult,
+	UniverseAgentSetPermissionModeRequest,
+	UniverseAgentSetPermissionModeResult,
 	UniverseAgentRespondQuestionRequest,
 	UniverseAgentRespondQuestionResult,
 	UniverseAgentEnqueueQueueItemRequest,
@@ -604,6 +606,17 @@ export interface IUniverseAgentConnection {
 	 * ≠ SetSessionGoal / CancelSessionGoal / Respond / SyncPermissionRule / PromotePermissionRule.
 	 */
 	getSessionRules?(request: UniverseAgentGetSessionRulesRequest): Promise<UniverseAgentGetSessionRulesResult>;
+
+	/**
+	 * PermissionService.SetPermissionMode unary (session Ask/Agent/Permit
+	 * gate; ≠ SetSessionGoal). Optional so Web / tests can omit it. Catalog +
+	 * node transport only this slice; empty `sessionId` is sent as-is.
+	 * `mode` uses typed `SessionToolPermissionModeProto` wire. No Conversation
+	 * roster / UI.
+	 * ≠ SetSessionGoal / CancelSessionGoal / Respond / SyncPermissionRule /
+	 * PromotePermissionRule / GetSessionRules.
+	 */
+	setPermissionMode?(request: UniverseAgentSetPermissionModeRequest): Promise<UniverseAgentSetPermissionModeResult>;
 
 	/**
 	 * AgentService.RespondQuestion unary (ADR-325 ask_user reply). Optional so

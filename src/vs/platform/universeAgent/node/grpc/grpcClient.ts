@@ -134,6 +134,9 @@ import type {
 	UniverseAgentGetSessionRulesRequest,
 	UniverseAgentGetSessionRulesResult,
 	UniverseAgentSessionRule,
+	UniverseAgentSessionToolPermissionMode,
+	UniverseAgentSetPermissionModeRequest,
+	UniverseAgentSetPermissionModeResult,
 	UniverseAgentRespondQuestionRequest,
 	UniverseAgentRespondQuestionResult,
 	UniverseAgentQuestionAnswer,
@@ -770,6 +773,19 @@ function permissionRuleActionWire(action: UniverseAgentPermissionRuleAction): nu
 			return 1;
 		case 'DENY':
 			return 2;
+		default:
+			return 0;
+	}
+}
+
+function sessionToolPermissionModeWire(mode: UniverseAgentSessionToolPermissionMode): number {
+	switch (mode) {
+		case 'SESSION_TOOL_PERMISSION_MODE_ASK':
+			return 1;
+		case 'SESSION_TOOL_PERMISSION_MODE_AGENT':
+			return 2;
+		case 'SESSION_TOOL_PERMISSION_MODE_PERMIT':
+			return 3;
 		default:
 			return 0;
 	}
@@ -3354,6 +3370,22 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			session_id: request.sessionId,
 		});
 		return mapGetSessionRulesResponse(wire);
+	}
+
+	async setPermissionMode(request: UniverseAgentSetPermissionModeRequest): Promise<UniverseAgentSetPermissionModeResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, { success?: boolean; error?: string }>(
+			this._channel,
+			UniverseAgentGrpcServices.Permission.service,
+			UniverseAgentGrpcServices.Permission.SetPermissionMode,
+		);
+		const wire = await unary({
+			session_id: request.sessionId,
+			mode: sessionToolPermissionModeWire(request.mode),
+		});
+		return {
+			ok: wire.success === true,
+			message: wire.error,
+		};
 	}
 
 	async respondQuestion(request: UniverseAgentRespondQuestionRequest): Promise<UniverseAgentRespondQuestionResult> {

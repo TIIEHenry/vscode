@@ -272,6 +272,10 @@ class RecordingMockTransport implements IUniverseAgentGrpcTransport {
 		return { rules: [] };
 	}
 
+	async setPermissionMode(): Promise<{ ok: false; message: 'test' }> {
+		return { ok: false, message: 'test' };
+	}
+
 	async respondQuestion(): Promise<{ ok: false; message: 'test' }> {
 		return { ok: false, message: 'test' };
 	}
