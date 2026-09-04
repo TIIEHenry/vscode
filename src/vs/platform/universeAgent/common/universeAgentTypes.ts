@@ -124,6 +124,16 @@ export interface UniverseAgentUnshelveSessionResult {
 	readonly message?: string;
 }
 
+/** SessionService.Purge — permanently erase a session (≠ Delete / Shelve / Unshelve / Export). */
+export interface UniverseAgentPurgeSessionRequest {
+	readonly sessionId: string;
+}
+
+export interface UniverseAgentPurgeSessionResult {
+	readonly ok: boolean;
+	readonly message?: string;
+}
+
 /** AgentService.Status — current AgentInfo for one session agent (≠ Session.Info / Tree). */
 export interface UniverseAgentAgentStatusRequest {
 	readonly sessionId: string;
