@@ -27,6 +27,8 @@ import type {
 	UniverseAgentShelveSessionResult,
 	UniverseAgentUnshelveSessionRequest,
 	UniverseAgentUnshelveSessionResult,
+	UniverseAgentAgentStatusRequest,
+	UniverseAgentAgentStatusResult,
 	UniverseAgentRenameSessionRequest,
 	UniverseAgentRenameSessionResult,
 	UniverseAgentCancelGenerationRequest,
@@ -228,6 +230,14 @@ export interface IUniverseAgentConnection {
 	 * `sessionId` is sent as-is. No Conversation roster / UI. ≠ Shelve / Resume / Delete.
 	 */
 	unshelveSession?(request: UniverseAgentUnshelveSessionRequest): Promise<UniverseAgentUnshelveSessionResult>;
+
+	/**
+	 * AgentService.Status unary (StatusResponse.agent → AgentInfo). Optional so
+	 * Web / tests can omit it. Catalog + node transport only this slice; empty
+	 * `sessionId` / `agentId` are sent as-is. No Conversation roster / UI.
+	 * ≠ Session.Info / Agent.Tree / FetchAgentStatus fold.
+	 */
+	getAgentStatus?(request: UniverseAgentAgentStatusRequest): Promise<UniverseAgentAgentStatusResult>;
 
 	/** AgentService.Rename unary. Engine roster forwards this when connected. */
 	renameSession(request: UniverseAgentRenameSessionRequest): Promise<UniverseAgentRenameSessionResult>;
