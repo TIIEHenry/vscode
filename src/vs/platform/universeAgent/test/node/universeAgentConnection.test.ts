@@ -52,6 +52,8 @@ import type {
 	UniverseAgentPruneResult,
 	UniverseAgentResetAgentRequest,
 	UniverseAgentResetAgentResult,
+	UniverseAgentBranchRequest,
+	UniverseAgentBranchResult,
 	UniverseAgentRenameSessionRequest,
 	UniverseAgentRenameSessionResult,
 	UniverseAgentCancelGenerationRequest,
@@ -344,6 +346,14 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 	async resetAgent(request: UniverseAgentResetAgentRequest): Promise<UniverseAgentResetAgentResult> {
 		this.resetAgentCalls.push(request);
 		return this.resetAgentResult;
+	}
+
+	readonly branchCalls: UniverseAgentBranchRequest[] = [];
+	branchResult: UniverseAgentBranchResult = { ok: true, currentBranch: 0, totalBranches: 0 };
+
+	async branch(request: UniverseAgentBranchRequest): Promise<UniverseAgentBranchResult> {
+		this.branchCalls.push(request);
+		return this.branchResult;
 	}
 
 	readonly renameCalls: UniverseAgentRenameSessionRequest[] = [];
@@ -1007,6 +1017,11 @@ suite('UniverseAgentConnectionService', () => {
 
 	test('UniverseAgentGrpcServices lists Agent.Reset', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.Reset, 'Reset');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+	});
+
+	test('UniverseAgentGrpcServices lists Agent.Branch', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.Branch, 'Branch');
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
 	});
 
@@ -1686,6 +1701,28 @@ suite('UniverseAgentConnectionService', () => {
 		assert.deepStrictEqual(empty, transport.resetAgentResult);
 		assert.strictEqual(transport.resetAgentCalls[1]?.sessionId, '');
 		assert.strictEqual(transport.resetAgentCalls[1]?.agentId, '');
+		service.dispose();
+	});
+
+	test('branch forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.branchResult = { ok: true, message: 'switched', currentBranch: 2, totalBranches: 3, currentTurnId: 'turn-9' };
+		const result = await service.branch({ sessionId: 'sess-1', agentId: 'root', branchIndex: 1, turnId: 'turn-1' });
+		assert.deepStrictEqual(transport.branchCalls, [{ sessionId: 'sess-1', agentId: 'root', branchIndex: 1, turnId: 'turn-1' }]);
+		assert.deepStrictEqual(result, transport.branchResult);
+
+		transport.branchResult = { ok: false, message: 'no branch', currentBranch: 0, totalBranches: 0 };
+		const empty = await service.branch({ sessionId: '', agentId: '', branchIndex: -1, turnId: '' });
+		assert.deepStrictEqual(empty, transport.branchResult);
+		assert.strictEqual(transport.branchCalls[1]?.sessionId, '');
+		assert.strictEqual(transport.branchCalls[1]?.agentId, '');
+		assert.strictEqual(transport.branchCalls[1]?.branchIndex, -1);
+		assert.strictEqual(transport.branchCalls[1]?.turnId, '');
 		service.dispose();
 	});
 

@@ -503,6 +503,25 @@ export interface UniverseAgentResetAgentResult {
 	readonly message?: string;
 }
 
+/** AgentService.Branch — switch conversation branch / list when branchIndex = -1 (≠ Reset / Back / Prune / EditMessage / Fork). */
+export interface UniverseAgentBranchRequest {
+	readonly sessionId: string;
+	readonly agentId: string;
+	/** 0-based branch to switch to; -1 lists only. */
+	readonly branchIndex: number;
+	/** Empty = parent of the current active leaf. */
+	readonly turnId: string;
+}
+
+export interface UniverseAgentBranchResult {
+	readonly ok: boolean;
+	readonly message?: string;
+	/** 1-based current active branch index. */
+	readonly currentBranch: number;
+	readonly totalBranches: number;
+	readonly currentTurnId?: string;
+}
+
 /** AgentService.Rename request; empty `title` clears a custom session title. */
 export interface UniverseAgentRenameSessionRequest {
 	readonly sessionId: string;

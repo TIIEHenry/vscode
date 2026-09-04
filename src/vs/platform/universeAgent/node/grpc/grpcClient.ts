@@ -54,6 +54,8 @@ import type {
 	UniverseAgentPruneResult,
 	UniverseAgentResetAgentRequest,
 	UniverseAgentResetAgentResult,
+	UniverseAgentBranchRequest,
+	UniverseAgentBranchResult,
 	UniverseAgentAgentUsage,
 	UniverseAgentRecentRequestSpan,
 	UniverseAgentContextWindowInfo,
@@ -583,6 +585,14 @@ interface PruneResponseWire {
 	success?: boolean;
 	message?: string;
 	removed_count?: number;
+}
+
+interface BranchResponseWire {
+	success?: boolean;
+	message?: string;
+	current_branch?: number;
+	total_branches?: number;
+	current_turn_id?: string;
 }
 
 interface QueueMutationResponseWire {
@@ -1324,6 +1334,16 @@ function mapPruneResponse(wire: PruneResponseWire): UniverseAgentPruneResult {
 		ok: wire.success === true,
 		message: wire.message,
 		removedCount: wire.removed_count ?? 0,
+	};
+}
+
+function mapBranchResponse(wire: BranchResponseWire): UniverseAgentBranchResult {
+	return {
+		ok: wire.success === true,
+		message: wire.message,
+		currentBranch: wire.current_branch ?? 0,
+		totalBranches: wire.total_branches ?? 0,
+		currentTurnId: wire.current_turn_id,
 	};
 }
 
@@ -2502,6 +2522,21 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			ok: wire.success === true,
 			message: wire.message,
 		};
+	}
+
+	async branch(request: UniverseAgentBranchRequest): Promise<UniverseAgentBranchResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, BranchResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.Agent.service,
+			UniverseAgentGrpcServices.Agent.Branch,
+		);
+		const wire = await unary({
+			session_id: request.sessionId,
+			agent_id: request.agentId,
+			branch_index: request.branchIndex,
+			turn_id: request.turnId,
+		});
+		return mapBranchResponse(wire);
 	}
 
 	async renameSession(request: UniverseAgentRenameSessionRequest): Promise<UniverseAgentRenameSessionResult> {
