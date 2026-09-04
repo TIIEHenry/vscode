@@ -297,6 +297,8 @@ import type {
 	UniverseAgentMemorySearchRequest,
 	UniverseAgentMemorySearchResult,
 	UniverseAgentMemorySearchEntry,
+	UniverseAgentMemorySearchDeepRequest,
+	UniverseAgentMemorySearchDeepResult,
 	UniverseAgentReadMemoryRequest,
 	UniverseAgentReadMemoryResult,
 	UniverseAgentMemoryFileMetadata,
@@ -304,6 +306,8 @@ import type {
 	UniverseAgentMemoryListResult,
 	UniverseAgentMemoryCategoryInfo,
 	UniverseAgentMemoryFileSummary,
+	UniverseAgentDeleteMemoryRequest,
+	UniverseAgentDeleteMemoryResult,
 	UniverseAgentListModelsResult,
 	UniverseAgentGetConfigRequest,
 	UniverseAgentGetConfigResult,
@@ -2921,6 +2925,18 @@ function mapMemorySearchResponse(wire: MemorySearchResponseWire): UniverseAgentM
 	};
 }
 
+interface MemorySearchDeepResponseWire {
+	results?: MemorySearchResultWire[];
+	searched_categories?: Array<string | undefined>;
+}
+
+function mapMemorySearchDeepResponse(wire: MemorySearchDeepResponseWire): UniverseAgentMemorySearchDeepResult {
+	return {
+		results: (wire.results ?? []).map(mapMemorySearchEntry),
+		searchedCategories: (wire.searched_categories ?? []).map(category => category ?? ''),
+	};
+}
+
 interface MemoryFileMetadataWire {
 	category?: string;
 	filename?: string;
@@ -2990,6 +3006,18 @@ function mapMemoryCategoryInfo(wire: MemoryCategoryInfoWire): UniverseAgentMemor
 function mapMemoryListResponse(wire: MemoryListResponseWire): UniverseAgentMemoryListResult {
 	return {
 		categories: (wire.categories ?? []).map(mapMemoryCategoryInfo),
+	};
+}
+
+interface MemoryDeleteResponseWire {
+	success?: boolean;
+	message?: string;
+}
+
+function mapMemoryDeleteResponse(wire: MemoryDeleteResponseWire): UniverseAgentDeleteMemoryResult {
+	return {
+		success: wire.success === true,
+		message: wire.message ?? '',
 	};
 }
 
@@ -5049,6 +5077,23 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 		return mapMemorySearchResponse(wire);
 	}
 
+	async searchDeepMemory(request: UniverseAgentMemorySearchDeepRequest): Promise<UniverseAgentMemorySearchDeepResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, MemorySearchDeepResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.Memory.service,
+			UniverseAgentGrpcServices.Memory.SearchDeep,
+		);
+		const wire = await unary({
+			scope: request.scope,
+			query: request.query,
+			keywords: [...request.keywords],
+			categories: [...request.categories],
+			limit: request.limit,
+			include_content: request.includeContent,
+		});
+		return mapMemorySearchDeepResponse(wire);
+	}
+
 	async readMemory(request: UniverseAgentReadMemoryRequest): Promise<UniverseAgentReadMemoryResult> {
 		const unary = makeUnaryClient<Record<string, unknown>, MemoryReadResponseWire>(
 			this._channel,
@@ -5077,6 +5122,20 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			category: request.category,
 		});
 		return mapMemoryListResponse(wire);
+	}
+
+	async deleteMemory(request: UniverseAgentDeleteMemoryRequest): Promise<UniverseAgentDeleteMemoryResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, MemoryDeleteResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.Memory.service,
+			UniverseAgentGrpcServices.Memory.Delete,
+		);
+		const wire = await unary({
+			scope: request.scope,
+			category: request.category,
+			filename: request.filename,
+		});
+		return mapMemoryDeleteResponse(wire);
 	}
 
 	async setPermissionPolicy(request: UniverseAgentSetPermissionPolicyRequest): Promise<UniverseAgentSetPermissionPolicyResult> {

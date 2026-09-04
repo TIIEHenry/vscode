@@ -228,10 +228,14 @@ import type {
 	UniverseAgentSaveMemoryResult,
 	UniverseAgentMemorySearchRequest,
 	UniverseAgentMemorySearchResult,
+	UniverseAgentMemorySearchDeepRequest,
+	UniverseAgentMemorySearchDeepResult,
 	UniverseAgentReadMemoryRequest,
 	UniverseAgentReadMemoryResult,
 	UniverseAgentMemoryListRequest,
 	UniverseAgentMemoryListResult,
+	UniverseAgentDeleteMemoryRequest,
+	UniverseAgentDeleteMemoryResult,
 	UniverseAgentSetPermissionPolicyRequest,
 	UniverseAgentSetPermissionPolicyResult,
 	UniverseAgentListModelsResult,
@@ -665,12 +669,17 @@ export interface IUniverseAgentGrpcTransport {
 	saveMemory(request: UniverseAgentSaveMemoryRequest): Promise<UniverseAgentSaveMemoryResult>;
 	/** MemoryService.Search unary (snake_case `scope`/`query`/`keywords`/`limit`). Empty ids sent as-is. */
 	searchMemory(request: UniverseAgentMemorySearchRequest): Promise<UniverseAgentMemorySearchResult>;
+	/** MemoryService.SearchDeep unary (snake_case `scope`/`query`/`keywords`/`categories`/`limit`/`include_content`). Empty ids sent as-is. */
+	searchDeepMemory(request: UniverseAgentMemorySearchDeepRequest): Promise<UniverseAgentMemorySearchDeepResult>;
 
 	/** MemoryService.Read unary (snake_case `scope`/`category`/`filename`/`section`/`mode`/`forgot`). Empty ids sent as-is. */
 	readMemory(request: UniverseAgentReadMemoryRequest): Promise<UniverseAgentReadMemoryResult>;
 
 	/** MemoryService.List unary (snake_case `scope`/`category`). Empty ids sent as-is. */
 	listMemory(request: UniverseAgentMemoryListRequest): Promise<UniverseAgentMemoryListResult>;
+
+	/** MemoryService.Delete unary (snake_case `scope`/`category`/`filename`). Empty ids sent as-is. */
+	deleteMemory(request: UniverseAgentDeleteMemoryRequest): Promise<UniverseAgentDeleteMemoryResult>;
 
 	/** ConfigService.SetPermissionPolicy unary (snake_case `session_id`/`tool_name`/`policy`). Empty ids sent as-is. */
 	setPermissionPolicy(request: UniverseAgentSetPermissionPolicyRequest): Promise<UniverseAgentSetPermissionPolicyResult>;
@@ -895,8 +904,10 @@ export const UniverseAgentGrpcServices = {
 		service: 'universeagent.memory.v1.MemoryService',
 		Save: 'Save',
 		Search: 'Search',
+		SearchDeep: 'SearchDeep',
 		Read: 'Read',
 		List: 'List',
+		Delete: 'Delete',
 	},
 } as const;
 

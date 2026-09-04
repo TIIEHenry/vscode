@@ -208,10 +208,14 @@ import type {
 	UniverseAgentSaveMemoryResult,
 	UniverseAgentMemorySearchRequest,
 	UniverseAgentMemorySearchResult,
+	UniverseAgentMemorySearchDeepRequest,
+	UniverseAgentMemorySearchDeepResult,
 	UniverseAgentReadMemoryRequest,
 	UniverseAgentReadMemoryResult,
 	UniverseAgentMemoryListRequest,
 	UniverseAgentMemoryListResult,
+	UniverseAgentDeleteMemoryRequest,
+	UniverseAgentDeleteMemoryResult,
 	UniverseAgentGetHistoryRequest,
 	UniverseAgentGetHistoryResult,
 	UniverseAgentListSessionsRequest,
@@ -1519,6 +1523,17 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 		return this.searchMemoryResult;
 	}
 
+	readonly searchDeepMemoryCalls: UniverseAgentMemorySearchDeepRequest[] = [];
+	searchDeepMemoryResult: UniverseAgentMemorySearchDeepResult = {
+		results: [],
+		searchedCategories: [],
+	};
+
+	async searchDeepMemory(request: UniverseAgentMemorySearchDeepRequest): Promise<UniverseAgentMemorySearchDeepResult> {
+		this.searchDeepMemoryCalls.push(request);
+		return this.searchDeepMemoryResult;
+	}
+
 	readonly readMemoryCalls: UniverseAgentReadMemoryRequest[] = [];
 	readMemoryResult: UniverseAgentReadMemoryResult = {
 		content: '',
@@ -1546,6 +1561,17 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 	async listMemory(request: UniverseAgentMemoryListRequest): Promise<UniverseAgentMemoryListResult> {
 		this.listMemoryCalls.push(request);
 		return this.listMemoryResult;
+	}
+
+	readonly deleteMemoryCalls: UniverseAgentDeleteMemoryRequest[] = [];
+	deleteMemoryResult: UniverseAgentDeleteMemoryResult = {
+		success: false,
+		message: '',
+	};
+
+	async deleteMemory(request: UniverseAgentDeleteMemoryRequest): Promise<UniverseAgentDeleteMemoryResult> {
+		this.deleteMemoryCalls.push(request);
+		return this.deleteMemoryResult;
 	}
 
 	async listModels() {
@@ -1996,6 +2022,11 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Memory.service, 'universeagent.memory.v1.MemoryService');
 	});
 
+	test('UniverseAgentGrpcServices lists Memory.SearchDeep', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Memory.SearchDeep, 'SearchDeep');
+		assert.strictEqual(UniverseAgentGrpcServices.Memory.service, 'universeagent.memory.v1.MemoryService');
+	});
+
 	test('UniverseAgentGrpcServices lists Memory.Read', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Memory.Read, 'Read');
 		assert.strictEqual(UniverseAgentGrpcServices.Memory.service, 'universeagent.memory.v1.MemoryService');
@@ -2003,6 +2034,11 @@ suite('UniverseAgentConnectionService', () => {
 
 	test('UniverseAgentGrpcServices lists Memory.List', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Memory.List, 'List');
+		assert.strictEqual(UniverseAgentGrpcServices.Memory.service, 'universeagent.memory.v1.MemoryService');
+	});
+
+	test('UniverseAgentGrpcServices lists Memory.Delete', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Memory.Delete, 'Delete');
 		assert.strictEqual(UniverseAgentGrpcServices.Memory.service, 'universeagent.memory.v1.MemoryService');
 	});
 
@@ -4984,6 +5020,92 @@ suite('UniverseAgentConnectionService', () => {
 		service.dispose();
 	});
 
+	test('searchDeepMemory forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.searchDeepMemoryResult = {
+			results: [{
+				category: 'facts',
+				filename: 'note.md',
+				title: 'Note',
+				score: 0.8,
+				snippet: 'hit',
+				forgot: false,
+				scope: 'project',
+			}],
+			searchedCategories: ['facts'],
+		};
+		const request = {
+			scope: 'project',
+			query: 'note',
+			keywords: ['alpha'],
+			categories: ['facts'],
+			limit: 10,
+			includeContent: true,
+		};
+		const result = await service.searchDeepMemory(request);
+		assert.deepStrictEqual(transport.searchDeepMemoryCalls, [request]);
+		assert.deepStrictEqual(result, transport.searchDeepMemoryResult);
+
+		transport.searchDeepMemoryResult = {
+			results: [{
+				category: '',
+				filename: '',
+				title: '',
+				score: 0,
+				snippet: '',
+				forgot: false,
+				scope: '',
+			}],
+			searchedCategories: [''],
+		};
+		const emptyRequest = {
+			scope: '',
+			query: '',
+			keywords: [''],
+			categories: [''],
+			limit: 0,
+			includeContent: false,
+		};
+		const empty = await service.searchDeepMemory(emptyRequest);
+		assert.strictEqual(transport.searchDeepMemoryCalls[1]?.scope, '');
+		assert.strictEqual(transport.searchDeepMemoryCalls[1]?.query, '');
+		assert.deepStrictEqual(transport.searchDeepMemoryCalls[1]?.keywords, ['']);
+		assert.deepStrictEqual(transport.searchDeepMemoryCalls[1]?.categories, ['']);
+		assert.strictEqual(transport.searchDeepMemoryCalls[1]?.limit, 0);
+		assert.strictEqual(transport.searchDeepMemoryCalls[1]?.includeContent, false);
+		assert.strictEqual(empty.results[0]?.category, '');
+		assert.strictEqual(empty.results[0]?.filename, '');
+		assert.strictEqual(empty.results[0]?.title, '');
+		assert.strictEqual(empty.results[0]?.score, 0);
+		assert.strictEqual(empty.results[0]?.snippet, '');
+		assert.strictEqual(empty.results[0]?.forgot, false);
+		assert.strictEqual(empty.results[0]?.scope, '');
+		assert.deepStrictEqual(empty.searchedCategories, ['']);
+
+		const emptyListsRequest = {
+			scope: '',
+			query: '',
+			keywords: [],
+			categories: [],
+			limit: 0,
+			includeContent: false,
+		};
+		transport.searchDeepMemoryResult = { results: [], searchedCategories: [] };
+		const emptyLists = await service.searchDeepMemory(emptyListsRequest);
+		assert.strictEqual(transport.searchDeepMemoryCalls[2]?.scope, '');
+		assert.deepStrictEqual(transport.searchDeepMemoryCalls[2]?.keywords, []);
+		assert.deepStrictEqual(transport.searchDeepMemoryCalls[2]?.categories, []);
+		assert.strictEqual(transport.searchDeepMemoryCalls[2]?.includeContent, false);
+		assert.deepStrictEqual(emptyLists.results, []);
+		assert.deepStrictEqual(emptyLists.searchedCategories, []);
+		service.dispose();
+	});
+
 	test('readMemory forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
@@ -5108,6 +5230,44 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(transport.listMemoryCalls[2]?.scope, '');
 		assert.strictEqual(transport.listMemoryCalls[2]?.category, '');
 		assert.deepStrictEqual(emptyLists.categories, []);
+		service.dispose();
+	});
+
+	test('deleteMemory forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.deleteMemoryResult = {
+			success: true,
+			message: 'deleted',
+		};
+		const request = {
+			scope: 'project',
+			category: 'notes',
+			filename: 'note.md',
+		};
+		const result = await service.deleteMemory(request);
+		assert.deepStrictEqual(transport.deleteMemoryCalls, [request]);
+		assert.deepStrictEqual(result, transport.deleteMemoryResult);
+
+		transport.deleteMemoryResult = {
+			success: false,
+			message: '',
+		};
+		const emptyRequest = {
+			scope: '',
+			category: '',
+			filename: '',
+		};
+		const empty = await service.deleteMemory(emptyRequest);
+		assert.strictEqual(transport.deleteMemoryCalls[1]?.scope, '');
+		assert.strictEqual(transport.deleteMemoryCalls[1]?.category, '');
+		assert.strictEqual(transport.deleteMemoryCalls[1]?.filename, '');
+		assert.strictEqual(empty.success, false);
+		assert.strictEqual(empty.message, '');
 		service.dispose();
 	});
 

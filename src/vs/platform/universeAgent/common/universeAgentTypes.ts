@@ -2179,6 +2179,29 @@ export interface UniverseAgentMemorySearchResult {
 }
 
 /**
+ * MemoryService.SearchDeep — proto `MemorySearchDeepRequest` /
+ * `MemorySearchDeepResponse` + `MemorySearchResult` only. Empty `scope` /
+ * `query` / `keywords` / `categories` pass through as-is. `limit` 0 sent
+ * as-is. `include_content` false sent as-is. Empty `category` / `filename` /
+ * `title` / `snippet` / `scope` mapped as-is. Empty `searched_categories`
+ * mapped as-is. ≠ Save / Search / Read / List / Delete / Reflect / Rebuild /
+ * Revert / History.
+ */
+export interface UniverseAgentMemorySearchDeepRequest {
+	readonly scope: string;
+	readonly query: string;
+	readonly keywords: readonly string[];
+	readonly categories: readonly string[];
+	readonly limit: number;
+	readonly includeContent: boolean;
+}
+
+export interface UniverseAgentMemorySearchDeepResult {
+	readonly results: readonly UniverseAgentMemorySearchEntry[];
+	readonly searchedCategories: readonly string[];
+}
+
+/**
  * MemoryService.Read — proto `MemoryReadRequest` / `MemoryReadResponse` +
  * `MemoryFileMetadata` only. Empty `scope` / `category` / `filename` /
  * `section` / `mode` pass through as-is. `forgot` false sent as-is.
@@ -2237,6 +2260,23 @@ export interface UniverseAgentMemoryCategoryInfo {
 
 export interface UniverseAgentMemoryListResult {
 	readonly categories: readonly UniverseAgentMemoryCategoryInfo[];
+}
+
+/**
+ * MemoryService.Delete — proto `MemoryDeleteRequest` / `MemoryDeleteResponse` only.
+ * Empty `scope` / `category` / `filename` pass through as-is.
+ * ≠ Save / Search / SearchDeep / Read / List / Reflect / Rebuild / Revert /
+ * History.
+ */
+export interface UniverseAgentDeleteMemoryRequest {
+	readonly scope: string;
+	readonly category: string;
+	readonly filename: string;
+}
+
+export interface UniverseAgentDeleteMemoryResult {
+	readonly success: boolean;
+	readonly message: string;
 }
 
 /**

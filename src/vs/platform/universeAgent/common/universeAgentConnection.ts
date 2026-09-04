@@ -233,10 +233,14 @@ import type {
 	UniverseAgentSaveMemoryResult,
 	UniverseAgentMemorySearchRequest,
 	UniverseAgentMemorySearchResult,
+	UniverseAgentMemorySearchDeepRequest,
+	UniverseAgentMemorySearchDeepResult,
 	UniverseAgentReadMemoryRequest,
 	UniverseAgentReadMemoryResult,
 	UniverseAgentMemoryListRequest,
 	UniverseAgentMemoryListResult,
+	UniverseAgentDeleteMemoryRequest,
+	UniverseAgentDeleteMemoryResult,
 	UniverseAgentSetPermissionPolicyRequest,
 	UniverseAgentSetPermissionPolicyResult,
 	UniverseAgentListModelsResult,
@@ -1310,6 +1314,20 @@ export interface IUniverseAgentConnection {
 	searchMemory?(request: UniverseAgentMemorySearchRequest): Promise<UniverseAgentMemorySearchResult>;
 
 	/**
+	 * MemoryService.SearchDeep unary. Optional so Web / tests can omit it.
+	 * Catalog + node transport only this slice; empty `scope` / `query` /
+	 * `keywords` / `categories` are sent as-is. `limit` 0 sent as-is.
+	 * `include_content` false sent as-is. Empty `category` / `filename` /
+	 * `title` / `snippet` / `scope` mapped as-is. Empty `searched_categories`
+	 * mapped as-is. Proto fields only (`MemorySearchDeepRequest` /
+	 * `MemorySearchDeepResponse` + `MemorySearchResult`). No Conversation
+	 * roster / UI / Engine Preferences / Composer.
+	 * ≠ Save / Search / Read / List / Delete / Reflect / Rebuild / Revert /
+	 * History.
+	 */
+	searchDeepMemory?(request: UniverseAgentMemorySearchDeepRequest): Promise<UniverseAgentMemorySearchDeepResult>;
+
+	/**
 	 * MemoryService.Read unary. Optional so Web / tests can omit it.
 	 * Catalog + node transport only this slice; empty `scope` / `category` /
 	 * `filename` / `section` / `mode` are sent as-is. `forgot` false sent
@@ -1334,6 +1352,17 @@ export interface IUniverseAgentConnection {
 	 * Revert / History.
 	 */
 	listMemory?(request: UniverseAgentMemoryListRequest): Promise<UniverseAgentMemoryListResult>;
+
+	/**
+	 * MemoryService.Delete unary. Optional so Web / tests can omit it.
+	 * Catalog + node transport only this slice; empty `scope` / `category` /
+	 * `filename` are sent as-is. Proto fields only (`MemoryDeleteRequest` /
+	 * `MemoryDeleteResponse`: `success` / `message`). No Conversation roster /
+	 * UI / Engine Preferences / Composer / Memory pane.
+	 * ≠ Save / Search / SearchDeep / Read / List / Reflect / Rebuild /
+	 * Revert / History.
+	 */
+	deleteMemory?(request: UniverseAgentDeleteMemoryRequest): Promise<UniverseAgentDeleteMemoryResult>;
 
 	/**
 	 * ConfigService.SetPermissionPolicy unary (session/tool Ask/Agent/Permit
