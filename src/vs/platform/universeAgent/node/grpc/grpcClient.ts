@@ -279,6 +279,9 @@ import type {
 	UniverseAgentAgentMergeResult,
 	UniverseAgentReadGitSummaryRequest,
 	UniverseAgentReadGitSummaryResult,
+	UniverseAgentGitChangeEntry,
+	UniverseAgentReadGitChangesRequest,
+	UniverseAgentReadGitChangesResult,
 	UniverseAgentListModelsResult,
 	UniverseAgentGetConfigRequest,
 	UniverseAgentGetConfigResult,
@@ -2733,6 +2736,38 @@ function mapReadGitSummaryResponse(wire: ReadGitSummaryResponseWire): UniverseAg
 	};
 }
 
+interface GitChangeEntryWire {
+	path?: string;
+	old_path?: string;
+	kind?: string;
+	index_state?: string;
+}
+
+interface ReadGitChangesResponseWire {
+	supported?: boolean;
+	reason?: string;
+	branch?: string;
+	entries?: GitChangeEntryWire[];
+}
+
+function mapGitChangeEntry(wire: GitChangeEntryWire): UniverseAgentGitChangeEntry {
+	return {
+		path: wire.path ?? '',
+		oldPath: wire.old_path ?? '',
+		kind: wire.kind ?? '',
+		indexState: wire.index_state ?? '',
+	};
+}
+
+function mapReadGitChangesResponse(wire: ReadGitChangesResponseWire): UniverseAgentReadGitChangesResult {
+	return {
+		supported: wire.supported === true,
+		reason: wire.reason ?? '',
+		branch: wire.branch ?? '',
+		entries: (wire.entries ?? []).map(mapGitChangeEntry),
+	};
+}
+
 interface ListModelsResponseWire {
 	models?: Array<{
 		id?: string;
@@ -4668,6 +4703,18 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			session_id: request.sessionId,
 		});
 		return mapReadGitSummaryResponse(wire);
+	}
+
+	async readGitChanges(request: UniverseAgentReadGitChangesRequest): Promise<UniverseAgentReadGitChangesResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, ReadGitChangesResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.Git.service,
+			UniverseAgentGrpcServices.Git.ReadGitChanges,
+		);
+		const wire = await unary({
+			session_id: request.sessionId,
+		});
+		return mapReadGitChangesResponse(wire);
 	}
 
 	async setPermissionPolicy(request: UniverseAgentSetPermissionPolicyRequest): Promise<UniverseAgentSetPermissionPolicyResult> {

@@ -2001,6 +2001,31 @@ export interface UniverseAgentReadGitSummaryResult {
 }
 
 /**
+ * GitService.ReadGitChanges — proto `ReadGitChangesRequest` /
+ * `ReadGitChangesResponse` only. Empty `session_id` pass through as-is.
+ * Empty `path` / `old_path` / `kind` / `index_state` / `reason` / `branch`
+ * mapped as-is. ≠ ReadGitSummary / ReadGitFileDiff / WriteGitStagePaths /
+ * WriteGitCommit / WriteGitApplyHunks.
+ */
+export interface UniverseAgentReadGitChangesRequest {
+	readonly sessionId: string;
+}
+
+export interface UniverseAgentGitChangeEntry {
+	readonly path: string;
+	readonly oldPath: string;
+	readonly kind: string;
+	readonly indexState: string;
+}
+
+export interface UniverseAgentReadGitChangesResult {
+	readonly supported: boolean;
+	readonly reason: string;
+	readonly branch: string;
+	readonly entries: readonly UniverseAgentGitChangeEntry[];
+}
+
+/**
  * ConfigService.SetPermissionPolicy — session/tool policy write
  * (≠ SwitchModel / ListModels / Get / Set / GetModelPreferences /
  * SetModelPreferences / SetPermissionMode).
