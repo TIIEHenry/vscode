@@ -111,6 +111,8 @@ import type {
 	UniverseAgentSetPermissionModeResult,
 	UniverseAgentTaskUpdateRequest,
 	UniverseAgentTaskUpdateResult,
+	UniverseAgentStartMemberRequest,
+	UniverseAgentStartMemberResult,
 	UniverseAgentRespondQuestionRequest,
 	UniverseAgentRespondQuestionResult,
 	UniverseAgentEnqueueQueueItemRequest,
@@ -366,6 +368,9 @@ export interface IUniverseAgentGrpcTransport {
 	setPermissionMode(request: UniverseAgentSetPermissionModeRequest): Promise<UniverseAgentSetPermissionModeResult>;
 	/** TeamService.TaskUpdate unary (snake_case `session_id`/`agent_id`/`task_id`/`new_status`/`message`). Empty ids sent as-is. */
 	taskUpdate(request: UniverseAgentTaskUpdateRequest): Promise<UniverseAgentTaskUpdateResult>;
+
+	/** TeamService.StartMember unary (snake_case `session_id`/`agent_id`/`member_name`/`preset_id`/`system_prompt`/`model_type`/`dynamic`). Empty ids sent as-is. */
+	startMember(request: UniverseAgentStartMemberRequest): Promise<UniverseAgentStartMemberResult>;
 
 	respondQuestion(request: UniverseAgentRespondQuestionRequest): Promise<UniverseAgentRespondQuestionResult>;
 
@@ -677,6 +682,7 @@ export const UniverseAgentGrpcServices = {
 		MemberStatus: 'MemberStatus',
 		TaskList: 'TaskList',
 		TaskUpdate: 'TaskUpdate',
+		StartMember: 'StartMember',
 		TeamInfo: 'TeamInfo',
 	},
 	Tool: {

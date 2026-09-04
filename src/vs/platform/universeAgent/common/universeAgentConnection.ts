@@ -116,6 +116,8 @@ import type {
 	UniverseAgentSetPermissionModeResult,
 	UniverseAgentTaskUpdateRequest,
 	UniverseAgentTaskUpdateResult,
+	UniverseAgentStartMemberRequest,
+	UniverseAgentStartMemberResult,
 	UniverseAgentRespondQuestionRequest,
 	UniverseAgentRespondQuestionResult,
 	UniverseAgentEnqueueQueueItemRequest,
@@ -628,6 +630,16 @@ export interface IUniverseAgentConnection {
 	 * ≠ TaskList / TaskCancel / MemberStatus / TeamInfo / SetPermissionMode.
 	 */
 	taskUpdate?(request: UniverseAgentTaskUpdateRequest): Promise<UniverseAgentTaskUpdateResult>;
+
+	/**
+	 * TeamService.StartMember unary (Manager starts a member). Optional so Web
+	 * / tests can omit it. Catalog + node transport only this slice; empty
+	 * `sessionId` / `agentId` / `memberName` / `presetId` / `systemPrompt` /
+	 * `modelType` are sent as-is. No Conversation roster / UI / Navigator Team.
+	 * ≠ CreateTeam / TaskUpdate / TaskCancel / MessageMember / KillMember /
+	 * MemberStatus / TeamInfo.
+	 */
+	startMember?(request: UniverseAgentStartMemberRequest): Promise<UniverseAgentStartMemberResult>;
 
 	/**
 	 * AgentService.RespondQuestion unary (ADR-325 ask_user reply). Optional so

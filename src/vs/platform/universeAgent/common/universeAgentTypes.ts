@@ -878,6 +878,30 @@ export interface UniverseAgentTaskUpdateResult {
 	readonly message?: string;
 }
 
+/** TeamService.StartMember — Manager starts a team member (≠ CreateTeam / TaskUpdate / TaskCancel / MessageMember / KillMember / MemberStatus / TeamInfo). */
+export interface UniverseAgentStartMemberRequest {
+	readonly sessionId: string;
+	readonly agentId: string;
+	/** Proto `member_name`. Empty sent as-is. */
+	readonly memberName: string;
+	/** Proto `preset_id`. Empty sent as-is. */
+	readonly presetId: string;
+	/** Proto `system_prompt`. Empty sent as-is. */
+	readonly systemPrompt: string;
+	/** Proto `model_type`. Empty sent as-is. */
+	readonly modelType: string;
+	/** Proto `dynamic`. Sent as-is. */
+	readonly dynamic: boolean;
+}
+
+export interface UniverseAgentStartMemberResult {
+	/** Proto `member_agent_id`. Empty sent as-is. */
+	readonly memberAgentId: string;
+	/** Proto `member_name`. Empty sent as-is. */
+	readonly memberName: string;
+	readonly dynamic: boolean;
+}
+
 /** One item answer for AgentService.RespondQuestion (QuestionAnswer.selected_labels). */
 export interface UniverseAgentQuestionAnswer {
 	readonly selectedLabels: readonly string[];
