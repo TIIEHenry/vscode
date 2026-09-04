@@ -77,6 +77,8 @@ import type {
 	UniverseAgentFetchToolUsageDetailResult,
 	UniverseAgentFireTriggerWebhookRequest,
 	UniverseAgentFireTriggerWebhookResult,
+	UniverseAgentSwitchWorkDirRequest,
+	UniverseAgentSwitchWorkDirResult,
 	UniverseAgentSetSessionGoalRequest,
 	UniverseAgentSetSessionGoalResult,
 	UniverseAgentCancelSessionGoalRequest,
@@ -459,6 +461,14 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 	async fireTriggerWebhook(request: UniverseAgentFireTriggerWebhookRequest): Promise<UniverseAgentFireTriggerWebhookResult> {
 		this.fireTriggerWebhookCalls.push(request);
 		return this.fireTriggerWebhookResult;
+	}
+
+	readonly switchWorkDirCalls: UniverseAgentSwitchWorkDirRequest[] = [];
+	switchWorkDirResult: UniverseAgentSwitchWorkDirResult = { ok: true, previousWorkDir: '', currentWorkDir: '' };
+
+	async switchWorkDir(request: UniverseAgentSwitchWorkDirRequest): Promise<UniverseAgentSwitchWorkDirResult> {
+		this.switchWorkDirCalls.push(request);
+		return this.switchWorkDirResult;
 	}
 
 	readonly setGoalCalls: UniverseAgentSetSessionGoalRequest[] = [];
@@ -981,6 +991,11 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
 	});
 
+	test('UniverseAgentGrpcServices lists Agent.SwitchWorkDir', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.SwitchWorkDir, 'SwitchWorkDir');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+	});
+
 	test('UniverseAgentGrpcServices lists Permission.SetSessionGoal', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Permission.SetSessionGoal, 'SetSessionGoal');
 		assert.strictEqual(UniverseAgentGrpcServices.Permission.CancelSessionGoal, 'CancelSessionGoal');
@@ -1388,6 +1403,49 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(transport.fireTriggerWebhookCalls[1]?.sessionId, '');
 		assert.strictEqual(transport.fireTriggerWebhookCalls[1]?.triggerId, '');
 		assert.strictEqual(transport.fireTriggerWebhookCalls[1]?.payloadJson, '');
+		service.dispose();
+	});
+
+	test('switchWorkDir forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.switchWorkDirResult = {
+			ok: true,
+			previousWorkDir: '/old',
+			currentWorkDir: '/new',
+			message: 'switched',
+		};
+		const result = await service.switchWorkDir({
+			sessionId: 'sess-1',
+			agentId: 'root',
+			newWorkDir: '/new',
+		});
+		assert.deepStrictEqual(transport.switchWorkDirCalls, [{
+			sessionId: 'sess-1',
+			agentId: 'root',
+			newWorkDir: '/new',
+		}]);
+		assert.deepStrictEqual(result, transport.switchWorkDirResult);
+
+		transport.switchWorkDirResult = {
+			ok: false,
+			previousWorkDir: '',
+			currentWorkDir: '',
+			message: 'empty',
+		};
+		const empty = await service.switchWorkDir({
+			sessionId: '',
+			agentId: '',
+			newWorkDir: '',
+		});
+		assert.deepStrictEqual(empty, transport.switchWorkDirResult);
+		assert.strictEqual(transport.switchWorkDirCalls[1]?.sessionId, '');
+		assert.strictEqual(transport.switchWorkDirCalls[1]?.agentId, '');
+		assert.strictEqual(transport.switchWorkDirCalls[1]?.newWorkDir, '');
 		service.dispose();
 	});
 

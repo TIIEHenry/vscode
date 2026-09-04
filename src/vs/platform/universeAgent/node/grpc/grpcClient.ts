@@ -99,6 +99,8 @@ import type {
 	UniverseAgentContextSourceUsage,
 	UniverseAgentFireTriggerWebhookRequest,
 	UniverseAgentFireTriggerWebhookResult,
+	UniverseAgentSwitchWorkDirRequest,
+	UniverseAgentSwitchWorkDirResult,
 	UniverseAgentSetSessionGoalRequest,
 	UniverseAgentSetSessionGoalResult,
 	UniverseAgentCancelSessionGoalRequest,
@@ -2820,6 +2822,30 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			status: mapFireTriggerWebhookStatus(wire.status),
 			eventId: wire.event_id ?? '',
 			reason: wire.reason ?? '',
+		};
+	}
+
+	async switchWorkDir(request: UniverseAgentSwitchWorkDirRequest): Promise<UniverseAgentSwitchWorkDirResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, {
+			success?: boolean;
+			previous_work_dir?: string;
+			current_work_dir?: string;
+			message?: string;
+		}>(
+			this._channel,
+			UniverseAgentGrpcServices.Agent.service,
+			UniverseAgentGrpcServices.Agent.SwitchWorkDir,
+		);
+		const wire = await unary({
+			session_id: request.sessionId,
+			agent_id: request.agentId,
+			new_work_dir: request.newWorkDir,
+		});
+		return {
+			ok: wire.success === true,
+			previousWorkDir: wire.previous_work_dir ?? '',
+			currentWorkDir: wire.current_work_dir ?? '',
+			message: wire.message,
 		};
 	}
 

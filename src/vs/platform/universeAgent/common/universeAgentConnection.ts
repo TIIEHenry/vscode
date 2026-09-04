@@ -83,6 +83,8 @@ import type {
 	UniverseAgentFetchToolUsageDetailResult,
 	UniverseAgentFireTriggerWebhookRequest,
 	UniverseAgentFireTriggerWebhookResult,
+	UniverseAgentSwitchWorkDirRequest,
+	UniverseAgentSwitchWorkDirResult,
 	UniverseAgentSetSessionGoalRequest,
 	UniverseAgentSetSessionGoalResult,
 	UniverseAgentCancelSessionGoalRequest,
@@ -485,6 +487,15 @@ export interface IUniverseAgentConnection {
 	 * ≠ FetchToolUsageDetail / SubscribeToolDetail / SwitchWorkDir.
 	 */
 	fireTriggerWebhook?(request: UniverseAgentFireTriggerWebhookRequest): Promise<UniverseAgentFireTriggerWebhookResult>;
+
+	/**
+	 * AgentService.SwitchWorkDir unary (SwitchWorkDirResponse.success → ok).
+	 * Optional so Web / tests can omit it. Catalog + node transport only this
+	 * slice; empty `sessionId` / `agentId` / `newWorkDir` are sent as-is. No
+	 * Conversation roster / UI.
+	 * ≠ FireTriggerWebhook / TestModelProfile / Connect.work_dir.
+	 */
+	switchWorkDir?(request: UniverseAgentSwitchWorkDirRequest): Promise<UniverseAgentSwitchWorkDirResult>;
 
 	/**
 	 * PermissionService.SetSessionGoal unary (Inbox Goal). Optional so Web / tests

@@ -78,6 +78,8 @@ import type {
 	UniverseAgentFetchToolUsageDetailResult,
 	UniverseAgentFireTriggerWebhookRequest,
 	UniverseAgentFireTriggerWebhookResult,
+	UniverseAgentSwitchWorkDirRequest,
+	UniverseAgentSwitchWorkDirResult,
 	UniverseAgentSetSessionGoalRequest,
 	UniverseAgentSetSessionGoalResult,
 	UniverseAgentCancelSessionGoalRequest,
@@ -299,6 +301,8 @@ export interface IUniverseAgentGrpcTransport {
 	fetchToolUsageDetail(request: UniverseAgentFetchToolUsageDetailRequest): Promise<UniverseAgentFetchToolUsageDetailResult>;
 	/** AgentService.FireTriggerWebhook unary (snake_case `session_id`/`trigger_id`/`payload_json`). Empty ids sent as-is. */
 	fireTriggerWebhook(request: UniverseAgentFireTriggerWebhookRequest): Promise<UniverseAgentFireTriggerWebhookResult>;
+	/** AgentService.SwitchWorkDir unary (snake_case `session_id`/`agent_id`/`new_work_dir`). Empty ids sent as-is. */
+	switchWorkDir(request: UniverseAgentSwitchWorkDirRequest): Promise<UniverseAgentSwitchWorkDirResult>;
 
 	setSessionGoal(request: UniverseAgentSetSessionGoalRequest): Promise<UniverseAgentSetSessionGoalResult>;
 
@@ -483,6 +487,7 @@ export const UniverseAgentGrpcServices = {
 		SendShellSessionClientControl: 'SendShellSessionClientControl',
 		FetchToolUsageDetail: 'FetchToolUsageDetail',
 		FireTriggerWebhook: 'FireTriggerWebhook',
+		SwitchWorkDir: 'SwitchWorkDir',
 		EnqueueQueueItem: 'EnqueueQueueItem',
 		PauseQueue: 'PauseQueue',
 		ResumeQueue: 'ResumeQueue',

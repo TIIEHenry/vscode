@@ -674,6 +674,21 @@ export interface UniverseAgentFireTriggerWebhookResult {
 	readonly reason: string;
 }
 
+/** AgentService.SwitchWorkDir — change agent work dir (≠ FireTriggerWebhook / TestModelProfile / Connect.work_dir). */
+export interface UniverseAgentSwitchWorkDirRequest {
+	readonly sessionId: string;
+	readonly agentId: string;
+	/** Proto `new_work_dir`. Empty sent as-is. */
+	readonly newWorkDir: string;
+}
+
+export interface UniverseAgentSwitchWorkDirResult {
+	readonly ok: boolean;
+	readonly previousWorkDir: string;
+	readonly currentWorkDir: string;
+	readonly message?: string;
+}
+
 /** PermissionService.SetSessionGoal request (Inbox Goal). */
 export interface UniverseAgentSetSessionGoalRequest {
 	readonly sessionId: string;
