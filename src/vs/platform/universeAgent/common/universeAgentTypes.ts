@@ -2098,6 +2098,40 @@ export interface UniverseAgentWriteGitApplyHunksRequest {
 }
 
 /**
+ * TokenUsageService.GetSessionUsage — proto `GetSessionUsageRequest` /
+ * `GetSessionUsageResponse` + `TokenUsageData` only. Empty `session_id`
+ * pass through as-is. Empty `currency` / zero counts mapped as-is.
+ * ≠ GetGlobalUsage / Agent.Usage.
+ */
+export interface UniverseAgentGetSessionUsageRequest {
+	readonly sessionId: string;
+}
+
+/**
+ * TokenUsageService.GetGlobalUsage — proto `GetGlobalUsageRequest` /
+ * `GetGlobalUsageResponse` + `TokenUsageData` only. Empty request `{}`.
+ * Empty `currency` mapped as-is. ≠ GetSessionUsage / Agent.Usage.
+ */
+export interface UniverseAgentTokenUsageData {
+	readonly inputTokens: number;
+	readonly outputTokens: number;
+	readonly thinkingTokens: number;
+	readonly cacheReadTokens: number;
+	readonly cacheWriteTokens: number;
+	readonly totalCostMicros: number;
+	readonly currency: string;
+	readonly requestCount: number;
+}
+
+export interface UniverseAgentGetSessionUsageResult {
+	readonly usage: UniverseAgentTokenUsageData;
+}
+
+export interface UniverseAgentGetGlobalUsageResult {
+	readonly usage: UniverseAgentTokenUsageData;
+}
+
+/**
  * ConfigService.SetPermissionPolicy — session/tool policy write
  * (≠ SwitchModel / ListModels / Get / Set / GetModelPreferences /
  * SetModelPreferences / SetPermissionMode).

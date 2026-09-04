@@ -221,6 +221,9 @@ import type {
 	UniverseAgentWriteGitCommitRequest,
 	UniverseAgentWriteGitApplyHunksRequest,
 	UniverseAgentWriteGitWriteResult,
+	UniverseAgentGetSessionUsageRequest,
+	UniverseAgentGetSessionUsageResult,
+	UniverseAgentGetGlobalUsageResult,
 	UniverseAgentSetPermissionPolicyRequest,
 	UniverseAgentSetPermissionPolicyResult,
 	UniverseAgentListModelsResult,
@@ -645,6 +648,12 @@ export interface IUniverseAgentGrpcTransport {
 	/** GitService.WriteGitApplyHunks unary (snake_case `session_id`/`argv`/`patches`). Empty ids sent as-is. */
 	writeGitApplyHunks(request: UniverseAgentWriteGitApplyHunksRequest): Promise<UniverseAgentWriteGitWriteResult>;
 
+	/** TokenUsageService.GetSessionUsage unary (snake_case `session_id`). Empty ids sent as-is. */
+	getSessionUsage(request: UniverseAgentGetSessionUsageRequest): Promise<UniverseAgentGetSessionUsageResult>;
+
+	/** TokenUsageService.GetGlobalUsage unary (empty request `{}`). Empty currency mapped as-is. */
+	getGlobalUsage(): Promise<UniverseAgentGetGlobalUsageResult>;
+
 	/** ConfigService.SetPermissionPolicy unary (snake_case `session_id`/`tool_name`/`policy`). Empty ids sent as-is. */
 	setPermissionPolicy(request: UniverseAgentSetPermissionPolicyRequest): Promise<UniverseAgentSetPermissionPolicyResult>;
 
@@ -858,6 +867,11 @@ export const UniverseAgentGrpcServices = {
 		WriteGitStagePaths: 'WriteGitStagePaths',
 		WriteGitCommit: 'WriteGitCommit',
 		WriteGitApplyHunks: 'WriteGitApplyHunks',
+	},
+	TokenUsage: {
+		service: 'universeagent.tokenusage.v1.TokenUsageService',
+		GetSessionUsage: 'GetSessionUsage',
+		GetGlobalUsage: 'GetGlobalUsage',
 	},
 } as const;
 

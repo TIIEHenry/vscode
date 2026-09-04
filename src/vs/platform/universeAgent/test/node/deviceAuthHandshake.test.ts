@@ -532,6 +532,23 @@ class MockDeviceAuthTransport implements IUniverseAgentGrpcTransport {
 	async writeGitApplyHunks() {
 		return { supported: false, reason: '', success: false, errorMessage: '', exitCode: 0, stdout: '' };
 	}
+	async getSessionUsage() {
+		return { usage: { inputTokens: 0, outputTokens: 0, thinkingTokens: 0, cacheReadTokens: 0, cacheWriteTokens: 0, totalCostMicros: 0, currency: '', requestCount: 0 } };
+	}
+	async getGlobalUsage() {
+		return {
+			usage: {
+				inputTokens: 0,
+				outputTokens: 0,
+				thinkingTokens: 0,
+				cacheReadTokens: 0,
+				cacheWriteTokens: 0,
+				totalCostMicros: 0,
+				currency: '',
+				requestCount: 0,
+			},
+		};
+	}
 	async listModels() { return { models: [] }; }
 	async getConfig(): Promise<{ values: Record<string, string>; scope: '' }> {
 		return { values: {}, scope: '' };
