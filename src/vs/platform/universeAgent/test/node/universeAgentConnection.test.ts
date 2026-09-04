@@ -117,6 +117,8 @@ import type {
 	UniverseAgentCreateTeamResult,
 	UniverseAgentStartMemberRequest,
 	UniverseAgentStartMemberResult,
+	UniverseAgentGetConfigRequest,
+	UniverseAgentGetConfigResult,
 	UniverseAgentRespondQuestionRequest,
 	UniverseAgentRespondQuestionResult,
 	UniverseAgentEnqueueQueueItemRequest,
@@ -1129,6 +1131,14 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 		return { models: [] };
 	}
 
+	readonly getConfigCalls: UniverseAgentGetConfigRequest[] = [];
+	getConfigResult: UniverseAgentGetConfigResult = { values: {}, scope: '' };
+
+	async getConfig(request: UniverseAgentGetConfigRequest): Promise<UniverseAgentGetConfigResult> {
+		this.getConfigCalls.push(request);
+		return this.getConfigResult;
+	}
+
 	async fetchAgentTree(sessionId: string) {
 		if (this.handlers.fetchAgentTree) {
 			return this.handlers.fetchAgentTree(sessionId);
@@ -1329,6 +1339,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('UniverseAgentGrpcServices lists Team.StartMember', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Team.StartMember, 'StartMember');
 		assert.strictEqual(UniverseAgentGrpcServices.Team.service, 'universeagent.team.v1.TeamService');
+	});
+
+	test('UniverseAgentGrpcServices lists Config.Get', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Config.Get, 'Get');
+		assert.strictEqual(UniverseAgentGrpcServices.Config.service, 'universeagent.config.v1.ConfigService');
 	});
 
 	test('UniverseAgentGrpcServices lists Agent.InsertQueueItem', () => {
@@ -3124,6 +3139,39 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(transport.createTeamCalls[1]?.sessionId, '');
 		assert.strictEqual(transport.createTeamCalls[1]?.agentId, '');
 		assert.deepStrictEqual(transport.createTeamCalls[1]?.taskDescriptions, ['', '']);
+		service.dispose();
+	});
+
+	test('getConfig forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.getConfigResult = { values: { 'model.id': 'fast' }, scope: 'session' };
+		const result = await service.getConfig({
+			key: 'model.id',
+			scope: 'session',
+			sessionId: 'sess-1',
+		});
+		assert.deepStrictEqual(transport.getConfigCalls, [{
+			key: 'model.id',
+			scope: 'session',
+			sessionId: 'sess-1',
+		}]);
+		assert.deepStrictEqual(result, { values: { 'model.id': 'fast' }, scope: 'session' });
+
+		transport.getConfigResult = { values: {}, scope: '' };
+		const empty = await service.getConfig({
+			key: '',
+			scope: '',
+			sessionId: '',
+		});
+		assert.deepStrictEqual(empty, { values: {}, scope: '' });
+		assert.strictEqual(transport.getConfigCalls[1]?.key, '');
+		assert.strictEqual(transport.getConfigCalls[1]?.scope, '');
+		assert.strictEqual(transport.getConfigCalls[1]?.sessionId, '');
 		service.dispose();
 	});
 

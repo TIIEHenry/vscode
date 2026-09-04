@@ -1762,6 +1762,22 @@ export interface UniverseAgentListModelsResult {
 	readonly models: readonly UniverseAgentModelEntry[];
 }
 
+/** ConfigService.Get — generic config read (≠ Set / Watch / ListModels / SwitchModel / TestModelProfile). */
+export interface UniverseAgentGetConfigRequest {
+	/** Proto `key`. Empty sent as-is (engine returns all). */
+	readonly key: string;
+	/** Proto `scope`. Empty sent as-is. */
+	readonly scope: string;
+	/** Proto `session_id`. Empty sent as-is. */
+	readonly sessionId: string;
+}
+
+export interface UniverseAgentGetConfigResult {
+	/** Proto `values` map. Empty object sent/returned as-is. */
+	readonly values: Readonly<Record<string, string>>;
+	readonly scope: string;
+}
+
 /**
  * MCP runtime connection status from McpService.GetMcpServerStatuses.
  * Proto `MCP_STATUS_UNSPECIFIED` maps to `failed` (no fifth UI state).

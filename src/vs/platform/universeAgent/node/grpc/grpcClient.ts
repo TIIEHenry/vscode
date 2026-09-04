@@ -249,6 +249,8 @@ import type {
 	UniverseAgentToolInfoRequest,
 	UniverseAgentToolInfoResult,
 	UniverseAgentListModelsResult,
+	UniverseAgentGetConfigRequest,
+	UniverseAgentGetConfigResult,
 	UniverseAgentModelEntry,
 	UniverseAgentToolSummary,
 	UniverseAgentAgentTreeNode,
@@ -4234,6 +4236,23 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 		);
 		const wire = await unary({ include_disabled: true });
 		return mapListModelsResponse(wire);
+	}
+
+	async getConfig(request: UniverseAgentGetConfigRequest): Promise<UniverseAgentGetConfigResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, { values?: Record<string, string>; scope?: string }>(
+			this._channel,
+			UniverseAgentGrpcServices.Config.service,
+			UniverseAgentGrpcServices.Config.Get,
+		);
+		const wire = await unary({
+			key: request.key,
+			scope: request.scope,
+			session_id: request.sessionId,
+		});
+		return {
+			values: wire.values && typeof wire.values === 'object' ? wire.values : {},
+			scope: wire.scope ?? '',
+		};
 	}
 
 	async fetchToolDetail(request: UniverseAgentFetchToolDetailRequest): Promise<UniverseAgentFetchToolDetailWireResult> {
