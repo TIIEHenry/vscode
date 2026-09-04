@@ -2179,6 +2179,23 @@ export interface UniverseAgentMemorySearchResult {
 }
 
 /**
+ * MemoryService.Delete — proto `MemoryDeleteRequest` / `MemoryDeleteResponse` only.
+ * Empty `scope` / `category` / `filename` pass through as-is.
+ * ≠ Save / Search / SearchDeep / Read / List / Reflect / Rebuild / Revert /
+ * History.
+ */
+export interface UniverseAgentDeleteMemoryRequest {
+	readonly scope: string;
+	readonly category: string;
+	readonly filename: string;
+}
+
+export interface UniverseAgentDeleteMemoryResult {
+	readonly success: boolean;
+	readonly message: string;
+}
+
+/**
  * ConfigService.SetPermissionPolicy — session/tool policy write
  * (≠ SwitchModel / ListModels / Get / Set / GetModelPreferences /
  * SetModelPreferences / SetPermissionMode).

@@ -297,6 +297,8 @@ import type {
 	UniverseAgentMemorySearchRequest,
 	UniverseAgentMemorySearchResult,
 	UniverseAgentMemorySearchEntry,
+	UniverseAgentDeleteMemoryRequest,
+	UniverseAgentDeleteMemoryResult,
 	UniverseAgentListModelsResult,
 	UniverseAgentGetConfigRequest,
 	UniverseAgentGetConfigResult,
@@ -2914,6 +2916,18 @@ function mapMemorySearchResponse(wire: MemorySearchResponseWire): UniverseAgentM
 	};
 }
 
+interface MemoryDeleteResponseWire {
+	success?: boolean;
+	message?: string;
+}
+
+function mapMemoryDeleteResponse(wire: MemoryDeleteResponseWire): UniverseAgentDeleteMemoryResult {
+	return {
+		success: wire.success === true,
+		message: wire.message ?? '',
+	};
+}
+
 interface ListModelsResponseWire {
 	models?: Array<{
 		id?: string;
@@ -4968,6 +4982,20 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			limit: request.limit,
 		});
 		return mapMemorySearchResponse(wire);
+	}
+
+	async deleteMemory(request: UniverseAgentDeleteMemoryRequest): Promise<UniverseAgentDeleteMemoryResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, MemoryDeleteResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.Memory.service,
+			UniverseAgentGrpcServices.Memory.Delete,
+		);
+		const wire = await unary({
+			scope: request.scope,
+			category: request.category,
+			filename: request.filename,
+		});
+		return mapMemoryDeleteResponse(wire);
 	}
 
 	async setPermissionPolicy(request: UniverseAgentSetPermissionPolicyRequest): Promise<UniverseAgentSetPermissionPolicyResult> {

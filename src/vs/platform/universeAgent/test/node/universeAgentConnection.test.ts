@@ -208,6 +208,8 @@ import type {
 	UniverseAgentSaveMemoryResult,
 	UniverseAgentMemorySearchRequest,
 	UniverseAgentMemorySearchResult,
+	UniverseAgentDeleteMemoryRequest,
+	UniverseAgentDeleteMemoryResult,
 	UniverseAgentGetHistoryRequest,
 	UniverseAgentGetHistoryResult,
 	UniverseAgentListSessionsRequest,
@@ -1515,6 +1517,17 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 		return this.searchMemoryResult;
 	}
 
+	readonly deleteMemoryCalls: UniverseAgentDeleteMemoryRequest[] = [];
+	deleteMemoryResult: UniverseAgentDeleteMemoryResult = {
+		success: false,
+		message: '',
+	};
+
+	async deleteMemory(request: UniverseAgentDeleteMemoryRequest): Promise<UniverseAgentDeleteMemoryResult> {
+		this.deleteMemoryCalls.push(request);
+		return this.deleteMemoryResult;
+	}
+
 	async listModels() {
 		return { models: [] };
 	}
@@ -1960,6 +1973,11 @@ suite('UniverseAgentConnectionService', () => {
 
 	test('UniverseAgentGrpcServices lists Memory.Search', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Memory.Search, 'Search');
+		assert.strictEqual(UniverseAgentGrpcServices.Memory.service, 'universeagent.memory.v1.MemoryService');
+	});
+
+	test('UniverseAgentGrpcServices lists Memory.Delete', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Memory.Delete, 'Delete');
 		assert.strictEqual(UniverseAgentGrpcServices.Memory.service, 'universeagent.memory.v1.MemoryService');
 	});
 
@@ -4938,6 +4956,44 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(transport.searchMemoryCalls[2]?.scope, '');
 		assert.deepStrictEqual(transport.searchMemoryCalls[2]?.keywords, []);
 		assert.deepStrictEqual(emptyLists.results, []);
+		service.dispose();
+	});
+
+	test('deleteMemory forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.deleteMemoryResult = {
+			success: true,
+			message: 'deleted',
+		};
+		const request = {
+			scope: 'project',
+			category: 'notes',
+			filename: 'note.md',
+		};
+		const result = await service.deleteMemory(request);
+		assert.deepStrictEqual(transport.deleteMemoryCalls, [request]);
+		assert.deepStrictEqual(result, transport.deleteMemoryResult);
+
+		transport.deleteMemoryResult = {
+			success: false,
+			message: '',
+		};
+		const emptyRequest = {
+			scope: '',
+			category: '',
+			filename: '',
+		};
+		const empty = await service.deleteMemory(emptyRequest);
+		assert.strictEqual(transport.deleteMemoryCalls[1]?.scope, '');
+		assert.strictEqual(transport.deleteMemoryCalls[1]?.category, '');
+		assert.strictEqual(transport.deleteMemoryCalls[1]?.filename, '');
+		assert.strictEqual(empty.success, false);
+		assert.strictEqual(empty.message, '');
 		service.dispose();
 	});
 
