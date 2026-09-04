@@ -108,6 +108,7 @@ import type {
 	UniverseAgentRetryQueueItemRequest,
 	UniverseAgentRetryAllFailedRequest,
 	UniverseAgentRetryQueueItemUploadRequest,
+	UniverseAgentPinQueueItemRequest,
 	UniverseAgentEditQueueItemRequest,
 	UniverseAgentHoldQueueItemRequest,
 	UniverseAgentQueueItemRefRequest,
@@ -889,6 +890,10 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 
 	async retryQueueItemUpload(request: UniverseAgentRetryQueueItemUploadRequest): Promise<UniverseAgentQueueMutationResult> {
 		return this._withTransport(transport => transport.retryQueueItemUpload(request));
+	}
+
+	async pinQueueItem(request: UniverseAgentPinQueueItemRequest): Promise<UniverseAgentQueueMutationResult> {
+		return this._withTransport(transport => transport.pinQueueItem(request));
 	}
 
 	async pauseQueue(request: UniverseAgentQueueRefRequest): Promise<UniverseAgentQueueMutationResult> {
