@@ -195,6 +195,7 @@ import type {
 	UniverseAgentListToolsResult,
 	UniverseAgentToolInfoRequest,
 	UniverseAgentToolInfoResult,
+	UniverseAgentListCommandsResult,
 	UniverseAgentSetPermissionPolicyRequest,
 	UniverseAgentSetPermissionPolicyResult,
 	UniverseAgentListModelsResult,
@@ -568,6 +569,9 @@ export interface IUniverseAgentGrpcTransport {
 	/** ToolService.ToolInfo unary (snake_case `tool_name`). */
 	getToolInfo(request: UniverseAgentToolInfoRequest): Promise<UniverseAgentToolInfoResult>;
 
+	/** ToolService.ListCommands unary (empty request). Empty name / agent / model / skill_source mapped as-is. */
+	listCommands(): Promise<UniverseAgentListCommandsResult>;
+
 	/** ConfigService.SetPermissionPolicy unary (snake_case `session_id`/`tool_name`/`policy`). Empty ids sent as-is. */
 	setPermissionPolicy(request: UniverseAgentSetPermissionPolicyRequest): Promise<UniverseAgentSetPermissionPolicyResult>;
 
@@ -745,6 +749,7 @@ export const UniverseAgentGrpcServices = {
 		SaveSkillContent: 'SaveSkillContent',
 		ListTools: 'ListTools',
 		ToolInfo: 'ToolInfo',
+		ListCommands: 'ListCommands',
 	},
 } as const;
 

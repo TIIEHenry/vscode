@@ -200,6 +200,7 @@ import type {
 	UniverseAgentListToolsResult,
 	UniverseAgentToolInfoRequest,
 	UniverseAgentToolInfoResult,
+	UniverseAgentListCommandsResult,
 	UniverseAgentSetPermissionPolicyRequest,
 	UniverseAgentSetPermissionPolicyResult,
 	UniverseAgentListModelsResult,
@@ -1060,6 +1061,15 @@ export interface IUniverseAgentConnection {
 	 * Engine Tools detail forwards it. ListTools catalog stays list-only.
 	 */
 	getToolInfo?(request: UniverseAgentToolInfoRequest): Promise<UniverseAgentToolInfoResult>;
+
+	/**
+	 * ToolService.ListCommands unary (empty request). Optional so Web /
+	 * tests can omit it. Catalog + node transport only this slice; empty
+	 * `name` / `agent` / `model` / `skill_source` are mapped as-is.
+	 * No Conversation roster / UI / Engine Preferences / Composer.
+	 * ≠ ListSkills / ListTools / ToolInfo / GetCommandDef / ResolveModel.
+	 */
+	listCommands?(): Promise<UniverseAgentListCommandsResult>;
 
 	/**
 	 * ConfigService.SetPermissionPolicy unary (session/tool Ask/Agent/Permit

@@ -257,6 +257,9 @@ import type {
 	UniverseAgentListToolsResult,
 	UniverseAgentToolInfoRequest,
 	UniverseAgentToolInfoResult,
+	UniverseAgentSlashCommandSource,
+	UniverseAgentCommandSummary,
+	UniverseAgentListCommandsResult,
 	UniverseAgentListModelsResult,
 	UniverseAgentGetConfigRequest,
 	UniverseAgentGetConfigResult,
@@ -2488,6 +2491,52 @@ function mapToolInfoResponse(wire: ToolInfoResponseWire): UniverseAgentToolInfoR
 	};
 }
 
+interface ListCommandsResponseWire {
+	commands?: Array<{
+		name?: string;
+		description?: string;
+		source?: string | number;
+		slash_enabled?: boolean;
+		agent?: string;
+		model?: string;
+		subtask?: boolean;
+		skill_source?: string;
+	}>;
+	total?: number;
+}
+
+const SlashCommandSourceByNumber: Record<number, UniverseAgentSlashCommandSource> = {
+	0: 'SLASH_COMMAND_SOURCE_UNSPECIFIED',
+	1: 'SLASH_COMMAND_SOURCE_SKILL',
+	2: 'SLASH_COMMAND_SOURCE_CONFIG',
+	3: 'SLASH_COMMAND_SOURCE_BUILTIN',
+	4: 'SLASH_COMMAND_SOURCE_MCP',
+};
+
+function mapSlashCommandSource(value: string | number | undefined): UniverseAgentSlashCommandSource {
+	return mapRuleEnum(value, SlashCommandSourceByNumber) as UniverseAgentSlashCommandSource;
+}
+
+function mapCommandSummary(wire: NonNullable<ListCommandsResponseWire['commands']>[number]): UniverseAgentCommandSummary {
+	return {
+		name: wire.name ?? '',
+		description: wire.description,
+		source: mapSlashCommandSource(wire.source),
+		slashEnabled: wire.slash_enabled === true,
+		agent: wire.agent ?? '',
+		model: wire.model ?? '',
+		subtask: wire.subtask === true,
+		skillSource: wire.skill_source ?? '',
+	};
+}
+
+function mapListCommandsResponse(wire: ListCommandsResponseWire): UniverseAgentListCommandsResult {
+	return {
+		commands: (wire.commands ?? []).map(mapCommandSummary),
+		total: wire.total ?? 0,
+	};
+}
+
 interface ListModelsResponseWire {
 	models?: Array<{
 		id?: string;
@@ -4286,6 +4335,16 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 		);
 		const wire = await unary({ tool_name: request.toolName });
 		return mapToolInfoResponse(wire);
+	}
+
+	async listCommands(): Promise<UniverseAgentListCommandsResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, ListCommandsResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.Tool.service,
+			UniverseAgentGrpcServices.Tool.ListCommands,
+		);
+		const wire = await unary({});
+		return mapListCommandsResponse(wire);
 	}
 
 	async setPermissionPolicy(request: UniverseAgentSetPermissionPolicyRequest): Promise<UniverseAgentSetPermissionPolicyResult> {

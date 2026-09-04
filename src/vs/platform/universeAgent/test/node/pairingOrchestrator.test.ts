@@ -527,6 +527,7 @@ class RecordingMockTransport implements IUniverseAgentGrpcTransport {
 	async removeMcpServer() { return { ok: true }; }
 	async listTools() { return { tools: [] }; }
 	async getToolInfo() { return { name: '', aliases: [] }; }
+	async listCommands() { return { commands: [], total: 0 }; }
 	async listModels() { return { models: [] }; }
 	async getConfig(): Promise<{ values: Record<string, string>; scope: '' }> {
 		return { values: {}, scope: '' };
