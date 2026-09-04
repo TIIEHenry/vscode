@@ -100,6 +100,8 @@ import type {
 	UniverseAgentSwitchWorkDirResult,
 	UniverseAgentTestModelProfileRequest,
 	UniverseAgentTestModelProfileResult,
+	UniverseAgentSetConfigRequest,
+	UniverseAgentSetConfigResult,
 	UniverseAgentSetSessionGoalRequest,
 	UniverseAgentSetSessionGoalResult,
 	UniverseAgentCancelSessionGoalRequest,
@@ -579,6 +581,15 @@ export interface IUniverseAgentConnection {
 	 * ≠ SwitchWorkDir / ListModels / SwitchModel / Config.Get / Config.Set.
 	 */
 	testModelProfile?(request: UniverseAgentTestModelProfileRequest): Promise<UniverseAgentTestModelProfileResult>;
+
+	/**
+	 * ConfigService.Set unary (SetConfigResponse.success → ok). Optional so Web
+	 * / tests can omit it. Catalog + node transport only this slice; empty
+	 * `key` / `value` / `scope` / `sessionId` are sent as-is. No Conversation
+	 * roster / Engine Preferences UI.
+	 * ≠ Get / Watch / ListModels / SwitchModel.
+	 */
+	setConfig?(request: UniverseAgentSetConfigRequest): Promise<UniverseAgentSetConfigResult>;
 
 	/**
 	 * PermissionService.SetSessionGoal unary (Inbox Goal). Optional so Web / tests

@@ -755,6 +755,23 @@ export interface UniverseAgentTestModelProfileResult {
 	readonly message?: string;
 }
 
+/** ConfigService.Set — generic KV write (≠ Get / Watch / ListModels / SwitchModel). */
+export interface UniverseAgentSetConfigRequest {
+	readonly key: string;
+	/** Proto `value`. Empty sent as-is. */
+	readonly value: string;
+	/** Proto `scope`. Empty sent as-is. */
+	readonly scope: string;
+	/** Proto `session_id`. Empty sent as-is. */
+	readonly sessionId: string;
+}
+
+export interface UniverseAgentSetConfigResult {
+	readonly ok: boolean;
+	/** Proto `message`. */
+	readonly message?: string;
+}
+
 
 /** PermissionService.SetSessionGoal request (Inbox Goal). */
 export interface UniverseAgentSetSessionGoalRequest {

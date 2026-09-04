@@ -93,6 +93,8 @@ import type {
 	UniverseAgentSwitchWorkDirResult,
 	UniverseAgentTestModelProfileRequest,
 	UniverseAgentTestModelProfileResult,
+	UniverseAgentSetConfigRequest,
+	UniverseAgentSetConfigResult,
 	UniverseAgentSetSessionGoalRequest,
 	UniverseAgentSetSessionGoalResult,
 	UniverseAgentCancelSessionGoalRequest,
@@ -549,6 +551,14 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 	async testModelProfile(request: UniverseAgentTestModelProfileRequest): Promise<UniverseAgentTestModelProfileResult> {
 		this.testModelProfileCalls.push(request);
 		return this.testModelProfileResult;
+	}
+
+	readonly setConfigCalls: UniverseAgentSetConfigRequest[] = [];
+	setConfigResult: UniverseAgentSetConfigResult = { ok: true };
+
+	async setConfig(request: UniverseAgentSetConfigRequest): Promise<UniverseAgentSetConfigResult> {
+		this.setConfigCalls.push(request);
+		return this.setConfigResult;
 	}
 
 	readonly setGoalCalls: UniverseAgentSetSessionGoalRequest[] = [];
@@ -1300,6 +1310,11 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
 	});
 
+	test('UniverseAgentGrpcServices lists Config.Set', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Config.Set, 'Set');
+		assert.strictEqual(UniverseAgentGrpcServices.Config.service, 'universeagent.config.v1.ConfigService');
+	});
+
 	test('UniverseAgentGrpcServices lists Agent.SubscribeToolDetail', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.SubscribeToolDetail, 'SubscribeToolDetail');
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
@@ -1925,6 +1940,43 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(transport.testModelProfileCalls[1]?.baseUrl, '');
 		assert.strictEqual(transport.testModelProfileCalls[1]?.protocol, '');
 		assert.deepStrictEqual(transport.testModelProfileCalls[1]?.params, {});
+		service.dispose();
+	});
+
+	test('setConfig forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.setConfigResult = { ok: true, message: '' };
+		const result = await service.setConfig({
+			key: 'theme',
+			value: 'dark',
+			scope: 'session',
+			sessionId: 'sess-1',
+		});
+		assert.deepStrictEqual(transport.setConfigCalls, [{
+			key: 'theme',
+			value: 'dark',
+			scope: 'session',
+			sessionId: 'sess-1',
+		}]);
+		assert.deepStrictEqual(result, transport.setConfigResult);
+
+		transport.setConfigResult = { ok: false, message: 'refused' };
+		const empty = await service.setConfig({
+			key: '',
+			value: '',
+			scope: '',
+			sessionId: '',
+		});
+		assert.deepStrictEqual(empty, transport.setConfigResult);
+		assert.strictEqual(transport.setConfigCalls[1]?.key, '');
+		assert.strictEqual(transport.setConfigCalls[1]?.value, '');
+		assert.strictEqual(transport.setConfigCalls[1]?.scope, '');
+		assert.strictEqual(transport.setConfigCalls[1]?.sessionId, '');
 		service.dispose();
 	});
 
