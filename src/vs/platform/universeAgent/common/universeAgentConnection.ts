@@ -214,6 +214,8 @@ import type {
 	UniverseAgentWriteFileRequest,
 	UniverseAgentWriteFileResult,
 	UniverseAgentForceWriteFileRequest,
+	UniverseAgentAgentMergeRequest,
+	UniverseAgentAgentMergeResult,
 	UniverseAgentSetPermissionPolicyRequest,
 	UniverseAgentSetPermissionPolicyResult,
 	UniverseAgentListModelsResult,
@@ -1157,6 +1159,16 @@ export interface IUniverseAgentConnection {
 	 * ≠ ListFiles / ReadFile / GetFileInfo / WriteFile / AgentMerge.
 	 */
 	forceWriteFile?(request: UniverseAgentForceWriteFileRequest): Promise<UniverseAgentWriteFileResult>;
+
+	/**
+	 * FileService.AgentMerge unary. Optional so Web / tests can omit it.
+	 * Catalog + node transport only this slice; empty `sessionId` / `path`
+	 * are sent as-is. Empty `baseContent` / `currentContent` / `userContent`
+	 * sent as-is. Proto fields only. No Conversation roster / UI / Engine
+	 * Preferences / Composer.
+	 * ≠ ListFiles / ReadFile / GetFileInfo / WriteFile / ForceWriteFile.
+	 */
+	agentMerge?(request: UniverseAgentAgentMergeRequest): Promise<UniverseAgentAgentMergeResult>;
 
 	/**
 	 * ConfigService.SetPermissionPolicy unary (session/tool Ask/Agent/Permit

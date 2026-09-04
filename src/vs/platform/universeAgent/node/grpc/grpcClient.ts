@@ -275,6 +275,8 @@ import type {
 	UniverseAgentWriteFileResult,
 	UniverseAgentWriteFileStatus,
 	UniverseAgentForceWriteFileRequest,
+	UniverseAgentAgentMergeRequest,
+	UniverseAgentAgentMergeResult,
 	UniverseAgentListModelsResult,
 	UniverseAgentGetConfigRequest,
 	UniverseAgentGetConfigResult,
@@ -2703,6 +2705,16 @@ function mapWriteFileResponse(wire: WriteFileResponseWire): UniverseAgentWriteFi
 	};
 }
 
+interface AgentMergeResponseWire {
+	accepted?: boolean;
+}
+
+function mapAgentMergeResponse(wire: AgentMergeResponseWire): UniverseAgentAgentMergeResult {
+	return {
+		accepted: wire.accepted === true,
+	};
+}
+
 interface ListModelsResponseWire {
 	models?: Array<{
 		id?: string;
@@ -4610,6 +4622,22 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			session_id: request.sessionId,
 		});
 		return mapWriteFileResponse(wire);
+	}
+
+	async agentMerge(request: UniverseAgentAgentMergeRequest): Promise<UniverseAgentAgentMergeResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, AgentMergeResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.File.service,
+			UniverseAgentGrpcServices.File.AgentMerge,
+		);
+		const wire = await unary({
+			session_id: request.sessionId,
+			path: request.path,
+			base_content: bytesToBase64(request.baseContent),
+			current_content: bytesToBase64(request.currentContent),
+			user_content: bytesToBase64(request.userContent),
+		});
+		return mapAgentMergeResponse(wire);
 	}
 
 	async setPermissionPolicy(request: UniverseAgentSetPermissionPolicyRequest): Promise<UniverseAgentSetPermissionPolicyResult> {

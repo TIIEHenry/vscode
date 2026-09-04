@@ -189,6 +189,8 @@ import type {
 	UniverseAgentWriteFileRequest,
 	UniverseAgentWriteFileResult,
 	UniverseAgentForceWriteFileRequest,
+	UniverseAgentAgentMergeRequest,
+	UniverseAgentAgentMergeResult,
 	UniverseAgentGetHistoryRequest,
 	UniverseAgentGetHistoryResult,
 	UniverseAgentListSessionsRequest,
@@ -1342,6 +1344,16 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 		return this.forceWriteFileResult;
 	}
 
+	readonly agentMergeCalls: UniverseAgentAgentMergeRequest[] = [];
+	agentMergeResult: UniverseAgentAgentMergeResult = {
+		accepted: false,
+	};
+
+	async agentMerge(request: UniverseAgentAgentMergeRequest): Promise<UniverseAgentAgentMergeResult> {
+		this.agentMergeCalls.push(request);
+		return this.agentMergeResult;
+	}
+
 	async listModels() {
 		return { models: [] };
 	}
@@ -1732,6 +1744,11 @@ suite('UniverseAgentConnectionService', () => {
 
 	test('UniverseAgentGrpcServices lists File.ForceWriteFile', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.File.ForceWriteFile, 'ForceWriteFile');
+		assert.strictEqual(UniverseAgentGrpcServices.File.service, 'universeagent.file.v1.FileService');
+	});
+
+	test('UniverseAgentGrpcServices lists File.AgentMerge', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.File.AgentMerge, 'AgentMerge');
 		assert.strictEqual(UniverseAgentGrpcServices.File.service, 'universeagent.file.v1.FileService');
 	});
 
@@ -4182,6 +4199,43 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(forceEmpty.currentHash, '');
 		assert.deepStrictEqual(forceEmpty.currentContent, new Uint8Array(0));
 		assert.deepStrictEqual(forceEmpty.mergedContent, new Uint8Array(0));
+		service.dispose();
+	});
+
+	test('agentMerge forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.agentMergeResult = { accepted: true };
+		const mergeRequest = {
+			sessionId: 'sess-1',
+			path: 'src/foo.ts',
+			baseContent: new Uint8Array([97]),
+			currentContent: new Uint8Array([98]),
+			userContent: new Uint8Array([99]),
+		};
+		const mergeResult = await service.agentMerge(mergeRequest);
+		assert.deepStrictEqual(transport.agentMergeCalls, [mergeRequest]);
+		assert.deepStrictEqual(mergeResult, transport.agentMergeResult);
+
+		transport.agentMergeResult = { accepted: false };
+		const mergeEmptyRequest = {
+			sessionId: '',
+			path: '',
+			baseContent: new Uint8Array(0),
+			currentContent: new Uint8Array(0),
+			userContent: new Uint8Array(0),
+		};
+		const mergeEmpty = await service.agentMerge(mergeEmptyRequest);
+		assert.strictEqual(transport.agentMergeCalls[1]?.sessionId, '');
+		assert.strictEqual(transport.agentMergeCalls[1]?.path, '');
+		assert.deepStrictEqual(transport.agentMergeCalls[1]?.baseContent, new Uint8Array(0));
+		assert.deepStrictEqual(transport.agentMergeCalls[1]?.currentContent, new Uint8Array(0));
+		assert.deepStrictEqual(transport.agentMergeCalls[1]?.userContent, new Uint8Array(0));
+		assert.strictEqual(mergeEmpty.accepted, false);
 		service.dispose();
 	});
 

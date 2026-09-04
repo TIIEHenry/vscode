@@ -548,6 +548,9 @@ class RecordingMockTransport implements IUniverseAgentGrpcTransport {
 	async forceWriteFile() {
 		return { status: 'SAVED' as const, newHash: '', size: 0, modifiedAt: 0, currentContent: new Uint8Array(0), currentHash: '', mergedContent: new Uint8Array(0) };
 	}
+	async agentMerge() {
+		return { accepted: false };
+	}
 	async listModels() { return { models: [] }; }
 	async getConfig(): Promise<{ values: Record<string, string>; scope: '' }> {
 		return { values: {}, scope: '' };
