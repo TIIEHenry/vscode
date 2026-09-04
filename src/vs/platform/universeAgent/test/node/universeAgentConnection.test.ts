@@ -10,6 +10,7 @@ import type {
 	UniverseAgentChatResponse,
 	UniverseAgentChatStream,
 	UniverseAgentContinueGenerationRequest,
+	UniverseAgentRegenerateRequest,
 	UniverseAgentConnectRequest,
 	UniverseAgentConnectResult,
 	UniverseAgentCreateSessionRequest,
@@ -538,6 +539,31 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 		this._continuationGate?.finish(cause);
 	}
 
+	private _regenerateGate: ReturnType<typeof createStreamCloseGate> | undefined;
+	readonly regenerateOpens: UniverseAgentRegenerateRequest[] = [];
+
+	openRegenerateStream(
+		request: UniverseAgentRegenerateRequest,
+		_onResponse: (response: UniverseAgentChatResponse) => void,
+		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
+	): { dispose(): void } {
+		this.regenerateOpens.push(request);
+		const gate = createStreamCloseGate(onClosed);
+		this._regenerateGate = gate;
+		return {
+			dispose: () => {
+				gate.closeLocal();
+				if (this._regenerateGate === gate) {
+					this._regenerateGate = undefined;
+				}
+			},
+		};
+	}
+
+	fireRegenerateClosed(cause: UniverseAgentSessionStreamCloseCause): void {
+		this._regenerateGate?.finish(cause);
+	}
+
 	async listSkills() {
 		return { skills: [] };
 	}
@@ -723,6 +749,11 @@ suite('UniverseAgentConnectionService', () => {
 
 	test('UniverseAgentGrpcServices lists Agent.ContinueGeneration', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.ContinueGeneration, 'ContinueGeneration');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+	});
+
+	test('UniverseAgentGrpcServices lists Agent.Regenerate', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.Regenerate, 'Regenerate');
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
 	});
 
@@ -1745,6 +1776,64 @@ suite('UniverseAgentConnectionService', () => {
 		}, () => { }, cause => seen.push(cause));
 		handle.dispose();
 		transport.fireContinuationClosed({ kind: 'error', message: 'CANCELLED' });
+		assert.deepStrictEqual(seen, []);
+		service.dispose();
+	});
+
+	test('openRegenerateStream forwards request and transport onClosed', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		const seen: UniverseAgentSessionStreamCloseCause[] = [];
+		const handle = service.openRegenerateStream({
+			sessionId: 'sess-1',
+			agentId: 'agent-a',
+			turnId: 'turn-9',
+			messageId: 'msg-3',
+		}, () => { }, cause => seen.push(cause));
+		assert.deepStrictEqual(transport.regenerateOpens, [{
+			sessionId: 'sess-1',
+			agentId: 'agent-a',
+			turnId: 'turn-9',
+			messageId: 'msg-3',
+		}]);
+		transport.fireRegenerateClosed({ kind: 'remote' });
+		transport.fireRegenerateClosed({ kind: 'error', message: 'late' });
+		assert.deepStrictEqual(seen, [{ kind: 'remote' }]);
+
+		service.openRegenerateStream({
+			sessionId: '',
+			agentId: '',
+			turnId: '',
+			messageId: '',
+		}, () => { });
+		assert.strictEqual(transport.regenerateOpens[1]?.sessionId, '');
+		assert.strictEqual(transport.regenerateOpens[1]?.agentId, '');
+		assert.strictEqual(transport.regenerateOpens[1]?.turnId, '');
+		assert.strictEqual(transport.regenerateOpens[1]?.messageId, '');
+		handle.dispose();
+		service.dispose();
+	});
+
+	test('openRegenerateStream dispose silences later onClosed', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		const seen: UniverseAgentSessionStreamCloseCause[] = [];
+		const handle = service.openRegenerateStream({
+			sessionId: 'sess-1',
+			agentId: 'agent-a',
+			turnId: 'turn-9',
+			messageId: 'msg-3',
+		}, () => { }, cause => seen.push(cause));
+		handle.dispose();
+		transport.fireRegenerateClosed({ kind: 'error', message: 'CANCELLED' });
 		assert.deepStrictEqual(seen, []);
 		service.dispose();
 	});
