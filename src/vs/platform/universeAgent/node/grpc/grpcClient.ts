@@ -126,6 +126,8 @@ import type {
 	UniverseAgentCancelSessionGoalResult,
 	UniverseAgentRespondPermissionRequest,
 	UniverseAgentRespondPermissionResult,
+	UniverseAgentPromotePermissionRuleRequest,
+	UniverseAgentPromotePermissionRuleResult,
 	UniverseAgentRespondQuestionRequest,
 	UniverseAgentRespondQuestionResult,
 	UniverseAgentQuestionAnswer,
@@ -3229,6 +3231,22 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 		return {
 			ok: wire.success === true,
 			message: wire.error,
+		};
+	}
+
+	async promotePermissionRule(request: UniverseAgentPromotePermissionRuleRequest): Promise<UniverseAgentPromotePermissionRuleResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, { success?: boolean }>(
+			this._channel,
+			UniverseAgentGrpcServices.Permission.service,
+			UniverseAgentGrpcServices.Permission.PromotePermissionRule,
+		);
+		const wire = await unary({
+			tool_name: request.toolName,
+			scope: request.scope,
+			action: request.action,
+		});
+		return {
+			ok: wire.success === true,
 		};
 	}
 

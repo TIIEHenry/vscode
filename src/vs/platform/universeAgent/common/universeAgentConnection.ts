@@ -106,6 +106,8 @@ import type {
 	UniverseAgentCancelSessionGoalResult,
 	UniverseAgentRespondPermissionRequest,
 	UniverseAgentRespondPermissionResult,
+	UniverseAgentPromotePermissionRuleRequest,
+	UniverseAgentPromotePermissionRuleResult,
 	UniverseAgentRespondQuestionRequest,
 	UniverseAgentRespondQuestionResult,
 	UniverseAgentEnqueueQueueItemRequest,
@@ -572,6 +574,15 @@ export interface IUniverseAgentConnection {
 	 * `permissionRespond`.
 	 */
 	respondPermission?(request: UniverseAgentRespondPermissionRequest): Promise<UniverseAgentRespondPermissionResult>;
+
+	/**
+	 * PermissionService.PromotePermissionRule unary (PromoteRuleResponse.success
+	 * → ok). Optional so Web / tests can omit it. Catalog + node transport only
+	 * this slice; empty `toolName` / `scope` / `action` are sent as-is. No
+	 * Conversation roster / UI.
+	 * ≠ Respond / SetSessionGoal / SyncPermissionRule / GetSessionRules.
+	 */
+	promotePermissionRule?(request: UniverseAgentPromotePermissionRuleRequest): Promise<UniverseAgentPromotePermissionRuleResult>;
 
 	/**
 	 * AgentService.RespondQuestion unary (ADR-325 ask_user reply). Optional so

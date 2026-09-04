@@ -99,6 +99,8 @@ import type {
 	UniverseAgentCancelSessionGoalResult,
 	UniverseAgentRespondPermissionRequest,
 	UniverseAgentRespondPermissionResult,
+	UniverseAgentPromotePermissionRuleRequest,
+	UniverseAgentPromotePermissionRuleResult,
 	UniverseAgentRespondQuestionRequest,
 	UniverseAgentRespondQuestionResult,
 	UniverseAgentEnqueueQueueItemRequest,
@@ -549,6 +551,14 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 	async respondPermission(request: UniverseAgentRespondPermissionRequest): Promise<UniverseAgentRespondPermissionResult> {
 		this.respondPermissionCalls.push(request);
 		return this.respondPermissionResult;
+	}
+
+	readonly promotePermissionRuleCalls: UniverseAgentPromotePermissionRuleRequest[] = [];
+	promotePermissionRuleResult: UniverseAgentPromotePermissionRuleResult = { ok: true };
+
+	async promotePermissionRule(request: UniverseAgentPromotePermissionRuleRequest): Promise<UniverseAgentPromotePermissionRuleResult> {
+		this.promotePermissionRuleCalls.push(request);
+		return this.promotePermissionRuleResult;
 	}
 
 	readonly respondQuestionCalls: UniverseAgentRespondQuestionRequest[] = [];
@@ -1196,6 +1206,11 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Permission.service, 'universeagent.session.v1.PermissionService');
 	});
 
+	test('UniverseAgentGrpcServices lists Permission.PromotePermissionRule', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Permission.PromotePermissionRule, 'PromotePermissionRule');
+		assert.strictEqual(UniverseAgentGrpcServices.Permission.service, 'universeagent.session.v1.PermissionService');
+	});
+
 	test('UniverseAgentGrpcServices lists Agent.InsertQueueItem', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.InsertQueueItem, 'InsertQueueItem');
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
@@ -1801,6 +1816,39 @@ suite('UniverseAgentConnectionService', () => {
 		assert.deepStrictEqual(failed, { ok: false, message: 'expired' });
 		assert.strictEqual(transport.respondPermissionCalls[1]?.granted, false);
 		assert.strictEqual(transport.respondPermissionCalls[1]?.metadataJson, '{"note":"deny"}');
+		service.dispose();
+	});
+
+	test('promotePermissionRule forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.promotePermissionRuleResult = { ok: true };
+		const result = await service.promotePermissionRule({
+			toolName: 'shell',
+			scope: 'workdir',
+			action: 'ALLOW',
+		});
+		assert.deepStrictEqual(transport.promotePermissionRuleCalls, [{
+			toolName: 'shell',
+			scope: 'workdir',
+			action: 'ALLOW',
+		}]);
+		assert.deepStrictEqual(result, { ok: true });
+
+		transport.promotePermissionRuleResult = { ok: false };
+		const empty = await service.promotePermissionRule({
+			toolName: '',
+			scope: '',
+			action: '',
+		});
+		assert.deepStrictEqual(empty, { ok: false });
+		assert.strictEqual(transport.promotePermissionRuleCalls[1]?.toolName, '');
+		assert.strictEqual(transport.promotePermissionRuleCalls[1]?.scope, '');
+		assert.strictEqual(transport.promotePermissionRuleCalls[1]?.action, '');
 		service.dispose();
 	});
 

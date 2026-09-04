@@ -791,6 +791,18 @@ export interface UniverseAgentRespondPermissionResult {
 	readonly message?: string;
 }
 
+/** PermissionService.PromotePermissionRule — promote a tool rule to global config (≠ Respond / SetSessionGoal / SyncPermissionRule / GetSessionRules). */
+export interface UniverseAgentPromotePermissionRuleRequest {
+	readonly toolName: string;
+	readonly scope: string;
+	/** Proto `RuleAction` name (`ALLOW` / `DENY` / `RULE_ACTION_UNSPECIFIED`). Sent as-is. */
+	readonly action: string;
+}
+
+export interface UniverseAgentPromotePermissionRuleResult {
+	readonly ok: boolean;
+}
+
 /** One item answer for AgentService.RespondQuestion (QuestionAnswer.selected_labels). */
 export interface UniverseAgentQuestionAnswer {
 	readonly selectedLabels: readonly string[];
