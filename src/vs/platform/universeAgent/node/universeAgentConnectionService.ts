@@ -78,6 +78,8 @@ import type {
 	UniverseAgentCancelToolCallResult,
 	UniverseAgentRunToolInBackgroundRequest,
 	UniverseAgentRunToolInBackgroundResult,
+	UniverseAgentSendShellSessionClientControlRequest,
+	UniverseAgentSendShellSessionClientControlResult,
 	UniverseAgentSetSessionGoalRequest,
 	UniverseAgentSetSessionGoalResult,
 	UniverseAgentCancelSessionGoalRequest,
@@ -800,6 +802,10 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 
 	async runToolInBackground(request: UniverseAgentRunToolInBackgroundRequest): Promise<UniverseAgentRunToolInBackgroundResult> {
 		return this._withTransport(transport => transport.runToolInBackground(request));
+	}
+
+	async sendShellSessionClientControl(request: UniverseAgentSendShellSessionClientControlRequest): Promise<UniverseAgentSendShellSessionClientControlResult> {
+		return this._withTransport(transport => transport.sendShellSessionClientControl(request));
 	}
 
 	async setSessionGoal(request: UniverseAgentSetSessionGoalRequest): Promise<UniverseAgentSetSessionGoalResult> {

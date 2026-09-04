@@ -90,6 +90,8 @@ import type {
 	UniverseAgentCancelToolCallResult,
 	UniverseAgentRunToolInBackgroundRequest,
 	UniverseAgentRunToolInBackgroundResult,
+	UniverseAgentSendShellSessionClientControlRequest,
+	UniverseAgentSendShellSessionClientControlResult,
 	UniverseAgentSetSessionGoalRequest,
 	UniverseAgentSetSessionGoalResult,
 	UniverseAgentCancelSessionGoalRequest,
@@ -2662,6 +2664,33 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			ok: wire.success === true,
 			message: wire.message,
 			reasonCode: wire.reason_code,
+		};
+	}
+
+	async sendShellSessionClientControl(request: UniverseAgentSendShellSessionClientControlRequest): Promise<UniverseAgentSendShellSessionClientControlResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, {
+			success?: boolean;
+			error_message?: string;
+			error_code?: string;
+			debounced?: boolean;
+			delivered_to_subscribe?: boolean;
+		}>(
+			this._channel,
+			UniverseAgentGrpcServices.Agent.service,
+			UniverseAgentGrpcServices.Agent.SendShellSessionClientControl,
+		);
+		const wire = await unary({
+			session_id: request.sessionId,
+			tool_call_id: request.toolCallId,
+			ref_id: request.refId,
+			control_payload_json: request.controlPayloadJson,
+		});
+		return {
+			ok: wire.success === true,
+			message: wire.error_message,
+			errorCode: wire.error_code,
+			debounced: wire.debounced,
+			deliveredToSubscribe: wire.delivered_to_subscribe,
 		};
 	}
 

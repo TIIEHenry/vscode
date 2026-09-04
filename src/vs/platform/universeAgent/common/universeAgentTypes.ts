@@ -606,6 +606,25 @@ export interface UniverseAgentRunToolInBackgroundResult {
 	readonly reasonCode?: string;
 }
 
+/** AgentService.SendShellSessionClientControl — SHELL_SESSION_BUFFER CONTROL upstream (resize / detach / resync) (≠ StopShellTask / SubscribeToolDetail / FetchToolUsageDetail / CancelToolCall / RunToolInBackground). */
+export interface UniverseAgentSendShellSessionClientControlRequest {
+	readonly sessionId: string;
+	readonly toolCallId: string;
+	/** Proto `ref_id` (engine_shell_session_id). Empty sent as-is. */
+	readonly refId: string;
+	/** Proto `control_payload_json`. Empty sent as-is. */
+	readonly controlPayloadJson: string;
+}
+
+export interface UniverseAgentSendShellSessionClientControlResult {
+	readonly ok: boolean;
+	/** Proto `error_message`. */
+	readonly message?: string;
+	readonly errorCode?: string;
+	readonly debounced?: boolean;
+	readonly deliveredToSubscribe?: boolean;
+}
+
 /** PermissionService.SetSessionGoal request (Inbox Goal). */
 export interface UniverseAgentSetSessionGoalRequest {
 	readonly sessionId: string;
