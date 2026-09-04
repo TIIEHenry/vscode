@@ -31,6 +31,8 @@ import type {
 	UniverseAgentPurgeSessionResult,
 	UniverseAgentExportSessionRequest,
 	UniverseAgentExportSessionResult,
+	UniverseAgentResolveTurnRequest,
+	UniverseAgentResolveTurnResult,
 	UniverseAgentAgentStatusRequest,
 	UniverseAgentAgentStatusResult,
 	UniverseAgentTodoRequest,
@@ -253,6 +255,14 @@ export interface IUniverseAgentConnection {
 	 * ≠ Shelve / Unshelve / Resume / Delete.
 	 */
 	exportSession?(request: UniverseAgentExportSessionRequest): Promise<UniverseAgentExportSessionResult>;
+
+	/**
+	 * SessionService.ResolveTurn unary (turn→CHAT envelope lookup). Optional so
+	 * Web / tests can omit it. Catalog + node transport only this slice; empty
+	 * `sessionId` / `turnId` / `currentLeafTurnId` are sent as-is. No Conversation
+	 * roster / UI. ≠ ResolveAnchor / GetHistory / Export.
+	 */
+	resolveTurn?(request: UniverseAgentResolveTurnRequest): Promise<UniverseAgentResolveTurnResult>;
 
 	/**
 	 * AgentService.Status unary (StatusResponse.agent → AgentInfo). Optional so

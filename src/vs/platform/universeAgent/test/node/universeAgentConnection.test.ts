@@ -27,6 +27,8 @@ import type {
 	UniverseAgentPurgeSessionResult,
 	UniverseAgentExportSessionRequest,
 	UniverseAgentExportSessionResult,
+	UniverseAgentResolveTurnRequest,
+	UniverseAgentResolveTurnResult,
 	UniverseAgentAgentStatusRequest,
 	UniverseAgentAgentStatusResult,
 	UniverseAgentTodoRequest,
@@ -225,6 +227,14 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 	async exportSession(request: UniverseAgentExportSessionRequest): Promise<UniverseAgentExportSessionResult> {
 		this.exportSessionCalls.push(request);
 		return this.exportSessionResult;
+	}
+
+	readonly resolveTurnCalls: UniverseAgentResolveTurnRequest[] = [];
+	resolveTurnResult: UniverseAgentResolveTurnResult = { kind: 'unspecified' };
+
+	async resolveTurn(request: UniverseAgentResolveTurnRequest): Promise<UniverseAgentResolveTurnResult> {
+		this.resolveTurnCalls.push(request);
+		return this.resolveTurnResult;
 	}
 
 	readonly getAgentStatusCalls: UniverseAgentAgentStatusRequest[] = [];
@@ -817,6 +827,11 @@ suite('UniverseAgentConnectionService', () => {
 
 	test('UniverseAgentGrpcServices lists Session.Export', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Session.Export, 'Export');
+		assert.strictEqual(UniverseAgentGrpcServices.Session.service, 'universeagent.session.v1.SessionService');
+	});
+
+	test('UniverseAgentGrpcServices lists Session.ResolveTurn', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Session.ResolveTurn, 'ResolveTurn');
 		assert.strictEqual(UniverseAgentGrpcServices.Session.service, 'universeagent.session.v1.SessionService');
 	});
 
@@ -1485,6 +1500,32 @@ suite('UniverseAgentConnectionService', () => {
 		assert.deepStrictEqual(empty, { content: '', format: '' });
 		assert.strictEqual(transport.exportSessionCalls[1]?.sessionId, '');
 		assert.strictEqual(transport.exportSessionCalls[1]?.format, '');
+		service.dispose();
+	});
+
+	test('resolveTurn forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.resolveTurnResult = {
+			kind: 'hit',
+			envelope: { id: 'env-1' },
+			presence: 'ENVELOPE_RECORD_PRESENCE_ACTIVE_OFF_PATH',
+			generation: 2,
+		};
+		const result = await service.resolveTurn({ sessionId: 'sess-1', turnId: 'turn-1', currentLeafTurnId: 'leaf-1' });
+		assert.deepStrictEqual(transport.resolveTurnCalls, [{ sessionId: 'sess-1', turnId: 'turn-1', currentLeafTurnId: 'leaf-1' }]);
+		assert.deepStrictEqual(result, transport.resolveTurnResult);
+
+		transport.resolveTurnResult = { kind: 'expired', sessionId: '', envelopeId: '' };
+		const empty = await service.resolveTurn({ sessionId: '', turnId: '', currentLeafTurnId: '' });
+		assert.deepStrictEqual(empty, transport.resolveTurnResult);
+		assert.strictEqual(transport.resolveTurnCalls[1]?.sessionId, '');
+		assert.strictEqual(transport.resolveTurnCalls[1]?.turnId, '');
+		assert.strictEqual(transport.resolveTurnCalls[1]?.currentLeafTurnId, '');
 		service.dispose();
 	});
 

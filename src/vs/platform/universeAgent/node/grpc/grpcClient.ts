@@ -29,6 +29,8 @@ import type {
 	UniverseAgentPurgeSessionResult,
 	UniverseAgentExportSessionRequest,
 	UniverseAgentExportSessionResult,
+	UniverseAgentResolveTurnRequest,
+	UniverseAgentResolveTurnResult,
 	UniverseAgentAgentStatusRequest,
 	UniverseAgentAgentStatusResult,
 	UniverseAgentTodoRequest,
@@ -236,6 +238,41 @@ interface ExportSessionResponseWire {
 	content?: string;
 	format?: string;
 }
+
+interface ResolveTurnHitWire {
+	envelope?: unknown;
+	presence?: string | number;
+	generation?: number | string;
+}
+
+interface ResolveTurnTombstoneWire {
+	session_id?: string;
+	envelope_id?: string;
+	seq?: number | string;
+	turn_id?: string;
+	generation?: number | string;
+}
+
+interface ResolveTurnExpiredWire {
+	anchor?: {
+		session_id?: string;
+		envelope_id?: string;
+		generation?: number | string;
+	};
+}
+
+interface ResolveTurnResponseWire {
+	hit?: ResolveTurnHitWire;
+	tombstone?: ResolveTurnTombstoneWire;
+	expired?: ResolveTurnExpiredWire;
+}
+
+const EnvelopeRecordPresenceByNumber: Record<number, string> = {
+	0: 'ENVELOPE_RECORD_PRESENCE_UNSPECIFIED',
+	1: 'ENVELOPE_RECORD_PRESENCE_ACTIVE_ON_PATH',
+	2: 'ENVELOPE_RECORD_PRESENCE_ACTIVE_OFF_PATH',
+	3: 'ENVELOPE_RECORD_PRESENCE_ARCHIVED',
+};
 
 interface StatusResponseWire {
 	agent?: AgentInfoWire;
@@ -669,6 +706,66 @@ function mapExportSessionResponse(wire: ExportSessionResponseWire): UniverseAgen
 		content: wire.content ?? '',
 		format: wire.format ?? '',
 	};
+}
+
+function mapEnvelopeRecordPresence(value: string | number | undefined): string {
+	if (value === undefined || value === '') {
+		return 'ENVELOPE_RECORD_PRESENCE_UNSPECIFIED';
+	}
+	if (typeof value === 'number') {
+		return EnvelopeRecordPresenceByNumber[value] ?? String(value);
+	}
+	return value;
+}
+
+function mapOptionalWireInt(value: number | string | undefined): number | undefined {
+	if (value === undefined || value === '') {
+		return undefined;
+	}
+	if (typeof value === 'number') {
+		return Number.isFinite(value) ? value : undefined;
+	}
+	const parsed = Number(value);
+	return Number.isFinite(parsed) ? parsed : undefined;
+}
+
+function mapWireInt(value: number | string | undefined): number {
+	return mapOptionalWireInt(value) ?? 0;
+}
+
+function mapResolveTurnResponse(wire: ResolveTurnResponseWire): UniverseAgentResolveTurnResult {
+	if (wire.hit) {
+		const generation = mapOptionalWireInt(wire.hit.generation);
+		return {
+			kind: 'hit',
+			envelope: wire.hit.envelope !== undefined && wire.hit.envelope !== null ? wire.hit.envelope : {},
+			presence: mapEnvelopeRecordPresence(wire.hit.presence),
+			...(generation !== undefined ? { generation } : {}),
+		};
+	}
+	if (wire.tombstone) {
+		const turnId = wire.tombstone.turn_id;
+		const generation = mapOptionalWireInt(wire.tombstone.generation);
+		return {
+			kind: 'tombstone',
+			sessionId: wire.tombstone.session_id ?? '',
+			envelopeId: wire.tombstone.envelope_id ?? '',
+			seq: mapWireInt(wire.tombstone.seq),
+			...(turnId !== undefined ? { turnId } : {}),
+			...(generation !== undefined ? { generation } : {}),
+		};
+	}
+	if (wire.expired) {
+		const anchor = wire.expired.anchor;
+		const generation = mapOptionalWireInt(anchor?.generation);
+		return {
+			kind: 'expired',
+			sessionId: anchor?.session_id ?? '',
+			envelopeId: anchor?.envelope_id ?? '',
+			...(generation !== undefined ? { generation } : {}),
+		};
+	}
+	return { kind: 'unspecified' };
 }
 
 function mapStatusResponse(wire: StatusResponseWire): UniverseAgentAgentStatusResult {
@@ -1724,6 +1821,20 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			format: request.format,
 		});
 		return mapExportSessionResponse(wire);
+	}
+
+	async resolveTurn(request: UniverseAgentResolveTurnRequest): Promise<UniverseAgentResolveTurnResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, ResolveTurnResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.Session.service,
+			UniverseAgentGrpcServices.Session.ResolveTurn,
+		);
+		const wire = await unary({
+			session_id: request.sessionId,
+			turn_id: request.turnId,
+			current_leaf_turn_id: request.currentLeafTurnId,
+		});
+		return mapResolveTurnResponse(wire);
 	}
 
 	async getAgentStatus(request: UniverseAgentAgentStatusRequest): Promise<UniverseAgentAgentStatusResult> {
