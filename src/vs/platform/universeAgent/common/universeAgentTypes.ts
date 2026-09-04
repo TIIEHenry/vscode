@@ -905,6 +905,19 @@ export interface UniverseAgentMessageMemberResult {
 	readonly message?: string;
 }
 
+/** TeamService.KillMember — Manager terminates a member (≠ StartMember / CreateTeam / TaskCancel / MessageMember / MemberStatus / TeamInfo / Agent.Kill). */
+export interface UniverseAgentKillMemberRequest {
+	readonly sessionId: string;
+	readonly agentId: string;
+	/** Proto `member_name`. Empty sent as-is. */
+	readonly memberName: string;
+}
+
+export interface UniverseAgentKillMemberResult {
+	readonly ok: boolean;
+	readonly message?: string;
+}
+
 /** One item answer for AgentService.RespondQuestion (QuestionAnswer.selected_labels). */
 export interface UniverseAgentQuestionAnswer {
 	readonly selectedLabels: readonly string[];
