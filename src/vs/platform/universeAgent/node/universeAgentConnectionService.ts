@@ -240,6 +240,9 @@ import type {
 	UniverseAgentReadMemoryResult,
 	UniverseAgentMemoryListRequest,
 	UniverseAgentMemoryListResult,
+	UniverseAgentMemoryRebuildRequest,
+	UniverseAgentMemoryRebuildEvent,
+	UniverseAgentMemoryRebuildStream,
 	UniverseAgentSetPermissionPolicyRequest,
 	UniverseAgentSetPermissionPolicyResult,
 	UniverseAgentListModelsResult,
@@ -1382,6 +1385,15 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 
 	async listMemory(request: UniverseAgentMemoryListRequest): Promise<UniverseAgentMemoryListResult> {
 		return this._withTransport(transport => transport.listMemory(request));
+	}
+
+	openRebuildMemoryStream(
+		request: UniverseAgentMemoryRebuildRequest,
+		onResponse: (response: UniverseAgentMemoryRebuildEvent) => void,
+		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
+	): UniverseAgentMemoryRebuildStream {
+		this._assertTransportReady();
+		return this._transport!.openRebuildMemoryStream(request, onResponse, onClosed);
 	}
 
 	async setPermissionPolicy(request: UniverseAgentSetPermissionPolicyRequest): Promise<UniverseAgentSetPermissionPolicyResult> {

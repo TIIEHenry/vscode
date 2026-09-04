@@ -304,6 +304,9 @@ import type {
 	UniverseAgentMemoryListResult,
 	UniverseAgentMemoryCategoryInfo,
 	UniverseAgentMemoryFileSummary,
+	UniverseAgentMemoryRebuildRequest,
+	UniverseAgentMemoryRebuildEvent,
+	UniverseAgentMemoryRebuildStream,
 	UniverseAgentListModelsResult,
 	UniverseAgentGetConfigRequest,
 	UniverseAgentGetConfigResult,
@@ -2993,6 +2996,24 @@ function mapMemoryListResponse(wire: MemoryListResponseWire): UniverseAgentMemor
 	};
 }
 
+interface MemoryRebuildEventWire {
+	phase?: string;
+	message?: string;
+	progress?: number | string;
+	files_processed?: number | string;
+	files_total?: number | string;
+}
+
+function mapMemoryRebuildEvent(wire: MemoryRebuildEventWire): UniverseAgentMemoryRebuildEvent {
+	return {
+		phase: wire.phase ?? '',
+		message: wire.message ?? '',
+		progress: requiredInt64(wire.progress),
+		filesProcessed: requiredInt64(wire.files_processed),
+		filesTotal: requiredInt64(wire.files_total),
+	};
+}
+
 interface ListModelsResponseWire {
 	models?: Array<{
 		id?: string;
@@ -5077,6 +5098,22 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			category: request.category,
 		});
 		return mapMemoryListResponse(wire);
+	}
+
+	openRebuildMemoryStream(
+		request: UniverseAgentMemoryRebuildRequest,
+		onResponse: (response: UniverseAgentMemoryRebuildEvent) => void,
+		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
+	): UniverseAgentMemoryRebuildStream {
+		const stream = makeServerStreamClient<Record<string, unknown>, MemoryRebuildEventWire>(
+			this._channel,
+			UniverseAgentGrpcServices.Memory.service,
+			UniverseAgentGrpcServices.Memory.Rebuild,
+		);
+		return stream({
+			scope: request.scope,
+			dry_run: request.dryRun,
+		}, wire => onResponse(mapMemoryRebuildEvent(wire)), onClosed);
 	}
 
 	async setPermissionPolicy(request: UniverseAgentSetPermissionPolicyRequest): Promise<UniverseAgentSetPermissionPolicyResult> {

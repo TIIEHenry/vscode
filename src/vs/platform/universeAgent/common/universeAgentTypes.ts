@@ -2240,6 +2240,33 @@ export interface UniverseAgentMemoryListResult {
 }
 
 /**
+ * MemoryService.Rebuild — proto `MemoryRebuildRequest` /
+ * `stream MemoryRebuildEvent` only. Empty `scope` pass through as-is.
+ * `dry_run` false sent as-is. Empty `phase` / `message` mapped as-is.
+ * `progress` / `files_processed` / `files_total` 0 mapped as-is.
+ * ≠ Save / Search / SearchDeep / Read / List / Delete / Reflect /
+ * Revert / History.
+ */
+export interface UniverseAgentMemoryRebuildRequest {
+	readonly scope: string;
+	readonly dryRun: boolean;
+}
+
+/** Proto `MemoryRebuildEvent`. Empty `phase` / `message` mapped as-is. */
+export interface UniverseAgentMemoryRebuildEvent {
+	readonly phase: string;
+	readonly message: string;
+	readonly progress: number;
+	readonly filesProcessed: number;
+	readonly filesTotal: number;
+}
+
+/** Server-stream handle for MemoryService.Rebuild (client does not write). */
+export interface UniverseAgentMemoryRebuildStream {
+	dispose(): void;
+}
+
+/**
  * ConfigService.SetPermissionPolicy — session/tool policy write
  * (≠ SwitchModel / ListModels / Get / Set / GetModelPreferences /
  * SetModelPreferences / SetPermissionMode).
