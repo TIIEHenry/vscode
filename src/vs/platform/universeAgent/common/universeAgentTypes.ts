@@ -878,6 +878,21 @@ export interface UniverseAgentTaskUpdateResult {
 	readonly message?: string;
 }
 
+/** TeamService.MessageMember — Manager→Member mailbox (≠ TaskUpdate / TaskList / TaskCancel / MemberStatus / TeamInfo / CreateTeam). */
+export interface UniverseAgentMessageMemberRequest {
+	readonly sessionId: string;
+	readonly agentId: string;
+	/** Proto `member_name`. Empty sent as-is. */
+	readonly memberName: string;
+	/** Proto `content`. Empty sent as-is. */
+	readonly content: string;
+}
+
+export interface UniverseAgentMessageMemberResult {
+	readonly ok: boolean;
+	readonly message?: string;
+}
+
 /** One item answer for AgentService.RespondQuestion (QuestionAnswer.selected_labels). */
 export interface UniverseAgentQuestionAnswer {
 	readonly selectedLabels: readonly string[];
