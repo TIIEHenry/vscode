@@ -94,6 +94,8 @@ import type {
 	UniverseAgentStopShellTaskResult,
 	UniverseAgentSendShellSessionClientControlRequest,
 	UniverseAgentSendShellSessionClientControlResult,
+	UniverseAgentFireTriggerWebhookRequest,
+	UniverseAgentFireTriggerWebhookResult,
 	UniverseAgentSetSessionGoalRequest,
 	UniverseAgentSetSessionGoalResult,
 	UniverseAgentCancelSessionGoalRequest,
@@ -349,6 +351,14 @@ const CompactOutcomeByNumber: Record<number, string> = {
 	5: 'COMPACT_OUTCOME_APPLIED_DURABILITY_FAILED',
 	6: 'COMPACT_OUTCOME_APPLIED_IN_FLIGHT',
 	7: 'COMPACT_OUTCOME_APPLIED_NOT_CONFIGURED',
+};
+
+const FireTriggerWebhookStatusByNumber: Record<number, string> = {
+	0: 'FIRE_TRIGGER_WEBHOOK_STATUS_UNSPECIFIED',
+	1: 'FIRE_TRIGGER_WEBHOOK_STATUS_QUEUED',
+	2: 'FIRE_TRIGGER_WEBHOOK_STATUS_EXECUTED',
+	3: 'FIRE_TRIGGER_WEBHOOK_STATUS_REJECTED',
+	4: 'FIRE_TRIGGER_WEBHOOK_STATUS_SKIPPED',
 };
 
 interface SessionSnapshotInfoWire {
@@ -1018,6 +1028,16 @@ function mapCompactOutcome(value: string | number | undefined): string | undefin
 	}
 	if (typeof value === 'number') {
 		return CompactOutcomeByNumber[value] ?? String(value);
+	}
+	return value;
+}
+
+function mapFireTriggerWebhookStatus(value: string | number | undefined): string {
+	if (value === undefined || value === '') {
+		return '';
+	}
+	if (typeof value === 'number') {
+		return FireTriggerWebhookStatusByNumber[value] ?? String(value);
 	}
 	return value;
 }
@@ -2709,6 +2729,28 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			errorCode: wire.error_code,
 			debounced: wire.debounced,
 			deliveredToSubscribe: wire.delivered_to_subscribe,
+		};
+	}
+
+	async fireTriggerWebhook(request: UniverseAgentFireTriggerWebhookRequest): Promise<UniverseAgentFireTriggerWebhookResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, {
+			status?: string | number;
+			event_id?: string;
+			reason?: string;
+		}>(
+			this._channel,
+			UniverseAgentGrpcServices.Agent.service,
+			UniverseAgentGrpcServices.Agent.FireTriggerWebhook,
+		);
+		const wire = await unary({
+			session_id: request.sessionId,
+			trigger_id: request.triggerId,
+			payload_json: request.payloadJson,
+		});
+		return {
+			status: mapFireTriggerWebhookStatus(wire.status),
+			eventId: wire.event_id ?? '',
+			reason: wire.reason ?? '',
 		};
 	}
 

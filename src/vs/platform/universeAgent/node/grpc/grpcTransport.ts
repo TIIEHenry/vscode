@@ -74,6 +74,8 @@ import type {
 	UniverseAgentStopShellTaskResult,
 	UniverseAgentSendShellSessionClientControlRequest,
 	UniverseAgentSendShellSessionClientControlResult,
+	UniverseAgentFireTriggerWebhookRequest,
+	UniverseAgentFireTriggerWebhookResult,
 	UniverseAgentSetSessionGoalRequest,
 	UniverseAgentSetSessionGoalResult,
 	UniverseAgentCancelSessionGoalRequest,
@@ -291,6 +293,8 @@ export interface IUniverseAgentGrpcTransport {
 	stopShellTask(request: UniverseAgentStopShellTaskRequest): Promise<UniverseAgentStopShellTaskResult>;
 	/** AgentService.SendShellSessionClientControl unary (snake_case `session_id`/`tool_call_id`/`ref_id`/`control_payload_json`). Empty ids sent as-is. */
 	sendShellSessionClientControl(request: UniverseAgentSendShellSessionClientControlRequest): Promise<UniverseAgentSendShellSessionClientControlResult>;
+	/** AgentService.FireTriggerWebhook unary (snake_case `session_id`/`trigger_id`/`payload_json`). Empty ids sent as-is. */
+	fireTriggerWebhook(request: UniverseAgentFireTriggerWebhookRequest): Promise<UniverseAgentFireTriggerWebhookResult>;
 
 	setSessionGoal(request: UniverseAgentSetSessionGoalRequest): Promise<UniverseAgentSetSessionGoalResult>;
 
@@ -473,6 +477,7 @@ export const UniverseAgentGrpcServices = {
 		RunToolInBackground: 'RunToolInBackground',
 		StopShellTask: 'StopShellTask',
 		SendShellSessionClientControl: 'SendShellSessionClientControl',
+		FireTriggerWebhook: 'FireTriggerWebhook',
 		EnqueueQueueItem: 'EnqueueQueueItem',
 		PauseQueue: 'PauseQueue',
 		ResumeQueue: 'ResumeQueue',

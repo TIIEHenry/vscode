@@ -183,6 +183,10 @@ class MockDeviceAuthTransport implements IUniverseAgentGrpcTransport {
 		return { ok: false, message: 'test' };
 	}
 
+	async fireTriggerWebhook(): Promise<{ status: ''; eventId: ''; reason: 'test' }> {
+		return { status: '', eventId: '', reason: 'test' };
+	}
+
 	async setSessionGoal(): Promise<{ ok: false; message: 'test' }> {
 		return { ok: false, message: 'test' };
 	}

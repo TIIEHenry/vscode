@@ -636,6 +636,21 @@ export interface UniverseAgentSendShellSessionClientControlResult {
 	readonly deliveredToSubscribe?: boolean;
 }
 
+/** AgentService.FireTriggerWebhook — D-TF-1 webhook ingress (≠ FetchToolUsageDetail / SubscribeToolDetail / SwitchWorkDir). */
+export interface UniverseAgentFireTriggerWebhookRequest {
+	readonly sessionId: string;
+	readonly triggerId: string;
+	/** Proto `payload_json`. Empty sent as-is. */
+	readonly payloadJson: string;
+}
+
+export interface UniverseAgentFireTriggerWebhookResult {
+	/** FireTriggerWebhookStatus name, e.g. `FIRE_TRIGGER_WEBHOOK_STATUS_QUEUED`. */
+	readonly status: string;
+	readonly eventId: string;
+	readonly reason: string;
+}
+
 /** PermissionService.SetSessionGoal request (Inbox Goal). */
 export interface UniverseAgentSetSessionGoalRequest {
 	readonly sessionId: string;

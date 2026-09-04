@@ -79,6 +79,8 @@ import type {
 	UniverseAgentStopShellTaskResult,
 	UniverseAgentSendShellSessionClientControlRequest,
 	UniverseAgentSendShellSessionClientControlResult,
+	UniverseAgentFireTriggerWebhookRequest,
+	UniverseAgentFireTriggerWebhookResult,
 	UniverseAgentSetSessionGoalRequest,
 	UniverseAgentSetSessionGoalResult,
 	UniverseAgentCancelSessionGoalRequest,
@@ -463,6 +465,15 @@ export interface IUniverseAgentConnection {
 	 * CancelToolCall / RunToolInBackground.
 	 */
 	sendShellSessionClientControl?(request: UniverseAgentSendShellSessionClientControlRequest): Promise<UniverseAgentSendShellSessionClientControlResult>;
+
+	/**
+	 * AgentService.FireTriggerWebhook unary (FireTriggerWebhookResponse.status /
+	 * event_id / reason). Optional so Web / tests can omit it. Catalog + node
+	 * transport only this slice; empty `sessionId` / `triggerId` / `payloadJson`
+	 * are sent as-is. No Conversation roster / UI.
+	 * ≠ FetchToolUsageDetail / SubscribeToolDetail / SwitchWorkDir.
+	 */
+	fireTriggerWebhook?(request: UniverseAgentFireTriggerWebhookRequest): Promise<UniverseAgentFireTriggerWebhookResult>;
 
 	/**
 	 * PermissionService.SetSessionGoal unary (Inbox Goal). Optional so Web / tests
