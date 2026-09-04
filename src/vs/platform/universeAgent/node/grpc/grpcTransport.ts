@@ -195,6 +195,8 @@ import type {
 	UniverseAgentListToolsResult,
 	UniverseAgentToolInfoRequest,
 	UniverseAgentToolInfoResult,
+	UniverseAgentSetPermissionPolicyRequest,
+	UniverseAgentSetPermissionPolicyResult,
 	UniverseAgentListModelsResult,
 	UniverseAgentGetConfigRequest,
 	UniverseAgentGetConfigResult,
@@ -566,6 +568,9 @@ export interface IUniverseAgentGrpcTransport {
 	/** ToolService.ToolInfo unary (snake_case `tool_name`). */
 	getToolInfo(request: UniverseAgentToolInfoRequest): Promise<UniverseAgentToolInfoResult>;
 
+	/** ConfigService.SetPermissionPolicy unary (snake_case `session_id`/`tool_name`/`policy`). Empty ids sent as-is. */
+	setPermissionPolicy(request: UniverseAgentSetPermissionPolicyRequest): Promise<UniverseAgentSetPermissionPolicyResult>;
+
 	/** ConfigService.ListModels — always `include_disabled=true`. */
 	listModels(): Promise<UniverseAgentListModelsResult>;
 
@@ -714,6 +719,7 @@ export const UniverseAgentGrpcServices = {
 	Config: {
 		service: 'universeagent.config.v1.ConfigService',
 		Get: 'Get',
+		SetPermissionPolicy: 'SetPermissionPolicy',
 		ListModels: 'ListModels',
 		Set: 'Set',
 		SwitchModel: 'SwitchModel',

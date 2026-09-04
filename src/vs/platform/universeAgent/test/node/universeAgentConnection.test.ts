@@ -127,6 +127,8 @@ import type {
 	UniverseAgentGetConfigResult,
 	UniverseAgentSwitchModelRequest,
 	UniverseAgentSwitchModelResult,
+	UniverseAgentSetPermissionPolicyRequest,
+	UniverseAgentSetPermissionPolicyResult,
 	UniverseAgentRespondQuestionRequest,
 	UniverseAgentRespondQuestionResult,
 	UniverseAgentEnqueueQueueItemRequest,
@@ -687,6 +689,14 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 	async switchModel(request: UniverseAgentSwitchModelRequest): Promise<UniverseAgentSwitchModelResult> {
 		this.switchModelCalls.push(request);
 		return this.switchModelResult;
+	}
+
+	readonly setPermissionPolicyCalls: UniverseAgentSetPermissionPolicyRequest[] = [];
+	setPermissionPolicyResult: UniverseAgentSetPermissionPolicyResult = { ok: true };
+
+	async setPermissionPolicy(request: UniverseAgentSetPermissionPolicyRequest): Promise<UniverseAgentSetPermissionPolicyResult> {
+		this.setPermissionPolicyCalls.push(request);
+		return this.setPermissionPolicyResult;
 	}
 
 	readonly respondQuestionCalls: UniverseAgentRespondQuestionRequest[] = [];
@@ -1409,6 +1419,11 @@ suite('UniverseAgentConnectionService', () => {
 
 	test('UniverseAgentGrpcServices lists Config.SwitchModel', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Config.SwitchModel, 'SwitchModel');
+		assert.strictEqual(UniverseAgentGrpcServices.Config.service, 'universeagent.config.v1.ConfigService');
+	});
+
+	test('UniverseAgentGrpcServices lists Config.SetPermissionPolicy', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Config.SetPermissionPolicy, 'SetPermissionPolicy');
 		assert.strictEqual(UniverseAgentGrpcServices.Config.service, 'universeagent.config.v1.ConfigService');
 	});
 
@@ -3455,6 +3470,39 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(transport.switchModelCalls[1]?.agentId, '');
 		assert.strictEqual(transport.switchModelCalls[1]?.modelType, '');
 		assert.strictEqual(transport.switchModelCalls[1]?.modelId, '');
+		service.dispose();
+	});
+
+	test('setPermissionPolicy forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.setPermissionPolicyResult = { ok: true, message: 'applied' };
+		const result = await service.setPermissionPolicy({
+			sessionId: 'sess-1',
+			toolName: 'shell',
+			policy: 'PERMISSION_POLICY_ASK',
+		});
+		assert.deepStrictEqual(transport.setPermissionPolicyCalls, [{
+			sessionId: 'sess-1',
+			toolName: 'shell',
+			policy: 'PERMISSION_POLICY_ASK',
+		}]);
+		assert.deepStrictEqual(result, { ok: true, message: 'applied' });
+
+		transport.setPermissionPolicyResult = { ok: false, message: '' };
+		const empty = await service.setPermissionPolicy({
+			sessionId: '',
+			toolName: '',
+			policy: 'PERMISSION_POLICY_UNSPECIFIED',
+		});
+		assert.deepStrictEqual(empty, { ok: false, message: '' });
+		assert.strictEqual(transport.setPermissionPolicyCalls[1]?.sessionId, '');
+		assert.strictEqual(transport.setPermissionPolicyCalls[1]?.toolName, '');
+		assert.strictEqual(transport.setPermissionPolicyCalls[1]?.policy, 'PERMISSION_POLICY_UNSPECIFIED');
 		service.dispose();
 	});
 

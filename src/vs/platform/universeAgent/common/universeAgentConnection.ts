@@ -200,6 +200,8 @@ import type {
 	UniverseAgentListToolsResult,
 	UniverseAgentToolInfoRequest,
 	UniverseAgentToolInfoResult,
+	UniverseAgentSetPermissionPolicyRequest,
+	UniverseAgentSetPermissionPolicyResult,
 	UniverseAgentListModelsResult,
 	UniverseAgentGetConfigRequest,
 	UniverseAgentGetConfigResult,
@@ -1058,6 +1060,17 @@ export interface IUniverseAgentConnection {
 	 * Engine Tools detail forwards it. ListTools catalog stays list-only.
 	 */
 	getToolInfo?(request: UniverseAgentToolInfoRequest): Promise<UniverseAgentToolInfoResult>;
+
+	/**
+	 * ConfigService.SetPermissionPolicy unary (session/tool Ask/Agent/Permit
+	 * policy write). Optional so Web / tests can omit it. Catalog + node
+	 * transport only this slice; empty `sessionId` / `toolName` are sent
+	 * as-is. `policy` uses typed `PermissionPolicy` wire. No Conversation
+	 * roster / UI / Engine Preferences / Composer.
+	 * ≠ SwitchModel / ListModels / Get / Set / GetModelPreferences /
+	 * SetModelPreferences / SetPermissionMode.
+	 */
+	setPermissionPolicy?(request: UniverseAgentSetPermissionPolicyRequest): Promise<UniverseAgentSetPermissionPolicyResult>;
 
 	/** ConfigService.ListModels — always `include_disabled=true` (Engine Model registry). */
 	listModels(): Promise<UniverseAgentListModelsResult>;
