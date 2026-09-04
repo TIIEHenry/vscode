@@ -119,6 +119,8 @@ import type {
 	UniverseAgentSetPermissionModeResult,
 	UniverseAgentTaskUpdateRequest,
 	UniverseAgentTaskUpdateResult,
+	UniverseAgentCreateTeamRequest,
+	UniverseAgentCreateTeamResult,
 	UniverseAgentRespondQuestionRequest,
 	UniverseAgentRespondQuestionResult,
 	UniverseAgentEnqueueQueueItemRequest,
@@ -913,6 +915,10 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 
 	async taskUpdate(request: UniverseAgentTaskUpdateRequest): Promise<UniverseAgentTaskUpdateResult> {
 		return this._withTransport(transport => transport.taskUpdate(request));
+	}
+
+	async createTeam(request: UniverseAgentCreateTeamRequest): Promise<UniverseAgentCreateTeamResult> {
+		return this._withTransport(transport => transport.createTeam(request));
 	}
 
 	async respondQuestion(request: UniverseAgentRespondQuestionRequest): Promise<UniverseAgentRespondQuestionResult> {

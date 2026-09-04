@@ -139,6 +139,8 @@ import type {
 	UniverseAgentSetPermissionModeResult,
 	UniverseAgentTaskUpdateRequest,
 	UniverseAgentTaskUpdateResult,
+	UniverseAgentCreateTeamRequest,
+	UniverseAgentCreateTeamResult,
 	UniverseAgentRespondQuestionRequest,
 	UniverseAgentRespondQuestionResult,
 	UniverseAgentQuestionAnswer,
@@ -3406,6 +3408,23 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 		return {
 			ok: wire.success === true,
 			message: wire.message,
+		};
+	}
+
+	async createTeam(request: UniverseAgentCreateTeamRequest): Promise<UniverseAgentCreateTeamResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, { team_id?: number; member_count?: number }>(
+			this._channel,
+			UniverseAgentGrpcServices.Team.service,
+			UniverseAgentGrpcServices.Team.CreateTeam,
+		);
+		const wire = await unary({
+			session_id: request.sessionId,
+			agent_id: request.agentId,
+			task_descriptions: request.taskDescriptions,
+		});
+		return {
+			teamId: wire.team_id ?? 0,
+			memberCount: wire.member_count ?? 0,
 		};
 	}
 
