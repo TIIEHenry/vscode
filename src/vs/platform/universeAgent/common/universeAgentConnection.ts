@@ -220,6 +220,8 @@ import type {
 	UniverseAgentReadGitSummaryResult,
 	UniverseAgentReadGitChangesRequest,
 	UniverseAgentReadGitChangesResult,
+	UniverseAgentWriteGitApplyHunksRequest,
+	UniverseAgentWriteGitWriteResult,
 	UniverseAgentSetPermissionPolicyRequest,
 	UniverseAgentSetPermissionPolicyResult,
 	UniverseAgentListModelsResult,
@@ -1197,6 +1199,18 @@ export interface IUniverseAgentConnection {
 	 * WriteGitCommit / WriteGitApplyHunks.
 	 */
 	readGitChanges?(request: UniverseAgentReadGitChangesRequest): Promise<UniverseAgentReadGitChangesResult>;
+
+	/**
+	 * GitService.WriteGitApplyHunks unary. Optional so Web / tests can omit it.
+	 * Catalog + node transport only this slice; empty `sessionId` is sent
+	 * as-is. Empty `argv` / empty `patches` sent as-is. Proto fields only
+	 * (`supported` / `reason` / `success` / `error_message` / `exit_code` /
+	 * `stdout`). No Conversation roster / UI / SCM / Engine Preferences /
+	 * Composer.
+	 * ≠ ReadGitSummary / ReadGitChanges / ReadGitFileDiff / WriteGitStagePaths /
+	 * WriteGitCommit.
+	 */
+	writeGitApplyHunks?(request: UniverseAgentWriteGitApplyHunksRequest): Promise<UniverseAgentWriteGitWriteResult>;
 
 	/**
 	 * ConfigService.SetPermissionPolicy unary (session/tool Ask/Agent/Permit

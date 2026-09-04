@@ -195,6 +195,8 @@ import type {
 	UniverseAgentReadGitSummaryResult,
 	UniverseAgentReadGitChangesRequest,
 	UniverseAgentReadGitChangesResult,
+	UniverseAgentWriteGitApplyHunksRequest,
+	UniverseAgentWriteGitWriteResult,
 	UniverseAgentGetHistoryRequest,
 	UniverseAgentGetHistoryResult,
 	UniverseAgentListSessionsRequest,
@@ -1384,6 +1386,21 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 		return this.readGitChangesResult;
 	}
 
+	readonly writeGitApplyHunksCalls: UniverseAgentWriteGitApplyHunksRequest[] = [];
+	writeGitApplyHunksResult: UniverseAgentWriteGitWriteResult = {
+		supported: false,
+		reason: '',
+		success: false,
+		errorMessage: '',
+		exitCode: 0,
+		stdout: '',
+	};
+
+	async writeGitApplyHunks(request: UniverseAgentWriteGitApplyHunksRequest): Promise<UniverseAgentWriteGitWriteResult> {
+		this.writeGitApplyHunksCalls.push(request);
+		return this.writeGitApplyHunksResult;
+	}
+
 	async listModels() {
 		return { models: [] };
 	}
@@ -1789,6 +1806,11 @@ suite('UniverseAgentConnectionService', () => {
 
 	test('UniverseAgentGrpcServices lists Git.ReadGitChanges', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Git.ReadGitChanges, 'ReadGitChanges');
+		assert.strictEqual(UniverseAgentGrpcServices.Git.service, 'universeagent.git.v1.GitService');
+	});
+
+	test('UniverseAgentGrpcServices lists Git.WriteGitApplyHunks', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Git.WriteGitApplyHunks, 'WriteGitApplyHunks');
 		assert.strictEqual(UniverseAgentGrpcServices.Git.service, 'universeagent.git.v1.GitService');
 	});
 
@@ -4357,6 +4379,66 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(changesEmpty.entries[0]?.oldPath, '');
 		assert.strictEqual(changesEmpty.entries[0]?.kind, '');
 		assert.strictEqual(changesEmpty.entries[0]?.indexState, '');
+		service.dispose();
+	});
+
+	test('writeGitApplyHunks forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.writeGitApplyHunksResult = {
+			supported: true,
+			reason: '',
+			success: true,
+			errorMessage: '',
+			exitCode: 0,
+			stdout: 'applied',
+		};
+		const request = {
+			sessionId: 'sess-1',
+			argv: ['apply', '--cached'],
+			patches: ['diff --git a/src/foo.ts b/src/foo.ts\n'],
+		};
+		const result = await service.writeGitApplyHunks(request);
+		assert.deepStrictEqual(transport.writeGitApplyHunksCalls, [request]);
+		assert.deepStrictEqual(result, transport.writeGitApplyHunksResult);
+
+		transport.writeGitApplyHunksResult = {
+			supported: false,
+			reason: '',
+			success: false,
+			errorMessage: '',
+			exitCode: 0,
+			stdout: '',
+		};
+		const emptyRequest = {
+			sessionId: '',
+			argv: [''],
+			patches: [''],
+		};
+		const empty = await service.writeGitApplyHunks(emptyRequest);
+		assert.strictEqual(transport.writeGitApplyHunksCalls[1]?.sessionId, '');
+		assert.deepStrictEqual(transport.writeGitApplyHunksCalls[1]?.argv, ['']);
+		assert.deepStrictEqual(transport.writeGitApplyHunksCalls[1]?.patches, ['']);
+		assert.strictEqual(empty.supported, false);
+		assert.strictEqual(empty.reason, '');
+		assert.strictEqual(empty.success, false);
+		assert.strictEqual(empty.errorMessage, '');
+		assert.strictEqual(empty.exitCode, 0);
+		assert.strictEqual(empty.stdout, '');
+
+		const emptyListsRequest = {
+			sessionId: '',
+			argv: [],
+			patches: [],
+		};
+		await service.writeGitApplyHunks(emptyListsRequest);
+		assert.strictEqual(transport.writeGitApplyHunksCalls[2]?.sessionId, '');
+		assert.deepStrictEqual(transport.writeGitApplyHunksCalls[2]?.argv, []);
+		assert.deepStrictEqual(transport.writeGitApplyHunksCalls[2]?.patches, []);
 		service.dispose();
 	});
 
