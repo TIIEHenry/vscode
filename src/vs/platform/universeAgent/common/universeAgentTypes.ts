@@ -1771,6 +1771,30 @@ export interface UniverseAgentToolInfoResult {
 }
 
 /**
+ * ConfigService.SetPermissionPolicy — session/tool policy write
+ * (≠ SwitchModel / ListModels / Get / Set / GetModelPreferences /
+ * SetModelPreferences / SetPermissionMode).
+ */
+export type UniverseAgentPermissionPolicy =
+	| 'PERMISSION_POLICY_UNSPECIFIED'
+	| 'PERMISSION_POLICY_ASK'
+	| 'PERMISSION_POLICY_AGENT'
+	| 'PERMISSION_POLICY_PERMIT';
+
+export interface UniverseAgentSetPermissionPolicyRequest {
+	readonly sessionId: string;
+	/** Proto `tool_name`. Empty = global policy; sent as-is. */
+	readonly toolName: string;
+	/** Proto `PermissionPolicy`. Wired to enum number. */
+	readonly policy: UniverseAgentPermissionPolicy;
+}
+
+export interface UniverseAgentSetPermissionPolicyResult {
+	readonly ok: boolean;
+	readonly message?: string;
+}
+
+/**
  * ConfigService.ListModels registry row. Wire fields only — no invented
  * context-window or capability-tag properties (protocol-surface §1b P1b).
  */

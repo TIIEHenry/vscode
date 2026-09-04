@@ -201,6 +201,8 @@ import type {
 	UniverseAgentListToolsResult,
 	UniverseAgentToolInfoRequest,
 	UniverseAgentToolInfoResult,
+	UniverseAgentSetPermissionPolicyRequest,
+	UniverseAgentSetPermissionPolicyResult,
 	UniverseAgentListModelsResult,
 	UniverseAgentToggleMcpServerRequest,
 	UniverseAgentToggleMcpServerResult,
@@ -1242,6 +1244,10 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 
 	async getToolInfo(request: UniverseAgentToolInfoRequest): Promise<UniverseAgentToolInfoResult> {
 		return this._withTransport(transport => transport.getToolInfo(request));
+	}
+
+	async setPermissionPolicy(request: UniverseAgentSetPermissionPolicyRequest): Promise<UniverseAgentSetPermissionPolicyResult> {
+		return this._withTransport(transport => transport.setPermissionPolicy(request));
 	}
 
 	async listModels(): Promise<UniverseAgentListModelsResult> {
