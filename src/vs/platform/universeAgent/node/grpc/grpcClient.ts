@@ -120,6 +120,8 @@ import type {
 	UniverseAgentSwitchWorkDirResult,
 	UniverseAgentTestModelProfileRequest,
 	UniverseAgentTestModelProfileResult,
+	UniverseAgentSetConfigRequest,
+	UniverseAgentSetConfigResult,
 	UniverseAgentSetSessionGoalRequest,
 	UniverseAgentSetSessionGoalResult,
 	UniverseAgentCancelSessionGoalRequest,
@@ -4234,6 +4236,24 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 		);
 		const wire = await unary({ include_disabled: true });
 		return mapListModelsResponse(wire);
+	}
+
+	async setConfig(request: UniverseAgentSetConfigRequest): Promise<UniverseAgentSetConfigResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, { success?: boolean; message?: string }>(
+			this._channel,
+			UniverseAgentGrpcServices.Config.service,
+			UniverseAgentGrpcServices.Config.Set,
+		);
+		const wire = await unary({
+			key: request.key,
+			value: request.value,
+			scope: request.scope,
+			session_id: request.sessionId,
+		});
+		return {
+			ok: wire.success === true,
+			message: wire.message,
+		};
 	}
 
 	async fetchToolDetail(request: UniverseAgentFetchToolDetailRequest): Promise<UniverseAgentFetchToolDetailWireResult> {
