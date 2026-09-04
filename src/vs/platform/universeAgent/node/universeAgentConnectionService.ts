@@ -117,6 +117,8 @@ import type {
 	UniverseAgentGetSessionRulesResult,
 	UniverseAgentSetPermissionModeRequest,
 	UniverseAgentSetPermissionModeResult,
+	UniverseAgentTaskUpdateRequest,
+	UniverseAgentTaskUpdateResult,
 	UniverseAgentRespondQuestionRequest,
 	UniverseAgentRespondQuestionResult,
 	UniverseAgentEnqueueQueueItemRequest,
@@ -907,6 +909,10 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 
 	async setPermissionMode(request: UniverseAgentSetPermissionModeRequest): Promise<UniverseAgentSetPermissionModeResult> {
 		return this._withTransport(transport => transport.setPermissionMode(request));
+	}
+
+	async taskUpdate(request: UniverseAgentTaskUpdateRequest): Promise<UniverseAgentTaskUpdateResult> {
+		return this._withTransport(transport => transport.taskUpdate(request));
 	}
 
 	async respondQuestion(request: UniverseAgentRespondQuestionRequest): Promise<UniverseAgentRespondQuestionResult> {

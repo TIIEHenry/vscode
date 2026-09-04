@@ -107,6 +107,8 @@ import type {
 	UniverseAgentGetSessionRulesResult,
 	UniverseAgentSetPermissionModeRequest,
 	UniverseAgentSetPermissionModeResult,
+	UniverseAgentTaskUpdateRequest,
+	UniverseAgentTaskUpdateResult,
 	UniverseAgentRespondQuestionRequest,
 	UniverseAgentRespondQuestionResult,
 	UniverseAgentEnqueueQueueItemRequest,
@@ -589,6 +591,14 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 	async setPermissionMode(request: UniverseAgentSetPermissionModeRequest): Promise<UniverseAgentSetPermissionModeResult> {
 		this.setPermissionModeCalls.push(request);
 		return this.setPermissionModeResult;
+	}
+
+	readonly taskUpdateCalls: UniverseAgentTaskUpdateRequest[] = [];
+	taskUpdateResult: UniverseAgentTaskUpdateResult = { ok: true };
+
+	async taskUpdate(request: UniverseAgentTaskUpdateRequest): Promise<UniverseAgentTaskUpdateResult> {
+		this.taskUpdateCalls.push(request);
+		return this.taskUpdateResult;
 	}
 
 	readonly respondQuestionCalls: UniverseAgentRespondQuestionRequest[] = [];
@@ -1254,6 +1264,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('UniverseAgentGrpcServices lists Permission.SetPermissionMode', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Permission.SetPermissionMode, 'SetPermissionMode');
 		assert.strictEqual(UniverseAgentGrpcServices.Permission.service, 'universeagent.session.v1.PermissionService');
+	});
+
+	test('UniverseAgentGrpcServices lists Team.TaskUpdate', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Team.TaskUpdate, 'TaskUpdate');
+		assert.strictEqual(UniverseAgentGrpcServices.Team.service, 'universeagent.team.v1.TeamService');
 	});
 
 	test('UniverseAgentGrpcServices lists Agent.InsertQueueItem', () => {
@@ -2905,6 +2920,47 @@ suite('UniverseAgentConnectionService', () => {
 		assert.deepStrictEqual(empty, { ok: false, message: 'denied' });
 		assert.strictEqual(transport.setPermissionModeCalls[1]?.sessionId, '');
 		assert.strictEqual(transport.setPermissionModeCalls[1]?.mode, 'SESSION_TOOL_PERMISSION_MODE_UNSPECIFIED');
+		service.dispose();
+	});
+
+	test('taskUpdate forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.taskUpdateResult = { ok: true, message: 'updated' };
+		const result = await service.taskUpdate({
+			sessionId: 'sess-1',
+			agentId: 'agent-1',
+			taskId: 'task-1',
+			newStatus: 'COMPLETED',
+			message: 'done',
+		});
+		assert.deepStrictEqual(transport.taskUpdateCalls, [{
+			sessionId: 'sess-1',
+			agentId: 'agent-1',
+			taskId: 'task-1',
+			newStatus: 'COMPLETED',
+			message: 'done',
+		}]);
+		assert.deepStrictEqual(result, { ok: true, message: 'updated' });
+
+		transport.taskUpdateResult = { ok: false, message: '' };
+		const empty = await service.taskUpdate({
+			sessionId: '',
+			agentId: '',
+			taskId: '',
+			newStatus: '',
+			message: '',
+		});
+		assert.deepStrictEqual(empty, { ok: false, message: '' });
+		assert.strictEqual(transport.taskUpdateCalls[1]?.sessionId, '');
+		assert.strictEqual(transport.taskUpdateCalls[1]?.agentId, '');
+		assert.strictEqual(transport.taskUpdateCalls[1]?.taskId, '');
+		assert.strictEqual(transport.taskUpdateCalls[1]?.newStatus, '');
+		assert.strictEqual(transport.taskUpdateCalls[1]?.message, '');
 		service.dispose();
 	});
 
