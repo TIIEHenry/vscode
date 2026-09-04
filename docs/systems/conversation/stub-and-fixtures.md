@@ -4,7 +4,7 @@ type: architecture
 status: accepted
 phase: N/A
 updated: 2026-09-04
-summary: "IConversationRosterService 契约分组；getTrajectoryRecords + filterAgentId；帧源 projectSnapshotToTrajectory；D13 持久化；引擎 roster 接通后转发 Create / Rename / Cancel / SetSessionGoal / Fork / Kill / CancelToolCall / DeleteMessage / Respond / respondClientTool→SendClientToolResponse / RespondQuestion / MessageQueue 五操作 + Edit + Enqueue / updateUserTurnText→EditMessage / createSnapshot→CreateSnapshot（Inbox Stop 仅 connected+streaming；Inbox Goal 仅 connected；Fork / Kill 不造本地 catalog id；Kill 空 agentId 原样上线不默认 root，省略用末条 streaming 否则空串；时间线执行中工具行转 CancelToolCall；时间线删回合接通后转 DeleteMessage，空 turnId 不发；权限座接通后转 PermissionService.Respond，未接通仍 Chat 臂；问题座接通后转 AgentService.RespondQuestion，空 questionId 不发，未接通仍 Chat 臂；时间线 clientTool 接通后转 SendClientToolResponse，空 callId 不发，未接通仍 Chat 臂；队列无 GetQueue 显示空；Inbox AutoDrive 接通 / 断连缓存诚实空；空 turnId / 空正文不发 EditMessage）；ListSnapshots 由 SessionBar Snapshots 只读列表消费（不经 roster）；CreateSnapshot 接通后 Conversation 动作转发（空 sessionId / 断连 / 无 hook 不发；空 title 原样上线）；RestoreSnapshot / DeleteSnapshot 仅传输未转发；Engine Tools 选中行读 ToolInfo 只读详情；A1/A2 连接态"
+summary: "IConversationRosterService 契约分组；getTrajectoryRecords + filterAgentId；帧源 projectSnapshotToTrajectory；D13 持久化；引擎 roster 接通后转发 Create / Rename / Cancel / SetSessionGoal / Fork / Kill / CancelToolCall / DeleteMessage / Respond / respondClientTool→SendClientToolResponse / RespondQuestion / MessageQueue 五操作 + Edit + Enqueue / updateUserTurnText→EditMessage / createSnapshot→CreateSnapshot（Inbox Stop 仅 connected+streaming；Inbox Goal 仅 connected；Fork / Kill 不造本地 catalog id；Kill 空 agentId 原样上线不默认 root，省略用末条 streaming 否则空串；时间线执行中工具行转 CancelToolCall；时间线删回合接通后转 DeleteMessage，空 turnId 不发；权限座接通后转 PermissionService.Respond，未接通仍 Chat 臂；问题座接通后转 AgentService.RespondQuestion，空 questionId 不发，未接通仍 Chat 臂；时间线 clientTool 接通后转 SendClientToolResponse，空 callId 不发，未接通仍 Chat 臂；队列无 GetQueue 显示空；Inbox AutoDrive 接通 / 断连缓存诚实空；空 turnId / 空正文不发 EditMessage）；ListSnapshots 由 SessionBar Snapshots overlay 消费（不经 roster）；overlay Delete 转发 DeleteSnapshot（空 snapshotId / 断连 / 无 hook / 空 session 不发；确认后才发）；CreateSnapshot 接通后 Conversation 动作转发（空 sessionId / 断连 / 无 hook 不发；空 title 原样上线）；RestoreSnapshot 仅传输未转发；Engine Tools 选中行读 ToolInfo 只读详情；A1/A2 连接态"
 ---
 
 # Conversation 会话数据契约
@@ -32,7 +32,7 @@ summary: "IConversationRosterService 契约分组；getTrajectoryRecords + filte
 | AutoDrive | `getAutoDriveTasks` · `getAutoDriveTaskCount`（引擎接通 / 断连缓存诚实空，不把 fixture 冒充引擎任务；Inbox 无任务列表 RPC。stub / 从未连过仍 fixture） |
 | 连接态 | `isEngineConnected()` |
 
-引擎 snapshot 列表**不**经 roster：Conversation SessionBar extra control `ConversationEngineSnapshotsList` 直呼 `IUniverseAgentConnection.listSnapshots?`（接通 + 有 hook + 非空 sessionId 才发）。断连 / 无 hook 诚实 unavailable；空列表诚实空。**禁止** fixture snapshot 冒充引擎数据。≠ SessionBar History（`conversationTrajectoryList.ts` 回合索引）。无 Create / Restore / Delete。
+引擎 snapshot 列表**不**经 roster：Conversation SessionBar extra control `ConversationEngineSnapshotsList` 直呼 `IUniverseAgentConnection.listSnapshots?`（接通 + 有 hook + 非空 sessionId 才发）。行上 Delete 直呼 `deleteSnapshot?`（接通 + hook + 非空 `snapshotId` + 已知 session；`dialogService.confirm` warning 后才发；空 id / 断连 / 无 hook 不发）。断连 / 无 hook 诚实 unavailable；空列表诚实空。**禁止** fixture snapshot 冒充引擎数据。≠ SessionBar History（`conversationTrajectoryList.ts` 回合索引）。无 Create / Restore。
 
 **测试 / stub 夹具**（只在无引擎或单测中有意义，**不应**出现在引擎 adapter 的公共面）：
 

@@ -7,14 +7,16 @@ import { $, addDisposableListener, append, reset } from '../../../../base/browse
 import { Button } from '../../../../base/browser/ui/button/button.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { KeyCode } from '../../../../base/common/keyCodes.js';
-import { Disposable } from '../../../../base/common/lifecycle.js';
+import { Disposable, DisposableStore } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
+import { IDialogService } from '../../../../platform/dialogs/common/dialogs.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import type { UniverseAgentSessionSnapshotInfo } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { defaultButtonStyles } from '../../../../platform/theme/browser/defaultStyles.js';
 import {
 	conversationLensSessionBarSnapshots,
 	conversationLensSessionBarSnapshotsClose,
+	conversationLensSessionBarSnapshotsDelete,
 	conversationLensSessionBarSnapshotsEmpty,
 	conversationLensSessionBarSnapshotsLoading,
 	conversationLensSessionBarSnapshotsTitle,
@@ -27,6 +29,7 @@ import { IConversationRosterService } from './conversationStubService.js';
 export const conversationLensSnapshotsButtonClass = 'conversation-lens-session-snapshots';
 export const conversationLensSnapshotsOverlayClass = 'conversation-lens-snapshots-overlay';
 export const conversationLensSnapshotsRowClass = 'conversation-lens-snapshots-row';
+export const conversationLensSnapshotsDeleteClass = 'conversation-lens-snapshots-delete';
 
 export function canRequestEngineSnapshots(
 	connected: boolean,
@@ -34,6 +37,16 @@ export function canRequestEngineSnapshots(
 	sessionId: string | undefined,
 ): boolean {
 	return connected && hasListSnapshots && !!sessionId;
+}
+
+/** Honest gate for overlay Delete → AgentService.DeleteSnapshot. */
+export function canDeleteEngineSnapshot(
+	connected: boolean,
+	hasDeleteSnapshot: boolean,
+	snapshotId: string | undefined,
+	sessionId: string | undefined,
+): boolean {
+	return connected && hasDeleteSnapshot && !!snapshotId?.trim() && !!sessionId?.trim();
 }
 
 export function formatEngineSnapshotCreatedAt(createdAt: number | undefined): string {
@@ -53,9 +66,10 @@ export function formatEngineSnapshotFailedCopy(reason: string): string {
 }
 
 /**
- * SessionBar extra control + read-only overlay for AgentService.ListSnapshots.
+ * SessionBar extra control + overlay for AgentService.ListSnapshots.
  * Distinct from SessionBar History ({@link ConversationTrajectoryList} turn index).
- * No Create / Restore / Delete actions.
+ * Delete on rows confirms then calls {@link IUniverseAgentConnection.deleteSnapshot};
+ * no Create / Restore.
  */
 export class ConversationEngineSnapshotsList extends Disposable {
 
@@ -64,6 +78,7 @@ export class ConversationEngineSnapshotsList extends Disposable {
 
 	private readonly button: Button;
 	private readonly body: HTMLElement;
+	private readonly rowDisposables = this._register(new DisposableStore());
 	private open = false;
 	private renderGeneration = 0;
 
@@ -72,6 +87,7 @@ export class ConversationEngineSnapshotsList extends Disposable {
 		overlayParent: HTMLElement,
 		@IUniverseAgentConnection private readonly connection: IUniverseAgentConnection,
 		@IConversationRosterService private readonly roster: IConversationRosterService,
+		@IDialogService private readonly dialogService: IDialogService,
 	) {
 		super();
 
@@ -210,7 +226,37 @@ export class ConversationEngineSnapshotsList extends Disposable {
 		return conversationLensSessionBarSnapshotsUnavailableDisconnected;
 	}
 
+	private async deleteSnapshot(snapshot: UniverseAgentSessionSnapshotInfo): Promise<void> {
+		if (!this.canSendDelete(snapshot.id)) {
+			return;
+		}
+		const label = snapshot.title.trim() || snapshot.id;
+		const confirmed = await this.dialogService.confirm({
+			type: 'warning',
+			message: localize('conversationLens.sessionBarSnapshotsDeleteConfirm', "Delete snapshot \"{0}\"?", label),
+			detail: localize('conversationLens.sessionBarSnapshotsDeleteConfirmDetail', "This engine checkpoint will be removed. This cannot be undone."),
+			primaryButton: conversationLensSessionBarSnapshotsDelete,
+		});
+		if (!confirmed.confirmed) {
+			return;
+		}
+		const sessionId = this.roster.getActiveSessionId();
+		const remove = this.connection.deleteSnapshot;
+		if (!this.canSendDelete(snapshot.id) || !remove || !sessionId) {
+			return;
+		}
+		void remove.call(this.connection, { sessionId, snapshotId: snapshot.id });
+	}
+
+	private canSendDelete(snapshotId: string): boolean {
+		const sessionId = this.roster.getActiveSessionId();
+		const connected = this.connection.isEngineConnected();
+		const hasHook = typeof this.connection.deleteSnapshot === 'function';
+		return canDeleteEngineSnapshot(connected, hasHook, snapshotId, sessionId);
+	}
+
 	private paintStatus(text: string): void {
+		this.rowDisposables.clear();
 		reset(this.body);
 		const status = append(this.body, $('.conversation-lens-snapshots-status'));
 		status.setAttribute('role', 'status');
@@ -218,6 +264,7 @@ export class ConversationEngineSnapshotsList extends Disposable {
 	}
 
 	private paintSnapshots(snapshots: readonly UniverseAgentSessionSnapshotInfo[]): void {
+		this.rowDisposables.clear();
 		reset(this.body);
 		if (snapshots.length === 0) {
 			this.paintStatus(conversationLensSessionBarSnapshotsEmpty);
@@ -248,6 +295,19 @@ export class ConversationEngineSnapshotsList extends Disposable {
 			if (snapshot.turnCount !== undefined) {
 				turns.setAttribute('data-turn-count', String(snapshot.turnCount));
 			}
+
+			const deleteContainer = append(row, $(`.${conversationLensSnapshotsDeleteClass}`));
+			const deleteButton = this.rowDisposables.add(new Button(deleteContainer, {
+				...defaultButtonStyles,
+				supportIcons: true,
+				small: true,
+				secondary: true,
+				title: conversationLensSessionBarSnapshotsDelete,
+				ariaLabel: conversationLensSessionBarSnapshotsDelete,
+			}));
+			deleteButton.icon = Codicon.trash;
+			deleteButton.label = conversationLensSessionBarSnapshotsDelete;
+			this.rowDisposables.add(deleteButton.onDidClick(() => void this.deleteSnapshot(snapshot)));
 		}
 	}
 }

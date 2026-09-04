@@ -263,7 +263,7 @@
 
 .monaco-workbench .part.conversation .conversation-lens-snapshots-row {
 	display: grid;
-	grid-template-columns: minmax(64px, 1fr) minmax(80px, 1.4fr) minmax(96px, 1.2fr) auto;
+	grid-template-columns: minmax(64px, 1fr) minmax(80px, 1.4fr) minmax(96px, 1.2fr) auto auto;
 	gap: 8px;
 	padding: 6px 8px;
 	border-bottom: 1px solid var(--vscode-sideBar-border, var(--vscode-contrastBorder, transparent));
@@ -272,6 +272,17 @@
 	text-transform: none;
 	letter-spacing: normal;
 	color: var(--vscode-foreground);
+	align-items: center;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-snapshots-delete .monaco-button {
+	height: 20px;
+	min-width: 20px;
+	padding: 0 6px;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-snapshots-delete .monaco-button .codicon {
+	margin: 0 2px 0 0;
 }
 
 .monaco-workbench .part.conversation .conversation-lens-snapshots-id,

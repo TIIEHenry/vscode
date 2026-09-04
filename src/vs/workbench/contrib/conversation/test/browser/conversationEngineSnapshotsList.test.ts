@@ -6,13 +6,16 @@
 import assert from 'assert';
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { IConfirmation, IDialogService } from '../../../../../platform/dialogs/common/dialogs.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
-import type { UniverseAgentConnectionSnapshot, UniverseAgentListSnapshotsRequest, UniverseAgentSessionSnapshotInfo } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
+import type { UniverseAgentConnectionSnapshot, UniverseAgentDeleteSnapshotRequest, UniverseAgentListSnapshotsRequest, UniverseAgentSessionSnapshotInfo } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import {
+	canDeleteEngineSnapshot,
 	canRequestEngineSnapshots,
 	ConversationEngineSnapshotsList,
 	conversationLensSnapshotsButtonClass,
+	conversationLensSnapshotsDeleteClass,
 	conversationLensSnapshotsOverlayClass,
 	conversationLensSnapshotsRowClass,
 	formatEngineSnapshotCreatedAt,
@@ -20,6 +23,7 @@ import {
 } from '../../browser/conversationEngineSnapshotsList.js';
 import {
 	conversationLensSessionBarSnapshots,
+	conversationLensSessionBarSnapshotsDelete,
 	conversationLensSessionBarSnapshotsEmpty,
 	conversationLensSessionBarSnapshotsUnavailableDisconnected,
 	conversationLensSessionBarSnapshotsUnavailableNoHook,
@@ -38,6 +42,17 @@ suite('ConversationEngineSnapshotsList', () => {
 		assert.strictEqual(canRequestEngineSnapshots(true, true, ''), false);
 		assert.strictEqual(canRequestEngineSnapshots(true, true, undefined), false);
 		assert.strictEqual(canRequestEngineSnapshots(true, true, 'sess-1'), true);
+	});
+
+	test('delete gate refuses empty snapshotId, disconnected, no hook, or empty session', () => {
+		assert.strictEqual(canDeleteEngineSnapshot(false, true, 'snap-1', 'sess-1'), false);
+		assert.strictEqual(canDeleteEngineSnapshot(true, false, 'snap-1', 'sess-1'), false);
+		assert.strictEqual(canDeleteEngineSnapshot(true, true, '', 'sess-1'), false);
+		assert.strictEqual(canDeleteEngineSnapshot(true, true, '   ', 'sess-1'), false);
+		assert.strictEqual(canDeleteEngineSnapshot(true, true, undefined, 'sess-1'), false);
+		assert.strictEqual(canDeleteEngineSnapshot(true, true, 'snap-1', ''), false);
+		assert.strictEqual(canDeleteEngineSnapshot(true, true, 'snap-1', undefined), false);
+		assert.strictEqual(canDeleteEngineSnapshot(true, true, 'snap-1', 'sess-1'), true);
 	});
 
 	test('created_at formatter keeps ISO and missing as honest dash', () => {
@@ -60,8 +75,16 @@ suite('ConversationEngineSnapshotsList', () => {
 	function mountList(
 		connection: IUniverseAgentConnection,
 		roster: IConversationRosterService = createRosterStub(),
-	): { list: ConversationEngineSnapshotsList; buttonParent: HTMLElement; overlayParent: HTMLElement } {
+		options: { confirmResult?: boolean } = {},
+	): { list: ConversationEngineSnapshotsList; buttonParent: HTMLElement; overlayParent: HTMLElement; confirmCalls: IConfirmation[] } {
 		const instantiationService = workbenchInstantiationService(undefined, store);
+		const confirmCalls: IConfirmation[] = [];
+		instantiationService.stub(IDialogService, {
+			confirm: async (confirmation: IConfirmation) => {
+				confirmCalls.push(confirmation);
+				return { confirmed: options.confirmResult ?? false };
+			},
+		} as IDialogService);
 		instantiationService.stub(IUniverseAgentConnection, connection);
 		instantiationService.stub(IConversationRosterService, roster);
 		const buttonParent = document.createElement('div');
@@ -70,11 +93,15 @@ suite('ConversationEngineSnapshotsList', () => {
 		document.body.appendChild(overlayParent);
 		store.add({ dispose: () => { buttonParent.remove(); overlayParent.remove(); } });
 		const list = store.add(instantiationService.createInstance(ConversationEngineSnapshotsList, buttonParent, overlayParent));
-		return { list, buttonParent, overlayParent };
+		return { list, buttonParent, overlayParent, confirmCalls };
 	}
 
 	function snapshotRow(overlay: HTMLElement, id: string): HTMLElement | null {
 		return overlay.querySelector(`.${conversationLensSnapshotsRowClass}[data-snapshot-id="${id}"]`);
+	}
+
+	function deleteButton(row: HTMLElement | null): HTMLElement | undefined {
+		return row?.querySelector(`.${conversationLensSnapshotsDeleteClass} .monaco-button`) as HTMLElement | undefined;
 	}
 
 	test('SessionBar control is Snapshots, not History, and overlay starts closed', () => {
@@ -131,7 +158,7 @@ suite('ConversationEngineSnapshotsList', () => {
 		assert.ok(overlayParent.textContent?.includes(conversationLensSessionBarSnapshotsUnavailableNoSession));
 	});
 
-	test('connected listSnapshots paints id/title/created_at/turn_count and no mutate actions', async () => {
+	test('connected listSnapshots paints id/title/created_at/turn_count and Delete, not Create/Restore', async () => {
 		const calls: UniverseAgentListSnapshotsRequest[] = [];
 		const snapshots: UniverseAgentSessionSnapshotInfo[] = [
 			{ id: 'snap-1', sessionId: 'sess-1', title: 'Before refactor', createdAt: 1_700_000_000, turnCount: 4 },
@@ -156,9 +183,12 @@ suite('ConversationEngineSnapshotsList', () => {
 		assert.strictEqual(first.querySelector('.conversation-lens-snapshots-created-at')?.textContent, formatEngineSnapshotCreatedAt(1_700_000_000));
 		assert.strictEqual(first.querySelector('.conversation-lens-snapshots-turn-count')?.textContent, '4');
 		assert.strictEqual(second.querySelector('.conversation-lens-snapshots-turn-count')?.textContent, '7');
+		assert.ok(deleteButton(first)?.textContent?.includes(conversationLensSessionBarSnapshotsDelete));
+		assert.ok(deleteButton(second));
 		const text = overlayParent.textContent ?? '';
-		assert.ok(!/create|restore|delete/i.test(text));
+		assert.ok(!/create|restore/i.test(text));
 		assert.strictEqual(overlayParent.querySelector('button.conversation-lens-snapshots-create'), null);
+		assert.strictEqual(overlayParent.querySelector('.conversation-lens-snapshots-restore'), null);
 	});
 
 	test('connected empty engine list is honest empty, not fixture rows', async () => {
@@ -209,5 +239,126 @@ suite('ConversationEngineSnapshotsList', () => {
 		await Promise.resolve();
 		assert.strictEqual(snapshotRow(overlayParent, 'live-1'), null);
 		assert.ok(overlayParent.textContent?.includes(conversationLensSessionBarSnapshotsUnavailableDisconnected));
+	});
+
+	test('connected delete with hook and known session sends DeleteSnapshot after confirm', async () => {
+		const deleteCalls: UniverseAgentDeleteSnapshotRequest[] = [];
+		const { list, overlayParent, confirmCalls } = mountList(createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			listSnapshots: async () => ({
+				snapshots: [{ id: 'snap-1', sessionId: 'sess-1', title: 'Before refactor', createdAt: 1, turnCount: 2 }],
+			}),
+			deleteSnapshot: async request => {
+				deleteCalls.push(request);
+				return { ok: true };
+			},
+		}), createRosterStub(), { confirmResult: true });
+		list.show();
+		await Promise.resolve();
+		deleteButton(snapshotRow(overlayParent, 'snap-1'))?.click();
+		await Promise.resolve();
+		assert.strictEqual(confirmCalls.length, 1);
+		assert.strictEqual(confirmCalls[0]?.type, 'warning');
+		assert.ok(confirmCalls[0]?.message.includes('Before refactor'));
+		assert.deepStrictEqual(deleteCalls, [{ sessionId: 'sess-1', snapshotId: 'snap-1' }]);
+	});
+
+	test('cancelled delete confirm does not send', async () => {
+		const deleteCalls: UniverseAgentDeleteSnapshotRequest[] = [];
+		const { list, overlayParent, confirmCalls } = mountList(createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			listSnapshots: async () => ({
+				snapshots: [{ id: 'snap-1', sessionId: 'sess-1', title: 'Before refactor', createdAt: 1, turnCount: 2 }],
+			}),
+			deleteSnapshot: async request => {
+				deleteCalls.push(request);
+				return { ok: true };
+			},
+		}), createRosterStub(), { confirmResult: false });
+		list.show();
+		await Promise.resolve();
+		deleteButton(snapshotRow(overlayParent, 'snap-1'))?.click();
+		await Promise.resolve();
+		assert.strictEqual(confirmCalls.length, 1);
+		assert.deepStrictEqual(deleteCalls, []);
+	});
+
+	test('empty snapshotId delete does not send', async () => {
+		const deleteCalls: UniverseAgentDeleteSnapshotRequest[] = [];
+		const { list, overlayParent, confirmCalls } = mountList(createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			listSnapshots: async () => ({
+				snapshots: [{ id: '', sessionId: 'sess-1', title: 'Nameless', createdAt: 1, turnCount: 1 }],
+			}),
+			deleteSnapshot: async request => {
+				deleteCalls.push(request);
+				return { ok: true };
+			},
+		}), createRosterStub(), { confirmResult: true });
+		list.show();
+		await Promise.resolve();
+		deleteButton(snapshotRow(overlayParent, ''))?.click();
+		await Promise.resolve();
+		assert.deepStrictEqual(confirmCalls, []);
+		assert.deepStrictEqual(deleteCalls, []);
+	});
+
+	test('disconnected delete does not send', async () => {
+		let connected = true;
+		const deleteCalls: UniverseAgentDeleteSnapshotRequest[] = [];
+		const { list, overlayParent, confirmCalls } = mountList(createConversationConnectionTestStub({
+			isEngineConnected: () => connected,
+			listSnapshots: async () => ({
+				snapshots: [{ id: 'snap-1', sessionId: 'sess-1', title: 'Live', createdAt: 1, turnCount: 1 }],
+			}),
+			deleteSnapshot: async request => {
+				deleteCalls.push(request);
+				return { ok: true };
+			},
+		}), createRosterStub(), { confirmResult: true });
+		list.show();
+		await Promise.resolve();
+		connected = false;
+		deleteButton(snapshotRow(overlayParent, 'snap-1'))?.click();
+		await Promise.resolve();
+		assert.deepStrictEqual(confirmCalls, []);
+		assert.deepStrictEqual(deleteCalls, []);
+	});
+
+	test('no deleteSnapshot hook does not send', async () => {
+		const { list, overlayParent, confirmCalls } = mountList(createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			listSnapshots: async () => ({
+				snapshots: [{ id: 'snap-1', sessionId: 'sess-1', title: 'Live', createdAt: 1, turnCount: 1 }],
+			}),
+		}), createRosterStub(), { confirmResult: true });
+		list.show();
+		await Promise.resolve();
+		deleteButton(snapshotRow(overlayParent, 'snap-1'))?.click();
+		await Promise.resolve();
+		assert.ok(snapshotRow(overlayParent, 'snap-1'));
+		assert.deepStrictEqual(confirmCalls, []);
+	});
+
+	test('empty session delete does not send', async () => {
+		let sessionId = 'sess-1';
+		const deleteCalls: UniverseAgentDeleteSnapshotRequest[] = [];
+		const { list, overlayParent, confirmCalls } = mountList(createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			listSnapshots: async () => ({
+				snapshots: [{ id: 'snap-1', sessionId: 'sess-1', title: 'Live', createdAt: 1, turnCount: 1 }],
+			}),
+			deleteSnapshot: async request => {
+				deleteCalls.push(request);
+				return { ok: true };
+			},
+		}), createRosterStub({ getActiveSessionId: () => sessionId }), { confirmResult: true });
+		list.show();
+		await Promise.resolve();
+		sessionId = '';
+		deleteButton(snapshotRow(overlayParent, 'snap-1'))?.click();
+		await Promise.resolve();
+		assert.deepStrictEqual(confirmCalls, []);
+		assert.deepStrictEqual(deleteCalls, []);
 	});
 });
