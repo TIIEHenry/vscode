@@ -539,6 +539,9 @@ class RecordingMockTransport implements IUniverseAgentGrpcTransport {
 	async readFile() {
 		return { content: new Uint8Array(0), totalSize: 0, mimeType: '', lineCount: 0, contentHash: '' };
 	}
+	async getFileInfo() {
+		return { file: { name: '', path: '', isDirectory: false, size: 0, lastModified: 0, mimeType: '' } };
+	}
 	async listModels() { return { models: [] }; }
 	async getConfig(): Promise<{ values: Record<string, string>; scope: '' }> {
 		return { values: {}, scope: '' };

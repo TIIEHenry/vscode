@@ -184,6 +184,8 @@ import type {
 	UniverseAgentListFilesResult,
 	UniverseAgentReadFileRequest,
 	UniverseAgentReadFileResult,
+	UniverseAgentGetFileInfoRequest,
+	UniverseAgentGetFileInfoResult,
 	UniverseAgentGetHistoryRequest,
 	UniverseAgentGetHistoryResult,
 	UniverseAgentListSessionsRequest,
@@ -1288,6 +1290,23 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 		return this.readFileResult;
 	}
 
+	readonly getFileInfoCalls: UniverseAgentGetFileInfoRequest[] = [];
+	getFileInfoResult: UniverseAgentGetFileInfoResult = {
+		file: {
+			name: '',
+			path: '',
+			isDirectory: false,
+			size: 0,
+			lastModified: 0,
+			mimeType: '',
+		},
+	};
+
+	async getFileInfo(request: UniverseAgentGetFileInfoRequest): Promise<UniverseAgentGetFileInfoResult> {
+		this.getFileInfoCalls.push(request);
+		return this.getFileInfoResult;
+	}
+
 	async listModels() {
 		return { models: [] };
 	}
@@ -1663,6 +1682,11 @@ suite('UniverseAgentConnectionService', () => {
 
 	test('UniverseAgentGrpcServices lists File.ReadFile', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.File.ReadFile, 'ReadFile');
+		assert.strictEqual(UniverseAgentGrpcServices.File.service, 'universeagent.file.v1.FileService');
+	});
+
+	test('UniverseAgentGrpcServices lists File.GetFileInfo', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.File.GetFileInfo, 'GetFileInfo');
 		assert.strictEqual(UniverseAgentGrpcServices.File.service, 'universeagent.file.v1.FileService');
 	});
 
@@ -3960,6 +3984,51 @@ suite('UniverseAgentConnectionService', () => {
 		assert.deepStrictEqual(empty.content, new Uint8Array(0));
 		assert.strictEqual(empty.mimeType, '');
 		assert.strictEqual(empty.contentHash, '');
+		service.dispose();
+	});
+
+	test('getFileInfo forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.getFileInfoResult = {
+			file: {
+				name: 'readme.md',
+				path: 'docs/readme.md',
+				isDirectory: false,
+				size: 128,
+				lastModified: 1_700_000_000,
+				mimeType: 'text/markdown',
+			},
+		};
+		const request = { path: 'docs/readme.md', sessionId: 'sess-1' };
+		const result = await service.getFileInfo(request);
+		assert.deepStrictEqual(transport.getFileInfoCalls, [request]);
+		assert.deepStrictEqual(result, transport.getFileInfoResult);
+
+		transport.getFileInfoResult = {
+			file: {
+				name: '',
+				path: '',
+				isDirectory: false,
+				size: 0,
+				lastModified: 0,
+				mimeType: '',
+			},
+		};
+		const emptyRequest = { path: '', sessionId: '' };
+		const empty = await service.getFileInfo(emptyRequest);
+		assert.strictEqual(transport.getFileInfoCalls[1]?.path, '');
+		assert.strictEqual(transport.getFileInfoCalls[1]?.sessionId, '');
+		assert.strictEqual(empty.file.name, '');
+		assert.strictEqual(empty.file.path, '');
+		assert.strictEqual(empty.file.mimeType, '');
+		assert.strictEqual(empty.file.isDirectory, false);
+		assert.strictEqual(empty.file.size, 0);
+		assert.strictEqual(empty.file.lastModified, 0);
 		service.dispose();
 	});
 

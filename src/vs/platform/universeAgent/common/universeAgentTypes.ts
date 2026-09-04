@@ -1914,6 +1914,21 @@ export interface UniverseAgentReadFileResult {
 }
 
 /**
+ * FileService.GetFileInfo — proto `GetFileInfoRequest` / `GetFileInfoResponse` only.
+ * Empty `path` / `session_id` pass through as-is. Response `file` is proto FileEntry
+ * (`name` / `path` / `is_directory` / `size` / `last_modified` / `mime_type`).
+ * ≠ ListFiles / ReadFile / WriteFile / ForceWriteFile / AgentMerge.
+ */
+export interface UniverseAgentGetFileInfoRequest {
+	readonly path: string;
+	readonly sessionId: string;
+}
+
+export interface UniverseAgentGetFileInfoResult {
+	readonly file: UniverseAgentFileEntry;
+}
+
+/**
  * ConfigService.SetPermissionPolicy — session/tool policy write
  * (≠ SwitchModel / ListModels / Get / Set / GetModelPreferences /
  * SetModelPreferences / SetPermissionMode).

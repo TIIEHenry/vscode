@@ -269,6 +269,8 @@ import type {
 	UniverseAgentListFilesResult,
 	UniverseAgentReadFileRequest,
 	UniverseAgentReadFileResult,
+	UniverseAgentGetFileInfoRequest,
+	UniverseAgentGetFileInfoResult,
 	UniverseAgentListModelsResult,
 	UniverseAgentGetConfigRequest,
 	UniverseAgentGetConfigResult,
@@ -2649,6 +2651,16 @@ function mapReadFileResponse(wire: ReadFileResponseWire): UniverseAgentReadFileR
 	};
 }
 
+interface GetFileInfoResponseWire {
+	file?: NonNullable<ListFilesResponseWire['entries']>[number];
+}
+
+function mapGetFileInfoResponse(wire: GetFileInfoResponseWire): UniverseAgentGetFileInfoResult {
+	return {
+		file: mapFileEntry(wire.file ?? {}),
+	};
+}
+
 interface ListModelsResponseWire {
 	models?: Array<{
 		id?: string;
@@ -4513,6 +4525,19 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			max_bytes: request.maxBytes,
 		});
 		return mapReadFileResponse(wire);
+	}
+
+	async getFileInfo(request: UniverseAgentGetFileInfoRequest): Promise<UniverseAgentGetFileInfoResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, GetFileInfoResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.File.service,
+			UniverseAgentGrpcServices.File.GetFileInfo,
+		);
+		const wire = await unary({
+			path: request.path,
+			session_id: request.sessionId,
+		});
+		return mapGetFileInfoResponse(wire);
 	}
 
 	async setPermissionPolicy(request: UniverseAgentSetPermissionPolicyRequest): Promise<UniverseAgentSetPermissionPolicyResult> {
