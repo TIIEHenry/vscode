@@ -89,6 +89,15 @@ export interface IConversationRosterService {
 	 */
 	killSubAgent(sessionId: string, options?: { agentId?: string; force?: boolean }): boolean;
 	/**
+	 * AgentService.CreateSnapshot (persist a session checkpoint; ≠ ListSnapshots /
+	 * SessionBar History / Restore / Delete). Engine-connected forwards unary.
+	 * Empty `sessionId` / unknown session / disconnected cache / missing hook
+	 * returns false and does not send. Omitted title uses a default; empty
+	 * title is sent as-is (match transport). Stub / never-connected is a
+	 * local no-op.
+	 */
+	createSnapshot(sessionId: string, options?: { title?: string; description?: string }): boolean;
+	/**
 	 * AgentService.CancelToolCall (per-tool cancel; ≠ session-turn Cancel).
 	 * Engine-connected forwards unary (empty agent → last streaming else
 	 * `root`). Empty `toolCallId` / stub / disconnected cache / missing hook
@@ -325,6 +334,10 @@ export class ConversationStubService extends Disposable implements IConversation
 	}
 
 	killSubAgent(_sessionId: string, _options?: { agentId?: string; force?: boolean }): boolean {
+		return false;
+	}
+
+	createSnapshot(_sessionId: string, _options?: { title?: string; description?: string }): boolean {
 		return false;
 	}
 

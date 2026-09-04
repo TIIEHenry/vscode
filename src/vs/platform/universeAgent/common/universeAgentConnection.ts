@@ -292,7 +292,9 @@ export interface IUniverseAgentConnection {
 
 	/**
 	 * AgentService.CreateSnapshot unary (persist a session checkpoint). Optional
-	 * so Web / tests can omit it. Catalog + node transport only this slice;
+	 * so Web / tests can omit it. ConversationEngineRosterService
+	 * `createSnapshot` forwards this when connected; empty `sessionId` /
+	 * disconnected / missing hook do not send. Empty title is sent as-is.
 	 * SessionBar History stays the turn index. Restore / Delete snapshot stay
 	 * out of catalog.
 	 */
