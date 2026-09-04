@@ -212,6 +212,8 @@ import type {
 	UniverseAgentReadMemoryResult,
 	UniverseAgentMemoryListRequest,
 	UniverseAgentMemoryListResult,
+	UniverseAgentReflectMemoryRequest,
+	UniverseAgentReflectMemoryResult,
 	UniverseAgentGetHistoryRequest,
 	UniverseAgentGetHistoryResult,
 	UniverseAgentListSessionsRequest,
@@ -1548,6 +1550,17 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 		return this.listMemoryResult;
 	}
 
+	readonly reflectMemoryCalls: UniverseAgentReflectMemoryRequest[] = [];
+	reflectMemoryResult: UniverseAgentReflectMemoryResult = {
+		diagnoses: [],
+		summary: '',
+	};
+
+	async reflectMemory(request: UniverseAgentReflectMemoryRequest): Promise<UniverseAgentReflectMemoryResult> {
+		this.reflectMemoryCalls.push(request);
+		return this.reflectMemoryResult;
+	}
+
 	async listModels() {
 		return { models: [] };
 	}
@@ -2003,6 +2016,11 @@ suite('UniverseAgentConnectionService', () => {
 
 	test('UniverseAgentGrpcServices lists Memory.List', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Memory.List, 'List');
+		assert.strictEqual(UniverseAgentGrpcServices.Memory.service, 'universeagent.memory.v1.MemoryService');
+	});
+
+	test('UniverseAgentGrpcServices lists Memory.Reflect', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Memory.Reflect, 'Reflect');
 		assert.strictEqual(UniverseAgentGrpcServices.Memory.service, 'universeagent.memory.v1.MemoryService');
 	});
 
@@ -5108,6 +5126,68 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(transport.listMemoryCalls[2]?.scope, '');
 		assert.strictEqual(transport.listMemoryCalls[2]?.category, '');
 		assert.deepStrictEqual(emptyLists.categories, []);
+		service.dispose();
+	});
+
+	test('reflectMemory forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.reflectMemoryResult = {
+			diagnoses: [{
+				type: 'stale',
+				category: 'notes',
+				filename: 'old.md',
+				description: 'outdated',
+				suggestion: 'refresh',
+			}],
+			summary: 'one stale',
+		};
+		const request = {
+			scope: 'project',
+			categories: ['notes'],
+		};
+		const result = await service.reflectMemory(request);
+		assert.deepStrictEqual(transport.reflectMemoryCalls, [request]);
+		assert.deepStrictEqual(result, transport.reflectMemoryResult);
+
+		transport.reflectMemoryResult = {
+			diagnoses: [{
+				type: '',
+				category: '',
+				filename: '',
+				description: '',
+				suggestion: '',
+			}],
+			summary: '',
+		};
+		const emptyRequest = {
+			scope: '',
+			categories: [''],
+		};
+		const empty = await service.reflectMemory(emptyRequest);
+		assert.strictEqual(transport.reflectMemoryCalls[1]?.scope, '');
+		assert.deepStrictEqual(transport.reflectMemoryCalls[1]?.categories, ['']);
+		assert.strictEqual(empty.diagnoses[0]?.type, '');
+		assert.strictEqual(empty.diagnoses[0]?.category, '');
+		assert.strictEqual(empty.diagnoses[0]?.filename, '');
+		assert.strictEqual(empty.diagnoses[0]?.description, '');
+		assert.strictEqual(empty.diagnoses[0]?.suggestion, '');
+		assert.strictEqual(empty.summary, '');
+
+		const emptyListsRequest = {
+			scope: '',
+			categories: [],
+		};
+		transport.reflectMemoryResult = { diagnoses: [], summary: '' };
+		const emptyLists = await service.reflectMemory(emptyListsRequest);
+		assert.strictEqual(transport.reflectMemoryCalls[2]?.scope, '');
+		assert.deepStrictEqual(transport.reflectMemoryCalls[2]?.categories, []);
+		assert.deepStrictEqual(emptyLists.diagnoses, []);
+		assert.strictEqual(emptyLists.summary, '');
 		service.dispose();
 	});
 

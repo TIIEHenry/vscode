@@ -2240,6 +2240,32 @@ export interface UniverseAgentMemoryListResult {
 }
 
 /**
+ * MemoryService.Reflect — proto `MemoryReflectRequest` /
+ * `MemoryReflectResponse` + `ReflectDiagnosis` only. Empty `scope` /
+ * `categories` pass through as-is. Empty `type` / `category` /
+ * `filename` / `description` / `suggestion` / `summary` mapped as-is.
+ * ≠ Save / Search / SearchDeep / Read / List / Delete / Rebuild /
+ * Revert / History.
+ */
+export interface UniverseAgentReflectMemoryRequest {
+	readonly scope: string;
+	readonly categories: readonly string[];
+}
+
+export interface UniverseAgentMemoryReflectDiagnosis {
+	readonly type: string;
+	readonly category: string;
+	readonly filename: string;
+	readonly description: string;
+	readonly suggestion: string;
+}
+
+export interface UniverseAgentReflectMemoryResult {
+	readonly diagnoses: readonly UniverseAgentMemoryReflectDiagnosis[];
+	readonly summary: string;
+}
+
+/**
  * ConfigService.SetPermissionPolicy — session/tool policy write
  * (≠ SwitchModel / ListModels / Get / Set / GetModelPreferences /
  * SetModelPreferences / SetPermissionMode).
