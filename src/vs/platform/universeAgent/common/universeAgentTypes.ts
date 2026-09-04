@@ -544,6 +544,19 @@ export interface UniverseAgentResumeLoopResult {
 	readonly message?: string;
 }
 
+/** AgentService.StopLoop — terminate loop control-flow (≠ Pause / Cancel / SuspendLoop / Resume / ResumeLoop / Branch). */
+export interface UniverseAgentStopLoopRequest {
+	readonly sessionId: string;
+	readonly agentId: string;
+	/** Empty sent as-is. */
+	readonly detail: string;
+}
+
+export interface UniverseAgentStopLoopResult {
+	readonly ok: boolean;
+	readonly message?: string;
+}
+
 /** AgentService.Rename request; empty `title` clears a custom session title. */
 export interface UniverseAgentRenameSessionRequest {
 	readonly sessionId: string;

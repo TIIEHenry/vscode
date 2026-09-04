@@ -63,6 +63,8 @@ import type {
 	UniverseAgentSuspendLoopResult,
 	UniverseAgentResumeLoopRequest,
 	UniverseAgentResumeLoopResult,
+	UniverseAgentStopLoopRequest,
+	UniverseAgentStopLoopResult,
 	UniverseAgentRenameSessionRequest,
 	UniverseAgentRenameSessionResult,
 	UniverseAgentCancelGenerationRequest,
@@ -403,6 +405,15 @@ export interface IUniverseAgentConnection {
 	 * SuspendLoop / Branch / StopLoop.
 	 */
 	resumeLoop?(request: UniverseAgentResumeLoopRequest): Promise<UniverseAgentResumeLoopResult>;
+
+	/**
+	 * AgentService.StopLoop unary (StopLoopResponse.success → ok). Optional
+	 * so Web / tests can omit it. Catalog + node transport only this slice;
+	 * empty `sessionId` / `agentId` / `detail` are sent as-is. No Conversation
+	 * roster / UI.
+	 * ≠ Pause / Cancel / SuspendLoop / Resume / ResumeLoop / Branch.
+	 */
+	stopLoop?(request: UniverseAgentStopLoopRequest): Promise<UniverseAgentStopLoopResult>;
 
 	/** AgentService.Rename unary. Engine roster forwards this when connected. */
 	renameSession(request: UniverseAgentRenameSessionRequest): Promise<UniverseAgentRenameSessionResult>;
