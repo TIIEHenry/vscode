@@ -131,6 +131,8 @@ import type {
 	UniverseAgentSwitchModelResult,
 	UniverseAgentResolveModelRequest,
 	UniverseAgentResolveModelResult,
+	UniverseAgentWatchConfigRequest,
+	UniverseAgentConfigChangedEvent,
 	UniverseAgentSetPermissionPolicyRequest,
 	UniverseAgentSetPermissionPolicyResult,
 	UniverseAgentGetModelPreferencesRequest,
@@ -1099,6 +1101,31 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 		this._subscribeToolDetailGate?.finish(cause);
 	}
 
+	private _watchConfigGate: ReturnType<typeof createStreamCloseGate> | undefined;
+	readonly watchConfigOpens: UniverseAgentWatchConfigRequest[] = [];
+
+	openWatchConfigStream(
+		request: UniverseAgentWatchConfigRequest,
+		_onResponse: (response: UniverseAgentConfigChangedEvent) => void,
+		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
+	): { dispose(): void } {
+		this.watchConfigOpens.push(request);
+		const gate = createStreamCloseGate(onClosed);
+		this._watchConfigGate = gate;
+		return {
+			dispose: () => {
+				gate.closeLocal();
+				if (this._watchConfigGate === gate) {
+					this._watchConfigGate = undefined;
+				}
+			},
+		};
+	}
+
+	fireWatchConfigClosed(cause: UniverseAgentSessionStreamCloseCause): void {
+		this._watchConfigGate?.finish(cause);
+	}
+
 	async listSkills() {
 		return { skills: [] };
 	}
@@ -1473,6 +1500,11 @@ suite('UniverseAgentConnectionService', () => {
 
 	test('UniverseAgentGrpcServices lists Config.ResolveModel', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Config.ResolveModel, 'ResolveModel');
+		assert.strictEqual(UniverseAgentGrpcServices.Config.service, 'universeagent.config.v1.ConfigService');
+	});
+
+	test('UniverseAgentGrpcServices lists Config.Watch', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Config.Watch, 'Watch');
 		assert.strictEqual(UniverseAgentGrpcServices.Config.service, 'universeagent.config.v1.ConfigService');
 	});
 
@@ -4559,6 +4591,49 @@ suite('UniverseAgentConnectionService', () => {
 		}, () => { }, cause => seen.push(cause));
 		handle.dispose();
 		transport.fireSubscribeToolDetailClosed({ kind: 'error', message: 'CANCELLED' });
+		assert.deepStrictEqual(seen, []);
+		service.dispose();
+	});
+
+	test('openWatchConfigStream forwards request and transport onClosed', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		const seen: UniverseAgentSessionStreamCloseCause[] = [];
+		const handle = service.openWatchConfigStream({
+			keys: ['model.id', ''],
+		}, () => { }, cause => seen.push(cause));
+		assert.deepStrictEqual(transport.watchConfigOpens, [{
+			keys: ['model.id', ''],
+		}]);
+		transport.fireWatchConfigClosed({ kind: 'remote' });
+		transport.fireWatchConfigClosed({ kind: 'error', message: 'late' });
+		assert.deepStrictEqual(seen, [{ kind: 'remote' }]);
+
+		service.openWatchConfigStream({
+			keys: [],
+		}, () => { });
+		assert.deepStrictEqual(transport.watchConfigOpens[1]?.keys, []);
+		handle.dispose();
+		service.dispose();
+	});
+
+	test('openWatchConfigStream dispose silences later onClosed', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		const seen: UniverseAgentSessionStreamCloseCause[] = [];
+		const handle = service.openWatchConfigStream({
+			keys: [''],
+		}, () => { }, cause => seen.push(cause));
+		handle.dispose();
+		transport.fireWatchConfigClosed({ kind: 'error', message: 'CANCELLED' });
 		assert.deepStrictEqual(seen, []);
 		service.dispose();
 	});

@@ -217,6 +217,9 @@ import type {
 	UniverseAgentGetModelPreferencesResult,
 	UniverseAgentResolveModelRequest,
 	UniverseAgentResolveModelResult,
+	UniverseAgentWatchConfigRequest,
+	UniverseAgentConfigChangedEvent,
+	UniverseAgentWatchConfigStream,
 	UniverseAgentToggleMcpServerRequest,
 	UniverseAgentToggleMcpServerResult,
 	UniverseAgentSessionEvent,
@@ -1293,6 +1296,15 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 
 	async resolveModel(request: UniverseAgentResolveModelRequest): Promise<UniverseAgentResolveModelResult> {
 		return this._withTransport(transport => transport.resolveModel(request));
+	}
+
+	openWatchConfigStream(
+		request: UniverseAgentWatchConfigRequest,
+		onResponse: (response: UniverseAgentConfigChangedEvent) => void,
+		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
+	): UniverseAgentWatchConfigStream {
+		this._assertTransportReady();
+		return this._transport!.openWatchConfigStream(request, onResponse, onClosed);
 	}
 
 	getActiveHubBaseUrl(): string | undefined {

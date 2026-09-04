@@ -271,6 +271,9 @@ import type {
 	UniverseAgentGetModelPreferencesResult,
 	UniverseAgentResolveModelRequest,
 	UniverseAgentResolveModelResult,
+	UniverseAgentWatchConfigRequest,
+	UniverseAgentConfigChangedEvent,
+	UniverseAgentWatchConfigStream,
 	UniverseAgentModelEntry,
 	UniverseAgentToolSummary,
 	UniverseAgentAgentTreeNode,
@@ -489,6 +492,14 @@ interface SubscribeToolDetailChunkWire {
 	mime_type?: string;
 	eof?: boolean;
 	content_mode?: string | number;
+}
+
+interface ConfigChangedEventWire {
+	key?: string;
+	old_value?: string;
+	new_value?: string;
+	scope?: string;
+	timestamp?: number | string;
 }
 interface SessionSnapshotInfoWire {
 	id?: string;
@@ -1297,6 +1308,16 @@ function mapSubscribeToolDetailChunk(wire: SubscribeToolDetailChunkWire): Univer
 		...(wire.mime_type !== undefined ? { mimeType: wire.mime_type } : {}),
 		eof: wire.eof === true,
 		contentMode: mapToolDetailContentMode(wire.content_mode),
+	};
+}
+
+function mapConfigChangedEvent(wire: ConfigChangedEventWire): UniverseAgentConfigChangedEvent {
+	return {
+		key: wire.key ?? '',
+		oldValue: wire.old_value ?? '',
+		newValue: wire.new_value ?? '',
+		scope: wire.scope ?? '',
+		timestamp: requiredInt64(wire.timestamp),
 	};
 }
 
@@ -4513,6 +4534,21 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			type: request.type,
 		});
 		return mapResolveModelResponse(wire);
+	}
+
+	openWatchConfigStream(
+		request: UniverseAgentWatchConfigRequest,
+		onResponse: (response: UniverseAgentConfigChangedEvent) => void,
+		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
+	): UniverseAgentWatchConfigStream {
+		const stream = makeServerStreamClient<Record<string, unknown>, ConfigChangedEventWire>(
+			this._channel,
+			UniverseAgentGrpcServices.Config.service,
+			UniverseAgentGrpcServices.Config.Watch,
+		);
+		return stream({
+			keys: request.keys,
+		}, wire => onResponse(mapConfigChangedEvent(wire)), onClosed);
 	}
 
 	async fetchToolDetail(request: UniverseAgentFetchToolDetailRequest): Promise<UniverseAgentFetchToolDetailWireResult> {

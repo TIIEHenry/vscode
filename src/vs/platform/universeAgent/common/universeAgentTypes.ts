@@ -1951,6 +1951,31 @@ export interface UniverseAgentResolveModelResult {
 }
 
 /**
+ * ConfigService.Watch request; proto `stream ConfigChangedEvent`.
+ * Empty `keys` are sent as-is (engine watches all).
+ * ≠ Get / Set / ListModels / SwitchModel / GetCommandDef.
+ */
+export interface UniverseAgentWatchConfigRequest {
+	/** Proto `keys`. Empty sent as-is (engine watches all). */
+	readonly keys: readonly string[];
+}
+
+/** Proto `ConfigChangedEvent`. Empty `key` / `oldValue` / `newValue` / `scope` mapped as-is. */
+export interface UniverseAgentConfigChangedEvent {
+	readonly key: string;
+	readonly oldValue: string;
+	readonly newValue: string;
+	readonly scope: string;
+	/** Proto `timestamp`. Missing/0 mapped as-is. */
+	readonly timestamp: number;
+}
+
+/** Server-stream handle for ConfigService.Watch (client does not write). */
+export interface UniverseAgentWatchConfigStream {
+	dispose(): void;
+}
+
+/**
  * MCP runtime connection status from McpService.GetMcpServerStatuses.
  * Proto `MCP_STATUS_UNSPECIFIED` maps to `failed` (no fifth UI state).
  */
