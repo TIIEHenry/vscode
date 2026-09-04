@@ -99,6 +99,7 @@ import type {
 	UniverseAgentRespondQuestionRequest,
 	UniverseAgentRespondQuestionResult,
 	UniverseAgentEnqueueQueueItemRequest,
+	UniverseAgentInsertQueueItemRequest,
 	UniverseAgentEditQueueItemRequest,
 	UniverseAgentHoldQueueItemRequest,
 	UniverseAgentQueueItemRefRequest,
@@ -538,6 +539,15 @@ export interface IUniverseAgentConnection {
 
 	/** AgentService.EnqueueQueueItem. Engine roster forwards when connected. */
 	enqueueQueueItem(request: UniverseAgentEnqueueQueueItemRequest): Promise<UniverseAgentQueueMutationResult>;
+
+	/**
+	 * AgentService.InsertQueueItem unary (QueueMutationResponse.ok).
+	 * Optional so Web / tests can omit it. Catalog + node transport only this
+	 * slice; empty `sessionId` / `opId` / `clientMessageId` / `beforeItemId`
+	 * are sent as-is. No Conversation roster / UI.
+	 * ≠ EnqueueQueueItem / ReorderQueue / EditQueueItem / SubscribeToolDetail.
+	 */
+	insertQueueItem?(request: UniverseAgentInsertQueueItemRequest): Promise<UniverseAgentQueueMutationResult>;
 
 	/** AgentService.PauseQueue. Engine roster forwards when connected. */
 	pauseQueue(request: UniverseAgentQueueRefRequest): Promise<UniverseAgentQueueMutationResult>;

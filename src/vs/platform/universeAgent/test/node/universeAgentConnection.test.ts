@@ -92,6 +92,7 @@ import type {
 	UniverseAgentRespondQuestionRequest,
 	UniverseAgentRespondQuestionResult,
 	UniverseAgentEnqueueQueueItemRequest,
+	UniverseAgentInsertQueueItemRequest,
 	UniverseAgentEditQueueItemRequest,
 	UniverseAgentHoldQueueItemRequest,
 	UniverseAgentQueueItemRefRequest,
@@ -516,6 +517,7 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 	}
 
 	readonly enqueueCalls: UniverseAgentEnqueueQueueItemRequest[] = [];
+	readonly insertCalls: UniverseAgentInsertQueueItemRequest[] = [];
 	readonly pauseCalls: UniverseAgentQueueRefRequest[] = [];
 	readonly resumeCalls: UniverseAgentQueueRefRequest[] = [];
 	readonly clearCalls: UniverseAgentQueueRefRequest[] = [];
@@ -526,6 +528,11 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 
 	async enqueueQueueItem(request: UniverseAgentEnqueueQueueItemRequest): Promise<UniverseAgentQueueMutationResult> {
 		this.enqueueCalls.push(request);
+		return this.queueResult;
+	}
+
+	async insertQueueItem(request: UniverseAgentInsertQueueItemRequest): Promise<UniverseAgentQueueMutationResult> {
+		this.insertCalls.push(request);
 		return this.queueResult;
 	}
 
@@ -1051,6 +1058,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('UniverseAgentGrpcServices lists Permission.Respond', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Permission.Respond, 'Respond');
 		assert.strictEqual(UniverseAgentGrpcServices.Permission.service, 'universeagent.session.v1.PermissionService');
+	});
+
+	test('UniverseAgentGrpcServices lists Agent.InsertQueueItem', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.InsertQueueItem, 'InsertQueueItem');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
 	});
 
 	test('UniverseAgentGrpcServices lists Agent queue mutation family', () => {
@@ -1655,6 +1667,48 @@ suite('UniverseAgentConnectionService', () => {
 		transport.queueResult = { ok: false, error: 'busy' };
 		const failed = await service.pauseQueue({ sessionId: 'sess-1' });
 		assert.deepStrictEqual(failed, { ok: false, error: 'busy' });
+		service.dispose();
+	});
+
+	test('insertQueueItem forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.queueResult = { ok: true, opId: 'op-1', itemId: 'q-new' };
+		const result = await service.insertQueueItem({
+			sessionId: 'sess-1',
+			opId: 'op-1',
+			clientMessageId: 'c-1',
+			text: 'insert me',
+			priority: 'HIGH',
+			beforeItemId: 'q-2',
+		});
+		assert.deepStrictEqual(transport.insertCalls, [{
+			sessionId: 'sess-1',
+			opId: 'op-1',
+			clientMessageId: 'c-1',
+			text: 'insert me',
+			priority: 'HIGH',
+			beforeItemId: 'q-2',
+		}]);
+		assert.deepStrictEqual(result, transport.queueResult);
+
+		transport.queueResult = { ok: false, error: 'empty' };
+		const empty = await service.insertQueueItem({
+			sessionId: '',
+			opId: '',
+			clientMessageId: '',
+			text: '',
+			beforeItemId: '',
+		});
+		assert.deepStrictEqual(empty, transport.queueResult);
+		assert.strictEqual(transport.insertCalls[1]?.sessionId, '');
+		assert.strictEqual(transport.insertCalls[1]?.opId, '');
+		assert.strictEqual(transport.insertCalls[1]?.clientMessageId, '');
+		assert.strictEqual(transport.insertCalls[1]?.beforeItemId, '');
 		service.dispose();
 	});
 
