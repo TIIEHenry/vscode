@@ -102,6 +102,8 @@ import type {
 	UniverseAgentTestModelProfileResult,
 	UniverseAgentSetConfigRequest,
 	UniverseAgentSetConfigResult,
+	UniverseAgentSetModelPreferencesRequest,
+	UniverseAgentSetModelPreferencesResult,
 	UniverseAgentSetSessionGoalRequest,
 	UniverseAgentSetSessionGoalResult,
 	UniverseAgentCancelSessionGoalRequest,
@@ -590,6 +592,15 @@ export interface IUniverseAgentConnection {
 	 * ≠ Get / Watch / ListModels / SwitchModel.
 	 */
 	setConfig?(request: UniverseAgentSetConfigRequest): Promise<UniverseAgentSetConfigResult>;
+
+	/**
+	 * ConfigService.SetModelPreferences unary. Optional so Web / tests can
+	 * omit it. Catalog + node transport only this slice; empty `sessionId` /
+	 * `maxCost` / `minSpeed` / `strategy` and `minLevel` 0 are sent as-is.
+	 * No Conversation roster / Engine Preferences UI.
+	 * ≠ GetModelPreferences / ResolveModel / SwitchModel / ListModels / Get / Set.
+	 */
+	setModelPreferences?(request: UniverseAgentSetModelPreferencesRequest): Promise<UniverseAgentSetModelPreferencesResult>;
 
 	/**
 	 * PermissionService.SetSessionGoal unary (Inbox Goal). Optional so Web / tests

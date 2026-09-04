@@ -122,6 +122,8 @@ import type {
 	UniverseAgentTestModelProfileResult,
 	UniverseAgentSetConfigRequest,
 	UniverseAgentSetConfigResult,
+	UniverseAgentSetModelPreferencesRequest,
+	UniverseAgentSetModelPreferencesResult,
 	UniverseAgentSetSessionGoalRequest,
 	UniverseAgentSetSessionGoalResult,
 	UniverseAgentCancelSessionGoalRequest,
@@ -4312,6 +4314,30 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 		return {
 			ok: wire.success === true,
 			message: wire.message,
+		};
+	}
+
+	async setModelPreferences(request: UniverseAgentSetModelPreferencesRequest): Promise<UniverseAgentSetModelPreferencesResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, {
+			preferences?: { min_level?: number; max_cost?: string; min_speed?: string; strategy?: string };
+		}>(
+			this._channel,
+			UniverseAgentGrpcServices.Config.service,
+			UniverseAgentGrpcServices.Config.SetModelPreferences,
+		);
+		const wire = await unary({
+			session_id: request.sessionId,
+			min_level: request.minLevel,
+			max_cost: request.maxCost,
+			min_speed: request.minSpeed,
+			strategy: request.strategy,
+		});
+		const prefs = wire.preferences;
+		return {
+			minLevel: prefs?.min_level ?? 0,
+			maxCost: prefs?.max_cost ?? '',
+			minSpeed: prefs?.min_speed ?? '',
+			strategy: prefs?.strategy ?? '',
 		};
 	}
 

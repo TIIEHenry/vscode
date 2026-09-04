@@ -772,6 +772,26 @@ export interface UniverseAgentSetConfigResult {
 	readonly message?: string;
 }
 
+/** ConfigService.SetModelPreferences — session model-strategy write (≠ GetModelPreferences / ResolveModel / SwitchModel / ListModels / Get / Set). */
+export interface UniverseAgentSetModelPreferencesRequest {
+	readonly sessionId: string;
+	/** Proto `min_level`. 0 sent as-is. */
+	readonly minLevel: number;
+	/** Proto `max_cost`. Empty sent as-is. */
+	readonly maxCost: string;
+	/** Proto `min_speed`. Empty sent as-is. */
+	readonly minSpeed: string;
+	/** Proto `strategy`. Empty sent as-is. */
+	readonly strategy: string;
+}
+
+export interface UniverseAgentSetModelPreferencesResult {
+	readonly minLevel: number;
+	readonly maxCost: string;
+	readonly minSpeed: string;
+	readonly strategy: string;
+}
+
 
 /** PermissionService.SetSessionGoal request (Inbox Goal). */
 export interface UniverseAgentSetSessionGoalRequest {
