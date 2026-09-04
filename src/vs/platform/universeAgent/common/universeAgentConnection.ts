@@ -203,6 +203,8 @@ import type {
 	UniverseAgentListModelsResult,
 	UniverseAgentGetConfigRequest,
 	UniverseAgentGetConfigResult,
+	UniverseAgentGetModelPreferencesRequest,
+	UniverseAgentGetModelPreferencesResult,
 	UniverseAgentToggleMcpServerRequest,
 	UniverseAgentToggleMcpServerResult,
 	UniverseAgentSessionEvent,
@@ -1068,4 +1070,14 @@ export interface IUniverseAgentConnection {
 	 * ≠ Set / Watch / ListModels / SwitchModel / TestModelProfile.
 	 */
 	getConfig?(request: UniverseAgentGetConfigRequest): Promise<UniverseAgentGetConfigResult>;
+
+	/**
+	 * ConfigService.GetModelPreferences unary (session model-strategy prefs).
+	 * Optional so Web / tests can omit it. Catalog + node transport only this
+	 * slice; empty `sessionId` is sent as-is. No Conversation roster / UI /
+	 * Engine Preferences / Composer.
+	 * ≠ SetModelPreferences / SwitchModel / ListModels / Get / Set /
+	 * SetPermissionPolicy.
+	 */
+	getModelPreferences?(request: UniverseAgentGetModelPreferencesRequest): Promise<UniverseAgentGetModelPreferencesResult>;
 }

@@ -198,6 +198,8 @@ import type {
 	UniverseAgentListModelsResult,
 	UniverseAgentGetConfigRequest,
 	UniverseAgentGetConfigResult,
+	UniverseAgentGetModelPreferencesRequest,
+	UniverseAgentGetModelPreferencesResult,
 	UniverseAgentToggleMcpServerRequest,
 	UniverseAgentToggleMcpServerResult,
 	UniverseAgentSessionEvent,
@@ -570,6 +572,9 @@ export interface IUniverseAgentGrpcTransport {
 	/** ConfigService.Get unary (snake_case `key`/`scope`/`session_id`). Empty ids sent as-is. */
 	getConfig(request: UniverseAgentGetConfigRequest): Promise<UniverseAgentGetConfigResult>;
 
+	/** ConfigService.GetModelPreferences unary (snake_case `session_id`). Empty ids sent as-is. */
+	getModelPreferences(request: UniverseAgentGetModelPreferencesRequest): Promise<UniverseAgentGetModelPreferencesResult>;
+
 	/** Host-only: AgentService.Tree (m6 §11 A1). */
 	fetchAgentTree(sessionId: string): Promise<UniverseAgentAgentTreeNode | undefined>;
 
@@ -709,6 +714,7 @@ export const UniverseAgentGrpcServices = {
 	Config: {
 		service: 'universeagent.config.v1.ConfigService',
 		Get: 'Get',
+		GetModelPreferences: 'GetModelPreferences',
 		ListModels: 'ListModels',
 		Set: 'Set',
 	},

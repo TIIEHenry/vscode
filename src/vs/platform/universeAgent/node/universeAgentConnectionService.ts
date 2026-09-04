@@ -206,6 +206,8 @@ import type {
 	UniverseAgentListModelsResult,
 	UniverseAgentGetConfigRequest,
 	UniverseAgentGetConfigResult,
+	UniverseAgentGetModelPreferencesRequest,
+	UniverseAgentGetModelPreferencesResult,
 	UniverseAgentToggleMcpServerRequest,
 	UniverseAgentToggleMcpServerResult,
 	UniverseAgentSessionEvent,
@@ -1258,6 +1260,10 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 
 	async getConfig(request: UniverseAgentGetConfigRequest): Promise<UniverseAgentGetConfigResult> {
 		return this._withTransport(transport => transport.getConfig(request));
+	}
+
+	async getModelPreferences(request: UniverseAgentGetModelPreferencesRequest): Promise<UniverseAgentGetModelPreferencesResult> {
+		return this._withTransport(transport => transport.getModelPreferences(request));
 	}
 
 	getActiveHubBaseUrl(): string | undefined {

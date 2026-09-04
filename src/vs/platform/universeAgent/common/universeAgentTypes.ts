@@ -1825,6 +1825,23 @@ export interface UniverseAgentGetConfigResult {
 	readonly scope: string;
 }
 
+/** ConfigService.GetModelPreferences — session model-strategy prefs (≠ SetModelPreferences / SwitchModel / ListModels / Get / Set / SetPermissionPolicy). */
+export interface UniverseAgentGetModelPreferencesRequest {
+	/** Proto `session_id`. Empty sent as-is. */
+	readonly sessionId: string;
+}
+
+export interface UniverseAgentGetModelPreferencesResult {
+	/** Proto `min_level`. Missing/0 sent as-is. */
+	readonly minLevel: number;
+	/** Proto `max_cost`. Empty sent as-is. */
+	readonly maxCost: string;
+	/** Proto `min_speed`. Empty sent as-is. */
+	readonly minSpeed: string;
+	/** Proto `strategy`. Empty sent as-is. */
+	readonly strategy: string;
+}
+
 /**
  * MCP runtime connection status from McpService.GetMcpServerStatuses.
  * Proto `MCP_STATUS_UNSPECIFIED` maps to `failed` (no fifth UI state).

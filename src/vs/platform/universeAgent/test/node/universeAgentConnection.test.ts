@@ -125,6 +125,8 @@ import type {
 	UniverseAgentAbortTeamResult,
 	UniverseAgentGetConfigRequest,
 	UniverseAgentGetConfigResult,
+	UniverseAgentGetModelPreferencesRequest,
+	UniverseAgentGetModelPreferencesResult,
 	UniverseAgentRespondQuestionRequest,
 	UniverseAgentRespondQuestionResult,
 	UniverseAgentEnqueueQueueItemRequest,
@@ -1169,6 +1171,19 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 		return this.getConfigResult;
 	}
 
+	readonly getModelPreferencesCalls: UniverseAgentGetModelPreferencesRequest[] = [];
+	getModelPreferencesResult: UniverseAgentGetModelPreferencesResult = {
+		minLevel: 0,
+		maxCost: '',
+		minSpeed: '',
+		strategy: '',
+	};
+
+	async getModelPreferences(request: UniverseAgentGetModelPreferencesRequest): Promise<UniverseAgentGetModelPreferencesResult> {
+		this.getModelPreferencesCalls.push(request);
+		return this.getModelPreferencesResult;
+	}
+
 	async fetchAgentTree(sessionId: string) {
 		if (this.handlers.fetchAgentTree) {
 			return this.handlers.fetchAgentTree(sessionId);
@@ -1388,6 +1403,11 @@ suite('UniverseAgentConnectionService', () => {
 
 	test('UniverseAgentGrpcServices lists Config.Get', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Config.Get, 'Get');
+		assert.strictEqual(UniverseAgentGrpcServices.Config.service, 'universeagent.config.v1.ConfigService');
+	});
+
+	test('UniverseAgentGrpcServices lists Config.GetModelPreferences', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Config.GetModelPreferences, 'GetModelPreferences');
 		assert.strictEqual(UniverseAgentGrpcServices.Config.service, 'universeagent.config.v1.ConfigService');
 	});
 
@@ -3254,6 +3274,41 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(transport.getConfigCalls[1]?.key, '');
 		assert.strictEqual(transport.getConfigCalls[1]?.scope, '');
 		assert.strictEqual(transport.getConfigCalls[1]?.sessionId, '');
+		service.dispose();
+	});
+
+	test('getModelPreferences forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.getModelPreferencesResult = {
+			minLevel: 5,
+			maxCost: 'middle',
+			minSpeed: 'low',
+			strategy: 'level',
+		};
+		const result = await service.getModelPreferences({
+			sessionId: 'sess-1',
+		});
+		assert.deepStrictEqual(transport.getModelPreferencesCalls, [{
+			sessionId: 'sess-1',
+		}]);
+		assert.deepStrictEqual(result, transport.getModelPreferencesResult);
+
+		transport.getModelPreferencesResult = {
+			minLevel: 0,
+			maxCost: '',
+			minSpeed: '',
+			strategy: '',
+		};
+		const empty = await service.getModelPreferences({
+			sessionId: '',
+		});
+		assert.deepStrictEqual(empty, transport.getModelPreferencesResult);
+		assert.strictEqual(transport.getModelPreferencesCalls[1]?.sessionId, '');
 		service.dispose();
 	});
 
