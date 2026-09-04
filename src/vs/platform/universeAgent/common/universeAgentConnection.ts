@@ -126,6 +126,8 @@ import type {
 	UniverseAgentStartMemberResult,
 	UniverseAgentKillMemberRequest,
 	UniverseAgentKillMemberResult,
+	UniverseAgentAbortTeamRequest,
+	UniverseAgentAbortTeamResult,
 	UniverseAgentRespondQuestionRequest,
 	UniverseAgentRespondQuestionResult,
 	UniverseAgentEnqueueQueueItemRequest,
@@ -685,6 +687,16 @@ export interface IUniverseAgentConnection {
 	 * TeamInfo / Agent.Kill.
 	 */
 	killMember?(request: UniverseAgentKillMemberRequest): Promise<UniverseAgentKillMemberResult>;
+
+	/**
+	 * TeamService.Abort unary (abort entire Team). Optional so Web / tests can
+	 * omit it. Catalog + node transport only this slice; empty `sessionId` /
+	 * `agentId` / `reason` and `teamId` 0 are sent as-is. No Conversation
+	 * roster / UI / Navigator Team.
+	 * ≠ KillMember / CreateTeam / StartMember / MessageMember / TaskCancel /
+	 * TeamInfo.
+	 */
+	abort?(request: UniverseAgentAbortTeamRequest): Promise<UniverseAgentAbortTeamResult>;
 
 	/**
 	 * AgentService.RespondQuestion unary (ADR-325 ask_user reply). Optional so

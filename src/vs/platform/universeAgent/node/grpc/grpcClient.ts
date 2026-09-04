@@ -149,6 +149,8 @@ import type {
 	UniverseAgentStartMemberResult,
 	UniverseAgentKillMemberRequest,
 	UniverseAgentKillMemberResult,
+	UniverseAgentAbortTeamRequest,
+	UniverseAgentAbortTeamResult,
 	UniverseAgentRespondQuestionRequest,
 	UniverseAgentRespondQuestionResult,
 	UniverseAgentQuestionAnswer,
@@ -3507,6 +3509,25 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 		return {
 			ok: wire.success === true,
 			message: wire.message,
+		};
+	}
+
+	async abort(request: UniverseAgentAbortTeamRequest): Promise<UniverseAgentAbortTeamResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, { success?: boolean; message?: string; stopped_members?: string[] }>(
+			this._channel,
+			UniverseAgentGrpcServices.Team.service,
+			UniverseAgentGrpcServices.Team.Abort,
+		);
+		const wire = await unary({
+			session_id: request.sessionId,
+			agent_id: request.agentId,
+			team_id: request.teamId,
+			reason: request.reason,
+		});
+		return {
+			ok: wire.success === true,
+			message: wire.message,
+			stoppedMembers: wire.stopped_members ?? [],
 		};
 	}
 

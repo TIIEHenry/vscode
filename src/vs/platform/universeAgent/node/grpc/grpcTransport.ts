@@ -121,6 +121,8 @@ import type {
 	UniverseAgentStartMemberResult,
 	UniverseAgentKillMemberRequest,
 	UniverseAgentKillMemberResult,
+	UniverseAgentAbortTeamRequest,
+	UniverseAgentAbortTeamResult,
 	UniverseAgentRespondQuestionRequest,
 	UniverseAgentRespondQuestionResult,
 	UniverseAgentEnqueueQueueItemRequest,
@@ -390,6 +392,9 @@ export interface IUniverseAgentGrpcTransport {
 
 	/** TeamService.KillMember unary (snake_case `session_id`/`agent_id`/`member_name`). Empty ids sent as-is. */
 	killMember(request: UniverseAgentKillMemberRequest): Promise<UniverseAgentKillMemberResult>;
+
+	/** TeamService.Abort unary (snake_case `session_id`/`agent_id`/`team_id`/`reason`). Empty ids sent as-is. */
+	abort(request: UniverseAgentAbortTeamRequest): Promise<UniverseAgentAbortTeamResult>;
 
 	respondQuestion(request: UniverseAgentRespondQuestionRequest): Promise<UniverseAgentRespondQuestionResult>;
 
@@ -706,6 +711,7 @@ export const UniverseAgentGrpcServices = {
 		CreateTeam: 'CreateTeam',
 		StartMember: 'StartMember',
 		KillMember: 'KillMember',
+		Abort: 'Abort',
 		TeamInfo: 'TeamInfo',
 	},
 	Tool: {
