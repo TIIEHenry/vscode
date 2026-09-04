@@ -85,6 +85,8 @@ import type {
 	UniverseAgentFireTriggerWebhookResult,
 	UniverseAgentInstallSessionDemoFakeRequest,
 	UniverseAgentInstallSessionDemoFakeResult,
+	UniverseAgentClearSessionDemoFakeRequest,
+	UniverseAgentClearSessionDemoFakeResult,
 	UniverseAgentSwitchWorkDirRequest,
 	UniverseAgentSwitchWorkDirResult,
 	UniverseAgentTestModelProfileRequest,
@@ -489,6 +491,14 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 	async installSessionDemoFake(request: UniverseAgentInstallSessionDemoFakeRequest): Promise<UniverseAgentInstallSessionDemoFakeResult> {
 		this.installSessionDemoFakeCalls.push(request);
 		return this.installSessionDemoFakeResult;
+	}
+
+	readonly clearSessionDemoFakeCalls: UniverseAgentClearSessionDemoFakeRequest[] = [];
+	clearSessionDemoFakeResult: UniverseAgentClearSessionDemoFakeResult = { ok: true, reasonCode: '' };
+
+	async clearSessionDemoFake(request: UniverseAgentClearSessionDemoFakeRequest): Promise<UniverseAgentClearSessionDemoFakeResult> {
+		this.clearSessionDemoFakeCalls.push(request);
+		return this.clearSessionDemoFakeResult;
 	}
 
 	readonly switchWorkDirCalls: UniverseAgentSwitchWorkDirRequest[] = [];
@@ -1143,6 +1153,11 @@ suite('UniverseAgentConnectionService', () => {
 
 	test('UniverseAgentGrpcServices lists Agent.InstallSessionDemoFake', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.InstallSessionDemoFake, 'InstallSessionDemoFake');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+	});
+
+	test('UniverseAgentGrpcServices lists Agent.ClearSessionDemoFake', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.ClearSessionDemoFake, 'ClearSessionDemoFake');
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
 	});
 
@@ -2320,6 +2335,31 @@ suite('UniverseAgentConnectionService', () => {
 		assert.deepStrictEqual(transport.installSessionDemoFakeCalls[1]?.queuesPayload, emptyPayload);
 		assert.strictEqual(transport.installSessionDemoFakeCalls[1]?.contentType, '');
 		assert.strictEqual(transport.installSessionDemoFakeCalls[1]?.playbookId, '');
+		service.dispose();
+	});
+
+	test('clearSessionDemoFake forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.clearSessionDemoFakeResult = { ok: true, message: 'ok', reasonCode: 'OK' };
+		const result = await service.clearSessionDemoFake({
+			sessionId: 'sess-1',
+		});
+		assert.deepStrictEqual(transport.clearSessionDemoFakeCalls, [{
+			sessionId: 'sess-1',
+		}]);
+		assert.deepStrictEqual(result, transport.clearSessionDemoFakeResult);
+
+		transport.clearSessionDemoFakeResult = { ok: false, message: 'empty', reasonCode: 'NOT_INSTALLED' };
+		const empty = await service.clearSessionDemoFake({
+			sessionId: '',
+		});
+		assert.deepStrictEqual(empty, transport.clearSessionDemoFakeResult);
+		assert.strictEqual(transport.clearSessionDemoFakeCalls[1]?.sessionId, '');
 		service.dispose();
 	});
 

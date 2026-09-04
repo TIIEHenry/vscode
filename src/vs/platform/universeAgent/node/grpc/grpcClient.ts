@@ -111,6 +111,8 @@ import type {
 	UniverseAgentFireTriggerWebhookResult,
 	UniverseAgentInstallSessionDemoFakeRequest,
 	UniverseAgentInstallSessionDemoFakeResult,
+	UniverseAgentClearSessionDemoFakeRequest,
+	UniverseAgentClearSessionDemoFakeResult,
 	UniverseAgentSwitchWorkDirRequest,
 	UniverseAgentSwitchWorkDirResult,
 	UniverseAgentTestModelProfileRequest,
@@ -3048,6 +3050,26 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			queues_payload: bytesToBase64(request.queuesPayload),
 			content_type: request.contentType,
 			playbook_id: request.playbookId,
+		});
+		return {
+			ok: wire.success === true,
+			message: wire.message,
+			reasonCode: wire.reason_code ?? '',
+		};
+	}
+
+	async clearSessionDemoFake(request: UniverseAgentClearSessionDemoFakeRequest): Promise<UniverseAgentClearSessionDemoFakeResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, {
+			success?: boolean;
+			message?: string;
+			reason_code?: string;
+		}>(
+			this._channel,
+			UniverseAgentGrpcServices.Agent.service,
+			UniverseAgentGrpcServices.Agent.ClearSessionDemoFake,
+		);
+		const wire = await unary({
+			session_id: request.sessionId,
 		});
 		return {
 			ok: wire.success === true,

@@ -92,6 +92,8 @@ import type {
 	UniverseAgentFireTriggerWebhookResult,
 	UniverseAgentInstallSessionDemoFakeRequest,
 	UniverseAgentInstallSessionDemoFakeResult,
+	UniverseAgentClearSessionDemoFakeRequest,
+	UniverseAgentClearSessionDemoFakeResult,
 	UniverseAgentSwitchWorkDirRequest,
 	UniverseAgentSwitchWorkDirResult,
 	UniverseAgentTestModelProfileRequest,
@@ -517,6 +519,14 @@ export interface IUniverseAgentConnection {
 	 * ≠ FireTriggerWebhook / ClearSessionDemoFake / ChatSync / SyncInputDelivery.
 	 */
 	installSessionDemoFake?(request: UniverseAgentInstallSessionDemoFakeRequest): Promise<UniverseAgentInstallSessionDemoFakeResult>;
+
+	/**
+	 * AgentService.ClearSessionDemoFake unary (ClearSessionDemoFakeResponse.success
+	 * → ok). Optional so Web / tests can omit it. Catalog + node transport only
+	 * this slice; empty `sessionId` is sent as-is. No Conversation roster / UI.
+	 * ≠ InstallSessionDemoFake / FireTriggerWebhook / ChatSync / SyncInputDelivery.
+	 */
+	clearSessionDemoFake?(request: UniverseAgentClearSessionDemoFakeRequest): Promise<UniverseAgentClearSessionDemoFakeResult>;
 
 	/**
 	 * AgentService.SwitchWorkDir unary (SwitchWorkDirResponse.success → ok).

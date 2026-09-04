@@ -95,6 +95,8 @@ import type {
 	UniverseAgentFireTriggerWebhookResult,
 	UniverseAgentInstallSessionDemoFakeRequest,
 	UniverseAgentInstallSessionDemoFakeResult,
+	UniverseAgentClearSessionDemoFakeRequest,
+	UniverseAgentClearSessionDemoFakeResult,
 	UniverseAgentSwitchWorkDirRequest,
 	UniverseAgentSwitchWorkDirResult,
 	UniverseAgentTestModelProfileRequest,
@@ -851,6 +853,10 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 
 	async installSessionDemoFake(request: UniverseAgentInstallSessionDemoFakeRequest): Promise<UniverseAgentInstallSessionDemoFakeResult> {
 		return this._withTransport(transport => transport.installSessionDemoFake(request));
+	}
+
+	async clearSessionDemoFake(request: UniverseAgentClearSessionDemoFakeRequest): Promise<UniverseAgentClearSessionDemoFakeResult> {
+		return this._withTransport(transport => transport.clearSessionDemoFake(request));
 	}
 
 	async switchWorkDir(request: UniverseAgentSwitchWorkDirRequest): Promise<UniverseAgentSwitchWorkDirResult> {

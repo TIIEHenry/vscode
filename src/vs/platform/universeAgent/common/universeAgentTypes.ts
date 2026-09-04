@@ -692,6 +692,18 @@ export interface UniverseAgentInstallSessionDemoFakeResult {
 	readonly reasonCode: string;
 }
 
+/** AgentService.ClearSessionDemoFake — ADR-264 session-scoped Demo Fake LLM clear (≠ InstallSessionDemoFake / FireTriggerWebhook / ChatSync / SyncInputDelivery). */
+export interface UniverseAgentClearSessionDemoFakeRequest {
+	readonly sessionId: string;
+}
+
+export interface UniverseAgentClearSessionDemoFakeResult {
+	readonly ok: boolean;
+	readonly message?: string;
+	/** Proto `reason_code`. */
+	readonly reasonCode: string;
+}
+
 /** AgentService.SwitchWorkDir — change agent work dir (≠ FireTriggerWebhook / TestModelProfile / Connect.work_dir). */
 export interface UniverseAgentSwitchWorkDirRequest {
 	readonly sessionId: string;

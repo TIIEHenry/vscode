@@ -232,6 +232,10 @@ class RecordingMockTransport implements IUniverseAgentGrpcTransport {
 		return { ok: false, message: 'test', reasonCode: 'test' };
 	}
 
+	async clearSessionDemoFake(): Promise<{ ok: false; message: 'test'; reasonCode: 'test' }> {
+		return { ok: false, message: 'test', reasonCode: 'test' };
+	}
+
 	async switchWorkDir(): Promise<{ ok: false; previousWorkDir: ''; currentWorkDir: ''; message: 'test' }> {
 		return { ok: false, previousWorkDir: '', currentWorkDir: '', message: 'test' };
 	}
