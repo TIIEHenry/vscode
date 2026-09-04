@@ -216,6 +216,9 @@ import type {
 	UniverseAgentGetModelPreferencesResult,
 	UniverseAgentResolveModelRequest,
 	UniverseAgentResolveModelResult,
+	UniverseAgentWatchConfigRequest,
+	UniverseAgentConfigChangedEvent,
+	UniverseAgentWatchConfigStream,
 	UniverseAgentToggleMcpServerRequest,
 	UniverseAgentToggleMcpServerResult,
 	UniverseAgentSessionEvent,
@@ -1150,4 +1153,17 @@ export interface IUniverseAgentConnection {
 	 * GetModelPreferences / SetModelPreferences / Watch.
 	 */
 	resolveModel?(request: UniverseAgentResolveModelRequest): Promise<UniverseAgentResolveModelResult>;
+
+	/**
+	 * ConfigService.Watch server-stream (`stream ConfigChangedEvent`).
+	 * Optional so Web / tests can omit it. Catalog + node transport only
+	 * this slice; empty `keys` are sent as-is. No Conversation roster /
+	 * UI / Engine Preferences.
+	 * ≠ Get / Set / ListModels / SwitchModel / GetCommandDef.
+	 */
+	openWatchConfigStream?(
+		request: UniverseAgentWatchConfigRequest,
+		onResponse: (response: UniverseAgentConfigChangedEvent) => void,
+		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
+	): UniverseAgentWatchConfigStream;
 }

@@ -211,6 +211,9 @@ import type {
 	UniverseAgentGetModelPreferencesResult,
 	UniverseAgentResolveModelRequest,
 	UniverseAgentResolveModelResult,
+	UniverseAgentWatchConfigRequest,
+	UniverseAgentConfigChangedEvent,
+	UniverseAgentWatchConfigStream,
 	UniverseAgentToggleMcpServerRequest,
 	UniverseAgentToggleMcpServerResult,
 	UniverseAgentSessionEvent,
@@ -602,6 +605,13 @@ export interface IUniverseAgentGrpcTransport {
 	/** ConfigService.ResolveModel unary (snake_case `session_id`/`type`). Empty ids sent as-is. */
 	resolveModel(request: UniverseAgentResolveModelRequest): Promise<UniverseAgentResolveModelResult>;
 
+	/** ConfigService.Watch server-stream (snake_case `keys`). Empty keys sent as-is. */
+	openWatchConfigStream(
+		request: UniverseAgentWatchConfigRequest,
+		onResponse: (response: UniverseAgentConfigChangedEvent) => void,
+		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
+	): UniverseAgentWatchConfigStream;
+
 	/** Host-only: AgentService.Tree (m6 §11 A1). */
 	fetchAgentTree(sessionId: string): Promise<UniverseAgentAgentTreeNode | undefined>;
 
@@ -748,6 +758,7 @@ export const UniverseAgentGrpcServices = {
 		SwitchModel: 'SwitchModel',
 		SetModelPreferences: 'SetModelPreferences',
 		ResolveModel: 'ResolveModel',
+		Watch: 'Watch',
 	},
 	Team: {
 		service: 'universeagent.team.v1.TeamService',

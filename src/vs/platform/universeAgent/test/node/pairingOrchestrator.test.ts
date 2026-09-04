@@ -533,7 +533,7 @@ class RecordingMockTransport implements IUniverseAgentGrpcTransport {
 	async getToolInfo() { return { name: '', aliases: [] }; }
 	async listCommands() { return { commands: [], total: 0 }; }
 	async getCommandDef() {
-		return { name: '', source: '', template: '', agent: '', model: '', subtask: false, mcpServerId: '', mcpPromptName: '', mcpArgumentNames: [], skillSource: '' };
+		return { name: '', source: '' as const, template: '', agent: '', model: '', subtask: false, mcpServerId: '', mcpPromptName: '', mcpArgumentNames: [], skillSource: '' };
 	}
 	async listModels() { return { models: [] }; }
 	async getConfig(): Promise<{ values: Record<string, string>; scope: '' }> {
@@ -542,6 +542,9 @@ class RecordingMockTransport implements IUniverseAgentGrpcTransport {
 	async switchModel() { return { resolvedModelId: '', provider: '', level: 0, cost: '', speed: '' }; }
 	async getModelPreferences() { return { minLevel: 0, maxCost: '', minSpeed: '', strategy: '' }; }
 	async resolveModel() { return { candidates: [], filtered: [] }; }
+	openWatchConfigStream(): { dispose(): void } {
+		return { dispose() { } };
+	}
 
 	async fetchAgentTree() { return undefined; }
 	async fetchToolDetail() { return { success: false, content: '', truncated: false }; }
