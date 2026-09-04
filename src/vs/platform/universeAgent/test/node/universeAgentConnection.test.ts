@@ -49,6 +49,8 @@ import type {
 	UniverseAgentListSnapshotsResult,
 	UniverseAgentCreateSnapshotRequest,
 	UniverseAgentCreateSnapshotResult,
+	UniverseAgentRestoreSnapshotRequest,
+	UniverseAgentRestoreSnapshotResult,
 	UniverseAgentToolInfoRequest,
 	UniverseAgentToolInfoResult,
 	UniverseAgentGetHistoryRequest,
@@ -303,6 +305,14 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 	async createSnapshot(request: UniverseAgentCreateSnapshotRequest): Promise<UniverseAgentCreateSnapshotResult> {
 		this.createSnapshotCalls.push(request);
 		return this.createSnapshotResult;
+	}
+
+	readonly restoreSnapshotCalls: UniverseAgentRestoreSnapshotRequest[] = [];
+	restoreSnapshotResult: UniverseAgentRestoreSnapshotResult = { ok: true };
+
+	async restoreSnapshot(request: UniverseAgentRestoreSnapshotRequest): Promise<UniverseAgentRestoreSnapshotResult> {
+		this.restoreSnapshotCalls.push(request);
+		return this.restoreSnapshotResult;
 	}
 
 	async getHistory(_request: UniverseAgentGetHistoryRequest): Promise<UniverseAgentGetHistoryResult> {
@@ -651,6 +661,11 @@ suite('UniverseAgentConnectionService', () => {
 
 	test('UniverseAgentGrpcServices lists Agent.CreateSnapshot', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.CreateSnapshot, 'CreateSnapshot');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+	});
+
+	test('UniverseAgentGrpcServices lists Agent.RestoreSnapshot', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.RestoreSnapshot, 'RestoreSnapshot');
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
 	});
 
@@ -1040,6 +1055,26 @@ suite('UniverseAgentConnectionService', () => {
 		assert.deepStrictEqual(failed, { ok: false, message: 'empty title' });
 		assert.strictEqual(transport.createSnapshotCalls[1]?.sessionId, '');
 		assert.strictEqual(transport.createSnapshotCalls[1]?.title, '');
+		service.dispose();
+	});
+
+	test('restoreSnapshot forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.restoreSnapshotResult = { ok: true };
+		const result = await service.restoreSnapshot({ sessionId: 'sess-1', snapshotId: 'snap-1' });
+		assert.deepStrictEqual(transport.restoreSnapshotCalls, [{ sessionId: 'sess-1', snapshotId: 'snap-1' }]);
+		assert.deepStrictEqual(result, { ok: true });
+
+		transport.restoreSnapshotResult = { ok: false, message: 'denied' };
+		const failed = await service.restoreSnapshot({ sessionId: '', snapshotId: '' });
+		assert.deepStrictEqual(failed, { ok: false, message: 'denied' });
+		assert.strictEqual(transport.restoreSnapshotCalls[1]?.sessionId, '');
+		assert.strictEqual(transport.restoreSnapshotCalls[1]?.snapshotId, '');
 		service.dispose();
 	});
 
