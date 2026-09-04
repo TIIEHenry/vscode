@@ -791,19 +791,22 @@ export interface UniverseAgentRespondPermissionResult {
 	readonly message?: string;
 }
 
-/** PermissionService.SyncPermissionRule — session-scoped tool rule sync (≠ Respond / SetSessionGoal / PromotePermissionRule / GetSessionRules). */
+/** PermissionService.SyncPermissionRule — session-scoped tool rule upsert (≠ Respond / SetSessionGoal / PromotePermissionRule / GetSessionRules / SetPermissionMode). */
+export type UniverseAgentPermissionRuleAction = 'RULE_ACTION_UNSPECIFIED' | 'ALLOW' | 'DENY';
+
 export interface UniverseAgentSyncPermissionRuleRequest {
 	readonly sessionId: string;
 	readonly toolName: string;
 	readonly scope: string;
-	/** Proto `RuleAction` name (`ALLOW` / `DENY` / `RULE_ACTION_UNSPECIFIED`). Sent as-is. */
-	readonly action: string;
+	/** Proto `RuleAction` (`ALLOW` / `DENY` / `RULE_ACTION_UNSPECIFIED`). Wired to enum number. */
+	readonly action: UniverseAgentPermissionRuleAction;
+	/** Proto `reason`. Empty sent as-is. */
 	readonly reason: string;
 }
 
 export interface UniverseAgentSyncPermissionRuleResult {
 	readonly ok: boolean;
-	/** Proto `rule_id`. Empty sent as-is. */
+	/** Proto `rule_id`. Empty returned as-is. */
 	readonly ruleId: string;
 }
 

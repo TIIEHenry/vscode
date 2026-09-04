@@ -126,6 +126,7 @@ import type {
 	UniverseAgentCancelSessionGoalResult,
 	UniverseAgentRespondPermissionRequest,
 	UniverseAgentRespondPermissionResult,
+	UniverseAgentPermissionRuleAction,
 	UniverseAgentSyncPermissionRuleRequest,
 	UniverseAgentSyncPermissionRuleResult,
 	UniverseAgentRespondQuestionRequest,
@@ -737,6 +738,17 @@ function queuePriorityWire(priority: UniverseAgentQueuePriority | undefined): nu
 		case 'HIGH':
 			return 1;
 		case 'LOW':
+			return 2;
+		default:
+			return 0;
+	}
+}
+
+function permissionRuleActionWire(action: UniverseAgentPermissionRuleAction): number {
+	switch (action) {
+		case 'ALLOW':
+			return 1;
+		case 'DENY':
 			return 2;
 		default:
 			return 0;
@@ -3244,7 +3256,7 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			session_id: request.sessionId,
 			tool_name: request.toolName,
 			scope: request.scope,
-			action: request.action,
+			action: permissionRuleActionWire(request.action),
 			reason: request.reason,
 		});
 		return {

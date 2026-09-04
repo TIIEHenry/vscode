@@ -1843,6 +1843,22 @@ suite('UniverseAgentConnectionService', () => {
 		}]);
 		assert.deepStrictEqual(result, { ok: true, ruleId: 'rule-1' });
 
+		const bash = await service.syncPermissionRule({
+			sessionId: 'sess-1',
+			toolName: 'bash',
+			scope: 'session',
+			action: 'ALLOW',
+			reason: 'trusted',
+		});
+		assert.deepStrictEqual(transport.syncPermissionRuleCalls[1], {
+			sessionId: 'sess-1',
+			toolName: 'bash',
+			scope: 'session',
+			action: 'ALLOW',
+			reason: 'trusted',
+		});
+		assert.deepStrictEqual(bash, { ok: true, ruleId: 'rule-1' });
+
 		transport.syncPermissionRuleResult = { ok: false, ruleId: '' };
 		const empty = await service.syncPermissionRule({
 			sessionId: '',
@@ -1852,10 +1868,10 @@ suite('UniverseAgentConnectionService', () => {
 			reason: '',
 		});
 		assert.deepStrictEqual(empty, { ok: false, ruleId: '' });
-		assert.strictEqual(transport.syncPermissionRuleCalls[1]?.sessionId, '');
-		assert.strictEqual(transport.syncPermissionRuleCalls[1]?.toolName, '');
-		assert.strictEqual(transport.syncPermissionRuleCalls[1]?.scope, '');
-		assert.strictEqual(transport.syncPermissionRuleCalls[1]?.reason, '');
+		assert.strictEqual(transport.syncPermissionRuleCalls[2]?.sessionId, '');
+		assert.strictEqual(transport.syncPermissionRuleCalls[2]?.toolName, '');
+		assert.strictEqual(transport.syncPermissionRuleCalls[2]?.scope, '');
+		assert.strictEqual(transport.syncPermissionRuleCalls[2]?.reason, '');
 		service.dispose();
 	});
 

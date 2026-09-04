@@ -348,6 +348,9 @@ export interface IUniverseAgentGrpcTransport {
 	/** PermissionService.SyncPermissionRule unary (snake_case `session_id`/`tool_name`/`scope`/`action`/`reason`). Empty ids sent as-is. */
 	syncPermissionRule(request: UniverseAgentSyncPermissionRuleRequest): Promise<UniverseAgentSyncPermissionRuleResult>;
 
+	/** PermissionService.SyncPermissionRule unary (snake_case `session_id`/`tool_name`/`scope`/`action`/`reason`). Empty ids sent as-is. */
+	syncPermissionRule(request: UniverseAgentSyncPermissionRuleRequest): Promise<UniverseAgentSyncPermissionRuleResult>;
+
 	respondQuestion(request: UniverseAgentRespondQuestionRequest): Promise<UniverseAgentRespondQuestionResult>;
 
 	enqueueQueueItem(request: UniverseAgentEnqueueQueueItemRequest): Promise<UniverseAgentQueueMutationResult>;

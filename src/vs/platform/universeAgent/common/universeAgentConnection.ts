@@ -576,11 +576,11 @@ export interface IUniverseAgentConnection {
 	respondPermission?(request: UniverseAgentRespondPermissionRequest): Promise<UniverseAgentRespondPermissionResult>;
 
 	/**
-	 * PermissionService.SyncPermissionRule unary. Optional so Web / tests
-	 * can omit it. Catalog + node transport only this slice; empty
-	 * `sessionId` / `toolName` / `scope` / `reason` are sent as-is. No
-	 * Conversation roster / UI.
-	 * ≠ Respond / SetSessionGoal / PromotePermissionRule / GetSessionRules.
+	 * PermissionService.SyncPermissionRule unary (session-scoped tool rule upsert).
+	 * Optional so Web / tests can omit it. Catalog + node transport only this
+	 * slice; empty `sessionId` / `toolName` / `scope` / `reason` are sent as-is.
+	 * No Conversation roster / UI.
+	 * ≠ Respond / SetSessionGoal / PromotePermissionRule / GetSessionRules / SetPermissionMode.
 	 */
 	syncPermissionRule?(request: UniverseAgentSyncPermissionRuleRequest): Promise<UniverseAgentSyncPermissionRuleResult>;
 
