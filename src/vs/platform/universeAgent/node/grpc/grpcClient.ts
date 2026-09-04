@@ -292,6 +292,9 @@ import type {
 	UniverseAgentGetSessionUsageResult,
 	UniverseAgentGetGlobalUsageResult,
 	UniverseAgentTokenUsageData,
+	UniverseAgentReadMemoryRequest,
+	UniverseAgentReadMemoryResult,
+	UniverseAgentMemoryFileMetadata,
 	UniverseAgentListModelsResult,
 	UniverseAgentGetConfigRequest,
 	UniverseAgentGetConfigResult,
@@ -2858,6 +2861,40 @@ function mapGetGlobalUsageResponse(wire: GetGlobalUsageResponseWire): UniverseAg
 	};
 }
 
+interface MemoryFileMetadataWire {
+	category?: string;
+	filename?: string;
+	title?: string;
+	tags?: string[];
+	created_at?: number | string;
+	updated_at?: number | string;
+	version?: number | string;
+}
+
+interface MemoryReadResponseWire {
+	content?: string;
+	metadata?: MemoryFileMetadataWire;
+}
+
+function mapMemoryFileMetadata(wire: MemoryFileMetadataWire | undefined): UniverseAgentMemoryFileMetadata {
+	return {
+		category: wire?.category ?? '',
+		filename: wire?.filename ?? '',
+		title: wire?.title ?? '',
+		tags: [...(wire?.tags ?? [])],
+		createdAt: requiredInt64(wire?.created_at),
+		updatedAt: requiredInt64(wire?.updated_at),
+		version: requiredInt64(wire?.version),
+	};
+}
+
+function mapMemoryReadResponse(wire: MemoryReadResponseWire): UniverseAgentReadMemoryResult {
+	return {
+		content: wire.content ?? '',
+		metadata: mapMemoryFileMetadata(wire.metadata),
+	};
+}
+
 interface ListModelsResponseWire {
 	models?: Array<{
 		id?: string;
@@ -4883,6 +4920,23 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 		);
 		const wire = await unary({});
 		return mapGetGlobalUsageResponse(wire);
+	}
+
+	async readMemory(request: UniverseAgentReadMemoryRequest): Promise<UniverseAgentReadMemoryResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, MemoryReadResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.Memory.service,
+			UniverseAgentGrpcServices.Memory.Read,
+		);
+		const wire = await unary({
+			scope: request.scope,
+			category: request.category,
+			filename: request.filename,
+			section: request.section,
+			mode: request.mode,
+			forgot: request.forgot,
+		});
+		return mapMemoryReadResponse(wire);
 	}
 
 	async setPermissionPolicy(request: UniverseAgentSetPermissionPolicyRequest): Promise<UniverseAgentSetPermissionPolicyResult> {

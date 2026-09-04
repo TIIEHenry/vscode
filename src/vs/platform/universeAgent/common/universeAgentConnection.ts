@@ -229,6 +229,8 @@ import type {
 	UniverseAgentGetSessionUsageRequest,
 	UniverseAgentGetSessionUsageResult,
 	UniverseAgentGetGlobalUsageResult,
+	UniverseAgentReadMemoryRequest,
+	UniverseAgentReadMemoryResult,
 	UniverseAgentSetPermissionPolicyRequest,
 	UniverseAgentSetPermissionPolicyResult,
 	UniverseAgentListModelsResult,
@@ -1276,6 +1278,19 @@ export interface IUniverseAgentConnection {
 	 * ≠ GetSessionUsage / Agent.Usage.
 	 */
 	getGlobalUsage?(): Promise<UniverseAgentGetGlobalUsageResult>;
+
+	/**
+	 * MemoryService.Read unary. Optional so Web / tests can omit it.
+	 * Catalog + node transport only this slice; empty `scope` / `category` /
+	 * `filename` / `section` / `mode` are sent as-is. `forgot` false sent
+	 * as-is. Proto fields only (`MemoryReadRequest` / `MemoryReadResponse` +
+	 * `MemoryFileMetadata`: `content` / `category` / `filename` / `title` /
+	 * `tags` / `created_at` / `updated_at` / `version`). No Conversation
+	 * roster / UI / Engine Preferences / Composer / Memory pane.
+	 * ≠ Save / Search / SearchDeep / List / Delete / Reflect / Rebuild /
+	 * Revert / History.
+	 */
+	readMemory?(request: UniverseAgentReadMemoryRequest): Promise<UniverseAgentReadMemoryResult>;
 
 	/**
 	 * ConfigService.SetPermissionPolicy unary (session/tool Ask/Agent/Permit

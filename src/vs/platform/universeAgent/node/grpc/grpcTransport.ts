@@ -224,6 +224,8 @@ import type {
 	UniverseAgentGetSessionUsageRequest,
 	UniverseAgentGetSessionUsageResult,
 	UniverseAgentGetGlobalUsageResult,
+	UniverseAgentReadMemoryRequest,
+	UniverseAgentReadMemoryResult,
 	UniverseAgentSetPermissionPolicyRequest,
 	UniverseAgentSetPermissionPolicyResult,
 	UniverseAgentListModelsResult,
@@ -654,6 +656,9 @@ export interface IUniverseAgentGrpcTransport {
 	/** TokenUsageService.GetGlobalUsage unary (empty request `{}`). Empty currency mapped as-is. */
 	getGlobalUsage(): Promise<UniverseAgentGetGlobalUsageResult>;
 
+	/** MemoryService.Read unary (snake_case `scope`/`category`/`filename`/`section`/`mode`/`forgot`). Empty ids sent as-is. */
+	readMemory(request: UniverseAgentReadMemoryRequest): Promise<UniverseAgentReadMemoryResult>;
+
 	/** ConfigService.SetPermissionPolicy unary (snake_case `session_id`/`tool_name`/`policy`). Empty ids sent as-is. */
 	setPermissionPolicy(request: UniverseAgentSetPermissionPolicyRequest): Promise<UniverseAgentSetPermissionPolicyResult>;
 
@@ -872,6 +877,10 @@ export const UniverseAgentGrpcServices = {
 		service: 'universeagent.tokenusage.v1.TokenUsageService',
 		GetSessionUsage: 'GetSessionUsage',
 		GetGlobalUsage: 'GetGlobalUsage',
+	},
+	Memory: {
+		service: 'universeagent.memory.v1.MemoryService',
+		Read: 'Read',
 	},
 } as const;
 
