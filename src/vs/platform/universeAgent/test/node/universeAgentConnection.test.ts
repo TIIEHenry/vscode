@@ -10,6 +10,8 @@ import type {
 	UniverseAgentChatResponse,
 	UniverseAgentChatSyncRequest,
 	UniverseAgentChatSyncResult,
+	UniverseAgentSyncInputDeliveryRequest,
+	UniverseAgentSyncInputDeliveryResult,
 	UniverseAgentChatStream,
 	UniverseAgentContinueGenerationRequest,
 	UniverseAgentRegenerateRequest,
@@ -760,6 +762,16 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 		return this.chatSyncResult;
 	}
 
+	readonly syncInputDeliveryCalls: UniverseAgentSyncInputDeliveryRequest[] = [];
+	syncInputDeliveryResult: UniverseAgentSyncInputDeliveryResult = {
+		inputDeliveryEvents: [],
+	};
+
+	async syncInputDelivery(request: UniverseAgentSyncInputDeliveryRequest): Promise<UniverseAgentSyncInputDeliveryResult> {
+		this.syncInputDeliveryCalls.push(request);
+		return this.syncInputDeliveryResult;
+	}
+
 	private _chatGate: ReturnType<typeof createStreamCloseGate> | undefined;
 	readonly chatOpens: string[] = [];
 
@@ -1196,6 +1208,11 @@ suite('UniverseAgentConnectionService', () => {
 
 	test('UniverseAgentGrpcServices lists Agent.ChatSync', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.ChatSync, 'ChatSync');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+	});
+
+	test('UniverseAgentGrpcServices lists Agent.SyncInputDelivery', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.SyncInputDelivery, 'SyncInputDelivery');
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
 	});
 
@@ -2211,6 +2228,44 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(transport.chatSyncCalls[1]?.idempotencyKey, '');
 		assert.deepStrictEqual(transport.chatSyncCalls[1]?.lastKnownMessageIds, ['']);
 		assert.strictEqual(transport.chatSyncCalls[1]?.sessionInput?.messageId, '');
+		service.dispose();
+	});
+
+	test('syncInputDelivery forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.syncInputDeliveryResult = {
+			inputDeliveryEvents: [{
+				messageId: 'm-1',
+				status: 1,
+				errorCode: '',
+				errorMessage: '',
+			}],
+		};
+		const result = await service.syncInputDelivery({
+			sessionId: 'sess-1',
+			lastKnownMessageIds: ['m-1'],
+		});
+		assert.deepStrictEqual(transport.syncInputDeliveryCalls, [{
+			sessionId: 'sess-1',
+			lastKnownMessageIds: ['m-1'],
+		}]);
+		assert.deepStrictEqual(result, transport.syncInputDeliveryResult);
+
+		transport.syncInputDeliveryResult = {
+			inputDeliveryEvents: [],
+		};
+		const empty = await service.syncInputDelivery({
+			sessionId: '',
+			lastKnownMessageIds: [''],
+		});
+		assert.deepStrictEqual(empty, transport.syncInputDeliveryResult);
+		assert.strictEqual(transport.syncInputDeliveryCalls[1]?.sessionId, '');
+		assert.deepStrictEqual(transport.syncInputDeliveryCalls[1]?.lastKnownMessageIds, ['']);
 		service.dispose();
 	});
 

@@ -8,6 +8,8 @@ import type {
 	UniverseAgentChatResponse,
 	UniverseAgentChatSyncRequest,
 	UniverseAgentChatSyncResult,
+	UniverseAgentSyncInputDeliveryRequest,
+	UniverseAgentSyncInputDeliveryResult,
 	UniverseAgentChatStream,
 	UniverseAgentContinueGenerationRequest,
 	UniverseAgentContinuationStream,
@@ -408,6 +410,9 @@ export interface IUniverseAgentGrpcTransport {
 	/** AgentService.ChatSync unary (snake_case `session_id`/`agent_id`/`session_input`/`timeout_seconds`/`last_known_message_ids`/`idempotency_key`). Empty ids sent as-is. */
 	chatSync(request: UniverseAgentChatSyncRequest): Promise<UniverseAgentChatSyncResult>;
 
+	/** AgentService.SyncInputDelivery unary (snake_case `session_id`/`last_known_message_ids`). Empty ids sent as-is. */
+	syncInputDelivery(request: UniverseAgentSyncInputDeliveryRequest): Promise<UniverseAgentSyncInputDeliveryResult>;
+
 	openChatStream(
 		sessionId: string,
 		onResponse: (response: UniverseAgentChatResponse) => void,
@@ -537,6 +542,7 @@ export const UniverseAgentGrpcServices = {
 		service: 'universeagent.agent.v1.AgentService',
 		Chat: 'Chat',
 		ChatSync: 'ChatSync',
+		SyncInputDelivery: 'SyncInputDelivery',
 		ContinueGeneration: 'ContinueGeneration',
 		Regenerate: 'Regenerate',
 		Rename: 'Rename',

@@ -12,6 +12,8 @@ import type {
 	UniverseAgentChatResponse,
 	UniverseAgentChatSyncRequest,
 	UniverseAgentChatSyncResult,
+	UniverseAgentSyncInputDeliveryRequest,
+	UniverseAgentSyncInputDeliveryResult,
 	UniverseAgentChatStream,
 	UniverseAgentContinueGenerationRequest,
 	UniverseAgentContinuationStream,
@@ -763,6 +765,15 @@ export interface IUniverseAgentConnection {
 	 * ≠ Chat / SyncInputDelivery / ContinueGeneration / Resume.
 	 */
 	chatSync?(request: UniverseAgentChatSyncRequest): Promise<UniverseAgentChatSyncResult>;
+
+	/**
+	 * AgentService.SyncInputDelivery unary (disconnect input-delivery replay).
+	 * Optional so Web / tests can omit it. Catalog + node transport only this
+	 * slice; empty `sessionId` / `lastKnownMessageIds` are sent as-is. No
+	 * Conversation roster / UI.
+	 * ≠ Chat / ChatSync / ContinueGeneration / Resume.
+	 */
+	syncInputDelivery?(request: UniverseAgentSyncInputDeliveryRequest): Promise<UniverseAgentSyncInputDeliveryResult>;
 
 	/**
 	 * Resident Chat bidi (ADR-012). Optional so tests / Web can keep one-shot `chat()`.

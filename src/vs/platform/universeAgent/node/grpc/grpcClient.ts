@@ -14,6 +14,8 @@ import type {
 	UniverseAgentChatSyncResult,
 	UniverseAgentChatSyncSessionInput,
 	UniverseAgentChatSyncToolResult,
+	UniverseAgentSyncInputDeliveryRequest,
+	UniverseAgentSyncInputDeliveryResult,
 	UniverseAgentChatStream,
 	UniverseAgentContinueGenerationRequest,
 	UniverseAgentContinuationStream,
@@ -1619,6 +1621,26 @@ function mapChatSyncResponse(wire: {
 		turnCount: wire.turn_count ?? 0,
 		toolResults: (wire.tool_results ?? []).map(item => mapChatSyncToolResult(item)),
 		error: wire.error ?? '',
+		inputDeliveryEvents: (wire.input_delivery_events ?? []).map(item => mapChatSyncInputDeliveryEvent(item)),
+	};
+}
+
+function syncInputDeliveryRequestWire(request: UniverseAgentSyncInputDeliveryRequest): Record<string, unknown> {
+	return {
+		session_id: request.sessionId,
+		last_known_message_ids: request.lastKnownMessageIds ?? [],
+	};
+}
+
+function mapSyncInputDeliveryResponse(wire: {
+	input_delivery_events?: Array<{
+		message_id?: string;
+		status?: number;
+		error_code?: string;
+		error_message?: string;
+	}>;
+}): UniverseAgentSyncInputDeliveryResult {
+	return {
 		inputDeliveryEvents: (wire.input_delivery_events ?? []).map(item => mapChatSyncInputDeliveryEvent(item)),
 	};
 }
@@ -3448,6 +3470,16 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 		);
 		const wire = await unary(chatSyncRequestWire(request));
 		return mapChatSyncResponse(wire);
+	}
+
+	async syncInputDelivery(request: UniverseAgentSyncInputDeliveryRequest): Promise<UniverseAgentSyncInputDeliveryResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, Parameters<typeof mapSyncInputDeliveryResponse>[0]>(
+			this._channel,
+			UniverseAgentGrpcServices.Agent.service,
+			UniverseAgentGrpcServices.Agent.SyncInputDelivery,
+		);
+		const wire = await unary(syncInputDeliveryRequestWire(request));
+		return mapSyncInputDeliveryResponse(wire);
 	}
 
 	openChatStream(

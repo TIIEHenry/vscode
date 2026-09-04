@@ -1110,6 +1110,21 @@ export interface UniverseAgentChatSyncResult {
 	readonly inputDeliveryEvents: readonly UniverseAgentChatSyncInputDeliveryEvent[];
 }
 
+/**
+ * AgentService.SyncInputDelivery — disconnect input-delivery replay (proto).
+ * Empty `sessionId` / `lastKnownMessageIds` sent as-is.
+ * ≠ Chat / ChatSync / ContinueGeneration / Resume.
+ */
+export interface UniverseAgentSyncInputDeliveryRequest {
+	readonly sessionId: string;
+	readonly lastKnownMessageIds?: readonly string[];
+}
+
+/** AgentService.SyncInputDelivery response (SyncInputDeliveryResponse). */
+export interface UniverseAgentSyncInputDeliveryResult {
+	readonly inputDeliveryEvents: readonly UniverseAgentChatSyncInputDeliveryEvent[];
+}
+
 export interface UniverseAgentChatRequest {
 	readonly sessionId: string;
 	readonly payload: unknown;

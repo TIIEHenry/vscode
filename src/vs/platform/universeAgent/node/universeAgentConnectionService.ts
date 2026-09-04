@@ -15,6 +15,8 @@ import type {
 	UniverseAgentChatResponse,
 	UniverseAgentChatSyncRequest,
 	UniverseAgentChatSyncResult,
+	UniverseAgentSyncInputDeliveryRequest,
+	UniverseAgentSyncInputDeliveryResult,
 	UniverseAgentChatStream,
 	UniverseAgentContinueGenerationRequest,
 	UniverseAgentContinuationStream,
@@ -996,6 +998,10 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 
 	async chatSync(request: UniverseAgentChatSyncRequest): Promise<UniverseAgentChatSyncResult> {
 		return this._withTransport(transport => transport.chatSync(request));
+	}
+
+	async syncInputDelivery(request: UniverseAgentSyncInputDeliveryRequest): Promise<UniverseAgentSyncInputDeliveryResult> {
+		return this._withTransport(transport => transport.syncInputDelivery(request));
 	}
 
 	openChatStream(
