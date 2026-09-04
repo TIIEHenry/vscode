@@ -29,6 +29,8 @@ import type {
 	UniverseAgentAgentStatusResult,
 	UniverseAgentTodoRequest,
 	UniverseAgentTodoResult,
+	UniverseAgentResolveAnchorRequest,
+	UniverseAgentResolveAnchorResult,
 	UniverseAgentRenameSessionRequest,
 	UniverseAgentRenameSessionResult,
 	UniverseAgentCancelGenerationRequest,
@@ -229,6 +231,14 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 	async getTodo(request: UniverseAgentTodoRequest): Promise<UniverseAgentTodoResult> {
 		this.getTodoCalls.push(request);
 		return this.getTodoResult;
+	}
+
+	readonly resolveAnchorCalls: UniverseAgentResolveAnchorRequest[] = [];
+	resolveAnchorResult: UniverseAgentResolveAnchorResult = {};
+
+	async resolveAnchor(request: UniverseAgentResolveAnchorRequest): Promise<UniverseAgentResolveAnchorResult> {
+		this.resolveAnchorCalls.push(request);
+		return this.resolveAnchorResult;
 	}
 
 	readonly renameCalls: UniverseAgentRenameSessionRequest[] = [];
@@ -810,6 +820,11 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
 	});
 
+	test('UniverseAgentGrpcServices lists Session.ResolveAnchor', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Session.ResolveAnchor, 'ResolveAnchor');
+		assert.strictEqual(UniverseAgentGrpcServices.Session.service, 'universeagent.session.v1.SessionService');
+	});
+
 	test('renameSession forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
@@ -1330,6 +1345,47 @@ suite('UniverseAgentConnectionService', () => {
 		assert.deepStrictEqual(empty, { items: [] });
 		assert.strictEqual(transport.getTodoCalls[1]?.sessionId, '');
 		assert.strictEqual(transport.getTodoCalls[1]?.agentId, '');
+		service.dispose();
+	});
+
+	test('resolveAnchor forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.resolveAnchorResult = {
+			hit: {
+				envelope: { id: 'env-1' },
+				presence: 'ENVELOPE_RECORD_PRESENCE_ACTIVE_ON_PATH',
+				generation: 2,
+			},
+		};
+		const result = await service.resolveAnchor({
+			anchor: { sessionId: 'sess-1', envelopeId: 'env-1', generation: 2 },
+			scope: 'ANCHOR_RESOLVE_SCOPE_ACTIVE',
+			currentLeafTurnId: 'turn-1',
+		});
+		assert.deepStrictEqual(transport.resolveAnchorCalls, [{
+			anchor: { sessionId: 'sess-1', envelopeId: 'env-1', generation: 2 },
+			scope: 'ANCHOR_RESOLVE_SCOPE_ACTIVE',
+			currentLeafTurnId: 'turn-1',
+		}]);
+		assert.deepStrictEqual(result, transport.resolveAnchorResult);
+
+		transport.resolveAnchorResult = {
+			expired: { anchor: { sessionId: '', envelopeId: '' } },
+		};
+		const empty = await service.resolveAnchor({
+			anchor: { sessionId: '', envelopeId: '' },
+			scope: 'ANCHOR_RESOLVE_SCOPE_UNSPECIFIED',
+			currentLeafTurnId: '',
+		});
+		assert.deepStrictEqual(empty, transport.resolveAnchorResult);
+		assert.strictEqual(transport.resolveAnchorCalls[1]?.anchor.sessionId, '');
+		assert.strictEqual(transport.resolveAnchorCalls[1]?.anchor.envelopeId, '');
+		assert.strictEqual(transport.resolveAnchorCalls[1]?.currentLeafTurnId, '');
 		service.dispose();
 	});
 

@@ -33,6 +33,8 @@ import type {
 	UniverseAgentAgentStatusResult,
 	UniverseAgentTodoRequest,
 	UniverseAgentTodoResult,
+	UniverseAgentResolveAnchorRequest,
+	UniverseAgentResolveAnchorResult,
 	UniverseAgentRenameSessionRequest,
 	UniverseAgentRenameSessionResult,
 	UniverseAgentCancelGenerationRequest,
@@ -257,6 +259,14 @@ export interface IUniverseAgentConnection {
 	 * ≠ Status / Tree / Compact.
 	 */
 	getTodo?(request: UniverseAgentTodoRequest): Promise<UniverseAgentTodoResult>;
+
+	/**
+	 * SessionService.ResolveAnchor unary (ADR-317 §7.2 three-state hit / tombstone /
+	 * expired). Optional so Web / tests can omit it. Catalog + node transport only
+	 * this slice; empty `sessionId` / `envelopeId` / `currentLeafTurnId` are sent
+	 * as-is. No Conversation roster / UI. ≠ ResolveTurn / GetHistory / Compact.
+	 */
+	resolveAnchor?(request: UniverseAgentResolveAnchorRequest): Promise<UniverseAgentResolveAnchorResult>;
 
 	/** AgentService.Rename unary. Engine roster forwards this when connected. */
 	renameSession(request: UniverseAgentRenameSessionRequest): Promise<UniverseAgentRenameSessionResult>;

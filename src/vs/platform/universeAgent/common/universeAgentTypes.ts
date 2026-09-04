@@ -163,6 +163,56 @@ export interface UniverseAgentTodoResult {
 	readonly items: readonly UniverseAgentTodoItem[];
 }
 
+/** SessionService.ResolveAnchor — record-layer envelope anchor (ADR-317 §7.2; ≠ ResolveTurn / GetHistory). */
+export interface UniverseAgentEnvelopeAnchor {
+	readonly sessionId: string;
+	readonly envelopeId: string;
+	readonly generation?: number;
+}
+
+export type UniverseAgentAnchorResolveScope =
+	| 'ANCHOR_RESOLVE_SCOPE_UNSPECIFIED'
+	| 'ANCHOR_RESOLVE_SCOPE_ACTIVE'
+	| 'ANCHOR_RESOLVE_SCOPE_OFF_PATH'
+	| 'ANCHOR_RESOLVE_SCOPE_INCLUDING_ARCHIVED';
+
+export type UniverseAgentEnvelopeRecordPresence =
+	| 'ENVELOPE_RECORD_PRESENCE_UNSPECIFIED'
+	| 'ENVELOPE_RECORD_PRESENCE_ACTIVE_ON_PATH'
+	| 'ENVELOPE_RECORD_PRESENCE_ACTIVE_OFF_PATH'
+	| 'ENVELOPE_RECORD_PRESENCE_ARCHIVED';
+
+export interface UniverseAgentResolveAnchorRequest {
+	readonly anchor: UniverseAgentEnvelopeAnchor;
+	readonly scope: UniverseAgentAnchorResolveScope;
+	readonly currentLeafTurnId?: string;
+}
+
+export interface UniverseAgentAnchorHit {
+	/** MessageEnvelopeProto wire object; opaque this catalog slice. */
+	readonly envelope: unknown;
+	readonly presence: UniverseAgentEnvelopeRecordPresence;
+	readonly generation?: number;
+}
+
+export interface UniverseAgentAnchorTombstone {
+	readonly sessionId: string;
+	readonly envelopeId: string;
+	readonly seq: number;
+	readonly turnId?: string;
+	readonly generation?: number;
+}
+
+export interface UniverseAgentAnchorExpired {
+	readonly anchor: UniverseAgentEnvelopeAnchor;
+}
+
+export interface UniverseAgentResolveAnchorResult {
+	readonly hit?: UniverseAgentAnchorHit;
+	readonly tombstone?: UniverseAgentAnchorTombstone;
+	readonly expired?: UniverseAgentAnchorExpired;
+}
+
 /** AgentService.Rename request; empty `title` clears a custom session title. */
 export interface UniverseAgentRenameSessionRequest {
 	readonly sessionId: string;

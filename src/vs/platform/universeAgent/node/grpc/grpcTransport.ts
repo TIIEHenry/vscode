@@ -28,6 +28,8 @@ import type {
 	UniverseAgentAgentStatusResult,
 	UniverseAgentTodoRequest,
 	UniverseAgentTodoResult,
+	UniverseAgentResolveAnchorRequest,
+	UniverseAgentResolveAnchorResult,
 	UniverseAgentRenameSessionRequest,
 	UniverseAgentRenameSessionResult,
 	UniverseAgentCancelGenerationRequest,
@@ -206,6 +208,8 @@ export interface IUniverseAgentGrpcTransport {
 
 	/** AgentService.Todo unary (snake_case `session_id`/`agent_id`). Empty ids sent as-is. */
 	getTodo(request: UniverseAgentTodoRequest): Promise<UniverseAgentTodoResult>;
+	/** SessionService.ResolveAnchor unary. Empty ids sent as-is. */
+	resolveAnchor(request: UniverseAgentResolveAnchorRequest): Promise<UniverseAgentResolveAnchorResult>;
 
 	renameSession(request: UniverseAgentRenameSessionRequest): Promise<UniverseAgentRenameSessionResult>;
 
@@ -357,6 +361,7 @@ export const UniverseAgentGrpcServices = {
 		Shelve: 'Shelve',
 		Unshelve: 'Unshelve',
 		Purge: 'Purge',
+		ResolveAnchor: 'ResolveAnchor',
 		GetHistory: 'GetHistory',
 		SessionEventStream: 'SessionEventStream',
 	},

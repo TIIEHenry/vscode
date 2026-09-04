@@ -32,6 +32,11 @@ import type {
 	UniverseAgentTodoRequest,
 	UniverseAgentTodoResult,
 	UniverseAgentTodoItem,
+	UniverseAgentAnchorResolveScope,
+	UniverseAgentEnvelopeAnchor,
+	UniverseAgentEnvelopeRecordPresence,
+	UniverseAgentResolveAnchorRequest,
+	UniverseAgentResolveAnchorResult,
 	UniverseAgentRenameSessionRequest,
 	UniverseAgentRenameSessionResult,
 	UniverseAgentCancelGenerationRequest,
@@ -293,6 +298,36 @@ interface TodoItemWire {
 
 interface TodoResponseWire {
 	items?: TodoItemWire[];
+}
+
+interface EnvelopeAnchorWire {
+	session_id?: string;
+	envelope_id?: string;
+	generation?: number | string;
+}
+
+interface AnchorHitWire {
+	envelope?: unknown;
+	presence?: number | string;
+	generation?: number | string;
+}
+
+interface AnchorTombstoneWire {
+	session_id?: string;
+	envelope_id?: string;
+	seq?: number | string;
+	turn_id?: string;
+	generation?: number | string;
+}
+
+interface AnchorExpiredWire {
+	anchor?: EnvelopeAnchorWire;
+}
+
+interface ResolveAnchorResponseWire {
+	hit?: AnchorHitWire;
+	tombstone?: AnchorTombstoneWire;
+	expired?: AnchorExpiredWire;
 }
 
 interface QueueMutationResponseWire {
@@ -670,6 +705,104 @@ function mapTodoResponse(wire: TodoResponseWire): UniverseAgentTodoResult {
 	return {
 		items: (wire.items ?? []).map(item => mapTodoItem(item)),
 	};
+}
+
+function optionalInt64(value: number | string | undefined): number | undefined {
+	if (value === undefined || value === '') {
+		return undefined;
+	}
+	const n = typeof value === 'number' ? value : Number(value);
+	return Number.isFinite(n) ? n : undefined;
+}
+
+function requiredInt64(value: number | string | undefined): number {
+	return optionalInt64(value) ?? 0;
+}
+
+function anchorResolveScopeWire(scope: UniverseAgentAnchorResolveScope): number {
+	switch (scope) {
+		case 'ANCHOR_RESOLVE_SCOPE_ACTIVE':
+			return 1;
+		case 'ANCHOR_RESOLVE_SCOPE_OFF_PATH':
+			return 2;
+		case 'ANCHOR_RESOLVE_SCOPE_INCLUDING_ARCHIVED':
+			return 3;
+		default:
+			return 0;
+	}
+}
+
+function resolveAnchorRequestWire(request: UniverseAgentResolveAnchorRequest): Record<string, unknown> {
+	const anchor: Record<string, unknown> = {
+		session_id: request.anchor.sessionId,
+		envelope_id: request.anchor.envelopeId,
+	};
+	if (request.anchor.generation !== undefined) {
+		anchor.generation = request.anchor.generation;
+	}
+	const wire: Record<string, unknown> = {
+		anchor,
+		scope: anchorResolveScopeWire(request.scope),
+	};
+	if (request.currentLeafTurnId !== undefined) {
+		wire.current_leaf_turn_id = request.currentLeafTurnId;
+	}
+	return wire;
+}
+
+function mapEnvelopeAnchor(wire: EnvelopeAnchorWire | undefined): UniverseAgentEnvelopeAnchor {
+	const generation = optionalInt64(wire?.generation);
+	return {
+		sessionId: wire?.session_id ?? '',
+		envelopeId: wire?.envelope_id ?? '',
+		...(generation !== undefined ? { generation } : {}),
+	};
+}
+
+function mapEnvelopeRecordPresence(value: number | string | undefined): UniverseAgentEnvelopeRecordPresence {
+	if (value === 1 || value === 'ENVELOPE_RECORD_PRESENCE_ACTIVE_ON_PATH') {
+		return 'ENVELOPE_RECORD_PRESENCE_ACTIVE_ON_PATH';
+	}
+	if (value === 2 || value === 'ENVELOPE_RECORD_PRESENCE_ACTIVE_OFF_PATH') {
+		return 'ENVELOPE_RECORD_PRESENCE_ACTIVE_OFF_PATH';
+	}
+	if (value === 3 || value === 'ENVELOPE_RECORD_PRESENCE_ARCHIVED') {
+		return 'ENVELOPE_RECORD_PRESENCE_ARCHIVED';
+	}
+	return 'ENVELOPE_RECORD_PRESENCE_UNSPECIFIED';
+}
+
+function mapResolveAnchorResponse(wire: ResolveAnchorResponseWire): UniverseAgentResolveAnchorResult {
+	if (wire.hit) {
+		const generation = optionalInt64(wire.hit.generation);
+		return {
+			hit: {
+				envelope: wire.hit.envelope ?? {},
+				presence: mapEnvelopeRecordPresence(wire.hit.presence),
+				...(generation !== undefined ? { generation } : {}),
+			},
+		};
+	}
+	if (wire.tombstone) {
+		const generation = optionalInt64(wire.tombstone.generation);
+		return {
+			tombstone: {
+				sessionId: wire.tombstone.session_id ?? '',
+				envelopeId: wire.tombstone.envelope_id ?? '',
+				seq: requiredInt64(wire.tombstone.seq),
+				...(wire.tombstone.turn_id !== undefined ? { turnId: wire.tombstone.turn_id } : {}),
+				...(generation !== undefined ? { generation } : {}),
+			},
+		};
+	}
+	if (wire.expired) {
+		return {
+			expired: {
+				anchor: mapEnvelopeAnchor(wire.expired.anchor),
+			},
+		};
+	}
+	return {};
 }
 
 function mapGetHistoryResponse(wire: GetHistoryResponseWire): UniverseAgentGetHistoryResult {
@@ -1680,6 +1813,16 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			agent_id: request.agentId,
 		});
 		return mapTodoResponse(wire);
+	}
+
+	async resolveAnchor(request: UniverseAgentResolveAnchorRequest): Promise<UniverseAgentResolveAnchorResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, ResolveAnchorResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.Session.service,
+			UniverseAgentGrpcServices.Session.ResolveAnchor,
+		);
+		const wire = await unary(resolveAnchorRequestWire(request));
+		return mapResolveAnchorResponse(wire);
 	}
 
 	async renameSession(request: UniverseAgentRenameSessionRequest): Promise<UniverseAgentRenameSessionResult> {
