@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-04
-summary: "SessionService.Info 已进 gRPC catalog（node unary getSessionInfo；空 sessionId 原样上线；无 Conversation UI）；接通后 SessionBar Snapshots overlay Delete 转发 AgentService.DeleteSnapshot（空 snapshotId / 断连 / 无 hook / 空 session 不发；确认后才发）；overlay Restore 转发 restoreSnapshot（空 snapshotId / 断连 / 无 hook 不发）；AgentService.ListLoopSnapshots 已进 gRPC catalog（node unary；空 sessionId / loopId 原样上线；不改 SessionBar / overlay）；接通后 Conversation 动作 createSnapshot 转发 AgentService.CreateSnapshot（空 sessionId / 断连 / 无 hook 不发；空 title 原样上线）；listSnapshots 列表消费（断连 / 无 hook / 空 sessionId 不发；History 仍回合索引）；AgentService.CreateSnapshot / RestoreSnapshot / DeleteSnapshot 已进 gRPC catalog（node unary；空 sessionId / title / snapshotId 原样上线）；接通后时间线 / roster respondClientTool 转发 AgentService.SendClientToolResponse（空 callId 不发；未接通仍 Chat 臂）；接通后时间线问题座转发 AgentService.RespondQuestion（空 questionId 不发；未接通仍 Chat 臂）；Inbox AutoDrive 接通 / 断连缓存诚实空；接通后时间线 deleteTurn 转发 AgentService.DeleteMessage；接通后时间线 turnEdit / updateUserTurnText 转发 AgentService.EditMessage（空 turnId / 空正文不发；未接通仍本地改）；Engine Tools 选中行拉 ToolInfo 只读详情；接通后权限座转发 Respond；CancelToolCall / Kill / MessageQueue 五操作 + Edit + Enqueue 已转发；Composer 发送仍走 submitInput"
+summary: "接通后 SessionBar Snapshots overlay Delete 确认成功后再拉 listSnapshots 刷新行（overlay 保持打开；取消 / 失败 / 未发不刷新）；SessionService.Info 已进 gRPC catalog（node unary getSessionInfo；空 sessionId 原样上线；无 Conversation UI）；overlay Delete 转发 AgentService.DeleteSnapshot（空 snapshotId / 断连 / 无 hook / 空 session 不发；确认后才发）；overlay Restore 转发 restoreSnapshot（空 snapshotId / 断连 / 无 hook 不发）；AgentService.ListLoopSnapshots 已进 gRPC catalog（node unary；空 sessionId / loopId 原样上线；不改 SessionBar / overlay）；接通后 Conversation 动作 createSnapshot 转发 AgentService.CreateSnapshot（空 sessionId / 断连 / 无 hook 不发；空 title 原样上线）；listSnapshots 列表消费（断连 / 无 hook / 空 sessionId 不发；History 仍回合索引）；AgentService.CreateSnapshot / RestoreSnapshot / DeleteSnapshot 已进 gRPC catalog（node unary；空 sessionId / title / snapshotId 原样上线）；接通后时间线 / roster respondClientTool 转发 AgentService.SendClientToolResponse（空 callId 不发；未接通仍 Chat 臂）；接通后时间线问题座转发 AgentService.RespondQuestion（空 questionId 不发；未接通仍 Chat 臂）；Inbox AutoDrive 接通 / 断连缓存诚实空；接通后时间线 deleteTurn 转发 AgentService.DeleteMessage；接通后时间线 turnEdit / updateUserTurnText 转发 AgentService.EditMessage（空 turnId / 空正文不发；未接通仍本地改）；Engine Tools 选中行拉 ToolInfo 只读详情；接通后权限座转发 Respond；CancelToolCall / Kill / MessageQueue 五操作 + Edit + Enqueue 已转发；Composer 发送仍走 submitInput"
 ---
 
 # Development Progress
@@ -15,7 +15,7 @@ summary: "SessionService.Info 已进 gRPC catalog（node unary getSessionInfo；
 - **槽 A / `loop/A`：** Conversation SessionBar Snapshots overlay 行 Restore → `connection.restoreSnapshot`（接通 + hook + 非空 snapshotId + 已知 session）。空 snapshotId / 断连 / 无 hook **不发**。**不**加 DeleteSnapshot / delete UI；**不**改 SessionBar History（仍回合索引）；**不**改 gRPC catalog。测：`conversationEngineSnapshotsList`。
 - **槽 B / `loop/B`：** 把 `AgentService.ListLoopSnapshots` 写入 gRPC catalog（`universeagent.agent.v1.AgentService`），node unary `listLoopSnapshots`（snake_case `session_id`/`loop_id`；响应 `LoopSnapshotRecord` 字段原样映射）。合同可选。空 `sessionId` / 空 `loopId` 原样上线。**不改** SessionBar History / Snapshots overlay / roster（History 仍回合索引；无 Restore / Delete / Create 本刀）。测：catalog + 转发 / 空 id。此前 SessionBar Snapshots 只读 `listSnapshots` 已在 tip。
 - **槽 C / `loop/C`：** 接通后 SessionBar Snapshots overlay Delete 转发已进 catalog 的 `AgentService.DeleteSnapshot`（接通 + hook + 非空 `snapshotId` + 已知 session 才发；空 id / 断连 / 无 hook 不发；`dialogService.confirm` warning 确认后才上线）。**不**改 gRPC catalog、不新增 RPC、不替换 SessionBar History（仍回合索引）。无 Create / Restore。测：conversation browser 转发 / 空 id / 断连 / 无 hook / 取消确认。
-- **槽 D / `loop/D`：** 把 `SessionService.Info` 写入 gRPC catalog（`universeagent.session.v1.SessionService`），node unary `getSessionInfo`（snake_case `session_id`；响应 `session_id` / `root_agent` / `created_at` / `last_accessed_at` / `provider` / `model`）。合同可选。空 `sessionId` 原样上线。**不改** Conversation roster / SessionBar / Snapshots overlay。测：catalog + 转发 / 空 id / 字段映射。
+- **槽 D / `loop/D`：** SessionBar Snapshots overlay Delete **确认成功后**再拉 `listSnapshots` 刷新行，overlay 保持打开；取消 / 失败 / 未发不刷新。对齐 tip 上 Restore 未带 refresh 时的 restore-refresh 规则（`conversationEngineSnapshotsList`）。**不**加新 RPC；**不**改 gRPC；**不**改 SessionBar History（仍回合索引）。测：`conversationEngineSnapshotsList` 成功刷新 / 取消不刷新 / 失败不刷新 / 未发不刷新。
 
 ## 槽位（与 `git worktree list` 对照）
 
@@ -25,7 +25,7 @@ summary: "SessionService.Info 已进 gRPC catalog（node unary getSessionInfo；
 | A | `vscode-WorkTrees/A` | `loop/A` | SessionBar Snapshots overlay Restore → restoreSnapshot；History 仍回合索引 |
 | B | `vscode-WorkTrees/B` | `loop/B` | AgentService.ListLoopSnapshots catalog + node unary；SessionBar / overlay 不改 |
 | C | `vscode-WorkTrees/C` | `loop/C` | Snapshots overlay Delete→DeleteSnapshot；空 id / 断连 / 无 hook 不发；确认后才发；History 仍回合索引 |
-| D | `vscode-WorkTrees/D` | `loop/D` | SessionService.Info catalog + node unary getSessionInfo；空 sessionId 原样上线；无 Conversation UI |
+| D | `vscode-WorkTrees/D` | `loop/D` | overlay Delete 确认成功后再拉 listSnapshots；取消 / 失败 / 未发不刷新；History 仍回合索引 |
 | edit | `Projects/Agents/vscode` | `agent-ide` | 请自行对齐 |
 
 ## Blockers
