@@ -107,6 +107,8 @@ import type {
 	UniverseAgentPromotePermissionRuleResult,
 	UniverseAgentGetSessionRulesRequest,
 	UniverseAgentGetSessionRulesResult,
+	UniverseAgentTaskUpdateRequest,
+	UniverseAgentTaskUpdateResult,
 	UniverseAgentRespondQuestionRequest,
 	UniverseAgentRespondQuestionResult,
 	UniverseAgentEnqueueQueueItemRequest,
@@ -357,6 +359,9 @@ export interface IUniverseAgentGrpcTransport {
 
 	/** PermissionService.GetSessionRules unary (snake_case `session_id`). Empty ids sent as-is. */
 	getSessionRules(request: UniverseAgentGetSessionRulesRequest): Promise<UniverseAgentGetSessionRulesResult>;
+
+	/** TeamService.TaskUpdate unary (snake_case `session_id`/`agent_id`/`task_id`/`new_status`/`message`). Empty ids sent as-is. */
+	taskUpdate(request: UniverseAgentTaskUpdateRequest): Promise<UniverseAgentTaskUpdateResult>;
 
 	respondQuestion(request: UniverseAgentRespondQuestionRequest): Promise<UniverseAgentRespondQuestionResult>;
 
@@ -666,6 +671,7 @@ export const UniverseAgentGrpcServices = {
 		service: 'universeagent.team.v1.TeamService',
 		MemberStatus: 'MemberStatus',
 		TaskList: 'TaskList',
+		TaskUpdate: 'TaskUpdate',
 		TeamInfo: 'TeamInfo',
 	},
 	Tool: {

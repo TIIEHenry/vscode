@@ -844,6 +844,22 @@ export interface UniverseAgentGetSessionRulesResult {
 	readonly rules: readonly UniverseAgentSessionRule[];
 }
 
+/** TeamService.TaskUpdate — Manager overwrite of blackboard task status (≠ TaskList / TaskCancel / MemberStatus / TeamInfo / SetPermissionMode). */
+export interface UniverseAgentTaskUpdateRequest {
+	readonly sessionId: string;
+	readonly agentId: string;
+	readonly taskId: string;
+	/** Proto `new_status`. Empty sent as-is. */
+	readonly newStatus: string;
+	/** Proto `message`. Empty sent as-is. */
+	readonly message: string;
+}
+
+export interface UniverseAgentTaskUpdateResult {
+	readonly ok: boolean;
+	readonly message?: string;
+}
+
 /** One item answer for AgentService.RespondQuestion (QuestionAnswer.selected_labels). */
 export interface UniverseAgentQuestionAnswer {
 	readonly selectedLabels: readonly string[];

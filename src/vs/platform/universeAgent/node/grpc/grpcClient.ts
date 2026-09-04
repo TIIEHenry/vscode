@@ -134,6 +134,8 @@ import type {
 	UniverseAgentGetSessionRulesRequest,
 	UniverseAgentGetSessionRulesResult,
 	UniverseAgentSessionRule,
+	UniverseAgentTaskUpdateRequest,
+	UniverseAgentTaskUpdateResult,
 	UniverseAgentRespondQuestionRequest,
 	UniverseAgentRespondQuestionResult,
 	UniverseAgentQuestionAnswer,
@@ -3354,6 +3356,25 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			session_id: request.sessionId,
 		});
 		return mapGetSessionRulesResponse(wire);
+	}
+
+	async taskUpdate(request: UniverseAgentTaskUpdateRequest): Promise<UniverseAgentTaskUpdateResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, { success?: boolean; message?: string }>(
+			this._channel,
+			UniverseAgentGrpcServices.Team.service,
+			UniverseAgentGrpcServices.Team.TaskUpdate,
+		);
+		const wire = await unary({
+			session_id: request.sessionId,
+			agent_id: request.agentId,
+			task_id: request.taskId,
+			new_status: request.newStatus,
+			message: request.message,
+		});
+		return {
+			ok: wire.success === true,
+			message: wire.message,
+		};
 	}
 
 	async respondQuestion(request: UniverseAgentRespondQuestionRequest): Promise<UniverseAgentRespondQuestionResult> {

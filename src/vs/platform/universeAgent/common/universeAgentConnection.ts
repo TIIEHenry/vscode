@@ -112,6 +112,8 @@ import type {
 	UniverseAgentPromotePermissionRuleResult,
 	UniverseAgentGetSessionRulesRequest,
 	UniverseAgentGetSessionRulesResult,
+	UniverseAgentTaskUpdateRequest,
+	UniverseAgentTaskUpdateResult,
 	UniverseAgentRespondQuestionRequest,
 	UniverseAgentRespondQuestionResult,
 	UniverseAgentEnqueueQueueItemRequest,
@@ -604,6 +606,15 @@ export interface IUniverseAgentConnection {
 	 * ≠ SetSessionGoal / CancelSessionGoal / Respond / SyncPermissionRule / PromotePermissionRule.
 	 */
 	getSessionRules?(request: UniverseAgentGetSessionRulesRequest): Promise<UniverseAgentGetSessionRulesResult>;
+
+	/**
+	 * TeamService.TaskUpdate unary (blackboard task status overwrite). Optional
+	 * so Web / tests can omit it. Catalog + node transport only this slice;
+	 * empty `sessionId` / `agentId` / `taskId` / `newStatus` / `message` are
+	 * sent as-is. No Conversation roster / UI / Navigator Team.
+	 * ≠ TaskList / TaskCancel / MemberStatus / TeamInfo / SetPermissionMode.
+	 */
+	taskUpdate?(request: UniverseAgentTaskUpdateRequest): Promise<UniverseAgentTaskUpdateResult>;
 
 	/**
 	 * AgentService.RespondQuestion unary (ADR-325 ask_user reply). Optional so

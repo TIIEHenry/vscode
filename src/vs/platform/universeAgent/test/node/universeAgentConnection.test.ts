@@ -105,6 +105,8 @@ import type {
 	UniverseAgentPromotePermissionRuleResult,
 	UniverseAgentGetSessionRulesRequest,
 	UniverseAgentGetSessionRulesResult,
+	UniverseAgentTaskUpdateRequest,
+	UniverseAgentTaskUpdateResult,
 	UniverseAgentRespondQuestionRequest,
 	UniverseAgentRespondQuestionResult,
 	UniverseAgentEnqueueQueueItemRequest,
@@ -579,6 +581,14 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 	async getSessionRules(request: UniverseAgentGetSessionRulesRequest): Promise<UniverseAgentGetSessionRulesResult> {
 		this.getSessionRulesCalls.push(request);
 		return this.getSessionRulesResult;
+	}
+
+	readonly taskUpdateCalls: UniverseAgentTaskUpdateRequest[] = [];
+	taskUpdateResult: UniverseAgentTaskUpdateResult = { ok: true };
+
+	async taskUpdate(request: UniverseAgentTaskUpdateRequest): Promise<UniverseAgentTaskUpdateResult> {
+		this.taskUpdateCalls.push(request);
+		return this.taskUpdateResult;
 	}
 
 	readonly respondQuestionCalls: UniverseAgentRespondQuestionRequest[] = [];
@@ -1239,6 +1249,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('UniverseAgentGrpcServices lists Permission.GetSessionRules', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Permission.GetSessionRules, 'GetSessionRules');
 		assert.strictEqual(UniverseAgentGrpcServices.Permission.service, 'universeagent.session.v1.PermissionService');
+	});
+
+	test('UniverseAgentGrpcServices lists Team.TaskUpdate', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Team.TaskUpdate, 'TaskUpdate');
+		assert.strictEqual(UniverseAgentGrpcServices.Team.service, 'universeagent.team.v1.TeamService');
 	});
 
 	test('UniverseAgentGrpcServices lists Agent.InsertQueueItem', () => {
@@ -2861,6 +2876,47 @@ suite('UniverseAgentConnectionService', () => {
 		const empty = await service.getSessionRules({ sessionId: '' });
 		assert.deepStrictEqual(empty, { rules: [] });
 		assert.strictEqual(transport.getSessionRulesCalls[1]?.sessionId, '');
+		service.dispose();
+	});
+
+	test('taskUpdate forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.taskUpdateResult = { ok: true, message: 'updated' };
+		const result = await service.taskUpdate({
+			sessionId: 'sess-1',
+			agentId: 'agent-1',
+			taskId: 'task-1',
+			newStatus: 'COMPLETED',
+			message: 'done',
+		});
+		assert.deepStrictEqual(transport.taskUpdateCalls, [{
+			sessionId: 'sess-1',
+			agentId: 'agent-1',
+			taskId: 'task-1',
+			newStatus: 'COMPLETED',
+			message: 'done',
+		}]);
+		assert.deepStrictEqual(result, { ok: true, message: 'updated' });
+
+		transport.taskUpdateResult = { ok: false, message: '' };
+		const empty = await service.taskUpdate({
+			sessionId: '',
+			agentId: '',
+			taskId: '',
+			newStatus: '',
+			message: '',
+		});
+		assert.deepStrictEqual(empty, { ok: false, message: '' });
+		assert.strictEqual(transport.taskUpdateCalls[1]?.sessionId, '');
+		assert.strictEqual(transport.taskUpdateCalls[1]?.agentId, '');
+		assert.strictEqual(transport.taskUpdateCalls[1]?.taskId, '');
+		assert.strictEqual(transport.taskUpdateCalls[1]?.newStatus, '');
+		assert.strictEqual(transport.taskUpdateCalls[1]?.message, '');
 		service.dispose();
 	});
 
