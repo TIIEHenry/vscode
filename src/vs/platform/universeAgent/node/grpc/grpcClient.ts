@@ -286,6 +286,9 @@ import type {
 	UniverseAgentReadGitFileDiffResult,
 	UniverseAgentWriteGitStagePathsRequest,
 	UniverseAgentWriteGitWriteResult,
+	UniverseAgentGetSessionUsageRequest,
+	UniverseAgentGetSessionUsageResult,
+	UniverseAgentTokenUsageData,
 	UniverseAgentListModelsResult,
 	UniverseAgentGetConfigRequest,
 	UniverseAgentGetConfigResult,
@@ -2808,6 +2811,40 @@ function mapWriteGitWriteResponse(wire: WriteGitWriteResponseWire): UniverseAgen
 	};
 }
 
+interface TokenUsageDataWire {
+	input_tokens?: number | string;
+	output_tokens?: number | string;
+	thinking_tokens?: number | string;
+	cache_read_tokens?: number | string;
+	cache_write_tokens?: number | string;
+	total_cost_micros?: number | string;
+	currency?: string;
+	request_count?: number | string;
+}
+
+interface GetSessionUsageResponseWire {
+	usage?: TokenUsageDataWire;
+}
+
+function mapTokenUsageData(wire: TokenUsageDataWire): UniverseAgentTokenUsageData {
+	return {
+		inputTokens: requiredInt64(wire.input_tokens),
+		outputTokens: requiredInt64(wire.output_tokens),
+		thinkingTokens: requiredInt64(wire.thinking_tokens),
+		cacheReadTokens: requiredInt64(wire.cache_read_tokens),
+		cacheWriteTokens: requiredInt64(wire.cache_write_tokens),
+		totalCostMicros: requiredInt64(wire.total_cost_micros),
+		currency: wire.currency ?? '',
+		requestCount: requiredInt64(wire.request_count),
+	};
+}
+
+function mapGetSessionUsageResponse(wire: GetSessionUsageResponseWire): UniverseAgentGetSessionUsageResult {
+	return {
+		usage: mapTokenUsageData(wire.usage ?? {}),
+	};
+}
+
 interface ListModelsResponseWire {
 	models?: Array<{
 		id?: string;
@@ -4782,6 +4819,18 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			commands: request.commands.map(command => ({ argv: [...command.argv] })),
 		});
 		return mapWriteGitWriteResponse(wire);
+	}
+
+	async getSessionUsage(request: UniverseAgentGetSessionUsageRequest): Promise<UniverseAgentGetSessionUsageResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, GetSessionUsageResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.TokenUsage.service,
+			UniverseAgentGrpcServices.TokenUsage.GetSessionUsage,
+		);
+		const wire = await unary({
+			session_id: request.sessionId,
+		});
+		return mapGetSessionUsageResponse(wire);
 	}
 
 	async setPermissionPolicy(request: UniverseAgentSetPermissionPolicyRequest): Promise<UniverseAgentSetPermissionPolicyResult> {

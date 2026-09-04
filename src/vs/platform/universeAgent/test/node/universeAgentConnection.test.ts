@@ -199,6 +199,8 @@ import type {
 	UniverseAgentReadGitFileDiffResult,
 	UniverseAgentWriteGitStagePathsRequest,
 	UniverseAgentWriteGitWriteResult,
+	UniverseAgentGetSessionUsageRequest,
+	UniverseAgentGetSessionUsageResult,
 	UniverseAgentGetHistoryRequest,
 	UniverseAgentGetHistoryResult,
 	UniverseAgentListSessionsRequest,
@@ -1416,6 +1418,25 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 		return this.writeGitStagePathsResult;
 	}
 
+	readonly getSessionUsageCalls: UniverseAgentGetSessionUsageRequest[] = [];
+	getSessionUsageResult: UniverseAgentGetSessionUsageResult = {
+		usage: {
+			inputTokens: 0,
+			outputTokens: 0,
+			thinkingTokens: 0,
+			cacheReadTokens: 0,
+			cacheWriteTokens: 0,
+			totalCostMicros: 0,
+			currency: '',
+			requestCount: 0,
+		},
+	};
+
+	async getSessionUsage(request: UniverseAgentGetSessionUsageRequest): Promise<UniverseAgentGetSessionUsageResult> {
+		this.getSessionUsageCalls.push(request);
+		return this.getSessionUsageResult;
+	}
+
 	async listModels() {
 		return { models: [] };
 	}
@@ -1832,6 +1853,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('UniverseAgentGrpcServices lists Git.WriteGitStagePaths', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Git.WriteGitStagePaths, 'WriteGitStagePaths');
 		assert.strictEqual(UniverseAgentGrpcServices.Git.service, 'universeagent.git.v1.GitService');
+	});
+
+	test('UniverseAgentGrpcServices lists TokenUsage.GetSessionUsage', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.TokenUsage.GetSessionUsage, 'GetSessionUsage');
+		assert.strictEqual(UniverseAgentGrpcServices.TokenUsage.service, 'universeagent.tokenusage.v1.TokenUsageService');
 	});
 
 	test('UniverseAgentGrpcServices lists Agent.Kill', () => {
@@ -4490,6 +4516,56 @@ suite('UniverseAgentConnectionService', () => {
 		await service.writeGitStagePaths(emptyCommandsRequest);
 		assert.strictEqual(transport.writeGitStagePathsCalls[2]?.sessionId, '');
 		assert.deepStrictEqual(transport.writeGitStagePathsCalls[2]?.commands, []);
+		service.dispose();
+	});
+
+	test('getSessionUsage forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.getSessionUsageResult = {
+			usage: {
+				inputTokens: 12,
+				outputTokens: 34,
+				thinkingTokens: 5,
+				cacheReadTokens: 6,
+				cacheWriteTokens: 7,
+				totalCostMicros: 890,
+				currency: 'USD',
+				requestCount: 3,
+			},
+		};
+		const request = { sessionId: 'sess-1' };
+		const result = await service.getSessionUsage(request);
+		assert.deepStrictEqual(transport.getSessionUsageCalls, [request]);
+		assert.deepStrictEqual(result, transport.getSessionUsageResult);
+
+		transport.getSessionUsageResult = {
+			usage: {
+				inputTokens: 0,
+				outputTokens: 0,
+				thinkingTokens: 0,
+				cacheReadTokens: 0,
+				cacheWriteTokens: 0,
+				totalCostMicros: 0,
+				currency: '',
+				requestCount: 0,
+			},
+		};
+		const emptyRequest = { sessionId: '' };
+		const empty = await service.getSessionUsage(emptyRequest);
+		assert.strictEqual(transport.getSessionUsageCalls[1]?.sessionId, '');
+		assert.strictEqual(empty.usage.inputTokens, 0);
+		assert.strictEqual(empty.usage.outputTokens, 0);
+		assert.strictEqual(empty.usage.thinkingTokens, 0);
+		assert.strictEqual(empty.usage.cacheReadTokens, 0);
+		assert.strictEqual(empty.usage.cacheWriteTokens, 0);
+		assert.strictEqual(empty.usage.totalCostMicros, 0);
+		assert.strictEqual(empty.usage.currency, '');
+		assert.strictEqual(empty.usage.requestCount, 0);
 		service.dispose();
 	});
 
