@@ -571,7 +571,7 @@ export class ConversationLens extends Disposable {
 	}
 
 	private getEditingQueueItem() {
-		getEditingQueueItem(this);
+		return getEditingQueueItem(this);
 	}
 
 	private updateComposerEditChrome(): void {

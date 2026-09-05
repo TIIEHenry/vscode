@@ -35,6 +35,7 @@ summary: "Wave 1 治理合入 + ADR-007 U0/U1 + GFS-3 residue + GFS-4 sync；mer
 | **agent-ide.yml** | `cc6bfd25` — [test-baseline-ci](../plans/test-baseline-ci.md) 切片 4：compile / eslint / docs-health / unit-custom 四 job |
 | **gRPC catalog** | `123625c245b` — `UniverseAgentGrpcServices` 对齐 UA proto `package agentservice`（原 `universeagent.*.v1` 导致 Connect/`GetAuthNonce` UNIMPLEMENTED） |
 | **workbench chrome** | Conversation 阅读列 layout / pre-first SessionBar；Navigator connecting 诚实空；Sources 空文案去实现注；Client enum 中文 labels |
+| **first-send Active** | 首条 `submitInput` 的 `localPendingSends` 即离 PreFirst；未连不因「No model」锁发送；GFS-3 residue（history Escape / queue-edit return / turnEdit host） |
 
 并行 catalog/UI 绑定波（A–D 槽）已合入 tip；逐条流水见 [归档](../archive/status-current-session-slot-catalog-2026-09-05.md)，不在本账复述。
 

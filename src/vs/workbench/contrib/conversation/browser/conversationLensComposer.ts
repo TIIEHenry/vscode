@@ -181,12 +181,14 @@ export async function submitDraft(host: IConversationLensComposerHost): Promise<
 		if (host.submitInFlight) {
 			return;
 		}
-		if (!host.stubService.isEngineConnected() && host.modelSelectedIndex === 0) {
-			return;
-		}
 		const text = host.dockTextarea.value.trim();
 		if (!text) {
 			return;
+		}
+		if (!host.stubService.isEngineConnected() && host.modelSelectedIndex === 0) {
+			// "No model" is the engine catalog label, not a send lock. Local stub still posts.
+			host.modelSelectedIndex = 1;
+			host.modelSelectBox.select(1);
 		}
 		const sessionId = host.stubService.getActiveSessionId();
 		host.submitInFlight = true;

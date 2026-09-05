@@ -329,6 +329,8 @@ suite('ConversationLens', () => {
 		textarea.dispatchEvent(new globalThis.Event('input', { bubbles: true }));
 		sendButton.click();
 		await Promise.resolve();
+		// Stub echo is scheduled with setTimeout(0); wait so getTurns() includes durable rows.
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
 	}
 
 	async function sendDockDraftAndFlush(slots: IConversationLensSlots, message: string, layoutReadingColumn?: () => void): Promise<void> {
@@ -707,6 +709,17 @@ suite('ConversationLens', () => {
 		assert.strictEqual(sendButton.classList.contains('disabled'), false);
 	});
 
+	test('disconnected compose enables send from draft without Stub model', () => {
+		const { part } = mountLens();
+		const slots = getLensSlots(part);
+		const sendButton = getDockSendButton(slots);
+		assert.strictEqual(sendButton.classList.contains('disabled'), true);
+		const textarea = getDockTextarea(slots);
+		textarea.value = 'hello';
+		textarea.dispatchEvent(new globalThis.Event('input', { bubbles: true }));
+		assert.strictEqual(sendButton.classList.contains('disabled'), false);
+	});
+
 	test('PreFirst: centered composer cluster hides dock inbox and moves identity above composer', () => {
 		const { part, stubService } = mountLens();
 		const slots = getLensSlots(part);
@@ -742,6 +755,8 @@ suite('ConversationLens', () => {
 		assert.ok(slots.dock.querySelector('.conversation-lens-composer'));
 		assert.strictEqual(readingColumn.firstElementChild?.classList.contains(conversationIdentityStripClass), true);
 		assert.strictEqual(getPrefirstHero(slots)?.hidden, true);
+
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
 		assert.strictEqual(stubService.getTurns(sessionId).length, 2);
 	});
 
@@ -776,6 +791,7 @@ suite('ConversationLens', () => {
 		const sessionRouteSelect = sessionRoute().querySelector('select.monaco-select-box') as HTMLSelectElement;
 		assert.strictEqual(sessionRouteSelect.getAttribute('aria-label'), conversationLensSessionBarRouteLabel);
 
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
 		for (const turn of [...stubService.getTurns(sessionId)]) {
 			stubService.deleteTurn(sessionId, turn.id);
 		}
@@ -2016,20 +2032,16 @@ suite('ConversationLens', () => {
 	});
 
 	test('dock input history ignores deleted user turns', async () => {
-		const { part, layoutReadingColumn } = mountLens();
+		const { part, stubService } = mountLens();
 		const slots = getLensSlots(part);
+		const sessionId = stubService.createSession();
 		const textarea = getDockTextarea(slots);
 
 		await sendDockDraft(slots, 'delete me');
 		await sendDockDraft(slots, 'keep me');
-		layoutReadingColumn();
-		await flushTimelineHeightUpdates();
-
-		const userTurn = queryTimeline(slots, '.conversation-lens-turn[data-kind="user"]')!;
-		const deleteButton = userTurn.querySelector('.conversation-lens-turn-action-delete .monaco-button') as HTMLElement;
-		deleteButton.click();
-		layoutReadingColumn();
-		await flushTimelineHeightUpdates();
+		const doomed = stubService.getTurns(sessionId).find(turn => turn.kind === 'user' && turn.text === 'delete me');
+		assert.ok(doomed);
+		stubService.deleteTurn(sessionId, doomed.id);
 
 		dispatchDockKeydown(textarea, KeyCode.UpArrow);
 		assert.strictEqual(textarea.value, 'keep me');
