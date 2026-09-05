@@ -2414,6 +2414,32 @@ export interface UniverseAgentContextVariableListResult {
 }
 
 /**
+ * ContextVariableService.Read — proto `ContextVariableReadRequest` /
+ * `ContextVariableReadResponse` + `ContextVariableEntry` only.
+ * Empty `session_id` / `name` / `agent_id` pass through as-is. Empty
+ * `name` / `content` / `updated_by` mapped as-is. `updated_at` 0 mapped
+ * as-is. `scope` proto enum (`VARIABLE_GLOBAL`=0 / `VARIABLE_LOCAL`=1).
+ * ≠ List.
+ */
+export interface UniverseAgentContextVariableReadRequest {
+	readonly sessionId: string;
+	readonly name: string;
+	readonly agentId: string;
+}
+
+export interface UniverseAgentContextVariableEntry {
+	readonly name: string;
+	readonly content: string;
+	readonly scope: UniverseAgentContextVariableScope;
+	readonly updatedBy: string;
+	readonly updatedAt: number;
+}
+
+export interface UniverseAgentContextVariableReadResult {
+	readonly entry: UniverseAgentContextVariableEntry;
+}
+
+/**
  * FileTransferService.GetUploadProgress — proto `UploadProgressRequest` /
  * `UploadProgressResponse` only. Empty `transfer_id` / `session_id` pass
  * through as-is. `bytes_received` 0 / empty `partial_path` mapped as-is.

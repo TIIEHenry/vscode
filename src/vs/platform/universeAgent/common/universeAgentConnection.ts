@@ -252,6 +252,8 @@ import type {
 	UniverseAgentMemoryHistoryResult,
 	UniverseAgentContextVariableListRequest,
 	UniverseAgentContextVariableListResult,
+	UniverseAgentContextVariableReadRequest,
+	UniverseAgentContextVariableReadResult,
 	UniverseAgentGetUploadProgressRequest,
 	UniverseAgentGetUploadProgressResult,
 	UniverseAgentUploadAttachmentResult,
@@ -1459,6 +1461,19 @@ export interface IUniverseAgentConnection {
 	 * ≠ Read.
 	 */
 	listContextVariable?(request: UniverseAgentContextVariableListRequest): Promise<UniverseAgentContextVariableListResult>;
+
+	/**
+	 * ContextVariableService.Read unary. Optional so Web / tests can omit
+	 * it. Catalog + node transport only this slice; empty `sessionId` /
+	 * `name` / `agentId` are sent as-is. Empty `name` / `content` /
+	 * `updated_by` mapped as-is. `updated_at` 0 mapped as-is. `scope`
+	 * proto enum (`VARIABLE_GLOBAL` / `VARIABLE_LOCAL`). Proto fields
+	 * only (`ContextVariableReadRequest` /
+	 * `ContextVariableReadResponse` + `ContextVariableEntry`). No
+	 * Conversation roster / UI / Engine Preferences / Composer.
+	 * ≠ List.
+	 */
+	readContextVariable?(request: UniverseAgentContextVariableReadRequest): Promise<UniverseAgentContextVariableReadResult>;
 
 	/**
 	 * FileTransferService.GetUploadProgress unary. Optional so Web / tests
