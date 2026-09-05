@@ -59,8 +59,11 @@ export function bindSessionView(host: IConversationLensSessionBindingHost, sessi
 	host.sessionViewLease = lease;
 	const coalescer = host.sessionViewLifetime.add(new ConversationSessionViewFrameCoalescer(applied => host.applySessionViewTimeline(applied)));
 	host.sessionViewLifetime.add(lease.onDidApplyFrame(applied => coalescer.push(applied)));
-	// Baseline fires during lease construction, before the listener above is attached.
-	host.applySessionViewTimeline({ kind: 'baseline' });
+	// Stub leases fire baseline during construction. Engine leases start as an
+	// empty `pending` replica — applying that as baseline flashes an empty tree.
+	if (lease.snapshot.sessionId !== 'pending') {
+		host.applySessionViewTimeline({ kind: 'baseline' });
+	}
 
 }
 

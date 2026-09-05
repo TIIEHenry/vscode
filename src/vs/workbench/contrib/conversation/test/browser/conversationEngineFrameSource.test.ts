@@ -45,8 +45,12 @@ class BufferedMockUniverseAgentSessionView implements IUniverseAgentSessionView 
 		return leaseId;
 	}
 
-	async releaseLease(leaseId: string): Promise<void> {
+	releaseLeaseFn: (leaseId: string) => Promise<void> = async leaseId => {
 		this.releaseLeaseCalls.push(leaseId);
+	};
+
+	async releaseLease(leaseId: string): Promise<void> {
+		await this.releaseLeaseFn(leaseId);
 	}
 
 	async post(_leaseId: string, _msg: ConversationWriteMessage): Promise<PostOutcome> {
@@ -140,7 +144,11 @@ class PostOutcomeMockSessionView implements IUniverseAgentSessionView {
 		return this.acquireLeaseFn(sessionId);
 	}
 
-	async releaseLease(_leaseId: string): Promise<void> { }
+	readonly releaseLeaseCalls: string[] = [];
+
+	async releaseLease(leaseId: string): Promise<void> {
+		this.releaseLeaseCalls.push(leaseId);
+	}
 
 	async post(leaseId: string, msg: ConversationWriteMessage): Promise<PostOutcome> {
 		this.lastPost = { leaseId, msg };
@@ -249,6 +257,21 @@ suite('ConversationEngineFrameSource per-lease subscribe (F1)', () => {
 		assert.ok(applied.length >= 2);
 		assert.strictEqual(applied[0]!.kind, 'baseline');
 		assert.strictEqual(applied[1]!.kind, 'patches');
+	});
+
+	test('dispose before acquireLease resolves still releases the host lease', async () => {
+		const sessionView = new PostOutcomeMockSessionView();
+		let resolveAcquire!: (id: string) => void;
+		sessionView.acquireLeaseFn = () => new Promise<string>(resolve => {
+			resolveAcquire = resolve;
+		});
+		const source = store.add(new ConversationEngineFrameSource(sessionView));
+		const lease = source.acquire('sess-early-dispose');
+		lease.dispose();
+		resolveAcquire('lease:sess-early-dispose');
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		assert.deepStrictEqual(sessionView.releaseLeaseCalls, ['lease:sess-early-dispose']);
+		assert.strictEqual(source.getCachedProjection('sess-early-dispose'), undefined);
 	});
 
 	test('dispose releases lease after unsubscribing', async () => {

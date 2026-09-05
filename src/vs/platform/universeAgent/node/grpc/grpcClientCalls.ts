@@ -55,7 +55,12 @@ export function makeServerStreamClient<TRequest, TEvent>(
 			(buffer: Buffer) => JSON.parse(buffer.toString('utf8')) as TEvent,
 			request,
 		);
-		call.on('data', (data: TEvent) => listener(data));
+		call.on('data', (data: TEvent) => {
+			if (gate.closed) {
+				return;
+			}
+			listener(data);
+		});
 		call.on('error', (error: grpc.ServiceError) => {
 			if (gate.closed) {
 				return;

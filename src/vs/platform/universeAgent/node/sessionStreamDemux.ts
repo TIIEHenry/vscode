@@ -57,6 +57,38 @@ function readField(record: object, ...keys: string[]): unknown {
 	return undefined;
 }
 
+const SUBSCRIPTION_PHASE_BY_NAME: Readonly<Record<string, number>> = {
+	UNSPECIFIED: 0,
+	SUBSCRIPTION_PHASE_UNSPECIFIED: 0,
+	SUBSCRIBING: 1,
+	SUBSCRIPTION_PHASE_SUBSCRIBING: 1,
+	LIVE: 2,
+	SUBSCRIPTION_PHASE_LIVE: 2,
+	DEGRADED: 3,
+	SUBSCRIPTION_PHASE_DEGRADED: 3,
+	RETRYING: 4,
+	SUBSCRIPTION_PHASE_RETRYING: 4,
+	REPLAYING_HISTORY_FILL: 5,
+	SUBSCRIPTION_PHASE_REPLAYING_HISTORY_FILL: 5,
+	REPLAYING: 5,
+	BACKFILLING: 6,
+	SUBSCRIPTION_PHASE_BACKFILLING: 6,
+	CLOSED: 7,
+	SUBSCRIPTION_PHASE_CLOSED: 7,
+};
+
+function readSubscriptionPhase(value: unknown): number | undefined {
+	const numeric = toSafeInt(value);
+	if (numeric !== undefined) {
+		return numeric;
+	}
+	if (typeof value !== 'string' || value.length === 0) {
+		return undefined;
+	}
+	const token = value.trim().toUpperCase();
+	return SUBSCRIPTION_PHASE_BY_NAME[token];
+}
+
 function toSafeInt(value: unknown): number | undefined {
 	if (typeof value === 'number' && Number.isSafeInteger(value) && value >= 0) {
 		return value;
@@ -811,11 +843,11 @@ export function demuxSessionStreamPayload(payload: unknown): readonly unknown[] 
 	const health = record.subscription_health ?? record.subscriptionHealth;
 	if (health !== undefined) {
 		if (!isRecord(health)) {
-			return [];
+			return [{ arm: 'subscriptionHealth' }];
 		}
-		const phase = readField(health, 'phase');
-		if (typeof phase !== 'number' || !Number.isFinite(phase)) {
-			return [];
+		const phase = readSubscriptionPhase(readField(health, 'phase'));
+		if (phase === undefined) {
+			return [{ arm: 'subscriptionHealth' }];
 		}
 		return [{ arm: 'subscriptionHealth', body: { phase } }];
 	}

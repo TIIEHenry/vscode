@@ -20,6 +20,7 @@ import {
 	type ConversationRosterEngineCache,
 	type PersistedConversationSession,
 } from './conversationRosterStorage.js';
+import type { SyncChrome } from '../../../../platform/universeAgent/common/sessionView/types.js';
 import { entriesToLegacyTurns, projectSnapshotToEntries } from './conversationSessionView.js';
 import { projectSnapshotToTrajectory, projectTurnsToTrajectory, type ConversationTrajectoryRecord, type TrajectoryProjectionOptions } from './conversationTrajectoryModel.js';
 import {
@@ -451,6 +452,17 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 			return this.engineFrameSource.acquire(sessionId);
 		}
 		return super.acquireSessionView(sessionId);
+	}
+
+	override getSessionSync(sessionId: string): SyncChrome {
+		if (this.isEngineConnected()) {
+			const projection = this.engineFrameSource.getCachedProjection(sessionId);
+			if (projection) {
+				return projection.snapshot.sync;
+			}
+			return { kind: 'idle' };
+		}
+		return super.getSessionSync(sessionId);
 	}
 
 	protected override shouldSkipLocalPersistence(): boolean {

@@ -28,6 +28,7 @@ import type { AttemptId, DiagnosticMetric, DiagnosticsPort, TimerId } from './se
 import type { UniverseAgentChatStream } from '../common/universeAgentTypes.js';
 import { demuxSessionStreamPayload, localFactFromQuestionArm } from './sessionStreamDemux.js';
 import { OverlayDeltaJoin } from './overlayDeltaJoin.js';
+import { fillHistoryGap } from './sessionViewHostHistoryFill.js';
 import {
 	iterL2EnvelopesFromStreamPayload,
 	normalizeAttributionBranchReason,
@@ -322,6 +323,9 @@ export class SessionViewHost extends Disposable {
 			}
 		} else {
 			this.connectionUp = false;
+			for (const sidecar of this.sessionSidecars.values()) {
+				sidecar.overlayDelta.clear();
+			}
 			for (const stream of this.streams.values()) {
 				stream.dispose();
 			}
@@ -968,13 +972,18 @@ export class SessionViewHost extends Disposable {
 		const key = `${sessionId}:${attemptId}`;
 		let streamOpened = false;
 		let closedPosted = false;
+		let disposed = false;
+		const sidecar = this.ensureSessionSidecar(sessionId);
+		sidecar.overlayDelta.clear();
 		const subscription = this.connection.subscribeSessionEventStream(sessionId, event => {
+			if (disposed) {
+				return;
+			}
 			if (!streamOpened) {
 				streamOpened = true;
 				this.scheduleAgentTreeRefresh(sessionId, true);
 			}
 			this.handleHostStreamPayload(sessionId, event.payload);
-			const sidecar = this.ensureSessionSidecar(sessionId);
 			const arms = [
 				...demuxSessionStreamPayload(event.payload),
 				...sidecar.overlayDelta.handlePayload(event.payload),
@@ -995,17 +1004,25 @@ export class SessionViewHost extends Disposable {
 				}
 			}
 		}, cause => {
-			if (closedPosted || (cause.kind !== 'remote' && cause.kind !== 'error')) {
+			if (disposed || closedPosted || (cause.kind !== 'remote' && cause.kind !== 'error')) {
 				return;
 			}
 			closedPosted = true;
+			sidecar.overlayDelta.clear();
 			this.postAndDrain(sessionId as SessionId, {
 				t: 'streamClosed',
 				attemptId,
 				cause,
 			});
 		});
-		this.streams.set(key, { attemptId, sessionId, dispose: () => subscription.dispose() });
+		this.streams.set(key, {
+			attemptId,
+			sessionId,
+			dispose: () => {
+				disposed = true;
+				subscription.dispose();
+			},
+		});
 	}
 
 	private async sendHeartbeatAck(sessionId: string): Promise<void> {
@@ -1068,33 +1085,24 @@ export class SessionViewHost extends Disposable {
 
 	private async fillHistory(sessionId: string, intent: HistoryFillCoreIntent): Promise<void> {
 		const sid = sessionId as SessionId;
-		try {
-			const result = await this.connection.getHistory({
+		const result = await fillHistoryGap(
+			request => this.connection.getHistory(request),
+			{
 				sessionId,
-				limit: Math.max(1, intent.toInclusive - intent.fromExclusive),
-			});
-			const envelopes = result.envelopes.map(row => ({
-				cursorSeq: row.cursorSeq,
-				payload: row.payload,
-			}));
-			for (const row of envelopes) {
-				this.captureEnvelopeAttributionHint(sessionId, row.payload);
-				this.captureRangeReplacedCompactHint(sessionId, row.payload);
-			}
-			this.postAndDrain(sid, {
-				t: 'historyResult',
-				attemptId: intent.attemptId,
-				requestId: intent.requestId,
-				result: { ok: true, envelopes },
-			});
-		} catch {
-			this.postAndDrain(sid, {
-				t: 'historyResult',
-				attemptId: intent.attemptId,
-				requestId: intent.requestId,
-				result: { ok: false, code: 'transport_failed' },
-			});
-		}
+				fromExclusive: intent.fromExclusive,
+				toInclusive: intent.toInclusive,
+			},
+			payload => {
+				this.captureEnvelopeAttributionHint(sessionId, payload);
+				this.captureRangeReplacedCompactHint(sessionId, payload);
+			},
+		);
+		this.postAndDrain(sid, {
+			t: 'historyResult',
+			attemptId: intent.attemptId,
+			requestId: intent.requestId,
+			result,
+		});
 	}
 }
 

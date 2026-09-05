@@ -119,6 +119,15 @@ suite('ConversationTimelineApply (S2 three-frame matrix)', () => {
 		assert.strictEqual(plan.mode, 'none');
 	});
 
+	test('mergeSessionViewFrames keeps patches when mixed with effects', () => {
+		const merged = mergeSessionViewFrames([
+			{ kind: 'patches', changedIds: new Set(['a1']) },
+			{ kind: 'effects', effects: [] },
+		]);
+		assert.strictEqual(merged.kind, 'patches');
+		assert.deepStrictEqual([...(merged as { changedIds: ReadonlySet<string> }).changedIds], ['a1']);
+	});
+
 	test('mergeSessionViewFrames unions patch changedIds within one coalesce window', () => {
 		const merged = mergeSessionViewFrames([
 			{ kind: 'patches', changedIds: new Set(['a1']) },

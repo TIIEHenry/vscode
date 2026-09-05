@@ -36,10 +36,6 @@ export class ConversationEngineFrameSource extends Disposable implements IConver
 		private readonly sessionView: IUniverseAgentSessionView,
 	) {
 		super();
-		this._register(sessionView.onDidApplyFrame(event => {
-			const lease = this.leases.get(event.leaseId);
-			lease?.onHostFrame(event.frame, event.applied);
-		}));
 	}
 
 	acquire(sessionId: string): IConversationSessionViewLease {
@@ -78,6 +74,7 @@ class EngineSessionViewLease extends Disposable implements IConversationSessionV
 	private readonly lifetime = this._register(new DisposableStore());
 	leaseId = '';
 	private readonly ready: Promise<void>;
+	private disposed = false;
 
 	constructor(
 		readonly sessionId: string,
@@ -87,17 +84,19 @@ class EngineSessionViewLease extends Disposable implements IConversationSessionV
 	) {
 		super();
 		this.ready = this.sessionView.acquireLease(sessionId).then(id => {
+			if (this.disposed) {
+				void this.sessionView.releaseLease(id);
+				return;
+			}
 			this.leaseId = id;
 			this.lifetime.add(this.sessionView.onDynamicDidApplyFrame(id)(event =>
 				this.onHostFrame(event.frame, event.applied)));
+			this.lifetime.add({ dispose: () => {
+				void this.sessionView.releaseLease(id);
+				this.onRelease(id);
+			} });
 			this.onAcquired(id);
-		});
-		this.lifetime.add({ dispose: () => {
-			if (this.leaseId) {
-				void this.sessionView.releaseLease(this.leaseId);
-				this.onRelease(this.leaseId);
-			}
-		} });
+		}, () => { });
 	}
 
 	get snapshot(): SessionViewSnapshot {
@@ -197,6 +196,7 @@ class EngineSessionViewLease extends Disposable implements IConversationSessionV
 	}
 
 	override dispose(): void {
+		this.disposed = true;
 		this.lifetime.dispose();
 		super.dispose();
 	}

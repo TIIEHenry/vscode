@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-05
-summary: "Wave 1 治理合入 + ADR-007 U0/U1 + GFS-3 residue + GFS-4 sync；merge tip 40d61319677；GFS-4 已合入本仓 @ a4ab1a3e754（PIN Desktop 0dd3146cd）；Next test-baseline 切片 0；U2 未开"
+summary: "槽 D HistoryFill 宿主合同 + lease 生命周期；merge tip 仍 40d61319677；U2 未开"
 ---
 
 # Development Progress
@@ -40,7 +40,7 @@ summary: "Wave 1 治理合入 + ADR-007 U0/U1 + GFS-3 residue + GFS-4 sync；mer
 
 ### 进行中
 
-无。U1 已合；**U2 未开**（见 Next / 不做）。
+- **槽 D / `loop/D`：** SessionEventStream 订阅审查修复（未合入 merge）。宿主 `fillHistoryGap` 按 Actor `historyResult` 分页+demux；lease dispose-before-resolve 必 `releaseLease`；连接升降换帧源；overlay join 关流/新 attempt 清；coalescer 混合批不丢 patches。测：`sessionViewHostHistoryFill`、FrameSource dispose、demux `LIVE`/`"2"`。剩余：宿主全局 `onDidApplyFrame` 整刀删、断连列顶/Send、`heartbeat_ack` 行为测。U1 已合；**U2 未开**。
 
 ## 工位表（与 `git worktree list` 对照 · 2026-09-05）
 
