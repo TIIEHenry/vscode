@@ -5,6 +5,7 @@
 
 import { Emitter } from '../../../base/common/event.js';
 import { Disposable } from '../../../base/common/lifecycle.js';
+import { finalizeConnectProfileResult } from '../common/connectProfileResult.js';
 import type { ConnectionPhase, ConnectionFailureCode, ConnectionProbeResult, UniverseAgentConnectProfileResult } from '../common/connectionHubTypes.js';
 import type { IUniverseAgentConnection, IUniverseAgentTeamApi, UniverseAgentNavigatorCapabilityKey, UniverseAgentProbeEngineResult } from '../common/universeAgentConnection.js';
 import type { IUniverseAgentHostConnection } from '../common/universeAgentHostConnection.js';
@@ -369,6 +370,7 @@ import { createGrpcUniverseAgentClient, createPinnedGrpcUniverseAgentClient } fr
 import { GrpcStatusCode, IUniverseAgentGrpcTransport, isTransportFailureCode, UniverseAgentFetchToolDetailMethodKey, UniverseAgentGrpcServices, UniverseAgentSaveSkillContentMethodKey, UniverseAgentTransportError } from './grpc/grpcTransport.js';
 import type { ConnectionResolver } from './connectionResolver.js';
 import { runDeviceAuthHandshake } from './deviceAuthHandshake.js';
+import { derivePairingSasCode, DEVICE_GRANT_AUTH_PROTOCOL_VERSION } from './deviceGrant/device-grant-crypto.js';
 import type { IClientIdentityStore } from './clientIdentityTypes.js';
 import type { ConnectionProfile, IConnectionProfileStore } from './connectionProfileStore.js';
 import type { IEngineTrustStore } from './engineTrustStore.js';
@@ -388,6 +390,38 @@ export interface UniverseAgentConnectionServiceOptions extends UniverseAgentHubS
 
 function isPairingPending(sessionToken: string | undefined, pairingNonce: string | undefined): boolean {
 	return !sessionToken && !!pairingNonce;
+}
+
+function pairingNonceBytes(value: string | undefined): Uint8Array {
+	if (!value) {
+		return new Uint8Array(0);
+	}
+	return Uint8Array.from(Buffer.from(value, 'base64'));
+}
+
+function sasFromHandshake(
+	result: UniverseAgentConnectResult,
+	input: {
+		readonly engineIdentityId: string;
+		readonly engineCertFingerprint: string;
+		readonly clientPublicKey: Uint8Array;
+	},
+): string | undefined {
+	const presented = result.sasCode?.trim();
+	if (presented) {
+		return presented;
+	}
+	const nonce = pairingNonceBytes(result.pairingNonce);
+	if (nonce.byteLength === 0 || !input.engineIdentityId || !input.engineCertFingerprint) {
+		return undefined;
+	}
+	return derivePairingSasCode({
+		engineIdentityId: input.engineIdentityId,
+		engineCertFingerprint: input.engineCertFingerprint,
+		clientPublicKey: input.clientPublicKey,
+		pairingNonce: nonce,
+		protocolVersion: DEVICE_GRANT_AUTH_PROTOCOL_VERSION,
+	});
 }
 
 export class UniverseAgentConnectionService extends Disposable implements IUniverseAgentConnection, IUniverseAgentHostConnection, IUniverseAgentHubService {
@@ -605,6 +639,10 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 	}
 
 	async connectProfile(profileId: string, options: { readonly reconnect?: boolean } = {}): Promise<UniverseAgentConnectProfileResult> {
+		return finalizeConnectProfileResult(await this._connectProfileRaw(profileId, options));
+	}
+
+	private async _connectProfileRaw(profileId: string, options: { readonly reconnect?: boolean } = {}): Promise<UniverseAgentConnectProfileResult> {
 		// Pairing path (pairing_required → orchestrator) only needs the resolver + orchestrator.
 		// Client identity is required later for formal/pinned dial after trust exists.
 		if (!this._connectionResolver) {
@@ -671,6 +709,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 				sessionToken: result.sessionToken,
 				workDir: result.workDir,
 				pairingPending: isPairingPending(result.sessionToken, result.pairingNonce),
+				sasCode: result.sasCode,
 			}));
 		}
 
@@ -723,6 +762,11 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 					path: endpoint.path,
 					workDir: handshake.result.workDir,
 					pairingPending: true,
+					sasCode: sasFromHandshake(handshake.result, {
+						engineIdentityId,
+						engineCertFingerprint: endpoint.tls.expectedLeafSha256Hex,
+						clientPublicKey: identityState.identity.clientPublicKey,
+					}),
 				};
 			}
 

@@ -226,13 +226,14 @@ export class PairingOrchestrator {
 				protocolVersion: DEVICE_GRANT_AUTH_PROTOCOL_VERSION,
 			};
 			const sasLocal = derivePairingSasCode(sasInput);
-			if (!verifyPairingSas(sasInput, provisional.sasCode)) {
+			if (provisional.sasCode.length > 0 && !verifyPairingSas(sasInput, provisional.sasCode)) {
 				return {
 					ok: false,
 					code: 'sas_mismatch',
 					reason: 'local SAS does not match Engine sas_code',
 				};
 			}
+			const sasCode = provisional.sasCode.length > 0 ? provisional.sasCode : sasLocal;
 
 			this.activeContext = {
 				profile,
@@ -241,14 +242,14 @@ export class PairingOrchestrator {
 				leafSha256Hex: observed.leafSha256Hex,
 				engineIdentityId: provisional.engineIdentityId,
 				pairingNonce: provisional.pairingNonce,
-				sasCode: provisional.sasCode,
+				sasCode,
 				sasLocal,
 			};
 			this.recoverContext = undefined;
 			this.lastSnapshot = {
 				phase: 'awaiting_sas_confirm',
 				profileId: profile.profileId,
-				sasCode: provisional.sasCode,
+				sasCode,
 				engineIdentityId: provisional.engineIdentityId,
 				leafSha256Hex: observed.leafSha256Hex,
 				sessionTokenInstalled: false,
@@ -479,16 +480,15 @@ export class PairingOrchestrator {
 		}
 
 		const pairingNonce = base64ToBytes(handshake.result.pairingNonce);
-		const sasCode = handshake.result.sasCode ?? '';
-		if (pairingNonce.byteLength === 0 || sasCode.length === 0) {
-			return { ok: false, reason: 'provisional Connect missing pairing_nonce or sas_code' };
+		if (pairingNonce.byteLength === 0) {
+			return { ok: false, reason: 'provisional Connect missing pairing_nonce' };
 		}
 
 		return {
 			ok: true,
 			engineIdentityId: nonce.engineIdentityId,
 			pairingNonce,
-			sasCode,
+			sasCode: handshake.result.sasCode?.trim() ?? '',
 		};
 	}
 }

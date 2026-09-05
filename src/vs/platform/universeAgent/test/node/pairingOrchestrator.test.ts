@@ -966,6 +966,44 @@ suite('pairingOrchestrator H2', () => {
 		assert.strictEqual(orchestrator.isEngineConnectedCandidate(), false);
 	});
 
+	test('provisional Connect with pairing_nonce and empty sas_code uses locally derived SAS', async () => {
+		const identity = mintTestIdentity();
+		const expectedSas = derivePairingSasCode({
+			engineIdentityId,
+			engineCertFingerprint: leafSha256Hex,
+			clientPublicKey: identity.clientPublicKey,
+			pairingNonce: pairingNonceBytes,
+			protocolVersion: DEVICE_GRANT_AUTH_PROTOCOL_VERSION,
+		});
+		const transport = new RecordingMockTransport({
+			getAuthNonce: async () => ({
+				authNonce: new Uint8Array(32).fill(0x11),
+				engineIdentityId,
+				engineCertFingerprint: leafSha256Hex,
+			}),
+			connectWithDeviceAuth: async () => ({
+				pairingNonce: pairingNonceB64,
+				methods: [],
+				events: [],
+			}),
+		});
+		const orchestrator = createPairingOrchestrator({
+			clientIdentityStore: new TestClientIdentityStore(identity),
+			engineTrustStore: { get: () => undefined, list: () => [], put: () => { }, remove: () => { } },
+			connectionProfileStore: { list: () => [], get: () => undefined, put: () => { }, remove: () => { }, createDraft: () => createPairingProfile() },
+			createPinnedTransport: () => transport,
+			observeCandidateLeafFn: async () => ({ ok: true, leafDer, leafSha256Hex }),
+		});
+
+		const started = await orchestrator.startPairing(createPairingProfile(), endpoint);
+		assert.strictEqual(started.ok, true);
+		if (started.ok) {
+			assert.strictEqual(started.snapshot.phase, 'awaiting_sas_confirm');
+			assert.strictEqual(started.snapshot.sasCode, expectedSas);
+			assert.strictEqual(started.snapshot.sessionTokenInstalled, false);
+		}
+	});
+
 	test('S4 unexpected session_token enters recoverTrust without install', async () => {
 		const identity = mintTestIdentity();
 		const transport = new RecordingMockTransport({

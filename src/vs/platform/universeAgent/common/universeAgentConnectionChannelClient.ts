@@ -6,7 +6,8 @@
 import { Emitter } from '../../../base/common/event.js';
 import { Disposable } from '../../../base/common/lifecycle.js';
 import { IChannel, ProxyChannel } from '../../../base/parts/ipc/common/ipc.js';
-import type { ConnectionPhase } from './connectionHubTypes.js';
+import { finalizeConnectProfileResult } from './connectProfileResult.js';
+import type { ConnectionPhase, UniverseAgentConnectProfileResult } from './connectionHubTypes.js';
 import {
 	IUniverseAgentConnection,
 	type UniverseAgentNavigatorCapabilityKey,
@@ -80,6 +81,11 @@ export class UniverseAgentConnectionChannelClient extends Disposable {
 
 	isAgentTreeFetchFailed(): boolean {
 		return this.cache.agentTreeFetchFailed;
+	}
+
+	async connectProfile(profileId: string, options?: { readonly reconnect?: boolean }): Promise<UniverseAgentConnectProfileResult> {
+		const result = await this.remote.connectProfile(profileId, options);
+		return finalizeConnectProfileResult(result);
 	}
 
 	requestAgentTreeRefresh(sessionId: string): void {

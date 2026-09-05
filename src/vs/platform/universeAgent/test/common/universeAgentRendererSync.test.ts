@@ -86,6 +86,77 @@ suite('universeAgentRendererSync', () => {
 		assert.strictEqual(cache.profiles[0]?.profileId, 'p1');
 	});
 
+	test('connection channel client finalizes connectProfile pairing fields after IPC', async () => {
+		const snapshot = {
+			transport: 'idle' as const,
+			pairingPending: false,
+			channelAlive: false,
+			sharedFsRootSent: false,
+			capabilities: createIdleCapabilitySnapshot(),
+		};
+		const channel: IChannel = {
+			call: (command: string) => {
+				switch (command) {
+					case 'getConnectionSnapshot':
+						return Promise.resolve(snapshot);
+					case 'getConnectionPhase':
+						return Promise.resolve({ kind: 'disconnected' });
+					case 'isAgentTreeFetchFailed':
+						return Promise.resolve(false);
+					case 'connectProfile':
+						return Promise.resolve({
+							ok: true,
+							path: 'direct',
+							pairingPending: true,
+							sasCode: 'ABCD-EFGH',
+							engineIdentityId: 'eng-1',
+						});
+					default:
+						return Promise.resolve(undefined);
+				}
+			},
+			listen: () => Event.None,
+		};
+		const client = store.add(new UniverseAgentConnectionChannelClient(channel));
+		const result = await client.connectProfile('profile-1');
+		assert.strictEqual(result.ok, true);
+		if (result.ok) {
+			assert.strictEqual(result.pairingPending, true);
+			assert.strictEqual(result.sasCode, 'ABCD-EFGH');
+			assert.strictEqual(result.engineIdentityId, 'eng-1');
+		}
+	});
+
+	test('connection channel client rejects pairingPending without sas or recoverTrust', async () => {
+		const snapshot = {
+			transport: 'idle' as const,
+			pairingPending: false,
+			channelAlive: false,
+			sharedFsRootSent: false,
+			capabilities: createIdleCapabilitySnapshot(),
+		};
+		const channel: IChannel = {
+			call: (command: string) => {
+				switch (command) {
+					case 'getConnectionSnapshot':
+						return Promise.resolve(snapshot);
+					case 'getConnectionPhase':
+						return Promise.resolve({ kind: 'disconnected' });
+					case 'isAgentTreeFetchFailed':
+						return Promise.resolve(false);
+					case 'connectProfile':
+						return Promise.resolve({ ok: true, path: 'direct', pairingPending: true });
+					default:
+						return Promise.resolve(undefined);
+				}
+			},
+			listen: () => Event.None,
+		};
+		const client = store.add(new UniverseAgentConnectionChannelClient(channel));
+		const result = await client.connectProfile('profile-1');
+		assert.strictEqual(result.ok, false);
+	});
+
 	test('forwarding proxy keeps local sync getters and forwards the rest', async () => {
 		const remote = {
 			getCapabilitySnapshot: async () => ({ providerConfig: undefined }),
