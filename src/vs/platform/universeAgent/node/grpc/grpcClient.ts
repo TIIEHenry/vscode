@@ -324,6 +324,12 @@ import type {
 	UniverseAgentContextVariableReadRequest,
 	UniverseAgentContextVariableReadResult,
 	UniverseAgentContextVariableEntry,
+	UniverseAgentCheckConnectionRequest,
+	UniverseAgentConnectionReport,
+	UniverseAgentRemoteAgentCapabilities,
+	UniverseAgentRemoteAgentLoadMetrics,
+	UniverseAgentRemoteAgentModelInfo,
+	UniverseAgentValidationError,
 	UniverseAgentContextVariableEntrySummary,
 	UniverseAgentContextVariableScope,
 	UniverseAgentGetUploadProgressRequest,
@@ -3392,6 +3398,167 @@ function mapContextVariableReadResponse(wire: ContextVariableReadResponseWire): 
 	};
 }
 
+interface RemoteAgentModelInfoWire {
+	id?: string;
+	name?: string;
+	provider?: string;
+	max_tokens?: number | string;
+	enabled?: boolean;
+}
+
+interface RemoteAgentCapabilitiesWire {
+	models?: RemoteAgentModelInfoWire[];
+	tools?: string[];
+	modes?: string[];
+	server_version?: string;
+	protocol_version?: string;
+	properties?: { [key: string]: string };
+}
+
+interface RemoteAgentLoadMetricsWire {
+	active_sessions?: number | string;
+	queue_depth?: number | string;
+	cpu_percent?: number | string;
+	memory_used_mb?: number | string;
+}
+
+interface ValidationErrorWire {
+	code?: string | number;
+	field?: string;
+	message?: string;
+	suggestion?: string;
+}
+
+interface ConnectionReportWire {
+	reachable?: boolean;
+	authenticated?: boolean;
+	can_create_session?: boolean;
+	latency_ms?: number | string;
+	capabilities?: RemoteAgentCapabilitiesWire;
+	errors?: ValidationErrorWire[];
+	load?: RemoteAgentLoadMetricsWire;
+}
+
+const ConnectionErrorCodeByNumber: Record<number, string> = {
+	0: 'ERROR_CODE_UNSPECIFIED',
+	1: 'CONNECT_TIMEOUT',
+	2: 'CONNECT_REFUSED',
+	3: 'TLS_HANDSHAKE_FAIL',
+	4: 'DNS_RESOLVE_FAIL',
+	10: 'PROTOCOL_VERSION_MISMATCH',
+	11: 'MALFORMED_RESPONSE',
+	20: 'UNAUTHENTICATED',
+	21: 'FORBIDDEN',
+	22: 'API_KEY_EXPIRED',
+	23: 'AUTH_UNRESOLVED',
+	30: 'MODEL_UNAVAILABLE',
+	31: 'TOOL_DISABLED',
+	32: 'MODE_UNSUPPORTED',
+	40: 'QUOTA_EXCEEDED',
+	41: 'MAX_SESSIONS_REACHED',
+	42: 'BUDGET_EXHAUSTED',
+	50: 'PARAM_INVALID',
+	51: 'PARAM_MISSING',
+};
+
+function mapConnectionErrorCode(value: string | number | undefined): string {
+	if (value === undefined || value === '') {
+		return '';
+	}
+	if (typeof value === 'number') {
+		return ConnectionErrorCodeByNumber[value] ?? String(value);
+	}
+	return value;
+}
+
+function mapRemoteAgentProperties(wire: { [key: string]: string } | undefined): { readonly [key: string]: string } {
+	if (!wire) {
+		return {};
+	}
+	const out: { [key: string]: string } = {};
+	for (const [key, value] of Object.entries(wire)) {
+		out[key] = value ?? '';
+	}
+	return out;
+}
+
+function mapRemoteAgentModelInfo(wire: RemoteAgentModelInfoWire): UniverseAgentRemoteAgentModelInfo {
+	return {
+		id: wire.id ?? '',
+		name: wire.name ?? '',
+		provider: wire.provider ?? '',
+		maxTokens: requiredInt64(wire.max_tokens),
+		enabled: wire.enabled === true,
+	};
+}
+
+function emptyRemoteAgentCapabilities(): UniverseAgentRemoteAgentCapabilities {
+	return {
+		models: [],
+		tools: [],
+		modes: [],
+		serverVersion: '',
+		protocolVersion: '',
+		properties: {},
+	};
+}
+
+function mapRemoteAgentCapabilities(wire: RemoteAgentCapabilitiesWire | undefined): UniverseAgentRemoteAgentCapabilities {
+	if (!wire) {
+		return emptyRemoteAgentCapabilities();
+	}
+	return {
+		models: (wire.models ?? []).map(mapRemoteAgentModelInfo),
+		tools: [...(wire.tools ?? [])],
+		modes: [...(wire.modes ?? [])],
+		serverVersion: wire.server_version ?? '',
+		protocolVersion: wire.protocol_version ?? '',
+		properties: mapRemoteAgentProperties(wire.properties),
+	};
+}
+
+function emptyRemoteAgentLoadMetrics(): UniverseAgentRemoteAgentLoadMetrics {
+	return {
+		activeSessions: 0,
+		queueDepth: 0,
+		cpuPercent: 0,
+		memoryUsedMb: 0,
+	};
+}
+
+function mapRemoteAgentLoadMetrics(wire: RemoteAgentLoadMetricsWire | undefined): UniverseAgentRemoteAgentLoadMetrics {
+	if (!wire) {
+		return emptyRemoteAgentLoadMetrics();
+	}
+	return {
+		activeSessions: requiredInt64(wire.active_sessions),
+		queueDepth: requiredInt64(wire.queue_depth),
+		cpuPercent: requiredInt64(wire.cpu_percent),
+		memoryUsedMb: requiredInt64(wire.memory_used_mb),
+	};
+}
+
+function mapValidationError(wire: ValidationErrorWire): UniverseAgentValidationError {
+	return {
+		code: mapConnectionErrorCode(wire.code),
+		field: wire.field ?? '',
+		message: wire.message ?? '',
+		suggestion: wire.suggestion ?? '',
+	};
+}
+
+function mapConnectionReport(wire: ConnectionReportWire): UniverseAgentConnectionReport {
+	return {
+		reachable: wire.reachable === true,
+		authenticated: wire.authenticated === true,
+		canCreateSession: wire.can_create_session === true,
+		latencyMs: requiredInt64(wire.latency_ms),
+		capabilities: mapRemoteAgentCapabilities(wire.capabilities),
+		errors: (wire.errors ?? []).map(mapValidationError),
+		load: mapRemoteAgentLoadMetrics(wire.load),
+	};
+}
+
 interface UploadProgressResponseWire {
 	exists?: boolean;
 	bytes_received?: number | string;
@@ -6056,6 +6223,27 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			agent_id: request.agentId,
 		});
 		return mapContextVariableReadResponse(wire);
+	}
+
+	async checkConnection(request: UniverseAgentCheckConnectionRequest): Promise<UniverseAgentConnectionReport> {
+		const unary = makeUnaryClient<Record<string, unknown>, ConnectionReportWire>(
+			this._channel,
+			UniverseAgentGrpcServices.RemoteAgent.service,
+			UniverseAgentGrpcServices.RemoteAgent.CheckConnection,
+		);
+		const wire = await unary({
+			node_id: request.nodeId,
+			session_params: {
+				preferred_model: request.sessionParams.preferredModel,
+				required_tools: [...request.sessionParams.requiredTools],
+				mode: request.sessionParams.mode,
+				max_tokens: request.sessionParams.maxTokens,
+				max_turns: request.sessionParams.maxTurns,
+				system_prompt_suffix: request.sessionParams.systemPromptSuffix,
+				max_execution_time_ms: request.sessionParams.maxExecutionTimeMs,
+			},
+		});
+		return mapConnectionReport(wire);
 	}
 
 	async getUploadProgress(request: UniverseAgentGetUploadProgressRequest): Promise<UniverseAgentGetUploadProgressResult> {

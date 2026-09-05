@@ -2440,6 +2440,78 @@ export interface UniverseAgentContextVariableReadResult {
 }
 
 /**
+ * RemoteAgentService.CheckConnection — proto `CheckConnectionRequest` /
+ * `ConnectionReport` + `SessionParams` / `Capabilities` / `ModelInfo` /
+ * `LoadMetrics` / `ValidationError` only. Empty `node_id` pass through
+ * as-is. Empty `preferred_model` / `required_tools` (incl. empty
+ * strings) / `mode` / `system_prompt_suffix` pass through as-is.
+ * `max_tokens` / `max_turns` / `max_execution_time_ms` 0 pass through
+ * as-is. `reachable` / `authenticated` / `can_create_session` false
+ * mapped as-is. `latency_ms` 0 mapped as-is. Empty `id` / `name` /
+ * `provider` / `server_version` / `protocol_version` / `field` /
+ * `message` / `suggestion` mapped as-is. `enabled` false mapped as-is.
+ * `max_tokens` / `active_sessions` / `queue_depth` / `cpu_percent` /
+ * `memory_used_mb` 0 mapped as-is. Empty `properties` keys / values
+ * mapped as-is. `code` `ERROR_CODE_UNSPECIFIED` (0) mapped as-is.
+ * ≠ GetNode / ListNodes / ListConfigs / GetConfig / DeviceService.
+ */
+export interface UniverseAgentRemoteAgentModelInfo {
+	readonly id: string;
+	readonly name: string;
+	readonly provider: string;
+	readonly maxTokens: number;
+	readonly enabled: boolean;
+}
+
+export interface UniverseAgentRemoteAgentCapabilities {
+	readonly models: readonly UniverseAgentRemoteAgentModelInfo[];
+	readonly tools: readonly string[];
+	readonly modes: readonly string[];
+	readonly serverVersion: string;
+	readonly protocolVersion: string;
+	readonly properties: Readonly<Record<string, string>>;
+}
+
+export interface UniverseAgentRemoteAgentLoadMetrics {
+	readonly activeSessions: number;
+	readonly queueDepth: number;
+	readonly cpuPercent: number;
+	readonly memoryUsedMb: number;
+}
+
+export interface UniverseAgentRemoteSessionParams {
+	readonly preferredModel: string;
+	readonly requiredTools: readonly string[];
+	readonly mode: string;
+	readonly maxTokens: number;
+	readonly maxTurns: number;
+	readonly systemPromptSuffix: string;
+	readonly maxExecutionTimeMs: number;
+}
+
+export interface UniverseAgentCheckConnectionRequest {
+	readonly nodeId: string;
+	readonly sessionParams: UniverseAgentRemoteSessionParams;
+}
+
+export interface UniverseAgentValidationError {
+	readonly code: string;
+	readonly field: string;
+	readonly message: string;
+	readonly suggestion: string;
+}
+
+export interface UniverseAgentConnectionReport {
+	readonly reachable: boolean;
+	readonly authenticated: boolean;
+	readonly canCreateSession: boolean;
+	readonly latencyMs: number;
+	readonly capabilities: UniverseAgentRemoteAgentCapabilities;
+	readonly errors: readonly UniverseAgentValidationError[];
+	readonly load: UniverseAgentRemoteAgentLoadMetrics;
+}
+
+/**
  * FileTransferService.GetUploadProgress — proto `UploadProgressRequest` /
  * `UploadProgressResponse` only. Empty `transfer_id` / `session_id` pass
  * through as-is. `bytes_received` 0 / empty `partial_path` mapped as-is.
