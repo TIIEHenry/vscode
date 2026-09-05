@@ -276,6 +276,8 @@ import type {
 	UniverseAgentUpsertTriggerResult,
 	UniverseAgentDeleteTriggerRequest,
 	UniverseAgentDeleteTriggerResult,
+	UniverseAgentSetTriggerEnabledRequest,
+	UniverseAgentSetTriggerEnabledResult,
 	UniverseAgentWriteClipboardRequest,
 	UniverseAgentWriteClipboardResult,
 	UniverseAgentReadClipboardRequest,
@@ -1623,6 +1625,20 @@ export interface IUniverseAgentConnection {
 	 * AgentService.FireTriggerWebhook / DeviceService.
 	 */
 	deleteTrigger?(request: UniverseAgentDeleteTriggerRequest): Promise<UniverseAgentDeleteTriggerResult>;
+	/**
+	 * TriggerService.SetTriggerEnabled unary. Optional so Web / tests can
+	 * omit it. Catalog + node transport only this slice; empty `scope` /
+	 * `scopeId` / `triggerId` are sent as-is. `enabled` false sent as-is.
+	 * Empty `triggerId` / `name` / `type` / `promptTemplate` /
+	 * `pauseReason` / `cronExpression` mapped as-is. `enabled` false
+	 * mapped as-is. `intervalMs` / `runAtEpochMs` 0 mapped as-is. Proto
+	 * fields only (`SetTriggerEnabledRequest` /
+	 * `SetTriggerEnabledResponse` + `TriggerDto` / `DeliveryTargetDto`).
+	 * No Conversation roster / UI / Engine Preferences / Composer.
+	 * ≠ ListTriggers / UpsertTrigger / DeleteTrigger / FireTrigger /
+	 * AgentService.FireTriggerWebhook / DeviceService.
+	 */
+	setTriggerEnabled?(request: UniverseAgentSetTriggerEnabledRequest): Promise<UniverseAgentSetTriggerEnabledResult>;
 
 	/**
 	 * ClipboardService.Write unary. Optional so Web / tests can omit it.

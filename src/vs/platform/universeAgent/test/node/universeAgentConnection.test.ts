@@ -253,6 +253,8 @@ import type {
 	UniverseAgentUpsertTriggerResult,
 	UniverseAgentDeleteTriggerRequest,
 	UniverseAgentDeleteTriggerResult,
+	UniverseAgentSetTriggerEnabledRequest,
+	UniverseAgentSetTriggerEnabledResult,
 	UniverseAgentGetHistoryRequest,
 	UniverseAgentGetHistoryResult,
 	UniverseAgentListSessionsRequest,
@@ -1895,6 +1897,27 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 		return this.deleteTriggerResult;
 	}
 
+	readonly setTriggerEnabledCalls: UniverseAgentSetTriggerEnabledRequest[] = [];
+	setTriggerEnabledResult: UniverseAgentSetTriggerEnabledResult = {
+		trigger: {
+			triggerId: '',
+			name: '',
+			type: '',
+			promptTemplate: '',
+			enabled: false,
+			pauseReason: '',
+			target: { kind: 'unspecified' },
+			intervalMs: 0,
+			cronExpression: '',
+			runAtEpochMs: 0,
+		},
+	};
+
+	async setTriggerEnabled(request: UniverseAgentSetTriggerEnabledRequest): Promise<UniverseAgentSetTriggerEnabledResult> {
+		this.setTriggerEnabledCalls.push(request);
+		return this.setTriggerEnabledResult;
+	}
+
 	async listModels() {
 		return { models: [] };
 	}
@@ -2450,6 +2473,11 @@ suite('UniverseAgentConnectionService', () => {
 
 	test('UniverseAgentGrpcServices lists Trigger.DeleteTrigger', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Trigger.DeleteTrigger, 'DeleteTrigger');
+		assert.strictEqual(UniverseAgentGrpcServices.Trigger.service, 'universeagent.trigger.v1.TriggerService');
+	});
+
+	test('UniverseAgentGrpcServices lists Trigger.SetTriggerEnabled', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Trigger.SetTriggerEnabled, 'SetTriggerEnabled');
 		assert.strictEqual(UniverseAgentGrpcServices.Trigger.service, 'universeagent.trigger.v1.TriggerService');
 	});
 
@@ -6439,6 +6467,75 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(transport.deleteTriggerCalls[1]?.scopeId, '');
 		assert.strictEqual(transport.deleteTriggerCalls[1]?.triggerId, '');
 		assert.deepStrictEqual(empty, {});
+		service.dispose();
+	});
+
+	test('setTriggerEnabled forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.setTriggerEnabledResult = {
+			trigger: {
+				triggerId: 'trg-1',
+				name: 'nightly',
+				type: 'schedule',
+				promptTemplate: 'run',
+				enabled: true,
+				pauseReason: 'paused',
+				target: { kind: 'boundSession', sessionId: 'sess-1' },
+				intervalMs: 60_000,
+				cronExpression: '0 * * * *',
+				runAtEpochMs: 1,
+			},
+		};
+		const request = {
+			scope: 'session',
+			scopeId: 'sess-1',
+			triggerId: 'trg-1',
+			enabled: true,
+		};
+		const result = await service.setTriggerEnabled(request);
+		assert.deepStrictEqual(transport.setTriggerEnabledCalls, [request]);
+		assert.deepStrictEqual(result, transport.setTriggerEnabledResult);
+
+		transport.setTriggerEnabledResult = {
+			trigger: {
+				triggerId: '',
+				name: '',
+				type: '',
+				promptTemplate: '',
+				enabled: false,
+				pauseReason: '',
+				target: { kind: 'newSession', engineProfileId: '' },
+				intervalMs: 0,
+				cronExpression: '',
+				runAtEpochMs: 0,
+			},
+		};
+		const emptyRequest = {
+			scope: '',
+			scopeId: '',
+			triggerId: '',
+			enabled: false,
+		};
+		const empty = await service.setTriggerEnabled(emptyRequest);
+		assert.strictEqual(transport.setTriggerEnabledCalls[1]?.scope, '');
+		assert.strictEqual(transport.setTriggerEnabledCalls[1]?.scopeId, '');
+		assert.strictEqual(transport.setTriggerEnabledCalls[1]?.triggerId, '');
+		assert.strictEqual(transport.setTriggerEnabledCalls[1]?.enabled, false);
+		assert.strictEqual(empty.trigger.triggerId, '');
+		assert.strictEqual(empty.trigger.name, '');
+		assert.strictEqual(empty.trigger.type, '');
+		assert.strictEqual(empty.trigger.promptTemplate, '');
+		assert.strictEqual(empty.trigger.pauseReason, '');
+		assert.strictEqual(empty.trigger.cronExpression, '');
+		assert.strictEqual(empty.trigger.enabled, false);
+		assert.strictEqual(empty.trigger.intervalMs, 0);
+		assert.strictEqual(empty.trigger.runAtEpochMs, 0);
+		assert.deepStrictEqual(empty.trigger.target, { kind: 'newSession', engineProfileId: '' });
 		service.dispose();
 	});
 
