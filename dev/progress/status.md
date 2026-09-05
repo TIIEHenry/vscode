@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-05
-summary: "Wave 1 治理合入：GFS-1/2/3、packaging P0、cross-repo D1、ADR-007 U0、docs-burden S1–S5（状态列生成、术语闭集、本账、归档标准）、agent-ide.yml CI；U1 上游只读 fetch 进行中"
+summary: "Wave 1 治理合入：GFS-1/2/3、lens-assembly honesty、packaging P0、cross-repo D1、ADR-007 U0、docs-burden S1–S5、agent-ide.yml CI；U1 上游只读 fetch 进行中"
 ---
 
 # Development Progress
@@ -13,13 +13,14 @@ summary: "Wave 1 治理合入：GFS-1/2/3、packaging P0、cross-repo D1、ADR-0
 
 ## Current Session
 
-### 已合入（`loop/merge` tip `4cd542bc`）
+### 已合入（`loop/merge` tip `c104d0af6e3`）
 
 | 切片 | 提交 / 落点 |
 |:-----|:------------|
 | **GFS-1** | `32f71812` / `32198d0b` — [giant-file-split](../plans/giant-file-split.md)：`grpcClient` mapper 特征测 + facade / mappers / calls 拆分 |
 | **GFS-2** | `78bc8bbc` — timeline types / renderer / 门面 |
 | **GFS-3** | `c5d791c7` — `conversationLens` 拆 projection / sessionBar / dock / composer |
+| **lens-assembly honesty** | `72ae9907` — [conversation-lens-assembly](../../docs/reference/code-oss-b2/conversation-lens-assembly.md) GFS-3 拆后同步 |
 | **packaging P0** | `b2b91259` / `9b451a1f` — [packaging-and-release](../plans/packaging-and-release.md) §4.0–4.2 只读证实登记；证据见 [packaging-p0-evidence](packaging-p0-evidence.md) |
 | **cross-repo D1** | `fb31d650` — [cross-repo-protocol](../plans/cross-repo-protocol.md) 登记处与 [deferred-gaps](deferred-gaps.md) D1 对齐 |
 | **ADR-007 U0** | `1f5ce19a` — [upstream-min-patch.md](upstream-min-patch.md)（371 文件 A/B 清单、`comm` 完备性闸门） |
@@ -41,7 +42,7 @@ summary: "Wave 1 治理合入：GFS-1/2/3、packaging P0、cross-repo D1、ADR-0
 
 | 槽 | 路径 | 分支 | 状态 |
 |----|------|------|------|
-| merge | `vscode-WorkTrees/merge` | `loop/merge` | 集成分支 tip `4cd542bc` |
+| merge | `vscode-WorkTrees/merge` | `loop/merge` | 集成分支 tip `c104d0af6e3` |
 | A | `vscode-WorkTrees/A` | `loop/A` | GFS-3 已合；tip `c5d791c7` |
 | B | `vscode-WorkTrees/B` | `loop/B` | test-baseline 切片 4 文档记录；tip `0e4aab79` |
 | C | `vscode-WorkTrees/C` | `loop/C` | docs-burden S3–S5 已落；tip `4cd542bc` |
