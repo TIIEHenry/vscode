@@ -349,6 +349,9 @@ import type {
 	UniverseAgentClipboardEntryType,
 	UniverseAgentWriteClipboardRequest,
 	UniverseAgentWriteClipboardResult,
+	UniverseAgentReadClipboardRequest,
+	UniverseAgentReadClipboardResult,
+	UniverseAgentClipboardEntry,
 	UniverseAgentListModelsResult,
 	UniverseAgentGetConfigRequest,
 	UniverseAgentGetConfigResult,
@@ -962,6 +965,22 @@ function clipboardEntryTypeWire(type: UniverseAgentClipboardEntryType): number {
 		default:
 			return 0;
 	}
+}
+
+const ClipboardEntryTypeByNumber: Record<number, UniverseAgentClipboardEntryType> = {
+	0: 'CLIPBOARD_TEXT',
+	1: 'CLIPBOARD_FILE_PATH',
+	2: 'CLIPBOARD_URL',
+};
+
+function mapClipboardEntryType(value: string | number | undefined): UniverseAgentClipboardEntryType {
+	if (typeof value === 'number') {
+		return ClipboardEntryTypeByNumber[value] ?? 'CLIPBOARD_TEXT';
+	}
+	if (value === 'CLIPBOARD_FILE_PATH' || value === 'CLIPBOARD_URL' || value === 'CLIPBOARD_TEXT') {
+		return value;
+	}
+	return 'CLIPBOARD_TEXT';
 }
 
 function questionAnswersWire(
@@ -3361,6 +3380,36 @@ function mapClipboardWriteResponse(wire: ClipboardWriteResponseWire): UniverseAg
 	};
 }
 
+interface ClipboardEntryWire {
+	clip_id?: string;
+	label?: string;
+	type?: string | number;
+	content?: string;
+	created_by?: string;
+	created_at?: number | string;
+}
+
+interface ClipboardReadResponseWire {
+	entry?: ClipboardEntryWire;
+}
+
+function mapClipboardEntry(wire: ClipboardEntryWire | undefined): UniverseAgentClipboardEntry {
+	return {
+		clipId: wire?.clip_id ?? '',
+		label: wire?.label ?? '',
+		type: mapClipboardEntryType(wire?.type),
+		content: wire?.content ?? '',
+		createdBy: wire?.created_by ?? '',
+		createdAt: requiredInt64(wire?.created_at),
+	};
+}
+
+function mapClipboardReadResponse(wire: ClipboardReadResponseWire): UniverseAgentReadClipboardResult {
+	return {
+		entry: mapClipboardEntry(wire.entry),
+	};
+}
+
 interface DownloadChunkWire {
 	offset?: number | string;
 	data?: string;
@@ -3829,6 +3878,19 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			url: request.url,
 		});
 		return mapClipboardWriteResponse(wire);
+	}
+
+	async readClipboard(request: UniverseAgentReadClipboardRequest): Promise<UniverseAgentReadClipboardResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, ClipboardReadResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.Clipboard.service,
+			UniverseAgentGrpcServices.Clipboard.Read,
+		);
+		const wire = await unary({
+			session_id: request.sessionId,
+			clip_id: request.clipId,
+		});
+		return mapClipboardReadResponse(wire);
 	}
 
 	async connectWithDeviceAuth(request: UniverseAgentDeviceAuthConnectRequest): Promise<UniverseAgentConnectResult> {
