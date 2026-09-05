@@ -128,7 +128,9 @@
 	margin-top: 8px;
 }
 
-.monaco-workbench .engine-clipboard-read-status {
+.monaco-workbench .engine-clipboard-write-status,
+.monaco-workbench .engine-clipboard-read-status,
+.monaco-workbench .engine-clipboard-clear-status {
 	margin-top: 8px;
 	font-size: 12px;
 	overflow-wrap: anywhere;

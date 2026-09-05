@@ -6,14 +6,22 @@
 import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import {
+	canSendEngineClipboardClear,
 	canSendEngineClipboardListRequest,
 	canSendEngineClipboardRead,
+	canSendEngineClipboardWrite,
+	ENGINE_CLIPBOARD_CLEAR_LABEL,
 	ENGINE_CLIPBOARD_LIST_EMPTY_COPY,
 	ENGINE_CLIPBOARD_READ_LABEL,
+	ENGINE_CLIPBOARD_WRITE_LABEL,
+	engineClipboardClearRequest,
 	engineClipboardListRequest,
 	engineClipboardReadRequest,
+	engineClipboardWriteRequest,
+	formatEngineClipboardClearLabel,
 	formatEngineClipboardListLabel,
 	formatEngineClipboardReadLabel,
+	formatEngineClipboardWriteLabel,
 } from '../../browser/engineClipboardList.js';
 
 suite('Engine clipboard list bind', () => {
@@ -72,5 +80,35 @@ suite('Engine clipboard list bind', () => {
 			createdBy: '',
 			createdAt: 0,
 		}), ' —  — CLIPBOARD_TEXT —  —  — 0');
+	});
+
+	test('Write gate is connected + hook; empty ids stay empty', () => {
+		assert.strictEqual(canSendEngineClipboardWrite(false, true), false);
+		assert.strictEqual(canSendEngineClipboardWrite(true, false), false);
+		assert.strictEqual(canSendEngineClipboardWrite(true, true), true);
+		assert.deepStrictEqual(engineClipboardWriteRequest(), {
+			sessionId: '',
+			agentId: '',
+			label: '',
+			type: 'CLIPBOARD_TEXT',
+			content: '',
+			filePath: '',
+			url: '',
+		});
+		assert.strictEqual(ENGINE_CLIPBOARD_WRITE_LABEL, 'Write');
+		assert.strictEqual(formatEngineClipboardWriteLabel(''), '');
+		assert.strictEqual(formatEngineClipboardWriteLabel('  clip  '), '  clip  ');
+	});
+
+	test('Clear gate is connected + hook; empty sessionId stays empty', () => {
+		assert.strictEqual(canSendEngineClipboardClear(false, true), false);
+		assert.strictEqual(canSendEngineClipboardClear(true, false), false);
+		assert.strictEqual(canSendEngineClipboardClear(true, true), true);
+		assert.deepStrictEqual(engineClipboardClearRequest(), {
+			sessionId: '',
+		});
+		assert.strictEqual(ENGINE_CLIPBOARD_CLEAR_LABEL, 'Clear');
+		assert.strictEqual(formatEngineClipboardClearLabel(0), '0');
+		assert.strictEqual(formatEngineClipboardClearLabel(3), '3');
 	});
 });

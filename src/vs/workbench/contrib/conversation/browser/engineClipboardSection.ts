@@ -13,32 +13,46 @@ import type { UniverseAgentClipboardEntrySummary } from '../../../../platform/un
 import { EngineCatalogStatusWidget } from './engineCatalogStatus.js';
 import { getEngineSectionApiUnavailableCopy } from './engineSectionChrome.js';
 import {
+	canSendEngineClipboardClear,
 	canSendEngineClipboardListRequest,
 	canSendEngineClipboardRead,
+	canSendEngineClipboardWrite,
+	ENGINE_CLIPBOARD_CLEAR_LABEL,
 	ENGINE_CLIPBOARD_LIST_EMPTY_COPY,
 	ENGINE_CLIPBOARD_LIST_FEATURE,
 	ENGINE_CLIPBOARD_READ_LABEL,
+	ENGINE_CLIPBOARD_WRITE_LABEL,
+	engineClipboardClearRequest,
 	engineClipboardListRequest,
 	engineClipboardReadRequest,
+	engineClipboardWriteRequest,
+	formatEngineClipboardClearLabel,
 	formatEngineClipboardListLabel,
 	formatEngineClipboardReadLabel,
+	formatEngineClipboardWriteLabel,
 } from './engineClipboardList.js';
 import { OPEN_CONNECTION_PREFERENCES_COMMAND_ID } from '../common/uaPreferencesPanes.js';
 
 const $ = DOM.$;
 
 /**
- * Engine Preferences Clipboard — honest List + Read. Connected + hook
- * only. Empty sessionId / clipId are sent as-is. Empty label / type /
- * clipId stay empty. createdAt 0 stays as-is.
+ * Engine Preferences Clipboard — honest List + Read + Write + Clear.
+ * Connected + hook only. Empty sessionId / agentId / clipId / label /
+ * content / filePath / url are sent as-is. Write always sends TEXT +
+ * empty fields. Clear always sends empty sessionId. Empty clipId and
+ * removedCount 0 stay as-is.
  */
 export class EngineClipboardSection extends Disposable {
 
 	private readonly container: HTMLElement;
 	private readonly status: EngineCatalogStatusWidget;
 	private readonly listHost: HTMLElement;
+	private readonly writeButton: Button;
 	private readonly readButton: Button;
+	private readonly clearButton: Button;
+	private readonly writeStatus: HTMLElement;
 	private readonly readStatus: HTMLElement;
+	private readonly clearStatus: HTMLElement;
 
 	private sectionActive = false;
 	private renderGeneration = 0;
@@ -62,13 +76,27 @@ export class EngineClipboardSection extends Disposable {
 		this.listHost.style.display = 'none';
 
 		const actionsRow = DOM.append(this.container, $('.engine-clipboard-actions'));
+		this.writeButton = this._register(new Button(actionsRow, { ...defaultButtonStyles, secondary: true }));
+		this.writeButton.label = ENGINE_CLIPBOARD_WRITE_LABEL;
+		this._register(this.writeButton.onDidClick(() => void this.handleWrite()));
+
 		this.readButton = this._register(new Button(actionsRow, { ...defaultButtonStyles, secondary: true }));
 		this.readButton.label = ENGINE_CLIPBOARD_READ_LABEL;
 		this._register(this.readButton.onDidClick(() => void this.handleRead()));
 
+		this.clearButton = this._register(new Button(actionsRow, { ...defaultButtonStyles, secondary: true }));
+		this.clearButton.label = ENGINE_CLIPBOARD_CLEAR_LABEL;
+		this._register(this.clearButton.onDidClick(() => void this.handleClear()));
+
+		this.writeStatus = DOM.append(this.container, $('.engine-clipboard-write-status'));
+		this.writeStatus.style.display = 'none';
 		this.readStatus = DOM.append(this.container, $('.engine-clipboard-read-status'));
 		this.readStatus.style.display = 'none';
+		this.clearStatus = DOM.append(this.container, $('.engine-clipboard-clear-status'));
+		this.clearStatus.style.display = 'none';
+		this.updateWriteAction();
 		this.updateReadAction();
+		this.updateClearAction();
 
 		this._register(this.connection.onDidChangeConnection(() => {
 			if (this.sectionActive) {
@@ -108,10 +136,16 @@ export class EngineClipboardSection extends Disposable {
 		this.entries = [];
 		this.selectedEntry = undefined;
 		this.listHost.style.display = 'none';
+		this.writeStatus.style.display = 'none';
+		this.writeStatus.textContent = '';
 		this.readStatus.style.display = 'none';
 		this.readStatus.textContent = '';
+		this.clearStatus.style.display = 'none';
+		this.clearStatus.textContent = '';
 		DOM.clearNode(this.listHost);
+		this.updateWriteAction();
 		this.updateReadAction();
+		this.updateClearAction();
 
 		if (!this.connection.isEngineConnected()) {
 			this.status.render({
@@ -190,11 +224,42 @@ export class EngineClipboardSection extends Disposable {
 		});
 	}
 
+	private updateWriteAction(): void {
+		this.writeButton.enabled = canSendEngineClipboardWrite(
+			this.connection.isEngineConnected(),
+			typeof this.connection.writeClipboard === 'function',
+		);
+	}
+
 	private updateReadAction(): void {
 		this.readButton.enabled = canSendEngineClipboardRead(
 			this.connection.isEngineConnected(),
 			typeof this.connection.readClipboard === 'function',
 		);
+	}
+
+	private updateClearAction(): void {
+		this.clearButton.enabled = canSendEngineClipboardClear(
+			this.connection.isEngineConnected(),
+			typeof this.connection.clearClipboard === 'function',
+		);
+	}
+
+	private async handleWrite(): Promise<void> {
+		const hook = this.connection.writeClipboard;
+		if (!canSendEngineClipboardWrite(this.connection.isEngineConnected(), typeof hook === 'function') || !hook) {
+			return;
+		}
+		const request = engineClipboardWriteRequest();
+		try {
+			const result = await hook.call(this.connection, request);
+			this.writeStatus.textContent = formatEngineClipboardWriteLabel(result.clipId);
+			this.writeStatus.style.display = '';
+		} catch (error) {
+			const reason = error instanceof Error && error.message ? error.message : String(error);
+			this.writeStatus.textContent = reason;
+			this.writeStatus.style.display = '';
+		}
 	}
 
 	private async handleRead(): Promise<void> {
@@ -211,6 +276,23 @@ export class EngineClipboardSection extends Disposable {
 			const reason = error instanceof Error && error.message ? error.message : String(error);
 			this.readStatus.textContent = reason;
 			this.readStatus.style.display = '';
+		}
+	}
+
+	private async handleClear(): Promise<void> {
+		const hook = this.connection.clearClipboard;
+		if (!canSendEngineClipboardClear(this.connection.isEngineConnected(), typeof hook === 'function') || !hook) {
+			return;
+		}
+		const request = engineClipboardClearRequest();
+		try {
+			const result = await hook.call(this.connection, request);
+			this.clearStatus.textContent = formatEngineClipboardClearLabel(result.removedCount);
+			this.clearStatus.style.display = '';
+		} catch (error) {
+			const reason = error instanceof Error && error.message ? error.message : String(error);
+			this.clearStatus.textContent = reason;
+			this.clearStatus.style.display = '';
 		}
 	}
 }
