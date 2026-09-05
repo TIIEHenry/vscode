@@ -19,7 +19,7 @@ import { IAgentInspectService } from '../../common/agentInspect.js';
 import { AgentInspectService } from '../../browser/agentInspectService.js';
 import { NAVIGATOR_TEAM_VIEW_ID } from '../../browser/navigatorStubView.js';
 import { NAVIGATOR_TEAM_CONTAINER_ID, NAVIGATOR_TEAM_VIEW_CONTAINER } from '../../browser/navigator.contribution.js';
-import type { UniverseAgentKillMemberRequest, UniverseAgentMessageMemberRequest, UniverseAgentStartMemberRequest, UniverseAgentTaskCancelRequest, UniverseAgentTaskUpdateRequest } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
+import type { UniverseAgentAbortTeamRequest, UniverseAgentKillMemberRequest, UniverseAgentMessageMemberRequest, UniverseAgentStartMemberRequest, UniverseAgentTaskCancelRequest, UniverseAgentTaskUpdateRequest } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { INavigatorTeamMember, NavigatorTeamView } from '../../browser/navigatorTeamList.js';
 import type { INavigatorTeamMemberEntry, INavigatorTeamTaskEntry } from '../../common/navigatorTeamData.js';
 import { createNavigatorConnectionTestStub } from '../common/navigatorConnectionTestStub.js';
@@ -451,4 +451,80 @@ suite('NavigatorTeamView', () => {
 		}]);
 	});
 
+	test('Abort does not send when disconnected or hook missing', async () => {
+		const abortCalls: UniverseAgentAbortTeamRequest[] = [];
+		const disconnected = await mountView(createNavigatorConnectionTestStub({
+			abort: async (request) => {
+				abortCalls.push(request);
+				return { ok: true, stoppedMembers: [] };
+			},
+		}));
+		assert.strictEqual(await disconnected.abortTeam(''), false);
+		assert.deepStrictEqual(abortCalls, []);
+
+		const roster = store.add(new ConversationStubService());
+		roster.setEngineConnected(true);
+		const noHook = await mountView(createNavigatorConnectionTestStub({
+			isEngineConnected: () => true,
+		}), roster);
+		assert.strictEqual(await noHook.abortTeam(''), false);
+	});
+
+	test('Abort sends empty ids as-is when nothing selected', async () => {
+		const abortCalls: UniverseAgentAbortTeamRequest[] = [];
+		const roster = store.add(new ConversationStubService());
+		roster.setEngineConnected(true);
+		const view = await mountView(createNavigatorConnectionTestStub({
+			isEngineConnected: () => true,
+			abort: async (request) => {
+				abortCalls.push(request);
+				return { ok: true, stoppedMembers: [] };
+			},
+		}), roster);
+
+		assert.strictEqual(await view.abortTeam(''), true);
+		assert.deepStrictEqual(abortCalls, [{
+			sessionId: roster.getActiveSessionId(),
+			agentId: '',
+			teamId: 0,
+			reason: '',
+		}]);
+	});
+
+	test('Abort sends selected manager id without inventing defaults', async () => {
+		const abortCalls: UniverseAgentAbortTeamRequest[] = [];
+		const roster = store.add(new ConversationStubService());
+		roster.setEngineConnected(true);
+		const view = await mountView(createNavigatorConnectionTestStub({
+			isEngineConnected: () => true,
+			abort: async (request) => {
+				abortCalls.push(request);
+				return { ok: true, stoppedMembers: [] };
+			},
+		}), roster);
+
+		const member: INavigatorTeamMemberEntry = {
+			id: 'member:m1',
+			label: 'Writer · IDLE',
+			memberName: 'writer',
+			memberAgentId: 'm1',
+			status: 'IDLE',
+			preset: '',
+			dynamic: '',
+			turnCount: 0,
+			managerAgentId: 'mgr-1',
+			managerName: 'Mgr',
+		};
+		(view as unknown as { setMemberEntries: (entries: INavigatorTeamMemberEntry[]) => void }).setMemberEntries([member]);
+		const membersList = (view as unknown as { membersList: WorkbenchList<INavigatorTeamMemberEntry> }).membersList;
+		membersList.setSelection([0]);
+
+		assert.strictEqual(await view.abortTeam(''), true);
+		assert.deepStrictEqual(abortCalls, [{
+			sessionId: roster.getActiveSessionId(),
+			agentId: 'mgr-1',
+			teamId: 0,
+			reason: '',
+		}]);
+	});
 });

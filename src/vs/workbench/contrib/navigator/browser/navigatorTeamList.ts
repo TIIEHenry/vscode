@@ -32,6 +32,7 @@ import { IAgentInspectService } from '../common/agentInspect.js';
 import { getNavigatorCapability } from '../common/navigatorEngineBridge.js';
 import { matchesNavigatorTeamInlineFilter } from '../common/navigatorTeamInlineFilter.js';
 import {
+	canSendNavigatorTeamAbort,
 	canSendNavigatorTeamMemberMutation,
 	canSendNavigatorTeamMessageMember,
 	canSendNavigatorTeamTaskMutation,
@@ -39,6 +40,7 @@ import {
 	getTeamTreeEmptyCopy,
 	INavigatorTeamMemberEntry,
 	INavigatorTeamTaskEntry,
+	navigatorTeamAbortIds,
 	navigatorTeamMemberMutationIds,
 	navigatorTeamMessageMemberIds,
 	navigatorTeamTaskMutationIds,
@@ -69,6 +71,7 @@ export const NAVIGATOR_TEAM_KILL_MEMBER_COMMAND_ID = 'workbench.action.navigator
 export const NAVIGATOR_TEAM_UPDATE_TASK_COMMAND_ID = 'workbench.action.navigatorTeam.updateTask';
 export const NAVIGATOR_TEAM_CANCEL_TASK_COMMAND_ID = 'workbench.action.navigatorTeam.cancelTask';
 export const NAVIGATOR_TEAM_MESSAGE_MEMBER_COMMAND_ID = 'workbench.action.navigatorTeam.messageMember';
+export const NAVIGATOR_TEAM_ABORT_COMMAND_ID = 'workbench.action.navigatorTeam.abort';
 
 export const NAVIGATOR_TEAM_SUBVIEW_MEMBERS_KEY = new RawContextKey<boolean>('navigatorTeamSubview.members', true);
 export const NAVIGATOR_TEAM_SUBVIEW_TASKS_KEY = new RawContextKey<boolean>('navigatorTeamSubview.tasks', false);
@@ -335,6 +338,31 @@ export class NavigatorTeamView extends ViewPane {
 		const request = {
 			...navigatorTeamMessageMemberIds(this.rosterService.getActiveSessionId(), this.getSelectedMember()),
 			content,
+		};
+		try {
+			const result = await hook.call(this.uaConnection, request);
+			if (!result.ok) {
+				return false;
+			}
+		} catch {
+			return false;
+		}
+		this.scheduleRefresh();
+		return true;
+	}
+
+	async abortTeam(reason: string): Promise<boolean> {
+		const hook = this.uaConnection.abort;
+		if (!canSendNavigatorTeamAbort(this.rosterService.isEngineConnected(), typeof hook === 'function') || !hook) {
+			return false;
+		}
+		const request = {
+			...navigatorTeamAbortIds(
+				this.rosterService.getActiveSessionId(),
+				this.getSelectedMember() ?? this.getSelectedTask(),
+				this.leaseHolder.getLease()?.snapshot.liveTeamId,
+			),
+			reason,
 		};
 		try {
 			const result = await hook.call(this.uaConnection, request);
@@ -860,6 +888,37 @@ registerAction2(class NavigatorTeamMessageMemberAction extends ViewAction<Naviga
 				return;
 			}
 			await view.messageSelectedMember(next);
+		})();
+	}
+});
+
+registerAction2(class NavigatorTeamAbortAction extends ViewAction<NavigatorTeamView> {
+	constructor() {
+		super({
+			id: NAVIGATOR_TEAM_ABORT_COMMAND_ID,
+			viewId: NAVIGATOR_TEAM_VIEW_ID,
+			title: localize2('navigatorTeamView.abort', "Abort"),
+			icon: Codicon.debugStop,
+			menu: {
+				id: MenuId.ViewTitle,
+				group: 'navigation',
+				order: 4,
+				when: ContextKeyExpr.equals('view', NAVIGATOR_TEAM_VIEW_ID),
+			},
+		});
+	}
+
+	override runInView(accessor: ServicesAccessor, view: NavigatorTeamView): void {
+		void (async () => {
+			const confirmed = await accessor.get(IDialogService).confirm({
+				type: 'warning',
+				message: localize('navigatorTeam.abortConfirm', "Abort this team?"),
+				primaryButton: localize('navigatorTeam.abortConfirmButton', "Abort team"),
+			});
+			if (!confirmed.confirmed) {
+				return;
+			}
+			await view.abortTeam('');
 		})();
 	}
 });
