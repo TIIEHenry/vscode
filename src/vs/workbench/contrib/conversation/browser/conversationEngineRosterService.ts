@@ -65,6 +65,12 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	private pendingEngineBindSessionId: string | undefined;
 	private suppressBindLiveTreeObservationLease = false;
 	private activePendingBindLeaseSessionId: string | undefined;
+	/** Bumps when live-tree lease is replaced so stale bind monitors are ignored. */
+	private listedBindMonitorGeneration = 0;
+	/** True when connected catalog refresh finished but no engine session could be bound. */
+	private engineSessionBindFailed = false;
+	/** Session ids whose host lease acquire resolved successfully. */
+	private engineBoundSessionIds = new Set<string>();
 	private wasEverConnected = false;
 	private testEngineConnected: boolean | undefined;
 	private readonly sessionGoals = new Map<string, string>();
@@ -111,7 +117,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		return this.isEngineConnected()
 			&& this.listCompleted
 			&& !this.pendingEngineBindSessionId
-			&& this.engineSessions.length === 0;
+			&& this.engineSessionBindFailed;
 	}
 
 	private getEngineBindFailedSession(): ConversationStubSession {
@@ -124,9 +130,15 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	}
 
 	private markEngineSessionBindFailed(): void {
-		if (!this.isEngineSessionBindFailed()) {
+		if (!this.isEngineConnected() || !this.listCompleted || this.pendingEngineBindSessionId) {
 			return;
 		}
+		if (this.engineSessionBindFailed) {
+			return;
+		}
+		this.engineSessionBindFailed = true;
+		this.engineSessions = [];
+		this.engineBoundSessionIds.clear();
 		const previous = this.activeEngineSessionId;
 		this.activeEngineSessionId = ENGINE_BIND_FAILED_SESSION_ID;
 		if (previous !== ENGINE_BIND_FAILED_SESSION_ID) {
@@ -1073,6 +1085,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 			return;
 		}
 		this.liveTreeObservationStore.clear();
+		this.listedBindMonitorGeneration++;
 		if (pendingBind) {
 			this.activePendingBindLeaseSessionId = sessionId;
 		} else {
@@ -1084,7 +1097,33 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		this.emitLiveAgentTreeFromLease(lease);
 		if (pendingBind) {
 			void this.monitorPendingEngineSessionBind(sessionId, lease);
+		} else {
+			void this.monitorListedEngineSessionBind(sessionId, lease, this.listedBindMonitorGeneration);
 		}
+	}
+
+	private async monitorListedEngineSessionBind(sessionId: string, lease: IConversationSessionViewLease, generation: number): Promise<void> {
+		const bindReady = this.engineFrameSource.whenLeaseBindReady(lease);
+		if (!bindReady) {
+			return;
+		}
+		const ok = await bindReady;
+		if (generation !== this.listedBindMonitorGeneration) {
+			return;
+		}
+		if (sessionId !== this.getActiveSessionId() || this.pendingEngineBindSessionId) {
+			return;
+		}
+		if (ok) {
+			this.engineBoundSessionIds.add(sessionId);
+			return;
+		}
+		if (this.engineBoundSessionIds.size > 0) {
+			return;
+		}
+		this.markEngineSessionBindFailed();
+		this._onDidChangeSession.fire(this.getActiveSessionId());
+		this.persistEngineAwareRoster();
 	}
 
 	private async monitorPendingEngineSessionBind(sessionId: string, lease: IConversationSessionViewLease): Promise<void> {
@@ -1101,6 +1140,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		this.engineSessionEnsure = undefined;
 		this.clearPendingEngineBindClientSessionId();
 		if (ok) {
+			this.engineBoundSessionIds.add(sessionId);
 			const title = localize('conversationLens.sessionNew', "New session");
 			this.suppressBindLiveTreeObservationLease = true;
 			try {
@@ -1110,8 +1150,22 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 			}
 			return;
 		}
-		if (this.engineSessions.length === 0) {
-			this.markEngineSessionBindFailed();
+		if (this.engineBoundSessionIds.size === 0) {
+			if (this.engineSessions.length === 0) {
+				this.markEngineSessionBindFailed();
+			} else {
+				const activeId = this.getActiveSessionId();
+				if (!activeId || !this.engineSessions.some(session => session.id === activeId) || activeId === sessionId) {
+					this.activateEngineSession(this.engineSessions[0]!.id);
+				}
+			}
+		} else {
+			const activeId = this.getActiveSessionId();
+			const fallback = this.engineSessions.find(session => this.engineBoundSessionIds.has(session.id))?.id
+				?? [...this.engineBoundSessionIds][0];
+			if (fallback && (!activeId || !this.engineBoundSessionIds.has(activeId) || activeId === sessionId)) {
+				this.activateEngineSession(fallback);
+			}
 		}
 		this._onDidChangeSession.fire(this.getActiveSessionId());
 		this.persistEngineAwareRoster();
@@ -1141,6 +1195,8 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 
 	private async doRefreshEngineCatalog(): Promise<void> {
 		this.listCompleted = false;
+		this.engineSessionBindFailed = false;
+		this.engineBoundSessionIds.clear();
 		this.clearPendingEngineBindClientSessionId();
 		try {
 			const result = await this.uaConnection.listSessions({});

@@ -130,7 +130,7 @@ class EngineSessionViewLease extends Disposable implements IConversationSessionV
 		try {
 			return await this.sessionView.post(this.leaseId, msg);
 		} catch {
-			return { accepted: false, reason: 'not_authenticated' };
+			return { accepted: false, reason: 'no_such_session' };
 		}
 	}
 

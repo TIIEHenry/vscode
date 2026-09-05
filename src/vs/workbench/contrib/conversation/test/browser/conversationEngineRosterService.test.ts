@@ -541,6 +541,49 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		assert.strictEqual(service.getTurns(ENGINE_BIND_FAILED_SESSION_ID).length, 0);
 	});
 
+	test('listed ghost sessions with lease bind failure shows bind-failed roster row', async () => {
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setListSessions([
+			{ sessionId: 'session-100', title: 'Ghost 100' },
+			{ sessionId: 'session-101', title: 'Ghost 101' },
+		]);
+		const acquireLeaseCalls: string[] = [];
+		const sessionView: IUniverseAgentSessionView = {
+			_serviceBrand: undefined,
+			onDynamicDidApplyFrame: () => Event.None,
+			onDidApplyFrame: Event.None,
+			acquireLease: async (sessionId: string) => {
+				acquireLeaseCalls.push(sessionId);
+				throw new Error('session not found');
+			},
+			releaseLease: async () => { },
+			post: async () => ({ accepted: false as const, reason: 'no_such_session' as const }),
+			requestResync: async () => { },
+			acknowledge: async () => { },
+			requestDetail: async () => ({ ok: false as const, reason: 'unavailable' as const }),
+		};
+		const workspaceToolsGate = { _serviceBrand: undefined, shouldAdvertise: () => true };
+		const service = store.add(new ConversationEngineRosterService(
+			connection as unknown as IUniverseAgentConnection,
+			sessionView,
+			workspaceToolsGate,
+		));
+		service.setEngineConnected(true);
+		await awaitEngineCatalogRefresh(service);
+
+		assert.strictEqual(connection.createCalls.length, 0);
+		assert.ok(acquireLeaseCalls.includes('session-100'));
+		assert.strictEqual(acquireLeaseCalls.filter(id => id === 'session-100').length, acquireLeaseCalls.length);
+		assert.strictEqual(service.isEngineSessionReady(), false);
+		assert.strictEqual(service.getSessions().length, 1);
+		assert.strictEqual(service.getSessions()[0]?.id, ENGINE_BIND_FAILED_SESSION_ID);
+		assert.ok(service.getSessions()[0]?.title.includes('bind failed'));
+		assert.strictEqual(service.getActiveSessionId(), ENGINE_BIND_FAILED_SESSION_ID);
+		assert.ok(!service.getSessions().some(session => session.title === 'New session'));
+		assert.ok(!service.getSessions().some(session => session.id === 'session-100'));
+		assert.ok(!service.getSessions().some(session => session.id === 'session-101'));
+	});
+
 	test('bind-failed getActiveSession does not fall back to untitled stub title', async () => {
 		const connection = store.add(new MockUniverseAgentConnection());
 		connection.setListSessions([]);
@@ -739,17 +782,15 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		const storage = store.add(new TestStorageService());
 		const connection = store.add(new MockUniverseAgentConnection());
 		connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
-		let createAttempt = 0;
 		const sessionView: IUniverseAgentSessionView = {
 			_serviceBrand: undefined,
 			onDynamicDidApplyFrame: () => Event.None,
 			onDidApplyFrame: Event.None,
 			acquireLease: async (sessionId: string) => {
-				createAttempt++;
-				if (createAttempt > 1) {
-					throw new Error('session not found');
+				if (sessionId === 'ua-only') {
+					return `lease:${sessionId}`;
 				}
-				return `lease:${sessionId}`;
+				throw new Error('session not found');
 			},
 			releaseLease: async () => { },
 			post: async () => ({ accepted: true as const, correlation: { id: 'mock' } }),
@@ -766,7 +807,7 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		));
 		connection.setConnected(true);
 		service.setEngineConnected(true);
-		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		await awaitEngineCatalogRefresh(service);
 
 		assert.strictEqual(service.createSession(), '');
 		await new Promise<void>(resolve => setTimeout(resolve, 0));
