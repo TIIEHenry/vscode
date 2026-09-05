@@ -267,6 +267,8 @@ import type {
 	UniverseAgentListDevicesResult,
 	UniverseAgentListTriggersRequest,
 	UniverseAgentListTriggersResult,
+	UniverseAgentUpsertTriggerRequest,
+	UniverseAgentUpsertTriggerResult,
 	UniverseAgentSetPermissionPolicyRequest,
 	UniverseAgentSetPermissionPolicyResult,
 	UniverseAgentListModelsResult,
@@ -1479,6 +1481,10 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 
 	async listTriggers(request: UniverseAgentListTriggersRequest): Promise<UniverseAgentListTriggersResult> {
 		return this._withTransport(transport => transport.listTriggers(request));
+	}
+
+	async upsertTrigger(request: UniverseAgentUpsertTriggerRequest): Promise<UniverseAgentUpsertTriggerResult> {
+		return this._withTransport(transport => transport.upsertTrigger(request));
 	}
 
 	async setPermissionPolicy(request: UniverseAgentSetPermissionPolicyRequest): Promise<UniverseAgentSetPermissionPolicyResult> {

@@ -259,6 +259,8 @@ import type {
 	UniverseAgentListDevicesResult,
 	UniverseAgentListTriggersRequest,
 	UniverseAgentListTriggersResult,
+	UniverseAgentUpsertTriggerRequest,
+	UniverseAgentUpsertTriggerResult,
 	UniverseAgentSetPermissionPolicyRequest,
 	UniverseAgentSetPermissionPolicyResult,
 	UniverseAgentListModelsResult,
@@ -745,6 +747,8 @@ export interface IUniverseAgentGrpcTransport {
 
 	/** TriggerService.ListTriggers unary (snake_case `scope`/`scope_id`/`type_filter`). Empty ids sent as-is. */
 	listTriggers(request: UniverseAgentListTriggersRequest): Promise<UniverseAgentListTriggersResult>;
+	/** TriggerService.UpsertTrigger unary (snake_case `scope`/`scope_id`/`trigger`). Empty ids sent as-is. */
+	upsertTrigger(request: UniverseAgentUpsertTriggerRequest): Promise<UniverseAgentUpsertTriggerResult>;
 
 	/** ConfigService.SetPermissionPolicy unary (snake_case `session_id`/`tool_name`/`policy`). Empty ids sent as-is. */
 	setPermissionPolicy(request: UniverseAgentSetPermissionPolicyRequest): Promise<UniverseAgentSetPermissionPolicyResult>;
@@ -994,6 +998,7 @@ export const UniverseAgentGrpcServices = {
 	Trigger: {
 		service: 'universeagent.trigger.v1.TriggerService',
 		ListTriggers: 'ListTriggers',
+		UpsertTrigger: 'UpsertTrigger',
 	},
 } as const;
 

@@ -264,6 +264,8 @@ import type {
 	UniverseAgentListDevicesResult,
 	UniverseAgentListTriggersRequest,
 	UniverseAgentListTriggersResult,
+	UniverseAgentUpsertTriggerRequest,
+	UniverseAgentUpsertTriggerResult,
 	UniverseAgentSetPermissionPolicyRequest,
 	UniverseAgentSetPermissionPolicyResult,
 	UniverseAgentListModelsResult,
@@ -1537,6 +1539,20 @@ export interface IUniverseAgentConnection {
 	 * AgentService.FireTriggerWebhook / DeviceService.
 	 */
 	listTriggers?(request: UniverseAgentListTriggersRequest): Promise<UniverseAgentListTriggersResult>;
+	/**
+	 * TriggerService.UpsertTrigger unary. Optional so Web / tests can omit
+	 * it. Catalog + node transport only this slice; empty `scope` /
+	 * `scopeId` are sent as-is. Empty `triggerId` / `name` / `type` /
+	 * `promptTemplate` / `pauseReason` / `cronExpression` sent and mapped
+	 * as-is. `enabled` false sent and mapped as-is. `intervalMs` /
+	 * `runAtEpochMs` 0 sent and mapped as-is. Proto fields only
+	 * (`UpsertTriggerRequest` / `UpsertTriggerResponse` + `TriggerDto` /
+	 * `DeliveryTargetDto`). No Conversation roster / UI / Engine
+	 * Preferences / Composer.
+	 * ≠ ListTriggers / DeleteTrigger / SetTriggerEnabled / FireTrigger /
+	 * AgentService.FireTriggerWebhook / DeviceService.
+	 */
+	upsertTrigger?(request: UniverseAgentUpsertTriggerRequest): Promise<UniverseAgentUpsertTriggerResult>;
 
 	/**
 	 * ConfigService.SetPermissionPolicy unary (session/tool Ask/Agent/Permit

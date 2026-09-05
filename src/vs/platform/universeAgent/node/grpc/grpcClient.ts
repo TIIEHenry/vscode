@@ -336,6 +336,8 @@ import type {
 	UniverseAgentListDevicesResult,
 	UniverseAgentListTriggersRequest,
 	UniverseAgentListTriggersResult,
+	UniverseAgentUpsertTriggerRequest,
+	UniverseAgentUpsertTriggerResult,
 	UniverseAgentTrigger,
 	UniverseAgentTriggerDeliveryTarget,
 	UniverseAgentListModelsResult,
@@ -3449,6 +3451,44 @@ function mapListTriggersResponse(wire: ListTriggersResponseWire): UniverseAgentL
 	};
 }
 
+interface UpsertTriggerResponseWire {
+	trigger?: TriggerDtoWire;
+}
+
+function deliveryTargetWire(target: UniverseAgentTriggerDeliveryTarget): DeliveryTargetDtoWire {
+	if (target.kind === 'self') {
+		return { self: {} };
+	}
+	if (target.kind === 'boundSession') {
+		return { bound_session: { session_id: target.sessionId } };
+	}
+	if (target.kind === 'newSession') {
+		return { new_session: { engine_profile_id: target.engineProfileId } };
+	}
+	return {};
+}
+
+function triggerDtoWire(trigger: UniverseAgentTrigger): TriggerDtoWire {
+	return {
+		trigger_id: trigger.triggerId,
+		name: trigger.name,
+		type: trigger.type,
+		prompt_template: trigger.promptTemplate,
+		enabled: trigger.enabled,
+		pause_reason: trigger.pauseReason,
+		target: deliveryTargetWire(trigger.target),
+		interval_ms: trigger.intervalMs,
+		cron_expression: trigger.cronExpression,
+		run_at_epoch_ms: trigger.runAtEpochMs,
+	};
+}
+
+function mapUpsertTriggerResponse(wire: UpsertTriggerResponseWire): UniverseAgentUpsertTriggerResult {
+	return {
+		trigger: mapTriggerDto(wire.trigger ?? {}),
+	};
+}
+
 interface ListModelsResponseWire {
 	models?: Array<{
 		id?: string;
@@ -5735,6 +5775,20 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			type_filter: request.typeFilter,
 		});
 		return mapListTriggersResponse(wire);
+	}
+
+	async upsertTrigger(request: UniverseAgentUpsertTriggerRequest): Promise<UniverseAgentUpsertTriggerResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, UpsertTriggerResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.Trigger.service,
+			UniverseAgentGrpcServices.Trigger.UpsertTrigger,
+		);
+		const wire = await unary({
+			scope: request.scope,
+			scope_id: request.scopeId,
+			trigger: triggerDtoWire(request.trigger),
+		});
+		return mapUpsertTriggerResponse(wire);
 	}
 
 	async setPermissionPolicy(request: UniverseAgentSetPermissionPolicyRequest): Promise<UniverseAgentSetPermissionPolicyResult> {
