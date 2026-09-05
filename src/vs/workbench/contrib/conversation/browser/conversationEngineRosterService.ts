@@ -37,6 +37,8 @@ import {
 import { ConversationStubSession, ConversationStubTurn, getConversationStubNextTurnId } from './conversationStubModel.js';
 
 const STUB_SEED_IDS = new Set(['untitled', 'visualize']);
+/** Placeholder roster row when connected but no engine session could be bound. */
+export const ENGINE_BIND_FAILED_SESSION_ID = '__engine_bind_failed__';
 
 function isAlreadyExistsCreateSessionError(error: unknown): boolean {
 	if (!error) {
@@ -102,10 +104,37 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 			return false;
 		}
 		const sessionId = this.getActiveSessionId();
-		if (!sessionId || STUB_SEED_IDS.has(sessionId)) {
+		if (!sessionId || STUB_SEED_IDS.has(sessionId) || sessionId === ENGINE_BIND_FAILED_SESSION_ID) {
 			return false;
 		}
 		return this.engineSessions.some(session => session.id === sessionId);
+	}
+
+	private isEngineSessionBindFailed(): boolean {
+		return this.isEngineConnected()
+			&& this.listCompleted
+			&& !this.engineSessionEnsure
+			&& this.engineSessions.length === 0;
+	}
+
+	private getEngineBindFailedSession(): ConversationStubSession {
+		return {
+			id: ENGINE_BIND_FAILED_SESSION_ID,
+			title: localize('conversationLens.sessionBindFailed', "Engine session bind failed"),
+			turns: [],
+			source: 'engine-cache',
+		};
+	}
+
+	private markEngineSessionBindFailed(): void {
+		if (!this.isEngineSessionBindFailed()) {
+			return;
+		}
+		const previous = this.activeEngineSessionId;
+		this.activeEngineSessionId = ENGINE_BIND_FAILED_SESSION_ID;
+		if (previous !== ENGINE_BIND_FAILED_SESSION_ID) {
+			this._onDidChangeActiveSession.fire(ENGINE_BIND_FAILED_SESSION_ID);
+		}
 	}
 
 	/** Client setting gate for advertising IDE workspace tools to Engine (PRD-026). */
@@ -136,6 +165,9 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 			if (!this.listCompleted) {
 				return [];
 			}
+			if (this.isEngineSessionBindFailed()) {
+				return [this.getEngineBindFailedSession()];
+			}
 			return this.engineSessions;
 		}
 		if (this.wasEverConnected) {
@@ -144,10 +176,27 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		return super.getSessions();
 	}
 
+	override getActiveSession(): ConversationStubSession {
+		if (this.isEngineSessionBindFailed()) {
+			return this.getEngineBindFailedSession();
+		}
+		if (this.isEngineConnected() || this.wasEverConnected) {
+			const sessionId = this.getActiveSessionId();
+			const engineSession = this.engineSessions.find(session => session.id === sessionId);
+			if (engineSession) {
+				return engineSession;
+			}
+		}
+		return super.getActiveSession();
+	}
+
 	override getActiveSessionId(): string {
 		if (this.isEngineConnected()) {
 			if (!this.listCompleted) {
 				return this.activeEngineSessionId ?? '';
+			}
+			if (this.isEngineSessionBindFailed()) {
+				return ENGINE_BIND_FAILED_SESSION_ID;
 			}
 			if (this.engineSessions.length === 0) {
 				return this.activeEngineSessionId ?? '';
@@ -183,6 +232,9 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	}
 
 	override getTurns(sessionId: string): readonly ConversationStubTurn[] {
+		if (sessionId === ENGINE_BIND_FAILED_SESSION_ID || (this.isEngineConnected() && STUB_SEED_IDS.has(sessionId))) {
+			return [];
+		}
 		if ((this.isEngineConnected() || this.wasEverConnected) && this.engineSessions.some(session => session.id === sessionId)) {
 			if (this.isEngineConnected()) {
 				const projection = this.engineFrameSource.getCachedProjection(sessionId);
@@ -569,6 +621,10 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 
 	private activateEngineSession(sessionId: string): void {
 		if (!sessionId) {
+			return;
+		}
+		if (sessionId === ENGINE_BIND_FAILED_SESSION_ID) {
+			this.markEngineSessionBindFailed();
 			return;
 		}
 		const previous = this.activeEngineSessionId;
@@ -971,7 +1027,11 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		if (this.engineSessions.length === 0) {
 			// Honest empty — no stub seed refill (m6 §6 / M6-A2).
 			this.listCompleted = true;
-			this.activeEngineSessionId = undefined;
+			if (this.isEngineConnected()) {
+				this.markEngineSessionBindFailed();
+			} else {
+				this.activeEngineSessionId = undefined;
+			}
 		} else if (wasActive) {
 			const newIndex = Math.min(index, this.engineSessions.length - 1);
 			const nextId = this.engineSessions[newIndex]!.id;
@@ -1043,7 +1103,10 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 					: this.engineSessions[0]!.id;
 				this.activateEngineSession(targetId);
 			} else {
-				await this.ensureEngineSession();
+				const adopted = await this.ensureEngineSession();
+				if (!adopted) {
+					this.markEngineSessionBindFailed();
+				}
 			}
 			this._onDidChangeSession.fire(this.getActiveSessionId());
 			this.persistEngineAwareRoster();

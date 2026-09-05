@@ -16,7 +16,8 @@ import type {
 	UniverseAgentSessionStreamCloseCause,
 } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { TestStorageService } from '../../../../test/common/workbenchTestServices.js';
-import { ConversationEngineRosterService } from '../../browser/conversationEngineRosterService.js';
+import { ConversationEngineRosterService, ENGINE_BIND_FAILED_SESSION_ID } from '../../browser/conversationEngineRosterService.js';
+import { postBound } from '../../browser/conversationLensComposer.js';
 import { CONVERSATION_ROSTER_STORAGE_KEY } from '../../browser/conversationRosterStorage.js';
 
 class MockUniverseAgentConnection extends Disposable implements IUniverseAgentConnection {
@@ -328,8 +329,10 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		assert.strictEqual(service.getSessions().length, 1);
 		assert.strictEqual(service.getSessions()[0]!.id, 'ua-only');
 		assert.strictEqual(service.deleteSession('ua-only'), true);
-		assert.strictEqual(service.getSessions().length, 0);
+		assert.strictEqual(service.getSessions().length, 1);
+		assert.strictEqual(service.getSessions()[0]!.id, ENGINE_BIND_FAILED_SESSION_ID);
 		assert.ok(!service.getSessions().some(s => s.id === 'untitled' || s.id === 'visualize'));
+		assert.strictEqual(service.isEngineSessionReady(), false);
 	});
 
 	test('disconnected after engine deleteSession still avoids stub seed refill', async () => {
@@ -433,6 +436,38 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		assert.strictEqual(service.getActiveSessionId(), 'ua-existing');
 		assert.ok(service.getSessions().some(session => session.id === 'ua-existing'));
 		assert.strictEqual(service.isEngineSessionReady(), true);
+	});
+
+	test('empty list with ALREADY_EXISTS and empty recover shows bind-failed roster row', async () => {
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setListSessions([]);
+		connection.createSessionError = new Error('ALREADY_EXISTS: session exists');
+		const service = store.add(createService(connection));
+		connection.setConnected(true);
+		service.setEngineConnected(true);
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+		assert.strictEqual(service.isEngineSessionReady(), false);
+		assert.strictEqual(service.getSessions().length, 1);
+		assert.strictEqual(service.getSessions()[0]?.id, ENGINE_BIND_FAILED_SESSION_ID);
+		assert.ok(service.getSessions()[0]?.title.includes('bind failed'));
+		assert.strictEqual(service.getActiveSessionId(), ENGINE_BIND_FAILED_SESSION_ID);
+		assert.strictEqual(service.getActiveSession().id, ENGINE_BIND_FAILED_SESSION_ID);
+		assert.ok(!service.getSessions().some(session => session.id === 'untitled'));
+		assert.strictEqual(service.getTurns('untitled').length, 0);
+		assert.strictEqual(service.getTurns(ENGINE_BIND_FAILED_SESSION_ID).length, 0);
+	});
+
+	test('bind-failed getActiveSession does not fall back to untitled stub title', async () => {
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setListSessions([]);
+		connection.createSessionError = new Error('ALREADY_EXISTS: session exists');
+		const service = store.add(createService(connection));
+		service.setEngineConnected(true);
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+		assert.ok(!service.getActiveSession().title.includes('Untitled session'));
+		assert.ok(service.getActiveSession().title.includes('bind failed'));
 	});
 
 	test('connected listed session on first refresh skips create when catalog is non-empty', async () => {
@@ -1292,5 +1327,23 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		service.setAutoDriveTaskFixture('ua-only', ['Fix lint']);
 		assert.deepStrictEqual(service.getAutoDriveTasks('ua-only'), []);
 		assert.strictEqual(service.getAutoDriveTaskCount('ua-only'), 0);
+	});
+
+	test('bind-failed roster keeps composer post rejected as no_such_session', async () => {
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setListSessions([]);
+		connection.createSessionError = new Error('ALREADY_EXISTS: session exists');
+		const service = store.add(createService(connection));
+		service.setEngineConnected(true);
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+		const outcome = await postBound(
+			{ stubService: service, sessionViewLease: undefined } as Parameters<typeof postBound>[0],
+			{ kind: 'submitInput', text: 'hello' },
+		);
+		assert.strictEqual(outcome.accepted, false);
+		if (!outcome.accepted) {
+			assert.strictEqual(outcome.reason, 'no_such_session');
+		}
 	});
 });
