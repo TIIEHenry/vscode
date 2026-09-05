@@ -13,7 +13,7 @@ summary: "合入 agent-ide PreFirst/first-send + HistoryFill；剩余 onDidApply
 
 ## Current Session
 
-### 已合入（`loop/merge` tip `c52f9661d71`）
+### 已合入（`loop/merge` tip `304e3b0d8cd`）
 
 | 切片 | 提交 / 落点 |
 |:-----|:------------|
@@ -50,12 +50,12 @@ HistoryFill 已合入 merge。剩余：宿主全局 `onDidApplyFrame` 整刀删�
 
 | 槽 | 路径 | 分支 | tip | 状态 |
 |----|------|------|-----|:-----|
-| merge | `vscode-WorkTrees/merge` | `loop/merge` | `c52f9661d71` | parked（未 push） |
-| A | `vscode-WorkTrees/A` | `loop/A` | `c52f9661d71` | idle |
-| B | `vscode-WorkTrees/B` | `loop/B` | `c52f9661d71` | idle |
-| C | `vscode-WorkTrees/C` | `loop/C` | `c52f9661d71` | idle |
-| D | `vscode-WorkTrees/D` | `loop/D` | `c52f9661d71` | idle |
-| edit | `Projects/Agents/vscode` | `agent-ide` | `48dc0c5c95e` | 请人类自行 `git merge --ff-only loop/merge` |
+| merge | `vscode-WorkTrees/merge` | `loop/merge` | `304e3b0d8cd` | 已合入 agent-ide PreFirst（未 push） |
+| A | `vscode-WorkTrees/A` | `loop/A` | `304e3b0d8cd` | idle |
+| B | `vscode-WorkTrees/B` | `loop/B` | `304e3b0d8cd` | idle |
+| C | `vscode-WorkTrees/C` | `loop/C` | `304e3b0d8cd` | idle |
+| D | `vscode-WorkTrees/D` | `loop/D` | `304e3b0d8cd` | idle |
+| edit | `Projects/Agents/vscode` | `agent-ide` | `304e3b0d8cd` | 与 merge 对齐 |
 
 ## Blockers
 
