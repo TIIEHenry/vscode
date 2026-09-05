@@ -98,7 +98,8 @@
 }
 
 .monaco-workbench .engine-triggers-fire-status,
-.monaco-workbench .engine-triggers-enabled-status {
+.monaco-workbench .engine-triggers-enabled-status,
+.monaco-workbench .engine-triggers-delete-status {
 	margin-top: 8px;
 	font-size: 12px;
 	overflow-wrap: anywhere;

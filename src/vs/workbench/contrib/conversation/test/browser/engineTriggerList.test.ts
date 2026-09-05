@@ -6,13 +6,16 @@
 import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import {
+	canSendEngineTriggerDelete,
 	canSendEngineTriggerFire,
 	canSendEngineTriggerListRequest,
 	canSendEngineTriggerSetEnabled,
+	ENGINE_TRIGGER_DELETE_LABEL,
 	ENGINE_TRIGGER_DISABLE_LABEL,
 	ENGINE_TRIGGER_ENABLE_LABEL,
 	ENGINE_TRIGGER_FIRE_LABEL,
 	ENGINE_TRIGGER_LIST_EMPTY_COPY,
+	engineTriggerDeleteRequest,
 	engineTriggerFireRequest,
 	engineTriggerListRequest,
 	engineTriggerSetEnabledRequest,
@@ -114,5 +117,27 @@ suite('Engine trigger list bind', () => {
 		});
 		assert.strictEqual(ENGINE_TRIGGER_ENABLE_LABEL, 'Enable');
 		assert.strictEqual(ENGINE_TRIGGER_DISABLE_LABEL, 'Disable');
+	});
+
+	test('DeleteTrigger gate is connected + hook; empty ids stay empty', () => {
+		assert.strictEqual(canSendEngineTriggerDelete(false, true), false);
+		assert.strictEqual(canSendEngineTriggerDelete(true, false), false);
+		assert.strictEqual(canSendEngineTriggerDelete(true, true), true);
+		assert.deepStrictEqual(engineTriggerDeleteRequest(undefined), {
+			scope: '',
+			scopeId: '',
+			triggerId: '',
+		});
+		assert.deepStrictEqual(engineTriggerDeleteRequest({ triggerId: '' }), {
+			scope: '',
+			scopeId: '',
+			triggerId: '',
+		});
+		assert.deepStrictEqual(engineTriggerDeleteRequest({ triggerId: '  trig  ' }), {
+			scope: '',
+			scopeId: '',
+			triggerId: '  trig  ',
+		});
+		assert.strictEqual(ENGINE_TRIGGER_DELETE_LABEL, 'Delete');
 	});
 });

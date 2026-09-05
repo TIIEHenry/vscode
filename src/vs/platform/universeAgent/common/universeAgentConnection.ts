@@ -2011,10 +2011,12 @@ export interface IUniverseAgentConnection {
 	upsertTrigger?(request: UniverseAgentUpsertTriggerRequest): Promise<UniverseAgentUpsertTriggerResult>;
 	/**
 	 * TriggerService.DeleteTrigger unary. Optional so Web / tests can omit
-	 * it. Catalog + node transport only this slice; empty `scope` /
-	 * `scopeId` / `triggerId` are sent as-is. Proto fields only
-	 * (`DeleteTriggerRequest` / empty `DeleteTriggerResponse`). No
-	 * Conversation roster / UI / Engine Preferences / Composer.
+	 * it. Engine Preferences Triggers list action forwards when connected
+	 * + hook; empty `scope` / `scopeId` / `triggerId` are sent as-is
+	 * (no selection still sends empty ids). Proto fields only
+	 * (`DeleteTriggerRequest` / empty `DeleteTriggerResponse`).
+	 * Disconnected / no hook do not send. No Conversation roster /
+	 * SessionBar / Composer.
 	 * ≠ ListTriggers / UpsertTrigger / SetTriggerEnabled / FireTrigger /
 	 * AgentService.FireTriggerWebhook / DeviceService.
 	 */

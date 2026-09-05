@@ -6,9 +6,9 @@
 import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
-import type { UniverseAgentFireTriggerRequest, UniverseAgentListTriggersRequest, UniverseAgentListTriggersResult, UniverseAgentSetTriggerEnabledRequest, UniverseAgentTrigger } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
+import type { UniverseAgentDeleteTriggerRequest, UniverseAgentFireTriggerRequest, UniverseAgentListTriggersRequest, UniverseAgentListTriggersResult, UniverseAgentSetTriggerEnabledRequest, UniverseAgentTrigger } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
-import { ENGINE_TRIGGER_DISABLE_LABEL, ENGINE_TRIGGER_ENABLE_LABEL, ENGINE_TRIGGER_FIRE_LABEL } from '../../browser/engineTriggerList.js';
+import { ENGINE_TRIGGER_DELETE_LABEL, ENGINE_TRIGGER_DISABLE_LABEL, ENGINE_TRIGGER_ENABLE_LABEL, ENGINE_TRIGGER_FIRE_LABEL } from '../../browser/engineTriggerList.js';
 import { EngineTriggersSection } from '../../browser/engineTriggersSection.js';
 import { createConversationConnectionTestStub } from '../common/conversationConnectionTestStub.js';
 
@@ -300,6 +300,86 @@ suite('EngineTriggersSection', () => {
 			{ scope: '', scopeId: '', triggerId: '  trig  ', enabled: true },
 			{ scope: '', scopeId: '', triggerId: '  trig  ', enabled: false },
 		]);
+		pane.getDomNode().parentElement?.remove();
+	});
+
+	test('DeleteTrigger does not send when disconnected or hook missing', async () => {
+		const deleteCalls: UniverseAgentDeleteTriggerRequest[] = [];
+		const disconnected = mountSection(createConversationConnectionTestStub({
+			isEngineConnected: () => false,
+			deleteTrigger: async request => {
+				deleteCalls.push(request);
+				return {};
+			},
+		}));
+		await flushMicrotasks();
+		const disconnectedDelete = findActionButton(disconnected.getDomNode(), ENGINE_TRIGGER_DELETE_LABEL);
+		assert.ok(disconnectedDelete);
+		disconnectedDelete.click();
+		await flushMicrotasks();
+		assert.deepStrictEqual(deleteCalls, []);
+		disconnected.getDomNode().parentElement?.remove();
+
+		const noHook = mountSection(createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+		}));
+		await flushMicrotasks();
+		const noHookDelete = findActionButton(noHook.getDomNode(), ENGINE_TRIGGER_DELETE_LABEL);
+		assert.ok(noHookDelete);
+		noHookDelete.click();
+		await flushMicrotasks();
+		assert.deepStrictEqual(deleteCalls, []);
+		noHook.getDomNode().parentElement?.remove();
+	});
+
+	test('DeleteTrigger sends empty ids as-is when connected with no selection', async () => {
+		const deleteCalls: UniverseAgentDeleteTriggerRequest[] = [];
+		const pane = mountSection(createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			listTriggers: async () => ({ triggers: [] }),
+			deleteTrigger: async request => {
+				deleteCalls.push(request);
+				return {};
+			},
+		}));
+		await flushMicrotasks();
+		const del = findActionButton(pane.getDomNode(), ENGINE_TRIGGER_DELETE_LABEL);
+		assert.ok(del);
+		del.click();
+		await flushMicrotasks();
+		assert.deepStrictEqual(deleteCalls, [{ scope: '', scopeId: '', triggerId: '' }]);
+		pane.getDomNode().parentElement?.remove();
+	});
+
+	test('DeleteTrigger sends selected trigger_id without inventing defaults', async () => {
+		const deleteCalls: UniverseAgentDeleteTriggerRequest[] = [];
+		const pane = mountSection(createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			listTriggers: async (): Promise<UniverseAgentListTriggersResult> => ({
+				triggers: [emptyTrigger({
+					triggerId: '  trig  ',
+					name: '  Nightly  ',
+					type: 'cron',
+					target: { kind: 'self' },
+				})],
+			}),
+			deleteTrigger: async request => {
+				deleteCalls.push(request);
+				return {};
+			},
+		}));
+		await flushMicrotasks();
+		const row = pane.getDomNode().querySelector('.engine-triggers-row') as HTMLElement | null;
+		assert.ok(row);
+		row.click();
+		const del = findActionButton(pane.getDomNode(), ENGINE_TRIGGER_DELETE_LABEL);
+		assert.ok(del);
+		del.click();
+		await flushMicrotasks();
+		assert.deepStrictEqual(deleteCalls, [{ scope: '', scopeId: '', triggerId: '  trig  ' }]);
 		pane.getDomNode().parentElement?.remove();
 	});
 });

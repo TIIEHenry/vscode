@@ -13,14 +13,17 @@ import type { UniverseAgentTrigger } from '../../../../platform/universeAgent/co
 import { EngineCatalogStatusWidget } from './engineCatalogStatus.js';
 import { getEngineSectionApiUnavailableCopy } from './engineSectionChrome.js';
 import {
+	canSendEngineTriggerDelete,
 	canSendEngineTriggerFire,
 	canSendEngineTriggerListRequest,
 	canSendEngineTriggerSetEnabled,
+	ENGINE_TRIGGER_DELETE_LABEL,
 	ENGINE_TRIGGER_DISABLE_LABEL,
 	ENGINE_TRIGGER_ENABLE_LABEL,
 	ENGINE_TRIGGER_FIRE_LABEL,
 	ENGINE_TRIGGER_LIST_EMPTY_COPY,
 	ENGINE_TRIGGER_LIST_FEATURE,
+	engineTriggerDeleteRequest,
 	engineTriggerFireRequest,
 	engineTriggerListRequest,
 	engineTriggerSetEnabledRequest,
@@ -32,9 +35,9 @@ const $ = DOM.$;
 
 /**
  * Engine Preferences Triggers — honest ListTriggers list + FireTrigger +
- * SetTriggerEnabled actions. Connected + hook only. Empty scope / scopeId /
- * typeFilter / triggerId are sent as-is. `enabled` false is sent as-is.
- * Empty triggerId / name / type stay empty. No upsert / delete.
+ * SetTriggerEnabled + DeleteTrigger actions. Connected + hook only. Empty
+ * scope / scopeId / typeFilter / triggerId are sent as-is. `enabled` false
+ * is sent as-is. Empty triggerId / name / type stay empty. No upsert.
  */
 export class EngineTriggersSection extends Disposable {
 
@@ -44,8 +47,10 @@ export class EngineTriggersSection extends Disposable {
 	private readonly fireButton: Button;
 	private readonly enableButton: Button;
 	private readonly disableButton: Button;
+	private readonly deleteButton: Button;
 	private readonly fireStatus: HTMLElement;
 	private readonly enabledStatus: HTMLElement;
+	private readonly deleteStatus: HTMLElement;
 
 	private sectionActive = false;
 	private renderGeneration = 0;
@@ -81,12 +86,19 @@ export class EngineTriggersSection extends Disposable {
 		this.disableButton.label = ENGINE_TRIGGER_DISABLE_LABEL;
 		this._register(this.disableButton.onDidClick(() => void this.handleSetEnabled(false)));
 
+		this.deleteButton = this._register(new Button(actionsRow, { ...defaultButtonStyles, secondary: true }));
+		this.deleteButton.label = ENGINE_TRIGGER_DELETE_LABEL;
+		this._register(this.deleteButton.onDidClick(() => void this.handleDelete()));
+
 		this.fireStatus = DOM.append(this.container, $('.engine-triggers-fire-status'));
 		this.fireStatus.style.display = 'none';
 		this.enabledStatus = DOM.append(this.container, $('.engine-triggers-enabled-status'));
 		this.enabledStatus.style.display = 'none';
+		this.deleteStatus = DOM.append(this.container, $('.engine-triggers-delete-status'));
+		this.deleteStatus.style.display = 'none';
 		this.updateFireAction();
 		this.updateSetEnabledAction();
+		this.updateDeleteAction();
 
 		this._register(this.connection.onDidChangeConnection(() => {
 			if (this.sectionActive) {
@@ -130,9 +142,12 @@ export class EngineTriggersSection extends Disposable {
 		this.fireStatus.textContent = '';
 		this.enabledStatus.style.display = 'none';
 		this.enabledStatus.textContent = '';
+		this.deleteStatus.style.display = 'none';
+		this.deleteStatus.textContent = '';
 		DOM.clearNode(this.listHost);
 		this.updateFireAction();
 		this.updateSetEnabledAction();
+		this.updateDeleteAction();
 
 		if (!this.connection.isEngineConnected()) {
 			this.status.render({
@@ -227,6 +242,13 @@ export class EngineTriggersSection extends Disposable {
 		this.disableButton.enabled = enabled;
 	}
 
+	private updateDeleteAction(): void {
+		this.deleteButton.enabled = canSendEngineTriggerDelete(
+			this.connection.isEngineConnected(),
+			typeof this.connection.deleteTrigger === 'function',
+		);
+	}
+
 	private async handleSetEnabled(enabled: boolean): Promise<void> {
 		const hook = this.connection.setTriggerEnabled;
 		if (!canSendEngineTriggerSetEnabled(this.connection.isEngineConnected(), typeof hook === 'function') || !hook) {
@@ -258,6 +280,23 @@ export class EngineTriggersSection extends Disposable {
 			const reason = error instanceof Error && error.message ? error.message : String(error);
 			this.fireStatus.textContent = reason;
 			this.fireStatus.style.display = '';
+		}
+	}
+
+	private async handleDelete(): Promise<void> {
+		const hook = this.connection.deleteTrigger;
+		if (!canSendEngineTriggerDelete(this.connection.isEngineConnected(), typeof hook === 'function') || !hook) {
+			return;
+		}
+		const request = engineTriggerDeleteRequest(this.selectedTrigger);
+		try {
+			await hook.call(this.connection, request);
+			this.deleteStatus.textContent = '';
+			this.deleteStatus.style.display = '';
+		} catch (error) {
+			const reason = error instanceof Error && error.message ? error.message : String(error);
+			this.deleteStatus.textContent = reason;
+			this.deleteStatus.style.display = '';
 		}
 	}
 }

@@ -5,6 +5,7 @@
 
 import { localize } from '../../../../nls.js';
 import type {
+	UniverseAgentDeleteTriggerRequest,
 	UniverseAgentFireTriggerRequest,
 	UniverseAgentListTriggersRequest,
 	UniverseAgentSetTriggerEnabledRequest,
@@ -23,6 +24,11 @@ export function canSendEngineTriggerFire(connected: boolean, hasHook: boolean): 
 
 /** Engine Preferences Triggers list action → SetTriggerEnabled. Empty ids are still sent. */
 export function canSendEngineTriggerSetEnabled(connected: boolean, hasHook: boolean): boolean {
+	return connected && hasHook;
+}
+
+/** Engine Preferences Triggers list action → DeleteTrigger. Empty ids are still sent. */
+export function canSendEngineTriggerDelete(connected: boolean, hasHook: boolean): boolean {
 	return connected && hasHook;
 }
 
@@ -54,6 +60,20 @@ export function engineTriggerSetEnabledRequest(
 		scopeId: '',
 		triggerId: selected?.triggerId ?? '',
 		enabled,
+	};
+}
+
+/**
+ * Always send empty `scope` / `scopeId` as-is.
+ * Pass through empty `triggerId` as-is (no default / no trim).
+ */
+export function engineTriggerDeleteRequest(
+	selected: { readonly triggerId?: string } | undefined,
+): UniverseAgentDeleteTriggerRequest {
+	return {
+		scope: '',
+		scopeId: '',
+		triggerId: selected?.triggerId ?? '',
 	};
 }
 
@@ -97,4 +117,9 @@ export const ENGINE_TRIGGER_ENABLE_LABEL = localize(
 export const ENGINE_TRIGGER_DISABLE_LABEL = localize(
 	'ua.engineTriggersDisable',
 	"Disable",
+);
+
+export const ENGINE_TRIGGER_DELETE_LABEL = localize(
+	'ua.engineTriggersDelete',
+	"Delete",
 );
