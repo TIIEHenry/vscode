@@ -609,6 +609,9 @@ class MockDeviceAuthTransport implements IUniverseAgentGrpcTransport {
 	async listClipboard() {
 		return { entries: [] };
 	}
+	async clearClipboard() {
+		return { removedCount: 0 };
+	}
 	openUploadAttachmentStream(): { write(): void; end(): void; dispose(): void } {
 		return { write() { }, end() { }, dispose() { } };
 	}

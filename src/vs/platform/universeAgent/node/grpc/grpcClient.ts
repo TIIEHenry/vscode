@@ -366,6 +366,8 @@ import type {
 	UniverseAgentReadClipboardResult,
 	UniverseAgentListClipboardRequest,
 	UniverseAgentListClipboardResult,
+	UniverseAgentClearClipboardRequest,
+	UniverseAgentClearClipboardResult,
 	UniverseAgentClipboardEntry,
 	UniverseAgentClipboardEntrySummary,
 	UniverseAgentListModelsResult,
@@ -3482,6 +3484,16 @@ function mapClipboardListResponse(wire: ClipboardListResponseWire): UniverseAgen
 	};
 }
 
+interface ClipboardClearResponseWire {
+	removed_count?: number;
+}
+
+function mapClipboardClearResponse(wire: ClipboardClearResponseWire): UniverseAgentClearClipboardResult {
+	return {
+		removedCount: wire.removed_count ?? 0,
+	};
+}
+
 interface DownloadChunkWire {
 	offset?: number | string;
 	data?: string;
@@ -4025,6 +4037,18 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			session_id: request.sessionId,
 		});
 		return mapClipboardListResponse(wire);
+	}
+
+	async clearClipboard(request: UniverseAgentClearClipboardRequest): Promise<UniverseAgentClearClipboardResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, ClipboardClearResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.Clipboard.service,
+			UniverseAgentGrpcServices.Clipboard.Clear,
+		);
+		const wire = await unary({
+			session_id: request.sessionId,
+		});
+		return mapClipboardClearResponse(wire);
 	}
 
 	async connectWithDeviceAuth(request: UniverseAgentDeviceAuthConnectRequest): Promise<UniverseAgentConnectResult> {
