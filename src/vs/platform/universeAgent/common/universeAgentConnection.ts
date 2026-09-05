@@ -280,6 +280,8 @@ import type {
 	UniverseAgentDestroyRemoteSessionResult,
 	UniverseAgentGetRemoteSessionStatusRequest,
 	UniverseAgentGetRemoteSessionStatusResult,
+	UniverseAgentGetRemoteSessionHistoryRequest,
+	UniverseAgentGetRemoteSessionHistoryResult,
 	UniverseAgentGetUploadProgressRequest,
 	UniverseAgentGetUploadProgressResult,
 	UniverseAgentUploadAttachmentResult,
@@ -1725,6 +1727,26 @@ export interface IUniverseAgentConnection {
 	 * DeviceService / SessionService / AgentService.Status.
 	 */
 	getRemoteSessionStatus?(request: UniverseAgentGetRemoteSessionStatusRequest): Promise<UniverseAgentGetRemoteSessionStatusResult>;
+
+	/**
+	 * RemoteAgentService.GetRemoteSessionHistory unary. Optional so Web /
+	 * tests can omit it. Catalog + node transport only this slice; empty
+	 * `callId` is sent as-is. `sinceVersion` / `pageSize` 0 sent as-is.
+	 * Empty `messages` (incl. empty content / tool call ids) mapped as-is.
+	 * `version` 0 mapped as-is. `hasMore` false mapped as-is. Proto fields
+	 * only (`GetRemoteSessionHistoryRequest` /
+	 * `GetRemoteSessionHistoryResponse` + `RemoteChatMessage` /
+	 * `RemoteSystemMessage` / `RemoteUserMessage` /
+	 * `RemoteAssistantMessage` / `RemoteToolCall` /
+	 * `RemoteToolResultMessage`). No Conversation roster / UI / Engine
+	 * Preferences / Composer.
+	 * ≠ RemoteChat / CreateRemoteSession / DestroyRemoteSession /
+	 * GetRemoteSessionStatus / ResumeRemoteSession / CancelRemoteSession /
+	 * ListNodes / GetNode / CheckConnection / SetMaintenance /
+	 * ExitMaintenance / ResetError / ListConfigs / GetConfig / SaveConfig /
+	 * DeleteConfig / Reload / DeviceService / SessionService.
+	 */
+	getRemoteSessionHistory?(request: UniverseAgentGetRemoteSessionHistoryRequest): Promise<UniverseAgentGetRemoteSessionHistoryResult>;
 
 	/**
 	 * FileTransferService.GetUploadProgress unary. Optional so Web / tests

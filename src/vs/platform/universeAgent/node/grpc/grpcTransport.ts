@@ -275,6 +275,8 @@ import type {
 	UniverseAgentDestroyRemoteSessionResult,
 	UniverseAgentGetRemoteSessionStatusRequest,
 	UniverseAgentGetRemoteSessionStatusResult,
+	UniverseAgentGetRemoteSessionHistoryRequest,
+	UniverseAgentGetRemoteSessionHistoryResult,
 	UniverseAgentGetUploadProgressRequest,
 	UniverseAgentGetUploadProgressResult,
 	UniverseAgentUploadAttachmentResult,
@@ -813,6 +815,8 @@ export interface IUniverseAgentGrpcTransport {
 	destroyRemoteSession(request: UniverseAgentDestroyRemoteSessionRequest): Promise<UniverseAgentDestroyRemoteSessionResult>;
 	/** RemoteAgentService.GetRemoteSessionStatus unary (snake_case `call_id`). Empty ids sent as-is. */
 	getRemoteSessionStatus(request: UniverseAgentGetRemoteSessionStatusRequest): Promise<UniverseAgentGetRemoteSessionStatusResult>;
+	/** RemoteAgentService.GetRemoteSessionHistory unary (snake_case `call_id`/`since_version`/`page_size`). Empty ids sent as-is. */
+	getRemoteSessionHistory(request: UniverseAgentGetRemoteSessionHistoryRequest): Promise<UniverseAgentGetRemoteSessionHistoryResult>;
 
 	/** FileTransferService.GetUploadProgress unary (snake_case `transfer_id`/`session_id`). Empty ids sent as-is. */
 	getUploadProgress(request: UniverseAgentGetUploadProgressRequest): Promise<UniverseAgentGetUploadProgressResult>;
@@ -1153,6 +1157,7 @@ export const UniverseAgentGrpcServices = {
 		CreateRemoteSession: 'CreateRemoteSession',
 		DestroyRemoteSession: 'DestroyRemoteSession',
 		GetRemoteSessionStatus: 'GetRemoteSessionStatus',
+		GetRemoteSessionHistory: 'GetRemoteSessionHistory',
 	},
 } as const;
 
