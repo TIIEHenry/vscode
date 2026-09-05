@@ -4,8 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import type { UniverseAgentListSessionsRequest } from '../../common/universeAgentTypes.js';
-import type { DeviceInfoWire, ListAgentProfilesResponseWire, ListDevicesResponseWire } from './grpcClientMappersCatalog.js';
-import type { AgentInfoWire, AgentTreeResponseWire, ListSessionsResponseWire } from './grpcClientMappersSession.js';
+import type { DeviceInfoWire, ListAgentProfilesResponseWire, ListDevicesResponseWire, ListModelsResponseWire } from './grpcClientMappersCatalog.js';
+import type { AgentInfoWire, AgentTreeResponseWire, ListAgentsResponseWire, ListSessionsResponseWire } from './grpcClientMappersSession.js';
 import {
 	allLengthDelimited,
 	encodeInt32Field,
@@ -82,6 +82,27 @@ export function decodeListDevicesResponse(bytes: Uint8Array): ListDevicesRespons
 	};
 }
 
+export function encodeListModelsRequest(): Uint8Array {
+	// ListModelsRequest.include_disabled = 2; proto3 default false, so true must be on the wire.
+	return encodeInt32Field(2, 1);
+}
+
+export function decodeListModelsResponse(bytes: Uint8Array): ListModelsResponseWire {
+	return {
+		models: allLengthDelimited(readProtoFields(bytes), 1).map(decodeModelEntry),
+	};
+}
+
+export function encodeListAgentsRequest(sessionId: string): Uint8Array {
+	return encodeStringField(1, sessionId);
+}
+
+export function decodeListAgentsResponse(bytes: Uint8Array): ListAgentsResponseWire {
+	return {
+		agents: allLengthDelimited(readProtoFields(bytes), 1).map(decodeAgentInfo),
+	};
+}
+
 export function encodeAgentTreeRequest(sessionId: string): Uint8Array {
 	return encodeStringField(1, sessionId);
 }
@@ -102,6 +123,22 @@ function decodeSessionSummary(bytes: Uint8Array): NonNullable<ListSessionsRespon
 		turn_count: numberOrUndefined(lastVarint(fields, 5)),
 		model: lastString(fields, 6),
 		title: lastString(fields, 7),
+	};
+}
+
+function decodeModelEntry(bytes: Uint8Array): NonNullable<ListModelsResponseWire['models']>[number] {
+	const fields = readProtoFields(bytes);
+	const level = lastVarint(fields, 4);
+	return {
+		id: lastString(fields, 1) ?? '',
+		type: lastString(fields, 2) ?? '',
+		enabled: lastVarint(fields, 3) === 1n,
+		level: level === undefined ? undefined : Number(level),
+		description: lastString(fields, 5),
+		cost: lastString(fields, 6),
+		speed: lastString(fields, 7),
+		provider: lastString(fields, 8),
+		model_id: lastString(fields, 9),
 	};
 }
 

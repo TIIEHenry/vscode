@@ -544,11 +544,15 @@ import {
 import {
 	decodeAgentTreeResponse,
 	decodeListAgentProfilesResponse,
+	decodeListAgentsResponse,
 	decodeListDevicesResponse,
+	decodeListModelsResponse,
 	decodeListSessionsResponse,
 	encodeAgentTreeRequest,
 	encodeListAgentProfilesRequest,
+	encodeListAgentsRequest,
 	encodeListDevicesRequest,
+	encodeListModelsRequest,
 	encodeListSessionsRequest,
 } from './grpcCatalogUnaryWire.js';
 import type {
@@ -595,14 +599,12 @@ import type {
 	HealthCheckResponseWire,
 	HistoryResponseWire,
 	ListAgentProfilesResponseWire,
-	ListAgentsResponseWire,
 	ListCommandsResponseWire,
 	ListConfigsResponseWire,
 	ListDevicesResponseWire,
 	ListFilesResponseWire,
 	ListLoopSnapshotsResponseWire,
 	ListMcpServersResponseWire,
-	ListModelsResponseWire,
 	ListNodesResponseWire,
 	ListPendingResponseWire,
 	ListPluginsResponseWire,
@@ -1464,15 +1466,13 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 	}
 
 	async listAgents(request: UniverseAgentListAgentsRequest): Promise<UniverseAgentListAgentsResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, ListAgentsResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Agent.service,
 			UniverseAgentGrpcServices.Agent.List,
+			decodeListAgentsResponse,
 		);
-		const wire = await unary({
-			session_id: request.sessionId,
-		});
-		return mapListAgentsResponse(wire);
+		return mapListAgentsResponse(await unary(encodeListAgentsRequest(request.sessionId)));
 	}
 
 	async getAgentHistory(request: UniverseAgentAgentHistoryRequest): Promise<UniverseAgentAgentHistoryResult> {
@@ -3709,13 +3709,13 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 	}
 
 	async listModels(): Promise<UniverseAgentListModelsResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, ListModelsResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Config.service,
 			UniverseAgentGrpcServices.Config.ListModels,
+			decodeListModelsResponse,
 		);
-		const wire = await unary({ include_disabled: true });
-		return mapListModelsResponse(wire);
+		return mapListModelsResponse(await unary(encodeListModelsRequest()));
 	}
 
 	async getConfig(request: UniverseAgentGetConfigRequest): Promise<UniverseAgentGetConfigResult> {

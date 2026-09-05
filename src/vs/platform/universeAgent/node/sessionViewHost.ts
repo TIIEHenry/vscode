@@ -48,6 +48,7 @@ import {
 	readTeamCreatedTeamId,
 	shouldRefreshAgentTree,
 } from './fileMutationJoin.js';
+import { isAlreadyExistsError } from './grpc/grpcTransport.js';
 
 type ActiveStream = {
 	readonly attemptId: AttemptId;
@@ -441,11 +442,40 @@ export class SessionViewHost extends Disposable {
 				return cached;
 			}
 		}
-		const created = await this.connection.createSession({ title: localId });
-		if (!created.sessionId) {
-			throw new Error('CreateSession returned empty session_id');
+		try {
+			const created = await this.connection.createSession({ title: localId });
+			if (!created.sessionId) {
+				throw new Error('CreateSession returned empty session_id');
+			}
+			return created.sessionId;
+		} catch (error) {
+			if (!isAlreadyExistsError(error)) {
+				throw error;
+			}
+			return this.recoverExistingEngineSession(localId, cached);
 		}
-		return created.sessionId;
+	}
+
+	private async recoverExistingEngineSession(localId: string, cached: string | undefined): Promise<string> {
+		if (cached) {
+			await this.resumeEngineSessionIfPossible(cached);
+			return cached;
+		}
+		const listed = await this.connection.listSessions({});
+		const match = listed.sessions.find(session => session.title === localId && session.sessionId)
+			?? listed.sessions.find(session => !!session.sessionId);
+		if (!match?.sessionId) {
+			throw new Error('CreateSession ALREADY_EXISTS and List returned no session_id');
+		}
+		await this.resumeEngineSessionIfPossible(match.sessionId);
+		return match.sessionId;
+	}
+
+	private async resumeEngineSessionIfPossible(engineId: string): Promise<void> {
+		if (typeof this.connection.resumeSession !== 'function') {
+			return;
+		}
+		await this.connection.resumeSession({ sessionId: engineId });
 	}
 
 	private resolveEngineSessionId(localId: string): string | undefined {

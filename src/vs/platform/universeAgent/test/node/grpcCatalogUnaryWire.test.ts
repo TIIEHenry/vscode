@@ -10,12 +10,16 @@ import {
 	EMPTY_PROTO_MESSAGE,
 	decodeAgentTreeResponse,
 	decodeListAgentProfilesResponse,
+	decodeListAgentsResponse,
 	decodeListDevicesResponse,
+	decodeListModelsResponse,
 	decodeListSessionsResponse,
 	encodeAgentTreeRequest,
 	encodeEmptyProtoMessage,
 	encodeListAgentProfilesRequest,
+	encodeListAgentsRequest,
 	encodeListDevicesRequest,
+	encodeListModelsRequest,
 	encodeListSessionsRequest,
 } from '../../node/grpc/grpcCatalogUnaryWire.js';
 import {
@@ -103,6 +107,55 @@ suite('grpc catalog unary protobuf wire', () => {
 		const device = encodeStringField(1, 'dev-1');
 		const decoded = decodeListDevicesResponse(encodeMessageField(1, device));
 		assert.strictEqual(decoded.devices?.[0]?.device_id, 'dev-1');
+	});
+
+	test('encodeListModelsRequest writes include_disabled true, not JSON', () => {
+		const encoded = encodeListModelsRequest();
+		assert.ok(encoded.length > 0);
+		assert.notStrictEqual(encoded[0], 0x7b);
+		const fields = readProtoFields(encoded);
+		assert.strictEqual(fields.length, 1);
+		assert.strictEqual(fields[0].field, 2);
+		assert.strictEqual(fields[0].wireType, 0);
+		if (fields[0].wireType === 0) {
+			assert.strictEqual(Number(fields[0].varint), 1);
+		}
+	});
+
+	test('decodeListModelsResponse reads ModelEntryProto fields', () => {
+		const model = Buffer.concat([
+			encodeStringField(1, 'fast'),
+			encodeStringField(2, 'chat'),
+			encodeInt32Field(3, 1),
+			encodeInt32Field(4, 7),
+			encodeStringField(8, 'openai'),
+			encodeStringField(9, 'gpt-fast'),
+		]);
+		const decoded = decodeListModelsResponse(encodeMessageField(1, model));
+		assert.strictEqual(decoded.models?.[0]?.id, 'fast');
+		assert.strictEqual(decoded.models?.[0]?.enabled, true);
+		assert.strictEqual(decoded.models?.[0]?.level, 7);
+		assert.strictEqual(decoded.models?.[0]?.provider, 'openai');
+		assert.strictEqual(decoded.models?.[0]?.model_id, 'gpt-fast');
+	});
+
+	test('encodeListAgentsRequest with empty session_id is empty proto, not JSON {}', () => {
+		const encoded = encodeListAgentsRequest('');
+		assert.strictEqual(encoded.length, 0);
+		assert.notStrictEqual(JSON.stringify({ session_id: '' }), Buffer.from(encoded).toString('utf8'));
+		const framed = asUnaryProtoBytes(encoded);
+		assert.ok(Buffer.isBuffer(framed));
+		assert.strictEqual(framed.length, 0);
+	});
+
+	test('decodeListAgentsResponse reads agent_id', () => {
+		const agent = Buffer.concat([
+			encodeStringField(1, 'root'),
+			encodeStringField(2, 'Root'),
+		]);
+		const decoded = decodeListAgentsResponse(encodeMessageField(1, agent));
+		assert.strictEqual(decoded.agents?.[0]?.agent_id, 'root');
+		assert.strictEqual(decoded.agents?.[0]?.name, 'Root');
 	});
 
 	test('encodeAgentTreeRequest writes session_id field 1', () => {

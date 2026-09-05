@@ -5,6 +5,7 @@
 
 import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
+import { GrpcStatusCode, UniverseAgentTransportError } from '../../node/grpc/grpcTransport.js';
 import { SessionViewHost } from '../../node/sessionViewHost.js';
 import { TestConnection, TestHost } from './sessionViewHostTestHelpers.js';
 
@@ -104,5 +105,96 @@ suite('SessionViewHost engine session bind', () => {
 
 		assert.strictEqual(connection.createSessionCalls.length, 1);
 		assert.deepStrictEqual(connection.resumeSessionCalls, [{ sessionId: 'eng-real' }]);
+	});
+
+	test('Create ALREADY_EXISTS Resumes listed session_id and does not Create again', async () => {
+		const connection = new class extends BindConnection {
+			override async createSession() {
+				this.createSessionCalls.push({});
+				throw new UniverseAgentTransportError(GrpcStatusCode.ALREADY_EXISTS, '6 ALREADY_EXISTS: Session already exists');
+			}
+			override async listSessions() {
+				return { sessions: [{ sessionId: 'eng-listed', title: 'Hello' }] };
+			}
+		}();
+		const viewHost = store.add(new SessionViewHost(connection, new TestHost(async () => undefined), {
+			orphanTimeoutMs: 0,
+		}));
+		viewHost.onEngineConnectionChanged();
+		viewHost.acquireLease('local-exists');
+		const engineId = await viewHost.whenEngineSessionReady('local-exists');
+
+		assert.strictEqual(engineId, 'eng-listed');
+		assert.strictEqual(connection.createSessionCalls.length, 1);
+		assert.deepStrictEqual(connection.resumeSessionCalls, [{ sessionId: 'eng-listed' }]);
+		assert.deepStrictEqual(connection.streamSessionIds, ['eng-listed']);
+		assert.deepStrictEqual(connection.chatSessionIds, ['eng-listed']);
+	});
+
+	test('Create ALREADY_EXISTS prefers List title match over first row', async () => {
+		const connection = new class extends BindConnection {
+			override async createSession() {
+				this.createSessionCalls.push({});
+				throw new UniverseAgentTransportError(6, 'Session already exists');
+			}
+			override async listSessions() {
+				return {
+					sessions: [
+						{ sessionId: 'eng-first', title: 'Other' },
+						{ sessionId: 'eng-match', title: 'local-exists' },
+					],
+				};
+			}
+		}();
+		const viewHost = store.add(new SessionViewHost(connection, new TestHost(async () => undefined), {
+			orphanTimeoutMs: 0,
+		}));
+		viewHost.onEngineConnectionChanged();
+		viewHost.acquireLease('local-exists');
+		const engineId = await viewHost.whenEngineSessionReady('local-exists');
+		assert.strictEqual(engineId, 'eng-match');
+		assert.deepStrictEqual(connection.resumeSessionCalls, [{ sessionId: 'eng-match' }]);
+	});
+
+	test('Create ALREADY_EXISTS with empty List does not retry Create', async () => {
+		const connection = new class extends BindConnection {
+			override async createSession() {
+				this.createSessionCalls.push({});
+				throw new UniverseAgentTransportError(GrpcStatusCode.ALREADY_EXISTS, 'Session already exists');
+			}
+		}();
+		const viewHost = store.add(new SessionViewHost(connection, new TestHost(async () => undefined), {
+			orphanTimeoutMs: 0,
+		}));
+		viewHost.onEngineConnectionChanged();
+		await assert.rejects(
+			() => viewHost.whenEngineSessionReady('local-empty'),
+			/List returned no session_id/,
+		);
+		assert.strictEqual(connection.createSessionCalls.length, 1);
+		assert.deepStrictEqual(connection.resumeSessionCalls, []);
+	});
+
+	test('Create non-ALREADY_EXISTS errors still throw without List recover', async () => {
+		const connection = new class extends BindConnection {
+			listCalled = false;
+			override async createSession() {
+				this.createSessionCalls.push({});
+				throw new UniverseAgentTransportError(GrpcStatusCode.UNAVAILABLE, 'engine down');
+			}
+			override async listSessions() {
+				this.listCalled = true;
+				return { sessions: [{ sessionId: 'should-not-use' }] };
+			}
+		}();
+		const viewHost = store.add(new SessionViewHost(connection, new TestHost(async () => undefined), {
+			orphanTimeoutMs: 0,
+		}));
+		viewHost.onEngineConnectionChanged();
+		await assert.rejects(
+			() => viewHost.whenEngineSessionReady('local-fail'),
+			(error: unknown) => error instanceof UniverseAgentTransportError && error.code === GrpcStatusCode.UNAVAILABLE,
+		);
+		assert.strictEqual(connection.listCalled, false);
 	});
 });
