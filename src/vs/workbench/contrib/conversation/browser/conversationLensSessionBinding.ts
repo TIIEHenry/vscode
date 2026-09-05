@@ -57,6 +57,8 @@ export function bindSessionView(host: IConversationLensSessionBindingHost, sessi
 	host.sessionViewLifetime.clear();
 	if (!sessionId || (host.stubService.isEngineConnected() && !host.stubService.isEngineSessionReady())) {
 		host.sessionViewLease = undefined;
+		host.lastAttachedEntries = [];
+		host.timelineTree.applyEntries([], { kind: 'baseline' });
 		return;
 	}
 	const lease = host.sessionViewLifetime.add(host.stubService.acquireSessionView(sessionId));
