@@ -2694,6 +2694,25 @@ export interface UniverseAgentListConfigsResult {
 export interface UniverseAgentGetRemoteAgentConfigRequest {
 	readonly nodeId: string;
 }
+
+/**
+ * RemoteAgentService.Reload — proto `ReloadRemoteAgentsRequest` /
+ * `ReloadRemoteAgentsResponse` only. Empty request. Empty `added` /
+ * `removed` / `changed` / `errors` (incl. empty strings) mapped as-is.
+ * `success` false mapped as-is. `duration_ms` 0 mapped as-is.
+ * ≠ ListNodes / GetNode / CheckConnection / SetMaintenance /
+ * ExitMaintenance / ResetError / ListConfigs / GetConfig /
+ * SaveConfig / DeleteConfig / DeviceService / Plugin.Reload.
+ */
+export interface UniverseAgentReloadRemoteAgentsResult {
+	readonly success: boolean;
+	readonly added: readonly string[];
+	readonly removed: readonly string[];
+	readonly changed: readonly string[];
+	readonly errors: readonly string[];
+	readonly durationMs: number;
+}
+
 /**
  * FileTransferService.GetUploadProgress — proto `UploadProgressRequest` /
  * `UploadProgressResponse` only. Empty `transfer_id` / `session_id` pass
