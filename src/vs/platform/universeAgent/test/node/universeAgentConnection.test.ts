@@ -237,6 +237,8 @@ import type {
 	UniverseAgentCheckConnectionRequest,
 	UniverseAgentConnectionReport,
 	UniverseAgentListConfigsResult,
+	UniverseAgentGetRemoteAgentConfigRequest,
+	UniverseAgentRemoteAgentConfig,
 	UniverseAgentGetUploadProgressRequest,
 	UniverseAgentGetUploadProgressResult,
 	UniverseAgentShutdownRequest,
@@ -1825,6 +1827,41 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 		return this.listConfigsResult;
 	}
 
+	readonly getRemoteAgentConfigCalls: UniverseAgentGetRemoteAgentConfigRequest[] = [];
+	getRemoteAgentConfigResult: UniverseAgentRemoteAgentConfig = {
+		id: '',
+		name: '',
+		description: '',
+		enabled: false,
+		endpoint: { host: '', port: 0, tls: false, tlsCertPath: '' },
+		auth: { type: '', apiKeyRef: '', tokenRef: '' },
+		tags: [],
+		maxConcurrentSessions: 0,
+		sessionLifecycle: '',
+		defaultPermissionDelegate: {
+			mode: '',
+			whitelist: [],
+			budget: { maxToolCalls: 0, maxTokens: 0, timeoutMs: 0, windowMs: 0, maxBubbleToUserPerDay: 0 },
+			timeoutPolicy: '',
+			fallback: '',
+			bubbleTarget: '',
+		},
+		healthCheck: {
+			intervalMs: 0,
+			timeoutMs: 0,
+			unhealthyThreshold: 0,
+			healthyThreshold: 0,
+			useWatch: false,
+			degradedErrorRateThreshold: 0,
+			degradedP99LatencyMs: 0,
+		},
+	};
+
+	async getRemoteAgentConfig(request: UniverseAgentGetRemoteAgentConfigRequest): Promise<UniverseAgentRemoteAgentConfig> {
+		this.getRemoteAgentConfigCalls.push(request);
+		return this.getRemoteAgentConfigResult;
+	}
+
 	readonly getUploadProgressCalls: UniverseAgentGetUploadProgressRequest[] = [];
 	getUploadProgressResult: UniverseAgentGetUploadProgressResult = {
 		exists: false,
@@ -2594,6 +2631,10 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.RemoteAgent.service, 'universeagent.remoteagent.v1.RemoteAgentService');
 	});
 
+	test('UniverseAgentGrpcServices lists RemoteAgent.GetConfig', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.RemoteAgent.GetConfig, 'GetConfig');
+		assert.strictEqual(UniverseAgentGrpcServices.RemoteAgent.service, 'universeagent.remoteagent.v1.RemoteAgentService');
+	});
 	test('UniverseAgentGrpcServices lists FileTransfer.GetUploadProgress', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.FileTransfer.GetUploadProgress, 'GetUploadProgress');
 		assert.strictEqual(UniverseAgentGrpcServices.FileTransfer.service, 'universeagent.filetransfer.v1.FileTransferService');
@@ -6688,6 +6729,150 @@ suite('UniverseAgentConnectionService', () => {
 		const emptyList = await service.listConfigs();
 		assert.strictEqual(transport.listConfigsCalls, 3);
 		assert.deepStrictEqual(emptyList.configs, []);
+		service.dispose();
+	});
+
+	test('getRemoteAgentConfig forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.getRemoteAgentConfigResult = {
+			id: 'node-1',
+			name: 'galaxy',
+			description: 'remote',
+			enabled: true,
+			endpoint: {
+				host: '127.0.0.1',
+				port: 50061,
+				tls: true,
+				tlsCertPath: '/certs/ca.pem',
+			},
+			auth: {
+				type: 'API_KEY',
+				apiKeyRef: '${UA_KEY}',
+				tokenRef: 'keyring://ua',
+			},
+			tags: ['prod'],
+			maxConcurrentSessions: 4,
+			sessionLifecycle: 'POOLED',
+			defaultPermissionDelegate: {
+				mode: 'WHITELIST_VERIFIED',
+				whitelist: [{
+					toolName: 'read',
+					argConditions: [{
+						field: 'path',
+						operator: 'starts_with',
+						value: '/tmp',
+					}],
+				}],
+				budget: {
+					maxToolCalls: 10,
+					maxTokens: 1000,
+					timeoutMs: 5000,
+					windowMs: 60_000,
+					maxBubbleToUserPerDay: 3,
+				},
+				timeoutPolicy: 'DENY',
+				fallback: 'DENY_ALL',
+				bubbleTarget: 'USER',
+			},
+			healthCheck: {
+				intervalMs: 15_000,
+				timeoutMs: 2000,
+				unhealthyThreshold: 3,
+				healthyThreshold: 2,
+				useWatch: true,
+				degradedErrorRateThreshold: 0.2,
+				degradedP99LatencyMs: 800,
+			},
+		};
+		const request = {
+			nodeId: 'node-1',
+		};
+		const result = await service.getRemoteAgentConfig(request);
+		assert.deepStrictEqual(transport.getRemoteAgentConfigCalls, [request]);
+		assert.deepStrictEqual(result, transport.getRemoteAgentConfigResult);
+
+		transport.getRemoteAgentConfigResult = {
+			id: '',
+			name: '',
+			description: '',
+			enabled: false,
+			endpoint: {
+				host: '',
+				port: 0,
+				tls: false,
+				tlsCertPath: '',
+			},
+			auth: {
+				type: '',
+				apiKeyRef: '',
+				tokenRef: '',
+			},
+			tags: [''],
+			maxConcurrentSessions: 0,
+			sessionLifecycle: '',
+			defaultPermissionDelegate: {
+				mode: '',
+				whitelist: [{
+					toolName: '',
+					argConditions: [{
+						field: '',
+						operator: '',
+						value: '',
+					}],
+				}],
+				budget: {
+					maxToolCalls: 0,
+					maxTokens: 0,
+					timeoutMs: 0,
+					windowMs: 0,
+					maxBubbleToUserPerDay: 0,
+				},
+				timeoutPolicy: '',
+				fallback: '',
+				bubbleTarget: '',
+			},
+			healthCheck: {
+				intervalMs: 0,
+				timeoutMs: 0,
+				unhealthyThreshold: 0,
+				healthyThreshold: 0,
+				useWatch: false,
+				degradedErrorRateThreshold: 0,
+				degradedP99LatencyMs: 0,
+			},
+		};
+		const emptyRequest = {
+			nodeId: '',
+		};
+		const empty = await service.getRemoteAgentConfig(emptyRequest);
+		assert.strictEqual(transport.getRemoteAgentConfigCalls[1]?.nodeId, '');
+		assert.strictEqual(empty.id, '');
+		assert.strictEqual(empty.name, '');
+		assert.strictEqual(empty.description, '');
+		assert.strictEqual(empty.enabled, false);
+		assert.strictEqual(empty.endpoint.host, '');
+		assert.strictEqual(empty.endpoint.port, 0);
+		assert.strictEqual(empty.endpoint.tls, false);
+		assert.strictEqual(empty.endpoint.tlsCertPath, '');
+		assert.strictEqual(empty.auth.type, '');
+		assert.strictEqual(empty.auth.apiKeyRef, '');
+		assert.strictEqual(empty.auth.tokenRef, '');
+		assert.deepStrictEqual(empty.tags, ['']);
+		assert.strictEqual(empty.maxConcurrentSessions, 0);
+		assert.strictEqual(empty.sessionLifecycle, '');
+		assert.strictEqual(empty.defaultPermissionDelegate.mode, '');
+		assert.strictEqual(empty.defaultPermissionDelegate.whitelist[0]?.toolName, '');
+		assert.strictEqual(empty.defaultPermissionDelegate.whitelist[0]?.argConditions[0]?.field, '');
+		assert.strictEqual(empty.defaultPermissionDelegate.budget.maxToolCalls, 0);
+		assert.strictEqual(empty.defaultPermissionDelegate.timeoutPolicy, '');
+		assert.strictEqual(empty.healthCheck.intervalMs, 0);
+		assert.strictEqual(empty.healthCheck.useWatch, false);
+		assert.strictEqual(empty.healthCheck.degradedErrorRateThreshold, 0);
 		service.dispose();
 	});
 

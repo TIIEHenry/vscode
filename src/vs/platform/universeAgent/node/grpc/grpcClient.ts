@@ -327,6 +327,7 @@ import type {
 	UniverseAgentListNodesResult,
 	UniverseAgentGetNodeRequest,
 	UniverseAgentListConfigsResult,
+	UniverseAgentGetRemoteAgentConfigRequest,
 	UniverseAgentRemoteAgentAuthConfig,
 	UniverseAgentRemoteAgentCapabilities,
 	UniverseAgentRemoteAgentConfig,
@@ -3807,7 +3808,7 @@ function mapRemoteAgentHealthCheckConfig(wire: RemoteAgentHealthCheckConfigWire 
 		unhealthyThreshold: requiredInt64(wire.unhealthy_threshold),
 		healthyThreshold: requiredInt64(wire.healthy_threshold),
 		useWatch: wire.use_watch === true,
-		degradedErrorRateThreshold: requiredInt64(wire.degraded_error_rate_threshold),
+		degradedErrorRateThreshold: requiredDouble(wire.degraded_error_rate_threshold),
 		degradedP99LatencyMs: requiredInt64(wire.degraded_p99_latency_ms),
 	};
 }
@@ -6584,6 +6585,18 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 		);
 		const wire = await unary({});
 		return mapListConfigsResponse(wire);
+	}
+
+	async getRemoteAgentConfig(request: UniverseAgentGetRemoteAgentConfigRequest): Promise<UniverseAgentRemoteAgentConfig> {
+		const unary = makeUnaryClient<Record<string, unknown>, RemoteAgentConfigWire>(
+			this._channel,
+			UniverseAgentGrpcServices.RemoteAgent.service,
+			UniverseAgentGrpcServices.RemoteAgent.GetConfig,
+		);
+		const wire = await unary({
+			node_id: request.nodeId,
+		});
+		return mapRemoteAgentConfig(wire);
 	}
 
 	async getUploadProgress(request: UniverseAgentGetUploadProgressRequest): Promise<UniverseAgentGetUploadProgressResult> {

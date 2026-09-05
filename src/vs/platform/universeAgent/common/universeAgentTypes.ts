@@ -2646,6 +2646,25 @@ export interface UniverseAgentListConfigsResult {
 }
 
 /**
+ * RemoteAgentService.GetConfig — proto `GetRemoteAgentConfigRequest` /
+ * `RemoteAgentConfig` + `Endpoint` / `AuthConfig` /
+ * `PermissionDelegate` / `WhitelistEntry` / `ArgCondition` /
+ * `PermissionBudget` / `HealthCheckConfig` only. Empty `node_id`
+ * (incl. empty string) passes through as-is. Empty `id` / `name` /
+ * `description` / `tags` / `session_lifecycle` / endpoint `host` /
+ * `tls_cert_path` / auth `type`/`api_key_ref`/`token_ref` / delegate
+ * `mode`/`timeout_policy`/`fallback`/`bubble_target` / whitelist
+ * `tool_name` / arg `field`/`operator`/`value` mapped as-is.
+ * `enabled` / `tls` / `use_watch` false mapped as-is.
+ * `max_concurrent_sessions` / `port` / health ints / budget ints /
+ * `degraded_error_rate_threshold` 0 mapped as-is.
+ * ≠ ListNodes / GetNode / CheckConnection / ListConfigs /
+ * ConfigService.Get / DeviceService.
+ */
+export interface UniverseAgentGetRemoteAgentConfigRequest {
+	readonly nodeId: string;
+}
+/**
  * FileTransferService.GetUploadProgress — proto `UploadProgressRequest` /
  * `UploadProgressResponse` only. Empty `transfer_id` / `session_id` pass
  * through as-is. `bytes_received` 0 / empty `partial_path` mapped as-is.
