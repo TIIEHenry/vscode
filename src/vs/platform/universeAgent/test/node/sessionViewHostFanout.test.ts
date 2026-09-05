@@ -72,6 +72,7 @@ suite('SessionViewHost per-lease fanout (F1)', () => {
 
 		viewHost.onEngineConnectionChanged();
 		const leaseId = viewHost.acquireLease('sess-burst');
+		await viewHost.whenEngineSessionReady('sess-burst');
 
 		const received: IUniverseAgentSessionViewFrameEvent[] = [];
 		store.add(viewHost.onDynamicDidApplyFrame(leaseId)(e => received.push(e)));

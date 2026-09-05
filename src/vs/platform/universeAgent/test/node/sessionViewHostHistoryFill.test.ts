@@ -122,6 +122,7 @@ suite('SessionViewHost HistoryFill', () => {
 		store.add(viewHost.onDidApplyFrame(event => frames.push(event)));
 		viewHost.onEngineConnectionChanged();
 		viewHost.acquireLease('sess-hist');
+		await viewHost.whenEngineSessionReady('sess-hist');
 		connection.pushStreamEvent('sess-hist', {
 			hello: { session_version: 1, head_seq: 1, runtime_epoch: 1, last_mutated_from_seq: 0 },
 		});

@@ -94,6 +94,7 @@ suite('SessionViewHost continuation onClosed', () => {
 		}));
 		viewHost.onEngineConnectionChanged();
 		const leaseId = viewHost.acquireLease('sess-cg-remote');
+		await viewHost.whenEngineSessionReady('sess-cg-remote');
 
 		const frames: IUniverseAgentSessionViewFrameEvent[] = [];
 		store.add(viewHost.onDynamicDidApplyFrame(leaseId)(e => frames.push(e)));
@@ -121,6 +122,7 @@ suite('SessionViewHost continuation onClosed', () => {
 		}));
 		viewHost.onEngineConnectionChanged();
 		const leaseId = viewHost.acquireLease('sess-cg-error');
+		await viewHost.whenEngineSessionReady('sess-cg-error');
 
 		const frames: IUniverseAgentSessionViewFrameEvent[] = [];
 		store.add(viewHost.onDynamicDidApplyFrame(leaseId)(e => frames.push(e)));
@@ -137,7 +139,7 @@ suite('SessionViewHost continuation onClosed', () => {
 		assert.deepStrictEqual(closedChromeFromFrames(frames), []);
 	});
 
-	test('connection-down disposes the continuation handle without a remote onClosed', () => {
+	test('connection-down disposes the continuation handle without a remote onClosed', async () => {
 		const connection = new ContinuationConnection();
 		const diagnostics = new CountingDiagnostics();
 		const viewHost = store.add(new SessionViewHost(connection, new TestHost(async () => undefined), {
@@ -146,6 +148,7 @@ suite('SessionViewHost continuation onClosed', () => {
 		}));
 		viewHost.onEngineConnectionChanged();
 		viewHost.acquireLease('sess-cg-local');
+		await viewHost.whenEngineSessionReady('sess-cg-local');
 		postContinue(viewHost, 'sess-cg-local');
 		assert.strictEqual(connection.opens.length, 1);
 
@@ -156,13 +159,14 @@ suite('SessionViewHost continuation onClosed', () => {
 		assert.ok(!diagnostics.warnings.some(w => w.message === 'openContinuationStream closed'));
 	});
 
-	test('replacing a continuation disposes the previous handle', () => {
+	test('replacing a continuation disposes the previous handle', async () => {
 		const connection = new ContinuationConnection();
 		const viewHost = store.add(new SessionViewHost(connection, new TestHost(async () => undefined), {
 			orphanTimeoutMs: 0,
 		}));
 		viewHost.onEngineConnectionChanged();
 		viewHost.acquireLease('sess-cg-replace');
+		await viewHost.whenEngineSessionReady('sess-cg-replace');
 		postContinue(viewHost, 'sess-cg-replace');
 		postContinue(viewHost, 'sess-cg-replace');
 		assert.strictEqual(connection.opens.length, 2);

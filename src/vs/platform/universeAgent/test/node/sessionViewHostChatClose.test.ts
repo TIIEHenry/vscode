@@ -62,9 +62,10 @@ function closedChromeFromFrames(frames: readonly IUniverseAgentSessionViewFrameE
 	}).map(patch => patch.sync).filter((sync): sync is Extract<SyncChrome, { kind: 'closed' }> => sync.kind === 'closed');
 }
 
-function openResident(viewHost: SessionViewHost, sessionId: string, connection: ChatConnection): void {
+async function openResident(viewHost: SessionViewHost, sessionId: string, connection: ChatConnection): Promise<void> {
 	viewHost.onEngineConnectionChanged();
 	viewHost.acquireLease(sessionId);
+	await viewHost.whenEngineSessionReady(sessionId);
 	assert.strictEqual(connection.opens.length, 1, 'lease + connection-up must open resident Chat');
 }
 
@@ -83,6 +84,7 @@ suite('SessionViewHost chat onClosed', () => {
 			viewHost.onEngineConnectionChanged();
 			return viewHost.acquireLease('sess-chat-remote');
 		})();
+		await viewHost.whenEngineSessionReady('sess-chat-remote');
 		assert.strictEqual(connection.opens.length, 1);
 
 		const frames: IUniverseAgentSessionViewFrameEvent[] = [];
@@ -108,6 +110,7 @@ suite('SessionViewHost chat onClosed', () => {
 		}));
 		viewHost.onEngineConnectionChanged();
 		const leaseId = viewHost.acquireLease('sess-chat-error');
+		await viewHost.whenEngineSessionReady('sess-chat-error');
 		const frames: IUniverseAgentSessionViewFrameEvent[] = [];
 		store.add(viewHost.onDynamicDidApplyFrame(leaseId)(e => frames.push(e)));
 		await new Promise<void>(resolve => queueMicrotask(() => resolve()));
@@ -122,14 +125,14 @@ suite('SessionViewHost chat onClosed', () => {
 		assert.deepStrictEqual(closedChromeFromFrames(frames), []);
 	});
 
-	test('connection-down disposes the Chat handle without a remote onClosed', () => {
+	test('connection-down disposes the Chat handle without a remote onClosed', async () => {
 		const connection = new ChatConnection();
 		const diagnostics = new CountingDiagnostics();
 		const viewHost = store.add(new SessionViewHost(connection, new TestHost(async () => undefined), {
 			orphanTimeoutMs: 0,
 			diagnostics,
 		}));
-		openResident(viewHost, 'sess-chat-local', connection);
+		await openResident(viewHost, 'sess-chat-local', connection);
 
 		void connection.disconnect();
 		viewHost.onEngineConnectionChanged();

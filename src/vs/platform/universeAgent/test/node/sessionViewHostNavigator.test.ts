@@ -70,7 +70,7 @@ class TestConnection implements IUniverseAgentConnection {
 	async probeConnectionProfile() { return { ok: false as const, code: 'transport_failed' as const, reason: 'test' }; }
 	async disconnect() { this.connected = false; }
 	async listSessions() { return { sessions: [] }; }
-	async createSession() { return { sessionId: 's' }; }
+	async createSession(request: { title?: string } = {}) { return { sessionId: request.title || 's' }; }
 	async deleteSession() { }
 	async renameSession() { return { ok: false, message: 'test' }; }
 	async cancelGeneration() { return { ok: false, message: 'test' }; }
@@ -186,6 +186,7 @@ suite('SessionViewHost navigator §11', () => {
 
 		viewHost.onEngineConnectionChanged();
 		viewHost.acquireLease('sess-a');
+		await viewHost.whenEngineSessionReady('sess-a');
 		await flushAgentTreeCoordinator(getTreeCoordinator(viewHost, 'sess-a'));
 
 		assert.ok(host.treeFetchCount >= 1);
@@ -199,6 +200,7 @@ suite('SessionViewHost navigator §11', () => {
 
 		viewHost.onEngineConnectionChanged();
 		viewHost.acquireLease('sess-b');
+		await viewHost.whenEngineSessionReady('sess-b');
 		const tree = getTreeCoordinator(viewHost, 'sess-b');
 		await tree.pullNow(() => { });
 		const countAfterFirst = host.treeFetchCount;
@@ -213,6 +215,7 @@ suite('SessionViewHost navigator §11', () => {
 
 		viewHost.onEngineConnectionChanged();
 		viewHost.acquireLease('sess-c');
+		await viewHost.whenEngineSessionReady('sess-c');
 		await flushAgentTreeCoordinator(getTreeCoordinator(viewHost, 'sess-c'));
 		const before = host.treeFetchCount;
 		connection.pushStreamEvent('sess-c', { sub_agent_completed: {} });
@@ -220,13 +223,14 @@ suite('SessionViewHost navigator §11', () => {
 		assert.ok(host.treeFetchCount > before);
 	});
 
-	test('lifecycle + snapshot stream → file mutation via host', () => {
+	test('lifecycle + snapshot stream → file mutation via host', async () => {
 		const connection = new TestConnection();
 		const host = new TestHost(async () => ROOT_TREE);
 		const viewHost = store.add(new SessionViewHost(connection, host, { orphanTimeoutMs: 0 }));
 
 		viewHost.onEngineConnectionChanged();
 		viewHost.acquireLease('sess-d');
+		await viewHost.whenEngineSessionReady('sess-d');
 		connection.pushStreamEvent('sess-d', {
 			tool_call_lifecycle: { tool_call_id: 'tc-x', turn_id: 'turn-x', agent_id: 'agent-x' },
 		});
@@ -241,25 +245,27 @@ suite('SessionViewHost navigator §11', () => {
 		assert.strictEqual(host.fileMutations[0]!.toolCallId, 'tc-x');
 	});
 
-	test('multi_agent_status → team runtime notification', () => {
+	test('multi_agent_status → team runtime notification', async () => {
 		const connection = new TestConnection();
 		const host = new TestHost(async () => ROOT_TREE);
 		const viewHost = store.add(new SessionViewHost(connection, host, { orphanTimeoutMs: 0 }));
 
 		viewHost.onEngineConnectionChanged();
 		viewHost.acquireLease('sess-e');
+		await viewHost.whenEngineSessionReady('sess-e');
 		connection.pushStreamEvent('sess-e', { multi_agent_status: { team_aborted: { team_id: 1 } } });
 
 		assert.deepStrictEqual(host.teamRuntimeEvents, ['sess-e']);
 	});
 
-	test('turn_completed stream → turn settle via host', () => {
+	test('turn_completed stream → turn settle via host', async () => {
 		const connection = new TestConnection();
 		const host = new TestHost(async () => ROOT_TREE);
 		const viewHost = store.add(new SessionViewHost(connection, host, { orphanTimeoutMs: 0 }));
 
 		viewHost.onEngineConnectionChanged();
 		viewHost.acquireLease('sess-f');
+		await viewHost.whenEngineSessionReady('sess-f');
 		connection.pushStreamEvent('sess-f', {
 			tool_call_lifecycle: { tool_call_id: 'tc-y', turn_id: 'runtime-y', agent_id: 'agent-y' },
 		});
@@ -275,13 +281,14 @@ suite('SessionViewHost navigator §11', () => {
 		});
 	});
 
-	test('lifecycle without turn_completed → no turn settle', () => {
+	test('lifecycle without turn_completed → no turn settle', async () => {
 		const connection = new TestConnection();
 		const host = new TestHost(async () => ROOT_TREE);
 		const viewHost = store.add(new SessionViewHost(connection, host, { orphanTimeoutMs: 0 }));
 
 		viewHost.onEngineConnectionChanged();
 		viewHost.acquireLease('sess-g');
+		await viewHost.whenEngineSessionReady('sess-g');
 		connection.pushStreamEvent('sess-g', {
 			tool_call_lifecycle: { tool_call_id: 'tc-z', turn_id: 'runtime-z', agent_id: 'agent-z' },
 		});

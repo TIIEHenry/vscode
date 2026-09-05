@@ -172,6 +172,10 @@ export class SessionViewHost extends Disposable {
 	private readonly continuationStreams = new Map<string, ActiveContinuationStream>();
 	private readonly sessionSidecars = new Map<string, SessionSidecar>();
 	private readonly knownSessions = new Set<string>();
+	private readonly engineSessionByLocal = new Map<string, string>();
+	private readonly engineBindInflight = new Map<string, Promise<string>>();
+	private readonly engineBoundForGeneration = new Set<string>();
+	private readonly engineBroughtUpForGeneration = new Set<string>();
 	private readonly attemptOwners = new Map<string, string>();
 	private readonly chatOwners = new Map<string, string>();
 	private readonly _onDidApplyFrame = this._register(new Emitter<IUniverseAgentSessionViewFrameEvent>());
@@ -230,10 +234,14 @@ export class SessionViewHost extends Disposable {
 		}
 		this.ensureSessionSidecar(sessionId);
 		if (this.connectionUp) {
-			this.postConnectionUp(sessionId);
-			this.scheduleAgentTreeRefresh(sessionId, true);
+			void this.bringUpBoundSession(sessionId);
 		}
 		return String(leaseId);
+	}
+
+	/** Resolves after Create/Resume bind and connection-up (streams open). */
+	whenEngineSessionReady(sessionId: string): Promise<string> {
+		return this.ensureBroughtUp(sessionId);
 	}
 
 	releaseLease(leaseId: string): void {
@@ -301,8 +309,11 @@ export class SessionViewHost extends Disposable {
 		if (!parsed) {
 			return { ok: false, reason: 'failed', message: 'unparseable DetailRef' };
 		}
+		const engineSessionId = this.connection.isEngineConnected()
+			? await this.ensureEngineSession(binding.sessionId)
+			: binding.sessionId;
 		const result = await this.host.fetchToolDetail({
-			sessionId: binding.sessionId,
+			sessionId: engineSessionId,
 			toolCallId: parsed.toolCallId,
 			detailKind: parsed.detailKind,
 			refId: parsed.refId,
@@ -326,10 +337,12 @@ export class SessionViewHost extends Disposable {
 			this.connectionGeneration += 1;
 			this.connectionUp = true;
 			for (const binding of this.leases.values()) {
-				this.postConnectionUp(binding.sessionId);
+				void this.bringUpBoundSession(binding.sessionId);
 			}
 		} else {
 			this.connectionUp = false;
+			this.engineBoundForGeneration.clear();
+			this.engineBroughtUpForGeneration.clear();
 			for (const sidecar of this.sessionSidecars.values()) {
 				sidecar.overlayDelta.clear();
 			}
@@ -366,11 +379,86 @@ export class SessionViewHost extends Disposable {
 		}
 	}
 
+	private async bringUpBoundSession(localId: string): Promise<void> {
+		try {
+			await this.ensureBroughtUp(localId);
+		} catch (error) {
+			this.diagnostics.warn('ensureEngineSession failed', {
+				sessionId: localId,
+				error: error instanceof Error ? error.message : String(error),
+			});
+		}
+	}
+
+	private async ensureBroughtUp(localId: string): Promise<string> {
+		const engineId = await this.ensureEngineSession(localId);
+		if (this.connectionUp) {
+			this.finishBringUp(localId);
+		}
+		return engineId;
+	}
+
+	private finishBringUp(localId: string): void {
+		if (this.engineBroughtUpForGeneration.has(localId)) {
+			return;
+		}
+		this.engineBroughtUpForGeneration.add(localId);
+		this.postConnectionUp(localId);
+		this.scheduleAgentTreeRefresh(localId, true);
+	}
+
+	private async ensureEngineSession(localId: string): Promise<string> {
+		if (this.engineBoundForGeneration.has(localId)) {
+			const ready = this.engineSessionByLocal.get(localId);
+			if (ready) {
+				return ready;
+			}
+		}
+		const inflight = this.engineBindInflight.get(localId);
+		if (inflight) {
+			return inflight;
+		}
+		const task = this.bindEngineSession(localId);
+		this.engineBindInflight.set(localId, task);
+		try {
+			const engineId = await task;
+			this.engineSessionByLocal.set(localId, engineId);
+			this.engineBoundForGeneration.add(localId);
+			return engineId;
+		} finally {
+			this.engineBindInflight.delete(localId);
+		}
+	}
+
+	private async bindEngineSession(localId: string): Promise<string> {
+		const cached = this.engineSessionByLocal.get(localId);
+		if (cached) {
+			if (typeof this.connection.resumeSession !== 'function') {
+				return cached;
+			}
+			const result = await this.connection.resumeSession({ sessionId: cached });
+			if (result.ok) {
+				return cached;
+			}
+		}
+		const created = await this.connection.createSession({ title: localId });
+		if (!created.sessionId) {
+			throw new Error('CreateSession returned empty session_id');
+		}
+		return created.sessionId;
+	}
+
+	private resolveEngineSessionId(localId: string): string | undefined {
+		return this.engineSessionByLocal.get(localId);
+	}
+
 	private ensureSessionSidecar(sessionId: string): SessionSidecar {
 		let sidecar = this.sessionSidecars.get(sessionId);
 		if (!sidecar) {
 			sidecar = {
-				tree: new AgentTreeCoordinator(sessionId, this.host),
+				tree: new AgentTreeCoordinator(sessionId, {
+					fetchAgentTree: async (id) => this.host.fetchAgentTree(await this.ensureEngineSession(id)),
+				}),
 				fileJoin: new FileMutationJoin(sessionId),
 				overlayDelta: new OverlayDeltaJoin(),
 			};
@@ -843,12 +931,17 @@ export class SessionViewHost extends Disposable {
 		}
 		this.continuationStreams.get(sessionId)?.dispose();
 		this.continuationStreams.delete(sessionId);
+		const engineSessionId = this.resolveEngineSessionId(sessionId);
+		if (!engineSessionId) {
+			this.diagnostics.warn('openContinuationStream skipped; engine session_id not bound', { sessionId });
+			return;
+		}
 		try {
 			let disposed = false;
 			const handle = open.call(
 				this.connection,
 				{
-					sessionId,
+					sessionId: engineSessionId,
 					agentId: intent.agentId,
 					turnId: intent.turnId,
 					messageId: intent.messageId,
@@ -922,6 +1015,12 @@ export class SessionViewHost extends Disposable {
 		existing?.dispose();
 		this.chatStreams.delete(sessionId);
 
+		const engineSessionId = this.resolveEngineSessionId(sessionId);
+		if (!engineSessionId) {
+			this.diagnostics.warn('openResidentChat skipped; engine session_id not bound', { sessionId });
+			return;
+		}
+
 		const open = this.connection.openChatStream;
 		if (typeof open !== 'function') {
 			// Echo Up so Actor write gate opens; writes fall back to one-shot chat().
@@ -932,7 +1031,7 @@ export class SessionViewHost extends Disposable {
 		let disposed = false;
 		const handle: UniverseAgentChatStream = open.call(
 			this.connection,
-			sessionId,
+			engineSessionId,
 			() => { },
 			cause => {
 				if (disposed || (cause.kind !== 'remote' && cause.kind !== 'error')) {
@@ -976,13 +1075,18 @@ export class SessionViewHost extends Disposable {
 	}
 
 	private openStream(sessionId: string, attemptId: AttemptId): void {
+		const engineSessionId = this.resolveEngineSessionId(sessionId);
+		if (!engineSessionId) {
+			this.diagnostics.warn('openStream skipped; engine session_id not bound', { sessionId });
+			return;
+		}
 		const key = `${sessionId}:${attemptId}`;
 		let streamOpened = false;
 		let closedPosted = false;
 		let disposed = false;
 		const sidecar = this.ensureSessionSidecar(sessionId);
 		sidecar.overlayDelta.clear();
-		const subscription = this.connection.subscribeSessionEventStream(sessionId, event => {
+		const subscription = this.connection.subscribeSessionEventStream(engineSessionId, event => {
 			if (disposed) {
 				return;
 			}
@@ -1036,6 +1140,7 @@ export class SessionViewHost extends Disposable {
 		if (!this.connection.isEngineConnected()) {
 			return;
 		}
+		const engineSessionId = this.resolveEngineSessionId(sessionId) ?? await this.ensureEngineSession(sessionId);
 		const resident = this.chatStreams.get(sessionId);
 		if (resident) {
 			resident.write({ heartbeat_ack: {} });
@@ -1043,7 +1148,7 @@ export class SessionViewHost extends Disposable {
 		}
 		try {
 			await this.connection.chat({
-				sessionId,
+				sessionId: engineSessionId,
 				payload: { heartbeat_ack: {} },
 			}, () => { });
 		} catch {
@@ -1068,6 +1173,13 @@ export class SessionViewHost extends Disposable {
 			mark('failed', 'Engine not connected');
 			return;
 		}
+		let engineSessionId: string;
+		try {
+			engineSessionId = this.resolveEngineSessionId(sessionId) ?? await this.ensureEngineSession(sessionId);
+		} catch (error) {
+			mark('failed', error instanceof Error ? error.message : 'Engine session bind failed');
+			return;
+		}
 		const resident = this.chatStreams.get(sessionId);
 		const wirePayload = chatWritePayload(payload, correlation);
 		if (resident && resident.chatAttemptId === chatAttemptId) {
@@ -1081,7 +1193,7 @@ export class SessionViewHost extends Disposable {
 		}
 		try {
 			await this.connection.chat({
-				sessionId,
+				sessionId: engineSessionId,
 				payload: wirePayload,
 			}, () => {
 				mark('written');
@@ -1093,10 +1205,11 @@ export class SessionViewHost extends Disposable {
 
 	private async fillHistory(sessionId: string, intent: HistoryFillCoreIntent): Promise<void> {
 		const sid = sessionId as SessionId;
+		const engineSessionId = this.resolveEngineSessionId(sessionId) ?? await this.ensureEngineSession(sessionId);
 		const result = await fillHistoryGap(
 			request => this.connection.getHistory(request),
 			{
-				sessionId,
+				sessionId: engineSessionId,
 				fromExclusive: intent.fromExclusive,
 				toInclusive: intent.toInclusive,
 			},

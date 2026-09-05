@@ -77,7 +77,7 @@ class TestConnection {
 	async connectProfile() { return { ok: false as const, code: 'transport_failed' as const, reason: 'test' }; }
 	async disconnect() { this.connected = false; }
 	async listSessions() { return { sessions: [] }; }
-	async createSession() { return { sessionId: 's' }; }
+	async createSession(request: { title?: string } = {}) { return { sessionId: request.title || 's' }; }
 	async deleteSession() { }
 	async getHistory() { return { envelopes: [] }; }
 	subscribeSessionEventStream(
@@ -203,6 +203,7 @@ suite('SessionViewHost Actor timer / streamClosed loop', () => {
 		const viewHost = createHost(connection);
 		viewHost.onEngineConnectionChanged();
 		const leaseId = viewHost.acquireLease('sess-linger');
+		await viewHost.whenEngineSessionReady('sess-linger');
 		assert.strictEqual(connection.activeStreamCount, 1);
 
 		viewHost.releaseLease(leaseId);
@@ -217,8 +218,10 @@ suite('SessionViewHost Actor timer / streamClosed loop', () => {
 		const viewHost = createHost(connection);
 		viewHost.onEngineConnectionChanged();
 		const first = viewHost.acquireLease('sess-reacquire');
+		await viewHost.whenEngineSessionReady('sess-reacquire');
 		viewHost.releaseLease(first);
 		viewHost.acquireLease('sess-reacquire');
+		await viewHost.whenEngineSessionReady('sess-reacquire');
 		await timeout(LINGER_MS + 20);
 		assert.strictEqual(connection.activeStreamCount, 1);
 	});
@@ -231,6 +234,7 @@ suite('SessionViewHost Actor timer / streamClosed loop', () => {
 
 		viewHost.onEngineConnectionChanged();
 		viewHost.acquireLease('sess-remote');
+		await viewHost.whenEngineSessionReady('sess-remote');
 		const before = collectSyncChrome(frames);
 		assert.ok(before.some(sync => sync.kind === 'live'));
 
@@ -248,6 +252,7 @@ suite('SessionViewHost Actor timer / streamClosed loop', () => {
 
 		viewHost.onEngineConnectionChanged();
 		viewHost.acquireLease('sess-error');
+		await viewHost.whenEngineSessionReady('sess-error');
 		connection.endStream('sess-error', { kind: 'error', message: 'rst' });
 		const after = collectSyncChrome(frames);
 		assert.ok(after.some(sync => sync.kind === 'closed' && sync.reason === 'rst'));
@@ -261,6 +266,7 @@ suite('SessionViewHost Actor timer / streamClosed loop', () => {
 
 		viewHost.onEngineConnectionChanged();
 		const leaseId = viewHost.acquireLease('sess-local');
+		await viewHost.whenEngineSessionReady('sess-local');
 		const liveCount = collectSyncChrome(frames).filter(sync => sync.kind === 'live').length;
 		viewHost.releaseLease(leaseId);
 		await waitFor(() => connection.activeStreamCount === 0);

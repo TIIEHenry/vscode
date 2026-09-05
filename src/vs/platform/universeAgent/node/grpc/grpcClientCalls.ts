@@ -36,6 +36,11 @@ export function makeUnaryClient<TRequest, TResponse>(
 	});
 }
 
+/** proto3 empty is 0 payload bytes; still return a Buffer so grpc-js writes a DATA frame. */
+export function asUnaryProtoBytes(bytes: Uint8Array | undefined): Buffer {
+	return Buffer.from(bytes ?? new Uint8Array(0));
+}
+
 export function makeUnaryBytesClient<TResponse>(
 	channel: grpc.Client,
 	servicePath: string,
@@ -46,9 +51,9 @@ export function makeUnaryBytesClient<TResponse>(
 	return (requestBytes: Uint8Array) => new Promise<TResponse>((resolve, reject) => {
 		channel.makeUnaryRequest(
 			path,
-			(value: Uint8Array) => Buffer.from(value),
+			asUnaryProtoBytes,
 			(buffer: Buffer) => decode(buffer),
-			requestBytes,
+			requestBytes ?? new Uint8Array(0),
 			(error, response) => {
 				if (error) {
 					reject(new UniverseAgentTransportError(error.code, error.message));

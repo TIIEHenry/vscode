@@ -65,7 +65,7 @@ class TestConnection {
 	async connectProfile() { return { ok: false as const, code: 'transport_failed' as const, reason: 'test' }; }
 	async disconnect() { this.connected = false; }
 	async listSessions() { return { sessions: [] }; }
-	async createSession() { return { sessionId: 's' }; }
+	async createSession(request: { title?: string } = {}) { return { sessionId: request.title || 's' }; }
 	async deleteSession() { }
 	async getHistory() { return { envelopes: [] }; }
 	subscribeSessionEventStream(sessionId: string, listener: (event: { payload: unknown }) => void) {
@@ -162,11 +162,12 @@ suite('SessionViewHost demux fold seats', () => {
 		return { viewHost, frames };
 	}
 
-	test('permission_request upserts a pending permission seat', () => {
+	test('permission_request upserts a pending permission seat', async () => {
 		const connection = new TestConnection();
 		const { viewHost, frames } = createHost(connection);
 		viewHost.onEngineConnectionChanged();
 		viewHost.acquireLease('sess-perm');
+		await viewHost.whenEngineSessionReady('sess-perm');
 		connection.push('sess-perm', {
 			permission_request: { request_id: 'perm-live', description: 'Run bash', tool_name: 'bash' },
 		});
@@ -174,11 +175,12 @@ suite('SessionViewHost demux fold seats', () => {
 		assert.ok(pending.some(patch => patch.action.requestId === 'perm-live' && patch.action.summary.kind === 'permission'));
 	});
 
-	test('ask_user_question posts questionAsked and upserts a question seat', () => {
+	test('ask_user_question posts questionAsked and upserts a question seat', async () => {
 		const connection = new TestConnection();
 		const { viewHost, frames } = createHost(connection);
 		viewHost.onEngineConnectionChanged();
 		viewHost.acquireLease('sess-q');
+		await viewHost.whenEngineSessionReady('sess-q');
 		connection.push('sess-q', {
 			ask_user_question: {
 				request_id: 'q-live',
@@ -189,11 +191,12 @@ suite('SessionViewHost demux fold seats', () => {
 		assert.ok(pending.some(patch => patch.action.requestId === 'q-live' && patch.action.summary.kind === 'question'));
 	});
 
-	test('client_tool_call upserts a pending client-tool seat', () => {
+	test('client_tool_call upserts a pending client-tool seat', async () => {
 		const connection = new TestConnection();
 		const { viewHost, frames } = createHost(connection);
 		viewHost.onEngineConnectionChanged();
 		viewHost.acquireLease('sess-ctc');
+		await viewHost.whenEngineSessionReady('sess-ctc');
 		connection.push('sess-ctc', {
 			client_tool_call: { request_id: 'ctc-live', tool_name: 'browser', arguments_json: '{}' },
 		});
@@ -201,11 +204,12 @@ suite('SessionViewHost demux fold seats', () => {
 		assert.ok(pending.some(patch => patch.action.requestId === 'ctc-live' && patch.action.summary.kind === 'tool'));
 	});
 
-	test('runtime overlay snapshot upserts an overlay block', () => {
+	test('runtime overlay snapshot upserts an overlay block', async () => {
 		const connection = new TestConnection();
 		const { viewHost, frames } = createHost(connection);
 		viewHost.onEngineConnectionChanged();
 		viewHost.acquireLease('sess-ov');
+		await viewHost.whenEngineSessionReady('sess-ov');
 		connection.push('sess-ov', {
 			hello: { session_version: 1, head_seq: 0, runtime_epoch: 3, last_mutated_from_seq: 0 },
 		});
@@ -220,11 +224,12 @@ suite('SessionViewHost demux fold seats', () => {
 		assert.ok(overlays.some(patch => String(patch.block.blockId) === 'turn-live'));
 	});
 
-	test('tool envelope upserts a timeline tool row', () => {
+	test('tool envelope upserts a timeline tool row', async () => {
 		const connection = new TestConnection();
 		const { viewHost, frames } = createHost(connection);
 		viewHost.onEngineConnectionChanged();
 		viewHost.acquireLease('sess-tool');
+		await viewHost.whenEngineSessionReady('sess-tool');
 		connection.push('sess-tool', {
 			envelope_appended: {
 				envelope: {
@@ -238,11 +243,12 @@ suite('SessionViewHost demux fold seats', () => {
 		assert.ok(items.some(patch => patch.item.summary.kind === 'tool' && patch.item.summary.kind === 'tool' && (patch.item.summary as { toolName?: string }).toolName === 'grep'));
 	});
 
-	test('streaming_delta without snapshot still upserts overlay', () => {
+	test('streaming_delta without snapshot still upserts overlay', async () => {
 		const connection = new TestConnection();
 		const { viewHost, frames } = createHost(connection);
 		viewHost.onEngineConnectionChanged();
 		viewHost.acquireLease('sess-delta');
+		await viewHost.whenEngineSessionReady('sess-delta');
 		connection.push('sess-delta', {
 			streaming_delta: { turn_id: 'turn-delta', text_delta: 'partial' },
 		});
@@ -250,11 +256,12 @@ suite('SessionViewHost demux fold seats', () => {
 		assert.ok(overlays.some(patch => String(patch.block.blockId) === 'turn-delta'));
 	});
 
-	test('ensureChatStream opens a resident bidi and submit writes on it', () => {
+	test('ensureChatStream opens a resident bidi and submit writes on it', async () => {
 		const connection = new TestConnection();
 		const { viewHost, frames } = createHost(connection);
 		viewHost.onEngineConnectionChanged();
 		const leaseId = viewHost.acquireLease('sess-chat');
+		await viewHost.whenEngineSessionReady('sess-chat');
 		assert.strictEqual(connection.residentOpen, true);
 		const outcome = viewHost.post(leaseId, { kind: 'submitInput', text: 'hello resident' });
 		assert.strictEqual(outcome.accepted, true);
@@ -263,11 +270,12 @@ suite('SessionViewHost demux fold seats', () => {
 		assert.ok(sends.some(patch => String(patch.send.operationId).startsWith('write:')));
 	});
 
-	test('acknowledge posts frameAck without throwing', () => {
+	test('acknowledge posts frameAck without throwing', async () => {
 		const connection = new TestConnection();
 		const { viewHost } = createHost(connection);
 		viewHost.onEngineConnectionChanged();
 		const leaseId = viewHost.acquireLease('sess-ack');
+		await viewHost.whenEngineSessionReady('sess-ack');
 		viewHost.acknowledge(leaseId, { generation: 1, frameId: 1, appliedVersion: 1 });
 	});
 });
