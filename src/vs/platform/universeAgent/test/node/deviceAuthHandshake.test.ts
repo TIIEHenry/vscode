@@ -636,6 +636,9 @@ class MockDeviceAuthTransport implements IUniverseAgentGrpcTransport {
 			},
 		};
 	}
+	async setMaintenance() {
+		return { success: false };
+	}
 	async getUploadProgress() {
 		return { exists: false, bytesReceived: 0, partialPath: '' };
 	}

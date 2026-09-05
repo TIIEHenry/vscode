@@ -236,6 +236,8 @@ import type {
 	UniverseAgentRemoteAgentInfo,
 	UniverseAgentCheckConnectionRequest,
 	UniverseAgentConnectionReport,
+	UniverseAgentSetMaintenanceRequest,
+	UniverseAgentSetMaintenanceResult,
 	UniverseAgentGetUploadProgressRequest,
 	UniverseAgentGetUploadProgressResult,
 	UniverseAgentShutdownRequest,
@@ -1814,6 +1816,16 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 		return this.checkConnectionResult;
 	}
 
+	readonly setMaintenanceCalls: UniverseAgentSetMaintenanceRequest[] = [];
+	setMaintenanceResult: UniverseAgentSetMaintenanceResult = {
+		success: false,
+	};
+
+	async setMaintenance(request: UniverseAgentSetMaintenanceRequest): Promise<UniverseAgentSetMaintenanceResult> {
+		this.setMaintenanceCalls.push(request);
+		return this.setMaintenanceResult;
+	}
+
 	readonly getUploadProgressCalls: UniverseAgentGetUploadProgressRequest[] = [];
 	getUploadProgressResult: UniverseAgentGetUploadProgressResult = {
 		exists: false,
@@ -2575,6 +2587,11 @@ suite('UniverseAgentConnectionService', () => {
 
 	test('UniverseAgentGrpcServices lists RemoteAgent.CheckConnection', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.RemoteAgent.CheckConnection, 'CheckConnection');
+		assert.strictEqual(UniverseAgentGrpcServices.RemoteAgent.service, 'universeagent.remoteagent.v1.RemoteAgentService');
+	});
+
+	test('UniverseAgentGrpcServices lists RemoteAgent.SetMaintenance', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.RemoteAgent.SetMaintenance, 'SetMaintenance');
 		assert.strictEqual(UniverseAgentGrpcServices.RemoteAgent.service, 'universeagent.remoteagent.v1.RemoteAgentService');
 	});
 
@@ -6524,6 +6541,35 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(empty.errors[0]?.code, 'ERROR_CODE_UNSPECIFIED');
 		assert.strictEqual(empty.errors[0]?.field, '');
 		assert.strictEqual(empty.load.activeSessions, 0);
+		service.dispose();
+	});
+
+	test('setMaintenance forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.setMaintenanceResult = {
+			success: true,
+		};
+		const request = {
+			nodeId: 'node-1',
+		};
+		const result = await service.setMaintenance(request);
+		assert.deepStrictEqual(transport.setMaintenanceCalls, [request]);
+		assert.deepStrictEqual(result, transport.setMaintenanceResult);
+
+		transport.setMaintenanceResult = {
+			success: false,
+		};
+		const emptyRequest = {
+			nodeId: '',
+		};
+		const empty = await service.setMaintenance(emptyRequest);
+		assert.strictEqual(transport.setMaintenanceCalls[1]?.nodeId, '');
+		assert.strictEqual(empty.success, false);
 		service.dispose();
 	});
 
