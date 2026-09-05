@@ -617,7 +617,8 @@ suite('Conversation session chat (S3)', () => {
 		assert.ok(overlay.querySelector(`.${conversationSubAgentOverlayCardClass}`));
 		assert.ok(overlay.querySelector(`.${conversationSubAgentOverlayBackdropClass}`));
 		assert.ok(overlay.querySelector(`.${conversationSubAgentOverlayPopoutClass}`));
-		assert.ok(overlay.querySelector('.conversation-subagent-overlay-session-bar'));
+		assert.ok(overlay.querySelector('.conversation-subagent-overlay-breadcrumb'));
+		assert.ok(!overlay.querySelector('.conversation-subagent-overlay-session-bar'));
 		assert.ok(conversationPart.activeGroup.getEditorByIndex(0) instanceof ConversationChatInput);
 		assert.ok(sessionWindow.contains(overlay));
 		assert.strictEqual(overlay.closest('.monaco-modal-editor-block'), null);

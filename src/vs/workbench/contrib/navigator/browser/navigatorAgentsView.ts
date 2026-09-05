@@ -138,6 +138,7 @@ class AgentsActivityRenderer implements IListRenderer<INavigatorAgentsActivityIt
 
 	renderElement(item: INavigatorAgentsActivityItem, _index: number, templateData: IAgentsActivityTemplateData): void {
 		templateData.label.textContent = item.label;
+		templateData.label.title = item.label;
 	}
 
 	disposeTemplate(): void {
@@ -296,7 +297,11 @@ export class NavigatorAgentsView extends ViewPane {
 
 	protected override layoutBody(height: number, width: number): void {
 		super.layoutBody(height, width);
-		const contentHeight = height - NavigatorAgentsInlineFilterBox.HEIGHT;
+		this.element.classList.toggle('is-narrow', width > 0 && width < 600);
+		this.element.classList.toggle('is-compact', width > 0 && width < 300);
+		const note = this.subview === 'hierarchy' ? this.hierarchyNote : this.activityNote;
+		const noteHeight = note && note.style.display !== 'none' ? note.offsetHeight : 0;
+		const contentHeight = Math.max(0, height - NavigatorAgentsInlineFilterBox.HEIGHT - noteHeight);
 		if (this.subview === 'hierarchy') {
 			this.hierarchyTree?.layout(contentHeight, width);
 		} else {

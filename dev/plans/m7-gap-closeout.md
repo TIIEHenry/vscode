@@ -5,6 +5,10 @@ status: implemented
 phase: M7
 updated: 2026-09-04
 summary: "GC-1–GC-6 已落（merge d98d888a）：hubDevice/配对、设备动作与 probe、catalog 观察 lease、Navigator/Inspect、Overview Model；PRD-024 仍待真 Hub 冒烟；D21 已闭（connection.isAgentTreeFetchFailed）"
+status: accepted
+phase: M7
+updated: 2026-09-03
+summary: "已签收方案残留收口：GC-1 hubDevice + GC-1b 配对回路、GC-2/3 Connection、GC-4 catalog、GC-5 Navigator/Inspect、GC-6 Model（Provider 回退）；D21。规则 16 已审、2026-09-03 签收"
 ---
 
 # M7 缺口收口
@@ -171,6 +175,13 @@ summary: "GC-1–GC-6 已落（merge d98d888a）：hubDevice/配对、设备动�
 - [traceability](../../docs/product/traceability.md)：PRD-016 / PRD-022 / PRD-024 / PRD-025 行「代码已落」范围更新。**已回填** @ 2026-09-04。
 - [deferred-gaps](../progress/deferred-gaps.md)：新增 **D21** host 暴露 Agent 树首拉失败态（GC-5b 失败轴）；GC-7 结果写入 a11y-rwd-l1。**D21 已闭**（`IUniverseAgentConnection.isAgentTreeFetchFailed`，非 lease 字段、非 transport 错轴）；GC-7 未在本 merge 切片内，不改 a11y 账。
 - [engine-protocol-surface §5](../../docs/reference/universe-agent/engine-protocol-surface.md)：`IUniverseAgentConnection` 新增 `confirmPairing` / `cancelPairing` / `probeConnectionProfile` 三方法登记。**已回填** @ 2026-09-04。
+- [connection-hub-client §4.2 / §5](connection-hub-client.md)：设备行动作、Test Connection、**配对回路接入 `connectProfile`（GC-1b，补记为 H2/H4a 残留）**标「已落」；PRD-024 仍待真 Hub 冒烟才升 `implemented`。
+- [navigator-engine-segments §4 N2 / N4](navigator-engine-segments.md)：Inspect 标题 / stale、Team 读取态标已落；§2.6 加「catalog 由 roster 观察 lease 预同步（GC-4，依据 session-windows §3.3）」并**改掉**「禁止预同步 catalog」一句——该禁令是为防止 A2 在 host 侧造第二张对照表；本稿的预同步仍以 `liveAgentTree` 为唯一源、id ≡ `agent_id`、根不登记，不违反其目的，但条文要改口。
+- [conversation-session-windows §3.3](conversation-session-windows.md)：「Agent spawn → catalog 有 chat」标已落（GC-4）。
+- [engine-preferences-completion §3.1](engine-preferences-completion.md)：Model 摘要标已落；Provider 摘要仍「G-ENG-1 前不显示」，不改口。
+- [traceability](../../docs/product/traceability.md)：PRD-016 / PRD-022 / PRD-024 / PRD-025 行「代码已落」范围更新。
+- [deferred-gaps](../progress/deferred-gaps.md)：新增 **D21** host 暴露 Agent 树首拉失败态（GC-5b 失败轴）；GC-7 结果写入 a11y-rwd-l1。
+- [engine-protocol-surface §5](../../docs/reference/universe-agent/engine-protocol-surface.md)：`IUniverseAgentConnection` 新增 `confirmPairing` / `cancelPairing` / `probeConnectionProfile` 三方法登记。
 
 ## 相关
 

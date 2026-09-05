@@ -57,6 +57,11 @@ suite('Web universeAgent disconnect (P0)', () => {
 		await assert.rejects(() => connection.unloadPlugin('p1'), (error: unknown) => error instanceof Error && error.message === WEB_UNSUPPORTED_REASON);
 		await assert.rejects(() => connection.scanNewPlugins(), (error: unknown) => error instanceof Error && error.message === WEB_UNSUPPORTED_REASON);
 		await assert.rejects(() => connection.listModels(), (error: unknown) => error instanceof Error && error.message === WEB_UNSUPPORTED_REASON);
+		const probe = await connection.probeEngine();
+		assert.strictEqual(probe.ok, false);
+		if (!probe.ok) {
+			assert.strictEqual(probe.reason, WEB_UNSUPPORTED_REASON);
+		}
 	});
 
 	test('queue mutation methods reject unsupported_environment', async () => {

@@ -203,11 +203,14 @@ export class EngineMcpSection extends Disposable {
 		this.heading.style.display = 'none';
 
 		this.tabBar = DOM.append(this.container, $('.engine-mcp-tab-bar'));
+		this.tabBar.setAttribute('role', 'tablist');
 		this.definitionsTab = DOM.append(this.tabBar, $('button.engine-mcp-tab')) as HTMLButtonElement;
 		this.definitionsTab.type = 'button';
+		this.definitionsTab.setAttribute('role', 'tab');
 		this.definitionsTab.textContent = localize('ua.engineMcpTabDefinitions', "Definitions");
 		this.runtimeTab = DOM.append(this.tabBar, $('button.engine-mcp-tab')) as HTMLButtonElement;
 		this.runtimeTab.type = 'button';
+		this.runtimeTab.setAttribute('role', 'tab');
 		this.runtimeTab.textContent = localize('ua.engineMcpTabRuntime', "Runtime");
 		this._register(DOM.addDisposableListener(this.definitionsTab, 'click', () => this.setActiveTab('definitions')));
 		this._register(DOM.addDisposableListener(this.runtimeTab, 'click', () => this.setActiveTab('runtime')));
@@ -245,6 +248,8 @@ export class EngineMcpSection extends Disposable {
 	private setActiveTab(tab: EngineMcpTab): void {
 		this.definitionsTab.classList.toggle('engine-mcp-tab--active', tab === 'definitions');
 		this.runtimeTab.classList.toggle('engine-mcp-tab--active', tab === 'runtime');
+		this.definitionsTab.setAttribute('aria-selected', String(tab === 'definitions'));
+		this.runtimeTab.setAttribute('aria-selected', String(tab === 'runtime'));
 		this.definitionsPanel.style.display = tab === 'definitions' ? '' : 'none';
 		this.runtimePanel.setVisible(tab === 'runtime');
 		if (tab === 'runtime') {

@@ -119,6 +119,7 @@ class MockUniverseAgentConnection extends Disposable {
 class MockUniverseAgentSessionView extends Disposable implements IUniverseAgentSessionView {
 	declare readonly _serviceBrand: undefined;
 	onDynamicDidApplyFrame() { return Event.None; }
+	readonly onDidApplyFrame = Event.None;
 	async acquireLease(sessionId: string) { return `lease:${sessionId}`; }
 	async releaseLease() { }
 	async post() { return { accepted: true as const, correlation: { id: 'mock' } }; }

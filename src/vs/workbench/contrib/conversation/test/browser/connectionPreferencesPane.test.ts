@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { Event } from '../../../../../base/common/event.js';
+import { Emitter, Event } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { IDialogService } from '../../../../../platform/dialogs/common/dialogs.js';
 import type { ConnectionPhase } from '../../../../../platform/universeAgent/common/connectionHubTypes.js';
@@ -139,6 +139,14 @@ suite('ConnectionPreferencesPane', () => {
 		assert.strictEqual(
 			formatConnectionProbeStatus({ ok: false, code: 'transport_failed', reason: 'timeout' }),
 			'timeout',
+		);
+		assert.strictEqual(
+			formatConnectionProbeStatus({ ok: true, engineIdentityId: 'eng' }, 'Engine · Direct'),
+			'Reachable — Engine · Direct',
+		);
+		assert.strictEqual(
+			formatConnectionProbeStatus({ ok: false, reason: 'timeout' }, 'Engine not connected'),
+			'Unreachable — timeout',
 		);
 	});
 
@@ -286,7 +294,7 @@ suite('ConnectionPreferencesPane', () => {
 		container.remove();
 	});
 
-	test('Test Connection without active profile keeps honest disconnected copy', () => {
+	test('Test Connection without active profile keeps honest disconnected copy', async () => {
 		const pane = mountPane();
 		const container = pane.getDomNode();
 
@@ -297,7 +305,9 @@ suite('ConnectionPreferencesPane', () => {
 		assert.strictEqual(testStatus.textContent, '');
 
 		testButton.click();
-		assert.strictEqual(testStatus.textContent, getConnectionTestStatusText());
+		await Promise.resolve();
+		await Promise.resolve();
+		assert.strictEqual(testStatus.textContent, 'Unreachable — stub');
 		assert.notStrictEqual(testStatus.textContent, 'Connected');
 
 		container.remove();
@@ -365,6 +375,58 @@ suite('ConnectionPreferencesPane', () => {
 		pane.layout(new Dimension(600, 800));
 		assert.ok(!container.classList.contains('is-narrow'));
 		assert.ok(!container.classList.contains('is-compact'));
+		assert.ok(!container.classList.contains('is-showing-detail'));
+
+		container.remove();
+	});
+
+	test('layout under 600px shows Back and returns to zone nav', () => {
+		const pane = mountPane();
+		const container = pane.getDomNode();
+
+		pane.layout(new Dimension(599, 800));
+		assert.ok(container.classList.contains('is-narrow'));
+		assert.ok(container.classList.contains('is-showing-detail'));
+		assert.strictEqual(container.querySelector('button[data-zone="hub"]')?.getAttribute('aria-current'), 'true');
+		const back = container.querySelector('.connection-preferences-back') as HTMLButtonElement;
+		assert.ok(back);
+		assert.strictEqual(back.hidden, false);
+		assert.ok(container.querySelector('.connection-hub-account.is-active-zone'));
+
+		back.click();
+		assert.ok(!container.classList.contains('is-showing-detail'));
+		assert.strictEqual(back.hidden, true);
+		const nav = container.querySelector('.connection-preferences-nav') as HTMLElement;
+		assert.ok(nav);
+		const hubNav = nav.querySelector('button[data-zone="hub"]') as HTMLButtonElement;
+		assert.ok(hubNav);
+		hubNav.click();
+		assert.ok(container.classList.contains('is-showing-detail'));
+		assert.strictEqual(back.hidden, false);
+		const body = container.querySelector('.connection-preferences-body') as HTMLElement;
+		assert.ok(body);
+		assert.ok(!body.contains(back));
+		assert.ok(body.contains(container.querySelector('.connection-hub-account')));
+
+		container.remove();
+	});
+
+	test('narrow Devices nav appears after Hub sign-in without resize', () => {
+		let auth: HubAuthStatus = { kind: 'signedOut' };
+		const onDidChangeAuthStatus = store.add(new Emitter<HubAuthStatus>());
+		const pane = mountPane({
+			getAuthStatus: () => auth,
+			onDidChangeAuthStatus: onDidChangeAuthStatus.event,
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(599, 800));
+		const devicesNav = container.querySelector('button[data-zone="devices"]') as HTMLButtonElement;
+		assert.ok(devicesNav);
+		assert.strictEqual(devicesNav.hidden, true);
+
+		auth = { kind: 'signedIn', email: 'user@hub.example' };
+		onDidChangeAuthStatus.fire(auth);
+		assert.strictEqual(devicesNav.hidden, false);
 
 		container.remove();
 	});
@@ -740,6 +802,27 @@ suite('ConnectionPreferencesPane', () => {
 		await Promise.resolve();
 		await Promise.resolve();
 		assert.strictEqual(codeInput.value, '');
+		container.remove();
+	});
+
+	test('Test Connection probes the engine instead of echoing phase only', async () => {
+		let probed = false;
+		const pane = mountPane(undefined, {
+			probeEngine: async () => {
+				probed = true;
+				return { ok: true, engineIdentityId: 'eng-1' };
+			},
+			getConnectionPhase: () => ({ kind: 'connected', path: 'direct' }),
+		});
+		const container = pane.getDomNode();
+		const testButton = container.querySelector('.connection-test-row .monaco-button') as HTMLButtonElement | null;
+		assert.ok(testButton);
+		testButton.click();
+		await Promise.resolve();
+		await Promise.resolve();
+		assert.strictEqual(probed, true);
+		const status = container.querySelector('.connection-test-status');
+		assert.ok(status?.textContent?.startsWith('Reachable —'));
 		container.remove();
 	});
 

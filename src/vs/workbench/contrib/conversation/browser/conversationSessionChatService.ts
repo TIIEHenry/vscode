@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Emitter, Event } from '../../../../base/common/event.js';
-import { Disposable, IDisposable } from '../../../../base/common/lifecycle.js';
+import { Disposable, DisposableStore, IDisposable } from '../../../../base/common/lifecycle.js';
 import { URI } from '../../../../base/common/uri.js';
 import { createDecorator } from '../../../../platform/instantiation/common/instantiation.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
@@ -13,9 +13,10 @@ import { GroupIdentifier, IEditorIdentifier } from '../../../common/editor.js';
 import { IEditorGroupsService, IConversationEditorPart, preferredSideBySideGroupDirection } from '../../../services/editor/common/editorGroupsService.js';
 import { CONVERSATION_GROUP, IEditorService } from '../../../services/editor/common/editorService.js';
 import { buildAgentHierarchyBreadcrumb, IConversationAgentBreadcrumbItem } from '../common/conversationAgentHierarchy.js';
-import { collectLiveAgentTreeCatalogEntries } from '../common/conversationLiveAgentCatalog.js';
 import { isConversationExtensionTab } from '../common/conversationEditorRouting.js';
 import { IConversationSessionChatEntry } from '../common/conversationSessionChat.js';
+import { collectLiveAgentTreeCatalogEntries } from '../common/conversationLiveAgentCatalog.js';
+import type { IConversationSessionViewLease } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
 import type { LiveAgentTreeNodeView } from '../../../../platform/universeAgent/common/sessionView/index.js';
 import {
 	ConversationChatInput,
@@ -88,6 +89,8 @@ export class ConversationSessionChatService extends Disposable implements IConve
 	private readonly catalog = new Map<string, Map<string, IConversationSessionChatEntry>>();
 	private readonly partListeners = new Set<IConversationEditorPart>();
 	private readonly subAgentOverlays = new Map<string, ConversationSubAgentOverlay>();
+	private readonly liveTreeLeaseStore = this._register(new DisposableStore());
+	private liveTreeLease: IConversationSessionViewLease | undefined;
 
 	private readonly _onDidChangeCatalog = this._register(new Emitter<string>());
 	readonly onDidChangeCatalog = this._onDidChangeCatalog.event;
@@ -105,6 +108,31 @@ export class ConversationSessionChatService extends Disposable implements IConve
 		this._register(this.rosterService.onDidChangeLiveAgentTree(event => {
 			this.syncSubAgentsFromLiveTree(event.sessionId, event.tree);
 		}));
+		this._register(this.rosterService.onDidChangeActiveSession(() => this.bindLiveTreeLease()));
+		this._register(this.rosterService.onDidChangeEngineConnection(() => this.bindLiveTreeLease()));
+		this.bindLiveTreeLease();
+	}
+
+	private bindLiveTreeLease(): void {
+		this.liveTreeLeaseStore.clear();
+		this.liveTreeLease = undefined;
+		if (!this.rosterService.isEngineConnected()) {
+			return;
+		}
+		const sessionId = this.rosterService.getActiveSessionId();
+		const lease = this.rosterService.acquireSessionView(sessionId);
+		this.liveTreeLease = lease;
+		this.liveTreeLeaseStore.add(lease);
+		this.liveTreeLeaseStore.add(lease.onDidApplyFrame(() => this.applyLiveTreeFromLease()));
+		this.applyLiveTreeFromLease();
+	}
+
+	private applyLiveTreeFromLease(): void {
+		const lease = this.liveTreeLease;
+		const tree = lease?.snapshot.liveAgentTree;
+		if (lease && tree) {
+			this.syncSubAgentsFromLiveTree(lease.sessionId, tree);
+		}
 	}
 
 	mountSubAgentOverlay(sessionKey: string, sessionWindowHost: HTMLElement): void {

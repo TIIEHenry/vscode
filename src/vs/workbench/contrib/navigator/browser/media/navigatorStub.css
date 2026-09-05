@@ -3,12 +3,39 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-.monaco-workbench .navigator-stub-empty {
+.monaco-workbench .navigator-stub-empty,
+.monaco-workbench .navigator-stub-note {
 	color: var(--vscode-descriptionForeground);
 	font-size: 12px;
 	line-height: 18px;
-	padding: 8px 20px;
+	padding: 8px 16px;
 	user-select: none;
+}
+
+.monaco-workbench .navigator-agents-hierarchy-row {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	width: 100%;
+	min-width: 0;
+	height: 100%;
+}
+
+.monaco-workbench .navigator-agents-type-icon,
+.monaco-workbench .navigator-agents-status-glyph {
+	flex-shrink: 0;
+}
+
+.monaco-workbench .navigator-agents-hierarchy-label,
+.monaco-workbench .navigator-agents-activity-label {
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.monaco-workbench .is-compact .navigator-agents-status-glyph {
+	display: none;
 }
 
 .monaco-workbench .navigator-agents-view {

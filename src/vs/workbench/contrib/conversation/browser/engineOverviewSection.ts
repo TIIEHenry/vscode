@@ -14,6 +14,8 @@ import { EngineCatalogStatusWidget } from './engineCatalogStatus.js';
 import { formatCapabilitySupportLabel } from './engineSectionChrome.js';
 import type {
 	UniverseAgentCapabilityKey,
+	UniverseAgentCapabilitySupport,
+	UniverseAgentModelEntry,
 	UniverseAgentTransportState,
 } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 
@@ -68,15 +70,41 @@ export function formatOverviewModelLoadingCopy(): string {
 	return localize('ua.engineOverviewModelLoading', "正在读取…");
 }
 
-export function formatOverviewModelSummary(modelCount: number): string {
-	if (modelCount === 0) {
-		return localize('ua.engineOverviewModelEmpty', "No models in the registry.");
+export function formatOverviewModelSummary(modelCount: number): string;
+export function formatOverviewModelSummary(models: readonly UniverseAgentModelEntry[]): string;
+export function formatOverviewModelSummary(input: number | readonly UniverseAgentModelEntry[]): string {
+	if (typeof input === 'number') {
+		if (input === 0) {
+			return localize('ua.engineOverviewModelEmpty', "No models in the registry.");
+		}
+		return localize('ua.engineOverviewModelCount', "{0} models", input);
 	}
-	return localize('ua.engineOverviewModelCount', "{0} models", modelCount);
+	return localize('ua.engineOverviewModelRegistryCount', "{0} 个模型", input.length);
 }
 
 export function formatOverviewModelFailedCopy(reason: string): string {
 	return localize('ua.engineOverviewModelFailed', "读取失败 — {0}", reason);
+}
+
+export function formatOverviewProviderSummary(models: readonly UniverseAgentModelEntry[]): string {
+	const providers = new Set<string>();
+	for (const model of models) {
+		if (model.provider) {
+			providers.add(model.provider);
+		}
+	}
+	return localize(
+		'ua.engineOverviewProviderCount',
+		"来自模型注册表的 {0} 个 provider（不代表已配凭据）",
+		providers.size,
+	);
+}
+
+export function formatOverviewRegistryUnavailable(support: UniverseAgentCapabilitySupport): string {
+	if (support === 'UNSUPPORTED') {
+		return localize('ua.engineOverviewRegistryUnsupported', "Unavailable — engine has no model registry.");
+	}
+	return localize('ua.engineOverviewRegistryUnknown', "Unknown — model registry capability not advertised.");
 }
 
 const OVERVIEW_CAPABILITY_KEYS: readonly UniverseAgentCapabilityKey[] = [

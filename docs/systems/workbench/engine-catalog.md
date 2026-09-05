@@ -5,6 +5,8 @@ status: accepted
 phase: N/A
 updated: 2026-09-04
 summary: "九节两栏 @ HEAD：Overview / Provider & Model / Skills / Agents / Rules / Hooks / MCP / Plugins / Tools；六态；GC-6 Model 摘要已落；Overview Provider 行 G-ENG-1 前省略；Tools 选中行读 ToolInfo 只读详情；PRD-025 待产品验证"
+updated: 2026-09-03
+summary: "HEAD 九节壳已挂：四节写路径 + Overview/Model/MCP Runtime/Plugins；Provider/Rules/Hooks 仍 unsupported；产品验证未做"
 ---
 
 # Engine 页 Customizations catalog（`ua.engine`）
@@ -14,6 +16,9 @@ summary: "九节两栏 @ HEAD：Overview / Provider & Model / Skills / Agents / 
 `EnginePreferencesPane` 是 Preferences 子 pane（`ua.engine`），左栏 `WorkbenchList` 九节、右栏一次一节。本节记 **@ HEAD 代码事实**（E2-1–E2-7 @ `482b611a` 一带；**GC-6** Overview Model 摘要 @ `f583073b` / `d98d888a`）。**不得**把 Provider 凭据、Rules/Hooks 列表或 Composer 下拉写成已接通；§8.3 产品验收与 PRD-008 隔离 profile 冒烟仍待。
 
 [PRD-025](../../product/requirements.md#prd-025-engine-设置完整性) / [engine-preferences-completion](../../../dev/plans/engine-preferences-completion.md)（`accepted`）的 **代码完成线已落**；产品验证未做，PRD **不**升 `implemented`。下文表是当前代码，不是「待实施目标」。
+Engine Preferences 子页（`EnginePreferencesPane`）承载 Customizations 产品主面。本节记 **@ HEAD 九节两栏壳**：四节 list/toggle/写（Skills / Agents / MCP Definitions / Tools）、Overview 摘要、Model 只读注册表、MCP Runtime tab、Plugins probe/列表。**不得**把 Provider / Rules / Hooks 写成已接通（[G-ENG-1/2/3](../../reference/universe-agent/engine-protocol-surface.md)）；产品验收与 PRD-008 隔离 profile 冒烟仍待。
+
+**M7 代码完成线（产品验证未做）：** [PRD-025](../../product/requirements.md#prd-025-engine-设置完整性) E2-1–E2-7 九节六态已挂。实施方案见 [engine-preferences-completion](../../../dev/plans/engine-preferences-completion.md)（`accepted`）。本页以下 `@ HEAD` 表只陈述当前代码。没有用户可观察证据不得升 `implemented`。
 
 ## 1. 节与能力键
 
@@ -30,6 +35,17 @@ summary: "九节两栏 @ HEAD：Overview / Provider & Model / Skills / Agents / 
 | Tools | `tools` | Connect 广告 + `ToolService.ListTools` probe |
 
 禁止用 Copilot 盘或 `{AgentHome}` 扫盘顶替任何一节。
+| Overview | （聚合，无独立键） | 连接路径 / workDir / 各能力摘要；不暴露 secret |
+| Provider & Model | `models` / `providerConfig` | Model = Connect 广告 + `ConfigService.ListModels` probe（P1b）；Provider 固定 `UNSUPPORTED`（G-ENG-1） |
+| Skills | `skills` | Connect 广告 + `ToolService.ListSkills` 运行时 probe（`grpcCapabilityProbe.ts`） |
+| Agents | `agentProfiles` | Connect 广告 + `AgentService.ListAgentProfiles` probe |
+| Rules | `globalRules` / `projectRules` | 固定 `UNSUPPORTED`（G-ENG-2）；节壳在、零表单 |
+| Hooks | `hooksMetadata` | 固定 `UNSUPPORTED`（G-ENG-3）；节壳在、点位表行数恒 0 |
+| MCP Servers | `mcp` + `mcpRuntime` | Definitions = `ListMcpServers`；Runtime tab = `GetMcpServerStatuses` / `GetMcpServerTools`（P1a） |
+| Plugins | `plugins` | Connect 广告 + `PluginService.List` probe（P1a）；无 marketplace |
+| Tools | `tools` | Connect 广告 + `ToolService.ListTools` probe |
+
+禁止用 Copilot 盘或 `{AgentHome}` 扫盘顶替任何 catalog。Rules / Hooks / Provider 无引擎 RPC，节可达但必须是完整 unsupported 态。
 
 ## 2. 渲染模式（六态 @ HEAD）
 
@@ -61,6 +77,19 @@ summary: "九节两栏 @ HEAD：Overview / Provider & Model / Skills / Agents / 
 | **MCP Servers** | 定义：`List` / `Toggle` / `Add` / `Update` / `Remove`。运行态：`getMcpServerStatuses` / `getMcpServerTools` | Definitions tab + Runtime tab | 定义 CRUD @ `f49615a1`；Runtime @ E2-4 / P1a。不混 vscode `IMcpService` |
 | **Plugins** | `listPlugins` · `enablePlugin` · `reloadPlugin` · `unloadPlugin` · `scanNewPlugins` | `EnginePluginsSection`：列表 + 启停/重载/扫描（方法存在且 `canWrite` 才画） | P1a 真探测；**无** Browse Marketplace |
 | **Tools** | `ListTools` · `SaveAgentProfile`（`tools.json`）。`ToolInfo` 已进 catalog + node unary；**选中行**拉 `getToolInfo` 只读详情 | 目录 + profile 下拉 + 启用 checkbox + 只读详情 | profile 启用集 @ `7f10e65c` / `f49615a1`；无 hook 仍 list-only；不画 schema 编辑器 |
+| 节 | 传输（`platform/universeAgent`） | Engine UI（`contrib/conversation/browser`） | 备注 |
+|----|-----------------------------------|---------------------------------------------|------|
+| **Skills** | 读：`ListSkills` · `SkillInfo` · `SetSkillEnabled`。写：`IUniverseAgentConnection.saveSkillContent?`（common 契约 @ `f3f2d366`；node gRPC `SaveSkillContent` @ `45fa7a35`/`040c823d`） | `EngineSkillsSection`：bundled/user/project 分组 + 启用开关（旁冻结句 `getSkillToggleFreezeNotice`）+ 选中 skill **textarea**（`getSkillInfo` 读正文）；USER/PROJECT 在 `saveSkillContent` 存在且 `supported` 时 **Save**；BUNDLED 只读；断连/`UNSUPPORTED` 不渲染正文区 | list/toggle @ `8bfc299e`；**正文 UI** @ `f3f2d366`/`3e986bde`；**node 传输** @ `45fa7a35`/`040c823d`；**新建 UI** @ `e6167c45`/`9255e363` |
+| **Agents** | `ListAgentProfiles` · `SaveAgentProfile` · `DeleteAgentProfile` · `ResetAgentProfile` | `EngineAgentsSection`：project/user/built_in 分组列表；`supported` 时写工具栏 **New / Delete / Reset** + 选中 profile **`AGENTS.md` textarea + Save**（`engineAgentAgentsMd.ts`） | list @ `4833c008`；写 RPC + 写入口 @ `7f10e65c` / `f49615a1`；**`AGENTS.md` 全文编辑器** @ `9419f583`/`3756d04e`（断连/`UNSUPPORTED` 不渲染） |
+| **MCP Servers** | `ListMcpServers` · `ToggleMcpServer` · `AddMcpServer` · `UpdateMcpServer` · `RemoveMcpServer` | `EngineMcpSection`：global/project 分组 + 启用 checkbox；`supported` 时写工具栏 **Add / Update / Remove** | list + toggle @ `4833c008`；定义 CRUD @ `7f10e65c` / `f49615a1` |
+| **Tools** | `ListTools` · `SaveAgentProfile`（profile `tools.json`） | `EngineToolsSection`：`ListTools` 目录 + profile 下拉（user/project，不含 built_in）+ 启用 checkbox；经 `engineToolProfile.ts` 写 `disabledTools` / `enabledTools` | list @ `4833c008`；profile 启用集 @ `7f10e65c` / `f49615a1` |
+| **Overview** | 无独立 RPC | `EngineOverviewSection`：连接路径 / workDir / 能力摘要 | E2 壳 |
+| **Provider & Model** | `ListModels`（只读） | `EngineProviderModelSection`：Model 注册表；Provider 组恒 unsupported | P1b；G-ENG-1 |
+| **MCP Runtime** | `GetMcpServerStatuses` · `GetMcpServerTools` | `EngineMcpRuntimePanel`（MCP 节 Runtime tab） | P1a；能力键 `mcpRuntime` |
+| **Plugins** | `PluginService.List` / `Info` / `Enable` / `Reload` / `Unload` / `ScanNew` | `EnginePluginsSection`：列表 + 行工具栏 + Hooks 表（行数随引擎；无 marketplace） | P1a |
+| **Rules / Hooks** | **无 Remote gRPC** | `EngineRulesSection` / `EngineHooksSection`：节可达、完整 unsupported | G-ENG-2 / G-ENG-3 |
+
+单测：`engineCatalogSections.test.ts` · `enginePreferencesPane.test.ts` · `engineAgentAgentsMd.test.ts` · `engineSkillsSection.test.ts` · `engineToolProfile.test.ts`（能力三态、断连路径、Skills 正文 Save 形状、AGENTS.md 保存与写 RPC 形状、九节导航）。
 
 单测：`engineCatalogSections.test.ts` · `engineOverviewSection.test.ts` · `enginePreferencesPane.test.ts` · `engineSkillsSection.test.ts` · `engineAgentAgentsMd.test.ts` · `engineToolProfile.test.ts`。
 
@@ -74,6 +103,11 @@ summary: "九节两栏 @ HEAD：Overview / Provider & Model / Skills / Agents / 
 | Composer 下拉 | Route / AgentProfile / Model / Permission / Tools | Engine 页 list **不等于** Composer 已填引擎选项 |
 | Plugins marketplace | — | 不做 |
 | 产品验证 / 隔离 profile 冒烟 | PRD-025 § / PRD-008 | 未做；不升 `implemented` |
+| Agent profile `model.json` 独立编辑器 | `SaveAgentProfile` proto 无 `model` 字段 | `AGENTS.md` 正文已落；`tools.json` 经 Tools 节；**G-ENG-4** |
+| Provider 凭据读/写/测试 | 无 Provider 列表 RPC | 节壳在；G-ENG-1 闭合前零输入控件 |
+| Rules / Hooks 真数据 | RulesBridge 仅 Desktop 进程内；无 `ListHookPoints` | 节壳在；G-ENG-2 / G-ENG-3 |
+| 完整插件市场 | — | Plugins 只接 Engine `PluginService`，无 marketplace |
+| Composer 选择进发送载荷 | `submitInput` / `SwitchModel` | Agent / Tools / Model **只读填表**（`conversationComposerCatalog.ts`）；选择不进 `submitInput`；`SwitchModel` 不做。Route / Permission 仍本地 stub |
 
 ## 5. 九节与差距（代码已落后仍缺的协议）
 
@@ -86,6 +120,17 @@ summary: "九节两栏 @ HEAD：Overview / Provider & Model / Skills / Agents / 
 | Hooks | unsupported 壳 | G-ENG-3 |
 | MCP Servers | Definitions + Runtime | 无 |
 | Plugins | list + 启停/重载/扫描 | marketplace（明确不做） |
+| M7 节 | HEAD | 数据姿态 |
+|-------|------|----------|
+| Overview | 壳已挂 | 聚合连接路径、workDir、capability；Model 摘要仅在 `models=SUPPORTED`；不暴露 secret |
+| Provider & Model | Model 只读已挂；Provider unsupported | **Model** = `ListModels`；**Provider** = G-ENG-1；不跳 Copilot Models |
+| Skills | 已有 | 两栏宿主，保留 list/toggle/body/New |
+| Agents | 已有 | Instructions/Tools 经正文与 Tools 节；**Model 子 tab unsupported**（G-ENG-4） |
+| Rules | 节壳 + unsupported | 引擎补 gRPC 前恒 unsupported；不扫 Copilot rules |
+| Hooks | 节壳 + unsupported | 无 Hook RPC；点位表不抄静态点位 |
+| MCP Servers | Definitions + Runtime tab | Runtime 走 `mcpRuntime`，不混 vscode `IMcpService` |
+| Plugins | probe + 列表已挂 | Engine `PluginService`，无 marketplace |
+| Tools | 已有 | 保留 profile enablement，分开 client-tool 运行态 |
 
 **断连语义（与 Navigator 不同）：** Engine catalog 断连即清 RPC 缓存、各节回 disconnected；Navigator 段保留「断开前快照」是会话面合同。
 
@@ -93,7 +138,7 @@ UI 可先交付 unsupported/failed，不等待全部 RPC；没有真实数据与
 
 ## 6. 与 Composer 下拉
 
-`Route` / `AgentProfile` / `Model` / `Permission` / `Tools` 选项在 Composer 仍待 catalog / 策略 RPC 切片；Engine 页 list 与写路径接通 **不等于** Composer 已填引擎选项（见 [engine-protocol-surface §5](../../reference/universe-agent/engine-protocol-surface.md)）。
+`Route` / `Permission` 在 Composer 仍是本地 stub。接通且能力 `SUPPORTED` 时，Agent / Tools / Model **只读填 catalog**（`listAgentProfiles` / `listTools` / `listModels`）；选择不进 `submitInput`，也不做会话级 `SwitchModel`。Engine 页写路径仍是 catalog 权威。
 
 ## 相关
 

@@ -36,12 +36,12 @@ suite('Page access schemes slice 5 (UI contract)', () => {
 	const LENS_LAYOUT_HEIGHT = 480;
 
 	function getSessionBarTitle(slots: IConversationLensSlots): string | undefined {
-		const titleButton = slots.sessionBar.querySelector('button.conversation-lens-session-title') as HTMLButtonElement | null;
+		const titleButton = slots.sessionBar!.querySelector('button.conversation-lens-session-title') as HTMLButtonElement | null;
 		return titleButton?.textContent?.trim() ?? undefined;
 	}
 
 	function getSessionSelectLabel(slots: IConversationLensSlots): string | undefined {
-		const select = slots.sessionBar.querySelector('.conversation-lens-session-select select.monaco-select-box') as HTMLSelectElement | null;
+		const select = slots.sessionBar!.querySelector('.conversation-lens-session-select select.monaco-select-box') as HTMLSelectElement | null;
 		if (!select || select.options.length === 0) {
 			return undefined;
 		}

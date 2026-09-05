@@ -95,6 +95,7 @@ class ProjectNodeRenderer implements ITreeRenderer<INavigatorProjectsTreeNode, v
 		templateData.label.textContent = node.element.description
 			? `${node.element.label} — ${node.element.description}`
 			: node.element.label;
+		templateData.label.title = templateData.label.textContent;
 	}
 
 	disposeTemplate(): void {
@@ -179,6 +180,8 @@ export class NavigatorProjectsView extends ViewPane {
 
 	protected override layoutBody(height: number, width: number): void {
 		super.layoutBody(height, width);
+		this.element.classList.toggle('is-narrow', width > 0 && width < 600);
+		this.element.classList.toggle('is-compact', width > 0 && width < 300);
 		const filterHeight = this.treeNodes.length > 0 ? NavigatorProjectsInlineFilterBox.HEIGHT : 0;
 		this.tree?.layout(height - filterHeight, width);
 	}

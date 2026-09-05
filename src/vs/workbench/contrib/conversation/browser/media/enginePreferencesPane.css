@@ -345,8 +345,14 @@
 .monaco-workbench .engine-test-row {
 	display: flex;
 	align-items: center;
+	flex-wrap: wrap;
 	gap: 12px;
 	margin-top: 12px;
+}
+
+.monaco-workbench .engine-preferences-pane.is-narrow .engine-test-status {
+	min-width: 0;
+	flex: 1 1 auto;
 }
 
 .monaco-workbench .engine-test-status {

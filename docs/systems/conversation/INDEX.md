@@ -3,15 +3,15 @@ title: "Conversation 系统索引"
 type: index
 status: accepted
 phase: N/A
-updated: 2026-09-02
-summary: "产品中心系统：CONVERSATION_PART + contrib/conversation；session 窗口 / chat tab、透镜与轨迹、Composer 与 Inbox、stub 契约、命令；PRD-001–004、012–016 的系统规格落点"
+updated: 2026-09-03
+summary: "产品中心系统：CONVERSATION_PART + contrib/conversation；session 窗口 / chat tab、透镜与轨迹、Composer 与 Inbox、引擎 roster / stub 帧源、命令"
 ---
 
 # Conversation
 
 > 返回 [全局索引](../../INDEX.md) · 设计正文见 [系统概览](overview.md) · 需求见 [PRD-001](../../product/requirements.md#prd-001-以-conversation-为中心) 起各条
 
-默认 Code 窗口的中心工作区。它是**独立系统**，不是 Copilot Chat 的一个宿主：`browser/parts/conversation/` 提供 Part 与槽位，`contrib/conversation/` 填产品 chrome，数据今天来自 `IConversationRosterService` 的 stub 实现，引擎接通后由 adapter 替换（[PRD-008](../../product/requirements.md#prd-008-引擎与会话权威)）。
+默认 Code 窗口的中心工作区。它是**独立系统**，不是 Copilot Chat 的一个宿主：`browser/parts/conversation/` 提供 Part 与槽位，`contrib/conversation/` 填产品 chrome。生产 roster 是 `ConversationEngineRosterService`（同 token `'conversationStubService'`）：无引擎走 stub 帧源，已连接走 `IUniverseAgentSessionView` lease。活数据权威仍是 [PRD-008](../../product/requirements.md#prd-008-引擎与会话权威)（`blocked`，不得升 `implemented`）。
 
 ## 涉及分层
 
@@ -39,6 +39,6 @@ INV-TOPO / INV-052-NO-DUAL-HIDE / INV-NO-COPILOT 见 [ADR-006](../../../dev/deci
 ## 相关文档
 
 - 分析与 donor 对照：[conversation-lens-assembly](../../reference/code-oss-b2/conversation-lens-assembly.md) · [session-roster-reuse](../../reference/code-oss-b2/session-roster-reuse.md) · [agent-ui](../chat/agent-ui.md)
-- 方案：[m2-product-shell](../../../dev/plans/m2-product-shell.md) · [conversation-session-windows](../../../dev/plans/conversation-session-windows.md) · [conversation-trajectory-lens](../../../dev/plans/conversation-trajectory-lens.md) · [conversation-process-fold](../../../dev/plans/conversation-process-fold.md) · [thinkrail-visualize-port](../../../dev/plans/thinkrail-visualize-port.md) · [conversation-empty-hero](../../../dev/plans/conversation-empty-hero.md)
+- 方案：[m2-product-shell](../../../dev/plans/m2-product-shell.md) · [conversation-session-windows](../../../dev/plans/conversation-session-windows.md) · [conversation-stream-timeline](../../../dev/plans/conversation-stream-timeline.md) · [conversation-trajectory-lens](../../../dev/plans/conversation-trajectory-lens.md) · [conversation-process-fold](../../../dev/plans/conversation-process-fold.md) · [thinkrail-visualize-port](../../../dev/plans/thinkrail-visualize-port.md) · [conversation-empty-hero](../../../dev/plans/conversation-empty-hero.md)
 - 决策：[ADR-002](../../../dev/decisions/002-conversation-session-windows.md) session 窗口 · [ADR-003](../../../dev/decisions/003-engine-adapter-boundary.md) 引擎 adapter（accepted @2026-09-02） · [ADR-005](../../../dev/decisions/005-changes-diff-owner.md) Diff 归属（ADR-004 superseded） · [ADR-006](../../../dev/decisions/006-shell-invariants.md) 壳不变量
 - 邻接系统：[Workbench](../workbench/INDEX.md) · [Sources](../sources/INDEX.md) · [Chat](../chat/INDEX.md) · [Agent Host](../agent-host/INDEX.md)

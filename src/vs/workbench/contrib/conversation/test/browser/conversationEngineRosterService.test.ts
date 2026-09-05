@@ -256,11 +256,13 @@ class MockUniverseAgentConnection extends Disposable implements IUniverseAgentCo
 	async removeMcpServer() { return { ok: true }; }
 	async listTools() { return { tools: [] }; }
 	async listModels() { return { models: [] }; }
+	async probeEngine() { return { ok: false as const, reason: 'stub' }; }
 }
 
 class MockUniverseAgentSessionView implements IUniverseAgentSessionView {
 	declare readonly _serviceBrand: undefined;
 	onDynamicDidApplyFrame(_leaseId: string) { return Event.None; }
+	readonly onDidApplyFrame = Event.None;
 	async acquireLease(sessionId: string) { return `lease:${sessionId}`; }
 	async releaseLease() { }
 	async post() { return { accepted: true as const, correlation: { id: 'mock' } }; }

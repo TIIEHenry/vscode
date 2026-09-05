@@ -68,6 +68,30 @@ suite('ConversationVisualizeOverlay', () => {
 		return { overlay, container };
 	}
 
+	test('open with host mounts the overlay on that host', () => {
+		const { overlay } = mountOverlay();
+		overlay.close();
+		const host = append(document.body, $('.part.conversation'));
+		store.add({ dispose: () => host.remove() });
+		overlay.open({
+			source: 'flowchart TD\n  A-->B',
+			title: 'Hosted overlay',
+			extensionInfo: undefined,
+			targetWindow: mainWindow,
+			webviewService: {
+				_serviceBrand: undefined,
+				activeWebview: undefined,
+				webviews: [],
+				onDidChangeActiveWebview: Event.None,
+				createWebviewOverlay: () => { throw new Error('not used'); },
+				createWebviewElement: () => { throw new Error('not used'); },
+			} as unknown as IWebviewService,
+			host,
+		});
+		assert.ok(host.querySelector('.conversation-visualize-overlay[role="dialog"]'));
+		overlay.close();
+	});
+
 	test('open renders dialog chrome with mermaid host stub', () => {
 		const { container } = mountOverlay();
 		const dialog = container.querySelector('[role="dialog"][aria-modal="true"]');
@@ -99,5 +123,32 @@ suite('ConversationVisualizeOverlay', () => {
 		const resetButton = container.querySelector('.conversation-visualize-overlay-reset .monaco-button') as HTMLButtonElement | null;
 		assert.ok(resetButton);
 		assert.notStrictEqual(resetButton!.getAttribute('aria-disabled'), 'true');
+	});
+
+	test('long title does not remove close actions', () => {
+		const container = append(document.body, $('.conversation-visualize-overlay-test-root'));
+		store.add({ dispose: () => container.remove() });
+		const layoutService = {
+			_serviceBrand: undefined,
+			getContainer: () => container,
+		} as unknown as ILayoutService;
+		const overlay = store.add(new ConversationVisualizeOverlay(layoutService));
+		overlay.open({
+			source: 'flowchart TD\n  A-->B',
+			title: 'A'.repeat(200),
+			extensionInfo: undefined,
+			targetWindow: mainWindow,
+			webviewService: {
+				_serviceBrand: undefined,
+				activeWebview: undefined,
+				webviews: [],
+				onDidChangeActiveWebview: Event.None,
+				createWebviewOverlay: () => { throw new Error('not used'); },
+				createWebviewElement: () => { throw new Error('not used'); },
+			} as unknown as IWebviewService,
+			host: container,
+		});
+		assert.ok(container.querySelector('.conversation-visualize-overlay-close'));
+		assert.ok(container.querySelector('.conversation-visualize-overlay-title')?.textContent?.length === 200);
 	});
 });

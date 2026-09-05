@@ -31,8 +31,10 @@ export async function closeAllSettingsEditor2(accessor: ServicesAccessor): Promi
 }
 
 export async function openUaPaneReplacingClientSettings(accessor: ServicesAccessor, paneId: string): Promise<void> {
-	await closeAllSettingsEditor2(accessor);
-	await accessor.get(IPreferencesService).openPreferences({ paneId });
+	const editorGroupsService = accessor.get(IEditorGroupsService);
+	const preferencesService = accessor.get(IPreferencesService);
+	await closeAllSettingsEditor2ForService(editorGroupsService);
+	await preferencesService.openPreferences({ paneId });
 }
 
 export function registerUaPreferencesNavigationActions(): void {

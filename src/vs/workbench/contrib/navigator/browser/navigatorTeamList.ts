@@ -105,6 +105,7 @@ class TeamMemberRenderer implements IListRenderer<INavigatorTeamMemberEntry, ITe
 
 	renderElement(member: INavigatorTeamMemberEntry, _index: number, templateData: ITeamMemberTemplateData): void {
 		templateData.label.textContent = member.label;
+		templateData.label.title = member.label;
 	}
 
 	disposeTemplate(): void {
@@ -146,6 +147,7 @@ class TeamTaskRenderer implements IListRenderer<INavigatorTeamTaskEntry, ITeamTa
 
 	renderElement(task: INavigatorTeamTaskEntry, _index: number, templateData: ITeamTaskTemplateData): void {
 		templateData.label.textContent = task.label;
+		templateData.label.title = task.label;
 	}
 
 	disposeTemplate(): void {
@@ -435,6 +437,8 @@ export class NavigatorTeamView extends ViewPane {
 
 	protected override layoutBody(height: number, width: number): void {
 		super.layoutBody(height, width);
+		this.element.classList.toggle('is-narrow', width > 0 && width < 600);
+		this.element.classList.toggle('is-compact', width > 0 && width < 300);
 		const contentHeight = height - NavigatorTeamInlineFilterBox.HEIGHT;
 		if (this.subview === 'members') {
 			this.membersList?.layout(contentHeight, width);

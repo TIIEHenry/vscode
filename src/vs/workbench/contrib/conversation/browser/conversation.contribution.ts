@@ -6,6 +6,7 @@
 import './media/conversationLens.css';
 import './media/conversationVisualize.css';
 import './media/uaClientConversationChrome.css';
+import './media/uaClientSettingsChrome.css';
 import './uaClientSettings.contribution.js';
 import './uaClientSettingsStartup.contribution.js';
 import './conversationNotifications.contribution.js';

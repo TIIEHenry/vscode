@@ -121,7 +121,8 @@ export class PreferencesEditor extends EditorPane {
 			this.searchWidget.inputBox.inputElement.style.paddingRight = `12px`;
 		}
 
-		this.preferencesEditorPane.value?.layout(new DOM.Dimension(this.bodyElement.clientWidth, dimension.height - 87 /* header height */));
+		const headerHeight = Math.max(this.headerContainer.offsetHeight, 87);
+		this.preferencesEditorPane.value?.layout(new DOM.Dimension(this.bodyElement.clientWidth, dimension.height - headerHeight));
 	}
 
 	override async setInput(input: EditorInput, options: IPreferencesEditorOptions | undefined, context: IEditorOpenContext, token: CancellationToken): Promise<void> {

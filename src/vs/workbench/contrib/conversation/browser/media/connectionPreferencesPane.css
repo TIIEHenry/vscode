@@ -9,10 +9,68 @@
  */
 
 .monaco-workbench .connection-preferences-pane {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
 	padding: 24px;
 	box-sizing: border-box;
-	overflow-x: hidden;
+	overflow: hidden;
 	min-width: 0;
+}
+
+.monaco-workbench .connection-preferences-body {
+	flex: 1 1 auto;
+	min-height: 0;
+	min-width: 0;
+	overflow-x: hidden;
+	overflow-y: auto;
+}
+
+.monaco-workbench .connection-preferences-pane > h2,
+.monaco-workbench .connection-preferences-pane > .connection-environment-notice,
+.monaco-workbench .connection-preferences-nav {
+	flex-shrink: 0;
+}
+
+.monaco-workbench .connection-preferences-back {
+	flex: 0 0 auto;
+	align-self: flex-start;
+	border: 1px solid var(--vscode-button-border, var(--vscode-panel-border));
+	background: var(--vscode-button-secondaryBackground);
+	color: var(--vscode-button-secondaryForeground);
+	padding: 2px 8px;
+	margin-bottom: 8px;
+	font-size: 12px;
+	cursor: pointer;
+}
+
+.monaco-workbench .connection-preferences-nav {
+	display: none;
+	flex-direction: column;
+	gap: 4px;
+	margin-bottom: 12px;
+}
+
+.monaco-workbench .connection-preferences-pane.is-narrow:not(.is-showing-detail) .connection-preferences-nav {
+	display: flex;
+}
+
+.monaco-workbench .connection-preferences-pane.is-narrow:not(.is-showing-detail) .connection-zone {
+	display: none;
+}
+
+.monaco-workbench .connection-preferences-pane.is-narrow.is-showing-detail .connection-zone:not(.is-active-zone) {
+	display: none;
+}
+
+.monaco-workbench .connection-preferences-nav-item {
+	text-align: left;
+	padding: 6px 8px;
+	border: 1px solid var(--vscode-widget-border, var(--vscode-panel-border));
+	background: var(--vscode-button-secondaryBackground);
+	color: var(--vscode-button-secondaryForeground);
+	font-size: 12px;
+	cursor: pointer;
 }
 
 .monaco-workbench .connection-preferences-pane.is-narrow {
@@ -41,15 +99,29 @@
 }
 
 .monaco-workbench .connection-preferences-pane.is-narrow .connection-hub-device-row {
-	flex-wrap: wrap;
+	flex-wrap: nowrap;
 }
 
 .monaco-workbench .connection-preferences-pane.is-narrow .connection-hub-device-status {
 	min-width: 0;
+	width: auto;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.monaco-workbench .connection-preferences-pane.is-narrow .connection-hub-device-row .monaco-button,
+.monaco-workbench .connection-preferences-pane.is-narrow .connection-test-row .monaco-button {
+	flex-shrink: 0;
 }
 
 .monaco-workbench .connection-preferences-pane.is-narrow .connection-test-row {
 	flex-wrap: wrap;
+}
+
+.monaco-workbench .connection-preferences-pane.is-narrow .connection-test-status {
+	min-width: 0;
+	flex: 1 1 100%;
 }
 
 .monaco-workbench .connection-preferences-pane .connection-zone {
@@ -130,15 +202,27 @@
 	display: flex;
 	align-items: center;
 	gap: 12px;
+	min-width: 0;
+}
+
+.monaco-workbench .connection-list .monaco-list-row .connection-profile-label {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 }
 
 .monaco-workbench .connection-hub-device-name {
 	flex: 1;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 }
 
 .monaco-workbench .connection-hub-device-status {
 	opacity: 0.85;
-	min-width: 160px;
+	min-width: 0;
+	flex-shrink: 1;
 }
 
 .monaco-workbench .connection-preferences-pane .connection-direct-address-hint {
@@ -201,6 +285,17 @@
 	opacity: 0.75;
 	font-size: 12px;
 	margin-top: 12px;
+}
+
+.monaco-workbench .connection-hub-device-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin-top: 8px;
+}
+
+.monaco-workbench .connection-hub-confirm-code {
+	margin-top: 8px;
 }
 
 .monaco-workbench .connection-test-row {

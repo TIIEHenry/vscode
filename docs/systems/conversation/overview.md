@@ -3,8 +3,8 @@ title: "Conversation 系统概览"
 type: overview
 status: accepted
 phase: N/A
-updated: 2026-09-02
-summary: "三层：Part 槽宿主 → contrib 产品 chrome → 会话数据服务；关键符号表；与 Chat / Sessions / Agent Host 三套「会话」的边界"
+updated: 2026-09-03
+summary: "三层：Part 槽宿主 → contrib 产品 chrome → EngineRoster / stub 帧源；关键符号表；与 Chat / Sessions / Agent Host 边界"
 ---
 
 # Conversation 系统概览
@@ -29,13 +29,14 @@ summary: "三层：Part 槽宿主 → contrib 产品 chrome → 会话数据服�
 │ 旁路：子代理 overlay、面包屑、导航栈、Navigator roster、StatusBar 芯片   │
 └──────────────────────────────┬──────────────────────────────────────────┘
                                │ 读写
-┌─ 会话数据（今天 stub，PRD-008 后 adapter）─────────────────────────────┐
+┌─ 会话数据（同 token；无引擎 stub 帧源 / 已连接 SessionView lease）──────┐
 │ IConversationRosterService（decorator id 'conversationStubService'）    │
-│ 会话 / 回合 / 轨迹记录 / 权限 / MessageQueue / AutoDrive / 引擎连接态    │
+│ 生产实现 ConversationEngineRosterService；时间线经 ViewFrame apply      │
+│ 会话 / 回合 / 轨迹 / 权限 / MessageQueue / AutoDrive / 引擎连接态       │
 └─────────────────────────────────────────────────────────────────────────┘
 ```
 
-层间只经接口：Part 不知道 contrib；contrib 不知道 stub 内部布局（只用 `ConversationStubTurn` 等导出类型）。引擎接通时**只换第三层**，见 [stub-and-fixtures](stub-and-fixtures.md)。
+层间只经接口：Part 不知道 contrib；contrib 只消费 roster / lease 导出面，不 fold 引擎事件。见 [stub-and-fixtures](stub-and-fixtures.md)。活数据权威仍是 [PRD-008](../../product/requirements.md#prd-008-引擎与会话权威)（`blocked`）。
 
 ## 2. 关键符号
 
@@ -51,7 +52,7 @@ summary: "三层：Part 槽宿主 → contrib 产品 chrome → 会话数据服�
 | `ConversationEditorPane` | `conversationEditorPane.ts` | `workbench.editor.conversationChat`；页 chrome 宿主 |
 | `ConversationLens` | `conversationLens.ts` | SessionBar + 时间线 + Dock 的组装体；持久化当前透镜 id（`StorageScope.WORKSPACE`） |
 | `ConversationIdentityStrip` | `conversationIdentityStrip.ts` | 阅读列顶身份条（PreFirst 居中区 / Active 列顶）；引擎 chip 与 StatusBar `status.conversation.engine` 共用 `getConnectionPhaseStatusBarText`（H4b）与 B10 pane 路由 |
-| `IConversationRosterService` | `conversationStubService.ts` | 会话数据契约（见 [stub-and-fixtures](stub-and-fixtures.md)） |
+| `IConversationRosterService` | `conversationStubService.ts`（契约）· `conversationEngineRosterService.ts`（生产） | 同 token；无引擎 stub 帧源，已连接 `IUniverseAgentSessionView` lease（见 [stub-and-fixtures](stub-and-fixtures.md)） |
 | `ConversationSessionsView` | `conversationSessionsView.ts` | Navigator「Sessions」容器（`workbench.view.sessions`）内的 roster |
 | `UniverseAgentDeepLinkHandler` | `universeAgentDeepLink.contribution.ts` | `universe-agent://` URL handler → Settings 页（[page-access-schemes](../../../dev/plans/page-access-schemes.md)） |
 | `ua.connection` / `ua.engine` panes | `connectionPreferencesPane.ts` / `enginePreferencesPane.ts` | vscode Preferences 内的 UA 两页；无引擎诚实空 + Test（[settings-two-surfaces](../../../dev/plans/settings-two-surfaces.md)） |
@@ -60,7 +61,7 @@ summary: "三层：Part 槽宿主 → contrib 产品 chrome → 会话数据服�
 
 | 名称 | Owner | 在本系统中的地位 |
 |------|-------|------------------|
-| `IConversationRosterService` 会话 | 本系统 | 产品 Conversation 今天的唯一数据源（stub）；引擎后由 adapter 实现同一契约 |
+| `IConversationRosterService` 会话 | 本系统 | 产品 Conversation 数据契约；生产已是 EngineRoster，无引擎走 stub 帧源 |
 | `IChatModel` / `sessionResource` | `contrib/chat` | Copilot Chat 的持久化模型；**禁止**当本系统权威（ADR-006 INV-NO-COPILOT） |
 | AHP session / `IAgentHostService` | `platform/agentHost` | vscode 侧 harness 管道；**不是**引擎权威（[agent-host overview](../agent-host/overview.md)） |
 | `ISession` / `ISessionsService` | `vs/sessions` | Agents Window 目录 facade；本系统不依赖 |
@@ -74,9 +75,10 @@ summary: "三层：Part 槽宿主 → contrib 产品 chrome → 会话数据服�
 - **Sources / Preview**：本系统不打开文件；点击时间线内文件引用走 `IEditorService.openEditor` 到 Preview。
 - **Preferences**：`ua.connection` / `ua.engine` 两页注册为 `IPreferencesEditorPane`，Settings 宿主仍是 `SettingsEditor2`。
 
-## 5. 当前边界（无引擎）
+## 5. 当前边界
 
-- 会话与回合在内存，重启即丢（[PRD-017](../../product/requirements.md#prd-017-本地会话持久化) `proposed`）。
-- 助手回合是本地 echo，UI 与 fixture 文案带 `Stub`；引擎 chip（身份条 + StatusBar）文案由 `IUniverseAgentConnection.getConnectionPhase()` 经 `getConnectionPhaseStatusBarText` 驱动（[connection-hub H4b](../../../dev/plans/connection-hub-client.md)）；stub 期默认 disconnected，点击路由同 B10（connected → Engine pane，否则 Connection）。
+- 本地会话目录 / 当前会话 / 回合 / 权限写入 `conversation.roster.v1`（D13 已落；[PRD-017](../../product/requirements.md#prd-017-本地会话持久化) `accepted`，产品验证未做，不升 `implemented`）。无引擎文案带 `Stub`；已连接走引擎帧，断连快照标 `source`。
+- 发送走 lease `post({ kind:'submitInput' })`；无引擎 stub 帧源可产 Stub echo，已连接拒写 stub echo。
+- 引擎 chip（身份条 + StatusBar）文案由 `IUniverseAgentConnection.getConnectionPhase()` 经 `getConnectionPhaseStatusBarText` 驱动；点击路由 B10（connected → Engine pane，否则 Connection）。
 - 四钮默认键位与 F6 / Shift+F6 part 循环已登记（[commands §7](commands.md#7-键盘可达性现状)；[PRD-018](../../product/requirements.md#prd-018-键盘可达与辅助功能) `accepted`）；Conversation 内透镜 / 过程折 / 权限座位等仍缺默认键位。
-- `contrib/conversation` 注册于 `workbench.common.main.ts`，Web 入口理论共用但无冒烟证据（[PRD-019](../../product/requirements.md#prd-019-web--远程窗口一致性)）。
+- `contrib/conversation` 注册于 `workbench.common.main.ts`；Web 诚实断连已落，W1 冒烟仍欠（[PRD-019](../../product/requirements.md#prd-019-web--远程窗口一致性) / D15）。

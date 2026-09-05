@@ -3,8 +3,8 @@ title: "多 Agent 方案设计工作流"
 type: guide
 status: accepted
 phase: N/A
-updated: 2026-09-01
-summary: "方案定稿前的多 agent 探索；写完须只读审查改稿；并行 slice、文件互斥与 worktree 池"
+updated: 2026-09-04
+summary: "方案定稿前的多 agent 探索；写完须只读审查改稿；完整多方评审仅手动点名才启动"
 ---
 
 # 多 Agent 方案设计工作流
@@ -20,6 +20,8 @@ summary: "方案定稿前的多 agent 探索；写完须只读审查改稿；并
 | Roadmap checkbox、编码、回归、文档补齐 | — | ✓ |
 
 人类给出方向；父 agent 拆 **冲突域**、派并行探索，合成一份可执行的 plan/ADR 后再进入 Loop。
+
+> **多方评审流水线（opt-in）：** 完整 MPDR（问平台 → tmp 候选 → 综合 → 多视角 → 强审 → 执行方环）仅当用户手动调用 `/multi-party-design-review` 或写「启动多方评审」时启动。只说「补方案 / 方案设计」走本文推荐工作流 + [DOCUMENTATION 规则 16](../DOCUMENTATION.md)，不升格为 MPDR。
 
 ## 并行 slice（探索与实施通用）
 

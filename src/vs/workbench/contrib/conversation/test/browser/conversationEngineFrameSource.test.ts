@@ -35,6 +35,8 @@ class BufferedMockUniverseAgentSessionView implements IUniverseAgentSessionView 
 		return this.getOrCreateChannel(leaseId).emitter.event;
 	}
 
+	readonly onDidApplyFrame = Event.None;
+
 	async acquireLease(sessionId: string): Promise<string> {
 		const leaseId = `lease:${sessionId}`;
 		this.getOrCreateChannel(leaseId);
@@ -131,6 +133,8 @@ class PostOutcomeMockSessionView implements IUniverseAgentSessionView {
 	onDynamicDidApplyFrame(_leaseId: string) {
 		return Event.None;
 	}
+
+	readonly onDidApplyFrame = Event.None;
 
 	async acquireLease(sessionId: string): Promise<string> {
 		return this.acquireLeaseFn(sessionId);

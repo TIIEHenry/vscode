@@ -4,10 +4,10 @@
  *--------------------------------------------------------------------------------------------*/
 
 /**
- * Host-side L3 delta accumulator. Demux stays snapshot-only when that path exists;
- * engines that emit `streaming_delta` / `thinking_delta` without a snapshot
- * still get `overlayActiveTurn`. A later snapshot resets this state and
- * yields nothing — demux owns that path when present.
+ * Host-side L3 delta accumulator. Demux stays snapshot-only when that path
+ * exists (Desktop); engines that emit `streaming_delta` / `thinking_delta`
+ * without a snapshot still get `overlayActiveTurn`. A later snapshot resets
+ * this state and yields nothing — demux owns that path when present.
  */
 
 function readOwnDataValue(record: object, key: string): unknown {

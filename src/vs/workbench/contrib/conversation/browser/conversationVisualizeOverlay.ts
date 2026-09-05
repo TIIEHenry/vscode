@@ -30,6 +30,7 @@ export interface ConversationVisualizeOverlayOpenOptions {
 	readonly extensionInfo: ConversationMermaidExtensionInfo | undefined;
 	readonly targetWindow: CodeWindow;
 	readonly webviewService: IWebviewService;
+	readonly host?: HTMLElement;
 }
 
 /**
@@ -56,7 +57,7 @@ export class ConversationVisualizeOverlay extends Disposable {
 		const session = new DisposableStore();
 		this.sessionDisposables = session;
 
-		const container = this.layoutService.getContainer(options.targetWindow);
+		const container = options.host ?? this.layoutService.getContainer(options.targetWindow);
 		const overlay = append(container, $('div.conversation-visualize-overlay'));
 		overlay.setAttribute('role', 'dialog');
 		overlay.setAttribute('aria-modal', 'true');

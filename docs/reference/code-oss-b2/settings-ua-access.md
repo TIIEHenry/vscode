@@ -125,7 +125,7 @@ Client Settings **无连接也可开**（Singularity 原则）。**选定：** C
 | 设备列表 | 整节省略（未登录） |
 | Direct Address | host:port 添加入口；默认拒 RFC1918 除非勾 `allowPrivateNetwork` |
 | 连接 profiles | 「No connection profiles yet」 |
-| Test Connection | 无 active profile → 「Not connected — no engine.」；不假成功 |
+| Test Connection | 无 active profile → 「Not connected — no engine.」。**有** active profile 时 HEAD 只回显 `getConnectionPhase()`，**不**探 `GetAuthNonce`（[m7-gap-closeout GC-3](../../../dev/plans/m7-gap-closeout.md) `review`）。不假成功 |
 | Remote I/O | 常显一行：远程 Engine 时文件 / Shell 在本机执行 |
 
 Hub 登录态与引擎连接态 **各说各的**（PRD-007 验收 4 再叠 Hub 账号层）：Hub `signedIn` 但 `ConnectionPhase` 非 `connected` 时，StatusBar 仍为「Engine not connected」。Web 形态：`IUniverseAgentHubService` = `unavailable`，pane 显示「本形态不支持连接引擎」，不画登录表单（PRD-019 / PRD-024 验收 7）。

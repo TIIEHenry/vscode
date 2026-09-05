@@ -255,14 +255,18 @@ export class EngineAgentsSection extends Disposable {
 		this.detailHost.style.display = 'none';
 
 		this.tabBar = DOM.append(this.detailHost, $('.engine-mcp-tab-bar'));
+		this.tabBar.setAttribute('role', 'tablist');
 		this.instructionsTab = DOM.append(this.tabBar, $('button.engine-mcp-tab')) as HTMLButtonElement;
 		this.instructionsTab.type = 'button';
+		this.instructionsTab.setAttribute('role', 'tab');
 		this.instructionsTab.textContent = localize('ua.engineAgentsTabInstructions', "Instructions");
 		this.toolsTab = DOM.append(this.tabBar, $('button.engine-mcp-tab')) as HTMLButtonElement;
 		this.toolsTab.type = 'button';
+		this.toolsTab.setAttribute('role', 'tab');
 		this.toolsTab.textContent = localize('ua.engineAgentsTabTools', "Tools");
 		this.modelTab = DOM.append(this.tabBar, $('button.engine-mcp-tab')) as HTMLButtonElement;
 		this.modelTab.type = 'button';
+		this.modelTab.setAttribute('role', 'tab');
 		this.modelTab.textContent = localize('ua.engineAgentsTabModel', "Model");
 		this._register(DOM.addDisposableListener(this.instructionsTab, 'click', () => this.setActiveDetailTab('instructions')));
 		this._register(DOM.addDisposableListener(this.toolsTab, 'click', () => this.setActiveDetailTab('tools')));
@@ -530,6 +534,9 @@ export class EngineAgentsSection extends Disposable {
 		this.instructionsTab.classList.toggle('engine-mcp-tab--active', tab === 'instructions');
 		this.toolsTab.classList.toggle('engine-mcp-tab--active', tab === 'tools');
 		this.modelTab.classList.toggle('engine-mcp-tab--active', tab === 'model');
+		this.instructionsTab.setAttribute('aria-selected', String(tab === 'instructions'));
+		this.toolsTab.setAttribute('aria-selected', String(tab === 'tools'));
+		this.modelTab.setAttribute('aria-selected', String(tab === 'model'));
 		this.agentsEditorContainer.style.display = tab === 'instructions' && this.selectedProfile ? '' : 'none';
 		this.toolsPanel.style.display = tab === 'tools' && this.selectedProfile ? '' : 'none';
 		this.modelPanel.style.display = tab === 'model' && this.selectedProfile ? '' : 'none';

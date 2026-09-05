@@ -39,6 +39,12 @@
 .monaco-workbench.hc-light .part.sources :focus-visible,
 .monaco-workbench.hc-black .preferences-editor :focus-visible,
 .monaco-workbench.hc-light .preferences-editor :focus-visible {
+.monaco-workbench.hc-black .engine-preferences-pane :focus-visible,
+.monaco-workbench.hc-light .engine-preferences-pane :focus-visible,
+.monaco-workbench.hc-black .connection-preferences-pane :focus-visible,
+.monaco-workbench.hc-light .connection-preferences-pane :focus-visible,
+.monaco-workbench.hc-black .conversation-visualize-overlay :focus-visible,
+.monaco-workbench.hc-light .conversation-visualize-overlay :focus-visible {
 	outline: 2px solid var(--ua-status-focus);
 	outline-offset: 1px;
 }
@@ -49,12 +55,20 @@
 .monaco-workbench.hc-light .part.sources [aria-selected="true"],
 .monaco-workbench.hc-black .preferences-editor [aria-selected="true"],
 .monaco-workbench.hc-light .preferences-editor [aria-selected="true"],
+.monaco-workbench.hc-black .engine-preferences-pane [aria-selected="true"],
+.monaco-workbench.hc-light .engine-preferences-pane [aria-selected="true"],
+.monaco-workbench.hc-black .connection-preferences-pane [aria-selected="true"],
+.monaco-workbench.hc-light .connection-preferences-pane [aria-selected="true"],
 .monaco-workbench.hc-black .part.conversation .monaco-list-row.selected,
 .monaco-workbench.hc-light .part.conversation .monaco-list-row.selected,
 .monaco-workbench.hc-black .part.sources .monaco-list-row.selected,
 .monaco-workbench.hc-light .part.sources .monaco-list-row.selected,
 .monaco-workbench.hc-black .preferences-editor .monaco-list-row.selected,
 .monaco-workbench.hc-light .preferences-editor .monaco-list-row.selected {
+.monaco-workbench.hc-black .engine-preferences-pane .monaco-list-row.selected,
+.monaco-workbench.hc-light .engine-preferences-pane .monaco-list-row.selected,
+.monaco-workbench.hc-black .connection-preferences-pane .monaco-list-row.selected,
+.monaco-workbench.hc-light .connection-preferences-pane .monaco-list-row.selected {
 	outline: 2px solid var(--vscode-contrastBorder);
 	outline-offset: -2px;
 	color: var(--ua-status-selected-fg);
@@ -64,8 +78,18 @@
 .monaco-workbench.hc-black .part.conversation .conversation-lens-turn--error,
 .monaco-workbench.hc-light .part.conversation .conversation-lens-turn--error,
 .monaco-workbench.hc-black .part.conversation .conversation-visualize-error,
-.monaco-workbench.hc-light .part.conversation .conversation-visualize-error {
+.monaco-workbench.hc-light .part.conversation .conversation-visualize-error,
+.monaco-workbench.hc-black .connection-preferences-pane .connection-hub-directory-banner,
+.monaco-workbench.hc-light .connection-preferences-pane .connection-hub-directory-banner {
 	outline: 2px solid var(--ua-status-error);
+	outline-offset: -2px;
+}
+
+.monaco-workbench.hc-black .engine-preferences-pane .engine-mcp-tab--active,
+.monaco-workbench.hc-light .engine-preferences-pane .engine-mcp-tab--active,
+.monaco-workbench.hc-black .connection-preferences-pane .connection-preferences-nav-item[aria-current="true"],
+.monaco-workbench.hc-light .connection-preferences-pane .connection-preferences-nav-item[aria-current="true"] {
+	outline: 2px solid var(--vscode-contrastBorder);
 	outline-offset: -2px;
 }
 
@@ -105,7 +129,8 @@
 }
 
 .monaco-workbench .part.conversation [role="dialog"],
-.monaco-workbench .part.sources [role="dialog"] {
+.monaco-workbench .part.sources [role="dialog"],
+.monaco-workbench .conversation-visualize-overlay[role="dialog"] {
 	max-width: 100%;
 	max-height: 100%;
 	box-sizing: border-box;

@@ -244,9 +244,9 @@ suite('ConversationIdentityStrip', () => {
 	test('identity strip is absent from SessionBar and dock', () => {
 		const { slots } = mountLens();
 
-		assert.strictEqual(slots.sessionBar.querySelector(`.${conversationIdentityStripClass}`), null);
+		assert.strictEqual(slots.sessionBar!.querySelector(`.${conversationIdentityStripClass}`), null);
 		assert.strictEqual(slots.dock.querySelector(`.${conversationIdentityStripClass}`), null);
-		assert.strictEqual(slots.sessionBar.querySelector(`.${conversationIdentityEngineChipClass}`), null);
+		assert.strictEqual(slots.sessionBar!.querySelector(`.${conversationIdentityEngineChipClass}`), null);
 		assert.strictEqual(slots.dock.querySelector(`.${conversationIdentityEngineChipClass}`), null);
 	});
 

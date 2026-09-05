@@ -14,3 +14,11 @@
 .monaco-workbench .navigator-projects-list .monaco-list-row .monaco-icon-label {
 	padding-left: 8px;
 }
+
+.monaco-workbench .navigator-projects-list .monaco-list-row .navigator-projects-node-label {
+	padding-left: 8px;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}

@@ -315,6 +315,10 @@ export class WebUniverseAgentConnection implements IUniverseAgentConnection {
 	listModels(): Promise<UniverseAgentListModelsResult> {
 		return rejectUnsupportedEnvironment();
 	}
+
+	async probeEngine() {
+		return { ok: false as const, reason: WEB_UNSUPPORTED_REASON };
+	}
 }
 
 registerSingleton(IUniverseAgentConnection, WebUniverseAgentConnection, InstantiationType.Delayed);

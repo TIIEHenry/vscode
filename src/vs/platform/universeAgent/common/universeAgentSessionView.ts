@@ -38,6 +38,9 @@ export interface IUniverseAgentSessionView {
 	 */
 	onDynamicDidApplyFrame(leaseId: string): Event<IUniverseAgentSessionViewFrameEvent>;
 
+	/** Global fanout; each renderer filters by leaseId (ProxyChannel). */
+	readonly onDidApplyFrame: Event<IUniverseAgentSessionViewFrameEvent>;
+
 	acquireLease(sessionId: string): Promise<string>;
 
 	releaseLease(leaseId: string): Promise<void>;

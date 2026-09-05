@@ -5,6 +5,8 @@ status: in_progress
 phase: M7
 updated: 2026-09-04
 summary: "对照 accessibility-responsive-ui.md §9；D19 全收；HC/reduced-motion 源码合同 pass（chevron transition 仅 `.ua-motion`）；不宣称 PRD-018 / 整份 a11y 完成"
+updated: 2026-09-03
+summary: "对照 accessibility-responsive-ui.md §9；Connection 窄宽 Back 与 Preferences HC 已补；Engine/Connection 无动画节点；不宣称 PRD-018 / 整份 a11y 完成"
 ---
 
 # A11y / RWD L1 源码复核
@@ -25,6 +27,7 @@ summary: "对照 accessibility-responsive-ui.md §9；D19 全收；HC/reduced-mo
 | fail | 0 |
 
 原 partial（高对比度 / reduced-motion）已于 **2026-09-04 槽 B** 收口：conversation chevron `transition` 只挂在 `.ua-motion`；轨迹折补挂 class；选择器级 reduce 规则删掉（改由 T1）。**GC-7（2026-09-04）：** D19(2) 原先成立——`ua-common.css` 只从 `conversationPart.ts` 引入且选择器只打 `.part.conversation` / `.part.sources`，Preferences 模态（`.preferences-editor`）无描边。已把 `ua-common.css` 挂到 `style.ts`（与 `productAccessibility.css` 同链），并给 `.preferences-editor` 补 focus/selected 描边；`productAccessibility.css` 同步加 Preferences 按钮 focus 加粗。**D19(1)（2026-09-04）：** 方案改口「Engine / Connection 无动画节点」——两 pane CSS 无 `transition` / `animation` / `@keyframes`，文件头注明不挂空 `.ua-motion`。**D19(3)（2026-09-04）：** §5/§9 改口 Connection 窄宽为单栏滚动（无左导航/Back）；与实现一致，本条升 pass。D19 已 closed。
+partial 一项：高对比度 / reduced-motion（Conversation 仍有未挂 `.ua-motion` 的 transition；Engine/Connection 无动画节点）。Connection 窄宽 Back 与 Preferences HC 已补，见 §6 / §8。
 
 ---
 
@@ -145,6 +148,11 @@ summary: "对照 accessibility-responsive-ui.md §9；D19 全收；HC/reduced-mo
 - **D19(3) 改口：** 产品认定单栏滚动即可；不造假 Back。见 [deferred-gaps D19](deferred-gaps.md) closed。
 
 **缺口：** 无（源码合同）。
+**证据（Connection — 表单不溢出；窄宽分区 + Back 已落）：**
+
+- 同样按 pane 宽打 class（`connectionPreferencesPane.ts`）。
+- 窄宽：`is-showing-detail` + `.connection-preferences-back` 回分区导航；`overflow-y: auto`。
+- 单测 `layout under 600px shows Back and returns to zone nav`。
 
 ### 7. Web：Connection / Engine 无桌面连接控件（E2-1）
 
@@ -195,6 +203,9 @@ summary: "对照 accessibility-responsive-ui.md §9；D19 全收；HC/reduced-mo
 **HC 覆盖（GC-7 后）：** T1 描边选择器现含 `.preferences-editor`（Engine / Connection pane 宿主）。引入链：`workbench/browser/style.ts` → `productAccessibility.css` + `ua-common.css`（后者仍由 `conversationPart.ts` 再 import 一次）。未跑目视/axe（§10 / D17）。
 
 **仍缺：** 无（本条源码合同）；手测/axe/W1 仍归 §10 / D17 / D15。
+**HC：** `ua-common.css` 已把 Engine / Connection Preferences 与 `.conversation-visualize-overlay` 纳入 `:focus-visible` / selected 描边。
+
+**缺口：** Conversation 选择器级 transition 仍不完全依赖 `.ua-motion`。手测 / axe 未跑，归 D17。D19 源码残留已闭。
 
 ---
 

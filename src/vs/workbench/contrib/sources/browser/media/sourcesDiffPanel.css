@@ -1,6 +1,6 @@
 .monaco-workbench .sources-diff-panel .sources-diff-panel-header {
-	display: flex;
-	align-items: center;
+	display: block;
+	min-width: 0;
 	padding: 4px 8px;
 	overflow: hidden;
 	text-overflow: ellipsis;
@@ -9,11 +9,12 @@
 
 .monaco-workbench .sources-diff-panel .sources-diff-panel-new-file-notice {
 	padding: 4px 8px;
-	opacity: 0.8;
+	color: var(--vscode-descriptionForeground);
 }
 
 .monaco-workbench .sources-diff-panel .sources-diff-panel-editor {
 	flex: 1;
+	min-width: 0;
 	min-height: 0;
 }
 

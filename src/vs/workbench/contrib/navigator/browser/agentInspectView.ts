@@ -19,9 +19,11 @@ import { IOpenerService } from '../../../../platform/opener/common/opener.js';
 import { IThemeService } from '../../../../platform/theme/common/themeService.js';
 import { IViewPaneOptions, ViewPane } from '../../../browser/parts/views/viewPane.js';
 import { IViewDescriptorService } from '../../../common/views.js';
+import { IConversationRosterService } from '../../conversation/browser/conversationStubService.js';
 import { AgentInspectTarget, IAgentInspectService } from '../common/agentInspect.js';
 import { formatAgentStatusLabel, formatAgentTypeShort } from '../common/navigatorAgentHierarchy.js';
 import { AGENT_INSPECT_VIEW_ID } from './agentInspectIds.js';
+import { NavigatorSessionLeaseHolder } from './navigatorSessionLeaseHolder.js';
 
 const $ = dom.$;
 
@@ -159,6 +161,7 @@ export class AgentInspectView extends ViewPane {
 	private listContainer: HTMLElement | undefined;
 	private entries: IAgentInspectEntry[] = [];
 	private staleNote: HTMLElement | undefined;
+	private readonly leaseHolder: NavigatorSessionLeaseHolder;
 
 	constructor(
 		options: IViewPaneOptions,
@@ -172,10 +175,17 @@ export class AgentInspectView extends ViewPane {
 		@IThemeService themeService: IThemeService,
 		@IHoverService hoverService: IHoverService,
 		@IAgentInspectService private readonly inspectService: IAgentInspectService,
+		@IConversationRosterService private readonly rosterService: IConversationRosterService,
 	) {
 		super(options, keybindingService, contextMenuService, configurationService, contextKeyService, viewDescriptorService, instantiationService, openerService, themeService, hoverService);
+		this.leaseHolder = this._register(new NavigatorSessionLeaseHolder(this.rosterService, () => this.renderTarget()));
 		this._register(this.inspectService.onDidChangeTarget(() => this.renderTarget()));
 		this._register(this.inspectService.onDidChangeLiveAgentIds(() => this.renderTarget()));
+	}
+
+	override setVisible(visible: boolean): void {
+		super.setVisible(visible);
+		this.leaseHolder.setVisible(visible);
 	}
 
 	override shouldShowWelcome(): boolean {

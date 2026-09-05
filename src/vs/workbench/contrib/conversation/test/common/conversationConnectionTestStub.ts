@@ -109,6 +109,7 @@ export function createConversationConnectionTestStub(
 		removeMcpServer: async () => ({ ok: true }),
 		listTools: async () => ({ tools: [] }),
 		listModels: async () => ({ models: [] }),
+		probeEngine: async () => ({ ok: false as const, reason: 'stub' }),
 		...overrides,
 	};
 }

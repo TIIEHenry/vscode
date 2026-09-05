@@ -163,6 +163,12 @@ export class SessionViewHost extends Disposable {
 	private readonly chatStreams = new Map<string, ActiveChatStream>();
 	private readonly continuationStreams = new Map<string, ActiveContinuationStream>();
 	private readonly sessionSidecars = new Map<string, SessionSidecar>();
+	private readonly knownSessions = new Set<string>();
+	private readonly attemptOwners = new Map<string, string>();
+	private readonly chatOwners = new Map<string, string>();
+	private readonly _onDidApplyFrame = this._register(new Emitter<IUniverseAgentSessionViewFrameEvent>());
+	/** ProxyChannel fans this to every window; each renderer filters by leaseId. */
+	readonly onDidApplyFrame = this._onDidApplyFrame.event;
 	private readonly toolAttributionHints = new Map<string, ToolAttributionHint[]>();
 	/** Owner session for Actor linger / chat-flush timers (async fire → postAndDrain). */
 	private readonly timerOwners = new Map<TimerId, string>();
@@ -197,6 +203,7 @@ export class SessionViewHost extends Disposable {
 	acquireLease(sessionId: string): string {
 		const leaseId = this.ids.nextAttemptId() as unknown as ViewLeaseId;
 		const sid = sessionId as SessionId;
+		this.knownSessions.add(sessionId);
 		this.core.ensureSession(sid);
 		const sink: ViewFrameSink = {
 			enqueue: frame => this.onFrameEnqueued(leaseId, sessionId, frame),
@@ -625,6 +632,8 @@ export class SessionViewHost extends Disposable {
 				this.diagnostics.count('view.pending_overflow' as DiagnosticMetric);
 			}
 		}
+		// ProxyChannel fans this to every window; each renderer filters by leaseId.
+		this._onDidApplyFrame.fire(event);
 	}
 
 	private createActiveLease(sessionId: string, leaseId: ViewLeaseId, sink: ViewFrameSink): ActiveLease {
@@ -681,16 +690,80 @@ export class SessionViewHost extends Disposable {
 		return outcome;
 	}
 
-	private drainIntents(sessionId: string): void {
+	private drainIntents(hintSessionId: string): void {
 		const intents = this.core.takeIntents();
 		for (const intent of intents) {
-			this.handleIntent(sessionId, intent);
+			this.handleIntent(this.resolveIntentSession(intent, hintSessionId), intent);
 		}
+	}
+
+	private resolveIntentSession(intent: CoreIntent, fallback: string): string {
+		switch (intent.do) {
+			case 'openStream':
+				return this.findSessionBy(sid => this.core.attemptId(sid as SessionId) === intent.attemptId) ?? fallback;
+			case 'closeStream': {
+				for (const stream of this.streams.values()) {
+					if (stream.attemptId === intent.attemptId) {
+						return stream.sessionId;
+					}
+				}
+				return this.attemptOwners.get(String(intent.attemptId)) ?? fallback;
+			}
+			case 'startTimer':
+			case 'cancelTimer': {
+				const owned = this.timerOwners.get(intent.timerId);
+				if (owned) {
+					return owned;
+				}
+				const id = String(intent.timerId);
+				if (id.startsWith('linger:')) {
+					return id.slice('linger:'.length) || fallback;
+				}
+				if (id.startsWith('chat-flush:')) {
+					const rest = id.slice('chat-flush:'.length);
+					const cut = rest.lastIndexOf(':');
+					return cut > 0 ? rest.slice(0, cut) : fallback;
+				}
+				return fallback;
+			}
+			case 'ensureChatStream':
+			case 'closeChatStream':
+				return this.chatOwners.get(String(intent.chatAttemptId))
+					?? this.findSessionBy(sid => this.core.chatAttemptId(sid as SessionId) === intent.chatAttemptId)
+					?? fallback;
+			case 'chatStreamWrite':
+				return this.chatOwners.get(String(intent.chatAttemptId))
+					?? this.findSessionBy(sid => this.core.chatAttemptId(sid as SessionId) === intent.chatAttemptId)
+					?? fallback;
+			case 'fillHistoryGap':
+				return this.attemptOwners.get(String(intent.attemptId))
+					?? this.findSessionBy(sid => this.core.attemptId(sid as SessionId) === intent.attemptId)
+					?? fallback;
+			case 'unaryCommand':
+				return intent.sessionId || fallback;
+			case 'openContinuationStream':
+				return fallback;
+		}
+	}
+
+	private findSessionBy(predicate: (sessionId: string) => boolean): string | undefined {
+		for (const sessionId of this.knownSessions) {
+			if (predicate(sessionId)) {
+				return sessionId;
+			}
+		}
+		for (const lease of this.leases.values()) {
+			if (predicate(lease.sessionId)) {
+				return lease.sessionId;
+			}
+		}
+		return undefined;
 	}
 
 	private handleIntent(sessionId: string, intent: CoreIntent): void {
 		switch (intent.do) {
 			case 'openStream':
+				this.attemptOwners.set(String(intent.attemptId), sessionId);
 				this.openStream(sessionId, intent.attemptId);
 				break;
 			case 'closeStream': {
@@ -708,6 +781,7 @@ export class SessionViewHost extends Disposable {
 				this.timerOwners.delete(intent.timerId);
 				break;
 			case 'ensureChatStream':
+				this.chatOwners.set(String(intent.chatAttemptId), sessionId);
 				this.openResidentChat(sessionId, intent.chatAttemptId);
 				break;
 			case 'closeChatStream':
@@ -828,6 +902,7 @@ export class SessionViewHost extends Disposable {
 	 * may re-ensure the same generation). Local dispose / connection-down is silent.
 	 */
 	private openResidentChat(sessionId: string, chatAttemptId: AttemptId): void {
+		this.chatOwners.set(String(chatAttemptId), sessionId);
 		const existing = this.chatStreams.get(sessionId);
 		if (existing && existing.chatAttemptId === chatAttemptId) {
 			this.postChatLifecycle(sessionId, 'chatStreamUp', chatAttemptId);

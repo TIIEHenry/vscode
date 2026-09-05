@@ -56,7 +56,7 @@ export class ConversationSubAgentOverlay extends Disposable {
 	private maximizeButton!: Button;
 	private closeButton!: Button;
 	private breadcrumb!: ConversationAgentBreadcrumbBox;
-	private overlaySessionBar!: HTMLElement;
+	private breadcrumbHost!: HTMLElement;
 	private readonly lensDisposables = this._register(new DisposableStore());
 	private lens: ConversationLens | undefined;
 	private state: IConversationSubAgentOverlayState | undefined;
@@ -145,10 +145,10 @@ export class ConversationSubAgentOverlay extends Disposable {
 			this.toggleMaximized();
 		}));
 
-		this.breadcrumb = this._register(new ConversationAgentBreadcrumbBox(this.card));
+		this.breadcrumbHost = append(this.card, $('.conversation-subagent-overlay-breadcrumb'));
+		this.breadcrumb = this._register(new ConversationAgentBreadcrumbBox(this.breadcrumbHost));
 		this._register(this.breadcrumb.onDidSelect(chatId => this._onDidSelectBreadcrumb.fire(chatId)));
 
-		this.overlaySessionBar = append(this.card, $('.conversation-subagent-overlay-session-bar'));
 		this.body = append(this.card, $('.conversation-subagent-overlay-body'));
 		this._register(addDisposableListener(this.element, EventType.KEY_DOWN, event => {
 			if (event.key === 'Escape') {
@@ -181,7 +181,7 @@ export class ConversationSubAgentOverlay extends Disposable {
 		this.nameElement.textContent = state.title;
 		this.descriptionElement.textContent = state.sessionTitle;
 		this.breadcrumb.setItems([...state.breadcrumb]);
-		this.breadcrumb.layout(this.card.clientWidth);
+		this.layoutBreadcrumb();
 		this.closeButton.focus();
 
 		this.lensDisposables.clear();
@@ -194,7 +194,7 @@ export class ConversationSubAgentOverlay extends Disposable {
 		// Detached S3 harnesses are not inside `.monaco-workbench`; skip the full lens there.
 		if (this.element.closest('.monaco-workbench')) {
 			const filterAgentId = state.chatId !== 'default' ? state.chatId : undefined;
-			this.lens = this.instantiationService.createInstance(ConversationLens, { sessionBar: this.overlaySessionBar, timeline, dock, filterAgentId });
+			this.lens = this.instantiationService.createInstance(ConversationLens, { timeline, dock, filterAgentId });
 			this.lensDisposables.add(this.lens);
 		}
 		this.scheduleLensLayout();
@@ -216,8 +216,12 @@ export class ConversationSubAgentOverlay extends Disposable {
 			: localize('conversationSubAgentOverlayMaximize', "Maximize");
 		this.maximizeButton.setTitle(title);
 		this.maximizeButton.element.setAttribute('aria-pressed', String(maximized));
-		this.breadcrumb.layout(this.card.clientWidth);
+		this.layoutBreadcrumb();
 		this.scheduleLensLayout();
+	}
+
+	private layoutBreadcrumb(): void {
+		this.breadcrumb.layout(Math.max(0, this.breadcrumbHost.clientWidth));
 	}
 
 	private scheduleLensLayout(): void {
@@ -230,7 +234,7 @@ export class ConversationSubAgentOverlay extends Disposable {
 		}
 		const width = this.body.clientWidth || this.card.clientWidth;
 		const height = this.body.clientHeight;
-		this.breadcrumb.layout(this.card.clientWidth);
+		this.layoutBreadcrumb();
 		this.lens?.layout(height, width);
 	}
 

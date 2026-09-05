@@ -5,6 +5,8 @@ status: accepted
 phase: N/A
 updated: 2026-09-05
 summary: "ConversationEditorPane 页 chrome；「对话 | 轨迹」双透镜；SessionBar History→GetHistory（空 sessionId 原样上线；断连不发）；SessionBar Snapshots listSnapshots + overlay Restore→RestoreSnapshot（成功后保持打开再拉 listSnapshots） + overlay Delete 确认成功后保持打开再拉 listSnapshots（≠ History）；叶宽 `.is-narrow`（Q6/RWD-1）；子代理 overlay 自备 sessionBar；Accessible View；帧源投影与 Q4 live 过程折"
+updated: 2026-09-03
+summary: "ConversationEditorPane 页 chrome；「对话 | 轨迹」双透镜；叶宽 `.is-narrow`（Q6/RWD-1）；子代理 overlay 自备 sessionBar；Accessible View；帧源投影与 Q4 live 过程折"
 ---
 
 # Conversation 透镜、时间线与轨迹
@@ -21,7 +23,7 @@ summary: "ConversationEditorPane 页 chrome；「对话 | 轨迹」双透镜；S
 
 **窄宽度（Q6 = a11y RWD-1）：** `ConversationEditorPane.layout(dimension)` 用**本叶** `dimension.width` 打 `.is-narrow`（< 600）与 `.is-compact`（< 300），再把同宽传给 `ConversationLens.layout`。禁止用 `ConversationPart` 宽代表 split / 并列叶。Part 级 SessionBar 用自己的盒宽打 class；overlay 自备栏用卡片体宽。300px 叶：主输入、透镜 tabs、同步态、inspector Back 保持 `flex-shrink: 0`；标题截断。轨迹 inspector 在叶宽 < 600 时覆盖表并显示 Back，关闭后恢复选中与 `scrollTop`。Navigator / Review reveal 把 `lastRevealItemId` 记在透镜上；隐藏 Part / 叶宽从 0 恢复 / overlay 打开或铺满时 `layout` 再 `revealTurn` / `scrollRecordIntoView`，不丢定位。
 
-`ConversationLens` 把当前透镜 id（`'conversation' | 'trajectory'`）存到 `StorageScope.WORKSPACE`（`CONVERSATION_LENS_ID_STORAGE_KEY`），是本系统今天**唯一**持久化的用户状态。
+`ConversationLens` 把当前透镜 id（`'conversation' | 'trajectory'`）存到 `StorageScope.WORKSPACE`（`CONVERSATION_LENS_ID_STORAGE_KEY`）。这不是本系统唯一持久化：会话目录 / 回合见 `conversation.roster.v1`（D13）；未发送草稿见 `conversation.drafts.v1`（[composer-and-inbox](composer-and-inbox.md) §6）。
 
 ## 2. 对话透镜：时间线
 

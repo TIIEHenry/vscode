@@ -265,6 +265,7 @@ export class SourcesReviewList extends Disposable {
 			supportIcons: false,
 			title: localize('sourcesReviewList.markAllReviewed', "Mark all as reviewed"),
 			...defaultButtonStyles,
+			secondary: true,
 		}));
 		this.markAllButton.label = localize('sourcesReviewList.markAllReviewed', "Mark all as reviewed");
 		this._register(this.markAllButton.onDidClick(() => this.markAllVisibleReviewed()));
@@ -397,8 +398,10 @@ export class SourcesReviewList extends Disposable {
 		if (this.lastRevealMissToolCallId) {
 			parts.push(sourcesReviewRevealMissHint);
 		}
-		this.headerHint.textContent = parts.join(' ');
-		this.headerHint.title = this.lastRevealMissToolCallId ? sourcesReviewRevealMissHint : '';
+		const hint = parts.join(' ');
+		this.headerHint.textContent = hint;
+		this.headerHint.title = hint;
+		this.headerHint.classList.toggle('is-critical', !!(workDirNote || this.lastRevealMissToolCallId));
 	}
 
 	private async revealAttributionItem(toolCallId: string): Promise<void> {

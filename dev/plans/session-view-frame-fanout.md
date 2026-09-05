@@ -5,6 +5,10 @@ status: implemented
 phase: M7
 updated: 2026-09-04
 summary: "F1/F2 已落 @ c37bbc6e / 917a7f8d：onDynamicDidApplyFrame(leaseId) + 宿主首帧缓冲 + postAndDrain；G-CORE-1 已登记；F3 渲染端共享 lease 见 D22"
+status: accepted
+phase: M7
+updated: 2026-09-03
+summary: "ProxyChannel 全窗广播改 onDynamicDidApplyFrame(leaseId) + 宿主 onDidAddFirstListener 缓冲；postAndDrain 门禁；G-CORE-1。规则 16 已审、2026-09-03 签收"
 ---
 
 # 会话视图帧扇出
@@ -176,6 +180,10 @@ F1 与 F2 同文件（`sessionViewHost.ts`），**P 槽单写者串行**：F1 �
 - [conversation-stream-timeline §3.2](conversation-stream-timeline.md)：lease 生命周期段补「宿主侧 per-lease 事件 + 订阅前缓冲」一句，并改掉「渲染端按 leaseId 过滤」的描述。**已回填** @ 2026-09-04。
 - `docs/modules/platform/overview.md`：`universeAgent` 段 IPC 描述改口。**已回填** @ 2026-09-04。
 - [deferred-gaps](../progress/deferred-gaps.md)：F3 渲染端共享 lease 若不做，登记为 D 项。**已登记 D22**。
+- [engine-protocol-surface §4](../../docs/reference/universe-agent/engine-protocol-surface.md)：登记 **G-CORE-1**；§5 会话面补 `onDynamicDidApplyFrame` 与首帧缓冲语义。
+- [conversation-stream-timeline §3.2](conversation-stream-timeline.md)：lease 生命周期段补「宿主侧 per-lease 事件 + 订阅前缓冲」一句，并改掉「渲染端按 leaseId 过滤」的描述。
+- `docs/modules/platform/overview.md`：`universeAgent` 段 IPC 描述改口。
+- [deferred-gaps](../progress/deferred-gaps.md)：F3 渲染端共享 lease 若不做，登记为 D 项。
 
 ## 相关
 

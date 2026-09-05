@@ -135,11 +135,7 @@ suite('ConversationVisualizeCard', () => {
 		renderConversationVisualizeCard(host, turn, {
 			isExpanded: (turnId) => expanded.get(turnId) ?? true,
 			setExpanded: (turnId, value) => {
-				if (value) {
-					expanded.set(turnId, true);
-				} else {
-					expanded.delete(turnId);
-				}
+				expanded.set(turnId, value);
 			},
 			onLayoutChange: () => { },
 		}, disposables);

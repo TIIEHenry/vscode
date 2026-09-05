@@ -58,7 +58,9 @@ import {
 	conversationLensPostFailedNotAuthenticated,
 	conversationLensDockNoRoute,
 	conversationLensDockNoTemplates,
+	conversationLensDockNoEngineTools,
 	conversationLensDockNoTools,
+	conversationLensDockToolsEngineHint,
 	conversationLensDockAgentLabel,
 	conversationLensDockNoAgent,
 	conversationLensDockStubAgent,
@@ -115,6 +117,8 @@ import {
 	storeUaClientComposerDraft,
 	uaClientComposerDraftEntryKey,
 } from './uaClientComposerDrafts.js';
+import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
+import { composerAgentSelectOptions, composerModelSelectOptions, composerToolNames } from './conversationComposerCatalog.js';
 import { UA_CLIENT_CLIENT_TOOLS_SHOW_TOOL_INVOCATION_DETAILS } from '../common/uaClientSettingsKeys.js';
 import {
 	applyConversationDensityClass,
@@ -238,6 +242,9 @@ export class ConversationLens extends Disposable {
 	private lastAttachedEntries: ConversationTimelineEntry[] = [];
 	private lastRevealItemId: string | undefined;
 	private lastReadingWidth = 0;
+	private postFailureVisible = false;
+	private composerCatalogGeneration = 0;
+	private catalogToolNames: readonly string[] = [];
 
 	constructor(
 		slots: IConversationLensSlots,
@@ -252,6 +259,7 @@ export class ConversationLens extends Disposable {
 		@IConversationTimelineRevealService revealService: IConversationTimelineRevealService,
 		@IConversationReviewNavService private readonly reviewNavService: IConversationReviewNavService,
 		@ICommandService private readonly commandService: ICommandService,
+		@IUniverseAgentConnection private readonly uaConnection: IUniverseAgentConnection,
 	) {
 		super();
 
@@ -311,7 +319,12 @@ export class ConversationLens extends Disposable {
 				}
 			}
 		}));
-		this._register(this.stubService.onDidChangeEngineConnection(() => this.updateVoiceMicChrome()));
+		this._register(this.stubService.onDidChangeEngineConnection(() => {
+			this.updateVoiceMicChrome();
+			this.refreshComposerCatalogs();
+		}));
+		this._register(this.uaConnection.onDidChangeConnection(() => this.refreshComposerCatalogs()));
+		this.refreshComposerCatalogs();
 
 		this._register(toDisposable(() => {
 			this.addContextView?.close();
@@ -459,8 +472,91 @@ export class ConversationLens extends Disposable {
 			this.sendButton.enabled = hasDraft;
 			return;
 		}
-		const hasModel = this.modelSelectedIndex > 0;
-		this.sendButton.enabled = hasModel && hasDraft;
+		const needsStubModel = !this.stubService.isEngineConnected() && this.modelSelectedIndex === 0;
+		this.sendButton.enabled = hasDraft && !needsStubModel;
+	}
+
+	private updateGateRow(): void {
+		if (!this.gateRow) {
+			return;
+		}
+		if (this.postFailureVisible) {
+			this.gateRow.hidden = false;
+			return;
+		}
+		const connected = this.stubService.isEngineConnected();
+		this.gateRow.hidden = connected;
+		if (!connected) {
+			this.gateLabel.textContent = conversationLensDockEngineNotConnected;
+			this.gateRow.setAttribute('aria-label', conversationLensDockEngineNotConnected);
+		}
+	}
+
+	private refreshComposerCatalogs(): void {
+		const generation = ++this.composerCatalogGeneration;
+		if (!this.stubService.isEngineConnected()) {
+			const sessionId = this.stubService.getActiveSessionId();
+			const { agentIndex } = this.getSessionConfig(sessionId);
+			this.agentSelectBox.setOptions(COMPOSER_AGENT_OPTIONS.map(text => ({ text })), agentIndex);
+			this.modelSelectBox.setOptions(
+				[
+					{ text: conversationLensDockNoModel },
+					{ text: localize('conversationLens.dockStubModel', "Stub model") },
+				],
+				this.modelSelectedIndex,
+			);
+			this.catalogToolNames = [];
+			this.updateSendEnabled();
+			this.updateGateRow();
+			return;
+		}
+		this.agentSelectBox.setOptions([{ text: conversationLensDockNoAgent }], 0);
+		this.modelSelectBox.setOptions([{ text: conversationLensDockNoModel }], 0);
+		this.modelSelectedIndex = 0;
+		this.catalogToolNames = [];
+		this.updateSendEnabled();
+		this.updateGateRow();
+		void this.loadConnectedComposerCatalogs(generation);
+	}
+
+	private async loadConnectedComposerCatalogs(generation: number): Promise<void> {
+		const caps = this.uaConnection.getCapabilitySnapshot();
+		if (caps.agentProfiles.support === 'SUPPORTED') {
+			try {
+				const result = await this.uaConnection.listAgentProfiles();
+				if (generation !== this.composerCatalogGeneration) {
+					return;
+				}
+				const options = composerAgentSelectOptions(result.profiles);
+				const { agentIndex } = this.getSessionConfig(this.stubService.getActiveSessionId());
+				this.agentSelectBox.setOptions(options, Math.min(agentIndex, options.length - 1));
+			} catch {
+				// Keep honest empty agent list.
+			}
+		}
+		if (caps.models.support === 'SUPPORTED') {
+			try {
+				const result = await this.uaConnection.listModels();
+				if (generation !== this.composerCatalogGeneration) {
+					return;
+				}
+				this.modelSelectBox.setOptions(composerModelSelectOptions(result.models), 0);
+				this.modelSelectedIndex = 0;
+			} catch {
+				// Keep "No model"; send is not gated when connected.
+			}
+		}
+		if (caps.tools.support === 'SUPPORTED') {
+			try {
+				const result = await this.uaConnection.listTools();
+				if (generation !== this.composerCatalogGeneration) {
+					return;
+				}
+				this.catalogToolNames = composerToolNames(result.tools);
+			} catch {
+				this.catalogToolNames = [];
+			}
+		}
 	}
 
 	private createComposerSelectBox(options: { text: string }[], selectedIndex: number, ariaLabel: string): SelectBox {
@@ -953,7 +1049,17 @@ export class ConversationLens extends Disposable {
 			anchorAlignment: AnchorAlignment.RIGHT,
 			anchorPosition: AnchorPosition.ABOVE,
 			render: container => {
-				append(container, $('.conversation-lens-dock-tune-popup')).textContent = conversationLensDockNoTools;
+				const popup = append(container, $('.conversation-lens-dock-tune-popup'));
+				if (this.stubService.isEngineConnected() && this.catalogToolNames.length > 0) {
+					for (const name of this.catalogToolNames) {
+						append(popup, $('div.conversation-lens-dock-tune-tool')).textContent = name;
+					}
+					append(popup, $('div.conversation-lens-dock-tune-note')).textContent = conversationLensDockToolsEngineHint;
+				} else if (this.stubService.isEngineConnected()) {
+					popup.textContent = conversationLensDockNoEngineTools;
+				} else {
+					popup.textContent = conversationLensDockNoTools;
+				}
 				return toDisposable(() => {
 					this.tuneContextView = undefined;
 				});
@@ -1062,12 +1168,16 @@ export class ConversationLens extends Disposable {
 			this.prefirstHero.appendChild(this.identityStrip.element);
 			this.prefirstHero.appendChild(this.gateRow);
 			this.inboxOverlay.element.hidden = true;
-		} else {
+		} else if (!this.filterAgentId) {
 			this.readingColumn.insertBefore(this.identityStrip.element, this.readingColumn.firstChild);
 			this.dockRoot.insertBefore(this.gateRow, this.inboxOverlay.element);
 			this.inboxOverlay.element.hidden = false;
-			this.gateRow.hidden = false;
+		} else {
+			this.identityStrip.element.remove();
+			this.dockRoot.insertBefore(this.gateRow, this.inboxOverlay.element);
+			this.inboxOverlay.element.hidden = false;
 		}
+		this.updateGateRow();
 		this.syncComposerPlacement();
 	}
 
@@ -1330,6 +1440,7 @@ export class ConversationLens extends Disposable {
 			extensionInfo: this.mermaidExtensionInfo,
 			targetWindow: getWindow(this.slotHosts.timeline),
 			webviewService: this.webviewService,
+			host: this.slotHosts.timeline.closest('.part.conversation') ?? undefined,
 		});
 	}
 
@@ -1658,6 +1769,7 @@ export class ConversationLens extends Disposable {
 			: reason === 'not_authenticated'
 				? conversationLensPostFailedNotAuthenticated
 				: conversationLensPostFailedNoSession;
+		this.postFailureVisible = true;
 		this.gateRow.hidden = false;
 		this.gateLabel.textContent = message;
 		this.gateRow.setAttribute('aria-label', message);
@@ -1666,8 +1778,8 @@ export class ConversationLens extends Disposable {
 		}
 		this.sendFailureTimeout = setTimeout(() => {
 			this.sendFailureTimeout = undefined;
-			this.gateLabel.textContent = conversationLensDockEngineNotConnected;
-			this.gateRow.setAttribute('aria-label', conversationLensDockEngineNotConnected);
+			this.postFailureVisible = false;
+			this.updateGateRow();
 		}, 4000);
 	}
 
@@ -1886,7 +1998,10 @@ export class ConversationLens extends Disposable {
 			this.saveQueueEdit();
 			return;
 		}
-		if (this.modelSelectedIndex === 0 || this.submitInFlight) {
+		if (this.submitInFlight) {
+			return;
+		}
+		if (!this.stubService.isEngineConnected() && this.modelSelectedIndex === 0) {
 			return;
 		}
 		const text = this.dockTextarea.value.trim();

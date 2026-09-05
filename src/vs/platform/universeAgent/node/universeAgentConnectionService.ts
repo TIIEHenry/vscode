@@ -6,7 +6,7 @@
 import { Emitter } from '../../../base/common/event.js';
 import { Disposable } from '../../../base/common/lifecycle.js';
 import type { ConnectionPhase, ConnectionFailureCode, ConnectionProbeResult, UniverseAgentConnectProfileResult } from '../common/connectionHubTypes.js';
-import type { IUniverseAgentConnection, IUniverseAgentTeamApi, UniverseAgentNavigatorCapabilityKey } from '../common/universeAgentConnection.js';
+import type { IUniverseAgentConnection, IUniverseAgentTeamApi, UniverseAgentNavigatorCapabilityKey, UniverseAgentProbeEngineResult } from '../common/universeAgentConnection.js';
 import type { IUniverseAgentHostConnection } from '../common/universeAgentHostConnection.js';
 import type {
 	UniverseAgentCapabilitySnapshot,
@@ -1721,6 +1721,28 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 	): UniverseAgentWatchConfigStream {
 		this._assertTransportReady();
 		return this._transport!.openWatchConfigStream(request, onResponse, onClosed);
+	}
+
+	async probeEngine(): Promise<UniverseAgentProbeEngineResult> {
+		if (!this._transport) {
+			return { ok: false, reason: 'Engine is not connected.' };
+		}
+		if (!this._clientIdentityStore) {
+			return { ok: false, reason: 'Client identity store is unavailable.' };
+		}
+		const identityState = await this._clientIdentityStore.getOrCreateIdentity();
+		if (identityState.kind !== 'ready') {
+			return { ok: false, reason: `client identity unavailable: ${identityState.kind}` };
+		}
+		try {
+			const nonce = await this._transport.getAuthNonce({
+				clientIdentityId: identityState.identity.clientIdentityId,
+				clientPublicKey: identityState.identity.clientPublicKey,
+			});
+			return { ok: true, engineIdentityId: nonce.engineIdentityId };
+		} catch (error) {
+			return { ok: false, reason: error instanceof Error ? error.message : String(error) };
+		}
 	}
 
 	getActiveHubBaseUrl(): string | undefined {

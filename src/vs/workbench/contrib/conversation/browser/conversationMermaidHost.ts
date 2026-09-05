@@ -153,11 +153,16 @@ function buildConversationMermaidHtml(
 			margin: 0;
 			padding: 0;
 		}
-		.mermaid {
-			visibility: hidden;
+		.mermaid:not(.rendered) {
+			visibility: visible;
+			white-space: pre-wrap;
+			font-family: monospace;
+			font-size: 12px;
+			opacity: 0.7;
 		}
 		.mermaid.rendered {
 			visibility: visible;
+			opacity: 1;
 		}
 	</style>
 </head>

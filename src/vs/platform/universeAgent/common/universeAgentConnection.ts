@@ -2165,4 +2165,14 @@ export interface IUniverseAgentConnection {
 		onResponse: (response: UniverseAgentConfigChangedEvent) => void,
 		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
 	): UniverseAgentWatchConfigStream;
+
+	/**
+	 * Client-side reachability probe via System.GetAuthNonce (already on the wire).
+	 * Does not invent an engine RPC. Identity material stays in the main process.
+	 */
+	probeEngine?(): Promise<UniverseAgentProbeEngineResult>;
 }
+
+export type UniverseAgentProbeEngineResult =
+	| { readonly ok: true; readonly engineIdentityId: string }
+	| { readonly ok: false; readonly reason: string };

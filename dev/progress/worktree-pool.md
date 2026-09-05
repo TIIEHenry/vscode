@@ -5,7 +5,7 @@ status: accepted
 phase: M7
 created: 2026-08-30
 updated: 2026-09-03
-summary: "仓外 vscode-WorkTrees；merge + A–D idle；P5 compile PASS @ Node 24.18.0"
+summary: "仓外 vscode-WorkTrees；merge + A–D idle；调试引擎另见 debug-engine 指南"
 ---
 
 # Loop 并行工位池（本仓）
@@ -34,6 +34,8 @@ summary: "仓外 vscode-WorkTrees；merge + A–D idle；P5 compile PASS @ Node 
 | D | `vscode-WorkTrees/D` | `loop/D` | **idle** | — | — |
 
 并行归属见 [status.md](status.md)。M7 看板已归档：[m7-ui-completion](../parallel/archive/m7-ui-completion.md)。
+
+IDE 调试用引擎 **不是** 本表槽位：仓外 `vscode-debug-engine/`（UA 分离头指针），见 [钉死引擎调试](../../docs/guides/debug-engine.md)。
 
 ## 扩容（E–J）
 

@@ -6,24 +6,32 @@
 .monaco-workbench .part.sources .sources-review-filter-row {
 	display: flex;
 	align-items: center;
+	flex-wrap: nowrap;
 	gap: 8px;
 	flex-shrink: 0;
 	padding: 2px 8px 0;
+	border-bottom: 1px solid var(--vscode-sideBarSectionHeader-border, transparent);
 }
 
 .monaco-workbench .part.sources .sources-review-filter-row .sources-list-filter {
 	flex: 1;
 	min-width: 0;
+	border-bottom: none;
 }
 
 .monaco-workbench .part.sources .sources-review-unreviewed-toggle {
 	display: flex;
 	align-items: center;
 	gap: 4px;
+	flex-shrink: 0;
 	font-size: 11px;
 	color: var(--vscode-descriptionForeground);
 	white-space: nowrap;
 	cursor: pointer;
+}
+
+.monaco-workbench .part.sources.is-compact .sources-review-unreviewed-toggle span {
+	display: none;
 }
 
 .monaco-workbench .part.sources .sources-review-path-filter {
@@ -49,17 +57,36 @@
 	color: var(--vscode-descriptionForeground);
 	font-size: 11px;
 	line-height: 16px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.monaco-workbench .part.sources.is-compact .sources-review-header-hint:not(.is-critical) {
+	display: none;
+}
+
+.monaco-workbench .part.sources.is-compact .sources-review-header-hint.is-critical {
+	white-space: normal;
 }
 
 .monaco-workbench .part.sources .sources-review-progress-header {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
+	flex-wrap: nowrap;
 	gap: 8px;
 	flex-shrink: 0;
 	padding: 2px 8px 4px;
 	font-size: 11px;
 	color: var(--vscode-descriptionForeground);
+}
+
+.monaco-workbench .part.sources .sources-review-progress-count {
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 }
 
 .monaco-workbench .part.sources .sources-review-row {
@@ -77,7 +104,13 @@
 	display: flex;
 	align-items: center;
 	gap: 4px;
-	flex-shrink: 0;
+	flex-shrink: 1;
+	min-width: 0;
+	overflow: hidden;
+}
+
+.monaco-workbench .part.sources.is-compact .sources-review-attribution-chip {
+	max-width: 72px;
 }
 
 .monaco-workbench .part.sources .sources-review-attribution-chip {
@@ -118,16 +151,27 @@
 }
 
 .monaco-workbench .part.sources .sources-review-state.unreviewed {
-	color: var(--vscode-charts-blue);
+	color: var(--vscode-notificationsInfoIcon-foreground, var(--vscode-charts-blue));
+}
+
+.monaco-workbench.hc-black .part.sources .sources-review-state.unreviewed,
+.monaco-workbench.hc-light .part.sources .sources-review-state.unreviewed {
+	outline: 1px solid var(--vscode-contrastBorder);
+	outline-offset: 1px;
 }
 
 .monaco-workbench .part.sources .sources-tab-panel .sources-review-list {
 	flex: 1;
-	min-height: 0;
+	min-height: 80px;
 }
 
 .monaco-workbench .part.sources .sources-review-empty {
-	padding: 8px 16px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 80px;
+	padding: 16px 8px;
+	text-align: center;
 	color: var(--vscode-descriptionForeground);
 	font-size: 13px;
 }
