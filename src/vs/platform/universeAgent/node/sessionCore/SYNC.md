@@ -2,7 +2,7 @@
 
 Source: `UniverseAgentDesktop/packages/session-core/src`
 
-Commit: `02a2ba350f82d3b087cb664942624f71fa4e0c60`
+Commit: `0dd3146cd05efdcce118d0c3c7e19eb28b615f5c`
 
 Regenerate:
 

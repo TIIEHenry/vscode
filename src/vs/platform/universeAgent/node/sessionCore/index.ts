@@ -173,3 +173,13 @@ export { pendingActionFromLocalPendingSend } from './pending-actions-bound.js'
 
 export { createSessionCore } from './session-core.js'
 export type { SessionCore, SessionCoreDeps } from './session-core.js'
+
+export {
+	FakeScheduler,
+	createFakeDiagnostics,
+	createFakeIdPort,
+	advanceAndDeliver,
+	bindTimerIntents,
+	flushTimerIntents,
+} from './testing/index.js'
+export type { DiagnosticEvent } from './testing/index.js'
