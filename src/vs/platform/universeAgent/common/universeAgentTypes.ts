@@ -2826,6 +2826,21 @@ export interface UniverseAgentListClipboardResult {
 }
 
 /**
+ * ClipboardService.Clear — proto `ClipboardClearRequest` /
+ * `ClipboardClearResponse` only. Empty `session_id` sent as-is.
+ * `removed_count` 0 mapped as-is.
+ * ≠ Write / Read / List / DeviceService / TriggerService.
+ */
+export interface UniverseAgentClearClipboardRequest {
+	readonly sessionId: string;
+}
+
+export interface UniverseAgentClearClipboardResult {
+	/** Proto `removed_count`. 0 mapped as-is. */
+	readonly removedCount: number;
+}
+
+/**
  * ConfigService.SetPermissionPolicy — session/tool policy write
  * (≠ SwitchModel / ListModels / Get / Set / GetModelPreferences /
  * SetModelPreferences / SetPermissionMode).

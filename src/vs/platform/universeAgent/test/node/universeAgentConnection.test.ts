@@ -240,6 +240,8 @@ import type {
 	UniverseAgentReadClipboardResult,
 	UniverseAgentListClipboardRequest,
 	UniverseAgentListClipboardResult,
+	UniverseAgentClearClipboardRequest,
+	UniverseAgentClearClipboardResult,
 	UniverseAgentDownloadAttachmentRequest,
 	UniverseAgentDownloadChunk,
 	UniverseAgentHealthCheckResult,
@@ -1789,6 +1791,16 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 		return this.listClipboardResult;
 	}
 
+	readonly clearClipboardCalls: UniverseAgentClearClipboardRequest[] = [];
+	clearClipboardResult: UniverseAgentClearClipboardResult = {
+		removedCount: 0,
+	};
+
+	async clearClipboard(request: UniverseAgentClearClipboardRequest): Promise<UniverseAgentClearClipboardResult> {
+		this.clearClipboardCalls.push(request);
+		return this.clearClipboardResult;
+	}
+
 	private _downloadAttachmentGate: ReturnType<typeof createStreamCloseGate> | undefined;
 	readonly downloadAttachmentOpens: UniverseAgentDownloadAttachmentRequest[] = [];
 
@@ -2495,6 +2507,11 @@ suite('UniverseAgentConnectionService', () => {
 
 	test('UniverseAgentGrpcServices lists Clipboard.List', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Clipboard.List, 'List');
+		assert.strictEqual(UniverseAgentGrpcServices.Clipboard.service, 'universeagent.clipboard.v1.ClipboardService');
+	});
+
+	test('UniverseAgentGrpcServices lists Clipboard.Clear', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Clipboard.Clear, 'Clear');
 		assert.strictEqual(UniverseAgentGrpcServices.Clipboard.service, 'universeagent.clipboard.v1.ClipboardService');
 	});
 
@@ -6650,6 +6667,35 @@ suite('UniverseAgentConnectionService', () => {
 		transport.listClipboardResult = { entries: [] };
 		const emptyList = await service.listClipboard(emptyRequest);
 		assert.deepStrictEqual(emptyList.entries, []);
+		service.dispose();
+	});
+
+	test('clearClipboard forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.clearClipboardResult = {
+			removedCount: 3,
+		};
+		const request = {
+			sessionId: 'sess-1',
+		};
+		const result = await service.clearClipboard(request);
+		assert.deepStrictEqual(transport.clearClipboardCalls, [request]);
+		assert.deepStrictEqual(result, transport.clearClipboardResult);
+
+		transport.clearClipboardResult = {
+			removedCount: 0,
+		};
+		const emptyRequest = {
+			sessionId: '',
+		};
+		const empty = await service.clearClipboard(emptyRequest);
+		assert.strictEqual(transport.clearClipboardCalls[1]?.sessionId, '');
+		assert.strictEqual(empty.removedCount, 0);
 		service.dispose();
 	});
 

@@ -284,6 +284,8 @@ import type {
 	UniverseAgentReadClipboardResult,
 	UniverseAgentListClipboardRequest,
 	UniverseAgentListClipboardResult,
+	UniverseAgentClearClipboardRequest,
+	UniverseAgentClearClipboardResult,
 	UniverseAgentSetPermissionPolicyRequest,
 	UniverseAgentSetPermissionPolicyResult,
 	UniverseAgentListModelsResult,
@@ -1675,6 +1677,16 @@ export interface IUniverseAgentConnection {
 	 * ≠ Write / Read / Clear / DeviceService / TriggerService.
 	 */
 	listClipboard?(request: UniverseAgentListClipboardRequest): Promise<UniverseAgentListClipboardResult>;
+
+	/**
+	 * ClipboardService.Clear unary. Optional so Web / tests can omit it.
+	 * Catalog + node transport only this slice; empty `sessionId` is sent
+	 * as-is. Proto fields only (`ClipboardClearRequest` /
+	 * `ClipboardClearResponse`: `removed_count`). `removedCount` 0 mapped
+	 * as-is. No Conversation roster / UI / Engine Preferences / Composer.
+	 * ≠ Write / Read / List / DeviceService / TriggerService.
+	 */
+	clearClipboard?(request: UniverseAgentClearClipboardRequest): Promise<UniverseAgentClearClipboardResult>;
 
 	/**
 	 * ConfigService.SetPermissionPolicy unary (session/tool Ask/Agent/Permit
