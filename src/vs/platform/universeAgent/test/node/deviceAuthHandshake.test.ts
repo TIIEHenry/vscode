@@ -758,6 +758,9 @@ class MockDeviceAuthTransport implements IUniverseAgentGrpcTransport {
 	openDownloadAttachmentStream(): { dispose(): void } {
 		return { dispose() { } };
 	}
+	openPtyStream(): { write(): void; end(): void; dispose(): void } {
+		return { write() { }, end() { }, dispose() { } };
+	}
 
 	async healthCheck() {
 		return { status: '', version: '', activeSessions: 0, uptimeMs: 0 };

@@ -284,6 +284,8 @@ import type {
 	UniverseAgentDownloadAttachmentRequest,
 	UniverseAgentDownloadChunk,
 	UniverseAgentDownloadAttachmentStream,
+	UniverseAgentPtyServerMessage,
+	UniverseAgentPtyStream,
 	UniverseAgentHealthCheckResult,
 	UniverseAgentDoctorResult,
 	UniverseAgentShutdownRequest,
@@ -831,6 +833,11 @@ export interface IUniverseAgentGrpcTransport {
 		onResponse: (response: UniverseAgentDownloadChunk) => void,
 		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
 	): UniverseAgentDownloadAttachmentStream;
+	/** PtyService.PtyStream bidi (snake_case `engine_session_id`/`client_session_id`/`tab_id`). Empty ids sent as-is. */
+	openPtyStream(
+		onResponse: (response: UniverseAgentPtyServerMessage) => void,
+		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
+	): UniverseAgentPtyStream;
 
 	/** SystemService.HealthCheck unary (empty request `{}`). Empty status / version mapped as-is. */
 	healthCheck(): Promise<UniverseAgentHealthCheckResult>;
@@ -1111,6 +1118,10 @@ export const UniverseAgentGrpcServices = {
 		GetUploadProgress: 'GetUploadProgress',
 		UploadAttachment: 'UploadAttachment',
 		DownloadAttachment: 'DownloadAttachment',
+	},
+	Pty: {
+		service: 'universeagent.pty.v1.PtyService',
+		PtyStream: 'PtyStream',
 	},
 	Device: {
 		service: 'universeagent.device.v1.DeviceService',

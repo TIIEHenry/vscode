@@ -272,6 +272,8 @@ import type {
 	UniverseAgentClearClipboardResult,
 	UniverseAgentDownloadAttachmentRequest,
 	UniverseAgentDownloadChunk,
+	UniverseAgentPtyClientMessage,
+	UniverseAgentPtyServerMessage,
 	UniverseAgentHealthCheckResult,
 	UniverseAgentDoctorResult,
 	UniverseAgentListDevicesResult,
@@ -2115,6 +2117,43 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 	fireDownloadAttachmentClosed(cause: UniverseAgentSessionStreamCloseCause): void {
 		this._downloadAttachmentGate?.finish(cause);
 	}
+
+	private _ptyStreamGate: ReturnType<typeof createStreamCloseGate> | undefined;
+	private _ptyStreamOnResponse: ((response: UniverseAgentPtyServerMessage) => void) | undefined;
+	readonly ptyStreamWrites: UniverseAgentPtyClientMessage[] = [];
+	ptyStreamOpenCount = 0;
+
+	openPtyStream(
+		onResponse: (response: UniverseAgentPtyServerMessage) => void,
+		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
+	): { write(message: UniverseAgentPtyClientMessage): void; end(): void; dispose(): void } {
+		this.ptyStreamOpenCount++;
+		this._ptyStreamOnResponse = onResponse;
+		const gate = createStreamCloseGate(onClosed);
+		this._ptyStreamGate = gate;
+		return {
+			write: (message: UniverseAgentPtyClientMessage) => {
+				this.ptyStreamWrites.push(message);
+			},
+			end: () => { },
+			dispose: () => {
+				gate.closeLocal();
+				if (this._ptyStreamGate === gate) {
+					this._ptyStreamGate = undefined;
+					this._ptyStreamOnResponse = undefined;
+				}
+			},
+		};
+	}
+
+	firePtyStreamMessage(message: UniverseAgentPtyServerMessage): void {
+		this._ptyStreamOnResponse?.(message);
+	}
+
+	firePtyStreamClosed(cause: UniverseAgentSessionStreamCloseCause): void {
+		this._ptyStreamGate?.finish(cause);
+	}
+
 	healthCheckCalls = 0;
 	healthCheckResult: UniverseAgentHealthCheckResult = {
 		status: '',
@@ -2856,6 +2895,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('UniverseAgentGrpcServices lists FileTransfer.DownloadAttachment', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.FileTransfer.DownloadAttachment, 'DownloadAttachment');
 		assert.strictEqual(UniverseAgentGrpcServices.FileTransfer.service, 'universeagent.filetransfer.v1.FileTransferService');
+	});
+
+	test('UniverseAgentGrpcServices lists Pty.PtyStream', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Pty.PtyStream, 'PtyStream');
+		assert.strictEqual(UniverseAgentGrpcServices.Pty.service, 'universeagent.pty.v1.PtyService');
 	});
 
 	test('UniverseAgentGrpcServices lists System.HealthCheck', () => {
@@ -9660,6 +9704,118 @@ suite('UniverseAgentConnectionService', () => {
 		}, () => { }, cause => seen.push(cause));
 		handle.dispose();
 		transport.fireDownloadAttachmentClosed({ kind: 'error', message: 'CANCELLED' });
+		assert.deepStrictEqual(seen, []);
+		service.dispose();
+	});
+
+	test('openPtyStream forwards writes, server frames, and transport onClosed', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		const seen: UniverseAgentSessionStreamCloseCause[] = [];
+		const frames: UniverseAgentPtyServerMessage[] = [];
+		const handle = service.openPtyStream(frame => frames.push(frame), cause => seen.push(cause));
+		assert.strictEqual(transport.ptyStreamOpenCount, 1);
+		handle.write({
+			openSession: {
+				engineSessionId: 'eng-1',
+				clientSessionId: 'term-1',
+				tabId: 'tab-1',
+				workingDirectory: '/tmp',
+				shellCommand: '/bin/bash',
+				shellArgs: ['-l'],
+				environment: { TERM: 'xterm' },
+				initialCommand: 'ls',
+				columns: 80,
+				rows: 24,
+			},
+		});
+		handle.write({
+			write: { data: new Uint8Array([1, 2, 3]) },
+		});
+		assert.deepStrictEqual(transport.ptyStreamWrites, [{
+			openSession: {
+				engineSessionId: 'eng-1',
+				clientSessionId: 'term-1',
+				tabId: 'tab-1',
+				workingDirectory: '/tmp',
+				shellCommand: '/bin/bash',
+				shellArgs: ['-l'],
+				environment: { TERM: 'xterm' },
+				initialCommand: 'ls',
+				columns: 80,
+				rows: 24,
+			},
+		}, {
+			write: { data: new Uint8Array([1, 2, 3]) },
+		}]);
+		transport.firePtyStreamMessage({
+			openSessionResponse: {
+				success: true,
+				ptySessionId: 'pty-1',
+				failureReason: 'PTY_OPEN_FAILURE_UNSPECIFIED',
+			},
+		});
+		transport.firePtyStreamMessage({
+			read: { data: new Uint8Array(0) },
+		});
+		assert.deepStrictEqual(frames, [{
+			openSessionResponse: {
+				success: true,
+				ptySessionId: 'pty-1',
+				failureReason: 'PTY_OPEN_FAILURE_UNSPECIFIED',
+			},
+		}, {
+			read: { data: new Uint8Array(0) },
+		}]);
+		transport.firePtyStreamClosed({ kind: 'remote' });
+		transport.firePtyStreamClosed({ kind: 'error', message: 'late' });
+		assert.deepStrictEqual(seen, [{ kind: 'remote' }]);
+
+		const empty = service.openPtyStream(() => { });
+		empty.write({
+			openSession: {
+				engineSessionId: '',
+				clientSessionId: '',
+				tabId: '',
+				workingDirectory: '',
+				shellCommand: '',
+				shellArgs: [''],
+				environment: { '': '' },
+				initialCommand: '',
+				columns: 0,
+				rows: 0,
+			},
+		});
+		empty.write({
+			write: { data: new Uint8Array(0) },
+		});
+		assert.strictEqual(transport.ptyStreamWrites[2]?.openSession?.engineSessionId, '');
+		assert.strictEqual(transport.ptyStreamWrites[2]?.openSession?.clientSessionId, '');
+		assert.strictEqual(transport.ptyStreamWrites[2]?.openSession?.tabId, '');
+		assert.strictEqual(transport.ptyStreamWrites[2]?.openSession?.workingDirectory, '');
+		assert.deepStrictEqual(transport.ptyStreamWrites[2]?.openSession?.shellArgs, ['']);
+		assert.deepStrictEqual(transport.ptyStreamWrites[2]?.openSession?.environment, { '': '' });
+		assert.deepStrictEqual(transport.ptyStreamWrites[3]?.write?.data, new Uint8Array(0));
+		handle.dispose();
+		empty.dispose();
+		service.dispose();
+	});
+
+	test('openPtyStream dispose silences later onClosed', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		const seen: UniverseAgentSessionStreamCloseCause[] = [];
+		const handle = service.openPtyStream(() => { }, cause => seen.push(cause));
+		handle.dispose();
+		transport.firePtyStreamClosed({ kind: 'error', message: 'CANCELLED' });
 		assert.deepStrictEqual(seen, []);
 		service.dispose();
 	});

@@ -292,6 +292,8 @@ import type {
 	UniverseAgentDownloadAttachmentRequest,
 	UniverseAgentDownloadChunk,
 	UniverseAgentDownloadAttachmentStream,
+	UniverseAgentPtyServerMessage,
+	UniverseAgentPtyStream,
 	UniverseAgentHealthCheckResult,
 	UniverseAgentDoctorResult,
 	UniverseAgentShutdownRequest,
@@ -1584,6 +1586,14 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 	): UniverseAgentDownloadAttachmentStream {
 		this._assertTransportReady();
 		return this._transport!.openDownloadAttachmentStream(request, onResponse, onClosed);
+	}
+
+	openPtyStream(
+		onResponse: (response: UniverseAgentPtyServerMessage) => void,
+		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
+	): UniverseAgentPtyStream {
+		this._assertTransportReady();
+		return this._transport!.openPtyStream(onResponse, onClosed);
 	}
 
 	async healthCheck(): Promise<UniverseAgentHealthCheckResult> {

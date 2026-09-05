@@ -1308,7 +1308,7 @@ export interface UniverseAgentSessionEvent {
  * Close cause for resident streams (`openChatStream`, `openContinuationStream`,
  * `openRegenerateStream`, `openResumeStream`, `openSubscribeToolDetailStream`,
  * `openWatchConfigStream`, `openUploadAttachmentStream`,
- * `openDownloadAttachmentStream`,
+ * `openDownloadAttachmentStream`, `openPtyStream`,
  * `subscribeSessionEventStream`).
  * Local dispose / cancel does not fire this.
  */
@@ -3027,6 +3027,92 @@ export interface UniverseAgentDownloadChunk {
 
 /** Server-stream handle for FileTransferService.DownloadAttachment (client does not write). */
 export interface UniverseAgentDownloadAttachmentStream {
+	dispose(): void;
+}
+
+/**
+ * PtyService.PtyStream — proto `stream PtyClientMessage` /
+ * `stream PtyServerMessage` only. Empty `engine_session_id` /
+ * `client_session_id` / `tab_id` / `pty_session_id` (incl. empty
+ * string) pass through as-is. Empty `working_directory` /
+ * `shell_command` / `initial_command` / `title` / `error_message`
+ * / `shell_args` (incl. empty strings) / environment keys+values /
+ * `data` mapped as-is. `columns` / `rows` / `exit_code` 0 as-is.
+ * `success` / `interrupt_only` false as-is.
+ * ≠ RemoteChat / AgentService.Chat / FileTransfer.UploadAttachment /
+ * FileTransfer.DownloadAttachment / SendShellSessionClientControl.
+ */
+export interface UniverseAgentPtyOpenSession {
+	readonly engineSessionId: string;
+	readonly clientSessionId: string;
+	readonly tabId: string;
+	readonly workingDirectory?: string;
+	readonly shellCommand?: string;
+	readonly shellArgs: readonly string[];
+	readonly environment: Readonly<Record<string, string>>;
+	readonly initialCommand?: string;
+	readonly columns: number;
+	readonly rows: number;
+}
+
+export interface UniverseAgentPtyOpenSessionResponse {
+	readonly success: boolean;
+	readonly ptySessionId: string;
+	readonly workingDirectory?: string;
+	readonly title?: string;
+	/** Proto `PtyOpenFailureReason` name. */
+	readonly failureReason: string;
+	readonly errorMessage?: string;
+}
+
+export interface UniverseAgentPtyResize {
+	readonly columns: number;
+	readonly rows: number;
+}
+
+export interface UniverseAgentPtyWrite {
+	readonly data: Uint8Array;
+}
+
+export interface UniverseAgentPtyClose {
+	readonly interruptOnly: boolean;
+}
+
+export interface UniverseAgentPtyRead {
+	readonly data: Uint8Array;
+}
+
+export interface UniverseAgentPtySessionClosed {
+	readonly exitCode: number;
+	readonly title?: string;
+}
+
+export interface UniverseAgentPtyError {
+	/** Proto `PtyErrorCode` name. */
+	readonly code: string;
+	readonly message: string;
+}
+
+/** Proto `PtyClientMessage` (`oneof payload`). */
+export interface UniverseAgentPtyClientMessage {
+	readonly openSession?: UniverseAgentPtyOpenSession;
+	readonly resize?: UniverseAgentPtyResize;
+	readonly write?: UniverseAgentPtyWrite;
+	readonly close?: UniverseAgentPtyClose;
+}
+
+/** Proto `PtyServerMessage` (`oneof payload`). */
+export interface UniverseAgentPtyServerMessage {
+	readonly openSessionResponse?: UniverseAgentPtyOpenSessionResponse;
+	readonly read?: UniverseAgentPtyRead;
+	readonly sessionClosed?: UniverseAgentPtySessionClosed;
+	readonly error?: UniverseAgentPtyError;
+}
+
+/** Bidi-stream handle for PtyService.PtyStream. */
+export interface UniverseAgentPtyStream {
+	write(message: UniverseAgentPtyClientMessage): void;
+	end(): void;
 	dispose(): void;
 }
 

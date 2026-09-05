@@ -376,6 +376,9 @@ import type {
 	UniverseAgentDownloadAttachmentRequest,
 	UniverseAgentDownloadChunk,
 	UniverseAgentDownloadAttachmentStream,
+	UniverseAgentPtyClientMessage,
+	UniverseAgentPtyServerMessage,
+	UniverseAgentPtyStream,
 	UniverseAgentHealthCheckResult,
 	UniverseAgentDoctorCheck,
 	UniverseAgentDoctorResult,
@@ -657,6 +660,21 @@ const UploadErrorCodeByNumber: Record<number, string> = {
 	5: 'UPLOAD_ERROR_FILE_TOO_LARGE',
 	6: 'UPLOAD_ERROR_INTERNAL',
 	7: 'UPLOAD_ERROR_AUTH_FAILED',
+};
+
+const PtyOpenFailureReasonByNumber: Record<number, string> = {
+	0: 'PTY_OPEN_FAILURE_UNSPECIFIED',
+	1: 'PTY_OPEN_SESSION_NOT_FOUND',
+	2: 'PTY_OPEN_SHELL_NOT_FOUND',
+	3: 'PTY_OPEN_PERMISSION_DENIED',
+	4: 'PTY_OPEN_SPAWN_FAILED',
+};
+
+const PtyErrorCodeByNumber: Record<number, string> = {
+	0: 'PTY_ERROR_UNSPECIFIED',
+	1: 'PTY_ERROR_SESSION_NOT_FOUND',
+	2: 'PTY_ERROR_PERMISSION_DENIED',
+	3: 'PTY_ERROR_INTERNAL',
 };
 
 interface UploadResponseWire {
@@ -1235,6 +1253,59 @@ function makeResidentBidiStreamClient<TResponse>(
 					return;
 				}
 				call.write({ session_id: sessionId, payload });
+			},
+			dispose(): void {
+				if (gate.closed) {
+					call.cancel();
+					return;
+				}
+				gate.closeLocal();
+				call.end();
+				call.cancel();
+			},
+		};
+	};
+}
+
+function makeResidentBidiHandleClient<TRequest, TResponse>(
+	channel: grpc.Client,
+	servicePath: string,
+	method: string,
+): (
+	onResponse: (response: TResponse) => void,
+	onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
+) => { write(chunk: TRequest): void; end(): void; dispose(): void } {
+	const path = `/${servicePath}/${method}`;
+	return (onResponse, onClosed) => {
+		const call = channel.makeBidiStreamRequest(
+			path,
+			(value: TRequest) => Buffer.from(JSON.stringify(value ?? {})),
+			(buffer: Buffer) => JSON.parse(buffer.toString('utf8')) as TResponse,
+		);
+		const gate = createStreamCloseGate(onClosed);
+		call.on('data', (data: TResponse) => onResponse(data));
+		call.on('error', (error: grpc.ServiceError) => {
+			if (gate.closed) {
+				return;
+			}
+			const message = typeof error?.message === 'string' && error.message ? error.message : 'stream error';
+			gate.finish({ kind: 'error', message });
+		});
+		call.on('end', () => {
+			gate.finish({ kind: 'remote' });
+		});
+		return {
+			write(chunk: TRequest): void {
+				if (gate.closed) {
+					return;
+				}
+				call.write(chunk);
+			},
+			end(): void {
+				if (gate.closed) {
+					return;
+				}
+				call.end();
 			},
 			dispose(): void {
 				if (gate.closed) {
@@ -4264,6 +4335,124 @@ function mapDownloadChunk(wire: DownloadChunkWire): UniverseAgentDownloadChunk {
 	};
 }
 
+interface PtyOpenSessionResponseWire {
+	success?: boolean;
+	pty_session_id?: string;
+	working_directory?: string;
+	title?: string;
+	failure_reason?: string | number;
+	error_message?: string;
+}
+
+interface PtyReadWire {
+	data?: string;
+}
+
+interface PtySessionClosedWire {
+	exit_code?: number | string;
+	title?: string;
+}
+
+interface PtyErrorWire {
+	code?: string | number;
+	message?: string;
+}
+
+interface PtyServerMessageWire {
+	open_session_response?: PtyOpenSessionResponseWire;
+	read?: PtyReadWire;
+	session_closed?: PtySessionClosedWire;
+	error?: PtyErrorWire;
+}
+
+function mapPtyOpenFailureReason(value: string | number | undefined): string {
+	if (value === undefined || value === '') {
+		return 'PTY_OPEN_FAILURE_UNSPECIFIED';
+	}
+	if (typeof value === 'number') {
+		return PtyOpenFailureReasonByNumber[value] ?? String(value);
+	}
+	return value;
+}
+
+function mapPtyErrorCode(value: string | number | undefined): string {
+	if (value === undefined || value === '') {
+		return 'PTY_ERROR_UNSPECIFIED';
+	}
+	if (typeof value === 'number') {
+		return PtyErrorCodeByNumber[value] ?? String(value);
+	}
+	return value;
+}
+
+function mapPtyClientMessageWire(message: UniverseAgentPtyClientMessage): Record<string, unknown> {
+	const wire: Record<string, unknown> = {};
+	if (message.openSession !== undefined) {
+		const open = message.openSession;
+		wire.open_session = {
+			engine_session_id: open.engineSessionId,
+			client_session_id: open.clientSessionId,
+			tab_id: open.tabId,
+			shell_args: [...open.shellArgs],
+			environment: { ...open.environment },
+			columns: open.columns,
+			rows: open.rows,
+			...(open.workingDirectory !== undefined ? { working_directory: open.workingDirectory } : {}),
+			...(open.shellCommand !== undefined ? { shell_command: open.shellCommand } : {}),
+			...(open.initialCommand !== undefined ? { initial_command: open.initialCommand } : {}),
+		};
+	}
+	if (message.resize !== undefined) {
+		wire.resize = {
+			columns: message.resize.columns,
+			rows: message.resize.rows,
+		};
+	}
+	if (message.write !== undefined) {
+		wire.write = {
+			data: bytesToBase64(message.write.data),
+		};
+	}
+	if (message.close !== undefined) {
+		wire.close = {
+			interrupt_only: message.close.interruptOnly,
+		};
+	}
+	return wire;
+}
+
+function mapPtyServerMessage(wire: PtyServerMessageWire): UniverseAgentPtyServerMessage {
+	return {
+		...(wire.open_session_response !== undefined ? {
+			openSessionResponse: {
+				success: wire.open_session_response.success === true,
+				ptySessionId: wire.open_session_response.pty_session_id ?? '',
+				...(wire.open_session_response.working_directory !== undefined ? { workingDirectory: wire.open_session_response.working_directory } : {}),
+				...(wire.open_session_response.title !== undefined ? { title: wire.open_session_response.title } : {}),
+				failureReason: mapPtyOpenFailureReason(wire.open_session_response.failure_reason),
+				...(wire.open_session_response.error_message !== undefined ? { errorMessage: wire.open_session_response.error_message } : {}),
+			},
+		} : {}),
+		...(wire.read !== undefined ? {
+			read: {
+				data: base64ToBytes(wire.read.data),
+			},
+		} : {}),
+		...(wire.session_closed !== undefined ? {
+			sessionClosed: {
+				exitCode: requiredInt64(wire.session_closed.exit_code),
+				...(wire.session_closed.title !== undefined ? { title: wire.session_closed.title } : {}),
+			},
+		} : {}),
+		...(wire.error !== undefined ? {
+			error: {
+				code: mapPtyErrorCode(wire.error.code),
+				message: wire.error.message ?? '',
+			},
+		} : {}),
+	};
+}
+
 interface HealthCheckResponseWire {
 	status?: string;
 	version?: string;
@@ -7091,6 +7280,29 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			session_id: request.sessionId,
 			artifact_id: request.artifactId,
 		}, wire => onResponse(mapDownloadChunk(wire)), onClosed);
+	}
+
+	openPtyStream(
+		onResponse: (response: UniverseAgentPtyServerMessage) => void,
+		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
+	): UniverseAgentPtyStream {
+		const stream = makeResidentBidiHandleClient<Record<string, unknown>, PtyServerMessageWire>(
+			this._channel,
+			UniverseAgentGrpcServices.Pty.service,
+			UniverseAgentGrpcServices.Pty.PtyStream,
+		);
+		const handle = stream(wire => onResponse(mapPtyServerMessage(wire)), onClosed);
+		return {
+			write(message: UniverseAgentPtyClientMessage): void {
+				handle.write(mapPtyClientMessageWire(message));
+			},
+			end(): void {
+				handle.end();
+			},
+			dispose(): void {
+				handle.dispose();
+			},
+		};
 	}
 
 	async doctor(): Promise<UniverseAgentDoctorResult> {
