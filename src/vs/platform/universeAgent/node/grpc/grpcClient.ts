@@ -345,6 +345,8 @@ import type {
 	UniverseAgentPairApproveResult,
 	UniverseAgentPairRejectRequest,
 	UniverseAgentPairRejectResult,
+	UniverseAgentRevokeRequest,
+	UniverseAgentRevokeResult,
 	UniverseAgentListTriggersRequest,
 	UniverseAgentListTriggersResult,
 	UniverseAgentUpsertTriggerRequest,
@@ -3596,6 +3598,18 @@ function mapPairRejectResponse(wire: PairRejectResponseWire): UniverseAgentPairR
 	};
 }
 
+interface RevokeDeviceResponseWire {
+	success?: boolean;
+	message?: string;
+}
+
+function mapRevokeResponse(wire: RevokeDeviceResponseWire): UniverseAgentRevokeResult {
+	return {
+		success: wire.success === true,
+		message: wire.message ?? '',
+	};
+}
+
 interface BoundSessionTargetWire {
 	session_id?: string;
 }
@@ -6077,6 +6091,18 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			pairing_code: request.pairingCode,
 		});
 		return mapPairRejectResponse(wire);
+	}
+
+	async revoke(request: UniverseAgentRevokeRequest): Promise<UniverseAgentRevokeResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, RevokeDeviceResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.Device.service,
+			UniverseAgentGrpcServices.Device.Revoke,
+		);
+		const wire = await unary({
+			device_id: request.deviceId,
+		});
+		return mapRevokeResponse(wire);
 	}
 
 	async listTriggers(request: UniverseAgentListTriggersRequest): Promise<UniverseAgentListTriggersResult> {

@@ -270,6 +270,8 @@ import type {
 	UniverseAgentPairApproveResult,
 	UniverseAgentPairRejectRequest,
 	UniverseAgentPairRejectResult,
+	UniverseAgentRevokeRequest,
+	UniverseAgentRevokeResult,
 	UniverseAgentListTriggersRequest,
 	UniverseAgentListTriggersResult,
 	UniverseAgentUpsertTriggerRequest,
@@ -1588,6 +1590,16 @@ export interface IUniverseAgentConnection {
 	 * ≠ ListDevices / PairApprove / Revoke / RotateToken / ListPending.
 	 */
 	pairReject?(request: UniverseAgentPairRejectRequest): Promise<UniverseAgentPairRejectResult>;
+	/**
+	 * DeviceService.Revoke unary. Optional so Web / tests can omit it.
+	 * Catalog + node transport only this slice; empty `deviceId` is sent
+	 * as-is. Empty `message` mapped as-is. `success` false mapped as-is.
+	 * Proto fields only (`RevokeDeviceRequest` / `RevokeDeviceResponse`).
+	 * No Conversation roster / UI / Engine Preferences / Composer.
+	 * ≠ ListDevices / PairApprove / PairReject / RotateToken / ListPending /
+	 * Hub revokeDevice.
+	 */
+	revoke?(request: UniverseAgentRevokeRequest): Promise<UniverseAgentRevokeResult>;
 	/**
 	 * TriggerService.ListTriggers unary. Optional so Web / tests can omit
 	 * it. Catalog + node transport only this slice; empty `scope` /

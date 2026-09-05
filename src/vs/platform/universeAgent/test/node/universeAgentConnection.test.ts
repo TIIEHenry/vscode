@@ -249,6 +249,8 @@ import type {
 	UniverseAgentPairApproveResult,
 	UniverseAgentPairRejectRequest,
 	UniverseAgentPairRejectResult,
+	UniverseAgentRevokeRequest,
+	UniverseAgentRevokeResult,
 	UniverseAgentListTriggersRequest,
 	UniverseAgentListTriggersResult,
 	UniverseAgentUpsertTriggerRequest,
@@ -1868,6 +1870,17 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 		return this.pairRejectResult;
 	}
 
+	readonly revokeCalls: UniverseAgentRevokeRequest[] = [];
+	revokeResult: UniverseAgentRevokeResult = {
+		success: false,
+		message: '',
+	};
+
+	async revoke(request: UniverseAgentRevokeRequest): Promise<UniverseAgentRevokeResult> {
+		this.revokeCalls.push(request);
+		return this.revokeResult;
+	}
+
 	readonly listTriggersCalls: UniverseAgentListTriggersRequest[] = [];
 	listTriggersResult: UniverseAgentListTriggersResult = {
 		triggers: [],
@@ -2447,6 +2460,11 @@ suite('UniverseAgentConnectionService', () => {
 
 	test('UniverseAgentGrpcServices lists Device.PairReject', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Device.PairReject, 'PairReject');
+		assert.strictEqual(UniverseAgentGrpcServices.Device.service, 'universeagent.device.v1.DeviceService');
+	});
+
+	test('UniverseAgentGrpcServices lists Device.Revoke', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Device.Revoke, 'Revoke');
 		assert.strictEqual(UniverseAgentGrpcServices.Device.service, 'universeagent.device.v1.DeviceService');
 	});
 
@@ -6253,6 +6271,38 @@ suite('UniverseAgentConnectionService', () => {
 		};
 		const empty = await service.pairReject(emptyRequest);
 		assert.strictEqual(transport.pairRejectCalls[1]?.pairingCode, '');
+		assert.strictEqual(empty.success, false);
+		assert.strictEqual(empty.message, '');
+		service.dispose();
+	});
+
+	test('revoke forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.revokeResult = {
+			success: true,
+			message: 'revoked',
+		};
+		const request = {
+			deviceId: 'dev-1',
+		};
+		const result = await service.revoke(request);
+		assert.deepStrictEqual(transport.revokeCalls, [request]);
+		assert.deepStrictEqual(result, transport.revokeResult);
+
+		transport.revokeResult = {
+			success: false,
+			message: '',
+		};
+		const emptyRequest = {
+			deviceId: '',
+		};
+		const empty = await service.revoke(emptyRequest);
+		assert.strictEqual(transport.revokeCalls[1]?.deviceId, '');
 		assert.strictEqual(empty.success, false);
 		assert.strictEqual(empty.message, '');
 		service.dispose();
