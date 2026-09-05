@@ -3,14 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { $, append, getWindow, reset } from '../../../../base/browser/dom.js';
+import { reset } from '../../../../base/browser/dom.js';
 import { Button } from '../../../../base/browser/ui/button/button.js';
 import { SelectBox } from '../../../../base/browser/ui/selectBox/selectBox.js';
 import { Disposable, DisposableStore, toDisposable } from '../../../../base/common/lifecycle.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
-import { URI } from '../../../../base/common/uri.js';
-import { SOURCES_REVIEW_SHOW_FOR_PATHS_COMMAND } from '../../sources/browser/sourcesReview.contribution.js';
 import { IClipboardService } from '../../../../platform/clipboard/common/clipboardService.js';
 import { IContextViewService, IOpenContextView } from '../../../../platform/contextview/browser/contextView.js';
 import { IStorageService, StorageScope, StorageTarget } from '../../../../platform/storage/common/storage.js';
@@ -23,13 +21,12 @@ import { ConversationTimelineTree } from './conversationTimelineTree.js';
 import { ConversationTrajectory } from './conversationTrajectory.js';
 import type { ConversationTimelineEntry } from './conversationSessionView.js';
 import { IConversationReviewNavService } from '../common/conversationReviewEntry.js';
-import { ConversationSessionViewFrameCoalescer } from './conversationSessionViewFrameCoalescer.js';
 import type { ConversationQuestionRespondAnswers, ConversationViewFrameApplied, ConversationWriteMessage, IConversationSessionViewLease, PostOutcome } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
 import type { SyncChrome } from '../../../../platform/universeAgent/common/sessionView/index.js';
-import { conversationLensInputMaximizedClass, conversationLensPrefirstHeroClass } from './conversationLensDockStrings.js';
+import { conversationLensInputMaximizedClass } from './conversationLensDockStrings.js';
 import { getConversationTurnAccessibleText } from './conversationAccessibility.js';
 import { createInputHistoryBrowseState, InputHistoryBrowseState, InputHistoryDirection } from './conversationInputHistory.js';
-import { findFirstPendingConfirmationTurnId, scrollToFirstPendingConfirmation as applyPendingConfirmationScroll } from './conversationPendingSeat.js';
+import { scrollToFirstPendingConfirmation as applyPendingConfirmationScroll } from './conversationPendingSeat.js';
 import { IConversationRosterService } from './conversationStubService.js';
 import { ConversationMermaidExtensionInfo, resolveConversationMermaidExtension } from './conversationMermaidHost.js';
 import { ConversationVisualizeOverlay } from './conversationVisualizeOverlay.js';
@@ -39,10 +36,28 @@ import { IExtensionService } from '../../../services/extensions/common/extension
 import { IWebviewService } from '../../webview/browser/webview.js';
 import { ConversationVoiceTranscriptBar } from './conversationVoiceTranscriptBar.js';
 import { ConversationVoiceClip } from './conversationVoiceTranscriptModel.js';
-import { conversationLeafWidthBucket, isConversationLeafCompact, isConversationLeafNarrow } from './conversationNarrowLayout.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { UA_CLIENT_CLIENT_TOOLS_SHOW_TOOL_INVOCATION_DETAILS } from '../common/uaClientSettingsKeys.js';
-import { applyConversationDensityClass, shouldShowClientToolInvocationDetails, UA_CLIENT_DISPLAY_CONVERSATION_DENSITY } from '../common/uaClientSettingsHelpers.js';
+import { UA_CLIENT_DISPLAY_CONVERSATION_DENSITY } from '../common/uaClientSettingsHelpers.js';
+import {
+	applyConversationDensity,
+	applyConversationWidth,
+	bindReadingColumnLayout,
+	mountTimeline,
+} from './conversationLensReadingColumn.js';
+import {
+	applyActiveSession,
+	bindSessionView,
+	cancelToolCall,
+	copyTurn,
+	deleteTurn,
+	findFirstPendingConfirmationTurnId,
+	focusTimelineRecord,
+	openVisualizeOverlay,
+	renderInboxStatus,
+	resolveConfirmation,
+	resolveQuestion,
+} from './conversationLensSessionBinding.js';
 import {
 	applySessionViewTimeline,
 	handleLensTablistKeyDown,
@@ -483,50 +498,7 @@ export class ConversationLens extends Disposable {
 	}
 
 	private mountTimeline(host: HTMLElement): void {
-		this.readingColumn = append(host, $('.conversation-lens-reading-column'));
-		this.identityStrip = this._register(this.instantiationService.createInstance(ConversationIdentityStrip, this.readingColumn));
-		this.prefirstHero = append(this.readingColumn, $(`.${conversationLensPrefirstHeroClass}`));
-		this.prefirstHero.hidden = true;
-		this.timelineTree = this._register(this.instantiationService.createInstance(ConversationTimelineTree, this.readingColumn, {
-			onResolveConfirmation: (turnId, status) => this.resolveConfirmation(turnId, status),
-			onQuestionRespond: (turnId, requestId, answers, customText) => this.resolveQuestion(turnId, requestId, answers, customText),
-			onCopyTurn: (_turnId, text) => this.copyTurn(text),
-			onDeleteTurn: turnId => this.deleteTurn(turnId),
-			onEditUserTurn: turnId => this.beginTurnEdit(turnId),
-			onViewInTrajectory: turnId => this.navigateToTrajectoryFromTurn(turnId),
-			onCancelToolCall: turn => this.cancelToolCall(turn),
-			onReviewNavClick: paths => {
-				void this.commandService.executeCommand(
-					SOURCES_REVIEW_SHOW_FOR_PATHS_COMMAND,
-					paths.map(path => URI.parse(path)),
-				);
-			},
-			onOpenVisualizeFullscreen: (source, title) => this.openVisualizeOverlay(source, title),
-			showLiveChrome: () => this.stubService.isEngineConnected(),
-			showToolInvocationDetails: () => shouldShowClientToolInvocationDetails(this.configurationService),
-		}));
-		this.trajectoryView = this._register(this.instantiationService.createInstance(ConversationTrajectory, this.readingColumn, {
-			onNavigateToLinkedTurn: turnId => this.navigateToTurnFromTrajectory(turnId),
-			showLiveChrome: () => this.stubService.isEngineConnected(),
-			detailContext: {
-				supportsDetailFetch: () => typeof this.sessionViewLease?.requestDetail === 'function',
-				getDetailBody: ref => this.sessionViewLease?.details.get(ref),
-				requestDetail: ref => {
-					const lease = this.sessionViewLease;
-					if (!lease?.requestDetail) {
-						return Promise.resolve({ ok: false as const, reason: 'unavailable' as const });
-					}
-					return lease.requestDetail(ref);
-				},
-			},
-		}));
-		this.timelineTree.domNode.id = 'conversation-lens-panel-conversation';
-		this.timelineTree.domNode.setAttribute('role', 'tabpanel');
-		this.timelineTree.domNode.setAttribute('aria-labelledby', 'conversation-lens-tab-conversation');
-		const trajectoryHost = this.readingColumn.querySelector('.conversation-lens-trajectory') as HTMLElement;
-		trajectoryHost.id = 'conversation-lens-panel-trajectory';
-		trajectoryHost.setAttribute('role', 'tabpanel');
-		trajectoryHost.setAttribute('aria-labelledby', 'conversation-lens-tab-trajectory');
+		mountTimeline(this, host);
 	}
 
 	private mountDock(host: HTMLElement): void {
@@ -614,16 +586,7 @@ export class ConversationLens extends Disposable {
 	}
 
 	private openVisualizeOverlay(source: string, title?: string): void {
-		this.engineHistoryList?.close();
-		this.engineSnapshotsList?.close();
-		this.visualizeOverlay.open({
-			source,
-			title,
-			extensionInfo: this.mermaidExtensionInfo,
-			targetWindow: getWindow(this.slotHosts.timeline),
-			webviewService: this.webviewService,
-			host: this.slotHosts.timeline.closest('.part.conversation') ?? undefined,
-		});
+		openVisualizeOverlay(this, source, title);
 	}
 
 	private loadLensId(): ConversationLensId {
@@ -667,28 +630,11 @@ export class ConversationLens extends Disposable {
 	}
 
 	private applyActiveSession(sessionId: string): void {
-		this.visualizeOverlay.close();
-		this.trajectoryView.clearSessionState();
-		this.exitComposerEdit();
-		this.resetInputHistoryBrowse();
-		this.refreshSessionSelectOptions();
-		this.syncSessionConfigSelects(sessionId);
-		this.updateSessionTitle();
-		this.dockTextarea.value = this.readComposerDraft(sessionId);
-		this.bindSessionView(sessionId);
-		this.renderInboxStatus();
-		this.renderVoiceTranscriptBar();
-		this.updateVoiceMicChrome();
+		applyActiveSession(this, sessionId);
 	}
 
 	private bindSessionView(sessionId: string): void {
-		this.sessionViewLifetime.clear();
-		const lease = this.sessionViewLifetime.add(this.stubService.acquireSessionView(sessionId));
-		this.sessionViewLease = lease;
-		const coalescer = this.sessionViewLifetime.add(new ConversationSessionViewFrameCoalescer(applied => this.applySessionViewTimeline(applied)));
-		this.sessionViewLifetime.add(lease.onDidApplyFrame(applied => coalescer.push(applied)));
-		// Baseline fires during lease construction, before the listener above is attached.
-		this.applySessionViewTimeline({ kind: 'baseline' });
+		bindSessionView(this, sessionId);
 	}
 
 	private applySessionViewTimeline(applied: ConversationViewFrameApplied,
@@ -697,26 +643,7 @@ export class ConversationLens extends Disposable {
 	}
 
 	private bindReadingColumnLayout(): void {
-		const targetWindow = getWindow(this.readingColumn);
-		if (typeof targetWindow.ResizeObserver !== 'function') {
-			return;
-		}
-		const observer = new targetWindow.ResizeObserver(entries => {
-			for (const entry of entries) {
-				const width = Math.floor(entry.contentRect.width);
-				const height = Math.floor(entry.contentRect.height);
-				const restored = this.lastReadingWidth < 1 && width > 0;
-				this.lastReadingWidth = width;
-				this.applyConversationWidth(width);
-				this.timelineTree.layout(height, width);
-				this.trajectoryView.layout(height, width);
-				if (restored && this.lastRevealItemId && this.lensId === 'conversation') {
-					this.timelineTree.revealTurn(this.lastRevealItemId);
-				}
-			}
-		});
-		observer.observe(this.readingColumn);
-		this._register(toDisposable(() => observer.disconnect()));
+		bindReadingColumnLayout(this);
 	}
 
 	private composerChatId(): string {
@@ -748,45 +675,11 @@ export class ConversationLens extends Disposable {
 	}
 
 	private applyConversationDensity(): void {
-		applyConversationDensityClass(this.slotHosts.timeline, this.configurationService);
-		if (this.readingColumn) {
-			applyConversationDensityClass(this.readingColumn, this.configurationService);
-		}
-		if (this.timelineTree?.domNode) {
-			applyConversationDensityClass(this.timelineTree.domNode, this.configurationService);
-		}
-		for (const root of this.slotHosts.timeline.querySelectorAll<HTMLElement>('[data-process-fold]')) {
-			applyConversationDensityClass(root, this.configurationService);
-		}
+		applyConversationDensity(this);
 	}
 
 	private applyConversationWidth(width: number): void {
-		this.applyLeafWidthClasses(this.readingColumn, width);
-		this.applyLeafWidthClasses(this.slotHosts.timeline, width);
-		this.applyLeafWidthClasses(this.slotHosts.dock, width);
-		if (this.slotHosts.sessionBar) {
-			// Part 级 sessionBar 用自己的盒宽，避免并列窄叶把共享栏打成 .is-narrow。
-			// Overlay 自备栏在尚未 paint 时回退到本次叶宽。
-			const measured = this.slotHosts.sessionBar.clientWidth;
-			const barWidth = measured > 0
-				? measured
-				: this.isOverlaySessionBarHost()
-					? width
-					: 0;
-			if (barWidth > 0) {
-				this.applyLeafWidthClasses(this.slotHosts.sessionBar, barWidth);
-			}
-		}
-	}
-
-	private isOverlaySessionBarHost(): boolean {
-		return !!this.slotHosts.sessionBar?.classList.contains('conversation-subagent-overlay-session-bar');
-	}
-
-	private applyLeafWidthClasses(host: HTMLElement, width: number): void {
-		host.dataset.conversationWidth = conversationLeafWidthBucket(width);
-		host.classList.toggle('is-narrow', isConversationLeafNarrow(width));
-		host.classList.toggle('is-compact', isConversationLeafCompact(width));
+		applyConversationWidth(this, width);
 	}
 
 	private updateSyncChrome(sync: SyncChrome): void {
@@ -814,7 +707,7 @@ export class ConversationLens extends Disposable {
 	}
 
 	private renderInboxStatus(): void {
-		this.inboxOverlay.render();
+		renderInboxStatus(this);
 	}
 
 	scrollToFirstPendingConfirmation(): void {
@@ -829,90 +722,31 @@ export class ConversationLens extends Disposable {
 	}
 
 	private findFirstPendingConfirmationTurnId(): string | undefined {
-		const fromEntries = this.lastAttachedEntries.find(entry =>
-			(entry.kind === 'confirmation' || entry.kind === 'question') && entry.status === 'pending'
-		);
-		if (fromEntries) {
-			return fromEntries.id;
-		}
-		return findFirstPendingConfirmationTurnId(this.stubService.getTurns(this.stubService.getActiveSessionId()));
+		return findFirstPendingConfirmationTurnId(this);
 	}
 
 	private async resolveConfirmation(turnId: string, status: 'allowed' | 'skipped'): Promise<void> {
-		if (this.stubService.isEngineConnected()) {
-			const forwarded = this.stubService.resolveConfirmation(
-				this.stubService.getActiveSessionId(),
-				turnId,
-				status,
-			);
-			if (!forwarded) {
-				return;
-			}
-			this.focusTimelineRecord(turnId);
-			return;
-		}
-		const outcome = await this.postBound({
-			kind: 'permissionRespond',
-			requestId: turnId,
-			decision: status === 'allowed' ? 'allow' : 'deny',
-		});
-		if (!outcome.accepted) {
-			this.showPostFailure(outcome.reason);
-			return;
-		}
-		this.focusTimelineRecord(turnId);
+		return resolveConfirmation(this, turnId, status);
 	}
 
 	private async resolveQuestion(turnId: string, requestId: string, answers: ConversationQuestionRespondAnswers, customText?: string): Promise<void> {
-		if (this.stubService.isEngineConnected()) {
-			const forwarded = this.stubService.respondQuestion(
-				this.stubService.getActiveSessionId(),
-				requestId,
-				answers,
-				customText,
-			);
-			if (!forwarded) {
-				return;
-			}
-			this.focusTimelineRecord(turnId);
-			return;
-		}
-		const outcome = await this.postBound({
-			kind: 'questionRespond',
-			requestId,
-			answers,
-			...(customText !== undefined ? { customText } : {}),
-		});
-		if (!outcome.accepted) {
-			this.showPostFailure(outcome.reason);
-			return;
-		}
-		this.focusTimelineRecord(turnId);
+		return resolveQuestion(this, turnId, requestId, answers, customText);
 	}
 
 	private focusTimelineRecord(turnId: string): void {
-		const targetWindow = getWindow(this.timelineTree.domNode);
-		targetWindow.requestAnimationFrame(() => this.timelineTree.focusRecord(turnId));
+		focusTimelineRecord(this, turnId);
 	}
 
 	private copyTurn(text: string): void {
-		this.clipboardService.writeText(text);
+		copyTurn(this, text);
 	}
 
 	private deleteTurn(turnId: string): void {
-		this.stubService.deleteTurn(this.stubService.getActiveSessionId(), turnId);
+		deleteTurn(this, turnId);
 	}
 
 	private cancelToolCall(turn: { readonly id: string; readonly agentId?: string }): void {
-		const toolCallId = turn.id.trim();
-		if (!toolCallId) {
-			return;
-		}
-		const agentId = turn.agentId?.trim();
-		this.stubService.cancelToolCall(this.stubService.getActiveSessionId(), {
-			toolCallId,
-			...(agentId ? { agentId } : {}),
-		});
+		cancelToolCall(this, turn);
 	}
 
 	private resetInputHistoryBrowse(): void {
