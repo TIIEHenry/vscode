@@ -3,7 +3,7 @@ title: "Documentation System — LLM Maintenance Rules"
 type: concept
 status: accepted
 phase: N/A
-updated: 2026-09-02
+updated: 2026-09-05
 summary: "本仓库 LLM 文档维护规则；结构见 DOCS-SPEC.md；规则 3c 状态翻转后扫知识层；阶段日志落 status + evidence，不设 dev/iterations"
 ---
 
@@ -131,6 +131,15 @@ summary: "一行描述"
 ### 规则 7：过时 → 归档
 
 移入 `dev/archive/`，在 [`dev/archive/INDEX.md`](../dev/archive/INDEX.md) 登记一行（原路径、归档日期、被谁取代），`status: archived`。健康检查跳过 `archive/` 下的文件，因此归档文件不再要求链接有效。
+
+**归档候选须同时满足**（细则与反例见 [文档负担收敛 §5](../dev/plans/docs-burden-reduction.md#5-归档候选标准本波只定标准)）：
+
+1. **已有取代者**：另一篇是该主题的 SSOT；本篇不再被 `traceability.md`「系统/架构规格」或「实施方案」列引用，或引用已改为取代者。
+2. **过程已结束**：时间盒日志 / spike / 并行看板中的决策或事实已吸进 `docs/systems/`、`docs/architecture/` 或已签收 plan，本篇只剩过程流水。
+3. **不是实施记录本身**：`dev/plans/` 里已 `implemented` 的方案**默认不归档**（它们是完成线）。归档对象是纯过程文：重复的审查日志、已被矩阵取代的草案、已被系统文档吸收但 INDEX 仍指旧 spike 的对照页。
+4. **证据目录不当「过时文」归档**：`dev/progress/*-evidence/` 随 D 项走，不因「过程多」而移入 `dev/archive/`。
+
+禁止以「Markdown 太多」为由整目录搬迁。
 
 ### 规则 9：始终使用 Frontmatter
 
