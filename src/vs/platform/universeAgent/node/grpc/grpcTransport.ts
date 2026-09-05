@@ -238,6 +238,8 @@ import type {
 	UniverseAgentDeleteMemoryResult,
 	UniverseAgentReflectMemoryRequest,
 	UniverseAgentReflectMemoryResult,
+	UniverseAgentUploadAttachmentResult,
+	UniverseAgentUploadAttachmentStream,
 	UniverseAgentSetPermissionPolicyRequest,
 	UniverseAgentSetPermissionPolicyResult,
 	UniverseAgentListModelsResult,
@@ -685,6 +687,12 @@ export interface IUniverseAgentGrpcTransport {
 	/** MemoryService.Reflect unary (snake_case `scope`/`categories`). Empty ids sent as-is. */
 	reflectMemory(request: UniverseAgentReflectMemoryRequest): Promise<UniverseAgentReflectMemoryResult>;
 
+	/** FileTransferService.UploadAttachment client-stream (snake_case `transfer_id`/`filename`/`session_id`/`queue_item_id`). Empty ids sent as-is. */
+	openUploadAttachmentStream(
+		onResponse: (response: UniverseAgentUploadAttachmentResult) => void,
+		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
+	): UniverseAgentUploadAttachmentStream;
+
 	/** ConfigService.SetPermissionPolicy unary (snake_case `session_id`/`tool_name`/`policy`). Empty ids sent as-is. */
 	setPermissionPolicy(request: UniverseAgentSetPermissionPolicyRequest): Promise<UniverseAgentSetPermissionPolicyResult>;
 
@@ -913,6 +921,10 @@ export const UniverseAgentGrpcServices = {
 		List: 'List',
 		Delete: 'Delete',
 		Reflect: 'Reflect',
+	},
+	FileTransfer: {
+		service: 'universeagent.filetransfer.v1.FileTransferService',
+		UploadAttachment: 'UploadAttachment',
 	},
 } as const;
 

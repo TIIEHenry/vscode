@@ -133,6 +133,8 @@ import type {
 	UniverseAgentResolveModelResult,
 	UniverseAgentWatchConfigRequest,
 	UniverseAgentConfigChangedEvent,
+	UniverseAgentUploadChunk,
+	UniverseAgentUploadAttachmentResult,
 	UniverseAgentSetPermissionPolicyRequest,
 	UniverseAgentSetPermissionPolicyResult,
 	UniverseAgentGetModelPreferencesRequest,
@@ -1166,6 +1168,35 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 		this._watchConfigGate?.finish(cause);
 	}
 
+	private _uploadAttachmentGate: ReturnType<typeof createStreamCloseGate> | undefined;
+	readonly uploadAttachmentWrites: UniverseAgentUploadChunk[] = [];
+	uploadAttachmentOpenCount = 0;
+
+	openUploadAttachmentStream(
+		_onResponse: (response: UniverseAgentUploadAttachmentResult) => void,
+		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
+	): { write(chunk: UniverseAgentUploadChunk): void; end(): void; dispose(): void } {
+		this.uploadAttachmentOpenCount++;
+		const gate = createStreamCloseGate(onClosed);
+		this._uploadAttachmentGate = gate;
+		return {
+			write: (chunk: UniverseAgentUploadChunk) => {
+				this.uploadAttachmentWrites.push(chunk);
+			},
+			end: () => { },
+			dispose: () => {
+				gate.closeLocal();
+				if (this._uploadAttachmentGate === gate) {
+					this._uploadAttachmentGate = undefined;
+				}
+			},
+		};
+	}
+
+	fireUploadAttachmentClosed(cause: UniverseAgentSessionStreamCloseCause): void {
+		this._uploadAttachmentGate?.finish(cause);
+	}
+
 	async listSkills() {
 		return { skills: [] };
 	}
@@ -2058,6 +2089,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('UniverseAgentGrpcServices lists Memory.Reflect', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Memory.Reflect, 'Reflect');
 		assert.strictEqual(UniverseAgentGrpcServices.Memory.service, 'universeagent.memory.v1.MemoryService');
+	});
+
+	test('UniverseAgentGrpcServices lists FileTransfer.UploadAttachment', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.FileTransfer.UploadAttachment, 'UploadAttachment');
+		assert.strictEqual(UniverseAgentGrpcServices.FileTransfer.service, 'universeagent.filetransfer.v1.FileTransferService');
 	});
 
 	test('UniverseAgentGrpcServices lists Agent.Kill', () => {
@@ -6238,6 +6274,96 @@ suite('UniverseAgentConnectionService', () => {
 		}, () => { }, cause => seen.push(cause));
 		handle.dispose();
 		transport.fireWatchConfigClosed({ kind: 'error', message: 'CANCELLED' });
+		assert.deepStrictEqual(seen, []);
+		service.dispose();
+	});
+
+	test('openUploadAttachmentStream forwards writes and transport onClosed', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		const seen: UniverseAgentSessionStreamCloseCause[] = [];
+		const handle = service.openUploadAttachmentStream(() => { }, cause => seen.push(cause));
+		assert.strictEqual(transport.uploadAttachmentOpenCount, 1);
+		handle.write({
+			header: {
+				transferId: 'xfer-1',
+				filename: 'a.bin',
+				totalSize: 3,
+				mimeType: 'application/octet-stream',
+				checksumSha256: 'abc',
+				isPrecompressed: false,
+				sessionId: 'sess-1',
+				chunkSize: 2,
+				queueItemId: 'q-1',
+			},
+			offset: 0,
+		});
+		handle.write({
+			chunk: new Uint8Array([1, 2, 3]),
+			offset: 0,
+		});
+		assert.deepStrictEqual(transport.uploadAttachmentWrites, [{
+			header: {
+				transferId: 'xfer-1',
+				filename: 'a.bin',
+				totalSize: 3,
+				mimeType: 'application/octet-stream',
+				checksumSha256: 'abc',
+				isPrecompressed: false,
+				sessionId: 'sess-1',
+				chunkSize: 2,
+				queueItemId: 'q-1',
+			},
+			offset: 0,
+		}, {
+			chunk: new Uint8Array([1, 2, 3]),
+			offset: 0,
+		}]);
+		transport.fireUploadAttachmentClosed({ kind: 'remote' });
+		transport.fireUploadAttachmentClosed({ kind: 'error', message: 'late' });
+		assert.deepStrictEqual(seen, [{ kind: 'remote' }]);
+
+		const empty = service.openUploadAttachmentStream(() => { });
+		empty.write({
+			header: {
+				transferId: '',
+				filename: '',
+				totalSize: 0,
+				mimeType: '',
+				checksumSha256: '',
+				isPrecompressed: false,
+				sessionId: '',
+				chunkSize: 0,
+				queueItemId: '',
+			},
+			chunk: new Uint8Array(0),
+			offset: 0,
+		});
+		assert.strictEqual(transport.uploadAttachmentWrites[2]?.header?.transferId, '');
+		assert.strictEqual(transport.uploadAttachmentWrites[2]?.header?.filename, '');
+		assert.strictEqual(transport.uploadAttachmentWrites[2]?.header?.sessionId, '');
+		assert.strictEqual(transport.uploadAttachmentWrites[2]?.header?.queueItemId, '');
+		assert.deepStrictEqual(transport.uploadAttachmentWrites[2]?.chunk, new Uint8Array(0));
+		handle.dispose();
+		empty.dispose();
+		service.dispose();
+	});
+
+	test('openUploadAttachmentStream dispose silences later onClosed', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		const seen: UniverseAgentSessionStreamCloseCause[] = [];
+		const handle = service.openUploadAttachmentStream(() => { }, cause => seen.push(cause));
+		handle.dispose();
+		transport.fireUploadAttachmentClosed({ kind: 'error', message: 'CANCELLED' });
 		assert.deepStrictEqual(seen, []);
 		service.dispose();
 	});

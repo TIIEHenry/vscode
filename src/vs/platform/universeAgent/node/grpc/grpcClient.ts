@@ -311,6 +311,9 @@ import type {
 	UniverseAgentReflectMemoryRequest,
 	UniverseAgentReflectMemoryResult,
 	UniverseAgentMemoryReflectDiagnosis,
+	UniverseAgentUploadChunk,
+	UniverseAgentUploadAttachmentResult,
+	UniverseAgentUploadAttachmentStream,
 	UniverseAgentListModelsResult,
 	UniverseAgentGetConfigRequest,
 	UniverseAgentGetConfigResult,
@@ -541,6 +544,25 @@ interface SubscribeToolDetailChunkWire {
 	mime_type?: string;
 	eof?: boolean;
 	content_mode?: string | number;
+}
+
+const UploadErrorCodeByNumber: Record<number, string> = {
+	0: 'UPLOAD_ERROR_NONE',
+	1: 'UPLOAD_ERROR_CHECKSUM_MISMATCH',
+	2: 'UPLOAD_ERROR_DISK_FULL',
+	3: 'UPLOAD_ERROR_PERMISSION_DENIED',
+	4: 'UPLOAD_ERROR_INVALID_OFFSET',
+	5: 'UPLOAD_ERROR_FILE_TOO_LARGE',
+	6: 'UPLOAD_ERROR_INTERNAL',
+	7: 'UPLOAD_ERROR_AUTH_FAILED',
+};
+
+interface UploadResponseWire {
+	success?: boolean;
+	file_path?: string;
+	checksum_sha256?: string;
+	error_message?: string;
+	error_code?: string | number;
 }
 
 interface ConfigChangedEventWire {
@@ -995,6 +1017,59 @@ function makeServerStreamClient<TRequest, TEvent>(
 	};
 }
 
+function makeClientStreamClient<TChunk, TResponse>(
+	channel: grpc.Client,
+	servicePath: string,
+	method: string,
+): (
+	onResponse: (response: TResponse) => void,
+	onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
+) => { write(chunk: TChunk): void; end(): void; dispose(): void } {
+	const path = `/${servicePath}/${method}`;
+	return (onResponse, onClosed) => {
+		const gate = createStreamCloseGate(onClosed);
+		const call = channel.makeClientStreamRequest(
+			path,
+			(value: TChunk) => Buffer.from(JSON.stringify(value ?? {})),
+			(buffer: Buffer) => JSON.parse(buffer.toString('utf8')) as TResponse,
+			(error: grpc.ServiceError | null, response: TResponse) => {
+				if (gate.closed) {
+					return;
+				}
+				if (error) {
+					const message = typeof error?.message === 'string' && error.message ? error.message : 'stream error';
+					gate.finish({ kind: 'error', message });
+					return;
+				}
+				onResponse(response);
+				gate.finish({ kind: 'remote' });
+			},
+		);
+		return {
+			write(chunk: TChunk): void {
+				if (gate.closed) {
+					return;
+				}
+				call.write(chunk);
+			},
+			end(): void {
+				if (gate.closed) {
+					return;
+				}
+				call.end();
+			},
+			dispose(): void {
+				if (gate.closed) {
+					call.cancel();
+					return;
+				}
+				gate.closeLocal();
+				call.cancel();
+			},
+		};
+	};
+}
+
 function makeResidentBidiStreamClient<TResponse>(
 	channel: grpc.Client,
 	servicePath: string,
@@ -1343,6 +1418,49 @@ function mapToolDetailContentMode(value: string | number | undefined): string {
 		return ToolDetailContentModeByNumber[value] ?? String(value);
 	}
 	return value;
+}
+
+function mapUploadErrorCode(value: string | number | undefined): string {
+	if (value === undefined || value === '') {
+		return 'UPLOAD_ERROR_NONE';
+	}
+	if (typeof value === 'number') {
+		return UploadErrorCodeByNumber[value] ?? String(value);
+	}
+	return value;
+}
+
+function mapUploadChunkWire(chunk: UniverseAgentUploadChunk): Record<string, unknown> {
+	const wire: Record<string, unknown> = {
+		offset: chunk.offset,
+	};
+	if (chunk.header) {
+		wire.header = {
+			transfer_id: chunk.header.transferId,
+			filename: chunk.header.filename,
+			total_size: chunk.header.totalSize,
+			mime_type: chunk.header.mimeType,
+			checksum_sha256: chunk.header.checksumSha256,
+			is_precompressed: chunk.header.isPrecompressed,
+			session_id: chunk.header.sessionId,
+			chunk_size: chunk.header.chunkSize,
+			...(chunk.header.queueItemId !== undefined ? { queue_item_id: chunk.header.queueItemId } : {}),
+		};
+	}
+	if (chunk.chunk !== undefined) {
+		wire.chunk = bytesToBase64(chunk.chunk);
+	}
+	return wire;
+}
+
+function mapUploadResponse(wire: UploadResponseWire): UniverseAgentUploadAttachmentResult {
+	return {
+		success: wire.success === true,
+		filePath: wire.file_path ?? '',
+		checksumSha256: wire.checksum_sha256 ?? '',
+		errorMessage: wire.error_message ?? '',
+		errorCode: mapUploadErrorCode(wire.error_code),
+	};
 }
 
 function mapSubscribeToolDetailChunk(wire: SubscribeToolDetailChunkWire): UniverseAgentSubscribeToolDetailChunk {
@@ -5182,6 +5300,29 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			categories: [...request.categories],
 		});
 		return mapMemoryReflectResponse(wire);
+	}
+
+	openUploadAttachmentStream(
+		onResponse: (response: UniverseAgentUploadAttachmentResult) => void,
+		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
+	): UniverseAgentUploadAttachmentStream {
+		const stream = makeClientStreamClient<Record<string, unknown>, UploadResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.FileTransfer.service,
+			UniverseAgentGrpcServices.FileTransfer.UploadAttachment,
+		);
+		const handle = stream(wire => onResponse(mapUploadResponse(wire)), onClosed);
+		return {
+			write(chunk: UniverseAgentUploadChunk): void {
+				handle.write(mapUploadChunkWire(chunk));
+			},
+			end(): void {
+				handle.end();
+			},
+			dispose(): void {
+				handle.dispose();
+			},
+		};
 	}
 
 	async setPermissionPolicy(request: UniverseAgentSetPermissionPolicyRequest): Promise<UniverseAgentSetPermissionPolicyResult> {

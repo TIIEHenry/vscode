@@ -243,6 +243,8 @@ import type {
 	UniverseAgentDeleteMemoryResult,
 	UniverseAgentReflectMemoryRequest,
 	UniverseAgentReflectMemoryResult,
+	UniverseAgentUploadAttachmentResult,
+	UniverseAgentUploadAttachmentStream,
 	UniverseAgentSetPermissionPolicyRequest,
 	UniverseAgentSetPermissionPolicyResult,
 	UniverseAgentListModelsResult,
@@ -1378,6 +1380,19 @@ export interface IUniverseAgentConnection {
 	 * Revert / History.
 	 */
 	reflectMemory?(request: UniverseAgentReflectMemoryRequest): Promise<UniverseAgentReflectMemoryResult>;
+
+	/**
+	 * FileTransferService.UploadAttachment client-stream
+	 * (`stream UploadChunk` → `UploadResponse`). Optional so Web / tests
+	 * can omit it. Catalog + node transport only this slice; empty
+	 * `transferId` / `filename` / `sessionId` / `queueItemId` are sent
+	 * as-is. Empty `chunk` mapped as-is. No Conversation roster / UI.
+	 * ≠ DownloadAttachment / GetUploadProgress.
+	 */
+	openUploadAttachmentStream?(
+		onResponse: (response: UniverseAgentUploadAttachmentResult) => void,
+		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
+	): UniverseAgentUploadAttachmentStream;
 
 	/**
 	 * ConfigService.SetPermissionPolicy unary (session/tool Ask/Agent/Permit
