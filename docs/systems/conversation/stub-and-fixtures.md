@@ -56,6 +56,7 @@ summary: "IConversationRosterService 契约分组；getTrajectoryRecords + filte
 `writeClipboard?`（ClipboardService.Write）仅 catalog + node，roster / SessionBar / Engine Preferences / Composer **不**转发。空 `sessionId` / `agentId` / `label` / `content` / `filePath` / `url` 原样上线；空 `clipId` 原样映射。≠ `Read` / `List` / `Clear` / DeviceService / TriggerService。
 `readClipboard?`（ClipboardService.Read）仅 catalog + node，roster / SessionBar / Engine Preferences / Composer **不**转发。空 `sessionId` / `clipId` 原样上线；空 `clipId` / `label` / `content` / `createdBy` 原样映射；`createdAt` 0 原样映射。≠ `Write` / `List` / `Clear` / DeviceService / TriggerService。
 `listClipboard?`（ClipboardService.List）仅 catalog + node，roster / SessionBar / Engine Preferences / Composer **不**转发。空 `sessionId` 原样上线；空 `clipId` / `label` / `createdBy` 原样映射；`createdAt` 0 原样映射。≠ `Write` / `Read` / `Clear` / DeviceService / TriggerService。
+`listNodes?`（RemoteAgentService.ListNodes）仅 catalog + node，roster / SessionBar / Engine Preferences / Composer **不**转发。空 `filter_status` / 空 `filter_tags`（含空串）原样上线；空 `id` / `name` / `description` / `status` / `endpoint` / `tags` 原样映射；`last_heartbeat_at` / `total` / `online_count` 0 原样映射。≠ `GetNode` / `CheckConnection` / `ListConfigs` / `GetConfig` / DeviceService。
 **测试 / stub 夹具**（只在无引擎或单测中有意义，**不应**出现在引擎 adapter 的公共面）：
 
 | 成员 | 用途 |
