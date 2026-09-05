@@ -22,6 +22,7 @@ import { NAVIGATOR_TEAM_VIEW_ID } from '../../browser/navigatorStubView.js';
 import {
 	INavigatorTeamMember,
 	NAVIGATOR_TEAM_CANCEL_TASK_COMMAND_ID,
+	NAVIGATOR_TEAM_MESSAGE_MEMBER_COMMAND_ID,
 	NAVIGATOR_TEAM_SHOW_MEMBERS_COMMAND_ID,
 	NAVIGATOR_TEAM_SHOW_TASKS_COMMAND_ID,
 	NAVIGATOR_TEAM_UPDATE_TASK_COMMAND_ID,
@@ -110,8 +111,10 @@ suite('Navigator Team subviews', () => {
 
 		const updateItem = viewTitleItems.find(item => item.command.id === NAVIGATOR_TEAM_UPDATE_TASK_COMMAND_ID);
 		const cancelItem = viewTitleItems.find(item => item.command.id === NAVIGATOR_TEAM_CANCEL_TASK_COMMAND_ID);
+		const messageItem = viewTitleItems.find(item => item.command.id === NAVIGATOR_TEAM_MESSAGE_MEMBER_COMMAND_ID);
 		assert.ok(updateItem, 'Team ViewTitle must expose Update (TaskUpdate)');
 		assert.ok(cancelItem, 'Team ViewTitle must expose Cancel (TaskCancel)');
+		assert.ok(messageItem, 'Team ViewTitle must expose Message (MessageMember)');
 	});
 
 	test('defaults to Members subview with honest empty state', () => {

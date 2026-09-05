@@ -63,6 +63,23 @@ export function navigatorTeamTaskMutationIds(
 	};
 }
 
+/** Navigator Team Members → MessageMember. Empty ids are still sent. */
+export function canSendNavigatorTeamMessageMember(connected: boolean, hasHook: boolean): boolean {
+	return connected && hasHook;
+}
+
+/** Pass through empty `sessionId` / `agentId` / `memberName` as-is (no default / no trim). */
+export function navigatorTeamMessageMemberIds(
+	sessionId: string | undefined,
+	selected: { readonly managerAgentId?: string; readonly memberName?: string } | undefined,
+): { sessionId: string; agentId: string; memberName: string } {
+	return {
+		sessionId: sessionId ?? '',
+		agentId: selected?.managerAgentId ?? '',
+		memberName: selected?.memberName ?? '',
+	};
+}
+
 const MEMBER_TYPE = 'AGENT_TYPE_MEMBER';
 
 export function findManagerNodes(tree: LiveAgentTreeNodeView | undefined): LiveAgentTreeNodeView[] {

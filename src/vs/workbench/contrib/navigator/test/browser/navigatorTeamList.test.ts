@@ -19,9 +19,9 @@ import { IAgentInspectService } from '../../common/agentInspect.js';
 import { AgentInspectService } from '../../browser/agentInspectService.js';
 import { NAVIGATOR_TEAM_VIEW_ID } from '../../browser/navigatorStubView.js';
 import { NAVIGATOR_TEAM_CONTAINER_ID, NAVIGATOR_TEAM_VIEW_CONTAINER } from '../../browser/navigator.contribution.js';
-import type { UniverseAgentTaskCancelRequest, UniverseAgentTaskUpdateRequest } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
+import type { UniverseAgentMessageMemberRequest, UniverseAgentTaskCancelRequest, UniverseAgentTaskUpdateRequest } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { INavigatorTeamMember, NavigatorTeamView } from '../../browser/navigatorTeamList.js';
-import type { INavigatorTeamTaskEntry } from '../../common/navigatorTeamData.js';
+import type { INavigatorTeamMemberEntry, INavigatorTeamTaskEntry } from '../../common/navigatorTeamData.js';
 import { createNavigatorConnectionTestStub } from '../common/navigatorConnectionTestStub.js';
 import '../../browser/navigator.contribution.js';
 
@@ -258,6 +258,83 @@ suite('NavigatorTeamView', () => {
 			sessionId: roster.getActiveSessionId(),
 			agentId: 'mgr-1',
 			taskId: 't1',
+		}]);
+	});
+
+	test('MessageMember does not send when disconnected or hook missing', async () => {
+		const messageCalls: UniverseAgentMessageMemberRequest[] = [];
+		const disconnected = await mountView(createNavigatorConnectionTestStub({
+			messageMember: async (request) => {
+				messageCalls.push(request);
+				return { ok: true };
+			},
+		}));
+		assert.strictEqual(await disconnected.messageSelectedMember('hi'), false);
+		assert.deepStrictEqual(messageCalls, []);
+
+		const roster = store.add(new ConversationStubService());
+		roster.setEngineConnected(true);
+		const noHook = await mountView(createNavigatorConnectionTestStub({
+			isEngineConnected: () => true,
+		}), roster);
+		assert.strictEqual(await noHook.messageSelectedMember('hi'), false);
+	});
+
+	test('MessageMember sends empty ids as-is when nothing selected', async () => {
+		const messageCalls: UniverseAgentMessageMemberRequest[] = [];
+		const roster = store.add(new ConversationStubService());
+		roster.setEngineConnected(true);
+		const view = await mountView(createNavigatorConnectionTestStub({
+			isEngineConnected: () => true,
+			messageMember: async (request) => {
+				messageCalls.push(request);
+				return { ok: true };
+			},
+		}), roster);
+
+		assert.strictEqual(await view.messageSelectedMember(''), true);
+		assert.deepStrictEqual(messageCalls, [{
+			sessionId: roster.getActiveSessionId(),
+			agentId: '',
+			memberName: '',
+			content: '',
+		}]);
+	});
+
+	test('MessageMember sends selected member ids without inventing defaults', async () => {
+		const messageCalls: UniverseAgentMessageMemberRequest[] = [];
+		const roster = store.add(new ConversationStubService());
+		roster.setEngineConnected(true);
+		const view = await mountView(createNavigatorConnectionTestStub({
+			isEngineConnected: () => true,
+			messageMember: async (request) => {
+				messageCalls.push(request);
+				return { ok: true };
+			},
+		}), roster);
+
+		const member: INavigatorTeamMemberEntry = {
+			id: 'member:m1',
+			label: 'Writer · IDLE',
+			memberName: 'writer',
+			memberAgentId: 'm1',
+			status: 'IDLE',
+			preset: '',
+			dynamic: '',
+			turnCount: 0,
+			managerAgentId: 'mgr-1',
+			managerName: 'Mgr',
+		};
+		(view as unknown as { setMemberEntries: (entries: INavigatorTeamMemberEntry[]) => void }).setMemberEntries([member]);
+		const membersList = (view as unknown as { membersList: WorkbenchList<INavigatorTeamMemberEntry> }).membersList;
+		membersList.setSelection([0]);
+
+		assert.strictEqual(await view.messageSelectedMember('hello'), true);
+		assert.deepStrictEqual(messageCalls, [{
+			sessionId: roster.getActiveSessionId(),
+			agentId: 'mgr-1',
+			memberName: 'writer',
+			content: 'hello',
 		}]);
 	});
 });
