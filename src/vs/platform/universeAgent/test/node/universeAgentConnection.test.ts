@@ -243,6 +243,8 @@ import type {
 	UniverseAgentListConfigsResult,
 	UniverseAgentGetRemoteAgentConfigRequest,
 	UniverseAgentRemoteAgentConfig,
+	UniverseAgentDeleteRemoteAgentConfigRequest,
+	UniverseAgentDeleteRemoteAgentConfigResult,
 	UniverseAgentGetUploadProgressRequest,
 	UniverseAgentGetUploadProgressResult,
 	UniverseAgentShutdownRequest,
@@ -1886,6 +1888,16 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 		return this.getRemoteAgentConfigResult;
 	}
 
+	readonly deleteRemoteAgentConfigCalls: UniverseAgentDeleteRemoteAgentConfigRequest[] = [];
+	deleteRemoteAgentConfigResult: UniverseAgentDeleteRemoteAgentConfigResult = {
+		success: false,
+	};
+
+	async deleteRemoteAgentConfig(request: UniverseAgentDeleteRemoteAgentConfigRequest): Promise<UniverseAgentDeleteRemoteAgentConfigResult> {
+		this.deleteRemoteAgentConfigCalls.push(request);
+		return this.deleteRemoteAgentConfigResult;
+	}
+
 	readonly getUploadProgressCalls: UniverseAgentGetUploadProgressRequest[] = [];
 	getUploadProgressResult: UniverseAgentGetUploadProgressResult = {
 		exists: false,
@@ -2669,6 +2681,12 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.RemoteAgent.GetConfig, 'GetConfig');
 		assert.strictEqual(UniverseAgentGrpcServices.RemoteAgent.service, 'universeagent.remoteagent.v1.RemoteAgentService');
 	});
+
+	test('UniverseAgentGrpcServices lists RemoteAgent.DeleteConfig', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.RemoteAgent.DeleteConfig, 'DeleteConfig');
+		assert.strictEqual(UniverseAgentGrpcServices.RemoteAgent.service, 'universeagent.remoteagent.v1.RemoteAgentService');
+	});
+
 	test('UniverseAgentGrpcServices lists FileTransfer.GetUploadProgress', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.FileTransfer.GetUploadProgress, 'GetUploadProgress');
 		assert.strictEqual(UniverseAgentGrpcServices.FileTransfer.service, 'universeagent.filetransfer.v1.FileTransferService');
@@ -6967,6 +6985,36 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(empty.healthCheck.degradedErrorRateThreshold, 0);
 		service.dispose();
 	});
+
+	test('deleteRemoteAgentConfig forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.deleteRemoteAgentConfigResult = {
+			success: true,
+		};
+		const request = {
+			nodeId: 'node-1',
+		};
+		const result = await service.deleteRemoteAgentConfig(request);
+		assert.deepStrictEqual(transport.deleteRemoteAgentConfigCalls, [request]);
+		assert.deepStrictEqual(result, transport.deleteRemoteAgentConfigResult);
+
+		transport.deleteRemoteAgentConfigResult = {
+			success: false,
+		};
+		const emptyRequest = {
+			nodeId: '',
+		};
+		const empty = await service.deleteRemoteAgentConfig(emptyRequest);
+		assert.strictEqual(transport.deleteRemoteAgentConfigCalls[1]?.nodeId, '');
+		assert.strictEqual(empty.success, false);
+		service.dispose();
+	});
+
 	test('getUploadProgress forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({

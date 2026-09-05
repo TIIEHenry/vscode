@@ -2694,6 +2694,23 @@ export interface UniverseAgentListConfigsResult {
 export interface UniverseAgentGetRemoteAgentConfigRequest {
 	readonly nodeId: string;
 }
+
+/**
+ * RemoteAgentService.DeleteConfig — proto `DeleteRemoteAgentConfigRequest` /
+ * `DeleteRemoteAgentConfigResponse` only. Empty `node_id` (incl. empty
+ * string) passes through as-is. `success` false mapped as-is.
+ * ≠ ListNodes / GetNode / CheckConnection / SetMaintenance /
+ * ExitMaintenance / ResetError / ListConfigs / GetConfig / SaveConfig /
+ * Reload / DeviceService.
+ */
+export interface UniverseAgentDeleteRemoteAgentConfigRequest {
+	readonly nodeId: string;
+}
+
+export interface UniverseAgentDeleteRemoteAgentConfigResult {
+	readonly success: boolean;
+}
+
 /**
  * FileTransferService.GetUploadProgress — proto `UploadProgressRequest` /
  * `UploadProgressResponse` only. Empty `transfer_id` / `session_id` pass
