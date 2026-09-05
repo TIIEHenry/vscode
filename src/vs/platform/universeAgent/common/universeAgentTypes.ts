@@ -2664,6 +2664,22 @@ export interface UniverseAgentListConfigsResult {
 export interface UniverseAgentGetRemoteAgentConfigRequest {
 	readonly nodeId: string;
 }
+
+/**
+ * RemoteAgentService.ResetError — proto `ResetErrorRequest` /
+ * `ResetErrorResponse` only. Empty `node_id` (incl. empty string)
+ * passes through as-is. `success` false mapped as-is.
+ * ≠ ListNodes / GetNode / CheckConnection / SetMaintenance /
+ * ExitMaintenance / ListConfigs / GetConfig / DeviceService.
+ */
+export interface UniverseAgentResetErrorRequest {
+	readonly nodeId: string;
+}
+
+export interface UniverseAgentResetErrorResult {
+	readonly success: boolean;
+}
+
 /**
  * FileTransferService.GetUploadProgress — proto `UploadProgressRequest` /
  * `UploadProgressResponse` only. Empty `transfer_id` / `session_id` pass
