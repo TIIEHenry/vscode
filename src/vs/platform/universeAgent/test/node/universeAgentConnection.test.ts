@@ -218,6 +218,8 @@ import type {
 	UniverseAgentDeleteMemoryResult,
 	UniverseAgentReflectMemoryRequest,
 	UniverseAgentReflectMemoryResult,
+	UniverseAgentMemoryRebuildRequest,
+	UniverseAgentMemoryRebuildEvent,
 	UniverseAgentGetHistoryRequest,
 	UniverseAgentGetHistoryResult,
 	UniverseAgentListSessionsRequest,
@@ -1587,6 +1589,31 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 		return this.reflectMemoryResult;
 	}
 
+	private _rebuildMemoryGate: ReturnType<typeof createStreamCloseGate> | undefined;
+	readonly rebuildMemoryOpens: UniverseAgentMemoryRebuildRequest[] = [];
+
+	openRebuildMemoryStream(
+		request: UniverseAgentMemoryRebuildRequest,
+		_onResponse: (response: UniverseAgentMemoryRebuildEvent) => void,
+		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
+	): { dispose(): void } {
+		this.rebuildMemoryOpens.push(request);
+		const gate = createStreamCloseGate(onClosed);
+		this._rebuildMemoryGate = gate;
+		return {
+			dispose: () => {
+				gate.closeLocal();
+				if (this._rebuildMemoryGate === gate) {
+					this._rebuildMemoryGate = undefined;
+				}
+			},
+		};
+	}
+
+	fireRebuildMemoryClosed(cause: UniverseAgentSessionStreamCloseCause): void {
+		this._rebuildMemoryGate?.finish(cause);
+	}
+
 	async listModels() {
 		return { models: [] };
 	}
@@ -2057,6 +2084,11 @@ suite('UniverseAgentConnectionService', () => {
 
 	test('UniverseAgentGrpcServices lists Memory.Reflect', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Memory.Reflect, 'Reflect');
+		assert.strictEqual(UniverseAgentGrpcServices.Memory.service, 'universeagent.memory.v1.MemoryService');
+	});
+
+	test('UniverseAgentGrpcServices lists Memory.Rebuild', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Memory.Rebuild, 'Rebuild');
 		assert.strictEqual(UniverseAgentGrpcServices.Memory.service, 'universeagent.memory.v1.MemoryService');
 	});
 
@@ -6195,6 +6227,54 @@ suite('UniverseAgentConnectionService', () => {
 		}, () => { }, cause => seen.push(cause));
 		handle.dispose();
 		transport.fireSubscribeToolDetailClosed({ kind: 'error', message: 'CANCELLED' });
+		assert.deepStrictEqual(seen, []);
+		service.dispose();
+	});
+
+	test('openRebuildMemoryStream forwards request and transport onClosed', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		const seen: UniverseAgentSessionStreamCloseCause[] = [];
+		const handle = service.openRebuildMemoryStream({
+			scope: 'project',
+			dryRun: true,
+		}, () => { }, cause => seen.push(cause));
+		assert.deepStrictEqual(transport.rebuildMemoryOpens, [{
+			scope: 'project',
+			dryRun: true,
+		}]);
+		transport.fireRebuildMemoryClosed({ kind: 'remote' });
+		transport.fireRebuildMemoryClosed({ kind: 'error', message: 'late' });
+		assert.deepStrictEqual(seen, [{ kind: 'remote' }]);
+
+		service.openRebuildMemoryStream({
+			scope: '',
+			dryRun: false,
+		}, () => { });
+		assert.strictEqual(transport.rebuildMemoryOpens[1]?.scope, '');
+		assert.strictEqual(transport.rebuildMemoryOpens[1]?.dryRun, false);
+		handle.dispose();
+		service.dispose();
+	});
+
+	test('openRebuildMemoryStream dispose silences later onClosed', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		const seen: UniverseAgentSessionStreamCloseCause[] = [];
+		const handle = service.openRebuildMemoryStream({
+			scope: '',
+			dryRun: false,
+		}, () => { }, cause => seen.push(cause));
+		handle.dispose();
+		transport.fireRebuildMemoryClosed({ kind: 'error', message: 'CANCELLED' });
 		assert.deepStrictEqual(seen, []);
 		service.dispose();
 	});

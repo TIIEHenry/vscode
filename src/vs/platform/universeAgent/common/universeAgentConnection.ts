@@ -243,6 +243,9 @@ import type {
 	UniverseAgentDeleteMemoryResult,
 	UniverseAgentReflectMemoryRequest,
 	UniverseAgentReflectMemoryResult,
+	UniverseAgentMemoryRebuildRequest,
+	UniverseAgentMemoryRebuildEvent,
+	UniverseAgentMemoryRebuildStream,
 	UniverseAgentSetPermissionPolicyRequest,
 	UniverseAgentSetPermissionPolicyResult,
 	UniverseAgentListModelsResult,
@@ -1378,6 +1381,23 @@ export interface IUniverseAgentConnection {
 	 * Revert / History.
 	 */
 	reflectMemory?(request: UniverseAgentReflectMemoryRequest): Promise<UniverseAgentReflectMemoryResult>;
+
+	/**
+	 * MemoryService.Rebuild server-stream (`stream MemoryRebuildEvent`).
+	 * Optional so Web / tests can omit it. Catalog + node transport only
+	 * this slice; empty `scope` is sent as-is. `dry_run` false sent as-is.
+	 * Empty `phase` / `message` mapped as-is. `progress` /
+	 * `files_processed` / `files_total` 0 mapped as-is. Proto fields only
+	 * (`MemoryRebuildRequest` / `MemoryRebuildEvent`). No Conversation
+	 * roster / UI / Engine Preferences / Composer / Memory pane.
+	 * ≠ Save / Search / SearchDeep / Read / List / Delete / Reflect /
+	 * Revert / History.
+	 */
+	openRebuildMemoryStream?(
+		request: UniverseAgentMemoryRebuildRequest,
+		onResponse: (response: UniverseAgentMemoryRebuildEvent) => void,
+		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
+	): UniverseAgentMemoryRebuildStream;
 
 	/**
 	 * ConfigService.SetPermissionPolicy unary (session/tool Ask/Agent/Permit

@@ -238,6 +238,9 @@ import type {
 	UniverseAgentDeleteMemoryResult,
 	UniverseAgentReflectMemoryRequest,
 	UniverseAgentReflectMemoryResult,
+	UniverseAgentMemoryRebuildRequest,
+	UniverseAgentMemoryRebuildEvent,
+	UniverseAgentMemoryRebuildStream,
 	UniverseAgentSetPermissionPolicyRequest,
 	UniverseAgentSetPermissionPolicyResult,
 	UniverseAgentListModelsResult,
@@ -685,6 +688,13 @@ export interface IUniverseAgentGrpcTransport {
 	/** MemoryService.Reflect unary (snake_case `scope`/`categories`). Empty ids sent as-is. */
 	reflectMemory(request: UniverseAgentReflectMemoryRequest): Promise<UniverseAgentReflectMemoryResult>;
 
+	/** MemoryService.Rebuild server-stream (snake_case `scope`/`dry_run`). Empty ids sent as-is. */
+	openRebuildMemoryStream(
+		request: UniverseAgentMemoryRebuildRequest,
+		onResponse: (response: UniverseAgentMemoryRebuildEvent) => void,
+		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
+	): UniverseAgentMemoryRebuildStream;
+
 	/** ConfigService.SetPermissionPolicy unary (snake_case `session_id`/`tool_name`/`policy`). Empty ids sent as-is. */
 	setPermissionPolicy(request: UniverseAgentSetPermissionPolicyRequest): Promise<UniverseAgentSetPermissionPolicyResult>;
 
@@ -913,6 +923,7 @@ export const UniverseAgentGrpcServices = {
 		List: 'List',
 		Delete: 'Delete',
 		Reflect: 'Reflect',
+		Rebuild: 'Rebuild',
 	},
 } as const;
 
