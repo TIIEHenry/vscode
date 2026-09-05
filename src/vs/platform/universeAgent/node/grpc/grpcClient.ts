@@ -321,6 +321,9 @@ import type {
 	UniverseAgentUploadChunk,
 	UniverseAgentUploadAttachmentResult,
 	UniverseAgentUploadAttachmentStream,
+	UniverseAgentDownloadAttachmentRequest,
+	UniverseAgentDownloadChunk,
+	UniverseAgentDownloadAttachmentStream,
 	UniverseAgentListModelsResult,
 	UniverseAgentGetConfigRequest,
 	UniverseAgentGetConfigResult,
@@ -1039,7 +1042,7 @@ function makeClientStreamClient<TChunk, TResponse>(
 			path,
 			(value: TChunk) => Buffer.from(JSON.stringify(value ?? {})),
 			(buffer: Buffer) => JSON.parse(buffer.toString('utf8')) as TResponse,
-			(error: grpc.ServiceError | null, response: TResponse) => {
+			(error: grpc.ServiceError | null, response?: TResponse) => {
 				if (gate.closed) {
 					return;
 				}
@@ -1048,7 +1051,9 @@ function makeClientStreamClient<TChunk, TResponse>(
 					gate.finish({ kind: 'error', message });
 					return;
 				}
-				onResponse(response);
+				if (response !== undefined) {
+					onResponse(response);
+				}
 				gate.finish({ kind: 'remote' });
 			},
 		);
@@ -3222,6 +3227,24 @@ function mapUploadProgressResponse(wire: UploadProgressResponseWire): UniverseAg
 		exists: wire.exists === true,
 		bytesReceived: requiredInt64(wire.bytes_received),
 		partialPath: wire.partial_path ?? '',
+	};
+}
+
+interface DownloadChunkWire {
+	offset?: number | string;
+	data?: string;
+	total_size?: number | string;
+	is_last?: boolean;
+	checksum_sha256?: string;
+}
+
+function mapDownloadChunk(wire: DownloadChunkWire): UniverseAgentDownloadChunk {
+	return {
+		offset: requiredInt64(wire.offset),
+		data: base64ToBytes(wire.data),
+		totalSize: requiredInt64(wire.total_size),
+		isLast: wire.is_last === true,
+		checksumSha256: wire.checksum_sha256 ?? '',
 	};
 }
 
@@ -5420,6 +5443,25 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 				handle.dispose();
 			},
 		};
+	}
+
+	openDownloadAttachmentStream(
+		request: UniverseAgentDownloadAttachmentRequest,
+		onResponse: (response: UniverseAgentDownloadChunk) => void,
+		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
+	): UniverseAgentDownloadAttachmentStream {
+		const stream = makeServerStreamClient<Record<string, unknown>, DownloadChunkWire>(
+			this._channel,
+			UniverseAgentGrpcServices.FileTransfer.service,
+			UniverseAgentGrpcServices.FileTransfer.DownloadAttachment,
+		);
+		return stream({
+			file_path: request.filePath,
+			offset: request.offset,
+			max_bytes: request.maxBytes,
+			session_id: request.sessionId,
+			artifact_id: request.artifactId,
+		}, wire => onResponse(mapDownloadChunk(wire)), onClosed);
 	}
 
 	async setPermissionPolicy(request: UniverseAgentSetPermissionPolicyRequest): Promise<UniverseAgentSetPermissionPolicyResult> {

@@ -619,6 +619,9 @@ class RecordingMockTransport implements IUniverseAgentGrpcTransport {
 	openUploadAttachmentStream(): { write(): void; end(): void; dispose(): void } {
 		return { write() { }, end() { }, dispose() { } };
 	}
+	openDownloadAttachmentStream(): { dispose(): void } {
+		return { dispose() { } };
+	}
 	async listModels() { return { models: [] }; }
 	async getConfig(): Promise<{ values: Record<string, string>; scope: '' }> {
 		return { values: {}, scope: '' };

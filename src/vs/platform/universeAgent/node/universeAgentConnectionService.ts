@@ -255,6 +255,9 @@ import type {
 	UniverseAgentGetUploadProgressResult,
 	UniverseAgentUploadAttachmentResult,
 	UniverseAgentUploadAttachmentStream,
+	UniverseAgentDownloadAttachmentRequest,
+	UniverseAgentDownloadChunk,
+	UniverseAgentDownloadAttachmentStream,
 	UniverseAgentSetPermissionPolicyRequest,
 	UniverseAgentSetPermissionPolicyResult,
 	UniverseAgentListModelsResult,
@@ -1434,6 +1437,15 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 	): UniverseAgentUploadAttachmentStream {
 		this._assertTransportReady();
 		return this._transport!.openUploadAttachmentStream(onResponse, onClosed);
+	}
+
+	openDownloadAttachmentStream(
+		request: UniverseAgentDownloadAttachmentRequest,
+		onResponse: (response: UniverseAgentDownloadChunk) => void,
+		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
+	): UniverseAgentDownloadAttachmentStream {
+		this._assertTransportReady();
+		return this._transport!.openDownloadAttachmentStream(request, onResponse, onClosed);
 	}
 
 	async setPermissionPolicy(request: UniverseAgentSetPermissionPolicyRequest): Promise<UniverseAgentSetPermissionPolicyResult> {

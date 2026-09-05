@@ -252,6 +252,9 @@ import type {
 	UniverseAgentGetUploadProgressResult,
 	UniverseAgentUploadAttachmentResult,
 	UniverseAgentUploadAttachmentStream,
+	UniverseAgentDownloadAttachmentRequest,
+	UniverseAgentDownloadChunk,
+	UniverseAgentDownloadAttachmentStream,
 	UniverseAgentSetPermissionPolicyRequest,
 	UniverseAgentSetPermissionPolicyResult,
 	UniverseAgentListModelsResult,
@@ -1442,6 +1445,22 @@ export interface IUniverseAgentConnection {
 		onResponse: (response: UniverseAgentUploadAttachmentResult) => void,
 		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
 	): UniverseAgentUploadAttachmentStream;
+
+	/**
+	 * FileTransferService.DownloadAttachment server-stream
+	 * (`stream DownloadChunk`). Optional so Web / tests can omit it.
+	 * Catalog + node transport only this slice; empty `filePath` /
+	 * `sessionId` / `artifactId` are sent as-is. `offset` / `maxBytes` 0
+	 * sent as-is. Empty `data` / `checksumSha256` mapped as-is.
+	 * Proto fields only (`DownloadRequest` / `DownloadChunk`). No
+	 * Conversation roster / UI / Engine Preferences / Composer.
+	 * ≠ UploadAttachment / GetUploadProgress.
+	 */
+	openDownloadAttachmentStream?(
+		request: UniverseAgentDownloadAttachmentRequest,
+		onResponse: (response: UniverseAgentDownloadChunk) => void,
+		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
+	): UniverseAgentDownloadAttachmentStream;
 
 	/**
 	 * ConfigService.SetPermissionPolicy unary (session/tool Ask/Agent/Permit

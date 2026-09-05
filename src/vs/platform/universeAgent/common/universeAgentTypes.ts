@@ -1308,6 +1308,7 @@ export interface UniverseAgentSessionEvent {
  * Close cause for resident streams (`openChatStream`, `openContinuationStream`,
  * `openRegenerateStream`, `openResumeStream`, `openSubscribeToolDetailStream`,
  * `openWatchConfigStream`, `openUploadAttachmentStream`,
+ * `openDownloadAttachmentStream`,
  * `subscribeSessionEventStream`).
  * Local dispose / cancel does not fire this.
  */
@@ -2422,6 +2423,36 @@ export interface UniverseAgentUploadAttachmentResult {
 export interface UniverseAgentUploadAttachmentStream {
 	write(chunk: UniverseAgentUploadChunk): void;
 	end(): void;
+	dispose(): void;
+}
+
+/**
+ * FileTransferService.DownloadAttachment — proto `DownloadRequest` /
+ * `stream DownloadChunk` only. Empty `file_path` / `session_id` /
+ * `artifact_id` pass through as-is. `offset` / `max_bytes` 0 sent as-is.
+ * Empty `data` / `checksum_sha256` mapped as-is. `offset` /
+ * `total_size` 0 mapped as-is. `is_last` false mapped as-is.
+ * ≠ UploadAttachment / GetUploadProgress.
+ */
+export interface UniverseAgentDownloadAttachmentRequest {
+	readonly filePath: string;
+	readonly offset: number;
+	readonly maxBytes: number;
+	readonly sessionId: string;
+	readonly artifactId: string;
+}
+
+/** Proto `DownloadChunk`. Empty `data` / `checksum_sha256` mapped as-is. */
+export interface UniverseAgentDownloadChunk {
+	readonly offset: number;
+	readonly data: Uint8Array;
+	readonly totalSize: number;
+	readonly isLast: boolean;
+	readonly checksumSha256: string;
+}
+
+/** Server-stream handle for FileTransferService.DownloadAttachment (client does not write). */
+export interface UniverseAgentDownloadAttachmentStream {
 	dispose(): void;
 }
 

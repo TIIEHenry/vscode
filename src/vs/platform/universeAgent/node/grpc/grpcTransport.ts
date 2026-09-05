@@ -247,6 +247,9 @@ import type {
 	UniverseAgentGetUploadProgressResult,
 	UniverseAgentUploadAttachmentResult,
 	UniverseAgentUploadAttachmentStream,
+	UniverseAgentDownloadAttachmentRequest,
+	UniverseAgentDownloadChunk,
+	UniverseAgentDownloadAttachmentStream,
 	UniverseAgentSetPermissionPolicyRequest,
 	UniverseAgentSetPermissionPolicyResult,
 	UniverseAgentListModelsResult,
@@ -711,6 +714,12 @@ export interface IUniverseAgentGrpcTransport {
 		onResponse: (response: UniverseAgentUploadAttachmentResult) => void,
 		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
 	): UniverseAgentUploadAttachmentStream;
+	/** FileTransferService.DownloadAttachment server-stream (snake_case `file_path`/`session_id`/`artifact_id`). Empty ids sent as-is. */
+	openDownloadAttachmentStream(
+		request: UniverseAgentDownloadAttachmentRequest,
+		onResponse: (response: UniverseAgentDownloadChunk) => void,
+		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
+	): UniverseAgentDownloadAttachmentStream;
 
 	/** ConfigService.SetPermissionPolicy unary (snake_case `session_id`/`tool_name`/`policy`). Empty ids sent as-is. */
 	setPermissionPolicy(request: UniverseAgentSetPermissionPolicyRequest): Promise<UniverseAgentSetPermissionPolicyResult>;
@@ -947,6 +956,7 @@ export const UniverseAgentGrpcServices = {
 		service: 'universeagent.filetransfer.v1.FileTransferService',
 		GetUploadProgress: 'GetUploadProgress',
 		UploadAttachment: 'UploadAttachment',
+		DownloadAttachment: 'DownloadAttachment',
 	},
 } as const;
 
