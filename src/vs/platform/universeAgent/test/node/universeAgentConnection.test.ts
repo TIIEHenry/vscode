@@ -235,6 +235,8 @@ import type {
 	UniverseAgentHealthCheckResult,
 	UniverseAgentDoctorResult,
 	UniverseAgentListDevicesResult,
+	UniverseAgentPairApproveRequest,
+	UniverseAgentPairApproveResult,
 	UniverseAgentListTriggersRequest,
 	UniverseAgentListTriggersResult,
 	UniverseAgentGetHistoryRequest,
@@ -1763,6 +1765,18 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 		return this.listDevicesResult;
 	}
 
+	readonly pairApproveCalls: UniverseAgentPairApproveRequest[] = [];
+	pairApproveResult: UniverseAgentPairApproveResult = {
+		success: false,
+		deviceId: '',
+		message: '',
+	};
+
+	async pairApprove(request: UniverseAgentPairApproveRequest): Promise<UniverseAgentPairApproveResult> {
+		this.pairApproveCalls.push(request);
+		return this.pairApproveResult;
+	}
+
 	readonly listTriggersCalls: UniverseAgentListTriggersRequest[] = [];
 	listTriggersResult: UniverseAgentListTriggersResult = {
 		triggers: [],
@@ -2293,6 +2307,11 @@ suite('UniverseAgentConnectionService', () => {
 
 	test('UniverseAgentGrpcServices lists Device.ListDevices', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Device.ListDevices, 'ListDevices');
+		assert.strictEqual(UniverseAgentGrpcServices.Device.service, 'universeagent.device.v1.DeviceService');
+	});
+
+	test('UniverseAgentGrpcServices lists Device.PairApprove', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Device.PairApprove, 'PairApprove');
 		assert.strictEqual(UniverseAgentGrpcServices.Device.service, 'universeagent.device.v1.DeviceService');
 	});
 
@@ -5880,6 +5899,47 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(empty.devices[0]?.pairedAt, 0);
 		assert.strictEqual(empty.devices[0]?.lastSeenAt, 0);
 		assert.strictEqual(empty.devices[0]?.active, false);
+		service.dispose();
+	});
+
+	test('pairApprove forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.pairApproveResult = {
+			success: true,
+			deviceId: 'dev-1',
+			message: 'approved',
+		};
+		const request = {
+			pairingCode: '123456',
+			displayName: 'laptop',
+			role: 'operator',
+		};
+		const result = await service.pairApprove(request);
+		assert.deepStrictEqual(transport.pairApproveCalls, [request]);
+		assert.deepStrictEqual(result, transport.pairApproveResult);
+
+		transport.pairApproveResult = {
+			success: false,
+			deviceId: '',
+			message: '',
+		};
+		const emptyRequest = {
+			pairingCode: '',
+			displayName: '',
+			role: '',
+		};
+		const empty = await service.pairApprove(emptyRequest);
+		assert.strictEqual(transport.pairApproveCalls[1]?.pairingCode, '');
+		assert.strictEqual(transport.pairApproveCalls[1]?.displayName, '');
+		assert.strictEqual(transport.pairApproveCalls[1]?.role, '');
+		assert.strictEqual(empty.success, false);
+		assert.strictEqual(empty.deviceId, '');
+		assert.strictEqual(empty.message, '');
 		service.dispose();
 	});
 

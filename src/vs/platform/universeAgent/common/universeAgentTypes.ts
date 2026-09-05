@@ -2553,6 +2553,25 @@ export interface UniverseAgentListDevicesResult {
 }
 
 /**
+ * DeviceService.PairApprove — proto `PairApproveRequest` /
+ * `PairApproveResponse` only. Empty `pairing_code` / `display_name` /
+ * `role` pass through as-is. Empty `device_id` / `message` mapped as-is.
+ * `success` false mapped as-is. Reserved `device_token` (ADR-261) not mapped.
+ * ≠ ListDevices / PairReject / Revoke / RotateToken / ListPending.
+ */
+export interface UniverseAgentPairApproveRequest {
+	readonly pairingCode: string;
+	readonly displayName: string;
+	readonly role: string;
+}
+
+export interface UniverseAgentPairApproveResult {
+	readonly success: boolean;
+	readonly deviceId: string;
+	readonly message: string;
+}
+
+/**
  * TriggerService.ListTriggers — proto `ListTriggersRequest` /
  * `ListTriggersResponse` + `TriggerDto` / `DeliveryTargetDto` only.
  * Empty `scope` / `scope_id` / `type_filter` pass through as-is.

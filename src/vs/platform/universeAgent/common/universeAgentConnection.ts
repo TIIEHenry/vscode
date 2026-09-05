@@ -262,6 +262,8 @@ import type {
 	UniverseAgentShutdownRequest,
 	UniverseAgentShutdownResult,
 	UniverseAgentListDevicesResult,
+	UniverseAgentPairApproveRequest,
+	UniverseAgentPairApproveResult,
 	UniverseAgentListTriggersRequest,
 	UniverseAgentListTriggersResult,
 	UniverseAgentSetPermissionPolicyRequest,
@@ -1524,6 +1526,17 @@ export interface IUniverseAgentConnection {
 	 * ≠ PairApprove / PairReject / Revoke / RotateToken / ListPending.
 	 */
 	listDevices?(): Promise<UniverseAgentListDevicesResult>;
+	/**
+	 * DeviceService.PairApprove unary. Optional so Web / tests can omit it.
+	 * Catalog + node transport only this slice; empty `pairingCode` /
+	 * `displayName` / `role` are sent as-is. Empty `deviceId` / `message`
+	 * mapped as-is. `success` false mapped as-is. Proto fields only
+	 * (`PairApproveRequest` / `PairApproveResponse`). Reserved
+	 * `device_token` (ADR-261) not mapped. No Conversation roster / UI /
+	 * Engine Preferences / Composer.
+	 * ≠ ListDevices / PairReject / Revoke / RotateToken / ListPending.
+	 */
+	pairApprove?(request: UniverseAgentPairApproveRequest): Promise<UniverseAgentPairApproveResult>;
 	/**
 	 * TriggerService.ListTriggers unary. Optional so Web / tests can omit
 	 * it. Catalog + node transport only this slice; empty `scope` /
