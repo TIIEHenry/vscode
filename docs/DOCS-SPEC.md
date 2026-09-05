@@ -29,7 +29,7 @@ summary: "基于 Git + Markdown 的文档系统规范：结构、模块归属、
 - **文档即代码**：Markdown + Mermaid，与代码一起评审。
 - **内容就近，索引集中**：跨层协作写在 `docs/systems/`；分层导航写在 `docs/modules/`。**不在 `src/vs/` 下新建文档树**，避免与上游合并冲突。
 - **不污染上游 Markdown**：`src/`、`extensions/`、`test/` 里既有 `.md` 豁免 frontmatter 与健康检查扫描。
-- **轻量自动化**：只读健康检查，不覆写人工索引。
+- **轻量自动化**：只读健康检查，不覆写人工索引；**例外**：`dev/plans/INDEX.md`「状态」列、`docs/product/traceability.md`「产品状态」列与状态分桶区间由 `scripts/generate-docs-status.py` 生成（见 [docs-burden-reduction](../dev/plans/docs-burden-reduction.md)）。
 
 ---
 
@@ -216,6 +216,7 @@ traceability.md 只维护 PRD-ID → 产品状态 → 系统/架构规格 → �
 
 - INDEX 是导航：链接、表格、一句话上下文
 - 结构变更后手动更新相关 INDEX，再跑 `python3 scripts/check-docs-health.py`
+- **生成列**：改 plan `frontmatter.status` 或 requirements 各 PRD「状态」行后，跑 `python3 scripts/generate-docs-status.py` 刷新 `dev/plans/INDEX.md`「状态」列与 `docs/product/traceability.md`「产品状态」列及分桶区间；禁止手改这些生成单元格
 - 扫描范围仅 `docs/`、`dev/` 与根指令文件；不扫描 `src/**/*.md`
 
 ### 5.1 索引更新触发条件
@@ -234,9 +235,11 @@ python3 scripts/check-docs-health.py
 python3 scripts/check-docs-health.py --format json
 python3 scripts/check-docs-health.py --strict-frontmatter
 python3 scripts/check-docs-health.py --strict-links
+python3 scripts/generate-docs-status.py
+python3 scripts/generate-docs-status.py --check
 ```
 
-检查：必备入口、声明的模块 INDEX、`status.md` 行数、frontmatter、本地文档断链。链接检查只校验文档目标（`.md` / `.html` / 无扩展名路径），源码深链不计入。
+检查：必备入口、声明的模块 INDEX、`status.md` 行数、frontmatter、本地文档断链、**生成状态列与分桶区间是否与源一致**（`generated_status` 组；漂移时先跑 `generate-docs-status.py`）。链接检查只校验文档目标（`.md` / `.html` / 无扩展名路径），源码深链不计入。
 
 豁免 frontmatter：`AGENTS.md`、根 `README.md`、以及名为 `SKILL.md` 的文件。
 

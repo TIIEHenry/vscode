@@ -145,7 +145,7 @@ summary: "一行描述"
 用户可见产品行为变化按此顺序，禁止倒过来：
 
 1. 更新 `docs/product/requirements.md` 对应 `PRD-NNN`（必要时先改 `vision.md`）
-2. 更新 `docs/product/traceability.md`
+2. 跑 `python3 scripts/generate-docs-status.py`。`traceability.md` 只手写「系统/架构规格」「实施方案」「测试或验证证据」三列（及表外引言、区间外非 PRD 句）；禁止手改「产品状态」单元格或分桶生成区
 3. 更新相关 `docs/systems/` / `docs/architecture/` / B2 实现真相
 4. 更新或新增 `dev/plans/` 实施方案
 
@@ -157,7 +157,7 @@ summary: "一行描述"
 
 ### 规则 11：索引随结构变更
 
-更新 `docs/INDEX.md`、相关模块/系统 INDEX、`dev/*/INDEX.md`，然后跑健康检查。
+更新 `docs/INDEX.md`、相关模块/系统 INDEX、`dev/*/INDEX.md`，然后跑健康检查。`dev/plans/INDEX.md`「状态」列与 `docs/product/traceability.md`「产品状态」列及分桶区间为脚本生成区，禁止手改。
 
 ### 规则 12：不要额外创建 README
 
