@@ -2354,6 +2354,23 @@ export interface UniverseAgentRevertMemoryResult {
 }
 
 /**
+ * FileTransferService.GetUploadProgress — proto `UploadProgressRequest` /
+ * `UploadProgressResponse` only. Empty `transfer_id` / `session_id` pass
+ * through as-is. `bytes_received` 0 / empty `partial_path` mapped as-is.
+ * ≠ UploadAttachment / DownloadAttachment.
+ */
+export interface UniverseAgentGetUploadProgressRequest {
+	readonly transferId: string;
+	readonly sessionId: string;
+}
+
+export interface UniverseAgentGetUploadProgressResult {
+	readonly exists: boolean;
+	readonly bytesReceived: number;
+	readonly partialPath: string;
+}
+
+/**
  * ConfigService.SetPermissionPolicy — session/tool policy write
  * (≠ SwitchModel / ListModels / Get / Set / GetModelPreferences /
  * SetModelPreferences / SetPermissionMode).

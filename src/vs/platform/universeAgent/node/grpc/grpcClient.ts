@@ -316,6 +316,8 @@ import type {
 	UniverseAgentMemoryRebuildStream,
 	UniverseAgentRevertMemoryRequest,
 	UniverseAgentRevertMemoryResult,
+	UniverseAgentGetUploadProgressRequest,
+	UniverseAgentGetUploadProgressResult,
 	UniverseAgentListModelsResult,
 	UniverseAgentGetConfigRequest,
 	UniverseAgentGetConfigResult,
@@ -3091,6 +3093,20 @@ function mapMemoryRevertResponse(wire: MemoryRevertResponseWire): UniverseAgentR
 	};
 }
 
+interface UploadProgressResponseWire {
+	exists?: boolean;
+	bytes_received?: number | string;
+	partial_path?: string;
+}
+
+function mapUploadProgressResponse(wire: UploadProgressResponseWire): UniverseAgentGetUploadProgressResult {
+	return {
+		exists: wire.exists === true,
+		bytesReceived: requiredInt64(wire.bytes_received),
+		partialPath: wire.partial_path ?? '',
+	};
+}
+
 interface ListModelsResponseWire {
 	models?: Array<{
 		id?: string;
@@ -5250,6 +5266,19 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			target_version: request.targetVersion,
 		});
 		return mapMemoryRevertResponse(wire);
+	}
+
+	async getUploadProgress(request: UniverseAgentGetUploadProgressRequest): Promise<UniverseAgentGetUploadProgressResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, UploadProgressResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.FileTransfer.service,
+			UniverseAgentGrpcServices.FileTransfer.GetUploadProgress,
+		);
+		const wire = await unary({
+			transfer_id: request.transferId,
+			session_id: request.sessionId,
+		});
+		return mapUploadProgressResponse(wire);
 	}
 
 	async setPermissionPolicy(request: UniverseAgentSetPermissionPolicyRequest): Promise<UniverseAgentSetPermissionPolicyResult> {

@@ -243,6 +243,8 @@ import type {
 	UniverseAgentMemoryRebuildStream,
 	UniverseAgentRevertMemoryRequest,
 	UniverseAgentRevertMemoryResult,
+	UniverseAgentGetUploadProgressRequest,
+	UniverseAgentGetUploadProgressResult,
 	UniverseAgentSetPermissionPolicyRequest,
 	UniverseAgentSetPermissionPolicyResult,
 	UniverseAgentListModelsResult,
@@ -700,6 +702,9 @@ export interface IUniverseAgentGrpcTransport {
 	/** MemoryService.Revert unary (snake_case `scope`/`category`/`filename`/`target_version`). Empty ids sent as-is. */
 	revertMemory(request: UniverseAgentRevertMemoryRequest): Promise<UniverseAgentRevertMemoryResult>;
 
+	/** FileTransferService.GetUploadProgress unary (snake_case `transfer_id`/`session_id`). Empty ids sent as-is. */
+	getUploadProgress(request: UniverseAgentGetUploadProgressRequest): Promise<UniverseAgentGetUploadProgressResult>;
+
 	/** ConfigService.SetPermissionPolicy unary (snake_case `session_id`/`tool_name`/`policy`). Empty ids sent as-is. */
 	setPermissionPolicy(request: UniverseAgentSetPermissionPolicyRequest): Promise<UniverseAgentSetPermissionPolicyResult>;
 
@@ -930,6 +935,10 @@ export const UniverseAgentGrpcServices = {
 		Reflect: 'Reflect',
 		Rebuild: 'Rebuild',
 		Revert: 'Revert',
+	},
+	FileTransfer: {
+		service: 'universeagent.filetransfer.v1.FileTransferService',
+		GetUploadProgress: 'GetUploadProgress',
 	},
 } as const;
 

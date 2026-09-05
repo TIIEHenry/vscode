@@ -222,6 +222,8 @@ import type {
 	UniverseAgentMemoryRebuildEvent,
 	UniverseAgentRevertMemoryRequest,
 	UniverseAgentRevertMemoryResult,
+	UniverseAgentGetUploadProgressRequest,
+	UniverseAgentGetUploadProgressResult,
 	UniverseAgentGetHistoryRequest,
 	UniverseAgentGetHistoryResult,
 	UniverseAgentListSessionsRequest,
@@ -1628,6 +1630,18 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 		return this.revertMemoryResult;
 	}
 
+	readonly getUploadProgressCalls: UniverseAgentGetUploadProgressRequest[] = [];
+	getUploadProgressResult: UniverseAgentGetUploadProgressResult = {
+		exists: false,
+		bytesReceived: 0,
+		partialPath: '',
+	};
+
+	async getUploadProgress(request: UniverseAgentGetUploadProgressRequest): Promise<UniverseAgentGetUploadProgressResult> {
+		this.getUploadProgressCalls.push(request);
+		return this.getUploadProgressResult;
+	}
+
 	async listModels() {
 		return { models: [] };
 	}
@@ -2109,6 +2123,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('UniverseAgentGrpcServices lists Memory.Revert', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Memory.Revert, 'Revert');
 		assert.strictEqual(UniverseAgentGrpcServices.Memory.service, 'universeagent.memory.v1.MemoryService');
+	});
+
+	test('UniverseAgentGrpcServices lists FileTransfer.GetUploadProgress', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.FileTransfer.GetUploadProgress, 'GetUploadProgress');
+		assert.strictEqual(UniverseAgentGrpcServices.FileTransfer.service, 'universeagent.filetransfer.v1.FileTransferService');
 	});
 
 	test('UniverseAgentGrpcServices lists Agent.Kill', () => {
@@ -5443,6 +5462,44 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(empty.success, false);
 		assert.strictEqual(empty.message, '');
 		assert.strictEqual(empty.revertedToVersion, 0);
+		service.dispose();
+	});
+
+	test('getUploadProgress forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.getUploadProgressResult = {
+			exists: true,
+			bytesReceived: 4096,
+			partialPath: 'tmp/upload.bin',
+		};
+		const request = {
+			transferId: 'xfer-1',
+			sessionId: 'sess-1',
+		};
+		const result = await service.getUploadProgress(request);
+		assert.deepStrictEqual(transport.getUploadProgressCalls, [request]);
+		assert.deepStrictEqual(result, transport.getUploadProgressResult);
+
+		transport.getUploadProgressResult = {
+			exists: false,
+			bytesReceived: 0,
+			partialPath: '',
+		};
+		const emptyRequest = {
+			transferId: '',
+			sessionId: '',
+		};
+		const empty = await service.getUploadProgress(emptyRequest);
+		assert.strictEqual(transport.getUploadProgressCalls[1]?.transferId, '');
+		assert.strictEqual(transport.getUploadProgressCalls[1]?.sessionId, '');
+		assert.strictEqual(empty.exists, false);
+		assert.strictEqual(empty.bytesReceived, 0);
+		assert.strictEqual(empty.partialPath, '');
 		service.dispose();
 	});
 
