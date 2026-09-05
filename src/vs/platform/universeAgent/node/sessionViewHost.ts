@@ -984,7 +984,7 @@ export class SessionViewHost extends Disposable {
 				correlation: String(intent.correlation),
 				error: error instanceof Error ? error.message : String(error),
 			});
-			this.diagnostics.count('intent.unhandled', { do: intent.do });
+			this.diagnostics.count('intent.unhandled' as DiagnosticMetric, { do: intent.do });
 		}
 	}
 
@@ -993,7 +993,7 @@ export class SessionViewHost extends Disposable {
 		doName: CoreIntent['do'],
 		fields: Readonly<Record<string, unknown>> = {},
 	): void {
-		this.diagnostics.count('intent.unhandled', { do: doName });
+		this.diagnostics.count('intent.unhandled' as DiagnosticMetric, { do: doName });
 		this.diagnostics.warn(`Unhandled core intent: ${doName}`, {
 			sessionId,
 			do: doName,
