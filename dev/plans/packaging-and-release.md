@@ -41,14 +41,14 @@ summary: "先证实开发态与 gulp 产物对 @grpc/grpc-js 的处理差，再�
 | 位置 | 事实 |
 |------|------|
 | `package.json` `dependencies` | `"@grpc/grpc-js": "^1.14.4"`（lock 钉 `1.14.4`） |
-| **唯一生产 import 点** | `src/vs/platform/universeAgent/node/grpc/grpcClient.ts`、`src/vs/platform/universeAgent/node/universeAgentChannel.ts`：`import * as grpc from '@grpc/grpc-js'` |
+| **唯一生产 import 点** | 三处（`loop/B` @ `a48a0c5` `rg` 2026-09-05）：`src/vs/platform/universeAgent/node/grpc/grpcClient.ts`（L6）、`grpc/grpcClientCalls.ts`（L6）、`universeAgentChannel.ts`（L6）— 均为 `import * as grpc from '@grpc/grpc-js'`；无 `require()` / side-effect import |
 | 服务实现 | `node/universeAgentConnectionService.ts` → `createGrpcUniverseAgentClient` / `createPinnedGrpcUniverseAgentClient` |
 | **桌面宿主** | `src/vs/code/electron-main/app.ts` 将 `UniverseAgentConnectionService`（`electron-main/universeAgentMainService.ts`，继承 node 实现）`SyncDescriptor` 进 `IUniverseAgentConnection`。主进程加载该装配即静态 `require('@grpc/grpc-js')`。**构造服务 ≠ Dial**；Dial / `connect` / `connectProfile` 是用户或 Connection 流程之后的事。 |
 | renderer | `workbench.desktop.main.ts` 只 import `electron-browser/universeAgentConnectionService.ts`：`registerMainProcessRemoteService`，**无** `@grpc/grpc-js` |
 | Web | `workbench.web.main.ts` → `browser/universeAgentConnectionService.ts` 的 `WebUniverseAgentConnection`（`unsupported_environment`），**无** grpc |
 | 分层门禁 | [ADR-003](../decisions/003-engine-adapter-boundary.md)：renderer 禁 import `platform/universeAgent/node/**`；`universeAgentImportBoundaries.test.ts` 扫 workbench / sessions 生产文件 |
 
-`deviceGrant/tls-pin.ts` 注释写「sole `@grpc/grpc-js` import site」，与 HEAD 不符：该文件**不** import grpc；真正 import 是 `grpcClient.ts` + `universeAgentChannel.ts`。不要按注释当加载点。
+`deviceGrant/tls-pin.ts` 注释写「sole `@grpc/grpc-js` import site」，与 HEAD 不符：该文件**不** import grpc；真正 import 是 `grpcClient.ts` + `grpcClientCalls.ts` + `universeAgentChannel.ts`。不要按注释当加载点。
 
 因此：隔离 `code.sh` 若报 `@grpc/grpc-js` 缺失，工作台往往**开不了窗**——这是运行时/打包缺陷，不是 Settings CSS 目视债。D20 活窗（产物载体）以前必须先让主进程能解析该模块。开发态 `code.sh` / `launch.sh` 仍红另记 D17，见 §5.3。
 
@@ -335,7 +335,7 @@ P0 → P1 串行；P2 可与 P3 在 P1 产物存在后并行。P4 最后。
 - 仓外 `VSCode-linux-x64` 不进本仓 git；证据只引用路径与 SHA，不提交产物。
 - D18 拆行与 Linux 子集收口时改 [deferred-gaps.md](../progress/deferred-gaps.md)（规则 3c）：D18 行改写 + 新 D 行承接 Win/mac/snap；**实施 commit（P4）才改**，本稿不改该文件。
 - 与 [prd-008-engine-e2e](prd-008-engine-e2e.md) 的关系：P-GRPC 共享。GC-1b 改 `universeAgentConnectionService.ts` 时，§3.1 的 import 点结论须在 P0 复证（`rg "from '@grpc/grpc-js'" src/vs`），不抄本稿。
-- 与 [giant-file-split](giant-file-split.md) GFS-1 的关系：拆出 `grpcClientCalls.ts` 后生产 import 点变为三处；GFS-1 合入后 §3.1 表按 `rg` 结果更新，打包机制不变（esbuild `packages: 'external'`）。
+- 与 [giant-file-split](giant-file-split.md) GFS-1 的关系：@ `loop/B` `a48a0c5` 经 `rg` 复证生产 import 点为三处（`grpcClient.ts`、`grpcClientCalls.ts`、`universeAgentChannel.ts`）；§3.1 已回写，打包机制不变（esbuild `packages: 'external'`）。
 
 ## 13. 审查记录（规则 16）
 
