@@ -350,7 +350,16 @@ suite('ConversationLens', () => {
 	}
 
 	function dispatchDockKeydown(textarea: HTMLTextAreaElement, keyCode: KeyCode): void {
-		textarea.dispatchEvent(new KeyboardEvent('keydown', { keyCode, bubbles: true, cancelable: true }));
+		const domKeyCodeByVsCode: Partial<Record<KeyCode, number>> = {
+			[KeyCode.Enter]: 13,
+			[KeyCode.Escape]: 27,
+			[KeyCode.UpArrow]: 38,
+			[KeyCode.DownArrow]: 40,
+			[KeyCode.Space]: 32,
+		};
+		const domKeyCode = domKeyCodeByVsCode[keyCode];
+		assert.ok(domKeyCode !== undefined, `missing DOM keyCode mapping for ${keyCode}`);
+		textarea.dispatchEvent(new KeyboardEvent('keydown', { keyCode: domKeyCode, bubbles: true, cancelable: true }));
 	}
 
 	function getSessionSelectLabel(slots: IConversationLensSlots): string | undefined {
@@ -1034,6 +1043,48 @@ suite('ConversationLens', () => {
 		const popup = document.querySelector('.conversation-lens-dock-tune-popup');
 		assert.ok(popup?.textContent?.includes('bash'));
 		assert.ok(!popup?.textContent?.includes(conversationLensDockNoTools));
+	});
+
+	test('connected Enter submits draft through lease.post(submitInput)', async () => {
+		const { part, stubService } = mountLens();
+		const slots = getLensSlots(part);
+		const sessionId = stubService.createSession();
+		stubService.setEngineConnected(true);
+
+		const textarea = getDockTextarea(slots);
+		textarea.value = 'hello engine';
+		dispatchDockKeydown(textarea, KeyCode.Enter);
+		await Promise.resolve();
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+		assert.strictEqual(textarea.value, '');
+		const userTurn = stubService.getTurns(sessionId).find(turn => turn.kind === 'user' && turn.text === 'hello engine');
+		assert.ok(userTurn, 'submitInput must reach the session view lease when connected');
+	});
+
+	test('connected Send click submits without input event when draft is prefilled', async () => {
+		const { part, stubService } = mountLens();
+		const slots = getLensSlots(part);
+		stubService.createSession();
+		stubService.setEngineConnected(true);
+
+		const textarea = getDockTextarea(slots);
+		const sendButton = getDockSendButton(slots);
+		textarea.value = 'prefilled draft';
+		assert.strictEqual(sendButton.classList.contains('disabled'), true);
+
+		sendButton.click();
+		await Promise.resolve();
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+		assert.strictEqual(textarea.value, '');
+	});
+
+	test('dock input exposes stable automation test ids', () => {
+		const { part } = mountLens();
+		const slots = getLensSlots(part);
+		assert.strictEqual(getDockTextarea(slots).getAttribute('data-testid'), 'conversation-composer-input');
+		assert.strictEqual(getDockSendButton(slots).getAttribute('data-testid'), 'conversation-composer-send');
 	});
 
 	test('dock input placeholder is product Message copy, not Ask anything', () => {

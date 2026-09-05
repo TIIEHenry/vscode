@@ -1123,6 +1123,38 @@ suite('ConnectionPreferencesPane', () => {
 		container.remove();
 	});
 
+	test('active profile label shows Paired when connected without trust', () => {
+		const pane = mountPane({
+			listConnectionProfiles: () => [{
+				profileId: '127.0.0.1:50061',
+				displayName: '127.0.0.1:50061',
+				state: 'active',
+				hasTrust: false,
+				targetKind: 'directAddress',
+			}],
+		}, {
+			getConnectionPhase: () => ({ kind: 'connected', path: 'direct' }),
+			getConnectionSnapshot: () => ({
+				transport: 'ok',
+				pairingPending: false,
+				channelAlive: true,
+				sharedFsRootSent: false,
+				capabilities: createEmptyTestCapabilitySnapshot(),
+			}),
+		});
+		const container = pane.getDomNode();
+		(pane as unknown as { activeProfileId: string }).activeProfileId = '127.0.0.1:50061';
+		const label = (pane as unknown as { getProfileStateLabel(profile: { profileId: string; displayName: string; state: string; hasTrust: boolean; targetKind: string }): string }).getProfileStateLabel({
+			profileId: '127.0.0.1:50061',
+			displayName: '127.0.0.1:50061',
+			state: 'active',
+			hasTrust: false,
+			targetKind: 'directAddress',
+		});
+		assert.strictEqual(label, 'Paired');
+		container.remove();
+	});
+
 	test('isRecoverTrustConnectResult requires fingerprint path without SAS', () => {
 		assert.strictEqual(isRecoverTrustConnectResult({
 			ok: true,
