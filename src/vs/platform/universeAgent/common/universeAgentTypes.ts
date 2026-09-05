@@ -2450,8 +2450,7 @@ export interface UniverseAgentContextVariableReadResult {
  * `total` / `online_count` / `max_tokens` / `active_sessions` /
  * `queue_depth` / `cpu_percent` / `memory_used_mb` 0 mapped as-is.
  * Empty `properties` keys / values mapped as-is.
- * ≠ GetNode / CheckConnection / ListConfigs / GetConfig / DeviceService.
- */
+ * ≠ GetNode / CheckConnection / ListConfigs / GetConfig / DeviceService. */
 export interface UniverseAgentRemoteAgentModelInfo {
 	readonly id: string;
 	readonly name: string;
@@ -2497,6 +2496,21 @@ export interface UniverseAgentListNodesResult {
 	readonly nodes: readonly UniverseAgentRemoteAgentInfo[];
 	readonly total: number;
 	readonly onlineCount: number;
+}
+
+/**
+ * RemoteAgentService.GetNode — proto `GetNodeRequest` / `RemoteAgentInfo`
+ * + `Capabilities` / `ModelInfo` / `LoadMetrics` only. Empty `node_id`
+ * (incl. empty string) passes through as-is. Empty `id` / `name` /
+ * `description` / `status` / `endpoint` / `tags` / `server_version` /
+ * `protocol_version` / model `id`/`name`/`provider` mapped as-is.
+ * `enabled` false mapped as-is. `last_heartbeat_at` / `max_tokens` /
+ * `active_sessions` / `queue_depth` / `cpu_percent` / `memory_used_mb`
+ * 0 mapped as-is. Empty `properties` keys / values mapped as-is.
+ * ≠ ListNodes / CheckConnection / ListConfigs / GetConfig / DeviceService.
+ */
+export interface UniverseAgentGetNodeRequest {
+	readonly nodeId: string;
 }
 
 /**

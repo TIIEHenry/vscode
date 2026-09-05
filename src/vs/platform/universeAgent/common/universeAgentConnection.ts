@@ -256,6 +256,8 @@ import type {
 	UniverseAgentContextVariableReadResult,
 	UniverseAgentListNodesRequest,
 	UniverseAgentListNodesResult,
+	UniverseAgentGetNodeRequest,
+	UniverseAgentRemoteAgentInfo,
 	UniverseAgentGetUploadProgressRequest,
 	UniverseAgentGetUploadProgressResult,
 	UniverseAgentUploadAttachmentResult,
@@ -1513,6 +1515,16 @@ export interface IUniverseAgentConnection {
 	 */
 	listNodes?(request: UniverseAgentListNodesRequest): Promise<UniverseAgentListNodesResult>;
 
+	 * RemoteAgentService.GetNode unary. Optional so Web / tests can omit
+	 * it. Catalog + node transport only this slice; empty `nodeId` is
+	 * sent as-is. Empty `id` / `name` / `description` / `status` /
+	 * `endpoint` / `tags` mapped as-is. `lastHeartbeatAt` 0 mapped
+	 * as-is. Proto fields only (`GetNodeRequest` / `RemoteAgentInfo` +
+	 * `Capabilities` / `ModelInfo` / `LoadMetrics`). No Conversation
+	 * roster / UI / Engine Preferences / Composer.
+	 * ≠ ListNodes / CheckConnection / ListConfigs / GetConfig / DeviceService.
+	 */
+	getNode?(request: UniverseAgentGetNodeRequest): Promise<UniverseAgentRemoteAgentInfo>;
 	/**
 	 * FileTransferService.GetUploadProgress unary. Optional so Web / tests
 	 * can omit it. Catalog + node transport only this slice; empty

@@ -325,6 +325,7 @@ import type {
 	UniverseAgentContextVariableReadResult,
 	UniverseAgentListNodesRequest,
 	UniverseAgentListNodesResult,
+	UniverseAgentGetNodeRequest,
 	UniverseAgentRemoteAgentCapabilities,
 	UniverseAgentRemoteAgentInfo,
 	UniverseAgentRemoteAgentLoadMetrics,
@@ -3441,7 +3442,6 @@ interface ListNodesResponseWire {
 	total?: number | string;
 	online_count?: number | string;
 }
-
 function mapRemoteAgentProperties(wire: { [key: string]: string } | undefined): { readonly [key: string]: string } {
 	if (!wire) {
 		return {};
@@ -3530,7 +3530,6 @@ function mapListNodesResponse(wire: ListNodesResponseWire): UniverseAgentListNod
 		onlineCount: requiredInt64(wire.online_count),
 	};
 }
-
 interface UploadProgressResponseWire {
 	exists?: boolean;
 	bytes_received?: number | string;
@@ -6238,6 +6237,18 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			filter_tags: [...request.filterTags],
 		});
 		return mapListNodesResponse(wire);
+	}
+
+	async getNode(request: UniverseAgentGetNodeRequest): Promise<UniverseAgentRemoteAgentInfo> {
+		const unary = makeUnaryClient<Record<string, unknown>, RemoteAgentInfoWire>(
+			this._channel,
+			UniverseAgentGrpcServices.RemoteAgent.service,
+			UniverseAgentGrpcServices.RemoteAgent.GetNode,
+		);
+		const wire = await unary({
+			node_id: request.nodeId,
+		});
+		return mapRemoteAgentInfo(wire);
 	}
 
 	async getUploadProgress(request: UniverseAgentGetUploadProgressRequest): Promise<UniverseAgentGetUploadProgressResult> {
