@@ -332,6 +332,7 @@ import type {
 	UniverseAgentSaveRemoteAgentConfigResult,
 	UniverseAgentResetErrorRequest,
 	UniverseAgentResetErrorResult,
+	UniverseAgentReloadRemoteAgentsResult,
 	UniverseAgentRemoteAgentAuthConfig,
 	UniverseAgentRemoteAgentCapabilities,
 	UniverseAgentRemoteAgentConfig,
@@ -3654,6 +3655,26 @@ function mapDeleteRemoteAgentConfigResponse(wire: DeleteRemoteAgentConfigRespons
 	};
 }
 
+interface ReloadRemoteAgentsResponseWire {
+	success?: boolean;
+	added?: string[];
+	removed?: string[];
+	changed?: string[];
+	errors?: string[];
+	duration_ms?: number | string;
+}
+
+function mapReloadRemoteAgentsResponse(wire: ReloadRemoteAgentsResponseWire): UniverseAgentReloadRemoteAgentsResult {
+	return {
+		success: wire.success === true,
+		added: (wire.added ?? []).map(id => id ?? ''),
+		removed: (wire.removed ?? []).map(id => id ?? ''),
+		changed: (wire.changed ?? []).map(id => id ?? ''),
+		errors: (wire.errors ?? []).map(id => id ?? ''),
+		durationMs: requiredInt64(wire.duration_ms),
+	};
+}
+
 interface RemoteAgentEndpointWire {
 	host?: string;
 	port?: number | string;
@@ -6778,6 +6799,16 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			node_id: request.nodeId,
 		});
 		return mapDeleteRemoteAgentConfigResponse(wire);
+	}
+
+	async reloadRemoteAgents(): Promise<UniverseAgentReloadRemoteAgentsResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, ReloadRemoteAgentsResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.RemoteAgent.service,
+			UniverseAgentGrpcServices.RemoteAgent.Reload,
+		);
+		const wire = await unary({});
+		return mapReloadRemoteAgentsResponse(wire);
 	}
 
 	async getUploadProgress(request: UniverseAgentGetUploadProgressRequest): Promise<UniverseAgentGetUploadProgressResult> {
