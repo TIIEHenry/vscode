@@ -7,7 +7,7 @@ import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import type { LiveAgentTreeNodeView } from '../../../../../platform/universeAgent/common/sessionView/index.js';
 import { getNavigatorAgentTreePendingCopy } from '../../common/navigatorAgentTreeEmptyState.js';
-import { findManagerNodes, getTeamTreeEmptyCopy } from '../../common/navigatorTeamData.js';
+import { canSendNavigatorTeamMessageMember, findManagerNodes, getTeamTreeEmptyCopy, navigatorTeamMessageMemberIds } from '../../common/navigatorTeamData.js';
 
 suite('NavigatorTeam (N4)', () => {
 
@@ -110,5 +110,26 @@ suite('NavigatorTeam (N4)', () => {
 			teamInfoCalls++;
 		}
 		assert.strictEqual(teamInfoCalls, 0);
+	});
+
+	test('MessageMember gate is connected + hook; empty ids still send', () => {
+		assert.strictEqual(canSendNavigatorTeamMessageMember(false, true), false);
+		assert.strictEqual(canSendNavigatorTeamMessageMember(true, false), false);
+		assert.strictEqual(canSendNavigatorTeamMessageMember(true, true), true);
+		assert.deepStrictEqual(navigatorTeamMessageMemberIds(undefined, undefined), {
+			sessionId: '',
+			agentId: '',
+			memberName: '',
+		});
+		assert.deepStrictEqual(navigatorTeamMessageMemberIds('', { managerAgentId: '', memberName: '' }), {
+			sessionId: '',
+			agentId: '',
+			memberName: '',
+		});
+		assert.deepStrictEqual(navigatorTeamMessageMemberIds('sess', { managerAgentId: 'mgr', memberName: 'writer' }), {
+			sessionId: 'sess',
+			agentId: 'mgr',
+			memberName: 'writer',
+		});
 	});
 });

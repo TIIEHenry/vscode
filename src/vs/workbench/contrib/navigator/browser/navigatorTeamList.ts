@@ -21,6 +21,7 @@ import { IKeybindingService } from '../../../../platform/keybinding/common/keybi
 import { WorkbenchList } from '../../../../platform/list/browser/listService.js';
 import { IOpenerService } from '../../../../platform/opener/common/opener.js';
 import { IThemeService } from '../../../../platform/theme/common/themeService.js';
+import { IQuickInputService } from '../../../../platform/quickinput/common/quickInput.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { IViewPaneOptions, ViewAction, ViewPane } from '../../../browser/parts/views/viewPane.js';
 import { IViewDescriptorService } from '../../../common/views.js';
@@ -30,10 +31,12 @@ import { IAgentInspectService } from '../common/agentInspect.js';
 import { getNavigatorCapability } from '../common/navigatorEngineBridge.js';
 import { matchesNavigatorTeamInlineFilter } from '../common/navigatorTeamInlineFilter.js';
 import {
+	canSendNavigatorTeamMessageMember,
 	findManagerNodes,
 	getTeamTreeEmptyCopy,
 	INavigatorTeamMemberEntry,
 	INavigatorTeamTaskEntry,
+	navigatorTeamMessageMemberIds,
 } from '../common/navigatorTeamData.js';
 import { collectLiveAgentTreeAgentIds } from '../common/navigatorAgentHierarchy.js';
 import {
@@ -56,6 +59,7 @@ export type NavigatorTeamSubview = 'members' | 'tasks';
 
 export const NAVIGATOR_TEAM_SHOW_MEMBERS_COMMAND_ID = 'workbench.action.navigatorTeam.showMembers';
 export const NAVIGATOR_TEAM_SHOW_TASKS_COMMAND_ID = 'workbench.action.navigatorTeam.showTasks';
+export const NAVIGATOR_TEAM_MESSAGE_MEMBER_COMMAND_ID = 'workbench.action.navigatorTeam.messageMember';
 
 export const NAVIGATOR_TEAM_SUBVIEW_MEMBERS_KEY = new RawContextKey<boolean>('navigatorTeamSubview.members', true);
 export const NAVIGATOR_TEAM_SUBVIEW_TASKS_KEY = new RawContextKey<boolean>('navigatorTeamSubview.tasks', false);
@@ -224,6 +228,31 @@ export class NavigatorTeamView extends ViewPane {
 
 	getTeamInfoCallCountForTest(): number {
 		return this.teamInfoCallCount;
+	}
+
+	getSelectedMember(): INavigatorTeamMemberEntry | undefined {
+		return this.membersList?.getSelectedElements()[0];
+	}
+
+	async messageSelectedMember(content: string): Promise<boolean> {
+		const hook = this.uaConnection.messageMember;
+		if (!canSendNavigatorTeamMessageMember(this.rosterService.isEngineConnected(), typeof hook === 'function') || !hook) {
+			return false;
+		}
+		const request = {
+			...navigatorTeamMessageMemberIds(this.rosterService.getActiveSessionId(), this.getSelectedMember()),
+			content,
+		};
+		try {
+			const result = await hook.call(this.uaConnection, request);
+			if (!result.ok) {
+				return false;
+			}
+		} catch {
+			return false;
+		}
+		this.scheduleRefresh();
+		return true;
 	}
 
 	showMembers(): void {
@@ -568,6 +597,39 @@ registerAction2(class NavigatorTeamShowTasksAction extends ViewAction<NavigatorT
 
 	override runInView(_accessor: ServicesAccessor, view: NavigatorTeamView): void {
 		view.showTasks();
+	}
+});
+
+registerAction2(class NavigatorTeamMessageMemberAction extends ViewAction<NavigatorTeamView> {
+	constructor() {
+		super({
+			id: NAVIGATOR_TEAM_MESSAGE_MEMBER_COMMAND_ID,
+			viewId: NAVIGATOR_TEAM_VIEW_ID,
+			title: localize2('navigatorTeamView.messageMember', "Message"),
+			icon: Codicon.comment,
+			menu: {
+				id: MenuId.ViewTitle,
+				group: 'navigation',
+				order: 2,
+				when: ContextKeyExpr.and(
+					ContextKeyExpr.equals('view', NAVIGATOR_TEAM_VIEW_ID),
+					NAVIGATOR_TEAM_SUBVIEW_MEMBERS_KEY,
+				),
+			},
+		});
+	}
+
+	override runInView(accessor: ServicesAccessor, view: NavigatorTeamView): void {
+		void (async () => {
+			const next = await accessor.get(IQuickInputService).input({
+				prompt: localize('navigatorTeam.messageMemberPrompt', "Message to member"),
+				value: '',
+			});
+			if (next === undefined) {
+				return;
+			}
+			await view.messageSelectedMember(next);
+		})();
 	}
 });
 

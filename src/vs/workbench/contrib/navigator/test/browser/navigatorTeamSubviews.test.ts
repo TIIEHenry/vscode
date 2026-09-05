@@ -21,6 +21,7 @@ import '../../browser/navigator.contribution.js';
 import { NAVIGATOR_TEAM_VIEW_ID } from '../../browser/navigatorStubView.js';
 import {
 	INavigatorTeamMember,
+	NAVIGATOR_TEAM_MESSAGE_MEMBER_COMMAND_ID,
 	NAVIGATOR_TEAM_SHOW_MEMBERS_COMMAND_ID,
 	NAVIGATOR_TEAM_SHOW_TASKS_COMMAND_ID,
 	NavigatorTeamView,
@@ -105,6 +106,9 @@ suite('Navigator Team subviews', () => {
 		assert.ok(membersItem, 'Team ViewTitle must expose Members');
 		assert.ok(tasksItem, 'Team ViewTitle must expose Tasks');
 		assert.ok(inspectItem, 'Team ViewTitle must still expose Inspect');
+
+		const messageItem = viewTitleItems.find(item => item.command.id === NAVIGATOR_TEAM_MESSAGE_MEMBER_COMMAND_ID);
+		assert.ok(messageItem, 'Team ViewTitle must expose Message (MessageMember)');
 	});
 
 	test('defaults to Members subview with honest empty state', () => {

@@ -815,9 +815,10 @@ export interface IUniverseAgentConnection {
 
 	/**
 	 * TeamService.MessageMember unary (Manager→Member mailbox). Optional so
-	 * Web / tests can omit it. Catalog + node transport only this slice;
-	 * empty `sessionId` / `agentId` / `memberName` / `content` are sent
-	 * as-is. No Conversation roster / UI / Navigator Team.
+	 * Web / tests can omit it. Navigator Team Members ViewTitle Message calls
+	 * this when connected + hook present; empty `sessionId` / `agentId` /
+	 * `memberName` / `content` are sent as-is. No Conversation roster /
+	 * SessionBar / Snapshots overlay.
 	 * ≠ TaskUpdate / TaskList / TaskCancel / MemberStatus / TeamInfo / CreateTeam.
 	 */
 	messageMember?(request: UniverseAgentMessageMemberRequest): Promise<UniverseAgentMessageMemberResult>;
