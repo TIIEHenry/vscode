@@ -325,10 +325,19 @@ import type {
 	UniverseAgentContextVariableReadResult,
 	UniverseAgentListNodesRequest,
 	UniverseAgentListNodesResult,
+	UniverseAgentListConfigsResult,
+	UniverseAgentRemoteAgentAuthConfig,
 	UniverseAgentRemoteAgentCapabilities,
+	UniverseAgentRemoteAgentConfig,
+	UniverseAgentRemoteAgentEndpoint,
+	UniverseAgentRemoteAgentHealthCheckConfig,
 	UniverseAgentRemoteAgentInfo,
 	UniverseAgentRemoteAgentLoadMetrics,
 	UniverseAgentRemoteAgentModelInfo,
+	UniverseAgentRemoteAgentPermissionBudget,
+	UniverseAgentRemoteAgentPermissionDelegate,
+	UniverseAgentRemoteAgentArgCondition,
+	UniverseAgentRemoteAgentWhitelistEntry,
 	UniverseAgentContextVariableEntry,
 	UniverseAgentContextVariableEntrySummary,
 	UniverseAgentContextVariableScope,
@@ -3531,6 +3540,227 @@ function mapListNodesResponse(wire: ListNodesResponseWire): UniverseAgentListNod
 	};
 }
 
+interface RemoteAgentEndpointWire {
+	host?: string;
+	port?: number | string;
+	tls?: boolean;
+	tls_cert_path?: string;
+}
+
+interface RemoteAgentAuthConfigWire {
+	type?: string;
+	api_key_ref?: string;
+	token_ref?: string;
+}
+
+interface RemoteAgentArgConditionWire {
+	field?: string;
+	operator?: string;
+	value?: string;
+}
+
+interface RemoteAgentWhitelistEntryWire {
+	tool_name?: string;
+	arg_conditions?: RemoteAgentArgConditionWire[];
+}
+
+interface RemoteAgentPermissionBudgetWire {
+	max_tool_calls?: number | string;
+	max_tokens?: number | string;
+	timeout_ms?: number | string;
+	window_ms?: number | string;
+	max_bubble_to_user_per_day?: number | string;
+}
+
+interface RemoteAgentPermissionDelegateWire {
+	mode?: string;
+	whitelist?: RemoteAgentWhitelistEntryWire[];
+	budget?: RemoteAgentPermissionBudgetWire;
+	timeout_policy?: string;
+	fallback?: string;
+	bubble_target?: string;
+}
+
+interface RemoteAgentHealthCheckConfigWire {
+	interval_ms?: number | string;
+	timeout_ms?: number | string;
+	unhealthy_threshold?: number | string;
+	healthy_threshold?: number | string;
+	use_watch?: boolean;
+	degraded_error_rate_threshold?: number | string;
+	degraded_p99_latency_ms?: number | string;
+}
+
+interface RemoteAgentConfigWire {
+	id?: string;
+	name?: string;
+	description?: string;
+	enabled?: boolean;
+	endpoint?: RemoteAgentEndpointWire;
+	auth?: RemoteAgentAuthConfigWire;
+	tags?: string[];
+	max_concurrent_sessions?: number | string;
+	session_lifecycle?: string;
+	default_permission_delegate?: RemoteAgentPermissionDelegateWire;
+	health_check?: RemoteAgentHealthCheckConfigWire;
+}
+
+interface ListConfigsResponseWire {
+	configs?: RemoteAgentConfigWire[];
+}
+
+function emptyRemoteAgentEndpoint(): UniverseAgentRemoteAgentEndpoint {
+	return {
+		host: '',
+		port: 0,
+		tls: false,
+		tlsCertPath: '',
+	};
+}
+
+function mapRemoteAgentEndpoint(wire: RemoteAgentEndpointWire | undefined): UniverseAgentRemoteAgentEndpoint {
+	if (!wire) {
+		return emptyRemoteAgentEndpoint();
+	}
+	return {
+		host: wire.host ?? '',
+		port: requiredInt64(wire.port),
+		tls: wire.tls === true,
+		tlsCertPath: wire.tls_cert_path ?? '',
+	};
+}
+
+function emptyRemoteAgentAuthConfig(): UniverseAgentRemoteAgentAuthConfig {
+	return {
+		type: '',
+		apiKeyRef: '',
+		tokenRef: '',
+	};
+}
+
+function mapRemoteAgentAuthConfig(wire: RemoteAgentAuthConfigWire | undefined): UniverseAgentRemoteAgentAuthConfig {
+	if (!wire) {
+		return emptyRemoteAgentAuthConfig();
+	}
+	return {
+		type: wire.type ?? '',
+		apiKeyRef: wire.api_key_ref ?? '',
+		tokenRef: wire.token_ref ?? '',
+	};
+}
+
+function mapRemoteAgentArgCondition(wire: RemoteAgentArgConditionWire): UniverseAgentRemoteAgentArgCondition {
+	return {
+		field: wire.field ?? '',
+		operator: wire.operator ?? '',
+		value: wire.value ?? '',
+	};
+}
+
+function mapRemoteAgentWhitelistEntry(wire: RemoteAgentWhitelistEntryWire): UniverseAgentRemoteAgentWhitelistEntry {
+	return {
+		toolName: wire.tool_name ?? '',
+		argConditions: (wire.arg_conditions ?? []).map(mapRemoteAgentArgCondition),
+	};
+}
+
+function emptyRemoteAgentPermissionBudget(): UniverseAgentRemoteAgentPermissionBudget {
+	return {
+		maxToolCalls: 0,
+		maxTokens: 0,
+		timeoutMs: 0,
+		windowMs: 0,
+		maxBubbleToUserPerDay: 0,
+	};
+}
+
+function mapRemoteAgentPermissionBudget(wire: RemoteAgentPermissionBudgetWire | undefined): UniverseAgentRemoteAgentPermissionBudget {
+	if (!wire) {
+		return emptyRemoteAgentPermissionBudget();
+	}
+	return {
+		maxToolCalls: requiredInt64(wire.max_tool_calls),
+		maxTokens: requiredInt64(wire.max_tokens),
+		timeoutMs: requiredInt64(wire.timeout_ms),
+		windowMs: requiredInt64(wire.window_ms),
+		maxBubbleToUserPerDay: requiredInt64(wire.max_bubble_to_user_per_day),
+	};
+}
+
+function emptyRemoteAgentPermissionDelegate(): UniverseAgentRemoteAgentPermissionDelegate {
+	return {
+		mode: '',
+		whitelist: [],
+		budget: emptyRemoteAgentPermissionBudget(),
+		timeoutPolicy: '',
+		fallback: '',
+		bubbleTarget: '',
+	};
+}
+
+function mapRemoteAgentPermissionDelegate(wire: RemoteAgentPermissionDelegateWire | undefined): UniverseAgentRemoteAgentPermissionDelegate {
+	if (!wire) {
+		return emptyRemoteAgentPermissionDelegate();
+	}
+	return {
+		mode: wire.mode ?? '',
+		whitelist: (wire.whitelist ?? []).map(mapRemoteAgentWhitelistEntry),
+		budget: mapRemoteAgentPermissionBudget(wire.budget),
+		timeoutPolicy: wire.timeout_policy ?? '',
+		fallback: wire.fallback ?? '',
+		bubbleTarget: wire.bubble_target ?? '',
+	};
+}
+
+function emptyRemoteAgentHealthCheckConfig(): UniverseAgentRemoteAgentHealthCheckConfig {
+	return {
+		intervalMs: 0,
+		timeoutMs: 0,
+		unhealthyThreshold: 0,
+		healthyThreshold: 0,
+		useWatch: false,
+		degradedErrorRateThreshold: 0,
+		degradedP99LatencyMs: 0,
+	};
+}
+
+function mapRemoteAgentHealthCheckConfig(wire: RemoteAgentHealthCheckConfigWire | undefined): UniverseAgentRemoteAgentHealthCheckConfig {
+	if (!wire) {
+		return emptyRemoteAgentHealthCheckConfig();
+	}
+	return {
+		intervalMs: requiredInt64(wire.interval_ms),
+		timeoutMs: requiredInt64(wire.timeout_ms),
+		unhealthyThreshold: requiredInt64(wire.unhealthy_threshold),
+		healthyThreshold: requiredInt64(wire.healthy_threshold),
+		useWatch: wire.use_watch === true,
+		degradedErrorRateThreshold: requiredInt64(wire.degraded_error_rate_threshold),
+		degradedP99LatencyMs: requiredInt64(wire.degraded_p99_latency_ms),
+	};
+}
+
+function mapRemoteAgentConfig(wire: RemoteAgentConfigWire): UniverseAgentRemoteAgentConfig {
+	return {
+		id: wire.id ?? '',
+		name: wire.name ?? '',
+		description: wire.description ?? '',
+		enabled: wire.enabled === true,
+		endpoint: mapRemoteAgentEndpoint(wire.endpoint),
+		auth: mapRemoteAgentAuthConfig(wire.auth),
+		tags: [...(wire.tags ?? [])],
+		maxConcurrentSessions: requiredInt64(wire.max_concurrent_sessions),
+		sessionLifecycle: wire.session_lifecycle ?? '',
+		defaultPermissionDelegate: mapRemoteAgentPermissionDelegate(wire.default_permission_delegate),
+		healthCheck: mapRemoteAgentHealthCheckConfig(wire.health_check),
+	};
+}
+
+function mapListConfigsResponse(wire: ListConfigsResponseWire): UniverseAgentListConfigsResult {
+	return {
+		configs: (wire.configs ?? []).map(mapRemoteAgentConfig),
+	};
+}
+
 interface UploadProgressResponseWire {
 	exists?: boolean;
 	bytes_received?: number | string;
@@ -6238,6 +6468,16 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			filter_tags: [...request.filterTags],
 		});
 		return mapListNodesResponse(wire);
+	}
+
+	async listConfigs(): Promise<UniverseAgentListConfigsResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, ListConfigsResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.RemoteAgent.service,
+			UniverseAgentGrpcServices.RemoteAgent.ListConfigs,
+		);
+		const wire = await unary({});
+		return mapListConfigsResponse(wire);
 	}
 
 	async getUploadProgress(request: UniverseAgentGetUploadProgressRequest): Promise<UniverseAgentGetUploadProgressResult> {

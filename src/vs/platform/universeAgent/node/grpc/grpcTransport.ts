@@ -251,6 +251,7 @@ import type {
 	UniverseAgentContextVariableReadResult,
 	UniverseAgentListNodesRequest,
 	UniverseAgentListNodesResult,
+	UniverseAgentListConfigsResult,
 	UniverseAgentGetUploadProgressRequest,
 	UniverseAgentGetUploadProgressResult,
 	UniverseAgentUploadAttachmentResult,
@@ -759,6 +760,9 @@ export interface IUniverseAgentGrpcTransport {
 	/** RemoteAgentService.ListNodes unary (snake_case `filter_status`/`filter_tags`). Empty ids sent as-is. */
 	listNodes(request: UniverseAgentListNodesRequest): Promise<UniverseAgentListNodesResult>;
 
+	/** RemoteAgentService.ListConfigs unary (empty request `{}`). Empty ids mapped as-is. */
+	listConfigs(): Promise<UniverseAgentListConfigsResult>;
+
 	/** FileTransferService.GetUploadProgress unary (snake_case `transfer_id`/`session_id`). Empty ids sent as-is. */
 	getUploadProgress(request: UniverseAgentGetUploadProgressRequest): Promise<UniverseAgentGetUploadProgressResult>;
 	/** FileTransferService.UploadAttachment client-stream (snake_case `transfer_id`/`filename`/`session_id`/`queue_item_id`). Empty ids sent as-is. */
@@ -1085,6 +1089,7 @@ export const UniverseAgentGrpcServices = {
 	RemoteAgent: {
 		service: 'universeagent.remoteagent.v1.RemoteAgentService',
 		ListNodes: 'ListNodes',
+		ListConfigs: 'ListConfigs',
 	},
 } as const;
 
