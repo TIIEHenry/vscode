@@ -228,6 +228,8 @@ import type {
 	UniverseAgentGetUploadProgressResult,
 	UniverseAgentDownloadAttachmentRequest,
 	UniverseAgentDownloadChunk,
+	UniverseAgentHealthCheckResult,
+	UniverseAgentDoctorResult,
 	UniverseAgentGetHistoryRequest,
 	UniverseAgentGetHistoryResult,
 	UniverseAgentListSessionsRequest,
@@ -1699,6 +1701,29 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 	fireDownloadAttachmentClosed(cause: UniverseAgentSessionStreamCloseCause): void {
 		this._downloadAttachmentGate?.finish(cause);
 	}
+	healthCheckCalls = 0;
+	healthCheckResult: UniverseAgentHealthCheckResult = {
+		status: '',
+		version: '',
+		activeSessions: 0,
+		uptimeMs: 0,
+	};
+
+	async healthCheck(): Promise<UniverseAgentHealthCheckResult> {
+		this.healthCheckCalls++;
+		return this.healthCheckResult;
+	}
+
+	doctorCalls = 0;
+	doctorResult: UniverseAgentDoctorResult = {
+		checks: [],
+		allPassed: false,
+	};
+
+	async doctor(): Promise<UniverseAgentDoctorResult> {
+		this.doctorCalls++;
+		return this.doctorResult;
+	}
 
 	async listModels() {
 		return { models: [] };
@@ -2196,6 +2221,16 @@ suite('UniverseAgentConnectionService', () => {
 	test('UniverseAgentGrpcServices lists FileTransfer.DownloadAttachment', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.FileTransfer.DownloadAttachment, 'DownloadAttachment');
 		assert.strictEqual(UniverseAgentGrpcServices.FileTransfer.service, 'universeagent.filetransfer.v1.FileTransferService');
+	});
+
+	test('UniverseAgentGrpcServices lists System.HealthCheck', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.System.HealthCheck, 'HealthCheck');
+		assert.strictEqual(UniverseAgentGrpcServices.System.service, 'universeagent.system.v1.SystemService');
+	});
+
+	test('UniverseAgentGrpcServices lists System.Doctor', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.System.Doctor, 'Doctor');
+		assert.strictEqual(UniverseAgentGrpcServices.System.service, 'universeagent.system.v1.SystemService');
 	});
 
 	test('UniverseAgentGrpcServices lists Agent.Kill', () => {
@@ -5568,6 +5603,77 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(empty.exists, false);
 		assert.strictEqual(empty.bytesReceived, 0);
 		assert.strictEqual(empty.partialPath, '');
+		service.dispose();
+	});
+
+	test('healthCheck forwards empty request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.healthCheckResult = {
+			status: 'SERVING',
+			version: '1.2.3',
+			activeSessions: 4,
+			uptimeMs: 90000,
+		};
+		const result = await service.healthCheck();
+		assert.strictEqual(transport.healthCheckCalls, 1);
+		assert.deepStrictEqual(result, transport.healthCheckResult);
+
+		transport.healthCheckResult = {
+			status: '',
+			version: '',
+			activeSessions: 0,
+			uptimeMs: 0,
+		};
+		const empty = await service.healthCheck();
+		assert.strictEqual(transport.healthCheckCalls, 2);
+		assert.strictEqual(empty.status, '');
+		assert.strictEqual(empty.version, '');
+		assert.strictEqual(empty.activeSessions, 0);
+		assert.strictEqual(empty.uptimeMs, 0);
+		service.dispose();
+	});
+
+	test('doctor forwards empty request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.doctorResult = {
+			checks: [{
+				name: 'tls',
+				passed: true,
+				message: 'ok',
+				fixHint: 'none',
+			}],
+			allPassed: true,
+		};
+		const result = await service.doctor();
+		assert.strictEqual(transport.doctorCalls, 1);
+		assert.deepStrictEqual(result, transport.doctorResult);
+
+		transport.doctorResult = {
+			checks: [{
+				name: '',
+				passed: false,
+				message: '',
+				fixHint: '',
+			}],
+			allPassed: false,
+		};
+		const empty = await service.doctor();
+		assert.strictEqual(transport.doctorCalls, 2);
+		assert.strictEqual(empty.checks[0]?.name, '');
+		assert.strictEqual(empty.checks[0]?.message, '');
+		assert.strictEqual(empty.checks[0]?.fixHint, '');
+		assert.strictEqual(empty.checks[0]?.passed, false);
+		assert.strictEqual(empty.allPassed, false);
 		service.dispose();
 	});
 

@@ -250,6 +250,8 @@ import type {
 	UniverseAgentDownloadAttachmentRequest,
 	UniverseAgentDownloadChunk,
 	UniverseAgentDownloadAttachmentStream,
+	UniverseAgentHealthCheckResult,
+	UniverseAgentDoctorResult,
 	UniverseAgentSetPermissionPolicyRequest,
 	UniverseAgentSetPermissionPolicyResult,
 	UniverseAgentListModelsResult,
@@ -721,6 +723,12 @@ export interface IUniverseAgentGrpcTransport {
 		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
 	): UniverseAgentDownloadAttachmentStream;
 
+	/** SystemService.HealthCheck unary (empty request `{}`). Empty status / version mapped as-is. */
+	healthCheck(): Promise<UniverseAgentHealthCheckResult>;
+
+	/** SystemService.Doctor unary (empty request `{}`). Empty name / message / fix_hint mapped as-is. */
+	doctor(): Promise<UniverseAgentDoctorResult>;
+
 	/** ConfigService.SetPermissionPolicy unary (snake_case `session_id`/`tool_name`/`policy`). Empty ids sent as-is. */
 	setPermissionPolicy(request: UniverseAgentSetPermissionPolicyRequest): Promise<UniverseAgentSetPermissionPolicyResult>;
 
@@ -764,6 +772,8 @@ export const UniverseAgentGrpcServices = {
 		service: 'universeagent.system.v1.SystemService',
 		Connect: 'Connect',
 		GetAuthNonce: 'GetAuthNonce',
+		HealthCheck: 'HealthCheck',
+		Doctor: 'Doctor',
 	},
 	Session: {
 		service: 'universeagent.session.v1.SessionService',

@@ -255,6 +255,8 @@ import type {
 	UniverseAgentDownloadAttachmentRequest,
 	UniverseAgentDownloadChunk,
 	UniverseAgentDownloadAttachmentStream,
+	UniverseAgentHealthCheckResult,
+	UniverseAgentDoctorResult,
 	UniverseAgentSetPermissionPolicyRequest,
 	UniverseAgentSetPermissionPolicyResult,
 	UniverseAgentListModelsResult,
@@ -1461,6 +1463,27 @@ export interface IUniverseAgentConnection {
 		onResponse: (response: UniverseAgentDownloadChunk) => void,
 		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
 	): UniverseAgentDownloadAttachmentStream;
+
+	/**
+	 * SystemService.HealthCheck unary. Optional so Web / tests can omit it.
+	 * Catalog + node transport only this slice; empty request `{}`. Empty
+	 * `status` / `version` mapped as-is. `active_sessions` / `uptime_ms` 0
+	 * mapped as-is. Proto fields only (`HealthCheckRequest` /
+	 * `HealthCheckResponse`). No Conversation roster / UI / Engine
+	 * Preferences / Composer.
+	 * ≠ Connect / GetAuthNonce / Doctor / Shutdown.
+	 */
+	healthCheck?(): Promise<UniverseAgentHealthCheckResult>;
+	/**
+	 * SystemService.Doctor unary. Optional so Web / tests can omit it.
+	 * Catalog + node transport only this slice; empty request `{}`. Empty
+	 * `name` / `message` / `fix_hint` mapped as-is. `passed` / `all_passed`
+	 * false mapped as-is. Proto fields only (`DoctorRequest` /
+	 * `DoctorResponse` + `DoctorCheck`). No Conversation roster / UI /
+	 * Engine Preferences / Composer.
+	 * ≠ Connect / GetAuthNonce / HealthCheck / Shutdown.
+	 */
+	doctor?(): Promise<UniverseAgentDoctorResult>;
 
 	/**
 	 * ConfigService.SetPermissionPolicy unary (session/tool Ask/Agent/Permit

@@ -324,6 +324,9 @@ import type {
 	UniverseAgentDownloadAttachmentRequest,
 	UniverseAgentDownloadChunk,
 	UniverseAgentDownloadAttachmentStream,
+	UniverseAgentHealthCheckResult,
+	UniverseAgentDoctorCheck,
+	UniverseAgentDoctorResult,
 	UniverseAgentListModelsResult,
 	UniverseAgentGetConfigRequest,
 	UniverseAgentGetConfigResult,
@@ -3248,6 +3251,50 @@ function mapDownloadChunk(wire: DownloadChunkWire): UniverseAgentDownloadChunk {
 	};
 }
 
+interface HealthCheckResponseWire {
+	status?: string;
+	version?: string;
+	active_sessions?: number | string;
+	uptime_ms?: number | string;
+}
+
+function mapHealthCheckResponse(wire: HealthCheckResponseWire): UniverseAgentHealthCheckResult {
+	return {
+		status: wire.status ?? '',
+		version: wire.version ?? '',
+		activeSessions: requiredInt64(wire.active_sessions),
+		uptimeMs: requiredInt64(wire.uptime_ms),
+	};
+}
+
+interface DoctorCheckWire {
+	name?: string;
+	passed?: boolean;
+	message?: string;
+	fix_hint?: string;
+}
+
+interface DoctorResponseWire {
+	checks?: DoctorCheckWire[];
+	all_passed?: boolean;
+}
+
+function mapDoctorCheck(wire: DoctorCheckWire): UniverseAgentDoctorCheck {
+	return {
+		name: wire.name ?? '',
+		passed: wire.passed === true,
+		message: wire.message ?? '',
+		fixHint: wire.fix_hint ?? '',
+	};
+}
+
+function mapDoctorResponse(wire: DoctorResponseWire): UniverseAgentDoctorResult {
+	return {
+		checks: (wire.checks ?? []).map(mapDoctorCheck),
+		allPassed: wire.all_passed === true,
+	};
+}
+
 interface ListModelsResponseWire {
 	models?: Array<{
 		id?: string;
@@ -3458,6 +3505,16 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			client_public_key: bytesToBase64(request.clientPublicKey),
 		});
 		return mapAuthNonceResponse(wire);
+	}
+
+	async healthCheck(): Promise<UniverseAgentHealthCheckResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, HealthCheckResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.System.service,
+			UniverseAgentGrpcServices.System.HealthCheck,
+		);
+		const wire = await unary({});
+		return mapHealthCheckResponse(wire);
 	}
 
 	async connectWithDeviceAuth(request: UniverseAgentDeviceAuthConnectRequest): Promise<UniverseAgentConnectResult> {
@@ -5462,6 +5519,16 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			session_id: request.sessionId,
 			artifact_id: request.artifactId,
 		}, wire => onResponse(mapDownloadChunk(wire)), onClosed);
+	}
+
+	async doctor(): Promise<UniverseAgentDoctorResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, DoctorResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.System.service,
+			UniverseAgentGrpcServices.System.Doctor,
+		);
+		const wire = await unary({});
+		return mapDoctorResponse(wire);
 	}
 
 	async setPermissionPolicy(request: UniverseAgentSetPermissionPolicyRequest): Promise<UniverseAgentSetPermissionPolicyResult> {

@@ -2457,6 +2457,37 @@ export interface UniverseAgentDownloadAttachmentStream {
 }
 
 /**
+ * SystemService.HealthCheck — proto `HealthCheckRequest` /
+ * `HealthCheckResponse` only. Empty request `{}`. Empty `status` /
+ * `version` mapped as-is. `active_sessions` / `uptime_ms` 0 mapped as-is.
+ * ≠ Connect / GetAuthNonce / Doctor / Shutdown.
+ */
+export interface UniverseAgentHealthCheckResult {
+	readonly status: string;
+	readonly version: string;
+	readonly activeSessions: number;
+	readonly uptimeMs: number;
+}
+
+/**
+ * SystemService.Doctor — proto `DoctorRequest` / `DoctorResponse` +
+ * `DoctorCheck` only. Empty request `{}`. Empty `name` / `message` /
+ * `fix_hint` mapped as-is. `passed` / `all_passed` false mapped as-is.
+ * ≠ Connect / GetAuthNonce / HealthCheck / Shutdown.
+ */
+export interface UniverseAgentDoctorCheck {
+	readonly name: string;
+	readonly passed: boolean;
+	readonly message: string;
+	readonly fixHint: string;
+}
+
+export interface UniverseAgentDoctorResult {
+	readonly checks: readonly UniverseAgentDoctorCheck[];
+	readonly allPassed: boolean;
+}
+
+/**
  * ConfigService.SetPermissionPolicy — session/tool policy write
  * (≠ SwitchModel / ListModels / Get / Set / GetModelPreferences /
  * SetModelPreferences / SetPermissionMode).
