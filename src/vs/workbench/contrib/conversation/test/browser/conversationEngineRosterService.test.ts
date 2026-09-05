@@ -77,8 +77,12 @@ class MockUniverseAgentConnection extends Disposable implements IUniverseAgentCo
 	readonly renameCalls: { sessionId: string; title: string }[] = [];
 	readonly createCalls: { title?: string }[] = [];
 	createSessionResult: { sessionId: string } = { sessionId: 'ua-new' };
+	createSessionError: Error | undefined;
 	async createSession(request: { title?: string }) {
 		this.createCalls.push({ title: request.title });
+		if (this.createSessionError) {
+			throw this.createSessionError;
+		}
 		return this.createSessionResult;
 	}
 	async deleteSession() { }
@@ -375,6 +379,73 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		// listSessions not seeded → refresh fails → listCompleted false
 		assert.strictEqual(service.getSessions().length, 0);
 		assert.ok(!service.getSessions().some(s => s.id === 'untitled'));
+		assert.strictEqual(service.getActiveSessionId(), '');
+		assert.strictEqual(service.isEngineSessionReady(), false);
+	});
+
+	test('connected empty list triggers createSession and adopts engine id', async () => {
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setListSessions([]);
+		connection.createSessionResult = { sessionId: 'ua-created' };
+		const service = store.add(createService(connection));
+		connection.setConnected(true);
+		service.setEngineConnected(true);
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+		assert.deepStrictEqual(connection.createCalls, [{ title: 'New session' }]);
+		assert.strictEqual(service.getActiveSessionId(), 'ua-created');
+		assert.ok(service.getSessions().some(session => session.id === 'ua-created'));
+		assert.strictEqual(service.isEngineSessionReady(), true);
+		assert.ok(!service.getSessions().some(session => session.id === 'untitled'));
+	});
+
+	test('connected listed session switches to engine id without untitled fallback', async () => {
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setListSessions([{ sessionId: 'ua-listed', title: 'Listed UA' }]);
+		const service = store.add(createService(connection));
+		connection.setConnected(true);
+		service.setEngineConnected(true);
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+		assert.strictEqual(service.getActiveSessionId(), 'ua-listed');
+		assert.strictEqual(connection.createCalls.length, 0);
+		assert.strictEqual(service.isEngineSessionReady(), true);
+		assert.ok(!service.getSessions().some(session => session.id === 'untitled'));
+	});
+
+	test('createSession ALREADY_EXISTS recovers via list and adopts existing id', async () => {
+		const connection = store.add(new MockUniverseAgentConnection());
+		let listCalls = 0;
+		connection.listSessions = async () => {
+			listCalls++;
+			if (listCalls === 1) {
+				return { sessions: [] };
+			}
+			return { sessions: [{ sessionId: 'ua-existing', title: 'New session' }] };
+		};
+		connection.createSessionError = new Error('ALREADY_EXISTS: session exists');
+		const service = store.add(createService(connection));
+		service.setEngineConnected(true);
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+		assert.strictEqual(connection.createCalls.length, 1);
+		assert.ok(listCalls >= 2);
+		assert.strictEqual(service.getActiveSessionId(), 'ua-existing');
+		assert.ok(service.getSessions().some(session => session.id === 'ua-existing'));
+		assert.strictEqual(service.isEngineSessionReady(), true);
+	});
+
+	test('connected listed session on first refresh skips create when catalog is non-empty', async () => {
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setListSessions([{ sessionId: 'ua-existing', title: 'New session' }]);
+		const service = store.add(createService(connection));
+		connection.setConnected(true);
+		service.setEngineConnected(true);
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+		assert.strictEqual(service.getActiveSessionId(), 'ua-existing');
+		assert.strictEqual(service.isEngineSessionReady(), true);
+		assert.strictEqual(connection.createCalls.length, 0);
 	});
 
 	test('D13 storage persists engine cache across engine roster restart', async () => {
