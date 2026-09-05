@@ -10,8 +10,12 @@ import {
 	canSendEngineTriggerFire,
 	canSendEngineTriggerListRequest,
 	canSendEngineTriggerSetEnabled,
+	canSendEngineTriggerUpsert,
+	emptyEngineTrigger,
+	ENGINE_TRIGGER_ADD_LABEL,
 	ENGINE_TRIGGER_DELETE_LABEL,
 	ENGINE_TRIGGER_DISABLE_LABEL,
+	ENGINE_TRIGGER_EDIT_LABEL,
 	ENGINE_TRIGGER_ENABLE_LABEL,
 	ENGINE_TRIGGER_FIRE_LABEL,
 	ENGINE_TRIGGER_LIST_EMPTY_COPY,
@@ -19,6 +23,7 @@ import {
 	engineTriggerFireRequest,
 	engineTriggerListRequest,
 	engineTriggerSetEnabledRequest,
+	engineTriggerUpsertRequest,
 	formatEngineTriggerListLabel,
 } from '../../browser/engineTriggerList.js';
 
@@ -139,5 +144,70 @@ suite('Engine trigger list bind', () => {
 			triggerId: '  trig  ',
 		});
 		assert.strictEqual(ENGINE_TRIGGER_DELETE_LABEL, 'Delete');
+	});
+
+	test('UpsertTrigger gate is connected + hook; empty ids stay empty on add and edit', () => {
+		assert.strictEqual(canSendEngineTriggerUpsert(false, true), false);
+		assert.strictEqual(canSendEngineTriggerUpsert(true, false), false);
+		assert.strictEqual(canSendEngineTriggerUpsert(true, true), true);
+		const empty = emptyEngineTrigger();
+		assert.deepStrictEqual(engineTriggerUpsertRequest(undefined, 'add'), {
+			scope: '',
+			scopeId: '',
+			trigger: empty,
+		});
+		assert.deepStrictEqual(engineTriggerUpsertRequest({
+			...empty,
+			triggerId: '  trig  ',
+		}, 'add'), {
+			scope: '',
+			scopeId: '',
+			trigger: empty,
+		});
+		assert.deepStrictEqual(engineTriggerUpsertRequest(undefined, 'edit'), {
+			scope: '',
+			scopeId: '',
+			trigger: empty,
+		});
+		assert.deepStrictEqual(engineTriggerUpsertRequest({
+			...empty,
+			triggerId: '',
+			name: '',
+			type: '',
+			enabled: false,
+		}, 'edit'), {
+			scope: '',
+			scopeId: '',
+			trigger: empty,
+		});
+		assert.deepStrictEqual(engineTriggerUpsertRequest({
+			triggerId: '  trig  ',
+			name: '  Nightly  ',
+			type: 'cron',
+			promptTemplate: '',
+			enabled: false,
+			pauseReason: '',
+			target: { kind: 'self' },
+			intervalMs: 0,
+			cronExpression: '',
+			runAtEpochMs: 0,
+		}, 'edit'), {
+			scope: '',
+			scopeId: '',
+			trigger: {
+				triggerId: '  trig  ',
+				name: '  Nightly  ',
+				type: 'cron',
+				promptTemplate: '',
+				enabled: false,
+				pauseReason: '',
+				target: { kind: 'self' },
+				intervalMs: 0,
+				cronExpression: '',
+				runAtEpochMs: 0,
+			},
+		});
+		assert.strictEqual(ENGINE_TRIGGER_ADD_LABEL, 'Add');
+		assert.strictEqual(ENGINE_TRIGGER_EDIT_LABEL, 'Edit');
 	});
 });

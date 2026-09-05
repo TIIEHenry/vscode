@@ -6,9 +6,9 @@
 import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
-import type { UniverseAgentDeleteTriggerRequest, UniverseAgentFireTriggerRequest, UniverseAgentListTriggersRequest, UniverseAgentListTriggersResult, UniverseAgentSetTriggerEnabledRequest, UniverseAgentTrigger } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
+import type { UniverseAgentDeleteTriggerRequest, UniverseAgentFireTriggerRequest, UniverseAgentListTriggersRequest, UniverseAgentListTriggersResult, UniverseAgentSetTriggerEnabledRequest, UniverseAgentTrigger, UniverseAgentUpsertTriggerRequest } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
-import { ENGINE_TRIGGER_DELETE_LABEL, ENGINE_TRIGGER_DISABLE_LABEL, ENGINE_TRIGGER_ENABLE_LABEL, ENGINE_TRIGGER_FIRE_LABEL } from '../../browser/engineTriggerList.js';
+import { ENGINE_TRIGGER_ADD_LABEL, ENGINE_TRIGGER_DELETE_LABEL, ENGINE_TRIGGER_DISABLE_LABEL, ENGINE_TRIGGER_EDIT_LABEL, ENGINE_TRIGGER_ENABLE_LABEL, ENGINE_TRIGGER_FIRE_LABEL } from '../../browser/engineTriggerList.js';
 import { EngineTriggersSection } from '../../browser/engineTriggersSection.js';
 import { createConversationConnectionTestStub } from '../common/conversationConnectionTestStub.js';
 
@@ -380,6 +380,140 @@ suite('EngineTriggersSection', () => {
 		del.click();
 		await flushMicrotasks();
 		assert.deepStrictEqual(deleteCalls, [{ scope: '', scopeId: '', triggerId: '  trig  ' }]);
+		pane.getDomNode().parentElement?.remove();
+	});
+
+	test('UpsertTrigger does not send when disconnected or hook missing', async () => {
+		const upsertCalls: UniverseAgentUpsertTriggerRequest[] = [];
+		const disconnected = mountSection(createConversationConnectionTestStub({
+			isEngineConnected: () => false,
+			upsertTrigger: async request => {
+				upsertCalls.push(request);
+				return { trigger: emptyTrigger() };
+			},
+		}));
+		await flushMicrotasks();
+		const disconnectedAdd = findActionButton(disconnected.getDomNode(), ENGINE_TRIGGER_ADD_LABEL);
+		assert.ok(disconnectedAdd);
+		disconnectedAdd.click();
+		await flushMicrotasks();
+		assert.deepStrictEqual(upsertCalls, []);
+		disconnected.getDomNode().parentElement?.remove();
+
+		const noHook = mountSection(createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+		}));
+		await flushMicrotasks();
+		const noHookAdd = findActionButton(noHook.getDomNode(), ENGINE_TRIGGER_ADD_LABEL);
+		assert.ok(noHookAdd);
+		noHookAdd.click();
+		await flushMicrotasks();
+		assert.deepStrictEqual(upsertCalls, []);
+		noHook.getDomNode().parentElement?.remove();
+	});
+
+	test('UpsertTrigger Add sends empty trigger as-is when connected with no selection', async () => {
+		const upsertCalls: UniverseAgentUpsertTriggerRequest[] = [];
+		const pane = mountSection(createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			listTriggers: async () => ({ triggers: [] }),
+			upsertTrigger: async request => {
+				upsertCalls.push(request);
+				return { trigger: request.trigger };
+			},
+		}));
+		await flushMicrotasks();
+		const add = findActionButton(pane.getDomNode(), ENGINE_TRIGGER_ADD_LABEL);
+		assert.ok(add);
+		add.click();
+		await flushMicrotasks();
+		assert.deepStrictEqual(upsertCalls, [{ scope: '', scopeId: '', trigger: emptyTrigger() }]);
+		assert.ok((pane.getDomNode().textContent ?? '').includes(' —  — '));
+		pane.getDomNode().parentElement?.remove();
+	});
+
+	test('UpsertTrigger Edit sends empty trigger as-is when connected with no selection', async () => {
+		const upsertCalls: UniverseAgentUpsertTriggerRequest[] = [];
+		const pane = mountSection(createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			listTriggers: async () => ({ triggers: [] }),
+			upsertTrigger: async request => {
+				upsertCalls.push(request);
+				return { trigger: request.trigger };
+			},
+		}));
+		await flushMicrotasks();
+		const edit = findActionButton(pane.getDomNode(), ENGINE_TRIGGER_EDIT_LABEL);
+		assert.ok(edit);
+		edit.click();
+		await flushMicrotasks();
+		assert.deepStrictEqual(upsertCalls, [{ scope: '', scopeId: '', trigger: emptyTrigger() }]);
+		pane.getDomNode().parentElement?.remove();
+	});
+
+	test('UpsertTrigger Add still sends empty trigger when a row is selected', async () => {
+		const upsertCalls: UniverseAgentUpsertTriggerRequest[] = [];
+		const selected = emptyTrigger({
+			triggerId: '  trig  ',
+			name: '  Nightly  ',
+			type: 'cron',
+			target: { kind: 'self' },
+		});
+		const pane = mountSection(createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			listTriggers: async (): Promise<UniverseAgentListTriggersResult> => ({
+				triggers: [selected],
+			}),
+			upsertTrigger: async request => {
+				upsertCalls.push(request);
+				return { trigger: request.trigger };
+			},
+		}));
+		await flushMicrotasks();
+		const row = pane.getDomNode().querySelector('.engine-triggers-row') as HTMLElement | null;
+		assert.ok(row);
+		row.click();
+		const add = findActionButton(pane.getDomNode(), ENGINE_TRIGGER_ADD_LABEL);
+		assert.ok(add);
+		add.click();
+		await flushMicrotasks();
+		assert.deepStrictEqual(upsertCalls, [{ scope: '', scopeId: '', trigger: emptyTrigger() }]);
+		pane.getDomNode().parentElement?.remove();
+	});
+
+	test('UpsertTrigger Edit sends selected trigger as-is without inventing defaults', async () => {
+		const upsertCalls: UniverseAgentUpsertTriggerRequest[] = [];
+		const selected = emptyTrigger({
+			triggerId: '  trig  ',
+			name: '  Nightly  ',
+			type: 'cron',
+			target: { kind: 'self' },
+		});
+		const pane = mountSection(createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			listTriggers: async (): Promise<UniverseAgentListTriggersResult> => ({
+				triggers: [selected],
+			}),
+			upsertTrigger: async request => {
+				upsertCalls.push(request);
+				return { trigger: request.trigger };
+			},
+		}));
+		await flushMicrotasks();
+		const row = pane.getDomNode().querySelector('.engine-triggers-row') as HTMLElement | null;
+		assert.ok(row);
+		row.click();
+		const edit = findActionButton(pane.getDomNode(), ENGINE_TRIGGER_EDIT_LABEL);
+		assert.ok(edit);
+		edit.click();
+		await flushMicrotasks();
+		assert.deepStrictEqual(upsertCalls, [{ scope: '', scopeId: '', trigger: selected }]);
+		assert.ok((pane.getDomNode().textContent ?? '').includes('  Nightly   — cron —   trig  '));
 		pane.getDomNode().parentElement?.remove();
 	});
 });

@@ -17,8 +17,11 @@ import {
 	canSendEngineTriggerFire,
 	canSendEngineTriggerListRequest,
 	canSendEngineTriggerSetEnabled,
+	canSendEngineTriggerUpsert,
+	ENGINE_TRIGGER_ADD_LABEL,
 	ENGINE_TRIGGER_DELETE_LABEL,
 	ENGINE_TRIGGER_DISABLE_LABEL,
+	ENGINE_TRIGGER_EDIT_LABEL,
 	ENGINE_TRIGGER_ENABLE_LABEL,
 	ENGINE_TRIGGER_FIRE_LABEL,
 	ENGINE_TRIGGER_LIST_EMPTY_COPY,
@@ -27,6 +30,7 @@ import {
 	engineTriggerFireRequest,
 	engineTriggerListRequest,
 	engineTriggerSetEnabledRequest,
+	engineTriggerUpsertRequest,
 	formatEngineTriggerListLabel,
 } from './engineTriggerList.js';
 import { OPEN_CONNECTION_PREFERENCES_COMMAND_ID } from '../common/uaPreferencesPanes.js';
@@ -35,15 +39,19 @@ const $ = DOM.$;
 
 /**
  * Engine Preferences Triggers — honest ListTriggers list + FireTrigger +
- * SetTriggerEnabled + DeleteTrigger actions. Connected + hook only. Empty
- * scope / scopeId / typeFilter / triggerId are sent as-is. `enabled` false
- * is sent as-is. Empty triggerId / name / type stay empty. No upsert.
+ * SetTriggerEnabled + DeleteTrigger + UpsertTrigger add/edit. Connected +
+ * hook only. Empty scope / scopeId / typeFilter / triggerId are sent as-is.
+ * Add always sends an empty TriggerDto. Edit sends the selected trigger
+ * as-is (empty DTO when none). `enabled` false is sent as-is. Empty
+ * triggerId / name / type stay empty.
  */
 export class EngineTriggersSection extends Disposable {
 
 	private readonly container: HTMLElement;
 	private readonly status: EngineCatalogStatusWidget;
 	private readonly listHost: HTMLElement;
+	private readonly addButton: Button;
+	private readonly editButton: Button;
 	private readonly fireButton: Button;
 	private readonly enableButton: Button;
 	private readonly disableButton: Button;
@@ -51,6 +59,7 @@ export class EngineTriggersSection extends Disposable {
 	private readonly fireStatus: HTMLElement;
 	private readonly enabledStatus: HTMLElement;
 	private readonly deleteStatus: HTMLElement;
+	private readonly upsertStatus: HTMLElement;
 
 	private sectionActive = false;
 	private renderGeneration = 0;
@@ -74,6 +83,14 @@ export class EngineTriggersSection extends Disposable {
 		this.listHost.style.display = 'none';
 
 		const actionsRow = DOM.append(this.container, $('.engine-triggers-actions'));
+		this.addButton = this._register(new Button(actionsRow, { ...defaultButtonStyles, secondary: true }));
+		this.addButton.label = ENGINE_TRIGGER_ADD_LABEL;
+		this._register(this.addButton.onDidClick(() => void this.handleUpsert('add')));
+
+		this.editButton = this._register(new Button(actionsRow, { ...defaultButtonStyles, secondary: true }));
+		this.editButton.label = ENGINE_TRIGGER_EDIT_LABEL;
+		this._register(this.editButton.onDidClick(() => void this.handleUpsert('edit')));
+
 		this.fireButton = this._register(new Button(actionsRow, { ...defaultButtonStyles, secondary: true }));
 		this.fireButton.label = ENGINE_TRIGGER_FIRE_LABEL;
 		this._register(this.fireButton.onDidClick(() => void this.handleFire()));
@@ -96,9 +113,12 @@ export class EngineTriggersSection extends Disposable {
 		this.enabledStatus.style.display = 'none';
 		this.deleteStatus = DOM.append(this.container, $('.engine-triggers-delete-status'));
 		this.deleteStatus.style.display = 'none';
+		this.upsertStatus = DOM.append(this.container, $('.engine-triggers-upsert-status'));
+		this.upsertStatus.style.display = 'none';
 		this.updateFireAction();
 		this.updateSetEnabledAction();
 		this.updateDeleteAction();
+		this.updateUpsertAction();
 
 		this._register(this.connection.onDidChangeConnection(() => {
 			if (this.sectionActive) {
@@ -144,10 +164,13 @@ export class EngineTriggersSection extends Disposable {
 		this.enabledStatus.textContent = '';
 		this.deleteStatus.style.display = 'none';
 		this.deleteStatus.textContent = '';
+		this.upsertStatus.style.display = 'none';
+		this.upsertStatus.textContent = '';
 		DOM.clearNode(this.listHost);
 		this.updateFireAction();
 		this.updateSetEnabledAction();
 		this.updateDeleteAction();
+		this.updateUpsertAction();
 
 		if (!this.connection.isEngineConnected()) {
 			this.status.render({
@@ -249,6 +272,15 @@ export class EngineTriggersSection extends Disposable {
 		);
 	}
 
+	private updateUpsertAction(): void {
+		const enabled = canSendEngineTriggerUpsert(
+			this.connection.isEngineConnected(),
+			typeof this.connection.upsertTrigger === 'function',
+		);
+		this.addButton.enabled = enabled;
+		this.editButton.enabled = enabled;
+	}
+
 	private async handleSetEnabled(enabled: boolean): Promise<void> {
 		const hook = this.connection.setTriggerEnabled;
 		if (!canSendEngineTriggerSetEnabled(this.connection.isEngineConnected(), typeof hook === 'function') || !hook) {
@@ -297,6 +329,23 @@ export class EngineTriggersSection extends Disposable {
 			const reason = error instanceof Error && error.message ? error.message : String(error);
 			this.deleteStatus.textContent = reason;
 			this.deleteStatus.style.display = '';
+		}
+	}
+
+	private async handleUpsert(mode: 'add' | 'edit'): Promise<void> {
+		const hook = this.connection.upsertTrigger;
+		if (!canSendEngineTriggerUpsert(this.connection.isEngineConnected(), typeof hook === 'function') || !hook) {
+			return;
+		}
+		const request = engineTriggerUpsertRequest(this.selectedTrigger, mode);
+		try {
+			const result = await hook.call(this.connection, request);
+			this.upsertStatus.textContent = formatEngineTriggerListLabel(result.trigger);
+			this.upsertStatus.style.display = '';
+		} catch (error) {
+			const reason = error instanceof Error && error.message ? error.message : String(error);
+			this.upsertStatus.textContent = reason;
+			this.upsertStatus.style.display = '';
 		}
 	}
 }

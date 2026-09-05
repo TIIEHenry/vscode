@@ -10,6 +10,7 @@ import type {
 	UniverseAgentListTriggersRequest,
 	UniverseAgentSetTriggerEnabledRequest,
 	UniverseAgentTrigger,
+	UniverseAgentUpsertTriggerRequest,
 } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 
 /** Engine Preferences Triggers → ListTriggers. Empty ids are still sent. */
@@ -30,6 +31,27 @@ export function canSendEngineTriggerSetEnabled(connected: boolean, hasHook: bool
 /** Engine Preferences Triggers list action → DeleteTrigger. Empty ids are still sent. */
 export function canSendEngineTriggerDelete(connected: boolean, hasHook: boolean): boolean {
 	return connected && hasHook;
+}
+
+/** Engine Preferences Triggers add/edit → UpsertTrigger. Empty ids are still sent. */
+export function canSendEngineTriggerUpsert(connected: boolean, hasHook: boolean): boolean {
+	return connected && hasHook;
+}
+
+/** Honest empty TriggerDto. Empty ids / enabled false / 0 intervals stay as-is. */
+export function emptyEngineTrigger(): UniverseAgentTrigger {
+	return {
+		triggerId: '',
+		name: '',
+		type: '',
+		promptTemplate: '',
+		enabled: false,
+		pauseReason: '',
+		target: { kind: 'unspecified' },
+		intervalMs: 0,
+		cronExpression: '',
+		runAtEpochMs: 0,
+	};
 }
 
 /**
@@ -78,6 +100,22 @@ export function engineTriggerDeleteRequest(
 }
 
 /**
+ * Always send empty `scope` / `scopeId` as-is.
+ * Add always sends an empty TriggerDto (empty ids / enabled false / 0).
+ * Edit passes the selected trigger as-is, or the empty TriggerDto when none.
+ */
+export function engineTriggerUpsertRequest(
+	selected: UniverseAgentTrigger | undefined,
+	mode: 'add' | 'edit',
+): UniverseAgentUpsertTriggerRequest {
+	return {
+		scope: '',
+		scopeId: '',
+		trigger: mode === 'add' ? emptyEngineTrigger() : (selected ?? emptyEngineTrigger()),
+	};
+}
+
+/**
  * Always send empty `scope` / `scopeId` / `typeFilter` as-is.
  * This list does not invent a session / project / type default.
  */
@@ -122,4 +160,14 @@ export const ENGINE_TRIGGER_DISABLE_LABEL = localize(
 export const ENGINE_TRIGGER_DELETE_LABEL = localize(
 	'ua.engineTriggersDelete',
 	"Delete",
+);
+
+export const ENGINE_TRIGGER_ADD_LABEL = localize(
+	'ua.engineTriggersAdd',
+	"Add",
+);
+
+export const ENGINE_TRIGGER_EDIT_LABEL = localize(
+	'ua.engineTriggersEdit',
+	"Edit",
 );
