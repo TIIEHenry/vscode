@@ -768,6 +768,7 @@ export class SessionViewHost extends Disposable {
 				queueMicrotask(() => {
 					if (binding.needsBaseline) {
 						binding.needsBaseline = false;
+						pending.length = 0;
 						this.requestResync(String(leaseId));
 						return;
 					}
