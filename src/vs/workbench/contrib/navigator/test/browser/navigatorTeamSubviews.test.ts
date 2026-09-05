@@ -21,8 +21,10 @@ import '../../browser/navigator.contribution.js';
 import { NAVIGATOR_TEAM_VIEW_ID } from '../../browser/navigatorStubView.js';
 import {
 	INavigatorTeamMember,
+	NAVIGATOR_TEAM_CANCEL_TASK_COMMAND_ID,
 	NAVIGATOR_TEAM_SHOW_MEMBERS_COMMAND_ID,
 	NAVIGATOR_TEAM_SHOW_TASKS_COMMAND_ID,
+	NAVIGATOR_TEAM_UPDATE_TASK_COMMAND_ID,
 	NavigatorTeamView,
 } from '../../browser/navigatorTeamList.js';
 
@@ -105,6 +107,11 @@ suite('Navigator Team subviews', () => {
 		assert.ok(membersItem, 'Team ViewTitle must expose Members');
 		assert.ok(tasksItem, 'Team ViewTitle must expose Tasks');
 		assert.ok(inspectItem, 'Team ViewTitle must still expose Inspect');
+
+		const updateItem = viewTitleItems.find(item => item.command.id === NAVIGATOR_TEAM_UPDATE_TASK_COMMAND_ID);
+		const cancelItem = viewTitleItems.find(item => item.command.id === NAVIGATOR_TEAM_CANCEL_TASK_COMMAND_ID);
+		assert.ok(updateItem, 'Team ViewTitle must expose Update (TaskUpdate)');
+		assert.ok(cancelItem, 'Team ViewTitle must expose Cancel (TaskCancel)');
 	});
 
 	test('defaults to Members subview with honest empty state', () => {

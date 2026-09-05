@@ -797,18 +797,19 @@ export interface IUniverseAgentConnection {
 
 	/**
 	 * TeamService.TaskUpdate unary (blackboard task status overwrite). Optional
-	 * so Web / tests can omit it. Catalog + node transport only this slice;
-	 * empty `sessionId` / `agentId` / `taskId` / `newStatus` / `message` are
-	 * sent as-is. No Conversation roster / UI / Navigator Team.
+	 * so Web / tests can omit it. Navigator Team Tasks ViewTitle Update calls
+	 * this when connected + hook present; empty `sessionId` / `agentId` /
+	 * `taskId` / `newStatus` / `message` are sent as-is. No Conversation
+	 * roster / SessionBar / Snapshots overlay.
 	 * ≠ TaskList / TaskCancel / MemberStatus / TeamInfo / SetPermissionMode.
 	 */
 	taskUpdate?(request: UniverseAgentTaskUpdateRequest): Promise<UniverseAgentTaskUpdateResult>;
 
 	/**
 	 * TeamService.TaskCancel unary (blackboard task cancel). Optional so Web /
-	 * tests can omit it. Catalog + node transport only this slice; empty
-	 * `sessionId` / `agentId` / `taskId` are sent as-is. No Conversation roster
-	 * / UI / Navigator Team.
+	 * tests can omit it. Navigator Team Tasks ViewTitle Cancel calls this when
+	 * connected + hook present; empty `sessionId` / `agentId` / `taskId` are
+	 * sent as-is. No Conversation roster / SessionBar / Snapshots overlay.
 	 * ≠ TaskList / TaskUpdate / MemberStatus / TeamInfo / SetPermissionMode.
 	 */
 	taskCancel?(request: UniverseAgentTaskCancelRequest): Promise<UniverseAgentTaskCancelResult>;

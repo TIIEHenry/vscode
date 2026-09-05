@@ -19,7 +19,9 @@ import { IAgentInspectService } from '../../common/agentInspect.js';
 import { AgentInspectService } from '../../browser/agentInspectService.js';
 import { NAVIGATOR_TEAM_VIEW_ID } from '../../browser/navigatorStubView.js';
 import { NAVIGATOR_TEAM_CONTAINER_ID, NAVIGATOR_TEAM_VIEW_CONTAINER } from '../../browser/navigator.contribution.js';
+import type { UniverseAgentTaskCancelRequest, UniverseAgentTaskUpdateRequest } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { INavigatorTeamMember, NavigatorTeamView } from '../../browser/navigatorTeamList.js';
+import type { INavigatorTeamTaskEntry } from '../../common/navigatorTeamData.js';
 import { createNavigatorConnectionTestStub } from '../common/navigatorConnectionTestStub.js';
 import '../../browser/navigator.contribution.js';
 
@@ -40,11 +42,14 @@ suite('NavigatorTeamView', () => {
 		return (view as unknown as { memberEntries: INavigatorTeamMember[] }).memberEntries;
 	}
 
-	async function mountView(): Promise<NavigatorTeamView> {
+	async function mountView(
+		connection: IUniverseAgentConnection = createNavigatorConnectionTestStub(),
+		roster: ConversationStubService = store.add(new ConversationStubService()),
+	): Promise<NavigatorTeamView> {
 		const instantiationService = workbenchInstantiationService(undefined, store);
-		instantiationService.stub(IConversationRosterService, store.add(new ConversationStubService()));
+		instantiationService.stub(IConversationRosterService, roster);
 		instantiationService.stub(IAgentInspectService, store.add(instantiationService.createInstance(AgentInspectService)) as IAgentInspectService);
-		instantiationService.stub(IUniverseAgentConnection, createNavigatorConnectionTestStub());
+		instantiationService.stub(IUniverseAgentConnection, connection);
 		const stubViewContainer = {
 			id: 'navigator-team-test-container',
 			title: { value: 'Team', original: 'Team' },
@@ -144,5 +149,115 @@ suite('NavigatorTeamView', () => {
 		}
 		assert.strictEqual(entries.length, 0);
 		assert.strictEqual(getMembersList(view).length, 0);
+	});
+
+	test('TaskUpdate / TaskCancel do not send when disconnected or hook missing', async () => {
+		const updateCalls: UniverseAgentTaskUpdateRequest[] = [];
+		const cancelCalls: UniverseAgentTaskCancelRequest[] = [];
+		const disconnected = await mountView(createNavigatorConnectionTestStub({
+			taskUpdate: async (request) => {
+				updateCalls.push(request);
+				return { ok: true };
+			},
+			taskCancel: async (request) => {
+				cancelCalls.push(request);
+				return { ok: true };
+			},
+		}));
+		assert.strictEqual(await disconnected.updateSelectedTask('DONE', ''), false);
+		assert.strictEqual(await disconnected.cancelSelectedTask(), false);
+		assert.deepStrictEqual(updateCalls, []);
+		assert.deepStrictEqual(cancelCalls, []);
+
+		const roster = store.add(new ConversationStubService());
+		roster.setEngineConnected(true);
+		const noHook = await mountView(createNavigatorConnectionTestStub({
+			isEngineConnected: () => true,
+		}), roster);
+		assert.strictEqual(await noHook.updateSelectedTask('DONE', ''), false);
+		assert.strictEqual(await noHook.cancelSelectedTask(), false);
+	});
+
+	test('TaskUpdate / TaskCancel send empty ids as-is when nothing selected', async () => {
+		const updateCalls: UniverseAgentTaskUpdateRequest[] = [];
+		const cancelCalls: UniverseAgentTaskCancelRequest[] = [];
+		const roster = store.add(new ConversationStubService());
+		roster.setEngineConnected(true);
+		const view = await mountView(createNavigatorConnectionTestStub({
+			isEngineConnected: () => true,
+			taskUpdate: async (request) => {
+				updateCalls.push(request);
+				return { ok: true };
+			},
+			taskCancel: async (request) => {
+				cancelCalls.push(request);
+				return { ok: true };
+			},
+		}), roster);
+
+		assert.strictEqual(await view.updateSelectedTask('', ''), true);
+		assert.strictEqual(await view.cancelSelectedTask(), true);
+		assert.deepStrictEqual(updateCalls, [{
+			sessionId: roster.getActiveSessionId(),
+			agentId: '',
+			taskId: '',
+			newStatus: '',
+			message: '',
+		}]);
+		assert.deepStrictEqual(cancelCalls, [{
+			sessionId: roster.getActiveSessionId(),
+			agentId: '',
+			taskId: '',
+		}]);
+	});
+
+	test('TaskUpdate / TaskCancel send selected task ids without inventing defaults', async () => {
+		const updateCalls: UniverseAgentTaskUpdateRequest[] = [];
+		const cancelCalls: UniverseAgentTaskCancelRequest[] = [];
+		const roster = store.add(new ConversationStubService());
+		roster.setEngineConnected(true);
+		const view = await mountView(createNavigatorConnectionTestStub({
+			isEngineConnected: () => true,
+			taskUpdate: async (request) => {
+				updateCalls.push(request);
+				return { ok: true };
+			},
+			taskCancel: async (request) => {
+				cancelCalls.push(request);
+				return { ok: true };
+			},
+		}), roster);
+
+		const task: INavigatorTeamTaskEntry = {
+			id: 'task:t1',
+			label: 'Ship · OPEN',
+			taskId: 't1',
+			subject: 'Ship',
+			owner: '',
+			status: 'OPEN',
+			blockedBy: '',
+			lastMessage: '',
+			description: '',
+			managerAgentId: 'mgr-1',
+			managerName: 'Mgr',
+		};
+		(view as unknown as { setTaskEntries: (entries: INavigatorTeamTaskEntry[]) => void }).setTaskEntries([task]);
+		const tasksList = (view as unknown as { tasksList: WorkbenchList<INavigatorTeamTaskEntry> }).tasksList;
+		tasksList.setSelection([0]);
+
+		assert.strictEqual(await view.updateSelectedTask('DONE', 'ok'), true);
+		assert.strictEqual(await view.cancelSelectedTask(), true);
+		assert.deepStrictEqual(updateCalls, [{
+			sessionId: roster.getActiveSessionId(),
+			agentId: 'mgr-1',
+			taskId: 't1',
+			newStatus: 'DONE',
+			message: 'ok',
+		}]);
+		assert.deepStrictEqual(cancelCalls, [{
+			sessionId: roster.getActiveSessionId(),
+			agentId: 'mgr-1',
+			taskId: 't1',
+		}]);
 	});
 });

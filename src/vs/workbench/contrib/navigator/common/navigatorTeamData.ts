@@ -46,6 +46,23 @@ export interface INavigatorTeamTaskEntry extends INavigatorTeamTaskInfo {
 	readonly managerName: string;
 }
 
+/** Navigator Team Tasks → TaskUpdate / TaskCancel. Empty ids are still sent. */
+export function canSendNavigatorTeamTaskMutation(connected: boolean, hasHook: boolean): boolean {
+	return connected && hasHook;
+}
+
+/** Pass through empty `sessionId` / `agentId` / `taskId` as-is (no default / no trim). */
+export function navigatorTeamTaskMutationIds(
+	sessionId: string | undefined,
+	selected: { readonly managerAgentId?: string; readonly taskId?: string } | undefined,
+): { sessionId: string; agentId: string; taskId: string } {
+	return {
+		sessionId: sessionId ?? '',
+		agentId: selected?.managerAgentId ?? '',
+		taskId: selected?.taskId ?? '',
+	};
+}
+
 const MEMBER_TYPE = 'AGENT_TYPE_MEMBER';
 
 export function findManagerNodes(tree: LiveAgentTreeNodeView | undefined): LiveAgentTreeNodeView[] {
