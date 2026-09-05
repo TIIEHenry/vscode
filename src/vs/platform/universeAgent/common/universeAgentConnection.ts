@@ -1960,11 +1960,12 @@ export interface IUniverseAgentConnection {
 	revoke?(request: UniverseAgentRevokeRequest): Promise<UniverseAgentRevokeResult>;
 	/**
 	 * DeviceService.RotateToken unary. Optional so Web / tests can omit it.
-	 * Catalog + node transport only this slice; empty `deviceId` is sent
-	 * as-is. Empty `message` mapped as-is. `success` false mapped as-is.
-	 * Proto fields only (`RotateTokenRequest` / `RotateTokenResponse`).
-	 * Reserved `new_token` (ADR-261) not mapped. No Conversation roster /
-	 * UI / Engine Preferences / Composer.
+	 * Connection Devices paired-list action forwards when connected + hook;
+	 * empty `deviceId` is sent as-is. Empty `message` mapped as-is.
+	 * `success` false mapped as-is. Proto fields only
+	 * (`RotateTokenRequest` / `RotateTokenResponse`). Reserved `new_token`
+	 * (ADR-261) not mapped. Disconnected / no hook do not send. No
+	 * Conversation roster / SessionBar / Engine Preferences / Composer.
 	 * ≠ ListDevices / PairApprove / PairReject / Revoke / ListPending.
 	 */
 	rotateToken?(request: UniverseAgentRotateTokenRequest): Promise<UniverseAgentRotateTokenResult>;

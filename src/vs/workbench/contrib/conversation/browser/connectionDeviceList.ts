@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { localize } from '../../../../nls.js';
 import type { HubDeviceProjection } from '../../../../platform/universeAgent/common/hub.js';
 import type { UniverseAgentDeviceInfo } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 
@@ -10,6 +11,23 @@ import type { UniverseAgentDeviceInfo } from '../../../../platform/universeAgent
 export function canSendConnectionDeviceListRequest(connected: boolean, hasHook: boolean): boolean {
 	return connected && hasHook;
 }
+
+/** Connection Devices paired-list action → RotateToken. Empty ids are still sent. */
+export function canSendConnectionDeviceRotateToken(connected: boolean, hasHook: boolean): boolean {
+	return connected && hasHook;
+}
+
+/** Pass through empty `deviceId` as-is (no default / no trim). */
+export function connectionDeviceRotateTokenIds(
+	selected: { readonly id?: string } | undefined,
+): { deviceId: string } {
+	return { deviceId: selected?.id ?? '' };
+}
+
+export const CONNECTION_DEVICE_ROTATE_TOKEN_LABEL = localize(
+	'ua.connectionDeviceRotateToken',
+	"Rotate Token",
+);
 
 /**
  * Map DeviceInfo onto the existing paired-list row. Empty `deviceId` /

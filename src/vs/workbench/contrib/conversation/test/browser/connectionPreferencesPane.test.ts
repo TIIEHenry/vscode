@@ -32,7 +32,11 @@ import type {
 	UniverseAgentPairApproveRequest,
 	UniverseAgentPairRejectRequest,
 	UniverseAgentRevokeRequest,
+	UniverseAgentRotateTokenRequest,
 } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
+import {
+	CONNECTION_DEVICE_ROTATE_TOKEN_LABEL,
+} from '../../browser/connectionDeviceList.js';
 import {
 	CONNECTION_DEVICE_PAIR_REJECT_LABEL,
 	CONNECTION_DEVICE_PENDING_EMPTY_COPY,
@@ -1186,6 +1190,114 @@ suite('ConnectionPreferencesPane', () => {
 		await Promise.resolve();
 		assert.strictEqual(listDevicesCalls, 1);
 		assert.strictEqual(container.querySelector('.connection-hub-device-name'), null);
+		container.remove();
+	});
+
+	test('RotateToken does not send when disconnected or hook missing', async () => {
+		const rotateCalls: UniverseAgentRotateTokenRequest[] = [];
+		const disconnected = mountPane({
+			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
+			getDirectoryStatus: () => ({ kind: 'ok', devices: [device({ id: 'hub-1', name: 'Hub Studio' })] }),
+		}, {
+			isEngineConnected: () => false,
+			rotateToken: async request => {
+				rotateCalls.push(request);
+				return { success: true, message: '' };
+			},
+		});
+		const disconnectedContainer = disconnected.getDomNode();
+		disconnected.layout(new Dimension(800, 800));
+		await Promise.resolve();
+		await Promise.resolve();
+		const disconnectedRotate = [...disconnectedContainer.querySelectorAll('.connection-hub-device-actions .monaco-button')]
+			.find(button => button.textContent === CONNECTION_DEVICE_ROTATE_TOKEN_LABEL) as HTMLButtonElement | undefined;
+		assert.ok(disconnectedRotate);
+		disconnectedRotate.click();
+		await Promise.resolve();
+		await Promise.resolve();
+		assert.deepStrictEqual(rotateCalls, []);
+
+		const noHook = mountPane({
+			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
+			getDirectoryStatus: () => ({ kind: 'ok', devices: [device({ id: 'hub-2', name: 'Hub Phone' })] }),
+		}, {
+			isEngineConnected: () => true,
+		});
+		const noHookContainer = noHook.getDomNode();
+		noHook.layout(new Dimension(800, 800));
+		await Promise.resolve();
+		await Promise.resolve();
+		const noHookRotate = [...noHookContainer.querySelectorAll('.connection-hub-device-actions .monaco-button')]
+			.find(button => button.textContent === CONNECTION_DEVICE_ROTATE_TOKEN_LABEL) as HTMLButtonElement | undefined;
+		assert.ok(noHookRotate);
+		noHookRotate.click();
+		await Promise.resolve();
+		await Promise.resolve();
+		assert.deepStrictEqual(rotateCalls, []);
+		disconnectedContainer.remove();
+		noHookContainer.remove();
+	});
+
+	test('RotateToken sends empty device_id as-is when connected with no selection', async () => {
+		const rotateCalls: UniverseAgentRotateTokenRequest[] = [];
+		const pane = mountPane({
+			getAuthStatus: () => ({ kind: 'signedOut' }),
+		}, {
+			isEngineConnected: () => true,
+			rotateToken: async request => {
+				rotateCalls.push(request);
+				return { success: false, message: '' };
+			},
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		await Promise.resolve();
+		await Promise.resolve();
+		const rotate = [...container.querySelectorAll('.connection-hub-device-actions .monaco-button')]
+			.find(button => button.textContent === CONNECTION_DEVICE_ROTATE_TOKEN_LABEL) as HTMLButtonElement | undefined;
+		assert.ok(rotate);
+		rotate.click();
+		await Promise.resolve();
+		await Promise.resolve();
+		assert.deepStrictEqual(rotateCalls, [{ deviceId: '' }]);
+		container.remove();
+	});
+
+	test('RotateToken sends selected paired device_id without inventing defaults', async () => {
+		const rotateCalls: UniverseAgentRotateTokenRequest[] = [];
+		const pane = mountPane({
+			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
+		}, {
+			isEngineConnected: () => true,
+			listDevices: async (): Promise<UniverseAgentListDevicesResult> => ({
+				devices: [{
+					deviceId: '  dev  ',
+					displayName: '  Phone  ',
+					role: '',
+					platform: '',
+					pairedAt: 0,
+					lastSeenAt: 0,
+					active: false,
+				}],
+			}),
+			rotateToken: async request => {
+				rotateCalls.push(request);
+				return { success: true, message: '' };
+			},
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		await Promise.resolve();
+		await Promise.resolve();
+		const list = (pane as unknown as { hubDevicesList: WorkbenchList<HubDeviceProjection> }).hubDevicesList;
+		list.setSelection([0]);
+		const rotate = [...container.querySelectorAll('.connection-hub-device-actions .monaco-button')]
+			.find(button => button.textContent === CONNECTION_DEVICE_ROTATE_TOKEN_LABEL) as HTMLButtonElement | undefined;
+		assert.ok(rotate);
+		rotate.click();
+		await Promise.resolve();
+		await Promise.resolve();
+		assert.deepStrictEqual(rotateCalls, [{ deviceId: '  dev  ' }]);
 		container.remove();
 	});
 });

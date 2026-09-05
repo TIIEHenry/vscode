@@ -7,6 +7,9 @@ import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import {
 	canSendConnectionDeviceListRequest,
+	canSendConnectionDeviceRotateToken,
+	CONNECTION_DEVICE_ROTATE_TOKEN_LABEL,
+	connectionDeviceRotateTokenIds,
 	formatConnectionPairedDeviceLabel,
 	toConnectionPairedDevice,
 } from '../../browser/connectionDeviceList.js';
@@ -51,6 +54,16 @@ suite('Connection device list bind', () => {
 			engineIdentityId: '  dev  ',
 			revoked: false,
 		});
+	});
+
+	test('RotateToken gate is connected + hook; empty ids stay empty', () => {
+		assert.strictEqual(canSendConnectionDeviceRotateToken(false, true), false);
+		assert.strictEqual(canSendConnectionDeviceRotateToken(true, false), false);
+		assert.strictEqual(canSendConnectionDeviceRotateToken(true, true), true);
+		assert.deepStrictEqual(connectionDeviceRotateTokenIds(undefined), { deviceId: '' });
+		assert.deepStrictEqual(connectionDeviceRotateTokenIds({ id: '' }), { deviceId: '' });
+		assert.deepStrictEqual(connectionDeviceRotateTokenIds({ id: '  dev  ' }), { deviceId: '  dev  ' });
+		assert.strictEqual(CONNECTION_DEVICE_ROTATE_TOKEN_LABEL, 'Rotate Token');
 	});
 
 	test('paired device label keeps empty fields as-is', () => {
