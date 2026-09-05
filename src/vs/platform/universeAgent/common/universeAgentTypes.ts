@@ -2562,6 +2562,21 @@ export interface UniverseAgentConnectionReport {
 }
 
 /**
+ * RemoteAgentService.SetMaintenance — proto `SetMaintenanceRequest` /
+ * `SetMaintenanceResponse` only. Empty `node_id` (incl. empty string)
+ * passes through as-is. `success` false mapped as-is.
+ * ≠ ListNodes / GetNode / CheckConnection / ExitMaintenance /
+ * ResetError / ListConfigs / GetConfig / DeviceService.
+ */
+export interface UniverseAgentSetMaintenanceRequest {
+	readonly nodeId: string;
+}
+
+export interface UniverseAgentSetMaintenanceResult {
+	readonly success: boolean;
+}
+
+/**
  * RemoteAgentService.ListConfigs — proto `ListRemoteAgentConfigsRequest` /
  * `ListRemoteAgentConfigsResponse` + `RemoteAgentConfig` / `Endpoint` /
  * `AuthConfig` / `PermissionDelegate` / `WhitelistEntry` /
