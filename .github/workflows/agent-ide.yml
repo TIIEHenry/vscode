@@ -83,7 +83,10 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Docs health
-        run: python3 scripts/check-docs-health.py
+        run: |
+          python3 scripts/check-docs-health.py
+          python3 scripts/generate-docs-status.py --check
+          python3 -m unittest scripts/tests/test_docs_status.py
 
   unit-custom:
     name: unit-custom

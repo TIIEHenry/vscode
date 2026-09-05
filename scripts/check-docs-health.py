@@ -13,6 +13,11 @@ from pathlib import Path
 from urllib.parse import unquote
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
+SCRIPTS_DIR = Path(__file__).resolve().parent
+if str(SCRIPTS_DIR) not in sys.path:
+    sys.path.insert(0, str(SCRIPTS_DIR))
+
+from docs_status import compare_generated_columns
 REQUIRED_FRONTMATTER_FIELDS = ("title", "type", "status", "phase", "updated", "summary")
 REQUIRED_DOC_ENTRIES = (
     "docs/README.md",
@@ -293,6 +298,13 @@ def link_findings(markdown_files: list[Path]) -> list[Finding]:
     return findings
 
 
+def generated_status_findings() -> list[Finding]:
+    return [
+        Finding(finding.path, finding.message)
+        for finding in compare_generated_columns(REPO_ROOT)
+    ]
+
+
 def flatten_groups(groups: dict[str, list[Finding]]) -> list[Finding]:
     findings: list[Finding] = []
     for group_findings in groups.values():
@@ -323,6 +335,7 @@ def main() -> int:
         "required_entries": check_required_entries() + check_status_md_line_limit(),
         "module_indexes": check_module_indexes(),
         "system_indexes": check_system_indexes(),
+        "generated_status": generated_status_findings(),
     }
     warning_groups: dict[str, list[Finding]] = {}
     frontmatter = frontmatter_findings(markdown_files)

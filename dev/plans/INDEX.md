@@ -3,8 +3,6 @@ title: "方案索引"
 type: index
 status: accepted
 phase: N/A
-updated: 2026-09-04
-summary: "dev/plans 导航：F1/F2 与 GC-1–GC-6 方案已 implemented；其余 M7 UI 方案仍 accepted（缺产品验证）"
 updated: 2026-09-05
 summary: "dev/plans 导航：M7 代码完成线仍 accepted；七份验证/治理稿 2026-09-05 经第二轮对抗审查后签收 accepted"
 ---
@@ -13,8 +11,9 @@ summary: "dev/plans 导航：M7 代码完成线仍 accepted；七份验证/治�
 
 方案文档放在本目录。完成后就地保留；任务排期与勾选见 [dev/progress/status.md](../progress/status.md) **Next** 段。
 
+<!-- generated-col id="plans-index-status" source="plan-frontmatter-status" column="状态" key="first-link" -->
 | 方案 | 状态 | 摘要 |
-|------|------|------|
+| --- | --- | --- |
 | [prd-008-engine-e2e.md](prd-008-engine-e2e.md) | `accepted` | PRD-008 唯一已定义升档路径：隔离 profile + 钉死引擎 + D4 CDP；硬前置 GC-1b 配对回路（首次配对即第一份证据） |
 | [test-baseline-ci.md](test-baseline-ci.md) | `accepted` | D16 账本 + `agent-ide` workflow（compile / eslint / 三域单测 / `docs-health`）；三域账本外新红阻断合入；`min_cases` / `max_skipped` 防空跑 |
 | [packaging-and-release.md](packaging-and-release.md) | `accepted` | `gulp vscode-linux-x64` 验 `@grpc/grpc-js` 进包 + 活窗；D18 拆 Linux 子集 + 新 D 行；D20 需 300px 活窗且 dev-mode 缺包根因 |
@@ -30,12 +29,9 @@ summary: "dev/plans 导航：M7 代码完成线仍 accepted；七份验证/治�
 | [m5-ui-shell-hardening.md](m5-ui-shell-hardening.md) | `implemented` | 切片 1–5 @ 18b5e8d7；D4/D5 closed；valid-layers environment-blocked（Node v26.7.0） |
 | [m6-engine-wave.md](m6-engine-wave.md) | `accepted` | A1–A2/B/D 已落；C 已落 Skills/Agents/MCP/Tools 读写主体与正文编辑，九节 UI 余量转 M7；PRD-008 仍须冒烟才升 `implemented` |
 | [m7-ui-completion-wave.md](m7-ui-completion-wave.md) | `accepted` | UI 主线代码已落（P0–P2b / E2 / Q / CS / I2–I5 / K/T/L1）；W1 冒烟与 I6 发行标识未完；V 槽测试债非阻塞；不升 `implemented` |
-| [session-view-frame-fanout.md](session-view-frame-fanout.md) | `implemented` | F1/F2 @ `c37bbc6e` / `917a7f8d`：`onDynamicDidApplyFrame(leaseId)` + 宿主首帧缓冲 + `postAndDrain`；G-CORE-1 已登记；F3 见 D22 |
-| [m7-gap-closeout.md](m7-gap-closeout.md) | `implemented` | GC-1–GC-6 @ merge `d98d888a`：hubDevice/配对、设备动作与 probe、catalog 观察 lease、Navigator/Inspect、Overview Model；PRD-024 仍待真 Hub 冒烟；D21 |
+| [session-view-frame-fanout.md](session-view-frame-fanout.md) | `accepted` | F1/F2 @ `c37bbc6e` / `917a7f8d`：`onDynamicDidApplyFrame(leaseId)` + 宿主首帧缓冲 + `postAndDrain`；G-CORE-1 已登记；F3 见 D22 |
+| [m7-gap-closeout.md](m7-gap-closeout.md) | `accepted` | GC-1–GC-6 @ merge `d98d888a`：hubDevice/配对、设备动作与 probe、catalog 观察 lease、Navigator/Inspect、Overview Model；PRD-024 仍待真 Hub 冒烟；D21 |
 | [engine-preferences-completion.md](engine-preferences-completion.md) | `accepted` | E2-1–E2-7 **代码已落**；GC-6 Model 摘要已落；Overview Provider 行已省略（G-ENG-1 前不显示）；产品验证未做 |
-| [session-view-frame-fanout.md](session-view-frame-fanout.md) | `accepted` | 平台（P 槽）：`onDynamicDidApplyFrame(leaseId)` + 宿主 `onDidAddFirstListener` 缓冲；消 N 倍 IPC 与跨进程 acquire 突发丢失；`postAndDrain` 门禁；G-CORE-1。规则 16 已审、2026-09-03 签收 |
-| [m7-gap-closeout.md](m7-gap-closeout.md) | `accepted` | 已签收方案残留收口：GC-1 hubDevice + **GC-1b 配对回路**、GC-2 设备动作、GC-3 独立探测、GC-4 catalog（session-windows §3.3）、GC-5 Navigator/Inspect、GC-6 Model 行（Provider 回退）；D21。规则 16 已审、2026-09-03 签收 |
-| [engine-preferences-completion.md](engine-preferences-completion.md) | `accepted` | E2-1–E2-7 **代码已落**：九节六态、Web 按 phase/capability 省略桌面控件、窄宽度；Provider/Rules/Hooks 仍 unsupported；产品验证未做 |
 | [client-settings-completion.md](client-settings-completion.md) | `accepted` | CS-1–CS-6 **代码已落**（9 键 + 迁移 + 七组无 emptyCopy）；PRD-026 §6 产品验证未做 |
 | [conversation-ui-closeout.md](conversation-ui-closeout.md) | `accepted` | Q1–Q6 **代码已落**：Overview、DetailRef 六态、compacted、live fold、四 kind 停止洗白、键盘 ARIA、窄宽度；产品验证未做 |
 | [product-identity.md](product-identity.md) | `accepted` | I2–I5 / I3a / I3b **代码已落**；I6 Darwin/Appx 发行标识等发布方；D18 安装包未验 |
