@@ -166,6 +166,33 @@
 	margin-top: 8px;
 }
 
+.monaco-workbench .connection-preferences-pane .connection-engine-pending-heading {
+	font-size: 12px;
+	font-weight: 600;
+	margin: 12px 0 8px 0;
+}
+
+.monaco-workbench .connection-preferences-pane .connection-engine-pending-empty {
+	opacity: 0.8;
+	margin-bottom: 8px;
+}
+
+.monaco-workbench .connection-preferences-pane .connection-engine-pending-list {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	margin-bottom: 8px;
+}
+
+.monaco-workbench .connection-preferences-pane .connection-engine-pending-row {
+	padding: 4px 8px;
+	cursor: pointer;
+}
+
+.monaco-workbench .connection-preferences-pane .connection-engine-pending-row.selected {
+	outline: 1px solid var(--vscode-focusBorder);
+}
+
 .monaco-workbench .connection-preferences-pane.is-compact .connection-hub-device-actions {
 	width: 100%;
 }

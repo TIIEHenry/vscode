@@ -25,7 +25,16 @@ import {
 	shouldDrawDesktopConnectionControls,
 } from '../../browser/engineSectionChrome.js';
 import { createWebUnsupportedCapabilitySnapshot, WEB_UNSUPPORTED_REASON } from '../../../../../platform/universeAgent/browser/webUnsupported.js';
-import type { UniverseAgentCapabilitySnapshot, UniverseAgentConnectionSnapshot } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
+import type {
+	UniverseAgentCapabilitySnapshot,
+	UniverseAgentConnectionSnapshot,
+	UniverseAgentPairApproveRequest,
+	UniverseAgentPairRejectRequest,
+} from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
+import {
+	CONNECTION_DEVICE_PAIR_REJECT_LABEL,
+	CONNECTION_DEVICE_PENDING_EMPTY_COPY,
+} from '../../browser/connectionDevicePair.js';
 import {
 	canConnectHubDevice,
 	getHubAuthStatusLabel,
@@ -636,8 +645,8 @@ suite('ConnectionPreferencesPane', () => {
 			.find(button => button.textContent === 'Revoke') as HTMLButtonElement | undefined;
 		assert.ok(rename);
 		assert.ok(revoke);
-		assert.strictEqual(rename.disabled, true);
-		assert.strictEqual(revoke.disabled, true);
+		assert.strictEqual(rename.getAttribute('aria-disabled'), 'true');
+		assert.strictEqual(revoke.getAttribute('aria-disabled'), 'true');
 		container.remove();
 	});
 
@@ -779,6 +788,183 @@ suite('ConnectionPreferencesPane', () => {
 		await Promise.resolve();
 		await Promise.resolve();
 		assert.strictEqual(confirmed, 'ABCD-1234');
+		container.remove();
+	});
+
+	test('ListPending / PairApprove / PairReject do not send when disconnected or hook missing', async () => {
+		const approveCalls: UniverseAgentPairApproveRequest[] = [];
+		const rejectCalls: UniverseAgentPairRejectRequest[] = [];
+		let listPendingCalls = 0;
+		let hubConfirmed: string | undefined;
+		const disconnected = mountPane({
+			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
+			confirmDeviceCode: async code => {
+				hubConfirmed = code;
+				return { ok: true };
+			},
+		}, {
+			isEngineConnected: () => false,
+			listPending: async () => {
+				listPendingCalls++;
+				return { pending: [] };
+			},
+			pairApprove: async request => {
+				approveCalls.push(request);
+				return { success: true, deviceId: '', message: '' };
+			},
+			pairReject: async request => {
+				rejectCalls.push(request);
+				return { success: true, message: '' };
+			},
+		});
+		const container = disconnected.getDomNode();
+		await Promise.resolve();
+		await Promise.resolve();
+		assert.strictEqual(listPendingCalls, 0);
+		const confirm = [...container.querySelectorAll('.connection-hub-device-code .monaco-button')]
+			.find(button => button.textContent === 'Confirm') as HTMLButtonElement | undefined;
+		const reject = [...container.querySelectorAll('.connection-hub-device-code .monaco-button')]
+			.find(button => button.textContent === CONNECTION_DEVICE_PAIR_REJECT_LABEL) as HTMLButtonElement | undefined;
+		const codeInput = container.querySelector('.connection-hub-device-code input') as HTMLInputElement | null;
+		assert.ok(confirm);
+		assert.ok(reject);
+		assert.ok(codeInput);
+		codeInput.value = 'ABCD-1234';
+		confirm.click();
+		await Promise.resolve();
+		await Promise.resolve();
+		assert.strictEqual(hubConfirmed, 'ABCD-1234');
+		assert.deepStrictEqual(approveCalls, []);
+		reject.click();
+		await Promise.resolve();
+		await Promise.resolve();
+		assert.deepStrictEqual(rejectCalls, []);
+
+		const noHook = mountPane({
+			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
+		}, {
+			isEngineConnected: () => true,
+		});
+		const noHookContainer = noHook.getDomNode();
+		await Promise.resolve();
+		await Promise.resolve();
+		const noHookConfirm = [...noHookContainer.querySelectorAll('.connection-hub-device-code .monaco-button')]
+			.find(button => button.textContent === 'Confirm') as HTMLButtonElement | undefined;
+		const noHookReject = [...noHookContainer.querySelectorAll('.connection-hub-device-code .monaco-button')]
+			.find(button => button.textContent === CONNECTION_DEVICE_PAIR_REJECT_LABEL) as HTMLButtonElement | undefined;
+		assert.ok(noHookConfirm);
+		assert.ok(noHookReject);
+		noHookConfirm.click();
+		noHookReject.click();
+		await Promise.resolve();
+		await Promise.resolve();
+		assert.deepStrictEqual(approveCalls, []);
+		assert.deepStrictEqual(rejectCalls, []);
+		container.remove();
+		noHookContainer.remove();
+	});
+
+	test('ListPending / PairApprove / PairReject send empty ids as-is when connected', async () => {
+		const approveCalls: UniverseAgentPairApproveRequest[] = [];
+		const rejectCalls: UniverseAgentPairRejectRequest[] = [];
+		let listPendingCalls = 0;
+		let hubConfirmed: string | undefined;
+		const pane = mountPane({
+			getAuthStatus: () => ({ kind: 'signedOut' }),
+			confirmDeviceCode: async code => {
+				hubConfirmed = code;
+				return { ok: true };
+			},
+		}, {
+			isEngineConnected: () => true,
+			listPending: async () => {
+				listPendingCalls++;
+				return { pending: [] };
+			},
+			pairApprove: async request => {
+				approveCalls.push(request);
+				return { success: true, deviceId: '', message: '' };
+			},
+			pairReject: async request => {
+				rejectCalls.push(request);
+				return { success: true, message: '' };
+			},
+		});
+		const container = pane.getDomNode();
+		await Promise.resolve();
+		await Promise.resolve();
+		assert.strictEqual(listPendingCalls, 1);
+		assert.strictEqual(container.querySelector('.connection-engine-pending-empty')?.textContent, CONNECTION_DEVICE_PENDING_EMPTY_COPY);
+
+		const confirm = [...container.querySelectorAll('.connection-hub-device-code .monaco-button')]
+			.find(button => button.textContent === 'Confirm') as HTMLButtonElement | undefined;
+		const reject = [...container.querySelectorAll('.connection-hub-device-code .monaco-button')]
+			.find(button => button.textContent === CONNECTION_DEVICE_PAIR_REJECT_LABEL) as HTMLButtonElement | undefined;
+		assert.ok(confirm);
+		assert.ok(reject);
+		confirm.click();
+		await Promise.resolve();
+		await Promise.resolve();
+		reject.click();
+		await Promise.resolve();
+		await Promise.resolve();
+		assert.strictEqual(hubConfirmed, undefined);
+		assert.deepStrictEqual(approveCalls, [{ pairingCode: '', displayName: '', role: '' }]);
+		assert.deepStrictEqual(rejectCalls, [{ pairingCode: '' }]);
+		assert.ok(listPendingCalls >= 1);
+		container.remove();
+	});
+
+	test('PairApprove / PairReject send selected pending ids without inventing defaults', async () => {
+		const approveCalls: UniverseAgentPairApproveRequest[] = [];
+		const rejectCalls: UniverseAgentPairRejectRequest[] = [];
+		const pane = mountPane({
+			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
+		}, {
+			isEngineConnected: () => true,
+			listPending: async () => ({
+				pending: [{
+					pairingCode: '123456',
+					deviceId: 'dev-1',
+					displayName: 'Phone',
+					platform: 'ios',
+					requestedAt: 0,
+					expiresInSeconds: 0,
+				}],
+			}),
+			pairApprove: async request => {
+				approveCalls.push(request);
+				return { success: true, deviceId: 'dev-1', message: '' };
+			},
+			pairReject: async request => {
+				rejectCalls.push(request);
+				return { success: true, message: '' };
+			},
+		});
+		const container = pane.getDomNode();
+		await Promise.resolve();
+		await Promise.resolve();
+		const row = container.querySelector('.connection-engine-pending-row') as HTMLElement | null;
+		assert.ok(row);
+		assert.strictEqual(row.textContent, 'Phone — 123456 — ios');
+		row.click();
+		const confirm = [...container.querySelectorAll('.connection-hub-device-code .monaco-button')]
+			.find(button => button.textContent === 'Confirm') as HTMLButtonElement | undefined;
+		const reject = [...container.querySelectorAll('.connection-hub-device-code .monaco-button')]
+			.find(button => button.textContent === CONNECTION_DEVICE_PAIR_REJECT_LABEL) as HTMLButtonElement | undefined;
+		assert.ok(confirm);
+		assert.ok(reject);
+		confirm.click();
+		await Promise.resolve();
+		await Promise.resolve();
+		assert.deepStrictEqual(approveCalls, [{ pairingCode: '123456', displayName: 'Phone', role: '' }]);
+		const rowAfterApprove = container.querySelector('.connection-engine-pending-row') as HTMLElement | null;
+		assert.ok(rowAfterApprove);
+		rowAfterApprove.click();
+		reject.click();
+		await Promise.resolve();
+		await Promise.resolve();
+		assert.deepStrictEqual(rejectCalls, [{ pairingCode: '123456' }]);
 		container.remove();
 	});
 });

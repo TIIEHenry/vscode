@@ -1923,21 +1923,24 @@ export interface IUniverseAgentConnection {
 	listDevices?(): Promise<UniverseAgentListDevicesResult>;
 	/**
 	 * DeviceService.PairApprove unary. Optional so Web / tests can omit it.
-	 * Catalog + node transport only this slice; empty `pairingCode` /
-	 * `displayName` / `role` are sent as-is. Empty `deviceId` / `message`
-	 * mapped as-is. `success` false mapped as-is. Proto fields only
-	 * (`PairApproveRequest` / `PairApproveResponse`). Reserved
-	 * `device_token` (ADR-261) not mapped. No Conversation roster / UI /
-	 * Engine Preferences / Composer.
+	 * Connection Devices Confirm forwards when connected + hook; empty
+	 * `pairingCode` / `displayName` / `role` are sent as-is. Empty
+	 * `deviceId` / `message` mapped as-is. `success` false mapped as-is.
+	 * Proto fields only (`PairApproveRequest` / `PairApproveResponse`).
+	 * Reserved `device_token` (ADR-261) not mapped. Disconnected / no
+	 * hook keep Hub confirmDeviceCode. No Conversation roster /
+	 * SessionBar / Engine Preferences / Composer.
 	 * ≠ ListDevices / PairReject / Revoke / RotateToken / ListPending.
 	 */
 	pairApprove?(request: UniverseAgentPairApproveRequest): Promise<UniverseAgentPairApproveResult>;
 	/**
 	 * DeviceService.PairReject unary. Optional so Web / tests can omit it.
-	 * Catalog + node transport only this slice; empty `pairingCode` is sent
-	 * as-is. Empty `message` mapped as-is. `success` false mapped as-is.
-	 * Proto fields only (`PairRejectRequest` / `PairRejectResponse`). No
-	 * Conversation roster / UI / Engine Preferences / Composer.
+	 * Connection Devices Reject forwards when connected + hook; empty
+	 * `pairingCode` is sent as-is. Empty `message` mapped as-is.
+	 * `success` false mapped as-is. Proto fields only
+	 * (`PairRejectRequest` / `PairRejectResponse`). Disconnected / no
+	 * hook do not send. No Conversation roster / SessionBar / Engine
+	 * Preferences / Composer.
 	 * ≠ ListDevices / PairApprove / Revoke / RotateToken / ListPending.
 	 */
 	pairReject?(request: UniverseAgentPairRejectRequest): Promise<UniverseAgentPairRejectResult>;
@@ -1963,12 +1966,13 @@ export interface IUniverseAgentConnection {
 	rotateToken?(request: UniverseAgentRotateTokenRequest): Promise<UniverseAgentRotateTokenResult>;
 	/**
 	 * DeviceService.ListPending unary. Optional so Web / tests can omit it.
-	 * Catalog + node transport only this slice; empty request `{}`. Empty
-	 * `pairing_code` / `device_id` / `display_name` / `platform` mapped
-	 * as-is. `requested_at` 0 mapped as-is. `expires_in_seconds` 0 mapped
-	 * as-is. Proto fields only (`ListPendingRequest` /
-	 * `ListPendingResponse` + `PendingPairInfo`). No Conversation roster /
-	 * UI / Engine Preferences / Composer.
+	 * Connection Devices pending list forwards when connected + hook;
+	 * empty request `{}`. Empty `pairing_code` / `device_id` /
+	 * `display_name` / `platform` mapped as-is. `requested_at` 0 mapped
+	 * as-is. `expires_in_seconds` 0 mapped as-is. Proto fields only
+	 * (`ListPendingRequest` / `ListPendingResponse` + `PendingPairInfo`).
+	 * Disconnected / no hook do not send. No Conversation roster /
+	 * SessionBar / Engine Preferences / Composer.
 	 * ≠ ListDevices / PairApprove / PairReject / Revoke / RotateToken.
 	 */
 	listPending?(): Promise<UniverseAgentListPendingResult>;

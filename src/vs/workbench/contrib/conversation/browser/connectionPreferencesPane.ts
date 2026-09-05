@@ -8,7 +8,7 @@ import * as DOM from '../../../../base/browser/dom.js';
 import { Button } from '../../../../base/browser/ui/button/button.js';
 import { IListRenderer, IListVirtualDelegate } from '../../../../base/browser/ui/list/list.js';
 import { IListAccessibilityProvider } from '../../../../base/browser/ui/list/listWidget.js';
-import { Disposable } from '../../../../base/common/lifecycle.js';
+import { Disposable, DisposableStore } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
 import { IDialogService } from '../../../../platform/dialogs/common/dialogs.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
@@ -17,8 +17,17 @@ import { defaultButtonStyles } from '../../../../platform/theme/browser/defaultS
 import type { ConnectionPhase, ConnectionProbeResult } from '../../../../platform/universeAgent/common/connectionHubTypes.js';
 import type { ConnectionProfileProjection, HubDeviceProjection } from '../../../../platform/universeAgent/common/hub.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
+import type { UniverseAgentPendingPairInfo } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import type { IPreferencesEditorPane } from '../../preferences/browser/preferencesEditorRegistry.js';
 import { IUniverseAgentHubService } from '../../../../platform/universeAgent/common/hub.js';
+import {
+	canSendConnectionDevicePairRequest,
+	CONNECTION_DEVICE_PAIR_REJECT_LABEL,
+	CONNECTION_DEVICE_PENDING_EMPTY_COPY,
+	CONNECTION_DEVICE_PENDING_HEADING,
+	connectionDevicePairIds,
+	formatConnectionPendingPairLabel,
+} from './connectionDevicePair.js';
 import {
 	canConnectHubDevice,
 	getConnectionPhasePaneLabel,
@@ -207,6 +216,10 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 	private readonly revokeDeviceButton: Button;
 	private readonly confirmDeviceCodeInput: HTMLInputElement;
 	private readonly confirmDeviceCodeButton: Button;
+	private readonly rejectDevicePairButton: Button;
+	private readonly pendingPairsHeading: HTMLElement;
+	private readonly pendingPairsEmpty: HTMLElement;
+	private readonly pendingPairsList: HTMLElement;
 	private readonly directAddressSection: HTMLElement;
 	private readonly directHostInput: HTMLInputElement;
 	private readonly directPortInput: HTMLInputElement;
@@ -224,6 +237,9 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 	private readonly environmentNotice: HTMLElement;
 	private entries: IConnectionProfileEntry[] = [];
 	private hubDevices: HubDeviceProjection[] = [];
+	private pendingPairs: UniverseAgentPendingPairInfo[] = [];
+	private selectedPending: UniverseAgentPendingPairInfo | undefined;
+	private readonly pendingRowDisposables = this._register(new DisposableStore());
 	private connectionPhase: ConnectionPhase = { kind: 'disconnected' };
 	private activeProfileId: string | undefined;
 
@@ -310,6 +326,9 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		this.confirmDeviceCodeButton = this._register(new Button(deviceCodeRow, defaultButtonStyles));
 		this.confirmDeviceCodeButton.label = localize('ua.connectionConfirmDeviceCode', "Confirm");
 		this._register(this.confirmDeviceCodeButton.onDidClick(() => void this.handleConfirmDeviceCode()));
+		this.rejectDevicePairButton = this._register(new Button(deviceCodeRow, { ...defaultButtonStyles, secondary: true }));
+		this.rejectDevicePairButton.label = CONNECTION_DEVICE_PAIR_REJECT_LABEL;
+		this._register(this.rejectDevicePairButton.onDidClick(() => void this.handleRejectDevicePair()));
 
 		// Zone 2 — Device list
 		this.hubDevicesSection = DOM.append(this.container, DOM.$('.connection-zone.connection-hub-devices'));
@@ -337,6 +356,14 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		this.revokeDeviceButton = this._register(new Button(this.deviceActionsRow, { ...defaultButtonStyles, secondary: true }));
 		this.revokeDeviceButton.label = localize('ua.connectionDeviceRevoke', "Revoke");
 		this._register(this.revokeDeviceButton.onDidClick(() => void this.handleRevokeSelectedDevice()));
+
+		this.pendingPairsHeading = DOM.append(this.hubDevicesSection, DOM.$('h4.connection-engine-pending-heading'));
+		this.pendingPairsHeading.textContent = CONNECTION_DEVICE_PENDING_HEADING;
+		this.pendingPairsEmpty = DOM.append(this.hubDevicesSection, DOM.$('.connection-engine-pending-empty'));
+		this.pendingPairsEmpty.setAttribute('role', 'status');
+		this.pendingPairsEmpty.textContent = CONNECTION_DEVICE_PENDING_EMPTY_COPY;
+		this.pendingPairsList = DOM.append(this.hubDevicesSection, DOM.$('.connection-engine-pending-list'));
+		this.pendingPairsList.setAttribute('role', 'list');
 
 		// Zone 2b — Direct Address (debug / fallback; no Hub ticket)
 		this.directAddressSection = DOM.append(this.container, DOM.$('.connection-zone.connection-direct-address'));
@@ -447,6 +474,8 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		this._register(this.connectionService.onDidChangeConnection(() => {
 			this.renderConnectionPhase();
 			this.applyDesktopConnectionControlVisibility();
+			this.renderHubAccount();
+			void this.refreshEnginePending();
 		}));
 
 		this.renderHubAccount();
@@ -455,6 +484,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		this.renderConnectionPhase();
 		this.applyDesktopConnectionControlVisibility();
 		void this.initializeState();
+		void this.refreshEnginePending();
 	}
 
 	private desktopConnectionControlContext() {
@@ -475,7 +505,9 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 			this.hubDevicesSection.style.display = 'none';
 			return;
 		}
-		this.hubDevicesSection.style.display = this.hubService.getAuthStatus().kind === 'signedOut' ? 'none' : '';
+		const hubSignedIn = this.hubService.getAuthStatus().kind !== 'signedOut';
+		const enginePairSeat = this.connectionService.isEngineConnected();
+		this.hubDevicesSection.style.display = hubSignedIn || enginePairSeat ? '' : 'none';
 	}
 
 	private async initializeState(): Promise<void> {
@@ -553,6 +585,51 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 
 	private async refreshHubDirectory(): Promise<void> {
 		await this.hubService.refreshDirectory();
+		await this.refreshEnginePending();
+	}
+
+	private async refreshEnginePending(): Promise<void> {
+		const hook = this.connectionService.listPending;
+		if (!canSendConnectionDevicePairRequest(this.connectionService.isEngineConnected(), typeof hook === 'function') || !hook) {
+			this.pendingPairs = [];
+			this.selectedPending = undefined;
+			this.renderPendingPairs();
+			return;
+		}
+		try {
+			const result = await hook.call(this.connectionService);
+			this.pendingPairs = [...result.pending];
+		} catch {
+			this.pendingPairs = [];
+		}
+		this.selectedPending = undefined;
+		this.renderPendingPairs();
+	}
+
+	private renderPendingPairs(): void {
+		const hook = this.connectionService.listPending;
+		const canList = canSendConnectionDevicePairRequest(this.connectionService.isEngineConnected(), typeof hook === 'function');
+		this.pendingPairsHeading.style.display = canList ? '' : 'none';
+		this.pendingPairsList.style.display = canList && this.pendingPairs.length > 0 ? '' : 'none';
+		this.pendingPairsEmpty.style.display = canList && this.pendingPairs.length === 0 ? '' : 'none';
+		this.pendingRowDisposables.clear();
+		DOM.clearNode(this.pendingPairsList);
+		if (!canList) {
+			return;
+		}
+		for (const pending of this.pendingPairs) {
+			const row = DOM.append(this.pendingPairsList, DOM.$('.connection-engine-pending-row'));
+			row.setAttribute('role', 'listitem');
+			row.tabIndex = 0;
+			row.textContent = formatConnectionPendingPairLabel(pending);
+			if (pending === this.selectedPending) {
+				row.classList.add('selected');
+			}
+			this.pendingRowDisposables.add(DOM.addDisposableListener(row, 'click', () => {
+				this.selectedPending = pending;
+				this.renderPendingPairs();
+			}));
+		}
 	}
 
 	private async handleAddDirectAddress(): Promise<void> {
@@ -774,6 +851,22 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 	}
 
 	private async handleConfirmDeviceCode(): Promise<void> {
+		const approveHook = this.connectionService.pairApprove;
+		if (canSendConnectionDevicePairRequest(this.connectionService.isEngineConnected(), typeof approveHook === 'function') && approveHook) {
+			const request = connectionDevicePairIds(this.confirmDeviceCodeInput.value, this.selectedPending);
+			try {
+				const result = await approveHook.call(this.connectionService, request);
+				this.hubDeviceCodeStatus.textContent = result.message;
+				if (result.success) {
+					this.confirmDeviceCodeInput.value = '';
+					await this.refreshEnginePending();
+				}
+			} catch (error) {
+				const reason = error instanceof Error && error.message ? error.message : String(error);
+				this.hubDeviceCodeStatus.textContent = reason;
+			}
+			return;
+		}
 		const code = this.confirmDeviceCodeInput.value.trim();
 		if (!code) {
 			this.hubDeviceCodeStatus.textContent = localize('ua.connectionConfirmDeviceCodeEmpty', "Enter a device code first.");
@@ -786,6 +879,25 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		if (result.ok) {
 			this.confirmDeviceCodeInput.value = '';
 			await this.hubService.refreshDirectory();
+		}
+	}
+
+	private async handleRejectDevicePair(): Promise<void> {
+		const rejectHook = this.connectionService.pairReject;
+		if (!canSendConnectionDevicePairRequest(this.connectionService.isEngineConnected(), typeof rejectHook === 'function') || !rejectHook) {
+			return;
+		}
+		const request = { pairingCode: connectionDevicePairIds(this.confirmDeviceCodeInput.value, this.selectedPending).pairingCode };
+		try {
+			const result = await rejectHook.call(this.connectionService, request);
+			this.hubDeviceCodeStatus.textContent = result.message;
+			if (result.success) {
+				this.confirmDeviceCodeInput.value = '';
+				await this.refreshEnginePending();
+			}
+		} catch (error) {
+			const reason = error instanceof Error && error.message ? error.message : String(error);
+			this.hubDeviceCodeStatus.textContent = reason;
 		}
 	}
 
@@ -805,9 +917,14 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 			? HUB_CHANGE_PASSWORD_BUTTON_LABEL
 			: HUB_LOGIN_BUTTON_LABEL;
 		this.hubLoginButton.enabled = !signedIn;
-		const deviceCodeEnabled = signedIn;
+		const deviceCodeEnabled = signedIn
+			|| canSendConnectionDevicePairRequest(this.connectionService.isEngineConnected(), typeof this.connectionService.pairApprove === 'function');
 		this.confirmDeviceCodeInput.disabled = !deviceCodeEnabled;
 		this.confirmDeviceCodeButton.enabled = deviceCodeEnabled;
+		this.rejectDevicePairButton.enabled = canSendConnectionDevicePairRequest(
+			this.connectionService.isEngineConnected(),
+			typeof this.connectionService.pairReject === 'function',
+		);
 	}
 
 	private renderHubDirectory(): void {
@@ -823,7 +940,9 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		}
 		this.hubDevicesList.splice(0, this.hubDevicesList.length, this.hubDevices);
 		if (shouldDrawDesktopConnectionControls(this.desktopConnectionControlContext())) {
-			this.hubDevicesSection.style.display = this.hubService.getAuthStatus().kind === 'signedOut' ? 'none' : '';
+			const hubSignedIn = this.hubService.getAuthStatus().kind !== 'signedOut';
+			const enginePairSeat = this.connectionService.isEngineConnected();
+			this.hubDevicesSection.style.display = hubSignedIn || enginePairSeat ? '' : 'none';
 		}
 		this.updateDeviceActions();
 	}
