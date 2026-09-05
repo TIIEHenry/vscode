@@ -296,6 +296,8 @@ import type {
 	UniverseAgentDownloadAttachmentRequest,
 	UniverseAgentDownloadChunk,
 	UniverseAgentDownloadAttachmentStream,
+	UniverseAgentPtyServerMessage,
+	UniverseAgentPtyStream,
 	UniverseAgentHealthCheckResult,
 	UniverseAgentDoctorResult,
 	UniverseAgentShutdownRequest,
@@ -1853,6 +1855,23 @@ export interface IUniverseAgentConnection {
 		onResponse: (response: UniverseAgentDownloadChunk) => void,
 		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
 	): UniverseAgentDownloadAttachmentStream;
+
+	/**
+	 * PtyService.PtyStream bidi (`stream PtyClientMessage` ↔
+	 * `stream PtyServerMessage`). Optional so Web / tests can omit it.
+	 * Catalog + node transport only this slice; empty `engineSessionId` /
+	 * `clientSessionId` / `tabId` / `ptySessionId` are sent as-is. Empty
+	 * `workingDirectory` / `shellCommand` / `initialCommand` / `title` /
+	 * `errorMessage` / `shellArgs` / environment keys+values / `data`
+	 * mapped as-is. `columns` / `rows` / `exitCode` 0 as-is. Proto fields
+	 * only. No Conversation roster / UI / Engine Preferences / Composer.
+	 * ≠ RemoteChat / AgentService.Chat / UploadAttachment /
+	 * DownloadAttachment / SendShellSessionClientControl.
+	 */
+	openPtyStream?(
+		onResponse: (response: UniverseAgentPtyServerMessage) => void,
+		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
+	): UniverseAgentPtyStream;
 
 	/**
 	 * SystemService.HealthCheck unary. Optional so Web / tests can omit it.
