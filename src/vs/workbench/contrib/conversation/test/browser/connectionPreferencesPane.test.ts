@@ -31,6 +31,7 @@ import type {
 	UniverseAgentListDevicesResult,
 	UniverseAgentPairApproveRequest,
 	UniverseAgentPairRejectRequest,
+	UniverseAgentRevokeRequest,
 } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import {
 	CONNECTION_DEVICE_PAIR_REJECT_LABEL,
@@ -789,6 +790,122 @@ suite('ConnectionPreferencesPane', () => {
 		await Promise.resolve();
 		await Promise.resolve();
 		assert.strictEqual(confirmed, 'ABCD-1234');
+		container.remove();
+	});
+
+	test('DeviceService.Revoke does not send when disconnected or hook missing', async () => {
+		const revokeCalls: UniverseAgentRevokeRequest[] = [];
+		let hubRevoked: string | undefined;
+		const disconnected = mountPane({
+			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
+			getDirectoryStatus: () => ({ kind: 'ok', devices: [device({ id: 'dev-1', name: 'Studio' })] }),
+			revokeDevice: async id => {
+				hubRevoked = id;
+				return { ok: true };
+			},
+		}, {
+			isEngineConnected: () => false,
+			revoke: async request => {
+				revokeCalls.push(request);
+				return { success: true, message: '' };
+			},
+		});
+		const container = disconnected.getDomNode();
+		disconnected.layout(new Dimension(800, 800));
+		await Promise.resolve();
+		const revoke = [...container.querySelectorAll('.connection-hub-device-actions .monaco-button')]
+			.find(button => button.textContent === 'Revoke') as HTMLButtonElement | undefined;
+		assert.ok(revoke);
+		revoke.click();
+		await Promise.resolve();
+		await Promise.resolve();
+		assert.strictEqual(hubRevoked, 'dev-1');
+		assert.deepStrictEqual(revokeCalls, []);
+
+		const noHook = mountPane({
+			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
+			getDirectoryStatus: () => ({ kind: 'ok', devices: [device({ id: 'dev-2', name: 'Phone' })] }),
+			revokeDevice: async id => {
+				hubRevoked = id;
+				return { ok: true };
+			},
+		}, {
+			isEngineConnected: () => true,
+		});
+		const noHookContainer = noHook.getDomNode();
+		noHook.layout(new Dimension(800, 800));
+		await Promise.resolve();
+		const noHookRevoke = [...noHookContainer.querySelectorAll('.connection-hub-device-actions .monaco-button')]
+			.find(button => button.textContent === 'Revoke') as HTMLButtonElement | undefined;
+		assert.ok(noHookRevoke);
+		noHookRevoke.click();
+		await Promise.resolve();
+		await Promise.resolve();
+		assert.strictEqual(hubRevoked, 'dev-2');
+		assert.deepStrictEqual(revokeCalls, []);
+		container.remove();
+		noHookContainer.remove();
+	});
+
+	test('DeviceService.Revoke sends empty device_id as-is when connected', async () => {
+		const revokeCalls: UniverseAgentRevokeRequest[] = [];
+		let hubRevoked: string | undefined;
+		const pane = mountPane({
+			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
+			getDirectoryStatus: () => ({ kind: 'ok', devices: [device({ id: '', name: '' })] }),
+			revokeDevice: async id => {
+				hubRevoked = id;
+				return { ok: true };
+			},
+		}, {
+			isEngineConnected: () => true,
+			revoke: async request => {
+				revokeCalls.push(request);
+				return { success: true, message: '' };
+			},
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		await Promise.resolve();
+		const revoke = [...container.querySelectorAll('.connection-hub-device-actions .monaco-button')]
+			.find(button => button.textContent === 'Revoke') as HTMLButtonElement | undefined;
+		assert.ok(revoke);
+		revoke.click();
+		await Promise.resolve();
+		await Promise.resolve();
+		assert.strictEqual(hubRevoked, undefined);
+		assert.deepStrictEqual(revokeCalls, [{ deviceId: '' }]);
+		container.remove();
+	});
+
+	test('DeviceService.Revoke sends selected device id without inventing defaults', async () => {
+		const revokeCalls: UniverseAgentRevokeRequest[] = [];
+		let hubRevoked: string | undefined;
+		const pane = mountPane({
+			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
+			getDirectoryStatus: () => ({ kind: 'ok', devices: [device({ id: 'dev-1', name: 'Studio' })] }),
+			revokeDevice: async id => {
+				hubRevoked = id;
+				return { ok: true };
+			},
+		}, {
+			isEngineConnected: () => true,
+			revoke: async request => {
+				revokeCalls.push(request);
+				return { success: false, message: '' };
+			},
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		await Promise.resolve();
+		const revoke = [...container.querySelectorAll('.connection-hub-device-actions .monaco-button')]
+			.find(button => button.textContent === 'Revoke') as HTMLButtonElement | undefined;
+		assert.ok(revoke);
+		revoke.click();
+		await Promise.resolve();
+		await Promise.resolve();
+		assert.strictEqual(hubRevoked, undefined);
+		assert.deepStrictEqual(revokeCalls, [{ deviceId: 'dev-1' }]);
 		container.remove();
 	});
 
