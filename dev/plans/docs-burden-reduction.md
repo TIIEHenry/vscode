@@ -1,10 +1,10 @@
 ---
 title: "文档负担收敛：状态列生成、单一真相与术语对外可读"
 type: plan
-status: accepted
+status: implemented
 phase: N/A
 updated: 2026-09-05
-summary: "plans INDEX 状态列与 traceability 产品状态列由脚本生成，test-baseline-ci 的 docs-health job 是唯一机器调用方；status.md 只留当前迭代；glossary 增补对外可读约束与允许的缩写。2026-09-05 第二轮对抗审查后签收"
+summary: "S1–S5 已落：plans/traceability 状态列由 generate-docs-status.py 生成（docs-health 唯一机器调用方）；glossary 对外可读约束；status 停止复述四写枚举；归档标准入 DOCUMENTATION 规则 7"
 ---
 
 # 文档负担收敛
