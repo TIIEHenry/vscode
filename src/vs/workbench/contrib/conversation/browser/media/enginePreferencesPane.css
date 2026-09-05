@@ -106,6 +106,35 @@
 	word-break: break-word;
 }
 
+.monaco-workbench .engine-clipboard-list {
+	font-size: 12px;
+}
+
+.monaco-workbench .engine-clipboard-row {
+	padding: 4px 0;
+	overflow-wrap: anywhere;
+	word-break: break-word;
+	cursor: pointer;
+}
+
+.monaco-workbench .engine-clipboard-row.selected {
+	font-weight: 600;
+}
+
+.monaco-workbench .engine-clipboard-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin-top: 8px;
+}
+
+.monaco-workbench .engine-clipboard-read-status {
+	margin-top: 8px;
+	font-size: 12px;
+	overflow-wrap: anywhere;
+	word-break: break-word;
+}
+
 .monaco-workbench .engine-preferences-pane.is-narrow .engine-provider-model-group-heading {
 	flex-direction: column;
 	align-items: flex-start;

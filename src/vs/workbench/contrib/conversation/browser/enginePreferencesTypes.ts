@@ -13,6 +13,7 @@ export type EnginePreferencesSectionId =
 	| 'rules'
 	| 'hooks'
 	| 'triggers'
+	| 'clipboard'
 	| 'mcpServers'
 	| 'plugins'
 	| 'tools';
@@ -30,6 +31,7 @@ export const ENGINE_PREFERENCES_NAV_ENTRIES: readonly EnginePreferencesNavEntry[
 	{ id: 'rules', label: localize('ua.engineNavRules', "Rules") },
 	{ id: 'hooks', label: localize('ua.engineNavHooks', "Hooks") },
 	{ id: 'triggers', label: localize('ua.engineNavTriggers', "Triggers") },
+	{ id: 'clipboard', label: localize('ua.engineNavClipboard', "Clipboard") },
 	{ id: 'mcpServers', label: localize('ua.engineNavMcpServers', "MCP Servers") },
 	{ id: 'plugins', label: localize('ua.engineNavPlugins', "Plugins") },
 	{ id: 'tools', label: localize('ua.engineNavTools', "Tools") },
