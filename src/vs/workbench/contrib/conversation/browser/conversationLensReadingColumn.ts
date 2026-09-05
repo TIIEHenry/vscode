@@ -123,12 +123,13 @@ export function bindReadingColumnLayout(host: IConversationLensReadingColumnHost
 
 }
 
-/** PreFirst hero owns the reading column; do not let an empty tree consume the leaf height. */
+/** PreFirst hero owns the reading column via CSS; do not layout(0) the monaco tree. */
 export function layoutReadingSurfaces(host: IConversationLensReadingColumnHost, height: number, width: number): void {
-	const preFirst = host.readingColumn.classList.contains(conversationLensPhasePreFirstClass);
-	const surfaceHeight = preFirst ? 0 : height;
-	host.timelineTree.layout(surfaceHeight, width);
-	host.trajectoryView.layout(surfaceHeight, width);
+	if (host.readingColumn.classList.contains(conversationLensPhasePreFirstClass)) {
+		return;
+	}
+	host.timelineTree.layout(height, width);
+	host.trajectoryView.layout(height, width);
 }
 
 export function applyConversationDensity(host: IConversationLensReadingColumnHost): void {

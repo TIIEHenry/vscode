@@ -39,6 +39,7 @@ export interface IConversationLensProjectionHost {
 	composerPolicy: 'compose' | 'turnEdit' | 'queueEdit';
 	lastAttachedEntries: ConversationTimelineEntry[];
 	sessionViewLease: IConversationSessionViewLease | undefined;
+	relayoutReadingSurfaces(): void;
 	readonly slotHosts: IConversationLensSlots;
 	readonly stubService: IConversationRosterService;
 	readonly storageService: IStorageService;
@@ -173,6 +174,7 @@ export function updateConversationPhase(host: IConversationLensProjectionHost): 
 		}
 		host.updateGateRow();
 		host.syncComposerPlacement();
+		host.relayoutReadingSurfaces();
 	
 }
 
