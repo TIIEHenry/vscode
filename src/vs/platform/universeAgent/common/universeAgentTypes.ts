@@ -71,6 +71,8 @@ export interface UniverseAgentListSessionsResult {
 export interface UniverseAgentCreateSessionRequest {
 	readonly title?: string;
 	readonly model?: string;
+	/** proto CreateSessionRequest.client_session_id (field 4). Local session id. */
+	readonly clientSessionId?: string;
 }
 
 export interface UniverseAgentCreateSessionResult {

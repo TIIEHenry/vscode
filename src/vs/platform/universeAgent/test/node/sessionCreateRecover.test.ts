@@ -67,6 +67,28 @@ suite('createSession ALREADY_EXISTS recover', () => {
 		);
 	});
 
+	test('List transport/query failure is not treated as empty list or Resume', async () => {
+		const resumeCalls: string[] = [];
+		await assert.rejects(
+			() => createSessionRecoveringAlreadyExists(
+				async () => {
+					throw new UniverseAgentTransportError(GrpcStatusCode.ALREADY_EXISTS, 'Session already exists');
+				},
+				async () => {
+					throw new UniverseAgentTransportError(GrpcStatusCode.UNAVAILABLE, 'Query does not return results');
+				},
+				async sessionId => { resumeCalls.push(sessionId); },
+				'untitled',
+			),
+			(error: unknown) => error instanceof Error
+				&& /List failed/.test(error.message)
+				&& /Query does not return results/.test(error.message)
+				&& !/List returned no session_id/.test(error.message)
+				&& !(error instanceof UniverseAgentTransportError && error.code === GrpcStatusCode.ALREADY_EXISTS),
+		);
+		assert.deepStrictEqual(resumeCalls, []);
+	});
+
 	test('non-ALREADY_EXISTS still throws without List', async () => {
 		let listCalled = false;
 		await assert.rejects(
@@ -112,9 +134,34 @@ suite('createSession ALREADY_EXISTS recover', () => {
 			createTransport: () => transport,
 		}));
 		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
-		const result = await service.createSession({ title: 'New session' });
+		const result = await service.createSession({ title: 'New session', clientSessionId: 'local-roster' });
 		assert.strictEqual(result.sessionId, 'eng-roster');
 		assert.deepStrictEqual(resumeCalls, [{ sessionId: 'eng-roster' }]);
+	});
+
+	test('connection service List failure after ALREADY_EXISTS does not Resume', async () => {
+		const resumeCalls: UniverseAgentResumeSessionRequest[] = [];
+		const transport = createRecoverTransport({
+			createSession: async () => {
+				throw new UniverseAgentTransportError(GrpcStatusCode.ALREADY_EXISTS, '6 ALREADY_EXISTS: Session already exists');
+			},
+			listSessions: async () => {
+				throw new UniverseAgentTransportError(GrpcStatusCode.UNAVAILABLE, 'Query does not return results');
+			},
+			resumeSession: async request => {
+				resumeCalls.push(request);
+				return { ok: true };
+			},
+		});
+		const service = store.add(new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		}));
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await assert.rejects(
+			() => service.createSession({ title: 'New session', clientSessionId: 'local-fail' }),
+			(error: unknown) => error instanceof Error && /List failed/.test(error.message),
+		);
+		assert.deepStrictEqual(resumeCalls, []);
 	});
 
 	test('connection service listSessions after connect returns engine rows', async () => {

@@ -61,8 +61,8 @@ export class TestConnection implements IUniverseAgentConnection {
 	async probeConnectionProfile() { return { ok: false as const, code: 'transport_failed' as const, reason: 'test' }; }
 	async disconnect() { this.connected = false; }
 	async listSessions() { return { sessions: [] }; }
-	readonly createSessionCalls: { title?: string; model?: string }[] = [];
-	async createSession(request: { title?: string; model?: string } = {}) {
+	readonly createSessionCalls: { title?: string; model?: string; clientSessionId?: string }[] = [];
+	async createSession(request: { title?: string; model?: string; clientSessionId?: string } = {}) {
 		this.createSessionCalls.push(request);
 		return { sessionId: request.title || 's' };
 	}

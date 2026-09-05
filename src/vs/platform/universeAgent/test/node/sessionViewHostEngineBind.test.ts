@@ -14,8 +14,8 @@ class BindConnection extends TestConnection {
 	readonly streamSessionIds: string[] = [];
 	createdEngineId = 'eng-real';
 
-	override async createSession() {
-		this.createSessionCalls.push({});
+	override async createSession(request: { title?: string; model?: string; clientSessionId?: string } = {}) {
+		this.createSessionCalls.push(request);
 		return { sessionId: this.createdEngineId };
 	}
 
@@ -52,6 +52,7 @@ suite('SessionViewHost engine session bind', () => {
 
 		assert.strictEqual(engineId, 'eng-real');
 		assert.strictEqual(connection.createSessionCalls.length, 1);
+		assert.strictEqual(connection.createSessionCalls[0]?.clientSessionId, 'local-untitled');
 		assert.deepStrictEqual(connection.streamSessionIds, ['eng-real']);
 		assert.deepStrictEqual(connection.chatSessionIds, ['eng-real']);
 		assert.ok(!connection.streamSessionIds.includes('local-untitled'));
@@ -154,6 +155,29 @@ suite('SessionViewHost engine session bind', () => {
 		const engineId = await viewHost.whenEngineSessionReady('local-exists');
 		assert.strictEqual(engineId, 'eng-match');
 		assert.deepStrictEqual(connection.resumeSessionCalls, [{ sessionId: 'eng-match' }]);
+	});
+
+	test('Create ALREADY_EXISTS with List transport/query failure does not Resume', async () => {
+		const connection = new class extends BindConnection {
+			override async createSession(request: { title?: string; model?: string; clientSessionId?: string } = {}) {
+				this.createSessionCalls.push(request);
+				throw new UniverseAgentTransportError(GrpcStatusCode.ALREADY_EXISTS, 'Session already exists');
+			}
+			override async listSessions() {
+				throw new UniverseAgentTransportError(GrpcStatusCode.UNAVAILABLE, 'Query does not return results');
+			}
+		}();
+		const viewHost = store.add(new SessionViewHost(connection, new TestHost(async () => undefined), {
+			orphanTimeoutMs: 0,
+		}));
+		viewHost.onEngineConnectionChanged();
+		await assert.rejects(
+			() => viewHost.whenEngineSessionReady('local-list-fail'),
+			/List failed/,
+		);
+		assert.strictEqual(connection.createSessionCalls.length, 1);
+		assert.strictEqual(connection.createSessionCalls[0]?.clientSessionId, 'local-list-fail');
+		assert.deepStrictEqual(connection.resumeSessionCalls, []);
 	});
 
 	test('Create ALREADY_EXISTS with empty List does not retry Create', async () => {

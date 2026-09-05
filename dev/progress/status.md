@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-06
-summary: "握手已 protobuf；Create ALREADY_EXISTS 在 connection/grpc 入口 List+Resume；List 默认 ALL；其余 JSON 见 D24"
+summary: "握手已 protobuf；Create 写 client_session_id；List 失败与空列表分开；其余 JSON 见 D24"
 ---
 
 # Development Progress
@@ -49,7 +49,7 @@ summary: "握手已 protobuf；Create ALREADY_EXISTS 在 connection/grpc 入口 
 
 HistoryFill 已合入 merge。剩余：宿主全局 `onDidApplyFrame` 整刀删、断连列顶/Send、`heartbeat_ack` 行为测。U1 已合；**U2 未开**。
 
-**B 槽 catalog / ALREADY_EXISTS**：`createSession` 在 connection service **与** grpc client 遇 `ALREADY_EXISTS` 均 List+Resume，roster 裸 Create 不再把 6 抛给 UI。`listSessions` 默认 `SESSION_LIST_FILTER_ALL`。host 空 List 仍 Create（带同一恢复）。`listTools` 与其余 JSON → [D24](deferred-gaps.md)。
+**B 槽 catalog / ALREADY_EXISTS**：`createSession` 在 connection service **与** grpc client 遇 `ALREADY_EXISTS` 均 List+Resume；Create 编码稳定 `client_session_id`（field 4，本地 session id，缺省生成）。List transport/query 失败不再当成空列表去 Resume。`listSessions` 默认 `SESSION_LIST_FILTER_ALL`。`listTools` 与其余 JSON → [D24](deferred-gaps.md)。
 
 **D 槽 pairing IPC**：`connectProfile` 进入 pairing 先返回 `{ok, pairingPending, sasCode|recoverTrust}`（Connect 超时走 recoverTrust）；桌面 capability 剥离 Web stub reason；probe 的 `pairing_required` 改为「走 Connect 配对」。E2E 仍待 A 合入确认框。
 

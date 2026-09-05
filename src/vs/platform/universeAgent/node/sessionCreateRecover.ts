@@ -35,7 +35,13 @@ export async function recoverSessionAfterAlreadyExists(
 	resumeSession: ((sessionId: string) => Promise<unknown>) | undefined,
 	title: string | undefined,
 ): Promise<UniverseAgentCreateSessionResult> {
-	const listed = await listSessions();
+	let listed: UniverseAgentListSessionsResult;
+	try {
+		listed = await listSessions();
+	} catch (error) {
+		const detail = error instanceof Error ? error.message : String(error);
+		throw new Error(`CreateSession ALREADY_EXISTS and List failed: ${detail}`, { cause: error });
+	}
 	const match = listed.sessions.find(session => !!title && session.title === title && session.sessionId)
 		?? listed.sessions.find(session => !!session.sessionId);
 	if (!match?.sessionId) {

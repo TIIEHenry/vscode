@@ -18,6 +18,7 @@ import {
 	encodeGetHistoryRequest,
 	encodeResumeSessionRequest,
 	encodeSessionStreamHandshake,
+	resolveCreateSessionClientId,
 } from '../../node/grpc/grpcSessionAttachWire.js';
 import {
 	encodeInt32Field,
@@ -33,12 +34,32 @@ suite('grpc first-send / attach protobuf wire', () => {
 	ensureNoDisposablesAreLeakedInTestSuite();
 
 	test('encodeCreateSessionRequest writes model field 3, not title JSON', () => {
-		const encoded = encodeCreateSessionRequest({ title: 'New session', model: 'gpt-test' });
+		const encoded = encodeCreateSessionRequest({ title: 'New session', model: 'gpt-test', clientSessionId: 'local-1' });
 		assert.notStrictEqual(encoded[0], 0x7b, 'must not start with JSON {');
 		const fields = readProtoFields(encoded);
-		assert.strictEqual(fields.length, 1);
-		assert.strictEqual(fields[0].field, 3);
-		assert.strictEqual(Buffer.from(fields[0].wireType === 2 ? fields[0].bytes : []).toString('utf8'), 'gpt-test');
+		const byField = new Map(fields.map(field => [field.field, field]));
+		assert.strictEqual(byField.get(3)?.field, 3);
+		assert.strictEqual(Buffer.from(byField.get(3)?.wireType === 2 ? byField.get(3)!.bytes : []).toString('utf8'), 'gpt-test');
+		assert.ok(!fields.some(field => field.wireType === 2 && Buffer.from(field.bytes).toString('utf8') === 'New session'));
+	});
+
+	test('encodeCreateSessionRequest writes client_session_id field 4 from local session id', () => {
+		const encoded = encodeCreateSessionRequest({ title: 'New session', model: 'gpt-test', clientSessionId: 'local-stable' });
+		const fields = readProtoFields(encoded);
+		const clientId = fields.find(field => field.field === 4 && field.wireType === 2);
+		assert.ok(clientId && clientId.wireType === 2);
+		assert.strictEqual(Buffer.from(clientId.bytes).toString('utf8'), 'local-stable');
+	});
+
+	test('encodeCreateSessionRequest always writes a non-empty client_session_id field 4', () => {
+		const encoded = encodeCreateSessionRequest({ title: 'New session', model: 'gpt-test' });
+		const fields = readProtoFields(encoded);
+		const clientId = fields.find(field => field.field === 4 && field.wireType === 2);
+		assert.ok(clientId && clientId.wireType === 2);
+		const value = Buffer.from(clientId.bytes).toString('utf8');
+		assert.ok(value.length > 0);
+		assert.notStrictEqual(value, 'New session');
+		assert.strictEqual(resolveCreateSessionClientId({ clientSessionId: 'keep-me' }), 'keep-me');
 	});
 
 	test('decodeCreateSessionResponse reads session_id field 1', () => {

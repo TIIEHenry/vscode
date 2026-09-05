@@ -444,7 +444,7 @@ export class SessionViewHost extends Disposable {
 			}
 		}
 		try {
-			const created = await this.connection.createSession({ title: localId });
+			const created = await this.connection.createSession({ title: localId, clientSessionId: localId });
 			if (!created.sessionId) {
 				throw new Error('CreateSession returned empty session_id');
 			}

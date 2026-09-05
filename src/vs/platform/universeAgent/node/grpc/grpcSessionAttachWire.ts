@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { generateUuid } from '../../../../base/common/uuid.js';
 import type {
 	UniverseAgentChatResponse,
 	UniverseAgentCreateSessionRequest,
@@ -32,9 +33,20 @@ export const HISTORY_DIRECTION_FORWARD_AFTER = 1;
 
 export const GET_HISTORY_WIRE_PAGE_SIZE_MAX = 500;
 
+export function resolveCreateSessionClientId(request: UniverseAgentCreateSessionRequest): string {
+	const explicit = request.clientSessionId?.trim();
+	if (explicit) {
+		return explicit;
+	}
+	return generateUuid();
+}
+
 export function encodeCreateSessionRequest(request: UniverseAgentCreateSessionRequest): Uint8Array {
-	// proto CreateSessionRequest has no title; field 3 is model.
-	return encodeStringField(3, request.model);
+	// proto CreateSessionRequest has no title; field 3 is model; field 4 is client_session_id.
+	return Buffer.concat([
+		encodeStringField(3, request.model),
+		encodeStringField(4, resolveCreateSessionClientId(request)),
+	]);
 }
 
 export function decodeCreateSessionResponse(bytes: Uint8Array): UniverseAgentCreateSessionResult {
