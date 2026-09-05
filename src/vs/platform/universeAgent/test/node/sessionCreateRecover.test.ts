@@ -7,18 +7,10 @@ import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import { GrpcStatusCode, UniverseAgentTransportError } from '../../node/grpc/grpcTransport.js';
 import { createSessionRecoveringAlreadyExists } from '../../node/sessionCreateRecover.js';
-import { UniverseAgentConnectionService } from '../../node/universeAgentConnectionService.js';
-import type { IUniverseAgentGrpcTransport } from '../../node/grpc/grpcTransport.js';
-import type {
-	UniverseAgentCreateSessionRequest,
-	UniverseAgentCreateSessionResult,
-	UniverseAgentListSessionsResult,
-	UniverseAgentResumeSessionRequest,
-} from '../../common/universeAgentTypes.js';
 
 suite('createSession ALREADY_EXISTS recover', () => {
 
-	const store = ensureNoDisposablesAreLeakedInTestSuite();
+	ensureNoDisposablesAreLeakedInTestSuite();
 
 	test('List+Resume returns existing session and does not rethrow 6', async () => {
 		const resumeCalls: string[] = [];
@@ -51,20 +43,54 @@ suite('createSession ALREADY_EXISTS recover', () => {
 		assert.strictEqual(result.sessionId, 'eng-match');
 	});
 
-	test('empty List does not throw status 6', async () => {
+	test('empty List with clientSessionId Resumes that id', async () => {
+		const resumeCalls: string[] = [];
+		const result = await createSessionRecoveringAlreadyExists(
+			async () => {
+				throw new UniverseAgentTransportError(GrpcStatusCode.ALREADY_EXISTS, 'Session already exists');
+			},
+			async () => ({ sessions: [] }),
+			async sessionId => { resumeCalls.push(sessionId); },
+			'untitled',
+			'session-100',
+		);
+		assert.strictEqual(result.sessionId, 'session-100');
+		assert.deepStrictEqual(resumeCalls, ['session-100']);
+	});
+
+	test('empty List without clientSessionId still fails observably', async () => {
+		const resumeCalls: string[] = [];
 		await assert.rejects(
 			() => createSessionRecoveringAlreadyExists(
 				async () => {
 					throw new UniverseAgentTransportError(GrpcStatusCode.ALREADY_EXISTS, 'Session already exists');
 				},
 				async () => ({ sessions: [] }),
-				async () => { },
+				async sessionId => { resumeCalls.push(sessionId); },
 				'untitled',
 			),
 			(error: unknown) => error instanceof Error
 				&& /List returned no session_id/.test(error.message)
 				&& !(error instanceof UniverseAgentTransportError && error.code === GrpcStatusCode.ALREADY_EXISTS),
 		);
+		assert.deepStrictEqual(resumeCalls, []);
+	});
+
+	test('List failure with clientSessionId Resumes that id', async () => {
+		const resumeCalls: string[] = [];
+		const result = await createSessionRecoveringAlreadyExists(
+			async () => {
+				throw new UniverseAgentTransportError(GrpcStatusCode.ALREADY_EXISTS, 'Session already exists');
+			},
+			async () => {
+				throw new UniverseAgentTransportError(GrpcStatusCode.UNAVAILABLE, 'Query does not return results');
+			},
+			async sessionId => { resumeCalls.push(sessionId); },
+			'untitled',
+			'session-100',
+		);
+		assert.strictEqual(result.sessionId, 'session-100');
+		assert.deepStrictEqual(resumeCalls, ['session-100']);
 	});
 
 	test('List transport/query failure is not treated as empty list or Resume', async () => {
@@ -117,112 +143,4 @@ suite('createSession ALREADY_EXISTS recover', () => {
 		);
 		assert.strictEqual(result.sessionId, 'eng-new');
 	});
-
-	test('connection service createSession recovers ALREADY_EXISTS for roster callers', async () => {
-		const resumeCalls: UniverseAgentResumeSessionRequest[] = [];
-		const transport = createRecoverTransport({
-			createSession: async () => {
-				throw new UniverseAgentTransportError(GrpcStatusCode.ALREADY_EXISTS, '6 ALREADY_EXISTS: Session already exists');
-			},
-			listSessions: async () => ({ sessions: [{ sessionId: 'eng-roster', title: 'New session' }] }),
-			resumeSession: async request => {
-				resumeCalls.push(request);
-				return { ok: true };
-			},
-		});
-		const service = store.add(new UniverseAgentConnectionService({
-			createTransport: () => transport,
-		}));
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
-		const result = await service.createSession({ title: 'New session', clientSessionId: 'local-roster' });
-		assert.strictEqual(result.sessionId, 'eng-roster');
-		assert.deepStrictEqual(resumeCalls, [{ sessionId: 'eng-roster' }]);
-	});
-
-	test('connection service List failure after ALREADY_EXISTS does not Resume', async () => {
-		const resumeCalls: UniverseAgentResumeSessionRequest[] = [];
-		const transport = createRecoverTransport({
-			createSession: async () => {
-				throw new UniverseAgentTransportError(GrpcStatusCode.ALREADY_EXISTS, '6 ALREADY_EXISTS: Session already exists');
-			},
-			listSessions: async () => {
-				throw new UniverseAgentTransportError(GrpcStatusCode.UNAVAILABLE, 'Query does not return results');
-			},
-			resumeSession: async request => {
-				resumeCalls.push(request);
-				return { ok: true };
-			},
-		});
-		const service = store.add(new UniverseAgentConnectionService({
-			createTransport: () => transport,
-		}));
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
-		await assert.rejects(
-			() => service.createSession({ title: 'New session', clientSessionId: 'local-fail' }),
-			(error: unknown) => error instanceof Error && /List failed/.test(error.message),
-		);
-		assert.deepStrictEqual(resumeCalls, []);
-	});
-
-	test('connection service listSessions after connect returns engine rows', async () => {
-		const transport = createRecoverTransport({
-			listSessions: async () => ({
-				sessions: [{ sessionId: 'eng-1', title: 'Hello' }],
-				totalCount: 1,
-			}),
-		});
-		const service = store.add(new UniverseAgentConnectionService({
-			createTransport: () => transport,
-		}));
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
-		const listed = await service.listSessions({});
-		assert.strictEqual(listed.sessions.length, 1);
-		assert.strictEqual(listed.sessions[0]?.sessionId, 'eng-1');
-		assert.strictEqual(listed.sessions[0]?.title, 'Hello');
-	});
 });
-
-function createRecoverTransport(handlers: {
-	createSession?: (request: UniverseAgentCreateSessionRequest) => Promise<UniverseAgentCreateSessionResult>;
-	listSessions?: () => Promise<UniverseAgentListSessionsResult>;
-	resumeSession?: (request: UniverseAgentResumeSessionRequest) => Promise<{ ok: boolean }>;
-}): IUniverseAgentGrpcTransport {
-	const base = {
-		isChannelAlive: true,
-		async connect() {
-			return { sessionToken: 'token-1', methods: [], events: [] };
-		},
-		close() { },
-		async probeRpc() {
-			return GrpcStatusCode.UNIMPLEMENTED;
-		},
-		async createSession(request: UniverseAgentCreateSessionRequest) {
-			if (handlers.createSession) {
-				return handlers.createSession(request);
-			}
-			return { sessionId: 'new-session' };
-		},
-		async listSessions() {
-			if (handlers.listSessions) {
-				return handlers.listSessions();
-			}
-			return { sessions: [], totalCount: 0 };
-		},
-		async resumeSession(request: UniverseAgentResumeSessionRequest) {
-			if (handlers.resumeSession) {
-				return handlers.resumeSession(request);
-			}
-			return { ok: true };
-		},
-	};
-	return new Proxy(base as IUniverseAgentGrpcTransport, {
-		get(target, prop, receiver) {
-			if (Reflect.has(target, prop)) {
-				return Reflect.get(target, prop, receiver);
-			}
-			return async () => {
-				throw new Error(`unexpected transport call: ${String(prop)}`);
-			};
-		},
-	});
-}

@@ -915,6 +915,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 			() => transport.listSessions({}),
 			async sessionId => transport.resumeSession({ sessionId }),
 			request.title,
+			request.clientSessionId,
 		));
 	}
 

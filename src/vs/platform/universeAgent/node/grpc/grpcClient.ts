@@ -1300,6 +1300,7 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			() => this.listSessions({}),
 			async sessionId => this.resumeSession({ sessionId }),
 			request.title,
+			request.clientSessionId,
 		);
 	}
 

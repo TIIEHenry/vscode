@@ -157,7 +157,7 @@ suite('SessionViewHost engine session bind', () => {
 		assert.deepStrictEqual(connection.resumeSessionCalls, [{ sessionId: 'eng-match' }]);
 	});
 
-	test('Create ALREADY_EXISTS with List transport/query failure does not Resume', async () => {
+	test('Create ALREADY_EXISTS with List transport/query failure Resumes localId', async () => {
 		const connection = new class extends BindConnection {
 			override async createSession(request: { title?: string; model?: string; clientSessionId?: string } = {}) {
 				this.createSessionCalls.push(request);
@@ -171,19 +171,20 @@ suite('SessionViewHost engine session bind', () => {
 			orphanTimeoutMs: 0,
 		}));
 		viewHost.onEngineConnectionChanged();
-		await assert.rejects(
-			() => viewHost.whenEngineSessionReady('local-list-fail'),
-			/List failed/,
-		);
+		viewHost.acquireLease('session-100');
+		const engineId = await viewHost.whenEngineSessionReady('session-100');
+		assert.strictEqual(engineId, 'session-100');
 		assert.strictEqual(connection.createSessionCalls.length, 1);
-		assert.strictEqual(connection.createSessionCalls[0]?.clientSessionId, 'local-list-fail');
-		assert.deepStrictEqual(connection.resumeSessionCalls, []);
+		assert.strictEqual(connection.createSessionCalls[0]?.clientSessionId, 'session-100');
+		assert.deepStrictEqual(connection.resumeSessionCalls, [{ sessionId: 'session-100' }]);
+		assert.deepStrictEqual(connection.streamSessionIds, ['session-100']);
+		assert.deepStrictEqual(connection.chatSessionIds, ['session-100']);
 	});
 
-	test('Create ALREADY_EXISTS with empty List does not retry Create', async () => {
+	test('Create ALREADY_EXISTS with empty List Resumes localId and does not retry Create', async () => {
 		const connection = new class extends BindConnection {
-			override async createSession() {
-				this.createSessionCalls.push({});
+			override async createSession(request: { title?: string; model?: string; clientSessionId?: string } = {}) {
+				this.createSessionCalls.push(request);
 				throw new UniverseAgentTransportError(GrpcStatusCode.ALREADY_EXISTS, 'Session already exists');
 			}
 		}();
@@ -191,12 +192,14 @@ suite('SessionViewHost engine session bind', () => {
 			orphanTimeoutMs: 0,
 		}));
 		viewHost.onEngineConnectionChanged();
-		await assert.rejects(
-			() => viewHost.whenEngineSessionReady('local-empty'),
-			/List returned no session_id/,
-		);
+		viewHost.acquireLease('session-100');
+		const engineId = await viewHost.whenEngineSessionReady('session-100');
+		assert.strictEqual(engineId, 'session-100');
 		assert.strictEqual(connection.createSessionCalls.length, 1);
-		assert.deepStrictEqual(connection.resumeSessionCalls, []);
+		assert.strictEqual(connection.createSessionCalls[0]?.clientSessionId, 'session-100');
+		assert.deepStrictEqual(connection.resumeSessionCalls, [{ sessionId: 'session-100' }]);
+		assert.deepStrictEqual(connection.streamSessionIds, ['session-100']);
+		assert.deepStrictEqual(connection.chatSessionIds, ['session-100']);
 	});
 
 	test('Create non-ALREADY_EXISTS errors still throw without List recover', async () => {

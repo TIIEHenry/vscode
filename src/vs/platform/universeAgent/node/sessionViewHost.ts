@@ -463,6 +463,7 @@ export class SessionViewHost extends Disposable {
 					? sessionId => this.connection.resumeSession!({ sessionId })
 					: undefined,
 				localId,
+				localId,
 			);
 			return recovered.sessionId;
 		}
