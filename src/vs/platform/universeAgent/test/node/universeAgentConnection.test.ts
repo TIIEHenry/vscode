@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { timeout } from '../../../../base/common/async.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import type {
 	UniverseAgentChatRequest,
@@ -321,6 +322,9 @@ import type { IClientIdentityStore } from '../../node/clientIdentityTypes.js';
 import { createEngineTrustRecord } from '../../node/engineTrustStore.js';
 import type { ConnectionResolver } from '../../node/connectionResolver.js';
 import type { PairingOrchestrator } from '../../node/pairingOrchestrator.js';
+import { PAIRING_REQUIRED_USE_CONNECT_REASON } from '../../common/connectionHubTypes.js';
+import { WEB_UNSUPPORTED_LOCAL_ENGINE_REASON } from '../../common/universeAgentRendererSync.js';
+import { createEmptyCapabilitySnapshot } from '../../node/grpcCapabilityProbe.js';
 import { InMemoryHubSessionStore } from '../../node/hubSessionStore.js';
 import type { ParsedAuthSessionV1 } from '../../node/hub/hub-auth-client.js';
 import { randomUUID } from 'node:crypto';
@@ -10554,6 +10558,82 @@ suite('UniverseAgentConnectionService probeConnectionProfile (GC-3)', () => {
 		assert.strictEqual((service as unknown as { _transport: MockUniverseAgentGrpcTransport })._transport, transportBefore);
 		service.dispose();
 	});
+
+	test('pairing_required formal resolve still probes GetAuthNonce via forPairing', async () => {
+		let probeNonce = 0;
+		class PairingProbeTransport extends MockUniverseAgentGrpcTransport {
+			override async getAuthNonce(): Promise<UniverseAgentAuthNonceResult> {
+				probeNonce++;
+				return {
+					authNonce: new Uint8Array(32).fill(1),
+					engineIdentityId: 'e'.repeat(64),
+					engineCertFingerprint: 'ab'.repeat(32),
+				};
+			}
+		}
+		const mockResolver = {
+			resolve: async (_profileId: string, options?: { readonly forPairing?: boolean }) => {
+				if (!options?.forPairing) {
+					return {
+						ok: false as const,
+						code: 'pairing_required' as const,
+						reason: 'direct address dial requires pairing orchestrator when trust is missing',
+						allowRelayFallback: false,
+					};
+				}
+				return {
+					ok: true as const,
+					allowRelayFallback: false,
+					endpoint: {
+						attemptId: 'a1',
+						authority: '203.0.113.10:7443',
+						port: 7443,
+						resolvedIp: '203.0.113.10',
+						servername: '203.0.113.10',
+						relayTicketId: null,
+						tls: null,
+						expiresAtMs: Date.now() + 60_000,
+						path: 'direct' as const,
+					},
+				};
+			},
+			createIssueRelayTicketHook: () => async () => ({ ok: false as const, code: 'hub_session_required' as const, reason: 'test' }),
+		};
+		const service = new UniverseAgentConnectionService({
+			connectionResolver: mockResolver as unknown as ConnectionResolver,
+			clientIdentityStore: identityStore,
+			createTransport: () => new PairingProbeTransport(),
+		});
+		const result = await service.probeConnectionProfile('profile-1');
+		assert.strictEqual(result.ok, true);
+		assert.strictEqual(probeNonce, 1);
+		service.dispose();
+	});
+
+	test('pairing_required without a pairing endpoint uses Connect-owned reason', async () => {
+		const mockResolver = {
+			resolve: async () => ({
+				ok: false as const,
+				code: 'pairing_required' as const,
+				reason: 'direct address dial requires pairing orchestrator when trust is missing',
+				allowRelayFallback: false,
+			}),
+			createIssueRelayTicketHook: () => async () => ({ ok: false as const, code: 'hub_session_required' as const, reason: 'test' }),
+		};
+		const service = new UniverseAgentConnectionService({
+			connectionResolver: mockResolver as unknown as ConnectionResolver,
+			clientIdentityStore: identityStore,
+			createTransport: () => new MockUniverseAgentGrpcTransport(),
+		});
+		const result = await service.probeConnectionProfile('profile-1');
+		assert.strictEqual(result.ok, false);
+		if (!result.ok) {
+			assert.strictEqual(result.code, 'pairing_required');
+			assert.strictEqual(result.reason, PAIRING_REQUIRED_USE_CONNECT_REASON);
+			assert.notStrictEqual(result.reason, 'direct address dial requires pairing orchestrator when trust is missing');
+		}
+		service.dispose();
+	});
 });
 
 const PAIRING_PROFILE_ID = '11111111-1111-4111-8111-111111111111';
@@ -10675,6 +10755,144 @@ suite('UniverseAgentConnectionService pairing (GC-1b)', () => {
 			assert.strictEqual(result.engineIdentityId, 'eng-handshake-id');
 		}
 		assert.notStrictEqual(service.getConnectionPhase().kind, 'connected');
+		service.dispose();
+	});
+
+	test('connectProfile returns pairing fields without calling confirmSas', async () => {
+		const profileStore = new PairingTestProfileStore(createHubDevicePairingProfile());
+		let confirmCalls = 0;
+		const mockOrchestrator = {
+			startPairing: async () => ({
+				ok: true as const,
+				awaitingUserConfirm: true,
+				snapshot: {
+					phase: 'awaiting_sas_confirm' as const,
+					profileId: PAIRING_PROFILE_ID,
+					sasCode: 'ABCD-EFGH',
+					engineIdentityId: 'eng-handshake-id',
+					sessionTokenInstalled: false,
+				},
+			}),
+			confirmSas: async () => {
+				confirmCalls++;
+				return new Promise<never>(() => { /* Desktop confirm is a second IPC */ });
+			},
+			confirmRecoverTrust: async () => ({ ok: false as const, code: 'unused', reason: 'unused' }),
+			getSnapshot: () => undefined,
+			abandonRecoverTrust: () => { },
+		};
+		const mockResolver = {
+			resolve: async (_profileId: string, options?: { readonly forPairing?: boolean }) => {
+				if (options?.forPairing) {
+					return {
+						ok: true as const,
+						allowRelayFallback: true,
+						endpoint: {
+							attemptId: 'a1',
+							authority: 'relay.example.com',
+							port: 443,
+							resolvedIp: '203.0.113.1',
+							servername: 'relay.example.com',
+							relayTicketId: 'ticket-1',
+							tls: null,
+							expiresAtMs: Date.now() + 60_000,
+							path: 'hubRelay' as const,
+						},
+					};
+				}
+				return { ok: false as const, code: 'pairing_required' as const, reason: 'pairing', allowRelayFallback: true };
+			},
+			createIssueRelayTicketHook: () => async () => ({ ok: false as const, code: 'hub_session_required' as const, reason: 'test' }),
+		};
+		const service = new UniverseAgentConnectionService({
+			connectionProfileStore: profileStore,
+			connectionResolver: mockResolver as unknown as ConnectionResolver,
+			pairingOrchestrator: mockOrchestrator as unknown as PairingOrchestrator,
+		});
+		const result = await service.connectProfile(PAIRING_PROFILE_ID);
+		assert.strictEqual(result.ok, true);
+		if (result.ok) {
+			assert.strictEqual(result.pairingPending, true);
+			assert.strictEqual(result.sasCode, 'ABCD-EFGH');
+		}
+		assert.strictEqual(confirmCalls, 0);
+		service.dispose();
+	});
+
+	test('connectProfile fires pairingPending snapshot before startPairing resolves', async () => {
+		const profileStore = new PairingTestProfileStore(createHubDevicePairingProfile());
+		let release!: () => void;
+		const gate = new Promise<void>(resolve => { release = resolve; });
+		const mockOrchestrator = {
+			startPairing: async () => {
+				await gate;
+				return {
+					ok: true as const,
+					awaitingUserConfirm: true,
+					snapshot: {
+						phase: 'awaiting_sas_confirm' as const,
+						profileId: PAIRING_PROFILE_ID,
+						sasCode: 'ABCD-EFGH',
+						engineIdentityId: 'eng-handshake-id',
+						sessionTokenInstalled: false,
+					},
+				};
+			},
+			confirmSas: async () => ({ ok: false as const, code: 'unused', reason: 'unused' }),
+			confirmRecoverTrust: async () => ({ ok: false as const, code: 'unused', reason: 'unused' }),
+			getSnapshot: () => undefined,
+			abandonRecoverTrust: () => { },
+		};
+		const mockResolver = {
+			resolve: async (_profileId: string, options?: { readonly forPairing?: boolean }) => {
+				if (options?.forPairing) {
+					return {
+						ok: true as const,
+						allowRelayFallback: true,
+						endpoint: {
+							attemptId: 'a1',
+							authority: 'relay.example.com',
+							port: 443,
+							resolvedIp: '203.0.113.1',
+							servername: 'relay.example.com',
+							relayTicketId: 'ticket-1',
+							tls: null,
+							expiresAtMs: Date.now() + 60_000,
+							path: 'hubRelay' as const,
+						},
+					};
+				}
+				return { ok: false as const, code: 'pairing_required' as const, reason: 'pairing', allowRelayFallback: true };
+			},
+			createIssueRelayTicketHook: () => async () => ({ ok: false as const, code: 'hub_session_required' as const, reason: 'test' }),
+		};
+		const service = new UniverseAgentConnectionService({
+			connectionProfileStore: profileStore,
+			connectionResolver: mockResolver as unknown as ConnectionResolver,
+			pairingOrchestrator: mockOrchestrator as unknown as PairingOrchestrator,
+		});
+		const snapshots: boolean[] = [];
+		const sub = service.onDidChangeConnection(snapshot => snapshots.push(snapshot.pairingPending));
+		const pending = service.connectProfile(PAIRING_PROFILE_ID);
+		await timeout(0);
+		assert.ok(snapshots.includes(true), 'renderer must see pairingPending before Connect returns');
+		release();
+		const result = await pending;
+		assert.strictEqual(result.ok, true);
+		sub.dispose();
+		service.dispose();
+	});
+
+	test('node idle capability snapshot is not the Web unsupported stub', () => {
+		const service = new UniverseAgentConnectionService();
+		const snapshot = service.getCapabilitySnapshot();
+		for (const entry of Object.values(snapshot)) {
+			assert.notStrictEqual(entry.reason, WEB_UNSUPPORTED_LOCAL_ENGINE_REASON);
+		}
+		const empty = createEmptyCapabilitySnapshot();
+		for (const entry of Object.values(empty)) {
+			assert.notStrictEqual(entry.reason, WEB_UNSUPPORTED_LOCAL_ENGINE_REASON);
+		}
 		service.dispose();
 	});
 
