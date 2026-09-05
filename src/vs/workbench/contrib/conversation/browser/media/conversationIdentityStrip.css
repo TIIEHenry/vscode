@@ -27,8 +27,8 @@
 	border: 1px solid var(--vscode-panel-border, var(--vscode-contrastBorder, transparent));
 	background-color: var(--vscode-input-background);
 	color: var(--vscode-foreground);
-	font-size: 11px;
-	line-height: 16px;
+	font-size: 12px;
+	line-height: 18px;
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
