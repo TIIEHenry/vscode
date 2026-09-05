@@ -1016,6 +1016,8 @@ suite('ConversationLens', () => {
 
 		const gateRow = slots.dock.querySelector('.conversation-lens-dock-gate-row') as HTMLElement;
 		assert.strictEqual(gateRow.hidden, true);
+		assert.strictEqual(gateRow.textContent, '');
+		assert.strictEqual(gateRow.getAttribute('aria-label'), null);
 
 		const textarea = getDockTextarea(slots);
 		textarea.value = 'hello engine';

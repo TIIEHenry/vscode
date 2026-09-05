@@ -9,7 +9,7 @@ import {
 	computeTimelineApplyPlan,
 	buildTimelineRootIdentities,
 } from '../../browser/conversationTimelineApply.js';
-import { mergeSessionViewFrames } from '../../browser/conversationSessionViewFrameCoalescer.js';
+import { mergeSessionViewFrames, normalizeSessionViewChangedIds, normalizeSessionViewFrameApplied } from '../../browser/conversationSessionViewFrameCoalescer.js';
 import {
 	entriesToRenderableTurns,
 	projectSnapshotToEntries,
@@ -135,6 +135,32 @@ suite('ConversationTimelineApply (S2 three-frame matrix)', () => {
 		]);
 		assert.strictEqual(merged.kind, 'patches');
 		assert.deepStrictEqual([...(merged as { changedIds: ReadonlySet<string> }).changedIds].sort(), ['a1', 'a2']);
+	});
+
+	test('normalizeSessionViewChangedIds accepts Set, array, plain object, and undefined', () => {
+		assert.deepStrictEqual([...normalizeSessionViewChangedIds(new Set(['a1']))], ['a1']);
+		assert.deepStrictEqual([...normalizeSessionViewChangedIds(['a1', 'a2'])].sort(), ['a1', 'a2']);
+		assert.deepStrictEqual([...normalizeSessionViewChangedIds({ a1: true, a2: true })].sort(), ['a1', 'a2']);
+		assert.deepStrictEqual([...normalizeSessionViewChangedIds({ '0': 'a1', '1': 'a2' })].sort(), ['a1', 'a2']);
+		assert.deepStrictEqual([...normalizeSessionViewChangedIds(undefined)], []);
+		assert.deepStrictEqual([...normalizeSessionViewChangedIds({})], []);
+	});
+
+	test('mergeSessionViewFrames tolerates IPC-deserialized changedIds shapes', () => {
+		const merged = mergeSessionViewFrames([
+			{ kind: 'patches', changedIds: ['a1'] as unknown as ReadonlySet<string> },
+			{ kind: 'patches', changedIds: { a2: true } as unknown as ReadonlySet<string> },
+		]);
+		assert.strictEqual(merged.kind, 'patches');
+		assert.deepStrictEqual([...(merged as { changedIds: ReadonlySet<string> }).changedIds].sort(), ['a1', 'a2']);
+	});
+
+	test('normalizeSessionViewFrameApplied preserves baseline and effects', () => {
+		assert.deepStrictEqual(normalizeSessionViewFrameApplied({ kind: 'baseline' }), { kind: 'baseline' });
+		assert.deepStrictEqual(
+			normalizeSessionViewFrameApplied({ kind: 'effects', effects: [] }),
+			{ kind: 'effects', effects: [] },
+		);
 	});
 
 	test('lease projection round-trip keeps applyEntries baseline aligned with roster', () => {
