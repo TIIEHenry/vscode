@@ -267,6 +267,8 @@ import type {
 	UniverseAgentListConfigsResult,
 	UniverseAgentGetRemoteAgentConfigRequest,
 	UniverseAgentRemoteAgentConfig,
+	UniverseAgentResetErrorRequest,
+	UniverseAgentResetErrorResult,
 	UniverseAgentGetUploadProgressRequest,
 	UniverseAgentGetUploadProgressResult,
 	UniverseAgentUploadAttachmentResult,
@@ -1601,6 +1603,17 @@ export interface IUniverseAgentConnection {
 	 * ConfigService.Get / DeviceService.
 	 */
 	getRemoteAgentConfig?(request: UniverseAgentGetRemoteAgentConfigRequest): Promise<UniverseAgentRemoteAgentConfig>;
+
+	/**
+	 * RemoteAgentService.ResetError unary. Optional so Web / tests
+	 * can omit it. Catalog + node transport only this slice; empty
+	 * `nodeId` is sent as-is. `success` false mapped as-is. Proto fields
+	 * only (`ResetErrorRequest` / `ResetErrorResponse`). No
+	 * Conversation roster / UI / Engine Preferences / Composer.
+	 * ≠ ListNodes / GetNode / CheckConnection / SetMaintenance /
+	 * ExitMaintenance / ListConfigs / GetConfig / DeviceService.
+	 */
+	resetError?(request: UniverseAgentResetErrorRequest): Promise<UniverseAgentResetErrorResult>;
 
 	/**
 	 * FileTransferService.GetUploadProgress unary. Optional so Web / tests

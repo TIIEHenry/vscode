@@ -328,6 +328,8 @@ import type {
 	UniverseAgentGetNodeRequest,
 	UniverseAgentListConfigsResult,
 	UniverseAgentGetRemoteAgentConfigRequest,
+	UniverseAgentResetErrorRequest,
+	UniverseAgentResetErrorResult,
 	UniverseAgentRemoteAgentAuthConfig,
 	UniverseAgentRemoteAgentCapabilities,
 	UniverseAgentRemoteAgentConfig,
@@ -3858,6 +3860,16 @@ function mapListConfigsResponse(wire: ListConfigsResponseWire): UniverseAgentLis
 	};
 }
 
+interface ResetErrorResponseWire {
+	success?: boolean;
+}
+
+function mapResetErrorResponse(wire: ResetErrorResponseWire): UniverseAgentResetErrorResult {
+	return {
+		success: wire.success === true,
+	};
+}
+
 interface UploadProgressResponseWire {
 	exists?: boolean;
 	bytes_received?: number | string;
@@ -6644,6 +6656,18 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			node_id: request.nodeId,
 		});
 		return mapRemoteAgentConfig(wire);
+	}
+
+	async resetError(request: UniverseAgentResetErrorRequest): Promise<UniverseAgentResetErrorResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, ResetErrorResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.RemoteAgent.service,
+			UniverseAgentGrpcServices.RemoteAgent.ResetError,
+		);
+		const wire = await unary({
+			node_id: request.nodeId,
+		});
+		return mapResetErrorResponse(wire);
 	}
 
 	async getUploadProgress(request: UniverseAgentGetUploadProgressRequest): Promise<UniverseAgentGetUploadProgressResult> {
