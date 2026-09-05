@@ -345,6 +345,8 @@ import type {
 	UniverseAgentPairApproveResult,
 	UniverseAgentPairRejectRequest,
 	UniverseAgentPairRejectResult,
+	UniverseAgentRotateTokenRequest,
+	UniverseAgentRotateTokenResult,
 	UniverseAgentListTriggersRequest,
 	UniverseAgentListTriggersResult,
 	UniverseAgentUpsertTriggerRequest,
@@ -3565,6 +3567,18 @@ function mapPairRejectResponse(wire: PairRejectResponseWire): UniverseAgentPairR
 	};
 }
 
+interface RotateTokenResponseWire {
+	success?: boolean;
+	message?: string;
+}
+
+function mapRotateTokenResponse(wire: RotateTokenResponseWire): UniverseAgentRotateTokenResult {
+	return {
+		success: wire.success === true,
+		message: wire.message ?? '',
+	};
+}
+
 interface BoundSessionTargetWire {
 	session_id?: string;
 }
@@ -6034,6 +6048,18 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			pairing_code: request.pairingCode,
 		});
 		return mapPairRejectResponse(wire);
+	}
+
+	async rotateToken(request: UniverseAgentRotateTokenRequest): Promise<UniverseAgentRotateTokenResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, RotateTokenResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.Device.service,
+			UniverseAgentGrpcServices.Device.RotateToken,
+		);
+		const wire = await unary({
+			device_id: request.deviceId,
+		});
+		return mapRotateTokenResponse(wire);
 	}
 
 	async listTriggers(request: UniverseAgentListTriggersRequest): Promise<UniverseAgentListTriggersResult> {

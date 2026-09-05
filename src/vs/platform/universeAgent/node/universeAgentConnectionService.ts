@@ -273,6 +273,8 @@ import type {
 	UniverseAgentPairApproveResult,
 	UniverseAgentPairRejectRequest,
 	UniverseAgentPairRejectResult,
+	UniverseAgentRotateTokenRequest,
+	UniverseAgentRotateTokenResult,
 	UniverseAgentListTriggersRequest,
 	UniverseAgentListTriggersResult,
 	UniverseAgentUpsertTriggerRequest,
@@ -1507,6 +1509,10 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 
 	async pairReject(request: UniverseAgentPairRejectRequest): Promise<UniverseAgentPairRejectResult> {
 		return this._withTransport(transport => transport.pairReject(request));
+	}
+
+	async rotateToken(request: UniverseAgentRotateTokenRequest): Promise<UniverseAgentRotateTokenResult> {
+		return this._withTransport(transport => transport.rotateToken(request));
 	}
 
 	async listTriggers(request: UniverseAgentListTriggersRequest): Promise<UniverseAgentListTriggersResult> {

@@ -247,6 +247,8 @@ import type {
 	UniverseAgentPairApproveResult,
 	UniverseAgentPairRejectRequest,
 	UniverseAgentPairRejectResult,
+	UniverseAgentRotateTokenRequest,
+	UniverseAgentRotateTokenResult,
 	UniverseAgentListTriggersRequest,
 	UniverseAgentListTriggersResult,
 	UniverseAgentUpsertTriggerRequest,
@@ -1856,6 +1858,17 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 		return this.pairRejectResult;
 	}
 
+	readonly rotateTokenCalls: UniverseAgentRotateTokenRequest[] = [];
+	rotateTokenResult: UniverseAgentRotateTokenResult = {
+		success: false,
+		message: '',
+	};
+
+	async rotateToken(request: UniverseAgentRotateTokenRequest): Promise<UniverseAgentRotateTokenResult> {
+		this.rotateTokenCalls.push(request);
+		return this.rotateTokenResult;
+	}
+
 	readonly listTriggersCalls: UniverseAgentListTriggersRequest[] = [];
 	listTriggersResult: UniverseAgentListTriggersResult = {
 		triggers: [],
@@ -2435,6 +2448,11 @@ suite('UniverseAgentConnectionService', () => {
 
 	test('UniverseAgentGrpcServices lists Device.PairReject', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Device.PairReject, 'PairReject');
+		assert.strictEqual(UniverseAgentGrpcServices.Device.service, 'universeagent.device.v1.DeviceService');
+	});
+
+	test('UniverseAgentGrpcServices lists Device.RotateToken', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Device.RotateToken, 'RotateToken');
 		assert.strictEqual(UniverseAgentGrpcServices.Device.service, 'universeagent.device.v1.DeviceService');
 	});
 
@@ -6236,6 +6254,38 @@ suite('UniverseAgentConnectionService', () => {
 		};
 		const empty = await service.pairReject(emptyRequest);
 		assert.strictEqual(transport.pairRejectCalls[1]?.pairingCode, '');
+		assert.strictEqual(empty.success, false);
+		assert.strictEqual(empty.message, '');
+		service.dispose();
+	});
+
+	test('rotateToken forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.rotateTokenResult = {
+			success: true,
+			message: 'rotated',
+		};
+		const request = {
+			deviceId: 'dev-1',
+		};
+		const result = await service.rotateToken(request);
+		assert.deepStrictEqual(transport.rotateTokenCalls, [request]);
+		assert.deepStrictEqual(result, transport.rotateTokenResult);
+
+		transport.rotateTokenResult = {
+			success: false,
+			message: '',
+		};
+		const emptyRequest = {
+			deviceId: '',
+		};
+		const empty = await service.rotateToken(emptyRequest);
+		assert.strictEqual(transport.rotateTokenCalls[1]?.deviceId, '');
 		assert.strictEqual(empty.success, false);
 		assert.strictEqual(empty.message, '');
 		service.dispose();

@@ -2643,6 +2643,22 @@ export interface UniverseAgentPairRejectResult {
 }
 
 /**
+ * DeviceService.RotateToken — proto `RotateTokenRequest` /
+ * `RotateTokenResponse` only. Empty `device_id` pass through as-is.
+ * Empty `message` mapped as-is. `success` false mapped as-is.
+ * Reserved `new_token` (ADR-261) not mapped.
+ * ≠ ListDevices / PairApprove / PairReject / Revoke / ListPending.
+ */
+export interface UniverseAgentRotateTokenRequest {
+	readonly deviceId: string;
+}
+
+export interface UniverseAgentRotateTokenResult {
+	readonly success: boolean;
+	readonly message: string;
+}
+
+/**
  * TriggerService.ListTriggers — proto `ListTriggersRequest` /
  * `ListTriggersResponse` + `TriggerDto` / `DeliveryTargetDto` only.
  * Empty `scope` / `scope_id` / `type_filter` pass through as-is.
