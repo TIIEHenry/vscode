@@ -316,7 +316,12 @@ export class ConversationLens extends Disposable {
 			this.refreshComposerCatalogs();
 			this.bindSessionView(this.stubService.getActiveSessionId());
 		}));
-		this._register(this.uaConnection.onDidChangeConnection(() => this.refreshComposerCatalogs()));
+		this._register(this.uaConnection.onDidChangeConnection(() => {
+			this.refreshComposerCatalogs();
+			this.updateGateRow();
+			this.updateVoiceMicChrome();
+			this.bindSessionView(this.stubService.getActiveSessionId());
+		}));
 		this.refreshComposerCatalogs();
 
 		this._register(toDisposable(() => {

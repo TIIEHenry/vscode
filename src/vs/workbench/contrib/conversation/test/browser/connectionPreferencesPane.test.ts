@@ -55,7 +55,7 @@ import {
 	SAS_CONFIRM_BUTTON_LABEL,
 	SAS_FORBIDDEN_BUTTON_PATTERNS,
 } from '../../browser/connectionPreferencesPaneLabels.js';
-import { createConversationConnectionTestStub } from '../common/conversationConnectionTestStub.js';
+import { createConversationConnectionTestStub, createEmptyTestCapabilitySnapshot } from '../common/conversationConnectionTestStub.js';
 import { promptSasConfirmDialog } from '../../browser/connectionPreferencesPaneSas.js';
 import { getConnectionPhaseStatusBarText, getConversationEngineStatusText } from '../../browser/conversationSessionStatus.js';
 import { Dimension } from '../../../../../base/browser/dom.js';
@@ -823,6 +823,9 @@ suite('ConnectionPreferencesPane', () => {
 		(pane as unknown as { activeProfileId: string }).activeProfileId = 'hub-profile-1';
 		await (pane as unknown as { connectProfileWithPairing(profileId: string): Promise<void> }).connectProfileWithPairing('hub-profile-1');
 		assert.strictEqual(confirmCalls, 1);
+		const testStatus = container.querySelector('.connection-test-status') as HTMLElement;
+		assert.ok(testStatus.textContent?.includes('ok=true'));
+		assert.ok(testStatus.textContent?.includes('pairingPending=false'));
 		container.remove();
 	});
 
@@ -930,6 +933,41 @@ suite('ConnectionPreferencesPane', () => {
 		assert.strictEqual(confirmCalls, 1);
 		assert.ok(promptedTitle?.includes('Studio'));
 		assert.ok(promptedDetail);
+		const testStatus = container.querySelector('.connection-test-status') as HTMLElement;
+		assert.ok(testStatus.textContent?.includes('ok=true'));
+		assert.ok(testStatus.textContent?.includes('pairingPending=false'));
+		container.remove();
+	});
+
+	test('active profile label drops pairing pending when connection phase is connected', () => {
+		const pane = mountPane({
+			listConnectionProfiles: () => [{
+				profileId: '127.0.0.1:50061',
+				displayName: '127.0.0.1:50061',
+				state: 'pairingPending',
+				hasTrust: true,
+				targetKind: 'directAddress',
+			}],
+		}, {
+			getConnectionPhase: () => ({ kind: 'connected', path: 'direct' }),
+			getConnectionSnapshot: () => ({
+				transport: 'ok',
+				pairingPending: false,
+				channelAlive: true,
+				sharedFsRootSent: false,
+				capabilities: createEmptyTestCapabilitySnapshot(),
+			}),
+		});
+		const container = pane.getDomNode();
+		(pane as unknown as { activeProfileId: string }).activeProfileId = '127.0.0.1:50061';
+		const label = (pane as unknown as { getProfileStateLabel(profile: { profileId: string; displayName: string; state: string; hasTrust: boolean; targetKind: string }): string }).getProfileStateLabel({
+			profileId: '127.0.0.1:50061',
+			displayName: '127.0.0.1:50061',
+			state: 'pairingPending',
+			hasTrust: true,
+			targetKind: 'directAddress',
+		});
+		assert.strictEqual(label, 'Paired');
 		container.remove();
 	});
 
