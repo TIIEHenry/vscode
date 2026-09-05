@@ -283,6 +283,8 @@ import type {
 	UniverseAgentUpsertTriggerResult,
 	UniverseAgentDeleteTriggerRequest,
 	UniverseAgentDeleteTriggerResult,
+	UniverseAgentSetTriggerEnabledRequest,
+	UniverseAgentSetTriggerEnabledResult,
 	UniverseAgentWriteClipboardRequest,
 	UniverseAgentWriteClipboardResult,
 	UniverseAgentReadClipboardRequest,
@@ -1533,6 +1535,10 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 
 	async deleteTrigger(request: UniverseAgentDeleteTriggerRequest): Promise<UniverseAgentDeleteTriggerResult> {
 		return this._withTransport(transport => transport.deleteTrigger(request));
+	}
+
+	async setTriggerEnabled(request: UniverseAgentSetTriggerEnabledRequest): Promise<UniverseAgentSetTriggerEnabledResult> {
+		return this._withTransport(transport => transport.setTriggerEnabled(request));
 	}
 
 	async writeClipboard(request: UniverseAgentWriteClipboardRequest): Promise<UniverseAgentWriteClipboardResult> {
