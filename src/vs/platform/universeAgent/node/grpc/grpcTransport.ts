@@ -263,6 +263,8 @@ import type {
 	UniverseAgentPairApproveResult,
 	UniverseAgentListTriggersRequest,
 	UniverseAgentListTriggersResult,
+	UniverseAgentUpsertTriggerRequest,
+	UniverseAgentUpsertTriggerResult,
 	UniverseAgentWriteClipboardRequest,
 	UniverseAgentWriteClipboardResult,
 	UniverseAgentSetPermissionPolicyRequest,
@@ -756,6 +758,8 @@ export interface IUniverseAgentGrpcTransport {
 
 	/** TriggerService.ListTriggers unary (snake_case `scope`/`scope_id`/`type_filter`). Empty ids sent as-is. */
 	listTriggers(request: UniverseAgentListTriggersRequest): Promise<UniverseAgentListTriggersResult>;
+	/** TriggerService.UpsertTrigger unary (snake_case `scope`/`scope_id`/`trigger`). Empty ids sent as-is. */
+	upsertTrigger(request: UniverseAgentUpsertTriggerRequest): Promise<UniverseAgentUpsertTriggerResult>;
 
 	/** ClipboardService.Write unary (snake_case `session_id`/`agent_id`/`label`/`type`/`content`/`file_path`/`url`). Empty ids sent as-is. */
 	writeClipboard(request: UniverseAgentWriteClipboardRequest): Promise<UniverseAgentWriteClipboardResult>;
@@ -1009,6 +1013,7 @@ export const UniverseAgentGrpcServices = {
 	Trigger: {
 		service: 'universeagent.trigger.v1.TriggerService',
 		ListTriggers: 'ListTriggers',
+		UpsertTrigger: 'UpsertTrigger',
 	},
 	Clipboard: {
 		service: 'universeagent.clipboard.v1.ClipboardService',

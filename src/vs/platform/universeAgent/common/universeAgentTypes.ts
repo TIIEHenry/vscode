@@ -2644,6 +2644,28 @@ export interface UniverseAgentListTriggersResult {
 }
 
 /**
+ * TriggerService.UpsertTrigger — proto `UpsertTriggerRequest` /
+ * `UpsertTriggerResponse` + `TriggerDto` / `DeliveryTargetDto` only.
+ * Empty `scope` / `scope_id` pass through as-is. Empty `trigger_id` /
+ * `name` / `type` / `prompt_template` / `pause_reason` /
+ * `cron_expression` sent and mapped as-is. `enabled` false sent and
+ * mapped as-is. `interval_ms` / `run_at_epoch_ms` 0 sent and mapped
+ * as-is. Delivery oneof `self` / `bound_session` / `new_session`; empty
+ * `session_id` / `engine_profile_id` sent and mapped as-is.
+ * ≠ ListTriggers / DeleteTrigger / SetTriggerEnabled / FireTrigger /
+ * AgentService.FireTriggerWebhook / DeviceService.
+ */
+export interface UniverseAgentUpsertTriggerRequest {
+	readonly scope: string;
+	readonly scopeId: string;
+	readonly trigger: UniverseAgentTrigger;
+}
+
+export interface UniverseAgentUpsertTriggerResult {
+	readonly trigger: UniverseAgentTrigger;
+}
+
+/**
  * ClipboardService.Write — proto `ClipboardWriteRequest` /
  * `ClipboardWriteResponse` only. Empty `session_id` / `agent_id` /
  * `label` / `content` / `file_path` / `url` sent as-is. Empty `clip_id`
