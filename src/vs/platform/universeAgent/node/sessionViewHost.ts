@@ -23,7 +23,7 @@ import { createSessionCore, type SessionCore } from './sessionCore/session-core.
 import type { CoreIntent, HistoryFillCoreIntent } from './sessionCore/intents.js';
 import { isChatCoreIntent, isHistoryFillCoreIntent } from './sessionCore/intents.js';
 import type { CoreMessage, CorrelationRef, PostOutcome, ViewFrameAck, ViewFrameSink } from './sessionCore/messages.js';
-import type { SessionId, ViewFrame, ViewLeaseId } from '../common/sessionView/types.js';
+import type { SessionId, ViewFrame, ViewLeaseId, ViewPatch } from '../common/sessionView/types.js';
 import type { AttemptId, DiagnosticMetric, DiagnosticsPort, TimerId } from './sessionCore/ports.js';
 import type { UniverseAgentChatStream } from '../common/universeAgentTypes.js';
 import { demuxSessionStreamPayload, localFactFromQuestionArm } from './sessionStreamDemux.js';
@@ -721,13 +721,7 @@ export class SessionViewHost extends Disposable {
 		} else if (frame.body.kind === 'patches') {
 			const changedIds = new Set<string>();
 			for (const patch of frame.body.patches) {
-				if (patch.op === 'upsertTimelineItem') {
-					changedIds.add(String(patch.item.id));
-				} else if (patch.op === 'removeTimelineItem') {
-					changedIds.add(String(patch.itemId));
-				} else {
-					changedIds.add(String(patch.op));
-				}
+				changedIds.add(changedIdFromPatch(patch));
 			}
 			applied = { kind: 'patches', changedIds };
 		} else {
@@ -1241,6 +1235,40 @@ export class SessionViewHost extends Disposable {
 			requestId: intent.requestId,
 			result,
 		});
+	}
+}
+
+/**
+ * `ConversationViewFrameApplied.changedIds` contract: `TimelineItemId` |
+ * `overlay:${blockId}` | `pending:${requestId}` | `send:${operationId}` | `sync`.
+ * Session-level chrome ops address no row; they carry a `chrome:` marker that
+ * cannot collide with any row identity (never the bare op name).
+ */
+function changedIdFromPatch(patch: ViewPatch): string {
+	switch (patch.op) {
+		case 'upsertTimelineItem':
+			return String(patch.item.id);
+		case 'removeTimelineItem':
+			return String(patch.itemId);
+		case 'upsertOverlayBlock':
+			return `overlay:${String(patch.block.blockId)}`;
+		case 'removeOverlayBlock':
+			return `overlay:${String(patch.blockId)}`;
+		case 'upsertTextChunk':
+			return `overlay:${String(patch.blockId)}`;
+		case 'upsertPendingAction':
+			return `pending:${String(patch.action.requestId)}`;
+		case 'removePendingAction':
+		case 'pendingRespondFailed':
+			return `pending:${String(patch.requestId)}`;
+		case 'upsertLocalSend':
+			return `send:${String(patch.send.operationId)}`;
+		case 'removeLocalSend':
+			return `send:${String(patch.operationId)}`;
+		case 'setSyncChrome':
+			return 'sync';
+		default:
+			return `chrome:${patch.op}`;
 	}
 }
 
