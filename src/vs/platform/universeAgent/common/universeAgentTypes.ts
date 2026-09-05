@@ -1307,6 +1307,7 @@ export interface UniverseAgentSessionEvent {
 /**
  * Close cause for resident streams (`openChatStream`, `openContinuationStream`,
  * `openRegenerateStream`, `openResumeStream`, `openSubscribeToolDetailStream`,
+ * `openWatchConfigStream`, `openUploadAttachmentStream`,
  * `subscribeSessionEventStream`).
  * Local dispose / cancel does not fire this.
  */
@@ -2368,6 +2369,60 @@ export interface UniverseAgentGetUploadProgressResult {
 	readonly exists: boolean;
 	readonly bytesReceived: number;
 	readonly partialPath: string;
+}
+
+/**
+ * FileTransferService.UploadAttachment — proto `stream UploadChunk` /
+ * `UploadResponse` only. Empty `transfer_id` / `filename` / `mime_type` /
+ * `checksum_sha256` / `session_id` / `queue_item_id` pass through as-is.
+ * Empty `chunk` mapped as-is. `offset` / `total_size` / `chunk_size` 0
+ * as-is. ≠ DownloadAttachment / GetUploadProgress.
+ */
+export type UniverseAgentUploadErrorCode =
+	| 'UPLOAD_ERROR_NONE'
+	| 'UPLOAD_ERROR_CHECKSUM_MISMATCH'
+	| 'UPLOAD_ERROR_DISK_FULL'
+	| 'UPLOAD_ERROR_PERMISSION_DENIED'
+	| 'UPLOAD_ERROR_INVALID_OFFSET'
+	| 'UPLOAD_ERROR_FILE_TOO_LARGE'
+	| 'UPLOAD_ERROR_INTERNAL'
+	| 'UPLOAD_ERROR_AUTH_FAILED';
+
+export interface UniverseAgentUploadHeader {
+	readonly transferId: string;
+	readonly filename: string;
+	readonly totalSize: number;
+	readonly mimeType: string;
+	readonly checksumSha256: string;
+	readonly isPrecompressed: boolean;
+	readonly sessionId: string;
+	/** Proto `chunk_size`. 0 sent as-is. */
+	readonly chunkSize: number;
+	/** Proto optional `queue_item_id`. Empty sent as-is when present. */
+	readonly queueItemId?: string;
+}
+
+/** Proto `UploadChunk` (`oneof header | chunk` + `offset`). */
+export interface UniverseAgentUploadChunk {
+	readonly header?: UniverseAgentUploadHeader;
+	readonly chunk?: Uint8Array;
+	readonly offset: number;
+}
+
+export interface UniverseAgentUploadAttachmentResult {
+	readonly success: boolean;
+	readonly filePath: string;
+	readonly checksumSha256: string;
+	readonly errorMessage: string;
+	/** Proto `UploadErrorCode` name. */
+	readonly errorCode: string;
+}
+
+/** Client-stream handle for FileTransferService.UploadAttachment. */
+export interface UniverseAgentUploadAttachmentStream {
+	write(chunk: UniverseAgentUploadChunk): void;
+	end(): void;
+	dispose(): void;
 }
 
 /**
