@@ -1913,12 +1913,13 @@ export interface IUniverseAgentConnection {
 	shutdown?(request: UniverseAgentShutdownRequest): Promise<UniverseAgentShutdownResult>;
 	/**
 	 * DeviceService.ListDevices unary. Optional so Web / tests can omit it.
-	 * Catalog + node transport only this slice; empty request `{}`. Empty
-	 * `device_id` / `display_name` / `role` / `platform` mapped as-is.
-	 * `paired_at` / `last_seen_at` 0 mapped as-is. `active` false mapped
-	 * as-is. Proto fields only (`ListDevicesRequest` /
-	 * `ListDevicesResponse` + `DeviceInfo`). No Conversation roster / UI /
-	 * Engine Preferences / Composer.
+	 * Connection Devices paired list forwards when connected + hook;
+	 * empty request `{}`. Empty `device_id` / `display_name` / `role` /
+	 * `platform` mapped as-is. `paired_at` / `last_seen_at` 0 mapped
+	 * as-is. `active` false mapped as-is. Proto fields only
+	 * (`ListDevicesRequest` / `ListDevicesResponse` + `DeviceInfo`).
+	 * Disconnected / no hook do not send (Hub directory stays).
+	 * No Conversation roster / SessionBar / Engine Preferences / Composer.
 	 * ≠ PairApprove / PairReject / Revoke / RotateToken / ListPending.
 	 */
 	listDevices?(): Promise<UniverseAgentListDevicesResult>;

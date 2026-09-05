@@ -17,9 +17,13 @@ import { defaultButtonStyles } from '../../../../platform/theme/browser/defaultS
 import type { ConnectionPhase, ConnectionProbeResult } from '../../../../platform/universeAgent/common/connectionHubTypes.js';
 import type { ConnectionProfileProjection, HubDeviceProjection } from '../../../../platform/universeAgent/common/hub.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
-import type { UniverseAgentPendingPairInfo } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
+import type { UniverseAgentDeviceInfo, UniverseAgentPendingPairInfo } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import type { IPreferencesEditorPane } from '../../preferences/browser/preferencesEditorRegistry.js';
 import { IUniverseAgentHubService } from '../../../../platform/universeAgent/common/hub.js';
+import {
+	canSendConnectionDeviceListRequest,
+	toConnectionPairedDevice,
+} from './connectionDeviceList.js';
 import {
 	canSendConnectionDevicePairRequest,
 	CONNECTION_DEVICE_PAIR_REJECT_LABEL,
@@ -237,6 +241,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 	private readonly environmentNotice: HTMLElement;
 	private entries: IConnectionProfileEntry[] = [];
 	private hubDevices: HubDeviceProjection[] = [];
+	private enginePairedDevices: UniverseAgentDeviceInfo[] | undefined;
 	private pendingPairs: UniverseAgentPendingPairInfo[] = [];
 	private selectedPending: UniverseAgentPendingPairInfo | undefined;
 	private readonly pendingRowDisposables = this._register(new DisposableStore());
@@ -475,7 +480,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 			this.renderConnectionPhase();
 			this.applyDesktopConnectionControlVisibility();
 			this.renderHubAccount();
-			void this.refreshEnginePending();
+			void this.refreshEngineDeviceLists();
 		}));
 
 		this.renderHubAccount();
@@ -484,7 +489,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		this.renderConnectionPhase();
 		this.applyDesktopConnectionControlVisibility();
 		void this.initializeState();
-		void this.refreshEnginePending();
+		void this.refreshEngineDeviceLists();
 	}
 
 	private desktopConnectionControlContext() {
@@ -585,7 +590,28 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 
 	private async refreshHubDirectory(): Promise<void> {
 		await this.hubService.refreshDirectory();
+		await this.refreshEngineDeviceLists();
+	}
+
+	private async refreshEngineDeviceLists(): Promise<void> {
+		await this.refreshEngineDevices();
 		await this.refreshEnginePending();
+	}
+
+	private async refreshEngineDevices(): Promise<void> {
+		const hook = this.connectionService.listDevices;
+		if (!canSendConnectionDeviceListRequest(this.connectionService.isEngineConnected(), typeof hook === 'function') || !hook) {
+			this.enginePairedDevices = undefined;
+			this.renderHubDirectory();
+			return;
+		}
+		try {
+			const result = await hook.call(this.connectionService);
+			this.enginePairedDevices = [...result.devices];
+		} catch {
+			this.enginePairedDevices = [];
+		}
+		this.renderHubDirectory();
 	}
 
 	private async refreshEnginePending(): Promise<void> {
@@ -859,7 +885,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 				this.hubDeviceCodeStatus.textContent = result.message;
 				if (result.success) {
 					this.confirmDeviceCodeInput.value = '';
-					await this.refreshEnginePending();
+					await this.refreshEngineDeviceLists();
 				}
 			} catch (error) {
 				const reason = error instanceof Error && error.message ? error.message : String(error);
@@ -893,7 +919,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 			this.hubDeviceCodeStatus.textContent = result.message;
 			if (result.success) {
 				this.confirmDeviceCodeInput.value = '';
-				await this.refreshEnginePending();
+				await this.refreshEngineDeviceLists();
 			}
 		} catch (error) {
 			const reason = error instanceof Error && error.message ? error.message : String(error);
@@ -933,7 +959,9 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		this.hubDirectoryBanner.textContent = banner ?? '';
 		this.hubDirectoryBanner.style.display = banner ? '' : 'none';
 
-		if (directory.kind === 'ok') {
+		if (this.enginePairedDevices !== undefined) {
+			this.hubDevices = this.enginePairedDevices.map(toConnectionPairedDevice);
+		} else if (directory.kind === 'ok') {
 			this.hubDevices = [...directory.devices];
 		} else {
 			this.hubDevices = [];

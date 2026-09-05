@@ -28,6 +28,7 @@ import { createWebUnsupportedCapabilitySnapshot, WEB_UNSUPPORTED_REASON } from '
 import type {
 	UniverseAgentCapabilitySnapshot,
 	UniverseAgentConnectionSnapshot,
+	UniverseAgentListDevicesResult,
 	UniverseAgentPairApproveRequest,
 	UniverseAgentPairRejectRequest,
 } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
@@ -965,6 +966,109 @@ suite('ConnectionPreferencesPane', () => {
 		await Promise.resolve();
 		await Promise.resolve();
 		assert.deepStrictEqual(rejectCalls, [{ pairingCode: '123456' }]);
+		container.remove();
+	});
+
+	test('ListDevices does not send when disconnected or hook missing', async () => {
+		let listDevicesCalls = 0;
+		const disconnected = mountPane({
+			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
+			getDirectoryStatus: () => ({
+				kind: 'ok',
+				devices: [device({ id: 'hub-1', name: 'Hub Studio' })],
+			}),
+		}, {
+			isEngineConnected: () => false,
+			listDevices: async () => {
+				listDevicesCalls++;
+				return { devices: [] };
+			},
+		});
+		const disconnectedContainer = disconnected.getDomNode();
+		disconnected.layout(new Dimension(800, 800));
+		await Promise.resolve();
+		await Promise.resolve();
+		assert.strictEqual(listDevicesCalls, 0);
+		const hubName = disconnectedContainer.querySelector('.connection-hub-device-name');
+		assert.strictEqual(hubName?.textContent, 'Hub Studio');
+
+		const noHook = mountPane({
+			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
+			getDirectoryStatus: () => ({
+				kind: 'ok',
+				devices: [device({ id: 'hub-2', name: 'Hub Phone' })],
+			}),
+		}, {
+			isEngineConnected: () => true,
+		});
+		const noHookContainer = noHook.getDomNode();
+		noHook.layout(new Dimension(800, 800));
+		await Promise.resolve();
+		await Promise.resolve();
+		assert.strictEqual(listDevicesCalls, 0);
+		assert.strictEqual(noHookContainer.querySelector('.connection-hub-device-name')?.textContent, 'Hub Phone');
+		disconnectedContainer.remove();
+		noHookContainer.remove();
+	});
+
+	test('ListDevices replaces paired list with empty ids as-is when connected', async () => {
+		let listDevicesCalls = 0;
+		const pane = mountPane({
+			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
+			getDirectoryStatus: () => ({
+				kind: 'ok',
+				devices: [device({ id: 'hub-1', name: 'Hub Studio' })],
+			}),
+		}, {
+			isEngineConnected: () => true,
+			listDevices: async (): Promise<UniverseAgentListDevicesResult> => {
+				listDevicesCalls++;
+				return {
+					devices: [{
+						deviceId: '',
+						displayName: '',
+						role: '',
+						platform: '',
+						pairedAt: 0,
+						lastSeenAt: 0,
+						active: false,
+					}],
+				};
+			},
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		await Promise.resolve();
+		await Promise.resolve();
+		assert.strictEqual(listDevicesCalls, 1);
+		const name = container.querySelector('.connection-hub-device-name');
+		assert.ok(name);
+		assert.strictEqual(name.textContent, '');
+		assert.notStrictEqual(name.textContent, 'Hub Studio');
+		container.remove();
+	});
+
+	test('ListDevices empty devices[] does not invent Hub rows', async () => {
+		let listDevicesCalls = 0;
+		const pane = mountPane({
+			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
+			getDirectoryStatus: () => ({
+				kind: 'ok',
+				devices: [device({ id: 'hub-1', name: 'Hub Studio' })],
+			}),
+		}, {
+			isEngineConnected: () => true,
+			listDevices: async () => {
+				listDevicesCalls++;
+				return { devices: [] };
+			},
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		await Promise.resolve();
+		await Promise.resolve();
+		assert.strictEqual(listDevicesCalls, 1);
+		assert.strictEqual(container.querySelector('.connection-hub-device-name'), null);
 		container.remove();
 	});
 });
