@@ -2779,6 +2779,49 @@ export interface UniverseAgentReloadRemoteAgentsResult {
 }
 
 /**
+ * RemoteAgentService.GetRemoteSessionStatus — proto
+ * `GetRemoteSessionStatusRequest` / `GetRemoteSessionStatusResponse` +
+ * `RemotePendingPermission` / `RemotePendingQuestion` only. Empty `call_id`
+ * (incl. empty string) passes through as-is. Empty `status` / `call_id` /
+ * `progress` mapped as-is. `elapsed_ms` / `expires_at` 0 mapped as-is.
+ * Empty `pending_permissions` / `pending_questions` (incl. empty nested
+ * strings) mapped as-is.
+ * ≠ CreateRemoteSession / DestroyRemoteSession / GetRemoteSessionHistory /
+ * ResumeRemoteSession / CancelRemoteSession / RemoteChat / ListNodes /
+ * GetNode / CheckConnection / SetMaintenance / ExitMaintenance /
+ * ResetError / ListConfigs / GetConfig / SaveConfig / DeleteConfig /
+ * Reload / DeviceService / SessionService / AgentService.Status.
+ */
+export interface UniverseAgentGetRemoteSessionStatusRequest {
+	readonly callId: string;
+}
+
+export interface UniverseAgentRemotePendingPermission {
+	readonly requestId: string;
+	readonly toolName: string;
+	readonly path: string;
+	readonly command: string;
+	readonly argumentsJson: string;
+	readonly dangerLevel: string;
+	readonly bubbleTarget: string;
+}
+
+export interface UniverseAgentRemotePendingQuestion {
+	readonly questionId: string;
+	readonly questionsJson: string;
+}
+
+export interface UniverseAgentGetRemoteSessionStatusResult {
+	readonly status: string;
+	readonly callId: string;
+	readonly progress: string;
+	readonly elapsedMs: number;
+	readonly expiresAt: number;
+	readonly pendingPermissions: readonly UniverseAgentRemotePendingPermission[];
+	readonly pendingQuestions: readonly UniverseAgentRemotePendingQuestion[];
+}
+
+/**
  * FileTransferService.GetUploadProgress — proto `UploadProgressRequest` /
  * `UploadProgressResponse` only. Empty `transfer_id` / `session_id` pass
  * through as-is. `bytes_received` 0 / empty `partial_path` mapped as-is.

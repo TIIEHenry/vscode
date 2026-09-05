@@ -333,6 +333,10 @@ import type {
 	UniverseAgentResetErrorRequest,
 	UniverseAgentResetErrorResult,
 	UniverseAgentReloadRemoteAgentsResult,
+	UniverseAgentGetRemoteSessionStatusRequest,
+	UniverseAgentGetRemoteSessionStatusResult,
+	UniverseAgentRemotePendingPermission,
+	UniverseAgentRemotePendingQuestion,
 	UniverseAgentRemoteAgentAuthConfig,
 	UniverseAgentRemoteAgentCapabilities,
 	UniverseAgentRemoteAgentConfig,
@@ -3675,6 +3679,62 @@ function mapReloadRemoteAgentsResponse(wire: ReloadRemoteAgentsResponseWire): Un
 	};
 }
 
+interface RemotePendingPermissionWire {
+	request_id?: string;
+	tool_name?: string;
+	path?: string;
+	command?: string;
+	arguments_json?: string;
+	danger_level?: string;
+	bubble_target?: string;
+}
+
+interface RemotePendingQuestionWire {
+	question_id?: string;
+	questions_json?: string;
+}
+
+interface GetRemoteSessionStatusResponseWire {
+	status?: string;
+	call_id?: string;
+	progress?: string;
+	elapsed_ms?: number | string;
+	expires_at?: number | string;
+	pending_permissions?: RemotePendingPermissionWire[];
+	pending_questions?: RemotePendingQuestionWire[];
+}
+
+function mapRemotePendingPermission(wire: RemotePendingPermissionWire): UniverseAgentRemotePendingPermission {
+	return {
+		requestId: wire.request_id ?? '',
+		toolName: wire.tool_name ?? '',
+		path: wire.path ?? '',
+		command: wire.command ?? '',
+		argumentsJson: wire.arguments_json ?? '',
+		dangerLevel: wire.danger_level ?? '',
+		bubbleTarget: wire.bubble_target ?? '',
+	};
+}
+
+function mapRemotePendingQuestion(wire: RemotePendingQuestionWire): UniverseAgentRemotePendingQuestion {
+	return {
+		questionId: wire.question_id ?? '',
+		questionsJson: wire.questions_json ?? '',
+	};
+}
+
+function mapGetRemoteSessionStatusResponse(wire: GetRemoteSessionStatusResponseWire): UniverseAgentGetRemoteSessionStatusResult {
+	return {
+		status: wire.status ?? '',
+		callId: wire.call_id ?? '',
+		progress: wire.progress ?? '',
+		elapsedMs: requiredInt64(wire.elapsed_ms),
+		expiresAt: requiredInt64(wire.expires_at),
+		pendingPermissions: (wire.pending_permissions ?? []).map(mapRemotePendingPermission),
+		pendingQuestions: (wire.pending_questions ?? []).map(mapRemotePendingQuestion),
+	};
+}
+
 interface RemoteAgentEndpointWire {
 	host?: string;
 	port?: number | string;
@@ -6809,6 +6869,18 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 		);
 		const wire = await unary({});
 		return mapReloadRemoteAgentsResponse(wire);
+	}
+
+	async getRemoteSessionStatus(request: UniverseAgentGetRemoteSessionStatusRequest): Promise<UniverseAgentGetRemoteSessionStatusResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, GetRemoteSessionStatusResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.RemoteAgent.service,
+			UniverseAgentGrpcServices.RemoteAgent.GetRemoteSessionStatus,
+		);
+		const wire = await unary({
+			call_id: request.callId,
+		});
+		return mapGetRemoteSessionStatusResponse(wire);
 	}
 
 	async getUploadProgress(request: UniverseAgentGetUploadProgressRequest): Promise<UniverseAgentGetUploadProgressResult> {
