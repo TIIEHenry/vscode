@@ -7,7 +7,7 @@ import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import type { LiveAgentTreeNodeView } from '../../../../../platform/universeAgent/common/sessionView/index.js';
 import { getNavigatorAgentTreePendingCopy } from '../../common/navigatorAgentTreeEmptyState.js';
-import { findManagerNodes, getTeamTreeEmptyCopy } from '../../common/navigatorTeamData.js';
+import { canSendNavigatorTeamTaskMutation, findManagerNodes, getTeamTreeEmptyCopy, navigatorTeamTaskMutationIds } from '../../common/navigatorTeamData.js';
 
 suite('NavigatorTeam (N4)', () => {
 
@@ -110,5 +110,26 @@ suite('NavigatorTeam (N4)', () => {
 			teamInfoCalls++;
 		}
 		assert.strictEqual(teamInfoCalls, 0);
+	});
+
+	test('TaskUpdate / TaskCancel gate is connected + hook; empty ids still send', () => {
+		assert.strictEqual(canSendNavigatorTeamTaskMutation(false, true), false);
+		assert.strictEqual(canSendNavigatorTeamTaskMutation(true, false), false);
+		assert.strictEqual(canSendNavigatorTeamTaskMutation(true, true), true);
+		assert.deepStrictEqual(navigatorTeamTaskMutationIds(undefined, undefined), {
+			sessionId: '',
+			agentId: '',
+			taskId: '',
+		});
+		assert.deepStrictEqual(navigatorTeamTaskMutationIds('', { managerAgentId: '', taskId: '' }), {
+			sessionId: '',
+			agentId: '',
+			taskId: '',
+		});
+		assert.deepStrictEqual(navigatorTeamTaskMutationIds('sess', { managerAgentId: 'mgr', taskId: 't1' }), {
+			sessionId: 'sess',
+			agentId: 'mgr',
+			taskId: 't1',
+		});
 	});
 });
