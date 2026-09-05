@@ -333,6 +333,9 @@ import type {
 	UniverseAgentResetErrorRequest,
 	UniverseAgentResetErrorResult,
 	UniverseAgentReloadRemoteAgentsResult,
+	UniverseAgentGetRemoteSessionHistoryRequest,
+	UniverseAgentGetRemoteSessionHistoryResult,
+	UniverseAgentRemoteChatMessage,
 	UniverseAgentRemoteAgentAuthConfig,
 	UniverseAgentRemoteAgentCapabilities,
 	UniverseAgentRemoteAgentConfig,
@@ -3675,6 +3678,78 @@ function mapReloadRemoteAgentsResponse(wire: ReloadRemoteAgentsResponseWire): Un
 	};
 }
 
+interface RemoteToolCallWire {
+	id?: string;
+	name?: string;
+	arguments?: string;
+}
+
+interface RemoteSystemMessageWire {
+	content?: string;
+}
+
+interface RemoteUserMessageWire {
+	content?: string;
+}
+
+interface RemoteAssistantMessageWire {
+	content?: string;
+	tool_calls?: RemoteToolCallWire[];
+}
+
+interface RemoteToolResultMessageWire {
+	tool_call_id?: string;
+	tool_name?: string;
+	content?: string;
+	is_error?: boolean;
+}
+
+interface RemoteChatMessageWire {
+	system?: RemoteSystemMessageWire;
+	user?: RemoteUserMessageWire;
+	assistant?: RemoteAssistantMessageWire;
+	tool_result?: RemoteToolResultMessageWire;
+}
+
+interface GetRemoteSessionHistoryResponseWire {
+	messages?: RemoteChatMessageWire[];
+	version?: number | string;
+	has_more?: boolean;
+}
+
+function mapRemoteChatMessage(wire: RemoteChatMessageWire): UniverseAgentRemoteChatMessage {
+	return {
+		...(wire.system !== undefined ? { system: { content: wire.system.content ?? '' } } : {}),
+		...(wire.user !== undefined ? { user: { content: wire.user.content ?? '' } } : {}),
+		...(wire.assistant !== undefined ? {
+			assistant: {
+				content: wire.assistant.content ?? '',
+				toolCalls: (wire.assistant.tool_calls ?? []).map(call => ({
+					id: call.id ?? '',
+					name: call.name ?? '',
+					arguments: call.arguments ?? '',
+				})),
+			},
+		} : {}),
+		...(wire.tool_result !== undefined ? {
+			toolResult: {
+				toolCallId: wire.tool_result.tool_call_id ?? '',
+				toolName: wire.tool_result.tool_name ?? '',
+				content: wire.tool_result.content ?? '',
+				isError: wire.tool_result.is_error === true,
+			},
+		} : {}),
+	};
+}
+
+function mapGetRemoteSessionHistoryResponse(wire: GetRemoteSessionHistoryResponseWire): UniverseAgentGetRemoteSessionHistoryResult {
+	return {
+		messages: (wire.messages ?? []).map(mapRemoteChatMessage),
+		version: requiredInt64(wire.version),
+		hasMore: wire.has_more === true,
+	};
+}
+
 interface RemoteAgentEndpointWire {
 	host?: string;
 	port?: number | string;
@@ -6809,6 +6884,20 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 		);
 		const wire = await unary({});
 		return mapReloadRemoteAgentsResponse(wire);
+	}
+
+	async getRemoteSessionHistory(request: UniverseAgentGetRemoteSessionHistoryRequest): Promise<UniverseAgentGetRemoteSessionHistoryResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, GetRemoteSessionHistoryResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.RemoteAgent.service,
+			UniverseAgentGrpcServices.RemoteAgent.GetRemoteSessionHistory,
+		);
+		const wire = await unary({
+			call_id: request.callId,
+			since_version: request.sinceVersion,
+			page_size: request.pageSize,
+		});
+		return mapGetRemoteSessionHistoryResponse(wire);
 	}
 
 	async getUploadProgress(request: UniverseAgentGetUploadProgressRequest): Promise<UniverseAgentGetUploadProgressResult> {

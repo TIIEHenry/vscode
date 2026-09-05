@@ -2779,6 +2779,68 @@ export interface UniverseAgentReloadRemoteAgentsResult {
 }
 
 /**
+ * RemoteAgentService.GetRemoteSessionHistory — proto
+ * `GetRemoteSessionHistoryRequest` / `GetRemoteSessionHistoryResponse` +
+ * `RemoteChatMessage` / `RemoteSystemMessage` / `RemoteUserMessage` /
+ * `RemoteAssistantMessage` / `RemoteToolCall` /
+ * `RemoteToolResultMessage` only. Empty `call_id` (incl. empty string)
+ * passes through as-is. `since_version` / `page_size` 0 pass through
+ * as-is. Empty `messages` (incl. empty content / tool_call id / name /
+ * arguments / tool_call_id / tool_name) mapped as-is. `version` 0
+ * mapped as-is. `has_more` / `is_error` false mapped as-is.
+ * ≠ RemoteChat / CreateRemoteSession / DestroyRemoteSession /
+ * GetRemoteSessionStatus / ResumeRemoteSession / CancelRemoteSession /
+ * ListNodes / GetNode / CheckConnection / SetMaintenance /
+ * ExitMaintenance / ResetError / ListConfigs / GetConfig / SaveConfig /
+ * DeleteConfig / Reload / DeviceService / SessionService.
+ */
+export interface UniverseAgentRemoteSystemMessage {
+	readonly content: string;
+}
+
+export interface UniverseAgentRemoteUserMessage {
+	readonly content: string;
+}
+
+export interface UniverseAgentRemoteToolCall {
+	readonly id: string;
+	readonly name: string;
+	readonly arguments: string;
+}
+
+export interface UniverseAgentRemoteAssistantMessage {
+	readonly content: string;
+	readonly toolCalls: readonly UniverseAgentRemoteToolCall[];
+}
+
+export interface UniverseAgentRemoteToolResultMessage {
+	readonly toolCallId: string;
+	readonly toolName: string;
+	readonly content: string;
+	readonly isError: boolean;
+}
+
+/** Proto `RemoteChatMessage` (`oneof message`: system / user / assistant / tool_result). */
+export interface UniverseAgentRemoteChatMessage {
+	readonly system?: UniverseAgentRemoteSystemMessage;
+	readonly user?: UniverseAgentRemoteUserMessage;
+	readonly assistant?: UniverseAgentRemoteAssistantMessage;
+	readonly toolResult?: UniverseAgentRemoteToolResultMessage;
+}
+
+export interface UniverseAgentGetRemoteSessionHistoryRequest {
+	readonly callId: string;
+	readonly sinceVersion: number;
+	readonly pageSize: number;
+}
+
+export interface UniverseAgentGetRemoteSessionHistoryResult {
+	readonly messages: readonly UniverseAgentRemoteChatMessage[];
+	readonly version: number;
+	readonly hasMore: boolean;
+}
+
+/**
  * FileTransferService.GetUploadProgress — proto `UploadProgressRequest` /
  * `UploadProgressResponse` only. Empty `transfer_id` / `session_id` pass
  * through as-is. `bytes_received` 0 / empty `partial_path` mapped as-is.
