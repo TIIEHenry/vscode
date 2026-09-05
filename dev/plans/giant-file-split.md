@@ -4,7 +4,7 @@ type: plan
 status: accepted
 phase: N/A
 updated: 2026-09-05
-summary: "四份巨型文件按状态机/投影/IO 拆（不改对外契约）；GFS-1/GFS-2/GFS-3 已在 HEAD 落地（含 GFS-3 residue @ 533fc6c42d5：readingColumn + sessionBinding，门面 783 行）；Desktop GFS-4 已拆 @ 0dd3146cd（本仓 vendored 仍 PIN 02a2ba35、未 sync）；Next vscode sync；每文件 ≤800 硬上限；sessionCore/sessionView 仿既有 SYNC.md 回同步，禁止手改 vendored"
+summary: "四份巨型文件按状态机/投影/IO 拆（不改对外契约）；GFS-1/GFS-2/GFS-3 已在 HEAD 落地（含 GFS-3 residue @ 533fc6c42d5：readingColumn + sessionBinding，门面 783 行）；GFS-4 已 sync 本仓 @ a4ab1a3e754（PIN Desktop 0dd3146cd）；每文件 ≤800 硬上限；sessionCore/sessionView 仿既有 SYNC.md 回同步，禁止手改 vendored"
 ---
 
 # 巨型文件按状态机 / 投影 / IO 拆分
@@ -14,7 +14,7 @@ summary: "四份巨型文件按状态机/投影/IO 拆（不改对外契约）�
 > **文档：** 不在 `src/vs/` 新建 docs 树（[DOCUMENTATION.md](../../docs/DOCUMENTATION.md)）。既有 `SYNC.md` 由同步脚本覆写，本方案**不**另建 SYNC.md。  
 > **本稿地位：** `accepted`（2026-09-04 两轮审查后签收，见文末）。  
 > **审查记录：** 见文末（规则 16）。  
-> **落地（HEAD @ `ec2bcbd9eb9` · 2026-09-05）：** **GFS-1 已落** @ `32f71812`/`32198d0b`（`grpcClientMappers.test.ts` + facade / Session·Catalog·Team mappers / `grpcClientCalls.ts`）。**GFS-2 已落** @ `78bc8bbc`（`conversationTimelineTypes.ts` + `conversationTimelineRenderer.ts` + 门面 `conversationTimelineTree.ts`）。**GFS-3 已落** @ `c5d791c7`（`conversationLensProjection.ts` + `conversationLensSessionBar.ts` + `conversationLensDock.ts` + `conversationLensComposer.ts` + `conversationLensComposerChrome.ts` + 门面 `conversationLens.ts`）。**GFS-3 residue 已落** @ `533fc6c42d5`（`conversationLensReadingColumn.ts` + `conversationLensSessionBinding.ts`；门面 `conversationLens.ts` **783** 行；仍 `export class ConversationLens`）。**G6 已在 Desktop 闭合** @ `48cd90952`（上游删四处 dead `private`；session-core vitest 1419 绿）。**Desktop GFS-4 已拆** @ `0dd3146cd`（同 class 文件搬迁；`session-actor.ts` 736 + `session-actor-stream-fold.ts` 733 + `session-actor-overlay-fold.ts` 288 + `session-actor-local-fact.ts` 659 + `session-actor-timeline-items.ts` 138 + `session-actor-chat-outbox.ts` 220；另有 `session-actor-fold-interface.ts` / `session-actor-production-source.ts`；均 ≤800；方法挂 `SessionActor.prototype`；上游 barrel 仍不 re-export `SessionActor`）。**本仓 vendored 树仍 PIN `02a2ba35`、未 sync**——**Next：** `UA_DESKTOP_REPO=…/UniverseAgentDesktop-WorkTrees/merge npx tsx scripts/sync-universe-agent-session-core.ts`；sync 前不得声称 GFS-4 已落本仓。
+> **落地（HEAD @ `40d61319677` · 2026-09-05）：** **GFS-1 已落** @ `32f71812`/`32198d0b`（`grpcClientMappers.test.ts` + facade / Session·Catalog·Team mappers / `grpcClientCalls.ts`）。**GFS-2 已落** @ `78bc8bbc`（`conversationTimelineTypes.ts` + `conversationTimelineRenderer.ts` + 门面 `conversationTimelineTree.ts`）。**GFS-3 已落** @ `c5d791c7`（`conversationLensProjection.ts` + `conversationLensSessionBar.ts` + `conversationLensDock.ts` + `conversationLensComposer.ts` + `conversationLensComposerChrome.ts` + 门面 `conversationLens.ts`）。**GFS-3 residue 已落** @ `533fc6c42d5`（`conversationLensReadingColumn.ts` + `conversationLensSessionBinding.ts`；门面 `conversationLens.ts` **783** 行；仍 `export class ConversationLens`）。**G6 已在 Desktop 闭合** @ `48cd90952`（上游删四处 dead `private`；session-core vitest 1419 绿）。**Desktop GFS-4 已拆** @ `0dd3146cd`（同 class 文件搬迁；`session-actor.ts` 736 + `session-actor-stream-fold.ts` 733 + `session-actor-overlay-fold.ts` 288 + `session-actor-local-fact.ts` 659 + `session-actor-timeline-items.ts` 138 + `session-actor-chat-outbox.ts` 220；另有 `session-actor-fold-interface.ts` / `session-actor-production-source.ts`；均 ≤800；方法挂 `SessionActor.prototype`；上游 barrel 仍不 re-export `SessionActor`）。**GFS-4 已 sync 本仓** @ `a4ab1a3e754`（vendored PIN `0dd3146cd05efdcce118d0c3c7e19eb28b615f5c`；`sessionView/index.ts` 未手改）。
 
 ## 0. 目标 / 非目标
 
@@ -45,9 +45,9 @@ summary: "四份巨型文件按状态机/投影/IO 拆（不改对外契约）�
 | `session-actor.ts` **2933** 行。头注释：「Per-session serial Actor: single FIFO mailbox, sync drain, no re-entry (ADR-009 §2). Side effects are intents only」。导出：`SessionActorDeps`、`syncReasonFromConnectionDown`、`export class SessionActor`。`handle` 按 `CoreMessage.t` 分发；`onLocalFact` / `onStreamEvent` 是两大投影入口；尾部 `enqueueOrWriteChat` / `flushPendingChatWrites` 是写出 | `node/sessionCore/session-actor.ts` |
 | `sessionCore/index.ts` 是 Host-side barrel（ports / intents / fold helpers / `createSessionCore`）。**不** re-export `SessionActor`。头写 renderer 须走 `@universe-agent/session-core/view`。脚本 **会覆写** 此文件（只跳过 `view/index.ts`） | `node/sessionCore/index.ts` · `scripts/sync-universe-agent-session-core.ts` `EXCLUDE_RELATIVE_FILES` |
 | `sessionView/index.ts` 是 **vscode 自写** barrel：「does NOT mirror upstream `view/index.ts`」。只 re-export 本目录 types / apply / empty-snapshot / client-tool-call / question-ask / overlay-view-helpers | `common/sessionView/index.ts` |
-| 两棵树已有 SYNC.md，文案与 deviceGrant / hub 同构。Source：`UniverseAgentDesktop/packages/session-core/src`。Commit：`02a2ba350f82d3b087cb664942624f71fa4e0c60`。Regenerate：`npx tsx scripts/sync-universe-agent-session-core.ts`。禁止手改 | `node/sessionCore/SYNC.md` · `common/sessionView/SYNC.md` |
+| 两棵树已有 SYNC.md，文案与 deviceGrant / hub 同构。Source：`UniverseAgentDesktop/packages/session-core/src`。Commit：`0dd3146cd05efdcce118d0c3c7e19eb28b615f5c`（GFS-4 sync @ `a4ab1a3e754`）。Regenerate：`npx tsx scripts/sync-universe-agent-session-core.ts`。禁止手改 | `node/sessionCore/SYNC.md` · `common/sessionView/SYNC.md` |
 | 同步脚本：来源 `../UniverseAgentDesktop`（或 `UA_DESKTOP_REPO`）；`view/**` → `common/sessionView/`（跳过 `view/index.ts`）；其余 → `node/sessionCore/`；2 空格→tab；`./view/*.js` → `../../common/sessionView/*.js`；写回两份 SYNC.md 的 Commit | `scripts/sync-universe-agent-session-core.ts` |
-| 本机兄弟仓 `UniverseAgentDesktop` `git rev-parse HEAD` = **`02a2ba350f82d3b087cb664942624f71fa4e0c60`**（与 SYNC.md 一致，非编造）。上游 `session-actor.ts` **2961** 行，本仓 **2933** 行。差 **28** 行 = [stream-timeline G6](conversation-stream-timeline.md) 在 vendored 文件里**手删**四个 dead `private` 成员（`connectionGeneration` / `prefixHole` / `blockRespondMissingAgentId` / `commitSeqIndex`），**不是** indent（2 空格→tab 不改行数） | 仓外核对 @ 2026-09-04；G6 原文「手删了这 28 行」 |
+| 本机兄弟仓 `UniverseAgentDesktop` `git rev-parse HEAD` = **`0dd3146cd05efdcce118d0c3c7e19eb28b615f5c`**（与 SYNC.md 一致，非编造）。上游 `session-actor.ts` 已拆为 fold 模块（门面 736 行等，均 ≤800） | 仓外核对 @ 2026-09-05；G6 @ `48cd90952` 删四处 dead `private` |
 | deviceGrant / hub 先例同一 SHA、同一「Do not hand-edit… change upstream and re-sync」 | `node/deviceGrant/SYNC.md` · `node/hub/SYNC.md` |
 | `ConversationLens`：产品透镜，SessionBar + timeline + local dock，挂 `IConversationLensSlots`。状态字段已含 `lensId`（约 `:177`）/ `composerPolicy` / `conversationPhase` / `sessionViewLease` / `submitInFlight`。投影入口 `applySessionViewTimeline`（`projectSnapshotToEntries` 已在 `conversationSessionView.ts`）。IO：`bindSessionView` / `postBound` / `submitDraft` / roster / catalog | `conversationLens.ts`（`export class` 约 `:160`，字段 `:177+`）· `:1563-1607` · `:1917+`；行号按 2026-09-04 复核，实施时以符号为准 |
 | `GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport`。前 ~1100 行是 Wire + `map*` + `makeUnaryClient` / `makeServerStreamClient` / `makeResidentBidiStreamClient` / `makeBidiStreamClient`。类方法是薄 RPC 包装。工厂：`createGrpcUniverseAgentClient` / `createPinnedGrpcUniverseAgentClient`。唯一生产消费方：`universeAgentConnectionService.ts`。**该文件零单测**：`universeAgentConnection.test.ts` 全部走 `MockUniverseAgentGrpcTransport`，不经真 mapper | `node/grpc/grpcClient.ts` · `grpcTransport.ts` |
@@ -87,7 +87,7 @@ summary: "四份巨型文件按状态机/投影/IO 拆（不改对外契约）�
 
 **§6 行数上限对 GFS-4 是硬门，不接受「签收记录里改口」：** 任一新文件 > 800 → Desktop PR 不得合、本仓不得 sync。上游若坚持「一个 fold 模块」，则该模块必须自身 ≤ 800，否则等于没拆。
 
-**GFS-4 前置（G6）——唯一路径是上游删：** 2026-09-04 复核 `scripts/sync-universe-agent-session-core.ts`：变换只有 2 空格→tab 与 `./view/*.js` import 改写，**没有**删行能力。**G6 已闭** @ Desktop `48cd90952`（删 `connectionGeneration` / `prefixHole` / `blockRespondMissingAgentId` / `commitSeqIndex`；vitest 1419 绿）。本仓 vendored 树**尚未 sync**（仍 PIN `02a2ba35`、仍含那四处手删前的上游副本）。GFS-4 切分在 Desktop 进行；**GFS-4 拆完再跑 sync**，不得借 G6 单独 sync 而声称 GFS-4 已落。
+**GFS-4 前置（G6）——唯一路径是上游删：** 2026-09-04 复核 `scripts/sync-universe-agent-session-core.ts`：变换只有 2 空格→tab 与 `./view/*.js` import 改写，**没有**删行能力。**G6 已闭** @ Desktop `48cd90952`（删 `connectionGeneration` / `prefixHole` / `blockRespondMissingAgentId` / `commitSeqIndex`；vitest 1419 绿）。**GFS-4 已 sync 本仓** @ `a4ab1a3e754`（PIN `0dd3146cd`；vendored 树不再含 G6 手删前的上游副本）。
 
 **与 G-CORE-1：** [session-view-frame-fanout](session-view-frame-fanout.md) 的 G-CORE-1（`CoreIntent` 加 `sessionId` / `takeIntents(sessionId)`）与 GFS-4 同写 Desktop `packages/session-core`。二选一：同一 Desktop 写者串行；**或** GFS-4 只搬 `session-actor` 文件、不改 mailbox / intent（G-CORE-1 另窗）。禁止两个写者同时改同一上游树。
 
@@ -163,7 +163,7 @@ summary: "四份巨型文件按状态机/投影/IO 拆（不改对外契约）�
 | 1 | **GFS-1 `grpcClient` · 已落** @ `32f71812`/`32198d0b` | mapper 特征测 + 拆为 facade、`grpcClientMappers*`（Session/Catalog/Team）、`grpcClientCalls.ts`；工厂仍从 `grpcClient.js` 出口，`universeAgentConnectionService` 零改 |
 | 2 | **GFS-2 `conversationTimelineTree` · 已落** @ `78bc8bbc` | `conversationTimelineTypes.ts` 先落无环类型；`conversationTimelineRenderer.ts` 搬 Delegate/Renderer；门面 `conversationTimelineTree.ts` 保留公开 API |
 | 3 | **GFS-3 `conversationLens` · 已落** @ `c5d791c7` | `conversationLensProjection.ts` / `conversationLensSessionBar.ts` / `conversationLensDock.ts` / `conversationLensComposer.ts` / `conversationLensComposerChrome.ts`；门面 `conversationLens.ts` 保留公开 API 与会话集成枢纽 |
-| 4 | **GFS-4 `session-actor`（Desktop 已拆 → 本仓 sync）** | Desktop 已拆 @ `0dd3146cd`（G6 @ `48cd90952`）；**Next** 本仓 `UA_DESKTOP_REPO=…/UniverseAgentDesktop-WorkTrees/merge npx tsx scripts/sync-universe-agent-session-core.ts`。本仓 vendored 仍 PIN `02a2ba35`、**未**含 GFS-4。与 GFS-1–3 无文件重叠；与 G-CORE-1（fanout）及 [cross-repo-protocol](cross-repo-protocol.md) G2 typed arm **同一 Desktop 写者串行**，或本刀只搬文件不改 mailbox/intent/typed arm |
+| 4 | **GFS-4 `session-actor` · 已落** @ Desktop `0dd3146cd` → 本仓 sync @ `a4ab1a3e754` | Desktop 已拆 + 本仓 vendored PIN `0dd3146cd05efdcce118d0c3c7e19eb28b615f5c`。与 GFS-1–3 无文件重叠；与 G-CORE-1（fanout）及 [cross-repo-protocol](cross-repo-protocol.md) G2 typed arm **同一 Desktop 写者串行**，或本刀只搬文件不改 mailbox/intent/typed arm |
 
 拒绝「先拆 session-actor 因为最长」：那是在错误的仓动刀。
 
@@ -174,8 +174,8 @@ summary: "四份巨型文件按状态机/投影/IO 拆（不改对外契约）�
 | 项 | 实读 |
 |----|------|
 | 来源仓路径 | `UniverseAgentDesktop/packages/session-core/src`（SYNC.md 与 `scripts/sync-universe-agent-session-core.ts` 的 `SOURCE_DIR` 一致）。**不是** `apps/desktop/...`（那是 deviceGrant/hub） |
-| PIN（本仓 vendored） | `02a2ba350f82d3b087cb664942624f71fa4e0c60`（两份 session-core SYNC.md；本仓 vendored 仍此值） |
-| Desktop HEAD（GFS-4 已拆） | `0dd3146cd05efdcce118d0c3c7e19eb28b615f5c` @ UniverseAgentDesktop `loop/merge`（`wc -l` @ 2026-09-05：门面 736 + stream 733 + overlay 288 + local-fact 659 + timeline-items 138 + chat-outbox 220；均 ≤800） |
+| PIN（本仓 vendored） | `0dd3146cd05efdcce118d0c3c7e19eb28b615f5c`（两份 session-core SYNC.md；本仓 sync @ `a4ab1a3e754`） |
+| Desktop HEAD（GFS-4 已拆） | `0dd3146cd05efdcce118d0c3c7e19eb28b615f5c` @ UniverseAgentDesktop `loop/merge`（`wc -l` @ 2026-09-05：门面 736 + stream 733 + overlay 288 + local-fact 659 + timeline-items 138 + chat-outbox 220 + fold-interface 180 + production-source 23；均 ≤800） |
 | 脚本 | `npx tsx scripts/sync-universe-agent-session-core.ts` |
 | view 落点 | `src/vs/platform/universeAgent/common/sessionView/`（跳过上游 `view/index.ts`） |
 | Actor 落点 | `src/vs/platform/universeAgent/node/sessionCore/` |
@@ -229,7 +229,7 @@ summary: "四份巨型文件按状态机/投影/IO 拆（不改对外契约）�
 | GFS-1 | **已落** @ `32f71812`/`32198d0b`。合入后 [packaging-and-release §12 / §3.1](packaging-and-release.md) 的 `@grpc/grpc-js` import 点清单要**用 `rg` 重新数**（多出 `grpcClientCalls.ts`），不抄旧表 | packaging 静态依赖根检查按 import 点计数 |
 | GFS-2 | **已落** @ `78bc8bbc`。与 [prd-020](prd-020-turn-fixture-bench.md) 共写 `conversationTimelineTree.ts` 附近——后续 prd-020 若需加 `data-*` 钩子，可在门面补 | 避免同文件两写者 |
 | GFS-3 | **已落** @ `c5d791c7`。拆分 projection / sessionBar / dock / composer / composerChrome；门面 `conversationLens.ts` 保留；`conversationLens.test.ts` it() 不减 | 与 [prd-020](prd-020-turn-fixture-bench.md) 等后续若共写 lens 门面，仍按文件互斥 |
-| GFS-4 | Desktop 已拆 @ `0dd3146cd`（G6 @ `48cd90952`）；**Next** 本仓 sync；Desktop 写者与 G-CORE-1 / G2 串行 | §2.1 / §4.2 |
+| GFS-4 | **已落** @ Desktop `0dd3146cd` → 本仓 sync @ `a4ab1a3e754`（G6 @ `48cd90952`）；Desktop 写者与 G-CORE-1 / G2 串行 | §2.1 / §4.2 |
 
 ## 6. 验收
 
@@ -244,7 +244,7 @@ summary: "四份巨型文件按状态机/投影/IO 拆（不改对外契约）�
 
 ## 7. 审查与签收
 
-- 本稿 2026-09-05 **签收（`accepted`）**。**GFS-1/GFS-2/GFS-3（含 residue @ `533fc6c42d5`）已在 HEAD 落地**（见文首落地注）。**G6 已在 Desktop 闭合** @ `48cd90952`。**Desktop GFS-4 已拆** @ `0dd3146cd`（本仓 vendored 仍 PIN `02a2ba35`、未 sync）。余下：**本仓 sync**（`UA_DESKTOP_REPO=…/UniverseAgentDesktop-WorkTrees/merge npx tsx scripts/sync-universe-agent-session-core.ts`；sync 后才能在本文档声称 GFS-4 已落本仓）。
+- 本稿 2026-09-05 **签收（`accepted`）**。**GFS-1/GFS-2/GFS-3（含 residue @ `533fc6c42d5`）已在 HEAD 落地**（见文首落地注）。**G6 已在 Desktop 闭合** @ `48cd90952`。**GFS-4 已闭** @ Desktop `0dd3146cd` → 本仓 sync @ `a4ab1a3e754`（vendored PIN `0dd3146cd05efdcce118d0c3c7e19eb28b615f5c`；`sessionView/index.ts` 未手改）。**compile 未跑**（用户 skip）；不得声称 `npm run compile` 绿。
 - 签收后若改文件名，只改本节与 §2 表，不另开方案。GFS-4 若实施时任一文件 >800 行，回到 §2.1 粗行表再切，不改 §6。
 
 ## 8. 审查记录（规则 16）

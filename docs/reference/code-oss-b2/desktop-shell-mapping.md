@@ -3,7 +3,7 @@ title: "Desktop 壳合同 ↔ 本仓 Parts 映射"
 type: reference
 status: accepted
 phase: N/A
-updated: 2026-09-01
+updated: 2026-09-05
 summary: "ADR-052 四钮与 IA 区域投影到默认 workbench / Agents Window；M5 切片 1–4 已落；D4 closed @ rerun-2230；D5 EH 仍 open"
 ---
 
@@ -22,7 +22,7 @@ summary: "ADR-052 四钮与 IA 区域投影到默认 workbench / Agents Window�
 | Activity | 有 | **省略** |
 | StatusBar | 有 | **省略** |
 | Editor 显隐 | 与 Conversation 互斥（aux maximize 例外） | 可独立于 Sessions Part |
-| 产品壳（四钮 + IDEA End） | 无 | 无 |
+| 产品壳（四钮 + IDEA End） | **有**（Conversation 中心 + End Preview/Sources + titlebar 四钮） | 无 |
 | 对 B2 S1 | **手术对象** | **样例 / 禁止当成品壳** |
 
 父方案坚持文档壳 = 默认窗口改拓扑，**不是**把用户主窗换成 Agents Window。  
@@ -43,13 +43,13 @@ StatusBar
 |---------------------------|--------------|-------------|------|
 | Activity rail | `ACTIVITYBAR_PART` | **保留原生；不加四钮 chrome**（2026-08-30 拍板：四钮宿主改 titlebar 右上） | 通高已近似成立 |
 | Navigator body | `SIDEBAR_PART`（Activity 默认 **Files** = Explorer `VIEW_CONTAINER`，`isDefault: true`；另四个 **独立** 非 default 容器 Sessions / Projects / Agents / Team。**不含** Run and Debug / Source Control / Testing / Extensions / Voice Transcripts / Voice Event Stream——六者 `IsSessionsWindowContext` 门闩；Test Results 与 Debug Console 仍在 Panel） | Files = Explorer 权威；Sessions = 独立容器 `workbench.view.sessions` stub roster（见 [session-roster-reuse](session-roster-reuse.md)）；**M5 切片 2**：选行 → `switchSession` → 显示 `CONVERSATION_PART` → focus（Conversation 隐藏时亦成立）；Projects/Agents/Team = 独立容器 honest empty。子页按 vscode 零件重设计见 [navigator-tabs-access](navigator-tabs-access.md)（draft） | `toggleRegion('navigatorBody')` ≙ `setSideBarHidden` + 记宽 |
-| Conversation | **`CONVERSATION_PART`**（`contrib/conversation` 透镜骨架：SessionBar / stub 时间线 / stub dock） | 独立中心 Part | 无引擎接线；不是 ChatEditor；**M5 切片 1** 默认窗 New/Open Chat 经 `chatShellRouting.focusConversationPart` 路由至此 |
+| Conversation | **`CONVERSATION_PART`**（M2 透镜 + PRD-016 session 窗口：`ConversationPart` SessionBar + 最多两叶 session 窗口；每叶 `ConversationLens` 填 timeline / Dock / Composer） | 独立中心 Part | 无引擎接线；不是 ChatEditor；**M5 切片 1** 默认窗 New/Open Chat 经 `chatShellRouting.focusConversationPart` 路由至此 |
 | Preview | `EDITOR_PART`（End 列） | **同一 `EDITOR_PART` 已挪到 End** | 与 File tabs **同构**（spike §3.1）；出厂 **`workbench.startupEditor` = `none`**，Preview 不自动打开 VS Code Welcome（Command Palette 仍可打开）；空 Preview watermark 无 Open Chat，出厂 **`workbench.editor.empty.hint` = `hidden`**（空 untitled 编辑器不显示 VS Code empty hint chrome；用户可改为 `text`）；出厂 **`editor.inlineSuggest.enabled` = `false`**（Preview 内不自动显示 Copilot 式 ghost-text 补全，用户可开启） |
 | Sources | 无独立格。默认 Code 窗口 Sidebar SCM Activity 已门闩；Changes 清单 + stage/unstage/commit 在 End | **`SOURCES_PART`**（End 下格；`contrib/sources` **Files \| Changes \| Review** tab strip） | Files 列表已落；Changes = SCM 资源列表 + **stage/unstage/commit**；Review = SCM 资源只读列表（`SourcesReviewList`）；Changes/Review 行点击经 `openSourcesChangeEntry` 按 `sources.diff.defaultOwner` 分派（默认 Preview Diff）；三宿主 `moveTo*` 已落（F1–F3）；Sidebar SCM 容器仍注册供 Agents Window |
 | Bottom Panel | `PANEL_PART` | 保留；**不进四钮** | 对齐 ADR-047 / ADR-052 决策 3 |
 | StatusBar | `STATUSBAR_PART` | 保留 | 保留 Part；默认窗口不显示 Copilot StatusBar 条目（INV-NO-COPILOT）；**Conversation stub chip** `status.conversation.session`（stub 会话标题 / No session，非 Copilot） |
 | 右缘 rail | `AUXILIARYBAR_PART` | **合同默认关**（INV-052-NO-RIGHT-RAIL） | 布局类扩展爱往这里打，记入 EH 矩阵；Chat 容器仍挂 Aux 但 **`isDefault: false`**，出厂 hidden（M2） |
-| Titlebar | `TITLEBAR_PART`（菜单 + command center + 右上 layout controls） | **按 vscode 原生来**（2026-08-30 拍板）；四钮宿主 = 右上 layout controls 簇（**Navigator / Conversation / Preview / Sources** 产品名；Panel / Aux 仅在 submenu）；出厂无 Copilot Sign In / Agent Status compact chrome（`chat.titleBar.signIn.enabled` = `false`，`chat.agentsControl.enabled` = `hidden`） | 不再自研顶部 chrome |
+| Titlebar | `TITLEBAR_PART`（菜单 + command center + 右上 layout controls） | **按 vscode 原生来**（2026-08-30 拍板）；四钮宿主 = 右上 layout controls 簇（**Navigator / Conversation / Preview / Sources** 产品名；Panel / Aux 仅在 submenu）；四钮图标是空间布局族（窗口缩略 + 开/关 Off 态），不是语义气泡/预览/文件；出厂无 Copilot Sign In / Agent Status compact chrome（`chat.titleBar.signIn.enabled` = `false`，`chat.agentsControl.enabled` = `hidden`） | 不再自研顶部 chrome |
 | SessionBar | Chat 标题条 / sessions `sessionHeader` | Conversation 透镜内自研 chrome | ADR-052 NO-SUBLAYOUT |
 
 **默认窗口 vs Agents Window（右缘 rail，2026-08-31）**：产品 Conversation 宿主是 `CONVERSATION_PART`，不是 Copilot `contrib/chat` 的 Auxiliary Bar 视图。`workbench.panel.chat` 仍以 donor 身份注册在 `AUXILIARYBAR_PART`，但 **`isDefault: false`**，且 `LayoutStateKeys.AUXILIARYBAR_HIDDEN`（`auxiliaryBar.hidden`，出厂 `true`）在 fresh layout 下不再因 Copilot「新用户 / visibleInWorkspace」逻辑自动展开右栏；用户显式打开或 workspace 持久化可见时才显示。Chat 视图 **不** 注册 `openCommandActionDescriptor`，不占 View 菜单「Chat」或 `Ctrl+Cmd+Alt+I`（Open Conversation 独占该键位面）。

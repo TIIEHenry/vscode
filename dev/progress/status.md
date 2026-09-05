@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-05
-summary: "Wave 1 治理合入 + ADR-007 U0/U1 + GFS-3 residue；merge tip ec2bcbd9eb9；Desktop GFS-4 已拆 @ 0dd3146cd；本仓 vendored 仍 PIN 02a2ba35；Next vscode sync；U2 未开"
+summary: "Wave 1 治理合入 + ADR-007 U0/U1 + GFS-3 residue + GFS-4 sync；merge tip 40d61319677；GFS-4 已合入本仓 @ a4ab1a3e754（PIN Desktop 0dd3146cd）；Next test-baseline 切片 0；U2 未开"
 ---
 
 # Development Progress
@@ -13,7 +13,7 @@ summary: "Wave 1 治理合入 + ADR-007 U0/U1 + GFS-3 residue；merge tip ec2bcb
 
 ## Current Session
 
-### 已合入（`loop/merge` tip `ec2bcbd9eb9`）
+### 已合入（`loop/merge` tip `40d61319677`）
 
 | 切片 | 提交 / 落点 |
 |:-----|:------------|
@@ -22,7 +22,7 @@ summary: "Wave 1 治理合入 + ADR-007 U0/U1 + GFS-3 residue；merge tip ec2bcb
 | **GFS-3** | `c5d791c7` — `conversationLens` 拆 projection / sessionBar / dock / composer / composerChrome |
 | **GFS-3 residue** | `533fc6c42d5` — `conversationLensReadingColumn.ts` + `conversationLensSessionBinding.ts`；门面 `conversationLens.ts` **783** 行 |
 | **Desktop G6** | `48cd90952` @ UniverseAgentDesktop `loop/merge` — 上游删四处 dead `SessionActor` private；vitest 1419 绿 |
-| **Desktop GFS-4** | `0dd3146cd` @ UniverseAgentDesktop `loop/merge` — `session-actor` 拆为 fold 模块（门面 736 + stream 733 + overlay 288 + local-fact 659 + timeline-items 138 + chat-outbox 220；均 ≤800）；**本仓未 sync，不得声称 GFS-4 已落** |
+| **GFS-4** | `a4ab1a3e754` — vendored session-core sync from Desktop `0dd3146cd`（PIN `0dd3146cd05efdcce118d0c3c7e19eb28b615f5c`）；`session-actor` 736 + stream 733 + overlay 288 + local-fact 659 + timeline-items 138 + chat-outbox 220 + fold-interface / production-source；均 ≤800；`sessionCore/index.ts` 不 re-export `SessionActor`；G6 四处 dead private 已不在 vendored 树 |
 | **lens-assembly honesty** | `72ae9907` — [conversation-lens-assembly](../../docs/reference/code-oss-b2/conversation-lens-assembly.md) GFS-3 拆后同步 |
 | **packaging P0** | `b2b91259` / `9b451a1f` — [packaging-and-release](../plans/packaging-and-release.md) §4.0–4.2 只读证实登记；证据见 [packaging-p0-evidence](packaging-p0-evidence.md) |
 | **cross-repo D1** | `fb31d650` — [cross-repo-protocol](../plans/cross-repo-protocol.md) 登记处与 [deferred-gaps](deferred-gaps.md) D1 对齐 |
@@ -46,12 +46,12 @@ summary: "Wave 1 治理合入 + ADR-007 U0/U1 + GFS-3 residue；merge tip ec2bcb
 
 | 槽 | 路径 | 分支 | tip |
 |----|------|------|-----|
-| merge | `vscode-WorkTrees/merge` | `loop/merge` | `ec2bcbd9eb9` |
-| A | `vscode-WorkTrees/A` | `loop/A` | `ec2bcbd9eb9` |
-| B | `vscode-WorkTrees/B` | `loop/B` | `ec2bcbd9eb9` |
-| C | `vscode-WorkTrees/C` | `loop/C` | `ec2bcbd9eb9` |
-| D | `vscode-WorkTrees/D` | `loop/D` | `ec2bcbd9eb9` |
-| edit | `Projects/Agents/vscode` | `agent-ide` | `ec2bcbd9eb9` |
+| merge | `vscode-WorkTrees/merge` | `loop/merge` | `40d61319677` |
+| A | `vscode-WorkTrees/A` | `loop/A` | `40d61319677` |
+| B | `vscode-WorkTrees/B` | `loop/B` | `40d61319677` |
+| C | `vscode-WorkTrees/C` | `loop/C` | `40d61319677` |
+| D | `vscode-WorkTrees/D` | `loop/D` | `40d61319677` |
+| edit | `Projects/Agents/vscode` | `agent-ide` | `40d61319677` |
 
 ## Blockers
 
@@ -61,9 +61,8 @@ summary: "Wave 1 治理合入 + ADR-007 U0/U1 + GFS-3 residue；merge tip ec2bcb
 
 | 项 | 指针 |
 |:---|:-----|
-| **GFS-4 sync** | [giant-file-split](../plans/giant-file-split.md) — Desktop 已拆 @ `0dd3146cd`（G6 @ `48cd90952`）；本仓 vendored 仍 PIN `02a2ba35`。**Next：** `UA_DESKTOP_REPO=…/UniverseAgentDesktop-WorkTrees/merge npx tsx scripts/sync-universe-agent-session-core.ts`；sync 后才能在本文档声称 GFS-4 已落 |
 | **test-baseline 切片 0** | [test-baseline-ci](../plans/test-baseline-ci.md) — D16 账本需先 `npm run compile` 产出 `out/` 再跑三文件单测 |
-| **U2 闸门** | [ADR-007](../decisions/007-upstream-sync.md) Decision 5 — 须 U0 `comm` 空 + U1 完成 + CI 绿 + merge 独占 + A 表冻结；**未满足前不开 U2**（当前优先 GFS-4，非 U2） |
+| **U2 闸门** | [ADR-007](../decisions/007-upstream-sync.md) Decision 5 — 须 U0 `comm` 空 + U1 完成 + CI 绿 + merge 独占 + A 表冻结；**未满足前不开 U2** |
 
 ## 不做
 

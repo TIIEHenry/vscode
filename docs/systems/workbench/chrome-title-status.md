@@ -3,7 +3,7 @@ title: "Titlebar / Statusbar：窗口 chrome 与条目 API"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-08-30
+updated: 2026-09-05
 summary: "默认窗口 TITLEBAR_PART / STATUSBAR_PART 的宿主内容与 IStatusbarService 条目面；与 Desktop AppTabBar / StatusBar 只做松映射，chrome 内部不是 ADR-052 合同"
 ---
 
@@ -44,7 +44,7 @@ S1 手术对象是默认窗口。Agents Window 是样例宿主，**禁止**把�
 - **主 action toolbar**：按顺序拼
   - `MenuId.TitleBar` 的 leading 组（`TitleBarLeadingActionsGroup`）
   - 可选 **editor actions**（`editorActionsLocation === titlebar`，或 tabs 关时的 default）
-  - **Layout control**：`MenuId.LayoutControlMenu` 的 `navigation` 组，开关是 `LayoutSettings.LAYOUT_ACTIONS`（`workbench.layoutControl.enabled`）
+  - **Layout control**：`MenuId.LayoutControlMenu` 的 `navigation` 组，开关是 `LayoutSettings.LAYOUT_ACTIONS`（`workbench.layoutControl.enabled`）。默认窗四钮是 **Navigator / Conversation / Preview / Sources**：Navigator 用库存 `layoutSidebarLeft` / `Off`；后三钮用同族空间示意（中心列 / End 上格 / End 下格）加 Off 空心态，见 `layoutControl.css`。
   - `MenuId.TitleBar` 的其余全局动作（注释写明：通知铃在 layout control 右侧）
   - Activity 账户 / 管理（仅当 Activity 在 TOP/BOTTOM）
 - **窗口控件**（关 / 最大化 / 关闭），位置随平台与 WCO
