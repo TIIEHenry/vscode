@@ -866,7 +866,8 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 			this.renderConnectionPhase();
 			return;
 		}
-		if (result.ok && result.pairingPending && shouldDrawDesktopConnectionControls(this.desktopConnectionControlContext())) {
+		const awaitingPairing = result.pairingPending || !!readHandshakeSasCode(result);
+		if (result.ok && awaitingPairing) {
 			const displayName = profile?.displayName ?? profileId;
 			const engineIdentityId = result.engineIdentityId ?? profileId;
 			if (isRecoverTrustConnectResult(result)) {

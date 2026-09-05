@@ -91,12 +91,27 @@ export function getHubMustChangePasswordHint(): string {
 export const SAS_CONFIRM_BUTTON_LABEL = localize('ua.connectionSasConfirm', "Verified on Engine");
 export const SAS_CANCEL_BUTTON_LABEL = localize('ua.connectionSasCancel', "Cancel");
 
-/** Forbidden SAS dialog button labels (must stay absent). */
+/**
+ * §4.2 — SAS dialog must not expose skip/trust shortcuts.
+ * Match primary-action wording only (exact or leading phrase), not substrings inside verify copy.
+ */
+export function isForbiddenSasButtonLabel(label: string): boolean {
+	const trimmed = label.trim();
+	if (!trimmed) {
+		return false;
+	}
+	if (/^skip(\s|$)/i.test(trimmed) || /^trust(\s|$)/i.test(trimmed)) {
+		return true;
+	}
+	return /^跳过/.test(trimmed) || /^信任/.test(trimmed);
+}
+
+/** Document forbidden SAS button shapes for tests. */
 export const SAS_FORBIDDEN_BUTTON_PATTERNS = [
-	/skip/i,
-	/trust/i,
-	/跳过/,
-	/信任/,
+	/^skip(\s|$)/i,
+	/^trust(\s|$)/i,
+	/^跳过/,
+	/^信任/,
 ] as const;
 
 /** Handshake sasCode only — `XXXX-XXXX` is the format, not a verifiable code. */

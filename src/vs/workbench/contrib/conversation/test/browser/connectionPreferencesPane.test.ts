@@ -48,6 +48,8 @@ import {
 	getHubDirectoryBannerLabel,
 	isRecoverTrustConnectResult,
 	RECOVER_TRUST_CONFIRM_BUTTON_LABEL,
+	isForbiddenSasButtonLabel,
+	SAS_CONFIRM_BUTTON_LABEL,
 	SAS_FORBIDDEN_BUTTON_PATTERNS,
 } from '../../browser/connectionPreferencesPaneLabels.js';
 import { createConversationConnectionTestStub } from '../common/conversationConnectionTestStub.js';
@@ -215,8 +217,18 @@ suite('ConnectionPreferencesPane', () => {
 			for (const pattern of SAS_FORBIDDEN_BUTTON_PATTERNS) {
 				assert.ok(!pattern.test(label), `forbidden SAS button label: ${label}`);
 			}
+			assert.ok(!isForbiddenSasButtonLabel(label), `forbidden SAS button label: ${label}`);
 		}
-		assert.ok(!/skip|trust|跳过|信任/i.test(result.buttonLabels.join(' ')));
+		assert.ok(!isForbiddenSasButtonLabel(SAS_CONFIRM_BUTTON_LABEL));
+	});
+
+	test('SAS confirm button label rejects skip/trust primary actions only', () => {
+		assert.ok(isForbiddenSasButtonLabel('Skip'));
+		assert.ok(isForbiddenSasButtonLabel('Trust this Engine'));
+		assert.ok(isForbiddenSasButtonLabel('跳过配对'));
+		assert.ok(isForbiddenSasButtonLabel('信任并继续'));
+		assert.ok(!isForbiddenSasButtonLabel(SAS_CONFIRM_BUTTON_LABEL));
+		assert.ok(!isForbiddenSasButtonLabel('已在 Engine 上验证'));
 	});
 
 	test('Hub signedIn does not make isEngineConnected true', () => {
@@ -627,6 +639,57 @@ suite('ConnectionPreferencesPane', () => {
 		document.body.appendChild(container);
 		(pane as unknown as { activeProfileId: string }).activeProfileId = 'hub-profile-1';
 		await (pane as unknown as { connectProfileWithPairing(profileId: string): Promise<void> }).connectProfileWithPairing('hub-profile-1');
+		assert.strictEqual(confirmCalls, 1);
+		container.remove();
+	});
+
+	test('SAS confirm still opens when capability snapshot looks web-unsupported', async () => {
+		let confirmCalls = 0;
+		const handshakeSas = 'ABCD-EFGH';
+		const capabilities = createWebUnsupportedCapabilitySnapshot();
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IUniverseAgentHubService, createHubStub({
+			listConnectionProfiles: () => [{
+				profileId: 'direct-profile-1',
+				displayName: 'debug-engine',
+				state: 'pairingPending',
+				hasTrust: false,
+				targetKind: 'directAddress',
+			}],
+		}));
+		instantiationService.stub(IUniverseAgentConnection, createConnectionStub({
+			getCapabilitySnapshot: () => capabilities,
+			getConnectionSnapshot: () => ({
+				transport: 'idle',
+				pairingPending: true,
+				channelAlive: false,
+				sharedFsRootSent: false,
+				capabilities,
+			}),
+			connectProfile: async () => ({
+				ok: true,
+				path: 'direct',
+				pairingPending: true,
+				sasCode: handshakeSas,
+				engineIdentityId: '0123456789abcdef',
+			}),
+			confirmPairing: async () => {
+				confirmCalls++;
+				return { ok: true, path: 'direct', pairingPending: false, sessionToken: 'tok' };
+			},
+		}));
+		instantiationService.stub(IDialogService, {
+			_serviceBrand: undefined,
+			prompt: async (config: { detail?: string; buttons: readonly { run: () => boolean }[] }) => {
+				assert.ok(config.detail?.includes(handshakeSas));
+				return { result: config.buttons[0].run() };
+			},
+		} as unknown as IDialogService);
+
+		const pane = store.add(instantiationService.createInstance(ConnectionPreferencesPane));
+		const container = pane.getDomNode();
+		document.body.appendChild(container);
+		await (pane as unknown as { connectProfileWithPairing(profileId: string): Promise<void> }).connectProfileWithPairing('direct-profile-1');
 		assert.strictEqual(confirmCalls, 1);
 		container.remove();
 	});

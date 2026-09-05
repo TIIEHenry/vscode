@@ -12,7 +12,7 @@ import {
 	RECOVER_TRUST_CONFIRM_BUTTON_LABEL,
 	SAS_CANCEL_BUTTON_LABEL,
 	SAS_CONFIRM_BUTTON_LABEL,
-	SAS_FORBIDDEN_BUTTON_PATTERNS,
+	isForbiddenSasButtonLabel,
 } from './connectionPreferencesPaneLabels.js';
 
 export type SasConfirmDialogInput = {
@@ -36,10 +36,8 @@ export async function promptSasConfirmDialog(
 	const cancelLabel = SAS_CANCEL_BUTTON_LABEL;
 	const buttonLabels = [confirmLabel, cancelLabel] as const;
 
-	for (const pattern of SAS_FORBIDDEN_BUTTON_PATTERNS) {
-		if (pattern.test(confirmLabel) || pattern.test(cancelLabel)) {
-			throw new Error('SAS dialog must not expose skip/trust buttons');
-		}
+	if (isForbiddenSasButtonLabel(confirmLabel) || isForbiddenSasButtonLabel(cancelLabel)) {
+		throw new Error('SAS dialog must not expose skip/trust buttons');
 	}
 
 	const result = await dialogService.prompt<boolean>({
