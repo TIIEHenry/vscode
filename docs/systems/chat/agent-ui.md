@@ -3,7 +3,7 @@ title: "Agent UI 清单：宿主、Widget、Copilot 边界"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-09-02
+updated: 2026-09-05
 summary: "本仓对话 UI 三层：Copilot Chat 宿主边界 + Sessions 宿主 + 产品 Conversation 指针；PRD-015/016 已落；D4/D5 已闭；Conversation 系统正文迁至 docs/systems/conversation/"
 ---
 
@@ -87,7 +87,7 @@ Desktop 合同：窗口壳 = Singularity/IDEA；Conversation 内 = 时间线 + I
 
 `ChatViewPane` 还嵌 `AgentSessionsControl`、welcome、entitlement、mic/TTS——体量远超「一个列表 + Dock」。把它整块搬进新 Part 会把 Copilot 设置流一起搬进来。
 
-**产品中心（M2 透镜 + PRD-016 session 窗口，S1–S6 已落）：** `workbench/contrib/conversation` 在 `ConversationPart` 提供 Part 级 SessionBar（SelectBox、←→、关非根）与 session 窗口网格（`IConversationSessionWindowService`，最多两叶）；每叶内 `EditorParts.createConversationEditorPart` + 默认根 `ConversationChatInput`。页 chrome 在 `ConversationEditorPane`：「对话\|轨迹」+ 阅读列 + Dock + 子代理 tab 面包屑（`ConversationAgentBreadcrumbBox`）。子代理默认 **session 叶 overlay**（`ConversationSubAgentOverlay`）：居中卡片对齐 Modal 壳（不是 `MODAL_GROUP`）；弹出才延伸 tab，叶内最大化只铺满 overlay。Fork → `CONVERSATION_GROUP` 延伸 tab。自有导航栈（S2）与 `IHistoryService` 隔离；`conversation.navigate.closeChildOnBack` 默认开。roster「打开到旁边」/ Alt+点击可并列第二 session 叶（S5），共享 End Preview。仍用 stub 时间线 / composer（`IConversationRosterService` 内存会话）；非 `ChatEditorInput` / `ChatViewPane`，不走 Copilot setup 或 `IChatModel`。SessionBar 含 compact New/Delete session、History（诚实空）与 Active 态 Route 下拉。
+**产品中心（M2 透镜 + PRD-016 session 窗口，S1–S6 已落）：** `workbench/contrib/conversation` 在 `ConversationPart` 提供 Part 级 SessionBar（SelectBox、←→、关非根）与 session 窗口网格（`IConversationSessionWindowService`，最多两叶）；每叶内 `EditorParts.createConversationEditorPart` + 默认根 `ConversationChatInput`。页级三槽（`IConversationLensSlots`：`sessionBar?` / `timeline` / `dock`）由 `ConversationEditorPane` 创建 DOM 并 `createInstance(ConversationLens, slots)`；门面 `conversationLens.ts` + GFS-3 同级 `conversationLens*.ts` 模块填入「对话\|轨迹」透镜栏、阅读列（`ConversationTimelineTree`）与 Dock/Composer 自研表面（[透镜组装](../../reference/code-oss-b2/conversation-lens-assembly.md) §2–§2.1）。**零** `ChatWidget` / `ChatListWidget` / `IChatService` 当产品中心。子代理 tab 面包屑（`ConversationAgentBreadcrumbBox`）。子代理默认 **session 叶 overlay**（`ConversationSubAgentOverlay`）：居中卡片对齐 Modal 壳（不是 `MODAL_GROUP`）；弹出才延伸 tab，叶内最大化只铺满 overlay。Fork → `CONVERSATION_GROUP` 延伸 tab。自有导航栈（S2）与 `IHistoryService` 隔离；`conversation.navigate.closeChildOnBack` 默认开。roster「打开到旁边」/ Alt+点击可并列第二 session 叶（S5），共享 End Preview。仍用 stub 时间线 / composer（`IConversationRosterService` 内存会话）；非 `ChatEditorInput` / `ChatViewPane`，不走 Copilot setup 或 `IChatModel`。SessionBar 含 compact New/Delete session、History（诚实空）与 Active 态 Route 下拉。
 
 **空会话与输入面（[PRD-015](../../product/requirements.md#prd-015-conversation-空会话与输入面)，T1–T6 `implemented` @ `ea0104c0`–`d4064ba0`）：** PreFirst 居中 Composer + `ConversationIdentityStrip`、无 Inbox / Goal / Stop；首条发送后同一张 Composer 落到列底，Inbox 在其上方左右分簇（左 Task · MessageQueue · Goal，右 Stop · 上下文环），Task 在 MessageQueue 左侧。身份条引擎 chip 与 StatusBar `status.conversation.engine` **同套** `getConnectionPhaseStatusBarText`（H4b）与 B10 pane 路由（connected → Engine pane，否则 Connection）。合同见 [conversation-empty-hero](../../../dev/plans/conversation-empty-hero.md)，系统正文见 [composer-and-inbox](../conversation/composer-and-inbox.md)。
 
