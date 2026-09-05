@@ -285,6 +285,8 @@ import type {
 	UniverseAgentGetRemoteSessionStatusResult,
 	UniverseAgentGetRemoteSessionHistoryRequest,
 	UniverseAgentGetRemoteSessionHistoryResult,
+	UniverseAgentResumeRemoteSessionRequest,
+	UniverseAgentResumeRemoteSessionResult,
 	UniverseAgentGetUploadProgressRequest,
 	UniverseAgentGetUploadProgressResult,
 	UniverseAgentUploadAttachmentResult,
@@ -1563,6 +1565,9 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 
 	async getRemoteSessionHistory(request: UniverseAgentGetRemoteSessionHistoryRequest): Promise<UniverseAgentGetRemoteSessionHistoryResult> {
 		return this._withTransport(transport => transport.getRemoteSessionHistory(request));
+	}
+	async resumeRemoteSession(request: UniverseAgentResumeRemoteSessionRequest): Promise<UniverseAgentResumeRemoteSessionResult> {
+		return this._withTransport(transport => transport.resumeRemoteSession(request));
 	}
 
 	async getUploadProgress(request: UniverseAgentGetUploadProgressRequest): Promise<UniverseAgentGetUploadProgressResult> {

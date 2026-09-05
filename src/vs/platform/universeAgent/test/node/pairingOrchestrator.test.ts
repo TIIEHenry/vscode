@@ -762,6 +762,9 @@ class RecordingMockTransport implements IUniverseAgentGrpcTransport {
 	async getRemoteSessionHistory() {
 		return { messages: [], version: 0, hasMore: false };
 	}
+	async resumeRemoteSession() {
+		return { success: false, callId: '', status: '', message: '', expiresAt: 0 };
+	}
 	async getUploadProgress() {
 		return { exists: false, bytesReceived: 0, partialPath: '' };
 	}

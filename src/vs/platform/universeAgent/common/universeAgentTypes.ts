@@ -2930,6 +2930,31 @@ export interface UniverseAgentGetRemoteSessionHistoryResult {
 }
 
 /**
+ * RemoteAgentService.ResumeRemoteSession — proto
+ * `ResumeRemoteSessionRequest` / `ResumeRemoteSessionResponse` only.
+ * Empty `call_id` / `node_id` (incl. empty string) pass through as-is.
+ * `success` false mapped as-is. Empty `call_id` / `status` / `message`
+ * mapped as-is. `expires_at` 0 mapped as-is.
+ * ≠ CreateRemoteSession / DestroyRemoteSession / GetRemoteSessionStatus /
+ * GetRemoteSessionHistory / CancelRemoteSession / RemoteChat / ListNodes /
+ * GetNode / CheckConnection / SetMaintenance / ExitMaintenance /
+ * ResetError / ListConfigs / GetConfig / SaveConfig / DeleteConfig /
+ * Reload / DeviceService / SessionService / AgentService.ResumeSession.
+ */
+export interface UniverseAgentResumeRemoteSessionRequest {
+	readonly callId: string;
+	readonly nodeId: string;
+}
+
+export interface UniverseAgentResumeRemoteSessionResult {
+	readonly success: boolean;
+	readonly callId: string;
+	readonly status: string;
+	readonly message: string;
+	readonly expiresAt: number;
+}
+
+/**
  * FileTransferService.GetUploadProgress — proto `UploadProgressRequest` /
  * `UploadProgressResponse` only. Empty `transfer_id` / `session_id` pass
  * through as-is. `bytes_received` 0 / empty `partial_path` mapped as-is.
