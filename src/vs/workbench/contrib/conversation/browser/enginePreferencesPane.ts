@@ -27,6 +27,7 @@ import { EngineRulesSection } from './engineRulesSection.js';
 import { EngineSkillsSection } from './engineSkillsSection.js';
 import { EngineToolsSection } from './engineToolsSection.js';
 import { EngineClipboardSection } from './engineClipboardSection.js';
+import { EngineContextVariableSection } from './engineContextVariableSection.js';
 import { EngineTriggersSection } from './engineTriggersSection.js';
 import { getConnectionPhaseStatusBarText } from './conversationSessionStatus.js';
 import {
@@ -206,6 +207,7 @@ export class EnginePreferencesPane extends Disposable implements IPreferencesEdi
 		this.registerSection('hooks', this._register(instantiationService.createInstance(EngineHooksSection, this.detailBody)));
 		this.registerSection('triggers', this._register(instantiationService.createInstance(EngineTriggersSection, this.detailBody)));
 		this.registerSection('clipboard', this._register(instantiationService.createInstance(EngineClipboardSection, this.detailBody)));
+		this.registerSection('contextVariables', this._register(instantiationService.createInstance(EngineContextVariableSection, this.detailBody)));
 		this.registerSection('mcpServers', this._register(instantiationService.createInstance(EngineMcpSection, this.detailBody)));
 		this.registerSection('plugins', this._register(instantiationService.createInstance(EnginePluginsSection, this.detailBody)));
 		this.registerSection('tools', this._register(instantiationService.createInstance(EngineToolsSection, this.detailBody)));

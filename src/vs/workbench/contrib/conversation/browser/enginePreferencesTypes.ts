@@ -14,6 +14,7 @@ export type EnginePreferencesSectionId =
 	| 'hooks'
 	| 'triggers'
 	| 'clipboard'
+	| 'contextVariables'
 	| 'mcpServers'
 	| 'plugins'
 	| 'tools';
@@ -32,6 +33,7 @@ export const ENGINE_PREFERENCES_NAV_ENTRIES: readonly EnginePreferencesNavEntry[
 	{ id: 'hooks', label: localize('ua.engineNavHooks', "Hooks") },
 	{ id: 'triggers', label: localize('ua.engineNavTriggers', "Triggers") },
 	{ id: 'clipboard', label: localize('ua.engineNavClipboard', "Clipboard") },
+	{ id: 'contextVariables', label: localize('ua.engineNavContextVariables', "Context Variables") },
 	{ id: 'mcpServers', label: localize('ua.engineNavMcpServers', "MCP Servers") },
 	{ id: 'plugins', label: localize('ua.engineNavPlugins', "Plugins") },
 	{ id: 'tools', label: localize('ua.engineNavTools', "Tools") },
