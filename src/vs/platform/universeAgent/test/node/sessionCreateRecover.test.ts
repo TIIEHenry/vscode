@@ -6,7 +6,7 @@
 import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import { GrpcStatusCode, UniverseAgentTransportError } from '../../node/grpc/grpcTransport.js';
-import { createSessionRecoveringAlreadyExists } from '../../node/sessionCreateRecover.js';
+import { createSessionRecoveringAlreadyExists, runCreateSessionSingleFlight } from '../../node/sessionCreateRecover.js';
 
 suite('createSession ALREADY_EXISTS recover', () => {
 
@@ -134,6 +134,38 @@ suite('createSession ALREADY_EXISTS recover', () => {
 		assert.strictEqual(listCalled, false);
 	});
 
+	test('empty List with Resume ok=false is not treated as Create success', async () => {
+		await assert.rejects(
+			() => createSessionRecoveringAlreadyExists(
+				async () => {
+					throw new UniverseAgentTransportError(GrpcStatusCode.ALREADY_EXISTS, 'Session already exists');
+				},
+				async () => ({ sessions: [] }),
+				async () => ({ ok: false, message: 'dead shell' }),
+				'untitled',
+				'session-100',
+			),
+			(error: unknown) => error instanceof Error
+				&& /Resume\(session-100\) failed: dead shell/.test(error.message),
+		);
+	});
+
+	test('List match with Resume ok=false is not treated as Create success', async () => {
+		await assert.rejects(
+			() => createSessionRecoveringAlreadyExists(
+				async () => {
+					throw new UniverseAgentTransportError(GrpcStatusCode.ALREADY_EXISTS, 'Session already exists');
+				},
+				async () => ({ sessions: [{ sessionId: 'eng-listed', title: 'untitled' }] }),
+				async () => ({ ok: false, message: 'tree unavailable' }),
+				'untitled',
+				'session-100',
+			),
+			(error: unknown) => error instanceof Error
+				&& /Resume\(eng-listed\) failed: tree unavailable/.test(error.message),
+		);
+	});
+
 	test('successful Create is returned as-is', async () => {
 		const result = await createSessionRecoveringAlreadyExists(
 			async () => ({ sessionId: 'eng-new' }),
@@ -142,5 +174,74 @@ suite('createSession ALREADY_EXISTS recover', () => {
 			undefined,
 		);
 		assert.strictEqual(result.sessionId, 'eng-new');
+	});
+});
+
+suite('createSession single-flight', () => {
+
+	ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('same clientSessionId concurrent callers share one create', async () => {
+		const inflight = new Map<string, Promise<{ sessionId: string }>>();
+		let createCalls = 0;
+		let overlapping = 0;
+		const create = async () => {
+			createCalls += 1;
+			overlapping += 1;
+			assert.strictEqual(overlapping, 1);
+			await new Promise<void>(resolve => setTimeout(resolve, 15));
+			overlapping -= 1;
+			return { sessionId: 'session-100' };
+		};
+		const [first, second] = await Promise.all([
+			runCreateSessionSingleFlight(inflight, 'session-100', create),
+			runCreateSessionSingleFlight(inflight, 'session-100', create),
+		]);
+		assert.strictEqual(createCalls, 1);
+		assert.strictEqual(first.sessionId, 'session-100');
+		assert.strictEqual(second.sessionId, 'session-100');
+		assert.strictEqual(inflight.size, 0);
+	});
+
+	test('different clientSessionId are not joined', async () => {
+		const inflight = new Map<string, Promise<{ sessionId: string }>>();
+		let createCalls = 0;
+		const create = async () => {
+			createCalls += 1;
+			await new Promise<void>(resolve => setTimeout(resolve, 10));
+			return { sessionId: `n-${createCalls}` };
+		};
+		await Promise.all([
+			runCreateSessionSingleFlight(inflight, 'session-100', create),
+			runCreateSessionSingleFlight(inflight, 'session-101', create),
+		]);
+		assert.strictEqual(createCalls, 2);
+	});
+
+	test('missing clientSessionId is not coalesced', async () => {
+		const inflight = new Map<string, Promise<{ sessionId: string }>>();
+		let createCalls = 0;
+		const create = async () => {
+			createCalls += 1;
+			await new Promise<void>(resolve => setTimeout(resolve, 10));
+			return { sessionId: `n-${createCalls}` };
+		};
+		await Promise.all([
+			runCreateSessionSingleFlight(inflight, undefined, create),
+			runCreateSessionSingleFlight(inflight, '  ', create),
+		]);
+		assert.strictEqual(createCalls, 2);
+	});
+
+	test('sequential same id after settle is a new create', async () => {
+		const inflight = new Map<string, Promise<{ sessionId: string }>>();
+		let createCalls = 0;
+		const create = async () => {
+			createCalls += 1;
+			return { sessionId: `n-${createCalls}` };
+		};
+		await runCreateSessionSingleFlight(inflight, 'session-100', create);
+		await runCreateSessionSingleFlight(inflight, 'session-100', create);
+		assert.strictEqual(createCalls, 2);
 	});
 });

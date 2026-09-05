@@ -62,15 +62,21 @@ export class TestConnection implements IUniverseAgentConnection {
 	async disconnect() { this.connected = false; }
 	async listSessions() { return { sessions: [] }; }
 	readonly createSessionCalls: { title?: string; model?: string; clientSessionId?: string }[] = [];
+	readonly createdEngineSessionIds = new Set<string>();
 	async createSession(request: { title?: string; model?: string; clientSessionId?: string } = {}) {
 		this.createSessionCalls.push(request);
-		return { sessionId: request.title || 's' };
+		const sessionId = request.title || 's';
+		this.createdEngineSessionIds.add(sessionId);
+		return { sessionId };
 	}
 	readonly resumeSessionCalls: { sessionId: string }[] = [];
-	resumeSessionResult = { ok: true };
+	resumeSessionResult: { ok: boolean; message?: string } | undefined;
 	async resumeSession(request: { sessionId: string }) {
 		this.resumeSessionCalls.push(request);
-		return this.resumeSessionResult;
+		if (this.resumeSessionResult !== undefined) {
+			return this.resumeSessionResult;
+		}
+		return { ok: this.createdEngineSessionIds.has(request.sessionId) };
 	}
 	async deleteSession() { }
 	async renameSession() { return { ok: false, message: 'test' }; }

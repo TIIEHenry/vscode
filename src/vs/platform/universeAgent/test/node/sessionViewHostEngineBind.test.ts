@@ -16,6 +16,7 @@ class BindConnection extends TestConnection {
 
 	override async createSession(request: { title?: string; model?: string; clientSessionId?: string } = {}) {
 		this.createSessionCalls.push(request);
+		this.createdEngineSessionIds.add(this.createdEngineId);
 		return { sessionId: this.createdEngineId };
 	}
 
@@ -51,6 +52,7 @@ suite('SessionViewHost engine session bind', () => {
 		const engineId = await viewHost.whenEngineSessionReady('local-untitled');
 
 		assert.strictEqual(engineId, 'eng-real');
+		assert.deepStrictEqual(connection.resumeSessionCalls, [{ sessionId: 'local-untitled' }]);
 		assert.strictEqual(connection.createSessionCalls.length, 1);
 		assert.strictEqual(connection.createSessionCalls[0]?.clientSessionId, 'local-untitled');
 		assert.deepStrictEqual(connection.streamSessionIds, ['eng-real']);
@@ -79,6 +81,10 @@ suite('SessionViewHost engine session bind', () => {
 		}));
 		viewHost.onEngineConnectionChanged();
 		viewHost.acquireLease('local-wait');
+		for (let i = 0; i < 50 && connection.createSessionCalls.length === 0; i++) {
+			await new Promise<void>(resolve => queueMicrotask(() => resolve()));
+		}
+		assert.strictEqual(connection.createSessionCalls.length, 1);
 		assert.strictEqual(connection.streamSessionIds.length, 0);
 		assert.strictEqual(connection.chatSessionIds.length, 0);
 
@@ -105,7 +111,49 @@ suite('SessionViewHost engine session bind', () => {
 		await viewHost.whenEngineSessionReady('local-resume');
 
 		assert.strictEqual(connection.createSessionCalls.length, 1);
-		assert.deepStrictEqual(connection.resumeSessionCalls, [{ sessionId: 'eng-real' }]);
+		assert.deepStrictEqual(connection.resumeSessionCalls, [
+			{ sessionId: 'local-resume' },
+			{ sessionId: 'eng-real' },
+		]);
+	});
+
+	test('Resume(localId) success does not Create (roster already created)', async () => {
+		const connection = new BindConnection();
+		connection.createdEngineSessionIds.add('session-100');
+		const viewHost = store.add(new SessionViewHost(connection, new TestHost(async () => undefined), {
+			orphanTimeoutMs: 0,
+		}));
+		viewHost.onEngineConnectionChanged();
+		viewHost.acquireLease('session-100');
+		const engineId = await viewHost.whenEngineSessionReady('session-100');
+
+		assert.strictEqual(engineId, 'session-100');
+		assert.strictEqual(connection.createSessionCalls.length, 0);
+		assert.deepStrictEqual(connection.resumeSessionCalls, [{ sessionId: 'session-100' }]);
+		assert.deepStrictEqual(connection.streamSessionIds, ['session-100']);
+		assert.deepStrictEqual(connection.chatSessionIds, ['session-100']);
+	});
+
+	test('Resume of cached engine id failure is not treated as bind success', async () => {
+		const connection = new BindConnection();
+		const viewHost = store.add(new SessionViewHost(connection, new TestHost(async () => undefined), {
+			orphanTimeoutMs: 0,
+		}));
+		viewHost.onEngineConnectionChanged();
+		viewHost.acquireLease('local-dead');
+		await viewHost.whenEngineSessionReady('local-dead');
+		assert.strictEqual(connection.createSessionCalls.length, 1);
+
+		await connection.disconnect();
+		viewHost.onEngineConnectionChanged();
+		connection['connected'] = true;
+		connection.resumeSessionResult = { ok: false, message: 'dead shell' };
+		viewHost.onEngineConnectionChanged();
+		await assert.rejects(
+			() => viewHost.whenEngineSessionReady('local-dead'),
+			(error: unknown) => error instanceof Error && /Resume bound session eng-real failed: dead shell/.test(error.message),
+		);
+		assert.strictEqual(connection.createSessionCalls.length, 1);
 	});
 
 	test('Create ALREADY_EXISTS Resumes listed session_id and does not Create again', async () => {
@@ -117,6 +165,10 @@ suite('SessionViewHost engine session bind', () => {
 			override async listSessions() {
 				return { sessions: [{ sessionId: 'eng-listed', title: 'Hello' }] };
 			}
+			override async resumeSession(request: { sessionId: string }) {
+				this.resumeSessionCalls.push(request);
+				return { ok: request.sessionId === 'eng-listed' };
+			}
 		}();
 		const viewHost = store.add(new SessionViewHost(connection, new TestHost(async () => undefined), {
 			orphanTimeoutMs: 0,
@@ -127,7 +179,10 @@ suite('SessionViewHost engine session bind', () => {
 
 		assert.strictEqual(engineId, 'eng-listed');
 		assert.strictEqual(connection.createSessionCalls.length, 1);
-		assert.deepStrictEqual(connection.resumeSessionCalls, [{ sessionId: 'eng-listed' }]);
+		assert.deepStrictEqual(connection.resumeSessionCalls, [
+			{ sessionId: 'local-exists' },
+			{ sessionId: 'eng-listed' },
+		]);
 		assert.deepStrictEqual(connection.streamSessionIds, ['eng-listed']);
 		assert.deepStrictEqual(connection.chatSessionIds, ['eng-listed']);
 	});
@@ -146,6 +201,10 @@ suite('SessionViewHost engine session bind', () => {
 					],
 				};
 			}
+			override async resumeSession(request: { sessionId: string }) {
+				this.resumeSessionCalls.push(request);
+				return { ok: request.sessionId === 'eng-match' };
+			}
 		}();
 		const viewHost = store.add(new SessionViewHost(connection, new TestHost(async () => undefined), {
 			orphanTimeoutMs: 0,
@@ -154,10 +213,14 @@ suite('SessionViewHost engine session bind', () => {
 		viewHost.acquireLease('local-exists');
 		const engineId = await viewHost.whenEngineSessionReady('local-exists');
 		assert.strictEqual(engineId, 'eng-match');
-		assert.deepStrictEqual(connection.resumeSessionCalls, [{ sessionId: 'eng-match' }]);
+		assert.deepStrictEqual(connection.resumeSessionCalls, [
+			{ sessionId: 'local-exists' },
+			{ sessionId: 'eng-match' },
+		]);
 	});
 
 	test('Create ALREADY_EXISTS with List transport/query failure Resumes localId', async () => {
+		let resumeCount = 0;
 		const connection = new class extends BindConnection {
 			override async createSession(request: { title?: string; model?: string; clientSessionId?: string } = {}) {
 				this.createSessionCalls.push(request);
@@ -166,26 +229,10 @@ suite('SessionViewHost engine session bind', () => {
 			override async listSessions() {
 				throw new UniverseAgentTransportError(GrpcStatusCode.UNAVAILABLE, 'Query does not return results');
 			}
-		}();
-		const viewHost = store.add(new SessionViewHost(connection, new TestHost(async () => undefined), {
-			orphanTimeoutMs: 0,
-		}));
-		viewHost.onEngineConnectionChanged();
-		viewHost.acquireLease('session-100');
-		const engineId = await viewHost.whenEngineSessionReady('session-100');
-		assert.strictEqual(engineId, 'session-100');
-		assert.strictEqual(connection.createSessionCalls.length, 1);
-		assert.strictEqual(connection.createSessionCalls[0]?.clientSessionId, 'session-100');
-		assert.deepStrictEqual(connection.resumeSessionCalls, [{ sessionId: 'session-100' }]);
-		assert.deepStrictEqual(connection.streamSessionIds, ['session-100']);
-		assert.deepStrictEqual(connection.chatSessionIds, ['session-100']);
-	});
-
-	test('Create ALREADY_EXISTS with empty List Resumes localId and does not retry Create', async () => {
-		const connection = new class extends BindConnection {
-			override async createSession(request: { title?: string; model?: string; clientSessionId?: string } = {}) {
-				this.createSessionCalls.push(request);
-				throw new UniverseAgentTransportError(GrpcStatusCode.ALREADY_EXISTS, 'Session already exists');
+			override async resumeSession(request: { sessionId: string }) {
+				this.resumeSessionCalls.push(request);
+				resumeCount += 1;
+				return { ok: resumeCount > 1 };
 			}
 		}();
 		const viewHost = store.add(new SessionViewHost(connection, new TestHost(async () => undefined), {
@@ -197,9 +244,65 @@ suite('SessionViewHost engine session bind', () => {
 		assert.strictEqual(engineId, 'session-100');
 		assert.strictEqual(connection.createSessionCalls.length, 1);
 		assert.strictEqual(connection.createSessionCalls[0]?.clientSessionId, 'session-100');
-		assert.deepStrictEqual(connection.resumeSessionCalls, [{ sessionId: 'session-100' }]);
+		assert.deepStrictEqual(connection.resumeSessionCalls, [
+			{ sessionId: 'session-100' },
+			{ sessionId: 'session-100' },
+		]);
 		assert.deepStrictEqual(connection.streamSessionIds, ['session-100']);
 		assert.deepStrictEqual(connection.chatSessionIds, ['session-100']);
+	});
+
+	test('Create ALREADY_EXISTS with empty List Resumes localId and does not retry Create', async () => {
+		let resumeCount = 0;
+		const connection = new class extends BindConnection {
+			override async createSession(request: { title?: string; model?: string; clientSessionId?: string } = {}) {
+				this.createSessionCalls.push(request);
+				throw new UniverseAgentTransportError(GrpcStatusCode.ALREADY_EXISTS, 'Session already exists');
+			}
+			override async resumeSession(request: { sessionId: string }) {
+				this.resumeSessionCalls.push(request);
+				resumeCount += 1;
+				return { ok: resumeCount > 1 };
+			}
+		}();
+		const viewHost = store.add(new SessionViewHost(connection, new TestHost(async () => undefined), {
+			orphanTimeoutMs: 0,
+		}));
+		viewHost.onEngineConnectionChanged();
+		viewHost.acquireLease('session-100');
+		const engineId = await viewHost.whenEngineSessionReady('session-100');
+		assert.strictEqual(engineId, 'session-100');
+		assert.strictEqual(connection.createSessionCalls.length, 1);
+		assert.strictEqual(connection.createSessionCalls[0]?.clientSessionId, 'session-100');
+		assert.deepStrictEqual(connection.resumeSessionCalls, [
+			{ sessionId: 'session-100' },
+			{ sessionId: 'session-100' },
+		]);
+		assert.deepStrictEqual(connection.streamSessionIds, ['session-100']);
+		assert.deepStrictEqual(connection.chatSessionIds, ['session-100']);
+	});
+
+	test('Create ALREADY_EXISTS with empty List and Resume ok=false is not treated as Create success', async () => {
+		const connection = new class extends BindConnection {
+			override async createSession(request: { title?: string; model?: string; clientSessionId?: string } = {}) {
+				this.createSessionCalls.push(request);
+				throw new UniverseAgentTransportError(GrpcStatusCode.ALREADY_EXISTS, 'Session already exists');
+			}
+			override async resumeSession(request: { sessionId: string }) {
+				this.resumeSessionCalls.push(request);
+				return { ok: false, message: 'dead shell' };
+			}
+		}();
+		const viewHost = store.add(new SessionViewHost(connection, new TestHost(async () => undefined), {
+			orphanTimeoutMs: 0,
+		}));
+		viewHost.onEngineConnectionChanged();
+		await assert.rejects(
+			() => viewHost.whenEngineSessionReady('session-100'),
+			(error: unknown) => error instanceof Error
+				&& /Resume\(session-100\) failed: dead shell/.test(error.message),
+		);
+		assert.strictEqual(connection.createSessionCalls.length, 1);
 	});
 
 	test('Create non-ALREADY_EXISTS errors still throw without List recover', async () => {

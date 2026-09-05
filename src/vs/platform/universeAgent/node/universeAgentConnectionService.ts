@@ -369,7 +369,7 @@ import type {
 import { createEmptyCapabilitySnapshot, probeEngineCapabilities } from './grpcCapabilityProbe.js';
 import { createGrpcUniverseAgentClient, createPinnedGrpcUniverseAgentClient } from './grpc/grpcClient.js';
 import { GrpcStatusCode, IUniverseAgentGrpcTransport, isTransportFailureCode, UniverseAgentFetchToolDetailMethodKey, UniverseAgentGrpcServices, UniverseAgentSaveSkillContentMethodKey, UniverseAgentTransportError } from './grpc/grpcTransport.js';
-import { createSessionRecoveringAlreadyExists } from './sessionCreateRecover.js';
+import { createSessionRecoveringAlreadyExists, runCreateSessionSingleFlight } from './sessionCreateRecover.js';
 import type { ConnectionResolver, ResolvedEndpoint } from './connectionResolver.js';
 import { runDeviceAuthHandshake } from './deviceAuthHandshake.js';
 import { derivePairingSasCode, DEVICE_GRANT_AUTH_PROTOCOL_VERSION } from './deviceGrant/device-grant-crypto.js';
@@ -463,6 +463,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 	private _connectionPhase: ConnectionPhase = { kind: 'disconnected' };
 	private _activeProfileId: string | undefined;
 
+	private readonly _createSessionInflight = new Map<string, Promise<UniverseAgentCreateSessionResult>>();
 	private readonly _loopbackAddress: string;
 	private readonly _createTransport: (address: string) => IUniverseAgentGrpcTransport;
 	private readonly _connectionResolver: ConnectionResolver | undefined;
@@ -910,13 +911,17 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 	}
 
 	async createSession(request: UniverseAgentCreateSessionRequest): Promise<UniverseAgentCreateSessionResult> {
-		return this._withTransport(transport => createSessionRecoveringAlreadyExists(
-			() => transport.createSession(request),
-			() => transport.listSessions({}),
-			async sessionId => transport.resumeSession({ sessionId }),
-			request.title,
+		return runCreateSessionSingleFlight(
+			this._createSessionInflight,
 			request.clientSessionId,
-		));
+			() => this._withTransport(transport => createSessionRecoveringAlreadyExists(
+				() => transport.createSession(request),
+				() => transport.listSessions({}),
+				async sessionId => transport.resumeSession({ sessionId }),
+				request.title,
+				request.clientSessionId,
+			)),
+		);
 	}
 
 	async deleteSession(request: UniverseAgentDeleteSessionRequest): Promise<void> {

@@ -16,6 +16,7 @@ import { isAlreadyExistsError } from './grpc/grpcTransport.js';
  *
  * Create's client_session_id (field 4) is the engine session id. When List
  * fails or is empty, Resume that id instead of throwing "no session_id".
+ * Resume `{ ok: false }` or a thrown Resume is not treated as Create success.
  */
 export async function createSessionRecoveringAlreadyExists(
 	create: () => Promise<UniverseAgentCreateSessionResult>,
@@ -32,6 +33,31 @@ export async function createSessionRecoveringAlreadyExists(
 		}
 		return recoverSessionAfterAlreadyExists(listSessions, resumeSession, title, clientSessionId);
 	}
+}
+
+/**
+ * Coalesce concurrent Create RPCs that share a `clientSessionId`. Callers
+ * without an id are not joined. The inflight map is owned by the entry
+ * (connection service).
+ */
+export function runCreateSessionSingleFlight(
+	inflight: Map<string, Promise<UniverseAgentCreateSessionResult>>,
+	clientSessionId: string | undefined,
+	create: () => Promise<UniverseAgentCreateSessionResult>,
+): Promise<UniverseAgentCreateSessionResult> {
+	const key = clientSessionId?.trim();
+	if (!key) {
+		return create();
+	}
+	const existing = inflight.get(key);
+	if (existing) {
+		return existing;
+	}
+	const task = Promise.resolve().then(create).finally(() => {
+		inflight.delete(key);
+	});
+	inflight.set(key, task);
+	return task;
 }
 
 export async function recoverSessionAfterAlreadyExists(
@@ -61,7 +87,8 @@ export async function recoverSessionAfterAlreadyExists(
 		throw new Error('CreateSession ALREADY_EXISTS and List returned no session_id');
 	}
 	if (resumeSession) {
-		await resumeSession(match.sessionId);
+		const result = await resumeSession(match.sessionId);
+		assertResumeSucceeded(result, match.sessionId);
 	}
 	return { sessionId: match.sessionId };
 }
@@ -74,8 +101,23 @@ async function resumeClientSessionIfKnown(
 	if (!sessionId) {
 		return undefined;
 	}
-	if (resumeSession) {
-		await resumeSession(sessionId);
+	if (!resumeSession) {
+		return undefined;
 	}
+	const result = await resumeSession(sessionId);
+	assertResumeSucceeded(result, sessionId);
 	return { sessionId };
+}
+
+function assertResumeSucceeded(result: unknown, sessionId: string): void {
+	if (!result || typeof result !== 'object' || !('ok' in result)) {
+		return;
+	}
+	if ((result as { ok: unknown }).ok === true) {
+		return;
+	}
+	const message = 'message' in result && typeof (result as { message?: unknown }).message === 'string'
+		? (result as { message: string }).message
+		: 'ok=false';
+	throw new Error(`CreateSession ALREADY_EXISTS and Resume(${sessionId}) failed: ${message}`);
 }

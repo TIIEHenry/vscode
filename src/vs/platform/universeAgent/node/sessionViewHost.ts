@@ -442,6 +442,13 @@ export class SessionViewHost extends Disposable {
 			if (result.ok) {
 				return cached;
 			}
+			throw new Error(`Resume bound session ${cached} failed: ${result.message ?? 'ok=false'}`);
+		}
+		if (typeof this.connection.resumeSession === 'function') {
+			const resumed = await this.connection.resumeSession({ sessionId: localId });
+			if (resumed.ok) {
+				return localId;
+			}
 		}
 		try {
 			const created = await this.connection.createSession({ title: localId, clientSessionId: localId });
@@ -453,10 +460,6 @@ export class SessionViewHost extends Disposable {
 			if (!isAlreadyExistsError(error)) {
 				throw error;
 			}
-			if (cached) {
-				await this.resumeEngineSessionIfPossible(cached);
-				return cached;
-			}
 			const recovered = await recoverSessionAfterAlreadyExists(
 				() => this.connection.listSessions({}),
 				this.connection.resumeSession
@@ -467,13 +470,6 @@ export class SessionViewHost extends Disposable {
 			);
 			return recovered.sessionId;
 		}
-	}
-
-	private async resumeEngineSessionIfPossible(engineId: string): Promise<void> {
-		if (typeof this.connection.resumeSession !== 'function') {
-			return;
-		}
-		await this.connection.resumeSession({ sessionId: engineId });
 	}
 
 	private resolveEngineSessionId(localId: string): string | undefined {
