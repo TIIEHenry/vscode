@@ -614,6 +614,10 @@ class MockDeviceAuthTransport implements IUniverseAgentGrpcTransport {
 		return { success: false, deviceId: '', message: '' };
 	}
 
+	async pairReject() {
+		return { success: false, message: '' };
+	}
+
 	async listTriggers() {
 		return { triggers: [] };
 	}

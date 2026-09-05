@@ -241,6 +241,8 @@ import type {
 	UniverseAgentListDevicesResult,
 	UniverseAgentPairApproveRequest,
 	UniverseAgentPairApproveResult,
+	UniverseAgentPairRejectRequest,
+	UniverseAgentPairRejectResult,
 	UniverseAgentListTriggersRequest,
 	UniverseAgentListTriggersResult,
 	UniverseAgentUpsertTriggerRequest,
@@ -1804,6 +1806,17 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 		return this.pairApproveResult;
 	}
 
+	readonly pairRejectCalls: UniverseAgentPairRejectRequest[] = [];
+	pairRejectResult: UniverseAgentPairRejectResult = {
+		success: false,
+		message: '',
+	};
+
+	async pairReject(request: UniverseAgentPairRejectRequest): Promise<UniverseAgentPairRejectResult> {
+		this.pairRejectCalls.push(request);
+		return this.pairRejectResult;
+	}
+
 	readonly listTriggersCalls: UniverseAgentListTriggersRequest[] = [];
 	listTriggersResult: UniverseAgentListTriggersResult = {
 		triggers: [],
@@ -2365,6 +2378,11 @@ suite('UniverseAgentConnectionService', () => {
 
 	test('UniverseAgentGrpcServices lists Device.PairApprove', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Device.PairApprove, 'PairApprove');
+		assert.strictEqual(UniverseAgentGrpcServices.Device.service, 'universeagent.device.v1.DeviceService');
+	});
+
+	test('UniverseAgentGrpcServices lists Device.PairReject', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Device.PairReject, 'PairReject');
 		assert.strictEqual(UniverseAgentGrpcServices.Device.service, 'universeagent.device.v1.DeviceService');
 	});
 
@@ -6074,6 +6092,38 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(transport.pairApproveCalls[1]?.role, '');
 		assert.strictEqual(empty.success, false);
 		assert.strictEqual(empty.deviceId, '');
+		assert.strictEqual(empty.message, '');
+		service.dispose();
+	});
+
+	test('pairReject forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.pairRejectResult = {
+			success: true,
+			message: 'rejected',
+		};
+		const request = {
+			pairingCode: '123456',
+		};
+		const result = await service.pairReject(request);
+		assert.deepStrictEqual(transport.pairRejectCalls, [request]);
+		assert.deepStrictEqual(result, transport.pairRejectResult);
+
+		transport.pairRejectResult = {
+			success: false,
+			message: '',
+		};
+		const emptyRequest = {
+			pairingCode: '',
+		};
+		const empty = await service.pairReject(emptyRequest);
+		assert.strictEqual(transport.pairRejectCalls[1]?.pairingCode, '');
+		assert.strictEqual(empty.success, false);
 		assert.strictEqual(empty.message, '');
 		service.dispose();
 	});

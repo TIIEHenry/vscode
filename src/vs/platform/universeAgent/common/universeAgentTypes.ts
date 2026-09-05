@@ -2602,6 +2602,21 @@ export interface UniverseAgentPairApproveResult {
 }
 
 /**
+ * DeviceService.PairReject — proto `PairRejectRequest` /
+ * `PairRejectResponse` only. Empty `pairing_code` pass through as-is.
+ * Empty `message` mapped as-is. `success` false mapped as-is.
+ * ≠ ListDevices / PairApprove / Revoke / RotateToken / ListPending.
+ */
+export interface UniverseAgentPairRejectRequest {
+	readonly pairingCode: string;
+}
+
+export interface UniverseAgentPairRejectResult {
+	readonly success: boolean;
+	readonly message: string;
+}
+
+/**
  * TriggerService.ListTriggers — proto `ListTriggersRequest` /
  * `ListTriggersResponse` + `TriggerDto` / `DeliveryTargetDto` only.
  * Empty `scope` / `scope_id` / `type_filter` pass through as-is.
