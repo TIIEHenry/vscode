@@ -44,20 +44,6 @@ export function isEngineRosterPlaceholderSessionId(sessionId: string | undefined
 	return !!sessionId && (sessionId === ENGINE_BIND_FAILED_SESSION_ID || STUB_SEED_IDS.has(sessionId));
 }
 
-function isAlreadyExistsCreateSessionError(error: unknown): boolean {
-	if (!error) {
-		return false;
-	}
-	if (typeof error === 'object') {
-		const code = (error as { code?: unknown }).code;
-		if (code === 'ALREADY_EXISTS' || code === 6 || code === '6') {
-			return true;
-		}
-	}
-	const message = error instanceof Error ? error.message : String(error);
-	return message.includes('ALREADY_EXISTS') || message.includes('AlreadyExists');
-}
-
 /**
  * Engine-backed roster (M6-A2): same token as stub; switches frame source and
  * session catalog when UA is connected.
@@ -72,8 +58,13 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	private activeEngineSessionId: string | undefined;
 	private listCompleted = false;
 	private engineSessionEnsure: Promise<string | undefined> | undefined;
+	private refreshEngineCatalogInflight: Promise<void> | undefined;
 	/** Stable local id for the in-flight auto-bind CreateSession.client_session_id. */
 	private pendingEngineBindClientSessionId: string | undefined;
+	/** Session id adopted locally but awaiting host lease/bind before roster display. */
+	private pendingEngineBindSessionId: string | undefined;
+	private suppressBindLiveTreeObservationLease = false;
+	private activePendingBindLeaseSessionId: string | undefined;
 	private wasEverConnected = false;
 	private testEngineConnected: boolean | undefined;
 	private readonly sessionGoals = new Map<string, string>();
@@ -106,7 +97,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		if (!this.isEngineConnected()) {
 			return true;
 		}
-		if (!this.listCompleted || this.engineSessionEnsure) {
+		if (!this.listCompleted || this.pendingEngineBindSessionId) {
 			return false;
 		}
 		const sessionId = this.getActiveSessionId();
@@ -119,7 +110,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	private isEngineSessionBindFailed(): boolean {
 		return this.isEngineConnected()
 			&& this.listCompleted
-			&& !this.engineSessionEnsure
+			&& !this.pendingEngineBindSessionId
 			&& this.engineSessions.length === 0;
 	}
 
@@ -273,7 +264,9 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 
 	override createSession(): string {
 		if (this.isEngineConnected()) {
-			void this.createEngineSessionRemote(this.allocateEngineBindClientSessionId(true));
+			void this.ensureEngineSession().then(() => {
+				this.bindLiveTreeObservationLease();
+			});
 			return '';
 		}
 		if (this.wasEverConnected) {
@@ -550,7 +543,12 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 
 	override acquireSessionView(sessionId: string): IConversationSessionViewLease {
 		if (this.isEngineConnected()) {
-			if (isEngineRosterPlaceholderSessionId(sessionId) || !this.engineSessions.some(session => session.id === sessionId)) {
+			if (isEngineRosterPlaceholderSessionId(sessionId)) {
+				throw new Error(`acquireSessionView: session ${sessionId} is not engine-bound`);
+			}
+			const engineBound = this.engineSessions.some(session => session.id === sessionId);
+			const pendingBind = sessionId === this.pendingEngineBindSessionId;
+			if (!engineBound && !pendingBind) {
 				throw new Error(`acquireSessionView: session ${sessionId} is not engine-bound`);
 			}
 			return this.engineFrameSource.acquire(sessionId);
@@ -591,50 +589,16 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		if (this.engineSessionEnsure) {
 			return this.engineSessionEnsure;
 		}
-		this.engineSessionEnsure = this.createEngineSessionRemote(this.allocateEngineBindClientSessionId(true));
+		const clientSessionId = this.allocateEngineBindClientSessionId(true);
+		this.pendingEngineBindSessionId = clientSessionId;
+		this.engineSessionEnsure = Promise.resolve(clientSessionId);
 		void this.engineSessionEnsure.finally(() => {
 			this.engineSessionEnsure = undefined;
 		});
 		return this.engineSessionEnsure;
 	}
 
-	private async createEngineSessionRemote(clientSessionId?: string): Promise<string | undefined> {
-		const title = localize('conversationLens.sessionNew', "New session");
-		const localClientSessionId = clientSessionId ?? this.allocateEngineBindClientSessionId();
-		try {
-			const result = await this.uaConnection.createSession({ title, clientSessionId: localClientSessionId });
-			const sessionId = result.sessionId?.trim();
-			if (!sessionId) {
-				return undefined;
-			}
-			this.clearPendingEngineBindClientSessionId();
-			return this.adoptEngineSession(sessionId, title);
-		} catch (error) {
-			if (!isAlreadyExistsCreateSessionError(error)) {
-				return undefined;
-			}
-			return this.recoverEngineSessionAfterCreateConflict(title, localClientSessionId);
-		}
-	}
-
-	private async recoverEngineSessionAfterCreateConflict(title: string, clientSessionId: string): Promise<string | undefined> {
-		let result;
-		try {
-			result = await this.uaConnection.listSessions({});
-		} catch {
-			this.listCompleted = false;
-			return undefined;
-		}
-		const match = result.sessions.find(session => session.sessionId && !STUB_SEED_IDS.has(session.sessionId) && session.title === title)
-			?? result.sessions.find(session => session.sessionId && !STUB_SEED_IDS.has(session.sessionId));
-		if (!match?.sessionId) {
-			return undefined;
-		}
-		this.clearPendingEngineBindClientSessionId();
-		return this.adoptEngineSession(match.sessionId, match.title ?? title);
-	}
-
-	private adoptEngineSession(sessionId: string, title: string): string {
+	private adoptEngineSession(sessionId: string, title: string, options?: { skipBindLease?: boolean }): string {
 		const existed = this.engineSessions.some(session => session.id === sessionId);
 		if (!existed) {
 			this.engineSessions = [...this.engineSessions, { id: sessionId, title, turns: [], source: 'engine-cache' }];
@@ -643,7 +607,9 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		this.listCompleted = true;
 		this.activateEngineSession(sessionId);
 		this.persistEngineAwareRoster();
-		this.bindLiveTreeObservationLease();
+		if (!options?.skipBindLease) {
+			this.bindLiveTreeObservationLease();
+		}
 		return sessionId;
 	}
 
@@ -1088,21 +1054,67 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	}
 
 	private bindLiveTreeObservationLease(): void {
-		if (this._store.isDisposed) {
+		if (this._store.isDisposed || this.suppressBindLiveTreeObservationLease) {
 			return;
 		}
-		this.liveTreeObservationStore.clear();
 		if (!this.isEngineConnected()) {
 			return;
 		}
-		const sessionId = this.getActiveSessionId();
-		if (!sessionId || isEngineRosterPlaceholderSessionId(sessionId) || !this.isEngineSessionReady()) {
+		const sessionId = this.pendingEngineBindSessionId || this.getActiveSessionId();
+		if (!sessionId || isEngineRosterPlaceholderSessionId(sessionId)) {
 			return;
+		}
+		const rosterReady = this.isEngineSessionReady();
+		const pendingBind = sessionId === this.pendingEngineBindSessionId;
+		if (!rosterReady && !pendingBind) {
+			return;
+		}
+		if (pendingBind && this.activePendingBindLeaseSessionId === sessionId) {
+			return;
+		}
+		this.liveTreeObservationStore.clear();
+		if (pendingBind) {
+			this.activePendingBindLeaseSessionId = sessionId;
+		} else {
+			this.activePendingBindLeaseSessionId = undefined;
 		}
 		const lease = this.acquireSessionView(sessionId);
 		this.liveTreeObservationStore.add(lease);
 		this.liveTreeObservationStore.add(lease.onDidApplyFrame(() => this.emitLiveAgentTreeFromLease(lease)));
 		this.emitLiveAgentTreeFromLease(lease);
+		if (pendingBind) {
+			void this.monitorPendingEngineSessionBind(sessionId, lease);
+		}
+	}
+
+	private async monitorPendingEngineSessionBind(sessionId: string, lease: IConversationSessionViewLease): Promise<void> {
+		const bindReady = this.engineFrameSource.whenLeaseBindReady(lease);
+		if (!bindReady) {
+			return;
+		}
+		const ok = await bindReady;
+		if (sessionId !== this.pendingEngineBindSessionId) {
+			return;
+		}
+		this.pendingEngineBindSessionId = undefined;
+		this.activePendingBindLeaseSessionId = undefined;
+		this.engineSessionEnsure = undefined;
+		this.clearPendingEngineBindClientSessionId();
+		if (ok) {
+			const title = localize('conversationLens.sessionNew', "New session");
+			this.suppressBindLiveTreeObservationLease = true;
+			try {
+				this.adoptEngineSession(sessionId, title, { skipBindLease: true });
+			} finally {
+				this.suppressBindLiveTreeObservationLease = false;
+			}
+			return;
+		}
+		if (this.engineSessions.length === 0) {
+			this.markEngineSessionBindFailed();
+		}
+		this._onDidChangeSession.fire(this.getActiveSessionId());
+		this.persistEngineAwareRoster();
 	}
 
 	private emitLiveAgentTreeFromLease(lease: IConversationSessionViewLease): void {
@@ -1112,7 +1124,22 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		}
 	}
 
-	private async refreshEngineCatalog(): Promise<void> {
+	/** @internal Await the in-flight engine catalog refresh (tests). */
+	whenEngineCatalogRefreshComplete(): Promise<void> {
+		return this.refreshEngineCatalogInflight ?? Promise.resolve();
+	}
+
+	private refreshEngineCatalog(): Promise<void> {
+		if (this.refreshEngineCatalogInflight) {
+			return this.refreshEngineCatalogInflight;
+		}
+		this.refreshEngineCatalogInflight = this.doRefreshEngineCatalog().finally(() => {
+			this.refreshEngineCatalogInflight = undefined;
+		});
+		return this.refreshEngineCatalogInflight;
+	}
+
+	private async doRefreshEngineCatalog(): Promise<void> {
 		this.listCompleted = false;
 		this.clearPendingEngineBindClientSessionId();
 		try {
@@ -1135,10 +1162,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 					: this.engineSessions[0]!.id;
 				this.activateEngineSession(targetId);
 			} else {
-				const adopted = await this.ensureEngineSession();
-				if (!adopted && this.listCompleted) {
-					this.markEngineSessionBindFailed();
-				}
+				await this.ensureEngineSession();
 			}
 			this._onDidChangeSession.fire(this.getActiveSessionId());
 			this.persistEngineAwareRoster();
