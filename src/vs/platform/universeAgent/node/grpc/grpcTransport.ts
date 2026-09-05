@@ -261,6 +261,8 @@ import type {
 	UniverseAgentExitMaintenanceResult,
 	UniverseAgentListConfigsResult,
 	UniverseAgentGetRemoteAgentConfigRequest,
+	UniverseAgentSaveRemoteAgentConfigRequest,
+	UniverseAgentSaveRemoteAgentConfigResult,
 	UniverseAgentRemoteAgentConfig,
 	UniverseAgentResetErrorRequest,
 	UniverseAgentResetErrorResult,
@@ -788,6 +790,8 @@ export interface IUniverseAgentGrpcTransport {
 	/** RemoteAgentService.GetConfig unary (snake_case `node_id`). Empty ids sent as-is. */
 	getRemoteAgentConfig(request: UniverseAgentGetRemoteAgentConfigRequest): Promise<UniverseAgentRemoteAgentConfig>;
 
+	/** RemoteAgentService.SaveConfig unary (snake_case `config`/`skip_connection_test`/`async_test`). Empty ids sent as-is. */
+	saveRemoteAgentConfig(request: UniverseAgentSaveRemoteAgentConfigRequest): Promise<UniverseAgentSaveRemoteAgentConfigResult>;
 	/** RemoteAgentService.ResetError unary (snake_case `node_id`). Empty ids sent as-is. */
 	resetError(request: UniverseAgentResetErrorRequest): Promise<UniverseAgentResetErrorResult>;
 
@@ -1123,6 +1127,7 @@ export const UniverseAgentGrpcServices = {
 		ExitMaintenance: 'ExitMaintenance',
 		ListConfigs: 'ListConfigs',
 		GetConfig: 'GetConfig',
+		SaveConfig: 'SaveConfig',
 		ResetError: 'ResetError',
 	},
 } as const;

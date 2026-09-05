@@ -266,6 +266,8 @@ import type {
 	UniverseAgentExitMaintenanceResult,
 	UniverseAgentListConfigsResult,
 	UniverseAgentGetRemoteAgentConfigRequest,
+	UniverseAgentSaveRemoteAgentConfigRequest,
+	UniverseAgentSaveRemoteAgentConfigResult,
 	UniverseAgentRemoteAgentConfig,
 	UniverseAgentResetErrorRequest,
 	UniverseAgentResetErrorResult,
@@ -1603,6 +1605,26 @@ export interface IUniverseAgentConnection {
 	 * ConfigService.Get / DeviceService.
 	 */
 	getRemoteAgentConfig?(request: UniverseAgentGetRemoteAgentConfigRequest): Promise<UniverseAgentRemoteAgentConfig>;
+
+	/**
+	 * RemoteAgentService.SaveConfig unary. Optional so Web / tests can omit
+	 * it. Catalog + node transport only this slice; empty `config.id` /
+	 * `name` / `description` / `tags` / `sessionLifecycle` (incl. empty
+	 * string) are sent as-is. `skipConnectionTest` / `asyncTest` false
+	 * sent as-is. `success` false mapped as-is. Empty `message` /
+	 * `asyncTestId` mapped as-is. Nested empty ids / 0 / false on
+	 * `config` and `connectionTest` mapped as-is. Proto fields only
+	 * (`SaveRemoteAgentConfigRequest` /
+	 * `SaveRemoteAgentConfigResponse` + `RemoteAgentConfig` /
+	 * `Endpoint` / `AuthConfig` / `PermissionDelegate` /
+	 * `WhitelistEntry` / `ArgCondition` / `PermissionBudget` /
+	 * `HealthCheckConfig` / `ConnectionReport`). No Conversation
+	 * roster / UI / Engine Preferences / Composer.
+	 * ≠ ListNodes / GetNode / CheckConnection / ListConfigs /
+	 * GetConfig / SetMaintenance / ExitMaintenance / ResetError /
+	 * DeleteConfig / Reload / ConfigService.Set / DeviceService.
+	 */
+	saveRemoteAgentConfig?(request: UniverseAgentSaveRemoteAgentConfigRequest): Promise<UniverseAgentSaveRemoteAgentConfigResult>;
 
 	/**
 	 * RemoteAgentService.ResetError unary. Optional so Web / tests
