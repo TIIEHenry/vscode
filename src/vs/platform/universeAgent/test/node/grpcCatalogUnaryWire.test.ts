@@ -21,7 +21,9 @@ import {
 	encodeListDevicesRequest,
 	encodeListModelsRequest,
 	encodeListSessionsRequest,
+	SESSION_LIST_FILTER_ALL,
 } from '../../node/grpc/grpcCatalogUnaryWire.js';
+import { mapListSessionsResponse } from '../../node/grpc/grpcClientMappers.js';
 import {
 	encodeInt32Field,
 	encodeMessageField,
@@ -44,7 +46,7 @@ suite('grpc catalog unary protobuf wire', () => {
 		assert.notStrictEqual(framed[0], 0x7b);
 	});
 
-	test('encodeListSessionsRequest writes limit/offset, not JSON', () => {
+	test('encodeListSessionsRequest writes limit/offset and ALL filter, not JSON', () => {
 		const encoded = encodeListSessionsRequest({ limit: 20, offset: 5 });
 		assert.notStrictEqual(encoded[0], 0x7b);
 		const numbers = new Map<number, number>();
@@ -55,12 +57,22 @@ suite('grpc catalog unary protobuf wire', () => {
 		}
 		assert.strictEqual(numbers.get(1), 20);
 		assert.strictEqual(numbers.get(2), 5);
+		assert.strictEqual(numbers.get(4), SESSION_LIST_FILTER_ALL);
 	});
 
-	test('encodeListSessionsRequest with no paging is empty proto, not JSON {}', () => {
+	test('encodeListSessionsRequest with no paging writes SESSION_LIST_FILTER_ALL, not JSON {}', () => {
 		const encoded = encodeListSessionsRequest({});
-		assert.strictEqual(encoded.length, 0);
-		assert.notStrictEqual(JSON.stringify({}), Buffer.from(encoded).toString('utf8'));
+		assert.ok(encoded.length > 0);
+		assert.notStrictEqual(encoded[0], 0x7b);
+		const numbers = new Map<number, number>();
+		for (const field of readProtoFields(encoded)) {
+			if (field.wireType === 0) {
+				numbers.set(field.field, Number(field.varint));
+			}
+		}
+		assert.strictEqual(numbers.get(4), SESSION_LIST_FILTER_ALL);
+		assert.strictEqual(numbers.has(1), false);
+		assert.strictEqual(numbers.has(2), false);
 	});
 
 	test('decodeListSessionsResponse reads session_id and total', () => {
@@ -77,6 +89,16 @@ suite('grpc catalog unary protobuf wire', () => {
 		assert.strictEqual(decoded.sessions?.[0]?.session_id, 'eng-1');
 		assert.strictEqual(decoded.sessions?.[0]?.title, 'Hello');
 		assert.strictEqual(decoded.total_count, 3);
+	});
+
+	test('decode+map ListSessions yields sessionId for roster catalog', () => {
+		const summary = Buffer.concat([
+			encodeStringField(1, 'eng-listed'),
+			encodeStringField(7, 'New session'),
+		]);
+		const mapped = mapListSessionsResponse(decodeListSessionsResponse(encodeMessageField(1, summary)));
+		assert.strictEqual(mapped.sessions[0]?.sessionId, 'eng-listed');
+		assert.strictEqual(mapped.sessions[0]?.title, 'New session');
 	});
 
 	test('encodeListAgentProfilesRequest writes project_path field 1', () => {

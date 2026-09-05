@@ -385,6 +385,7 @@ import {
 	UniverseAgentDeviceAuthConnectRequest,
 	UniverseAgentGrpcServices,
 } from './grpcTransport.js';
+import { createSessionRecoveringAlreadyExists } from '../sessionCreateRecover.js';
 import { createPinnedChannelOptions, createPinnedTlsChannelCredentials, type UniverseAgentPinnedTlsTarget } from '../universeAgentChannel.js';
 import {
 	base64ToBytes,
@@ -1294,7 +1295,12 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			UniverseAgentGrpcServices.Session.Create,
 			decodeCreateSessionResponse,
 		);
-		return unary(encodeCreateSessionRequest(request));
+		return createSessionRecoveringAlreadyExists(
+			() => unary(encodeCreateSessionRequest(request)),
+			() => this.listSessions({}),
+			async sessionId => this.resumeSession({ sessionId }),
+			request.title,
+		);
 	}
 
 	async deleteSession(request: UniverseAgentDeleteSessionRequest): Promise<void> {

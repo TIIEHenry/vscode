@@ -45,10 +45,14 @@ export function encodeEmptyProtoMessage(): Uint8Array {
 	return EMPTY_PROTO_MESSAGE;
 }
 
+/** proto SessionListFilter.SESSION_LIST_FILTER_ALL — default so List is not RECENT-only. */
+export const SESSION_LIST_FILTER_ALL = 4;
+
 export function encodeListSessionsRequest(request: UniverseAgentListSessionsRequest): Uint8Array {
 	return Buffer.concat([
 		encodeInt32Field(1, request.limit),
 		encodeInt32Field(2, request.offset),
+		encodeInt32Field(4, request.filter ?? SESSION_LIST_FILTER_ALL),
 	]);
 }
 

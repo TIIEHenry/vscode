@@ -369,6 +369,7 @@ import type {
 import { createEmptyCapabilitySnapshot, probeEngineCapabilities } from './grpcCapabilityProbe.js';
 import { createGrpcUniverseAgentClient, createPinnedGrpcUniverseAgentClient } from './grpc/grpcClient.js';
 import { GrpcStatusCode, IUniverseAgentGrpcTransport, isTransportFailureCode, UniverseAgentFetchToolDetailMethodKey, UniverseAgentGrpcServices, UniverseAgentSaveSkillContentMethodKey, UniverseAgentTransportError } from './grpc/grpcTransport.js';
+import { createSessionRecoveringAlreadyExists } from './sessionCreateRecover.js';
 import type { ConnectionResolver, ResolvedEndpoint } from './connectionResolver.js';
 import { runDeviceAuthHandshake } from './deviceAuthHandshake.js';
 import { derivePairingSasCode, DEVICE_GRANT_AUTH_PROTOCOL_VERSION } from './deviceGrant/device-grant-crypto.js';
@@ -909,7 +910,12 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 	}
 
 	async createSession(request: UniverseAgentCreateSessionRequest): Promise<UniverseAgentCreateSessionResult> {
-		return this._withTransport(transport => transport.createSession(request));
+		return this._withTransport(transport => createSessionRecoveringAlreadyExists(
+			() => transport.createSession(request),
+			() => transport.listSessions({}),
+			async sessionId => transport.resumeSession({ sessionId }),
+			request.title,
+		));
 	}
 
 	async deleteSession(request: UniverseAgentDeleteSessionRequest): Promise<void> {

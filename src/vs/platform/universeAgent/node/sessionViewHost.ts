@@ -49,6 +49,7 @@ import {
 	shouldRefreshAgentTree,
 } from './fileMutationJoin.js';
 import { isAlreadyExistsError } from './grpc/grpcTransport.js';
+import { recoverSessionAfterAlreadyExists } from './sessionCreateRecover.js';
 
 type ActiveStream = {
 	readonly attemptId: AttemptId;
@@ -452,23 +453,19 @@ export class SessionViewHost extends Disposable {
 			if (!isAlreadyExistsError(error)) {
 				throw error;
 			}
-			return this.recoverExistingEngineSession(localId, cached);
+			if (cached) {
+				await this.resumeEngineSessionIfPossible(cached);
+				return cached;
+			}
+			const recovered = await recoverSessionAfterAlreadyExists(
+				() => this.connection.listSessions({}),
+				this.connection.resumeSession
+					? sessionId => this.connection.resumeSession!({ sessionId })
+					: undefined,
+				localId,
+			);
+			return recovered.sessionId;
 		}
-	}
-
-	private async recoverExistingEngineSession(localId: string, cached: string | undefined): Promise<string> {
-		if (cached) {
-			await this.resumeEngineSessionIfPossible(cached);
-			return cached;
-		}
-		const listed = await this.connection.listSessions({});
-		const match = listed.sessions.find(session => session.title === localId && session.sessionId)
-			?? listed.sessions.find(session => !!session.sessionId);
-		if (!match?.sessionId) {
-			throw new Error('CreateSession ALREADY_EXISTS and List returned no session_id');
-		}
-		await this.resumeEngineSessionIfPossible(match.sessionId);
-		return match.sessionId;
 	}
 
 	private async resumeEngineSessionIfPossible(engineId: string): Promise<void> {
