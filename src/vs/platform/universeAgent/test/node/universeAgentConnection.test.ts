@@ -255,6 +255,7 @@ import type {
 	UniverseAgentRevokeResult,
 	UniverseAgentRotateTokenRequest,
 	UniverseAgentRotateTokenResult,
+	UniverseAgentListPendingResult,
 	UniverseAgentListTriggersRequest,
 	UniverseAgentListTriggersResult,
 	UniverseAgentUpsertTriggerRequest,
@@ -1910,6 +1911,16 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 		return this.rotateTokenResult;
 	}
 
+	listPendingCalls = 0;
+	listPendingResult: UniverseAgentListPendingResult = {
+		pending: [],
+	};
+
+	async listPending(): Promise<UniverseAgentListPendingResult> {
+		this.listPendingCalls++;
+		return this.listPendingResult;
+	}
+
 	readonly listTriggersCalls: UniverseAgentListTriggersRequest[] = [];
 	listTriggersResult: UniverseAgentListTriggersResult = {
 		triggers: [],
@@ -2528,6 +2539,11 @@ suite('UniverseAgentConnectionService', () => {
 
 	test('UniverseAgentGrpcServices lists Device.RotateToken', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Device.RotateToken, 'RotateToken');
+		assert.strictEqual(UniverseAgentGrpcServices.Device.service, 'universeagent.device.v1.DeviceService');
+	});
+
+	test('UniverseAgentGrpcServices lists Device.ListPending', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Device.ListPending, 'ListPending');
 		assert.strictEqual(UniverseAgentGrpcServices.Device.service, 'universeagent.device.v1.DeviceService');
 	});
 
@@ -6415,6 +6431,48 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(transport.rotateTokenCalls[1]?.deviceId, '');
 		assert.strictEqual(empty.success, false);
 		assert.strictEqual(empty.message, '');
+		service.dispose();
+	});
+
+	test('listPending forwards empty request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.listPendingResult = {
+			pending: [{
+				pairingCode: '123456',
+				deviceId: 'dev-1',
+				displayName: 'phone',
+				platform: 'android',
+				requestedAt: 100,
+				expiresInSeconds: 60,
+			}],
+		};
+		const result = await service.listPending();
+		assert.strictEqual(transport.listPendingCalls, 1);
+		assert.deepStrictEqual(result, transport.listPendingResult);
+
+		transport.listPendingResult = {
+			pending: [{
+				pairingCode: '',
+				deviceId: '',
+				displayName: '',
+				platform: '',
+				requestedAt: 0,
+				expiresInSeconds: 0,
+			}],
+		};
+		const empty = await service.listPending();
+		assert.strictEqual(transport.listPendingCalls, 2);
+		assert.strictEqual(empty.pending[0]?.pairingCode, '');
+		assert.strictEqual(empty.pending[0]?.deviceId, '');
+		assert.strictEqual(empty.pending[0]?.displayName, '');
+		assert.strictEqual(empty.pending[0]?.platform, '');
+		assert.strictEqual(empty.pending[0]?.requestedAt, 0);
+		assert.strictEqual(empty.pending[0]?.expiresInSeconds, 0);
 		service.dispose();
 	});
 

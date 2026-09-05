@@ -274,6 +274,7 @@ import type {
 	UniverseAgentRevokeResult,
 	UniverseAgentRotateTokenRequest,
 	UniverseAgentRotateTokenResult,
+	UniverseAgentListPendingResult,
 	UniverseAgentListTriggersRequest,
 	UniverseAgentListTriggersResult,
 	UniverseAgentUpsertTriggerRequest,
@@ -1618,6 +1619,17 @@ export interface IUniverseAgentConnection {
 	 * ≠ ListDevices / PairApprove / PairReject / Revoke / ListPending.
 	 */
 	rotateToken?(request: UniverseAgentRotateTokenRequest): Promise<UniverseAgentRotateTokenResult>;
+	/**
+	 * DeviceService.ListPending unary. Optional so Web / tests can omit it.
+	 * Catalog + node transport only this slice; empty request `{}`. Empty
+	 * `pairing_code` / `device_id` / `display_name` / `platform` mapped
+	 * as-is. `requested_at` 0 mapped as-is. `expires_in_seconds` 0 mapped
+	 * as-is. Proto fields only (`ListPendingRequest` /
+	 * `ListPendingResponse` + `PendingPairInfo`). No Conversation roster /
+	 * UI / Engine Preferences / Composer.
+	 * ≠ ListDevices / PairApprove / PairReject / Revoke / RotateToken.
+	 */
+	listPending?(): Promise<UniverseAgentListPendingResult>;
 	/**
 	 * TriggerService.ListTriggers unary. Optional so Web / tests can omit
 	 * it. Catalog + node transport only this slice; empty `scope` /

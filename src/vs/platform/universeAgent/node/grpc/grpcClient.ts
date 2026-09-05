@@ -349,6 +349,8 @@ import type {
 	UniverseAgentRevokeResult,
 	UniverseAgentRotateTokenRequest,
 	UniverseAgentRotateTokenResult,
+	UniverseAgentPendingPairInfo,
+	UniverseAgentListPendingResult,
 	UniverseAgentListTriggersRequest,
 	UniverseAgentListTriggersResult,
 	UniverseAgentUpsertTriggerRequest,
@@ -3640,6 +3642,36 @@ function mapRotateTokenResponse(wire: RotateTokenResponseWire): UniverseAgentRot
 	};
 }
 
+interface PendingPairInfoWire {
+	pairing_code?: string;
+	device_id?: string;
+	display_name?: string;
+	platform?: string;
+	requested_at?: number | string;
+	expires_in_seconds?: number;
+}
+
+interface ListPendingResponseWire {
+	pending?: PendingPairInfoWire[];
+}
+
+function mapPendingPairInfo(wire: PendingPairInfoWire): UniverseAgentPendingPairInfo {
+	return {
+		pairingCode: wire.pairing_code ?? '',
+		deviceId: wire.device_id ?? '',
+		displayName: wire.display_name ?? '',
+		platform: wire.platform ?? '',
+		requestedAt: requiredInt64(wire.requested_at),
+		expiresInSeconds: wire.expires_in_seconds ?? 0,
+	};
+}
+
+function mapListPendingResponse(wire: ListPendingResponseWire): UniverseAgentListPendingResult {
+	return {
+		pending: (wire.pending ?? []).map(mapPendingPairInfo),
+	};
+}
+
 interface BoundSessionTargetWire {
 	session_id?: string;
 }
@@ -6181,6 +6213,16 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			device_id: request.deviceId,
 		});
 		return mapRotateTokenResponse(wire);
+	}
+
+	async listPending(): Promise<UniverseAgentListPendingResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, ListPendingResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.Device.service,
+			UniverseAgentGrpcServices.Device.ListPending,
+		);
+		const wire = await unary({});
+		return mapListPendingResponse(wire);
 	}
 
 	async listTriggers(request: UniverseAgentListTriggersRequest): Promise<UniverseAgentListTriggersResult> {
