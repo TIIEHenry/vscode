@@ -2562,6 +2562,90 @@ export interface UniverseAgentConnectionReport {
 }
 
 /**
+ * RemoteAgentService.ListConfigs — proto `ListRemoteAgentConfigsRequest` /
+ * `ListRemoteAgentConfigsResponse` + `RemoteAgentConfig` / `Endpoint` /
+ * `AuthConfig` / `PermissionDelegate` / `WhitelistEntry` /
+ * `ArgCondition` / `PermissionBudget` / `HealthCheckConfig` only.
+ * Empty request. Empty `id` / `name` / `description` / `tags` /
+ * `session_lifecycle` / endpoint `host`/`tls_cert_path` / auth
+ * `type`/`api_key_ref`/`token_ref` / delegate `mode`/`timeout_policy` /
+ * `fallback`/`bubble_target` / whitelist `tool_name` / arg
+ * `field`/`operator`/`value` mapped as-is. `enabled` / `tls` /
+ * `use_watch` false mapped as-is. `port` / `max_concurrent_sessions` /
+ * budget ints / health-check ints / `degraded_error_rate_threshold` 0
+ * mapped as-is.
+ * ≠ ListNodes / GetNode / CheckConnection / GetConfig / DeviceService.
+ */
+export interface UniverseAgentRemoteAgentEndpoint {
+	readonly host: string;
+	readonly port: number;
+	readonly tls: boolean;
+	readonly tlsCertPath: string;
+}
+
+export interface UniverseAgentRemoteAgentAuthConfig {
+	readonly type: string;
+	readonly apiKeyRef: string;
+	readonly tokenRef: string;
+}
+
+export interface UniverseAgentRemoteAgentArgCondition {
+	readonly field: string;
+	readonly operator: string;
+	readonly value: string;
+}
+
+export interface UniverseAgentRemoteAgentWhitelistEntry {
+	readonly toolName: string;
+	readonly argConditions: readonly UniverseAgentRemoteAgentArgCondition[];
+}
+
+export interface UniverseAgentRemoteAgentPermissionBudget {
+	readonly maxToolCalls: number;
+	readonly maxTokens: number;
+	readonly timeoutMs: number;
+	readonly windowMs: number;
+	readonly maxBubbleToUserPerDay: number;
+}
+
+export interface UniverseAgentRemoteAgentPermissionDelegate {
+	readonly mode: string;
+	readonly whitelist: readonly UniverseAgentRemoteAgentWhitelistEntry[];
+	readonly budget: UniverseAgentRemoteAgentPermissionBudget;
+	readonly timeoutPolicy: string;
+	readonly fallback: string;
+	readonly bubbleTarget: string;
+}
+
+export interface UniverseAgentRemoteAgentHealthCheckConfig {
+	readonly intervalMs: number;
+	readonly timeoutMs: number;
+	readonly unhealthyThreshold: number;
+	readonly healthyThreshold: number;
+	readonly useWatch: boolean;
+	readonly degradedErrorRateThreshold: number;
+	readonly degradedP99LatencyMs: number;
+}
+
+export interface UniverseAgentRemoteAgentConfig {
+	readonly id: string;
+	readonly name: string;
+	readonly description: string;
+	readonly enabled: boolean;
+	readonly endpoint: UniverseAgentRemoteAgentEndpoint;
+	readonly auth: UniverseAgentRemoteAgentAuthConfig;
+	readonly tags: readonly string[];
+	readonly maxConcurrentSessions: number;
+	readonly sessionLifecycle: string;
+	readonly defaultPermissionDelegate: UniverseAgentRemoteAgentPermissionDelegate;
+	readonly healthCheck: UniverseAgentRemoteAgentHealthCheckConfig;
+}
+
+export interface UniverseAgentListConfigsResult {
+	readonly configs: readonly UniverseAgentRemoteAgentConfig[];
+}
+
+/**
  * FileTransferService.GetUploadProgress — proto `UploadProgressRequest` /
  * `UploadProgressResponse` only. Empty `transfer_id` / `session_id` pass
  * through as-is. `bytes_received` 0 / empty `partial_path` mapped as-is.

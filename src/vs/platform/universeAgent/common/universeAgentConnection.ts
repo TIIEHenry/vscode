@@ -260,6 +260,7 @@ import type {
 	UniverseAgentRemoteAgentInfo,
 	UniverseAgentCheckConnectionRequest,
 	UniverseAgentConnectionReport,
+	UniverseAgentListConfigsResult,
 	UniverseAgentGetUploadProgressRequest,
 	UniverseAgentGetUploadProgressResult,
 	UniverseAgentUploadAttachmentResult,
@@ -1543,6 +1544,23 @@ export interface IUniverseAgentConnection {
 	 * ≠ GetNode / ListNodes / ListConfigs / GetConfig / DeviceService.
 	 */
 	checkConnection?(request: UniverseAgentCheckConnectionRequest): Promise<UniverseAgentConnectionReport>;
+
+	/**
+	 * RemoteAgentService.ListConfigs unary. Optional so Web / tests can omit
+	 * it. Catalog + node transport only this slice; empty request `{}`.
+	 * Empty `id` / `name` / `description` / `tags` / `sessionLifecycle`
+	 * mapped as-is. `enabled` false mapped as-is. Nested empty ids /
+	 * 0 / false mapped as-is. Proto fields only
+	 * (`ListRemoteAgentConfigsRequest` /
+	 * `ListRemoteAgentConfigsResponse` + `RemoteAgentConfig` /
+	 * `Endpoint` / `AuthConfig` / `PermissionDelegate` /
+	 * `WhitelistEntry` / `ArgCondition` / `PermissionBudget` /
+	 * `HealthCheckConfig`). No Conversation roster / UI / Engine
+	 * Preferences / Composer.
+	 * ≠ ListNodes / GetNode / CheckConnection / GetConfig / DeviceService.
+	 */
+	listConfigs?(): Promise<UniverseAgentListConfigsResult>;
+
 	/**
 	 * FileTransferService.GetUploadProgress unary. Optional so Web / tests
 	 * can omit it. Catalog + node transport only this slice; empty
