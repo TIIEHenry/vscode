@@ -259,6 +259,8 @@ import type {
 	UniverseAgentContextVariableReadResult,
 	UniverseAgentListNodesRequest,
 	UniverseAgentListNodesResult,
+	UniverseAgentGetRemoteAgentConfigRequest,
+	UniverseAgentRemoteAgentConfig,
 	UniverseAgentGetUploadProgressRequest,
 	UniverseAgentGetUploadProgressResult,
 	UniverseAgentUploadAttachmentResult,
@@ -1481,6 +1483,10 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 
 	async listNodes(request: UniverseAgentListNodesRequest): Promise<UniverseAgentListNodesResult> {
 		return this._withTransport(transport => transport.listNodes(request));
+	}
+
+	async getRemoteAgentConfig(request: UniverseAgentGetRemoteAgentConfigRequest): Promise<UniverseAgentRemoteAgentConfig> {
+		return this._withTransport(transport => transport.getRemoteAgentConfig(request));
 	}
 
 	async getUploadProgress(request: UniverseAgentGetUploadProgressRequest): Promise<UniverseAgentGetUploadProgressResult> {

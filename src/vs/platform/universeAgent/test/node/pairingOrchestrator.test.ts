@@ -625,6 +625,36 @@ class RecordingMockTransport implements IUniverseAgentGrpcTransport {
 	async listNodes() {
 		return { nodes: [], total: 0, onlineCount: 0 };
 	}
+	async getRemoteAgentConfig() {
+		return {
+			id: '',
+			name: '',
+			description: '',
+			enabled: false,
+			endpoint: { host: '', port: 0, tls: false, tlsCertPath: '' },
+			auth: { type: '', apiKeyRef: '', tokenRef: '' },
+			tags: [],
+			maxConcurrentSessions: 0,
+			sessionLifecycle: '',
+			defaultPermissionDelegate: {
+				mode: '',
+				whitelist: [],
+				budget: { maxToolCalls: 0, maxTokens: 0, timeoutMs: 0, windowMs: 0, maxBubbleToUserPerDay: 0 },
+				timeoutPolicy: '',
+				fallback: '',
+				bubbleTarget: '',
+			},
+			healthCheck: {
+				intervalMs: 0,
+				timeoutMs: 0,
+				unhealthyThreshold: 0,
+				healthyThreshold: 0,
+				useWatch: false,
+				degradedErrorRateThreshold: 0,
+				degradedP99LatencyMs: 0,
+			},
+		};
+	}
 	async getUploadProgress() {
 		return { exists: false, bytesReceived: 0, partialPath: '' };
 	}
