@@ -706,6 +706,9 @@ class MockDeviceAuthTransport implements IUniverseAgentGrpcTransport {
 	async resetError() {
 		return { success: false };
 	}
+	async destroyRemoteSession() {
+		return { success: false, message: '' };
+	}
 	async getUploadProgress() {
 		return { exists: false, bytesReceived: 0, partialPath: '' };
 	}

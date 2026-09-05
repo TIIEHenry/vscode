@@ -271,6 +271,8 @@ import type {
 	UniverseAgentRemoteAgentConfig,
 	UniverseAgentResetErrorRequest,
 	UniverseAgentResetErrorResult,
+	UniverseAgentDestroyRemoteSessionRequest,
+	UniverseAgentDestroyRemoteSessionResult,
 	UniverseAgentGetUploadProgressRequest,
 	UniverseAgentGetUploadProgressResult,
 	UniverseAgentUploadAttachmentResult,
@@ -1636,6 +1638,21 @@ export interface IUniverseAgentConnection {
 	 * ExitMaintenance / ListConfigs / GetConfig / DeviceService.
 	 */
 	resetError?(request: UniverseAgentResetErrorRequest): Promise<UniverseAgentResetErrorResult>;
+
+	/**
+	 * RemoteAgentService.DestroyRemoteSession unary. Optional so Web /
+	 * tests can omit it. Catalog + node transport only this slice; empty
+	 * `callId` is sent as-is. `success` false mapped as-is. Empty
+	 * `message` mapped as-is. Proto fields only
+	 * (`DestroyRemoteSessionRequest` / `DestroyRemoteSessionResponse`).
+	 * No Conversation roster / UI / Engine Preferences / Composer.
+	 * ≠ CreateRemoteSession / GetRemoteSessionStatus /
+	 * GetRemoteSessionHistory / ResumeRemoteSession / CancelRemoteSession /
+	 * RemoteChat / ListNodes / GetNode / CheckConnection / SetMaintenance /
+	 * ExitMaintenance / ResetError / ListConfigs / GetConfig / SaveConfig /
+	 * DeleteConfig / Reload / DeviceService / SessionService.
+	 */
+	destroyRemoteSession?(request: UniverseAgentDestroyRemoteSessionRequest): Promise<UniverseAgentDestroyRemoteSessionResult>;
 
 	/**
 	 * FileTransferService.GetUploadProgress unary. Optional so Web / tests

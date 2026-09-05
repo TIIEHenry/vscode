@@ -274,6 +274,8 @@ import type {
 	UniverseAgentRemoteAgentConfig,
 	UniverseAgentResetErrorRequest,
 	UniverseAgentResetErrorResult,
+	UniverseAgentDestroyRemoteSessionRequest,
+	UniverseAgentDestroyRemoteSessionResult,
 	UniverseAgentGetUploadProgressRequest,
 	UniverseAgentGetUploadProgressResult,
 	UniverseAgentUploadAttachmentResult,
@@ -1528,6 +1530,10 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 
 	async resetError(request: UniverseAgentResetErrorRequest): Promise<UniverseAgentResetErrorResult> {
 		return this._withTransport(transport => transport.resetError(request));
+	}
+
+	async destroyRemoteSession(request: UniverseAgentDestroyRemoteSessionRequest): Promise<UniverseAgentDestroyRemoteSessionResult> {
+		return this._withTransport(transport => transport.destroyRemoteSession(request));
 	}
 
 	async getUploadProgress(request: UniverseAgentGetUploadProgressRequest): Promise<UniverseAgentGetUploadProgressResult> {

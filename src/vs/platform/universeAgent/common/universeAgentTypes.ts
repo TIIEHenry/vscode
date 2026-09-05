@@ -2745,6 +2745,26 @@ export interface UniverseAgentResetErrorResult {
 }
 
 /**
+ * RemoteAgentService.DestroyRemoteSession — proto
+ * `DestroyRemoteSessionRequest` / `DestroyRemoteSessionResponse` only.
+ * Empty `call_id` (incl. empty string) passes through as-is. `success`
+ * false mapped as-is. Empty `message` mapped as-is.
+ * ≠ CreateRemoteSession / GetRemoteSessionStatus /
+ * GetRemoteSessionHistory / ResumeRemoteSession / CancelRemoteSession /
+ * RemoteChat / ListNodes / GetNode / CheckConnection / SetMaintenance /
+ * ExitMaintenance / ResetError / ListConfigs / GetConfig / SaveConfig /
+ * DeleteConfig / Reload / DeviceService / SessionService.
+ */
+export interface UniverseAgentDestroyRemoteSessionRequest {
+	readonly callId: string;
+}
+
+export interface UniverseAgentDestroyRemoteSessionResult {
+	readonly success: boolean;
+	readonly message: string;
+}
+
+/**
  * FileTransferService.GetUploadProgress — proto `UploadProgressRequest` /
  * `UploadProgressResponse` only. Empty `transfer_id` / `session_id` pass
  * through as-is. `bytes_received` 0 / empty `partial_path` mapped as-is.
