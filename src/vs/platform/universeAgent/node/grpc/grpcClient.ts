@@ -316,6 +316,9 @@ import type {
 	UniverseAgentMemoryRebuildStream,
 	UniverseAgentRevertMemoryRequest,
 	UniverseAgentRevertMemoryResult,
+	UniverseAgentMemoryHistoryRequest,
+	UniverseAgentMemoryHistoryResult,
+	UniverseAgentMemoryChangeEntry,
 	UniverseAgentGetUploadProgressRequest,
 	UniverseAgentGetUploadProgressResult,
 	UniverseAgentUploadChunk,
@@ -327,6 +330,8 @@ import type {
 	UniverseAgentHealthCheckResult,
 	UniverseAgentDoctorCheck,
 	UniverseAgentDoctorResult,
+	UniverseAgentShutdownRequest,
+	UniverseAgentShutdownResult,
 	UniverseAgentListModelsResult,
 	UniverseAgentGetConfigRequest,
 	UniverseAgentGetConfigResult,
@@ -3219,6 +3224,34 @@ function mapMemoryRevertResponse(wire: MemoryRevertResponseWire): UniverseAgentR
 	};
 }
 
+interface MemoryChangeEntryWire {
+	version?: number | string;
+	change_type?: string;
+	summary?: string;
+	timestamp?: number | string;
+	author?: string;
+}
+
+interface MemoryHistoryResponseWire {
+	changes?: MemoryChangeEntryWire[];
+}
+
+function mapMemoryChangeEntry(wire: MemoryChangeEntryWire): UniverseAgentMemoryChangeEntry {
+	return {
+		version: requiredInt64(wire.version),
+		changeType: wire.change_type ?? '',
+		summary: wire.summary ?? '',
+		timestamp: requiredInt64(wire.timestamp),
+		author: wire.author ?? '',
+	};
+}
+
+function mapMemoryHistoryResponse(wire: MemoryHistoryResponseWire): UniverseAgentMemoryHistoryResult {
+	return {
+		changes: (wire.changes ?? []).map(mapMemoryChangeEntry),
+	};
+}
+
 interface UploadProgressResponseWire {
 	exists?: boolean;
 	bytes_received?: number | string;
@@ -3230,6 +3263,18 @@ function mapUploadProgressResponse(wire: UploadProgressResponseWire): UniverseAg
 		exists: wire.exists === true,
 		bytesReceived: requiredInt64(wire.bytes_received),
 		partialPath: wire.partial_path ?? '',
+	};
+}
+
+interface ShutdownResponseWire {
+	accepted?: boolean;
+	message?: string;
+}
+
+function mapShutdownResponse(wire: ShutdownResponseWire): UniverseAgentShutdownResult {
+	return {
+		accepted: wire.accepted === true,
+		message: wire.message ?? '',
 	};
 }
 
@@ -3515,6 +3560,19 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 		);
 		const wire = await unary({});
 		return mapHealthCheckResponse(wire);
+	}
+
+	async shutdown(request: UniverseAgentShutdownRequest): Promise<UniverseAgentShutdownResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, ShutdownResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.System.service,
+			UniverseAgentGrpcServices.System.Shutdown,
+		);
+		const wire = await unary({
+			force: request.force,
+			grace_period_ms: request.gracePeriodMs,
+		});
+		return mapShutdownResponse(wire);
 	}
 
 	async connectWithDeviceAuth(request: UniverseAgentDeviceAuthConnectRequest): Promise<UniverseAgentConnectResult> {
@@ -5464,6 +5522,21 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			target_version: request.targetVersion,
 		});
 		return mapMemoryRevertResponse(wire);
+	}
+
+	async historyMemory(request: UniverseAgentMemoryHistoryRequest): Promise<UniverseAgentMemoryHistoryResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, MemoryHistoryResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.Memory.service,
+			UniverseAgentGrpcServices.Memory.History,
+		);
+		const wire = await unary({
+			scope: request.scope,
+			category: request.category,
+			filename: request.filename,
+			limit: request.limit,
+		});
+		return mapMemoryHistoryResponse(wire);
 	}
 
 	async getUploadProgress(request: UniverseAgentGetUploadProgressRequest): Promise<UniverseAgentGetUploadProgressResult> {

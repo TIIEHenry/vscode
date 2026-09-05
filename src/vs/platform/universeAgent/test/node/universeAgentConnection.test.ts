@@ -224,8 +224,12 @@ import type {
 	UniverseAgentMemoryRebuildEvent,
 	UniverseAgentRevertMemoryRequest,
 	UniverseAgentRevertMemoryResult,
+	UniverseAgentMemoryHistoryRequest,
+	UniverseAgentMemoryHistoryResult,
 	UniverseAgentGetUploadProgressRequest,
 	UniverseAgentGetUploadProgressResult,
+	UniverseAgentShutdownRequest,
+	UniverseAgentShutdownResult,
 	UniverseAgentDownloadAttachmentRequest,
 	UniverseAgentDownloadChunk,
 	UniverseAgentHealthCheckResult,
@@ -1665,6 +1669,16 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 		return this.revertMemoryResult;
 	}
 
+	readonly historyMemoryCalls: UniverseAgentMemoryHistoryRequest[] = [];
+	historyMemoryResult: UniverseAgentMemoryHistoryResult = {
+		changes: [],
+	};
+
+	async historyMemory(request: UniverseAgentMemoryHistoryRequest): Promise<UniverseAgentMemoryHistoryResult> {
+		this.historyMemoryCalls.push(request);
+		return this.historyMemoryResult;
+	}
+
 	readonly getUploadProgressCalls: UniverseAgentGetUploadProgressRequest[] = [];
 	getUploadProgressResult: UniverseAgentGetUploadProgressResult = {
 		exists: false,
@@ -1675,6 +1689,17 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 	async getUploadProgress(request: UniverseAgentGetUploadProgressRequest): Promise<UniverseAgentGetUploadProgressResult> {
 		this.getUploadProgressCalls.push(request);
 		return this.getUploadProgressResult;
+	}
+
+	readonly shutdownCalls: UniverseAgentShutdownRequest[] = [];
+	shutdownResult: UniverseAgentShutdownResult = {
+		accepted: false,
+		message: '',
+	};
+
+	async shutdown(request: UniverseAgentShutdownRequest): Promise<UniverseAgentShutdownResult> {
+		this.shutdownCalls.push(request);
+		return this.shutdownResult;
 	}
 
 	private _downloadAttachmentGate: ReturnType<typeof createStreamCloseGate> | undefined;
@@ -2208,6 +2233,11 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Memory.service, 'universeagent.memory.v1.MemoryService');
 	});
 
+	test('UniverseAgentGrpcServices lists Memory.History', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Memory.History, 'History');
+		assert.strictEqual(UniverseAgentGrpcServices.Memory.service, 'universeagent.memory.v1.MemoryService');
+	});
+
 	test('UniverseAgentGrpcServices lists FileTransfer.GetUploadProgress', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.FileTransfer.GetUploadProgress, 'GetUploadProgress');
 		assert.strictEqual(UniverseAgentGrpcServices.FileTransfer.service, 'universeagent.filetransfer.v1.FileTransferService');
@@ -2230,6 +2260,11 @@ suite('UniverseAgentConnectionService', () => {
 
 	test('UniverseAgentGrpcServices lists System.Doctor', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.System.Doctor, 'Doctor');
+		assert.strictEqual(UniverseAgentGrpcServices.System.service, 'universeagent.system.v1.SystemService');
+	});
+
+	test('UniverseAgentGrpcServices lists System.Shutdown', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.System.Shutdown, 'Shutdown');
 		assert.strictEqual(UniverseAgentGrpcServices.System.service, 'universeagent.system.v1.SystemService');
 	});
 
@@ -5568,6 +5603,64 @@ suite('UniverseAgentConnectionService', () => {
 		service.dispose();
 	});
 
+	test('historyMemory forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.historyMemoryResult = {
+			changes: [{
+				version: 2,
+				changeType: 'updated',
+				summary: 'edited note',
+				timestamp: 1_700_000_000,
+				author: 'agent',
+			}],
+		};
+		const request = {
+			scope: 'project',
+			category: 'notes',
+			filename: 'note.md',
+			limit: 20,
+		};
+		const result = await service.historyMemory(request);
+		assert.deepStrictEqual(transport.historyMemoryCalls, [request]);
+		assert.deepStrictEqual(result, transport.historyMemoryResult);
+
+		transport.historyMemoryResult = {
+			changes: [{
+				version: 0,
+				changeType: '',
+				summary: '',
+				timestamp: 0,
+				author: '',
+			}],
+		};
+		const emptyRequest = {
+			scope: '',
+			category: '',
+			filename: '',
+			limit: 0,
+		};
+		const empty = await service.historyMemory(emptyRequest);
+		assert.strictEqual(transport.historyMemoryCalls[1]?.scope, '');
+		assert.strictEqual(transport.historyMemoryCalls[1]?.category, '');
+		assert.strictEqual(transport.historyMemoryCalls[1]?.filename, '');
+		assert.strictEqual(transport.historyMemoryCalls[1]?.limit, 0);
+		assert.strictEqual(empty.changes[0]?.version, 0);
+		assert.strictEqual(empty.changes[0]?.changeType, '');
+		assert.strictEqual(empty.changes[0]?.summary, '');
+		assert.strictEqual(empty.changes[0]?.timestamp, 0);
+		assert.strictEqual(empty.changes[0]?.author, '');
+
+		transport.historyMemoryResult = { changes: [] };
+		const emptyList = await service.historyMemory(emptyRequest);
+		assert.deepStrictEqual(emptyList.changes, []);
+		service.dispose();
+	});
+
 	test('getUploadProgress forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
@@ -5674,6 +5767,41 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(empty.checks[0]?.fixHint, '');
 		assert.strictEqual(empty.checks[0]?.passed, false);
 		assert.strictEqual(empty.allPassed, false);
+		service.dispose();
+	});
+
+	test('shutdown forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.shutdownResult = {
+			accepted: true,
+			message: 'shutting down',
+		};
+		const request = {
+			force: true,
+			gracePeriodMs: 15000,
+		};
+		const result = await service.shutdown(request);
+		assert.deepStrictEqual(transport.shutdownCalls, [request]);
+		assert.deepStrictEqual(result, transport.shutdownResult);
+
+		transport.shutdownResult = {
+			accepted: false,
+			message: '',
+		};
+		const emptyRequest = {
+			force: false,
+			gracePeriodMs: 0,
+		};
+		const empty = await service.shutdown(emptyRequest);
+		assert.strictEqual(transport.shutdownCalls[1]?.force, false);
+		assert.strictEqual(transport.shutdownCalls[1]?.gracePeriodMs, 0);
+		assert.strictEqual(empty.accepted, false);
+		assert.strictEqual(empty.message, '');
 		service.dispose();
 	});
 

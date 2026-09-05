@@ -243,6 +243,8 @@ import type {
 	UniverseAgentMemoryRebuildStream,
 	UniverseAgentRevertMemoryRequest,
 	UniverseAgentRevertMemoryResult,
+	UniverseAgentMemoryHistoryRequest,
+	UniverseAgentMemoryHistoryResult,
 	UniverseAgentGetUploadProgressRequest,
 	UniverseAgentGetUploadProgressResult,
 	UniverseAgentUploadAttachmentResult,
@@ -252,6 +254,8 @@ import type {
 	UniverseAgentDownloadAttachmentStream,
 	UniverseAgentHealthCheckResult,
 	UniverseAgentDoctorResult,
+	UniverseAgentShutdownRequest,
+	UniverseAgentShutdownResult,
 	UniverseAgentSetPermissionPolicyRequest,
 	UniverseAgentSetPermissionPolicyResult,
 	UniverseAgentListModelsResult,
@@ -709,6 +713,9 @@ export interface IUniverseAgentGrpcTransport {
 	/** MemoryService.Revert unary (snake_case `scope`/`category`/`filename`/`target_version`). Empty ids sent as-is. */
 	revertMemory(request: UniverseAgentRevertMemoryRequest): Promise<UniverseAgentRevertMemoryResult>;
 
+	/** MemoryService.History unary (snake_case `scope`/`category`/`filename`/`limit`). Empty ids sent as-is. */
+	historyMemory(request: UniverseAgentMemoryHistoryRequest): Promise<UniverseAgentMemoryHistoryResult>;
+
 	/** FileTransferService.GetUploadProgress unary (snake_case `transfer_id`/`session_id`). Empty ids sent as-is. */
 	getUploadProgress(request: UniverseAgentGetUploadProgressRequest): Promise<UniverseAgentGetUploadProgressResult>;
 	/** FileTransferService.UploadAttachment client-stream (snake_case `transfer_id`/`filename`/`session_id`/`queue_item_id`). Empty ids sent as-is. */
@@ -728,6 +735,8 @@ export interface IUniverseAgentGrpcTransport {
 
 	/** SystemService.Doctor unary (empty request `{}`). Empty name / message / fix_hint mapped as-is. */
 	doctor(): Promise<UniverseAgentDoctorResult>;
+	/** SystemService.Shutdown unary (snake_case `force`/`grace_period_ms`). Empty message mapped as-is. */
+	shutdown(request: UniverseAgentShutdownRequest): Promise<UniverseAgentShutdownResult>;
 
 	/** ConfigService.SetPermissionPolicy unary (snake_case `session_id`/`tool_name`/`policy`). Empty ids sent as-is. */
 	setPermissionPolicy(request: UniverseAgentSetPermissionPolicyRequest): Promise<UniverseAgentSetPermissionPolicyResult>;
@@ -774,6 +783,7 @@ export const UniverseAgentGrpcServices = {
 		GetAuthNonce: 'GetAuthNonce',
 		HealthCheck: 'HealthCheck',
 		Doctor: 'Doctor',
+		Shutdown: 'Shutdown',
 	},
 	Session: {
 		service: 'universeagent.session.v1.SessionService',
@@ -961,6 +971,7 @@ export const UniverseAgentGrpcServices = {
 		Reflect: 'Reflect',
 		Rebuild: 'Rebuild',
 		Revert: 'Revert',
+		History: 'History',
 	},
 	FileTransfer: {
 		service: 'universeagent.filetransfer.v1.FileTransferService',

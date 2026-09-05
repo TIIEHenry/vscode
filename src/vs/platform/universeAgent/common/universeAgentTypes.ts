@@ -2356,6 +2356,34 @@ export interface UniverseAgentRevertMemoryResult {
 }
 
 /**
+ * MemoryService.History — proto `MemoryHistoryRequest` /
+ * `MemoryHistoryResponse` + `MemoryChangeEntry` only.
+ * Empty `scope` / `category` / `filename` pass through as-is.
+ * `limit` 0 sent as-is. Empty `change_type` / `summary` / `author`
+ * mapped as-is. `version` / `timestamp` 0 mapped as-is.
+ * ≠ Save / Search / SearchDeep / Read / List / Delete / Reflect /
+ * Rebuild / Revert.
+ */
+export interface UniverseAgentMemoryHistoryRequest {
+	readonly scope: string;
+	readonly category: string;
+	readonly filename: string;
+	readonly limit: number;
+}
+
+export interface UniverseAgentMemoryChangeEntry {
+	readonly version: number;
+	readonly changeType: string;
+	readonly summary: string;
+	readonly timestamp: number;
+	readonly author: string;
+}
+
+export interface UniverseAgentMemoryHistoryResult {
+	readonly changes: readonly UniverseAgentMemoryChangeEntry[];
+}
+
+/**
  * FileTransferService.GetUploadProgress — proto `UploadProgressRequest` /
  * `UploadProgressResponse` only. Empty `transfer_id` / `session_id` pass
  * through as-is. `bytes_received` 0 / empty `partial_path` mapped as-is.
@@ -2485,6 +2513,22 @@ export interface UniverseAgentDoctorCheck {
 export interface UniverseAgentDoctorResult {
 	readonly checks: readonly UniverseAgentDoctorCheck[];
 	readonly allPassed: boolean;
+}
+
+/**
+ * SystemService.Shutdown — proto `ShutdownRequest` / `ShutdownResponse` only.
+ * `force` false / `grace_period_ms` 0 sent as-is. Empty `message` mapped as-is.
+ * `accepted` false mapped as-is.
+ * ≠ Connect / GetAuthNonce / HealthCheck / Doctor.
+ */
+export interface UniverseAgentShutdownRequest {
+	readonly force: boolean;
+	readonly gracePeriodMs: number;
+}
+
+export interface UniverseAgentShutdownResult {
+	readonly accepted: boolean;
+	readonly message: string;
 }
 
 /**

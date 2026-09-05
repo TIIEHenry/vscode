@@ -248,6 +248,8 @@ import type {
 	UniverseAgentMemoryRebuildStream,
 	UniverseAgentRevertMemoryRequest,
 	UniverseAgentRevertMemoryResult,
+	UniverseAgentMemoryHistoryRequest,
+	UniverseAgentMemoryHistoryResult,
 	UniverseAgentGetUploadProgressRequest,
 	UniverseAgentGetUploadProgressResult,
 	UniverseAgentUploadAttachmentResult,
@@ -257,6 +259,8 @@ import type {
 	UniverseAgentDownloadAttachmentStream,
 	UniverseAgentHealthCheckResult,
 	UniverseAgentDoctorResult,
+	UniverseAgentShutdownRequest,
+	UniverseAgentShutdownResult,
 	UniverseAgentSetPermissionPolicyRequest,
 	UniverseAgentSetPermissionPolicyResult,
 	UniverseAgentListModelsResult,
@@ -1423,6 +1427,18 @@ export interface IUniverseAgentConnection {
 	 */
 	revertMemory?(request: UniverseAgentRevertMemoryRequest): Promise<UniverseAgentRevertMemoryResult>;
 
+	/**
+	 * MemoryService.History unary. Optional so Web / tests can omit it.
+	 * Catalog + node transport only this slice; empty `scope` / `category` /
+	 * `filename` are sent as-is. `limit` 0 sent as-is. Empty `change_type` /
+	 * `summary` / `author` mapped as-is. `version` / `timestamp` 0 mapped
+	 * as-is. Proto fields only (`MemoryHistoryRequest` /
+	 * `MemoryHistoryResponse` + `MemoryChangeEntry`). No Conversation
+	 * roster / UI / Engine Preferences / Composer / Memory pane.
+	 * ≠ Save / Search / SearchDeep / Read / List / Delete / Reflect /
+	 * Rebuild / Revert.
+	 */
+	historyMemory?(request: UniverseAgentMemoryHistoryRequest): Promise<UniverseAgentMemoryHistoryResult>;
 
 	/**
 	 * FileTransferService.GetUploadProgress unary. Optional so Web / tests
@@ -1484,6 +1500,16 @@ export interface IUniverseAgentConnection {
 	 * ≠ Connect / GetAuthNonce / HealthCheck / Shutdown.
 	 */
 	doctor?(): Promise<UniverseAgentDoctorResult>;
+	/**
+	 * SystemService.Shutdown unary. Optional so Web / tests can omit it.
+	 * Catalog + node transport only this slice; `force` false /
+	 * `gracePeriodMs` 0 are sent as-is. Proto fields only
+	 * (`ShutdownRequest` / `ShutdownResponse`: `accepted` / `message`).
+	 * Empty `message` mapped as-is. No Conversation roster / UI /
+	 * Engine Preferences / Composer.
+	 * ≠ Connect / GetAuthNonce / HealthCheck / Doctor.
+	 */
+	shutdown?(request: UniverseAgentShutdownRequest): Promise<UniverseAgentShutdownResult>;
 
 	/**
 	 * ConfigService.SetPermissionPolicy unary (session/tool Ask/Agent/Permit

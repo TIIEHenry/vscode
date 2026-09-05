@@ -251,6 +251,8 @@ import type {
 	UniverseAgentMemoryRebuildStream,
 	UniverseAgentRevertMemoryRequest,
 	UniverseAgentRevertMemoryResult,
+	UniverseAgentMemoryHistoryRequest,
+	UniverseAgentMemoryHistoryResult,
 	UniverseAgentGetUploadProgressRequest,
 	UniverseAgentGetUploadProgressResult,
 	UniverseAgentUploadAttachmentResult,
@@ -260,6 +262,8 @@ import type {
 	UniverseAgentDownloadAttachmentStream,
 	UniverseAgentHealthCheckResult,
 	UniverseAgentDoctorResult,
+	UniverseAgentShutdownRequest,
+	UniverseAgentShutdownResult,
 	UniverseAgentSetPermissionPolicyRequest,
 	UniverseAgentSetPermissionPolicyResult,
 	UniverseAgentListModelsResult,
@@ -1429,6 +1433,10 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		return this._withTransport(transport => transport.revertMemory(request));
 	}
 
+	async historyMemory(request: UniverseAgentMemoryHistoryRequest): Promise<UniverseAgentMemoryHistoryResult> {
+		return this._withTransport(transport => transport.historyMemory(request));
+	}
+
 	async getUploadProgress(request: UniverseAgentGetUploadProgressRequest): Promise<UniverseAgentGetUploadProgressResult> {
 		return this._withTransport(transport => transport.getUploadProgress(request));
 	}
@@ -1456,6 +1464,10 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 
 	async doctor(): Promise<UniverseAgentDoctorResult> {
 		return this._withTransport(transport => transport.doctor());
+	}
+
+	async shutdown(request: UniverseAgentShutdownRequest): Promise<UniverseAgentShutdownResult> {
+		return this._withTransport(transport => transport.shutdown(request));
 	}
 
 	async setPermissionPolicy(request: UniverseAgentSetPermissionPolicyRequest): Promise<UniverseAgentSetPermissionPolicyResult> {
