@@ -639,7 +639,7 @@ export class ConversationLens extends Disposable {
 
 	private applySessionViewTimeline(applied: ConversationViewFrameApplied,
 		options?: { readonly sidecarOnly?: boolean },): void {
-		applySessionViewTimeline(this, applied, options?);
+		applySessionViewTimeline(this, applied, options);
 	}
 
 	private bindReadingColumnLayout(): void {

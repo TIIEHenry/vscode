@@ -11,7 +11,8 @@
 	gap: 8px;
 	flex: 1;
 	height: 22px;
-	min-height: 22px;
+	min-height: 0;
+	max-height: 22px;
 	padding: 0 8px;
 	border-bottom: 1px solid var(--vscode-sideBar-border, var(--vscode-contrastBorder, transparent));
 	background-color: var(--vscode-sideBar-background);
@@ -21,6 +22,7 @@
 	text-transform: uppercase;
 	letter-spacing: 0.04em;
 	box-sizing: border-box;
+	overflow: hidden;
 }
 
 .monaco-workbench .part.conversation .conversation-lens-session-bar-leading {
@@ -96,6 +98,8 @@
 .monaco-workbench .part.conversation .conversation-lens-session-title {
 	flex: 1;
 	min-width: 0;
+	height: 20px;
+	line-height: 20px;
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
@@ -152,6 +156,12 @@
 	align-items: center;
 	gap: 4px;
 	flex-shrink: 0;
+	height: 20px;
+	min-height: 0;
+	max-height: 20px;
+	text-transform: none;
+	letter-spacing: normal;
+	overflow: hidden;
 }
 
 .monaco-workbench .part.conversation .conversation-lens-session-switcher-label {
@@ -164,50 +174,47 @@
 	white-space: nowrap;
 }
 
-.monaco-workbench .part.conversation .conversation-lens-session-new {
+.monaco-workbench .part.conversation .conversation-lens-session-new,
+.monaco-workbench .part.conversation .conversation-lens-session-delete,
+.monaco-workbench .part.conversation .conversation-lens-session-snapshots,
+.monaco-workbench .part.conversation .conversation-lens-session-history {
+	display: flex;
+	align-items: center;
 	flex-shrink: 0;
+	height: 20px;
 }
 
-.monaco-workbench .part.conversation .conversation-lens-session-new .monaco-button {
+.monaco-workbench .part.conversation .conversation-lens-session-new .monaco-button,
+.monaco-workbench .part.conversation .conversation-lens-session-delete .monaco-button,
+.monaco-workbench .part.conversation .conversation-lens-session-snapshots .monaco-button,
+.monaco-workbench .part.conversation .conversation-lens-session-history .monaco-button {
+	box-sizing: border-box;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: auto;
 	height: 20px;
 	min-width: 20px;
+	min-height: 20px;
+	max-height: 20px;
 	padding: 0 4px;
+	line-height: 16px;
+	overflow: hidden;
 }
 
-.monaco-workbench .part.conversation .conversation-lens-session-new .monaco-button .codicon {
-	margin: 0;
-}
-
-.monaco-workbench .part.conversation .conversation-lens-session-delete {
-	flex-shrink: 0;
-}
-
-.monaco-workbench .part.conversation .conversation-lens-session-delete .monaco-button {
-	height: 20px;
-	min-width: 20px;
-	padding: 0 4px;
-}
-
+.monaco-workbench .part.conversation .conversation-lens-session-new .monaco-button .codicon,
 .monaco-workbench .part.conversation .conversation-lens-session-delete .monaco-button .codicon {
 	margin: 0;
 }
 
-.monaco-workbench .part.conversation .conversation-lens-session-snapshots {
-	flex-shrink: 0;
-}
-
-.monaco-workbench .part.conversation .conversation-lens-session-history {
-	flex-shrink: 0;
-}
-
-.monaco-workbench .part.conversation .conversation-lens-session-history .monaco-button {
-	height: 20px;
-	min-width: 20px;
-	padding: 0 6px;
-}
-
+.monaco-workbench .part.conversation .conversation-lens-session-snapshots .monaco-button .codicon,
 .monaco-workbench .part.conversation .conversation-lens-session-history .monaco-button .codicon {
 	margin: 0 2px 0 0;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-session-snapshots .monaco-button,
+.monaco-workbench .part.conversation .conversation-lens-session-history .monaco-button {
+	white-space: nowrap;
 }
 
 .monaco-workbench .part.conversation .conversation-lens-history-overlay {
@@ -297,16 +304,6 @@
 
 .monaco-workbench .part.conversation .conversation-lens-history-cursor {
 	color: var(--vscode-descriptionForeground);
-}
-
-.monaco-workbench .part.conversation .conversation-lens-session-snapshots .monaco-button {
-	height: 20px;
-	min-width: 20px;
-	padding: 0 6px;
-}
-
-.monaco-workbench .part.conversation .conversation-lens-session-snapshots .monaco-button .codicon {
-	margin: 0 2px 0 0;
 }
 
 .monaco-workbench .part.conversation .conversation-lens-snapshots-overlay {
@@ -413,23 +410,20 @@
 	color: var(--vscode-descriptionForeground);
 }
 
-.monaco-workbench .part.conversation .conversation-lens-session-route {
+.monaco-workbench .part.conversation .conversation-lens-session-route,
+.monaco-workbench .part.conversation .conversation-lens-session-select {
+	display: flex;
+	align-items: center;
 	flex-shrink: 0;
-	min-width: 72px;
-	max-width: 128px;
+	height: 20px;
+	min-height: 0;
+	max-height: 20px;
+	overflow: hidden;
 }
 
-.monaco-workbench .part.conversation .conversation-lens-session-route .monaco-select-box {
-	width: 100%;
-	height: 20px;
-	font-size: 11px;
-	font-weight: 600;
-	text-transform: none;
-	letter-spacing: normal;
-	color: var(--vscode-descriptionForeground);
-	background: transparent;
-	border: none;
-	border-radius: 2px;
+.monaco-workbench .part.conversation .conversation-lens-session-route {
+	min-width: 72px;
+	max-width: 128px;
 }
 
 .monaco-workbench .part.conversation .conversation-lens-session-select {
@@ -437,17 +431,36 @@
 	max-width: 180px;
 }
 
+.monaco-workbench .part.conversation .conversation-lens-session-route .monaco-select-box,
 .monaco-workbench .part.conversation .conversation-lens-session-select .monaco-select-box {
+	box-sizing: border-box;
+	display: block;
 	width: 100%;
 	height: 20px;
-	font-size: 12px;
-	font-weight: 400;
+	min-height: 20px;
+	max-height: 20px;
+	padding: 0 18px 0 6px;
+	line-height: 18px;
+	vertical-align: middle;
 	text-transform: none;
 	letter-spacing: normal;
+	border-radius: 2px;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-session-route .monaco-select-box {
+	font-size: 11px;
+	font-weight: 600;
+	color: var(--vscode-descriptionForeground);
+	background: transparent;
+	border: none;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-session-select .monaco-select-box {
+	font-size: 12px;
+	font-weight: 400;
 	color: var(--vscode-foreground);
 	background-color: var(--vscode-input-background);
 	border: 1px solid var(--vscode-input-border, var(--vscode-contrastBorder, transparent));
-	border-radius: 2px;
 }
 
 /* Timeline — reading column; scroll only the inner region (Part slot is overflow:hidden) */

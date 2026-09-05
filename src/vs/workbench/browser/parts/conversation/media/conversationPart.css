@@ -43,11 +43,14 @@
 
 .monaco-workbench .part.conversation .conversation-session-bar {
 	flex-shrink: 0;
+	height: 22px;
 	min-height: 22px;
+	max-height: 22px;
 	display: flex;
-	align-items: stretch;
+	align-items: center;
 	padding-right: 28px;
 	box-sizing: border-box;
+	overflow: hidden;
 }
 
 .monaco-workbench .part.conversation:has(.conversation-subagent-overlay:not([hidden])) > .content > .conversation-session-bar {
