@@ -32,12 +32,14 @@ import { IAgentInspectService } from '../common/agentInspect.js';
 import { getNavigatorCapability } from '../common/navigatorEngineBridge.js';
 import { matchesNavigatorTeamInlineFilter } from '../common/navigatorTeamInlineFilter.js';
 import {
+	canSendNavigatorTeamMemberMutation,
 	canSendNavigatorTeamMessageMember,
 	canSendNavigatorTeamTaskMutation,
 	findManagerNodes,
 	getTeamTreeEmptyCopy,
 	INavigatorTeamMemberEntry,
 	INavigatorTeamTaskEntry,
+	navigatorTeamMemberMutationIds,
 	navigatorTeamMessageMemberIds,
 	navigatorTeamTaskMutationIds,
 } from '../common/navigatorTeamData.js';
@@ -62,6 +64,8 @@ export type NavigatorTeamSubview = 'members' | 'tasks';
 
 export const NAVIGATOR_TEAM_SHOW_MEMBERS_COMMAND_ID = 'workbench.action.navigatorTeam.showMembers';
 export const NAVIGATOR_TEAM_SHOW_TASKS_COMMAND_ID = 'workbench.action.navigatorTeam.showTasks';
+export const NAVIGATOR_TEAM_START_MEMBER_COMMAND_ID = 'workbench.action.navigatorTeam.startMember';
+export const NAVIGATOR_TEAM_KILL_MEMBER_COMMAND_ID = 'workbench.action.navigatorTeam.killMember';
 export const NAVIGATOR_TEAM_UPDATE_TASK_COMMAND_ID = 'workbench.action.navigatorTeam.updateTask';
 export const NAVIGATOR_TEAM_CANCEL_TASK_COMMAND_ID = 'workbench.action.navigatorTeam.cancelTask';
 export const NAVIGATOR_TEAM_MESSAGE_MEMBER_COMMAND_ID = 'workbench.action.navigatorTeam.messageMember';
@@ -235,8 +239,52 @@ export class NavigatorTeamView extends ViewPane {
 		return this.teamInfoCallCount;
 	}
 
+	getSelectedMember(): INavigatorTeamMemberEntry | undefined {
+		return this.membersList?.getSelectedElements()[0];
+	}
+
 	getSelectedTask(): INavigatorTeamTaskEntry | undefined {
 		return this.tasksList?.getSelectedElements()[0];
+	}
+
+	async startSelectedMember(memberName: string): Promise<boolean> {
+		const hook = this.uaConnection.startMember;
+		if (!canSendNavigatorTeamMemberMutation(this.rosterService.isEngineConnected(), typeof hook === 'function') || !hook) {
+			return false;
+		}
+		const request = {
+			...navigatorTeamMemberMutationIds(this.rosterService.getActiveSessionId(), this.getSelectedMember()),
+			memberName,
+			presetId: '',
+			systemPrompt: '',
+			modelType: '',
+			dynamic: false,
+		};
+		try {
+			await hook.call(this.uaConnection, request);
+		} catch {
+			return false;
+		}
+		this.scheduleRefresh();
+		return true;
+	}
+
+	async killSelectedMember(): Promise<boolean> {
+		const hook = this.uaConnection.killMember;
+		if (!canSendNavigatorTeamMemberMutation(this.rosterService.isEngineConnected(), typeof hook === 'function') || !hook) {
+			return false;
+		}
+		const request = navigatorTeamMemberMutationIds(this.rosterService.getActiveSessionId(), this.getSelectedMember());
+		try {
+			const result = await hook.call(this.uaConnection, request);
+			if (!result.ok) {
+				return false;
+			}
+		} catch {
+			return false;
+		}
+		this.scheduleRefresh();
+		return true;
 	}
 
 	async updateSelectedTask(newStatus: string, message: string): Promise<boolean> {
@@ -277,10 +325,6 @@ export class NavigatorTeamView extends ViewPane {
 		}
 		this.scheduleRefresh();
 		return true;
-	}
-
-	getSelectedMember(): INavigatorTeamMemberEntry | undefined {
-		return this.membersList?.getSelectedElements()[0];
 	}
 
 	async messageSelectedMember(content: string): Promise<boolean> {
@@ -646,6 +690,75 @@ registerAction2(class NavigatorTeamShowTasksAction extends ViewAction<NavigatorT
 
 	override runInView(_accessor: ServicesAccessor, view: NavigatorTeamView): void {
 		view.showTasks();
+	}
+});
+
+registerAction2(class NavigatorTeamStartMemberAction extends ViewAction<NavigatorTeamView> {
+	constructor() {
+		super({
+			id: NAVIGATOR_TEAM_START_MEMBER_COMMAND_ID,
+			viewId: NAVIGATOR_TEAM_VIEW_ID,
+			title: localize2('navigatorTeamView.startMember', "Start"),
+			icon: Codicon.play,
+			menu: {
+				id: MenuId.ViewTitle,
+				group: 'navigation',
+				order: 2,
+				when: ContextKeyExpr.and(
+					ContextKeyExpr.equals('view', NAVIGATOR_TEAM_VIEW_ID),
+					NAVIGATOR_TEAM_SUBVIEW_MEMBERS_KEY,
+				),
+			},
+		});
+	}
+
+	override runInView(accessor: ServicesAccessor, view: NavigatorTeamView): void {
+		void (async () => {
+			const next = await accessor.get(IQuickInputService).input({
+				prompt: localize('navigatorTeam.startMemberPrompt', "Member name"),
+				value: view.getSelectedMember()?.memberName ?? '',
+			});
+			if (next === undefined) {
+				return;
+			}
+			await view.startSelectedMember(next);
+		})();
+	}
+});
+
+registerAction2(class NavigatorTeamKillMemberAction extends ViewAction<NavigatorTeamView> {
+	constructor() {
+		super({
+			id: NAVIGATOR_TEAM_KILL_MEMBER_COMMAND_ID,
+			viewId: NAVIGATOR_TEAM_VIEW_ID,
+			title: localize2('navigatorTeamView.killMember', "Kill"),
+			icon: Codicon.close,
+			menu: {
+				id: MenuId.ViewTitle,
+				group: 'navigation',
+				order: 3,
+				when: ContextKeyExpr.and(
+					ContextKeyExpr.equals('view', NAVIGATOR_TEAM_VIEW_ID),
+					NAVIGATOR_TEAM_SUBVIEW_MEMBERS_KEY,
+				),
+			},
+		});
+	}
+
+	override runInView(accessor: ServicesAccessor, view: NavigatorTeamView): void {
+		void (async () => {
+			const selected = view.getSelectedMember();
+			const label = selected?.memberName || selected?.memberAgentId || '';
+			const confirmed = await accessor.get(IDialogService).confirm({
+				type: 'warning',
+				message: localize('navigatorTeam.killMemberConfirm', "Kill member \"{0}\"?", label),
+				primaryButton: localize('navigatorTeam.killMemberConfirmButton', "Kill member"),
+			});
+			if (!confirmed.confirmed) {
+				return;
+			}
+			await view.killSelectedMember();
+		})();
 	}
 });
 

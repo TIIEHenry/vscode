@@ -7,7 +7,7 @@ import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import type { LiveAgentTreeNodeView } from '../../../../../platform/universeAgent/common/sessionView/index.js';
 import { getNavigatorAgentTreePendingCopy } from '../../common/navigatorAgentTreeEmptyState.js';
-import { canSendNavigatorTeamMessageMember, canSendNavigatorTeamTaskMutation, findManagerNodes, getTeamTreeEmptyCopy, navigatorTeamMessageMemberIds, navigatorTeamTaskMutationIds } from '../../common/navigatorTeamData.js';
+import { canSendNavigatorTeamMemberMutation, canSendNavigatorTeamMessageMember, canSendNavigatorTeamTaskMutation, findManagerNodes, getTeamTreeEmptyCopy, navigatorTeamMemberMutationIds, navigatorTeamMessageMemberIds, navigatorTeamTaskMutationIds } from '../../common/navigatorTeamData.js';
 
 suite('NavigatorTeam (N4)', () => {
 
@@ -148,6 +148,27 @@ suite('NavigatorTeam (N4)', () => {
 			memberName: '',
 		});
 		assert.deepStrictEqual(navigatorTeamMessageMemberIds('sess', { managerAgentId: 'mgr', memberName: 'writer' }), {
+			sessionId: 'sess',
+			agentId: 'mgr',
+			memberName: 'writer',
+		});
+	});
+
+	test('StartMember / KillMember gate is connected + hook; empty ids still send', () => {
+		assert.strictEqual(canSendNavigatorTeamMemberMutation(false, true), false);
+		assert.strictEqual(canSendNavigatorTeamMemberMutation(true, false), false);
+		assert.strictEqual(canSendNavigatorTeamMemberMutation(true, true), true);
+		assert.deepStrictEqual(navigatorTeamMemberMutationIds(undefined, undefined), {
+			sessionId: '',
+			agentId: '',
+			memberName: '',
+		});
+		assert.deepStrictEqual(navigatorTeamMemberMutationIds('', { managerAgentId: '', memberName: '' }), {
+			sessionId: '',
+			agentId: '',
+			memberName: '',
+		});
+		assert.deepStrictEqual(navigatorTeamMemberMutationIds('sess', { managerAgentId: 'mgr', memberName: 'writer' }), {
 			sessionId: 'sess',
 			agentId: 'mgr',
 			memberName: 'writer',
