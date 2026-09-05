@@ -4,8 +4,8 @@ type: progress
 status: accepted
 phase: N/A
 created: 2026-08-30
-updated: 2026-09-02
-summary: "M7 UI 开发继续规则：测试债旁路；compile/启动、安全/数据/分层为硬门；valid-layers-check 继续豁免"
+updated: 2026-09-05
+summary: "M7 UI 开发继续规则：测试债旁路；agent-ide CI 四 job 并行；valid-layers-check 继续豁免；三域挡合入待切片 5"
 ---
 
 # Loop 健康检查 Gate
@@ -29,20 +29,35 @@ summary: "M7 UI 开发继续规则：测试债旁路；compile/启动、安全/�
 
 测试失败不阻塞“下一切片开工”，也不等于测试可以删除、跳过或伪造通过；它只阻止对应 plan / PRD 升 `implemented`。
 
-## 集成检查
+> **test-baseline 切片 5（未落地）：** [test-baseline-ci](../plans/test-baseline-ci.md) 切片 5 将在 D16 closeout 后把上表与下文「普通红测进入 D17」改写成三自定义域「**新增**失败挡合入 `agent-ide`（名单加行 PR 例外）」；切片 4 只装配 CI，**尚未**翻转本文政策。
+
+## GitHub Actions（`agent-ide`，test-baseline 切片 4）
+
+HEAD 已有 [`.github/workflows/agent-ide.yml`](../../.github/workflows/agent-ide.yml)，对 `agent-ide` 分支的 push / PR 与 `workflow_dispatch` 触发。四个 job **并行**（job 间无 `needs`）：
+
+| Job | 命令 / 步骤 |
+|:----|:------------|
+| `compile` | `npm run compile` |
+| `eslint` | `npm run eslint` |
+| `docs-health` | `python3 scripts/check-docs-health.py`（仅此一条；[`generate-docs-status.py --check`](../plans/docs-burden-reduction.md) 属 docs-burden S1，在途 elsewhere，**尚未**接入 workflow） |
+| `unit-custom` | 三域单测（`contrib/conversation`、`contrib/sources`、`platform/universeAgent`）后跑 [`scripts/check-test-baseline.sh`](../../scripts/check-test-baseline.sh)，与 `dev/progress/test-baseline-failures.txt` 做 JUnit 差集比对 |
+
+规格见 [test-baseline-ci](../plans/test-baseline-ci.md)。
+
+## 集成检查（本地）
 
 ```bash
 npm run compile
 npm run eslint
 ```
 
-分层或跨模块变更在合入冲突域前应跑二者；失败时按上表分类。仅局部 TypeScript 变更可先用 `npm run compile-client` 代替全量 `compile`（见 [copilot-instructions.md](../../.github/copilot-instructions.md)）。触及 `contrib/conversation` / `contrib/sources` / `platform/universeAgent` 的切片仍运行对应目录单测，但普通红测进入 D17，不冻结不冲突 UI 槽。
+分层或跨模块变更在合入冲突域前应跑二者；失败时按上表分类。仅局部 TypeScript 变更可先用 `npm run compile-client` 代替全量 `compile`（见 [copilot-instructions.md](../../.github/copilot-instructions.md)）。触及 `contrib/conversation` / `contrib/sources` / `platform/universeAgent` 的切片仍运行对应目录单测，但普通红测进入 D17，不冻结不冲突 UI 槽（三域「新增失败挡合入」待切片 5，见文首注）。
 
 **分层门**：ESLint `local/code-layering`（`common` / `browser` / `electron-browser` 不得见 `node`；对 `platform/universeAgent/**` 为 error，其余 warn）+ stream-timeline S1 落下的 platform 级 boundary 测。
 
 **`valid-layers-check` 豁免（2026-09-02 裁决，[D8](deferred-gaps.md)）**：该命令第二阶段 `layersTypeCheck` 在本机 Node 24 / 26 均因 DOM / WebGPU / File System Access TS lib 缺失全量红（166× TS），与本仓业务变更无关，且它本就不查 import path。**D8 修好前不作集成门禁、不进 Blockers、不得作为 closeout 或 OV 的 FAIL 理由**；恢复条件见 D8 Exit。
 
-文档健康（提交前建议）：
+文档健康（`agent-ide` CI 的 `docs-health` job 与提交前均跑；今日仅下列命令，不含 `generate-docs-status.py --check`）：
 
 ```bash
 python3 scripts/check-docs-health.py
