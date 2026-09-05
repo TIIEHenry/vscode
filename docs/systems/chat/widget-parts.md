@@ -3,14 +3,14 @@ title: "ChatWidget 零件：列表、输入栈、content parts"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-08-31
+updated: 2026-09-05
 summary: "ChatWidget 内部清单（列表、输入栈、picker、content parts 分组）；标 donor 与必须按 Desktop Conversation / Input Dock 重写的面；不是产品 Conversation"
 ---
 
 # ChatWidget 零件
 
 > 导航：[Chat 索引](INDEX.md)。宿主 / INV-TOPO / Copilot 边界：[agent-ui.md](agent-ui.md)。文件夹地图 SSOT：[chatCodeOrganization.md](../../../src/vs/workbench/contrib/chat/chatCodeOrganization.md)。  
-> 本页只盘 **`ChatWidget` 内部零件**。Desktop Conversation 是外仓产品面；本仓 Widget **不是** 那个 Conversation。
+> 本页只盘 **`ChatWidget` 内部零件**。Desktop Conversation 是外仓产品面；本仓 Widget **不是** 那个 Conversation。产品三槽由 `contrib/conversation` 的 `ConversationLens`（门面 + GFS-3 同级模块）组装，见 [透镜组装](../../reference/code-oss-b2/conversation-lens-assembly.md)。
 
 `widget/` 下约 **177** 个 `.ts` 文件。下文按角色分组，不枚举。组织规则：`widget/` 内核心零件必须被 `ChatWidget` **直接**引用。
 
@@ -199,5 +199,5 @@ B2 接到 UniverseAgent 后，这些选择器要 **换或旁路**。不得用这
 - [Agent UI 清单](agent-ui.md) — 宿主、INV-TOPO、Copilot 边界
 - [Chat 概览](overview.md) — `IChatService` / 工具 / 编辑会话协作
 - [壳映射](../../reference/code-oss-b2/desktop-shell-mapping.md) — Conversation Part 与 Widget 的壳层差
-- [透镜组装](../../reference/code-oss-b2/conversation-lens-assembly.md) — 三槽怎么装（draft）；本文只盘零件
+- [透镜组装](../../reference/code-oss-b2/conversation-lens-assembly.md) — 三槽 `ConversationLens` 怎么装（accepted）；本文只盘零件
 - 文件夹地图 SSOT：[chatCodeOrganization.md](../../../src/vs/workbench/contrib/chat/chatCodeOrganization.md)
