@@ -323,6 +323,11 @@ import type {
 	UniverseAgentContextVariableListResult,
 	UniverseAgentContextVariableReadRequest,
 	UniverseAgentContextVariableReadResult,
+	UniverseAgentGetNodeRequest,
+	UniverseAgentRemoteAgentCapabilities,
+	UniverseAgentRemoteAgentInfo,
+	UniverseAgentRemoteAgentLoadMetrics,
+	UniverseAgentRemoteAgentModelInfo,
 	UniverseAgentContextVariableEntry,
 	UniverseAgentContextVariableEntrySummary,
 	UniverseAgentContextVariableScope,
@@ -3394,6 +3399,123 @@ function mapContextVariableReadResponse(wire: ContextVariableReadResponseWire): 
 	};
 }
 
+interface RemoteAgentModelInfoWire {
+	id?: string;
+	name?: string;
+	provider?: string;
+	max_tokens?: number | string;
+	enabled?: boolean;
+}
+
+interface RemoteAgentCapabilitiesWire {
+	models?: RemoteAgentModelInfoWire[];
+	tools?: string[];
+	modes?: string[];
+	server_version?: string;
+	protocol_version?: string;
+	properties?: { [key: string]: string };
+}
+
+interface RemoteAgentLoadMetricsWire {
+	active_sessions?: number | string;
+	queue_depth?: number | string;
+	cpu_percent?: number | string;
+	memory_used_mb?: number | string;
+}
+
+interface RemoteAgentInfoWire {
+	id?: string;
+	name?: string;
+	description?: string;
+	status?: string;
+	endpoint?: string;
+	tags?: string[];
+	capabilities?: RemoteAgentCapabilitiesWire;
+	load?: RemoteAgentLoadMetricsWire;
+	last_heartbeat_at?: number | string;
+}
+
+function mapRemoteAgentProperties(wire: { [key: string]: string } | undefined): { readonly [key: string]: string } {
+	if (!wire) {
+		return {};
+	}
+	const out: { [key: string]: string } = {};
+	for (const [key, value] of Object.entries(wire)) {
+		out[key] = value ?? '';
+	}
+	return out;
+}
+
+function mapRemoteAgentModelInfo(wire: RemoteAgentModelInfoWire): UniverseAgentRemoteAgentModelInfo {
+	return {
+		id: wire.id ?? '',
+		name: wire.name ?? '',
+		provider: wire.provider ?? '',
+		maxTokens: requiredInt64(wire.max_tokens),
+		enabled: wire.enabled === true,
+	};
+}
+
+function emptyRemoteAgentCapabilities(): UniverseAgentRemoteAgentCapabilities {
+	return {
+		models: [],
+		tools: [],
+		modes: [],
+		serverVersion: '',
+		protocolVersion: '',
+		properties: {},
+	};
+}
+
+function mapRemoteAgentCapabilities(wire: RemoteAgentCapabilitiesWire | undefined): UniverseAgentRemoteAgentCapabilities {
+	if (!wire) {
+		return emptyRemoteAgentCapabilities();
+	}
+	return {
+		models: (wire.models ?? []).map(mapRemoteAgentModelInfo),
+		tools: [...(wire.tools ?? [])],
+		modes: [...(wire.modes ?? [])],
+		serverVersion: wire.server_version ?? '',
+		protocolVersion: wire.protocol_version ?? '',
+		properties: mapRemoteAgentProperties(wire.properties),
+	};
+}
+
+function emptyRemoteAgentLoadMetrics(): UniverseAgentRemoteAgentLoadMetrics {
+	return {
+		activeSessions: 0,
+		queueDepth: 0,
+		cpuPercent: 0,
+		memoryUsedMb: 0,
+	};
+}
+
+function mapRemoteAgentLoadMetrics(wire: RemoteAgentLoadMetricsWire | undefined): UniverseAgentRemoteAgentLoadMetrics {
+	if (!wire) {
+		return emptyRemoteAgentLoadMetrics();
+	}
+	return {
+		activeSessions: requiredInt64(wire.active_sessions),
+		queueDepth: requiredInt64(wire.queue_depth),
+		cpuPercent: requiredInt64(wire.cpu_percent),
+		memoryUsedMb: requiredInt64(wire.memory_used_mb),
+	};
+}
+
+function mapRemoteAgentInfo(wire: RemoteAgentInfoWire): UniverseAgentRemoteAgentInfo {
+	return {
+		id: wire.id ?? '',
+		name: wire.name ?? '',
+		description: wire.description ?? '',
+		status: wire.status ?? '',
+		endpoint: wire.endpoint ?? '',
+		tags: [...(wire.tags ?? [])],
+		capabilities: mapRemoteAgentCapabilities(wire.capabilities),
+		load: mapRemoteAgentLoadMetrics(wire.load),
+		lastHeartbeatAt: requiredInt64(wire.last_heartbeat_at),
+	};
+}
+
 interface UploadProgressResponseWire {
 	exists?: boolean;
 	bytes_received?: number | string;
@@ -6088,6 +6210,18 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			agent_id: request.agentId,
 		});
 		return mapContextVariableReadResponse(wire);
+	}
+
+	async getNode(request: UniverseAgentGetNodeRequest): Promise<UniverseAgentRemoteAgentInfo> {
+		const unary = makeUnaryClient<Record<string, unknown>, RemoteAgentInfoWire>(
+			this._channel,
+			UniverseAgentGrpcServices.RemoteAgent.service,
+			UniverseAgentGrpcServices.RemoteAgent.GetNode,
+		);
+		const wire = await unary({
+			node_id: request.nodeId,
+		});
+		return mapRemoteAgentInfo(wire);
 	}
 
 	async getUploadProgress(request: UniverseAgentGetUploadProgressRequest): Promise<UniverseAgentGetUploadProgressResult> {

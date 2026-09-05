@@ -230,6 +230,8 @@ import type {
 	UniverseAgentContextVariableListResult,
 	UniverseAgentContextVariableReadRequest,
 	UniverseAgentContextVariableReadResult,
+	UniverseAgentGetNodeRequest,
+	UniverseAgentRemoteAgentInfo,
 	UniverseAgentGetUploadProgressRequest,
 	UniverseAgentGetUploadProgressResult,
 	UniverseAgentShutdownRequest,
@@ -1738,6 +1740,36 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 		return this.readContextVariableResult;
 	}
 
+	readonly getNodeCalls: UniverseAgentGetNodeRequest[] = [];
+	getNodeResult: UniverseAgentRemoteAgentInfo = {
+		id: '',
+		name: '',
+		description: '',
+		status: '',
+		endpoint: '',
+		tags: [],
+		capabilities: {
+			models: [],
+			tools: [],
+			modes: [],
+			serverVersion: '',
+			protocolVersion: '',
+			properties: {},
+		},
+		load: {
+			activeSessions: 0,
+			queueDepth: 0,
+			cpuPercent: 0,
+			memoryUsedMb: 0,
+		},
+		lastHeartbeatAt: 0,
+	};
+
+	async getNode(request: UniverseAgentGetNodeRequest): Promise<UniverseAgentRemoteAgentInfo> {
+		this.getNodeCalls.push(request);
+		return this.getNodeResult;
+	}
+
 	readonly getUploadProgressCalls: UniverseAgentGetUploadProgressRequest[] = [];
 	getUploadProgressResult: UniverseAgentGetUploadProgressResult = {
 		exists: false,
@@ -2485,6 +2517,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('UniverseAgentGrpcServices lists ContextVariable.Read', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.ContextVariable.Read, 'Read');
 		assert.strictEqual(UniverseAgentGrpcServices.ContextVariable.service, 'universeagent.contextvariable.v1.ContextVariableService');
+	});
+
+	test('UniverseAgentGrpcServices lists RemoteAgent.GetNode', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.RemoteAgent.GetNode, 'GetNode');
+		assert.strictEqual(UniverseAgentGrpcServices.RemoteAgent.service, 'universeagent.remoteagent.v1.RemoteAgentService');
 	});
 
 	test('UniverseAgentGrpcServices lists FileTransfer.GetUploadProgress', () => {
@@ -6105,6 +6142,98 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(empty.entry.scope, 'VARIABLE_GLOBAL');
 		assert.strictEqual(empty.entry.updatedBy, '');
 		assert.strictEqual(empty.entry.updatedAt, 0);
+		service.dispose();
+	});
+
+	test('getNode forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.getNodeResult = {
+			id: 'node-1',
+			name: 'galaxy',
+			description: 'remote',
+			status: 'ONLINE',
+			endpoint: '127.0.0.1:50061',
+			tags: ['prod'],
+			capabilities: {
+				models: [{
+					id: 'gpt',
+					name: 'GPT',
+					provider: 'openai',
+					maxTokens: 8192,
+					enabled: true,
+				}],
+				tools: ['read'],
+				modes: ['agent'],
+				serverVersion: '1.0',
+				protocolVersion: 'v1',
+				properties: { region: 'cn' },
+			},
+			load: {
+				activeSessions: 2,
+				queueDepth: 1,
+				cpuPercent: 10,
+				memoryUsedMb: 256,
+			},
+			lastHeartbeatAt: 1_700_000_000,
+		};
+		const request = {
+			nodeId: 'node-1',
+		};
+		const result = await service.getNode(request);
+		assert.deepStrictEqual(transport.getNodeCalls, [request]);
+		assert.deepStrictEqual(result, transport.getNodeResult);
+
+		transport.getNodeResult = {
+			id: '',
+			name: '',
+			description: '',
+			status: '',
+			endpoint: '',
+			tags: [''],
+			capabilities: {
+				models: [{
+					id: '',
+					name: '',
+					provider: '',
+					maxTokens: 0,
+					enabled: false,
+				}],
+				tools: [''],
+				modes: [''],
+				serverVersion: '',
+				protocolVersion: '',
+				properties: { '': '' },
+			},
+			load: {
+				activeSessions: 0,
+				queueDepth: 0,
+				cpuPercent: 0,
+				memoryUsedMb: 0,
+			},
+			lastHeartbeatAt: 0,
+		};
+		const emptyRequest = {
+			nodeId: '',
+		};
+		const empty = await service.getNode(emptyRequest);
+		assert.strictEqual(transport.getNodeCalls[1]?.nodeId, '');
+		assert.strictEqual(empty.id, '');
+		assert.strictEqual(empty.name, '');
+		assert.strictEqual(empty.description, '');
+		assert.strictEqual(empty.status, '');
+		assert.strictEqual(empty.endpoint, '');
+		assert.deepStrictEqual(empty.tags, ['']);
+		assert.strictEqual(empty.capabilities.models[0]?.id, '');
+		assert.strictEqual(empty.capabilities.models[0]?.enabled, false);
+		assert.strictEqual(empty.capabilities.serverVersion, '');
+		assert.strictEqual(empty.capabilities.properties[''], '');
+		assert.strictEqual(empty.load.activeSessions, 0);
+		assert.strictEqual(empty.lastHeartbeatAt, 0);
 		service.dispose();
 	});
 

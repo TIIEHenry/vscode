@@ -2440,6 +2440,57 @@ export interface UniverseAgentContextVariableReadResult {
 }
 
 /**
+ * RemoteAgentService.GetNode — proto `GetNodeRequest` / `RemoteAgentInfo`
+ * + `Capabilities` / `ModelInfo` / `LoadMetrics` only. Empty `node_id`
+ * (incl. empty string) passes through as-is. Empty `id` / `name` /
+ * `description` / `status` / `endpoint` / `tags` / `server_version` /
+ * `protocol_version` / model `id`/`name`/`provider` mapped as-is.
+ * `enabled` false mapped as-is. `last_heartbeat_at` / `max_tokens` /
+ * `active_sessions` / `queue_depth` / `cpu_percent` / `memory_used_mb`
+ * 0 mapped as-is. Empty `properties` keys / values mapped as-is.
+ * ≠ ListNodes / CheckConnection / ListConfigs / GetConfig / DeviceService.
+ */
+export interface UniverseAgentRemoteAgentModelInfo {
+	readonly id: string;
+	readonly name: string;
+	readonly provider: string;
+	readonly maxTokens: number;
+	readonly enabled: boolean;
+}
+
+export interface UniverseAgentRemoteAgentCapabilities {
+	readonly models: readonly UniverseAgentRemoteAgentModelInfo[];
+	readonly tools: readonly string[];
+	readonly modes: readonly string[];
+	readonly serverVersion: string;
+	readonly protocolVersion: string;
+	readonly properties: Readonly<Record<string, string>>;
+}
+
+export interface UniverseAgentRemoteAgentLoadMetrics {
+	readonly activeSessions: number;
+	readonly queueDepth: number;
+	readonly cpuPercent: number;
+	readonly memoryUsedMb: number;
+}
+
+export interface UniverseAgentRemoteAgentInfo {
+	readonly id: string;
+	readonly name: string;
+	readonly description: string;
+	readonly status: string;
+	readonly endpoint: string;
+	readonly tags: readonly string[];
+	readonly capabilities: UniverseAgentRemoteAgentCapabilities;
+	readonly load: UniverseAgentRemoteAgentLoadMetrics;
+	readonly lastHeartbeatAt: number;
+}
+
+export interface UniverseAgentGetNodeRequest {
+	readonly nodeId: string;
+}
+
+/**
  * FileTransferService.GetUploadProgress — proto `UploadProgressRequest` /
  * `UploadProgressResponse` only. Empty `transfer_id` / `session_id` pass
  * through as-is. `bytes_received` 0 / empty `partial_path` mapped as-is.
