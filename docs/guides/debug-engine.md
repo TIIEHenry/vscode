@@ -3,7 +3,7 @@ title: "钉死 UniverseAgent 引擎（IDE 调试）"
 type: guide
 status: accepted
 phase: M7
-updated: 2026-09-05
+updated: 2026-09-06
 summary: "仓外隔离 worktree 编 HeadlessServer，供本仓 Direct Address 调试；不对 UA 开发树与 ~/.universe-agent 共享身份"
 ---
 
@@ -47,7 +47,7 @@ summary: "仓外隔离 worktree 编 HeadlessServer，供本仓 Direct Address �
 1. 打开 **Connection** Preferences（未 connected 时点 StatusBar / 身份条，或命令面板 `Open Connection Preferences`）。不要在 disconnected 时进 Engine 页。
 2. Direct Address：`127.0.0.1`、端口 `50061`。
 3. **勾选 allowPrivateNetwork**（[connectionResolver](../../src/vs/platform/universeAgent/node/connectionResolver.ts) 把 loopback 与 RFC1918 一起拦）。
-4. 连接。若弹出 SAS，引擎侧跑 `approve-grant.sh`。
+4. 连接。`GetAuthNonce` / `Connect` 走 protobuf 二进制（不是 JSON）。若弹出 SAS，引擎侧跑 `approve-grant.sh`。
 5. StatusBar 走 `getConnectionPhase()`（renderer 经 Channel Client 缓存，不是裸 ProxyChannel Promise）。connected 之后 Conversation / Engine 九节走真引擎，不再投影 stub 种子。
 
 loopback skip-auth 只跳过 session_token 拦截器；TLS pin 与 Device Grant 仍在。不要用 Hub 登录冒充已连接。

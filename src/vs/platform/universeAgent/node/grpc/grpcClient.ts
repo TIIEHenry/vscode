@@ -392,7 +392,6 @@ import {
 	mapAddMcpServerResponse,
 	mapAgentMergeResponse,
 	mapAgentTreeNode,
-	mapAuthNonceResponse,
 	mapBackResponse,
 	mapBranchResponse,
 	mapCancelRemoteSessionResponse,
@@ -516,6 +515,7 @@ import {
 } from './grpcClientMappers.js';
 import {
 	makeUnaryClient,
+	makeUnaryBytesClient,
 	makeServerStreamClient,
 	makeClientStreamClient,
 	makeResidentBidiStreamClient,
@@ -523,11 +523,16 @@ import {
 	makeBidiStreamClient,
 	grpcErrorCode,
 } from './grpcClientCalls.js';
+import {
+	decodeAuthNonceResponse,
+	decodeConnectResponse,
+	encodeAuthNonceRequest,
+	encodeDeviceAuthConnectRequest,
+} from './grpcHandshakeWire.js';
 import type {
 	AddMcpServerResponseWire,
 	AgentMergeResponseWire,
 	AgentTreeResponseWire,
-	AuthNonceResponseWire,
 	BackResponseWire,
 	BranchResponseWire,
 	CancelRemoteSessionResponseWire,
@@ -549,7 +554,6 @@ import type {
 	DeleteSnapshotResponseWire,
 	DeliveryTargetDtoWire,
 	DestroyRemoteSessionResponseWire,
-	DeviceAuthWire,
 	DoctorResponseWire,
 	DownloadChunkWire,
 	EnablePluginResponseWire,
@@ -1135,16 +1139,13 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 	}
 
 	async getAuthNonce(request: UniverseAgentAuthNonceRequest): Promise<UniverseAgentAuthNonceResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, AuthNonceResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.System.service,
 			UniverseAgentGrpcServices.System.GetAuthNonce,
+			decodeAuthNonceResponse,
 		);
-		const wire = await unary({
-			client_identity_id: request.clientIdentityId,
-			client_public_key: bytesToBase64(request.clientPublicKey),
-		});
-		return mapAuthNonceResponse(wire);
+		return unary(encodeAuthNonceRequest(request));
 	}
 
 	async healthCheck(): Promise<UniverseAgentHealthCheckResult> {
@@ -1226,26 +1227,13 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 	}
 
 	async connectWithDeviceAuth(request: UniverseAgentDeviceAuthConnectRequest): Promise<UniverseAgentConnectResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, ConnectResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.System.service,
 			UniverseAgentGrpcServices.System.Connect,
+			decodeConnectResponse,
 		);
-		const deviceAuth: DeviceAuthWire = {
-			client_identity_id: request.clientIdentityId,
-			client_public_key: bytesToBase64(request.clientPublicKey),
-			auth_nonce: bytesToBase64(request.authNonce),
-			signature: bytesToBase64(request.signature),
-		};
-		const payload: Record<string, unknown> = {
-			protocol_version: request.protocolVersion,
-			device_auth: deviceAuth,
-		};
-		if (request.pairingPhase === 'formal') {
-			payload.supported_tools = [];
-		}
-		const wire = await unary(payload);
-		return mapConnectResponse(wire);
+		return unary(encodeDeviceAuthConnectRequest(request));
 	}
 
 	close(): void {

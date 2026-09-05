@@ -3,8 +3,8 @@ title: "Development Progress"
 type: progress
 status: active
 phase: M7
-updated: 2026-09-05
-summary: "渲染端 Channel Client 修 Connect 进不去；剩余 onDidApplyFrame / 断连列顶 / heartbeat_ack；U2 未开"
+updated: 2026-09-06
+summary: "握手改 protobuf 后 GetAuthNonce/Connect 打到钉死引擎；SAS 确认框未弹；剩余 onDidApplyFrame / U2 未开"
 ---
 
 # Development Progress
@@ -39,6 +39,7 @@ summary: "渲染端 Channel Client 修 Connect 进不去；剩余 onDidApplyFram
 | **first-send Active** | `b818fbf6bcf` 首条 pending 即离 PreFirst；未连不锁发送。相位切换后重测阅读列，PreFirst 不再 `layout(0)` monaco 树 |
 | **inbox list XOR** | 切换 Task/Queue 时先关旧 `context-view` 再设 `openPanel`，避免 `aria-pressed` 被 onHide 清掉；透镜测 20ms flush 对齐帧合并，queue hold 后重开列表看 tag |
 | **renderer IPC sync** | `UniverseAgentConnectionChannelClient` / Hub Client 缓存 phase·snapshot·profiles；状态栏按 `phase.kind` 开 Connection；Engine 节空能力矩阵不崩。未升 PRD-008（仍缺接通证据） |
+| **handshake protobuf** | `GetAuthNonce` / DeviceAuth `Connect` 改 proto3 二进制（不再 `JSON.stringify`）。钉死引擎已收合法请求并进入 pairing；SAS 确认框未弹。未升 PRD-008 |
 
 并行 catalog/UI 绑定波（A–D 槽）已合入 tip；逐条流水见 [归档](../archive/status-current-session-slot-catalog-2026-09-05.md)，不在本账复述。
 

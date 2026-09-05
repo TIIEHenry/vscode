@@ -36,6 +36,30 @@ export function makeUnaryClient<TRequest, TResponse>(
 	});
 }
 
+export function makeUnaryBytesClient<TResponse>(
+	channel: grpc.Client,
+	servicePath: string,
+	method: string,
+	decode: (buffer: Buffer) => TResponse,
+): (requestBytes: Uint8Array) => Promise<TResponse> {
+	const path = `/${servicePath}/${method}`;
+	return (requestBytes: Uint8Array) => new Promise<TResponse>((resolve, reject) => {
+		channel.makeUnaryRequest(
+			path,
+			(value: Uint8Array) => Buffer.from(value),
+			(buffer: Buffer) => decode(buffer),
+			requestBytes,
+			(error, response) => {
+				if (error) {
+					reject(new UniverseAgentTransportError(error.code, error.message));
+					return;
+				}
+				resolve(response as TResponse);
+			},
+		);
+	});
+}
+
 export function makeServerStreamClient<TRequest, TEvent>(
 	channel: grpc.Client,
 	servicePath: string,
