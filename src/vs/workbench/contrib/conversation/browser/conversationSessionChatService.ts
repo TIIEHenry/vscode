@@ -116,7 +116,7 @@ export class ConversationSessionChatService extends Disposable implements IConve
 	private bindLiveTreeLease(): void {
 		this.liveTreeLeaseStore.clear();
 		this.liveTreeLease = undefined;
-		if (!this.rosterService.isEngineConnected()) {
+		if (!this.rosterService.isEngineConnected() || !this.rosterService.isEngineSessionReady()) {
 			return;
 		}
 		const sessionId = this.rosterService.getActiveSessionId();
