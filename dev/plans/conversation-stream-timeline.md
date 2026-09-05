@@ -3,10 +3,8 @@ title: "Conversation 订阅流与时间线增量模型（M6 时间线专章）"
 type: plan
 status: accepted
 phase: M6
-updated: 2026-09-04
-summary: "m6-engine-wave / ADR-003 时间线专章：S1–S6 代码已落；F1 宿主 per-lease 动态事件 + 首帧缓冲；G2/G3 上游缺口仍 open；PRD-008 未升 implemented"
-updated: 2026-09-03
-summary: "m6-engine-wave / ADR-003 时间线专章：S1–S6 已落；2026-09-03 补 L2–L4 demux 与宿主回路（常驻 Chat / frameAck / L3 delta）；G2/G3 仍 open；PRD-008 未升 implemented"
+updated: 2026-09-05
+summary: "m6-engine-wave / ADR-003 时间线专章：S1–S6 代码已落；F1 宿主 per-lease 动态事件 + 首帧缓冲；G2/G3 上游缺口仍 open（G3：P2a 传输已绑，缺 GetHistory/L2 DetailRef）；compacted 投影 S6 已落（G-CONV-1 已闭）；PRD-008 未升 implemented"
 ---
 
 # Conversation 订阅流与时间线增量模型
@@ -15,7 +13,7 @@ summary: "m6-engine-wave / ADR-003 时间线专章：S1–S6 已落；2026-09-03
 > **需求：** [PRD-003](../../docs/product/requirements.md#prd-003-时间线与输入) / [PRD-004](../../docs/product/requirements.md#prd-004-权限座位) / [PRD-007](../../docs/product/requirements.md#prd-007-诚实降级)（`accepted`）；活数据上游 [PRD-008](../../docs/product/requirements.md#prd-008-引擎与会话权威)（`blocked`）。
 > **透镜合同：** [conversation-lens-assembly](../../docs/reference/code-oss-b2/conversation-lens-assembly.md) §3 / §6（三槽冻结；阶段 3a「只换服务」由本稿修正为「换帧源 + 增量 apply」）。
 > **外仓合同（只读，不复述）：** Desktop [ADR-009](../../../UniverseAgentDesktop/dev/decisions/009-session-projection-core.md) 投影核 · [ADR-012](../../../UniverseAgentDesktop/dev/decisions/012-chat-stream-lifecycle-and-outbox.md) Chat 流与 outbox · [ADR-013](../../../UniverseAgentDesktop/dev/decisions/013-engine-event-ingestion-reliable.md) 摄入 Reliable；`UniverseAgentDesktop/packages/session-core`；引擎 proto `UniverseAgent/grpc-api/src/main/proto/{session_service,message_envelope,agent_service}.proto`。
-> **规则 16：** Cursor CLI `cursor-grok-4.6-high`（`--mode ask` 只读）两轮：第一轮 **Reject** → 改稿；第二轮 **Approve with changes**（1 Critical + 6 Important）→ 全部改入（见 [§12](#12-审查记录)）。**2026-09-02 用户授权「改完没问题就签收」，据此 `accepted`。** **S1–S6 代码已落** @ `a64caf1c`–`5104678e`；**G2/G3** 上游缺口仍记 §6（轨迹 DetailRef 全文 / visualize / `compacted` emit 未闭合）。
+> **规则 16：** Cursor CLI `cursor-grok-4.6-high`（`--mode ask` 只读）两轮：第一轮 **Reject** → 改稿；第二轮 **Approve with changes**（1 Critical + 6 Important）→ 全部改入（见 [§12](#12-审查记录)）。**2026-09-02 用户授权「改完没问题就签收」，据此 `accepted`。** **S1–S6 代码已落** @ `a64caf1c`–`5104678e`；**G2/G3** 上游缺口仍记 §6（G2：visualize typed arm；G3：`GetHistory` / L2 项带 `DetailRef`，P2a 传输已绑）。`compacted` 投影 S6 已落（G-CONV-1 已闭）。
 
 **Goal：** 把「引擎事件流怎么进 IDE、时间线怎么增量更新」写成可实施合同。vscode **不**自研 fold：复用 Desktop `session-core` 做 L1–L4 fold；renderer 只应用幂等 `ViewFrame`。无引擎 stub 改为**同一契约的帧源**，时间线只剩一条渲染路径；引擎接通时换帧源，不换 UI、不换 token。
 
@@ -276,11 +274,11 @@ S3 前**不改**公开形状。**同步点写死：**
 | S3 **已落** @ `03d4fb56` | Dock → `lease.post(submitInput)` + 占位 → supersede；`PostOutcome` 失败文案；`SyncChrome` → SessionBar / Inbox；读方法转 shim、写方法只经帧源（[§3.7](#37-旧方法调用点与-shim)）；`TestConversationFrameSource` 供语音测 | `conversationLens.test.ts`：发送后占位 → 正式行；stub 永远 `idle`；shim 等价测；T6 语音测改用测试帧源 | 否 |
 | S4 **已落** @ `fbce0d84`；**demux 补全 2026-09-03** | node 侧生产者：gRPC `SessionEventStream` + demux + attribution + Actor + lease over ProxyChannel；ports 实现。L2 按块分臂；L3 只吃 `runtime_overlay_snapshot`（不累积 `streaming_delta`）；L4 permission / clientToolCall fold，`ask_user_question` → host `questionAsked` | **随 M6-A2**（ADR-003 已 `accepted` @2026-09-02；A2 入口 = S3 + M6-A1 合入）；隔离 profile 冒烟：hello → live、gap → syncing → live、断连 → closed 快照 | 是 |
 | S5 **已落** @ `fbce0d84`；**常驻 Chat 2026-09-03** | Chat bidi 写路径 + outbox + `heartbeat_ack` reflex + permission / question / clientTool respond。宿主 `openChatStream` 常驻一条 bidi；`ensure`/`write`/`close` 对准同一 `chatAttemptId`；无该方法时回声 Up 并回退 one-shot `chat()` | 随 M6-A2 / M6-B；契约测试复用 ADR-012 行为表 | 是 |
-| S6 **已落** @ `5104678e` | 轨迹 T4：`GetHistory` + `DetailRef` 全文；`compacted` 投影；visualize 类型化；子代理按 attribution 过滤 | 随 M6-D；依赖 [§6](#6-契约缺口需上游补vscode-不得自造) **G2 / G3 仍 open**（代码用有界 preview；DetailRef 全文 / `compacted` emit 未闭合） | 是 |
+| S6 **已落** @ `5104678e` | 轨迹 T4：`GetHistory` + `DetailRef` 全文；`compacted` 投影；visualize 类型化；子代理按 attribution 过滤 | 随 M6-D；`compacted` 投影已落（G-CONV-1 已闭）；**G2 / G3 仍 open**（G2：visualize typed arm；G3：`GetHistory` / L2 项带 `DetailRef`，P2a 传输已绑） | 是 |
 
 **顺序**：S1 → S2 → S3 串行（同改 `conversationLens.ts` / `conversationTimelineTree.ts` / `conversationStubService.ts`，**同一 PR 禁止两人同时改**）。S4 = M6-A2 的时间线部分。与 **M6-A1**（`platform/universeAgent` 传输层，[m6 §8](m6-engine-wave.md#8-切片顺序)）并行时，S1 只新建 `common/sessionView/**`、`node/sessionCore/**`、`conversationViewFrame.ts`，不碰 A1 的连接 / gRPC 文件。
 
-**已落：** **S1–S6** 代码 @ `a64caf1c`–`5104678e`。**上游缺口仍 open：** **G2**（visualize typed arm / DetailRef）、**G3**（DetailRef 按需通道）— 见 §6；不得据此升 PRD-008 `implemented`。
+**已落：** **S1–S6** 代码 @ `a64caf1c`–`5104678e`；`compacted` 投影（G-CONV-1 已闭）。**上游缺口仍 open：** **G2**（visualize typed arm / DetailRef）、**G3**（`GetHistory` / L2 项带 `DetailRef`；P2a 传输已绑）— 见 §6；不得据此升 PRD-008 `implemented`。
 
 ## 5. 非目标
 
@@ -298,7 +296,7 @@ S3 前**不改**公开形状。**同步点写死：**
 |----|------|------|------|----------|
 | G1 | `TimelineItemSummary(text)` 无 role；S0 审计**有意** omit author/role | user / assistant 区分 | Desktop session-core（S0 设计修订，非补字段） | attribution sidecar（[§3.2](#32-renderer-契约同-token-增量)），来源 envelope `role`；上游投影后 sidecar 退场 |
 | G2 | `visualize` 只是 `tool` 行，`resultPreview` / `argPreview` 有界；已有 `canvasRefs` 但不承载 mermaid 正文 | PRD-014 图示卡 | session-core typed arm 或 `DetailRef` 取全文 | tool 行 + 「打开完整结果」；不截断当图 |
-| G3 | `DetailRef` 按需通道 IDE 侧未实施；**引擎 proto 已有** `AgentService.FetchToolDetail(session_id, tool_call_id, detail_kind, ref_id, offset/length)`（2026-09-02 核对，见 [protocol-surface §1b](../../docs/reference/universe-agent/engine-protocol-surface.md)） | 轨迹全文、长工具输出、图示卡 | vscode host（M7 **P2a**：lease `requestDetail` → `FetchToolDetail`）；`DetailRef` 编码规则由 session-core 决定 | 通道落地前不把预览当全文；`truncated=true` 仍是 partial。UI 见 [conversation-ui-closeout §3](conversation-ui-closeout.md) |
+| G3 | 传输已绑（P2a：lease `requestDetail` → `FetchToolDetail`）；**仍缺** `GetHistory` / L2 项带 `DetailRef`。**引擎 proto 已有** `AgentService.FetchToolDetail(session_id, tool_call_id, detail_kind, ref_id, offset/length)`（见 [protocol-surface §1b](../../docs/reference/universe-agent/engine-protocol-surface.md)） | 轨迹全文、长工具输出、图示卡 | 引擎仓扩 `GetHistory` / L2 消息（`DetailRef` 编码规则由 session-core 定） | 不把预览当全文；`truncated=true` 仍是 partial。UI 见 [conversation-ui-closeout §3](conversation-ui-closeout.md) |
 | G4 | 普通 timeline 行无 agent 归属（`TimelineItemView.agentId?` 仅 pendingActions 投影；`liveAgentTree` 是另一份树） | PRD-016 子代理对话框过滤 | Desktop session-core 从 envelope `agent_id / agent_path` 投影 | attribution sidecar 的 `agentId / agentPath`；上游投影后退场 |
 | G5 | Ask-user `question`、`error`、`unknown` 行无产品需求条 | 行存在但 PRD 未覆盖 | 本仓 requirements | **已落**：PRD-003/004/007 增补 + PRD-021（2026-09-02） |
 | G6 | `session-actor.ts` 四个 dead `private` 成员（`connectionGeneration` / `prefixHole` / `blockRespondMissingAgentId` / `commitSeqIndex`）在 vscode `noUnusedLocals` 下 TS6133 | HEAD `0649602d` 在 vendored 文件里**手删**了这 28 行（违反 verbatim；下次 `sync` 会重新引入并再次编不过） | Desktop session-core 删死代码 | 上游未删前，同步脚本应把该删除做成确定性变换（或放宽为 `protected`）而非手改 vendored 文件；上游删除后清掉变换 |

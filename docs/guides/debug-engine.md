@@ -3,7 +3,7 @@ title: "钉死 UniverseAgent 引擎（IDE 调试）"
 type: guide
 status: accepted
 phase: M7
-updated: 2026-09-03
+updated: 2026-09-05
 summary: "仓外隔离 worktree 编 HeadlessServer，供本仓 Direct Address 调试；不对 UA 开发树与 ~/.universe-agent 共享身份"
 ---
 
@@ -61,7 +61,7 @@ loopback skip-auth 只跳过 session_token 拦截器；TLS pin 与 Device Grant 
 
 Logback 仍写 `~/.universe-agent/logs`（硬编码 `user.home`）。身份、会话、Grant 在 `agent-home/`。
 
-占位 `ANTHROPIC_API_KEY` 只够 Connect / catalog。真发消息须改 `agent-home/config.json`。
+占位 `ANTHROPIC_API_KEY` 只够 Connect / catalog。真发消息须设置 Claude Code 环境或 `ANTHROPIC_API_KEY`；`start-engine.sh` 会从 `~/.claude/settings.json` 导出。
 
 ## 5. 换钉
 
