@@ -74,7 +74,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		if (this.testEngineConnected !== undefined) {
 			return this.testEngineConnected;
 		}
-		return this.uaConnection.isEngineConnected();
+		return this.uaConnection.isEngineConnected() === true;
 	}
 
 	/** Client setting gate for advertising IDE workspace tools to Engine (PRD-026). */

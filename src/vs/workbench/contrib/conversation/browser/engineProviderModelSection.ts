@@ -8,6 +8,7 @@ import { Disposable } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
+import { readCapabilityEntry } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
 import type {
 	UniverseAgentCapabilitySupport,
 	UniverseAgentModelEntry,
@@ -140,7 +141,7 @@ export class EngineProviderModelSection extends Disposable {
 
 	private renderProviderGroup(): void {
 		const connected = this.connection.isEngineConnected();
-		const entry = this.connection.getCapabilitySnapshot().providerConfig;
+		const entry = readCapabilityEntry(this.connection.getCapabilitySnapshot(), 'providerConfig');
 		const mode = this.resolveProviderMode(connected, entry.support);
 
 		this.providerStatus.render({
@@ -173,7 +174,7 @@ export class EngineProviderModelSection extends Disposable {
 	private async refreshModels(): Promise<void> {
 		const generation = ++this.refreshGeneration;
 		const connected = this.connection.isEngineConnected();
-		const entry = this.connection.getCapabilitySnapshot().models;
+		const entry = readCapabilityEntry(this.connection.getCapabilitySnapshot(), 'models');
 
 		if (!connected) {
 			this.clearModelPresentation();

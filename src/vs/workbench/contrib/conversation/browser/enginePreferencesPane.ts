@@ -13,6 +13,7 @@ import { localize } from '../../../../nls.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
+import { ensureCapabilitySnapshot } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
 import { defaultButtonStyles } from '../../../../platform/theme/browser/defaultStyles.js';
 import { WorkbenchList } from '../../../../platform/list/browser/listService.js';
 import type { IPreferencesEditorPane } from '../../preferences/browser/preferencesEditorRegistry.js';
@@ -312,7 +313,7 @@ export class EnginePreferencesPane extends Disposable implements IPreferencesEdi
 		return {
 			phase: this.connectionService.getConnectionPhase(),
 			snapshot: this.connectionService.getConnectionSnapshot(),
-			capabilities: this.connectionService.getCapabilitySnapshot(),
+			capabilities: ensureCapabilitySnapshot(this.connectionService.getCapabilitySnapshot()),
 		};
 	}
 

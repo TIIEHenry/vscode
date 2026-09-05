@@ -15,8 +15,7 @@ import { IWorkspaceContextService } from '../../../../platform/workspace/common/
 import { REVEAL_IN_EXPLORER_COMMAND_ID } from '../../files/browser/fileConstants.js';
 import { ISCMRepository, ISCMService } from '../../scm/common/scm.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
-import { OPEN_CONNECTION_PREFERENCES_COMMAND_ID, OPEN_ENGINE_PREFERENCES_COMMAND_ID } from '../common/uaPreferencesPanes.js';
-import { getConnectionPhaseStatusBarText } from './conversationSessionStatus.js';
+import { getConnectionPhaseStatusBarText, getEngineStatusCommandId } from './conversationSessionStatus.js';
 import { IConversationRosterService } from './conversationStubService.js';
 
 export const conversationIdentityStripClass = 'conversation-identity-strip';
@@ -95,10 +94,7 @@ export class ConversationIdentityStrip extends Disposable {
 		this.engineChip = append(this.element, $(`button.conversation-identity-chip.${conversationIdentityEngineChipClass}`)) as HTMLButtonElement;
 		this.engineChip.type = 'button';
 		this._register(addDisposableListener(this.engineChip, 'click', () => {
-			const commandId = this.rosterService.isEngineConnected()
-				? OPEN_ENGINE_PREFERENCES_COMMAND_ID
-				: OPEN_CONNECTION_PREFERENCES_COMMAND_ID;
-			this.commandService.executeCommand(commandId);
+			this.commandService.executeCommand(getEngineStatusCommandId(this.uaConnection.getConnectionPhase()));
 		}));
 
 		this.folderChip = append(this.element, $(`button.conversation-identity-chip.${conversationIdentityFolderChipClass}`)) as HTMLButtonElement;

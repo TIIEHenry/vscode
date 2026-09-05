@@ -20,6 +20,7 @@ import { IUniverseAgentConnection, type UniverseAgentProbeEngineResult } from '.
 import type { UniverseAgentDeviceInfo, UniverseAgentPendingPairInfo } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import type { IPreferencesEditorPane } from '../../preferences/browser/preferencesEditorRegistry.js';
 import { IUniverseAgentHubService } from '../../../../platform/universeAgent/common/hub.js';
+import { asConnectionProfileList, ensureCapabilitySnapshot } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
 import {
 	canSendConnectionDeviceListRequest,
 	canSendConnectionDeviceRotateToken,
@@ -613,7 +614,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		return {
 			phase: this.connectionService.getConnectionPhase(),
 			snapshot: this.connectionService.getConnectionSnapshot(),
-			capabilities: this.connectionService.getCapabilitySnapshot(),
+			capabilities: ensureCapabilitySnapshot(this.connectionService.getCapabilitySnapshot()),
 		};
 	}
 
@@ -802,7 +803,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		}
 
 		let profileId = this.activeProfileId;
-		const profiles = this.hubService.listConnectionProfiles();
+		const profiles = asConnectionProfileList(this.hubService.listConnectionProfiles());
 		const existing = profiles.find(p =>
 			p.targetKind === 'directAddress' && p.displayName === (this.directNameInput.value.trim() || `${host}:${port}`));
 		if (existing) {
@@ -857,7 +858,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 
 	private async connectProfileWithPairing(profileId: string): Promise<void> {
 		this.activeProfileId = profileId;
-		const profiles = this.hubService.listConnectionProfiles();
+		const profiles = asConnectionProfileList(this.hubService.listConnectionProfiles());
 		const profile = profiles.find(p => p.profileId === profileId);
 		const result = await this.connectionService.connectProfile(profileId);
 		if (!result.ok) {
@@ -1148,7 +1149,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 	}
 
 	private renderProfiles(): void {
-		const profiles = this.hubService.listConnectionProfiles();
+		const profiles = asConnectionProfileList(this.hubService.listConnectionProfiles());
 		this.entries = profiles.map(profile => ({
 			id: profile.profileId,
 			label: profile.displayName,

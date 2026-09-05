@@ -370,7 +370,8 @@ export const universeAgentConnectionChannelName = 'universeAgentConnection';
 
 /**
  * Platform transport contract for UniverseAgent gRPC.
- * Renderer sees this interface via electron-browser ProxyChannel; node holds the client.
+ * Renderer sees this interface via UniverseAgentConnectionChannelClient (ProxyChannel
+ * plus a sync snapshot cache); node holds the client.
  */
 /** Navigator / Team unary surface (m6 §11). */
 export interface IUniverseAgentTeamApi {

@@ -263,6 +263,23 @@ suite('ConversationIdentityStrip', () => {
 		assert.deepStrictEqual((commandService as unknown as { executed: string[] }).executed, [OPEN_CONNECTION_PREFERENCES_COMMAND_ID]);
 	});
 
+	test('engine chip opens Connection when roster is connected but phase is not', async () => {
+		const stubService = store.add(new ConversationStubService());
+		stubService.setEngineConnected(true);
+
+		const { slots, commandService } = mountLens({
+			stubService,
+			connectionOverrides: {
+				isEngineConnected: () => true,
+				getConnectionPhase: () => ({ kind: 'disconnected' }),
+			},
+		});
+		const engineChip = getIdentityStrip(slots).querySelector(`.${conversationIdentityEngineChipClass}`) as HTMLButtonElement;
+		engineChip.click();
+		await Promise.resolve();
+		assert.deepStrictEqual((commandService as unknown as { executed: string[] }).executed, [OPEN_CONNECTION_PREFERENCES_COMMAND_ID]);
+	});
+
 	test('engine chip shows connected copy and opens Engine preferences', async () => {
 		const stubService = store.add(new ConversationStubService());
 		stubService.setEngineConnected(true);

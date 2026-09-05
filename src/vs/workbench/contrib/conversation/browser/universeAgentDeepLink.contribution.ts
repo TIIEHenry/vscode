@@ -8,9 +8,10 @@ import { URI } from '../../../../base/common/uri.js';
 import { IWorkbenchContribution, registerWorkbenchContribution2, WorkbenchPhase } from '../../../common/contributions.js';
 import { IURLHandler, IURLService } from '../../../../platform/url/common/url.js';
 import { IEditorGroupsService } from '../../../services/editor/common/editorGroupsService.js';
+import { IWorkbenchLayoutService } from '../../../services/layout/browser/layoutService.js';
 import { IPreferencesService } from '../../../services/preferences/common/preferences.js';
 import { UA_CONNECTION_PANE_ID, UA_ENGINE_PANE_ID } from '../common/uaPreferencesPanes.js';
-import { closeAllSettingsEditor2ForService } from './uaPreferencesNavigation.js';
+import { closeAllSettingsEditor2ForService, ensurePreviewVisibleForPreferences } from './uaPreferencesNavigation.js';
 
 export const UNIVERSE_AGENT_SCHEME = 'universe-agent';
 
@@ -54,6 +55,7 @@ export class UniverseAgentDeepLinkHandler extends Disposable implements IWorkben
 		@IURLService urlService: IURLService,
 		@IEditorGroupsService private readonly editorGroupsService: IEditorGroupsService,
 		@IPreferencesService private readonly preferencesService: IPreferencesService,
+		@IWorkbenchLayoutService private readonly layoutService: IWorkbenchLayoutService,
 	) {
 		super();
 		this._register(urlService.registerHandler(this));
@@ -68,10 +70,12 @@ export class UniverseAgentDeepLinkHandler extends Disposable implements IWorkben
 
 		switch (page) {
 			case 'connection':
+				ensurePreviewVisibleForPreferences(this.layoutService);
 				await closeAllSettingsEditor2ForService(this.editorGroupsService);
 				await this.preferencesService.openPreferences({ paneId: UA_CONNECTION_PANE_ID });
 				return true;
 			case 'engine':
+				ensurePreviewVisibleForPreferences(this.layoutService);
 				await closeAllSettingsEditor2ForService(this.editorGroupsService);
 				await this.preferencesService.openPreferences({ paneId: UA_ENGINE_PANE_ID });
 				return true;

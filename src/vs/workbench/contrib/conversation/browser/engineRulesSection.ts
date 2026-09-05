@@ -8,6 +8,7 @@ import { Disposable } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
+import { ensureCapabilitySnapshot } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
 import { resolveEngineCatalogPaneMode } from './engineCatalog.js';
 import { EngineCatalogStatusWidget } from './engineCatalogStatus.js';
 import { getEngineSectionApiUnavailableCopy } from './engineSectionChrome.js';
@@ -79,7 +80,7 @@ export class EngineRulesSection extends Disposable {
 			return;
 		}
 
-		const capabilities = this.connection.getCapabilitySnapshot();
+		const capabilities = ensureCapabilitySnapshot(this.connection.getCapabilitySnapshot());
 		const global = capabilities.globalRules;
 		const project = capabilities.projectRules;
 		const support = global.support === 'UNKNOWN' || project.support === 'UNKNOWN'

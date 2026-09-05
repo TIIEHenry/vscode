@@ -23,6 +23,7 @@ import { createConversationConnectionTestStub, createEmptyTestCapabilitySnapshot
 
 suite('Conversation Session StatusBar', () => {
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
+	let statusBarActionsRegistered = false;
 
 	function createConnectionStub(overrides: Partial<IUniverseAgentConnection> = {}): IUniverseAgentConnection {
 		return createConversationConnectionTestStub(overrides);
@@ -32,7 +33,10 @@ suite('Conversation Session StatusBar', () => {
 		stubService: IConversationRosterService,
 		connectionOverrides: Partial<IUniverseAgentConnection> = {},
 	): Map<string, IStatusbarEntry> {
-		registerConversationSessionStatusBar();
+		if (!statusBarActionsRegistered) {
+			registerConversationSessionStatusBar();
+			statusBarActionsRegistered = true;
+		}
 
 		const entries = new Map<string, IStatusbarEntry>();
 		const statusbarService = {
@@ -95,6 +99,19 @@ suite('Conversation Session StatusBar', () => {
 
 	test('engine entry exposes openConnectionPreferences when disconnected', () => {
 		const entries = mountStatusBar(createRosterStub(() => false));
+		const engineEntry = entries.get(ConversationSessionStatusBarContribution.ENGINE_ENTRY_ID);
+		assert.strictEqual(getEngineCommandId(engineEntry), OPEN_CONNECTION_PREFERENCES_COMMAND_ID);
+		assert.strictEqual(engineEntry?.text, 'Engine not connected');
+	});
+
+	test('engine entry opens Connection when roster is connected but phase is not', () => {
+		const entries = mountStatusBar(
+			createRosterStub(() => true),
+			{
+				isEngineConnected: () => true,
+				getConnectionPhase: () => ({ kind: 'disconnected' }),
+			},
+		);
 		const engineEntry = entries.get(ConversationSessionStatusBarContribution.ENGINE_ENTRY_ID);
 		assert.strictEqual(getEngineCommandId(engineEntry), OPEN_CONNECTION_PREFERENCES_COMMAND_ID);
 		assert.strictEqual(engineEntry?.text, 'Engine not connected');

@@ -125,6 +125,14 @@ suite('EnginePreferencesPane', () => {
 		assert.strictEqual(getEngineTestStatusText({ kind: 'connected', path: 'hubRelay' }), 'Engine · Hub relay');
 	});
 
+	test('empty capability snapshot does not throw while constructing the pane', () => {
+		const pane = mountPane(false, {
+			getCapabilitySnapshot: () => ({}) as UniverseAgentCapabilitySnapshot,
+		});
+		assert.ok(pane.getDomNode().querySelector('.engine-preferences-title'));
+		pane.getDomNode().remove();
+	});
+
 	test('pane title remains Engine and disconnected banner reuses StatusBar copy', () => {
 		const pane = mountPane(false);
 		const container = pane.getDomNode();

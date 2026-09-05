@@ -13,6 +13,7 @@ import { ICommandService } from '../../../../platform/commands/common/commands.j
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { WorkbenchList } from '../../../../platform/list/browser/listService.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
+import { ensureCapabilitySnapshot } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
 import type {
 	UniverseAgentPluginHookEntry,
 	UniverseAgentPluginStatus,
@@ -323,7 +324,7 @@ export class EnginePluginsSection extends Disposable {
 
 	private async refresh(): Promise<void> {
 		const generation = ++this.refreshGeneration;
-		const capabilities = this.connection.getCapabilitySnapshot();
+		const capabilities = ensureCapabilitySnapshot(this.connection.getCapabilitySnapshot());
 		const connected = this.connection.isEngineConnected();
 		const support = capabilities.plugins.support;
 		this.writeFailedReason = undefined;

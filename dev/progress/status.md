@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-05
-summary: "合入 agent-ide PreFirst/first-send + HistoryFill；剩余 onDidApplyFrame / 断连列顶 / heartbeat_ack；U2 未开"
+summary: "渲染端 Channel Client 修 Connect 进不去；剩余 onDidApplyFrame / 断连列顶 / heartbeat_ack；U2 未开"
 ---
 
 # Development Progress
@@ -13,7 +13,7 @@ summary: "合入 agent-ide PreFirst/first-send + HistoryFill；剩余 onDidApply
 
 ## Current Session
 
-### 已合入（`loop/merge` tip `304e3b0d8cd`）
+### 已合入（`agent-ide` / `loop/merge` tip `f1568462a5f`）
 
 | 切片 | 提交 / 落点 |
 |:-----|:------------|
@@ -37,6 +37,7 @@ summary: "合入 agent-ide PreFirst/first-send + HistoryFill；剩余 onDidApply
 | **workbench chrome** | `48dc0c5c95e` — Conversation 阅读列 layout / pre-first SessionBar；Navigator connecting 诚实空；Sources 空文案去实现注；Client enum 中文 labels |
 | **HistoryFill** | `ed7faece0d6` — 宿主 `fillHistoryGap` 按 Actor `historyResult` 分页+demux；lease dispose-before-resolve 必 `releaseLease`；连接升降换帧源 |
 | **first-send Active** | `b818fbf6bcf` 首条 pending 即离 PreFirst；未连不锁发送。相位切换后重测阅读列，PreFirst 不再 `layout(0)` monaco 树 |
+| **renderer IPC sync** | `UniverseAgentConnectionChannelClient` / Hub Client 缓存 phase·snapshot·profiles；状态栏按 `phase.kind` 开 Connection；Engine 节空能力矩阵不崩。未升 PRD-008（仍缺接通证据） |
 
 并行 catalog/UI 绑定波（A–D 槽）已合入 tip；逐条流水见 [归档](../archive/status-current-session-slot-catalog-2026-09-05.md)，不在本账复述。
 
@@ -50,12 +51,12 @@ HistoryFill 已合入 merge。剩余：宿主全局 `onDidApplyFrame` 整刀删�
 
 | 槽 | 路径 | 分支 | tip | 状态 |
 |----|------|------|-----|:-----|
-| merge | `vscode-WorkTrees/merge` | `loop/merge` | `304e3b0d8cd` | 已合入 agent-ide PreFirst（未 push） |
-| A | `vscode-WorkTrees/A` | `loop/A` | `304e3b0d8cd` | idle |
-| B | `vscode-WorkTrees/B` | `loop/B` | `304e3b0d8cd` | idle |
-| C | `vscode-WorkTrees/C` | `loop/C` | `304e3b0d8cd` | idle |
-| D | `vscode-WorkTrees/D` | `loop/D` | `304e3b0d8cd` | idle |
-| edit | `Projects/Agents/vscode` | `agent-ide` | `304e3b0d8cd` | 与 merge 对齐 |
+| merge | `vscode-WorkTrees/merge` | `loop/merge` | `f1568462a5f` | 与 agent-ide 对齐（未 push）；renderer IPC 修在 agent-ide 待合 |
+| A | `vscode-WorkTrees/A` | `loop/A` | `f1568462a5f` | idle |
+| B | `vscode-WorkTrees/B` | `loop/B` | `f1568462a5f` | idle |
+| C | `vscode-WorkTrees/C` | `loop/C` | `f1568462a5f` | idle |
+| D | `vscode-WorkTrees/D` | `loop/D` | `f1568462a5f` | idle |
+| edit | `Projects/Agents/vscode` | `agent-ide` | `f1568462a5f`+WIP | renderer Channel Client 本提交 |
 
 ## Blockers
 

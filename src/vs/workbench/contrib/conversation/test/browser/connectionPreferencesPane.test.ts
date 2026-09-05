@@ -154,6 +154,14 @@ suite('ConnectionPreferencesPane', () => {
 		assert.strictEqual(getConnectionEmptyCopy(), CONNECTION_EMPTY_COPY);
 	});
 
+	test('listConnectionProfiles returning a Promise does not throw while rendering', () => {
+		const pane = mountPane({
+			listConnectionProfiles: () => Promise.resolve([]) as unknown as [],
+		});
+		assert.deepStrictEqual(getPaneEntries(pane), []);
+		pane.getDomNode().remove();
+	});
+
 	test('presence matrix six row labels are distinct and honest', () => {
 		const offline = getHubDeviceRowStatusLabel(device({ id: '1', name: 'A', presence: 'OFFLINE', engineStatus: null }));
 		const notServing = getHubDeviceRowStatusLabel(device({ id: '2', name: 'B', engineStatus: 'NOT_SERVING' }));

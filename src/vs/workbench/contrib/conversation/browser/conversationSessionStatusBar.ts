@@ -17,11 +17,11 @@ import {
 	getConnectionPhaseStatusBarText,
 	getConversationModelEchoStatusText,
 	getConversationSessionStatusText,
+	getEngineStatusCommandId,
 	shouldShowConversationModelEchoInStatusBar,
 	showConversationPart,
 } from './conversationSessionStatus.js';
 import { IConversationRosterService } from './conversationStubService.js';
-import { OPEN_CONNECTION_PREFERENCES_COMMAND_ID, OPEN_ENGINE_PREFERENCES_COMMAND_ID } from '../common/uaPreferencesPanes.js';
 
 export class ConversationSessionStatusBarContribution extends Disposable implements IWorkbenchContribution {
 
@@ -120,13 +120,10 @@ export class ConversationSessionStatusBarContribution extends Disposable impleme
 	}
 
 	private createEngineEntry(): IStatusbarEntry {
-		const connected = this.stubService.isEngineConnected();
 		const snapshot = this.uaConnection.getConnectionSnapshot();
-		const text = getConnectionPhaseStatusBarText(
-			this.uaConnection.getConnectionPhase(),
-			snapshot.pairingPending,
-		);
-		const commandId = connected ? OPEN_ENGINE_PREFERENCES_COMMAND_ID : OPEN_CONNECTION_PREFERENCES_COMMAND_ID;
+		const phase = this.uaConnection.getConnectionPhase();
+		const text = getConnectionPhaseStatusBarText(phase, snapshot.pairingPending);
+		const commandId = getEngineStatusCommandId(phase);
 		return {
 			name: localize('conversationStatus.engineName', "Engine connection"),
 			text,

@@ -7,6 +7,7 @@ import { localize2 } from '../../../../nls.js';
 import { Action2, registerAction2 } from '../../../../platform/actions/common/actions.js';
 import { ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js';
 import { GroupsOrder, IEditorGroupsService } from '../../../services/editor/common/editorGroupsService.js';
+import { IWorkbenchLayoutService, Parts } from '../../../services/layout/browser/layoutService.js';
 import { IPreferencesService } from '../../../services/preferences/common/preferences.js';
 import { SettingsEditor2Input } from '../../../services/preferences/common/preferencesEditorInput.js';
 import {
@@ -30,9 +31,16 @@ export async function closeAllSettingsEditor2(accessor: ServicesAccessor): Promi
 	await closeAllSettingsEditor2ForService(accessor.get(IEditorGroupsService));
 }
 
+export function ensurePreviewVisibleForPreferences(layoutService: IWorkbenchLayoutService): void {
+	if (!layoutService.isVisible(Parts.EDITOR_PART)) {
+		layoutService.setPartHidden(false, Parts.EDITOR_PART);
+	}
+}
+
 export async function openUaPaneReplacingClientSettings(accessor: ServicesAccessor, paneId: string): Promise<void> {
 	const editorGroupsService = accessor.get(IEditorGroupsService);
 	const preferencesService = accessor.get(IPreferencesService);
+	ensurePreviewVisibleForPreferences(accessor.get(IWorkbenchLayoutService));
 	await closeAllSettingsEditor2ForService(editorGroupsService);
 	await preferencesService.openPreferences({ paneId });
 }
@@ -43,7 +51,7 @@ export function registerUaPreferencesNavigationActions(): void {
 			super({
 				id: OPEN_CONNECTION_PREFERENCES_COMMAND_ID,
 				title: localize2('openConnectionPreferences', "Open Connection Preferences"),
-				f1: false,
+				f1: true,
 			});
 		}
 
@@ -57,7 +65,7 @@ export function registerUaPreferencesNavigationActions(): void {
 			super({
 				id: OPEN_ENGINE_PREFERENCES_COMMAND_ID,
 				title: localize2('openEnginePreferences', "Open Engine Preferences"),
-				f1: false,
+				f1: true,
 			});
 		}
 

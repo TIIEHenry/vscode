@@ -8,6 +8,7 @@ import { Disposable } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
+import { readCapabilityEntry } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
 import { resolveEngineCatalogPaneMode } from './engineCatalog.js';
 import { EngineCatalogStatusWidget } from './engineCatalogStatus.js';
 import { getEngineSectionApiUnavailableCopy } from './engineSectionChrome.js';
@@ -79,7 +80,7 @@ export class EngineHooksSection extends Disposable {
 			return;
 		}
 
-		const hooksMetadata = this.connection.getCapabilitySnapshot().hooksMetadata;
+		const hooksMetadata = readCapabilityEntry(this.connection.getCapabilitySnapshot(), 'hooksMetadata');
 		const mode = resolveEngineCatalogPaneMode(true, hooksMetadata.support);
 		if (mode === 'loading') {
 			this.status.render({ mode, loadingKind: 'capability', featureLabel: HOOKS_FEATURE });

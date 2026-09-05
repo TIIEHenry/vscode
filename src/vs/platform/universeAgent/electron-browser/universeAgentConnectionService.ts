@@ -4,6 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { registerMainProcessRemoteService } from '../../ipc/electron-browser/services.js';
+import { UniverseAgentConnectionChannelClient } from '../common/universeAgentConnectionChannelClient.js';
 import { IUniverseAgentConnection, universeAgentConnectionChannelName } from '../common/universeAgentConnection.js';
 
-registerMainProcessRemoteService(IUniverseAgentConnection, universeAgentConnectionChannelName);
+registerMainProcessRemoteService(IUniverseAgentConnection, universeAgentConnectionChannelName, {
+	channelClientCtor: UniverseAgentConnectionChannelClient,
+});

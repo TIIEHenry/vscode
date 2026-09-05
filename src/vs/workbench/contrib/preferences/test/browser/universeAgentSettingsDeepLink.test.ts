@@ -8,6 +8,7 @@ import { URI } from '../../../../../base/common/uri.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { CommandsRegistry } from '../../../../../platform/commands/common/commands.js';
 import { IPreferencesService } from '../../../../services/preferences/common/preferences.js';
+import { IWorkbenchLayoutService } from '../../../../services/layout/browser/layoutService.js';
 import { TestEditorGroupsService, workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { registerUaPreferencesNavigationActions } from '../../../conversation/browser/uaPreferencesNavigation.js';
 import {
@@ -33,10 +34,16 @@ suite('Universe Agent settings deep links', () => {
 			},
 		} as IPreferencesService;
 
+		const layoutService = {
+			isVisible: () => false,
+			setPartHidden: () => { },
+		} as unknown as IWorkbenchLayoutService;
+
 		const handler = store.add(new UniverseAgentDeepLinkHandler(
 			{ registerHandler: () => ({ dispose: () => { } }) } as never,
 			new TestEditorGroupsService([]),
 			preferencesService,
+			layoutService,
 		));
 
 		return { handler, openSettingsCalls, openPreferencesCalls };

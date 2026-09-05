@@ -63,7 +63,7 @@ export class ConversationPart extends Part implements IConversationPartService {
 
 	readonly minimumWidth: number = 300;
 	readonly maximumWidth: number = Number.POSITIVE_INFINITY;
-	readonly minimumHeight: number = 0;
+	readonly minimumHeight: number = 160;
 	readonly maximumHeight: number = Number.POSITIVE_INFINITY;
 	get snap(): boolean { return true; }
 

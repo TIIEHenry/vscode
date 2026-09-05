@@ -8,6 +8,7 @@ import { IConfigurationService } from '../../../../platform/configuration/common
 import { IStorageService } from '../../../../platform/storage/common/storage.js';
 import type { ConversationWriteMessage, IConversationSessionViewLease, PostOutcome } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
+import { ensureCapabilitySnapshot } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
 import { COMPOSER_AGENT_OPTIONS, composerAgentSelectOptions, composerModelSelectOptions, composerToolNames } from './conversationComposerCatalog.js';
 import {
 	conversationLensDockMicNotAvailable,
@@ -109,7 +110,7 @@ export function refreshComposerCatalogs(host: IConversationLensComposerHost): vo
 
 export async function loadConnectedComposerCatalogs(host: IConversationLensComposerHost, generation: number): Promise<void> {
 
-		const caps = host.uaConnection.getCapabilitySnapshot();
+		const caps = ensureCapabilitySnapshot(host.uaConnection.getCapabilitySnapshot());
 		if (caps.agentProfiles.support === 'SUPPORTED') {
 			try {
 				const result = await host.uaConnection.listAgentProfiles();

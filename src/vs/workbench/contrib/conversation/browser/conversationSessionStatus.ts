@@ -5,9 +5,11 @@
 
 import { localize } from '../../../../nls.js';
 import type { ConnectionFailureCode, ConnectionPhase } from '../../../../platform/universeAgent/common/connectionHubTypes.js';
+import { isUniverseAgentPhaseConnected } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
 import { ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js';
 import { IConversationPartService } from '../../../browser/parts/conversation/conversationPart.js';
 import { IWorkbenchLayoutService, Parts } from '../../../services/layout/browser/layoutService.js';
+import { OPEN_CONNECTION_PREFERENCES_COMMAND_ID, OPEN_ENGINE_PREFERENCES_COMMAND_ID } from '../common/uaPreferencesPanes.js';
 import { ConversationStubSession } from './conversationStubModel.js';
 
 /** Pure mapping from stub session metadata to StatusBar label text. */
@@ -17,6 +19,13 @@ export function getConversationSessionStatusText(session: ConversationStubSessio
 		return localize('conversationStatus.noSession', "No session");
 	}
 	return title;
+}
+
+/** StatusBar / IdentityStrip: only a live connected phase opens Engine; roster boolean is not the source. */
+export function getEngineStatusCommandId(phase: ConnectionPhase | undefined): string {
+	return isUniverseAgentPhaseConnected(phase)
+		? OPEN_ENGINE_PREFERENCES_COMMAND_ID
+		: OPEN_CONNECTION_PREFERENCES_COMMAND_ID;
 }
 
 /** Legacy boolean helper for panes that only need connected vs not-connected copy. */
