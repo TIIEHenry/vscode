@@ -591,7 +591,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		if (this.engineSessionEnsure) {
 			return this.engineSessionEnsure;
 		}
-		this.engineSessionEnsure = this.createEngineSessionRemote();
+		this.engineSessionEnsure = this.createEngineSessionRemote(this.allocateEngineBindClientSessionId(true));
 		void this.engineSessionEnsure.finally(() => {
 			this.engineSessionEnsure = undefined;
 		});
@@ -1113,6 +1113,8 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	}
 
 	private async refreshEngineCatalog(): Promise<void> {
+		this.listCompleted = false;
+		this.clearPendingEngineBindClientSessionId();
 		try {
 			const result = await this.uaConnection.listSessions({});
 			this.engineSessions = result.sessions
@@ -1124,6 +1126,9 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 					source: 'engine-cache' as const,
 				}));
 			this.listCompleted = true;
+			if (this.activeEngineSessionId && !this.engineSessions.some(s => s.id === this.activeEngineSessionId)) {
+				this.activeEngineSessionId = undefined;
+			}
 			if (this.engineSessions.length > 0) {
 				const targetId = this.activeEngineSessionId && this.engineSessions.some(s => s.id === this.activeEngineSessionId)
 					? this.activeEngineSessionId
@@ -1160,7 +1165,8 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		this.activeEngineSessionId = restoreLast && cache.activeSessionId && this.engineSessions.some(session => session.id === cache.activeSessionId)
 			? cache.activeSessionId
 			: this.engineSessions[0]?.id;
-		this.listCompleted = true;
+		// Cache is for disconnect display only — bind waits for engine List reconciliation.
+		this.listCompleted = false;
 		for (const session of this.engineSessions) {
 			this.model.upsertCachedSession(session);
 		}

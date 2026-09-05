@@ -7,7 +7,7 @@ import assert from 'assert';
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { Disposable } from '../../../../../base/common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
-import { StorageScope } from '../../../../../platform/storage/common/storage.js';
+import { StorageScope, StorageTarget } from '../../../../../platform/storage/common/storage.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { IUniverseAgentSessionView } from '../../../../../platform/universeAgent/common/universeAgentSessionView.js';
 import type {
@@ -1441,6 +1441,53 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		assert.strictEqual(service.getSessions().length, 0);
 		assert.strictEqual(service.isEngineSessionReady(), false);
 		assert.notStrictEqual(service.getActiveSessionId(), ENGINE_BIND_FAILED_SESSION_ID);
+	});
+
+	test('restored engine cache with empty List creates fresh clientSessionId not ghost cache uuid', async () => {
+		const cachedUuid = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee';
+		const storage = store.add(new TestStorageService());
+		storage.store(
+			CONVERSATION_ROSTER_STORAGE_KEY,
+			JSON.stringify({
+				version: 1,
+				wasEverConnected: true,
+				activeSessionId: cachedUuid,
+				nextTurnId: 100,
+				localSessions: [],
+				engineCache: {
+					activeSessionId: cachedUuid,
+					sessions: [{
+						id: cachedUuid,
+						title: 'Cached UA',
+						turns: [],
+						source: 'engine-cache',
+					}],
+				},
+			}),
+			StorageScope.WORKSPACE,
+			StorageTarget.USER,
+		);
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setListSessions([]);
+		connection.createSessionResult = { sessionId: 'ua-created' };
+		const service = store.add(createService(connection, storage));
+
+		assert.strictEqual(service.getActiveSessionId(), cachedUuid);
+		assert.strictEqual(service.getSessions()[0]?.id, cachedUuid);
+		assert.strictEqual(service.isEngineSessionReady(), true);
+
+		connection.setConnected(true);
+		service.setEngineConnected(true);
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+		assert.strictEqual(connection.createCalls.length, 1);
+		const clientSessionId = connection.createCalls[0]?.clientSessionId;
+		assert.ok(clientSessionId?.startsWith('session-'));
+		assert.notStrictEqual(clientSessionId, cachedUuid);
+		assert.notStrictEqual(clientSessionId, ENGINE_BIND_FAILED_SESSION_ID);
+		assert.strictEqual(service.getActiveSessionId(), 'ua-created');
+		assert.ok(service.getSessions().some(session => session.id === 'ua-created'));
+		assert.ok(!service.getSessions().some(session => session.id === cachedUuid));
 	});
 
 	test('bind-failed persist omits placeholder activeSessionId from roster storage', async () => {
