@@ -11,9 +11,9 @@ suite('Sources - Review list strings', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('header hint is honest about read-only list and window-local progress', () => {
-		assert.ok(sourcesReviewListHeaderHint.includes('Read-only'));
-		assert.ok(sourcesReviewListHeaderHint.includes('window only'));
+	test('header hint is user-facing window-local progress, not an implementation note', () => {
+		assert.ok(sourcesReviewListHeaderHint.includes('this window'));
+		assert.ok(!sourcesReviewListHeaderHint.includes('Read-only'));
 		assert.ok(!sourcesReviewListHeaderHint.includes('not connected'));
 		assert.ok(!sourcesReviewListHeaderHint.includes('Preview'), 'must not advertise Preview open behavior');
 		assert.ok(!sourcesReviewListHeaderHint.includes('FORK'), 'must not advertise FORK diff gap');

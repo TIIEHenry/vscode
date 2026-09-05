@@ -35,6 +35,10 @@ export function registerUaClientSettings(): void {
 				type: 'string',
 				enum: [...UA_CLIENT_CONVERSATION_DENSITY_VALUES],
 				default: 'comfortable',
+				enumItemLabels: [
+					conversationDensityComfortable,
+					conversationDensityCompact,
+				],
 				enumDescriptions: [
 					conversationDensityComfortable,
 					conversationDensityCompact,
@@ -83,6 +87,10 @@ export function registerUaClientSettings(): void {
 				type: 'string',
 				enum: [...UA_CLIENT_KEYBOARD_ENTER_BEHAVIOR_VALUES],
 				default: 'send',
+				enumItemLabels: [
+					keyboardEnterSend,
+					keyboardEnterNewline,
+				],
 				enumDescriptions: [
 					keyboardEnterSend,
 					keyboardEnterNewline,

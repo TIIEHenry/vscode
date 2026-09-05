@@ -141,6 +141,8 @@ export function updateConversationPhase(host: IConversationLensProjectionHost): 
 		}
 		const nextPhase = preFirst ? 'prefirst' : 'active';
 		if (host.conversationPhase === nextPhase) {
+			// SessionBar Route mounts after the first phase apply; keep XOR in sync.
+			host.updateSessionConfigVisibility(preFirst);
 			return;
 		}
 		host.conversationPhase = nextPhase;

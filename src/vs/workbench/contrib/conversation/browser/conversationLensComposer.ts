@@ -8,7 +8,7 @@ import { IConfigurationService } from '../../../../platform/configuration/common
 import { IStorageService } from '../../../../platform/storage/common/storage.js';
 import type { ConversationWriteMessage, IConversationSessionViewLease, PostOutcome } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
-import { composerAgentSelectOptions, composerModelSelectOptions, composerToolNames } from './conversationComposerCatalog.js';
+import { COMPOSER_AGENT_OPTIONS, composerAgentSelectOptions, composerModelSelectOptions, composerToolNames } from './conversationComposerCatalog.js';
 import {
 	conversationLensDockMicNotAvailable,
 	conversationLensDockMicStopTitle,
@@ -76,6 +76,7 @@ export interface IConversationLensComposerHost {
 	renderVoiceTranscriptBar(): void;
 	updateVoiceMicChrome(): void;
 	readComposerDraft(sessionId: string): string;
+	updateConversationPhase(): void;
 }
 
 export function refreshComposerCatalogs(host: IConversationLensComposerHost): void {
@@ -198,6 +199,7 @@ export async function submitDraft(host: IConversationLensComposerHost): Promise<
 			writeComposerDraft(host, sessionId, '');
 			host.dockTextarea.value = '';
 			host.resetInputHistoryBrowse();
+			host.updateConversationPhase();
 		} finally {
 			host.submitInFlight = false;
 		}

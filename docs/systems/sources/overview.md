@@ -3,7 +3,7 @@ title: "Sources 系统概览：Files | Changes | Review"
 type: overview
 status: accepted
 phase: N/A
-updated: 2026-09-02
+updated: 2026-09-05
 summary: "SOURCES_PART 槽 + SourcesTabsHost；Files 只读投影、Changes SCM 列表 + stage/unstage/commit、Review 只读列表；Changes/Review 行 openSourcesChangeEntry 按 sources.diff.defaultOwner 分派（默认 Preview Diff）；三宿主 moveTo* 已落（F1–F3）；诚实空文案"
 ---
 
@@ -35,10 +35,10 @@ SOURCES_PART（End 列下格；minimum 尺寸与 hide − 控件在 Part）
 
 | 情形 | 文案（`*Strings.ts`） |
 |------|------|
-| Files 无工作区 | `No workspace files. Flat Explorer list projection—not a file tree or Chat.` |
+| Files 无工作区 | `No workspace files.`（实现仍是 Explorer 列表投影，不印到用户面） |
 | 筛选无匹配 | `No matching files.` / `No matching changes.` |
 | 无 SCM 提供者 | Changes / Review 空列表；不造假变更 |
-| Review | header hint `Read-only. Review progress is kept for this window only.`；**无假 review comment** |
+| Review | 有变更时 hint `Review progress stays in this window.`；无仓库时只留空态、不画 hint；**无假 review comment** |
 
 ## 4. 边界
 

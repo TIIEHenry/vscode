@@ -238,6 +238,55 @@ suite('Navigator Agents subviews', () => {
 		assert.strictEqual(refreshCalls, 0);
 	});
 
+	test('connecting phase is honest empty, not Agent tree loading', () => {
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		const roster = store.add(new ConversationStubService());
+		roster.setEngineConnected(true);
+		instantiationService.stub(IConversationRosterService, roster);
+		instantiationService.stub(IAgentInspectService, store.add(instantiationService.createInstance(AgentInspectService)) as IAgentInspectService);
+		instantiationService.stub(ICommandService, { executeCommand: async () => undefined });
+		instantiationService.stub(IUniverseAgentConnection, createNavigatorConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connecting', reason: 'initial' }),
+		}));
+		const stubViewContainer = {
+			id: 'navigator-agents-test-container',
+			title: { value: 'Agents', original: 'Agents' },
+		} as ViewContainer;
+		instantiationService.stub(IViewDescriptorService, {
+			onDidChangeLocation: Event.None,
+			getViewLocationById(_id: string): ViewContainerLocation {
+				return ViewContainerLocation.Sidebar;
+			},
+			getViewDescriptorById(_id: string): null {
+				return null;
+			},
+			getViewContainerByViewId(_id: string): ViewContainer | null {
+				return stubViewContainer;
+			},
+			getViewContainerModel(_viewContainer: ViewContainer): IViewContainerModel {
+				return {
+					title: stubViewContainer.title.value,
+					onDidChangeContainerInfo: Event.None,
+				} as IViewContainerModel;
+			},
+			getDefaultContainerById(_id: string): ViewContainer | null {
+				return stubViewContainer;
+			},
+		});
+		const view = store.add(instantiationService.createInstance(NavigatorAgentsView, {
+			id: NAVIGATOR_AGENTS_VIEW_ID,
+			title: 'Agents',
+		}));
+		view.render();
+		document.createElement('div').appendChild(view.element);
+		view.setExpanded(true);
+		view.setVisible(true);
+		const hierarchyEmpty = view.element.querySelector('.navigator-agents-subview.active .navigator-stub-empty');
+		assert.strictEqual(hierarchyEmpty?.textContent, 'No agents — no engine.');
+		assert.ok(!hierarchyEmpty?.textContent?.includes('正在读取'));
+	});
+
 	test('defaults to Hierarchy subview with honest empty state', () => {
 		const view = mountAgentsView();
 

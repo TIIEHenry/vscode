@@ -507,7 +507,7 @@ export class NavigatorTeamView extends ViewPane {
 	}
 
 	private async refreshTeamData(): Promise<void> {
-		if (!this.rosterService.isEngineConnected()) {
+		if (!this.rosterService.isEngineConnected() || this.uaConnection.getConnectionPhase().kind !== 'connected') {
 			this.inspectService.setLiveAgentIds('team', undefined);
 			this.setMemberEntries([], TEAM_MEMBERS_EMPTY_COPY);
 			this.setTaskEntries([], TEAM_TASKS_EMPTY_COPY);

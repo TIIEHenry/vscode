@@ -11,11 +11,11 @@ suite('Sources - Files list strings', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('empty chrome is honest about Explorer list projection, not a tree or Chat', () => {
-		assert.ok(sourcesFilesListEmptyMessage.includes('Explorer'));
-		assert.ok(sourcesFilesListEmptyMessage.match(/list projection/i));
-		assert.ok(sourcesFilesListEmptyMessage.match(/file tree/i), 'must clarify this is not a file tree');
-		assert.ok(sourcesFilesListEmptyMessage.includes('Chat'), 'must clarify this is not Chat');
+	test('empty chrome is a user-facing workspace empty, not an implementation note', () => {
+		assert.ok(sourcesFilesListEmptyMessage.includes('No workspace files'));
+		assert.ok(!sourcesFilesListEmptyMessage.match(/list projection/i));
+		assert.ok(!sourcesFilesListEmptyMessage.match(/file tree/i));
+		assert.ok(!sourcesFilesListEmptyMessage.includes('Chat'));
 		assert.ok(!sourcesFilesListEmptyMessage.match(/copilot/i), 'must not mention Copilot');
 	});
 });

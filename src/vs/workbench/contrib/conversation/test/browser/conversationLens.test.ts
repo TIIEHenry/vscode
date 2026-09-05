@@ -719,7 +719,9 @@ suite('ConversationLens', () => {
 		assert.ok(!prefirstHero!.hidden);
 		assert.strictEqual(readingColumn.classList.contains(conversationLensPhasePreFirstClass), true);
 		assert.strictEqual(slots.dock.classList.contains(conversationLensPhasePreFirstDockHiddenClass), true);
-		assert.strictEqual(slots.dock.querySelector('.conversation-lens-inbox-overlay'), null);
+		const dockInbox = slots.dock.querySelector('.conversation-lens-inbox-overlay') as HTMLElement | null;
+		assert.ok(dockInbox);
+		assert.ok(dockInbox.hidden);
 		assert.strictEqual(slots.dock.querySelector('.conversation-lens-composer'), null);
 		assert.strictEqual(readingColumn.querySelector(`.${conversationIdentityStripClass}`), prefirstHero!.querySelector(`.${conversationIdentityStripClass}`));
 		assert.ok(prefirstHero!.querySelector('.conversation-lens-composer'));
@@ -782,6 +784,31 @@ suite('ConversationLens', () => {
 		assert.strictEqual(agentSlot().hidden, false);
 		assert.strictEqual(routeSlot().hidden, false);
 		assert.strictEqual(sessionRoute().hidden, true);
+	});
+
+	test('T3 SessionConfig XOR: SessionBar route stays hidden when phase is already PreFirst', () => {
+		const { part, stubService } = mountLens();
+		const slots = getLensSlots(part);
+		stubService.createSession();
+		const sessionRoute = slots.sessionBar!.querySelector('.conversation-lens-session-route') as HTMLElement;
+		assert.strictEqual(sessionRoute.hidden, true);
+		sessionRoute.hidden = false;
+		stubService.createSession();
+		assert.strictEqual(sessionRoute.hidden, true);
+	});
+
+	test('PreFirst layout does not give the empty timeline the full reading height', () => {
+		const { lens, stubService, part } = mountLens();
+		const slots = getLensSlots(part);
+		stubService.createSession();
+		lens.layout(600, 800);
+		const readingColumn = getReadingColumn(slots);
+		assert.ok(readingColumn.classList.contains(conversationLensPhasePreFirstClass));
+		const prefirstHero = getPrefirstHero(slots);
+		assert.ok(prefirstHero);
+		assert.ok(!prefirstHero.hidden);
+		assert.ok(prefirstHero.querySelector('.conversation-lens-composer'));
+		assert.ok(readingColumn.querySelector('.conversation-lens-timeline'));
 	});
 
 	test('T3 SessionConfig XOR: route selection syncs between composer and SessionBar until first send', async () => {

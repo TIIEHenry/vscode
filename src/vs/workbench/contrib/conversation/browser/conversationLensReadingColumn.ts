@@ -18,7 +18,7 @@ import { ConversationIdentityStrip } from './conversationIdentityStrip.js';
 import { ConversationTimelineTree } from './conversationTimelineTree.js';
 import { ConversationTrajectory } from './conversationTrajectory.js';
 import type { ConversationQuestionRespondAnswers } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
-import { conversationLensPrefirstHeroClass } from './conversationLensDockStrings.js';
+import { conversationLensPhasePreFirstClass, conversationLensPrefirstHeroClass } from './conversationLensDockStrings.js';
 import type { ConversationLensId } from './conversationLensProjection.js';
 import { conversationLeafWidthBucket, isConversationLeafCompact, isConversationLeafNarrow } from './conversationNarrowLayout.js';
 import { IConversationRosterService } from './conversationStubService.js';
@@ -112,8 +112,7 @@ export function bindReadingColumnLayout(host: IConversationLensReadingColumnHost
 			const restored = host.lastReadingWidth < 1 && width > 0;
 			host.lastReadingWidth = width;
 			applyConversationWidth(host, width);
-			host.timelineTree.layout(height, width);
-			host.trajectoryView.layout(height, width);
+			layoutReadingSurfaces(host, height, width);
 			if (restored && host.lastRevealItemId && host.lensId === 'conversation') {
 				host.timelineTree.revealTurn(host.lastRevealItemId);
 			}
@@ -122,6 +121,14 @@ export function bindReadingColumnLayout(host: IConversationLensReadingColumnHost
 	observer.observe(host.readingColumn);
 	host.register(toDisposable(() => observer.disconnect()));
 
+}
+
+/** PreFirst hero owns the reading column; do not let an empty tree consume the leaf height. */
+export function layoutReadingSurfaces(host: IConversationLensReadingColumnHost, height: number, width: number): void {
+	const preFirst = host.readingColumn.classList.contains(conversationLensPhasePreFirstClass);
+	const surfaceHeight = preFirst ? 0 : height;
+	host.timelineTree.layout(surfaceHeight, width);
+	host.trajectoryView.layout(surfaceHeight, width);
 }
 
 export function applyConversationDensity(host: IConversationLensReadingColumnHost): void {

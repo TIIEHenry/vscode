@@ -47,7 +47,10 @@
 
 .monaco-workbench .settings-editor.narrow-width .setting-item-contents .setting-item-control,
 .monaco-workbench .settings-editor.narrow-width .setting-item-contents .setting-item-control select,
-.monaco-workbench .settings-editor.narrow-width .setting-item-contents .monaco-select-box {
+.monaco-workbench .settings-editor.narrow-width .setting-item-contents .monaco-select-box,
+.monaco-workbench .settings-editor.narrow-width .settings-body .settings-tree-container .setting-item.setting-item-enum .setting-item-value > .setting-item-control,
+.monaco-workbench .settings-editor.narrow-width .settings-body .settings-tree-container .setting-item.setting-item-enum .setting-item-value > .setting-item-control > select,
+.monaco-workbench .settings-editor.narrow-width .settings-body .settings-tree-container .setting-item-contents .monaco-select-box {
 	width: 100%;
 	max-width: 100%;
 	min-width: 0;

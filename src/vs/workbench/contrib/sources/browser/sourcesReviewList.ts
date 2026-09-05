@@ -565,6 +565,7 @@ export class SourcesReviewList extends Disposable {
 		this.listContainer.style.display = hasVisibleEntries ? 'block' : 'none';
 		this.filterRow.style.display = hasAnyEntries ? 'flex' : 'none';
 		this.progressHeader.style.display = hasAnyEntries ? 'flex' : 'none';
+		this.headerHint.style.display = hasAnyEntries ? '' : 'none';
 
 		if (!hasVisibleEntries) {
 			return;

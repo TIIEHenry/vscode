@@ -345,6 +345,17 @@ suite('Settings UA TOC', () => {
 		assert.ok(css.includes('.settings-editor.narrow-width > .settings-header > .search-container'));
 		assert.ok(css.includes('.settings-group-title-label'));
 		assert.ok(css.includes('.setting-item-contents .setting-item-control'));
+		assert.ok(css.includes('setting-item-enum'));
 		assert.ok(!/display\s*:\s*none/.test(css));
+	});
+
+	test('Client enum settings expose localized enumItemLabels', () => {
+		const properties = Registry.as<IConfigurationRegistry>(Extensions.Configuration).getConfigurationProperties();
+		const density = properties[UA_CLIENT_DISPLAY_CONVERSATION_DENSITY];
+		const enter = properties[UA_CLIENT_KEYBOARD_ENTER_BEHAVIOR];
+		assert.ok(density?.enumItemLabels?.some(label => label.includes('舒适')));
+		assert.ok(enter?.enumItemLabels?.some(label => /发送|换行/.test(label)));
+		assert.ok(!density?.enumItemLabels?.includes('comfortable'));
+		assert.ok(!enter?.enumItemLabels?.includes('send'));
 	});
 });

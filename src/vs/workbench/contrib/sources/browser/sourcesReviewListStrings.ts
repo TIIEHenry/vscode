@@ -6,10 +6,10 @@
 import { localize } from '../../../../nls.js';
 import { ReviewListEmptyReason } from '../common/sourcesReviewListModel.js';
 
-/** Compact Review tab chrome — read-only SCM list; window-local review progress. */
+/** Compact Review tab chrome — shown only when there are changes to review. */
 export const sourcesReviewListHeaderHint = localize(
 	'sourcesReviewList.headerHint',
-	"Read-only. Review progress is kept for this window only.",
+	"Review progress stays in this window.",
 );
 
 export const sourcesReviewRevealMissHint = localize(

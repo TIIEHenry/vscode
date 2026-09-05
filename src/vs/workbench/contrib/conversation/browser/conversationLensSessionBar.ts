@@ -67,9 +67,9 @@ export interface IConversationLensSessionBarHost {
 	updateSessionTitle(): void;
 }
 
-export function mountSessionBar(host: IConversationLensSessionBarHost, host: HTMLElement): void {
+export function mountSessionBar(host: IConversationLensSessionBarHost, barHost: HTMLElement): void {
 
-		const bar = append(host, $('.conversation-lens-session-bar'));
+		const bar = append(barHost, $('.conversation-lens-session-bar'));
 		bar.setAttribute('role', 'banner');
 
 		const leading = append(bar, $('.conversation-lens-session-bar-leading'));

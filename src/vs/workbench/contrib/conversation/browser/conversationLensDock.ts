@@ -5,6 +5,7 @@
 
 import { $, addDisposableListener, append } from '../../../../base/browser/dom.js';
 import { Button } from '../../../../base/browser/ui/button/button.js';
+import { Codicon } from '../../../../base/common/codicons.js';
 import { KeyCode } from '../../../../base/common/keyCodes.js';
 import { IDisposable } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
@@ -19,13 +20,11 @@ import {
 	conversationLensDockMicNotAvailable,
 	conversationLensDockMicTitle,
 	conversationLensDockMoreTitle,
-	conversationLensDockNoAgent,
 	conversationLensDockNoModel,
 	conversationLensDockPermissionAsk,
 	conversationLensDockPermissionLabel,
 	conversationLensDockPlaceholder,
 	conversationLensDockRouteLabel,
-	conversationLensDockStubAgent,
 	conversationLensDockTemplatesTitle,
 	conversationLensDockTuneTitle,
 } from './conversationLensDockStrings.js';
@@ -36,11 +35,7 @@ import { IConversationRosterService } from './conversationStubService.js';
 import { getUaClientKeyboardEnterBehavior } from '../common/uaClientSettingsHelpers.js';
 import { createInputHistoryBrowseState, InputHistoryBrowseState } from './conversationInputHistory.js';
 import { SelectBox } from '../../../../base/browser/ui/selectBox/selectBox.js';
-
-const COMPOSER_AGENT_OPTIONS = [
-	conversationLensDockNoAgent,
-	conversationLensDockStubAgent,
-] as const;
+import { COMPOSER_AGENT_OPTIONS } from './conversationComposerCatalog.js';
 
 export interface IConversationLensDockHost {
 	dockRoot: HTMLElement;
@@ -98,9 +93,9 @@ export interface IConversationLensDockHost {
 	scrollToFirstPendingConfirmation(): void;
 }
 
-export function mountDock(host: IConversationLensDockHost, host: HTMLElement): void {
+export function mountDock(host: IConversationLensDockHost, dockHost: HTMLElement): void {
 
-		host.dockRoot = append(host, $('.conversation-lens-dock'));
+		host.dockRoot = append(dockHost, $('.conversation-lens-dock'));
 
 		host.gateRow = append(host.dockRoot, $('.conversation-lens-dock-gate-row'));
 		host.gateRow.setAttribute('role', 'status');

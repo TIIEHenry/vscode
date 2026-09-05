@@ -43,6 +43,7 @@ import {
 	applyConversationDensity,
 	applyConversationWidth,
 	bindReadingColumnLayout,
+	layoutReadingSurfaces,
 	mountTimeline,
 } from './conversationLensReadingColumn.js';
 import {
@@ -61,11 +62,13 @@ import {
 import {
 	applySessionViewTimeline,
 	handleLensTablistKeyDown,
+	isPreFirst,
 	loadLensId,
 	navigateToTrajectoryFromTurn,
 	navigateToTurnFromTrajectory,
 	refreshTrajectoryRecords,
 	setLensId,
+	trajectoryProjectionOptions,
 	updateConversationPhase,
 	updateLensTabs,
 	updateReadingColumn,
@@ -116,6 +119,7 @@ import {
 	exitInputHistoryBrowse,
 	getEditingQueueItem,
 	getSessionConfig,
+	getSessionInputHistory,
 	navigateInputHistory,
 	resetInputHistoryBrowse,
 	setSessionConfig,
@@ -269,6 +273,7 @@ export class ConversationLens extends Disposable {
 		this.mountDock(slots.dock);
 		if (slots.sessionBar) {
 			this.mountSessionBar(slots.sessionBar);
+			this.updateSessionConfigVisibility(this.isPreFirst());
 		}
 		this.applyConversationDensity();
 		this.restoreComposerDraftToInput();
@@ -299,6 +304,7 @@ export class ConversationLens extends Disposable {
 					this.updateSessionTitle();
 				}
 				this.renderInboxStatus();
+				this.updateConversationPhase();
 				if (this.lensId === 'trajectory' && sessionId === this.stubService.getActiveSessionId()) {
 					this.refreshTrajectoryRecords(sessionId);
 				}
@@ -411,8 +417,7 @@ export class ConversationLens extends Disposable {
 		const restored = this.lastReadingWidth < 1 && width > 0;
 		this.lastReadingWidth = width;
 		this.applyConversationWidth(width);
-		this.timelineTree.layout(height, width);
-		this.trajectoryView.layout(height, width);
+		layoutReadingSurfaces(this, height, width);
 		if (restored && this.lastRevealItemId && this.lensId === 'conversation') {
 			this.timelineTree.revealTurn(this.lastRevealItemId);
 		}

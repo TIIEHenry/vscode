@@ -379,13 +379,14 @@ export class NavigatorAgentsView extends ViewPane {
 
 	private refreshFromLease(): void {
 		const engineConnected = this.rosterService.isEngineConnected();
+		const engineReady = engineConnected && this.uaConnection.getConnectionPhase().kind === 'connected';
 		const lease = this.leaseHolder.getLease();
 		const snapshot = lease?.snapshot;
 		const liveTree = snapshot?.liveAgentTree;
 		const treeChanged = liveTree !== this.lastLiveAgentTree;
 		this.lastLiveAgentTree = liveTree;
 
-		if (!engineConnected) {
+		if (!engineReady) {
 			this.inspectService.setLiveAgentIds('agents', undefined);
 			this.setHierarchyState([], localize('navigatorAgentsHierarchy.empty', "No agents — no engine."));
 			this.setActivityState([], localize('navigatorAgentsActivity.empty', "No tool activity — no engine."));

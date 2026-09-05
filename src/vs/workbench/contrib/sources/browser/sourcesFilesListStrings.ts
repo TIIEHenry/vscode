@@ -5,8 +5,8 @@
 
 import { localize } from '../../../../nls.js';
 
-/** Files tab empty chrome — flat Explorer list projection, not a tree or Chat. */
+/** Files tab empty chrome. Implementation is a flat Explorer list projection (not a tree or Chat). */
 export const sourcesFilesListEmptyMessage = localize(
 	'sourcesFilesList.empty',
-	"No workspace files. Flat Explorer list projection—not a file tree or Chat.",
+	"No workspace files.",
 );
