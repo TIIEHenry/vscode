@@ -333,6 +333,8 @@ import type {
 	UniverseAgentContextVariableEntry,
 	UniverseAgentCheckConnectionRequest,
 	UniverseAgentConnectionReport,
+	UniverseAgentExitMaintenanceRequest,
+	UniverseAgentExitMaintenanceResult,
 	UniverseAgentValidationError,
 	UniverseAgentContextVariableEntrySummary,
 	UniverseAgentContextVariableScope,
@@ -3603,6 +3605,16 @@ function mapConnectionReport(wire: ConnectionReportWire): UniverseAgentConnectio
 		load: mapRemoteAgentLoadMetrics(wire.load),
 	};
 }
+
+interface ExitMaintenanceResponseWire {
+	success?: boolean;
+}
+
+function mapExitMaintenanceResponse(wire: ExitMaintenanceResponseWire): UniverseAgentExitMaintenanceResult {
+	return {
+		success: wire.success === true,
+	};
+}
 interface UploadProgressResponseWire {
 	exists?: boolean;
 	bytes_received?: number | string;
@@ -6343,6 +6355,18 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			},
 		});
 		return mapConnectionReport(wire);
+	}
+
+	async exitMaintenance(request: UniverseAgentExitMaintenanceRequest): Promise<UniverseAgentExitMaintenanceResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, ExitMaintenanceResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.RemoteAgent.service,
+			UniverseAgentGrpcServices.RemoteAgent.ExitMaintenance,
+		);
+		const wire = await unary({
+			node_id: request.nodeId,
+		});
+		return mapExitMaintenanceResponse(wire);
 	}
 
 	async getUploadProgress(request: UniverseAgentGetUploadProgressRequest): Promise<UniverseAgentGetUploadProgressResult> {

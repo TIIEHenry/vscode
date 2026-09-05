@@ -673,6 +673,9 @@ class RecordingMockTransport implements IUniverseAgentGrpcTransport {
 			},
 		};
 	}
+	async exitMaintenance() {
+		return { success: false };
+	}
 	async getUploadProgress() {
 		return { exists: false, bytesReceived: 0, partialPath: '' };
 	}

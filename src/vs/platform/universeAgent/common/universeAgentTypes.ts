@@ -2562,6 +2562,21 @@ export interface UniverseAgentConnectionReport {
 }
 
 /**
+ * RemoteAgentService.ExitMaintenance — proto `ExitMaintenanceRequest` /
+ * `ExitMaintenanceResponse` only. Empty `node_id` (incl. empty string)
+ * passes through as-is. `success` false mapped as-is.
+ * ≠ SetMaintenance / ResetError / ListNodes / GetNode / CheckConnection /
+ * ListConfigs / GetConfig / DeviceService.
+ */
+export interface UniverseAgentExitMaintenanceRequest {
+	readonly nodeId: string;
+}
+
+export interface UniverseAgentExitMaintenanceResult {
+	readonly success: boolean;
+}
+
+/**
  * FileTransferService.GetUploadProgress — proto `UploadProgressRequest` /
  * `UploadProgressResponse` only. Empty `transfer_id` / `session_id` pass
  * through as-is. `bytes_received` 0 / empty `partial_path` mapped as-is.

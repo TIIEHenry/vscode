@@ -260,6 +260,8 @@ import type {
 	UniverseAgentRemoteAgentInfo,
 	UniverseAgentCheckConnectionRequest,
 	UniverseAgentConnectionReport,
+	UniverseAgentExitMaintenanceRequest,
+	UniverseAgentExitMaintenanceResult,
 	UniverseAgentGetUploadProgressRequest,
 	UniverseAgentGetUploadProgressResult,
 	UniverseAgentUploadAttachmentResult,
@@ -1543,6 +1545,17 @@ export interface IUniverseAgentConnection {
 	 * ≠ GetNode / ListNodes / ListConfigs / GetConfig / DeviceService.
 	 */
 	checkConnection?(request: UniverseAgentCheckConnectionRequest): Promise<UniverseAgentConnectionReport>;
+
+	/**
+	 * RemoteAgentService.ExitMaintenance unary. Optional so Web / tests
+	 * can omit it. Catalog + node transport only this slice; empty
+	 * `nodeId` is sent as-is. `success` false mapped as-is. Proto fields
+	 * only (`ExitMaintenanceRequest` / `ExitMaintenanceResponse`).
+	 * No Conversation roster / UI / Engine Preferences / Composer.
+	 * ≠ SetMaintenance / ResetError / ListNodes / GetNode /
+	 * CheckConnection / ListConfigs / GetConfig / DeviceService.
+	 */
+	exitMaintenance?(request: UniverseAgentExitMaintenanceRequest): Promise<UniverseAgentExitMaintenanceResult>;
 	/**
 	 * FileTransferService.GetUploadProgress unary. Optional so Web / tests
 	 * can omit it. Catalog + node transport only this slice; empty
