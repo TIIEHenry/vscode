@@ -4,16 +4,21 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as DOM from '../../../../base/browser/dom.js';
+import { Button } from '../../../../base/browser/ui/button/button.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
+import { defaultButtonStyles } from '../../../../platform/theme/browser/defaultStyles.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import type { UniverseAgentTrigger } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { EngineCatalogStatusWidget } from './engineCatalogStatus.js';
 import { getEngineSectionApiUnavailableCopy } from './engineSectionChrome.js';
 import {
+	canSendEngineTriggerFire,
 	canSendEngineTriggerListRequest,
+	ENGINE_TRIGGER_FIRE_LABEL,
 	ENGINE_TRIGGER_LIST_EMPTY_COPY,
 	ENGINE_TRIGGER_LIST_FEATURE,
+	engineTriggerFireRequest,
 	engineTriggerListRequest,
 	formatEngineTriggerListLabel,
 } from './engineTriggerList.js';
@@ -22,19 +27,22 @@ import { OPEN_CONNECTION_PREFERENCES_COMMAND_ID } from '../common/uaPreferencesP
 const $ = DOM.$;
 
 /**
- * Engine Preferences Triggers — honest ListTriggers list.
- * Connected + hook only. Empty scope / scopeId / typeFilter are sent as-is.
- * Empty triggerId / name / type stay empty. No upsert / delete / fire.
+ * Engine Preferences Triggers — honest ListTriggers list + FireTrigger action.
+ * Connected + hook only. Empty scope / scopeId / typeFilter / triggerId are
+ * sent as-is. Empty triggerId / name / type stay empty. No upsert / delete.
  */
 export class EngineTriggersSection extends Disposable {
 
 	private readonly container: HTMLElement;
 	private readonly status: EngineCatalogStatusWidget;
 	private readonly listHost: HTMLElement;
+	private readonly fireButton: Button;
+	private readonly fireStatus: HTMLElement;
 
 	private sectionActive = false;
 	private renderGeneration = 0;
 	private triggers: UniverseAgentTrigger[] = [];
+	private selectedTrigger: UniverseAgentTrigger | undefined;
 
 	constructor(
 		parent: HTMLElement,
@@ -51,6 +59,15 @@ export class EngineTriggersSection extends Disposable {
 		this.listHost = DOM.append(this.container, $('.engine-triggers-list'));
 		this.listHost.setAttribute('role', 'list');
 		this.listHost.style.display = 'none';
+
+		const actionsRow = DOM.append(this.container, $('.engine-triggers-actions'));
+		this.fireButton = this._register(new Button(actionsRow, { ...defaultButtonStyles, secondary: true }));
+		this.fireButton.label = ENGINE_TRIGGER_FIRE_LABEL;
+		this._register(this.fireButton.onDidClick(() => void this.handleFire()));
+
+		this.fireStatus = DOM.append(this.container, $('.engine-triggers-fire-status'));
+		this.fireStatus.style.display = 'none';
+		this.updateFireAction();
 
 		this._register(this.connection.onDidChangeConnection(() => {
 			if (this.sectionActive) {
@@ -88,8 +105,12 @@ export class EngineTriggersSection extends Disposable {
 		);
 
 		this.triggers = [];
+		this.selectedTrigger = undefined;
 		this.listHost.style.display = 'none';
+		this.fireStatus.style.display = 'none';
+		this.fireStatus.textContent = '';
 		DOM.clearNode(this.listHost);
+		this.updateFireAction();
 
 		if (!this.connection.isEngineConnected()) {
 			this.status.render({
@@ -154,6 +175,41 @@ export class EngineTriggersSection extends Disposable {
 			const row = DOM.append(this.listHost, $('.engine-triggers-row'));
 			row.setAttribute('role', 'listitem');
 			row.textContent = formatEngineTriggerListLabel(trigger);
+			row.addEventListener('click', () => {
+				this.selectedTrigger = trigger;
+				this.paintSelection();
+			});
+		}
+	}
+
+	private paintSelection(): void {
+		const rows = this.listHost.querySelectorAll('.engine-triggers-row');
+		rows.forEach((row, index) => {
+			row.classList.toggle('selected', this.triggers[index] === this.selectedTrigger);
+		});
+	}
+
+	private updateFireAction(): void {
+		this.fireButton.enabled = canSendEngineTriggerFire(
+			this.connection.isEngineConnected(),
+			typeof this.connection.fireTrigger === 'function',
+		);
+	}
+
+	private async handleFire(): Promise<void> {
+		const hook = this.connection.fireTrigger;
+		if (!canSendEngineTriggerFire(this.connection.isEngineConnected(), typeof hook === 'function') || !hook) {
+			return;
+		}
+		const request = engineTriggerFireRequest(this.selectedTrigger);
+		try {
+			const result = await hook.call(this.connection, request);
+			this.fireStatus.textContent = `${result.status} — ${result.eventId} — ${result.reason}`;
+			this.fireStatus.style.display = '';
+		} catch (error) {
+			const reason = error instanceof Error && error.message ? error.message : String(error);
+			this.fireStatus.textContent = reason;
+			this.fireStatus.style.display = '';
 		}
 	}
 }

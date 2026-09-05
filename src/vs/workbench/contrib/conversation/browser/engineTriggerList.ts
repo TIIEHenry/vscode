@@ -5,6 +5,7 @@
 
 import { localize } from '../../../../nls.js';
 import type {
+	UniverseAgentFireTriggerRequest,
 	UniverseAgentListTriggersRequest,
 	UniverseAgentTrigger,
 } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
@@ -12,6 +13,25 @@ import type {
 /** Engine Preferences Triggers → ListTriggers. Empty ids are still sent. */
 export function canSendEngineTriggerListRequest(connected: boolean, hasHook: boolean): boolean {
 	return connected && hasHook;
+}
+
+/** Engine Preferences Triggers list action → FireTrigger. Empty ids are still sent. */
+export function canSendEngineTriggerFire(connected: boolean, hasHook: boolean): boolean {
+	return connected && hasHook;
+}
+
+/**
+ * Always send empty `scope` / `scopeId` as-is.
+ * Pass through empty `triggerId` as-is (no default / no trim).
+ */
+export function engineTriggerFireRequest(
+	selected: { readonly triggerId?: string } | undefined,
+): UniverseAgentFireTriggerRequest {
+	return {
+		scope: '',
+		scopeId: '',
+		triggerId: selected?.triggerId ?? '',
+	};
 }
 
 /**
@@ -39,4 +59,9 @@ export const ENGINE_TRIGGER_LIST_EMPTY_COPY = localize(
 export const ENGINE_TRIGGER_LIST_FEATURE = localize(
 	'ua.engineTriggersFeatureLabel',
 	"triggers",
+);
+
+export const ENGINE_TRIGGER_FIRE_LABEL = localize(
+	'ua.engineTriggersFire',
+	"Fire",
 );

@@ -2036,11 +2036,13 @@ export interface IUniverseAgentConnection {
 
 	/**
 	 * TriggerService.FireTrigger unary. Optional so Web / tests can omit
-	 * it. Catalog + node transport only this slice; empty `scope` /
-	 * `scopeId` / `triggerId` are sent as-is. Empty `status` / `eventId` /
+	 * it. Engine Preferences Triggers list action forwards when connected
+	 * + hook; empty `scope` / `scopeId` / `triggerId` are sent as-is
+	 * (no selection still sends empty ids). Empty `status` / `eventId` /
 	 * `reason` mapped as-is. Proto fields only (`FireTriggerRequest` /
-	 * `FireTriggerResponse`: `status` / `event_id` / `reason`). No
-	 * Conversation roster / UI / Engine Preferences / Composer.
+	 * `FireTriggerResponse`: `status` / `event_id` / `reason`).
+	 * Disconnected / no hook do not send. No Conversation roster /
+	 * SessionBar / Composer.
 	 * ≠ ListTriggers / UpsertTrigger / DeleteTrigger / SetTriggerEnabled /
 	 * AgentService.FireTriggerWebhook / DeviceService.
 	 */

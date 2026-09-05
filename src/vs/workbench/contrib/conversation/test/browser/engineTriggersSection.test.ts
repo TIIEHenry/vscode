@@ -6,8 +6,9 @@
 import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
-import type { UniverseAgentListTriggersRequest, UniverseAgentListTriggersResult } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
+import type { UniverseAgentFireTriggerRequest, UniverseAgentListTriggersRequest, UniverseAgentListTriggersResult } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
+import { ENGINE_TRIGGER_FIRE_LABEL } from '../../browser/engineTriggerList.js';
 import { EngineTriggersSection } from '../../browser/engineTriggersSection.js';
 import { createConversationConnectionTestStub } from '../common/conversationConnectionTestStub.js';
 
@@ -99,6 +100,97 @@ suite('EngineTriggersSection', () => {
 		assert.strictEqual(listTriggersCalls, 1);
 		assert.strictEqual(pane.getDomNode().querySelector('.engine-triggers-row'), null);
 		assert.ok((pane.getDomNode().textContent ?? '').includes('No triggers.'));
+		pane.getDomNode().parentElement?.remove();
+	});
+
+	function findFireButton(root: HTMLElement): HTMLButtonElement | undefined {
+		return [...root.querySelectorAll('.engine-triggers-actions .monaco-button')]
+			.find(button => button.textContent === ENGINE_TRIGGER_FIRE_LABEL) as HTMLButtonElement | undefined;
+	}
+
+	test('FireTrigger does not send when disconnected or hook missing', async () => {
+		const fireCalls: UniverseAgentFireTriggerRequest[] = [];
+		const disconnected = mountSection(createConversationConnectionTestStub({
+			isEngineConnected: () => false,
+			fireTrigger: async request => {
+				fireCalls.push(request);
+				return { status: '', eventId: '', reason: '' };
+			},
+		}));
+		await flushMicrotasks();
+		const disconnectedFire = findFireButton(disconnected.getDomNode());
+		assert.ok(disconnectedFire);
+		disconnectedFire.click();
+		await flushMicrotasks();
+		assert.deepStrictEqual(fireCalls, []);
+		disconnected.getDomNode().parentElement?.remove();
+
+		const noHook = mountSection(createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+		}));
+		await flushMicrotasks();
+		const noHookFire = findFireButton(noHook.getDomNode());
+		assert.ok(noHookFire);
+		noHookFire.click();
+		await flushMicrotasks();
+		assert.deepStrictEqual(fireCalls, []);
+		noHook.getDomNode().parentElement?.remove();
+	});
+
+	test('FireTrigger sends empty ids as-is when connected with no selection', async () => {
+		const fireCalls: UniverseAgentFireTriggerRequest[] = [];
+		const pane = mountSection(createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			listTriggers: async () => ({ triggers: [] }),
+			fireTrigger: async request => {
+				fireCalls.push(request);
+				return { status: '', eventId: '', reason: '' };
+			},
+		}));
+		await flushMicrotasks();
+		const fire = findFireButton(pane.getDomNode());
+		assert.ok(fire);
+		fire.click();
+		await flushMicrotasks();
+		assert.deepStrictEqual(fireCalls, [{ scope: '', scopeId: '', triggerId: '' }]);
+		pane.getDomNode().parentElement?.remove();
+	});
+
+	test('FireTrigger sends selected trigger_id without inventing defaults', async () => {
+		const fireCalls: UniverseAgentFireTriggerRequest[] = [];
+		const pane = mountSection(createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			listTriggers: async (): Promise<UniverseAgentListTriggersResult> => ({
+				triggers: [{
+					triggerId: '  trig  ',
+					name: '  Nightly  ',
+					type: 'cron',
+					promptTemplate: '',
+					enabled: false,
+					pauseReason: '',
+					target: { kind: 'self' },
+					intervalMs: 0,
+					cronExpression: '',
+					runAtEpochMs: 0,
+				}],
+			}),
+			fireTrigger: async request => {
+				fireCalls.push(request);
+				return { status: '', eventId: '', reason: '' };
+			},
+		}));
+		await flushMicrotasks();
+		const row = pane.getDomNode().querySelector('.engine-triggers-row') as HTMLElement | null;
+		assert.ok(row);
+		row.click();
+		const fire = findFireButton(pane.getDomNode());
+		assert.ok(fire);
+		fire.click();
+		await flushMicrotasks();
+		assert.deepStrictEqual(fireCalls, [{ scope: '', scopeId: '', triggerId: '  trig  ' }]);
 		pane.getDomNode().parentElement?.remove();
 	});
 });

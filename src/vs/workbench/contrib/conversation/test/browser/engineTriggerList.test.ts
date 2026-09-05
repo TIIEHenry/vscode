@@ -6,8 +6,11 @@
 import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import {
+	canSendEngineTriggerFire,
 	canSendEngineTriggerListRequest,
+	ENGINE_TRIGGER_FIRE_LABEL,
 	ENGINE_TRIGGER_LIST_EMPTY_COPY,
+	engineTriggerFireRequest,
 	engineTriggerListRequest,
 	formatEngineTriggerListLabel,
 } from '../../browser/engineTriggerList.js';
@@ -53,5 +56,27 @@ suite('Engine trigger list bind', () => {
 			runAtEpochMs: 0,
 		}), '  Nightly   — cron —   trig  ');
 		assert.strictEqual(ENGINE_TRIGGER_LIST_EMPTY_COPY, 'No triggers.');
+	});
+
+	test('FireTrigger gate is connected + hook; empty ids stay empty', () => {
+		assert.strictEqual(canSendEngineTriggerFire(false, true), false);
+		assert.strictEqual(canSendEngineTriggerFire(true, false), false);
+		assert.strictEqual(canSendEngineTriggerFire(true, true), true);
+		assert.deepStrictEqual(engineTriggerFireRequest(undefined), {
+			scope: '',
+			scopeId: '',
+			triggerId: '',
+		});
+		assert.deepStrictEqual(engineTriggerFireRequest({ triggerId: '' }), {
+			scope: '',
+			scopeId: '',
+			triggerId: '',
+		});
+		assert.deepStrictEqual(engineTriggerFireRequest({ triggerId: '  trig  ' }), {
+			scope: '',
+			scopeId: '',
+			triggerId: '  trig  ',
+		});
+		assert.strictEqual(ENGINE_TRIGGER_FIRE_LABEL, 'Fire');
 	});
 });
