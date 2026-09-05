@@ -15,6 +15,9 @@ import { WorkbenchList } from '../../../../../platform/list/browser/listService.
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import {
 	ConnectionPreferencesPane,
+	directAddressEndpointLabel,
+	findDirectAddressProfilesForEndpoint,
+	formatConnectProfileDiagnostics,
 	formatConnectionProbeStatus,
 	getConnectionEmptyCopy,
 	getConnectionTestStatusText,
@@ -278,6 +281,186 @@ suite('ConnectionPreferencesPane', () => {
 		const checkbox = container.querySelector('#connection-allow-private-network') as HTMLInputElement;
 		assert.ok(checkbox);
 		assert.strictEqual(checkbox.checked, false);
+		container.remove();
+	});
+
+	test('findDirectAddressProfilesForEndpoint matches canonical host:port label only', () => {
+		const profiles = [
+			{
+				profileId: 'direct-1',
+				displayName: '127.0.0.1:50061',
+				state: 'active' as const,
+				hasTrust: true,
+				targetKind: 'directAddress' as const,
+			},
+			{
+				profileId: 'direct-2',
+				displayName: 'debug-engine',
+				state: 'active' as const,
+				hasTrust: true,
+				targetKind: 'directAddress' as const,
+			},
+			{
+				profileId: 'hub-1',
+				displayName: '127.0.0.1:50061',
+				state: 'active' as const,
+				hasTrust: true,
+				targetKind: 'hubDevice' as const,
+			},
+		];
+		assert.deepStrictEqual(
+			findDirectAddressProfilesForEndpoint(profiles, '127.0.0.1', 50061).map(p => p.profileId),
+			['direct-1'],
+		);
+		assert.deepStrictEqual(
+			findDirectAddressProfilesForEndpoint(profiles, '127.0.0.1', 50061, 'debug-engine').map(p => p.profileId),
+			['direct-1', 'direct-2'],
+		);
+		assert.strictEqual(directAddressEndpointLabel('127.0.0.1', 50061), '127.0.0.1:50061');
+	});
+
+	test('Direct Connect forgets existing endpoint profile and recreates with allowPrivateNetwork', async () => {
+		let addCalls = 0;
+		const forgotIds: string[] = [];
+		const pane = mountPane({
+			listConnectionProfiles: () => [{
+				profileId: 'direct-old',
+				displayName: '127.0.0.1:50061',
+				state: 'active',
+				hasTrust: true,
+				targetKind: 'directAddress',
+			}],
+			forgetConnectionProfile: async profileId => {
+				forgotIds.push(profileId);
+				return { ok: true };
+			},
+			addDirectAddressProfile: async input => {
+				addCalls++;
+				assert.strictEqual(input.host, '127.0.0.1');
+				assert.strictEqual(input.port, 50061);
+				assert.strictEqual(input.allowPrivateNetwork, true);
+				return { ok: true, profileId: 'direct-new' };
+			},
+		}, {
+			connectProfile: async profileId => {
+				assert.strictEqual(profileId, 'direct-new');
+				return { ok: true, path: 'direct', pairingPending: false };
+			},
+		});
+		const container = pane.getDomNode();
+		const hostInput = (pane as unknown as { directHostInput: HTMLInputElement }).directHostInput;
+		const portInput = (pane as unknown as { directPortInput: HTMLInputElement }).directPortInput;
+		const allowPrivate = (pane as unknown as { directAllowPrivateCheckbox: HTMLInputElement }).directAllowPrivateCheckbox;
+		hostInput.value = '127.0.0.1';
+		portInput.value = '50061';
+		allowPrivate.checked = true;
+		await (pane as unknown as { handleConnectDirectAddress(): Promise<void> }).handleConnectDirectAddress();
+		assert.deepStrictEqual(forgotIds, ['direct-old']);
+		assert.strictEqual(addCalls, 1);
+		const testStatus = (pane as unknown as { testStatus: HTMLElement }).testStatus;
+		assert.ok(testStatus.textContent?.includes('ok=true'), `testStatus=${testStatus.textContent}`);
+		assert.ok(testStatus.textContent?.includes('pairingPending=false'));
+		container.remove();
+	});
+
+	test('formatConnectProfileDiagnostics omits SAS secrets', () => {
+		const text = formatConnectProfileDiagnostics({
+			ok: true,
+			path: 'direct',
+			pairingPending: true,
+			sasCode: 'ABCD-EFGH',
+			engineIdentityId: '0123456789abcdef',
+		});
+		assert.ok(text.includes('hasSas=true'));
+		assert.ok(!text.includes('ABCD-EFGH'));
+		assert.ok(!text.includes('0123456789abcdef'));
+	});
+
+	test('connectProfileWithPairing writes diagnostics when pairing not pending', async () => {
+		const pane = mountPane({
+			listConnectionProfiles: () => [{
+				profileId: 'direct-profile-1',
+				displayName: '127.0.0.1:50061',
+				state: 'active',
+				hasTrust: true,
+				targetKind: 'directAddress',
+			}],
+		}, {
+			connectProfile: async () => ({
+				ok: true,
+				path: 'direct',
+				pairingPending: false,
+			}),
+		});
+		const container = pane.getDomNode();
+		document.body.appendChild(container);
+		await (pane as unknown as { connectProfileWithPairing(profileId: string): Promise<void> }).connectProfileWithPairing('direct-profile-1');
+		const testStatus = container.querySelector('.connection-test-status') as HTMLElement;
+		assert.strictEqual(testStatus.textContent, 'ok=true pairingPending=false hasSas=false recoverTrust=false');
+		container.remove();
+	});
+
+	test('connectProfileWithPairing surfaces profile pairingPending mismatch as visible failure', async () => {
+		const pane = mountPane({
+			listConnectionProfiles: () => [{
+				profileId: 'direct-profile-1',
+				displayName: 'debug-engine',
+				state: 'pairingPending',
+				hasTrust: false,
+				targetKind: 'directAddress',
+			}],
+		}, {
+			connectProfile: async () => ({
+				ok: true,
+				path: 'direct',
+				pairingPending: false,
+			}),
+		});
+		const container = pane.getDomNode();
+		document.body.appendChild(container);
+		await (pane as unknown as { connectProfileWithPairing(profileId: string): Promise<void> }).connectProfileWithPairing('direct-profile-1');
+		const testStatus = container.querySelector('.connection-test-status') as HTMLElement;
+		assert.ok(testStatus.textContent?.includes('still pairing pending'));
+		assert.ok(testStatus.textContent?.includes('profilePairingPending=true'));
+		assert.ok(testStatus.textContent?.includes('pairingPending=false'));
+		container.remove();
+	});
+
+	test('connectProfileWithPairing records dialog throw in testStatus diagnostics', async () => {
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IUniverseAgentHubService, createHubStub({
+			listConnectionProfiles: () => [{
+				profileId: 'hub-profile-1',
+				displayName: 'Studio',
+				state: 'pairingPending',
+				hasTrust: false,
+				targetKind: 'hubDevice',
+			}],
+		}));
+		instantiationService.stub(IUniverseAgentConnection, createConnectionStub({
+			connectProfile: async () => ({
+				ok: true,
+				path: 'hubRelay',
+				pairingPending: true,
+				sasCode: 'ABCD-EFGH',
+				engineIdentityId: '0123456789abcdef',
+			}),
+			cancelPairing: async () => { },
+		}));
+		instantiationService.stub(IDialogService, {
+			_serviceBrand: undefined,
+			prompt: async () => {
+				throw new Error('dialog exploded');
+			},
+		} as unknown as IDialogService);
+		const pane = store.add(instantiationService.createInstance(ConnectionPreferencesPane));
+		const container = pane.getDomNode();
+		document.body.appendChild(container);
+		await (pane as unknown as { connectProfileWithPairing(profileId: string): Promise<void> }).connectProfileWithPairing('hub-profile-1');
+		const testStatus = container.querySelector('.connection-test-status') as HTMLElement;
+		assert.ok(testStatus.textContent?.includes('dialogError=dialog exploded'));
+		assert.ok(testStatus.textContent?.includes('hasSas=true'));
+		assert.ok(!testStatus.textContent?.includes('ABCD-EFGH'));
 		container.remove();
 	});
 
