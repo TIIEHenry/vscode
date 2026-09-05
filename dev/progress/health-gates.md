@@ -39,7 +39,7 @@ HEAD 已有 [`.github/workflows/agent-ide.yml`](../../.github/workflows/agent-id
 |:----|:------------|
 | `compile` | `npm run compile` |
 | `eslint` | `npm run eslint` |
-| `docs-health` | `python3 scripts/check-docs-health.py`（仅此一条；[`generate-docs-status.py --check`](../plans/docs-burden-reduction.md) 属 docs-burden S1，在途 elsewhere，**尚未**接入 workflow） |
+| `docs-health` | `python3 scripts/check-docs-health.py`；[`generate-docs-status.py --check`](../plans/docs-burden-reduction.md) 与 `python3 -m unittest scripts/tests/test_docs_status.py`（docs-burden S1 已合入） |
 | `unit-custom` | 三域单测（`contrib/conversation`、`contrib/sources`、`platform/universeAgent`）后跑 [`scripts/check-test-baseline.sh`](../../scripts/check-test-baseline.sh)，与 `dev/progress/test-baseline-failures.txt` 做 JUnit 差集比对 |
 
 规格见 [test-baseline-ci](../plans/test-baseline-ci.md)。
@@ -57,10 +57,12 @@ npm run eslint
 
 **`valid-layers-check` 豁免（2026-09-02 裁决，[D8](deferred-gaps.md)）**：该命令第二阶段 `layersTypeCheck` 在本机 Node 24 / 26 均因 DOM / WebGPU / File System Access TS lib 缺失全量红（166× TS），与本仓业务变更无关，且它本就不查 import path。**D8 修好前不作集成门禁、不进 Blockers、不得作为 closeout 或 OV 的 FAIL 理由**；恢复条件见 D8 Exit。
 
-文档健康（`agent-ide` CI 的 `docs-health` job 与提交前均跑；今日仅下列命令，不含 `generate-docs-status.py --check`）：
+文档健康（`agent-ide` CI 的 `docs-health` job 与提交前均跑）：
 
 ```bash
 python3 scripts/check-docs-health.py
+python3 scripts/generate-docs-status.py --check
+python3 -m unittest scripts/tests/test_docs_status.py
 ```
 
 ## 合并两边保留门禁（按需）
