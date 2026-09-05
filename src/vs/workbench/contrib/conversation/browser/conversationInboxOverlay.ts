@@ -271,8 +271,9 @@ export class ConversationInboxOverlay extends Disposable {
 			this.listContextView.close();
 			return;
 		}
-		this.openPanel = panel;
 		this.listContextView?.close();
+		// close()/onHide clears openPanel; assign the next panel after that wipe.
+		this.openPanel = panel;
 		const anchor = panel === 'task' ? this.taskChip : this.queueChip;
 		this.listContextView = this.contextViewService.showContextView({
 			getAnchor: () => anchor,
