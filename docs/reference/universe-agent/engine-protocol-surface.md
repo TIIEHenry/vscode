@@ -343,12 +343,14 @@ Connect 后 `probeEngineCapabilities`：**仅**广告了 method 且 probe 非 `U
 
 ## 4. 已登记的协议缺口（由引擎仓 / 后续切片补）
 
+下列表同时承载 **G-ENG / G-NAV / G-REV**、[session-view-frame-fanout](../../../dev/plans/session-view-frame-fanout.md) 回填的 **G-CORE-1** 及已闭 **G-CONV-1**；**G2 / G3** 不在此表（见 [conversation-stream-timeline §6](../../../dev/plans/conversation-stream-timeline.md)）。无单一方案稿独占本表。
+
 | 缺口 | 阻塞 | 备注 |
 |------|------|------|
 | **G-NAV-1** | `SessionSummary` / `SessionInfoResponse` 无 `work_dir` | Projects 按项目分组；IDE 未补前用 connection `workDir` 单组。见 [navigator-engine-segments §7](../../../dev/plans/navigator-engine-segments.md) |
 | **G-NAV-2** | 无 `ListTeams(session_id)`；`team_id` 只在不落库事件出现 | 重连后 `liveTeamId` 空 → 节标题省略团队状态；Members/Tasks 仍可用 |
 | **G-REV-1** | 持久化历史无归一化 `file_mutation`（L3 不落库；L2 路径在 `arguments_json`） | 归因 / reviewNav 仅限本连接（含重播种）。见 [sources-review-progress §6](../../../dev/plans/sources-review-progress.md) |
-| **G-ENG-1** Provider 配置键合同 | Engine 页 Provider 组的读/写/测试 | 引擎只有通用 `ConfigService.Get/Set` 与 `TestModelProfile`，没有 Provider 列表 / 凭据已配置查询；需引擎仓给出 provider 相关 config key 与"已配置但不回显"语义。闭合前 Provider 组 unsupported |
+| **G-ENG-1** Provider 配置键合同 | Engine 页 Provider 组的读/写/测试 | 真实凭据来自**引擎宿主环境变量**（钉死工位 `start-engine.sh` 从 `~/.claude/settings.json` 导出 `ANTHROPIC_API_KEY` / `ANTHROPIC_BASE_URL` / `ANTHROPIC_MODEL`；`agent-home/config.json` 无 key 字段）。引擎只有通用 `ConfigService.Get/Set` 与 `TestModelProfile`，没有 Provider 列表 / 凭据已配置查询；需引擎仓给出 provider 相关 config key 与「已配置但不回显」语义。闭合前 Provider 组 unsupported |
 | **G-ENG-2** Rules Remote gRPC | Engine 页 Rules（Instructions） | `RulesBridge` 仅 Desktop 进程内；IDE 一律 unsupported。原「Rules Remote gRPC」行合并至此 |
 | **G-ENG-3** `ListHookPoints`（或握手带版本化点位表） | Engine 页 Hooks「来自引擎」 | 原行改编号；闭合前 Hooks 节只显示 unsupported |
 | **G-ENG-4** Agent profile `model.json` 写路径 | Agents 节 Model 子 tab | `SaveAgentProfileRequest.AgentProfileProto` 无 `model` / `modelType` / `maxTurns`，引擎 mapper 写死 null；Model 子 tab 在引擎补字段前只能是 unsupported |
