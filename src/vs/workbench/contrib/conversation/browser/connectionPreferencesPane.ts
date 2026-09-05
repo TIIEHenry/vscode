@@ -22,6 +22,9 @@ import type { IPreferencesEditorPane } from '../../preferences/browser/preferenc
 import { IUniverseAgentHubService } from '../../../../platform/universeAgent/common/hub.js';
 import {
 	canSendConnectionDeviceListRequest,
+	canSendConnectionDeviceRotateToken,
+	CONNECTION_DEVICE_ROTATE_TOKEN_LABEL,
+	connectionDeviceRotateTokenIds,
 	toConnectionPairedDevice,
 } from './connectionDeviceList.js';
 import {
@@ -218,6 +221,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 	private readonly deviceActionsRow: HTMLElement;
 	private readonly renameDeviceButton: Button;
 	private readonly revokeDeviceButton: Button;
+	private readonly rotateTokenButton: Button;
 	private readonly confirmDeviceCodeInput: HTMLInputElement;
 	private readonly confirmDeviceCodeButton: Button;
 	private readonly rejectDevicePairButton: Button;
@@ -361,6 +365,9 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		this.revokeDeviceButton = this._register(new Button(this.deviceActionsRow, { ...defaultButtonStyles, secondary: true }));
 		this.revokeDeviceButton.label = localize('ua.connectionDeviceRevoke', "Revoke");
 		this._register(this.revokeDeviceButton.onDidClick(() => void this.handleRevokeSelectedDevice()));
+		this.rotateTokenButton = this._register(new Button(this.deviceActionsRow, { ...defaultButtonStyles, secondary: true }));
+		this.rotateTokenButton.label = CONNECTION_DEVICE_ROTATE_TOKEN_LABEL;
+		this._register(this.rotateTokenButton.onDidClick(() => void this.handleRotateSelectedDeviceToken()));
 
 		this.pendingPairsHeading = DOM.append(this.hubDevicesSection, DOM.$('h4.connection-engine-pending-heading'));
 		this.pendingPairsHeading.textContent = CONNECTION_DEVICE_PENDING_HEADING;
@@ -813,6 +820,10 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		const hasDevice = !!device && !device.revoked;
 		this.renameDeviceButton.enabled = hasDevice;
 		this.revokeDeviceButton.enabled = !!device && !device.revoked;
+		this.rotateTokenButton.enabled = canSendConnectionDeviceRotateToken(
+			this.connectionService.isEngineConnected(),
+			typeof this.connectionService.rotateToken === 'function',
+		);
 	}
 
 	private async handleTestConnection(): Promise<void> {
@@ -847,6 +858,23 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 			return;
 		}
 		await this.hubService.refreshDirectory();
+	}
+
+	private async handleRotateSelectedDeviceToken(): Promise<void> {
+		const hook = this.connectionService.rotateToken;
+		if (!canSendConnectionDeviceRotateToken(this.connectionService.isEngineConnected(), typeof hook === 'function') || !hook) {
+			return;
+		}
+		const request = connectionDeviceRotateTokenIds(this.hubDevicesList.getSelectedElements()[0]);
+		try {
+			const result = await hook.call(this.connectionService, request);
+			this.hubDirectoryBanner.textContent = result.message;
+			this.hubDirectoryBanner.style.display = result.message ? '' : 'none';
+		} catch (error) {
+			const reason = error instanceof Error && error.message ? error.message : String(error);
+			this.hubDirectoryBanner.textContent = reason;
+			this.hubDirectoryBanner.style.display = '';
+		}
 	}
 
 	private async handleRevokeSelectedDevice(): Promise<void> {
