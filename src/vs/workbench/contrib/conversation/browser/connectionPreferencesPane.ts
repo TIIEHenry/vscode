@@ -14,7 +14,7 @@ import { IDialogService } from '../../../../platform/dialogs/common/dialogs.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { WorkbenchList } from '../../../../platform/list/browser/listService.js';
 import { defaultButtonStyles } from '../../../../platform/theme/browser/defaultStyles.js';
-import type { ConnectionPhase, ConnectionProbeResult } from '../../../../platform/universeAgent/common/connectionHubTypes.js';
+import type { ConnectionPhase, ConnectionProbeResult, UniverseAgentConnectProfileResult } from '../../../../platform/universeAgent/common/connectionHubTypes.js';
 import type { ConnectionProfileProjection, HubDeviceProjection } from '../../../../platform/universeAgent/common/hub.js';
 import { IUniverseAgentConnection, type UniverseAgentProbeEngineResult } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import type { UniverseAgentDeviceInfo, UniverseAgentPendingPairInfo } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
@@ -73,6 +73,57 @@ export interface IConnectionProfileEntry {
 	readonly id: string;
 	readonly label: string;
 	readonly stateLabel: string;
+}
+
+/** Canonical direct-address label when the user leaves Name empty. */
+export function directAddressEndpointLabel(host: string, port: number): string {
+	return `${host}:${port}`;
+}
+
+/** Match directAddress profiles for a host:port endpoint (exact labels only — no fuzzy displayName). */
+export function findDirectAddressProfilesForEndpoint(
+	profiles: readonly ConnectionProfileProjection[],
+	host: string,
+	port: number,
+	displayNameInput?: string,
+): readonly ConnectionProfileProjection[] {
+	const canonical = directAddressEndpointLabel(host, port);
+	const desiredLabel = displayNameInput?.trim() || canonical;
+	return profiles.filter(profile =>
+		profile.targetKind === 'directAddress'
+		&& (profile.displayName === canonical || profile.displayName === desiredLabel)
+	);
+}
+
+export type ConnectProfileDiagnosticExtras = {
+	readonly profilePairingPending?: boolean;
+	readonly dialogError?: string;
+};
+
+/** Non-secret connect diagnostics for E2E / testStatus (never includes SAS codes). */
+export function formatConnectProfileDiagnostics(
+	result: UniverseAgentConnectProfileResult,
+	extras?: ConnectProfileDiagnosticExtras,
+): string {
+	if (!result.ok) {
+		return `ok=false reason=${result.reason}`;
+	}
+	const hasSas = !!readHandshakeSasCode(result);
+	const recoverTrust = isRecoverTrustConnectResult(result);
+	const pairingPending = result.pairingPending || hasSas;
+	const parts = [
+		'ok=true',
+		`pairingPending=${pairingPending}`,
+		`hasSas=${hasSas}`,
+		`recoverTrust=${recoverTrust}`,
+	];
+	if (extras?.profilePairingPending) {
+		parts.push('profilePairingPending=true');
+	}
+	if (extras?.dialogError) {
+		parts.push(`dialogError=${extras.dialogError}`);
+	}
+	return parts.join(' ');
 }
 
 /** Test Connection 结果与 StatusBar / Engine 共用 H4b 文案。 */
@@ -802,29 +853,35 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 			return;
 		}
 
-		let profileId = this.activeProfileId;
-		const profiles = asConnectionProfileList(this.hubService.listConnectionProfiles());
-		const existing = profiles.find(p =>
-			p.targetKind === 'directAddress' && p.displayName === (this.directNameInput.value.trim() || `${host}:${port}`));
-		if (existing) {
-			profileId = existing.profileId;
-		} else {
-			const added = await this.hubService.addDirectAddressProfile({
-				host,
-				port,
-				displayName: this.directNameInput.value.trim() || undefined,
-				allowPrivateNetwork: this.directAllowPrivateCheckbox.checked,
-			});
-			if (!added.ok) {
-				this.directAddressStatus.textContent = added.reason;
-				return;
-			}
-			profileId = added.profileId;
+		const displayName = this.directNameInput.value.trim() || undefined;
+		const allowPrivateNetwork = this.directAllowPrivateCheckbox.checked;
+		const ensured = await this.ensureDirectAddressProfileForConnect(host, port, displayName, allowPrivateNetwork);
+		if (!ensured.ok) {
+			this.directAddressStatus.textContent = ensured.reason;
+			return;
 		}
 
-		this.activeProfileId = profileId;
-		await this.connectProfileWithPairing(profileId);
+		this.activeProfileId = ensured.profileId;
+		await this.connectProfileWithPairing(ensured.profileId);
 		this.renderProfiles();
+	}
+
+	private async ensureDirectAddressProfileForConnect(
+		host: string,
+		port: number,
+		displayName: string | undefined,
+		allowPrivateNetwork: boolean,
+	): Promise<{ ok: true; profileId: string } | { ok: false; reason: string }> {
+		const profiles = asConnectionProfileList(this.hubService.listConnectionProfiles());
+		const matches = findDirectAddressProfilesForEndpoint(profiles, host, port, displayName);
+		for (const match of matches) {
+			await this.connectionService.disconnect().catch(() => undefined);
+			const forgot = await this.hubService.forgetConnectionProfile(match.profileId);
+			if (!forgot.ok) {
+				return forgot;
+			}
+		}
+		return this.hubService.addDirectAddressProfile({ host, port, displayName, allowPrivateNetwork });
 	}
 
 	private async handleConnectSelectedProfile(): Promise<void> {
@@ -861,55 +918,90 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		const profiles = asConnectionProfileList(this.hubService.listConnectionProfiles());
 		const profile = profiles.find(p => p.profileId === profileId);
 		const result = await this.connectionService.connectProfile(profileId);
+		let dialogError: string | undefined;
+		let statusPrefix: string | undefined;
+
 		if (!result.ok) {
-			this.testStatus.textContent = result.reason;
+			this.testStatus.textContent = formatConnectProfileDiagnostics(result);
 			this.renderConnectionPhase();
 			return;
 		}
+
 		const awaitingPairing = result.pairingPending || !!readHandshakeSasCode(result);
-		if (result.ok && awaitingPairing) {
+		const profilePairingPending = profile?.state === 'pairingPending';
+
+		if (!awaitingPairing && profilePairingPending) {
+			statusPrefix = localize(
+				'ua.connectionConnectPairingStillPending',
+				"Connect reported success but this profile is still pairing pending.",
+			);
+			this.setConnectTestStatus(statusPrefix, result, { profilePairingPending: true });
+			this.renderConnectionPhase();
+			return;
+		}
+
+		if (awaitingPairing) {
 			const displayName = profile?.displayName ?? profileId;
 			const engineIdentityId = result.engineIdentityId ?? profileId;
-			if (isRecoverTrustConnectResult(result)) {
-				const leafSha256Hex = readRecoverTrustLeafFingerprint(result);
-				if (!leafSha256Hex) {
-					this.testStatus.textContent = localize(
-						'ua.connectionRecoverTrustMissingFingerprint',
-						"Trust recovery requires the observed certificate fingerprint.",
-					);
-					await this.connectionService.cancelPairing();
+			try {
+				if (isRecoverTrustConnectResult(result)) {
+					const leafSha256Hex = readRecoverTrustLeafFingerprint(result);
+					if (!leafSha256Hex) {
+						statusPrefix = localize(
+							'ua.connectionRecoverTrustMissingFingerprint',
+							"Trust recovery requires the observed certificate fingerprint.",
+						);
+						await this.connectionService.cancelPairing();
+					} else {
+						const confirmed = await promptRecoverTrustConfirmDialog(this.dialogService, {
+							displayName,
+							engineIdentityId,
+							leafSha256Hex,
+						});
+						if (confirmed.confirmed) {
+							const confirmResult = await this.connectionService.confirmPairing();
+							if (!confirmResult.ok) {
+								statusPrefix = confirmResult.reason;
+							}
+						} else {
+							await this.connectionService.cancelPairing();
+						}
+					}
 				} else {
-					const confirmed = await promptRecoverTrustConfirmDialog(this.dialogService, {
+					const confirmed = await promptSasConfirmDialog(this.dialogService, {
 						displayName,
+						sasCode: readHandshakeSasCode(result),
 						engineIdentityId,
-						leafSha256Hex,
 					});
 					if (confirmed.confirmed) {
 						const confirmResult = await this.connectionService.confirmPairing();
 						if (!confirmResult.ok) {
-							this.testStatus.textContent = confirmResult.reason;
+							statusPrefix = confirmResult.reason;
 						}
 					} else {
 						await this.connectionService.cancelPairing();
 					}
 				}
-			} else {
-				const confirmed = await promptSasConfirmDialog(this.dialogService, {
-					displayName,
-					sasCode: readHandshakeSasCode(result),
-					engineIdentityId,
-				});
-				if (confirmed.confirmed) {
-					const confirmResult = await this.connectionService.confirmPairing();
-					if (!confirmResult.ok) {
-						this.testStatus.textContent = confirmResult.reason;
-					}
-				} else {
-					await this.connectionService.cancelPairing();
-				}
+			} catch (error) {
+				dialogError = error instanceof Error && error.message ? error.message : String(error);
+				await this.connectionService.cancelPairing().catch(() => undefined);
 			}
 		}
+
+		this.setConnectTestStatus(statusPrefix, result, {
+			profilePairingPending: profilePairingPending && !awaitingPairing ? true : undefined,
+			dialogError,
+		});
 		this.renderConnectionPhase();
+	}
+
+	private setConnectTestStatus(
+		prefix: string | undefined,
+		result: UniverseAgentConnectProfileResult,
+		extras?: ConnectProfileDiagnosticExtras,
+	): void {
+		const diagnostics = formatConnectProfileDiagnostics(result, extras);
+		this.testStatus.textContent = prefix ? `${prefix} ${diagnostics}` : diagnostics;
 	}
 
 	private async handleConnectDevice(device: HubDeviceProjection): Promise<void> {
