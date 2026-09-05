@@ -2021,14 +2021,16 @@ export interface IUniverseAgentConnection {
 	deleteTrigger?(request: UniverseAgentDeleteTriggerRequest): Promise<UniverseAgentDeleteTriggerResult>;
 	/**
 	 * TriggerService.SetTriggerEnabled unary. Optional so Web / tests can
-	 * omit it. Catalog + node transport only this slice; empty `scope` /
-	 * `scopeId` / `triggerId` are sent as-is. `enabled` false sent as-is.
-	 * Empty `triggerId` / `name` / `type` / `promptTemplate` /
+	 * omit it. Engine Preferences Triggers list action forwards when
+	 * connected + hook; empty `scope` / `scopeId` / `triggerId` are sent
+	 * as-is (no selection still sends empty ids). `enabled` false sent
+	 * as-is. Empty `triggerId` / `name` / `type` / `promptTemplate` /
 	 * `pauseReason` / `cronExpression` mapped as-is. `enabled` false
 	 * mapped as-is. `intervalMs` / `runAtEpochMs` 0 mapped as-is. Proto
 	 * fields only (`SetTriggerEnabledRequest` /
 	 * `SetTriggerEnabledResponse` + `TriggerDto` / `DeliveryTargetDto`).
-	 * No Conversation roster / UI / Engine Preferences / Composer.
+	 * Disconnected / no hook do not send. No Conversation roster /
+	 * SessionBar / Composer.
 	 * ≠ ListTriggers / UpsertTrigger / DeleteTrigger / FireTrigger /
 	 * AgentService.FireTriggerWebhook / DeviceService.
 	 */

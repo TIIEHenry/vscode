@@ -15,11 +15,15 @@ import { getEngineSectionApiUnavailableCopy } from './engineSectionChrome.js';
 import {
 	canSendEngineTriggerFire,
 	canSendEngineTriggerListRequest,
+	canSendEngineTriggerSetEnabled,
+	ENGINE_TRIGGER_DISABLE_LABEL,
+	ENGINE_TRIGGER_ENABLE_LABEL,
 	ENGINE_TRIGGER_FIRE_LABEL,
 	ENGINE_TRIGGER_LIST_EMPTY_COPY,
 	ENGINE_TRIGGER_LIST_FEATURE,
 	engineTriggerFireRequest,
 	engineTriggerListRequest,
+	engineTriggerSetEnabledRequest,
 	formatEngineTriggerListLabel,
 } from './engineTriggerList.js';
 import { OPEN_CONNECTION_PREFERENCES_COMMAND_ID } from '../common/uaPreferencesPanes.js';
@@ -27,9 +31,10 @@ import { OPEN_CONNECTION_PREFERENCES_COMMAND_ID } from '../common/uaPreferencesP
 const $ = DOM.$;
 
 /**
- * Engine Preferences Triggers — honest ListTriggers list + FireTrigger action.
- * Connected + hook only. Empty scope / scopeId / typeFilter / triggerId are
- * sent as-is. Empty triggerId / name / type stay empty. No upsert / delete.
+ * Engine Preferences Triggers — honest ListTriggers list + FireTrigger +
+ * SetTriggerEnabled actions. Connected + hook only. Empty scope / scopeId /
+ * typeFilter / triggerId are sent as-is. `enabled` false is sent as-is.
+ * Empty triggerId / name / type stay empty. No upsert / delete.
  */
 export class EngineTriggersSection extends Disposable {
 
@@ -37,7 +42,10 @@ export class EngineTriggersSection extends Disposable {
 	private readonly status: EngineCatalogStatusWidget;
 	private readonly listHost: HTMLElement;
 	private readonly fireButton: Button;
+	private readonly enableButton: Button;
+	private readonly disableButton: Button;
 	private readonly fireStatus: HTMLElement;
+	private readonly enabledStatus: HTMLElement;
 
 	private sectionActive = false;
 	private renderGeneration = 0;
@@ -65,9 +73,20 @@ export class EngineTriggersSection extends Disposable {
 		this.fireButton.label = ENGINE_TRIGGER_FIRE_LABEL;
 		this._register(this.fireButton.onDidClick(() => void this.handleFire()));
 
+		this.enableButton = this._register(new Button(actionsRow, { ...defaultButtonStyles, secondary: true }));
+		this.enableButton.label = ENGINE_TRIGGER_ENABLE_LABEL;
+		this._register(this.enableButton.onDidClick(() => void this.handleSetEnabled(true)));
+
+		this.disableButton = this._register(new Button(actionsRow, { ...defaultButtonStyles, secondary: true }));
+		this.disableButton.label = ENGINE_TRIGGER_DISABLE_LABEL;
+		this._register(this.disableButton.onDidClick(() => void this.handleSetEnabled(false)));
+
 		this.fireStatus = DOM.append(this.container, $('.engine-triggers-fire-status'));
 		this.fireStatus.style.display = 'none';
+		this.enabledStatus = DOM.append(this.container, $('.engine-triggers-enabled-status'));
+		this.enabledStatus.style.display = 'none';
 		this.updateFireAction();
+		this.updateSetEnabledAction();
 
 		this._register(this.connection.onDidChangeConnection(() => {
 			if (this.sectionActive) {
@@ -109,8 +128,11 @@ export class EngineTriggersSection extends Disposable {
 		this.listHost.style.display = 'none';
 		this.fireStatus.style.display = 'none';
 		this.fireStatus.textContent = '';
+		this.enabledStatus.style.display = 'none';
+		this.enabledStatus.textContent = '';
 		DOM.clearNode(this.listHost);
 		this.updateFireAction();
+		this.updateSetEnabledAction();
 
 		if (!this.connection.isEngineConnected()) {
 			this.status.render({
@@ -194,6 +216,32 @@ export class EngineTriggersSection extends Disposable {
 			this.connection.isEngineConnected(),
 			typeof this.connection.fireTrigger === 'function',
 		);
+	}
+
+	private updateSetEnabledAction(): void {
+		const enabled = canSendEngineTriggerSetEnabled(
+			this.connection.isEngineConnected(),
+			typeof this.connection.setTriggerEnabled === 'function',
+		);
+		this.enableButton.enabled = enabled;
+		this.disableButton.enabled = enabled;
+	}
+
+	private async handleSetEnabled(enabled: boolean): Promise<void> {
+		const hook = this.connection.setTriggerEnabled;
+		if (!canSendEngineTriggerSetEnabled(this.connection.isEngineConnected(), typeof hook === 'function') || !hook) {
+			return;
+		}
+		const request = engineTriggerSetEnabledRequest(this.selectedTrigger, enabled);
+		try {
+			const result = await hook.call(this.connection, request);
+			this.enabledStatus.textContent = `${formatEngineTriggerListLabel(result.trigger)} — ${result.trigger.enabled}`;
+			this.enabledStatus.style.display = '';
+		} catch (error) {
+			const reason = error instanceof Error && error.message ? error.message : String(error);
+			this.enabledStatus.textContent = reason;
+			this.enabledStatus.style.display = '';
+		}
 	}
 
 	private async handleFire(): Promise<void> {

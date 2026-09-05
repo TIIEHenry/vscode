@@ -6,9 +6,9 @@
 import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
-import type { UniverseAgentFireTriggerRequest, UniverseAgentListTriggersRequest, UniverseAgentListTriggersResult } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
+import type { UniverseAgentFireTriggerRequest, UniverseAgentListTriggersRequest, UniverseAgentListTriggersResult, UniverseAgentSetTriggerEnabledRequest, UniverseAgentTrigger } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
-import { ENGINE_TRIGGER_FIRE_LABEL } from '../../browser/engineTriggerList.js';
+import { ENGINE_TRIGGER_DISABLE_LABEL, ENGINE_TRIGGER_ENABLE_LABEL, ENGINE_TRIGGER_FIRE_LABEL } from '../../browser/engineTriggerList.js';
 import { EngineTriggersSection } from '../../browser/engineTriggersSection.js';
 import { createConversationConnectionTestStub } from '../common/conversationConnectionTestStub.js';
 
@@ -103,9 +103,29 @@ suite('EngineTriggersSection', () => {
 		pane.getDomNode().parentElement?.remove();
 	});
 
-	function findFireButton(root: HTMLElement): HTMLButtonElement | undefined {
+	function findActionButton(root: HTMLElement, label: string): HTMLButtonElement | undefined {
 		return [...root.querySelectorAll('.engine-triggers-actions .monaco-button')]
-			.find(button => button.textContent === ENGINE_TRIGGER_FIRE_LABEL) as HTMLButtonElement | undefined;
+			.find(button => button.textContent === label) as HTMLButtonElement | undefined;
+	}
+
+	function findFireButton(root: HTMLElement): HTMLButtonElement | undefined {
+		return findActionButton(root, ENGINE_TRIGGER_FIRE_LABEL);
+	}
+
+	function emptyTrigger(overrides: Partial<UniverseAgentTrigger> = {}): UniverseAgentTrigger {
+		return {
+			triggerId: '',
+			name: '',
+			type: '',
+			promptTemplate: '',
+			enabled: false,
+			pauseReason: '',
+			target: { kind: 'unspecified' },
+			intervalMs: 0,
+			cronExpression: '',
+			runAtEpochMs: 0,
+			...overrides,
+		};
 	}
 
 	test('FireTrigger does not send when disconnected or hook missing', async () => {
@@ -191,6 +211,95 @@ suite('EngineTriggersSection', () => {
 		fire.click();
 		await flushMicrotasks();
 		assert.deepStrictEqual(fireCalls, [{ scope: '', scopeId: '', triggerId: '  trig  ' }]);
+		pane.getDomNode().parentElement?.remove();
+	});
+
+	test('SetTriggerEnabled does not send when disconnected or hook missing', async () => {
+		const setCalls: UniverseAgentSetTriggerEnabledRequest[] = [];
+		const disconnected = mountSection(createConversationConnectionTestStub({
+			isEngineConnected: () => false,
+			setTriggerEnabled: async request => {
+				setCalls.push(request);
+				return { trigger: emptyTrigger() };
+			},
+		}));
+		await flushMicrotasks();
+		const disconnectedDisable = findActionButton(disconnected.getDomNode(), ENGINE_TRIGGER_DISABLE_LABEL);
+		assert.ok(disconnectedDisable);
+		disconnectedDisable.click();
+		await flushMicrotasks();
+		assert.deepStrictEqual(setCalls, []);
+		disconnected.getDomNode().parentElement?.remove();
+
+		const noHook = mountSection(createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+		}));
+		await flushMicrotasks();
+		const noHookDisable = findActionButton(noHook.getDomNode(), ENGINE_TRIGGER_DISABLE_LABEL);
+		assert.ok(noHookDisable);
+		noHookDisable.click();
+		await flushMicrotasks();
+		assert.deepStrictEqual(setCalls, []);
+		noHook.getDomNode().parentElement?.remove();
+	});
+
+	test('SetTriggerEnabled sends empty ids and enabled false as-is when connected with no selection', async () => {
+		const setCalls: UniverseAgentSetTriggerEnabledRequest[] = [];
+		const pane = mountSection(createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			listTriggers: async () => ({ triggers: [] }),
+			setTriggerEnabled: async request => {
+				setCalls.push(request);
+				return { trigger: emptyTrigger({ enabled: request.enabled }) };
+			},
+		}));
+		await flushMicrotasks();
+		const disable = findActionButton(pane.getDomNode(), ENGINE_TRIGGER_DISABLE_LABEL);
+		assert.ok(disable);
+		disable.click();
+		await flushMicrotasks();
+		assert.deepStrictEqual(setCalls, [{ scope: '', scopeId: '', triggerId: '', enabled: false }]);
+		assert.ok((pane.getDomNode().textContent ?? '').includes(' —  —  — false'));
+		pane.getDomNode().parentElement?.remove();
+	});
+
+	test('SetTriggerEnabled sends selected trigger_id and enabled without inventing defaults', async () => {
+		const setCalls: UniverseAgentSetTriggerEnabledRequest[] = [];
+		const pane = mountSection(createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			listTriggers: async (): Promise<UniverseAgentListTriggersResult> => ({
+				triggers: [emptyTrigger({
+					triggerId: '  trig  ',
+					name: '  Nightly  ',
+					type: 'cron',
+					target: { kind: 'self' },
+				})],
+			}),
+			setTriggerEnabled: async request => {
+				setCalls.push(request);
+				return { trigger: emptyTrigger({ triggerId: request.triggerId, enabled: request.enabled }) };
+			},
+		}));
+		await flushMicrotasks();
+		const row = pane.getDomNode().querySelector('.engine-triggers-row') as HTMLElement | null;
+		assert.ok(row);
+		row.click();
+		const enable = findActionButton(pane.getDomNode(), ENGINE_TRIGGER_ENABLE_LABEL);
+		assert.ok(enable);
+		enable.click();
+		await flushMicrotasks();
+		assert.deepStrictEqual(setCalls, [{ scope: '', scopeId: '', triggerId: '  trig  ', enabled: true }]);
+		const disable = findActionButton(pane.getDomNode(), ENGINE_TRIGGER_DISABLE_LABEL);
+		assert.ok(disable);
+		disable.click();
+		await flushMicrotasks();
+		assert.deepStrictEqual(setCalls, [
+			{ scope: '', scopeId: '', triggerId: '  trig  ', enabled: true },
+			{ scope: '', scopeId: '', triggerId: '  trig  ', enabled: false },
+		]);
 		pane.getDomNode().parentElement?.remove();
 	});
 });

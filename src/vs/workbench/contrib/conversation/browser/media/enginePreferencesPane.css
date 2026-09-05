@@ -97,7 +97,8 @@
 	margin-top: 8px;
 }
 
-.monaco-workbench .engine-triggers-fire-status {
+.monaco-workbench .engine-triggers-fire-status,
+.monaco-workbench .engine-triggers-enabled-status {
 	margin-top: 8px;
 	font-size: 12px;
 	overflow-wrap: anywhere;

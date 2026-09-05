@@ -7,6 +7,7 @@ import { localize } from '../../../../nls.js';
 import type {
 	UniverseAgentFireTriggerRequest,
 	UniverseAgentListTriggersRequest,
+	UniverseAgentSetTriggerEnabledRequest,
 	UniverseAgentTrigger,
 } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 
@@ -17,6 +18,11 @@ export function canSendEngineTriggerListRequest(connected: boolean, hasHook: boo
 
 /** Engine Preferences Triggers list action → FireTrigger. Empty ids are still sent. */
 export function canSendEngineTriggerFire(connected: boolean, hasHook: boolean): boolean {
+	return connected && hasHook;
+}
+
+/** Engine Preferences Triggers list action → SetTriggerEnabled. Empty ids are still sent. */
+export function canSendEngineTriggerSetEnabled(connected: boolean, hasHook: boolean): boolean {
 	return connected && hasHook;
 }
 
@@ -31,6 +37,23 @@ export function engineTriggerFireRequest(
 		scope: '',
 		scopeId: '',
 		triggerId: selected?.triggerId ?? '',
+	};
+}
+
+/**
+ * Always send empty `scope` / `scopeId` as-is.
+ * Pass through empty `triggerId` as-is (no default / no trim).
+ * Pass through `enabled` false as-is (no default true).
+ */
+export function engineTriggerSetEnabledRequest(
+	selected: { readonly triggerId?: string } | undefined,
+	enabled: boolean,
+): UniverseAgentSetTriggerEnabledRequest {
+	return {
+		scope: '',
+		scopeId: '',
+		triggerId: selected?.triggerId ?? '',
+		enabled,
 	};
 }
 
@@ -64,4 +87,14 @@ export const ENGINE_TRIGGER_LIST_FEATURE = localize(
 export const ENGINE_TRIGGER_FIRE_LABEL = localize(
 	'ua.engineTriggersFire',
 	"Fire",
+);
+
+export const ENGINE_TRIGGER_ENABLE_LABEL = localize(
+	'ua.engineTriggersEnable',
+	"Enable",
+);
+
+export const ENGINE_TRIGGER_DISABLE_LABEL = localize(
+	'ua.engineTriggersDisable',
+	"Disable",
 );

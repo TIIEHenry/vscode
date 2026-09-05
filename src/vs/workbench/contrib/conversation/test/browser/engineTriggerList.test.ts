@@ -8,10 +8,14 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/tes
 import {
 	canSendEngineTriggerFire,
 	canSendEngineTriggerListRequest,
+	canSendEngineTriggerSetEnabled,
+	ENGINE_TRIGGER_DISABLE_LABEL,
+	ENGINE_TRIGGER_ENABLE_LABEL,
 	ENGINE_TRIGGER_FIRE_LABEL,
 	ENGINE_TRIGGER_LIST_EMPTY_COPY,
 	engineTriggerFireRequest,
 	engineTriggerListRequest,
+	engineTriggerSetEnabledRequest,
 	formatEngineTriggerListLabel,
 } from '../../browser/engineTriggerList.js';
 
@@ -78,5 +82,37 @@ suite('Engine trigger list bind', () => {
 			triggerId: '  trig  ',
 		});
 		assert.strictEqual(ENGINE_TRIGGER_FIRE_LABEL, 'Fire');
+	});
+
+	test('SetTriggerEnabled gate is connected + hook; empty ids and enabled false stay as-is', () => {
+		assert.strictEqual(canSendEngineTriggerSetEnabled(false, true), false);
+		assert.strictEqual(canSendEngineTriggerSetEnabled(true, false), false);
+		assert.strictEqual(canSendEngineTriggerSetEnabled(true, true), true);
+		assert.deepStrictEqual(engineTriggerSetEnabledRequest(undefined, false), {
+			scope: '',
+			scopeId: '',
+			triggerId: '',
+			enabled: false,
+		});
+		assert.deepStrictEqual(engineTriggerSetEnabledRequest({ triggerId: '' }, false), {
+			scope: '',
+			scopeId: '',
+			triggerId: '',
+			enabled: false,
+		});
+		assert.deepStrictEqual(engineTriggerSetEnabledRequest({ triggerId: '  trig  ' }, false), {
+			scope: '',
+			scopeId: '',
+			triggerId: '  trig  ',
+			enabled: false,
+		});
+		assert.deepStrictEqual(engineTriggerSetEnabledRequest({ triggerId: '  trig  ' }, true), {
+			scope: '',
+			scopeId: '',
+			triggerId: '  trig  ',
+			enabled: true,
+		});
+		assert.strictEqual(ENGINE_TRIGGER_ENABLE_LABEL, 'Enable');
+		assert.strictEqual(ENGINE_TRIGGER_DISABLE_LABEL, 'Disable');
 	});
 });
