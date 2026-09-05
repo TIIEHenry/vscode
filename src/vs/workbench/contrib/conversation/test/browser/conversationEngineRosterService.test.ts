@@ -349,6 +349,24 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		assert.ok(!service.getSessions().some(s => s.id === 'untitled'));
 	});
 
+	test('isEngineConnected follows connected phase when platform isEngineConnected is false', async () => {
+		const connection = store.add(new MockUniverseAgentConnection());
+		const service = store.add(createService(connection));
+		connection.setConnected(false);
+		(connection as unknown as { getConnectionPhase(): { kind: 'connected'; path: 'direct' } }).getConnectionPhase = () => ({ kind: 'connected', path: 'direct' });
+		const snapshot = connection.getConnectionSnapshot();
+		(connection as unknown as { getConnectionSnapshot(): typeof snapshot }).getConnectionSnapshot = () => ({
+			...snapshot,
+			pairingPending: false,
+			channelAlive: true,
+			sessionToken: 'tok',
+		});
+		(connection as unknown as { _onDidChangeConnection: Emitter<UniverseAgentConnectionSnapshot> })._onDidChangeConnection.fire(connection.getConnectionSnapshot());
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+		assert.strictEqual(service.isEngineConnected(), true);
+	});
+
 	test('list incomplete hides stub seed rows while connected', async () => {
 		const connection = store.add(new MockUniverseAgentConnection());
 		const service = store.add(createService(connection));

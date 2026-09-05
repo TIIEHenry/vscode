@@ -10,6 +10,7 @@ import { IConfigurationService } from '../../../../platform/configuration/common
 import { IStorageService } from '../../../../platform/storage/common/storage.js';
 import { shouldRestoreLastSessionOnStartup } from '../common/uaClientSettingsHelpers.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
+import { isConversationEngineLive } from './conversationSessionStatus.js';
 import { IUniverseAgentSessionView } from '../../../../platform/universeAgent/common/universeAgentSessionView.js';
 import type { ConversationQuestionRespondAnswers, IConversationSessionViewLease } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
 import { ConversationEngineFrameSource } from './conversationEngineFrameSource.js';
@@ -74,7 +75,8 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		if (this.testEngineConnected !== undefined) {
 			return this.testEngineConnected;
 		}
-		return this.uaConnection.isEngineConnected() === true;
+		const snapshot = this.uaConnection.getConnectionSnapshot();
+		return isConversationEngineLive(this.uaConnection.getConnectionPhase(), snapshot.pairingPending);
 	}
 
 	/** Client setting gate for advertising IDE workspace tools to Engine (PRD-026). */
@@ -896,14 +898,18 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	}
 
 	private onUaConnectionChanged(): void {
-		if (this.uaConnection.isEngineConnected()) {
+		const connected = this.isEngineConnected();
+		if (connected) {
 			this.wasEverConnected = true;
 			this.testEngineConnected = undefined;
+			super.setEngineConnected(true);
 			void this.refreshEngineCatalog();
 		} else {
 			this.captureEngineCache();
 			this.listCompleted = this.engineSessions.length > 0;
-			this._onDidChangeEngineConnection.fire(false);
+			if (this.testEngineConnected === undefined) {
+				super.setEngineConnected(false);
+			}
 		}
 		this.bindLiveTreeObservationLease();
 	}
@@ -946,7 +952,6 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 				this.activeEngineSessionId = this.engineSessions[0]!.id;
 				this._onDidChangeActiveSession.fire(this.activeEngineSessionId);
 			}
-			this._onDidChangeEngineConnection.fire(true);
 			this._onDidChangeSession.fire(this.getActiveSessionId());
 			this.persistEngineAwareRoster();
 		} catch {

@@ -20,7 +20,7 @@ import { IUniverseAgentConnection, type UniverseAgentProbeEngineResult } from '.
 import type { UniverseAgentDeviceInfo, UniverseAgentPendingPairInfo } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import type { IPreferencesEditorPane } from '../../preferences/browser/preferencesEditorRegistry.js';
 import { IUniverseAgentHubService } from '../../../../platform/universeAgent/common/hub.js';
-import { asConnectionProfileList, ensureCapabilitySnapshot } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
+import { asConnectionProfileList, ensureCapabilitySnapshot, isUniverseAgentPhaseConnected } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
 import {
 	canSendConnectionDeviceListRequest,
 	canSendConnectionDeviceRotateToken,
@@ -581,6 +581,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		this._register(this.hubService.onDidChangeProfiles(() => this.renderProfiles()));
 		this._register(this.connectionService.onDidChangeConnection(() => {
 			this.renderConnectionPhase();
+			this.renderProfiles();
 			this.applyDesktopConnectionControlVisibility();
 			this.renderHubAccount();
 			void this.refreshEngineDeviceLists();
@@ -927,6 +928,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		const result = await this.connectionService.connectProfile(profileId);
 		let dialogError: string | undefined;
 		let statusPrefix: string | undefined;
+		let finalResult: UniverseAgentConnectProfileResult = result;
 
 		if (!result.ok) {
 			this.testStatus.textContent = formatConnectProfileDiagnostics(result);
@@ -970,6 +972,8 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 							const confirmResult = await this.connectionService.confirmPairing();
 							if (!confirmResult.ok) {
 								statusPrefix = confirmResult.reason;
+							} else {
+								finalResult = confirmResult;
 							}
 						} else {
 							await this.connectionService.cancelPairing();
@@ -985,6 +989,8 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 						const confirmResult = await this.connectionService.confirmPairing();
 						if (!confirmResult.ok) {
 							statusPrefix = confirmResult.reason;
+						} else {
+							finalResult = confirmResult;
 						}
 					} else {
 						await this.connectionService.cancelPairing();
@@ -996,11 +1002,12 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 			}
 		}
 
-		this.setConnectTestStatus(statusPrefix, result, {
+		this.setConnectTestStatus(statusPrefix, finalResult, {
 			profilePairingPending: profilePairingPending && !awaitingPairing ? true : undefined,
 			dialogError,
 		});
 		this.renderConnectionPhase();
+		this.renderProfiles();
 	}
 
 	private setConnectTestStatus(
@@ -1263,6 +1270,17 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 	}
 
 	private getProfileStateLabel(profile: ConnectionProfileProjection): string {
+		const snapshot = this.connectionService.getConnectionSnapshot();
+		const phase = this.connectionService.getConnectionPhase();
+		if (
+			profile.profileId === this.activeProfileId
+			&& isUniverseAgentPhaseConnected(phase)
+			&& !snapshot.pairingPending
+		) {
+			return profile.hasTrust
+				? localize('ua.connectionProfilePaired', "Paired")
+				: localize('ua.connectionProfileUnpaired', "Unpaired");
+		}
 		switch (profile.state) {
 			case 'pairingPending':
 				return localize('ua.connectionProfilePairingPending', "Pairing pending");

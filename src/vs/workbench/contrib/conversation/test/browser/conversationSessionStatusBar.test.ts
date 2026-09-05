@@ -13,6 +13,7 @@ import { IWorkbenchEnvironmentService } from '../../../../services/environment/c
 import { IStatusbarEntry, IStatusbarService, StatusbarAlignment } from '../../../../services/statusbar/browser/statusbar.js';
 import { IWorkbenchLayoutService } from '../../../../services/layout/browser/layoutService.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
+import { isConversationEngineLive } from '../../browser/conversationSessionStatus.js';
 import {
 	ConversationSessionStatusBarContribution,
 	registerConversationSessionStatusBar,
@@ -172,6 +173,12 @@ suite('Conversation Session StatusBar', () => {
 		assert.strictEqual(engineEntry?.text, 'Engine · Hub relay');
 	});
 
+	test('isConversationEngineLive matches status bar connected direct gate', () => {
+		assert.strictEqual(isConversationEngineLive({ kind: 'connected', path: 'direct' }), true);
+		assert.strictEqual(isConversationEngineLive({ kind: 'connected', path: 'direct' }, true), false);
+		assert.strictEqual(isConversationEngineLive({ kind: 'connecting', reason: 'initial' }), false);
+	});
+
 	suite('H4b ConnectionPhase status copy', () => {
 		const phaseCases: Array<{ readonly phase: ConnectionPhase; readonly expected: string }> = [
 			{ phase: { kind: 'disconnected' }, expected: 'Engine not connected' },
@@ -189,7 +196,10 @@ suite('Conversation Session StatusBar', () => {
 				});
 				const engineEntry = entries.get(ConversationSessionStatusBarContribution.ENGINE_ENTRY_ID);
 				assert.strictEqual(engineEntry?.text, expected);
-				assert.strictEqual(getEngineCommandId(engineEntry), OPEN_CONNECTION_PREFERENCES_COMMAND_ID);
+				const expectedCommand = phase.kind === 'connected'
+					? OPEN_ENGINE_PREFERENCES_COMMAND_ID
+					: OPEN_CONNECTION_PREFERENCES_COMMAND_ID;
+				assert.strictEqual(getEngineCommandId(engineEntry), expectedCommand);
 			});
 		}
 
