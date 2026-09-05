@@ -7,6 +7,7 @@ import { localize } from '../../../../nls.js';
 import type { LiveAgentTreeNodeView } from '../../../../platform/universeAgent/common/sessionView/index.js';
 import { isEngineRootAgentId } from '../../conversation/common/engineRootAgentId.js';
 
+/** Shared helper (loop/merge); agent-ide inlined `agentId === 'root'`. */
 export { isEngineRootAgentId };
 
 export interface INavigatorAgentsHierarchyNode {

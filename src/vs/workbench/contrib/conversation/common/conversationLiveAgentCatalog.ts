@@ -12,7 +12,7 @@ export interface ILiveAgentCatalogEntry {
 	readonly parentChatId: string;
 }
 
-/** Engine root `agent_id` maps to Conversation root chat id `default`. */
+/** Engine root `agent_id` (typically `"root"`) maps to Conversation root chat id `default`. */
 export function catalogChatIdFromAgentId(agentId: string): string {
 	return isEngineRootAgentId(agentId) ? 'default' : agentId;
 }

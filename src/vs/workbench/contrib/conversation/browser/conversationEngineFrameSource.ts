@@ -36,6 +36,10 @@ export class ConversationEngineFrameSource extends Disposable implements IConver
 		private readonly sessionView: IUniverseAgentSessionView,
 	) {
 		super();
+		this._register(sessionView.onDidApplyFrame(event => {
+			const lease = this.leases.get(event.leaseId);
+			lease?.onHostFrame(event.frame, event.applied);
+		}));
 	}
 
 	acquire(sessionId: string): IConversationSessionViewLease {
@@ -151,14 +155,21 @@ class EngineSessionViewLease extends Disposable implements IConversationSessionV
 		return outcome;
 	}
 
+	private lastAppliedKey = '';
+
 	/** @internal */
 	onHostFrame(frame: ConversationViewFrame, applied: ConversationViewFrameApplied): void {
+		const key = `${frame.frame.generation}:${frame.frame.frameId}:${frame.frame.version}`;
+		if (this.lastAppliedKey === key) {
+			return;
+		}
 		const result = applyViewFrame(this.replica, frame.frame, this.cursor);
 		const next = result as Partial<{ next: SessionViewSnapshot; cursor: ReplicaCursor }>;
 		if (next.next === undefined || next.cursor === undefined) {
 			this.requestResync();
 			return;
 		}
+		this.lastAppliedKey = key;
 		this.replica = next.next;
 		this.cursor = next.cursor;
 		for (const patch of frame.attribution ?? []) {
