@@ -267,6 +267,8 @@ import type {
 	UniverseAgentPairRejectResult,
 	UniverseAgentRevokeRequest,
 	UniverseAgentRevokeResult,
+	UniverseAgentRotateTokenRequest,
+	UniverseAgentRotateTokenResult,
 	UniverseAgentListTriggersRequest,
 	UniverseAgentListTriggersResult,
 	UniverseAgentUpsertTriggerRequest,
@@ -774,7 +776,8 @@ export interface IUniverseAgentGrpcTransport {
 	pairReject(request: UniverseAgentPairRejectRequest): Promise<UniverseAgentPairRejectResult>;
 	/** DeviceService.Revoke unary (snake_case `device_id`). Empty ids sent as-is. */
 	revoke(request: UniverseAgentRevokeRequest): Promise<UniverseAgentRevokeResult>;
-
+	/** DeviceService.RotateToken unary (snake_case `device_id`). Empty ids sent as-is. Reserved `new_token` not mapped. */
+	rotateToken(request: UniverseAgentRotateTokenRequest): Promise<UniverseAgentRotateTokenResult>;
 	/** TriggerService.ListTriggers unary (snake_case `scope`/`scope_id`/`type_filter`). Empty ids sent as-is. */
 	listTriggers(request: UniverseAgentListTriggersRequest): Promise<UniverseAgentListTriggersResult>;
 	/** TriggerService.UpsertTrigger unary (snake_case `scope`/`scope_id`/`trigger`). Empty ids sent as-is. */
@@ -1036,6 +1039,7 @@ export const UniverseAgentGrpcServices = {
 		PairApprove: 'PairApprove',
 		PairReject: 'PairReject',
 		Revoke: 'Revoke',
+		RotateToken: 'RotateToken',
 	},
 	Trigger: {
 		service: 'universeagent.trigger.v1.TriggerService',
