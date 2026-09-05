@@ -311,6 +311,8 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 	private readonly profileActionsRow: HTMLElement;
 	private readonly connectionPhaseLabel: HTMLElement;
 	private readonly testStatus: HTMLElement;
+	/** In-pane pairing confirm host — avoids dialogService under Preferences modal. */
+	private readonly pairingConfirmHost: HTMLElement;
 	private readonly testSection: HTMLElement;
 	private readonly environmentNotice: HTMLElement;
 	private readonly backButton: HTMLButtonElement;
@@ -547,6 +549,10 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		const forgetButton = this._register(new Button(this.profileActionsRow, defaultButtonStyles));
 		forgetButton.label = localize('ua.connectionProfileForget', "Forget this Engine");
 		this._register(forgetButton.onDidClick(() => this.handleForgetSelectedProfile()));
+
+		this.pairingConfirmHost = DOM.append(this.profilesSection, DOM.$('.connection-pairing-confirm-host'));
+		this.pairingConfirmHost.style.display = 'none';
+		this.pairingConfirmHost.setAttribute('aria-live', 'polite');
 
 		this._register(this.list.onDidChangeSelection(e => {
 			const selected = e.elements[0];
@@ -917,6 +923,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		this.activeProfileId = profileId;
 		const profiles = asConnectionProfileList(this.hubService.listConnectionProfiles());
 		const profile = profiles.find(p => p.profileId === profileId);
+		this.testStatus.textContent = getConnectionTestStatusText({ kind: 'connecting', reason: 'initial' });
 		const result = await this.connectionService.connectProfile(profileId);
 		let dialogError: string | undefined;
 		let statusPrefix: string | undefined;
@@ -941,6 +948,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		}
 
 		if (awaitingPairing) {
+			this.setConnectTestStatus(undefined, result);
 			const displayName = profile?.displayName ?? profileId;
 			const engineIdentityId = result.engineIdentityId ?? profileId;
 			try {
@@ -957,7 +965,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 							displayName,
 							engineIdentityId,
 							leafSha256Hex,
-						});
+						}, this.pairingConfirmHost);
 						if (confirmed.confirmed) {
 							const confirmResult = await this.connectionService.confirmPairing();
 							if (!confirmResult.ok) {
@@ -972,7 +980,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 						displayName,
 						sasCode: readHandshakeSasCode(result),
 						engineIdentityId,
-					});
+					}, this.pairingConfirmHost);
 					if (confirmed.confirmed) {
 						const confirmResult = await this.connectionService.confirmPairing();
 						if (!confirmResult.ok) {

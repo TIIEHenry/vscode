@@ -56,7 +56,7 @@ import {
 	SAS_FORBIDDEN_BUTTON_PATTERNS,
 } from '../../browser/connectionPreferencesPaneLabels.js';
 import { createConversationConnectionTestStub } from '../common/conversationConnectionTestStub.js';
-import { promptSasConfirmDialog } from '../../browser/connectionPreferencesPaneSas.js';
+import { promptSasConfirmDialog, promptSasConfirmInPane } from '../../browser/connectionPreferencesPaneSas.js';
 import { getConnectionPhaseStatusBarText, getConversationEngineStatusText } from '../../browser/conversationSessionStatus.js';
 import { Dimension } from '../../../../../base/browser/dom.js';
 
@@ -132,6 +132,35 @@ suite('ConnectionPreferencesPane', () => {
 		const container = pane.getDomNode();
 		document.body.appendChild(container);
 		return pane;
+	}
+
+	function getPairingConfirmButtons(container: ParentNode): readonly HTMLButtonElement[] {
+		return Array.from(container.querySelectorAll('.connection-pairing-confirm .dialog-buttons .monaco-button')) as HTMLButtonElement[];
+	}
+
+	function clickPairingConfirm(container: ParentNode): void {
+		const buttons = getPairingConfirmButtons(container);
+		assert.ok(buttons[0], 'pairing confirm button must be visible');
+		buttons[0].click();
+	}
+
+	function clickPairingCancel(container: ParentNode): void {
+		const buttons = getPairingConfirmButtons(container);
+		assert.ok(buttons[1], 'pairing cancel button must be visible');
+		buttons[1].click();
+	}
+
+	function mountPaneInPreferencesModal(
+		hubOverrides?: Partial<IUniverseAgentHubService>,
+		connectionOverrides?: Partial<IUniverseAgentConnection>,
+	): { readonly pane: ConnectionPreferencesPane; readonly modalBlock: HTMLElement } {
+		const modalBlock = document.createElement('div');
+		modalBlock.className = 'monaco-modal-editor-block';
+		modalBlock.style.overflow = 'hidden';
+		document.body.appendChild(modalBlock);
+		const pane = mountPane(hubOverrides, connectionOverrides);
+		modalBlock.appendChild(pane.getDomNode());
+		return { pane, modalBlock };
 	}
 
 	test('getConnectionTestStatusText reuses StatusBar phase copy', () => {
@@ -223,6 +252,25 @@ suite('ConnectionPreferencesPane', () => {
 			assert.ok(!isForbiddenSasButtonLabel(label), `forbidden SAS button label: ${label}`);
 		}
 		assert.ok(!isForbiddenSasButtonLabel(SAS_CONFIRM_BUTTON_LABEL));
+	});
+
+	test('SAS in-pane confirm exposes monaco-dialog-box with confirm and cancel only', async () => {
+		const host = document.createElement('div');
+		document.body.appendChild(host);
+		const flow = promptSasConfirmDialog({ prompt: async () => ({ result: false }) } as unknown as IDialogService, {
+			displayName: 'Home Engine',
+			sasCode: '0H4X-JVFQ',
+			engineIdentityId: 'abcdef0123456789',
+		}, host);
+		await Promise.resolve();
+		const dialogBox = host.querySelector('.monaco-dialog-box');
+		assert.ok(dialogBox);
+		const buttons = getPairingConfirmButtons(host);
+		assert.strictEqual(buttons.length, 2);
+		clickPairingCancel(host);
+		const result = await flow;
+		assert.strictEqual(result.confirmed, false);
+		host.remove();
 	});
 
 	test('SAS confirm button label rejects skip/trust primary actions only', () => {
@@ -426,7 +474,7 @@ suite('ConnectionPreferencesPane', () => {
 		container.remove();
 	});
 
-	test('connectProfileWithPairing records dialog throw in testStatus diagnostics', async () => {
+	test('connectProfileWithPairing records pairing prompt throw in testStatus diagnostics', async () => {
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		instantiationService.stub(IUniverseAgentHubService, createHubStub({
 			listConnectionProfiles: () => [{
@@ -447,21 +495,111 @@ suite('ConnectionPreferencesPane', () => {
 			}),
 			cancelPairing: async () => { },
 		}));
-		instantiationService.stub(IDialogService, {
-			_serviceBrand: undefined,
-			prompt: async () => {
-				throw new Error('dialog exploded');
-			},
-		} as unknown as IDialogService);
 		const pane = store.add(instantiationService.createInstance(ConnectionPreferencesPane));
 		const container = pane.getDomNode();
 		document.body.appendChild(container);
+		const brokenHost = document.createElement('div');
+		brokenHost.append = (() => {
+			throw new Error('dialog exploded');
+		}) as typeof brokenHost.append;
+		(pane as unknown as { pairingConfirmHost: HTMLElement }).pairingConfirmHost = brokenHost;
 		await (pane as unknown as { connectProfileWithPairing(profileId: string): Promise<void> }).connectProfileWithPairing('hub-profile-1');
 		const testStatus = container.querySelector('.connection-test-status') as HTMLElement;
 		assert.ok(testStatus.textContent?.includes('dialogError=dialog exploded'));
 		assert.ok(testStatus.textContent?.includes('hasSas=true'));
 		assert.ok(!testStatus.textContent?.includes('ABCD-EFGH'));
 		container.remove();
+	});
+
+	test('promptSasConfirmInPane propagates render failures', async () => {
+		const host = document.createElement('div');
+		host.append = (() => {
+			throw new Error('dialog exploded');
+		}) as typeof host.append;
+		await assert.rejects(
+			() => promptSasConfirmInPane(host, {
+				displayName: 'Studio',
+				sasCode: 'ABCD-EFGH',
+				engineIdentityId: '0123456789abcdef',
+			}),
+			/dialog exploded/,
+		);
+	});
+
+	test('connectProfileWithPairing writes diagnostics before pairing prompt resolves', async () => {
+		let resolveConnect: ((value: { ok: true; path: 'direct'; pairingPending: true; sasCode: string; engineIdentityId: string }) => void) | undefined;
+		const connectPromise = new Promise<{ ok: true; path: 'direct'; pairingPending: true; sasCode: string; engineIdentityId: string }>(resolve => {
+			resolveConnect = resolve;
+		});
+		const pane = mountPane({
+			listConnectionProfiles: () => [{
+				profileId: 'direct-profile-1',
+				displayName: 'debug-engine',
+				state: 'pairingPending',
+				hasTrust: false,
+				targetKind: 'directAddress',
+			}],
+		}, {
+			connectProfile: async () => connectPromise,
+		});
+		const container = pane.getDomNode();
+		const flow = (pane as unknown as { connectProfileWithPairing(profileId: string): Promise<void> }).connectProfileWithPairing('direct-profile-1');
+		await Promise.resolve();
+		const testStatus = container.querySelector('.connection-test-status') as HTMLElement;
+		assert.strictEqual(testStatus.textContent, 'Connecting…');
+		resolveConnect!({
+			ok: true,
+			path: 'direct',
+			pairingPending: true,
+			sasCode: 'ABCD-EFGH',
+			engineIdentityId: '0123456789abcdef',
+		});
+		await Promise.resolve();
+		await Promise.resolve();
+		assert.ok(testStatus.textContent?.includes('ok=true'));
+		assert.ok(testStatus.textContent?.includes('pairingPending=true'));
+		assert.ok(testStatus.textContent?.includes('hasSas=true'));
+		assert.ok(!testStatus.textContent?.includes('ABCD-EFGH'));
+		assert.ok(container.querySelector('.connection-pairing-confirm .monaco-dialog-box'));
+		clickPairingCancel(container);
+		await flow;
+		container.remove();
+	});
+
+	test('pairing confirm completes inside Preferences modal block', async () => {
+		let confirmCalls = 0;
+		const handshakeSas = 'ABCD-EFGH';
+		const { pane, modalBlock } = mountPaneInPreferencesModal({
+			listConnectionProfiles: () => [{
+				profileId: 'direct-profile-1',
+				displayName: 'debug-engine',
+				state: 'pairingPending',
+				hasTrust: false,
+				targetKind: 'directAddress',
+			}],
+		}, {
+			connectProfile: async () => ({
+				ok: true,
+				path: 'direct',
+				pairingPending: true,
+				sasCode: handshakeSas,
+				engineIdentityId: '0123456789abcdef',
+			}),
+			confirmPairing: async () => {
+				confirmCalls++;
+				return { ok: true, path: 'direct', pairingPending: false, sessionToken: 'tok' };
+			},
+		});
+		const container = pane.getDomNode();
+		const flow = (pane as unknown as { connectProfileWithPairing(profileId: string): Promise<void> }).connectProfileWithPairing('direct-profile-1');
+		await Promise.resolve();
+		const dialogBox = modalBlock.querySelector('.connection-pairing-confirm .monaco-dialog-box') as HTMLElement;
+		assert.ok(dialogBox);
+		assert.ok(dialogBox.textContent?.includes(handshakeSas));
+		clickPairingConfirm(container);
+		await flow;
+		assert.strictEqual(confirmCalls, 1);
+		modalBlock.remove();
 	});
 
 	test('pane has empty WorkbenchList without service-disconnected wording in welcome', () => {
@@ -775,7 +913,10 @@ suite('ConnectionPreferencesPane', () => {
 		});
 		const container = pane.getDomNode();
 		(pane as unknown as { activeProfileId: string }).activeProfileId = 'hub-profile-1';
-		await (pane as unknown as { connectProfileWithPairing(profileId: string): Promise<void> }).connectProfileWithPairing('hub-profile-1');
+		const flow = (pane as unknown as { connectProfileWithPairing(profileId: string): Promise<void> }).connectProfileWithPairing('hub-profile-1');
+		await Promise.resolve();
+		clickPairingCancel(container);
+		await flow;
 		assert.strictEqual(cancelCalls, 1);
 		container.remove();
 	});
@@ -810,10 +951,8 @@ suite('ConnectionPreferencesPane', () => {
 		}));
 		instantiationService.stub(IDialogService, {
 			_serviceBrand: undefined,
-			prompt: async (config: { detail?: string; buttons: readonly { run: () => boolean }[] }) => {
-				assert.ok(config.detail?.includes(handshakeSas));
-				assert.ok(!config.detail?.includes('directory-engine-id'));
-				return { result: config.buttons[0].run() };
+			prompt: async () => {
+				throw new Error('dialogService must not be used for pairing inside Connection pane');
 			},
 		} as unknown as IDialogService);
 
@@ -821,7 +960,13 @@ suite('ConnectionPreferencesPane', () => {
 		const container = pane.getDomNode();
 		document.body.appendChild(container);
 		(pane as unknown as { activeProfileId: string }).activeProfileId = 'hub-profile-1';
-		await (pane as unknown as { connectProfileWithPairing(profileId: string): Promise<void> }).connectProfileWithPairing('hub-profile-1');
+		const flow = (pane as unknown as { connectProfileWithPairing(profileId: string): Promise<void> }).connectProfileWithPairing('hub-profile-1');
+		await Promise.resolve();
+		const detail = container.querySelector('.connection-pairing-confirm .dialog-message-detail') as HTMLElement;
+		assert.ok(detail?.textContent?.includes(handshakeSas));
+		assert.ok(!detail?.textContent?.includes('directory-engine-id'));
+		clickPairingConfirm(container);
+		await flow;
 		assert.strictEqual(confirmCalls, 1);
 		container.remove();
 	});
@@ -863,16 +1008,19 @@ suite('ConnectionPreferencesPane', () => {
 		}));
 		instantiationService.stub(IDialogService, {
 			_serviceBrand: undefined,
-			prompt: async (config: { detail?: string; buttons: readonly { run: () => boolean }[] }) => {
-				assert.ok(config.detail?.includes(handshakeSas));
-				return { result: config.buttons[0].run() };
+			prompt: async () => {
+				throw new Error('dialogService must not be used for pairing inside Connection pane');
 			},
 		} as unknown as IDialogService);
 
 		const pane = store.add(instantiationService.createInstance(ConnectionPreferencesPane));
 		const container = pane.getDomNode();
 		document.body.appendChild(container);
-		await (pane as unknown as { connectProfileWithPairing(profileId: string): Promise<void> }).connectProfileWithPairing('direct-profile-1');
+		const flow = (pane as unknown as { connectProfileWithPairing(profileId: string): Promise<void> }).connectProfileWithPairing('direct-profile-1');
+		await Promise.resolve();
+		assert.ok(container.querySelector('.connection-pairing-confirm .dialog-message-detail')?.textContent?.includes(handshakeSas));
+		clickPairingConfirm(container);
+		await flow;
 		assert.strictEqual(confirmCalls, 1);
 		container.remove();
 	});
@@ -910,15 +1058,8 @@ suite('ConnectionPreferencesPane', () => {
 		}));
 		instantiationService.stub(IDialogService, {
 			_serviceBrand: undefined,
-			prompt: async (config: { message?: string; detail?: string; buttons: readonly { label: string; run: () => boolean }[] }) => {
-				promptedTitle = config.message;
-				promptedDetail = config.detail;
-				assert.ok(config.detail?.includes(engineId));
-				assert.ok(config.detail?.includes(leafFp));
-				assert.ok(config.detail?.includes('does not use a pairing code'));
-				assert.ok(!config.detail?.includes('ABCD-EFGH'));
-				assert.ok(config.buttons.some(b => b.label === RECOVER_TRUST_CONFIRM_BUTTON_LABEL));
-				return { result: config.buttons[0].run() };
+			prompt: async () => {
+				throw new Error('dialogService must not be used for pairing inside Connection pane');
 			},
 		} as unknown as IDialogService);
 
@@ -926,7 +1067,18 @@ suite('ConnectionPreferencesPane', () => {
 		const container = pane.getDomNode();
 		document.body.appendChild(container);
 		(pane as unknown as { activeProfileId: string }).activeProfileId = 'hub-profile-1';
-		await (pane as unknown as { connectProfileWithPairing(profileId: string): Promise<void> }).connectProfileWithPairing('hub-profile-1');
+		const flow = (pane as unknown as { connectProfileWithPairing(profileId: string): Promise<void> }).connectProfileWithPairing('hub-profile-1');
+		await Promise.resolve();
+		const dialogBox = container.querySelector('.connection-pairing-confirm .monaco-dialog-box') as HTMLElement;
+		assert.ok(dialogBox);
+		promptedTitle = dialogBox.querySelector('.dialog-message')?.textContent ?? undefined;
+		promptedDetail = dialogBox.querySelector('.dialog-message-detail')?.textContent ?? undefined;
+		assert.ok(promptedDetail?.includes(engineId));
+		assert.ok(promptedDetail?.includes(leafFp));
+		assert.ok(promptedDetail?.includes('does not use a pairing code'));
+		assert.ok(!promptedDetail?.includes('ABCD-EFGH'));
+		clickPairingConfirm(container);
+		await flow;
 		assert.strictEqual(confirmCalls, 1);
 		assert.ok(promptedTitle?.includes('Studio'));
 		assert.ok(promptedDetail);
