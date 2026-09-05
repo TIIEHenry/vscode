@@ -234,6 +234,9 @@ import type {
 	UniverseAgentDownloadChunk,
 	UniverseAgentHealthCheckResult,
 	UniverseAgentDoctorResult,
+	UniverseAgentListDevicesResult,
+	UniverseAgentListTriggersRequest,
+	UniverseAgentListTriggersResult,
 	UniverseAgentGetHistoryRequest,
 	UniverseAgentGetHistoryResult,
 	UniverseAgentListSessionsRequest,
@@ -1750,6 +1753,26 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 		return this.doctorResult;
 	}
 
+	listDevicesCalls = 0;
+	listDevicesResult: UniverseAgentListDevicesResult = {
+		devices: [],
+	};
+
+	async listDevices(): Promise<UniverseAgentListDevicesResult> {
+		this.listDevicesCalls++;
+		return this.listDevicesResult;
+	}
+
+	readonly listTriggersCalls: UniverseAgentListTriggersRequest[] = [];
+	listTriggersResult: UniverseAgentListTriggersResult = {
+		triggers: [],
+	};
+
+	async listTriggers(request: UniverseAgentListTriggersRequest): Promise<UniverseAgentListTriggersResult> {
+		this.listTriggersCalls.push(request);
+		return this.listTriggersResult;
+	}
+
 	async listModels() {
 		return { models: [] };
 	}
@@ -2266,6 +2289,16 @@ suite('UniverseAgentConnectionService', () => {
 	test('UniverseAgentGrpcServices lists System.Shutdown', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.System.Shutdown, 'Shutdown');
 		assert.strictEqual(UniverseAgentGrpcServices.System.service, 'universeagent.system.v1.SystemService');
+	});
+
+	test('UniverseAgentGrpcServices lists Device.ListDevices', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Device.ListDevices, 'ListDevices');
+		assert.strictEqual(UniverseAgentGrpcServices.Device.service, 'universeagent.device.v1.DeviceService');
+	});
+
+	test('UniverseAgentGrpcServices lists Trigger.ListTriggers', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Trigger.ListTriggers, 'ListTriggers');
+		assert.strictEqual(UniverseAgentGrpcServices.Trigger.service, 'universeagent.trigger.v1.TriggerService');
 	});
 
 	test('UniverseAgentGrpcServices lists Agent.Kill', () => {
@@ -5802,6 +5835,124 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(transport.shutdownCalls[1]?.gracePeriodMs, 0);
 		assert.strictEqual(empty.accepted, false);
 		assert.strictEqual(empty.message, '');
+		service.dispose();
+	});
+
+	test('listDevices forwards empty request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.listDevicesResult = {
+			devices: [{
+				deviceId: 'dev-1',
+				displayName: 'laptop',
+				role: 'operator',
+				platform: 'linux',
+				pairedAt: 100,
+				lastSeenAt: 200,
+				active: true,
+			}],
+		};
+		const result = await service.listDevices();
+		assert.strictEqual(transport.listDevicesCalls, 1);
+		assert.deepStrictEqual(result, transport.listDevicesResult);
+
+		transport.listDevicesResult = {
+			devices: [{
+				deviceId: '',
+				displayName: '',
+				role: '',
+				platform: '',
+				pairedAt: 0,
+				lastSeenAt: 0,
+				active: false,
+			}],
+		};
+		const empty = await service.listDevices();
+		assert.strictEqual(transport.listDevicesCalls, 2);
+		assert.strictEqual(empty.devices[0]?.deviceId, '');
+		assert.strictEqual(empty.devices[0]?.displayName, '');
+		assert.strictEqual(empty.devices[0]?.role, '');
+		assert.strictEqual(empty.devices[0]?.platform, '');
+		assert.strictEqual(empty.devices[0]?.pairedAt, 0);
+		assert.strictEqual(empty.devices[0]?.lastSeenAt, 0);
+		assert.strictEqual(empty.devices[0]?.active, false);
+		service.dispose();
+	});
+
+	test('listTriggers forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.listTriggersResult = {
+			triggers: [{
+				triggerId: 'trg-1',
+				name: 'nightly',
+				type: 'schedule',
+				promptTemplate: 'run',
+				enabled: true,
+				pauseReason: 'paused',
+				target: { kind: 'boundSession', sessionId: 'sess-1' },
+				intervalMs: 60_000,
+				cronExpression: '0 * * * *',
+				runAtEpochMs: 1,
+			}],
+		};
+		const request = {
+			scope: 'session',
+			scopeId: 'sess-1',
+			typeFilter: 'schedule',
+		};
+		const result = await service.listTriggers(request);
+		assert.deepStrictEqual(transport.listTriggersCalls, [request]);
+		assert.deepStrictEqual(result, transport.listTriggersResult);
+
+		transport.listTriggersResult = {
+			triggers: [{
+				triggerId: '',
+				name: '',
+				type: '',
+				promptTemplate: '',
+				enabled: false,
+				pauseReason: '',
+				target: { kind: 'newSession', engineProfileId: '' },
+				intervalMs: 0,
+				cronExpression: '',
+				runAtEpochMs: 0,
+			}],
+		};
+		const emptyRequest = {
+			scope: '',
+			scopeId: '',
+			typeFilter: '',
+		};
+		const empty = await service.listTriggers(emptyRequest);
+		assert.strictEqual(transport.listTriggersCalls[1]?.scope, '');
+		assert.strictEqual(transport.listTriggersCalls[1]?.scopeId, '');
+		assert.strictEqual(transport.listTriggersCalls[1]?.typeFilter, '');
+		assert.strictEqual(empty.triggers[0]?.triggerId, '');
+		assert.strictEqual(empty.triggers[0]?.name, '');
+		assert.strictEqual(empty.triggers[0]?.type, '');
+		assert.strictEqual(empty.triggers[0]?.promptTemplate, '');
+		assert.strictEqual(empty.triggers[0]?.pauseReason, '');
+		assert.strictEqual(empty.triggers[0]?.cronExpression, '');
+		assert.strictEqual(empty.triggers[0]?.enabled, false);
+		assert.strictEqual(empty.triggers[0]?.intervalMs, 0);
+		assert.strictEqual(empty.triggers[0]?.runAtEpochMs, 0);
+		assert.deepStrictEqual(empty.triggers[0]?.target, { kind: 'newSession', engineProfileId: '' });
+
+		transport.listTriggersResult = { triggers: [] };
+		const emptyLists = await service.listTriggers(emptyRequest);
+		assert.strictEqual(transport.listTriggersCalls[2]?.scope, '');
+		assert.strictEqual(transport.listTriggersCalls[2]?.scopeId, '');
+		assert.strictEqual(transport.listTriggersCalls[2]?.typeFilter, '');
+		assert.deepStrictEqual(emptyLists.triggers, []);
 		service.dispose();
 	});
 

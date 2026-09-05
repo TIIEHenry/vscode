@@ -261,6 +261,9 @@ import type {
 	UniverseAgentDoctorResult,
 	UniverseAgentShutdownRequest,
 	UniverseAgentShutdownResult,
+	UniverseAgentListDevicesResult,
+	UniverseAgentListTriggersRequest,
+	UniverseAgentListTriggersResult,
 	UniverseAgentSetPermissionPolicyRequest,
 	UniverseAgentSetPermissionPolicyResult,
 	UniverseAgentListModelsResult,
@@ -1510,6 +1513,30 @@ export interface IUniverseAgentConnection {
 	 * ≠ Connect / GetAuthNonce / HealthCheck / Doctor.
 	 */
 	shutdown?(request: UniverseAgentShutdownRequest): Promise<UniverseAgentShutdownResult>;
+	/**
+	 * DeviceService.ListDevices unary. Optional so Web / tests can omit it.
+	 * Catalog + node transport only this slice; empty request `{}`. Empty
+	 * `device_id` / `display_name` / `role` / `platform` mapped as-is.
+	 * `paired_at` / `last_seen_at` 0 mapped as-is. `active` false mapped
+	 * as-is. Proto fields only (`ListDevicesRequest` /
+	 * `ListDevicesResponse` + `DeviceInfo`). No Conversation roster / UI /
+	 * Engine Preferences / Composer.
+	 * ≠ PairApprove / PairReject / Revoke / RotateToken / ListPending.
+	 */
+	listDevices?(): Promise<UniverseAgentListDevicesResult>;
+	/**
+	 * TriggerService.ListTriggers unary. Optional so Web / tests can omit
+	 * it. Catalog + node transport only this slice; empty `scope` /
+	 * `scopeId` / `typeFilter` are sent as-is. Empty `triggerId` / `name` /
+	 * `type` / `promptTemplate` / `pauseReason` / `cronExpression` mapped
+	 * as-is. `enabled` false mapped as-is. `intervalMs` / `runAtEpochMs` 0
+	 * mapped as-is. Proto fields only (`ListTriggersRequest` /
+	 * `ListTriggersResponse` + `TriggerDto` / `DeliveryTargetDto`). No
+	 * Conversation roster / UI / Engine Preferences / Composer.
+	 * ≠ UpsertTrigger / DeleteTrigger / SetTriggerEnabled / FireTrigger /
+	 * AgentService.FireTriggerWebhook / DeviceService.
+	 */
+	listTriggers?(request: UniverseAgentListTriggersRequest): Promise<UniverseAgentListTriggersResult>;
 
 	/**
 	 * ConfigService.SetPermissionPolicy unary (session/tool Ask/Agent/Permit

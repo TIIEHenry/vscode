@@ -332,6 +332,12 @@ import type {
 	UniverseAgentDoctorResult,
 	UniverseAgentShutdownRequest,
 	UniverseAgentShutdownResult,
+	UniverseAgentDeviceInfo,
+	UniverseAgentListDevicesResult,
+	UniverseAgentListTriggersRequest,
+	UniverseAgentListTriggersResult,
+	UniverseAgentTrigger,
+	UniverseAgentTriggerDeliveryTarget,
 	UniverseAgentListModelsResult,
 	UniverseAgentGetConfigRequest,
 	UniverseAgentGetConfigResult,
@@ -3340,6 +3346,109 @@ function mapDoctorResponse(wire: DoctorResponseWire): UniverseAgentDoctorResult 
 	};
 }
 
+interface DeviceInfoWire {
+	device_id?: string;
+	display_name?: string;
+	role?: string;
+	platform?: string;
+	paired_at?: number | string;
+	last_seen_at?: number | string;
+	active?: boolean;
+}
+
+interface ListDevicesResponseWire {
+	devices?: DeviceInfoWire[];
+}
+
+function mapDeviceInfo(wire: DeviceInfoWire): UniverseAgentDeviceInfo {
+	return {
+		deviceId: wire.device_id ?? '',
+		displayName: wire.display_name ?? '',
+		role: wire.role ?? '',
+		platform: wire.platform ?? '',
+		pairedAt: requiredInt64(wire.paired_at),
+		lastSeenAt: requiredInt64(wire.last_seen_at),
+		active: wire.active === true,
+	};
+}
+
+function mapListDevicesResponse(wire: ListDevicesResponseWire): UniverseAgentListDevicesResult {
+	return {
+		devices: (wire.devices ?? []).map(mapDeviceInfo),
+	};
+}
+
+interface BoundSessionTargetWire {
+	session_id?: string;
+}
+
+interface NewSessionTargetWire {
+	engine_profile_id?: string;
+}
+
+interface DeliveryTargetDtoWire {
+	self?: Record<string, unknown>;
+	bound_session?: BoundSessionTargetWire;
+	new_session?: NewSessionTargetWire;
+}
+
+interface TriggerDtoWire {
+	trigger_id?: string;
+	name?: string;
+	type?: string;
+	prompt_template?: string;
+	enabled?: boolean;
+	pause_reason?: string;
+	target?: DeliveryTargetDtoWire;
+	interval_ms?: number | string;
+	cron_expression?: string;
+	run_at_epoch_ms?: number | string;
+}
+
+interface ListTriggersResponseWire {
+	triggers?: TriggerDtoWire[];
+}
+
+function mapDeliveryTarget(wire: DeliveryTargetDtoWire | undefined): UniverseAgentTriggerDeliveryTarget {
+	if (wire?.self !== undefined && wire.self !== null) {
+		return { kind: 'self' };
+	}
+	if (wire?.bound_session !== undefined && wire.bound_session !== null) {
+		return {
+			kind: 'boundSession',
+			sessionId: wire.bound_session.session_id ?? '',
+		};
+	}
+	if (wire?.new_session !== undefined && wire.new_session !== null) {
+		return {
+			kind: 'newSession',
+			engineProfileId: wire.new_session.engine_profile_id ?? '',
+		};
+	}
+	return { kind: 'unspecified' };
+}
+
+function mapTriggerDto(wire: TriggerDtoWire): UniverseAgentTrigger {
+	return {
+		triggerId: wire.trigger_id ?? '',
+		name: wire.name ?? '',
+		type: wire.type ?? '',
+		promptTemplate: wire.prompt_template ?? '',
+		enabled: wire.enabled === true,
+		pauseReason: wire.pause_reason ?? '',
+		target: mapDeliveryTarget(wire.target),
+		intervalMs: requiredInt64(wire.interval_ms),
+		cronExpression: wire.cron_expression ?? '',
+		runAtEpochMs: requiredInt64(wire.run_at_epoch_ms),
+	};
+}
+
+function mapListTriggersResponse(wire: ListTriggersResponseWire): UniverseAgentListTriggersResult {
+	return {
+		triggers: (wire.triggers ?? []).map(mapTriggerDto),
+	};
+}
+
 interface ListModelsResponseWire {
 	models?: Array<{
 		id?: string;
@@ -5602,6 +5711,30 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 		);
 		const wire = await unary({});
 		return mapDoctorResponse(wire);
+	}
+
+	async listDevices(): Promise<UniverseAgentListDevicesResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, ListDevicesResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.Device.service,
+			UniverseAgentGrpcServices.Device.ListDevices,
+		);
+		const wire = await unary({});
+		return mapListDevicesResponse(wire);
+	}
+
+	async listTriggers(request: UniverseAgentListTriggersRequest): Promise<UniverseAgentListTriggersResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, ListTriggersResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.Trigger.service,
+			UniverseAgentGrpcServices.Trigger.ListTriggers,
+		);
+		const wire = await unary({
+			scope: request.scope,
+			scope_id: request.scopeId,
+			type_filter: request.typeFilter,
+		});
+		return mapListTriggersResponse(wire);
 	}
 
 	async setPermissionPolicy(request: UniverseAgentSetPermissionPolicyRequest): Promise<UniverseAgentSetPermissionPolicyResult> {

@@ -2532,6 +2532,69 @@ export interface UniverseAgentShutdownResult {
 }
 
 /**
+ * DeviceService.ListDevices — proto `ListDevicesRequest` /
+ * `ListDevicesResponse` + `DeviceInfo` only. Empty request `{}`.
+ * Empty `device_id` / `display_name` / `role` / `platform` mapped as-is.
+ * `paired_at` / `last_seen_at` 0 mapped as-is. `active` false mapped as-is.
+ * ≠ PairApprove / PairReject / Revoke / RotateToken / ListPending.
+ */
+export interface UniverseAgentDeviceInfo {
+	readonly deviceId: string;
+	readonly displayName: string;
+	readonly role: string;
+	readonly platform: string;
+	readonly pairedAt: number;
+	readonly lastSeenAt: number;
+	readonly active: boolean;
+}
+
+export interface UniverseAgentListDevicesResult {
+	readonly devices: readonly UniverseAgentDeviceInfo[];
+}
+
+/**
+ * TriggerService.ListTriggers — proto `ListTriggersRequest` /
+ * `ListTriggersResponse` + `TriggerDto` / `DeliveryTargetDto` only.
+ * Empty `scope` / `scope_id` / `type_filter` pass through as-is.
+ * Empty `trigger_id` / `name` / `type` / `prompt_template` /
+ * `pause_reason` / `cron_expression` mapped as-is. `enabled` false
+ * mapped as-is. `interval_ms` / `run_at_epoch_ms` 0 mapped as-is.
+ * Delivery oneof `self` / `bound_session` / `new_session`; empty
+ * `session_id` / `engine_profile_id` mapped as-is.
+ * ≠ UpsertTrigger / DeleteTrigger / SetTriggerEnabled / FireTrigger /
+ * AgentService.FireTriggerWebhook / DeviceService.
+ */
+export interface UniverseAgentListTriggersRequest {
+	readonly scope: string;
+	readonly scopeId: string;
+	/** Proto optional `type_filter`. Empty sent as-is. */
+	readonly typeFilter: string;
+}
+
+export type UniverseAgentTriggerDeliveryTarget =
+	| { readonly kind: 'self' }
+	| { readonly kind: 'boundSession'; readonly sessionId: string }
+	| { readonly kind: 'newSession'; readonly engineProfileId: string }
+	| { readonly kind: 'unspecified' };
+
+export interface UniverseAgentTrigger {
+	readonly triggerId: string;
+	readonly name: string;
+	readonly type: string;
+	readonly promptTemplate: string;
+	readonly enabled: boolean;
+	readonly pauseReason: string;
+	readonly target: UniverseAgentTriggerDeliveryTarget;
+	readonly intervalMs: number;
+	readonly cronExpression: string;
+	readonly runAtEpochMs: number;
+}
+
+export interface UniverseAgentListTriggersResult {
+	readonly triggers: readonly UniverseAgentTrigger[];
+}
+
+/**
  * ConfigService.SetPermissionPolicy — session/tool policy write
  * (≠ SwitchModel / ListModels / Get / Set / GetModelPreferences /
  * SetModelPreferences / SetPermissionMode).

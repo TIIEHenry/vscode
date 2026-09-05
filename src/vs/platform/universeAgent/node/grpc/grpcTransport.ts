@@ -256,6 +256,9 @@ import type {
 	UniverseAgentDoctorResult,
 	UniverseAgentShutdownRequest,
 	UniverseAgentShutdownResult,
+	UniverseAgentListDevicesResult,
+	UniverseAgentListTriggersRequest,
+	UniverseAgentListTriggersResult,
 	UniverseAgentSetPermissionPolicyRequest,
 	UniverseAgentSetPermissionPolicyResult,
 	UniverseAgentListModelsResult,
@@ -737,6 +740,11 @@ export interface IUniverseAgentGrpcTransport {
 	doctor(): Promise<UniverseAgentDoctorResult>;
 	/** SystemService.Shutdown unary (snake_case `force`/`grace_period_ms`). Empty message mapped as-is. */
 	shutdown(request: UniverseAgentShutdownRequest): Promise<UniverseAgentShutdownResult>;
+	/** DeviceService.ListDevices unary (empty request `{}`). Empty device_id mapped as-is. */
+	listDevices(): Promise<UniverseAgentListDevicesResult>;
+
+	/** TriggerService.ListTriggers unary (snake_case `scope`/`scope_id`/`type_filter`). Empty ids sent as-is. */
+	listTriggers(request: UniverseAgentListTriggersRequest): Promise<UniverseAgentListTriggersResult>;
 
 	/** ConfigService.SetPermissionPolicy unary (snake_case `session_id`/`tool_name`/`policy`). Empty ids sent as-is. */
 	setPermissionPolicy(request: UniverseAgentSetPermissionPolicyRequest): Promise<UniverseAgentSetPermissionPolicyResult>;
@@ -978,6 +986,14 @@ export const UniverseAgentGrpcServices = {
 		GetUploadProgress: 'GetUploadProgress',
 		UploadAttachment: 'UploadAttachment',
 		DownloadAttachment: 'DownloadAttachment',
+	},
+	Device: {
+		service: 'universeagent.device.v1.DeviceService',
+		ListDevices: 'ListDevices',
+	},
+	Trigger: {
+		service: 'universeagent.trigger.v1.TriggerService',
+		ListTriggers: 'ListTriggers',
 	},
 } as const;
 

@@ -264,6 +264,9 @@ import type {
 	UniverseAgentDoctorResult,
 	UniverseAgentShutdownRequest,
 	UniverseAgentShutdownResult,
+	UniverseAgentListDevicesResult,
+	UniverseAgentListTriggersRequest,
+	UniverseAgentListTriggersResult,
 	UniverseAgentSetPermissionPolicyRequest,
 	UniverseAgentSetPermissionPolicyResult,
 	UniverseAgentListModelsResult,
@@ -1468,6 +1471,14 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 
 	async shutdown(request: UniverseAgentShutdownRequest): Promise<UniverseAgentShutdownResult> {
 		return this._withTransport(transport => transport.shutdown(request));
+	}
+
+	async listDevices(): Promise<UniverseAgentListDevicesResult> {
+		return this._withTransport(transport => transport.listDevices());
+	}
+
+	async listTriggers(request: UniverseAgentListTriggersRequest): Promise<UniverseAgentListTriggersResult> {
+		return this._withTransport(transport => transport.listTriggers(request));
 	}
 
 	async setPermissionPolicy(request: UniverseAgentSetPermissionPolicyRequest): Promise<UniverseAgentSetPermissionPolicyResult> {
