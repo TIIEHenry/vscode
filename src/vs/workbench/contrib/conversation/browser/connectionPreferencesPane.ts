@@ -29,6 +29,10 @@ import {
 	formatConnectionPendingPairLabel,
 } from './connectionDevicePair.js';
 import {
+	canSendConnectionDeviceRevokeRequest,
+	connectionDeviceRevokeIds,
+} from './connectionDeviceRevoke.js';
+import {
 	canConnectHubDevice,
 	getConnectionPhasePaneLabel,
 	getHubAuthStatusLabel,
@@ -838,6 +842,24 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 			primaryButton: localize('ua.connectionRevokeDeviceConfirm', "Revoke"),
 		});
 		if (!confirm.confirmed) {
+			return;
+		}
+		const revokeHook = this.connectionService.revoke;
+		if (canSendConnectionDeviceRevokeRequest(this.connectionService.isEngineConnected(), typeof revokeHook === 'function') && revokeHook) {
+			const request = connectionDeviceRevokeIds(device.id);
+			try {
+				const result = await revokeHook.call(this.connectionService, request);
+				this.hubDirectoryBanner.textContent = result.message;
+				this.hubDirectoryBanner.style.display = '';
+				if (result.success) {
+					await this.hubService.refreshDirectory();
+					this.renderProfiles();
+				}
+			} catch (error) {
+				const reason = error instanceof Error && error.message ? error.message : String(error);
+				this.hubDirectoryBanner.textContent = reason;
+				this.hubDirectoryBanner.style.display = '';
+			}
 			return;
 		}
 		const result = await this.hubService.revokeDevice(device.id);

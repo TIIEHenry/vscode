@@ -1947,10 +1947,12 @@ export interface IUniverseAgentConnection {
 	pairReject?(request: UniverseAgentPairRejectRequest): Promise<UniverseAgentPairRejectResult>;
 	/**
 	 * DeviceService.Revoke unary. Optional so Web / tests can omit it.
-	 * Catalog + node transport only this slice; empty `deviceId` is sent
-	 * as-is. Empty `message` mapped as-is. `success` false mapped as-is.
-	 * Proto fields only (`RevokeDeviceRequest` / `RevokeDeviceResponse`).
-	 * No Conversation roster / UI / Engine Preferences / Composer.
+	 * Connection Devices Revoke forwards when connected + hook; empty
+	 * `deviceId` is sent as-is. Empty `message` mapped as-is.
+	 * `success` false mapped as-is. Proto fields only
+	 * (`RevokeDeviceRequest` / `RevokeDeviceResponse`). Disconnected /
+	 * no hook still use Hub revokeDevice. No Conversation roster /
+	 * SessionBar / Engine Preferences / Composer.
 	 * ≠ ListDevices / PairApprove / PairReject / RotateToken / ListPending /
 	 * Hub revokeDevice.
 	 */
