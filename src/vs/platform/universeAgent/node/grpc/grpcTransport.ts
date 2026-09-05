@@ -257,6 +257,8 @@ import type {
 	UniverseAgentConnectionReport,
 	UniverseAgentSetMaintenanceRequest,
 	UniverseAgentSetMaintenanceResult,
+	UniverseAgentExitMaintenanceRequest,
+	UniverseAgentExitMaintenanceResult,
 	UniverseAgentListConfigsResult,
 	UniverseAgentGetRemoteAgentConfigRequest,
 	UniverseAgentRemoteAgentConfig,
@@ -776,6 +778,8 @@ export interface IUniverseAgentGrpcTransport {
 
 	/** RemoteAgentService.SetMaintenance unary (snake_case `node_id`). Empty ids sent as-is. */
 	setMaintenance(request: UniverseAgentSetMaintenanceRequest): Promise<UniverseAgentSetMaintenanceResult>;
+	/** RemoteAgentService.ExitMaintenance unary (snake_case `node_id`). Empty ids sent as-is. */
+	exitMaintenance(request: UniverseAgentExitMaintenanceRequest): Promise<UniverseAgentExitMaintenanceResult>;
 	/** RemoteAgentService.ListConfigs unary (empty request `{}`). Empty ids mapped as-is. */
 	listConfigs(): Promise<UniverseAgentListConfigsResult>;
 
@@ -1111,6 +1115,7 @@ export const UniverseAgentGrpcServices = {
 		GetNode: 'GetNode',
 		CheckConnection: 'CheckConnection',
 		SetMaintenance: 'SetMaintenance',
+		ExitMaintenance: 'ExitMaintenance',
 		ListConfigs: 'ListConfigs',
 		GetConfig: 'GetConfig',
 	},

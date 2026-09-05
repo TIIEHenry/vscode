@@ -345,6 +345,8 @@ import type {
 	UniverseAgentConnectionReport,
 	UniverseAgentSetMaintenanceRequest,
 	UniverseAgentSetMaintenanceResult,
+	UniverseAgentExitMaintenanceRequest,
+	UniverseAgentExitMaintenanceResult,
 	UniverseAgentValidationError,
 	UniverseAgentContextVariableEntrySummary,
 	UniverseAgentContextVariableScope,
@@ -3625,6 +3627,16 @@ function mapSetMaintenanceResponse(wire: SetMaintenanceResponseWire): UniverseAg
 		success: wire.success === true,
 	};
 }
+
+interface ExitMaintenanceResponseWire {
+	success?: boolean;
+}
+
+function mapExitMaintenanceResponse(wire: ExitMaintenanceResponseWire): UniverseAgentExitMaintenanceResult {
+	return {
+		success: wire.success === true,
+	};
+}
 interface RemoteAgentEndpointWire {
 	host?: string;
 	port?: number | string;
@@ -6598,6 +6610,18 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			node_id: request.nodeId,
 		});
 		return mapSetMaintenanceResponse(wire);
+	}
+
+	async exitMaintenance(request: UniverseAgentExitMaintenanceRequest): Promise<UniverseAgentExitMaintenanceResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, ExitMaintenanceResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.RemoteAgent.service,
+			UniverseAgentGrpcServices.RemoteAgent.ExitMaintenance,
+		);
+		const wire = await unary({
+			node_id: request.nodeId,
+		});
+		return mapExitMaintenanceResponse(wire);
 	}
 
 	async listConfigs(): Promise<UniverseAgentListConfigsResult> {

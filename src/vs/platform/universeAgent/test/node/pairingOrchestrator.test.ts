@@ -676,6 +676,9 @@ class RecordingMockTransport implements IUniverseAgentGrpcTransport {
 	async setMaintenance() {
 		return { success: false };
 	}
+	async exitMaintenance() {
+		return { success: false };
+	}
 	async listConfigs() {
 		return { configs: [] };
 	}

@@ -262,6 +262,8 @@ import type {
 	UniverseAgentConnectionReport,
 	UniverseAgentSetMaintenanceRequest,
 	UniverseAgentSetMaintenanceResult,
+	UniverseAgentExitMaintenanceRequest,
+	UniverseAgentExitMaintenanceResult,
 	UniverseAgentListConfigsResult,
 	UniverseAgentGetRemoteAgentConfigRequest,
 	UniverseAgentRemoteAgentConfig,
@@ -1559,6 +1561,17 @@ export interface IUniverseAgentConnection {
 	 * ResetError / ListConfigs / GetConfig / DeviceService.
 	 */
 	setMaintenance?(request: UniverseAgentSetMaintenanceRequest): Promise<UniverseAgentSetMaintenanceResult>;
+
+	/**
+	 * RemoteAgentService.ExitMaintenance unary. Optional so Web / tests
+	 * can omit it. Catalog + node transport only this slice; empty
+	 * `nodeId` is sent as-is. `success` false mapped as-is. Proto fields
+	 * only (`ExitMaintenanceRequest` / `ExitMaintenanceResponse`).
+	 * No Conversation roster / UI / Engine Preferences / Composer.
+	 * ≠ SetMaintenance / ResetError / ListNodes / GetNode /
+	 * CheckConnection / ListConfigs / GetConfig / DeviceService.
+	 */
+	exitMaintenance?(request: UniverseAgentExitMaintenanceRequest): Promise<UniverseAgentExitMaintenanceResult>;
 
 	/**
 	 * RemoteAgentService.ListConfigs unary. Optional so Web / tests can omit
