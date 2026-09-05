@@ -460,7 +460,10 @@ export function updateGateRow(host: IConversationLensComposerChromeHost): void {
 		}
 		const connected = host.stubService.isEngineConnected();
 		host.gateRow.hidden = connected;
-		if (!connected) {
+		if (connected) {
+			host.gateLabel.textContent = '';
+			host.gateRow.removeAttribute('aria-label');
+		} else {
 			host.gateLabel.textContent = conversationLensDockEngineNotConnected;
 			host.gateRow.setAttribute('aria-label', conversationLensDockEngineNotConnected);
 		}

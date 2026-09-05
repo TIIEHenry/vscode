@@ -23,6 +23,7 @@ import {
 	type SessionViewSnapshot,
 } from '../../../../platform/universeAgent/common/sessionView/index.js';
 import { type ConversationSessionViewProjection } from '../../../contrib/conversation/browser/conversationSessionView.js';
+import { normalizeSessionViewFrameApplied } from '../../../contrib/conversation/browser/conversationSessionViewFrameCoalescer.js';
 
 /**
  * Engine-backed frame source (stream-timeline S4): proxies lease + frames from
@@ -185,7 +186,7 @@ class EngineSessionViewLease extends Disposable implements IConversationSessionV
 				this._details.delete(patch.ref);
 			}
 		}
-		this._onDidApplyFrame.fire(applied);
+		this._onDidApplyFrame.fire(normalizeSessionViewFrameApplied(applied));
 		if (this.leaseId) {
 			void this.sessionView.acknowledge(this.leaseId, {
 				generation: this.cursor.generation,
