@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-06
-summary: "握手已 protobuf；Create 写 client_session_id；List 失败与空列表分开；其余 JSON 见 D24"
+summary: "loop/merge @ bc1370cb05d：Direct 接通已复证；Create 单飞+Resume 门面已合；Chat 仍被引擎空壳 ALREADY_EXISTS 挡住"
 ---
 
 # Development Progress
@@ -13,7 +13,7 @@ summary: "握手已 protobuf；Create 写 client_session_id；List 失败与空�
 
 ## Current Session
 
-### 已合入（`agent-ide` / `loop/merge` tip `f1568462a5f`）
+### 已合入（`loop/merge` tip `bc1370cb05d`，未 push）
 
 | 切片 | 提交 / 落点 |
 |:-----|:------------|
@@ -39,30 +39,25 @@ summary: "握手已 protobuf；Create 写 client_session_id；List 失败与空�
 | **first-send Active** | `b818fbf6bcf` 首条 pending 即离 PreFirst；未连不锁发送。相位切换后重测阅读列，PreFirst 不再 `layout(0)` monaco 树 |
 | **inbox list XOR** | 切换 Task/Queue 时先关旧 `context-view` 再设 `openPanel`，避免 `aria-pressed` 被 onHide 清掉；透镜测 20ms flush 对齐帧合并，queue hold 后重开列表看 tag |
 | **renderer IPC sync** | `UniverseAgentConnectionChannelClient` / Hub Client 缓存 phase·snapshot·profiles；状态栏按 `phase.kind` 开 Connection；Engine 节空能力矩阵不崩。未升 PRD-008（仍缺接通证据） |
-| **handshake protobuf** | `GetAuthNonce` / DeviceAuth `Connect` 改 proto3 二进制（不再 `JSON.stringify`）。钉死引擎已收合法请求并进入 pairing；SAS 确认框未弹。未升 PRD-008 |
+| **handshake protobuf** | `GetAuthNonce` / DeviceAuth `Connect` 改 proto3 二进制。pane 内 SAS / recoverTrust 后状态栏 **`Engine · Direct`** 已复证。未升 PRD-008 |
+| **session bind 波** | Create 写 `client_session_id` field 4；按 id 单飞；Channel Client 显式 `resumeSession`；roster 不再第二发 Create；ghost/bind 失败应显式占位。E2E（`bc1370cb05d`）：接通 PASS；引擎仍 0 Resume / Create `ALREADY_EXISTS`（空壳 `session_meta`）；UI 仍见 `New session`；无 Chat。见 [D26](deferred-gaps.md) |
 
-并行 catalog/UI 绑定波（A–D 槽）已合入 tip；逐条流水见 [归档](../archive/status-current-session-slot-catalog-2026-09-05.md)，不在本账复述。
-
-八份治理方案签收与 Wave 排期见 [看板](../parallel/active/verification-governance-plans.md)。钉死调试引擎：[debug-engine](../../docs/guides/debug-engine.md)。
+并行 catalog/UI 绑定波流水见 [归档](../archive/status-current-session-slot-catalog-2026-09-05.md)。钉死调试引擎：[debug-engine](../../docs/guides/debug-engine.md)。
 
 ### 进行中
 
-HistoryFill 已合入 merge。剩余：宿主全局 `onDidApplyFrame` 整刀删、断连列顶/Send、`heartbeat_ack` 行为测。U1 已合；**U2 未开**。
+Direct 接通已通。Chat 仍被引擎空壳 Create（目录在、`session_meta` 空、回 6）挡住；不要再清 `.sessions` 当主线。剩余：Resume 活路径复证、bind-failed 文案、catalog Model/Agent、`onDidApplyFrame` / `heartbeat_ack`。**U2 未开**。**PRD-008 不升 `implemented`**。
 
-**B 槽 catalog / ALREADY_EXISTS**：`createSession` 在 connection service **与** grpc client 遇 `ALREADY_EXISTS` 均 List+Resume；Create 编码稳定 `client_session_id`（field 4，本地 session id，缺省生成）。List transport/query 失败不再当成空列表去 Resume。`listSessions` 默认 `SESSION_LIST_FILTER_ALL`。`listTools` 与其余 JSON → [D24](deferred-gaps.md)。
-
-**D 槽 pairing IPC**：`connectProfile` 进入 pairing 先返回 `{ok, pairingPending, sasCode|recoverTrust}`（Connect 超时走 recoverTrust）；桌面 capability 剥离 Web stub reason；probe 的 `pairing_required` 改为「走 Connect 配对」。E2E 仍待 A 合入确认框。
-
-## 工位表（与 `git worktree list` 对照 · 2026-09-05）
+## 工位表（与 `git worktree list` 对照 · 2026-09-06）
 
 | 槽 | 路径 | 分支 | tip | 状态 |
 |----|------|------|-----|:-----|
-| merge | `vscode-WorkTrees/merge` | `loop/merge` | `f1568462a5f` | 与 agent-ide 对齐（未 push）；renderer IPC 修在 agent-ide 待合 |
-| A | `vscode-WorkTrees/A` | `loop/A` | `f1568462a5f` | idle |
-| B | `vscode-WorkTrees/B` | `loop/B` | `f1568462a5f` | idle |
-| C | `vscode-WorkTrees/C` | `loop/C` | `f1568462a5f` | idle |
-| D | `vscode-WorkTrees/D` | `loop/D` | `f1568462a5f` | idle |
-| edit | `Projects/Agents/vscode` | `agent-ide` | `f1568462a5f`+WIP | renderer Channel Client 本提交 |
+| merge | `vscode-WorkTrees/merge` | `loop/merge` | `bc1370cb05d` | 本波已合入（未 push） |
+| A | `vscode-WorkTrees/A` | `loop/A` | 对齐 merge | idle |
+| B | `vscode-WorkTrees/B` | `loop/B` | 对齐 merge | idle |
+| C | `vscode-WorkTrees/C` | `loop/C` | 对齐 merge | idle |
+| D | `vscode-WorkTrees/D` | `loop/D` | 对齐 merge | idle |
+| edit | `Projects/Agents/vscode` | `agent-ide` | `a37916b6ab6`+CSS WIP | 请人类自行对齐；loop 不代同步 |
 
 ## Blockers
 
@@ -72,6 +67,7 @@ HistoryFill 已合入 merge。剩余：宿主全局 `onDidApplyFrame` 整刀删�
 
 | 项 | 指针 |
 |:---|:-----|
+| **引擎空壳 Create** | [D26](deferred-gaps.md) — 空 store 首次 Create 仍 `ALREADY_EXISTS` 且不写 meta；不要再清 store |
 | **test-baseline 切片 0** | [test-baseline-ci](../plans/test-baseline-ci.md) — D16 账本需先 `npm run compile` 产出 `out/` 再跑三文件单测 |
 | **U2 闸门** | [ADR-007](../decisions/007-upstream-sync.md) Decision 5 — 须 U0 `comm` 空 + U1 完成 + CI 绿 + merge 独占 + A 表冻结；**未满足前不开 U2** |
 
