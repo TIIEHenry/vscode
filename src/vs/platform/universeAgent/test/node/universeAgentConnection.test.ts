@@ -234,6 +234,8 @@ import type {
 	UniverseAgentListNodesResult,
 	UniverseAgentGetNodeRequest,
 	UniverseAgentRemoteAgentInfo,
+	UniverseAgentCheckConnectionRequest,
+	UniverseAgentConnectionReport,
 	UniverseAgentGetUploadProgressRequest,
 	UniverseAgentGetUploadProgressResult,
 	UniverseAgentShutdownRequest,
@@ -1784,6 +1786,34 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 		return this.getNodeResult;
 	}
 
+	readonly checkConnectionCalls: UniverseAgentCheckConnectionRequest[] = [];
+	checkConnectionResult: UniverseAgentConnectionReport = {
+		reachable: false,
+		authenticated: false,
+		canCreateSession: false,
+		latencyMs: 0,
+		capabilities: {
+			models: [],
+			tools: [],
+			modes: [],
+			serverVersion: '',
+			protocolVersion: '',
+			properties: {},
+		},
+		errors: [],
+		load: {
+			activeSessions: 0,
+			queueDepth: 0,
+			cpuPercent: 0,
+			memoryUsedMb: 0,
+		},
+	};
+
+	async checkConnection(request: UniverseAgentCheckConnectionRequest): Promise<UniverseAgentConnectionReport> {
+		this.checkConnectionCalls.push(request);
+		return this.checkConnectionResult;
+	}
+
 	readonly getUploadProgressCalls: UniverseAgentGetUploadProgressRequest[] = [];
 	getUploadProgressResult: UniverseAgentGetUploadProgressResult = {
 		exists: false,
@@ -2540,6 +2570,11 @@ suite('UniverseAgentConnectionService', () => {
 
 	test('UniverseAgentGrpcServices lists RemoteAgent.GetNode', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.RemoteAgent.GetNode, 'GetNode');
+		assert.strictEqual(UniverseAgentGrpcServices.RemoteAgent.service, 'universeagent.remoteagent.v1.RemoteAgentService');
+	});
+
+	test('UniverseAgentGrpcServices lists RemoteAgent.CheckConnection', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.RemoteAgent.CheckConnection, 'CheckConnection');
 		assert.strictEqual(UniverseAgentGrpcServices.RemoteAgent.service, 'universeagent.remoteagent.v1.RemoteAgentService');
 	});
 
@@ -6367,6 +6402,128 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(empty.capabilities.properties[''], '');
 		assert.strictEqual(empty.load.activeSessions, 0);
 		assert.strictEqual(empty.lastHeartbeatAt, 0);
+		service.dispose();
+	});
+
+	test('checkConnection forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.checkConnectionResult = {
+			reachable: true,
+			authenticated: true,
+			canCreateSession: true,
+			latencyMs: 42,
+			capabilities: {
+				models: [{
+					id: 'gpt',
+					name: 'GPT',
+					provider: 'openai',
+					maxTokens: 8192,
+					enabled: true,
+				}],
+				tools: ['read'],
+				modes: ['agent'],
+				serverVersion: '1.0',
+				protocolVersion: 'v1',
+				properties: { region: 'cn' },
+			},
+			errors: [{
+				code: 'CONNECT_TIMEOUT',
+				field: 'endpoint',
+				message: 'timeout',
+				suggestion: 'retry',
+			}],
+			load: {
+				activeSessions: 2,
+				queueDepth: 1,
+				cpuPercent: 10,
+				memoryUsedMb: 256,
+			},
+		};
+		const request = {
+			nodeId: 'node-1',
+			sessionParams: {
+				preferredModel: 'gpt',
+				requiredTools: ['read'],
+				mode: 'agent',
+				maxTokens: 4096,
+				maxTurns: 8,
+				systemPromptSuffix: 'be brief',
+				maxExecutionTimeMs: 30_000,
+			},
+		};
+		const result = await service.checkConnection(request);
+		assert.deepStrictEqual(transport.checkConnectionCalls, [request]);
+		assert.deepStrictEqual(result, transport.checkConnectionResult);
+
+		transport.checkConnectionResult = {
+			reachable: false,
+			authenticated: false,
+			canCreateSession: false,
+			latencyMs: 0,
+			capabilities: {
+				models: [{
+					id: '',
+					name: '',
+					provider: '',
+					maxTokens: 0,
+					enabled: false,
+				}],
+				tools: [''],
+				modes: [''],
+				serverVersion: '',
+				protocolVersion: '',
+				properties: { '': '' },
+			},
+			errors: [{
+				code: 'ERROR_CODE_UNSPECIFIED',
+				field: '',
+				message: '',
+				suggestion: '',
+			}],
+			load: {
+				activeSessions: 0,
+				queueDepth: 0,
+				cpuPercent: 0,
+				memoryUsedMb: 0,
+			},
+		};
+		const emptyRequest = {
+			nodeId: '',
+			sessionParams: {
+				preferredModel: '',
+				requiredTools: [''],
+				mode: '',
+				maxTokens: 0,
+				maxTurns: 0,
+				systemPromptSuffix: '',
+				maxExecutionTimeMs: 0,
+			},
+		};
+		const empty = await service.checkConnection(emptyRequest);
+		assert.strictEqual(transport.checkConnectionCalls[1]?.nodeId, '');
+		assert.strictEqual(transport.checkConnectionCalls[1]?.sessionParams.preferredModel, '');
+		assert.deepStrictEqual(transport.checkConnectionCalls[1]?.sessionParams.requiredTools, ['']);
+		assert.strictEqual(transport.checkConnectionCalls[1]?.sessionParams.mode, '');
+		assert.strictEqual(transport.checkConnectionCalls[1]?.sessionParams.maxTokens, 0);
+		assert.strictEqual(transport.checkConnectionCalls[1]?.sessionParams.maxTurns, 0);
+		assert.strictEqual(transport.checkConnectionCalls[1]?.sessionParams.systemPromptSuffix, '');
+		assert.strictEqual(transport.checkConnectionCalls[1]?.sessionParams.maxExecutionTimeMs, 0);
+		assert.strictEqual(empty.reachable, false);
+		assert.strictEqual(empty.authenticated, false);
+		assert.strictEqual(empty.canCreateSession, false);
+		assert.strictEqual(empty.latencyMs, 0);
+		assert.strictEqual(empty.capabilities.models[0]?.id, '');
+		assert.strictEqual(empty.capabilities.models[0]?.enabled, false);
+		assert.strictEqual(empty.capabilities.serverVersion, '');
+		assert.strictEqual(empty.capabilities.properties[''], '');
+		assert.strictEqual(empty.errors[0]?.code, 'ERROR_CODE_UNSPECIFIED');
+		assert.strictEqual(empty.errors[0]?.field, '');
+		assert.strictEqual(empty.load.activeSessions, 0);
 		service.dispose();
 	});
 

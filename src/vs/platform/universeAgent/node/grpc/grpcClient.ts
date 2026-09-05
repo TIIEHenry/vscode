@@ -331,6 +331,9 @@ import type {
 	UniverseAgentRemoteAgentLoadMetrics,
 	UniverseAgentRemoteAgentModelInfo,
 	UniverseAgentContextVariableEntry,
+	UniverseAgentCheckConnectionRequest,
+	UniverseAgentConnectionReport,
+	UniverseAgentValidationError,
 	UniverseAgentContextVariableEntrySummary,
 	UniverseAgentContextVariableScope,
 	UniverseAgentGetUploadProgressRequest,
@@ -3442,6 +3445,55 @@ interface ListNodesResponseWire {
 	total?: number | string;
 	online_count?: number | string;
 }
+
+interface ValidationErrorWire {
+	code?: string | number;
+	field?: string;
+	message?: string;
+	suggestion?: string;
+}
+
+interface ConnectionReportWire {
+	reachable?: boolean;
+	authenticated?: boolean;
+	can_create_session?: boolean;
+	latency_ms?: number | string;
+	capabilities?: RemoteAgentCapabilitiesWire;
+	errors?: ValidationErrorWire[];
+	load?: RemoteAgentLoadMetricsWire;
+}
+
+const ConnectionErrorCodeByNumber: Record<number, string> = {
+	0: 'ERROR_CODE_UNSPECIFIED',
+	1: 'CONNECT_TIMEOUT',
+	2: 'CONNECT_REFUSED',
+	3: 'TLS_HANDSHAKE_FAIL',
+	4: 'DNS_RESOLVE_FAIL',
+	10: 'PROTOCOL_VERSION_MISMATCH',
+	11: 'MALFORMED_RESPONSE',
+	20: 'UNAUTHENTICATED',
+	21: 'FORBIDDEN',
+	22: 'API_KEY_EXPIRED',
+	23: 'AUTH_UNRESOLVED',
+	30: 'MODEL_UNAVAILABLE',
+	31: 'TOOL_DISABLED',
+	32: 'MODE_UNSUPPORTED',
+	40: 'QUOTA_EXCEEDED',
+	41: 'MAX_SESSIONS_REACHED',
+	42: 'BUDGET_EXHAUSTED',
+	50: 'PARAM_INVALID',
+	51: 'PARAM_MISSING',
+};
+
+function mapConnectionErrorCode(value: string | number | undefined): string {
+	if (value === undefined || value === '') {
+		return '';
+	}
+	if (typeof value === 'number') {
+		return ConnectionErrorCodeByNumber[value] ?? String(value);
+	}
+	return value;
+}
 function mapRemoteAgentProperties(wire: { [key: string]: string } | undefined): { readonly [key: string]: string } {
 	if (!wire) {
 		return {};
@@ -3528,6 +3580,27 @@ function mapListNodesResponse(wire: ListNodesResponseWire): UniverseAgentListNod
 		nodes: (wire.nodes ?? []).map(mapRemoteAgentInfo),
 		total: requiredInt64(wire.total),
 		onlineCount: requiredInt64(wire.online_count),
+	};
+}
+
+function mapValidationError(wire: ValidationErrorWire): UniverseAgentValidationError {
+	return {
+		code: mapConnectionErrorCode(wire.code),
+		field: wire.field ?? '',
+		message: wire.message ?? '',
+		suggestion: wire.suggestion ?? '',
+	};
+}
+
+function mapConnectionReport(wire: ConnectionReportWire): UniverseAgentConnectionReport {
+	return {
+		reachable: wire.reachable === true,
+		authenticated: wire.authenticated === true,
+		canCreateSession: wire.can_create_session === true,
+		latencyMs: requiredInt64(wire.latency_ms),
+		capabilities: mapRemoteAgentCapabilities(wire.capabilities),
+		errors: (wire.errors ?? []).map(mapValidationError),
+		load: mapRemoteAgentLoadMetrics(wire.load),
 	};
 }
 interface UploadProgressResponseWire {
@@ -6249,6 +6322,27 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			node_id: request.nodeId,
 		});
 		return mapRemoteAgentInfo(wire);
+	}
+
+	async checkConnection(request: UniverseAgentCheckConnectionRequest): Promise<UniverseAgentConnectionReport> {
+		const unary = makeUnaryClient<Record<string, unknown>, ConnectionReportWire>(
+			this._channel,
+			UniverseAgentGrpcServices.RemoteAgent.service,
+			UniverseAgentGrpcServices.RemoteAgent.CheckConnection,
+		);
+		const wire = await unary({
+			node_id: request.nodeId,
+			session_params: {
+				preferred_model: request.sessionParams.preferredModel,
+				required_tools: [...request.sessionParams.requiredTools],
+				mode: request.sessionParams.mode,
+				max_tokens: request.sessionParams.maxTokens,
+				max_turns: request.sessionParams.maxTurns,
+				system_prompt_suffix: request.sessionParams.systemPromptSuffix,
+				max_execution_time_ms: request.sessionParams.maxExecutionTimeMs,
+			},
+		});
+		return mapConnectionReport(wire);
 	}
 
 	async getUploadProgress(request: UniverseAgentGetUploadProgressRequest): Promise<UniverseAgentGetUploadProgressResult> {

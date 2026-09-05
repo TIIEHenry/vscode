@@ -258,6 +258,8 @@ import type {
 	UniverseAgentListNodesResult,
 	UniverseAgentGetNodeRequest,
 	UniverseAgentRemoteAgentInfo,
+	UniverseAgentCheckConnectionRequest,
+	UniverseAgentConnectionReport,
 	UniverseAgentGetUploadProgressRequest,
 	UniverseAgentGetUploadProgressResult,
 	UniverseAgentUploadAttachmentResult,
@@ -1515,6 +1517,7 @@ export interface IUniverseAgentConnection {
 	 */
 	listNodes?(request: UniverseAgentListNodesRequest): Promise<UniverseAgentListNodesResult>;
 
+	/**
 	 * RemoteAgentService.GetNode unary. Optional so Web / tests can omit
 	 * it. Catalog + node transport only this slice; empty `nodeId` is
 	 * sent as-is. Empty `id` / `name` / `description` / `status` /
@@ -1525,6 +1528,21 @@ export interface IUniverseAgentConnection {
 	 * ≠ ListNodes / CheckConnection / ListConfigs / GetConfig / DeviceService.
 	 */
 	getNode?(request: UniverseAgentGetNodeRequest): Promise<UniverseAgentRemoteAgentInfo>;
+
+	/**
+	 * RemoteAgentService.CheckConnection unary. Optional so Web / tests
+	 * can omit it. Catalog + node transport only this slice; empty
+	 * `nodeId` is sent as-is. Empty `preferredModel` / `requiredTools`
+	 * (incl. empty strings) / `mode` / `systemPromptSuffix` are sent
+	 * as-is. `maxTokens` / `maxTurns` / `maxExecutionTimeMs` 0 sent
+	 * as-is. `reachable` / `authenticated` / `canCreateSession` false
+	 * mapped as-is. `latencyMs` 0 mapped as-is. Proto fields only
+	 * (`CheckConnectionRequest` / `ConnectionReport` + `SessionParams` /
+	 * `Capabilities` / `ModelInfo` / `LoadMetrics` / `ValidationError`).
+	 * No Conversation roster / UI / Engine Preferences / Composer.
+	 * ≠ GetNode / ListNodes / ListConfigs / GetConfig / DeviceService.
+	 */
+	checkConnection?(request: UniverseAgentCheckConnectionRequest): Promise<UniverseAgentConnectionReport>;
 	/**
 	 * FileTransferService.GetUploadProgress unary. Optional so Web / tests
 	 * can omit it. Catalog + node transport only this slice; empty
