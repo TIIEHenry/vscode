@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { $, addDisposableListener, append } from '../../../../base/browser/dom.js';
+import { $, addDisposableListener, addStandardDisposableListener, append } from '../../../../base/browser/dom.js';
 import { Button } from '../../../../base/browser/ui/button/button.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { KeyCode } from '../../../../base/common/keyCodes.js';
@@ -127,6 +127,7 @@ export function mountDock(host: IConversationLensDockHost, dockHost: HTMLElement
 
 		host.dockTextarea = append(inputRow, $('textarea.conversation-lens-dock-input')) as HTMLTextAreaElement;
 		host.dockTextarea.setAttribute('aria-label', localize('conversationLens.dockInput', "Message"));
+		host.dockTextarea.setAttribute('data-testid', 'conversation-composer-input');
 		host.dockTextarea.placeholder = conversationLensDockPlaceholder;
 		host.dockTextarea.rows = 1;
 
@@ -247,9 +248,10 @@ export function mountDock(host: IConversationLensDockHost, dockHost: HTMLElement
 		}));
 		host.sendButton.icon = Codicon.arrowUp;
 		host.sendButton.element.classList.add('conversation-lens-dock-control', 'conversation-lens-dock-control--filled', 'conversation-lens-dock-send-button');
+		host.sendButton.element.setAttribute('data-testid', 'conversation-composer-send');
 		host.sendButton.enabled = false;
 
-		host.register(addDisposableListener(host.dockTextarea, 'keydown', e => {
+		host.register(addStandardDisposableListener(host.dockTextarea, 'keydown', e => {
 			if (e.keyCode === KeyCode.Escape && host.composerPolicy !== 'compose') {
 				e.preventDefault();
 				host.exitComposerEdit();
@@ -276,11 +278,17 @@ export function mountDock(host: IConversationLensDockHost, dockHost: HTMLElement
 				const sendOnEnter = getUaClientKeyboardEnterBehavior(host.configurationService) !== 'newline';
 				if (sendOnEnter ? !e.shiftKey : e.shiftKey) {
 					e.preventDefault();
-					host.submitDraft();
+					void host.submitDraft();
 				}
 			}
 		}));
-		host.register(host.sendButton.onDidClick(() => host.submitDraft()));
+		// Capture so fill-without-input automation still submits when Send stays disabled.
+		host.register(addDisposableListener(sendContainer, 'click', () => {
+			if (host.dockTextarea.value.trim()) {
+				void host.submitDraft();
+			}
+		}, true));
+		host.register(host.sendButton.onDidClick(() => void host.submitDraft()));
 		host.register(addDisposableListener(host.dockTextarea, 'input', () => {
 			if (host.inputHistoryBrowse.browseIndex >= 0) {
 				host.inputHistoryBrowse = createInputHistoryBrowseState();
