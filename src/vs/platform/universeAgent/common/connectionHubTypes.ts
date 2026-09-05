@@ -37,6 +37,12 @@ export type ConnectionProbeResult =
 	| { readonly ok: true; readonly path: ConnectionPath; readonly authority: string; readonly latencyMs: number }
 	| { readonly ok: false; readonly code: ConnectionFailureCode; readonly reason: string };
 
+/**
+ * Probe/Test when formal dial needs pairing. Not a transport failure —
+ * Connect owns SAS / recoverTrust. Conversation copy is A's job.
+ */
+export const PAIRING_REQUIRED_USE_CONNECT_REASON = 'pairing required: use Connect to complete pairing';
+
 export type UniverseAgentConnectProfileResult =
 	| {
 		readonly ok: true;

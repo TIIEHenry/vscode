@@ -49,6 +49,8 @@ summary: "握手改 protobuf 后 GetAuthNonce/Connect 打到钉死引擎；SAS �
 
 HistoryFill 已合入 merge。剩余：宿主全局 `onDidApplyFrame` 整刀删、断连列顶/Send、`heartbeat_ack` 行为测。U1 已合；**U2 未开**。
 
+**D 槽 pairing IPC**：`connectProfile` 进入 pairing 先返回 `{ok, pairingPending, sasCode|recoverTrust}`（Connect 超时走 recoverTrust）；桌面 capability 剥离 Web stub reason；probe 的 `pairing_required` 改为「走 Connect 配对」。E2E 仍待 A 合入确认框。
+
 ## 工位表（与 `git worktree list` 对照 · 2026-09-05）
 
 | 槽 | 路径 | 分支 | tip | 状态 |

@@ -17,6 +17,8 @@ import {
 	ensureCapabilitySnapshot,
 	isUniverseAgentPhaseConnected,
 	readCapabilityEntry,
+	sanitizeDesktopCapabilitySnapshot,
+	WEB_UNSUPPORTED_LOCAL_ENGINE_REASON,
 	UniverseAgentConnectionSyncCache,
 	UniverseAgentHubSyncCache,
 } from '../../common/universeAgentRendererSync.js';
@@ -24,6 +26,40 @@ import {
 suite('universeAgentRendererSync', () => {
 
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('desktop idle snapshot never uses the Web unsupported reason', () => {
+		const idle = createIdleCapabilitySnapshot();
+		for (const entry of Object.values(idle)) {
+			assert.notStrictEqual(entry.reason, WEB_UNSUPPORTED_LOCAL_ENGINE_REASON);
+			assert.strictEqual(entry.support, 'UNKNOWN');
+		}
+	});
+
+	test('sanitizeDesktopCapabilitySnapshot strips Web stub pollution', () => {
+		const polluted = createIdleCapabilitySnapshot();
+		polluted.skills = { support: 'UNSUPPORTED', reason: WEB_UNSUPPORTED_LOCAL_ENGINE_REASON };
+		polluted.models = { support: 'UNSUPPORTED', reason: WEB_UNSUPPORTED_LOCAL_ENGINE_REASON };
+		const clean = sanitizeDesktopCapabilitySnapshot(polluted);
+		assert.strictEqual(clean.skills.support, 'UNKNOWN');
+		assert.strictEqual(clean.skills.reason, undefined);
+		assert.strictEqual(clean.models.support, 'UNKNOWN');
+		assert.strictEqual(clean.providerConfig.support, 'UNKNOWN');
+	});
+
+	test('connection cache drops Web stub capability reasons from IPC snapshots', () => {
+		const cache = new UniverseAgentConnectionSyncCache();
+		const capabilities = createIdleCapabilitySnapshot();
+		capabilities.mcp = { support: 'UNSUPPORTED', reason: WEB_UNSUPPORTED_LOCAL_ENGINE_REASON };
+		cache.applySnapshot({
+			transport: 'idle',
+			pairingPending: false,
+			channelAlive: false,
+			sharedFsRootSent: false,
+			capabilities,
+		});
+		assert.strictEqual(cache.capabilities.mcp.support, 'UNKNOWN');
+		assert.notStrictEqual(cache.capabilities.mcp.reason, WEB_UNSUPPORTED_LOCAL_ENGINE_REASON);
+	});
 
 	test('readCapabilityEntry defaults missing keys to UNKNOWN', () => {
 		assert.deepStrictEqual(readCapabilityEntry(undefined, 'providerConfig'), { support: 'UNKNOWN' });

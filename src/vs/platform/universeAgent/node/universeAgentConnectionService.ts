@@ -6,7 +6,8 @@
 import { Emitter } from '../../../base/common/event.js';
 import { Disposable } from '../../../base/common/lifecycle.js';
 import { finalizeConnectProfileResult } from '../common/connectProfileResult.js';
-import type { ConnectionPhase, ConnectionFailureCode, ConnectionProbeResult, UniverseAgentConnectProfileResult } from '../common/connectionHubTypes.js';
+import { PAIRING_REQUIRED_USE_CONNECT_REASON, type ConnectionPhase, type ConnectionFailureCode, type ConnectionProbeResult, type UniverseAgentConnectProfileResult } from '../common/connectionHubTypes.js';
+import { sanitizeDesktopCapabilitySnapshot } from '../common/universeAgentRendererSync.js';
 import type { IUniverseAgentConnection, IUniverseAgentTeamApi, UniverseAgentNavigatorCapabilityKey, UniverseAgentProbeEngineResult } from '../common/universeAgentConnection.js';
 import type { IUniverseAgentHostConnection } from '../common/universeAgentHostConnection.js';
 import type {
@@ -368,7 +369,7 @@ import type {
 import { createEmptyCapabilitySnapshot, probeEngineCapabilities } from './grpcCapabilityProbe.js';
 import { createGrpcUniverseAgentClient, createPinnedGrpcUniverseAgentClient } from './grpc/grpcClient.js';
 import { GrpcStatusCode, IUniverseAgentGrpcTransport, isTransportFailureCode, UniverseAgentFetchToolDetailMethodKey, UniverseAgentGrpcServices, UniverseAgentSaveSkillContentMethodKey, UniverseAgentTransportError } from './grpc/grpcTransport.js';
-import type { ConnectionResolver } from './connectionResolver.js';
+import type { ConnectionResolver, ResolvedEndpoint } from './connectionResolver.js';
 import { runDeviceAuthHandshake } from './deviceAuthHandshake.js';
 import { derivePairingSasCode, DEVICE_GRANT_AUTH_PROTOCOL_VERSION } from './deviceGrant/device-grant-crypto.js';
 import type { IClientIdentityStore } from './clientIdentityTypes.js';
@@ -860,56 +861,24 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		const phaseBefore = this._connectionPhase;
 		const transportBefore = this._transport;
 
-		const resolved = await this._connectionResolver.resolve(profileId);
-		if (!resolved.ok) {
-			return { ok: false, code: resolved.code, reason: resolved.reason };
-		}
-
-		const endpoint = resolved.endpoint;
-		const dialAddress = `${endpoint.resolvedIp}:${endpoint.port}`;
-		let probeTransport: IUniverseAgentGrpcTransport;
-		if (endpoint.tls) {
-			probeTransport = createPinnedGrpcUniverseAgentClient({
-				address: dialAddress,
-				tls: endpoint.tls,
-				sslTargetNameOverride: endpoint.servername,
-			});
-		} else {
-			probeTransport = this._createTransport(dialAddress);
-		}
-
-		const identityState = await this._clientIdentityStore.getOrCreateIdentity();
-		if (identityState.kind !== 'ready') {
-			probeTransport.close();
-			return {
-				ok: false,
-				code: 'trust_missing',
-				reason: `client identity unavailable: ${identityState.kind}`,
-			};
-		}
-
-		const startMs = Date.now();
-		const probeTimeoutMs = 10_000;
 		try {
-			await Promise.race([
-				probeTransport.getAuthNonce({
-					clientIdentityId: identityState.identity.clientIdentityId,
-					clientPublicKey: identityState.identity.clientPublicKey,
-				}),
-				new Promise<never>((_, reject) => {
-					setTimeout(() => reject(new Error('probe timed out after 10s')), probeTimeoutMs);
-				}),
-			]);
-			return {
-				ok: true,
-				path: endpoint.path,
-				authority: endpoint.authority,
-				latencyMs: Date.now() - startMs,
-			};
-		} catch (error) {
-			return this._mapProbeTransportError(error);
+			const resolved = await this._connectionResolver.resolve(profileId);
+			if (resolved.ok) {
+				return await this._probeResolvedEndpoint(resolved.endpoint);
+			}
+			if (resolved.code !== 'pairing_required') {
+				return { ok: false, code: resolved.code, reason: resolved.reason };
+			}
+			const pairingResolved = await this._connectionResolver.resolve(profileId, { forPairing: true });
+			if (!pairingResolved.ok) {
+				return {
+					ok: false,
+					code: 'pairing_required',
+					reason: PAIRING_REQUIRED_USE_CONNECT_REASON,
+				};
+			}
+			return await this._probeResolvedEndpoint(pairingResolved.endpoint);
 		} finally {
-			probeTransport.close();
 			// Guard: probe must not mutate live connection state.
 			this._connectionPhase = phaseBefore;
 			this._transport = transportBefore;
@@ -1936,7 +1905,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 			sharedFsRootSent: this._sharedFsRootSent,
 			pairingPending: this._pairingPending,
 			channelAlive: !!this._transport?.isChannelAlive,
-			capabilities: this._capabilities,
+			capabilities: sanitizeDesktopCapabilitySnapshot(this._capabilities),
 		};
 	}
 
@@ -1988,19 +1957,21 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 			servername: endpoint.servername,
 		};
 
-		const startResult = await this._pairingOrchestrator.startPairing(profile, pairingEndpoint);
-		if (!startResult.ok) {
-			const code = this._mapPairingFailureCode(startResult.code);
-			this._connectionPhase = { kind: 'failed', code, reason: startResult.reason };
-			this._fireSnapshotChanged();
-			return { ok: false, code, reason: startResult.reason };
-		}
-
 		this._transport?.close();
 		this._transport = undefined;
 		this._sessionToken = undefined;
 		this._pairingPending = true;
 		this._transportState = 'idle';
+		this._fireSnapshotChanged();
+
+		const startResult = await this._pairingOrchestrator.startPairing(profile, pairingEndpoint);
+		if (!startResult.ok) {
+			const code = this._mapPairingFailureCode(startResult.code);
+			this._pairingPending = false;
+			this._connectionPhase = { kind: 'failed', code, reason: startResult.reason };
+			this._fireSnapshotChanged();
+			return { ok: false, code, reason: startResult.reason };
+		}
 
 		const snapshot = startResult.snapshot;
 		if (snapshot.phase === 'recover_trust') {
@@ -2045,6 +2016,51 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 				return code;
 			default:
 				return 'transport_failed';
+		}
+	}
+
+	private async _probeResolvedEndpoint(endpoint: ResolvedEndpoint): Promise<ConnectionProbeResult> {
+		const dialAddress = `${endpoint.resolvedIp}:${endpoint.port}`;
+		const probeTransport = endpoint.tls
+			? createPinnedGrpcUniverseAgentClient({
+				address: dialAddress,
+				tls: endpoint.tls,
+				sslTargetNameOverride: endpoint.servername,
+			})
+			: this._createTransport(dialAddress);
+
+		const identityState = await this._clientIdentityStore!.getOrCreateIdentity();
+		if (identityState.kind !== 'ready') {
+			probeTransport.close();
+			return {
+				ok: false,
+				code: 'trust_missing',
+				reason: `client identity unavailable: ${identityState.kind}`,
+			};
+		}
+
+		const startMs = Date.now();
+		const probeTimeoutMs = 10_000;
+		try {
+			await Promise.race([
+				probeTransport.getAuthNonce({
+					clientIdentityId: identityState.identity.clientIdentityId,
+					clientPublicKey: identityState.identity.clientPublicKey,
+				}),
+				new Promise<never>((_, reject) => {
+					setTimeout(() => reject(new Error('probe timed out after 10s')), probeTimeoutMs);
+				}),
+			]);
+			return {
+				ok: true,
+				path: endpoint.path,
+				authority: endpoint.authority,
+				latencyMs: Date.now() - startMs,
+			};
+		} catch (error) {
+			return this._mapProbeTransportError(error);
+		} finally {
+			probeTransport.close();
 		}
 	}
 

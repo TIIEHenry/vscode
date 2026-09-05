@@ -20,6 +20,9 @@ import type {
 
 const UNKNOWN_CAPABILITY: UniverseAgentCapabilityEntry = { support: 'UNKNOWN' };
 
+/** Web stub only. Desktop idle / node empty snapshots must never use this reason. */
+export const WEB_UNSUPPORTED_LOCAL_ENGINE_REASON = 'Web 不支持本机 Engine 连接';
+
 const CAPABILITY_KEYS: readonly UniverseAgentCapabilityKey[] = [
 	'skills',
 	'mcp',
@@ -53,6 +56,26 @@ export function createIdleCapabilitySnapshot(): UniverseAgentCapabilitySnapshot 
 		agentTree: UNKNOWN_CAPABILITY,
 		team: UNKNOWN_CAPABILITY,
 	};
+}
+
+export function capabilityEntryIsWebUnsupported(entry: UniverseAgentCapabilityEntry | undefined): boolean {
+	return entry?.reason === WEB_UNSUPPORTED_LOCAL_ENGINE_REASON;
+}
+
+/**
+ * Electron / node snapshots must not carry the Web stub reason.
+ * WebUniverseAgentConnection returns the stub snapshot directly and skips this.
+ */
+export function sanitizeDesktopCapabilitySnapshot(snapshot: UniverseAgentCapabilitySnapshot): UniverseAgentCapabilitySnapshot {
+	let changed = false;
+	const next = { ...snapshot };
+	for (const key of CAPABILITY_KEYS) {
+		if (capabilityEntryIsWebUnsupported(next[key])) {
+			next[key] = UNKNOWN_CAPABILITY;
+			changed = true;
+		}
+	}
+	return changed ? next : snapshot;
 }
 
 export function createIdleConnectionSnapshot(): UniverseAgentConnectionSnapshot {
@@ -160,7 +183,7 @@ export class UniverseAgentConnectionSyncCache {
 	applySnapshot(snapshot: UniverseAgentConnectionSnapshot): void {
 		this._snapshot = {
 			...snapshot,
-			capabilities: normalizeCapabilities(snapshot.capabilities),
+			capabilities: sanitizeDesktopCapabilitySnapshot(normalizeCapabilities(snapshot.capabilities)),
 		};
 	}
 

@@ -7,6 +7,7 @@ import {
 	DEVICE_GRANT_AUTH_PROTOCOL_VERSION,
 	derivePairingSasCode,
 	verifyPairingSas,
+	type DeviceAuthTranscriptInput,
 } from './deviceGrant/device-grant-crypto.js';
 import { observeCandidateLeaf } from './deviceGrant/observe-candidate-leaf.js';
 import type { PinnedTlsPlanInput } from './deviceGrant/tls-pin.js';
@@ -83,7 +84,14 @@ export type PairingOrchestratorDeps = {
 	/** Hub pairing S1/S2/S6 relay ticket issuance; injected by ConnectionResolver (H3). */
 	readonly issueRelayTicket?: IssueRelayTicketFn;
 	readonly nowMs?: () => number;
+	/**
+	 * Provisional Connect must not block connectProfile IPC.
+	 * Timeout after GetAuthNonce → recoverTrust + fingerprint (grant already issued / engine held).
+	 */
+	readonly provisionalConnectTimeoutMs?: number;
 };
+
+export const DEFAULT_PROVISIONAL_CONNECT_TIMEOUT_MS = 8_000;
 
 type ActivePairingContext = {
 	readonly profile: ConnectionProfile;
@@ -454,17 +462,32 @@ export class PairingOrchestrator {
 			return { ok: false, reason: 'device auth signer unavailable' };
 		}
 
-		const handshake = await runDeviceAuthHandshake(
-			transport,
-			{
-				clientIdentityId,
-				clientPublicKey,
-				engineIdentityId: nonce.engineIdentityId,
-				observedLeafSha256Hex: candidateSha256Hex,
-			},
-			signer,
-			{ pairingPhase: 'provisional' },
-		);
+		let handshake;
+		try {
+			handshake = await this.runProvisionalConnect(
+				transport,
+				{
+					clientIdentityId,
+					clientPublicKey,
+					engineIdentityId: nonce.engineIdentityId,
+					observedLeafSha256Hex: candidateSha256Hex,
+				},
+				signer,
+			);
+		} catch (err) {
+			if (isProvisionalConnectTimeout(err)) {
+				return {
+					ok: false,
+					reason: 'provisional Connect timed out; recoverTrust with observed fingerprint',
+					recoverTrust: true,
+					engineIdentityId: nonce.engineIdentityId,
+				};
+			}
+			return {
+				ok: false,
+				reason: `Connect device_auth failed: ${err instanceof Error ? err.message : String(err)}`,
+			};
+		}
 
 		if (handshake.kind === 'failed') {
 			return { ok: false, reason: handshake.reason, code: handshake.code };
@@ -491,6 +514,43 @@ export class PairingOrchestrator {
 			sasCode: handshake.result.sasCode?.trim() ?? '',
 		};
 	}
+
+	private async runProvisionalConnect(
+		transport: IUniverseAgentGrpcTransport,
+		identity: {
+			readonly clientIdentityId: string;
+			readonly clientPublicKey: Uint8Array;
+			readonly engineIdentityId: string;
+			readonly observedLeafSha256Hex: string;
+		},
+		signer: (input: DeviceAuthTranscriptInput) => Uint8Array,
+	) {
+		const timeoutMs = this.deps.provisionalConnectTimeoutMs ?? DEFAULT_PROVISIONAL_CONNECT_TIMEOUT_MS;
+		let timer: ReturnType<typeof setTimeout> | undefined;
+		try {
+			return await Promise.race([
+				runDeviceAuthHandshake(transport, identity, signer, { pairingPhase: 'provisional' }),
+				new Promise<never>((_, reject) => {
+					timer = setTimeout(() => reject(new ProvisionalConnectTimeoutError()), timeoutMs);
+				}),
+			]);
+		} finally {
+			if (timer !== undefined) {
+				clearTimeout(timer);
+			}
+		}
+	}
+}
+
+class ProvisionalConnectTimeoutError extends Error {
+	constructor() {
+		super('PROVISIONAL_CONNECT_TIMEOUT');
+		this.name = 'ProvisionalConnectTimeoutError';
+	}
+}
+
+function isProvisionalConnectTimeout(error: unknown): boolean {
+	return error instanceof ProvisionalConnectTimeoutError;
 }
 
 function base64ToBytes(value: string | undefined): Uint8Array {

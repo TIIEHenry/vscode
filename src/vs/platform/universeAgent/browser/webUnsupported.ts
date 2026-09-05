@@ -4,13 +4,14 @@
  *--------------------------------------------------------------------------------------------*/
 
 import type { ConnectionFailureCode } from '../common/connectionHubTypes.js';
+import { WEB_UNSUPPORTED_LOCAL_ENGINE_REASON } from '../common/universeAgentRendererSync.js';
 import type {
 	UniverseAgentCapabilityEntry,
 	UniverseAgentCapabilityKey,
 	UniverseAgentCapabilitySnapshot,
 } from '../common/universeAgentTypes.js';
 
-export const WEB_UNSUPPORTED_REASON = 'Web 不支持本机 Engine 连接';
+export const WEB_UNSUPPORTED_REASON = WEB_UNSUPPORTED_LOCAL_ENGINE_REASON;
 
 export const WEB_UNSUPPORTED_CODE: ConnectionFailureCode = 'unsupported_environment';
 
