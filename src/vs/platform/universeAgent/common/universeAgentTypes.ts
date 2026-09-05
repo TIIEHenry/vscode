@@ -2655,6 +2655,35 @@ export interface UniverseAgentWriteClipboardResult {
 }
 
 /**
+ * ClipboardService.Read — proto `ClipboardReadRequest` /
+ * `ClipboardReadResponse` + `ClipboardEntry` only. Empty `session_id` /
+ * `clip_id` sent as-is. Empty `clip_id` / `label` / `content` /
+ * `created_by` mapped as-is. `created_at` 0 mapped as-is. `type` uses
+ * typed `ClipboardEntryType` wire.
+ * ≠ Write / List / Clear / DeviceService / TriggerService.
+ */
+export interface UniverseAgentReadClipboardRequest {
+	readonly sessionId: string;
+	readonly clipId: string;
+}
+
+export interface UniverseAgentClipboardEntry {
+	readonly clipId: string;
+	readonly label: string;
+	/** Proto `ClipboardEntryType`. Mapped from enum number or name. */
+	readonly type: UniverseAgentClipboardEntryType;
+	readonly content: string;
+	/** Proto `created_by`. Empty mapped as-is. */
+	readonly createdBy: string;
+	/** Proto `created_at`. 0 mapped as-is. */
+	readonly createdAt: number;
+}
+
+export interface UniverseAgentReadClipboardResult {
+	readonly entry: UniverseAgentClipboardEntry;
+}
+
+/**
  * ConfigService.SetPermissionPolicy — session/tool policy write
  * (≠ SwitchModel / ListModels / Get / Set / GetModelPreferences /
  * SetModelPreferences / SetPermissionMode).

@@ -234,6 +234,8 @@ import type {
 	UniverseAgentShutdownResult,
 	UniverseAgentWriteClipboardRequest,
 	UniverseAgentWriteClipboardResult,
+	UniverseAgentReadClipboardRequest,
+	UniverseAgentReadClipboardResult,
 	UniverseAgentDownloadAttachmentRequest,
 	UniverseAgentDownloadChunk,
 	UniverseAgentHealthCheckResult,
@@ -1730,6 +1732,23 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 		return this.writeClipboardResult;
 	}
 
+	readonly readClipboardCalls: UniverseAgentReadClipboardRequest[] = [];
+	readClipboardResult: UniverseAgentReadClipboardResult = {
+		entry: {
+			clipId: '',
+			label: '',
+			type: 'CLIPBOARD_TEXT',
+			content: '',
+			createdBy: '',
+			createdAt: 0,
+		},
+	};
+
+	async readClipboard(request: UniverseAgentReadClipboardRequest): Promise<UniverseAgentReadClipboardResult> {
+		this.readClipboardCalls.push(request);
+		return this.readClipboardResult;
+	}
+
 	private _downloadAttachmentGate: ReturnType<typeof createStreamCloseGate> | undefined;
 	readonly downloadAttachmentOpens: UniverseAgentDownloadAttachmentRequest[] = [];
 
@@ -2333,6 +2352,11 @@ suite('UniverseAgentConnectionService', () => {
 
 	test('UniverseAgentGrpcServices lists Clipboard.Write', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Clipboard.Write, 'Write');
+		assert.strictEqual(UniverseAgentGrpcServices.Clipboard.service, 'universeagent.clipboard.v1.ClipboardService');
+	});
+
+	test('UniverseAgentGrpcServices lists Clipboard.Read', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Clipboard.Read, 'Read');
 		assert.strictEqual(UniverseAgentGrpcServices.Clipboard.service, 'universeagent.clipboard.v1.ClipboardService');
 	});
 
@@ -6106,6 +6130,56 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(transport.writeClipboardCalls[1]?.filePath, '');
 		assert.strictEqual(transport.writeClipboardCalls[1]?.url, '');
 		assert.strictEqual(empty.clipId, '');
+		service.dispose();
+	});
+
+	test('readClipboard forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.readClipboardResult = {
+			entry: {
+				clipId: 'clip-1',
+				label: 'note',
+				type: 'CLIPBOARD_TEXT',
+				content: 'hello',
+				createdBy: 'agent-1',
+				createdAt: 1,
+			},
+		};
+		const request = {
+			sessionId: 'sess-1',
+			clipId: 'clip-1',
+		};
+		const result = await service.readClipboard(request);
+		assert.deepStrictEqual(transport.readClipboardCalls, [request]);
+		assert.deepStrictEqual(result, transport.readClipboardResult);
+
+		transport.readClipboardResult = {
+			entry: {
+				clipId: '',
+				label: '',
+				type: 'CLIPBOARD_TEXT',
+				content: '',
+				createdBy: '',
+				createdAt: 0,
+			},
+		};
+		const emptyRequest = {
+			sessionId: '',
+			clipId: '',
+		};
+		const empty = await service.readClipboard(emptyRequest);
+		assert.strictEqual(transport.readClipboardCalls[1]?.sessionId, '');
+		assert.strictEqual(transport.readClipboardCalls[1]?.clipId, '');
+		assert.strictEqual(empty.entry.clipId, '');
+		assert.strictEqual(empty.entry.label, '');
+		assert.strictEqual(empty.entry.content, '');
+		assert.strictEqual(empty.entry.createdBy, '');
+		assert.strictEqual(empty.entry.createdAt, 0);
 		service.dispose();
 	});
 
