@@ -26,6 +26,7 @@ import { EngineProviderModelSection } from './engineProviderModelSection.js';
 import { EngineRulesSection } from './engineRulesSection.js';
 import { EngineSkillsSection } from './engineSkillsSection.js';
 import { EngineToolsSection } from './engineToolsSection.js';
+import { EngineTriggersSection } from './engineTriggersSection.js';
 import { getConnectionPhaseStatusBarText } from './conversationSessionStatus.js';
 import {
 	getUnsupportedEnvironmentCopy,
@@ -202,6 +203,7 @@ export class EnginePreferencesPane extends Disposable implements IPreferencesEdi
 		this.registerSection('agents', this._register(instantiationService.createInstance(EngineAgentsSection, this.detailBody)));
 		this.registerSection('rules', this._register(instantiationService.createInstance(EngineRulesSection, this.detailBody)));
 		this.registerSection('hooks', this._register(instantiationService.createInstance(EngineHooksSection, this.detailBody)));
+		this.registerSection('triggers', this._register(instantiationService.createInstance(EngineTriggersSection, this.detailBody)));
 		this.registerSection('mcpServers', this._register(instantiationService.createInstance(EngineMcpSection, this.detailBody)));
 		this.registerSection('plugins', this._register(instantiationService.createInstance(EnginePluginsSection, this.detailBody)));
 		this.registerSection('tools', this._register(instantiationService.createInstance(EngineToolsSection, this.detailBody)));

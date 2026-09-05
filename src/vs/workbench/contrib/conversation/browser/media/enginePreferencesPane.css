@@ -75,6 +75,16 @@
 	grid-template-columns: 1fr;
 }
 
+.monaco-workbench .engine-triggers-list {
+	font-size: 12px;
+}
+
+.monaco-workbench .engine-triggers-row {
+	padding: 4px 0;
+	overflow-wrap: anywhere;
+	word-break: break-word;
+}
+
 .monaco-workbench .engine-preferences-pane.is-narrow .engine-provider-model-group-heading {
 	flex-direction: column;
 	align-items: flex-start;
