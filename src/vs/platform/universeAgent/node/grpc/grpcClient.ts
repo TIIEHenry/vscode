@@ -311,6 +311,9 @@ import type {
 	UniverseAgentReflectMemoryRequest,
 	UniverseAgentReflectMemoryResult,
 	UniverseAgentMemoryReflectDiagnosis,
+	UniverseAgentDownloadAttachmentRequest,
+	UniverseAgentDownloadChunk,
+	UniverseAgentDownloadAttachmentStream,
 	UniverseAgentListModelsResult,
 	UniverseAgentGetConfigRequest,
 	UniverseAgentGetConfigResult,
@@ -3054,6 +3057,24 @@ function mapMemoryReflectResponse(wire: MemoryReflectResponseWire): UniverseAgen
 	};
 }
 
+interface DownloadChunkWire {
+	offset?: number | string;
+	data?: string;
+	total_size?: number | string;
+	is_last?: boolean;
+	checksum_sha256?: string;
+}
+
+function mapDownloadChunk(wire: DownloadChunkWire): UniverseAgentDownloadChunk {
+	return {
+		offset: requiredInt64(wire.offset),
+		data: base64ToBytes(wire.data),
+		totalSize: requiredInt64(wire.total_size),
+		isLast: wire.is_last === true,
+		checksumSha256: wire.checksum_sha256 ?? '',
+	};
+}
+
 interface ListModelsResponseWire {
 	models?: Array<{
 		id?: string;
@@ -5182,6 +5203,25 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			categories: [...request.categories],
 		});
 		return mapMemoryReflectResponse(wire);
+	}
+
+	openDownloadAttachmentStream(
+		request: UniverseAgentDownloadAttachmentRequest,
+		onResponse: (response: UniverseAgentDownloadChunk) => void,
+		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
+	): UniverseAgentDownloadAttachmentStream {
+		const stream = makeServerStreamClient<Record<string, unknown>, DownloadChunkWire>(
+			this._channel,
+			UniverseAgentGrpcServices.FileTransfer.service,
+			UniverseAgentGrpcServices.FileTransfer.DownloadAttachment,
+		);
+		return stream({
+			file_path: request.filePath,
+			offset: request.offset,
+			max_bytes: request.maxBytes,
+			session_id: request.sessionId,
+			artifact_id: request.artifactId,
+		}, wire => onResponse(mapDownloadChunk(wire)), onClosed);
 	}
 
 	async setPermissionPolicy(request: UniverseAgentSetPermissionPolicyRequest): Promise<UniverseAgentSetPermissionPolicyResult> {

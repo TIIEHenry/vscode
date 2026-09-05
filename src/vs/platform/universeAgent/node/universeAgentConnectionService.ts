@@ -246,6 +246,9 @@ import type {
 	UniverseAgentDeleteMemoryResult,
 	UniverseAgentReflectMemoryRequest,
 	UniverseAgentReflectMemoryResult,
+	UniverseAgentDownloadAttachmentRequest,
+	UniverseAgentDownloadChunk,
+	UniverseAgentDownloadAttachmentStream,
 	UniverseAgentSetPermissionPolicyRequest,
 	UniverseAgentSetPermissionPolicyResult,
 	UniverseAgentListModelsResult,
@@ -1400,6 +1403,15 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 
 	async reflectMemory(request: UniverseAgentReflectMemoryRequest): Promise<UniverseAgentReflectMemoryResult> {
 		return this._withTransport(transport => transport.reflectMemory(request));
+	}
+
+	openDownloadAttachmentStream(
+		request: UniverseAgentDownloadAttachmentRequest,
+		onResponse: (response: UniverseAgentDownloadChunk) => void,
+		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
+	): UniverseAgentDownloadAttachmentStream {
+		this._assertTransportReady();
+		return this._transport!.openDownloadAttachmentStream(request, onResponse, onClosed);
 	}
 
 	async setPermissionPolicy(request: UniverseAgentSetPermissionPolicyRequest): Promise<UniverseAgentSetPermissionPolicyResult> {

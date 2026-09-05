@@ -218,6 +218,8 @@ import type {
 	UniverseAgentDeleteMemoryResult,
 	UniverseAgentReflectMemoryRequest,
 	UniverseAgentReflectMemoryResult,
+	UniverseAgentDownloadAttachmentRequest,
+	UniverseAgentDownloadChunk,
 	UniverseAgentGetHistoryRequest,
 	UniverseAgentGetHistoryResult,
 	UniverseAgentListSessionsRequest,
@@ -1587,6 +1589,31 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 		return this.reflectMemoryResult;
 	}
 
+	private _downloadAttachmentGate: ReturnType<typeof createStreamCloseGate> | undefined;
+	readonly downloadAttachmentOpens: UniverseAgentDownloadAttachmentRequest[] = [];
+
+	openDownloadAttachmentStream(
+		request: UniverseAgentDownloadAttachmentRequest,
+		_onResponse: (response: UniverseAgentDownloadChunk) => void,
+		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
+	): { dispose(): void } {
+		this.downloadAttachmentOpens.push(request);
+		const gate = createStreamCloseGate(onClosed);
+		this._downloadAttachmentGate = gate;
+		return {
+			dispose: () => {
+				gate.closeLocal();
+				if (this._downloadAttachmentGate === gate) {
+					this._downloadAttachmentGate = undefined;
+				}
+			},
+		};
+	}
+
+	fireDownloadAttachmentClosed(cause: UniverseAgentSessionStreamCloseCause): void {
+		this._downloadAttachmentGate?.finish(cause);
+	}
+
 	async listModels() {
 		return { models: [] };
 	}
@@ -2058,6 +2085,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('UniverseAgentGrpcServices lists Memory.Reflect', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Memory.Reflect, 'Reflect');
 		assert.strictEqual(UniverseAgentGrpcServices.Memory.service, 'universeagent.memory.v1.MemoryService');
+	});
+
+	test('UniverseAgentGrpcServices lists FileTransfer.DownloadAttachment', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.FileTransfer.DownloadAttachment, 'DownloadAttachment');
+		assert.strictEqual(UniverseAgentGrpcServices.FileTransfer.service, 'universeagent.filetransfer.v1.FileTransferService');
 	});
 
 	test('UniverseAgentGrpcServices lists Agent.Kill', () => {
@@ -6238,6 +6270,69 @@ suite('UniverseAgentConnectionService', () => {
 		}, () => { }, cause => seen.push(cause));
 		handle.dispose();
 		transport.fireWatchConfigClosed({ kind: 'error', message: 'CANCELLED' });
+		assert.deepStrictEqual(seen, []);
+		service.dispose();
+	});
+
+	test('openDownloadAttachmentStream forwards request and transport onClosed', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		const seen: UniverseAgentSessionStreamCloseCause[] = [];
+		const handle = service.openDownloadAttachmentStream({
+			filePath: 'att/a.bin',
+			offset: 8,
+			maxBytes: 64,
+			sessionId: 'sess-1',
+			artifactId: 'art-1',
+		}, () => { }, cause => seen.push(cause));
+		assert.deepStrictEqual(transport.downloadAttachmentOpens, [{
+			filePath: 'att/a.bin',
+			offset: 8,
+			maxBytes: 64,
+			sessionId: 'sess-1',
+			artifactId: 'art-1',
+		}]);
+		transport.fireDownloadAttachmentClosed({ kind: 'remote' });
+		transport.fireDownloadAttachmentClosed({ kind: 'error', message: 'late' });
+		assert.deepStrictEqual(seen, [{ kind: 'remote' }]);
+
+		service.openDownloadAttachmentStream({
+			filePath: '',
+			offset: 0,
+			maxBytes: 0,
+			sessionId: '',
+			artifactId: '',
+		}, () => { });
+		assert.strictEqual(transport.downloadAttachmentOpens[1]?.filePath, '');
+		assert.strictEqual(transport.downloadAttachmentOpens[1]?.offset, 0);
+		assert.strictEqual(transport.downloadAttachmentOpens[1]?.maxBytes, 0);
+		assert.strictEqual(transport.downloadAttachmentOpens[1]?.sessionId, '');
+		assert.strictEqual(transport.downloadAttachmentOpens[1]?.artifactId, '');
+		handle.dispose();
+		service.dispose();
+	});
+
+	test('openDownloadAttachmentStream dispose silences later onClosed', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		const seen: UniverseAgentSessionStreamCloseCause[] = [];
+		const handle = service.openDownloadAttachmentStream({
+			filePath: '',
+			offset: 0,
+			maxBytes: 0,
+			sessionId: '',
+			artifactId: '',
+		}, () => { }, cause => seen.push(cause));
+		handle.dispose();
+		transport.fireDownloadAttachmentClosed({ kind: 'error', message: 'CANCELLED' });
 		assert.deepStrictEqual(seen, []);
 		service.dispose();
 	});
