@@ -63,6 +63,7 @@ export type NavigatorAgentsSubview = 'hierarchy' | 'activity';
 
 export const NAVIGATOR_AGENTS_SHOW_HIERARCHY_COMMAND_ID = 'workbench.action.navigatorAgents.showHierarchy';
 export const NAVIGATOR_AGENTS_SHOW_ACTIVITY_COMMAND_ID = 'workbench.action.navigatorAgents.showActivity';
+export const NAVIGATOR_AGENTS_REFRESH_COMMAND_ID = 'workbench.action.navigatorAgents.refresh';
 
 export const NAVIGATOR_AGENTS_SUBVIEW_HIERARCHY_KEY = new RawContextKey<boolean>('navigatorAgentsSubview.hierarchy', true);
 export const NAVIGATOR_AGENTS_SUBVIEW_ACTIVITY_KEY = new RawContextKey<boolean>('navigatorAgentsSubview.activity', false);
@@ -134,6 +135,7 @@ class AgentsActivityRenderer implements IListRenderer<INavigatorAgentsActivityIt
 
 	renderElement(item: INavigatorAgentsActivityItem, _index: number, templateData: IAgentsActivityTemplateData): void {
 		templateData.label.textContent = item.label;
+		templateData.label.title = item.label;
 	}
 
 	disposeTemplate(): void {
@@ -234,6 +236,14 @@ export class NavigatorAgentsView extends ViewPane {
 		this.updateSubviewVisibility();
 	}
 
+	refreshAgentTree(): void {
+		const sessionId = this.rosterService.getActiveSessionId();
+		if (this.rosterService.isEngineConnected() && sessionId) {
+			this.uaConnection.requestAgentTreeRefresh(sessionId);
+		}
+		this.refreshFromLease();
+	}
+
 	protected override renderBody(container: HTMLElement): void {
 		super.renderBody(container);
 		container.classList.add('navigator-agents-view');
@@ -269,7 +279,11 @@ export class NavigatorAgentsView extends ViewPane {
 
 	protected override layoutBody(height: number, width: number): void {
 		super.layoutBody(height, width);
-		const contentHeight = height - NavigatorAgentsInlineFilterBox.HEIGHT;
+		this.element.classList.toggle('is-narrow', width > 0 && width < 600);
+		this.element.classList.toggle('is-compact', width > 0 && width < 300);
+		const note = this.subview === 'hierarchy' ? this.hierarchyNote : this.activityNote;
+		const noteHeight = note && note.style.display !== 'none' ? note.offsetHeight : 0;
+		const contentHeight = Math.max(0, height - NavigatorAgentsInlineFilterBox.HEIGHT - noteHeight);
 		if (this.subview === 'hierarchy') {
 			this.hierarchyTree?.layout(contentHeight, width);
 		} else {
@@ -639,6 +653,27 @@ registerAction2(class NavigatorAgentsShowActivityAction extends ViewAction<Navig
 
 	override runInView(_accessor: ServicesAccessor, view: NavigatorAgentsView): void {
 		view.showActivity();
+	}
+});
+
+registerAction2(class NavigatorAgentsRefreshAction extends ViewAction<NavigatorAgentsView> {
+	constructor() {
+		super({
+			id: NAVIGATOR_AGENTS_REFRESH_COMMAND_ID,
+			viewId: NAVIGATOR_AGENTS_VIEW_ID,
+			title: localize2('navigatorAgentsView.refresh', "Refresh"),
+			icon: Codicon.refresh,
+			menu: {
+				id: MenuId.ViewTitle,
+				group: 'navigation',
+				order: 0,
+				when: ContextKeyExpr.equals('view', NAVIGATOR_AGENTS_VIEW_ID),
+			},
+		});
+	}
+
+	override runInView(_accessor: ServicesAccessor, view: NavigatorAgentsView): void {
+		view.refreshAgentTree();
 	}
 });
 

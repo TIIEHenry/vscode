@@ -3,7 +3,7 @@ title: "从本仓库构建与运行"
 type: guide
 status: accepted
 phase: N/A
-updated: 2026-08-30
+updated: 2026-09-03
 summary: "本仓库已核对的安装、构建、启动命令；完整贡献与排错以官方 wiki How to Contribute 为准"
 ---
 
@@ -91,3 +91,4 @@ python3 scripts/check-docs-health.py        # 文档结构变更后
 | 写 docs/ | [文体指南](doc-style-guide.md) |
 | 编码风格 | [Copilot Instructions](../../.github/copilot-instructions.md) |
 | 贡献、调试、PR | [How to Contribute](https://github.com/microsoft/vscode/wiki/How-to-Contribute) |
+| 连一份不受 UA 开发影响的引擎 | [钉死引擎调试](debug-engine.md) |

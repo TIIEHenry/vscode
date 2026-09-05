@@ -3,7 +3,7 @@ title: "Navigator tab 适配：按 vscode ViewContainer 重设计子页"
 type: reference
 status: accepted
 phase: N/A
-updated: 2026-09-02
+updated: 2026-09-03
 summary: "五段 Activity 产品 chrome 已落；N1–N4 @ HEAD：Projects=WorkbenchObjectTree（引擎根→work_dir→roster 会话 + 本地文件夹组）；Agents Hierarchy=lease.liveAgentTree、Activity=lease timeline∪overlay tool；Team=同树 manager→connection team unary；Inspect=IAgentInspectService→Panel 单叶（第二叶不需要）；无引擎三段诚实空；Engines 不进 Activity"
 ---
 
@@ -22,7 +22,7 @@ Singularity Navigator 是 **TabLayout + 单一 body**：一段 Activity 换一�
 
 本仓 @ `77d6e7cc`：
 
-| Desktop 段 | HEAD 宿主 | 内容（产品 chrome；数据仍 stub / 本地） |
+| Desktop 段 | HEAD 宿主 | 内容（产品 chrome；数据见各行，无引擎诚实空 / 本地） |
 |------------|-----------|----------------------------------------|
 | Files（默认） | Explorer `VIEW_CONTAINER`（`workbench.view.explorer`，`isDefault: true`，`hideIfEmpty: true`） | `ExplorerView` 权威树 + Open Editors（`contrib/files`） |
 | Sessions | 独立容器 `workbench.view.sessions`（order 10；`hideIfEmpty: false`） | 叶 `workbench.view.conversationSessions` → `ConversationSessionsView`（`conversationSessionsView.ts`）：`WorkbenchList` 44px 双行 SessionCard、内联 filter、标题 New/Delete；行选 → `switchSession` + 显示并聚焦 `CONVERSATION_PART`（**M5 切片 2** / page-access 切片 2）；数据 = `IConversationRosterService` 内存 stub |

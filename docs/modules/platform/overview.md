@@ -3,7 +3,7 @@ title: "platform 层概览"
 type: overview
 status: accepted
 phase: N/A
-updated: 2026-09-02
+updated: 2026-09-03
 summary: "platform 层角色、可导入范围、DI 约定，以及 instantiation / configuration / commands / agentHost / universeAgent 等代表服务"
 ---
 
@@ -123,14 +123,15 @@ registerSingleton(IUriIdentityService, UriIdentityService, InstantiationType.Del
 
 `universeAgent/` 是 **UniverseAgent gRPC 传输 adapter**（[ADR-003](../../../dev/decisions/003-engine-adapter-boundary.md)），与 `agentHost/` **隔离命名**——不得继承 `IAgentHostService` / `IAgentConnection`：
 
-- `IUniverseAgentConnection`（`common`）：Connect 生命周期、`isEngineConnected`（`session_token` + 活 channel）、`getConnectionPhase()`、`getCapabilitySnapshot()`（`grpcCapabilityProbe`：`skills` / `agentProfiles` / `mcp` / `tools` / `agentTree` / `team`）、session / chat / team / **catalog list** 面；renderer 经 electron-main ProxyChannel 代理
+- `IUniverseAgentConnection`（`common`）：Connect 生命周期、`isEngineConnected`（`session_token` + 活 channel）、`getConnectionPhase()`、`getCapabilitySnapshot()`（`grpcCapabilityProbe`：`skills` / `agentProfiles` / `mcp` / `mcpRuntime` / `tools` / `plugins` / `models` / `agentTree` / `team`）、session / chat / team / **catalog list** 面；可选 `openChatStream` 常驻 Chat bidi；renderer 经 electron-main ProxyChannel 代理
+- `IUniverseAgentSessionView`（`common`）：lease acquire / post / `acknowledge`（→ Actor `frameAck`）/ `requestDetail`；Web 空 lease。宿主 `node/sessionViewHost.ts`：`drainIntents` 按 attempt/timer/chat id 归属会话；无 snapshot 时 `overlayDeltaJoin` 累积 L3 delta
 - `IUniverseAgentHubService`（`common`）：Hub 控制面投影（登录 / 目录 / 设备管理）；**不**暴露 token / ticket / 私钥
 - `universeAgent/node`：`@grpc/grpc-js` 客户端（`SystemService` / `SessionService` / …）；**`hub/`**（vendored Desktop：auth / relay-ticket / host-normalize；`loginHub` 解析 `hub_refresh` Set-Cookie）、**`deviceGrant/`**（transcript / SAS / tls-pin / observe-candidate-leaf）、`hubDirectoryClient` / `hubSessionStore` / `clientIdentityStore` / `engineTrustStore` / `connectionProfileStore` / `connectionResolver` / `pairingOrchestrator`；catalog @ HEAD = `ListSkills` · `SetSkillEnabled` · `SaveSkillContent` @ `45fa7a35`/`040c823d` · Agents/MCP/Tools 写 RPC @ `f49615a1`；`sessionCore` Actor fold；host-only `AgentService.Tree`
 - **Secret 落盘 @ `321a4e0b`：** `electron-main/universeAgentMainService.ts` 装配 `HubSessionStore` + `ClientIdentityStore`，经 `IEncryptionMainService` + `IApplicationStorageMainService`（`APPLICATION` / `MACHINE`，键前缀 `universeAgent.secret.`）加密写 refresh 与 Ed25519 身份；access token 仅内存。`isEncryptionAvailable()===false` → refresh / 身份**不落盘**，`ClientIdentityStore.getOrCreateIdentity()` 返回 `encryption_unavailable`，Connection pane 诚实报错。**Hub 会话 refresh @ `dba63c70` / `23fd9d70`：** 启动 `restorePersistedHubSessionIfNeeded` / `whenStartupRestoreComplete` / `listPersistedHubBaseUrls`（加密 refresh 在盘则重启免重登）；运行中 `withHubAccessRetry`（`hubAuthAccess.ts`）在 access 过期或控制面 401/403 时强制 refresh 并重试一次。
 - 宿主：**electron-main**（[ADR-003](../../../dev/decisions/003-engine-adapter-boundary.md)；Hub 客户端与 gRPC 同宿主）；`node/**` 保持进程无关
 - 消费者：`contrib/conversation` roster（`ConversationEngineRosterService`）、UA Preferences panes（[engine-catalog](../../systems/workbench/engine-catalog.md)）、StatusBar 连接态（H4b）
 
-**AHP 仍非 UA 会话权威**；引擎 gRPC 面见 [engine-protocol-surface](../../reference/universe-agent/engine-protocol-surface.md)；Hub 控制面见 [hub-control-plane-surface](../../reference/universe-agent/hub-control-plane-surface.md)；系统边界见 [agent-host overview](../../systems/agent-host/overview.md)。
+**AHP 仍非 UA 会话权威**；引擎 gRPC 面见 [engine-protocol-surface](../../reference/universe-agent/engine-protocol-surface.md)；Hub 控制面见 [hub-control-plane-surface](../../reference/universe-agent/hub-control-plane-surface.md)；本机调试用钉死 HeadlessServer 见 [钉死引擎调试](../../guides/debug-engine.md)；系统边界见 [agent-host overview](../../systems/agent-host/overview.md)。
 
 同层相邻、但更窄的目录：
 

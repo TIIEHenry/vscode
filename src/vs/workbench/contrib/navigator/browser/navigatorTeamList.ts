@@ -31,6 +31,7 @@ import { getNavigatorCapability } from '../common/navigatorEngineBridge.js';
 import { matchesNavigatorTeamInlineFilter } from '../common/navigatorTeamInlineFilter.js';
 import {
 	findManagerNodes,
+	getTeamTreeEmptyCopy,
 	INavigatorTeamMemberEntry,
 	INavigatorTeamTaskEntry,
 } from '../common/navigatorTeamData.js';
@@ -86,6 +87,7 @@ class TeamMemberRenderer implements IListRenderer<INavigatorTeamMemberEntry, ITe
 
 	renderElement(member: INavigatorTeamMemberEntry, _index: number, templateData: ITeamMemberTemplateData): void {
 		templateData.label.textContent = member.label;
+		templateData.label.title = member.label;
 	}
 
 	disposeTemplate(): void {
@@ -127,6 +129,7 @@ class TeamTaskRenderer implements IListRenderer<INavigatorTeamTaskEntry, ITeamTa
 
 	renderElement(task: INavigatorTeamTaskEntry, _index: number, templateData: ITeamTaskTemplateData): void {
 		templateData.label.textContent = task.label;
+		templateData.label.title = task.label;
 	}
 
 	disposeTemplate(): void {
@@ -278,6 +281,8 @@ export class NavigatorTeamView extends ViewPane {
 
 	protected override layoutBody(height: number, width: number): void {
 		super.layoutBody(height, width);
+		this.element.classList.toggle('is-narrow', width > 0 && width < 600);
+		this.element.classList.toggle('is-compact', width > 0 && width < 300);
 		const contentHeight = height - NavigatorTeamInlineFilterBox.HEIGHT;
 		if (this.subview === 'members') {
 			this.membersList?.layout(contentHeight, width);
@@ -356,19 +361,14 @@ export class NavigatorTeamView extends ViewPane {
 		const liveTree = lease?.snapshot.liveAgentTree;
 		const agentTreeCapability = getNavigatorCapability(this.uaConnection, 'agentTree');
 
-		if (agentTreeCapability === 'UNSUPPORTED') {
-			const msg = localize('navigatorTeam.noAgentTree', "当前引擎不提供 Agent 树，无法列出团队");
-			this.setMemberEntries([], msg);
-			this.setTaskEntries([], msg);
+		const treeEmpty = getTeamTreeEmptyCopy(agentTreeCapability, liveTree);
+		if (treeEmpty) {
+			this.setMemberEntries([], treeEmpty);
+			this.setTaskEntries([], treeEmpty);
 			return;
 		}
 
 		const managers = findManagerNodes(liveTree);
-		if (managers.length === 0) {
-			this.setMemberEntries([], localize('navigatorTeam.noTeam', "当前会话没有团队"));
-			this.setTaskEntries([], localize('navigatorTeam.noTeam', "当前会话没有团队"));
-			return;
-		}
 
 		const teamCapability = getNavigatorCapability(this.uaConnection, 'team');
 		if (teamCapability === 'UNSUPPORTED') {

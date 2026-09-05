@@ -19,9 +19,12 @@ import { IOpenerService } from '../../../../platform/opener/common/opener.js';
 import { IThemeService } from '../../../../platform/theme/common/themeService.js';
 import { IViewPaneOptions, ViewPane } from '../../../browser/parts/views/viewPane.js';
 import { IViewDescriptorService } from '../../../common/views.js';
+import { IConversationRosterService } from '../../conversation/browser/conversationStubService.js';
 import { AgentInspectTarget, IAgentInspectService } from '../common/agentInspect.js';
-import { formatAgentStatusLabel, formatAgentTypeShort } from '../common/navigatorAgentHierarchy.js';
+import { findLiveAgentNode, formatAgentStatusLabel, formatAgentTypeShort } from '../common/navigatorAgentHierarchy.js';
+import type { LiveAgentTreeNodeView } from '../../../../platform/universeAgent/common/sessionView/index.js';
 import { AGENT_INSPECT_VIEW_ID } from './agentInspectIds.js';
+import { NavigatorSessionLeaseHolder } from './navigatorSessionLeaseHolder.js';
 
 const $ = dom.$;
 
@@ -54,6 +57,7 @@ class InspectRenderer implements IListRenderer<IAgentInspectEntry, IInspectTempl
 
 	renderElement(entry: IAgentInspectEntry, _index: number, templateData: IInspectTemplateData): void {
 		templateData.label.textContent = entry.label;
+		templateData.label.title = entry.label;
 	}
 
 	disposeTemplate(): void {
@@ -69,6 +73,34 @@ class InspectAccessibilityProvider implements IListAccessibilityProvider<IAgentI
 	getAriaLabel(entry: IAgentInspectEntry): string {
 		return entry.label;
 	}
+}
+
+const INSPECT_TITLE = localize('agentInspectView.title', "Inspect");
+
+export function inspectTitleFromTarget(target: AgentInspectTarget | undefined): string {
+	if (!target) {
+		return INSPECT_TITLE;
+	}
+	switch (target.kind) {
+		case 'agent':
+			return localize('agentInspectView.titleAgent', "Inspect — {0}", target.node.name || target.node.agentId);
+		case 'member':
+			return localize('agentInspectView.titleMember', "Inspect — {0}", target.info.memberName);
+		case 'task':
+			return localize('agentInspectView.titleTask', "Inspect — {0}", target.task.subject);
+		case 'activity':
+			return localize('agentInspectView.titleActivity', "Inspect — {0}", target.item.toolName);
+	}
+}
+
+export function isInspectAgentStale(
+	target: AgentInspectTarget | undefined,
+	liveTree: LiveAgentTreeNodeView | undefined,
+): boolean {
+	if (!target || target.kind !== 'agent' || liveTree === undefined) {
+		return false;
+	}
+	return findLiveAgentNode(liveTree, target.node.agentId) === undefined;
 }
 
 function entriesFromTarget(target: AgentInspectTarget | undefined): IAgentInspectEntry[] {
@@ -123,6 +155,7 @@ export class AgentInspectView extends ViewPane {
 	private listContainer: HTMLElement | undefined;
 	private entries: IAgentInspectEntry[] = [];
 	private staleNote: HTMLElement | undefined;
+	private readonly leaseHolder: NavigatorSessionLeaseHolder;
 
 	constructor(
 		options: IViewPaneOptions,
@@ -136,9 +169,16 @@ export class AgentInspectView extends ViewPane {
 		@IThemeService themeService: IThemeService,
 		@IHoverService hoverService: IHoverService,
 		@IAgentInspectService private readonly inspectService: IAgentInspectService,
+		@IConversationRosterService private readonly rosterService: IConversationRosterService,
 	) {
 		super(options, keybindingService, contextMenuService, configurationService, contextKeyService, viewDescriptorService, instantiationService, openerService, themeService, hoverService);
+		this.leaseHolder = this._register(new NavigatorSessionLeaseHolder(this.rosterService, () => this.renderTarget()));
 		this._register(this.inspectService.onDidChangeTarget(() => this.renderTarget()));
+	}
+
+	override setVisible(visible: boolean): void {
+		super.setVisible(visible);
+		this.leaseHolder.setVisible(visible);
 	}
 
 	override shouldShowWelcome(): boolean {
@@ -149,6 +189,7 @@ export class AgentInspectView extends ViewPane {
 		super.renderBody(container);
 
 		this.staleNote = dom.append(container, $('.agent-inspect-stale-note'));
+		this.staleNote.textContent = localize('agentInspectView.staleAgent', "该 Agent 已不在当前会话的 Agent 树里");
 		this.staleNote.style.display = 'none';
 		this.listContainer = dom.append(container, $('.agent-inspect-list'));
 		this.ensureList();
@@ -157,6 +198,8 @@ export class AgentInspectView extends ViewPane {
 
 	protected override layoutBody(height: number, width: number): void {
 		super.layoutBody(height, width);
+		this.element.classList.toggle('is-narrow', width > 0 && width < 600);
+		this.element.classList.toggle('is-compact', width > 0 && width < 300);
 		this.list?.layout(height, width);
 	}
 
@@ -182,6 +225,12 @@ export class AgentInspectView extends ViewPane {
 
 	private renderTarget(): void {
 		const target = this.inspectService.getTarget();
+		this.updateTitle(inspectTitleFromTarget(target));
+		const liveTree = this.leaseHolder.getLease()?.snapshot.liveAgentTree;
+		const stale = isInspectAgentStale(target, liveTree);
+		if (this.staleNote) {
+			this.staleNote.style.display = stale ? '' : 'none';
+		}
 		this.setEntries(entriesFromTarget(target));
 	}
 

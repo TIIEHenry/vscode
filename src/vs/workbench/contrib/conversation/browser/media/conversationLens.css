@@ -70,14 +70,19 @@
 }
 
 .monaco-workbench .part.conversation .conversation-lens-session-sync-badge {
-	flex-shrink: 0;
+	flex-shrink: 1;
+	min-width: 0;
+	max-width: 28ch;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 	padding: 0 5px;
 	border-radius: 2px;
 	font-size: 10px;
 	font-weight: 600;
 	text-transform: none;
 	letter-spacing: normal;
-	color: var(--vscode-descriptionForeground);
+	color: var(--vscode-badge-foreground);
 	background-color: var(--vscode-badge-background, var(--vscode-toolbar-hoverBackground));
 }
 
@@ -122,10 +127,14 @@
 	background-color: var(--vscode-input-background);
 	border: 1px solid var(--vscode-input-border, var(--vscode-contrastBorder, transparent));
 	border-radius: 2px;
-	outline: none;
 	text-transform: none;
 	letter-spacing: normal;
 	box-sizing: border-box;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-session-title-input:focus {
+	outline: 1px solid var(--ua-status-focus, var(--vscode-focusBorder));
+	outline-offset: -1px;
 }
 
 .monaco-workbench .part.conversation .conversation-lens-session-title-live {
@@ -1254,7 +1263,7 @@
 	padding: 6px 12px;
 	border-radius: 8px;
 	border: none;
-	background-color: var(--vscode-sideBar-background);
+	background-color: var(--vscode-input-background);
 	box-shadow: 0 1px 2px var(--vscode-widget-shadow, rgba(0, 0, 0, 0.16));
 }
 
@@ -1276,7 +1285,7 @@
 	right: 0;
 	bottom: 0;
 	height: 1.5em;
-	background: linear-gradient(to bottom, transparent, var(--vscode-sideBar-background));
+	background: linear-gradient(to bottom, transparent, var(--vscode-input-background));
 	pointer-events: none;
 }
 
@@ -1355,9 +1364,10 @@
 
 .monaco-workbench .part.conversation .conversation-lens-confirmation-summary {
 	display: flex;
-	flex-wrap: nowrap;
+	flex-wrap: wrap;
 	gap: 6px;
 	align-items: center;
+	min-width: 0;
 	font-size: 12px;
 	color: var(--vscode-descriptionForeground);
 }
@@ -1380,7 +1390,12 @@
 
 .monaco-workbench .part.conversation .conversation-lens-confirmation-actions {
 	display: flex;
+	flex-wrap: wrap;
 	gap: 6px;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-confirmation-actions > * {
+	flex-shrink: 0;
 }
 
 /* Question seat — independent from confirmation (no Allow/Skip). */
@@ -1425,7 +1440,7 @@
 
 .monaco-workbench .part.conversation .conversation-lens-inbox-overlay {
 	display: flex;
-	flex-wrap: nowrap;
+	flex-wrap: wrap;
 	align-items: center;
 	justify-content: space-between;
 	gap: 8px;
@@ -1438,7 +1453,7 @@
 .monaco-workbench .part.conversation .conversation-lens-inbox-left,
 .monaco-workbench .part.conversation .conversation-lens-inbox-right {
 	display: flex;
-	flex-wrap: nowrap;
+	flex-wrap: wrap;
 	align-items: center;
 	gap: 6px;
 	min-width: 0;
@@ -1496,7 +1511,12 @@
 }
 
 .monaco-workbench .part.conversation .conversation-lens-inbox-sync {
-	flex-shrink: 0;
+	flex-shrink: 1;
+	min-width: 0;
+	max-width: 100%;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 	padding: 0 4px;
 	font-size: 11px;
 	font-weight: 600;
@@ -1523,9 +1543,12 @@
 	color: var(--vscode-textLink-activeForeground);
 }
 
-.monaco-workbench .part.conversation .conversation-lens-inbox-list-panel {
-	min-width: 280px;
-	max-width: min(480px, 90vw);
+.monaco-workbench .part.conversation .conversation-lens-inbox-list-panel,
+.context-view .conversation-lens-inbox-list-panel {
+	box-sizing: border-box;
+	min-width: 0;
+	width: min(280px, calc(100cqi - 24px), calc(100vw - 24px));
+	max-width: min(480px, calc(100cqi - 24px), calc(100vw - 24px));
 }
 
 .monaco-workbench .part.conversation .conversation-lens-message-queue-list .queue-bar-header {
@@ -1600,7 +1623,7 @@
 }
 
 .monaco-workbench .part.conversation .conversation-lens-message-queue-list .queue-item-meta .tag.hold {
-	color: var(--vscode-editorWarning-foreground, #e8a84a);
+	color: var(--vscode-editorWarning-foreground);
 }
 
 .monaco-workbench .part.conversation .conversation-lens-message-queue-list .queue-item-meta .tag.upload {
@@ -1744,7 +1767,11 @@
 	font-family: var(--vscode-font-family);
 	line-height: 20px;
 	resize: none;
-	outline: none;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-composer:focus-within {
+	outline: 1px solid var(--ua-status-focus, var(--vscode-focusBorder));
+	outline-offset: -1px;
 }
 
 .monaco-workbench .part.conversation .conversation-lens-dock-input::placeholder {
@@ -2058,8 +2085,13 @@
 
 .monaco-workbench .part.conversation .conversation-lens-question-actions {
 	display: flex;
+	flex-wrap: wrap;
 	gap: 6px;
 	margin: 6px 0 0;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-question-actions > * {
+	flex-shrink: 0;
 }
 
 .monaco-workbench .part.conversation .conversation-lens-turn--error {
@@ -2126,8 +2158,12 @@
 	display: none;
 }
 
+.monaco-workbench .part.conversation .is-narrow .conversation-lens-session-new,
+.monaco-workbench .part.conversation .is-narrow .conversation-lens-session-delete,
 .monaco-workbench .part.conversation .is-compact .conversation-lens-session-new,
-.monaco-workbench .part.conversation .is-compact .conversation-lens-session-delete {
+.monaco-workbench .part.conversation .is-compact .conversation-lens-session-delete,
+.monaco-workbench .part.conversation .is-narrow .conversation-window-nav,
+.monaco-workbench .part.conversation .is-compact .conversation-window-nav {
 	display: none;
 }
 
@@ -2135,8 +2171,6 @@
 .monaco-workbench .part.conversation .is-compact .conversation-lens-lens-tabs,
 .monaco-workbench .part.conversation .is-narrow .conversation-lens-session-sync-badge,
 .monaco-workbench .part.conversation .is-compact .conversation-lens-session-sync-badge,
-.monaco-workbench .part.conversation .is-narrow .conversation-window-nav,
-.monaco-workbench .part.conversation .is-compact .conversation-window-nav,
 .monaco-workbench .part.conversation .is-narrow .conversation-lens-trajectory-inspector-back,
 .monaco-workbench .part.conversation .is-compact .conversation-lens-trajectory-inspector-back {
 	flex-shrink: 0;
@@ -2163,7 +2197,7 @@
 
 .monaco-workbench .part.conversation .is-narrow .conversation-lens-dock-bottom-leading,
 .monaco-workbench .part.conversation .is-compact .conversation-lens-dock-bottom-leading {
-	overflow-x: hidden;
+	overflow-x: auto;
 }
 
 .monaco-workbench .part.conversation .is-narrow .conversation-lens-dock-input,
@@ -2237,6 +2271,8 @@
 
 .monaco-workbench.hc-black .part.conversation .conversation-lens-turn--error,
 .monaco-workbench.hc-light .part.conversation .conversation-lens-turn--error,
+.monaco-workbench.hc-black .part.conversation .conversation-lens-turn--unknown,
+.monaco-workbench.hc-light .part.conversation .conversation-lens-turn--unknown,
 .monaco-workbench.hc-black .part.conversation .conversation-lens-turn--question,
 .monaco-workbench.hc-light .part.conversation .conversation-lens-turn--question,
 .monaco-workbench.hc-black .part.conversation .conversation-lens-question-seat,

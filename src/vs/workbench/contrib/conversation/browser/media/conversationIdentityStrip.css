@@ -43,8 +43,8 @@
 }
 
 .monaco-workbench .part.conversation button.conversation-identity-chip:focus-visible {
-	outline: 1px solid var(--vscode-focusBorder);
-	outline-offset: -1px;
+	outline: 2px solid var(--ua-status-focus, var(--vscode-focusBorder));
+	outline-offset: 1px;
 }
 
 .monaco-workbench .part.conversation .conversation-identity-chip-branch {

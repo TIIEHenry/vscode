@@ -4,6 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { readFileSync } from 'fs';
+import { fileURLToPath } from 'url';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { ConfigurationTarget } from '../../../../../platform/configuration/common/configuration.js';
 import { Extensions, IConfigurationRegistry, IRegisteredConfigurationPropertySchema } from '../../../../../platform/configuration/common/configurationRegistry.js';
@@ -335,5 +337,14 @@ suite('Settings UA TOC', () => {
 		}
 		const clientKeys = keys.filter(key => key.startsWith('ua.client.')).sort();
 		assert.deepStrictEqual(clientKeys, [...UA_CLIENT_REGISTERED_SETTING_KEYS]);
+	});
+
+	test('D20 chrome CSS keeps search and Client group titles at narrow width', () => {
+		const cssPath = fileURLToPath(new URL('../../../conversation/browser/media/uaClientSettingsChrome.css', import.meta.url));
+		const css = readFileSync(cssPath, 'utf8');
+		assert.ok(css.includes('.settings-editor.narrow-width > .settings-header > .search-container'));
+		assert.ok(css.includes('.settings-group-title-label'));
+		assert.ok(css.includes('.setting-item-contents .setting-item-control'));
+		assert.ok(!/display\s*:\s*none/.test(css));
 	});
 });

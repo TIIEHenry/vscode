@@ -3,8 +3,8 @@ title: "Conversation Composer、身份条与 Inbox"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-09-02
-summary: "PRD-015 系统规格：PreFirst 居中 / Active 列底同一张 Composer；三种 composerPolicy；身份条 XOR；Inbox 左右分簇与 MessageQueue 状态机；语音转写条；输入历史；StatusBar 芯片与诚实降级"
+updated: 2026-09-03
+summary: "PRD-015 系统规格：PreFirst 居中 / Active 列底同一张 Composer；三种 composerPolicy；身份条 XOR；Inbox；语音条；输入历史；StatusBar；Composer catalog 只读填表"
 ---
 
 # Conversation Composer、身份条与 Inbox
@@ -26,11 +26,13 @@ summary: "PRD-015 系统规格：PreFirst 居中 / Active 列底同一张 Compos
 
 身份条数据：`getConversationIdentityFolder`（首个工作区文件夹）、`getConversationIdentityBranchName`（`ISCMService` HEAD ref）；无文件夹 / 无仓库时对应 chip 省略。引擎 chip 文案 = `getConnectionPhaseStatusBarText(getConnectionPhase(), pairingPending)`（与 StatusBar `status.conversation.engine` 同函数）；点击路由 = B10（`isEngineConnected()` → `workbench.action.openEnginePreferences`，否则 `workbench.action.openConnectionPreferences`）；订阅 `IUniverseAgentConnection.onDidChangeConnection` 与 `IConversationRosterService.onDidChangeEngineConnection`。
 
+接通且能力 `SUPPORTED` 时，Agent / Tools / Model 下拉由 `conversationComposerCatalog.ts` **只读填表**（`listAgentProfiles` / `listTools` / `listModels`）；选择不进 `submitInput`，也不做会话级 `SwitchModel`。无引擎或能力未就绪时诚实空（「No agent」/「No model」）。Route / Permission 仍本地 stub。
+
 ## 2. `composerPolicy`：同一张 Composer 的三种用途
 
 `ConversationLens` 的私有字段 `composerPolicy ∈ 'compose' | 'turnEdit' | 'queueEdit'`（非导出 API，此处只描述状态机）：
 
-- `compose`：正常输入；Send → `IConversationRosterService.appendUserTurn`，无引擎时可追加 `appendStubEchoAssistant`（`stubEcho: true`，UI 标 Stub）。
+- `compose`：正常输入；Send → lease `post({ kind:'submitInput', text })`（旧 `appendUserTurn` / `appendStubEchoAssistant` 是帧源 shim）。无引擎时 stub 帧源产 Stub echo；已连接时 service 层拒写 stub echo。
 - `turnEdit`：点击时间线用户卡进入；保存走 `updateUserTurnText`；Escape / Exit 回 `compose`。
 - `queueEdit`：编辑 MessageQueue 项；进入时 `holdMessageQueueItem(..., 'EDITING')`，退出时 `releaseMessageQueueItemHold`；保存走 `updateMessageQueueItemContent`。
 
@@ -93,4 +95,4 @@ summary: "PRD-015 系统规格：PreFirst 居中 / Active 列底同一张 Compos
 
 ## 9. 测试
 
-`conversationLens.test.ts`（T1–T6）、`conversationIdentityStrip.test.ts`、`conversationInputHistory.test.ts`、`conversationSessionStatus.test.ts`、`conversationSessionStatusBar.test.ts`、`conversationStubService.test.ts`（队列 / hold）。
+`conversationLens.test.ts`（T1–T6）、`conversationComposerCatalog.test.ts`、`conversationIdentityStrip.test.ts`、`conversationInputHistory.test.ts`、`conversationSessionStatus.test.ts`、`conversationSessionStatusBar.test.ts`、`conversationStubService.test.ts`（队列 / hold）。Lens / identity / stub 基线红见 [D16](../../../dev/progress/deferred-gaps.md)。

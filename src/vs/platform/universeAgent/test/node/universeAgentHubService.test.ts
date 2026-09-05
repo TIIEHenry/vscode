@@ -212,6 +212,43 @@ suite('UniverseAgentHubService runtime refresh', () => {
 		assert.strictEqual(devicesFetchCount, 1);
 		service.dispose();
 	});
+
+	test('addHubDeviceProfile creates then reuses a hubDevice profile', async () => {
+		const hubSessionStore = new InMemoryHubSessionStore();
+		await hubSessionStore.applyAuthSession(HUB_BASE, FIXTURE_SESSION, FIXTURE_NOW_MS, 'refresh-token');
+		const service = new UniverseAgentHubService({
+			hubSessionStore,
+			nowMs: () => FIXTURE_NOW_MS,
+			skipStartupRestore: true,
+		});
+		service.setActiveHubBaseUrl(HUB_BASE);
+
+		const first = await service.addHubDeviceProfile({ hubDeviceId: 'dev-1', displayName: 'Studio' });
+		assert.strictEqual(first.ok, true);
+		const second = await service.addHubDeviceProfile({ hubDeviceId: 'dev-1', displayName: 'Studio' });
+		assert.strictEqual(second.ok, true);
+		if (first.ok && second.ok) {
+			assert.strictEqual(first.profileId, second.profileId);
+		}
+		const profiles = service.listConnectionProfiles();
+		assert.strictEqual(profiles.length, 1);
+		assert.strictEqual(profiles[0].displayName, 'Studio');
+		assert.strictEqual(profiles[0].targetKind, 'hubDevice');
+		service.dispose();
+	});
+
+	test('addHubDeviceProfile refuses when Hub is signed out', async () => {
+		const service = new UniverseAgentHubService({
+			hubSessionStore: new InMemoryHubSessionStore(),
+			skipStartupRestore: true,
+		});
+		const result = await service.addHubDeviceProfile({ hubDeviceId: 'dev-1' });
+		assert.strictEqual(result.ok, false);
+		if (!result.ok) {
+			assert.strictEqual(result.code, 'hub_session_required');
+		}
+		service.dispose();
+	});
 });
 
 const FIXTURE_NOW_MS = Date.parse('2026-01-01T00:00:00Z');

@@ -3,8 +3,8 @@ title: "Conversation 会话数据契约：IConversationRosterService、stub 与�
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-09-02
-summary: "IConversationRosterService 契约分组；getTrajectoryRecords + filterAgentId；帧源 projectSnapshotToTrajectory；D13 持久化；A1/A2 连接态、Hub 路径与 ConnectionPhase、adapter 替换约束"
+updated: 2026-09-03
+summary: "IConversationRosterService 契约分组；生产注册 ConversationEngineRosterService；帧源 projectSnapshotToTrajectory；D13 持久化；连接态与 adapter 替换约束"
 ---
 
 # Conversation 会话数据契约
@@ -14,7 +14,7 @@ summary: "IConversationRosterService 契约分组；getTrajectoryRecords + filte
 ## 1. 身份
 
 - decorator：`IConversationRosterService`，id 字符串仍是 `'conversationStubService'`；`IConversationStubService` 是同一 token 的别名（历史命名）。
-- 注册：`registerSingleton(IConversationRosterService, ConversationStubService, InstantiationType.Delayed)`（`conversation.contribution.ts`）。
+- 注册：`registerSingleton(IConversationRosterService, ConversationEngineRosterService)`（`conversation.contribution.ts`）。无引擎时内部仍走 stub 帧源；已连接时走 `IUniverseAgentSessionView` lease。`ConversationStubService` 保留给单测与断连路径。
 - 除定义文件外全仓 17 个生产 / 测试文件依赖此 token：SessionBar、Navigator roster、session 窗口服务、透镜、轨迹、Inbox、StatusBar、chat routing 测试等。
 
 ## 2. 契约分组
@@ -59,7 +59,7 @@ summary: "IConversationRosterService 契约分组；getTrajectoryRecords + filte
 
 1. **同 token 替换**是既定路线（ADR-003 决策 4：公开类型与 decorator id `'conversationStubService'` 都不改，引擎实现替换 `registerSingleton` 的类）：UI 零改动。
 2. **夹具方法的去向**（按 ADR-003 决策 4 / m6-engine-wave M6-A2）：接口**保留不拆**（规则 16 审查与签收均未要求另拆 fixture 接口；此问题已闭）；引擎实现对 §2 夹具组的语义是——已连接时 `appendStubEchoAssistant` 在 service 层拒写（reject / throw 或 no-op + 断言），`set*Fixture` / `setEngineConnected` 不得影响 UA session。stub 本身在 [conversation-stream-timeline](../../../dev/plans/conversation-stream-timeline.md) S1–S3 改为同契约的**帧源**，旧读方法在 S3 变为 shim。
-3. **事件语义**：`onDidChangeSession` 今天是「某会话内容变了」的粗粒度信号；引擎流式回合到达时要么沿用（UI 全量重投影），要么在方案里定义细粒度事件并同步改 `ConversationTimelineTree` 的 diff 策略。
+3. **事件语义**：`onDidChangeSession` 仍是粗粒度信号；时间线增量走 lease `onDidApplyFrame` + `applyEntries`（[stream-timeline §3.4](../../../dev/plans/conversation-stream-timeline.md)）。不得再把「每帧 `setTurns` 全量」写成现行路径。
 4. **权限**：`resolveConfirmation` 只改本地状态；adapter 必须把它变成向引擎发送授权 / 拒绝，并在回执前保持 pending 可见（PRD-004 验收 3 反向：不得在无回执时宣称已授权）。
 5. **连接态与 Hub 路径**：生产 `isEngineConnected()` = `IUniverseAgentConnection.isEngineConnected()` = 非空 `session_token` + 活 channel（**pairing-pending → false**；Hub 登录 / ticket 签发成功 **均不算** connected，上游 I1）。`getConnectionPhase()` 返回 `ConnectionPhase`（[connection-hub-client §3.3](../../../dev/plans/connection-hub-client.md#33-领域模型ts-契约)）：
 

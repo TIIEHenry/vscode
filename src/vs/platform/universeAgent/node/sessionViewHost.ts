@@ -22,10 +22,12 @@ import type { IUniverseAgentSessionViewFrameEvent } from '../common/universeAgen
 import { createSessionCore, type SessionCore } from './sessionCore/session-core.js';
 import type { CoreIntent, HistoryFillCoreIntent } from './sessionCore/intents.js';
 import { isChatCoreIntent, isHistoryFillCoreIntent } from './sessionCore/intents.js';
-import type { CorrelationRef, ViewFrameSink } from './sessionCore/messages.js';
+import type { CorrelationRef, StreamCloseCause, ViewFrameAck, ViewFrameSink } from './sessionCore/messages.js';
 import type { SessionId, ViewFrame, ViewLeaseId } from '../common/sessionView/types.js';
-import type { AttemptId } from './sessionCore/ports.js';
-import { demuxSessionStreamPayload } from './sessionStreamDemux.js';
+import type { AttemptId, TimerId } from './sessionCore/ports.js';
+import type { UniverseAgentChatStream, UniverseAgentSessionStreamCloseCause } from '../common/universeAgentTypes.js';
+import { demuxSessionStreamPayload, localFactFromQuestionArm } from './sessionStreamDemux.js';
+import { OverlayDeltaJoin } from './overlayDeltaJoin.js';
 import {
 	iterL2EnvelopesFromStreamPayload,
 	normalizeAttributionBranchReason,
@@ -55,6 +57,13 @@ type ActiveStream = {
 type SessionSidecar = {
 	readonly tree: AgentTreeCoordinator;
 	readonly fileJoin: FileMutationJoin;
+	readonly overlayDelta: OverlayDeltaJoin;
+};
+
+type ActiveChatStream = {
+	readonly chatAttemptId: AttemptId;
+	readonly write: (payload: unknown) => void;
+	readonly dispose: () => void;
 };
 
 type ToolAttributionHint = {
@@ -74,12 +83,12 @@ type ActiveLease = {
 	readonly sink: ViewFrameSink;
 };
 
-function writeMessageToCoreFact(msg: ConversationWriteMessage, leaseId: ViewLeaseId): unknown {
+function writeMessageToCoreFact(msg: ConversationWriteMessage, leaseId: ViewLeaseId, correlation: CorrelationRef): unknown {
 	switch (msg.kind) {
 		case 'submitInput':
 			return {
 				kind: 'submitInput',
-				correlation: `corr:${Date.now()}` as CorrelationRef,
+				correlation,
 				payload: { text: msg.text, originLeaseId: leaseId },
 			};
 		case 'permissionRespond':
@@ -113,9 +122,14 @@ function chatPayloadFromWrite(payload: unknown): Record<string, unknown> {
 /**
  * Node-side session-core host: SessionEventStream + Actor + lease sinks (S4/S5).
  */
+export type SessionViewHostOptions = {
+	readonly lingerMs?: number;
+	readonly chatFlushTimeoutMs?: number;
+};
+
 export class SessionViewHost extends Disposable {
 
-	private readonly scheduler = this._register(new NodeSchedulerPort());
+	private readonly scheduler = this._register(new NodeSchedulerPort(timerId => this.onHostTimerFired(timerId)));
 	private readonly ids = createSessionViewIdPort();
 	private readonly diagnostics = createSessionViewDiagnosticsPort();
 	private readonly core: SessionCore;
@@ -124,8 +138,13 @@ export class SessionViewHost extends Disposable {
 	private readonly leaseDetails = new Map<string, Map<string, string>>();
 	private readonly capturedDetails = new Map<string, Map<string, ParsedDetailRef>>();
 	private readonly streams = new Map<string, ActiveStream>();
+	private readonly chatStreams = new Map<string, ActiveChatStream>();
 	private readonly sessionSidecars = new Map<string, SessionSidecar>();
+	private readonly knownSessions = new Set<string>();
+	private readonly attemptOwners = new Map<string, string>();
+	private readonly chatOwners = new Map<string, string>();
 	private readonly toolAttributionHints = new Map<string, ToolAttributionHint[]>();
+	private readonly timerOwners = new Map<TimerId, string>();
 	private connectionGeneration = 0;
 	private connectionUp = false;
 
@@ -135,12 +154,15 @@ export class SessionViewHost extends Disposable {
 	constructor(
 		private readonly connection: IUniverseAgentConnection,
 		private readonly host: IUniverseAgentHostConnection,
+		options?: SessionViewHostOptions,
 	) {
 		super();
 		this.core = createSessionCore({
 			scheduler: this.scheduler,
 			ids: this.ids,
 			diagnostics: this.diagnostics,
+			lingerMs: options?.lingerMs,
+			chatFlushTimeoutMs: options?.chatFlushTimeoutMs,
 		});
 		this._register(host.onRequestAgentTreeRefresh(({ sessionId }) => {
 			this.scheduleAgentTreeRefresh(sessionId);
@@ -150,6 +172,7 @@ export class SessionViewHost extends Disposable {
 	acquireLease(sessionId: string): string {
 		const leaseId = this.ids.nextAttemptId() as unknown as ViewLeaseId;
 		const sid = sessionId as SessionId;
+		this.knownSessions.add(sessionId);
 		this.core.ensureSession(sid);
 		const sink: ViewFrameSink = {
 			enqueue: frame => this.onFrameEnqueued(leaseId, sessionId, frame),
@@ -193,13 +216,31 @@ export class SessionViewHost extends Disposable {
 		if (!this.connection.isEngineConnected()) {
 			return { accepted: false as const, reason: 'not_authenticated' as const };
 		}
-		const fact = writeMessageToCoreFact(msg, binding.leaseId);
+		const fact = writeMessageToCoreFact(msg, binding.leaseId, this.ids.nextWriteId() as unknown as CorrelationRef);
 		const outcome = this.core.post(binding.sessionId as SessionId, { t: 'localFact', fact });
 		if (outcome.accepted) {
 			this.drainIntents(binding.sessionId);
 			return { accepted: true as const, correlation: { id: String(outcome.correlation) } };
 		}
 		return { accepted: false as const, reason: outcome.reason };
+	}
+
+	acknowledge(leaseId: string, ack: ViewFrameAck): void {
+		const binding = this.leases.get(leaseId);
+		if (!binding) {
+			return;
+		}
+		const outcome = this.core.post(binding.sessionId as SessionId, {
+			t: 'frameAck',
+			leaseId: binding.leaseId,
+			generation: ack.generation,
+			frameId: ack.frameId,
+			appliedVersion: ack.appliedVersion,
+			...(ack.effectIds !== undefined ? { effectIds: ack.effectIds } : {}),
+		});
+		if (outcome.accepted) {
+			this.drainIntents(binding.sessionId);
+		}
 	}
 
 	requestResync(leaseId: string): void {
@@ -253,6 +294,10 @@ export class SessionViewHost extends Disposable {
 				stream.dispose();
 			}
 			this.streams.clear();
+			for (const stream of this.chatStreams.values()) {
+				stream.dispose();
+			}
+			this.chatStreams.clear();
 			for (const binding of this.leases.values()) {
 				this.core.post(binding.sessionId as SessionId, {
 					t: 'connectionDown',
@@ -282,6 +327,7 @@ export class SessionViewHost extends Disposable {
 			sidecar = {
 				tree: new AgentTreeCoordinator(sessionId, this.host),
 				fileJoin: new FileMutationJoin(sessionId),
+				overlayDelta: new OverlayDeltaJoin(),
 			};
 			this.sessionSidecars.set(sessionId, sidecar);
 		}
@@ -539,19 +585,84 @@ export class SessionViewHost extends Disposable {
 		} else {
 			applied = { kind: 'effects', effects: frame.body.effects };
 		}
+		// ProxyChannel fans this to every window; each renderer filters by leaseId.
 		this._onDidApplyFrame.fire({ leaseId: String(leaseId), sessionId, frame: viewFrame, applied });
 	}
 
-	private drainIntents(sessionId: string): void {
+	private drainIntents(hintSessionId: string): void {
 		const intents = this.core.takeIntents();
 		for (const intent of intents) {
-			this.handleIntent(sessionId, intent);
+			this.handleIntent(this.resolveIntentSession(intent, hintSessionId), intent);
 		}
+	}
+
+	private resolveIntentSession(intent: CoreIntent, fallback: string): string {
+		switch (intent.do) {
+			case 'openStream':
+				return this.findSessionBy(sid => this.core.attemptId(sid as SessionId) === intent.attemptId) ?? fallback;
+			case 'closeStream': {
+				for (const stream of this.streams.values()) {
+					if (stream.attemptId === intent.attemptId) {
+						return stream.sessionId;
+					}
+				}
+				return this.attemptOwners.get(String(intent.attemptId)) ?? fallback;
+			}
+			case 'startTimer':
+			case 'cancelTimer': {
+				const owned = this.timerOwners.get(intent.timerId);
+				if (owned) {
+					return owned;
+				}
+				const id = String(intent.timerId);
+				if (id.startsWith('linger:')) {
+					return id.slice('linger:'.length) || fallback;
+				}
+				if (id.startsWith('chat-flush:')) {
+					const rest = id.slice('chat-flush:'.length);
+					const cut = rest.lastIndexOf(':');
+					return cut > 0 ? rest.slice(0, cut) : fallback;
+				}
+				return fallback;
+			}
+			case 'ensureChatStream':
+			case 'closeChatStream':
+				return this.chatOwners.get(String(intent.chatAttemptId))
+					?? this.findSessionBy(sid => this.core.chatAttemptId(sid as SessionId) === intent.chatAttemptId)
+					?? fallback;
+			case 'chatStreamWrite':
+				return this.chatOwners.get(String(intent.chatAttemptId))
+					?? this.findSessionBy(sid => this.core.chatAttemptId(sid as SessionId) === intent.chatAttemptId)
+					?? fallback;
+			case 'fillHistoryGap':
+				return this.attemptOwners.get(String(intent.attemptId))
+					?? this.findSessionBy(sid => this.core.attemptId(sid as SessionId) === intent.attemptId)
+					?? fallback;
+			case 'unaryCommand':
+				return intent.sessionId || fallback;
+			case 'openContinuationStream':
+				return fallback;
+		}
+	}
+
+	private findSessionBy(predicate: (sessionId: string) => boolean): string | undefined {
+		for (const sessionId of this.knownSessions) {
+			if (predicate(sessionId)) {
+				return sessionId;
+			}
+		}
+		for (const lease of this.leases.values()) {
+			if (predicate(lease.sessionId)) {
+				return lease.sessionId;
+			}
+		}
+		return undefined;
 	}
 
 	private handleIntent(sessionId: string, intent: CoreIntent): void {
 		switch (intent.do) {
 			case 'openStream':
+				this.attemptOwners.set(String(intent.attemptId), sessionId);
 				this.openStream(sessionId, intent.attemptId);
 				break;
 			case 'closeStream': {
@@ -560,23 +671,23 @@ export class SessionViewHost extends Disposable {
 				this.streams.delete(`${sessionId}:${intent.attemptId}`);
 				break;
 			}
+			case 'startTimer':
+				this.timerOwners.set(intent.timerId, sessionId);
+				this.scheduler.startTimer(intent.timerId, intent.delayMs);
+				break;
+			case 'cancelTimer':
+				this.scheduler.cancelTimer(intent.timerId);
+				this.timerOwners.delete(intent.timerId);
+				break;
 			case 'ensureChatStream':
-				this.core.post(sessionId as SessionId, {
-					t: 'localFact',
-					fact: { kind: 'chatStreamUp', chatAttemptId: intent.chatAttemptId },
-				});
-				this.drainIntents(sessionId);
+				this.openResidentChat(sessionId, intent.chatAttemptId);
 				break;
 			case 'closeChatStream':
-				this.core.post(sessionId as SessionId, {
-					t: 'localFact',
-					fact: { kind: 'chatStreamDown', chatAttemptId: intent.chatAttemptId },
-				});
-				this.drainIntents(sessionId);
+				this.closeResidentChat(sessionId, intent.chatAttemptId);
 				break;
 			default:
 				if (isChatCoreIntent(intent) && intent.do === 'chatStreamWrite') {
-					void this.writeChat(sessionId, intent.correlation, intent.payload);
+					void this.writeChat(sessionId, intent.correlation, intent.payload, intent.chatAttemptId);
 				} else if (isHistoryFillCoreIntent(intent)) {
 					void this.fillHistory(sessionId, intent);
 				}
@@ -584,16 +695,44 @@ export class SessionViewHost extends Disposable {
 		}
 	}
 
+	private onHostTimerFired(timerId: TimerId): void {
+		const sessionId = this.timerOwners.get(timerId);
+		this.timerOwners.delete(timerId);
+		if (!sessionId) {
+			return;
+		}
+		const outcome = this.core.post(sessionId as SessionId, { t: 'timerFired', timerId });
+		if (outcome.accepted) {
+			this.drainIntents(sessionId);
+		}
+	}
+
+	private postStreamClosed(sessionId: string, attemptId: AttemptId, cause: StreamCloseCause): void {
+		const outcome = this.core.post(sessionId as SessionId, {
+			t: 'streamClosed',
+			attemptId,
+			cause,
+		});
+		if (outcome.accepted) {
+			this.drainIntents(sessionId);
+		}
+	}
+
 	private openStream(sessionId: string, attemptId: AttemptId): void {
 		const key = `${sessionId}:${attemptId}`;
 		let streamOpened = false;
+		let disposed = false;
 		const subscription = this.connection.subscribeSessionEventStream(sessionId, event => {
 			if (!streamOpened) {
 				streamOpened = true;
 				this.scheduleAgentTreeRefresh(sessionId, true);
 			}
 			this.handleHostStreamPayload(sessionId, event.payload);
-			const arms = demuxSessionStreamPayload(event.payload);
+			const sidecar = this.ensureSessionSidecar(sessionId);
+			const arms = [
+				...demuxSessionStreamPayload(event.payload),
+				...sidecar.overlayDelta.handlePayload(event.payload),
+			];
 			for (const arm of arms) {
 				if (arm && typeof arm === 'object' && (arm as { arm?: string }).arm === 'heartbeat') {
 					void this.sendHeartbeatAck(sessionId);
@@ -605,13 +744,88 @@ export class SessionViewHost extends Disposable {
 					event: arm,
 				});
 				this.drainIntents(sessionId);
+				const questionFact = localFactFromQuestionArm(arm);
+				if (questionFact) {
+					this.core.post(sessionId as SessionId, { t: 'localFact', fact: questionFact });
+					this.drainIntents(sessionId);
+				}
 			}
+		}, cause => {
+			if (disposed) {
+				return;
+			}
+			this.postStreamClosed(sessionId, attemptId, streamCloseCauseFromTransport(cause));
 		});
-		this.streams.set(key, { attemptId, sessionId, dispose: () => subscription.dispose() });
+		this.streams.set(key, {
+			attemptId,
+			sessionId,
+			dispose: () => {
+				disposed = true;
+				subscription.dispose();
+			},
+		});
+	}
+
+	private openResidentChat(sessionId: string, chatAttemptId: AttemptId): void {
+		this.chatOwners.set(String(chatAttemptId), sessionId);
+		const existing = this.chatStreams.get(sessionId);
+		if (existing && existing.chatAttemptId === chatAttemptId) {
+			this.postChatLifecycle(sessionId, 'chatStreamUp', chatAttemptId);
+			return;
+		}
+		existing?.dispose();
+		this.chatStreams.delete(sessionId);
+
+		const open = this.connection.openChatStream;
+		if (typeof open !== 'function') {
+			this.postChatLifecycle(sessionId, 'chatStreamUp', chatAttemptId);
+			return;
+		}
+
+		let disposed = false;
+		const handle: UniverseAgentChatStream = open.call(this.connection, sessionId, () => { }, cause => {
+			if (disposed) {
+				return;
+			}
+			this.chatStreams.delete(sessionId);
+			this.postChatLifecycle(sessionId, 'chatStreamDown', chatAttemptId);
+			void cause;
+		});
+		this.chatStreams.set(sessionId, {
+			chatAttemptId,
+			write: payload => handle.write(payload),
+			dispose: () => {
+				disposed = true;
+				handle.dispose();
+			},
+		});
+		this.postChatLifecycle(sessionId, 'chatStreamUp', chatAttemptId);
+	}
+
+	private closeResidentChat(sessionId: string, chatAttemptId: AttemptId): void {
+		const stream = this.chatStreams.get(sessionId);
+		if (stream && stream.chatAttemptId === chatAttemptId) {
+			stream.dispose();
+			this.chatStreams.delete(sessionId);
+		}
+		this.postChatLifecycle(sessionId, 'chatStreamDown', chatAttemptId);
+	}
+
+	private postChatLifecycle(sessionId: string, kind: 'chatStreamUp' | 'chatStreamDown', chatAttemptId: AttemptId): void {
+		this.core.post(sessionId as SessionId, {
+			t: 'localFact',
+			fact: { kind, chatAttemptId },
+		});
+		this.drainIntents(sessionId);
 	}
 
 	private async sendHeartbeatAck(sessionId: string): Promise<void> {
 		if (!this.connection.isEngineConnected()) {
+			return;
+		}
+		const resident = this.chatStreams.get(sessionId);
+		if (resident) {
+			resident.write({ heartbeat_ack: {} });
 			return;
 		}
 		try {
@@ -624,19 +838,32 @@ export class SessionViewHost extends Disposable {
 		}
 	}
 
-	private async writeChat(sessionId: string, correlation: CorrelationRef, payload: unknown): Promise<void> {
+	private async writeChat(sessionId: string, correlation: CorrelationRef, payload: unknown, chatAttemptId: AttemptId): Promise<void> {
 		const sid = sessionId as SessionId;
-		if (!this.connection.isEngineConnected()) {
+		const mark = (status: 'written' | 'failed', errorMessage?: string) => {
 			this.core.post(sid, {
 				t: 'localFact',
 				fact: {
 					kind: 'inputDelivery',
 					messageId: String(correlation),
-					status: 'failed',
-					errorMessage: 'Engine not connected',
+					status,
+					...(errorMessage !== undefined ? { errorMessage } : {}),
 				},
 			});
 			this.drainIntents(sessionId);
+		};
+		if (!this.connection.isEngineConnected()) {
+			mark('failed', 'Engine not connected');
+			return;
+		}
+		const resident = this.chatStreams.get(sessionId);
+		if (resident && resident.chatAttemptId === chatAttemptId) {
+			try {
+				resident.write(chatPayloadFromWrite(payload));
+				mark('written');
+			} catch {
+				mark('failed', 'Chat write failed');
+			}
 			return;
 		}
 		try {
@@ -644,27 +871,10 @@ export class SessionViewHost extends Disposable {
 				sessionId,
 				payload: chatPayloadFromWrite(payload),
 			}, () => {
-				this.core.post(sid, {
-					t: 'localFact',
-					fact: {
-						kind: 'inputDelivery',
-						messageId: String(correlation),
-						status: 'written',
-					},
-				});
-				this.drainIntents(sessionId);
+				mark('written');
 			});
 		} catch {
-			this.core.post(sid, {
-				t: 'localFact',
-				fact: {
-					kind: 'inputDelivery',
-					messageId: String(correlation),
-					status: 'failed',
-					errorMessage: 'Chat write failed',
-				},
-			});
-			this.drainIntents(sessionId);
+			mark('failed', 'Chat write failed');
 		}
 	}
 
@@ -699,6 +909,10 @@ export class SessionViewHost extends Disposable {
 		}
 		this.drainIntents(sessionId);
 	}
+}
+
+function streamCloseCauseFromTransport(cause: UniverseAgentSessionStreamCloseCause): StreamCloseCause {
+	return cause.kind === 'remote' ? { kind: 'remote' } : { kind: 'error', message: cause.message };
 }
 
 function attributionFromHint(hint: ToolAttributionHint | undefined, role: ItemAttribution['role']): ItemAttribution {

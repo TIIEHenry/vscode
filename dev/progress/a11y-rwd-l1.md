@@ -3,8 +3,8 @@ title: "A11y / RWD L1 源码复核记录"
 type: progress
 status: in_progress
 phase: M7
-updated: 2026-09-02
-summary: "对照 accessibility-responsive-ui.md §9 逐项源码判定；THEME 与 Connection 窄宽为 partial；不宣称 PRD-018 / 整份 a11y 完成"
+updated: 2026-09-03
+summary: "对照 accessibility-responsive-ui.md §9；Connection 窄宽 Back 与 Preferences HC 已补；Engine/Connection 无动画节点；不宣称 PRD-018 / 整份 a11y 完成"
 ---
 
 # A11y / RWD L1 源码复核
@@ -24,7 +24,7 @@ summary: "对照 accessibility-responsive-ui.md §9 逐项源码判定；THEME �
 | partial | 2 |
 | fail | 0 |
 
-partial 两项：Engine/Connection 300px（Connection 无左导航 Back）；高对比度 / reduced-motion（T1 公共文件已落，B 挂了部分 `.ua-motion`，A 未挂；T1 选择器未覆盖 Preferences pane）。
+partial 一项：高对比度 / reduced-motion（Conversation 仍有未挂 `.ua-motion` 的 transition；Engine/Connection 无动画节点）。Connection 窄宽 Back 与 Preferences HC 已补，见 §6 / §8。
 
 ---
 
@@ -136,14 +136,11 @@ partial 两项：Engine/Connection 300px（Connection 无左导航 Back）；高
 - CSS：窄时单栏、详情覆盖导航、input/textarea `max-width: 100%`（`enginePreferencesPane.css`）。
 - 单测 `layout under 600px applies is-narrow and Back returns to nav`（`enginePreferencesPane.test.ts`）。
 
-**证据（Connection — 表单不溢出；无左导航 Back）：**
+**证据（Connection — 表单不溢出；窄宽分区 + Back 已落）：**
 
 - 同样按 pane 宽打 class（`connectionPreferencesPane.ts`）。
-- CSS：`overflow-x: hidden`、窄宽 field 换行、input `width: 100%`（`connectionPreferencesPane.css`）。
-- 单测只断言 class，无 Back。
-- Connection 是单栏分区表单（Hub / Direct / Test），**没有** Engine 那种 nav list + `showNarrowNav`。Preferences 宿主有 `Back to Client Settings`（`uaPreferencesPanes.contribution.ts`），那是回 Client Settings，不是「左导航可返回」。
-
-**缺口：** Connection 未实施窄宽左导航 / 详情覆盖 + Back。若产品认定 Connection 单栏滚动即可，须改 §9 合同；否则属 A 残留。见 [D19](deferred-gaps.md)。
+- 窄宽：`is-showing-detail` + `.connection-preferences-back` 回分区导航；`overflow-y: auto`。
+- 单测 `layout under 600px shows Back and returns to zone nav`。
 
 ### 7. Web：Connection / Engine 无桌面连接控件（E2-1）
 
@@ -192,9 +189,9 @@ partial 两项：Engine/Connection 300px（Connection 无左导航 Back）；高
 
 **A 未挂：** `contrib/conversation` 内 `.ua-motion` 仅上述 B 文件。Engine / Connection pane **零** `.ua-motion`。其 CSS 目前也无 `transition`/`animation`，故减动缺口是合同未完成，不是「现有 shimmer 仍在转」。
 
-**HC 覆盖缺口：** T1 描边选择器只打 `.part.conversation` / `.part.sources`。Engine / Connection Preferences pane **不在**这些 part 下，T1 不给它们 focus/selected/error 描边。B 在 `conversationLens.css` 给 question/confirmation/error 座位另加了 HC outline（文字状态仍在，不完全靠色）。
+**HC：** `ua-common.css` 已把 Engine / Connection Preferences 与 `.conversation-visualize-overlay` 纳入 `:focus-visible` / selected 描边。
 
-**缺口：** 见 [D19](deferred-gaps.md)。手测 / axe 未跑，不记为 §10 硬阻塞，归 D17。
+**缺口：** Conversation 选择器级 transition 仍不完全依赖 `.ua-motion`。手测 / axe 未跑，归 D17。D19 源码残留已闭。
 
 ---
 

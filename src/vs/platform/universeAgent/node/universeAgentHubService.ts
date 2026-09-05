@@ -397,6 +397,39 @@ export class UniverseAgentHubService extends Disposable implements IUniverseAgen
 		return { ok: true, profileId: profile.profileId };
 	}
 
+	async addHubDeviceProfile(input: {
+		readonly hubDeviceId: string;
+		readonly displayName?: string;
+	}): Promise<HubDirectAddressResult> {
+		const hubDeviceId = input.hubDeviceId.trim();
+		if (!hubDeviceId) {
+			return { ok: false, code: 'hub_device_invalid', reason: 'hub device id is required' };
+		}
+		const hubBaseUrl = this._activeHubBaseUrl;
+		if (!hubBaseUrl) {
+			return { ok: false, code: 'hub_session_required', reason: 'hub session required' };
+		}
+		const auth = this.getAuthStatus();
+		if (auth.kind !== 'signedIn' && auth.kind !== 'mustChangePassword') {
+			return { ok: false, code: 'hub_session_required', reason: 'hub session required' };
+		}
+		const existing = this._connectionProfileStore.list().find(profile =>
+			profile.target.kind === 'hubDevice'
+			&& profile.target.hubBaseUrl === hubBaseUrl
+			&& profile.target.hubDeviceId === hubDeviceId
+		);
+		if (existing) {
+			return { ok: true, profileId: existing.profileId };
+		}
+		const profile = this._connectionProfileStore.createDraft({
+			displayName: input.displayName?.trim() || hubDeviceId,
+			target: { kind: 'hubDevice', hubBaseUrl, accountId: auth.email, hubDeviceId },
+		});
+		this._connectionProfileStore.put(profile);
+		this._fireProfilesChanged();
+		return { ok: true, profileId: profile.profileId };
+	}
+
 	async forgetConnectionProfile(profileId: string): Promise<HubOperationResult> {
 		const profile = this._connectionProfileStore.get(profileId);
 		if (!profile) {

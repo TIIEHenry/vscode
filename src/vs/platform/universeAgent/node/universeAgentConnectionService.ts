@@ -6,13 +6,14 @@
 import { Emitter } from '../../../base/common/event.js';
 import { Disposable } from '../../../base/common/lifecycle.js';
 import type { ConnectionPhase, UniverseAgentConnectProfileResult } from '../common/connectionHubTypes.js';
-import type { IUniverseAgentConnection, IUniverseAgentTeamApi, UniverseAgentNavigatorCapabilityKey } from '../common/universeAgentConnection.js';
+import type { IUniverseAgentConnection, IUniverseAgentTeamApi, UniverseAgentNavigatorCapabilityKey, UniverseAgentProbeEngineResult } from '../common/universeAgentConnection.js';
 import type { IUniverseAgentHostConnection } from '../common/universeAgentHostConnection.js';
 import type {
 	UniverseAgentCapabilitySnapshot,
 	UniverseAgentCapabilitySupport,
 	UniverseAgentChatRequest,
 	UniverseAgentChatResponse,
+	UniverseAgentChatStream,
 	UniverseAgentConnectRequest,
 	UniverseAgentConnectResult,
 	UniverseAgentConnectionSnapshot,
@@ -53,6 +54,7 @@ import type {
 	UniverseAgentToggleMcpServerRequest,
 	UniverseAgentToggleMcpServerResult,
 	UniverseAgentSessionEvent,
+	UniverseAgentSessionStreamCloseCause,
 	UniverseAgentSetSkillEnabledRequest,
 	UniverseAgentSetSkillEnabledResult,
 	UniverseAgentSkillInfoRequest,
@@ -440,13 +442,26 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		return this._withTransport(transport => transport.getHistory(request));
 	}
 
-	subscribeSessionEventStream(sessionId: string, listener: (event: UniverseAgentSessionEvent) => void): { dispose(): void } {
+	subscribeSessionEventStream(
+		sessionId: string,
+		listener: (event: UniverseAgentSessionEvent) => void,
+		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
+	): { dispose(): void } {
 		this._assertTransportReady();
-		return this._transport!.subscribeSessionEventStream(sessionId, listener);
+		return this._transport!.subscribeSessionEventStream(sessionId, listener, onClosed);
 	}
 
 	async chat(request: UniverseAgentChatRequest, onResponse: (response: UniverseAgentChatResponse) => void): Promise<void> {
 		await this._withTransport(transport => transport.chat(request, onResponse));
+	}
+
+	openChatStream(
+		sessionId: string,
+		onResponse: (response: UniverseAgentChatResponse) => void,
+		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
+	): UniverseAgentChatStream {
+		this._assertTransportReady();
+		return this._transport!.openChatStream(sessionId, onResponse, onClosed);
 	}
 
 	async listSkills(): Promise<UniverseAgentListSkillsResult> {
@@ -560,6 +575,28 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		return this._withTransport(transport => transport.listModels());
 	}
 
+	async probeEngine(): Promise<UniverseAgentProbeEngineResult> {
+		if (!this._transport) {
+			return { ok: false, reason: 'Engine is not connected.' };
+		}
+		if (!this._clientIdentityStore) {
+			return { ok: false, reason: 'Client identity store is unavailable.' };
+		}
+		const identityState = await this._clientIdentityStore.getOrCreateIdentity();
+		if (identityState.kind !== 'ready') {
+			return { ok: false, reason: `client identity unavailable: ${identityState.kind}` };
+		}
+		try {
+			const nonce = await this._transport.getAuthNonce({
+				clientIdentityId: identityState.identity.clientIdentityId,
+				clientPublicKey: identityState.identity.clientPublicKey,
+			});
+			return { ok: true, engineIdentityId: nonce.engineIdentityId };
+		} catch (error) {
+			return { ok: false, reason: error instanceof Error ? error.message : String(error) };
+		}
+	}
+
 	getActiveHubBaseUrl(): string | undefined {
 		return this._hub.getActiveHubBaseUrl();
 	}
@@ -627,6 +664,13 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		readonly allowPrivateNetwork?: boolean;
 	}) {
 		return this._hub.addDirectAddressProfile(input);
+	}
+
+	addHubDeviceProfile(input: {
+		readonly hubDeviceId: string;
+		readonly displayName?: string;
+	}) {
+		return this._hub.addHubDeviceProfile(input);
 	}
 
 	forgetConnectionProfile(profileId: string) {

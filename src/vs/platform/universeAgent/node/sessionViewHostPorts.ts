@@ -19,6 +19,10 @@ export class NodeSchedulerPort implements SchedulerPort {
 
 	private readonly timers = new Map<TimerId, ReturnType<typeof setTimeout>>();
 
+	constructor(
+		private readonly onFire?: (id: TimerId) => void,
+	) { }
+
 	now(): number {
 		return Date.now();
 	}
@@ -27,6 +31,7 @@ export class NodeSchedulerPort implements SchedulerPort {
 		this.cancelTimer(id);
 		const handle = setTimeout(() => {
 			this.timers.delete(id);
+			this.onFire?.(id);
 		}, delayMs);
 		this.timers.set(id, handle);
 	}

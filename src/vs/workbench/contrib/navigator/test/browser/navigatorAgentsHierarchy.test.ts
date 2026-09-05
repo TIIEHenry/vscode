@@ -8,6 +8,7 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/tes
 import type { LiveAgentTreeNodeView } from '../../../../../platform/universeAgent/common/sessionView/index.js';
 import {
 	formatAgentStatusLabel,
+	findLiveAgentNode,
 	isRootOnlyAgentTree,
 	liveAgentTreeToHierarchyNodes,
 } from '../../common/navigatorAgentHierarchy.js';
@@ -45,6 +46,12 @@ suite('NavigatorAgentsHierarchy (N2)', () => {
 
 	test('UNKNOWN agent status maps to 状态未知', () => {
 		assert.strictEqual(formatAgentStatusLabel('AGENT_STATUS_UNKNOWN'), '状态未知');
+	});
+
+	test('findLiveAgentNode walks children', () => {
+		assert.strictEqual(findLiveAgentNode(sampleTree, 'sub:alpha')?.name, 'Alpha');
+		assert.strictEqual(findLiveAgentNode(sampleTree, 'missing'), undefined);
+		assert.strictEqual(findLiveAgentNode(undefined, 'root'), undefined);
 	});
 
 	test('only root agent tree is detectable', () => {

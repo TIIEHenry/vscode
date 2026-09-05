@@ -25,7 +25,8 @@ export const IConversationPartService = createDecorator<IConversationPartService
  * chrome; `workbench/contrib/conversation` fills these elements.
  */
 export interface IConversationLensSlots {
-	readonly sessionBar: HTMLElement;
+	/** Omitted in the sub-agent overlay; that dialog owns title/actions itself. */
+	readonly sessionBar?: HTMLElement;
 	readonly timeline: HTMLElement;
 	readonly dock: HTMLElement;
 	/** Non-root sub-agent chat id (≡ engine agent_id) for trajectory attribution filtering. */

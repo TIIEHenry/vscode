@@ -3,8 +3,8 @@ title: "Conversation 订阅流与时间线增量模型（M6 时间线专章）"
 type: plan
 status: accepted
 phase: M6
-updated: 2026-09-02
-summary: "m6-engine-wave / ADR-003 时间线专章：S1–S6 代码已落 @ `a64caf1c`–`5104678e`；G2/G3 上游缺口仍 open；PRD-008 未升 implemented"
+updated: 2026-09-03
+summary: "m6-engine-wave / ADR-003 时间线专章：S1–S6 已落；2026-09-03 补 L2–L4 demux 与宿主回路（常驻 Chat / frameAck / L3 delta）；G2/G3 仍 open；PRD-008 未升 implemented"
 ---
 
 # Conversation 订阅流与时间线增量模型
@@ -112,7 +112,7 @@ export interface IConversationSessionViewLease extends IDisposable {
 	readonly snapshot: SessionViewSnapshot;                 // baseline 前为 emptySnapshot（sync: idle）
 	readonly attribution: ReadonlyMap<string, ItemAttribution>;
 	readonly onDidApplyFrame: Event<ConversationViewFrameApplied>;
-	post(msg: ConversationWriteMessage): PostOutcome;      // accepted ≠ 已到引擎（ADR-012 INV-CHAT-3）
+	post(msg: ConversationWriteMessage): Promise<PostOutcome>; // accepted ≠ 已到引擎（ADR-012 INV-CHAT-3）；跨进程须等宿主真实 outcome
 	requestResync(): void;
 }
 
@@ -212,7 +212,7 @@ Dock Send
 | `originLeaseId` | 多 lease 裁剪：只有发起窗口见「发送中」 | Actor（由 `post` 的 lease 决定） |
 
 - PRD-003.2 由 L2 事实满足；乐观占位是 overlay 级 chrome。
-- `PostOutcome.accepted=false`（`mailbox_full` / `not_authenticated` / `no_such_session`）→ Dock 显式失败文案；不静默、不写「已发送」。
+- `PostOutcome.accepted=false`（`mailbox_full` / `not_authenticated` / `no_such_session`）→ Dock 显式失败文案；不静默、不写「已发送」。`lease.post` 为 `Promise`：引擎帧源等 IPC 宿主结果；stub 立即 resolve。禁止在 Promise 未决时发明 `accepted: true` 或清输入框。
 - outbox 溢出 / flush 超时 / stale `chatAttemptId` → `ViewEffect` → Inbox 一次性提示；`localPendingSends` 标 failed。语义沿 ADR-012 §4 / §6，vscode 不另造。
 - 与 m6 M6-A 一致：**已连接**时 `appendStubEchoAssistant` 在 service 层拒写；**未连接**时 stub 帧源走同一 `post` 路径产 Stub echo（[§3.6](#36-stub-作为帧源)）。
 
@@ -270,8 +270,8 @@ S3 前**不改**公开形状。**同步点写死：**
 | S1 **已落** @ `a64caf1c`/`f4723a11` | **脚手架（工位 D，已在 HEAD `a1cd9897` / `0649602d`）**：同步脚本、`common/sessionView/**`、`node/sessionCore/**` @ 上游 `02a2ba350`、`.eslint-ignore` + `build/filters.ts` 豁免、`code-layering` error 块、boundary 测（`test/common`，经 `import.meta.url` 真实扫 `src/`）、`conversationViewFrame.ts` 基础契约。**主仓增量（本稿实施者）**：`sessionView/index.ts` 从「仅类型」补齐 `applyViewFrame` / `createEmptyReplica` / `emptySessionViewSnapshot` 等值导出；契约加 attribution `stub` 标记、`DetailPatch` / `details` sidecar、`overlayAttributionKey`、`IConversationViewFrameSource`；`acquireSessionView` 增量加入 `IConversationRosterService`；`conversationSessionView.ts`（`stubTurnsToSnapshot` / `projectSnapshotToEntries` / `entriesToLegacyTurns` / `diffProjections`）；`conversationStubFrameSource.ts`（订 `onDidChangeSession` → id diff → `applyViewFrame`；lens **尚未**切换）；boundary 测加 `sessionView` 自包含断言 | `conversationSessionView.test.ts` 11 测绿（三会话 fixture 往返等价、lease 镜像、post 三臂、resync）；boundary 测 2 测绿；`compile-client` 0 error；eslint 0 error。**附带修复**：`conversationLens.test.ts` 夹具改用 `TestLayoutService`（HEAD 缺 `registerPart` / `isVisible`，73 个测试原本无法启动）；`conversationTimelineTree.getVisibleTimelineIndices` 对上游无越界保护的 `lastVisibleElement` 加防御。基线对照：Lens 11 + IdentityStrip 1 + StubService 3 个失败在**不含 S1 改动**的 HEAD 上同样失败 → [D16](../progress/deferred-gaps.md)，S2 退出条件按 D16 处理 | 否 |
 | S2 **已落** @ `01c95143` | `applyEntries` 三类帧；按 id Map 保留态；overlay live 行 + chunk 拼接；帧合并；**stub 写方法双写**（[§3.7 同步点](#37-旧方法调用点与-shim)）；lens 改订 `onDidApplyFrame`、只读 lease | `conversationTimelineScroll.test.ts` 扩三类帧矩阵（A rerender 计数 + `setChildren`=0 / B DOM 复用 / C span id 规则）；HEAD `conversationLens.test.ts` 全绿（靠双写）；无默认 UI 假流 | 否 |
 | S3 **已落** @ `03d4fb56` | Dock → `lease.post(submitInput)` + 占位 → supersede；`PostOutcome` 失败文案；`SyncChrome` → SessionBar / Inbox；读方法转 shim、写方法只经帧源（[§3.7](#37-旧方法调用点与-shim)）；`TestConversationFrameSource` 供语音测 | `conversationLens.test.ts`：发送后占位 → 正式行；stub 永远 `idle`；shim 等价测；T6 语音测改用测试帧源 | 否 |
-| S4 **已落** @ `fbce0d84` | node 侧生产者：gRPC `SessionEventStream` + demux + attribution + Actor + lease over ProxyChannel；ports 实现 | **随 M6-A2**（ADR-003 已 `accepted` @2026-09-02；A2 入口 = S3 + M6-A1 合入）；隔离 profile 冒烟：hello → live、gap → syncing → live、断连 → closed 快照 | 是 |
-| S5 **已落** @ `fbce0d84` | Chat bidi 写路径 + outbox + `heartbeat_ack` reflex + permission / question / clientTool respond | 随 M6-A2 / M6-B；契约测试复用 ADR-012 行为表 | 是 |
+| S4 **已落** @ `fbce0d84`；**demux 补全 2026-09-03** | node 侧生产者：gRPC `SessionEventStream` + demux + attribution + Actor + lease over ProxyChannel；ports 实现。L2 按块分臂；L3 只吃 `runtime_overlay_snapshot`（不累积 `streaming_delta`）；L4 permission / clientToolCall fold，`ask_user_question` → host `questionAsked` | **随 M6-A2**（ADR-003 已 `accepted` @2026-09-02；A2 入口 = S3 + M6-A1 合入）；隔离 profile 冒烟：hello → live、gap → syncing → live、断连 → closed 快照 | 是 |
+| S5 **已落** @ `fbce0d84`；**常驻 Chat 2026-09-03** | Chat bidi 写路径 + outbox + `heartbeat_ack` reflex + permission / question / clientTool respond。宿主 `openChatStream` 常驻一条 bidi；`ensure`/`write`/`close` 对准同一 `chatAttemptId`；无该方法时回声 Up 并回退 one-shot `chat()` | 随 M6-A2 / M6-B；契约测试复用 ADR-012 行为表 | 是 |
 | S6 **已落** @ `5104678e` | 轨迹 T4：`GetHistory` + `DetailRef` 全文；`compacted` 投影；visualize 类型化；子代理按 attribution 过滤 | 随 M6-D；依赖 [§6](#6-契约缺口需上游补vscode-不得自造) **G2 / G3 仍 open**（代码用有界 preview；DetailRef 全文 / `compacted` emit 未闭合） | 是 |
 
 **顺序**：S1 → S2 → S3 串行（同改 `conversationLens.ts` / `conversationTimelineTree.ts` / `conversationStubService.ts`，**同一 PR 禁止两人同时改**）。S4 = M6-A2 的时间线部分。与 **M6-A1**（`platform/universeAgent` 传输层，[m6 §8](m6-engine-wave.md#8-切片顺序)）并行时，S1 只新建 `common/sessionView/**`、`node/sessionCore/**`、`conversationViewFrame.ts`，不碰 A1 的连接 / gRPC 文件。

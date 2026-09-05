@@ -259,11 +259,7 @@ class ConversationTimelineRenderer implements ITreeRenderer<ConversationTimeline
 			renderConversationVisualizeCard(templateData.container, turn, {
 				isExpanded: (turnId) => this.visualizeExpanded.get(turnId) ?? true,
 				setExpanded: (turnId, expanded) => {
-					if (expanded) {
-						this.visualizeExpanded.set(turnId, true);
-					} else {
-						this.visualizeExpanded.delete(turnId);
-					}
+					this.visualizeExpanded.set(turnId, expanded);
 				},
 				onLayoutChange: () => this.scheduleHeightUpdate(item, templateData.container),
 				mermaidHost,

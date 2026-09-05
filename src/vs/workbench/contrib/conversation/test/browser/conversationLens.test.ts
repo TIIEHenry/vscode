@@ -35,6 +35,7 @@ import {
 	conversationLensDockNoRoute,
 	conversationLensDockNoTools,
 	conversationLensDockNoAgent,
+	conversationLensDockStubAgent,
 	conversationLensDockRouteBalanced,
 	conversationLensDockPermissionAsk,
 	conversationLensDockPlaceholder,
@@ -56,7 +57,7 @@ import { conversationLensVoiceTranscriptBarClass } from '../../browser/conversat
 import { conversationLensSessionBarConversationTab, conversationLensSessionBarDeleteSession, conversationLensSessionBarNewSession, conversationLensSessionBarNoTrajectory, conversationLensSessionBarRenameTitle, conversationLensSessionBarRouteLabel, conversationLensSessionBarTrajectoryTab, conversationLensPinnedUserPromptAria, conversationLensPinnedUserPromptCopyAria } from '../../browser/conversationLensSessionBarStrings.js';
 import { ConversationStubService, IConversationRosterService } from '../../browser/conversationStubService.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
-import { createConversationConnectionTestStub } from '../common/conversationConnectionTestStub.js';
+import { createConversationConnectionTestStub, createEmptyTestCapabilitySnapshot } from '../common/conversationConnectionTestStub.js';
 import { entriesToLegacyTurns, projectSnapshotToEntries } from '../../browser/conversationSessionView.js';
 import { TestConversationFrameSource } from './testConversationFrameSource.js';
 import { conversationIdentityStripClass } from '../../browser/conversationIdentityStrip.js';
@@ -319,17 +320,18 @@ suite('ConversationLens', () => {
 		return textarea;
 	}
 
-	function sendDockDraft(slots: IConversationLensSlots, message: string): void {
+	async function sendDockDraft(slots: IConversationLensSlots, message: string): Promise<void> {
 		const textarea = getDockTextarea(slots);
 		selectDockModel(slots, 1);
 		const sendButton = getDockSendButton(slots);
 		textarea.value = message;
 		textarea.dispatchEvent(new globalThis.Event('input', { bubbles: true }));
 		sendButton.click();
+		await Promise.resolve();
 	}
 
 	async function sendDockDraftAndFlush(slots: IConversationLensSlots, message: string, layoutReadingColumn?: () => void): Promise<void> {
-		sendDockDraft(slots, message);
+		await sendDockDraft(slots, message);
 		await new Promise<void>(resolve => setTimeout(resolve, 0));
 		layoutReadingColumn?.();
 		await flushTimelineHeightUpdates();
@@ -347,7 +349,7 @@ suite('ConversationLens', () => {
 		return select.options[select.selectedIndex]?.text;
 	}
 
-	function mountLens(options?: { storageService?: TestStorageService; layoutWidth?: number }): { part: ConversationPart; lens: ConversationLens; stubService: ConversationStubService; clipboardService: TestClipboardService; storageService: TestStorageService; layoutReadingColumn: () => void; openInEditorCalls: { count: number }; layoutContainer: HTMLElement } {
+	function mountLens(options?: { storageService?: TestStorageService; layoutWidth?: number; connection?: IUniverseAgentConnection }): { part: ConversationPart; lens: ConversationLens; stubService: ConversationStubService; clipboardService: TestClipboardService; storageService: TestStorageService; layoutReadingColumn: () => void; openInEditorCalls: { count: number }; layoutContainer: HTMLElement } {
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		const storageService = options?.storageService ?? store.add(new TestStorageService());
 		instantiationService.stub(IStorageService, storageService);
@@ -355,7 +357,7 @@ suite('ConversationLens', () => {
 		const clipboardService = new TestClipboardService();
 		const openInEditorCalls = { count: 0 };
 		instantiationService.stub(IConversationRosterService, stubService);
-		instantiationService.stub(IUniverseAgentConnection, createConversationConnectionTestStub());
+		instantiationService.stub(IUniverseAgentConnection, options?.connection ?? createConversationConnectionTestStub());
 		instantiationService.stub(IConversationTimelineRevealService, {
 			_serviceBrand: undefined,
 			registerLens: () => ({ dispose: () => { } }),
@@ -718,11 +720,11 @@ suite('ConversationLens', () => {
 		assert.strictEqual(readingColumn.firstElementChild?.classList.contains(conversationIdentityStripClass), false);
 	});
 
-	test('Active: first message restores dock inbox row and identity at reading column top', () => {
+	test('Active: first message restores dock inbox row and identity at reading column top', async () => {
 		const { part, stubService } = mountLens();
 		const slots = getLensSlots(part);
 		const sessionId = stubService.createSession();
-		sendDockDraft(slots, 'Hello PreFirst');
+		await sendDockDraft(slots, 'Hello PreFirst');
 
 		const readingColumn = getReadingColumn(slots);
 		assert.strictEqual(readingColumn.classList.contains(conversationLensPhasePreFirstClass), false);
@@ -734,7 +736,7 @@ suite('ConversationLens', () => {
 		assert.strictEqual(stubService.getTurns(sessionId).length, 2);
 	});
 
-	test('T3 SessionConfig XOR: agent and route only in PreFirst composer; Active SessionBar route; clearing turns returns PreFirst', () => {
+	test('T3 SessionConfig XOR: agent and route only in PreFirst composer; Active SessionBar route; clearing turns returns PreFirst', async () => {
 		const { part, stubService } = mountLens();
 		const slots = getLensSlots(part);
 		const sessionId = stubService.createSession();
@@ -757,7 +759,7 @@ suite('ConversationLens', () => {
 		assert.strictEqual(agentSelect.options[agentSelect.selectedIndex]?.text, conversationLensDockNoAgent);
 		assert.strictEqual(routeSelect.options[routeSelect.selectedIndex]?.text, conversationLensDockNoRoute);
 
-		sendDockDraft(slots, 'Hello Active');
+		await sendDockDraft(slots, 'Hello Active');
 
 		assert.strictEqual(agentSlot().hidden, true);
 		assert.strictEqual(routeSlot().hidden, true);
@@ -775,7 +777,7 @@ suite('ConversationLens', () => {
 		assert.strictEqual(sessionRoute().hidden, true);
 	});
 
-	test('T3 SessionConfig XOR: route selection syncs between composer and SessionBar until first send', () => {
+	test('T3 SessionConfig XOR: route selection syncs between composer and SessionBar until first send', async () => {
 		const { part, stubService } = mountLens();
 		const slots = getLensSlots(part);
 		stubService.createSession();
@@ -788,18 +790,18 @@ suite('ConversationLens', () => {
 		composerRouteSelect.dispatchEvent(new globalThis.Event('change', { bubbles: true }));
 		assert.strictEqual(composerRouteSelect.options[composerRouteSelect.selectedIndex]?.text, conversationLensDockRouteBalanced);
 
-		sendDockDraft(slots, 'Lock route on SessionBar');
+		await sendDockDraft(slots, 'Lock route on SessionBar');
 
 		const sessionRouteSelect = sessionRoute().querySelector('select.monaco-select-box') as HTMLSelectElement;
 		assert.strictEqual(sessionRouteSelect.options[sessionRouteSelect.selectedIndex]?.text, conversationLensDockRouteBalanced);
 		assert.strictEqual(routeSlot().hidden, true);
 	});
 
-	test('Active inbox: left/right clusters with Task before MessageQueue', () => {
+	test('Active inbox: left/right clusters with Task before MessageQueue', async () => {
 		const { part, stubService } = mountLens();
 		const slots = getLensSlots(part);
 		stubService.createSession();
-		sendDockDraft(slots, 'Activate inbox overlay');
+		await sendDockDraft(slots, 'Activate inbox overlay');
 		const overlay = getInboxOverlay(slots);
 		const left = overlay.querySelector('.conversation-lens-inbox-left')!;
 		const right = overlay.querySelector('.conversation-lens-inbox-right')!;
@@ -818,11 +820,11 @@ suite('ConversationLens', () => {
 		assert.ok(overlay.textContent?.includes(conversationLensDockNoGoal));
 	});
 
-	test('inbox task and queue lists are XOR', () => {
+	test('inbox task and queue lists are XOR', async () => {
 		const { part, stubService } = mountLens();
 		const slots = getLensSlots(part);
 		const sessionId = stubService.createSession();
-		sendDockDraft(slots, 'Open inbox lists');
+		await sendDockDraft(slots, 'Open inbox lists');
 		stubService.setAutoDriveTaskFixture(sessionId, ['Fix lint']);
 
 		getInboxTaskChip(slots).click();
@@ -837,11 +839,11 @@ suite('ConversationLens', () => {
 		assert.strictEqual(getInboxQueueChip(slots).getAttribute('aria-pressed'), 'true');
 	});
 
-	test('message queue fixture renders Singularity queue rows with hold tag', () => {
+	test('message queue fixture renders Singularity queue rows with hold tag', async () => {
 		const { part, stubService } = mountLens();
 		const slots = getLensSlots(part);
 		const sessionId = stubService.createSession();
-		sendDockDraft(slots, 'Queue fixture');
+		await sendDockDraft(slots, 'Queue fixture');
 		stubService.setMessageQueueFixture(sessionId, {
 			isPaused: false,
 			isProcessing: false,
@@ -886,11 +888,11 @@ suite('ConversationLens', () => {
 		assert.ok(goalButton.classList.contains('disabled'));
 	});
 
-	test('inbox stop is honest: disabled without engine, no stopLoop side effects', () => {
+	test('inbox stop is honest: disabled without engine, no stopLoop side effects', async () => {
 		const { part, stubService } = mountLens();
 		const slots = getLensSlots(part);
 		const sessionId = stubService.createSession();
-		sendDockDraft(slots, 'Activate inbox chrome');
+		await sendDockDraft(slots, 'Activate inbox chrome');
 		const overlay = getInboxOverlay(slots);
 		const stopButton = getInboxStopButton(slots);
 		const turnCountBefore = queryAllTimeline(slots, '.conversation-lens-turn').length;
@@ -917,11 +919,52 @@ suite('ConversationLens', () => {
 		const sendButton = getDockSendButton(slots);
 
 		assert.ok(gateRow.textContent?.includes(conversationLensDockEngineNotConnected));
+		assert.strictEqual(gateRow.hasAttribute('hidden'), false);
 		assert.strictEqual(modelSelect.options[modelSelect.selectedIndex]?.text, conversationLensDockNoModel);
 		assert.strictEqual(sendButton.getAttribute('aria-label'), 'Send');
 		assert.ok(sendButton.querySelector('.codicon-arrow-up'));
 		assert.strictEqual(slots.dock.querySelector('.chat-setup'), null);
 		assert.strictEqual(slots.dock.querySelector('.monaco-button[aria-label*="Sign in"]'), null);
+	});
+
+	test('connected dock hides gate, sends without stub model, and fills catalog labels', async () => {
+		const capabilities = createEmptyTestCapabilitySnapshot();
+		const connection = createConversationConnectionTestStub({
+			getCapabilitySnapshot: () => ({
+				...capabilities,
+				agentProfiles: { support: 'SUPPORTED' },
+				tools: { support: 'SUPPORTED' },
+				models: { support: 'SUPPORTED' },
+			}),
+			listAgentProfiles: async () => ({ profiles: [{ id: 'coder', name: 'Coder', source: 'user' }] }),
+			listTools: async () => ({ tools: [{ name: 'bash' }] }),
+			listModels: async () => ({ models: [{ id: '1', type: 'chat', enabled: true, level: 1, provider: 'p', modelId: 'gpt-test' }] }),
+		});
+		const { part, stubService } = mountLens({ connection });
+		const slots = getLensSlots(part);
+		stubService.setEngineConnected(true);
+		for (let i = 0; i < 8; i++) {
+			await Promise.resolve();
+		}
+
+		const gateRow = slots.dock.querySelector('.conversation-lens-dock-gate-row') as HTMLElement;
+		assert.strictEqual(gateRow.hidden, true);
+
+		const textarea = getDockTextarea(slots);
+		textarea.value = 'hello engine';
+		textarea.dispatchEvent(new globalThis.Event('input', { bubbles: true }));
+		const sendButton = getDockSendButton(slots);
+		assert.ok(!sendButton.classList.contains('disabled'), 'connected send must not require Stub model');
+
+		const agentSelect = getComposerBottomBar(slots).querySelector('.conversation-lens-dock-agent select.monaco-select-box') as HTMLSelectElement;
+		assert.ok([...agentSelect.options].some(option => option.text === 'Coder'));
+		assert.ok(![...agentSelect.options].some(option => option.text === conversationLensDockStubAgent));
+
+		const tuneButton = getComposerBottomBar(slots).querySelector('.conversation-lens-dock-tune .monaco-button') as HTMLButtonElement;
+		tuneButton.click();
+		const popup = document.querySelector('.conversation-lens-dock-tune-popup');
+		assert.ok(popup?.textContent?.includes('bash'));
+		assert.ok(!popup?.textContent?.includes(conversationLensDockNoTools));
 	});
 
 	test('dock input placeholder is product Message copy, not Ask anything', () => {
@@ -1371,13 +1414,13 @@ suite('ConversationLens', () => {
 		assert.strictEqual(document.activeElement, parent);
 	});
 
-	test('inbox overlay is honest: no inline queue rows until opened, pending hidden without confirmations', () => {
+	test('inbox overlay is honest: no inline queue rows until opened, pending hidden without confirmations', async () => {
 		const { part, stubService } = mountLens();
 		const emptySlots = getLensSlots(part);
 		stubService.createSession();
 		assert.strictEqual(emptySlots.dock.querySelector('.conversation-lens-inbox-overlay'), null);
 
-		sendDockDraft(emptySlots, 'Activate inbox overlay');
+		await sendDockDraft(emptySlots, 'Activate inbox overlay');
 		const slots = getLensSlots(part);
 		const overlay = getInboxOverlay(slots);
 		const pendingButton = overlay.querySelector('.conversation-lens-inbox-pending') as HTMLButtonElement;
@@ -1409,7 +1452,7 @@ suite('ConversationLens', () => {
 		assert.strictEqual(pendingButton.hidden, true);
 	});
 
-	test('dock appends a local user turn and stub echo to the current session timeline', () => {
+	test('dock appends a local user turn and stub echo to the current session timeline', async () => {
 		const { part } = mountLens();
 		const slots = getLensSlots(part);
 		const textarea = getDockTextarea(slots);
@@ -1417,7 +1460,7 @@ suite('ConversationLens', () => {
 		const message = 'Local stub message from test';
 		assert.ok(!slots.timeline.textContent?.includes(message));
 
-		sendDockDraft(slots, message);
+		await sendDockDraft(slots, message);
 
 		assert.ok(slots.timeline.textContent?.includes(message));
 		assert.ok(queryTimeline(slots, '[data-stub="true"]'));
@@ -1722,7 +1765,7 @@ suite('ConversationLens', () => {
 		const { part, stubService } = mountLens();
 		const slots = getLensSlots(part);
 		const sessionId = stubService.createSession();
-		sendDockDraft(slots, 'Activate queue edit');
+		await sendDockDraft(slots, 'Activate queue edit');
 		stubService.setMessageQueueFixture(sessionId, {
 			isPaused: false,
 			isProcessing: false,
@@ -1843,7 +1886,7 @@ suite('ConversationLens', () => {
 		const slots = getLensSlots(part);
 		const sessionId = stubService.createSession();
 
-		sendDockDraft(slots, 'pending then durable');
+		await sendDockDraft(slots, 'pending then durable');
 		layoutReadingColumn();
 		await flushAnimationFrames();
 		assert.ok(queryTimeline(slots, '.conversation-lens-turn[data-kind="user"]'));
@@ -1869,13 +1912,13 @@ suite('ConversationLens', () => {
 		);
 	});
 
-	test('dock input history recalls sent user drafts with ArrowUp and ArrowDown on empty composer', () => {
+	test('dock input history recalls sent user drafts with ArrowUp and ArrowDown on empty composer', async () => {
 		const { part } = mountLens();
 		const slots = getLensSlots(part);
 		const textarea = getDockTextarea(slots);
 
-		sendDockDraft(slots, 'first message');
-		sendDockDraft(slots, 'second message');
+		await sendDockDraft(slots, 'first message');
+		await sendDockDraft(slots, 'second message');
 		assert.strictEqual(textarea.value, '');
 
 		dispatchDockKeydown(textarea, KeyCode.UpArrow);
@@ -1888,12 +1931,12 @@ suite('ConversationLens', () => {
 		assert.strictEqual(textarea.value, 'second message');
 	});
 
-	test('dock input history is isolated per session', () => {
+	test('dock input history is isolated per session', async () => {
 		const { part, stubService } = mountLens();
 		const slots = getLensSlots(part);
 		const textarea = getDockTextarea(slots);
 
-		sendDockDraft(slots, 'session A only');
+		await sendDockDraft(slots, 'session A only');
 		const sessionBId = stubService.createSession();
 		assert.strictEqual(stubService.getActiveSessionId(), sessionBId);
 
@@ -1905,12 +1948,12 @@ suite('ConversationLens', () => {
 		assert.strictEqual(textarea.value, 'session A only');
 	});
 
-	test('dock input history Escape restores unsent draft snapshot', () => {
+	test('dock input history Escape restores unsent draft snapshot', async () => {
 		const { part } = mountLens();
 		const slots = getLensSlots(part);
 		const textarea = getDockTextarea(slots);
 
-		sendDockDraft(slots, 'sent message');
+		await sendDockDraft(slots, 'sent message');
 		textarea.value = '  ';
 		dispatchDockKeydown(textarea, KeyCode.UpArrow);
 		assert.strictEqual(textarea.value, 'sent message');
@@ -1919,12 +1962,12 @@ suite('ConversationLens', () => {
 		assert.strictEqual(textarea.value, '  ');
 	});
 
-	test('dock input history typing exits browse and keeps edited text', () => {
+	test('dock input history typing exits browse and keeps edited text', async () => {
 		const { part } = mountLens();
 		const slots = getLensSlots(part);
 		const textarea = getDockTextarea(slots);
 
-		sendDockDraft(slots, 'sent message');
+		await sendDockDraft(slots, 'sent message');
 		dispatchDockKeydown(textarea, KeyCode.UpArrow);
 		assert.strictEqual(textarea.value, 'sent message');
 
@@ -1941,8 +1984,8 @@ suite('ConversationLens', () => {
 		const slots = getLensSlots(part);
 		const textarea = getDockTextarea(slots);
 
-		sendDockDraft(slots, 'delete me');
-		sendDockDraft(slots, 'keep me');
+		await sendDockDraft(slots, 'delete me');
+		await sendDockDraft(slots, 'keep me');
 		layoutReadingColumn();
 		await flushTimelineHeightUpdates();
 
@@ -1959,12 +2002,12 @@ suite('ConversationLens', () => {
 		assert.strictEqual(textarea.value, 'keep me');
 	});
 
-	test('dock input history ignores ArrowUp when composer is not trim-empty', () => {
+	test('dock input history ignores ArrowUp when composer is not trim-empty', async () => {
 		const { part } = mountLens();
 		const slots = getLensSlots(part);
 		const textarea = getDockTextarea(slots);
 
-		sendDockDraft(slots, 'sent message');
+		await sendDockDraft(slots, 'sent message');
 		textarea.value = 'typing now';
 		dispatchDockKeydown(textarea, KeyCode.UpArrow);
 		assert.strictEqual(textarea.value, 'typing now');

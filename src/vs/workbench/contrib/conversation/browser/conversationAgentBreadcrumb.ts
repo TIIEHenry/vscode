@@ -46,7 +46,7 @@ class ConversationAgentBreadcrumbItem extends BreadcrumbsItem {
 
 export class ConversationAgentBreadcrumbBox extends Disposable {
 
-	static readonly HEIGHT = 24;
+	static readonly HEIGHT = 22;
 
 	readonly element: HTMLElement;
 	private readonly breadcrumbWidget: BreadcrumbsWidget;

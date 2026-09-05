@@ -3,8 +3,8 @@ title: "UniverseAgent 引擎参考索引"
 type: index
 status: accepted
 phase: N/A
-updated: 2026-09-02
-summary: "本仓消费 UniverseAgent 引擎（外仓）协议面与 Connection Hub 控制面的导航：已知 gRPC / Hub REST / 能力探测 / 协议缺口汇总，以及 R5 接线研究要补的会话面清单；权威在外仓，本目录只登记本仓口径"
+updated: 2026-09-03
+summary: "本仓消费 UniverseAgent 引擎协议面与 Hub 控制面的导航；调试用钉死 HeadlessServer 见指南"
 ---
 
 # UniverseAgent 引擎参考
@@ -13,7 +13,7 @@ summary: "本仓消费 UniverseAgent 引擎（外仓）协议面与 Connection H
 
 ## 为什么需要这个目录
 
-`dev/plans/customizations-engine.md` 与 R5 草案 [m6-engine-wave](../../../dev/plans/m6-engine-wave.md) 都枚举了外仓 RPC，但它们是 plan（行动层，完成后就地冻结）。知识层需要一个**稳定落点**登记「引擎面事实」，否则每份新方案都要重新枚举一遍外仓 API，且 plan 之间会漂移。本目录就是那个落点：plan 签收时把确认的 RPC 名回填到这里。
+`dev/plans/customizations-engine.md` 与已签收的 [m6-engine-wave](../../../dev/plans/m6-engine-wave.md)（R5 已闭）都枚举过外仓 RPC，但它们是 plan（行动层，完成后就地冻结）。知识层需要一个**稳定落点**登记「引擎面事实」，否则每份新方案都要重新枚举一遍外仓 API，且 plan 之间会漂移。本目录就是那个落点：plan 签收时把确认的 RPC 名回填到这里。
 
 ## 页面
 
@@ -21,7 +21,8 @@ summary: "本仓消费 UniverseAgent 引擎（外仓）协议面与 Connection H
 |----|------|
 | [engine-protocol-surface.md](engine-protocol-surface.md) | 已知 gRPC 服务与 RPC、Device Grant 握手、能力探测三态、本仓消费口径、协议缺口、会话面清单 |
 | [hub-control-plane-surface.md](hub-control-plane-surface.md) | Connection Hub HTTPS 控制面：AuthSession、设备目录、relay ticket、Hub 失败码 |
-| [engine-catalog §](../../systems/workbench/engine-catalog.md) | Engine 页 catalog UI 规格（list/toggle @ HEAD；写 RPC 边界） |
+| [engine-catalog §](../../systems/workbench/engine-catalog.md) | Engine 页九节壳 + 四节写路径；Provider/Rules/Hooks 仍 unsupported |
+| [钉死引擎调试](../../guides/debug-engine.md) | 仓外隔离 HeadlessServer；Direct Address `127.0.0.1:50061`；不升 PRD-008 |
 
 ## 红线（摘自 ADR-006 壳不变量、ADR-003 adapter 边界草案与 customizations-engine）
 
@@ -35,3 +36,4 @@ summary: "本仓消费 UniverseAgent 引擎（外仓）协议面与 Connection H
 - [customizations-engine](../../../dev/plans/customizations-engine.md) · [settings-two-surfaces](../../../dev/plans/settings-two-surfaces.md)
 - [Conversation 会话数据契约](../../systems/conversation/stub-and-fixtures.md)（IDE 侧需要被满足的面）
 - [Agent Host 概览](../../systems/agent-host/overview.md)（vscode 侧 harness，非权威）
+- [钉死引擎调试](../../guides/debug-engine.md)（本仓调试用，不是外仓 HEAD）

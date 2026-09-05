@@ -49,6 +49,11 @@ export class UniverseAgentSessionViewService extends Disposable implements IUniv
 		return Promise.resolve();
 	}
 
+	acknowledge(leaseId: string, ack: { readonly generation: number; readonly frameId: number; readonly appliedVersion: number }): Promise<void> {
+		this.host.acknowledge(leaseId, ack);
+		return Promise.resolve();
+	}
+
 	requestDetail(leaseId: string, ref: string): Promise<DetailFetchOutcome> {
 		return this.host.requestDetail(leaseId, ref);
 	}

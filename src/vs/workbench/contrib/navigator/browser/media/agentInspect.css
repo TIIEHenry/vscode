@@ -3,10 +3,21 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+.monaco-workbench .agent-inspect-stale-note {
+	flex: 0 0 auto;
+	padding: 6px 8px;
+	font-size: 12px;
+	color: var(--vscode-descriptionForeground);
+}
+
 .monaco-workbench .agent-inspect-list {
 	height: 100%;
 }
 
 .monaco-workbench .agent-inspect-list .monaco-list-row .agent-inspect-entry-label {
 	padding-left: 8px;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 }

@@ -3,8 +3,8 @@ title: "UniverseAgent 引擎协议面（本仓消费口径）"
 type: reference
 status: accepted
 phase: N/A
-updated: 2026-09-02
-summary: "已知 gRPC 服务 / RPC 名与本仓用途；§1 Conversation（A1/A2）+ Device Grant；§1b P0/P1a/P1b/P2a/P2b 已绑定；Engine catalog list/toggle + 写 RPC @ f49615a1；§7 Engine 页四节；§5 会话面对照；§11 Navigator/Review；§4 G-NAV-* / G-REV-* / G-ENG-*；G-CONV-1 生产者 P2b + 轨迹 Q3 已消费 attribution"
+updated: 2026-09-03
+summary: "已知 gRPC 服务 / RPC 与本仓用途；§1 Chat 常驻 openChatStream；§1b P 切片已绑定；§5 会话面含 Actor 回路 / live tree catalog / Composer 只读填表；§7 Engine 页；G-* 缺口"
 ---
 
 # UniverseAgent 引擎协议面（本仓消费口径）
@@ -19,7 +19,7 @@ summary: "已知 gRPC 服务 / RPC 名与本仓用途；§1 Conversation（A1/A2
 | `SystemService` | `Connect` + `device_auth` | 同上；非 loopback 一律 DeviceAuth | `DeviceAuth{ client_identity_id, client_public_key, auth_nonce, signature }`；transcript = `engineIdentityId ‖ 观测 leaf 指纹 ‖ authNonce ‖ clientIdentityId ‖ protocolVersion`；`supported_tools=[]` 于 provisional 首配 |
 | `SystemService` | `ConnectResponse` | `session_token` → `isEngineConnected()`；capabilities | 已 Grant：`session_token` 非空 → connected。**未配对**：`pairing_nonce` + `sas_code`（Crockford `XXXX-XXXX`），**无** `session_token`；pairing-pending ≠ connected（ADR-003 D7）。S4 意外 token → 丢弃、recoverTrust |
 | `SessionService` | `List` / `Create` / `Delete` / `GetHistory` / `SessionEventStream` | Conversation roster + 时间线 fold 输入（`GetHistory` + 流 → session-core Actor → `ViewFrame`） | 无 `SwitchSession`；切换 = IDE 客户端投影。标题 proto 为 `AgentService.Rename`，**HEAD adapter 未接** |
-| `AgentService` | `Chat` | 发送 + 流内 permission / question / clientTool 应答（Chat 双向流） | 权限 cleanup 亦走 Chat 臂；`PermissionService.Respond` 为备选（见 stream-timeline S5 注释） |
+| `AgentService` | `Chat` | 发送 + 流内 permission / question / clientTool 应答（Chat 双向流） | 宿主 `openChatStream` **常驻一条 bidi**（`ensure`/`write`/`close` 对准同一 `chatAttemptId`）；无该方法时回声 `chatStreamUp` 并回退 one-shot `chat()`。权限 cleanup 亦走 Chat 臂；`PermissionService.Respond` 为备选（见 stream-timeline S5 注释） |
 | `AgentService` | `Tree` | Navigator Agent 树（**host-only**，不经 renderer `IUniverseAgentConnection`） | m6 §11；`UNIMPLEMENTED` → `agentTree=UNSUPPORTED` |
 | `AgentService` | `FetchToolDetail` | Conversation DetailRef 按需通道（**host-only**，lease `requestDetail`） | **P2a**；见 §1b；`subscribe=false` |
 | `TeamService` | `MemberStatus` / `TaskList` / `TeamInfo` | Navigator Team 段（renderer `IUniverseAgentConnection.team`） | m6 §11 A1 unary |
@@ -116,18 +116,18 @@ Connect 后 `probeEngineCapabilities`：**仅**广告了 method 且 probe 非 `U
 |----------|----------------|-----------|
 | 会话枚举 / 创建 / 删除 | `getSessions` … `deleteSession` | `SessionService.List` / `Create` / `Delete`；`work_dir` 过滤随 Connect。已连接时首次 `List` 完成前 roster **不**含 stub 种子行 |
 | 切换 / 重命名 | `switchSession` / `renameSession` | 切换 = 客户端 `activeSessionId` 投影（**无** `SwitchSession` RPC）。重命名 HEAD 仍走本地 `renameSession`；proto `AgentService.Rename` **未接** |
-| 回合流（用户 / 助手 / thinking / tool / …） | `getTurns`、`onDidChangeSession` | `SessionService.GetHistory`（`cursor_seq`）+ `SessionEventStream` → session-core fold → `ViewFrame`；renderer 经 `IUniverseAgentSessionView` / `acquireSessionView` |
+| 回合流（用户 / 助手 / thinking / tool / …） | `getTurns`、`onDidChangeSession` | `SessionService.GetHistory`（`cursor_seq`）+ `SessionEventStream` → session-core fold → `ViewFrame`；renderer 经 `IUniverseAgentSessionView` / `acquireSessionView`。宿主回路 @ HEAD：`drainIntents` 按 attempt / timer / chat id 归属会话；渲染 apply 后 `acknowledge` → Actor `frameAck`；无 snapshot 时 L3 `streaming_delta` / `thinking_delta` 经 `overlayDeltaJoin` 累积 overlay（demux 仍 snapshot-only）。ProxyChannel 仍向全窗广播、渲染按 `leaseId` 滤（[session-view-frame-fanout](../../../dev/plans/session-view-frame-fanout.md) `review`：拟改 per-lease 动态事件 + 首帧缓冲，**未实施**） |
 | 轨迹记录 | `getTrajectoryRecords(sessionId, { filterAgentId? }?)` | HEAD：`projectSnapshotToTrajectory(snapshot, attribution, details, options)` 从 lease/帧源投影；stub 仅 `untitled` 且未连接时 ∪ fixture extras（**无** compacted 伪造行）；UA 会话**不** merge fixture；**P2a** `requestDetail` / `FetchToolDetail` 通道已接通（renderer 帧源 upsert `outcome.content`；stub 本地 `requestDetail`）；**P2b** 已投影 `ItemAttribution.compacted`（browser 不产出）；**Q3** 消费 attribution emit `compacted` 行（未投影则零行）。Overview 瀑布 Deferred。活 Event fold 全文仍 M6-D / PRD-008 |
 | 权限请求 / 回执 | `resolveConfirmation`、`countPendingConfirmations` | 流内 L4 `permission_request` → `pendingActions`；应答经 `AgentService.Chat` 臂（`permissionRespond` fact）；`PermissionService.Respond` 为文档化备选 |
 | MessageQueue | `getMessageQueueState` 与五个操作 | **仍 fixture**；`AgentService.EnqueueQueueItem` 族未进 roster adapter |
 | AutoDrive / Task 列表 | `getAutoDriveTasks` | **仍 fixture**；`PermissionService.SetSessionGoal` 未接 |
-| fork / 子代理 catalog | `IConversationSessionChatService` fixture | `AgentService.Tree` host 首拉 + 事件再拉（§11）；活 fork catalog / `Fork` **未**假装已接通 |
-| `visualize` 工具输出 | fixture / tool turn | 仍 stub / 本地 fixture；引擎工具名待 T4+ |
+| fork / 子代理 catalog | `IConversationSessionChatService` | `AgentService.Tree` host 首拉 + 事件再拉（§11）。**HEAD** 仍惰性 `registerSubAgentChat`；工作树在途 `syncSubAgentsFromLiveTree`（[m7-gap-closeout GC-4](../../../dev/plans/m7-gap-closeout.md) `review`）。用户 Fork 仍本地 `registerForkChat`；活 `Fork` RPC **未**接 |
+| `visualize` 工具输出 | fixture / tool turn | 仍 stub / 本地 fixture；**G2** typed arm / DetailRef 全文未闭合 |
 | 引擎连接态 | `isEngineConnected` | `SystemService.Connect` 成功 + 非空 `session_token` + 活 channel；pairing-pending → false。StatusBar 文案 = `IUniverseAgentConnection.getConnectionPhase()`（H4b）；connected 芯片 command → Engine pane，否则 Connection |
-| Route / AgentProfile / Model / Permission / Tools 选项 | Composer 各下拉 | 无引擎 = 诚实空；Engine 页 Agents **list-only** 已接，Composer 下拉 **仍**待 profile/策略切片 |
+| Route / AgentProfile / Model / Permission / Tools 选项 | Composer 各下拉 | 无引擎 = 诚实空 / stub。接通后 Agent / Tools / Model **只读填 catalog**（`conversationComposerCatalog.ts`：`listAgentProfiles` / `listTools` / `listModels`；选择不进 `submitInput`；`SwitchModel` 不做）。Route / Permission 仍本地 stub |
 | 本地会话缓存与引擎权威切换 | PRD-017 | D13 @ HEAD：`conversation.roster.v1` @ `StorageScope.WORKSPACE` + `StorageTarget.MACHINE`；引擎接通后本地存 stub + UA 断连快照（`source` 字段） |
 
-## 7. Engine catalog 消费面（M6-C @ HEAD `f49615a1`）
+## 7. Engine catalog 消费面（M6-C 写路径 + M7 九节壳 @ HEAD）
 
 系统规格：[engine-catalog](../../systems/workbench/engine-catalog.md)。代码锚：`engineCatalog.ts` · `engineSkillCatalog.ts` · `engineSkillsSection.ts` · `engineAgentsSection.ts` · `engineMcpSection.ts` · `engineToolsSection.ts` · `engineToolProfile.ts`。
 

@@ -99,6 +99,15 @@ export interface UniverseAgentSessionEvent {
 	readonly payload: unknown;
 }
 
+/**
+ * Terminal cause of one SessionEventStream (not the whole engine channel).
+ * `local` is host-initiated cancel and is not reported — the Actor already
+ * emitted `closeStream`.
+ */
+export type UniverseAgentSessionStreamCloseCause =
+	| { readonly kind: 'remote' }
+	| { readonly kind: 'error'; readonly message: string };
+
 export interface UniverseAgentChatRequest {
 	readonly sessionId: string;
 	readonly payload: unknown;
@@ -106,6 +115,12 @@ export interface UniverseAgentChatRequest {
 
 export interface UniverseAgentChatResponse {
 	readonly payload: unknown;
+}
+
+/** Resident AgentService.Chat bidi (ADR-012). One-shot `chat()` still exists for probes. */
+export interface UniverseAgentChatStream {
+	write(payload: unknown): void;
+	dispose(): void;
 }
 
 export interface UniverseAgentConnectionSnapshot {

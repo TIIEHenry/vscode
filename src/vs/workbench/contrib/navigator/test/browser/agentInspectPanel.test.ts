@@ -24,8 +24,9 @@ import {
 import { AGENT_INSPECT_VIEW_CONTAINER } from '../../browser/agentInspect.contribution.js';
 import '../../browser/agentInspect.contribution.js';
 import { AgentInspectService } from '../../browser/agentInspectService.js';
-import { AgentInspectView, IAgentInspectEntry } from '../../browser/agentInspectView.js';
+import { AgentInspectView, IAgentInspectEntry, inspectTitleFromTarget, isInspectAgentStale } from '../../browser/agentInspectView.js';
 import { IAgentInspectService } from '../../common/agentInspect.js';
+import { ConversationStubService, IConversationRosterService } from '../../../conversation/browser/conversationStubService.js';
 import '../../browser/navigator.contribution.js';
 import { NAVIGATOR_AGENTS_VIEW_ID, NAVIGATOR_TEAM_VIEW_ID } from '../../browser/navigatorStubView.js';
 
@@ -48,6 +49,7 @@ suite('Agent inspect panel', () => {
 
 	async function mountView(): Promise<AgentInspectView> {
 		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IConversationRosterService, store.add(new ConversationStubService()));
 		instantiationService.stub(IAgentInspectService, store.add(instantiationService.createInstance(AgentInspectService)));
 		return mountViewWithService(instantiationService);
 	}
@@ -156,6 +158,7 @@ suite('Agent inspect panel', () => {
 
 	test('setTarget agent template renders inspect fields', async () => {
 		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IConversationRosterService, store.add(new ConversationStubService()));
 		const inspectService = store.add(instantiationService.createInstance(AgentInspectService));
 		instantiationService.stub(IAgentInspectService, inspectService);
 
@@ -178,6 +181,77 @@ suite('Agent inspect panel', () => {
 		const labels = getViewEntries(view).map(entry => entry.label);
 		assert.ok(labels.some(label => label.includes('agent_id: sub:1')));
 		assert.ok(labels.some(label => label.includes('name: Worker')));
+		assert.strictEqual(inspectTitleFromTarget({
+			kind: 'agent',
+			node: {
+				agentId: 'sub:1',
+				name: 'Worker',
+				type: 'AGENT_TYPE_SUB',
+				status: 'AGENT_STATUS_IDLE',
+				model: 'gpt',
+				turnCount: 3,
+				createdAt: 100,
+				children: [],
+			},
+		}), 'Inspect — Worker');
+		assert.strictEqual(inspectTitleFromTarget(undefined), 'Inspect');
+		assert.strictEqual(isInspectAgentStale({
+			kind: 'agent',
+			node: {
+				agentId: 'gone',
+				name: 'Gone',
+				type: 'AGENT_TYPE_SUB',
+				status: 'AGENT_STATUS_IDLE',
+				model: 'gpt',
+				turnCount: 0,
+				createdAt: 0,
+				children: [],
+			},
+		}, {
+			agentId: 'root',
+			name: 'Root',
+			type: 'AGENT_TYPE_ROOT',
+			status: 'AGENT_STATUS_IDLE',
+			model: 'gpt',
+			turnCount: 0,
+			createdAt: 0,
+			children: [],
+		}), true);
+		assert.strictEqual(isInspectAgentStale({
+			kind: 'agent',
+			node: {
+				agentId: 'root',
+				name: 'Root',
+				type: 'AGENT_TYPE_ROOT',
+				status: 'AGENT_STATUS_IDLE',
+				model: 'gpt',
+				turnCount: 0,
+				createdAt: 0,
+				children: [],
+			},
+		}, {
+			agentId: 'root',
+			name: 'Root',
+			type: 'AGENT_TYPE_ROOT',
+			status: 'AGENT_STATUS_IDLE',
+			model: 'gpt',
+			turnCount: 0,
+			createdAt: 0,
+			children: [],
+		}), false);
+		assert.strictEqual(isInspectAgentStale({
+			kind: 'agent',
+			node: {
+				agentId: 'root',
+				name: 'Root',
+				type: 'AGENT_TYPE_ROOT',
+				status: 'AGENT_STATUS_IDLE',
+				model: 'gpt',
+				turnCount: 0,
+				createdAt: 0,
+				children: [],
+			},
+		}, undefined), false);
 	});
 
 	async function mountViewWithService(instantiationService: ReturnType<typeof workbenchInstantiationService>): Promise<AgentInspectView> {

@@ -26,6 +26,7 @@ import { GrpcStatusCode, IUniverseAgentGrpcTransport, UniverseAgentAuthNonceRequ
 import type { IUniverseAgentConnection } from '../../common/universeAgentConnection.js';
 import { UniverseAgentConnectionService } from '../../node/universeAgentConnectionService.js';
 import { InMemoryHubSessionStore } from '../../node/hubSessionStore.js';
+import type { IClientIdentityStore } from '../../node/clientIdentityTypes.js';
 
 class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 
@@ -110,6 +111,10 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 	}
 
 	async chat(_request: UniverseAgentChatRequest, _onResponse: (response: UniverseAgentChatResponse) => void): Promise<void> {
+	}
+
+	openChatStream() {
+		return { write() { }, dispose() { } };
 	}
 
 	async listSkills() {
@@ -482,6 +487,46 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(result.ok, false);
 		assert.strictEqual(result.reason, 'UNIMPLEMENTED');
 		assert.strictEqual(connection.saveSkillContent, undefined);
+		service.dispose();
+	});
+
+	test('probeEngine without transport reports not connected', async () => {
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => new MockUniverseAgentGrpcTransport(),
+		});
+		const result = await service.probeEngine();
+		assert.deepStrictEqual(result, { ok: false, reason: 'Engine is not connected.' });
+		service.dispose();
+	});
+
+	test('probeEngine uses GetAuthNonce with client identity', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const identityStore: IClientIdentityStore = {
+			getState: async () => ({
+				kind: 'ready',
+				identity: {
+					clientIdentityId: 'a'.repeat(64),
+					clientPublicKey: new Uint8Array(32),
+					privateKeyPkcs8: new Uint8Array(32),
+				},
+			}),
+			getOrCreateIdentity: async () => ({
+				kind: 'ready',
+				identity: {
+					clientIdentityId: 'a'.repeat(64),
+					clientPublicKey: new Uint8Array(32),
+					privateKeyPkcs8: new Uint8Array(32),
+				},
+			}),
+			createSigner: async () => undefined,
+		};
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+			clientIdentityStore: identityStore,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		const result = await service.probeEngine();
+		assert.deepStrictEqual(result, { ok: true, engineIdentityId: 'engine-id' });
 		service.dispose();
 	});
 });

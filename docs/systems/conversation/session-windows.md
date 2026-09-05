@@ -3,8 +3,8 @@ title: "Conversation session 窗口与 chat tab"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-09-02
-summary: "PRD-016 / ADR-002 的系统规格：Part 内最多两叶 session 窗口，每叶嵌 Conversation IEditorPart；ConversationChatInput 围栏；fork / 子代理 / sideChat catalog；overlay、面包屑、导航栈、split"
+updated: 2026-09-03
+summary: "PRD-016 / ADR-002：两叶 session 窗口；围栏；fork 本地 / 子代理 live tree catalog；overlay、面包屑、导航栈、split"
 ---
 
 # Conversation session 窗口与 chat tab
@@ -37,7 +37,7 @@ CONVERSATION_PART
 
 ## 3. chat catalog：root / fork / tool / sideChat
 
-`IConversationSessionChatService` 按 session 维护 `IConversationSessionChatEntry[]`（`chatId`、`title`、`originKind ∈ user | fork | tool | sideChat`、`parentChatId`），与协议 `ChatOrigin` 四 kind 对齐。stub 期 catalog 来自内存 fixture；活数据依赖 PRD-008。
+`IConversationSessionChatService` 按 session 维护 `IConversationSessionChatEntry[]`（`chatId`、`title`、`originKind ∈ user | fork | tool | sideChat`、`parentChatId`），与协议 `ChatOrigin` 四 kind 对齐。用户 Fork 仍走本地 `registerForkChat`（无 `Fork` RPC）。**HEAD commit** 仍是点击 / Reveal 时惰性 `registerSubAgentChat`。工作树在途：`syncSubAgentsFromLiveTree` + `conversationLiveAgentCatalog` 把 `liveAgentTree` 非根节点投成 `originKind:'tool'`（只增不减；引擎 `root` → chat id `default`）。[m7-gap-closeout GC-4](../../../dev/plans/m7-gap-closeout.md)（`review`，规则 16 未起审）还要求：观察 lease 归 roster、判根共用、同 id 改名更新。活 `Fork` RPC / 会话权威仍依赖 [PRD-008](../../product/requirements.md#prd-008-引擎与会话权威)，不得升 `implemented`。
 
 | 用户动作 | 服务调用 | 结果 |
 |----------|----------|------|

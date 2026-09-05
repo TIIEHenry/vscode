@@ -10,6 +10,7 @@ import type {
 	UniverseAgentCapabilitySnapshot,
 	UniverseAgentChatRequest,
 	UniverseAgentChatResponse,
+	UniverseAgentChatStream,
 	UniverseAgentConnectRequest,
 	UniverseAgentConnectResult,
 	UniverseAgentConnectionSnapshot,
@@ -50,6 +51,7 @@ import type {
 	UniverseAgentToggleMcpServerRequest,
 	UniverseAgentToggleMcpServerResult,
 	UniverseAgentSessionEvent,
+	UniverseAgentSessionStreamCloseCause,
 	UniverseAgentSetSkillEnabledRequest,
 	UniverseAgentSetSkillEnabledResult,
 	UniverseAgentSkillInfoRequest,
@@ -134,9 +136,23 @@ export interface IUniverseAgentConnection {
 
 	getHistory(request: UniverseAgentGetHistoryRequest): Promise<UniverseAgentGetHistoryResult>;
 
-	subscribeSessionEventStream(sessionId: string, listener: (event: UniverseAgentSessionEvent) => void): { dispose(): void };
+	subscribeSessionEventStream(
+		sessionId: string,
+		listener: (event: UniverseAgentSessionEvent) => void,
+		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
+	): { dispose(): void };
 
 	chat(request: UniverseAgentChatRequest, onResponse: (response: UniverseAgentChatResponse) => void): Promise<void>;
+
+	/**
+	 * Resident Chat bidi (ADR-012). Optional so tests / Web can keep one-shot `chat()`.
+	 * Host posts `chatStreamUp` after open and writes subsequent payloads on this handle.
+	 */
+	openChatStream?(
+		sessionId: string,
+		onResponse: (response: UniverseAgentChatResponse) => void,
+		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
+	): UniverseAgentChatStream;
 
 	listSkills(): Promise<UniverseAgentListSkillsResult>;
 
@@ -189,4 +205,14 @@ export interface IUniverseAgentConnection {
 
 	/** ConfigService.ListModels — always `include_disabled=true` (Engine Model registry). */
 	listModels(): Promise<UniverseAgentListModelsResult>;
+
+	/**
+	 * Client-side reachability probe via System.GetAuthNonce (already on the wire).
+	 * Does not invent an engine RPC. Identity material stays in the main process.
+	 */
+	probeEngine(): Promise<UniverseAgentProbeEngineResult>;
 }
+
+export type UniverseAgentProbeEngineResult =
+	| { readonly ok: true; readonly engineIdentityId: string }
+	| { readonly ok: false; readonly reason: string };

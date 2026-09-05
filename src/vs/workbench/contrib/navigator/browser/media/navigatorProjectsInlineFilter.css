@@ -6,6 +6,7 @@
 .monaco-workbench .navigator-projects-body {
 	display: flex;
 	flex-direction: column;
+	height: 100%;
 }
 
 .monaco-workbench .navigator-projects-body .navigator-projects-list {
@@ -15,14 +16,17 @@
 }
 
 .monaco-workbench .navigator-projects-inline-filter {
+	position: relative;
 	flex-shrink: 0;
 	display: flex;
 	align-items: center;
-	height: 28px;
+	gap: 4px;
+	height: auto;
 	margin: 0;
-	padding: 0;
+	padding: 4px 8px;
 	background: transparent;
 	border: none;
+	border-bottom: 1px solid var(--vscode-sideBarSectionHeader-border, transparent);
 	box-sizing: border-box;
 }
 
@@ -31,23 +35,33 @@
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	width: 28px;
-	height: 28px;
+	width: 16px;
+	height: 22px;
 	color: var(--vscode-descriptionForeground);
+}
+
+.monaco-workbench .is-compact .navigator-projects-inline-filter .navigator-projects-inline-filter-icon {
+	display: none;
 }
 
 .monaco-workbench .navigator-projects-inline-filter-input {
 	flex: 1;
 	min-width: 0;
-	height: 28px;
+	height: 22px;
 	margin: 0;
-	padding: 0;
-	border: none;
+	padding: 0 6px;
+	border: 1px solid var(--vscode-input-border, transparent);
+	border-radius: 2px;
 	outline: none;
-	background: transparent;
-	color: var(--vscode-foreground);
+	background: var(--vscode-input-background);
+	color: var(--vscode-input-foreground);
 	font-size: 12px;
-	line-height: 28px;
+	line-height: 20px;
+	box-sizing: border-box;
+}
+
+.monaco-workbench .navigator-projects-inline-filter.has-text .navigator-projects-inline-filter-input {
+	padding-right: 22px;
 }
 
 .monaco-workbench .navigator-projects-inline-filter-input::placeholder {
@@ -55,17 +69,19 @@
 }
 
 .monaco-workbench .navigator-projects-inline-filter-input:focus {
-	outline: none;
-	background: transparent;
+	outline: 1px solid var(--vscode-focusBorder);
+	outline-offset: -1px;
 }
 
 .monaco-workbench .navigator-projects-inline-filter-clear {
+	position: absolute;
+	right: 10px;
 	flex-shrink: 0;
 	display: none;
 	align-items: center;
 	justify-content: center;
-	width: 28px;
-	height: 28px;
+	width: 16px;
+	height: 22px;
 	padding: 0;
 	border: none;
 	background: transparent;

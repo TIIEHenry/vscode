@@ -427,6 +427,34 @@ suite('Conversation session chat (S3)', () => {
 		assert.ok(sessionChatService.findOpenTabForChat(SESSION_KEY, 'peer-1'));
 	});
 
+	test('live agent tree syncs non-root nodes into the catalog once', async () => {
+		const { sessionChatService } = await createHarness();
+		const tree = {
+			agentId: 'root',
+			name: 'Root',
+			type: 'AGENT_TYPE_ROOT',
+			status: 'AGENT_STATUS_IDLE',
+			model: 'm',
+			turnCount: 0,
+			createdAt: 0,
+			children: [{
+				agentId: 'research',
+				name: 'Research',
+				type: 'AGENT_TYPE_SUB',
+				status: 'AGENT_STATUS_IDLE',
+				model: 'm',
+				turnCount: 0,
+				createdAt: 0,
+				children: [],
+			}],
+		};
+		sessionChatService.syncSubAgentsFromLiveTree(SESSION_KEY, tree);
+		sessionChatService.syncSubAgentsFromLiveTree(SESSION_KEY, tree);
+		const catalog = sessionChatService.getCatalog(SESSION_KEY);
+		assert.strictEqual(catalog.filter(entry => entry.chatId === 'research').length, 1);
+		assert.strictEqual(catalog.find(entry => entry.chatId === 'research')?.parentChatId, 'default');
+	});
+
 	test('sub-agent spawn registers catalog entry without opening a tab or dialog', async () => {
 		const { conversationPart, sessionChatService, sessionWindow } = await createHarness();
 
@@ -454,7 +482,8 @@ suite('Conversation session chat (S3)', () => {
 		assert.ok(overlay.querySelector(`.${conversationSubAgentOverlayCardClass}`));
 		assert.ok(overlay.querySelector(`.${conversationSubAgentOverlayBackdropClass}`));
 		assert.ok(overlay.querySelector(`.${conversationSubAgentOverlayPopoutClass}`));
-		assert.ok(overlay.querySelector('.conversation-subagent-overlay-session-bar'));
+		assert.ok(overlay.querySelector('.conversation-subagent-overlay-breadcrumb'));
+		assert.ok(!overlay.querySelector('.conversation-subagent-overlay-session-bar'));
 		assert.ok(conversationPart.activeGroup.getEditorByIndex(0) instanceof ConversationChatInput);
 		assert.ok(sessionWindow.contains(overlay));
 		assert.strictEqual(overlay.closest('.monaco-modal-editor-block'), null);

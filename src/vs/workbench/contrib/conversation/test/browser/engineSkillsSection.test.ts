@@ -97,6 +97,7 @@ suite('EngineSkillsSection (E1)', () => {
 			removeMcpServer: async () => ({ ok: true }),
 			listTools: async () => ({ tools: [] }),
 			listModels: async () => ({ models: [] }),
+			probeEngine: async () => ({ ok: false as const, reason: 'stub' }),
 			setConnected(value: boolean) {
 				connected = value;
 				onDidChangeConnection.fire(snapshot());

@@ -1,0 +1,55 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+/*
+ * CS-6 / D20: Client Settings must keep search and group titles readable
+ * when the default window is squeezed toward 300px. SettingsEditor2 already
+ * hides TOC below 700px (`narrow-width`); do not hide search or titles.
+ */
+
+.monaco-workbench .settings-editor > .settings-header,
+.monaco-workbench .settings-editor > .settings-header > .search-container {
+	min-width: 0;
+}
+
+.monaco-workbench .settings-editor.narrow-width > .settings-header {
+	padding-left: 8px;
+	padding-right: 8px;
+}
+
+.monaco-workbench .settings-editor.narrow-width > .settings-header > .search-container,
+.monaco-workbench .settings-editor.narrow-width > .settings-header > .search-container > .suggest-input-container {
+	min-width: 0;
+	width: 100%;
+	box-sizing: border-box;
+}
+
+.monaco-workbench .settings-editor > .settings-body .settings-tree-container .settings-group-title-label {
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.monaco-workbench .settings-editor.narrow-width > .settings-body .settings-tree-container .settings-group-title-label.settings-group-level-1 {
+	font-size: 18px;
+}
+
+.monaco-workbench .settings-editor.narrow-width > .settings-body .settings-tree-container .settings-group-title-label.settings-group-level-2 {
+	font-size: 16px;
+}
+
+.monaco-workbench .settings-editor.narrow-width > .settings-body .settings-tree-container .settings-group-title-label.settings-group-level-3 {
+	font-size: 14px;
+}
+
+.monaco-workbench .settings-editor.narrow-width .setting-item-contents .setting-item-control,
+.monaco-workbench .settings-editor.narrow-width .setting-item-contents .setting-item-control select,
+.monaco-workbench .settings-editor.narrow-width .setting-item-contents .monaco-select-box {
+	width: 100%;
+	max-width: 100%;
+	min-width: 0;
+	box-sizing: border-box;
+}

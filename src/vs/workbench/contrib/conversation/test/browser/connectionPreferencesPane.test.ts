@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { Event } from '../../../../../base/common/event.js';
+import { Emitter, Event } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { IDialogService } from '../../../../../platform/dialogs/common/dialogs.js';
 import type { ConnectionPhase } from '../../../../../platform/universeAgent/common/connectionHubTypes.js';
@@ -15,6 +15,7 @@ import { WorkbenchList } from '../../../../../platform/list/browser/listService.
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import {
 	ConnectionPreferencesPane,
+	formatConnectionProbeStatus,
 	getConnectionEmptyCopy,
 	getConnectionTestStatusText,
 	IConnectionProfileEntry,
@@ -73,6 +74,7 @@ suite('ConnectionPreferencesPane', () => {
 			revokeDevice: async () => ({ ok: true }),
 			confirmDeviceCode: async () => ({ ok: true }),
 			addDirectAddressProfile: async () => ({ ok: true, profileId: 'direct-profile-1' }),
+			addHubDeviceProfile: async () => ({ ok: true, profileId: 'hub-profile-1' }),
 			forgetConnectionProfile: async () => ({ ok: true }),
 			isEncryptionAvailable: async () => true,
 			...overrides,
@@ -101,6 +103,8 @@ suite('ConnectionPreferencesPane', () => {
 		instantiationService.stub(IDialogService, {
 			_serviceBrand: undefined,
 			prompt: async () => ({ result: false }),
+			confirm: async () => ({ confirmed: true }),
+			input: async () => ({ confirmed: true, values: ['Renamed Studio'] }),
 		} as unknown as IDialogService);
 		const pane = store.add(instantiationService.createInstance(ConnectionPreferencesPane));
 		const container = pane.getDomNode();
@@ -111,6 +115,14 @@ suite('ConnectionPreferencesPane', () => {
 	test('getConnectionTestStatusText reuses StatusBar phase copy', () => {
 		assert.strictEqual(getConnectionTestStatusText(), getConnectionPhaseStatusBarText({ kind: 'disconnected' }));
 		assert.strictEqual(getConnectionTestStatusText({ kind: 'connected', path: 'direct' }), 'Engine · Direct');
+		assert.strictEqual(
+			formatConnectionProbeStatus({ ok: true, engineIdentityId: 'eng' }, 'Engine · Direct'),
+			'Reachable — Engine · Direct',
+		);
+		assert.strictEqual(
+			formatConnectionProbeStatus({ ok: false, reason: 'timeout' }, 'Engine not connected'),
+			'Unreachable — timeout',
+		);
 	});
 
 	test('getConnectionEmptyCopy returns honest roster-empty copy', () => {
@@ -257,7 +269,7 @@ suite('ConnectionPreferencesPane', () => {
 		container.remove();
 	});
 
-	test('Test Connection click surfaces honest status without faking success', () => {
+	test('Test Connection click surfaces honest status without faking success', async () => {
 		const pane = mountPane();
 		const container = pane.getDomNode();
 
@@ -268,7 +280,9 @@ suite('ConnectionPreferencesPane', () => {
 		assert.strictEqual(testStatus.textContent, '');
 
 		testButton.click();
-		assert.strictEqual(testStatus.textContent, getConnectionTestStatusText());
+		await Promise.resolve();
+		await Promise.resolve();
+		assert.strictEqual(testStatus.textContent, 'Unreachable — stub');
 		assert.notStrictEqual(testStatus.textContent, 'Connected');
 
 		container.remove();
@@ -304,6 +318,58 @@ suite('ConnectionPreferencesPane', () => {
 		pane.layout(new Dimension(600, 800));
 		assert.ok(!container.classList.contains('is-narrow'));
 		assert.ok(!container.classList.contains('is-compact'));
+		assert.ok(!container.classList.contains('is-showing-detail'));
+
+		container.remove();
+	});
+
+	test('layout under 600px shows Back and returns to zone nav', () => {
+		const pane = mountPane();
+		const container = pane.getDomNode();
+
+		pane.layout(new Dimension(599, 800));
+		assert.ok(container.classList.contains('is-narrow'));
+		assert.ok(container.classList.contains('is-showing-detail'));
+		assert.strictEqual(container.querySelector('button[data-zone="hub"]')?.getAttribute('aria-current'), 'true');
+		const back = container.querySelector('.connection-preferences-back') as HTMLButtonElement;
+		assert.ok(back);
+		assert.strictEqual(back.hidden, false);
+		assert.ok(container.querySelector('.connection-hub-account.is-active-zone'));
+
+		back.click();
+		assert.ok(!container.classList.contains('is-showing-detail'));
+		assert.strictEqual(back.hidden, true);
+		const nav = container.querySelector('.connection-preferences-nav') as HTMLElement;
+		assert.ok(nav);
+		const hubNav = nav.querySelector('button[data-zone="hub"]') as HTMLButtonElement;
+		assert.ok(hubNav);
+		hubNav.click();
+		assert.ok(container.classList.contains('is-showing-detail'));
+		assert.strictEqual(back.hidden, false);
+		const body = container.querySelector('.connection-preferences-body') as HTMLElement;
+		assert.ok(body);
+		assert.ok(!body.contains(back));
+		assert.ok(body.contains(container.querySelector('.connection-hub-account')));
+
+		container.remove();
+	});
+
+	test('narrow Devices nav appears after Hub sign-in without resize', () => {
+		let auth: HubAuthStatus = { kind: 'signedOut' };
+		const onDidChangeAuthStatus = store.add(new Emitter<void>());
+		const pane = mountPane({
+			getAuthStatus: () => auth,
+			onDidChangeAuthStatus: onDidChangeAuthStatus.event,
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(599, 800));
+		const devicesNav = container.querySelector('button[data-zone="devices"]') as HTMLButtonElement;
+		assert.ok(devicesNav);
+		assert.strictEqual(devicesNav.hidden, true);
+
+		auth = { kind: 'signedIn', email: 'user@hub.example' };
+		onDidChangeAuthStatus.fire();
+		assert.strictEqual(devicesNav.hidden, false);
 
 		container.remove();
 	});
@@ -369,6 +435,112 @@ suite('ConnectionPreferencesPane', () => {
 		assert.strictEqual(notice.textContent, getUnsupportedEnvironmentCopy());
 		assert.strictEqual(getUnsupportedEnvironmentCopy(), '此环境不支持本机 Engine 连接');
 
+		container.remove();
+	});
+
+	test('device Connect creates a hubDevice profile then dials it', async () => {
+		let added: { readonly hubDeviceId: string; readonly displayName?: string } | undefined;
+		let connectedProfileId: string | undefined;
+		const pane = mountPane({
+			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
+			getDirectoryStatus: () => ({ kind: 'ok', devices: [device({ id: 'dev-1', name: 'Studio' })] }),
+			addHubDeviceProfile: async input => {
+				added = input;
+				return { ok: true, profileId: 'hub-profile-1' };
+			},
+		}, {
+			connectProfile: async profileId => {
+				connectedProfileId = profileId;
+				return { ok: true };
+			},
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		await Promise.resolve();
+
+		const connectButton = container.querySelector('.connection-hub-device-row .monaco-button') as HTMLButtonElement | null;
+		assert.ok(connectButton);
+		connectButton.click();
+		await Promise.resolve();
+		await Promise.resolve();
+
+		assert.deepStrictEqual(added, { hubDeviceId: 'dev-1', displayName: 'Studio' });
+		assert.strictEqual(connectedProfileId, 'hub-profile-1');
+		container.remove();
+	});
+
+	test('Test Connection probes the engine instead of echoing phase only', async () => {
+		let probed = false;
+		const pane = mountPane(undefined, {
+			probeEngine: async () => {
+				probed = true;
+				return { ok: true, engineIdentityId: 'eng-1' };
+			},
+			getConnectionPhase: () => ({ kind: 'connected', path: 'direct' }),
+		});
+		const container = pane.getDomNode();
+		const testButton = container.querySelector('.connection-test-row .monaco-button') as HTMLButtonElement | null;
+		assert.ok(testButton);
+		testButton.click();
+		await Promise.resolve();
+		await Promise.resolve();
+		assert.strictEqual(probed, true);
+		const status = container.querySelector('.connection-test-status');
+		assert.ok(status?.textContent?.startsWith('Reachable —'));
+		container.remove();
+	});
+
+	test('device Rename / Revoke / Confirm call hub methods', async () => {
+		let renamed: { id: string; name: string } | undefined;
+		let revoked: string | undefined;
+		let confirmed: string | undefined;
+		const pane = mountPane({
+			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
+			getDirectoryStatus: () => ({ kind: 'ok', devices: [device({ id: 'dev-1', name: 'Studio' })] }),
+			renameDevice: async (id, name) => {
+				renamed = { id, name };
+				return { ok: true };
+			},
+			revokeDevice: async id => {
+				revoked = id;
+				return { ok: true };
+			},
+			confirmDeviceCode: async code => {
+				confirmed = code;
+				return { ok: true };
+			},
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		await Promise.resolve();
+
+		const rename = [...container.querySelectorAll('.connection-hub-device-actions .monaco-button')]
+			.find(button => button.textContent === 'Rename') as HTMLButtonElement | undefined;
+		const revoke = [...container.querySelectorAll('.connection-hub-device-actions .monaco-button')]
+			.find(button => button.textContent === 'Revoke') as HTMLButtonElement | undefined;
+		const confirm = [...container.querySelectorAll('.connection-hub-confirm-code .monaco-button')]
+			.find(button => button.textContent === 'Confirm device code') as HTMLButtonElement | undefined;
+		const codeInput = container.querySelector('.connection-hub-confirm-code input') as HTMLInputElement | null;
+		assert.ok(rename);
+		assert.ok(revoke);
+		assert.ok(confirm);
+		assert.ok(codeInput);
+
+		rename.click();
+		await Promise.resolve();
+		await Promise.resolve();
+		assert.deepStrictEqual(renamed, { id: 'dev-1', name: 'Renamed Studio' });
+
+		revoke.click();
+		await Promise.resolve();
+		await Promise.resolve();
+		assert.strictEqual(revoked, 'dev-1');
+
+		codeInput.value = 'ABCD-1234';
+		confirm.click();
+		await Promise.resolve();
+		await Promise.resolve();
+		assert.strictEqual(confirmed, 'ABCD-1234');
 		container.remove();
 	});
 });

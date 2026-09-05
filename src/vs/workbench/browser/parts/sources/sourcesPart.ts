@@ -115,6 +115,8 @@ export class SourcesPart extends Part implements ISourcesPartService {
 		}
 
 		super.layout(width, height, top, left);
+		this.element.classList.toggle('is-narrow', width > 0 && width < 600);
+		this.element.classList.toggle('is-compact', width > 0 && width < 300);
 		this.layoutContents(width, height);
 	}
 

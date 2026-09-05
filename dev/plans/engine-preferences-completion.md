@@ -13,7 +13,7 @@ summary: "E2-1–E2-7 代码已落：九节六态、Model 只读注册表、Web 
 > **父方案：** [M7 UI 完成波](m7-ui-completion-wave.md)（P 槽 Wave 0 见其 §4）。
 > **既有合同：** [设置两套主面](settings-two-surfaces.md) · [Engine catalog](customizations-engine.md) · [M6 引擎波](m6-engine-wave.md)。
 > **引擎面：** [engine-protocol-surface §1 / §1b / §2 / §4](../../docs/reference/universe-agent/engine-protocol-surface.md)（2026-09-02 对照 proto 核对）。
-> **现状：** `EnginePreferencesPane` 只挂 Skills、Agents、MCP Definitions、Tools 四节，按 `(height - 220) / 4` 固定分高；`IUniverseAgentConnection` 没有 MCP 运行态、Plugins、模型注册表任何方法；capability `plugins / globalRules / projectRules / hooksMetadata` 在 `grpcCapabilityProbe.ts` 固定 `UNSUPPORTED`。
+> **现状（2026-09-03）：** E2-1–E2-7 **代码已落**：`EnginePreferencesPane` 挂九节两栏（Overview / Provider & Model / Skills / Agents / Rules / Hooks / MCP / Plugins / Tools）；MCP Runtime tab 与 Plugins 走 P1a probe；Model 走 `ListModels`。`globalRules` / `projectRules` / `hooksMetadata` / `providerConfig` 仍固定 `UNSUPPORTED`（G-ENG-1/2/3）。产品验证未做，方案保持 `accepted`。
 
 ## 1. 目标形态
 

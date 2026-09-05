@@ -3,6 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { localize } from '../../../../nls.js';
+import type { UniverseAgentCapabilitySupport } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import type { LiveAgentTreeNodeView } from '../../../../platform/universeAgent/common/sessionView/index.js';
 
 export interface INavigatorTeamMemberInfo {
@@ -60,4 +62,21 @@ export function findManagerNodes(tree: LiveAgentTreeNodeView | undefined): LiveA
 	};
 	visit(tree);
 	return managers;
+}
+
+/** Honest empty copy before listing members — loading is not “no team”. */
+export function getTeamTreeEmptyCopy(
+	agentTreeCapability: UniverseAgentCapabilitySupport,
+	liveTree: LiveAgentTreeNodeView | undefined,
+): string | undefined {
+	if (agentTreeCapability === 'UNSUPPORTED') {
+		return localize('navigatorTeam.noAgentTree', "当前引擎不提供 Agent 树，无法列出团队");
+	}
+	if (liveTree === undefined) {
+		return localize('navigatorTeam.loading', "正在读取 Agent 树…");
+	}
+	if (findManagerNodes(liveTree).length === 0) {
+		return localize('navigatorTeam.noTeam', "当前会话没有团队");
+	}
+	return undefined;
 }

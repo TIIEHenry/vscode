@@ -14,7 +14,7 @@ const $ = dom.$;
 
 export class NavigatorProjectsInlineFilterBox extends Disposable {
 
-	static readonly HEIGHT = 28;
+	static readonly HEIGHT = 32;
 
 	readonly element: HTMLElement;
 	private readonly input: HTMLInputElement;

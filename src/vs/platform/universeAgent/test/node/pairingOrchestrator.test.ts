@@ -119,6 +119,10 @@ class RecordingMockTransport implements IUniverseAgentGrpcTransport {
 	async chat(): Promise<void> {
 	}
 
+	openChatStream() {
+		return { write() { }, dispose() { } };
+	}
+
 	async listSkills() {
 		return { skills: [] };
 	}

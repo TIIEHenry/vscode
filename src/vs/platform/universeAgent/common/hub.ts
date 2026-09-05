@@ -105,6 +105,12 @@ export interface IUniverseAgentHubService {
 		readonly allowPrivateNetwork?: boolean;
 	}): Promise<HubDirectAddressResult>;
 
+	/** Create or reuse a hubDevice profile for a directory device, then Connect can pair. */
+	addHubDeviceProfile(input: {
+		readonly hubDeviceId: string;
+		readonly displayName?: string;
+	}): Promise<HubDirectAddressResult>;
+
 	forgetConnectionProfile(profileId: string): Promise<HubOperationResult>;
 
 	isEncryptionAvailable(): Promise<boolean>;

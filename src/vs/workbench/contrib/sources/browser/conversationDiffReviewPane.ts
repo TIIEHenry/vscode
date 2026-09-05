@@ -59,7 +59,12 @@ export class ConversationDiffReviewPane extends EditorPane {
 		}
 	}
 
-	override layout(_dimension: { width: number; height: number }): void {
-		// Honest placeholder: Conversation Diff editor is not wired yet.
+	override layout(dimension: { width: number; height: number }): void {
+		if (this.container) {
+			this.container.style.width = `${dimension.width}px`;
+			this.container.style.height = `${dimension.height}px`;
+			this.container.style.boxSizing = 'border-box';
+			this.container.style.overflow = 'auto';
+		}
 	}
 }

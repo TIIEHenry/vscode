@@ -117,6 +117,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 			removeMcpServer: options.removeMcpServer ?? (async () => ({ ok: true })),
 			listTools: options.listTools ?? (async () => ({ tools: [] })),
 			listModels: async () => ({ models: [] }),
+			probeEngine: async () => ({ ok: false as const, reason: 'stub' }),
 			setConnected(value: boolean) {
 				connected = value;
 				onDidChangeConnection.fire(snapshot());
@@ -188,7 +189,8 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 			assert.strictEqual(section.getMode(), 'unsupported');
 			assert.strictEqual(section.getListEntryCount(), 0);
 			assert.strictEqual(section.canWrite(), false);
-			const status = section.getDomNode().querySelector('.engine-catalog-status') as HTMLElement;
+			section.setSectionActive(true);
+			const status = section.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
 			assert.ok(status);
 			assert.ok(status.textContent?.includes(getCatalogUnsupportedCopy(featureLabel, 'UNIMPLEMENTED')));
 			const combined = section.getDomNode().parentElement?.textContent ?? '';
@@ -210,7 +212,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		const section = mountAgentsSection(connection);
 		await flushMicrotasks();
 
-		assert.strictEqual(section.getMode(), 'supported');
+		assert.strictEqual(section.getMode(), 'ready');
 		assert.ok(listCalled);
 		assert.ok(section.getListEntryCount() > 0);
 		assert.strictEqual(section.canWrite(), true);

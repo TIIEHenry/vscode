@@ -3,7 +3,7 @@ title: "Conversation 透镜组装：零件如何嵌进 CONVERSATION_PART"
 type: reference
 status: accepted
 phase: N/A
-updated: 2026-09-02
+updated: 2026-09-03
 summary: "三槽自研 chrome；PRD-015 空会话 Composer 与 PRD-016 session 窗口/chat tab 已落；timeline/dock 在 Conversation EditorPane 内；禁止 ChatWidget 整块；阶段 3a 修正指针 → conversation-stream-timeline（accepted）"
 ---
 
@@ -69,7 +69,7 @@ CONVERSATION_PART          ← 槽宿主；不渲染产品 chrome
 | 表面 | 保持自研 Dock（textarea 或日后 `CodeEditorWidget` 输入核）；**禁止** `ChatInputPart` 整块（含一排 picker） | **已落地** textarea |
 | 补全 / 粘贴 | 可借 `input/editor/` 基础设施 | **选定** |
 | picker | 旁路 vscode model / mode / permission picker | **选定**（今天无 picker） |
-| Send | 无引擎：`appendUserTurn`（+ 可选 stub echo）；有引擎：adapter → UA，**不是** `acceptInput` → `IChatService.sendRequest` 当权威。也 **禁止**照抄 `ChatInputPart` 的 execute 条把 Send 变成 Stop（指针：外仓 §8.3.6 / §8.3.7，不复述） | **已落地** stub；引擎链 **选定** |
+| Send | lease `post({ kind:'submitInput' })`（旧 `appendUserTurn` 是 shim）；无引擎 stub 帧源可产 Stub echo，已连接拒写。**不是** `acceptInput` → `IChatService.sendRequest` 当权威。也 **禁止**照抄 `ChatInputPart` 的 execute 条把 Send 变成 Stop（指针：外仓 §8.3.6 / §8.3.7，不复述） | **已落地** 同 `post` 路径；引擎权威仍 PRD-008 |
 | Inbox | 自研诚实空 / pending 摘要；可复用 confirmation pending 文案零件 | **已落地** 空 + pending |
 | Maximize | 列内 `setInputMaximized`（已落地实现事实；条款指针 §8.3.11） | **已落地** |
 

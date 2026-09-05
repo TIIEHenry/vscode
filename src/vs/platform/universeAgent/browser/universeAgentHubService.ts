@@ -82,6 +82,13 @@ export class WebUniverseAgentHubService implements IUniverseAgentHubService {
 		return hubUnsupportedResult();
 	}
 
+	async addHubDeviceProfile(_input: {
+		readonly hubDeviceId: string;
+		readonly displayName?: string;
+	}): Promise<HubDirectAddressResult> {
+		return hubUnsupportedResult();
+	}
+
 	async forgetConnectionProfile(_profileId: string): Promise<HubOperationResult> {
 		return hubUnsupportedResult();
 	}
