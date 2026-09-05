@@ -4,12 +4,21 @@ type: concept
 status: accepted
 phase: N/A
 updated: 2026-09-05
-summary: "本仓库核心术语的单一事实源：分层、Parts、Agent UI 宿主、Conversation 系统术语（SessionBar / 叶 / Composer / Inbox / MessageQueue / stub / 帧源 / lease / ViewFrame / pendingActions / SyncChrome / attribution sidecar）、Connection Hub（Hub / Client / SAS / Grant / DirectAddress）、不变量、能力三态、页面接入与文档约定"
+summary: "本仓库核心术语的单一事实源：分层、Parts、Agent UI 宿主、Conversation 系统术语（SessionBar / 叶 / Composer / Inbox / MessageQueue / stub / 帧源 / lease / ViewFrame / pendingActions / SyncChrome / attribution sidecar）、Connection Hub（Hub / Client / SAS / Grant / DirectAddress）、不变量、能力三态、页面接入与文档约定；对外可读闭集与旧称对照表"
 ---
 
 # 术语表
 
 每个术语只在本文件给**一条**定义。分层规则、测试入口、文档结构见对应规格，这里不复制正文。
+
+**时效：** 只约束 [文档负担收敛](../dev/plans/docs-burden-reduction.md) 落盘之后**新写**的对外文档与方案正文。存量正文豁免，另波清理。
+
+**对外闭集** = 下表主表已定义术语 ∪ 第二张表「旧称 → 对外读名」。不在此闭集的过程黑话不得写进新对外正文。
+
+1. **对外文档**（`docs/product/`、`docs/architecture/`、`docs/systems/`、`docs/guides/` 中非 Loop 工位操作的指南、`docs/INDEX.md`、本文件除对照表以外的正文）：禁止使用闭集外黑话。需要过程概念时，用第二张表的「对外读名」。
+2. **方案正文**（`dev/plans/`）：按对外文档同一约束——方案要给外人接手。允许在第二张表出现旧称，正文用对外读名。
+3. **对内过程文**（`dev/progress/`、`dev/loop/`、`dev/parallel/`）：可以使用旧称，但**每一节首次出现**必须括注对外读名，或链到本文件。对内过程文的存量同样豁免到另波。
+4. 新黑话想进对外文档：先在 glossary 给**一条**定义（对外读名作术语名），再在正文用定义名。禁止只在某 plan 里发明。
 
 | 术语 | 定义 | 详见 |
 |------|------|------|
@@ -86,5 +95,22 @@ summary: "本仓库核心术语的单一事实源：分层、Parts、Agent UI �
 | **pendingActions** | `SessionViewSnapshot.pendingActions[]`：L4 事件 fold 出的待处理动作（权限请求、ask-user 问题、client tool 调用）；是**座位**来源而非时间线行来源——处理后从集合移除，对应 timeline 行保留。 | [stream-timeline §3.3](../dev/plans/conversation-stream-timeline.md#33-产品视图模型-projectsnapshottentriessnapshot-attribution) · [PRD-004](product/requirements.md#prd-004-权限座位) |
 | **SyncChrome** | session-core 从 L1 控制事件 fold 出的会话级连接态（`sync.kind`：`idle` / `syncing` / `live` / `degraded` / `closed`）；驱动 SessionBar 徽标与 Inbox 文案，**不**并入连接级 `isEngineConnected()`。 | [stream-timeline §3.8](../dev/plans/conversation-stream-timeline.md#38-断连--重连--诚实) · [PRD-007](product/requirements.md#prd-007-诚实降级) |
 | **attribution sidecar** | vscode 自有的 `{ itemId → role, agentId?, agentPath? }` 映射，与 session-core snapshot 并列；弥补上游 `TimelineItemSummary` 无 role（G1）与普通 timeline 行无 agent 归属（G4）。引擎 demux 从 envelope 填，stub 从 fixture `kind` 填；**禁止**按 title 猜测。上游投影后退场。 | [stream-timeline §3.2 / §6](../dev/plans/conversation-stream-timeline.md) · [lens-and-trajectory §3.1](systems/conversation/lens-and-trajectory.md) |
+
+已在主表、且有定义的缩写（PRD-NNN、ADR、INDEX、Part、INV-TOPO、SAS、Hub 等）可继续在对外文档直接用。
+
+## 旧称 → 对外读名
+
+旧称不是推荐用法；只约束新写正文（见上文时效）。
+
+| 旧称 | 对外读名 | 允许出现的范围 |
+|------|----------|----------------|
+| P 槽 | **platform 工位**：并行开发时负责 `src/vs/platform/`（及约定的平台合同文件）的仓外 git worktree | 对内过程文；方案写「platform 工位」 |
+| V 槽 | **verification 工位**：验证、冒烟、产品验收证据 | 对内过程文 |
+| A–D 槽 / 字母槽 | **字母工位**：`vscode-WorkTrees/{A–D}` | 对内过程文 |
+| merge 槽 | **合入工位**：`vscode-WorkTrees/merge`，字母工位往这里合 | 对内过程文 |
+| 槽 / 槽位 | **工位**：一枚仓外 git worktree 及其占用约定 | 对内可用「工位」；对外写「git worktree 工位」 |
+| 刀 | **切片**：一次可单独验收、可合入的工作块 | 对内过程文；方案写「切片」 |
+| 关仓 | **合入收尾**：字母工位合进合入工位并推送集成分支；时机表见 [worktree-closeout.md](../dev/loop/worktree-closeout.md) | 对内过程文；方案写「合入收尾」 |
+| 洗白 | **丢弃 kind / 伪装成普通消息**：把 error / unknown / question 等类型写成普通助手回合 | 知识层已有 [诚实降级](#诚实降级)；叙述实现时写「停止把该 kind 伪装成普通消息」 |
 
 上游产品与贡献流程不在本表展开，见 [How to Contribute](https://github.com/microsoft/vscode/wiki/How-to-Contribute) 与 [快速开始](guides/getting-started.md)。

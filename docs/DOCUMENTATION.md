@@ -110,6 +110,7 @@ summary: "一行描述"
 - [ ] 活跃 roadmap checkbox 已更新（如有）
 - [ ] 改过的 spec / plan 的 `updated` / `status` 已对齐
 - [ ] 结构变更后已运行 `python3 scripts/check-docs-health.py`
+- [ ] 生成列与源一致（改 plan `frontmatter.status` 或 requirements PRD「状态」行后已跑 `python3 scripts/generate-docs-status.py`）
 
 ### 规则 3b：提交时保留其他未提交改动
 
@@ -117,7 +118,7 @@ summary: "一行描述"
 
 ### 规则 3c：方案状态翻转后扫知识层
 
-`check-docs-health.py` 只查 frontmatter 与断链，**查不出内容过时**。当某个 plan / PRD / D 项状态翻转（`accepted → implemented`、`open → closed`）时，必须在 `docs/` 中检索该项名称与「未实施 / deferred / 仍 open / 待验证」等字样并逐处改口，尤其是 `docs/systems/**` 与 `docs/glossary.md`。
+`check-docs-health.py` 只查 frontmatter 与断链，**查不出叙述性内容过时**。表内产品 / 方案状态枚举（`dev/plans/INDEX.md`「状态」列、`docs/product/traceability.md`「产品状态」列及分桶）由 `generate-docs-status.py` 写入、`check-docs-health.py` 的 `generated_status` 组校验；改源后须跑生成脚本，**不必**手扫这些生成列。当某个 plan / PRD / D 项状态翻转（`accepted → implemented`、`open → closed`）时，仍须在 `docs/` 中检索该项名称与「未实施 / deferred / 仍 open / 待验证」等**叙述**字样并逐处改口，尤其是 `docs/systems/**` 与 `docs/glossary.md`。
 
 ### 规则 4：ADR vs 阶段日志
 
@@ -148,6 +149,10 @@ summary: "一行描述"
 ### 规则 10：不重复
 
 先搜已有文档与就近 SSOT，用链接引用。
+
+**四份手写账边界**（生成列与职责见 [文档负担收敛 §1](../dev/plans/docs-burden-reduction.md#1-单一真相哪一列生成哪一列手写)）：`dev/progress/status.md` = 当前迭代账；`dev/progress/deferred-gaps.md` = 延期账；plan `frontmatter.status` = 方案生命周期源；`requirements.md` 各 `PRD-NNN`「状态」行 = 产品状态源。禁止在四份账之间互抄枚举；`dev/plans/INDEX.md`「状态」列与 `traceability.md`「产品状态」列及分桶由脚本生成，只改源再跑 `generate-docs-status.py`。
+
+**对外可读闭集** = [glossary.md](glossary.md) 主表 ∪ 第二张表「旧称 → 对外读名」；只约束 [文档负担收敛](dev/plans/docs-burden-reduction.md) 落盘之后新写正文（存量豁免）。
 
 ### 规则 10a：产品需求变更顺序
 

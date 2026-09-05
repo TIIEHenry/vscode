@@ -261,20 +261,7 @@ glossary 今日是一张产品 / 架构术语表，**没有**过程黑话，也�
 
 ### 3.2 允许的缩写（旧称 → 对外读名）
 
-写入 glossary 的第二张表；S3 合入后本节只留指针（见 §3.1）。旧称不是推荐用法。
-
-| 旧称 | 对外读名 | 允许出现的范围 |
-|------|----------|----------------|
-| P 槽 | **platform 工位**：并行开发时负责 `src/vs/platform/`（及约定的平台合同文件）的仓外 git worktree | 对内过程文；方案写「platform 工位」 |
-| V 槽 | **verification 工位**：验证、冒烟、产品验收证据 | 对内过程文 |
-| A–D 槽 / 字母槽 | **字母工位**：`vscode-WorkTrees/{A–D}` | 对内过程文 |
-| merge 槽 | **合入工位**：`vscode-WorkTrees/merge`，字母工位往这里合 | 对内过程文 |
-| 槽 / 槽位 | **工位**：一枚仓外 git worktree 及其占用约定 | 对内可用「工位」；对外写「git worktree 工位」 |
-| 刀 | **切片**：一次可单独验收、可合入的工作块 | 对内过程文；方案写「切片」 |
-| 关仓 | **合入收尾**：字母工位合进合入工位并推送集成分支；时机表见 [worktree-closeout.md](../loop/worktree-closeout.md) | 对内过程文；方案写「合入收尾」 |
-| 洗白 | **丢弃 kind / 伪装成普通消息**：把 error / unknown / question 等类型写成普通助手回合 | 知识层已有 [诚实降级](../../docs/glossary.md)；叙述实现时写「停止把该 kind 伪装成普通消息」 |
-
-已在 glossary 主表、且有定义的缩写（PRD-NNN、ADR、INDEX、Part、INV-TOPO、SAS、Hub 等）可继续在对外文档直接用。
+见 [glossary 第二张表「旧称 → 对外读名」](../../docs/glossary.md#旧称--对外读名)（唯一源）。
 
 ### 3.3 本稿自检（对外可读）
 

@@ -3,8 +3,8 @@ title: "文档文体指南"
 type: guide
 status: accepted
 phase: N/A
-updated: 2026-08-31
-summary: "本仓库 docs/ 与 dev/ 的写作约定：frontmatter、INDEX 与概览、禁止在 src/vs 建文档树、用链接引用不复制"
+updated: 2026-09-05
+summary: "本仓库 docs/ 与 dev/ 的写作约定：frontmatter、INDEX 与概览、禁止在 src/vs 建文档树、用链接引用不复制、对外可读闭集"
 ---
 
 # 文档文体指南
@@ -70,7 +70,7 @@ summary: "一行描述"
 ## 链接，不要复制
 
 - 先搜已有文档与就近 SSOT，用相对链接引用。
-- 术语定义只写在 [glossary.md](../glossary.md)；其他文件用词条名 + 链接。
+- 术语定义只写在 [glossary.md](../glossary.md)；其他文件用词条名 + 链接。对外可读闭集 = glossary 主表 ∪ 第二张表「旧称 → 对外读名」；只约束 [文档负担收敛](../../dev/plans/docs-burden-reduction.md) 落盘之后新写正文，过程旧称与对外读名对照见 glossary 第二张表，不在此复制。
 - 编码/校验命令以 [.github/copilot-instructions.md](../../.github/copilot-instructions.md) 为权威，指南里只摘已核对命令并回链。
 - 贡献、平台排错以 [How to Contribute](https://github.com/microsoft/vscode/wiki/How-to-Contribute) 为准，不要在 `docs/` 复制 wiki 长文。
 - 结构变更后手动更新相关 INDEX（含 [docs/INDEX.md](../INDEX.md)），再跑健康检查。
