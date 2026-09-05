@@ -180,9 +180,6 @@ export class SessionViewHost extends Disposable {
 	private readonly engineBroughtUpForGeneration = new Set<string>();
 	private readonly attemptOwners = new Map<string, string>();
 	private readonly chatOwners = new Map<string, string>();
-	private readonly _onDidApplyFrame = this._register(new Emitter<IUniverseAgentSessionViewFrameEvent>());
-	/** ProxyChannel fans this to every window; each renderer filters by leaseId. */
-	readonly onDidApplyFrame = this._onDidApplyFrame.event;
 	private readonly toolAttributionHints = new Map<string, ToolAttributionHint[]>();
 	/** Owner session for Actor linger / chat-flush timers (async fire → postAndDrain). */
 	private readonly timerOwners = new Map<TimerId, string>();
@@ -742,8 +739,6 @@ export class SessionViewHost extends Disposable {
 				this.diagnostics.count('view.pending_overflow' as DiagnosticMetric);
 			}
 		}
-		// ProxyChannel fans this to every window; each renderer filters by leaseId.
-		this._onDidApplyFrame.fire(event);
 	}
 
 	private createActiveLease(sessionId: string, leaseId: ViewLeaseId, sink: ViewFrameSink): ActiveLease {

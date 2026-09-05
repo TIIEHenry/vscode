@@ -156,18 +156,23 @@ suite('SessionViewHost demux fold seats', () => {
 
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
-	function createHost(connection: TestConnection): { viewHost: SessionViewHost; frames: IUniverseAgentSessionViewFrameEvent[] } {
-		const viewHost = store.add(new SessionViewHost(connection as unknown as IUniverseAgentConnection, new TestHost()));
+	function createHost(connection: TestConnection): SessionViewHost {
+		return store.add(new SessionViewHost(connection as unknown as IUniverseAgentConnection, new TestHost(), { orphanTimeoutMs: 0 }));
+	}
+
+	/** Frames buffered before the first listener flush on a microtask; await it or the collector stays empty. */
+	async function subscribeLease(viewHost: SessionViewHost, leaseId: string): Promise<IUniverseAgentSessionViewFrameEvent[]> {
 		const frames: IUniverseAgentSessionViewFrameEvent[] = [];
-		store.add(viewHost.onDidApplyFrame(event => frames.push(event)));
-		return { viewHost, frames };
+		store.add(viewHost.onDynamicDidApplyFrame(leaseId)(event => frames.push(event)));
+		await new Promise<void>(resolve => queueMicrotask(() => resolve()));
+		return frames;
 	}
 
 	test('permission_request upserts a pending permission seat', async () => {
 		const connection = new TestConnection();
-		const { viewHost, frames } = createHost(connection);
+		const viewHost = createHost(connection);
 		viewHost.onEngineConnectionChanged();
-		viewHost.acquireLease('sess-perm');
+		const frames = await subscribeLease(viewHost, viewHost.acquireLease('sess-perm'));
 		await viewHost.whenEngineSessionReady('sess-perm');
 		connection.push('sess-perm', {
 			permission_request: { request_id: 'perm-live', description: 'Run bash', tool_name: 'bash' },
@@ -178,9 +183,9 @@ suite('SessionViewHost demux fold seats', () => {
 
 	test('ask_user_question posts questionAsked and upserts a question seat', async () => {
 		const connection = new TestConnection();
-		const { viewHost, frames } = createHost(connection);
+		const viewHost = createHost(connection);
 		viewHost.onEngineConnectionChanged();
-		viewHost.acquireLease('sess-q');
+		const frames = await subscribeLease(viewHost, viewHost.acquireLease('sess-q'));
 		await viewHost.whenEngineSessionReady('sess-q');
 		connection.push('sess-q', {
 			ask_user_question: {
@@ -194,9 +199,9 @@ suite('SessionViewHost demux fold seats', () => {
 
 	test('client_tool_call upserts a pending client-tool seat', async () => {
 		const connection = new TestConnection();
-		const { viewHost, frames } = createHost(connection);
+		const viewHost = createHost(connection);
 		viewHost.onEngineConnectionChanged();
-		viewHost.acquireLease('sess-ctc');
+		const frames = await subscribeLease(viewHost, viewHost.acquireLease('sess-ctc'));
 		await viewHost.whenEngineSessionReady('sess-ctc');
 		connection.push('sess-ctc', {
 			client_tool_call: { request_id: 'ctc-live', tool_name: 'browser', arguments_json: '{}' },
@@ -207,9 +212,9 @@ suite('SessionViewHost demux fold seats', () => {
 
 	test('runtime overlay snapshot upserts an overlay block', async () => {
 		const connection = new TestConnection();
-		const { viewHost, frames } = createHost(connection);
+		const viewHost = createHost(connection);
 		viewHost.onEngineConnectionChanged();
-		viewHost.acquireLease('sess-ov');
+		const frames = await subscribeLease(viewHost, viewHost.acquireLease('sess-ov'));
 		await viewHost.whenEngineSessionReady('sess-ov');
 		connection.push('sess-ov', {
 			hello: { session_version: 1, head_seq: 0, runtime_epoch: 3, last_mutated_from_seq: 0 },
@@ -227,9 +232,9 @@ suite('SessionViewHost demux fold seats', () => {
 
 	test('tool envelope upserts a timeline tool row', async () => {
 		const connection = new TestConnection();
-		const { viewHost, frames } = createHost(connection);
+		const viewHost = createHost(connection);
 		viewHost.onEngineConnectionChanged();
-		viewHost.acquireLease('sess-tool');
+		const frames = await subscribeLease(viewHost, viewHost.acquireLease('sess-tool'));
 		await viewHost.whenEngineSessionReady('sess-tool');
 		connection.push('sess-tool', {
 			envelope_appended: {
@@ -246,9 +251,9 @@ suite('SessionViewHost demux fold seats', () => {
 
 	test('streaming_delta without snapshot still upserts overlay', async () => {
 		const connection = new TestConnection();
-		const { viewHost, frames } = createHost(connection);
+		const viewHost = createHost(connection);
 		viewHost.onEngineConnectionChanged();
-		viewHost.acquireLease('sess-delta');
+		const frames = await subscribeLease(viewHost, viewHost.acquireLease('sess-delta'));
 		await viewHost.whenEngineSessionReady('sess-delta');
 		connection.push('sess-delta', {
 			streaming_delta: { turn_id: 'turn-delta', text_delta: 'partial' },
@@ -259,9 +264,10 @@ suite('SessionViewHost demux fold seats', () => {
 
 	test('ensureChatStream opens a resident bidi and submit writes on it', async () => {
 		const connection = new TestConnection();
-		const { viewHost, frames } = createHost(connection);
+		const viewHost = createHost(connection);
 		viewHost.onEngineConnectionChanged();
 		const leaseId = viewHost.acquireLease('sess-chat');
+		const frames = await subscribeLease(viewHost, leaseId);
 		await viewHost.whenEngineSessionReady('sess-chat');
 		assert.strictEqual(connection.residentOpen, true);
 		const outcome = viewHost.post(leaseId, { kind: 'submitInput', text: 'hello resident' });
@@ -273,7 +279,7 @@ suite('SessionViewHost demux fold seats', () => {
 
 	test('acknowledge posts frameAck without throwing', async () => {
 		const connection = new TestConnection();
-		const { viewHost } = createHost(connection);
+		const viewHost = createHost(connection);
 		viewHost.onEngineConnectionChanged();
 		const leaseId = viewHost.acquireLease('sess-ack');
 		await viewHost.whenEngineSessionReady('sess-ack');
