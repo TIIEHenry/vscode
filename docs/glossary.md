@@ -3,8 +3,8 @@ title: "术语表"
 type: concept
 status: accepted
 phase: N/A
-updated: 2026-09-04
-summary: "本仓库核心术语的单一事实源：分层、Parts、Agent UI 宿主、Conversation 系统术语（SessionBar / 叶 / Composer / Inbox / MessageQueue / stub）、Connection Hub（Hub / Client / SAS / Grant / DirectAddress）、不变量、能力三态、页面接入与文档约定"
+updated: 2026-09-05
+summary: "本仓库核心术语的单一事实源：分层、Parts、Agent UI 宿主、Conversation 系统术语（SessionBar / 叶 / Composer / Inbox / MessageQueue / stub / 帧源 / lease / ViewFrame / pendingActions / SyncChrome / attribution sidecar）、Connection Hub（Hub / Client / SAS / Grant / DirectAddress）、不变量、能力三态、页面接入与文档约定"
 ---
 
 # 术语表
@@ -80,5 +80,11 @@ summary: "本仓库核心术语的单一事实源：分层、Parts、Agent UI �
 | **SAS** | Short Authentication String：首配时 Engine 与 Client 双端须人工核对的一致短码（Crockford base32，`XXXX-XXXX`）；**不可跳过**；输入串绑定 `engineIdentityId`、观测 leaf 指纹、`clientPublicKey`、`pairing_nonce`、协议版本。 | [connection-hub-client §3.4](../dev/plans/connection-hub-client.md) · [engine-protocol-surface §1](reference/universe-agent/engine-protocol-surface.md) |
 | **Grant** | Engine 本地对 Client 公钥的访问授权（Device Grant，ADR-261）；`Connect` 握手成功后下发 `session_token`。吊销后 IDE 须 `failed(grant_revoked)`，不自动重配。 | [connection-hub-client §3.1](../dev/plans/connection-hub-client.md) · [ADR-003](../dev/decisions/003-engine-adapter-boundary.md) |
 | **DirectAddress** | 用户手填 `host:port` 的远程 Engine 入口（上游 Phase 0）；不经 Hub、不签 relay ticket，认证与中继路径同套 TLS pin + Device Grant。与 ADR-374「HubDevice 下 GUA 自动直连」不是同一概念。 | [connection-hub-client §3.8](../dev/plans/connection-hub-client.md) |
+| **帧源** | 向 session-core / lease 产出 `ViewFrame` 的数据源；stub（`ConversationStubFrameSource`）与引擎（gRPC demux + Actor）共用同一契约——时间线只有一条渲染路径，引擎接通时**只换帧源**，不换 UI、不换 `IConversationRosterService` token。 | [stream-timeline §3.6](../dev/plans/conversation-stream-timeline.md#36-stub-作为帧源) · [stub-and-fixtures](systems/conversation/stub-and-fixtures.md) |
+| **lease** | `IConversationSessionViewLease`：经 `acquireSessionView(sessionId)` 取得；每个 chat tab / 对话框 / split 列各持一个 lease，同 session 多 lease 共享一条 session-core 订阅；暴露 `snapshot`、`attribution`、`onDidApplyFrame` 与 `post` 写路径。 | [stream-timeline §3.2](../dev/plans/conversation-stream-timeline.md#32-renderer-契约同-token-增量) · [stub-and-fixtures](systems/conversation/stub-and-fixtures.md) |
+| **ViewFrame** | session-core 的幂等增量帧：`{ leaseId, generation, frameId, version, body: baseline \| patches \| effects }`；renderer 只 apply，不做事件 fold。vscode 以 `ConversationViewFrame` 包装（可附 attribution patches）。 | [stream-timeline](../dev/plans/conversation-stream-timeline.md) · [lens-and-trajectory §3](systems/conversation/lens-and-trajectory.md) · [ADR-003](../dev/decisions/003-engine-adapter-boundary.md) |
+| **pendingActions** | `SessionViewSnapshot.pendingActions[]`：L4 事件 fold 出的待处理动作（权限请求、ask-user 问题、client tool 调用）；是**座位**来源而非时间线行来源——处理后从集合移除，对应 timeline 行保留。 | [stream-timeline §3.3](../dev/plans/conversation-stream-timeline.md#33-产品视图模型-projectsnapshottentriessnapshot-attribution) · [PRD-004](product/requirements.md#prd-004-权限座位) |
+| **SyncChrome** | session-core 从 L1 控制事件 fold 出的会话级连接态（`sync.kind`：`idle` / `syncing` / `live` / `degraded` / `closed`）；驱动 SessionBar 徽标与 Inbox 文案，**不**并入连接级 `isEngineConnected()`。 | [stream-timeline §3.8](../dev/plans/conversation-stream-timeline.md#38-断连--重连--诚实) · [PRD-007](product/requirements.md#prd-007-诚实降级) |
+| **attribution sidecar** | vscode 自有的 `{ itemId → role, agentId?, agentPath? }` 映射，与 session-core snapshot 并列；弥补上游 `TimelineItemSummary` 无 role（G1）与普通 timeline 行无 agent 归属（G4）。引擎 demux 从 envelope 填，stub 从 fixture `kind` 填；**禁止**按 title 猜测。上游投影后退场。 | [stream-timeline §3.2 / §6](../dev/plans/conversation-stream-timeline.md) · [lens-and-trajectory §3.1](systems/conversation/lens-and-trajectory.md) |
 
 上游产品与贡献流程不在本表展开，见 [How to Contribute](https://github.com/microsoft/vscode/wiki/How-to-Contribute) 与 [快速开始](guides/getting-started.md)。
