@@ -5,14 +5,17 @@ status: accepted
 phase: N/A
 created: 2026-09-05
 updated: 2026-09-05
-summary: "ADR-007 侵入面 A/B 清单；基线 004a1fbb；完备性 comm 闸门 2026-09-05 为零"
+summary: "ADR-007 侵入面 A/B 清单；基线 004a1fbb；U1 祖先可用，候选 tag 1.136.0"
 ---
 
 # 上游最小 patch 清单
 
 > **上游快照：004a1fbb（非 tag）**  
 > **产品分支**：`agent-ide` @ `e9e40a8d`（2026-09-05 核对）  
-> **权威 ADR**：[ADR-007 上游同步策略](../decisions/007-upstream-sync.md)
+> **权威 ADR**：[ADR-007 上游同步策略](../decisions/007-upstream-sync.md)  
+> **U1 只读准备（2026-09-05）**：`complete`  
+> **祖先判断**：可用 — `git cat-file -e 004a1fbb^{commit}` 通过；`git rev-list --parents -1 004a1fbb` → parent `3aa54039a0bec1bd4f9b428cdb202b4271bf22ef`（`git fetch microsoft --tags` + `git fetch --unshallow microsoft` 后）  
+> **候选 tag**：`1.136.0` @ `520fb30b2d3d324b4cb2342f6e88e2cd93751de1` — 满足 `git merge-base --is-ancestor 004a1fbb 1.136.0` 的最旧 `1.N.0`（`1.135.0` 不满足；共 136 枚 `1.N.0` tag 中仅此一枚）
 
 相对基线 `004a1fbb`，排除自定义树（`platform/universeAgent`、`contrib/conversation|navigator|sources`、`dev/`、`docs/`）后共 **371 文件**。本清单按 Decision 2 分 **A 表**（hook，须留上游文件）与 **B 表**（待迁回产品功能面）。
 
