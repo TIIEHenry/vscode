@@ -346,6 +346,8 @@ import type {
 	UniverseAgentRemoteChatMessage,
 	UniverseAgentResumeRemoteSessionRequest,
 	UniverseAgentResumeRemoteSessionResult,
+	UniverseAgentCancelRemoteSessionRequest,
+	UniverseAgentCancelRemoteSessionResult,
 	UniverseAgentRemoteAgentAuthConfig,
 	UniverseAgentRemoteAgentCapabilities,
 	UniverseAgentRemoteAgentConfig,
@@ -4161,7 +4163,21 @@ function mapResumeRemoteSessionResponse(wire: ResumeRemoteSessionResponseWire): 
 		expiresAt: requiredInt64(wire.expires_at),
 	};
 }
+interface CancelRemoteSessionResponseWire {
+	success?: boolean;
+	call_id?: string;
+	status?: string;
+	message?: string;
+}
 
+function mapCancelRemoteSessionResponse(wire: CancelRemoteSessionResponseWire): UniverseAgentCancelRemoteSessionResult {
+	return {
+		success: wire.success === true,
+		callId: wire.call_id ?? '',
+		status: wire.status ?? '',
+		message: wire.message ?? '',
+	};
+}
 interface UploadProgressResponseWire {
 	exists?: boolean;
 	bytes_received?: number | string;
@@ -7068,6 +7084,18 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			node_id: request.nodeId,
 		});
 		return mapResumeRemoteSessionResponse(wire);
+	}
+	async cancelRemoteSession(request: UniverseAgentCancelRemoteSessionRequest): Promise<UniverseAgentCancelRemoteSessionResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, CancelRemoteSessionResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.RemoteAgent.service,
+			UniverseAgentGrpcServices.RemoteAgent.CancelRemoteSession,
+		);
+		const wire = await unary({
+			call_id: request.callId,
+			reason: request.reason,
+		});
+		return mapCancelRemoteSessionResponse(wire);
 	}
 
 	async getUploadProgress(request: UniverseAgentGetUploadProgressRequest): Promise<UniverseAgentGetUploadProgressResult> {
