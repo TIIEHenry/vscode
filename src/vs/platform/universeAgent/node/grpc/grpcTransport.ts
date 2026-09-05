@@ -277,6 +277,8 @@ import type {
 	UniverseAgentDeleteTriggerResult,
 	UniverseAgentSetTriggerEnabledRequest,
 	UniverseAgentSetTriggerEnabledResult,
+	UniverseAgentFireTriggerRequest,
+	UniverseAgentFireTriggerResult,
 	UniverseAgentWriteClipboardRequest,
 	UniverseAgentWriteClipboardResult,
 	UniverseAgentReadClipboardRequest,
@@ -790,6 +792,8 @@ export interface IUniverseAgentGrpcTransport {
 	deleteTrigger(request: UniverseAgentDeleteTriggerRequest): Promise<UniverseAgentDeleteTriggerResult>;
 	/** TriggerService.SetTriggerEnabled unary (snake_case `scope`/`scope_id`/`trigger_id`/`enabled`). Empty ids sent as-is. */
 	setTriggerEnabled(request: UniverseAgentSetTriggerEnabledRequest): Promise<UniverseAgentSetTriggerEnabledResult>;
+	/** TriggerService.FireTrigger unary (snake_case `scope`/`scope_id`/`trigger_id`). Empty ids sent as-is. */
+	fireTrigger(request: UniverseAgentFireTriggerRequest): Promise<UniverseAgentFireTriggerResult>;
 
 	/** ClipboardService.Write unary (snake_case `session_id`/`agent_id`/`label`/`type`/`content`/`file_path`/`url`). Empty ids sent as-is. */
 	writeClipboard(request: UniverseAgentWriteClipboardRequest): Promise<UniverseAgentWriteClipboardResult>;
@@ -1055,6 +1059,7 @@ export const UniverseAgentGrpcServices = {
 		UpsertTrigger: 'UpsertTrigger',
 		DeleteTrigger: 'DeleteTrigger',
 		SetTriggerEnabled: 'SetTriggerEnabled',
+		FireTrigger: 'FireTrigger',
 	},
 	Clipboard: {
 		service: 'universeagent.clipboard.v1.ClipboardService',

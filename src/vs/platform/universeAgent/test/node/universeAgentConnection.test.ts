@@ -263,6 +263,8 @@ import type {
 	UniverseAgentDeleteTriggerResult,
 	UniverseAgentSetTriggerEnabledRequest,
 	UniverseAgentSetTriggerEnabledResult,
+	UniverseAgentFireTriggerRequest,
+	UniverseAgentFireTriggerResult,
 	UniverseAgentGetHistoryRequest,
 	UniverseAgentGetHistoryResult,
 	UniverseAgentListSessionsRequest,
@@ -1968,6 +1970,14 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 		return this.setTriggerEnabledResult;
 	}
 
+	readonly fireTriggerCalls: UniverseAgentFireTriggerRequest[] = [];
+	fireTriggerResult: UniverseAgentFireTriggerResult = { status: '', eventId: '', reason: '' };
+
+	async fireTrigger(request: UniverseAgentFireTriggerRequest): Promise<UniverseAgentFireTriggerResult> {
+		this.fireTriggerCalls.push(request);
+		return this.fireTriggerResult;
+	}
+
 	async listModels() {
 		return { models: [] };
 	}
@@ -2538,6 +2548,11 @@ suite('UniverseAgentConnectionService', () => {
 
 	test('UniverseAgentGrpcServices lists Trigger.SetTriggerEnabled', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Trigger.SetTriggerEnabled, 'SetTriggerEnabled');
+		assert.strictEqual(UniverseAgentGrpcServices.Trigger.service, 'universeagent.trigger.v1.TriggerService');
+	});
+
+	test('UniverseAgentGrpcServices lists Trigger.FireTrigger', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Trigger.FireTrigger, 'FireTrigger');
 		assert.strictEqual(UniverseAgentGrpcServices.Trigger.service, 'universeagent.trigger.v1.TriggerService');
 	});
 
@@ -6670,6 +6685,47 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(empty.trigger.intervalMs, 0);
 		assert.strictEqual(empty.trigger.runAtEpochMs, 0);
 		assert.deepStrictEqual(empty.trigger.target, { kind: 'newSession', engineProfileId: '' });
+		service.dispose();
+	});
+
+	test('fireTrigger forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.fireTriggerResult = {
+			status: 'queued',
+			eventId: 'evt-1',
+			reason: '',
+		};
+		const request = {
+			scope: 'session',
+			scopeId: 'sess-1',
+			triggerId: 'trg-1',
+		};
+		const result = await service.fireTrigger(request);
+		assert.deepStrictEqual(transport.fireTriggerCalls, [request]);
+		assert.deepStrictEqual(result, transport.fireTriggerResult);
+
+		transport.fireTriggerResult = {
+			status: '',
+			eventId: '',
+			reason: '',
+		};
+		const emptyRequest = {
+			scope: '',
+			scopeId: '',
+			triggerId: '',
+		};
+		const empty = await service.fireTrigger(emptyRequest);
+		assert.strictEqual(transport.fireTriggerCalls[1]?.scope, '');
+		assert.strictEqual(transport.fireTriggerCalls[1]?.scopeId, '');
+		assert.strictEqual(transport.fireTriggerCalls[1]?.triggerId, '');
+		assert.strictEqual(empty.status, '');
+		assert.strictEqual(empty.eventId, '');
+		assert.strictEqual(empty.reason, '');
 		service.dispose();
 	});
 

@@ -2779,6 +2779,26 @@ export interface UniverseAgentSetTriggerEnabledResult {
 }
 
 /**
+ * TriggerService.FireTrigger — proto `FireTriggerRequest` /
+ * `FireTriggerResponse` only. Empty `scope` / `scope_id` /
+ * `trigger_id` pass through as-is. Empty `status` / `event_id` /
+ * `reason` mapped as-is.
+ * ≠ ListTriggers / UpsertTrigger / DeleteTrigger / SetTriggerEnabled /
+ * AgentService.FireTriggerWebhook / DeviceService.
+ */
+export interface UniverseAgentFireTriggerRequest {
+	readonly scope: string;
+	readonly scopeId: string;
+	readonly triggerId: string;
+}
+
+export interface UniverseAgentFireTriggerResult {
+	readonly status: string;
+	readonly eventId: string;
+	readonly reason: string;
+}
+
+/**
  * ClipboardService.Write — proto `ClipboardWriteRequest` /
  * `ClipboardWriteResponse` only. Empty `session_id` / `agent_id` /
  * `label` / `content` / `file_path` / `url` sent as-is. Empty `clip_id`
