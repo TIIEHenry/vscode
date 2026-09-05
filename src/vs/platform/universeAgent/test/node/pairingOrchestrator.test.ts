@@ -643,6 +643,9 @@ class RecordingMockTransport implements IUniverseAgentGrpcTransport {
 			},
 		};
 	}
+	async listClipboard() {
+		return { entries: [] };
+	}
 	openUploadAttachmentStream(): { write(): void; end(): void; dispose(): void } {
 		return { write() { }, end() { }, dispose() { } };
 	}

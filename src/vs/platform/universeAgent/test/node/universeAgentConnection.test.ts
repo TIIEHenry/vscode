@@ -238,6 +238,8 @@ import type {
 	UniverseAgentWriteClipboardResult,
 	UniverseAgentReadClipboardRequest,
 	UniverseAgentReadClipboardResult,
+	UniverseAgentListClipboardRequest,
+	UniverseAgentListClipboardResult,
 	UniverseAgentDownloadAttachmentRequest,
 	UniverseAgentDownloadChunk,
 	UniverseAgentHealthCheckResult,
@@ -1771,6 +1773,16 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 		return this.readClipboardResult;
 	}
 
+	readonly listClipboardCalls: UniverseAgentListClipboardRequest[] = [];
+	listClipboardResult: UniverseAgentListClipboardResult = {
+		entries: [],
+	};
+
+	async listClipboard(request: UniverseAgentListClipboardRequest): Promise<UniverseAgentListClipboardResult> {
+		this.listClipboardCalls.push(request);
+		return this.listClipboardResult;
+	}
+
 	private _downloadAttachmentGate: ReturnType<typeof createStreamCloseGate> | undefined;
 	readonly downloadAttachmentOpens: UniverseAgentDownloadAttachmentRequest[] = [];
 
@@ -2427,6 +2439,11 @@ suite('UniverseAgentConnectionService', () => {
 
 	test('UniverseAgentGrpcServices lists Clipboard.Read', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Clipboard.Read, 'Read');
+		assert.strictEqual(UniverseAgentGrpcServices.Clipboard.service, 'universeagent.clipboard.v1.ClipboardService');
+	});
+
+	test('UniverseAgentGrpcServices lists Clipboard.List', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Clipboard.List, 'List');
 		assert.strictEqual(UniverseAgentGrpcServices.Clipboard.service, 'universeagent.clipboard.v1.ClipboardService');
 	});
 
@@ -6439,6 +6456,54 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(empty.entry.content, '');
 		assert.strictEqual(empty.entry.createdBy, '');
 		assert.strictEqual(empty.entry.createdAt, 0);
+		service.dispose();
+	});
+
+	test('listClipboard forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.listClipboardResult = {
+			entries: [{
+				clipId: 'clip-1',
+				label: 'note',
+				type: 'CLIPBOARD_TEXT',
+				createdBy: 'agent-1',
+				createdAt: 1,
+			}],
+		};
+		const request = {
+			sessionId: 'sess-1',
+		};
+		const result = await service.listClipboard(request);
+		assert.deepStrictEqual(transport.listClipboardCalls, [request]);
+		assert.deepStrictEqual(result, transport.listClipboardResult);
+
+		transport.listClipboardResult = {
+			entries: [{
+				clipId: '',
+				label: '',
+				type: 'CLIPBOARD_TEXT',
+				createdBy: '',
+				createdAt: 0,
+			}],
+		};
+		const emptyRequest = {
+			sessionId: '',
+		};
+		const empty = await service.listClipboard(emptyRequest);
+		assert.strictEqual(transport.listClipboardCalls[1]?.sessionId, '');
+		assert.strictEqual(empty.entries[0]?.clipId, '');
+		assert.strictEqual(empty.entries[0]?.label, '');
+		assert.strictEqual(empty.entries[0]?.createdBy, '');
+		assert.strictEqual(empty.entries[0]?.createdAt, 0);
+
+		transport.listClipboardResult = { entries: [] };
+		const emptyList = await service.listClipboard(emptyRequest);
+		assert.deepStrictEqual(emptyList.entries, []);
 		service.dispose();
 	});
 

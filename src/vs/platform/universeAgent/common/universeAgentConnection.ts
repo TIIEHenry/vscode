@@ -276,6 +276,8 @@ import type {
 	UniverseAgentWriteClipboardResult,
 	UniverseAgentReadClipboardRequest,
 	UniverseAgentReadClipboardResult,
+	UniverseAgentListClipboardRequest,
+	UniverseAgentListClipboardResult,
 	UniverseAgentSetPermissionPolicyRequest,
 	UniverseAgentSetPermissionPolicyResult,
 	UniverseAgentListModelsResult,
@@ -1625,6 +1627,19 @@ export interface IUniverseAgentConnection {
 	 * ≠ Write / List / Clear / DeviceService / TriggerService.
 	 */
 	readClipboard?(request: UniverseAgentReadClipboardRequest): Promise<UniverseAgentReadClipboardResult>;
+
+	/**
+	 * ClipboardService.List unary. Optional so Web / tests can omit it.
+	 * Catalog + node transport only this slice; empty `sessionId` is sent
+	 * as-is. Proto fields only (`ClipboardListRequest` /
+	 * `ClipboardListResponse` + `ClipboardEntrySummary`: `clip_id` /
+	 * `label` / `type` / `created_by` / `created_at`). Empty `clipId` /
+	 * `label` / `createdBy` mapped as-is. `createdAt` 0 mapped as-is.
+	 * `type` uses typed `ClipboardEntryType` wire. No Conversation
+	 * roster / UI / Engine Preferences / Composer.
+	 * ≠ Write / Read / Clear / DeviceService / TriggerService.
+	 */
+	listClipboard?(request: UniverseAgentListClipboardRequest): Promise<UniverseAgentListClipboardResult>;
 
 	/**
 	 * ConfigService.SetPermissionPolicy unary (session/tool Ask/Agent/Permit
