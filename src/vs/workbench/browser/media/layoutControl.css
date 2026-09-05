@@ -1,0 +1,58 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+/* Spatial layout-family glyphs for Conversation / Preview / Sources.
+ * Navigator keeps the stock sidebar-left / sidebar-left-off pair.
+ * Each glyph is a 16px window map: Conversation = center column,
+ * Preview = End-column top, Sources = End-column bottom. Off = hollow cell. */
+
+.monaco-workbench .codicon.codicon-layout-conversation::before,
+.monaco-workbench .codicon.codicon-layout-conversation-off::before,
+.monaco-workbench .codicon.codicon-layout-preview::before,
+.monaco-workbench .codicon.codicon-layout-preview-off::before,
+.monaco-workbench .codicon.codicon-layout-sources::before,
+.monaco-workbench .codicon.codicon-layout-sources-off::before {
+	content: "";
+	display: inline-block;
+	width: 1em;
+	height: 1em;
+	background-color: currentColor;
+	-webkit-mask-repeat: no-repeat;
+	-webkit-mask-position: center;
+	-webkit-mask-size: 1em 1em;
+	mask-repeat: no-repeat;
+	mask-position: center;
+	mask-size: 1em 1em;
+}
+
+.monaco-workbench .codicon.codicon-layout-conversation::before {
+	-webkit-mask-image: url("data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20fill%3D%22%23000%22%20fill-rule%3D%22evenodd%22%20d%3D%22M3%202h10a1%201%200%20011%201v10a1%201%200%2001-1%201H3a1%201%200%2001-1-1V3a1%201%200%20011-1zm0%201v10h10V3H3z%22%2F%3E%3Cpath%20fill%3D%22%23000%22%20d%3D%22M6%203h1v10H6z%22%2F%3E%3Cpath%20fill%3D%22%23000%22%20d%3D%22M10%203h1v10h-1z%22%2F%3E%3Cpath%20fill%3D%22%23000%22%20d%3D%22M7%203h3v10H7z%22%2F%3E%3C%2Fsvg%3E");
+	mask-image: url("data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20fill%3D%22%23000%22%20fill-rule%3D%22evenodd%22%20d%3D%22M3%202h10a1%201%200%20011%201v10a1%201%200%2001-1%201H3a1%201%200%2001-1-1V3a1%201%200%20011-1zm0%201v10h10V3H3z%22%2F%3E%3Cpath%20fill%3D%22%23000%22%20d%3D%22M6%203h1v10H6z%22%2F%3E%3Cpath%20fill%3D%22%23000%22%20d%3D%22M10%203h1v10h-1z%22%2F%3E%3Cpath%20fill%3D%22%23000%22%20d%3D%22M7%203h3v10H7z%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.monaco-workbench .codicon.codicon-layout-conversation-off::before {
+	-webkit-mask-image: url("data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20fill%3D%22%23000%22%20fill-rule%3D%22evenodd%22%20d%3D%22M3%202h10a1%201%200%20011%201v10a1%201%200%2001-1%201H3a1%201%200%2001-1-1V3a1%201%200%20011-1zm0%201v10h10V3H3z%22%2F%3E%3Cpath%20fill%3D%22%23000%22%20d%3D%22M6%203h1v10H6z%22%2F%3E%3Cpath%20fill%3D%22%23000%22%20d%3D%22M10%203h1v10h-1z%22%2F%3E%3Cpath%20fill%3D%22%23000%22%20fill-rule%3D%22evenodd%22%20d%3D%22M7%203h3v10H7zM7.5%203.5h2v9h-2z%22%2F%3E%3C%2Fsvg%3E");
+	mask-image: url("data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20fill%3D%22%23000%22%20fill-rule%3D%22evenodd%22%20d%3D%22M3%202h10a1%201%200%20011%201v10a1%201%200%2001-1%201H3a1%201%200%2001-1-1V3a1%201%200%20011-1zm0%201v10h10V3H3z%22%2F%3E%3Cpath%20fill%3D%22%23000%22%20d%3D%22M6%203h1v10H6z%22%2F%3E%3Cpath%20fill%3D%22%23000%22%20d%3D%22M10%203h1v10h-1z%22%2F%3E%3Cpath%20fill%3D%22%23000%22%20fill-rule%3D%22evenodd%22%20d%3D%22M7%203h3v10H7zM7.5%203.5h2v9h-2z%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.monaco-workbench .codicon.codicon-layout-preview::before {
+	-webkit-mask-image: url("data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20fill%3D%22%23000%22%20fill-rule%3D%22evenodd%22%20d%3D%22M3%202h10a1%201%200%20011%201v10a1%201%200%2001-1%201H3a1%201%200%2001-1-1V3a1%201%200%20011-1zm0%201v10h10V3H3z%22%2F%3E%3Cpath%20fill%3D%22%23000%22%20d%3D%22M10%203h1v10h-1z%22%2F%3E%3Cpath%20fill%3D%22%23000%22%20d%3D%22M11%208h2v1h-2z%22%2F%3E%3Cpath%20fill%3D%22%23000%22%20d%3D%22M11%203h2v5h-2z%22%2F%3E%3C%2Fsvg%3E");
+	mask-image: url("data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20fill%3D%22%23000%22%20fill-rule%3D%22evenodd%22%20d%3D%22M3%202h10a1%201%200%20011%201v10a1%201%200%2001-1%201H3a1%201%200%2001-1-1V3a1%201%200%20011-1zm0%201v10h10V3H3z%22%2F%3E%3Cpath%20fill%3D%22%23000%22%20d%3D%22M10%203h1v10h-1z%22%2F%3E%3Cpath%20fill%3D%22%23000%22%20d%3D%22M11%208h2v1h-2z%22%2F%3E%3Cpath%20fill%3D%22%23000%22%20d%3D%22M11%203h2v5h-2z%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.monaco-workbench .codicon.codicon-layout-preview-off::before {
+	-webkit-mask-image: url("data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20fill%3D%22%23000%22%20fill-rule%3D%22evenodd%22%20d%3D%22M3%202h10a1%201%200%20011%201v10a1%201%200%2001-1%201H3a1%201%200%2001-1-1V3a1%201%200%20011-1zm0%201v10h10V3H3z%22%2F%3E%3Cpath%20fill%3D%22%23000%22%20d%3D%22M10%203h1v10h-1z%22%2F%3E%3Cpath%20fill%3D%22%23000%22%20d%3D%22M11%208h2v1h-2z%22%2F%3E%3Cpath%20fill%3D%22%23000%22%20fill-rule%3D%22evenodd%22%20d%3D%22M11%203h2v5h-2zM11.5%203.5h1v4h-1z%22%2F%3E%3C%2Fsvg%3E");
+	mask-image: url("data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20fill%3D%22%23000%22%20fill-rule%3D%22evenodd%22%20d%3D%22M3%202h10a1%201%200%20011%201v10a1%201%200%2001-1%201H3a1%201%200%2001-1-1V3a1%201%200%20011-1zm0%201v10h10V3H3z%22%2F%3E%3Cpath%20fill%3D%22%23000%22%20d%3D%22M10%203h1v10h-1z%22%2F%3E%3Cpath%20fill%3D%22%23000%22%20d%3D%22M11%208h2v1h-2z%22%2F%3E%3Cpath%20fill%3D%22%23000%22%20fill-rule%3D%22evenodd%22%20d%3D%22M11%203h2v5h-2zM11.5%203.5h1v4h-1z%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.monaco-workbench .codicon.codicon-layout-sources::before {
+	-webkit-mask-image: url("data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20fill%3D%22%23000%22%20fill-rule%3D%22evenodd%22%20d%3D%22M3%202h10a1%201%200%20011%201v10a1%201%200%2001-1%201H3a1%201%200%2001-1-1V3a1%201%200%20011-1zm0%201v10h10V3H3z%22%2F%3E%3Cpath%20fill%3D%22%23000%22%20d%3D%22M10%203h1v10h-1z%22%2F%3E%3Cpath%20fill%3D%22%23000%22%20d%3D%22M11%208h2v1h-2z%22%2F%3E%3Cpath%20fill%3D%22%23000%22%20d%3D%22M11%209h2v4h-2z%22%2F%3E%3C%2Fsvg%3E");
+	mask-image: url("data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20fill%3D%22%23000%22%20fill-rule%3D%22evenodd%22%20d%3D%22M3%202h10a1%201%200%20011%201v10a1%201%200%2001-1%201H3a1%201%200%2001-1-1V3a1%201%200%20011-1zm0%201v10h10V3H3z%22%2F%3E%3Cpath%20fill%3D%22%23000%22%20d%3D%22M10%203h1v10h-1z%22%2F%3E%3Cpath%20fill%3D%22%23000%22%20d%3D%22M11%208h2v1h-2z%22%2F%3E%3Cpath%20fill%3D%22%23000%22%20d%3D%22M11%209h2v4h-2z%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.monaco-workbench .codicon.codicon-layout-sources-off::before {
+	-webkit-mask-image: url("data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20fill%3D%22%23000%22%20fill-rule%3D%22evenodd%22%20d%3D%22M3%202h10a1%201%200%20011%201v10a1%201%200%2001-1%201H3a1%201%200%2001-1-1V3a1%201%200%20011-1zm0%201v10h10V3H3z%22%2F%3E%3Cpath%20fill%3D%22%23000%22%20d%3D%22M10%203h1v10h-1z%22%2F%3E%3Cpath%20fill%3D%22%23000%22%20d%3D%22M11%208h2v1h-2z%22%2F%3E%3Cpath%20fill%3D%22%23000%22%20fill-rule%3D%22evenodd%22%20d%3D%22M11%209h2v4h-2zM11.5%209.5h1v3h-1z%22%2F%3E%3C%2Fsvg%3E");
+	mask-image: url("data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20fill%3D%22%23000%22%20fill-rule%3D%22evenodd%22%20d%3D%22M3%202h10a1%201%200%20011%201v10a1%201%200%2001-1%201H3a1%201%200%2001-1-1V3a1%201%200%20011-1zm0%201v10h10V3H3z%22%2F%3E%3Cpath%20fill%3D%22%23000%22%20d%3D%22M10%203h1v10h-1z%22%2F%3E%3Cpath%20fill%3D%22%23000%22%20d%3D%22M11%208h2v1h-2z%22%2F%3E%3Cpath%20fill%3D%22%23000%22%20fill-rule%3D%22evenodd%22%20d%3D%22M11%209h2v4h-2zM11.5%209.5h1v3h-1z%22%2F%3E%3C%2Fsvg%3E");
+}

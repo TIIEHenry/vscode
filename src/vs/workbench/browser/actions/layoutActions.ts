@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import '../media/layoutControl.css';
 import { ILocalizedString, localize, localize2 } from '../../../nls.js';
 import { MenuId, MenuRegistry, registerAction2, Action2 } from '../../../platform/actions/common/actions.js';
 import { Categories } from '../../../platform/action/common/actionCommonCategories.js';
@@ -57,9 +58,12 @@ const quickInputAlignmentCenterIcon = registerIcon('quickInputAlignmentCenter', 
 const fullscreenIcon = registerIcon('fullscreen', Codicon.screenFull, localize('fullScreenIcon', "Represents full screen"));
 const centerLayoutIcon = registerIcon('centerLayoutIcon', Codicon.layoutCentered, localize('centerLayoutIcon', "Represents centered layout mode"));
 const zenModeIcon = registerIcon('zenMode', Codicon.target, localize('zenModeIcon', "Represents zen mode"));
-const conversationLayoutIcon = registerIcon('layout-conversation', Codicon.commentDiscussion, localize('conversationLayoutIcon', "Represents the conversation part"));
-const previewLayoutIcon = registerIcon('layout-preview', Codicon.preview, localize('previewLayoutIcon', "Represents the preview (editor) part"));
-const sourcesLayoutIcon = registerIcon('layout-sources', Codicon.files, localize('sourcesLayoutIcon', "Represents the sources part"));
+const conversationLayoutIcon = registerIcon('layout-conversation', Codicon.layoutCentered, localize('conversationLayoutIcon', "Represents the conversation part as the center column"));
+const conversationLayoutOffIcon = registerIcon('layout-conversation-off', Codicon.layout, localize('conversationLayoutOffIcon', "Represents the conversation part hidden"));
+const previewLayoutIcon = registerIcon('layout-preview', Codicon.layoutSidebarRight, localize('previewLayoutIcon', "Represents the preview (editor) part as the End-column top"));
+const previewLayoutOffIcon = registerIcon('layout-preview-off', Codicon.layoutSidebarRightOff, localize('previewLayoutOffIcon', "Represents the preview (editor) part hidden"));
+const sourcesLayoutIcon = registerIcon('layout-sources', Codicon.layoutPanel, localize('sourcesLayoutIcon', "Represents the sources part as the End-column bottom"));
+const sourcesLayoutOffIcon = registerIcon('layout-sources-off', Codicon.layoutPanelOff, localize('sourcesLayoutOffIcon', "Represents the sources part hidden"));
 
 export const ToggleActivityBarVisibilityActionId = 'workbench.action.toggleActivityBarVisibility';
 
@@ -562,7 +566,7 @@ MenuRegistry.appendMenuItems([
 			command: {
 				id: ToggleConversationVisibilityActionId,
 				title: localize('conversation', "Conversation"),
-				icon: conversationLayoutIcon,
+				icon: conversationLayoutOffIcon,
 				toggled: { condition: ConversationVisibleContext, icon: conversationLayoutIcon, title: localize('conversation', "Conversation") }
 			},
 			when: ContextKeyExpr.and(
@@ -580,7 +584,7 @@ MenuRegistry.appendMenuItems([
 			command: {
 				id: ToggleEditorVisibilityActionId,
 				title: localize('preview', "Preview"),
-				icon: previewLayoutIcon,
+				icon: previewLayoutOffIcon,
 				toggled: { condition: MainEditorAreaVisibleContext, icon: previewLayoutIcon, title: localize('preview', "Preview") }
 			},
 			when: ContextKeyExpr.and(
@@ -598,7 +602,7 @@ MenuRegistry.appendMenuItems([
 			command: {
 				id: ToggleSourcesVisibilityActionId,
 				title: localize('sources', "Sources"),
-				icon: sourcesLayoutIcon,
+				icon: sourcesLayoutOffIcon,
 				toggled: { condition: SourcesVisibleContext, icon: sourcesLayoutIcon, title: localize('sources', "Sources") }
 			},
 			when: ContextKeyExpr.and(
