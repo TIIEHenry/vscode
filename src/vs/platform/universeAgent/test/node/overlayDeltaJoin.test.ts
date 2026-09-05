@@ -41,6 +41,14 @@ suite('OverlayDeltaJoin', () => {
 		}), [{ arm: 'overlayActiveTurnClear', body: {} }]);
 	});
 
+	test('clear drops accumulated text so a replay is not doubled', () => {
+		const join = new OverlayDeltaJoin();
+		join.handlePayload({ streaming_delta: { turn_id: 't1', text_delta: 'Hel' } });
+		join.clear();
+		const next = join.handlePayload({ streaming_delta: { turn_id: 't1', text_delta: 'Hel' } });
+		assert.strictEqual((next[0] as { body: { streamingText: string } }).body.streamingText, 'Hel');
+	});
+
 	test('runtime overlay snapshot resets and yields nothing', () => {
 		const join = new OverlayDeltaJoin();
 		join.handlePayload({ streaming_delta: { turn_id: 't1', text_delta: 'old' } });

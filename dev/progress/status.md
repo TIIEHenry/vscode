@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-05
-summary: "Wave 1 治理合入 + ADR-007 U0/U1 + GFS-3 residue + GFS-4 sync；merge tip 40d61319677；GFS-4 已合入本仓 @ a4ab1a3e754（PIN Desktop 0dd3146cd）；Next test-baseline 切片 0；U2 未开"
+summary: "合入 loop/D HistoryFill + agent-ide catalog/chrome；剩余 onDidApplyFrame / 断连列顶 / heartbeat_ack；U2 未开"
 ---
 
 # Development Progress
@@ -34,7 +34,8 @@ summary: "Wave 1 治理合入 + ADR-007 U0/U1 + GFS-3 residue + GFS-4 sync；mer
 | **docs-burden S5** | `222dd61c` — [docs-burden-reduction](../plans/docs-burden-reduction.md) §5：DOCUMENTATION 规则 7 归档候选标准 |
 | **agent-ide.yml** | `cc6bfd25` — [test-baseline-ci](../plans/test-baseline-ci.md) 切片 4：compile / eslint / docs-health / unit-custom 四 job |
 | **gRPC catalog** | `123625c245b` — `UniverseAgentGrpcServices` 对齐 UA proto `package agentservice`（原 `universeagent.*.v1` 导致 Connect/`GetAuthNonce` UNIMPLEMENTED） |
-| **workbench chrome** | Conversation 阅读列 layout / pre-first SessionBar；Navigator connecting 诚实空；Sources 空文案去实现注；Client enum 中文 labels |
+| **workbench chrome** | `48dc0c5c95e` — Conversation 阅读列 layout / pre-first SessionBar；Navigator connecting 诚实空；Sources 空文案去实现注；Client enum 中文 labels |
+| **HistoryFill** | `ed7faece0d6` — 宿主 `fillHistoryGap` 按 Actor `historyResult` 分页+demux；lease dispose-before-resolve 必 `releaseLease`；连接升降换帧源 |
 
 并行 catalog/UI 绑定波（A–D 槽）已合入 tip；逐条流水见 [归档](../archive/status-current-session-slot-catalog-2026-09-05.md)，不在本账复述。
 
@@ -42,7 +43,7 @@ summary: "Wave 1 治理合入 + ADR-007 U0/U1 + GFS-3 residue + GFS-4 sync；mer
 
 ### 进行中
 
-无。U1 已合；**U2 未开**（见 Next / 不做）。
+HistoryFill 已合入 merge。剩余：宿主全局 `onDidApplyFrame` 整刀删、断连列顶/Send、`heartbeat_ack` 行为测。U1 已合；**U2 未开**。
 
 ## 工位表（与 `git worktree list` 对照 · 2026-09-05）
 

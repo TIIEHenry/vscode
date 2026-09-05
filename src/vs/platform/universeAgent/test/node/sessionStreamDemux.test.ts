@@ -366,6 +366,15 @@ suite('sessionStreamDemux overlay + seats + L2/L3/L4', () => {
 			subscription_health: { phase: 2 },
 		}), [{ arm: 'subscriptionHealth', body: { phase: 2 } }]);
 		assert.deepStrictEqual(demuxSessionStreamPayload({
+			subscription_health: { phase: 'LIVE' },
+		}), [{ arm: 'subscriptionHealth', body: { phase: 2 } }]);
+		assert.deepStrictEqual(demuxSessionStreamPayload({
+			subscriptionHealth: { phase: '2' },
+		}), [{ arm: 'subscriptionHealth', body: { phase: 2 } }]);
+		assert.deepStrictEqual(demuxSessionStreamPayload({
+			subscription_health: { phase: 'nope' },
+		}), [{ arm: 'subscriptionHealth' }]);
+		assert.deepStrictEqual(demuxSessionStreamPayload({
 			sessionPurged: {},
 		}), [{ arm: 'sessionPurged', body: {} }]);
 	});

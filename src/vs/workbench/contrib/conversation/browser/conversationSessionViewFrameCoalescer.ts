@@ -73,6 +73,9 @@ export function mergeSessionViewFrames(frames: readonly ConversationViewFrameApp
 		}
 	}
 
+	if (changedIds.size > 0) {
+		return { kind: 'patches', changedIds };
+	}
 	if (effects.length > 0) {
 		return { kind: 'effects', effects };
 	}

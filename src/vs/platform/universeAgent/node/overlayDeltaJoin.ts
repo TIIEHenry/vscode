@@ -55,6 +55,10 @@ export class OverlayDeltaJoin {
 	private thinkingText = '';
 	private generatingToolName: string | undefined;
 
+	clear(): void {
+		this.clearState();
+	}
+
 	handlePayload(payload: unknown): readonly OverlayDeltaArm[] {
 		if (!isRecord(payload)) {
 			return [];
