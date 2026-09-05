@@ -321,6 +321,9 @@ import type {
 	UniverseAgentMemoryChangeEntry,
 	UniverseAgentContextVariableListRequest,
 	UniverseAgentContextVariableListResult,
+	UniverseAgentContextVariableReadRequest,
+	UniverseAgentContextVariableReadResult,
+	UniverseAgentContextVariableEntry,
 	UniverseAgentContextVariableEntrySummary,
 	UniverseAgentContextVariableScope,
 	UniverseAgentGetUploadProgressRequest,
@@ -3344,6 +3347,34 @@ function mapContextVariableListResponse(wire: ContextVariableListResponseWire): 
 	};
 }
 
+interface ContextVariableEntryWire {
+	name?: string;
+	content?: string;
+	scope?: string | number;
+	updated_by?: string;
+	updated_at?: number | string;
+}
+
+interface ContextVariableReadResponseWire {
+	entry?: ContextVariableEntryWire;
+}
+
+function mapContextVariableEntry(wire: ContextVariableEntryWire | undefined): UniverseAgentContextVariableEntry {
+	return {
+		name: wire?.name ?? '',
+		content: wire?.content ?? '',
+		scope: mapContextVariableScope(wire?.scope),
+		updatedBy: wire?.updated_by ?? '',
+		updatedAt: requiredInt64(wire?.updated_at),
+	};
+}
+
+function mapContextVariableReadResponse(wire: ContextVariableReadResponseWire): UniverseAgentContextVariableReadResult {
+	return {
+		entry: mapContextVariableEntry(wire.entry),
+	};
+}
+
 interface UploadProgressResponseWire {
 	exists?: boolean;
 	bytes_received?: number | string;
@@ -5868,6 +5899,20 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			agent_id: request.agentId,
 		});
 		return mapContextVariableListResponse(wire);
+	}
+
+	async readContextVariable(request: UniverseAgentContextVariableReadRequest): Promise<UniverseAgentContextVariableReadResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, ContextVariableReadResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.ContextVariable.service,
+			UniverseAgentGrpcServices.ContextVariable.Read,
+		);
+		const wire = await unary({
+			session_id: request.sessionId,
+			name: request.name,
+			agent_id: request.agentId,
+		});
+		return mapContextVariableReadResponse(wire);
 	}
 
 	async getUploadProgress(request: UniverseAgentGetUploadProgressRequest): Promise<UniverseAgentGetUploadProgressResult> {

@@ -247,6 +247,8 @@ import type {
 	UniverseAgentMemoryHistoryResult,
 	UniverseAgentContextVariableListRequest,
 	UniverseAgentContextVariableListResult,
+	UniverseAgentContextVariableReadRequest,
+	UniverseAgentContextVariableReadResult,
 	UniverseAgentGetUploadProgressRequest,
 	UniverseAgentGetUploadProgressResult,
 	UniverseAgentUploadAttachmentResult,
@@ -732,6 +734,9 @@ export interface IUniverseAgentGrpcTransport {
 	/** ContextVariableService.List unary (snake_case `session_id`/`agent_id`). Empty ids sent as-is. */
 	listContextVariable(request: UniverseAgentContextVariableListRequest): Promise<UniverseAgentContextVariableListResult>;
 
+	/** ContextVariableService.Read unary (snake_case `session_id`/`name`/`agent_id`). Empty ids sent as-is. */
+	readContextVariable(request: UniverseAgentContextVariableReadRequest): Promise<UniverseAgentContextVariableReadResult>;
+
 	/** FileTransferService.GetUploadProgress unary (snake_case `transfer_id`/`session_id`). Empty ids sent as-is. */
 	getUploadProgress(request: UniverseAgentGetUploadProgressRequest): Promise<UniverseAgentGetUploadProgressResult>;
 	/** FileTransferService.UploadAttachment client-stream (snake_case `transfer_id`/`filename`/`session_id`/`queue_item_id`). Empty ids sent as-is. */
@@ -1027,6 +1032,7 @@ export const UniverseAgentGrpcServices = {
 	ContextVariable: {
 		service: 'universeagent.contextvariable.v1.ContextVariableService',
 		List: 'List',
+		Read: 'Read',
 	},
 } as const;
 

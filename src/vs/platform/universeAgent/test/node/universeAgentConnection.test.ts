@@ -228,6 +228,8 @@ import type {
 	UniverseAgentMemoryHistoryResult,
 	UniverseAgentContextVariableListRequest,
 	UniverseAgentContextVariableListResult,
+	UniverseAgentContextVariableReadRequest,
+	UniverseAgentContextVariableReadResult,
 	UniverseAgentGetUploadProgressRequest,
 	UniverseAgentGetUploadProgressResult,
 	UniverseAgentShutdownRequest,
@@ -1703,6 +1705,22 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 		return this.listContextVariableResult;
 	}
 
+	readonly readContextVariableCalls: UniverseAgentContextVariableReadRequest[] = [];
+	readContextVariableResult: UniverseAgentContextVariableReadResult = {
+		entry: {
+			name: '',
+			content: '',
+			scope: 'VARIABLE_GLOBAL',
+			updatedBy: '',
+			updatedAt: 0,
+		},
+	};
+
+	async readContextVariable(request: UniverseAgentContextVariableReadRequest): Promise<UniverseAgentContextVariableReadResult> {
+		this.readContextVariableCalls.push(request);
+		return this.readContextVariableResult;
+	}
+
 	readonly getUploadProgressCalls: UniverseAgentGetUploadProgressRequest[] = [];
 	getUploadProgressResult: UniverseAgentGetUploadProgressResult = {
 		exists: false,
@@ -2344,6 +2362,11 @@ suite('UniverseAgentConnectionService', () => {
 
 	test('UniverseAgentGrpcServices lists ContextVariable.List', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.ContextVariable.List, 'List');
+		assert.strictEqual(UniverseAgentGrpcServices.ContextVariable.service, 'universeagent.contextvariable.v1.ContextVariableService');
+	});
+
+	test('UniverseAgentGrpcServices lists ContextVariable.Read', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.ContextVariable.Read, 'Read');
 		assert.strictEqual(UniverseAgentGrpcServices.ContextVariable.service, 'universeagent.contextvariable.v1.ContextVariableService');
 	});
 
@@ -5869,6 +5892,57 @@ suite('UniverseAgentConnectionService', () => {
 		const emptyLists = await service.listContextVariable(emptyRequest);
 		assert.deepStrictEqual(emptyLists.current, []);
 		assert.deepStrictEqual(emptyLists.inherited, []);
+		service.dispose();
+	});
+
+	test('readContextVariable forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.readContextVariableResult = {
+			entry: {
+				name: 'cwd',
+				content: '/tmp',
+				scope: 'VARIABLE_LOCAL',
+				updatedBy: 'root',
+				updatedAt: 1_700_000_000,
+			},
+		};
+		const request = {
+			sessionId: 'sess-1',
+			name: 'cwd',
+			agentId: 'agent-1',
+		};
+		const result = await service.readContextVariable(request);
+		assert.deepStrictEqual(transport.readContextVariableCalls, [request]);
+		assert.deepStrictEqual(result, transport.readContextVariableResult);
+
+		transport.readContextVariableResult = {
+			entry: {
+				name: '',
+				content: '',
+				scope: 'VARIABLE_GLOBAL',
+				updatedBy: '',
+				updatedAt: 0,
+			},
+		};
+		const emptyRequest = {
+			sessionId: '',
+			name: '',
+			agentId: '',
+		};
+		const empty = await service.readContextVariable(emptyRequest);
+		assert.strictEqual(transport.readContextVariableCalls[1]?.sessionId, '');
+		assert.strictEqual(transport.readContextVariableCalls[1]?.name, '');
+		assert.strictEqual(transport.readContextVariableCalls[1]?.agentId, '');
+		assert.strictEqual(empty.entry.name, '');
+		assert.strictEqual(empty.entry.content, '');
+		assert.strictEqual(empty.entry.scope, 'VARIABLE_GLOBAL');
+		assert.strictEqual(empty.entry.updatedBy, '');
+		assert.strictEqual(empty.entry.updatedAt, 0);
 		service.dispose();
 	});
 
