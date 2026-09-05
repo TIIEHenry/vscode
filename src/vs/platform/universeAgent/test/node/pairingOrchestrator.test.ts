@@ -681,6 +681,10 @@ class RecordingMockTransport implements IUniverseAgentGrpcTransport {
 		return { success: false, message: '' };
 	}
 
+	async listPending() {
+		return { pending: [] };
+	}
+
 	async listTriggers() {
 		return { triggers: [] };
 	}

@@ -2675,6 +2675,27 @@ export interface UniverseAgentRotateTokenResult {
 }
 
 /**
+ * DeviceService.ListPending — proto `ListPendingRequest` /
+ * `ListPendingResponse` + `PendingPairInfo` only. Empty request `{}`.
+ * Empty `pairing_code` / `device_id` / `display_name` / `platform`
+ * mapped as-is. `requested_at` 0 mapped as-is. `expires_in_seconds`
+ * 0 mapped as-is.
+ * ≠ ListDevices / PairApprove / PairReject / Revoke / RotateToken.
+ */
+export interface UniverseAgentPendingPairInfo {
+	readonly pairingCode: string;
+	readonly deviceId: string;
+	readonly displayName: string;
+	readonly platform: string;
+	readonly requestedAt: number;
+	readonly expiresInSeconds: number;
+}
+
+export interface UniverseAgentListPendingResult {
+	readonly pending: readonly UniverseAgentPendingPairInfo[];
+}
+
+/**
  * TriggerService.ListTriggers — proto `ListTriggersRequest` /
  * `ListTriggersResponse` + `TriggerDto` / `DeliveryTargetDto` only.
  * Empty `scope` / `scope_id` / `type_filter` pass through as-is.
