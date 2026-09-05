@@ -282,6 +282,9 @@ import type {
 	UniverseAgentGetRemoteSessionStatusResult,
 	UniverseAgentGetRemoteSessionHistoryRequest,
 	UniverseAgentGetRemoteSessionHistoryResult,
+	UniverseAgentRemoteChatRequest,
+	UniverseAgentRemoteChatResponse,
+	UniverseAgentRemoteChatStream,
 	UniverseAgentGetUploadProgressRequest,
 	UniverseAgentGetUploadProgressResult,
 	UniverseAgentUploadAttachmentResult,
@@ -1747,6 +1750,32 @@ export interface IUniverseAgentConnection {
 	 * DeleteConfig / Reload / DeviceService / SessionService.
 	 */
 	getRemoteSessionHistory?(request: UniverseAgentGetRemoteSessionHistoryRequest): Promise<UniverseAgentGetRemoteSessionHistoryResult>;
+
+	/**
+	 * RemoteAgentService.RemoteChat server-stream
+	 * (`stream RemoteChatResponse`). Optional so Web / tests can omit it.
+	 * Catalog + node transport only this slice; empty `callId` / `task`
+	 * (incl. empty string) are sent as-is. Empty `responses` (incl. empty
+	 * `type` / `requestId` / permission `decision`/`reason` /
+	 * `questionAnswersJson`) are sent as-is. `overridePending` false sent
+	 * as-is. Empty result / progress frames mapped as-is. Proto fields
+	 * only (`RemoteChatRequest` / `RemoteChatResponse` + `RemoteResponse` /
+	 * `RemotePermissionDecision` / `RemoteChatResult` /
+	 * `RemoteProgressEvent` / `RemotePendingPermission` /
+	 * `RemotePendingQuestion` / `RemoteChatMessage`). No Conversation
+	 * roster / UI / Engine Preferences / Composer.
+	 * ≠ CreateRemoteSession / DestroyRemoteSession /
+	 * GetRemoteSessionStatus / GetRemoteSessionHistory /
+	 * ResumeRemoteSession / CancelRemoteSession / ListNodes / GetNode /
+	 * CheckConnection / SetMaintenance / ExitMaintenance / ResetError /
+	 * ListConfigs / GetConfig / SaveConfig / DeleteConfig / Reload /
+	 * DeviceService / SessionService / AgentService.Chat.
+	 */
+	openRemoteChatStream?(
+		request: UniverseAgentRemoteChatRequest,
+		onResponse: (response: UniverseAgentRemoteChatResponse) => void,
+		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
+	): UniverseAgentRemoteChatStream;
 
 	/**
 	 * FileTransferService.GetUploadProgress unary. Optional so Web / tests

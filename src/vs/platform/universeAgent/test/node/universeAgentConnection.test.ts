@@ -258,6 +258,8 @@ import type {
 	UniverseAgentGetRemoteSessionStatusResult,
 	UniverseAgentGetRemoteSessionHistoryRequest,
 	UniverseAgentGetRemoteSessionHistoryResult,
+	UniverseAgentRemoteChatRequest,
+	UniverseAgentRemoteChatResponse,
 	UniverseAgentGetUploadProgressRequest,
 	UniverseAgentGetUploadProgressResult,
 	UniverseAgentShutdownRequest,
@@ -1969,6 +1971,31 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 		return this.reloadRemoteAgentsResult;
 	}
 
+	private _remoteChatGate: ReturnType<typeof createStreamCloseGate> | undefined;
+	readonly remoteChatOpens: UniverseAgentRemoteChatRequest[] = [];
+
+	openRemoteChatStream(
+		request: UniverseAgentRemoteChatRequest,
+		_onResponse: (response: UniverseAgentRemoteChatResponse) => void,
+		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
+	): { dispose(): void } {
+		this.remoteChatOpens.push(request);
+		const gate = createStreamCloseGate(onClosed);
+		this._remoteChatGate = gate;
+		return {
+			dispose: () => {
+				gate.closeLocal();
+				if (this._remoteChatGate === gate) {
+					this._remoteChatGate = undefined;
+				}
+			},
+		};
+	}
+
+	fireRemoteChatClosed(cause: UniverseAgentSessionStreamCloseCause): void {
+		this._remoteChatGate?.finish(cause);
+	}
+
 	readonly createRemoteSessionCalls: UniverseAgentCreateRemoteSessionRequest[] = [];
 	createRemoteSessionResult: UniverseAgentCreateRemoteSessionResult = {
 		callId: '',
@@ -2821,6 +2848,11 @@ suite('UniverseAgentConnectionService', () => {
 
 	test('UniverseAgentGrpcServices lists RemoteAgent.Reload', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.RemoteAgent.Reload, 'Reload');
+		assert.strictEqual(UniverseAgentGrpcServices.RemoteAgent.service, 'universeagent.remoteagent.v1.RemoteAgentService');
+	});
+
+	test('UniverseAgentGrpcServices lists RemoteAgent.RemoteChat', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.RemoteAgent.RemoteChat, 'RemoteChat');
 		assert.strictEqual(UniverseAgentGrpcServices.RemoteAgent.service, 'universeagent.remoteagent.v1.RemoteAgentService');
 	});
 
@@ -9416,6 +9448,81 @@ suite('UniverseAgentConnectionService', () => {
 		}, () => { }, cause => seen.push(cause));
 		handle.dispose();
 		transport.fireSubscribeToolDetailClosed({ kind: 'error', message: 'CANCELLED' });
+		assert.deepStrictEqual(seen, []);
+		service.dispose();
+	});
+
+	test('openRemoteChatStream forwards request and transport onClosed', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		const seen: UniverseAgentSessionStreamCloseCause[] = [];
+		const handle = service.openRemoteChatStream({
+			callId: 'call-1',
+			task: 'do work',
+			responses: [{
+				type: 'permission',
+				requestId: 'req-1',
+				permission: { decision: 'grant', reason: 'ok' },
+			}],
+			overridePending: true,
+		}, () => { }, cause => seen.push(cause));
+		assert.deepStrictEqual(transport.remoteChatOpens, [{
+			callId: 'call-1',
+			task: 'do work',
+			responses: [{
+				type: 'permission',
+				requestId: 'req-1',
+				permission: { decision: 'grant', reason: 'ok' },
+			}],
+			overridePending: true,
+		}]);
+		transport.fireRemoteChatClosed({ kind: 'remote' });
+		transport.fireRemoteChatClosed({ kind: 'error', message: 'late' });
+		assert.deepStrictEqual(seen, [{ kind: 'remote' }]);
+
+		service.openRemoteChatStream({
+			callId: '',
+			task: '',
+			responses: [{
+				type: '',
+				requestId: '',
+				permission: { decision: '', reason: '' },
+				questionAnswersJson: '',
+			}],
+			overridePending: false,
+		}, () => { });
+		assert.strictEqual(transport.remoteChatOpens[1]?.callId, '');
+		assert.strictEqual(transport.remoteChatOpens[1]?.task, '');
+		assert.strictEqual(transport.remoteChatOpens[1]?.overridePending, false);
+		assert.strictEqual(transport.remoteChatOpens[1]?.responses[0]?.type, '');
+		assert.strictEqual(transport.remoteChatOpens[1]?.responses[0]?.requestId, '');
+		assert.strictEqual(transport.remoteChatOpens[1]?.responses[0]?.permission?.decision, '');
+		assert.strictEqual(transport.remoteChatOpens[1]?.responses[0]?.permission?.reason, '');
+		assert.strictEqual(transport.remoteChatOpens[1]?.responses[0]?.questionAnswersJson, '');
+		handle.dispose();
+		service.dispose();
+	});
+
+	test('openRemoteChatStream dispose silences later onClosed', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		const seen: UniverseAgentSessionStreamCloseCause[] = [];
+		const handle = service.openRemoteChatStream({
+			callId: '',
+			task: '',
+			responses: [],
+			overridePending: false,
+		}, () => { }, cause => seen.push(cause));
+		handle.dispose();
+		transport.fireRemoteChatClosed({ kind: 'error', message: 'CANCELLED' });
 		assert.deepStrictEqual(seen, []);
 		service.dispose();
 	});

@@ -285,6 +285,9 @@ import type {
 	UniverseAgentGetRemoteSessionStatusResult,
 	UniverseAgentGetRemoteSessionHistoryRequest,
 	UniverseAgentGetRemoteSessionHistoryResult,
+	UniverseAgentRemoteChatRequest,
+	UniverseAgentRemoteChatResponse,
+	UniverseAgentRemoteChatStream,
 	UniverseAgentGetUploadProgressRequest,
 	UniverseAgentGetUploadProgressResult,
 	UniverseAgentUploadAttachmentResult,
@@ -1547,6 +1550,15 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 
 	async reloadRemoteAgents(): Promise<UniverseAgentReloadRemoteAgentsResult> {
 		return this._withTransport(transport => transport.reloadRemoteAgents());
+	}
+
+	openRemoteChatStream(
+		request: UniverseAgentRemoteChatRequest,
+		onResponse: (response: UniverseAgentRemoteChatResponse) => void,
+		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
+	): UniverseAgentRemoteChatStream {
+		this._assertTransportReady();
+		return this._transport!.openRemoteChatStream(request, onResponse, onClosed);
 	}
 
 	async createRemoteSession(request: UniverseAgentCreateRemoteSessionRequest): Promise<UniverseAgentCreateRemoteSessionResult> {
