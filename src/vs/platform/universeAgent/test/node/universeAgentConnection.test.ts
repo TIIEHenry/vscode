@@ -250,6 +250,8 @@ import type {
 	UniverseAgentDeleteRemoteAgentConfigRequest,
 	UniverseAgentDeleteRemoteAgentConfigResult,
 	UniverseAgentReloadRemoteAgentsResult,
+	UniverseAgentCreateRemoteSessionRequest,
+	UniverseAgentCreateRemoteSessionResult,
 	UniverseAgentGetUploadProgressRequest,
 	UniverseAgentGetUploadProgressResult,
 	UniverseAgentShutdownRequest,
@@ -1961,6 +1963,19 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 		return this.reloadRemoteAgentsResult;
 	}
 
+	readonly createRemoteSessionCalls: UniverseAgentCreateRemoteSessionRequest[] = [];
+	createRemoteSessionResult: UniverseAgentCreateRemoteSessionResult = {
+		callId: '',
+		status: '',
+		createdAt: 0,
+		expiresAt: 0,
+	};
+
+	async createRemoteSession(request: UniverseAgentCreateRemoteSessionRequest): Promise<UniverseAgentCreateRemoteSessionResult> {
+		this.createRemoteSessionCalls.push(request);
+		return this.createRemoteSessionResult;
+	}
+
 	readonly getUploadProgressCalls: UniverseAgentGetUploadProgressRequest[] = [];
 	getUploadProgressResult: UniverseAgentGetUploadProgressResult = {
 		exists: false,
@@ -2764,6 +2779,10 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.RemoteAgent.service, 'universeagent.remoteagent.v1.RemoteAgentService');
 	});
 
+	test('UniverseAgentGrpcServices lists RemoteAgent.CreateRemoteSession', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.RemoteAgent.CreateRemoteSession, 'CreateRemoteSession');
+		assert.strictEqual(UniverseAgentGrpcServices.RemoteAgent.service, 'universeagent.remoteagent.v1.RemoteAgentService');
+	});
 	test('UniverseAgentGrpcServices lists FileTransfer.GetUploadProgress', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.FileTransfer.GetUploadProgress, 'GetUploadProgress');
 		assert.strictEqual(UniverseAgentGrpcServices.FileTransfer.service, 'universeagent.filetransfer.v1.FileTransferService');
@@ -7390,7 +7409,71 @@ suite('UniverseAgentConnectionService', () => {
 		service.dispose();
 	});
 
+	test('createRemoteSession forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
 
+		transport.createRemoteSessionResult = {
+			callId: 'call-1',
+			status: 'created',
+			createdAt: 1_700_000_000_000,
+			expiresAt: 1_700_003_600_000,
+		};
+		const request = {
+			nodeId: 'node-1',
+			mode: 'polling',
+			sessionParams: {
+				preferredModel: 'gpt',
+				requiredTools: ['read'],
+				mode: 'agent',
+				maxTokens: 4096,
+				maxTurns: 8,
+				systemPromptSuffix: 'be brief',
+				maxExecutionTimeMs: 30_000,
+			},
+		};
+		const result = await service.createRemoteSession(request);
+		assert.deepStrictEqual(transport.createRemoteSessionCalls, [request]);
+		assert.deepStrictEqual(result, transport.createRemoteSessionResult);
+
+		transport.createRemoteSessionResult = {
+			callId: '',
+			status: '',
+			createdAt: 0,
+			expiresAt: 0,
+		};
+		const emptyRequest = {
+			nodeId: '',
+			mode: '',
+			sessionParams: {
+				preferredModel: '',
+				requiredTools: [''],
+				mode: '',
+				maxTokens: 0,
+				maxTurns: 0,
+				systemPromptSuffix: '',
+				maxExecutionTimeMs: 0,
+			},
+		};
+		const empty = await service.createRemoteSession(emptyRequest);
+		assert.strictEqual(transport.createRemoteSessionCalls[1]?.nodeId, '');
+		assert.strictEqual(transport.createRemoteSessionCalls[1]?.mode, '');
+		assert.strictEqual(transport.createRemoteSessionCalls[1]?.sessionParams.preferredModel, '');
+		assert.strictEqual(transport.createRemoteSessionCalls[1]?.sessionParams.requiredTools[0], '');
+		assert.strictEqual(transport.createRemoteSessionCalls[1]?.sessionParams.mode, '');
+		assert.strictEqual(transport.createRemoteSessionCalls[1]?.sessionParams.systemPromptSuffix, '');
+		assert.strictEqual(transport.createRemoteSessionCalls[1]?.sessionParams.maxTokens, 0);
+		assert.strictEqual(transport.createRemoteSessionCalls[1]?.sessionParams.maxTurns, 0);
+		assert.strictEqual(transport.createRemoteSessionCalls[1]?.sessionParams.maxExecutionTimeMs, 0);
+		assert.strictEqual(empty.callId, '');
+		assert.strictEqual(empty.status, '');
+		assert.strictEqual(empty.createdAt, 0);
+		assert.strictEqual(empty.expiresAt, 0);
+		service.dispose();
+	});
 	test('getUploadProgress forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({

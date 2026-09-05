@@ -274,6 +274,8 @@ import type {
 	UniverseAgentDeleteRemoteAgentConfigRequest,
 	UniverseAgentDeleteRemoteAgentConfigResult,
 	UniverseAgentReloadRemoteAgentsResult,
+	UniverseAgentCreateRemoteSessionRequest,
+	UniverseAgentCreateRemoteSessionResult,
 	UniverseAgentGetUploadProgressRequest,
 	UniverseAgentGetUploadProgressResult,
 	UniverseAgentUploadAttachmentResult,
@@ -1666,6 +1668,24 @@ export interface IUniverseAgentConnection {
 	 * SaveConfig / DeleteConfig / DeviceService / Plugin.Reload.
 	 */
 	reloadRemoteAgents?(): Promise<UniverseAgentReloadRemoteAgentsResult>;
+
+	/**
+	 * RemoteAgentService.CreateRemoteSession unary. Optional so Web / tests
+	 * can omit it. Catalog + node transport only this slice; empty `nodeId`
+	 * / `mode` (incl. empty string) are sent as-is. Empty `preferredModel` /
+	 * `requiredTools` (incl. empty strings) / session `mode` /
+	 * `systemPromptSuffix` are sent as-is. `maxTokens` / `maxTurns` /
+	 * `maxExecutionTimeMs` 0 sent as-is. Empty `callId` / `status` mapped
+	 * as-is. `createdAt` / `expiresAt` 0 mapped as-is. Proto fields only
+	 * (`CreateRemoteSessionRequest` / `CreateRemoteSessionResponse` +
+	 * `SessionParams`). No Conversation roster / UI / Engine Preferences /
+	 * Composer.
+	 * ≠ RemoteChat / DestroyRemoteSession / GetRemoteSessionStatus /
+	 * GetRemoteSessionHistory / ResumeRemoteSession / CancelRemoteSession /
+	 * CheckConnection / ListNodes / GetNode / SaveConfig / DeleteConfig /
+	 * Reload / AgentService.CreateSession / DeviceService.
+	 */
+	createRemoteSession?(request: UniverseAgentCreateRemoteSessionRequest): Promise<UniverseAgentCreateRemoteSessionResult>;
 
 	/**
 	 * FileTransferService.GetUploadProgress unary. Optional so Web / tests

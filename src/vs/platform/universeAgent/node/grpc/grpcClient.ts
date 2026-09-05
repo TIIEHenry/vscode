@@ -333,6 +333,8 @@ import type {
 	UniverseAgentResetErrorRequest,
 	UniverseAgentResetErrorResult,
 	UniverseAgentReloadRemoteAgentsResult,
+	UniverseAgentCreateRemoteSessionRequest,
+	UniverseAgentCreateRemoteSessionResult,
 	UniverseAgentRemoteAgentAuthConfig,
 	UniverseAgentRemoteAgentCapabilities,
 	UniverseAgentRemoteAgentConfig,
@@ -3975,6 +3977,22 @@ function mapResetErrorResponse(wire: ResetErrorResponseWire): UniverseAgentReset
 	};
 }
 
+interface CreateRemoteSessionResponseWire {
+	call_id?: string;
+	status?: string;
+	created_at?: number | string;
+	expires_at?: number | string;
+}
+
+function mapCreateRemoteSessionResponse(wire: CreateRemoteSessionResponseWire): UniverseAgentCreateRemoteSessionResult {
+	return {
+		callId: wire.call_id ?? '',
+		status: wire.status ?? '',
+		createdAt: requiredInt64(wire.created_at),
+		expiresAt: requiredInt64(wire.expires_at),
+	};
+}
+
 interface UploadProgressResponseWire {
 	exists?: boolean;
 	bytes_received?: number | string;
@@ -6809,6 +6827,28 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 		);
 		const wire = await unary({});
 		return mapReloadRemoteAgentsResponse(wire);
+	}
+
+	async createRemoteSession(request: UniverseAgentCreateRemoteSessionRequest): Promise<UniverseAgentCreateRemoteSessionResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, CreateRemoteSessionResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.RemoteAgent.service,
+			UniverseAgentGrpcServices.RemoteAgent.CreateRemoteSession,
+		);
+		const wire = await unary({
+			node_id: request.nodeId,
+			mode: request.mode,
+			session_params: {
+				preferred_model: request.sessionParams.preferredModel,
+				required_tools: [...request.sessionParams.requiredTools],
+				mode: request.sessionParams.mode,
+				max_tokens: request.sessionParams.maxTokens,
+				max_turns: request.sessionParams.maxTurns,
+				system_prompt_suffix: request.sessionParams.systemPromptSuffix,
+				max_execution_time_ms: request.sessionParams.maxExecutionTimeMs,
+			},
+		});
+		return mapCreateRemoteSessionResponse(wire);
 	}
 
 	async getUploadProgress(request: UniverseAgentGetUploadProgressRequest): Promise<UniverseAgentGetUploadProgressResult> {
