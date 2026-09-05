@@ -2664,6 +2664,41 @@ export interface UniverseAgentListConfigsResult {
 export interface UniverseAgentGetRemoteAgentConfigRequest {
 	readonly nodeId: string;
 }
+
+/**
+ * RemoteAgentService.SaveConfig — proto `SaveRemoteAgentConfigRequest` /
+ * `SaveRemoteAgentConfigResponse` + `RemoteAgentConfig` / `Endpoint` /
+ * `AuthConfig` / `PermissionDelegate` / `WhitelistEntry` /
+ * `ArgCondition` / `PermissionBudget` / `HealthCheckConfig` /
+ * `ConnectionReport` only. Empty `id` / `name` / `description` /
+ * `tags` / `session_lifecycle` / endpoint `host`/`tls_cert_path` /
+ * auth `type`/`api_key_ref`/`token_ref` / delegate `mode` /
+ * `timeout_policy`/`fallback`/`bubble_target` / whitelist
+ * `tool_name` / arg `field`/`operator`/`value` (incl. empty string)
+ * pass through as-is on the request and map as-is on nested
+ * `connection_test`. `skip_connection_test` / `async_test` false
+ * pass through as-is. `success` false mapped as-is. Empty `message`
+ * / `async_test_id` mapped as-is. `enabled` / `tls` / `use_watch`
+ * false pass through as-is. `port` / `max_concurrent_sessions` /
+ * budget ints / health-check ints /
+ * `degraded_error_rate_threshold` 0 pass through as-is.
+ * ≠ ListNodes / GetNode / CheckConnection / ListConfigs /
+ * GetConfig / SetMaintenance / ExitMaintenance / ResetError /
+ * DeleteConfig / Reload / ConfigService.Set / DeviceService.
+ */
+export interface UniverseAgentSaveRemoteAgentConfigRequest {
+	readonly config: UniverseAgentRemoteAgentConfig;
+	readonly skipConnectionTest: boolean;
+	readonly asyncTest: boolean;
+}
+
+export interface UniverseAgentSaveRemoteAgentConfigResult {
+	readonly success: boolean;
+	readonly message: string;
+	readonly connectionTest: UniverseAgentConnectionReport;
+	readonly asyncTestId: string;
+}
+
 /**
  * FileTransferService.GetUploadProgress — proto `UploadProgressRequest` /
  * `UploadProgressResponse` only. Empty `transfer_id` / `session_id` pass

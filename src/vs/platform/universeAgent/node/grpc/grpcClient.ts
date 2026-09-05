@@ -328,6 +328,8 @@ import type {
 	UniverseAgentGetNodeRequest,
 	UniverseAgentListConfigsResult,
 	UniverseAgentGetRemoteAgentConfigRequest,
+	UniverseAgentSaveRemoteAgentConfigRequest,
+	UniverseAgentSaveRemoteAgentConfigResult,
 	UniverseAgentRemoteAgentAuthConfig,
 	UniverseAgentRemoteAgentCapabilities,
 	UniverseAgentRemoteAgentConfig,
@@ -3835,6 +3837,75 @@ function mapListConfigsResponse(wire: ListConfigsResponseWire): UniverseAgentLis
 	};
 }
 
+function encodeRemoteAgentConfig(config: UniverseAgentRemoteAgentConfig): RemoteAgentConfigWire {
+	return {
+		id: config.id,
+		name: config.name,
+		description: config.description,
+		enabled: config.enabled,
+		endpoint: {
+			host: config.endpoint.host,
+			port: config.endpoint.port,
+			tls: config.endpoint.tls,
+			tls_cert_path: config.endpoint.tlsCertPath,
+		},
+		auth: {
+			type: config.auth.type,
+			api_key_ref: config.auth.apiKeyRef,
+			token_ref: config.auth.tokenRef,
+		},
+		tags: [...config.tags],
+		max_concurrent_sessions: config.maxConcurrentSessions,
+		session_lifecycle: config.sessionLifecycle,
+		default_permission_delegate: {
+			mode: config.defaultPermissionDelegate.mode,
+			whitelist: config.defaultPermissionDelegate.whitelist.map(entry => ({
+				tool_name: entry.toolName,
+				arg_conditions: entry.argConditions.map(condition => ({
+					field: condition.field,
+					operator: condition.operator,
+					value: condition.value,
+				})),
+			})),
+			budget: {
+				max_tool_calls: config.defaultPermissionDelegate.budget.maxToolCalls,
+				max_tokens: config.defaultPermissionDelegate.budget.maxTokens,
+				timeout_ms: config.defaultPermissionDelegate.budget.timeoutMs,
+				window_ms: config.defaultPermissionDelegate.budget.windowMs,
+				max_bubble_to_user_per_day: config.defaultPermissionDelegate.budget.maxBubbleToUserPerDay,
+			},
+			timeout_policy: config.defaultPermissionDelegate.timeoutPolicy,
+			fallback: config.defaultPermissionDelegate.fallback,
+			bubble_target: config.defaultPermissionDelegate.bubbleTarget,
+		},
+		health_check: {
+			interval_ms: config.healthCheck.intervalMs,
+			timeout_ms: config.healthCheck.timeoutMs,
+			unhealthy_threshold: config.healthCheck.unhealthyThreshold,
+			healthy_threshold: config.healthCheck.healthyThreshold,
+			use_watch: config.healthCheck.useWatch,
+			degraded_error_rate_threshold: config.healthCheck.degradedErrorRateThreshold,
+			degraded_p99_latency_ms: config.healthCheck.degradedP99LatencyMs,
+		},
+	};
+}
+
+interface SaveRemoteAgentConfigResponseWire {
+	success?: boolean;
+	message?: string;
+	connection_test?: ConnectionReportWire;
+	async_test_id?: string;
+}
+
+function mapSaveRemoteAgentConfigResponse(wire: SaveRemoteAgentConfigResponseWire): UniverseAgentSaveRemoteAgentConfigResult {
+	return {
+		success: wire.success === true,
+		message: wire.message ?? '',
+		connectionTest: mapConnectionReport(wire.connection_test ?? {}),
+		asyncTestId: wire.async_test_id ?? '',
+	};
+}
+
 interface UploadProgressResponseWire {
 	exists?: boolean;
 	bytes_received?: number | string;
@@ -6597,6 +6668,20 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			node_id: request.nodeId,
 		});
 		return mapRemoteAgentConfig(wire);
+	}
+
+	async saveRemoteAgentConfig(request: UniverseAgentSaveRemoteAgentConfigRequest): Promise<UniverseAgentSaveRemoteAgentConfigResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, SaveRemoteAgentConfigResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.RemoteAgent.service,
+			UniverseAgentGrpcServices.RemoteAgent.SaveConfig,
+		);
+		const wire = await unary({
+			config: encodeRemoteAgentConfig(request.config),
+			skip_connection_test: request.skipConnectionTest,
+			async_test: request.asyncTest,
+		});
+		return mapSaveRemoteAgentConfigResponse(wire);
 	}
 
 	async getUploadProgress(request: UniverseAgentGetUploadProgressRequest): Promise<UniverseAgentGetUploadProgressResult> {

@@ -257,6 +257,8 @@ import type {
 	UniverseAgentConnectionReport,
 	UniverseAgentListConfigsResult,
 	UniverseAgentGetRemoteAgentConfigRequest,
+	UniverseAgentSaveRemoteAgentConfigRequest,
+	UniverseAgentSaveRemoteAgentConfigResult,
 	UniverseAgentRemoteAgentConfig,
 	UniverseAgentGetUploadProgressRequest,
 	UniverseAgentGetUploadProgressResult,
@@ -778,6 +780,9 @@ export interface IUniverseAgentGrpcTransport {
 	/** RemoteAgentService.GetConfig unary (snake_case `node_id`). Empty ids sent as-is. */
 	getRemoteAgentConfig(request: UniverseAgentGetRemoteAgentConfigRequest): Promise<UniverseAgentRemoteAgentConfig>;
 
+	/** RemoteAgentService.SaveConfig unary (snake_case `config`/`skip_connection_test`/`async_test`). Empty ids sent as-is. */
+	saveRemoteAgentConfig(request: UniverseAgentSaveRemoteAgentConfigRequest): Promise<UniverseAgentSaveRemoteAgentConfigResult>;
+
 	/** FileTransferService.GetUploadProgress unary (snake_case `transfer_id`/`session_id`). Empty ids sent as-is. */
 	getUploadProgress(request: UniverseAgentGetUploadProgressRequest): Promise<UniverseAgentGetUploadProgressResult>;
 	/** FileTransferService.UploadAttachment client-stream (snake_case `transfer_id`/`filename`/`session_id`/`queue_item_id`). Empty ids sent as-is. */
@@ -1108,6 +1113,7 @@ export const UniverseAgentGrpcServices = {
 		CheckConnection: 'CheckConnection',
 		ListConfigs: 'ListConfigs',
 		GetConfig: 'GetConfig',
+		SaveConfig: 'SaveConfig',
 	},
 } as const;
 

@@ -238,6 +238,8 @@ import type {
 	UniverseAgentConnectionReport,
 	UniverseAgentListConfigsResult,
 	UniverseAgentGetRemoteAgentConfigRequest,
+	UniverseAgentSaveRemoteAgentConfigRequest,
+	UniverseAgentSaveRemoteAgentConfigResult,
 	UniverseAgentRemoteAgentConfig,
 	UniverseAgentGetUploadProgressRequest,
 	UniverseAgentGetUploadProgressResult,
@@ -1862,6 +1864,39 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 		return this.getRemoteAgentConfigResult;
 	}
 
+	readonly saveRemoteAgentConfigCalls: UniverseAgentSaveRemoteAgentConfigRequest[] = [];
+	saveRemoteAgentConfigResult: UniverseAgentSaveRemoteAgentConfigResult = {
+		success: false,
+		message: '',
+		connectionTest: {
+			reachable: false,
+			authenticated: false,
+			canCreateSession: false,
+			latencyMs: 0,
+			capabilities: {
+				models: [],
+				tools: [],
+				modes: [],
+				serverVersion: '',
+				protocolVersion: '',
+				properties: {},
+			},
+			errors: [],
+			load: {
+				activeSessions: 0,
+				queueDepth: 0,
+				cpuPercent: 0,
+				memoryUsedMb: 0,
+			},
+		},
+		asyncTestId: '',
+	};
+
+	async saveRemoteAgentConfig(request: UniverseAgentSaveRemoteAgentConfigRequest): Promise<UniverseAgentSaveRemoteAgentConfigResult> {
+		this.saveRemoteAgentConfigCalls.push(request);
+		return this.saveRemoteAgentConfigResult;
+	}
+
 	readonly getUploadProgressCalls: UniverseAgentGetUploadProgressRequest[] = [];
 	getUploadProgressResult: UniverseAgentGetUploadProgressResult = {
 		exists: false,
@@ -2633,6 +2668,11 @@ suite('UniverseAgentConnectionService', () => {
 
 	test('UniverseAgentGrpcServices lists RemoteAgent.GetConfig', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.RemoteAgent.GetConfig, 'GetConfig');
+		assert.strictEqual(UniverseAgentGrpcServices.RemoteAgent.service, 'universeagent.remoteagent.v1.RemoteAgentService');
+	});
+
+	test('UniverseAgentGrpcServices lists RemoteAgent.SaveConfig', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.RemoteAgent.SaveConfig, 'SaveConfig');
 		assert.strictEqual(UniverseAgentGrpcServices.RemoteAgent.service, 'universeagent.remoteagent.v1.RemoteAgentService');
 	});
 	test('UniverseAgentGrpcServices lists FileTransfer.GetUploadProgress', () => {
@@ -6873,6 +6913,222 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(empty.healthCheck.intervalMs, 0);
 		assert.strictEqual(empty.healthCheck.useWatch, false);
 		assert.strictEqual(empty.healthCheck.degradedErrorRateThreshold, 0);
+		service.dispose();
+	});
+
+	test('saveRemoteAgentConfig forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		const config: UniverseAgentRemoteAgentConfig = {
+			id: 'node-1',
+			name: 'galaxy',
+			description: 'remote',
+			enabled: true,
+			endpoint: {
+				host: '127.0.0.1',
+				port: 50061,
+				tls: true,
+				tlsCertPath: '/certs/ca.pem',
+			},
+			auth: {
+				type: 'API_KEY',
+				apiKeyRef: '${UA_KEY}',
+				tokenRef: 'keyring://ua',
+			},
+			tags: ['prod'],
+			maxConcurrentSessions: 4,
+			sessionLifecycle: 'POOLED',
+			defaultPermissionDelegate: {
+				mode: 'WHITELIST_VERIFIED',
+				whitelist: [{
+					toolName: 'read',
+					argConditions: [{
+						field: 'path',
+						operator: 'starts_with',
+						value: '/tmp',
+					}],
+				}],
+				budget: {
+					maxToolCalls: 10,
+					maxTokens: 1000,
+					timeoutMs: 5000,
+					windowMs: 60_000,
+					maxBubbleToUserPerDay: 3,
+				},
+				timeoutPolicy: 'DENY',
+				fallback: 'DENY_ALL',
+				bubbleTarget: 'USER',
+			},
+			healthCheck: {
+				intervalMs: 15_000,
+				timeoutMs: 2000,
+				unhealthyThreshold: 3,
+				healthyThreshold: 2,
+				useWatch: true,
+				degradedErrorRateThreshold: 0.2,
+				degradedP99LatencyMs: 800,
+			},
+		};
+		transport.saveRemoteAgentConfigResult = {
+			success: true,
+			message: 'saved',
+			connectionTest: {
+				reachable: true,
+				authenticated: true,
+				canCreateSession: true,
+				latencyMs: 12,
+				capabilities: {
+					models: [{
+						id: 'm1',
+						name: 'model',
+						provider: 'local',
+						maxTokens: 8192,
+						enabled: true,
+					}],
+					tools: ['read'],
+					modes: ['agent'],
+					serverVersion: '1.0',
+					protocolVersion: 'v1',
+					properties: { region: 'dev' },
+				},
+				errors: [{
+					code: 'PARAM_INVALID',
+					field: 'host',
+					message: 'bad',
+					suggestion: 'fix',
+				}],
+				load: {
+					activeSessions: 1,
+					queueDepth: 2,
+					cpuPercent: 3,
+					memoryUsedMb: 4,
+				},
+			},
+			asyncTestId: 'async-1',
+		};
+		const request = {
+			config,
+			skipConnectionTest: true,
+			asyncTest: true,
+		};
+		const result = await service.saveRemoteAgentConfig(request);
+		assert.deepStrictEqual(transport.saveRemoteAgentConfigCalls, [request]);
+		assert.deepStrictEqual(result, transport.saveRemoteAgentConfigResult);
+
+		const emptyConfig: UniverseAgentRemoteAgentConfig = {
+			id: '',
+			name: '',
+			description: '',
+			enabled: false,
+			endpoint: {
+				host: '',
+				port: 0,
+				tls: false,
+				tlsCertPath: '',
+			},
+			auth: {
+				type: '',
+				apiKeyRef: '',
+				tokenRef: '',
+			},
+			tags: [''],
+			maxConcurrentSessions: 0,
+			sessionLifecycle: '',
+			defaultPermissionDelegate: {
+				mode: '',
+				whitelist: [{
+					toolName: '',
+					argConditions: [{
+						field: '',
+						operator: '',
+						value: '',
+					}],
+				}],
+				budget: {
+					maxToolCalls: 0,
+					maxTokens: 0,
+					timeoutMs: 0,
+					windowMs: 0,
+					maxBubbleToUserPerDay: 0,
+				},
+				timeoutPolicy: '',
+				fallback: '',
+				bubbleTarget: '',
+			},
+			healthCheck: {
+				intervalMs: 0,
+				timeoutMs: 0,
+				unhealthyThreshold: 0,
+				healthyThreshold: 0,
+				useWatch: false,
+				degradedErrorRateThreshold: 0,
+				degradedP99LatencyMs: 0,
+			},
+		};
+		transport.saveRemoteAgentConfigResult = {
+			success: false,
+			message: '',
+			connectionTest: {
+				reachable: false,
+				authenticated: false,
+				canCreateSession: false,
+				latencyMs: 0,
+				capabilities: {
+					models: [{
+						id: '',
+						name: '',
+						provider: '',
+						maxTokens: 0,
+						enabled: false,
+					}],
+					tools: [''],
+					modes: [''],
+					serverVersion: '',
+					protocolVersion: '',
+					properties: { '': '' },
+				},
+				errors: [{
+					code: 'ERROR_CODE_UNSPECIFIED',
+					field: '',
+					message: '',
+					suggestion: '',
+				}],
+				load: {
+					activeSessions: 0,
+					queueDepth: 0,
+					cpuPercent: 0,
+					memoryUsedMb: 0,
+				},
+			},
+			asyncTestId: '',
+		};
+		const emptyRequest = {
+			config: emptyConfig,
+			skipConnectionTest: false,
+			asyncTest: false,
+		};
+		const empty = await service.saveRemoteAgentConfig(emptyRequest);
+		assert.strictEqual(transport.saveRemoteAgentConfigCalls[1]?.config.id, '');
+		assert.strictEqual(transport.saveRemoteAgentConfigCalls[1]?.config.name, '');
+		assert.strictEqual(transport.saveRemoteAgentConfigCalls[1]?.skipConnectionTest, false);
+		assert.strictEqual(transport.saveRemoteAgentConfigCalls[1]?.asyncTest, false);
+		assert.strictEqual(empty.success, false);
+		assert.strictEqual(empty.message, '');
+		assert.strictEqual(empty.asyncTestId, '');
+		assert.strictEqual(empty.connectionTest.reachable, false);
+		assert.strictEqual(empty.connectionTest.authenticated, false);
+		assert.strictEqual(empty.connectionTest.canCreateSession, false);
+		assert.strictEqual(empty.connectionTest.latencyMs, 0);
+		assert.strictEqual(empty.connectionTest.capabilities.models[0]?.id, '');
+		assert.strictEqual(empty.connectionTest.capabilities.serverVersion, '');
+		assert.strictEqual(empty.connectionTest.errors[0]?.code, 'ERROR_CODE_UNSPECIFIED');
+		assert.strictEqual(empty.connectionTest.errors[0]?.field, '');
+		assert.strictEqual(empty.connectionTest.errors[0]?.message, '');
+		assert.strictEqual(empty.connectionTest.load.activeSessions, 0);
 		service.dispose();
 	});
 
