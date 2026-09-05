@@ -595,6 +595,7 @@ suite('ConversationLens', () => {
 		assert.ok(slots.timeline.querySelector('.conversation-lens-timeline'));
 		assert.ok(slots.dock.querySelector('.conversation-lens-dock'));
 		assert.ok(slots.sessionBar.querySelector('.conversation-lens-session-select'));
+		assert.ok(slots.sessionBar.querySelector('.conversation-lens-session-history'));
 		assert.ok(slots.sessionBar.querySelector('.conversation-lens-session-snapshots'));
 		assert.ok(slots.sessionBar.querySelector('.conversation-lens-lens-tab[data-lens-id="trajectory"]'));
 		assert.ok(slots.timeline.querySelector('.conversation-lens-trajectory'));
@@ -611,6 +612,7 @@ suite('ConversationLens', () => {
 		assert.ok(slots.sessionBar.querySelector('.conversation-lens-session-title'));
 		assert.ok(slots.sessionBar.querySelector('.conversation-lens-lens-tabs[role="tablist"]'));
 		assert.ok(slots.sessionBar.querySelector('.conversation-lens-session-switcher-label'));
+		assert.ok(slots.sessionBar.querySelector('.conversation-lens-session-history'));
 		assert.ok(slots.sessionBar.querySelector('.conversation-lens-session-snapshots'));
 		assert.ok(getReadingColumn(slots));
 		assert.ok(slots.timeline.querySelector('.conversation-lens-timeline-scroll'));

@@ -79,7 +79,7 @@ export function formatEngineSnapshotFailedCopy(reason: string): string {
 
 /**
  * SessionBar extra control + overlay for AgentService.ListSnapshots.
- * Distinct from SessionBar History ({@link ConversationTrajectoryList} turn index).
+ * Distinct from SessionBar History ({@link ConversationEngineHistoryList} GetHistory).
  * Restore on rows calls {@link IUniverseAgentConnection.restoreSnapshot};
  * a successful restore refreshes via {@link IUniverseAgentConnection.listSnapshots}
  * and keeps the overlay open. Failed restore / no send does not refresh.

@@ -1215,7 +1215,7 @@ export interface UniverseAgentSessionSnapshotInfo {
 	readonly isAuto?: boolean;
 }
 
-/** AgentService.ListSnapshots — session checkpoints (≠ SessionBar History turn index). */
+/** AgentService.ListSnapshots — session checkpoints (≠ SessionBar History GetHistory). */
 export interface UniverseAgentListSnapshotsRequest {
 	readonly sessionId: string;
 }

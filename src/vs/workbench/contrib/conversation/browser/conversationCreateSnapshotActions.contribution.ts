@@ -43,7 +43,7 @@ export function resolveCreateSnapshotTitle(input: string | undefined): string {
 /**
  * Connected user Create Snapshot → AgentService.CreateSnapshot for the
  * active session. Does not list, restore, or delete snapshots, and does
- * not replace SessionBar History. Disconnected / no hook / empty
+ * not replace SessionBar History (GetHistory). Disconnected / no hook / empty
  * sessionId / cancelled prompt no-op.
  */
 registerAction2(class ConversationCreateSnapshotAction extends Action2 {

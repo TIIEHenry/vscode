@@ -1024,14 +1024,14 @@ export interface IUniverseAgentConnection {
 	/**
 	 * AgentService.ListSnapshots unary (session checkpoints). Optional so Web /
 	 * tests can omit it. Conversation SessionBar extra control lists rows when
-	 * connected; SessionBar History stays the turn-index MessageNavigator.
+	 * connected; SessionBar History is GetHistory, not this snapshot list.
 	 */
 	listSnapshots?(request: UniverseAgentListSnapshotsRequest): Promise<UniverseAgentListSnapshotsResult>;
 
 	/**
 	 * AgentService.ListLoopSnapshots unary (LOOP_SNAPSHOT envelopes). Optional
 	 * so Web / tests can omit it. Catalog + node transport only this slice;
-	 * SessionBar History / Snapshots overlay stay unchanged. Empty sessionId /
+	 * SessionBar History (GetHistory) / Snapshots overlay stay unchanged. Empty sessionId /
 	 * loopId go on the wire as-is.
 	 */
 	listLoopSnapshots?(request: UniverseAgentListLoopSnapshotsRequest): Promise<UniverseAgentListLoopSnapshotsResult>;
@@ -1041,7 +1041,7 @@ export interface IUniverseAgentConnection {
 	 * so Web / tests can omit it. ConversationEngineRosterService
 	 * `createSnapshot` forwards this when connected; empty `sessionId` /
 	 * disconnected / missing hook do not send. Empty title is sent as-is.
-	 * SessionBar History stays the turn index.
+	 * SessionBar History stays GetHistory.
 	 */
 	createSnapshot?(request: UniverseAgentCreateSnapshotRequest): Promise<UniverseAgentCreateSnapshotResult>;
 
@@ -1049,7 +1049,7 @@ export interface IUniverseAgentConnection {
 	 * AgentService.RestoreSnapshot unary (restore a session checkpoint). Optional
 	 * so Web / tests can omit it. Conversation SessionBar snapshots overlay
 	 * Restore forwards this when connected; empty snapshotId / disconnected /
-	 * no hook do not send. SessionBar History stays the turn index.
+	 * no hook do not send. SessionBar History stays GetHistory.
 	 */
 	restoreSnapshot?(request: UniverseAgentRestoreSnapshotRequest): Promise<UniverseAgentRestoreSnapshotResult>;
 
@@ -1057,10 +1057,16 @@ export interface IUniverseAgentConnection {
 	 * AgentService.DeleteSnapshot unary (drop a session checkpoint). Optional
 	 * so Web / tests can omit it. Conversation SessionBar snapshots overlay
 	 * Delete confirms then forwards this when connected; empty snapshotId /
-	 * disconnected / no hook do not send. SessionBar History stays the turn index.
+	 * disconnected / no hook do not send. SessionBar History stays GetHistory.
 	 */
 	deleteSnapshot?(request: UniverseAgentDeleteSnapshotRequest): Promise<UniverseAgentDeleteSnapshotResult>;
 
+	/**
+	 * SessionService.GetHistory unary. Conversation SessionBar History overlay
+	 * lists envelopes when connected. Empty sessionId is sent as-is.
+	 * Disconnected does not send. Timeline fold still uses this unary via
+	 * session-core; History UI does not invent a second fold.
+	 */
 	getHistory(request: UniverseAgentGetHistoryRequest): Promise<UniverseAgentGetHistoryResult>;
 
 	/**

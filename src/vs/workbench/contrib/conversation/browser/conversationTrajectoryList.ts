@@ -119,8 +119,9 @@ export function getConversationTurnSummary(turn: ConversationStubTurn): string {
 }
 
 /**
- * In-column MessageNavigator: current session turn index (role + summary).
- * SessionBar History toggles this list; row click reveals the timeline turn.
+ * Legacy in-column MessageNavigator helpers (role + summary).
+ * SessionBar History is {@link ConversationEngineHistoryList} → GetHistory;
+ * this list is not the History source.
  */
 export class ConversationTrajectoryList extends Disposable {
 

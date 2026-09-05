@@ -90,7 +90,7 @@ export interface IConversationRosterService {
 	killSubAgent(sessionId: string, options?: { agentId?: string; force?: boolean }): boolean;
 	/**
 	 * AgentService.CreateSnapshot (persist a session checkpoint; ≠ ListSnapshots /
-	 * SessionBar History / Restore / Delete). Engine-connected forwards unary.
+	 * SessionBar History GetHistory / Restore / Delete). Engine-connected forwards unary.
 	 * Empty `sessionId` / unknown session / disconnected cache / missing hook
 	 * returns false and does not send. Omitted title uses a default; empty
 	 * title is sent as-is (match transport). Stub / never-connected is a
