@@ -338,6 +338,8 @@ import type {
 	UniverseAgentShutdownResult,
 	UniverseAgentDeviceInfo,
 	UniverseAgentListDevicesResult,
+	UniverseAgentPairApproveRequest,
+	UniverseAgentPairApproveResult,
 	UniverseAgentListTriggersRequest,
 	UniverseAgentListTriggersResult,
 	UniverseAgentTrigger,
@@ -3451,6 +3453,20 @@ function mapListDevicesResponse(wire: ListDevicesResponseWire): UniverseAgentLis
 	};
 }
 
+interface PairApproveResponseWire {
+	success?: boolean;
+	device_id?: string;
+	message?: string;
+}
+
+function mapPairApproveResponse(wire: PairApproveResponseWire): UniverseAgentPairApproveResult {
+	return {
+		success: wire.success === true,
+		deviceId: wire.device_id ?? '',
+		message: wire.message ?? '',
+	};
+}
+
 interface BoundSessionTargetWire {
 	session_id?: string;
 }
@@ -5825,6 +5841,20 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 		);
 		const wire = await unary({});
 		return mapListDevicesResponse(wire);
+	}
+
+	async pairApprove(request: UniverseAgentPairApproveRequest): Promise<UniverseAgentPairApproveResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, PairApproveResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.Device.service,
+			UniverseAgentGrpcServices.Device.PairApprove,
+		);
+		const wire = await unary({
+			pairing_code: request.pairingCode,
+			display_name: request.displayName,
+			role: request.role,
+		});
+		return mapPairApproveResponse(wire);
 	}
 
 	async listTriggers(request: UniverseAgentListTriggersRequest): Promise<UniverseAgentListTriggersResult> {
