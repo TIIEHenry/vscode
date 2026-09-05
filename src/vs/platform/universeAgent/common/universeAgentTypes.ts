@@ -2707,6 +2707,23 @@ export interface UniverseAgentUpsertTriggerResult {
 }
 
 /**
+ * TriggerService.DeleteTrigger — proto `DeleteTriggerRequest` /
+ * `DeleteTriggerResponse` only. Empty `scope` / `scope_id` /
+ * `trigger_id` pass through as-is. Response is empty `{}`.
+ * ≠ ListTriggers / UpsertTrigger / SetTriggerEnabled / FireTrigger /
+ * AgentService.FireTriggerWebhook / DeviceService.
+ */
+export interface UniverseAgentDeleteTriggerRequest {
+	readonly scope: string;
+	readonly scopeId: string;
+	readonly triggerId: string;
+}
+
+/** Proto `DeleteTriggerResponse` is empty. */
+export interface UniverseAgentDeleteTriggerResult {
+}
+
+/**
  * ClipboardService.Write — proto `ClipboardWriteRequest` /
  * `ClipboardWriteResponse` only. Empty `session_id` / `agent_id` /
  * `label` / `content` / `file_path` / `url` sent as-is. Empty `clip_id`

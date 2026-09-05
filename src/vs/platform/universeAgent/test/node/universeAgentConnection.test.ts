@@ -251,6 +251,8 @@ import type {
 	UniverseAgentListTriggersResult,
 	UniverseAgentUpsertTriggerRequest,
 	UniverseAgentUpsertTriggerResult,
+	UniverseAgentDeleteTriggerRequest,
+	UniverseAgentDeleteTriggerResult,
 	UniverseAgentGetHistoryRequest,
 	UniverseAgentGetHistoryResult,
 	UniverseAgentListSessionsRequest,
@@ -1885,6 +1887,14 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 		return this.upsertTriggerResult;
 	}
 
+	readonly deleteTriggerCalls: UniverseAgentDeleteTriggerRequest[] = [];
+	deleteTriggerResult: UniverseAgentDeleteTriggerResult = {};
+
+	async deleteTrigger(request: UniverseAgentDeleteTriggerRequest): Promise<UniverseAgentDeleteTriggerResult> {
+		this.deleteTriggerCalls.push(request);
+		return this.deleteTriggerResult;
+	}
+
 	async listModels() {
 		return { models: [] };
 	}
@@ -2435,6 +2445,11 @@ suite('UniverseAgentConnectionService', () => {
 
 	test('UniverseAgentGrpcServices lists Trigger.UpsertTrigger', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Trigger.UpsertTrigger, 'UpsertTrigger');
+		assert.strictEqual(UniverseAgentGrpcServices.Trigger.service, 'universeagent.trigger.v1.TriggerService');
+	});
+
+	test('UniverseAgentGrpcServices lists Trigger.DeleteTrigger', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Trigger.DeleteTrigger, 'DeleteTrigger');
 		assert.strictEqual(UniverseAgentGrpcServices.Trigger.service, 'universeagent.trigger.v1.TriggerService');
 	});
 
@@ -6393,6 +6408,37 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(empty.trigger.intervalMs, 0);
 		assert.strictEqual(empty.trigger.runAtEpochMs, 0);
 		assert.deepStrictEqual(empty.trigger.target, { kind: 'newSession', engineProfileId: '' });
+		service.dispose();
+	});
+
+	test('deleteTrigger forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.deleteTriggerResult = {};
+		const request = {
+			scope: 'session',
+			scopeId: 'sess-1',
+			triggerId: 'trg-1',
+		};
+		const result = await service.deleteTrigger(request);
+		assert.deepStrictEqual(transport.deleteTriggerCalls, [request]);
+		assert.deepStrictEqual(result, transport.deleteTriggerResult);
+
+		transport.deleteTriggerResult = {};
+		const emptyRequest = {
+			scope: '',
+			scopeId: '',
+			triggerId: '',
+		};
+		const empty = await service.deleteTrigger(emptyRequest);
+		assert.strictEqual(transport.deleteTriggerCalls[1]?.scope, '');
+		assert.strictEqual(transport.deleteTriggerCalls[1]?.scopeId, '');
+		assert.strictEqual(transport.deleteTriggerCalls[1]?.triggerId, '');
+		assert.deepStrictEqual(empty, {});
 		service.dispose();
 	});
 
