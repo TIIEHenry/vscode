@@ -275,6 +275,8 @@ import type {
 	UniverseAgentWriteClipboardResult,
 	UniverseAgentReadClipboardRequest,
 	UniverseAgentReadClipboardResult,
+	UniverseAgentListClipboardRequest,
+	UniverseAgentListClipboardResult,
 	UniverseAgentSetPermissionPolicyRequest,
 	UniverseAgentSetPermissionPolicyResult,
 	UniverseAgentListModelsResult,
@@ -780,6 +782,8 @@ export interface IUniverseAgentGrpcTransport {
 	writeClipboard(request: UniverseAgentWriteClipboardRequest): Promise<UniverseAgentWriteClipboardResult>;
 	/** ClipboardService.Read unary (snake_case `session_id`/`clip_id`). Empty ids sent as-is. */
 	readClipboard(request: UniverseAgentReadClipboardRequest): Promise<UniverseAgentReadClipboardResult>;
+	/** ClipboardService.List unary (snake_case `session_id`). Empty ids sent as-is. */
+	listClipboard(request: UniverseAgentListClipboardRequest): Promise<UniverseAgentListClipboardResult>;
 
 	/** ConfigService.SetPermissionPolicy unary (snake_case `session_id`/`tool_name`/`policy`). Empty ids sent as-is. */
 	setPermissionPolicy(request: UniverseAgentSetPermissionPolicyRequest): Promise<UniverseAgentSetPermissionPolicyResult>;
@@ -1038,6 +1042,7 @@ export const UniverseAgentGrpcServices = {
 		service: 'universeagent.clipboard.v1.ClipboardService',
 		Write: 'Write',
 		Read: 'Read',
+		List: 'List',
 	},
 	ContextVariable: {
 		service: 'universeagent.contextvariable.v1.ContextVariableService',

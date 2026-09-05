@@ -283,6 +283,8 @@ import type {
 	UniverseAgentWriteClipboardResult,
 	UniverseAgentReadClipboardRequest,
 	UniverseAgentReadClipboardResult,
+	UniverseAgentListClipboardRequest,
+	UniverseAgentListClipboardResult,
 	UniverseAgentSetPermissionPolicyRequest,
 	UniverseAgentSetPermissionPolicyResult,
 	UniverseAgentListModelsResult,
@@ -1527,6 +1529,10 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 
 	async readClipboard(request: UniverseAgentReadClipboardRequest): Promise<UniverseAgentReadClipboardResult> {
 		return this._withTransport(transport => transport.readClipboard(request));
+	}
+
+	async listClipboard(request: UniverseAgentListClipboardRequest): Promise<UniverseAgentListClipboardResult> {
+		return this._withTransport(transport => transport.listClipboard(request));
 	}
 
 	async setPermissionPolicy(request: UniverseAgentSetPermissionPolicyRequest): Promise<UniverseAgentSetPermissionPolicyResult> {

@@ -358,7 +358,10 @@ import type {
 	UniverseAgentWriteClipboardResult,
 	UniverseAgentReadClipboardRequest,
 	UniverseAgentReadClipboardResult,
+	UniverseAgentListClipboardRequest,
+	UniverseAgentListClipboardResult,
 	UniverseAgentClipboardEntry,
+	UniverseAgentClipboardEntrySummary,
 	UniverseAgentListModelsResult,
 	UniverseAgentGetConfigRequest,
 	UniverseAgentGetConfigResult,
@@ -3445,6 +3448,34 @@ function mapClipboardReadResponse(wire: ClipboardReadResponseWire): UniverseAgen
 	};
 }
 
+interface ClipboardEntrySummaryWire {
+	clip_id?: string;
+	label?: string;
+	type?: string | number;
+	created_by?: string;
+	created_at?: number | string;
+}
+
+interface ClipboardListResponseWire {
+	entries?: ClipboardEntrySummaryWire[];
+}
+
+function mapClipboardEntrySummary(wire: ClipboardEntrySummaryWire): UniverseAgentClipboardEntrySummary {
+	return {
+		clipId: wire.clip_id ?? '',
+		label: wire.label ?? '',
+		type: mapClipboardEntryType(wire.type),
+		createdBy: wire.created_by ?? '',
+		createdAt: requiredInt64(wire.created_at),
+	};
+}
+
+function mapClipboardListResponse(wire: ClipboardListResponseWire): UniverseAgentListClipboardResult {
+	return {
+		entries: (wire.entries ?? []).map(mapClipboardEntrySummary),
+	};
+}
+
 interface DownloadChunkWire {
 	offset?: number | string;
 	data?: string;
@@ -3942,6 +3973,18 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			clip_id: request.clipId,
 		});
 		return mapClipboardReadResponse(wire);
+	}
+
+	async listClipboard(request: UniverseAgentListClipboardRequest): Promise<UniverseAgentListClipboardResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, ClipboardListResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.Clipboard.service,
+			UniverseAgentGrpcServices.Clipboard.List,
+		);
+		const wire = await unary({
+			session_id: request.sessionId,
+		});
+		return mapClipboardListResponse(wire);
 	}
 
 	async connectWithDeviceAuth(request: UniverseAgentDeviceAuthConnectRequest): Promise<UniverseAgentConnectResult> {
