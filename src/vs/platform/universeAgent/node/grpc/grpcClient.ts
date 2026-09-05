@@ -348,6 +348,12 @@ import type {
 	UniverseAgentResumeRemoteSessionResult,
 	UniverseAgentCancelRemoteSessionRequest,
 	UniverseAgentCancelRemoteSessionResult,
+	UniverseAgentRemoteChatRequest,
+	UniverseAgentRemoteChatResponse,
+	UniverseAgentRemoteChatResult,
+	UniverseAgentRemoteChatStream,
+	UniverseAgentRemoteProgressEvent,
+	UniverseAgentRemoteResponse,
 	UniverseAgentRemoteAgentAuthConfig,
 	UniverseAgentRemoteAgentCapabilities,
 	UniverseAgentRemoteAgentConfig,
@@ -3818,6 +3824,96 @@ function mapGetRemoteSessionHistoryResponse(wire: GetRemoteSessionHistoryRespons
 	};
 }
 
+interface RemotePermissionDecisionWire {
+	decision?: string;
+	reason?: string;
+}
+
+interface RemoteResponseWire {
+	type?: string;
+	request_id?: string;
+	permission?: RemotePermissionDecisionWire;
+	question_answers_json?: string;
+}
+
+interface RemoteChatResultWire {
+	status?: string;
+	call_id?: string;
+	output?: string;
+	error_message?: string;
+	error_code?: string;
+	pending_permissions?: RemotePendingPermissionWire[];
+	pending_questions?: RemotePendingQuestionWire[];
+	progress?: string;
+	completed_steps?: number | string;
+	total_steps_estimate?: number | string;
+	messages?: RemoteChatMessageWire[];
+}
+
+interface RemoteProgressEventWire {
+	call_id?: string;
+	timestamp?: number | string;
+	elapsed_ms?: number | string;
+	progress?: string;
+	completed_steps?: number | string;
+	total_steps_estimate?: number | string;
+}
+
+interface RemoteChatResponseWire {
+	result?: RemoteChatResultWire;
+	progress?: RemoteProgressEventWire;
+}
+
+function encodeRemoteResponse(response: UniverseAgentRemoteResponse): RemoteResponseWire {
+	return {
+		type: response.type,
+		request_id: response.requestId,
+		...(response.permission !== undefined ? {
+			permission: {
+				decision: response.permission.decision,
+				reason: response.permission.reason,
+			},
+		} : {}),
+		...(response.questionAnswersJson !== undefined ? {
+			question_answers_json: response.questionAnswersJson,
+		} : {}),
+	};
+}
+
+function mapRemoteChatResult(wire: RemoteChatResultWire): UniverseAgentRemoteChatResult {
+	return {
+		status: wire.status ?? '',
+		callId: wire.call_id ?? '',
+		output: wire.output ?? '',
+		errorMessage: wire.error_message ?? '',
+		errorCode: wire.error_code ?? '',
+		pendingPermissions: (wire.pending_permissions ?? []).map(mapRemotePendingPermission),
+		pendingQuestions: (wire.pending_questions ?? []).map(mapRemotePendingQuestion),
+		progress: wire.progress ?? '',
+		completedSteps: requiredInt64(wire.completed_steps),
+		totalStepsEstimate: requiredInt64(wire.total_steps_estimate),
+		messages: (wire.messages ?? []).map(mapRemoteChatMessage),
+	};
+}
+
+function mapRemoteProgressEvent(wire: RemoteProgressEventWire): UniverseAgentRemoteProgressEvent {
+	return {
+		callId: wire.call_id ?? '',
+		timestamp: requiredInt64(wire.timestamp),
+		elapsedMs: requiredInt64(wire.elapsed_ms),
+		progress: wire.progress ?? '',
+		completedSteps: requiredInt64(wire.completed_steps),
+		totalStepsEstimate: requiredInt64(wire.total_steps_estimate),
+	};
+}
+
+function mapRemoteChatResponse(wire: RemoteChatResponseWire): UniverseAgentRemoteChatResponse {
+	return {
+		...(wire.result !== undefined ? { result: mapRemoteChatResult(wire.result) } : {}),
+		...(wire.progress !== undefined ? { progress: mapRemoteProgressEvent(wire.progress) } : {}),
+	};
+}
+
 interface RemoteAgentEndpointWire {
 	host?: string;
 	port?: number | string;
@@ -7012,6 +7108,24 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 		);
 		const wire = await unary({});
 		return mapReloadRemoteAgentsResponse(wire);
+	}
+
+	openRemoteChatStream(
+		request: UniverseAgentRemoteChatRequest,
+		onResponse: (response: UniverseAgentRemoteChatResponse) => void,
+		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
+	): UniverseAgentRemoteChatStream {
+		const stream = makeServerStreamClient<Record<string, unknown>, RemoteChatResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.RemoteAgent.service,
+			UniverseAgentGrpcServices.RemoteAgent.RemoteChat,
+		);
+		return stream({
+			call_id: request.callId,
+			task: request.task,
+			responses: request.responses.map(encodeRemoteResponse),
+			override_pending: request.overridePending,
+		}, wire => onResponse(mapRemoteChatResponse(wire)), onClosed);
 	}
 
 	async createRemoteSession(request: UniverseAgentCreateRemoteSessionRequest): Promise<UniverseAgentCreateRemoteSessionResult> {

@@ -1308,7 +1308,7 @@ export interface UniverseAgentSessionEvent {
  * Close cause for resident streams (`openChatStream`, `openContinuationStream`,
  * `openRegenerateStream`, `openResumeStream`, `openSubscribeToolDetailStream`,
  * `openWatchConfigStream`, `openUploadAttachmentStream`,
- * `openDownloadAttachmentStream`,
+ * `openDownloadAttachmentStream`, `openRemoteChatStream`,
  * `subscribeSessionEventStream`).
  * Local dispose / cancel does not fire this.
  */
@@ -2976,6 +2976,82 @@ export interface UniverseAgentCancelRemoteSessionResult {
 	readonly callId: string;
 	readonly status: string;
 	readonly message: string;
+}
+
+/**
+ * RemoteAgentService.RemoteChat — proto `RemoteChatRequest` /
+ * `stream RemoteChatResponse` + `RemoteResponse` /
+ * `RemotePermissionDecision` / `RemoteChatResult` /
+ * `RemoteProgressEvent` / `RemotePendingPermission` /
+ * `RemotePendingQuestion` / `RemoteChatMessage` only. Empty `call_id` /
+ * `task` (incl. empty string) pass through as-is. Empty `responses`
+ * (incl. empty `type` / `request_id` / permission `decision`/`reason` /
+ * `question_answers_json`) pass through as-is. `override_pending` false
+ * sent as-is. Empty result `status` / `call_id` / `output` /
+ * `error_message` / `error_code` / `progress` mapped as-is.
+ * `completed_steps` / `total_steps_estimate` 0 mapped as-is. Empty
+ * `pending_permissions` / `pending_questions` / `messages` mapped as-is.
+ * Empty progress `call_id` / `progress` mapped as-is. `timestamp` /
+ * `elapsed_ms` / `completed_steps` / `total_steps_estimate` 0 mapped
+ * as-is.
+ * ≠ CreateRemoteSession / DestroyRemoteSession /
+ * GetRemoteSessionStatus / GetRemoteSessionHistory /
+ * ResumeRemoteSession / CancelRemoteSession / ListNodes / GetNode /
+ * CheckConnection / SetMaintenance / ExitMaintenance / ResetError /
+ * ListConfigs / GetConfig / SaveConfig / DeleteConfig / Reload /
+ * DeviceService / SessionService / AgentService.Chat.
+ */
+export interface UniverseAgentRemotePermissionDecision {
+	readonly decision: string;
+	readonly reason: string;
+}
+
+export interface UniverseAgentRemoteResponse {
+	readonly type: string;
+	readonly requestId: string;
+	readonly permission?: UniverseAgentRemotePermissionDecision;
+	readonly questionAnswersJson?: string;
+}
+
+export interface UniverseAgentRemoteChatRequest {
+	readonly callId: string;
+	readonly task: string;
+	readonly responses: readonly UniverseAgentRemoteResponse[];
+	readonly overridePending: boolean;
+}
+
+export interface UniverseAgentRemoteChatResult {
+	readonly status: string;
+	readonly callId: string;
+	readonly output: string;
+	readonly errorMessage: string;
+	readonly errorCode: string;
+	readonly pendingPermissions: readonly UniverseAgentRemotePendingPermission[];
+	readonly pendingQuestions: readonly UniverseAgentRemotePendingQuestion[];
+	readonly progress: string;
+	readonly completedSteps: number;
+	readonly totalStepsEstimate: number;
+	readonly messages: readonly UniverseAgentRemoteChatMessage[];
+}
+
+export interface UniverseAgentRemoteProgressEvent {
+	readonly callId: string;
+	readonly timestamp: number;
+	readonly elapsedMs: number;
+	readonly progress: string;
+	readonly completedSteps: number;
+	readonly totalStepsEstimate: number;
+}
+
+/** Proto `RemoteChatResponse` (`oneof response`: result / progress). */
+export interface UniverseAgentRemoteChatResponse {
+	readonly result?: UniverseAgentRemoteChatResult;
+	readonly progress?: UniverseAgentRemoteProgressEvent;
+}
+
+/** Server-stream handle for RemoteAgentService.RemoteChat (client does not write). */
+export interface UniverseAgentRemoteChatStream {
+	dispose(): void;
 }
 
 /**

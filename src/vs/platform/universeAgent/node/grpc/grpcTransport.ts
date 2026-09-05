@@ -281,6 +281,9 @@ import type {
 	UniverseAgentResumeRemoteSessionResult,
 	UniverseAgentCancelRemoteSessionRequest,
 	UniverseAgentCancelRemoteSessionResult,
+	UniverseAgentRemoteChatRequest,
+	UniverseAgentRemoteChatResponse,
+	UniverseAgentRemoteChatStream,
 	UniverseAgentGetUploadProgressRequest,
 	UniverseAgentGetUploadProgressResult,
 	UniverseAgentUploadAttachmentResult,
@@ -813,6 +816,12 @@ export interface IUniverseAgentGrpcTransport {
 	resetError(request: UniverseAgentResetErrorRequest): Promise<UniverseAgentResetErrorResult>;
 	/** RemoteAgentService.Reload unary (empty request `{}`). Empty ids mapped as-is. */
 	reloadRemoteAgents(): Promise<UniverseAgentReloadRemoteAgentsResult>;
+	/** RemoteAgentService.RemoteChat server-stream (snake_case `call_id`/`task`/`responses`/`override_pending`). Empty ids sent as-is. */
+	openRemoteChatStream(
+		request: UniverseAgentRemoteChatRequest,
+		onResponse: (response: UniverseAgentRemoteChatResponse) => void,
+		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
+	): UniverseAgentRemoteChatStream;
 	/** RemoteAgentService.CreateRemoteSession unary (snake_case `node_id`/`mode`/`session_params`). Empty ids sent as-is. */
 	createRemoteSession(request: UniverseAgentCreateRemoteSessionRequest): Promise<UniverseAgentCreateRemoteSessionResult>;
 	/** RemoteAgentService.DestroyRemoteSession unary (snake_case `call_id`). Empty ids sent as-is. */
@@ -1162,6 +1171,7 @@ export const UniverseAgentGrpcServices = {
 		ResetError: 'ResetError',
 		DeleteConfig: 'DeleteConfig',
 		Reload: 'Reload',
+		RemoteChat: 'RemoteChat',
 		CreateRemoteSession: 'CreateRemoteSession',
 		DestroyRemoteSession: 'DestroyRemoteSession',
 		GetRemoteSessionStatus: 'GetRemoteSessionStatus',
