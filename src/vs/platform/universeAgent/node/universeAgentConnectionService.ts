@@ -253,6 +253,8 @@ import type {
 	UniverseAgentRevertMemoryResult,
 	UniverseAgentMemoryHistoryRequest,
 	UniverseAgentMemoryHistoryResult,
+	UniverseAgentContextVariableListRequest,
+	UniverseAgentContextVariableListResult,
 	UniverseAgentGetUploadProgressRequest,
 	UniverseAgentGetUploadProgressResult,
 	UniverseAgentUploadAttachmentResult,
@@ -267,6 +269,8 @@ import type {
 	UniverseAgentListDevicesResult,
 	UniverseAgentListTriggersRequest,
 	UniverseAgentListTriggersResult,
+	UniverseAgentWriteClipboardRequest,
+	UniverseAgentWriteClipboardResult,
 	UniverseAgentSetPermissionPolicyRequest,
 	UniverseAgentSetPermissionPolicyResult,
 	UniverseAgentListModelsResult,
@@ -1440,6 +1444,10 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		return this._withTransport(transport => transport.historyMemory(request));
 	}
 
+	async listContextVariable(request: UniverseAgentContextVariableListRequest): Promise<UniverseAgentContextVariableListResult> {
+		return this._withTransport(transport => transport.listContextVariable(request));
+	}
+
 	async getUploadProgress(request: UniverseAgentGetUploadProgressRequest): Promise<UniverseAgentGetUploadProgressResult> {
 		return this._withTransport(transport => transport.getUploadProgress(request));
 	}
@@ -1479,6 +1487,10 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 
 	async listTriggers(request: UniverseAgentListTriggersRequest): Promise<UniverseAgentListTriggersResult> {
 		return this._withTransport(transport => transport.listTriggers(request));
+	}
+
+	async writeClipboard(request: UniverseAgentWriteClipboardRequest): Promise<UniverseAgentWriteClipboardResult> {
+		return this._withTransport(transport => transport.writeClipboard(request));
 	}
 
 	async setPermissionPolicy(request: UniverseAgentSetPermissionPolicyRequest): Promise<UniverseAgentSetPermissionPolicyResult> {

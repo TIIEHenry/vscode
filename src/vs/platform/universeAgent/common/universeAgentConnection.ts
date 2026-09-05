@@ -250,6 +250,8 @@ import type {
 	UniverseAgentRevertMemoryResult,
 	UniverseAgentMemoryHistoryRequest,
 	UniverseAgentMemoryHistoryResult,
+	UniverseAgentContextVariableListRequest,
+	UniverseAgentContextVariableListResult,
 	UniverseAgentGetUploadProgressRequest,
 	UniverseAgentGetUploadProgressResult,
 	UniverseAgentUploadAttachmentResult,
@@ -264,6 +266,8 @@ import type {
 	UniverseAgentListDevicesResult,
 	UniverseAgentListTriggersRequest,
 	UniverseAgentListTriggersResult,
+	UniverseAgentWriteClipboardRequest,
+	UniverseAgentWriteClipboardResult,
 	UniverseAgentSetPermissionPolicyRequest,
 	UniverseAgentSetPermissionPolicyResult,
 	UniverseAgentListModelsResult,
@@ -1444,6 +1448,19 @@ export interface IUniverseAgentConnection {
 	historyMemory?(request: UniverseAgentMemoryHistoryRequest): Promise<UniverseAgentMemoryHistoryResult>;
 
 	/**
+	 * ContextVariableService.List unary. Optional so Web / tests can omit
+	 * it. Catalog + node transport only this slice; empty `sessionId` /
+	 * `agentId` are sent as-is. Empty `name` / `updated_by` /
+	 * `content_preview` mapped as-is. `updated_at` 0 mapped as-is.
+	 * `scope` proto enum (`VARIABLE_GLOBAL` / `VARIABLE_LOCAL`). Proto
+	 * fields only (`ContextVariableListRequest` /
+	 * `ContextVariableListResponse` + `ContextVariableEntrySummary`).
+	 * No Conversation roster / UI / Engine Preferences / Composer.
+	 * ≠ Read.
+	 */
+	listContextVariable?(request: UniverseAgentContextVariableListRequest): Promise<UniverseAgentContextVariableListResult>;
+
+	/**
 	 * FileTransferService.GetUploadProgress unary. Optional so Web / tests
 	 * can omit it. Catalog + node transport only this slice; empty
 	 * `transferId` / `sessionId` are sent as-is. Proto fields only
@@ -1537,6 +1554,18 @@ export interface IUniverseAgentConnection {
 	 * AgentService.FireTriggerWebhook / DeviceService.
 	 */
 	listTriggers?(request: UniverseAgentListTriggersRequest): Promise<UniverseAgentListTriggersResult>;
+
+	/**
+	 * ClipboardService.Write unary. Optional so Web / tests can omit it.
+	 * Catalog + node transport only this slice; empty `sessionId` /
+	 * `agentId` / `label` / `content` / `filePath` / `url` are sent as-is.
+	 * Proto fields only (`ClipboardWriteRequest` /
+	 * `ClipboardWriteResponse`: `clip_id`). Empty `clipId` mapped as-is.
+	 * `type` uses typed `ClipboardEntryType` wire. No Conversation roster
+	 * / UI / Engine Preferences / Composer.
+	 * ≠ Read / List / Clear / DeviceService / TriggerService.
+	 */
+	writeClipboard?(request: UniverseAgentWriteClipboardRequest): Promise<UniverseAgentWriteClipboardResult>;
 
 	/**
 	 * ConfigService.SetPermissionPolicy unary (session/tool Ask/Agent/Permit

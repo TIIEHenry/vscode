@@ -245,6 +245,8 @@ import type {
 	UniverseAgentRevertMemoryResult,
 	UniverseAgentMemoryHistoryRequest,
 	UniverseAgentMemoryHistoryResult,
+	UniverseAgentContextVariableListRequest,
+	UniverseAgentContextVariableListResult,
 	UniverseAgentGetUploadProgressRequest,
 	UniverseAgentGetUploadProgressResult,
 	UniverseAgentUploadAttachmentResult,
@@ -259,6 +261,8 @@ import type {
 	UniverseAgentListDevicesResult,
 	UniverseAgentListTriggersRequest,
 	UniverseAgentListTriggersResult,
+	UniverseAgentWriteClipboardRequest,
+	UniverseAgentWriteClipboardResult,
 	UniverseAgentSetPermissionPolicyRequest,
 	UniverseAgentSetPermissionPolicyResult,
 	UniverseAgentListModelsResult,
@@ -719,6 +723,9 @@ export interface IUniverseAgentGrpcTransport {
 	/** MemoryService.History unary (snake_case `scope`/`category`/`filename`/`limit`). Empty ids sent as-is. */
 	historyMemory(request: UniverseAgentMemoryHistoryRequest): Promise<UniverseAgentMemoryHistoryResult>;
 
+	/** ContextVariableService.List unary (snake_case `session_id`/`agent_id`). Empty ids sent as-is. */
+	listContextVariable(request: UniverseAgentContextVariableListRequest): Promise<UniverseAgentContextVariableListResult>;
+
 	/** FileTransferService.GetUploadProgress unary (snake_case `transfer_id`/`session_id`). Empty ids sent as-is. */
 	getUploadProgress(request: UniverseAgentGetUploadProgressRequest): Promise<UniverseAgentGetUploadProgressResult>;
 	/** FileTransferService.UploadAttachment client-stream (snake_case `transfer_id`/`filename`/`session_id`/`queue_item_id`). Empty ids sent as-is. */
@@ -745,6 +752,9 @@ export interface IUniverseAgentGrpcTransport {
 
 	/** TriggerService.ListTriggers unary (snake_case `scope`/`scope_id`/`type_filter`). Empty ids sent as-is. */
 	listTriggers(request: UniverseAgentListTriggersRequest): Promise<UniverseAgentListTriggersResult>;
+
+	/** ClipboardService.Write unary (snake_case `session_id`/`agent_id`/`label`/`type`/`content`/`file_path`/`url`). Empty ids sent as-is. */
+	writeClipboard(request: UniverseAgentWriteClipboardRequest): Promise<UniverseAgentWriteClipboardResult>;
 
 	/** ConfigService.SetPermissionPolicy unary (snake_case `session_id`/`tool_name`/`policy`). Empty ids sent as-is. */
 	setPermissionPolicy(request: UniverseAgentSetPermissionPolicyRequest): Promise<UniverseAgentSetPermissionPolicyResult>;
@@ -994,6 +1004,14 @@ export const UniverseAgentGrpcServices = {
 	Trigger: {
 		service: 'universeagent.trigger.v1.TriggerService',
 		ListTriggers: 'ListTriggers',
+	},
+	Clipboard: {
+		service: 'universeagent.clipboard.v1.ClipboardService',
+		Write: 'Write',
+	},
+	ContextVariable: {
+		service: 'universeagent.contextvariable.v1.ContextVariableService',
+		List: 'List',
 	},
 } as const;
 

@@ -226,10 +226,14 @@ import type {
 	UniverseAgentRevertMemoryResult,
 	UniverseAgentMemoryHistoryRequest,
 	UniverseAgentMemoryHistoryResult,
+	UniverseAgentContextVariableListRequest,
+	UniverseAgentContextVariableListResult,
 	UniverseAgentGetUploadProgressRequest,
 	UniverseAgentGetUploadProgressResult,
 	UniverseAgentShutdownRequest,
 	UniverseAgentShutdownResult,
+	UniverseAgentWriteClipboardRequest,
+	UniverseAgentWriteClipboardResult,
 	UniverseAgentDownloadAttachmentRequest,
 	UniverseAgentDownloadChunk,
 	UniverseAgentHealthCheckResult,
@@ -1682,6 +1686,17 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 		return this.historyMemoryResult;
 	}
 
+	readonly listContextVariableCalls: UniverseAgentContextVariableListRequest[] = [];
+	listContextVariableResult: UniverseAgentContextVariableListResult = {
+		current: [],
+		inherited: [],
+	};
+
+	async listContextVariable(request: UniverseAgentContextVariableListRequest): Promise<UniverseAgentContextVariableListResult> {
+		this.listContextVariableCalls.push(request);
+		return this.listContextVariableResult;
+	}
+
 	readonly getUploadProgressCalls: UniverseAgentGetUploadProgressRequest[] = [];
 	getUploadProgressResult: UniverseAgentGetUploadProgressResult = {
 		exists: false,
@@ -1703,6 +1718,16 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 	async shutdown(request: UniverseAgentShutdownRequest): Promise<UniverseAgentShutdownResult> {
 		this.shutdownCalls.push(request);
 		return this.shutdownResult;
+	}
+
+	readonly writeClipboardCalls: UniverseAgentWriteClipboardRequest[] = [];
+	writeClipboardResult: UniverseAgentWriteClipboardResult = {
+		clipId: '',
+	};
+
+	async writeClipboard(request: UniverseAgentWriteClipboardRequest): Promise<UniverseAgentWriteClipboardResult> {
+		this.writeClipboardCalls.push(request);
+		return this.writeClipboardResult;
 	}
 
 	private _downloadAttachmentGate: ReturnType<typeof createStreamCloseGate> | undefined;
@@ -2261,6 +2286,11 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Memory.service, 'universeagent.memory.v1.MemoryService');
 	});
 
+	test('UniverseAgentGrpcServices lists ContextVariable.List', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.ContextVariable.List, 'List');
+		assert.strictEqual(UniverseAgentGrpcServices.ContextVariable.service, 'universeagent.contextvariable.v1.ContextVariableService');
+	});
+
 	test('UniverseAgentGrpcServices lists FileTransfer.GetUploadProgress', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.FileTransfer.GetUploadProgress, 'GetUploadProgress');
 		assert.strictEqual(UniverseAgentGrpcServices.FileTransfer.service, 'universeagent.filetransfer.v1.FileTransferService');
@@ -2299,6 +2329,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('UniverseAgentGrpcServices lists Trigger.ListTriggers', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Trigger.ListTriggers, 'ListTriggers');
 		assert.strictEqual(UniverseAgentGrpcServices.Trigger.service, 'universeagent.trigger.v1.TriggerService');
+	});
+
+	test('UniverseAgentGrpcServices lists Clipboard.Write', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Clipboard.Write, 'Write');
+		assert.strictEqual(UniverseAgentGrpcServices.Clipboard.service, 'universeagent.clipboard.v1.ClipboardService');
 	});
 
 	test('UniverseAgentGrpcServices lists Agent.Kill', () => {
@@ -5694,6 +5729,78 @@ suite('UniverseAgentConnectionService', () => {
 		service.dispose();
 	});
 
+	test('listContextVariable forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.listContextVariableResult = {
+			current: [{
+				name: 'cwd',
+				scope: 'VARIABLE_LOCAL',
+				updatedBy: 'root',
+				updatedAt: 1_700_000_000,
+				contentPreview: '/tmp',
+			}],
+			inherited: [{
+				name: 'lang',
+				scope: 'VARIABLE_GLOBAL',
+				updatedBy: 'parent',
+				updatedAt: 1_600_000_000,
+				contentPreview: 'en',
+			}],
+		};
+		const request = {
+			sessionId: 'sess-1',
+			agentId: 'agent-1',
+		};
+		const result = await service.listContextVariable(request);
+		assert.deepStrictEqual(transport.listContextVariableCalls, [request]);
+		assert.deepStrictEqual(result, transport.listContextVariableResult);
+
+		transport.listContextVariableResult = {
+			current: [{
+				name: '',
+				scope: 'VARIABLE_GLOBAL',
+				updatedBy: '',
+				updatedAt: 0,
+				contentPreview: '',
+			}],
+			inherited: [{
+				name: '',
+				scope: 'VARIABLE_LOCAL',
+				updatedBy: '',
+				updatedAt: 0,
+				contentPreview: '',
+			}],
+		};
+		const emptyRequest = {
+			sessionId: '',
+			agentId: '',
+		};
+		const empty = await service.listContextVariable(emptyRequest);
+		assert.strictEqual(transport.listContextVariableCalls[1]?.sessionId, '');
+		assert.strictEqual(transport.listContextVariableCalls[1]?.agentId, '');
+		assert.strictEqual(empty.current[0]?.name, '');
+		assert.strictEqual(empty.current[0]?.scope, 'VARIABLE_GLOBAL');
+		assert.strictEqual(empty.current[0]?.updatedBy, '');
+		assert.strictEqual(empty.current[0]?.updatedAt, 0);
+		assert.strictEqual(empty.current[0]?.contentPreview, '');
+		assert.strictEqual(empty.inherited[0]?.name, '');
+		assert.strictEqual(empty.inherited[0]?.scope, 'VARIABLE_LOCAL');
+		assert.strictEqual(empty.inherited[0]?.updatedBy, '');
+		assert.strictEqual(empty.inherited[0]?.updatedAt, 0);
+		assert.strictEqual(empty.inherited[0]?.contentPreview, '');
+
+		transport.listContextVariableResult = { current: [], inherited: [] };
+		const emptyLists = await service.listContextVariable(emptyRequest);
+		assert.deepStrictEqual(emptyLists.current, []);
+		assert.deepStrictEqual(emptyLists.inherited, []);
+		service.dispose();
+	});
+
 	test('getUploadProgress forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
@@ -5953,6 +6060,52 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(transport.listTriggersCalls[2]?.scopeId, '');
 		assert.strictEqual(transport.listTriggersCalls[2]?.typeFilter, '');
 		assert.deepStrictEqual(emptyLists.triggers, []);
+		service.dispose();
+	});
+
+	test('writeClipboard forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.writeClipboardResult = {
+			clipId: 'clip-1',
+		};
+		const request = {
+			sessionId: 'sess-1',
+			agentId: 'agent-1',
+			label: 'note',
+			type: 'CLIPBOARD_TEXT' as const,
+			content: 'hello',
+			filePath: '',
+			url: '',
+		};
+		const result = await service.writeClipboard(request);
+		assert.deepStrictEqual(transport.writeClipboardCalls, [request]);
+		assert.deepStrictEqual(result, transport.writeClipboardResult);
+
+		transport.writeClipboardResult = {
+			clipId: '',
+		};
+		const emptyRequest = {
+			sessionId: '',
+			agentId: '',
+			label: '',
+			type: 'CLIPBOARD_TEXT' as const,
+			content: '',
+			filePath: '',
+			url: '',
+		};
+		const empty = await service.writeClipboard(emptyRequest);
+		assert.strictEqual(transport.writeClipboardCalls[1]?.sessionId, '');
+		assert.strictEqual(transport.writeClipboardCalls[1]?.agentId, '');
+		assert.strictEqual(transport.writeClipboardCalls[1]?.label, '');
+		assert.strictEqual(transport.writeClipboardCalls[1]?.content, '');
+		assert.strictEqual(transport.writeClipboardCalls[1]?.filePath, '');
+		assert.strictEqual(transport.writeClipboardCalls[1]?.url, '');
+		assert.strictEqual(empty.clipId, '');
 		service.dispose();
 	});
 

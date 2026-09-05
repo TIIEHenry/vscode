@@ -319,6 +319,10 @@ import type {
 	UniverseAgentMemoryHistoryRequest,
 	UniverseAgentMemoryHistoryResult,
 	UniverseAgentMemoryChangeEntry,
+	UniverseAgentContextVariableListRequest,
+	UniverseAgentContextVariableListResult,
+	UniverseAgentContextVariableEntrySummary,
+	UniverseAgentContextVariableScope,
 	UniverseAgentGetUploadProgressRequest,
 	UniverseAgentGetUploadProgressResult,
 	UniverseAgentUploadChunk,
@@ -338,6 +342,9 @@ import type {
 	UniverseAgentListTriggersResult,
 	UniverseAgentTrigger,
 	UniverseAgentTriggerDeliveryTarget,
+	UniverseAgentClipboardEntryType,
+	UniverseAgentWriteClipboardRequest,
+	UniverseAgentWriteClipboardResult,
 	UniverseAgentListModelsResult,
 	UniverseAgentGetConfigRequest,
 	UniverseAgentGetConfigResult,
@@ -937,6 +944,17 @@ function permissionPolicyWire(policy: UniverseAgentPermissionPolicy): number {
 			return 2;
 		case 'PERMISSION_POLICY_PERMIT':
 			return 3;
+		default:
+			return 0;
+	}
+}
+
+function clipboardEntryTypeWire(type: UniverseAgentClipboardEntryType): number {
+	switch (type) {
+		case 'CLIPBOARD_FILE_PATH':
+			return 1;
+		case 'CLIPBOARD_URL':
+			return 2;
 		default:
 			return 0;
 	}
@@ -3258,6 +3276,51 @@ function mapMemoryHistoryResponse(wire: MemoryHistoryResponseWire): UniverseAgen
 	};
 }
 
+const ContextVariableScopeByNumber: Record<number, UniverseAgentContextVariableScope> = {
+	0: 'VARIABLE_GLOBAL',
+	1: 'VARIABLE_LOCAL',
+};
+
+function mapContextVariableScope(value: string | number | undefined): UniverseAgentContextVariableScope {
+	if (typeof value === 'number') {
+		return ContextVariableScopeByNumber[value] ?? 'VARIABLE_GLOBAL';
+	}
+	if (value === 'VARIABLE_LOCAL' || value === 'VARIABLE_GLOBAL') {
+		return value;
+	}
+	return 'VARIABLE_GLOBAL';
+}
+
+interface ContextVariableEntrySummaryWire {
+	name?: string;
+	scope?: string | number;
+	updated_by?: string;
+	updated_at?: number | string;
+	content_preview?: string;
+}
+
+interface ContextVariableListResponseWire {
+	current?: ContextVariableEntrySummaryWire[];
+	inherited?: ContextVariableEntrySummaryWire[];
+}
+
+function mapContextVariableEntrySummary(wire: ContextVariableEntrySummaryWire): UniverseAgentContextVariableEntrySummary {
+	return {
+		name: wire.name ?? '',
+		scope: mapContextVariableScope(wire.scope),
+		updatedBy: wire.updated_by ?? '',
+		updatedAt: requiredInt64(wire.updated_at),
+		contentPreview: wire.content_preview ?? '',
+	};
+}
+
+function mapContextVariableListResponse(wire: ContextVariableListResponseWire): UniverseAgentContextVariableListResult {
+	return {
+		current: (wire.current ?? []).map(mapContextVariableEntrySummary),
+		inherited: (wire.inherited ?? []).map(mapContextVariableEntrySummary),
+	};
+}
+
 interface UploadProgressResponseWire {
 	exists?: boolean;
 	bytes_received?: number | string;
@@ -3281,6 +3344,16 @@ function mapShutdownResponse(wire: ShutdownResponseWire): UniverseAgentShutdownR
 	return {
 		accepted: wire.accepted === true,
 		message: wire.message ?? '',
+	};
+}
+
+interface ClipboardWriteResponseWire {
+	clip_id?: string;
+}
+
+function mapClipboardWriteResponse(wire: ClipboardWriteResponseWire): UniverseAgentWriteClipboardResult {
+	return {
+		clipId: wire.clip_id ?? '',
 	};
 }
 
@@ -3682,6 +3755,24 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			grace_period_ms: request.gracePeriodMs,
 		});
 		return mapShutdownResponse(wire);
+	}
+
+	async writeClipboard(request: UniverseAgentWriteClipboardRequest): Promise<UniverseAgentWriteClipboardResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, ClipboardWriteResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.Clipboard.service,
+			UniverseAgentGrpcServices.Clipboard.Write,
+		);
+		const wire = await unary({
+			session_id: request.sessionId,
+			agent_id: request.agentId,
+			label: request.label,
+			type: clipboardEntryTypeWire(request.type),
+			content: request.content,
+			file_path: request.filePath,
+			url: request.url,
+		});
+		return mapClipboardWriteResponse(wire);
 	}
 
 	async connectWithDeviceAuth(request: UniverseAgentDeviceAuthConnectRequest): Promise<UniverseAgentConnectResult> {
@@ -5646,6 +5737,19 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			limit: request.limit,
 		});
 		return mapMemoryHistoryResponse(wire);
+	}
+
+	async listContextVariable(request: UniverseAgentContextVariableListRequest): Promise<UniverseAgentContextVariableListResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, ContextVariableListResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.ContextVariable.service,
+			UniverseAgentGrpcServices.ContextVariable.List,
+		);
+		const wire = await unary({
+			session_id: request.sessionId,
+			agent_id: request.agentId,
+		});
+		return mapContextVariableListResponse(wire);
 	}
 
 	async getUploadProgress(request: UniverseAgentGetUploadProgressRequest): Promise<UniverseAgentGetUploadProgressResult> {

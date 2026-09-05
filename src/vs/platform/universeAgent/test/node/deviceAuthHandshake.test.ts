@@ -579,11 +579,17 @@ class MockDeviceAuthTransport implements IUniverseAgentGrpcTransport {
 	async historyMemory() {
 		return { changes: [] };
 	}
+	async listContextVariable() {
+		return { current: [], inherited: [] };
+	}
 	async getUploadProgress() {
 		return { exists: false, bytesReceived: 0, partialPath: '' };
 	}
 	async shutdown() {
 		return { accepted: false, message: '' };
+	}
+	async writeClipboard() {
+		return { clipId: '' };
 	}
 	openUploadAttachmentStream(): { write(): void; end(): void; dispose(): void } {
 		return { write() { }, end() { }, dispose() { } };

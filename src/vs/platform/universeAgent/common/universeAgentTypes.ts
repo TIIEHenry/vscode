@@ -2384,6 +2384,36 @@ export interface UniverseAgentMemoryHistoryResult {
 }
 
 /**
+ * ContextVariableService.List — proto `ContextVariableListRequest` /
+ * `ContextVariableListResponse` + `ContextVariableEntrySummary` only.
+ * Empty `session_id` / `agent_id` pass through as-is. Empty `name` /
+ * `updated_by` / `content_preview` mapped as-is. `updated_at` 0 mapped
+ * as-is. `scope` proto enum (`VARIABLE_GLOBAL`=0 / `VARIABLE_LOCAL`=1).
+ * ≠ Read.
+ */
+export type UniverseAgentContextVariableScope =
+	| 'VARIABLE_GLOBAL'
+	| 'VARIABLE_LOCAL';
+
+export interface UniverseAgentContextVariableListRequest {
+	readonly sessionId: string;
+	readonly agentId: string;
+}
+
+export interface UniverseAgentContextVariableEntrySummary {
+	readonly name: string;
+	readonly scope: UniverseAgentContextVariableScope;
+	readonly updatedBy: string;
+	readonly updatedAt: number;
+	readonly contentPreview: string;
+}
+
+export interface UniverseAgentContextVariableListResult {
+	readonly current: readonly UniverseAgentContextVariableEntrySummary[];
+	readonly inherited: readonly UniverseAgentContextVariableEntrySummary[];
+}
+
+/**
  * FileTransferService.GetUploadProgress — proto `UploadProgressRequest` /
  * `UploadProgressResponse` only. Empty `transfer_id` / `session_id` pass
  * through as-is. `bytes_received` 0 / empty `partial_path` mapped as-is.
@@ -2592,6 +2622,36 @@ export interface UniverseAgentTrigger {
 
 export interface UniverseAgentListTriggersResult {
 	readonly triggers: readonly UniverseAgentTrigger[];
+}
+
+/**
+ * ClipboardService.Write — proto `ClipboardWriteRequest` /
+ * `ClipboardWriteResponse` only. Empty `session_id` / `agent_id` /
+ * `label` / `content` / `file_path` / `url` sent as-is. Empty `clip_id`
+ * mapped as-is. `type` uses typed `ClipboardEntryType` wire (Write RPC
+ * is TEXT-only; `file_path` / `url` reserved, sent as-is).
+ * ≠ Read / List / Clear / DeviceService / TriggerService.
+ */
+export type UniverseAgentClipboardEntryType =
+	| 'CLIPBOARD_TEXT'
+	| 'CLIPBOARD_FILE_PATH'
+	| 'CLIPBOARD_URL';
+
+export interface UniverseAgentWriteClipboardRequest {
+	readonly sessionId: string;
+	readonly agentId: string;
+	readonly label: string;
+	/** Proto `ClipboardEntryType`. Wired to enum number. */
+	readonly type: UniverseAgentClipboardEntryType;
+	readonly content: string;
+	/** Proto `file_path`. Reserved (Write is TEXT-only); empty sent as-is. */
+	readonly filePath: string;
+	/** Proto `url`. Reserved (Write is TEXT-only); empty sent as-is. */
+	readonly url: string;
+}
+
+export interface UniverseAgentWriteClipboardResult {
+	readonly clipId: string;
 }
 
 /**
