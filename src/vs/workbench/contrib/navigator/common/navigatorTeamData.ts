@@ -80,6 +80,24 @@ export function navigatorTeamMessageMemberIds(
 	};
 }
 
+/** Navigator Team ViewTitle → Abort. Empty ids / teamId 0 are still sent. */
+export function canSendNavigatorTeamAbort(connected: boolean, hasHook: boolean): boolean {
+	return connected && hasHook;
+}
+
+/** Pass through empty `sessionId` / `agentId` and `teamId` 0 as-is (no default / no trim). */
+export function navigatorTeamAbortIds(
+	sessionId: string | undefined,
+	selected: { readonly managerAgentId?: string } | undefined,
+	teamId: number | undefined,
+): { sessionId: string; agentId: string; teamId: number } {
+	return {
+		sessionId: sessionId ?? '',
+		agentId: selected?.managerAgentId ?? '',
+		teamId: teamId ?? 0,
+	};
+}
+
 const MEMBER_TYPE = 'AGENT_TYPE_MEMBER';
 
 export function findManagerNodes(tree: LiveAgentTreeNodeView | undefined): LiveAgentTreeNodeView[] {

@@ -855,9 +855,9 @@ export interface IUniverseAgentConnection {
 
 	/**
 	 * TeamService.Abort unary (abort entire Team). Optional so Web / tests can
-	 * omit it. Catalog + node transport only this slice; empty `sessionId` /
-	 * `agentId` / `reason` and `teamId` 0 are sent as-is. No Conversation
-	 * roster / UI / Navigator Team.
+	 * omit it. Navigator Team ViewTitle Abort calls this when connected + hook
+	 * present; empty `sessionId` / `agentId` / `reason` and `teamId` 0 are
+	 * sent as-is. No Conversation roster / SessionBar / Snapshots overlay.
 	 * ≠ KillMember / CreateTeam / StartMember / MessageMember / TaskCancel /
 	 * TeamInfo.
 	 */

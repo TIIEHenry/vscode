@@ -7,7 +7,7 @@ import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import type { LiveAgentTreeNodeView } from '../../../../../platform/universeAgent/common/sessionView/index.js';
 import { getNavigatorAgentTreePendingCopy } from '../../common/navigatorAgentTreeEmptyState.js';
-import { canSendNavigatorTeamMessageMember, canSendNavigatorTeamTaskMutation, findManagerNodes, getTeamTreeEmptyCopy, navigatorTeamMessageMemberIds, navigatorTeamTaskMutationIds } from '../../common/navigatorTeamData.js';
+import { canSendNavigatorTeamAbort, canSendNavigatorTeamMessageMember, canSendNavigatorTeamTaskMutation, findManagerNodes, getTeamTreeEmptyCopy, navigatorTeamAbortIds, navigatorTeamMessageMemberIds, navigatorTeamTaskMutationIds } from '../../common/navigatorTeamData.js';
 
 suite('NavigatorTeam (N4)', () => {
 
@@ -151,6 +151,27 @@ suite('NavigatorTeam (N4)', () => {
 			sessionId: 'sess',
 			agentId: 'mgr',
 			memberName: 'writer',
+		});
+	});
+
+	test('Abort gate is connected + hook; empty ids / teamId 0 still send', () => {
+		assert.strictEqual(canSendNavigatorTeamAbort(false, true), false);
+		assert.strictEqual(canSendNavigatorTeamAbort(true, false), false);
+		assert.strictEqual(canSendNavigatorTeamAbort(true, true), true);
+		assert.deepStrictEqual(navigatorTeamAbortIds(undefined, undefined, undefined), {
+			sessionId: '',
+			agentId: '',
+			teamId: 0,
+		});
+		assert.deepStrictEqual(navigatorTeamAbortIds('', { managerAgentId: '' }, 0), {
+			sessionId: '',
+			agentId: '',
+			teamId: 0,
+		});
+		assert.deepStrictEqual(navigatorTeamAbortIds('sess', { managerAgentId: 'mgr' }, 7), {
+			sessionId: 'sess',
+			agentId: 'mgr',
+			teamId: 7,
 		});
 	});
 });
