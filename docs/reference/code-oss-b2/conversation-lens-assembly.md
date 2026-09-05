@@ -4,7 +4,7 @@ type: reference
 status: accepted
 phase: N/A
 updated: 2026-09-05
-summary: "三槽自研 chrome 冻结；ConversationLens 门面仍在 conversationLens.ts，GFS-3 拆 projection/sessionBar/dock/composer/composerChrome 同级模块；timeline 仍 ConversationTimelineTree；PRD-015/016 已落；禁止 ChatWidget 整块；3a → conversation-stream-timeline（accepted）"
+summary: "三槽自研 chrome 冻结；ConversationLens 门面仍在 conversationLens.ts，GFS-3 拆 projection/sessionBar/dock/composer/composerChrome + residue（readingColumn/sessionBinding）同级模块；timeline 仍 ConversationTimelineTree；PRD-015/016 已落；禁止 ChatWidget 整块；3a → conversation-stream-timeline（accepted）"
 ---
 
 # Conversation 透镜组装
@@ -20,7 +20,7 @@ summary: "三槽自研 chrome 冻结；ConversationLens 门面仍在 conversatio
 
 [widget-parts](../../systems/chat/widget-parts.md) 列了 donor 零件，没写 **怎么装进三槽**。
 
-**已落地：** `ConversationLens` 门面仍在 `contrib/conversation/browser/conversationLens.ts`（`export class ConversationLens`）；GFS-3（`c5d791c7`）把 SessionBar / Dock / Composer 实现拆到同级 `conversationLens*.ts` 模块（§2.1），**不改** `IConversationLensSlots` 三槽契约与对外 import。`ConversationEditorPane` 创建三槽 DOM 并 `createInstance(ConversationLens, slots)`；`IConversationLensSlots` 定义在 `conversationPart.ts`（`sessionBar?` / `timeline` / `dock`；子代理 overlay 只传 `{ timeline, dock, filterAgentId }`）。时间线仍是绿field **`ConversationTimelineTree`**（`conversationTimelineTree.ts`；GFS-2 拆 types/renderer，门面符号不变）；数据经帧源投影 / `IConversationRosterService`。**零 import** `ChatWidget` / `ChatListWidget` / `IChatService`。
+**已落地：** `ConversationLens` 门面仍在 `contrib/conversation/browser/conversationLens.ts`（`export class ConversationLens`）；GFS-3（`c5d791c7`）+ residue（`533fc6c42d5`）把 SessionBar / Dock / Composer / 阅读列 / session 绑定拆到同级 `conversationLens*.ts` 模块（§2.1），**不改** `IConversationLensSlots` 三槽契约与对外 import。`ConversationEditorPane` 创建三槽 DOM 并 `createInstance(ConversationLens, slots)`；`IConversationLensSlots` 定义在 `conversationPart.ts`（`sessionBar?` / `timeline` / `dock`；子代理 overlay 只传 `{ timeline, dock, filterAgentId }`）。时间线仍是绿field **`ConversationTimelineTree`**（`conversationTimelineTree.ts`；GFS-2 拆 types/renderer，门面符号不变）；数据经帧源投影 / `IConversationRosterService`。**零 import** `ChatWidget` / `ChatListWidget` / `IChatService`。
 
 下一步容易把 `ChatWidget.render()` 整块塞进 Part——那会把 Copilot picker / welcome / entitlement 门闩带进产品列（INV-NO-COPILOT）。`chatSetup/` 在宿主层（`ChatViewPane`），见 §7，不在 widget 内。本文写组装合同，挡住这条捷径。
 
@@ -46,16 +46,18 @@ Part 级窗口 chrome（SelectBox、←→、关非根 tab）在 `ConversationPa
 
 人类拍板：SessionBar / Inbox / 透镜自研；列表虚拟化、markdown/code、confirmation 零件进复用；权限座位半自研。SessionBar SelectBox 去留见父方案 §1.4 **Deferred**。
 
-## 2.1 实现文件（GFS-3，已落 @ `c5d791c7`）
+## 2.1 实现文件（GFS-3 + residue，已落 @ `c5d791c7` / `533fc6c42d5`）
 
 **组装合同不变：** §2 三槽所有权冻结；timeline 槽仍由门面 `mountTimeline` 填 **`ConversationTimelineTree`**；Dock 仍是自研表面，不是 `ChatInputPart` 整块。
 
-**机械拆分（不改产品语义）：** [giant-file-split](../../../dev/plans/giant-file-split.md) GFS-3 把原单文件 `conversationLens.ts` 拆成门面 + 五个同级实现模块。状态字段（`lensId` / `composerPolicy` / `conversationPhase` / `sessionViewLease` / `submitInFlight` / `inputMaximized` / `sessionTitleEditing` 等）与构造 / dispose **仍在门面**；新模块经各自 `IConversationLensProjectionHost` / `SessionBarHost` / `DockHost` / `ComposerHost` / `ComposerChromeHost` 读写字段，不另持会话状态。门面 HEAD 仍 ~949 行（`wc -l`），高于 GFS 扩切片目标 ≤800——残留差距见父方案 §6，**不是**组装合同变更。
+**机械拆分（不改产品语义）：** [giant-file-split](../../../dev/plans/giant-file-split.md) GFS-3 把原单文件 `conversationLens.ts` 拆成门面 + 同级实现模块；residue @ `533fc6c42d5` 再切 `conversationLensReadingColumn.ts` / `conversationLensSessionBinding.ts`。状态字段（`lensId` / `composerPolicy` / `conversationPhase` / `sessionViewLease` / `submitInFlight` / `inputMaximized` / `sessionTitleEditing` 等）与构造 / dispose **仍在门面**；新模块经各自 host 接口读写字段，不另持会话状态。门面 HEAD **783** 行（`wc -l` @ `533fc6c42d5`），≤ GFS 扩切片目标 800。
 
 | 文件 | 从门面搬出的职责 |
 |------|------------------|
 | `conversationLens.ts` | 门面 `ConversationLens`；公开 API（`layout` / `focusDockInput` / `revealTimelineItem` / …）；`mountTimeline` → timeline 槽；仍 import 并持有 `ConversationTimelineTree` |
 | `conversationLensProjection.ts` | `applySessionViewTimeline`、`updateSyncChrome` / `updateConversationPhase` / `updateReadingColumn`、`refreshTrajectoryRecords`、透镜 tab 状态（`setLensId` / `updateLensTabs`）、轨迹↔时间线互跳 |
+| `conversationLensReadingColumn.ts` | `mountTimeline`（阅读列 DOM、identity strip、timeline 挂载）、`bindReadingColumnLayout`、密度 / 宽度布局 |
+| `conversationLensSessionBinding.ts` | `bindSessionView` / `applyActiveSession`、lease 帧订阅与 coalescer、`renderInboxStatus`、turn 动作（copy / delete / cancel / visualize / focus） |
 | `conversationLensSessionBar.ts` | `mountSessionBar`（含透镜 tab DOM）、session select、Active Route、标题 rename、New / Delete |
 | `conversationLensDock.ts` | `mountDock`（Dock 槽：composer cluster、Inbox overlay、Send 绑定等） |
 | `conversationLensComposer.ts` | `postBound` / `submitDraft`、`saveTurnEdit` / `saveQueueEdit`、draft 读写、voice、composer catalog |
@@ -138,3 +140,5 @@ i18n 字符串另抽出 `conversationLensDockStrings.ts` / `conversationLensSess
 2026-09-01 按父方案 §12 同步：阶段 2 改为绿field `ConversationTimelineTree` + `conversationImportBoundaries.test.ts` / `chatContentParts/**` 白名单；与 HEAD 对齐。
 
 2026-09-05 GFS-3 诚实同步：新增 §2.1（门面 `conversationLens.ts` + projection / sessionBar / dock / composer / composerChrome 同级模块）；§2 槽宿主改为 EditorPane + 可选 `sessionBar?`；重申三槽冻结与 timeline 仍 `ConversationTimelineTree`；不发明 compile/smoke 证据。审查后改：职责表补 `refreshTrajectoryRecords` / Route / save*；GFS 验收指针 §6；门面 ~949 行残留注记。
+
+2026-09-05 GFS-3 residue 诚实同步：§2.1 补 `conversationLensReadingColumn.ts` / `conversationLensSessionBinding.ts`；门面 783 行 @ `533fc6c42d5`。
