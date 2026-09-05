@@ -353,6 +353,8 @@ import type {
 	UniverseAgentUpsertTriggerResult,
 	UniverseAgentDeleteTriggerRequest,
 	UniverseAgentDeleteTriggerResult,
+	UniverseAgentFireTriggerRequest,
+	UniverseAgentFireTriggerResult,
 	UniverseAgentTrigger,
 	UniverseAgentTriggerDeliveryTarget,
 	UniverseAgentClipboardEntryType,
@@ -3723,6 +3725,20 @@ function mapDeleteTriggerResponse(_wire: Record<string, unknown>): UniverseAgent
 	return {};
 }
 
+interface FireTriggerResponseWire {
+	status?: string;
+	event_id?: string;
+	reason?: string;
+}
+
+function mapFireTriggerResponse(wire: FireTriggerResponseWire): UniverseAgentFireTriggerResult {
+	return {
+		status: wire.status ?? '',
+		eventId: wire.event_id ?? '',
+		reason: wire.reason ?? '',
+	};
+}
+
 interface ListModelsResponseWire {
 	models?: Array<{
 		id?: string;
@@ -6145,6 +6161,20 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			trigger_id: request.triggerId,
 		});
 		return mapDeleteTriggerResponse(wire);
+	}
+
+	async fireTrigger(request: UniverseAgentFireTriggerRequest): Promise<UniverseAgentFireTriggerResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, FireTriggerResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.Trigger.service,
+			UniverseAgentGrpcServices.Trigger.FireTrigger,
+		);
+		const wire = await unary({
+			scope: request.scope,
+			scope_id: request.scopeId,
+			trigger_id: request.triggerId,
+		});
+		return mapFireTriggerResponse(wire);
 	}
 
 	async setPermissionPolicy(request: UniverseAgentSetPermissionPolicyRequest): Promise<UniverseAgentSetPermissionPolicyResult> {
