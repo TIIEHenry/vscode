@@ -182,6 +182,20 @@ suite('ConversationEngineFrameSource post outcome', () => {
 		assert.deepStrictEqual(sessionView.lastPost?.msg, { kind: 'submitInput', text: 'hello' });
 	});
 
+	test('post host throw maps to no_such_session not not_authenticated', async () => {
+		const sessionView = new PostOutcomeMockSessionView();
+		sessionView.postFn = async () => {
+			throw new Error('session not engine-bound');
+		};
+		const source = store.add(new ConversationEngineFrameSource(sessionView));
+		const lease = store.add(source.acquire('sess-throw'));
+
+		assert.deepStrictEqual(await lease.post({ kind: 'submitInput', text: 'x' }), {
+			accepted: false,
+			reason: 'no_such_session',
+		});
+	});
+
 	test('surfaces not_authenticated from the host', async () => {
 		const sessionView = new PostOutcomeMockSessionView();
 		sessionView.postFn = async () => ({ accepted: false, reason: 'not_authenticated' });
