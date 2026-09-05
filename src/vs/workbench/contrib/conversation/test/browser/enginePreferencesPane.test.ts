@@ -169,14 +169,15 @@ suite('EnginePreferencesPane', () => {
 		container.remove();
 	});
 
-	test('disconnected pane keeps nine-section navigation with zero catalog rows and zero write buttons', async () => {
+	test('disconnected pane keeps ten-section navigation with zero catalog rows and zero write buttons', async () => {
 		const pane = mountPane(false);
 		const container = pane.getDomNode();
 		pane.layout(new Dimension(900, 800));
 		await new Promise(resolve => setTimeout(resolve, 0));
 
 		const navLabels = [...container.querySelectorAll('.engine-preferences-nav-label')].map(el => el.textContent);
-		assert.strictEqual(navLabels.length, 9);
+		assert.strictEqual(navLabels.length, 10);
+		assert.ok(navLabels.includes('Triggers'));
 
 		pane.selectSection('skills');
 		const skillsSection = container.querySelector('.engine-skills-section') as HTMLElement;

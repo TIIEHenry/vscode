@@ -1983,13 +1983,14 @@ export interface IUniverseAgentConnection {
 	listPending?(): Promise<UniverseAgentListPendingResult>;
 	/**
 	 * TriggerService.ListTriggers unary. Optional so Web / tests can omit
-	 * it. Catalog + node transport only this slice; empty `scope` /
-	 * `scopeId` / `typeFilter` are sent as-is. Empty `triggerId` / `name` /
-	 * `type` / `promptTemplate` / `pauseReason` / `cronExpression` mapped
-	 * as-is. `enabled` false mapped as-is. `intervalMs` / `runAtEpochMs` 0
-	 * mapped as-is. Proto fields only (`ListTriggersRequest` /
-	 * `ListTriggersResponse` + `TriggerDto` / `DeliveryTargetDto`). No
-	 * Conversation roster / UI / Engine Preferences / Composer.
+	 * it. Engine Preferences Triggers list forwards when connected + hook;
+	 * empty `scope` / `scopeId` / `typeFilter` are sent as-is. Empty
+	 * `triggerId` / `name` / `type` / `promptTemplate` / `pauseReason` /
+	 * `cronExpression` mapped as-is. `enabled` false mapped as-is.
+	 * `intervalMs` / `runAtEpochMs` 0 mapped as-is. Proto fields only
+	 * (`ListTriggersRequest` / `ListTriggersResponse` + `TriggerDto` /
+	 * `DeliveryTargetDto`). Disconnected / no hook do not send. No
+	 * Conversation roster / SessionBar / Composer.
 	 * ≠ UpsertTrigger / DeleteTrigger / SetTriggerEnabled / FireTrigger /
 	 * AgentService.FireTriggerWebhook / DeviceService.
 	 */
