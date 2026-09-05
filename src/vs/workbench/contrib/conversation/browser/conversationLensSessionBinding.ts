@@ -55,6 +55,10 @@ export interface IConversationLensSessionBindingHost {
 export function bindSessionView(host: IConversationLensSessionBindingHost, sessionId: string): void {
 
 	host.sessionViewLifetime.clear();
+	if (!sessionId || (host.stubService.isEngineConnected() && !host.stubService.isEngineSessionReady())) {
+		host.sessionViewLease = undefined;
+		return;
+	}
 	const lease = host.sessionViewLifetime.add(host.stubService.acquireSessionView(sessionId));
 	host.sessionViewLease = lease;
 	const coalescer = host.sessionViewLifetime.add(new ConversationSessionViewFrameCoalescer(applied => host.applySessionViewTimeline(applied)));

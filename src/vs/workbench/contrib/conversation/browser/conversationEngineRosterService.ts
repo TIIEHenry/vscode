@@ -38,6 +38,20 @@ import { ConversationStubSession, ConversationStubTurn, getConversationStubNextT
 
 const STUB_SEED_IDS = new Set(['untitled', 'visualize']);
 
+function isAlreadyExistsCreateSessionError(error: unknown): boolean {
+	if (!error) {
+		return false;
+	}
+	if (typeof error === 'object') {
+		const code = (error as { code?: unknown }).code;
+		if (code === 'ALREADY_EXISTS' || code === 6 || code === '6') {
+			return true;
+		}
+	}
+	const message = error instanceof Error ? error.message : String(error);
+	return message.includes('ALREADY_EXISTS') || message.includes('AlreadyExists');
+}
+
 /**
  * Engine-backed roster (M6-A2): same token as stub; switches frame source and
  * session catalog when UA is connected.
@@ -51,6 +65,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	private engineSessions: ConversationStubSession[] = [];
 	private activeEngineSessionId: string | undefined;
 	private listCompleted = false;
+	private engineSessionEnsure: Promise<string | undefined> | undefined;
 	private wasEverConnected = false;
 	private testEngineConnected: boolean | undefined;
 	private readonly sessionGoals = new Map<string, string>();
@@ -77,6 +92,20 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		}
 		const snapshot = this.uaConnection.getConnectionSnapshot();
 		return isConversationEngineLive(this.uaConnection.getConnectionPhase(), snapshot.pairingPending);
+	}
+
+	override isEngineSessionReady(): boolean {
+		if (!this.isEngineConnected()) {
+			return true;
+		}
+		if (!this.listCompleted || this.engineSessionEnsure) {
+			return false;
+		}
+		const sessionId = this.getActiveSessionId();
+		if (!sessionId || STUB_SEED_IDS.has(sessionId)) {
+			return false;
+		}
+		return this.engineSessions.some(session => session.id === sessionId);
 	}
 
 	/** Client setting gate for advertising IDE workspace tools to Engine (PRD-026). */
@@ -116,9 +145,21 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	}
 
 	override getActiveSessionId(): string {
-		if (this.isEngineConnected() || this.wasEverConnected) {
+		if (this.isEngineConnected()) {
+			if (!this.listCompleted) {
+				return this.activeEngineSessionId ?? '';
+			}
 			if (this.engineSessions.length === 0) {
-				return this.activeEngineSessionId ?? super.getActiveSessionId();
+				return this.activeEngineSessionId ?? '';
+			}
+			if (this.activeEngineSessionId && this.engineSessions.some(s => s.id === this.activeEngineSessionId)) {
+				return this.activeEngineSessionId;
+			}
+			return this.engineSessions[0]!.id;
+		}
+		if (this.wasEverConnected) {
+			if (this.engineSessions.length === 0) {
+				return this.activeEngineSessionId ?? '';
 			}
 			if (this.activeEngineSessionId && this.engineSessions.some(s => s.id === this.activeEngineSessionId)) {
 				return this.activeEngineSessionId;
@@ -174,7 +215,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 
 	override createSession(): string {
 		if (this.isEngineConnected()) {
-			this.createEngineSession(true);
+			void this.ensureEngineSession();
 			return '';
 		}
 		if (this.wasEverConnected) {
@@ -471,28 +512,73 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		return this.wasEverConnected;
 	}
 
-	private createEngineSession(callRemote: boolean): void {
-		if (!callRemote) {
-			return;
+	private ensureEngineSession(): Promise<string | undefined> {
+		if (this.engineSessionEnsure) {
+			return this.engineSessionEnsure;
 		}
+		this.engineSessionEnsure = this.createEngineSessionRemote();
+		void this.engineSessionEnsure.finally(() => {
+			this.engineSessionEnsure = undefined;
+		});
+		return this.engineSessionEnsure;
+	}
+
+	private async createEngineSessionRemote(): Promise<string | undefined> {
 		const title = localize('conversationLens.sessionNew', "New session");
-		void this.uaConnection.createSession({ title }).then(result => {
+		try {
+			const result = await this.uaConnection.createSession({ title });
 			const sessionId = result.sessionId?.trim();
 			if (!sessionId) {
-				return;
+				return undefined;
 			}
-			if (this.engineSessions.some(session => session.id === sessionId)) {
-				this.activeEngineSessionId = sessionId;
-				this._onDidChangeActiveSession.fire(sessionId);
-				this.persistEngineAwareRoster();
-				return;
+			return this.adoptEngineSession(sessionId, title);
+		} catch (error) {
+			if (!isAlreadyExistsCreateSessionError(error)) {
+				return undefined;
 			}
+			return this.recoverEngineSessionAfterCreateConflict(title);
+		}
+	}
+
+	private async recoverEngineSessionAfterCreateConflict(title: string): Promise<string | undefined> {
+		try {
+			const result = await this.uaConnection.listSessions({});
+			const match = result.sessions.find(session => session.title === title && session.sessionId)
+				?? result.sessions.find(session => session.sessionId && !STUB_SEED_IDS.has(session.sessionId));
+			if (!match?.sessionId) {
+				return undefined;
+			}
+			return this.adoptEngineSession(match.sessionId, match.title ?? title);
+		} catch {
+			return undefined;
+		}
+	}
+
+	private adoptEngineSession(sessionId: string, title: string): string {
+		const existed = this.engineSessions.some(session => session.id === sessionId);
+		if (!existed) {
 			this.engineSessions = [...this.engineSessions, { id: sessionId, title, turns: [], source: 'engine-cache' }];
-			this.activeEngineSessionId = sessionId;
 			this._onDidChangeSession.fire(sessionId);
+		}
+		this.listCompleted = true;
+		this.activateEngineSession(sessionId);
+		this.persistEngineAwareRoster();
+		this.bindLiveTreeObservationLease();
+		return sessionId;
+	}
+
+	private activateEngineSession(sessionId: string): void {
+		if (!sessionId) {
+			return;
+		}
+		const previous = this.activeEngineSessionId;
+		this.activeEngineSessionId = sessionId;
+		if (previous !== sessionId) {
 			this._onDidChangeActiveSession.fire(sessionId);
-			this.persistEngineAwareRoster();
-		});
+		}
+		if (this.isEngineConnected()) {
+			this.uaConnection.requestAgentTreeRefresh(sessionId);
+		}
 	}
 
 	private cancelEngineGeneration(sessionId: string, agentId: string | undefined, callRemote: boolean): boolean {
@@ -923,6 +1009,9 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 			return;
 		}
 		const sessionId = this.getActiveSessionId();
+		if (!sessionId || STUB_SEED_IDS.has(sessionId) || !this.isEngineSessionReady()) {
+			return;
+		}
 		const lease = this.acquireSessionView(sessionId);
 		this.liveTreeObservationStore.add(lease);
 		this.liveTreeObservationStore.add(lease.onDidApplyFrame(() => this.emitLiveAgentTreeFromLease(lease)));
@@ -948,14 +1037,20 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 					source: 'engine-cache' as const,
 				}));
 			this.listCompleted = true;
-			if (this.engineSessions.length > 0 && !(this.activeEngineSessionId && this.engineSessions.some(s => s.id === this.activeEngineSessionId))) {
-				this.activeEngineSessionId = this.engineSessions[0]!.id;
-				this._onDidChangeActiveSession.fire(this.activeEngineSessionId);
+			if (this.engineSessions.length > 0) {
+				const targetId = this.activeEngineSessionId && this.engineSessions.some(s => s.id === this.activeEngineSessionId)
+					? this.activeEngineSessionId
+					: this.engineSessions[0]!.id;
+				this.activateEngineSession(targetId);
+			} else {
+				await this.ensureEngineSession();
 			}
 			this._onDidChangeSession.fire(this.getActiveSessionId());
 			this.persistEngineAwareRoster();
 		} catch {
 			this.listCompleted = false;
+		} finally {
+			this.bindLiveTreeObservationLease();
 		}
 	}
 

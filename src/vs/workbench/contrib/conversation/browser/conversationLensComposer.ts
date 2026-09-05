@@ -161,6 +161,9 @@ export function postBound(host: IConversationLensComposerHost, msg: Conversation
 				? { accepted: true, correlation: { id: `clientTool:${msg.requestId}` } }
 				: { accepted: false, reason: 'no_such_session' });
 		}
+		if (host.stubService.isEngineConnected() && !host.stubService.isEngineSessionReady()) {
+			return Promise.resolve({ accepted: false, reason: 'no_such_session' });
+		}
 		const lease = host.sessionViewLease;
 		if (!lease) {
 			return Promise.resolve({ accepted: false, reason: 'no_such_session' });

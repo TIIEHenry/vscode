@@ -192,6 +192,8 @@ export interface IConversationRosterService {
 	setAutoDriveTaskFixture(sessionId: string, tasks: readonly string[]): void;
 	isEngineConnected(): boolean;
 	setEngineConnected(connected: boolean): void;
+	/** Connected engine roster has a bindable session id (not stub seed / not pending catalog). */
+	isEngineSessionReady(): boolean;
 
 	/**
 	 * Fine-grained frame channel for one session (dev/plans/conversation-stream-timeline.md §3.2).
@@ -584,6 +586,10 @@ export class ConversationStubService extends Disposable implements IConversation
 
 	isEngineConnected(): boolean {
 		return this.engineConnected;
+	}
+
+	isEngineSessionReady(): boolean {
+		return true;
 	}
 
 	setEngineConnected(connected: boolean): void {
