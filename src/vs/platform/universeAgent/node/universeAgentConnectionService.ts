@@ -279,6 +279,8 @@ import type {
 	UniverseAgentReloadRemoteAgentsResult,
 	UniverseAgentCreateRemoteSessionRequest,
 	UniverseAgentCreateRemoteSessionResult,
+	UniverseAgentDestroyRemoteSessionRequest,
+	UniverseAgentDestroyRemoteSessionResult,
 	UniverseAgentGetUploadProgressRequest,
 	UniverseAgentGetUploadProgressResult,
 	UniverseAgentUploadAttachmentResult,
@@ -1545,6 +1547,10 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 
 	async createRemoteSession(request: UniverseAgentCreateRemoteSessionRequest): Promise<UniverseAgentCreateRemoteSessionResult> {
 		return this._withTransport(transport => transport.createRemoteSession(request));
+	}
+
+	async destroyRemoteSession(request: UniverseAgentDestroyRemoteSessionRequest): Promise<UniverseAgentDestroyRemoteSessionResult> {
+		return this._withTransport(transport => transport.destroyRemoteSession(request));
 	}
 
 	async getUploadProgress(request: UniverseAgentGetUploadProgressRequest): Promise<UniverseAgentGetUploadProgressResult> {
