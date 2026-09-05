@@ -49,7 +49,7 @@ import {
 	shouldRefreshAgentTree,
 } from './fileMutationJoin.js';
 import { isAlreadyExistsError } from './grpc/grpcTransport.js';
-import { recoverSessionAfterAlreadyExists } from './sessionCreateRecover.js';
+import { bindResumeSessionFn, callResumeSession, recoverSessionAfterAlreadyExists } from './sessionCreateRecover.js';
 
 type ActiveStream = {
 	readonly attemptId: AttemptId;
@@ -435,20 +435,15 @@ export class SessionViewHost extends Disposable {
 	private async bindEngineSession(localId: string): Promise<string> {
 		const cached = this.engineSessionByLocal.get(localId);
 		if (cached) {
-			if (typeof this.connection.resumeSession !== 'function') {
-				return cached;
-			}
-			const result = await this.connection.resumeSession({ sessionId: cached });
+			const result = await callResumeSession(this.connection, cached);
 			if (result.ok) {
 				return cached;
 			}
 			throw new Error(`Resume bound session ${cached} failed: ${result.message ?? 'ok=false'}`);
 		}
-		if (typeof this.connection.resumeSession === 'function') {
-			const resumed = await this.connection.resumeSession({ sessionId: localId });
-			if (resumed.ok) {
-				return localId;
-			}
+		const resumed = await callResumeSession(this.connection, localId);
+		if (resumed.ok) {
+			return localId;
 		}
 		try {
 			const created = await this.connection.createSession({ title: localId, clientSessionId: localId });
@@ -462,9 +457,7 @@ export class SessionViewHost extends Disposable {
 			}
 			const recovered = await recoverSessionAfterAlreadyExists(
 				() => this.connection.listSessions({}),
-				this.connection.resumeSession
-					? sessionId => this.connection.resumeSession!({ sessionId })
-					: undefined,
+				bindResumeSessionFn(this.connection),
 				localId,
 				localId,
 			);

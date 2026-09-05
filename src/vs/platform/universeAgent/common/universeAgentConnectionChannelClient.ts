@@ -21,6 +21,8 @@ import type {
 	UniverseAgentCapabilitySnapshot,
 	UniverseAgentCapabilitySupport,
 	UniverseAgentConnectionSnapshot,
+	UniverseAgentResumeSessionRequest,
+	UniverseAgentResumeSessionResult,
 	UniverseAgentTransportState,
 } from './universeAgentTypes.js';
 
@@ -90,6 +92,15 @@ export class UniverseAgentConnectionChannelClient extends Disposable {
 
 	requestAgentTreeRefresh(sessionId: string): void {
 		void this.remote.requestAgentTreeRefresh(sessionId);
+	}
+
+	/**
+	 * Required on the desktop facade so SessionViewHost / recover never see
+	 * `typeof resumeSession !== 'function'` and skip SessionService.Resume.
+	 * ProxyChannel.toService always materializes this as an IPC call.
+	 */
+	async resumeSession(request: UniverseAgentResumeSessionRequest): Promise<UniverseAgentResumeSessionResult> {
+		return this.remote.resumeSession!(request);
 	}
 
 	private async hydrate(): Promise<void> {

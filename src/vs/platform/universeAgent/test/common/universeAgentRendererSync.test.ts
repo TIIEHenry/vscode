@@ -193,6 +193,58 @@ suite('universeAgentRendererSync', () => {
 		assert.strictEqual(result.ok, false);
 	});
 
+	test('forwarding proxy does not let an undefined local resumeSession shadow remote', async () => {
+		const resumeCalls: string[] = [];
+		const remote = {
+			async resumeSession(request: { sessionId: string }) {
+				resumeCalls.push(request.sessionId);
+				return { ok: true };
+			},
+		};
+		const local = {
+			resumeSession: undefined as undefined,
+			getCapabilitySnapshot: () => createIdleCapabilitySnapshot(),
+		};
+		const client = createRemoteForwardingProxy(local, remote);
+		assert.strictEqual(typeof client.resumeSession, 'function');
+		assert.deepStrictEqual(await (client as unknown as typeof remote).resumeSession({ sessionId: 'session-100' }), { ok: true });
+		assert.deepStrictEqual(resumeCalls, ['session-100']);
+	});
+
+	test('connection channel client resumeSession is a function and hits IPC', async () => {
+		const snapshot = {
+			transport: 'idle' as const,
+			pairingPending: false,
+			channelAlive: false,
+			sharedFsRootSent: false,
+			capabilities: createIdleCapabilitySnapshot(),
+		};
+		const commands: string[] = [];
+		const channel: IChannel = {
+			call: (command: string, args?: unknown[]) => {
+				commands.push(command);
+				switch (command) {
+					case 'getConnectionSnapshot':
+						return Promise.resolve(snapshot);
+					case 'getConnectionPhase':
+						return Promise.resolve({ kind: 'disconnected' });
+					case 'isAgentTreeFetchFailed':
+						return Promise.resolve(false);
+					case 'resumeSession':
+						return Promise.resolve({ ok: true, message: args?.[0] ? JSON.stringify(args[0]) : '' });
+					default:
+						return Promise.resolve(undefined);
+				}
+			},
+			listen: () => Event.None,
+		};
+		const client = store.add(new UniverseAgentConnectionChannelClient(channel));
+		assert.strictEqual(typeof client.resumeSession, 'function');
+		const result = await client.resumeSession({ sessionId: 'session-100' });
+		assert.strictEqual(result.ok, true);
+		assert.ok(commands.includes('resumeSession'));
+	});
+
 	test('forwarding proxy keeps local sync getters and forwards the rest', async () => {
 		const remote = {
 			getCapabilitySnapshot: async () => ({ providerConfig: undefined }),

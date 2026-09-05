@@ -305,6 +305,42 @@ suite('SessionViewHost engine session bind', () => {
 		assert.strictEqual(connection.createSessionCalls.length, 1);
 	});
 
+	test('connection without resumeSession still Resumes via transport and does not Create', async () => {
+		const connection = new BindConnection();
+		connection.createdEngineSessionIds.add('session-100');
+		const transportResume = connection.resumeSession.bind(connection);
+		Object.defineProperty(connection, 'resumeSession', { configurable: true, value: undefined });
+		(connection as { transport?: { resumeSession: typeof transportResume } }).transport = {
+			resumeSession: transportResume,
+		};
+		assert.strictEqual(typeof connection.resumeSession, 'undefined');
+		const viewHost = store.add(new SessionViewHost(connection, new TestHost(async () => undefined), {
+			orphanTimeoutMs: 0,
+		}));
+		viewHost.onEngineConnectionChanged();
+		viewHost.acquireLease('session-100');
+		const engineId = await viewHost.whenEngineSessionReady('session-100');
+
+		assert.strictEqual(engineId, 'session-100');
+		assert.strictEqual(connection.createSessionCalls.length, 0);
+		assert.deepStrictEqual(connection.resumeSessionCalls, [{ sessionId: 'session-100' }]);
+	});
+
+	test('connection without resumeSession or transport does not fall through to Create', async () => {
+		const connection = new BindConnection();
+		Object.defineProperty(connection, 'resumeSession', { configurable: true, value: undefined });
+		assert.strictEqual(typeof connection.resumeSession, 'undefined');
+		const viewHost = store.add(new SessionViewHost(connection, new TestHost(async () => undefined), {
+			orphanTimeoutMs: 0,
+		}));
+		viewHost.onEngineConnectionChanged();
+		await assert.rejects(
+			() => viewHost.whenEngineSessionReady('session-100'),
+			(error: unknown) => error instanceof Error && /SessionService\.Resume is required/.test(error.message),
+		);
+		assert.strictEqual(connection.createSessionCalls.length, 0);
+	});
+
 	test('Create non-ALREADY_EXISTS errors still throw without List recover', async () => {
 		const connection = new class extends BindConnection {
 			listCalled = false;

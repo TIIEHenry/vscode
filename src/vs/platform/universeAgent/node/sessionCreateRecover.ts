@@ -6,8 +6,48 @@
 import type {
 	UniverseAgentCreateSessionResult,
 	UniverseAgentListSessionsResult,
+	UniverseAgentResumeSessionRequest,
+	UniverseAgentResumeSessionResult,
 } from '../common/universeAgentTypes.js';
 import { isAlreadyExistsError } from './grpc/grpcTransport.js';
+
+export type ResumeSessionFn = (sessionId: string) => Promise<unknown>;
+
+/**
+ * Host / facade that may have dropped the optional `resumeSession` method
+ * (IPC Channel Client, `createRemoteForwardingProxy` undefined own-property).
+ * Bind still Resumes via `transport.resumeSession` when present.
+ */
+export type ResumeSessionHost = {
+	readonly resumeSession?: (request: UniverseAgentResumeSessionRequest) => Promise<UniverseAgentResumeSessionResult>;
+	readonly transport?: {
+		readonly resumeSession?: (request: UniverseAgentResumeSessionRequest) => Promise<UniverseAgentResumeSessionResult>;
+	};
+};
+
+export function resolveResumeSession(
+	host: ResumeSessionHost,
+): (request: UniverseAgentResumeSessionRequest) => Promise<UniverseAgentResumeSessionResult> {
+	if (typeof host.resumeSession === 'function') {
+		return request => host.resumeSession!(request);
+	}
+	const transportResume = host.transport?.resumeSession;
+	if (typeof transportResume === 'function') {
+		return request => transportResume.call(host.transport, request);
+	}
+	throw new Error('SessionService.Resume is required before CreateSession');
+}
+
+export async function callResumeSession(
+	host: ResumeSessionHost,
+	sessionId: string,
+): Promise<UniverseAgentResumeSessionResult> {
+	return resolveResumeSession(host)({ sessionId });
+}
+
+export function bindResumeSessionFn(host: ResumeSessionHost): ResumeSessionFn {
+	return sessionId => callResumeSession(host, sessionId);
+}
 
 /**
  * Every CreateSession entry (connection service / grpc client / host) must

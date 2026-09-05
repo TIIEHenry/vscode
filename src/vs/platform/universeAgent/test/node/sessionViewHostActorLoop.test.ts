@@ -78,6 +78,7 @@ class TestConnection {
 	async disconnect() { this.connected = false; }
 	async listSessions() { return { sessions: [] }; }
 	async createSession(request: { title?: string } = {}) { return { sessionId: request.title || 's' }; }
+	async resumeSession() { return { ok: false as const, message: 'test' }; }
 	async deleteSession() { }
 	async getHistory() { return { envelopes: [] }; }
 	subscribeSessionEventStream(

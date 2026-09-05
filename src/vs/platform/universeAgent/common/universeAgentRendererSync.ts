@@ -119,10 +119,21 @@ export function createRemoteForwardingProxy<T extends object>(local: T, remote: 
 			}
 			if (prop in target) {
 				const value = Reflect.get(target, prop, receiver);
-				return typeof value === 'function' ? value.bind(target) : value;
+				if (typeof value === 'function') {
+					return value.bind(target);
+				}
+				if (value !== undefined) {
+					return value;
+				}
 			}
-			const value = Reflect.get(remote, prop);
-			return typeof value === 'function' ? value.bind(remote) : value;
+			const remoteValue = Reflect.get(remote, prop);
+			if (typeof remoteValue === 'function') {
+				return remoteValue.bind(remote);
+			}
+			if (prop in target) {
+				return Reflect.get(target, prop, receiver);
+			}
+			return remoteValue;
 		},
 	});
 }

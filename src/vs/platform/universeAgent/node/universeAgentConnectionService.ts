@@ -933,7 +933,12 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 	}
 
 	async resumeSession(request: UniverseAgentResumeSessionRequest): Promise<UniverseAgentResumeSessionResult> {
-		return this._withTransport(transport => transport.resumeSession(request));
+		return this._withTransport(transport => {
+			if (typeof transport.resumeSession !== 'function') {
+				throw new Error('SessionService.Resume is required before CreateSession');
+			}
+			return transport.resumeSession(request);
+		});
 	}
 
 	async prewarmSessions(request: UniverseAgentPrewarmSessionsRequest): Promise<UniverseAgentPrewarmSessionsResult> {

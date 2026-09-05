@@ -6,7 +6,11 @@
 import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import { GrpcStatusCode, UniverseAgentTransportError } from '../../node/grpc/grpcTransport.js';
-import { createSessionRecoveringAlreadyExists, runCreateSessionSingleFlight } from '../../node/sessionCreateRecover.js';
+import {
+	callResumeSession,
+	createSessionRecoveringAlreadyExists,
+	runCreateSessionSingleFlight,
+} from '../../node/sessionCreateRecover.js';
 
 suite('createSession ALREADY_EXISTS recover', () => {
 
@@ -174,6 +178,37 @@ suite('createSession ALREADY_EXISTS recover', () => {
 			undefined,
 		);
 		assert.strictEqual(result.sessionId, 'eng-new');
+	});
+});
+
+suite('callResumeSession', () => {
+
+	ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('uses transport when connection.resumeSession is missing', async () => {
+		const resumeCalls: string[] = [];
+		const host = {
+			resumeSession: undefined as undefined,
+			transport: {
+				async resumeSession(request: { sessionId: string }) {
+					resumeCalls.push(request.sessionId);
+					return { ok: true as const };
+				},
+			},
+		};
+		const result = await callResumeSession(host, 'session-100');
+		assert.deepStrictEqual(result, { ok: true });
+		assert.deepStrictEqual(resumeCalls, ['session-100']);
+	});
+
+	test('throws instead of skipping when Resume is absent', async () => {
+		try {
+			await callResumeSession({}, 'session-100');
+			assert.fail('expected Resume to be required');
+		} catch (error) {
+			assert.ok(error instanceof Error);
+			assert.ok(error.message.includes('SessionService.Resume is required'));
+		}
 	});
 });
 
