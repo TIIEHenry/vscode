@@ -263,6 +263,8 @@ import type {
 	UniverseAgentListDevicesResult,
 	UniverseAgentPairApproveRequest,
 	UniverseAgentPairApproveResult,
+	UniverseAgentRevokeRequest,
+	UniverseAgentRevokeResult,
 	UniverseAgentListTriggersRequest,
 	UniverseAgentListTriggersResult,
 	UniverseAgentUpsertTriggerRequest,
@@ -762,6 +764,8 @@ export interface IUniverseAgentGrpcTransport {
 	listDevices(): Promise<UniverseAgentListDevicesResult>;
 	/** DeviceService.PairApprove unary (snake_case `pairing_code`/`display_name`/`role`). Empty ids sent as-is. */
 	pairApprove(request: UniverseAgentPairApproveRequest): Promise<UniverseAgentPairApproveResult>;
+	/** DeviceService.Revoke unary (snake_case `device_id`). Empty ids sent as-is. */
+	revoke(request: UniverseAgentRevokeRequest): Promise<UniverseAgentRevokeResult>;
 
 	/** TriggerService.ListTriggers unary (snake_case `scope`/`scope_id`/`type_filter`). Empty ids sent as-is. */
 	listTriggers(request: UniverseAgentListTriggersRequest): Promise<UniverseAgentListTriggersResult>;
@@ -1018,6 +1022,7 @@ export const UniverseAgentGrpcServices = {
 		service: 'universeagent.device.v1.DeviceService',
 		ListDevices: 'ListDevices',
 		PairApprove: 'PairApprove',
+		Revoke: 'Revoke',
 	},
 	Trigger: {
 		service: 'universeagent.trigger.v1.TriggerService',

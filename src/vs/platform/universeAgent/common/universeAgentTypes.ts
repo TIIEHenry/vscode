@@ -2628,6 +2628,22 @@ export interface UniverseAgentPairApproveResult {
 }
 
 /**
+ * DeviceService.Revoke — proto `RevokeDeviceRequest` /
+ * `RevokeDeviceResponse` only. Empty `device_id` pass through as-is.
+ * Empty `message` mapped as-is. `success` false mapped as-is.
+ * ≠ ListDevices / PairApprove / PairReject / RotateToken / ListPending /
+ * Hub revokeDevice.
+ */
+export interface UniverseAgentRevokeRequest {
+	readonly deviceId: string;
+}
+
+export interface UniverseAgentRevokeResult {
+	readonly success: boolean;
+	readonly message: string;
+}
+
+/**
  * TriggerService.ListTriggers — proto `ListTriggersRequest` /
  * `ListTriggersResponse` + `TriggerDto` / `DeliveryTargetDto` only.
  * Empty `scope` / `scope_id` / `type_filter` pass through as-is.
