@@ -314,6 +314,8 @@ import type {
 	UniverseAgentMemoryRebuildRequest,
 	UniverseAgentMemoryRebuildEvent,
 	UniverseAgentMemoryRebuildStream,
+	UniverseAgentRevertMemoryRequest,
+	UniverseAgentRevertMemoryResult,
 	UniverseAgentListModelsResult,
 	UniverseAgentGetConfigRequest,
 	UniverseAgentGetConfigResult,
@@ -3075,6 +3077,20 @@ function mapMemoryRebuildEvent(wire: MemoryRebuildEventWire): UniverseAgentMemor
 	};
 }
 
+interface MemoryRevertResponseWire {
+	success?: boolean;
+	message?: string;
+	reverted_to_version?: number | string;
+}
+
+function mapMemoryRevertResponse(wire: MemoryRevertResponseWire): UniverseAgentRevertMemoryResult {
+	return {
+		success: wire.success === true,
+		message: wire.message ?? '',
+		revertedToVersion: requiredInt64(wire.reverted_to_version),
+	};
+}
+
 interface ListModelsResponseWire {
 	models?: Array<{
 		id?: string;
@@ -5219,6 +5235,21 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			scope: request.scope,
 			dry_run: request.dryRun,
 		}, wire => onResponse(mapMemoryRebuildEvent(wire)), onClosed);
+	}
+
+	async revertMemory(request: UniverseAgentRevertMemoryRequest): Promise<UniverseAgentRevertMemoryResult> {
+		const unary = makeUnaryClient<Record<string, unknown>, MemoryRevertResponseWire>(
+			this._channel,
+			UniverseAgentGrpcServices.Memory.service,
+			UniverseAgentGrpcServices.Memory.Revert,
+		);
+		const wire = await unary({
+			scope: request.scope,
+			category: request.category,
+			filename: request.filename,
+			target_version: request.targetVersion,
+		});
+		return mapMemoryRevertResponse(wire);
 	}
 
 	async setPermissionPolicy(request: UniverseAgentSetPermissionPolicyRequest): Promise<UniverseAgentSetPermissionPolicyResult> {

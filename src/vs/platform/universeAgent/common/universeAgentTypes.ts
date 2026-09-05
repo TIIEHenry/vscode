@@ -2333,6 +2333,27 @@ export interface UniverseAgentMemoryRebuildStream {
 }
 
 /**
+ * MemoryService.Revert — proto `MemoryRevertRequest` / `MemoryRevertResponse` only.
+ * Empty `scope` / `category` / `filename` pass through as-is.
+ * `target_version` 0 sent as-is. Empty `message` mapped as-is.
+ * `reverted_to_version` 0 mapped as-is.
+ * ≠ Save / Search / SearchDeep / Read / List / Delete / Reflect / Rebuild /
+ * History.
+ */
+export interface UniverseAgentRevertMemoryRequest {
+	readonly scope: string;
+	readonly category: string;
+	readonly filename: string;
+	readonly targetVersion: number;
+}
+
+export interface UniverseAgentRevertMemoryResult {
+	readonly success: boolean;
+	readonly message: string;
+	readonly revertedToVersion: number;
+}
+
+/**
  * ConfigService.SetPermissionPolicy — session/tool policy write
  * (≠ SwitchModel / ListModels / Get / Set / GetModelPreferences /
  * SetModelPreferences / SetPermissionMode).

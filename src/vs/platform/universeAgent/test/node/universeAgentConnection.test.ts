@@ -220,6 +220,8 @@ import type {
 	UniverseAgentReflectMemoryResult,
 	UniverseAgentMemoryRebuildRequest,
 	UniverseAgentMemoryRebuildEvent,
+	UniverseAgentRevertMemoryRequest,
+	UniverseAgentRevertMemoryResult,
 	UniverseAgentGetHistoryRequest,
 	UniverseAgentGetHistoryResult,
 	UniverseAgentListSessionsRequest,
@@ -1614,6 +1616,18 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 		this._rebuildMemoryGate?.finish(cause);
 	}
 
+	readonly revertMemoryCalls: UniverseAgentRevertMemoryRequest[] = [];
+	revertMemoryResult: UniverseAgentRevertMemoryResult = {
+		success: false,
+		message: '',
+		revertedToVersion: 0,
+	};
+
+	async revertMemory(request: UniverseAgentRevertMemoryRequest): Promise<UniverseAgentRevertMemoryResult> {
+		this.revertMemoryCalls.push(request);
+		return this.revertMemoryResult;
+	}
+
 	async listModels() {
 		return { models: [] };
 	}
@@ -2089,6 +2103,11 @@ suite('UniverseAgentConnectionService', () => {
 
 	test('UniverseAgentGrpcServices lists Memory.Rebuild', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Memory.Rebuild, 'Rebuild');
+		assert.strictEqual(UniverseAgentGrpcServices.Memory.service, 'universeagent.memory.v1.MemoryService');
+	});
+
+	test('UniverseAgentGrpcServices lists Memory.Revert', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.Memory.Revert, 'Revert');
 		assert.strictEqual(UniverseAgentGrpcServices.Memory.service, 'universeagent.memory.v1.MemoryService');
 	});
 
@@ -5380,6 +5399,50 @@ suite('UniverseAgentConnectionService', () => {
 		assert.deepStrictEqual(transport.reflectMemoryCalls[2]?.categories, []);
 		assert.deepStrictEqual(emptyLists.diagnoses, []);
 		assert.strictEqual(emptyLists.summary, '');
+		service.dispose();
+	});
+
+	test('revertMemory forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.revertMemoryResult = {
+			success: true,
+			message: 'reverted',
+			revertedToVersion: 3,
+		};
+		const request = {
+			scope: 'project',
+			category: 'notes',
+			filename: 'note.md',
+			targetVersion: 3,
+		};
+		const result = await service.revertMemory(request);
+		assert.deepStrictEqual(transport.revertMemoryCalls, [request]);
+		assert.deepStrictEqual(result, transport.revertMemoryResult);
+
+		transport.revertMemoryResult = {
+			success: false,
+			message: '',
+			revertedToVersion: 0,
+		};
+		const emptyRequest = {
+			scope: '',
+			category: '',
+			filename: '',
+			targetVersion: 0,
+		};
+		const empty = await service.revertMemory(emptyRequest);
+		assert.strictEqual(transport.revertMemoryCalls[1]?.scope, '');
+		assert.strictEqual(transport.revertMemoryCalls[1]?.category, '');
+		assert.strictEqual(transport.revertMemoryCalls[1]?.filename, '');
+		assert.strictEqual(transport.revertMemoryCalls[1]?.targetVersion, 0);
+		assert.strictEqual(empty.success, false);
+		assert.strictEqual(empty.message, '');
+		assert.strictEqual(empty.revertedToVersion, 0);
 		service.dispose();
 	});
 
