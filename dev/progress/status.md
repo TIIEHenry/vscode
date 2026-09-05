@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-06
-summary: "握手改 protobuf 后 GetAuthNonce/Connect 打到钉死引擎；SAS 确认框未弹；剩余 onDidApplyFrame / U2 未开"
+summary: "握手已 protobuf；B 槽改首条消息/attach/HistoryFill/send 为 proto bytes；其余 JSON RPC 见 D24"
 ---
 
 # Development Progress
@@ -48,6 +48,8 @@ summary: "握手改 protobuf 后 GetAuthNonce/Connect 打到钉死引擎；SAS �
 ### 进行中
 
 HistoryFill 已合入 merge。剩余：宿主全局 `onDidApplyFrame` 整刀删、断连列顶/Send、`heartbeat_ack` 行为测。U1 已合；**U2 未开**。
+
+**B 槽 first-send bytes**：`Session.Create` / `Session.Resume` / `Session.GetHistory` / `Session.SessionEventStream`（bidi + protocol 2.0）/ `Agent.Chat` 改 proto3 bytes。`ChatSync` 未改（Gateway，不在首条链）。其余 JSON RPC → [D24](deferred-gaps.md)。
 
 **D 槽 pairing IPC**：`connectProfile` 进入 pairing 先返回 `{ok, pairingPending, sasCode|recoverTrust}`（Connect 超时走 recoverTrust）；桌面 capability 剥离 Web stub reason；probe 的 `pairing_required` 改为「走 Connect 配对」。E2E 仍待 A 合入确认框。
 

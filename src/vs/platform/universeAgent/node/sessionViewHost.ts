@@ -145,6 +145,13 @@ function chatPayloadFromWrite(payload: unknown): Record<string, unknown> {
 	return { session_input: payload };
 }
 
+function chatWritePayload(payload: unknown, correlation: CorrelationRef): Record<string, unknown> {
+	return {
+		...chatPayloadFromWrite(payload),
+		messageId: String(correlation),
+	};
+}
+
 /**
  * Node-side session-core host: SessionEventStream + Actor + lease sinks (S4/S5).
  */
@@ -1062,9 +1069,10 @@ export class SessionViewHost extends Disposable {
 			return;
 		}
 		const resident = this.chatStreams.get(sessionId);
+		const wirePayload = chatWritePayload(payload, correlation);
 		if (resident && resident.chatAttemptId === chatAttemptId) {
 			try {
-				resident.write(chatPayloadFromWrite(payload));
+				resident.write(wirePayload);
 				mark('written');
 			} catch {
 				mark('failed', 'Chat write failed');
@@ -1074,7 +1082,7 @@ export class SessionViewHost extends Disposable {
 		try {
 			await this.connection.chat({
 				sessionId,
-				payload: chatPayloadFromWrite(payload),
+				payload: wirePayload,
 			}, () => {
 				mark('written');
 			});

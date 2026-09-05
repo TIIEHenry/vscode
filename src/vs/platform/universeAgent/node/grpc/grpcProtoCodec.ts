@@ -73,6 +73,16 @@ export function encodeMessageField(field: number, value: Uint8Array | undefined)
 	return encodeBytesField(field, value);
 }
 
+/** proto3 oneof presence: empty submessage is still a length-delimited field. */
+export function encodePresentMessageField(field: number, value: Uint8Array | undefined): Buffer {
+	const payload = value ?? new Uint8Array(0);
+	return Buffer.concat([
+		encodeVarint((field << 3) | WIRE_LEN),
+		encodeVarint(payload.length),
+		Buffer.from(payload),
+	]);
+}
+
 export function encodeInt32Field(field: number, value: number | undefined): Buffer {
 	if (!value) {
 		return Buffer.alloc(0);

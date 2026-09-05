@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-06
-summary: "延期缺口 SSOT；D16 identity 已绿、Lens+identity 全套共享 harness 已接到 conversationLens.test.ts；断言仍红；进口界+deleteTurn 已隔离；D19/D21 已闭；D22 F3；D15 欠 W1；D23 confirmPairing grant_pending"
+summary: "延期缺口 SSOT；D16 identity 已绿、Lens+identity 全套共享 harness 已接到 conversationLens.test.ts；断言仍红；进口界+deleteTurn 已隔离；D19/D21 已闭；D22 F3；D15 欠 W1；D23 confirmPairing grant_pending；D24 其余 JSON RPC"
 ---
 
 # Deferred Gaps
@@ -38,6 +38,7 @@ summary: "延期缺口 SSOT；D16 identity 已绿、Lens+identity 全套共享 h
 | D21 | P2 | **Host 暴露 Agent 树首拉失败态**（GC-5b；对齐 [navigator-engine-segments §3](../plans/navigator-engine-segments.md)）：`IUniverseAgentConnection.isAgentTreeFetchFailed()` + `onDidChangeConnection`；共用空态失败 note「读取 Agent 树失败」优先于「正在读取」；Hierarchy / Team 同字串；Agents 不再用 `transport === 'failed'` 作树失败轴 | — | host 经 connection 提供 `treeFetchFailed`；两叶共用；单测：失败 ≠ 「没有团队」/ 「正在读取」 | M7 navigator | closed |
 | D22 | P3 | **同窗口同会话多 lease 渲染端共享**（[session-view-frame-fanout](../plans/session-view-frame-fanout.md) F3）：F1 已按 lease 扇出；同窗多 UI 仍各持宿主 lease | F1/F2 Exit 不含；须收口 `post` / `requestDetail` | 同窗同 session 共用一个宿主 lease；第二 lease 不二次 `acquireLease` | M7 conversation | open |
 | D23 | P2 | **`confirmPairing` 在 `grant_pending` 返回 `{ok, pairingPending}` 且无 `sasCode`/`recoverTrust`**（`universeAgentConnectionService.ts`）。Channel Client 只 `finalize` `connectProfile`，不包 `confirmPairing`。引擎仍等 grant 时二次 IPC 形状与 B 合同不一致 | 本轮 Connect 先返回已够 E2E 再跑；grant_pending 是确认后的第二相位 | `confirmPairing` 对 grant_pending 也走 finalize 或明确 `recoverTrust`/`sasCode`；单测锁二次返回 | platform / universeAgent | open |
+| D24 | P2 | **其余 unary/stream 仍 `makeUnaryClient` + `JSON.stringify`**（List/Info/ChatSync/clipboard/mcp/memory/queue 等）。`SessionEventStream` 握手未写 `client_id`、无 60s heartbeat uplink。`CreateSessionRequest` proto 无 `title`（本仓仍只传 `model`）。`Agent.Chat` 响应只解 `session_id`/`agent_id`，未 demux ChatResponse oneof | 本轮只修接通后首条消息 / attach / HistoryFill / send；ChatSync 是 Gateway 专用，不在这条链 | 按实际打到引擎的 method 再改 bytes；E2E 无 UNKNOWN 后按需扩 List/Info | platform / universeAgent | open |
 | D19 | P2 | **L1 源码复核残留**（[a11y-rwd-l1.md](a11y-rwd-l1.md)）：(1) Engine/Connection **无动画节点**，不挂 `.ua-motion`；(2) T1 HC 已覆盖 Preferences pane 与 Visualize overlay；(3) Connection 300px 已有分区导航 + Back。**(4) Web 省略门控与点名文案已在 E2-1 收口** | 三项源码残留已收；手测/axe 仍归 D17 | 手测/axe 记 D17，不重开本行 | M7 a11y | closed |
 | D20 | P2 | **CS-6 Settings 默认窗 300px 目视**：`uaClientSettingsChrome.css` 已保证 narrow-width 下搜索框与 group title 不 `display:none` 且可省略；`settingsUaToc` 有合同测。本机隔离 launch 因 `@grpc/grpc-js` 缺失未能开窗目视 | 代码完成线不阻塞；活窗目视仍欠 | 隔离 profile 打开默认窗 Settings，缩到约 300px，确认搜索框与 Client 组标题仍可见、无 emptyCopy；失败记入 D17 | M7 verification | open |
 

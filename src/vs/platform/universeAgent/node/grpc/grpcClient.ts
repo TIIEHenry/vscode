@@ -423,7 +423,6 @@ import {
 	mapGetCommandDefResponse,
 	mapGetFileInfoResponse,
 	mapGetGlobalUsageResponse,
-	mapGetHistoryResponse,
 	mapGetMcpServerStatusesResponse,
 	mapGetMcpServerToolsResponse,
 	mapGetRemoteSessionHistoryResponse,
@@ -485,7 +484,6 @@ import {
 	mapResolveTurnResponse,
 	mapRestoreSnapshotResponse,
 	mapResumeRemoteSessionResponse,
-	mapResumeSessionResponse,
 	mapRevokeResponse,
 	mapRotateTokenResponse,
 	mapSaveAgentProfileResponse,
@@ -519,8 +517,10 @@ import {
 	makeServerStreamClient,
 	makeClientStreamClient,
 	makeResidentBidiStreamClient,
+	makeResidentBidiBytesHandleClient,
 	makeResidentBidiHandleClient,
 	makeBidiStreamClient,
+	makeBidiBytesClient,
 	grpcErrorCode,
 } from './grpcClientCalls.js';
 import {
@@ -529,6 +529,18 @@ import {
 	encodeAuthNonceRequest,
 	encodeDeviceAuthConnectRequest,
 } from './grpcHandshakeWire.js';
+import {
+	decodeChatResponse,
+	decodeCreateSessionResponse,
+	decodeGetHistoryResponse,
+	decodeResumeSessionResponse,
+	decodeSessionStreamEvent,
+	encodeChatRequest,
+	encodeCreateSessionRequest,
+	encodeGetHistoryRequest,
+	encodeResumeSessionRequest,
+	encodeSessionStreamHandshake,
+} from './grpcSessionAttachWire.js';
 import type {
 	AddMcpServerResponseWire,
 	AgentMergeResponseWire,
@@ -547,7 +559,6 @@ import type {
 	ContextVariableListResponseWire,
 	ContextVariableReadResponseWire,
 	CreateRemoteSessionResponseWire,
-	CreateSessionResponseWire,
 	CreateSnapshotResponseWire,
 	DeleteAgentProfileResponseWire,
 	DeleteRemoteAgentConfigResponseWire,
@@ -565,7 +576,6 @@ import type {
 	GetCommandDefResponseWire,
 	GetFileInfoResponseWire,
 	GetGlobalUsageResponseWire,
-	GetHistoryResponseWire,
 	GetMcpServerStatusesResponseWire,
 	GetMcpServerToolsResponseWire,
 	GetRemoteSessionHistoryResponseWire,
@@ -628,7 +638,6 @@ import type {
 	ResolveTurnResponseWire,
 	RestoreSnapshotResponseWire,
 	ResumeRemoteSessionResponseWire,
-	ResumeSessionResponseWire,
 	RevokeDeviceResponseWire,
 	RotateTokenResponseWire,
 	SaveAgentProfileResponseWire,
@@ -1270,16 +1279,13 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 	}
 
 	async createSession(request: UniverseAgentCreateSessionRequest): Promise<UniverseAgentCreateSessionResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, CreateSessionResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Session.service,
 			UniverseAgentGrpcServices.Session.Create,
+			decodeCreateSessionResponse,
 		);
-		const wire = await unary({
-			title: request.title,
-			model: request.model,
-		});
-		return { sessionId: wire.session_id ?? '' };
+		return unary(encodeCreateSessionRequest(request));
 	}
 
 	async deleteSession(request: UniverseAgentDeleteSessionRequest): Promise<void> {
@@ -1304,15 +1310,13 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 	}
 
 	async resumeSession(request: UniverseAgentResumeSessionRequest): Promise<UniverseAgentResumeSessionResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, ResumeSessionResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Session.service,
 			UniverseAgentGrpcServices.Session.Resume,
+			decodeResumeSessionResponse,
 		);
-		const wire = await unary({
-			session_id: request.sessionId,
-		});
-		return mapResumeSessionResponse(wire);
+		return unary(encodeResumeSessionRequest(request));
 	}
 
 	async prewarmSessions(request: UniverseAgentPrewarmSessionsRequest): Promise<UniverseAgentPrewarmSessionsResult> {
@@ -2379,17 +2383,13 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 	}
 
 	async getHistory(request: UniverseAgentGetHistoryRequest): Promise<UniverseAgentGetHistoryResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, GetHistoryResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Session.service,
 			UniverseAgentGrpcServices.Session.GetHistory,
+			decodeGetHistoryResponse,
 		);
-		const wire = await unary({
-			session_id: request.sessionId,
-			cursor_seq: request.cursorSeq,
-			limit: request.limit,
-		});
-		return mapGetHistoryResponse(wire);
+		return unary(encodeGetHistoryRequest(request));
 	}
 
 	subscribeSessionEventStream(
@@ -2397,21 +2397,25 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 		listener: (event: UniverseAgentSessionEvent) => void,
 		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
 	): { dispose(): void } {
-		const stream = makeServerStreamClient<Record<string, unknown>, UniverseAgentSessionEvent>(
+		const open = makeResidentBidiBytesHandleClient(
 			this._channel,
 			UniverseAgentGrpcServices.Session.service,
 			UniverseAgentGrpcServices.Session.SessionEventStream,
+			decodeSessionStreamEvent,
 		);
-		return stream({ session_id: sessionId }, listener, onClosed);
+		const handle = open(listener, onClosed);
+		handle.write(encodeSessionStreamHandshake(sessionId));
+		return { dispose: () => handle.dispose() };
 	}
 
 	async chat(request: UniverseAgentChatRequest, onResponse: (response: UniverseAgentChatResponse) => void): Promise<void> {
-		const bidi = makeBidiStreamClient<Record<string, unknown>, UniverseAgentChatResponse>(
+		const bidi = makeBidiBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Agent.service,
 			UniverseAgentGrpcServices.Agent.Chat,
+			decodeChatResponse,
 		);
-		await bidi({ session_id: request.sessionId, payload: request.payload }, onResponse);
+		await bidi(encodeChatRequest(request.sessionId, request.payload), onResponse);
 	}
 
 	async chatSync(request: UniverseAgentChatSyncRequest): Promise<UniverseAgentChatSyncResult> {
@@ -2439,12 +2443,21 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 		onResponse: (response: UniverseAgentChatResponse) => void,
 		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
 	): UniverseAgentChatStream {
-		const open = makeResidentBidiStreamClient<UniverseAgentChatResponse>(
+		const open = makeResidentBidiBytesHandleClient(
 			this._channel,
 			UniverseAgentGrpcServices.Agent.service,
 			UniverseAgentGrpcServices.Agent.Chat,
+			decodeChatResponse,
 		);
-		return open(sessionId, onResponse, onClosed);
+		const handle = open(onResponse, onClosed);
+		return {
+			write(payload: unknown): void {
+				handle.write(encodeChatRequest(sessionId, payload));
+			},
+			dispose(): void {
+				handle.dispose();
+			},
+		};
 	}
 
 	openContinuationStream(
