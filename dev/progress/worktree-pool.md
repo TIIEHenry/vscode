@@ -5,7 +5,7 @@ status: accepted
 phase: M7
 created: 2026-08-30
 updated: 2026-09-05
-summary: "仓外 vscode-WorkTrees；基线 agent-ide（非 origin/main）；merge + A–D @ a48a0c53"
+summary: "仓外 vscode-WorkTrees；基线 agent-ide（非 origin/main）；merge + A–D @ c52f9661d71"
 ---
 
 # Loop 并行工位池（本仓）
@@ -23,19 +23,19 @@ summary: "仓外 vscode-WorkTrees；基线 agent-ide（非 origin/main）；merg
 | 主仓 | `/home/clarence/Projects/Agents/vscode` |
 | 工位根 `$WT_ROOT` | `/home/clarence/Projects/Agents/vscode-WorkTrees` |
 | 集成分支（当前） | **`agent-ide`**（merge 槽对齐此分支；非上游 `main`） |
-| 集成本次 HEAD | `a48a0c532cc`（`loop/merge` tip · 2026-09-05） |
+| 集成本次 HEAD | `c52f9661d71`（`loop/merge` tip · 2026-09-05；合入 `loop/D` HistoryFill + `agent-ide` catalog/chrome） |
 | 工位池 compile | 上次 PASS @ `c104d0af`（2026-09-03，Node v24.18.0）；tip 前进后待复跑 |
 
 ## 槽位表（2026-09-05 · 与 merge 同 tip）
 
 | 槽 | 路径 | 分支 | tip | 状态 |
 |:---|:-----|:-----|:-----|:-----|
-| merge | `vscode-WorkTrees/merge` | `loop/merge` | `a48a0c532cc` | idle |
-| A | `vscode-WorkTrees/A` | `loop/A` | `a48a0c532cc` | idle |
-| B | `vscode-WorkTrees/B` | `loop/B` | `a48a0c532cc` | idle |
-| C | `vscode-WorkTrees/C` | `loop/C` | `a48a0c532cc` | idle |
-| D | `vscode-WorkTrees/D` | `loop/D` | `a48a0c532cc` | idle |
-| edit | `Projects/Agents/vscode` | `agent-ide` | `a48a0c532cc` | idle |
+| merge | `vscode-WorkTrees/merge` | `loop/merge` | `c52f9661d71` | parked（未 push `agent-ide`） |
+| A | `vscode-WorkTrees/A` | `loop/A` | `c52f9661d71` | idle |
+| B | `vscode-WorkTrees/B` | `loop/B` | `c52f9661d71` | idle |
+| C | `vscode-WorkTrees/C` | `loop/C` | `c52f9661d71` | idle |
+| D | `vscode-WorkTrees/D` | `loop/D` | `c52f9661d71` | idle |
+| edit | `Projects/Agents/vscode` | `agent-ide` | `48dc0c5c95e` | 人类工位；请自行 ff 到 merge |
 
 并行归属见 [status.md](status.md)。M7 看板已归档：[m7-ui-completion](../parallel/archive/m7-ui-completion.md)。
 

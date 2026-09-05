@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-05
-summary: "合入 loop/D HistoryFill + agent-ide catalog/chrome；剩余 onDidApplyFrame / 断连列顶 / heartbeat_ack；U2 未开"
+summary: "merge tip c52f9661d71（HistoryFill + catalog/chrome）；剩余 onDidApplyFrame / 断连列顶 / heartbeat_ack；U2 未开"
 ---
 
 # Development Progress
@@ -13,7 +13,7 @@ summary: "合入 loop/D HistoryFill + agent-ide catalog/chrome；剩余 onDidApp
 
 ## Current Session
 
-### 已合入（`loop/merge` tip `40d61319677`）
+### 已合入（`loop/merge` tip `c52f9661d71`）
 
 | 切片 | 提交 / 落点 |
 |:-----|:------------|
@@ -47,14 +47,14 @@ HistoryFill 已合入 merge。剩余：宿主全局 `onDidApplyFrame` 整刀删�
 
 ## 工位表（与 `git worktree list` 对照 · 2026-09-05）
 
-| 槽 | 路径 | 分支 | tip |
-|----|------|------|-----|
-| merge | `vscode-WorkTrees/merge` | `loop/merge` | `40d61319677` |
-| A | `vscode-WorkTrees/A` | `loop/A` | `40d61319677` |
-| B | `vscode-WorkTrees/B` | `loop/B` | `40d61319677` |
-| C | `vscode-WorkTrees/C` | `loop/C` | `40d61319677` |
-| D | `vscode-WorkTrees/D` | `loop/D` | `40d61319677` |
-| edit | `Projects/Agents/vscode` | `agent-ide` | `40d61319677` |
+| 槽 | 路径 | 分支 | tip | 状态 |
+|----|------|------|-----|:-----|
+| merge | `vscode-WorkTrees/merge` | `loop/merge` | `c52f9661d71` | parked（未 push） |
+| A | `vscode-WorkTrees/A` | `loop/A` | `c52f9661d71` | idle |
+| B | `vscode-WorkTrees/B` | `loop/B` | `c52f9661d71` | idle |
+| C | `vscode-WorkTrees/C` | `loop/C` | `c52f9661d71` | idle |
+| D | `vscode-WorkTrees/D` | `loop/D` | `c52f9661d71` | idle |
+| edit | `Projects/Agents/vscode` | `agent-ide` | `48dc0c5c95e` | 请人类自行 `git merge --ff-only loop/merge` |
 
 ## Blockers
 
