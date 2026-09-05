@@ -932,10 +932,10 @@ export interface IUniverseAgentGrpcTransport {
 	teamInfo(sessionId: string, agentId: string, teamId: number): Promise<UniverseAgentTeamInfo | undefined>;
 }
 
-/** Service / method paths aligned with UniverseAgent grpc-api proto package names. */
+/** Service / method paths: UA grpc-api `package agentservice` + service name. */
 export const UniverseAgentGrpcServices = {
 	System: {
-		service: 'universeagent.system.v1.SystemService',
+		service: 'agentservice.SystemService',
 		Connect: 'Connect',
 		GetAuthNonce: 'GetAuthNonce',
 		HealthCheck: 'HealthCheck',
@@ -943,7 +943,7 @@ export const UniverseAgentGrpcServices = {
 		Shutdown: 'Shutdown',
 	},
 	Session: {
-		service: 'universeagent.session.v1.SessionService',
+		service: 'agentservice.SessionService',
 		List: 'List',
 		Create: 'Create',
 		Delete: 'Delete',
@@ -960,7 +960,7 @@ export const UniverseAgentGrpcServices = {
 		SessionEventStream: 'SessionEventStream',
 	},
 	Permission: {
-		service: 'universeagent.session.v1.PermissionService',
+		service: 'agentservice.PermissionService',
 		SetSessionGoal: 'SetSessionGoal',
 		CancelSessionGoal: 'CancelSessionGoal',
 		Respond: 'Respond',
@@ -970,7 +970,7 @@ export const UniverseAgentGrpcServices = {
 		SetPermissionMode: 'SetPermissionMode',
 	},
 	Agent: {
-		service: 'universeagent.agent.v1.AgentService',
+		service: 'agentservice.AgentService',
 		Chat: 'Chat',
 		ChatSync: 'ChatSync',
 		SyncInputDelivery: 'SyncInputDelivery',
@@ -1040,7 +1040,7 @@ export const UniverseAgentGrpcServices = {
 		SubscribeToolDetail: 'SubscribeToolDetail',
 	},
 	Mcp: {
-		service: 'universeagent.mcp.v1.McpService',
+		service: 'agentservice.McpService',
 		ListMcpServers: 'ListMcpServers',
 		GetMcpServerStatuses: 'GetMcpServerStatuses',
 		GetMcpServerTools: 'GetMcpServerTools',
@@ -1050,7 +1050,7 @@ export const UniverseAgentGrpcServices = {
 		RemoveMcpServer: 'RemoveMcpServer',
 	},
 	Plugin: {
-		service: 'universeagent.plugin.v1.PluginService',
+		service: 'agentservice.PluginService',
 		List: 'List',
 		Info: 'Info',
 		Enable: 'Enable',
@@ -1059,7 +1059,7 @@ export const UniverseAgentGrpcServices = {
 		ScanNew: 'ScanNew',
 	},
 	Config: {
-		service: 'universeagent.config.v1.ConfigService',
+		service: 'agentservice.ConfigService',
 		Get: 'Get',
 		SetPermissionPolicy: 'SetPermissionPolicy',
 		GetModelPreferences: 'GetModelPreferences',
@@ -1071,7 +1071,7 @@ export const UniverseAgentGrpcServices = {
 		Watch: 'Watch',
 	},
 	Team: {
-		service: 'universeagent.team.v1.TeamService',
+		service: 'agentservice.TeamService',
 		MemberStatus: 'MemberStatus',
 		TaskList: 'TaskList',
 		TaskUpdate: 'TaskUpdate',
@@ -1084,7 +1084,7 @@ export const UniverseAgentGrpcServices = {
 		TeamInfo: 'TeamInfo',
 	},
 	Tool: {
-		service: 'universeagent.tool.v1.ToolService',
+		service: 'agentservice.ToolService',
 		ListSkills: 'ListSkills',
 		SkillInfo: 'SkillInfo',
 		SetSkillEnabled: 'SetSkillEnabled',
@@ -1095,7 +1095,7 @@ export const UniverseAgentGrpcServices = {
 		GetCommandDef: 'GetCommandDef',
 	},
 	File: {
-		service: 'universeagent.file.v1.FileService',
+		service: 'agentservice.FileService',
 		ListFiles: 'ListFiles',
 		ReadFile: 'ReadFile',
 		GetFileInfo: 'GetFileInfo',
@@ -1104,7 +1104,7 @@ export const UniverseAgentGrpcServices = {
 		AgentMerge: 'AgentMerge',
 	},
 	Git: {
-		service: 'universeagent.git.v1.GitService',
+		service: 'agentservice.GitService',
 		ReadGitSummary: 'ReadGitSummary',
 		ReadGitChanges: 'ReadGitChanges',
 		ReadGitFileDiff: 'ReadGitFileDiff',
@@ -1113,12 +1113,12 @@ export const UniverseAgentGrpcServices = {
 		WriteGitApplyHunks: 'WriteGitApplyHunks',
 	},
 	TokenUsage: {
-		service: 'universeagent.tokenusage.v1.TokenUsageService',
+		service: 'agentservice.TokenUsageService',
 		GetSessionUsage: 'GetSessionUsage',
 		GetGlobalUsage: 'GetGlobalUsage',
 	},
 	Memory: {
-		service: 'universeagent.memory.v1.MemoryService',
+		service: 'agentservice.MemoryService',
 		Save: 'Save',
 		Search: 'Search',
 		SearchDeep: 'SearchDeep',
@@ -1131,17 +1131,17 @@ export const UniverseAgentGrpcServices = {
 		History: 'History',
 	},
 	FileTransfer: {
-		service: 'universeagent.filetransfer.v1.FileTransferService',
+		service: 'agentservice.FileTransferService',
 		GetUploadProgress: 'GetUploadProgress',
 		UploadAttachment: 'UploadAttachment',
 		DownloadAttachment: 'DownloadAttachment',
 	},
 	Pty: {
-		service: 'universeagent.pty.v1.PtyService',
+		service: 'agentservice.PtyService',
 		PtyStream: 'PtyStream',
 	},
 	Device: {
-		service: 'universeagent.device.v1.DeviceService',
+		service: 'agentservice.DeviceService',
 		ListDevices: 'ListDevices',
 		PairApprove: 'PairApprove',
 		PairReject: 'PairReject',
@@ -1150,7 +1150,7 @@ export const UniverseAgentGrpcServices = {
 		ListPending: 'ListPending',
 	},
 	Trigger: {
-		service: 'universeagent.trigger.v1.TriggerService',
+		service: 'agentservice.TriggerService',
 		ListTriggers: 'ListTriggers',
 		UpsertTrigger: 'UpsertTrigger',
 		DeleteTrigger: 'DeleteTrigger',
@@ -1158,19 +1158,19 @@ export const UniverseAgentGrpcServices = {
 		FireTrigger: 'FireTrigger',
 	},
 	Clipboard: {
-		service: 'universeagent.clipboard.v1.ClipboardService',
+		service: 'agentservice.ClipboardService',
 		Write: 'Write',
 		Read: 'Read',
 		List: 'List',
 		Clear: 'Clear',
 	},
 	ContextVariable: {
-		service: 'universeagent.contextvariable.v1.ContextVariableService',
+		service: 'agentservice.ContextVariableService',
 		List: 'List',
 		Read: 'Read',
 	},
 	RemoteAgent: {
-		service: 'universeagent.remoteagent.v1.RemoteAgentService',
+		service: 'agentservice.RemoteAgentService',
 		ListNodes: 'ListNodes',
 		GetNode: 'GetNode',
 		CheckConnection: 'CheckConnection',

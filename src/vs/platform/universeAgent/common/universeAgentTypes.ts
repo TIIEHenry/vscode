@@ -1867,7 +1867,7 @@ export interface UniverseAgentGetCommandDefResult {
 
 /**
  * FileService.ListFiles — workspace file catalog (proto package
- * `universeagent.file.v1`). Empty `path` / `session_id` / `pattern` sent as-is.
+ * `agentservice`). Empty `path` / `session_id` / `pattern` sent as-is.
  * `recursive` false / `max_results` 0 sent as-is.
  * ≠ ReadFile / GetFileInfo / WriteFile / ForceWriteFile / AgentMerge.
  */

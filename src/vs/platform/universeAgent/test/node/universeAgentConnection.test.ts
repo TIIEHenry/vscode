@@ -2466,62 +2466,62 @@ suite('UniverseAgentConnectionService', () => {
 
 	test('UniverseAgentGrpcServices lists Agent.ContinueGeneration', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.ContinueGeneration, 'ContinueGeneration');
-		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'agentservice.AgentService');
 	});
 
 	test('UniverseAgentGrpcServices lists Agent.Regenerate', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.Regenerate, 'Regenerate');
-		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'agentservice.AgentService');
 	});
 
 	test('UniverseAgentGrpcServices lists Agent.Rename', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.Rename, 'Rename');
-		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'agentservice.AgentService');
 	});
 
 	test('UniverseAgentGrpcServices lists Agent.Cancel', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.Cancel, 'Cancel');
-		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'agentservice.AgentService');
 	});
 
 	test('UniverseAgentGrpcServices lists Agent.CancelToolCall', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.CancelToolCall, 'CancelToolCall');
-		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'agentservice.AgentService');
 	});
 
 	test('UniverseAgentGrpcServices lists Agent.RunToolInBackground', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.RunToolInBackground, 'RunToolInBackground');
-		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'agentservice.AgentService');
 	});
 
 	test('UniverseAgentGrpcServices lists Agent.StopShellTask', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.StopShellTask, 'StopShellTask');
-		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'agentservice.AgentService');
 	});
 
 	test('UniverseAgentGrpcServices lists Agent.SendShellSessionClientControl', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.SendShellSessionClientControl, 'SendShellSessionClientControl');
-		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'agentservice.AgentService');
 	});
 
 	test('UniverseAgentGrpcServices lists Agent.FetchToolUsageDetail', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.FetchToolUsageDetail, 'FetchToolUsageDetail');
-		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'agentservice.AgentService');
 	});
 
 	test('UniverseAgentGrpcServices lists Agent.FireTriggerWebhook', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.FireTriggerWebhook, 'FireTriggerWebhook');
-		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'agentservice.AgentService');
 	});
 
 	test('UniverseAgentGrpcServices lists Agent.InstallSessionDemoFake', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.InstallSessionDemoFake, 'InstallSessionDemoFake');
-		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'agentservice.AgentService');
 	});
 
 	test('UniverseAgentGrpcServices lists Agent.ClearSessionDemoFake', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.ClearSessionDemoFake, 'ClearSessionDemoFake');
-		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'agentservice.AgentService');
 	});
 
 	test('UniverseAgentGrpcServices lists Agent.SwitchWorkDir', () => {
@@ -2530,178 +2530,178 @@ suite('UniverseAgentConnectionService', () => {
 
 	test('UniverseAgentGrpcServices lists Agent.TestModelProfile', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.TestModelProfile, 'TestModelProfile');
-		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'agentservice.AgentService');
 	});
 
 	test('UniverseAgentGrpcServices lists Config.Set', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Config.Set, 'Set');
-		assert.strictEqual(UniverseAgentGrpcServices.Config.service, 'universeagent.config.v1.ConfigService');
+		assert.strictEqual(UniverseAgentGrpcServices.Config.service, 'agentservice.ConfigService');
 	});
 
 	test('UniverseAgentGrpcServices lists Config.SetModelPreferences', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Config.SetModelPreferences, 'SetModelPreferences');
-		assert.strictEqual(UniverseAgentGrpcServices.Config.service, 'universeagent.config.v1.ConfigService');
+		assert.strictEqual(UniverseAgentGrpcServices.Config.service, 'agentservice.ConfigService');
 	});
 
 	test('UniverseAgentGrpcServices lists Agent.SubscribeToolDetail', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.SubscribeToolDetail, 'SubscribeToolDetail');
-		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'agentservice.AgentService');
 	});
 
 	test('UniverseAgentGrpcServices lists Permission.SetSessionGoal', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Permission.SetSessionGoal, 'SetSessionGoal');
 		assert.strictEqual(UniverseAgentGrpcServices.Permission.CancelSessionGoal, 'CancelSessionGoal');
-		assert.strictEqual(UniverseAgentGrpcServices.Permission.service, 'universeagent.session.v1.PermissionService');
+		assert.strictEqual(UniverseAgentGrpcServices.Permission.service, 'agentservice.PermissionService');
 	});
 
 	test('UniverseAgentGrpcServices lists Permission.Respond', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Permission.Respond, 'Respond');
-		assert.strictEqual(UniverseAgentGrpcServices.Permission.service, 'universeagent.session.v1.PermissionService');
+		assert.strictEqual(UniverseAgentGrpcServices.Permission.service, 'agentservice.PermissionService');
 	});
 
 	test('UniverseAgentGrpcServices lists Permission.SyncPermissionRule', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Permission.SyncPermissionRule, 'SyncPermissionRule');
-		assert.strictEqual(UniverseAgentGrpcServices.Permission.service, 'universeagent.session.v1.PermissionService');
+		assert.strictEqual(UniverseAgentGrpcServices.Permission.service, 'agentservice.PermissionService');
 	});
 
 	test('UniverseAgentGrpcServices lists Permission.PromotePermissionRule', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Permission.PromotePermissionRule, 'PromotePermissionRule');
-		assert.strictEqual(UniverseAgentGrpcServices.Permission.service, 'universeagent.session.v1.PermissionService');
+		assert.strictEqual(UniverseAgentGrpcServices.Permission.service, 'agentservice.PermissionService');
 	});
 
 	test('UniverseAgentGrpcServices lists Permission.GetSessionRules', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Permission.GetSessionRules, 'GetSessionRules');
-		assert.strictEqual(UniverseAgentGrpcServices.Permission.service, 'universeagent.session.v1.PermissionService');
+		assert.strictEqual(UniverseAgentGrpcServices.Permission.service, 'agentservice.PermissionService');
 	});
 
 	test('UniverseAgentGrpcServices lists Permission.SetPermissionMode', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Permission.SetPermissionMode, 'SetPermissionMode');
-		assert.strictEqual(UniverseAgentGrpcServices.Permission.service, 'universeagent.session.v1.PermissionService');
+		assert.strictEqual(UniverseAgentGrpcServices.Permission.service, 'agentservice.PermissionService');
 	});
 
 	test('UniverseAgentGrpcServices lists Team.TaskUpdate', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Team.TaskUpdate, 'TaskUpdate');
-		assert.strictEqual(UniverseAgentGrpcServices.Team.service, 'universeagent.team.v1.TeamService');
+		assert.strictEqual(UniverseAgentGrpcServices.Team.service, 'agentservice.TeamService');
 	});
 
 	test('UniverseAgentGrpcServices lists Team.TaskCancel', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Team.TaskCancel, 'TaskCancel');
-		assert.strictEqual(UniverseAgentGrpcServices.Team.service, 'universeagent.team.v1.TeamService');
+		assert.strictEqual(UniverseAgentGrpcServices.Team.service, 'agentservice.TeamService');
 	});
 
 	test('UniverseAgentGrpcServices lists Team.MessageMember', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Team.MessageMember, 'MessageMember');
-		assert.strictEqual(UniverseAgentGrpcServices.Team.service, 'universeagent.team.v1.TeamService');
+		assert.strictEqual(UniverseAgentGrpcServices.Team.service, 'agentservice.TeamService');
 	});
 
 	test('UniverseAgentGrpcServices lists Team.CreateTeam', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Team.CreateTeam, 'CreateTeam');
-		assert.strictEqual(UniverseAgentGrpcServices.Team.service, 'universeagent.team.v1.TeamService');
+		assert.strictEqual(UniverseAgentGrpcServices.Team.service, 'agentservice.TeamService');
 	});
 
 	test('UniverseAgentGrpcServices lists Team.StartMember', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Team.StartMember, 'StartMember');
-		assert.strictEqual(UniverseAgentGrpcServices.Team.service, 'universeagent.team.v1.TeamService');
+		assert.strictEqual(UniverseAgentGrpcServices.Team.service, 'agentservice.TeamService');
 	});
 
 	test('UniverseAgentGrpcServices lists Team.KillMember', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Team.KillMember, 'KillMember');
-		assert.strictEqual(UniverseAgentGrpcServices.Team.service, 'universeagent.team.v1.TeamService');
+		assert.strictEqual(UniverseAgentGrpcServices.Team.service, 'agentservice.TeamService');
 	});
 
 	test('UniverseAgentGrpcServices lists Team.Abort', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Team.Abort, 'Abort');
-		assert.strictEqual(UniverseAgentGrpcServices.Team.service, 'universeagent.team.v1.TeamService');
+		assert.strictEqual(UniverseAgentGrpcServices.Team.service, 'agentservice.TeamService');
 	});
 
 	test('UniverseAgentGrpcServices lists Config.Get', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Config.Get, 'Get');
-		assert.strictEqual(UniverseAgentGrpcServices.Config.service, 'universeagent.config.v1.ConfigService');
+		assert.strictEqual(UniverseAgentGrpcServices.Config.service, 'agentservice.ConfigService');
 	});
 
 	test('UniverseAgentGrpcServices lists Config.SwitchModel', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Config.SwitchModel, 'SwitchModel');
-		assert.strictEqual(UniverseAgentGrpcServices.Config.service, 'universeagent.config.v1.ConfigService');
+		assert.strictEqual(UniverseAgentGrpcServices.Config.service, 'agentservice.ConfigService');
 	});
 
 	test('UniverseAgentGrpcServices lists Config.ResolveModel', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Config.ResolveModel, 'ResolveModel');
-		assert.strictEqual(UniverseAgentGrpcServices.Config.service, 'universeagent.config.v1.ConfigService');
+		assert.strictEqual(UniverseAgentGrpcServices.Config.service, 'agentservice.ConfigService');
 	});
 
 	test('UniverseAgentGrpcServices lists Config.Watch', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Config.Watch, 'Watch');
-		assert.strictEqual(UniverseAgentGrpcServices.Config.service, 'universeagent.config.v1.ConfigService');
+		assert.strictEqual(UniverseAgentGrpcServices.Config.service, 'agentservice.ConfigService');
 	});
 
 	test('UniverseAgentGrpcServices lists Config.SetPermissionPolicy', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Config.SetPermissionPolicy, 'SetPermissionPolicy');
-		assert.strictEqual(UniverseAgentGrpcServices.Config.service, 'universeagent.config.v1.ConfigService');
+		assert.strictEqual(UniverseAgentGrpcServices.Config.service, 'agentservice.ConfigService');
 	});
 
 	test('UniverseAgentGrpcServices lists Config.GetModelPreferences', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Config.GetModelPreferences, 'GetModelPreferences');
-		assert.strictEqual(UniverseAgentGrpcServices.Config.service, 'universeagent.config.v1.ConfigService');
+		assert.strictEqual(UniverseAgentGrpcServices.Config.service, 'agentservice.ConfigService');
 	});
 
 	test('UniverseAgentGrpcServices lists Agent.InsertQueueItem', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.InsertQueueItem, 'InsertQueueItem');
-		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'agentservice.AgentService');
 	});
 
 	test('UniverseAgentGrpcServices lists Agent.ReorderQueue', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.ReorderQueue, 'ReorderQueue');
-		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'agentservice.AgentService');
 	});
 
 	test('UniverseAgentGrpcServices lists Agent.DeleteQueueItem', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.DeleteQueueItem, 'DeleteQueueItem');
-		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'agentservice.AgentService');
 	});
 
 	test('UniverseAgentGrpcServices lists Agent.RetryQueueItem', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.RetryQueueItem, 'RetryQueueItem');
-		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'agentservice.AgentService');
 	});
 
 	test('UniverseAgentGrpcServices lists Agent.RetryAllFailed', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.RetryAllFailed, 'RetryAllFailed');
-		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'agentservice.AgentService');
 	});
 
 	test('UniverseAgentGrpcServices lists Agent.RetryQueueItemUpload', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.RetryQueueItemUpload, 'RetryQueueItemUpload');
-		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'agentservice.AgentService');
 	});
 
 	test('UniverseAgentGrpcServices lists Agent.PinQueueItem', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.PinQueueItem, 'PinQueueItem');
-		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'agentservice.AgentService');
 	});
 
 	test('UniverseAgentGrpcServices lists Agent.SetQueueItemLocked', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.SetQueueItemLocked, 'SetQueueItemLocked');
-		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'agentservice.AgentService');
 	});
 
 	test('UniverseAgentGrpcServices lists Agent.InjectQueueItem', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.InjectQueueItem, 'InjectQueueItem');
-		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'agentservice.AgentService');
 	});
 
 	test('UniverseAgentGrpcServices lists Agent.SetQueueItemForkAnchor', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.SetQueueItemForkAnchor, 'SetQueueItemForkAnchor');
-		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'agentservice.AgentService');
 	});
 
 	test('UniverseAgentGrpcServices lists Agent.ChatSync', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.ChatSync, 'ChatSync');
-		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'agentservice.AgentService');
 	});
 
 	test('UniverseAgentGrpcServices lists Agent.SyncInputDelivery', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.SyncInputDelivery, 'SyncInputDelivery');
-		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'agentservice.AgentService');
 	});
 
 	test('UniverseAgentGrpcServices lists Agent queue mutation family', () => {
@@ -2712,358 +2712,358 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.HoldQueueItem, 'HoldQueueItem');
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.ReleaseQueueItemHold, 'ReleaseQueueItemHold');
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.EditQueueItem, 'EditQueueItem');
-		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'agentservice.AgentService');
 	});
 
 	test('UniverseAgentGrpcServices lists Agent.Fork', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.Fork, 'Fork');
-		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'agentservice.AgentService');
 	});
 
 	test('UniverseAgentGrpcServices lists Tool.ToolInfo', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Tool.ToolInfo, 'ToolInfo');
-		assert.strictEqual(UniverseAgentGrpcServices.Tool.service, 'universeagent.tool.v1.ToolService');
+		assert.strictEqual(UniverseAgentGrpcServices.Tool.service, 'agentservice.ToolService');
 	});
 
 	test('UniverseAgentGrpcServices lists Tool.ListCommands', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Tool.ListCommands, 'ListCommands');
-		assert.strictEqual(UniverseAgentGrpcServices.Tool.service, 'universeagent.tool.v1.ToolService');
+		assert.strictEqual(UniverseAgentGrpcServices.Tool.service, 'agentservice.ToolService');
 	});
 
 	test('UniverseAgentGrpcServices lists Tool.GetCommandDef', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Tool.GetCommandDef, 'GetCommandDef');
-		assert.strictEqual(UniverseAgentGrpcServices.Tool.service, 'universeagent.tool.v1.ToolService');
+		assert.strictEqual(UniverseAgentGrpcServices.Tool.service, 'agentservice.ToolService');
 	});
 
 	test('UniverseAgentGrpcServices lists File.ListFiles', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.File.ListFiles, 'ListFiles');
-		assert.strictEqual(UniverseAgentGrpcServices.File.service, 'universeagent.file.v1.FileService');
+		assert.strictEqual(UniverseAgentGrpcServices.File.service, 'agentservice.FileService');
 	});
 
 	test('UniverseAgentGrpcServices lists File.ReadFile', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.File.ReadFile, 'ReadFile');
-		assert.strictEqual(UniverseAgentGrpcServices.File.service, 'universeagent.file.v1.FileService');
+		assert.strictEqual(UniverseAgentGrpcServices.File.service, 'agentservice.FileService');
 	});
 
 	test('UniverseAgentGrpcServices lists File.GetFileInfo', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.File.GetFileInfo, 'GetFileInfo');
-		assert.strictEqual(UniverseAgentGrpcServices.File.service, 'universeagent.file.v1.FileService');
+		assert.strictEqual(UniverseAgentGrpcServices.File.service, 'agentservice.FileService');
 	});
 
 	test('UniverseAgentGrpcServices lists File.WriteFile', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.File.WriteFile, 'WriteFile');
-		assert.strictEqual(UniverseAgentGrpcServices.File.service, 'universeagent.file.v1.FileService');
+		assert.strictEqual(UniverseAgentGrpcServices.File.service, 'agentservice.FileService');
 	});
 
 	test('UniverseAgentGrpcServices lists File.ForceWriteFile', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.File.ForceWriteFile, 'ForceWriteFile');
-		assert.strictEqual(UniverseAgentGrpcServices.File.service, 'universeagent.file.v1.FileService');
+		assert.strictEqual(UniverseAgentGrpcServices.File.service, 'agentservice.FileService');
 	});
 
 	test('UniverseAgentGrpcServices lists File.AgentMerge', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.File.AgentMerge, 'AgentMerge');
-		assert.strictEqual(UniverseAgentGrpcServices.File.service, 'universeagent.file.v1.FileService');
+		assert.strictEqual(UniverseAgentGrpcServices.File.service, 'agentservice.FileService');
 	});
 
 	test('UniverseAgentGrpcServices lists Git.ReadGitSummary', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Git.ReadGitSummary, 'ReadGitSummary');
-		assert.strictEqual(UniverseAgentGrpcServices.Git.service, 'universeagent.git.v1.GitService');
+		assert.strictEqual(UniverseAgentGrpcServices.Git.service, 'agentservice.GitService');
 	});
 
 	test('UniverseAgentGrpcServices lists Git.ReadGitChanges', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Git.ReadGitChanges, 'ReadGitChanges');
-		assert.strictEqual(UniverseAgentGrpcServices.Git.service, 'universeagent.git.v1.GitService');
+		assert.strictEqual(UniverseAgentGrpcServices.Git.service, 'agentservice.GitService');
 	});
 
 	test('UniverseAgentGrpcServices lists Git.ReadGitFileDiff', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Git.ReadGitFileDiff, 'ReadGitFileDiff');
-		assert.strictEqual(UniverseAgentGrpcServices.Git.service, 'universeagent.git.v1.GitService');
+		assert.strictEqual(UniverseAgentGrpcServices.Git.service, 'agentservice.GitService');
 	});
 
 	test('UniverseAgentGrpcServices lists Git.WriteGitStagePaths', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Git.WriteGitStagePaths, 'WriteGitStagePaths');
-		assert.strictEqual(UniverseAgentGrpcServices.Git.service, 'universeagent.git.v1.GitService');
+		assert.strictEqual(UniverseAgentGrpcServices.Git.service, 'agentservice.GitService');
 	});
 
 	test('UniverseAgentGrpcServices lists Git.WriteGitCommit', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Git.WriteGitCommit, 'WriteGitCommit');
-		assert.strictEqual(UniverseAgentGrpcServices.Git.service, 'universeagent.git.v1.GitService');
+		assert.strictEqual(UniverseAgentGrpcServices.Git.service, 'agentservice.GitService');
 	});
 
 	test('UniverseAgentGrpcServices lists Git.WriteGitApplyHunks', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Git.WriteGitApplyHunks, 'WriteGitApplyHunks');
-		assert.strictEqual(UniverseAgentGrpcServices.Git.service, 'universeagent.git.v1.GitService');
+		assert.strictEqual(UniverseAgentGrpcServices.Git.service, 'agentservice.GitService');
 	});
 
 	test('UniverseAgentGrpcServices lists TokenUsage.GetSessionUsage', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.TokenUsage.GetSessionUsage, 'GetSessionUsage');
-		assert.strictEqual(UniverseAgentGrpcServices.TokenUsage.service, 'universeagent.tokenusage.v1.TokenUsageService');
+		assert.strictEqual(UniverseAgentGrpcServices.TokenUsage.service, 'agentservice.TokenUsageService');
 	});
 
 	test('UniverseAgentGrpcServices lists TokenUsage.GetGlobalUsage', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.TokenUsage.GetGlobalUsage, 'GetGlobalUsage');
-		assert.strictEqual(UniverseAgentGrpcServices.TokenUsage.service, 'universeagent.tokenusage.v1.TokenUsageService');
+		assert.strictEqual(UniverseAgentGrpcServices.TokenUsage.service, 'agentservice.TokenUsageService');
 	});
 
 	test('UniverseAgentGrpcServices lists Memory.Save', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Memory.Save, 'Save');
-		assert.strictEqual(UniverseAgentGrpcServices.Memory.service, 'universeagent.memory.v1.MemoryService');
+		assert.strictEqual(UniverseAgentGrpcServices.Memory.service, 'agentservice.MemoryService');
 	});
 
 	test('UniverseAgentGrpcServices lists Memory.Search', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Memory.Search, 'Search');
-		assert.strictEqual(UniverseAgentGrpcServices.Memory.service, 'universeagent.memory.v1.MemoryService');
+		assert.strictEqual(UniverseAgentGrpcServices.Memory.service, 'agentservice.MemoryService');
 	});
 
 	test('UniverseAgentGrpcServices lists Memory.SearchDeep', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Memory.SearchDeep, 'SearchDeep');
-		assert.strictEqual(UniverseAgentGrpcServices.Memory.service, 'universeagent.memory.v1.MemoryService');
+		assert.strictEqual(UniverseAgentGrpcServices.Memory.service, 'agentservice.MemoryService');
 	});
 
 	test('UniverseAgentGrpcServices lists Memory.Read', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Memory.Read, 'Read');
-		assert.strictEqual(UniverseAgentGrpcServices.Memory.service, 'universeagent.memory.v1.MemoryService');
+		assert.strictEqual(UniverseAgentGrpcServices.Memory.service, 'agentservice.MemoryService');
 	});
 
 	test('UniverseAgentGrpcServices lists Memory.List', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Memory.List, 'List');
-		assert.strictEqual(UniverseAgentGrpcServices.Memory.service, 'universeagent.memory.v1.MemoryService');
+		assert.strictEqual(UniverseAgentGrpcServices.Memory.service, 'agentservice.MemoryService');
 	});
 
 	test('UniverseAgentGrpcServices lists Memory.Delete', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Memory.Delete, 'Delete');
-		assert.strictEqual(UniverseAgentGrpcServices.Memory.service, 'universeagent.memory.v1.MemoryService');
+		assert.strictEqual(UniverseAgentGrpcServices.Memory.service, 'agentservice.MemoryService');
 	});
 
 	test('UniverseAgentGrpcServices lists Memory.Reflect', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Memory.Reflect, 'Reflect');
-		assert.strictEqual(UniverseAgentGrpcServices.Memory.service, 'universeagent.memory.v1.MemoryService');
+		assert.strictEqual(UniverseAgentGrpcServices.Memory.service, 'agentservice.MemoryService');
 	});
 
 	test('UniverseAgentGrpcServices lists Memory.Rebuild', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Memory.Rebuild, 'Rebuild');
-		assert.strictEqual(UniverseAgentGrpcServices.Memory.service, 'universeagent.memory.v1.MemoryService');
+		assert.strictEqual(UniverseAgentGrpcServices.Memory.service, 'agentservice.MemoryService');
 	});
 
 	test('UniverseAgentGrpcServices lists Memory.Revert', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Memory.Revert, 'Revert');
-		assert.strictEqual(UniverseAgentGrpcServices.Memory.service, 'universeagent.memory.v1.MemoryService');
+		assert.strictEqual(UniverseAgentGrpcServices.Memory.service, 'agentservice.MemoryService');
 	});
 
 	test('UniverseAgentGrpcServices lists Memory.History', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Memory.History, 'History');
-		assert.strictEqual(UniverseAgentGrpcServices.Memory.service, 'universeagent.memory.v1.MemoryService');
+		assert.strictEqual(UniverseAgentGrpcServices.Memory.service, 'agentservice.MemoryService');
 	});
 
 	test('UniverseAgentGrpcServices lists ContextVariable.List', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.ContextVariable.List, 'List');
-		assert.strictEqual(UniverseAgentGrpcServices.ContextVariable.service, 'universeagent.contextvariable.v1.ContextVariableService');
+		assert.strictEqual(UniverseAgentGrpcServices.ContextVariable.service, 'agentservice.ContextVariableService');
 	});
 
 	test('UniverseAgentGrpcServices lists ContextVariable.Read', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.ContextVariable.Read, 'Read');
-		assert.strictEqual(UniverseAgentGrpcServices.ContextVariable.service, 'universeagent.contextvariable.v1.ContextVariableService');
+		assert.strictEqual(UniverseAgentGrpcServices.ContextVariable.service, 'agentservice.ContextVariableService');
 	});
 
 	test('UniverseAgentGrpcServices lists RemoteAgent.ListNodes', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.RemoteAgent.ListNodes, 'ListNodes');
-		assert.strictEqual(UniverseAgentGrpcServices.RemoteAgent.service, 'universeagent.remoteagent.v1.RemoteAgentService');
+		assert.strictEqual(UniverseAgentGrpcServices.RemoteAgent.service, 'agentservice.RemoteAgentService');
 	});
 
 	test('UniverseAgentGrpcServices lists RemoteAgent.GetNode', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.RemoteAgent.GetNode, 'GetNode');
-		assert.strictEqual(UniverseAgentGrpcServices.RemoteAgent.service, 'universeagent.remoteagent.v1.RemoteAgentService');
+		assert.strictEqual(UniverseAgentGrpcServices.RemoteAgent.service, 'agentservice.RemoteAgentService');
 	});
 
 	test('UniverseAgentGrpcServices lists RemoteAgent.CheckConnection', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.RemoteAgent.CheckConnection, 'CheckConnection');
-		assert.strictEqual(UniverseAgentGrpcServices.RemoteAgent.service, 'universeagent.remoteagent.v1.RemoteAgentService');
+		assert.strictEqual(UniverseAgentGrpcServices.RemoteAgent.service, 'agentservice.RemoteAgentService');
 	});
 
 	test('UniverseAgentGrpcServices lists RemoteAgent.SetMaintenance', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.RemoteAgent.SetMaintenance, 'SetMaintenance');
-		assert.strictEqual(UniverseAgentGrpcServices.RemoteAgent.service, 'universeagent.remoteagent.v1.RemoteAgentService');
+		assert.strictEqual(UniverseAgentGrpcServices.RemoteAgent.service, 'agentservice.RemoteAgentService');
 	});
 
 	test('UniverseAgentGrpcServices lists RemoteAgent.ExitMaintenance', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.RemoteAgent.ExitMaintenance, 'ExitMaintenance');
-		assert.strictEqual(UniverseAgentGrpcServices.RemoteAgent.service, 'universeagent.remoteagent.v1.RemoteAgentService');
+		assert.strictEqual(UniverseAgentGrpcServices.RemoteAgent.service, 'agentservice.RemoteAgentService');
 	});
 
 	test('UniverseAgentGrpcServices lists RemoteAgent.ListConfigs', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.RemoteAgent.ListConfigs, 'ListConfigs');
-		assert.strictEqual(UniverseAgentGrpcServices.RemoteAgent.service, 'universeagent.remoteagent.v1.RemoteAgentService');
+		assert.strictEqual(UniverseAgentGrpcServices.RemoteAgent.service, 'agentservice.RemoteAgentService');
 	});
 
 	test('UniverseAgentGrpcServices lists RemoteAgent.GetConfig', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.RemoteAgent.GetConfig, 'GetConfig');
-		assert.strictEqual(UniverseAgentGrpcServices.RemoteAgent.service, 'universeagent.remoteagent.v1.RemoteAgentService');
+		assert.strictEqual(UniverseAgentGrpcServices.RemoteAgent.service, 'agentservice.RemoteAgentService');
 	});
 
 	test('UniverseAgentGrpcServices lists RemoteAgent.SaveConfig', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.RemoteAgent.SaveConfig, 'SaveConfig');
-		assert.strictEqual(UniverseAgentGrpcServices.RemoteAgent.service, 'universeagent.remoteagent.v1.RemoteAgentService');
+		assert.strictEqual(UniverseAgentGrpcServices.RemoteAgent.service, 'agentservice.RemoteAgentService');
 	});
 
 	test('UniverseAgentGrpcServices lists RemoteAgent.ResetError', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.RemoteAgent.ResetError, 'ResetError');
-		assert.strictEqual(UniverseAgentGrpcServices.RemoteAgent.service, 'universeagent.remoteagent.v1.RemoteAgentService');
+		assert.strictEqual(UniverseAgentGrpcServices.RemoteAgent.service, 'agentservice.RemoteAgentService');
 	});
 	test('UniverseAgentGrpcServices lists RemoteAgent.DeleteConfig', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.RemoteAgent.DeleteConfig, 'DeleteConfig');
-		assert.strictEqual(UniverseAgentGrpcServices.RemoteAgent.service, 'universeagent.remoteagent.v1.RemoteAgentService');
+		assert.strictEqual(UniverseAgentGrpcServices.RemoteAgent.service, 'agentservice.RemoteAgentService');
 	});
 
 	test('UniverseAgentGrpcServices lists RemoteAgent.Reload', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.RemoteAgent.Reload, 'Reload');
-		assert.strictEqual(UniverseAgentGrpcServices.RemoteAgent.service, 'universeagent.remoteagent.v1.RemoteAgentService');
+		assert.strictEqual(UniverseAgentGrpcServices.RemoteAgent.service, 'agentservice.RemoteAgentService');
 	});
 
 	test('UniverseAgentGrpcServices lists RemoteAgent.RemoteChat', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.RemoteAgent.RemoteChat, 'RemoteChat');
-		assert.strictEqual(UniverseAgentGrpcServices.RemoteAgent.service, 'universeagent.remoteagent.v1.RemoteAgentService');
+		assert.strictEqual(UniverseAgentGrpcServices.RemoteAgent.service, 'agentservice.RemoteAgentService');
 	});
 
 	test('UniverseAgentGrpcServices lists RemoteAgent.CreateRemoteSession', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.RemoteAgent.CreateRemoteSession, 'CreateRemoteSession');
-		assert.strictEqual(UniverseAgentGrpcServices.RemoteAgent.service, 'universeagent.remoteagent.v1.RemoteAgentService');
+		assert.strictEqual(UniverseAgentGrpcServices.RemoteAgent.service, 'agentservice.RemoteAgentService');
 	});
 
 	test('UniverseAgentGrpcServices lists RemoteAgent.DestroyRemoteSession', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.RemoteAgent.DestroyRemoteSession, 'DestroyRemoteSession');
-		assert.strictEqual(UniverseAgentGrpcServices.RemoteAgent.service, 'universeagent.remoteagent.v1.RemoteAgentService');
+		assert.strictEqual(UniverseAgentGrpcServices.RemoteAgent.service, 'agentservice.RemoteAgentService');
 	});
 	test('UniverseAgentGrpcServices lists RemoteAgent.GetRemoteSessionStatus', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.RemoteAgent.GetRemoteSessionStatus, 'GetRemoteSessionStatus');
-		assert.strictEqual(UniverseAgentGrpcServices.RemoteAgent.service, 'universeagent.remoteagent.v1.RemoteAgentService');
+		assert.strictEqual(UniverseAgentGrpcServices.RemoteAgent.service, 'agentservice.RemoteAgentService');
 	});
 
 	test('UniverseAgentGrpcServices lists RemoteAgent.GetRemoteSessionHistory', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.RemoteAgent.GetRemoteSessionHistory, 'GetRemoteSessionHistory');
-		assert.strictEqual(UniverseAgentGrpcServices.RemoteAgent.service, 'universeagent.remoteagent.v1.RemoteAgentService');
+		assert.strictEqual(UniverseAgentGrpcServices.RemoteAgent.service, 'agentservice.RemoteAgentService');
 	});
 
 	test('UniverseAgentGrpcServices lists RemoteAgent.ResumeRemoteSession', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.RemoteAgent.ResumeRemoteSession, 'ResumeRemoteSession');
-		assert.strictEqual(UniverseAgentGrpcServices.RemoteAgent.service, 'universeagent.remoteagent.v1.RemoteAgentService');
+		assert.strictEqual(UniverseAgentGrpcServices.RemoteAgent.service, 'agentservice.RemoteAgentService');
 	});
 	test('UniverseAgentGrpcServices lists RemoteAgent.CancelRemoteSession', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.RemoteAgent.CancelRemoteSession, 'CancelRemoteSession');
-		assert.strictEqual(UniverseAgentGrpcServices.RemoteAgent.service, 'universeagent.remoteagent.v1.RemoteAgentService');
+		assert.strictEqual(UniverseAgentGrpcServices.RemoteAgent.service, 'agentservice.RemoteAgentService');
 	});
 	test('UniverseAgentGrpcServices lists FileTransfer.GetUploadProgress', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.FileTransfer.GetUploadProgress, 'GetUploadProgress');
-		assert.strictEqual(UniverseAgentGrpcServices.FileTransfer.service, 'universeagent.filetransfer.v1.FileTransferService');
+		assert.strictEqual(UniverseAgentGrpcServices.FileTransfer.service, 'agentservice.FileTransferService');
 	});
 
 	test('UniverseAgentGrpcServices lists FileTransfer.UploadAttachment', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.FileTransfer.UploadAttachment, 'UploadAttachment');
-		assert.strictEqual(UniverseAgentGrpcServices.FileTransfer.service, 'universeagent.filetransfer.v1.FileTransferService');
+		assert.strictEqual(UniverseAgentGrpcServices.FileTransfer.service, 'agentservice.FileTransferService');
 	});
 
 	test('UniverseAgentGrpcServices lists FileTransfer.DownloadAttachment', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.FileTransfer.DownloadAttachment, 'DownloadAttachment');
-		assert.strictEqual(UniverseAgentGrpcServices.FileTransfer.service, 'universeagent.filetransfer.v1.FileTransferService');
+		assert.strictEqual(UniverseAgentGrpcServices.FileTransfer.service, 'agentservice.FileTransferService');
 	});
 
 	test('UniverseAgentGrpcServices lists Pty.PtyStream', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Pty.PtyStream, 'PtyStream');
-		assert.strictEqual(UniverseAgentGrpcServices.Pty.service, 'universeagent.pty.v1.PtyService');
+		assert.strictEqual(UniverseAgentGrpcServices.Pty.service, 'agentservice.PtyService');
 	});
 
 	test('UniverseAgentGrpcServices lists System.HealthCheck', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.System.HealthCheck, 'HealthCheck');
-		assert.strictEqual(UniverseAgentGrpcServices.System.service, 'universeagent.system.v1.SystemService');
+		assert.strictEqual(UniverseAgentGrpcServices.System.service, 'agentservice.SystemService');
 	});
 
 	test('UniverseAgentGrpcServices lists System.Doctor', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.System.Doctor, 'Doctor');
-		assert.strictEqual(UniverseAgentGrpcServices.System.service, 'universeagent.system.v1.SystemService');
+		assert.strictEqual(UniverseAgentGrpcServices.System.service, 'agentservice.SystemService');
 	});
 
 	test('UniverseAgentGrpcServices lists System.Shutdown', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.System.Shutdown, 'Shutdown');
-		assert.strictEqual(UniverseAgentGrpcServices.System.service, 'universeagent.system.v1.SystemService');
+		assert.strictEqual(UniverseAgentGrpcServices.System.service, 'agentservice.SystemService');
 	});
 
 	test('UniverseAgentGrpcServices lists Device.ListDevices', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Device.ListDevices, 'ListDevices');
-		assert.strictEqual(UniverseAgentGrpcServices.Device.service, 'universeagent.device.v1.DeviceService');
+		assert.strictEqual(UniverseAgentGrpcServices.Device.service, 'agentservice.DeviceService');
 	});
 
 	test('UniverseAgentGrpcServices lists Device.PairApprove', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Device.PairApprove, 'PairApprove');
-		assert.strictEqual(UniverseAgentGrpcServices.Device.service, 'universeagent.device.v1.DeviceService');
+		assert.strictEqual(UniverseAgentGrpcServices.Device.service, 'agentservice.DeviceService');
 	});
 
 	test('UniverseAgentGrpcServices lists Device.PairReject', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Device.PairReject, 'PairReject');
-		assert.strictEqual(UniverseAgentGrpcServices.Device.service, 'universeagent.device.v1.DeviceService');
+		assert.strictEqual(UniverseAgentGrpcServices.Device.service, 'agentservice.DeviceService');
 	});
 
 	test('UniverseAgentGrpcServices lists Device.Revoke', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Device.Revoke, 'Revoke');
-		assert.strictEqual(UniverseAgentGrpcServices.Device.service, 'universeagent.device.v1.DeviceService');
+		assert.strictEqual(UniverseAgentGrpcServices.Device.service, 'agentservice.DeviceService');
 	});
 
 	test('UniverseAgentGrpcServices lists Device.RotateToken', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Device.RotateToken, 'RotateToken');
-		assert.strictEqual(UniverseAgentGrpcServices.Device.service, 'universeagent.device.v1.DeviceService');
+		assert.strictEqual(UniverseAgentGrpcServices.Device.service, 'agentservice.DeviceService');
 	});
 
 	test('UniverseAgentGrpcServices lists Device.ListPending', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Device.ListPending, 'ListPending');
-		assert.strictEqual(UniverseAgentGrpcServices.Device.service, 'universeagent.device.v1.DeviceService');
+		assert.strictEqual(UniverseAgentGrpcServices.Device.service, 'agentservice.DeviceService');
 	});
 
 	test('UniverseAgentGrpcServices lists Trigger.ListTriggers', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Trigger.ListTriggers, 'ListTriggers');
-		assert.strictEqual(UniverseAgentGrpcServices.Trigger.service, 'universeagent.trigger.v1.TriggerService');
+		assert.strictEqual(UniverseAgentGrpcServices.Trigger.service, 'agentservice.TriggerService');
 	});
 
 	test('UniverseAgentGrpcServices lists Trigger.UpsertTrigger', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Trigger.UpsertTrigger, 'UpsertTrigger');
-		assert.strictEqual(UniverseAgentGrpcServices.Trigger.service, 'universeagent.trigger.v1.TriggerService');
+		assert.strictEqual(UniverseAgentGrpcServices.Trigger.service, 'agentservice.TriggerService');
 	});
 
 	test('UniverseAgentGrpcServices lists Trigger.DeleteTrigger', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Trigger.DeleteTrigger, 'DeleteTrigger');
-		assert.strictEqual(UniverseAgentGrpcServices.Trigger.service, 'universeagent.trigger.v1.TriggerService');
+		assert.strictEqual(UniverseAgentGrpcServices.Trigger.service, 'agentservice.TriggerService');
 	});
 
 	test('UniverseAgentGrpcServices lists Trigger.SetTriggerEnabled', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Trigger.SetTriggerEnabled, 'SetTriggerEnabled');
-		assert.strictEqual(UniverseAgentGrpcServices.Trigger.service, 'universeagent.trigger.v1.TriggerService');
+		assert.strictEqual(UniverseAgentGrpcServices.Trigger.service, 'agentservice.TriggerService');
 	});
 
 	test('UniverseAgentGrpcServices lists Trigger.FireTrigger', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Trigger.FireTrigger, 'FireTrigger');
-		assert.strictEqual(UniverseAgentGrpcServices.Trigger.service, 'universeagent.trigger.v1.TriggerService');
+		assert.strictEqual(UniverseAgentGrpcServices.Trigger.service, 'agentservice.TriggerService');
 	});
 
 	test('UniverseAgentGrpcServices lists Clipboard.Write', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Clipboard.Write, 'Write');
-		assert.strictEqual(UniverseAgentGrpcServices.Clipboard.service, 'universeagent.clipboard.v1.ClipboardService');
+		assert.strictEqual(UniverseAgentGrpcServices.Clipboard.service, 'agentservice.ClipboardService');
 	});
 
 	test('UniverseAgentGrpcServices lists Clipboard.Read', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Clipboard.Read, 'Read');
-		assert.strictEqual(UniverseAgentGrpcServices.Clipboard.service, 'universeagent.clipboard.v1.ClipboardService');
+		assert.strictEqual(UniverseAgentGrpcServices.Clipboard.service, 'agentservice.ClipboardService');
 	});
 
 	test('UniverseAgentGrpcServices lists Clipboard.List', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Clipboard.List, 'List');
-		assert.strictEqual(UniverseAgentGrpcServices.Clipboard.service, 'universeagent.clipboard.v1.ClipboardService');
+		assert.strictEqual(UniverseAgentGrpcServices.Clipboard.service, 'agentservice.ClipboardService');
 	});
 
 	test('UniverseAgentGrpcServices lists Clipboard.Clear', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Clipboard.Clear, 'Clear');
-		assert.strictEqual(UniverseAgentGrpcServices.Clipboard.service, 'universeagent.clipboard.v1.ClipboardService');
+		assert.strictEqual(UniverseAgentGrpcServices.Clipboard.service, 'agentservice.ClipboardService');
 	});
 
 	test('UniverseAgentGrpcServices lists Agent.Kill', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.Kill, 'Kill');
-		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'agentservice.AgentService');
 	});
 
 	test('UniverseAgentGrpcServices lists Agent.DeleteMessage', () => {
@@ -3076,157 +3076,157 @@ suite('UniverseAgentConnectionService', () => {
 
 	test('UniverseAgentGrpcServices lists Agent.RespondQuestion', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.RespondQuestion, 'RespondQuestion');
-		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'agentservice.AgentService');
 	});
 
 	test('UniverseAgentGrpcServices lists Agent.SendClientToolResponse', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.SendClientToolResponse, 'SendClientToolResponse');
-		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'agentservice.AgentService');
 	});
 
 	test('UniverseAgentGrpcServices lists Agent.ListSnapshots', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.ListSnapshots, 'ListSnapshots');
-		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'agentservice.AgentService');
 	});
 
 	test('UniverseAgentGrpcServices lists Agent.ListLoopSnapshots', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.ListLoopSnapshots, 'ListLoopSnapshots');
-		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'agentservice.AgentService');
 	});
 
 	test('UniverseAgentGrpcServices lists Agent.CreateSnapshot', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.CreateSnapshot, 'CreateSnapshot');
-		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'agentservice.AgentService');
 	});
 
 	test('UniverseAgentGrpcServices lists Agent.RestoreSnapshot', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.RestoreSnapshot, 'RestoreSnapshot');
-		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'agentservice.AgentService');
 	});
 
 	test('UniverseAgentGrpcServices lists Agent.DeleteSnapshot', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.DeleteSnapshot, 'DeleteSnapshot');
-		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'agentservice.AgentService');
 	});
 
 	test('UniverseAgentGrpcServices lists Session.Info', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Session.Info, 'Info');
-		assert.strictEqual(UniverseAgentGrpcServices.Session.service, 'universeagent.session.v1.SessionService');
+		assert.strictEqual(UniverseAgentGrpcServices.Session.service, 'agentservice.SessionService');
 	});
 
 	test('UniverseAgentGrpcServices lists Session.Resume', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Session.Resume, 'Resume');
-		assert.strictEqual(UniverseAgentGrpcServices.Session.service, 'universeagent.session.v1.SessionService');
+		assert.strictEqual(UniverseAgentGrpcServices.Session.service, 'agentservice.SessionService');
 	});
 
 	test('UniverseAgentGrpcServices lists Session.Prewarm', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Session.Prewarm, 'Prewarm');
-		assert.strictEqual(UniverseAgentGrpcServices.Session.service, 'universeagent.session.v1.SessionService');
+		assert.strictEqual(UniverseAgentGrpcServices.Session.service, 'agentservice.SessionService');
 	});
 
 	test('UniverseAgentGrpcServices lists Session.Shelve', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Session.Shelve, 'Shelve');
-		assert.strictEqual(UniverseAgentGrpcServices.Session.service, 'universeagent.session.v1.SessionService');
+		assert.strictEqual(UniverseAgentGrpcServices.Session.service, 'agentservice.SessionService');
 	});
 
 	test('UniverseAgentGrpcServices lists Session.Unshelve', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Session.Unshelve, 'Unshelve');
-		assert.strictEqual(UniverseAgentGrpcServices.Session.service, 'universeagent.session.v1.SessionService');
+		assert.strictEqual(UniverseAgentGrpcServices.Session.service, 'agentservice.SessionService');
 	});
 
 	test('UniverseAgentGrpcServices lists Session.Export', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Session.Export, 'Export');
-		assert.strictEqual(UniverseAgentGrpcServices.Session.service, 'universeagent.session.v1.SessionService');
+		assert.strictEqual(UniverseAgentGrpcServices.Session.service, 'agentservice.SessionService');
 	});
 
 	test('UniverseAgentGrpcServices lists Session.ResolveTurn', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Session.ResolveTurn, 'ResolveTurn');
-		assert.strictEqual(UniverseAgentGrpcServices.Session.service, 'universeagent.session.v1.SessionService');
+		assert.strictEqual(UniverseAgentGrpcServices.Session.service, 'agentservice.SessionService');
 	});
 
 	test('UniverseAgentGrpcServices lists Agent.Status', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.Status, 'Status');
-		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'agentservice.AgentService');
 	});
 
 	test('UniverseAgentGrpcServices lists Session.Purge', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Session.Purge, 'Purge');
-		assert.strictEqual(UniverseAgentGrpcServices.Session.service, 'universeagent.session.v1.SessionService');
+		assert.strictEqual(UniverseAgentGrpcServices.Session.service, 'agentservice.SessionService');
 	});
 
 	test('UniverseAgentGrpcServices lists Agent.Todo', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.Todo, 'Todo');
-		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'agentservice.AgentService');
 	});
 
 	test('UniverseAgentGrpcServices lists Agent.Compact', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.Compact, 'Compact');
-		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'agentservice.AgentService');
 	});
 
 	test('UniverseAgentGrpcServices lists Session.ResolveAnchor', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Session.ResolveAnchor, 'ResolveAnchor');
-		assert.strictEqual(UniverseAgentGrpcServices.Session.service, 'universeagent.session.v1.SessionService');
+		assert.strictEqual(UniverseAgentGrpcServices.Session.service, 'agentservice.SessionService');
 	});
 
 	test('UniverseAgentGrpcServices lists Agent.Usage', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.Usage, 'Usage');
-		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'agentservice.AgentService');
 	});
 
 	test('UniverseAgentGrpcServices lists Agent.List', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.List, 'List');
-		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'agentservice.AgentService');
 	});
 
 	test('UniverseAgentGrpcServices lists Agent.History', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.History, 'History');
-		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'agentservice.AgentService');
 	});
 
 	test('UniverseAgentGrpcServices lists Agent.Pause', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.Pause, 'Pause');
-		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'agentservice.AgentService');
 	});
 
 	test('UniverseAgentGrpcServices lists Agent.Resume', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.Resume, 'Resume');
-		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'agentservice.AgentService');
 	});
 
 	test('UniverseAgentGrpcServices lists Agent.Back', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.Back, 'Back');
-		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'agentservice.AgentService');
 	});
 
 	test('UniverseAgentGrpcServices lists Agent.Prune', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.Prune, 'Prune');
-		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'agentservice.AgentService');
 	});
 
 	test('UniverseAgentGrpcServices lists Agent.SuspendLoop', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.SuspendLoop, 'SuspendLoop');
-		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'agentservice.AgentService');
 	});
 
 	test('UniverseAgentGrpcServices lists Agent.ResumeLoop', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.ResumeLoop, 'ResumeLoop');
-		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'agentservice.AgentService');
 	});
 
 	test('UniverseAgentGrpcServices lists Agent.StopLoop', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.StopLoop, 'StopLoop');
-		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'agentservice.AgentService');
 	});
 
 	test('UniverseAgentGrpcServices lists Agent.Reset', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.Reset, 'Reset');
-		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'agentservice.AgentService');
 	});
 
 	test('UniverseAgentGrpcServices lists Agent.Branch', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.Branch, 'Branch');
-		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'universeagent.agent.v1.AgentService');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.service, 'agentservice.AgentService');
 	});
 
 	test('renameSession forwards request and maps result', async () => {
