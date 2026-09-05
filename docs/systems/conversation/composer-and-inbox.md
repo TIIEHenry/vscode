@@ -3,7 +3,7 @@ title: "Conversation Composer、身份条与 Inbox"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-09-04
+updated: 2026-09-05
 summary: "PRD-015 系统规格：PreFirst 居中 / Active 列底同一张 Composer；三种 composerPolicy；身份条 XOR；Inbox 左右分簇与 MessageQueue 状态机；Stop 仅 connected+streaming 时转 AgentService.Cancel；Goal 接通后转 SetSessionGoal / CancelSessionGoal；MessageQueue 接通后转 Enqueue/Pause/Resume/Clear/Hold/Release/Edit（无 GetQueue 显示空）；Inbox AutoDrive 接通 / 断连缓存诚实空；turnEdit 保存接通后转 AgentService.EditMessage（空 turnId / 空正文不发）；语音转写条；输入历史；StatusBar 芯片与诚实降级"
 updated: 2026-09-03
 summary: "PRD-015 系统规格：PreFirst 居中 / Active 列底同一张 Composer；三种 composerPolicy；身份条 XOR；Inbox；语音条；输入历史；StatusBar；Composer catalog 只读填表"
@@ -15,7 +15,7 @@ summary: "PRD-015 系统规格：PreFirst 居中 / Active 列底同一张 Compos
 
 ## 1. 两个阶段，一张 Composer
 
-| | PreFirst（会话无可见消息） | Active（已有消息） |
+| | PreFirst（会话无可见消息，含无 `localPendingSends`） | Active（已有消息，含乐观 pending） |
 |---|---|---|
 | Composer 位置 | 阅读列居中 | 列底 Dock（32 px 底栏） |
 | 身份条（引擎 · 文件夹 · 分支） | Composer 上方 | 阅读列顶（`ConversationIdentityStrip`），**不**进 SessionBar / 工具栏 |

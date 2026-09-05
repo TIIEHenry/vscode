@@ -39,6 +39,7 @@ export interface IConversationLensProjectionHost {
 	composerPolicy: 'compose' | 'turnEdit' | 'queueEdit';
 	lastAttachedEntries: ConversationTimelineEntry[];
 	sessionViewLease: IConversationSessionViewLease | undefined;
+	relayoutReadingSurfaces(): void;
 	readonly slotHosts: IConversationLensSlots;
 	readonly stubService: IConversationRosterService;
 	readonly storageService: IStorageService;
@@ -76,7 +77,13 @@ export function trajectoryProjectionOptions(host: IConversationLensProjectionHos
 
 export function isPreFirst(host: IConversationLensProjectionHost): boolean {
 
-		return host.stubService.getTurns(host.stubService.getActiveSessionId()).length === 0;
+		const sessionId = host.stubService.getActiveSessionId();
+		if (host.stubService.getTurns(sessionId).length > 0) {
+			return false;
+		}
+		// localPendingSends are visible timeline rows but dropped from getTurns().
+		const pending = host.sessionViewLease?.snapshot.localPendingSends?.length ?? 0;
+		return pending === 0;
 	
 }
 
@@ -167,6 +174,7 @@ export function updateConversationPhase(host: IConversationLensProjectionHost): 
 		}
 		host.updateGateRow();
 		host.syncComposerPlacement();
+		host.relayoutReadingSurfaces();
 	
 }
 

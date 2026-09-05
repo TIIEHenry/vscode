@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-05
-summary: "merge tip c52f9661d71（HistoryFill + catalog/chrome）；剩余 onDidApplyFrame / 断连列顶 / heartbeat_ack；U2 未开"
+summary: "合入 agent-ide PreFirst/first-send + HistoryFill；剩余 onDidApplyFrame / 断连列顶 / heartbeat_ack；U2 未开"
 ---
 
 # Development Progress
@@ -36,6 +36,7 @@ summary: "merge tip c52f9661d71（HistoryFill + catalog/chrome）；剩余 onDid
 | **gRPC catalog** | `123625c245b` — `UniverseAgentGrpcServices` 对齐 UA proto `package agentservice`（原 `universeagent.*.v1` 导致 Connect/`GetAuthNonce` UNIMPLEMENTED） |
 | **workbench chrome** | `48dc0c5c95e` — Conversation 阅读列 layout / pre-first SessionBar；Navigator connecting 诚实空；Sources 空文案去实现注；Client enum 中文 labels |
 | **HistoryFill** | `ed7faece0d6` — 宿主 `fillHistoryGap` 按 Actor `historyResult` 分页+demux；lease dispose-before-resolve 必 `releaseLease`；连接升降换帧源 |
+| **first-send Active** | `b818fbf6bcf` 首条 pending 即离 PreFirst；未连不锁发送。相位切换后重测阅读列，PreFirst 不再 `layout(0)` monaco 树 |
 
 并行 catalog/UI 绑定波（A–D 槽）已合入 tip；逐条流水见 [归档](../archive/status-current-session-slot-catalog-2026-09-05.md)，不在本账复述。
 

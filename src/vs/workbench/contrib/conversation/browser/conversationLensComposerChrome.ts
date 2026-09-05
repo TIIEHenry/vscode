@@ -381,10 +381,10 @@ export function syncComposerPlacement(host: IConversationLensComposerChromeHost)
 		if (host.composerPolicy === 'turnEdit' && host.editingTurnId) {
 			ensureComposerInCluster(host);
 			host.renderVoiceTranscriptBar();
-			const host = host.timelineTree.getTurnEditHost(host.editingTurnId);
-			if (host) {
-				if (host.composer.parentElement !== host) {
-					host.appendChild(host.composer);
+			const editHost = host.timelineTree.getTurnEditHost(host.editingTurnId);
+			if (editHost) {
+				if (host.composer.parentElement !== editHost) {
+					editHost.appendChild(host.composer);
 				}
 				return;
 			}
@@ -445,8 +445,7 @@ export function updateSendEnabled(host: IConversationLensComposerChromeHost): vo
 			host.sendButton.enabled = hasDraft;
 			return;
 		}
-		const needsStubModel = !host.stubService.isEngineConnected() && host.modelSelectedIndex === 0;
-		host.sendButton.enabled = hasDraft && !needsStubModel;
+		host.sendButton.enabled = hasDraft;
 	
 }
 
@@ -576,7 +575,7 @@ export function navigateInputHistory(host: IConversationLensComposerChromeHost, 
 
 export function exitInputHistoryBrowse(host: IConversationLensComposerChromeHost): void {
 
-		const result = exitInputHistoryBrowse(host.inputHistoryBrowse);
+		const result = exitInputHistoryBrowseModel(host.inputHistoryBrowse);
 		if (!result.handled || result.textareaValue === undefined) {
 			return;
 		}

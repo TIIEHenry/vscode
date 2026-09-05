@@ -231,6 +231,7 @@ export class ConversationLens extends Disposable {
 	private lastAttachedEntries: ConversationTimelineEntry[] = [];
 	private lastRevealItemId: string | undefined;
 	private lastReadingWidth = 0;
+	private lastReadingHeight = 0;
 	private postFailureVisible = false;
 	private composerCatalogGeneration = 0;
 	private catalogToolNames: readonly string[] = [];
@@ -417,6 +418,7 @@ export class ConversationLens extends Disposable {
 	layout(height: number, width: number): void {
 		const restored = this.lastReadingWidth < 1 && width > 0;
 		this.lastReadingWidth = width;
+		this.lastReadingHeight = height;
 		this.applyConversationWidth(width);
 		layoutReadingSurfaces(this, height, width);
 		if (restored && this.lastRevealItemId && this.lensId === 'conversation') {
@@ -535,6 +537,13 @@ export class ConversationLens extends Disposable {
 		updateConversationPhase(this);
 	}
 
+	private relayoutReadingSurfaces(): void {
+		if (this.lastReadingWidth < 1) {
+			return;
+		}
+		layoutReadingSurfaces(this, this.lastReadingHeight, this.lastReadingWidth);
+	}
+
 	private beginTurnEdit(turnId: string): void {
 		beginTurnEdit(this, turnId);
 	}
@@ -572,7 +581,7 @@ export class ConversationLens extends Disposable {
 	}
 
 	private getEditingQueueItem() {
-		getEditingQueueItem(this);
+		return getEditingQueueItem(this);
 	}
 
 	private updateComposerEditChrome(): void {
