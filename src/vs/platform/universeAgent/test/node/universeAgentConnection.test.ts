@@ -230,6 +230,8 @@ import type {
 	UniverseAgentContextVariableListResult,
 	UniverseAgentContextVariableReadRequest,
 	UniverseAgentContextVariableReadResult,
+	UniverseAgentListNodesRequest,
+	UniverseAgentListNodesResult,
 	UniverseAgentGetUploadProgressRequest,
 	UniverseAgentGetUploadProgressResult,
 	UniverseAgentShutdownRequest,
@@ -1738,6 +1740,18 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 		return this.readContextVariableResult;
 	}
 
+	readonly listNodesCalls: UniverseAgentListNodesRequest[] = [];
+	listNodesResult: UniverseAgentListNodesResult = {
+		nodes: [],
+		total: 0,
+		onlineCount: 0,
+	};
+
+	async listNodes(request: UniverseAgentListNodesRequest): Promise<UniverseAgentListNodesResult> {
+		this.listNodesCalls.push(request);
+		return this.listNodesResult;
+	}
+
 	readonly getUploadProgressCalls: UniverseAgentGetUploadProgressRequest[] = [];
 	getUploadProgressResult: UniverseAgentGetUploadProgressResult = {
 		exists: false,
@@ -2485,6 +2499,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('UniverseAgentGrpcServices lists ContextVariable.Read', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.ContextVariable.Read, 'Read');
 		assert.strictEqual(UniverseAgentGrpcServices.ContextVariable.service, 'universeagent.contextvariable.v1.ContextVariableService');
+	});
+
+	test('UniverseAgentGrpcServices lists RemoteAgent.ListNodes', () => {
+		assert.strictEqual(UniverseAgentGrpcServices.RemoteAgent.ListNodes, 'ListNodes');
+		assert.strictEqual(UniverseAgentGrpcServices.RemoteAgent.service, 'universeagent.remoteagent.v1.RemoteAgentService');
 	});
 
 	test('UniverseAgentGrpcServices lists FileTransfer.GetUploadProgress', () => {
@@ -6105,6 +6124,121 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(empty.entry.scope, 'VARIABLE_GLOBAL');
 		assert.strictEqual(empty.entry.updatedBy, '');
 		assert.strictEqual(empty.entry.updatedAt, 0);
+		service.dispose();
+	});
+
+	test('listNodes forwards request and maps result', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		transport.listNodesResult = {
+			nodes: [{
+				id: 'node-1',
+				name: 'galaxy',
+				description: 'remote',
+				status: 'ONLINE',
+				endpoint: '127.0.0.1:50061',
+				tags: ['prod'],
+				capabilities: {
+					models: [{
+						id: 'gpt',
+						name: 'GPT',
+						provider: 'openai',
+						maxTokens: 8192,
+						enabled: true,
+					}],
+					tools: ['read'],
+					modes: ['agent'],
+					serverVersion: '1.0',
+					protocolVersion: 'v1',
+					properties: { region: 'cn' },
+				},
+				load: {
+					activeSessions: 2,
+					queueDepth: 1,
+					cpuPercent: 10,
+					memoryUsedMb: 256,
+				},
+				lastHeartbeatAt: 1_700_000_000,
+			}],
+			total: 1,
+			onlineCount: 1,
+		};
+		const request = {
+			filterStatus: ['ONLINE'],
+			filterTags: ['prod'],
+		};
+		const result = await service.listNodes(request);
+		assert.deepStrictEqual(transport.listNodesCalls, [request]);
+		assert.deepStrictEqual(result, transport.listNodesResult);
+
+		transport.listNodesResult = {
+			nodes: [{
+				id: '',
+				name: '',
+				description: '',
+				status: '',
+				endpoint: '',
+				tags: [''],
+				capabilities: {
+					models: [{
+						id: '',
+						name: '',
+						provider: '',
+						maxTokens: 0,
+						enabled: false,
+					}],
+					tools: [''],
+					modes: [''],
+					serverVersion: '',
+					protocolVersion: '',
+					properties: { '': '' },
+				},
+				load: {
+					activeSessions: 0,
+					queueDepth: 0,
+					cpuPercent: 0,
+					memoryUsedMb: 0,
+				},
+				lastHeartbeatAt: 0,
+			}],
+			total: 0,
+			onlineCount: 0,
+		};
+		const emptyRequest = {
+			filterStatus: [''],
+			filterTags: [''],
+		};
+		const empty = await service.listNodes(emptyRequest);
+		assert.deepStrictEqual(transport.listNodesCalls[1]?.filterStatus, ['']);
+		assert.deepStrictEqual(transport.listNodesCalls[1]?.filterTags, ['']);
+		assert.strictEqual(empty.nodes[0]?.id, '');
+		assert.strictEqual(empty.nodes[0]?.name, '');
+		assert.strictEqual(empty.nodes[0]?.description, '');
+		assert.strictEqual(empty.nodes[0]?.status, '');
+		assert.strictEqual(empty.nodes[0]?.endpoint, '');
+		assert.deepStrictEqual(empty.nodes[0]?.tags, ['']);
+		assert.strictEqual(empty.nodes[0]?.capabilities.models[0]?.id, '');
+		assert.strictEqual(empty.nodes[0]?.capabilities.models[0]?.enabled, false);
+		assert.strictEqual(empty.nodes[0]?.capabilities.serverVersion, '');
+		assert.strictEqual(empty.nodes[0]?.capabilities.properties[''], '');
+		assert.strictEqual(empty.nodes[0]?.load.activeSessions, 0);
+		assert.strictEqual(empty.nodes[0]?.lastHeartbeatAt, 0);
+		assert.strictEqual(empty.total, 0);
+		assert.strictEqual(empty.onlineCount, 0);
+
+		transport.listNodesResult = {
+			nodes: [],
+			total: 0,
+			onlineCount: 0,
+		};
+		const emptyFilters = await service.listNodes({ filterStatus: [], filterTags: [] });
+		assert.deepStrictEqual(transport.listNodesCalls[2]?.filterStatus, []);
+		assert.deepStrictEqual(transport.listNodesCalls[2]?.filterTags, []);
+		assert.deepStrictEqual(emptyFilters.nodes, []);
 		service.dispose();
 	});
 
