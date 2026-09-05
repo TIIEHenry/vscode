@@ -4,17 +4,13 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as grpc from '@grpc/grpc-js';
-import { DisposableStore } from '../../../../base/common/lifecycle.js';
-import { createStreamCloseGate } from '../../common/sessionStreamClose.js';
 import type {
 	UniverseAgentSessionStreamCloseCause,
 	UniverseAgentChatRequest,
 	UniverseAgentChatResponse,
-	UniverseAgentChatSyncInputDeliveryEvent,
 	UniverseAgentChatSyncRequest,
 	UniverseAgentChatSyncResult,
 	UniverseAgentChatSyncSessionInput,
-	UniverseAgentChatSyncToolResult,
 	UniverseAgentSyncInputDeliveryRequest,
 	UniverseAgentSyncInputDeliveryResult,
 	UniverseAgentChatStream,
@@ -38,7 +34,6 @@ import type {
 	UniverseAgentResumeSessionResult,
 	UniverseAgentPrewarmSessionsRequest,
 	UniverseAgentPrewarmSessionsResult,
-	UniverseAgentPrewarmSessionEntry,
 	UniverseAgentShelveSessionRequest,
 	UniverseAgentShelveSessionResult,
 	UniverseAgentUnshelveSessionRequest,
@@ -53,19 +48,15 @@ import type {
 	UniverseAgentAgentStatusResult,
 	UniverseAgentTodoRequest,
 	UniverseAgentTodoResult,
-	UniverseAgentTodoItem,
 	UniverseAgentCompactRequest,
 	UniverseAgentCompactResult,
 	UniverseAgentAnchorResolveScope,
-	UniverseAgentEnvelopeAnchor,
-	UniverseAgentEnvelopeRecordPresence,
 	UniverseAgentResolveAnchorRequest,
 	UniverseAgentResolveAnchorResult,
 	UniverseAgentUsageRequest,
 	UniverseAgentUsageResult,
 	UniverseAgentAgentHistoryRequest,
 	UniverseAgentAgentHistoryResult,
-	UniverseAgentAgentHistoryEntry,
 	UniverseAgentPruneRequest,
 	UniverseAgentPruneResult,
 	UniverseAgentResetAgentRequest,
@@ -78,18 +69,6 @@ import type {
 	UniverseAgentResumeLoopResult,
 	UniverseAgentStopLoopRequest,
 	UniverseAgentStopLoopResult,
-	UniverseAgentAgentUsage,
-	UniverseAgentRecentRequestSpan,
-	UniverseAgentContextWindowInfo,
-	UniverseAgentSessionUsageInfo,
-	UniverseAgentFixedOverheadInfo,
-	UniverseAgentSystemPromptPartInfo,
-	UniverseAgentMessageBreakdownInfo,
-	UniverseAgentCompactInfo,
-	UniverseAgentCacheInfo,
-	UniverseAgentModelUsage,
-	UniverseAgentAgentUsageDetail,
-	UniverseAgentProfileUsage,
 	UniverseAgentListAgentsRequest,
 	UniverseAgentListAgentsResult,
 	UniverseAgentPauseAgentRequest,
@@ -110,7 +89,6 @@ import type {
 	UniverseAgentSendShellSessionClientControlResult,
 	UniverseAgentFetchToolUsageDetailRequest,
 	UniverseAgentFetchToolUsageDetailResult,
-	UniverseAgentContextSourceUsage,
 	UniverseAgentFireTriggerWebhookRequest,
 	UniverseAgentFireTriggerWebhookResult,
 	UniverseAgentInstallSessionDemoFakeRequest,
@@ -138,7 +116,6 @@ import type {
 	UniverseAgentPromotePermissionRuleResult,
 	UniverseAgentGetSessionRulesRequest,
 	UniverseAgentGetSessionRulesResult,
-	UniverseAgentSessionRule,
 	UniverseAgentSessionToolPermissionMode,
 	UniverseAgentSetPermissionModeRequest,
 	UniverseAgentSetPermissionModeResult,
@@ -195,10 +172,8 @@ import type {
 	UniverseAgentListSnapshotsResult,
 	UniverseAgentListLoopSnapshotsRequest,
 	UniverseAgentListLoopSnapshotsResult,
-	UniverseAgentLoopSnapshotRecord,
 	UniverseAgentCreateSnapshotRequest,
 	UniverseAgentCreateSnapshotResult,
-	UniverseAgentSessionSnapshotInfo,
 	UniverseAgentRestoreSnapshotRequest,
 	UniverseAgentRestoreSnapshotResult,
 	UniverseAgentDeleteSnapshotRequest,
@@ -215,12 +190,9 @@ import type {
 	UniverseAgentSaveSkillContentResult,
 	UniverseAgentSkillInfoRequest,
 	UniverseAgentSkillInfoResult,
-	UniverseAgentSkillSource,
-	UniverseAgentSkillSummary,
 	UniverseAgentListAgentProfilesRequest,
 	UniverseAgentListAgentProfilesResult,
 	UniverseAgentAgentProfileSource,
-	UniverseAgentAgentProfileSummary,
 	UniverseAgentAgentProfileDetail,
 	UniverseAgentSaveAgentProfileRequest,
 	UniverseAgentSaveAgentProfileResult,
@@ -232,21 +204,13 @@ import type {
 	UniverseAgentListMcpServersResult,
 	UniverseAgentGetMcpServerStatusesResult,
 	UniverseAgentGetMcpServerToolsResult,
-	UniverseAgentMcpRuntimeStatus,
-	UniverseAgentMcpServerStatus,
-	UniverseAgentMcpToolDefinition,
 	UniverseAgentListPluginsResult,
 	UniverseAgentPluginInfoResult,
 	UniverseAgentEnablePluginResult,
 	UniverseAgentReloadPluginResult,
 	UniverseAgentUnloadPluginResult,
 	UniverseAgentScanNewPluginsResult,
-	UniverseAgentPluginStatus,
-	UniverseAgentPluginSummary,
-	UniverseAgentPluginHookEntry,
-	UniverseAgentMcpServerOrigin,
 	UniverseAgentMcpTransport,
-	UniverseAgentMcpServerSummary,
 	UniverseAgentMcpServerConfig,
 	UniverseAgentToggleMcpServerRequest,
 	UniverseAgentToggleMcpServerResult,
@@ -259,12 +223,9 @@ import type {
 	UniverseAgentListToolsResult,
 	UniverseAgentToolInfoRequest,
 	UniverseAgentToolInfoResult,
-	UniverseAgentSlashCommandSource,
-	UniverseAgentCommandSummary,
 	UniverseAgentListCommandsResult,
 	UniverseAgentGetCommandDefRequest,
 	UniverseAgentGetCommandDefResult,
-	UniverseAgentFileEntry,
 	UniverseAgentListFilesRequest,
 	UniverseAgentListFilesResult,
 	UniverseAgentReadFileRequest,
@@ -273,13 +234,11 @@ import type {
 	UniverseAgentGetFileInfoResult,
 	UniverseAgentWriteFileRequest,
 	UniverseAgentWriteFileResult,
-	UniverseAgentWriteFileStatus,
 	UniverseAgentForceWriteFileRequest,
 	UniverseAgentAgentMergeRequest,
 	UniverseAgentAgentMergeResult,
 	UniverseAgentReadGitSummaryRequest,
 	UniverseAgentReadGitSummaryResult,
-	UniverseAgentGitChangeEntry,
 	UniverseAgentReadGitChangesRequest,
 	UniverseAgentReadGitChangesResult,
 	UniverseAgentReadGitFileDiffRequest,
@@ -291,26 +250,20 @@ import type {
 	UniverseAgentGetSessionUsageRequest,
 	UniverseAgentGetSessionUsageResult,
 	UniverseAgentGetGlobalUsageResult,
-	UniverseAgentTokenUsageData,
 	UniverseAgentSaveMemoryRequest,
 	UniverseAgentSaveMemoryResult,
 	UniverseAgentMemorySearchRequest,
 	UniverseAgentMemorySearchResult,
-	UniverseAgentMemorySearchEntry,
 	UniverseAgentMemorySearchDeepRequest,
 	UniverseAgentMemorySearchDeepResult,
 	UniverseAgentReadMemoryRequest,
 	UniverseAgentReadMemoryResult,
-	UniverseAgentMemoryFileMetadata,
 	UniverseAgentMemoryListRequest,
 	UniverseAgentMemoryListResult,
-	UniverseAgentMemoryCategoryInfo,
-	UniverseAgentMemoryFileSummary,
 	UniverseAgentDeleteMemoryRequest,
 	UniverseAgentDeleteMemoryResult,
 	UniverseAgentReflectMemoryRequest,
 	UniverseAgentReflectMemoryResult,
-	UniverseAgentMemoryReflectDiagnosis,
 	UniverseAgentMemoryRebuildRequest,
 	UniverseAgentMemoryRebuildEvent,
 	UniverseAgentMemoryRebuildStream,
@@ -318,7 +271,6 @@ import type {
 	UniverseAgentRevertMemoryResult,
 	UniverseAgentMemoryHistoryRequest,
 	UniverseAgentMemoryHistoryResult,
-	UniverseAgentMemoryChangeEntry,
 	UniverseAgentContextVariableListRequest,
 	UniverseAgentContextVariableListResult,
 	UniverseAgentContextVariableReadRequest,
@@ -339,34 +291,18 @@ import type {
 	UniverseAgentDestroyRemoteSessionResult,
 	UniverseAgentGetRemoteSessionStatusRequest,
 	UniverseAgentGetRemoteSessionStatusResult,
-	UniverseAgentRemotePendingPermission,
-	UniverseAgentRemotePendingQuestion,
 	UniverseAgentGetRemoteSessionHistoryRequest,
 	UniverseAgentGetRemoteSessionHistoryResult,
-	UniverseAgentRemoteChatMessage,
 	UniverseAgentResumeRemoteSessionRequest,
 	UniverseAgentResumeRemoteSessionResult,
 	UniverseAgentCancelRemoteSessionRequest,
 	UniverseAgentCancelRemoteSessionResult,
 	UniverseAgentRemoteChatRequest,
 	UniverseAgentRemoteChatResponse,
-	UniverseAgentRemoteChatResult,
 	UniverseAgentRemoteChatStream,
-	UniverseAgentRemoteProgressEvent,
 	UniverseAgentRemoteResponse,
-	UniverseAgentRemoteAgentAuthConfig,
-	UniverseAgentRemoteAgentCapabilities,
 	UniverseAgentRemoteAgentConfig,
-	UniverseAgentRemoteAgentEndpoint,
-	UniverseAgentRemoteAgentHealthCheckConfig,
 	UniverseAgentRemoteAgentInfo,
-	UniverseAgentRemoteAgentLoadMetrics,
-	UniverseAgentRemoteAgentModelInfo,
-	UniverseAgentRemoteAgentPermissionBudget,
-	UniverseAgentRemoteAgentPermissionDelegate,
-	UniverseAgentRemoteAgentArgCondition,
-	UniverseAgentRemoteAgentWhitelistEntry,
-	UniverseAgentContextVariableEntry,
 	UniverseAgentCheckConnectionRequest,
 	UniverseAgentConnectionReport,
 	UniverseAgentSetMaintenanceRequest,
@@ -375,9 +311,6 @@ import type {
 	UniverseAgentExitMaintenanceResult,
 	UniverseAgentDeleteRemoteAgentConfigRequest,
 	UniverseAgentDeleteRemoteAgentConfigResult,
-	UniverseAgentValidationError,
-	UniverseAgentContextVariableEntrySummary,
-	UniverseAgentContextVariableScope,
 	UniverseAgentGetUploadProgressRequest,
 	UniverseAgentGetUploadProgressResult,
 	UniverseAgentUploadChunk,
@@ -390,11 +323,9 @@ import type {
 	UniverseAgentPtyServerMessage,
 	UniverseAgentPtyStream,
 	UniverseAgentHealthCheckResult,
-	UniverseAgentDoctorCheck,
 	UniverseAgentDoctorResult,
 	UniverseAgentShutdownRequest,
 	UniverseAgentShutdownResult,
-	UniverseAgentDeviceInfo,
 	UniverseAgentListDevicesResult,
 	UniverseAgentPairApproveRequest,
 	UniverseAgentPairApproveResult,
@@ -404,7 +335,6 @@ import type {
 	UniverseAgentRevokeResult,
 	UniverseAgentRotateTokenRequest,
 	UniverseAgentRotateTokenResult,
-	UniverseAgentPendingPairInfo,
 	UniverseAgentListPendingResult,
 	UniverseAgentListTriggersRequest,
 	UniverseAgentListTriggersResult,
@@ -428,7 +358,6 @@ import type {
 	UniverseAgentClearClipboardRequest,
 	UniverseAgentClearClipboardResult,
 	UniverseAgentClipboardEntry,
-	UniverseAgentClipboardEntrySummary,
 	UniverseAgentListModelsResult,
 	UniverseAgentGetConfigRequest,
 	UniverseAgentGetConfigResult,
@@ -441,8 +370,6 @@ import type {
 	UniverseAgentWatchConfigRequest,
 	UniverseAgentConfigChangedEvent,
 	UniverseAgentWatchConfigStream,
-	UniverseAgentModelEntry,
-	UniverseAgentToolSummary,
 	UniverseAgentAgentTreeNode,
 	UniverseAgentFetchToolDetailRequest,
 	UniverseAgentFetchToolDetailWireResult,
@@ -457,530 +384,278 @@ import {
 	UniverseAgentAuthNonceResult,
 	UniverseAgentDeviceAuthConnectRequest,
 	UniverseAgentGrpcServices,
-	UniverseAgentTransportError,
 } from './grpcTransport.js';
 import { createPinnedChannelOptions, createPinnedTlsChannelCredentials, type UniverseAgentPinnedTlsTarget } from '../universeAgentChannel.js';
-
-interface ConnectResponseWire {
-	session_token?: string;
-	work_dir?: string;
-	pairing_nonce?: string;
-	sas_code?: string;
-	capabilities?: {
-		methods?: string[];
-		events?: string[];
-	};
-}
-
-interface AuthNonceResponseWire {
-	auth_nonce?: string;
-	engine_identity_id?: string;
-	engine_cert_fingerprint?: string;
-	expires_at_ms?: number;
-}
-
-interface DeviceAuthWire {
-	client_identity_id?: string;
-	client_public_key?: string;
-	auth_nonce?: string;
-	signature?: string;
-}
-
-interface ListSessionsResponseWire {
-	sessions?: Array<{
-		session_id?: string;
-		title?: string;
-		status?: string;
-		created_at?: number;
-		last_accessed_at?: number;
-		turn_count?: number;
-		model?: string;
-	}>;
-	total_count?: number;
-}
-
-interface CreateSessionResponseWire {
-	session_id?: string;
-}
-
-interface SessionInfoResponseWire {
-	session_id?: string;
-	root_agent?: AgentInfoWire;
-	created_at?: number;
-	last_accessed_at?: number;
-	provider?: string;
-	model?: string;
-}
-
-interface ResumeSessionResponseWire {
-	success?: boolean;
-	message?: string;
-	root_agent?: AgentInfoWire;
-}
-
-interface PrewarmSessionEntryWire {
-	session_id?: string;
-	outcome?: string | number;
-	message?: string;
-}
-
-interface PrewarmSessionsResponseWire {
-	entries?: PrewarmSessionEntryWire[];
-}
-
-interface ShelveSessionResponseWire {
-	success?: boolean;
-	message?: string;
-}
-
-interface UnshelveSessionResponseWire {
-	success?: boolean;
-	message?: string;
-}
-
-interface PurgeSessionResponseWire {
-	success?: boolean;
-	message?: string;
-}
-
-interface ExportSessionResponseWire {
-	content?: string;
-	format?: string;
-}
-
-interface ResolveTurnHitWire {
-	envelope?: unknown;
-	presence?: string | number;
-	generation?: number | string;
-}
-
-interface ResolveTurnTombstoneWire {
-	session_id?: string;
-	envelope_id?: string;
-	seq?: number | string;
-	turn_id?: string;
-	generation?: number | string;
-}
-
-interface ResolveTurnExpiredWire {
-	anchor?: {
-		session_id?: string;
-		envelope_id?: string;
-		generation?: number | string;
-	};
-}
-
-interface ResolveTurnResponseWire {
-	hit?: ResolveTurnHitWire;
-	tombstone?: ResolveTurnTombstoneWire;
-	expired?: ResolveTurnExpiredWire;
-}
-
-interface StatusResponseWire {
-	agent?: AgentInfoWire;
-}
-
-interface CompactResponseWire {
-	success?: boolean;
-	message?: string;
-	tokens_before?: number;
-	tokens_after?: number;
-	outcome?: string | number;
-	reject_reason?: string;
-}
-
-interface ListAgentsResponseWire {
-	agents?: AgentInfoWire[];
-}
-
-interface BackResponseWire {
-	success?: boolean;
-	message?: string;
-	current_turn_id?: string;
-}
-
-const CompactOutcomeByNumber: Record<number, string> = {
-	0: 'COMPACT_OUTCOME_UNSPECIFIED',
-	1: 'COMPACT_OUTCOME_STARTED',
-	2: 'COMPACT_OUTCOME_SUCCEEDED',
-	3: 'COMPACT_OUTCOME_FAILED',
-	4: 'COMPACT_OUTCOME_APPLIED_PENDING_RETRY',
-	5: 'COMPACT_OUTCOME_APPLIED_DURABILITY_FAILED',
-	6: 'COMPACT_OUTCOME_APPLIED_IN_FLIGHT',
-	7: 'COMPACT_OUTCOME_APPLIED_NOT_CONFIGURED',
-};
-
-const ContextSourceTypeByNumber: Record<number, string> = {
-	0: 'CONTEXT_SOURCE_TYPE_UNSPECIFIED',
-	1: 'CONTEXT_SOURCE_TYPE_SELF_HISTORY',
-	2: 'CONTEXT_SOURCE_TYPE_PARENT_INSTRUCTION',
-	3: 'CONTEXT_SOURCE_TYPE_AGENT_MESSAGE',
-	4: 'CONTEXT_SOURCE_TYPE_BLACKBOARD',
-	5: 'CONTEXT_SOURCE_TYPE_TOOL_RESULT',
-	6: 'CONTEXT_SOURCE_TYPE_SYSTEM',
-};
-
-interface ContextSourceUsageWire {
-	source_type?: string | number;
-	source_agent_id?: string;
-	source_scope_id?: string;
-	message_id?: string;
-	estimated_tokens?: number | string;
-}
-
-interface FetchToolUsageDetailResponseWire {
-	success?: boolean;
-	tool_call_id?: string;
-	context_sources?: ContextSourceUsageWire[];
-	error_message?: string;
-}
-
-const FireTriggerWebhookStatusByNumber: Record<number, string> = {
-	0: 'FIRE_TRIGGER_WEBHOOK_STATUS_UNSPECIFIED',
-	1: 'FIRE_TRIGGER_WEBHOOK_STATUS_QUEUED',
-	2: 'FIRE_TRIGGER_WEBHOOK_STATUS_EXECUTED',
-	3: 'FIRE_TRIGGER_WEBHOOK_STATUS_REJECTED',
-	4: 'FIRE_TRIGGER_WEBHOOK_STATUS_SKIPPED',
-};
-
-const ToolDetailContentModeByNumber: Record<number, string> = {
-	0: 'TOOL_DETAIL_CONTENT_MODE_UNSPECIFIED',
-	1: 'TOOL_DETAIL_CONTENT_MODE_FULL_SNAPSHOT',
-	2: 'TOOL_DETAIL_CONTENT_MODE_APPEND_SLICE',
-};
-
-interface SubscribeToolDetailChunkWire {
-	success?: boolean;
-	error_message?: string;
-	content?: string;
-	revision?: number | string;
-	truncated?: boolean;
-	total_bytes?: number | string;
-	mime_type?: string;
-	eof?: boolean;
-	content_mode?: string | number;
-}
-
-const UploadErrorCodeByNumber: Record<number, string> = {
-	0: 'UPLOAD_ERROR_NONE',
-	1: 'UPLOAD_ERROR_CHECKSUM_MISMATCH',
-	2: 'UPLOAD_ERROR_DISK_FULL',
-	3: 'UPLOAD_ERROR_PERMISSION_DENIED',
-	4: 'UPLOAD_ERROR_INVALID_OFFSET',
-	5: 'UPLOAD_ERROR_FILE_TOO_LARGE',
-	6: 'UPLOAD_ERROR_INTERNAL',
-	7: 'UPLOAD_ERROR_AUTH_FAILED',
-};
-
-const PtyOpenFailureReasonByNumber: Record<number, string> = {
-	0: 'PTY_OPEN_FAILURE_UNSPECIFIED',
-	1: 'PTY_OPEN_SESSION_NOT_FOUND',
-	2: 'PTY_OPEN_SHELL_NOT_FOUND',
-	3: 'PTY_OPEN_PERMISSION_DENIED',
-	4: 'PTY_OPEN_SPAWN_FAILED',
-};
-
-const PtyErrorCodeByNumber: Record<number, string> = {
-	0: 'PTY_ERROR_UNSPECIFIED',
-	1: 'PTY_ERROR_SESSION_NOT_FOUND',
-	2: 'PTY_ERROR_PERMISSION_DENIED',
-	3: 'PTY_ERROR_INTERNAL',
-};
-
-interface UploadResponseWire {
-	success?: boolean;
-	file_path?: string;
-	checksum_sha256?: string;
-	error_message?: string;
-	error_code?: string | number;
-}
-
-interface ConfigChangedEventWire {
-	key?: string;
-	old_value?: string;
-	new_value?: string;
-	scope?: string;
-	timestamp?: number | string;
-}
-interface SessionSnapshotInfoWire {
-	id?: string;
-	session_id?: string;
-	title?: string;
-	description?: string;
-	created_at?: number;
-	turn_count?: number;
-	token_count?: number;
-	model_id?: string;
-	is_auto?: boolean;
-}
-
-interface ListSnapshotsResponseWire {
-	snapshots?: SessionSnapshotInfoWire[];
-}
-
-interface LoopSnapshotRecordWire {
-	timestamp?: number;
-	turn_id?: string;
-	loop_id?: string;
-	iteration?: number;
-	max_iterations?: number;
-	goal?: string;
-	exit_condition?: string;
-	tmp_file_relative_path?: string;
-	is_exit?: boolean;
-	self_supervise?: string;
-	terminal_reason?: string;
-}
-
-interface ListLoopSnapshotsResponseWire {
-	snapshots?: LoopSnapshotRecordWire[];
-}
-
-interface CreateSnapshotResponseWire {
-	success?: boolean;
-	snapshot?: SessionSnapshotInfoWire;
-	error_message?: string;
-}
-
-interface RestoreSnapshotResponseWire {
-	success?: boolean;
-	error_message?: string;
-}
-
-interface DeleteSnapshotResponseWire {
-	success?: boolean;
-	error_message?: string;
-}
-
-interface TodoItemWire {
-	id?: string;
-	content?: string;
-	status?: string;
-	priority?: number;
-	require_confirm?: boolean;
-	blocked?: string;
-}
-
-interface TodoResponseWire {
-	items?: TodoItemWire[];
-}
-
-interface SessionRuleWire {
-	id?: string;
-	tool_name?: string;
-	scope?: string;
-	action?: string | number;
-	reason?: string;
-	created_at?: number | string;
-	expires_at?: number | string;
-	source?: string | number;
-}
-
-interface GetSessionRulesResponseWire {
-	rules?: SessionRuleWire[];
-}
-
-interface EnvelopeAnchorWire {
-	session_id?: string;
-	envelope_id?: string;
-	generation?: number | string;
-}
-
-interface AnchorHitWire {
-	envelope?: unknown;
-	presence?: number | string;
-	generation?: number | string;
-}
-
-interface AnchorTombstoneWire {
-	session_id?: string;
-	envelope_id?: string;
-	seq?: number | string;
-	turn_id?: string;
-	generation?: number | string;
-}
-
-interface AnchorExpiredWire {
-	anchor?: EnvelopeAnchorWire;
-}
-
-interface ResolveAnchorResponseWire {
-	hit?: AnchorHitWire;
-	tombstone?: AnchorTombstoneWire;
-	expired?: AnchorExpiredWire;
-}
-
-interface AgentUsageWire {
-	agent_id?: string;
-	input_tokens?: number;
-	output_tokens?: number;
-	turns?: number;
-}
-
-interface RecentRequestSpanWire {
-	profile_id?: string;
-	provider?: string;
-	model_id?: string;
-	input_tokens?: number;
-	output_tokens?: number;
-	prefill_ms?: number;
-	decode_ms?: number;
-	completed_at_ms?: number;
-	usage_kind?: string;
-}
-
-interface FixedOverheadInfoWire {
-	tool_definition_tokens?: number;
-	tool_definition_count?: number;
-	skill_inject_tokens?: number;
-	mcp_tool_tokens?: number;
-	memory_inject_tokens?: number;
-	rules_inject_tokens?: number;
-}
-
-interface SystemPromptPartInfoWire {
-	id?: string;
-	label?: string;
-	tokens?: number;
-	cache_scope?: string;
-	volatility?: string;
-}
-
-interface MessageBreakdownInfoWire {
-	system_prompt_tokens?: number;
-	user_message_count?: number;
-	user_message_tokens?: number;
-	assistant_count?: number;
-	assistant_tokens?: number;
-	tool_result_count?: number;
-	tool_result_tokens?: number;
-	compact_notice_count?: number;
-	compact_notice_tokens?: number;
-}
-
-interface CompactInfoWire {
-	compact_count?: number;
-	last_compact_tokens_before?: number;
-	last_compact_tokens_after?: number;
-	last_compact_time_ms?: number;
-}
-
-interface CacheInfoWire {
-	total_cache_read_tokens?: number;
-	total_cache_creation_tokens?: number;
-}
-
-interface ContextWindowInfoWire {
-	context_window_size?: number;
-	estimated_context_tokens?: number;
-	model_name?: string;
-	message_count?: number;
-	breakdown?: MessageBreakdownInfoWire;
-	compact?: CompactInfoWire;
-	cache?: CacheInfoWire;
-	fixed_overhead?: FixedOverheadInfoWire;
-	system_prompt_parts?: SystemPromptPartInfoWire[];
-}
-
-interface ModelUsageWire {
-	model_id?: string;
-	model_name?: string;
-	provider?: string;
-	input_tokens?: number;
-	output_tokens?: number;
-	thinking_tokens?: number;
-	total_tokens?: number;
-	turn_count?: number;
-}
-
-interface AgentUsageDetailWire {
-	agent_id?: string;
-	agent_type?: string;
-	model_id?: string;
-	input_tokens?: number;
-	output_tokens?: number;
-	thinking_tokens?: number;
-	total_tokens?: number;
-	turn_count?: number;
-}
-
-interface ProfileUsageWire {
-	profile_id?: string;
-	profile_name?: string;
-	provider?: string;
-	model_id?: string;
-	chat_input_tokens?: number;
-	chat_output_tokens?: number;
-	compact_input_tokens?: number;
-	compact_output_tokens?: number;
-	thinking_tokens?: number;
-	cache_read_tokens?: number;
-	cache_creation_tokens?: number;
-	total_tokens?: number;
-	conversation_turn_count?: number;
-	llm_request_count?: number;
-	compact_request_count?: number;
-	has_post_switch_chat?: boolean;
-	recall_input_tokens?: number;
-	recall_output_tokens?: number;
-	recall_request_count?: number;
-}
-
-interface SessionUsageInfoWire {
-	total_input_tokens?: number;
-	total_output_tokens?: number;
-	total_thinking_tokens?: number;
-	total_cache_read_tokens?: number;
-	total_cache_creation_tokens?: number;
-	total_tokens?: number;
-	total_turns?: number;
-	model_usages?: ModelUsageWire[];
-	agent_details?: AgentUsageDetailWire[];
-	profile_usages?: ProfileUsageWire[];
-}
-
-interface UsageResponseWire {
-	total_input_tokens?: number;
-	total_output_tokens?: number;
-	total_turns?: number;
-	agent_usages?: AgentUsageWire[];
-	context_window?: ContextWindowInfoWire;
-	session_usage?: SessionUsageInfoWire;
-	recent_request_spans?: RecentRequestSpanWire[];
-}
-
-interface HistoryEntryWire {
-	role?: string;
-	content?: string;
-	timestamp?: number | string;
-	agent_id?: string;
-}
-
-interface HistoryResponseWire {
-	entries?: HistoryEntryWire[];
-	total?: number;
-}
-
-interface PruneResponseWire {
-	success?: boolean;
-	message?: string;
-	removed_count?: number;
-}
-
-interface BranchResponseWire {
-	success?: boolean;
-	message?: string;
-	current_branch?: number;
-	total_branches?: number;
-	current_turn_id?: string;
-}
-
-interface QueueMutationResponseWire {
-	ok?: boolean;
-	error?: string;
-	op_id?: string;
-	item_id?: string;
-}
+import {
+	base64ToBytes,
+	bytesToBase64,
+	mapAddMcpServerResponse,
+	mapAgentMergeResponse,
+	mapAgentTreeNode,
+	mapAuthNonceResponse,
+	mapBackResponse,
+	mapBranchResponse,
+	mapCancelRemoteSessionResponse,
+	mapChatSyncResponse,
+	mapClipboardClearResponse,
+	mapClipboardListResponse,
+	mapClipboardReadResponse,
+	mapClipboardWriteResponse,
+	mapCompactResponse,
+	mapConfigChangedEvent,
+	mapConnectResponse,
+	mapConnectionReport,
+	mapContextVariableListResponse,
+	mapContextVariableReadResponse,
+	mapCreateRemoteSessionResponse,
+	mapCreateSnapshotResponse,
+	mapDeleteAgentProfileResponse,
+	mapDeleteRemoteAgentConfigResponse,
+	mapDeleteSnapshotResponse,
+	mapDeleteTriggerResponse,
+	mapDestroyRemoteSessionResponse,
+	mapDoctorResponse,
+	mapDownloadChunk,
+	mapExitMaintenanceResponse,
+	mapExportSessionResponse,
+	mapFetchToolUsageDetailResponse,
+	mapFireTriggerResponse,
+	mapFireTriggerWebhookStatus,
+	mapGetCommandDefResponse,
+	mapGetFileInfoResponse,
+	mapGetGlobalUsageResponse,
+	mapGetHistoryResponse,
+	mapGetMcpServerStatusesResponse,
+	mapGetMcpServerToolsResponse,
+	mapGetRemoteSessionHistoryResponse,
+	mapGetRemoteSessionStatusResponse,
+	mapGetSessionRulesResponse,
+	mapGetSessionUsageResponse,
+	mapHealthCheckResponse,
+	mapHistoryResponse,
+	mapListAgentProfilesResponse,
+	mapListAgentsResponse,
+	mapListCommandsResponse,
+	mapListConfigsResponse,
+	mapListDevicesResponse,
+	mapListFilesResponse,
+	mapListLoopSnapshotsResponse,
+	mapListMcpServersResponse,
+	mapListModelsResponse,
+	mapListNodesResponse,
+	mapListPendingResponse,
+	mapListPluginsResponse,
+	mapListSessionsResponse,
+	mapListSkillsResponse,
+	mapListSnapshotsResponse,
+	mapListToolsResponse,
+	mapListTriggersResponse,
+	mapMemberInfo,
+	mapTaskInfo,
+	mapMemoryDeleteResponse,
+	mapMemoryHistoryResponse,
+	mapMemoryListResponse,
+	mapMemoryReadResponse,
+	mapMemoryRebuildEvent,
+	mapMemoryReflectResponse,
+	mapMemoryRevertResponse,
+	mapMemorySaveResponse,
+	mapMemorySearchDeepResponse,
+	mapMemorySearchResponse,
+	mapPairApproveResponse,
+	mapPairRejectResponse,
+	mapPluginInfoResponse,
+	mapPluginSummary,
+	mapPrewarmSessionsResponse,
+	mapPruneResponse,
+	mapPtyServerMessage,
+	mapPurgeSessionResponse,
+	mapReadFileResponse,
+	mapReadGitChangesResponse,
+	mapReadGitFileDiffResponse,
+	mapReadGitSummaryResponse,
+	mapReloadRemoteAgentsResponse,
+	mapRemoteAgentConfig,
+	mapRemoteAgentInfo,
+	mapRemoteChatResponse,
+	mapRemoveMcpServerResponse,
+	mapResetAgentProfileResponse,
+	mapResetErrorResponse,
+	mapResolveAnchorResponse,
+	mapResolveModelResponse,
+	mapResolveTurnResponse,
+	mapRestoreSnapshotResponse,
+	mapResumeRemoteSessionResponse,
+	mapResumeSessionResponse,
+	mapRevokeResponse,
+	mapRotateTokenResponse,
+	mapSaveAgentProfileResponse,
+	mapSaveRemoteAgentConfigResponse,
+	mapSaveSkillContentResponse,
+	mapSessionInfoResponse,
+	mapSetMaintenanceResponse,
+	mapSetSkillEnabledResponse,
+	mapSetTriggerEnabledResponse,
+	mapShelveSessionResponse,
+	mapShutdownResponse,
+	mapSkillInfoResponse,
+	mapStatusResponse,
+	mapSubscribeToolDetailChunk,
+	mapSyncInputDeliveryResponse,
+	mapTodoResponse,
+	mapToggleMcpServerResponse,
+	mapToolInfoResponse,
+	mapUnshelveSessionResponse,
+	mapUpdateMcpServerResponse,
+	mapUploadProgressResponse,
+	mapUploadResponse,
+	mapUpsertTriggerResponse,
+	mapUsageResponse,
+	mapWriteFileResponse,
+	mapWriteGitWriteResponse,
+} from './grpcClientMappers.js';
+import {
+	makeUnaryClient,
+	makeServerStreamClient,
+	makeClientStreamClient,
+	makeResidentBidiStreamClient,
+	makeResidentBidiHandleClient,
+	makeBidiStreamClient,
+	grpcErrorCode,
+} from './grpcClientCalls.js';
+import type {
+	AddMcpServerResponseWire,
+	AgentMergeResponseWire,
+	AgentTreeResponseWire,
+	AuthNonceResponseWire,
+	BackResponseWire,
+	BranchResponseWire,
+	CancelRemoteSessionResponseWire,
+	ClipboardClearResponseWire,
+	ClipboardListResponseWire,
+	ClipboardReadResponseWire,
+	ClipboardWriteResponseWire,
+	CompactResponseWire,
+	ConfigChangedEventWire,
+	ConnectResponseWire,
+	ConnectionReportWire,
+	ContextVariableListResponseWire,
+	ContextVariableReadResponseWire,
+	CreateRemoteSessionResponseWire,
+	CreateSessionResponseWire,
+	CreateSnapshotResponseWire,
+	DeleteAgentProfileResponseWire,
+	DeleteRemoteAgentConfigResponseWire,
+	DeleteSnapshotResponseWire,
+	DeliveryTargetDtoWire,
+	DestroyRemoteSessionResponseWire,
+	DeviceAuthWire,
+	DoctorResponseWire,
+	DownloadChunkWire,
+	EnablePluginResponseWire,
+	ExitMaintenanceResponseWire,
+	ExportSessionResponseWire,
+	FetchToolDetailResponseWire,
+	FetchToolUsageDetailResponseWire,
+	FireTriggerResponseWire,
+	GetCommandDefResponseWire,
+	GetFileInfoResponseWire,
+	GetGlobalUsageResponseWire,
+	GetHistoryResponseWire,
+	GetMcpServerStatusesResponseWire,
+	GetMcpServerToolsResponseWire,
+	GetRemoteSessionHistoryResponseWire,
+	GetRemoteSessionStatusResponseWire,
+	GetSessionRulesResponseWire,
+	GetSessionUsageResponseWire,
+	HealthCheckResponseWire,
+	HistoryResponseWire,
+	ListAgentProfilesResponseWire,
+	ListAgentsResponseWire,
+	ListCommandsResponseWire,
+	ListConfigsResponseWire,
+	ListDevicesResponseWire,
+	ListFilesResponseWire,
+	ListLoopSnapshotsResponseWire,
+	ListMcpServersResponseWire,
+	ListModelsResponseWire,
+	ListNodesResponseWire,
+	ListPendingResponseWire,
+	ListPluginsResponseWire,
+	ListSessionsResponseWire,
+	ListSkillsResponseWire,
+	ListSnapshotsResponseWire,
+	ListToolsResponseWire,
+	ListTriggersResponseWire,
+	MemberStatusResponseWire,
+	MemoryDeleteResponseWire,
+	MemoryHistoryResponseWire,
+	MemoryListResponseWire,
+	MemoryReadResponseWire,
+	MemoryRebuildEventWire,
+	MemoryReflectResponseWire,
+	MemoryRevertResponseWire,
+	MemorySaveResponseWire,
+	MemorySearchDeepResponseWire,
+	MemorySearchResponseWire,
+	PairApproveResponseWire,
+	PairRejectResponseWire,
+	PluginInfoResponseWire,
+	PrewarmSessionsResponseWire,
+	PruneResponseWire,
+	PtyServerMessageWire,
+	PurgeSessionResponseWire,
+	QueueMutationResponseWire,
+	ReadFileResponseWire,
+	ReadGitChangesResponseWire,
+	ReadGitFileDiffResponseWire,
+	ReadGitSummaryResponseWire,
+	ReloadPluginResponseWire,
+	ReloadRemoteAgentsResponseWire,
+	RemoteAgentConfigWire,
+	RemoteAgentInfoWire,
+	RemoteChatResponseWire,
+	RemoteResponseWire,
+	RemoveMcpServerResponseWire,
+	ResetAgentProfileResponseWire,
+	ResetErrorResponseWire,
+	ResolveAnchorResponseWire,
+	ResolveModelResponseWire,
+	ResolveTurnResponseWire,
+	RestoreSnapshotResponseWire,
+	ResumeRemoteSessionResponseWire,
+	ResumeSessionResponseWire,
+	RevokeDeviceResponseWire,
+	RotateTokenResponseWire,
+	SaveAgentProfileResponseWire,
+	SaveRemoteAgentConfigResponseWire,
+	SaveSkillContentResponseWire,
+	ScanNewPluginsResponseWire,
+	SessionInfoResponseWire,
+	SetMaintenanceResponseWire,
+	SetSkillEnabledResponseWire,
+	SetTriggerEnabledResponseWire,
+	ShelveSessionResponseWire,
+	ShutdownResponseWire,
+	SkillInfoResponseWire,
+	StatusResponseWire,
+	SubscribeToolDetailChunkWire,
+	TaskListResponseWire,
+	TeamInfoResponseWire,
+	TodoResponseWire,
+	ToggleMcpServerResponseWire,
+	ToolInfoResponseWire,
+	TriggerDtoWire,
+	UnloadPluginResponseWire,
+	UnshelveSessionResponseWire,
+	UpdateMcpServerResponseWire,
+	UploadProgressResponseWire,
+	UploadResponseWire,
+	UpsertTriggerResponseWire,
+	UsageResponseWire,
+	WriteFileResponseWire,
+	WriteGitWriteResponseWire,
+} from './grpcClientMappers.js';
 
 function queueRefWire(request: UniverseAgentQueueRefRequest): Record<string, unknown> {
 	return {
@@ -1059,22 +734,6 @@ function clipboardEntryTypeWire(type: UniverseAgentClipboardEntryType): number {
 	}
 }
 
-const ClipboardEntryTypeByNumber: Record<number, UniverseAgentClipboardEntryType> = {
-	0: 'CLIPBOARD_TEXT',
-	1: 'CLIPBOARD_FILE_PATH',
-	2: 'CLIPBOARD_URL',
-};
-
-function mapClipboardEntryType(value: string | number | undefined): UniverseAgentClipboardEntryType {
-	if (typeof value === 'number') {
-		return ClipboardEntryTypeByNumber[value] ?? 'CLIPBOARD_TEXT';
-	}
-	if (value === 'CLIPBOARD_FILE_PATH' || value === 'CLIPBOARD_URL' || value === 'CLIPBOARD_TEXT') {
-		return value;
-	}
-	return 'CLIPBOARD_TEXT';
-}
-
 function questionAnswersWire(
 	answers: Readonly<Record<string, UniverseAgentQuestionAnswer>> | undefined,
 ): Record<string, { selected_labels: string[] }> {
@@ -1101,547 +760,6 @@ function canvasRefsWire(refs: readonly UniverseAgentCanvasRef[] | undefined): Ar
 		...(ref.sourceHash !== undefined ? { source_hash: ref.sourceHash } : {}),
 	}));
 }
-
-interface GetHistoryResponseWire {
-	envelopes?: Array<{ cursor_seq?: string; payload?: unknown }>;
-	next_cursor_seq?: string;
-}
-
-function grpcErrorCode(error: grpc.ServiceError | null | undefined): number {
-	return error?.code ?? GrpcStatusCode.OK;
-}
-
-function makeUnaryClient<TRequest, TResponse>(
-	channel: grpc.Client,
-	servicePath: string,
-	method: string,
-): (request: TRequest) => Promise<TResponse> {
-	const path = `/${servicePath}/${method}`;
-	return (request: TRequest) => new Promise<TResponse>((resolve, reject) => {
-		channel.makeUnaryRequest(
-			path,
-			(value: TRequest) => Buffer.from(JSON.stringify(value ?? {})),
-			(buffer: Buffer) => JSON.parse(buffer.toString('utf8')) as TResponse,
-			request,
-			(error, response) => {
-				if (error) {
-					reject(new UniverseAgentTransportError(error.code, error.message));
-					return;
-				}
-				resolve(response as TResponse);
-			},
-		);
-	});
-}
-
-function makeServerStreamClient<TRequest, TEvent>(
-	channel: grpc.Client,
-	servicePath: string,
-	method: string,
-): (
-	request: TRequest,
-	listener: (event: TEvent) => void,
-	onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
-) => { dispose(): void } {
-	const path = `/${servicePath}/${method}`;
-	return (request, listener, onClosed) => {
-		const disposables = new DisposableStore();
-		const gate = createStreamCloseGate(onClosed);
-		const call = channel.makeServerStreamRequest(
-			path,
-			(value: TRequest) => Buffer.from(JSON.stringify(value ?? {})),
-			(buffer: Buffer) => JSON.parse(buffer.toString('utf8')) as TEvent,
-			request,
-		);
-		call.on('data', (data: TEvent) => listener(data));
-		call.on('error', (error: grpc.ServiceError) => {
-			if (gate.closed) {
-				return;
-			}
-			const message = typeof error?.message === 'string' && error.message ? error.message : 'stream error';
-			gate.finish({ kind: 'error', message });
-		});
-		call.on('end', () => {
-			gate.finish({ kind: 'remote' });
-		});
-		disposables.add({
-			dispose: () => {
-				gate.closeLocal();
-				call.cancel();
-			},
-		});
-		return disposables;
-	};
-}
-
-function makeClientStreamClient<TChunk, TResponse>(
-	channel: grpc.Client,
-	servicePath: string,
-	method: string,
-): (
-	onResponse: (response: TResponse) => void,
-	onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
-) => { write(chunk: TChunk): void; end(): void; dispose(): void } {
-	const path = `/${servicePath}/${method}`;
-	return (onResponse, onClosed) => {
-		const gate = createStreamCloseGate(onClosed);
-		const call = channel.makeClientStreamRequest(
-			path,
-			(value: TChunk) => Buffer.from(JSON.stringify(value ?? {})),
-			(buffer: Buffer) => JSON.parse(buffer.toString('utf8')) as TResponse,
-			(error: grpc.ServiceError | null, response?: TResponse) => {
-				if (gate.closed) {
-					return;
-				}
-				if (error) {
-					const message = typeof error?.message === 'string' && error.message ? error.message : 'stream error';
-					gate.finish({ kind: 'error', message });
-					return;
-				}
-				if (response !== undefined) {
-					onResponse(response);
-				}
-				gate.finish({ kind: 'remote' });
-			},
-		);
-		return {
-			write(chunk: TChunk): void {
-				if (gate.closed) {
-					return;
-				}
-				call.write(chunk);
-			},
-			end(): void {
-				if (gate.closed) {
-					return;
-				}
-				call.end();
-			},
-			dispose(): void {
-				if (gate.closed) {
-					call.cancel();
-					return;
-				}
-				gate.closeLocal();
-				call.cancel();
-			},
-		};
-	};
-}
-
-function makeResidentBidiStreamClient<TResponse>(
-	channel: grpc.Client,
-	servicePath: string,
-	method: string,
-): (
-	sessionId: string,
-	onResponse: (response: TResponse) => void,
-	onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
-) => UniverseAgentChatStream {
-	const path = `/${servicePath}/${method}`;
-	return (sessionId, onResponse, onClosed) => {
-		const call = channel.makeBidiStreamRequest(
-			path,
-			(value: Record<string, unknown>) => Buffer.from(JSON.stringify(value ?? {})),
-			(buffer: Buffer) => JSON.parse(buffer.toString('utf8')) as TResponse,
-		);
-		const gate = createStreamCloseGate(onClosed);
-		call.on('data', (data: TResponse) => onResponse(data));
-		call.on('error', (error: grpc.ServiceError) => {
-			if (gate.closed) {
-				return;
-			}
-			const message = typeof error?.message === 'string' && error.message ? error.message : 'stream error';
-			gate.finish({ kind: 'error', message });
-		});
-		call.on('end', () => {
-			gate.finish({ kind: 'remote' });
-		});
-		return {
-			write(payload: unknown): void {
-				if (gate.closed) {
-					return;
-				}
-				call.write({ session_id: sessionId, payload });
-			},
-			dispose(): void {
-				if (gate.closed) {
-					call.cancel();
-					return;
-				}
-				gate.closeLocal();
-				call.end();
-				call.cancel();
-			},
-		};
-	};
-}
-
-function makeResidentBidiHandleClient<TRequest, TResponse>(
-	channel: grpc.Client,
-	servicePath: string,
-	method: string,
-): (
-	onResponse: (response: TResponse) => void,
-	onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
-) => { write(chunk: TRequest): void; end(): void; dispose(): void } {
-	const path = `/${servicePath}/${method}`;
-	return (onResponse, onClosed) => {
-		const call = channel.makeBidiStreamRequest(
-			path,
-			(value: TRequest) => Buffer.from(JSON.stringify(value ?? {})),
-			(buffer: Buffer) => JSON.parse(buffer.toString('utf8')) as TResponse,
-		);
-		const gate = createStreamCloseGate(onClosed);
-		call.on('data', (data: TResponse) => onResponse(data));
-		call.on('error', (error: grpc.ServiceError) => {
-			if (gate.closed) {
-				return;
-			}
-			const message = typeof error?.message === 'string' && error.message ? error.message : 'stream error';
-			gate.finish({ kind: 'error', message });
-		});
-		call.on('end', () => {
-			gate.finish({ kind: 'remote' });
-		});
-		return {
-			write(chunk: TRequest): void {
-				if (gate.closed) {
-					return;
-				}
-				call.write(chunk);
-			},
-			end(): void {
-				if (gate.closed) {
-					return;
-				}
-				call.end();
-			},
-			dispose(): void {
-				if (gate.closed) {
-					call.cancel();
-					return;
-				}
-				gate.closeLocal();
-				call.end();
-				call.cancel();
-			},
-		};
-	};
-}
-
-function makeBidiStreamClient<TRequest, TResponse>(
-	channel: grpc.Client,
-	servicePath: string,
-	method: string,
-): (request: TRequest, onResponse: (response: TResponse) => void) => Promise<void> {
-	const path = `/${servicePath}/${method}`;
-	return (request: TRequest, onResponse: (response: TResponse) => void) => new Promise<void>((resolve, reject) => {
-		const call = channel.makeBidiStreamRequest(
-			path,
-			(value: TRequest) => Buffer.from(JSON.stringify(value ?? {})),
-			(buffer: Buffer) => JSON.parse(buffer.toString('utf8')) as TResponse,
-		);
-		call.on('data', (data: TResponse) => onResponse(data));
-		call.on('error', (error: grpc.ServiceError) => reject(new UniverseAgentTransportError(error.code, error.message)));
-		call.on('end', () => resolve());
-		call.write(request);
-		call.end();
-	});
-}
-
-function mapConnectResponse(wire: ConnectResponseWire): UniverseAgentConnectResult {
-	return {
-		sessionToken: wire.session_token,
-		workDir: wire.work_dir,
-		pairingNonce: wire.pairing_nonce,
-		sasCode: wire.sas_code,
-		methods: wire.capabilities?.methods ?? [],
-		events: wire.capabilities?.events ?? [],
-	};
-}
-
-function bytesToBase64(bytes: Uint8Array): string {
-	return Buffer.from(bytes).toString('base64');
-}
-
-function base64ToBytes(value: string | undefined): Uint8Array {
-	if (!value) {
-		return new Uint8Array(0);
-	}
-	return Uint8Array.from(Buffer.from(value, 'base64'));
-}
-
-function mapAuthNonceResponse(wire: AuthNonceResponseWire): UniverseAgentAuthNonceResult {
-	return {
-		authNonce: base64ToBytes(wire.auth_nonce),
-		engineIdentityId: wire.engine_identity_id ?? '',
-		engineCertFingerprint: wire.engine_cert_fingerprint ?? '',
-		expiresAtMs: wire.expires_at_ms,
-	};
-}
-
-function mapSessionInfoResponse(wire: SessionInfoResponseWire): UniverseAgentSessionInfoResult {
-	return {
-		sessionId: wire.session_id ?? '',
-		rootAgent: mapAgentTreeNode(wire.root_agent),
-		createdAt: wire.created_at ?? 0,
-		lastAccessedAt: wire.last_accessed_at ?? 0,
-		provider: wire.provider ?? '',
-		model: wire.model ?? '',
-	};
-}
-
-function mapShelveSessionResponse(wire: ShelveSessionResponseWire): UniverseAgentShelveSessionResult {
-	return {
-		ok: wire.success === true,
-		message: wire.message,
-	};
-}
-
-function mapListSessionsResponse(wire: ListSessionsResponseWire): UniverseAgentListSessionsResult {
-	return {
-		sessions: (wire.sessions ?? []).map(session => ({
-			sessionId: session.session_id ?? '',
-			title: session.title,
-			status: session.status,
-			createdAt: session.created_at,
-			lastAccessedAt: session.last_accessed_at,
-			turnCount: session.turn_count,
-			model: session.model,
-		})),
-		totalCount: wire.total_count,
-	};
-}
-
-function mapSessionSnapshotInfo(snapshot: SessionSnapshotInfoWire | undefined): UniverseAgentSessionSnapshotInfo {
-	return {
-		id: snapshot?.id ?? '',
-		sessionId: snapshot?.session_id ?? '',
-		title: snapshot?.title ?? '',
-		description: snapshot?.description,
-		createdAt: snapshot?.created_at,
-		turnCount: snapshot?.turn_count,
-		tokenCount: snapshot?.token_count,
-		modelId: snapshot?.model_id,
-		isAuto: snapshot?.is_auto,
-	};
-}
-
-function mapListSnapshotsResponse(wire: ListSnapshotsResponseWire): UniverseAgentListSnapshotsResult {
-	return {
-		snapshots: (wire.snapshots ?? []).map(snapshot => mapSessionSnapshotInfo(snapshot)),
-	};
-}
-
-function mapLoopSnapshotRecord(record: LoopSnapshotRecordWire | undefined): UniverseAgentLoopSnapshotRecord {
-	return {
-		timestamp: record?.timestamp,
-		turnId: record?.turn_id ?? '',
-		loopId: record?.loop_id ?? '',
-		iteration: record?.iteration,
-		maxIterations: record?.max_iterations,
-		goal: record?.goal ?? '',
-		exitCondition: record?.exit_condition ?? '',
-		tmpFileRelativePath: record?.tmp_file_relative_path ?? '',
-		isExit: record?.is_exit,
-		selfSupervise: record?.self_supervise,
-		terminalReason: record?.terminal_reason,
-	};
-}
-
-function mapListLoopSnapshotsResponse(wire: ListLoopSnapshotsResponseWire): UniverseAgentListLoopSnapshotsResult {
-	return {
-		snapshots: (wire.snapshots ?? []).map(record => mapLoopSnapshotRecord(record)),
-	};
-}
-
-function mapCreateSnapshotResponse(wire: CreateSnapshotResponseWire): UniverseAgentCreateSnapshotResult {
-	const snapshot = wire.snapshot ? mapSessionSnapshotInfo(wire.snapshot) : undefined;
-	return {
-		ok: wire.success === true,
-		message: wire.error_message,
-		...(snapshot ? { snapshot } : {}),
-	};
-}
-
-function mapResumeSessionResponse(wire: ResumeSessionResponseWire): UniverseAgentResumeSessionResult {
-	return {
-		ok: wire.success === true,
-		message: wire.message,
-		rootAgent: mapAgentTreeNode(wire.root_agent),
-	};
-}
-
-const PrewarmSessionOutcomeByNumber: Record<number, string> = {
-	0: 'PREWARM_SESSION_OUTCOME_UNSPECIFIED',
-	1: 'PREWARM_SESSION_OUTCOME_ALREADY_RESTORED',
-	2: 'PREWARM_SESSION_OUTCOME_RESTORED',
-	3: 'PREWARM_SESSION_OUTCOME_SKIPPED',
-	4: 'PREWARM_SESSION_OUTCOME_FAILED',
-};
-
-function mapPrewarmSessionOutcome(value: string | number | undefined): string {
-	if (value === undefined || value === '') {
-		return '';
-	}
-	if (typeof value === 'number') {
-		return PrewarmSessionOutcomeByNumber[value] ?? String(value);
-	}
-	return value;
-}
-
-function mapPrewarmSessionEntry(wire: PrewarmSessionEntryWire | undefined): UniverseAgentPrewarmSessionEntry {
-	return {
-		sessionId: wire?.session_id ?? '',
-		outcome: mapPrewarmSessionOutcome(wire?.outcome),
-		message: wire?.message ?? '',
-	};
-}
-
-function mapPrewarmSessionsResponse(wire: PrewarmSessionsResponseWire): UniverseAgentPrewarmSessionsResult {
-	return {
-		entries: (wire.entries ?? []).map(entry => mapPrewarmSessionEntry(entry)),
-	};
-}
-
-function mapUnshelveSessionResponse(wire: UnshelveSessionResponseWire): UniverseAgentUnshelveSessionResult {
-	return {
-		ok: wire.success === true,
-		message: wire.message,
-	};
-}
-
-function mapPurgeSessionResponse(wire: PurgeSessionResponseWire): UniverseAgentPurgeSessionResult {
-	return {
-		ok: wire.success === true,
-		message: wire.message,
-	};
-}
-
-function mapExportSessionResponse(wire: ExportSessionResponseWire): UniverseAgentExportSessionResult {
-	return {
-		content: wire.content ?? '',
-		format: wire.format ?? '',
-	};
-}
-
-function mapOptionalWireInt(value: number | string | undefined): number | undefined {
-	if (value === undefined || value === '') {
-		return undefined;
-	}
-	if (typeof value === 'number') {
-		return Number.isFinite(value) ? value : undefined;
-	}
-	const parsed = Number(value);
-	return Number.isFinite(parsed) ? parsed : undefined;
-}
-
-function mapWireInt(value: number | string | undefined): number {
-	return mapOptionalWireInt(value) ?? 0;
-}
-
-function mapResolveTurnResponse(wire: ResolveTurnResponseWire): UniverseAgentResolveTurnResult {
-	if (wire.hit) {
-		const generation = mapOptionalWireInt(wire.hit.generation);
-		return {
-			kind: 'hit',
-			envelope: wire.hit.envelope !== undefined && wire.hit.envelope !== null ? wire.hit.envelope : {},
-			presence: mapEnvelopeRecordPresence(wire.hit.presence),
-			...(generation !== undefined ? { generation } : {}),
-		};
-	}
-	if (wire.tombstone) {
-		const turnId = wire.tombstone.turn_id;
-		const generation = mapOptionalWireInt(wire.tombstone.generation);
-		return {
-			kind: 'tombstone',
-			sessionId: wire.tombstone.session_id ?? '',
-			envelopeId: wire.tombstone.envelope_id ?? '',
-			seq: mapWireInt(wire.tombstone.seq),
-			...(turnId !== undefined ? { turnId } : {}),
-			...(generation !== undefined ? { generation } : {}),
-		};
-	}
-	if (wire.expired) {
-		const anchor = wire.expired.anchor;
-		const generation = mapOptionalWireInt(anchor?.generation);
-		return {
-			kind: 'expired',
-			sessionId: anchor?.session_id ?? '',
-			envelopeId: anchor?.envelope_id ?? '',
-			...(generation !== undefined ? { generation } : {}),
-		};
-	}
-	return { kind: 'unspecified' };
-}
-
-function mapStatusResponse(wire: StatusResponseWire): UniverseAgentAgentStatusResult {
-	return {
-		agent: mapAgentTreeNode(wire.agent),
-	};
-}
-
-function mapCompactOutcome(value: string | number | undefined): string | undefined {
-	if (value === undefined || value === '') {
-		return undefined;
-	}
-	if (typeof value === 'number') {
-		return CompactOutcomeByNumber[value] ?? String(value);
-	}
-	return value;
-}
-
-function mapContextSourceType(value: string | number | undefined): string {
-	if (value === undefined || value === '') {
-		return 'CONTEXT_SOURCE_TYPE_UNSPECIFIED';
-	}
-	if (typeof value === 'number') {
-		return ContextSourceTypeByNumber[value] ?? String(value);
-	}
-	return value;
-}
-
-function mapFireTriggerWebhookStatus(value: string | number | undefined): string {
-	if (value === undefined || value === '') {
-		return '';
-	}
-	if (typeof value === 'number') {
-		return FireTriggerWebhookStatusByNumber[value] ?? String(value);
-	}
-	return value;
-}
-
-function mapContextSourceUsage(item: ContextSourceUsageWire | undefined): UniverseAgentContextSourceUsage {
-	return {
-		sourceType: mapContextSourceType(item?.source_type),
-		sourceAgentId: item?.source_agent_id,
-		sourceScopeId: item?.source_scope_id,
-		messageId: item?.message_id,
-		estimatedTokens: requiredInt64(item?.estimated_tokens),
-	};
-}
-
-function mapToolDetailContentMode(value: string | number | undefined): string {
-	if (value === undefined) {
-		return 'TOOL_DETAIL_CONTENT_MODE_UNSPECIFIED';
-	}
-	if (typeof value === 'number') {
-		return ToolDetailContentModeByNumber[value] ?? String(value);
-	}
-	return value;
-}
-
-function mapUploadErrorCode(value: string | number | undefined): string {
-	if (value === undefined || value === '') {
-		return 'UPLOAD_ERROR_NONE';
-	}
-	if (typeof value === 'number') {
-		return UploadErrorCodeByNumber[value] ?? String(value);
-	}
-	return value;
-}
-
 function mapUploadChunkWire(chunk: UniverseAgentUploadChunk): Record<string, unknown> {
 	const wire: Record<string, unknown> = {
 		offset: chunk.offset,
@@ -1664,148 +782,6 @@ function mapUploadChunkWire(chunk: UniverseAgentUploadChunk): Record<string, unk
 	}
 	return wire;
 }
-
-function mapUploadResponse(wire: UploadResponseWire): UniverseAgentUploadAttachmentResult {
-	return {
-		success: wire.success === true,
-		filePath: wire.file_path ?? '',
-		checksumSha256: wire.checksum_sha256 ?? '',
-		errorMessage: wire.error_message ?? '',
-		errorCode: mapUploadErrorCode(wire.error_code),
-	};
-}
-
-function mapSubscribeToolDetailChunk(wire: SubscribeToolDetailChunkWire): UniverseAgentSubscribeToolDetailChunk {
-	const totalBytes = optionalInt64(wire.total_bytes);
-	return {
-		success: wire.success === true,
-		errorMessage: wire.error_message ?? '',
-		content: wire.content ?? '',
-		revision: requiredInt64(wire.revision),
-		truncated: wire.truncated === true,
-		...(totalBytes !== undefined ? { totalBytes } : {}),
-		...(wire.mime_type !== undefined ? { mimeType: wire.mime_type } : {}),
-		eof: wire.eof === true,
-		contentMode: mapToolDetailContentMode(wire.content_mode),
-	};
-}
-
-function mapConfigChangedEvent(wire: ConfigChangedEventWire): UniverseAgentConfigChangedEvent {
-	return {
-		key: wire.key ?? '',
-		oldValue: wire.old_value ?? '',
-		newValue: wire.new_value ?? '',
-		scope: wire.scope ?? '',
-		timestamp: requiredInt64(wire.timestamp),
-	};
-}
-
-function mapFetchToolUsageDetailResponse(wire: FetchToolUsageDetailResponseWire): UniverseAgentFetchToolUsageDetailResult {
-	return {
-		ok: wire.success === true,
-		toolCallId: wire.tool_call_id ?? '',
-		contextSources: (wire.context_sources ?? []).map(item => mapContextSourceUsage(item)),
-		message: wire.error_message,
-	};
-}
-
-function mapCompactResponse(wire: CompactResponseWire): UniverseAgentCompactResult {
-	return {
-		ok: wire.success === true,
-		message: wire.message,
-		tokensBefore: wire.tokens_before,
-		tokensAfter: wire.tokens_after,
-		outcome: mapCompactOutcome(wire.outcome),
-		rejectReason: wire.reject_reason,
-	};
-}
-
-function mapRestoreSnapshotResponse(wire: RestoreSnapshotResponseWire): UniverseAgentRestoreSnapshotResult {
-	return {
-		ok: wire.success === true,
-		message: wire.error_message,
-	};
-}
-
-function mapDeleteSnapshotResponse(wire: DeleteSnapshotResponseWire): UniverseAgentDeleteSnapshotResult {
-	return {
-		ok: wire.success === true,
-		message: wire.error_message,
-	};
-}
-
-function mapTodoItem(item: TodoItemWire | undefined): UniverseAgentTodoItem {
-	return {
-		id: item?.id ?? '',
-		content: item?.content ?? '',
-		status: item?.status ?? '',
-		priority: item?.priority ?? 0,
-		requireConfirm: item?.require_confirm === true,
-		blocked: item?.blocked ?? '',
-	};
-}
-
-function mapTodoResponse(wire: TodoResponseWire): UniverseAgentTodoResult {
-	return {
-		items: (wire.items ?? []).map(item => mapTodoItem(item)),
-	};
-}
-
-const RuleActionByNumber: Record<number, string> = {
-	0: 'RULE_ACTION_UNSPECIFIED',
-	1: 'ALLOW',
-	2: 'DENY',
-};
-
-const RuleSourceByNumber: Record<number, string> = {
-	0: 'RULE_SOURCE_UNSPECIFIED',
-	1: 'USER_INTERACTIVE',
-	2: 'LLM_REQUESTED',
-	3: 'GLOBAL_INHERITED',
-	4: 'SERVER_SYNCED',
-};
-
-function mapRuleEnum(value: string | number | undefined, byNumber: Record<number, string>): string {
-	if (value === undefined || value === '') {
-		return '';
-	}
-	if (typeof value === 'number') {
-		return byNumber[value] ?? String(value);
-	}
-	return value;
-}
-
-function mapSessionRule(wire: SessionRuleWire | undefined): UniverseAgentSessionRule {
-	return {
-		id: wire?.id ?? '',
-		toolName: wire?.tool_name ?? '',
-		scope: wire?.scope ?? '',
-		action: mapRuleEnum(wire?.action, RuleActionByNumber),
-		reason: wire?.reason ?? '',
-		createdAt: requiredInt64(wire?.created_at),
-		expiresAt: optionalInt64(wire?.expires_at),
-		source: mapRuleEnum(wire?.source, RuleSourceByNumber),
-	};
-}
-
-function mapGetSessionRulesResponse(wire: GetSessionRulesResponseWire): UniverseAgentGetSessionRulesResult {
-	return {
-		rules: (wire.rules ?? []).map(rule => mapSessionRule(rule)),
-	};
-}
-
-function optionalInt64(value: number | string | undefined): number | undefined {
-	if (value === undefined || value === '') {
-		return undefined;
-	}
-	const n = typeof value === 'number' ? value : Number(value);
-	return Number.isFinite(n) ? n : undefined;
-}
-
-function requiredInt64(value: number | string | undefined): number {
-	return optionalInt64(value) ?? 0;
-}
-
 function anchorResolveScopeWire(scope: UniverseAgentAnchorResolveScope): number {
 	switch (scope) {
 		case 'ANCHOR_RESOLVE_SCOPE_ACTIVE':
@@ -1818,7 +794,6 @@ function anchorResolveScopeWire(scope: UniverseAgentAnchorResolveScope): number 
 			return 0;
 	}
 }
-
 function resolveAnchorRequestWire(request: UniverseAgentResolveAnchorRequest): Record<string, unknown> {
 	const anchor: Record<string, unknown> = {
 		session_id: request.anchor.sessionId,
@@ -1836,261 +811,6 @@ function resolveAnchorRequestWire(request: UniverseAgentResolveAnchorRequest): R
 	}
 	return wire;
 }
-
-function mapEnvelopeAnchor(wire: EnvelopeAnchorWire | undefined): UniverseAgentEnvelopeAnchor {
-	const generation = optionalInt64(wire?.generation);
-	return {
-		sessionId: wire?.session_id ?? '',
-		envelopeId: wire?.envelope_id ?? '',
-		...(generation !== undefined ? { generation } : {}),
-	};
-}
-
-function mapEnvelopeRecordPresence(value: number | string | undefined): UniverseAgentEnvelopeRecordPresence {
-	if (value === 1 || value === 'ENVELOPE_RECORD_PRESENCE_ACTIVE_ON_PATH') {
-		return 'ENVELOPE_RECORD_PRESENCE_ACTIVE_ON_PATH';
-	}
-	if (value === 2 || value === 'ENVELOPE_RECORD_PRESENCE_ACTIVE_OFF_PATH') {
-		return 'ENVELOPE_RECORD_PRESENCE_ACTIVE_OFF_PATH';
-	}
-	if (value === 3 || value === 'ENVELOPE_RECORD_PRESENCE_ARCHIVED') {
-		return 'ENVELOPE_RECORD_PRESENCE_ARCHIVED';
-	}
-	return 'ENVELOPE_RECORD_PRESENCE_UNSPECIFIED';
-}
-
-function mapResolveAnchorResponse(wire: ResolveAnchorResponseWire): UniverseAgentResolveAnchorResult {
-	if (wire.hit) {
-		const generation = optionalInt64(wire.hit.generation);
-		return {
-			hit: {
-				envelope: wire.hit.envelope ?? {},
-				presence: mapEnvelopeRecordPresence(wire.hit.presence),
-				...(generation !== undefined ? { generation } : {}),
-			},
-		};
-	}
-	if (wire.tombstone) {
-		const generation = optionalInt64(wire.tombstone.generation);
-		return {
-			tombstone: {
-				sessionId: wire.tombstone.session_id ?? '',
-				envelopeId: wire.tombstone.envelope_id ?? '',
-				seq: requiredInt64(wire.tombstone.seq),
-				...(wire.tombstone.turn_id !== undefined ? { turnId: wire.tombstone.turn_id } : {}),
-				...(generation !== undefined ? { generation } : {}),
-			},
-		};
-	}
-	if (wire.expired) {
-		return {
-			expired: {
-				anchor: mapEnvelopeAnchor(wire.expired.anchor),
-			},
-		};
-	}
-	return {};
-}
-
-function mapAgentUsage(item: AgentUsageWire | undefined): UniverseAgentAgentUsage {
-	return {
-		agentId: item?.agent_id ?? '',
-		inputTokens: item?.input_tokens ?? 0,
-		outputTokens: item?.output_tokens ?? 0,
-		turns: item?.turns ?? 0,
-	};
-}
-
-function mapRecentRequestSpan(item: RecentRequestSpanWire | undefined): UniverseAgentRecentRequestSpan {
-	return {
-		profileId: item?.profile_id ?? '',
-		provider: item?.provider ?? '',
-		modelId: item?.model_id ?? '',
-		inputTokens: item?.input_tokens ?? 0,
-		outputTokens: item?.output_tokens ?? 0,
-		prefillMs: item?.prefill_ms ?? 0,
-		decodeMs: item?.decode_ms ?? 0,
-		completedAtMs: item?.completed_at_ms ?? 0,
-		usageKind: item?.usage_kind ?? '',
-	};
-}
-
-function mapFixedOverheadInfo(wire: FixedOverheadInfoWire): UniverseAgentFixedOverheadInfo {
-	return {
-		toolDefinitionTokens: wire.tool_definition_tokens ?? 0,
-		toolDefinitionCount: wire.tool_definition_count ?? 0,
-		skillInjectTokens: wire.skill_inject_tokens ?? 0,
-		mcpToolTokens: wire.mcp_tool_tokens ?? 0,
-		memoryInjectTokens: wire.memory_inject_tokens ?? 0,
-		rulesInjectTokens: wire.rules_inject_tokens ?? 0,
-	};
-}
-
-function mapSystemPromptPart(item: SystemPromptPartInfoWire | undefined): UniverseAgentSystemPromptPartInfo {
-	return {
-		id: item?.id ?? '',
-		label: item?.label ?? '',
-		tokens: item?.tokens ?? 0,
-		cacheScope: item?.cache_scope ?? '',
-		volatility: item?.volatility ?? '',
-	};
-}
-
-function mapMessageBreakdown(wire: MessageBreakdownInfoWire): UniverseAgentMessageBreakdownInfo {
-	return {
-		systemPromptTokens: wire.system_prompt_tokens ?? 0,
-		userMessageCount: wire.user_message_count ?? 0,
-		userMessageTokens: wire.user_message_tokens ?? 0,
-		assistantCount: wire.assistant_count ?? 0,
-		assistantTokens: wire.assistant_tokens ?? 0,
-		toolResultCount: wire.tool_result_count ?? 0,
-		toolResultTokens: wire.tool_result_tokens ?? 0,
-		compactNoticeCount: wire.compact_notice_count ?? 0,
-		compactNoticeTokens: wire.compact_notice_tokens ?? 0,
-	};
-}
-
-function mapCompactInfo(wire: CompactInfoWire): UniverseAgentCompactInfo {
-	return {
-		compactCount: wire.compact_count ?? 0,
-		lastCompactTokensBefore: wire.last_compact_tokens_before ?? 0,
-		lastCompactTokensAfter: wire.last_compact_tokens_after ?? 0,
-		lastCompactTimeMs: wire.last_compact_time_ms ?? 0,
-	};
-}
-
-function mapCacheInfo(wire: CacheInfoWire): UniverseAgentCacheInfo {
-	return {
-		totalCacheReadTokens: wire.total_cache_read_tokens ?? 0,
-		totalCacheCreationTokens: wire.total_cache_creation_tokens ?? 0,
-	};
-}
-
-function mapContextWindowInfo(wire: ContextWindowInfoWire): UniverseAgentContextWindowInfo {
-	return {
-		contextWindowSize: wire.context_window_size ?? 0,
-		estimatedContextTokens: wire.estimated_context_tokens ?? 0,
-		modelName: wire.model_name ?? '',
-		messageCount: wire.message_count ?? 0,
-		breakdown: wire.breakdown ? mapMessageBreakdown(wire.breakdown) : undefined,
-		compact: wire.compact ? mapCompactInfo(wire.compact) : undefined,
-		cache: wire.cache ? mapCacheInfo(wire.cache) : undefined,
-		fixedOverhead: wire.fixed_overhead ? mapFixedOverheadInfo(wire.fixed_overhead) : undefined,
-		systemPromptParts: (wire.system_prompt_parts ?? []).map(part => mapSystemPromptPart(part)),
-	};
-}
-
-function mapModelUsage(item: ModelUsageWire | undefined): UniverseAgentModelUsage {
-	return {
-		modelId: item?.model_id ?? '',
-		modelName: item?.model_name ?? '',
-		provider: item?.provider ?? '',
-		inputTokens: item?.input_tokens ?? 0,
-		outputTokens: item?.output_tokens ?? 0,
-		thinkingTokens: item?.thinking_tokens ?? 0,
-		totalTokens: item?.total_tokens ?? 0,
-		turnCount: item?.turn_count ?? 0,
-	};
-}
-
-function mapAgentUsageDetail(item: AgentUsageDetailWire | undefined): UniverseAgentAgentUsageDetail {
-	return {
-		agentId: item?.agent_id ?? '',
-		agentType: item?.agent_type ?? '',
-		modelId: item?.model_id ?? '',
-		inputTokens: item?.input_tokens ?? 0,
-		outputTokens: item?.output_tokens ?? 0,
-		thinkingTokens: item?.thinking_tokens ?? 0,
-		totalTokens: item?.total_tokens ?? 0,
-		turnCount: item?.turn_count ?? 0,
-	};
-}
-
-function mapProfileUsage(item: ProfileUsageWire | undefined): UniverseAgentProfileUsage {
-	return {
-		profileId: item?.profile_id ?? '',
-		profileName: item?.profile_name ?? '',
-		provider: item?.provider ?? '',
-		modelId: item?.model_id ?? '',
-		chatInputTokens: item?.chat_input_tokens ?? 0,
-		chatOutputTokens: item?.chat_output_tokens ?? 0,
-		compactInputTokens: item?.compact_input_tokens ?? 0,
-		compactOutputTokens: item?.compact_output_tokens ?? 0,
-		thinkingTokens: item?.thinking_tokens ?? 0,
-		cacheReadTokens: item?.cache_read_tokens ?? 0,
-		cacheCreationTokens: item?.cache_creation_tokens ?? 0,
-		totalTokens: item?.total_tokens ?? 0,
-		conversationTurnCount: item?.conversation_turn_count ?? 0,
-		llmRequestCount: item?.llm_request_count ?? 0,
-		compactRequestCount: item?.compact_request_count ?? 0,
-		hasPostSwitchChat: item?.has_post_switch_chat === true,
-		recallInputTokens: item?.recall_input_tokens ?? 0,
-		recallOutputTokens: item?.recall_output_tokens ?? 0,
-		recallRequestCount: item?.recall_request_count ?? 0,
-	};
-}
-
-function mapSessionUsageInfo(wire: SessionUsageInfoWire): UniverseAgentSessionUsageInfo {
-	return {
-		totalInputTokens: wire.total_input_tokens ?? 0,
-		totalOutputTokens: wire.total_output_tokens ?? 0,
-		totalThinkingTokens: wire.total_thinking_tokens ?? 0,
-		totalCacheReadTokens: wire.total_cache_read_tokens ?? 0,
-		totalCacheCreationTokens: wire.total_cache_creation_tokens ?? 0,
-		totalTokens: wire.total_tokens ?? 0,
-		totalTurns: wire.total_turns ?? 0,
-		modelUsages: (wire.model_usages ?? []).map(item => mapModelUsage(item)),
-		agentDetails: (wire.agent_details ?? []).map(item => mapAgentUsageDetail(item)),
-		profileUsages: (wire.profile_usages ?? []).map(item => mapProfileUsage(item)),
-	};
-}
-
-function mapUsageResponse(wire: UsageResponseWire): UniverseAgentUsageResult {
-	return {
-		totalInputTokens: wire.total_input_tokens ?? 0,
-		totalOutputTokens: wire.total_output_tokens ?? 0,
-		totalTurns: wire.total_turns ?? 0,
-		agentUsages: (wire.agent_usages ?? []).map(item => mapAgentUsage(item)),
-		contextWindow: wire.context_window ? mapContextWindowInfo(wire.context_window) : undefined,
-		sessionUsage: wire.session_usage ? mapSessionUsageInfo(wire.session_usage) : undefined,
-		recentRequestSpans: (wire.recent_request_spans ?? []).map(item => mapRecentRequestSpan(item)),
-	};
-}
-
-function mapHistoryEntry(item: HistoryEntryWire | undefined): UniverseAgentAgentHistoryEntry {
-	return {
-		role: item?.role ?? '',
-		content: item?.content ?? '',
-		timestamp: requiredInt64(item?.timestamp),
-		agentId: item?.agent_id ?? '',
-	};
-}
-
-function mapHistoryResponse(wire: HistoryResponseWire): UniverseAgentAgentHistoryResult {
-	return {
-		entries: (wire.entries ?? []).map(item => mapHistoryEntry(item)),
-		total: wire.total ?? 0,
-	};
-}
-
-function mapPruneResponse(wire: PruneResponseWire): UniverseAgentPruneResult {
-	return {
-		ok: wire.success === true,
-		message: wire.message,
-		removedCount: wire.removed_count ?? 0,
-	};
-}
-
-function mapBranchResponse(wire: BranchResponseWire): UniverseAgentBranchResult {
-	return {
-		ok: wire.success === true,
-		message: wire.message,
-		currentBranch: wire.current_branch ?? 0,
-		totalBranches: wire.total_branches ?? 0,
-		currentTurnId: wire.current_turn_id,
-	};
-}
-
 function chatSyncSessionInputWire(input: UniverseAgentChatSyncSessionInput): Record<string, unknown> {
 	const wire: Record<string, unknown> = {
 		message_id: input.messageId,
@@ -2128,7 +848,6 @@ function chatSyncSessionInputWire(input: UniverseAgentChatSyncSessionInput): Rec
 	}
 	return wire;
 }
-
 function chatSyncRequestWire(request: UniverseAgentChatSyncRequest): Record<string, unknown> {
 	const wire: Record<string, unknown> = {
 		session_id: request.sessionId,
@@ -2144,216 +863,12 @@ function chatSyncRequestWire(request: UniverseAgentChatSyncRequest): Record<stri
 	}
 	return wire;
 }
-
-function mapChatSyncToolResult(item: {
-	tool_id?: string;
-	tool_name?: string;
-	is_error?: boolean;
-	content?: string;
-	duration_ms?: number | string;
-} | undefined): UniverseAgentChatSyncToolResult {
-	return {
-		toolId: item?.tool_id ?? '',
-		toolName: item?.tool_name ?? '',
-		isError: item?.is_error === true,
-		content: item?.content ?? '',
-		durationMs: requiredInt64(item?.duration_ms),
-	};
-}
-
-function mapChatSyncInputDeliveryEvent(item: {
-	message_id?: string;
-	status?: number;
-	error_code?: string;
-	error_message?: string;
-} | undefined): UniverseAgentChatSyncInputDeliveryEvent {
-	return {
-		messageId: item?.message_id ?? '',
-		status: item?.status ?? 0,
-		errorCode: item?.error_code ?? '',
-		errorMessage: item?.error_message ?? '',
-	};
-}
-
-function mapChatSyncResponse(wire: {
-	session_id?: string;
-	agent_id?: string;
-	text?: string;
-	stop_reason?: string;
-	input_tokens?: number | string;
-	output_tokens?: number | string;
-	turn_count?: number;
-	tool_results?: Array<{
-		tool_id?: string;
-		tool_name?: string;
-		is_error?: boolean;
-		content?: string;
-		duration_ms?: number | string;
-	}>;
-	error?: string;
-	input_delivery_events?: Array<{
-		message_id?: string;
-		status?: number;
-		error_code?: string;
-		error_message?: string;
-	}>;
-}): UniverseAgentChatSyncResult {
-	return {
-		sessionId: wire.session_id ?? '',
-		agentId: wire.agent_id ?? '',
-		text: wire.text ?? '',
-		stopReason: wire.stop_reason ?? '',
-		inputTokens: requiredInt64(wire.input_tokens),
-		outputTokens: requiredInt64(wire.output_tokens),
-		turnCount: wire.turn_count ?? 0,
-		toolResults: (wire.tool_results ?? []).map(item => mapChatSyncToolResult(item)),
-		error: wire.error ?? '',
-		inputDeliveryEvents: (wire.input_delivery_events ?? []).map(item => mapChatSyncInputDeliveryEvent(item)),
-	};
-}
-
 function syncInputDeliveryRequestWire(request: UniverseAgentSyncInputDeliveryRequest): Record<string, unknown> {
 	return {
 		session_id: request.sessionId,
 		last_known_message_ids: request.lastKnownMessageIds ?? [],
 	};
 }
-
-function mapSyncInputDeliveryResponse(wire: {
-	input_delivery_events?: Array<{
-		message_id?: string;
-		status?: number;
-		error_code?: string;
-		error_message?: string;
-	}>;
-}): UniverseAgentSyncInputDeliveryResult {
-	return {
-		inputDeliveryEvents: (wire.input_delivery_events ?? []).map(item => mapChatSyncInputDeliveryEvent(item)),
-	};
-}
-
-function mapGetHistoryResponse(wire: GetHistoryResponseWire): UniverseAgentGetHistoryResult {
-	return {
-		envelopes: (wire.envelopes ?? []).map(envelope => ({
-			cursorSeq: envelope.cursor_seq ?? '',
-			payload: envelope.payload !== undefined && envelope.payload !== null ? envelope.payload : envelope,
-		})),
-		nextCursorSeq: wire.next_cursor_seq,
-	};
-}
-
-interface ListSkillsResponseWire {
-	skills?: Array<{
-		name?: string;
-		description?: string;
-		source?: string;
-		enabled?: boolean;
-		slash_enabled?: boolean;
-	}>;
-}
-
-interface SetSkillEnabledResponseWire {
-	ok?: boolean;
-	reason?: string;
-}
-
-interface SaveSkillContentResponseWire {
-	ok?: boolean;
-	reason?: string;
-}
-
-interface SkillInfoResponseWire {
-	name?: string;
-	content?: string;
-	source?: string;
-	enabled?: boolean;
-}
-
-function mapSkillSource(source: string | undefined): UniverseAgentSkillSource {
-	switch (source?.toLowerCase()) {
-		case 'bundled':
-			return 'bundled';
-		case 'user':
-			return 'user';
-		case 'project':
-			return 'project';
-		default:
-			return 'unknown';
-	}
-}
-
-function mapSkillSummary(wire: NonNullable<ListSkillsResponseWire['skills']>[number]): UniverseAgentSkillSummary {
-	return {
-		name: wire.name ?? '',
-		description: wire.description,
-		source: mapSkillSource(wire.source),
-		enabled: wire.enabled === true,
-		slashEnabled: wire.slash_enabled,
-	};
-}
-
-function mapListSkillsResponse(wire: ListSkillsResponseWire): UniverseAgentListSkillsResult {
-	return {
-		skills: (wire.skills ?? []).map(mapSkillSummary),
-	};
-}
-
-function mapSetSkillEnabledResponse(wire: SetSkillEnabledResponseWire): UniverseAgentSetSkillEnabledResult {
-	return {
-		ok: wire.ok === true,
-		reason: wire.reason,
-	};
-}
-
-function mapSaveSkillContentResponse(wire: SaveSkillContentResponseWire): UniverseAgentSaveSkillContentResult {
-	return {
-		ok: wire.ok === true,
-		reason: wire.reason,
-	};
-}
-
-function mapSkillInfoResponse(wire: SkillInfoResponseWire): UniverseAgentSkillInfoResult {
-	return {
-		name: wire.name ?? '',
-		content: wire.content ?? '',
-		source: mapSkillSource(wire.source),
-		enabled: wire.enabled === true,
-	};
-}
-
-interface ListAgentProfilesResponseWire {
-	profiles?: Array<{
-		id?: string;
-		name?: string;
-		source?: string;
-		summary?: string;
-		enabled?: boolean;
-		disabled_tools?: string[];
-		enabled_tools?: string[];
-		whitelist_mode?: boolean;
-		description?: string;
-		system_prompt?: string;
-		permission_mode?: string;
-		usage?: string;
-		detail_level?: string;
-		builtin_default?: boolean;
-	}>;
-}
-
-function mapAgentProfileSource(source: string | undefined): UniverseAgentAgentProfileSource {
-	switch (source?.toLowerCase()) {
-		case 'built_in':
-		case 'builtin':
-			return 'built_in';
-		case 'user':
-			return 'user';
-		case 'project':
-			return 'project';
-		default:
-			return 'unknown';
-	}
-}
-
 function mapAgentProfileSourceToWire(source: UniverseAgentAgentProfileSource | undefined): string | undefined {
 	if (!source) {
 		return undefined;
@@ -2369,39 +884,6 @@ function mapAgentProfileSourceToWire(source: UniverseAgentAgentProfileSource | u
 			return undefined;
 	}
 }
-
-function mapAgentProfileDetail(wire: NonNullable<ListAgentProfilesResponseWire['profiles']>[number]): UniverseAgentAgentProfileDetail {
-	return {
-		id: wire.id ?? '',
-		name: wire.name ?? '',
-		description: wire.description,
-		systemPrompt: wire.system_prompt,
-		disabledTools: wire.disabled_tools,
-		enabledTools: wire.enabled_tools,
-		permissionMode: wire.permission_mode,
-		summary: wire.summary,
-		usage: wire.usage,
-		detailLevel: wire.detail_level,
-		source: mapAgentProfileSource(wire.source),
-		enabled: wire.enabled,
-		whitelistMode: wire.whitelist_mode,
-		builtinDefault: wire.builtin_default,
-	};
-}
-
-function mapAgentProfileSummary(wire: NonNullable<ListAgentProfilesResponseWire['profiles']>[number]): UniverseAgentAgentProfileSummary {
-	return {
-		id: wire.id ?? '',
-		name: wire.name ?? '',
-		source: mapAgentProfileSource(wire.source),
-		summary: wire.summary,
-		enabled: wire.enabled,
-		disabledTools: wire.disabled_tools,
-		enabledTools: wire.enabled_tools,
-		whitelistMode: wire.whitelist_mode,
-	};
-}
-
 function mapAgentProfileDetailToWire(profile: UniverseAgentAgentProfileDetail): Record<string, unknown> {
 	const wire: Record<string, unknown> = {
 		id: profile.id,
@@ -2446,45 +928,6 @@ function mapAgentProfileDetailToWire(profile: UniverseAgentAgentProfileDetail): 
 	}
 	return wire;
 }
-
-function mapListAgentProfilesResponse(wire: ListAgentProfilesResponseWire): UniverseAgentListAgentProfilesResult {
-	return {
-		profiles: (wire.profiles ?? []).map(mapAgentProfileSummary),
-	};
-}
-
-interface SaveAgentProfileResponseWire {
-	profile?: ListAgentProfilesResponseWire['profiles'] extends (infer T)[] | undefined ? T : never;
-}
-
-function mapSaveAgentProfileResponse(wire: SaveAgentProfileResponseWire): UniverseAgentSaveAgentProfileResult {
-	const profileWire = wire.profile;
-	if (!profileWire) {
-		return { profile: { id: '', name: '' } };
-	}
-	return { profile: mapAgentProfileDetail(profileWire) };
-}
-
-interface DeleteAgentProfileResponseWire {
-	success?: boolean;
-}
-
-function mapDeleteAgentProfileResponse(wire: DeleteAgentProfileResponseWire): UniverseAgentDeleteAgentProfileResult {
-	return { ok: wire.success === true };
-}
-
-interface ResetAgentProfileResponseWire {
-	success?: boolean;
-	profile?: NonNullable<ListAgentProfilesResponseWire['profiles']>[number];
-}
-
-function mapResetAgentProfileResponse(wire: ResetAgentProfileResponseWire): UniverseAgentResetAgentProfileResult {
-	return {
-		ok: wire.success === true,
-		profile: wire.profile ? mapAgentProfileDetail(wire.profile) : undefined,
-	};
-}
-
 function mapMcpTransportToWire(transport: UniverseAgentMcpTransport): string {
 	switch (transport) {
 		case 'stdio':
@@ -2497,7 +940,6 @@ function mapMcpTransportToWire(transport: UniverseAgentMcpTransport): string {
 			return 'STDIO';
 	}
 }
-
 function mapMcpServerConfigToWire(config: UniverseAgentMcpServerConfig): Record<string, unknown> {
 	const wire: Record<string, unknown> = {
 		name: config.name,
@@ -2523,1418 +965,6 @@ function mapMcpServerConfigToWire(config: UniverseAgentMcpServerConfig): Record<
 	}
 	return wire;
 }
-
-function mapMcpServerConfigFromWire(wire: Record<string, unknown> | undefined): UniverseAgentMcpServerConfig | undefined {
-	if (!wire) {
-		return undefined;
-	}
-	return {
-		id: typeof wire.id === 'string' ? wire.id : undefined,
-		name: typeof wire.name === 'string' ? wire.name : '',
-		transport: mapMcpTransport(typeof wire.transport === 'string' ? wire.transport : undefined),
-		command: typeof wire.command === 'string' ? wire.command : undefined,
-		args: Array.isArray(wire.args) ? wire.args.filter((arg): arg is string => typeof arg === 'string') : undefined,
-		env: wire.env && typeof wire.env === 'object' ? wire.env as Record<string, string> : undefined,
-		url: typeof wire.url === 'string' ? wire.url : undefined,
-		enabled: wire.enabled === true,
-	};
-}
-
-interface AddMcpServerResponseWire {
-	success?: boolean;
-	error_message?: string;
-	assigned_id?: string;
-}
-
-function mapAddMcpServerResponse(wire: AddMcpServerResponseWire): UniverseAgentAddMcpServerResult {
-	return {
-		ok: wire.success === true,
-		reason: wire.error_message,
-		assignedId: wire.assigned_id,
-	};
-}
-
-interface UpdateMcpServerResponseWire {
-	success?: boolean;
-	error_message?: string;
-	updated_config?: Record<string, unknown>;
-}
-
-function mapUpdateMcpServerResponse(wire: UpdateMcpServerResponseWire): UniverseAgentUpdateMcpServerResult {
-	return {
-		ok: wire.success === true,
-		reason: wire.error_message,
-		config: mapMcpServerConfigFromWire(wire.updated_config),
-	};
-}
-
-interface RemoveMcpServerResponseWire {
-	success?: boolean;
-	error_message?: string;
-	removed_name?: string;
-}
-
-function mapRemoveMcpServerResponse(wire: RemoveMcpServerResponseWire): UniverseAgentRemoveMcpServerResult {
-	return {
-		ok: wire.success === true,
-		reason: wire.error_message,
-		removedName: wire.removed_name,
-	};
-}
-
-interface ListMcpServersResponseWire {
-	servers?: Array<{
-		id?: string;
-		name?: string;
-		transport?: string;
-		origin?: string;
-		enabled?: boolean;
-		effective_enabled?: boolean;
-		has_project_override?: boolean;
-	}>;
-}
-
-function mapMcpOrigin(origin: string | undefined): UniverseAgentMcpServerOrigin {
-	switch (origin?.toLowerCase()) {
-		case 'global':
-			return 'global';
-		case 'project':
-			return 'project';
-		default:
-			return 'unknown';
-	}
-}
-
-function mapMcpTransport(transport: string | undefined): UniverseAgentMcpTransport {
-	switch (transport?.toLowerCase()) {
-		case 'stdio':
-			return 'stdio';
-		case 'sse':
-			return 'sse';
-		case 'streamable_http':
-			return 'streamable_http';
-		default:
-			return 'unknown';
-	}
-}
-
-function mapMcpServerSummary(wire: NonNullable<ListMcpServersResponseWire['servers']>[number]): UniverseAgentMcpServerSummary {
-	return {
-		id: wire.id ?? '',
-		name: wire.name ?? '',
-		transport: mapMcpTransport(wire.transport),
-		origin: mapMcpOrigin(wire.origin),
-		enabled: wire.enabled === true,
-		effectiveEnabled: wire.effective_enabled,
-		hasProjectOverride: wire.has_project_override,
-	};
-}
-
-function mapListMcpServersResponse(wire: ListMcpServersResponseWire): UniverseAgentListMcpServersResult {
-	return {
-		servers: (wire.servers ?? []).map(mapMcpServerSummary),
-	};
-}
-
-function readEpochMs(value: unknown): number | undefined {
-	if (typeof value === 'number' && Number.isFinite(value) && value > 0) {
-		return value;
-	}
-	if (typeof value === 'string' && value) {
-		const parsed = Number(value);
-		if (Number.isFinite(parsed) && parsed > 0) {
-			return parsed;
-		}
-	}
-	return undefined;
-}
-
-function mapMcpRuntimeStatus(status: unknown): UniverseAgentMcpRuntimeStatus {
-	if (typeof status === 'number') {
-		switch (status) {
-			case 1:
-				return 'disconnected';
-			case 2:
-				return 'connecting';
-			case 3:
-				return 'connected';
-			case 4:
-				return 'error';
-			default:
-				return 'failed';
-		}
-	}
-	const normalized = String(status ?? '').toUpperCase();
-	if (normalized === 'MCP_STATUS_DISCONNECTED' || normalized === 'DISCONNECTED') {
-		return 'disconnected';
-	}
-	if (normalized === 'MCP_STATUS_CONNECTING' || normalized === 'CONNECTING') {
-		return 'connecting';
-	}
-	if (normalized === 'MCP_STATUS_CONNECTED' || normalized === 'CONNECTED') {
-		return 'connected';
-	}
-	if (normalized === 'MCP_STATUS_ERROR' || normalized === 'ERROR') {
-		return 'error';
-	}
-	return 'failed';
-}
-
-interface GetMcpServerStatusesResponseWire {
-	statuses?: Array<{
-		server_id?: string;
-		status?: unknown;
-		error_message?: string;
-		last_connected_at?: number | string;
-	}>;
-	checked_at?: number | string;
-}
-
-function mapMcpServerStatus(wire: NonNullable<GetMcpServerStatusesResponseWire['statuses']>[number]): UniverseAgentMcpServerStatus {
-	return {
-		serverId: wire.server_id ?? '',
-		status: mapMcpRuntimeStatus(wire.status),
-		errorMessage: wire.error_message,
-		lastConnectedAt: readEpochMs(wire.last_connected_at),
-	};
-}
-
-function mapGetMcpServerStatusesResponse(wire: GetMcpServerStatusesResponseWire): UniverseAgentGetMcpServerStatusesResult {
-	return {
-		statuses: (wire.statuses ?? []).map(mapMcpServerStatus),
-		checkedAt: readEpochMs(wire.checked_at),
-	};
-}
-
-interface GetMcpServerToolsResponseWire {
-	tools?: Array<{
-		name?: string;
-		description?: string;
-		input_schema_json?: string;
-	}>;
-	total?: number;
-	cached_at?: number | string;
-}
-
-function mapMcpToolDefinition(wire: NonNullable<GetMcpServerToolsResponseWire['tools']>[number]): UniverseAgentMcpToolDefinition {
-	return {
-		name: wire.name ?? '',
-		description: wire.description,
-		inputSchemaJson: wire.input_schema_json,
-	};
-}
-
-function mapGetMcpServerToolsResponse(wire: GetMcpServerToolsResponseWire): UniverseAgentGetMcpServerToolsResult {
-	return {
-		tools: (wire.tools ?? []).map(mapMcpToolDefinition),
-		total: wire.total,
-		cachedAt: readEpochMs(wire.cached_at),
-	};
-}
-
-function mapPluginStatus(status: unknown): UniverseAgentPluginStatus {
-	if (typeof status === 'number') {
-		switch (status) {
-			case 0:
-				return 'active';
-			case 1:
-				return 'disabled';
-			case 2:
-				return 'error';
-			default:
-				return 'unknown';
-		}
-	}
-	const normalized = String(status ?? '').toUpperCase();
-	if (normalized === 'PLUGIN_ACTIVE' || normalized === 'ACTIVE') {
-		return 'active';
-	}
-	if (normalized === 'PLUGIN_DISABLED' || normalized === 'DISABLED') {
-		return 'disabled';
-	}
-	if (normalized === 'PLUGIN_ERROR' || normalized === 'ERROR') {
-		return 'error';
-	}
-	return 'unknown';
-}
-
-interface PluginSummaryWire {
-	id?: string;
-	display_name?: string;
-	version?: string;
-	source?: string;
-	hook_count?: number;
-	status?: unknown;
-	loaded_at?: number | string;
-}
-
-function mapPluginSummary(wire: PluginSummaryWire | undefined): UniverseAgentPluginSummary {
-	return {
-		id: wire?.id ?? '',
-		displayName: wire?.display_name ?? '',
-		version: wire?.version ?? '',
-		source: wire?.source ?? '',
-		hookCount: wire?.hook_count ?? 0,
-		status: mapPluginStatus(wire?.status),
-		loadedAt: readEpochMs(wire?.loaded_at),
-	};
-}
-
-interface ListPluginsResponseWire {
-	plugins?: PluginSummaryWire[];
-}
-
-function mapListPluginsResponse(wire: ListPluginsResponseWire): UniverseAgentListPluginsResult {
-	return {
-		plugins: (wire.plugins ?? []).map(mapPluginSummary),
-	};
-}
-
-interface PluginHookEntryWire {
-	hook_type?: string;
-	priority?: number;
-	class_name?: string;
-}
-
-interface PluginInfoResponseWire {
-	summary?: PluginSummaryWire;
-	hooks?: PluginHookEntryWire[];
-	config?: Record<string, string>;
-	error_message?: string;
-}
-
-function mapPluginHookEntry(wire: PluginHookEntryWire): UniverseAgentPluginHookEntry {
-	return {
-		hookType: wire.hook_type ?? '',
-		priority: wire.priority ?? 0,
-		className: wire.class_name ?? '',
-	};
-}
-
-function mapPluginInfoResponse(wire: PluginInfoResponseWire): UniverseAgentPluginInfoResult {
-	return {
-		summary: mapPluginSummary(wire.summary),
-		hooks: (wire.hooks ?? []).map(mapPluginHookEntry),
-		config: wire.config,
-		errorMessage: wire.error_message,
-	};
-}
-
-interface EnablePluginResponseWire {
-	plugin?: PluginSummaryWire;
-}
-
-interface ReloadPluginResponseWire {
-	plugin?: PluginSummaryWire;
-}
-
-interface UnloadPluginResponseWire {
-	removed_hook_count?: number;
-}
-
-interface ScanNewPluginsResponseWire {
-	new_plugins?: PluginSummaryWire[];
-	skipped_count?: number;
-}
-
-interface ToggleMcpServerResponseWire {
-	success?: boolean;
-	error_message?: string;
-}
-
-function mapToggleMcpServerResponse(wire: ToggleMcpServerResponseWire): UniverseAgentToggleMcpServerResult {
-	return {
-		ok: wire.success === true,
-		reason: wire.error_message,
-	};
-}
-
-interface ListToolsResponseWire {
-	tools?: Array<{
-		name?: string;
-		description?: string;
-		category?: string;
-		destructive?: boolean;
-		requires_permission?: boolean;
-	}>;
-}
-
-function mapToolSummary(wire: NonNullable<ListToolsResponseWire['tools']>[number]): UniverseAgentToolSummary {
-	return {
-		name: wire.name ?? '',
-		description: wire.description,
-		category: wire.category,
-		destructive: wire.destructive,
-		requiresPermission: wire.requires_permission,
-	};
-}
-
-function mapListToolsResponse(wire: ListToolsResponseWire): UniverseAgentListToolsResult {
-	return {
-		tools: (wire.tools ?? []).map(mapToolSummary),
-	};
-}
-
-interface ToolInfoResponseWire {
-	name?: string;
-	description?: string;
-	category?: string;
-	input_schema_json?: string;
-	destructive?: boolean;
-	requires_permission?: boolean;
-	aliases?: string[];
-}
-
-function mapToolInfoResponse(wire: ToolInfoResponseWire): UniverseAgentToolInfoResult {
-	return {
-		name: wire.name ?? '',
-		description: wire.description,
-		category: wire.category,
-		inputSchemaJson: wire.input_schema_json,
-		destructive: wire.destructive,
-		requiresPermission: wire.requires_permission,
-		aliases: wire.aliases ?? [],
-	};
-}
-
-interface ListCommandsResponseWire {
-	commands?: Array<{
-		name?: string;
-		description?: string;
-		source?: string | number;
-		slash_enabled?: boolean;
-		agent?: string;
-		model?: string;
-		subtask?: boolean;
-		skill_source?: string;
-	}>;
-	total?: number;
-}
-
-const SlashCommandSourceByNumber: Record<number, UniverseAgentSlashCommandSource> = {
-	0: 'SLASH_COMMAND_SOURCE_UNSPECIFIED',
-	1: 'SLASH_COMMAND_SOURCE_SKILL',
-	2: 'SLASH_COMMAND_SOURCE_CONFIG',
-	3: 'SLASH_COMMAND_SOURCE_BUILTIN',
-	4: 'SLASH_COMMAND_SOURCE_MCP',
-};
-
-function mapSlashCommandSource(value: string | number | undefined): UniverseAgentSlashCommandSource {
-	return mapRuleEnum(value, SlashCommandSourceByNumber) as UniverseAgentSlashCommandSource;
-}
-
-function mapCommandSummary(wire: NonNullable<ListCommandsResponseWire['commands']>[number]): UniverseAgentCommandSummary {
-	return {
-		name: wire.name ?? '',
-		description: wire.description,
-		source: mapSlashCommandSource(wire.source),
-		slashEnabled: wire.slash_enabled === true,
-		agent: wire.agent ?? '',
-		model: wire.model ?? '',
-		subtask: wire.subtask === true,
-		skillSource: wire.skill_source ?? '',
-	};
-}
-
-function mapListCommandsResponse(wire: ListCommandsResponseWire): UniverseAgentListCommandsResult {
-	return {
-		commands: (wire.commands ?? []).map(mapCommandSummary),
-		total: wire.total ?? 0,
-	};
-}
-
-interface GetCommandDefResponseWire {
-	name?: string;
-	description?: string;
-	source?: string | number;
-	template?: string;
-	agent?: string;
-	model?: string;
-	subtask?: boolean;
-	mcp_server_id?: string;
-	mcp_prompt_name?: string;
-	mcp_argument_names?: string[];
-	skill_source?: string;
-}
-
-function mapGetCommandDefResponse(wire: GetCommandDefResponseWire): UniverseAgentGetCommandDefResult {
-	return {
-		name: wire.name ?? '',
-		description: wire.description,
-		source: mapSlashCommandSource(wire.source),
-		template: wire.template ?? '',
-		agent: wire.agent ?? '',
-		model: wire.model ?? '',
-		subtask: wire.subtask === true,
-		mcpServerId: wire.mcp_server_id ?? '',
-		mcpPromptName: wire.mcp_prompt_name ?? '',
-		mcpArgumentNames: wire.mcp_argument_names ?? [],
-		skillSource: wire.skill_source ?? '',
-	};
-}
-
-interface ListFilesResponseWire {
-	entries?: Array<{
-		name?: string;
-		path?: string;
-		is_directory?: boolean;
-		size?: number | string;
-		last_modified?: number | string;
-		mime_type?: string;
-	}>;
-	total?: number;
-}
-
-function mapFileEntry(wire: NonNullable<ListFilesResponseWire['entries']>[number]): UniverseAgentFileEntry {
-	return {
-		name: wire.name ?? '',
-		path: wire.path ?? '',
-		isDirectory: wire.is_directory === true,
-		size: requiredInt64(wire.size),
-		lastModified: requiredInt64(wire.last_modified),
-		mimeType: wire.mime_type ?? '',
-	};
-}
-
-function mapListFilesResponse(wire: ListFilesResponseWire): UniverseAgentListFilesResult {
-	return {
-		entries: (wire.entries ?? []).map(mapFileEntry),
-		total: wire.total ?? 0,
-	};
-}
-
-interface ReadFileResponseWire {
-	content?: string;
-	total_size?: number | string;
-	mime_type?: string;
-	line_count?: number | string;
-	content_hash?: string;
-}
-
-function mapReadFileResponse(wire: ReadFileResponseWire): UniverseAgentReadFileResult {
-	return {
-		content: base64ToBytes(wire.content),
-		totalSize: requiredInt64(wire.total_size),
-		mimeType: wire.mime_type ?? '',
-		lineCount: requiredInt64(wire.line_count),
-		contentHash: wire.content_hash ?? '',
-	};
-}
-
-interface GetFileInfoResponseWire {
-	file?: NonNullable<ListFilesResponseWire['entries']>[number];
-}
-
-function mapGetFileInfoResponse(wire: GetFileInfoResponseWire): UniverseAgentGetFileInfoResult {
-	return {
-		file: mapFileEntry(wire.file ?? {}),
-	};
-}
-
-interface WriteFileResponseWire {
-	status?: string | number;
-	new_hash?: string;
-	size?: number | string;
-	modified_at?: number | string;
-	current_content?: string;
-	current_hash?: string;
-	merged_content?: string;
-}
-
-const WriteFileStatusByNumber: Record<number, UniverseAgentWriteFileStatus> = {
-	0: 'SAVED',
-	1: 'MERGED',
-	2: 'CONFLICT',
-};
-
-function mapWriteFileStatus(value: string | number | undefined): UniverseAgentWriteFileStatus {
-	if (typeof value === 'number') {
-		return WriteFileStatusByNumber[value] ?? 'SAVED';
-	}
-	if (value === 'MERGED' || value === 'CONFLICT' || value === 'SAVED') {
-		return value;
-	}
-	return 'SAVED';
-}
-
-function mapWriteFileResponse(wire: WriteFileResponseWire): UniverseAgentWriteFileResult {
-	return {
-		status: mapWriteFileStatus(wire.status),
-		newHash: wire.new_hash ?? '',
-		size: requiredInt64(wire.size),
-		modifiedAt: requiredInt64(wire.modified_at),
-		currentContent: base64ToBytes(wire.current_content),
-		currentHash: wire.current_hash ?? '',
-		mergedContent: base64ToBytes(wire.merged_content),
-	};
-}
-
-interface AgentMergeResponseWire {
-	accepted?: boolean;
-}
-
-function mapAgentMergeResponse(wire: AgentMergeResponseWire): UniverseAgentAgentMergeResult {
-	return {
-		accepted: wire.accepted === true,
-	};
-}
-
-interface ReadGitSummaryResponseWire {
-	supported?: boolean;
-	reason?: string;
-	branch?: string;
-	change_count?: number | string;
-}
-
-function mapReadGitSummaryResponse(wire: ReadGitSummaryResponseWire): UniverseAgentReadGitSummaryResult {
-	return {
-		supported: wire.supported === true,
-		reason: wire.reason ?? '',
-		branch: wire.branch ?? '',
-		changeCount: requiredInt64(wire.change_count),
-	};
-}
-
-interface GitChangeEntryWire {
-	path?: string;
-	old_path?: string;
-	kind?: string;
-	index_state?: string;
-}
-
-interface ReadGitChangesResponseWire {
-	supported?: boolean;
-	reason?: string;
-	branch?: string;
-	entries?: GitChangeEntryWire[];
-}
-
-function mapGitChangeEntry(wire: GitChangeEntryWire): UniverseAgentGitChangeEntry {
-	return {
-		path: wire.path ?? '',
-		oldPath: wire.old_path ?? '',
-		kind: wire.kind ?? '',
-		indexState: wire.index_state ?? '',
-	};
-}
-
-function mapReadGitChangesResponse(wire: ReadGitChangesResponseWire): UniverseAgentReadGitChangesResult {
-	return {
-		supported: wire.supported === true,
-		reason: wire.reason ?? '',
-		branch: wire.branch ?? '',
-		entries: (wire.entries ?? []).map(mapGitChangeEntry),
-	};
-}
-
-interface ReadGitFileDiffResponseWire {
-	supported?: boolean;
-	reason?: string;
-	path?: string;
-	unified_diff?: string;
-}
-
-function mapReadGitFileDiffResponse(wire: ReadGitFileDiffResponseWire): UniverseAgentReadGitFileDiffResult {
-	return {
-		supported: wire.supported === true,
-		reason: wire.reason ?? '',
-		path: wire.path ?? '',
-		unifiedDiff: wire.unified_diff ?? '',
-	};
-}
-
-interface WriteGitWriteResponseWire {
-	supported?: boolean;
-	reason?: string;
-	success?: boolean;
-	error_message?: string;
-	exit_code?: number | string;
-	stdout?: string;
-}
-
-function mapWriteGitWriteResponse(wire: WriteGitWriteResponseWire): UniverseAgentWriteGitWriteResult {
-	return {
-		supported: wire.supported === true,
-		reason: wire.reason ?? '',
-		success: wire.success === true,
-		errorMessage: wire.error_message ?? '',
-		exitCode: requiredInt64(wire.exit_code),
-		stdout: wire.stdout ?? '',
-	};
-}
-
-interface TokenUsageDataWire {
-	input_tokens?: number | string;
-	output_tokens?: number | string;
-	thinking_tokens?: number | string;
-	cache_read_tokens?: number | string;
-	cache_write_tokens?: number | string;
-	total_cost_micros?: number | string;
-	currency?: string;
-	request_count?: number | string;
-}
-
-interface GetSessionUsageResponseWire {
-	usage?: TokenUsageDataWire;
-}
-
-interface GetGlobalUsageResponseWire {
-	usage?: TokenUsageDataWire;
-}
-
-function mapTokenUsageData(wire: TokenUsageDataWire | undefined): UniverseAgentTokenUsageData {
-	return {
-		inputTokens: requiredInt64(wire?.input_tokens),
-		outputTokens: requiredInt64(wire?.output_tokens),
-		thinkingTokens: requiredInt64(wire?.thinking_tokens),
-		cacheReadTokens: requiredInt64(wire?.cache_read_tokens),
-		cacheWriteTokens: requiredInt64(wire?.cache_write_tokens),
-		totalCostMicros: requiredInt64(wire?.total_cost_micros),
-		currency: wire?.currency ?? '',
-		requestCount: requiredInt64(wire?.request_count),
-	};
-}
-
-function mapGetSessionUsageResponse(wire: GetSessionUsageResponseWire): UniverseAgentGetSessionUsageResult {
-	return {
-		usage: mapTokenUsageData(wire.usage ?? {}),
-	};
-}
-
-function mapGetGlobalUsageResponse(wire: GetGlobalUsageResponseWire): UniverseAgentGetGlobalUsageResult {
-	return {
-		usage: mapTokenUsageData(wire.usage),
-	};
-}
-
-interface MemorySaveResponseWire {
-	success?: boolean;
-	message?: string;
-	file_path?: string;
-}
-
-function mapMemorySaveResponse(wire: MemorySaveResponseWire): UniverseAgentSaveMemoryResult {
-	return {
-		success: wire.success === true,
-		message: wire.message ?? '',
-		filePath: wire.file_path ?? '',
-	};
-}
-
-interface MemorySearchResultWire {
-	category?: string;
-	filename?: string;
-	title?: string;
-	score?: number | string;
-	snippet?: string;
-	forgot?: boolean;
-	scope?: string;
-}
-
-interface MemorySearchResponseWire {
-	results?: MemorySearchResultWire[];
-}
-
-function requiredDouble(value: number | string | undefined): number {
-	const n = typeof value === 'number' ? value : Number(value);
-	return Number.isFinite(n) ? n : 0;
-}
-
-function mapMemorySearchEntry(wire: MemorySearchResultWire): UniverseAgentMemorySearchEntry {
-	return {
-		category: wire.category ?? '',
-		filename: wire.filename ?? '',
-		title: wire.title ?? '',
-		score: requiredDouble(wire.score),
-		snippet: wire.snippet ?? '',
-		forgot: wire.forgot === true,
-		scope: wire.scope ?? '',
-	};
-}
-
-function mapMemorySearchResponse(wire: MemorySearchResponseWire): UniverseAgentMemorySearchResult {
-	return {
-		results: (wire.results ?? []).map(mapMemorySearchEntry),
-	};
-}
-
-interface MemorySearchDeepResponseWire {
-	results?: MemorySearchResultWire[];
-	searched_categories?: Array<string | undefined>;
-}
-
-function mapMemorySearchDeepResponse(wire: MemorySearchDeepResponseWire): UniverseAgentMemorySearchDeepResult {
-	return {
-		results: (wire.results ?? []).map(mapMemorySearchEntry),
-		searchedCategories: (wire.searched_categories ?? []).map(category => category ?? ''),
-	};
-}
-
-interface MemoryFileMetadataWire {
-	category?: string;
-	filename?: string;
-	title?: string;
-	tags?: string[];
-	created_at?: number | string;
-	updated_at?: number | string;
-	version?: number | string;
-}
-
-interface MemoryReadResponseWire {
-	content?: string;
-	metadata?: MemoryFileMetadataWire;
-}
-
-function mapMemoryFileMetadata(wire: MemoryFileMetadataWire | undefined): UniverseAgentMemoryFileMetadata {
-	return {
-		category: wire?.category ?? '',
-		filename: wire?.filename ?? '',
-		title: wire?.title ?? '',
-		tags: [...(wire?.tags ?? [])],
-		createdAt: requiredInt64(wire?.created_at),
-		updatedAt: requiredInt64(wire?.updated_at),
-		version: requiredInt64(wire?.version),
-	};
-}
-
-function mapMemoryReadResponse(wire: MemoryReadResponseWire): UniverseAgentReadMemoryResult {
-	return {
-		content: wire.content ?? '',
-		metadata: mapMemoryFileMetadata(wire.metadata),
-	};
-}
-
-interface MemoryFileSummaryWire {
-	filename?: string;
-	title?: string;
-	updated_at?: number | string;
-}
-
-interface MemoryCategoryInfoWire {
-	category?: string;
-	files?: MemoryFileSummaryWire[];
-	file_count?: number | string;
-}
-
-interface MemoryListResponseWire {
-	categories?: MemoryCategoryInfoWire[];
-}
-
-function mapMemoryFileSummary(wire: MemoryFileSummaryWire): UniverseAgentMemoryFileSummary {
-	return {
-		filename: wire.filename ?? '',
-		title: wire.title ?? '',
-		updatedAt: requiredInt64(wire.updated_at),
-	};
-}
-
-function mapMemoryCategoryInfo(wire: MemoryCategoryInfoWire): UniverseAgentMemoryCategoryInfo {
-	return {
-		category: wire.category ?? '',
-		files: (wire.files ?? []).map(mapMemoryFileSummary),
-		fileCount: requiredInt64(wire.file_count),
-	};
-}
-
-function mapMemoryListResponse(wire: MemoryListResponseWire): UniverseAgentMemoryListResult {
-	return {
-		categories: (wire.categories ?? []).map(mapMemoryCategoryInfo),
-	};
-}
-
-interface MemoryDeleteResponseWire {
-	success?: boolean;
-	message?: string;
-}
-
-function mapMemoryDeleteResponse(wire: MemoryDeleteResponseWire): UniverseAgentDeleteMemoryResult {
-	return {
-		success: wire.success === true,
-		message: wire.message ?? '',
-	};
-}
-
-interface MemoryReflectDiagnosisWire {
-	type?: string;
-	category?: string;
-	filename?: string;
-	description?: string;
-	suggestion?: string;
-}
-
-interface MemoryReflectResponseWire {
-	diagnoses?: MemoryReflectDiagnosisWire[];
-	summary?: string;
-}
-
-function mapMemoryReflectDiagnosis(wire: MemoryReflectDiagnosisWire): UniverseAgentMemoryReflectDiagnosis {
-	return {
-		type: wire.type ?? '',
-		category: wire.category ?? '',
-		filename: wire.filename ?? '',
-		description: wire.description ?? '',
-		suggestion: wire.suggestion ?? '',
-	};
-}
-
-function mapMemoryReflectResponse(wire: MemoryReflectResponseWire): UniverseAgentReflectMemoryResult {
-	return {
-		diagnoses: (wire.diagnoses ?? []).map(mapMemoryReflectDiagnosis),
-		summary: wire.summary ?? '',
-	};
-}
-
-interface MemoryRebuildEventWire {
-	phase?: string;
-	message?: string;
-	progress?: number | string;
-	files_processed?: number | string;
-	files_total?: number | string;
-}
-
-function mapMemoryRebuildEvent(wire: MemoryRebuildEventWire): UniverseAgentMemoryRebuildEvent {
-	return {
-		phase: wire.phase ?? '',
-		message: wire.message ?? '',
-		progress: requiredInt64(wire.progress),
-		filesProcessed: requiredInt64(wire.files_processed),
-		filesTotal: requiredInt64(wire.files_total),
-	};
-}
-
-interface MemoryRevertResponseWire {
-	success?: boolean;
-	message?: string;
-	reverted_to_version?: number | string;
-}
-
-function mapMemoryRevertResponse(wire: MemoryRevertResponseWire): UniverseAgentRevertMemoryResult {
-	return {
-		success: wire.success === true,
-		message: wire.message ?? '',
-		revertedToVersion: requiredInt64(wire.reverted_to_version),
-	};
-}
-
-interface MemoryChangeEntryWire {
-	version?: number | string;
-	change_type?: string;
-	summary?: string;
-	timestamp?: number | string;
-	author?: string;
-}
-
-interface MemoryHistoryResponseWire {
-	changes?: MemoryChangeEntryWire[];
-}
-
-function mapMemoryChangeEntry(wire: MemoryChangeEntryWire): UniverseAgentMemoryChangeEntry {
-	return {
-		version: requiredInt64(wire.version),
-		changeType: wire.change_type ?? '',
-		summary: wire.summary ?? '',
-		timestamp: requiredInt64(wire.timestamp),
-		author: wire.author ?? '',
-	};
-}
-
-function mapMemoryHistoryResponse(wire: MemoryHistoryResponseWire): UniverseAgentMemoryHistoryResult {
-	return {
-		changes: (wire.changes ?? []).map(mapMemoryChangeEntry),
-	};
-}
-
-const ContextVariableScopeByNumber: Record<number, UniverseAgentContextVariableScope> = {
-	0: 'VARIABLE_GLOBAL',
-	1: 'VARIABLE_LOCAL',
-};
-
-function mapContextVariableScope(value: string | number | undefined): UniverseAgentContextVariableScope {
-	if (typeof value === 'number') {
-		return ContextVariableScopeByNumber[value] ?? 'VARIABLE_GLOBAL';
-	}
-	if (value === 'VARIABLE_LOCAL' || value === 'VARIABLE_GLOBAL') {
-		return value;
-	}
-	return 'VARIABLE_GLOBAL';
-}
-
-interface ContextVariableEntrySummaryWire {
-	name?: string;
-	scope?: string | number;
-	updated_by?: string;
-	updated_at?: number | string;
-	content_preview?: string;
-}
-
-interface ContextVariableListResponseWire {
-	current?: ContextVariableEntrySummaryWire[];
-	inherited?: ContextVariableEntrySummaryWire[];
-}
-
-function mapContextVariableEntrySummary(wire: ContextVariableEntrySummaryWire): UniverseAgentContextVariableEntrySummary {
-	return {
-		name: wire.name ?? '',
-		scope: mapContextVariableScope(wire.scope),
-		updatedBy: wire.updated_by ?? '',
-		updatedAt: requiredInt64(wire.updated_at),
-		contentPreview: wire.content_preview ?? '',
-	};
-}
-
-function mapContextVariableListResponse(wire: ContextVariableListResponseWire): UniverseAgentContextVariableListResult {
-	return {
-		current: (wire.current ?? []).map(mapContextVariableEntrySummary),
-		inherited: (wire.inherited ?? []).map(mapContextVariableEntrySummary),
-	};
-}
-
-interface ContextVariableEntryWire {
-	name?: string;
-	content?: string;
-	scope?: string | number;
-	updated_by?: string;
-	updated_at?: number | string;
-}
-
-interface ContextVariableReadResponseWire {
-	entry?: ContextVariableEntryWire;
-}
-
-function mapContextVariableEntry(wire: ContextVariableEntryWire | undefined): UniverseAgentContextVariableEntry {
-	return {
-		name: wire?.name ?? '',
-		content: wire?.content ?? '',
-		scope: mapContextVariableScope(wire?.scope),
-		updatedBy: wire?.updated_by ?? '',
-		updatedAt: requiredInt64(wire?.updated_at),
-	};
-}
-
-function mapContextVariableReadResponse(wire: ContextVariableReadResponseWire): UniverseAgentContextVariableReadResult {
-	return {
-		entry: mapContextVariableEntry(wire.entry),
-	};
-}
-
-interface RemoteAgentModelInfoWire {
-	id?: string;
-	name?: string;
-	provider?: string;
-	max_tokens?: number | string;
-	enabled?: boolean;
-}
-
-interface RemoteAgentCapabilitiesWire {
-	models?: RemoteAgentModelInfoWire[];
-	tools?: string[];
-	modes?: string[];
-	server_version?: string;
-	protocol_version?: string;
-	properties?: { [key: string]: string };
-}
-
-interface RemoteAgentLoadMetricsWire {
-	active_sessions?: number | string;
-	queue_depth?: number | string;
-	cpu_percent?: number | string;
-	memory_used_mb?: number | string;
-}
-
-interface RemoteAgentInfoWire {
-	id?: string;
-	name?: string;
-	description?: string;
-	status?: string;
-	endpoint?: string;
-	tags?: string[];
-	capabilities?: RemoteAgentCapabilitiesWire;
-	load?: RemoteAgentLoadMetricsWire;
-	last_heartbeat_at?: number | string;
-}
-
-interface ListNodesResponseWire {
-	nodes?: RemoteAgentInfoWire[];
-	total?: number | string;
-	online_count?: number | string;
-}
-
-interface ValidationErrorWire {
-	code?: string | number;
-	field?: string;
-	message?: string;
-	suggestion?: string;
-}
-
-interface ConnectionReportWire {
-	reachable?: boolean;
-	authenticated?: boolean;
-	can_create_session?: boolean;
-	latency_ms?: number | string;
-	capabilities?: RemoteAgentCapabilitiesWire;
-	errors?: ValidationErrorWire[];
-	load?: RemoteAgentLoadMetricsWire;
-}
-
-const ConnectionErrorCodeByNumber: Record<number, string> = {
-	0: 'ERROR_CODE_UNSPECIFIED',
-	1: 'CONNECT_TIMEOUT',
-	2: 'CONNECT_REFUSED',
-	3: 'TLS_HANDSHAKE_FAIL',
-	4: 'DNS_RESOLVE_FAIL',
-	10: 'PROTOCOL_VERSION_MISMATCH',
-	11: 'MALFORMED_RESPONSE',
-	20: 'UNAUTHENTICATED',
-	21: 'FORBIDDEN',
-	22: 'API_KEY_EXPIRED',
-	23: 'AUTH_UNRESOLVED',
-	30: 'MODEL_UNAVAILABLE',
-	31: 'TOOL_DISABLED',
-	32: 'MODE_UNSUPPORTED',
-	40: 'QUOTA_EXCEEDED',
-	41: 'MAX_SESSIONS_REACHED',
-	42: 'BUDGET_EXHAUSTED',
-	50: 'PARAM_INVALID',
-	51: 'PARAM_MISSING',
-};
-
-function mapConnectionErrorCode(value: string | number | undefined): string {
-	if (value === undefined || value === '') {
-		return '';
-	}
-	if (typeof value === 'number') {
-		return ConnectionErrorCodeByNumber[value] ?? String(value);
-	}
-	return value;
-}
-function mapRemoteAgentProperties(wire: { [key: string]: string } | undefined): { readonly [key: string]: string } {
-	if (!wire) {
-		return {};
-	}
-	const out: { [key: string]: string } = {};
-	for (const [key, value] of Object.entries(wire)) {
-		out[key] = value ?? '';
-	}
-	return out;
-}
-
-function mapRemoteAgentModelInfo(wire: RemoteAgentModelInfoWire): UniverseAgentRemoteAgentModelInfo {
-	return {
-		id: wire.id ?? '',
-		name: wire.name ?? '',
-		provider: wire.provider ?? '',
-		maxTokens: requiredInt64(wire.max_tokens),
-		enabled: wire.enabled === true,
-	};
-}
-
-function emptyRemoteAgentCapabilities(): UniverseAgentRemoteAgentCapabilities {
-	return {
-		models: [],
-		tools: [],
-		modes: [],
-		serverVersion: '',
-		protocolVersion: '',
-		properties: {},
-	};
-}
-
-function mapRemoteAgentCapabilities(wire: RemoteAgentCapabilitiesWire | undefined): UniverseAgentRemoteAgentCapabilities {
-	if (!wire) {
-		return emptyRemoteAgentCapabilities();
-	}
-	return {
-		models: (wire.models ?? []).map(mapRemoteAgentModelInfo),
-		tools: [...(wire.tools ?? [])],
-		modes: [...(wire.modes ?? [])],
-		serverVersion: wire.server_version ?? '',
-		protocolVersion: wire.protocol_version ?? '',
-		properties: mapRemoteAgentProperties(wire.properties),
-	};
-}
-
-function emptyRemoteAgentLoadMetrics(): UniverseAgentRemoteAgentLoadMetrics {
-	return {
-		activeSessions: 0,
-		queueDepth: 0,
-		cpuPercent: 0,
-		memoryUsedMb: 0,
-	};
-}
-
-function mapRemoteAgentLoadMetrics(wire: RemoteAgentLoadMetricsWire | undefined): UniverseAgentRemoteAgentLoadMetrics {
-	if (!wire) {
-		return emptyRemoteAgentLoadMetrics();
-	}
-	return {
-		activeSessions: requiredInt64(wire.active_sessions),
-		queueDepth: requiredInt64(wire.queue_depth),
-		cpuPercent: requiredInt64(wire.cpu_percent),
-		memoryUsedMb: requiredInt64(wire.memory_used_mb),
-	};
-}
-
-function mapRemoteAgentInfo(wire: RemoteAgentInfoWire): UniverseAgentRemoteAgentInfo {
-	return {
-		id: wire.id ?? '',
-		name: wire.name ?? '',
-		description: wire.description ?? '',
-		status: wire.status ?? '',
-		endpoint: wire.endpoint ?? '',
-		tags: [...(wire.tags ?? [])],
-		capabilities: mapRemoteAgentCapabilities(wire.capabilities),
-		load: mapRemoteAgentLoadMetrics(wire.load),
-		lastHeartbeatAt: requiredInt64(wire.last_heartbeat_at),
-	};
-}
-
-function mapListNodesResponse(wire: ListNodesResponseWire): UniverseAgentListNodesResult {
-	return {
-		nodes: (wire.nodes ?? []).map(mapRemoteAgentInfo),
-		total: requiredInt64(wire.total),
-		onlineCount: requiredInt64(wire.online_count),
-	};
-}
-
-function mapValidationError(wire: ValidationErrorWire): UniverseAgentValidationError {
-	return {
-		code: mapConnectionErrorCode(wire.code),
-		field: wire.field ?? '',
-		message: wire.message ?? '',
-		suggestion: wire.suggestion ?? '',
-	};
-}
-
-function mapConnectionReport(wire: ConnectionReportWire): UniverseAgentConnectionReport {
-	return {
-		reachable: wire.reachable === true,
-		authenticated: wire.authenticated === true,
-		canCreateSession: wire.can_create_session === true,
-		latencyMs: requiredInt64(wire.latency_ms),
-		capabilities: mapRemoteAgentCapabilities(wire.capabilities),
-		errors: (wire.errors ?? []).map(mapValidationError),
-		load: mapRemoteAgentLoadMetrics(wire.load),
-	};
-}
-
-interface SetMaintenanceResponseWire {
-	success?: boolean;
-}
-
-function mapSetMaintenanceResponse(wire: SetMaintenanceResponseWire): UniverseAgentSetMaintenanceResult {
-	return {
-		success: wire.success === true,
-	};
-}
-
-interface ExitMaintenanceResponseWire {
-	success?: boolean;
-}
-
-function mapExitMaintenanceResponse(wire: ExitMaintenanceResponseWire): UniverseAgentExitMaintenanceResult {
-	return {
-		success: wire.success === true,
-	};
-}
-
-interface DeleteRemoteAgentConfigResponseWire {
-	success?: boolean;
-}
-
-function mapDeleteRemoteAgentConfigResponse(wire: DeleteRemoteAgentConfigResponseWire): UniverseAgentDeleteRemoteAgentConfigResult {
-	return {
-		success: wire.success === true,
-	};
-}
-
-interface ReloadRemoteAgentsResponseWire {
-	success?: boolean;
-	added?: string[];
-	removed?: string[];
-	changed?: string[];
-	errors?: string[];
-	duration_ms?: number | string;
-}
-
-function mapReloadRemoteAgentsResponse(wire: ReloadRemoteAgentsResponseWire): UniverseAgentReloadRemoteAgentsResult {
-	return {
-		success: wire.success === true,
-		added: (wire.added ?? []).map(id => id ?? ''),
-		removed: (wire.removed ?? []).map(id => id ?? ''),
-		changed: (wire.changed ?? []).map(id => id ?? ''),
-		errors: (wire.errors ?? []).map(id => id ?? ''),
-		durationMs: requiredInt64(wire.duration_ms),
-	};
-}
-
-interface RemotePendingPermissionWire {
-	request_id?: string;
-	tool_name?: string;
-	path?: string;
-	command?: string;
-	arguments_json?: string;
-	danger_level?: string;
-	bubble_target?: string;
-}
-
-interface RemotePendingQuestionWire {
-	question_id?: string;
-	questions_json?: string;
-}
-
-interface GetRemoteSessionStatusResponseWire {
-	status?: string;
-	call_id?: string;
-	progress?: string;
-	elapsed_ms?: number | string;
-	expires_at?: number | string;
-	pending_permissions?: RemotePendingPermissionWire[];
-	pending_questions?: RemotePendingQuestionWire[];
-}
-
-function mapRemotePendingPermission(wire: RemotePendingPermissionWire): UniverseAgentRemotePendingPermission {
-	return {
-		requestId: wire.request_id ?? '',
-		toolName: wire.tool_name ?? '',
-		path: wire.path ?? '',
-		command: wire.command ?? '',
-		argumentsJson: wire.arguments_json ?? '',
-		dangerLevel: wire.danger_level ?? '',
-		bubbleTarget: wire.bubble_target ?? '',
-	};
-}
-
-function mapRemotePendingQuestion(wire: RemotePendingQuestionWire): UniverseAgentRemotePendingQuestion {
-	return {
-		questionId: wire.question_id ?? '',
-		questionsJson: wire.questions_json ?? '',
-	};
-}
-
-function mapGetRemoteSessionStatusResponse(wire: GetRemoteSessionStatusResponseWire): UniverseAgentGetRemoteSessionStatusResult {
-	return {
-		status: wire.status ?? '',
-		callId: wire.call_id ?? '',
-		progress: wire.progress ?? '',
-		elapsedMs: requiredInt64(wire.elapsed_ms),
-		expiresAt: requiredInt64(wire.expires_at),
-		pendingPermissions: (wire.pending_permissions ?? []).map(mapRemotePendingPermission),
-		pendingQuestions: (wire.pending_questions ?? []).map(mapRemotePendingQuestion),
-	};
-}
-
-interface RemoteToolCallWire {
-	id?: string;
-	name?: string;
-	arguments?: string;
-}
-
-interface RemoteSystemMessageWire {
-	content?: string;
-}
-
-interface RemoteUserMessageWire {
-	content?: string;
-}
-
-interface RemoteAssistantMessageWire {
-	content?: string;
-	tool_calls?: RemoteToolCallWire[];
-}
-
-interface RemoteToolResultMessageWire {
-	tool_call_id?: string;
-	tool_name?: string;
-	content?: string;
-	is_error?: boolean;
-}
-
-interface RemoteChatMessageWire {
-	system?: RemoteSystemMessageWire;
-	user?: RemoteUserMessageWire;
-	assistant?: RemoteAssistantMessageWire;
-	tool_result?: RemoteToolResultMessageWire;
-}
-
-interface GetRemoteSessionHistoryResponseWire {
-	messages?: RemoteChatMessageWire[];
-	version?: number | string;
-	has_more?: boolean;
-}
-
-function mapRemoteChatMessage(wire: RemoteChatMessageWire): UniverseAgentRemoteChatMessage {
-	return {
-		...(wire.system !== undefined ? { system: { content: wire.system.content ?? '' } } : {}),
-		...(wire.user !== undefined ? { user: { content: wire.user.content ?? '' } } : {}),
-		...(wire.assistant !== undefined ? {
-			assistant: {
-				content: wire.assistant.content ?? '',
-				toolCalls: (wire.assistant.tool_calls ?? []).map(call => ({
-					id: call.id ?? '',
-					name: call.name ?? '',
-					arguments: call.arguments ?? '',
-				})),
-			},
-		} : {}),
-		...(wire.tool_result !== undefined ? {
-			toolResult: {
-				toolCallId: wire.tool_result.tool_call_id ?? '',
-				toolName: wire.tool_result.tool_name ?? '',
-				content: wire.tool_result.content ?? '',
-				isError: wire.tool_result.is_error === true,
-			},
-		} : {}),
-	};
-}
-
-function mapGetRemoteSessionHistoryResponse(wire: GetRemoteSessionHistoryResponseWire): UniverseAgentGetRemoteSessionHistoryResult {
-	return {
-		messages: (wire.messages ?? []).map(mapRemoteChatMessage),
-		version: requiredInt64(wire.version),
-		hasMore: wire.has_more === true,
-	};
-}
-
-interface RemotePermissionDecisionWire {
-	decision?: string;
-	reason?: string;
-}
-
-interface RemoteResponseWire {
-	type?: string;
-	request_id?: string;
-	permission?: RemotePermissionDecisionWire;
-	question_answers_json?: string;
-}
-
-interface RemoteChatResultWire {
-	status?: string;
-	call_id?: string;
-	output?: string;
-	error_message?: string;
-	error_code?: string;
-	pending_permissions?: RemotePendingPermissionWire[];
-	pending_questions?: RemotePendingQuestionWire[];
-	progress?: string;
-	completed_steps?: number | string;
-	total_steps_estimate?: number | string;
-	messages?: RemoteChatMessageWire[];
-}
-
-interface RemoteProgressEventWire {
-	call_id?: string;
-	timestamp?: number | string;
-	elapsed_ms?: number | string;
-	progress?: string;
-	completed_steps?: number | string;
-	total_steps_estimate?: number | string;
-}
-
-interface RemoteChatResponseWire {
-	result?: RemoteChatResultWire;
-	progress?: RemoteProgressEventWire;
-}
-
 function encodeRemoteResponse(response: UniverseAgentRemoteResponse): RemoteResponseWire {
 	return {
 		type: response.type,
@@ -3950,262 +980,6 @@ function encodeRemoteResponse(response: UniverseAgentRemoteResponse): RemoteResp
 		} : {}),
 	};
 }
-
-function mapRemoteChatResult(wire: RemoteChatResultWire): UniverseAgentRemoteChatResult {
-	return {
-		status: wire.status ?? '',
-		callId: wire.call_id ?? '',
-		output: wire.output ?? '',
-		errorMessage: wire.error_message ?? '',
-		errorCode: wire.error_code ?? '',
-		pendingPermissions: (wire.pending_permissions ?? []).map(mapRemotePendingPermission),
-		pendingQuestions: (wire.pending_questions ?? []).map(mapRemotePendingQuestion),
-		progress: wire.progress ?? '',
-		completedSteps: requiredInt64(wire.completed_steps),
-		totalStepsEstimate: requiredInt64(wire.total_steps_estimate),
-		messages: (wire.messages ?? []).map(mapRemoteChatMessage),
-	};
-}
-
-function mapRemoteProgressEvent(wire: RemoteProgressEventWire): UniverseAgentRemoteProgressEvent {
-	return {
-		callId: wire.call_id ?? '',
-		timestamp: requiredInt64(wire.timestamp),
-		elapsedMs: requiredInt64(wire.elapsed_ms),
-		progress: wire.progress ?? '',
-		completedSteps: requiredInt64(wire.completed_steps),
-		totalStepsEstimate: requiredInt64(wire.total_steps_estimate),
-	};
-}
-
-function mapRemoteChatResponse(wire: RemoteChatResponseWire): UniverseAgentRemoteChatResponse {
-	return {
-		...(wire.result !== undefined ? { result: mapRemoteChatResult(wire.result) } : {}),
-		...(wire.progress !== undefined ? { progress: mapRemoteProgressEvent(wire.progress) } : {}),
-	};
-}
-
-interface RemoteAgentEndpointWire {
-	host?: string;
-	port?: number | string;
-	tls?: boolean;
-	tls_cert_path?: string;
-}
-
-interface RemoteAgentAuthConfigWire {
-	type?: string;
-	api_key_ref?: string;
-	token_ref?: string;
-}
-
-interface RemoteAgentArgConditionWire {
-	field?: string;
-	operator?: string;
-	value?: string;
-}
-
-interface RemoteAgentWhitelistEntryWire {
-	tool_name?: string;
-	arg_conditions?: RemoteAgentArgConditionWire[];
-}
-
-interface RemoteAgentPermissionBudgetWire {
-	max_tool_calls?: number | string;
-	max_tokens?: number | string;
-	timeout_ms?: number | string;
-	window_ms?: number | string;
-	max_bubble_to_user_per_day?: number | string;
-}
-
-interface RemoteAgentPermissionDelegateWire {
-	mode?: string;
-	whitelist?: RemoteAgentWhitelistEntryWire[];
-	budget?: RemoteAgentPermissionBudgetWire;
-	timeout_policy?: string;
-	fallback?: string;
-	bubble_target?: string;
-}
-
-interface RemoteAgentHealthCheckConfigWire {
-	interval_ms?: number | string;
-	timeout_ms?: number | string;
-	unhealthy_threshold?: number | string;
-	healthy_threshold?: number | string;
-	use_watch?: boolean;
-	degraded_error_rate_threshold?: number | string;
-	degraded_p99_latency_ms?: number | string;
-}
-
-interface RemoteAgentConfigWire {
-	id?: string;
-	name?: string;
-	description?: string;
-	enabled?: boolean;
-	endpoint?: RemoteAgentEndpointWire;
-	auth?: RemoteAgentAuthConfigWire;
-	tags?: string[];
-	max_concurrent_sessions?: number | string;
-	session_lifecycle?: string;
-	default_permission_delegate?: RemoteAgentPermissionDelegateWire;
-	health_check?: RemoteAgentHealthCheckConfigWire;
-}
-
-interface ListConfigsResponseWire {
-	configs?: RemoteAgentConfigWire[];
-}
-
-function emptyRemoteAgentEndpoint(): UniverseAgentRemoteAgentEndpoint {
-	return {
-		host: '',
-		port: 0,
-		tls: false,
-		tlsCertPath: '',
-	};
-}
-
-function mapRemoteAgentEndpoint(wire: RemoteAgentEndpointWire | undefined): UniverseAgentRemoteAgentEndpoint {
-	if (!wire) {
-		return emptyRemoteAgentEndpoint();
-	}
-	return {
-		host: wire.host ?? '',
-		port: requiredInt64(wire.port),
-		tls: wire.tls === true,
-		tlsCertPath: wire.tls_cert_path ?? '',
-	};
-}
-
-function emptyRemoteAgentAuthConfig(): UniverseAgentRemoteAgentAuthConfig {
-	return {
-		type: '',
-		apiKeyRef: '',
-		tokenRef: '',
-	};
-}
-
-function mapRemoteAgentAuthConfig(wire: RemoteAgentAuthConfigWire | undefined): UniverseAgentRemoteAgentAuthConfig {
-	if (!wire) {
-		return emptyRemoteAgentAuthConfig();
-	}
-	return {
-		type: wire.type ?? '',
-		apiKeyRef: wire.api_key_ref ?? '',
-		tokenRef: wire.token_ref ?? '',
-	};
-}
-
-function mapRemoteAgentArgCondition(wire: RemoteAgentArgConditionWire): UniverseAgentRemoteAgentArgCondition {
-	return {
-		field: wire.field ?? '',
-		operator: wire.operator ?? '',
-		value: wire.value ?? '',
-	};
-}
-
-function mapRemoteAgentWhitelistEntry(wire: RemoteAgentWhitelistEntryWire): UniverseAgentRemoteAgentWhitelistEntry {
-	return {
-		toolName: wire.tool_name ?? '',
-		argConditions: (wire.arg_conditions ?? []).map(mapRemoteAgentArgCondition),
-	};
-}
-
-function emptyRemoteAgentPermissionBudget(): UniverseAgentRemoteAgentPermissionBudget {
-	return {
-		maxToolCalls: 0,
-		maxTokens: 0,
-		timeoutMs: 0,
-		windowMs: 0,
-		maxBubbleToUserPerDay: 0,
-	};
-}
-
-function mapRemoteAgentPermissionBudget(wire: RemoteAgentPermissionBudgetWire | undefined): UniverseAgentRemoteAgentPermissionBudget {
-	if (!wire) {
-		return emptyRemoteAgentPermissionBudget();
-	}
-	return {
-		maxToolCalls: requiredInt64(wire.max_tool_calls),
-		maxTokens: requiredInt64(wire.max_tokens),
-		timeoutMs: requiredInt64(wire.timeout_ms),
-		windowMs: requiredInt64(wire.window_ms),
-		maxBubbleToUserPerDay: requiredInt64(wire.max_bubble_to_user_per_day),
-	};
-}
-
-function emptyRemoteAgentPermissionDelegate(): UniverseAgentRemoteAgentPermissionDelegate {
-	return {
-		mode: '',
-		whitelist: [],
-		budget: emptyRemoteAgentPermissionBudget(),
-		timeoutPolicy: '',
-		fallback: '',
-		bubbleTarget: '',
-	};
-}
-
-function mapRemoteAgentPermissionDelegate(wire: RemoteAgentPermissionDelegateWire | undefined): UniverseAgentRemoteAgentPermissionDelegate {
-	if (!wire) {
-		return emptyRemoteAgentPermissionDelegate();
-	}
-	return {
-		mode: wire.mode ?? '',
-		whitelist: (wire.whitelist ?? []).map(mapRemoteAgentWhitelistEntry),
-		budget: mapRemoteAgentPermissionBudget(wire.budget),
-		timeoutPolicy: wire.timeout_policy ?? '',
-		fallback: wire.fallback ?? '',
-		bubbleTarget: wire.bubble_target ?? '',
-	};
-}
-
-function emptyRemoteAgentHealthCheckConfig(): UniverseAgentRemoteAgentHealthCheckConfig {
-	return {
-		intervalMs: 0,
-		timeoutMs: 0,
-		unhealthyThreshold: 0,
-		healthyThreshold: 0,
-		useWatch: false,
-		degradedErrorRateThreshold: 0,
-		degradedP99LatencyMs: 0,
-	};
-}
-
-function mapRemoteAgentHealthCheckConfig(wire: RemoteAgentHealthCheckConfigWire | undefined): UniverseAgentRemoteAgentHealthCheckConfig {
-	if (!wire) {
-		return emptyRemoteAgentHealthCheckConfig();
-	}
-	return {
-		intervalMs: requiredInt64(wire.interval_ms),
-		timeoutMs: requiredInt64(wire.timeout_ms),
-		unhealthyThreshold: requiredInt64(wire.unhealthy_threshold),
-		healthyThreshold: requiredInt64(wire.healthy_threshold),
-		useWatch: wire.use_watch === true,
-		degradedErrorRateThreshold: requiredDouble(wire.degraded_error_rate_threshold),
-		degradedP99LatencyMs: requiredInt64(wire.degraded_p99_latency_ms),
-	};
-}
-
-function mapRemoteAgentConfig(wire: RemoteAgentConfigWire): UniverseAgentRemoteAgentConfig {
-	return {
-		id: wire.id ?? '',
-		name: wire.name ?? '',
-		description: wire.description ?? '',
-		enabled: wire.enabled === true,
-		endpoint: mapRemoteAgentEndpoint(wire.endpoint),
-		auth: mapRemoteAgentAuthConfig(wire.auth),
-		tags: [...(wire.tags ?? [])],
-		maxConcurrentSessions: requiredInt64(wire.max_concurrent_sessions),
-		sessionLifecycle: wire.session_lifecycle ?? '',
-		defaultPermissionDelegate: mapRemoteAgentPermissionDelegate(wire.default_permission_delegate),
-		healthCheck: mapRemoteAgentHealthCheckConfig(wire.health_check),
-	};
-}
-
-function mapListConfigsResponse(wire: ListConfigsResponseWire): UniverseAgentListConfigsResult {
-	return {
-		configs: (wire.configs ?? []).map(mapRemoteAgentConfig),
-	};
-}
-
 function encodeRemoteAgentConfig(config: UniverseAgentRemoteAgentConfig): RemoteAgentConfigWire {
 	return {
 		id: config.id,
@@ -4258,265 +1032,6 @@ function encodeRemoteAgentConfig(config: UniverseAgentRemoteAgentConfig): Remote
 		},
 	};
 }
-
-interface SaveRemoteAgentConfigResponseWire {
-	success?: boolean;
-	message?: string;
-	connection_test?: ConnectionReportWire;
-	async_test_id?: string;
-}
-
-function mapSaveRemoteAgentConfigResponse(wire: SaveRemoteAgentConfigResponseWire): UniverseAgentSaveRemoteAgentConfigResult {
-	return {
-		success: wire.success === true,
-		message: wire.message ?? '',
-		connectionTest: mapConnectionReport(wire.connection_test ?? {}),
-		asyncTestId: wire.async_test_id ?? '',
-	};
-}
-
-interface ResetErrorResponseWire {
-	success?: boolean;
-}
-
-function mapResetErrorResponse(wire: ResetErrorResponseWire): UniverseAgentResetErrorResult {
-	return {
-		success: wire.success === true,
-	};
-}
-
-interface CreateRemoteSessionResponseWire {
-	call_id?: string;
-	status?: string;
-	created_at?: number | string;
-	expires_at?: number | string;
-}
-
-function mapCreateRemoteSessionResponse(wire: CreateRemoteSessionResponseWire): UniverseAgentCreateRemoteSessionResult {
-	return {
-		callId: wire.call_id ?? '',
-		status: wire.status ?? '',
-		createdAt: requiredInt64(wire.created_at),
-		expiresAt: requiredInt64(wire.expires_at),
-	};
-}
-
-interface DestroyRemoteSessionResponseWire {
-	success?: boolean;
-	message?: string;
-}
-
-function mapDestroyRemoteSessionResponse(wire: DestroyRemoteSessionResponseWire): UniverseAgentDestroyRemoteSessionResult {
-	return {
-		success: wire.success === true,
-		message: wire.message ?? '',
-	};
-}
-
-interface ResumeRemoteSessionResponseWire {
-	success?: boolean;
-	call_id?: string;
-	status?: string;
-	message?: string;
-	expires_at?: number | string;
-}
-
-function mapResumeRemoteSessionResponse(wire: ResumeRemoteSessionResponseWire): UniverseAgentResumeRemoteSessionResult {
-	return {
-		success: wire.success === true,
-		callId: wire.call_id ?? '',
-		status: wire.status ?? '',
-		message: wire.message ?? '',
-		expiresAt: requiredInt64(wire.expires_at),
-	};
-}
-interface CancelRemoteSessionResponseWire {
-	success?: boolean;
-	call_id?: string;
-	status?: string;
-	message?: string;
-}
-
-function mapCancelRemoteSessionResponse(wire: CancelRemoteSessionResponseWire): UniverseAgentCancelRemoteSessionResult {
-	return {
-		success: wire.success === true,
-		callId: wire.call_id ?? '',
-		status: wire.status ?? '',
-		message: wire.message ?? '',
-	};
-}
-interface UploadProgressResponseWire {
-	exists?: boolean;
-	bytes_received?: number | string;
-	partial_path?: string;
-}
-
-function mapUploadProgressResponse(wire: UploadProgressResponseWire): UniverseAgentGetUploadProgressResult {
-	return {
-		exists: wire.exists === true,
-		bytesReceived: requiredInt64(wire.bytes_received),
-		partialPath: wire.partial_path ?? '',
-	};
-}
-
-interface ShutdownResponseWire {
-	accepted?: boolean;
-	message?: string;
-}
-
-function mapShutdownResponse(wire: ShutdownResponseWire): UniverseAgentShutdownResult {
-	return {
-		accepted: wire.accepted === true,
-		message: wire.message ?? '',
-	};
-}
-
-interface ClipboardWriteResponseWire {
-	clip_id?: string;
-}
-
-function mapClipboardWriteResponse(wire: ClipboardWriteResponseWire): UniverseAgentWriteClipboardResult {
-	return {
-		clipId: wire.clip_id ?? '',
-	};
-}
-
-interface ClipboardEntryWire {
-	clip_id?: string;
-	label?: string;
-	type?: string | number;
-	content?: string;
-	created_by?: string;
-	created_at?: number | string;
-}
-
-interface ClipboardReadResponseWire {
-	entry?: ClipboardEntryWire;
-}
-
-function mapClipboardEntry(wire: ClipboardEntryWire | undefined): UniverseAgentClipboardEntry {
-	return {
-		clipId: wire?.clip_id ?? '',
-		label: wire?.label ?? '',
-		type: mapClipboardEntryType(wire?.type),
-		content: wire?.content ?? '',
-		createdBy: wire?.created_by ?? '',
-		createdAt: requiredInt64(wire?.created_at),
-	};
-}
-
-function mapClipboardReadResponse(wire: ClipboardReadResponseWire): UniverseAgentReadClipboardResult {
-	return {
-		entry: mapClipboardEntry(wire.entry),
-	};
-}
-
-interface ClipboardEntrySummaryWire {
-	clip_id?: string;
-	label?: string;
-	type?: string | number;
-	created_by?: string;
-	created_at?: number | string;
-}
-
-interface ClipboardListResponseWire {
-	entries?: ClipboardEntrySummaryWire[];
-}
-
-function mapClipboardEntrySummary(wire: ClipboardEntrySummaryWire): UniverseAgentClipboardEntrySummary {
-	return {
-		clipId: wire.clip_id ?? '',
-		label: wire.label ?? '',
-		type: mapClipboardEntryType(wire.type),
-		createdBy: wire.created_by ?? '',
-		createdAt: requiredInt64(wire.created_at),
-	};
-}
-
-function mapClipboardListResponse(wire: ClipboardListResponseWire): UniverseAgentListClipboardResult {
-	return {
-		entries: (wire.entries ?? []).map(mapClipboardEntrySummary),
-	};
-}
-
-interface ClipboardClearResponseWire {
-	removed_count?: number;
-}
-
-function mapClipboardClearResponse(wire: ClipboardClearResponseWire): UniverseAgentClearClipboardResult {
-	return {
-		removedCount: wire.removed_count ?? 0,
-	};
-}
-
-interface DownloadChunkWire {
-	offset?: number | string;
-	data?: string;
-	total_size?: number | string;
-	is_last?: boolean;
-	checksum_sha256?: string;
-}
-
-function mapDownloadChunk(wire: DownloadChunkWire): UniverseAgentDownloadChunk {
-	return {
-		offset: requiredInt64(wire.offset),
-		data: base64ToBytes(wire.data),
-		totalSize: requiredInt64(wire.total_size),
-		isLast: wire.is_last === true,
-		checksumSha256: wire.checksum_sha256 ?? '',
-	};
-}
-
-interface PtyOpenSessionResponseWire {
-	success?: boolean;
-	pty_session_id?: string;
-	working_directory?: string;
-	title?: string;
-	failure_reason?: string | number;
-	error_message?: string;
-}
-
-interface PtyReadWire {
-	data?: string;
-}
-
-interface PtySessionClosedWire {
-	exit_code?: number | string;
-	title?: string;
-}
-
-interface PtyErrorWire {
-	code?: string | number;
-	message?: string;
-}
-
-interface PtyServerMessageWire {
-	open_session_response?: PtyOpenSessionResponseWire;
-	read?: PtyReadWire;
-	session_closed?: PtySessionClosedWire;
-	error?: PtyErrorWire;
-}
-
-function mapPtyOpenFailureReason(value: string | number | undefined): string {
-	if (value === undefined || value === '') {
-		return 'PTY_OPEN_FAILURE_UNSPECIFIED';
-	}
-	if (typeof value === 'number') {
-		return PtyOpenFailureReasonByNumber[value] ?? String(value);
-	}
-	return value;
-}
-
-function mapPtyErrorCode(value: string | number | undefined): string {
-	if (value === undefined || value === '') {
-		return 'PTY_ERROR_UNSPECIFIED';
-	}
-	if (typeof value === 'number') {
-		return PtyErrorCodeByNumber[value] ?? String(value);
-	}
-	return value;
-}
-
 function mapPtyClientMessageWire(message: UniverseAgentPtyClientMessage): Record<string, unknown> {
 	const wire: Record<string, unknown> = {};
 	if (message.openSession !== undefined) {
@@ -4552,270 +1067,6 @@ function mapPtyClientMessageWire(message: UniverseAgentPtyClientMessage): Record
 	}
 	return wire;
 }
-
-function mapPtyServerMessage(wire: PtyServerMessageWire): UniverseAgentPtyServerMessage {
-	return {
-		...(wire.open_session_response !== undefined ? {
-			openSessionResponse: {
-				success: wire.open_session_response.success === true,
-				ptySessionId: wire.open_session_response.pty_session_id ?? '',
-				...(wire.open_session_response.working_directory !== undefined ? { workingDirectory: wire.open_session_response.working_directory } : {}),
-				...(wire.open_session_response.title !== undefined ? { title: wire.open_session_response.title } : {}),
-				failureReason: mapPtyOpenFailureReason(wire.open_session_response.failure_reason),
-				...(wire.open_session_response.error_message !== undefined ? { errorMessage: wire.open_session_response.error_message } : {}),
-			},
-		} : {}),
-		...(wire.read !== undefined ? {
-			read: {
-				data: base64ToBytes(wire.read.data),
-			},
-		} : {}),
-		...(wire.session_closed !== undefined ? {
-			sessionClosed: {
-				exitCode: requiredInt64(wire.session_closed.exit_code),
-				...(wire.session_closed.title !== undefined ? { title: wire.session_closed.title } : {}),
-			},
-		} : {}),
-		...(wire.error !== undefined ? {
-			error: {
-				code: mapPtyErrorCode(wire.error.code),
-				message: wire.error.message ?? '',
-			},
-		} : {}),
-	};
-}
-
-interface HealthCheckResponseWire {
-	status?: string;
-	version?: string;
-	active_sessions?: number | string;
-	uptime_ms?: number | string;
-}
-
-function mapHealthCheckResponse(wire: HealthCheckResponseWire): UniverseAgentHealthCheckResult {
-	return {
-		status: wire.status ?? '',
-		version: wire.version ?? '',
-		activeSessions: requiredInt64(wire.active_sessions),
-		uptimeMs: requiredInt64(wire.uptime_ms),
-	};
-}
-
-interface DoctorCheckWire {
-	name?: string;
-	passed?: boolean;
-	message?: string;
-	fix_hint?: string;
-}
-
-interface DoctorResponseWire {
-	checks?: DoctorCheckWire[];
-	all_passed?: boolean;
-}
-
-function mapDoctorCheck(wire: DoctorCheckWire): UniverseAgentDoctorCheck {
-	return {
-		name: wire.name ?? '',
-		passed: wire.passed === true,
-		message: wire.message ?? '',
-		fixHint: wire.fix_hint ?? '',
-	};
-}
-
-function mapDoctorResponse(wire: DoctorResponseWire): UniverseAgentDoctorResult {
-	return {
-		checks: (wire.checks ?? []).map(mapDoctorCheck),
-		allPassed: wire.all_passed === true,
-	};
-}
-
-interface DeviceInfoWire {
-	device_id?: string;
-	display_name?: string;
-	role?: string;
-	platform?: string;
-	paired_at?: number | string;
-	last_seen_at?: number | string;
-	active?: boolean;
-}
-
-interface ListDevicesResponseWire {
-	devices?: DeviceInfoWire[];
-}
-
-function mapDeviceInfo(wire: DeviceInfoWire): UniverseAgentDeviceInfo {
-	return {
-		deviceId: wire.device_id ?? '',
-		displayName: wire.display_name ?? '',
-		role: wire.role ?? '',
-		platform: wire.platform ?? '',
-		pairedAt: requiredInt64(wire.paired_at),
-		lastSeenAt: requiredInt64(wire.last_seen_at),
-		active: wire.active === true,
-	};
-}
-
-function mapListDevicesResponse(wire: ListDevicesResponseWire): UniverseAgentListDevicesResult {
-	return {
-		devices: (wire.devices ?? []).map(mapDeviceInfo),
-	};
-}
-
-interface PairApproveResponseWire {
-	success?: boolean;
-	device_id?: string;
-	message?: string;
-}
-
-function mapPairApproveResponse(wire: PairApproveResponseWire): UniverseAgentPairApproveResult {
-	return {
-		success: wire.success === true,
-		deviceId: wire.device_id ?? '',
-		message: wire.message ?? '',
-	};
-}
-
-interface PairRejectResponseWire {
-	success?: boolean;
-	message?: string;
-}
-
-function mapPairRejectResponse(wire: PairRejectResponseWire): UniverseAgentPairRejectResult {
-	return {
-		success: wire.success === true,
-		message: wire.message ?? '',
-	};
-}
-
-interface RevokeDeviceResponseWire {
-	success?: boolean;
-	message?: string;
-}
-
-function mapRevokeResponse(wire: RevokeDeviceResponseWire): UniverseAgentRevokeResult {
-	return {
-		success: wire.success === true,
-		message: wire.message ?? '',
-	};
-}
-
-interface RotateTokenResponseWire {
-	success?: boolean;
-	message?: string;
-}
-
-function mapRotateTokenResponse(wire: RotateTokenResponseWire): UniverseAgentRotateTokenResult {
-	return {
-		success: wire.success === true,
-		message: wire.message ?? '',
-	};
-}
-
-interface PendingPairInfoWire {
-	pairing_code?: string;
-	device_id?: string;
-	display_name?: string;
-	platform?: string;
-	requested_at?: number | string;
-	expires_in_seconds?: number;
-}
-
-interface ListPendingResponseWire {
-	pending?: PendingPairInfoWire[];
-}
-
-function mapPendingPairInfo(wire: PendingPairInfoWire): UniverseAgentPendingPairInfo {
-	return {
-		pairingCode: wire.pairing_code ?? '',
-		deviceId: wire.device_id ?? '',
-		displayName: wire.display_name ?? '',
-		platform: wire.platform ?? '',
-		requestedAt: requiredInt64(wire.requested_at),
-		expiresInSeconds: wire.expires_in_seconds ?? 0,
-	};
-}
-
-function mapListPendingResponse(wire: ListPendingResponseWire): UniverseAgentListPendingResult {
-	return {
-		pending: (wire.pending ?? []).map(mapPendingPairInfo),
-	};
-}
-
-interface BoundSessionTargetWire {
-	session_id?: string;
-}
-
-interface NewSessionTargetWire {
-	engine_profile_id?: string;
-}
-
-interface DeliveryTargetDtoWire {
-	self?: Record<string, unknown>;
-	bound_session?: BoundSessionTargetWire;
-	new_session?: NewSessionTargetWire;
-}
-
-interface TriggerDtoWire {
-	trigger_id?: string;
-	name?: string;
-	type?: string;
-	prompt_template?: string;
-	enabled?: boolean;
-	pause_reason?: string;
-	target?: DeliveryTargetDtoWire;
-	interval_ms?: number | string;
-	cron_expression?: string;
-	run_at_epoch_ms?: number | string;
-}
-
-interface ListTriggersResponseWire {
-	triggers?: TriggerDtoWire[];
-}
-
-function mapDeliveryTarget(wire: DeliveryTargetDtoWire | undefined): UniverseAgentTriggerDeliveryTarget {
-	if (wire?.self !== undefined && wire.self !== null) {
-		return { kind: 'self' };
-	}
-	if (wire?.bound_session !== undefined && wire.bound_session !== null) {
-		return {
-			kind: 'boundSession',
-			sessionId: wire.bound_session.session_id ?? '',
-		};
-	}
-	if (wire?.new_session !== undefined && wire.new_session !== null) {
-		return {
-			kind: 'newSession',
-			engineProfileId: wire.new_session.engine_profile_id ?? '',
-		};
-	}
-	return { kind: 'unspecified' };
-}
-
-function mapTriggerDto(wire: TriggerDtoWire): UniverseAgentTrigger {
-	return {
-		triggerId: wire.trigger_id ?? '',
-		name: wire.name ?? '',
-		type: wire.type ?? '',
-		promptTemplate: wire.prompt_template ?? '',
-		enabled: wire.enabled === true,
-		pauseReason: wire.pause_reason ?? '',
-		target: mapDeliveryTarget(wire.target),
-		intervalMs: requiredInt64(wire.interval_ms),
-		cronExpression: wire.cron_expression ?? '',
-		runAtEpochMs: requiredInt64(wire.run_at_epoch_ms),
-	};
-}
-
-function mapListTriggersResponse(wire: ListTriggersResponseWire): UniverseAgentListTriggersResult {
-	return {
-		triggers: (wire.triggers ?? []).map(mapTriggerDto),
-	};
-}
-
-interface UpsertTriggerResponseWire {
-	trigger?: TriggerDtoWire;
-}
-
 function deliveryTargetWire(target: UniverseAgentTriggerDeliveryTarget): DeliveryTargetDtoWire {
 	if (target.kind === 'self') {
 		return { self: {} };
@@ -4828,7 +1079,6 @@ function deliveryTargetWire(target: UniverseAgentTriggerDeliveryTarget): Deliver
 	}
 	return {};
 }
-
 function triggerDtoWire(trigger: UniverseAgentTrigger): TriggerDtoWire {
 	return {
 		trigger_id: trigger.triggerId,
@@ -4841,199 +1091,6 @@ function triggerDtoWire(trigger: UniverseAgentTrigger): TriggerDtoWire {
 		interval_ms: trigger.intervalMs,
 		cron_expression: trigger.cronExpression,
 		run_at_epoch_ms: trigger.runAtEpochMs,
-	};
-}
-
-function mapUpsertTriggerResponse(wire: UpsertTriggerResponseWire): UniverseAgentUpsertTriggerResult {
-	return {
-		trigger: mapTriggerDto(wire.trigger ?? {}),
-	};
-}
-
-function mapDeleteTriggerResponse(_wire: Record<string, unknown>): UniverseAgentDeleteTriggerResult {
-	return {};
-}
-
-interface SetTriggerEnabledResponseWire {
-	trigger?: TriggerDtoWire;
-}
-
-function mapSetTriggerEnabledResponse(wire: SetTriggerEnabledResponseWire): UniverseAgentSetTriggerEnabledResult {
-	return {
-		trigger: mapTriggerDto(wire.trigger ?? {}),
-	};
-}
-
-interface FireTriggerResponseWire {
-	status?: string;
-	event_id?: string;
-	reason?: string;
-}
-
-function mapFireTriggerResponse(wire: FireTriggerResponseWire): UniverseAgentFireTriggerResult {
-	return {
-		status: wire.status ?? '',
-		eventId: wire.event_id ?? '',
-		reason: wire.reason ?? '',
-	};
-}
-
-interface ListModelsResponseWire {
-	models?: Array<{
-		id?: string;
-		type?: string;
-		enabled?: boolean;
-		level?: number;
-		description?: string;
-		cost?: string;
-		speed?: string;
-		provider?: string;
-		model_id?: string;
-	}>;
-}
-
-function mapModelEntry(wire: NonNullable<ListModelsResponseWire['models']>[number]): UniverseAgentModelEntry {
-	return {
-		id: wire.id ?? '',
-		type: wire.type ?? '',
-		enabled: wire.enabled === true,
-		level: typeof wire.level === 'number' && Number.isFinite(wire.level) ? wire.level : 0,
-		description: wire.description,
-		cost: wire.cost,
-		speed: wire.speed,
-		provider: wire.provider ?? '',
-		modelId: wire.model_id ?? '',
-	};
-}
-
-function mapListModelsResponse(wire: ListModelsResponseWire): UniverseAgentListModelsResult {
-	return {
-		models: (wire.models ?? []).map(mapModelEntry),
-	};
-}
-
-interface ResolveModelResponseWire {
-	selected?: NonNullable<ListModelsResponseWire['models']>[number];
-	candidates?: NonNullable<ListModelsResponseWire['models']>;
-	filtered?: NonNullable<ListModelsResponseWire['models']>;
-}
-
-function mapResolveModelResponse(wire: ResolveModelResponseWire): UniverseAgentResolveModelResult {
-	return {
-		...(wire.selected ? { selected: mapModelEntry(wire.selected) } : {}),
-		candidates: (wire.candidates ?? []).map(mapModelEntry),
-		filtered: (wire.filtered ?? []).map(mapModelEntry),
-	};
-}
-
-interface AgentInfoWire {
-	agent_id?: string;
-	name?: string;
-	type?: string;
-	status?: string;
-	model?: string;
-	turn_count?: number;
-	created_at?: number;
-	children?: AgentInfoWire[];
-}
-
-interface AgentTreeResponseWire {
-	root?: AgentInfoWire;
-}
-
-interface FetchToolDetailResponseWire {
-	success?: boolean;
-	content?: string;
-	truncated?: boolean;
-	total_bytes?: number;
-	error_message?: string;
-}
-
-function mapAgentTreeNode(wire: AgentInfoWire | undefined): UniverseAgentAgentTreeNode | undefined {
-	if (!wire) {
-		return undefined;
-	}
-	return {
-		agentId: wire.agent_id ?? 'root',
-		name: wire.name ?? '',
-		type: wire.type ?? 'AGENT_TYPE_UNKNOWN',
-		status: wire.status ?? 'AGENT_STATUS_UNKNOWN',
-		model: wire.model ?? '',
-		turnCount: wire.turn_count ?? 0,
-		createdAt: wire.created_at ?? 0,
-		children: (wire.children ?? []).map(child => mapAgentTreeNode(child)!).filter(Boolean),
-	};
-}
-
-function mapListAgentsResponse(wire: ListAgentsResponseWire): UniverseAgentListAgentsResult {
-	return {
-		agents: (wire.agents ?? []).flatMap(agent => {
-			const mapped = mapAgentTreeNode(agent);
-			return mapped ? [mapped] : [];
-		}),
-	};
-}
-
-function mapBackResponse(wire: BackResponseWire): UniverseAgentBackResult {
-	return {
-		ok: wire.success === true,
-		message: wire.message,
-		currentTurnId: wire.current_turn_id,
-	};
-}
-
-interface MemberInfoWire {
-	member_name?: string;
-	member_agent_id?: string;
-	status?: string;
-	preset?: string;
-	dynamic?: string;
-	turn_count?: number;
-}
-
-interface MemberStatusResponseWire {
-	members?: MemberInfoWire[];
-}
-
-interface BlackboardTaskWire {
-	task_id?: string;
-	owner?: string;
-	description?: string;
-	status?: string;
-	blocked_by?: string;
-	last_message?: string;
-	subject?: string;
-}
-
-interface TaskListResponseWire {
-	tasks?: BlackboardTaskWire[];
-}
-
-interface TeamInfoResponseWire {
-	team_id?: number;
-	status?: string;
-}
-
-function mapMemberInfo(wire: MemberInfoWire): UniverseAgentTeamMemberInfo {
-	return {
-		memberName: wire.member_name ?? '',
-		memberAgentId: wire.member_agent_id ?? '',
-		status: wire.status ?? '',
-		preset: wire.preset ?? '',
-		dynamic: wire.dynamic ?? '',
-		turnCount: wire.turn_count ?? 0,
-	};
-}
-
-function mapTaskInfo(wire: BlackboardTaskWire): UniverseAgentTeamTaskInfo {
-	return {
-		taskId: wire.task_id ?? '',
-		subject: wire.subject ?? '',
-		owner: wire.owner ?? '',
-		status: wire.status ?? '',
-		blockedBy: wire.blocked_by ?? '',
-		lastMessage: wire.last_message ?? '',
-		description: wire.description ?? '',
 	};
 }
 
@@ -7872,3 +3929,4 @@ export function createPinnedGrpcUniverseAgentClient(target: UniverseAgentPinnedT
 		channelOptions: createPinnedChannelOptions(target.sslTargetNameOverride),
 	});
 }
+
