@@ -178,12 +178,15 @@ suite('ConversationIdentityStrip', () => {
 		}
 
 		const part = store.add(instantiationService.createInstance(ConversationPart));
+		const workbenchRoot = document.createElement('div');
+		workbenchRoot.classList.add('monaco-workbench');
 		const parent = document.createElement('div');
-		parent.classList.add('monaco-workbench', 'part');
+		parent.classList.add('part', 'conversation');
 		parent.style.width = `${LENS_LAYOUT_WIDTH}px`;
 		parent.style.height = `${LENS_LAYOUT_HEIGHT}px`;
-		document.body.appendChild(parent);
-		store.add(toDisposable(() => parent.remove()));
+		workbenchRoot.appendChild(parent);
+		document.body.appendChild(workbenchRoot);
+		store.add(toDisposable(() => workbenchRoot.remove()));
 		part.create(parent);
 		const partSlots = part.getSlots();
 		assert.ok(partSlots);
