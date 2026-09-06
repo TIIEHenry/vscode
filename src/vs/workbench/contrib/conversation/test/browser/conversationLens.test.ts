@@ -442,10 +442,20 @@ suite('ConversationLens', () => {
 				dispose() { },
 			}),
 		} as unknown as IWebviewService);
+		// Product selectors are `.monaco-workbench .part.conversation …` (descendant).
+		// Overlay host is `timeline.closest('.part.conversation')`. Same ancestor
+		// chain as conversationIdentityStrip.test.ts — do not stack both classes
+		// on one node, and do not park layoutService.getContainer on a sibling.
 		const layoutContainer = document.createElement('div');
 		layoutContainer.classList.add('monaco-workbench');
+		const parent = document.createElement('div');
+		parent.classList.add('part', 'conversation');
+		const layoutWidth = options?.layoutWidth ?? LENS_LAYOUT_WIDTH;
+		parent.style.width = `${layoutWidth}px`;
+		parent.style.height = `${LENS_LAYOUT_HEIGHT}px`;
+		layoutContainer.appendChild(parent);
 		document.body.appendChild(layoutContainer);
-		store.add({ dispose: () => layoutContainer.remove() });
+		store.add(toDisposable(() => layoutContainer.remove()));
 		// IWorkbenchLayoutService shares this decorator: Part registers itself and ConversationPart.layout
 		// asks isVisible(), so a bare { getContainer } stub is not enough.
 		const layoutService = new TestLayoutService();
@@ -465,13 +475,6 @@ suite('ConversationLens', () => {
 			getRepository: () => undefined,
 		} as unknown as ISCMService);
 		const part = store.add(instantiationService.createInstance(ConversationPart));
-		const parent = document.createElement('div');
-		parent.classList.add('monaco-workbench');
-		const layoutWidth = options?.layoutWidth ?? LENS_LAYOUT_WIDTH;
-		parent.style.width = `${layoutWidth}px`;
-		parent.style.height = `${LENS_LAYOUT_HEIGHT}px`;
-		document.body.appendChild(parent);
-		store.add(toDisposable(() => parent.remove()));
 		part.create(parent);
 		const partSlots = part.getSlots();
 		assert.ok(partSlots);
@@ -483,16 +486,13 @@ suite('ConversationLens', () => {
 			dock: document.createElement('div'),
 			sessionKey: options?.sessionKey,
 		};
-		slots.timeline.classList.add('conversation-timeline');
+		slots.timeline.classList.add('conversation-timeline', 'part', 'conversation');
 		slots.dock.classList.add('conversation-dock');
-		const partRoot = document.createElement('div');
-		partRoot.classList.add('part', 'conversation');
-		parent.appendChild(partRoot);
 		if (slots.lensTablist) {
-			partRoot.appendChild(slots.lensTablist);
+			parent.appendChild(slots.lensTablist);
 		}
-		partRoot.appendChild(slots.timeline);
-		partRoot.appendChild(slots.dock);
+		parent.appendChild(slots.timeline);
+		parent.appendChild(slots.dock);
 		part.layout(layoutWidth, LENS_LAYOUT_HEIGHT, 0, 0);
 		const layoutCallbacks: Array<() => void> = [];
 		const runLayouts = () => {
@@ -1625,12 +1625,13 @@ suite('ConversationLens', () => {
 		assert.ok(queryTimeline(slots, '.conversation-lens-confirmation-seat'));
 	});
 
-	test('thinking and tool turns render inside a collapsed process fold by default', () => {
-		const { part, stubService } = mountLens();
+	test('thinking and tool turns render inside a collapsed process fold by default', async () => {
+		const { part, stubService, layoutReadingColumn } = mountLens();
 		const slots = getLensSlots(part);
 		const sessionId = stubService.createSession();
 		stubService.appendThinkingTurn(sessionId, 'Weighing options');
 		stubService.appendToolTurn(sessionId, 'grep src');
+		await flushProjectedTimeline(layoutReadingColumn);
 
 		const fold = queryTimeline(slots, '[data-process-fold]');
 		assert.ok(fold);
@@ -1677,7 +1678,10 @@ suite('ConversationLens', () => {
 		const { part, stubService } = mountLens();
 		const emptySlots = getLensSlots(part);
 		stubService.createSession();
-		assert.strictEqual(emptySlots.dock.querySelector('.conversation-lens-inbox-overlay'), null);
+		// PreFirst keeps the overlay mounted and hides it; it does not unmount.
+		const prefirstInbox = emptySlots.dock.querySelector('.conversation-lens-inbox-overlay') as HTMLElement | null;
+		assert.ok(prefirstInbox);
+		assert.ok(prefirstInbox.hidden);
 
 		await sendDockDraft(emptySlots, 'Activate inbox overlay');
 		const slots = getLensSlots(part);
