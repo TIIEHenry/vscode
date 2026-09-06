@@ -12,6 +12,7 @@ import { CodeEditorWidget } from '../../../../editor/browser/widget/codeEditor/c
 import { DiffEditorWidget } from '../../../../editor/browser/widget/diffEditor/diffEditorWidget.js';
 import { IEditorOptions as ICodeEditorOptions } from '../../../../editor/common/config/editorOptions.js';
 import { IResolvedTextEditorModel, ITextModelService } from '../../../../editor/common/services/resolverService.js';
+import { getErrorMessage } from '../../../../base/common/errors.js';
 import { localize } from '../../../../nls.js';
 import { CommandsRegistry, ICommandService } from '../../../../platform/commands/common/commands.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
@@ -20,6 +21,7 @@ import { IInstantiationService } from '../../../../platform/instantiation/common
 import { IStorageService } from '../../../../platform/storage/common/storage.js';
 import { ITelemetryService } from '../../../../platform/telemetry/common/telemetry.js';
 import { IThemeService } from '../../../../platform/theme/common/themeService.js';
+import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { EditorPane } from '../../../browser/parts/editor/editorPane.js';
 import { IEditorOpenContext } from '../../../common/editor.js';
 import { IEditorGroup } from '../../../services/editor/common/editorGroupsService.js';
@@ -32,6 +34,11 @@ import {
 	isSourcesChangeRevertible,
 	isSourcesChangeStageable,
 } from '../common/sourcesChangesGit.js';
+import {
+	canSendSourcesGitApplyHunks,
+	sourcesGitWriteFailureDetail,
+	tryWriteSourcesGitApplyHunks,
+} from '../common/sourcesChangesGitWrite.js';
 import { ConversationDiffReviewInput } from './conversationDiffReviewInput.js';
 
 const $ = dom.$;
@@ -71,6 +78,7 @@ export class ConversationDiffReviewPane extends EditorPane {
 		@ITextModelService private readonly textModelService: ITextModelService,
 		@IConfigurationService private readonly configurationService: IConfigurationService,
 		@ISCMService private readonly scmService: ISCMService,
+		@IUniverseAgentConnection private readonly uaConnection: IUniverseAgentConnection,
 	) {
 		super(ConversationDiffReviewPane.ID, group, telemetryService, themeService, storageService);
 
@@ -79,6 +87,7 @@ export class ConversationDiffReviewPane extends EditorPane {
 				this.diffWidget.value.updateOptions(this.getDiffEditorOptions());
 			}
 		}));
+		this._register(this.uaConnection.onDidChangeConnection(() => this.updateReviewActions()));
 	}
 
 	protected override createEditor(parent: HTMLElement): void {
@@ -101,7 +110,7 @@ export class ConversationDiffReviewPane extends EditorPane {
 		this.acceptButton.textContent = localize('conversationDiffReviewPane.accept', "Accept");
 		this.acceptButton.style.display = 'none';
 		this.acceptButton.addEventListener('click', () => {
-			void this.runGitAction(SOURCES_GIT_STAGE_COMMAND);
+			void this.runAccept();
 		});
 
 		const previewButton = dom.append(this.toolbar, $('button.conversation-diff-review-open-preview')) as HTMLButtonElement;
@@ -191,12 +200,44 @@ export class ConversationDiffReviewPane extends EditorPane {
 		const canRevert = !!match
 			&& isSourcesChangeRevertible(match.groupId)
 			&& !!CommandsRegistry.getCommand(SOURCES_GIT_CLEAN_COMMAND);
+		const canWriteAccept = canSendSourcesGitApplyHunks(
+			this.uaConnection.isEngineConnected(),
+			typeof this.uaConnection.writeGitApplyHunks === 'function',
+		);
 		const canAccept = !!match
 			&& isSourcesChangeStageable(match.groupId)
-			&& !!CommandsRegistry.getCommand(SOURCES_GIT_STAGE_COMMAND);
+			&& (canWriteAccept || !!CommandsRegistry.getCommand(SOURCES_GIT_STAGE_COMMAND));
 
 		this.revertButton.style.display = canRevert ? '' : 'none';
 		this.acceptButton.style.display = canAccept ? '' : 'none';
+	}
+
+	private async runAccept(): Promise<void> {
+		const input = this.input;
+		if (!(input instanceof ConversationDiffReviewInput)) {
+			return;
+		}
+
+		const hook = this.uaConnection.writeGitApplyHunks;
+		try {
+			const written = await tryWriteSourcesGitApplyHunks(
+				this.uaConnection.isEngineConnected(),
+				hook ? request => hook.call(this.uaConnection, request) : undefined,
+			);
+			if (written) {
+				if (!written.success) {
+					this.showNotice(sourcesGitWriteFailureDetail(written));
+				}
+				this.updateReviewActions();
+				return;
+			}
+		} catch (error) {
+			this.showNotice(getErrorMessage(error));
+			this.updateReviewActions();
+			return;
+		}
+
+		await this.runGitAction(SOURCES_GIT_STAGE_COMMAND);
 	}
 
 	private async runGitAction(commandId: string): Promise<void> {
