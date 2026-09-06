@@ -67,6 +67,7 @@ export class ConversationInboxOverlay extends Disposable {
 
 	private openPanel: InboxListPanel | undefined;
 	private listContextView: IOpenContextView | undefined;
+	private listPanelHost: HTMLElement | undefined;
 
 	constructor(
 		parent: HTMLElement,
@@ -126,6 +127,13 @@ export class ConversationInboxOverlay extends Disposable {
 		this.stopButton.element.classList.add('conversation-lens-inbox-chip', 'conversation-lens-inbox-stop-button');
 		this.stopButton.setAriaLabel(`${conversationLensDockStop}, ${conversationLensDockStopNotGenerating}`);
 		this._register(this.stopButton.onDidClick(() => this.onStopClicked()));
+
+		const noContextUsage = localize('conversationLens.inboxNoContextUsage', "No context usage");
+		const contextRing = append(this.rightCluster, $('span.conversation-lens-inbox-context-ring'));
+		contextRing.setAttribute('role', 'img');
+		contextRing.setAttribute('aria-label', noContextUsage);
+		contextRing.title = noContextUsage;
+
 		this._register(this.stubService.onDidChangeEngineConnection(() => this.render()));
 		this._register(this.stubService.onDidChangeSession(() => this.render()));
 
@@ -281,6 +289,7 @@ export class ConversationInboxOverlay extends Disposable {
 			anchorPosition: AnchorPosition.ABOVE,
 			render: container => {
 				const listRoot = append(container, $('.conversation-lens-inbox-list-panel'));
+				this.listPanelHost = listRoot;
 				if (panel === 'task') {
 					this.renderTaskList(listRoot);
 				} else {
@@ -288,6 +297,7 @@ export class ConversationInboxOverlay extends Disposable {
 				}
 				this.render();
 				return toDisposable(() => {
+					this.listPanelHost = undefined;
 					this.listContextView = undefined;
 					this.openPanel = undefined;
 					this.render();
@@ -302,6 +312,7 @@ export class ConversationInboxOverlay extends Disposable {
 				}
 			},
 			onHide: () => {
+				this.listPanelHost = undefined;
 				this.listContextView = undefined;
 				this.openPanel = undefined;
 				this.render();
@@ -311,7 +322,7 @@ export class ConversationInboxOverlay extends Disposable {
 
 	private refreshOpenListPanel(): void {
 		const panel = this.openPanel;
-		const host = document.querySelector('.conversation-lens-inbox-list-panel') as HTMLElement | null;
+		const host = this.listPanelHost;
 		if (!panel || !host) {
 			return;
 		}
@@ -448,11 +459,7 @@ export class ConversationInboxOverlay extends Disposable {
 			meta.appendChild(document.createTextNode(`✗ ${item.lastError ?? conversationLensInboxQueueFailedTag}`));
 		}
 
-		addDisposableListener(row, 'click', e => {
-			const target = e.target as HTMLElement;
-			if (target.closest('.queue-item-tools') || target.closest('.queue-bar-action')) {
-				return;
-			}
+		addDisposableListener(row, 'click', () => {
 			if (item.hold !== 'EDITING') {
 				this.stubService.holdMessageQueueItem(sessionId, item.id, 'EDITING');
 				this.delegate.onQueueItemHold(item.id);

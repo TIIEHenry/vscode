@@ -34,6 +34,18 @@
 	white-space: nowrap;
 }
 
+.monaco-workbench .navigator-agents-row-actions {
+	display: none;
+	margin-left: auto;
+	flex-shrink: 0;
+}
+
+.monaco-workbench .monaco-list-row:hover .navigator-agents-row-actions,
+.monaco-workbench .monaco-list-row.focused .navigator-agents-row-actions,
+.monaco-workbench .monaco-list-row.selected .navigator-agents-row-actions {
+	display: flex;
+}
+
 .monaco-workbench .is-compact .navigator-agents-status-glyph {
 	display: none;
 }

@@ -9,6 +9,7 @@ import { URI } from '../../../../../base/common/uri.js';
 import {
 	collectStageTargetUris,
 	collectUnstageTargetUris,
+	isSourcesChangeRevertible,
 	isSourcesChangeStageable,
 	isSourcesChangeUnstageable,
 } from '../../common/sourcesChangesGit.js';
@@ -76,6 +77,11 @@ suite('Sources - Changes list projection', () => {
 
 		assert.strictEqual(isSourcesChangeUnstageable('index'), true);
 		assert.strictEqual(isSourcesChangeUnstageable('workingTree'), false);
+
+		assert.strictEqual(isSourcesChangeRevertible('workingTree'), true);
+		assert.strictEqual(isSourcesChangeRevertible('untracked'), true);
+		assert.strictEqual(isSourcesChangeRevertible('merge'), false);
+		assert.strictEqual(isSourcesChangeRevertible('index'), false);
 	});
 
 	test('collectStageTargetUris and collectUnstageTargetUris partition entries', function () {

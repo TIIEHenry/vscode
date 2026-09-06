@@ -27,10 +27,14 @@ export const IConversationPartService = createDecorator<IConversationPartService
 export interface IConversationLensSlots {
 	/** Omitted in the sub-agent overlay; that dialog owns title/actions itself. */
 	readonly sessionBar?: HTMLElement;
+	/** Tablist-only host when sessionBar is omitted (sub-agent overlay). */
+	readonly lensTablist?: HTMLElement;
 	readonly timeline: HTMLElement;
 	readonly dock: HTMLElement;
 	/** Non-root sub-agent chat id (≡ engine agent_id) for trajectory attribution filtering. */
 	readonly filterAgentId?: string;
+	/** This leaf's session; omitted lenses follow the roster active session. */
+	readonly sessionKey?: string;
 }
 
 export interface IConversationPartWindowSlots {

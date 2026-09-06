@@ -9,6 +9,7 @@ import { ISourcesChangeEntry } from './sourcesChangesModel.js';
 export const SOURCES_GIT_STAGE_COMMAND = 'git.stage';
 export const SOURCES_GIT_UNSTAGE_COMMAND = 'git.unstage';
 export const SOURCES_GIT_COMMIT_COMMAND = 'git.commit';
+export const SOURCES_GIT_CLEAN_COMMAND = 'git.clean';
 
 /** Git SCM resource group ids that accept stage (extensions/git). */
 const STAGEABLE_GROUP_IDS = new Set(['merge', 'workingTree', 'untracked']);
@@ -16,12 +17,19 @@ const STAGEABLE_GROUP_IDS = new Set(['merge', 'workingTree', 'untracked']);
 /** Git SCM resource group id for staged index resources. */
 const UNSTAGEABLE_GROUP_IDS = new Set(['index']);
 
+/** Git SCM resource groups that `git.clean` will discard. */
+const REVERTIBLE_GROUP_IDS = new Set(['workingTree', 'untracked']);
+
 export function isSourcesChangeStageable(groupId: string): boolean {
 	return STAGEABLE_GROUP_IDS.has(groupId);
 }
 
 export function isSourcesChangeUnstageable(groupId: string): boolean {
 	return UNSTAGEABLE_GROUP_IDS.has(groupId);
+}
+
+export function isSourcesChangeRevertible(groupId: string): boolean {
+	return REVERTIBLE_GROUP_IDS.has(groupId);
 }
 
 export function collectStageTargetUris(entries: readonly ISourcesChangeEntry[]): URI[] {

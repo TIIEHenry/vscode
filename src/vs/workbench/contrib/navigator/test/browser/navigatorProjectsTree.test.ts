@@ -70,7 +70,7 @@ suite('NavigatorProjectsTree (N1)', () => {
 		});
 		const note = tree[0]?.children?.[0];
 		assert.strictEqual(note?.kind, 'note');
-		assert.ok(note?.label.includes('会话列表'));
+		assert.ok(note?.label.includes('session list'));
 	});
 
 	test('disconnect retains engine root with transport note', () => {
@@ -84,6 +84,6 @@ suite('NavigatorProjectsTree (N1)', () => {
 			localFolders: [],
 		});
 		assert.strictEqual(tree[0]?.kind, 'engine-root');
-		assert.ok(tree[0]?.children?.some(child => child.kind === 'note' && child.label.includes('断开前快照')));
+		assert.ok(tree[0]?.children?.some(child => child.kind === 'note' && child.label.includes('snapshot from before disconnect')));
 	});
 });

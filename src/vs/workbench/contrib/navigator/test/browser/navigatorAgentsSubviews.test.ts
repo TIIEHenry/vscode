@@ -11,20 +11,28 @@ import { WorkbenchList, WorkbenchObjectTree } from '../../../../../platform/list
 import { Registry } from '../../../../../platform/registry/common/platform.js';
 import { Extensions as ViewExtensions, IViewContainerModel, IViewDescriptorService, IViewsRegistry, ViewContainer, ViewContainerLocation } from '../../../../common/views.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
+import type { IConversationSessionViewLease } from '../../../../../platform/universeAgent/common/conversationViewFrame.js';
+import type { LiveAgentTreeNodeView } from '../../../../../platform/universeAgent/common/sessionView/index.js';
 import { ConversationStubService, IConversationRosterService } from '../../../conversation/browser/conversationStubService.js';
+import { IConversationSessionChatService } from '../../../conversation/browser/conversationSessionChatService.js';
+import { IConversationPartService } from '../../../../browser/parts/conversation/conversationPart.js';
 import { IAgentInspectService } from '../../common/agentInspect.js';
 import { AgentInspectService } from '../../browser/agentInspectService.js';
 import { ICommandService } from '../../../../../platform/commands/common/commands.js';
 import type { INavigatorAgentsHierarchyNode } from '../../common/navigatorAgentHierarchy.js';
 import type { INavigatorAgentsActivityItem } from '../../common/navigatorAgentsActivity.js';
+import { NAVIGATOR_STALE_SNAPSHOT_COPY } from '../../common/navigatorAgentTreeEmptyState.js';
 import { createNavigatorConnectionTestStub } from '../common/navigatorConnectionTestStub.js';
-import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
-import { OPEN_NAVIGATOR_AGENTS_INSPECT_COMMAND_ID } from '../../browser/agentInspectIds.js';
+import { workbenchInstantiationService, TestViewsService } from '../../../../test/browser/workbenchTestServices.js';
+import { IViewsService } from '../../../../services/views/common/viewsService.js';
+import { AGENT_INSPECT_VIEW_ID, OPEN_NAVIGATOR_AGENTS_INSPECT_COMMAND_ID } from '../../browser/agentInspectIds.js';
 import '../../browser/navigator.contribution.js';
 import {
 	NAVIGATOR_AGENTS_SHOW_ACTIVITY_COMMAND_ID,
 	NAVIGATOR_AGENTS_SHOW_HIERARCHY_COMMAND_ID,
 	NAVIGATOR_AGENTS_REFRESH_COMMAND_ID,
+	NAVIGATOR_AGENTS_INSPECT_ITEM_COMMAND_ID,
+	NAVIGATOR_AGENTS_REVEAL_COMMAND_ID,
 	NAVIGATOR_AGENTS_VIEW_ID,
 	NavigatorAgentsView,
 	UA_ENGINE_CONNECTED_KEY,
@@ -34,12 +42,49 @@ suite('Navigator Agents subviews', () => {
 
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
-	function mountAgentsView(): NavigatorAgentsView {
+	class RosterWithLiveTree extends ConversationStubService {
+		constructor(private readonly liveTree: LiveAgentTreeNodeView) {
+			super();
+		}
+
+		override acquireSessionView(sessionId: string): IConversationSessionViewLease {
+			const lease = super.acquireSessionView(sessionId);
+			const snapshot = { ...lease.snapshot, liveAgentTree: this.liveTree };
+			Object.defineProperty(lease, 'snapshot', { get: () => snapshot });
+			return lease;
+		}
+	}
+
+	const sampleLiveTree: LiveAgentTreeNodeView = {
+		agentId: 'root',
+		name: 'Root',
+		type: 'AGENT_TYPE_ROOT',
+		status: 'AGENT_STATUS_IDLE',
+		model: 'm',
+		turnCount: 1,
+		createdAt: 0,
+		children: [{
+			agentId: 'sub:alpha',
+			name: 'Alpha',
+			type: 'AGENT_TYPE_SUB',
+			status: 'AGENT_STATUS_IDLE',
+			model: 'm',
+			turnCount: 0,
+			createdAt: 0,
+			children: [],
+		}],
+	};
+
+	function mountAgentsView(
+		roster: ConversationStubService = store.add(new ConversationStubService()),
+		connection: IUniverseAgentConnection = createNavigatorConnectionTestStub(),
+		inspectService?: IAgentInspectService,
+	): NavigatorAgentsView {
 		const instantiationService = workbenchInstantiationService(undefined, store);
-		instantiationService.stub(IConversationRosterService, store.add(new ConversationStubService()));
-		instantiationService.stub(IAgentInspectService, store.add(instantiationService.createInstance(AgentInspectService)) as IAgentInspectService);
+		instantiationService.stub(IConversationRosterService, roster);
+		instantiationService.stub(IAgentInspectService, inspectService ?? store.add(instantiationService.createInstance(AgentInspectService)) as IAgentInspectService);
 		instantiationService.stub(ICommandService, { executeCommand: async () => undefined });
-		instantiationService.stub(IUniverseAgentConnection, createNavigatorConnectionTestStub());
+		instantiationService.stub(IUniverseAgentConnection, connection);
 		const stubViewContainer = {
 			id: 'navigator-agents-test-container',
 			title: { value: 'Agents', original: 'Agents' },
@@ -284,7 +329,7 @@ suite('Navigator Agents subviews', () => {
 		view.setVisible(true);
 		const hierarchyEmpty = view.element.querySelector('.navigator-agents-subview.active .navigator-stub-empty');
 		assert.strictEqual(hierarchyEmpty?.textContent, 'No agents — no engine.');
-		assert.ok(!hierarchyEmpty?.textContent?.includes('正在读取'));
+		assert.ok(!hierarchyEmpty?.textContent?.includes('Reading'));
 	});
 
 	test('defaults to Hierarchy subview with honest empty state', () => {
@@ -415,5 +460,164 @@ suite('Navigator Agents subviews', () => {
 		assert.strictEqual(hierarchyEmpty.style.display, 'block');
 		assert.strictEqual(hierarchyTree.style.display, 'none');
 		assert.strictEqual(hierarchyEmpty.textContent, 'No agents — no engine.');
+	});
+
+	test('disconnect keeps last Agents snapshot and marks it stale', () => {
+		const roster = store.add(new RosterWithLiveTree(sampleLiveTree));
+		roster.setEngineConnected(true);
+		const connection = createNavigatorConnectionTestStub({
+			getConnectionPhase: () => roster.isEngineConnected() ? { kind: 'connected', path: 'direct' } : { kind: 'disconnected' },
+			getNavigatorCapability: () => 'SUPPORTED',
+		});
+		const view = mountAgentsView(roster, connection);
+
+		const hierarchyTree = (view as unknown as { hierarchyTree: WorkbenchObjectTree<INavigatorAgentsHierarchyNode, void> }).hierarchyTree;
+		assert.strictEqual(hierarchyTree.getNode(null)?.children.length ?? 0, 1);
+		assert.strictEqual(hierarchyTree.getNode(null)?.children[0]?.element?.label, 'Root');
+
+		roster.setEngineConnected(false);
+
+		assert.strictEqual(hierarchyTree.getNode(null)?.children.length ?? 0, 1);
+		assert.strictEqual(hierarchyTree.getNode(null)?.children[0]?.element?.label, 'Root');
+		const note = view.element.querySelector('.navigator-agents-subview.active .navigator-stub-note') as HTMLElement | null;
+		assert.ok(note);
+		assert.strictEqual(note.style.display, 'block');
+		assert.strictEqual(note.textContent, NAVIGATOR_STALE_SNAPSHOT_COPY);
+		const hierarchyEmpty = view.element.querySelector('.navigator-agents-subview.active .navigator-stub-empty') as HTMLElement | null;
+		assert.ok(hierarchyEmpty);
+		assert.notStrictEqual(hierarchyEmpty.style.display, 'block');
+	});
+
+	test('never-connected Agents stay honest empty without a snapshot note', () => {
+		const view = mountAgentsView();
+		const note = view.element.querySelector('.navigator-agents-subview.active .navigator-stub-note') as HTMLElement | null;
+		assert.ok(note);
+		assert.strictEqual(note.style.display, 'none');
+		const hierarchyEmpty = view.element.querySelector('.navigator-agents-subview.active .navigator-stub-empty') as HTMLElement | null;
+		assert.strictEqual(hierarchyEmpty?.textContent, 'No agents — no engine.');
+	});
+
+	test('Agents tree registers per-row Inspect and Reveal actions', () => {
+		const viewItemItems = MenuRegistry.getMenuItems(MenuId.ViewItemContext).filter(isIMenuItem);
+		const inspectItem = viewItemItems.find(item => item.command.id === NAVIGATOR_AGENTS_INSPECT_ITEM_COMMAND_ID);
+		const revealItem = viewItemItems.find(item => item.command.id === NAVIGATOR_AGENTS_REVEAL_COMMAND_ID);
+		assert.ok(inspectItem, 'Agents tree must expose per-row Inspect');
+		assert.ok(revealItem, 'Agents tree must expose per-row Reveal');
+	});
+
+	test('per-row Inspect sets the agent target and opens Inspect panel', async () => {
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		const inspectService = store.add(instantiationService.createInstance(AgentInspectService));
+		const openViewCalls: Array<{ id: string; focus: boolean | undefined }> = [];
+		class TrackingViewsService extends TestViewsService {
+			override openView<T>(id: string, focus?: boolean): Promise<T | null> {
+				openViewCalls.push({ id, focus });
+				return Promise.resolve(null);
+			}
+			dispose(): void { }
+		}
+		instantiationService.stub(IViewsService, store.add(new TrackingViewsService()));
+		instantiationService.stub(IConversationRosterService, store.add(new ConversationStubService()));
+		instantiationService.stub(IAgentInspectService, inspectService);
+		instantiationService.stub(ICommandService, { executeCommand: async () => undefined });
+		instantiationService.stub(IUniverseAgentConnection, createNavigatorConnectionTestStub());
+		const stubViewContainer = {
+			id: 'navigator-agents-test-container',
+			title: { value: 'Agents', original: 'Agents' },
+		} as ViewContainer;
+		instantiationService.stub(IViewDescriptorService, {
+			onDidChangeLocation: Event.None,
+			getViewLocationById(_id: string): ViewContainerLocation {
+				return ViewContainerLocation.Sidebar;
+			},
+			getViewDescriptorById(_id: string): null {
+				return null;
+			},
+			getViewContainerByViewId(_id: string): ViewContainer | null {
+				return stubViewContainer;
+			},
+			getViewContainerModel(_viewContainer: ViewContainer): IViewContainerModel {
+				return {
+					title: stubViewContainer.title.value,
+					onDidChangeContainerInfo: Event.None,
+				} as IViewContainerModel;
+			},
+			getDefaultContainerById(_id: string): ViewContainer | null {
+				return stubViewContainer;
+			},
+		});
+		const view = store.add(instantiationService.createInstance(NavigatorAgentsView, {
+			id: NAVIGATOR_AGENTS_VIEW_ID,
+			title: 'Agents',
+		}));
+		view.render();
+		document.createElement('div').appendChild(view.element);
+		view.setExpanded(true);
+		view.setVisible(true);
+
+		const node = hierarchyNode('sub:alpha', 'Alpha');
+		view.inspectHierarchyNode(node);
+
+		const target = inspectService.getTarget();
+		assert.strictEqual(target?.kind, 'agent');
+		assert.strictEqual(target?.kind === 'agent' ? target.node.agentId : undefined, 'sub:alpha');
+		assert.deepStrictEqual(openViewCalls, [{ id: AGENT_INSPECT_VIEW_ID, focus: true }]);
+	});
+
+	test('per-row Reveal opens the agent in Conversation', async () => {
+		const opened: Array<{ sessionKey: string; chatId: string; title?: string }> = [];
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		const roster = store.add(new ConversationStubService());
+		instantiationService.stub(IConversationRosterService, roster);
+		instantiationService.stub(IAgentInspectService, store.add(instantiationService.createInstance(AgentInspectService)) as IAgentInspectService);
+		instantiationService.stub(ICommandService, { executeCommand: async () => undefined });
+		instantiationService.stub(IUniverseAgentConnection, createNavigatorConnectionTestStub());
+		instantiationService.stub(IConversationPartService, { focus: () => { } } as IConversationPartService);
+		instantiationService.stub(IConversationSessionChatService, {
+			findOpenTabForChat: () => undefined,
+			isSubAgentDialogOpen: () => false,
+			closeSubAgentDialog: () => { },
+			navigateAgentBreadcrumb: async () => { },
+			openSubAgent: async (sessionKey: string, chatId: string, title?: string) => {
+				opened.push({ sessionKey, chatId, title });
+			},
+		} as unknown as IConversationSessionChatService);
+		const stubViewContainer = {
+			id: 'navigator-agents-test-container',
+			title: { value: 'Agents', original: 'Agents' },
+		} as ViewContainer;
+		instantiationService.stub(IViewDescriptorService, {
+			onDidChangeLocation: Event.None,
+			getViewLocationById(_id: string): ViewContainerLocation {
+				return ViewContainerLocation.Sidebar;
+			},
+			getViewDescriptorById(_id: string): null {
+				return null;
+			},
+			getViewContainerByViewId(_id: string): ViewContainer | null {
+				return stubViewContainer;
+			},
+			getViewContainerModel(_viewContainer: ViewContainer): IViewContainerModel {
+				return {
+					title: stubViewContainer.title.value,
+					onDidChangeContainerInfo: Event.None,
+				} as IViewContainerModel;
+			},
+			getDefaultContainerById(_id: string): ViewContainer | null {
+				return stubViewContainer;
+			},
+		});
+		const view = store.add(instantiationService.createInstance(NavigatorAgentsView, {
+			id: NAVIGATOR_AGENTS_VIEW_ID,
+			title: 'Agents',
+		}));
+		view.render();
+		document.createElement('div').appendChild(view.element);
+		view.setExpanded(true);
+		view.setVisible(true);
+
+		view.revealHierarchyNode(hierarchyNode('sub:alpha', 'Alpha'));
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		assert.deepStrictEqual(opened, [{ sessionKey: roster.getActiveSessionId(), chatId: 'sub:alpha', title: 'Alpha' }]);
 	});
 });

@@ -52,7 +52,7 @@ viewsRegistry.registerViews([{
 }], AGENT_INSPECT_VIEW_CONTAINER);
 
 viewsRegistry.registerViewWelcomeContent(AGENT_INSPECT_VIEW_ID, {
-	content: localize('agentInspectWelcome', "在 Agents 或 Team 里选择一项"),
+	content: localize('agentInspectWelcome', "Select an item in Agents or Team"),
 	group: ViewContentGroups.Open,
 	order: 1,
 });

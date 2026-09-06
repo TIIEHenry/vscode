@@ -50,7 +50,7 @@ export interface IAgentHostGroup {
 	readonly connectable?: boolean;
 }
 
-export { IAgentHostMcpServer };
+export type { IAgentHostMcpServer };
 
 /**
  * Extended sessions provider for agent host providers (local and remote).

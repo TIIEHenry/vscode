@@ -11,6 +11,7 @@ import { IListAccessibilityProvider } from '../../../../base/browser/ui/list/lis
 import { RunOnceScheduler } from '../../../../base/common/async.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { Event } from '../../../../base/common/event.js';
+import { getErrorMessage } from '../../../../base/common/errors.js';
 import { Disposable, DisposableMap, DisposableStore } from '../../../../base/common/lifecycle.js';
 import { StandardKeyboardEvent } from '../../../../base/browser/keyboardEvent.js';
 import { KeyCode } from '../../../../base/common/keyCodes.js';
@@ -391,10 +392,9 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		this.commitRow.style.display = hasRepository ? 'flex' : 'none';
 
 		if (hasRepository && !this.gitCommandsAvailable) {
-			this.statusMessage.textContent = localize('sourcesChangesList.gitUnavailable', "Git stage/commit commands are not available.");
-			this.statusMessage.style.display = 'block';
+			this.setStatusMessage(localize('sourcesChangesList.gitUnavailable', "Git stage/commit commands are not available."));
 		} else {
-			this.statusMessage.style.display = 'none';
+			this.setStatusMessage(undefined);
 		}
 
 		this.syncCommitInputFromRepository();
@@ -451,9 +451,22 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 
 		try {
 			await this.commandService.executeCommand(commandId, resource);
-		} catch {
-			// Fail closed: git extension absent or command rejected.
+			this.setStatusMessage(undefined);
+		} catch (error) {
+			this.setStatusMessage(action === 'stage'
+				? localize('sourcesChangesList.stageFailed', "Unable to stage: {0}", getErrorMessage(error))
+				: localize('sourcesChangesList.unstageFailed', "Unable to unstage: {0}", getErrorMessage(error)));
 		}
+	}
+
+	private setStatusMessage(message: string | undefined): void {
+		if (!message) {
+			this.statusMessage.textContent = '';
+			this.statusMessage.style.display = 'none';
+			return;
+		}
+		this.statusMessage.textContent = message;
+		this.statusMessage.style.display = 'block';
 	}
 
 	private syncCommitInputFromRepository(): void {
@@ -498,8 +511,9 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		if (acceptCommand?.id && this.isGitCommandAvailable(acceptCommand.id)) {
 			try {
 				await this.commandService.executeCommand(acceptCommand.id, ...(acceptCommand.arguments ?? []));
-			} catch {
-				// Fail closed.
+				this.setStatusMessage(undefined);
+			} catch (error) {
+				this.setStatusMessage(localize('sourcesChangesList.commitFailed', "Unable to commit: {0}", getErrorMessage(error)));
 			}
 			return;
 		}
@@ -507,8 +521,9 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		if (this.isGitCommandAvailable(SOURCES_GIT_COMMIT_COMMAND)) {
 			try {
 				await this.commandService.executeCommand(SOURCES_GIT_COMMIT_COMMAND);
-			} catch {
-				// Fail closed.
+				this.setStatusMessage(undefined);
+			} catch (error) {
+				this.setStatusMessage(localize('sourcesChangesList.commitFailed', "Unable to commit: {0}", getErrorMessage(error)));
 			}
 		}
 	}

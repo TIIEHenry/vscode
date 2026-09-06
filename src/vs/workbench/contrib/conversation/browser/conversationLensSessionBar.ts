@@ -22,6 +22,7 @@ import { IConversationRosterService } from './conversationStubService.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { IContextViewService } from '../../../../platform/contextview/browser/contextView.js';
 import { ConversationVisualizeOverlay } from './conversationVisualizeOverlay.js';
+import type { ConversationSessionConfigSelection } from './conversationLensComposerChrome.js';
 
 export interface IConversationLensSessionBarHost {
 	sessionTitleButton: HTMLButtonElement;
@@ -50,9 +51,10 @@ export interface IConversationLensSessionBarHost {
 	readonly instantiationService: IInstantiationService;
 	readonly visualizeOverlay: ConversationVisualizeOverlay;
 	register<T extends IDisposable>(disposable: T): T;
+	getBoundSessionId(): string;
 	createRouteSelectBox(selectedIndex: number, ariaLabel: string): SelectBox;
-	getSessionConfig(sessionId: string): { agentIndex: number; routeIndex: number };
-	setSessionConfig(sessionId: string, patch: Partial<{ agentIndex: number; routeIndex: number }>): void;
+	getSessionConfig(sessionId: string): ConversationSessionConfigSelection;
+	setSessionConfig(sessionId: string, patch: Partial<ConversationSessionConfigSelection>): void;
 	setLensId(lensId: ConversationLensId): void;
 	handleLensTablistKeyDown(event: KeyboardEvent): void;
 	beginSessionTitleEdit(): void;
@@ -77,24 +79,7 @@ export function mountSessionBar(host: IConversationLensSessionBarHost, barHost: 
 		icon.setAttribute('aria-hidden', 'true');
 		icon.classList.add(...ThemeIcon.asClassNameArray(Codicon.commentDiscussion));
 
-		host.lensTablist = append(leading, $('.conversation-lens-lens-tabs'));
-		host.lensTablist.setAttribute('role', 'tablist');
-		host.lensTablist.setAttribute('aria-label', localize('conversationLens.lensTabs', "Conversation lens"));
-		host.lensTabConversation = append(host.lensTablist, $('button.conversation-lens-lens-tab')) as HTMLButtonElement;
-		host.lensTabConversation.type = 'button';
-		host.lensTabConversation.id = 'conversation-lens-tab-conversation';
-		host.lensTabConversation.setAttribute('role', 'tab');
-		host.lensTabConversation.setAttribute('data-lens-id', 'conversation');
-		host.lensTabConversation.textContent = conversationLensSessionBarConversationTab;
-		host.lensTabTrajectory = append(host.lensTablist, $('button.conversation-lens-lens-tab')) as HTMLButtonElement;
-		host.lensTabTrajectory.type = 'button';
-		host.lensTabTrajectory.id = 'conversation-lens-tab-trajectory';
-		host.lensTabTrajectory.setAttribute('role', 'tab');
-		host.lensTabTrajectory.setAttribute('data-lens-id', 'trajectory');
-		host.lensTabTrajectory.textContent = conversationLensSessionBarTrajectoryTab;
-		host.register(addDisposableListener(host.lensTabConversation, 'click', () => host.setLensId('conversation')));
-		host.register(addDisposableListener(host.lensTabTrajectory, 'click', () => host.setLensId('trajectory')));
-		host.register(addDisposableListener(host.lensTablist, 'keydown', event => host.handleLensTablistKeyDown(event)));
+		mountLensTablist(host, leading);
 
 		host.sessionSyncBadge = append(leading, $('span.conversation-lens-session-sync-badge'));
 		host.sessionSyncBadge.hidden = true;
@@ -131,12 +116,12 @@ export function mountSessionBar(host: IConversationLensSessionBarHost, barHost: 
 		const controls = append(bar, $('.conversation-lens-session-controls'));
 
 		host.sessionBarRouteContainer = append(controls, $('.conversation-lens-session-route'));
-		const activeSessionId = host.stubService.getActiveSessionId();
+		const activeSessionId = host.getBoundSessionId();
 		const activeRouteIndex = host.getSessionConfig(activeSessionId).routeIndex;
 		host.sessionBarRouteSelectBox = host.register(host.createRouteSelectBox(activeRouteIndex, conversationLensSessionBarRouteLabel));
 		host.sessionBarRouteSelectBox.render(host.sessionBarRouteContainer);
 		host.register(host.sessionBarRouteSelectBox.onDidSelect(e => {
-			const sessionId = host.stubService.getActiveSessionId();
+			const sessionId = host.getBoundSessionId();
 			host.setSessionConfig(sessionId, { routeIndex: e.index });
 			host.routeSelectBox.select(e.index);
 		}));
@@ -192,6 +177,29 @@ export function mountSessionBar(host: IConversationLensSessionBarHost, barHost: 
 	
 }
 
+export function mountLensTablist(host: IConversationLensSessionBarHost, tablistHost: HTMLElement): void {
+
+		host.lensTablist = append(tablistHost, $('.conversation-lens-lens-tabs'));
+		host.lensTablist.setAttribute('role', 'tablist');
+		host.lensTablist.setAttribute('aria-label', localize('conversationLens.lensTabs', "Conversation lens"));
+		host.lensTabConversation = append(host.lensTablist, $('button.conversation-lens-lens-tab')) as HTMLButtonElement;
+		host.lensTabConversation.type = 'button';
+		host.lensTabConversation.id = 'conversation-lens-tab-conversation';
+		host.lensTabConversation.setAttribute('role', 'tab');
+		host.lensTabConversation.setAttribute('data-lens-id', 'conversation');
+		host.lensTabConversation.textContent = conversationLensSessionBarConversationTab;
+		host.lensTabTrajectory = append(host.lensTablist, $('button.conversation-lens-lens-tab')) as HTMLButtonElement;
+		host.lensTabTrajectory.type = 'button';
+		host.lensTabTrajectory.id = 'conversation-lens-tab-trajectory';
+		host.lensTabTrajectory.setAttribute('role', 'tab');
+		host.lensTabTrajectory.setAttribute('data-lens-id', 'trajectory');
+		host.lensTabTrajectory.textContent = conversationLensSessionBarTrajectoryTab;
+		host.register(addDisposableListener(host.lensTabConversation, 'click', () => host.setLensId('conversation')));
+		host.register(addDisposableListener(host.lensTabTrajectory, 'click', () => host.setLensId('trajectory')));
+		host.register(addDisposableListener(host.lensTablist, 'keydown', event => host.handleLensTablistKeyDown(event)));
+
+}
+
 export function createSessionSelectBox(host: IConversationLensSessionBarHost): SelectBox {
 
 		const sessions = host.stubService.getSessions();
@@ -210,6 +218,9 @@ export function createSessionSelectBox(host: IConversationLensSessionBarHost): S
 
 export function refreshSessionSelectOptions(host: IConversationLensSessionBarHost): void {
 
+		if (!host.sessionSelectBox) {
+			return;
+		}
 		const sessions = host.stubService.getSessions();
 		const selectedIndex = Math.max(0, sessions.findIndex(s => s.id === host.stubService.getActiveSessionId()));
 		host.suppressSessionSelect = true;
@@ -220,8 +231,8 @@ export function refreshSessionSelectOptions(host: IConversationLensSessionBarHos
 
 export function shouldRefreshActiveSessionChrome(host: IConversationLensSessionBarHost, sessionId: string): boolean {
 
-		const activeId = host.stubService.getActiveSessionId();
-		if (sessionId === activeId) {
+		const boundId = host.getBoundSessionId();
+		if (sessionId === boundId) {
 			return true;
 		}
 		return !host.stubService.getSessions().some(session => session.id === sessionId);
@@ -230,7 +241,12 @@ export function shouldRefreshActiveSessionChrome(host: IConversationLensSessionB
 
 export function updateSessionTitle(host: IConversationLensSessionBarHost): void {
 
-		const title = host.stubService.getActiveSession().title;
+		if (!host.sessionTitleButton) {
+			return;
+		}
+		const sessionId = host.getBoundSessionId();
+		const session = host.stubService.getSessions().find(s => s.id === sessionId) ?? host.stubService.getActiveSession();
+		const title = session.title;
 		host.sessionTitleButton.textContent = title;
 		host.sessionTitleButton.setAttribute('aria-label', localize('conversationLens.sessionTitleAria', "Session title: {0}", title));
 		host.sessionTitleLive.textContent = title;
@@ -243,7 +259,9 @@ export function beginSessionTitleEdit(host: IConversationLensSessionBarHost): vo
 			return;
 		}
 		host.sessionTitleEditing = true;
-		host.sessionTitleEditSnapshot = host.stubService.getActiveSession().title;
+		const sessionId = host.getBoundSessionId();
+		const session = host.stubService.getSessions().find(s => s.id === sessionId) ?? host.stubService.getActiveSession();
+		host.sessionTitleEditSnapshot = session.title;
 		host.sessionTitleInput.value = host.sessionTitleEditSnapshot;
 		host.sessionTitleButton.hidden = true;
 		host.sessionTitleInput.hidden = false;
@@ -270,7 +288,7 @@ export function commitSessionTitleEdit(host: IConversationLensSessionBarHost): v
 		if (!host.sessionTitleEditing) {
 			return;
 		}
-		const sessionId = host.stubService.getActiveSessionId();
+		const sessionId = host.getBoundSessionId();
 		const trimmed = host.sessionTitleInput.value.trim();
 
 		host.sessionTitleEditing = false;
@@ -290,7 +308,7 @@ export function commitSessionTitleEdit(host: IConversationLensSessionBarHost): v
 
 export function createNewSession(host: IConversationLensSessionBarHost): void {
 
-		host.writeComposerDraft(host.stubService.getActiveSessionId(), host.dockTextarea.value);
+		host.writeComposerDraft(host.getBoundSessionId(), host.dockTextarea.value);
 		host.stubService.createSession();
 	
 }
@@ -305,7 +323,7 @@ export function deleteActiveSession(host: IConversationLensSessionBarHost): void
 
 export function switchToSession(host: IConversationLensSessionBarHost, sessionId: string): void {
 
-		const previousId = host.stubService.getActiveSessionId();
+		const previousId = host.getBoundSessionId();
 		if (previousId !== sessionId) {
 			host.visualizeOverlay.close();
 			host.engineHistoryList?.close();

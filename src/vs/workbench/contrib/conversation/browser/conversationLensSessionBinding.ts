@@ -36,6 +36,7 @@ export interface IConversationLensSessionBindingHost {
 	readonly clipboardService: IClipboardService;
 	readonly webviewService: IWebviewService;
 	readonly visualizeOverlay: ConversationVisualizeOverlay;
+	getBoundSessionId(): string;
 	bindSessionView(sessionId: string): void;
 	applySessionViewTimeline(applied: ConversationViewFrameApplied, options?: { readonly sidecarOnly?: boolean }): void;
 	exitComposerEdit(restoreComposeDraft?: boolean, releaseQueueHold?: boolean): void;
@@ -98,7 +99,7 @@ export function findFirstPendingConfirmationTurnId(host: IConversationLensSessio
 	if (fromEntries) {
 		return fromEntries.id;
 	}
-	return findFirstPendingConfirmationTurnIdFromTurns(host.stubService.getTurns(host.stubService.getActiveSessionId()));
+	return findFirstPendingConfirmationTurnIdFromTurns(host.stubService.getTurns(host.getBoundSessionId()));
 
 }
 
@@ -106,7 +107,7 @@ export async function resolveConfirmation(host: IConversationLensSessionBindingH
 
 	if (host.stubService.isEngineConnected()) {
 		const forwarded = host.stubService.resolveConfirmation(
-			host.stubService.getActiveSessionId(),
+			host.getBoundSessionId(),
 			turnId,
 			status,
 		);
@@ -133,7 +134,7 @@ export async function resolveQuestion(host: IConversationLensSessionBindingHost,
 
 	if (host.stubService.isEngineConnected()) {
 		const forwarded = host.stubService.respondQuestion(
-			host.stubService.getActiveSessionId(),
+			host.getBoundSessionId(),
 			requestId,
 			answers,
 			customText,
@@ -173,7 +174,7 @@ export function copyTurn(host: IConversationLensSessionBindingHost, text: string
 
 export function deleteTurn(host: IConversationLensSessionBindingHost, turnId: string): void {
 
-	host.stubService.deleteTurn(host.stubService.getActiveSessionId(), turnId);
+	host.stubService.deleteTurn(host.getBoundSessionId(), turnId);
 
 }
 
@@ -184,7 +185,7 @@ export function cancelToolCall(host: IConversationLensSessionBindingHost, turn: 
 		return;
 	}
 	const agentId = turn.agentId?.trim();
-	host.stubService.cancelToolCall(host.stubService.getActiveSessionId(), {
+	host.stubService.cancelToolCall(host.getBoundSessionId(), {
 		toolCallId,
 		...(agentId ? { agentId } : {}),
 	});

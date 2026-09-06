@@ -36,7 +36,9 @@ import {
 } from '../../browser/conversationChatInput.js';
 import { ConversationSessionChatService, IConversationSessionChatService } from '../../browser/conversationSessionChatService.js';
 import { isConversationExtensionTab } from '../../common/conversationEditorRouting.js';
-import { conversationSubAgentOverlayClass, conversationSubAgentOverlayBackdropClass, conversationSubAgentOverlayCardClass, conversationSubAgentOverlayMaximizeClass, conversationSubAgentOverlayMaximizedAttribute, conversationSubAgentOverlayPopoutClass, conversationSubAgentOverlayTitleId } from '../../browser/conversationSubAgentOverlay.js';
+import { conversationSubAgentOverlayClass, conversationSubAgentOverlayBackdropClass, conversationSubAgentOverlayCardClass, conversationSubAgentOverlayMaximizeClass, conversationSubAgentOverlayMaximizedAttribute, conversationSubAgentOverlayPopoutClass, conversationSubAgentOverlaySessionBarClass, conversationSubAgentOverlayTitleId } from '../../browser/conversationSubAgentOverlay.js';
+import { ConversationLens } from '../../browser/conversationLens.js';
+import { IConversationLensSlots } from '../../../../browser/parts/conversation/conversationPart.js';
 import { ConversationStubService, IConversationRosterService, type ILiveAgentTreeChangeEvent } from '../../browser/conversationStubService.js';
 import type { LiveAgentTreeNodeView } from '../../../../../platform/universeAgent/common/sessionView/index.js';
 import { ConversationDiffReviewInput } from '../../../sources/browser/conversationDiffReviewInput.js';
@@ -618,10 +620,48 @@ suite('Conversation session chat (S3)', () => {
 		assert.ok(overlay.querySelector(`.${conversationSubAgentOverlayBackdropClass}`));
 		assert.ok(overlay.querySelector(`.${conversationSubAgentOverlayPopoutClass}`));
 		assert.ok(overlay.querySelector('.conversation-subagent-overlay-breadcrumb'));
-		assert.ok(!overlay.querySelector('.conversation-subagent-overlay-session-bar'));
+		assert.ok(overlay.querySelector(`.${conversationSubAgentOverlaySessionBarClass}`));
 		assert.ok(conversationPart.activeGroup.getEditorByIndex(0) instanceof ConversationChatInput);
 		assert.ok(sessionWindow.contains(overlay));
 		assert.strictEqual(overlay.closest('.monaco-modal-editor-block'), null);
+	});
+
+	test('sub-agent dialog gives the lens a session bar host and keeps the agent filter', async () => {
+		const { sessionWindow, sessionChatService, rosterService, instantiationService } = await createHarness();
+		sessionWindow.classList.add('monaco-workbench');
+
+		const sessionId = rosterService.getActiveSessionId();
+		rosterService.appendUserTurn(sessionId, 'Sub-agent user prompt');
+		rosterService.appendStubEchoAssistant(sessionId, 'Root-only assistant reply');
+
+		let slots: IConversationLensSlots | undefined;
+		const realCreateInstance = instantiationService.createInstance.bind(instantiationService);
+		instantiationService.createInstance = ((ctor: unknown, ...args: unknown[]) => {
+			if (ctor !== ConversationLens) {
+				return (realCreateInstance as (...rest: unknown[]) => unknown)(ctor, ...args);
+			}
+			slots = args[0] as IConversationLensSlots;
+			return {
+				layout() { },
+				tryCloseVisualizeOverlay: () => false,
+				tryDismissLocalInspector: () => false,
+				tryCancelSessionTitleEdit: () => false,
+				dispose() { },
+			};
+		}) as typeof instantiationService.createInstance;
+
+		sessionChatService.registerSubAgentChat(SESSION_KEY, 'sub-1', 'Research sub-agent');
+		await sessionChatService.openSubAgent(SESSION_KEY, 'sub-1');
+
+		assert.ok(slots?.sessionBar?.classList.contains(conversationSubAgentOverlaySessionBarClass));
+		assert.strictEqual(slots?.filterAgentId, 'sub-1');
+		assert.strictEqual(slots?.sessionKey, SESSION_KEY);
+
+		const unfiltered = rosterService.getTrajectoryRecords(sessionId);
+		assert.ok(unfiltered.some(record => record.text?.includes('Root-only assistant reply')));
+		const filtered = rosterService.getTrajectoryRecords(sessionId, { filterAgentId: slots.filterAgentId });
+		assert.ok(filtered.some(record => record.text?.includes('Sub-agent user prompt')));
+		assert.ok(!filtered.some(record => record.text?.includes('Root-only assistant reply')));
 	});
 
 	test('clicking a sub-agent with an existing tab activates the tab instead of opening a dialog', async () => {

@@ -9,6 +9,8 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/tes
 import { isIMenuItem, MenuId, MenuRegistry } from '../../../../../platform/actions/common/actions.js';
 import { WorkbenchList } from '../../../../../platform/list/browser/listService.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
+import type { IConversationSessionViewLease } from '../../../../../platform/universeAgent/common/conversationViewFrame.js';
+import type { LiveAgentTreeNodeView } from '../../../../../platform/universeAgent/common/sessionView/index.js';
 import { Registry } from '../../../../../platform/registry/common/platform.js';
 import { Extensions as ViewExtensions, IViewContainerModel, IViewDescriptorService, IViewsRegistry, ViewContainer, ViewContainerLocation } from '../../../../common/views.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
@@ -16,16 +18,14 @@ import { ConversationStubService, IConversationRosterService } from '../../../co
 import { IAgentInspectService } from '../../common/agentInspect.js';
 import { AgentInspectService } from '../../browser/agentInspectService.js';
 import { OPEN_NAVIGATOR_TEAM_INSPECT_COMMAND_ID } from '../../browser/agentInspectIds.js';
+import { NAVIGATOR_STALE_SNAPSHOT_COPY } from '../../common/navigatorAgentTreeEmptyState.js';
 import { createNavigatorConnectionTestStub } from '../common/navigatorConnectionTestStub.js';
 import '../../browser/navigator.contribution.js';
 import { NAVIGATOR_TEAM_VIEW_ID } from '../../browser/navigatorStubView.js';
 import {
 	INavigatorTeamMember,
-	NAVIGATOR_TEAM_CANCEL_TASK_COMMAND_ID,
-	NAVIGATOR_TEAM_MESSAGE_MEMBER_COMMAND_ID,
 	NAVIGATOR_TEAM_SHOW_MEMBERS_COMMAND_ID,
 	NAVIGATOR_TEAM_SHOW_TASKS_COMMAND_ID,
-	NAVIGATOR_TEAM_UPDATE_TASK_COMMAND_ID,
 	NavigatorTeamView,
 } from '../../browser/navigatorTeamList.js';
 
@@ -36,11 +36,56 @@ suite('Navigator Team subviews', () => {
 
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
-	function mountTeamView(): NavigatorTeamView {
+	class RosterWithLiveTree extends ConversationStubService {
+		constructor(private readonly liveTree: LiveAgentTreeNodeView) {
+			super();
+		}
+
+		override acquireSessionView(sessionId: string): IConversationSessionViewLease {
+			const lease = super.acquireSessionView(sessionId);
+			const snapshot = { ...lease.snapshot, liveAgentTree: this.liveTree };
+			Object.defineProperty(lease, 'snapshot', { get: () => snapshot });
+			return lease;
+		}
+	}
+
+	const teamLiveTree: LiveAgentTreeNodeView = {
+		agentId: 'root',
+		name: 'Root',
+		type: 'AGENT_TYPE_ROOT',
+		status: 'AGENT_STATUS_IDLE',
+		model: 'm',
+		turnCount: 0,
+		createdAt: 0,
+		children: [{
+			agentId: 'mgr:1',
+			name: 'Manager',
+			type: 'AGENT_TYPE_SUB',
+			status: 'AGENT_STATUS_IDLE',
+			model: 'm',
+			turnCount: 0,
+			createdAt: 0,
+			children: [{
+				agentId: 'member:1',
+				name: 'Member',
+				type: 'AGENT_TYPE_MEMBER',
+				status: 'AGENT_STATUS_IDLE',
+				model: 'm',
+				turnCount: 0,
+				createdAt: 0,
+				children: [],
+			}],
+		}],
+	};
+
+	function mountTeamView(
+		roster: ConversationStubService = store.add(new ConversationStubService()),
+		connection: IUniverseAgentConnection = createNavigatorConnectionTestStub(),
+	): NavigatorTeamView {
 		const instantiationService = workbenchInstantiationService(undefined, store);
-		instantiationService.stub(IConversationRosterService, store.add(new ConversationStubService()));
+		instantiationService.stub(IConversationRosterService, roster);
 		instantiationService.stub(IAgentInspectService, store.add(instantiationService.createInstance(AgentInspectService)) as IAgentInspectService);
-		instantiationService.stub(IUniverseAgentConnection, createNavigatorConnectionTestStub());
+		instantiationService.stub(IUniverseAgentConnection, connection);
 		const stubViewContainer = {
 			id: 'navigator-team-test-container',
 			title: { value: 'Team', original: 'Team' },
@@ -108,13 +153,21 @@ suite('Navigator Team subviews', () => {
 		assert.ok(membersItem, 'Team ViewTitle must expose Members');
 		assert.ok(tasksItem, 'Team ViewTitle must expose Tasks');
 		assert.ok(inspectItem, 'Team ViewTitle must still expose Inspect');
+	});
 
-		const updateItem = viewTitleItems.find(item => item.command.id === NAVIGATOR_TEAM_UPDATE_TASK_COMMAND_ID);
-		const cancelItem = viewTitleItems.find(item => item.command.id === NAVIGATOR_TEAM_CANCEL_TASK_COMMAND_ID);
-		const messageItem = viewTitleItems.find(item => item.command.id === NAVIGATOR_TEAM_MESSAGE_MEMBER_COMMAND_ID);
-		assert.ok(updateItem, 'Team ViewTitle must expose Update (TaskUpdate)');
-		assert.ok(cancelItem, 'Team ViewTitle must expose Cancel (TaskCancel)');
-		assert.ok(messageItem, 'Team ViewTitle must expose Message (MessageMember)');
+	test('Team ViewTitle does not register engine-mutating commands (PRD-022 验收 6)', () => {
+		const viewTitleItems = MenuRegistry.getMenuItems(MenuId.ViewTitle).filter(isIMenuItem);
+		const mutatingCommandIds = [
+			'workbench.action.navigatorTeam.startMember',
+			'workbench.action.navigatorTeam.killMember',
+			'workbench.action.navigatorTeam.updateTask',
+			'workbench.action.navigatorTeam.cancelTask',
+			'workbench.action.navigatorTeam.messageMember',
+			'workbench.action.navigatorTeam.abort',
+		];
+		for (const id of mutatingCommandIds) {
+			assert.strictEqual(viewTitleItems.find(item => item.command.id === id), undefined, `Team ViewTitle must not register ${id}`);
+		}
 	});
 
 	test('defaults to Members subview with honest empty state', () => {
@@ -274,5 +327,52 @@ suite('Navigator Team subviews', () => {
 		const descriptor = viewsRegistry.getView(NAVIGATOR_TEAM_VIEW_ID);
 		assert.ok(descriptor);
 		assert.strictEqual(descriptor.ctorDescriptor.ctor, NavigatorTeamView);
+	});
+
+	test('disconnect keeps last Team snapshot and marks it stale', async () => {
+		const roster = store.add(new RosterWithLiveTree(teamLiveTree));
+		roster.setEngineConnected(true);
+		const connection = createNavigatorConnectionTestStub({
+			getConnectionPhase: () => roster.isEngineConnected() ? { kind: 'connected', path: 'direct' } : { kind: 'disconnected' },
+			getNavigatorCapability: () => 'SUPPORTED',
+			team: {
+				memberStatus: async () => [{
+					memberName: 'Alice',
+					memberAgentId: 'member:1',
+					status: 'IDLE',
+					preset: 'p',
+					dynamic: 'd',
+					turnCount: 1,
+				}],
+				taskList: async () => [],
+				teamInfo: async () => undefined,
+			},
+		});
+		const view = mountTeamView(roster, connection);
+		await (view as unknown as { refreshTeamData: () => Promise<void> }).refreshTeamData();
+
+		const membersList = (view as unknown as { membersList: WorkbenchList<INavigatorTeamMember> }).membersList;
+		assert.strictEqual(membersList.length, 1);
+		assert.ok(membersList.element(0)?.label.includes('Alice'));
+
+		roster.setEngineConnected(false);
+		await (view as unknown as { refreshTeamData: () => Promise<void> }).refreshTeamData();
+
+		assert.strictEqual(membersList.length, 1);
+		assert.ok(membersList.element(0)?.label.includes('Alice'));
+		const note = view.element.querySelector('.navigator-team-subview.active .navigator-stub-note') as HTMLElement | null;
+		assert.ok(note);
+		assert.strictEqual(note.style.display, 'block');
+		assert.strictEqual(note.textContent, NAVIGATOR_STALE_SNAPSHOT_COPY);
+	});
+
+	test('never-connected Team stays honest empty without a snapshot note', async () => {
+		const view = mountTeamView();
+		await (view as unknown as { refreshTeamData: () => Promise<void> }).refreshTeamData();
+		const note = view.element.querySelector('.navigator-team-subview.active .navigator-stub-note') as HTMLElement | null;
+		assert.ok(note);
+		assert.strictEqual(note.style.display, 'none');
+		const membersEmpty = view.element.querySelector('.navigator-team-subview.active .navigator-stub-empty');
+		assert.strictEqual(membersEmpty?.textContent, TEAM_MEMBERS_EMPTY_COPY);
 	});
 });

@@ -3,12 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { $, append, getWindow } from '../../../../base/browser/dom.js';
+import { $, addDisposableListener, append, getWindow } from '../../../../base/browser/dom.js';
 import { AnchorAlignment } from '../../../../base/browser/ui/contextview/contextview.js';
 import { SelectBox } from '../../../../base/browser/ui/selectBox/selectBox.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { AnchorPosition } from '../../../../base/common/layout.js';
-import { toDisposable } from '../../../../base/common/lifecycle.js';
+import { DisposableStore, toDisposable } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { IContextViewService, IOpenContextView } from '../../../../platform/contextview/browser/contextView.js';
@@ -23,7 +23,11 @@ import {
 	conversationLensDockNoEngineTools,
 	conversationLensDockNoTemplates,
 	conversationLensDockNoTools,
+	conversationLensDockMoreTitle,
+	conversationLensDockPermissionAgent,
+	conversationLensDockPermissionAsk,
 	conversationLensDockPermissionLabel,
+	conversationLensDockPermissionPermit,
 	conversationLensDockRestoreTimeline,
 	conversationLensDockSaveQueued,
 	conversationLensDockTemplatesTitle,
@@ -45,13 +49,34 @@ import {
 	InputHistoryDirection,
 	navigateInputHistoryBrowse,
 } from './conversationInputHistory.js';
-import { isConversationLeafNarrow } from './conversationNarrowLayout.js';
 import { ConversationInboxOverlay } from './conversationInboxOverlay.js';
+import { isConversationLeafNarrow } from './conversationNarrowLayout.js';
 import { ConversationTimelineTree } from './conversationTimelineTree.js';
 import { ConversationVoiceTranscriptBar } from './conversationVoiceTranscriptBar.js';
 import { IConversationRosterService } from './conversationStubService.js';
 import { IConversationLensSlots } from '../../../browser/parts/conversation/conversationPart.js';
+import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
+import type { UniverseAgentSessionToolPermissionMode } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { Button } from '../../../../base/browser/ui/button/button.js';
+
+const COMPOSER_PERMISSION_OPTIONS = [
+	conversationLensDockPermissionAsk,
+	conversationLensDockPermissionAgent,
+	conversationLensDockPermissionPermit,
+] as const;
+
+const SESSION_TOOL_PERMISSION_MODES: readonly UniverseAgentSessionToolPermissionMode[] = [
+	'SESSION_TOOL_PERMISSION_MODE_ASK',
+	'SESSION_TOOL_PERMISSION_MODE_AGENT',
+	'SESSION_TOOL_PERMISSION_MODE_PERMIT',
+];
+
+export const conversationLensDockPermissionUnavailable = localize(
+	'conversationLens.dockPermissionUnavailable',
+	"Needs an engine connection");
+const conversationLensDockPermissionFailed = localize(
+	'conversationLens.dockPermissionFailed',
+	"Permission mode was not applied");
 
 const COMPOSER_ROUTE_OPTIONS = [
 	conversationLensDockNoRoute,
@@ -65,6 +90,7 @@ export type ComposerPolicy = 'compose' | 'turnEdit' | 'queueEdit';
 export interface ConversationSessionConfigSelection {
 	agentIndex: number;
 	routeIndex: number;
+	permissionIndex: number;
 }
 
 export interface IConversationLensComposerChromeHost {
@@ -105,13 +131,16 @@ export interface IConversationLensComposerChromeHost {
 	agentSelectBox: SelectBox;
 	routeSelectBox: SelectBox;
 	sessionBarRouteSelectBox: SelectBox;
+	permissionSelectBox: SelectBox;
 	inboxOverlay: ConversationInboxOverlay;
 	timelineTree: ConversationTimelineTree;
 	voiceTranscriptBar: ConversationVoiceTranscriptBar;
 	readonly stubService: IConversationRosterService;
+	readonly uaConnection: IUniverseAgentConnection;
 	readonly contextViewService: IContextViewService;
 	readonly configurationService: IConfigurationService;
 	readonly slotHosts: IConversationLensSlots;
+	getBoundSessionId(): string;
 	setInputMaximized(maximized: boolean): void;
 	renderInboxStatus(): void;
 	readComposerDraft(sessionId: string): string;
@@ -155,14 +184,14 @@ export function toggleAddContextView(host: IConversationLensComposerChromeHost):
 	
 }
 
-export function toggleTuneContextView(host: IConversationLensComposerChromeHost): void {
+export function toggleTuneContextView(host: IConversationLensComposerChromeHost, anchor?: HTMLElement): void {
 
 		if (host.tuneContextView) {
 			host.tuneContextView.close();
 			return;
 		}
 		host.tuneContextView = host.contextViewService.showContextView({
-			getAnchor: () => host.tuneButton.element,
+			getAnchor: () => anchor ?? host.tuneButton.element,
 			anchorAlignment: AnchorAlignment.RIGHT,
 			anchorPosition: AnchorPosition.ABOVE,
 			render: container => {
@@ -184,7 +213,8 @@ export function toggleTuneContextView(host: IConversationLensComposerChromeHost)
 			onDOMEvent: e => {
 				if (e.type === 'click') {
 					const target = e.target as HTMLElement | null;
-					if (target && !host.tuneButton.element.contains(target)) {
+					const owner = anchor ?? host.tuneButton.element;
+					if (target && !owner.contains(target)) {
 						host.tuneContextView?.close();
 					}
 				}
@@ -196,10 +226,22 @@ export function toggleTuneContextView(host: IConversationLensComposerChromeHost)
 	
 }
 
+function appendMoreMenuAction(popup: HTMLElement, label: string): HTMLButtonElement {
+	const item = append(popup, $('button.conversation-lens-dock-more-item')) as HTMLButtonElement;
+	item.type = 'button';
+	item.setAttribute('role', 'menuitem');
+	item.setAttribute('aria-label', label);
+	item.textContent = label;
+	return item;
+}
+
 export function toggleMoreContextView(host: IConversationLensComposerChromeHost): void {
 
 		if (host.moreContextView) {
 			host.moreContextView.close();
+			return;
+		}
+		if (!isConversationLeafNarrow(host.lastReadingWidth)) {
 			return;
 		}
 		host.moreContextView = host.contextViewService.showContextView({
@@ -208,24 +250,57 @@ export function toggleMoreContextView(host: IConversationLensComposerChromeHost)
 			anchorPosition: AnchorPosition.ABOVE,
 			render: container => {
 				const popup = append(container, $('.conversation-lens-dock-more-popup'));
-				if (isConversationLeafNarrow(host.lastReadingWidth)) {
-					append(popup, $('div')).textContent = conversationLensDockTuneTitle;
-					append(popup, $('div')).textContent = conversationLensDockPermissionLabel;
-					append(popup, $('div')).textContent = conversationLensDockTemplatesTitle;
-					append(popup, $('div')).textContent = conversationLensDockMaximizeInput;
+				popup.setAttribute('role', 'menu');
+				popup.setAttribute('aria-label', conversationLensDockMoreTitle);
+				const store = new DisposableStore();
+				const addAction = (label: string, run: () => void) => {
+					const item = appendMoreMenuAction(popup, label);
+					store.add(addDisposableListener(item, 'click', e => {
+						e.preventDefault();
+						e.stopPropagation();
+						host.moreContextView?.close();
+						run();
+					}));
+				};
+				addAction(conversationLensDockTuneTitle, () => toggleTuneContextView(host, host.moreButton.element));
+				const sessionId = host.getBoundSessionId();
+				const selectedPermission = getSessionConfig(host, sessionId).permissionIndex;
+				const permissionAvailable = isSessionPermissionModeAvailable(host);
+				const permissionGroup = append(popup, $('div.conversation-lens-dock-more-permission'));
+				permissionGroup.setAttribute('role', 'group');
+				permissionGroup.setAttribute('aria-label', conversationLensDockPermissionLabel);
+				for (let index = 0; index < COMPOSER_PERMISSION_OPTIONS.length; index++) {
+					const item = appendMoreMenuAction(permissionGroup, COMPOSER_PERMISSION_OPTIONS[index]);
+					item.setAttribute('role', 'menuitemradio');
+					item.setAttribute('aria-checked', String(index === selectedPermission));
+					if (!permissionAvailable) {
+						item.disabled = true;
+						item.setAttribute('aria-disabled', 'true');
+						item.title = conversationLensDockPermissionUnavailable;
+						item.setAttribute('aria-label', `${COMPOSER_PERMISSION_OPTIONS[index]} — ${conversationLensDockPermissionUnavailable}`);
+						continue;
+					}
+					store.add(addDisposableListener(item, 'click', e => {
+						e.preventDefault();
+						e.stopPropagation();
+						host.moreContextView?.close();
+						void applySessionPermissionIndex(host, sessionId, index);
+					}));
 				}
-				append(popup, $('div')).textContent = localize('conversationLens.dockMoreDisplay', "Display");
-				append(popup, $('div')).textContent = localize('conversationLens.dockMorePin', "Pin input");
+				addAction(conversationLensDockTemplatesTitle, () => toggleTemplatesContextView(host, host.moreButton.element));
+				addAction(conversationLensDockMaximizeInput, () => toggleInputMaximized(host));
 				return toDisposable(() => {
+					store.dispose();
 					host.moreContextView = undefined;
 				});
 			},
 			onDOMEvent: e => {
 				if (e.type === 'click') {
 					const target = e.target as HTMLElement | null;
-					if (target && !host.moreButton.element.contains(target)) {
-						host.moreContextView?.close();
+					if (target && (target.closest('.conversation-lens-dock-more-popup') || host.moreButton.element.contains(target))) {
+						return;
 					}
+					host.moreContextView?.close();
 				}
 			},
 			onHide: () => {
@@ -235,14 +310,14 @@ export function toggleMoreContextView(host: IConversationLensComposerChromeHost)
 	
 }
 
-export function toggleTemplatesContextView(host: IConversationLensComposerChromeHost): void {
+export function toggleTemplatesContextView(host: IConversationLensComposerChromeHost, anchor?: HTMLElement): void {
 
 		if (host.templatesContextView) {
 			host.templatesContextView.close();
 			return;
 		}
 		host.templatesContextView = host.contextViewService.showContextView({
-			getAnchor: () => host.templatesButton.element,
+			getAnchor: () => anchor ?? host.templatesButton.element,
 			anchorAlignment: AnchorAlignment.RIGHT,
 			anchorPosition: AnchorPosition.ABOVE,
 			render: container => {
@@ -254,7 +329,8 @@ export function toggleTemplatesContextView(host: IConversationLensComposerChrome
 			onDOMEvent: e => {
 				if (e.type === 'click') {
 					const target = e.target as HTMLElement | null;
-					if (target && !host.templatesButton.element.contains(target)) {
+					const owner = anchor ?? host.templatesButton.element;
+					if (target && !owner.contains(target)) {
 						host.templatesContextView?.close();
 					}
 				}
@@ -271,7 +347,7 @@ export function beginTurnEdit(host: IConversationLensComposerChromeHost, turnId:
 		if (host.isPreFirst()) {
 			return;
 		}
-		const sessionId = host.stubService.getActiveSessionId();
+		const sessionId = host.getBoundSessionId();
 		const turn = host.stubService.getTurns(sessionId).find(t => t.id === turnId && t.kind === 'user');
 		if (!turn) {
 			return;
@@ -295,7 +371,7 @@ export function beginTurnEdit(host: IConversationLensComposerChromeHost, turnId:
 
 export function beginQueueEdit(host: IConversationLensComposerChromeHost, itemId: string): void {
 
-		const sessionId = host.stubService.getActiveSessionId();
+		const sessionId = host.getBoundSessionId();
 		const item = host.stubService.getMessageQueueState(sessionId).items.find(row => row.id === itemId);
 		if (!item) {
 			return;
@@ -322,7 +398,7 @@ export function exitComposerEdit(host: IConversationLensComposerChromeHost, rest
 		if (host.composerPolicy === 'compose') {
 			return;
 		}
-		const sessionId = host.stubService.getActiveSessionId();
+		const sessionId = host.getBoundSessionId();
 		if (host.composerPolicy === 'queueEdit' && host.editingQueueItemId && releaseQueueHold) {
 			host.stubService.releaseMessageQueueItemHold(sessionId, host.editingQueueItemId);
 			host.renderInboxStatus();
@@ -348,7 +424,7 @@ export function getEditingQueueItem(host: IConversationLensComposerChromeHost) {
 		if (!host.editingQueueItemId) {
 			return undefined;
 		}
-		return host.stubService.getMessageQueueState(host.stubService.getActiveSessionId())
+		return host.stubService.getMessageQueueState(host.getBoundSessionId())
 			.items.find(item => item.id === host.editingQueueItemId);
 	
 }
@@ -467,13 +543,8 @@ export function updateGateRow(host: IConversationLensComposerChromeHost): void {
 	
 }
 
-export function showPostFailure(host: IConversationLensComposerChromeHost, reason: 'mailbox_full' | 'no_such_session' | 'not_authenticated'): void {
+function showGateNotice(host: IConversationLensComposerChromeHost, message: string): void {
 
-		const message = reason === 'mailbox_full'
-			? conversationLensPostFailedMailboxFull
-			: reason === 'not_authenticated'
-				? conversationLensPostFailedNotAuthenticated
-				: conversationLensPostFailedNoSession;
 		host.postFailureVisible = true;
 		host.gateRow.hidden = false;
 		host.gateLabel.textContent = message;
@@ -486,6 +557,17 @@ export function showPostFailure(host: IConversationLensComposerChromeHost, reaso
 			host.postFailureVisible = false;
 			updateGateRow(host);
 		}, 4000);
+	
+}
+
+export function showPostFailure(host: IConversationLensComposerChromeHost, reason: 'mailbox_full' | 'no_such_session' | 'not_authenticated'): void {
+
+		const message = reason === 'mailbox_full'
+			? conversationLensPostFailedMailboxFull
+			: reason === 'not_authenticated'
+				? conversationLensPostFailedNotAuthenticated
+				: conversationLensPostFailedNoSession;
+		showGateNotice(host, message);
 	
 }
 
@@ -514,7 +596,7 @@ export function createRouteSelectBox(host: IConversationLensComposerChromeHost, 
 
 export function getSessionConfig(host: IConversationLensComposerChromeHost, sessionId: string): ConversationSessionConfigSelection {
 
-		return host.sessionConfigBySessionId.get(sessionId) ?? { agentIndex: 0, routeIndex: 0 };
+		return host.sessionConfigBySessionId.get(sessionId) ?? { agentIndex: 0, routeIndex: 0, permissionIndex: 0 };
 	
 }
 
@@ -525,12 +607,71 @@ export function setSessionConfig(host: IConversationLensComposerChromeHost, sess
 	
 }
 
+export function isSessionPermissionModeAvailable(host: IConversationLensComposerChromeHost): boolean {
+
+		return host.stubService.isEngineConnected() && typeof host.uaConnection.setPermissionMode === 'function';
+	
+}
+
+export function updatePermissionSelectEnabled(host: IConversationLensComposerChromeHost): void {
+
+		if (!host.permissionSelectBox) {
+			return;
+		}
+		const available = isSessionPermissionModeAvailable(host);
+		host.permissionSelectBox.setEnabled(available);
+		const label = available
+			? conversationLensDockPermissionLabel
+			: `${conversationLensDockPermissionLabel} — ${conversationLensDockPermissionUnavailable}`;
+		host.permissionSelectBox.setAriaLabel(label);
+		const container = host.dockRoot?.querySelector('.conversation-lens-dock-permission') as HTMLElement | null;
+		if (container) {
+			container.title = available ? conversationLensDockPermissionLabel : conversationLensDockPermissionUnavailable;
+		}
+	
+}
+
+function restoreSessionPermissionIndex(host: IConversationLensComposerChromeHost, sessionId: string, permissionIndex: number): void {
+
+		setSessionConfig(host, sessionId, { permissionIndex });
+		host.permissionSelectBox.select(permissionIndex);
+	
+}
+
+export async function applySessionPermissionIndex(host: IConversationLensComposerChromeHost, sessionId: string, permissionIndex: number): Promise<void> {
+
+		const previous = getSessionConfig(host, sessionId).permissionIndex;
+		if (permissionIndex === previous) {
+			return;
+		}
+		if (!isSessionPermissionModeAvailable(host) || !host.uaConnection.setPermissionMode) {
+			return;
+		}
+		setSessionConfig(host, sessionId, { permissionIndex });
+		host.permissionSelectBox.select(permissionIndex);
+		const mode = SESSION_TOOL_PERMISSION_MODES[permissionIndex] ?? SESSION_TOOL_PERMISSION_MODES[0];
+		try {
+			const result = await host.uaConnection.setPermissionMode({ sessionId, mode });
+			if (result.ok) {
+				return;
+			}
+			restoreSessionPermissionIndex(host, sessionId, previous);
+			showGateNotice(host, result.message?.trim() || conversationLensDockPermissionFailed);
+		} catch (error) {
+			restoreSessionPermissionIndex(host, sessionId, previous);
+			const detail = error instanceof Error ? error.message.trim() : '';
+			showGateNotice(host, detail || conversationLensDockPermissionFailed);
+		}
+	
+}
+
 export function syncSessionConfigSelects(host: IConversationLensComposerChromeHost, sessionId: string): void {
 
-		const { agentIndex, routeIndex } = getSessionConfig(host, sessionId);
+		const { agentIndex, routeIndex, permissionIndex } = getSessionConfig(host, sessionId);
 		host.agentSelectBox.select(agentIndex);
 		host.routeSelectBox.select(routeIndex);
-		host.sessionBarRouteSelectBox.select(routeIndex);
+		host.sessionBarRouteSelectBox?.select(routeIndex);
+		host.permissionSelectBox.select(permissionIndex);
 	
 }
 
@@ -552,7 +693,7 @@ export function resetInputHistoryBrowse(host: IConversationLensComposerChromeHos
 
 export function getSessionInputHistory(host: IConversationLensComposerChromeHost): readonly string[] {
 
-		return buildSessionUserInputHistory(host.stubService.getTurns(host.stubService.getActiveSessionId()));
+		return buildSessionUserInputHistory(host.stubService.getTurns(host.getBoundSessionId()));
 	
 }
 
@@ -568,7 +709,7 @@ export function navigateInputHistory(host: IConversationLensComposerChromeHost, 
 		}
 		host.inputHistoryBrowse = result.state;
 		host.dockTextarea.value = result.textareaValue;
-		host.writeComposerDraft(host.stubService.getActiveSessionId(), result.textareaValue);
+		host.writeComposerDraft(host.getBoundSessionId(), result.textareaValue);
 		return true;
 	
 }
@@ -581,6 +722,6 @@ export function exitInputHistoryBrowse(host: IConversationLensComposerChromeHost
 		}
 		host.inputHistoryBrowse = result.state;
 		host.dockTextarea.value = result.textareaValue;
-		host.writeComposerDraft(host.stubService.getActiveSessionId(), result.textareaValue);
+		host.writeComposerDraft(host.getBoundSessionId(), result.textareaValue);
 	
 }

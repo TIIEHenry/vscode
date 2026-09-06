@@ -106,7 +106,7 @@ function roleTitle(role: ItemAttribution['role']): string {
 export function formatSyncChromeLabel(sync: SyncChrome): string | undefined {
 	switch (sync.kind) {
 		case 'idle':
-			return undefined;
+			return localize('conversationSessionView.syncIdle', "Session not connected");
 		case 'syncing':
 			return localize('conversationSessionView.syncSyncing', "Session syncing");
 		case 'live':

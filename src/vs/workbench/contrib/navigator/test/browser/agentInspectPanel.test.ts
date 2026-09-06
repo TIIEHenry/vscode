@@ -30,7 +30,7 @@ import { ConversationStubService, IConversationRosterService } from '../../../co
 import '../../browser/navigator.contribution.js';
 import { NAVIGATOR_AGENTS_VIEW_ID, NAVIGATOR_TEAM_VIEW_ID } from '../../browser/navigatorStubView.js';
 
-const INSPECT_EMPTY_COPY = '在 Agents 或 Team 里选择一项';
+const INSPECT_EMPTY_COPY = 'Select an item in Agents or Team';
 
 suite('Agent inspect panel', () => {
 

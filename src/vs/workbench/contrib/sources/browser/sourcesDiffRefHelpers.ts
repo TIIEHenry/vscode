@@ -75,19 +75,21 @@ export async function openSourcesChangeRefInConversation(
 
 async function closeActiveDiffHost(
 	editorService: IEditorService,
+	scmService: ISCMService,
 	sourcesDiffPanelService?: ISourcesDiffPanelService,
 ): Promise<void> {
-	if (sourcesDiffPanelService?.getCurrentRef()) {
-		sourcesDiffPanelService.clear();
+	const activeEditor = editorService.activeEditor;
+	if (activeEditor && resolveSourcesChangeRefFromEditor(activeEditor, scmService)) {
+		const activeGroup = editorService.activeEditorPane?.group;
+		if (activeGroup) {
+			await editorService.closeEditor({ editor: activeEditor, groupId: activeGroup.id });
+		}
 		return;
 	}
 
-	const activeEditor = editorService.activeEditor;
-	const activeGroup = editorService.activeEditorPane?.group;
-	if (!activeEditor || !activeGroup) {
-		return;
+	if (sourcesDiffPanelService?.getCurrentRef()) {
+		sourcesDiffPanelService.clear();
 	}
-	await editorService.closeEditor({ editor: activeEditor, groupId: activeGroup.id });
 }
 
 function resolveActiveSourcesChangeRef(
@@ -95,16 +97,15 @@ function resolveActiveSourcesChangeRef(
 	scmService: ISCMService,
 	sourcesDiffPanelService?: ISourcesDiffPanelService,
 ): ISourcesChangeRef | undefined {
-	const panelRef = sourcesDiffPanelService?.getCurrentRef();
-	if (panelRef) {
-		return panelRef;
+	const activeEditor = editorService.activeEditor;
+	if (activeEditor) {
+		const editorRef = resolveSourcesChangeRefFromEditor(activeEditor, scmService);
+		if (editorRef) {
+			return editorRef;
+		}
 	}
 
-	const activeEditor = editorService.activeEditor;
-	if (!activeEditor) {
-		return undefined;
-	}
-	return resolveSourcesChangeRefFromEditor(activeEditor, scmService);
+	return sourcesDiffPanelService?.getCurrentRef();
 }
 
 export async function moveActiveDiffToConversation(
@@ -117,7 +118,7 @@ export async function moveActiveDiffToConversation(
 	if (!ref) {
 		return;
 	}
-	await closeActiveDiffHost(editorService, sourcesDiffPanelService);
+	await closeActiveDiffHost(editorService, scmService, sourcesDiffPanelService);
 	await openSourcesChangeRefInConversation(ref, editorService, instantiationService);
 }
 
@@ -130,7 +131,7 @@ export async function moveActiveDiffToPreview(
 	if (!ref) {
 		return;
 	}
-	await closeActiveDiffHost(editorService, sourcesDiffPanelService);
+	await closeActiveDiffHost(editorService, scmService, sourcesDiffPanelService);
 	await openSourcesChangeRefInPreview(ref, editorService);
 }
 
@@ -143,6 +144,6 @@ export async function moveActiveDiffToPanel(
 	if (!ref) {
 		return;
 	}
-	await closeActiveDiffHost(editorService, sourcesDiffPanelService);
+	await closeActiveDiffHost(editorService, scmService, sourcesDiffPanelService);
 	await sourcesDiffPanelService.show(ref);
 }

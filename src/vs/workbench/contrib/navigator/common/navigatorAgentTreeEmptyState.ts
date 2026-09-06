@@ -7,6 +7,8 @@ import { localize } from '../../../../nls.js';
 import type { UniverseAgentCapabilitySupport } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import type { LiveAgentTreeNodeView } from '../../../../platform/universeAgent/common/sessionView/index.js';
 
+export const NAVIGATOR_STALE_SNAPSHOT_COPY = localize('navigator.staleSnapshot', "Showing snapshot from before disconnect");
+
 /** Shared Hierarchy / Team empty copy while AgentService.Tree is pending or failed (§3 / D21). */
 export function getNavigatorAgentTreePendingCopy(
 	agentTreeCapability: UniverseAgentCapabilitySupport,
@@ -18,9 +20,9 @@ export function getNavigatorAgentTreePendingCopy(
 	}
 	if (liveTree === undefined) {
 		if (treeFetchFailed) {
-			return localize('navigatorAgentTree.fetchFailed', "读取 Agent 树失败");
+			return localize('navigatorAgentTree.fetchFailed', "Failed to read the agent tree");
 		}
-		return localize('navigatorAgentTree.loading', "正在读取 Agent 树…");
+		return localize('navigatorAgentTree.loading', "Reading agent tree…");
 	}
 	return undefined;
 }

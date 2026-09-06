@@ -57,24 +57,24 @@ export function buildNavigatorProjectsTree(input: {
 			engineChildren.push({
 				id: 'engine:transport-failed',
 				kind: 'note',
-				label: localize('navigatorProjects.transportFailed', "连接失败 · 显示为断开前快照"),
+				label: localize('navigatorProjects.transportFailed', "Connection failed · Showing snapshot from before disconnect"),
 			});
 		} else if (input.sessionListCapability === 'UNSUPPORTED') {
 			engineChildren.push({
 				id: 'engine:session-list-unsupported',
 				kind: 'note',
-				label: localize('navigatorProjects.sessionListUnsupported', "当前引擎不提供会话列表"),
+				label: localize('navigatorProjects.sessionListUnsupported', "Current engine does not provide a session list"),
 			});
 		} else if (input.engineConnected && input.sessions.length === 0 && input.sessionListCapability === 'UNKNOWN') {
 			engineChildren.push({
 				id: 'engine:session-list-loading',
 				kind: 'note',
-				label: localize('navigatorProjects.loadingSessions', "正在读取…"),
+				label: localize('navigatorProjects.loadingSessions', "Reading…"),
 			});
 		} else {
 			const workDirLabel = input.workDir
 				? basename(input.workDir.replace(/\\/g, '/'))
-				: localize('navigatorProjects.defaultWorkDir', "工作目录");
+				: localize('navigatorProjects.defaultWorkDir', "Working directory");
 			const sessionNodes: INavigatorProjectsTreeNode[] = input.sessions.map(session => ({
 				id: `session:${session.id}`,
 				kind: 'session',
@@ -93,7 +93,7 @@ export function buildNavigatorProjectsTree(input: {
 		nodes.push({
 			id: 'engine:root',
 			kind: 'engine-root',
-			label: localize('navigatorProjects.engineRoot', "引擎"),
+			label: localize('navigatorProjects.engineRoot', "Engine"),
 			children: engineChildren,
 		});
 	}
@@ -102,7 +102,7 @@ export function buildNavigatorProjectsTree(input: {
 		nodes.push({
 			id: 'local:group',
 			kind: 'local-group',
-			label: localize('navigatorProjects.localFolders', "本地文件夹"),
+			label: localize('navigatorProjects.localFolders', "Local folders"),
 			children: input.localFolders.map(folder => ({
 				id: folder.id,
 				kind: 'local-folder',

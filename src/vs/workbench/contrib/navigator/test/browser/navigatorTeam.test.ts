@@ -7,7 +7,7 @@ import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import type { LiveAgentTreeNodeView } from '../../../../../platform/universeAgent/common/sessionView/index.js';
 import { getNavigatorAgentTreePendingCopy } from '../../common/navigatorAgentTreeEmptyState.js';
-import { canSendNavigatorTeamAbort, canSendNavigatorTeamMemberMutation, canSendNavigatorTeamMessageMember, canSendNavigatorTeamTaskMutation, findManagerNodes, getTeamTreeEmptyCopy, navigatorTeamAbortIds, navigatorTeamMemberMutationIds, navigatorTeamMessageMemberIds, navigatorTeamTaskMutationIds } from '../../common/navigatorTeamData.js';
+import { findManagerNodes, getTeamTreeEmptyCopy } from '../../common/navigatorTeamData.js';
 
 suite('NavigatorTeam (N4)', () => {
 
@@ -54,20 +54,20 @@ suite('NavigatorTeam (N4)', () => {
 	});
 
 	test('undefined live tree is loading, not no-team', () => {
-		assert.strictEqual(getTeamTreeEmptyCopy('SUPPORTED', undefined), '正在读取 Agent 树…');
-		assert.strictEqual(getTeamTreeEmptyCopy('UNKNOWN', undefined), '正在读取 Agent 树…');
-		assert.strictEqual(getTeamTreeEmptyCopy('UNSUPPORTED', undefined), '当前引擎不提供 Agent 树，无法列出团队');
+		assert.strictEqual(getTeamTreeEmptyCopy('SUPPORTED', undefined), 'Reading agent tree…');
+		assert.strictEqual(getTeamTreeEmptyCopy('UNKNOWN', undefined), 'Reading agent tree…');
+		assert.strictEqual(getTeamTreeEmptyCopy('UNSUPPORTED', undefined), 'Current engine does not provide an agent tree, so the team cannot be listed');
 		const noManagers: LiveAgentTreeNodeView = { ...treeWithManager, children: [] };
-		assert.strictEqual(getTeamTreeEmptyCopy('SUPPORTED', noManagers), '当前会话没有团队');
+		assert.strictEqual(getTeamTreeEmptyCopy('SUPPORTED', noManagers), 'No team in the current session');
 		assert.strictEqual(getTeamTreeEmptyCopy('SUPPORTED', treeWithManager), undefined);
-		assert.ok(!getTeamTreeEmptyCopy('SUPPORTED', undefined)?.includes('没有团队'));
+		assert.ok(!getTeamTreeEmptyCopy('SUPPORTED', undefined)?.includes('No team'));
 	});
 
 	test('treeFetchFailed is fail note, not loading or no-team', () => {
 		const fail = getTeamTreeEmptyCopy('SUPPORTED', undefined, true);
-		assert.strictEqual(fail, '读取 Agent 树失败');
-		assert.ok(!fail?.includes('正在读取'));
-		assert.ok(!fail?.includes('没有团队'));
+		assert.strictEqual(fail, 'Failed to read the agent tree');
+		assert.ok(!fail?.includes('Reading'));
+		assert.ok(!fail?.includes('No team'));
 		assert.strictEqual(
 			getNavigatorAgentTreePendingCopy('SUPPORTED', undefined, true),
 			getTeamTreeEmptyCopy('SUPPORTED', undefined, true),
@@ -77,7 +77,7 @@ suite('NavigatorTeam (N4)', () => {
 			getTeamTreeEmptyCopy('UNKNOWN', undefined, true),
 		);
 		// Success path still clears to empty/no-team when tree arrived.
-		assert.strictEqual(getTeamTreeEmptyCopy('SUPPORTED', { ...treeWithManager, children: [] }, true), '当前会话没有团队');
+		assert.strictEqual(getTeamTreeEmptyCopy('SUPPORTED', { ...treeWithManager, children: [] }, true), 'No team in the current session');
 		assert.strictEqual(getNavigatorAgentTreePendingCopy('SUPPORTED', treeWithManager, true), undefined);
 	});
 
@@ -110,89 +110,5 @@ suite('NavigatorTeam (N4)', () => {
 			teamInfoCalls++;
 		}
 		assert.strictEqual(teamInfoCalls, 0);
-	});
-
-	test('TaskUpdate / TaskCancel gate is connected + hook; empty ids still send', () => {
-		assert.strictEqual(canSendNavigatorTeamTaskMutation(false, true), false);
-		assert.strictEqual(canSendNavigatorTeamTaskMutation(true, false), false);
-		assert.strictEqual(canSendNavigatorTeamTaskMutation(true, true), true);
-		assert.deepStrictEqual(navigatorTeamTaskMutationIds(undefined, undefined), {
-			sessionId: '',
-			agentId: '',
-			taskId: '',
-		});
-		assert.deepStrictEqual(navigatorTeamTaskMutationIds('', { managerAgentId: '', taskId: '' }), {
-			sessionId: '',
-			agentId: '',
-			taskId: '',
-		});
-		assert.deepStrictEqual(navigatorTeamTaskMutationIds('sess', { managerAgentId: 'mgr', taskId: 't1' }), {
-			sessionId: 'sess',
-			agentId: 'mgr',
-			taskId: 't1',
-		});
-	});
-
-	test('MessageMember gate is connected + hook; empty ids still send', () => {
-		assert.strictEqual(canSendNavigatorTeamMessageMember(false, true), false);
-		assert.strictEqual(canSendNavigatorTeamMessageMember(true, false), false);
-		assert.strictEqual(canSendNavigatorTeamMessageMember(true, true), true);
-		assert.deepStrictEqual(navigatorTeamMessageMemberIds(undefined, undefined), {
-			sessionId: '',
-			agentId: '',
-			memberName: '',
-		});
-		assert.deepStrictEqual(navigatorTeamMessageMemberIds('', { managerAgentId: '', memberName: '' }), {
-			sessionId: '',
-			agentId: '',
-			memberName: '',
-		});
-		assert.deepStrictEqual(navigatorTeamMessageMemberIds('sess', { managerAgentId: 'mgr', memberName: 'writer' }), {
-			sessionId: 'sess',
-			agentId: 'mgr',
-			memberName: 'writer',
-		});
-	});
-
-	test('StartMember / KillMember gate is connected + hook; empty ids still send', () => {
-		assert.strictEqual(canSendNavigatorTeamMemberMutation(false, true), false);
-		assert.strictEqual(canSendNavigatorTeamMemberMutation(true, false), false);
-		assert.strictEqual(canSendNavigatorTeamMemberMutation(true, true), true);
-		assert.deepStrictEqual(navigatorTeamMemberMutationIds(undefined, undefined), {
-			sessionId: '',
-			agentId: '',
-			memberName: '',
-		});
-		assert.deepStrictEqual(navigatorTeamMemberMutationIds('', { managerAgentId: '', memberName: '' }), {
-			sessionId: '',
-			agentId: '',
-			memberName: '',
-		});
-		assert.deepStrictEqual(navigatorTeamMemberMutationIds('sess', { managerAgentId: 'mgr', memberName: 'writer' }), {
-			sessionId: 'sess',
-			agentId: 'mgr',
-			memberName: 'writer',
-		});
-	});
-
-	test('Abort gate is connected + hook; empty ids / teamId 0 still send', () => {
-		assert.strictEqual(canSendNavigatorTeamAbort(false, true), false);
-		assert.strictEqual(canSendNavigatorTeamAbort(true, false), false);
-		assert.strictEqual(canSendNavigatorTeamAbort(true, true), true);
-		assert.deepStrictEqual(navigatorTeamAbortIds(undefined, undefined, undefined), {
-			sessionId: '',
-			agentId: '',
-			teamId: 0,
-		});
-		assert.deepStrictEqual(navigatorTeamAbortIds('', { managerAgentId: '' }, 0), {
-			sessionId: '',
-			agentId: '',
-			teamId: 0,
-		});
-		assert.deepStrictEqual(navigatorTeamAbortIds('sess', { managerAgentId: 'mgr' }, 7), {
-			sessionId: 'sess',
-			agentId: 'mgr',
-			teamId: 7,
-		});
 	});
 });

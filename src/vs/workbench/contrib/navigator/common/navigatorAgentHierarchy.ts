@@ -24,7 +24,7 @@ export interface INavigatorAgentsHierarchyNode {
 
 export function formatAgentStatusLabel(status: string): string {
 	if (status === 'AGENT_STATUS_UNKNOWN' || status === '0') {
-		return localize('navigatorAgents.statusUnknown', "状态未知");
+		return localize('navigatorAgents.statusUnknown', "Unknown status");
 	}
 	return status.replace(/^AGENT_STATUS_/, '');
 }

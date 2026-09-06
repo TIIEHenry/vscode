@@ -13,7 +13,7 @@ import { ThemeIcon } from '../../../../base/common/themables.js';
 import { localize } from '../../../../nls.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { WorkbenchList } from '../../../../platform/list/browser/listService.js';
-import { summarizeTrajectoryProcessSteps } from './conversationProcessFoldModel.js';
+import { summarizeTrajectoryProcessSteps, TrajectoryProcessFoldSpan } from './conversationProcessFoldModel.js';
 import {
 	conversationLensSessionBarNoTrajectory,
 	conversationLensSessionBarTrajectoryListAria,
@@ -161,6 +161,7 @@ interface ITrajectoryFoldTemplateData {
 	readonly chevron: HTMLElement;
 	readonly summary: HTMLElement;
 	readonly children: HTMLElement;
+	span: TrajectoryProcessFoldSpan | undefined;
 }
 
 interface ITrajectoryTableHost {
@@ -204,7 +205,6 @@ class TrajectoryRecordRenderer implements IListRenderer<TrajectoryTableDisplayIt
 
 	constructor(
 		private readonly host: ITrajectoryTableHost,
-		_renderDisposables: DisposableStore,
 	) { }
 
 	renderTemplate(container: HTMLElement): ITrajectoryRecordTemplateData {
@@ -253,43 +253,28 @@ class TrajectoryFoldRenderer implements IListRenderer<TrajectoryTableDisplayItem
 
 		const summary = append(header, $('span.conversation-process-fold-summary'));
 		const children = append(root, $('div.conversation-process-fold-children'));
+		const templateData: ITrajectoryFoldTemplateData = { root, header, chevron, summary, children, span: undefined };
 
-		const toggleFold = (e: Event) => {
+		// Owned by the view, not the template: pooled rows outlive individual renders.
+		this.renderDisposables.add(addDisposableListener(header, 'click', (e) => {
 			e.stopPropagation();
-			const spanId = root.dataset.foldId;
-			if (spanId) {
-				this.host.onToggleFold(spanId);
+			const span = templateData.span;
+			if (!span) {
+				return;
 			}
-		};
-		this.renderDisposables.add(addDisposableListener(header, 'click', toggleFold));
+			this.host.onToggleFold(span.id);
+			applyTrajectoryFoldTemplate(templateData, span, this.host);
+		}));
 
-		return { root, header, chevron, summary, children };
+		return templateData;
 	}
 
 	renderElement(element: TrajectoryTableDisplayItem, _index: number, templateData: ITrajectoryFoldTemplateData): void {
 		if (element.type !== 'fold') {
 			return;
 		}
-
-		const span = element.span;
-		const expanded = this.host.isFoldExpanded(span.id);
-		templateData.root.dataset.foldId = span.id;
-		templateData.header.setAttribute('aria-expanded', String(expanded));
-		templateData.summary.textContent = summarizeTrajectoryProcessSteps(span, { showLiveChrome: this.host.showLiveChrome() });
-		const summaryText = templateData.summary.textContent ?? '';
-		templateData.header.setAttribute('aria-label', expanded
-			? localize('conversationProcessFold.outerHeaderExpanded', "Process steps, {0}, expanded", summaryText)
-			: localize('conversationProcessFold.outerHeaderCollapsed', "Process steps, {0}, collapsed", summaryText));
-		templateData.chevron.classList.toggle('conversation-process-fold-chevron--expanded', expanded);
-		templateData.children.hidden = !expanded;
-		clearNode(templateData.children);
-
-		if (expanded) {
-			for (const record of span.records) {
-				const row = append(templateData.children, $('.conversation-lens-trajectory-record-row'));
-				populateTrajectoryRecordRow(row, record, this.host.selectedRecordId);
-			}
-		}
+		templateData.span = element.span;
+		applyTrajectoryFoldTemplate(templateData, element.span, this.host);
 	}
 
 	disposeTemplate(): void {
@@ -330,9 +315,9 @@ export class ConversationTrajectory extends Disposable implements ITrajectoryTab
 	private readonly tableScroll: HTMLElement;
 	private readonly inspector: HTMLElement;
 	private readonly inspectorContent: HTMLElement;
-	private readonly renderDisposables = this._register(new DisposableStore());
 	private readonly inspectorDisposables = this._register(new DisposableStore());
 	private readonly overviewDisposables = this._register(new DisposableStore());
+	private readonly renderDisposables = this._register(new DisposableStore());
 	private readonly processFoldOuterExpanded = new Map<string, boolean>();
 	private readonly selectedRecordIdHolder = { current: undefined as string | undefined };
 	private readonly linkedTurnIds = { current: new Set<string>() };
@@ -421,7 +406,7 @@ export class ConversationTrajectory extends Disposable implements ITrajectoryTab
 			this.tableScroll,
 			this.listDelegate,
 			[
-				new TrajectoryRecordRenderer(this, this.renderDisposables),
+				new TrajectoryRecordRenderer(this),
 				new TrajectoryFoldRenderer(this, this.renderDisposables),
 			],
 			{
@@ -512,7 +497,10 @@ export class ConversationTrajectory extends Disposable implements ITrajectoryTab
 
 	onToggleFold(spanId: string): void {
 		this.processFoldOuterExpanded.set(spanId, !this.isFoldExpanded(spanId));
-		this.refreshTable();
+		const index = this.displayItems.findIndex(item => item.type === 'fold' && item.span.id === spanId);
+		if (index >= 0) {
+			this.list.updateElementHeight(index, this.listDelegate.getHeight(this.displayItems[index]));
+		}
 	}
 
 	show(): void {
@@ -646,8 +634,6 @@ export class ConversationTrajectory extends Disposable implements ITrajectoryTab
 	}
 
 	private refreshTable(): void {
-		this.renderDisposables.clear();
-
 		const viewModel = buildTrajectoryTableViewModel(this.currentRecords, this.searchQuery);
 		this.displayItems = viewModel.items;
 		this.omittedCount = viewModel.omittedCount;
@@ -756,7 +742,7 @@ export class ConversationTrajectory extends Disposable implements ITrajectoryTab
 		const detailView = this.detailInspector.resolve(record, this.options.detailContext);
 		appendInspectorStateBadge(this.inspectorContent, detailView.state);
 
-		appendInspectorSection(this.inspectorContent, conversationTrajectoryInspectorPreview, detailView.previewText);
+		appendInspectorSection(this.inspectorContent, conversationTrajectoryInspectorSummary, detailView.previewText);
 
 		if (detailView.statusMessage) {
 			const statusSection = append(this.inspectorContent, $('.conversation-lens-trajectory-inspector-status'));
@@ -836,6 +822,31 @@ export class ConversationTrajectory extends Disposable implements ITrajectoryTab
 		const record = this.currentRecords.find(candidate => candidate.id === recordId);
 		if (record) {
 			this.selectRecord(record, true);
+		}
+	}
+}
+
+function applyTrajectoryFoldTemplate(
+	templateData: ITrajectoryFoldTemplateData,
+	span: TrajectoryProcessFoldSpan,
+	host: ITrajectoryTableHost,
+): void {
+	const expanded = host.isFoldExpanded(span.id);
+	templateData.root.dataset.foldId = span.id;
+	templateData.header.setAttribute('aria-expanded', String(expanded));
+	templateData.summary.textContent = summarizeTrajectoryProcessSteps(span, { showLiveChrome: host.showLiveChrome() });
+	const summaryText = templateData.summary.textContent ?? '';
+	templateData.header.setAttribute('aria-label', expanded
+		? localize('conversationProcessFold.outerHeaderExpanded', "Process steps, {0}, expanded", summaryText)
+		: localize('conversationProcessFold.outerHeaderCollapsed', "Process steps, {0}, collapsed", summaryText));
+	templateData.chevron.classList.toggle('conversation-process-fold-chevron--expanded', expanded);
+	templateData.children.hidden = !expanded;
+	clearNode(templateData.children);
+
+	if (expanded) {
+		for (const record of span.records) {
+			const row = append(templateData.children, $('.conversation-lens-trajectory-record-row'));
+			populateTrajectoryRecordRow(row, record, host.selectedRecordId);
 		}
 	}
 }
