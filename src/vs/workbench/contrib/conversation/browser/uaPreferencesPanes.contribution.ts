@@ -55,6 +55,7 @@ registerAction2(class BackToClientSettingsAction extends Action2 {
 
 	async run(accessor: ServicesAccessor): Promise<void> {
 		const editorGroupsService = accessor.get(IEditorGroupsService);
+		const preferencesService = accessor.get(IPreferencesService);
 		for (const group of editorGroupsService.getGroups(GroupsOrder.MOST_RECENTLY_ACTIVE)) {
 			for (const editor of [...group.editors]) {
 				if (editor instanceof PreferencesEditorInput) {
@@ -63,6 +64,6 @@ registerAction2(class BackToClientSettingsAction extends Action2 {
 			}
 		}
 
-		await accessor.get(IPreferencesService).openSettings({ focusSearch: false });
+		await preferencesService.openSettings({ focusSearch: false });
 	}
 });

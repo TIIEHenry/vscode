@@ -999,6 +999,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		}
 
 		this.activeProfileId = profileId;
+		writeStatus(this.directAddressStatus, localize('ua.connectionDirectConnecting', "Connecting…"));
 		await this.connectProfileWithPairing(profileId);
 		this.renderProfiles();
 	}
@@ -1032,13 +1033,18 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		this.renderConnectionPhase();
 	}
 
+	private writeConnectStatus(text: string, tone: ConnectionStatusTone = 'neutral'): void {
+		const target = this.activeZoneId === 'direct' ? this.directAddressStatus : this.testStatus;
+		writeStatus(target, text, tone);
+	}
+
 	private async connectProfileWithPairing(profileId: string): Promise<void> {
 		this.activeProfileId = profileId;
 		const profiles = asConnectionProfileList(this.hubService.listConnectionProfiles());
 		const profile = profiles.find(p => p.profileId === profileId);
 		const result = await this.connectionService.connectProfile(profileId);
 		if (!result.ok) {
-			writeStatus(this.testStatus, result.reason, 'error');
+			this.writeConnectStatus(result.reason, 'error');
 			this.renderConnectionPhase();
 			return;
 		}
@@ -1049,7 +1055,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 			if (isRecoverTrustConnectResult(result)) {
 				const leafSha256Hex = readRecoverTrustLeafFingerprint(result);
 				if (!leafSha256Hex) {
-					writeStatus(this.testStatus, localize(
+					this.writeConnectStatus(localize(
 						'ua.connectionRecoverTrustMissingFingerprint',
 						"Trust recovery requires the observed certificate fingerprint.",
 					), 'error');
@@ -1063,7 +1069,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 					if (confirmed.confirmed) {
 						const confirmResult = await this.connectionService.confirmPairing();
 						if (!confirmResult.ok) {
-							writeStatus(this.testStatus, confirmResult.reason, 'error');
+							this.writeConnectStatus(confirmResult.reason, 'error');
 						}
 					} else {
 						await this.connectionService.cancelPairing();
@@ -1078,7 +1084,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 				if (confirmed.confirmed) {
 					const confirmResult = await this.connectionService.confirmPairing();
 					if (!confirmResult.ok) {
-						writeStatus(this.testStatus, confirmResult.reason, 'error');
+						this.writeConnectStatus(confirmResult.reason, 'error');
 					}
 				} else {
 					await this.connectionService.cancelPairing();
@@ -1094,7 +1100,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 			displayName: device.name,
 		});
 		if (!result.ok) {
-			writeStatus(this.testStatus, result.reason, 'error');
+			this.writeConnectStatus(result.reason, 'error');
 			return;
 		}
 

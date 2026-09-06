@@ -595,6 +595,33 @@ suite('ConnectionPreferencesPane', () => {
 		container.remove();
 	});
 
+	test('direct Connect failure writes the visible Direct Address status', async () => {
+		const pane = mountPane({
+			addDirectAddressProfile: async () => ({ ok: false, code: 'private_network_blocked', reason: 'private network blocked' }),
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		pane.selectZone('direct');
+
+		const inputs = [...container.querySelectorAll('.connection-direct-address .monaco-inputbox input')] as HTMLInputElement[];
+		assert.ok(inputs[0]);
+		assert.ok(inputs[1]);
+		inputs[0].value = '127.0.0.1';
+		inputs[1].value = '50061';
+
+		const connect = [...container.querySelectorAll('.connection-direct-actions .monaco-button')]
+			.find(button => button.textContent === 'Connect') as HTMLButtonElement | undefined;
+		assert.ok(connect);
+		connect.click();
+		await Promise.resolve();
+		await Promise.resolve();
+
+		const status = container.querySelector('.connection-direct-address-status') as HTMLElement;
+		assert.strictEqual(status.textContent, 'private network blocked');
+		assert.ok(status.classList.contains('is-error'));
+		container.remove();
+	});
+
 	test('SAS cancel calls cancelPairing once', async () => {
 		let cancelCalls = 0;
 		const pane = mountPane({
