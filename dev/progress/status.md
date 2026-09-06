@@ -3,7 +3,7 @@ title: "Development Progress"
 type: progress
 status: active
 phase: M7
-updated: 2026-09-06
+updated: 2026-09-07
 summary: "loop/merge 已合入 agent-ide Connection/Engine chrome：Direct 接通已复证；Create 单飞+Resume 门面已合；Chat 仍被引擎空壳 ALREADY_EXISTS 挡住"
 ---
 
@@ -53,12 +53,14 @@ Direct 接通已通。Chat 仍被引擎空壳 Create（目录在、`session_meta
 
 `enqueueMessageQueueItem` 仍无 UI 入口；error 行重试按钮待引擎接线（不画假按钮）。
 
+Sources Changes/Review 读面（`loop/A`）：接通 + hook 走 `readGitChanges` / `readGitSummary`，打开行再 `readGitFileDiff`；断连 / 无 hook 回 SCM。
+
 ## 工位表（与 `git worktree list` 对照 · 2026-09-06）
 
 | 槽 | 路径 | 分支 | tip | 状态 |
 |----|------|------|-----|:-----|
 | merge | `vscode-WorkTrees/merge` | `loop/merge` | `bc1370cb05d` | 本波已合入（未 push） |
-| A | `vscode-WorkTrees/A` | `loop/A` | 对齐 merge | idle |
+| A | `vscode-WorkTrees/A` | `loop/A` | Sources git 读面 | 本刀 |
 | B | `vscode-WorkTrees/B` | `loop/B` | 对齐 merge | idle |
 | C | `vscode-WorkTrees/C` | `loop/C` | 对齐 merge | idle |
 | D | `vscode-WorkTrees/D` | `loop/D` | 对齐 merge | idle |

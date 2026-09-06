@@ -141,4 +141,55 @@ suite('Sources - Changes list open', () => {
 		assert.strictEqual(openedGroup, CONVERSATION_GROUP);
 		store.dispose();
 	});
+
+	test('openSourcesChangeEntry reads Git file diff for git-sourced rows without local original', async function () {
+		const resource = toResource.call(this, '/project/src/a.ts');
+		const entry: ISourcesChangeEntry = {
+			resource,
+			name: 'a.ts',
+			description: 'Unstaged Changes',
+			groupId: 'workingTree',
+			gitPath: 'src/a.ts',
+			indexState: 'WORKTREE',
+		};
+		const diffCalls: { path: string; indexState: string }[] = [];
+		const models = new Map<string, string>();
+		let openedOriginal: string | undefined;
+		let openedModified: string | undefined;
+
+		await openSourcesChangeEntry(entry, createDeps({
+			editorService: {
+				openEditor: async (input: { original?: { resource?: URI }; modified?: { resource?: URI }; resource?: URI }) => {
+					openedOriginal = input.original?.resource?.toString();
+					openedModified = input.modified?.resource?.toString() ?? input.resource?.toString();
+					return undefined;
+				},
+			} as unknown as IEditorService,
+			modelService: {
+				getModel: (uri: URI) => models.has(uri.toString()) ? { uri } : null,
+				updateModel: (model: { uri: URI }, value: string) => {
+					models.set(model.uri.toString(), value);
+				},
+				createModel: (value: string, _language: unknown, uri?: URI) => {
+					if (uri) {
+						models.set(uri.toString(), value);
+					}
+					return { uri };
+				},
+			} as unknown as ISourcesChangeEntryOpenDeps['modelService'],
+			readGitFileDiff: async gitEntry => {
+				diffCalls.push({ path: gitEntry.gitPath ?? '', indexState: gitEntry.indexState ?? '' });
+				return {
+					supported: true,
+					reason: '',
+					path: gitEntry.gitPath ?? '',
+					unifiedDiff: '@@ -1 +1 @@\n-old\n+new\n',
+				};
+			},
+		}), { preserveFocus: false });
+
+		assert.deepStrictEqual(diffCalls, [{ path: 'src/a.ts', indexState: 'WORKTREE' }]);
+		assert.ok(openedOriginal?.includes('sources-git-diff'));
+		assert.ok(openedModified?.includes('sources-git-diff'));
+	});
 });

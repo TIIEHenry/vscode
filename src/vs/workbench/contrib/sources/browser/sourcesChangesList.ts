@@ -13,6 +13,7 @@ import { Codicon } from '../../../../base/common/codicons.js';
 import { Event } from '../../../../base/common/event.js';
 import { getErrorMessage } from '../../../../base/common/errors.js';
 import { Disposable, DisposableMap, DisposableStore } from '../../../../base/common/lifecycle.js';
+import { URI } from '../../../../base/common/uri.js';
 import { StandardKeyboardEvent } from '../../../../base/browser/keyboardEvent.js';
 import { KeyCode } from '../../../../base/common/keyCodes.js';
 import { localize } from '../../../../nls.js';
@@ -22,7 +23,9 @@ import { IConfigurationService } from '../../../../platform/configuration/common
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { WorkbenchList } from '../../../../platform/list/browser/listService.js';
 import { defaultButtonStyles } from '../../../../platform/theme/browser/defaultStyles.js';
+import { IWorkspaceContextService } from '../../../../platform/workspace/common/workspace.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
+import { IModelService } from '../../../../editor/common/services/model.js';
 import { ResourceLabels, IResourceLabel } from '../../../browser/labels.js';
 import { IEditorService } from '../../../services/editor/common/editorService.js';
 import { IQuickDiffService } from '../../scm/common/quickDiff.js';
@@ -35,6 +38,10 @@ import {
 	isSourcesChangeUnstageable,
 } from '../common/sourcesChangesGit.js';
 import {
+	tryLoadSourcesGitChangeEntries,
+	tryReadSourcesGitFileDiff,
+} from '../common/sourcesChangesGitRead.js';
+import {
 	canSendSourcesGitCommit,
 	canSendSourcesGitStagePaths,
 	sourcesGitWriteFailureDetail,
@@ -42,7 +49,7 @@ import {
 	tryWriteSourcesGitStagePaths,
 } from '../common/sourcesChangesGitWrite.js';
 import { filterSourcesEntries } from '../common/sourcesFilterModel.js';
-import { collectSourcesChangeEntries, ISourcesChangeEntry } from '../common/sourcesChangesModel.js';
+import { collectSourcesChangeEntries, ISourcesChangeEntry, sourcesChangeEntryIdentity } from '../common/sourcesChangesModel.js';
 import { ISourcesDiffPanelService } from '../common/sourcesDiffPanelService.js';
 import { openSourcesChangeEntry, ISourcesChangeEntryOpenOptions } from './sourcesChangeEntryOpen.js';
 import { SourcesListFilterBox } from './sourcesListFilterBox.js';
@@ -188,6 +195,8 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 	private readonly inputListeners = this._register(new DisposableMap<ISCMRepository>());
 	private activeRepository: ISCMRepository | undefined;
 	private gitCommandsAvailable = false;
+	private usingGitRead = false;
+	private refreshSeq = 0;
 
 	constructor(
 		host: HTMLElement,
@@ -199,6 +208,8 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		@IConfigurationService private readonly configurationService: IConfigurationService,
 		@ISourcesDiffPanelService private readonly sourcesDiffPanelService: ISourcesDiffPanelService,
 		@IUniverseAgentConnection private readonly uaConnection: IUniverseAgentConnection,
+		@IWorkspaceContextService private readonly workspaceContext: IWorkspaceContextService,
+		@IModelService private readonly modelService: IModelService,
 	) {
 		super();
 
@@ -270,7 +281,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		}));
 		this._register(this.uaConnection.onDidChangeConnection(() => this.scheduleRefresh()));
 
-		this.refreshScheduler = this._register(new RunOnceScheduler(() => this.refresh(), 250));
+		this.refreshScheduler = this._register(new RunOnceScheduler(() => void this.refresh(), 250));
 		this.scheduleRefresh();
 
 		this._register(this.scmService.onDidAddRepository(repo => {
@@ -361,7 +372,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 			delegate,
 			[renderer],
 			{
-				identityProvider: { getId: (element: ISourcesChangeEntry) => element.resource.toString() },
+				identityProvider: { getId: (element: ISourcesChangeEntry) => sourcesChangeEntryIdentity(element) },
 				accessibilityProvider: new SourcesChangesAccessibilityProvider(),
 				openOnSingleClick: true,
 			}
@@ -373,16 +384,23 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 				return;
 			}
 
-			await openSourcesChangeEntry(element, {
-				editorService: this.editorService,
-				quickDiffService: this.quickDiffService,
-				configurationService: this.configurationService,
-				instantiationService: this.instantiationService,
-				sourcesDiffPanelService: this.sourcesDiffPanelService,
-			}, {
-				preserveFocus: e.editorOptions.preserveFocus,
-				pinned: e.editorOptions.pinned,
-			});
+			try {
+				await openSourcesChangeEntry(element, {
+					editorService: this.editorService,
+					quickDiffService: this.quickDiffService,
+					configurationService: this.configurationService,
+					instantiationService: this.instantiationService,
+					sourcesDiffPanelService: this.sourcesDiffPanelService,
+					modelService: this.modelService,
+					readGitFileDiff: entry => this.readGitFileDiff(entry),
+				}, {
+					preserveFocus: e.editorOptions.preserveFocus,
+					pinned: e.editorOptions.pinned,
+				});
+				this.setStatusMessage(undefined);
+			} catch (error) {
+				this.setStatusMessage(localize('sourcesChangesList.diffFailed', "Unable to open diff: {0}", getErrorMessage(error)));
+			}
 		}));
 
 		this._register(this.list.onDidChangeSelection(() => this.updateSelectionToolbar()));
@@ -390,10 +408,33 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		return this.list;
 	}
 
-	private refresh(): void {
-		const hasRepository = this.scmService.repositoryCount > 0;
+	private async refresh(): Promise<void> {
+		const seq = ++this.refreshSeq;
 		this.activeRepository = this.getPrimaryRepository();
-		const allEntries = collectSourcesChangeEntries(this.scmService.repositories);
+		let allEntries: ISourcesChangeEntry[];
+		try {
+			const loaded = await this.tryLoadGitEntries();
+			if (seq !== this.refreshSeq) {
+				return;
+			}
+			this.usingGitRead = !!loaded;
+			allEntries = loaded ?? collectSourcesChangeEntries(this.scmService.repositories);
+		} catch (error) {
+			if (seq !== this.refreshSeq) {
+				return;
+			}
+			this.usingGitRead = false;
+			allEntries = collectSourcesChangeEntries(this.scmService.repositories);
+			this.applyRefreshPresentation(allEntries);
+			this.setStatusMessage(localize('sourcesChangesList.gitReadFailed', "Unable to read git changes: {0}", getErrorMessage(error)));
+			return;
+		}
+
+		this.applyRefreshPresentation(allEntries);
+	}
+
+	private applyRefreshPresentation(allEntries: ISourcesChangeEntry[]): void {
+		const hasRepository = this.usingGitRead || this.scmService.repositoryCount > 0;
 		const entries = filterSourcesEntries(allEntries, this.filterBox.value);
 		const hasAnyEntries = allEntries.length > 0;
 		const hasVisibleEntries = entries.length > 0;
@@ -434,6 +475,36 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		}
 	}
 
+	private async tryLoadGitEntries(): Promise<ISourcesChangeEntry[] | undefined> {
+		const changesHook = this.uaConnection.readGitChanges;
+		const summaryHook = this.uaConnection.readGitSummary;
+		const loaded = await tryLoadSourcesGitChangeEntries(
+			this.uaConnection.isEngineConnected(),
+			changesHook ? request => changesHook.call(this.uaConnection, request) : undefined,
+			summaryHook ? request => summaryHook.call(this.uaConnection, request) : undefined,
+			this.getGitResourceRoot(),
+		);
+		return loaded?.entries;
+	}
+
+	private getGitResourceRoot(): URI | undefined {
+		const repoRoot = this.getPrimaryRepository()?.provider.rootUri;
+		if (repoRoot) {
+			return repoRoot;
+		}
+		return this.workspaceContext.getWorkspace().folders[0]?.uri;
+	}
+
+	private async readGitFileDiff(entry: ISourcesChangeEntry) {
+		const hook = this.uaConnection.readGitFileDiff;
+		return tryReadSourcesGitFileDiff(
+			this.uaConnection.isEngineConnected(),
+			hook ? request => hook.call(this.uaConnection, request) : undefined,
+			entry.gitPath ?? '',
+			entry.indexState ?? '',
+		);
+	}
+
 	private updateSelectionToolbar(): void {
 		const selected = this.list?.getSelectedElements() ?? [];
 		const canStage = selected.some(entry =>
@@ -456,7 +527,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 			if (stageable.length === 0) {
 				return;
 			}
-			if (await this.tryStagePaths(stageable.map(entry => entry.resource.fsPath))) {
+			if (await this.tryStagePaths(stageable.map(entry => entry.gitPath ?? entry.resource.fsPath))) {
 				return;
 			}
 		}
@@ -473,7 +544,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 			return;
 		}
 
-		if (action === 'stage' && await this.tryStagePaths([entry.resource.fsPath])) {
+		if (action === 'stage' && await this.tryStagePaths([entry.gitPath ?? entry.resource.fsPath])) {
 			return;
 		}
 
@@ -513,6 +584,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 				return true;
 			}
 			this.setStatusMessage(undefined);
+			this.scheduleRefresh();
 			return true;
 		} catch (error) {
 			this.setStatusMessage(localize('sourcesChangesList.stageFailed', "Unable to stage: {0}", getErrorMessage(error)));
@@ -551,23 +623,24 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 			|| (!!acceptCommand?.id && this.isGitCommandAvailable(acceptCommand.id))
 			|| this.isGitCommandAvailable(SOURCES_GIT_COMMIT_COMMAND);
 
-		this.commitInput.disabled = !repo;
-		this.commitButton.enabled = !!repo && hasMessage && commitAvailable;
+		this.commitInput.disabled = !repo && !this.canWriteCommit();
+		this.commitButton.enabled = (!!repo || this.canWriteCommit()) && hasMessage && commitAvailable;
 	}
 
 	private async runCommit(): Promise<void> {
 		const repo = this.activeRepository;
-		if (!repo) {
-			return;
-		}
-
 		const message = this.commitInput.value;
 		if (!message.trim()) {
 			return;
 		}
+		if (!repo && !this.canWriteCommit()) {
+			return;
+		}
 
-		repo.input.setValue(message, false);
-		repo.provider.inputBoxTextModel.setValue(message);
+		if (repo) {
+			repo.input.setValue(message, false);
+			repo.provider.inputBoxTextModel.setValue(message);
+		}
 
 		const writeHook = this.uaConnection.writeGitCommit;
 		try {
@@ -582,10 +655,15 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 					return;
 				}
 				this.setStatusMessage(undefined);
+				this.scheduleRefresh();
 				return;
 			}
 		} catch (error) {
 			this.setStatusMessage(localize('sourcesChangesList.commitFailed', "Unable to commit: {0}", getErrorMessage(error)));
+			return;
+		}
+
+		if (!repo) {
 			return;
 		}
 
