@@ -263,9 +263,10 @@ suite('ConnectionPreferencesPane', () => {
 	test('direct address zone exposes allowPrivateNetwork checkbox default unchecked', () => {
 		const pane = mountPane();
 		const container = pane.getDomNode();
-		const checkbox = container.querySelector('#connection-allow-private-network') as HTMLInputElement;
+		const checkbox = container.querySelector('#connection-allow-private-network') as HTMLElement;
 		assert.ok(checkbox);
-		assert.strictEqual(checkbox.checked, false);
+		assert.strictEqual(checkbox.getAttribute('role'), 'checkbox');
+		assert.strictEqual(checkbox.getAttribute('aria-checked'), 'false');
 		container.remove();
 	});
 
@@ -311,12 +312,14 @@ suite('ConnectionPreferencesPane', () => {
 		assert.ok(testButton);
 		assert.ok(testStatus);
 		assert.strictEqual(testStatus.textContent, '');
+		assert.ok(!testStatus.classList.contains('is-error'));
 
 		testButton.click();
 		await Promise.resolve();
 		await Promise.resolve();
 		assert.strictEqual(testStatus.textContent, 'Unreachable — stub');
 		assert.notStrictEqual(testStatus.textContent, 'Connected');
+		assert.ok(testStatus.classList.contains('is-error'), 'an unreachable probe must read as an error');
 
 		container.remove();
 	});
@@ -368,6 +371,41 @@ suite('ConnectionPreferencesPane', () => {
 		container.remove();
 	});
 
+	test('wide layout keeps left nav and a single active zone', () => {
+		const pane = mountPane();
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+
+		assert.ok(!container.classList.contains('is-narrow'));
+		const navLabels = [...container.querySelectorAll('.connection-preferences-nav-label')].map(el => el.textContent);
+		assert.ok(navLabels.includes('Hub account'));
+		assert.ok(navLabels.includes('Direct Address'));
+		assert.ok(container.querySelector('.connection-hub-account.is-active-zone'));
+		assert.ok(!container.querySelector('.connection-direct-address.is-active-zone'));
+		assert.ok(container.querySelector('.monaco-inputbox'));
+
+		container.remove();
+	});
+
+	test('every action row leads with at most one primary button', () => {
+		const pane = mountPane({ getAuthStatus: () => ({ kind: 'signedIn', email: 'a@example.com' }) });
+		const container = pane.getDomNode();
+
+		const rows = [...container.querySelectorAll('.connection-actions')];
+		assert.ok(rows.length > 0);
+		for (const row of rows) {
+			const buttons = [...row.querySelectorAll('.monaco-button')];
+			assert.ok(buttons.length > 0, `${row.className} must hold at least one button`);
+			const primary = buttons.filter(button => !button.classList.contains('secondary'));
+			assert.ok(primary.length <= 1, `${row.className} must not stack primary buttons`);
+			if (primary.length === 1) {
+				assert.strictEqual(buttons[0], primary[0], `${row.className} must lead with its primary button`);
+			}
+		}
+
+		container.remove();
+	});
+
 	test('layout under 600px applies is-narrow from pane width', () => {
 		const pane = mountPane();
 		const container = pane.getDomNode();
@@ -395,7 +433,6 @@ suite('ConnectionPreferencesPane', () => {
 		pane.layout(new Dimension(599, 800));
 		assert.ok(container.classList.contains('is-narrow'));
 		assert.ok(container.classList.contains('is-showing-detail'));
-		assert.strictEqual(container.querySelector('button[data-zone="hub"]')?.getAttribute('aria-current'), 'true');
 		const back = container.querySelector('.connection-preferences-back') as HTMLButtonElement;
 		assert.ok(back);
 		assert.strictEqual(back.hidden, false);
@@ -406,14 +443,14 @@ suite('ConnectionPreferencesPane', () => {
 		assert.strictEqual(back.hidden, true);
 		const nav = container.querySelector('.connection-preferences-nav') as HTMLElement;
 		assert.ok(nav);
-		const hubNav = nav.querySelector('button[data-zone="hub"]') as HTMLButtonElement;
+		const hubNav = [...container.querySelectorAll('.connection-preferences-nav-label')]
+			.find(el => el.textContent === 'Hub account');
 		assert.ok(hubNav);
-		hubNav.click();
+		pane.selectZone('hub');
 		assert.ok(container.classList.contains('is-showing-detail'));
 		assert.strictEqual(back.hidden, false);
 		const body = container.querySelector('.connection-preferences-body') as HTMLElement;
 		assert.ok(body);
-		assert.ok(!body.contains(back));
 		assert.ok(body.contains(container.querySelector('.connection-hub-account')));
 
 		container.remove();
@@ -428,13 +465,14 @@ suite('ConnectionPreferencesPane', () => {
 		});
 		const container = pane.getDomNode();
 		pane.layout(new Dimension(599, 800));
-		const devicesNav = container.querySelector('button[data-zone="devices"]') as HTMLButtonElement;
-		assert.ok(devicesNav);
-		assert.strictEqual(devicesNav.hidden, true);
+		const navLabels = () => [...container.querySelectorAll('.connection-preferences-nav-label')].map(el => el.textContent);
+		assert.ok(!navLabels().includes('Devices'));
 
 		auth = { kind: 'signedIn', email: 'user@hub.example' };
 		onDidChangeAuthStatus.fire(auth);
-		assert.strictEqual(devicesNav.hidden, false);
+		const back = container.querySelector('.connection-preferences-back') as HTMLButtonElement;
+		back.click();
+		assert.ok(navLabels().includes('Devices'));
 
 		container.remove();
 	});
@@ -521,6 +559,7 @@ suite('ConnectionPreferencesPane', () => {
 		});
 		const container = pane.getDomNode();
 		pane.layout(new Dimension(800, 800));
+		pane.selectZone('devices');
 		await Promise.resolve();
 
 		const connectButton = container.querySelector('.connection-hub-device-row .monaco-button') as HTMLButtonElement | null;
@@ -542,6 +581,7 @@ suite('ConnectionPreferencesPane', () => {
 		});
 		const container = pane.getDomNode();
 		pane.layout(new Dimension(800, 800));
+		pane.selectZone('devices');
 		await Promise.resolve();
 
 		const connectButton = container.querySelector('.connection-hub-device-row .monaco-button') as HTMLButtonElement | null;
@@ -627,6 +667,57 @@ suite('ConnectionPreferencesPane', () => {
 		document.body.appendChild(container);
 		(pane as unknown as { activeProfileId: string }).activeProfileId = 'hub-profile-1';
 		await (pane as unknown as { connectProfileWithPairing(profileId: string): Promise<void> }).connectProfileWithPairing('hub-profile-1');
+		assert.strictEqual(confirmCalls, 1);
+		container.remove();
+	});
+
+	test('SAS confirm still opens when capability snapshot looks web-unsupported', async () => {
+		let confirmCalls = 0;
+		const handshakeSas = 'ABCD-EFGH';
+		const capabilities = createWebUnsupportedCapabilitySnapshot();
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IUniverseAgentHubService, createHubStub({
+			listConnectionProfiles: () => [{
+				profileId: 'direct-profile-1',
+				displayName: 'debug-engine',
+				state: 'pairingPending',
+				hasTrust: false,
+				targetKind: 'directAddress',
+			}],
+		}));
+		instantiationService.stub(IUniverseAgentConnection, createConnectionStub({
+			getCapabilitySnapshot: () => capabilities,
+			getConnectionSnapshot: () => ({
+				transport: 'idle',
+				pairingPending: true,
+				channelAlive: false,
+				sharedFsRootSent: false,
+				capabilities,
+			}),
+			connectProfile: async () => ({
+				ok: true,
+				path: 'direct',
+				pairingPending: true,
+				sasCode: handshakeSas,
+				engineIdentityId: '0123456789abcdef',
+			}),
+			confirmPairing: async () => {
+				confirmCalls++;
+				return { ok: true, path: 'direct', pairingPending: false, sessionToken: 'tok' };
+			},
+		}));
+		instantiationService.stub(IDialogService, {
+			_serviceBrand: undefined,
+			prompt: async (config: { detail?: string; buttons: readonly { run: () => boolean }[] }) => {
+				assert.ok(config.detail?.includes(handshakeSas));
+				return { result: config.buttons[0].run() };
+			},
+		} as unknown as IDialogService);
+
+		const pane = store.add(instantiationService.createInstance(ConnectionPreferencesPane));
+		const container = pane.getDomNode();
+		document.body.appendChild(container);
+		await (pane as unknown as { connectProfileWithPairing(profileId: string): Promise<void> }).connectProfileWithPairing('direct-profile-1');
 		assert.strictEqual(confirmCalls, 1);
 		container.remove();
 	});
@@ -1198,6 +1289,7 @@ suite('ConnectionPreferencesPane', () => {
 		});
 		const disconnectedContainer = disconnected.getDomNode();
 		disconnected.layout(new Dimension(800, 800));
+		disconnected.selectZone('devices');
 		await Promise.resolve();
 		await Promise.resolve();
 		assert.strictEqual(listDevicesCalls, 0);
@@ -1215,6 +1307,7 @@ suite('ConnectionPreferencesPane', () => {
 		});
 		const noHookContainer = noHook.getDomNode();
 		noHook.layout(new Dimension(800, 800));
+		noHook.selectZone('devices');
 		await Promise.resolve();
 		await Promise.resolve();
 		assert.strictEqual(listDevicesCalls, 0);
@@ -1250,6 +1343,7 @@ suite('ConnectionPreferencesPane', () => {
 		});
 		const container = pane.getDomNode();
 		pane.layout(new Dimension(800, 800));
+		pane.selectZone('devices');
 		await Promise.resolve();
 		await Promise.resolve();
 		assert.strictEqual(listDevicesCalls, 1);
@@ -1277,6 +1371,7 @@ suite('ConnectionPreferencesPane', () => {
 		});
 		const container = pane.getDomNode();
 		pane.layout(new Dimension(800, 800));
+		pane.selectZone('devices');
 		await Promise.resolve();
 		await Promise.resolve();
 		assert.strictEqual(listDevicesCalls, 1);

@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { mainWindow } from '../../../../base/browser/window.js';
 import { localize2 } from '../../../../nls.js';
 import { Action2, registerAction2 } from '../../../../platform/actions/common/actions.js';
 import { ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js';
@@ -32,7 +33,9 @@ export async function closeAllSettingsEditor2(accessor: ServicesAccessor): Promi
 }
 
 export function ensurePreviewVisibleForPreferences(layoutService: IWorkbenchLayoutService): void {
-	if (!layoutService.isVisible(Parts.EDITOR_PART)) {
+	// The editor part exists per window, so its visibility must be queried for a specific one.
+	// `setPartHidden` only ever acts on the main window, so that is the window to ask about.
+	if (!layoutService.isVisible(Parts.EDITOR_PART, mainWindow)) {
 		layoutService.setPartHidden(false, Parts.EDITOR_PART);
 	}
 }

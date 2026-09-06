@@ -188,10 +188,12 @@ export class EnginePluginsSection extends Disposable {
 		this.writeToolbar = DOM.append(this.container, $('.engine-catalog-write-toolbar'));
 		this.writeToolbar.style.display = 'none';
 		this.scanNewButton = this._register(new Button(this.writeToolbar, defaultButtonStyles));
-		this.scanNewButton.label = localize('ua.enginePluginsScanNew', "Scan new");
+		this.scanNewButton.label = localize('ua.enginePluginsScanNew', "Scan New");
 		this._register(this.scanNewButton.onDidClick(() => void this.scanNew()));
 
 		this.scanResult = DOM.append(this.container, $('.engine-catalog-description.engine-plugins-scan-result'));
+		this.scanResult.setAttribute('role', 'status');
+		this.scanResult.setAttribute('aria-live', 'polite');
 		this.scanResult.style.display = 'none';
 
 		this.listContainer = DOM.append(this.container, $('.engine-catalog-list.engine-plugins-list'));
@@ -202,10 +204,10 @@ export class EnginePluginsSection extends Disposable {
 		this.enableButton = this._register(new Button(this.rowToolbar, defaultButtonStyles));
 		this.enableButton.label = localize('ua.enginePluginsEnable', "Enable");
 		this._register(this.enableButton.onDidClick(() => void this.enableSelected()));
-		this.reloadButton = this._register(new Button(this.rowToolbar, defaultButtonStyles));
+		this.reloadButton = this._register(new Button(this.rowToolbar, { ...defaultButtonStyles, secondary: true }));
 		this.reloadButton.label = localize('ua.enginePluginsReload', "Reload");
 		this._register(this.reloadButton.onDidClick(() => void this.reloadSelected()));
-		this.unloadButton = this._register(new Button(this.rowToolbar, defaultButtonStyles));
+		this.unloadButton = this._register(new Button(this.rowToolbar, { ...defaultButtonStyles, secondary: true }));
 		this.unloadButton.label = localize('ua.enginePluginsUnload', "Unload");
 		this._register(this.unloadButton.onDidClick(() => void this.unloadSelected()));
 

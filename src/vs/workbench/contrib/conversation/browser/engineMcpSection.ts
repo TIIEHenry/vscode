@@ -118,6 +118,7 @@ class EngineMcpRowRenderer implements IListRenderer<EngineMcpListEntry, IMcpRowT
 		(templateData.row as unknown as { __server?: UniverseAgentMcpServerSummary }).__server = entry.server;
 		templateData.name.textContent = entry.server.name || entry.server.id;
 		templateData.transport.textContent = entry.server.transport;
+		templateData.checkbox.setTitle(localize('ua.engineMcpRowToggle', "Enable {0}", entry.server.name || entry.server.id));
 		templateData.checkbox.checked = entry.server.effectiveEnabled ?? entry.server.enabled;
 	}
 
@@ -171,8 +172,8 @@ export class EngineMcpSection extends Disposable {
 	private readonly container: HTMLElement;
 	private readonly heading: HTMLElement;
 	private readonly tabBar: HTMLElement;
-	private readonly definitionsTab: HTMLButtonElement;
-	private readonly runtimeTab: HTMLButtonElement;
+	private readonly definitionsTab: Button;
+	private readonly runtimeTab: Button;
 	private readonly definitionsPanel: HTMLElement;
 	private readonly runtimePanelHost: HTMLElement;
 	private readonly runtimePanel: EngineMcpRuntimePanel;
@@ -205,16 +206,14 @@ export class EngineMcpSection extends Disposable {
 
 		this.tabBar = DOM.append(this.container, $('.engine-mcp-tab-bar'));
 		this.tabBar.setAttribute('role', 'tablist');
-		this.definitionsTab = DOM.append(this.tabBar, $('button.engine-mcp-tab')) as HTMLButtonElement;
-		this.definitionsTab.type = 'button';
-		this.definitionsTab.setAttribute('role', 'tab');
-		this.definitionsTab.textContent = localize('ua.engineMcpTabDefinitions', "Definitions");
-		this.runtimeTab = DOM.append(this.tabBar, $('button.engine-mcp-tab')) as HTMLButtonElement;
-		this.runtimeTab.type = 'button';
-		this.runtimeTab.setAttribute('role', 'tab');
-		this.runtimeTab.textContent = localize('ua.engineMcpTabRuntime', "Runtime");
-		this._register(DOM.addDisposableListener(this.definitionsTab, 'click', () => this.setActiveTab('definitions')));
-		this._register(DOM.addDisposableListener(this.runtimeTab, 'click', () => this.setActiveTab('runtime')));
+		this.definitionsTab = this._register(new Button(this.tabBar, { ...defaultButtonStyles, secondary: true }));
+		this.definitionsTab.label = localize('ua.engineMcpTabDefinitions', "Definitions");
+		this.definitionsTab.element.setAttribute('role', 'tab');
+		this.runtimeTab = this._register(new Button(this.tabBar, { ...defaultButtonStyles, secondary: true }));
+		this.runtimeTab.label = localize('ua.engineMcpTabRuntime', "Runtime");
+		this.runtimeTab.element.setAttribute('role', 'tab');
+		this._register(this.definitionsTab.onDidClick(() => this.setActiveTab('definitions')));
+		this._register(this.runtimeTab.onDidClick(() => this.setActiveTab('runtime')));
 
 		this.definitionsPanel = DOM.append(this.container, $('.engine-mcp-definitions-panel'));
 
@@ -225,12 +224,12 @@ export class EngineMcpSection extends Disposable {
 		const addButton = this._register(new Button(this.writeToolbar, defaultButtonStyles));
 		addButton.label = localize('ua.engineMcpAdd', "Add");
 		this._register(addButton.onDidClick(() => void this.addServer()));
-		const removeButton = this._register(new Button(this.writeToolbar, defaultButtonStyles));
-		removeButton.label = localize('ua.engineMcpRemove', "Remove");
-		this._register(removeButton.onDidClick(() => void this.removeSelectedServer()));
-		const updateButton = this._register(new Button(this.writeToolbar, defaultButtonStyles));
+		const updateButton = this._register(new Button(this.writeToolbar, { ...defaultButtonStyles, secondary: true }));
 		updateButton.label = localize('ua.engineMcpUpdate', "Update");
 		this._register(updateButton.onDidClick(() => void this.updateSelectedServer()));
+		const removeButton = this._register(new Button(this.writeToolbar, { ...defaultButtonStyles, secondary: true }));
+		removeButton.label = localize('ua.engineMcpRemove', "Remove");
+		this._register(removeButton.onDidClick(() => void this.removeSelectedServer()));
 
 		this.listContainer = DOM.append(this.definitionsPanel, $('.engine-catalog-list'));
 
@@ -247,10 +246,10 @@ export class EngineMcpSection extends Disposable {
 	}
 
 	private setActiveTab(tab: EngineMcpTab): void {
-		this.definitionsTab.classList.toggle('engine-mcp-tab--active', tab === 'definitions');
-		this.runtimeTab.classList.toggle('engine-mcp-tab--active', tab === 'runtime');
-		this.definitionsTab.setAttribute('aria-selected', String(tab === 'definitions'));
-		this.runtimeTab.setAttribute('aria-selected', String(tab === 'runtime'));
+		this.definitionsTab.secondary = tab !== 'definitions';
+		this.runtimeTab.secondary = tab !== 'runtime';
+		this.definitionsTab.element.setAttribute('aria-selected', String(tab === 'definitions'));
+		this.runtimeTab.element.setAttribute('aria-selected', String(tab === 'runtime'));
 		this.definitionsPanel.style.display = tab === 'definitions' ? '' : 'none';
 		this.runtimePanel.setVisible(tab === 'runtime');
 		if (tab === 'runtime') {

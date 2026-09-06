@@ -450,7 +450,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		assert.strictEqual(parent.querySelector('textarea'), null);
 	});
 
-	test('Tools: missing getToolInfo hook hides detail', async () => {
+	test('Tools: missing getToolInfo hook explains the detail API is unavailable', async () => {
 		const connection = createConnectionStub({
 			connected: true,
 			capabilities: { tools: { support: 'SUPPORTED' } },
@@ -467,6 +467,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 
 		assert.strictEqual(section.selectTool('bash'), true);
 		await flushMicrotasks();
-		assert.strictEqual(section.isToolInfoVisible(), false);
+		assert.strictEqual(section.isToolInfoVisible(), true);
+		assert.ok((section.getToolInfoDetailText() ?? '').includes('does not expose'));
 	});
 });

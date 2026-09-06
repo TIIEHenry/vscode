@@ -17,23 +17,9 @@
 	height: 22px;
 	min-height: 22px;
 	max-height: 22px;
-	padding: 0 4px;
+	padding: 0 2px 0 4px;
 	border-bottom: 1px solid var(--vscode-sideBar-border, var(--vscode-contrastBorder, transparent));
 	background-color: var(--vscode-sideBar-background);
 	box-sizing: border-box;
-	overflow: hidden;
-}
-
-.monaco-workbench .part.conversation .conversation-window-nav .monaco-button {
-	box-sizing: border-box;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	width: 22px;
-	height: 20px;
-	min-width: 22px;
-	min-height: 20px;
-	max-height: 20px;
-	padding: 0;
 	overflow: hidden;
 }

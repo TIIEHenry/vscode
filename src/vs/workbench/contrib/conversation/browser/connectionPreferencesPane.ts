@@ -6,14 +6,17 @@
 import './media/connectionPreferencesPane.css';
 import * as DOM from '../../../../base/browser/dom.js';
 import { Button } from '../../../../base/browser/ui/button/button.js';
+import { InputBox } from '../../../../base/browser/ui/inputbox/inputBox.js';
 import { IListRenderer, IListVirtualDelegate } from '../../../../base/browser/ui/list/list.js';
 import { IListAccessibilityProvider } from '../../../../base/browser/ui/list/listWidget.js';
+import { Checkbox } from '../../../../base/browser/ui/toggle/toggle.js';
 import { Disposable, DisposableStore } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
+import { IContextViewService } from '../../../../platform/contextview/browser/contextView.js';
 import { IDialogService } from '../../../../platform/dialogs/common/dialogs.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { WorkbenchList } from '../../../../platform/list/browser/listService.js';
-import { defaultButtonStyles } from '../../../../platform/theme/browser/defaultStyles.js';
+import { defaultButtonStyles, defaultCheckboxStyles, defaultInputBoxStyles } from '../../../../platform/theme/browser/defaultStyles.js';
 import type { ConnectionPhase, ConnectionProbeResult } from '../../../../platform/universeAgent/common/connectionHubTypes.js';
 import type { ConnectionProfileProjection, HubDeviceProjection } from '../../../../platform/universeAgent/common/hub.js';
 import { IUniverseAgentConnection, type UniverseAgentProbeEngineResult } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
@@ -43,7 +46,9 @@ import {
 import {
 	canConnectHubDevice,
 	getConnectionPhasePaneLabel,
+	getConnectionPhaseTone,
 	getHubAuthStatusLabel,
+	getHubAuthStatusTone,
 	getHubDeviceRowStatusLabel,
 	getHubDirectoryBannerLabel,
 	getHubMustChangePasswordHint,
@@ -55,6 +60,7 @@ import {
 	readHandshakeSasCode,
 	isRecoverTrustConnectResult,
 	readRecoverTrustLeafFingerprint,
+	type ConnectionStatusTone,
 } from './connectionPreferencesPaneLabels.js';
 import { promptRecoverTrustConfirmDialog, promptSasConfirmDialog } from './connectionPreferencesPaneSas.js';
 import { getConnectionPhaseStatusBarText } from './conversationSessionStatus.js';
@@ -67,7 +73,65 @@ import {
 
 const $ = DOM.$;
 
-type ConnectionZoneId = 'hub' | 'devices' | 'direct' | 'profiles' | 'test';
+/** Every status line in the pane is written through here so tone and copy never drift apart. */
+function writeStatus(element: HTMLElement, text: string, tone: ConnectionStatusTone = 'neutral'): void {
+	element.textContent = text;
+	element.classList.toggle('is-success', tone === 'success');
+	element.classList.toggle('is-warning', tone === 'warning');
+	element.classList.toggle('is-error', tone === 'error');
+}
+
+export type ConnectionZoneId = 'hub' | 'devices' | 'direct' | 'profiles' | 'test';
+
+const CONNECTION_ZONE_NAV_ENTRIES: ReadonlyArray<{ readonly id: ConnectionZoneId; readonly label: string }> = [
+	{ id: 'hub', label: localize('ua.connectionHubAccountHeading', "Hub account") },
+	{ id: 'devices', label: localize('ua.connectionDevicesHeading', "Devices") },
+	{ id: 'direct', label: localize('ua.connectionDirectAddressHeading', "Direct Address") },
+	{ id: 'profiles', label: localize('ua.connectionProfilesHeading', "Connection profiles") },
+	{ id: 'test', label: localize('ua.connectionTestHeading', "Test Connection") },
+];
+
+class ConnectionNavDelegate implements IListVirtualDelegate<typeof CONNECTION_ZONE_NAV_ENTRIES[number]> {
+	getHeight(): number {
+		return 28;
+	}
+
+	getTemplateId(): string {
+		return 'connectionNav';
+	}
+}
+
+interface IConnectionNavTemplateData {
+	readonly label: HTMLElement;
+}
+
+class ConnectionNavRenderer implements IListRenderer<typeof CONNECTION_ZONE_NAV_ENTRIES[number], IConnectionNavTemplateData> {
+	static readonly TEMPLATE_ID = 'connectionNav';
+	readonly templateId = ConnectionNavRenderer.TEMPLATE_ID;
+
+	renderTemplate(container: HTMLElement): IConnectionNavTemplateData {
+		container.classList.add('connection-preferences-nav-row');
+		return { label: DOM.append(container, $('.connection-preferences-nav-label')) };
+	}
+
+	renderElement(entry: typeof CONNECTION_ZONE_NAV_ENTRIES[number], _index: number, templateData: IConnectionNavTemplateData): void {
+		templateData.label.textContent = entry.label;
+	}
+
+	disposeTemplate(): void {
+		// noop
+	}
+}
+
+class ConnectionNavAccessibilityProvider implements IListAccessibilityProvider<typeof CONNECTION_ZONE_NAV_ENTRIES[number]> {
+	getWidgetAriaLabel(): string {
+		return localize('ua.connectionPreferencesNav', "Connection sections");
+	}
+
+	getAriaLabel(entry: typeof CONNECTION_ZONE_NAV_ENTRIES[number]): string {
+		return entry.label;
+	}
+}
 
 export interface IConnectionProfileEntry {
 	readonly id: string;
@@ -241,17 +305,17 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 	private readonly renameDeviceButton: Button;
 	private readonly revokeDeviceButton: Button;
 	private readonly rotateTokenButton: Button;
-	private readonly confirmDeviceCodeInput: HTMLInputElement;
+	private readonly confirmDeviceCodeInput: InputBox;
 	private readonly confirmDeviceCodeButton: Button;
 	private readonly rejectDevicePairButton: Button;
 	private readonly pendingPairsHeading: HTMLElement;
 	private readonly pendingPairsEmpty: HTMLElement;
 	private readonly pendingPairsList: HTMLElement;
 	private readonly directAddressSection: HTMLElement;
-	private readonly directHostInput: HTMLInputElement;
-	private readonly directPortInput: HTMLInputElement;
-	private readonly directNameInput: HTMLInputElement;
-	private readonly directAllowPrivateCheckbox: HTMLInputElement;
+	private readonly directHostInput: InputBox;
+	private readonly directPortInput: InputBox;
+	private readonly directNameInput: InputBox;
+	private readonly directAllowPrivateCheckbox: Checkbox;
 	private readonly directAddressStatus: HTMLElement;
 	private readonly profilesSection: HTMLElement;
 	private readonly emptyWelcome: HTMLElement;
@@ -264,9 +328,14 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 	private readonly environmentNotice: HTMLElement;
 	private readonly backButton: HTMLButtonElement;
 	private readonly navHost: HTMLElement;
+	private readonly navList: WorkbenchList<typeof CONNECTION_ZONE_NAV_ENTRIES[number]>;
+	private readonly detail: HTMLElement;
+	private readonly detailTitle: HTMLElement;
 	private readonly scrollBody: HTMLElement;
-	private lastLayoutWidth = Number.POSITIVE_INFINITY;
-	private narrowShowingDetail = true;
+	private lastLayoutWidth = 900;
+	private lastLayoutHeight = 480;
+	private narrowShowingDetail = false;
+	private syncingNav = false;
 	private activeZoneId: ConnectionZoneId = 'hub';
 	private entries: IConnectionProfileEntry[] = [];
 	private hubDevices: HubDeviceProjection[] = [];
@@ -277,15 +346,16 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 	private connectionPhase: ConnectionPhase = { kind: 'disconnected' };
 	private activeProfileId: string | undefined;
 
-	private readonly hubBaseUrlInput: HTMLInputElement;
-	private readonly hubEmailInput: HTMLInputElement;
+	private readonly hubBaseUrlInput: InputBox;
+	private readonly hubEmailInput: InputBox;
 	private readonly hubPasswordLabel: HTMLElement;
-	private readonly hubPasswordInput: HTMLInputElement;
-	private readonly hubNewPasswordInput: HTMLInputElement;
+	private readonly hubPasswordInput: InputBox;
+	private readonly hubNewPasswordInput: InputBox;
 	private readonly hubLoginButton: Button;
 
 	constructor(
 		@IInstantiationService instantiationService: IInstantiationService,
+		@IContextViewService private readonly contextViewService: IContextViewService,
 		@IUniverseAgentHubService private readonly hubService: IUniverseAgentHubService,
 		@IUniverseAgentConnection private readonly connectionService: IUniverseAgentConnection,
 		@IDialogService private readonly dialogService: IDialogService,
@@ -294,7 +364,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 
 		this.container = DOM.$('.connection-preferences-pane');
 
-		const title = DOM.append(this.container, DOM.$('h2'));
+		const title = DOM.append(this.container, DOM.$('h2.connection-preferences-title'));
 		title.textContent = localize('ua.connectionPaneTitle', "Connection");
 
 		this.environmentNotice = DOM.append(this.container, DOM.$('.connection-environment-notice'));
@@ -302,85 +372,80 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		this.environmentNotice.textContent = getUnsupportedEnvironmentCopy();
 		this.environmentNotice.style.display = 'none';
 
-		this.backButton = DOM.append(this.container, $('button.connection-preferences-back')) as HTMLButtonElement;
+		const body = DOM.append(this.container, $('.connection-preferences-body'));
+		this.navHost = DOM.append(body, $('.connection-preferences-nav'));
+		this.navHost.setAttribute('role', 'navigation');
+		this.navHost.setAttribute('aria-label', localize('ua.connectionPreferencesNav', "Connection sections"));
+		this.navList = this._register(instantiationService.createInstance(
+			WorkbenchList,
+			'ConnectionPreferencesNav',
+			this.navHost,
+			new ConnectionNavDelegate(),
+			[new ConnectionNavRenderer()],
+			{
+				identityProvider: { getId: (entry: typeof CONNECTION_ZONE_NAV_ENTRIES[number]) => entry.id },
+				accessibilityProvider: new ConnectionNavAccessibilityProvider(),
+				keyboardNavigationLabelProvider: { getKeyboardNavigationLabel: (entry: typeof CONNECTION_ZONE_NAV_ENTRIES[number]) => entry.label },
+				keyboardSupport: true,
+				multipleSelectionSupport: false,
+				openOnSingleClick: true,
+			},
+		)) as WorkbenchList<typeof CONNECTION_ZONE_NAV_ENTRIES[number]>;
+
+		this.detail = DOM.append(body, $('.connection-preferences-detail'));
+		const detailHeader = DOM.append(this.detail, $('.connection-preferences-detail-header'));
+		this.backButton = DOM.append(detailHeader, $('button.connection-preferences-back')) as HTMLButtonElement;
 		this.backButton.type = 'button';
 		this.backButton.textContent = localize('ua.connectionPreferencesBack', "Back");
 		this.backButton.setAttribute('aria-label', localize('ua.connectionPreferencesBackAria', "Back to Connection sections"));
 		this.backButton.hidden = true;
 		this._register(DOM.addDisposableListener(this.backButton, 'click', () => this.showNarrowNav()));
+		this.detailTitle = DOM.append(detailHeader, $('h3.connection-preferences-detail-title'));
 
-		this.navHost = DOM.append(this.container, $('.connection-preferences-nav'));
-		this.navHost.setAttribute('role', 'navigation');
-		this.navHost.setAttribute('aria-label', localize('ua.connectionPreferencesNav', "Connection sections"));
-		this.renderZoneNav();
-
-		this.scrollBody = DOM.append(this.container, $('.connection-preferences-body'));
+		this.scrollBody = DOM.append(this.detail, $('.connection-preferences-detail-body'));
 
 		// Zone 1 — Hub account
 		this.hubAccountSection = DOM.append(this.scrollBody, DOM.$('.connection-zone.connection-hub-account'));
-		DOM.append(this.hubAccountSection, DOM.$('h3')).textContent = localize('ua.connectionHubAccountHeading', "Hub account");
-		this.hubAuthBadge = DOM.append(this.hubAccountSection, DOM.$('.connection-hub-auth-badge'));
+		this.hubAuthBadge = DOM.append(this.hubAccountSection, DOM.$('.connection-status.connection-hub-auth-badge'));
 		this.hubAuthBadge.setAttribute('role', 'status');
-		this.hubDeviceCodeStatus = DOM.append(this.hubAccountSection, DOM.$('.connection-hub-device-code-status'));
-		this.hubDeviceCodeStatus.setAttribute('role', 'status');
 
-		const hubUrlRow = DOM.append(this.hubAccountSection, DOM.$('.connection-field-row'));
-		DOM.append(hubUrlRow, DOM.$('label')).textContent = localize('ua.connectionHubBaseUrl', "Hub URL");
-		this.hubBaseUrlInput = DOM.append(hubUrlRow, DOM.$('input.connection-field-input')) as HTMLInputElement;
-		this.hubBaseUrlInput.type = 'url';
-		this.hubBaseUrlInput.placeholder = 'https://hub.example.com';
-
-		const emailRow = DOM.append(this.hubAccountSection, DOM.$('.connection-field-row'));
-		DOM.append(emailRow, DOM.$('label')).textContent = localize('ua.connectionHubEmail', "Email");
-		this.hubEmailInput = DOM.append(emailRow, DOM.$('input.connection-field-input')) as HTMLInputElement;
-		this.hubEmailInput.type = 'email';
-		this.hubEmailInput.placeholder = 'you@example.com';
-
-		const passwordRow = DOM.append(this.hubAccountSection, DOM.$('.connection-field-row'));
-		this.hubPasswordLabel = DOM.append(passwordRow, DOM.$('label'));
-		this.hubPasswordLabel.textContent = HUB_PASSWORD_FIELD_LABEL;
-		this.hubPasswordInput = DOM.append(passwordRow, DOM.$('input.connection-field-input')) as HTMLInputElement;
-		this.hubPasswordInput.type = 'password';
-
-		const hubNewPasswordRow = DOM.append(this.hubAccountSection, DOM.$('.connection-field-row.connection-hub-new-password-row'));
-		DOM.append(hubNewPasswordRow, DOM.$('label')).textContent = HUB_NEW_PASSWORD_FIELD_LABEL;
-		this.hubNewPasswordInput = DOM.append(hubNewPasswordRow, DOM.$('input.connection-field-input')) as HTMLInputElement;
-		this.hubNewPasswordInput.type = 'password';
-		this.hubNewPasswordInput.autocomplete = 'new-password';
+		this.hubBaseUrlInput = this.createFieldInput(this.hubAccountSection, localize('ua.connectionHubBaseUrl', "Hub URL"), {
+			type: 'url',
+			placeholder: 'https://hub.example.com',
+		}).input;
+		this.hubEmailInput = this.createFieldInput(this.hubAccountSection, localize('ua.connectionHubEmail', "Email"), {
+			type: 'email',
+			placeholder: 'you@example.com',
+		}).input;
+		const passwordField = this.createFieldInput(this.hubAccountSection, HUB_PASSWORD_FIELD_LABEL, { type: 'password' });
+		this.hubPasswordLabel = passwordField.label;
+		this.hubPasswordInput = passwordField.input;
+		const newPasswordField = this.createFieldInput(this.hubAccountSection, HUB_NEW_PASSWORD_FIELD_LABEL, {
+			type: 'password',
+			rowClass: 'connection-hub-new-password-row',
+		});
+		this.hubNewPasswordInput = newPasswordField.input;
+		this.hubNewPasswordInput.inputElement.autocomplete = 'new-password';
 
 		const hubMustChangeHint = DOM.append(this.hubAccountSection, DOM.$('.connection-hub-must-change-hint'));
 		hubMustChangeHint.setAttribute('role', 'status');
 		hubMustChangeHint.textContent = getHubMustChangePasswordHint();
 
-		const hubActions = DOM.append(this.hubAccountSection, DOM.$('.connection-hub-actions'));
+		const hubActions = DOM.append(this.hubAccountSection, DOM.$('.connection-actions.connection-hub-actions'));
 		this.hubLoginButton = this._register(new Button(hubActions, defaultButtonStyles));
 		this.hubLoginButton.label = HUB_LOGIN_BUTTON_LABEL;
 		this._register(this.hubLoginButton.onDidClick(() => this.handleLogin()));
 
-		const logoutButton = this._register(new Button(hubActions, defaultButtonStyles));
+		const logoutButton = this._register(new Button(hubActions, { ...defaultButtonStyles, secondary: true }));
 		logoutButton.label = localize('ua.connectionHubLogout', "Sign out");
 		this._register(logoutButton.onDidClick(() => this.handleLogout()));
 
-		const refreshButton = this._register(new Button(hubActions, defaultButtonStyles));
+		const refreshButton = this._register(new Button(hubActions, { ...defaultButtonStyles, secondary: true }));
 		refreshButton.label = localize('ua.connectionHubRefreshDevices', "Refresh devices");
 		this._register(refreshButton.onDidClick(() => this.refreshHubDirectory()));
 
-		const deviceCodeRow = DOM.append(this.hubAccountSection, DOM.$('.connection-field-row.connection-hub-device-code'));
-		DOM.append(deviceCodeRow, DOM.$('label')).textContent = localize('ua.connectionConfirmDeviceCodeLabel', "Device code");
-		this.confirmDeviceCodeInput = DOM.append(deviceCodeRow, DOM.$('input.connection-field-input')) as HTMLInputElement;
-		this.confirmDeviceCodeInput.type = 'text';
-		this.confirmDeviceCodeInput.placeholder = localize('ua.connectionConfirmDeviceCodePlaceholder', "Device code");
-		this.confirmDeviceCodeInput.setAttribute('aria-label', localize('ua.connectionConfirmDeviceCodeAria', "Confirm device code"));
-		this.confirmDeviceCodeButton = this._register(new Button(deviceCodeRow, defaultButtonStyles));
-		this.confirmDeviceCodeButton.label = localize('ua.connectionConfirmDeviceCode', "Confirm");
-		this._register(this.confirmDeviceCodeButton.onDidClick(() => void this.handleConfirmDeviceCode()));
-		this.rejectDevicePairButton = this._register(new Button(deviceCodeRow, { ...defaultButtonStyles, secondary: true }));
-		this.rejectDevicePairButton.label = CONNECTION_DEVICE_PAIR_REJECT_LABEL;
-		this._register(this.rejectDevicePairButton.onDidClick(() => void this.handleRejectDevicePair()));
-
 		// Zone 2 — Device list
 		this.hubDevicesSection = DOM.append(this.scrollBody, DOM.$('.connection-zone.connection-hub-devices'));
-		DOM.append(this.hubDevicesSection, DOM.$('h3')).textContent = localize('ua.connectionDevicesHeading', "Devices");
 		this.hubDirectoryBanner = DOM.append(this.hubDevicesSection, DOM.$('.connection-hub-directory-banner'));
 		this.hubDirectoryBanner.setAttribute('role', 'alert');
 		this.hubDevicesListContainer = DOM.append(this.hubDevicesSection, DOM.$('.connection-hub-devices-list'));
@@ -397,7 +462,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		)) as WorkbenchList<HubDeviceProjection>;
 		this._register(this.hubDevicesList.onDidChangeSelection(() => this.updateDeviceActions()));
 
-		this.deviceActionsRow = DOM.append(this.hubDevicesSection, DOM.$('.connection-hub-device-actions'));
+		this.deviceActionsRow = DOM.append(this.hubDevicesSection, DOM.$('.connection-actions.connection-hub-device-actions'));
 		this.renameDeviceButton = this._register(new Button(this.deviceActionsRow, { ...defaultButtonStyles, secondary: true }));
 		this.renameDeviceButton.label = localize('ua.connectionDeviceRename', "Rename");
 		this._register(this.renameDeviceButton.onDidClick(() => void this.handleRenameSelectedDevice()));
@@ -416,61 +481,74 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		this.pendingPairsList = DOM.append(this.hubDevicesSection, DOM.$('.connection-engine-pending-list'));
 		this.pendingPairsList.setAttribute('role', 'list');
 
+		const deviceCodeRow = DOM.append(this.hubDevicesSection, DOM.$('.connection-field-row.connection-hub-device-code'));
+		DOM.append(deviceCodeRow, DOM.$('label')).textContent = localize('ua.connectionConfirmDeviceCodeLabel', "Device code");
+		const deviceCodeHost = DOM.append(deviceCodeRow, $('.connection-field-input'));
+		this.confirmDeviceCodeInput = this._register(new InputBox(deviceCodeHost, this.contextViewService, {
+			placeholder: localize('ua.connectionConfirmDeviceCodePlaceholder', "Device code"),
+			ariaLabel: localize('ua.connectionConfirmDeviceCodeAria', "Confirm device code"),
+			inputBoxStyles: defaultInputBoxStyles,
+		}));
+		this.confirmDeviceCodeButton = this._register(new Button(deviceCodeRow, defaultButtonStyles));
+		this.confirmDeviceCodeButton.label = localize('ua.connectionConfirmDeviceCode', "Confirm");
+		this._register(this.confirmDeviceCodeButton.onDidClick(() => void this.handleConfirmDeviceCode()));
+		this.rejectDevicePairButton = this._register(new Button(deviceCodeRow, { ...defaultButtonStyles, secondary: true }));
+		this.rejectDevicePairButton.label = CONNECTION_DEVICE_PAIR_REJECT_LABEL;
+		this._register(this.rejectDevicePairButton.onDidClick(() => void this.handleRejectDevicePair()));
+		this.hubDeviceCodeStatus = DOM.append(this.hubDevicesSection, DOM.$('.connection-status.connection-hub-device-code-status'));
+		this.hubDeviceCodeStatus.setAttribute('role', 'status');
+
 		// Zone 2b — Direct Address (debug / fallback; no Hub ticket)
 		this.directAddressSection = DOM.append(this.scrollBody, DOM.$('.connection-zone.connection-direct-address'));
-		DOM.append(this.directAddressSection, DOM.$('h3')).textContent = localize('ua.connectionDirectAddressHeading', "Direct Address");
 		const directHint = DOM.append(this.directAddressSection, DOM.$('.connection-direct-address-hint'));
 		directHint.textContent = localize(
 			'ua.connectionDirectAddressHint',
 			"Manual host and port for debugging or fallback. Private networks are blocked unless explicitly allowed.",
 		);
 
-		const directHostRow = DOM.append(this.directAddressSection, DOM.$('.connection-field-row'));
-		DOM.append(directHostRow, DOM.$('label')).textContent = localize('ua.connectionDirectHost', "Host");
-		this.directHostInput = DOM.append(directHostRow, DOM.$('input.connection-field-input')) as HTMLInputElement;
-		this.directHostInput.placeholder = '203.0.113.10';
+		this.directHostInput = this.createFieldInput(this.directAddressSection, localize('ua.connectionDirectHost', "Host"), {
+			placeholder: '203.0.113.10',
+		}).input;
+		this.directPortInput = this.createFieldInput(this.directAddressSection, localize('ua.connectionDirectPort', "Port"), {
+			type: 'number',
+			placeholder: '7443',
+		}).input;
+		this.directPortInput.inputElement.min = '1';
+		this.directPortInput.inputElement.max = '65535';
+		this.directNameInput = this.createFieldInput(this.directAddressSection, localize('ua.connectionDirectDisplayName', "Name"), {
+			placeholder: localize('ua.connectionDirectDisplayNamePlaceholder', "Optional label"),
+		}).input;
 
-		const directPortRow = DOM.append(this.directAddressSection, DOM.$('.connection-field-row'));
-		DOM.append(directPortRow, DOM.$('label')).textContent = localize('ua.connectionDirectPort', "Port");
-		this.directPortInput = DOM.append(directPortRow, DOM.$('input.connection-field-input')) as HTMLInputElement;
-		this.directPortInput.type = 'number';
-		this.directPortInput.min = '1';
-		this.directPortInput.max = '65535';
-		this.directPortInput.placeholder = '7443';
+		const allowPrivateLabelText = localize('ua.connectionAllowPrivateNetwork', "Allow private / loopback networks");
+		const directAllowRow = DOM.append(this.directAddressSection, DOM.$('.connection-field-row.connection-toggle-row'));
+		this.directAllowPrivateCheckbox = this._register(new Checkbox(allowPrivateLabelText, false, defaultCheckboxStyles));
+		this.directAllowPrivateCheckbox.domNode.id = 'connection-allow-private-network';
+		DOM.append(directAllowRow, this.directAllowPrivateCheckbox.domNode);
+		const allowLabel = DOM.append(directAllowRow, DOM.$('span.connection-toggle-label'));
+		allowLabel.textContent = allowPrivateLabelText;
+		this._register(DOM.addDisposableListener(allowLabel, DOM.EventType.CLICK, () => {
+			this.directAllowPrivateCheckbox.checked = !this.directAllowPrivateCheckbox.checked;
+			this.directAllowPrivateCheckbox.focus();
+		}));
 
-		const directNameRow = DOM.append(this.directAddressSection, DOM.$('.connection-field-row'));
-		DOM.append(directNameRow, DOM.$('label')).textContent = localize('ua.connectionDirectDisplayName', "Name");
-		this.directNameInput = DOM.append(directNameRow, DOM.$('input.connection-field-input')) as HTMLInputElement;
-		this.directNameInput.placeholder = localize('ua.connectionDirectDisplayNamePlaceholder', "Optional label");
-
-		const directAllowRow = DOM.append(this.directAddressSection, DOM.$('.connection-field-row'));
-		this.directAllowPrivateCheckbox = DOM.append(directAllowRow, DOM.$('input')) as HTMLInputElement;
-		this.directAllowPrivateCheckbox.type = 'checkbox';
-		this.directAllowPrivateCheckbox.id = 'connection-allow-private-network';
-		const allowLabel = DOM.append(directAllowRow, DOM.$('label')) as HTMLLabelElement;
-		allowLabel.setAttribute('for', 'connection-allow-private-network');
-		allowLabel.textContent = localize('ua.connectionAllowPrivateNetwork', "Allow private / loopback networks");
-
-		const directActions = DOM.append(this.directAddressSection, DOM.$('.connection-hub-actions'));
-		const addDirectButton = this._register(new Button(directActions, defaultButtonStyles));
-		addDirectButton.label = localize('ua.connectionDirectAdd', "Add");
-		this._register(addDirectButton.onDidClick(() => this.handleAddDirectAddress()));
-
+		const directActions = DOM.append(this.directAddressSection, DOM.$('.connection-actions.connection-direct-actions'));
 		const connectDirectButton = this._register(new Button(directActions, defaultButtonStyles));
 		connectDirectButton.label = localize('ua.connectionDirectConnect', "Connect");
 		this._register(connectDirectButton.onDidClick(() => this.handleConnectDirectAddress()));
 
-		this.directAddressStatus = DOM.append(this.directAddressSection, DOM.$('.connection-direct-address-status'));
+		const addDirectButton = this._register(new Button(directActions, { ...defaultButtonStyles, secondary: true }));
+		addDirectButton.label = localize('ua.connectionDirectAdd', "Add");
+		this._register(addDirectButton.onDidClick(() => this.handleAddDirectAddress()));
+
+		this.directAddressStatus = DOM.append(this.directAddressSection, DOM.$('.connection-status.connection-direct-address-status'));
 		this.directAddressStatus.setAttribute('role', 'status');
 
 		// Zone 3 — Connection profiles
 		this.profilesSection = DOM.append(this.scrollBody, DOM.$('.connection-zone.connection-profiles'));
-		DOM.append(this.profilesSection, DOM.$('h3')).textContent = localize('ua.connectionProfilesHeading', "Connection profiles");
-		this.connectionPhaseLabel = DOM.append(this.profilesSection, DOM.$('.connection-phase-label'));
+		this.connectionPhaseLabel = DOM.append(this.profilesSection, DOM.$('.connection-status.connection-phase-label'));
 		this.connectionPhaseLabel.setAttribute('role', 'status');
 		this.emptyWelcome = DOM.append(this.profilesSection, DOM.$('.connection-empty-welcome'));
 		this.emptyWelcome.textContent = getConnectionEmptyCopy();
-		this.emptyWelcome.style.opacity = '0.8';
 		this.listContainer = DOM.append(this.profilesSection, DOM.$('.connection-list'));
 		this.list = this._register(instantiationService.createInstance(
 			WorkbenchList,
@@ -484,16 +562,16 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 			},
 		)) as WorkbenchList<IConnectionProfileEntry>;
 
-		this.profileActionsRow = DOM.append(this.profilesSection, DOM.$('.connection-profile-actions'));
+		this.profileActionsRow = DOM.append(this.profilesSection, DOM.$('.connection-actions.connection-profile-actions'));
 		const connectProfileButton = this._register(new Button(this.profileActionsRow, defaultButtonStyles));
 		connectProfileButton.label = localize('ua.connectionProfileConnect', "Connect");
 		this._register(connectProfileButton.onDidClick(() => this.handleConnectSelectedProfile()));
 
-		const disconnectButton = this._register(new Button(this.profileActionsRow, defaultButtonStyles));
+		const disconnectButton = this._register(new Button(this.profileActionsRow, { ...defaultButtonStyles, secondary: true }));
 		disconnectButton.label = localize('ua.connectionProfileDisconnect', "Disconnect");
 		this._register(disconnectButton.onDidClick(() => this.handleDisconnect()));
 
-		const forgetButton = this._register(new Button(this.profileActionsRow, defaultButtonStyles));
+		const forgetButton = this._register(new Button(this.profileActionsRow, { ...defaultButtonStyles, secondary: true }));
 		forgetButton.label = localize('ua.connectionProfileForget', "Forget this Engine");
 		this._register(forgetButton.onDidClick(() => this.handleForgetSelectedProfile()));
 
@@ -507,19 +585,54 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		// Zone 4 — Test Connection + Remote I/O hint
 		this.testSection = DOM.append(this.scrollBody, DOM.$('.connection-zone.connection-test-section'));
 		const testSection = this.testSection;
-		DOM.append(testSection, DOM.$('h3')).textContent = localize('ua.connectionTestHeading', "Test Connection");
 		const testRow = DOM.append(testSection, DOM.$('.connection-test-row'));
 		const testButton = this._register(new Button(testRow, defaultButtonStyles));
 		testButton.label = localize('ua.connectionTestActiveProfile', "Test active profile");
-		this.testStatus = DOM.append(testRow, DOM.$('.connection-test-status'));
+		this.testStatus = DOM.append(testRow, DOM.$('.connection-status.connection-test-status'));
 		this.testStatus.setAttribute('role', 'status');
 		this.testStatus.setAttribute('aria-live', 'polite');
 		this._register(testButton.onDidClick(() => void this.handleTestConnection()));
 
-		const remoteIoHint = DOM.append(this.scrollBody, DOM.$('.connection-remote-io-hint'));
+		const remoteIoHint = DOM.append(testSection, DOM.$('.connection-remote-io-hint'));
 		remoteIoHint.textContent = getConnectionRemoteIoHintCopy();
 
-		this._register(this.hubService.onDidChangeAuthStatus(() => this.renderHubAccount()));
+		this._register(this.navList.onDidChangeFocus(e => {
+			if (this.syncingNav) {
+				return;
+			}
+			const entry = e.elements[0] as typeof CONNECTION_ZONE_NAV_ENTRIES[number] | undefined;
+			if (!entry) {
+				return;
+			}
+			const available = this.getAvailableZoneEntries();
+			const index = available.findIndex(item => item.id === entry.id);
+			if (index >= 0 && this.navList.getSelection()[0] !== index) {
+				this.navList.setSelection([index]);
+			}
+			this.selectZone(entry.id);
+		}));
+		this._register(this.navList.onDidChangeSelection(e => {
+			if (this.syncingNav) {
+				return;
+			}
+			const entry = e.elements[0] as typeof CONNECTION_ZONE_NAV_ENTRIES[number] | undefined;
+			if (entry) {
+				this.selectZone(entry.id);
+			}
+		}));
+		this._register(this.navList.onDidOpen(e => {
+			if (this.syncingNav) {
+				return;
+			}
+			if (e.element) {
+				this.selectZone((e.element as typeof CONNECTION_ZONE_NAV_ENTRIES[number]).id);
+			}
+		}));
+
+		this._register(this.hubService.onDidChangeAuthStatus(() => {
+			this.renderHubAccount();
+			this.applyDesktopConnectionControlVisibility();
+		}));
 		this._register(this.hubService.onDidChangeDirectory(() => this.renderHubDirectory()));
 		this._register(this.hubService.onDidChangeProfiles(() => this.renderProfiles()));
 		this._register(this.connectionService.onDidChangeConnection(() => {
@@ -536,25 +649,27 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		this.renderConnectionPhase();
 		this.applyDesktopConnectionControlVisibility();
 		this.applyNarrowChrome();
+		this.selectZone(this.activeZoneId);
 		void this.initializeState();
 		void this.refreshEngineDeviceLists();
 	}
 
-	private renderZoneNav(): void {
-		const items: { readonly id: ConnectionZoneId; readonly label: string }[] = [
-			{ id: 'hub', label: localize('ua.connectionHubAccountHeading', "Hub account") },
-			{ id: 'devices', label: localize('ua.connectionDevicesHeading', "Devices") },
-			{ id: 'direct', label: localize('ua.connectionDirectAddressHeading', "Direct Address") },
-			{ id: 'profiles', label: localize('ua.connectionProfilesHeading', "Connection profiles") },
-			{ id: 'test', label: localize('ua.connectionTestHeading', "Test Connection") },
-		];
-		for (const item of items) {
-			const button = DOM.append(this.navHost, $('button.connection-preferences-nav-item')) as HTMLButtonElement;
-			button.type = 'button';
-			button.textContent = item.label;
-			button.setAttribute('data-zone', item.id);
-			this._register(DOM.addDisposableListener(button, 'click', () => this.selectZone(item.id)));
-		}
+	private createFieldInput(
+		parent: HTMLElement,
+		labelText: string,
+		options: { readonly type?: string; readonly placeholder?: string; readonly ariaLabel?: string; readonly rowClass?: string },
+	): { readonly row: HTMLElement; readonly label: HTMLElement; readonly input: InputBox } {
+		const row = DOM.append(parent, $(options.rowClass ? `.connection-field-row.${options.rowClass}` : '.connection-field-row'));
+		const label = DOM.append(row, $('label'));
+		label.textContent = labelText;
+		const host = DOM.append(row, $('.connection-field-input'));
+		const input = this._register(new InputBox(host, this.contextViewService, {
+			type: options.type,
+			placeholder: options.placeholder,
+			ariaLabel: options.ariaLabel ?? labelText,
+			inputBoxStyles: defaultInputBoxStyles,
+		}));
+		return { row, label, input };
 	}
 
 	private getZoneElement(id: ConnectionZoneId): HTMLElement {
@@ -571,43 +686,64 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		return this.getZoneElement(id).style.display !== 'none';
 	}
 
-	private selectZone(id: ConnectionZoneId): void {
+	private getAvailableZoneEntries(): typeof CONNECTION_ZONE_NAV_ENTRIES[number][] {
+		return CONNECTION_ZONE_NAV_ENTRIES.filter(entry => this.isZoneAvailable(entry.id));
+	}
+
+	private refreshZoneNav(): void {
+		const available = this.getAvailableZoneEntries();
+		this.syncingNav = true;
+		try {
+			this.navList.splice(0, this.navList.length, available);
+			const index = available.findIndex(entry => entry.id === this.activeZoneId);
+			if (index >= 0) {
+				this.navList.setFocus([index]);
+				this.navList.setSelection([index]);
+			}
+		} finally {
+			this.syncingNav = false;
+		}
+	}
+
+	selectZone(id: ConnectionZoneId): void {
 		this.activeZoneId = id;
-		this.narrowShowingDetail = true;
-		this.applyNarrowChrome();
+		this.detailTitle.textContent = CONNECTION_ZONE_NAV_ENTRIES.find(entry => entry.id === id)?.label ?? '';
+		if (this.lastLayoutWidth < PREFERENCES_PANE_NARROW_WIDTH) {
+			this.narrowShowingDetail = true;
+			this.container.classList.add('is-showing-detail');
+			this.backButton.hidden = false;
+		}
+		for (const zoneId of ['hub', 'devices', 'direct', 'profiles', 'test'] as const) {
+			this.getZoneElement(zoneId).classList.toggle('is-active-zone', zoneId === id);
+		}
+		this.layoutLists();
 	}
 
 	private showNarrowNav(): void {
 		this.narrowShowingDetail = false;
 		this.applyNarrowChrome();
-		(this.navHost.querySelector('button:not([hidden])') as HTMLButtonElement | null)?.focus();
+		this.navList.layout(this.getNavHeight(this.lastLayoutHeight), this.getNavWidth(this.lastLayoutWidth));
+		this.navList.domFocus();
 	}
 
 	private applyNarrowChrome(): void {
 		const narrow = this.lastLayoutWidth < PREFERENCES_PANE_NARROW_WIDTH;
 		const compact = this.lastLayoutWidth < PREFERENCES_PANE_COMPACT_WIDTH;
-		if (narrow && !this.isZoneAvailable(this.activeZoneId)) {
+		if (!this.isZoneAvailable(this.activeZoneId)) {
 			const fallback = (['hub', 'devices', 'direct', 'profiles', 'test'] as const).find(id => this.isZoneAvailable(id));
 			if (fallback) {
 				this.activeZoneId = fallback;
 			}
 		}
+		this.detailTitle.textContent = CONNECTION_ZONE_NAV_ENTRIES.find(entry => entry.id === this.activeZoneId)?.label ?? '';
 		this.container.classList.toggle('is-narrow', narrow);
 		this.container.classList.toggle('is-compact', compact);
 		this.container.classList.toggle('is-showing-detail', narrow && this.narrowShowingDetail);
 		this.backButton.hidden = !(narrow && this.narrowShowingDetail);
-		for (const button of this.navHost.querySelectorAll<HTMLButtonElement>('button[data-zone]')) {
-			const id = button.getAttribute('data-zone') as ConnectionZoneId | null;
-			button.hidden = !id || !this.isZoneAvailable(id);
-			if (id === this.activeZoneId) {
-				button.setAttribute('aria-current', 'true');
-			} else {
-				button.removeAttribute('aria-current');
-			}
-		}
 		for (const id of ['hub', 'devices', 'direct', 'profiles', 'test'] as const) {
 			this.getZoneElement(id).classList.toggle('is-active-zone', id === this.activeZoneId);
 		}
+		this.refreshZoneNav();
 	}
 
 	private desktopConnectionControlContext() {
@@ -648,15 +784,54 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 	}
 
 	layout(dimension: DOM.Dimension): void {
-		this.lastLayoutWidth = dimension.width;
 		this.container.style.height = `${dimension.height}px`;
+		const wasWide = this.lastLayoutWidth >= PREFERENCES_PANE_NARROW_WIDTH;
+		this.lastLayoutWidth = dimension.width;
+		this.lastLayoutHeight = dimension.height;
+		if (dimension.width >= PREFERENCES_PANE_NARROW_WIDTH) {
+			this.narrowShowingDetail = false;
+		} else if (wasWide) {
+			this.narrowShowingDetail = true;
+		}
 		this.applyNarrowChrome();
-		const listHeight = dimension.width < PREFERENCES_PANE_NARROW_WIDTH
-			? Math.max(80, Math.min(160, dimension.height - 160))
-			: Math.max(0, Math.floor((dimension.height - 520) / 2));
-		const listWidth = Math.max(0, dimension.width - 48);
+		this.navList.layout(this.getNavHeight(dimension.height), this.getNavWidth(dimension.width));
+		this.layoutLists();
+	}
+
+	private getNavWidth(paneWidth: number): number {
+		return paneWidth < PREFERENCES_PANE_NARROW_WIDTH
+			? Math.max(0, paneWidth - 40)
+			: 200;
+	}
+
+	private getNavHeight(paneHeight: number): number {
+		return Math.max(120, paneHeight - 120);
+	}
+
+	private getDetailWidth(): number {
+		if (this.lastLayoutWidth < PREFERENCES_PANE_NARROW_WIDTH) {
+			return Math.max(0, this.lastLayoutWidth - 48);
+		}
+		return Math.max(240, this.lastLayoutWidth - 220 - 48);
+	}
+
+	private getDetailHeight(): number {
+		return Math.max(160, this.lastLayoutHeight - 120);
+	}
+
+	private layoutLists(): void {
+		const listHeight = Math.max(80, Math.min(220, this.getDetailHeight() - 120));
+		const listWidth = this.getDetailWidth();
 		this.hubDevicesList.layout(listHeight, listWidth);
 		this.list.layout(listHeight, listWidth);
+		this.hubBaseUrlInput.layout();
+		this.hubEmailInput.layout();
+		this.hubPasswordInput.layout();
+		this.hubNewPasswordInput.layout();
+		this.confirmDeviceCodeInput.layout();
+		this.directHostInput.layout();
+		this.directPortInput.layout();
+		this.directNameInput.layout();
 	}
 
 	search(_text: string): void {
@@ -678,7 +853,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		this.hubService.setActiveHubBaseUrl(hubBaseUrl || undefined);
 		const result = await this.hubService.login(hubBaseUrl, email, password);
 		if (!result.ok) {
-			this.hubAuthBadge.textContent = result.reason;
+			writeStatus(this.hubAuthBadge, result.reason, 'error');
 			return;
 		}
 		this.renderHubAccount();
@@ -694,7 +869,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		const newPassword = this.hubNewPasswordInput.value;
 		const result = await this.hubService.changePassword(oldPassword, newPassword);
 		if (!result.ok) {
-			this.hubAuthBadge.textContent = result.reason;
+			writeStatus(this.hubAuthBadge, result.reason, 'error');
 			return;
 		}
 		this.hubPasswordInput.value = '';
@@ -771,6 +946,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 			row.textContent = formatConnectionPendingPairLabel(pending);
 			if (pending === this.selectedPending) {
 				row.classList.add('selected');
+				row.setAttribute('aria-current', 'true');
 			}
 			this.pendingRowDisposables.add(DOM.addDisposableListener(row, 'click', () => {
 				this.selectedPending = pending;
@@ -786,11 +962,11 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		const allowPrivateNetwork = this.directAllowPrivateCheckbox.checked;
 		const result = await this.hubService.addDirectAddressProfile({ host, port, displayName, allowPrivateNetwork });
 		if (!result.ok) {
-			this.directAddressStatus.textContent = result.reason;
+			writeStatus(this.directAddressStatus, result.reason, 'error');
 			return;
 		}
 		this.activeProfileId = result.profileId;
-		this.directAddressStatus.textContent = localize('ua.connectionDirectAdded', "Direct address profile added.");
+		writeStatus(this.directAddressStatus, localize('ua.connectionDirectAdded', "Direct address profile added."), 'success');
 		this.renderProfiles();
 	}
 
@@ -798,7 +974,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		const host = this.directHostInput.value.trim();
 		const port = Number(this.directPortInput.value);
 		if (!host || !Number.isInteger(port)) {
-			this.directAddressStatus.textContent = localize('ua.connectionDirectInvalid', "Enter a valid host and port.");
+			writeStatus(this.directAddressStatus, localize('ua.connectionDirectInvalid', "Enter a valid host and port."), 'warning');
 			return;
 		}
 
@@ -816,7 +992,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 				allowPrivateNetwork: this.directAllowPrivateCheckbox.checked,
 			});
 			if (!added.ok) {
-				this.directAddressStatus.textContent = added.reason;
+				writeStatus(this.directAddressStatus, added.reason, 'error');
 				return;
 			}
 			profileId = added.profileId;
@@ -829,7 +1005,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 
 	private async handleConnectSelectedProfile(): Promise<void> {
 		if (!this.activeProfileId) {
-			this.testStatus.textContent = localize('ua.connectionNoActiveProfile', "Select a connection profile first.");
+			writeStatus(this.testStatus, localize('ua.connectionNoActiveProfile', "Select a connection profile first."), 'warning');
 			return;
 		}
 		await this.connectProfileWithPairing(this.activeProfileId);
@@ -848,7 +1024,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		await this.connectionService.disconnect().catch(() => undefined);
 		const result = await this.hubService.forgetConnectionProfile(this.activeProfileId);
 		if (!result.ok) {
-			this.testStatus.textContent = result.reason;
+			writeStatus(this.testStatus, result.reason, 'error');
 			return;
 		}
 		this.activeProfileId = undefined;
@@ -862,20 +1038,21 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		const profile = profiles.find(p => p.profileId === profileId);
 		const result = await this.connectionService.connectProfile(profileId);
 		if (!result.ok) {
-			this.testStatus.textContent = result.reason;
+			writeStatus(this.testStatus, result.reason, 'error');
 			this.renderConnectionPhase();
 			return;
 		}
-		if (result.ok && result.pairingPending && shouldDrawDesktopConnectionControls(this.desktopConnectionControlContext())) {
+		const awaitingPairing = result.pairingPending || !!readHandshakeSasCode(result);
+		if (result.ok && awaitingPairing) {
 			const displayName = profile?.displayName ?? profileId;
 			const engineIdentityId = result.engineIdentityId ?? profileId;
 			if (isRecoverTrustConnectResult(result)) {
 				const leafSha256Hex = readRecoverTrustLeafFingerprint(result);
 				if (!leafSha256Hex) {
-					this.testStatus.textContent = localize(
+					writeStatus(this.testStatus, localize(
 						'ua.connectionRecoverTrustMissingFingerprint',
 						"Trust recovery requires the observed certificate fingerprint.",
-					);
+					), 'error');
 					await this.connectionService.cancelPairing();
 				} else {
 					const confirmed = await promptRecoverTrustConfirmDialog(this.dialogService, {
@@ -886,7 +1063,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 					if (confirmed.confirmed) {
 						const confirmResult = await this.connectionService.confirmPairing();
 						if (!confirmResult.ok) {
-							this.testStatus.textContent = confirmResult.reason;
+							writeStatus(this.testStatus, confirmResult.reason, 'error');
 						}
 					} else {
 						await this.connectionService.cancelPairing();
@@ -901,7 +1078,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 				if (confirmed.confirmed) {
 					const confirmResult = await this.connectionService.confirmPairing();
 					if (!confirmResult.ok) {
-						this.testStatus.textContent = confirmResult.reason;
+						writeStatus(this.testStatus, confirmResult.reason, 'error');
 					}
 				} else {
 					await this.connectionService.cancelPairing();
@@ -917,7 +1094,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 			displayName: device.name,
 		});
 		if (!result.ok) {
-			this.testStatus.textContent = result.reason;
+			writeStatus(this.testStatus, result.reason, 'error');
 			return;
 		}
 
@@ -941,25 +1118,30 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 	}
 
 	private async handleTestConnection(): Promise<void> {
+		const testingCopy = localize('ua.connectionTestRunning', "Testing…");
 		if (!this.activeProfileId) {
 			if (typeof this.connectionService.probeEngine === 'function') {
-				this.testStatus.textContent = localize('ua.connectionTestRunning', "Testing…");
+				writeStatus(this.testStatus, testingCopy);
 				const result = await this.connectionService.probeEngine();
-				this.testStatus.textContent = formatConnectionProbeStatus(
-					result,
-					getConnectionTestStatusText(
-						this.connectionService.getConnectionPhase(),
-						this.connectionService.getConnectionSnapshot().pairingPending,
+				writeStatus(
+					this.testStatus,
+					formatConnectionProbeStatus(
+						result,
+						getConnectionTestStatusText(
+							this.connectionService.getConnectionPhase(),
+							this.connectionService.getConnectionSnapshot().pairingPending,
+						),
 					),
+					result.ok ? 'success' : 'error',
 				);
 				return;
 			}
-			this.testStatus.textContent = getConnectionTestStatusText();
+			writeStatus(this.testStatus, getConnectionTestStatusText());
 			return;
 		}
-		this.testStatus.textContent = localize('ua.connectionTestRunning', "Testing…");
+		writeStatus(this.testStatus, testingCopy);
 		const result = await this.connectionService.probeConnectionProfile(this.activeProfileId);
-		this.testStatus.textContent = formatConnectionProbeStatus(result);
+		writeStatus(this.testStatus, formatConnectionProbeStatus(result), result.ok ? 'success' : 'error');
 	}
 
 	private async handleRenameSelectedDevice(): Promise<void> {
@@ -1054,26 +1236,28 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 			const request = connectionDevicePairIds(this.confirmDeviceCodeInput.value, this.selectedPending);
 			try {
 				const result = await approveHook.call(this.connectionService, request);
-				this.hubDeviceCodeStatus.textContent = result.message;
+				writeStatus(this.hubDeviceCodeStatus, result.message, result.success ? 'success' : 'error');
 				if (result.success) {
 					this.confirmDeviceCodeInput.value = '';
 					await this.refreshEngineDeviceLists();
 				}
 			} catch (error) {
 				const reason = error instanceof Error && error.message ? error.message : String(error);
-				this.hubDeviceCodeStatus.textContent = reason;
+				writeStatus(this.hubDeviceCodeStatus, reason, 'error');
 			}
 			return;
 		}
 		const code = this.confirmDeviceCodeInput.value.trim();
 		if (!code) {
-			this.hubDeviceCodeStatus.textContent = localize('ua.connectionConfirmDeviceCodeEmpty', "Enter a device code first.");
+			writeStatus(this.hubDeviceCodeStatus, localize('ua.connectionConfirmDeviceCodeEmpty', "Enter a device code first."), 'warning');
 			return;
 		}
 		const result = await this.hubService.confirmDeviceCode(code);
-		this.hubDeviceCodeStatus.textContent = result.ok
-			? localize('ua.connectionConfirmDeviceCodeOk', "Device code confirmed")
-			: result.reason;
+		writeStatus(
+			this.hubDeviceCodeStatus,
+			result.ok ? localize('ua.connectionConfirmDeviceCodeOk', "Device code confirmed") : result.reason,
+			result.ok ? 'success' : 'error',
+		);
 		if (result.ok) {
 			this.confirmDeviceCodeInput.value = '';
 			await this.hubService.refreshDirectory();
@@ -1088,36 +1272,36 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		const request = { pairingCode: connectionDevicePairIds(this.confirmDeviceCodeInput.value, this.selectedPending).pairingCode };
 		try {
 			const result = await rejectHook.call(this.connectionService, request);
-			this.hubDeviceCodeStatus.textContent = result.message;
+			writeStatus(this.hubDeviceCodeStatus, result.message, result.success ? 'success' : 'error');
 			if (result.success) {
 				this.confirmDeviceCodeInput.value = '';
 				await this.refreshEngineDeviceLists();
 			}
 		} catch (error) {
 			const reason = error instanceof Error && error.message ? error.message : String(error);
-			this.hubDeviceCodeStatus.textContent = reason;
+			writeStatus(this.hubDeviceCodeStatus, reason, 'error');
 		}
 	}
 
 	private renderHubAccount(): void {
 		const status = this.hubService.getAuthStatus();
-		this.hubAuthBadge.textContent = getHubAuthStatusLabel(status);
+		writeStatus(this.hubAuthBadge, getHubAuthStatusLabel(status), getHubAuthStatusTone(status));
 		const mustChangePassword = status.kind === 'mustChangePassword';
 		const signedIn = status.kind === 'signedIn';
 		this.hubAccountSection.classList.toggle('must-change-password', mustChangePassword);
-		this.hubEmailInput.disabled = signedIn || mustChangePassword;
-		this.hubPasswordInput.disabled = signedIn;
+		this.hubEmailInput.setEnabled(!(signedIn || mustChangePassword));
+		this.hubPasswordInput.setEnabled(!signedIn);
 		this.hubPasswordLabel.textContent = mustChangePassword
 			? HUB_CURRENT_PASSWORD_FIELD_LABEL
 			: HUB_PASSWORD_FIELD_LABEL;
-		this.hubNewPasswordInput.disabled = !mustChangePassword;
+		this.hubNewPasswordInput.setEnabled(mustChangePassword);
 		this.hubLoginButton.label = mustChangePassword
 			? HUB_CHANGE_PASSWORD_BUTTON_LABEL
 			: HUB_LOGIN_BUTTON_LABEL;
 		this.hubLoginButton.enabled = !signedIn;
 		const deviceCodeEnabled = signedIn
 			|| canSendConnectionDevicePairRequest(this.connectionService.isEngineConnected(), typeof this.connectionService.pairApprove === 'function');
-		this.confirmDeviceCodeInput.disabled = !deviceCodeEnabled;
+		this.confirmDeviceCodeInput.setEnabled(deviceCodeEnabled);
 		this.confirmDeviceCodeButton.enabled = deviceCodeEnabled;
 		this.rejectDevicePairButton.enabled = canSendConnectionDevicePairRequest(
 			this.connectionService.isEngineConnected(),
@@ -1178,9 +1362,11 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 
 	private renderConnectionPhase(): void {
 		this.connectionPhase = this.connectionService.getConnectionPhase();
-		this.connectionPhaseLabel.textContent = getConnectionPhasePaneLabel(
-			this.connectionPhase,
-			this.connectionService.getConnectionSnapshot().pairingPending,
+		const pairingPending = this.connectionService.getConnectionSnapshot().pairingPending;
+		writeStatus(
+			this.connectionPhaseLabel,
+			getConnectionPhasePaneLabel(this.connectionPhase, pairingPending),
+			getConnectionPhaseTone(this.connectionPhase, pairingPending),
 		);
 	}
 

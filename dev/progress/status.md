@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-06
-summary: "UI 缺口收口波已落（Team 删改引擎命令、Sources 真 Diff、断连列顶、子代理两页、Permission 接线）；握手 protobuf 后 SAS 确认框未弹；剩余 onDidApplyFrame / U2 未开"
+summary: "Connection/Engine 设置页对齐 workbench chrome（InputBox/List 左栏、状态色、回 Client 链入 tab 条）；握手 protobuf 后 SAS 确认框未弹；剩余 onDidApplyFrame / U2 未开"
 ---
 
 # Development Progress
@@ -41,6 +41,7 @@ summary: "UI 缺口收口波已落（Team 删改引擎命令、Sources 真 Diff�
 | **renderer IPC sync** | `UniverseAgentConnectionChannelClient` / Hub Client 缓存 phase·snapshot·profiles；状态栏按 `phase.kind` 开 Connection；Engine 节空能力矩阵不崩。未升 PRD-008（仍缺接通证据） |
 | **handshake protobuf** | `GetAuthNonce` / DeviceAuth `Connect` 改 proto3 二进制（不再 `JSON.stringify`）。钉死引擎已收合法请求并进入 pairing；SAS 确认框未弹。未升 PRD-008 |
 | **UI 缺口收口波** | Navigator Team 删六个改引擎命令（PRD-022 验收 6）；Sources Diff 占位壳换真 `DiffEditorWidget`，revert/accept 双门控；对话列顶「断连前快照」（PRD-007 验收 5）；子代理浮层补「对话 \| 轨迹」两页（PRD-012 验收 1）；Inbox 右簇诚实空环；Permission 接 `SetPermissionMode`（失败回滚 + 门禁提示）；轨迹折叠点击跨刷新不失效。Mermaid 扩展 Promise 加 disposed 闸门（释放后渲染导致列表行泄漏）；轨迹检查器首段标题错用 Preview 改回 Summary |
+| **settings chrome** | Connection/Engine 两页改用 `InputBox`/`Checkbox`/`WorkbenchList` 左栏与状态色；窄宽两栏；Test Engine 下沉页脚；「回 Client」链入 Preferences tab 条；会话栏图标改 ghost toolbar。无新 RPC / 无新节 |
 
 并行 catalog/UI 绑定波（A–D 槽）已合入 tip；逐条流水见 [归档](../archive/status-current-session-slot-catalog-2026-09-05.md)，不在本账复述。
 

@@ -5,20 +5,23 @@
 
 import * as DOM from '../../../../base/browser/dom.js';
 import { Button } from '../../../../base/browser/ui/button/button.js';
+import { InputBox } from '../../../../base/browser/ui/inputbox/inputBox.js';
 import { Checkbox } from '../../../../base/browser/ui/toggle/toggle.js';
 import { IListRenderer, IListVirtualDelegate } from '../../../../base/browser/ui/list/list.js';
 import { IListAccessibilityProvider } from '../../../../base/browser/ui/list/listWidget.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
+import { IContextViewService } from '../../../../platform/contextview/browser/contextView.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { WorkbenchList } from '../../../../platform/list/browser/listService.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { ensureCapabilitySnapshot } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
 import type { UniverseAgentSkillSource, UniverseAgentSkillSummary } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
-import { defaultButtonStyles, defaultCheckboxStyles } from '../../../../platform/theme/browser/defaultStyles.js';
-import { canPerformCatalogWrite, canShowCatalogRows } from './engineCatalog.js';
+import { defaultButtonStyles, defaultCheckboxStyles, defaultInputBoxStyles } from '../../../../platform/theme/browser/defaultStyles.js';
+import { canPerformCatalogWrite, canShowCatalogRows, getCatalogListLoadingCopy } from './engineCatalog.js';
 import { EngineCatalogStatusWidget } from './engineCatalogStatus.js';
+import { getEngineSectionApiUnavailableCopy } from './engineSectionChrome.js';
 import {
 	EngineSkillsPaneMode,
 	canEditSkillBody,
@@ -33,6 +36,8 @@ import {
 import { OPEN_CONNECTION_PREFERENCES_COMMAND_ID } from '../common/uaPreferencesPanes.js';
 
 const $ = DOM.$;
+
+const SKILL_WRITE_FEATURE = localize('ua.engineSkillWriteFeatureLabel', "skill content write");
 
 type EngineSkillListEntry =
 	| { readonly kind: 'group'; readonly source: UniverseAgentSkillSummary['source']; readonly label: string }
@@ -114,6 +119,7 @@ class EngineSkillRowRenderer implements IListRenderer<EngineSkillListEntry, ISki
 		(templateData.row as unknown as { __skill?: UniverseAgentSkillSummary }).__skill = entry.skill;
 		templateData.name.textContent = entry.skill.name;
 		templateData.description.textContent = entry.skill.description ?? '';
+		templateData.checkbox.setTitle(localize('ua.engineSkillRowToggle', "Enable {0}", entry.skill.name));
 		templateData.checkbox.checked = entry.skill.enabled;
 	}
 
@@ -146,7 +152,7 @@ export class EngineSkillsSection extends Disposable {
 	private readonly listContainer: HTMLElement;
 	private readonly bodyEditor: HTMLElement;
 	private readonly bodyToolbar: HTMLElement;
-	private readonly bodyTextarea: HTMLTextAreaElement;
+	private readonly bodyInput: InputBox;
 	private readonly bodyStatus: HTMLElement;
 	private readonly saveButton: Button;
 	private readonly instantiationService: IInstantiationService;
@@ -166,6 +172,7 @@ export class EngineSkillsSection extends Disposable {
 		@IUniverseAgentConnection private readonly connection: IUniverseAgentConnection,
 		@IInstantiationService instantiationService: IInstantiationService,
 		@ICommandService private readonly commandService: ICommandService,
+		@IContextViewService contextViewService: IContextViewService,
 	) {
 		super();
 		this.instantiationService = instantiationService;
@@ -200,15 +207,20 @@ export class EngineSkillsSection extends Disposable {
 		this.saveButton.label = localize('ua.engineSkillBodySave', "Save");
 		this._register(this.saveButton.onDidClick(() => void this.saveSelectedSkillBody()));
 
-		this.bodyTextarea = DOM.append(this.bodyEditor, $('textarea.engine-skill-body-textarea')) as HTMLTextAreaElement;
-		this.bodyTextarea.rows = 10;
-		this.bodyTextarea.spellcheck = false;
-		this.bodyTextarea.setAttribute('aria-label', localize('ua.engineSkillBodyEditor', "Skill body"));
-		this._register(DOM.addDisposableListener(this.bodyTextarea, 'input', () => {
-			this.bodyDirty = isSkillBodyDirty(this.bodyTextarea.value, this.loadedBodyText);
+		this.bodyInput = this._register(new InputBox(this.bodyEditor, contextViewService, {
+			ariaLabel: localize('ua.engineSkillBodyEditor', "Skill body"),
+			flexibleHeight: true,
+			flexibleMaxHeight: 320,
+			inputBoxStyles: defaultInputBoxStyles,
+		}));
+		this.bodyInput.element.classList.add('engine-skill-body-input');
+		this._register(DOM.addDisposableListener(this.bodyInput.inputElement, 'input', () => {
+			this.bodyDirty = isSkillBodyDirty(this.bodyInput.value, this.loadedBodyText);
 		}));
 
 		this.bodyStatus = DOM.append(this.bodyEditor, $('.engine-skill-body-status'));
+		this.bodyStatus.setAttribute('role', 'status');
+		this.bodyStatus.setAttribute('aria-live', 'polite');
 		this.bodyStatus.style.display = 'none';
 
 		this._register(this.connection.onDidChangeConnection(() => {
@@ -269,7 +281,7 @@ export class EngineSkillsSection extends Disposable {
 	}
 
 	getSelectedSkillBody(): string {
-		return this.bodyTextarea.value;
+		return this.bodyInput.value;
 	}
 
 	getSelectedSkillName(): string | undefined {
@@ -320,7 +332,7 @@ export class EngineSkillsSection extends Disposable {
 		if (!canEditSkillBody(this.loadedBodySource ?? this.selectedSkill.source)) {
 			return false;
 		}
-		const payload = content ?? this.bodyTextarea.value;
+		const payload = content ?? this.bodyInput.value;
 		try {
 			const result = await this.connection.saveSkillContent({
 				skillName: this.selectedSkill.name,
@@ -473,12 +485,12 @@ export class EngineSkillsSection extends Disposable {
 	}
 
 	private clearBodyEditor(): void {
-		this.bodyTextarea.value = '';
-		this.bodyTextarea.readOnly = true;
+		this.bodyInput.value = '';
+		this.bodyInput.inputElement.readOnly = true;
 		this.bodyToolbar.style.display = 'none';
 		this.loadedBodyText = undefined;
 		this.bodyDirty = false;
-		this.hideBodyStatus();
+		this.showBodyStatus(localize('ua.engineSkillBodyNoSelection', "Select a skill to read its content."));
 	}
 
 	private showBodyStatus(message: string): void {
@@ -496,8 +508,16 @@ export class EngineSkillsSection extends Disposable {
 			&& !!this.connection.saveSkillContent
 			&& !!source
 			&& canEditSkillBody(source);
-		this.bodyTextarea.readOnly = !editable;
+		this.bodyInput.inputElement.readOnly = !editable;
 		this.bodyToolbar.style.display = editable ? '' : 'none';
+		if (editable) {
+			return;
+		}
+		if (!this.connection.saveSkillContent) {
+			this.showBodyStatus(getEngineSectionApiUnavailableCopy(SKILL_WRITE_FEATURE));
+		} else if (source && !canEditSkillBody(source)) {
+			this.showBodyStatus(localize('ua.engineSkillBodyReadOnly', "This skill is read-only because the engine reports it as {0}.", getSkillSourceGroupLabel(source)));
+		}
 	}
 
 	private setSkills(skills: readonly UniverseAgentSkillSummary[]): void {
@@ -569,8 +589,8 @@ export class EngineSkillsSection extends Disposable {
 			return;
 		}
 		const generation = ++this.bodyLoadGeneration;
-		this.bodyTextarea.value = '';
-		this.hideBodyStatus();
+		this.bodyInput.value = '';
+		this.showBodyStatus(getCatalogListLoadingCopy());
 		try {
 			const info = await this.connection.getSkillInfo({ skillName: skill.name });
 			if (generation !== this.bodyLoadGeneration
@@ -581,16 +601,17 @@ export class EngineSkillsSection extends Disposable {
 			}
 			this.loadedBodySource = info.source;
 			this.loadedBodyText = info.content;
-			this.bodyTextarea.value = info.content;
+			this.bodyInput.value = info.content;
 			this.bodyDirty = false;
+			this.hideBodyStatus();
 			this.updateBodyEditorChrome(info.source);
 		} catch {
 			if (generation !== this.bodyLoadGeneration || this.selectedSkill?.name !== skill.name) {
 				return;
 			}
 			this.loadedBodySource = undefined;
-			this.bodyTextarea.value = '';
-			this.bodyTextarea.readOnly = true;
+			this.bodyInput.value = '';
+			this.bodyInput.inputElement.readOnly = true;
 			this.bodyToolbar.style.display = 'none';
 			this.showBodyStatus(localize('ua.engineSkillBodyLoadFailed', "Could not load skill content from the engine."));
 		}

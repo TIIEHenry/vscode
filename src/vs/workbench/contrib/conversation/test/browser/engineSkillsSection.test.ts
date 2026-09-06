@@ -155,7 +155,7 @@ suite('EngineSkillsSection (E1)', () => {
 
 		assert.strictEqual(section.getMode(), 'unsupported');
 		assert.strictEqual(section.getListEntryCount(), 0);
-		const status = section.getDomNode().querySelector('.engine-skills-status') as HTMLElement;
+		const status = section.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
 		assert.ok(status);
 		assert.ok(status.textContent?.includes(getSkillsUnsupportedCopy('UNIMPLEMENTED')));
 		assert.ok(!/copilot/i.test(section.getDomNode().textContent ?? ''));
@@ -166,7 +166,7 @@ suite('EngineSkillsSection (E1)', () => {
 		const section = mountSection(connection);
 		await new Promise(resolve => setTimeout(resolve, 0));
 
-		assert.strictEqual(section.getMode(), 'supported');
+		assert.strictEqual(section.getMode(), 'ready');
 		assert.ok(section.getListEntryCount() > 0);
 
 		connection.setConnected(false);
@@ -206,7 +206,7 @@ suite('EngineSkillsSection (E1)', () => {
 		const section = mountSection(connection);
 		await flushMicrotasks();
 
-		assert.strictEqual(section.getMode(), 'supported');
+		assert.strictEqual(section.getMode(), 'ready');
 		assert.strictEqual(section.canWrite(), true);
 		assert.strictEqual(section.isWriteToolbarVisible(), true);
 
@@ -260,14 +260,14 @@ suite('EngineSkillsSection (E1)', () => {
 		const section = mountSection(connection);
 		await flushMicrotasks();
 
-		assert.strictEqual(section.getMode(), 'supported');
+		assert.strictEqual(section.getMode(), 'ready');
 		assert.strictEqual(section.canWrite(), true);
 		assert.ok(section.isBodyEditorVisible());
 
 		section.selectSkillForTest('user-skill');
 		await flushMicrotasks();
 
-		const textarea = section.getDomNode().querySelector('textarea.engine-skill-body-textarea') as HTMLTextAreaElement;
+		const textarea = section.getDomNode().querySelector('.engine-skill-body-input textarea') as HTMLTextAreaElement;
 		assert.ok(textarea);
 		assert.strictEqual(textarea.value, '# Original');
 		assert.strictEqual(section.isSaveToolbarVisible(), true);
@@ -296,7 +296,7 @@ suite('EngineSkillsSection (E1)', () => {
 		section.selectSkillForTest('demo-skill');
 		await flushMicrotasks();
 
-		const textarea = section.getDomNode().querySelector('textarea.engine-skill-body-textarea') as HTMLTextAreaElement;
+		const textarea = section.getDomNode().querySelector('.engine-skill-body-input textarea') as HTMLTextAreaElement;
 		assert.ok(textarea.readOnly);
 		assert.strictEqual(section.isSaveToolbarVisible(), false);
 
