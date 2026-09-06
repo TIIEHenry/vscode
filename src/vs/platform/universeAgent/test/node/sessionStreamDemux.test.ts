@@ -207,6 +207,23 @@ suite('sessionStreamDemux overlay + seats + L2/L3/L4', () => {
 		});
 	});
 
+	test('camelCase sessionId still reaches the two seats that carry it', () => {
+		const question = demuxSessionStreamPayload({
+			sessionId: 's2',
+			ask_user_question: { request_id: 'q-sid', items: [{ id: 'i1', question: 'Which?' }] },
+		});
+		assert.strictEqual(bodyOf(question[0]).sessionId, 's2');
+		const clientTool = demuxSessionStreamPayload({
+			sessionId: 's2',
+			client_tool_call: { request_id: 'ctc-sid', tool_name: 'browser' },
+		});
+		assert.strictEqual(bodyOf(clientTool[0]).sessionId, 's2');
+		const withoutSession = demuxSessionStreamPayload({
+			client_tool_call: { request_id: 'ctc-nosid', tool_name: 'browser' },
+		});
+		assert.ok(!Object.hasOwn(bodyOf(withoutSession[0]), 'sessionId'));
+	});
+
 	test('ask_user_question maps items and yields a questionAsked localFact', () => {
 		const events = demuxSessionStreamPayload({
 			ask_user_question: {
