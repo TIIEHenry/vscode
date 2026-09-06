@@ -948,6 +948,32 @@ suite('ConnectionPreferencesPane', () => {
 		container.remove();
 	});
 
+	test('direct Connect thrown handshake writes the visible Direct Address status', async () => {
+		const pane = mountPane({
+			addDirectAddressProfile: async () => ({ ok: true, profileId: 'direct-profile-1' }),
+		}, {
+			connectProfile: async () => {
+				throw new Error('Setting the TLS ServerName to an IP address is not permitted.');
+			},
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		pane.selectZone('direct');
+
+		const hostInput = (pane as unknown as { directHostInput: { value: string } }).directHostInput;
+		const portInput = (pane as unknown as { directPortInput: { value: string } }).directPortInput;
+		const allowPrivate = (pane as unknown as { directAllowPrivateCheckbox: { checked: boolean } }).directAllowPrivateCheckbox;
+		hostInput.value = '127.0.0.1';
+		portInput.value = '50061';
+		allowPrivate.checked = true;
+		await (pane as unknown as { handleConnectDirectAddress(): Promise<void> }).handleConnectDirectAddress();
+
+		const status = container.querySelector('.connection-direct-address-status') as HTMLElement;
+		assert.ok(status.textContent?.includes('TLS ServerName'));
+		assert.ok(status.classList.contains('is-error'));
+		container.remove();
+	});
+
 	test('SAS cancel calls cancelPairing once', async () => {
 		let cancelCalls = 0;
 		const pane = mountPane({

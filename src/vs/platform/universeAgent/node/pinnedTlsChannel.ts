@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import tls from 'node:tls';
+import { grpcSslTargetNameOverride } from './deviceGrant/observe-candidate-leaf.js';
 import {
 	createPinnedServerIdentityCheck,
 	type PinnedTlsPlanInput,
@@ -44,23 +45,29 @@ export function probePinnedTlsHandshake(input: {
 	const pinnedCheck = createPinnedServerIdentityCheck(input.tls.expectedLeafSha256Hex);
 
 	return new Promise((resolve) => {
-		const socket = tls.connect({
-			host: input.host,
-			port: input.port,
-			servername: input.servername.trim(),
-			secureContext,
-			checkServerIdentity: (_hostname, certificate) => {
-				const raw = certificate?.raw;
-				if (!raw || raw.length === 0) {
-					return new Error('Engine TLS peer certificate missing');
-				}
-				return pinnedCheck({ raw: Uint8Array.from(raw) });
-			},
-			ALPNProtocols: ['h2'],
-		}, () => {
-			socket.destroy();
-			resolve({ ok: true });
-		});
+		let socket: tls.TLSSocket;
+		try {
+			socket = tls.connect({
+				host: input.host,
+				port: input.port,
+				servername: grpcSslTargetNameOverride(input.servername),
+				secureContext,
+				checkServerIdentity: (_hostname, certificate) => {
+					const raw = certificate?.raw;
+					if (!raw || raw.length === 0) {
+						return new Error('Engine TLS peer certificate missing');
+					}
+					return pinnedCheck({ raw: Uint8Array.from(raw) });
+				},
+				ALPNProtocols: ['h2'],
+			}, () => {
+				socket.destroy();
+				resolve({ ok: true });
+			});
+		} catch (err) {
+			resolve({ ok: false, reason: err instanceof Error ? err.message : String(err) });
+			return;
+		}
 
 		socket.on('error', (err) => {
 			resolve({ ok: false, reason: err.message });

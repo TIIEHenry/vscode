@@ -173,11 +173,20 @@ export class PairingOrchestrator {
 		}
 
 		const observe = this.deps.observeCandidateLeafFn ?? observeCandidateLeaf;
-		const observed = await observe({
-			host: endpoint.host,
-			port: endpoint.port,
-			servername: endpoint.servername,
-		});
+		let observed: Awaited<ReturnType<typeof observeCandidateLeaf>>;
+		try {
+			observed = await observe({
+				host: endpoint.host,
+				port: endpoint.port,
+				servername: endpoint.servername,
+			});
+		} catch (err) {
+			return {
+				ok: false,
+				code: 'observe_failed',
+				reason: `observe_failed: ${err instanceof Error ? err.message : String(err)}`,
+			};
+		}
 		if (!observed.ok) {
 			return { ok: false, code: observed.code, reason: observed.reason };
 		}
