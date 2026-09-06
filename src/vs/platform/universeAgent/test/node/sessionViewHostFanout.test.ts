@@ -103,12 +103,20 @@ suite('SessionViewHost per-lease fanout (F1)', () => {
 		assert.strictEqual(diagnostics.counts.get('view.pending_overflow' as DiagnosticMetric), 1);
 
 		const received: IUniverseAgentSessionViewFrameEvent[] = [];
-		store.add(viewHost.onDynamicDidApplyFrame(leaseId)(e => received.push(e)));
+		const subscription = viewHost.onDynamicDidApplyFrame(leaseId)(e => received.push(e));
 
 		await new Promise<void>(resolve => queueMicrotask(() => resolve()));
 
 		assert.ok(received.length >= 1);
 		assert.strictEqual(received[0]!.applied.kind, 'baseline');
+
+		subscription.dispose();
+		const afterResubscribe: IUniverseAgentSessionViewFrameEvent[] = [];
+		store.add(viewHost.onDynamicDidApplyFrame(leaseId)(e => afterResubscribe.push(e)));
+
+		await new Promise<void>(resolve => queueMicrotask(() => resolve()));
+
+		assert.deepStrictEqual(afterResubscribe, [], 'frames buffered after the overflow must be dropped, not stranded until the next attach');
 	});
 
 	test('orphan timeout releases lease that never gained a subscriber', async () => {

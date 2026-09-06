@@ -118,10 +118,11 @@ suite('SessionViewHost HistoryFill', () => {
 		const connection = new TestConnection();
 		connection.getHistory = async () => ({ envelopes: [{ cursorSeq: '1', payload: TEXT_ENVELOPE }] });
 		const viewHost = store.add(new SessionViewHost(connection, new TestHost(async () => undefined), { orphanTimeoutMs: 0 }));
-		const frames: IUniverseAgentSessionViewFrameEvent[] = [];
-		store.add(viewHost.onDidApplyFrame(event => frames.push(event)));
 		viewHost.onEngineConnectionChanged();
-		viewHost.acquireLease('sess-hist');
+		const leaseId = viewHost.acquireLease('sess-hist');
+		const frames: IUniverseAgentSessionViewFrameEvent[] = [];
+		store.add(viewHost.onDynamicDidApplyFrame(leaseId)(event => frames.push(event)));
+		await new Promise<void>(resolve => queueMicrotask(() => resolve()));
 		await viewHost.whenEngineSessionReady('sess-hist');
 		connection.pushStreamEvent('sess-hist', {
 			hello: { session_version: 1, head_seq: 1, runtime_epoch: 1, last_mutated_from_seq: 0 },

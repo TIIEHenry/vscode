@@ -276,7 +276,6 @@ class MockUniverseAgentConnection extends Disposable implements IUniverseAgentCo
 class MockUniverseAgentSessionView implements IUniverseAgentSessionView {
 	declare readonly _serviceBrand: undefined;
 	onDynamicDidApplyFrame(_leaseId: string) { return Event.None; }
-	readonly onDidApplyFrame = Event.None;
 	async acquireLease(sessionId: string) { return `lease:${sessionId}`; }
 	async releaseLease() { }
 	async post() { return { accepted: true as const, correlation: { id: 'mock' } }; }
@@ -420,7 +419,6 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		const sessionView: IUniverseAgentSessionView = {
 			_serviceBrand: undefined,
 			onDynamicDidApplyFrame: () => Event.None,
-			onDidApplyFrame: Event.None,
 			acquireLease: async (sessionId: string) => {
 				acquireLeaseCalls.push(sessionId);
 				return `lease:${sessionId}`;
@@ -476,7 +474,6 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		const sessionView: IUniverseAgentSessionView = {
 			_serviceBrand: undefined,
 			onDynamicDidApplyFrame: () => Event.None,
-			onDidApplyFrame: Event.None,
 			acquireLease: async (sessionId: string) => {
 				acquireLeaseCalls.push(sessionId);
 				return `lease:${sessionId}`;
@@ -511,7 +508,6 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		const sessionView: IUniverseAgentSessionView = {
 			_serviceBrand: undefined,
 			onDynamicDidApplyFrame: () => Event.None,
-			onDidApplyFrame: Event.None,
 			acquireLease: async () => { throw new Error('session not found'); },
 			releaseLease: async () => { },
 			post: async () => ({ accepted: false as const, reason: 'no_such_session' as const }),
@@ -551,7 +547,6 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		const sessionView: IUniverseAgentSessionView = {
 			_serviceBrand: undefined,
 			onDynamicDidApplyFrame: () => Event.None,
-			onDidApplyFrame: Event.None,
 			acquireLease: async (sessionId: string) => {
 				acquireLeaseCalls.push(sessionId);
 				throw new Error('session not found');
@@ -590,7 +585,6 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		const sessionView: IUniverseAgentSessionView = {
 			_serviceBrand: undefined,
 			onDynamicDidApplyFrame: () => Event.None,
-			onDidApplyFrame: Event.None,
 			acquireLease: async () => { throw new Error('session not found'); },
 			releaseLease: async () => { },
 			post: async () => ({ accepted: false as const, reason: 'no_such_session' as const }),
@@ -736,7 +730,6 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		const sessionView: IUniverseAgentSessionView = {
 			_serviceBrand: undefined,
 			onDynamicDidApplyFrame: () => Event.None,
-			onDidApplyFrame: Event.None,
 			acquireLease: async (sessionId: string) => {
 				acquireLeaseCalls.push(sessionId);
 				return `lease:${sessionId}`;
@@ -785,7 +778,6 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		const sessionView: IUniverseAgentSessionView = {
 			_serviceBrand: undefined,
 			onDynamicDidApplyFrame: () => Event.None,
-			onDidApplyFrame: Event.None,
 			acquireLease: async (sessionId: string) => {
 				if (sessionId === 'ua-only') {
 					return `lease:${sessionId}`;
@@ -1524,7 +1516,6 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		const sessionView: IUniverseAgentSessionView = {
 			_serviceBrand: undefined,
 			onDynamicDidApplyFrame: () => Event.None,
-			onDidApplyFrame: Event.None,
 			acquireLease: async () => { throw new Error('session not found'); },
 			releaseLease: async () => { },
 			post: async () => ({ accepted: false as const, reason: 'no_such_session' as const }),
@@ -1558,7 +1549,6 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		const sessionView: IUniverseAgentSessionView = {
 			_serviceBrand: undefined,
 			onDynamicDidApplyFrame: () => Event.None,
-			onDidApplyFrame: Event.None,
 			acquireLease: async (sessionId: string) => {
 				acquireLeaseCalls.push(sessionId);
 				throw new Error('session not found');
@@ -1600,7 +1590,6 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		const sessionView: IUniverseAgentSessionView = {
 			_serviceBrand: undefined,
 			onDynamicDidApplyFrame: () => Event.None,
-			onDidApplyFrame: Event.None,
 			acquireLease: async (sessionId: string) => new Promise<string>(resolve => {
 				resolveLease = () => resolve(`lease:${sessionId}`);
 			}),
@@ -1658,7 +1647,6 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		const sessionView: IUniverseAgentSessionView = {
 			_serviceBrand: undefined,
 			onDynamicDidApplyFrame: () => Event.None,
-			onDidApplyFrame: Event.None,
 			acquireLease: async (sessionId: string) => {
 				acquireLeaseCalls.push(sessionId);
 				return `lease:${sessionId}`;
@@ -1703,7 +1691,6 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		const sessionView: IUniverseAgentSessionView = {
 			_serviceBrand: undefined,
 			onDynamicDidApplyFrame: () => Event.None,
-			onDidApplyFrame: Event.None,
 			acquireLease: async () => { throw new Error('session not found'); },
 			releaseLease: async () => { },
 			post: async () => ({ accepted: false as const, reason: 'no_such_session' as const }),

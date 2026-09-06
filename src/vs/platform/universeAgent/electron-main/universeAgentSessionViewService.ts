@@ -31,10 +31,6 @@ export class UniverseAgentSessionViewService extends Disposable implements IUniv
 		return this.host.onDynamicDidApplyFrame(leaseId);
 	}
 
-	get onDidApplyFrame() {
-		return this.host.onDidApplyFrame;
-	}
-
 	acquireLease(sessionId: string): Promise<string> {
 		return Promise.resolve(this.host.acquireLease(sessionId));
 	}

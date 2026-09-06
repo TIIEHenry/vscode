@@ -21,8 +21,6 @@ export class WebUniverseAgentSessionView implements IUniverseAgentSessionView {
 		return Event.None;
 	}
 
-	readonly onDidApplyFrame = Event.None;
-
 	async acquireLease(sessionId: string): Promise<string> {
 		return `web-empty:${sessionId}`;
 	}
