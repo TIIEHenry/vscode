@@ -270,6 +270,9 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 					el.classList.add('conversation-lens-turn--editing');
 					const host = append(el, $('.conversation-lens-turn-edit-host'));
 					host.setAttribute('data-turn-id', turn.id);
+					// The composer is re-parented in after this render, so keep the same non-zero
+					// floor scheduleHeightUpdate uses; a 0px row caches a collapsed edited turn.
+					host.style.minHeight = '1px';
 					templateData.container.appendChild(el);
 					this.scheduleHeightUpdate(item, templateData.container);
 					return;

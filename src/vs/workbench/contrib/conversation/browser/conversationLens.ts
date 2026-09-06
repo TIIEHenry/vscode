@@ -265,6 +265,9 @@ export class ConversationLens extends Disposable {
 		this.visualizeOverlay = this._register(this.instantiationService.createInstance(ConversationVisualizeOverlay));
 
 		void resolveConversationMermaidExtension(this.extensionService).then(info => {
+			if (this._store.isDisposed || this.mermaidExtensionInfo === info) {
+				return;
+			}
 			this.mermaidExtensionInfo = info;
 			this.timelineTree.setMermaidExtensionInfo(info);
 			this.applySessionViewTimeline({ kind: 'baseline' });
@@ -615,6 +618,7 @@ export class ConversationLens extends Disposable {
 
 	private setLensId(lensId: ConversationLensId): void {
 		setLensId(this, lensId);
+		this.relayoutReadingSurfaces();
 	}
 
 	private updateLensTabs(): void {
@@ -623,6 +627,7 @@ export class ConversationLens extends Disposable {
 
 	private handleLensTablistKeyDown(event: KeyboardEvent): void {
 		handleLensTablistKeyDown(this, event);
+		this.relayoutReadingSurfaces();
 	}
 
 	private updateReadingColumn(): void {
@@ -635,6 +640,7 @@ export class ConversationLens extends Disposable {
 
 	private navigateToTurnFromTrajectory(turnId: string): void {
 		navigateToTurnFromTrajectory(this, turnId);
+		this.relayoutReadingSurfaces();
 	}
 
 	private navigateToTrajectoryFromTurn(turnId: string): void {
