@@ -21,6 +21,8 @@ import type { ConversationMermaidExtensionInfo } from './conversationMermaidHost
 import { findFirstPendingConfirmationTurnId as findFirstPendingConfirmationTurnIdFromTurns } from './conversationPendingSeat.js';
 import { IConversationRosterService } from './conversationStubService.js';
 export interface IConversationLensSessionBindingHost {
+	/** Same dispose gate Mermaid resolve uses (`this._store.isDisposed`). */
+	readonly _store: { readonly isDisposed: boolean };
 	lastAttachedEntries: ConversationTimelineEntry[];
 	sessionViewLease: IConversationSessionViewLease | undefined;
 	sessionViewLifetime: DisposableStore;
@@ -55,6 +57,9 @@ export interface IConversationLensSessionBindingHost {
 
 export function bindSessionView(host: IConversationLensSessionBindingHost, sessionId: string): void {
 
+	if (host._store.isDisposed) {
+		return;
+	}
 	host.sessionViewLifetime.clear();
 	if (!sessionId || (host.stubService.isEngineConnected() && !host.stubService.isEngineSessionReady())) {
 		host.sessionViewLease = undefined;
