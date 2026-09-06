@@ -19,7 +19,7 @@ import type { ConnectionProfile, IConnectionProfileStore } from './connectionPro
 import type { IClientIdentityStore } from './clientIdentityTypes.js';
 import { createEngineTrustRecord, type EngineTrustRecord, type IEngineTrustStore } from './engineTrustStore.js';
 import type { IssueRelayTicketFn } from './connectionResolver.js';
-import type { IUniverseAgentGrpcTransport } from './grpc/grpcTransport.js';
+import type { IUniverseAgentGrpcTransport, UniverseAgentAuthNonceResult } from './grpc/grpcTransport.js';
 
 const PAIRING_PROVISIONAL_ENGINE_ID = 'pairing-provisional';
 
@@ -449,6 +449,7 @@ export class PairingOrchestrator {
 	> {
 		let nonce;
 		try {
+			// Fingerprint + engineIdentityId before Connect timeout; handshake reuses this nonce.
 			nonce = await transport.getAuthNonce({ clientIdentityId, clientPublicKey });
 		} catch (err) {
 			return {
@@ -482,6 +483,7 @@ export class PairingOrchestrator {
 					observedLeafSha256Hex: candidateSha256Hex,
 				},
 				signer,
+				nonce,
 			);
 		} catch (err) {
 			if (isProvisionalConnectTimeout(err)) {
@@ -533,12 +535,16 @@ export class PairingOrchestrator {
 			readonly observedLeafSha256Hex: string;
 		},
 		signer: (input: DeviceAuthTranscriptInput) => Uint8Array,
+		prefetchedNonce: UniverseAgentAuthNonceResult,
 	) {
 		const timeoutMs = this.deps.provisionalConnectTimeoutMs ?? DEFAULT_PROVISIONAL_CONNECT_TIMEOUT_MS;
 		let timer: ReturnType<typeof setTimeout> | undefined;
 		try {
 			return await Promise.race([
-				runDeviceAuthHandshake(transport, identity, signer, { pairingPhase: 'provisional' }),
+				runDeviceAuthHandshake(transport, identity, signer, {
+					pairingPhase: 'provisional',
+					prefetchedNonce,
+				}),
 				new Promise<never>((_, reject) => {
 					timer = setTimeout(() => reject(new ProvisionalConnectTimeoutError()), timeoutMs);
 				}),

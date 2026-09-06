@@ -73,6 +73,8 @@ export async function runDeviceAuthHandshake(
 	options: {
 		readonly pairingPhase?: 'provisional' | 'formal';
 		readonly protocolVersion?: string;
+		/** Reuse a nonce already fetched by the caller; skip a second GetAuthNonce. */
+		readonly prefetchedNonce?: UniverseAgentAuthNonceResult;
 	} = {},
 ): Promise<DeviceAuthHandshakeResult> {
 	if (!isEngineCertFingerprintHex(identity.observedLeafSha256Hex)) {
@@ -84,17 +86,21 @@ export async function runDeviceAuthHandshake(
 	}
 
 	let nonce: UniverseAgentAuthNonceResult;
-	try {
-		nonce = await transport.getAuthNonce({
-			clientIdentityId: identity.clientIdentityId,
-			clientPublicKey: identity.clientPublicKey,
-		});
-	} catch (err) {
-		return {
-			kind: 'failed',
-			code: 'transport_failed',
-			reason: `GetAuthNonce failed: ${err instanceof Error ? err.message : String(err)}`,
-		};
+	if (options.prefetchedNonce) {
+		nonce = options.prefetchedNonce;
+	} else {
+		try {
+			nonce = await transport.getAuthNonce({
+				clientIdentityId: identity.clientIdentityId,
+				clientPublicKey: identity.clientPublicKey,
+			});
+		} catch (err) {
+			return {
+				kind: 'failed',
+				code: 'transport_failed',
+				reason: `GetAuthNonce failed: ${err instanceof Error ? err.message : String(err)}`,
+			};
+		}
 	}
 
 	const fingerprintError = validateAuthNonceFingerprint(nonce, identity.observedLeafSha256Hex);
