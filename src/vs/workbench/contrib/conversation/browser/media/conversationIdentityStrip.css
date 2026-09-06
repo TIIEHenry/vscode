@@ -4,6 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 .monaco-workbench .part.conversation .conversation-identity-strip {
+	position: relative;
+	z-index: 6;
 	display: flex;
 	flex-wrap: wrap;
 	align-items: center;
@@ -16,6 +18,7 @@
 	color: var(--vscode-foreground);
 	background-color: var(--vscode-editor-background);
 	border-bottom: 1px solid var(--vscode-panel-border, var(--vscode-contrastBorder, transparent));
+	pointer-events: auto;
 }
 
 .monaco-workbench .part.conversation .conversation-identity-chip {
@@ -35,7 +38,10 @@
 }
 
 .monaco-workbench .part.conversation button.conversation-identity-chip {
+	position: relative;
+	z-index: 1;
 	cursor: pointer;
+	pointer-events: auto;
 }
 
 .monaco-workbench .part.conversation button.conversation-identity-chip:hover {

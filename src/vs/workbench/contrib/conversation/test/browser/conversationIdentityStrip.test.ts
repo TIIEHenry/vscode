@@ -133,7 +133,7 @@ suite('ConversationIdentityStrip', () => {
 		commandService?: ICommandService;
 		stubService?: ConversationStubService;
 		connectionOverrides?: Partial<IUniverseAgentConnection>;
-	}): { part: ConversationPart; slots: IConversationLensSlots; commandService: ICommandService; stubService: ConversationStubService; lens: ConversationLens } {
+	}): { part: ConversationPart; slots: IConversationLensSlots; commandService: ICommandService; stubService: ConversationStubService; lens: ConversationLens; workbench: HTMLElement } {
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		const storageService = store.add(new TestStorageService());
 		instantiationService.stub(IStorageService, storageService);
@@ -179,7 +179,7 @@ suite('ConversationIdentityStrip', () => {
 
 		const part = store.add(instantiationService.createInstance(ConversationPart));
 		const parent = document.createElement('div');
-		parent.classList.add('monaco-workbench');
+		parent.classList.add('monaco-workbench', 'part');
 		parent.style.width = `${LENS_LAYOUT_WIDTH}px`;
 		parent.style.height = `${LENS_LAYOUT_HEIGHT}px`;
 		document.body.appendChild(parent);
@@ -200,7 +200,7 @@ suite('ConversationIdentityStrip', () => {
 		const lens = store.add(instantiationService.createInstance(ConversationLens, slots));
 		layoutReadingColumn(lens, slots);
 
-		return { part, slots, commandService, stubService, lens };
+		return { part, slots, commandService, stubService, lens, workbench: parent };
 	}
 
 	function getReadingColumn(slots: IConversationLensSlots): HTMLElement {
@@ -257,6 +257,44 @@ suite('ConversationIdentityStrip', () => {
 		assert.ok(engineChip);
 		assert.strictEqual(engineChip.textContent, getConnectionPhaseStatusBarText({ kind: 'disconnected' }));
 		assert.strictEqual(engineChip.textContent, 'Engine not connected');
+
+		engineChip.click();
+		await Promise.resolve();
+		assert.deepStrictEqual((commandService as unknown as { executed: string[] }).executed, [OPEN_CONNECTION_PREFERENCES_COMMAND_ID]);
+	});
+
+	test('engine chip stays the hit target when session bar / split-view chrome overlaps it', async () => {
+		const { slots, commandService, workbench } = mountLens();
+		const engineChip = getIdentityStrip(slots).querySelector(`.${conversationIdentityEngineChipClass}`) as HTMLButtonElement;
+		assert.ok(engineChip);
+		if (engineChip.getBoundingClientRect().width === 0) {
+			engineChip.style.display = 'inline-block';
+			engineChip.style.width = '96px';
+			engineChip.style.height = '24px';
+		}
+
+		const rect = engineChip.getBoundingClientRect();
+		const overlay = document.createElement('div');
+		overlay.className = 'conversation-session-bar monaco-split-view2';
+		overlay.style.position = 'fixed';
+		overlay.style.left = `${rect.left}px`;
+		overlay.style.top = `${rect.top}px`;
+		overlay.style.width = `${Math.max(rect.width, 8)}px`;
+		overlay.style.height = `${Math.max(rect.height, 8)}px`;
+		overlay.style.zIndex = '5';
+		const sashContainer = document.createElement('div');
+		sashContainer.className = 'sash-container';
+		sashContainer.style.position = 'absolute';
+		sashContainer.style.inset = '0';
+		overlay.appendChild(sashContainer);
+		workbench.appendChild(overlay);
+		store.add(toDisposable(() => overlay.remove()));
+
+		assert.strictEqual(getComputedStyle(overlay).pointerEvents, 'none');
+		assert.strictEqual(getComputedStyle(engineChip).pointerEvents, 'auto');
+
+		const hit = document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2);
+		assert.ok(hit === engineChip || engineChip.contains(hit), `expected engine chip under overlay, hit ${hit?.className ?? 'null'}`);
 
 		engineChip.click();
 		await Promise.resolve();
