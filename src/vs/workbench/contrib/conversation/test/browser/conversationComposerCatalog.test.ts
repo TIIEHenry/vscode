@@ -6,7 +6,7 @@
 import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { conversationLensDockNoAgent, conversationLensDockNoModel } from '../../browser/conversationLensDockStrings.js';
-import { composerAgentSelectOptions, composerModelSelectOptions, composerToolNames } from '../../browser/conversationComposerCatalog.js';
+import { composerAgentSelectOptions, composerModelIds, composerModelSelectOptions, composerToolNames } from '../../browser/conversationComposerCatalog.js';
 
 suite('conversationComposerCatalog', () => {
 
@@ -25,15 +25,17 @@ suite('conversationComposerCatalog', () => {
 	});
 
 	test('model options are display-only labels from engine registry', () => {
-		const options = composerModelSelectOptions([
+		const models = [
 			{ id: '1', type: 'chat', enabled: true, level: 1, provider: 'p', modelId: 'gpt-test' },
 			{ id: 'fallback', type: 'chat', enabled: false, level: 1, provider: 'p', modelId: '' },
-		]);
+		] as const;
+		const options = composerModelSelectOptions(models);
 		assert.deepStrictEqual(options, [
 			{ text: conversationLensDockNoModel },
 			{ text: 'gpt-test' },
 			{ text: 'fallback' },
 		]);
+		assert.deepStrictEqual(composerModelIds(models), ['', 'gpt-test', 'fallback']);
 	});
 
 	test('tool names drop blanks', () => {

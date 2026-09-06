@@ -9,7 +9,7 @@ import { IStorageService } from '../../../../platform/storage/common/storage.js'
 import type { ConversationWriteMessage, IConversationSessionViewLease, PostOutcome } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { ensureCapabilitySnapshot } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
-import { COMPOSER_AGENT_OPTIONS, composerAgentSelectOptions, composerModelSelectOptions, composerToolNames } from './conversationComposerCatalog.js';
+import { COMPOSER_AGENT_OPTIONS, composerAgentSelectOptions, composerModelIds, composerModelSelectOptions, composerToolNames } from './conversationComposerCatalog.js';
 import {
 	conversationLensDockMicNotAvailable,
 	conversationLensDockMicStopTitle,
@@ -49,6 +49,7 @@ export interface IConversationLensComposerHost {
 	modelSelectedIndex: number;
 	composerCatalogGeneration: number;
 	catalogToolNames: readonly string[];
+	catalogModelIds: readonly string[];
 	drafts: Map<string, string>;
 	voiceClipsBySessionId: Map<string, ConversationVoiceClip[]>;
 	voicePhraseIndexBySessionId: Map<string, number>;
@@ -95,6 +96,7 @@ export function refreshComposerCatalogs(host: IConversationLensComposerHost): vo
 					{ text: localize('conversationLens.dockStubModel', "Stub model") },
 				],
 				host.modelSelectedIndex);
+			host.catalogModelIds = ['', ''];
 			host.catalogToolNames = [];
 			host.updateSendEnabled();
 			host.updateGateRow();
@@ -103,6 +105,7 @@ export function refreshComposerCatalogs(host: IConversationLensComposerHost): vo
 		host.agentSelectBox.setOptions([{ text: conversationLensDockNoAgent }], 0);
 		host.modelSelectBox.setOptions([{ text: conversationLensDockNoModel }], 0);
 		host.modelSelectedIndex = 0;
+		host.catalogModelIds = [''];
 		host.catalogToolNames = [];
 		host.updateSendEnabled();
 		host.updateGateRow();
@@ -134,6 +137,7 @@ export async function loadConnectedComposerCatalogs(host: IConversationLensCompo
 				}
 				host.modelSelectBox.setOptions(composerModelSelectOptions(result.models), 0);
 				host.modelSelectedIndex = 0;
+				host.catalogModelIds = composerModelIds(result.models);
 			} catch {
 				// Keep "No model"; send is not gated when connected.
 			}

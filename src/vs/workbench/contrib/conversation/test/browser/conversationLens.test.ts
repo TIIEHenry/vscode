@@ -322,6 +322,22 @@ suite('ConversationLens', () => {
 		return select;
 	}
 
+	function getModelSelect(slots: IConversationLensSlots): HTMLSelectElement {
+		const select = getComposerBottomBar(slots).querySelector('.conversation-lens-dock-model select.monaco-select-box') as HTMLSelectElement | null;
+		assert.ok(select);
+		return select;
+	}
+
+	async function waitForModelOption(slots: IConversationLensSlots, text: string): Promise<void> {
+		for (let i = 0; i < 16; i++) {
+			if ([...getModelSelect(slots).options].some(option => option.text === text)) {
+				return;
+			}
+			await Promise.resolve();
+		}
+		assert.fail(`model option "${text}" did not load`);
+	}
+
 	function getDockSendButton(slots: IConversationLensSlots): HTMLButtonElement {
 		const button = (slots.dock.querySelector('.conversation-lens-dock-send .monaco-button')
 			?? getReadingColumn(slots).querySelector('.conversation-lens-dock-send .monaco-button')) as HTMLButtonElement | null;
@@ -797,6 +813,86 @@ suite('ConversationLens', () => {
 		const gateRow = slots.dock.querySelector('.conversation-lens-dock-gate-row') as HTMLElement;
 		assert.strictEqual(gateRow.hidden, false);
 		assert.ok(gateRow.textContent?.includes('engine rejected permit'));
+	});
+
+	test('model select does not call switchModel until the engine is connected', async () => {
+		const calls: { sessionId: string; modelId: string }[] = [];
+		const connection = createConversationConnectionTestStub({
+			switchModel: async request => {
+				calls.push({ sessionId: request.sessionId, modelId: request.modelId });
+				return { resolvedModelId: request.modelId, provider: '', level: 0, cost: '', speed: '' };
+			},
+		});
+		const { part } = mountLens({ connection });
+		const slots = getLensSlots(part);
+
+		selectDockModel(slots, 1);
+		await Promise.resolve();
+
+		assert.strictEqual(calls.length, 0);
+		assert.strictEqual(getModelSelect(slots).selectedIndex, 1);
+	});
+
+	test('model select writes sessionId and modelId when switchModel is available', async () => {
+		const calls: { sessionId: string; modelId: string }[] = [];
+		const capabilities = createEmptyTestCapabilitySnapshot();
+		const connection = createConversationConnectionTestStub({
+			getCapabilitySnapshot: () => ({
+				...capabilities,
+				models: { support: 'SUPPORTED' },
+			}),
+			listModels: async () => ({ models: [{ id: '1', type: 'chat', enabled: true, level: 1, provider: 'p', modelId: 'gpt-test' }] }),
+			switchModel: async request => {
+				calls.push({ sessionId: request.sessionId, modelId: request.modelId });
+				return { resolvedModelId: request.modelId, provider: 'p', level: 1, cost: '', speed: '' };
+			},
+		});
+		const { part, stubService } = mountLens({ connection });
+		const slots = getLensSlots(part);
+		stubService.setEngineConnected(true);
+		await waitForModelOption(slots, 'gpt-test');
+
+		selectDockModel(slots, 1);
+		await Promise.resolve();
+
+		assert.strictEqual(calls.length, 1);
+		assert.strictEqual(calls[0].sessionId, stubService.getActiveSessionId());
+		assert.strictEqual(calls[0].modelId, 'gpt-test');
+		assert.strictEqual(getModelSelect(slots).selectedIndex, 1);
+	});
+
+	test('model select rolls back and shows the gate when switchModel fails', async () => {
+		const calls: { sessionId: string; modelId: string }[] = [];
+		const capabilities = createEmptyTestCapabilitySnapshot();
+		const connection = createConversationConnectionTestStub({
+			getCapabilitySnapshot: () => ({
+				...capabilities,
+				models: { support: 'SUPPORTED' },
+			}),
+			listModels: async () => ({ models: [{ id: '1', type: 'chat', enabled: true, level: 1, provider: 'p', modelId: 'gpt-test' }] }),
+			switchModel: async request => {
+				calls.push({ sessionId: request.sessionId, modelId: request.modelId });
+				throw new Error('engine rejected model');
+			},
+		});
+		const { part, stubService } = mountLens({ connection });
+		const slots = getLensSlots(part);
+		stubService.setEngineConnected(true);
+		await waitForModelOption(slots, 'gpt-test');
+
+		const modelSelect = getModelSelect(slots);
+		assert.strictEqual(modelSelect.options[modelSelect.selectedIndex]?.text, conversationLensDockNoModel);
+
+		selectDockModel(slots, 1);
+		await Promise.resolve();
+
+		assert.strictEqual(calls.length, 1);
+		assert.strictEqual(calls[0].modelId, 'gpt-test');
+		assert.strictEqual(modelSelect.selectedIndex, 0);
+		assert.strictEqual(modelSelect.options[modelSelect.selectedIndex]?.text, conversationLensDockNoModel);
+		const gateRow = slots.dock.querySelector('.conversation-lens-dock-gate-row') as HTMLElement;
+		assert.strictEqual(gateRow.hidden, false);
+		assert.ok(gateRow.textContent?.includes('engine rejected model'));
 	});
 
 	test('narrow More permission radios stay disabled without setPermissionMode', () => {

@@ -77,6 +77,9 @@ export const conversationLensDockPermissionUnavailable = localize(
 const conversationLensDockPermissionFailed = localize(
 	'conversationLens.dockPermissionFailed',
 	"Permission mode was not applied");
+const conversationLensDockModelFailed = localize(
+	'conversationLens.dockModelFailed',
+	"Model was not applied");
 
 const COMPOSER_ROUTE_OPTIONS = [
 	conversationLensDockNoRoute,
@@ -103,7 +106,9 @@ export interface IConversationLensComposerChromeHost {
 	sendFailureTimeout: ReturnType<typeof setTimeout> | undefined;
 	lastReadingWidth: number;
 	catalogToolNames: readonly string[];
+	catalogModelIds: readonly string[];
 	modelSelectedIndex: number;
+	modelSelectBox: SelectBox;
 	inputHistoryBrowse: InputHistoryBrowseState;
 	sessionConfigBySessionId: Map<string, ConversationSessionConfigSelection>;
 	addContextView: IOpenContextView | undefined;
@@ -664,6 +669,51 @@ export async function applySessionPermissionIndex(host: IConversationLensCompose
 			restoreSessionPermissionIndex(host, sessionId, previous);
 			const detail = error instanceof Error ? error.message.trim() : '';
 			showGateNotice(host, detail || conversationLensDockPermissionFailed);
+		}
+	
+}
+
+export function isSessionSwitchModelAvailable(host: IConversationLensComposerChromeHost): boolean {
+
+		return host.stubService.isEngineConnected() && typeof host.uaConnection.switchModel === 'function';
+	
+}
+
+function restoreSessionModelIndex(host: IConversationLensComposerChromeHost, modelIndex: number): void {
+
+		host.modelSelectedIndex = modelIndex;
+		host.modelSelectBox.select(modelIndex);
+		updateSendEnabled(host);
+	
+}
+
+export async function applySessionModelIndex(host: IConversationLensComposerChromeHost, sessionId: string, modelIndex: number): Promise<void> {
+
+		const previous = host.modelSelectedIndex;
+		if (modelIndex === previous) {
+			return;
+		}
+		host.modelSelectedIndex = modelIndex;
+		host.modelSelectBox.select(modelIndex);
+		updateSendEnabled(host);
+		if (!isSessionSwitchModelAvailable(host) || !host.uaConnection.switchModel) {
+			return;
+		}
+		const modelId = host.catalogModelIds[modelIndex] ?? '';
+		if (!modelId) {
+			return;
+		}
+		try {
+			await host.uaConnection.switchModel({
+				sessionId,
+				agentId: '',
+				modelType: '',
+				modelId,
+			});
+		} catch (error) {
+			restoreSessionModelIndex(host, previous);
+			const detail = error instanceof Error ? error.message.trim() : '';
+			showGateNotice(host, detail || conversationLensDockModelFailed);
 		}
 	
 }

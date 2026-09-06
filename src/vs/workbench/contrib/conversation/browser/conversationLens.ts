@@ -237,6 +237,7 @@ export class ConversationLens extends Disposable {
 	private postFailureVisible = false;
 	private composerCatalogGeneration = 0;
 	private catalogToolNames: readonly string[] = [];
+	private catalogModelIds: readonly string[] = [];
 	private boundSessionId: string | undefined;
 
 	constructor(

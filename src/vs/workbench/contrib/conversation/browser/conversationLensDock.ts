@@ -39,6 +39,7 @@ import { createInputHistoryBrowseState, InputHistoryBrowseState } from './conver
 import { SelectBox } from '../../../../base/browser/ui/selectBox/selectBox.js';
 import { COMPOSER_AGENT_OPTIONS } from './conversationComposerCatalog.js';
 import {
+	applySessionModelIndex,
 	applySessionPermissionIndex,
 	type ConversationSessionConfigSelection,
 	type IConversationLensComposerChromeHost,
@@ -223,8 +224,7 @@ export function mountDock(host: IConversationLensDockHost & IConversationLensCom
 			localize('conversationLens.dockModelLabel', "Model")));
 		host.modelSelectBox.render(modelContainer);
 		host.register(host.modelSelectBox.onDidSelect(e => {
-			host.modelSelectedIndex = e.index;
-			host.updateSendEnabled();
+			void applySessionModelIndex(host, host.getBoundSessionId(), e.index);
 		}));
 
 		const templatesContainer = append(bottomTrailing, $('.conversation-lens-dock-templates'));

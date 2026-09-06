@@ -20,13 +20,21 @@ export function composerAgentSelectOptions(profiles: readonly UniverseAgentAgent
 	];
 }
 
-/** Display-only Model labels. Selection does not call SwitchModel. */
+function composerModelIdsFromRegistry(models: readonly UniverseAgentModelEntry[]): string[] {
+	return models.map(model => model.modelId.trim() || model.id).filter(id => id.length > 0);
+}
+
+/** Model labels: honest empty first, then engine registry ids (SwitchModel modelId). */
 export function composerModelSelectOptions(models: readonly UniverseAgentModelEntry[]): { text: string }[] {
-	const labels = models.map(model => model.modelId.trim() || model.id).filter(label => label.length > 0);
 	return [
 		{ text: conversationLensDockNoModel },
-		...labels.map(text => ({ text })),
+		...composerModelIdsFromRegistry(models).map(text => ({ text })),
 	];
+}
+
+/** Index-aligned with `composerModelSelectOptions`: empty first, then registry ids. */
+export function composerModelIds(models: readonly UniverseAgentModelEntry[]): readonly string[] {
+	return ['', ...composerModelIdsFromRegistry(models)];
 }
 
 export function composerToolNames(tools: readonly UniverseAgentToolSummary[]): readonly string[] {
