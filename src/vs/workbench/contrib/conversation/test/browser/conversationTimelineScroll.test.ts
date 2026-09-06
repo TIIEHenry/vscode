@@ -151,6 +151,22 @@ suite('ConversationTimelineApply (S2 three-frame matrix)', () => {
 		assert.strictEqual(plan.mode, 'none');
 	});
 
+	test('same-structure baseline → class A content (engine/mermaid/setTurns)', () => {
+		const prev = [user('u1', 'hello'), assistant('a1', 'one')];
+		const next = [user('u1', 'hello'), assistant('a1', 'two')];
+		const plan = computeTimelineApplyPlan(prev, next, { kind: 'baseline' });
+		assert.strictEqual(plan.mode, 'content');
+		assert.deepStrictEqual([...plan.rerenderIds], ['u1', 'a1']);
+	});
+
+	test('structure-changing baseline stays a whole-tree rebuild', () => {
+		const prev = [user('u1', 'hello')];
+		const next = [user('u1', 'hello'), assistant('a1', 'reply')];
+		const plan = computeTimelineApplyPlan(prev, next, { kind: 'baseline' });
+		assert.strictEqual(plan.mode, 'baseline');
+		assert.deepStrictEqual([...plan.rerenderIds], []);
+	});
+
 	const sendFailed = (id: string): ViewEffect => ({ effectId: id as ViewEffect['effectId'], kind: 'sendFailed', message: 'send failed' });
 
 	test('mergeSessionViewFrames flushes patches and effects instead of dropping the effects', () => {

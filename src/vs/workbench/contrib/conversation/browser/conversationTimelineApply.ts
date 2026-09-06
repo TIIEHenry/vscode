@@ -137,6 +137,11 @@ export function computeTimelineApplyPlan(
 	const removedTreeIds = collectRemovedTreeIds(prevRoots, nextRoots);
 
 	if (applied.kind === 'baseline') {
+		// True `{ kind: 'baseline' }` (engine resync, mermaid host, setTurns) is only a
+		// whole-tree rebuild when root identities change. Same structure is §3.4 class A.
+		if (sameRootSequence(prevRoots, nextRoots)) {
+			return { mode: 'content', rerenderIds: new Set(nextRoots), removedTreeIds, spans: nextSpans };
+		}
 		return { mode: 'baseline', rerenderIds: new Set(), removedTreeIds, spans: nextSpans };
 	}
 

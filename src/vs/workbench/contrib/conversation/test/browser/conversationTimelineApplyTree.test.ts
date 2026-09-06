@@ -214,4 +214,62 @@ suite('ConversationTimelineTree applyEntries (plan §3.4)', () => {
 			before,
 		);
 	});
+
+	test('type A — same-structure setTurns baseline rerenders without resetting children', () => {
+		const tree = seed([user('u1', 'hello'), assistant('a1', 'one')]);
+		const before = [tree.getTimelineRowElement('u1'), tree.getTimelineRowElement('a1')];
+		assert.ok(before[0] && before[1]);
+
+		tree.setTurns([user('u1', 'hello'), assistant('a1', 'one edited')]);
+
+		assert.deepStrictEqual(tree.getTestApplyMetrics(), { setChildrenCount: 0, rerenderCount: 2 });
+		assert.deepStrictEqual(
+			[tree.getTimelineRowElement('u1'), tree.getTimelineRowElement('a1')],
+			before,
+		);
+	});
+
+	test('type A — same-structure engine/mermaid baseline rerenders without resetting children', () => {
+		const tree = seed([user('u1', 'hello'), assistant('a1', 'one')]);
+		expandedState(tree).userBubbleExpanded.set('u1', true);
+		const before = [tree.getTimelineRowElement('u1'), tree.getTimelineRowElement('a1')];
+		assert.ok(before[0] && before[1]);
+
+		tree.applyEntries(
+			stubTurnsToEntries([user('u1', 'hello'), assistant('a1', 'one')]),
+			{ kind: 'baseline' },
+		);
+
+		assert.deepStrictEqual(tree.getTestApplyMetrics(), { setChildrenCount: 0, rerenderCount: 2 });
+		assert.deepStrictEqual(
+			[tree.getTimelineRowElement('u1'), tree.getTimelineRowElement('a1')],
+			before,
+		);
+		assert.deepStrictEqual([...expandedState(tree).userBubbleExpanded], [['u1', true]]);
+	});
+
+	test('same-structure baseline that extends a process fold stays class A', () => {
+		const tree = seed([user('u1', 'hi'), thinking('t1', 'think'), tool('tool1', 'grep')]);
+		expandedState(tree).processFoldOuterExpanded.set('fold:t1', true);
+
+		tree.applyEntries(
+			stubTurnsToEntries([user('u1', 'hi'), thinking('t1', 'think'), tool('tool1', 'grep'), tool('tool2', 'read')]),
+			{ kind: 'baseline' },
+		);
+
+		assert.deepStrictEqual(tree.getTestApplyMetrics(), { setChildrenCount: 0, rerenderCount: 2 });
+		assert.deepStrictEqual([...expandedState(tree).processFoldOuterExpanded], [['fold:t1', true]]);
+	});
+
+	test('structure-changing baseline still rebuilds the tree', () => {
+		const tree = seed([user('u1', 'hello'), assistant('a1', 'one')]);
+
+		tree.applyEntries(
+			stubTurnsToEntries([user('u1', 'hello'), assistant('a1', 'one'), assistant('a2', 'two')]),
+			{ kind: 'baseline' },
+		);
+
+		assert.deepStrictEqual(tree.getTestApplyMetrics(), { setChildrenCount: 1, rerenderCount: 0 });
+		assert.ok(tree.getTimelineRowElement('a2'));
+	});
 });
