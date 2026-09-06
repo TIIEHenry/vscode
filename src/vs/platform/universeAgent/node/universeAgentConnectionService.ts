@@ -1944,7 +1944,15 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 			servername: endpoint.servername,
 		};
 
-		const startResult = await this._pairingOrchestrator.startPairing(profile, pairingEndpoint);
+		let startResult: Awaited<ReturnType<PairingOrchestrator['startPairing']>>;
+		try {
+			startResult = await this._pairingOrchestrator.startPairing(profile, pairingEndpoint);
+		} catch (error) {
+			const reason = error instanceof Error ? error.message : String(error);
+			this._connectionPhase = { kind: 'failed', code: 'transport_failed', reason };
+			this._fireSnapshotChanged();
+			return { ok: false, code: 'transport_failed', reason };
+		}
 		if (!startResult.ok) {
 			const code = this._mapPairingFailureCode(startResult.code);
 			this._connectionPhase = { kind: 'failed', code, reason: startResult.reason };

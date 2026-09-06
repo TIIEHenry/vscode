@@ -622,6 +622,42 @@ suite('ConnectionPreferencesPane', () => {
 		container.remove();
 	});
 
+	test('direct Connect thrown handshake writes the visible Direct Address status', async () => {
+		const pane = mountPane({
+			addDirectAddressProfile: async () => ({ ok: true, profileId: 'direct-profile-1' }),
+		}, {
+			connectProfile: async () => {
+				throw new Error('Setting the TLS ServerName to an IP address is not permitted.');
+			},
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		pane.selectZone('direct');
+
+		const inputs = [...container.querySelectorAll('.connection-direct-address .monaco-inputbox input')] as HTMLInputElement[];
+		assert.ok(inputs[0]);
+		assert.ok(inputs[1]);
+		inputs[0].value = '127.0.0.1';
+		inputs[1].value = '50061';
+		const allow = container.querySelector('#connection-allow-private-network') as HTMLInputElement | null;
+		if (allow) {
+			allow.click();
+		}
+
+		const connect = [...container.querySelectorAll('.connection-direct-actions .monaco-button')]
+			.find(button => button.textContent === 'Connect') as HTMLButtonElement | undefined;
+		assert.ok(connect);
+		connect.click();
+		await Promise.resolve();
+		await Promise.resolve();
+		await Promise.resolve();
+
+		const status = container.querySelector('.connection-direct-address-status') as HTMLElement;
+		assert.ok(status.textContent?.includes('TLS ServerName'));
+		assert.ok(status.classList.contains('is-error'));
+		container.remove();
+	});
+
 	test('SAS cancel calls cancelPairing once', async () => {
 		let cancelCalls = 0;
 		const pane = mountPane({

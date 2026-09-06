@@ -10855,6 +10855,56 @@ suite('UniverseAgentConnectionService pairing (GC-1b)', () => {
 		assert.strictEqual(service.isEngineConnected(), false);
 		service.dispose();
 	});
+
+	test('startPairing throw becomes transport_failed instead of hanging reject', async () => {
+		const profileStore = new PairingTestProfileStore(createHubDevicePairingProfile());
+		const mockOrchestrator = {
+			startPairing: async () => {
+				throw new Error('Setting the TLS ServerName to an IP address is not permitted.');
+			},
+			confirmSas: async () => ({ ok: false as const, code: 'unused', reason: 'unused' }),
+			confirmRecoverTrust: async () => ({ ok: false as const, code: 'unused', reason: 'unused' }),
+			getSnapshot: () => undefined,
+			abandonRecoverTrust: () => { },
+		};
+		const mockResolver = {
+			resolve: async (_profileId: string, options?: { readonly forPairing?: boolean }) => {
+				if (options?.forPairing) {
+					return {
+						ok: true as const,
+						allowRelayFallback: true,
+						endpoint: {
+							attemptId: 'a1',
+							authority: '127.0.0.1',
+							port: 50061,
+							resolvedIp: '127.0.0.1',
+							servername: '127.0.0.1',
+							relayTicketId: null,
+							tls: null,
+							expiresAtMs: Date.now() + 60_000,
+							path: 'direct' as const,
+						},
+					};
+				}
+				return { ok: false as const, code: 'pairing_required' as const, reason: 'pairing', allowRelayFallback: false };
+			},
+			createIssueRelayTicketHook: () => async () => ({ ok: false as const, code: 'hub_session_required' as const, reason: 'test' }),
+		};
+		const service = new UniverseAgentConnectionService({
+			connectionProfileStore: profileStore,
+			connectionResolver: mockResolver as unknown as ConnectionResolver,
+			pairingOrchestrator: mockOrchestrator as unknown as PairingOrchestrator,
+		});
+
+		const result = await service.connectProfile(PAIRING_PROFILE_ID);
+		assert.strictEqual(result.ok, false);
+		if (!result.ok) {
+			assert.strictEqual(result.code, 'transport_failed');
+			assert.ok(result.reason.includes('TLS ServerName'));
+		}
+		assert.strictEqual(service.getConnectionPhase().kind, 'failed');
+		service.dispose();
+	});
 });
 
 class RevokeTestProfileStore implements IConnectionProfileStore {

@@ -1042,7 +1042,15 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		this.activeProfileId = profileId;
 		const profiles = asConnectionProfileList(this.hubService.listConnectionProfiles());
 		const profile = profiles.find(p => p.profileId === profileId);
-		const result = await this.connectionService.connectProfile(profileId);
+		let result: Awaited<ReturnType<IUniverseAgentConnection['connectProfile']>>;
+		try {
+			result = await this.connectionService.connectProfile(profileId);
+		} catch (error) {
+			const reason = error instanceof Error ? error.message : String(error);
+			this.writeConnectStatus(reason, 'error');
+			this.renderConnectionPhase();
+			return;
+		}
 		if (!result.ok) {
 			this.writeConnectStatus(result.reason, 'error');
 			this.renderConnectionPhase();

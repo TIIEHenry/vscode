@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as grpc from '@grpc/grpc-js';
+import { grpcSslTargetNameOverride } from './deviceGrant/observe-candidate-leaf.js';
 import { createPinnedServerIdentityCheck, type PinnedTlsPlanInput, verifyPinnedTlsPlan } from './deviceGrant/tls-pin.js';
 import { createPinnedTlsSecureContext } from './pinnedTlsChannel.js';
 
@@ -28,12 +29,8 @@ export function createPinnedTlsChannelCredentials(tlsPlan: PinnedTlsPlanInput): 
 }
 
 export function createPinnedChannelOptions(sslTargetNameOverride: string): grpc.ChannelOptions {
-	const trimmed = sslTargetNameOverride.trim();
-	if (trimmed.length === 0) {
-		return {};
-	}
 	return {
-		'grpc.ssl_target_name_override': trimmed,
+		'grpc.ssl_target_name_override': grpcSslTargetNameOverride(sslTargetNameOverride),
 	};
 }
 

@@ -998,4 +998,26 @@ suite('pairingOrchestrator H2', () => {
 		assert.strictEqual(orchestrator.isEngineConnectedCandidate(), false);
 		assert.strictEqual(transport.connectCalls.length, 1);
 	});
+
+	test('observe throw becomes observe_failed instead of rejecting startPairing', async () => {
+		const identity = mintTestIdentity();
+		const orchestrator = createPairingOrchestrator({
+			clientIdentityStore: new TestClientIdentityStore(identity),
+			engineTrustStore: { get: () => undefined, list: () => [], put: () => { }, remove: () => { } },
+			connectionProfileStore: { list: () => [], get: () => undefined, put: () => { }, remove: () => { }, createDraft: () => createPairingProfile() },
+			createPinnedTransport: () => {
+				throw new Error('transport must not be created when observe throws');
+			},
+			observeCandidateLeafFn: async () => {
+				throw new Error('Setting the TLS ServerName to an IP address is not permitted.');
+			},
+		});
+
+		const started = await orchestrator.startPairing(createPairingProfile(), endpoint);
+		assert.strictEqual(started.ok, false);
+		if (!started.ok) {
+			assert.strictEqual(started.code, 'observe_failed');
+			assert.ok(started.reason.includes('TLS ServerName'));
+		}
+	});
 });
