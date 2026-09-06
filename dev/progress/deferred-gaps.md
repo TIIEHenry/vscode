@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-06
-summary: "延期缺口 SSOT；D16 Lens 断言债；D22 F3；D15 欠 W1；D23 confirmPairing；D24 其余 JSON RPC；D25 ghost UI；D26 引擎建壳回 6"
+summary: "延期缺口 SSOT；D16 Lens 断言债；D22 F3；D15 欠 W1；D23 confirmPairing；D24 其余 JSON RPC；D25 ghost UI；D26 引擎建壳回 6；D27 Lens 编辑态整树重建"
 ---
 
 # Deferred Gaps
@@ -41,6 +41,7 @@ summary: "延期缺口 SSOT；D16 Lens 断言债；D22 F3；D15 欠 W1；D23 con
 | D24 | P2 | **其余 unary/stream 仍 `makeUnaryClient` + `JSON.stringify`**（Info/ChatSync/clipboard/mcp/memory/queue/`listTools` 等）。接通后 catalog 已 bytes：`Session.List`（默认 ALL）/ `ListModels` / `ListAgents` / `ListAgentProfiles`。Create `ALREADY_EXISTS` 已在 connection/grpc 入口 List+Resume；Create 已写 `client_session_id` field 4。`SessionEventStream` 握手未写 `client_id`、无 60s heartbeat uplink。`CreateSessionRequest` proto 无 `title`。`Agent.Chat` 响应只解 `session_id`/`agent_id`，未 demux ChatResponse oneof | Create 恢复已下沉；ChatSync 是 Gateway 专用 | 按实际打到引擎的 method 再改 bytes；`listTools` 仍 JSON | platform / universeAgent | open |
 | D25 | P2 | **roster 不再远程 Create**（空 catalog 只 pending，host lease 唯一 Create）。List 失败与 ghost 行仍可能让 UI 显示假「New session」而非 bind-failed（E2E @ `bc1370cb05d`）。引擎 store `Query does not return results` 真空未修 | 引擎仓不加功能 | ghost/空壳时 UI 必 bind-failed；引擎 List 真空闭合 | conversation / engine | open |
 | D26 | P2 | **死壳 Tree / 双 recover / 引擎建壳回 6**：`AgentTreeCoordinator.doFetch` 对 Tree `NOT_FOUND` 等非 UNIMPLEMENTED 错 `return undefined`（不抛）。`grpcClient.createSession` 与 `UniverseAgentConnectionService.createSession` 都包一层 `createSessionRecoveringAlreadyExists`。引擎 Create 建目录后按目录存在回 6 且不写 `session_meta`（空 store 第一次 Create 即 ALREADY_EXISTS） | 本轮只 platform 单飞 + Resume-first；禁止改引擎仓 | Tree NOT_FOUND 对 bind 可观察；Create recover 只留一层；引擎 Create 先写 meta 再回成功 | platform / engine | open |
+| D27 | P3 | **Lens 编辑态整树重建**：`ConversationTimelineTree.setEditingTurnId` 走 `refreshTurnPresentation` → 整棵 `setChildren` 基线重建，只为把一行切进编辑态；重建时 `.conversation-lens-turn-edit-host` 还是空的（composer 由随后的 `syncComposerPlacement` 才搬进来），ListView 因此量到 0px 行高。本轮先在 `conversationTimelineRenderer` 给 edit host 加 1px 下限止血 | 真修点在 `conversationTimelineTree.ts` / `conversationTimelineApply.ts`（工位 B 在途），本轮不得触碰 | 编辑态只重渲染目标行（或渲染时 composer 已就位），删掉 renderer 里的 1px 下限后 `conversationLens.test.ts` 仍无 console 输出 | M6 / conversation | open |
 | D19 | P2 | **L1 源码复核残留**（[a11y-rwd-l1.md](a11y-rwd-l1.md)）：(1) Engine/Connection **无动画节点**，不挂 `.ua-motion`；(2) T1 HC 已覆盖 Preferences pane 与 Visualize overlay；(3) Connection 300px 已有分区导航 + Back。**(4) Web 省略门控与点名文案已在 E2-1 收口** | 三项源码残留已收；手测/axe 仍归 D17 | 手测/axe 记 D17，不重开本行 | M7 a11y | closed |
 | D20 | P2 | **CS-6 Settings 默认窗 300px 目视**：`uaClientSettingsChrome.css` 已保证 narrow-width 下搜索框与 group title 不 `display:none` 且可省略；`settingsUaToc` 有合同测。本机隔离 launch 因 `@grpc/grpc-js` 缺失未能开窗目视 | 代码完成线不阻塞；活窗目视仍欠 | 隔离 profile 打开默认窗 Settings，缩到约 300px，确认搜索框与 Client 组标题仍可见、无 emptyCopy；失败记入 D17 | M7 verification | open |
 

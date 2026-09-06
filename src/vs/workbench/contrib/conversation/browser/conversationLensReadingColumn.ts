@@ -123,13 +123,20 @@ export function bindReadingColumnLayout(host: IConversationLensReadingColumnHost
 
 }
 
-/** PreFirst hero owns the reading column via CSS; do not layout(0) the monaco tree. */
+/**
+ * PreFirst hero owns the reading column via CSS; do not layout(0) the monaco tree.
+ * The inactive lens surface is `hidden`, so measuring its dynamic row heights would
+ * report 0px; it is laid out again when the lens tab makes it visible.
+ */
 export function layoutReadingSurfaces(host: IConversationLensReadingColumnHost, height: number, width: number): void {
 	if (host.readingColumn.classList.contains(conversationLensPhasePreFirstClass)) {
 		return;
 	}
-	host.timelineTree.layout(height, width);
-	host.trajectoryView.layout(height, width);
+	if (host.lensId === 'conversation') {
+		host.timelineTree.layout(height, width);
+	} else {
+		host.trajectoryView.layout(height, width);
+	}
 }
 
 export function applyConversationDensity(host: IConversationLensReadingColumnHost): void {
