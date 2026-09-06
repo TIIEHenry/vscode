@@ -31,6 +31,7 @@ function mintTestIdentity() {
 class MockDeviceAuthTransport implements IUniverseAgentGrpcTransport {
 
 	private _alive = true;
+	authNonceCallCount = 0;
 
 	constructor(
 		private readonly authNonce: UniverseAgentAuthNonceResult,
@@ -46,6 +47,7 @@ class MockDeviceAuthTransport implements IUniverseAgentGrpcTransport {
 	}
 
 	async getAuthNonce(_request: UniverseAgentAuthNonceRequest): Promise<UniverseAgentAuthNonceResult> {
+		this.authNonceCallCount++;
 		return this.authNonce;
 	}
 
@@ -901,5 +903,45 @@ suite('deviceAuthHandshake SEC-3', () => {
 		if (result.kind === 'failed') {
 			assert.strictEqual(result.code, 'fingerprint_mismatch');
 		}
+		assert.strictEqual(transport.authNonceCallCount, 1);
+	});
+
+	test('prefetchedNonce skips a second GetAuthNonce', async () => {
+		const identity = mintTestIdentity();
+		const engineIdentityId = '0123456789abcdef'.repeat(4);
+		const observed = 'a'.repeat(64);
+		const prefetchedNonce: UniverseAgentAuthNonceResult = {
+			authNonce: new Uint8Array(32).fill(1),
+			engineIdentityId,
+			engineCertFingerprint: observed,
+		};
+		const transport = new MockDeviceAuthTransport(
+			{
+				authNonce: new Uint8Array(32).fill(2),
+				engineIdentityId,
+				engineCertFingerprint: observed,
+			},
+			{
+				pairingNonce: Buffer.from(new Uint8Array(32).fill(0xaa)).toString('base64'),
+				methods: [],
+				events: [],
+			},
+		);
+		const signer = createEd25519DeviceAuthSigner(identity.privateKeyPkcs8);
+
+		const result = await runDeviceAuthHandshake(
+			transport,
+			{
+				clientIdentityId: identity.clientIdentityId,
+				clientPublicKey: identity.clientPublicKey,
+				engineIdentityId,
+				observedLeafSha256Hex: observed,
+			},
+			signer,
+			{ pairingPhase: 'provisional', prefetchedNonce },
+		);
+
+		assert.strictEqual(result.kind, 'pairing_pending');
+		assert.strictEqual(transport.authNonceCallCount, 0);
 	});
 });
