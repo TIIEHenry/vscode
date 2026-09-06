@@ -378,6 +378,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 	private readonly hubAccountSection: HTMLElement;
 	private readonly hubAuthBadge: HTMLElement;
 	private readonly hubDeviceCodeStatus: HTMLElement;
+	private readonly hubConnectStatus: HTMLElement;
 	private readonly hubDirectoryBanner: HTMLElement;
 	private readonly hubDevicesSection: HTMLElement;
 	private readonly hubDevicesListContainer: HTMLElement;
@@ -405,6 +406,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 	private readonly list: WorkbenchList<IConnectionProfileEntry>;
 	private readonly profileActionsRow: HTMLElement;
 	private readonly connectionPhaseLabel: HTMLElement;
+	private readonly profilesConnectStatus: HTMLElement;
 	private readonly testStatus: HTMLElement;
 	/** In-pane pairing confirm host — attached to the Connect-initiating zone, not profiles-only. */
 	private readonly pairingConfirmHost: HTMLElement;
@@ -527,6 +529,10 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		const refreshButton = this._register(new Button(hubActions, { ...defaultButtonStyles, secondary: true }));
 		refreshButton.label = localize('ua.connectionHubRefreshDevices', "Refresh devices");
 		this._register(refreshButton.onDidClick(() => this.refreshHubDirectory()));
+
+		this.hubConnectStatus = DOM.append(this.hubAccountSection, DOM.$('.connection-status.connection-hub-connect-status'));
+		this.hubConnectStatus.setAttribute('role', 'status');
+		this.hubConnectStatus.setAttribute('aria-live', 'polite');
 
 		// Zone 2 — Device list
 		this.hubDevicesSection = DOM.append(this.scrollBody, DOM.$('.connection-zone.connection-hub-devices'));
@@ -662,6 +668,10 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		const forgetButton = this._register(new Button(this.profileActionsRow, { ...defaultButtonStyles, secondary: true }));
 		forgetButton.label = localize('ua.connectionProfileForget', "Forget this Engine");
 		this._register(forgetButton.onDidClick(() => this.handleForgetSelectedProfile()));
+
+		this.profilesConnectStatus = DOM.append(this.profilesSection, DOM.$('.connection-status.connection-profiles-status'));
+		this.profilesConnectStatus.setAttribute('role', 'status');
+		this.profilesConnectStatus.setAttribute('aria-live', 'polite');
 
 		this._register(this.list.onDidChangeSelection(e => {
 			const selected = e.elements[0];
@@ -1106,7 +1116,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 
 	private async handleConnectSelectedProfile(): Promise<void> {
 		if (!this.activeProfileId) {
-			writeStatus(this.testStatus, localize('ua.connectionNoActiveProfile', "Select a connection profile first."), 'warning');
+			this.writeConnectStatus(localize('ua.connectionNoActiveProfile', "Select a connection profile first."), 'warning');
 			return;
 		}
 		await this.connectProfileWithPairing(this.activeProfileId);
@@ -1125,7 +1135,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		await this.connectionService.disconnect().catch(() => undefined);
 		const result = await this.hubService.forgetConnectionProfile(this.activeProfileId);
 		if (!result.ok) {
-			writeStatus(this.testStatus, result.reason, 'error');
+			this.writeConnectStatus(result.reason, 'error');
 			return;
 		}
 		this.activeProfileId = undefined;
@@ -1139,7 +1149,11 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 				return this.directAddressStatus;
 			case 'devices':
 				return this.devicesConnectStatus;
-			default:
+			case 'profiles':
+				return this.profilesConnectStatus;
+			case 'hub':
+				return this.hubConnectStatus;
+			case 'test':
 				return this.testStatus;
 		}
 	}
