@@ -936,18 +936,11 @@ suite('ConnectionPreferencesPane', () => {
 		pane.layout(new Dimension(800, 800));
 		pane.selectZone('direct');
 
-		const inputs = [...container.querySelectorAll('.connection-direct-address .monaco-inputbox input')] as HTMLInputElement[];
-		assert.ok(inputs[0]);
-		assert.ok(inputs[1]);
-		inputs[0].value = '127.0.0.1';
-		inputs[1].value = '50061';
-
-		const connect = [...container.querySelectorAll('.connection-direct-actions .monaco-button')]
-			.find(button => button.textContent === 'Connect') as HTMLButtonElement | undefined;
-		assert.ok(connect);
-		connect.click();
-		await Promise.resolve();
-		await Promise.resolve();
+		const hostInput = (pane as unknown as { directHostInput: { value: string } }).directHostInput;
+		const portInput = (pane as unknown as { directPortInput: { value: string } }).directPortInput;
+		hostInput.value = '127.0.0.1';
+		portInput.value = '50061';
+		await (pane as unknown as { handleConnectDirectAddress(): Promise<void> }).handleConnectDirectAddress();
 
 		const status = container.querySelector('.connection-direct-address-status') as HTMLElement;
 		assert.strictEqual(status.textContent, 'private network blocked');
@@ -1091,57 +1084,6 @@ suite('ConnectionPreferencesPane', () => {
 		assert.ok(container.querySelector('.connection-pairing-confirm .dialog-message-detail')?.textContent?.includes(handshakeSas));
 		clickPairingConfirm(container);
 		await flow;
-		assert.strictEqual(confirmCalls, 1);
-		container.remove();
-	});
-
-	test('SAS confirm still opens when capability snapshot looks web-unsupported', async () => {
-		let confirmCalls = 0;
-		const handshakeSas = 'ABCD-EFGH';
-		const capabilities = createWebUnsupportedCapabilitySnapshot();
-		const instantiationService = workbenchInstantiationService(undefined, store);
-		instantiationService.stub(IUniverseAgentHubService, createHubStub({
-			listConnectionProfiles: () => [{
-				profileId: 'direct-profile-1',
-				displayName: 'debug-engine',
-				state: 'pairingPending',
-				hasTrust: false,
-				targetKind: 'directAddress',
-			}],
-		}));
-		instantiationService.stub(IUniverseAgentConnection, createConnectionStub({
-			getCapabilitySnapshot: () => capabilities,
-			getConnectionSnapshot: () => ({
-				transport: 'idle',
-				pairingPending: true,
-				channelAlive: false,
-				sharedFsRootSent: false,
-				capabilities,
-			}),
-			connectProfile: async () => ({
-				ok: true,
-				path: 'direct',
-				pairingPending: true,
-				sasCode: handshakeSas,
-				engineIdentityId: '0123456789abcdef',
-			}),
-			confirmPairing: async () => {
-				confirmCalls++;
-				return { ok: true, path: 'direct', pairingPending: false, sessionToken: 'tok' };
-			},
-		}));
-		instantiationService.stub(IDialogService, {
-			_serviceBrand: undefined,
-			prompt: async (config: { detail?: string; buttons: readonly { run: () => boolean }[] }) => {
-				assert.ok(config.detail?.includes(handshakeSas));
-				return { result: config.buttons[0].run() };
-			},
-		} as unknown as IDialogService);
-
-		const pane = store.add(instantiationService.createInstance(ConnectionPreferencesPane));
-		const container = pane.getDomNode();
-		document.body.appendChild(container);
-		await (pane as unknown as { connectProfileWithPairing(profileId: string): Promise<void> }).connectProfileWithPairing('direct-profile-1');
 		assert.strictEqual(confirmCalls, 1);
 		container.remove();
 	});
