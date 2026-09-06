@@ -93,11 +93,23 @@ function mapChangedIdsToTreeIds(
 	const turnToRoot = buildTurnToRootIdMap(turns, spans);
 	const rerenderIds = new Set<string>();
 	for (const rawId of changedIds) {
-		if (rawId === 'sync' || rawId.startsWith('pending:')) {
+		// Session-level chrome, owned by SessionBar / Inbox: no tree row carries these ids.
+		if (rawId === 'sync' || rawId.startsWith('chrome:')) {
 			continue;
 		}
 		if (rawId.startsWith('send:')) {
 			rerenderIds.add(rawId);
+			continue;
+		}
+		if (rawId.startsWith('pending:')) {
+			// A pending requestId addresses the permission row of the same id and the
+			// `${requestId}:${childKey}` question rows fanned out from one ask.
+			const requestId = rawId.slice('pending:'.length);
+			for (const [turnId, rootId] of turnToRoot) {
+				if (turnId === requestId || turnId.startsWith(`${requestId}:`)) {
+					rerenderIds.add(rootId);
+				}
+			}
 			continue;
 		}
 		const treeId = turnToRoot.get(rawId) ?? rawId;

@@ -29,6 +29,7 @@ suite('ConversationTimelineTree applyEntries (plan §3.4)', () => {
 	const assistant = (id: string, text: string): ConversationStubTurn => ({ id, kind: 'assistant', text, stubEcho: true });
 	const thinking = (id: string, text: string): ConversationStubTurn => ({ id, kind: 'thinking', text });
 	const tool = (id: string, text: string): ConversationStubTurn => ({ id, kind: 'tool', text, toolName: 'read' });
+	const confirmation = (id: string, status: 'pending' | 'allowed'): ConversationStubTurn => ({ id, kind: 'confirmation', text: 'run tests', status });
 
 	interface TimelineTreeInternals {
 		readonly renderer: {
@@ -67,6 +68,7 @@ suite('ConversationTimelineTree applyEntries (plan §3.4)', () => {
 		store.add(toDisposable(() => parent.remove()));
 
 		const tree = store.add(instantiationService.createInstance(ConversationTimelineTree, parent, {
+			onResolveConfirmation: () => { },
 			contentAdapter: {
 				renderTurnBody: (turn: ConversationStubTurn, container: HTMLElement) => {
 					container.textContent = turn.text;
@@ -102,6 +104,20 @@ suite('ConversationTimelineTree applyEntries (plan §3.4)', () => {
 
 		assert.deepStrictEqual(tree.getTestApplyMetrics(), { setChildrenCount: 0, rerenderCount: 2 });
 		assert.deepStrictEqual([...expandedState(tree).userBubbleExpanded], [['u1', true]]);
+	});
+
+	test('type A — a decided seat repaints from `pending:` alone (PRD-004)', () => {
+		const tree = seed([user('u1', 'run it'), confirmation('c1', 'pending')]);
+		assert.ok(tree.getTimelineRowElement('c1')?.querySelector('.conversation-lens-confirmation-actions'));
+
+		// Allow / deny only removes the pending action: the seat row itself is untouched.
+		tree.applyEntries(
+			stubTurnsToEntries([user('u1', 'run it'), confirmation('c1', 'allowed')]),
+			{ kind: 'patches', changedIds: new Set(['pending:c1']) },
+		);
+
+		assert.deepStrictEqual(tree.getTestApplyMetrics(), { setChildrenCount: 0, rerenderCount: 1 });
+		assert.strictEqual(tree.getTimelineRowElement('c1')?.querySelector('.conversation-lens-confirmation-actions'), null);
 	});
 
 	test('type B — appended row keeps the DOM nodes of unchanged ids', () => {

@@ -121,6 +121,30 @@ suite('ConversationTimelineApply (S2 three-frame matrix)', () => {
 		assert.notDeepStrictEqual(buildTimelineRootIdentities(prev), buildTimelineRootIdentities(next));
 	});
 
+	test('pending: prefix maps to the permission row and to the question child rows of one ask', () => {
+		const seat = (id: string, status: 'pending' | 'allowed'): ConversationStubTurn => ({ id, kind: 'confirmation', text: 'run tests', status });
+		const questionChild = (id: string): ConversationStubTurn => ({ id, kind: 'question', text: 'pick one', status: 'pending' });
+		const prev = [user('u1', 'go'), seat('req-1', 'pending'), questionChild('ask-1:q_0'), questionChild('ask-1:q_1')];
+		const next = [user('u1', 'go'), seat('req-1', 'allowed'), questionChild('ask-1:q_0'), questionChild('ask-1:q_1')];
+
+		const plan = computeTimelineApplyPlan(prev, next, {
+			kind: 'patches',
+			changedIds: new Set(['pending:req-1', 'pending:ask-1']),
+		});
+
+		assert.strictEqual(plan.mode, 'content');
+		assert.deepStrictEqual([...plan.rerenderIds].sort(), ['ask-1:q_0', 'ask-1:q_1', 'req-1']);
+	});
+
+	test('session-level chrome ids never mint a tree rerender id', () => {
+		const turns = [user('u1', 'go')];
+		const plan = computeTimelineApplyPlan(turns, turns, {
+			kind: 'patches',
+			changedIds: new Set(['sync', 'chrome:setLiveAgentTree', 'u1']),
+		});
+		assert.deepStrictEqual([...plan.rerenderIds], ['u1']);
+	});
+
 	test('effects frame → none (tree unchanged)', () => {
 		const turns = [user('u1', 'x')];
 		const plan = computeTimelineApplyPlan(turns, turns, { kind: 'effects', effects: [] });
