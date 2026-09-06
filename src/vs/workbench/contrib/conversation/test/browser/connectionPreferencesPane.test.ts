@@ -442,6 +442,8 @@ suite('ConnectionPreferencesPane', () => {
 			},
 		});
 		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		pane.selectZone('direct');
 		const hostInput = (pane as unknown as { directHostInput: HTMLInputElement }).directHostInput;
 		const portInput = (pane as unknown as { directPortInput: HTMLInputElement }).directPortInput;
 		const allowPrivate = (pane as unknown as { directAllowPrivateCheckbox: HTMLInputElement }).directAllowPrivateCheckbox;
@@ -451,14 +453,16 @@ suite('ConnectionPreferencesPane', () => {
 		await (pane as unknown as { handleConnectDirectAddress(): Promise<void> }).handleConnectDirectAddress();
 		assert.deepStrictEqual(forgotIds, ['direct-old']);
 		assert.strictEqual(addCalls, 1);
-		const testStatus = (pane as unknown as { testStatus: HTMLElement }).testStatus;
-		assert.strictEqual(testStatus.textContent, formatConnectProfileStatusText({
+		const status = container.querySelector('.connection-direct-address-status') as HTMLElement;
+		const testStatus = container.querySelector('.connection-test-status') as HTMLElement;
+		assert.strictEqual(status.textContent, formatConnectProfileStatusText({
 			ok: true,
 			path: 'direct',
 			pairingPending: false,
 		}));
-		assert.ok(!testStatus.textContent?.includes('ok=true'), `testStatus=${testStatus.textContent}`);
-		assert.notStrictEqual(testStatus.textContent, 'Connected');
+		assert.ok(!status.textContent?.includes('ok=true'), `directStatus=${status.textContent}`);
+		assert.notStrictEqual(status.textContent, 'Connected');
+		assert.strictEqual(testStatus.textContent, '');
 		container.remove();
 	});
 
@@ -542,10 +546,12 @@ suite('ConnectionPreferencesPane', () => {
 		const container = pane.getDomNode();
 		document.body.appendChild(container);
 		await (pane as unknown as { connectProfileWithPairing(profileId: string): Promise<void> }).connectProfileWithPairing('direct-profile-1');
+		const hubStatus = container.querySelector('.connection-hub-connect-status') as HTMLElement;
 		const testStatus = container.querySelector('.connection-test-status') as HTMLElement;
-		assert.strictEqual(testStatus.textContent, 'Handshake succeeded — pairing not pending.');
-		assert.ok(!testStatus.textContent?.includes('ok=true'));
-		assert.notStrictEqual(testStatus.textContent, 'Connected');
+		assert.strictEqual(hubStatus.textContent, 'Handshake succeeded — pairing not pending.');
+		assert.ok(!hubStatus.textContent?.includes('ok=true'));
+		assert.notStrictEqual(hubStatus.textContent, 'Connected');
+		assert.strictEqual(testStatus.textContent, '');
 		container.remove();
 	});
 
@@ -568,10 +574,12 @@ suite('ConnectionPreferencesPane', () => {
 		const container = pane.getDomNode();
 		document.body.appendChild(container);
 		await (pane as unknown as { connectProfileWithPairing(profileId: string): Promise<void> }).connectProfileWithPairing('direct-profile-1');
+		const hubStatus = container.querySelector('.connection-hub-connect-status') as HTMLElement;
 		const testStatus = container.querySelector('.connection-test-status') as HTMLElement;
-		assert.ok(testStatus.textContent?.includes('still pairing pending'));
-		assert.ok(!testStatus.textContent?.includes('ok=true'));
-		assert.ok(!testStatus.classList.contains('is-success'));
+		assert.ok(hubStatus.textContent?.includes('still pairing pending'));
+		assert.ok(!hubStatus.textContent?.includes('ok=true'));
+		assert.ok(!hubStatus.classList.contains('is-success'));
+		assert.strictEqual(testStatus.textContent, '');
 		container.remove();
 	});
 
@@ -605,11 +613,13 @@ suite('ConnectionPreferencesPane', () => {
 		}) as typeof brokenHost.append;
 		(pane as unknown as { pairingConfirmHost: HTMLElement }).pairingConfirmHost = brokenHost;
 		await (pane as unknown as { connectProfileWithPairing(profileId: string): Promise<void> }).connectProfileWithPairing('hub-profile-1');
+		const hubStatus = container.querySelector('.connection-hub-connect-status') as HTMLElement;
 		const testStatus = container.querySelector('.connection-test-status') as HTMLElement;
-		assert.ok(testStatus.textContent?.includes('dialog exploded'));
-		assert.ok(testStatus.textContent?.includes('Pairing dialog failed'));
-		assert.ok(!testStatus.textContent?.includes('ok=true'));
-		assert.ok(!testStatus.textContent?.includes('ABCD-EFGH'));
+		assert.ok(hubStatus.textContent?.includes('dialog exploded'));
+		assert.ok(hubStatus.textContent?.includes('Pairing dialog failed'));
+		assert.ok(!hubStatus.textContent?.includes('ok=true'));
+		assert.ok(!hubStatus.textContent?.includes('ABCD-EFGH'));
+		assert.strictEqual(testStatus.textContent, '');
 		container.remove();
 	});
 
@@ -647,8 +657,10 @@ suite('ConnectionPreferencesPane', () => {
 		const container = pane.getDomNode();
 		const flow = (pane as unknown as { connectProfileWithPairing(profileId: string): Promise<void> }).connectProfileWithPairing('direct-profile-1');
 		await Promise.resolve();
+		const hubStatus = container.querySelector('.connection-hub-connect-status') as HTMLElement;
 		const testStatus = container.querySelector('.connection-test-status') as HTMLElement;
-		assert.strictEqual(testStatus.textContent, 'Connecting…');
+		assert.strictEqual(hubStatus.textContent, 'Connecting…');
+		assert.strictEqual(testStatus.textContent, '');
 		resolveConnect!({
 			ok: true,
 			path: 'direct',
@@ -658,11 +670,12 @@ suite('ConnectionPreferencesPane', () => {
 		});
 		await Promise.resolve();
 		await Promise.resolve();
-		assert.strictEqual(testStatus.textContent, 'Pairing pending — not connected yet.');
-		assert.ok(testStatus.classList.contains('is-warning'));
-		assert.ok(!testStatus.textContent?.includes('ok=true'));
-		assert.ok(!testStatus.textContent?.includes('ABCD-EFGH'));
-		assert.notStrictEqual(testStatus.textContent, 'Connected');
+		assert.strictEqual(hubStatus.textContent, 'Pairing pending — not connected yet.');
+		assert.ok(hubStatus.classList.contains('is-warning'));
+		assert.ok(!hubStatus.textContent?.includes('ok=true'));
+		assert.ok(!hubStatus.textContent?.includes('ABCD-EFGH'));
+		assert.notStrictEqual(hubStatus.textContent, 'Connected');
+		assert.strictEqual(testStatus.textContent, '');
 		assert.ok(container.querySelector('.connection-pairing-confirm .monaco-dialog-box'));
 		clickPairingCancel(container);
 		await flow;
@@ -1250,6 +1263,172 @@ suite('ConnectionPreferencesPane', () => {
 		workbench.remove();
 	});
 
+	test('profile Connect Connecting and handshake failure stay in the visible Profiles status', async () => {
+		let resolveConnect: ((value: { ok: false; code: 'transport_failed'; reason: string }) => void) | undefined;
+		const connectPromise = new Promise<{ ok: false; code: 'transport_failed'; reason: string }>(resolve => {
+			resolveConnect = resolve;
+		});
+		const pane = mountPane({
+			listConnectionProfiles: () => [{
+				profileId: 'profile-1',
+				displayName: 'Studio',
+				state: 'active',
+				hasTrust: true,
+				targetKind: 'hubDevice',
+			}],
+		}, {
+			connectProfile: async () => connectPromise,
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		pane.selectZone('profiles');
+		(pane as unknown as { activeProfileId: string }).activeProfileId = 'profile-1';
+
+		const flow = (pane as unknown as { handleConnectSelectedProfile(): Promise<void> }).handleConnectSelectedProfile();
+		await Promise.resolve();
+		await Promise.resolve();
+
+		const profilesStatus = container.querySelector('.connection-profiles-status') as HTMLElement;
+		const testStatus = container.querySelector('.connection-test-status') as HTMLElement;
+		assert.strictEqual(profilesStatus.textContent, 'Connecting…');
+		assert.strictEqual(testStatus.textContent, '');
+		resolveConnect!({ ok: false, code: 'transport_failed', reason: 'dial refused' });
+		await flow;
+		assert.strictEqual(profilesStatus.textContent, 'dial refused');
+		assert.ok(profilesStatus.classList.contains('is-error'));
+		assert.ok(!profilesStatus.classList.contains('is-success'));
+		assert.strictEqual(testStatus.textContent, '');
+		assert.notStrictEqual(profilesStatus.textContent, 'Connected');
+		container.remove();
+	});
+
+	test('profile Connect pairing pending writes readable Profiles status, not Test zone', async () => {
+		const pane = mountPane({
+			listConnectionProfiles: () => [{
+				profileId: 'profile-1',
+				displayName: 'Studio',
+				state: 'pairingPending',
+				hasTrust: false,
+				targetKind: 'hubDevice',
+			}],
+		}, {
+			connectProfile: async () => ({
+				ok: true,
+				path: 'hubRelay',
+				pairingPending: true,
+				sasCode: 'ABCD-EFGH',
+				engineIdentityId: '0123456789abcdef',
+			}),
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		pane.selectZone('profiles');
+		(pane as unknown as { activeProfileId: string }).activeProfileId = 'profile-1';
+
+		const flow = (pane as unknown as { handleConnectSelectedProfile(): Promise<void> }).handleConnectSelectedProfile();
+		await waitForPairingDialog(container);
+
+		const profilesStatus = container.querySelector('.connection-profiles-status') as HTMLElement;
+		const testStatus = container.querySelector('.connection-test-status') as HTMLElement;
+		assert.strictEqual(profilesStatus.textContent, 'Pairing pending — not connected yet.');
+		assert.ok(profilesStatus.classList.contains('is-warning'));
+		assert.ok(!profilesStatus.textContent?.includes('ok=true'));
+		assert.ok(!profilesStatus.textContent?.includes('ABCD-EFGH'));
+		assert.notStrictEqual(profilesStatus.textContent, 'Connected');
+		assert.strictEqual(testStatus.textContent, '');
+		clickPairingCancel(container);
+		await flow;
+		container.remove();
+	});
+
+	test('profile Connect without a selection writes the visible Profiles warning', async () => {
+		const pane = mountPane();
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		pane.selectZone('profiles');
+		(pane as unknown as { activeProfileId?: string }).activeProfileId = undefined;
+
+		await (pane as unknown as { handleConnectSelectedProfile(): Promise<void> }).handleConnectSelectedProfile();
+
+		const profilesStatus = container.querySelector('.connection-profiles-status') as HTMLElement;
+		const testStatus = container.querySelector('.connection-test-status') as HTMLElement;
+		assert.strictEqual(profilesStatus.textContent, 'Select a connection profile first.');
+		assert.ok(profilesStatus.classList.contains('is-warning'));
+		assert.ok(!profilesStatus.classList.contains('is-success'));
+		assert.strictEqual(testStatus.textContent, '');
+		container.remove();
+	});
+
+	test('Forget failure writes the visible Profiles status', async () => {
+		const pane = mountPane({
+			listConnectionProfiles: () => [{
+				profileId: 'profile-1',
+				displayName: 'Studio',
+				state: 'active',
+				hasTrust: true,
+				targetKind: 'hubDevice',
+			}],
+			forgetConnectionProfile: async () => ({ ok: false, code: 'forget_failed', reason: 'forget blocked' }),
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		pane.selectZone('profiles');
+		(pane as unknown as { activeProfileId: string }).activeProfileId = 'profile-1';
+
+		await (pane as unknown as { handleForgetSelectedProfile(): Promise<void> }).handleForgetSelectedProfile();
+
+		const profilesStatus = container.querySelector('.connection-profiles-status') as HTMLElement;
+		const testStatus = container.querySelector('.connection-test-status') as HTMLElement;
+		assert.strictEqual(profilesStatus.textContent, 'forget blocked');
+		assert.ok(profilesStatus.classList.contains('is-error'));
+		assert.ok(!profilesStatus.classList.contains('is-success'));
+		assert.strictEqual(testStatus.textContent, '');
+		assert.notStrictEqual(profilesStatus.textContent, 'Connected');
+		container.remove();
+	});
+
+	test('Hub-zone connect Connecting and failure stay in the visible Hub status', async () => {
+		let resolveConnect: ((value: { ok: false; code: 'transport_failed'; reason: string }) => void) | undefined;
+		const connectPromise = new Promise<{ ok: false; code: 'transport_failed'; reason: string }>(resolve => {
+			resolveConnect = resolve;
+		});
+		const pane = mountPane({
+			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@hub.example' }),
+			listConnectionProfiles: () => [{
+				profileId: 'hub-profile-1',
+				displayName: 'Studio',
+				state: 'active',
+				hasTrust: true,
+				targetKind: 'hubDevice',
+			}],
+		}, {
+			connectProfile: async () => connectPromise,
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		pane.selectZone('hub');
+
+		const flow = (pane as unknown as { connectProfileWithPairing(profileId: string): Promise<void> }).connectProfileWithPairing('hub-profile-1');
+		await Promise.resolve();
+		await Promise.resolve();
+
+		const hubStatus = container.querySelector('.connection-hub-connect-status') as HTMLElement;
+		const authBadge = container.querySelector('.connection-hub-auth-badge') as HTMLElement;
+		const testStatus = container.querySelector('.connection-test-status') as HTMLElement;
+		assert.strictEqual(hubStatus.textContent, 'Connecting…');
+		assert.strictEqual(testStatus.textContent, '');
+		assert.strictEqual(authBadge.textContent, getHubAuthStatusLabel({ kind: 'signedIn', email: 'user@hub.example' }));
+		resolveConnect!({ ok: false, code: 'transport_failed', reason: 'hub relay refused' });
+		await flow;
+		assert.strictEqual(hubStatus.textContent, 'hub relay refused');
+		assert.ok(hubStatus.classList.contains('is-error'));
+		assert.ok(!hubStatus.classList.contains('is-success'));
+		assert.strictEqual(testStatus.textContent, '');
+		assert.notStrictEqual(hubStatus.textContent, 'Connected');
+		assert.strictEqual(authBadge.textContent, getHubAuthStatusLabel({ kind: 'signedIn', email: 'user@hub.example' }));
+		container.remove();
+	});
+
 	test('SAS cancel calls cancelPairing once', async () => {
 		let cancelCalls = 0;
 		const pane = mountPane({
@@ -1330,10 +1509,12 @@ suite('ConnectionPreferencesPane', () => {
 		clickPairingConfirm(container);
 		await flow;
 		assert.strictEqual(confirmCalls, 1);
+		const hubStatus = container.querySelector('.connection-hub-connect-status') as HTMLElement;
 		const testStatus = container.querySelector('.connection-test-status') as HTMLElement;
-		assert.strictEqual(testStatus.textContent, 'Handshake succeeded — pairing not pending.');
-		assert.ok(!testStatus.textContent?.includes('ok=true'));
-		assert.notStrictEqual(testStatus.textContent, 'Connected');
+		assert.strictEqual(hubStatus.textContent, 'Handshake succeeded — pairing not pending.');
+		assert.ok(!hubStatus.textContent?.includes('ok=true'));
+		assert.notStrictEqual(hubStatus.textContent, 'Connected');
+		assert.strictEqual(testStatus.textContent, '');
 		container.remove();
 	});
 
@@ -1448,10 +1629,12 @@ suite('ConnectionPreferencesPane', () => {
 		assert.strictEqual(confirmCalls, 1);
 		assert.ok(promptedTitle?.includes('Studio'));
 		assert.ok(promptedDetail);
+		const hubStatus = container.querySelector('.connection-hub-connect-status') as HTMLElement;
 		const testStatus = container.querySelector('.connection-test-status') as HTMLElement;
-		assert.strictEqual(testStatus.textContent, 'Handshake succeeded — pairing not pending.');
-		assert.ok(!testStatus.textContent?.includes('ok=true'));
-		assert.notStrictEqual(testStatus.textContent, 'Connected');
+		assert.strictEqual(hubStatus.textContent, 'Handshake succeeded — pairing not pending.');
+		assert.ok(!hubStatus.textContent?.includes('ok=true'));
+		assert.notStrictEqual(hubStatus.textContent, 'Connected');
+		assert.strictEqual(testStatus.textContent, '');
 		container.remove();
 	});
 
