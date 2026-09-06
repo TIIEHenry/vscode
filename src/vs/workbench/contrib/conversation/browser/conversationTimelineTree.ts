@@ -18,7 +18,7 @@ import { INotificationService } from '../../../../platform/notification/common/n
 import { IWebviewService } from '../../webview/browser/webview.js';
 import { conversationLensPinnedUserPromptAria, conversationLensPinnedUserPromptCopyAria } from './conversationLensSessionBarStrings.js';
 import { ConversationMermaidExtensionInfo } from './conversationMermaidHost.js';
-import { ProcessFoldSpan, projectProcessFoldSpans, summarizeProcessSteps } from './conversationProcessFoldModel.js';
+import { ProcessFoldSpan, summarizeProcessSteps } from './conversationProcessFoldModel.js';
 import { ConversationStubTurn } from './conversationStubModel.js';
 import type { ConversationViewFrameApplied } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
 import {
@@ -303,16 +303,16 @@ export class ConversationTimelineTree extends Disposable {
 		this.currentTurns = nextTurns;
 
 		if (plan.mode === 'baseline') {
-			this.applyBaseline(nextTurns, plan.removedTreeIds);
+			this.applyBaseline(nextTurns, plan.removedTreeIds, plan.spans);
 			return;
 		}
 
 		if (plan.mode === 'structure') {
-			this.applyStructure(nextTurns, plan.removedTreeIds);
+			this.applyStructure(nextTurns, plan.removedTreeIds, plan.spans);
 			return;
 		}
 
-		this.applyContentPatches(nextTurns, plan.rerenderIds, plan.removedTreeIds);
+		this.applyContentPatches(nextTurns, plan.rerenderIds, plan.removedTreeIds, plan.spans);
 	}
 
 	/** @internal Test instrumentation for applyEntries (plan §3.4). */
@@ -332,17 +332,17 @@ export class ConversationTimelineTree extends Disposable {
 			?? this.treeContainer.querySelector(`[data-turn-id="${treeId}"]`) as HTMLElement | undefined;
 	}
 
-	private applyBaseline(turns: readonly ConversationStubTurn[], removedTreeIds: ReadonlySet<string>): void {
+	private applyBaseline(turns: readonly ConversationStubTurn[], removedTreeIds: ReadonlySet<string>, spans: readonly ProcessFoldSpan[]): void {
 		this.withPersistedAutoScroll(() => {
-			this.pruneExpandedState(removedTreeIds, turns);
-			this.rebuildTreeFromTurns(turns);
+			this.pruneExpandedState(removedTreeIds, turns, spans);
+			this.rebuildTreeFromTurns(turns, spans);
 		});
 	}
 
-	private applyStructure(turns: readonly ConversationStubTurn[], removedTreeIds: ReadonlySet<string>): void {
+	private applyStructure(turns: readonly ConversationStubTurn[], removedTreeIds: ReadonlySet<string>, spans: readonly ProcessFoldSpan[]): void {
 		this.withPersistedAutoScroll(() => {
-			this.pruneExpandedState(removedTreeIds, turns);
-			this.rebuildTreeFromTurns(turns, { diff: true });
+			this.pruneExpandedState(removedTreeIds, turns, spans);
+			this.rebuildTreeFromTurns(turns, spans, { diff: true });
 		});
 	}
 
@@ -350,10 +350,11 @@ export class ConversationTimelineTree extends Disposable {
 		turns: readonly ConversationStubTurn[],
 		rerenderIds: ReadonlySet<string>,
 		removedTreeIds: ReadonlySet<string>,
+		spans: readonly ProcessFoldSpan[],
 	): void {
 		this.withPersistedAutoScroll(() => {
-			this.pruneExpandedState(removedTreeIds, turns);
-			this.patchTurnItemsInPlace(turns);
+			this.pruneExpandedState(removedTreeIds, turns, spans);
+			this.patchTurnItemsInPlace(turns, spans);
 			for (const treeId of rerenderIds) {
 				const item = this.turnItems.get(treeId);
 				if (!item || !this.tree.hasElement(item)) {
@@ -368,8 +369,8 @@ export class ConversationTimelineTree extends Disposable {
 		});
 	}
 
-	private pruneExpandedState(removedTreeIds: ReadonlySet<string>, turns: readonly ConversationStubTurn[]): void {
-		const knownIds = this.collectKnownExpandedIds(turns);
+	private pruneExpandedState(removedTreeIds: ReadonlySet<string>, turns: readonly ConversationStubTurn[], spans: readonly ProcessFoldSpan[]): void {
+		const knownIds = this.collectKnownExpandedIds(turns, spans);
 		for (const removedId of removedTreeIds) {
 			// Q4: overlay ↔ L2 is uncorrelated. Span id change resets expand; do not infer a counterpart.
 			knownIds.delete(removedId);
@@ -380,12 +381,12 @@ export class ConversationTimelineTree extends Disposable {
 		this.renderer.pruneVisualizeExpanded(knownIds);
 	}
 
-	private collectKnownExpandedIds(turns: readonly ConversationStubTurn[]): Set<string> {
+	private collectKnownExpandedIds(turns: readonly ConversationStubTurn[], spans: readonly ProcessFoldSpan[]): Set<string> {
 		const knownIds = new Set<string>();
 		for (const turn of turns) {
 			knownIds.add(turn.id);
 		}
-		for (const span of projectProcessFoldSpans(turns)) {
+		for (const span of spans) {
 			knownIds.add(span.id);
 			for (const turnId of span.turnIds) {
 				knownIds.add(turnId);
@@ -394,9 +395,9 @@ export class ConversationTimelineTree extends Disposable {
 		return knownIds;
 	}
 
-	private rebuildTreeFromTurns(turns: readonly ConversationStubTurn[], options?: { diff?: boolean }): void {
-		const items = this.buildTreeElements(turns);
-		this.indexTurnItems(turns, items);
+	private rebuildTreeFromTurns(turns: readonly ConversationStubTurn[], spans: readonly ProcessFoldSpan[], options?: { diff?: boolean }): void {
+		const items = this.buildTreeElements(turns, spans);
+		this.indexTurnItems(turns, items, spans);
 		this._testSetChildrenCount += 1;
 		if (options?.diff) {
 			this.tree.setChildren(null, items, { diffIdentityProvider: this.timelineIdentity });
@@ -408,8 +409,8 @@ export class ConversationTimelineTree extends Disposable {
 		this.flushPendingReveal();
 	}
 
-	private indexTurnItems(turns: readonly ConversationStubTurn[], items: readonly IObjectTreeElement<ConversationTimelineItem>[]): void {
-		this.flatItems = flattenConversationTimelineItems(turns);
+	private indexTurnItems(turns: readonly ConversationStubTurn[], items: readonly IObjectTreeElement<ConversationTimelineItem>[], spans: readonly ProcessFoldSpan[]): void {
+		this.flatItems = flattenConversationTimelineItems(turns, spans);
 		this.turnItems.clear();
 		for (const treeElement of items) {
 			const item = treeElement.element;
@@ -424,10 +425,10 @@ export class ConversationTimelineTree extends Disposable {
 		}
 	}
 
-	private patchTurnItemsInPlace(turns: readonly ConversationStubTurn[]): void {
-		this.flatItems = flattenConversationTimelineItems(turns);
+	private patchTurnItemsInPlace(turns: readonly ConversationStubTurn[], spans: readonly ProcessFoldSpan[]): void {
+		this.flatItems = flattenConversationTimelineItems(turns, spans);
 		const freshById = new Map<string, ConversationTimelineItem>();
-		for (const treeElement of this.buildTreeElements(turns)) {
+		for (const treeElement of this.buildTreeElements(turns, spans)) {
 			const item = treeElement.element;
 			freshById.set(this.timelineIdentity.getId(item), item);
 		}
@@ -488,8 +489,7 @@ export class ConversationTimelineTree extends Disposable {
 		}
 	}
 
-	private buildTreeElements(turns: readonly ConversationStubTurn[]): IObjectTreeElement<ConversationTimelineItem>[] {
-		const spans = projectProcessFoldSpans(turns);
+	private buildTreeElements(turns: readonly ConversationStubTurn[], spans: readonly ProcessFoldSpan[]): IObjectTreeElement<ConversationTimelineItem>[] {
 		const spanByStartIndex = new Map(spans.map(span => [span.startIndex, span]));
 		const coveredIndices = new Set<number>();
 		for (const span of spans) {
