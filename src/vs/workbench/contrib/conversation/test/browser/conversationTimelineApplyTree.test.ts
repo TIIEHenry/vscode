@@ -173,4 +173,45 @@ suite('ConversationTimelineTree applyEntries (plan §3.4)', () => {
 
 		assert.deepStrictEqual([...expandedState(tree).processFoldOuterExpanded], []);
 	});
+
+	test('type A — setEditingTurnId rerenders the target row and never resets children', () => {
+		const tree = seed([user('u1', 'hello'), assistant('a1', 'one')]);
+		const before = [tree.getTimelineRowElement('u1'), tree.getTimelineRowElement('a1')];
+		assert.ok(before[0] && before[1]);
+
+		tree.setEditingTurnId('u1');
+
+		assert.deepStrictEqual(tree.getTestApplyMetrics(), { setChildrenCount: 0, rerenderCount: 1 });
+		assert.deepStrictEqual(
+			[tree.getTimelineRowElement('u1'), tree.getTimelineRowElement('a1')],
+			before,
+		);
+	});
+
+	test('type A — switching and clearing edit only rerenders the affected rows', () => {
+		const tree = seed([user('u1', 'hello'), user('u2', 'there'), assistant('a1', 'one')]);
+		tree.setEditingTurnId('u1');
+		tree.resetTestApplyMetrics();
+
+		tree.setEditingTurnId('u2');
+		assert.deepStrictEqual(tree.getTestApplyMetrics(), { setChildrenCount: 0, rerenderCount: 2 });
+
+		tree.resetTestApplyMetrics();
+		tree.setEditingTurnId(undefined);
+		assert.deepStrictEqual(tree.getTestApplyMetrics(), { setChildrenCount: 0, rerenderCount: 1 });
+	});
+
+	test('type A — refreshPresentation (tool-details) rerenders without resetting children', () => {
+		const tree = seed([user('u1', 'hello'), assistant('a1', 'one')]);
+		const before = [tree.getTimelineRowElement('u1'), tree.getTimelineRowElement('a1')];
+		assert.ok(before[0] && before[1]);
+
+		tree.refreshPresentation();
+
+		assert.deepStrictEqual(tree.getTestApplyMetrics(), { setChildrenCount: 0, rerenderCount: 2 });
+		assert.deepStrictEqual(
+			[tree.getTimelineRowElement('u1'), tree.getTimelineRowElement('a1')],
+			before,
+		);
+	});
 });

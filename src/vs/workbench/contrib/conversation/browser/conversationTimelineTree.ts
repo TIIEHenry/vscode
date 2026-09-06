@@ -470,23 +470,34 @@ export class ConversationTimelineTree extends Disposable {
 		if (this.editingTurnId === turnId) {
 			return;
 		}
+		const previous = this.editingTurnId;
 		this.editingTurnId = turnId;
-		this.refreshTurnPresentation();
+		const changedIds = new Set<string>();
+		if (previous) {
+			changedIds.add(previous);
+		}
+		if (turnId) {
+			changedIds.add(turnId);
+		}
+		this.refreshTurnPresentation(changedIds);
 	}
 
 	getTurnEditHost(turnId: string): HTMLElement | undefined {
 		return this.treeContainer.querySelector(`.conversation-lens-turn-edit-host[data-turn-id="${turnId}"]`) as HTMLElement | undefined;
 	}
 
-	private refreshTurnPresentation(): void {
+	/** Same-entry presentation refresh: §3.4 class A, never a no-diff baseline rebuild. */
+	private refreshTurnPresentation(changedIds?: ReadonlySet<string>): void {
 		if (this.currentEntries.length === 0 && this.currentTurns.length === 0) {
 			return;
 		}
-		if (this.currentEntries.length > 0) {
-			this.applyEntries(this.currentEntries, { kind: 'baseline' });
-		} else {
-			this.setTurns(this.currentTurns);
-		}
+		const entries = this.currentEntries.length > 0
+			? this.currentEntries
+			: stubTurnsToEntries(this.currentTurns);
+		this.applyEntries(entries, {
+			kind: 'patches',
+			changedIds: changedIds ?? new Set(this.currentTurns.map(turn => turn.id)),
+		});
 	}
 
 	private buildTreeElements(turns: readonly ConversationStubTurn[], spans: readonly ProcessFoldSpan[]): IObjectTreeElement<ConversationTimelineItem>[] {
