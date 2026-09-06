@@ -1705,6 +1705,7 @@ suite('ConversationLens', () => {
 
 		assert.ok(allowButton);
 		allowButton.click();
+		await flushProjectedTimeline(layoutReadingColumn);
 
 		const seatAfter = queryTimeline(slots, '.conversation-lens-confirmation-seat')!;
 		const buttonsAfter = [...seatAfter.querySelectorAll('button, .monaco-button')].map(el => el.textContent?.trim());
@@ -1736,7 +1737,7 @@ suite('ConversationLens', () => {
 		const maximizeButton = slots.dock.querySelector('.conversation-lens-dock-maximize-input .monaco-button') as HTMLButtonElement;
 
 		assert.ok(maximizeButton);
-		assert.ok(maximizeButton.querySelector('.codicon-screen-full'));
+		assert.ok(maximizeButton.classList.contains('codicon-screen-full'));
 		assert.strictEqual(maximizeButton.getAttribute('aria-label'), conversationLensDockMaximizeInput);
 		assert.strictEqual(lens.isInputMaximized(), false);
 		assert.strictEqual(slots.timeline.classList.contains(conversationLensInputMaximizedClass), false);
@@ -1747,7 +1748,7 @@ suite('ConversationLens', () => {
 		maximizeButton.click();
 
 		assert.strictEqual(lens.isInputMaximized(), true);
-		assert.ok(maximizeButton.querySelector('.codicon-screen-normal'));
+		assert.ok(maximizeButton.classList.contains('codicon-screen-normal'));
 		assert.strictEqual(maximizeButton.getAttribute('aria-label'), conversationLensDockRestoreTimeline);
 		assert.strictEqual(maximizeButton.getAttribute('aria-pressed'), 'true');
 		assert.strictEqual(slots.timeline.classList.contains(conversationLensInputMaximizedClass), true);
@@ -1756,7 +1757,7 @@ suite('ConversationLens', () => {
 		maximizeButton.click();
 
 		assert.strictEqual(lens.isInputMaximized(), false);
-		assert.ok(maximizeButton.querySelector('.codicon-screen-full'));
+		assert.ok(maximizeButton.classList.contains('codicon-screen-full'));
 		assert.strictEqual(maximizeButton.getAttribute('aria-label'), conversationLensDockMaximizeInput);
 		assert.strictEqual(maximizeButton.getAttribute('aria-pressed'), 'false');
 		assert.strictEqual(slots.timeline.classList.contains(conversationLensInputMaximizedClass), false);
