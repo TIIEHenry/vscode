@@ -4,11 +4,14 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as dom from '../../../../base/browser/dom.js';
+import { ActionBar } from '../../../../base/browser/ui/actionbar/actionbar.js';
 import { IListRenderer, IListVirtualDelegate } from '../../../../base/browser/ui/list/list.js';
 import { IListAccessibilityProvider } from '../../../../base/browser/ui/list/listWidget.js';
 import { RenderIndentGuides } from '../../../../base/browser/ui/tree/abstractTree.js';
 import { ITreeNode, ITreeRenderer } from '../../../../base/browser/ui/tree/tree.js';
+import { Action } from '../../../../base/common/actions.js';
 import { Codicon } from '../../../../base/common/codicons.js';
+import { ThemeIcon } from '../../../../base/common/themables.js';
 import { localize, localize2 } from '../../../../nls.js';
 import { Action2, MenuId, registerAction2 } from '../../../../platform/actions/common/actions.js';
 import { ContextKeyExpr, IContextKey, RawContextKey } from '../../../../platform/contextkey/common/contextkey.js';
@@ -44,7 +47,7 @@ import {
 	isRootOnlyAgentTree,
 	liveAgentTreeToHierarchyNodes,
 } from '../common/navigatorAgentHierarchy.js';
-import { getNavigatorAgentTreePendingCopy } from '../common/navigatorAgentTreeEmptyState.js';
+import { getNavigatorAgentTreePendingCopy, NAVIGATOR_STALE_SNAPSHOT_COPY } from '../common/navigatorAgentTreeEmptyState.js';
 import { getNavigatorCapability } from '../common/navigatorEngineBridge.js';
 import { matchesNavigatorAgentsInlineFilter } from '../common/navigatorAgentsInlineFilter.js';
 import {
@@ -57,7 +60,7 @@ import { revealNavigatorAgentInConversation } from './navigatorReveal.js';
 
 const $ = dom.$;
 
-const AGENTS_FILTER_NO_MATCH = localize('navigatorAgents.noMatch', "无匹配");
+const AGENTS_FILTER_NO_MATCH = localize('navigatorAgents.noMatch', "No matches");
 
 export const NAVIGATOR_AGENTS_VIEW_ID = 'workbench.view.navigatorAgents';
 
@@ -66,6 +69,8 @@ export type NavigatorAgentsSubview = 'hierarchy' | 'activity';
 export const NAVIGATOR_AGENTS_SHOW_HIERARCHY_COMMAND_ID = 'workbench.action.navigatorAgents.showHierarchy';
 export const NAVIGATOR_AGENTS_SHOW_ACTIVITY_COMMAND_ID = 'workbench.action.navigatorAgents.showActivity';
 export const NAVIGATOR_AGENTS_REFRESH_COMMAND_ID = 'workbench.action.navigatorAgents.refresh';
+export const NAVIGATOR_AGENTS_INSPECT_ITEM_COMMAND_ID = 'workbench.action.navigatorAgents.inspectItem';
+export const NAVIGATOR_AGENTS_REVEAL_COMMAND_ID = 'workbench.action.navigatorAgents.revealInConversation';
 
 export const NAVIGATOR_AGENTS_SUBVIEW_HIERARCHY_KEY = new RawContextKey<boolean>('navigatorAgentsSubview.hierarchy', true);
 export const NAVIGATOR_AGENTS_SUBVIEW_ACTIVITY_KEY = new RawContextKey<boolean>('navigatorAgentsSubview.activity', false);
@@ -85,22 +90,70 @@ interface IAgentsHierarchyTemplateData {
 	readonly label: HTMLElement;
 	readonly typeIcon: HTMLElement;
 	readonly statusGlyph: HTMLElement;
+	readonly actionBar: ActionBar;
+	readonly inspectAction: Action;
+	readonly revealAction: Action;
+	element: INavigatorAgentsHierarchyNode | undefined;
 }
 
 class AgentsHierarchyRenderer implements ITreeRenderer<INavigatorAgentsHierarchyNode, void, IAgentsHierarchyTemplateData> {
 	static readonly TEMPLATE_ID = 'navigatorAgentsHierarchy';
 	readonly templateId = AgentsHierarchyRenderer.TEMPLATE_ID;
 
+	constructor(
+		private readonly onInspect: (node: INavigatorAgentsHierarchyNode) => void,
+		private readonly onReveal: (node: INavigatorAgentsHierarchyNode) => void,
+	) { }
+
 	renderTemplate(container: HTMLElement): IAgentsHierarchyTemplateData {
 		const row = dom.append(container, $('.navigator-agents-hierarchy-row'));
 		const typeIcon = dom.append(row, $('.navigator-agents-type-icon'));
 		const statusGlyph = dom.append(row, $('.navigator-agents-status-glyph'));
 		const label = dom.append(row, $('.navigator-agents-hierarchy-label'));
-		return { label, typeIcon, statusGlyph };
+		const actionsContainer = dom.append(row, $('.navigator-agents-row-actions'));
+		actionsContainer.addEventListener('mousedown', e => e.stopPropagation());
+		actionsContainer.addEventListener('click', e => e.stopPropagation());
+		actionsContainer.addEventListener('dblclick', e => e.stopPropagation());
+
+		const templateData = {
+			label,
+			typeIcon,
+			statusGlyph,
+			actionBar: new ActionBar(actionsContainer),
+			element: undefined as INavigatorAgentsHierarchyNode | undefined,
+		};
+		const inspectAction = new Action(
+			NAVIGATOR_AGENTS_INSPECT_ITEM_COMMAND_ID,
+			localize('navigatorAgents.rowInspect', "Inspect"),
+			ThemeIcon.asClassName(Codicon.inspect),
+			true,
+			() => {
+				if (templateData.element) {
+					this.onInspect(templateData.element);
+				}
+			},
+		);
+		const revealAction = new Action(
+			NAVIGATOR_AGENTS_REVEAL_COMMAND_ID,
+			localize('navigatorAgents.rowReveal', "Reveal in Conversation"),
+			ThemeIcon.asClassName(Codicon.goToFile),
+			true,
+			() => {
+				if (templateData.element) {
+					this.onReveal(templateData.element);
+				}
+			},
+		);
+		inspectAction.tooltip = localize('navigatorAgents.rowInspect', "Inspect");
+		revealAction.tooltip = localize('navigatorAgents.rowReveal', "Reveal in Conversation");
+		templateData.actionBar.push([inspectAction, revealAction], { icon: true, label: false });
+		templateData.actionBar.setFocusable(false);
+		return { ...templateData, inspectAction, revealAction };
 	}
 
 	renderElement(node: ITreeNode<INavigatorAgentsHierarchyNode, void>, _index: number, templateData: IAgentsHierarchyTemplateData): void {
 		const element = node.element;
+		templateData.element = element;
 		templateData.label.textContent = element.label;
 		templateData.typeIcon.textContent = formatAgentTypeShort(element.type).slice(0, 1);
 		templateData.typeIcon.title = element.type;
@@ -109,8 +162,10 @@ class AgentsHierarchyRenderer implements ITreeRenderer<INavigatorAgentsHierarchy
 		templateData.statusGlyph.setAttribute('aria-label', formatAgentStatusLabel(element.status));
 	}
 
-	disposeTemplate(): void {
-		// noop
+	disposeTemplate(templateData: IAgentsHierarchyTemplateData): void {
+		templateData.actionBar.dispose();
+		templateData.inspectAction.dispose();
+		templateData.revealAction.dispose();
 	}
 }
 
@@ -186,6 +241,8 @@ export class NavigatorAgentsView extends ViewPane {
 	private activityEntries: INavigatorAgentsActivityItem[] = [];
 
 	private lastLiveAgentTree: unknown;
+	private hadHierarchySnapshot = false;
+	private hadActivitySnapshot = false;
 
 	constructor(
 		options: IViewPaneOptions,
@@ -315,7 +372,10 @@ export class NavigatorAgentsView extends ViewPane {
 		}
 
 		const delegate = new AgentsHierarchyDelegate();
-		const renderer = new AgentsHierarchyRenderer();
+		const renderer = new AgentsHierarchyRenderer(
+			node => this.inspectHierarchyNode(node),
+			node => this.revealHierarchyNode(node),
+		);
 
 		this.hierarchyTree = this._register(this.instantiationService.createInstance(
 			WorkbenchObjectTree<INavigatorAgentsHierarchyNode, void>,
@@ -387,15 +447,13 @@ export class NavigatorAgentsView extends ViewPane {
 		this.lastLiveAgentTree = liveTree;
 
 		if (!engineReady) {
-			this.inspectService.setLiveAgentIds('agents', undefined);
-			this.setHierarchyState([], localize('navigatorAgentsHierarchy.empty', "No agents — no engine."));
-			this.setActivityState([], localize('navigatorAgentsActivity.empty', "No tool activity — no engine."));
+			this.showDisconnectedSnapshot();
 			return;
 		}
 
 		if (!this.rosterService.getActiveSessionId()) {
 			this.inspectService.setLiveAgentIds('agents', undefined);
-			this.setHierarchyState([], localize('navigatorAgentsHierarchy.noSession', "当前没有会话"));
+			this.setHierarchyState([], localize('navigatorAgentsHierarchy.noSession', "No session"));
 			this.setActivityState([], localize('navigatorAgentsActivity.emptyConnected', "No tool activity yet."));
 			return;
 		}
@@ -406,7 +464,7 @@ export class NavigatorAgentsView extends ViewPane {
 
 		if (agentTreeCapability === 'UNSUPPORTED') {
 			this.inspectService.setLiveAgentIds('agents', undefined);
-			this.setHierarchyState([], localize('navigatorAgentsHierarchy.unsupported', "当前引擎不提供 Agent 树"));
+			this.setHierarchyState([], localize('navigatorAgentsHierarchy.unsupported', "Current engine does not provide an agent tree"));
 			this.setActivityFromSnapshot(snapshot, lease?.attribution);
 			return;
 		}
@@ -420,39 +478,62 @@ export class NavigatorAgentsView extends ViewPane {
 		}
 
 		this.inspectService.setLiveAgentIds('agents', collectLiveAgentTreeAgentIds(liveTree!));
-
-		// Stale note is connection-transport axis; tree-fail uses isAgentTreeFetchFailed (D21).
-		if (transportFailed) {
-			this.setHierarchyNote(localize('navigatorAgentsHierarchy.staleSnapshot', "显示为断开前快照"));
-		} else {
-			this.setHierarchyNote(undefined);
-		}
+		this.hadHierarchySnapshot = true;
 
 		const rootNode = liveAgentTreeToHierarchyNodes(liveTree!);
+		const staleNote = transportFailed ? NAVIGATOR_STALE_SNAPSHOT_COPY : undefined;
 		if (isRootOnlyAgentTree(liveTree)) {
-			this.setHierarchyState([rootNode], undefined, localize('navigatorAgentsHierarchy.rootOnly', "只有根 Agent"));
+			this.setHierarchyState([rootNode], undefined, staleNote ?? localize('navigatorAgentsHierarchy.rootOnly', "Root agent only"));
 		} else {
-			this.setHierarchyState([rootNode], undefined);
+			this.setHierarchyState([rootNode], undefined, staleNote);
 		}
 
-		this.setActivityFromSnapshot(snapshot, lease?.attribution);
+		this.setActivityFromSnapshot(snapshot, lease?.attribution, staleNote);
 
 		if (!treeChanged && liveTree) {
 			// still refresh activity on every frame
 		}
 	}
 
-	private setActivityFromSnapshot(
-		snapshot: SessionViewSnapshot | undefined,
-		attribution: ReadonlyMap<string, ItemAttribution> | undefined,
-	): void {
-		if (!this.rosterService.isEngineConnected() || !snapshot || !attribution) {
+	private showDisconnectedSnapshot(): void {
+		if (!this.hadHierarchySnapshot && !this.hadActivitySnapshot) {
+			this.inspectService.setLiveAgentIds('agents', undefined);
+			this.setHierarchyState([], localize('navigatorAgentsHierarchy.empty', "No agents — no engine."));
 			this.setActivityState([], localize('navigatorAgentsActivity.empty', "No tool activity — no engine."));
 			return;
 		}
+		if (this.hadHierarchySnapshot) {
+			this.setHierarchyNote(NAVIGATOR_STALE_SNAPSHOT_COPY);
+		} else {
+			this.inspectService.setLiveAgentIds('agents', undefined);
+			this.setHierarchyState([], localize('navigatorAgentsHierarchy.empty', "No agents — no engine."));
+		}
+		if (this.hadActivitySnapshot) {
+			this.setActivityNote(NAVIGATOR_STALE_SNAPSHOT_COPY);
+		} else {
+			this.setActivityState([], localize('navigatorAgentsActivity.empty', "No tool activity — no engine."));
+		}
+	}
+
+	private setActivityFromSnapshot(
+		snapshot: SessionViewSnapshot | undefined,
+		attribution: ReadonlyMap<string, ItemAttribution> | undefined,
+		staleNote?: string,
+	): void {
+		if (!snapshot || !attribution) {
+			if (this.hadActivitySnapshot) {
+				if (staleNote) {
+					this.setActivityNote(staleNote);
+				}
+				return;
+			}
+			this.setActivityState([], localize('navigatorAgentsActivity.empty', "No tool activity — no engine."));
+			return;
+		}
+		this.hadActivitySnapshot = true;
 		const items = collectNavigatorActivityItems(snapshot, attribution);
 		const truncated = navigatorActivityTruncated(snapshot);
-		const note = truncated ? localize('navigatorAgentsActivity.truncated', "仅显示最近 200 条") : undefined;
+		const note = staleNote ?? (truncated ? localize('navigatorAgentsActivity.truncated', "Showing the latest 200 items") : undefined);
 		this.setActivityState(items, items.length === 0 ? localize('navigatorAgentsActivity.emptyConnected', "No tool activity yet.") : undefined, note);
 	}
 
@@ -481,12 +562,7 @@ export class NavigatorAgentsView extends ViewPane {
 			this.activityHonestEmpty = emptyMessage;
 			this.activityEmpty!.textContent = emptyMessage;
 		}
-		if (noteMessage) {
-			this.activityNote!.textContent = noteMessage;
-			this.activityNote!.style.display = 'block';
-		} else {
-			this.activityNote!.style.display = 'none';
-		}
+		this.setActivityNote(noteMessage);
 		this.applyFilterToActivity();
 		this.updateActivityDisplay();
 	}
@@ -500,6 +576,41 @@ export class NavigatorAgentsView extends ViewPane {
 			this.hierarchyNote.style.display = 'block';
 		} else {
 			this.hierarchyNote.style.display = 'none';
+		}
+	}
+
+	private setActivityNote(noteMessage: string | undefined): void {
+		if (!this.activityNote) {
+			return;
+		}
+		if (noteMessage) {
+			this.activityNote.textContent = noteMessage;
+			this.activityNote.style.display = 'block';
+		} else {
+			this.activityNote.style.display = 'none';
+		}
+	}
+
+	inspectHierarchyNode(node: INavigatorAgentsHierarchyNode): void {
+		this.inspectService.setTarget({ kind: 'agent', node: node.source });
+		void this.instantiationService.invokeFunction(accessor => accessor.get(IViewsService).openView(AGENT_INSPECT_VIEW_ID, true));
+	}
+
+	revealHierarchyNode(node: INavigatorAgentsHierarchyNode): void {
+		void this.instantiationService.invokeFunction(accessor => revealNavigatorAgentInConversation(accessor, node.agentId, node.label));
+	}
+
+	inspectFocusedHierarchyNode(): void {
+		const node = this.hierarchyTree?.getFocus()[0];
+		if (node) {
+			this.inspectHierarchyNode(node);
+		}
+	}
+
+	revealFocusedHierarchyNode(): void {
+		const node = this.hierarchyTree?.getFocus()[0];
+		if (node) {
+			this.revealHierarchyNode(node);
 		}
 	}
 
@@ -721,19 +832,49 @@ registerAction2(class NavigatorAgentsOpenInspectAction extends ViewAction<Naviga
 	}
 });
 
+registerAction2(class NavigatorAgentsInspectItemAction extends ViewAction<NavigatorAgentsView> {
+	constructor() {
+		super({
+			id: NAVIGATOR_AGENTS_INSPECT_ITEM_COMMAND_ID,
+			viewId: NAVIGATOR_AGENTS_VIEW_ID,
+			title: localize2('navigatorAgentsView.inspectItem', "Inspect"),
+			icon: Codicon.inspect,
+			menu: {
+				id: MenuId.ViewItemContext,
+				group: 'inline',
+				order: 1,
+				when: ContextKeyExpr.equals('view', NAVIGATOR_AGENTS_VIEW_ID),
+			},
+		});
+	}
+
+	override runInView(_accessor: ServicesAccessor, view: NavigatorAgentsView): void {
+		view.inspectFocusedHierarchyNode();
+	}
+});
+
 registerAction2(class NavigatorAgentsRevealAction extends Action2 {
 	constructor() {
 		super({
-			id: 'workbench.action.navigatorAgents.revealInConversation',
+			id: NAVIGATOR_AGENTS_REVEAL_COMMAND_ID,
 			title: localize2('navigatorAgentsView.reveal', "Reveal in Conversation"),
+			icon: Codicon.goToFile,
 			f1: false,
+			menu: {
+				id: MenuId.ViewItemContext,
+				group: 'inline',
+				order: 2,
+				when: ContextKeyExpr.equals('view', NAVIGATOR_AGENTS_VIEW_ID),
+			},
 		});
 	}
 
 	override run(accessor: ServicesAccessor, agentId?: string, title?: string): Promise<void> {
-		if (!agentId) {
-			return Promise.resolve();
+		if (agentId) {
+			return revealNavigatorAgentInConversation(accessor, agentId, title);
 		}
-		return revealNavigatorAgentInConversation(accessor, agentId, title);
+		const view = accessor.get(IViewsService).getActiveViewWithId<NavigatorAgentsView>(NAVIGATOR_AGENTS_VIEW_ID);
+		view?.revealFocusedHierarchyNode();
+		return Promise.resolve();
 	}
 });

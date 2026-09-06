@@ -147,7 +147,7 @@ suite('Sources diff panel', () => {
 		);
 	});
 
-	test('EditorTitle exposes move to preview when Conversation Diff placeholder is active', () => {
+	test('EditorTitle exposes move to preview when Conversation Diff is active', () => {
 		const editorTitleItems = MenuRegistry.getMenuItems(MenuId.EditorTitle).filter(isIMenuItem);
 		const moveToPreview = editorTitleItems.find(item => item.command.id === SOURCES_DIFF_MOVE_TO_PREVIEW_COMMAND);
 

@@ -40,12 +40,28 @@ import {
 } from './engineSectionChrome.js';
 import {
 	ENGINE_PREFERENCES_NAV_ENTRIES,
+	type EnginePreferencesNavEntry,
 	type EnginePreferencesSectionId,
 	getEnginePreferencesSectionLabel,
 } from './enginePreferencesTypes.js';
 import type { ConnectionPhase } from '../../../../platform/universeAgent/common/connectionHubTypes.js';
 
 const $ = DOM.$;
+
+/** Scannable rhythm for twelve sections; the nav row padding in the stylesheet assumes it. */
+const NAV_ROW_HEIGHT = 28;
+
+/**
+ * Mirrors `media/enginePreferencesPane.css`. Every measurement in this pane prefers the box the
+ * browser actually gave the element; these values only stand in while the pane is still detached
+ * and has no layout to read.
+ */
+const NAV_COLUMN_WIDTH = 200;
+const BODY_COLUMN_GAP = 16;
+const PANE_PADDING_INLINE = 20;
+const PANE_PADDING_BLOCK = 16;
+const COMPACT_PANE_PADDING_INLINE = 10;
+const COMPACT_PANE_PADDING_BLOCK = 8;
 
 /** Test Engine 结果与 StatusBar / Connection 共用 H4b 文案。 */
 export function getEngineTestStatusText(phase?: ConnectionPhase, pairingPending = false): string {
@@ -59,9 +75,9 @@ interface IEngineSectionHost {
 	getDomNode(): HTMLElement;
 }
 
-class EngineNavDelegate implements IListVirtualDelegate<typeof ENGINE_PREFERENCES_NAV_ENTRIES[number]> {
+class EngineNavDelegate implements IListVirtualDelegate<EnginePreferencesNavEntry> {
 	getHeight(): number {
-		return 28;
+		return NAV_ROW_HEIGHT;
 	}
 
 	getTemplateId(): string {
@@ -73,7 +89,7 @@ interface IEngineNavTemplateData {
 	readonly label: HTMLElement;
 }
 
-class EngineNavRenderer implements IListRenderer<typeof ENGINE_PREFERENCES_NAV_ENTRIES[number], IEngineNavTemplateData> {
+class EngineNavRenderer implements IListRenderer<EnginePreferencesNavEntry, IEngineNavTemplateData> {
 	static readonly TEMPLATE_ID = 'engineNav';
 	readonly templateId = EngineNavRenderer.TEMPLATE_ID;
 
@@ -82,7 +98,7 @@ class EngineNavRenderer implements IListRenderer<typeof ENGINE_PREFERENCES_NAV_E
 		return { label: DOM.append(container, $('.engine-preferences-nav-label')) };
 	}
 
-	renderElement(entry: typeof ENGINE_PREFERENCES_NAV_ENTRIES[number], _index: number, templateData: IEngineNavTemplateData): void {
+	renderElement(entry: EnginePreferencesNavEntry, _index: number, templateData: IEngineNavTemplateData): void {
 		templateData.label.textContent = entry.label;
 	}
 
@@ -91,12 +107,12 @@ class EngineNavRenderer implements IListRenderer<typeof ENGINE_PREFERENCES_NAV_E
 	}
 }
 
-class EngineNavAccessibilityProvider implements IListAccessibilityProvider<typeof ENGINE_PREFERENCES_NAV_ENTRIES[number]> {
+class EngineNavAccessibilityProvider implements IListAccessibilityProvider<EnginePreferencesNavEntry> {
 	getWidgetAriaLabel(): string {
 		return localize('ua.enginePreferencesNav', "Engine preferences sections");
 	}
 
-	getAriaLabel(entry: typeof ENGINE_PREFERENCES_NAV_ENTRIES[number]): string {
+	getAriaLabel(entry: EnginePreferencesNavEntry): string {
 		return entry.label;
 	}
 }
@@ -106,8 +122,9 @@ export class EnginePreferencesPane extends Disposable implements IPreferencesEdi
 	private readonly container: HTMLElement;
 	private readonly disconnectedBanner: HTMLElement;
 	private readonly navHost: HTMLElement;
-	private readonly navList: WorkbenchList<typeof ENGINE_PREFERENCES_NAV_ENTRIES[number]>;
+	private readonly navList: WorkbenchList<EnginePreferencesNavEntry>;
 	private readonly detail: HTMLElement;
+	private readonly detailHeader: HTMLElement;
 	private readonly backButton: HTMLButtonElement;
 	private readonly detailTitle: HTMLElement;
 	private readonly detailBody: HTMLElement;
@@ -116,13 +133,14 @@ export class EnginePreferencesPane extends Disposable implements IPreferencesEdi
 	private readonly testRow: HTMLElement;
 	private readonly disconnectedCopy: HTMLElement;
 	private readonly disconnectedActions: HTMLElement;
-	private readonly bannerTestButton: Button | undefined;
+	private readonly bannerTestButton: Button;
 
 	private readonly sections = new Map<EnginePreferencesSectionId, IEngineSectionHost & Disposable>();
 	private activeSectionId: EnginePreferencesSectionId = 'overview';
 	private lastLayoutWidth = 900;
 	private lastLayoutHeight = 480;
 	private narrowShowingDetail = false;
+	private syncingNav = false;
 
 	constructor(
 		@IInstantiationService instantiationService: IInstantiationService,
@@ -133,35 +151,21 @@ export class EnginePreferencesPane extends Disposable implements IPreferencesEdi
 
 		this.container = $('.engine-preferences-pane');
 
+		// The editor header tab already says "Engine"; the stylesheet keeps this heading for
+		// screen readers only so the section title is what the eye lands on first.
 		const title = DOM.append(this.container, $('h2.engine-preferences-title'));
 		title.textContent = localize('ua.enginePaneTitle', "Engine");
 
-		this.testRow = DOM.append(this.container, $('.engine-test-row'));
-		const testButton = this._register(new Button(this.testRow, defaultButtonStyles));
-		testButton.label = localize('ua.engineTest', "Test Engine");
-		this.testStatus = DOM.append(this.testRow, $('.engine-test-status'));
-		this.testStatus.setAttribute('role', 'status');
-		this.testStatus.setAttribute('aria-live', 'polite');
-		this._register(testButton.onDidClick(() => {
-			this.testStatus.textContent = getEngineTestStatusText(
-				this.connectionService.getConnectionPhase(),
-				this.connectionService.getConnectionSnapshot().pairingPending,
-			);
-		}));
-
 		this.disconnectedBanner = DOM.append(this.container, $('.engine-preferences-disconnected-banner'));
 		this.disconnectedBanner.style.display = 'none';
+		// The live region is the copy alone; the recovery buttons next to it are not news.
 		this.disconnectedCopy = DOM.append(this.disconnectedBanner, $('.engine-preferences-disconnected-copy'));
+		this.disconnectedCopy.setAttribute('role', 'status');
+		this.disconnectedCopy.setAttribute('aria-live', 'polite');
 		this.disconnectedActions = DOM.append(this.disconnectedBanner, $('.engine-preferences-disconnected-actions'));
-		const bannerTestButton = this._register(new Button(this.disconnectedActions, defaultButtonStyles));
-		bannerTestButton.label = localize('ua.engineTest', "Test Engine");
-		this._register(bannerTestButton.onDidClick(() => {
-			this.testStatus.textContent = getEngineTestStatusText(
-				this.connectionService.getConnectionPhase(),
-				this.connectionService.getConnectionSnapshot().pairingPending,
-			);
-		}));
-		this.bannerTestButton = bannerTestButton;
+		this.bannerTestButton = this._register(new Button(this.disconnectedActions, { ...defaultButtonStyles, secondary: true }));
+		this.bannerTestButton.label = localize('ua.engineTest', "Test Engine");
+		this._register(this.bannerTestButton.onDidClick(() => this.runEngineTest()));
 		const bannerOpenConnection = this._register(new Button(this.disconnectedActions, defaultButtonStyles));
 		bannerOpenConnection.label = localize('ua.engineOpenConnection', "Open Connection");
 		this._register(bannerOpenConnection.onDidClick(() => {
@@ -179,25 +183,25 @@ export class EnginePreferencesPane extends Disposable implements IPreferencesEdi
 			new EngineNavDelegate(),
 			[new EngineNavRenderer()],
 			{
-				identityProvider: { getId: (entry: typeof ENGINE_PREFERENCES_NAV_ENTRIES[number]) => entry.id },
+				identityProvider: { getId: (entry: EnginePreferencesNavEntry) => entry.id },
 				accessibilityProvider: new EngineNavAccessibilityProvider(),
-				keyboardNavigationLabelProvider: { getKeyboardNavigationLabel: (entry: typeof ENGINE_PREFERENCES_NAV_ENTRIES[number]) => entry.label },
+				keyboardNavigationLabelProvider: { getKeyboardNavigationLabel: (entry: EnginePreferencesNavEntry) => entry.label },
 				keyboardSupport: true,
 				multipleSelectionSupport: false,
 				openOnSingleClick: true,
 			},
-		)) as WorkbenchList<typeof ENGINE_PREFERENCES_NAV_ENTRIES[number]>;
+		)) as WorkbenchList<EnginePreferencesNavEntry>;
 		this.navList.splice(0, 0, [...ENGINE_PREFERENCES_NAV_ENTRIES]);
 
 		this.detail = DOM.append(body, $('.engine-preferences-detail'));
-		const detailHeader = DOM.append(this.detail, $('.engine-preferences-detail-header'));
-		this.backButton = DOM.append(detailHeader, $('button.engine-preferences-back')) as HTMLButtonElement;
+		this.detailHeader = DOM.append(this.detail, $('.engine-preferences-detail-header'));
+		this.backButton = DOM.append(this.detailHeader, $('button.engine-preferences-back')) as HTMLButtonElement;
 		this.backButton.type = 'button';
 		this.backButton.textContent = localize('ua.enginePreferencesBack', "Back");
 		this.backButton.setAttribute('aria-label', localize('ua.enginePreferencesBackAria', "Back to Engine sections"));
 		this.backButton.hidden = true;
 		this._register(DOM.addDisposableListener(this.backButton, 'click', () => this.showNarrowNav()));
-		this.detailTitle = DOM.append(detailHeader, $('h3.engine-preferences-detail-title'));
+		this.detailTitle = DOM.append(this.detailHeader, $('h3.engine-preferences-detail-title'));
 		this.detailBody = DOM.append(this.detail, $('.engine-preferences-detail-body'));
 
 		this.registerSection('overview', this._register(instantiationService.createInstance(EngineOverviewSection, this.detailBody)));
@@ -213,26 +217,33 @@ export class EnginePreferencesPane extends Disposable implements IPreferencesEdi
 		this.registerSection('plugins', this._register(instantiationService.createInstance(EnginePluginsSection, this.detailBody)));
 		this.registerSection('tools', this._register(instantiationService.createInstance(EngineToolsSection, this.detailBody)));
 
+		// Quiet at rest: the engine probe lives in a footer utility row under the content,
+		// not above the title where it competes with whatever the user came here to read.
+		this.testRow = DOM.append(this.container, $('.engine-test-row'));
+		const testButton = this._register(new Button(this.testRow, { ...defaultButtonStyles, secondary: true }));
+		testButton.label = localize('ua.engineTest', "Test Engine");
+		this._register(testButton.onDidClick(() => this.runEngineTest()));
+		this.testStatus = DOM.append(this.testRow, $('.engine-test-status'));
+		this.testStatus.setAttribute('role', 'status');
+		this.testStatus.setAttribute('aria-live', 'polite');
+
+		// Arrowing through the nav previews the section; `selectSection` mirrors the choice back
+		// onto the list, so all three routes converge on one selected row.
 		this._register(this.navList.onDidChangeFocus(e => {
-			const entry = e.elements[0] as typeof ENGINE_PREFERENCES_NAV_ENTRIES[number] | undefined;
-			if (!entry) {
-				return;
+			const entry = e.elements[0];
+			if (entry && !this.syncingNav) {
+				this.selectSection(entry.id);
 			}
-			const index = ENGINE_PREFERENCES_NAV_ENTRIES.findIndex(item => item.id === entry.id);
-			if (index >= 0 && this.navList.getSelection()[0] !== index) {
-				this.navList.setSelection([index]);
-			}
-			this.selectSection(entry.id);
 		}));
 		this._register(this.navList.onDidChangeSelection(e => {
-			const entry = e.elements[0] as typeof ENGINE_PREFERENCES_NAV_ENTRIES[number] | undefined;
-			if (entry) {
+			const entry = e.elements[0];
+			if (entry && !this.syncingNav) {
 				this.selectSection(entry.id);
 			}
 		}));
 		this._register(this.navList.onDidOpen(e => {
-			if (e.element) {
-				this.selectSection((e.element as typeof ENGINE_PREFERENCES_NAV_ENTRIES[number]).id);
+			if (e.element && !this.syncingNav) {
+				this.selectSection(e.element.id);
 			}
 		}));
 
@@ -240,10 +251,16 @@ export class EnginePreferencesPane extends Disposable implements IPreferencesEdi
 			this.updateDisconnectedBanner();
 		}));
 
-		this.navList.setFocus([0]);
-		this.navList.setSelection([0]);
 		this.selectSection('overview');
 		this.updateDisconnectedBanner();
+	}
+
+	/** Both Test Engine affordances report the same phase copy as the status bar. */
+	private runEngineTest(): void {
+		this.testStatus.textContent = getEngineTestStatusText(
+			this.connectionService.getConnectionPhase(),
+			this.connectionService.getConnectionSnapshot().pairingPending,
+		);
 	}
 
 	private registerSection(id: EnginePreferencesSectionId, section: IEngineSectionHost & Disposable): void {
@@ -253,12 +270,23 @@ export class EnginePreferencesPane extends Disposable implements IPreferencesEdi
 	selectSection(id: EnginePreferencesSectionId): void {
 		this.activeSectionId = id;
 		this.detailTitle.textContent = getEnginePreferencesSectionLabel(id);
+		// Keep "you are here" honest when a section is selected from outside the nav list.
+		const index = ENGINE_PREFERENCES_NAV_ENTRIES.findIndex(entry => entry.id === id);
+		if (index >= 0 && this.navList.getSelection()[0] !== index) {
+			this.syncingNav = true;
+			try {
+				this.navList.setSelection([index]);
+				this.navList.setFocus([index]);
+			} finally {
+				this.syncingNav = false;
+			}
+		}
 		for (const [sectionId, section] of this.sections) {
 			const active = sectionId === id;
 			section.setSectionActive(active);
 			section.setShowSectionHeading(false);
 		}
-		if (this.lastLayoutWidth < PREFERENCES_PANE_NARROW_WIDTH) {
+		if (this.isNarrow()) {
 			this.narrowShowingDetail = true;
 			this.applyNarrowChrome();
 		}
@@ -269,44 +297,77 @@ export class EnginePreferencesPane extends Disposable implements IPreferencesEdi
 	private showNarrowNav(): void {
 		this.narrowShowingDetail = false;
 		this.applyNarrowChrome();
-		this.navList.layout(this.getNavHeight(this.lastLayoutHeight), this.getNavWidth(this.lastLayoutWidth));
+		this.layoutParts();
 		this.navList.domFocus();
 	}
 
 	private applyNarrowChrome(): void {
-		const narrow = this.lastLayoutWidth < PREFERENCES_PANE_NARROW_WIDTH;
-		const compact = this.lastLayoutWidth < PREFERENCES_PANE_COMPACT_WIDTH;
+		const narrow = this.isNarrow();
+		const showingDetail = narrow && this.narrowShowingDetail;
 		this.container.classList.toggle('is-narrow', narrow);
-		this.container.classList.toggle('is-compact', compact);
-		this.container.classList.toggle('is-showing-detail', narrow && this.narrowShowingDetail);
-		this.backButton.hidden = !(narrow && this.narrowShowingDetail);
+		this.container.classList.toggle('is-compact', this.isCompact());
+		this.container.classList.toggle('is-showing-detail', showingDetail);
+		this.backButton.hidden = !showingDetail;
 	}
 
-	private getNavWidth(paneWidth: number): number {
-		return paneWidth < PREFERENCES_PANE_NARROW_WIDTH
-			? Math.max(0, paneWidth - 40)
-			: 200;
+	/** Under this width the pane collapses to a single column that swaps nav for detail. */
+	private isNarrow(): boolean {
+		return this.lastLayoutWidth < PREFERENCES_PANE_NARROW_WIDTH;
 	}
 
-	private getNavHeight(paneHeight: number): number {
-		const narrow = this.lastLayoutWidth < PREFERENCES_PANE_NARROW_WIDTH;
-		if (narrow && !this.narrowShowingDetail) {
-			return Math.max(120, paneHeight - 120);
+	/** Under this width the pane also drops to the tighter padding step. */
+	private isCompact(): boolean {
+		return this.lastLayoutWidth < PREFERENCES_PANE_COMPACT_WIDTH;
+	}
+
+	private layoutParts(): void {
+		// A hidden nav has no box to measure; it is laid out again when it comes back.
+		if (!(this.isNarrow() && this.narrowShowingDetail)) {
+			this.navList.layout(this.getNavHeight(), this.getNavWidth());
 		}
-		return narrow
-			? Math.min(ENGINE_PREFERENCES_NAV_ENTRIES.length * 28 + 8, Math.max(120, paneHeight - 160))
-			: Math.max(120, paneHeight - 120);
+		this.sections.get(this.activeSectionId)?.layout(this.getDetailWidth(), this.getDetailHeight());
+	}
+
+	private getNavWidth(): number {
+		const measured = DOM.getContentWidth(this.navHost);
+		if (measured > 0) {
+			return measured;
+		}
+		return this.isNarrow() ? this.estimatedContentWidth() : NAV_COLUMN_WIDTH;
+	}
+
+	private getNavHeight(): number {
+		const measured = DOM.getContentHeight(this.navHost);
+		return measured > 0 ? measured : this.estimatedBodyHeight();
 	}
 
 	private getDetailWidth(): number {
-		if (this.lastLayoutWidth < PREFERENCES_PANE_NARROW_WIDTH) {
-			return Math.max(0, this.lastLayoutWidth - 48);
+		// `clientWidth` rather than `offsetWidth`: the detail body scrolls, and the scrollbar
+		// gutter is not space a section can paint into.
+		if (this.detailBody.clientWidth > 0) {
+			return this.detailBody.clientWidth;
 		}
-		return Math.max(240, this.lastLayoutWidth - 220 - 48);
+		const available = this.estimatedContentWidth();
+		return this.isNarrow() ? available : Math.max(0, available - NAV_COLUMN_WIDTH - BODY_COLUMN_GAP);
 	}
 
 	private getDetailHeight(): number {
-		return Math.max(160, this.lastLayoutHeight - 160);
+		if (this.detailBody.clientHeight > 0) {
+			return this.detailBody.clientHeight;
+		}
+		return Math.max(0, this.estimatedBodyHeight() - DOM.getTotalHeight(this.detailHeader));
+	}
+
+	/** Stand-in for the flex row that holds nav and detail, used before the pane has a layout. */
+	private estimatedBodyHeight(): number {
+		const paddingBlock = this.isCompact() ? COMPACT_PANE_PADDING_BLOCK : PANE_PADDING_BLOCK;
+		const chrome = DOM.getTotalHeight(this.disconnectedBanner) + DOM.getTotalHeight(this.testRow);
+		return Math.max(0, this.lastLayoutHeight - 2 * paddingBlock - chrome);
+	}
+
+	private estimatedContentWidth(): number {
+		const paddingInline = this.isCompact() ? COMPACT_PANE_PADDING_INLINE : PANE_PADDING_INLINE;
+		return Math.max(0, this.lastLayoutWidth - 2 * paddingInline);
 	}
 
 	private desktopConnectionControlContext() {
@@ -322,42 +383,42 @@ export class EnginePreferencesPane extends Disposable implements IPreferencesEdi
 		const unsupportedEnvironment = isUnsupportedLocalEngineEnvironment(context);
 		const drawDesktop = shouldDrawDesktopConnectionControls(context);
 		this.testRow.style.display = drawDesktop ? '' : 'none';
-		if (this.bannerTestButton) {
-			this.bannerTestButton.element.style.display = drawDesktop ? '' : 'none';
-		}
+		this.bannerTestButton.element.style.display = drawDesktop ? '' : 'none';
 
 		const disconnected = !this.connectionService.isEngineConnected();
 		this.disconnectedBanner.style.display = disconnected || unsupportedEnvironment ? '' : 'none';
+		// Disconnected is an ordinary resting state and reads as a neutral notice; an environment
+		// that cannot host an engine at all is the exception that earns the warning surface.
+		this.disconnectedBanner.classList.toggle('is-warning', unsupportedEnvironment);
 		if (unsupportedEnvironment) {
 			this.disconnectedCopy.textContent = getUnsupportedEnvironmentCopy();
-			return;
-		}
-		if (disconnected) {
+		} else if (disconnected) {
 			this.disconnectedCopy.textContent = getConnectionPhaseStatusBarText(
 				this.connectionService.getConnectionPhase(),
 				this.connectionService.getConnectionSnapshot().pairingPending,
 			);
 		}
+		// Showing or hiding the banner changes how much room the body has.
+		this.layoutParts();
 	}
 
 	getDomNode(): HTMLElement {
 		return this.container;
 	}
 
+	/** `dimension` is the leaf pane box the preferences editor hands us, not the window. */
 	layout(dimension: DOM.Dimension): void {
 		this.container.style.height = `${dimension.height}px`;
-		const wasWide = this.lastLayoutWidth >= PREFERENCES_PANE_NARROW_WIDTH;
+		const wasWide = !this.isNarrow();
 		this.lastLayoutWidth = dimension.width;
 		this.lastLayoutHeight = dimension.height;
-		if (dimension.width >= PREFERENCES_PANE_NARROW_WIDTH) {
+		if (!this.isNarrow()) {
 			this.narrowShowingDetail = false;
 		} else if (wasWide) {
 			this.narrowShowingDetail = true;
 		}
 		this.applyNarrowChrome();
-		this.navList.layout(this.getNavHeight(dimension.height), this.getNavWidth(dimension.width));
-		const active = this.sections.get(this.activeSectionId);
-		active?.layout(this.getDetailWidth(), this.getDetailHeight());
+		this.layoutParts();
 	}
 
 	search(_text: string): void {

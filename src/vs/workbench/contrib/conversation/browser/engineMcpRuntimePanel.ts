@@ -31,6 +31,7 @@ import { OPEN_CONNECTION_PREFERENCES_COMMAND_ID } from '../common/uaPreferencesP
 const $ = DOM.$;
 
 const MCP_RUNTIME_FEATURE = localize('ua.engineMcpRuntimeFeatureLabel', "MCP server runtime");
+const MCP_RUNTIME_TOOLS_FEATURE = localize('ua.engineMcpRuntimeToolsFeature', "MCP server tools");
 
 type EngineMcpRuntimeListEntry = { readonly kind: 'server'; readonly status: UniverseAgentMcpServerStatus };
 
@@ -175,6 +176,8 @@ export class EngineMcpRuntimePanel extends Disposable {
 		this.toolsMeta = DOM.append(this.container, $('.engine-catalog-description.engine-mcp-runtime-tools-meta'));
 		this.toolsMeta.style.display = 'none';
 		this.toolsList = DOM.append(this.container, $('.engine-catalog-list.engine-mcp-runtime-tools'));
+		this.toolsList.setAttribute('role', 'list');
+		this.toolsList.setAttribute('aria-label', MCP_RUNTIME_TOOLS_FEATURE);
 		this.toolsList.style.display = 'none';
 
 		this._register(this.connection.onDidChangeConnection(() => void this.refresh()));
@@ -326,7 +329,7 @@ export class EngineMcpRuntimePanel extends Disposable {
 		this.toolsStatus.render({
 			mode: 'loading',
 			loadingKind: 'list',
-			featureLabel: localize('ua.engineMcpRuntimeToolsFeature', "MCP server tools"),
+			featureLabel: MCP_RUNTIME_TOOLS_FEATURE,
 		});
 
 		try {
@@ -349,7 +352,7 @@ export class EngineMcpRuntimePanel extends Disposable {
 			this.toolsList.style.display = 'none';
 			this.toolsStatus.render({
 				mode: 'failed',
-				featureLabel: localize('ua.engineMcpRuntimeToolsFeature', "MCP server tools"),
+				featureLabel: MCP_RUNTIME_TOOLS_FEATURE,
 				reason: getTransportErrorMessage(error),
 				onRetry: () => void this.loadTools(serverId, forceRefresh),
 			});
@@ -361,7 +364,7 @@ export class EngineMcpRuntimePanel extends Disposable {
 		if (this.tools.length === 0) {
 			this.toolsStatus.render({
 				mode: 'empty',
-				featureLabel: localize('ua.engineMcpRuntimeToolsFeature', "MCP server tools"),
+				featureLabel: MCP_RUNTIME_TOOLS_FEATURE,
 				emptyCopy: localize('ua.engineMcpRuntimeToolsEmpty', "No tools on this MCP server."),
 			});
 			this.toolsList.style.display = 'none';
@@ -369,6 +372,7 @@ export class EngineMcpRuntimePanel extends Disposable {
 			this.toolsStatus.hide();
 			for (const tool of this.tools) {
 				const row = DOM.append(this.toolsList, $('.engine-catalog-row'));
+				row.setAttribute('role', 'listitem');
 				const text = DOM.append(row, $('.engine-catalog-text'));
 				DOM.append(text, $('.engine-catalog-name')).textContent = tool.name;
 				DOM.append(text, $('.engine-catalog-description')).textContent = tool.description ?? '';
@@ -452,10 +456,18 @@ export class EngineMcpRuntimePanel extends Disposable {
 		this.tools = [];
 		this.toolsTotal = undefined;
 		this.toolsCachedAt = undefined;
-		this.toolsStatus.hide();
 		this.toolsMeta.style.display = 'none';
 		this.toolsMeta.textContent = '';
 		DOM.clearNode(this.toolsList);
 		this.toolsList.style.display = 'none';
+		if (this.listEntries.length > 0 && canShowCatalogRows(this.mode)) {
+			this.toolsStatus.render({
+				mode: 'empty',
+				featureLabel: MCP_RUNTIME_TOOLS_FEATURE,
+				emptyCopy: localize('ua.engineMcpRuntimeToolsNoSelection', "Select an MCP server to list its tools."),
+			});
+		} else {
+			this.toolsStatus.hide();
+		}
 	}
 }

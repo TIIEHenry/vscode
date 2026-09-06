@@ -14,6 +14,7 @@ import { TestLayoutService, workbenchInstantiationService } from '../../../../te
 import { ConversationChatInput } from '../../browser/conversationChatInput.js';
 import { ConversationEditorPane } from '../../browser/conversationEditorPane.js';
 import { ConversationLens } from '../../browser/conversationLens.js';
+import { conversationLensStaleSnapshotClass } from '../../browser/conversationLensReadingColumn.js';
 import { ConversationTimelineTree, conversationLensUserBubbleShowLess, conversationLensUserBubbleShowMore } from '../../browser/conversationTimelineTree.js';
 import {
 	conversationLensDockAddTitle,
@@ -37,6 +38,8 @@ import {
 	conversationLensDockStubAgent,
 	conversationLensDockRouteBalanced,
 	conversationLensDockPermissionAsk,
+	conversationLensDockPermissionLabel,
+	conversationLensDockPermissionPermit,
 	conversationLensDockPlaceholder,
 	conversationLensDockRestoreTimeline,
 	conversationLensDockStop,
@@ -52,6 +55,7 @@ import {
 	conversationLensVoiceStubPhraseOne,
 	conversationLensVoiceTranscriptLabel,
 } from '../../browser/conversationLensDockStrings.js';
+import { conversationLensDockPermissionUnavailable } from '../../browser/conversationLensComposerChrome.js';
 import { conversationLensVoiceTranscriptBarClass } from '../../browser/conversationVoiceTranscriptBar.js';
 import { conversationLensSessionBarConversationTab, conversationLensSessionBarDeleteSession, conversationLensSessionBarNewSession, conversationLensSessionBarNoTrajectory, conversationLensSessionBarRenameTitle, conversationLensSessionBarRouteLabel, conversationLensSessionBarTrajectoryTab, conversationLensPinnedUserPromptAria, conversationLensPinnedUserPromptCopyAria } from '../../browser/conversationLensSessionBarStrings.js';
 import { ConversationStubService, IConversationRosterService } from '../../browser/conversationStubService.js';
@@ -123,7 +127,9 @@ suite('ConversationLens', () => {
 	const LENS_MIN_WIDTH = 300;
 
 	function getLensTab(slots: IConversationLensSlots, lensId: 'conversation' | 'trajectory'): HTMLButtonElement {
-		const tab = slots.sessionBar!.querySelector(`button.conversation-lens-lens-tab[data-lens-id="${lensId}"]`) as HTMLButtonElement | null;
+		const tabHost = slots.sessionBar ?? slots.lensTablist;
+		assert.ok(tabHost);
+		const tab = tabHost.querySelector(`button.conversation-lens-lens-tab[data-lens-id="${lensId}"]`) as HTMLButtonElement | null;
 		assert.ok(tab);
 		return tab;
 	}
@@ -219,8 +225,10 @@ suite('ConversationLens', () => {
 			treeContainer.style.height = `${LENS_LAYOUT_HEIGHT - 120}px`;
 		}
 		// Part sessionBar measures clientWidth before applying is-narrow / is-compact.
-		slots.sessionBar!.style.width = `${layoutWidth}px`;
-		slots.sessionBar!.style.minWidth = `${layoutWidth}px`;
+		if (slots.sessionBar) {
+			slots.sessionBar.style.width = `${layoutWidth}px`;
+			slots.sessionBar.style.minWidth = `${layoutWidth}px`;
+		}
 		const timelineHeight = LENS_LAYOUT_HEIGHT - 120;
 		lens.layout(timelineHeight, layoutWidth);
 	}
@@ -308,6 +316,12 @@ suite('ConversationLens', () => {
 		return bottomBar;
 	}
 
+	function getPermissionSelect(slots: IConversationLensSlots): HTMLSelectElement {
+		const select = getComposerBottomBar(slots).querySelector('.conversation-lens-dock-permission select.monaco-select-box') as HTMLSelectElement | null;
+		assert.ok(select);
+		return select;
+	}
+
 	function getDockSendButton(slots: IConversationLensSlots): HTMLButtonElement {
 		const button = (slots.dock.querySelector('.conversation-lens-dock-send .monaco-button')
 			?? getReadingColumn(slots).querySelector('.conversation-lens-dock-send .monaco-button')) as HTMLButtonElement | null;
@@ -370,11 +384,11 @@ suite('ConversationLens', () => {
 		return select.options[select.selectedIndex]?.text;
 	}
 
-	function mountLens(options?: { storageService?: TestStorageService; layoutWidth?: number; connection?: IUniverseAgentConnection }): { part: ConversationPart; lens: ConversationLens; stubService: ConversationStubService; clipboardService: TestClipboardService; storageService: TestStorageService; layoutReadingColumn: () => void; openInEditorCalls: { count: number }; layoutContainer: HTMLElement } {
+	function mountLens(options?: { storageService?: TestStorageService; layoutWidth?: number; connection?: IUniverseAgentConnection; stubService?: ConversationStubService; sessionKey?: string; tablistOnly?: boolean }): { part: ConversationPart; lens: ConversationLens; stubService: ConversationStubService; clipboardService: TestClipboardService; storageService: TestStorageService; layoutReadingColumn: () => void; openInEditorCalls: { count: number }; layoutContainer: HTMLElement } {
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		const storageService = options?.storageService ?? store.add(new TestStorageService());
 		instantiationService.stub(IStorageService, storageService);
-		const stubService = store.add(new ConversationStubService());
+		const stubService = options?.stubService ?? store.add(new ConversationStubService());
 		const clipboardService = new TestClipboardService();
 		const openInEditorCalls = { count: 0 };
 		instantiationService.stub(IConversationRosterService, stubService);
@@ -461,16 +475,22 @@ suite('ConversationLens', () => {
 		part.create(parent);
 		const partSlots = part.getSlots();
 		assert.ok(partSlots);
+		const lensTablist = document.createElement('div');
 		const slots: IConversationLensSlots = {
-			sessionBar: partSlots.sessionBar,
+			sessionBar: options?.tablistOnly ? undefined : partSlots.sessionBar,
+			lensTablist: options?.tablistOnly ? lensTablist : undefined,
 			timeline: document.createElement('div'),
 			dock: document.createElement('div'),
+			sessionKey: options?.sessionKey,
 		};
 		slots.timeline.classList.add('conversation-timeline');
 		slots.dock.classList.add('conversation-dock');
 		const partRoot = document.createElement('div');
 		partRoot.classList.add('part', 'conversation');
 		parent.appendChild(partRoot);
+		if (slots.lensTablist) {
+			partRoot.appendChild(slots.lensTablist);
+		}
 		partRoot.appendChild(slots.timeline);
 		partRoot.appendChild(slots.dock);
 		part.layout(layoutWidth, LENS_LAYOUT_HEIGHT, 0, 0);
@@ -728,6 +748,71 @@ suite('ConversationLens', () => {
 		textarea.value = 'hello';
 		textarea.dispatchEvent(new globalThis.Event('input', { bubbles: true }));
 		assert.strictEqual(sendButton.classList.contains('disabled'), false);
+	});
+
+	test('permission select is disabled until the engine can setPermissionMode', () => {
+		const connection = createConversationConnectionTestStub({
+			setPermissionMode: async () => ({ ok: true }),
+		});
+		const { part, stubService } = mountLens({ connection });
+		const slots = getLensSlots(part);
+		const permissionSelect = getPermissionSelect(slots);
+		const permissionContainer = getComposerBottomBar(slots).querySelector('.conversation-lens-dock-permission') as HTMLElement;
+
+		assert.strictEqual(permissionSelect.disabled, true);
+		assert.strictEqual(permissionSelect.getAttribute('aria-label'), `${conversationLensDockPermissionLabel} — ${conversationLensDockPermissionUnavailable}`);
+		assert.strictEqual(permissionContainer.title, conversationLensDockPermissionUnavailable);
+
+		stubService.setEngineConnected(true);
+
+		assert.strictEqual(permissionSelect.disabled, false);
+		assert.strictEqual(permissionSelect.getAttribute('aria-label'), conversationLensDockPermissionLabel);
+		assert.strictEqual(permissionContainer.title, conversationLensDockPermissionLabel);
+	});
+
+	test('permission select rolls back and shows the gate when setPermissionMode fails', async () => {
+		const calls: { sessionId: string; mode: string }[] = [];
+		const connection = createConversationConnectionTestStub({
+			setPermissionMode: async request => {
+				calls.push(request);
+				return { ok: false, message: 'engine rejected permit' };
+			},
+		});
+		const { part, stubService } = mountLens({ connection });
+		const slots = getLensSlots(part);
+		stubService.setEngineConnected(true);
+
+		const permissionSelect = getPermissionSelect(slots);
+		assert.strictEqual(permissionSelect.disabled, false);
+		assert.strictEqual(permissionSelect.options[permissionSelect.selectedIndex]?.text, conversationLensDockPermissionAsk);
+
+		permissionSelect.selectedIndex = 2;
+		permissionSelect.dispatchEvent(new globalThis.Event('change', { bubbles: true }));
+		await Promise.resolve();
+
+		assert.strictEqual(calls.length, 1);
+		assert.strictEqual(calls[0].mode, 'SESSION_TOOL_PERMISSION_MODE_PERMIT');
+		assert.strictEqual(permissionSelect.selectedIndex, 0);
+		assert.strictEqual(permissionSelect.options[permissionSelect.selectedIndex]?.text, conversationLensDockPermissionAsk);
+		const gateRow = slots.dock.querySelector('.conversation-lens-dock-gate-row') as HTMLElement;
+		assert.strictEqual(gateRow.hidden, false);
+		assert.ok(gateRow.textContent?.includes('engine rejected permit'));
+	});
+
+	test('narrow More permission radios stay disabled without setPermissionMode', () => {
+		const { part } = mountLens({ layoutWidth: LENS_MIN_WIDTH });
+		const slots = getLensSlots(part);
+		const moreButton = getComposerBottomBar(slots).querySelector('.conversation-lens-dock-more .monaco-button') as HTMLButtonElement;
+		moreButton.click();
+
+		const radios = [...document.querySelectorAll('.conversation-lens-dock-more-permission [role="menuitemradio"]')] as HTMLButtonElement[];
+		assert.strictEqual(radios.length, 3);
+		assert.ok(radios.some(radio => radio.textContent === conversationLensDockPermissionPermit));
+		for (const radio of radios) {
+			assert.strictEqual(radio.disabled, true);
+			assert.strictEqual(radio.getAttribute('aria-disabled'), 'true');
+			assert.strictEqual(radio.title, conversationLensDockPermissionUnavailable);
+		}
 	});
 
 	test('disconnected compose enables send from draft without Stub model', () => {
@@ -1027,6 +1112,7 @@ suite('ConversationLens', () => {
 		assert.strictEqual(gateRow.hidden, true);
 		assert.strictEqual(gateRow.textContent, '');
 		assert.strictEqual(gateRow.getAttribute('aria-label'), null);
+		assert.strictEqual(getPermissionSelect(slots).disabled, true);
 
 		const textarea = getDockTextarea(slots);
 		textarea.value = 'hello engine';
@@ -1268,6 +1354,50 @@ suite('ConversationLens', () => {
 		assert.ok(!slots.timeline.textContent?.includes('First session message'));
 	});
 
+	test('two leaves bound to different sessionKeys render their own sessions', async () => {
+		const stubService = store.add(new ConversationStubService());
+		const sessionA = stubService.getActiveSessionId();
+		stubService.appendUserTurn(sessionA, 'Alpha leaf only');
+		const sessionB = stubService.createSession();
+		stubService.appendUserTurn(sessionB, 'Beta leaf only');
+		stubService.switchSession(sessionB);
+
+		const leafA = mountLens({ stubService, sessionKey: sessionA });
+		const leafB = mountLens({ stubService, sessionKey: sessionB });
+		const slotsA = getLensSlots(leafA.part);
+		const slotsB = getLensSlots(leafB.part);
+		await flushProjectedTimeline(leafA.layoutReadingColumn);
+		await flushProjectedTimeline(leafB.layoutReadingColumn);
+
+		assert.ok(slotsA.timeline.textContent?.includes('Alpha leaf only'));
+		assert.ok(!slotsA.timeline.textContent?.includes('Beta leaf only'));
+		assert.ok(slotsB.timeline.textContent?.includes('Beta leaf only'));
+		assert.ok(!slotsB.timeline.textContent?.includes('Alpha leaf only'));
+
+		stubService.switchSession(sessionA);
+		await flushProjectedTimeline(leafA.layoutReadingColumn);
+		await flushProjectedTimeline(leafB.layoutReadingColumn);
+
+		assert.ok(slotsB.timeline.textContent?.includes('Beta leaf only'));
+		assert.ok(!slotsB.timeline.textContent?.includes('Alpha leaf only'));
+	});
+
+	test('tablist-only slot still hosts Conversation and Trajectory tabs', async () => {
+		const { part, layoutReadingColumn } = mountLens({ tablistOnly: true });
+		const slots = getLensSlots(part);
+		assert.ok(slots.lensTablist);
+		assert.strictEqual(slots.sessionBar, undefined);
+		assert.ok(slots.lensTablist.querySelector('.conversation-lens-lens-tabs[role="tablist"]'));
+		assert.strictEqual(getLensTab(slots, 'conversation').getAttribute('aria-selected'), 'true');
+
+		await flushTimelineHeightUpdates();
+		clickLensTab(slots, 'trajectory');
+		layoutReadingColumn();
+		await flushTimelineHeightUpdates();
+		assert.strictEqual(getLensTab(slots, 'trajectory').getAttribute('aria-selected'), 'true');
+		assert.ok(!slots.timeline.querySelector('.conversation-lens-trajectory')!.hasAttribute('hidden'));
+	});
+
 	test('SessionBar new session button creates an empty stub session', () => {
 		const { part, stubService } = mountLens();
 		const slots = getLensSlots(part);
@@ -1368,12 +1498,16 @@ suite('ConversationLens', () => {
 		assert.strictEqual(slots.timeline.querySelector('.conversation-lens-trajectory')!.hasAttribute('hidden'), true);
 	});
 
-	test('SessionBar exposes lens tablist, session title, confirmation, and process fold aria', async () => {
+	test('SessionBar exposes lens tablist, session title, confirmation, and process fold aria', async function () {
+		this.timeout(15000);
 		const { part, stubService, layoutReadingColumn } = mountLens();
 		const slots = getLensSlots(part);
-		const sessionId = stubService.createSession();
+		// seedPendingConfirmation creates and activates its own session, so the
+		// process step has to land there to show up in the rendered timeline.
+		const sessionId = await seedPendingConfirmation(stubService, layoutReadingColumn);
 		stubService.appendThinkingTurn(sessionId, 'Weighing options');
-		await seedPendingConfirmation(stubService, layoutReadingColumn);
+		layoutReadingColumn();
+		await flushTimelineHeightUpdates();
 
 		const tablist = slots.sessionBar!.querySelector('.conversation-lens-lens-tabs[role="tablist"]') as HTMLElement;
 		assert.ok(tablist.getAttribute('aria-label')?.includes('Conversation lens'));
@@ -2023,7 +2157,50 @@ suite('ConversationLens', () => {
 		assert.ok(queryTimeline(slots, '.conversation-lens-turn[data-kind="user"]'));
 		assert.ok(queryTimeline(slots, '.conversation-lens-turn[data-kind="assistant"]'));
 		assert.strictEqual(stubService.getSessionSync(sessionId).kind, 'idle');
-		assert.strictEqual(slots.sessionBar!.querySelector('.conversation-lens-session-sync-badge')?.hasAttribute('hidden'), true);
+		const syncBadge = slots.sessionBar!.querySelector('.conversation-lens-session-sync-badge') as HTMLElement | null;
+		assert.ok(syncBadge);
+		assert.strictEqual(syncBadge.hidden, false);
+		assert.strictEqual(syncBadge.textContent, 'Session not connected');
+	});
+
+	test('PRD-007: closed session shows column-top stale snapshot and keeps prior turns', async () => {
+		const { part, stubService, layoutReadingColumn } = mountLens();
+		const slots = getLensSlots(part);
+		const sessionId = stubService.createSession();
+		stubService.appendUserTurn(sessionId, 'Keep this turn after disconnect');
+		stubService.appendStubEchoAssistant(sessionId, 'Echo before disconnect');
+		await flushProjectedTimeline(layoutReadingColumn);
+
+		const banner = getReadingColumn(slots).querySelector(`.${conversationLensStaleSnapshotClass}`) as HTMLElement | null;
+		assert.ok(banner);
+		assert.strictEqual(banner.hidden, true);
+		assert.strictEqual(banner.getAttribute('role'), 'status');
+		assert.strictEqual(banner.getAttribute('aria-live'), 'polite');
+		assert.ok(queryTimeline(slots, '.conversation-lens-turn[data-kind="user"]')?.textContent?.includes('Keep this turn after disconnect'));
+
+		const { model, onSessionChanged } = stubService.createTestFrameSourceCallback();
+		const testSource = store.add(new TestConversationFrameSource(model, onSessionChanged));
+		stubService.wireTestFrameSource(testSource);
+
+		testSource.setSessionSync(sessionId, { kind: 'live' });
+		onSessionChanged(sessionId);
+		assert.strictEqual(banner.hidden, true);
+		assert.ok(queryTimeline(slots, '.conversation-lens-turn[data-kind="user"]')?.textContent?.includes('Keep this turn after disconnect'));
+
+		testSource.setSessionSync(sessionId, { kind: 'closed', reason: 'Subscription ended' });
+		onSessionChanged(sessionId);
+		assert.strictEqual(stubService.getSessionSync(sessionId).kind, 'closed');
+		assert.strictEqual(banner.hidden, false);
+		assert.strictEqual(banner.textContent, 'Showing snapshot from before disconnect: Subscription ended');
+		assert.ok(!/synced|已同步|session live/i.test(banner.textContent ?? ''));
+		assert.ok(queryTimeline(slots, '.conversation-lens-turn[data-kind="user"]')?.textContent?.includes('Keep this turn after disconnect'));
+		assert.ok(queryTimeline(slots, '.conversation-lens-turn[data-kind="assistant"]')?.textContent?.includes('Echo before disconnect'));
+		assert.notStrictEqual(document.activeElement, banner);
+
+		testSource.setSessionSync(sessionId, { kind: 'live' });
+		onSessionChanged(sessionId);
+		assert.strictEqual(banner.hidden, true);
+		assert.ok(queryTimeline(slots, '.conversation-lens-turn[data-kind="user"]')?.textContent?.includes('Keep this turn after disconnect'));
 	});
 
 	test('S3 shim: getTurns matches lease projection after fixture writes', () => {

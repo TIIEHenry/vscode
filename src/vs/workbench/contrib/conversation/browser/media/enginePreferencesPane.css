@@ -6,7 +6,15 @@
 /*
  * D19(1) / E2-7: this pane has no transition, animation, or @keyframes.
  * Do not hang empty `.ua-motion` — reduced-motion is a no-op until a node animates.
+ *
+ * Layout constants mirrored in enginePreferencesPane.ts: nav column 200px, body column gap
+ * 16px, pane padding 16px/20px (compact 8px/10px). The pane measures the real boxes and only
+ * falls back to those numbers before it has a layout, so keep the two in sync.
  */
+
+/* ---------------------------------------------------------------------------------------------
+ * Pane shell
+ * ------------------------------------------------------------------------------------------ */
 
 .monaco-workbench .engine-preferences-pane {
 	display: flex;
@@ -18,31 +26,70 @@
 	min-width: 0;
 }
 
-.monaco-workbench .engine-preferences-title {
-	margin: 0 0 12px 0;
-	font-size: 20px;
-	font-weight: 600;
+.monaco-workbench .engine-preferences-pane.is-compact {
+	padding: 8px 10px;
 }
 
+/*
+ * One thing leads: the editor header tab already names this pane, so a painted "Engine" title
+ * would only compete with the section heading. The heading stays for screen readers.
+ */
+.monaco-workbench .engine-preferences-title {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	margin: 0;
+	overflow: hidden;
+	clip: rect(1px, 1px, 1px, 1px);
+	clip-path: inset(50%);
+	white-space: nowrap;
+}
+
+/* `.monaco-text-button` is full-width by default; in this pane buttons sit in rows and toolbars. */
+.monaco-workbench .engine-preferences-pane .monaco-button {
+	width: auto;
+	flex: 0 0 auto;
+}
+
+/* ---------------------------------------------------------------------------------------------
+ * Connection status banner
+ * ------------------------------------------------------------------------------------------ */
+
 .monaco-workbench .engine-preferences-disconnected-banner {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px 12px;
 	margin-bottom: 12px;
-	padding: 10px 12px;
-	border: 1px solid var(--vscode-inputValidation-warningBorder);
+	padding: 8px 12px;
+	border: var(--vscode-strokeThickness) solid var(--vscode-panel-border);
+	border-radius: var(--vscode-cornerRadius-medium);
+	color: var(--vscode-descriptionForeground);
+	font-size: var(--vscode-fontSize-label1);
+}
+
+/* Disconnected is an ordinary resting state; an unsupported environment is the exception. */
+.monaco-workbench .engine-preferences-disconnected-banner.is-warning {
+	border-color: var(--vscode-inputValidation-warningBorder);
 	background: var(--vscode-inputValidation-warningBackground);
-	border-radius: 4px;
-	font-size: 12px;
+	color: var(--vscode-inputValidation-warningForeground, var(--vscode-foreground));
+}
+
+.monaco-workbench .engine-preferences-disconnected-copy {
+	flex: 1 1 auto;
+	min-width: 0;
+	overflow-wrap: anywhere;
 }
 
 .monaco-workbench .engine-preferences-disconnected-actions {
 	display: flex;
 	flex-wrap: wrap;
 	gap: 8px;
-	margin-top: 8px;
 }
 
-.monaco-workbench .engine-preferences-pane.is-compact {
-	padding: 8px 10px;
-}
+/* ---------------------------------------------------------------------------------------------
+ * Master / detail body
+ * ------------------------------------------------------------------------------------------ */
 
 .monaco-workbench .engine-preferences-body {
 	display: flex;
@@ -50,6 +97,100 @@
 	min-height: 0;
 	gap: 16px;
 }
+
+.monaco-workbench .engine-preferences-nav {
+	flex: 0 0 200px;
+	box-sizing: border-box;
+	padding: 4px 0;
+	border-right: var(--vscode-strokeThickness) solid var(--vscode-panel-border);
+}
+
+.monaco-workbench .engine-preferences-nav-row {
+	display: flex;
+	align-items: center;
+	padding: 0 12px;
+	min-width: 0;
+}
+
+.monaco-workbench .engine-preferences-nav-label {
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	font-size: var(--vscode-fontSize-body1);
+}
+
+/*
+ * "You are here" has to survive the nav losing focus to the detail pane, so the marker hangs
+ * off `.selected` rather than the list's focus styling.
+ */
+.monaco-workbench .engine-preferences-nav-row.selected .engine-preferences-nav-label {
+	font-weight: var(--vscode-fontWeight-semiBold);
+}
+
+.monaco-workbench .engine-preferences-nav-row.selected::before {
+	content: '';
+	position: absolute;
+	inset-block: 0;
+	inset-inline-start: 0;
+	width: 2px;
+	background: var(--vscode-focusBorder);
+}
+
+.monaco-workbench .engine-preferences-detail {
+	flex: 1 1 auto;
+	min-width: 0;
+	min-height: 0;
+	display: flex;
+	flex-direction: column;
+}
+
+.monaco-workbench .engine-preferences-detail-header {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin-bottom: 12px;
+	min-width: 0;
+}
+
+/* With the pane title retired, the section name is the first thing the eye lands on. */
+.monaco-workbench .engine-preferences-detail-title {
+	margin: 0;
+	min-width: 0;
+	font-size: var(--vscode-fontSize-heading2);
+	font-weight: var(--vscode-fontWeight-semiBold);
+	overflow-wrap: anywhere;
+}
+
+.monaco-workbench .engine-preferences-detail-body {
+	flex: 1 1 auto;
+	min-height: 0;
+	overflow: auto;
+}
+
+.monaco-workbench .engine-preferences-back {
+	flex: 0 0 auto;
+	padding: 2px 8px;
+	border: var(--vscode-strokeThickness) solid var(--vscode-button-border, var(--vscode-panel-border));
+	border-radius: var(--vscode-cornerRadius-small);
+	background: var(--vscode-button-secondaryBackground);
+	color: var(--vscode-button-secondaryForeground);
+	font-size: var(--vscode-fontSize-label1);
+	cursor: pointer;
+}
+
+.monaco-workbench .engine-preferences-back:hover {
+	background: var(--vscode-button-secondaryHoverBackground);
+}
+
+.monaco-workbench .engine-preferences-back:focus-visible {
+	outline: var(--vscode-strokeThickness) solid var(--vscode-focusBorder);
+	outline-offset: 2px;
+}
+
+/* ---------------------------------------------------------------------------------------------
+ * Narrow (< 600px) and compact (< 300px) pane widths
+ * ------------------------------------------------------------------------------------------ */
 
 .monaco-workbench .engine-preferences-pane.is-narrow .engine-preferences-body {
 	flex-direction: column;
@@ -63,137 +204,13 @@
 	display: none;
 }
 
+/* Stacked, the nav becomes the full-width column and must be allowed to shrink and scroll. */
 .monaco-workbench .engine-preferences-pane.is-narrow .engine-preferences-nav {
 	flex: 1 1 auto;
 	min-width: 0;
+	min-height: 0;
 	width: 100%;
 	border-right: none;
-}
-
-.monaco-workbench .engine-preferences-pane.is-narrow .engine-rules-scopes,
-.monaco-workbench .engine-preferences-pane.is-narrow .engine-hooks-layout {
-	grid-template-columns: 1fr;
-}
-
-.monaco-workbench .engine-triggers-list {
-	font-size: 12px;
-}
-
-.monaco-workbench .engine-triggers-row {
-	padding: 4px 0;
-	overflow-wrap: anywhere;
-	word-break: break-word;
-	cursor: pointer;
-}
-
-.monaco-workbench .engine-triggers-row.selected {
-	font-weight: 600;
-}
-
-.monaco-workbench .engine-triggers-actions {
-	display: flex;
-	flex-wrap: wrap;
-	gap: 8px;
-	margin-top: 8px;
-}
-
-.monaco-workbench .engine-triggers-fire-status,
-.monaco-workbench .engine-triggers-enabled-status,
-.monaco-workbench .engine-triggers-delete-status {
-	margin-top: 8px;
-	font-size: 12px;
-	overflow-wrap: anywhere;
-	word-break: break-word;
-}
-
-.monaco-workbench .engine-clipboard-list {
-	font-size: 12px;
-}
-
-.monaco-workbench .engine-clipboard-row {
-	padding: 4px 0;
-	overflow-wrap: anywhere;
-	word-break: break-word;
-	cursor: pointer;
-}
-
-.monaco-workbench .engine-clipboard-row.selected {
-	font-weight: 600;
-}
-
-.monaco-workbench .engine-clipboard-actions {
-	display: flex;
-	flex-wrap: wrap;
-	gap: 8px;
-	margin-top: 8px;
-}
-
-.monaco-workbench .engine-clipboard-write-status,
-.monaco-workbench .engine-clipboard-read-status,
-.monaco-workbench .engine-clipboard-clear-status {
-	margin-top: 8px;
-	font-size: 12px;
-	overflow-wrap: anywhere;
-	word-break: break-word;
-}
-
-.monaco-workbench .engine-context-variable-list {
-	font-size: 12px;
-}
-
-.monaco-workbench .engine-context-variable-row {
-	padding: 4px 0;
-	overflow-wrap: anywhere;
-	word-break: break-word;
-	cursor: pointer;
-}
-
-.monaco-workbench .engine-context-variable-row.selected {
-	font-weight: 600;
-}
-
-.monaco-workbench .engine-context-variable-actions {
-	display: flex;
-	flex-wrap: wrap;
-	gap: 8px;
-	margin-top: 8px;
-}
-
-.monaco-workbench .engine-context-variable-read-status {
-	margin-top: 8px;
-	font-size: 12px;
-	overflow-wrap: anywhere;
-	word-break: break-word;
-}
-
-.monaco-workbench .engine-preferences-pane.is-narrow .engine-provider-model-group-heading {
-	flex-direction: column;
-	align-items: flex-start;
-	gap: 2px;
-}
-
-.monaco-workbench .engine-preferences-detail-header {
-	display: flex;
-	align-items: center;
-	gap: 8px;
-	margin-bottom: 12px;
-	min-width: 0;
-}
-
-.monaco-workbench .engine-preferences-detail-header .engine-preferences-detail-title {
-	margin: 0;
-	min-width: 0;
-	overflow-wrap: anywhere;
-}
-
-.monaco-workbench .engine-preferences-back {
-	flex: 0 0 auto;
-	border: 1px solid var(--vscode-button-border, var(--vscode-panel-border));
-	background: var(--vscode-button-secondaryBackground);
-	color: var(--vscode-button-secondaryForeground);
-	padding: 2px 8px;
-	font-size: 12px;
-	cursor: pointer;
 }
 
 .monaco-workbench .engine-preferences-pane.is-narrow input,
@@ -215,64 +232,182 @@
 	max-width: 100%;
 }
 
-.monaco-workbench .engine-preferences-nav {
-	flex: 0 0 200px;
-	min-width: 180px;
-	border-right: 1px solid var(--vscode-panel-border);
+.monaco-workbench .engine-preferences-pane.is-narrow .engine-rules-scopes,
+.monaco-workbench .engine-preferences-pane.is-narrow .engine-hooks-layout {
+	grid-template-columns: 1fr;
 }
 
-.monaco-workbench .engine-preferences-nav-row {
-	padding: 2px 8px;
+.monaco-workbench .engine-preferences-pane.is-narrow .engine-provider-model-group-heading {
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 2px;
 }
 
-.monaco-workbench .engine-preferences-nav-label {
-	font-size: 13px;
+/* ---------------------------------------------------------------------------------------------
+ * Test Engine footer
+ * ------------------------------------------------------------------------------------------ */
+
+.monaco-workbench .engine-test-row {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	flex: 0 0 auto;
+	gap: 8px 12px;
+	margin-top: 12px;
+	padding-top: 12px;
+	border-top: var(--vscode-strokeThickness) solid var(--vscode-panel-border);
 }
 
-.monaco-workbench .engine-preferences-detail {
+.monaco-workbench .engine-test-status {
 	flex: 1 1 auto;
 	min-width: 0;
+	color: var(--vscode-descriptionForeground);
+	font-size: var(--vscode-fontSize-label1);
+	overflow-wrap: anywhere;
+}
+
+/* ---------------------------------------------------------------------------------------------
+ * Shared section chrome — the contract EnginePreferencesSectionBase renders against
+ * ------------------------------------------------------------------------------------------ */
+
+.monaco-workbench .engine-section {
 	display: flex;
 	flex-direction: column;
-	min-height: 0;
+	min-width: 0;
 }
 
-.monaco-workbench .engine-preferences-detail-title {
-	margin: 0;
-	font-size: 15px;
-	font-weight: 600;
+.monaco-workbench .engine-section:not(.is-active-section),
+.monaco-workbench .engine-section-heading:not(.is-visible),
+.monaco-workbench .engine-section-status:not(.is-visible),
+.monaco-workbench .engine-section-empty:not(.is-visible) {
+	display: none;
 }
 
-.monaco-workbench .engine-preferences-detail-body {
-	flex: 1 1 auto;
-	min-height: 0;
-	overflow: auto;
+.monaco-workbench .engine-section-heading,
+.monaco-workbench .engine-provider-model-heading,
+.monaco-workbench .engine-skills-section h3,
+.monaco-workbench .engine-catalog-section h3 {
+	margin: 0 0 8px 0;
+	font-size: var(--vscode-fontSize-heading3);
+	font-weight: var(--vscode-fontWeight-semiBold);
 }
 
-.monaco-workbench .engine-catalog-status-widget {
-	font-size: 12px;
+/* Secondary copy reads as description text, never as body text. */
+.monaco-workbench .engine-section-status,
+.monaco-workbench .engine-section-empty,
+.monaco-workbench .engine-catalog-status-message,
+.monaco-workbench .engine-skills-status,
+.monaco-workbench .engine-skills-freeze-notice,
+.monaco-workbench .engine-catalog-status {
+	color: var(--vscode-descriptionForeground);
+	font-size: var(--vscode-fontSize-label1);
+	overflow-wrap: anywhere;
+}
+
+/* Notices that precede content keep a line of air under them. */
+.monaco-workbench .engine-section-status,
+.monaco-workbench .engine-skills-status,
+.monaco-workbench .engine-skills-freeze-notice,
+.monaco-workbench .engine-catalog-status {
 	margin-bottom: 8px;
 }
 
-.monaco-workbench .engine-catalog-status-message {
-	opacity: 0.85;
+/* A status only raises its voice when the news is bad. */
+.monaco-workbench .engine-section-status--warning,
+.monaco-workbench .engine-catalog-status-widget[data-catalog-mode="unsupported"] .engine-catalog-status-message {
+	color: var(--vscode-notificationsWarningIcon-foreground);
 }
 
-.monaco-workbench .engine-catalog-status-actions {
+.monaco-workbench .engine-section-status--error,
+.monaco-workbench .engine-catalog-status-widget[data-catalog-mode="failed"] .engine-catalog-status-message {
+	color: var(--vscode-errorForeground);
+}
+
+.monaco-workbench .engine-section-empty {
+	padding: 20px 0;
+}
+
+.monaco-workbench .engine-catalog-status-widget {
+	margin-bottom: 8px;
+	font-size: var(--vscode-fontSize-label1);
+}
+
+/* Toolbars above their content, action rows below it. */
+.monaco-workbench .engine-catalog-write-toolbar,
+.monaco-workbench .engine-skill-body-toolbar {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin-bottom: 8px;
+}
+
+.monaco-workbench .engine-catalog-status-actions,
+.monaco-workbench .engine-agents-editor-toolbar,
+.monaco-workbench .engine-triggers-actions,
+.monaco-workbench .engine-clipboard-actions,
+.monaco-workbench .engine-context-variable-actions {
 	display: flex;
 	flex-wrap: wrap;
 	gap: 8px;
 	margin-top: 8px;
 }
 
-.monaco-workbench .engine-section-status,
+/* Every per-action result line reads the same, whichever section raised it. */
+.monaco-workbench .engine-triggers-fire-status,
+.monaco-workbench .engine-triggers-enabled-status,
+.monaco-workbench .engine-triggers-delete-status,
+.monaco-workbench .engine-triggers-upsert-status,
+.monaco-workbench .engine-clipboard-write-status,
+.monaco-workbench .engine-clipboard-read-status,
+.monaco-workbench .engine-clipboard-clear-status,
+.monaco-workbench .engine-context-variable-read-status,
+.monaco-workbench .engine-skill-body-status,
+.monaco-workbench .engine-agents-editor-status {
+	margin-top: 8px;
+	color: var(--vscode-descriptionForeground);
+	font-size: var(--vscode-fontSize-label1);
+	overflow-wrap: anywhere;
+	word-break: break-word;
+}
+
+/* ---------------------------------------------------------------------------------------------
+ * Section content
+ * ------------------------------------------------------------------------------------------ */
+
 .monaco-workbench .engine-overview-grid,
 .monaco-workbench .engine-provider-model-form,
 .monaco-workbench .engine-rules-scopes,
 .monaco-workbench .engine-hooks-layout,
 .monaco-workbench .engine-plugins-list,
-.monaco-workbench .engine-mcp-runtime-panel {
-	font-size: 12px;
+.monaco-workbench .engine-mcp-runtime-panel,
+.monaco-workbench .engine-triggers-list,
+.monaco-workbench .engine-clipboard-list,
+.monaco-workbench .engine-context-variable-list {
+	font-size: var(--vscode-fontSize-label1);
+}
+
+/* Plain-div rows in the small sections: one rhythm, one selected treatment. */
+.monaco-workbench .engine-triggers-row,
+.monaco-workbench .engine-clipboard-row,
+.monaco-workbench .engine-context-variable-row {
+	padding: 4px 8px;
+	border-radius: var(--vscode-cornerRadius-small);
+	overflow-wrap: anywhere;
+	word-break: break-word;
+	cursor: pointer;
+}
+
+.monaco-workbench .engine-triggers-row:hover,
+.monaco-workbench .engine-clipboard-row:hover,
+.monaco-workbench .engine-context-variable-row:hover {
+	background: var(--vscode-list-hoverBackground);
+}
+
+.monaco-workbench .engine-triggers-row.selected,
+.monaco-workbench .engine-clipboard-row.selected,
+.monaco-workbench .engine-context-variable-row.selected {
+	background: var(--vscode-list-inactiveSelectionBackground);
+	font-weight: var(--vscode-fontWeight-semiBold);
 }
 
 .monaco-workbench .engine-overview-row,
@@ -286,7 +421,7 @@
 .monaco-workbench .engine-overview-label,
 .monaco-workbench .engine-overview-capability-name {
 	flex: 0 0 140px;
-	opacity: 0.85;
+	color: var(--vscode-descriptionForeground);
 }
 
 .monaco-workbench .engine-overview-value,
@@ -316,12 +451,6 @@
 	margin-bottom: 16px;
 }
 
-.monaco-workbench .engine-provider-model-heading {
-	margin: 0 0 8px 0;
-	font-size: 13px;
-	font-weight: 600;
-}
-
 .monaco-workbench .engine-provider-model-group-heading {
 	display: flex;
 	align-items: baseline;
@@ -330,16 +459,15 @@
 	margin-bottom: 4px;
 }
 
-.monaco-workbench .engine-provider-model-footnote,
-.monaco-workbench .engine-provider-model-session-hint {
-	font-size: 11px;
-	opacity: 0.75;
+.monaco-workbench .engine-provider-model-footnote {
+	color: var(--vscode-descriptionForeground);
+	font-size: var(--vscode-fontSize-body2);
 }
 
 .monaco-workbench .engine-provider-model-session-hint {
 	margin-top: 12px;
-	font-size: 12px;
-	opacity: 0.85;
+	color: var(--vscode-descriptionForeground);
+	font-size: var(--vscode-fontSize-label1);
 }
 
 .monaco-workbench .engine-provider-model-row--disabled {
@@ -355,16 +483,18 @@
 
 .monaco-workbench .engine-mcp-tab-bar {
 	display: flex;
+	flex-wrap: wrap;
 	gap: 4px;
 	margin-bottom: 8px;
 }
 
 .monaco-workbench .engine-mcp-tab {
-	border: 1px solid var(--vscode-panel-border);
+	padding: 4px 10px;
+	border: var(--vscode-strokeThickness) solid var(--vscode-panel-border);
+	border-radius: var(--vscode-cornerRadius-small);
 	background: var(--vscode-button-secondaryBackground);
 	color: var(--vscode-button-secondaryForeground);
-	padding: 4px 10px;
-	font-size: 12px;
+	font-size: var(--vscode-fontSize-label1);
 	cursor: pointer;
 }
 
@@ -373,45 +503,9 @@
 	color: var(--vscode-button-foreground);
 }
 
-.monaco-workbench .engine-test-row {
-	display: flex;
-	align-items: center;
-	flex-wrap: wrap;
-	gap: 12px;
-	margin-top: 12px;
-}
-
-.monaco-workbench .engine-preferences-pane.is-narrow .engine-test-status {
-	min-width: 0;
-	flex: 1 1 auto;
-}
-
-.monaco-workbench .engine-test-status {
-	font-size: 12px;
-	opacity: 0.85;
-}
-
-.monaco-workbench .engine-skills-section {
-	margin-top: 0;
-}
-
+.monaco-workbench .engine-skills-section,
 .monaco-workbench .engine-catalog-section {
 	margin-top: 0;
-}
-
-.monaco-workbench .engine-skills-section h3,
-.monaco-workbench .engine-catalog-section h3 {
-	margin: 0 0 8px 0;
-	font-size: 13px;
-	font-weight: 600;
-}
-
-.monaco-workbench .engine-skills-status,
-.monaco-workbench .engine-skills-freeze-notice,
-.monaco-workbench .engine-catalog-status {
-	opacity: 0.85;
-	margin-bottom: 8px;
-	font-size: 12px;
 }
 
 .monaco-workbench .engine-skills-list,
@@ -422,9 +516,9 @@
 .monaco-workbench .engine-skill-group-label,
 .monaco-workbench .engine-catalog-group-label {
 	padding: 4px 8px;
-	font-size: 11px;
-	font-weight: 600;
-	opacity: 0.8;
+	color: var(--vscode-descriptionForeground);
+	font-size: var(--vscode-fontSize-label2);
+	font-weight: var(--vscode-fontWeight-semiBold);
 	text-transform: uppercase;
 }
 
@@ -438,20 +532,13 @@
 
 .monaco-workbench .engine-skill-name,
 .monaco-workbench .engine-catalog-name {
-	font-size: 13px;
+	font-size: var(--vscode-fontSize-body1);
 }
 
 .monaco-workbench .engine-skill-description,
 .monaco-workbench .engine-catalog-description {
-	font-size: 11px;
-	opacity: 0.75;
-}
-
-.monaco-workbench .engine-catalog-write-toolbar {
-	display: flex;
-	flex-wrap: wrap;
-	gap: 8px;
-	margin-bottom: 8px;
+	color: var(--vscode-descriptionForeground);
+	font-size: var(--vscode-fontSize-body2);
 }
 
 .monaco-workbench .engine-tools-profile-row {
@@ -459,7 +546,7 @@
 	align-items: center;
 	gap: 8px;
 	margin-bottom: 8px;
-	font-size: 12px;
+	font-size: var(--vscode-fontSize-label1);
 }
 
 .monaco-workbench .engine-tools-profile-select {
@@ -469,14 +556,14 @@
 .monaco-workbench .engine-tools-info {
 	margin-top: 12px;
 	padding: 8px 10px;
-	border: 1px solid var(--vscode-panel-border);
-	border-radius: 4px;
-	font-size: 12px;
+	border: var(--vscode-strokeThickness) solid var(--vscode-panel-border);
+	border-radius: var(--vscode-cornerRadius-medium);
+	font-size: var(--vscode-fontSize-label1);
 }
 
 .monaco-workbench .engine-tools-info-name {
-	font-weight: 600;
 	margin-bottom: 4px;
+	font-weight: var(--vscode-fontWeight-semiBold);
 }
 
 .monaco-workbench .engine-tools-info-description {
@@ -484,58 +571,10 @@
 }
 
 .monaco-workbench .engine-tools-info-meta {
-	opacity: 0.85;
+	color: var(--vscode-descriptionForeground);
 }
 
-.monaco-workbench .engine-skill-body-editor {
-	margin-top: 12px;
-}
-
-.monaco-workbench .engine-skill-body-toolbar {
-	display: flex;
-	flex-wrap: wrap;
-	gap: 8px;
-	margin-bottom: 8px;
-}
-
-.monaco-workbench .engine-skill-body-textarea {
-	box-sizing: border-box;
-	width: 100%;
-	min-height: 160px;
-	max-height: 320px;
-	padding: 8px;
-	border: 1px solid var(--vscode-panel-border);
-	border-radius: 4px;
-	font-family: var(--monaco-monospace-font);
-	font-size: 12px;
-	line-height: 1.4;
-	resize: vertical;
-	background: var(--vscode-input-background);
-	color: var(--vscode-input-foreground);
-}
-
-.monaco-workbench .engine-skill-body-textarea:read-only {
-	opacity: 0.9;
-}
-
-.monaco-workbench .engine-skill-body-status {
-	margin-top: 6px;
-	font-size: 12px;
-	opacity: 0.85;
-}
-
-.monaco-workbench .engine-skill-body-preview {
-	margin-top: 12px;
-	padding: 8px;
-	border: 1px solid var(--vscode-panel-border);
-	border-radius: 4px;
-	font-family: var(--monaco-monospace-font);
-	font-size: 12px;
-	white-space: pre-wrap;
-	max-height: 240px;
-	overflow: auto;
-}
-
+.monaco-workbench .engine-skill-body-editor,
 .monaco-workbench .engine-agents-editor {
 	margin-top: 12px;
 }
@@ -543,34 +582,28 @@
 .monaco-workbench .engine-agents-editor-label {
 	display: block;
 	margin-bottom: 4px;
-	font-size: 12px;
-	font-weight: 600;
+	font-size: var(--vscode-fontSize-label1);
+	font-weight: var(--vscode-fontWeight-semiBold);
 }
 
+.monaco-workbench .engine-skill-body-textarea,
 .monaco-workbench .engine-agents-editor-textarea {
 	display: block;
+	box-sizing: border-box;
+	width: 100%;
 	min-height: 160px;
 	max-height: 320px;
 	padding: 8px;
-	border: 1px solid var(--vscode-panel-border);
-	border-radius: 4px;
+	border: var(--vscode-strokeThickness) solid var(--vscode-panel-border);
+	border-radius: var(--vscode-cornerRadius-small);
+	background: var(--vscode-input-background);
+	color: var(--vscode-input-foreground);
 	font-family: var(--monaco-monospace-font);
-	font-size: 12px;
+	font-size: var(--vscode-fontSize-label1);
 	line-height: 1.4;
 	resize: vertical;
-	box-sizing: border-box;
-	background: var(--vscode-editor-background);
-	color: var(--vscode-editor-foreground);
 }
 
-.monaco-workbench .engine-agents-editor-toolbar {
-	display: flex;
-	gap: 8px;
-	margin-top: 8px;
-}
-
-.monaco-workbench .engine-agents-editor-status {
-	margin-top: 4px;
-	font-size: 11px;
-	opacity: 0.85;
+.monaco-workbench .engine-skill-body-textarea:read-only {
+	opacity: 0.9;
 }

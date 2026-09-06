@@ -474,6 +474,8 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 	}
 }
 
+const UNKNOWN_RAW_CONTENT_PREVIEW_MAX_CHARS = 240;
+
 export function renderHonestTimelineRow(
 	container: HTMLElement,
 	turn: ConversationStubTurn,
@@ -507,7 +509,18 @@ export function renderHonestTimelineRow(
 	}
 
 	const body = append(el, $('.conversation-lens-turn-body.conversation-lens-turn-body--honest'));
-	body.textContent = kind === 'unknown' ? (fields.rawContent ?? turn.text) : turn.text;
+	if (kind === 'unknown') {
+		const raw = fields.rawContent ?? turn.text;
+		if (raw.length > UNKNOWN_RAW_CONTENT_PREVIEW_MAX_CHARS) {
+			body.textContent = raw.slice(0, UNKNOWN_RAW_CONTENT_PREVIEW_MAX_CHARS);
+			const mark = append(body, $('span.conversation-lens-turn-unknown-truncated'));
+			mark.textContent = localize('conversationLens.unknownContentTruncated', "… (truncated)");
+		} else {
+			body.textContent = raw;
+		}
+	} else {
+		body.textContent = turn.text;
+	}
 }
 
 export function appendTurnTrajectoryButton(

@@ -21,8 +21,10 @@ import {
 	conversationLensDockMicTitle,
 	conversationLensDockMoreTitle,
 	conversationLensDockNoModel,
+	conversationLensDockPermissionAgent,
 	conversationLensDockPermissionAsk,
 	conversationLensDockPermissionLabel,
+	conversationLensDockPermissionPermit,
 	conversationLensDockPlaceholder,
 	conversationLensDockRouteLabel,
 	conversationLensDockTemplatesTitle,
@@ -36,6 +38,12 @@ import { getUaClientKeyboardEnterBehavior } from '../common/uaClientSettingsHelp
 import { createInputHistoryBrowseState, InputHistoryBrowseState } from './conversationInputHistory.js';
 import { SelectBox } from '../../../../base/browser/ui/selectBox/selectBox.js';
 import { COMPOSER_AGENT_OPTIONS } from './conversationComposerCatalog.js';
+import {
+	applySessionPermissionIndex,
+	type ConversationSessionConfigSelection,
+	type IConversationLensComposerChromeHost,
+	updatePermissionSelectEnabled,
+} from './conversationLensComposerChrome.js';
 
 export interface IConversationLensDockHost {
 	dockRoot: HTMLElement;
@@ -69,11 +77,12 @@ export interface IConversationLensDockHost {
 	readonly stubService: IConversationRosterService;
 	readonly configurationService: IConfigurationService;
 	readonly instantiationService: IInstantiationService;
+	getBoundSessionId(): string;
 	register<T extends IDisposable>(disposable: T): T;
 	createComposerSelectBox(options: { text: string }[], selectedIndex: number, ariaLabel: string): SelectBox;
 	createRouteSelectBox(selectedIndex: number, ariaLabel: string): SelectBox;
-	getSessionConfig(sessionId: string): { agentIndex: number; routeIndex: number };
-	setSessionConfig(sessionId: string, patch: Partial<{ agentIndex: number; routeIndex: number }>): void;
+	getSessionConfig(sessionId: string): ConversationSessionConfigSelection;
+	setSessionConfig(sessionId: string, patch: Partial<ConversationSessionConfigSelection>): void;
 	toggleAddContextView(): void;
 	toggleTuneContextView(): void;
 	toggleMoreContextView(): void;
@@ -93,7 +102,7 @@ export interface IConversationLensDockHost {
 	scrollToFirstPendingConfirmation(): void;
 }
 
-export function mountDock(host: IConversationLensDockHost, dockHost: HTMLElement): void {
+export function mountDock(host: IConversationLensDockHost & IConversationLensComposerChromeHost, dockHost: HTMLElement): void {
 
 		host.dockRoot = append(dockHost, $('.conversation-lens-dock'));
 
@@ -156,30 +165,40 @@ export function mountDock(host: IConversationLensDockHost, dockHost: HTMLElement
 
 		const permissionContainer = append(bottomLeading, $('.conversation-lens-dock-permission'));
 		host.permissionSelectBox = host.register(host.createComposerSelectBox(
-			[{ text: conversationLensDockPermissionAsk }],
-			0,
+			[
+				{ text: conversationLensDockPermissionAsk },
+				{ text: conversationLensDockPermissionAgent },
+				{ text: conversationLensDockPermissionPermit },
+			],
+			host.getSessionConfig(host.getBoundSessionId()).permissionIndex,
 			conversationLensDockPermissionLabel));
 		host.permissionSelectBox.render(permissionContainer);
+		host.register(host.permissionSelectBox.onDidSelect(e => {
+			void applySessionPermissionIndex(host, host.getBoundSessionId(), e.index);
+		}));
+		updatePermissionSelectEnabled(host);
+		host.register(host.stubService.onDidChangeEngineConnection(() => updatePermissionSelectEnabled(host)));
+		host.register(host.uaConnection.onDidChangeConnection(() => updatePermissionSelectEnabled(host)));
 
 		host.agentContainer = append(bottomLeading, $('.conversation-lens-dock-agent'));
 		host.agentSelectBox = host.register(host.createComposerSelectBox(
 			COMPOSER_AGENT_OPTIONS.map(text => ({ text })),
-			host.getSessionConfig(host.stubService.getActiveSessionId()).agentIndex,
+			host.getSessionConfig(host.getBoundSessionId()).agentIndex,
 			conversationLensDockAgentLabel));
 		host.agentSelectBox.render(host.agentContainer);
 		host.register(host.agentSelectBox.onDidSelect(e => {
-			host.setSessionConfig(host.stubService.getActiveSessionId(), { agentIndex: e.index });
+			host.setSessionConfig(host.getBoundSessionId(), { agentIndex: e.index });
 		}));
 
 		host.routeContainer = append(bottomLeading, $('.conversation-lens-dock-route'));
 		host.routeSelectBox = host.register(host.createRouteSelectBox(
-			host.getSessionConfig(host.stubService.getActiveSessionId()).routeIndex,
+			host.getSessionConfig(host.getBoundSessionId()).routeIndex,
 			conversationLensDockRouteLabel));
 		host.routeSelectBox.render(host.routeContainer);
 		host.register(host.routeSelectBox.onDidSelect(e => {
-			const sessionId = host.stubService.getActiveSessionId();
+			const sessionId = host.getBoundSessionId();
 			host.setSessionConfig(sessionId, { routeIndex: e.index });
-			host.sessionBarRouteSelectBox.select(e.index);
+			host.sessionBarRouteSelectBox?.select(e.index);
 		}));
 
 		const moreContainer = append(bottomLeading, $('.conversation-lens-dock-more'));
@@ -293,7 +312,7 @@ export function mountDock(host: IConversationLensDockHost, dockHost: HTMLElement
 			if (host.inputHistoryBrowse.browseIndex >= 0) {
 				host.inputHistoryBrowse = createInputHistoryBrowseState();
 			}
-			host.writeComposerDraft(host.stubService.getActiveSessionId(), host.dockTextarea.value);
+			host.writeComposerDraft(host.getBoundSessionId(), host.dockTextarea.value);
 			host.updateSendEnabled();
 		}));
 

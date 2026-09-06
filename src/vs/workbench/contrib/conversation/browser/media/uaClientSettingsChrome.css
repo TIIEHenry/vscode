@@ -9,11 +9,6 @@
  * hides TOC below 700px (`narrow-width`); do not hide search or titles.
  */
 
-.monaco-workbench .settings-editor > .settings-header,
-.monaco-workbench .settings-editor > .settings-header > .search-container {
-	min-width: 0;
-}
-
 .monaco-workbench .settings-editor.narrow-width > .settings-header {
 	padding-left: 8px;
 	padding-right: 8px;
@@ -26,10 +21,11 @@
 	box-sizing: border-box;
 }
 
+/*
+ * Stock already clips the label (`overflow`/`text-overflow`); it only ellipsizes once the
+ * title is kept on one line, which matters when the group name outgrows a narrow window.
+ */
 .monaco-workbench .settings-editor > .settings-body .settings-tree-container .settings-group-title-label {
-	min-width: 0;
-	overflow: hidden;
-	text-overflow: ellipsis;
 	white-space: nowrap;
 }
 

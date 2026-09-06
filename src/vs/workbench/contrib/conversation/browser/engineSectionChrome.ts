@@ -92,22 +92,38 @@ export interface IEnginePreferencesSectionHost {
 	getDomNode(): HTMLElement;
 }
 
+/** How loudly a section status reads. `info` is the quiet default; the rest are exceptions. */
+export type EngineSectionStatusSeverity = 'info' | 'warning' | 'error';
+
+const STATUS_SEVERITY_CLASS: Record<EngineSectionStatusSeverity, string> = {
+	info: 'engine-section-status--info',
+	warning: 'engine-section-status--warning',
+	error: 'engine-section-status--error',
+};
+
+/**
+ * Chrome every Engine section shares: one heading, one live status line, one empty state.
+ * Visibility is carried by classes (`is-active-section` / `is-visible`) so the stylesheet owns
+ * how a hidden or quiet piece looks — see `media/enginePreferencesPane.css`.
+ */
 export abstract class EnginePreferencesSectionBase implements IEnginePreferencesSectionHost {
 
 	protected readonly container: HTMLElement;
 	protected readonly heading: HTMLElement;
 	protected readonly statusMessage: HTMLElement;
+	protected readonly emptyState: HTMLElement;
 
 	private sectionActive = false;
 
 	constructor(parent: HTMLElement, containerClass: string, headingText: string) {
 		this.container = DOM.append(parent, $(containerClass));
-		this.container.style.display = 'none';
+		this.container.classList.add('engine-section');
 		this.heading = DOM.append(this.container, $('h3.engine-section-heading'));
 		this.heading.textContent = headingText;
-		this.heading.style.display = 'none';
 		this.statusMessage = DOM.append(this.container, $('.engine-section-status'));
-		this.statusMessage.style.display = 'none';
+		this.statusMessage.setAttribute('role', 'status');
+		this.statusMessage.setAttribute('aria-live', 'polite');
+		this.emptyState = DOM.append(this.container, $('.engine-section-empty'));
 	}
 
 	getDomNode(): HTMLElement {
@@ -120,21 +136,36 @@ export abstract class EnginePreferencesSectionBase implements IEnginePreferences
 	}
 
 	setShowSectionHeading(show: boolean): void {
-		this.heading.style.display = show ? '' : 'none';
+		this.heading.classList.toggle('is-visible', show);
 	}
 
 	protected updateContainerVisibility(): void {
-		this.container.style.display = this.sectionActive ? '' : 'none';
+		this.container.classList.toggle('is-active-section', this.sectionActive);
 	}
 
-	protected showStatus(message: string): void {
-		this.statusMessage.style.display = '';
+	protected showStatus(message: string, severity: EngineSectionStatusSeverity = 'info'): void {
+		for (const [candidate, className] of Object.entries(STATUS_SEVERITY_CLASS)) {
+			this.statusMessage.classList.toggle(className, candidate === severity);
+		}
+		// Reveal the live region before writing to it, so the change is announced.
+		this.statusMessage.classList.add('is-visible');
 		this.statusMessage.textContent = message;
 	}
 
 	protected hideStatus(): void {
-		this.statusMessage.style.display = 'none';
+		this.statusMessage.classList.remove('is-visible');
 		this.statusMessage.textContent = '';
+	}
+
+	/** The "nothing here yet" line a section shows in place of its list. */
+	protected showEmptyState(message: string): void {
+		this.emptyState.classList.add('is-visible');
+		this.emptyState.textContent = message;
+	}
+
+	protected hideEmptyState(): void {
+		this.emptyState.classList.remove('is-visible');
+		this.emptyState.textContent = '';
 	}
 
 	abstract layout(width: number, height: number): void;

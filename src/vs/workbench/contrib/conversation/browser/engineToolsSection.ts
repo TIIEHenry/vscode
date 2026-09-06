@@ -5,18 +5,20 @@
 
 import * as DOM from '../../../../base/browser/dom.js';
 import { Button } from '../../../../base/browser/ui/button/button.js';
+import { SelectBox } from '../../../../base/browser/ui/selectBox/selectBox.js';
 import { Checkbox } from '../../../../base/browser/ui/toggle/toggle.js';
 import { IListRenderer, IListVirtualDelegate } from '../../../../base/browser/ui/list/list.js';
 import { IListAccessibilityProvider } from '../../../../base/browser/ui/list/listWidget.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
+import { IContextViewService } from '../../../../platform/contextview/browser/contextView.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { WorkbenchList } from '../../../../platform/list/browser/listService.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { ensureCapabilitySnapshot } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
 import type { UniverseAgentAgentProfileSummary, UniverseAgentToolInfoResult, UniverseAgentToolSummary } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
-import { defaultButtonStyles, defaultCheckboxStyles } from '../../../../platform/theme/browser/defaultStyles.js';
+import { defaultButtonStyles, defaultCheckboxStyles, defaultSelectBoxStyles } from '../../../../platform/theme/browser/defaultStyles.js';
 import {
 	type EngineCatalogPaneMode,
 	canPerformCatalogWrite,
@@ -24,6 +26,7 @@ import {
 	resolveEngineCatalogPaneMode,
 } from './engineCatalog.js';
 import { EngineCatalogStatusWidget } from './engineCatalogStatus.js';
+import { getEngineSectionApiUnavailableCopy } from './engineSectionChrome.js';
 import {
 	applyToolEnablementChange,
 	applyToolEnablementChanges,
@@ -38,6 +41,7 @@ import { OPEN_CONNECTION_PREFERENCES_COMMAND_ID } from '../common/uaPreferencesP
 const $ = DOM.$;
 
 const TOOLS_FEATURE = localize('ua.engineToolsFeatureLabel', "engine tools");
+const TOOL_DETAIL_FEATURE = localize('ua.engineToolsInfoFeatureLabel', "tool details");
 
 type EngineToolListEntry =
 	| { readonly kind: 'group'; readonly group: EngineToolCatalogGroup; readonly label: string }
@@ -133,6 +137,7 @@ class EngineToolRowRenderer implements IListRenderer<EngineToolListEntry, IToolR
 			parts.push(entry.tool.description);
 		}
 		templateData.description.textContent = parts.join(' — ');
+		templateData.checkbox.setTitle(localize('ua.engineToolsRowToggle', "Enable {0}", entry.tool.name));
 		templateData.checkbox.checked = this.isEnabled(entry.tool.name);
 		templateData.checkbox.enable();
 		if (!this.canToggle()) {
@@ -161,7 +166,8 @@ export class EngineToolsSection extends Disposable {
 	private readonly container: HTMLElement;
 	private readonly heading: HTMLElement;
 	private readonly status: EngineCatalogStatusWidget;
-	private readonly profileSelect: HTMLSelectElement;
+	private readonly profileSelectHost: HTMLElement;
+	private readonly profileSelect: SelectBox;
 	private readonly writeToolbar: HTMLElement;
 	private readonly saveButton: Button;
 	private readonly listContainer: HTMLElement;
@@ -183,6 +189,7 @@ export class EngineToolsSection extends Disposable {
 		@IUniverseAgentConnection private readonly connection: IUniverseAgentConnection,
 		@IInstantiationService instantiationService: IInstantiationService,
 		@ICommandService private readonly commandService: ICommandService,
+		@IContextViewService contextViewService: IContextViewService,
 	) {
 		super();
 		this.instantiationService = instantiationService;
@@ -197,12 +204,16 @@ export class EngineToolsSection extends Disposable {
 		this.status = this._register(new EngineCatalogStatusWidget(this.container));
 
 		const profileRow = DOM.append(this.container, $('.engine-tools-profile-row'));
-		DOM.append(profileRow, $('label')).textContent = localize('ua.engineToolsProfileLabel', "Profile:");
-		this.profileSelect = DOM.append(profileRow, $('select.engine-tools-profile-select')) as HTMLSelectElement;
-		this.profileSelect.style.display = 'none';
-		this._register(DOM.addDisposableListener(this.profileSelect, 'change', () => {
-			const profileId = this.profileSelect.value;
-			this.activeProfile = this.profiles.find(profile => profile.id === profileId);
+		const profileLabel = localize('ua.engineToolsProfileLabel', "Profile");
+		DOM.append(profileRow, $('label')).textContent = profileLabel;
+		this.profileSelectHost = DOM.append(profileRow, $('.engine-tools-profile-select'));
+		this.profileSelectHost.style.display = 'none';
+		this.profileSelect = this._register(new SelectBox([], 0, contextViewService, defaultSelectBoxStyles, {
+			ariaLabel: profileLabel,
+		}));
+		this.profileSelect.render(this.profileSelectHost);
+		this._register(this.profileSelect.onDidSelect(event => {
+			this.activeProfile = this.profiles[event.index];
 			this.updateSaveChrome();
 			this.list?.rerender();
 		}));
@@ -216,7 +227,8 @@ export class EngineToolsSection extends Disposable {
 		this.listContainer = DOM.append(this.container, $('.engine-catalog-list'));
 		this.infoHost = DOM.append(this.container, $('.engine-tools-info'));
 		this.infoHost.style.display = 'none';
-		this.infoHost.setAttribute('role', 'region');
+		this.infoHost.setAttribute('role', 'status');
+		this.infoHost.setAttribute('aria-live', 'polite');
 		this.infoHost.setAttribute('aria-label', localize('ua.engineToolsInfoRegion', "Tool details"));
 
 		this._register(this.connection.onDidChangeConnection(() => {
@@ -268,7 +280,7 @@ export class EngineToolsSection extends Disposable {
 	}
 
 	isProfileSelectorVisible(): boolean {
-		return this.profileSelect.style.display !== 'none';
+		return this.profileSelectHost.style.display !== 'none';
 	}
 
 	getActiveProfileId(): string | undefined {
@@ -537,22 +549,18 @@ export class EngineToolsSection extends Disposable {
 
 	private populateProfileSelect(): void {
 		const previousId = this.activeProfile?.id;
-		this.profileSelect.textContent = '';
 		if (this.profiles.length === 0) {
-			this.profileSelect.style.display = 'none';
+			this.profileSelect.setOptions([]);
+			this.profileSelectHost.style.display = 'none';
 			this.activeProfile = undefined;
 			this.updateSaveChrome();
 			return;
 		}
-		this.profileSelect.style.display = '';
-		for (const profile of this.profiles) {
-			const option = document.createElement('option');
-			option.value = profile.id;
-			option.textContent = profile.name || profile.id;
-			this.profileSelect.appendChild(option);
-		}
-		this.activeProfile = this.profiles.find(profile => profile.id === previousId) ?? this.profiles[0];
-		this.profileSelect.value = this.activeProfile.id;
+		this.profileSelectHost.style.display = '';
+		const selectedIndex = Math.max(0, this.profiles.findIndex(profile => profile.id === previousId));
+		this.profileSelect.setOptions(this.profiles.map(profile => ({ text: profile.name || profile.id })));
+		this.profileSelect.select(selectedIndex);
+		this.activeProfile = this.profiles[selectedIndex];
 		this.updateSaveChrome();
 	}
 
@@ -566,8 +574,8 @@ export class EngineToolsSection extends Disposable {
 		this.clearToolInfo();
 		this.status.hide();
 		this.listContainer.style.display = 'none';
-		this.profileSelect.style.display = 'none';
-		this.profileSelect.textContent = '';
+		this.profileSelectHost.style.display = 'none';
+		this.profileSelect.setOptions([]);
 		this.updateSaveChrome();
 	}
 
@@ -579,8 +587,14 @@ export class EngineToolsSection extends Disposable {
 
 	private async loadToolInfo(toolName: string): Promise<void> {
 		const name = toolName.trim();
-		if (!name || !this.connection.getToolInfo || !canShowCatalogRows(this.mode) || !this.connection.isEngineConnected()) {
+		if (!name || !canShowCatalogRows(this.mode) || !this.connection.isEngineConnected()) {
 			this.clearToolInfo();
+			return;
+		}
+		if (!this.connection.getToolInfo) {
+			this.infoLoadGeneration++;
+			this.infoHost.textContent = getEngineSectionApiUnavailableCopy(TOOL_DETAIL_FEATURE);
+			this.infoHost.style.display = '';
 			return;
 		}
 		const generation = ++this.infoLoadGeneration;

@@ -7,10 +7,12 @@ import { $, append, getWindow } from '../../../../base/browser/dom.js';
 import { IDisposable } from '../../../../base/common/lifecycle.js';
 import { toDisposable } from '../../../../base/common/lifecycle.js';
 import { URI } from '../../../../base/common/uri.js';
+import { localize } from '../../../../nls.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import type { IConversationSessionViewLease } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
+import type { SyncChrome } from '../../../../platform/universeAgent/common/sessionView/index.js';
 import { IConversationLensSlots } from '../../../browser/parts/conversation/conversationPart.js';
 import { SOURCES_REVIEW_SHOW_FOR_PATHS_COMMAND } from '../../sources/browser/sourcesReview.contribution.js';
 import { applyConversationDensityClass, shouldShowClientToolInvocationDetails } from '../common/uaClientSettingsHelpers.js';
@@ -22,6 +24,8 @@ import { conversationLensPhasePreFirstClass, conversationLensPrefirstHeroClass }
 import type { ConversationLensId } from './conversationLensProjection.js';
 import { conversationLeafWidthBucket, isConversationLeafCompact, isConversationLeafNarrow } from './conversationNarrowLayout.js';
 import { IConversationRosterService } from './conversationStubService.js';
+
+export const conversationLensStaleSnapshotClass = 'conversation-lens-stale-snapshot';
 
 export interface IConversationLensReadingColumnHost {
 	lensId: ConversationLensId;
@@ -54,6 +58,10 @@ export function mountTimeline(host: IConversationLensReadingColumnHost, timeline
 
 	host.readingColumn = append(timelineHost, $('.conversation-lens-reading-column'));
 	host.identityStrip = host.register(host.instantiationService.createInstance(ConversationIdentityStrip, host.readingColumn));
+	const staleSnapshot = append(host.readingColumn, $(`.${conversationLensStaleSnapshotClass}`));
+	staleSnapshot.hidden = true;
+	staleSnapshot.setAttribute('role', 'status');
+	staleSnapshot.setAttribute('aria-live', 'polite');
 	host.prefirstHero = append(host.readingColumn, $(`.${conversationLensPrefirstHeroClass}`));
 	host.prefirstHero.hidden = true;
 	host.timelineTree = host.register(host.instantiationService.createInstance(ConversationTimelineTree, host.readingColumn, {
@@ -97,6 +105,43 @@ export function mountTimeline(host: IConversationLensReadingColumnHost, timeline
 	trajectoryHost.setAttribute('role', 'tabpanel');
 	trajectoryHost.setAttribute('aria-labelledby', 'conversation-lens-tab-trajectory');
 
+	const refreshStaleSnapshot = () => refreshStaleSnapshotBanner(host);
+	refreshStaleSnapshot();
+	host.register(host.stubService.onDidChangeSession(() => refreshStaleSnapshot()));
+	host.register(host.stubService.onDidChangeActiveSession(() => refreshStaleSnapshot()));
+	host.register(host.stubService.onDidChangeEngineConnection(() => refreshStaleSnapshot()));
+
+}
+
+function resolveReadingColumnSessionId(host: IConversationLensReadingColumnHost): string {
+	return host.sessionViewLease?.sessionId ?? host.stubService.getActiveSessionId();
+}
+
+function formatStaleSnapshotLabel(sync: SyncChrome): string | undefined {
+	if (sync.kind !== 'closed') {
+		return undefined;
+	}
+	const reason = sync.reason.trim();
+	return reason
+		? localize('conversationLens.staleSnapshotWithReason', "Showing snapshot from before disconnect: {0}", reason)
+		: localize('conversationLens.staleSnapshot', "Showing snapshot from before disconnect");
+}
+
+function refreshStaleSnapshotBanner(host: IConversationLensReadingColumnHost): void {
+	const banner = host.readingColumn?.querySelector<HTMLElement>(`.${conversationLensStaleSnapshotClass}`);
+	if (!banner) {
+		return;
+	}
+	const label = formatStaleSnapshotLabel(host.stubService.getSessionSync(resolveReadingColumnSessionId(host)));
+	if (label) {
+		banner.hidden = false;
+		banner.textContent = label;
+		banner.setAttribute('aria-label', label);
+	} else {
+		banner.hidden = true;
+		banner.textContent = '';
+		banner.removeAttribute('aria-label');
+	}
 }
 
 export function bindReadingColumnLayout(host: IConversationLensReadingColumnHost): void {
@@ -129,6 +174,7 @@ export function bindReadingColumnLayout(host: IConversationLensReadingColumnHost
  * report 0px; it is laid out again when the lens tab makes it visible.
  */
 export function layoutReadingSurfaces(host: IConversationLensReadingColumnHost, height: number, width: number): void {
+	refreshStaleSnapshotBanner(host);
 	if (host.readingColumn.classList.contains(conversationLensPhasePreFirstClass)) {
 		return;
 	}

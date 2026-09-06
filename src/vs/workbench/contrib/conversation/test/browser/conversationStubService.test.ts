@@ -178,6 +178,9 @@ suite('ConversationStubService', () => {
 		const activeId = service.getActiveSessionId();
 		const otherId = service.createSession();
 		service.switchSession(activeId);
+		const sessionsBeforeDelete = service.getSessions();
+		const deletedIndex = sessionsBeforeDelete.findIndex(session => session.id === activeId);
+		const expectedActiveId = sessionsBeforeDelete[deletedIndex + 1]?.id ?? sessionsBeforeDelete[deletedIndex - 1]?.id;
 		let newActiveId: string | undefined;
 
 		store.add(service.onDidChangeActiveSession(id => {
@@ -187,7 +190,8 @@ suite('ConversationStubService', () => {
 		assert.strictEqual(service.deleteSession(activeId), true);
 		assert.notStrictEqual(service.getActiveSessionId(), activeId);
 		assert.strictEqual(newActiveId, service.getActiveSessionId());
-		assert.strictEqual(service.getActiveSessionId(), otherId);
+		assert.strictEqual(service.getActiveSessionId(), expectedActiveId);
+		assert.ok(service.getSessions().some(session => session.id === otherId));
 	});
 
 	test('deleteSession on last session creates a fresh untitled stub', () => {
@@ -307,7 +311,7 @@ suite('ConversationStubService', () => {
 
 		assert.strictEqual(service.getSessionSource(sessionId), 'local');
 		assert.deepStrictEqual(service.getSessionSync(sessionId), { kind: 'idle' });
-		assert.strictEqual(formatSyncChromeLabel(service.getSessionSync(sessionId)), undefined);
+		assert.strictEqual(formatSyncChromeLabel(service.getSessionSync(sessionId)), 'Session not connected');
 	});
 
 	test('never-connected AutoDrive still accepts fixture', () => {

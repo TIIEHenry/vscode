@@ -46,75 +46,6 @@ export interface INavigatorTeamTaskEntry extends INavigatorTeamTaskInfo {
 	readonly managerName: string;
 }
 
-/** Navigator Team Tasks → TaskUpdate / TaskCancel. Empty ids are still sent. */
-export function canSendNavigatorTeamTaskMutation(connected: boolean, hasHook: boolean): boolean {
-	return connected && hasHook;
-}
-
-/** Pass through empty `sessionId` / `agentId` / `taskId` as-is (no default / no trim). */
-export function navigatorTeamTaskMutationIds(
-	sessionId: string | undefined,
-	selected: { readonly managerAgentId?: string; readonly taskId?: string } | undefined,
-): { sessionId: string; agentId: string; taskId: string } {
-	return {
-		sessionId: sessionId ?? '',
-		agentId: selected?.managerAgentId ?? '',
-		taskId: selected?.taskId ?? '',
-	};
-}
-
-/** Navigator Team Members → MessageMember. Empty ids are still sent. */
-export function canSendNavigatorTeamMessageMember(connected: boolean, hasHook: boolean): boolean {
-	return connected && hasHook;
-}
-
-/** Pass through empty `sessionId` / `agentId` / `memberName` as-is (no default / no trim). */
-export function navigatorTeamMessageMemberIds(
-	sessionId: string | undefined,
-	selected: { readonly managerAgentId?: string; readonly memberName?: string } | undefined,
-): { sessionId: string; agentId: string; memberName: string } {
-	return {
-		sessionId: sessionId ?? '',
-		agentId: selected?.managerAgentId ?? '',
-		memberName: selected?.memberName ?? '',
-	};
-}
-
-/** Navigator Team Members → StartMember / KillMember. Empty ids are still sent. */
-export function canSendNavigatorTeamMemberMutation(connected: boolean, hasHook: boolean): boolean {
-	return connected && hasHook;
-}
-
-/** Pass through empty `sessionId` / `agentId` / `memberName` as-is (no default / no trim). */
-export function navigatorTeamMemberMutationIds(
-	sessionId: string | undefined,
-	selected: { readonly managerAgentId?: string; readonly memberName?: string } | undefined,
-): { sessionId: string; agentId: string; memberName: string } {
-	return {
-		sessionId: sessionId ?? '',
-		agentId: selected?.managerAgentId ?? '',
-		memberName: selected?.memberName ?? '',
-	};
-}
-
-/** Navigator Team ViewTitle → Abort. Empty ids / teamId 0 are still sent. */
-export function canSendNavigatorTeamAbort(connected: boolean, hasHook: boolean): boolean {
-	return connected && hasHook;
-}
-
-/** Pass through empty `sessionId` / `agentId` and `teamId` 0 as-is (no default / no trim). */
-export function navigatorTeamAbortIds(
-	sessionId: string | undefined,
-	selected: { readonly managerAgentId?: string } | undefined,
-	teamId: number | undefined,
-): { sessionId: string; agentId: string; teamId: number } {
-	return {
-		sessionId: sessionId ?? '',
-		agentId: selected?.managerAgentId ?? '',
-		teamId: teamId ?? 0,
-	};
-}
-
 const MEMBER_TYPE = 'AGENT_TYPE_MEMBER';
 
 export function findManagerNodes(tree: LiveAgentTreeNodeView | undefined): LiveAgentTreeNodeView[] {
@@ -141,14 +72,14 @@ export function getTeamTreeEmptyCopy(
 	treeFetchFailed?: boolean,
 ): string | undefined {
 	if (agentTreeCapability === 'UNSUPPORTED') {
-		return localize('navigatorTeam.noAgentTree', "当前引擎不提供 Agent 树，无法列出团队");
+		return localize('navigatorTeam.noAgentTree', "Current engine does not provide an agent tree, so the team cannot be listed");
 	}
 	const pending = getNavigatorAgentTreePendingCopy(agentTreeCapability, liveTree, treeFetchFailed);
 	if (pending) {
 		return pending;
 	}
 	if (findManagerNodes(liveTree).length === 0) {
-		return localize('navigatorTeam.noTeam', "当前会话没有团队");
+		return localize('navigatorTeam.noTeam', "No team in the current session");
 	}
 	return undefined;
 }

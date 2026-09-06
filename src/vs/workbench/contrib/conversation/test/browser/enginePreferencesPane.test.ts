@@ -133,13 +133,18 @@ suite('EnginePreferencesPane', () => {
 		pane.getDomNode().remove();
 	});
 
-	test('pane title remains Engine and disconnected banner reuses StatusBar copy', () => {
+	test('pane keeps the Engine heading for screen readers and leads with the section title', () => {
 		const pane = mountPane(false);
 		const container = pane.getDomNode();
 
-		const title = container.querySelector('h2') as HTMLElement;
+		// The editor header tab paints "Engine"; the pane heading stays only for the a11y tree.
+		const title = container.querySelector('h2.engine-preferences-title') as HTMLElement;
 		assert.ok(title);
 		assert.strictEqual(title.textContent, 'Engine');
+
+		const detailTitle = container.querySelector('.engine-preferences-detail-title') as HTMLElement;
+		assert.ok(detailTitle);
+		assert.strictEqual(detailTitle.textContent, 'Overview');
 
 		assert.strictEqual(container.querySelector('.engine-empty-welcome'), null);
 		const banner = container.querySelector('.engine-preferences-disconnected-copy') as HTMLElement;
@@ -191,6 +196,8 @@ suite('EnginePreferencesPane', () => {
 		assert.ok(navLabels.includes('Context Variables'));
 
 		pane.selectSection('skills');
+		const selectedNavLabel = container.querySelector('.engine-preferences-nav-row.selected .engine-preferences-nav-label');
+		assert.strictEqual(selectedNavLabel?.textContent, 'Skills', 'nav selection follows the active section');
 		const skillsSection = container.querySelector('.engine-skills-section') as HTMLElement;
 		assert.ok(skillsSection);
 		assert.strictEqual(skillsSection.style.display, '');
@@ -261,8 +268,12 @@ suite('EnginePreferencesPane', () => {
 		assert.ok(testRow);
 		assert.ok(testButton);
 		assert.notStrictEqual(testRow.style.display, 'none');
+		// Test Engine sits under the content as a footer utility, not above the section title.
+		assert.strictEqual(container.lastElementChild, testRow);
 		assert.strictEqual(banner.textContent, ENGINE_DISCONNECTED_COPY);
 		assert.notStrictEqual(banner.textContent, getUnsupportedEnvironmentCopy());
+		// A disconnected engine is an ordinary state, so the banner stays a neutral notice.
+		assert.ok(!(container.querySelector('.engine-preferences-disconnected-banner') as HTMLElement).classList.contains('is-warning'));
 		assert.ok((container.textContent ?? '').includes('Open Connection'));
 
 		container.remove();
@@ -294,6 +305,8 @@ suite('EnginePreferencesPane', () => {
 		assert.strictEqual(testRow.style.display, 'none');
 		assert.ok(bannerTest);
 		assert.strictEqual(bannerTest.style.display, 'none');
+		// An environment that cannot host an engine is the exception that earns the warning surface.
+		assert.ok((container.querySelector('.engine-preferences-disconnected-banner') as HTMLElement).classList.contains('is-warning'));
 		assert.strictEqual(banner.textContent, getUnsupportedEnvironmentCopy());
 		assert.strictEqual(getUnsupportedEnvironmentCopy(), '此环境不支持本机 Engine 连接');
 		assert.notStrictEqual(banner.textContent, ENGINE_DISCONNECTED_COPY);

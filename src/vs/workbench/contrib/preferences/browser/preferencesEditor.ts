@@ -6,13 +6,14 @@
 import './media/preferencesEditor.css';
 import * as DOM from '../../../../base/browser/dom.js';
 import { Button } from '../../../../base/browser/ui/button/button.js';
+import { Codicon } from '../../../../base/common/codicons.js';
 import { localize } from '../../../../nls.js';
 import { IContextKey, IContextKeyService } from '../../../../platform/contextkey/common/contextkey.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { IStorageService } from '../../../../platform/storage/common/storage.js';
 import { ITelemetryService } from '../../../../platform/telemetry/common/telemetry.js';
 import { Event } from '../../../../base/common/event.js';
-import { getInputBoxStyle, defaultButtonStyles } from '../../../../platform/theme/browser/defaultStyles.js';
+import { getInputBoxStyle } from '../../../../platform/theme/browser/defaultStyles.js';
 import { IThemeService } from '../../../../platform/theme/common/themeService.js';
 import { EditorPane } from '../../../browser/parts/editor/editorPane.js';
 import { IEditorGroup } from '../../../services/editor/common/editorGroupsService.js';
@@ -46,7 +47,6 @@ export class PreferencesEditor extends EditorPane {
 	private readonly element: HTMLElement;
 	private readonly headerContainer: HTMLElement;
 	private readonly searchContainer: HTMLElement;
-	private readonly backButtonContainer: HTMLElement;
 	private readonly bodyElement: HTMLElement;
 	private readonly searchWidget: SearchWidget;
 	private readonly backButton: Button;
@@ -75,14 +75,6 @@ export class PreferencesEditor extends EditorPane {
 		this.element = DOM.$('.preferences-editor');
 		this.headerContainer = DOM.append(this.element, DOM.$('.preferences-editor-header'));
 
-		this.backButtonContainer = DOM.append(this.headerContainer, DOM.$('.back-to-client-settings-container'));
-		this.backButton = this._register(new Button(this.backButtonContainer, defaultButtonStyles));
-		this.backButton.label = localize('ua.backToClientSettings', "Back to Client Settings");
-		this.backButtonContainer.style.display = 'none';
-		this._register(this.backButton.onDidClick(() => {
-			this.commandService.executeCommand('workbench.action.backToClientSettings');
-		}));
-
 		this.searchContainer = DOM.append(this.headerContainer, DOM.$('.search-container'));
 		this.searchWidget = this._register(this.instantiationService.createInstance(SearchWidget, this.searchContainer, {
 			focusKey: this.searchFocusContextKey,
@@ -97,6 +89,17 @@ export class PreferencesEditor extends EditorPane {
 		}));
 
 		const preferencesTabsContainer = DOM.append(this.headerContainer, DOM.$('.preferences-tabs-container'));
+
+		// Leads the tab strip as a quiet, content-sized link back to the parent surface.
+		const backToClientSettings = localize('ua.backToClientSettings', "Back to Client Settings");
+		this.backButton = this._register(new Button(preferencesTabsContainer, { supportIcons: true, ariaLabel: backToClientSettings }));
+		this.backButton.element.classList.add('back-to-client-settings');
+		this.backButton.label = `$(${Codicon.chevronLeftCompact.id}) ${backToClientSettings}`;
+		this.backButton.element.style.display = 'none';
+		this._register(this.backButton.onDidClick(() => {
+			this.commandService.executeCommand('workbench.action.backToClientSettings');
+		}));
+
 		this.preferencesTabActionBar = this._register(new ActionBar(preferencesTabsContainer, {
 			orientation: ActionsOrientation.HORIZONTAL,
 			focusOnlyEnabledItems: true,
@@ -121,7 +124,8 @@ export class PreferencesEditor extends EditorPane {
 			this.searchWidget.inputBox.inputElement.style.paddingRight = `12px`;
 		}
 
-		const headerHeight = Math.max(this.headerContainer.offsetHeight, 87);
+		// Measured rather than fixed: the header is shorter for panes that replace search with the back link.
+		const headerHeight = DOM.getTotalHeight(this.headerContainer);
 		this.preferencesEditorPane.value?.layout(new DOM.Dimension(this.bodyElement.clientWidth, dimension.height - headerHeight));
 	}
 
@@ -187,7 +191,7 @@ export class PreferencesEditor extends EditorPane {
 
 	private updateHeaderChrome(): void {
 		const showBack = !!this.activeDescriptor?.showBackToClientSettings;
-		this.backButtonContainer.style.display = showBack ? '' : 'none';
+		this.backButton.element.style.display = showBack ? '' : 'none';
 		this.searchContainer.style.display = showBack ? 'none' : '';
 	}
 
@@ -211,3 +215,4 @@ export class PreferencesEditor extends EditorPane {
 		this.preferencesTabActions.forEach(action => action.dispose());
 	}
 }
+

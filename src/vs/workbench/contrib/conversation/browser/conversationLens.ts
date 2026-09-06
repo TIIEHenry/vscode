@@ -81,6 +81,7 @@ import {
 	createNewSession,
 	createSessionSelectBox,
 	deleteActiveSession,
+	mountLensTablist,
 	mountSessionBar,
 	refreshSessionSelectOptions,
 	shouldRefreshActiveSessionChrome,
@@ -235,6 +236,7 @@ export class ConversationLens extends Disposable {
 	private postFailureVisible = false;
 	private composerCatalogGeneration = 0;
 	private catalogToolNames: readonly string[] = [];
+	private boundSessionId: string | undefined;
 
 	constructor(
 		slots: IConversationLensSlots,
@@ -249,7 +251,7 @@ export class ConversationLens extends Disposable {
 		@IConversationTimelineRevealService revealService: IConversationTimelineRevealService,
 		@IConversationReviewNavService private readonly reviewNavService: IConversationReviewNavService,
 		@ICommandService private readonly commandService: ICommandService,
-		@IUniverseAgentConnection private readonly uaConnection: IUniverseAgentConnection,
+		@IUniverseAgentConnection readonly uaConnection: IUniverseAgentConnection,
 	) {
 		super();
 
@@ -262,6 +264,7 @@ export class ConversationLens extends Disposable {
 
 		this.slotHosts = slots;
 		this.filterAgentId = slots.filterAgentId;
+		this.boundSessionId = slots.sessionKey;
 		this.visualizeOverlay = this._register(this.instantiationService.createInstance(ConversationVisualizeOverlay));
 
 		void resolveConversationMermaidExtension(this.extensionService).then(info => {
@@ -278,6 +281,8 @@ export class ConversationLens extends Disposable {
 		if (slots.sessionBar) {
 			this.mountSessionBar(slots.sessionBar);
 			this.updateSessionConfigVisibility(this.isPreFirst());
+		} else if (slots.lensTablist) {
+			this.mountLensTablist(slots.lensTablist);
 		}
 		this.applyConversationDensity();
 		this.restoreComposerDraftToInput();
@@ -294,12 +299,17 @@ export class ConversationLens extends Disposable {
 
 		this.lensId = this.loadLensId();
 		this.updateLensTabs();
-		this.bindSessionView(this.stubService.getActiveSessionId());
+		this.bindSessionView(this.getBoundSessionId());
 		this.updateReadingColumn();
 		this.updateSessionTitle();
 		this.renderInboxStatus();
 
-		this._register(this.stubService.onDidChangeActiveSession(sessionId => this.applyActiveSession(sessionId)));
+		this._register(this.stubService.onDidChangeActiveSession(sessionId => {
+			if (this.boundSessionId !== undefined && sessionId !== this.boundSessionId) {
+				return;
+			}
+			this.applyActiveSession(sessionId);
+		}));
 		this._register(this.stubService.onDidChangeSession(sessionId => {
 			this.pruneOrphanComposerDrafts();
 			this.refreshSessionSelectOptions();
@@ -309,7 +319,7 @@ export class ConversationLens extends Disposable {
 				}
 				this.renderInboxStatus();
 				this.updateConversationPhase();
-				if (this.lensId === 'trajectory' && sessionId === this.stubService.getActiveSessionId()) {
+				if (this.lensId === 'trajectory' && sessionId === this.getBoundSessionId()) {
 					this.refreshTrajectoryRecords(sessionId);
 				}
 			}
@@ -317,7 +327,7 @@ export class ConversationLens extends Disposable {
 		this._register(this.stubService.onDidChangeEngineConnection(() => {
 			this.updateVoiceMicChrome();
 			this.refreshComposerCatalogs();
-			this.bindSessionView(this.stubService.getActiveSessionId());
+			this.bindSessionView(this.getBoundSessionId());
 		}));
 		this._register(this.uaConnection.onDidChangeConnection(() => {
 			this.refreshComposerCatalogs();
@@ -339,6 +349,9 @@ export class ConversationLens extends Disposable {
 			if (slots.sessionBar) {
 				reset(slots.sessionBar);
 			}
+			if (slots.lensTablist) {
+				reset(slots.lensTablist);
+			}
 			reset(slots.timeline);
 			reset(slots.dock);
 		}));
@@ -348,17 +361,33 @@ export class ConversationLens extends Disposable {
 		return this.inputMaximized;
 	}
 
+	setBoundSessionId(sessionKey: string | undefined): void {
+		const next = sessionKey || undefined;
+		if (this.boundSessionId === next) {
+			return;
+		}
+		if (this.dockTextarea && this.composerPolicy === 'compose') {
+			this.writeComposerDraft(this.getBoundSessionId(), this.dockTextarea.value);
+		}
+		this.boundSessionId = next;
+		this.applyActiveSession(this.getBoundSessionId());
+	}
+
+	getBoundSessionId(): string {
+		return this.boundSessionId ?? this.stubService.getActiveSessionId();
+	}
+
 	setFilterAgentId(agentId: string | undefined): void {
 		if (this.filterAgentId === agentId) {
 			return;
 		}
 		if (this.dockTextarea && this.composerPolicy === 'compose') {
-			this.writeComposerDraft(this.stubService.getActiveSessionId(), this.dockTextarea.value);
+			this.writeComposerDraft(this.getBoundSessionId(), this.dockTextarea.value);
 		}
 		this.filterAgentId = agentId;
 		this.restoreComposerDraftToInput();
 		if (this.lensId === 'trajectory') {
-			this.refreshTrajectoryRecords(this.stubService.getActiveSessionId());
+			this.refreshTrajectoryRecords(this.getBoundSessionId());
 		}
 	}
 
@@ -499,6 +528,10 @@ export class ConversationLens extends Disposable {
 
 	private mountSessionBar(host: HTMLElement): void {
 		mountSessionBar(this, host);
+	}
+
+	private mountLensTablist(host: HTMLElement): void {
+		mountLensTablist(this, host);
 	}
 
 	private createSessionSelectBox(): SelectBox {

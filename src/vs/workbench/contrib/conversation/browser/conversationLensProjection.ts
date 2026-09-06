@@ -44,6 +44,7 @@ export interface IConversationLensProjectionHost {
 	readonly stubService: IConversationRosterService;
 	readonly storageService: IStorageService;
 	readonly reviewNavService: IConversationReviewNavService;
+	getBoundSessionId(): string;
 	timelineTree: ConversationTimelineTree;
 	trajectoryView: ConversationTrajectory;
 	readingColumn: HTMLElement;
@@ -77,7 +78,7 @@ export function trajectoryProjectionOptions(host: IConversationLensProjectionHos
 
 export function isPreFirst(host: IConversationLensProjectionHost): boolean {
 
-		const sessionId = host.stubService.getActiveSessionId();
+		const sessionId = host.getBoundSessionId();
 		if (host.stubService.getTurns(sessionId).length > 0) {
 			return false;
 		}
@@ -180,7 +181,7 @@ export function updateConversationPhase(host: IConversationLensProjectionHost): 
 
 export function updateReadingColumn(host: IConversationLensProjectionHost): void {
 
-		const sessionId = host.stubService.getActiveSessionId();
+		const sessionId = host.getBoundSessionId();
 		if (host.lensId === 'trajectory') {
 			host.timelineTree.hide();
 			refreshTrajectoryRecords(host, sessionId);
@@ -222,7 +223,7 @@ export function navigateToTurnFromTrajectory(host: IConversationLensProjectionHo
 
 export function navigateToTrajectoryFromTurn(host: IConversationLensProjectionHost, turnId: string): void {
 
-		const sessionId = host.stubService.getActiveSessionId();
+		const sessionId = host.getBoundSessionId();
 		const records = host.stubService.getTrajectoryRecords(sessionId, trajectoryProjectionOptions(host));
 		const recordId = findTrajectoryRecordIdForTurn(turnId, records);
 		if (!recordId) {

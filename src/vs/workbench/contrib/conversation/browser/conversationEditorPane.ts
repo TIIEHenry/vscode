@@ -31,6 +31,9 @@ export class ConversationEditorPane extends EditorPane {
 	private pageRoot: HTMLElement | undefined;
 	private pageChrome: HTMLElement | undefined;
 	private breadcrumb: ConversationAgentBreadcrumbBox | undefined;
+	private sessionBar: HTMLElement | undefined;
+	private timelineHost: HTMLElement | undefined;
+	private dockHost: HTMLElement | undefined;
 	private lens: ConversationLens | undefined;
 	private activeInput: ConversationChatInput | undefined;
 	private readonly chromeDisposables = this._register(new DisposableStore());
@@ -72,7 +75,9 @@ export class ConversationEditorPane extends EditorPane {
 		if (!sessionBar) {
 			throw new Error('ConversationPart session bar is not available');
 		}
-		this.lens = this.lensDisposables.add(this.paneInstantiationService.createInstance(ConversationLens, { sessionBar, timeline, dock }));
+		this.sessionBar = sessionBar;
+		this.timelineHost = timeline;
+		this.dockHost = dock;
 
 		this.chromeDisposables.add(this.sessionChatService.onDidChangeCatalog(() => this.updateBreadcrumb()));
 	}
@@ -81,8 +86,22 @@ export class ConversationEditorPane extends EditorPane {
 		await super.setInput(input, options, context, token);
 		this.activeInput = input;
 		const parsed = parseConversationChatResource(input.resource);
+		this.ensureLens(parsed?.sessionKey);
+		this.lens?.setBoundSessionId(parsed?.sessionKey);
 		this.lens?.setFilterAgentId(parsed && !parsed.isDefaultRoot ? parsed.chatId : undefined);
 		this.updateBreadcrumb();
+	}
+
+	private ensureLens(sessionKey: string | undefined): void {
+		if (this.lens || !this.sessionBar || !this.timelineHost || !this.dockHost) {
+			return;
+		}
+		this.lens = this.lensDisposables.add(this.paneInstantiationService.createInstance(ConversationLens, {
+			sessionBar: this.sessionBar,
+			timeline: this.timelineHost,
+			dock: this.dockHost,
+			sessionKey,
+		}));
 	}
 
 	private updateBreadcrumb(): void {

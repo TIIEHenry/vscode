@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-06
-summary: "loop/merge @ bc1370cb05d：Direct 接通已复证；Create 单飞+Resume 门面已合；Chat 仍被引擎空壳 ALREADY_EXISTS 挡住"
+summary: "loop/merge 已合入 agent-ide Connection/Engine chrome：Direct 接通已复证；Create 单飞+Resume 门面已合；Chat 仍被引擎空壳 ALREADY_EXISTS 挡住"
 ---
 
 # Development Progress
@@ -41,12 +41,17 @@ summary: "loop/merge @ bc1370cb05d：Direct 接通已复证；Create 单飞+Resu
 | **renderer IPC sync** | `UniverseAgentConnectionChannelClient` / Hub Client 缓存 phase·snapshot·profiles；状态栏按 `phase.kind` 开 Connection；Engine 节空能力矩阵不崩。未升 PRD-008（仍缺接通证据） |
 | **handshake protobuf** | `GetAuthNonce` / DeviceAuth `Connect` 改 proto3 二进制。pane 内 SAS / recoverTrust 后状态栏 **`Engine · Direct`** 已复证。未升 PRD-008 |
 | **session bind 波** | Create 写 `client_session_id` field 4；按 id 单飞；Channel Client 显式 `resumeSession`；roster 不再第二发 Create；ghost/bind 失败应显式占位。E2E（`bc1370cb05d`）：接通 PASS；引擎仍 0 Resume / Create `ALREADY_EXISTS`（空壳 `session_meta`）；UI 仍见 `New session`；无 Chat。见 [D26](deferred-gaps.md) |
+| **UI 缺口收口波** | Navigator Team 删六个改引擎命令（PRD-022 验收 6）；Sources Diff 占位壳换真 `DiffEditorWidget`，revert/accept 双门控；对话列顶「断连前快照」（PRD-007 验收 5）；子代理浮层补「对话 \| 轨迹」两页（PRD-012 验收 1）；Inbox 右簇诚实空环；Permission 接 `SetPermissionMode`（失败回滚 + 门禁提示）；轨迹折叠点击跨刷新不失效。Mermaid 扩展 Promise 加 disposed 闸门（释放后渲染导致列表行泄漏）；轨迹检查器首段标题错用 Preview 改回 Summary |
+| **settings chrome** | Connection/Engine 两页改用 `InputBox`/`Checkbox`/`WorkbenchList` 左栏与状态色；窄宽两栏；Test Engine 下沉页脚；「回 Client」链入 Preferences tab 条；会话栏图标改 ghost toolbar。无新 RPC / 无新节 |
+| **settings chrome follow-up** | Back-to-Client 先取出 Preferences 服务再关 pane（`await` 后 accessor 已失效）；Direct Address Connect 状态写回本区并先标 Connecting…。已随本轮合入 `loop/merge` |
 
 并行 catalog/UI 绑定波流水见 [归档](../archive/status-current-session-slot-catalog-2026-09-05.md)。钉死调试引擎：[debug-engine](../../docs/guides/debug-engine.md)。
 
 ### 进行中
 
 Direct 接通已通。Chat 仍被引擎空壳 Create（目录在、`session_meta` 空、回 6）挡住；不要再清 `.sessions` 当主线。剩余：Resume 活路径复证、bind-failed 文案、catalog Model/Agent、`onDidApplyFrame` / `heartbeat_ack`。**U2 未开**。**PRD-008 不升 `implemented`**。
+
+`enqueueMessageQueueItem` 仍无 UI 入口；error 行重试按钮待引擎接线（不画假按钮）。
 
 ## 工位表（与 `git worktree list` 对照 · 2026-09-06）
 

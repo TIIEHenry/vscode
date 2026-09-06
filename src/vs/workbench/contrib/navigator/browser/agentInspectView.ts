@@ -196,7 +196,7 @@ export class AgentInspectView extends ViewPane {
 		super.renderBody(container);
 
 		this.staleNote = dom.append(container, $('.agent-inspect-stale-note'));
-		this.staleNote.textContent = localize('agentInspectView.staleTarget', "已不在当前树中");
+		this.staleNote.textContent = localize('agentInspectView.staleTarget', "No longer in the current tree");
 		this.staleNote.style.display = 'none';
 		this.listContainer = dom.append(container, $('.agent-inspect-list'));
 		this.ensureList();

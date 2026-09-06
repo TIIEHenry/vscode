@@ -4,24 +4,53 @@
  *--------------------------------------------------------------------------------------------*/
 
 .monaco-workbench .conversation-diff-review-pane {
-	padding: 16px;
 	display: flex;
 	flex-direction: column;
-	align-items: flex-start;
-	gap: 12px;
+	box-sizing: border-box;
+	overflow: hidden;
 }
 
-.monaco-workbench .conversation-diff-review-pane .conversation-diff-review-open-preview {
+.monaco-workbench .conversation-diff-review-pane .conversation-diff-review-toolbar {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px;
+	padding: 8px 12px;
+	flex-shrink: 0;
+}
+
+.monaco-workbench .conversation-diff-review-pane .conversation-diff-review-toolbar button {
 	appearance: none;
 	border: 1px solid var(--vscode-button-border, var(--vscode-contrastBorder, transparent));
-	background: var(--vscode-button-secondaryBackground);
-	color: var(--vscode-button-secondaryForeground);
 	padding: 4px 10px;
 	border-radius: 2px;
 	cursor: pointer;
 }
 
-.monaco-workbench .conversation-diff-review-pane .conversation-diff-review-open-preview:focus-visible {
+.monaco-workbench .conversation-diff-review-pane .conversation-diff-review-accept {
+	background: var(--vscode-button-background);
+	color: var(--vscode-button-foreground);
+}
+
+.monaco-workbench .conversation-diff-review-pane .conversation-diff-review-revert,
+.monaco-workbench .conversation-diff-review-pane .conversation-diff-review-open-preview {
+	background: var(--vscode-button-secondaryBackground);
+	color: var(--vscode-button-secondaryForeground);
+}
+
+.monaco-workbench .conversation-diff-review-pane .conversation-diff-review-toolbar button:focus-visible {
 	outline: 1px solid var(--vscode-focusBorder);
 	outline-offset: 1px;
+}
+
+.monaco-workbench .conversation-diff-review-pane .conversation-diff-review-notice {
+	padding: 4px 12px;
+	color: var(--vscode-descriptionForeground);
+	flex-shrink: 0;
+}
+
+.monaco-workbench .conversation-diff-review-pane .conversation-diff-review-editor {
+	flex: 1;
+	min-width: 0;
+	min-height: 0;
 }

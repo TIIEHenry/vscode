@@ -5,12 +5,14 @@
 
 import * as DOM from '../../../../base/browser/dom.js';
 import { Button } from '../../../../base/browser/ui/button/button.js';
+import { InputBox } from '../../../../base/browser/ui/inputbox/inputBox.js';
 import { Checkbox } from '../../../../base/browser/ui/toggle/toggle.js';
 import { IListRenderer, IListVirtualDelegate } from '../../../../base/browser/ui/list/list.js';
 import { IListAccessibilityProvider } from '../../../../base/browser/ui/list/listWidget.js';
 import { Disposable, DisposableStore } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
+import { IContextViewService } from '../../../../platform/contextview/browser/contextView.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { WorkbenchList } from '../../../../platform/list/browser/listService.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
@@ -21,7 +23,7 @@ import type {
 	UniverseAgentAgentProfileSummary,
 	UniverseAgentToolSummary,
 } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
-import { defaultButtonStyles, defaultCheckboxStyles } from '../../../../platform/theme/browser/defaultStyles.js';
+import { defaultButtonStyles, defaultCheckboxStyles, defaultInputBoxStyles } from '../../../../platform/theme/browser/defaultStyles.js';
 import {
 	type EngineCatalogPaneMode,
 	canPerformCatalogWrite,
@@ -48,6 +50,7 @@ const $ = DOM.$;
 
 const AGENTS_FEATURE = localize('ua.engineAgentsFeatureLabel', "agent profiles");
 const AGENT_MODEL_FEATURE = localize('ua.engineAgentModelFeatureLabel', "agent profile model.json");
+const AGENT_TOOLS_FEATURE = localize('ua.engineAgentToolsFeatureLabel', "agent profile tools");
 
 type EngineAgentDetailTab = 'instructions' | 'tools' | 'model';
 
@@ -173,16 +176,17 @@ export class EngineAgentsSection extends Disposable {
 	private readonly listContainer: HTMLElement;
 	private readonly detailHost: HTMLElement;
 	private readonly tabBar: HTMLElement;
-	private readonly instructionsTab: HTMLButtonElement;
-	private readonly toolsTab: HTMLButtonElement;
-	private readonly modelTab: HTMLButtonElement;
+	private readonly instructionsTab: Button;
+	private readonly toolsTab: Button;
+	private readonly modelTab: Button;
 	private readonly agentsEditorContainer: HTMLElement;
 	private readonly agentsEditorLabel: HTMLElement;
-	private readonly agentsEditorTextarea: HTMLTextAreaElement;
+	private readonly agentsEditorInput: InputBox;
 	private readonly agentsEditorToolbar: HTMLElement;
 	private readonly agentsEditorSaveButton: Button;
 	private readonly agentsEditorStatus: HTMLElement;
 	private readonly toolsPanel: HTMLElement;
+	private readonly toolsStatus: EngineCatalogStatusWidget;
 	private readonly toolsListHost: HTMLElement;
 	private readonly toolsToolbar: HTMLElement;
 	private readonly toolsSaveButton: Button;
@@ -207,6 +211,7 @@ export class EngineAgentsSection extends Disposable {
 		@IUniverseAgentConnection private readonly connection: IUniverseAgentConnection,
 		@IInstantiationService instantiationService: IInstantiationService,
 		@ICommandService private readonly commandService: ICommandService,
+		@IContextViewService contextViewService: IContextViewService,
 	) {
 		super();
 
@@ -224,12 +229,12 @@ export class EngineAgentsSection extends Disposable {
 		const newButton = this._register(new Button(this.writeToolbar, defaultButtonStyles));
 		newButton.label = localize('ua.engineAgentsNew', "New");
 		this._register(newButton.onDidClick(() => void this.createProfile()));
-		this.deleteButton = this._register(new Button(this.writeToolbar, defaultButtonStyles));
-		this.deleteButton.label = localize('ua.engineAgentsDelete', "Delete");
-		this._register(this.deleteButton.onDidClick(() => void this.deleteSelectedProfile()));
-		this.resetButton = this._register(new Button(this.writeToolbar, defaultButtonStyles));
+		this.resetButton = this._register(new Button(this.writeToolbar, { ...defaultButtonStyles, secondary: true }));
 		this.resetButton.label = localize('ua.engineAgentsReset', "Reset");
 		this._register(this.resetButton.onDidClick(() => void this.resetSelectedProfile()));
+		this.deleteButton = this._register(new Button(this.writeToolbar, { ...defaultButtonStyles, secondary: true }));
+		this.deleteButton.label = localize('ua.engineAgentsDelete', "Delete");
+		this._register(this.deleteButton.onDidClick(() => void this.deleteSelectedProfile()));
 		this.updateWriteActions();
 
 		this.listContainer = DOM.append(this.container, $('.engine-catalog-list'));
@@ -257,42 +262,48 @@ export class EngineAgentsSection extends Disposable {
 
 		this.tabBar = DOM.append(this.detailHost, $('.engine-mcp-tab-bar'));
 		this.tabBar.setAttribute('role', 'tablist');
-		this.instructionsTab = DOM.append(this.tabBar, $('button.engine-mcp-tab')) as HTMLButtonElement;
-		this.instructionsTab.type = 'button';
-		this.instructionsTab.setAttribute('role', 'tab');
-		this.instructionsTab.textContent = localize('ua.engineAgentsTabInstructions', "Instructions");
-		this.toolsTab = DOM.append(this.tabBar, $('button.engine-mcp-tab')) as HTMLButtonElement;
-		this.toolsTab.type = 'button';
-		this.toolsTab.setAttribute('role', 'tab');
-		this.toolsTab.textContent = localize('ua.engineAgentsTabTools', "Tools");
-		this.modelTab = DOM.append(this.tabBar, $('button.engine-mcp-tab')) as HTMLButtonElement;
-		this.modelTab.type = 'button';
-		this.modelTab.setAttribute('role', 'tab');
-		this.modelTab.textContent = localize('ua.engineAgentsTabModel', "Model");
-		this._register(DOM.addDisposableListener(this.instructionsTab, 'click', () => this.setActiveDetailTab('instructions')));
-		this._register(DOM.addDisposableListener(this.toolsTab, 'click', () => this.setActiveDetailTab('tools')));
-		this._register(DOM.addDisposableListener(this.modelTab, 'click', () => this.setActiveDetailTab('model')));
+		this.instructionsTab = this._register(new Button(this.tabBar, { ...defaultButtonStyles, secondary: true }));
+		this.instructionsTab.label = localize('ua.engineAgentsTabInstructions', "Instructions");
+		this.instructionsTab.element.setAttribute('role', 'tab');
+		this.toolsTab = this._register(new Button(this.tabBar, { ...defaultButtonStyles, secondary: true }));
+		this.toolsTab.label = localize('ua.engineAgentsTabTools', "Tools");
+		this.toolsTab.element.setAttribute('role', 'tab');
+		this.modelTab = this._register(new Button(this.tabBar, { ...defaultButtonStyles, secondary: true }));
+		this.modelTab.label = localize('ua.engineAgentsTabModel', "Model");
+		this.modelTab.element.setAttribute('role', 'tab');
+		this._register(this.instructionsTab.onDidClick(() => this.setActiveDetailTab('instructions')));
+		this._register(this.toolsTab.onDidClick(() => this.setActiveDetailTab('tools')));
+		this._register(this.modelTab.onDidClick(() => this.setActiveDetailTab('model')));
 
 		this.agentsEditorContainer = DOM.append(this.detailHost, $('.engine-agents-editor'));
 		this.agentsEditorContainer.style.display = 'none';
 		this.agentsEditorLabel = DOM.append(this.agentsEditorContainer, $('.engine-agents-editor-label'));
 		this.agentsEditorLabel.textContent = localize('ua.engineAgentsMdEditorLabel', "AGENTS.md");
-		this.agentsEditorTextarea = DOM.append(this.agentsEditorContainer, $('textarea.engine-agents-editor-textarea')) as HTMLTextAreaElement;
-		this.agentsEditorTextarea.spellcheck = false;
-		this.agentsEditorTextarea.setAttribute('aria-label', localize('ua.engineAgentsMdEditorAria', "AGENTS.md body for selected agent profile"));
-		this._register(DOM.addDisposableListener(this.agentsEditorTextarea, 'input', () => {
-			this.agentsMarkdownDirty = isAgentsMarkdownDirty(this.agentsEditorTextarea.value, this.loadedAgentsMarkdown);
+		this.agentsEditorInput = this._register(new InputBox(this.agentsEditorContainer, contextViewService, {
+			ariaLabel: localize('ua.engineAgentsMdEditorAria', "AGENTS.md body for selected agent profile"),
+			flexibleHeight: true,
+			flexibleMaxHeight: 320,
+			inputBoxStyles: defaultInputBoxStyles,
+		}));
+		this.agentsEditorInput.element.classList.add('engine-agents-editor-input');
+		this._register(DOM.addDisposableListener(this.agentsEditorInput.inputElement, 'input', () => {
+			this.agentsMarkdownDirty = isAgentsMarkdownDirty(this.agentsEditorInput.value, this.loadedAgentsMarkdown);
 		}));
 		this.agentsEditorToolbar = DOM.append(this.agentsEditorContainer, $('.engine-agents-editor-toolbar'));
 		this.agentsEditorSaveButton = this._register(new Button(this.agentsEditorToolbar, defaultButtonStyles));
 		this.agentsEditorSaveButton.label = localize('ua.engineAgentsMdSave', "Save AGENTS.md");
 		this._register(this.agentsEditorSaveButton.onDidClick(() => void this.saveAgentsMarkdown()));
 		this.agentsEditorStatus = DOM.append(this.agentsEditorContainer, $('.engine-agents-editor-status'));
+		this.agentsEditorStatus.setAttribute('role', 'status');
+		this.agentsEditorStatus.setAttribute('aria-live', 'polite');
 		this.agentsEditorStatus.style.display = 'none';
 
 		this.toolsPanel = DOM.append(this.detailHost, $('.engine-agents-tools-panel'));
 		this.toolsPanel.style.display = 'none';
+		this.toolsStatus = this._register(new EngineCatalogStatusWidget(this.toolsPanel));
 		this.toolsListHost = DOM.append(this.toolsPanel, $('.engine-catalog-list'));
+		this.toolsListHost.setAttribute('role', 'list');
+		this.toolsListHost.setAttribute('aria-label', localize('ua.engineAgentsToolsList', "Tools enabled for this agent profile"));
 		this.toolsToolbar = DOM.append(this.toolsPanel, $('.engine-catalog-write-toolbar'));
 		this.toolsSaveButton = this._register(new Button(this.toolsToolbar, defaultButtonStyles));
 		this.toolsSaveButton.label = localize('ua.engineAgentsToolsSave', "Save");
@@ -323,7 +334,7 @@ export class EngineAgentsSection extends Disposable {
 
 	layout(width: number, listHeight: number): void {
 		this.list.layout(Math.max(80, listHeight), width);
-		this.agentsEditorTextarea.style.width = `${Math.max(0, width)}px`;
+		this.agentsEditorInput.layout();
 	}
 
 	getDomNode(): HTMLElement {
@@ -364,11 +375,11 @@ export class EngineAgentsSection extends Disposable {
 	}
 
 	getAgentsMarkdownValue(): string {
-		return this.agentsEditorTextarea.value;
+		return this.agentsEditorInput.value;
 	}
 
 	setAgentsMarkdownValue(value: string): void {
-		this.agentsEditorTextarea.value = value;
+		this.agentsEditorInput.value = value;
 		this.agentsMarkdownDirty = isAgentsMarkdownDirty(value, this.loadedAgentsMarkdown);
 	}
 
@@ -389,7 +400,7 @@ export class EngineAgentsSection extends Disposable {
 	}
 
 	hasModelTabEditableControls(): boolean {
-		return !!this.modelPanel.querySelector('textarea, input, select, [contenteditable="true"], button, .monaco-custom-toggle');
+		return !!this.modelPanel.querySelector('textarea, input, select, [contenteditable="true"], button, .monaco-button, .monaco-custom-toggle');
 	}
 
 	isAgentToolEnablementDirty(): boolean {
@@ -520,10 +531,10 @@ export class EngineAgentsSection extends Disposable {
 			return false;
 		}
 		const profileId = this.selectedProfile.id;
-		const parsed = parseAgentsMarkdown(this.agentsEditorTextarea.value);
+		const parsed = parseAgentsMarkdown(this.agentsEditorInput.value);
 		const ok = await this.saveSelectedProfile(parsed);
 		if (ok) {
-			this.loadedAgentsMarkdown = this.agentsEditorTextarea.value;
+			this.loadedAgentsMarkdown = this.agentsEditorInput.value;
 			this.agentsMarkdownDirty = false;
 			await this.selectProfileByIdForTest(profileId);
 		}
@@ -532,12 +543,12 @@ export class EngineAgentsSection extends Disposable {
 
 	private setActiveDetailTab(tab: EngineAgentDetailTab): void {
 		this.activeDetailTab = tab;
-		this.instructionsTab.classList.toggle('engine-mcp-tab--active', tab === 'instructions');
-		this.toolsTab.classList.toggle('engine-mcp-tab--active', tab === 'tools');
-		this.modelTab.classList.toggle('engine-mcp-tab--active', tab === 'model');
-		this.instructionsTab.setAttribute('aria-selected', String(tab === 'instructions'));
-		this.toolsTab.setAttribute('aria-selected', String(tab === 'tools'));
-		this.modelTab.setAttribute('aria-selected', String(tab === 'model'));
+		this.instructionsTab.secondary = tab !== 'instructions';
+		this.toolsTab.secondary = tab !== 'tools';
+		this.modelTab.secondary = tab !== 'model';
+		this.instructionsTab.element.setAttribute('aria-selected', String(tab === 'instructions'));
+		this.toolsTab.element.setAttribute('aria-selected', String(tab === 'tools'));
+		this.modelTab.element.setAttribute('aria-selected', String(tab === 'model'));
 		this.agentsEditorContainer.style.display = tab === 'instructions' && this.selectedProfile ? '' : 'none';
 		this.toolsPanel.style.display = tab === 'tools' && this.selectedProfile ? '' : 'none';
 		this.modelPanel.style.display = tab === 'model' && this.selectedProfile ? '' : 'none';
@@ -605,8 +616,21 @@ export class EngineAgentsSection extends Disposable {
 		this.toolsToolbar.style.display = this.canEditAgentTools() ? '' : 'none';
 		this.toolsSaveButton.enabled = this.canEditAgentTools() && this.isAgentToolEnablementDirty();
 		if (!this.selectedProfile) {
+			this.toolsStatus.hide();
 			return;
 		}
+		if (this.agentTools.length === 0) {
+			this.toolsStatus.render({
+				mode: this.connection.isEngineConnected() ? 'empty' : 'disconnected',
+				featureLabel: AGENT_TOOLS_FEATURE,
+				emptyCopy: localize('ua.engineAgentsToolsEmpty', "No engine tools to enable for this profile."),
+				onOpenConnection: this.connection.isEngineConnected()
+					? undefined
+					: () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID),
+			});
+			return;
+		}
+		this.toolsStatus.hide();
 		for (const group of groupToolsForCatalog(this.agentTools)) {
 			const heading = DOM.append(this.toolsListHost, $('.engine-catalog-group-label'));
 			heading.textContent = group.group === 'client'
@@ -614,7 +638,12 @@ export class EngineAgentsSection extends Disposable {
 				: localize('ua.engineAgentsToolsEngineGroup', "Engine tools");
 			for (const tool of group.tools) {
 				const row = DOM.append(this.toolsListHost, $('.engine-catalog-row'));
-				const checkbox = this.toolCheckboxStore.add(new Checkbox(tool.name, this.isAgentToolEnabled(tool.name), defaultCheckboxStyles));
+				row.setAttribute('role', 'listitem');
+				const checkbox = this.toolCheckboxStore.add(new Checkbox(
+					localize('ua.engineAgentsToolToggle', "Enable {0}", tool.name),
+					this.isAgentToolEnabled(tool.name),
+					defaultCheckboxStyles,
+				));
 				if (!this.canEditAgentTools()) {
 					checkbox.disable();
 				}
@@ -761,8 +790,8 @@ export class EngineAgentsSection extends Disposable {
 	private clearAgentsEditor(): void {
 		this.agentsEditorLoadGeneration++;
 		this.agentsEditorContainer.style.display = 'none';
-		this.agentsEditorTextarea.value = '';
-		this.agentsEditorTextarea.readOnly = true;
+		this.agentsEditorInput.value = '';
+		this.agentsEditorInput.inputElement.readOnly = true;
 		this.agentsEditorSaveButton.enabled = false;
 		this.agentsEditorStatus.style.display = 'none';
 		this.agentsEditorStatus.textContent = '';
@@ -777,8 +806,8 @@ export class EngineAgentsSection extends Disposable {
 		if (!canShowCatalogRows(this.mode) || !this.connection.isEngineConnected() || !this.selectedProfile) {
 			if (!this.agentsMarkdownDirty) {
 				this.agentsEditorContainer.style.display = 'none';
-				this.agentsEditorTextarea.value = '';
-				this.agentsEditorTextarea.readOnly = true;
+				this.agentsEditorInput.value = '';
+				this.agentsEditorInput.inputElement.readOnly = true;
 				this.agentsEditorSaveButton.enabled = false;
 			}
 			this.syncDetailHost();
@@ -787,14 +816,14 @@ export class EngineAgentsSection extends Disposable {
 
 		const selected = this.selectedProfile;
 		this.syncDetailHost();
-		this.agentsEditorTextarea.readOnly = selected.source === 'built_in';
+		this.agentsEditorInput.inputElement.readOnly = selected.source === 'built_in';
 		this.agentsEditorSaveButton.enabled = this.canWrite() && selected.source !== 'built_in';
 		if (this.agentsMarkdownDirty) {
 			return;
 		}
 
 		const generation = ++this.agentsEditorLoadGeneration;
-		this.agentsEditorTextarea.value = formatAgentsMarkdown(summaryToProfileDetail(selected));
+		this.agentsEditorInput.value = formatAgentsMarkdown(summaryToProfileDetail(selected));
 
 		try {
 			const result = await this.connection.saveAgentProfile({
@@ -809,7 +838,7 @@ export class EngineAgentsSection extends Disposable {
 			}
 			const text = formatAgentsMarkdown(result.profile);
 			this.loadedAgentsMarkdown = text;
-			this.agentsEditorTextarea.value = text;
+			this.agentsEditorInput.value = text;
 			this.agentsMarkdownDirty = false;
 		} catch {
 			if (generation !== this.agentsEditorLoadGeneration || this.selectedProfile?.id !== selected.id) {

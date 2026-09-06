@@ -38,6 +38,9 @@ export function canConnectHubDevice(device: HubDeviceProjection, directoryStatus
 	return device.engineStatus === 'SERVING';
 }
 
+/** How a status line should read: neutral information, or a state the user must act on. */
+export type ConnectionStatusTone = 'neutral' | 'success' | 'warning' | 'error';
+
 /** Hub account zone badge copy. */
 export function getHubAuthStatusLabel(status: HubAuthStatus): string {
 	switch (status.kind) {
@@ -53,6 +56,20 @@ export function getHubAuthStatusLabel(status: HubAuthStatus): string {
 			return localize('ua.connectionHubUnavailable', "Hub unavailable in this environment");
 		default:
 			return localize('ua.connectionHubSignedOut', "Not signed in");
+	}
+}
+
+export function getHubAuthStatusTone(status: HubAuthStatus): ConnectionStatusTone {
+	switch (status.kind) {
+		case 'signedIn':
+			return 'success';
+		case 'mustChangePassword':
+		case 'authExpired':
+			return 'warning';
+		case 'unavailable':
+			return 'error';
+		default:
+			return 'neutral';
 	}
 }
 
@@ -73,6 +90,22 @@ export function getHubDirectoryBannerLabel(status: HubDirectoryStatus): string |
 /** Connection / Engine / StatusBar 共用 H4b 文案，不另造「Not connected」。 */
 export function getConnectionPhasePaneLabel(phase: ConnectionPhase, pairingPending = false): string {
 	return getConnectionPhaseStatusBarText(phase, pairingPending);
+}
+
+export function getConnectionPhaseTone(phase: ConnectionPhase, pairingPending = false): ConnectionStatusTone {
+	if (pairingPending) {
+		return 'warning';
+	}
+	switch (phase.kind) {
+		case 'connected':
+			return 'success';
+		case 'connecting':
+			return 'warning';
+		case 'failed':
+			return 'error';
+		default:
+			return 'neutral';
+	}
 }
 
 export const HUB_LOGIN_BUTTON_LABEL = localize('ua.connectionHubLogin', "Sign in");

@@ -4,25 +4,62 @@
  *--------------------------------------------------------------------------------------------*/
 
 import './media/conversationDiffReviewPane.css';
-import { $, append, clearNode } from '../../../../base/browser/dom.js';
+import * as dom from '../../../../base/browser/dom.js';
 import { CancellationToken } from '../../../../base/common/cancellation.js';
+import { IReference, MutableDisposable } from '../../../../base/common/lifecycle.js';
+import { IDiffEditorConstructionOptions } from '../../../../editor/browser/editorBrowser.js';
+import { CodeEditorWidget } from '../../../../editor/browser/widget/codeEditor/codeEditorWidget.js';
+import { DiffEditorWidget } from '../../../../editor/browser/widget/diffEditor/diffEditorWidget.js';
+import { IEditorOptions as ICodeEditorOptions } from '../../../../editor/common/config/editorOptions.js';
+import { IResolvedTextEditorModel, ITextModelService } from '../../../../editor/common/services/resolverService.js';
 import { localize } from '../../../../nls.js';
-import { ICommandService } from '../../../../platform/commands/common/commands.js';
+import { CommandsRegistry, ICommandService } from '../../../../platform/commands/common/commands.js';
+import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { IEditorOptions } from '../../../../platform/editor/common/editor.js';
+import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { IStorageService } from '../../../../platform/storage/common/storage.js';
 import { ITelemetryService } from '../../../../platform/telemetry/common/telemetry.js';
 import { IThemeService } from '../../../../platform/theme/common/themeService.js';
 import { EditorPane } from '../../../browser/parts/editor/editorPane.js';
 import { IEditorOpenContext } from '../../../common/editor.js';
 import { IEditorGroup } from '../../../services/editor/common/editorGroupsService.js';
+import { ISCMService } from '../../scm/common/scm.js';
 import { ConversationDiffReviewEditorId } from '../common/conversationDiffReviewInput.js';
+import { findScmResourceForUri } from '../common/sourcesChangeRef.js';
+import {
+	SOURCES_GIT_CLEAN_COMMAND,
+	SOURCES_GIT_STAGE_COMMAND,
+	isSourcesChangeRevertible,
+	isSourcesChangeStageable,
+} from '../common/sourcesChangesGit.js';
 import { ConversationDiffReviewInput } from './conversationDiffReviewInput.js';
+
+const $ = dom.$;
+
+const readOnlyEditorOptions: ICodeEditorOptions = {
+	readOnly: true,
+	scrollBeyondLastLine: false,
+	minimap: { enabled: false },
+	automaticLayout: false,
+	lineNumbers: 'on',
+};
 
 export class ConversationDiffReviewPane extends EditorPane {
 
 	static readonly ID = ConversationDiffReviewEditorId;
 
+	private readonly diffWidget = this._register(new MutableDisposable<DiffEditorWidget>());
+	private readonly codeWidget = this._register(new MutableDisposable<CodeEditorWidget>());
+	private readonly originalModelRef = this._register(new MutableDisposable<IReference<IResolvedTextEditorModel>>());
+	private readonly modifiedModelRef = this._register(new MutableDisposable<IReference<IResolvedTextEditorModel>>());
+
 	private container: HTMLElement | undefined;
+	private toolbar: HTMLElement | undefined;
+	private revertButton: HTMLButtonElement | undefined;
+	private acceptButton: HTMLButtonElement | undefined;
+	private noticeElement: HTMLElement | undefined;
+	private editorContainer: HTMLElement | undefined;
+	private dimension: dom.Dimension | undefined;
 
 	constructor(
 		group: IEditorGroup,
@@ -30,41 +67,256 @@ export class ConversationDiffReviewPane extends EditorPane {
 		@IThemeService themeService: IThemeService,
 		@IStorageService storageService: IStorageService,
 		@ICommandService private readonly commandService: ICommandService,
+		@IInstantiationService private readonly instantiationService: IInstantiationService,
+		@ITextModelService private readonly textModelService: ITextModelService,
+		@IConfigurationService private readonly configurationService: IConfigurationService,
+		@ISCMService private readonly scmService: ISCMService,
 	) {
 		super(ConversationDiffReviewPane.ID, group, telemetryService, themeService, storageService);
+
+		this._register(this.configurationService.onDidChangeConfiguration(e => {
+			if (e.affectsConfiguration('diffEditor.renderSideBySide') && this.diffWidget.value) {
+				this.diffWidget.value.updateOptions(this.getDiffEditorOptions());
+			}
+		}));
 	}
 
 	protected override createEditor(parent: HTMLElement): void {
-		this.container = append(parent, $('.conversation-diff-review-pane'));
+		this.container = dom.append(parent, $('.conversation-diff-review-pane'));
 		this.container.setAttribute('role', 'document');
-		this.container.setAttribute('aria-label', localize('conversationDiffReviewPane.ariaLabel', "Conversation Diff is not connected yet"));
+		this.container.setAttribute('aria-label', localize('conversationDiffReviewPane.ariaLabel', "Conversation Diff Review"));
+
+		this.toolbar = dom.append(this.container, $('.conversation-diff-review-toolbar'));
+
+		this.revertButton = dom.append(this.toolbar, $('button.conversation-diff-review-revert')) as HTMLButtonElement;
+		this.revertButton.type = 'button';
+		this.revertButton.textContent = localize('conversationDiffReviewPane.revert', "Revert");
+		this.revertButton.style.display = 'none';
+		this.revertButton.addEventListener('click', () => {
+			void this.runGitAction(SOURCES_GIT_CLEAN_COMMAND);
+		});
+
+		this.acceptButton = dom.append(this.toolbar, $('button.conversation-diff-review-accept')) as HTMLButtonElement;
+		this.acceptButton.type = 'button';
+		this.acceptButton.textContent = localize('conversationDiffReviewPane.accept', "Accept");
+		this.acceptButton.style.display = 'none';
+		this.acceptButton.addEventListener('click', () => {
+			void this.runGitAction(SOURCES_GIT_STAGE_COMMAND);
+		});
+
+		const previewButton = dom.append(this.toolbar, $('button.conversation-diff-review-open-preview')) as HTMLButtonElement;
+		previewButton.type = 'button';
+		previewButton.textContent = localize('conversationDiffReviewPane.openPreview', "Open Diff in Preview");
+		previewButton.addEventListener('click', () => {
+			void this.commandService.executeCommand('sources.diff.moveToPreview');
+		});
+
+		this.noticeElement = dom.append(this.container, $('.conversation-diff-review-notice'));
+		this.noticeElement.style.display = 'none';
+		this.editorContainer = dom.append(this.container, $('.conversation-diff-review-editor'));
 	}
 
 	override async setInput(input: ConversationDiffReviewInput, options: IEditorOptions | undefined, context: IEditorOpenContext, token: CancellationToken): Promise<void> {
 		await super.setInput(input, options, context, token);
-		if (this.container) {
-			clearNode(this.container);
-			append(this.container, $('span.conversation-diff-review-pane-stub'));
-			this.container.lastElementChild!.textContent = localize(
-				'conversationDiffReviewPane.notWired',
-				"Conversation Diff is not connected yet. {0} opened here as a placeholder; review the file in Preview until this pane hosts a read-only diff.",
-				input.getName(),
-			);
-			const previewButton = append(this.container, $('button.conversation-diff-review-open-preview')) as HTMLButtonElement;
-			previewButton.type = 'button';
-			previewButton.textContent = localize('conversationDiffReviewPane.openPreview', "Open Diff in Preview");
-			previewButton.addEventListener('click', () => {
-				void this.commandService.executeCommand('sources.diff.moveToPreview');
-			});
+		if (token.isCancellationRequested) {
+			return;
 		}
+
+		this.clearEditors();
+		this.updateReviewActions();
+
+		if (!input.original) {
+			this.showNotice(localize('conversationDiffReviewPane.newFile', "New file with no previous version to compare."));
+			await this.renderModifiedOnly(input, token);
+		} else {
+			this.hideNotice();
+			await this.renderDiff(input, token);
+		}
+
+		if (this.input !== input || token.isCancellationRequested) {
+			return;
+		}
+
+		this.layoutEditors();
+		this._onDidChangeControl.fire();
+	}
+
+	override clearInput(): void {
+		this.clearEditors();
+		this.hideNotice();
+		if (this.revertButton) {
+			this.revertButton.style.display = 'none';
+		}
+		if (this.acceptButton) {
+			this.acceptButton.style.display = 'none';
+		}
+		super.clearInput();
+	}
+
+	override getControl(): DiffEditorWidget | CodeEditorWidget | undefined {
+		return this.diffWidget.value ?? this.codeWidget.value;
+	}
+
+	override focus(): void {
+		super.focus();
+		(this.diffWidget.value?.getModifiedEditor() ?? this.codeWidget.value)?.focus();
 	}
 
 	override layout(dimension: { width: number; height: number }): void {
+		this.dimension = new dom.Dimension(dimension.width, dimension.height);
 		if (this.container) {
 			this.container.style.width = `${dimension.width}px`;
 			this.container.style.height = `${dimension.height}px`;
-			this.container.style.boxSizing = 'border-box';
-			this.container.style.overflow = 'auto';
 		}
+		this.layoutEditors();
+	}
+
+	private getDiffEditorOptions(): IDiffEditorConstructionOptions {
+		return {
+			...readOnlyEditorOptions,
+			originalEditable: false,
+			renderSideBySide: this.configurationService.getValue<boolean>('diffEditor.renderSideBySide') ?? true,
+			useInlineViewWhenSpaceIsLimited: true,
+			renderOverviewRuler: false,
+		};
+	}
+
+	private updateReviewActions(): void {
+		const input = this.input;
+		if (!(input instanceof ConversationDiffReviewInput) || !this.revertButton || !this.acceptButton) {
+			return;
+		}
+
+		const match = findScmResourceForUri(this.scmService, input.modified);
+		const canRevert = !!match
+			&& isSourcesChangeRevertible(match.groupId)
+			&& !!CommandsRegistry.getCommand(SOURCES_GIT_CLEAN_COMMAND);
+		const canAccept = !!match
+			&& isSourcesChangeStageable(match.groupId)
+			&& !!CommandsRegistry.getCommand(SOURCES_GIT_STAGE_COMMAND);
+
+		this.revertButton.style.display = canRevert ? '' : 'none';
+		this.acceptButton.style.display = canAccept ? '' : 'none';
+	}
+
+	private async runGitAction(commandId: string): Promise<void> {
+		const input = this.input;
+		if (!(input instanceof ConversationDiffReviewInput)) {
+			return;
+		}
+
+		const match = findScmResourceForUri(this.scmService, input.modified);
+		if (!match?.resource) {
+			return;
+		}
+
+		try {
+			await this.commandService.executeCommand(commandId, match.resource);
+		} finally {
+			this.updateReviewActions();
+		}
+	}
+
+	private showNotice(message: string): void {
+		if (!this.noticeElement) {
+			return;
+		}
+		this.noticeElement.textContent = message;
+		this.noticeElement.style.display = '';
+	}
+
+	private hideNotice(): void {
+		if (!this.noticeElement) {
+			return;
+		}
+		this.noticeElement.textContent = '';
+		this.noticeElement.style.display = 'none';
+	}
+
+	private async renderDiff(input: ConversationDiffReviewInput, token: CancellationToken): Promise<void> {
+		if (!this.editorContainer || !input.original) {
+			return;
+		}
+
+		let originalRef: IReference<IResolvedTextEditorModel> | undefined;
+		let modifiedRef: IReference<IResolvedTextEditorModel> | undefined;
+		try {
+			originalRef = await this.textModelService.createModelReference(input.original);
+			modifiedRef = await this.textModelService.createModelReference(input.modified);
+		} catch {
+			originalRef?.dispose();
+			modifiedRef?.dispose();
+			this.showNotice(localize('conversationDiffReviewPane.loadFailed', "Unable to load this comparison."));
+			return;
+		}
+
+		if (this.input !== input || token.isCancellationRequested) {
+			originalRef.dispose();
+			modifiedRef.dispose();
+			return;
+		}
+
+		this.originalModelRef.value = originalRef;
+		this.modifiedModelRef.value = modifiedRef;
+
+		const widget = this.diffWidget.value = this.instantiationService.createInstance(
+			DiffEditorWidget,
+			this.editorContainer,
+			this.getDiffEditorOptions(),
+			{},
+		);
+		widget.setModel({
+			original: originalRef.object.textEditorModel,
+			modified: modifiedRef.object.textEditorModel,
+		});
+	}
+
+	private async renderModifiedOnly(input: ConversationDiffReviewInput, token: CancellationToken): Promise<void> {
+		if (!this.editorContainer) {
+			return;
+		}
+
+		let modifiedRef: IReference<IResolvedTextEditorModel>;
+		try {
+			modifiedRef = await this.textModelService.createModelReference(input.modified);
+		} catch {
+			this.showNotice(localize('conversationDiffReviewPane.loadFailed', "Unable to load this comparison."));
+			return;
+		}
+
+		if (this.input !== input || token.isCancellationRequested) {
+			modifiedRef.dispose();
+			return;
+		}
+
+		this.modifiedModelRef.value = modifiedRef;
+		const widget = this.codeWidget.value = this.instantiationService.createInstance(
+			CodeEditorWidget,
+			this.editorContainer,
+			readOnlyEditorOptions,
+			{ isSimpleWidget: true },
+		);
+		widget.setModel(modifiedRef.object.textEditorModel);
+	}
+
+	private layoutEditors(): void {
+		if (!this.dimension) {
+			return;
+		}
+
+		const toolbarHeight = this.toolbar?.offsetHeight ?? 0;
+		const noticeHeight = this.noticeElement?.style.display === 'none' ? 0 : (this.noticeElement?.offsetHeight ?? 0);
+		const editorDimension = new dom.Dimension(this.dimension.width, Math.max(0, this.dimension.height - toolbarHeight - noticeHeight));
+		this.diffWidget.value?.layout(editorDimension);
+		this.codeWidget.value?.layout(editorDimension);
+	}
+
+	private clearEditors(): void {
+		this.diffWidget.value?.setModel(null);
+		this.codeWidget.value?.setModel(null);
+		this.diffWidget.clear();
+		this.codeWidget.clear();
+		this.originalModelRef.clear();
+		this.modifiedModelRef.clear();
 	}
 }

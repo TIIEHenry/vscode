@@ -126,6 +126,28 @@
 	height: 22px;
 }
 
+.monaco-workbench .part.conversation .conversation-subagent-overlay-session-bar {
+	flex-shrink: 0;
+	display: flex;
+	align-items: center;
+	min-height: 22px;
+	border-bottom: 1px solid var(--vscode-titleBar-border, var(--vscode-widget-border, transparent));
+}
+
+.monaco-workbench .part.conversation .conversation-subagent-overlay-session-bar .conversation-lens-session-bar {
+	flex: 1;
+	width: 100%;
+	border-bottom: none;
+	background: transparent;
+}
+
+.monaco-workbench .part.conversation .conversation-subagent-overlay-session-bar .conversation-lens-session-icon,
+.monaco-workbench .part.conversation .conversation-subagent-overlay-session-bar .conversation-lens-session-sync-badge,
+.monaco-workbench .part.conversation .conversation-subagent-overlay-session-bar .conversation-lens-session-title-wrap,
+.monaco-workbench .part.conversation .conversation-subagent-overlay-session-bar .conversation-lens-session-controls {
+	display: none;
+}
+
 .monaco-workbench .part.conversation .conversation-subagent-overlay-body .conversation-lens-reading > .conversation-identity-strip {
 	display: none;
 }

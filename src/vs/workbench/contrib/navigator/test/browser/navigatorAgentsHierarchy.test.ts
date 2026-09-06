@@ -44,8 +44,8 @@ suite('NavigatorAgentsHierarchy (N2)', () => {
 		assert.strictEqual(root.children?.[0]?.agentId, 'sub:alpha');
 	});
 
-	test('UNKNOWN agent status maps to 状态未知', () => {
-		assert.strictEqual(formatAgentStatusLabel('AGENT_STATUS_UNKNOWN'), '状态未知');
+	test('UNKNOWN agent status maps to Unknown status', () => {
+		assert.strictEqual(formatAgentStatusLabel('AGENT_STATUS_UNKNOWN'), 'Unknown status');
 	});
 
 	test('findLiveAgentNode walks children', () => {

@@ -34,6 +34,7 @@ import { shouldRestoreComposerDrafts } from '../common/uaClientSettingsHelpers.j
 import { ConversationVoiceTranscriptBar } from './conversationVoiceTranscriptBar.js';
 import { Button } from '../../../../base/browser/ui/button/button.js';
 import { SelectBox } from '../../../../base/browser/ui/selectBox/selectBox.js';
+import type { ConversationSessionConfigSelection } from './conversationLensComposerChrome.js';
 
 const STUB_VOICE_TRANSCRIPT_PHRASES = [
 	conversationLensVoiceStubPhraseOne,
@@ -66,7 +67,8 @@ export interface IConversationLensComposerHost {
 	readonly configurationService: IConfigurationService;
 	readonly storageService: IStorageService;
 	readonly uaConnection: IUniverseAgentConnection;
-	getSessionConfig(sessionId: string): { agentIndex: number; routeIndex: number };
+	getBoundSessionId(): string;
+	getSessionConfig(sessionId: string): ConversationSessionConfigSelection;
 	updateSendEnabled(): void;
 	updateGateRow(): void;
 	exitComposerEdit(restoreComposeDraft?: boolean, releaseQueueHold?: boolean): void;
@@ -84,7 +86,7 @@ export function refreshComposerCatalogs(host: IConversationLensComposerHost): vo
 
 		const generation = ++host.composerCatalogGeneration;
 		if (!host.stubService.isEngineConnected()) {
-			const sessionId = host.stubService.getActiveSessionId();
+			const sessionId = host.getBoundSessionId();
 			const { agentIndex } = host.getSessionConfig(sessionId);
 			host.agentSelectBox.setOptions(COMPOSER_AGENT_OPTIONS.map(text => ({ text })), agentIndex);
 			host.modelSelectBox.setOptions(
@@ -118,7 +120,7 @@ export async function loadConnectedComposerCatalogs(host: IConversationLensCompo
 					return;
 				}
 				const options = composerAgentSelectOptions(result.profiles);
-				const { agentIndex } = host.getSessionConfig(host.stubService.getActiveSessionId());
+				const { agentIndex } = host.getSessionConfig(host.getBoundSessionId());
 				host.agentSelectBox.setOptions(options, Math.min(agentIndex, options.length - 1));
 			} catch {
 				// Keep honest empty agent list.
@@ -154,7 +156,7 @@ export function postBound(host: IConversationLensComposerHost, msg: Conversation
 
 		if (msg.kind === 'clientToolRespond' && host.stubService.isEngineConnected()) {
 			const forwarded = host.stubService.respondClientTool(
-				host.stubService.getActiveSessionId(),
+				host.getBoundSessionId(),
 				msg.requestId,
 				{ content: msg.resultJson });
 			return Promise.resolve(forwarded
@@ -194,7 +196,7 @@ export async function submitDraft(host: IConversationLensComposerHost): Promise<
 			host.modelSelectedIndex = 1;
 			host.modelSelectBox.select(1);
 		}
-		const sessionId = host.stubService.getActiveSessionId();
+		const sessionId = host.getBoundSessionId();
 		host.submitInFlight = true;
 		try {
 			const outcome = await postBound(host, { kind: 'submitInput', text });
@@ -218,7 +220,7 @@ export function saveTurnEdit(host: IConversationLensComposerHost): void {
 		if (!text || !host.editingTurnId) {
 			return;
 		}
-		const sessionId = host.stubService.getActiveSessionId();
+		const sessionId = host.getBoundSessionId();
 		const turnId = host.editingTurnId;
 		host.exitComposerEdit();
 		host.stubService.updateUserTurnText(sessionId, turnId, text);
@@ -232,7 +234,7 @@ export function saveQueueEdit(host: IConversationLensComposerHost): void {
 		if (!text || !item || text === item.content) {
 			return;
 		}
-		const sessionId = host.stubService.getActiveSessionId();
+		const sessionId = host.getBoundSessionId();
 		const itemId = item.id;
 		host.exitComposerEdit(true, false);
 		host.stubService.updateMessageQueueItemContent(sessionId, itemId, text);
@@ -282,7 +284,7 @@ export function restoreComposerDraftToInput(host: IConversationLensComposerHost)
 		if (!host.dockTextarea || host.composerPolicy !== 'compose') {
 			return;
 		}
-		host.dockTextarea.value = readComposerDraft(host, host.stubService.getActiveSessionId());
+		host.dockTextarea.value = readComposerDraft(host, host.getBoundSessionId());
 		host.updateSendEnabled();
 	
 }
@@ -333,14 +335,14 @@ export function renderVoiceTranscriptBar(host: IConversationLensComposerHost): v
 
 		const composeMode = host.composerPolicy === 'compose';
 		host.voiceTranscriptBar.setComposerVisible(composeMode);
-		host.voiceTranscriptBar.render(getVoiceClips(host, host.stubService.getActiveSessionId()));
+		host.voiceTranscriptBar.render(getVoiceClips(host, host.getBoundSessionId()));
 	
 }
 
 export function updateVoiceMicChrome(host: IConversationLensComposerHost): void {
 
 		const engineConnected = host.stubService.isEngineConnected();
-		const recording = getVoiceClips(host, host.stubService.getActiveSessionId())
+		const recording = getVoiceClips(host, host.getBoundSessionId())
 			.some(clip => clip.status === 'recording');
 
 		if (!engineConnected || host.composerPolicy !== 'compose') {
@@ -376,7 +378,7 @@ export function toggleVoiceRecording(host: IConversationLensComposerHost): void 
 		if (!host.stubService.isEngineConnected() || host.composerPolicy !== 'compose') {
 			return;
 		}
-		const sessionId = host.stubService.getActiveSessionId();
+		const sessionId = host.getBoundSessionId();
 		const clips = [...getVoiceClips(host, sessionId)];
 		const recording = clips.find(clip => clip.status === 'recording');
 		if (recording) {
@@ -410,12 +412,12 @@ export function finishVoiceClip(host: IConversationLensComposerHost, sessionId: 
 			host.voiceTranscriptTimeouts.delete(clipId);
 			const remaining = getVoiceClips(host, sessionId).filter(clip => clip.id !== clipId);
 			setVoiceClips(host, sessionId, remaining);
-			const draft = host.stubService.getActiveSessionId() === sessionId && host.composerPolicy === 'compose'
+			const draft = host.getBoundSessionId() === sessionId && host.composerPolicy === 'compose'
 				? host.dockTextarea.value
 				: readComposerDraft(host, sessionId);
 			const nextDraft = appendVoiceTextToDraft(draft, phrase);
 			writeComposerDraft(host, sessionId, nextDraft);
-			if (host.stubService.getActiveSessionId() === sessionId && host.composerPolicy === 'compose') {
+			if (host.getBoundSessionId() === sessionId && host.composerPolicy === 'compose') {
 				host.dockTextarea.value = nextDraft;
 				host.updateSendEnabled();
 			}

@@ -48,9 +48,58 @@
 	max-height: 22px;
 	display: flex;
 	align-items: center;
+	gap: 2px;
 	padding-right: 28px;
 	box-sizing: border-box;
 	overflow: hidden;
+}
+
+/* Title-chrome icon buttons: ghost toolbar, not filled / outlined monaco buttons */
+.monaco-workbench .part.conversation .conversation-session-bar .monaco-button {
+	box-sizing: border-box;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 20px;
+	min-width: 20px;
+	max-width: 20px;
+	height: 20px;
+	min-height: 20px;
+	max-height: 20px;
+	padding: 0 !important;
+	margin: 0;
+	border: none !important;
+	position: relative;
+	border-radius: 3px;
+	background: transparent !important;
+	background-color: transparent !important;
+	color: var(--vscode-icon-foreground, var(--vscode-foreground)) !important;
+	line-height: 20px;
+	overflow: hidden;
+}
+
+.monaco-workbench .part.conversation .conversation-session-bar .monaco-button:hover:not(.disabled) {
+	background-color: var(--vscode-toolbar-hoverBackground, var(--vscode-list-hoverBackground)) !important;
+}
+
+.monaco-workbench .part.conversation .conversation-session-bar .monaco-button:focus,
+.monaco-workbench .part.conversation .conversation-session-bar .monaco-button:focus-visible {
+	outline: 1px solid var(--vscode-focusBorder, transparent) !important;
+	outline-offset: -1px !important;
+}
+
+.monaco-workbench .part.conversation .conversation-session-bar .monaco-button .codicon {
+	margin: 0 !important;
+}
+
+.monaco-workbench .part.conversation .conversation-session-bar .monaco-button > span {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+	clip: rect(1px, 1px, 1px, 1px);
+	clip-path: inset(50%);
+	white-space: nowrap;
 }
 
 .monaco-workbench .part.conversation:has(.conversation-subagent-overlay:not([hidden])) > .content > .conversation-session-bar {

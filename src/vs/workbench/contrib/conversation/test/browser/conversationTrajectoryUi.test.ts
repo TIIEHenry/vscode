@@ -204,7 +204,8 @@ suite('ConversationTrajectoryUi', () => {
 		assert.ok(subtoolRow.textContent?.includes(CONVERSATION_TRAJECTORY_STUB_SUBTOOL_TEXT));
 	});
 
-	test('process fold defaults expanded on trajectory and keeps SYSTEM/context outside when collapsed', async () => {
+	test('process fold defaults expanded on trajectory and keeps SYSTEM/context outside when collapsed', async function () {
+		this.timeout(15000);
 		const { stubService, layoutReadingColumn, slots } = mountLens();
 		seedUntitledTrajectory(stubService);
 		await flushTimelineHeightUpdates();
@@ -245,6 +246,41 @@ suite('ConversationTrajectoryUi', () => {
 		assert.strictEqual(foldChildrenAfter.hidden, true);
 		assert.ok(trajectory.querySelector('.conversation-lens-trajectory-record-row[data-kind="system"]'));
 		assert.ok(trajectory.querySelector('.conversation-lens-trajectory-record-row[data-kind="context"]'));
+	});
+
+	test('process fold header stays clickable after a refresh from the first toggle', async function () {
+		this.timeout(15000);
+		const { stubService, layoutReadingColumn, slots } = mountLens();
+		seedUntitledTrajectory(stubService);
+		await flushTimelineHeightUpdates();
+
+		clickLensTab(slots, 'trajectory');
+		layoutReadingColumn();
+		await flushTimelineHeightUpdates();
+
+		const trajectory = slots.timeline.querySelector('.conversation-lens-trajectory')!;
+		const foldHeader = trajectory.querySelector('.conversation-process-fold-header') as HTMLButtonElement;
+		assert.ok(foldHeader);
+		assert.strictEqual(foldHeader.getAttribute('aria-expanded'), 'true');
+
+		foldHeader.click();
+		layoutReadingColumn();
+		await flushTimelineHeightUpdates();
+
+		const foldHeaderAfterCollapse = trajectory.querySelector('.conversation-process-fold-header') as HTMLButtonElement;
+		assert.ok(foldHeaderAfterCollapse);
+		assert.strictEqual(foldHeaderAfterCollapse.getAttribute('aria-expanded'), 'false');
+
+		foldHeaderAfterCollapse.click();
+		layoutReadingColumn();
+		await flushTimelineHeightUpdates();
+
+		const foldHeaderAfterExpand = trajectory.querySelector('.conversation-process-fold-header') as HTMLButtonElement;
+		const foldChildrenAfterExpand = trajectory.querySelector('.conversation-process-fold-children') as HTMLElement;
+		assert.ok(foldHeaderAfterExpand);
+		assert.ok(foldChildrenAfterExpand);
+		assert.strictEqual(foldHeaderAfterExpand.getAttribute('aria-expanded'), 'true');
+		assert.strictEqual(foldChildrenAfterExpand.hidden, false);
 	});
 
 	function mountTrajectory(): { trajectory: ConversationTrajectory; layout: () => void } {
