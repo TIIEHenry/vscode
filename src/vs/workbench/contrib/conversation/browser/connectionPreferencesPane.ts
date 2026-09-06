@@ -190,6 +190,36 @@ export function formatConnectProfileDiagnostics(
 	return parts.join(' ');
 }
 
+function isConnectPairingPending(result: UniverseAgentConnectProfileResult): boolean {
+	return result.ok && (result.pairingPending || !!readHandshakeSasCode(result));
+}
+
+/** Visible connect copy: honest, no SAS secrets, never pretends the engine is connected. */
+export function formatConnectProfileStatusText(
+	result: UniverseAgentConnectProfileResult,
+	extras?: ConnectProfileDiagnosticExtras,
+): string {
+	if (extras?.dialogError) {
+		return localize('ua.connectionPairingDialogFailed', "Pairing dialog failed — {0}", extras.dialogError);
+	}
+	if (!result.ok) {
+		return result.reason;
+	}
+	if (extras?.profilePairingPending) {
+		return localize(
+			'ua.connectionConnectPairingStillPending',
+			"Connect reported success but this profile is still pairing pending.",
+		);
+	}
+	if (isRecoverTrustConnectResult(result)) {
+		return localize('ua.connectionTrustRecoveryPending', "Trust recovery required — not connected yet.");
+	}
+	if (isConnectPairingPending(result)) {
+		return localize('ua.connectionPairingPendingStatus', "Pairing pending — not connected yet.");
+	}
+	return localize('ua.connectionHandshakeSucceeded', "Handshake succeeded — pairing not pending.");
+}
+
 /** Test Connection 结果与 StatusBar / Engine 共用 H4b 文案。 */
 export function getConnectionTestStatusText(phase?: ConnectionPhase, pairingPending = false): string {
 	return getConnectionPhaseStatusBarText(phase ?? { kind: 'disconnected' }, pairingPending);
@@ -362,6 +392,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 	private readonly pendingPairsHeading: HTMLElement;
 	private readonly pendingPairsEmpty: HTMLElement;
 	private readonly pendingPairsList: HTMLElement;
+	private readonly devicesConnectStatus: HTMLElement;
 	private readonly directAddressSection: HTMLElement;
 	private readonly directHostInput: InputBox;
 	private readonly directPortInput: InputBox;
@@ -525,6 +556,10 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		this.rotateTokenButton = this._register(new Button(this.deviceActionsRow, { ...defaultButtonStyles, secondary: true }));
 		this.rotateTokenButton.label = CONNECTION_DEVICE_ROTATE_TOKEN_LABEL;
 		this._register(this.rotateTokenButton.onDidClick(() => void this.handleRotateSelectedDeviceToken()));
+
+		this.devicesConnectStatus = DOM.append(this.hubDevicesSection, DOM.$('.connection-status.connection-hub-devices-status'));
+		this.devicesConnectStatus.setAttribute('role', 'status');
+		this.devicesConnectStatus.setAttribute('aria-live', 'polite');
 
 		this.pendingPairsHeading = DOM.append(this.hubDevicesSection, DOM.$('h4.connection-engine-pending-heading'));
 		this.pendingPairsHeading.textContent = CONNECTION_DEVICE_PENDING_HEADING;
@@ -1098,9 +1133,19 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		this.renderConnectionPhase();
 	}
 
+	private getVisibleConnectStatusTarget(): HTMLElement {
+		switch (this.activeZoneId) {
+			case 'direct':
+				return this.directAddressStatus;
+			case 'devices':
+				return this.devicesConnectStatus;
+			default:
+				return this.testStatus;
+		}
+	}
+
 	private writeConnectStatus(text: string, tone: ConnectionStatusTone = 'neutral'): void {
-		const target = this.activeZoneId === 'direct' ? this.directAddressStatus : this.testStatus;
-		writeStatus(target, text, tone);
+		writeStatus(this.getVisibleConnectStatusTarget(), text, tone);
 	}
 
 	/** Keep SAS / recoverTrust in the zone that started Connect (Direct, Devices, Profiles, …). */
@@ -1132,7 +1177,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		let statusPrefix: string | undefined;
 		let finalResult: UniverseAgentConnectProfileResult = result;
 		if (!result.ok) {
-			this.writeConnectStatus(formatConnectProfileDiagnostics(result), 'error');
+			this.writeConnectStatus(formatConnectProfileStatusText(result), 'error');
 			this.renderConnectionPhase();
 			return;
 		}
@@ -1217,9 +1262,14 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		result: UniverseAgentConnectProfileResult,
 		extras?: ConnectProfileDiagnosticExtras,
 	): void {
-		const diagnostics = formatConnectProfileDiagnostics(result, extras);
-		const tone: ConnectionStatusTone = extras?.dialogError || !result.ok ? 'error' : 'neutral';
-		this.writeConnectStatus(prefix ? `${prefix} ${diagnostics}` : diagnostics, tone);
+		const text = prefix ?? formatConnectProfileStatusText(result, extras);
+		const pairingPending = extras?.profilePairingPending || isConnectPairingPending(result) || isRecoverTrustConnectResult(result);
+		const tone: ConnectionStatusTone = extras?.dialogError || !result.ok || extras?.profilePairingPending
+			? 'error'
+			: pairingPending
+				? 'warning'
+				: 'neutral';
+		this.writeConnectStatus(text, tone);
 	}
 
 	private async handleConnectDevice(device: HubDeviceProjection): Promise<void> {
