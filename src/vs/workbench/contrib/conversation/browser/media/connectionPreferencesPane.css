@@ -160,6 +160,14 @@
 	display: none;
 }
 
+.monaco-workbench .connection-preferences-pane .connection-pairing-confirm {
+	margin-top: var(--vscode-spacing-size160);
+	padding: var(--vscode-spacing-size120);
+	border: var(--vscode-strokeThickness) solid var(--vscode-widget-border, var(--vscode-contrastBorder));
+	border-radius: var(--vscode-cornerRadius-small);
+	background: var(--vscode-editorWidget-background);
+}
+
 /* Actions: the lead action is the only filled button; the rest sit beside it and wrap. */
 .monaco-workbench .connection-preferences-pane .connection-actions {
 	display: flex;

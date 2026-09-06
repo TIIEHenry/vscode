@@ -52,6 +52,7 @@ import {
 	isRecoverTrustConnectResult,
 	RECOVER_TRUST_CONFIRM_BUTTON_LABEL,
 	isForbiddenSasButtonLabel,
+	SAS_CANCEL_BUTTON_LABEL,
 	SAS_CONFIRM_BUTTON_LABEL,
 	SAS_FORBIDDEN_BUTTON_PATTERNS,
 } from '../../browser/connectionPreferencesPaneLabels.js';
@@ -161,6 +162,49 @@ suite('ConnectionPreferencesPane', () => {
 		const pane = mountPane(hubOverrides, connectionOverrides);
 		modalBlock.appendChild(pane.getDomNode());
 		return { pane, modalBlock };
+	}
+
+	function mountPaneInWorkbench(
+		hubOverrides?: Partial<IUniverseAgentHubService>,
+		connectionOverrides?: Partial<IUniverseAgentConnection>,
+	): { readonly pane: ConnectionPreferencesPane; readonly workbench: HTMLElement } {
+		const workbench = document.createElement('div');
+		workbench.className = 'monaco-workbench';
+		document.body.appendChild(workbench);
+		const pane = mountPane(hubOverrides, connectionOverrides);
+		workbench.appendChild(pane.getDomNode());
+		return { pane, workbench };
+	}
+
+	async function waitForPairingDialog(container: ParentNode): Promise<HTMLElement> {
+		for (let i = 0; i < 20; i++) {
+			const dialog = container.querySelector('.connection-pairing-confirm .monaco-dialog-box') as HTMLElement | null;
+			if (dialog) {
+				return dialog;
+			}
+			await Promise.resolve();
+		}
+		assert.fail('SAS confirm dialog did not appear');
+	}
+
+	function assertSasVisibleInActiveZone(container: ParentNode, zoneClass: string, sasCode: string): HTMLElement {
+		const activeZone = container.querySelector(`${zoneClass}.is-active-zone`) as HTMLElement | null;
+		assert.ok(activeZone, `${zoneClass} must stay the active zone while SAS is shown`);
+		const dialog = activeZone.querySelector('.connection-pairing-confirm .monaco-dialog-box') as HTMLElement | null;
+		assert.ok(dialog, 'SAS confirm must render inside the active Connect zone');
+		assert.ok(dialog.textContent?.includes(sasCode), 'SAS code must be visible in the active zone');
+		const profiles = container.querySelector('.connection-profiles') as HTMLElement | null;
+		assert.ok(profiles);
+		assert.ok(!profiles.classList.contains('is-active-zone'), 'must not switch to Connection profiles to reveal SAS');
+		assert.ok(!profiles.contains(dialog), 'SAS must not be trapped under hidden profiles');
+		assert.strictEqual(getComputedStyle(profiles).display, 'none');
+		assert.notStrictEqual(getComputedStyle(dialog).display, 'none');
+		assert.notStrictEqual(getComputedStyle(activeZone).display, 'none');
+		const buttons = getPairingConfirmButtons(activeZone);
+		assert.strictEqual(buttons.length, 2);
+		assert.strictEqual(buttons[0].textContent, SAS_CONFIRM_BUTTON_LABEL);
+		assert.strictEqual(buttons[1].textContent, SAS_CANCEL_BUTTON_LABEL);
+		return dialog;
 	}
 
 	test('getConnectionTestStatusText reuses StatusBar phase copy', () => {
@@ -972,6 +1016,87 @@ suite('ConnectionPreferencesPane', () => {
 		assert.ok(status.textContent?.includes('TLS ServerName'));
 		assert.ok(status.classList.contains('is-error'));
 		container.remove();
+	});
+
+	test('direct Connect SAS confirm stays visible in Direct zone without switching to profiles', async () => {
+		let confirmCalls = 0;
+		const handshakeSas = 'R6X5-F0R1';
+		const { pane, workbench } = mountPaneInWorkbench({
+			addDirectAddressProfile: async () => ({ ok: true, profileId: 'direct-profile-1' }),
+			listConnectionProfiles: () => [{
+				profileId: 'direct-profile-1',
+				displayName: '127.0.0.1:50061',
+				state: 'pairingPending',
+				hasTrust: false,
+				targetKind: 'directAddress',
+			}],
+		}, {
+			connectProfile: async () => ({
+				ok: true,
+				path: 'direct',
+				pairingPending: true,
+				sasCode: handshakeSas,
+				engineIdentityId: '0123456789abcdef',
+			}),
+			confirmPairing: async () => {
+				confirmCalls++;
+				return { ok: true, path: 'direct', pairingPending: false, sessionToken: 'tok' };
+			},
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		pane.selectZone('direct');
+
+		const hostInput = (pane as unknown as { directHostInput: { value: string } }).directHostInput;
+		const portInput = (pane as unknown as { directPortInput: { value: string } }).directPortInput;
+		const allowPrivate = (pane as unknown as { directAllowPrivateCheckbox: { checked: boolean } }).directAllowPrivateCheckbox;
+		hostInput.value = '127.0.0.1';
+		portInput.value = '50061';
+		allowPrivate.checked = true;
+
+		const flow = (pane as unknown as { handleConnectDirectAddress(): Promise<void> }).handleConnectDirectAddress();
+		await waitForPairingDialog(container);
+		assertSasVisibleInActiveZone(container, '.connection-direct-address', handshakeSas);
+		clickPairingConfirm(container);
+		await flow;
+		assert.strictEqual(confirmCalls, 1);
+		workbench.remove();
+	});
+
+	test('device Connect SAS confirm stays visible in Devices zone without switching to profiles', async () => {
+		const handshakeSas = 'R6X5-F0R1';
+		const studio = device({ id: 'dev-1', name: 'Studio' });
+		const { pane, workbench } = mountPaneInWorkbench({
+			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
+			getDirectoryStatus: () => ({ kind: 'ok', devices: [studio] }),
+			addHubDeviceProfile: async () => ({ ok: true, profileId: 'hub-profile-1' }),
+			listConnectionProfiles: () => [{
+				profileId: 'hub-profile-1',
+				displayName: 'Studio',
+				state: 'pairingPending',
+				hasTrust: false,
+				targetKind: 'hubDevice',
+			}],
+		}, {
+			connectProfile: async () => ({
+				ok: true,
+				path: 'hubRelay',
+				pairingPending: true,
+				sasCode: handshakeSas,
+				engineIdentityId: '0123456789abcdef',
+			}),
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		pane.selectZone('devices');
+		await Promise.resolve();
+
+		const flow = (pane as unknown as { handleConnectDevice(device: HubDeviceProjection): Promise<void> }).handleConnectDevice(studio);
+		await waitForPairingDialog(container);
+		assertSasVisibleInActiveZone(container, '.connection-hub-devices', handshakeSas);
+		clickPairingCancel(container);
+		await flow;
+		workbench.remove();
 	});
 
 	test('SAS cancel calls cancelPairing once', async () => {

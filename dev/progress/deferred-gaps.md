@@ -4,8 +4,8 @@ type: progress
 status: accepted
 phase: N/A
 created: 2026-08-30
-updated: 2026-09-06
-summary: "延期缺口 SSOT；D16 Lens 断言债；D22 F3；D15 欠 W1；D23 confirmPairing；D24 其余 JSON RPC；D25 ghost UI；D26 引擎建壳回 6；D27 Lens 编辑态整树重建"
+updated: 2026-09-07
+summary: "延期缺口 SSOT；D16 Lens 断言债；D22 F3；D15 欠 W1；D23 confirmPairing；D24 其余 JSON RPC；D25 ghost UI；D26 引擎建壳回 6；D27 Lens 编辑态整树重建；D28 Connection 旁路 UI"
 ---
 
 # Deferred Gaps
@@ -44,6 +44,7 @@ summary: "延期缺口 SSOT；D16 Lens 断言债；D22 F3；D15 欠 W1；D23 con
 | D27 | P3 | **Lens 编辑态整树重建**：`ConversationTimelineTree.setEditingTurnId` 走 `refreshTurnPresentation` → 整棵 `setChildren` 基线重建，只为把一行切进编辑态；重建时 `.conversation-lens-turn-edit-host` 还是空的（composer 由随后的 `syncComposerPlacement` 才搬进来），ListView 因此量到 0px 行高。本轮先在 `conversationTimelineRenderer` 给 edit host 加 1px 下限止血 | 真修点在 `conversationTimelineTree.ts` / `conversationTimelineApply.ts`（工位 B 在途），本轮不得触碰 | 编辑态只重渲染目标行（或渲染时 composer 已就位），删掉 renderer 里的 1px 下限后 `conversationLens.test.ts` 仍无 console 输出 | M6 / conversation | open |
 | D19 | P2 | **L1 源码复核残留**（[a11y-rwd-l1.md](a11y-rwd-l1.md)）：(1) Engine/Connection **无动画节点**，不挂 `.ua-motion`；(2) T1 HC 已覆盖 Preferences pane 与 Visualize overlay；(3) Connection 300px 已有分区导航 + Back。**(4) Web 省略门控与点名文案已在 E2-1 收口** | 三项源码残留已收；手测/axe 仍归 D17 | 手测/axe 记 D17，不重开本行 | M7 a11y | closed |
 | D20 | P2 | **CS-6 Settings 默认窗 300px 目视**：`uaClientSettingsChrome.css` 已保证 narrow-width 下搜索框与 group title 不 `display:none` 且可省略；`settingsUaToc` 有合同测。本机隔离 launch 因 `@grpc/grpc-js` 缺失未能开窗目视 | 代码完成线不阻塞；活窗目视仍欠 | 隔离 profile 打开默认窗 Settings，缩到约 300px，确认搜索框与 Client 组标题仍可见、无 emptyCopy；失败记入 D17 | M7 verification | open |
+| D28 | P2 | **Connection pane 旁路 UI**（非本轮 SAS 可见性）：(1) 对话身份条被挡住；(2) 连接诊断转储文案难读；(3) Devices 区 Connect 的 `testStatus` 仍写在 Test zone，Devices 看不见 | 本轮只修 Direct / 发起 Connect 的 zone 里 SAS Confirm/Cancel 可见；父指令禁止顺手修这些 | 身份条不被挡；诊断文案可读且不含秘密；Devices Connect 状态写在 Devices 可见 status | UI / conversation | open |
 
 ## D2 工位池 compile 基线（2026-09-02，merge 工位 / `loop/merge`）
 
