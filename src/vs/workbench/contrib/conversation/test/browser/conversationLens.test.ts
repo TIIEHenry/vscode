@@ -377,7 +377,7 @@ suite('ConversationLens', () => {
 	}
 
 	function getSessionSelectLabel(slots: IConversationLensSlots): string | undefined {
-		const select = slots.sessionBar!.querySelector('select.monaco-select-box') as HTMLSelectElement | null;
+		const select = slots.sessionBar!.querySelector('.conversation-lens-session-select select.monaco-select-box') as HTMLSelectElement | null;
 		if (!select || select.options.length === 0) {
 			return undefined;
 		}
@@ -1873,7 +1873,7 @@ suite('ConversationLens', () => {
 		assert.ok(stubService.getActiveSession().title.includes('Untitled'));
 		assert.strictEqual(getSessionSelectLabel(slots), stubService.getActiveSession().title);
 		assert.strictEqual(titleLive.textContent, stubService.getActiveSession().title);
-		assert.strictEqual(slots.sessionBar!.querySelector('select.monaco-select-box option')?.textContent, stubService.getActiveSession().title);
+		assert.strictEqual(slots.sessionBar!.querySelector('.conversation-lens-session-select select.monaco-select-box option')?.textContent, stubService.getActiveSession().title);
 	});
 
 	test('user turns are display-only; assistant turns expose Copy and Delete action bars', async () => {
