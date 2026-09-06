@@ -89,7 +89,9 @@ export class ConversationSessionViewFrameCoalescer extends Disposable {
 			this.handle = undefined;
 			const batch = this.pending;
 			this.pending = [];
-			this.flush(mergeSessionViewFrames(batch));
+			for (const merged of mergeSessionViewFrames(batch)) {
+				this.flush(merged);
+			}
 		}, FRAME_COALESCE_MS);
 	}
 
@@ -103,31 +105,36 @@ export class ConversationSessionViewFrameCoalescer extends Disposable {
 	}
 }
 
-export function mergeSessionViewFrames(frames: readonly ConversationViewFrameApplied[]): ConversationViewFrameApplied {
-	if (frames.length === 0) {
-		return { kind: 'patches', changedIds: new Set() };
-	}
-	if (frames.some(frame => frame.kind === 'baseline')) {
-		return { kind: 'baseline' };
-	}
-
+/**
+ * Merges one coalesce window into the applies the timeline consumes. Patches and effects
+ * cannot travel in one apply, so a mixed window flushes twice: effects carry one-shot
+ * notices (outbox overflow / flush timeout / send failure, plan §3.5) and dropping them
+ * would silently hide a failed send.
+ */
+export function mergeSessionViewFrames(frames: readonly ConversationViewFrameApplied[]): ConversationViewFrameApplied[] {
 	const effects: ViewEffect[] = [];
 	const changedIds = new Set<string>();
+	let hasBaseline = false;
 	for (const frame of frames) {
-		if (frame.kind === 'effects') {
+		if (frame.kind === 'baseline') {
+			hasBaseline = true;
+		} else if (frame.kind === 'effects') {
 			effects.push(...frame.effects);
-		} else if (frame.kind === 'patches') {
+		} else {
 			for (const id of normalizeSessionViewChangedIds(frame.changedIds)) {
 				changedIds.add(id);
 			}
 		}
 	}
 
-	if (changedIds.size > 0) {
-		return { kind: 'patches', changedIds };
+	const merged: ConversationViewFrameApplied[] = [];
+	if (hasBaseline) {
+		merged.push({ kind: 'baseline' });
+	} else if (changedIds.size > 0 || effects.length === 0) {
+		merged.push({ kind: 'patches', changedIds });
 	}
 	if (effects.length > 0) {
-		return { kind: 'effects', effects };
+		merged.push({ kind: 'effects', effects });
 	}
-	return { kind: 'patches', changedIds };
+	return merged;
 }
