@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import type { ConversationViewFrameApplied } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
-import { projectProcessFoldSpans } from './conversationProcessFoldModel.js';
+import { ProcessFoldSpan, projectProcessFoldSpans } from './conversationProcessFoldModel.js';
 import { ConversationStubTurn } from './conversationStubModel.js';
 
 export type TimelineApplyMode = 'baseline' | 'structure' | 'content' | 'none';
@@ -13,13 +13,17 @@ export interface TimelineApplyPlan {
 	readonly mode: TimelineApplyMode;
 	readonly rerenderIds: ReadonlySet<string>;
 	readonly removedTreeIds: ReadonlySet<string>;
+	/** Process-fold spans of the next turns; projected once per frame for the whole apply path. */
+	readonly spans: readonly ProcessFoldSpan[];
 }
 
 /**
  * Root-level tree identities after process-fold projection (plan §3.4 type B/C).
  */
-export function buildTimelineRootIdentities(turns: readonly ConversationStubTurn[]): readonly string[] {
-	const spans = projectProcessFoldSpans(turns);
+export function buildTimelineRootIdentities(
+	turns: readonly ConversationStubTurn[],
+	spans: readonly ProcessFoldSpan[] = projectProcessFoldSpans(turns),
+): readonly string[] {
 	const spanByStartIndex = new Map(spans.map(span => [span.startIndex, span]));
 	const coveredIndices = new Set<number>();
 	for (const span of spans) {
@@ -43,9 +47,8 @@ export function buildTimelineRootIdentities(turns: readonly ConversationStubTurn
 	return ids;
 }
 
-function buildTurnToRootIdMap(turns: readonly ConversationStubTurn[]): Map<string, string> {
+function buildTurnToRootIdMap(turns: readonly ConversationStubTurn[], spans: readonly ProcessFoldSpan[]): Map<string, string> {
 	const map = new Map<string, string>();
-	const spans = projectProcessFoldSpans(turns);
 	for (const span of spans) {
 		for (const turnId of span.turnIds) {
 			map.set(turnId, span.id);
@@ -71,12 +74,11 @@ function sameRootSequence(a: readonly string[], b: readonly string[]): boolean {
 	return true;
 }
 
-function collectRemovedTreeIds(prevTurns: readonly ConversationStubTurn[], nextTurns: readonly ConversationStubTurn[]): Set<string> {
-	const prevRoots = new Set(buildTimelineRootIdentities(prevTurns));
-	const nextRoots = new Set(buildTimelineRootIdentities(nextTurns));
+function collectRemovedTreeIds(prevRoots: readonly string[], nextRoots: readonly string[]): Set<string> {
+	const nextRootIds = new Set(nextRoots);
 	const removed = new Set<string>();
 	for (const id of prevRoots) {
-		if (!nextRoots.has(id)) {
+		if (!nextRootIds.has(id)) {
 			removed.add(id);
 		}
 	}
@@ -86,15 +88,28 @@ function collectRemovedTreeIds(prevTurns: readonly ConversationStubTurn[], nextT
 function mapChangedIdsToTreeIds(
 	turns: readonly ConversationStubTurn[],
 	changedIds: ReadonlySet<string>,
+	spans: readonly ProcessFoldSpan[],
 ): Set<string> {
-	const turnToRoot = buildTurnToRootIdMap(turns);
+	const turnToRoot = buildTurnToRootIdMap(turns, spans);
 	const rerenderIds = new Set<string>();
 	for (const rawId of changedIds) {
-		if (rawId === 'sync' || rawId.startsWith('pending:')) {
+		// Session-level chrome, owned by SessionBar / Inbox: no tree row carries these ids.
+		if (rawId === 'sync' || rawId.startsWith('chrome:')) {
 			continue;
 		}
 		if (rawId.startsWith('send:')) {
 			rerenderIds.add(rawId);
+			continue;
+		}
+		if (rawId.startsWith('pending:')) {
+			// A pending requestId addresses the permission row of the same id and the
+			// `${requestId}:${childKey}` question rows fanned out from one ask.
+			const requestId = rawId.slice('pending:'.length);
+			for (const [turnId, rootId] of turnToRoot) {
+				if (turnId === requestId || turnId.startsWith(`${requestId}:`)) {
+					rerenderIds.add(rootId);
+				}
+			}
 			continue;
 		}
 		const treeId = turnToRoot.get(rawId) ?? rawId;
@@ -113,32 +128,22 @@ export function computeTimelineApplyPlan(
 	applied: ConversationViewFrameApplied,
 ): TimelineApplyPlan {
 	if (applied.kind === 'effects') {
-		return { mode: 'none', rerenderIds: new Set(), removedTreeIds: new Set() };
+		return { mode: 'none', rerenderIds: new Set(), removedTreeIds: new Set(), spans: [] };
 	}
+
+	const nextSpans = projectProcessFoldSpans(nextTurns);
+	const prevRoots = buildTimelineRootIdentities(prevTurns);
+	const nextRoots = buildTimelineRootIdentities(nextTurns, nextSpans);
+	const removedTreeIds = collectRemovedTreeIds(prevRoots, nextRoots);
 
 	if (applied.kind === 'baseline') {
-		return {
-			mode: 'baseline',
-			rerenderIds: new Set(),
-			removedTreeIds: collectRemovedTreeIds(prevTurns, nextTurns),
-		};
-	}
-
-	const prevRoots = buildTimelineRootIdentities(prevTurns);
-	const nextRoots = buildTimelineRootIdentities(nextTurns);
-	const removedTreeIds = collectRemovedTreeIds(prevTurns, nextTurns);
-
-	if (!sameRootSequence(prevRoots, nextRoots)) {
-		return {
-			mode: 'structure',
-			rerenderIds: mapChangedIdsToTreeIds(nextTurns, applied.changedIds),
-			removedTreeIds,
-		};
+		return { mode: 'baseline', rerenderIds: new Set(), removedTreeIds, spans: nextSpans };
 	}
 
 	return {
-		mode: 'content',
-		rerenderIds: mapChangedIdsToTreeIds(nextTurns, applied.changedIds),
+		mode: sameRootSequence(prevRoots, nextRoots) ? 'content' : 'structure',
+		rerenderIds: mapChangedIdsToTreeIds(nextTurns, applied.changedIds, nextSpans),
 		removedTreeIds,
+		spans: nextSpans,
 	};
 }

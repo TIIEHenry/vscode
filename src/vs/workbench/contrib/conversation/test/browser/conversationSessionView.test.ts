@@ -6,7 +6,7 @@
 import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import type { ConversationViewFrameApplied } from '../../../../../platform/universeAgent/common/conversationViewFrame.js';
-import type { SessionViewSnapshot } from '../../../../../platform/universeAgent/common/sessionView/index.js';
+import type { OperationId, OverlayBlockId, SessionViewSnapshot, TextChunkId } from '../../../../../platform/universeAgent/common/sessionView/index.js';
 import {
 	diffProjections,
 	entriesToLegacyTurns,
@@ -91,6 +91,27 @@ suite('conversationSessionView (S1)', () => {
 			['send:op-1', 'user', 'second', true],
 		]);
 		assert.deepStrictEqual(entriesToLegacyTurns(entries).map(t => t.id), ['u1']);
+	});
+
+	test('localPendingSends sit after the timeline and before the overlay (§3.3)', () => {
+		const base = stubTurnsToSnapshot('s', [{ id: 'u1', kind: 'user', text: 'first' }]);
+		const snapshot: SessionViewSnapshot = {
+			...base.snapshot,
+			localPendingSends: [
+				{ operationId: 'op-1' as OperationId, summary: { kind: 'text', title: 'You', preview: 'second' } },
+				{ operationId: 'op-2' as OperationId, summary: { kind: 'text', title: 'You', preview: 'third' } },
+			],
+			overlay: {
+				blocks: [{
+					blockId: 'b1' as OverlayBlockId,
+					orderKey: '0000000001',
+					summary: { kind: 'text', title: 'Agent', preview: '' },
+					chunks: [{ chunkId: 'c1' as TextChunkId, orderKey: '0000000000', text: 'streaming' }],
+				}],
+			},
+		};
+		const entries = projectSnapshotToEntries(snapshot, base.attribution, base.details);
+		assert.deepStrictEqual(entries.map(e => e.id), ['u1', 'send:op-1', 'send:op-2', 'overlay:b1']);
 	});
 
 	test('diffProjections emits id-keyed patches only for what changed', () => {

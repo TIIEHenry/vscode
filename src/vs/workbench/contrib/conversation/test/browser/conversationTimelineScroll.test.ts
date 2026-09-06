@@ -4,12 +4,20 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { timeout } from '../../../../../base/common/async.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import {
 	computeTimelineApplyPlan,
 	buildTimelineRootIdentities,
 } from '../../browser/conversationTimelineApply.js';
-import { mergeSessionViewFrames, normalizeSessionViewChangedIds, normalizeSessionViewFrameApplied } from '../../browser/conversationSessionViewFrameCoalescer.js';
+import {
+	ConversationSessionViewFrameCoalescer,
+	mergeSessionViewFrames,
+	normalizeSessionViewChangedIds,
+	normalizeSessionViewFrameApplied,
+} from '../../browser/conversationSessionViewFrameCoalescer.js';
+import type { ConversationViewFrameApplied } from '../../../../../platform/universeAgent/common/conversationViewFrame.js';
+import type { ViewEffect } from '../../../../../platform/universeAgent/common/sessionView/index.js';
 import {
 	entriesToRenderableTurns,
 	projectSnapshotToEntries,
@@ -113,19 +121,63 @@ suite('ConversationTimelineApply (S2 three-frame matrix)', () => {
 		assert.notDeepStrictEqual(buildTimelineRootIdentities(prev), buildTimelineRootIdentities(next));
 	});
 
+	test('pending: prefix maps to the permission row and to the question child rows of one ask', () => {
+		const seat = (id: string, status: 'pending' | 'allowed'): ConversationStubTurn => ({ id, kind: 'confirmation', text: 'run tests', status });
+		const questionChild = (id: string): ConversationStubTurn => ({ id, kind: 'question', text: 'pick one', status: 'pending' });
+		const prev = [user('u1', 'go'), seat('req-1', 'pending'), questionChild('ask-1:q_0'), questionChild('ask-1:q_1')];
+		const next = [user('u1', 'go'), seat('req-1', 'allowed'), questionChild('ask-1:q_0'), questionChild('ask-1:q_1')];
+
+		const plan = computeTimelineApplyPlan(prev, next, {
+			kind: 'patches',
+			changedIds: new Set(['pending:req-1', 'pending:ask-1']),
+		});
+
+		assert.strictEqual(plan.mode, 'content');
+		assert.deepStrictEqual([...plan.rerenderIds].sort(), ['ask-1:q_0', 'ask-1:q_1', 'req-1']);
+	});
+
+	test('session-level chrome ids never mint a tree rerender id', () => {
+		const turns = [user('u1', 'go')];
+		const plan = computeTimelineApplyPlan(turns, turns, {
+			kind: 'patches',
+			changedIds: new Set(['sync', 'chrome:setLiveAgentTree', 'u1']),
+		});
+		assert.deepStrictEqual([...plan.rerenderIds], ['u1']);
+	});
+
 	test('effects frame → none (tree unchanged)', () => {
 		const turns = [user('u1', 'x')];
 		const plan = computeTimelineApplyPlan(turns, turns, { kind: 'effects', effects: [] });
 		assert.strictEqual(plan.mode, 'none');
 	});
 
-	test('mergeSessionViewFrames keeps patches when mixed with effects', () => {
+	const sendFailed = (id: string): ViewEffect => ({ effectId: id as ViewEffect['effectId'], kind: 'sendFailed', message: 'send failed' });
+
+	test('mergeSessionViewFrames flushes patches and effects instead of dropping the effects', () => {
+		const effect = sendFailed('e1');
 		const merged = mergeSessionViewFrames([
 			{ kind: 'patches', changedIds: new Set(['a1']) },
-			{ kind: 'effects', effects: [] },
+			{ kind: 'effects', effects: [effect] },
 		]);
-		assert.strictEqual(merged.kind, 'patches');
-		assert.deepStrictEqual([...(merged as { changedIds: ReadonlySet<string> }).changedIds], ['a1']);
+		assert.deepStrictEqual(merged, [
+			{ kind: 'patches', changedIds: new Set(['a1']) },
+			{ kind: 'effects', effects: [effect] },
+		]);
+	});
+
+	test('coalescer delivers both applies of a mixed window to the timeline', async () => {
+		const flushed: ConversationViewFrameApplied[] = [];
+		const coalescer = new ConversationSessionViewFrameCoalescer(applied => flushed.push(applied));
+		coalescer.push({ kind: 'patches', changedIds: new Set(['a1']) });
+		coalescer.push({ kind: 'effects', effects: [sendFailed('e1')] });
+		coalescer.push({ kind: 'patches', changedIds: new Set(['a2']) });
+		await timeout(64);
+		coalescer.dispose();
+
+		assert.deepStrictEqual(flushed, [
+			{ kind: 'patches', changedIds: new Set(['a1', 'a2']) },
+			{ kind: 'effects', effects: [sendFailed('e1')] },
+		]);
 	});
 
 	test('mergeSessionViewFrames unions patch changedIds within one coalesce window', () => {
@@ -133,8 +185,7 @@ suite('ConversationTimelineApply (S2 three-frame matrix)', () => {
 			{ kind: 'patches', changedIds: new Set(['a1']) },
 			{ kind: 'patches', changedIds: new Set(['a2']) },
 		]);
-		assert.strictEqual(merged.kind, 'patches');
-		assert.deepStrictEqual([...(merged as { changedIds: ReadonlySet<string> }).changedIds].sort(), ['a1', 'a2']);
+		assert.deepStrictEqual(merged, [{ kind: 'patches', changedIds: new Set(['a1', 'a2']) }]);
 	});
 
 	test('normalizeSessionViewChangedIds accepts Set, array, plain object, and undefined', () => {
@@ -151,8 +202,7 @@ suite('ConversationTimelineApply (S2 three-frame matrix)', () => {
 			{ kind: 'patches', changedIds: ['a1'] as unknown as ReadonlySet<string> },
 			{ kind: 'patches', changedIds: { a2: true } as unknown as ReadonlySet<string> },
 		]);
-		assert.strictEqual(merged.kind, 'patches');
-		assert.deepStrictEqual([...(merged as { changedIds: ReadonlySet<string> }).changedIds].sort(), ['a1', 'a2']);
+		assert.deepStrictEqual(merged, [{ kind: 'patches', changedIds: new Set(['a1', 'a2']) }]);
 	});
 
 	test('normalizeSessionViewFrameApplied preserves baseline and effects', () => {

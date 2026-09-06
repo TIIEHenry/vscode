@@ -37,7 +37,7 @@ export interface IConversationLensProjectionHost {
 	inputMaximized: boolean;
 	conversationPhase: 'prefirst' | 'active' | undefined;
 	composerPolicy: 'compose' | 'turnEdit' | 'queueEdit';
-	lastAttachedEntries: ConversationTimelineEntry[];
+	lastAttachedEntries: readonly ConversationTimelineEntry[];
 	sessionViewLease: IConversationSessionViewLease | undefined;
 	relayoutReadingSurfaces(): void;
 	readonly slotHosts: IConversationLensSlots;
