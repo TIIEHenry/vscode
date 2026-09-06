@@ -219,26 +219,37 @@ export function stubTurnsToSnapshot(sessionId: string, turns: readonly Conversat
 
 // ---- snapshot → product entries --------------------------------------------------------------
 
+/**
+ * Row bands of §3.3: `localPendingSends` sit after the timeline and before the overlay. The three
+ * sources mint `orderKey` independently, so the band orders across sources and `orderKey` only
+ * ever orders within one — a row's band is never inferred by parsing its `orderKey`.
+ */
+const BAND_TIMELINE = 0;
+const BAND_LOCAL_PENDING_SEND = 1;
+const BAND_OVERLAY = 2;
+
 export function projectSnapshotToEntries(
 	snapshot: SessionViewSnapshot,
 	attribution: ReadonlyMap<string, ItemAttribution>,
 	details: ReadonlyMap<string, string>,
 ): ConversationTimelineEntry[] {
 	const pendingIds = new Set<string>(snapshot.pendingActions.map(action => String(action.requestId)));
-	const ordered: { readonly orderKey: string; readonly entry: ConversationTimelineEntry }[] = [];
+	const ordered: { readonly band: number; readonly orderKey: string; readonly entry: ConversationTimelineEntry }[] = [];
 
 	const sortedTimeline = snapshot.timeline.slice().sort((a, b) => compareOrderKeys(a.orderKey, b.orderKey));
 	for (const item of sortedTimeline) {
 		const entry = timelineItemToEntry(item, attribution.get(String(item.id)), details, pendingIds);
 		if (entry) {
-			ordered.push({ orderKey: item.orderKey, entry });
+			ordered.push({ band: BAND_TIMELINE, orderKey: item.orderKey, entry });
 		}
 	}
 
 	for (const send of snapshot.localPendingSends) {
 		const id = `send:${String(send.operationId)}`;
+		// PendingSendView has no orderKey; the snapshot array is the queue order, kept by the stable sort.
 		ordered.push({
-			orderKey: send.summary.kind === 'text' ? 'zzzz-send' : 'zzzz-send',
+			band: BAND_LOCAL_PENDING_SEND,
+			orderKey: '',
 			entry: {
 				id,
 				kind: 'user',
@@ -255,6 +266,7 @@ export function projectSnapshotToEntries(
 		const text = block.chunks.slice().sort((a, b) => compareOrderKeys(a.orderKey, b.orderKey)).map(chunk => chunk.text).join('');
 		const kind: ConversationTimelineEntryKind = block.summary.kind === 'reasoning' ? 'thinking' : block.summary.kind === 'tool' ? 'tool' : 'assistant';
 		ordered.push({
+			band: BAND_OVERLAY,
 			orderKey: block.orderKey,
 			entry: {
 				id: key,
@@ -272,7 +284,7 @@ export function projectSnapshotToEntries(
 		});
 	}
 
-	ordered.sort((a, b) => compareOrderKeys(a.orderKey, b.orderKey));
+	ordered.sort((a, b) => a.band - b.band || compareOrderKeys(a.orderKey, b.orderKey));
 	return ordered.map(item => item.entry);
 }
 
