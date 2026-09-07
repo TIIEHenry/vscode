@@ -1,0 +1,17 @@
+{
+  "run_id": "w1-1556dde3",
+  "sha": "1556dde3d326d344e175f9ca16d1a48c79a79686",
+  "outcome": "PASS",
+  "assertions": {
+    "V1_conversation_present": "PASS",
+    "V2_agent_ide_chrome": "PASS",
+    "V3_connection_omits_desktop_controls": "PASS",
+    "V3_engine_omits_test_engine": "PASS",
+    "connection_phase": "disconnected",
+    "unsupported_environment": "observed via capability/connectProfile + named copy; phase.kind remains disconnected"
+  },
+  "non_blocking": [
+    "Several built-in web extensions 404 (emmet / git-base / merge-conflict / watch-web dist). Workbench still booted.",
+    "Preview part has no file; .part.editor geometry is 0. Four-button chrome still present."
+  ]
+}

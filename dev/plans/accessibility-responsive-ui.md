@@ -3,8 +3,8 @@ title: "可访问性与响应式 UI 完成方案"
 type: plan
 status: accepted
 phase: M7
-updated: 2026-09-04
-summary: "K1/K2/T1/L1 与 Q5b/Q6/E2-1/E2-7 代码已落；D19 全收；conversation chevron transition 已收口到 .ua-motion；W1 未跑；方案仍 accepted"
+updated: 2026-09-07
+summary: "K1/K2/T1/L1 与 Q5b/Q6/E2-1/E2-7 代码已落；D19 全收；conversation chevron transition 已收口到 .ua-motion；W1 已跑（d15-evidence/w1-1556dde3 PASS）；方案仍 accepted"
 ---
 
 # 可访问性与响应式 UI 完成方案
@@ -108,7 +108,7 @@ C 对 B/A 实施的切片提供验收清单（§9）并复核，不直接改 B/A
 | K1 | 四 Part keybindings 复核（`layoutActions.ts`）与 Keyboard Shortcuts 可见性；确认 chat tab 切换复用 editor group 命令、不另绑 | 键位登记 [commands §7](../../docs/systems/conversation/commands.md)；C 不改 `conversation.contribution.ts` | — |
 | K2 | Sources Review 行命令键盘路径 | 新建 `contrib/sources/browser/sourcesReviewCommands.contribution.ts`（`sources.contribution.ts` 加一行 import，C 拥有）：`sources.review.openSelected`（复用 `openSourcesChangeEntry`）、`sources.review.toggleReviewedSelected`（复用现有 Action `sources.review.markReviewed` / `markUnreviewed` 逻辑）、`sources.review.markAllReviewed`；为拿到选中行，扩展 `ISourcesReviewListHost`（`sourcesReviewHostService.ts`）暴露 `getSelectedEntry()`，实现类是 `SourcesTabsHost`（`sourcesTabsHost.ts:34`）转发到 `sourcesReviewList.ts`（C 在 K2 内改这两处）。**无「宿主移动」命令**（现无对应动作，不造）。改 [commands §5](../../docs/systems/conversation/commands.md)（今天写「Sources 无独立命令」） | — |
 | T1 | 公共文件 `browser/parts/conversation/media/ua-common.css`：高对比度选择器写 `.monaco-workbench.hc-black` / `.monaco-workbench.hc-light`（见 `workbench/browser/media/style.css:129`，不是 UA 根 class）、`.ua-motion` + `prefers-reduced-motion` 规则；200% zoom overlay 复核 | 公共文件落地并被 `conversationPart.ts` import；B 挂 conversation 动画 class；A Engine/Connection 无动画节点不挂 | — |
-| W1 | Web 冒烟脚本（`scripts/code-web.sh` / server 入口）+ D4 式 V1–V3 断言 + 桌面专属控件省略复核；证据入 `d15-evidence/` | Web 启动、四钮、Conversation 存在；Connection/Engine 页无桌面连接控件（依赖 A E2-1） | **P0**、A E2-1 |
+| W1 | Web 冒烟脚本（`scripts/code-web.sh` / server 入口）+ D4 式 V1–V3 断言 + 桌面专属控件省略复核；证据入 `d15-evidence/` | **已跑 @2026-09-07** [w1-1556dde3](../progress/d15-evidence/w1-1556dde3/)：Web 启动、四钮、Conversation 存在；Connection/Engine 页无桌面连接控件 | **P0**、A E2-1 |
 | L1 | 验收清单（§9）交 B/A，并在其切片合入后复核 | 清单逐项有 pass/fail 记录 | B Q5a/Q5b/Q6/CS-2、A E2-1/E2-7、C K2 |
 
 ## 9. 验收清单（交 B/A 实施切片使用；kind 名按代码）
