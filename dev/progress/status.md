@@ -53,12 +53,12 @@ summary: "人类工位已对齐已推送 MERGE_SHA c1b228caf74；保留本机行
 
 人类工位已 merge `c1b228caf74`（先 commit 行动层再三路合）。Direct 接通已通。Chat 仍被引擎空壳 Create（目录在、`session_meta` 空、回 6）挡住；不要再清 `.sessions` 当主线。见 [D26](deferred-gaps.md)。**U2 未开**。**PRD-008 不升 `implemented`**。
 
-1. **集成 tip** 以 merge 本关仓提交为准（P2 已串行 C=`aaa6b278b4e` / D=`2ae059e42f1`）。`npm run compile` 仍基线 unused 红则 **不 push**。GFS >800 不拆。
+1. **集成 tip** 以 merge 本关仓提交为准（P2 已串行 B=`088ad1ba7fd`）。`npm run compile` 仍基线 unused 红则 **不 push**。GFS >800 不拆。
 2. 本波字母槽已进 merge：
-   - **A**：本波空闲。上波 D40 已在 merge；[D26](deferred-gaps.md) 引擎 Create meta 仍 open。
-   - **B**：`lens-t5-exit-title` — T5 Exit 改验 `aria-label`（`title` 属性为 null）；该测补 `this.timeout(15000)`。T5 三测单跑绿。全量 `conversationLens.test.ts` **87/97**（10 红未定性）。**[D16](deferred-gaps.md) 仍开**。
-   - **C**：[D41](deferred-gaps.md) closed（Inbox `FAILED`→`queue-failed`，`UPLOAD_FAILED` 仍 `upload-failed`；Retry 接线未改）。
-   - **D**：Open Selected 空 catch 已收（`sourcesGitDiffOpenFailureMessage` + Review status）；**[D31](deferred-gaps.md) 仍开**（F4）；R8 未发明。
+   - **A**：本波空闲。[D26](deferred-gaps.md) 引擎 Create meta 仍 open。
+   - **B**：T5 Exit 改验 `aria-label`；全量 Lens **87/97**。**[D16](deferred-gaps.md) 仍开**。
+   - **C**：本波空闲。上波 D41 已在 merge。
+   - **D**：本波空闲。[D31](deferred-gaps.md) 仍开（F4）。
 
 子 agent 发现的既有代码问题：
 
