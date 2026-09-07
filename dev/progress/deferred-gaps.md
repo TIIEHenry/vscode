@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-08
-summary: "延期缺口 SSOT；D16 仍开；D45–D56 已闭；D22 F3；D24 其余 JSON RPC；D25 引擎 List 真空；D26 引擎建壳回 6；D31 F4 / A2 blocked；Team leftover 已清；Snapshots / MCP / Skills create 写失败 write-status 已挂载"
+summary: "延期缺口 SSOT；D16 仍开；D45–D57 已闭；D22 F3；D24 其余 JSON RPC；D25 引擎 List 真空；D26 引擎建壳回 6；D31 F4 / A2 blocked；Team leftover 已清；Snapshots / MCP / Skills create / Agents 写失败 write-status 已挂载"
 ---
 
 # Deferred Gaps
@@ -73,6 +73,7 @@ summary: "延期缺口 SSOT；D16 仍开；D45–D56 已闭；D22 F3；D24 其�
 | D54 | P3 | **Snapshots Restore/Delete 失败无 write-status**：`restoreThenRefreshList` / `deleteThenRefreshList` 吞 `ok:false` 与 throw 且不刷新（leftover 行是合同）；overlay 原无失败行，且不得用 `paintStatus`（会 reset body 卸行） | B 槽 `snapshots-write-status` 已收：panel 独立 write-status（不 unload 行）；`ok:false` / throw 画 `Unable to restore:` / `Unable to delete:`；测锁 status DOM + 行仍在。未关 D16；未发明 GetQueue / proto；未碰 F4 / 引擎 / `dev/loop` | overlay write-status 在 Restore/Delete `ok:false` / throw 可见且行仍在；`paintStatus` 不用于写失败；fail 仍不 refresh | conversation | closed |
 | D55 | P3 | **MCP Add/Update/Remove 失败无 catalog status**：`addServer` / `updateSelectedServer` / `removeSelectedServer` 已 catch / `!result.ok` 并 `return false`；按钮 `void this.addServer()` 等。失败无 status（Plugins 已有 `showWriteFailed`）。末次 catalog 行应保留，不得 `clearCatalogPresentation` | B 槽 `mcp-write-status` 已收：写失败画 catalog status（不卸行、不 refresh）；测锁 status DOM + 行仍在。未关 D16；未发明 GetQueue / proto；未碰 F4 / 引擎 / `dev/loop` | catalog write-status 在 Add/Update/Remove `ok:false` / throw 可见且行仍在；不 `clearCatalogPresentation`；fail 仍不 refresh | conversation | closed |
 | D56 | P3 | **Skills `createSkill` 失败无 write-status**：`createSkill` 在 `{ ok:false }` / throw 只 `return false`，不画 status；`saveSelectedSkillBody` 已画 `.engine-skill-body-status`。失败不得造假行、不得改选中、不得 `clearCatalogPresentation` | A 槽 `skills-create-status` 已收：fail 画 body/toolbar write-status；测锁 status DOM + 无假行。未关 D16；未发明 GetQueue / proto；未碰 F4 / 引擎 / `dev/loop` / MCP | create fail 可见 write-status；无假行、不改选中、不清 catalog 行；`engineSkillsSection.test.ts` ok:false / throw 绿 | conversation | closed |
+| D57 | P3 | **Agents create/delete/reset / save 失败无 catalog write-status**：`createProfile` / `deleteSelectedProfile` / `resetSelectedProfile` / `saveSelectedProfile` 在 `ok:false` / 空 id / throw 只 `return false`。失败不得 refresh、不得改选中、不得 `clearCatalogPresentation`。`saveAgentsMarkdown` 应复用已有 `.engine-agents-editor-status`。Tools enablement 不在本刀 | B 槽 `agents-write-status` 已收：toolbar 写失败画 `.engine-catalog-write-status`；markdown 保存失败复用 editor-status；测锁 status DOM + 无假行。未关 D16；未发明 GetQueue / proto；未碰 F4 / 引擎 / `.sessions` / `dev/loop`；未做 Tools enablement | create/delete/reset / save fail 可见 write-status；无假行、不改选中、不清 catalog、不 refresh；`engineCatalogSections.test.ts` ok:false / throw 绿 | conversation | closed |
 
 ## D2 工位池 compile 基线（2026-09-02，merge 工位 / `loop/merge`）
 
