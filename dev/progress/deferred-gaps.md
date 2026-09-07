@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-07
-summary: "延期缺口 SSOT；D16 仍开（切片 3 名单已落，三文件标题未列入；compile/S2 leftover 不闭）；D17 DiffReview afterEach / FileMutationJoin / S1a createScoped 已修、CI 已排除 11 个 unloadable node 测；D22 F3；D24 其余 JSON RPC；D25 引擎 List 真空；D26 引擎建壳回 6；D31 F4 / A2 blocked"
+summary: "延期缺口 SSOT；D16 仍开（切片 3 名单已落，三文件标题未列入；compile/S2 leftover 不闭）；D17 DiffReview afterEach / FileMutationJoin / S1a createScoped / StatusBar leftover 夹具已修、CI 已排除 11 个 unloadable node 测；D22 F3；D24 其余 JSON RPC；D25 引擎 List 真空；D26 引擎建壳回 6；D31 F4 / A2 blocked"
 ---
 
 # Deferred Gaps
@@ -334,7 +334,7 @@ $REPO/scripts/code-cli.sh --extensions-dir="$EXT_DIR" \
 | `d2abb648c0e` | conversation：`ConversationDiffReviewPane` 泄漏 **已修**（pane `dispose`/`clearEditors` + disposable listener；navigation/aggregation/fence 停引真实 contribution，改 stub）。afterEach 六行已从名单删除。官方 conversation 单 glob 不再被该泄漏中断 | leftover | B `diffreview-leak` |
 | `d2abb648c0e` | conversation：editor aggregation S1a scoped uniqueness **已修**（工位 B `create-scoped`）：生产 `createConversationEditorPart` 已按 part `createScoped`；测败在 mainPart 懒建缺 `IStatusbarService.createScoped`。夹具已补，未缩断言。名单该行已删 | leftover | B `create-scoped` |
 | `d2abb648c0e` | conversation：Lens visualize 两败 + reveal navigation 三败 + process fold span + pending-on-focus | baseline | A `test-baseline-slice3` |
-| `d2abb648c0e` | conversation：StatusBar 引擎入口 / H4b 相位文案；SessionsView 种子行；split / side-by-side；trajectory 角色标签 Permission≠Confirmation | baseline | A `test-baseline-slice3` |
+| `d2abb648c0e` | conversation：StatusBar 引擎入口 / H4b 相位文案 **夹具已改**（工位 A `statusbar-leftover`：去二次 `registerAction2` + Emitter leak；未缩断言、未关 D16、未改名单）；SessionsView 种子行；split / side-by-side；trajectory 角色标签 Permission≠Confirmation | leftover | A `statusbar-leftover` / A `test-baseline-slice3` |
 | `d2abb648c0e` | sources：`collectSourcesReviewEntries` 委托 `toResource`/`fullTitle` 未定义 | baseline | A `test-baseline-slice3` |
 | `d2abb648c0e` | universeAgent：`FileMutationJoin` lifecycle+snapshot **已修**（B：无 `diff_stats` 时 omit optional `diffStats`，不再写出 `undefined`）。名单该一行已删 | leftover | A `filemutation-join` |
 | `d2abb648c0e` | universeAgent：11 个 node 测 Electron ESM `Failed to fetch dynamically imported module`（无 JUnit testcase，未进名单）：connectionResolver / deviceAuthHandshake / deviceGrantCrypto / hubControlPlane / hubDirectoryClient / hubSessionStore / observeCandidateLeaf / pairingOrchestrator / universeAgentChannel / universeAgentConnection / universeAgentHubService。**CI 已排除这 11 个**（[`scripts/run-unit-custom.sh`](../../scripts/run-unit-custom.sh) 只匹配 `test/node/`；`browser/universeAgentConnection` 仍跑）；可加载的 `test/node` 仍进同一 `--tfs universeAgent`，不拆多趟以免 XML 互盖 | baseline | A `test-baseline-slice3` / A `unit-custom-xml` |
