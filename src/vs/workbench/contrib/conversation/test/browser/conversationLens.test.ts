@@ -2162,6 +2162,44 @@ suite('ConversationLens', () => {
 		assert.strictEqual(queryTimeline(slots, '.conversation-lens-turn[data-kind="assistant"]'), null);
 	});
 
+	test('T5 Edit XOR: entering turn edit hosts composer before ListView measure (no 0px warn)', async () => {
+		const { part, stubService, layoutReadingColumn } = mountLens();
+		const slots = getLensSlots(part);
+		const sessionId = stubService.createSession();
+		stubService.appendUserTurn(sessionId, 'Edit this user turn');
+		layoutReadingColumn();
+		await flushTimelineHeightUpdates();
+
+		const listViewZeroPx: string[] = [];
+		const originalWarn = console.warn;
+		console.warn = (...args: unknown[]) => {
+			const message = args.map(String).join(' ');
+			if (message.includes('Measured item node at 0px')) {
+				listViewZeroPx.push(message);
+			}
+			originalWarn.apply(console, args);
+		};
+
+		try {
+			const userBody = queryTimeline(slots, '.conversation-lens-turn[data-kind="user"] .conversation-lens-turn-body--clickable') as HTMLElement;
+			assert.ok(userBody);
+			userBody.click();
+			const editHost = queryTimeline(slots, '.conversation-lens-turn-edit-host') as HTMLElement | null;
+			assert.ok(editHost);
+			assert.ok(editHost.querySelector('.conversation-lens-composer'));
+			assert.strictEqual(editHost.style.minHeight, '');
+			layoutReadingColumn();
+			await flushTimelineHeightUpdates();
+			await flushAnimationFrames();
+		} finally {
+			console.warn = originalWarn;
+		}
+
+		assert.deepStrictEqual(listViewZeroPx, []);
+		assert.strictEqual(countComposers(slots), 1);
+		assert.strictEqual(slots.dock.querySelector('.conversation-lens-composer'), null);
+	});
+
 	test('T5 Edit XOR: user card click mounts composer with Exit; dock has no composer', async () => {
 		const { part, stubService, layoutReadingColumn } = mountLens();
 		const slots = getLensSlots(part);

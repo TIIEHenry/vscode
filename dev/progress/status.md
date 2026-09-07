@@ -56,7 +56,7 @@ summary: "人类工位已对齐已推送 MERGE_SHA c1b228caf74；保留本机行
 1. **集成 tip** 以人类工位 `agent-ide` 为准（含 `c1b228caf74` + 行动层）。本波 A 在改 D23+D32（未 compile）。其余：B=D33+D27，C=D30+诚实空，D=D31+R8。GFS >800 不拆。
 2. 字母槽 leftover 进度句已收进本账，再 cascade：
    - **A**：`host-write-retry` — [D23](deferred-gaps.md) / [D32](deferred-gaps.md) 已合入 merge。compile 待本槽一路跑。
-   - **B**：`getEngineStatusCommandId(phase, pairingPending)`。D27 仍 PARTIAL（1px 垫高）。
+   - **B**：`getEngineStatusCommandId(phase, pairingPending)`。D27 已 closed（composer 先入 edit-host，已删 1px 垫高）。
    - **C**：Inbox FAILED Retry → `retryMessageQueueItem`；引擎 unary 见 [D37](deferred-gaps.md)。
    - **D**：Review 读失败上 status；Panel 与对话窗同门控；Unstage 明确不可用。**未跑 F4、不升 PRD、R8 仍 open**。
 
@@ -66,7 +66,7 @@ summary: "人类工位已对齐已推送 MERGE_SHA c1b228caf74；保留本机行
 |:---|:-----|:-----|
 | [D23](deferred-gaps.md) | A 槽 | **closed** resident heartbeat write 已 catch |
 | [D33](deferred-gaps.md) | B 槽 | **closed** pairingPending 开 Connection/SAS |
-| [D27](deferred-gaps.md) | grok 4.6 | **PARTIAL**：剩 1px 垫高 + composer 后置 |
+| [D27](deferred-gaps.md) | grok 4.6 | **closed**：`provideTurnEditComposer` 先于 `setEditingTurnId`；已删 1px 垫高 |
 | [D31](deferred-gaps.md) | D 槽 | 代码洞已收；剩 F4 冒烟 |
 | [R8](research-queue.md) | A 槽 Sources | `WriteGitApplyHunks` 空 patches 语义未定 |
 | [D32](deferred-gaps.md) | A 槽 `host-write-retry` | **closed（代码+测已写；compile 待 merge）** Retry 走 `lease.post`；host 映射 Actor `continueGeneration` |
