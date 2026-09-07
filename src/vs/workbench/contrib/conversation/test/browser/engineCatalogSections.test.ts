@@ -547,4 +547,61 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 
 		assertFailedCatalogHonesty(section, AGENTS_FEATURE, 'listAgentProfiles exploded');
 	});
+
+	test('Tools: successful load then refresh throw is failed with no leftover catalog', async () => {
+		let listToolsCalls = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { tools: { support: 'SUPPORTED' } },
+			listTools: async () => {
+				listToolsCalls++;
+				if (listToolsCalls === 1) {
+					return { tools: [{ name: 'bash', description: 'shell tool', category: 'shell' }] };
+				}
+				throw new Error('listTools retry exploded');
+			},
+			listAgentProfiles: async () => ({
+				profiles: [{ id: 'demo', name: 'Demo Agent', source: 'user' as const }],
+			}),
+		});
+		const section = mountToolsSection(connection);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.ok(section.getListEntryCount() > 0);
+
+		connection.setConnected(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'failed');
+		assert.strictEqual(section.getListEntryCount(), 0);
+		assertFailedCatalogHonesty(section, TOOLS_FEATURE, 'listTools retry exploded');
+	});
+
+	test('Agents: successful load then refresh throw is failed with no leftover catalog', async () => {
+		let listAgentProfilesCalls = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+			listAgentProfiles: async () => {
+				listAgentProfilesCalls++;
+				if (listAgentProfilesCalls === 1) {
+					return { profiles: [{ id: 'demo', name: 'Demo Agent', source: 'user' as const }] };
+				}
+				throw new Error('listAgentProfiles retry exploded');
+			},
+		});
+		const section = mountAgentsSection(connection);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.ok(section.getListEntryCount() > 0);
+
+		connection.setConnected(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'failed');
+		assert.strictEqual(section.getListEntryCount(), 0);
+		assertFailedCatalogHonesty(section, AGENTS_FEATURE, 'listAgentProfiles retry exploded');
+	});
 });

@@ -521,11 +521,12 @@ export class EngineToolsSection extends Disposable {
 			this.updateSaveChrome();
 			this.renderStatus();
 		} catch (error) {
-			this.updateSaveChrome();
+			this.clearCatalogPresentation();
 			this.mode = resolveEngineCatalogPaneMode(true, support, {
 				kind: 'failed',
 				error: error instanceof Error ? error.message : undefined,
 			});
+			this.updateSaveChrome();
 			this.renderStatus({
 				reason: error instanceof Error ? error.message : undefined,
 				onRetry: () => void this.refresh(),

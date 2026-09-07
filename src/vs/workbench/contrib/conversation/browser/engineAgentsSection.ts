@@ -746,12 +746,13 @@ export class EngineAgentsSection extends Disposable {
 			this.syncDetailHost();
 			this.renderStatus();
 		} catch (error) {
-			this.writeToolbar.style.display = 'none';
-			this.updateWriteActions();
+			this.clearCatalogPresentation();
 			this.mode = resolveEngineCatalogPaneMode(true, support, {
 				kind: 'failed',
 				error: error instanceof Error ? error.message : undefined,
 			});
+			this.writeToolbar.style.display = 'none';
+			this.updateWriteActions();
 			this.renderStatus({
 				reason: error instanceof Error ? error.message : undefined,
 				onRetry: () => void this.refresh(),
