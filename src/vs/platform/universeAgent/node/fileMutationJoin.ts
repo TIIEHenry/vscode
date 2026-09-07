@@ -230,7 +230,15 @@ export class FileMutationJoin {
 		partial: Omit<IFileMutationRecord, 'sessionId'>,
 		onRecord: (record: IFileMutationRecord) => void,
 	): void {
-		const record: IFileMutationRecord = { sessionId: this.sessionId, ...partial };
+		const record: IFileMutationRecord = {
+			sessionId: this.sessionId,
+			toolCallId: partial.toolCallId,
+			turnId: partial.turnId,
+			agentId: partial.agentId,
+			path: partial.path,
+			operation: partial.operation,
+			...(partial.diffStats !== undefined ? { diffStats: partial.diffStats } : {}),
+		};
 		const key = emitKey(record);
 		if (this.emitted.has(key)) {
 			return;

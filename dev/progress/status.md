@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-07
-summary: "unit-custom 已排除 11 个不可加载文件；DiffReview afterEach 已修；名单 32 行。D16 仍开。A2 仍 blocked。字母槽 idle"
+summary: "unit-custom 已排除 11 个不可加载文件；DiffReview afterEach 已修；FileMutationJoin lifecycle+snapshot 已修；名单 31 行。D16 仍开。A2 仍 blocked。A occupy filemutation-join"
 ---
 
 # Development Progress
@@ -55,7 +55,7 @@ summary: "unit-custom 已排除 11 个不可加载文件；DiffReview afterEach 
 
 1. **集成 tip** 以 merge 本关仓提交为准（切片 3 A=`c01e16fad84` → merge `44d65d1da44`；unit-custom XML A=`a167f755fb4` → merge `7939b930798`；DiffReview B=`ebe958ab148` → merge `10722d6695a`）。`npm run compile` 仍基线 unused 红则 **不 push**。GFS >800 不拆。D22/F3 已撤回。不跑 F4 / 不实施 A2。
 2. 本波字母槽已进 merge：
-   - **A**：`unit-custom-xml` — [`scripts/run-unit-custom.sh`](../../scripts/run-unit-custom.sh) 排除 D17 十一份 Electron 不可加载 node 测，一次 `--tfs universeAgent` 写出 XML；conversation / sources 仍官方 glob。切片 3 名单已落。**[D16](deferred-gaps.md) 仍开**；未开切片 1。未改 Electron runner / `min_cases`。
+   - **A**：`filemutation-join` — `FileMutationJoin` 无 `diff_stats` 时 omit optional `diffStats`（不再写出 `undefined`）；名单删 `lifecycle + snapshot → one complete record::FileMutationJoin lifecycle + snapshot → one complete record` 一行。**[D16](deferred-gaps.md) 仍开**；未开切片 1。未改 Electron runner / `min_cases`。
    - **B**：`diffreview-leak` — ConversationDiffReviewPane 补 dispose/clearEditors；navigation/aggregation/fence 停引真实 contribution、改 stub。afterEach 六行已删（名单 32 行）。Lens 97/97 仍在。**[D16](deferred-gaps.md) 仍开**。
    - **C**：`inbox-getqueue-honesty` — catalog / connection **无** GetQueue / ListQueue，未发明 RPC。接通 / 断连缓存 Inbox 文案「Queue not listed」，stub fixture 不得冒充引擎队列；测锁 overlay / roster / stub。[D37](deferred-gaps.md) **仍闭**；缺 list-queue 记 [D24](deferred-gaps.md)。勿 add `dev/loop`。
    - **D**：`a2-patches-source` — A1 已落。P5 停线已合入：禁止再拉 `unified_diff` / Stage argv 映射 Apply；禁止只接 session。**A2 仍 blocked**（须新选定 + 新 Arch-First，不自动解锁）。未实施 A2 / 未跑 F4。[D31](deferred-gaps.md) **仍开**。未升 PRD。
@@ -90,7 +90,7 @@ summary: "unit-custom 已排除 11 个不可加载文件；DiffReview afterEach 
 | 槽 | 路径 | 分支 | tip | 脏 | stash | 关仓状态 |
 |----|------|------|-----|:--|:------|:---------|
 | merge | `vscode-WorkTrees/merge` | `loop/merge` | 本关仓提交 | 0 | 0 | parked；compile 基线 unused 仍红，**不 push** |
-| A | `vscode-WorkTrees/A` | `loop/A` | 对齐本关仓提交 | `__pycache__` | 0 | idle |
+| A | `vscode-WorkTrees/A` | `loop/A` | `b3e7a56d897` | 本 slice | 0 | occupy `filemutation-join`：omit 未出现的 optional `diffStats`；名单删 1 行；D16 仍开 |
 | B | `vscode-WorkTrees/B` | `loop/B` | 对齐本关仓提交 | `__pycache__` | 0 | idle |
 | C | `vscode-WorkTrees/C` | `loop/C` | 对齐本关仓提交 | 未提交 `dev/loop` + `__pycache__` | 0 | idle；勿 add `dev/loop` |
 | D | `vscode-WorkTrees/D` | `loop/D` | 对齐本关仓提交 | `__pycache__` | 0 | idle |
@@ -105,7 +105,7 @@ summary: "unit-custom 已排除 11 个不可加载文件；DiffReview afterEach 
 | 项 | 指针 |
 |:---|:-----|
 | **引擎空壳 Create** | [D26](deferred-gaps.md) — 空 store 首次 Create 仍 `ALREADY_EXISTS` 且不写 meta；不要再清 store |
-| **test-baseline** | 名单 32 行；unit-custom 排除 11 unloadable。**D16 仍开**；勿开切片 1「已归零」 |
+| **test-baseline** | 名单 31 行；unit-custom 排除 11 unloadable。**D16 仍开**；勿开切片 1「已归零」 |
 | **U2 闸门** | [ADR-007](../decisions/007-upstream-sync.md) Decision 5 — 须 U0 `comm` 空 + U1 完成 + CI 绿 + merge 独占 + A 表冻结；**未满足前不开 U2** |
 
 ## 不做
