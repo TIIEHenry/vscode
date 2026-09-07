@@ -329,8 +329,7 @@ export class ConversationTimelineTree extends Disposable {
 
 	/** @internal Returns the live DOM node for a tree row identity (type B DOM reuse tests). */
 	getTimelineRowElement(treeId: string): HTMLElement | undefined {
-		return this.treeContainer.querySelector(`[data-turn-id="${treeId}"], [data-fold-id="${treeId}"]`) as HTMLElement | undefined
-			?? this.treeContainer.querySelector(`[data-turn-id="${treeId}"]`) as HTMLElement | undefined;
+		return this.treeContainer.querySelector(`[data-turn-id="${treeId}"], [data-fold-id="${treeId}"]`) as HTMLElement | undefined;
 	}
 
 	private applyBaseline(turns: readonly ConversationStubTurn[], removedTreeIds: ReadonlySet<string>, spans: readonly ProcessFoldSpan[]): void {
@@ -697,18 +696,17 @@ export class ConversationTimelineTree extends Disposable {
 	}
 
 	private getVisibleTimelineIndices(): number[] {
+		// AbstractTree.lastVisibleElement has no bounds check (unlike firstVisibleElement).
+		// ListView.lastVisibleIndex is -1 when renderHeight is 0, so do not read it until
+		// the viewport has a laid-out height and the model has rows.
+		if (this.tree.renderHeight < 1 || this.flatItems.length === 0) {
+			return [];
+		}
 		const firstVisible = this.tree.firstVisibleElement;
 		if (!firstVisible) {
 			return [];
 		}
-		let lastVisible: ConversationTimelineItem | null | undefined;
-		try {
-			// Unlike firstVisibleElement, the tree's lastVisibleElement getter has no bounds check and
-			// throws when the view has no laid-out rows yet (zero-height layout, first render).
-			lastVisible = this.tree.lastVisibleElement;
-		} catch {
-			lastVisible = undefined;
-		}
+		const lastVisible = this.tree.lastVisibleElement;
 		if (!lastVisible) {
 			return [];
 		}

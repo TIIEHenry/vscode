@@ -56,7 +56,7 @@ summary: "人类工位已对齐已推送 MERGE_SHA c1b228caf74；保留本机行
 1. **集成 tip** 以 merge 本关仓提交为准（P2 已串行 A=`ba622ce1173` / B=`7d85ce21853` / C=`7b8d9c39c7e`）。`npm run compile` 仍基线 unused 红，本波文件无新 TS 错，**不 push**。GFS >800 不拆。
 2. 本波字母槽已进 merge：
    - **A**：`request-detail-fetch-catch` — [D40](deferred-gaps.md) closed（`fetchToolDetail` throw 回 `{ok:false}`）；[D26](deferred-gaps.md) 引擎 Create meta 仍 open。
-   - **B**：D27 closed（composer 先入 edit-host，已删 1px）。
+   - **B**：D27 closed（勿重开）；[D34](deferred-gaps.md)/[D35](deferred-gaps.md)/[D36](deferred-gaps.md) closed（`lastVisible` 守卫、死 querySelector、standalone thinking/tool 诚实行）。
    - **C**：D37 closed（roster 按 `upload` 转发）；无 GetQueue，活引擎失败行仍不可见。
    - **D**：本波空闲；F4 / R8 仍开。
 
@@ -75,6 +75,9 @@ summary: "人类工位已对齐已推送 MERGE_SHA c1b228caf74；保留本机行
 | [D40](deferred-gaps.md) | A 槽 `request-detail-fetch-catch` | **closed** `fetchToolDetail` throw 已 catch 回 `{ok:false}`；host `{ok:false}` 原样返回 |
 | [D26](deferred-gaps.md) | A 槽 host / 引擎仓 | host Tree+recover 已收；引擎空壳 Create 回 6 仍开；不要再清 store |
 | [D37](deferred-gaps.md) | C 槽 `roster-queue-retry` | **closed** roster 按 `upload` 转 RetryQueueItem / RetryQueueItemUpload；无 GetQueue 活引擎失败行仍不可见 |
+| [D34](deferred-gaps.md) | B 槽 `timeline-hygiene` | **closed** 空/零高树不再读 `lastVisibleElement` |
+| [D35](deferred-gaps.md) | B 槽 `timeline-hygiene` | **closed** 删 `getTimelineRowElement` 死第二段 query |
+| [D36](deferred-gaps.md) | B 槽 `timeline-hygiene` | **closed** standalone thinking/tool 诚实摘要行，无假 fold |
 
 ## 工位表（P0 盘点 · 2026-09-07 · 与 `git worktree list` 对照）
 

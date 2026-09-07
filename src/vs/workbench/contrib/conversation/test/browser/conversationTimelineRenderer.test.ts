@@ -6,7 +6,7 @@
 import assert from 'assert';
 import { DisposableStore } from '../../../../../base/common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
-import { conversationLensErrorRetry, renderHonestTimelineRow } from '../../browser/conversationTimelineRenderer.js';
+import { conversationLensErrorRetry, renderHonestTimelineRow, renderStandaloneThinkingOrToolRow } from '../../browser/conversationTimelineRenderer.js';
 import { ConversationStubTurn } from '../../browser/conversationStubModel.js';
 
 suite('renderHonestTimelineRow error retry (PRD-021)', () => {
@@ -67,5 +67,37 @@ suite('renderHonestTimelineRow error retry (PRD-021)', () => {
 		const container = render({ id: 'err-4', kind: 'error', text: 'boom', retryable: true });
 		assert.ok(container.querySelector('.conversation-lens-turn-honest-status')?.textContent?.includes('Retryable'));
 		assert.strictEqual(retryButton(container), null);
+	});
+});
+
+suite('renderStandaloneThinkingOrToolRow (D36)', () => {
+
+	test('standalone thinking is an honest summary row, not process-fold chrome', () => {
+		const container = document.createElement('div');
+		renderStandaloneThinkingOrToolRow(container, { id: 't1', kind: 'thinking', text: 'considering', summary: 'think summary' });
+
+		const row = container.querySelector('.conversation-lens-turn') as HTMLElement | null;
+		assert.ok(row);
+		assert.strictEqual(row.getAttribute('data-kind'), 'thinking');
+		assert.strictEqual(row.getAttribute('data-honest-kind'), 'thinking');
+		assert.strictEqual(row.getAttribute('data-turn-id'), 't1');
+		assert.strictEqual(row.classList.contains('conversation-lens-turn-process'), false);
+		assert.strictEqual(container.querySelector('.conversation-process-fold'), null);
+		assert.strictEqual(container.querySelector('.conversation-lens-turn-summary'), null);
+		assert.strictEqual(container.querySelector('.conversation-lens-turn-header')?.textContent, 'Thinking');
+		assert.strictEqual(container.querySelector('.conversation-lens-turn-body')?.textContent, 'think summary');
+	});
+
+	test('standalone tool falls back to text when summary is absent', () => {
+		const container = document.createElement('div');
+		renderStandaloneThinkingOrToolRow(container, { id: 'tool1', kind: 'tool', text: 'grep src', toolName: 'grep' });
+
+		const row = container.querySelector('.conversation-lens-turn') as HTMLElement | null;
+		assert.ok(row);
+		assert.strictEqual(row.getAttribute('data-kind'), 'tool');
+		assert.strictEqual(row.classList.contains('conversation-lens-turn-process'), false);
+		assert.strictEqual(container.querySelector('.conversation-process-fold'), null);
+		assert.strictEqual(container.querySelector('.conversation-lens-turn-header')?.textContent, 'Tool');
+		assert.strictEqual(container.querySelector('.conversation-lens-turn-body')?.textContent, 'grep src');
 	});
 });
