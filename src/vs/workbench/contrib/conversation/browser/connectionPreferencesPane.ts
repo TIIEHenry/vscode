@@ -1390,13 +1390,19 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		if (!name || name === device.name) {
 			return;
 		}
-		const result = await this.hubService.renameDevice(device.id, name);
-		if (!result.ok) {
-			this.hubDirectoryBanner.textContent = result.reason;
+		try {
+			const result = await this.hubService.renameDevice(device.id, name);
+			if (!result.ok) {
+				this.hubDirectoryBanner.textContent = result.reason;
+				this.hubDirectoryBanner.style.display = '';
+				return;
+			}
+			await this.hubService.refreshDirectory();
+		} catch (error) {
+			const reason = error instanceof Error && error.message ? error.message : String(error);
+			this.hubDirectoryBanner.textContent = reason;
 			this.hubDirectoryBanner.style.display = '';
-			return;
 		}
-		await this.hubService.refreshDirectory();
 	}
 
 	private async handleRotateSelectedDeviceToken(): Promise<void> {

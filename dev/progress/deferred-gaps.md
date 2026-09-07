@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-08
-summary: "延期缺口 SSOT；D16 仍开；D45–D61 已闭；D22 F3；D24 其余 JSON RPC；D25 引擎 List 真空；D26 引擎建壳回 6；D31 F4 / A2 blocked；Team leftover 已清；Connection listDevices/listPending throw 保留末次快照；Snapshots / MCP Add·Update·Remove·toggle / Skills create·toggle / Agents / Tools enablement 写失败 write-status 已挂载"
+summary: "延期缺口 SSOT；D16 仍开；D45–D62 已闭；D22 F3；D24 其余 JSON RPC；D25 引擎 List 真空；D26 引擎建壳回 6；D31 F4 / A2 blocked；Team leftover 已清；Connection listDevices/listPending throw 保留末次快照；renameDevice / 成功后 refreshDirectory throw 画 banner；Snapshots / MCP Add·Update·Remove·toggle / Skills create·toggle / Agents / Tools enablement 写失败 write-status 已挂载"
 ---
 
 # Deferred Gaps
@@ -78,6 +78,7 @@ summary: "延期缺口 SSOT；D16 仍开；D45–D61 已闭；D22 F3；D24 其�
 | D59 | P3 | **Skills `toggleSkill` 失败无 write-status**：`setSkillEnabled` 在 `{ ok:false }` / throw 只 `await this.refresh()`，不画 status。失败不得清 catalog、不得改选中。refresh 回退 checkbox 可以，但须可见 write-status | A 槽 `skills-toggle-status` 已收：fail 画 `.engine-skill-write-status`（及 body status）；测锁 status DOM + 行仍在。未关 D16；未发明 GetQueue / proto；未碰 F4 / 引擎 / `.sessions` / `dev/loop` | toggle fail 可见 write-status；不清 catalog、不改选中；`engineSkillsSection.test.ts` ok:false / throw 绿 | conversation | closed |
 | D60 | P3 | **MCP `toggleServer` 失败无 write-status**：`toggleMcpServer` 在 `{ ok:false }` / throw 只 `await this.refresh()`，不画 status。失败不得清 catalog、不得卸行。refresh 回退 checkbox 可以，但须可见 write-status | B 槽 `mcp-toggle-status` 已收：fail 画 catalog write-status（`showWriteFailed`）；refresh 回退 checkbox；测锁 status DOM + 行仍在。未关 D16；未发明 GetQueue / proto；未碰 F4 / 引擎 / `.sessions` / `dev/loop`；未重做 Add/Update/Remove | toggle fail 可见 write-status；不清 catalog、不卸行；`engineCatalogSections.test.ts` ok:false / throw 绿 | conversation | closed |
 | D61 | P3 | **Connection `listDevices` / `listPending` throw 后写成空列表**：`refreshEngineDevices` / `refreshEnginePending` catch 原写 `enginePairedDevices = []` / `pendingPairs = []`。成功后再 throw 会 leftover 成静默空，不像失败 | D 槽 `connection-list-leftover` 已收：throw 保留末次快照并画失败 note（`.connection-hub-devices-status` / pending empty / `hubDirectoryBanner`）。未关 D16；未发明 GetQueue / proto；未碰 F4 / 引擎 / `.sessions` / `dev/loop` / D26 / D60 | throw 保留末次快照（或失败 note 可见）；`connectionPreferencesPane.test.ts` success→throw 绿 | conversation | closed |
+| D62 | P3 | **Connection `renameDevice` / 成功后 `refreshDirectory` 无 try/catch**：`handleRenameSelectedDevice` 的 `!result.ok` 已画 `hubDirectoryBanner`，但 throw 会成未处理 rejection。Rotate/revoke 同文件已 catch 并画 banner。login/changePassword 不在本刀 | A 槽 `hub-rename-throw` 已收：catch throw 画 `hubDirectoryBanner`。测锁 rename throw 画 `.connection-hub-directory-banner`。未关 D16；未发明 GetQueue / proto；未碰 F4 / 引擎 / `.sessions` / `dev/loop`；未做 login/changePassword | rename / 成功后 refreshDirectory throw 画 banner；`connectionPreferencesPane.test.ts` rename throw 绿 | conversation | closed |
 
 ## D2 工位池 compile 基线（2026-09-02，merge 工位 / `loop/merge`）
 

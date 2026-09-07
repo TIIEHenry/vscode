@@ -1989,6 +1989,31 @@ suite('ConnectionPreferencesPane', () => {
 		container.remove();
 	});
 
+	test('device Rename throw paints hub directory banner', async () => {
+		const pane = mountPane({
+			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
+			getDirectoryStatus: () => ({ kind: 'ok', devices: [device({ id: 'dev-1', name: 'Studio' })] }),
+			renameDevice: async () => {
+				throw new Error('boom');
+			},
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		await Promise.resolve();
+
+		const rename = [...container.querySelectorAll('.connection-hub-device-actions .monaco-button')]
+			.find(button => button.textContent === 'Rename') as HTMLButtonElement | undefined;
+		assert.ok(rename);
+		rename.click();
+		await Promise.resolve();
+		await Promise.resolve();
+		const banner = container.querySelector('.connection-hub-directory-banner') as HTMLElement;
+		assert.ok(banner);
+		assert.strictEqual(banner.textContent, 'boom');
+		assert.notStrictEqual(banner.style.display, 'none');
+		container.remove();
+	});
+
 	test('device Rename / Revoke / Confirm call hub methods', async () => {
 		let renamed: { id: string; name: string } | undefined;
 		let revoked: string | undefined;
