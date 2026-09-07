@@ -898,9 +898,18 @@ export class SessionViewHost extends Disposable {
 				this.openStream(sessionId, intent.attemptId);
 				break;
 			case 'closeStream': {
-				const active = this.streams.get(`${sessionId}:${intent.attemptId}`);
-				active?.dispose();
-				this.streams.delete(`${sessionId}:${intent.attemptId}`);
+				const key = `${sessionId}:${intent.attemptId}`;
+				const active = this.streams.get(key);
+				try {
+					active?.dispose();
+				} catch (error) {
+					this.diagnostics.warn('closeStream dispose failed', {
+						sessionId,
+						attemptId: String(intent.attemptId),
+						error: error instanceof Error ? error.message : String(error),
+					});
+				}
+				this.streams.delete(key);
 				break;
 			}
 			case 'startTimer':

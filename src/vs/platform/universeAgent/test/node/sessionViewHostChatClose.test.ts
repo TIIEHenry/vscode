@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { timeout } from '../../../../base/common/async.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import type { IUniverseAgentSessionViewFrameEvent } from '../../common/universeAgentSessionView.js';
 import type { SyncChrome, ViewPatch } from '../../common/sessionView/types.js';
@@ -189,5 +190,35 @@ suite('SessionViewHost chat onClosed', () => {
 			w.message === 'openStream failed' && w.fields.error === 'open stream boom'
 		));
 		assert.strictEqual(connection.opens.length, 1, 'ensureChatStream must still run after openStream throw');
+	});
+
+	test('throw-on-dispose closeStream warns and still closes resident Chat', async () => {
+		const connection = new class extends ChatConnection {
+			override subscribeSessionEventStream(): { dispose(): void } {
+				return {
+					dispose: () => {
+						throw new Error('close stream boom');
+					},
+				};
+			}
+		}();
+		const diagnostics = new CountingDiagnostics();
+		const viewHost = store.add(new SessionViewHost(connection, new TestHost(async () => undefined), {
+			orphanTimeoutMs: 0,
+			lingerMs: 8,
+			diagnostics,
+		}));
+		viewHost.onEngineConnectionChanged();
+		const leaseId = viewHost.acquireLease('sess-stream-throw-dispose');
+		await viewHost.whenEngineSessionReady('sess-stream-throw-dispose');
+		assert.strictEqual(connection.opens.length, 1, 'lease + connection-up must open resident Chat');
+		assert.strictEqual(connection.disposeCount, 0);
+
+		viewHost.releaseLease(leaseId);
+		await timeout(28);
+		assert.ok(diagnostics.warnings.some(w =>
+			w.message === 'closeStream dispose failed' && w.fields.error === 'close stream boom'
+		));
+		assert.strictEqual(connection.disposeCount, 1, 'closeChatStream must still run after closeStream dispose throw');
 	});
 });
