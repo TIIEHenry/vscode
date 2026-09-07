@@ -15,15 +15,18 @@ import type {
 	UniverseAgentWriteGitWriteResult,
 } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import {
+	attemptSourcesGitWrite,
 	canSendSourcesGitApplyHunks,
 	canSendSourcesGitCommit,
 	canSendSourcesGitStagePaths,
 	canShowSourcesReviewAccept,
 	isSourcesGitWriteAccepted,
 	isSourcesGitWriteUnsupported,
+	resolveSourcesDiffWriteActions,
 	sourcesGitApplyHunksRequest,
 	sourcesGitCommitRequest,
 	sourcesGitStagePathsRequest,
+	sourcesGitUnstageUnavailableMessage,
 	sourcesGitWriteFailureDetail,
 	tryWriteSourcesGitApplyHunks,
 	tryWriteSourcesGitCommit,
@@ -121,6 +124,59 @@ suite('Sources - Changes git write', () => {
 		assert.strictEqual(canShowSourcesReviewAccept(false, false), false);
 	});
 
+	test('attemptSourcesGitWrite accepts only supported && success', async () => {
+		assert.deepStrictEqual(await attemptSourcesGitWrite(async () => undefined), { kind: 'fallback' });
+		assert.deepStrictEqual(await attemptSourcesGitWrite(async () => failedWrite), { kind: 'fallback' });
+		assert.deepStrictEqual(await attemptSourcesGitWrite(async () => ({ ...failedWrite, success: true })), { kind: 'fallback' });
+		assert.deepStrictEqual(await attemptSourcesGitWrite(async () => ({ ...failedWrite, supported: true, success: false, errorMessage: 'nope' })), { kind: 'failed', detail: 'nope' });
+		assert.deepStrictEqual(await attemptSourcesGitWrite(async () => ({ ...failedWrite, supported: true, success: true })), { kind: 'accepted' });
+	});
+
+	test('Panel / Review write visibility: Accept is not SCM-only; Unstage has no fake button', () => {
+		const hookOnly = resolveSourcesDiffWriteActions({
+			groupId: 'workingTree',
+			hasScmResource: false,
+			canWriteStage: true,
+			canWriteAccept: true,
+			hasGitStageCommand: false,
+			hasGitUnstageCommand: false,
+			hasGitCleanCommand: false,
+		});
+		assert.strictEqual(hookOnly.showStage, true);
+		assert.strictEqual(hookOnly.showAccept, true);
+		assert.strictEqual(hookOnly.showRevert, false);
+		assert.strictEqual(hookOnly.showUnstage, false);
+		assert.strictEqual(hookOnly.unstageUnavailable, false);
+
+		const stagedGitOnly = resolveSourcesDiffWriteActions({
+			groupId: 'index',
+			hasScmResource: false,
+			canWriteStage: false,
+			canWriteAccept: true,
+			hasGitStageCommand: true,
+			hasGitUnstageCommand: true,
+			hasGitCleanCommand: true,
+		});
+		assert.strictEqual(stagedGitOnly.showAccept, true, 'Accept stays available via ApplyHunks hook');
+		assert.strictEqual(stagedGitOnly.showUnstage, false);
+		assert.strictEqual(stagedGitOnly.unstageUnavailable, true);
+		assert.ok(sourcesGitUnstageUnavailableMessage().length > 0);
+
+		const localUnstage = resolveSourcesDiffWriteActions({
+			groupId: 'index',
+			hasScmResource: true,
+			canWriteStage: false,
+			canWriteAccept: false,
+			hasGitStageCommand: true,
+			hasGitUnstageCommand: true,
+			hasGitCleanCommand: true,
+		});
+		assert.strictEqual(localUnstage.showUnstage, true);
+		assert.strictEqual(localUnstage.unstageUnavailable, false);
+		assert.strictEqual(localUnstage.showAccept, false);
+		assert.strictEqual(localUnstage.showRevert, false);
+	});
+
 	test('tryWrite Stage / Commit / Accept skip when disconnected or hook missing', async () => {
 		const stageCalls: UniverseAgentWriteGitStagePathsRequest[] = [];
 		const commitCalls: UniverseAgentWriteGitCommitRequest[] = [];
@@ -200,13 +256,27 @@ suite('Sources - Changes git write', () => {
 		assert.ok(!source.includes('writeGitUnstage'));
 	});
 
-	test('Review Accept writes ApplyHunks; Revert stays on git.clean', () => {
+	test('Review Accept writes ApplyHunks; Revert stays on git.clean; Unstage is local or unavailable', () => {
 		const source = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.ts'), 'utf8');
 		assert.ok(source.includes('tryWriteSourcesGitApplyHunks'));
-		assert.ok(source.includes('canShowSourcesReviewAccept'));
-		assert.ok(source.includes('isSourcesGitWriteAccepted'));
-		assert.ok(source.includes('isSourcesGitWriteUnsupported'));
+		assert.ok(source.includes('attemptSourcesGitWrite'));
+		assert.ok(source.includes('resolveSourcesDiffWriteActions'));
 		assert.ok(source.includes('SOURCES_GIT_CLEAN_COMMAND'));
+		assert.ok(source.includes('SOURCES_GIT_UNSTAGE_COMMAND'));
+		assert.ok(source.includes('sourcesGitUnstageUnavailableMessage'));
+		assert.ok(source.includes('runGitAction(SOURCES_GIT_STAGE_COMMAND)'));
+		assert.ok(!source.includes('writeGitUnstage'));
+	});
+
+	test('Panel Diff write actions share the Review write gate', () => {
+		const source = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.ts'), 'utf8');
+		assert.ok(source.includes('tryWriteSourcesGitStagePaths'));
+		assert.ok(source.includes('tryWriteSourcesGitApplyHunks'));
+		assert.ok(source.includes('attemptSourcesGitWrite'));
+		assert.ok(source.includes('resolveSourcesDiffWriteActions'));
+		assert.ok(source.includes('SOURCES_GIT_CLEAN_COMMAND'));
+		assert.ok(source.includes('SOURCES_GIT_UNSTAGE_COMMAND'));
+		assert.ok(source.includes('sourcesGitUnstageUnavailableMessage'));
 		assert.ok(source.includes('runGitAction(SOURCES_GIT_STAGE_COMMAND)'));
 		assert.ok(!source.includes('writeGitUnstage'));
 	});

@@ -129,6 +129,14 @@ suite('Sources - review list model', () => {
 
 	const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../../../../..');
 
+	test('Review list surfaces git read failure on a status line instead of a silent catch', () => {
+		const review = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/sourcesReviewList.ts'), 'utf8');
+		assert.ok(review.includes('sourcesGitReadFailureMessage'));
+		assert.ok(review.includes('setStatusMessage'));
+		assert.ok(review.includes('sources-review-status'));
+		assert.ok(!review.includes('} catch {\n\t\t\tif (seq !== this.refreshSeq)'));
+	});
+
 	test('Changes list does not reference review progress service', () => {
 		const changesListPath = path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/sourcesChangesList.ts');
 		const source = fs.readFileSync(changesListPath, 'utf8');

@@ -31,15 +31,14 @@ import { findScmResourceForUri } from '../common/sourcesChangeRef.js';
 import {
 	SOURCES_GIT_CLEAN_COMMAND,
 	SOURCES_GIT_STAGE_COMMAND,
-	isSourcesChangeRevertible,
-	isSourcesChangeStageable,
+	SOURCES_GIT_UNSTAGE_COMMAND,
 } from '../common/sourcesChangesGit.js';
 import {
+	attemptSourcesGitWrite,
 	canSendSourcesGitApplyHunks,
-	canShowSourcesReviewAccept,
-	isSourcesGitWriteAccepted,
-	isSourcesGitWriteUnsupported,
-	sourcesGitWriteFailureDetail,
+	canSendSourcesGitStagePaths,
+	resolveSourcesDiffWriteActions,
+	sourcesGitUnstageUnavailableMessage,
 	tryWriteSourcesGitApplyHunks,
 } from '../common/sourcesChangesGitWrite.js';
 import { ConversationDiffReviewInput } from './conversationDiffReviewInput.js';
@@ -66,6 +65,8 @@ export class ConversationDiffReviewPane extends EditorPane {
 	private container: HTMLElement | undefined;
 	private toolbar: HTMLElement | undefined;
 	private revertButton: HTMLButtonElement | undefined;
+	private unstageButton: HTMLButtonElement | undefined;
+	private unstageUnavailable: HTMLElement | undefined;
 	private acceptButton: HTMLButtonElement | undefined;
 	private noticeElement: HTMLElement | undefined;
 	private editorContainer: HTMLElement | undefined;
@@ -107,6 +108,18 @@ export class ConversationDiffReviewPane extends EditorPane {
 		this.revertButton.addEventListener('click', () => {
 			void this.runGitAction(SOURCES_GIT_CLEAN_COMMAND);
 		});
+
+		this.unstageButton = dom.append(this.toolbar, $('button.conversation-diff-review-unstage')) as HTMLButtonElement;
+		this.unstageButton.type = 'button';
+		this.unstageButton.textContent = localize('conversationDiffReviewPane.unstage', "Unstage");
+		this.unstageButton.style.display = 'none';
+		this.unstageButton.addEventListener('click', () => {
+			void this.runGitAction(SOURCES_GIT_UNSTAGE_COMMAND);
+		});
+
+		this.unstageUnavailable = dom.append(this.toolbar, $('span.conversation-diff-review-unstage-unavailable'));
+		this.unstageUnavailable.textContent = sourcesGitUnstageUnavailableMessage();
+		this.unstageUnavailable.style.display = 'none';
 
 		this.acceptButton = dom.append(this.toolbar, $('button.conversation-diff-review-accept')) as HTMLButtonElement;
 		this.acceptButton.type = 'button';
@@ -159,6 +172,12 @@ export class ConversationDiffReviewPane extends EditorPane {
 		if (this.revertButton) {
 			this.revertButton.style.display = 'none';
 		}
+		if (this.unstageButton) {
+			this.unstageButton.style.display = 'none';
+		}
+		if (this.unstageUnavailable) {
+			this.unstageUnavailable.style.display = 'none';
+		}
 		if (this.acceptButton) {
 			this.acceptButton.style.display = 'none';
 		}
@@ -195,24 +214,31 @@ export class ConversationDiffReviewPane extends EditorPane {
 
 	private updateReviewActions(): void {
 		const input = this.input;
-		if (!(input instanceof ConversationDiffReviewInput) || !this.revertButton || !this.acceptButton) {
+		if (!(input instanceof ConversationDiffReviewInput) || !this.revertButton || !this.acceptButton || !this.unstageButton || !this.unstageUnavailable) {
 			return;
 		}
 
 		const match = findScmResourceForUri(this.scmService, input.modified);
-		const canRevert = !!match
-			&& isSourcesChangeRevertible(match.groupId)
-			&& !!CommandsRegistry.getCommand(SOURCES_GIT_CLEAN_COMMAND);
-		const canWriteAccept = canSendSourcesGitApplyHunks(
-			this.uaConnection.isEngineConnected(),
-			typeof this.uaConnection.writeGitApplyHunks === 'function',
-		);
-		const hasLocalStage = !!match
-			&& isSourcesChangeStageable(match.groupId)
-			&& !!CommandsRegistry.getCommand(SOURCES_GIT_STAGE_COMMAND);
+		const actions = resolveSourcesDiffWriteActions({
+			groupId: match?.groupId || input.groupId,
+			hasScmResource: !!match,
+			canWriteStage: canSendSourcesGitStagePaths(
+				this.uaConnection.isEngineConnected(),
+				typeof this.uaConnection.writeGitStagePaths === 'function',
+			),
+			canWriteAccept: canSendSourcesGitApplyHunks(
+				this.uaConnection.isEngineConnected(),
+				typeof this.uaConnection.writeGitApplyHunks === 'function',
+			),
+			hasGitStageCommand: !!CommandsRegistry.getCommand(SOURCES_GIT_STAGE_COMMAND),
+			hasGitUnstageCommand: !!CommandsRegistry.getCommand(SOURCES_GIT_UNSTAGE_COMMAND),
+			hasGitCleanCommand: !!CommandsRegistry.getCommand(SOURCES_GIT_CLEAN_COMMAND),
+		});
 
-		this.revertButton.style.display = canRevert ? '' : 'none';
-		this.acceptButton.style.display = canShowSourcesReviewAccept(canWriteAccept, hasLocalStage) ? '' : 'none';
+		this.revertButton.style.display = actions.showRevert ? '' : 'none';
+		this.unstageButton.style.display = actions.showUnstage ? '' : 'none';
+		this.unstageUnavailable.style.display = actions.unstageUnavailable ? '' : 'none';
+		this.acceptButton.style.display = actions.showAccept ? '' : 'none';
 	}
 
 	private async runAccept(): Promise<void> {
@@ -223,17 +249,17 @@ export class ConversationDiffReviewPane extends EditorPane {
 
 		const hook = this.uaConnection.writeGitApplyHunks;
 		try {
-			const written = await tryWriteSourcesGitApplyHunks(
+			const attempt = await attemptSourcesGitWrite(() => tryWriteSourcesGitApplyHunks(
 				this.uaConnection.isEngineConnected(),
 				hook ? request => hook.call(this.uaConnection, request) : undefined,
-			);
-			if (isSourcesGitWriteAccepted(written)) {
+			));
+			if (attempt.kind === 'accepted') {
 				this.hideNotice();
 				this.updateReviewActions();
 				return;
 			}
-			if (written && !isSourcesGitWriteUnsupported(written)) {
-				this.showNotice(sourcesGitWriteFailureDetail(written));
+			if (attempt.kind === 'failed') {
+				this.showNotice(attempt.detail);
 				this.updateReviewActions();
 				return;
 			}

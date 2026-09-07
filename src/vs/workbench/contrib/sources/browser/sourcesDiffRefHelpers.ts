@@ -21,7 +21,7 @@ export function resolveSourcesChangeRefFromEditor(
 		return {
 			modified: editor.modified,
 			original: editor.original,
-			groupId: match?.groupId ?? '',
+			groupId: match?.groupId || editor.groupId,
 			scmResource: match?.resource,
 		};
 	}
@@ -69,6 +69,7 @@ export async function openSourcesChangeRefInConversation(
 		ConversationDiffReviewInput,
 		ref.modified,
 		ref.original,
+		ref.groupId,
 	);
 	await editorService.openEditor(input, CONVERSATION_GROUP);
 }
