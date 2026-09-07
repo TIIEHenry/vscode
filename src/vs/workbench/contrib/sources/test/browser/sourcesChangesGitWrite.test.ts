@@ -18,6 +18,9 @@ import {
 	canSendSourcesGitApplyHunks,
 	canSendSourcesGitCommit,
 	canSendSourcesGitStagePaths,
+	canShowSourcesReviewAccept,
+	isSourcesGitWriteAccepted,
+	isSourcesGitWriteUnsupported,
 	sourcesGitApplyHunksRequest,
 	sourcesGitCommitRequest,
 	sourcesGitStagePathsRequest,
@@ -100,6 +103,24 @@ suite('Sources - Changes git write', () => {
 		assert.strictEqual(sourcesGitWriteFailureDetail({ ...failedWrite, errorMessage: '  boom  ' }), '  boom  ');
 	});
 
+	test('accepted write requires supported + success; success alone is fake', () => {
+		assert.strictEqual(isSourcesGitWriteAccepted(undefined), false);
+		assert.strictEqual(isSourcesGitWriteAccepted(failedWrite), false);
+		assert.strictEqual(isSourcesGitWriteAccepted({ ...failedWrite, success: true }), false);
+		assert.strictEqual(isSourcesGitWriteAccepted({ ...failedWrite, supported: true, success: false }), false);
+		assert.strictEqual(isSourcesGitWriteAccepted({ ...failedWrite, supported: true, success: true }), true);
+		assert.strictEqual(isSourcesGitWriteUnsupported(undefined), false);
+		assert.strictEqual(isSourcesGitWriteUnsupported(failedWrite), true);
+		assert.strictEqual(isSourcesGitWriteUnsupported({ ...failedWrite, success: true }), true);
+		assert.strictEqual(isSourcesGitWriteUnsupported({ ...failedWrite, supported: true, success: false }), false);
+	});
+
+	test('Accept shows when ApplyHunks hook is present even without local SCM', () => {
+		assert.strictEqual(canShowSourcesReviewAccept(true, false), true);
+		assert.strictEqual(canShowSourcesReviewAccept(false, true), true);
+		assert.strictEqual(canShowSourcesReviewAccept(false, false), false);
+	});
+
 	test('tryWrite Stage / Commit / Accept skip when disconnected or hook missing', async () => {
 		const stageCalls: UniverseAgentWriteGitStagePathsRequest[] = [];
 		const commitCalls: UniverseAgentWriteGitCommitRequest[] = [];
@@ -129,26 +150,41 @@ suite('Sources - Changes git write', () => {
 		const stageCalls: UniverseAgentWriteGitStagePathsRequest[] = [];
 		const commitCalls: UniverseAgentWriteGitCommitRequest[] = [];
 		const applyCalls: UniverseAgentWriteGitApplyHunksRequest[] = [];
+		const acceptedWrite = { ...failedWrite, supported: true, success: true };
 
 		const staged = await tryWriteSourcesGitStagePaths(true, async request => {
 			stageCalls.push(request);
-			return { ...failedWrite, success: true };
+			return acceptedWrite;
 		}, ['']);
 		const committed = await tryWriteSourcesGitCommit(true, async request => {
 			commitCalls.push(request);
-			return { ...failedWrite, success: true };
+			return acceptedWrite;
 		}, '');
 		const applied = await tryWriteSourcesGitApplyHunks(true, async request => {
 			applyCalls.push(request);
-			return { ...failedWrite, success: true };
+			return acceptedWrite;
 		});
 
 		assert.deepStrictEqual(stageCalls, [{ sessionId: '', commands: [{ argv: [''] }] }]);
 		assert.deepStrictEqual(commitCalls, [{ sessionId: '', message: '', signOff: false, amend: false }]);
 		assert.deepStrictEqual(applyCalls, [{ sessionId: '', argv: [], patches: [] }]);
-		assert.strictEqual(staged?.success, true);
-		assert.strictEqual(committed?.success, true);
-		assert.strictEqual(applied?.success, true);
+		assert.strictEqual(isSourcesGitWriteAccepted(staged), true);
+		assert.strictEqual(isSourcesGitWriteAccepted(committed), true);
+		assert.strictEqual(isSourcesGitWriteAccepted(applied), true);
+	});
+
+	test('tryWrite still returns unsupported results so callers do not treat them as accepted', async () => {
+		const unsupportedSuccess = { ...failedWrite, success: true };
+		const staged = await tryWriteSourcesGitStagePaths(true, async () => unsupportedSuccess, ['src/a.ts']);
+		const committed = await tryWriteSourcesGitCommit(true, async () => unsupportedSuccess, 'msg');
+		const applied = await tryWriteSourcesGitApplyHunks(true, async () => unsupportedSuccess);
+
+		assert.strictEqual(isSourcesGitWriteUnsupported(staged), true);
+		assert.strictEqual(isSourcesGitWriteAccepted(staged), false);
+		assert.strictEqual(isSourcesGitWriteUnsupported(committed), true);
+		assert.strictEqual(isSourcesGitWriteAccepted(committed), false);
+		assert.strictEqual(isSourcesGitWriteUnsupported(applied), true);
+		assert.strictEqual(isSourcesGitWriteAccepted(applied), false);
 	});
 
 	const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../../../../..');
@@ -157,6 +193,8 @@ suite('Sources - Changes git write', () => {
 		const source = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/sourcesChangesList.ts'), 'utf8');
 		assert.ok(source.includes('tryWriteSourcesGitStagePaths'));
 		assert.ok(source.includes('tryWriteSourcesGitCommit'));
+		assert.ok(source.includes('isSourcesGitWriteAccepted'));
+		assert.ok(source.includes('isSourcesGitWriteUnsupported'));
 		assert.ok(source.includes('SOURCES_GIT_UNSTAGE_COMMAND'));
 		assert.ok(!source.includes('tryWriteSourcesGitApplyHunks'));
 		assert.ok(!source.includes('writeGitUnstage'));
@@ -165,6 +203,9 @@ suite('Sources - Changes git write', () => {
 	test('Review Accept writes ApplyHunks; Revert stays on git.clean', () => {
 		const source = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.ts'), 'utf8');
 		assert.ok(source.includes('tryWriteSourcesGitApplyHunks'));
+		assert.ok(source.includes('canShowSourcesReviewAccept'));
+		assert.ok(source.includes('isSourcesGitWriteAccepted'));
+		assert.ok(source.includes('isSourcesGitWriteUnsupported'));
 		assert.ok(source.includes('SOURCES_GIT_CLEAN_COMMAND'));
 		assert.ok(source.includes('runGitAction(SOURCES_GIT_STAGE_COMMAND)'));
 		assert.ok(!source.includes('writeGitUnstage'));
