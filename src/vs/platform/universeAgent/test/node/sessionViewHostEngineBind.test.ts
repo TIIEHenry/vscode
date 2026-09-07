@@ -6,6 +6,7 @@
 import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import { GrpcStatusCode, UniverseAgentTransportError } from '../../node/grpc/grpcTransport.js';
+import { encodeDetailRef } from '../../common/conversationViewFrame.js';
 import { SessionViewHost } from '../../node/sessionViewHost.js';
 import { TestConnection, TestHost } from './sessionViewHostTestHelpers.js';
 
@@ -362,5 +363,32 @@ suite('SessionViewHost engine session bind', () => {
 			(error: unknown) => error instanceof UniverseAgentTransportError && error.code === GrpcStatusCode.UNAVAILABLE,
 		);
 		assert.strictEqual(connection.listCalled, false);
+	});
+
+	test('requestDetail bind failure returns failed outcome and does not reject', async () => {
+		const connection = new class extends BindConnection {
+			override async createSession() {
+				this.createSessionCalls.push({});
+				throw new Error('CreateSession refused');
+			}
+			override async resumeSession(request: { sessionId: string }) {
+				this.resumeSessionCalls.push(request);
+				return { ok: false, message: 'dead shell' };
+			}
+		}();
+		const viewHost = store.add(new SessionViewHost(connection, new TestHost(async () => undefined), {
+			orphanTimeoutMs: 0,
+		}));
+		const leaseId = viewHost.acquireLease('local-detail-fail');
+		const outcome = await viewHost.requestDetail(leaseId, encodeDetailRef({
+			toolCallId: 'tc',
+			detailKind: 1,
+			refId: 'tc',
+		}));
+		assert.strictEqual(outcome.ok, false);
+		if (!outcome.ok) {
+			assert.strictEqual(outcome.reason, 'failed');
+			assert.ok(outcome.message && /CreateSession refused|dead shell/.test(outcome.message));
+		}
 	});
 });

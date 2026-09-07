@@ -50,9 +50,9 @@ export function bindResumeSessionFn(host: ResumeSessionHost): ResumeSessionFn {
 }
 
 /**
- * Every CreateSession entry (connection service / grpc client / host) must
- * List+Resume an existing engine session on ALREADY_EXISTS instead of
- * throwing status 6 to UI.
+ * Connection-service CreateSession entry wraps this once (grpc transport
+ * is a raw unary). List+Resume an existing engine session on ALREADY_EXISTS
+ * instead of throwing status 6 to UI.
  *
  * Create's client_session_id (field 4) is the engine session id. When List
  * fails or is empty, Resume that id instead of throwing "no session_id".

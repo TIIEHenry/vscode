@@ -315,9 +315,16 @@ export class SessionViewHost extends Disposable {
 		if (!parsed) {
 			return { ok: false, reason: 'failed', message: 'unparseable DetailRef' };
 		}
-		const engineSessionId = this.connection.isEngineConnected()
-			? await this.ensureEngineSession(binding.sessionId)
-			: binding.sessionId;
+		let engineSessionId: string;
+		if (this.connection.isEngineConnected()) {
+			try {
+				engineSessionId = await this.ensureEngineSession(binding.sessionId);
+			} catch (error) {
+				return { ok: false, reason: 'failed', message: error instanceof Error ? error.message : 'Engine session bind failed' };
+			}
+		} else {
+			engineSessionId = binding.sessionId;
+		}
 		const result = await this.host.fetchToolDetail({
 			sessionId: engineSessionId,
 			toolCallId: parsed.toolCallId,
@@ -499,10 +506,16 @@ export class SessionViewHost extends Disposable {
 		}
 		const sidecar = this.ensureSessionSidecar(sessionId);
 		const onBound = (fact: AgentTreeBoundFact) => this.postAgentTreeBound(sessionId, fact);
+		const onError = (error: unknown) => {
+			this.diagnostics.warn('agentTree fetch failed', {
+				sessionId,
+				error: error instanceof Error ? error.message : String(error),
+			});
+		};
 		if (immediate) {
-			void sidecar.tree.pullNow(onBound);
+			void sidecar.tree.pullNow(onBound).catch(onError);
 		} else {
-			sidecar.tree.scheduleRefresh(onBound);
+			sidecar.tree.scheduleRefresh(onBound, onError);
 		}
 	}
 
@@ -1229,25 +1242,43 @@ export class SessionViewHost extends Disposable {
 
 	private async fillHistory(sessionId: string, intent: HistoryFillCoreIntent): Promise<void> {
 		const sid = sessionId as SessionId;
-		const engineSessionId = this.resolveEngineSessionId(sessionId) ?? await this.ensureEngineSession(sessionId);
-		const result = await fillHistoryGap(
-			request => this.connection.getHistory(request),
-			{
-				sessionId: engineSessionId,
-				fromExclusive: intent.fromExclusive,
-				toInclusive: intent.toInclusive,
-			},
-			payload => {
-				this.captureEnvelopeAttributionHint(sessionId, payload);
-				this.captureRangeReplacedCompactHint(sessionId, payload);
-			},
-		);
-		this.postAndDrain(sid, {
-			t: 'historyResult',
-			attemptId: intent.attemptId,
-			requestId: intent.requestId,
-			result,
-		});
+		const fail = (errorMessage: string) => {
+			this.postAndDrain(sid, {
+				t: 'historyResult',
+				attemptId: intent.attemptId,
+				requestId: intent.requestId,
+				result: { ok: false, code: 'transport_failed', message: errorMessage },
+			});
+		};
+		let engineSessionId: string;
+		try {
+			engineSessionId = this.resolveEngineSessionId(sessionId) ?? await this.ensureEngineSession(sessionId);
+		} catch (error) {
+			fail(error instanceof Error ? error.message : 'Engine session bind failed');
+			return;
+		}
+		try {
+			const result = await fillHistoryGap(
+				request => this.connection.getHistory(request),
+				{
+					sessionId: engineSessionId,
+					fromExclusive: intent.fromExclusive,
+					toInclusive: intent.toInclusive,
+				},
+				payload => {
+					this.captureEnvelopeAttributionHint(sessionId, payload);
+					this.captureRangeReplacedCompactHint(sessionId, payload);
+				},
+			);
+			this.postAndDrain(sid, {
+				t: 'historyResult',
+				attemptId: intent.attemptId,
+				requestId: intent.requestId,
+				result,
+			});
+		} catch (error) {
+			fail(error instanceof Error ? error.message : 'History fill failed');
+		}
 	}
 }
 

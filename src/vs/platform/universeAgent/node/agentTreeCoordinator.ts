@@ -60,7 +60,7 @@ export class AgentTreeCoordinator {
 		return this.agentTreeUnsupported;
 	}
 
-	scheduleRefresh(onBound: (fact: AgentTreeBoundFact) => void): void {
+	scheduleRefresh(onBound: (fact: AgentTreeBoundFact) => void, onError?: (error: unknown) => void): void {
 		if (this.agentTreeUnsupported) {
 			return;
 		}
@@ -69,7 +69,9 @@ export class AgentTreeCoordinator {
 		}
 		this.debounceHandle = setTimeout(() => {
 			this.debounceHandle = undefined;
-			void this.pullNow(onBound);
+			void this.pullNow(onBound).catch(error => {
+				onError?.(error);
+			});
 		}, TREE_DEBOUNCE_MS);
 	}
 
@@ -99,8 +101,9 @@ export class AgentTreeCoordinator {
 		} catch (error) {
 			if (error instanceof UniverseAgentTransportError && error.code === GrpcStatusCode.UNIMPLEMENTED) {
 				this.agentTreeUnsupported = true;
+				return undefined;
 			}
-			return undefined;
+			throw error;
 		}
 	}
 
