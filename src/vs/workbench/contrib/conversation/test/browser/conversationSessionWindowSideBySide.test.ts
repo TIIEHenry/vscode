@@ -30,6 +30,12 @@ suite('Conversation session window side-by-side (S5)', () => {
 		store.add(registerTestEditor(TEST_EDITOR_ID, [new SyncDescriptor(TestFileEditorInput), new SyncDescriptor(SideBySideEditorInput)], TEST_EDITOR_INPUT_ID));
 	});
 
+	function layoutConversationEditorParts(parts: Awaited<ReturnType<typeof createEditorParts>>): void {
+		for (const part of parts.conversationParts) {
+			(part as { layout(width: number, height: number, top: number, left: number): void }).layout(800, 600, 0, 0);
+		}
+	}
+
 	function trackConversationEditors(parts: Awaited<ReturnType<typeof createEditorParts>>): void {
 		for (const part of parts.conversationParts) {
 			for (const editor of part.activeGroup.editors) {
@@ -61,6 +67,7 @@ suite('Conversation session window side-by-side (S5)', () => {
 
 		const primaryId = rosterService.getActiveSessionId();
 		await sessionWindowService.ensurePrimaryWindow(primaryId);
+		layoutConversationEditorParts(parts);
 		trackConversationEditors(parts);
 
 		return { parts, rosterService, sessionWindowService, sessionChatService, primaryId };
@@ -72,6 +79,7 @@ suite('Conversation session window side-by-side (S5)', () => {
 		harness.rosterService.switchSession(harness.primaryId);
 
 		await harness.sessionWindowService.openSessionBeside(secondaryId);
+		layoutConversationEditorParts(harness.parts);
 		trackConversationEditors(harness.parts);
 
 		return { ...harness, secondaryId };
