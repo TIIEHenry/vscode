@@ -194,3 +194,8 @@ export async function flushConversationLensLayout(): Promise<void> {
 		new Promise<void>(resolve => setTimeout(resolve, 50)),
 	]);
 }
+
+/** Bounded yield for layout-before-reveal. Do not wait on bare rAF (no vsync). */
+export async function yieldConversationLensPaint(): Promise<void> {
+	await new Promise<void>(resolve => setTimeout(resolve, 16));
+}

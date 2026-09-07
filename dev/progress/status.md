@@ -66,6 +66,7 @@ summary: "FileMutationJoin / createScoped / Review 委托已修。D16 仍开。�
 7. **B 槽 `statusbar-register-idempotent`（未关 D16）**：`registerConversationSessionStatusBar` 见已注册的 `workbench.action.showConversationPart` 则返回，二次调用不抛。生产仍只在 `conversation.contribution` 调一次。未发明新命令。
 8. **A 槽 `d17-conversation-glob-reprove`（未关 D16 / 未改名单 / 未降 min_cases）**：名单已空后官方 conversation 单 glob 仍有未列红。夹具收口：lens harness 吞 ListView `Measured item node at 0px` warn（不缩 T5 Edit XOR 0px 断言）；untitled / two-leaves 查询前 `revealTurn`；overlay dispose 取消 rAF；S5 teardown 双 rAF。复证 `scripts/test.sh --glob '**/vs/workbench/contrib/conversation/test/**/*.test.js' --tfs conversation` **795 pass / 0 fail / 0 skip**（≥ min_cases=714）。**勿开切片 1「已归零」**。
 9. **B 槽 `d44-preferences-nav-idempotent`（未关 D16）**：`registerUaPreferencesNavigationActions` 对已注册的 `openConnectionPreferences` / `openEnginePreferences` 跳过，二次调用不抛。生产仍只 contribution 调一次。未发明新命令。[D44](deferred-gaps.md) **已闭**。
+10. **A 槽 hang-fix leftover（未关 D16 / 未降 min_cases）**：官方 conversation glob 未列三测（delete→trajectory 铺行、pinned preview/copy）。夹具按 hang-fix 同族：layout-before-reveal、有界等待、paint pinned/trajectory 行。未缩产品断言。
 
 子 agent 发现的既有代码问题：
 
@@ -114,7 +115,7 @@ summary: "FileMutationJoin / createScoped / Review 委托已修。D16 仍开。�
 | 项 | 指针 |
 |:---|:-----|
 | **引擎空壳 Create** | [D26](deferred-gaps.md) — 空 store 首次 Create 仍 `ALREADY_EXISTS` 且不写 meta；不要再清 store |
-| **test-baseline** | D17 名单 0 数据行。merge universeAgent 官方 glob 213/0/0；conversation 官方 glob 曾 792/3（reveal+rAF 无 vsync 超时），hang-fix 后三测 3/3，全 glob 未再跑。**D16 仍开**；勿开切片 1；勿降 `min_cases` |
+| **test-baseline** | D17 名单 0 数据行。universeAgent 官方 glob 213/0/0；conversation 官方 glob **795/0/0**（A 槽 hang-fix leftover 后复跑，含 delete/pinned 三测）。**D16 仍开**；勿开切片 1；勿降 `min_cases` |
 | **U2 闸门** | [ADR-007](../decisions/007-upstream-sync.md) Decision 5 — 须 U0 `comm` 空 + U1 完成 + CI 绿 + merge 独占 + A 表冻结；**未满足前不开 U2** |
 
 ## 不做
