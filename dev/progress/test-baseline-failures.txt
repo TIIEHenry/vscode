@@ -8,7 +8,6 @@
 CONVERSATION_SIDE_GROUP increases conversation editor part group count::Conversation session split (S4) CONVERSATION_SIDE_GROUP increases conversation editor part group count
 Part focus with no pending seats does not scroll::ConversationOpenPendingOnFocusContribution Part focus with no pending seats does not scroll
 appendUserTurn updates roster subtitle to 1 message::ConversationSessionsView appendUserTurn updates roster subtitle to 1 message
-collectSourcesReviewEntries delegates to collectSourcesChangeEntries::Sources - Review list projection collectSourcesReviewEntries delegates to collectSourcesChangeEntries
 engine entry command switches when engine connection changes::Conversation Session StatusBar engine entry command switches when engine connection changes
 engine entry exposes openConnectionPreferences when disconnected::Conversation Session StatusBar engine entry exposes openConnectionPreferences when disconnected
 engine entry exposes openEnginePreferences when connected::Conversation Session StatusBar engine entry exposes openEnginePreferences when connected
