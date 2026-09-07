@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as grpc from '@grpc/grpc-js';
+import type * as grpc from '@grpc/grpc-js';
 import type {
 	UniverseAgentSessionStreamCloseCause,
 	UniverseAgentChatRequest,
@@ -383,7 +383,7 @@ import {
 	UniverseAgentDeviceAuthConnectRequest,
 	UniverseAgentGrpcServices,
 } from './grpcTransport.js';
-import { createPinnedChannelOptions, createPinnedTlsChannelCredentials, type UniverseAgentPinnedTlsTarget } from '../universeAgentChannel.js';
+import { createPinnedChannelOptions, createPinnedTlsChannelCredentials, loadedGrpcModule, type UniverseAgentPinnedTlsTarget } from '../universeAgentChannel.js';
 import {
 	bytesToBase64,
 	mapAddMcpServerResponse,
@@ -1125,9 +1125,10 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 	private _alive = true;
 
 	constructor(options: GrpcUniverseAgentClientOptions) {
-		this._channel = new grpc.Client(
+		const grpcModule = loadedGrpcModule();
+		this._channel = new grpcModule.Client(
 			options.address,
-			options.credentials ?? grpc.credentials.createInsecure(),
+			options.credentials ?? grpcModule.credentials.createInsecure(),
 			options.channelOptions,
 		);
 	}

@@ -5,8 +5,7 @@
 
 import { createHash, createPrivateKey, generateKeyPairSync, type KeyObject } from 'node:crypto';
 import { IEncryptionMainService } from '../../encryption/common/encryptionService.js';
-import { IApplicationStorageMainService } from '../../storage/electron-main/storageMainService.js';
-import { StorageScope, StorageTarget } from '../../storage/common/storage.js';
+import { IStorageService, StorageScope, StorageTarget } from '../../storage/common/storage.js';
 import { createEd25519DeviceAuthSigner, type DeviceAuthTranscriptInput, type Ed25519PrivateKeyMaterial } from './deviceGrant/device-grant-crypto.js';
 import type { ClientIdentityMaterial, ClientIdentityStoreState, IClientIdentityStore } from './clientIdentityTypes.js';
 
@@ -82,7 +81,7 @@ export class ClientIdentityStore implements IClientIdentityStore {
 
 	constructor(
 		private readonly encryptionService: IEncryptionMainService,
-		private readonly applicationStorage: IApplicationStorageMainService,
+		private readonly applicationStorage: IStorageService,
 	) { }
 
 	async getState(): Promise<ClientIdentityStoreState> {

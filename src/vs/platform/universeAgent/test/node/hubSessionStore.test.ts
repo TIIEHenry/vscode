@@ -6,8 +6,7 @@
 import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import { IEncryptionMainService, KnownStorageProvider } from '../../../encryption/common/encryptionService.js';
-import { StorageScope, StorageTarget } from '../../../storage/common/storage.js';
-import { IApplicationStorageMainService } from '../../../storage/electron-main/storageMainService.js';
+import { IStorageService, StorageScope, StorageTarget } from '../../../storage/common/storage.js';
 import { ClientIdentityStore, InMemoryClientIdentityStore } from '../../node/clientIdentityStore.js';
 import {
 	HubSessionStore,
@@ -47,7 +46,7 @@ class TestEncryptionService implements IEncryptionMainService {
 	}
 }
 
-class TestApplicationStorageMainService implements Pick<IApplicationStorageMainService, 'get' | 'store' | 'remove'> {
+class TestApplicationStorageMainService implements Pick<IStorageService, 'get' | 'store' | 'remove'> {
 	private readonly data = new Map<string, string>();
 
 	get(key: string, scope: StorageScope, fallbackValue: string): string;
@@ -68,8 +67,8 @@ class TestApplicationStorageMainService implements Pick<IApplicationStorageMainS
 		return this.data.has(key);
 	}
 
-	asService(): IApplicationStorageMainService {
-		return this as unknown as IApplicationStorageMainService;
+	asService(): IStorageService {
+		return this as unknown as IStorageService;
 	}
 }
 
