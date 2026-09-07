@@ -1290,15 +1290,28 @@ export class SessionViewHost extends Disposable {
 			}
 			return;
 		}
+		let marked = false;
+		const markOnce = (status: 'accepted' | 'failed', errorMessage?: string) => {
+			if (marked) {
+				return;
+			}
+			marked = true;
+			mark(status, errorMessage);
+		};
 		try {
 			await this.connection.chat({
 				sessionId: engineSessionId,
 				payload: wirePayload,
 			}, () => {
-				mark('accepted');
+				markOnce('accepted');
 			});
+			if (!marked) {
+				markOnce('accepted');
+			}
 		} catch {
-			mark('failed', 'Chat write failed');
+			if (!marked) {
+				markOnce('failed', 'Chat write failed');
+			}
 		}
 	}
 

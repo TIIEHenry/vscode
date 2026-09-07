@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-08
-summary: "FileMutationJoin / createScoped / Review 委托已修。D16 仍开。官方三域 glob 已绿。D44–D51 已闭。git-read / open-diff / Stage·Commit / Unstage throw status DOM 已挂载。A2 仍 blocked。"
+summary: "FileMutationJoin / createScoped / Review 委托已修。D16 仍开。官方三域 glob 已绿。D44–D52 已闭。git-read / open-diff / Stage·Commit / Unstage throw status DOM 已挂载。A2 仍 blocked。"
 ---
 
 # Development Progress
@@ -79,6 +79,7 @@ summary: "FileMutationJoin / createScoped / Review 委托已修。D16 仍开。�
 20. **B 槽 `composer-leftover-clear`（未关 D16 / 未转 listTools / 未发明 GetQueue）**：`loadConnectedComposerCatalogs` agent/model catch 成功后再 throw 不再留旧 select / `catalogModelIds`。agent 重置 No agent；model 重置 No model / `['']` / selectedIndex=0。tools catch 已清。首拉 throw 测保留。父约束未 compile。[D50](deferred-gaps.md) **已闭**。
 21. **A 槽 `host-write-receipt`（未关 D16 / 未发明 heartbeat client_id / 未碰 Create·`.sessions` / proto / F4 / unused-import / `dev/loop`）**：`handleIntent` 把 `chatStreamWrite.writeId` 传入 `writeChat`；`mark()` 只用 `'accepted' | 'failed'` 并盖 `HOST_WRITE_RECEIPT_SOURCE` / `writeId` / `chatAttemptId`。permission `perm-live` 成功出 `removePendingAction`；resident write throw 出 `pendingRespondFailed`（`hostWriteFailed`）且无未处理 rejection。未包整圈 `drainIntents`。父约束未 compile。[D51](deferred-gaps.md) **已闭**。
 22. **D 槽 `unstage-status-dom`（未关 D16 / 未关 D31 / 未跑 F4 / 未开 A2）**：Changes 不走 git-read（该路径无 `scmResource`，Unstage 保持 disabled）。stub `index` 组 + `scmResource`，`CommandsRegistry.registerCommand('git.unstage')`，`ICommandService.executeCommand` throw `'boom'` 后点 Unstage Selected，`.sources-changes-status` 对齐既有 localize（`Unable to unstage:`）。测后注销命令。生产未改（Unstage status DOM 本已挂载）。未发明 WriteGitUnstage。未 compile。
+23. **A 槽 `oneshot-chat-receipt`（未关 D16 / 未发明 heartbeat client_id / GetQueue / 未碰 Create·`.sessions` / proto / F4 / unused-import / `dev/loop`）**：D51 已锁 resident `write()`。one-shot `connection.chat()` 原只在 `onResponse` 标 `accepted`；`TestConnection.chat()` 空 resolve、生产 `makeBidiBytesClient` 可 `'end'` 且 0 `'data'`，无 `inputDelivery`，perm-live 座不清。no-resident `writeChat`：`mark` 至多一次；await 后未 mark → `accepted`；catch 未 mark → `failed`。未包整圈 `drainIntents`。测锁无 callback 仍 `removePendingAction`、chat throw 仍 `pendingRespondFailed`（`hostWriteFailed`）。父约束未 compile。[D52](deferred-gaps.md) **已闭**。
 
 子 agent 发现的既有代码问题：
 
@@ -113,6 +114,7 @@ summary: "FileMutationJoin / createScoped / Review 委托已修。D16 仍开。�
 | [D49](deferred-gaps.md) | B 槽 `mcp-skills-leftover-clear` | **closed** MCP/Skills catch 先清行再 `failed`；成功→throw 测 `getMode()==='failed'` 且 `getListEntryCount()===0`；首拉 / disconnect 测保留；未关 D16 / 未转 listTools / 未发明 GetQueue |
 | [D50](deferred-gaps.md) | B 槽 `composer-leftover-clear` | **closed** agent/model catch 重置 No agent / No model / `catalogModelIds=['']` / selectedIndex=0；成功→throw 测不留上一轮 catalog；首拉 throw 测保留；未关 D16 / 未转 listTools / 未发明 GetQueue |
 | [D51](deferred-gaps.md) | A 槽 `host-write-receipt` | **closed** host receipt 用 `accepted`/`failed` + `host-write-accepted` / `writeId` / `chatAttemptId`；permission inflight 成功清座、失败 `pendingRespondFailed`；未关 D16 |
+| [D52](deferred-gaps.md) | A 槽 `oneshot-chat-receipt` | **closed** no-resident `writeChat` mark 至多一次；chat resolve 无 callback 仍 accepted / 清座；chat throw 仍 `pendingRespondFailed` `hostWriteFailed`；未关 D16 |
 
 ## 工位表（P0 盘点 · 2026-09-07 · 与 `git worktree list` 对照）
 
