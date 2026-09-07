@@ -187,5 +187,10 @@ export function installConversationLensResizeObserverHarness(): void {
 
 export async function flushConversationLensLayout(): Promise<void> {
 	await new Promise<void>(resolve => setTimeout(resolve, 20));
-	await new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+	// Race rAF against a timer. Merge Electron mocha often has no vsync, so
+	// a bare double-rAF never resolves and the next test hits Timeout of 5000ms.
+	await Promise.race([
+		new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))),
+		new Promise<void>(resolve => setTimeout(resolve, 50)),
+	]);
 }

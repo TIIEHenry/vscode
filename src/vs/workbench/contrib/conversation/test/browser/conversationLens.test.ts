@@ -170,10 +170,58 @@ suite('ConversationLens', () => {
 		await flushTimelineHeightUpdates();
 	}
 
+	function isRevealedTurnPainted(lens: ConversationLens, turnId: string): boolean {
+		const tree = getTimelineTree(lens);
+		return !!tree.getTimelineRowElement(turnId)
+			|| !!tree.domNode.querySelector(`[data-turn-id="${turnId}"]`)
+			|| !!tree.domNode.querySelector(`[data-fold-id="${turnId}"]`);
+	}
+
+	function restoreDelegateRowHeights(lens: ConversationLens): void {
+		const internal = getTimelineTree(lens) as unknown as {
+			turnItems: Map<string, { variant?: string }>;
+			safeUpdateElementHeight: (item: object, height: number) => void;
+		};
+		const seen = new Set<object>();
+		for (const item of internal.turnItems.values()) {
+			if (seen.has(item)) {
+				continue;
+			}
+			seen.add(item);
+			internal.safeUpdateElementHeight(item, item.variant === 'process-fold' ? 40 : 72);
+		}
+	}
+
 	async function revealVisualizeTurn(lens: ConversationLens, layoutReadingColumn: () => void, turnId: string): Promise<void> {
-		getTimelineTree(lens).revealTurn(turnId, 0);
+		// Layout first so ListView has a real viewport, then reveal. Leftover
+		// reveal-then-await-rAF hung on merge transpile: Electron mocha can
+		// stall requestAnimationFrame (no vsync / height-update rAF storm),
+		// so mocha hit Timeout of 5000ms. A stalled rAF can also write 1px
+		// dynamic heights (offsetHeight 0) and unpaint every virtual row.
+		// Restore delegate defaults and yield with setTimeout — not rAF.
+		// Stop after a few tries so a missing row fails the product assert.
+		const tree = getTimelineTree(lens);
+		await new Promise<void>(resolve => setTimeout(resolve, 16));
 		layoutReadingColumn();
-		await flushAnimationFrames();
+		tree.revealTurn(turnId, 0);
+		layoutReadingColumn();
+		if (isRevealedTurnPainted(lens, turnId)) {
+			return;
+		}
+		restoreDelegateRowHeights(lens);
+		layoutReadingColumn();
+		tree.revealTurn(turnId, 0);
+		layoutReadingColumn();
+		for (let attempt = 0; attempt < 4; attempt++) {
+			if (isRevealedTurnPainted(lens, turnId)) {
+				return;
+			}
+			await new Promise<void>(resolve => setTimeout(resolve, 16));
+			restoreDelegateRowHeights(lens);
+			layoutReadingColumn();
+			tree.revealTurn(turnId, 0);
+			layoutReadingColumn();
+		}
 	}
 
 	async function revealUntitledProcessFold(lens: ConversationLens, layoutReadingColumn: () => void): Promise<void> {
