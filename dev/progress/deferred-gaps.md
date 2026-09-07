@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-07
-summary: "延期缺口 SSOT；D16 仍开（切片 3 名单已落，三文件标题未列入；compile/S2 leftover 不闭）；D17 DiffReview afterEach / FileMutationJoin / S1a createScoped / StatusBar leftover / SessionsView+OpenPendingOnFocus / lens visualize·T5a·fold / S4-S5 首次 layout 已修；D42 最大化藏轨迹槽；D43 ConversationPart 尺寸不扇出；D22 F3；D24 其余 JSON RPC；D25 引擎 List 真空；D26 引擎建壳回 6；D31 F4 / A2 blocked"
+summary: "延期缺口 SSOT；D16 仍开（切片 3 名单已落，三文件标题未列入；compile/S2 leftover 不闭）；D17 DiffReview afterEach / FileMutationJoin / S1a createScoped / StatusBar leftover / SessionsView+OpenPendingOnFocus / lens visualize 两行 reveal 夹具 / T5a·fold / S4-S5 首次 layout 已修；D42 最大化藏轨迹槽；D43 ConversationPart 尺寸不扇出；D22 F3；D24 其余 JSON RPC；D25 引擎 List 真空；D26 引擎建壳回 6；D31 F4 / A2 blocked"
 ---
 
 # Deferred Gaps
@@ -335,7 +335,7 @@ $REPO/scripts/code-cli.sh --extensions-dir="$EXT_DIR" \
 |:---------|:-----|:-----|:------|
 | `d2abb648c0e` | conversation：`ConversationDiffReviewPane` 泄漏 **已修**（pane `dispose`/`clearEditors` + disposable listener；navigation/aggregation/fence 停引真实 contribution，改 stub）。afterEach 六行已从名单删除。官方 conversation 单 glob 不再被该泄漏中断 | leftover | B `diffreview-leak` |
 | `d2abb648c0e` | conversation：editor aggregation S1a scoped uniqueness **已修**（工位 B `create-scoped`）：生产 `createConversationEditorPart` 已按 part `createScoped`；测败在 mainPart 懒建缺 `IStatusbarService.createScoped`。夹具已补，未缩断言。名单该行已删 | leftover | B `create-scoped` |
-| `d2abb648c0e` | conversation：Lens visualize **两行仍红**（merge `dee58ac54b4` compile 后 `comparison`/`header` 未铺；C 自称 out/ 绿不成立）。reveal / fold / trajectory 座名已收 | leftover | A `visualize-leftover` |
+| `d2abb648c0e` | conversation：Lens visualize 两行 **夹具已改**（工位 A `visualize-leftover`）：默认 360px 虚窗不再保证 comparison 已挂；两测先 `revealVisualizeTurn(..., 'visualize-v2')` 再查 DOM。未缩「无 Agent header」/ collapse。名单两行未删；compile 后 merge 重测待父槽 | leftover | A `visualize-leftover` |
 | `d2abb648c0e` | conversation：StatusBar 引擎入口 / H4b 相位文案 **夹具已改**（工位 A `statusbar-leftover`：去二次 `registerAction2` + Emitter leak；未缩断言、未关 D16、未改名单） | leftover | A `statusbar-leftover` |
 | `d2abb648c0e` | conversation：SessionsView 四行 + OpenPendingOnFocus 无 pending **已修**（工位 B `sessions-openpending-harness`）：夹具对齐 untitled+visualize seed（空行测 `createSession()`、filter 补 rename visualize、create 落点 `sessions[2]`），未缩断言。名单五行已删 | leftover | B `sessions-openpending-harness` |
 | `d2abb648c0e` | conversation：split / side-by-side **首次 layout 已修**（D `createConversationEditorPart` + 夹具）；后续 chrome 扇出见 [D43](#d43) | leftover | D `s4-s5-first-layout` |
