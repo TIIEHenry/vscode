@@ -319,6 +319,14 @@ export class EngineMcpSection extends Disposable {
 		return true;
 	}
 
+	/** Test hook: programmatically toggle a server by id. */
+	async toggleServerForTest(id: string, enabled: boolean): Promise<void> {
+		const entry = this.listEntries.find(item => item.kind === 'server' && item.server.id === id);
+		if (entry?.kind === 'server') {
+			await this.toggleServer(entry.server, enabled);
+		}
+	}
+
 	async addServer(config?: UniverseAgentMcpServerConfig): Promise<boolean> {
 		if (!this.canWrite()) {
 			return false;
@@ -586,12 +594,16 @@ export class EngineMcpSection extends Disposable {
 				scope,
 			});
 			if (!result.ok) {
+				this.showWriteFailed(result.reason);
 				await this.refresh();
+				this.showWriteFailed(result.reason);
 				return;
 			}
 			await this.refresh();
-		} catch {
+		} catch (error) {
+			this.showWriteFailed(error);
 			await this.refresh();
+			this.showWriteFailed(error);
 		}
 	}
 }
