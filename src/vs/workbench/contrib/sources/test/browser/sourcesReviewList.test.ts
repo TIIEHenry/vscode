@@ -13,12 +13,12 @@ import { Event } from '../../../../../base/common/event.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { ensureNoDisposablesAreLeakedInTestSuite, toResource } from '../../../../../base/test/common/utils.js';
 import { localize } from '../../../../../nls.js';
-import { ICommandService } from '../../../../../platform/commands/common/commands.js';
+import { CommandsRegistry, ICommandService } from '../../../../../platform/commands/common/commands.js';
 import { getSelectionKeyboardEvent, WorkbenchList } from '../../../../../platform/list/browser/listService.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { IQuickDiffService } from '../../../scm/common/quickDiff.js';
-import { ISCMService } from '../../../scm/common/scm.js';
+import { ISCMResource, ISCMService } from '../../../scm/common/scm.js';
 import { SourcesChangesList } from '../../browser/sourcesChangesList.js';
 import { SourcesReviewList } from '../../browser/sourcesReviewList.js';
 import { sourcesGitDiffOpenFailureMessage, sourcesGitReadFailureMessage } from '../../common/sourcesChangesGitRead.js';
@@ -91,14 +91,66 @@ suite('Sources - review list model', () => {
 		} as unknown as ISCMService;
 	}
 
+	function createNoGitReadConnection(): IUniverseAgentConnection {
+		return {
+			isEngineConnected: () => false,
+			onDidChangeConnection: Event.None,
+		} as unknown as IUniverseAgentConnection;
+	}
+
+	function createIndexScmService(resource: URI): ISCMService {
+		const group = {
+			id: 'index',
+			label: 'Staged Changes',
+			resources: [] as ISCMResource[],
+		};
+		const scmResource = {
+			sourceUri: resource,
+			resourceGroup: group,
+			decorations: {},
+			contextValue: undefined,
+			command: undefined,
+			multiDiffEditorOriginalUri: undefined,
+			multiDiffEditorModifiedUri: undefined,
+			open: async () => { },
+		} as ISCMResource;
+		group.resources.push(scmResource);
+
+		const repository = {
+			provider: {
+				groups: [group],
+				onDidChangeResources: Event.None,
+				onDidChangeResourceGroups: Event.None,
+				inputBoxTextModel: { setValue: () => { } },
+			},
+			input: {
+				value: '',
+				setValue: () => { },
+				onDidChange: Event.None,
+			},
+		};
+
+		return {
+			_serviceBrand: undefined,
+			get repositories() { return [repository]; },
+			get repositoryCount() { return 1; },
+			onDidAddRepository: Event.None,
+			onDidRemoveRepository: Event.None,
+			registerSCMProvider: () => { throw new Error('not implemented'); },
+			getRepository: () => undefined,
+		} as unknown as ISCMService;
+	}
+
 	function stubSourcesGitListServices(options: {
 		connection?: IUniverseAgentConnection;
+		scmService?: ISCMService;
 		getQuickDiffs?: () => Promise<unknown>;
 		markReviewed?: () => void;
+		executeCommand?: (...args: unknown[]) => Promise<unknown>;
 	} = {}) {
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		instantiationService.stub(IUniverseAgentConnection, options.connection ?? createThrowingGitConnection());
-		instantiationService.stub(ISCMService, createEmptyScmService());
+		instantiationService.stub(ISCMService, options.scmService ?? createEmptyScmService());
 		instantiationService.stub(IQuickDiffService, {
 			getQuickDiffs: options.getQuickDiffs ?? (async () => []),
 		} as unknown as IQuickDiffService);
@@ -111,7 +163,7 @@ suite('Sources - review list model', () => {
 		instantiationService.stub(ICommandService, {
 			onWillExecuteCommand: Event.None,
 			onDidExecuteCommand: Event.None,
-			executeCommand: async () => undefined,
+			executeCommand: options.executeCommand ?? (async () => undefined),
 		} as unknown as ICommandService);
 		instantiationService.stub(ISourcesReviewProgressService, {
 			onDidChange: Event.None,
@@ -422,6 +474,38 @@ suite('Sources - review list model', () => {
 		assert.strictEqual(status, localize('sourcesChangesList.commitFailed', "Unable to commit: {0}", getErrorMessage(new Error('boom'))));
 		assert.ok(status.includes('Unable to commit:'));
 		assert.ok(status.includes('boom'));
+	});
+
+	test('Changes list status DOM shows Unstage Selected command throw', async function () {
+		const unstageCommand = CommandsRegistry.registerCommand('git.unstage', () => { });
+		try {
+			const resource = toResource.call(this, '/project/src/a.ts');
+			const host = mountListHost();
+			const instantiationService = stubSourcesGitListServices({
+				connection: createNoGitReadConnection(),
+				scmService: createIndexScmService(resource),
+				executeCommand: async () => {
+					throw new Error('boom');
+				},
+			});
+			const widget = store.add(instantiationService.createInstance(SourcesChangesList, host));
+			(host.querySelector('.sources-changes-list') as HTMLElement).style.height = '120px';
+
+			await selectFirstListRow(widget as unknown as { list?: WorkbenchList<unknown> });
+
+			const toolbarButtons = host.querySelectorAll('.sources-changes-toolbar .monaco-button');
+			const unstageButton = toolbarButtons[1] as HTMLElement | undefined;
+			assert.ok(unstageButton, 'Unstage Selected is the toolbar second button');
+			const enabledUnstage = await waitForEnabledButton(host, '.sources-changes-toolbar .monaco-button:nth-child(2)');
+			enabledUnstage.click();
+
+			const status = await waitForStatusText(host, '.sources-changes-status', 'Unable to unstage');
+			assert.strictEqual(status, localize('sourcesChangesList.unstageFailed', "Unable to unstage: {0}", getErrorMessage(new Error('boom'))));
+			assert.ok(status.includes('Unable to unstage:'));
+			assert.ok(status.includes('boom'));
+		} finally {
+			unstageCommand.dispose();
+		}
 	});
 
 	test('Changes list does not reference review progress service', () => {

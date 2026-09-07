@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-08
-summary: "FileMutationJoin / createScoped / Review 委托已修。D16 仍开。官方三域 glob 已绿。D44–D50 已闭。git-read / open-diff / Stage·Commit throw status DOM 已挂载。A2 仍 blocked。"
+summary: "FileMutationJoin / createScoped / Review 委托已修。D16 仍开。官方三域 glob 已绿。D44–D50 已闭。git-read / open-diff / Stage·Commit / Unstage throw status DOM 已挂载。A2 仍 blocked。"
 ---
 
 # Development Progress
@@ -77,6 +77,7 @@ summary: "FileMutationJoin / createScoped / Review 委托已修。D16 仍开。�
 18. **B 槽 `mcp-skills-leftover-clear`（未关 D16 / 未转 listTools / 未发明 GetQueue）**：`engineMcpSection.refresh` / `engineSkillsSection.refresh` catch 先 `clearCatalogPresentation` 再 `failed`。补成功→throw 测：`getMode()==='failed'` 且 `getListEntryCount()===0`。首拉 / disconnect 测保留。父约束未 compile。[D49](deferred-gaps.md) **已闭**。
 19. **D 槽 `changes-stage-commit-dom`（未关 D16 / 未关 D31 / 未跑 F4 / 未开 A2）**：Changes 挂载后选行，Stage Selected / Commit 在 `writeGitStagePaths` / `writeGitCommit` throw 时 `.sources-changes-status` 对齐既有 localize（`Unable to stage:` / `Unable to commit:`）。未改生产。未重做 git-read / open-diff。未发明 WriteGitUnstage。未 compile。
 20. **B 槽 `composer-leftover-clear`（未关 D16 / 未转 listTools / 未发明 GetQueue）**：`loadConnectedComposerCatalogs` agent/model catch 成功后再 throw 不再留旧 select / `catalogModelIds`。agent 重置 No agent；model 重置 No model / `['']` / selectedIndex=0。tools catch 已清。首拉 throw 测保留。父约束未 compile。[D50](deferred-gaps.md) **已闭**。
+21. **D 槽 `unstage-status-dom`（未关 D16 / 未关 D31 / 未跑 F4 / 未开 A2）**：Changes 不走 git-read（该路径无 `scmResource`，Unstage 保持 disabled）。stub `index` 组 + `scmResource`，`CommandsRegistry.registerCommand('git.unstage')`，`ICommandService.executeCommand` throw `'boom'` 后点 Unstage Selected，`.sources-changes-status` 对齐既有 localize（`Unable to unstage:`）。测后注销命令。生产未改（Unstage status DOM 本已挂载）。未发明 WriteGitUnstage。未 compile。
 
 子 agent 发现的既有代码问题：
 
@@ -85,7 +86,7 @@ summary: "FileMutationJoin / createScoped / Review 委托已修。D16 仍开。�
 | [D23](deferred-gaps.md) | A 槽 | **closed** resident heartbeat write 已 catch |
 | [D33](deferred-gaps.md) | B 槽 | **closed** pairingPending 开 Connection/SAS |
 | [D27](deferred-gaps.md) | grok 4.6 | **closed**：`provideTurnEditComposer` 先于 `setEditingTurnId`；已删 1px 垫高 |
-| [D31](deferred-gaps.md) | D 槽 | Accept A1 已落；P5 停线；A2 须新选定 + Arch-First；git-read / open-diff / Stage Selected·Commit throw 的 status DOM 已挂载；**仍开**（剩 F4）；不升 PRD |
+| [D31](deferred-gaps.md) | D 槽 | Accept A1 已落；P5 停线；A2 须新选定 + Arch-First；git-read / open-diff / Stage Selected·Commit / Unstage Selected throw 的 status DOM 已挂载；**仍开**（剩 F4）；不升 PRD |
 | [R8](research-queue.md) | B 槽 `r8-empty-patches-close` | **closed**：[ADR-008](../decisions/008-write-git-apply-hunks-empty.md) 引擎仓 `1f07008f` `GitWorkDirWriter.kt` L77–78 空 `patches` = 成功空操作；A1 已拒空送；[D31](deferred-gaps.md) F4 未跑 |
 | [D32](deferred-gaps.md) | A 槽 `host-write-retry` | **closed（代码+测已写；compile 待 merge）** Retry 走 `lease.post`；host 映射 Actor `continueGeneration` |
 | [D38](deferred-gaps.md) | A 槽 `host-bind-safety` | **closed** `fillHistory` bind/write 已 catch |
