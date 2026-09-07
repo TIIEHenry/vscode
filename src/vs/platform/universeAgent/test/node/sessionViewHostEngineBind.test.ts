@@ -391,4 +391,53 @@ suite('SessionViewHost engine session bind', () => {
 			assert.ok(outcome.message && /CreateSession refused|dead shell/.test(outcome.message));
 		}
 	});
+
+	test('requestDetail fetchToolDetail rejection returns failed and does not leak unhandledRejection', async () => {
+		class ThrowingDetailHost extends TestHost {
+			override async fetchToolDetail(): Promise<never> {
+				throw new Error('fetchToolDetail exploded');
+			}
+		}
+		const connection = new BindConnection();
+		const viewHost = store.add(new SessionViewHost(connection, new ThrowingDetailHost(async () => undefined), {
+			orphanTimeoutMs: 0,
+		}));
+		const leaseId = viewHost.acquireLease('local-detail-throw');
+		const rejections: unknown[] = [];
+		const onUnhandled = (reason: unknown) => { rejections.push(reason); };
+		process.on('unhandledRejection', onUnhandled);
+		try {
+			const outcome = await viewHost.requestDetail(leaseId, encodeDetailRef({
+				toolCallId: 'tc',
+				detailKind: 1,
+				refId: 'tc',
+			}));
+			await new Promise<void>(resolve => setImmediate(() => resolve()));
+			assert.strictEqual(outcome.ok, false);
+			if (!outcome.ok) {
+				assert.strictEqual(outcome.reason, 'failed');
+				assert.ok(outcome.message && /fetchToolDetail exploded/.test(outcome.message));
+			}
+			assert.deepStrictEqual(rejections, []);
+		} finally {
+			process.off('unhandledRejection', onUnhandled);
+		}
+	});
+
+	test('requestDetail passes through host fetchToolDetail ok:false without rewriting', async () => {
+		const connection = new BindConnection();
+		const viewHost = store.add(new SessionViewHost(connection, new TestHost(async () => undefined), {
+			orphanTimeoutMs: 0,
+		}));
+		const leaseId = viewHost.acquireLease('local-detail-unavailable');
+		const outcome = await viewHost.requestDetail(leaseId, encodeDetailRef({
+			toolCallId: 'tc',
+			detailKind: 1,
+			refId: 'tc',
+		}));
+		assert.strictEqual(outcome.ok, false);
+		if (!outcome.ok) {
+			assert.strictEqual(outcome.reason, 'unavailable');
+		}
+	});
 });
