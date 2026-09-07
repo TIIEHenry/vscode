@@ -24,7 +24,7 @@ summary: "PRD-015 系统规格：PreFirst 居中 / Active 列底同一张 Compos
 
 底栏控件：`+` 浅底圆、语音无底、发送实心圆，其余无背景；Enter 发送、Shift+Enter 换行。同一时刻只有一个输入（PRD-015 验收 1–4、7）。叶宽 < 600（`.is-narrow`）时次要控件进溢出菜单（`…`），底栏不用横向滚动藏发送/输入；< 300（`.is-compact`）仍保留主输入、发送与返回路径。
 
-身份条数据：`getConversationIdentityFolder`（首个工作区文件夹）、`getConversationIdentityBranchName`（`ISCMService` HEAD ref）；无文件夹 / 无仓库时对应 chip 省略。引擎 chip 文案 = `getConnectionPhaseStatusBarText(getConnectionPhase(), pairingPending)`（与 StatusBar `status.conversation.engine` 同函数）；点击路由 = B10（`isEngineConnected()` → `workbench.action.openEnginePreferences`，否则 `workbench.action.openConnectionPreferences`）；订阅 `IUniverseAgentConnection.onDidChangeConnection` 与 `IConversationRosterService.onDidChangeEngineConnection`。
+身份条数据：`getConversationIdentityFolder`（首个工作区文件夹）、`getConversationIdentityBranchName`（`ISCMService` HEAD ref）；无文件夹 / 无仓库时对应 chip 省略。引擎 chip 文案 = `getConnectionPhaseStatusBarText(getConnectionPhase(), pairingPending)`（与 StatusBar `status.conversation.engine` 同函数）；点击路由 = B10（`getEngineStatusCommandId(phase, pairingPending)` / `isConversationEngineLive` → `workbench.action.openEnginePreferences`，否则 `workbench.action.openConnectionPreferences`；`pairingPending` 开 Connection/SAS）；订阅 `IUniverseAgentConnection.onDidChangeConnection` 与 `IConversationRosterService.onDidChangeEngineConnection`。
 
 接通且能力 `SUPPORTED` 时，Agent / Tools / Model 下拉由 `conversationComposerCatalog.ts` **只读填表**（`listAgentProfiles` / `listTools` / `listModels`）；选择不进 `submitInput`，也不做会话级 `SwitchModel`。无引擎或能力未就绪时诚实空（「No agent」/「No model」）。Route / Permission 仍本地 stub。
 
@@ -77,7 +77,7 @@ summary: "PRD-015 系统规格：PreFirst 居中 / Active 列底同一张 Compos
 | id | 文案 | 规则 |
 |----|------|------|
 | `status.conversation.session` | 当前会话标题；无标题 **No session** | 点击 → `workbench.action.showConversationPart` |
-| `status.conversation.engine` | `getConnectionPhaseStatusBarText`（H4b）：disconnected / connecting / connected / failed 各态；pairing-pending → **Engine not connected** | B10：`isEngineConnected()` → `workbench.action.openEnginePreferences`，否则 → `workbench.action.openConnectionPreferences`；身份条引擎 chip 同路由 |
+| `status.conversation.engine` | `getConnectionPhaseStatusBarText`（H4b）：disconnected / connecting / connected / failed 各态；pairing-pending → **Engine not connected** | B10：`getEngineStatusCommandId(phase, pairingPending)`（`isConversationEngineLive` → `workbench.action.openEnginePreferences`，否则 → `workbench.action.openConnectionPreferences`）；`pairingPending` 开 Connection/SAS；身份条引擎 chip 同路由 |
 | `status.conversation.model` | **No model** | **仅当** `CONVERSATION_PART` 隐藏时注册（UI-INV-14：座位可见时 Dock 是 model owner） |
 
 无 Copilot、无额度、无 Sign In；无 session-usage / turns / tok/s 芯片（无权威则省略槽位）。

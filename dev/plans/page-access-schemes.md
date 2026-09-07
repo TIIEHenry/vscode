@@ -3,7 +3,7 @@ title: "页面接入方案：Settings / 会话列表 / 透镜 / Navigator tab"
 type: plan
 status: implemented
 phase: N/A
-updated: 2026-09-02
+updated: 2026-09-07
 summary: "B2 壳之后页面接入；切片 1a–5 代码已落，M7 继续 Engine/Client UI 完成，不重开宿主"
 origin: multi-party-design-review
 mpdr:
@@ -992,12 +992,13 @@ getCommonlyUsedData(
 
 ```text
 文案：IUniverseAgentConnection.getConnectionPhase() + pairingPending → getConnectionPhaseStatusBarText
-路由：IConversationRosterService.isEngineConnected()（session_token + 活 channel）
+路由：getEngineStatusCommandId(phase, pairingPending)
+  = isConversationEngineLive(phase, pairingPending)
   → true：workbench.action.openEnginePreferences（Engine pane）
-  → false：workbench.action.openConnectionPreferences（Connection pane）
+  → false：workbench.action.openConnectionPreferences（Connection/SAS）
 ```
 
-pairing-pending / connecting **不算** connected；芯片无引擎亦可点 Connection pane。
+pairing-pending / connecting **不算** connected（即便 `phase.kind === 'connected'`）；芯片无引擎亦可点 Connection pane。
 
 **CI（unit，不 launch）：** `conversationSessionStatusBar.test.ts`（StatusBar B10 路由 + H4b 各 phase 文案）；`conversationIdentityStrip.test.ts`（身份条引擎 chip 同文案函数、同 openEngine/openConnection command）。
 

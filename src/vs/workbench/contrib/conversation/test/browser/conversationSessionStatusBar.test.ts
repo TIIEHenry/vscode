@@ -218,5 +218,22 @@ suite('Conversation Session StatusBar', () => {
 			assert.strictEqual(engineEntry?.text, 'Engine not connected');
 			assert.strictEqual(getEngineCommandId(engineEntry), OPEN_CONNECTION_PREFERENCES_COMMAND_ID);
 		});
+
+		test('pairing pending opens Connection even when phase is connected', () => {
+			const entries = mountStatusBar(createRosterStub(() => true), {
+				isEngineConnected: () => true,
+				getConnectionPhase: () => ({ kind: 'connected', path: 'direct' }),
+				getConnectionSnapshot: () => ({
+					transport: 'ok',
+					pairingPending: true,
+					channelAlive: true,
+					sharedFsRootSent: false,
+					capabilities: createEmptyTestCapabilitySnapshot(),
+				}),
+			});
+			const engineEntry = entries.get(ConversationSessionStatusBarContribution.ENGINE_ENTRY_ID);
+			assert.strictEqual(engineEntry?.text, 'Engine not connected');
+			assert.strictEqual(getEngineCommandId(engineEntry), OPEN_CONNECTION_PREFERENCES_COMMAND_ID);
+		});
 	});
 });

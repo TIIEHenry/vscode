@@ -116,7 +116,7 @@ summary: "IConversationRosterService 契约分组；生产注册 ConversationEng
    | `closed` | false | Engine not connected | — |
    | `pairing` sidecar（非 phase） | false | Engine not connected | SAS 对话框；不写 trust 直至用户确认 |
 
-   Hub 账号态（`signedOut` / `signedIn` / `mustChangePassword` / `hub_auth_expired`）与上表 **正交**（[connection-hub-client §3.7](../../../dev/plans/connection-hub-client.md#37-两个正交状态与-presence-矩阵)）。**切片 5 / B10：** connected → command `workbench.action.openEnginePreferences`；否则 → `workbench.action.openConnectionPreferences`。能力三态在 `getCapabilitySnapshot()`；传输失败在 `getTransportState()`，**不得** `catch → emptyList()` 冒充引擎返回 0 条。
+   Hub 账号态（`signedOut` / `signedIn` / `mustChangePassword` / `hub_auth_expired`）与上表 **正交**（[connection-hub-client §3.7](../../../dev/plans/connection-hub-client.md#37-两个正交状态与-presence-矩阵)）。**切片 5 / B10：** `isConversationEngineLive(phase, pairingPending)` → command `workbench.action.openEnginePreferences`；否则（含 pairingPending）→ `workbench.action.openConnectionPreferences`。能力三态在 `getCapabilitySnapshot()`；传输失败在 `getTransportState()`，**不得** `catch → emptyList()` 冒充引擎返回 0 条。
 
    **Hub secret 落盘与加密可用性**（[hub-control-plane-surface §3.1](../../reference/universe-agent/hub-control-plane-surface.md#31-hub-会话与客户端身份落盘3536--321a4e0b) @ `321a4e0b`）与 `ConnectionPhase` **再正交一层**：
 

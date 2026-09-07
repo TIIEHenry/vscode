@@ -56,7 +56,7 @@ summary: "人类工位已对齐已推送 MERGE_SHA c1b228caf74；保留本机行
 1. **集成 tip** 以人类工位 `agent-ide` 为准（含 `c1b228caf74` + 行动层）。下一波：A=D23+D32，B=D33+D27，C=D30+诚实空，D=D31+R8。GFS >800 不拆。
 2. 字母槽 leftover 进度句已收进本账，再 cascade：
    - **A**：Sources 写面 `supported && success` 才算 Stage/Commit/Accept；`supported: false` 回落本地 git；Accept 不绑死 SCM。次级面 [D31](deferred-gaps.md)。
-   - **B**：`conversation-disconnect-send` 未连不锁 Send；引擎缓存断连先试 enqueue，拒收则留 draft + 明确失败，不 stub echo。
+   - **B**：`conversation-disconnect-send` 未连不锁 Send；引擎缓存断连先试 enqueue，拒收则留 draft + 明确失败，不 stub echo。本 wake `pairing-chip-command`：`getEngineStatusCommandId(phase, pairingPending)`。D27 仍 PARTIAL（1px 垫高），未改 timeline。
    - **C**：pairing pending 时 SAS 框挂在发起 Connect 的 zone 外侧，避免被 `.connection-zone:not(.is-active-zone)` 吃掉。
    - **D**：retryable error 行 Retry → roster `openContinuationStream`；不经 `lease.post`（[D32](deferred-gaps.md)）。
 
@@ -65,8 +65,8 @@ summary: "人类工位已对齐已推送 MERGE_SHA c1b228caf74；保留本机行
 | ID | 来源 | 问题 |
 |:---|:-----|:-----|
 | [D23](deferred-gaps.md) | A 槽核实时 | `sessionViewHost.ts` `void sendHeartbeatAck`：resident `write` 无 catch，失败可成未处理 rejection |
-| [D33](deferred-gaps.md) | 决策核实时 | `getEngineStatusCommandId` 配对中可能把 chip 指到 Engine 页（号原误写成 D24） |
-| [D27](deferred-gaps.md) | 决策核实时 | ListView 0px：编辑态整树重建；1px 垫高未根治 |
+| [D33](deferred-gaps.md) | 决策核实时 | **closed @ 工位 B**：`getEngineStatusCommandId(phase, pairingPending)` 配对中开 Connection/SAS |
+| [D27](deferred-gaps.md) | grok 4.6 | **PARTIAL**：树重建已 patches/`rerender`；剩 1px 垫高 + composer 后置。本 wake 不改 timeline |
 | [D31](deferred-gaps.md) | A 槽 Sources | Review 读失败静默、Panel 无写动作、无 Unstage |
 | [R8](research-queue.md) | A 槽 Sources | `WriteGitApplyHunks` 空 patches 语义未定 |
 | [D32](deferred-gaps.md) | D 槽 error-retry | UI 直开 ContinueGeneration，不经 lease.post |
