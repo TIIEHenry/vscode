@@ -14,17 +14,13 @@ import { IStatusbarEntry, IStatusbarService, StatusbarAlignment } from '../../..
 import { IWorkbenchLayoutService } from '../../../../services/layout/browser/layoutService.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { isConversationEngineLive } from '../../browser/conversationSessionStatus.js';
-import {
-	ConversationSessionStatusBarContribution,
-	registerConversationSessionStatusBar,
-} from '../../browser/conversationSessionStatusBar.js';
+import { ConversationSessionStatusBarContribution } from '../../browser/conversationSessionStatusBar.js';
 import { IConversationRosterService } from '../../browser/conversationStubService.js';
 import { OPEN_CONNECTION_PREFERENCES_COMMAND_ID, OPEN_ENGINE_PREFERENCES_COMMAND_ID } from '../../common/uaPreferencesPanes.js';
 import { createConversationConnectionTestStub, createEmptyTestCapabilitySnapshot } from '../common/conversationConnectionTestStub.js';
 
 suite('Conversation Session StatusBar', () => {
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
-	let statusBarActionsRegistered = false;
 
 	function createConnectionStub(overrides: Partial<IUniverseAgentConnection> = {}): IUniverseAgentConnection {
 		return createConversationConnectionTestStub(overrides);
@@ -34,11 +30,6 @@ suite('Conversation Session StatusBar', () => {
 		stubService: IConversationRosterService,
 		connectionOverrides: Partial<IUniverseAgentConnection> = {},
 	): Map<string, IStatusbarEntry> {
-		if (!statusBarActionsRegistered) {
-			registerConversationSessionStatusBar();
-			statusBarActionsRegistered = true;
-		}
-
 		const entries = new Map<string, IStatusbarEntry>();
 		const statusbarService = {
 			_serviceBrand: undefined,
@@ -48,15 +39,20 @@ suite('Conversation Session StatusBar', () => {
 					update: (next: IStatusbarEntry) => {
 						entries.set(id, next);
 					},
-					dispose: () => { },
+					dispose: () => {
+						entries.delete(id);
+					},
 				};
+			},
+			createScoped() {
+				return this;
 			},
 		} as unknown as IStatusbarService;
 
 		const layoutService = {
 			_serviceBrand: undefined,
 			isVisible: () => false,
-			onDidChangePartVisibility: () => ({ dispose: () => { } }),
+			onDidChangePartVisibility: Event.None,
 		} as unknown as IWorkbenchLayoutService;
 
 		const environmentService = {
@@ -83,15 +79,11 @@ suite('Conversation Session StatusBar', () => {
 	}
 
 	function createRosterStub(isEngineConnected: () => boolean): IConversationRosterService {
-		const onDidChangeActiveSession = new Emitter<string>();
-		const onDidChangeSession = new Emitter<string>();
-		const onDidChangeEngineConnection = new Emitter<boolean>();
-
 		return {
 			_serviceBrand: undefined,
-			onDidChangeActiveSession: onDidChangeActiveSession.event,
-			onDidChangeSession: onDidChangeSession.event,
-			onDidChangeEngineConnection: onDidChangeEngineConnection.event,
+			onDidChangeActiveSession: Event.None,
+			onDidChangeSession: Event.None,
+			onDidChangeEngineConnection: Event.None,
 			getActiveSessionId: () => 'untitled',
 			getActiveSession: () => ({ id: 'untitled', title: 'Untitled', turns: [] }),
 			isEngineConnected,
@@ -132,7 +124,7 @@ suite('Conversation Session StatusBar', () => {
 	});
 
 	test('engine entry command switches when engine connection changes', () => {
-		const onDidChangeEngineConnection = new Emitter<boolean>();
+		const onDidChangeEngineConnection = store.add(new Emitter<boolean>());
 		let connected = false;
 
 		const stubService = {
@@ -145,7 +137,7 @@ suite('Conversation Session StatusBar', () => {
 			isEngineConnected: () => connected,
 		} as unknown as IConversationRosterService;
 
-		const onDidChangeConnection = new Emitter<UniverseAgentConnectionSnapshot>();
+		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
 		let phase: ConnectionPhase = { kind: 'disconnected' };
 
 		const entries = mountStatusBar(stubService, {
