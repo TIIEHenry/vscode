@@ -20,6 +20,7 @@ import {
 import {
 	conversationLensPhasePreFirstClass,
 	conversationLensPhasePreFirstDockHiddenClass,
+	conversationLensShowingTrajectoryClass,
 } from './conversationLensDockStrings.js';
 import { ConversationTimelineTree } from './conversationTimelineTree.js';
 import { ConversationTrajectory } from './conversationTrajectory.js';
@@ -273,6 +274,7 @@ export function setLensId(host: IConversationLensProjectionHost, lensId: Convers
 
 export function updateLensTabs(host: IConversationLensProjectionHost): void {
 
+		host.slotHosts.timeline.classList.toggle(conversationLensShowingTrajectoryClass, host.lensId === 'trajectory');
 		if (!host.lensTabConversation || !host.lensTabTrajectory) {
 			return;
 		}

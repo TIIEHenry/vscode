@@ -87,6 +87,9 @@ export const conversationLensDockSaveQueued = localize('conversationLens.dockSav
 /** Toggled on ConversationPart slot hosts when Input Maximize is active (Desktop §8.3.11). */
 export const conversationLensInputMaximizedClass = 'conversation-lens-input-maximized';
 
+/** Toggled on the shared timeline slot while the Trajectory page is showing (D42). */
+export const conversationLensShowingTrajectoryClass = 'conversation-lens-showing-trajectory';
+
 /** PreFirst (no visible messages): centered composer cluster in the reading column. */
 export const conversationLensPhasePreFirstClass = 'conversation-lens-phase-prefirst';
 export const conversationLensPrefirstHeroClass = 'conversation-lens-prefirst-hero';
