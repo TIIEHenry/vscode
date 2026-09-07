@@ -86,7 +86,7 @@ summary: "FileMutationJoin / createScoped / Review 委托已修。D16 仍开。D
 | [D35](deferred-gaps.md) | B 槽 `timeline-hygiene` | **closed** 删 `getTimelineRowElement` 死第二段 query |
 | [D36](deferred-gaps.md) | B 槽 `timeline-hygiene` | **closed** standalone thinking/tool 诚实摘要行，无假 fold |
 | [D15](deferred-gaps.md) | A 槽 `d15-web-evidence` | **closed** W1 `code-web.sh` V1–V3 PASS；phase=`disconnected`；不画桌面连接控件；证据 w1-1556dde3 |
-| [D42](deferred-gaps.md) | B 槽 `d42-maximize-trajectory` | **closed** Maximize 只藏 `.conversation-lens-timeline`；轨迹页仍铺行 |
+| [D42](deferred-gaps.md) | B 槽 `d42-maximize-trajectory` | **仍开** CSS 合同已绿；merge compile 后铺行测仍找不到 `untitled-u1` |
 | [D43](deferred-gaps.md) | D 槽 leftover | **closed** `ConversationPart.layout` 按叶 host 尺寸再 layout 各 conversation editor part；resize 测已补 |
 
 ## 工位表（P0 盘点 · 2026-09-07 · 与 `git worktree list` 对照）
