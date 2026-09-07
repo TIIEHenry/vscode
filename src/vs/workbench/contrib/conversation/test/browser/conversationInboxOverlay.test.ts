@@ -15,6 +15,7 @@ import { IQuickInputService } from '../../../../../platform/quickinput/common/qu
 import {
 	conversationLensDockGoal,
 	conversationLensDockInboxNoQueue,
+	conversationLensDockInboxQueueNotListed,
 	conversationLensDockInboxTaskLabel,
 	conversationLensDockNoGoal,
 	conversationLensDockStop,
@@ -431,7 +432,42 @@ suite('ConversationInboxOverlay Enqueue', () => {
 		await new Promise<void>(resolve => setTimeout(resolve, 0));
 		assert.deepStrictEqual(roster.enqueueCalls, [{ sessionId: roster.getActiveSessionId(), text: 'Nope' }]);
 		assert.deepStrictEqual(roster.getMessageQueueState(roster.getActiveSessionId()).items, []);
-		assert.ok(panel.querySelector('.conversation-lens-inbox-list-empty')?.textContent?.includes(conversationLensDockInboxNoQueue));
+		assert.ok(panel.querySelector('.conversation-lens-inbox-list-empty')?.textContent?.includes(conversationLensDockInboxQueueNotListed));
+		assert.ok(!panel.querySelector('.conversation-lens-inbox-list-empty')?.textContent?.includes(conversationLensDockInboxNoQueue));
+	});
+
+	test('connected Inbox does not pose fixture as the engine queue', () => {
+		const roster = store.add(new EnqueueRoster());
+		const sessionId = roster.getActiveSessionId();
+		roster.setMessageQueueFixture(sessionId, {
+			isPaused: false,
+			isProcessing: false,
+			items: [{
+				id: 'q-fail',
+				content: 'fixture failed',
+				status: 'FAILED',
+				hold: undefined,
+				uploadProgress: undefined,
+				retryCount: 1,
+				lastError: 'send rejected',
+				locked: false,
+				pinned: false,
+			}],
+		});
+		const overlay = createOverlay(roster);
+		const chip = overlay.element.querySelector('.conversation-lens-inbox-queue') as HTMLButtonElement;
+		assert.ok(chip.textContent?.includes(conversationLensDockInboxQueueNotListed));
+		assert.ok(!chip.textContent?.includes(conversationLensDockInboxNoQueue));
+		assert.ok(!chip.textContent?.includes('queued'));
+		assert.deepStrictEqual(roster.getMessageQueueState(sessionId).items, []);
+
+		const panel = openQueuePanel(overlay);
+		assert.strictEqual(panel.querySelector('.queue-item'), null);
+		assert.strictEqual(panel.querySelector('.queue-failed'), null);
+		assert.strictEqual(panel.querySelector('.conversation-lens-inbox-queue-retry'), null);
+		assert.ok(panel.querySelector('.conversation-lens-inbox-list-empty')?.textContent?.includes(conversationLensDockInboxQueueNotListed));
+		assert.ok(!panel.textContent?.includes('fixture failed'));
+		assert.ok(!panel.textContent?.includes('send rejected'));
 	});
 });
 
@@ -558,56 +594,31 @@ suite('ConversationInboxOverlay Retry', () => {
 		assert.ok(getRetryButton(panel, 'q-fail'));
 	});
 
-	test('connected FAILED Retry forwards retryMessageQueueItem', () => {
+	test('connected Inbox does not show fixture FAILED rows as the engine queue', () => {
 		const roster = store.add(new RetryRoster());
 		const sessionId = roster.getActiveSessionId();
 		roster.setMessageQueueFixture(sessionId, {
 			isPaused: false,
 			isProcessing: false,
-			items: [failedItem('q-fail', 'FAILED', 'send rejected')],
-		});
-		const panel = openQueuePanel(createOverlay(roster));
-		const button = getRetryButton(panel, 'q-fail');
-		assert.ok(button);
-		assert.strictEqual(button.disabled, false);
-		assert.strictEqual(button.getAttribute('aria-disabled'), 'false');
-		button.click();
-		assert.deepStrictEqual(roster.retryCalls, [{ sessionId, itemId: 'q-fail', upload: false }]);
-		assert.deepStrictEqual(roster.holdCalls, []);
-	});
-
-	test('connected UPLOAD_FAILED Retry forwards upload retry', () => {
-		const roster = store.add(new RetryRoster());
-		const sessionId = roster.getActiveSessionId();
-		roster.setMessageQueueFixture(sessionId, {
-			isPaused: false,
-			isProcessing: false,
-			items: [failedItem('q-upload', 'UPLOAD_FAILED', 'upload rejected')],
-		});
-		getRetryButton(openQueuePanel(createOverlay(roster)), 'q-upload')!.click();
-		assert.deepStrictEqual(roster.retryCalls, [{ sessionId, itemId: 'q-upload', upload: true }]);
-	});
-
-	test('connected Retry false leaves the FAILED row operable', () => {
-		const roster = store.add(new RetryRoster());
-		roster.retryResult = false;
-		const sessionId = roster.getActiveSessionId();
-		roster.setMessageQueueFixture(sessionId, {
-			isPaused: false,
-			isProcessing: false,
-			items: [failedItem('q-fail', 'FAILED', 'still failed')],
+			items: [
+				failedItem('q-fail', 'FAILED', 'send rejected'),
+				failedItem('q-upload', 'UPLOAD_FAILED', 'upload rejected'),
+			],
 		});
 		const overlay = createOverlay(roster);
+		const chip = overlay.element.querySelector('.conversation-lens-inbox-queue') as HTMLButtonElement;
+		assert.ok(chip.textContent?.includes(conversationLensDockInboxQueueNotListed));
+		assert.ok(!chip.textContent?.includes(conversationLensDockInboxNoQueue));
+		assert.deepStrictEqual(roster.getMessageQueueState(sessionId).items, []);
+
 		const panel = openQueuePanel(overlay);
-		getRetryButton(panel, 'q-fail')!.click();
-		assert.deepStrictEqual(roster.retryCalls, [{ sessionId, itemId: 'q-fail', upload: false }]);
-		assert.strictEqual(roster.getMessageQueueState(sessionId).items[0]?.status, 'FAILED');
-		assert.ok(panel.querySelector('.queue-item[data-item-id="q-fail"]')?.classList.contains('queue-failed'));
-		assert.ok(!panel.querySelector('.queue-item[data-item-id="q-fail"]')?.classList.contains('upload-failed'));
-		assert.ok(panel.querySelector('.queue-item[data-item-id="q-fail"]')?.textContent?.includes('still failed'));
-		const retryAfter = getRetryButton(panel, 'q-fail');
-		assert.ok(retryAfter);
-		assert.strictEqual(retryAfter.disabled, false);
-		assert.strictEqual(retryAfter.getAttribute('aria-disabled'), 'false');
+		assert.ok(!getRetryButton(panel, 'q-fail'));
+		assert.ok(!getRetryButton(panel, 'q-upload'));
+		assert.strictEqual(panel.querySelector('.queue-item'), null);
+		assert.strictEqual(panel.querySelector('.queue-failed'), null);
+		assert.strictEqual(panel.querySelector('.upload-failed'), null);
+		assert.ok(panel.querySelector('.conversation-lens-inbox-list-empty')?.textContent?.includes(conversationLensDockInboxQueueNotListed));
+		assert.deepStrictEqual(roster.retryCalls, []);
+		assert.deepStrictEqual(roster.holdCalls, []);
 	});
 });

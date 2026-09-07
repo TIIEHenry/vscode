@@ -4,7 +4,7 @@ type: architecture
 status: accepted
 phase: N/A
 updated: 2026-09-07
-summary: "PRD-015 系统规格：PreFirst 居中 / Active 列底同一张 Composer；三种 composerPolicy；身份条 XOR；Inbox 左右分簇与 MessageQueue 状态机；Stop 仅 connected+streaming 时转 AgentService.Cancel；Goal 接通后转 SetSessionGoal / CancelSessionGoal；MessageQueue 列表 Enqueue 接通后转 EnqueueQueueItem（无引擎禁用、失败不造假项）；FAILED / UPLOAD_FAILED 行 Retry 走 retryMessageQueueItem（接通后按 upload 转 RetryQueueItem / RetryQueueItemUpload；无引擎禁用、失败行仍可操作）；接通后转 Pause/Resume/Clear/Hold/Release/Edit/Retry（无 GetQueue 显示空）；Inbox AutoDrive 接通 / 断连缓存诚实空；turnEdit 保存接通后转 AgentService.EditMessage（空 turnId / 空正文不发）；断连 Send 未连不锁、引擎缓存不得 stub echo / 已同步；语音转写条；输入历史；StatusBar 芯片与诚实降级"
+summary: "PRD-015 系统规格：PreFirst 居中 / Active 列底同一张 Composer；三种 composerPolicy；身份条 XOR；Inbox 左右分簇与 MessageQueue 状态机；Stop 仅 connected+streaming 时转 AgentService.Cancel；Goal 接通后转 SetSessionGoal / CancelSessionGoal；MessageQueue 列表 Enqueue 接通后转 EnqueueQueueItem（无引擎禁用、失败不造假项）；FAILED / UPLOAD_FAILED 行 Retry 走 retryMessageQueueItem（接通后按 upload 转 RetryQueueItem / RetryQueueItemUpload；无引擎禁用、失败行仍可操作）；接通后转 Pause/Resume/Clear/Hold/Release/Edit/Retry；catalog 无 GetQueue，接通 / 断连缓存 Inbox 文案 Queue not listed、不把 fixture 当引擎队列；Inbox AutoDrive 接通 / 断连缓存诚实空；turnEdit 保存接通后转 AgentService.EditMessage（空 turnId / 空正文不发）；断连 Send 未连不锁、引擎缓存不得 stub echo / 已同步；语音转写条；输入历史；StatusBar 芯片与诚实降级"
 ---
 
 # Conversation Composer、身份条与 Inbox
@@ -47,7 +47,7 @@ summary: "PRD-015 系统规格：PreFirst 居中 / Active 列底同一张 Compos
   左簇：Task 在 MessageQueue 左侧；两列表 XOR 展开      右簇
 ```
 
-- 无权威时整槽省略或诚实空（「No queue」），不造假任务（PRD-007 / PRD-015 验收 5）。
+- 无权威时整槽省略或诚实空：stub / 从未连过「No queue」；接通 / 断连缓存「Queue not listed」（catalog 无 GetQueue，不把空列表说成活引擎队列）。不造假任务（PRD-007 / PRD-015 验收 5）。
 - MessageQueue 列表头 **Enqueue**：未接通时禁用（「Cannot enqueue without engine」）。接通后点开 `IQuickInputService`；取消不发；确认后调用 `enqueueMessageQueueItem`（空正文 / 未知 session / 断连缓存 / stub 返回 false）。失败不把假项写入列表。Composer 发送仍走 `submitInput`，不经此钮。
 - MessageQueue **FAILED / UPLOAD_FAILED** 行：**Retry**（`retryMessageQueueItem`）。未接通禁用（「Cannot retry without engine」）。接通后 FAILED → `RetryQueueItem`（`upload` 省略 / false）；UPLOAD_FAILED → `{ upload: true }`（`RetryQueueItemUpload`）。空 itemId / 未知 session / stub / 断连缓存 / 无 hook / 转发失败返回 false，行仍带 Retry，不退化成死徽章。点 Retry 不进入 `EDITING` hold。≠ 时间线 `retryError` / ContinueGeneration。
 - Task 列表数据 = `getAutoDriveTasks` / `getAutoDriveTaskCount`。stub / 从未连过由 `setAutoDriveTaskFixture` 注入。引擎接通 / 断连缓存诚实空（Inbox 无任务列表 RPC，不把 fixture 冒充引擎任务；`Team.TaskList` 仍只给 Navigator）。
@@ -61,7 +61,7 @@ summary: "PRD-015 系统规格：PreFirst 居中 / Active 列底同一张 Compos
 - 项状态 `UPLOADING | UPLOAD_FAILED | PENDING | SENDING | FAILED`；hold 原因 `EDITING`。
 - 队列级操作：`pauseMessageQueue` / `resumeMessageQueue` / `clearMessageQueue`；项级 `holdMessageQueueItem` / `releaseMessageQueueItemHold` / `updateMessageQueueItemContent` / `retryMessageQueueItem`。
 - `conversationMessageQueuePendingCount` 供 Inbox 徽标。
-- stub / 从未连过：状态由 `setMessageQueueFixture` 注入。引擎接通后 Inbox 操作转发 `AgentService` Pause / Resume / Clear / Hold / Release / Edit / Retry（未知 session / 空 item / 空正文 / 断连缓存 / 无 hook 不发）。`enqueueMessageQueueItem` 接通后转发 `EnqueueQueueItem`（空正文 / 未知 session / 断连缓存不发）；`retryMessageQueueItem` 接通后按 `upload` 转发 RetryQueueItem / RetryQueueItemUpload（空 item / 未知 session / 断连缓存 / 无 hook 不发）；stub / 从未连过诚实失败且不改 fixture。Composer **接通**发送仍走 `submitInput`，**断连引擎缓存**先试 Enqueue，拒收则保留 draft。无 GetQueue，接通后列表诚实空，不把 fixture 冒充引擎队列。Inbox 列表消费 fixture / 空态；Composer 无队列入口。
+- stub / 从未连过：状态由 `setMessageQueueFixture` 注入。引擎接通后 Inbox 操作转发 `AgentService` Pause / Resume / Clear / Hold / Release / Edit / Retry（未知 session / 空 item / 空正文 / 断连缓存 / 无 hook 不发）。`enqueueMessageQueueItem` 接通后转发 `EnqueueQueueItem`（空正文 / 未知 session / 断连缓存不发）；`retryMessageQueueItem` 接通后按 `upload` 转发 RetryQueueItem / RetryQueueItemUpload（空 item / 未知 session / 断连缓存 / 无 hook 不发）；stub / 从未连过诚实失败且不改 fixture。Composer **接通**发送仍走 `submitInput`，**断连引擎缓存**先试 Enqueue，拒收则保留 draft。catalog / connection 无 GetQueue（未发明 RPC）；接通 / 断连缓存 `getMessageQueueState` 诚实空，Inbox 文案「Queue not listed」，fixture 不得冒充引擎队列。Inbox 列表仅 stub / 从未连过消费 fixture；Composer 无队列入口。
 
 ## 5. 语音转写条
 
@@ -98,4 +98,4 @@ summary: "PRD-015 系统规格：PreFirst 居中 / Active 列底同一张 Compos
 
 ## 9. 测试
 
-`conversationLens.test.ts`（T1–T6；断连 Send：未连可发且首条 pending 离 PreFirst；引擎缓存断连保留 draft + 失败文案、enqueue 接纳则不清 timeline）、`conversationInboxOverlay.test.ts`（Stop 禁用 / 接通 streaming 转发；Goal 禁用 / 接通转发 Set / 取消不发 / 清空确认 Cancel；Enqueue 禁用 / 接通转发 / 取消不发 / 失败不造假项；FAILED / UPLOAD_FAILED Retry 禁用 / 接通转发 / 失败行仍可操作）、`conversationComposerCatalog.test.ts`、`conversationIdentityStrip.test.ts`、`conversationInputHistory.test.ts`、`conversationSessionStatus.test.ts`、`conversationSessionStatusBar.test.ts`、`conversationStubService.test.ts`（队列 / hold / cancel·goal no-op；Enqueue / Retry 无引擎诚实失败且不改 fixture）、`conversationEngineRosterService.test.ts`（接通转发 Cancel / SetSessionGoal / Fork / Kill / CancelToolCall / DeleteMessage / Respond / MessageQueue 五操作 + Edit + Enqueue；断连 `hasEngineConnectionHistory`）。Lens / identity / stub 基线红见 [D16](../../../dev/progress/deferred-gaps.md)。
+`conversationLens.test.ts`（T1–T6；断连 Send：未连可发且首条 pending 离 PreFirst；引擎缓存断连保留 draft + 失败文案、enqueue 接纳则不清 timeline）、`conversationInboxOverlay.test.ts`（Stop 禁用 / 接通 streaming 转发；Goal 禁用 / 接通转发 Set / 取消不发 / 清空确认 Cancel；Enqueue 禁用 / 接通转发 / 取消不发 / 失败不造假项；FAILED / UPLOAD_FAILED stub Retry 禁用；接通 Inbox 不把 fixture 当引擎队列 / 文案 Queue not listed）、`conversationComposerCatalog.test.ts`、`conversationIdentityStrip.test.ts`、`conversationInputHistory.test.ts`、`conversationSessionStatus.test.ts`、`conversationSessionStatusBar.test.ts`、`conversationStubService.test.ts`（队列 / hold / cancel·goal no-op；Enqueue / Retry 无引擎诚实失败且不改 fixture）、`conversationEngineRosterService.test.ts`（接通转发 Cancel / SetSessionGoal / Fork / Kill / CancelToolCall / DeleteMessage / Respond / MessageQueue 五操作 + Edit + Enqueue；断连 `hasEngineConnectionHistory`）。Lens / identity / stub 基线红见 [D16](../../../dev/progress/deferred-gaps.md)。

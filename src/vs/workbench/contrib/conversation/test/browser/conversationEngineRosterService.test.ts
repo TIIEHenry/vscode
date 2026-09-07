@@ -1633,6 +1633,39 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		assert.strictEqual(connection.editQueueCalls.length, 1);
 	});
 
+	test('connected MessageQueue fixture failed rows stay invisible without GetQueue', async () => {
+		const storage = store.add(new TestStorageService());
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
+		const service = store.add(createService(connection, storage));
+		connection.setConnected(true);
+		service.setEngineConnected(true);
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+		service.setMessageQueueFixture('ua-only', {
+			items: [{
+				id: 'q-fail',
+				content: 'fixture failed',
+				status: 'FAILED',
+				hold: undefined,
+				uploadProgress: undefined,
+				retryCount: 1,
+				lastError: 'send rejected',
+				locked: false,
+				pinned: false,
+			}],
+			isPaused: false,
+			isProcessing: false,
+		});
+		assert.deepStrictEqual(service.getMessageQueueState('ua-only'), {
+			items: [],
+			isPaused: false,
+			isProcessing: false,
+		});
+		assert.strictEqual((connection as { getQueue?: unknown }).getQueue, undefined);
+		assert.strictEqual((connection as { listQueue?: unknown }).listQueue, undefined);
+	});
+
 	test('disconnected after engine MessageQueue skips unary and stays empty', async () => {
 		const storage = store.add(new TestStorageService());
 		const connection = store.add(new MockUniverseAgentConnection());
