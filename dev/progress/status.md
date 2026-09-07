@@ -115,7 +115,7 @@ summary: "FileMutationJoin / createScoped / Review 委托已修。D16 仍开。�
 | 项 | 指针 |
 |:---|:-----|
 | **引擎空壳 Create** | [D26](deferred-gaps.md) — 空 store 首次 Create 仍 `ALREADY_EXISTS` 且不写 meta；不要再清 store |
-| **test-baseline** | D17 名单 0 数据行。**merge** conversation 官方 glob **795/0/0**；universeAgent **213/0/0**；sources **101/0/0**。**D16 仍开**；勿开切片 1；勿降 `min_cases` |
+| **test-baseline** | D17 名单 0 数据行。**merge** `run-unit-custom.sh` + `check-test-baseline.sh` **passed**（conversation 795 / sources 101 / universeAgent 213）。**D16 仍开**；勿开切片 1；勿降 `min_cases` |
 | **U2 闸门** | [ADR-007](../decisions/007-upstream-sync.md) Decision 5 — 须 U0 `comm` 空 + U1 完成 + CI 绿 + merge 独占 + A 表冻结；**未满足前不开 U2** |
 
 ## 不做
