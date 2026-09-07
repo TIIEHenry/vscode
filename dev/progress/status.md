@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-07
-summary: "R8 已闭。Accept 产品选项 A 宿主拒空（sources-accept-empty-success draft，待 Arch-First）。D31 仍开（F4）。D15 已收。D16/D24/D25 仍开"
+summary: "R8 已闭。Accept A1 宿主拒空已落（空 session 或空 patches 不调 RPC）。D31 仍开（F4；A2 未开）。D15 已收。D16/D24/D25 仍开"
 ---
 
 # Development Progress
@@ -51,14 +51,14 @@ summary: "R8 已闭。Accept 产品选项 A 宿主拒空（sources-accept-empty-
 
 ### 进行中（2026-09-07 本 wake · 以 merge 代码为准，不信上文「已合入」清单）
 
-集成 tip **本关仓提交**（`loop/merge`；未 push）。Chat 仍被引擎空壳 Create（目录在、`session_meta` 空、回 6）挡住；不要再清 `.sessions` 当主线。见 [D26](deferred-gaps.md)。**U2 未开**。**PRD-008 / PRD-019 不升 `implemented`**。[R8](research-queue.md) **已闭**（[ADR-008](../decisions/008-write-git-apply-hunks-empty.md) 引擎空 `patches` = 成功空操作）。Accept 产品选项 A 见 [sources-accept-empty-success](../plans/sources-accept-empty-success.md)（`draft`，未实施）。
+集成 tip **本关仓提交**（`loop/merge`；未 push）。Chat 仍被引擎空壳 Create（目录在、`session_meta` 空、回 6）挡住；不要再清 `.sessions` 当主线。见 [D26](deferred-gaps.md)。**U2 未开**。**PRD-008 / PRD-019 不升 `implemented`**。[R8](research-queue.md) **已闭**（[ADR-008](../decisions/008-write-git-apply-hunks-empty.md) 引擎空 `patches` = 成功空操作）。Accept 产品选项 A 见 [sources-accept-empty-success](../plans/sources-accept-empty-success.md)（`draft`；**A1 已落**，A2 未开）。
 
-1. **集成 tip** 以 merge 本关仓提交为准（P2 已串行 wave-10 A=`992693462a6`；R8 闭合 B=`815234faeea`；Accept 方案 D=`46998e7f4bf` → merge `15a3a28eb31`）。`npm run compile` 仍基线 unused 红则 **不 push**。GFS >800 不拆。D22/F3 已撤回。本刀不实施 A1。
+1. **集成 tip** 以 merge 本关仓提交为准（P2 已串行 wave-10 A=`992693462a6`；R8 闭合 B=`815234faeea`；Accept 方案 D=`46998e7f4bf` → merge `15a3a28eb31`）。`npm run compile` 仍基线 unused 红则 **不 push**。GFS >800 不拆。D22/F3 已撤回。工位 D 本刀实施 A1（拒空），不跑 F4 / 不实施 A2。
 2. 本波字母槽已进 merge：
    - **A**：`live-rpc-bytes` — [D24](deferred-gaps.md) leftover 盘点：接通后 catalog/attach 已 bytes；`probeRpc` 改 empty proto（capability probe 不再打 JSON `{}`）；`listTools` 仍 JSON（composer/Engine 有调用，本仓无 ListTools 响应字段号）。活 roster/queue/git/team/ContinueGeneration/`fetchToolDetail` 仍 JSON，未发明 proto。**D24 仍开**。D25 host leftover 已收、引擎 List 真空仍开；D26 引擎 Create meta 仍开。
    - **B**：visualize 三测已收；remainder 7 已按夹具诚实收口（虚拟列表 reveal / flush 预算 / `scrollToEnd` 后不立刻 layout 冲掉）。全量 Lens **97/97** @ `loop/B` 2026-09-07。**[D16](deferred-gaps.md) 仍开**（本 slice 不闭；S2「Lens 全绿」仍以本行闭合为前提）。
    - **C**：`inbox-getqueue-honesty` — catalog / connection **无** GetQueue / ListQueue，未发明 RPC。接通 / 断连缓存 Inbox 文案「Queue not listed」，stub fixture 不得冒充引擎队列；测锁 overlay / roster / stub。[D37](deferred-gaps.md) **仍闭**；缺 list-queue 记 [D24](deferred-gaps.md)。勿 add `dev/loop`。
-   - **D**：`accept-empty-success-plan` — [sources-accept-empty-success](../plans/sources-accept-empty-success.md) `draft`：产品选项 **A 宿主拒空 Accept**（空 session 或空 patches 不调 RPC）；拒 B 本刀发明 hunk、拒 C 继续空送。[ADR-008](../decisions/008-write-git-apply-hunks-empty.md) Consequences 已补记。Architecture-First **Approve**。[D31](deferred-gaps.md) **仍开**（F4 未跑；A1 未实施）。未改产品代码 / 未跑 F4 / 未占 D26 / 未做 D22。
+   - **D**：`accept-refuse-empty` — A1 已落：`tryWriteSourcesGitApplyHunks` 空 `sessionId` **或** 空 `patches` 不调 hook，回 `undefined` → `runAccept` 走 `git.stage`；`sourcesGitApplyHunksRequest` 原样透传 `sessionId`（默认 `''`）。未发明 hunk / 未跑 F4 / 未开 A2。[D31](deferred-gaps.md) **仍开**。未升 PRD。
 3. **D15 / W1 笔记（工位 A，未占 工位表）**：`scripts/code-web.sh --browserType none --host 127.0.0.1 --port 18080` 已起；V1 Conversation / V2 四钮 + `UniverseAgentStudio Dev` / V3 Connection·Engine 省略桌面连接控件均 **PASS**。`IUniverseAgentConnection.getConnectionPhase()` = `disconnected`；页内点名「此环境不支持本机 Engine 连接」。证据 [d15-evidence/w1-1556dde3](d15-evidence/w1-1556dde3/)。**D15 可闭**；不升 PRD-019。未跑 compile / F4 / 引擎仓。
 
 子 agent 发现的既有代码问题：
@@ -68,8 +68,8 @@ summary: "R8 已闭。Accept 产品选项 A 宿主拒空（sources-accept-empty-
 | [D23](deferred-gaps.md) | A 槽 | **closed** resident heartbeat write 已 catch |
 | [D33](deferred-gaps.md) | B 槽 | **closed** pairingPending 开 Connection/SAS |
 | [D27](deferred-gaps.md) | grok 4.6 | **closed**：`provideTurnEditComposer` 先于 `setEditingTurnId`；已删 1px 垫高 |
-| [D31](deferred-gaps.md) | D 槽 | Changes Unstage / Open Selected 已收；Accept 产品选项 A 已写入方案（拒空，未实施）；剩 F4；不升 PRD |
-| [R8](research-queue.md) | B 槽 `r8-empty-patches-close` | **closed**：[ADR-008](../decisions/008-write-git-apply-hunks-empty.md) 引擎仓 `1f07008f` `GitWorkDirWriter.kt` L77–78 空 `patches` = 成功空操作；Accept 仍空送；[D31](deferred-gaps.md) F4 未跑 |
+| [D31](deferred-gaps.md) | D 槽 | Changes Unstage / Open Selected 已收；Accept A1 宿主拒空已落；剩 F4 + A2；不升 PRD |
+| [R8](research-queue.md) | B 槽 `r8-empty-patches-close` | **closed**：[ADR-008](../decisions/008-write-git-apply-hunks-empty.md) 引擎仓 `1f07008f` `GitWorkDirWriter.kt` L77–78 空 `patches` = 成功空操作；A1 已拒空送；[D31](deferred-gaps.md) F4 未跑 |
 | [D32](deferred-gaps.md) | A 槽 `host-write-retry` | **closed（代码+测已写；compile 待 merge）** Retry 走 `lease.post`；host 映射 Actor `continueGeneration` |
 | [D38](deferred-gaps.md) | A 槽 `host-bind-safety` | **closed** `fillHistory` bind/write 已 catch |
 | [D39](deferred-gaps.md) | A 槽 `host-bind-safety` | **closed** `requestDetail` bind 已 catch |
@@ -93,7 +93,7 @@ summary: "R8 已闭。Accept 产品选项 A 宿主拒空（sources-accept-empty-
 | A | `vscode-WorkTrees/A` | `loop/A` | 对齐本关仓提交 | `__pycache__` | 0 | idle |
 | B | `vscode-WorkTrees/B` | `loop/B` | 对齐本关仓提交 | `__pycache__` | 0 | idle |
 | C | `vscode-WorkTrees/C` | `loop/C` | 对齐本关仓提交 | 未提交 `dev/loop` + `__pycache__` | 0 | idle；勿 add `dev/loop` |
-| D | `vscode-WorkTrees/D` | `loop/D` | 对齐本关仓提交 | 0 | 0 | idle |
+| D | `vscode-WorkTrees/D` | `loop/D` | 对齐本关仓提交 | A1 未提交 | 0 | A1 实施中；不 commit |
 | edit | `Projects/Agents/vscode` | `agent-ide` | `a40a95d1e85`+ | `dev/loop` | 0 | 人类工位；请自行对齐本关仓提交 |
 
 ## Blockers

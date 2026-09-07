@@ -26,9 +26,14 @@ export function canSendSourcesGitCommit(connected: boolean, hasHook: boolean): b
 	return connected && hasHook;
 }
 
-/** Sources Review Accept → WriteGitApplyHunks. Empty sessionId / argv / patches are still sent. */
+/** Sources Review Accept → WriteGitApplyHunks. Connection + hook only; empty session or empty patches are refused in tryWrite. */
 export function canSendSourcesGitApplyHunks(connected: boolean, hasHook: boolean): boolean {
 	return connected && hasHook;
+}
+
+/** Accept RPC payload: both sides required. Empty sessionId or empty patches → no hook. */
+export function hasSourcesGitApplyHunksPayload(sessionId: string, patches: readonly string[]): boolean {
+	return sessionId !== '' && patches.length > 0;
 }
 
 /**
@@ -58,15 +63,16 @@ export function sourcesGitCommitRequest(message: string): UniverseAgentWriteGitC
 }
 
 /**
- * Always send empty `sessionId` as-is.
- * Pass through empty `argv` / `patches` as-is (no default hunk / no path invent).
+ * Pass through `sessionId` / `argv` / `patches` as-is.
+ * Defaults stay empty. Does not invent a session, path, or hunk.
  */
 export function sourcesGitApplyHunksRequest(
+	sessionId: string = '',
 	argv: readonly string[] = [],
 	patches: readonly string[] = [],
 ): UniverseAgentWriteGitApplyHunksRequest {
 	return {
-		sessionId: '',
+		sessionId,
 		argv,
 		patches,
 	};
@@ -212,11 +218,15 @@ export async function tryWriteSourcesGitCommit(
 export async function tryWriteSourcesGitApplyHunks(
 	connected: boolean,
 	hook: ((request: UniverseAgentWriteGitApplyHunksRequest) => Promise<UniverseAgentWriteGitWriteResult>) | undefined,
+	sessionId: string = '',
 	argv: readonly string[] = [],
 	patches: readonly string[] = [],
 ): Promise<UniverseAgentWriteGitWriteResult | undefined> {
 	if (!canSendSourcesGitApplyHunks(connected, typeof hook === 'function') || !hook) {
 		return undefined;
 	}
-	return hook(sourcesGitApplyHunksRequest(argv, patches));
+	if (!hasSourcesGitApplyHunksPayload(sessionId, patches)) {
+		return undefined;
+	}
+	return hook(sourcesGitApplyHunksRequest(sessionId, argv, patches));
 }

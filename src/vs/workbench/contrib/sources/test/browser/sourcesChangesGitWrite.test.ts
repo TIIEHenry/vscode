@@ -20,6 +20,7 @@ import {
 	canSendSourcesGitCommit,
 	canSendSourcesGitStagePaths,
 	canShowSourcesReviewAccept,
+	hasSourcesGitApplyHunksPayload,
 	isSourcesGitWriteAccepted,
 	isSourcesGitWriteUnsupported,
 	resolveSourcesChangesRowAction,
@@ -89,17 +90,29 @@ suite('Sources - Changes git write', () => {
 		});
 	});
 
-	test('Accept request sends empty sessionId / argv / patches as-is', () => {
+	test('Accept request passes through sessionId / argv / patches as-is', () => {
 		assert.deepStrictEqual(sourcesGitApplyHunksRequest(), {
 			sessionId: '',
 			argv: [],
 			patches: [],
 		});
-		assert.deepStrictEqual(sourcesGitApplyHunksRequest([''], ['']), {
+		assert.deepStrictEqual(sourcesGitApplyHunksRequest('', [''], ['']), {
 			sessionId: '',
 			argv: [''],
 			patches: [''],
 		});
+		assert.deepStrictEqual(sourcesGitApplyHunksRequest('sess-1', ['a'], ['p']), {
+			sessionId: 'sess-1',
+			argv: ['a'],
+			patches: ['p'],
+		});
+	});
+
+	test('Accept payload requires both sessionId and patches', () => {
+		assert.strictEqual(hasSourcesGitApplyHunksPayload('', []), false);
+		assert.strictEqual(hasSourcesGitApplyHunksPayload('sess-1', []), false);
+		assert.strictEqual(hasSourcesGitApplyHunksPayload('', ['p']), false);
+		assert.strictEqual(hasSourcesGitApplyHunksPayload('sess-1', ['p']), true);
 	});
 
 	test('write failure detail keeps empty errorMessage', () => {
@@ -242,7 +255,7 @@ suite('Sources - Changes git write', () => {
 		assert.deepStrictEqual(applyCalls, []);
 	});
 
-	test('tryWrite Stage / Commit / Accept send when connected + hook', async () => {
+	test('tryWrite Stage / Commit send when connected + hook; empty Accept does not', async () => {
 		const stageCalls: UniverseAgentWriteGitStagePathsRequest[] = [];
 		const commitCalls: UniverseAgentWriteGitCommitRequest[] = [];
 		const applyCalls: UniverseAgentWriteGitApplyHunksRequest[] = [];
@@ -263,17 +276,46 @@ suite('Sources - Changes git write', () => {
 
 		assert.deepStrictEqual(stageCalls, [{ sessionId: '', commands: [{ argv: [''] }] }]);
 		assert.deepStrictEqual(commitCalls, [{ sessionId: '', message: '', signOff: false, amend: false }]);
-		assert.deepStrictEqual(applyCalls, [{ sessionId: '', argv: [], patches: [] }]);
+		assert.deepStrictEqual(applyCalls, []);
+		assert.strictEqual(applied, undefined);
 		assert.strictEqual(isSourcesGitWriteAccepted(staged), true);
 		assert.strictEqual(isSourcesGitWriteAccepted(committed), true);
+		assert.strictEqual(isSourcesGitWriteAccepted(applied), false);
+	});
+
+	test('tryWrite Accept: empty either side skips hook; both sides send as-is', async () => {
+		const applyCalls: UniverseAgentWriteGitApplyHunksRequest[] = [];
+		const acceptedWrite = { ...failedWrite, supported: true, success: true };
+		const hook = async (request: UniverseAgentWriteGitApplyHunksRequest) => {
+			applyCalls.push(request);
+			return acceptedWrite;
+		};
+
+		assert.strictEqual(await tryWriteSourcesGitApplyHunks(true, hook), undefined);
+		assert.strictEqual(await tryWriteSourcesGitApplyHunks(true, hook, 'sess-1'), undefined);
+		assert.strictEqual(await tryWriteSourcesGitApplyHunks(true, hook, '', ['a'], ['p']), undefined);
+		assert.deepStrictEqual(applyCalls, []);
+
+		const applied = await tryWriteSourcesGitApplyHunks(true, hook, 'sess-1', ['a'], ['p']);
+		assert.deepStrictEqual(applyCalls, [{
+			sessionId: 'sess-1',
+			argv: ['a'],
+			patches: ['p'],
+		}]);
 		assert.strictEqual(isSourcesGitWriteAccepted(applied), true);
+		assert.deepStrictEqual(await attemptSourcesGitWrite(async () => tryWriteSourcesGitApplyHunks(true, hook)), { kind: 'fallback' });
+		assert.deepStrictEqual(applyCalls, [{
+			sessionId: 'sess-1',
+			argv: ['a'],
+			patches: ['p'],
+		}]);
 	});
 
 	test('tryWrite still returns unsupported results so callers do not treat them as accepted', async () => {
 		const unsupportedSuccess = { ...failedWrite, success: true };
 		const staged = await tryWriteSourcesGitStagePaths(true, async () => unsupportedSuccess, ['src/a.ts']);
 		const committed = await tryWriteSourcesGitCommit(true, async () => unsupportedSuccess, 'msg');
-		const applied = await tryWriteSourcesGitApplyHunks(true, async () => unsupportedSuccess);
+		const applied = await tryWriteSourcesGitApplyHunks(true, async () => unsupportedSuccess, 'sess-1', ['a'], ['p']);
 
 		assert.strictEqual(isSourcesGitWriteUnsupported(staged), true);
 		assert.strictEqual(isSourcesGitWriteAccepted(staged), false);
