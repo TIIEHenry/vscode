@@ -28,6 +28,7 @@ import {
 	canSendConnectionDeviceListRequest,
 	canSendConnectionDeviceRotateToken,
 	CONNECTION_DEVICE_ROTATE_TOKEN_LABEL,
+	connectionDeviceListFailureMessage,
 	connectionDeviceRotateTokenIds,
 	toConnectionPairedDevice,
 } from './connectionDeviceList.js';
@@ -37,6 +38,7 @@ import {
 	CONNECTION_DEVICE_PENDING_EMPTY_COPY,
 	CONNECTION_DEVICE_PENDING_HEADING,
 	connectionDevicePairIds,
+	connectionDevicePendingListFailureMessage,
 	formatConnectionPendingPairLabel,
 } from './connectionDevicePair.js';
 import {
@@ -427,7 +429,9 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 	private entries: IConnectionProfileEntry[] = [];
 	private hubDevices: HubDeviceProjection[] = [];
 	private enginePairedDevices: UniverseAgentDeviceInfo[] | undefined;
+	private engineDevicesListFailed: string | undefined;
 	private pendingPairs: UniverseAgentPendingPairInfo[] = [];
+	private pendingPairsListFailed: string | undefined;
 	private selectedPending: UniverseAgentPendingPairInfo | undefined;
 	private readonly pendingRowDisposables = this._register(new DisposableStore());
 	private connectionPhase: ConnectionPhase = { kind: 'disconnected' };
@@ -1004,22 +1008,32 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		const hook = this.connectionService.listDevices;
 		if (!canSendConnectionDeviceListRequest(this.connectionService.isEngineConnected(), typeof hook === 'function') || !hook) {
 			this.enginePairedDevices = undefined;
+			this.engineDevicesListFailed = undefined;
 			this.renderHubDirectory();
 			return;
 		}
 		try {
 			const result = await hook.call(this.connectionService);
 			this.enginePairedDevices = [...result.devices];
-		} catch {
-			this.enginePairedDevices = [];
+			const hadFail = this.engineDevicesListFailed !== undefined;
+			this.engineDevicesListFailed = undefined;
+			this.renderHubDirectory();
+			if (hadFail) {
+				writeStatus(this.devicesConnectStatus, '', 'neutral');
+			}
+		} catch (error) {
+			const reason = error instanceof Error && error.message ? error.message : String(error);
+			this.engineDevicesListFailed = reason;
+			this.renderHubDirectory();
+			writeStatus(this.devicesConnectStatus, connectionDeviceListFailureMessage(reason), 'error');
 		}
-		this.renderHubDirectory();
 	}
 
 	private async refreshEnginePending(): Promise<void> {
 		const hook = this.connectionService.listPending;
 		if (!canSendConnectionDevicePairRequest(this.connectionService.isEngineConnected(), typeof hook === 'function') || !hook) {
 			this.pendingPairs = [];
+			this.pendingPairsListFailed = undefined;
 			this.selectedPending = undefined;
 			this.renderPendingPairs();
 			return;
@@ -1027,10 +1041,12 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		try {
 			const result = await hook.call(this.connectionService);
 			this.pendingPairs = [...result.pending];
-		} catch {
-			this.pendingPairs = [];
+			this.pendingPairsListFailed = undefined;
+			this.selectedPending = undefined;
+		} catch (error) {
+			const reason = error instanceof Error && error.message ? error.message : String(error);
+			this.pendingPairsListFailed = reason;
 		}
-		this.selectedPending = undefined;
 		this.renderPendingPairs();
 	}
 
@@ -1039,7 +1055,12 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		const canList = canSendConnectionDevicePairRequest(this.connectionService.isEngineConnected(), typeof hook === 'function');
 		this.pendingPairsHeading.style.display = canList ? '' : 'none';
 		this.pendingPairsList.style.display = canList && this.pendingPairs.length > 0 ? '' : 'none';
-		this.pendingPairsEmpty.style.display = canList && this.pendingPairs.length === 0 ? '' : 'none';
+		this.pendingPairsEmpty.style.display = canList && (this.pendingPairs.length === 0 || !!this.pendingPairsListFailed) ? '' : 'none';
+		if (canList && this.pendingPairsListFailed) {
+			writeStatus(this.pendingPairsEmpty, connectionDevicePendingListFailureMessage(this.pendingPairsListFailed), 'error');
+		} else {
+			writeStatus(this.pendingPairsEmpty, CONNECTION_DEVICE_PENDING_EMPTY_COPY, 'neutral');
+		}
 		this.pendingRowDisposables.clear();
 		DOM.clearNode(this.pendingPairsList);
 		if (!canList) {
@@ -1521,7 +1542,9 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 
 	private renderHubDirectory(): void {
 		const directory = this.hubService.getDirectoryStatus();
-		const banner = getHubDirectoryBannerLabel(directory);
+		const banner = this.engineDevicesListFailed
+			? connectionDeviceListFailureMessage(this.engineDevicesListFailed)
+			: getHubDirectoryBannerLabel(directory);
 		this.hubDirectoryBanner.textContent = banner ?? '';
 		this.hubDirectoryBanner.style.display = banner ? '' : 'none';
 

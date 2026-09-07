@@ -41,10 +41,12 @@ import type {
 } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import {
 	CONNECTION_DEVICE_ROTATE_TOKEN_LABEL,
+	connectionDeviceListFailureMessage,
 } from '../../browser/connectionDeviceList.js';
 import {
 	CONNECTION_DEVICE_PAIR_REJECT_LABEL,
 	CONNECTION_DEVICE_PENDING_EMPTY_COPY,
+	connectionDevicePendingListFailureMessage,
 } from '../../browser/connectionDevicePair.js';
 import {
 	canConnectHubDevice,
@@ -2438,6 +2440,102 @@ suite('ConnectionPreferencesPane', () => {
 		await Promise.resolve();
 		assert.strictEqual(listDevicesCalls, 1);
 		assert.strictEqual(container.querySelector('.connection-hub-device-name'), null);
+		container.remove();
+	});
+
+	test('ListDevices success then throw keeps last snapshot and paints devices status', async () => {
+		let listDevicesCalls = 0;
+		const pane = mountPane({
+			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
+			getDirectoryStatus: () => ({
+				kind: 'ok',
+				devices: [device({ id: 'hub-1', name: 'Hub Studio' })],
+			}),
+		}, {
+			isEngineConnected: () => true,
+			listDevices: async (): Promise<UniverseAgentListDevicesResult> => {
+				listDevicesCalls++;
+				if (listDevicesCalls === 1) {
+					return {
+						devices: [{
+							deviceId: 'eng-1',
+							displayName: 'Phone',
+							role: '',
+							platform: '',
+							pairedAt: 0,
+							lastSeenAt: 0,
+							active: false,
+						}],
+					};
+				}
+				throw new Error('boom');
+			},
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		pane.selectZone('devices');
+		await Promise.resolve();
+		await Promise.resolve();
+		assert.strictEqual(listDevicesCalls, 1);
+		assert.strictEqual(container.querySelector('.connection-hub-device-name')?.textContent, 'Phone');
+
+		await (pane as unknown as { refreshEngineDeviceLists(): Promise<void> }).refreshEngineDeviceLists();
+		assert.ok(listDevicesCalls >= 2);
+		assert.strictEqual(container.querySelector('.connection-hub-device-name')?.textContent, 'Phone');
+		assert.notStrictEqual(container.querySelector('.connection-hub-device-name')?.textContent, 'Hub Studio');
+		const devicesStatus = container.querySelector('.connection-hub-devices-status') as HTMLElement;
+		const banner = container.querySelector('.connection-hub-directory-banner') as HTMLElement;
+		assert.strictEqual(devicesStatus.textContent, connectionDeviceListFailureMessage('boom'));
+		assert.ok(devicesStatus.classList.contains('is-error'));
+		assert.strictEqual(banner.textContent, connectionDeviceListFailureMessage('boom'));
+		assert.notStrictEqual(banner.style.display, 'none');
+		assert.ok(!devicesStatus.textContent?.includes('No pending pairing requests'));
+		container.remove();
+	});
+
+	test('ListPending success then throw keeps last snapshot and paints pending fail note', async () => {
+		let listPendingCalls = 0;
+		const pane = mountPane({
+			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
+		}, {
+			isEngineConnected: () => true,
+			listPending: async () => {
+				listPendingCalls++;
+				if (listPendingCalls === 1) {
+					return {
+						pending: [{
+							pairingCode: '123456',
+							deviceId: 'dev-1',
+							displayName: 'Phone',
+							platform: 'ios',
+							requestedAt: 0,
+							expiresInSeconds: 0,
+						}],
+					};
+				}
+				throw new Error('boom');
+			},
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		pane.selectZone('devices');
+		await Promise.resolve();
+		await Promise.resolve();
+		assert.strictEqual(listPendingCalls, 1);
+		const row = container.querySelector('.connection-engine-pending-row') as HTMLElement | null;
+		assert.ok(row);
+		assert.strictEqual(row.textContent, 'Phone — 123456 — ios');
+
+		await (pane as unknown as { refreshEngineDeviceLists(): Promise<void> }).refreshEngineDeviceLists();
+		assert.ok(listPendingCalls >= 2);
+		const leftover = container.querySelector('.connection-engine-pending-row') as HTMLElement | null;
+		assert.ok(leftover);
+		assert.strictEqual(leftover.textContent, 'Phone — 123456 — ios');
+		const pendingEmpty = container.querySelector('.connection-engine-pending-empty') as HTMLElement;
+		assert.strictEqual(pendingEmpty.textContent, connectionDevicePendingListFailureMessage('boom'));
+		assert.ok(pendingEmpty.classList.contains('is-error'));
+		assert.notStrictEqual(pendingEmpty.style.display, 'none');
+		assert.notStrictEqual(pendingEmpty.textContent, CONNECTION_DEVICE_PENDING_EMPTY_COPY);
 		container.remove();
 	});
 
