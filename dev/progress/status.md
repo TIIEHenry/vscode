@@ -53,12 +53,12 @@ summary: "人类工位已对齐已推送 MERGE_SHA c1b228caf74；保留本机行
 
 人类工位已 merge `c1b228caf74`（先 commit 行动层再三路合）。Direct 接通已通。Chat 仍被引擎空壳 Create（目录在、`session_meta` 空、回 6）挡住；不要再清 `.sessions` 当主线。见 [D26](deferred-gaps.md)。**U2 未开**。**PRD-008 不升 `implemented`**。
 
-1. **集成 tip** 以 merge `647d24a8f3f` 为准。本波 A=`host-bind-safety`（未 compile）。GFS >800 不拆。
-2. 字母槽 leftover 进度句已收进本账，再 cascade：
-   - **A**：`host-bind-safety` — [D38](deferred-gaps.md)/[D39](deferred-gaps.md) 已 closed；[D26](deferred-gaps.md) host（Tree 可观察 + recover 单层）已写，引擎 Create meta 仍 open。
-   - **B**：D27 已 closed（composer 先入 edit-host，已删 1px 垫高）。上波 pairing chip 已在 merge。
-   - **C**：[D37](deferred-gaps.md) closed：roster 按 `upload` 转发 RetryQueueItem / RetryQueueItemUpload；无 GetQueue 仍使活引擎失败行不可见。
-   - **D**：Review 读失败上 status；Panel 与对话窗同门控；Unstage 明确不可用。**未跑 F4、不升 PRD、R8 仍 open**。
+1. **集成 tip** 以 merge 本关仓提交为准（P2 已串行 A=`ba622ce1173` / B=`7d85ce21853` / C=`7b8d9c39c7e`）。`npm run compile` 仍基线 unused 红，本波文件无新 TS 错，**不 push**。GFS >800 不拆。
+2. 本波字母槽已进 merge：
+   - **A**：`host-bind-safety` — [D38](deferred-gaps.md)/[D39](deferred-gaps.md) closed；[D26](deferred-gaps.md) host 已收，引擎 Create meta 仍 open。
+   - **B**：D27 closed（composer 先入 edit-host，已删 1px）。
+   - **C**：D37 closed（roster 按 `upload` 转发）；无 GetQueue，活引擎失败行仍不可见。
+   - **D**：本波空闲；F4 / R8 仍开。
 
 子 agent 发现的既有代码问题：
 
@@ -80,12 +80,12 @@ summary: "人类工位已对齐已推送 MERGE_SHA c1b228caf74；保留本机行
 
 | 槽 | 路径 | 分支 | tip | 脏 | stash | 关仓状态 |
 |----|------|------|-----|:--|:------|:---------|
-| merge | `vscode-WorkTrees/merge` | `loop/merge` | `88cf926a43a` | 0 | 0 | P2 已串行合入 A/B/C/D；compile 基线 unused 仍红，**不 push** |
-| A | `vscode-WorkTrees/A` | `loop/A` | `ace0267c85c` | `__pycache__` | 0 | 已进 merge；待对齐 MERGE_SHA |
-| B | `vscode-WorkTrees/B` | `loop/B` | `07f6e24a199` | 0 | 0 | 已进 merge |
-| C | `vscode-WorkTrees/C` | `loop/C` | `2d4e6f90cfa` | `dev/loop` | 0 | 已进 merge；勿 add `dev/loop` |
-| D | `vscode-WorkTrees/D` | `loop/D` | `3a837c72bc9` | 0 | 0 | 已进 merge |
-| edit | `Projects/Agents/vscode` | `agent-ide` | `a40a95d1e85`+ | `dev/loop` | 0 | 人类工位未对齐；请自行 merge `88cf926a43a` |
+| merge | `vscode-WorkTrees/merge` | `loop/merge` | P2 A/B/C 后关仓提交 | 0 | 0 | parked；compile 基线 unused 仍红，**不 push** |
+| A | `vscode-WorkTrees/A` | `loop/A` | 对齐 MERGE_SHA | `__pycache__` | 0 | idle（P6 后） |
+| B | `vscode-WorkTrees/B` | `loop/B` | 对齐 MERGE_SHA | 0 | 0 | idle（P6 后） |
+| C | `vscode-WorkTrees/C` | `loop/C` | 对齐 MERGE_SHA | `dev/loop` | 0 | idle；勿 add `dev/loop` |
+| D | `vscode-WorkTrees/D` | `loop/D` | 对齐 MERGE_SHA | 0 | 0 | idle |
+| edit | `Projects/Agents/vscode` | `agent-ide` | `a40a95d1e85`+ | `dev/loop` | 0 | 人类工位；请自行对齐 merge 关仓 SHA |
 
 ## Blockers
 
