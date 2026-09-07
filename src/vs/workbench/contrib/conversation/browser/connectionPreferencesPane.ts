@@ -62,6 +62,7 @@ import {
 	readRecoverTrustLeafFingerprint,
 	type ConnectionStatusTone,
 } from './connectionPreferencesPaneLabels.js';
+import { applyConnectionPaneIdentityStripReservation } from './connectionPaneIdentityStripReservation.js';
 import { promptRecoverTrustConfirmDialog, promptSasConfirmDialog } from './connectionPreferencesPaneSas.js';
 import { getConnectionPhaseStatusBarText } from './conversationSessionStatus.js';
 import {
@@ -900,6 +901,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		this.applyNarrowChrome();
 		this.navList.layout(this.getNavHeight(dimension.height), this.getNavWidth(dimension.width));
 		this.layoutLists();
+		applyConnectionPaneIdentityStripReservation(this.container);
 	}
 
 	private getNavWidth(paneWidth: number): number {

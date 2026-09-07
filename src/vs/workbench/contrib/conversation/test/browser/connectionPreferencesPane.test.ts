@@ -5,6 +5,7 @@
 
 import assert from 'assert';
 import { Emitter, Event } from '../../../../../base/common/event.js';
+import { toDisposable } from '../../../../../base/common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { IDialogService } from '../../../../../platform/dialogs/common/dialogs.js';
 import type { ConnectionPhase } from '../../../../../platform/universeAgent/common/connectionHubTypes.js';
@@ -59,6 +60,13 @@ import {
 import { createConversationConnectionTestStub, createEmptyTestCapabilitySnapshot } from '../common/conversationConnectionTestStub.js';
 import { promptSasConfirmDialog, promptSasConfirmInPane } from '../../browser/connectionPreferencesPaneSas.js';
 import { getConnectionPhaseStatusBarText, getConversationEngineStatusText } from '../../browser/conversationSessionStatus.js';
+import { conversationIdentityStripClass } from '../../browser/conversationIdentityStrip.js';
+import {
+	applyConnectionPaneIdentityStripReservation,
+	boxesOverlap,
+	connectionPaneIdentityReservationHostClass,
+	connectionPaneIdentityReservedTopVar,
+} from '../../browser/connectionPaneIdentityStripReservation.js';
 import { Dimension } from '../../../../../base/browser/dom.js';
 
 const CONNECTION_EMPTY_COPY = 'No connection profiles yet';
@@ -221,6 +229,78 @@ suite('ConnectionPreferencesPane', () => {
 		assert.strictEqual(buttons[1].textContent, SAS_CANCEL_BUTTON_LABEL);
 		return dialog;
 	}
+
+	function mountIdentityStripInConversation(bottom = 40, top = 8, width = 240): HTMLElement {
+		const workbench = document.createElement('div');
+		workbench.className = 'monaco-workbench';
+		const part = document.createElement('div');
+		part.className = 'part conversation';
+		const strip = document.createElement('div');
+		strip.className = conversationIdentityStripClass;
+		strip.textContent = 'Engine not connected';
+		part.appendChild(strip);
+		workbench.appendChild(part);
+		document.body.appendChild(workbench);
+		store.add(toDisposable(() => workbench.remove()));
+		strip.getBoundingClientRect = () => DOMRect.fromRect({ x: 10, y: top, width, height: bottom - top });
+		return strip;
+	}
+
+	function modalBoxFromReservation(modalBlock: HTMLElement, height = 400, width = 800): { top: number; right: number; bottom: number; left: number } {
+		const reserved = parseFloat(modalBlock.style.top || '0');
+		return { top: reserved, right: width, bottom: reserved + height, left: 0 };
+	}
+
+	test('D28 Connection modal layout reserves identity strip and pane box does not overlap', () => {
+		const strip = mountIdentityStripInConversation(40, 8, 240);
+		const { pane, modalBlock } = mountPaneInPreferencesModal();
+		store.add(toDisposable(() => modalBlock.remove()));
+		modalBlock.style.position = 'fixed';
+		modalBlock.style.left = '0';
+		modalBlock.style.width = '800px';
+		modalBlock.style.height = '400px';
+
+		pane.layout(new Dimension(800, 400));
+
+		assert.ok(modalBlock.classList.contains(connectionPaneIdentityReservationHostClass));
+		assert.strictEqual(modalBlock.style.getPropertyValue(connectionPaneIdentityReservedTopVar), '40px');
+		assert.strictEqual(modalBlock.style.top, '40px');
+
+		const stripBox = strip.getBoundingClientRect();
+		const paneHostBox = modalBoxFromReservation(modalBlock);
+		assert.ok(!boxesOverlap(stripBox, paneHostBox), 'Connection pane host must start at or below the identity strip');
+	});
+
+	test('D28 reservation is zero when identity strip is absent', () => {
+		const { pane, modalBlock } = mountPaneInPreferencesModal();
+		store.add(toDisposable(() => modalBlock.remove()));
+		pane.layout(new Dimension(800, 400));
+		assert.ok(modalBlock.classList.contains(connectionPaneIdentityReservationHostClass));
+		assert.strictEqual(modalBlock.style.getPropertyValue(connectionPaneIdentityReservedTopVar), '0px');
+		assert.strictEqual(modalBlock.style.top, '0px');
+	});
+
+	test('D28 applyConnectionPaneIdentityStripReservation fails closed if pane would overlap strip', () => {
+		const strip = mountIdentityStripInConversation(56, 0, 320);
+		const modalBlock = document.createElement('div');
+		modalBlock.className = 'monaco-modal-editor-block';
+		modalBlock.style.position = 'fixed';
+		modalBlock.style.top = '0';
+		modalBlock.style.left = '0';
+		modalBlock.style.width = '640px';
+		modalBlock.style.height = '480px';
+		const pane = document.createElement('div');
+		pane.className = 'connection-preferences-pane';
+		modalBlock.appendChild(pane);
+		document.body.appendChild(modalBlock);
+		store.add(toDisposable(() => modalBlock.remove()));
+
+		applyConnectionPaneIdentityStripReservation(pane);
+
+		const reserved = parseFloat(modalBlock.style.top);
+		assert.strictEqual(reserved, 56);
+		assert.ok(!boxesOverlap(strip.getBoundingClientRect(), modalBoxFromReservation(modalBlock, 480, 640)));
+	});
 
 	test('getConnectionTestStatusText reuses StatusBar phase copy', () => {
 		assert.strictEqual(getConnectionTestStatusText(), getConnectionPhaseStatusBarText({ kind: 'disconnected' }));

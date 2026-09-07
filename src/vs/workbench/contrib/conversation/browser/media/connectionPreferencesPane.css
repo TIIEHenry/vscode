@@ -8,6 +8,18 @@
  * Do not hang empty `.ua-motion` — reduced-motion is a no-op until a node animates.
  */
 
+/*
+ * D28: Connection modal must not cover the conversation identity strip.
+ * Prefer layout reservation (host top / height) over z-index stacking.
+ * `--ua-conversation-identity-reserved-top` is written on layout.
+ */
+.monaco-modal-editor-block.connection-pane-identity-reservation,
+.monaco-modal-editor-block:has(.connection-preferences-pane) {
+	top: var(--ua-conversation-identity-reserved-top, 0px);
+	height: calc(100% - var(--ua-conversation-identity-reserved-top, 0px));
+	box-sizing: border-box;
+}
+
 .monaco-workbench .connection-preferences-pane {
 	display: flex;
 	flex-direction: column;
