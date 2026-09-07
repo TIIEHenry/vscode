@@ -521,6 +521,7 @@ import {
 	makeResidentBidiHandleClient,
 	makeBidiStreamClient,
 	makeBidiBytesClient,
+	asUnaryProtoBytes,
 	grpcErrorCode,
 } from './grpcClientCalls.js';
 import {
@@ -554,6 +555,7 @@ import {
 	encodeListDevicesRequest,
 	encodeListModelsRequest,
 	encodeListSessionsRequest,
+	encodeProbeRpcRequest,
 } from './grpcCatalogUnaryWire.js';
 import type {
 	AddMcpServerResponseWire,
@@ -1269,9 +1271,9 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			const path = `/${service}/${method}`;
 			this._channel.makeUnaryRequest(
 				path,
-				() => Buffer.from('{}'),
+				asUnaryProtoBytes,
 				(buffer: Buffer) => buffer,
-				{},
+				encodeProbeRpcRequest(),
 				(error: grpc.ServiceError | null) => resolve(grpcErrorCode(error)),
 			);
 		});
