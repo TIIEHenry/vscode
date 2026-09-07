@@ -167,6 +167,7 @@ export class ConversationTimelineTree extends Disposable {
 			options.onEditUserTurn,
 			options.onViewInTrajectory,
 			options.onCancelToolCall,
+			options.onRetryError,
 			options.onReviewNavClick,
 			() => this.editingTurnId,
 			options.onOpenVisualizeFullscreen,

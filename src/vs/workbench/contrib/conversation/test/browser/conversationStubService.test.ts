@@ -124,6 +124,12 @@ suite('ConversationStubService', () => {
 		assert.strictEqual(service.cancelToolCall(service.getActiveSessionId(), { toolCallId: 'tc-1', agentId: 'sub:a' }), false);
 	});
 
+	test('retryError stays local no-op without engine', () => {
+		const service = store.add(new ConversationStubService());
+		assert.strictEqual(service.retryError(service.getActiveSessionId(), { messageId: 'msg-1' }), false);
+		assert.strictEqual(service.retryError(service.getActiveSessionId(), { messageId: 'msg-1', turnId: 'turn-1', agentId: 'sub:a' }), false);
+	});
+
 	test('resolveConfirmation stays local without engine', () => {
 		const service = store.add(new ConversationStubService());
 		const sessionId = service.getActiveSessionId();
@@ -148,11 +154,16 @@ suite('ConversationStubService', () => {
 		assert.strictEqual(service.respondQuestion(sessionId, 'q-2'), true);
 	});
 
-	test('enqueueMessageQueueItem stays local no-op without engine', () => {
+	test('enqueueMessageQueueItem fails honestly without engine and does not mutate fixture', () => {
 		const service = store.add(new ConversationStubService());
+		const sessionId = service.getActiveSessionId();
+		const before = service.getMessageQueueState(sessionId);
 		assert.strictEqual(service.hasEngineConnectionHistory(), false);
-		assert.strictEqual(service.enqueueMessageQueueItem(service.getActiveSessionId(), 'later', { priority: 'HIGH' }), false);
-		assert.strictEqual(service.enqueueMessageQueueItem(service.getActiveSessionId(), 'later'), false);
+		assert.strictEqual(service.enqueueMessageQueueItem(sessionId, 'later', { priority: 'HIGH' }), false);
+		assert.strictEqual(service.enqueueMessageQueueItem(sessionId, 'later'), false);
+		assert.strictEqual(service.enqueueMessageQueueItem(sessionId, '   '), false);
+		assert.deepStrictEqual(service.getMessageQueueState(sessionId), before);
+		assert.deepStrictEqual(service.getMessageQueueState(sessionId).items, []);
 	});
 
 	test('deleteSession removes a non-active session without changing active', () => {

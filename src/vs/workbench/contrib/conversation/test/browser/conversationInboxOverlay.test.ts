@@ -14,10 +14,14 @@ import {
 import { IQuickInputService } from '../../../../../platform/quickinput/common/quickInput.js';
 import {
 	conversationLensDockGoal,
+	conversationLensDockInboxNoQueue,
+	conversationLensDockInboxTaskLabel,
 	conversationLensDockNoGoal,
 	conversationLensDockStop,
 	conversationLensDockStopGenerating,
 	conversationLensDockStopNotGenerating,
+	conversationLensInboxQueueEnqueue,
+	conversationLensInboxQueueEnqueueUnavailable,
 } from '../../browser/conversationLensDockStrings.js';
 import { ConversationStubTurn } from '../../browser/conversationStubModel.js';
 import { ConversationStubService, IConversationRosterService } from '../../browser/conversationStubService.js';
@@ -45,6 +49,29 @@ class GoalRoster extends ConversationStubService {
 
 	override getSessionGoal(_sessionId: string): string | undefined {
 		return this.goal;
+	}
+}
+
+class EnqueueRoster extends ConversationStubService {
+	readonly enqueueCalls: { sessionId: string; text: string }[] = [];
+	enqueueResult = true;
+
+	override isEngineConnected(): boolean {
+		return true;
+	}
+
+	override enqueueMessageQueueItem(sessionId: string, text: string, _options?: { priority?: 'NORMAL' | 'HIGH' | 'LOW'; opId?: string }): boolean {
+		this.enqueueCalls.push({ sessionId, text });
+		return this.enqueueResult;
+	}
+}
+
+class RecordingStubRoster extends ConversationStubService {
+	readonly enqueueCalls: { sessionId: string; text: string }[] = [];
+
+	override enqueueMessageQueueItem(sessionId: string, text: string, options?: { priority?: 'NORMAL' | 'HIGH' | 'LOW'; opId?: string }): boolean {
+		this.enqueueCalls.push({ sessionId, text });
+		return super.enqueueMessageQueueItem(sessionId, text, options);
 	}
 }
 
@@ -274,5 +301,107 @@ suite('ConversationInboxOverlay list panel host', () => {
 		assert.strictEqual(decoy.textContent, 'decoy');
 		assert.strictEqual(ownPanel.querySelector('.queue-item[data-item-id="q1"]'), null);
 		assert.ok(ownPanel.querySelector('.queue-item[data-item-id="q2"]'));
+	});
+});
+
+suite('ConversationInboxOverlay Enqueue', () => {
+
+	const store = ensureNoDisposablesAreLeakedInTestSuite();
+
+	function createOverlay(roster: ConversationStubService, inputResult?: string): ConversationInboxOverlay {
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IConversationRosterService, roster);
+		instantiationService.stub(IQuickInputService, {
+			input: async () => inputResult,
+		} as IQuickInputService);
+		const parent = document.createElement('div');
+		document.body.appendChild(parent);
+		store.add({ dispose: () => parent.remove() });
+		return store.add(instantiationService.createInstance(ConversationInboxOverlay, parent, {
+			onQueueItemHold() { },
+			onScrollToPendingConfirmation() { },
+		}));
+	}
+
+	function openQueuePanel(overlay: ConversationInboxOverlay): HTMLElement {
+		const queueChip = overlay.element.querySelector('.conversation-lens-inbox-queue') as HTMLButtonElement;
+		queueChip.click();
+		const panels = [...document.querySelectorAll('.conversation-lens-inbox-list-panel')]
+			.filter(host => host.querySelector('.conversation-lens-message-queue-list'));
+		const panel = panels.at(-1) as HTMLElement | undefined;
+		assert.ok(panel);
+		return panel;
+	}
+
+	function getEnqueueButton(panel: HTMLElement): HTMLButtonElement {
+		const button = panel.querySelector('.conversation-lens-inbox-queue-enqueue') as HTMLButtonElement | null;
+		assert.ok(button);
+		return button;
+	}
+
+	test('PRD-015 验收 5: Task 左于 MessageQueue，空队列诚实空且有 Enqueue 入口', () => {
+		const overlay = createOverlay(store.add(new ConversationStubService()));
+		const left = overlay.element.querySelector('.conversation-lens-inbox-left')!;
+		const chips = [...left.querySelectorAll('.conversation-lens-inbox-task, .conversation-lens-inbox-queue')];
+		assert.deepStrictEqual(chips.map(el => el.classList.contains('conversation-lens-inbox-task') ? 'task' : 'queue'), ['task', 'queue']);
+		assert.ok(chips[0]?.textContent?.includes(conversationLensDockInboxTaskLabel));
+
+		const panel = openQueuePanel(overlay);
+		assert.ok(panel.querySelector('.conversation-lens-inbox-list-empty')?.textContent?.includes(conversationLensDockInboxNoQueue));
+		assert.ok(getEnqueueButton(panel));
+		assert.strictEqual(panel.querySelector('.queue-item'), null);
+	});
+
+	test('stub Enqueue stays disabled and does not call enqueue', () => {
+		const roster = store.add(new RecordingStubRoster());
+		const overlay = createOverlay(roster, 'Should not enqueue');
+		const button = getEnqueueButton(openQueuePanel(overlay));
+		assert.strictEqual(button.disabled, true);
+		assert.strictEqual(button.getAttribute('aria-disabled'), 'true');
+		assert.strictEqual(button.title, conversationLensInboxQueueEnqueueUnavailable);
+		button.click();
+		assert.deepStrictEqual(roster.enqueueCalls, []);
+		assert.deepStrictEqual(roster.getMessageQueueState(roster.getActiveSessionId()).items, []);
+		assert.strictEqual(roster.enqueueMessageQueueItem(roster.getActiveSessionId(), 'Should not enqueue'), false);
+	});
+
+	test('connected Enqueue forwards enqueueMessageQueueItem', async () => {
+		const roster = store.add(new EnqueueRoster());
+		const overlay = createOverlay(roster, '  later  ');
+		const button = getEnqueueButton(openQueuePanel(overlay));
+		assert.strictEqual(button.disabled, false);
+		assert.strictEqual(button.getAttribute('aria-disabled'), 'false');
+		assert.strictEqual(button.textContent, conversationLensInboxQueueEnqueue);
+		button.click();
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		assert.deepStrictEqual(roster.enqueueCalls, [{ sessionId: roster.getActiveSessionId(), text: 'later' }]);
+	});
+
+	test('connected Enqueue prompt cancel does not enqueue', async () => {
+		const roster = store.add(new EnqueueRoster());
+		getEnqueueButton(openQueuePanel(createOverlay(roster, undefined))).click();
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		assert.deepStrictEqual(roster.enqueueCalls, []);
+	});
+
+	test('connected Enqueue empty confirm fails honestly and does not add a fake item', async () => {
+		const roster = store.add(new EnqueueRoster());
+		roster.enqueueResult = false;
+		getEnqueueButton(openQueuePanel(createOverlay(roster, '   '))).click();
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		assert.deepStrictEqual(roster.enqueueCalls, [{ sessionId: roster.getActiveSessionId(), text: '' }]);
+		assert.deepStrictEqual(roster.getMessageQueueState(roster.getActiveSessionId()).items, []);
+	});
+
+	test('connected Enqueue false does not pretend the item landed in the list', async () => {
+		const roster = store.add(new EnqueueRoster());
+		roster.enqueueResult = false;
+		const overlay = createOverlay(roster, 'Nope');
+		const panel = openQueuePanel(overlay);
+		getEnqueueButton(panel).click();
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		assert.deepStrictEqual(roster.enqueueCalls, [{ sessionId: roster.getActiveSessionId(), text: 'Nope' }]);
+		assert.deepStrictEqual(roster.getMessageQueueState(roster.getActiveSessionId()).items, []);
+		assert.ok(panel.querySelector('.conversation-lens-inbox-list-empty')?.textContent?.includes(conversationLensDockInboxNoQueue));
 	});
 });

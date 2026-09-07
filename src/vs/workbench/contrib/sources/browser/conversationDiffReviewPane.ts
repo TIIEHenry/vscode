@@ -36,6 +36,9 @@ import {
 } from '../common/sourcesChangesGit.js';
 import {
 	canSendSourcesGitApplyHunks,
+	canShowSourcesReviewAccept,
+	isSourcesGitWriteAccepted,
+	isSourcesGitWriteUnsupported,
 	sourcesGitWriteFailureDetail,
 	tryWriteSourcesGitApplyHunks,
 } from '../common/sourcesChangesGitWrite.js';
@@ -204,12 +207,12 @@ export class ConversationDiffReviewPane extends EditorPane {
 			this.uaConnection.isEngineConnected(),
 			typeof this.uaConnection.writeGitApplyHunks === 'function',
 		);
-		const canAccept = !!match
+		const hasLocalStage = !!match
 			&& isSourcesChangeStageable(match.groupId)
-			&& (canWriteAccept || !!CommandsRegistry.getCommand(SOURCES_GIT_STAGE_COMMAND));
+			&& !!CommandsRegistry.getCommand(SOURCES_GIT_STAGE_COMMAND);
 
 		this.revertButton.style.display = canRevert ? '' : 'none';
-		this.acceptButton.style.display = canAccept ? '' : 'none';
+		this.acceptButton.style.display = canShowSourcesReviewAccept(canWriteAccept, hasLocalStage) ? '' : 'none';
 	}
 
 	private async runAccept(): Promise<void> {
@@ -224,10 +227,13 @@ export class ConversationDiffReviewPane extends EditorPane {
 				this.uaConnection.isEngineConnected(),
 				hook ? request => hook.call(this.uaConnection, request) : undefined,
 			);
-			if (written) {
-				if (!written.success) {
-					this.showNotice(sourcesGitWriteFailureDetail(written));
-				}
+			if (isSourcesGitWriteAccepted(written)) {
+				this.hideNotice();
+				this.updateReviewActions();
+				return;
+			}
+			if (written && !isSourcesGitWriteUnsupported(written)) {
+				this.showNotice(sourcesGitWriteFailureDetail(written));
 				this.updateReviewActions();
 				return;
 			}
@@ -237,7 +243,19 @@ export class ConversationDiffReviewPane extends EditorPane {
 			return;
 		}
 
-		await this.runGitAction(SOURCES_GIT_STAGE_COMMAND);
+		const match = findScmResourceForUri(this.scmService, input.modified);
+		if (match) {
+			await this.runGitAction(SOURCES_GIT_STAGE_COMMAND);
+			return;
+		}
+
+		if (canSendSourcesGitApplyHunks(
+			this.uaConnection.isEngineConnected(),
+			typeof this.uaConnection.writeGitApplyHunks === 'function',
+		)) {
+			this.showNotice(localize('conversationDiffReviewPane.acceptUnavailable', "Git accept is not available."));
+		}
+		this.updateReviewActions();
 	}
 
 	private async runGitAction(commandId: string): Promise<void> {

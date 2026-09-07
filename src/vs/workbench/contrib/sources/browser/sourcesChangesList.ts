@@ -44,6 +44,8 @@ import {
 import {
 	canSendSourcesGitCommit,
 	canSendSourcesGitStagePaths,
+	isSourcesGitWriteAccepted,
+	isSourcesGitWriteUnsupported,
 	sourcesGitWriteFailureDetail,
 	tryWriteSourcesGitCommit,
 	tryWriteSourcesGitStagePaths,
@@ -550,6 +552,9 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 
 		const resource = entry.scmResource;
 		if (!resource) {
+			if (action === 'stage' && this.canWriteStage()) {
+				this.setStatusMessage(localize('sourcesChangesList.gitUnavailable', "Git stage/commit commands are not available."));
+			}
 			return;
 		}
 
@@ -576,10 +581,10 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 				hook ? request => hook.call(this.uaConnection, request) : undefined,
 				paths,
 			);
-			if (!result) {
+			if (!result || isSourcesGitWriteUnsupported(result)) {
 				return false;
 			}
-			if (!result.success) {
+			if (!isSourcesGitWriteAccepted(result)) {
 				this.setStatusMessage(localize('sourcesChangesList.stageFailed', "Unable to stage: {0}", sourcesGitWriteFailureDetail(result)));
 				return true;
 			}
@@ -649,13 +654,13 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 				writeHook ? request => writeHook.call(this.uaConnection, request) : undefined,
 				message,
 			);
-			if (written) {
-				if (!written.success) {
-					this.setStatusMessage(localize('sourcesChangesList.commitFailed', "Unable to commit: {0}", sourcesGitWriteFailureDetail(written)));
-					return;
-				}
+			if (isSourcesGitWriteAccepted(written)) {
 				this.setStatusMessage(undefined);
 				this.scheduleRefresh();
+				return;
+			}
+			if (written && !isSourcesGitWriteUnsupported(written)) {
+				this.setStatusMessage(localize('sourcesChangesList.commitFailed', "Unable to commit: {0}", sourcesGitWriteFailureDetail(written)));
 				return;
 			}
 		} catch (error) {
@@ -664,6 +669,9 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		}
 
 		if (!repo) {
+			if (this.canWriteCommit()) {
+				this.setStatusMessage(localize('sourcesChangesList.gitUnavailable', "Git stage/commit commands are not available."));
+			}
 			return;
 		}
 

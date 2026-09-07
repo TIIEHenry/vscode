@@ -36,8 +36,9 @@ export function readConnectProfileLeafFingerprint(source: unknown): string | und
 }
 
 /**
- * IPC-safe connectProfile contract: renderer always sees a concrete pairing
- * payload (`sasCode` or `recoverTrust` + fingerprint) when `pairingPending`.
+ * IPC-safe connectProfile / confirmPairing contract: renderer sees a concrete
+ * pairing payload when `pairingPending` — `sasCode`, `recoverTrust` + fingerprint,
+ * or `grantPending` (SAS already confirmed, still waiting for Engine grant).
  * Empty SAS still marked ok is rejected here — JSON IPC would drop `undefined`.
  */
 export function finalizeConnectProfileResult(result: UniverseAgentConnectProfileResult): UniverseAgentConnectProfileResult {
@@ -72,19 +73,29 @@ export function finalizeConnectProfileResult(result: UniverseAgentConnectProfile
 		};
 	}
 	const sasCode = readConnectProfileSasCode(result);
-	if (!sasCode) {
+	if (sasCode) {
 		return {
-			ok: false,
-			code: 'pairing_required',
-			reason: 'pairing pending without handshake sasCode or recoverTrust fingerprint',
+			ok: true,
+			path: result.path,
+			workDir: result.workDir,
+			pairingPending: true,
+			sasCode,
+			engineIdentityId: result.engineIdentityId,
+		};
+	}
+	if (result.grantPending === true) {
+		return {
+			ok: true,
+			path: result.path,
+			workDir: result.workDir,
+			pairingPending: true,
+			grantPending: true,
+			engineIdentityId: result.engineIdentityId,
 		};
 	}
 	return {
-		ok: true,
-		path: result.path,
-		workDir: result.workDir,
-		pairingPending: true,
-		sasCode,
-		engineIdentityId: result.engineIdentityId,
+		ok: false,
+		code: 'pairing_required',
+		reason: 'pairing pending without handshake sasCode or recoverTrust fingerprint',
 	};
 }

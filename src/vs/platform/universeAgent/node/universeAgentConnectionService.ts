@@ -5,7 +5,7 @@
 
 import { Emitter } from '../../../base/common/event.js';
 import { Disposable } from '../../../base/common/lifecycle.js';
-import { finalizeConnectProfileResult } from '../common/connectProfileResult.js';
+import { finalizeConnectProfileResult, readConnectProfileSasCode } from '../common/connectProfileResult.js';
 import { PAIRING_REQUIRED_USE_CONNECT_REASON, type ConnectionPhase, type ConnectionFailureCode, type ConnectionProbeResult, type UniverseAgentConnectProfileResult } from '../common/connectionHubTypes.js';
 import { sanitizeDesktopCapabilitySnapshot } from '../common/universeAgentRendererSync.js';
 import type { IUniverseAgentConnection, IUniverseAgentTeamApi, UniverseAgentNavigatorCapabilityKey, UniverseAgentProbeEngineResult } from '../common/universeAgentConnection.js';
@@ -834,12 +834,15 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 			this._pairingPending = true;
 			this._connectionPhase = { kind: 'connecting', reason: 'initial' };
 			this._fireSnapshotChanged();
-			return {
+			const sasCode = readConnectProfileSasCode(confirmResult.snapshot);
+			return finalizeConnectProfileResult({
 				ok: true,
 				path: 'direct',
 				pairingPending: true,
+				grantPending: !sasCode,
+				sasCode,
 				engineIdentityId: confirmResult.snapshot.engineIdentityId,
-			};
+			});
 		}
 
 		this._pairingPending = false;

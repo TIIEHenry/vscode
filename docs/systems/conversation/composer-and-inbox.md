@@ -4,7 +4,7 @@ type: architecture
 status: accepted
 phase: N/A
 updated: 2026-09-07
-summary: "PRD-015 系统规格：PreFirst 居中 / Active 列底同一张 Composer；三种 composerPolicy；身份条 XOR；Inbox 左右分簇与 MessageQueue 状态机；Stop 仅 connected+streaming 时转 AgentService.Cancel；Goal 接通后转 SetSessionGoal / CancelSessionGoal；MessageQueue 接通后转 Enqueue/Pause/Resume/Clear/Hold/Release/Edit（无 GetQueue 显示空）；Inbox AutoDrive 接通 / 断连缓存诚实空；turnEdit 保存接通后转 AgentService.EditMessage（空 turnId / 空正文不发）；断连 Send 未连不锁、引擎缓存不得 stub echo / 已同步；语音转写条；输入历史；StatusBar 芯片与诚实降级"
+summary: "PRD-015 系统规格：PreFirst 居中 / Active 列底同一张 Composer；三种 composerPolicy；身份条 XOR；Inbox 左右分簇与 MessageQueue 状态机；Stop 仅 connected+streaming 时转 AgentService.Cancel；Goal 接通后转 SetSessionGoal / CancelSessionGoal；MessageQueue 列表 Enqueue 接通后转 EnqueueQueueItem（无引擎禁用、失败不造假项）；接通后转 Pause/Resume/Clear/Hold/Release/Edit（无 GetQueue 显示空）；Inbox AutoDrive 接通 / 断连缓存诚实空；turnEdit 保存接通后转 AgentService.EditMessage（空 turnId / 空正文不发）；断连 Send 未连不锁、引擎缓存不得 stub echo / 已同步；语音转写条；输入历史；StatusBar 芯片与诚实降级"
 ---
 
 # Conversation Composer、身份条与 Inbox
@@ -48,6 +48,7 @@ summary: "PRD-015 系统规格：PreFirst 居中 / Active 列底同一张 Compos
 ```
 
 - 无权威时整槽省略或诚实空（「No queue」），不造假任务（PRD-007 / PRD-015 验收 5）。
+- MessageQueue 列表头 **Enqueue**：未接通时禁用（「Cannot enqueue without engine」）。接通后点开 `IQuickInputService`；取消不发；确认后调用 `enqueueMessageQueueItem`（空正文 / 未知 session / 断连缓存 / stub 返回 false）。失败不把假项写入列表。Composer 发送仍走 `submitInput`，不经此钮。
 - Task 列表数据 = `getAutoDriveTasks` / `getAutoDriveTaskCount`。stub / 从未连过由 `setAutoDriveTaskFixture` 注入。引擎接通 / 断连缓存诚实空（Inbox 无任务列表 RPC，不把 fixture 冒充引擎任务；`Team.TaskList` 仍只给 Navigator）。
 - Stop：未接通或时间线无 `streaming` 行时禁用（「Not generating」）。接通且有 streaming 行时启用，点击 `IConversationRosterService.cancelGeneration` → 引擎 `AgentService.Cancel`（未指定 agent 用末条 streaming 否则 `root`）。上下文环在引擎接通前无权威，按诚实降级处理。
 - Goal：未接通时诚实禁用（「No goal」）。接通后启用；点开 `IQuickInputService` 输入。非空确认 → `IConversationRosterService.setSessionGoal` → 引擎 `PermissionService.SetSessionGoal`（空 / 未变 / 未知 session / 断连缓存不发）。已有本地目标时清空确认 → `cancelSessionGoal` → `PermissionService.CancelSessionGoal`。取消输入框不发 unary。无 `GetSessionGoal`，按钮文案只反映本机上次成功 set。
@@ -96,4 +97,4 @@ summary: "PRD-015 系统规格：PreFirst 居中 / Active 列底同一张 Compos
 
 ## 9. 测试
 
-`conversationLens.test.ts`（T1–T6；断连 Send：未连可发且首条 pending 离 PreFirst；引擎缓存断连保留 draft + 失败文案、enqueue 接纳则不清 timeline）；`conversationInboxOverlay.test.ts`（Stop 禁用 / 接通 streaming 转发；Goal 禁用 / 接通转发 Set / 取消不发 / 清空确认 Cancel）、`conversationIdentityStrip.test.ts`、`conversationInputHistory.test.ts`、`conversationSessionStatus.test.ts`、`conversationSessionStatusBar.test.ts`、`conversationStubService.test.ts`（队列 / hold / cancel·goal no-op）、`conversationEngineRosterService.test.ts`（接通转发 Cancel / SetSessionGoal / Fork / Kill / CancelToolCall / DeleteMessage / Respond / MessageQueue 五操作 + Edit + Enqueue；断连 `hasEngineConnectionHistory`）。Lens / identity / stub 基线红见 [D16](../../../dev/progress/deferred-gaps.md)。
+`conversationLens.test.ts`（T1–T6；断连 Send：未连可发且首条 pending 离 PreFirst；引擎缓存断连保留 draft + 失败文案、enqueue 接纳则不清 timeline）、`conversationInboxOverlay.test.ts`（Stop 禁用 / 接通 streaming 转发；Goal 禁用 / 接通转发 Set / 取消不发 / 清空确认 Cancel；Enqueue 禁用 / 接通转发 / 取消不发 / 失败不造假项）、`conversationComposerCatalog.test.ts`、`conversationIdentityStrip.test.ts`、`conversationInputHistory.test.ts`、`conversationSessionStatus.test.ts`、`conversationSessionStatusBar.test.ts`、`conversationStubService.test.ts`（队列 / hold / cancel·goal no-op；Enqueue 无引擎诚实失败且不改 fixture）、`conversationEngineRosterService.test.ts`（接通转发 Cancel / SetSessionGoal / Fork / Kill / CancelToolCall / DeleteMessage / Respond / MessageQueue 五操作 + Edit + Enqueue；断连 `hasEngineConnectionHistory`）。Lens / identity / stub 基线红见 [D16](../../../dev/progress/deferred-gaps.md)。
