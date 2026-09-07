@@ -12,13 +12,14 @@ import { Event } from '../../../../../base/common/event.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { ensureNoDisposablesAreLeakedInTestSuite, toResource } from '../../../../../base/test/common/utils.js';
 import { ICommandService } from '../../../../../platform/commands/common/commands.js';
+import { getSelectionKeyboardEvent, WorkbenchList } from '../../../../../platform/list/browser/listService.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { IQuickDiffService } from '../../../scm/common/quickDiff.js';
 import { ISCMService } from '../../../scm/common/scm.js';
 import { SourcesChangesList } from '../../browser/sourcesChangesList.js';
 import { SourcesReviewList } from '../../browser/sourcesReviewList.js';
-import { sourcesGitReadFailureMessage } from '../../common/sourcesChangesGitRead.js';
+import { sourcesGitDiffOpenFailureMessage, sourcesGitReadFailureMessage } from '../../common/sourcesChangesGitRead.js';
 import { ISourcesChangeEntry } from '../../common/sourcesChangesModel.js';
 import { ISourcesDiffPanelService } from '../../common/sourcesDiffPanelService.js';
 import { ISourcesReviewAttributionService } from '../../common/sourcesReviewAttribution.js';
@@ -35,12 +36,30 @@ suite('Sources - review list model', () => {
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
 	function createThrowingGitConnection(): IUniverseAgentConnection {
+		return createGitConnection({ throwOnRead: true });
+	}
+
+	function createGitConnection(options: { throwOnRead?: boolean } = {}): IUniverseAgentConnection {
 		return {
 			isEngineConnected: () => true,
 			onDidChangeConnection: Event.None,
 			readGitChanges: async () => {
-				throw new Error('boom');
+				if (options.throwOnRead) {
+					throw new Error('boom');
+				}
+				return {
+					supported: true,
+					reason: '',
+					branch: 'main',
+					entries: [{ path: 'src/a.ts', oldPath: '', kind: 'MODIFIED', indexState: 'WORKTREE' }],
+				};
 			},
+			readGitSummary: async () => ({
+				supported: true,
+				reason: '',
+				branch: 'main',
+				changeCount: 1,
+			}),
 		} as unknown as IUniverseAgentConnection;
 	}
 
@@ -56,12 +75,16 @@ suite('Sources - review list model', () => {
 		} as unknown as ISCMService;
 	}
 
-	function stubSourcesGitListServices() {
+	function stubSourcesGitListServices(options: {
+		connection?: IUniverseAgentConnection;
+		getQuickDiffs?: () => Promise<unknown>;
+		markReviewed?: () => void;
+	} = {}) {
 		const instantiationService = workbenchInstantiationService(undefined, store);
-		instantiationService.stub(IUniverseAgentConnection, createThrowingGitConnection());
+		instantiationService.stub(IUniverseAgentConnection, options.connection ?? createThrowingGitConnection());
 		instantiationService.stub(ISCMService, createEmptyScmService());
 		instantiationService.stub(IQuickDiffService, {
-			getQuickDiffs: async () => [],
+			getQuickDiffs: options.getQuickDiffs ?? (async () => []),
 		} as unknown as IQuickDiffService);
 		instantiationService.stub(ISourcesDiffPanelService, {
 			onDidChangeRef: Event.None,
@@ -77,7 +100,7 @@ suite('Sources - review list model', () => {
 		instantiationService.stub(ISourcesReviewProgressService, {
 			onDidChange: Event.None,
 			isReviewed: () => false,
-			markReviewed: () => { },
+			markReviewed: options.markReviewed ?? (() => { }),
 			markUnreviewed: () => { },
 			markAllReviewed: () => { },
 			resolveKey: async (resource: URI) => ({ scopeKeyId: 'root', path: resource.toString(), contentHash: '' }),
@@ -94,16 +117,39 @@ suite('Sources - review list model', () => {
 		return instantiationService;
 	}
 
-	async function waitForStatusText(host: HTMLElement, selector: string): Promise<string> {
+	async function waitForStatusText(host: HTMLElement, selector: string, contains?: string): Promise<string> {
 		const deadline = Date.now() + 2000;
 		while (Date.now() < deadline) {
 			const text = host.querySelector(selector)?.textContent ?? '';
-			if (text) {
+			if (text && (!contains || text.includes(contains))) {
 				return text;
 			}
 			await timeout(20);
 		}
-		throw new Error(`status ${selector} stayed empty`);
+		throw new Error(`status ${selector} stayed empty${contains ? ` (wanted ${contains})` : ''}`);
+	}
+
+	function mountListHost(): HTMLElement {
+		const host = document.createElement('div');
+		host.style.width = '400px';
+		host.style.height = '300px';
+		document.body.appendChild(host);
+		store.add({ dispose: () => host.remove() });
+		return host;
+	}
+
+	async function openFirstListRow(owner: { list?: WorkbenchList<unknown> }): Promise<void> {
+		const deadline = Date.now() + 2000;
+		while (Date.now() < deadline) {
+			if (owner.list && owner.list.length > 0) {
+				owner.list.layout(120, 400);
+				owner.list.setFocus([0]);
+				owner.list.setSelection([0], getSelectionKeyboardEvent('keydown', false, false));
+				return;
+			}
+			await timeout(20);
+		}
+		throw new Error('list stayed empty');
 	}
 
 	function entry(resource: URI): ISourcesChangeEntry {
@@ -260,6 +306,41 @@ suite('Sources - review list model', () => {
 		assert.ok(openHandler.includes('sourcesGitDiffOpenFailureMessage'));
 		assert.ok(openHandler.includes('setStatusMessage'));
 		assert.ok(!openHandler.includes('} catch {'));
+	});
+
+	test('Review list status DOM shows onDidOpen open-diff throw and does not mark reviewed', async function () {
+		const host = mountListHost();
+		let marked = 0;
+		const instantiationService = stubSourcesGitListServices({
+			connection: createGitConnection(),
+			getQuickDiffs: async () => { throw new Error('boom'); },
+			markReviewed: () => { marked += 1; },
+		});
+		const widget = store.add(instantiationService.createInstance(SourcesReviewList, host));
+		(host.querySelector('.sources-review-list') as HTMLElement).style.height = '120px';
+
+		await openFirstListRow(widget as unknown as { list?: WorkbenchList<unknown> });
+
+		const status = await waitForStatusText(host, '.sources-review-status', 'Unable to open diff');
+		assert.strictEqual(status, sourcesGitDiffOpenFailureMessage(new Error('boom')));
+		assert.ok(status.includes('boom'));
+		assert.strictEqual(marked, 0);
+	});
+
+	test('Changes list status DOM shows onDidOpen open-diff throw', async function () {
+		const host = mountListHost();
+		const instantiationService = stubSourcesGitListServices({
+			connection: createGitConnection(),
+			getQuickDiffs: async () => { throw new Error('boom'); },
+		});
+		const widget = store.add(instantiationService.createInstance(SourcesChangesList, host));
+		(host.querySelector('.sources-changes-list') as HTMLElement).style.height = '120px';
+
+		await openFirstListRow(widget as unknown as { list?: WorkbenchList<unknown> });
+
+		const status = await waitForStatusText(host, '.sources-changes-status', 'Unable to open diff');
+		assert.strictEqual(status, sourcesGitDiffOpenFailureMessage(new Error('boom')));
+		assert.ok(status.includes('boom'));
 	});
 
 	test('Changes list does not reference review progress service', () => {
