@@ -4,13 +4,7 @@
 # 格式：<classname>::<name>
 # mocha-junit-reporter 本 runner：classname=test.title，name=test.fullTitle()
 # 只登记 unit-custom 三域；D16 三文件在本 SHA 仍 0 failing，未列入
-# 采集：工位 A loop/A @ d2abb648c0e；conversation 因 mocha root afterEach 遇 DiffReviewPane leak 会中断单 glob，已分批收齐后去重
-"after each" hook for "close non-root closes diff review tab but keeps root tab"::"after each" hook for "close non-root closes diff review tab but keeps root tab"
-"after each" hook for "close non-root closes diff review tab but keeps root tab"::Conversation session chat (S3) "after each" hook for "close non-root closes diff review tab but keeps root tab"
-"after each" hook for "closeChildOnBack closes diff review tab when navigating back"::"after each" hook for "closeChildOnBack closes diff review tab when navigating back"
-"after each" hook for "closeChildOnBack closes diff review tab when navigating back"::Conversation navigation (S2) "after each" hook for "closeChildOnBack closes diff review tab when navigating back"
-"after each" hook for "global editor enumeration excludes diff review tabs"::"after each" hook for "global editor enumeration excludes diff review tabs"
-"after each" hook for "global editor enumeration excludes diff review tabs"::Conversation editor aggregation exemption (S1a) "after each" hook for "global editor enumeration excludes diff review tabs"
+# 采集：工位 A loop/A @ d2abb648c0e；DiffReview afterEach 六行已由 B `diffreview-leak` 删（dispose + stub；单 glob 不再被该泄漏中断）
 CONVERSATION_SIDE_GROUP increases conversation editor part group count::Conversation session split (S4) CONVERSATION_SIDE_GROUP increases conversation editor part group count
 Part focus with no pending seats does not scroll::ConversationOpenPendingOnFocusContribution Part focus with no pending seats does not scroll
 appendUserTurn updates roster subtitle to 1 message::ConversationSessionsView appendUserTurn updates roster subtitle to 1 message

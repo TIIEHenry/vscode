@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-07
-summary: "A 占 unit-custom-xml。三域基线名单已落（38 行）。D16 仍开。A2 仍 blocked"
+summary: "unit-custom 已排除 11 个不可加载文件；DiffReview afterEach 已修；名单 32 行。D16 仍开。A2 仍 blocked。字母槽 idle"
 ---
 
 # Development Progress
@@ -53,10 +53,10 @@ summary: "A 占 unit-custom-xml。三域基线名单已落（38 行）。D16 仍
 
 集成 tip **本关仓提交**（`loop/merge`；未 push）。Chat 仍被引擎空壳 Create（目录在、`session_meta` 空、回 6）挡住；不要再清 `.sessions` 当主线。见 [D26](deferred-gaps.md)。**U2 未开**。**PRD-008 / PRD-019 不升 `implemented`**。[R8](research-queue.md) **已闭**（[ADR-008](../decisions/008-write-git-apply-hunks-empty.md) 引擎空 `patches` = 成功空操作）。Accept 产品选项 A 见 [sources-accept-empty-success](../plans/sources-accept-empty-success.md)（`draft`；**A1 已落**；**P5 停线**——只批准停线，不批准 A2；A2 须新选定 + 新 Arch-First）。
 
-1. **集成 tip** 以 merge 本关仓提交为准（P2 已串行 wave-10 A=`992693462a6`；R8 闭合 B=`815234faeea`；Accept 方案 D=`46998e7f4bf` → merge `15a3a28eb31`；A1 D=`c9a743b46d8` → merge `5b839e665d4`；A2 停线 D=`74aae040ab5` → merge `782c5322f8e`；D16 切片 0 A=`43df06db09a` → merge `0d860c9a93f`；切片 3 A=`c01e16fad84` → merge `44d65d1da44`）。`npm run compile` 仍基线 unused 红则 **不 push**。GFS >800 不拆。D22/F3 已撤回。不跑 F4 / 不实施 A2。
+1. **集成 tip** 以 merge 本关仓提交为准（切片 3 A=`c01e16fad84` → merge `44d65d1da44`；unit-custom XML A=`a167f755fb4`；DiffReview B=`ebe958ab148`）。`npm run compile` 仍基线 unused 红则 **不 push**。GFS >800 不拆。D22/F3 已撤回。不跑 F4 / 不实施 A2。
 2. 本波字母槽已进 merge：
-   - **A**：`unit-custom-xml` — [test-baseline-ci](../plans/test-baseline-ci.md) unit-custom：[`scripts/run-unit-custom.sh`](../../scripts/run-unit-custom.sh) 排除 D17 十一份 Electron 不可加载 node 测，一次 `--tfs universeAgent` 写出 XML；conversation / sources 仍官方 glob。**[D16](deferred-gaps.md) 仍开**；未开切片 1「已归零」。未改 Electron runner / 未改 `min_cases` / 未跑 compile。
-   - **B**：visualize 三测已收；remainder 7 已按夹具诚实收口（虚拟列表 reveal / flush 预算 / `scrollToEnd` 后不立刻 layout 冲掉）。全量 Lens **97/97** @ `loop/B` 2026-09-07。**[D16](deferred-gaps.md) 仍开**（本 slice 不闭；S2「Lens 全绿」仍以本行闭合为前提）。
+   - **A**：`unit-custom-xml` — [`scripts/run-unit-custom.sh`](../../scripts/run-unit-custom.sh) 排除 D17 十一份 Electron 不可加载 node 测，一次 `--tfs universeAgent` 写出 XML；conversation / sources 仍官方 glob。切片 3 名单已落。**[D16](deferred-gaps.md) 仍开**；未开切片 1。未改 Electron runner / `min_cases`。
+   - **B**：`diffreview-leak` — ConversationDiffReviewPane 补 dispose/clearEditors；navigation/aggregation/fence 停引真实 contribution、改 stub。afterEach 六行已删（名单 32 行）。Lens 97/97 仍在。**[D16](deferred-gaps.md) 仍开**。
    - **C**：`inbox-getqueue-honesty` — catalog / connection **无** GetQueue / ListQueue，未发明 RPC。接通 / 断连缓存 Inbox 文案「Queue not listed」，stub fixture 不得冒充引擎队列；测锁 overlay / roster / stub。[D37](deferred-gaps.md) **仍闭**；缺 list-queue 记 [D24](deferred-gaps.md)。勿 add `dev/loop`。
    - **D**：`a2-patches-source` — A1 已落。P5 停线已合入：禁止再拉 `unified_diff` / Stage argv 映射 Apply；禁止只接 session。**A2 仍 blocked**（须新选定 + 新 Arch-First，不自动解锁）。未实施 A2 / 未跑 F4。[D31](deferred-gaps.md) **仍开**。未升 PRD。
 3. **D15 / W1 笔记（工位 A，未占 工位表）**：`scripts/code-web.sh --browserType none --host 127.0.0.1 --port 18080` 已起；V1 Conversation / V2 四钮 + `UniverseAgentStudio Dev` / V3 Connection·Engine 省略桌面连接控件均 **PASS**。`IUniverseAgentConnection.getConnectionPhase()` = `disconnected`；页内点名「此环境不支持本机 Engine 连接」。证据 [d15-evidence/w1-1556dde3](d15-evidence/w1-1556dde3/)。**D15 可闭**；不升 PRD-019。未跑 compile / F4 / 引擎仓。
@@ -90,7 +90,7 @@ summary: "A 占 unit-custom-xml。三域基线名单已落（38 行）。D16 仍
 | 槽 | 路径 | 分支 | tip | 脏 | stash | 关仓状态 |
 |----|------|------|-----|:--|:------|:---------|
 | merge | `vscode-WorkTrees/merge` | `loop/merge` | 本关仓提交 | 0 | 0 | parked；compile 基线 unused 仍红，**不 push** |
-| A | `vscode-WorkTrees/A` | `loop/A` | `d98e699a11f` | 本 slice | 0 | occupy `unit-custom-xml` |
+| A | `vscode-WorkTrees/A` | `loop/A` | 对齐本关仓提交 | `__pycache__` | 0 | idle |
 | B | `vscode-WorkTrees/B` | `loop/B` | 对齐本关仓提交 | `__pycache__` | 0 | idle |
 | C | `vscode-WorkTrees/C` | `loop/C` | 对齐本关仓提交 | 未提交 `dev/loop` + `__pycache__` | 0 | idle；勿 add `dev/loop` |
 | D | `vscode-WorkTrees/D` | `loop/D` | 对齐本关仓提交 | `__pycache__` | 0 | idle |
@@ -105,7 +105,7 @@ summary: "A 占 unit-custom-xml。三域基线名单已落（38 行）。D16 仍
 | 项 | 指针 |
 |:---|:-----|
 | **引擎空壳 Create** | [D26](deferred-gaps.md) — 空 store 首次 Create 仍 `ALREADY_EXISTS` 且不写 meta；不要再清 store |
-| **test-baseline 切片 3 / unit-custom XML** | [test-baseline-failures.txt](test-baseline-failures.txt) 已落 @ `d2abb648c0e`。A 占 `unit-custom-xml`（排除 11 unloadable）。**D16 仍开**；勿开切片 1「已归零」 |
+| **test-baseline** | 名单 32 行；unit-custom 排除 11 unloadable。**D16 仍开**；勿开切片 1「已归零」 |
 | **U2 闸门** | [ADR-007](../decisions/007-upstream-sync.md) Decision 5 — 须 U0 `comm` 空 + U1 完成 + CI 绿 + merge 独占 + A 表冻结；**未满足前不开 U2** |
 
 ## 不做

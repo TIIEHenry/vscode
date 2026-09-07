@@ -24,8 +24,9 @@ import { ConversationChatInput, getConversationChatResource } from '../../browse
 import { ConversationDiffReviewInput } from '../../../sources/browser/conversationDiffReviewInput.js';
 import { ConversationNavigationService } from '../../browser/conversationNavigationService.js';
 import { CONVERSATION_CLOSE_CHILD_ON_BACK_SETTING } from '../../common/conversationNavigation.js';
+import { ConversationDiffReviewInputTypeId } from '../../../sources/common/conversationDiffReviewInput.js';
+import { registerTestConversationDiffReviewEditor } from './conversationDiffReviewTestEditor.js';
 import '../../browser/conversationEditor.contribution.js';
-import '../../../sources/browser/conversationDiffReview.contribution.js';
 
 suite('Conversation navigation (S2)', () => {
 
@@ -37,6 +38,10 @@ suite('Conversation navigation (S2)', () => {
 
 	setup(() => {
 		store.add(registerTestEditor(TEST_EDITOR_ID, [new SyncDescriptor(TestFileEditorInput), new SyncDescriptor(SideBySideEditorInput)], TEST_EDITOR_INPUT_ID));
+		const editorFactory = Registry.as<IEditorFactoryRegistry>(EditorExtensions.EditorFactory);
+		if (!editorFactory.getEditorSerializer(ConversationDiffReviewInputTypeId)) {
+			store.add(registerTestConversationDiffReviewEditor(store));
+		}
 	});
 
 	async function createHarness(options?: { closeChildOnBack?: boolean }) {
