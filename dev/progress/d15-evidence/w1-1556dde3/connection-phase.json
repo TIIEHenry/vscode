@@ -1,0 +1,14 @@
+{
+  "service": "IUniverseAgentConnection",
+  "implementation": "src/vs/platform/universeAgent/browser/universeAgentConnectionService.ts WebUniverseAgentConnection",
+  "getConnectionPhase_source": { "kind": "disconnected" },
+  "connectProfile_source": { "ok": false, "code": "unsupported_environment", "reason": "Web 不支持本机 Engine 连接" },
+  "runtime_observed": {
+    "statusBar": "Engine connection: Engine not connected",
+    "identityStrip": "Engine: Engine not connected",
+    "sessionSync": "Session not connected",
+    "connectionNotice": "此环境不支持本机 Engine 连接",
+    "engineBanner": "此环境不支持本机 Engine 连接"
+  },
+  "interpretation": "phase.kind = disconnected；capability / connectProfile 走 unsupported_environment。省略桌面控件由 capability reason（Web 不支持本机 Engine 连接）触发，不是把 phase 画成 failed。活页无法直接读取 DI 单例，以上为源码合同 + 状态栏/页内文案交叉。"
+}

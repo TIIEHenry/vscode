@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-07
-summary: "延期缺口 SSOT；D16 Lens 断言债仍开（visualize 三测 + remainder 7 已收，全量 97/97，本行不闭）；D22 F3；D15 欠 W1；D23/D32/D38/D39/D40 已由 A 槽收口；D24 其余 JSON RPC（probeRpc 已 empty proto；listTools 仍 JSON；无 GetQueue，Inbox 已诚实）；D25 host leftover 已收、引擎 List 真空仍开；D26 host 已收、引擎建壳回 6 仍开；D27 编辑态 1px 垫高 closed；D28 Connection 旁路 UI closed（身份条布局预留 + 几何测；(2)(3) 仍闭）；D29/D30 inbox closed；D31 Sources git 次级面（Open Selected 空 catch 已收，F4 仍开）；D33 pairing chip closed；D34–D36 timeline hygiene closed；D37 引擎 roster 队列 Retry unary closed（GetQueue leftover 改记 D24）；D41 Inbox FAILED/UPLOAD_FAILED 行 class 分流 closed"
+summary: "延期缺口 SSOT；D16 Lens 断言债仍开（visualize 三测 + remainder 7 已收，全量 97/97，本行不闭）；D22 F3；D15 W1 Web 冒烟已收（w1-1556dde3 PASS）；D23/D32/D38/D39/D40 已由 A 槽收口；D24 其余 JSON RPC（probeRpc 已 empty proto；listTools 仍 JSON；无 GetQueue，Inbox 已诚实）；D25 host leftover 已收、引擎 List 真空仍开；D26 host 已收、引擎建壳回 6 仍开；D27 编辑态 1px 垫高 closed；D28 Connection 旁路 UI closed（身份条布局预留 + 几何测；(2)(3) 仍闭）；D29/D30 inbox closed；D31 Sources git 次级面（Open Selected 空 catch 已收，F4 仍开）；D33 pairing chip closed；D34–D36 timeline hygiene closed；D37 引擎 roster 队列 Retry unary closed（GetQueue leftover 改记 D24）；D41 Inbox FAILED/UPLOAD_FAILED 行 class 分流 closed"
 ---
 
 # Deferred Gaps
@@ -29,7 +29,7 @@ summary: "延期缺口 SSOT；D16 Lens 断言债仍开（visualize 三测 + rema
 | D11 | P3 | **证据目录与索引卫生**：未跟踪 `d4-evidence/82582fe8`、`d4-evidence/rerun-2221`；`plans/INDEX.md` 指向不存在的 `dev/roadmap/` | 首轮验收产物未收编；roadmap 目录从未建立 | 两目录补 README 收编或删除，`git status` 干净；INDEX 改指 `status.md` Next 段；`check-docs-health` 0 warning | docs | closed |
 | D13 | P2 | **PRD-017 本地会话持久化**（`accepted` @2026-09-02） | 落点已裁定：`StorageScope.WORKSPACE` + `StorageTarget.MACHINE`；引擎接通后不迁移，本地只存 stub 会话 + UA 断连快照缓存并标 `source` | S3 合入后作为独立切片（同工位串行）：重启后会话列表 / 当前会话 / 回合 / 权限记录一致；session 窗口布局恢复；无引擎无「已同步」文案；单测 + D4 式隔离 profile 重启验收 | M6 | closed |
 | D14 | P3 | **PRD-018 第一阶段**：四钮默认键位 + F6 Part 焦点循环 | 键位选定属 M6-B 后续；本行不代表全部 chat tab / dialog / seat ARIA 已完成 | 四 toggle 命令可见且不冲突；F6 循环已落；其余可达性转 [M7 a11y/RWD](../plans/accessibility-responsive-ui.md) | M6+ | closed |
-| D15 | P3 | **PRD-019 Web 冒烟**（`accepted` @2026-09-02）：验证义务，非新功能 | P0 browser 三服务与 E2-1 Web 省略桌面控件 **代码已落**；用户裁定先不复杂测试，W1 不当主线。尚无 `d15-evidence/` | `scripts/code-web.sh`（或 `server` 入口）启动 → D4 式 V1–V3 断言通过；`IUniverseAgentConnection` 在 Web 报 `disconnected`、不画连接控件；证据目录 `d15-evidence/` | M7 | open |
+| D15 | P3 | **PRD-019 Web 冒烟**（`accepted` @2026-09-02）：验证义务，非新功能 | P0 browser 三服务与 E2-1 Web 省略桌面控件 **代码已落**。W1 已于 2026-09-07 工位 A 跑通 | `scripts/code-web.sh` 启动 → D4 式 V1–V3 通过；`getConnectionPhase()` = `disconnected`、不画连接控件；证据 [d15-evidence/w1-1556dde3](d15-evidence/w1-1556dde3/) | M7 | closed |
 | D16 | P2 | **conversation 单测基线红**：Lens 夹具已补（sessionBar 实测宽 + `lens.layout` 叶宽 + ResizeObserver）。过时断言已改：删非末会话计数 −1；300px 验 `is-narrow` 不是像素；permission seat aria 走 `Permission` 合同。**identity 已绿**（10/10）并改走共享 `conversationLensLayoutHarness`。**全部 Lens 夹具套已隔离**（`conversationLensLayoutHarness`：ResizeObserver loop 拦截 + layout flush，接到 conversationLens / identity / reveal / trajectory / trajectoryUi；after-each 同式 flush）。stub `deleteTurn` 已改走 `createSession()`。**进口界空扫假绿已收**（四份测改扫 `src/` + `>=80`）。**T5 Exit `title` 债已收**（`Button.setTitle` 走 managed hover；测改断言 `aria-label === conversationLensDockEditExit`，`title` 属性为 null）。**visualize 三测已收**。**remainder 7 已分类并夹具收口**（工位 B `lens-d16-remainder-7` @ 2026-09-07；未改产品卡 / 未缩断言 / 未动 Exit aria-label）：(1)(2)(4)(5) **超时 / flush 预算**（套件内 rAF 约 2s/次 flush；默认 5s 不够；T5 单跑三测本就绿）；(3) **虚拟列表未 reveal**（untitled 多行，send 后文案不在视口 `textContent`）；(6) **超时 + scrollToEnd 后立刻 `layout()` 冲掉底部**（聚焦时断言 pin 仍 visible）；(7) **超时 / flush 预算**（`scrollTimelineAwayFromPinnedRead` 多轮 inflate）。修复：`revealLatestTurn` / `sendDockDraftAndFlush` / 确认座 reveal；`scrollToEnd` 后不再 layout 冲掉；timeout 15s/30s。B 全量 **97 pass / 0 fail**。**本行仍开**（S2 闭合权在父/合入门禁，本 slice 不宣布 D16 closed） | 启动级 / identity / stub / 进口界 / Lens 叶宽夹具 + 全套共享 harness + 上述过时断言已修；T5 Exit title 债已修；visualize 三测已修；remainder 7 已在 B 收口为绿 | `conversationLens.test.ts` 合入后全量仍 97/97（或 S2 改为「不新增失败」）；compile 门禁后再闭本行 | M6 / conversation | open |
 | D17 | P2 | **M7 非阻塞验证债总账**：单测、E2E、视觉、a11y、性能与缺失 Engine/Hub/Web 证据 | 用户裁定测试不阻塞 UI 开发；若每条红测都成为 blocker，会再次冻结不冲突 UI 槽 | 每项记录首次 SHA、场景、baseline/新增、owner、关闭证据；普通失败不进 `status` Blockers，只阻止对应 PRD/plan 升 `implemented` | M7 verification | open |
 | D18 | P2 | **I3b 三平台安装包未验**：hicolor 已进 deb/rpm gulp+spec，`electron.ts` 已改公司名/HelpBook；未跑 prepare-deb/rpm、snapcraft、Inno、darwin 打包 | 委派先不复杂测试；本机缺 fakeroot/rpmbuild/Inno/macOS | V 槽确认八档 hicolor 进包，Win/mac 检查 ico/bmp/icns 与 exe/plist 元数据 | product / packaging | open |
@@ -239,6 +239,23 @@ $REPO/scripts/code-cli.sh --extensions-dir="$EXT_DIR" \
 
 **下一步：** Todo Tree 与 Agent IDE activity 槽位冲突排查；js-debug 需 workspace `launch.json` 或稳定 picker 自动化后重跑。
 
+
+## D15 W1 Web 冒烟（2026-09-07，工位 A / `loop/A`）
+
+**路径**：`/home/clarence/Projects/Agents/vscode-WorkTrees/A` · **SHA**：`1556dde3d326d344e175f9ca16d1a48c79a79686`
+
+**命令**：`./scripts/code-web.sh --browserType none --host 127.0.0.1 --port 18080`（未跑 `npm run compile`；`out/` 已在。仓内 Node 缺失时脚本自行 `gulp node` 下载。）
+
+**证据**：[d15-evidence/w1-1556dde3](d15-evidence/w1-1556dde3/)
+
+| ID | 场景 | 结果 | 备注 |
+|:---|:-----|:-----|:-----|
+| V1 | Conversation 存在 | **PASS** | `.part.conversation` + 时间线 + SessionBar + Composer |
+| V2 | Agent IDE chrome | **PASS** | 标题 `UniverseAgentStudio Dev`；四钮 Navigator / Conversation / Preview / Sources |
+| V3 | Connection / Engine 省略桌面连接控件 | **PASS** | Hub / Direct / Test Connection / Test Engine 隐藏；点名文案「此环境不支持本机 Engine 连接」 |
+| 连接态 | `IUniverseAgentConnection` | **disconnected** | 状态栏 `Engine not connected`；`connectProfile` 合同为 `unsupported_environment`；不画连接控件 |
+
+**状态**：D15 **closed** @ w1-1556dde3。未升 PRD-019 `implemented`。内置扩展缺 `watch-web` dist 为非阻塞噪声。
 
 ## D8 `valid-layers-check` 复测（2026-09-02，merge 工位 / `loop/merge`）
 

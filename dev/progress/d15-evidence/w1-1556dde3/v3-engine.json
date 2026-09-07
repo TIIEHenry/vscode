@@ -1,0 +1,20 @@
+{
+  "id": "V3-engine",
+  "scene": "Engine page omits desktop Test Engine control",
+  "result": "PASS",
+  "command": "Preferences tab Engine (after Open Connection Preferences)",
+  "copy": {
+    "present": true,
+    "text": "此环境不支持本机 Engine 连接"
+  },
+  "testRow": { "present": true, "display": "none", "hidden": true, "box": { "w": 0, "h": 0 } },
+  "buttons": [
+    { "text": "Test Engine", "visible": false },
+    { "text": "Open Connection", "visible": true },
+    { "text": "Back", "visible": false }
+  ],
+  "visibleCopyIncludesUnsupported": true,
+  "visibleCopyIncludesTestEngine": false,
+  "screenshot": "screenshots/v3-engine.png",
+  "notes": "Test Engine 节点仍在 DOM，display:none / 几何 0×0，可见文案不含 Test Engine。Open Connection 仍可见（不是桌面连接表单）。"
+}

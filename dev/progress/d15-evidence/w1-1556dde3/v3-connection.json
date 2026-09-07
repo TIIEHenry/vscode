@@ -1,0 +1,20 @@
+{
+  "id": "V3-connection",
+  "scene": "Connection page omits desktop engine-connect controls",
+  "result": "PASS",
+  "command": "workbench.action.openConnectionPreferences",
+  "notice": {
+    "present": true,
+    "display": "block",
+    "text": "此环境不支持本机 Engine 连接"
+  },
+  "hub": { "present": true, "display": "none", "hidden": true, "box": { "w": 0, "h": 0 } },
+  "devices": { "present": true, "display": "none", "hidden": true, "box": { "w": 0, "h": 0 } },
+  "direct": { "present": true, "display": "none", "hidden": true, "box": { "w": 0, "h": 0 } },
+  "test": { "present": true, "display": "none", "hidden": true, "box": { "w": 0, "h": 0 } },
+  "visibleCopyIncludesUnsupported": true,
+  "visibleCopyIncludesHubAccount": false,
+  "visibleCopyIncludesDirect": false,
+  "visibleCopyIncludesTestConnection": false,
+  "screenshot": "screenshots/v3-connection.png"
+}

@@ -1,0 +1,13 @@
+{
+  "run_id": "w1-1556dde3",
+  "sha": "1556dde3d326d344e175f9ca16d1a48c79a79686",
+  "branch": "loop/A",
+  "worktree": "/home/clarence/Projects/Agents/vscode-WorkTrees/A",
+  "started": "2026-09-07T18:03:13+08:00",
+  "command": "./scripts/code-web.sh --browserType none --host 127.0.0.1 --port 18080",
+  "url": "http://127.0.0.1:18080/",
+  "bundled_node": "/home/clarence/Projects/Agents/vscode-WorkTrees/A/.build/node/v24.18.1/linux-x64/node",
+  "bundled_node_preflight": "missing — script ran `npm run gulp node` (download only, not compile)",
+  "out_present": true,
+  "compile_invoked": false
+}
