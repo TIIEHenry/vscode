@@ -329,13 +329,13 @@ $REPO/scripts/code-cli.sh --extensions-dir="$EXT_DIR" \
 
 ## D17 三域基线红（切片 3 · `d2abb648c0e`）
 
-名单正文见 [test-baseline-failures.txt](test-baseline-failures.txt)（2 行，仅 visualize）。下列为一行一场景（首次 SHA / 场景 / `baseline` / owner）。**不含** D16 三文件。
+名单正文见 [test-baseline-failures.txt](test-baseline-failures.txt)（0 数据行）。下列为一行一场景（首次 SHA / 场景 / `baseline` / owner）。**不含** D16 三文件。
 
 | 首次 SHA | 场景 | 标记 | owner |
 |:---------|:-----|:-----|:------|
 | `d2abb648c0e` | conversation：`ConversationDiffReviewPane` 泄漏 **已修**（pane `dispose`/`clearEditors` + disposable listener；navigation/aggregation/fence 停引真实 contribution，改 stub）。afterEach 六行已从名单删除。官方 conversation 单 glob 不再被该泄漏中断 | leftover | B `diffreview-leak` |
 | `d2abb648c0e` | conversation：editor aggregation S1a scoped uniqueness **已修**（工位 B `create-scoped`）：生产 `createConversationEditorPart` 已按 part `createScoped`；测败在 mainPart 懒建缺 `IStatusbarService.createScoped`。夹具已补，未缩断言。名单该行已删 | leftover | B `create-scoped` |
-| `d2abb648c0e` | conversation：Lens visualize 两行 **夹具已改**（工位 A `visualize-leftover`）：默认 360px 虚窗不再保证 comparison 已挂；两测先 `revealVisualizeTurn(..., 'visualize-v2')` 再查 DOM。未缩「无 Agent header」/ collapse。名单两行未删；compile 后 merge 重测待父槽 | leftover | A `visualize-leftover` |
+| `d2abb648c0e` | conversation：Lens visualize 两行 **已修**（A `visualize-leftover`：查询前 `revealVisualizeTurn(..., 'visualize-v2')`；merge compile 后 `--grep visualize` 3/3）。名单 0 数据行 | leftover | A `visualize-leftover` |
 | `d2abb648c0e` | conversation：StatusBar 引擎入口 / H4b 相位文案 **夹具已改**（工位 A `statusbar-leftover`：去二次 `registerAction2` + Emitter leak；未缩断言、未关 D16、未改名单） | leftover | A `statusbar-leftover` |
 | `d2abb648c0e` | conversation：SessionsView 四行 + OpenPendingOnFocus 无 pending **已修**（工位 B `sessions-openpending-harness`）：夹具对齐 untitled+visualize seed（空行测 `createSession()`、filter 补 rename visualize、create 落点 `sessions[2]`），未缩断言。名单五行已删 | leftover | B `sessions-openpending-harness` |
 | `d2abb648c0e` | conversation：split / side-by-side **首次 layout 已修**（D `createConversationEditorPart` + 夹具）；后续 chrome 扇出见 [D43](#d43) | leftover | D `s4-s5-first-layout` |

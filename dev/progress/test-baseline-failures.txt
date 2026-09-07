@@ -4,6 +4,4 @@
 # 格式：<classname>::<name>
 # mocha-junit-reporter 本 runner：classname=test.title，name=test.fullTitle()
 # 只登记 unit-custom 三域；D16 三文件在本 SHA 仍 0 failing，未列入
-# 采集：工位 A loop/A @ d2abb648c0e；本关仓 merge 复证删 StatusBar/SessionsView/OpenPending/T5a/fold/S4-S5 已绿行；仍留 visualize 两行（C 自称 out/ 绿，merge compile 后 comparison 未铺）
-visualize card header collapses and expands body::ConversationLens visualize card header collapses and expands body
-visualize seed session renders two visualization cards without Agent header::ConversationLens visualize seed session renders two visualization cards without Agent header
+# 采集：工位 A loop/A @ d2abb648c0e；本关仓 merge `a90517cf774` 复证后 29 行 leftover 均已从名单删除（visualize 两行补 reveal 后 3/3 绿）。min_cases 未降。D16 仍开。
