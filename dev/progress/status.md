@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-07
-summary: "集成 tip 本关仓提交（未 push）；B 的 D16 visualize 三测已进 loop/merge。Chat 仍被引擎空壳挡住。compile 基线 unused 仍红"
+summary: "集成 tip 本关仓提交（未 push）；B 的 D16 remainder 7 夹具已进 loop/merge。D16 仍开。compile 基线 unused 仍红"
 ---
 
 # Development Progress
@@ -53,7 +53,7 @@ summary: "集成 tip 本关仓提交（未 push）；B 的 D16 visualize 三测�
 
 集成 tip **本关仓提交**（`loop/merge`；未 push）。Chat 仍被引擎空壳 Create（目录在、`session_meta` 空、回 6）挡住；不要再清 `.sessions` 当主线。见 [D26](deferred-gaps.md)。**U2 未开**。**PRD-008 不升 `implemented`**。
 
-1. **集成 tip** 以 merge 本关仓提交为准（P2 已串行 B=`f74400ce760`）。`npm run compile` 仍基线 unused 红则 **不 push**。GFS >800 不拆。
+1. **集成 tip** 以 merge 本关仓提交为准（P2 已串行 B=`c1ba9189cbb`）。`npm run compile` 仍基线 unused 红则 **不 push**。GFS >800 不拆。
 2. 本波字母槽已进 merge：
    - **A**：本波空闲。[D26](deferred-gaps.md) 引擎 Create meta 仍 open。
    - **B**：visualize 三测已收；remainder 7 已按夹具诚实收口（虚拟列表 reveal / flush 预算 / `scrollToEnd` 后不立刻 layout 冲掉）。全量 Lens **97/97** @ `loop/B` 2026-09-07。**[D16](deferred-gaps.md) 仍开**（本 slice 不闭；S2「Lens 全绿」仍以本行闭合为前提）。
