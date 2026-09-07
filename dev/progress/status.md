@@ -57,7 +57,7 @@ summary: "人类工位已对齐已推送 MERGE_SHA c1b228caf74；保留本机行
 2. 字母槽 leftover 进度句已收进本账，再 cascade：
    - **A**：`host-bind-safety` — [D38](deferred-gaps.md)/[D39](deferred-gaps.md) 已 closed；[D26](deferred-gaps.md) host（Tree 可观察 + recover 单层）已写，引擎 Create meta 仍 open。
    - **B**：D27 已 closed（composer 先入 edit-host，已删 1px 垫高）。上波 pairing chip 已在 merge。
-   - **C**：Inbox FAILED Retry → `retryMessageQueueItem`；引擎 unary 见 [D37](deferred-gaps.md)。
+   - **C**：[D37](deferred-gaps.md) closed：roster 按 `upload` 转发 RetryQueueItem / RetryQueueItemUpload；无 GetQueue 仍使活引擎失败行不可见。
    - **D**：Review 读失败上 status；Panel 与对话窗同门控；Unstage 明确不可用。**未跑 F4、不升 PRD、R8 仍 open**。
 
 子 agent 发现的既有代码问题：
@@ -74,7 +74,7 @@ summary: "人类工位已对齐已推送 MERGE_SHA c1b228caf74；保留本机行
 | [D39](deferred-gaps.md) | A 槽 `host-bind-safety` | **closed** `requestDetail` bind 已 catch |
 | [D40](deferred-gaps.md) | A 槽发现 | `requestDetail` bind 成功后 `fetchToolDetail` 仍无 catch（生产 connection 已吞错） |
 | [D26](deferred-gaps.md) | A 槽 host / 引擎仓 | host Tree+recover 已收；引擎空壳 Create 回 6 仍开；不要再清 store |
-| [D37](deferred-gaps.md) | C 槽 D30 | 引擎 roster 未 override `retryMessageQueueItem`（A 占该文件）；无 GetQueue |
+| [D37](deferred-gaps.md) | C 槽 `roster-queue-retry` | **closed** roster 按 `upload` 转 RetryQueueItem / RetryQueueItemUpload；无 GetQueue 活引擎失败行仍不可见 |
 
 ## 工位表（P0 盘点 · 2026-09-07 · 与 `git worktree list` 对照）
 
