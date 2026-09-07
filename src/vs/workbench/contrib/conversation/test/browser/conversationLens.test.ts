@@ -16,6 +16,7 @@ import { ConversationEditorPane } from '../../browser/conversationEditorPane.js'
 import { ConversationLens } from '../../browser/conversationLens.js';
 import { conversationLensStaleSnapshotClass } from '../../browser/conversationLensReadingColumn.js';
 import { ConversationTimelineTree, conversationLensUserBubbleShowLess, conversationLensUserBubbleShowMore } from '../../browser/conversationTimelineTree.js';
+import { ConversationTrajectory } from '../../browser/conversationTrajectory.js';
 import {
 	conversationLensDockAddTitle,
 	conversationLensDockControlHeightPx,
@@ -82,7 +83,7 @@ import { ILayoutService } from '../../../../../platform/layout/browser/layoutSer
 import { IWebviewService } from '../../../webview/browser/webview.js';
 import { IConversationTimelineRevealService } from '../../browser/conversationTimelineRevealService.js';
 import { IConversationReviewNavService } from '../../common/conversationReviewEntry.js';
-import { flushConversationLensLayout, installConversationLensResizeObserverHarness } from './conversationLensLayoutHarness.js';
+import { flushConversationLensLayout, installConversationLensResizeObserverHarness, yieldConversationLensPaint } from './conversationLensLayoutHarness.js';
 
 suite('ConversationLens', () => {
 
@@ -102,7 +103,7 @@ suite('ConversationLens', () => {
 	}
 
 	async function flushAnimationFrames(): Promise<void> {
-		await new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+		await flushConversationLensLayout();
 	}
 
 	async function inflateTimelineRowHeights(lens: ConversationLens, layout: () => void, rowHeight = 400): Promise<void> {
@@ -256,6 +257,54 @@ suite('ConversationLens', () => {
 		return (lens as unknown as { timelineTree: ConversationTimelineTree }).timelineTree;
 	}
 
+	function getTrajectoryView(lens: ConversationLens): ConversationTrajectory {
+		return (lens as unknown as { trajectoryView: ConversationTrajectory }).trajectoryView;
+	}
+
+	function countTrajectoryRecordRows(slots: IConversationLensSlots): number {
+		return slots.timeline.querySelectorAll('.conversation-lens-trajectory-record-row').length;
+	}
+
+	function isPinnedUserPromptPainted(slots: IConversationLensSlots, expectedPreview?: string): boolean {
+		const host = getPinnedUserPrompt(slots);
+		if (!host?.classList.contains('conversation-timeline-pinned-user--visible')) {
+			return false;
+		}
+		const preview = host.querySelector('.conversation-timeline-pinned-user-text')?.textContent ?? '';
+		return expectedPreview === undefined ? preview.length > 0 : preview === expectedPreview;
+	}
+
+	async function paintTrajectoryRows(
+		lens: ConversationLens,
+		slots: IConversationLensSlots,
+		stubService: ConversationStubService,
+		layout: () => void,
+		expectedCount: number,
+	): Promise<void> {
+		const view = getTrajectoryView(lens);
+		const recordIds = stubService.getTurns(stubService.getActiveSessionId()).map(turn => turn.id);
+		await yieldConversationLensPaint();
+		layout();
+		for (const recordId of recordIds) {
+			view.revealRecord(recordId);
+		}
+		layout();
+		if (countTrajectoryRecordRows(slots) === expectedCount) {
+			return;
+		}
+		for (let attempt = 0; attempt < 4; attempt++) {
+			if (countTrajectoryRecordRows(slots) === expectedCount) {
+				return;
+			}
+			await yieldConversationLensPaint();
+			layout();
+			for (const recordId of recordIds) {
+				view.revealRecord(recordId);
+			}
+			layout();
+		}
+	}
+
 	async function scrollTimelineAwayFromPinnedRead(lens: ConversationLens, slots: IConversationLensSlots, layout: () => void, rowHeight = 400): Promise<void> {
 		const timelineTree = getTimelineTree(lens);
 		const assistantTurn = queryTimeline(slots, '.conversation-lens-turn[data-kind="assistant"]');
@@ -263,14 +312,18 @@ suite('ConversationLens', () => {
 		const turnId = assistantTurn!.getAttribute('data-turn-id');
 		assert.ok(turnId);
 
-		for (let attempt = 0; attempt < 3; attempt++) {
+		// Layout first, then reveal the assistant row so the user prompt leaves
+		// the virtual window. Bounded setTimeout — not rAF — so Electron mocha
+		// without vsync still paints the sticky preview instead of hanging.
+		for (let attempt = 0; attempt < 4; attempt++) {
+			await yieldConversationLensPaint();
+			layout();
 			await inflateTimelineRowHeights(lens, layout, rowHeight + attempt * 40);
 			timelineTree.setScrollLock(false);
+			layout();
 			timelineTree.revealTurn(turnId!, 0);
 			layout();
-			await flushAnimationFrames();
-			await flushTimelineHeightUpdates();
-			if (!timelineTree.isScrolledToBottom()) {
+			if (!timelineTree.isScrolledToBottom() && isPinnedUserPromptPainted(slots)) {
 				return;
 			}
 		}
@@ -304,6 +357,16 @@ suite('ConversationLens', () => {
 		}
 		if (treeContainer) {
 			treeContainer.style.height = `${LENS_LAYOUT_HEIGHT - 120}px`;
+		}
+		const trajectoryHost = slots.timeline.querySelector('.conversation-lens-trajectory') as HTMLElement | null;
+		const trajectoryScroll = slots.timeline.querySelector('.conversation-lens-trajectory-table-scroll') as HTMLElement | null;
+		if (trajectoryHost) {
+			trajectoryHost.style.height = `${LENS_LAYOUT_HEIGHT - 120}px`;
+			trajectoryHost.style.minHeight = `${LENS_LAYOUT_HEIGHT - 120}px`;
+		}
+		if (trajectoryScroll) {
+			trajectoryScroll.style.height = `${LENS_LAYOUT_HEIGHT - 200}px`;
+			trajectoryScroll.style.minHeight = `${LENS_LAYOUT_HEIGHT - 200}px`;
 		}
 		// Part sessionBar measures clientWidth before applying is-narrow / is-compact.
 		if (slots.sessionBar) {
@@ -2223,6 +2286,7 @@ suite('ConversationLens', () => {
 		clickLensTab(slots, 'trajectory');
 		layoutReadingColumn();
 		await flushTimelineHeightUpdates();
+		await paintTrajectoryRows(lens, slots, stubService, layoutReadingColumn, 2);
 
 		let trajectory = slots.timeline.querySelector('.conversation-lens-trajectory')!;
 		assert.strictEqual(trajectory.querySelectorAll('.conversation-lens-trajectory-record-row').length, 2);
@@ -2249,6 +2313,7 @@ suite('ConversationLens', () => {
 		clickLensTab(slots, 'trajectory');
 		layoutReadingColumn();
 		await flushTimelineHeightUpdates();
+		await paintTrajectoryRows(lens, slots, stubService, layoutReadingColumn, 1);
 
 		trajectory = slots.timeline.querySelector('.conversation-lens-trajectory')!;
 		assert.strictEqual(trajectory.querySelectorAll('.conversation-lens-trajectory-record-row').length, 1);
@@ -2657,8 +2722,6 @@ suite('ConversationLens', () => {
 		assert.ok(!getPinnedUserPrompt(slots)?.classList.contains('conversation-timeline-pinned-user--visible'));
 
 		await scrollTimelineAwayFromPinnedRead(lens, slots, layoutReadingColumn);
-		await flushTimelineHeightUpdates();
-		await flushAnimationFrames();
 
 		assert.ok(getPinnedUserPrompt(slots)?.classList.contains('conversation-timeline-pinned-user--visible'));
 
@@ -2681,8 +2744,6 @@ suite('ConversationLens', () => {
 		layoutReadingColumn();
 		await flushTimelineHeightUpdates();
 		await scrollTimelineAwayFromPinnedRead(lens, slots, layoutReadingColumn);
-		await flushTimelineHeightUpdates();
-		await flushAnimationFrames();
 
 		const bubble = getPinnedUserPromptBubble(slots);
 		assert.ok(bubble);
@@ -2805,9 +2866,6 @@ suite('ConversationLens', () => {
 		layoutReadingColumn();
 		await flushTimelineHeightUpdates();
 		await scrollTimelineAwayFromPinnedRead(lens, slots, layoutReadingColumn);
-		layoutReadingColumn();
-		await flushTimelineHeightUpdates();
-		await flushAnimationFrames();
 
 		const pinnedHost = getPinnedUserPrompt(slots);
 		assert.ok(pinnedHost?.classList.contains('conversation-timeline-pinned-user--visible'));
