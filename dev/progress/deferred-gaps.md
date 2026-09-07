@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-07
-summary: "延期缺口 SSOT；D16 仍开（切片 3 名单已落 @ d2abb648c0e，三文件标题未列入；compile/S2 leftover 不闭）；D17 补三域基线红；D22 F3；D24 其余 JSON RPC；D25 引擎 List 真空；D26 引擎建壳回 6；D31 F4 / A2 blocked"
+summary: "延期缺口 SSOT；D16 仍开（切片 3 名单已落 @ d2abb648c0e，三文件标题未列入；compile/S2 leftover 不闭）；D17 补三域基线红（CI 已排除 11 个 unloadable node 测）；D22 F3；D24 其余 JSON RPC；D25 引擎 List 真空；D26 引擎建壳回 6；D31 F4 / A2 blocked"
 ---
 
 # Deferred Gaps
@@ -337,9 +337,9 @@ $REPO/scripts/code-cli.sh --extensions-dir="$EXT_DIR" \
 | `d2abb648c0e` | conversation：StatusBar 引擎入口 / H4b 相位文案；SessionsView 种子行；split / side-by-side；trajectory 角色标签 Permission≠Confirmation | baseline | A `test-baseline-slice3` |
 | `d2abb648c0e` | sources：`collectSourcesReviewEntries` 委托 `toResource`/`fullTitle` 未定义 | baseline | A `test-baseline-slice3` |
 | `d2abb648c0e` | universeAgent：`FileMutationJoin` lifecycle+snapshot 一败 | baseline | A `test-baseline-slice3` |
-| `d2abb648c0e` | universeAgent：11 个 node 测 Electron ESM `Failed to fetch dynamically imported module`（无 JUnit testcase，未进名单）：connectionResolver / deviceAuthHandshake / deviceGrantCrypto / hubControlPlane / hubDirectoryClient / hubSessionStore / observeCandidateLeaf / pairingOrchestrator / universeAgentChannel / universeAgentConnection / universeAgentHubService | baseline | A `test-baseline-slice3` |
+| `d2abb648c0e` | universeAgent：11 个 node 测 Electron ESM `Failed to fetch dynamically imported module`（无 JUnit testcase，未进名单）：connectionResolver / deviceAuthHandshake / deviceGrantCrypto / hubControlPlane / hubDirectoryClient / hubSessionStore / observeCandidateLeaf / pairingOrchestrator / universeAgentChannel / universeAgentConnection / universeAgentHubService。**CI 已排除这 11 个**（[`scripts/run-unit-custom.sh`](../../scripts/run-unit-custom.sh) 只匹配 `test/node/`；`browser/universeAgentConnection` 仍跑）；可加载的 `test/node` 仍进同一 `--tfs universeAgent`，不拆多趟以免 XML 互盖 | baseline | A `test-baseline-slice3` / A `unit-custom-xml` |
 
-官方三域单 glob：conversation 遇 DiffReview 泄漏会中断后续用例；universeAgent 会在首个 unloadable 文件处写不出 XML。名单按分批收齐后的 JUnit 差集去重。
+官方三域单 glob：conversation 遇 DiffReview 泄漏会中断后续用例；universeAgent 会在首个 unloadable 文件处写不出 XML。**unit-custom 现经 `scripts/run-unit-custom.sh`：conversation / sources 仍单 glob；universeAgent 排除上表 11 个 node 文件后一次跑完，保证三份 JUnit 落盘。**名单按分批收齐后的 JUnit 差集去重。
 
 ## 维护规则
 
