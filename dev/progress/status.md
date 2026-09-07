@@ -55,8 +55,8 @@ summary: "人类工位已对齐已推送 MERGE_SHA c1b228caf74；保留本机行
 
 1. **集成 tip** 以 merge 本关仓提交为准（P2 已串行 C=`aaa6b278b4e` / D=`2ae059e42f1`）。`npm run compile` 仍基线 unused 红则 **不 push**。GFS >800 不拆。
 2. 本波字母槽已进 merge：
-   - **A**：[D40](deferred-gaps.md) closed（`fetchToolDetail` throw 回 `{ok:false}`）；[D26](deferred-gaps.md) 引擎 Create meta 仍 open。
-   - **B**：[D34](deferred-gaps.md)/[D35](deferred-gaps.md)/[D36](deferred-gaps.md) closed。D27 未重开。
+   - **A**：本波空闲。上波 D40 已在 merge；[D26](deferred-gaps.md) 引擎 Create meta 仍 open。
+   - **B**：本波空闲。上波 D34–D36 已在 merge。
    - **C**：[D41](deferred-gaps.md) closed（Inbox `FAILED`→`queue-failed`，`UPLOAD_FAILED` 仍 `upload-failed`；Retry 接线未改）。
    - **D**：Open Selected 空 catch 已收（`sourcesGitDiffOpenFailureMessage` + Review status）；**[D31](deferred-gaps.md) 仍开**（F4）；R8 未发明。
 
