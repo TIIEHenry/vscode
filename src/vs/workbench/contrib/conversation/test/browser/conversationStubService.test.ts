@@ -152,6 +152,7 @@ suite('ConversationStubService', () => {
 		const service = store.add(new ConversationStubService());
 		const sessionId = service.getActiveSessionId();
 		const before = service.getMessageQueueState(sessionId);
+		assert.strictEqual(service.hasEngineConnectionHistory(), false);
 		assert.strictEqual(service.enqueueMessageQueueItem(sessionId, 'later', { priority: 'HIGH' }), false);
 		assert.strictEqual(service.enqueueMessageQueueItem(sessionId, 'later'), false);
 		assert.strictEqual(service.enqueueMessageQueueItem(sessionId, '   '), false);
