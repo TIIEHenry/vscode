@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-08
-summary: "延期缺口 SSOT；D16 仍开；D45–D58 已闭；D22 F3；D24 其余 JSON RPC；D25 引擎 List 真空；D26 引擎建壳回 6；D31 F4 / A2 blocked；Team leftover 已清；Snapshots / MCP / Skills create / Agents / Tools enablement 写失败 write-status 已挂载"
+summary: "延期缺口 SSOT；D16 仍开；D45–D58 / D61 已闭；D22 F3；D24 其余 JSON RPC；D25 引擎 List 真空；D26 引擎建壳回 6；D31 F4 / A2 blocked；Team leftover 已清；Connection listDevices/listPending throw 保留末次快照；Snapshots / MCP / Skills create / Agents / Tools enablement 写失败 write-status 已挂载"
 ---
 
 # Deferred Gaps
@@ -75,6 +75,7 @@ summary: "延期缺口 SSOT；D16 仍开；D45–D58 已闭；D22 F3；D24 其�
 | D56 | P3 | **Skills `createSkill` 失败无 write-status**：`createSkill` 在 `{ ok:false }` / throw 只 `return false`，不画 status；`saveSelectedSkillBody` 已画 `.engine-skill-body-status`。失败不得造假行、不得改选中、不得 `clearCatalogPresentation` | A 槽 `skills-create-status` 已收：fail 画 body/toolbar write-status；测锁 status DOM + 无假行。未关 D16；未发明 GetQueue / proto；未碰 F4 / 引擎 / `dev/loop` / MCP | create fail 可见 write-status；无假行、不改选中、不清 catalog 行；`engineSkillsSection.test.ts` ok:false / throw 绿 | conversation | closed |
 | D57 | P3 | **Agents create/delete/reset / save 失败无 catalog write-status**：`createProfile` / `deleteSelectedProfile` / `resetSelectedProfile` / `saveSelectedProfile` 在 `ok:false` / 空 id / throw 只 `return false`。失败不得 refresh、不得改选中、不得 `clearCatalogPresentation`。`saveAgentsMarkdown` 应复用已有 `.engine-agents-editor-status`。Tools enablement 不在本刀 | B 槽 `agents-write-status` 已收：toolbar 写失败画 `.engine-catalog-write-status`；markdown 保存失败复用 editor-status；测锁 status DOM + 无假行。未关 D16；未发明 GetQueue / proto；未碰 F4 / 引擎 / `.sessions` / `dev/loop`；未做 Tools enablement | create/delete/reset / save fail 可见 write-status；无假行、不改选中、不清 catalog、不 refresh；`engineCatalogSections.test.ts` ok:false / throw 绿 | conversation | closed |
 | D58 | P3 | **Tools enablement 保存失败无 catalog write-status**：`savePendingEnablement` / `toggleTool` 在空 id / throw 只 `return false`。失败不得 refresh、不得卸行、不得 `clearCatalogPresentation`；pending enablement dirty map 应保留 | B 槽 `tools-write-status` 已收：写失败画 `.engine-catalog-write-status`；测锁 status DOM + 行仍在 + dirty 仍在。未关 D16；未发明 GetQueue / proto；未碰 F4 / 引擎 / `.sessions` / `dev/loop`；未重做 Agents/MCP write-status | save / toggle fail 可见 write-status；行仍在、不 refresh、dirty map 保留；`engineCatalogSections.test.ts` 空 id / throw 绿 | conversation | closed |
+| D61 | P3 | **Connection `listDevices` / `listPending` throw 后写成空列表**：`refreshEngineDevices` / `refreshEnginePending` catch 原写 `enginePairedDevices = []` / `pendingPairs = []`。成功后再 throw 会 leftover 成静默空，不像失败 | D 槽 `connection-list-leftover` 已收：throw 保留末次快照并画失败 note（`.connection-hub-devices-status` / pending empty / `hubDirectoryBanner`）。未关 D16；未发明 GetQueue / proto；未碰 F4 / 引擎 / `.sessions` / `dev/loop` / D26 / D60 | throw 保留末次快照（或失败 note 可见）；`connectionPreferencesPane.test.ts` success→throw 绿 | conversation | closed |
 
 ## D2 工位池 compile 基线（2026-09-02，merge 工位 / `loop/merge`）
 

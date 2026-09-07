@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-08
-summary: "FileMutationJoin / createScoped / Review 委托已修。D16 仍开。官方三域 glob 已绿。D44–D58 已闭。Team leftover 已清。Snapshots / MCP / Skills create / Agents / Tools enablement 写失败 write-status 已挂载（不卸行）。git-read / open-diff / Stage·Commit / Unstage throw 与 Stage·Commit ok:false status DOM 已挂载。A2 仍 blocked。"
+summary: "FileMutationJoin / createScoped / Review 委托已修。D16 仍开。官方三域 glob 已绿。D44–D58 / D61 已闭。Team leftover 已清。Connection listDevices/listPending throw 保留末次快照并画失败 note。Snapshots / MCP / Skills create / Agents / Tools enablement 写失败 write-status 已挂载（不卸行）。git-read / open-diff / Stage·Commit / Unstage throw 与 Stage·Commit ok:false status DOM 已挂载。A2 仍 blocked。"
 ---
 
 # Development Progress
@@ -87,6 +87,7 @@ summary: "FileMutationJoin / createScoped / Review 委托已修。D16 仍开。�
 28. **A 槽 `skills-create-status`（未关 D16 / 未发明 GetQueue / proto / 未碰 F4 / 引擎 / `.sessions` / `dev/loop` / MCP）**：`createSkill` `{ ok:false }` / throw 画 body/toolbar write-status（对齐 Save 的 `.engine-skill-body-status`），不造假行、不改选中、不清 catalog。测锁 status DOM + 行仍在。[D56](deferred-gaps.md) **已闭**。未 compile。
 29. **B 槽 `agents-write-status`（未关 D16 / 未发明 GetQueue / proto / 未碰 F4 / 引擎 / `.sessions` / `dev/loop` / unused-import / D26）**：Agents New/Delete/Reset / `saveSelectedProfile` `ok:false` / throw 画 `.engine-catalog-write-status`（不 refresh、不改选中、不卸行）；`saveAgentsMarkdown` 复用 `.engine-agents-editor-status`。未做 Tools enablement。[D57](deferred-gaps.md) **已闭**。未 compile。
 30. **B 槽 `tools-write-status`（未关 D16 / 未发明 GetQueue / proto / 未碰 F4 / 引擎 / `.sessions` / `dev/loop` / unused-import / D26）**：Tools `savePendingEnablement` / `toggleTool` 空 id / throw 画 `.engine-catalog-write-status`（不 refresh、不卸行）；失败仍保留 pending enablement dirty map。[D58](deferred-gaps.md) **已闭**。未 compile。
+31. **D 槽 `connection-list-leftover`（未关 D16 / 未发明 GetQueue / proto / 未碰 F4 / 引擎 / `.sessions` / `dev/loop` / unused-import / D26 / D60）**：`refreshEngineDevices` / `refreshEnginePending` catch 不再写成 `[]`；成功后再 throw 保留末次快照并画失败 note（`.connection-hub-devices-status` / pending empty / `hubDirectoryBanner`）。[D61](deferred-gaps.md) **已闭**。未 compile。
 
 子 agent 发现的既有代码问题：
 
@@ -128,6 +129,7 @@ summary: "FileMutationJoin / createScoped / Review 委托已修。D16 仍开。�
 | [D56](deferred-gaps.md) | A 槽 `skills-create-status` | **closed** `createSkill` `ok:false` / throw 画 body/toolbar write-status，无假行、不改选中、不清 catalog；未关 D16 |
 | [D57](deferred-gaps.md) | B 槽 `agents-write-status` | **closed** Agents create/delete/reset / save `ok:false` / throw 画 catalog write-status，不卸行、不 refresh、不改选中；`saveAgentsMarkdown` 复用 editor-status；未关 D16 |
 | [D58](deferred-gaps.md) | B 槽 `tools-write-status` | **closed** Tools `savePendingEnablement` / `toggleTool` 空 id / throw 画 catalog write-status，不卸行、不 refresh；pending dirty map 保留；未关 D16 |
+| [D61](deferred-gaps.md) | D 槽 `connection-list-leftover` | **closed** `listDevices` / `listPending` throw 保留末次快照并画失败 note，不成静默空；未关 D16 / 未占 D60 |
 
 ## 工位表（P0 盘点 · 2026-09-07 · 与 `git worktree list` 对照）
 

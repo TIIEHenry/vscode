@@ -29,6 +29,11 @@ export const CONNECTION_DEVICE_ROTATE_TOKEN_LABEL = localize(
 	"Rotate Token",
 );
 
+/** Honest listDevices throw copy — last snapshot stays; this is not an empty list. */
+export function connectionDeviceListFailureMessage(reason: string): string {
+	return localize('ua.connectionDeviceListFailed', "Unable to list devices: {0}", reason);
+}
+
 /**
  * Map DeviceInfo onto the existing paired-list row. Empty `deviceId` /
  * `displayName` stay empty (no default / no trim). `active` false stays
