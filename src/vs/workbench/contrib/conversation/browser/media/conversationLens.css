@@ -2373,6 +2373,12 @@
 	background-color: var(--vscode-badge-background);
 }
 
+.monaco-workbench .part.conversation .conversation-lens-turn-error-retry {
+	margin-inline-start: 6px;
+	text-transform: none;
+	letter-spacing: normal;
+}
+
 .monaco-workbench .part.conversation .conversation-lens-turn-unknown-truncated {
 	margin-inline-start: 4px;
 	color: var(--vscode-descriptionForeground);

@@ -53,6 +53,7 @@ import {
 	cancelToolCall,
 	copyTurn,
 	deleteTurn,
+	retryError,
 	findFirstPendingConfirmationTurnId,
 	focusTimelineRecord,
 	openVisualizeOverlay,
@@ -808,6 +809,10 @@ export class ConversationLens extends Disposable {
 
 	private cancelToolCall(turn: { readonly id: string; readonly agentId?: string }): void {
 		cancelToolCall(this, turn);
+	}
+
+	private retryError(turn: { readonly id: string; readonly turnId?: string; readonly agentId?: string }): void {
+		retryError(this, turn);
 	}
 
 	private resetInputHistoryBrowse(): void {

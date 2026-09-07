@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-07
-summary: "延期缺口 SSOT；D16 Lens 断言债；D22 F3；D15 欠 W1；D23 heartbeat；D24 其余 JSON RPC；D25 ghost UI；D26 引擎建壳回 6；D27 Lens 编辑态整树重建；D28 Connection 旁路 UI；D29 inbox closed；D31 Sources git 次级面"
+summary: "延期缺口 SSOT；D16 Lens 断言债；D22 F3；D15 欠 W1；D23 heartbeat；D24 其余 JSON RPC；D25 ghost UI；D26 引擎建壳回 6；D27 Lens 编辑态整树重建；D28 Connection 旁路 UI；D29 inbox closed；D31 Sources git 次级面；D32 retry lease"
 ---
 
 # Deferred Gaps
@@ -46,7 +46,9 @@ summary: "延期缺口 SSOT；D16 Lens 断言债；D22 F3；D15 欠 W1；D23 hea
 | D20 | P2 | **CS-6 Settings 默认窗 300px 目视**：`uaClientSettingsChrome.css` 已保证 narrow-width 下搜索框与 group title 不 `display:none` 且可省略；`settingsUaToc` 有合同测。本机隔离 launch 因 `@grpc/grpc-js` 缺失未能开窗目视 | 代码完成线不阻塞；活窗目视仍欠 | 隔离 profile 打开默认窗 Settings，缩到约 300px，确认搜索框与 Client 组标题仍可见、无 emptyCopy；失败记入 D17 | M7 verification | open |
 | D28 | P2 | **Connection pane 旁路 UI**：(1) 对话身份条被挡住。**(2)(3) 已由 loop/B 收口**：`writeConnectStatus` 写当前可见区（Devices → `.connection-hub-devices-status`）；Connect 成功/配对中用可读文案，不甩 `ok=true pairingPending=…`、不装已连接 | (1) 仍非本轮；身份条与 session bar 禁止本槽改 | 身份条不被挡 | UI / conversation | open |
 | D29 | P2 | **`enqueueMessageQueueItem` 无 Inbox/Composer 入队 UI**；断连缓存拒收。`conversation-disconnect-send` 已把断连 Send 接到该 API | Inbox 队列头 Enqueue 已落地 `b384a1dcf9e` | Inbox/Composer 能看见入队项 | UI / conversation | closed |
+| D30 | P3 | **Inbox FAILED 行无重试钮**（时间线 retryable 行已接 ContinueGeneration @ `583b004a8b0`） | 时间线已收；Inbox 队列失败项未做 | Inbox FAILED 点重试真转发且失败回可操作态 | conversation | open |
 | D31 | P3 | **Sources git 次级面**：Review 读 Git 失败静默回 SCM（无 status 条）；Panel Diff 无 Stage/Accept/Revert（PRD-009 验收 3 只绑对话窗）；无 `WriteGitUnstage`（git 源 staged 行不能 unstage）；F4 隔离 profile 冒烟未跑 | 本刀只收 Changes/Review/Stage/Commit/Accept 代码级假绿；禁 F4 / 禁升 PRD | Review 读失败可见；Panel 动作与对话窗同门控；Unstage 有 hook 或明确不可用；F4 V-F1–V-F7 证据目录 | sources-git | open |
+| D32 | P3 | **error retry 不经 lease.post / Actor `continueGeneration`**：`ConversationWriteMessage` 无 `continueGeneration` 臂；`sessionViewHost.writeMessageToCoreFact` 只映射 submitInput / permissionRespond / questionRespond / clientToolRespond。本刀 UI 走 roster→`openContinuationStream`（与 `cancelToolCall` 同型），宿主 `continuationStreams` 不知这条流 | 本槽禁止改 `sessionViewHost.ts`；画假按钮更差 | `ConversationWriteMessage` 增加 `continueGeneration` 且 host 映射到 localFact；UI 改走 `lease.post`；补 host 流句柄与 UI 打开不打架的测 | M7 conversation | open |
 
 ## D2 工位池 compile 基线（2026-09-02，merge 工位 / `loop/merge`）
 

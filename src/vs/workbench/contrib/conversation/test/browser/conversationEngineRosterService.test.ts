@@ -162,6 +162,16 @@ class MockUniverseAgentConnection extends Disposable implements IUniverseAgentCo
 		});
 		return { ok: true };
 	}
+	readonly continuationOpens: { sessionId: string; agentId: string; turnId: string; messageId: string }[] = [];
+	openContinuationStream(request: { sessionId: string; agentId: string; turnId: string; messageId: string }) {
+		this.continuationOpens.push({
+			sessionId: request.sessionId,
+			agentId: request.agentId,
+			turnId: request.turnId,
+			messageId: request.messageId,
+		});
+		return { dispose: () => { } };
+	}
 	readonly deleteMessageCalls: { sessionId: string; turnId: string; agentId?: string }[] = [];
 	async deleteMessage(request: { sessionId: string; turnId: string; agentId?: string }) {
 		this.deleteMessageCalls.push({
@@ -1085,6 +1095,75 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		assert.strictEqual(service.cancelToolCall('ua-only', { toolCallId: 'tc-live' }), true);
 		assert.strictEqual(connection.cancelToolCallCalls[0]?.agentId, 'sub:live');
 		assert.strictEqual(connection.cancelToolCallCalls[0]?.toolCallId, 'tc-live');
+	});
+
+	test('connected retryError forwards AgentService.ContinueGeneration', async () => {
+		const storage = store.add(new TestStorageService());
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
+		const service = store.add(createService(connection, storage));
+		connection.setConnected(true);
+		service.setEngineConnected(true);
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+		assert.strictEqual(service.retryError('ua-only', { messageId: '  msg-1  ', turnId: '  turn-1  ', agentId: '  sub:a  ' }), true);
+		assert.deepStrictEqual(connection.continuationOpens, [{
+			sessionId: 'ua-only',
+			agentId: 'sub:a',
+			turnId: 'turn-1',
+			messageId: 'msg-1',
+		}]);
+		assert.strictEqual(service.retryError('ua-only', { messageId: 'msg-2' }), true);
+		assert.deepStrictEqual(connection.continuationOpens[1], {
+			sessionId: 'ua-only',
+			agentId: 'root',
+			turnId: 'msg-2',
+			messageId: 'msg-2',
+		});
+		assert.strictEqual(service.retryError('ua-only', { messageId: '   ' }), false);
+		assert.strictEqual(service.retryError('missing', { messageId: 'msg-3' }), false);
+		assert.strictEqual(connection.continuationOpens.length, 2);
+		(connection as { openContinuationStream?: unknown }).openContinuationStream = undefined;
+		assert.strictEqual(service.retryError('ua-only', { messageId: 'msg-4' }), false);
+		assert.strictEqual(connection.continuationOpens.length, 2);
+	});
+
+	test('connected retryError uses last streaming agent when omitted', async () => {
+		const storage = store.add(new TestStorageService());
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
+		const service = store.add(createService(connection, storage));
+		connection.setConnected(true);
+		service.setEngineConnected(true);
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+		const originalGetTurns = service.getTurns.bind(service);
+		service.getTurns = (sessionId: string) => {
+			if (sessionId === 'ua-only') {
+				return [{ id: 'a1', kind: 'assistant', text: 'live', streaming: true, agentId: 'sub:live' }];
+			}
+			return originalGetTurns(sessionId);
+		};
+
+		assert.strictEqual(service.retryError('ua-only', { messageId: 'msg-live', turnId: 'turn-live' }), true);
+		assert.strictEqual(connection.continuationOpens[0]?.agentId, 'sub:live');
+		assert.strictEqual(connection.continuationOpens[0]?.messageId, 'msg-live');
+		assert.strictEqual(connection.continuationOpens[0]?.turnId, 'turn-live');
+	});
+
+	test('disconnected after engine retryError skips ContinueGeneration', async () => {
+		const storage = store.add(new TestStorageService());
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
+		const service = store.add(createService(connection, storage));
+		connection.setConnected(true);
+		service.setEngineConnected(true);
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		connection.setConnected(false);
+		service.setEngineConnected(false);
+
+		assert.strictEqual(service.retryError('ua-only', { messageId: 'msg-1' }), false);
+		assert.strictEqual(connection.continuationOpens.length, 0);
 	});
 
 	test('connected resolveConfirmation forwards PermissionService.Respond', async () => {
