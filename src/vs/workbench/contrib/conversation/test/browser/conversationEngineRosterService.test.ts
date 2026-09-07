@@ -1457,12 +1457,14 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		const connection = store.add(new MockUniverseAgentConnection());
 		connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
 		const service = store.add(createService(connection, storage));
+		assert.strictEqual(service.hasEngineConnectionHistory(), false);
 		connection.setConnected(true);
 		service.setEngineConnected(true);
 		await new Promise<void>(resolve => setTimeout(resolve, 0));
 		connection.setConnected(false);
 		service.setEngineConnected(false);
 
+		assert.strictEqual(service.hasEngineConnectionHistory(), true);
 		assert.strictEqual(service.enqueueMessageQueueItem('ua-only', 'later'), false);
 		service.pauseMessageQueue('ua-only');
 		service.resumeMessageQueue('ua-only');

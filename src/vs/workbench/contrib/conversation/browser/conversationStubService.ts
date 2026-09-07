@@ -194,6 +194,11 @@ export interface IConversationRosterService {
 	setEngineConnected(connected: boolean): void;
 	/** Connected engine roster has a bindable session id (not stub seed / not pending catalog). */
 	isEngineSessionReady(): boolean;
+	/**
+	 * True after a live engine catalog was adopted. Disconnected cache must not
+	 * fall back to stub echo or claim the send was delivered / synced.
+	 */
+	hasEngineConnectionHistory(): boolean;
 
 	/**
 	 * Fine-grained frame channel for one session (dev/plans/conversation-stream-timeline.md §3.2).
@@ -590,6 +595,10 @@ export class ConversationStubService extends Disposable implements IConversation
 
 	isEngineSessionReady(): boolean {
 		return true;
+	}
+
+	hasEngineConnectionHistory(): boolean {
+		return false;
 	}
 
 	setEngineConnected(connected: boolean): void {

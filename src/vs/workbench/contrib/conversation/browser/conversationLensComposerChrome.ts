@@ -33,9 +33,11 @@ import {
 	conversationLensDockTemplatesTitle,
 	conversationLensDockToolsEngineHint,
 	conversationLensDockTuneTitle,
+	conversationLensPostFailedDisconnected,
 	conversationLensPostFailedMailboxFull,
 	conversationLensPostFailedNoSession,
 	conversationLensPostFailedNotAuthenticated,
+	type ConversationComposerPostFailureReason,
 	conversationLensDockNoRoute,
 	conversationLensDockRouteBalanced,
 	conversationLensDockRouteQuality,
@@ -568,13 +570,15 @@ function showGateNotice(host: IConversationLensComposerChromeHost, message: stri
 	
 }
 
-export function showPostFailure(host: IConversationLensComposerChromeHost, reason: 'mailbox_full' | 'no_such_session' | 'not_authenticated'): void {
+export function showPostFailure(host: IConversationLensComposerChromeHost, reason: ConversationComposerPostFailureReason): void {
 
 		const message = reason === 'mailbox_full'
 			? conversationLensPostFailedMailboxFull
 			: reason === 'not_authenticated'
 				? conversationLensPostFailedNotAuthenticated
-				: conversationLensPostFailedNoSession;
+				: reason === 'engine_disconnected'
+					? conversationLensPostFailedDisconnected
+					: conversationLensPostFailedNoSession;
 		showGateNotice(host, message);
 	
 }

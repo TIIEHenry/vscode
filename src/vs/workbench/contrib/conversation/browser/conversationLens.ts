@@ -24,7 +24,7 @@ import type { ConversationTimelineEntry } from './conversationSessionView.js';
 import { IConversationReviewNavService } from '../common/conversationReviewEntry.js';
 import type { ConversationQuestionRespondAnswers, ConversationViewFrameApplied, ConversationWriteMessage, IConversationSessionViewLease, PostOutcome } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
 import type { SyncChrome } from '../../../../platform/universeAgent/common/sessionView/index.js';
-import { conversationLensInputMaximizedClass } from './conversationLensDockStrings.js';
+import { conversationLensInputMaximizedClass, type ConversationComposerPostFailureReason } from './conversationLensDockStrings.js';
 import { getConversationTurnAccessibleText } from './conversationAccessibility.js';
 import { createInputHistoryBrowseState, InputHistoryBrowseState, InputHistoryDirection } from './conversationInputHistory.js';
 import { scrollToFirstPendingConfirmation as applyPendingConfirmationScroll } from './conversationPendingSeat.js';
@@ -747,7 +747,7 @@ export class ConversationLens extends Disposable {
 		updateSyncChrome(this, sync);
 	}
 
-	private showPostFailure(reason: 'mailbox_full' | 'no_such_session' | 'not_authenticated'): void {
+	private showPostFailure(reason: ConversationComposerPostFailureReason): void {
 		showPostFailure(this, reason);
 	}
 

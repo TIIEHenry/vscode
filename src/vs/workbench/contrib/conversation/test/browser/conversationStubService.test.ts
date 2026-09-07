@@ -150,6 +150,7 @@ suite('ConversationStubService', () => {
 
 	test('enqueueMessageQueueItem stays local no-op without engine', () => {
 		const service = store.add(new ConversationStubService());
+		assert.strictEqual(service.hasEngineConnectionHistory(), false);
 		assert.strictEqual(service.enqueueMessageQueueItem(service.getActiveSessionId(), 'later', { priority: 'HIGH' }), false);
 		assert.strictEqual(service.enqueueMessageQueueItem(service.getActiveSessionId(), 'later'), false);
 	});

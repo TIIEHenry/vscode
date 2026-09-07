@@ -64,6 +64,12 @@ export const conversationLensDockStopGenerating = localize('conversationLens.doc
 export const conversationLensPostFailedMailboxFull = localize('conversationLens.postFailedMailboxFull', "Message not sent — inbox full. Try again.");
 export const conversationLensPostFailedNotAuthenticated = localize('conversationLens.postFailedNotAuthenticated', "Message not sent — not signed in.");
 export const conversationLensPostFailedNoSession = localize('conversationLens.postFailedNoSession', "Message not sent — session not found.");
+export const conversationLensPostFailedDisconnected = localize('conversationLens.postFailedDisconnected', "Message not sent — engine disconnected. Draft kept.");
+export type ConversationComposerPostFailureReason =
+	| 'mailbox_full'
+	| 'no_such_session'
+	| 'not_authenticated'
+	| 'engine_disconnected';
 export const conversationLensDockPlaceholder = localize('conversationLens.dockPlaceholder', "Message");
 export const conversationLensDockEditingMessage = localize('conversationLens.dockEditingMessage', "Editing message");
 export const conversationLensDockEditingQueued = localize('conversationLens.dockEditingQueued', "Editing queued");

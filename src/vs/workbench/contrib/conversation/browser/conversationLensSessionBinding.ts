@@ -20,6 +20,7 @@ import { ConversationVisualizeOverlay } from './conversationVisualizeOverlay.js'
 import type { ConversationMermaidExtensionInfo } from './conversationMermaidHost.js';
 import { findFirstPendingConfirmationTurnId as findFirstPendingConfirmationTurnIdFromTurns } from './conversationPendingSeat.js';
 import { IConversationRosterService } from './conversationStubService.js';
+import type { ConversationComposerPostFailureReason } from './conversationLensDockStrings.js';
 export interface IConversationLensSessionBindingHost {
 	/** Same dispose gate Mermaid resolve uses (`this._store.isDisposed`). */
 	readonly _store: { readonly isDisposed: boolean };
@@ -51,7 +52,7 @@ export interface IConversationLensSessionBindingHost {
 	renderVoiceTranscriptBar(): void;
 	updateVoiceMicChrome(): void;
 	postBound(msg: ConversationWriteMessage): Promise<PostOutcome>;
-	showPostFailure(reason: 'mailbox_full' | 'no_such_session' | 'not_authenticated'): void;
+	showPostFailure(reason: ConversationComposerPostFailureReason): void;
 	focusTimelineRecord(turnId: string): void;
 }
 

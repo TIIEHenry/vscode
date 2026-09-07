@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-07
-summary: "延期缺口 SSOT；D16 Lens 断言债；D22 F3；D15 欠 W1；D23 confirmPairing；D24 其余 JSON RPC；D25 ghost UI；D26 引擎建壳回 6；D27 Lens 编辑态整树重建；D28 Connection 旁路 UI"
+summary: "延期缺口 SSOT；D16 Lens 断言债；D22 F3；D15 欠 W1；D23 confirmPairing；D24 其余 JSON RPC；D25 ghost UI；D26 引擎建壳回 6；D27 Lens 编辑态整树重建；D28 Connection 旁路 UI；D29 队列无 UI；D30 error 行重试未接线"
 ---
 
 # Deferred Gaps
@@ -45,6 +45,8 @@ summary: "延期缺口 SSOT；D16 Lens 断言债；D22 F3；D15 欠 W1；D23 con
 | D19 | P2 | **L1 源码复核残留**（[a11y-rwd-l1.md](a11y-rwd-l1.md)）：(1) Engine/Connection **无动画节点**，不挂 `.ua-motion`；(2) T1 HC 已覆盖 Preferences pane 与 Visualize overlay；(3) Connection 300px 已有分区导航 + Back。**(4) Web 省略门控与点名文案已在 E2-1 收口** | 三项源码残留已收；手测/axe 仍归 D17 | 手测/axe 记 D17，不重开本行 | M7 a11y | closed |
 | D20 | P2 | **CS-6 Settings 默认窗 300px 目视**：`uaClientSettingsChrome.css` 已保证 narrow-width 下搜索框与 group title 不 `display:none` 且可省略；`settingsUaToc` 有合同测。本机隔离 launch 因 `@grpc/grpc-js` 缺失未能开窗目视 | 代码完成线不阻塞；活窗目视仍欠 | 隔离 profile 打开默认窗 Settings，缩到约 300px，确认搜索框与 Client 组标题仍可见、无 emptyCopy；失败记入 D17 | M7 verification | open |
 | D28 | P2 | **Connection pane 旁路 UI**：(1) 对话身份条被挡住。**(2)(3) 已由 loop/B 收口**：`writeConnectStatus` 写当前可见区（Devices → `.connection-hub-devices-status`）；Connect 成功/配对中用可读文案，不甩 `ok=true pairingPending=…`、不装已连接 | (1) 仍非本轮；身份条与 session bar 禁止本槽改 | 身份条不被挡 | UI / conversation | open |
+| D29 | P2 | **`enqueueMessageQueueItem` 有服务无 Composer/Inbox 入队 UI**（`conversationEngineRosterService.ts`；断连缓存拒收）。`conversation-disconnect-send` 已把断连 Send 接到该 API，但不画完整 MessageQueue 产品面 | 本 slice 禁止新做完整队列 UI | Inbox / Composer 能看见入队项；接通后列表不靠 fixture | UI / conversation | open |
+| D30 | P3 | **时间线 error 行只标 Retryable，无重试动作**（`conversationTimelineRenderer.ts`）；Inbox FAILED 行亦无重试钮。`AgentService.RetryQueueItem` 等仅 catalog | 不得画假按钮；须引擎接线 | retryable 行点重试真正转发且失败回可操作态 | conversation | open |
 
 ## D2 工位池 compile 基线（2026-09-02，merge 工位 / `loop/merge`）
 
