@@ -55,7 +55,7 @@ summary: "集成 tip 本关仓提交（未 push）；B 的 D16 remainder 7 夹�
 
 1. **集成 tip** 以 merge 本关仓提交为准（P2 已串行 B=`c1ba9189cbb`）。`npm run compile` 仍基线 unused 红则 **不 push**。GFS >800 不拆。
 2. 本波字母槽已进 merge：
-   - **A**：本波空闲。[D26](deferred-gaps.md) 引擎 Create meta 仍 open。
+   - **A**：`ghost-bind-failed-ui` — [D25](deferred-gaps.md) **host leftover 已收**：List 抛错与 ghost bind-fail 不再造「New session」/ untitled stub，改显 bind-failed；**D25 仍开**（引擎 List 真空禁碰）。[D26](deferred-gaps.md) 引擎 Create meta 仍 open。
    - **B**：visualize 三测已收；remainder 7 已按夹具诚实收口（虚拟列表 reveal / flush 预算 / `scrollToEnd` 后不立刻 layout 冲掉）。全量 Lens **97/97** @ `loop/B` 2026-09-07。**[D16](deferred-gaps.md) 仍开**（本 slice 不闭；S2「Lens 全绿」仍以本行闭合为前提）。
    - **C**：本波空闲。上波 D41 已在 merge。
    - **D**：本波空闲。[D31](deferred-gaps.md) 仍开（F4）。
@@ -73,6 +73,7 @@ summary: "集成 tip 本关仓提交（未 push）；B 的 D16 remainder 7 夹�
 | [D38](deferred-gaps.md) | A 槽 `host-bind-safety` | **closed** `fillHistory` bind/write 已 catch |
 | [D39](deferred-gaps.md) | A 槽 `host-bind-safety` | **closed** `requestDetail` bind 已 catch |
 | [D40](deferred-gaps.md) | A 槽 `request-detail-fetch-catch` | **closed** `fetchToolDetail` throw 已 catch 回 `{ok:false}`；host `{ok:false}` 原样返回 |
+| [D25](deferred-gaps.md) | A 槽 `ghost-bind-failed-ui` | **host leftover 已收；行仍开**：List-fail / ghost bind-fail 显示 bind-failed，不造 `sessionNew`；引擎 List 真空未修 |
 | [D26](deferred-gaps.md) | A 槽 host / 引擎仓 | host Tree+recover 已收；引擎空壳 Create 回 6 仍开；不要再清 store |
 | [D37](deferred-gaps.md) | C 槽 `roster-queue-retry` | **closed** roster 按 `upload` 转 RetryQueueItem / RetryQueueItemUpload；无 GetQueue 活引擎失败行仍不可见 |
 | [D41](deferred-gaps.md) | C 槽 `inbox-fail-class` | **closed** Inbox `FAILED` 行 class 为 `queue-failed`，`UPLOAD_FAILED` 仍 `upload-failed`；Retry 接线未改 |

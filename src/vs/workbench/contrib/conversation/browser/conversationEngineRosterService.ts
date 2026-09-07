@@ -195,6 +195,18 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 			if (engineSession) {
 				return engineSession;
 			}
+			if (this.isEngineConnected()) {
+				// List-fail / pending / in-flight must not mint stub untitled or "New session".
+				if (!this.listCompleted || this.pendingEngineBindSessionId) {
+					return {
+						id: sessionId || this.pendingEngineBindSessionId || '',
+						title: '',
+						turns: [],
+						source: 'engine-cache',
+					};
+				}
+				return this.getEngineBindFailedSession();
+			}
 		}
 		return super.getActiveSession();
 	}
@@ -1314,7 +1326,13 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 			this._onDidChangeSession.fire(this.getActiveSessionId());
 			this.persistEngineAwareRoster();
 		} catch {
-			this.listCompleted = false;
+			this.pendingEngineBindSessionId = undefined;
+			this.activePendingBindLeaseSessionId = undefined;
+			this.engineSessionEnsure = undefined;
+			this.listCompleted = true;
+			this.markEngineSessionBindFailed();
+			this._onDidChangeSession.fire(this.getActiveSessionId());
+			this.persistEngineAwareRoster();
 		} finally {
 			this.bindLiveTreeObservationLease();
 		}
