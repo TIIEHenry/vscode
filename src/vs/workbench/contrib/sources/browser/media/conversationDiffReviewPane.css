@@ -32,7 +32,13 @@
 	color: var(--vscode-button-foreground);
 }
 
+.monaco-workbench .conversation-diff-review-pane .conversation-diff-review-unstage-unavailable {
+	color: var(--vscode-descriptionForeground);
+	font-size: 12px;
+}
+
 .monaco-workbench .conversation-diff-review-pane .conversation-diff-review-revert,
+.monaco-workbench .conversation-diff-review-pane .conversation-diff-review-unstage,
 .monaco-workbench .conversation-diff-review-pane .conversation-diff-review-open-preview {
 	background: var(--vscode-button-secondaryBackground);
 	color: var(--vscode-button-secondaryForeground);

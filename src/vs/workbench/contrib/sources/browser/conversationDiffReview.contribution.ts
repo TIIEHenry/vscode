@@ -24,16 +24,18 @@ class ConversationDiffReviewInputSerializer implements IEditorSerializer {
 		return JSON.stringify({
 			modified: input.modified.toString(),
 			original: input.original?.toString(),
+			groupId: input.groupId,
 		});
 	}
 
 	deserialize(instantiationService: IInstantiationService, serialized: string): ConversationDiffReviewInput | undefined {
 		try {
-			const parsed = JSON.parse(serialized) as { modified: string; original?: string };
+			const parsed = JSON.parse(serialized) as { modified: string; original?: string; groupId?: string };
 			return instantiationService.createInstance(
 				ConversationDiffReviewInput,
 				URI.parse(parsed.modified),
 				parsed.original ? URI.parse(parsed.original) : undefined,
+				parsed.groupId ?? '',
 			);
 		} catch {
 			return undefined;

@@ -38,6 +38,7 @@ import {
 	isSourcesChangeUnstageable,
 } from '../common/sourcesChangesGit.js';
 import {
+	sourcesGitReadFailureMessage,
 	tryLoadSourcesGitChangeEntries,
 	tryReadSourcesGitFileDiff,
 } from '../common/sourcesChangesGitRead.js';
@@ -428,7 +429,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 			this.usingGitRead = false;
 			allEntries = collectSourcesChangeEntries(this.scmService.repositories);
 			this.applyRefreshPresentation(allEntries);
-			this.setStatusMessage(localize('sourcesChangesList.gitReadFailed', "Unable to read git changes: {0}", getErrorMessage(error)));
+			this.setStatusMessage(sourcesGitReadFailureMessage(error));
 			return;
 		}
 

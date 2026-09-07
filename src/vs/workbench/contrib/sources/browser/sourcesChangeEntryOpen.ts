@@ -150,6 +150,7 @@ async function openSourcesChangeInConversation(
 		ConversationDiffReviewInput,
 		ref.modified,
 		ref.original,
+		ref.groupId,
 	);
 	await deps.editorService.openEditor(input, {
 		preserveFocus: options.preserveFocus,

@@ -165,6 +165,12 @@
 	min-height: 80px;
 }
 
+.monaco-workbench .part.sources .sources-review-status {
+	padding: 4px 8px 6px;
+	color: var(--vscode-errorForeground, var(--vscode-descriptionForeground));
+	font-size: 12px;
+}
+
 .monaco-workbench .part.sources .sources-review-empty {
 	display: flex;
 	align-items: center;

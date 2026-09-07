@@ -21,11 +21,13 @@ export class ConversationDiffReviewInput extends EditorInput {
 	private readonly _resource: URI;
 	private readonly _modified: URI;
 	private readonly _original: URI | undefined;
+	private readonly _groupId: string;
 
-	constructor(modified: URI, original?: URI) {
+	constructor(modified: URI, original?: URI, groupId: string = '') {
 		super();
 		this._modified = modified;
 		this._original = original;
+		this._groupId = groupId;
 		this._resource = getConversationDiffReviewResource(modified, original);
 	}
 
@@ -35,6 +37,10 @@ export class ConversationDiffReviewInput extends EditorInput {
 
 	get original(): URI | undefined {
 		return this._original;
+	}
+
+	get groupId(): string {
+		return this._groupId;
 	}
 
 	override get typeId(): string {

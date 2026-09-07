@@ -14,7 +14,7 @@ import { workbenchInstantiationService, TestEditorInput } from '../../../../test
 import { ISCMService } from '../../../scm/common/scm.js';
 import { ConversationDiffReviewInput } from '../../browser/conversationDiffReviewInput.js';
 import { moveActiveDiffToConversation, moveActiveDiffToPanel, moveActiveDiffToPreview } from '../../browser/sourcesDiffRefHelpers.js';
-import { ISourcesChangeRef } from '../../common/sourcesChangeRef.js';
+import { ISourcesChangeRef, sourcesDiffLocalWritePath } from '../../common/sourcesChangeRef.js';
 import { ISourcesDiffPanelService } from '../../common/sourcesDiffPanelService.js';
 
 suite('Sources - Diff ref helpers', () => {
@@ -163,5 +163,13 @@ suite('Sources - Diff ref helpers', () => {
 		const opened = editorService.opened[0] as { original?: { resource?: URI }; modified?: { resource?: URI } };
 		assert.strictEqual(opened.modified?.resource?.toString(), conversationModified.toString());
 		assert.strictEqual(opened.original?.resource?.toString(), conversationOriginal.toString());
+	});
+
+	test('local write path does not invent a path for non-file URIs', function () {
+		const file = toResource.call(this, '/project/a.ts');
+		assert.strictEqual(sourcesDiffLocalWritePath({ modified: file }), file.fsPath);
+		assert.strictEqual(sourcesDiffLocalWritePath({
+			modified: URI.from({ scheme: 'sources-git-diff', path: '/modified/a.ts' }),
+		}), '');
 	});
 });

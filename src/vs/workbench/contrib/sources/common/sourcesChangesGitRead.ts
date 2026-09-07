@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { compareFileNamesDefault } from '../../../../base/common/comparers.js';
+import { getErrorMessage } from '../../../../base/common/errors.js';
 import { isAbsolute } from '../../../../base/common/path.js';
 import { basename } from '../../../../base/common/resources.js';
 import { URI } from '../../../../base/common/uri.js';
@@ -224,6 +225,11 @@ export async function tryReadSourcesGitFileDiff(
 		return undefined;
 	}
 	return hook(sourcesGitFileDiffRequest(path, indexState));
+}
+
+/** Honest git-read failure text for Changes / Review status lines. */
+export function sourcesGitReadFailureMessage(error: unknown): string {
+	return localize('sourcesChangesGitRead.failed', "Unable to read git changes: {0}", getErrorMessage(error));
 }
 
 export async function tryLoadSourcesGitChangeEntries(

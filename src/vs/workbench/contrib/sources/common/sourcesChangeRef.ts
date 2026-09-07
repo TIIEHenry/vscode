@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { Schemas } from '../../../../base/common/network.js';
 import { URI } from '../../../../base/common/uri.js';
 import { IQuickDiffService, QuickDiff } from '../../scm/common/quickDiff.js';
 import { ISCMResource, ISCMService } from '../../scm/common/scm.js';
@@ -37,6 +38,17 @@ export async function resolveSourcesChangeRef(
 		groupId: entry.groupId,
 		scmResource: entry.scmResource,
 	};
+}
+
+/** Real filesystem path for local git writes. Empty when the URI is not a file (do not invent). */
+export function sourcesDiffLocalWritePath(ref: { modified: URI; scmResource?: ISCMResource }): string {
+	if (ref.scmResource) {
+		return ref.scmResource.sourceUri.fsPath;
+	}
+	if (ref.modified.scheme === Schemas.file) {
+		return ref.modified.fsPath;
+	}
+	return '';
 }
 
 export function findScmResourceForUri(scmService: ISCMService, uri: URI): { resource: ISCMResource; groupId: string } | undefined {
