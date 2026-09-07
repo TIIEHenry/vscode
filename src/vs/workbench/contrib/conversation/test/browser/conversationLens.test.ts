@@ -176,6 +176,10 @@ suite('ConversationLens', () => {
 		await flushAnimationFrames();
 	}
 
+	async function revealUntitledProcessFold(lens: ConversationLens, layoutReadingColumn: () => void): Promise<void> {
+		await revealVisualizeTurn(lens, layoutReadingColumn, 'untitled-t1');
+	}
+
 	async function revealLatestTurn(
 		lens: ConversationLens,
 		stubService: ConversationStubService,
@@ -658,16 +662,19 @@ suite('ConversationLens', () => {
 		assert.strictEqual(assistantTurn.querySelector('.conversation-lens-turn-body--collapsed'), null);
 	});
 
-	test('default session shows seeded untitled fixture without fake engine history', () => {
-		const { part, stubService } = mountLens();
+	test('default session shows seeded untitled fixture without fake engine history', async () => {
+		const { part, stubService, lens, layoutReadingColumn } = mountLens();
 		const slots = getLensSlots(part);
 		const pendingButton = slots.dock.querySelector('.conversation-lens-inbox-pending') as HTMLButtonElement;
 
 		assert.strictEqual(stubService.getSessions().length, 2);
 		assert.strictEqual(stubService.getTurns(stubService.getActiveSessionId()).length, 7);
 		assert.strictEqual(getTimelineEmpty(slots), null);
+		await revealUntitledProcessFold(lens, layoutReadingColumn);
 		assert.ok(queryTimeline(slots, '[data-process-fold]'));
+		await revealVisualizeTurn(lens, layoutReadingColumn, 'untitled-u1');
 		assert.ok(queryTimeline(slots, '.conversation-lens-turn[data-kind="user"]'));
+		await revealVisualizeTurn(lens, layoutReadingColumn, 'untitled-c1');
 		assert.ok(queryTimeline(slots, '.conversation-lens-confirmation-seat'));
 		assert.ok(pendingButton);
 		assert.ok(!pendingButton.hidden);
@@ -1572,8 +1579,12 @@ suite('ConversationLens', () => {
 		const leafB = mountLens({ stubService, sessionKey: sessionB });
 		const slotsA = getLensSlots(leafA.part);
 		const slotsB = getLensSlots(leafB.part);
-		await flushProjectedTimeline(leafA.layoutReadingColumn);
-		await flushProjectedTimeline(leafB.layoutReadingColumn);
+		const alphaTurn = stubService.getTurns(sessionA).find(turn => turn.text === 'Alpha leaf only');
+		const betaTurn = stubService.getTurns(sessionB).find(turn => turn.text === 'Beta leaf only');
+		assert.ok(alphaTurn);
+		assert.ok(betaTurn);
+		await revealVisualizeTurn(leafA.lens, leafA.layoutReadingColumn, alphaTurn.id);
+		await revealVisualizeTurn(leafB.lens, leafB.layoutReadingColumn, betaTurn.id);
 
 		assert.ok(slotsA.timeline.textContent?.includes('Alpha leaf only'));
 		assert.ok(!slotsA.timeline.textContent?.includes('Beta leaf only'));
@@ -1581,8 +1592,8 @@ suite('ConversationLens', () => {
 		assert.ok(!slotsB.timeline.textContent?.includes('Alpha leaf only'));
 
 		stubService.switchSession(sessionA);
-		await flushProjectedTimeline(leafA.layoutReadingColumn);
-		await flushProjectedTimeline(leafB.layoutReadingColumn);
+		await revealVisualizeTurn(leafA.lens, leafA.layoutReadingColumn, alphaTurn.id);
+		await revealVisualizeTurn(leafB.lens, leafB.layoutReadingColumn, betaTurn.id);
 
 		assert.ok(slotsB.timeline.textContent?.includes('Beta leaf only'));
 		assert.ok(!slotsB.timeline.textContent?.includes('Alpha leaf only'));
@@ -2641,9 +2652,10 @@ suite('ConversationLens', () => {
 		assert.ok(!getPinnedUserPrompt(slots)?.classList.contains('conversation-timeline-pinned-user--visible'));
 	});
 
-	test('untitled fixture renders collapsed process fold header with Stub summary', () => {
-		const { part } = mountLens();
+	test('untitled fixture renders collapsed process fold header with Stub summary', async () => {
+		const { part, lens, layoutReadingColumn } = mountLens();
 		const slots = getLensSlots(part);
+		await revealUntitledProcessFold(lens, layoutReadingColumn);
 		const fold = queryTimeline(slots, '[data-process-fold]');
 		assert.ok(fold);
 		const header = fold!.querySelector('.conversation-process-fold-header') as HTMLElement;
@@ -2654,9 +2666,10 @@ suite('ConversationLens', () => {
 		assert.strictEqual(children.hidden, true);
 	});
 
-	test('expanding untitled process fold reveals nested thinking and tool indent layers', () => {
-		const { part } = mountLens();
+	test('expanding untitled process fold reveals nested thinking and tool indent layers', async () => {
+		const { part, lens, layoutReadingColumn } = mountLens();
 		const slots = getLensSlots(part);
+		await revealUntitledProcessFold(lens, layoutReadingColumn);
 		const fold = queryTimeline(slots, '[data-process-fold]')!;
 		const header = fold.querySelector('.conversation-process-fold-header') as HTMLElement;
 		header.click();
@@ -2678,19 +2691,23 @@ suite('ConversationLens', () => {
 		assert.ok(parseFloat(nestedToolStyle.paddingInlineStart) >= 0);
 	});
 
-	test('user and confirmation seats stay outside process fold on untitled fixture', () => {
-		const { part } = mountLens();
+	test('user and confirmation seats stay outside process fold on untitled fixture', async () => {
+		const { part, lens, layoutReadingColumn } = mountLens();
 		const slots = getLensSlots(part);
+		await revealUntitledProcessFold(lens, layoutReadingColumn);
 		const fold = queryTimeline(slots, '[data-process-fold]')!;
 		assert.strictEqual(fold.querySelector('.conversation-lens-turn[data-kind="user"]'), null);
 		assert.strictEqual(fold.querySelector('.conversation-lens-confirmation-seat'), null);
+		await revealVisualizeTurn(lens, layoutReadingColumn, 'untitled-u1');
 		assert.ok(queryTimeline(slots, '.conversation-lens-turn[data-kind="user"]'));
+		await revealVisualizeTurn(lens, layoutReadingColumn, 'untitled-c1');
 		assert.ok(queryTimeline(slots, '.conversation-lens-confirmation-seat'));
 	});
 
-	test('expanding untitled thinking reveals Stub payload body distinct from header summary', () => {
-		const { part } = mountLens();
+	test('expanding untitled thinking reveals Stub payload body distinct from header summary', async () => {
+		const { part, lens, layoutReadingColumn } = mountLens();
 		const slots = getLensSlots(part);
+		await revealUntitledProcessFold(lens, layoutReadingColumn);
 		const fold = queryTimeline(slots, '[data-process-fold]')!;
 		(fold.querySelector('.conversation-process-fold-header') as HTMLElement).click();
 
@@ -2706,9 +2723,10 @@ suite('ConversationLens', () => {
 		assert.notStrictEqual(body.textContent, thinkingHeader.textContent);
 	});
 
-	test('expanding untitled tool row reveals Stub payload text', () => {
-		const { part } = mountLens();
+	test('expanding untitled tool row reveals Stub payload text', async () => {
+		const { part, lens, layoutReadingColumn } = mountLens();
 		const slots = getLensSlots(part);
+		await revealUntitledProcessFold(lens, layoutReadingColumn);
 		const fold = queryTimeline(slots, '[data-process-fold]')!;
 		(fold.querySelector('.conversation-process-fold-header') as HTMLElement).click();
 
