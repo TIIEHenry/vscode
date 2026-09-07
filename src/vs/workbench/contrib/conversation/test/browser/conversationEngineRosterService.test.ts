@@ -780,6 +780,92 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		assert.strictEqual(connection.renameCalls.length, 1);
 	});
 
+	test('engine rejection of respondPermission is reported, not swallowed', async () => {
+		const storage = store.add(new TestStorageService());
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
+		const service = store.add(createService(connection, storage));
+		connection.setConnected(true);
+		service.setEngineConnected(true);
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+		const refused = new Error('engine refused');
+		(connection as { respondPermission: unknown }).respondPermission = async () => { throw refused; };
+		const failures: { sessionId: string; action: string; error: unknown }[] = [];
+		store.add(service.onDidFailEngineAction(failure => failures.push(failure)));
+
+		assert.strictEqual(service.resolveConfirmation('ua-only', 'req-1', 'allowed'), true);
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+		assert.deepStrictEqual(failures, [{ sessionId: 'ua-only', action: 'respondPermission', error: refused }]);
+	});
+
+	test('engine rejection of renameSession restores the local title', async () => {
+		const storage = store.add(new TestStorageService());
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
+		const service = store.add(createService(connection, storage));
+		connection.setConnected(true);
+		service.setEngineConnected(true);
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+		(connection as { renameSession: unknown }).renameSession = async () => { throw new Error('engine refused'); };
+		const actions: string[] = [];
+		store.add(service.onDidFailEngineAction(failure => actions.push(failure.action)));
+
+		assert.strictEqual(service.renameSession('ua-only', 'Renamed UA'), true);
+		assert.strictEqual(service.getSessions()[0]?.title, 'Renamed UA');
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+		assert.deepStrictEqual(actions, ['renameSession']);
+		assert.strictEqual(service.getSessions()[0]?.title, 'Only UA');
+	});
+
+	test('engine rejection of setSessionGoal restores the previous goal', async () => {
+		const storage = store.add(new TestStorageService());
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
+		const service = store.add(createService(connection, storage));
+		connection.setConnected(true);
+		service.setEngineConnected(true);
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+		assert.strictEqual(service.setSessionGoal('ua-only', 'first goal'), true);
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		assert.strictEqual(service.getSessionGoal('ua-only'), 'first goal');
+
+		(connection as { setSessionGoal: unknown }).setSessionGoal = async () => { throw new Error('engine refused'); };
+		assert.strictEqual(service.setSessionGoal('ua-only', 'second goal'), true);
+		assert.strictEqual(service.getSessionGoal('ua-only'), 'second goal');
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+		assert.strictEqual(service.getSessionGoal('ua-only'), 'first goal');
+	});
+
+	test('engine rejection of deleteSession re-lists the catalog instead of keeping the row gone', async () => {
+		const storage = store.add(new TestStorageService());
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setListSessions([
+			{ sessionId: 'ua-a', title: 'A' },
+			{ sessionId: 'ua-b', title: 'B' },
+		]);
+		const service = store.add(createService(connection, storage));
+		connection.setConnected(true);
+		service.setEngineConnected(true);
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+		(connection as { deleteSession: unknown }).deleteSession = async () => { throw new Error('engine refused'); };
+		const actions: string[] = [];
+		store.add(service.onDidFailEngineAction(failure => actions.push(failure.action)));
+
+		assert.strictEqual(service.deleteSession('ua-a'), true);
+		assert.deepStrictEqual(service.getSessions().map(s => s.id), ['ua-b']);
+		await awaitEngineCatalogRefresh(service);
+
+		assert.deepStrictEqual(actions, ['deleteSession']);
+		assert.deepStrictEqual(service.getSessions().map(s => s.id), ['ua-a', 'ua-b']);
+	});
+
 	test('disconnected after engine renameSession stays local and skips unary', async () => {
 		const storage = store.add(new TestStorageService());
 		const connection = store.add(new MockUniverseAgentConnection());

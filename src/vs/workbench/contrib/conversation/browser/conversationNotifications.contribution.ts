@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { toAction } from '../../../../base/common/actions.js';
+import { toErrorMessage } from '../../../../base/common/errorMessage.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
@@ -18,7 +19,7 @@ import {
 	isConversationSessionInactive,
 } from './conversationPendingSeat.js';
 import { showConversationPart } from './conversationSessionStatus.js';
-import { IConversationRosterService } from './conversationStubService.js';
+import { IConversationRosterService, type IConversationEngineActionFailure } from './conversationStubService.js';
 import { IConversationTimelineRevealService } from './conversationTimelineRevealService.js';
 import {
 	shouldNotifyPermissionRequests,
@@ -48,6 +49,26 @@ export class ConversationNotificationsContribution extends Disposable implements
 
 		this._register(this.rosterService.onDidChangeSession(sessionId => this.onSessionChanged(sessionId)));
 		this._register(this.uaConnection.onDidTurnSettle(signal => this.onTurnSettle(signal.sessionId)));
+		this._register(this.rosterService.onDidFailEngineAction(failure => this.onEngineActionFailed(failure)));
+	}
+
+	/**
+	 * Roster mutations report success as soon as they are dispatched, so a
+	 * rejected engine call would otherwise leave the UI claiming an action
+	 * happened that never did. Always surface it, in any session.
+	 */
+	private onEngineActionFailed(failure: IConversationEngineActionFailure): void {
+		this.notificationService.notify({
+			id: `ua.client.notifications.engineActionFailed:${failure.sessionId}:${failure.action}`,
+			severity: Severity.Error,
+			message: localize(
+				'ua.client.notifications.engineActionFailed',
+				"The engine rejected \"{0}\" in session \"{1}\": {2}",
+				failure.action,
+				this.sessionTitle(failure.sessionId),
+				toErrorMessage(failure.error),
+			),
+		});
 	}
 
 	private onSessionChanged(sessionId: string): void {
