@@ -53,23 +53,23 @@ summary: "人类工位已对齐已推送 MERGE_SHA c1b228caf74；保留本机行
 
 人类工位已 merge `c1b228caf74`（先 commit 行动层再三路合）。Direct 接通已通。Chat 仍被引擎空壳 Create（目录在、`session_meta` 空、回 6）挡住；不要再清 `.sessions` 当主线。见 [D26](deferred-gaps.md)。**U2 未开**。**PRD-008 不升 `implemented`**。
 
-1. **集成 tip** 以人类工位 `agent-ide` 为准（含 `c1b228caf74` + 行动层）。下一波：A=D23+D32，B=D33+D27，C=D30+诚实空，D=D31+R8。GFS >800 不拆。
+1. **集成 tip** 以人类工位 `agent-ide` 为准（含 `c1b228caf74` + 行动层）。本波 A 在改 D23+D32（未 compile）。其余：B=D33+D27，C=D30+诚实空，D=D31+R8。GFS >800 不拆。
 2. 字母槽 leftover 进度句已收进本账，再 cascade：
-   - **A**：Sources 写面 `supported && success` 才算 Stage/Commit/Accept；`supported: false` 回落本地 git；Accept 不绑死 SCM。次级面 [D31](deferred-gaps.md)。
+   - **A**：`host-write-retry` — [D23](deferred-gaps.md) resident `heartbeat_ack` 与 `writeChat` 同级 catch；[D32](deferred-gaps.md) Retry 改 `lease.post({continueGeneration})`，roster 不再直开 ContinueGeneration。compile 待 merge。
    - **B**：`conversation-disconnect-send` 未连不锁 Send；引擎缓存断连先试 enqueue，拒收则留 draft + 明确失败，不 stub echo。
    - **C**：pairing pending 时 SAS 框挂在发起 Connect 的 zone 外侧，避免被 `.connection-zone:not(.is-active-zone)` 吃掉。
-   - **D**：retryable error 行 Retry → roster `openContinuationStream`；不经 `lease.post`（[D32](deferred-gaps.md)）。
+   - **D**：Sources 次级面 [D31](deferred-gaps.md) / [R8](research-queue.md)（Retry 已交 A 槽）。
 
 子 agent 发现的既有代码问题：
 
 | ID | 来源 | 问题 |
 |:---|:-----|:-----|
-| [D23](deferred-gaps.md) | A 槽核实时 | `sessionViewHost.ts` `void sendHeartbeatAck`：resident `write` 无 catch，失败可成未处理 rejection |
+| [D23](deferred-gaps.md) | A 槽 `host-write-retry` | **closed（代码+测已写；compile 待 merge）** resident `write` / bind 现与 `writeChat` 同级 catch |
 | [D33](deferred-gaps.md) | 决策核实时 | `getEngineStatusCommandId` 配对中可能把 chip 指到 Engine 页（号原误写成 D24） |
 | [D27](deferred-gaps.md) | 决策核实时 | ListView 0px：编辑态整树重建；1px 垫高未根治 |
 | [D31](deferred-gaps.md) | A 槽 Sources | Review 读失败静默、Panel 无写动作、无 Unstage |
 | [R8](research-queue.md) | A 槽 Sources | `WriteGitApplyHunks` 空 patches 语义未定 |
-| [D32](deferred-gaps.md) | D 槽 error-retry | UI 直开 ContinueGeneration，不经 lease.post |
+| [D32](deferred-gaps.md) | A 槽 `host-write-retry` | **closed（代码+测已写；compile 待 merge）** Retry 走 `lease.post`；host 映射 Actor `continueGeneration` |
 | [D26](deferred-gaps.md) | merge 账 | 引擎空壳 Create 回 6；不要再清 store |
 
 ## 工位表（P0 盘点 · 2026-09-07 · 与 `git worktree list` 对照）

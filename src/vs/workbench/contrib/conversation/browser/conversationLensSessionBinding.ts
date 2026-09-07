@@ -210,12 +210,17 @@ export function retryError(host: IConversationLensSessionBindingHost, turn: { re
 	if (!messageId) {
 		return;
 	}
-	const turnId = turn.turnId?.trim();
-	const agentId = turn.agentId?.trim();
-	host.stubService.retryError(host.getBoundSessionId(), {
+	const turnId = turn.turnId?.trim() || messageId;
+	const agentId = turn.agentId?.trim() || 'root';
+	void host.postBound({
+		kind: 'continueGeneration',
+		agentId,
+		turnId,
 		messageId,
-		...(turnId ? { turnId } : {}),
-		...(agentId ? { agentId } : {}),
+	}).then(outcome => {
+		if (!outcome.accepted) {
+			host.showPostFailure(outcome.reason);
+		}
 	});
 
 }

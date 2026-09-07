@@ -137,6 +137,13 @@ function writeMessageToCoreFact(msg: ConversationWriteMessage, leaseId: ViewLeas
 				isError: false,
 				content: msg.resultJson,
 			};
+		case 'continueGeneration':
+			return {
+				kind: 'continueGeneration',
+				agentId: msg.agentId,
+				turnId: msg.turnId,
+				messageId: msg.messageId,
+			};
 	}
 }
 
@@ -1147,10 +1154,20 @@ export class SessionViewHost extends Disposable {
 		if (!this.connection.isEngineConnected()) {
 			return;
 		}
-		const engineSessionId = this.resolveEngineSessionId(sessionId) ?? await this.ensureEngineSession(sessionId);
+		let engineSessionId: string;
+		try {
+			engineSessionId = this.resolveEngineSessionId(sessionId) ?? await this.ensureEngineSession(sessionId);
+		} catch {
+			// bind failure surfaces on next RPC
+			return;
+		}
 		const resident = this.chatStreams.get(sessionId);
 		if (resident) {
-			resident.write({ heartbeat_ack: {} });
+			try {
+				resident.write({ heartbeat_ack: {} });
+			} catch {
+				// transport failure surfaces on next RPC
+			}
 			return;
 		}
 		try {

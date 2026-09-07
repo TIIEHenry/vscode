@@ -141,9 +141,10 @@ export type ConversationWriteMessage =
 	| { readonly kind: 'submitInput'; readonly text: string }                   // 三键由 Actor 分配
 	| { readonly kind: 'permissionRespond'; readonly requestId: string; readonly decision: 'allow' | 'deny' }
 	| { readonly kind: 'questionRespond'; readonly requestId: string; readonly answers: Readonly<Record<string, { readonly selectedLabels: readonly string[] }>>; readonly customText?: string }
-	| { readonly kind: 'clientToolRespond'; readonly requestId: string; readonly resultJson: string };
-// S1–S3 只用 submitInput；S5 须对照 ChatRequest.payload 完整 oneof（含 question_response 等）
-// 与 unary PermissionService.Respond，逐臂决定写路径。
+	| { readonly kind: 'clientToolRespond'; readonly requestId: string; readonly resultJson: string }
+	| { readonly kind: 'continueGeneration'; readonly agentId: string; readonly turnId: string; readonly messageId: string };
+// Retry 经 lease.post → Actor localFact `continueGeneration` → 宿主 `openContinuationStream`（D32）。
+// 其余臂对照 ChatRequest.payload oneof / unary PermissionService.Respond。
 ```
 
 - `isEngineConnected()` 语义按 ADR-003 §7 / m6 §5（连接级）；本稿不改。`onDidChangeEngineConnection` 不变。
