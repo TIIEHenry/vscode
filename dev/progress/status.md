@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-07
-summary: "D16 切片 0 账本已落（42eba1e6ff4 三文件 0 failing，0 数据行）；D16 仍开。工位 A occupied d16-ledger-slice0。A2 仍 blocked"
+summary: "D16 切片 0 账本已落（三文件 0 failing，0 数据行）；D16 仍开。A2 仍 blocked。字母槽 idle"
 ---
 
 # Development Progress
@@ -53,9 +53,9 @@ summary: "D16 切片 0 账本已落（42eba1e6ff4 三文件 0 failing，0 数据
 
 集成 tip **本关仓提交**（`loop/merge`；未 push）。Chat 仍被引擎空壳 Create（目录在、`session_meta` 空、回 6）挡住；不要再清 `.sessions` 当主线。见 [D26](deferred-gaps.md)。**U2 未开**。**PRD-008 / PRD-019 不升 `implemented`**。[R8](research-queue.md) **已闭**（[ADR-008](../decisions/008-write-git-apply-hunks-empty.md) 引擎空 `patches` = 成功空操作）。Accept 产品选项 A 见 [sources-accept-empty-success](../plans/sources-accept-empty-success.md)（`draft`；**A1 已落**；**P5 停线**——只批准停线，不批准 A2；A2 须新选定 + 新 Arch-First）。
 
-1. **集成 tip** 以 merge 本关仓提交为准（P2 已串行 wave-10 A=`992693462a6`；R8 闭合 B=`815234faeea`；Accept 方案 D=`46998e7f4bf` → merge `15a3a28eb31`；A1 D=`c9a743b46d8` → merge `5b839e665d4`；A2 停线 D=`74aae040ab5` → merge `782c5322f8e`）。`npm run compile` 仍基线 unused 红则 **不 push**。GFS >800 不拆。D22/F3 已撤回。不跑 F4 / 不实施 A2。
+1. **集成 tip** 以 merge 本关仓提交为准（P2 已串行 wave-10 A=`992693462a6`；R8 闭合 B=`815234faeea`；Accept 方案 D=`46998e7f4bf` → merge `15a3a28eb31`；A1 D=`c9a743b46d8` → merge `5b839e665d4`；A2 停线 D=`74aae040ab5` → merge `782c5322f8e`；D16 切片 0 A=`43df06db09a` → merge `0d860c9a93f`）。`npm run compile` 仍基线 unused 红则 **不 push**。GFS >800 不拆。D22/F3 已撤回。不跑 F4 / 不实施 A2。
 2. 本波字母槽已进 merge：
-   - **A**：occupied `d16-ledger-slice0` — [test-baseline-ci](../plans/test-baseline-ci.md) 切片 0：[d16-ledger.md](d16-ledger.md) @ `42eba1e6ff4`，三文件 0 failing / 0 数据行。**[D16](deferred-gaps.md) 仍开**（compile / S2 leftover）。未改生产/断言、未开切片 1。
+   - **A**：`d16-ledger-slice0` — [test-baseline-ci](../plans/test-baseline-ci.md) 切片 0：[d16-ledger.md](d16-ledger.md) @ `42eba1e6ff4`，三文件 0 failing / 0 数据行。**[D16](deferred-gaps.md) 仍开**（compile / S2 leftover）。未改生产/断言、未开切片 1。
    - **B**：visualize 三测已收；remainder 7 已按夹具诚实收口（虚拟列表 reveal / flush 预算 / `scrollToEnd` 后不立刻 layout 冲掉）。全量 Lens **97/97** @ `loop/B` 2026-09-07。**[D16](deferred-gaps.md) 仍开**（本 slice 不闭；S2「Lens 全绿」仍以本行闭合为前提）。
    - **C**：`inbox-getqueue-honesty` — catalog / connection **无** GetQueue / ListQueue，未发明 RPC。接通 / 断连缓存 Inbox 文案「Queue not listed」，stub fixture 不得冒充引擎队列；测锁 overlay / roster / stub。[D37](deferred-gaps.md) **仍闭**；缺 list-queue 记 [D24](deferred-gaps.md)。勿 add `dev/loop`。
    - **D**：`a2-patches-source` — A1 已落。P5 停线已合入：禁止再拉 `unified_diff` / Stage argv 映射 Apply；禁止只接 session。**A2 仍 blocked**（须新选定 + 新 Arch-First，不自动解锁）。未实施 A2 / 未跑 F4。[D31](deferred-gaps.md) **仍开**。未升 PRD。
@@ -90,7 +90,7 @@ summary: "D16 切片 0 账本已落（42eba1e6ff4 三文件 0 failing，0 数据
 | 槽 | 路径 | 分支 | tip | 脏 | stash | 关仓状态 |
 |----|------|------|-----|:--|:------|:---------|
 | merge | `vscode-WorkTrees/merge` | `loop/merge` | 本关仓提交 | 0 | 0 | parked；compile 基线 unused 仍红，**不 push** |
-| A | `vscode-WorkTrees/A` | `loop/A` | `42eba1e6ff4` | `__pycache__` | 0 | occupied `d16-ledger-slice0` |
+| A | `vscode-WorkTrees/A` | `loop/A` | 对齐本关仓提交 | `__pycache__` | 0 | idle |
 | B | `vscode-WorkTrees/B` | `loop/B` | 对齐本关仓提交 | `__pycache__` | 0 | idle |
 | C | `vscode-WorkTrees/C` | `loop/C` | 对齐本关仓提交 | 未提交 `dev/loop` + `__pycache__` | 0 | idle；勿 add `dev/loop` |
 | D | `vscode-WorkTrees/D` | `loop/D` | 对齐本关仓提交 | `__pycache__` | 0 | idle |
