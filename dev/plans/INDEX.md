@@ -4,7 +4,7 @@ type: index
 status: accepted
 phase: N/A
 updated: 2026-09-07
-summary: "dev/plans 导航：sources-accept-empty-success（draft；A1 已落）；M7 代码完成线仍 accepted"
+summary: "dev/plans 导航：sources-accept-empty-success（draft；A1 已落；P5 停线；A2 须新选定）；M7 代码完成线仍 accepted"
 ---
 
 # 方案
@@ -41,7 +41,7 @@ summary: "dev/plans 导航：sources-accept-empty-success（draft；A1 已落）
 | [connection-hub-client.md](connection-hub-client.md) | `accepted` | Hub Client 接入：**H0–H5 已落**；**GC-1b/2/3** 配对/设备动作/probe 已落；**H6** GUA 直连仍 v2；H4a 真 Hub 冒烟 / PRD-024 `implemented` 未签收 |
 | [navigator-engine-segments.md](navigator-engine-segments.md) | `accepted` | PRD-022：**N1–N4 已落**；**GC-5** Inspect/Team 读取态已落；**N5** 隔离 profile 验收待冒烟；缺口 G-NAV-1 / G-NAV-2 |
 | [sources-review-progress.md](sources-review-progress.md) | `accepted` | PRD-023：**R1–R4b 已落** @ `05007b60`–`f1065288`；**R5** 验收 + 知识层待冒烟；缺口 G-REV-1 |
-| [sources-accept-empty-success.md](sources-accept-empty-success.md) | `draft` | ADR-008 之后的产品 Accept：A1 宿主拒空已落；session 与 patches 同刀；D31 F4 仍开；A2 未开 |
+| [sources-accept-empty-success.md](sources-accept-empty-success.md) | `draft` | ADR-008 之后的产品 Accept：A1 已落；P5 停线（只批准停线）；A2 须新选定 + Arch-First；D31 F4 仍开 |
 | [chat-compare-split.md](chat-compare-split.md) | `implemented` | PRD-011 并排比对已落；D4 已验 |
 | [page-access-schemes.md](page-access-schemes.md) | `implemented` | 切片 1a–5 已落；M7 不重开混合宿主、同 token 与 Navigator 拓扑 |
 | [settings-two-surfaces.md](settings-two-surfaces.md) | `implemented` | 两主面边界 + C5/H0–H3 已落；Engine E2 / Client CS 代码完成线见 M7 方案（仍 accepted） |
