@@ -35,6 +35,8 @@ summary: "test-baseline 切片 0：SHA 42eba1e6ff4 三文件实测 0 failing，�
 
 **结论：** 当前 tip 上这三文件没有可分类的 A/B/C 失败。切片 0 **不得**据此把 [D16](deferred-gaps.md) 标 `closed`，也不得开始切片 1 的「已归零」声明。
 
+切片 3（`d2abb648c0e`）三域名单 **未**把本账本三文件标题列入 [test-baseline-failures.txt](test-baseline-failures.txt)（本 SHA 仍 0 failing）。**D16 仍开。**
+
 ## 失败行
 
 表头固定（方案 §2.3）。**无数据行。**
