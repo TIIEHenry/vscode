@@ -293,6 +293,90 @@ suite('EngineSkillsSection (E1)', () => {
 		assert.strictEqual(section.isWriteToolbarVisible(), false);
 	});
 
+	test('createSkill ok:false paints write-status and does not add a fake row', async () => {
+		let listSkillsCalls = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			skillsSupport: 'SUPPORTED',
+			listSkills: async () => {
+				listSkillsCalls++;
+				return { skills: [{ name: 'demo-skill', source: 'bundled', enabled: true }] };
+			},
+			saveSkillContent: async () => ({ ok: false }),
+		});
+		const section = mountSection(connection);
+		section.setSectionActive(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.strictEqual(section.getListEntryCount(), 1);
+		section.selectSkillForTest('demo-skill');
+		await flushMicrotasks();
+		assert.strictEqual(section.getSelectedSkillName(), 'demo-skill');
+		const listCallsAfterLoad = listSkillsCalls;
+
+		const ok = await section.createSkill({ skillName: 'should-not-appear', content: '# Nope' });
+		assert.strictEqual(ok, false);
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.strictEqual(section.getListEntryCount(), 1);
+		assert.strictEqual(section.getSelectedSkillName(), 'demo-skill');
+		assert.strictEqual(listSkillsCalls, listCallsAfterLoad);
+		assert.ok(!/should-not-appear/i.test(section.getDomNode().textContent ?? ''));
+
+		const createFailed = localize('ua.engineSkillCreateFailed', "Could not create skill content on the engine.");
+		const bodyStatus = section.getDomNode().querySelector('.engine-skill-body-status') as HTMLElement;
+		const writeStatus = section.getDomNode().querySelector('.engine-skill-write-status') as HTMLElement;
+		assert.ok(bodyStatus);
+		assert.notStrictEqual(bodyStatus.style.display, 'none');
+		assert.ok(bodyStatus.textContent?.includes(createFailed));
+		assert.ok(writeStatus);
+		assert.notStrictEqual(writeStatus.style.display, 'none');
+		assert.ok(writeStatus.textContent?.includes(createFailed));
+	});
+
+	test('createSkill throw paints write-status and does not add a fake row', async () => {
+		let listSkillsCalls = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			skillsSupport: 'SUPPORTED',
+			listSkills: async () => {
+				listSkillsCalls++;
+				return { skills: [{ name: 'demo-skill', source: 'bundled', enabled: true }] };
+			},
+			saveSkillContent: async () => {
+				throw new Error('saveSkillContent exploded');
+			},
+		});
+		const section = mountSection(connection);
+		section.setSectionActive(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.strictEqual(section.getListEntryCount(), 1);
+		section.selectSkillForTest('demo-skill');
+		await flushMicrotasks();
+		assert.strictEqual(section.getSelectedSkillName(), 'demo-skill');
+		const listCallsAfterLoad = listSkillsCalls;
+
+		const ok = await section.createSkill({ skillName: 'should-not-appear', content: '# Nope' });
+		assert.strictEqual(ok, false);
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.strictEqual(section.getListEntryCount(), 1);
+		assert.strictEqual(section.getSelectedSkillName(), 'demo-skill');
+		assert.strictEqual(listSkillsCalls, listCallsAfterLoad);
+		assert.ok(!/should-not-appear/i.test(section.getDomNode().textContent ?? ''));
+
+		const createFailed = localize('ua.engineSkillCreateFailed', "Could not create skill content on the engine.");
+		const bodyStatus = section.getDomNode().querySelector('.engine-skill-body-status') as HTMLElement;
+		const writeStatus = section.getDomNode().querySelector('.engine-skill-write-status') as HTMLElement;
+		assert.ok(bodyStatus);
+		assert.notStrictEqual(bodyStatus.style.display, 'none');
+		assert.ok(bodyStatus.textContent?.includes(createFailed));
+		assert.ok(writeStatus);
+		assert.notStrictEqual(writeStatus.style.display, 'none');
+		assert.ok(writeStatus.textContent?.includes(createFailed));
+	});
+
 	test('SUPPORTED connected saveSelectedSkillBody calls saveSkillContent RPC', async () => {
 		let saveCalled = false;
 		let savedContent = '';

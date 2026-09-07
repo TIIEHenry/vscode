@@ -361,6 +361,7 @@
 .monaco-workbench .engine-clipboard-read-status,
 .monaco-workbench .engine-clipboard-clear-status,
 .monaco-workbench .engine-context-variable-read-status,
+.monaco-workbench .engine-skill-write-status,
 .monaco-workbench .engine-skill-body-status,
 .monaco-workbench .engine-agents-editor-status {
 	margin-top: 8px;
