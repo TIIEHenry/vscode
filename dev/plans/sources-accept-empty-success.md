@@ -4,7 +4,7 @@ type: plan
 status: draft
 phase: N/A
 updated: 2026-09-07
-summary: "R8/ADR-008 之后：Accept 空 session + 空 patches 宿主拒调 RPC，不当 accepted。真 path/hunks 须与 session 同刀。D31 F4 仍开。待 Architecture-First。"
+summary: "R8/ADR-008 之后：A1 宿主拒空已落（空 session 或空 patches 不调 RPC）。A2 真 path/hunks 须与 session 同刀。D31 F4 仍开。"
 ---
 
 # Sources Accept：空载荷宿主拒送
@@ -12,8 +12,8 @@ summary: "R8/ADR-008 之后：Accept 空 session + 空 patches 宿主拒调 RPC�
 > **slice_id**：`accept-empty-success-plan`  
 > **冲突域**：sources-git Accept payload  
 > **引擎语义不重审**：[ADR-008](../decisions/008-write-git-apply-hunks-empty.md) 已裁定空 `patches` = 成功空操作。本稿只定**产品** Accept 切片。  
-> **本刀不实施**。不发明 proto / hunk。不跑 F4。不占 D26。不做 D22/F3。不改引擎。  
-> **审查**：`draft`。主笔不自批；下一步独立 Architecture-First。未 Approve 不得标 `accepted`。
+> **A1 已实施**（工位 D `accept-refuse-empty`）。不发明 proto / hunk。不跑 F4。不占 D26。不做 D22/F3。不改引擎。A2 未开。  
+> **审查**：`draft`。Architecture-First 已 Approve 选项 A。整案不标 `accepted`（A2 未开）。
 
 ## Problem class
 
@@ -67,10 +67,10 @@ summary: "R8/ADR-008 之后：Accept 空 session + 空 patches 宿主拒调 RPC�
 
 | Slice | Goal | Files / Modules | Tests | Exit Condition |
 |:------|:-----|:----------------|:------|:---------------|
-| **A1** | 宿主拒空：空 session 或空 patches 不调 RPC | `sourcesChangesGitWrite.ts`；`conversationDiffReviewPane.ts` / `sourcesDiffPanelView.ts` 仅当需把 fallback 从 catch 纠到 `attempt` | `sourcesChangesGitWrite.test.ts`：空载荷 0 次 hook；两侧皆非空才原样上线；`attempt` → `fallback` | 空 Accept 不发 unary；有 SCM 落到 `git.stage`；无 SCM 诚实不可用；不发明 hunk |
+| **A1** | 宿主拒空：空 session 或空 patches 不调 RPC | `sourcesChangesGitWrite.ts`；`conversationDiffReviewPane.ts` / `sourcesDiffPanelView.ts` 仅当需把 fallback 从 catch 纠到 `attempt` | `sourcesChangesGitWrite.test.ts`：空载荷 0 次 hook；两侧皆非空才原样上线；`attempt` → `fallback` | **已落**（工位 D）：空 Accept 不发 unary；`undefined` → `runAccept` `git.stage`；不发明 hunk。Pane 调用未改（默认空 → 拒送） |
 | **A2** | （后续，非本方案实施）session + patches 同刀真 apply | 同上 + roster session；patches 须有非发明来源 | 两侧缺一仍 0 次 hook；完整载荷才 accepted | 有证据的 session 与 patches **同时**上线；禁止只改一侧 |
 
-A1 是下一实施刀。A2 等 patches 来源裁定后再开，不占本刀。
+A1 已实施。A2 等 patches 来源裁定后再开，不占本刀。
 
 ## D31 仍开（F4）
 
