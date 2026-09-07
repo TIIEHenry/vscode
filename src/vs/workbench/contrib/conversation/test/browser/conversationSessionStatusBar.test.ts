@@ -7,6 +7,7 @@ import assert from 'assert';
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import type { ConnectionPhase } from '../../../../../platform/universeAgent/common/connectionHubTypes.js';
+import { CommandsRegistry } from '../../../../../platform/commands/common/commands.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import type { UniverseAgentConnectionSnapshot } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { IWorkbenchEnvironmentService } from '../../../../services/environment/common/environmentService.js';
@@ -14,7 +15,7 @@ import { IStatusbarEntry, IStatusbarService, StatusbarAlignment } from '../../..
 import { IWorkbenchLayoutService } from '../../../../services/layout/browser/layoutService.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { isConversationEngineLive } from '../../browser/conversationSessionStatus.js';
-import { ConversationSessionStatusBarContribution } from '../../browser/conversationSessionStatusBar.js';
+import { ConversationSessionStatusBarContribution, registerConversationSessionStatusBar, ShowConversationPartAction } from '../../browser/conversationSessionStatusBar.js';
 import { IConversationRosterService } from '../../browser/conversationStubService.js';
 import { OPEN_CONNECTION_PREFERENCES_COMMAND_ID, OPEN_ENGINE_PREFERENCES_COMMAND_ID } from '../../common/uaPreferencesPanes.js';
 import { createConversationConnectionTestStub, createEmptyTestCapabilitySnapshot } from '../common/conversationConnectionTestStub.js';
@@ -169,6 +170,15 @@ suite('Conversation Session StatusBar', () => {
 		assert.strictEqual(isConversationEngineLive({ kind: 'connected', path: 'direct' }), true);
 		assert.strictEqual(isConversationEngineLive({ kind: 'connected', path: 'direct' }, true), false);
 		assert.strictEqual(isConversationEngineLive({ kind: 'connecting', reason: 'initial' }), false);
+	});
+
+	test('registerConversationSessionStatusBar is idempotent for showConversationPart', () => {
+		assert.doesNotThrow(() => {
+			registerConversationSessionStatusBar();
+			registerConversationSessionStatusBar();
+		});
+		assert.ok(CommandsRegistry.getCommand(ShowConversationPartAction.ID));
+		assert.strictEqual(ShowConversationPartAction.ID, 'workbench.action.showConversationPart');
 	});
 
 	suite('H4b ConnectionPhase status copy', () => {
