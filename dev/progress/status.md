@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-07
-summary: "loop/merge 已合入 agent-ide Connection/Engine chrome：Direct 接通已复证；Create 单飞+Resume 门面已合；Chat 仍被引擎空壳 ALREADY_EXISTS 挡住"
+summary: "loop/D error-retry：retryable error 行接 ContinueGeneration（roster→openContinuationStream）；lease.post 仍无 continueGeneration 臂（D29）"
 ---
 
 # Development Progress
@@ -51,7 +51,9 @@ summary: "loop/merge 已合入 agent-ide Connection/Engine chrome：Direct 接�
 
 Direct 接通已通。Chat 仍被引擎空壳 Create（目录在、`session_meta` 空、回 6）挡住；不要再清 `.sessions` 当主线。剩余：Resume 活路径复证、bind-failed 文案、catalog Model/Agent、`onDidApplyFrame` / `heartbeat_ack`。**U2 未开**。**PRD-008 不升 `implemented`**。
 
-`enqueueMessageQueueItem` 仍无 UI 入口；error 行重试按钮待引擎接线（不画假按钮）。
+`enqueueMessageQueueItem` 仍无 UI 入口。
+
+**D `error-retry`（未宣称 PRD-021 已验证）**：`retryable === true` 的 error 行画 Retry 按钮，点击走 `IConversationRosterService.retryError` → 已有 `openContinuationStream`（ContinueGeneration）。`retryable` 缺省/false 或未接线不画按钮（徽章保留）。`ConversationWriteMessage` 无 `continueGeneration` 臂，本槽禁止改 `sessionViewHost.ts`，故不经 lease.post / Actor localFact（[D29](deferred-gaps.md)）。
 
 Sources Changes/Review 读面（`loop/A`）：接通 + hook 走 `readGitChanges` / `readGitSummary`，打开行再 `readGitFileDiff`；断连 / 无 hook 回 SCM。
 
@@ -63,7 +65,7 @@ Sources Changes/Review 读面（`loop/A`）：接通 + hook 走 `readGitChanges`
 | A | `vscode-WorkTrees/A` | `loop/A` | Sources git 读面 | 本刀 |
 | B | `vscode-WorkTrees/B` | `loop/B` | 对齐 merge | idle |
 | C | `vscode-WorkTrees/C` | `loop/C` | 对齐 merge | idle |
-| D | `vscode-WorkTrees/D` | `loop/D` | 对齐 merge | idle |
+| D | `vscode-WorkTrees/D` | `loop/D` | ff→`bb4a7a9b395` + error-retry 未提交 | occupied `error-retry` |
 | edit | `Projects/Agents/vscode` | `agent-ide` | `a37916b6ab6`+CSS WIP | 请人类自行对齐；loop 不代同步 |
 
 ## Blockers
