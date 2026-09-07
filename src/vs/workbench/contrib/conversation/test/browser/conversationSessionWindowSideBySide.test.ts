@@ -30,6 +30,12 @@ suite('Conversation session window side-by-side (S5)', () => {
 		store.add(registerTestEditor(TEST_EDITOR_ID, [new SyncDescriptor(TestFileEditorInput), new SyncDescriptor(SideBySideEditorInput)], TEST_EDITOR_INPUT_ID));
 	});
 
+	function layoutConversationEditorParts(parts: Awaited<ReturnType<typeof createEditorParts>>): void {
+		for (const part of parts.conversationParts) {
+			part.layout(800, 600, 0, 0);
+		}
+	}
+
 	function trackConversationEditors(parts: Awaited<ReturnType<typeof createEditorParts>>): void {
 		for (const part of parts.conversationParts) {
 			for (const editor of part.activeGroup.editors) {
@@ -61,9 +67,10 @@ suite('Conversation session window side-by-side (S5)', () => {
 
 		const primaryId = rosterService.getActiveSessionId();
 		await sessionWindowService.ensurePrimaryWindow(primaryId);
+		layoutConversationEditorParts(parts);
 		trackConversationEditors(parts);
 
-		return { parts, rosterService, sessionWindowService, sessionChatService, primaryId };
+		return { parts, conversationPart, rosterService, sessionWindowService, sessionChatService, primaryId };
 	}
 
 	async function createSideBySideHarness() {
@@ -72,6 +79,7 @@ suite('Conversation session window side-by-side (S5)', () => {
 		harness.rosterService.switchSession(harness.primaryId);
 
 		await harness.sessionWindowService.openSessionBeside(secondaryId);
+		layoutConversationEditorParts(harness.parts);
 		trackConversationEditors(harness.parts);
 
 		return { ...harness, secondaryId };
@@ -148,5 +156,30 @@ suite('Conversation session window side-by-side (S5)', () => {
 
 		assert.strictEqual(secondaryPart.groups.length, 2);
 		assert.strictEqual(primaryPart.groups.length, 1);
+	});
+
+	test('ConversationPart.layout fans leaf host size to each conversation editor part', async () => {
+		const { conversationPart, parts, sessionWindowService, primaryId, secondaryId } = await createSideBySideHarness();
+		const primaryEditor = parts.conversationParts.find(part => part.sessionKey === primaryId);
+		const secondaryEditor = parts.conversationParts.find(part => part.sessionKey === secondaryId);
+		assert.ok(primaryEditor);
+		assert.ok(secondaryEditor);
+		assert.strictEqual(primaryEditor.contentDimension.width, 800);
+		assert.strictEqual(primaryEditor.contentDimension.height, 600);
+
+		const resized = { width: 640, height: 480 };
+		for (const sessionKey of [primaryId, secondaryId]) {
+			const host = sessionWindowService.getLeafSlots(sessionKey)?.editorPartHost;
+			assert.ok(host);
+			Object.defineProperty(host, 'clientWidth', { configurable: true, get: () => resized.width });
+			Object.defineProperty(host, 'clientHeight', { configurable: true, get: () => resized.height });
+		}
+
+		conversationPart.layout(1280, 502, 0, 0);
+
+		assert.strictEqual(primaryEditor.contentDimension.width, resized.width);
+		assert.strictEqual(primaryEditor.contentDimension.height, resized.height);
+		assert.strictEqual(secondaryEditor.contentDimension.width, resized.width);
+		assert.strictEqual(secondaryEditor.contentDimension.height, resized.height);
 	});
 });

@@ -586,10 +586,20 @@ export class ConversationLens extends Disposable {
 	}
 
 	relayoutReadingSurfaces(): void {
-		if (this.lastReadingWidth < 1) {
-			return;
+		let width = this.lastReadingWidth;
+		let height = this.lastReadingHeight;
+		if (width < 1 || height < 1) {
+			const measuredWidth = Math.floor(this.readingColumn?.clientWidth ?? 0);
+			const measuredHeight = Math.floor(this.readingColumn?.clientHeight ?? 0);
+			if (measuredWidth < 1 || measuredHeight < 1) {
+				return;
+			}
+			width = measuredWidth;
+			height = measuredHeight;
+			this.lastReadingWidth = width;
+			this.lastReadingHeight = height;
 		}
-		layoutReadingSurfaces(this, this.lastReadingHeight, this.lastReadingWidth);
+		layoutReadingSurfaces(this, height, width);
 	}
 
 	beginTurnEdit(turnId: string): void {

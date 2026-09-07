@@ -2300,8 +2300,16 @@
 	left: 12px;
 }
 
-/* Input Maximize — stays inside Conversation column (Desktop §8.3.11) */
-.monaco-workbench .part.conversation .conversation-timeline.conversation-lens-input-maximized:not(:has(.conversation-lens-phase-prefirst)) {
+/* Input Maximize — stays inside Conversation column (Desktop §8.3.11).
+ * Hide only the Conversation tree. Trajectory shares `.conversation-timeline`
+ * and cannot paint virtual rows if the whole slot is `display:none` (D42).
+ * Collapse the shared slot on the Conversation page only so the dock expands.
+ */
+.monaco-workbench .part.conversation .conversation-timeline.conversation-lens-input-maximized:not(:has(.conversation-lens-phase-prefirst)) .conversation-lens-timeline {
+	display: none;
+}
+
+.monaco-workbench .part.conversation .conversation-timeline.conversation-lens-input-maximized:not(:has(.conversation-lens-phase-prefirst)):not(.conversation-lens-showing-trajectory) {
 	display: none;
 }
 

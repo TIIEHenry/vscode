@@ -78,6 +78,7 @@ suite('ConversationOpenPendingOnFocusContribution', () => {
 
 	test('Part focus with no pending seats does not scroll', () => {
 		const { roster, revealCalls, fireFocus } = mount();
+		roster.createSession();
 		assert.strictEqual(roster.countPendingConfirmations(roster.getActiveSessionId()), 0);
 		fireFocus();
 		assert.deepStrictEqual(revealCalls, []);

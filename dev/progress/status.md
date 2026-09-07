@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-07
-summary: "FileMutationJoin / createScoped / Review 委托已修。D16 仍开。A2 仍 blocked。字母槽 idle"
+summary: "FileMutationJoin / createScoped / Review 委托已修。D16 仍开。T5a harness 补 mocha _uncaught 吞 ResizeObserver loop。B 槽 statusbar 注册已幂等。A2 仍 blocked。"
 ---
 
 # Development Progress
@@ -56,10 +56,14 @@ summary: "FileMutationJoin / createScoped / Review 委托已修。D16 仍开。A
 1. **集成 tip** 以 merge 本关仓提交为准（FileMutationJoin A=`10d8dd3b143`；createScoped B=`9c49eb5b978`；Review 委托 D=`60dbf139ac1`）。`npm run compile` 仍基线 unused 红则 **不 push**。GFS >800 不拆。D22/F3 已撤回。不跑 F4 / 不实施 A2。
 2. 本波字母槽已进 merge：
    - **A**：`filemutation-join` — 无 `diff_stats` 时 omit optional `diffStats`。unit-custom XML 脚本仍在。**[D16](deferred-gaps.md) 仍开**。
-   - **B**：`create-scoped` — harness 补 `IStatusbarService.createScoped`，S1a uniqueness 已绿、未缩断言。DiffReview afterEach 已修。**[D16](deferred-gaps.md) 仍开**。
-   - **C**：`inbox-getqueue-honesty` — catalog / connection **无** GetQueue / ListQueue，未发明 RPC。接通 / 断连缓存 Inbox 文案「Queue not listed」，stub fixture 不得冒充引擎队列；测锁 overlay / roster / stub。[D37](deferred-gaps.md) **仍闭**；缺 list-queue 记 [D24](deferred-gaps.md)。勿 add `dev/loop`。
-   - **D**：`review-entries` — 测改 `function ()` 把 mocha host 交给 `toResource`。A2 P5 停线仍在。**[D16](deferred-gaps.md) 仍开**。
+   - **B**：`create-scoped` — harness 补 `IStatusbarService.createScoped`，S1a uniqueness 已绿、未缩断言。DiffReview afterEach 已修。本刀 `sessions-openpending-harness`：SessionsView 四行 + OpenPending 无 pending 夹具对齐 untitled+visualize seed，未缩断言；**[D16](deferred-gaps.md) 仍开**。本 wake **`d42-maximize-trajectory`**：Maximize 只藏 `.conversation-lens-timeline`；铺行路径改为忽略 0 尺寸 ResizeObserver / `layout(0)` 卸行，T5a 铺行测 `revealRecord('untitled-u1')`（无 `display:block`）。[D42](deferred-gaps.md) **已闭**（merge compile 后 CSS+铺行 2/2）。未关 D16 / 未占 D22·D26·A2。
+   - **C**：`inbox-getqueue-honesty` — catalog / connection **无** GetQueue / ListQueue，未发明 RPC。接通 / 断连缓存 Inbox 文案「Queue not listed」，stub fixture 不得冒充引擎队列；测锁 overlay / roster / stub。[D37](deferred-gaps.md) **仍闭**；缺 list-queue 记 [D24](deferred-gaps.md)。勿 add `dev/loop`。本 wake leftover：lens visualize / T5a reveal / trajectory 座名 / process fold 夹具；maximize 整槽已交 [D42](deferred-gaps.md)（B 槽已闭）。**勿 add `dev/loop`**。
+   - **D**：`review-entries` — 测改 `function ()` 把 mocha host 交给 `toResource`。A2 P5 停线仍在。**[D16](deferred-gaps.md) 仍开**。本 wake leftover：**S4/S5** 首次 layout 已落；[D43](deferred-gaps.md) **已闭**（`ConversationPart.layout` 按叶 host 扇出 + resize 测）。未关 D16 / 未占 D26·D22·F4·A2。
 3. **D15 / W1 笔记（工位 A，未占 工位表）**：`scripts/code-web.sh --browserType none --host 127.0.0.1 --port 18080` 已起；V1 Conversation / V2 四钮 + `UniverseAgentStudio Dev` / V3 Connection·Engine 省略桌面连接控件均 **PASS**。`IUniverseAgentConnection.getConnectionPhase()` = `disconnected`；页内点名「此环境不支持本机 Engine 连接」。证据 [d15-evidence/w1-1556dde3](d15-evidence/w1-1556dde3/)。**D15 可闭**；不升 PRD-019。未跑 compile / F4 / 引擎仓。
+4. **A 槽 `statusbar-leftover`（未关 D16 / 未改名单）**：D17 leftover Conversation Session StatusBar 簇。生产相位文案 / pairingPending 闸门未改。测夹具去掉二次 `registerAction2`（与 `conversation.contribution` 撞 `showConversationPart`）、roster 改 `Event.None`、切换测 Emitter 入 store。未缩断言。
+5. **A 槽 `visualize-leftover`（未关 D16 / 未改名单 / 未降 min_cases）**：D17 Lens visualize 两行。默认 360px 虚窗不再保证 comparison 已挂 DOM。两测在查询前 `revealVisualizeTurn(..., 'visualize-v2')`，未缩「无 Agent header」/ collapse 合同。未改生产 visualize。
+6. **A 槽 `lens-ro-uncaught`（未关 D16 / 未占 D24·D26·D22·A2·F4 / unused-import）**：T5a 全套会被 mocha Uncaught `ResizeObserver loop completed with undelivered notifications` 打断。leftover 的 capture/`window.onerror` 不够（mocha.run 把 `Runner#_uncaught` 绑到 onerror，通过后异步再来会 `abort()`）。harness 在 loadTests 时补丁 `_uncaught`，并吞 Node `uncaughtException` / `errorHandler` 同文案。未缩产品断言。
+7. **B 槽 `statusbar-register-idempotent`（未关 D16）**：`registerConversationSessionStatusBar` 见已注册的 `workbench.action.showConversationPart` 则返回，二次调用不抛。生产仍只在 `conversation.contribution` 调一次。未发明新命令。
 
 子 agent 发现的既有代码问题：
 
@@ -84,17 +88,20 @@ summary: "FileMutationJoin / createScoped / Review 委托已修。D16 仍开。A
 | [D35](deferred-gaps.md) | B 槽 `timeline-hygiene` | **closed** 删 `getTimelineRowElement` 死第二段 query |
 | [D36](deferred-gaps.md) | B 槽 `timeline-hygiene` | **closed** standalone thinking/tool 诚实摘要行，无假 fold |
 | [D15](deferred-gaps.md) | A 槽 `d15-web-evidence` | **closed** W1 `code-web.sh` V1–V3 PASS；phase=`disconnected`；不画桌面连接控件；证据 w1-1556dde3 |
+| [D42](deferred-gaps.md) | B 槽 `d42-maximize-trajectory` | **closed** merge compile 后 CSS+铺行两测绿 |
+| [D43](deferred-gaps.md) | D 槽 leftover | **closed** `ConversationPart.layout` 按叶 host 尺寸再 layout 各 conversation editor part；resize 测已补 |
+| [D44](deferred-gaps.md) | B 本波 | **仍开** `registerUaPreferencesNavigationActions` 与 contribution 二次注册会撞 id；未改 |
 
 ## 工位表（P0 盘点 · 2026-09-07 · 与 `git worktree list` 对照）
 
 | 槽 | 路径 | 分支 | tip | 脏 | stash | 关仓状态 |
 |----|------|------|-----|:--|:------|:---------|
-| merge | `vscode-WorkTrees/merge` | `loop/merge` | 本关仓提交 | 0 | 0 | parked；compile 基线 unused 仍红，**不 push** |
+| merge | `vscode-WorkTrees/merge` | `loop/merge` | 本关仓提交 | `__pycache__` | 0 | parked；compile 基线 unused 仍红，**不 push** |
 | A | `vscode-WorkTrees/A` | `loop/A` | 对齐本关仓提交 | `__pycache__` | 0 | idle |
 | B | `vscode-WorkTrees/B` | `loop/B` | 对齐本关仓提交 | `__pycache__` | 0 | idle |
 | C | `vscode-WorkTrees/C` | `loop/C` | 对齐本关仓提交 | 未提交 `dev/loop` + `__pycache__` | 0 | idle；勿 add `dev/loop` |
 | D | `vscode-WorkTrees/D` | `loop/D` | 对齐本关仓提交 | `__pycache__` | 0 | idle |
-| edit | `Projects/Agents/vscode` | `agent-ide` | `a40a95d1e85`+ | `dev/loop` | 0 | 人类工位；请自行对齐本关仓提交 |
+| edit | `Projects/Agents/vscode` | `agent-ide` | `a40a95d1e85`+ | `dev/loop` + 过期 progress | 0 | 人类工位；请自行对齐本关仓提交 |
 
 ## Blockers
 
@@ -105,7 +112,8 @@ summary: "FileMutationJoin / createScoped / Review 委托已修。D16 仍开。A
 | 项 | 指针 |
 |:---|:-----|
 | **引擎空壳 Create** | [D26](deferred-gaps.md) — 空 store 首次 Create 仍 `ALREADY_EXISTS` 且不写 meta；不要再清 store |
-| **test-baseline** | FileMutationJoin / createScoped / Review 委托已修。**D16 仍开**；勿开切片 1「已归零」 |
+| **test-baseline** | D17 名单 0 数据行。merge 复测 T5a 全文件 10/10、StatusBar 15/15。**D16 仍开**；勿开切片 1「已归零」；勿降 `min_cases` |
+| **D44** | [deferred-gaps](deferred-gaps.md) — preferences 导航二次注册撞 id；未改 |
 | **U2 闸门** | [ADR-007](../decisions/007-upstream-sync.md) Decision 5 — 须 U0 `comm` 空 + U1 完成 + CI 绿 + merge 独占 + A 表冻结；**未满足前不开 U2** |
 
 ## 不做

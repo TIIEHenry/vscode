@@ -5,33 +5,4 @@
 # mocha-junit-reporter 本 runner：classname=test.title，name=test.fullTitle()
 # 只登记 unit-custom 三域 + universeAgentNode；D16 三文件在本 SHA 仍 0 failing，未列入
 # universeAgentNode = D17 那 11 个 Electron 不可加载文件，改由 Node runner 跑，418 条 0 failing
-# 采集：工位 A loop/A @ d2abb648c0e；DiffReview afterEach 六行已由 B `diffreview-leak` 删；S1a createScoped 一行已由 B `create-scoped` 删（harness 补 IStatusbarService.createScoped，未缩断言）
-CONVERSATION_SIDE_GROUP increases conversation editor part group count::Conversation session split (S4) CONVERSATION_SIDE_GROUP increases conversation editor part group count
-Part focus with no pending seats does not scroll::ConversationOpenPendingOnFocusContribution Part focus with no pending seats does not scroll
-appendUserTurn updates roster subtitle to 1 message::ConversationSessionsView appendUserTurn updates roster subtitle to 1 message
-engine entry command switches when engine connection changes::Conversation Session StatusBar engine entry command switches when engine connection changes
-engine entry exposes openConnectionPreferences when disconnected::Conversation Session StatusBar engine entry exposes openConnectionPreferences when disconnected
-engine entry exposes openEnginePreferences when connected::Conversation Session StatusBar engine entry exposes openEnginePreferences when connected
-engine entry opens Connection when roster is connected but phase is not::Conversation Session StatusBar engine entry opens Connection when roster is connected but phase is not
-filter does not reorder sessions in the roster::ConversationSessionsView filter does not reorder sessions in the roster
-getConversationTurnRoleLabel maps stub turn kinds::ConversationTrajectoryList getConversationTurnRoleLabel maps stub turn kinds
-hide split column preserves group model without rendering the column::Conversation session split (S4) hide split column preserves group model without rendering the column
-lists stub session titles and highlights the active session::ConversationSessionsView lists stub session titles and highlights the active session
-navigate from trajectory restores timeline when input is maximized::ConversationLens reveal navigation (T5a) navigate from trajectory restores timeline when input is maximized
-pairing pending keeps Engine not connected even when phase is connecting::Conversation Session StatusBar H4b ConnectionPhase status copy pairing pending keeps Engine not connected even when phase is connecting
-pairing pending opens Connection even when phase is connected::Conversation Session StatusBar H4b ConnectionPhase status copy pairing pending opens Connection even when phase is connected
-phase connected shows "Engine · Direct"::Conversation Session StatusBar H4b ConnectionPhase status copy phase connected shows "Engine · Direct"
-phase connected shows "Engine · Hub relay"::Conversation Session StatusBar H4b ConnectionPhase status copy phase connected shows "Engine · Hub relay"
-phase connecting shows "Connecting…"::Conversation Session StatusBar H4b ConnectionPhase status copy phase connecting shows "Connecting…"
-phase connecting shows "Reconnecting…"::Conversation Session StatusBar H4b ConnectionPhase status copy phase connecting shows "Reconnecting…"
-phase disconnected shows "Engine not connected"::Conversation Session StatusBar H4b ConnectionPhase status copy phase disconnected shows "Engine not connected"
-phase failed shows "Pin mismatch"::Conversation Session StatusBar H4b ConnectionPhase status copy phase failed shows "Pin mismatch"
-projectProcessFoldSpans splits on user, assistant, and confirmation::ConversationProcessFold projectProcessFoldSpans splits on user, assistant, and confirmation
-seed session row shows title and No messages subtitle::ConversationSessionsView seed session row shows title and No messages subtitle
-show split column restores hidden column rendering::Conversation session split (S4) show split column restores hidden column rendering
-splitSessionWindow adds a second group in the same conversation part::Conversation session split (S4) splitSessionWindow adds a second group in the same conversation part
-splitSessionWindow targets a specific parallel session part by session key::Conversation session window side-by-side (S5) splitSessionWindow targets a specific parallel session part by session key
-subtool trajectory row navigates to parent tool turn in Conversation lens::ConversationLens reveal navigation (T5a) subtool trajectory row navigates to parent tool turn in Conversation lens
-trajectory linked row click switches to Conversation lens and reveals the turn::ConversationLens reveal navigation (T5a) trajectory linked row click switches to Conversation lens and reveals the turn
-visualize card header collapses and expands body::ConversationLens visualize card header collapses and expands body
-visualize seed session renders two visualization cards without Agent header::ConversationLens visualize seed session renders two visualization cards without Agent header
+# 采集：工位 A loop/A @ d2abb648c0e；本关仓 merge `a90517cf774` 复证后 29 行 leftover 均已从名单删除（visualize 两行补 reveal 后 3/3 绿）。min_cases 未降。D16 仍开。

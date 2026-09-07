@@ -170,9 +170,15 @@ suite('ConversationSessionsView', () => {
 		return view.element.querySelector('.conversation-sessions-list')?.textContent?.toLowerCase() ?? '';
 	}
 
+	/** Default stub seeds untitled (7 turns + pending) and visualize. Empty-row cases need a new session. */
+	function activateEmptySession(stubService: ConversationStubService): ConversationStubSession {
+		stubService.createSession();
+		return stubService.getActiveSession();
+	}
+
 	test('seed session row shows title and No messages subtitle', () => {
 		const { view, stubService } = mountView();
-		const session = stubService.getActiveSession();
+		const session = activateEmptySession(stubService);
 		const row = view.element.querySelector('.conversation-sessions-item-active');
 		assert.ok(row);
 		assert.strictEqual(row?.querySelector('.conversation-sessions-item-label')?.textContent, session.title);
@@ -182,7 +188,7 @@ suite('ConversationSessionsView', () => {
 
 	test('appendUserTurn updates roster subtitle to 1 message', () => {
 		const { view, stubService } = mountView();
-		const sessionId = stubService.getActiveSessionId();
+		const sessionId = activateEmptySession(stubService).id;
 		stubService.appendUserTurn(sessionId, 'Hello from roster test');
 
 		const subtitle = view.element.querySelector('.conversation-sessions-item-active .conversation-sessions-item-subtitle');
@@ -219,7 +225,7 @@ suite('ConversationSessionsView', () => {
 		const activeRow = view.element.querySelector('.conversation-sessions-item-active');
 		assert.ok(activeRow);
 		assert.strictEqual(activeRow?.querySelector('.conversation-sessions-item-label')?.textContent, sessions[activeIndex].title);
-		assert.strictEqual(secondId, sessions[1].id);
+		assert.strictEqual(secondId, sessions[2].id);
 	});
 
 	test('active highlight follows getActiveSessionId when session switches', () => {
@@ -477,6 +483,11 @@ suite('ConversationSessionsView', () => {
 		const { view, stubService } = mountView();
 		const firstId = stubService.getActiveSessionId();
 		stubService.renameSession(firstId, 'Zulu session');
+		for (const session of stubService.getSessions()) {
+			if (!session.title.toLowerCase().includes('session')) {
+				stubService.renameSession(session.id, 'Yankee session');
+			}
+		}
 		const secondId = stubService.createSession();
 		stubService.renameSession(secondId, 'Alpha session');
 		const thirdId = stubService.createSession();

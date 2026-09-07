@@ -545,6 +545,14 @@ export interface IConversationEditorPart extends IEditorPart {
 	setGroupHidden(group: IEditorGroup | GroupIdentifier, hidden: boolean): void;
 
 	isGroupHidden(group: IEditorGroup | GroupIdentifier): boolean;
+
+	/**
+	 * Leaf host element, or `undefined` before creation. The owning
+	 * ConversationPart reads it to size this leaf on chrome resize.
+	 */
+	getContainer(): HTMLElement | undefined;
+
+	layout(width: number, height: number, top: number, left: number): void;
 }
 
 export interface IAuxiliaryEditorPart extends IEditorPart {

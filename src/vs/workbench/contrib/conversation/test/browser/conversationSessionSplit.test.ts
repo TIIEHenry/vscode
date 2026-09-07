@@ -10,7 +10,7 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/tes
 import { SyncDescriptor } from '../../../../../platform/instantiation/common/descriptors.js';
 import { Registry } from '../../../../../platform/registry/common/platform.js';
 import { findGroup } from '../../../../services/editor/common/editorGroupFinder.js';
-import { IEditorGroupsService } from '../../../../services/editor/common/editorGroupsService.js';
+import { IEditorGroupsService, type IConversationEditorPart } from '../../../../services/editor/common/editorGroupsService.js';
 import { CONVERSATION_SIDE_GROUP, SIDE_GROUP } from '../../../../services/editor/common/editorService.js';
 import { EditorExtensions, IEditorFactoryRegistry } from '../../../../common/editor.js';
 import { createEditorParts, registerTestEditor, TestFileEditorInput, workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
@@ -29,6 +29,10 @@ suite('Conversation session split (S4)', () => {
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
 	const disposables = store as unknown as DisposableStore;
 
+	function layoutConversationEditorPart(part: IConversationEditorPart): void {
+		part.layout(800, 600, 0, 0);
+	}
+
 	setup(() => {
 		store.add(registerTestEditor(TEST_EDITOR_ID, [new SyncDescriptor(TestFileEditorInput), new SyncDescriptor(SideBySideEditorInput)], TEST_EDITOR_INPUT_ID));
 	});
@@ -44,11 +48,15 @@ suite('Conversation session split (S4)', () => {
 		instantiationService.stub(IEditorGroupsService, parts);
 
 		const editorHost = document.createElement('div');
+		editorHost.style.width = '800px';
+		editorHost.style.height = '600px';
 		document.body.appendChild(editorHost);
 		store.add({ dispose: () => editorHost.remove() });
 
 		const conversationPart = parts.createConversationEditorPart(editorHost, SESSION_KEY);
 		await conversationPart.whenReady;
+		layoutConversationEditorPart(conversationPart);
+		conversationPart.activeGroup.focus();
 
 		const sessionChatService = disposables.add(instantiationService.createInstance(ConversationSessionChatService));
 		store.add(sessionChatService.registerPartListeners(conversationPart));

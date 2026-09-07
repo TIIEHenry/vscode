@@ -3,7 +3,7 @@ title: "Conversation 系统概览"
 type: overview
 status: accepted
 phase: N/A
-updated: 2026-09-03
+updated: 2026-09-07
 summary: "三层：Part 槽宿主 → contrib 产品 chrome → EngineRoster / stub 帧源；关键符号表；与 Chat / Sessions / Agent Host 边界"
 ---
 
@@ -42,7 +42,7 @@ summary: "三层：Part 槽宿主 → contrib 产品 chrome → EngineRoster / s
 
 | 符号 | 文件 | 作用 |
 |------|------|------|
-| `ConversationPart` / `IConversationPartService` | `browser/parts/conversation/conversationPart.ts` | Part 本体；`onDidCreateSlots`、`getSlots()`、`focus()` |
+| `ConversationPart` / `IConversationPartService` | `browser/parts/conversation/conversationPart.ts` | Part 本体；`onDidCreateSlots`、`getSlots()`、`focus()`；`layout` 按叶 host 尺寸再 layout 各 conversation editor part |
 | `partRegionHideControl.ts` | 同目录 | Conversation / Sources 区域内的 hide（−）控件，走 `setPartHidden` |
 | `IConversationSessionWindowService` | `contrib/conversation/browser/conversationSessionWindowService.ts` | session 窗口叶：`ensurePrimaryWindow`、`openSessionBeside`、`hide/restoreSessionWindow`；`CONVERSATION_SESSION_WINDOW_MAX_LEAVES = 2` |
 | `IConversationSessionChatService` | `conversationSessionChatService.ts` | 每 session 的 chat catalog（root / fork / tool / sideChat）、fork tab、子代理 overlay、面包屑、关非根、split |
