@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-08
-summary: "FileMutationJoin / createScoped / Review 委托已修。D16 仍开。官方三域 glob 已绿。D44–D63 已闭。Team leftover 已清。Connection listDevices/listPending throw 保留末次快照并画失败 note。renameDevice / 成功后 refreshDirectory throw 画 hubDirectoryBanner。Snapshots / MCP Add·Update·Remove·toggle / Skills create·toggle / Agents / Tools enablement 写失败 write-status 已挂载（不卸行）。Agents Tools 页 listTools throw 画 failed 而非 empty。git-read / open-diff / Stage·Commit / Unstage throw 与 Stage·Commit ok:false status DOM 已挂载。A2 仍 blocked。"
+summary: "FileMutationJoin / createScoped / Review 委托已修。D16 仍开。官方三域 glob 已绿。D44–D64 已闭。Team leftover 已清。Connection listDevices/listPending throw 保留末次快照并画失败 note。renameDevice / 成功后 refreshDirectory throw 画 hubDirectoryBanner。login / changePassword throw 画 hubAuthBadge。Snapshots / MCP Add·Update·Remove·toggle / Skills create·toggle / Agents / Tools enablement 写失败 write-status 已挂载（不卸行）。Agents Tools 页 listTools throw 画 failed 而非 empty。git-read / open-diff / Stage·Commit / Unstage throw 与 Stage·Commit ok:false status DOM 已挂载。A2 仍 blocked。"
 ---
 
 # Development Progress
@@ -92,6 +92,7 @@ summary: "FileMutationJoin / createScoped / Review 委托已修。D16 仍开。�
 33. **B 槽 `mcp-toggle-status`（未关 D16 / 未发明 GetQueue / proto / 未碰 F4 / 引擎 / `.sessions` / `dev/loop` / unused-import / D26）**：`toggleServer` `toggleMcpServer` `{ ok:false }` / throw 画 catalog write-status（`showWriteFailed`），**不** `clearCatalogPresentation`（会卸行）；refresh 只用来回退 checkbox。测锁 status DOM + 行仍在。[D60](deferred-gaps.md) **已闭**。未 compile。未重做 Add/Update/Remove。
 34. **A 槽 `hub-rename-throw`（未关 D16 / 未发明 GetQueue / proto / 未碰 F4 / 引擎 / `.sessions` / `dev/loop` / unused-import / D26 / login·changePassword）**：`handleRenameSelectedDevice` 给 `renameDevice` / 成功后 `refreshDirectory` 补与 rotate/revoke 同级 catch，throw 画 `hubDirectoryBanner`。`!result.ok` 原路径未改。测锁 rename throw 画 `.connection-hub-directory-banner`。[D62](deferred-gaps.md) **已闭**。未 compile。
 35. **B 槽 `agents-tools-leftover`（未关 D16 / 未发明 GetQueue / proto / 未碰 F4 / 引擎 / `.sessions` / `dev/loop` / unused-import / D26）**：`ensureAgentToolsLoaded` catch 跟踪 `agentToolsLoadFailed`；`renderAgentTools` 画 `toolsStatus` `mode:'failed'` + `getCatalogFailedCopy`，不再把 throw 画成接通 empty。`clearCatalogPresentation` / 成功 load 清旗。测锁 `.engine-agents-tools-panel .engine-catalog-status-widget[data-catalog-mode="failed"]`。[D63](deferred-gaps.md) **已闭**。未 compile。未改 `connectionPreferencesPane.ts`。
+36. **A 槽 `hub-login-throw`（未关 D16 / 未发明 GetQueue / proto / 未碰 F4 / 引擎 / `.sessions` / `dev/loop` / unused-import / D26 / 未重做 D62 rename）**：`handleLogin` / `handleChangePassword` 给 `login` / `changePassword` 补与 `!result.ok` 同目标 catch，throw 画 `hubAuthBadge`。`!result.ok` 原路径未改。测锁 login / changePassword throw 画 `.connection-hub-auth-badge`。[D64](deferred-gaps.md) **已闭**。未 compile。
 
 子 agent 发现的既有代码问题：
 
@@ -138,6 +139,7 @@ summary: "FileMutationJoin / createScoped / Review 委托已修。D16 仍开。�
 | [D61](deferred-gaps.md) | D 槽 `connection-list-leftover` | **closed** `listDevices` / `listPending` throw 保留末次快照并画失败 note，不成静默空；未关 D16 / 未占 D60 |
 | [D62](deferred-gaps.md) | A 槽 `hub-rename-throw` | **closed** `renameDevice` / 成功后 `refreshDirectory` throw 画 `hubDirectoryBanner`；未关 D16；未做 login/changePassword |
 | [D63](deferred-gaps.md) | B 槽 `agents-tools-leftover` | **closed** Agents Tools 页 `listTools` throw 画 `toolsStatus` `failed`，不再假装 empty；未关 D16 |
+| [D64](deferred-gaps.md) | A 槽 `hub-login-throw` | **closed** `login` / `changePassword` throw 画 `hubAuthBadge`；未关 D16；未重做 D62 rename |
 
 ## 工位表（P0 盘点 · 2026-09-07 · 与 `git worktree list` 对照）
 

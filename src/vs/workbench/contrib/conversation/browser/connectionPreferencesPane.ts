@@ -961,30 +961,40 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		const email = this.hubEmailInput.value.trim();
 		const password = this.hubPasswordInput.value;
 		this.hubService.setActiveHubBaseUrl(hubBaseUrl || undefined);
-		const result = await this.hubService.login(hubBaseUrl, email, password);
-		if (!result.ok) {
-			writeStatus(this.hubAuthBadge, result.reason, 'error');
-			return;
+		try {
+			const result = await this.hubService.login(hubBaseUrl, email, password);
+			if (!result.ok) {
+				writeStatus(this.hubAuthBadge, result.reason, 'error');
+				return;
+			}
+			this.renderHubAccount();
+			if (this.hubService.getAuthStatus().kind === 'mustChangePassword') {
+				return;
+			}
+			this.hubPasswordInput.value = '';
+			this.hubNewPasswordInput.value = '';
+		} catch (error) {
+			const reason = error instanceof Error && error.message ? error.message : String(error);
+			writeStatus(this.hubAuthBadge, reason, 'error');
 		}
-		this.renderHubAccount();
-		if (this.hubService.getAuthStatus().kind === 'mustChangePassword') {
-			return;
-		}
-		this.hubPasswordInput.value = '';
-		this.hubNewPasswordInput.value = '';
 	}
 
 	private async handleChangePassword(): Promise<void> {
 		const oldPassword = this.hubPasswordInput.value;
 		const newPassword = this.hubNewPasswordInput.value;
-		const result = await this.hubService.changePassword(oldPassword, newPassword);
-		if (!result.ok) {
-			writeStatus(this.hubAuthBadge, result.reason, 'error');
-			return;
+		try {
+			const result = await this.hubService.changePassword(oldPassword, newPassword);
+			if (!result.ok) {
+				writeStatus(this.hubAuthBadge, result.reason, 'error');
+				return;
+			}
+			this.hubPasswordInput.value = '';
+			this.hubNewPasswordInput.value = '';
+			this.renderHubAccount();
+		} catch (error) {
+			const reason = error instanceof Error && error.message ? error.message : String(error);
+			writeStatus(this.hubAuthBadge, reason, 'error');
 		}
-		this.hubPasswordInput.value = '';
-		this.hubNewPasswordInput.value = '';
-		this.renderHubAccount();
 	}
 
 	private async handleLogout(): Promise<void> {
