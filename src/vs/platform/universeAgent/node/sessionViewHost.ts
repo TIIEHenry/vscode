@@ -24,7 +24,8 @@ import type { CoreIntent, HistoryFillCoreIntent } from './sessionCore/intents.js
 import { isChatCoreIntent, isHistoryFillCoreIntent } from './sessionCore/intents.js';
 import type { CoreMessage, CorrelationRef, PostOutcome, ViewFrameAck, ViewFrameSink } from './sessionCore/messages.js';
 import type { SessionId, ViewFrame, ViewLeaseId, ViewPatch } from '../common/sessionView/types.js';
-import type { AttemptId, DiagnosticMetric, DiagnosticsPort, TimerId } from './sessionCore/ports.js';
+import type { AttemptId, ChatWriteId, DiagnosticMetric, DiagnosticsPort, TimerId } from './sessionCore/ports.js';
+import { HOST_WRITE_RECEIPT_SOURCE } from './sessionCore/host-write-receipt.js';
 import type { UniverseAgentChatStream } from '../common/universeAgentTypes.js';
 import { demuxSessionStreamPayload, localFactFromQuestionArm } from './sessionStreamDemux.js';
 import { OverlayDeltaJoin } from './overlayDeltaJoin.js';
@@ -937,7 +938,7 @@ export class SessionViewHost extends Disposable {
 				break;
 			default:
 				if (isChatCoreIntent(intent) && intent.do === 'chatStreamWrite') {
-					void this.writeChat(sessionId, intent.correlation, intent.payload, intent.chatAttemptId);
+					void this.writeChat(sessionId, intent.correlation, intent.payload, intent.chatAttemptId, intent.writeId);
 				} else if (isHistoryFillCoreIntent(intent)) {
 					void this.fillHistory(sessionId, intent);
 				} else {
@@ -1251,15 +1252,18 @@ export class SessionViewHost extends Disposable {
 		}
 	}
 
-	private async writeChat(sessionId: string, correlation: CorrelationRef, payload: unknown, chatAttemptId: AttemptId): Promise<void> {
+	private async writeChat(sessionId: string, correlation: CorrelationRef, payload: unknown, chatAttemptId: AttemptId, writeId: ChatWriteId): Promise<void> {
 		const sid = sessionId as SessionId;
-		const mark = (status: 'written' | 'failed', errorMessage?: string) => {
+		const mark = (status: 'accepted' | 'failed', errorMessage?: string) => {
 			this.postAndDrain(sid, {
 				t: 'localFact',
 				fact: {
 					kind: 'inputDelivery',
 					messageId: String(correlation),
 					status,
+					source: HOST_WRITE_RECEIPT_SOURCE,
+					writeId: String(writeId),
+					chatAttemptId: String(chatAttemptId),
 					...(errorMessage !== undefined ? { errorMessage } : {}),
 				},
 			});
@@ -1280,7 +1284,7 @@ export class SessionViewHost extends Disposable {
 		if (resident && resident.chatAttemptId === chatAttemptId) {
 			try {
 				resident.write(wirePayload);
-				mark('written');
+				mark('accepted');
 			} catch {
 				mark('failed', 'Chat write failed');
 			}
@@ -1291,7 +1295,7 @@ export class SessionViewHost extends Disposable {
 				sessionId: engineSessionId,
 				payload: wirePayload,
 			}, () => {
-				mark('written');
+				mark('accepted');
 			});
 		} catch {
 			mark('failed', 'Chat write failed');

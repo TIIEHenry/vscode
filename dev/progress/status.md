@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-08
-summary: "FileMutationJoin / createScoped / Review 委托已修。D16 仍开。官方三域 glob 已绿。D44–D50 已闭。git-read / open-diff / Stage·Commit throw status DOM 已挂载。A2 仍 blocked。"
+summary: "FileMutationJoin / createScoped / Review 委托已修。D16 仍开。官方三域 glob 已绿。D44–D51 已闭。git-read / open-diff / Stage·Commit throw status DOM 已挂载。A2 仍 blocked。"
 ---
 
 # Development Progress
@@ -77,6 +77,7 @@ summary: "FileMutationJoin / createScoped / Review 委托已修。D16 仍开。�
 18. **B 槽 `mcp-skills-leftover-clear`（未关 D16 / 未转 listTools / 未发明 GetQueue）**：`engineMcpSection.refresh` / `engineSkillsSection.refresh` catch 先 `clearCatalogPresentation` 再 `failed`。补成功→throw 测：`getMode()==='failed'` 且 `getListEntryCount()===0`。首拉 / disconnect 测保留。父约束未 compile。[D49](deferred-gaps.md) **已闭**。
 19. **D 槽 `changes-stage-commit-dom`（未关 D16 / 未关 D31 / 未跑 F4 / 未开 A2）**：Changes 挂载后选行，Stage Selected / Commit 在 `writeGitStagePaths` / `writeGitCommit` throw 时 `.sources-changes-status` 对齐既有 localize（`Unable to stage:` / `Unable to commit:`）。未改生产。未重做 git-read / open-diff。未发明 WriteGitUnstage。未 compile。
 20. **B 槽 `composer-leftover-clear`（未关 D16 / 未转 listTools / 未发明 GetQueue）**：`loadConnectedComposerCatalogs` agent/model catch 成功后再 throw 不再留旧 select / `catalogModelIds`。agent 重置 No agent；model 重置 No model / `['']` / selectedIndex=0。tools catch 已清。首拉 throw 测保留。父约束未 compile。[D50](deferred-gaps.md) **已闭**。
+21. **A 槽 `host-write-receipt`（未关 D16 / 未发明 heartbeat client_id / 未碰 Create·`.sessions` / proto / F4 / unused-import / `dev/loop`）**：`handleIntent` 把 `chatStreamWrite.writeId` 传入 `writeChat`；`mark()` 只用 `'accepted' | 'failed'` 并盖 `HOST_WRITE_RECEIPT_SOURCE` / `writeId` / `chatAttemptId`。permission `perm-live` 成功出 `removePendingAction`；resident write throw 出 `pendingRespondFailed`（`hostWriteFailed`）且无未处理 rejection。未包整圈 `drainIntents`。父约束未 compile。[D51](deferred-gaps.md) **已闭**。
 
 子 agent 发现的既有代码问题：
 
@@ -110,6 +111,7 @@ summary: "FileMutationJoin / createScoped / Review 委托已修。D16 仍开。�
 | [D48](deferred-gaps.md) | A 槽 `host-remaining-dispose-catch` | **closed** `closeResidentChat` / 断连三圈 / open 旧句柄 dispose throw 已 catch；Chat 仍删、`connectionDown` 仍 post；未关 D16 |
 | [D49](deferred-gaps.md) | B 槽 `mcp-skills-leftover-clear` | **closed** MCP/Skills catch 先清行再 `failed`；成功→throw 测 `getMode()==='failed'` 且 `getListEntryCount()===0`；首拉 / disconnect 测保留；未关 D16 / 未转 listTools / 未发明 GetQueue |
 | [D50](deferred-gaps.md) | B 槽 `composer-leftover-clear` | **closed** agent/model catch 重置 No agent / No model / `catalogModelIds=['']` / selectedIndex=0；成功→throw 测不留上一轮 catalog；首拉 throw 测保留；未关 D16 / 未转 listTools / 未发明 GetQueue |
+| [D51](deferred-gaps.md) | A 槽 `host-write-receipt` | **closed** host receipt 用 `accepted`/`failed` + `host-write-accepted` / `writeId` / `chatAttemptId`；permission inflight 成功清座、失败 `pendingRespondFailed`；未关 D16 |
 
 ## 工位表（P0 盘点 · 2026-09-07 · 与 `git worktree list` 对照）
 
