@@ -53,7 +53,7 @@ summary: "unit-custom 已排除 11 个不可加载文件；DiffReview afterEach 
 
 集成 tip **本关仓提交**（`loop/merge`；未 push）。Chat 仍被引擎空壳 Create（目录在、`session_meta` 空、回 6）挡住；不要再清 `.sessions` 当主线。见 [D26](deferred-gaps.md)。**U2 未开**。**PRD-008 / PRD-019 不升 `implemented`**。[R8](research-queue.md) **已闭**（[ADR-008](../decisions/008-write-git-apply-hunks-empty.md) 引擎空 `patches` = 成功空操作）。Accept 产品选项 A 见 [sources-accept-empty-success](../plans/sources-accept-empty-success.md)（`draft`；**A1 已落**；**P5 停线**——只批准停线，不批准 A2；A2 须新选定 + 新 Arch-First）。
 
-1. **集成 tip** 以 merge 本关仓提交为准（切片 3 A=`c01e16fad84` → merge `44d65d1da44`；unit-custom XML A=`a167f755fb4`；DiffReview B=`ebe958ab148`）。`npm run compile` 仍基线 unused 红则 **不 push**。GFS >800 不拆。D22/F3 已撤回。不跑 F4 / 不实施 A2。
+1. **集成 tip** 以 merge 本关仓提交为准（切片 3 A=`c01e16fad84` → merge `44d65d1da44`；unit-custom XML A=`a167f755fb4` → merge `7939b930798`；DiffReview B=`ebe958ab148` → merge `10722d6695a`）。`npm run compile` 仍基线 unused 红则 **不 push**。GFS >800 不拆。D22/F3 已撤回。不跑 F4 / 不实施 A2。
 2. 本波字母槽已进 merge：
    - **A**：`unit-custom-xml` — [`scripts/run-unit-custom.sh`](../../scripts/run-unit-custom.sh) 排除 D17 十一份 Electron 不可加载 node 测，一次 `--tfs universeAgent` 写出 XML；conversation / sources 仍官方 glob。切片 3 名单已落。**[D16](deferred-gaps.md) 仍开**；未开切片 1。未改 Electron runner / `min_cases`。
    - **B**：`diffreview-leak` — ConversationDiffReviewPane 补 dispose/clearEditors；navigation/aggregation/fence 停引真实 contribution、改 stub。afterEach 六行已删（名单 32 行）。Lens 97/97 仍在。**[D16](deferred-gaps.md) 仍开**。
