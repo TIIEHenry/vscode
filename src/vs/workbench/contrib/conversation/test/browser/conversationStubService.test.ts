@@ -148,10 +148,15 @@ suite('ConversationStubService', () => {
 		assert.strictEqual(service.respondQuestion(sessionId, 'q-2'), true);
 	});
 
-	test('enqueueMessageQueueItem stays local no-op without engine', () => {
+	test('enqueueMessageQueueItem fails honestly without engine and does not mutate fixture', () => {
 		const service = store.add(new ConversationStubService());
-		assert.strictEqual(service.enqueueMessageQueueItem(service.getActiveSessionId(), 'later', { priority: 'HIGH' }), false);
-		assert.strictEqual(service.enqueueMessageQueueItem(service.getActiveSessionId(), 'later'), false);
+		const sessionId = service.getActiveSessionId();
+		const before = service.getMessageQueueState(sessionId);
+		assert.strictEqual(service.enqueueMessageQueueItem(sessionId, 'later', { priority: 'HIGH' }), false);
+		assert.strictEqual(service.enqueueMessageQueueItem(sessionId, 'later'), false);
+		assert.strictEqual(service.enqueueMessageQueueItem(sessionId, '   '), false);
+		assert.deepStrictEqual(service.getMessageQueueState(sessionId), before);
+		assert.deepStrictEqual(service.getMessageQueueState(sessionId).items, []);
 	});
 
 	test('deleteSession removes a non-active session without changing active', () => {

@@ -157,7 +157,7 @@ export interface IConversationRosterService {
 	/**
 	 * AgentService.EnqueueQueueItem. Engine-connected forwards unary (empty
 	 * text / unknown id / disconnected cache false). Stub / never-connected
-	 * is a local no-op — fixture has no enqueue surface.
+	 * fails honestly (`false`) and does not mutate the fixture queue.
 	 */
 	enqueueMessageQueueItem(sessionId: string, text: string, options?: { priority?: 'NORMAL' | 'HIGH' | 'LOW'; opId?: string }): boolean;
 	/**
@@ -347,7 +347,11 @@ export class ConversationStubService extends Disposable implements IConversation
 		return false;
 	}
 
-	enqueueMessageQueueItem(_sessionId: string, _text: string, _options?: { priority?: 'NORMAL' | 'HIGH' | 'LOW'; opId?: string }): boolean {
+	enqueueMessageQueueItem(_sessionId: string, text: string, _options?: { priority?: 'NORMAL' | 'HIGH' | 'LOW'; opId?: string }): boolean {
+		if (!text.trim()) {
+			return false;
+		}
+		// Never-connected: no engine queue. Do not append fixture items.
 		return false;
 	}
 

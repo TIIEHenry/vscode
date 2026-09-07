@@ -1905,6 +1905,11 @@
 	cursor: pointer;
 }
 
+.monaco-workbench .part.conversation .conversation-lens-message-queue-list .queue-bar-action:disabled {
+	opacity: 0.6;
+	cursor: default;
+}
+
 .monaco-workbench .part.conversation .conversation-lens-message-queue-list .queue-bar-body {
 	max-height: 240px;
 	overflow-y: auto;
