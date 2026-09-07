@@ -1,4 +1,4 @@
-import type { AttemptId, ChatWriteId, TimerId } from './ports.js'
+import type { AttemptId, TimerId } from './ports.js'
 import type { CorrelationRef, StreamCloseCause, ViewFrameSink } from './messages.js'
 import type { NormalizedLocalFact, OverlayActiveTurnBody, OverlayPendingSnapshotBody, RangeReplacedEvent, StreamHelloAnchor } from './local-fact.js'
 import type { RangeReplacedApplyPlan } from './range-replaced-apply.js'

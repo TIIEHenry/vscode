@@ -14,7 +14,7 @@ export type PendingChatWrite = {
 	readonly writeId: import('./ports.js').ChatWriteId
 	readonly correlation: import('./messages.js').CorrelationRef
 	readonly payload: unknown
-	readonly cleanupPatches?: readonly import('./view/types.js').ViewPatch[]
+	readonly cleanupPatches?: readonly import('../../common/sessionView/types.js').ViewPatch[]
 }
 
 export type ChatWriteDisposition = 'written' | 'queued' | 'dropped'
@@ -27,7 +27,6 @@ import {
 	decideLocalPendingUpsert,
 	pendingSendViewFromSubmit,
 	patchesForLocalPendingSupersede,
-	patchesForLocalPendingSupersedeAll,
 } from './local-pending-sends.js'
 import type { CorrelationRef } from './messages.js'
 import type { AttemptId } from './ports.js'

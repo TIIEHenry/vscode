@@ -1,5 +1,5 @@
 function cleanupPatchesTargetIds(
-	patches: readonly import('./view/types.js').ViewPatch[] | undefined,
+	patches: readonly import('../../common/sessionView/types.js').ViewPatch[] | undefined,
 	ids: ReadonlySet<string>,
 ): boolean {
 	if (patches === undefined || patches.length === 0) return false

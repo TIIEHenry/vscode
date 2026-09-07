@@ -154,6 +154,10 @@ export class ConversationLens extends Disposable {
 		return this._register(disposable);
 	}
 
+	get isDisposed(): boolean {
+		return this._store.isDisposed;
+	}
+
 	sessionTitleButton!: HTMLButtonElement;
 	sessionTitleLive!: HTMLElement;
 	sessionTitleInput!: HTMLInputElement;

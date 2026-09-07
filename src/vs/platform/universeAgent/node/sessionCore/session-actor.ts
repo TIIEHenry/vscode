@@ -5,46 +5,9 @@
 
 import type { CoreIntent } from './intents.js'
 import {
-	isApplyViewPatchesFact,
-	isApplyViewPatchesStreamEvent,
 	isChatLifecycleLocalFact,
-	isChatStreamDownFact,
-	isChatStreamUpFact,
-	isHistoryFillResultPayload,
-	isOverlayActiveTurnArm,
-	isOverlayActiveTurnClearArm,
-	isOverlayActiveTurnClearEvent,
-	isOverlayActiveTurnEvent,
-	isOverlayPendingSnapshotArm,
-	isOverlayPendingSnapshotEvent,
-	isSeedSeqCursorFact,
-	isStreamHelloArm,
-	isStreamHelloEvent,
-	isClientToolRespondFact,
-	isInputDeliveryFact,
-	isPermissionRespondFact,
-	isQuestionAskedFact,
-	isQuestionRespondFact,
-	isTurnInterruptedFact,
-	isContinueGenerationFact,
-	isRangeReplacedArm,
-	isRangeReplacedEvent,
-	isRootAgentBoundFact,
-	isAgentStatusBoundFact,
-	isTeamIdBoundFact,
-	isBranchTopologyNotifiedFact,
-	isAgentTreeBoundFact,
-	isAgentSnapshotsBoundFact,
-	isSubmitInputFact,
-	isRegenerateTurnFact,
-	isCommandOutcomeFact,
-	streamEventArmLabel,
 	type AgentTreeNodeBound,
-	type NormalizedLocalFact,
 	type SessionSnapshotInfoBound,
-	type OverlayActiveTurnBody,
-	type OverlayPendingSnapshotBody,
-	type RangeReplacedEvent,
 	type StreamHelloAnchor,
 } from './local-fact.js'
 import { BoundedMailbox } from './mailbox.js'
@@ -52,86 +15,30 @@ import type {
 	ConnectionDownReason,
 	CoreMessage,
 	CorrelationRef,
-	StreamCloseCause,
 	ViewFrameSink,
 } from './messages.js'
 import type {
 	AttemptId,
-	ChatWriteId,
-	DiagnosticMetric,
 	DiagnosticsPort,
 	IdPort,
 	TimerId,
 } from './ports.js'
-import { HOST_WRITE_RECEIPT_SOURCE, readHostWriteReceiptMarkers } from './host-write-receipt.js'
 import {
-	planGapFromStreamHello,
 	type LocalSeqCursor,
-	type StreamHelloGapPlan,
 } from './stream-hello-gap.js'
-import {
-	decideLocalPendingUpsert,
-	operationIdsToSupersedeFromViewPatches,
-	patchesForLocalPendingSupersede,
-	patchesForLocalPendingSupersedeAll,
-	pendingSendViewFromSubmit,
-} from './local-pending-sends.js'
-import {
-	admitPendingActionUpserts,
-	OVERLAY_PENDING_SET_REPLACE_AT_CAPACITY,
-	planOverlayPendingSetReplace,
-} from './pending-actions-bound.js'
 
-import { planRangeReplacedApply, type RangeReplacedApplyPlan } from './range-replaced-apply.js'
-import {
-	viewPatchesFromHistoryFillEnvelopes,
-	type SeqItemNote,
-} from './history-result-to-view-patch.js'
 import {
 	createL2SeqIndexState,
-	feedL2SeqIndexState,
-	pruneL2SeqIndexState,
-	seqIndexEntriesFromPatches,
-	type L2SeqIndexEntry,
 	type L2SeqIndexState,
 } from './l2-seq-index.js'
-import { planLocalSeqCursorAdvance } from './l2-seq-cursor.js'
-import { planLocalSeqCursorCover } from './l2-seq-cursor-cover.js'
-import { foldDomainStreamEvent } from './stream-event-to-view-patch.js'
-import {
-	admitTimelineItemTurnId,
-	applyViewPatches,
-	isSessionClosedArm,
-	isSessionClosedStreamEvent,
-	isSessionPurgedArm,
-	isSessionPurgedStreamEvent,
-	isAgentTimeoutArm,
-	isAgentTimeoutStreamEvent,
-	isSessionVisibilityChangedArm,
-	isSessionVisibilityChangedStreamEvent,
-	isSubscriptionHealthArm,
-	isSubscriptionHealthStreamEvent,
-	syncChromeFromSessionClosedBody,
-	syncChromeFromSessionPurgedBody,
-	syncChromeFromSubscriptionHealthBody,
-} from '../../common/sessionView/apply.js'
 import { emptySessionViewSnapshot } from '../../common/sessionView/empty-snapshot.js'
-import { timelineItemFromClientToolRespond } from '../../common/sessionView/client-tool-call.js'
 import type { PendingChatWrite } from './session-actor-chat-outbox.js'
 import { FLUSH_TIMEOUT_TIMER_PREFIX, SEND_FAILED_FLUSH_TIMEOUT } from './session-actor-chat-outbox.js'
-import { timelineItemFromQuestionAsk } from '../../common/sessionView/question-ask.js'
 import type {
-	ClientActionRequestId,
-	OperationId,
 	OverlayBlockId,
-	PendingActionView,
 	SessionId,
 	SessionViewSnapshot,
-	SyncChrome,
-	TextChunkId,
 	TimelineItemId,
-	TimelineItemView,
-	ViewEffect,
 	ViewLeaseId,
 	ViewPatch,
 } from '../../common/sessionView/types.js'
@@ -169,13 +76,6 @@ export function syncReasonFromConnectionDown(reason: ConnectionDownReason): stri
 	}
 }
 
-function cleanupPatchesTargetIds(
-	patches: readonly ViewPatch[] | undefined,
-	ids: ReadonlySet<string>,
-): boolean {
-	if (patches === undefined || patches.length === 0) return false
-	return patches.some((p) => p.op === 'removePendingAction' && ids.has(String(p.requestId)))
-}
 
 import type { SessionActorFold } from './session-actor-fold-interface.js'
 

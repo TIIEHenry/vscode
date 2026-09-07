@@ -357,7 +357,6 @@ import type {
 	UniverseAgentListClipboardResult,
 	UniverseAgentClearClipboardRequest,
 	UniverseAgentClearClipboardResult,
-	UniverseAgentClipboardEntry,
 	UniverseAgentListModelsResult,
 	UniverseAgentGetConfigRequest,
 	UniverseAgentGetConfigResult,
@@ -378,7 +377,6 @@ import type {
 	UniverseAgentTeamTaskInfo,
 } from '../../common/universeAgentTypes.js';
 import {
-	GrpcStatusCode,
 	IUniverseAgentGrpcTransport,
 	UniverseAgentAuthNonceRequest,
 	UniverseAgentAuthNonceResult,
@@ -387,7 +385,6 @@ import {
 } from './grpcTransport.js';
 import { createPinnedChannelOptions, createPinnedTlsChannelCredentials, type UniverseAgentPinnedTlsTarget } from '../universeAgentChannel.js';
 import {
-	base64ToBytes,
 	bytesToBase64,
 	mapAddMcpServerResponse,
 	mapAgentMergeResponse,
@@ -516,10 +513,8 @@ import {
 	makeUnaryBytesClient,
 	makeServerStreamClient,
 	makeClientStreamClient,
-	makeResidentBidiStreamClient,
 	makeResidentBidiBytesHandleClient,
 	makeResidentBidiHandleClient,
-	makeBidiStreamClient,
 	makeBidiBytesClient,
 	asUnaryProtoBytes,
 	grpcErrorCode,
@@ -560,7 +555,6 @@ import {
 import type {
 	AddMcpServerResponseWire,
 	AgentMergeResponseWire,
-	AgentTreeResponseWire,
 	BackResponseWire,
 	BranchResponseWire,
 	CancelRemoteSessionResponseWire,
@@ -600,17 +594,14 @@ import type {
 	GetSessionUsageResponseWire,
 	HealthCheckResponseWire,
 	HistoryResponseWire,
-	ListAgentProfilesResponseWire,
 	ListCommandsResponseWire,
 	ListConfigsResponseWire,
-	ListDevicesResponseWire,
 	ListFilesResponseWire,
 	ListLoopSnapshotsResponseWire,
 	ListMcpServersResponseWire,
 	ListNodesResponseWire,
 	ListPendingResponseWire,
 	ListPluginsResponseWire,
-	ListSessionsResponseWire,
 	ListSkillsResponseWire,
 	ListSnapshotsResponseWire,
 	ListToolsResponseWire,

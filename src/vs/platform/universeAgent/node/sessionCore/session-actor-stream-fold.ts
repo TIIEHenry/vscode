@@ -53,7 +53,7 @@ import { applyViewPatches } from '../../common/sessionView/apply.js'
 import type { DiagnosticMetric } from './ports.js'
 import type { StreamCloseCause } from './messages.js'
 import type { TimelineItemId, ViewPatch } from '../../common/sessionView/types.js'
-import { SEND_FAILED_EPOCH_CHANGED, SEND_FAILED_STREAM_CLOSED } from './session-actor-chat-outbox.js'
+import { SEND_FAILED_EPOCH_CHANGED } from './session-actor-chat-outbox.js'
 import { SessionActor } from './session-actor.js'
 import type { SessionActorFold } from './session-actor-fold-interface.js'
 

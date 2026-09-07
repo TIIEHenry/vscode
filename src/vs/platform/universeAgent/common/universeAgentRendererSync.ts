@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import type { ConnectionPhase } from './connectionHubTypes.js';
+import type { UniverseAgentNavigatorCapabilityKey } from './universeAgentConnection.js';
 import type {
 	ConnectionProfileProjection,
 	HubAuthStatus,
@@ -206,7 +207,12 @@ export class UniverseAgentConnectionSyncCache {
 		this._agentTreeFetchFailed = failed;
 	}
 
-	navigatorCapability(key: UniverseAgentCapabilityKey): UniverseAgentCapabilitySupport {
+	navigatorCapability(key: UniverseAgentNavigatorCapabilityKey): UniverseAgentCapabilitySupport {
+		// Session listing is not carried in the capability snapshot; the node service
+		// answers the same way.
+		if (key === 'sessionList') {
+			return 'UNKNOWN';
+		}
 		return this._snapshot.capabilities[key]?.support ?? 'UNKNOWN';
 	}
 }

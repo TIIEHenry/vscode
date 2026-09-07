@@ -22,8 +22,8 @@ import { findFirstPendingConfirmationTurnId as findFirstPendingConfirmationTurnI
 import { IConversationRosterService } from './conversationStubService.js';
 import type { ConversationComposerPostFailureReason } from './conversationLensDockStrings.js';
 export interface IConversationLensSessionBindingHost {
-	/** Same dispose gate Mermaid resolve uses (`this._store.isDisposed`). */
-	readonly _store: { readonly isDisposed: boolean };
+	/** Same dispose gate Mermaid resolve uses. */
+	readonly isDisposed: boolean;
 	lastAttachedEntries: ConversationTimelineEntry[];
 	sessionViewLease: IConversationSessionViewLease | undefined;
 	sessionViewLifetime: DisposableStore;
@@ -58,7 +58,7 @@ export interface IConversationLensSessionBindingHost {
 
 export function bindSessionView(host: IConversationLensSessionBindingHost, sessionId: string): void {
 
-	if (host._store.isDisposed) {
+	if (host.isDisposed) {
 		return;
 	}
 	host.sessionViewLifetime.clear();
