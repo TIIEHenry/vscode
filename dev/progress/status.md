@@ -53,12 +53,12 @@ summary: "人类工位已对齐已推送 MERGE_SHA c1b228caf74；保留本机行
 
 人类工位已 merge `c1b228caf74`（先 commit 行动层再三路合）。Direct 接通已通。Chat 仍被引擎空壳 Create（目录在、`session_meta` 空、回 6）挡住；不要再清 `.sessions` 当主线。见 [D26](deferred-gaps.md)。**U2 未开**。**PRD-008 不升 `implemented`**。
 
-1. **集成 tip** 以 merge 本关仓提交为准（P2 已串行 A=`ba622ce1173` / B=`7d85ce21853` / C=`7b8d9c39c7e`）。`npm run compile` 仍基线 unused 红，本波文件无新 TS 错，**不 push**。GFS >800 不拆。
+1. **集成 tip** 以 merge 本关仓提交为准（P2 已串行 A=`24a08245cfc` / B=`250630d0f01` / D=`5c662d80ce6`）。`npm run compile` 仍基线 unused 红，本波文件无新 TS 错，**不 push**。GFS >800 不拆。
 2. 本波字母槽已进 merge：
-   - **A**：`request-detail-fetch-catch` — [D40](deferred-gaps.md) closed（`fetchToolDetail` throw 回 `{ok:false}`）；[D26](deferred-gaps.md) 引擎 Create meta 仍 open。
-   - **B**：D27 closed（勿重开）；[D34](deferred-gaps.md)/[D35](deferred-gaps.md)/[D36](deferred-gaps.md) closed（`lastVisible` 守卫、死 querySelector、standalone thinking/tool 诚实行）。
-   - **C**：D37 closed（roster 按 `upload` 转发）；无 GetQueue，活引擎失败行仍不可见。
-   - **D**：`sources-leftover-honesty` — Changes 已暂存 git 行 Unstage 不可用诚实态 + Review 打开 diff 失败上浮；**D31 仍开**（缺 F4）；R8 未发明。
+   - **A**：[D40](deferred-gaps.md) closed（`fetchToolDetail` throw 回 `{ok:false}`）；[D26](deferred-gaps.md) 引擎 Create meta 仍 open。
+   - **B**：[D34](deferred-gaps.md)/[D35](deferred-gaps.md)/[D36](deferred-gaps.md) closed。D27 未重开。
+   - **C**：本波空闲。上波 D37 已在 merge。
+   - **D**：[D31](deferred-gaps.md) leftover 已收；**D31 仍开**（F4）；R8 未发明。
 
 子 agent 发现的既有代码问题：
 
@@ -83,11 +83,11 @@ summary: "人类工位已对齐已推送 MERGE_SHA c1b228caf74；保留本机行
 
 | 槽 | 路径 | 分支 | tip | 脏 | stash | 关仓状态 |
 |----|------|------|-----|:--|:------|:---------|
-| merge | `vscode-WorkTrees/merge` | `loop/merge` | P2 A/B/C 后关仓提交 | 0 | 0 | parked；compile 基线 unused 仍红，**不 push** |
-| A | `vscode-WorkTrees/A` | `loop/A` | 对齐 MERGE_SHA | D40 源+测+进度；`__pycache__` | 0 | D40 待合；未 commit |
+| merge | `vscode-WorkTrees/merge` | `loop/merge` | 本关仓提交 | 0 | 0 | parked；compile 基线 unused 仍红，**不 push** |
+| A | `vscode-WorkTrees/A` | `loop/A` | 对齐 MERGE_SHA | `__pycache__` | 0 | idle（P6 后） |
 | B | `vscode-WorkTrees/B` | `loop/B` | 对齐 MERGE_SHA | 0 | 0 | idle（P6 后） |
 | C | `vscode-WorkTrees/C` | `loop/C` | 对齐 MERGE_SHA | `dev/loop` | 0 | idle；勿 add `dev/loop` |
-| D | `vscode-WorkTrees/D` | `loop/D` | `826346878a3` + leftovers | sources 诚实态 | 0 | 本刀未关仓 |
+| D | `vscode-WorkTrees/D` | `loop/D` | 对齐 MERGE_SHA | 0 | 0 | idle（P6 后） |
 | edit | `Projects/Agents/vscode` | `agent-ide` | `a40a95d1e85`+ | `dev/loop` | 0 | 人类工位；请自行对齐 merge 关仓 SHA |
 
 ## Blockers
