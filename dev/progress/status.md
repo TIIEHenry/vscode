@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-08
-summary: "FileMutationJoin / createScoped / Review 委托已修。D16 仍开。官方三域 glob 已绿。D44/D45 已闭。D46 catalog leftover 行仍开。A2 仍 blocked。"
+summary: "FileMutationJoin / createScoped / Review 委托已修。D16 仍开。官方三域 glob 已绿。D44/D45 已闭。D46 catalog leftover 行仍开。git-read throw 已挂载。A2 仍 blocked。"
 ---
 
 # Development Progress
@@ -69,6 +69,7 @@ summary: "FileMutationJoin / createScoped / Review 委托已修。D16 仍开。�
 10. **A 槽 hang-fix leftover（未关 D16 / 未降 min_cases）**：官方 conversation glob 未列三测（delete→trajectory 铺行、pinned preview/copy）。夹具按 hang-fix 同族：layout-before-reveal、有界等待、paint pinned/trajectory 行。未缩产品断言。**merge 复证**：三测 3/3；官方 conversation glob **795/0/0**。
 11. **A 槽 `host-open-catch`（未关 D16 / 未转 listTools / 未发明 heartbeat client_id / 未碰 Create·`.sessions`）**：`openResidentChat` `open.call` 与 `openStream` `subscribeSessionEventStream` 补与 `openContinuation` 同级 catch（warn、不抛、Chat 仍 echo `chatStreamUp` 走 one-shot）。`sessionViewHostChatClose.test.ts` 断言 throw-on-open。父约束未 compile。[D45](deferred-gaps.md) **已闭**。
 12. **B 槽 `catalog-rpc-throw-honesty`（未关 D16 / 未转 listTools bytes / 未发明 GetQueue）**：Engine Tools/Agents list throw → `getMode()==='failed'` + error status + 0 行；composer 三 hook throw 仍 No agent / No model / 空 tools。生产 catch 未改。成功后再 throw 的 leftover 记 [D46](deferred-gaps.md)。未 compile。
+13. **D 槽 `review-git-read-throw`（未关 D16 / 未跑 F4 / 未开 A2）**：Review / Changes 挂载后 `readGitChanges` throw 的 status DOM 含 `sourcesGitReadFailureMessage('boom')` / `Unable to read git changes:`。未重做 Open Selected。未发明 WriteGitUnstage。
 
 子 agent 发现的既有代码问题：
 
@@ -77,7 +78,7 @@ summary: "FileMutationJoin / createScoped / Review 委托已修。D16 仍开。�
 | [D23](deferred-gaps.md) | A 槽 | **closed** resident heartbeat write 已 catch |
 | [D33](deferred-gaps.md) | B 槽 | **closed** pairingPending 开 Connection/SAS |
 | [D27](deferred-gaps.md) | grok 4.6 | **closed**：`provideTurnEditComposer` 先于 `setEditingTurnId`；已删 1px 垫高 |
-| [D31](deferred-gaps.md) | D 槽 | Accept A1 已落；P5 停线；A2 须新选定 + Arch-First；剩 F4；不升 PRD |
+| [D31](deferred-gaps.md) | D 槽 | Accept A1 已落；P5 停线；A2 须新选定 + Arch-First；git-read throw 已挂载；剩 F4；不升 PRD |
 | [R8](research-queue.md) | B 槽 `r8-empty-patches-close` | **closed**：[ADR-008](../decisions/008-write-git-apply-hunks-empty.md) 引擎仓 `1f07008f` `GitWorkDirWriter.kt` L77–78 空 `patches` = 成功空操作；A1 已拒空送；[D31](deferred-gaps.md) F4 未跑 |
 | [D32](deferred-gaps.md) | A 槽 `host-write-retry` | **closed（代码+测已写；compile 待 merge）** Retry 走 `lease.post`；host 映射 Actor `continueGeneration` |
 | [D38](deferred-gaps.md) | A 槽 `host-bind-safety` | **closed** `fillHistory` bind/write 已 catch |
