@@ -123,7 +123,7 @@ export class ConversationSessionStatusBarContribution extends Disposable impleme
 		const snapshot = this.uaConnection.getConnectionSnapshot();
 		const phase = this.uaConnection.getConnectionPhase();
 		const text = getConnectionPhaseStatusBarText(phase, snapshot.pairingPending);
-		const commandId = getEngineStatusCommandId(phase);
+		const commandId = getEngineStatusCommandId(phase, snapshot.pairingPending);
 		return {
 			name: localize('conversationStatus.engineName', "Engine connection"),
 			text,

@@ -9,8 +9,10 @@ import {
 	getConversationEngineStatusText,
 	getConversationModelEchoStatusText,
 	getConversationSessionStatusText,
+	getEngineStatusCommandId,
 	shouldShowConversationModelEchoInStatusBar,
 } from '../../browser/conversationSessionStatus.js';
+import { OPEN_CONNECTION_PREFERENCES_COMMAND_ID, OPEN_ENGINE_PREFERENCES_COMMAND_ID } from '../../common/uaPreferencesPanes.js';
 import { ConversationStubSession } from '../../browser/conversationStubModel.js';
 import * as conversationSessionStatus from '../../browser/conversationSessionStatus.js';
 
@@ -56,6 +58,13 @@ suite('ConversationSessionStatus', () => {
 	test('shouldShowConversationModelEchoInStatusBar is true only when Conversation part is hidden', () => {
 		assert.strictEqual(shouldShowConversationModelEchoInStatusBar(true), false);
 		assert.strictEqual(shouldShowConversationModelEchoInStatusBar(false), true);
+	});
+
+	test('getEngineStatusCommandId opens Connection while pairingPending even if phase is connected', () => {
+		assert.strictEqual(getEngineStatusCommandId({ kind: 'connected', path: 'direct' }), OPEN_ENGINE_PREFERENCES_COMMAND_ID);
+		assert.strictEqual(getEngineStatusCommandId({ kind: 'connected', path: 'direct' }, true), OPEN_CONNECTION_PREFERENCES_COMMAND_ID);
+		assert.strictEqual(getEngineStatusCommandId({ kind: 'connecting', reason: 'initial' }, true), OPEN_CONNECTION_PREFERENCES_COMMAND_ID);
+		assert.strictEqual(getEngineStatusCommandId({ kind: 'disconnected' }), OPEN_CONNECTION_PREFERENCES_COMMAND_ID);
 	});
 
 	test('does not export session usage helpers that paint zero placeholders', () => {

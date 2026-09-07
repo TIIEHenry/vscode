@@ -22,8 +22,8 @@ export function getConversationSessionStatusText(session: ConversationStubSessio
 }
 
 /** StatusBar / IdentityStrip: only a live connected phase opens Engine; roster boolean is not the source. */
-export function getEngineStatusCommandId(phase: ConnectionPhase | undefined): string {
-	return isUniverseAgentPhaseConnected(phase)
+export function getEngineStatusCommandId(phase: ConnectionPhase | undefined, pairingPending = false): string {
+	return isConversationEngineLive(phase, pairingPending)
 		? OPEN_ENGINE_PREFERENCES_COMMAND_ID
 		: OPEN_CONNECTION_PREFERENCES_COMMAND_ID;
 }

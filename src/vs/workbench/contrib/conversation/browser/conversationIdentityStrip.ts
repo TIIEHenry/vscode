@@ -94,7 +94,10 @@ export class ConversationIdentityStrip extends Disposable {
 		this.engineChip = append(this.element, $(`button.conversation-identity-chip.${conversationIdentityEngineChipClass}`)) as HTMLButtonElement;
 		this.engineChip.type = 'button';
 		this._register(addDisposableListener(this.engineChip, 'click', () => {
-			this.commandService.executeCommand(getEngineStatusCommandId(this.uaConnection.getConnectionPhase()));
+			this.commandService.executeCommand(getEngineStatusCommandId(
+				this.uaConnection.getConnectionPhase(),
+				this.uaConnection.getConnectionSnapshot().pairingPending,
+			));
 		}));
 
 		this.folderChip = append(this.element, $(`button.conversation-identity-chip.${conversationIdentityFolderChipClass}`)) as HTMLButtonElement;
