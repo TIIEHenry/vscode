@@ -149,6 +149,7 @@ export class EngineSkillsSection extends Disposable {
 	private readonly status: EngineCatalogStatusWidget;
 	private readonly freezeNotice: HTMLElement;
 	private readonly writeToolbar: HTMLElement;
+	private readonly writeStatus: HTMLElement;
 	private readonly listContainer: HTMLElement;
 	private readonly bodyEditor: HTMLElement;
 	private readonly bodyToolbar: HTMLElement;
@@ -195,6 +196,11 @@ export class EngineSkillsSection extends Disposable {
 		const newButton = this._register(new Button(this.writeToolbar, defaultButtonStyles));
 		newButton.label = localize('ua.engineSkillsNew', "New");
 		this._register(newButton.onDidClick(() => void this.createSkill()));
+
+		this.writeStatus = DOM.append(this.container, $('.engine-skill-write-status'));
+		this.writeStatus.setAttribute('role', 'status');
+		this.writeStatus.setAttribute('aria-live', 'polite');
+		this.writeStatus.style.display = 'none';
 
 		this.listContainer = DOM.append(this.container, $('.engine-skills-list'));
 
@@ -312,8 +318,10 @@ export class EngineSkillsSection extends Disposable {
 		try {
 			const result = await this.connection.saveSkillContent({ skillName, content });
 			if (!result.ok) {
+				this.paintSkillCreateFailed();
 				return false;
 			}
+			this.hideWriteStatus();
 			await this.refresh();
 			if (!this.canWrite()) {
 				return false;
@@ -321,6 +329,7 @@ export class EngineSkillsSection extends Disposable {
 			this.selectSkillForTest(skillName);
 			return true;
 		} catch {
+			this.paintSkillCreateFailed();
 			return false;
 		}
 	}
@@ -480,6 +489,7 @@ export class EngineSkillsSection extends Disposable {
 		this.status.hide();
 		this.freezeNotice.style.display = 'none';
 		this.writeToolbar.style.display = 'none';
+		this.hideWriteStatus();
 		this.listContainer.style.display = 'none';
 		this.bodyEditor.style.display = 'none';
 		this.clearBodyEditor();
@@ -502,6 +512,21 @@ export class EngineSkillsSection extends Disposable {
 	private hideBodyStatus(): void {
 		this.bodyStatus.style.display = 'none';
 		this.bodyStatus.textContent = '';
+	}
+
+	private hideWriteStatus(): void {
+		this.writeStatus.style.display = 'none';
+		this.writeStatus.textContent = '';
+	}
+
+	private paintSkillCreateFailed(): void {
+		const message = localize(
+			'ua.engineSkillCreateFailed',
+			"Could not create skill content on the engine.",
+		);
+		this.showBodyStatus(message);
+		this.writeStatus.style.display = '';
+		this.writeStatus.textContent = message;
 	}
 
 	private updateBodyEditorChrome(source: UniverseAgentSkillSource | undefined): void {
