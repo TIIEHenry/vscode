@@ -53,9 +53,9 @@ summary: "人类工位已对齐已推送 MERGE_SHA c1b228caf74；保留本机行
 
 人类工位已 merge `c1b228caf74`（先 commit 行动层再三路合）。Direct 接通已通。Chat 仍被引擎空壳 Create（目录在、`session_meta` 空、回 6）挡住；不要再清 `.sessions` 当主线。见 [D26](deferred-gaps.md)。**U2 未开**。**PRD-008 不升 `implemented`**。
 
-1. **集成 tip** 以人类工位 `agent-ide` 为准（含 `c1b228caf74` + 行动层）。本波 A 在改 D23+D32（未 compile）。其余：B=D33+D27，C=D30+诚实空，D=D31+R8。GFS >800 不拆。
+1. **集成 tip** 以 merge `647d24a8f3f` 为准。本波 A=`host-bind-safety`（未 compile）。GFS >800 不拆。
 2. 字母槽 leftover 进度句已收进本账，再 cascade：
-   - **A**：`host-write-retry` — [D23](deferred-gaps.md) / [D32](deferred-gaps.md) 已合入 merge。compile 待本槽一路跑。
+   - **A**：`host-bind-safety` — [D38](deferred-gaps.md)/[D39](deferred-gaps.md) 已 closed；[D26](deferred-gaps.md) host（Tree 可观察 + recover 单层）已写，引擎 Create meta 仍 open。
    - **B**：`getEngineStatusCommandId(phase, pairingPending)`。D27 仍 PARTIAL（1px 垫高）。
    - **C**：Inbox FAILED Retry → `retryMessageQueueItem`；引擎 unary 见 [D37](deferred-gaps.md)。
    - **D**：Review 读失败上 status；Panel 与对话窗同门控；Unstage 明确不可用。**未跑 F4、不升 PRD、R8 仍 open**。
@@ -70,7 +70,9 @@ summary: "人类工位已对齐已推送 MERGE_SHA c1b228caf74；保留本机行
 | [D31](deferred-gaps.md) | D 槽 | 代码洞已收；剩 F4 冒烟 |
 | [R8](research-queue.md) | A 槽 Sources | `WriteGitApplyHunks` 空 patches 语义未定 |
 | [D32](deferred-gaps.md) | A 槽 `host-write-retry` | **closed（代码+测已写；compile 待 merge）** Retry 走 `lease.post`；host 映射 Actor `continueGeneration` |
-| [D26](deferred-gaps.md) | merge 账 | 引擎空壳 Create 回 6；不要再清 store |
+| [D38](deferred-gaps.md) | A 槽 `host-bind-safety` | **closed** `fillHistory` bind/write 已 catch |
+| [D39](deferred-gaps.md) | A 槽 `host-bind-safety` | **closed** `requestDetail` bind 已 catch |
+| [D26](deferred-gaps.md) | A 槽 host / 引擎仓 | host Tree+recover 已收；引擎空壳 Create 回 6 仍开；不要再清 store |
 | [D37](deferred-gaps.md) | C 槽 D30 | 引擎 roster 未 override `retryMessageQueueItem`（A 占该文件）；无 GetQueue |
 
 ## 工位表（P0 盘点 · 2026-09-07 · 与 `git worktree list` 对照）
