@@ -58,7 +58,7 @@ summary: "人类工位已对齐已推送 MERGE_SHA c1b228caf74；保留本机行
    - **A**：`request-detail-fetch-catch` — [D40](deferred-gaps.md) closed（`fetchToolDetail` throw 回 `{ok:false}`）；[D26](deferred-gaps.md) 引擎 Create meta 仍 open。
    - **B**：D27 closed（勿重开）；[D34](deferred-gaps.md)/[D35](deferred-gaps.md)/[D36](deferred-gaps.md) closed（`lastVisible` 守卫、死 querySelector、standalone thinking/tool 诚实行）。
    - **C**：D37 closed（roster 按 `upload` 转发）；无 GetQueue，活引擎失败行仍不可见。
-   - **D**：本波空闲；F4 / R8 仍开。
+   - **D**：`sources-leftover-honesty` — Changes 已暂存 git 行 Unstage 不可用诚实态 + Review 打开 diff 失败上浮；**D31 仍开**（缺 F4）；R8 未发明。
 
 子 agent 发现的既有代码问题：
 
@@ -67,7 +67,7 @@ summary: "人类工位已对齐已推送 MERGE_SHA c1b228caf74；保留本机行
 | [D23](deferred-gaps.md) | A 槽 | **closed** resident heartbeat write 已 catch |
 | [D33](deferred-gaps.md) | B 槽 | **closed** pairingPending 开 Connection/SAS |
 | [D27](deferred-gaps.md) | grok 4.6 | **closed**：`provideTurnEditComposer` 先于 `setEditingTurnId`；已删 1px 垫高 |
-| [D31](deferred-gaps.md) | D 槽 | 代码洞已收；剩 F4 冒烟 |
+| [D31](deferred-gaps.md) | D 槽 | Changes Unstage 不可用 + Review 打开失败已收；剩 F4 冒烟；命令 Open Selected 仍空 catch；不升 PRD |
 | [R8](research-queue.md) | A 槽 Sources | `WriteGitApplyHunks` 空 patches 语义未定 |
 | [D32](deferred-gaps.md) | A 槽 `host-write-retry` | **closed（代码+测已写；compile 待 merge）** Retry 走 `lease.post`；host 映射 Actor `continueGeneration` |
 | [D38](deferred-gaps.md) | A 槽 `host-bind-safety` | **closed** `fillHistory` bind/write 已 catch |
@@ -87,7 +87,7 @@ summary: "人类工位已对齐已推送 MERGE_SHA c1b228caf74；保留本机行
 | A | `vscode-WorkTrees/A` | `loop/A` | 对齐 MERGE_SHA | D40 源+测+进度；`__pycache__` | 0 | D40 待合；未 commit |
 | B | `vscode-WorkTrees/B` | `loop/B` | 对齐 MERGE_SHA | 0 | 0 | idle（P6 后） |
 | C | `vscode-WorkTrees/C` | `loop/C` | 对齐 MERGE_SHA | `dev/loop` | 0 | idle；勿 add `dev/loop` |
-| D | `vscode-WorkTrees/D` | `loop/D` | 对齐 MERGE_SHA | 0 | 0 | idle |
+| D | `vscode-WorkTrees/D` | `loop/D` | `826346878a3` + leftovers | sources 诚实态 | 0 | 本刀未关仓 |
 | edit | `Projects/Agents/vscode` | `agent-ide` | `a40a95d1e85`+ | `dev/loop` | 0 | 人类工位；请自行对齐 merge 关仓 SHA |
 
 ## Blockers

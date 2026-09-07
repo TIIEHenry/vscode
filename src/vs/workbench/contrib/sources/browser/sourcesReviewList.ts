@@ -27,7 +27,7 @@ import { ResourceLabels, IResourceLabel } from '../../../browser/labels.js';
 import { IEditorService } from '../../../services/editor/common/editorService.js';
 import { IQuickDiffService } from '../../scm/common/quickDiff.js';
 import { ISCMRepository, ISCMService } from '../../scm/common/scm.js';
-import { tryLoadSourcesGitChangeEntries, tryReadSourcesGitFileDiff, sourcesGitReadFailureMessage } from '../common/sourcesChangesGitRead.js';
+import { tryLoadSourcesGitChangeEntries, tryReadSourcesGitFileDiff, sourcesGitDiffOpenFailureMessage, sourcesGitReadFailureMessage } from '../common/sourcesChangesGitRead.js';
 import { sourcesChangeEntryIdentity } from '../common/sourcesChangesModel.js';
 import { collectSourcesReviewEntries, ISourcesReviewEntry } from '../common/sourcesReviewModel.js';
 import {
@@ -499,8 +499,8 @@ export class SourcesReviewList extends Disposable {
 					key => this.reviewProgressService.markReviewed(key),
 					element.resource,
 				);
-			} catch {
-				// open failed — do not mark reviewed
+			} catch (error) {
+				this.setStatusMessage(sourcesGitDiffOpenFailureMessage(error));
 			}
 		}));
 
