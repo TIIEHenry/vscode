@@ -92,7 +92,10 @@ async function promptPairingConfirmInPane(
 	const buttonLabels = [confirmLabel, cancelLabel] as const;
 	const disposables = new DisposableStore();
 	try {
-		const { buttonsContainer } = renderPairingConfirmShell(container, message, detail);
+		const { dialogBox, buttonsContainer } = renderPairingConfirmShell(container, message, detail);
+		if (typeof dialogBox.scrollIntoView === 'function') {
+			dialogBox.scrollIntoView({ block: 'nearest' });
+		}
 		return await new Promise(resolve => {
 			const confirmButton = disposables.add(new Button(buttonsContainer, defaultButtonStyles));
 			confirmButton.label = confirmLabel;

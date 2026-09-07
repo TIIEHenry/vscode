@@ -193,6 +193,48 @@ suite('universeAgentRendererSync', () => {
 		assert.strictEqual(result.ok, false);
 	});
 
+	test('connection channel client keeps confirmPairing grantPending without sas', async () => {
+		const snapshot = {
+			transport: 'idle' as const,
+			pairingPending: true,
+			channelAlive: false,
+			sharedFsRootSent: false,
+			capabilities: createIdleCapabilitySnapshot(),
+		};
+		const channel: IChannel = {
+			call: (command: string) => {
+				switch (command) {
+					case 'getConnectionSnapshot':
+						return Promise.resolve(snapshot);
+					case 'getConnectionPhase':
+						return Promise.resolve({ kind: 'connecting', reason: 'initial' });
+					case 'isAgentTreeFetchFailed':
+						return Promise.resolve(false);
+					case 'confirmPairing':
+						return Promise.resolve({
+							ok: true,
+							path: 'direct',
+							pairingPending: true,
+							grantPending: true,
+							engineIdentityId: 'eng-1',
+						});
+					default:
+						return Promise.resolve(undefined);
+				}
+			},
+			listen: () => Event.None,
+		};
+		const client = store.add(new UniverseAgentConnectionChannelClient(channel));
+		const result = await client.confirmPairing();
+		assert.strictEqual(result.ok, true);
+		if (result.ok) {
+			assert.strictEqual(result.pairingPending, true);
+			assert.strictEqual(result.grantPending, true);
+			assert.strictEqual(result.sasCode, undefined);
+			assert.strictEqual(result.engineIdentityId, 'eng-1');
+		}
+	});
+
 	test('forwarding proxy does not let an undefined local resumeSession shadow remote', async () => {
 		const resumeCalls: string[] = [];
 		const remote = {

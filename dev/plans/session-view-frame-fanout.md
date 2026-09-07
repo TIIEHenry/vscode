@@ -3,12 +3,8 @@ title: "会话视图帧扇出：per-lease 动态事件、首帧缓冲与 intent 
 type: plan
 status: implemented
 phase: M7
-updated: 2026-09-04
-summary: "F1/F2 已落 @ c37bbc6e / 917a7f8d：onDynamicDidApplyFrame(leaseId) + 宿主首帧缓冲 + postAndDrain；G-CORE-1 已登记；F3 渲染端共享 lease 见 D22"
-status: accepted
-phase: M7
-updated: 2026-09-03
-summary: "ProxyChannel 全窗广播改 onDynamicDidApplyFrame(leaseId) + 宿主 onDidAddFirstListener 缓冲；postAndDrain 门禁；G-CORE-1。规则 16 已审、2026-09-03 签收"
+updated: 2026-09-07
+summary: "规则 16 已审、2026-09-03 签收；F1/F2 已落 @ c37bbc6e / 917a7f8d：onDynamicDidApplyFrame(leaseId) + 宿主首帧缓冲 + postAndDrain；G-CORE-1 已登记；F3 渲染端共享 lease 见 D22"
 ---
 
 # 会话视图帧扇出
@@ -17,7 +13,7 @@ summary: "ProxyChannel 全窗广播改 onDynamicDidApplyFrame(leaseId) + 宿主 
 > **基线：** 本稿相对 **commit HEAD**；工作树另有其他工位未 checkout 的残留，不以工作树为准。  
 > **不推翻：** [ADR-003](../decisions/003-engine-adapter-boundary.md)（`contrib/**` 禁 import `platform/universeAgent/node/**`）；[conversation-stream-timeline §3](conversation-stream-timeline.md)（lease 是显示写源、多 lease 共享订阅、末 lease 释放后 linger）；session-core 「注册即 baseline」原子附着（INV-SPC-12）；**vendored `node/sessionCore/**` 不手改**。  
 > **槽位：** 平台合同变更，归 **P 槽**（[m7-ui-completion-wave §3](m7-ui-completion-wave.md)）；UI 槽不写本稿文件。  
-> **审查记录：** 见文末（规则 16，待起审）。
+> **审查记录：** 见文末（规则 16：2026-09-03 第一轮只读审查 + 用户签收）。
 
 ## 0. 一句话结论
 

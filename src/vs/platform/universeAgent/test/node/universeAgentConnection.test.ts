@@ -11006,6 +11006,157 @@ suite('UniverseAgentConnectionService pairing (GC-1b)', () => {
 		service.dispose();
 	});
 
+	test('confirmPairing grant_pending without sas stays pending instead of pairing_required', async () => {
+		const profileStore = new PairingTestProfileStore(createHubDevicePairingProfile());
+		const mockOrchestrator = {
+			startPairing: async () => ({
+				ok: true as const,
+				awaitingUserConfirm: true,
+				snapshot: {
+					phase: 'awaiting_sas_confirm' as const,
+					profileId: PAIRING_PROFILE_ID,
+					sasCode: 'ABCD-EFGH',
+					engineIdentityId: 'eng-grant-wait',
+					sessionTokenInstalled: false,
+				},
+			}),
+			confirmSas: async () => ({
+				ok: true as const,
+				snapshot: {
+					phase: 'grant_pending' as const,
+					profileId: PAIRING_PROFILE_ID,
+					engineIdentityId: 'eng-grant-wait',
+					sessionTokenInstalled: false,
+				},
+			}),
+			confirmRecoverTrust: async () => ({ ok: false as const, code: 'unused', reason: 'unused' }),
+			getSnapshot: () => ({
+				phase: 'awaiting_sas_confirm' as const,
+				profileId: PAIRING_PROFILE_ID,
+				sasCode: 'ABCD-EFGH',
+				engineIdentityId: 'eng-grant-wait',
+				sessionTokenInstalled: false,
+			}),
+			abandonRecoverTrust: () => { },
+		};
+		const mockResolver = {
+			resolve: async (_profileId: string, options?: { readonly forPairing?: boolean }) => {
+				if (options?.forPairing) {
+					return {
+						ok: true as const,
+						allowRelayFallback: true,
+						endpoint: {
+							attemptId: 'a1',
+							authority: 'relay.example.com',
+							port: 443,
+							resolvedIp: '203.0.113.1',
+							servername: 'relay.example.com',
+							relayTicketId: 'ticket-1',
+							tls: null,
+							expiresAtMs: Date.now() + 60_000,
+							path: 'hubRelay' as const,
+						},
+					};
+				}
+				return { ok: false as const, code: 'pairing_required' as const, reason: 'pairing', allowRelayFallback: true };
+			},
+			createIssueRelayTicketHook: () => async () => ({ ok: false as const, code: 'hub_session_required' as const, reason: 'test' }),
+		};
+		const service = new UniverseAgentConnectionService({
+			connectionProfileStore: profileStore,
+			connectionResolver: mockResolver as unknown as ConnectionResolver,
+			pairingOrchestrator: mockOrchestrator as unknown as PairingOrchestrator,
+		});
+
+		await service.connectProfile(PAIRING_PROFILE_ID);
+		const result = await service.confirmPairing();
+		assert.strictEqual(result.ok, true);
+		if (result.ok) {
+			assert.strictEqual(result.pairingPending, true);
+			assert.strictEqual(result.grantPending, true);
+			assert.strictEqual(result.sasCode, undefined);
+			assert.strictEqual(result.engineIdentityId, 'eng-grant-wait');
+		}
+		assert.strictEqual(service.getConnectionSnapshot().pairingPending, true);
+		assert.notStrictEqual(service.getConnectionPhase().kind, 'failed');
+		service.dispose();
+	});
+
+	test('confirmPairing grant_pending with new sasCode keeps sas for re-prompt', async () => {
+		const profileStore = new PairingTestProfileStore(createHubDevicePairingProfile());
+		const mockOrchestrator = {
+			startPairing: async () => ({
+				ok: true as const,
+				awaitingUserConfirm: true,
+				snapshot: {
+					phase: 'awaiting_sas_confirm' as const,
+					profileId: PAIRING_PROFILE_ID,
+					sasCode: 'ABCD-EFGH',
+					engineIdentityId: 'eng-grant-sas',
+					sessionTokenInstalled: false,
+				},
+			}),
+			confirmSas: async () => ({
+				ok: true as const,
+				snapshot: {
+					phase: 'grant_pending' as const,
+					profileId: PAIRING_PROFILE_ID,
+					sasCode: 'WXYZ-ABCD',
+					engineIdentityId: 'eng-grant-sas',
+					sessionTokenInstalled: false,
+				},
+			}),
+			confirmRecoverTrust: async () => ({ ok: false as const, code: 'unused', reason: 'unused' }),
+			getSnapshot: () => ({
+				phase: 'awaiting_sas_confirm' as const,
+				profileId: PAIRING_PROFILE_ID,
+				sasCode: 'ABCD-EFGH',
+				engineIdentityId: 'eng-grant-sas',
+				sessionTokenInstalled: false,
+			}),
+			abandonRecoverTrust: () => { },
+		};
+		const mockResolver = {
+			resolve: async (_profileId: string, options?: { readonly forPairing?: boolean }) => {
+				if (options?.forPairing) {
+					return {
+						ok: true as const,
+						allowRelayFallback: true,
+						endpoint: {
+							attemptId: 'a1',
+							authority: 'relay.example.com',
+							port: 443,
+							resolvedIp: '203.0.113.1',
+							servername: 'relay.example.com',
+							relayTicketId: 'ticket-1',
+							tls: null,
+							expiresAtMs: Date.now() + 60_000,
+							path: 'hubRelay' as const,
+						},
+					};
+				}
+				return { ok: false as const, code: 'pairing_required' as const, reason: 'pairing', allowRelayFallback: true };
+			},
+			createIssueRelayTicketHook: () => async () => ({ ok: false as const, code: 'hub_session_required' as const, reason: 'test' }),
+		};
+		const service = new UniverseAgentConnectionService({
+			connectionProfileStore: profileStore,
+			connectionResolver: mockResolver as unknown as ConnectionResolver,
+			pairingOrchestrator: mockOrchestrator as unknown as PairingOrchestrator,
+		});
+
+		await service.connectProfile(PAIRING_PROFILE_ID);
+		const result = await service.confirmPairing();
+		assert.strictEqual(result.ok, true);
+		if (result.ok) {
+			assert.strictEqual(result.pairingPending, true);
+			assert.strictEqual(result.sasCode, 'WXYZ-ABCD');
+			assert.strictEqual(result.grantPending, undefined);
+			assert.strictEqual(result.engineIdentityId, 'eng-grant-sas');
+		}
+		service.dispose();
+	});
+
 	test('awaiting_sas snapshot without sasCode fails closed instead of ok+pairingPending', async () => {
 		const profileStore = new PairingTestProfileStore(createHubDevicePairingProfile());
 		const mockOrchestrator = {

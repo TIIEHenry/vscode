@@ -90,6 +90,11 @@ export class UniverseAgentConnectionChannelClient extends Disposable {
 		return finalizeConnectProfileResult(result);
 	}
 
+	async confirmPairing(): Promise<UniverseAgentConnectProfileResult> {
+		const result = await this.remote.confirmPairing();
+		return finalizeConnectProfileResult(result);
+	}
+
 	requestAgentTreeRefresh(sessionId: string): void {
 		void this.remote.requestAgentTreeRefresh(sessionId);
 	}
