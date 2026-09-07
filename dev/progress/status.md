@@ -53,8 +53,12 @@ summary: "人类工位已对齐已推送 MERGE_SHA c1b228caf74；保留本机行
 
 人类工位已 merge `c1b228caf74`（先 commit 行动层再三路合）。Direct 接通已通。Chat 仍被引擎空壳 Create（目录在、`session_meta` 空、回 6）挡住；不要再清 `.sessions` 当主线。见 [D26](deferred-gaps.md)。**U2 未开**。**PRD-008 不升 `implemented`**。
 
-1. **MERGE_SHA** `c1b228caf74` 已 push。下一波按冲突域：A=D23+D32，B=D33 pairing chip + D27 0px，C=D30+诚实空，D=D31+R8。GFS >800 不拆。
-2. 字母槽仍被脏 leftover `status.md` 挡住，未 cascade。
+1. **集成 tip** 以人类工位 `agent-ide` 为准（含 `c1b228caf74` + 行动层）。下一波：A=D23+D32，B=D33+D27，C=D30+诚实空，D=D31+R8。GFS >800 不拆。
+2. 字母槽 leftover 进度句已收进本账，再 cascade：
+   - **A**：Sources 写面 `supported && success` 才算 Stage/Commit/Accept；`supported: false` 回落本地 git；Accept 不绑死 SCM。次级面 [D31](deferred-gaps.md)。
+   - **B**：`conversation-disconnect-send` 未连不锁 Send；引擎缓存断连先试 enqueue，拒收则留 draft + 明确失败，不 stub echo。
+   - **C**：pairing pending 时 SAS 框挂在发起 Connect 的 zone 外侧，避免被 `.connection-zone:not(.is-active-zone)` 吃掉。
+   - **D**：retryable error 行 Retry → roster `openContinuationStream`；不经 `lease.post`（[D32](deferred-gaps.md)）。
 
 子 agent 发现的既有代码问题：
 
@@ -72,12 +76,12 @@ summary: "人类工位已对齐已推送 MERGE_SHA c1b228caf74；保留本机行
 
 | 槽 | 路径 | 分支 | tip | 脏 | stash | 关仓状态 |
 |----|------|------|-----|:--|:------|:---------|
-| merge | `vscode-WorkTrees/merge` | `loop/merge` | `c1b228caf74` | 0 | 0 | 已 push，与 `origin/agent-ide` 同 SHA。compile 基线 unused 仍红 |
-| A | `vscode-WorkTrees/A` | `loop/A` | `b384a1dcf9e` | `status.md` + `__pycache__` | 0 | 祖先已合入；P6 未 cascade |
-| B | `vscode-WorkTrees/B` | `loop/B` | `58f44d73ce8` | `status.md` | 0 | 同上 |
-| C | `vscode-WorkTrees/C` | `loop/C` | `4ae77bdc6b6` | `status.md` + `dev/loop` | 0 | 同上 |
-| D | `vscode-WorkTrees/D` | `loop/D` | `583b004a8b0` | `status.md` | 0 | 同上 |
-| edit | `Projects/Agents/vscode` | `agent-ide` | 对齐中 | `dev/loop` 子模块脏 | 0 | 已 merge `c1b228caf74`，保留行动层 |
+| merge | `vscode-WorkTrees/merge` | `loop/merge` | 同步中 | 0 | 0 | 跟 `agent-ide` |
+| A | `vscode-WorkTrees/A` | `loop/A` | 同步中 | `__pycache__` | 0 | leftover `status.md` 先 commit 再 merge |
+| B | `vscode-WorkTrees/B` | `loop/B` | 同步中 | 0 | 0 | 同上 |
+| C | `vscode-WorkTrees/C` | `loop/C` | 同步中 | `dev/loop` | 0 | 同上；不 add `dev/loop` |
+| D | `vscode-WorkTrees/D` | `loop/D` | 同步中 | 0 | 0 | 同上 |
+| edit | `Projects/Agents/vscode` | `agent-ide` | `c44f54240f8`+ | `dev/loop` | 0 | 本机最新；推远程 |
 
 ## Blockers
 
