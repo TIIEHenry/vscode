@@ -22,6 +22,7 @@ import {
 	canShowSourcesReviewAccept,
 	isSourcesGitWriteAccepted,
 	isSourcesGitWriteUnsupported,
+	resolveSourcesChangesRowAction,
 	resolveSourcesDiffWriteActions,
 	sourcesGitApplyHunksRequest,
 	sourcesGitCommitRequest,
@@ -177,6 +178,45 @@ suite('Sources - Changes git write', () => {
 		assert.strictEqual(localUnstage.showRevert, false);
 	});
 
+	test('Changes row: staged git-source shows unavailable Unstage, not a hidden or working control', () => {
+		assert.strictEqual(resolveSourcesChangesRowAction({
+			groupId: 'index',
+			hasScmResource: false,
+			canWriteStage: false,
+			hasGitStageCommand: true,
+			hasGitUnstageCommand: true,
+		}), 'unstageUnavailable');
+		assert.strictEqual(resolveSourcesChangesRowAction({
+			groupId: 'index',
+			hasScmResource: false,
+			canWriteStage: false,
+			hasGitStageCommand: false,
+			hasGitUnstageCommand: false,
+		}), 'unstageUnavailable');
+		assert.strictEqual(resolveSourcesChangesRowAction({
+			groupId: 'index',
+			hasScmResource: true,
+			canWriteStage: false,
+			hasGitStageCommand: false,
+			hasGitUnstageCommand: true,
+		}), 'unstage');
+		assert.strictEqual(resolveSourcesChangesRowAction({
+			groupId: 'workingTree',
+			hasScmResource: false,
+			canWriteStage: true,
+			hasGitStageCommand: false,
+			hasGitUnstageCommand: false,
+		}), 'stage');
+		assert.strictEqual(resolveSourcesChangesRowAction({
+			groupId: 'workingTree',
+			hasScmResource: false,
+			canWriteStage: false,
+			hasGitStageCommand: false,
+			hasGitUnstageCommand: false,
+		}), 'hidden');
+		assert.ok(sourcesGitUnstageUnavailableMessage().includes('Unstage is not available'));
+	});
+
 	test('tryWrite Stage / Commit / Accept skip when disconnected or hook missing', async () => {
 		const stageCalls: UniverseAgentWriteGitStagePathsRequest[] = [];
 		const commitCalls: UniverseAgentWriteGitCommitRequest[] = [];
@@ -252,6 +292,9 @@ suite('Sources - Changes git write', () => {
 		assert.ok(source.includes('isSourcesGitWriteAccepted'));
 		assert.ok(source.includes('isSourcesGitWriteUnsupported'));
 		assert.ok(source.includes('SOURCES_GIT_UNSTAGE_COMMAND'));
+		assert.ok(source.includes('resolveSourcesChangesRowAction'));
+		assert.ok(source.includes('sourcesGitUnstageUnavailableMessage'));
+		assert.ok(source.includes("rowAction === 'unstageUnavailable'"));
 		assert.ok(!source.includes('tryWriteSourcesGitApplyHunks'));
 		assert.ok(!source.includes('writeGitUnstage'));
 	});

@@ -149,6 +149,40 @@ export function resolveSourcesDiffWriteActions(input: {
 	};
 }
 
+export type SourcesChangesRowActionKind = 'stage' | 'unstage' | 'unstageUnavailable' | 'hidden';
+
+/**
+ * Changes list row control. Staged git-source rows without local Unstage
+ * stay visible as disabled + unavailable text, not a hidden or fake button.
+ */
+export function resolveSourcesChangesRowAction(input: {
+	readonly groupId: string;
+	readonly hasScmResource: boolean;
+	readonly canWriteStage: boolean;
+	readonly hasGitStageCommand: boolean;
+	readonly hasGitUnstageCommand: boolean;
+}): SourcesChangesRowActionKind {
+	const actions = resolveSourcesDiffWriteActions({
+		groupId: input.groupId,
+		hasScmResource: input.hasScmResource,
+		canWriteStage: input.canWriteStage,
+		canWriteAccept: false,
+		hasGitStageCommand: input.hasGitStageCommand,
+		hasGitUnstageCommand: input.hasGitUnstageCommand,
+		hasGitCleanCommand: false,
+	});
+	if (actions.showStage) {
+		return 'stage';
+	}
+	if (actions.showUnstage) {
+		return 'unstage';
+	}
+	if (actions.unstageUnavailable) {
+		return 'unstageUnavailable';
+	}
+	return 'hidden';
+}
+
 export function sourcesGitUnstageUnavailableMessage(): string {
 	return localize('sourcesChangesGitWrite.unstageUnavailable', "Unstage is not available.");
 }

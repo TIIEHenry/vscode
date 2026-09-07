@@ -38,6 +38,7 @@ import {
 	isSourcesChangeUnstageable,
 } from '../common/sourcesChangesGit.js';
 import {
+	sourcesGitDiffOpenFailureMessage,
 	sourcesGitReadFailureMessage,
 	tryLoadSourcesGitChangeEntries,
 	tryReadSourcesGitFileDiff,
@@ -47,6 +48,8 @@ import {
 	canSendSourcesGitStagePaths,
 	isSourcesGitWriteAccepted,
 	isSourcesGitWriteUnsupported,
+	resolveSourcesChangesRowAction,
+	sourcesGitUnstageUnavailableMessage,
 	sourcesGitWriteFailureDetail,
 	tryWriteSourcesGitCommit,
 	tryWriteSourcesGitStagePaths,
@@ -125,18 +128,21 @@ class SourcesChangesRenderer implements IListRenderer<ISourcesChangeEntry, ISour
 
 		templateData.elementDisposables.clear();
 
-		const canStage = isSourcesChangeStageable(element.groupId)
-			&& (this.delegate.canWriteStage()
-				|| (!!element.scmResource && this.delegate.isGitCommandAvailable(SOURCES_GIT_STAGE_COMMAND)));
-		const canUnstage = isSourcesChangeUnstageable(element.groupId)
-			&& !!element.scmResource
-			&& this.delegate.isGitCommandAvailable(SOURCES_GIT_UNSTAGE_COMMAND);
+		const rowAction = resolveSourcesChangesRowAction({
+			groupId: element.groupId,
+			hasScmResource: !!element.scmResource,
+			canWriteStage: this.delegate.canWriteStage(),
+			hasGitStageCommand: this.delegate.isGitCommandAvailable(SOURCES_GIT_STAGE_COMMAND),
+			hasGitUnstageCommand: this.delegate.isGitCommandAvailable(SOURCES_GIT_UNSTAGE_COMMAND),
+		});
 
-		if (canStage) {
+		if (rowAction === 'stage') {
+			const label = localize('sourcesChangesList.stage', "Stage");
 			templateData.actionButton.element.style.display = '';
 			templateData.actionButton.icon = Codicon.add;
 			templateData.actionButton.enabled = true;
-			templateData.actionButton.element.setAttribute('aria-label', localize('sourcesChangesList.stage', "Stage"));
+			templateData.actionButton.setAriaLabel(label);
+			templateData.actionButton.setTitle(label);
 			templateData.elementDisposables.add(templateData.actionButton.onDidClick(e => {
 				dom.EventHelper.stop(e, true);
 				this.delegate.onRowAction(element, 'stage');
@@ -144,15 +150,27 @@ class SourcesChangesRenderer implements IListRenderer<ISourcesChangeEntry, ISour
 			return;
 		}
 
-		if (canUnstage) {
+		if (rowAction === 'unstage') {
+			const label = localize('sourcesChangesList.unstage', "Unstage");
 			templateData.actionButton.element.style.display = '';
 			templateData.actionButton.icon = Codicon.remove;
 			templateData.actionButton.enabled = true;
-			templateData.actionButton.element.setAttribute('aria-label', localize('sourcesChangesList.unstage', "Unstage"));
+			templateData.actionButton.setAriaLabel(label);
+			templateData.actionButton.setTitle(label);
 			templateData.elementDisposables.add(templateData.actionButton.onDidClick(e => {
 				dom.EventHelper.stop(e, true);
 				this.delegate.onRowAction(element, 'unstage');
 			}));
+			return;
+		}
+
+		if (rowAction === 'unstageUnavailable') {
+			const message = sourcesGitUnstageUnavailableMessage();
+			templateData.actionButton.element.style.display = '';
+			templateData.actionButton.icon = Codicon.remove;
+			templateData.actionButton.enabled = false;
+			templateData.actionButton.setAriaLabel(message);
+			templateData.actionButton.setTitle(message);
 			return;
 		}
 
@@ -402,7 +420,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 				});
 				this.setStatusMessage(undefined);
 			} catch (error) {
-				this.setStatusMessage(localize('sourcesChangesList.diffFailed', "Unable to open diff: {0}", getErrorMessage(error)));
+				this.setStatusMessage(sourcesGitDiffOpenFailureMessage(error));
 			}
 		}));
 

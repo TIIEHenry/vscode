@@ -232,6 +232,11 @@ export function sourcesGitReadFailureMessage(error: unknown): string {
 	return localize('sourcesChangesGitRead.failed', "Unable to read git changes: {0}", getErrorMessage(error));
 }
 
+/** Honest open-diff failure text; same status surface as git-read, not a silent catch. */
+export function sourcesGitDiffOpenFailureMessage(error: unknown): string {
+	return localize('sourcesChangesGitRead.diffOpenFailed', "Unable to open diff: {0}", getErrorMessage(error));
+}
+
 export async function tryLoadSourcesGitChangeEntries(
 	connected: boolean,
 	readChanges: ((request: UniverseAgentReadGitChangesRequest) => Promise<UniverseAgentReadGitChangesResult>) | undefined,

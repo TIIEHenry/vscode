@@ -137,6 +137,19 @@ suite('Sources - review list model', () => {
 		assert.ok(!review.includes('} catch {\n\t\t\tif (seq !== this.refreshSeq)'));
 	});
 
+	test('Review list surfaces open-diff failure on the same status line and does not mark reviewed', () => {
+		const review = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/sourcesReviewList.ts'), 'utf8');
+		const openStart = review.indexOf('this._register(this.list.onDidOpen');
+		const openEnd = review.indexOf('this._register(this.list.onContextMenu', openStart);
+		assert.ok(openStart >= 0 && openEnd > openStart);
+		const openHandler = review.slice(openStart, openEnd);
+		assert.ok(openHandler.includes('markReviewedAfterSuccessfulOpen'));
+		assert.ok(openHandler.includes('} catch (error)'));
+		assert.ok(openHandler.includes('sourcesGitDiffOpenFailureMessage'));
+		assert.ok(openHandler.includes('setStatusMessage'));
+		assert.ok(!openHandler.includes('} catch {'));
+	});
+
 	test('Changes list does not reference review progress service', () => {
 		const changesListPath = path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/sourcesChangesList.ts');
 		const source = fs.readFileSync(changesListPath, 'utf8');
