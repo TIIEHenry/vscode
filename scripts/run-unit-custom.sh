@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 # Run agent-ide unit-custom three-domain Electron tests, then compare JUnit to the baseline list.
 # conversation / sources keep the official single globs (mocha non-zero is ignored until the compare).
-# universeAgent is collected once: the 11 Electron-unloadable test/node files (D17) are excluded;
-# other test/node files stay in the same --tfs universeAgent invocation so the XML is not overwritten.
+# universeAgent uses the official single glob. The 11 Electron-unloadable
+# test/node files (D17) stay excluded via --excludeRunGlob so the first
+# connectionResolver.test.js dynamic-import miss cannot abort JUnit.
+# Other test/node files stay in the same --tfs universeAgent invocation.
 # See dev/plans/test-baseline-ci.md §5 and D17 「三域基线红」.
 set -uo pipefail
 
@@ -87,10 +89,13 @@ if [[ "${1:-}" == "--print-universeagent" ]]; then
 	exit 0
 fi
 
+UA_OFFICIAL_GLOB='**/vs/platform/universeAgent/test/**/*.test.js'
+UA_EXCLUDE_GLOB="**/vs/platform/universeAgent/test/node/{$(IFS=','; echo "${UA_NODE_UNLOADABLE[*]}")}.test.js"
+
 set +e
 ./scripts/test.sh --glob '**/vs/workbench/contrib/conversation/test/**/*.test.js' --tfs conversation
 ./scripts/test.sh --glob '**/vs/workbench/contrib/sources/test/**/*.test.js' --tfs sources
-./scripts/test.sh --tfs universeAgent "${UA_FILES[@]}"
+./scripts/test.sh --glob "$UA_OFFICIAL_GLOB" --excludeRunGlob "$UA_EXCLUDE_GLOB" --tfs universeAgent
 set -e
 
 exec ./scripts/check-test-baseline.sh
