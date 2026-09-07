@@ -81,6 +81,10 @@ export class SourcesTabsHost extends Disposable implements ISourcesReviewListHos
 		this.reviewList?.markAllReviewed();
 	}
 
+	setStatusMessage(message: string | undefined): void {
+		this.reviewList?.setStatusMessage(message);
+	}
+
 	selectTab(tabId: SourcesTabId, focusTab: boolean): void {
 		if (this.selectedTab === tabId && !focusTab) {
 			this.updateTabPresentation();

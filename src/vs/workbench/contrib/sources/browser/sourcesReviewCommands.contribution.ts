@@ -10,6 +10,7 @@ import { IInstantiationService, ServicesAccessor } from '../../../../platform/in
 import { IEditorService } from '../../../services/editor/common/editorService.js';
 import { IQuickDiffService } from '../../scm/common/quickDiff.js';
 import { ISourcesDiffPanelService } from '../common/sourcesDiffPanelService.js';
+import { sourcesGitDiffOpenFailureMessage } from '../common/sourcesChangesGitRead.js';
 import { ISourcesReviewHostService } from '../common/sourcesReviewHostService.js';
 import { markReviewedAfterSuccessfulOpen } from '../common/sourcesReviewListModel.js';
 import { ISourcesReviewProgressService } from '../common/sourcesReviewProgress.js';
@@ -30,7 +31,8 @@ registerAction2(class SourcesReviewOpenSelectedAction extends Action2 {
 	}
 
 	override async run(accessor: ServicesAccessor): Promise<void> {
-		const entry = accessor.get(ISourcesReviewHostService).getReviewListHost()?.getSelectedEntry();
+		const host = accessor.get(ISourcesReviewHostService).getReviewListHost();
+		const entry = host?.getSelectedEntry();
 		if (!entry) {
 			return;
 		}
@@ -52,8 +54,8 @@ registerAction2(class SourcesReviewOpenSelectedAction extends Action2 {
 				key => reviewProgressService.markReviewed(key),
 				entry.resource,
 			);
-		} catch {
-			// open failed — do not mark reviewed
+		} catch (error) {
+			host?.setStatusMessage(sourcesGitDiffOpenFailureMessage(error));
 		}
 	}
 });

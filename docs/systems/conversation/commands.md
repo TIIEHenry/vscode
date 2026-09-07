@@ -3,7 +3,7 @@ title: "Agent IDE 壳命令、菜单落点与快捷键"
 type: reference
 status: accepted
 phase: N/A
-updated: 2026-09-03
+updated: 2026-09-07
 summary: "四钮、Conversation、Sources Review 三命令、Sessions roster、UA Preferences、深链的用户可见命令清单；chat tab 复用 editor group 命令；对话框 Escape / Accessible View；窄宽度见透镜页"
 ---
 
@@ -66,14 +66,14 @@ summary: "四钮、Conversation、Sources Review 三命令、Sessions roster、U
 
 | 命令 id | 标题 / 触发 | 说明 | 默认键位 |
 |---------|-------------|------|----------|
-| `sources.review.openSelected` | Open Selected Review Change | F1；打开 Review 当前选中行。复用 `openSourcesChangeEntry`（按 `sources.diff.defaultOwner` 分派）；打开成功后标已审阅 | 无（可在 Keyboard Shortcuts 自绑） |
+| `sources.review.openSelected` | Open Selected Review Change | F1；打开 Review 当前选中行。复用 `openSourcesChangeEntry`（按 `sources.diff.defaultOwner` 分派）；打开成功后标已审阅。失败与列表 open-diff 同诚实：`sourcesGitDiffOpenFailureMessage` 写 Review status，不标已审 | 无（可在 Keyboard Shortcuts 自绑） |
 | `sources.review.toggleReviewedSelected` | Toggle Reviewed for Selected | F1；对选中行切换已审阅。复用行右键 Action `sources.review.markReviewed` / `markUnreviewed` 逻辑 | 无（可在 Keyboard Shortcuts 自绑） |
 | `sources.review.markAllReviewed` | Mark All as Reviewed | F1；与列表「Mark all as reviewed」按钮同一套可见行（文本 + path-set，不含 unreviewed-only） | 无（可在 Keyboard Shortcuts 自绑） |
 | `sources.review.showForPaths` | Show Review for Paths | 程序入口：显示 Sources、切 Review、套 path-set；`f1: false` | 无 |
 
 无「宿主移动」命令（现无对应 Review 列表动作，不造）。Changes / Review 行打开后的 Diff 宿主移动走 `sources.diff.moveTo*`，见 [Sources 系统](../sources/overview.md)。
 
-选中行经 `ISourcesReviewListHost.getSelectedEntry()`（`SourcesTabsHost` → `SourcesReviewList`）。tab 切换为 title 区 tab strip（`nextSourcesTab` 支持循环）。Changes 的 stage / unstage / commit 调用 git 扩展命令 `git.stage` / `git.unstage` / `git.commit`（或 SCM `acceptInputCommand`）。
+选中行经 `ISourcesReviewListHost.getSelectedEntry()`（`SourcesTabsHost` → `SourcesReviewList`）。Open Selected 失败经同一 host 的 `setStatusMessage` 写 Review status。tab 切换为 title 区 tab strip（`nextSourcesTab` 支持循环）。Changes 的 stage / unstage / commit 调用 git 扩展命令 `git.stage` / `git.unstage` / `git.commit`（或 SCM `acceptInputCommand`）。
 
 命令注册于 `sourcesReviewCommands.contribution.ts`（由 `sources.contribution.ts` 一行 import）。
 

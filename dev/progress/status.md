@@ -58,7 +58,7 @@ summary: "人类工位已对齐已推送 MERGE_SHA c1b228caf74；保留本机行
    - **A**：[D40](deferred-gaps.md) closed（`fetchToolDetail` throw 回 `{ok:false}`）；[D26](deferred-gaps.md) 引擎 Create meta 仍 open。
    - **B**：[D34](deferred-gaps.md)/[D35](deferred-gaps.md)/[D36](deferred-gaps.md) closed。D27 未重开。
    - **C**：本波空闲。上波 D37 已在 merge。
-   - **D**：[D31](deferred-gaps.md) leftover 已收；**D31 仍开**（F4）；R8 未发明。
+   - **D**：Open Selected 空 catch 已收（`sourcesGitDiffOpenFailureMessage` + Review status）；**[D31](deferred-gaps.md) 仍开**（F4）；R8 未发明。
 
 子 agent 发现的既有代码问题：
 
@@ -67,7 +67,7 @@ summary: "人类工位已对齐已推送 MERGE_SHA c1b228caf74；保留本机行
 | [D23](deferred-gaps.md) | A 槽 | **closed** resident heartbeat write 已 catch |
 | [D33](deferred-gaps.md) | B 槽 | **closed** pairingPending 开 Connection/SAS |
 | [D27](deferred-gaps.md) | grok 4.6 | **closed**：`provideTurnEditComposer` 先于 `setEditingTurnId`；已删 1px 垫高 |
-| [D31](deferred-gaps.md) | D 槽 | Changes Unstage 不可用 + Review 打开失败已收；剩 F4 冒烟；命令 Open Selected 仍空 catch；不升 PRD |
+| [D31](deferred-gaps.md) | D 槽 | Changes Unstage 不可用 + Review 列表/命令打开失败已收；剩 F4 冒烟；不升 PRD |
 | [R8](research-queue.md) | A 槽 Sources | `WriteGitApplyHunks` 空 patches 语义未定 |
 | [D32](deferred-gaps.md) | A 槽 `host-write-retry` | **closed（代码+测已写；compile 待 merge）** Retry 走 `lease.post`；host 映射 Actor `continueGeneration` |
 | [D38](deferred-gaps.md) | A 槽 `host-bind-safety` | **closed** `fillHistory` bind/write 已 catch |

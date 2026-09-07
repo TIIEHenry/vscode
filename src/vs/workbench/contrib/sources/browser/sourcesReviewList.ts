@@ -329,6 +329,16 @@ export class SourcesReviewList extends Disposable {
 		this.markAllVisibleReviewed();
 	}
 
+	setStatusMessage(message: string | undefined): void {
+		if (!message) {
+			this.statusMessage.textContent = '';
+			this.statusMessage.style.display = 'none';
+			return;
+		}
+		this.statusMessage.textContent = message;
+		this.statusMessage.style.display = 'block';
+	}
+
 	private registerRepository(repo: ISCMRepository): void {
 		if (this.repositoryListeners.has(repo)) {
 			return;
@@ -566,16 +576,6 @@ export class SourcesReviewList extends Disposable {
 			this.getGitResourceRoot(),
 		);
 		return loaded?.entries;
-	}
-
-	private setStatusMessage(message: string | undefined): void {
-		if (!message) {
-			this.statusMessage.textContent = '';
-			this.statusMessage.style.display = 'none';
-			return;
-		}
-		this.statusMessage.textContent = message;
-		this.statusMessage.style.display = 'block';
 	}
 
 	private async refresh(): Promise<void> {
