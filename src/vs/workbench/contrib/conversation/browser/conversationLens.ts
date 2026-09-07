@@ -75,6 +75,8 @@ import {
 	updateLensTabs,
 	updateReadingColumn,
 	updateSyncChrome,
+	type ConversationLensId,
+	CONVERSATION_LENS_ID_STORAGE_KEY,
 } from './conversationLensProjection.js';
 import {
 	beginSessionTitleEdit,
@@ -139,11 +141,10 @@ import {
 	updateMaximizeInputButton,
 	updateSendEnabled,
 	updateSessionConfigVisibility,
+	type ComposerPolicy,
+	type ConversationSessionConfigSelection,
 } from './conversationLensComposerChrome.js';
 
-import type { ComposerPolicy, ConversationSessionConfigSelection } from './conversationLensComposerChrome.js';
-import type { ConversationLensId } from './conversationLensProjection.js';
-import { CONVERSATION_LENS_ID_STORAGE_KEY } from './conversationLensProjection.js';
 /**
  * Product Conversation lens: SessionBar + stub timeline + local dock, mounted
  * into {@link IConversationLensSlots}. Not ChatEditor / ChatViewPane.
@@ -247,18 +248,18 @@ export class ConversationLens extends Disposable {
 
 	constructor(
 		slots: IConversationLensSlots,
-		@IConversationRosterService readonly stubService: IConversationRosterService,
-		@IClipboardService readonly clipboardService: IClipboardService,
-		@IContextViewService readonly contextViewService: IContextViewService,
-		@IConfigurationService readonly configurationService: IConfigurationService,
-		@IInstantiationService readonly instantiationService: IInstantiationService,
-		@IStorageService readonly storageService: IStorageService,
-		@IExtensionService readonly extensionService: IExtensionService,
-		@IWebviewService readonly webviewService: IWebviewService,
+		@IConversationRosterService public readonly stubService: IConversationRosterService,
+		@IClipboardService public readonly clipboardService: IClipboardService,
+		@IContextViewService public readonly contextViewService: IContextViewService,
+		@IConfigurationService public readonly configurationService: IConfigurationService,
+		@IInstantiationService public readonly instantiationService: IInstantiationService,
+		@IStorageService public readonly storageService: IStorageService,
+		@IExtensionService public readonly extensionService: IExtensionService,
+		@IWebviewService public readonly webviewService: IWebviewService,
 		@IConversationTimelineRevealService revealService: IConversationTimelineRevealService,
-		@IConversationReviewNavService readonly reviewNavService: IConversationReviewNavService,
-		@ICommandService readonly commandService: ICommandService,
-		@IUniverseAgentConnection readonly uaConnection: IUniverseAgentConnection,
+		@IConversationReviewNavService public readonly reviewNavService: IConversationReviewNavService,
+		@ICommandService public readonly commandService: ICommandService,
+		@IUniverseAgentConnection public readonly uaConnection: IUniverseAgentConnection,
 	) {
 		super();
 

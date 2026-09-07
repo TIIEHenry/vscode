@@ -25,8 +25,6 @@ import { ConversationPart, IConversationPartService } from '../../../../browser/
 import type { Turn } from '../../../../../platform/agentHost/common/state/sessionState.js';
 import { URI } from '../../../../../base/common/uri.js';
 
-import '../../browser/chat.shared.contribution.js';
-
 function evalWhen(when: ContextKeyExpression | undefined, values: Record<string, ContextKeyValue>): boolean {
 	if (!when) {
 		return true;

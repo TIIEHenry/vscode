@@ -5,7 +5,7 @@
 
 import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../../base/test/common/utils.js';
-import { isIMenuItem, MenuId, MenuRegistry } from '../../../../../../platform/actions/common/actions.js';
+import { isIMenuItem, MenuId, MenuRegistry, registerAction2 } from '../../../../../../platform/actions/common/actions.js';
 import { AGENT_HOST_ENABLED_CONTEXT_KEY } from '../../../../../../platform/agentHost/common/agentHostEnablementService.js';
 import type { ContextKeyExpression, ContextKeyValue } from '../../../../../../platform/contextkey/common/contextkey.js';
 import { IsWebContext } from '../../../../../../platform/contextkey/common/contextkeys.js';
@@ -15,7 +15,6 @@ import { ExportAgentHostDebugLogsAction } from '../../../browser/actions/exportA
 import { registerChatOpenAgentDebugPanelAction } from '../../../browser/actions/chatOpenAgentDebugPanelAction.js';
 import { CHAT_DEBUG_ACTIVE_SESSION_IS_AGENT_HOST, CHAT_DEBUG_HAS_ACTIVE_SESSION } from '../../../common/chatDebugService.js';
 import { ChatContextKeys } from '../../../common/actions/chatContextKeys.js';
-import { registerAction2 } from '../../../../../../platform/actions/common/actions.js';
 
 function evalWhen(when: ContextKeyExpression | undefined, values: Record<string, ContextKeyValue>): boolean {
 	if (!when) {

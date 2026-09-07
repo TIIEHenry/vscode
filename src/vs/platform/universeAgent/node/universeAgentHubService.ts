@@ -16,8 +16,7 @@ import type {
 	HubOperationResult,
 	IUniverseAgentHubService,
 } from '../common/hub.js';
-import type { ConnectionProfile, IConnectionProfileStore } from './connectionProfileStore.js';
-import { ConnectionProfileStore } from './connectionProfileStore.js';
+import { type ConnectionProfile, type IConnectionProfileStore, ConnectionProfileStore } from './connectionProfileStore.js';
 import { loginHub, changeHubPassword, logoutHub, type HubAuthHttp } from './hub/hub-auth-client.js';
 import {
 	confirmHubDeviceCode,

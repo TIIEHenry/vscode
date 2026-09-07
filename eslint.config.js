@@ -1620,6 +1620,17 @@ export default defineConfig(
 						'undici-types',
 						'url',
 						'module',
+						// `node:`-prefixed spellings of the built-ins allowed above. The
+						// prefix reaches the same module, so it must not change what this
+						// list permits — `node:path` stays out for the same reason 'path'
+						// does.
+						'node:child_process',
+						'node:crypto',
+						'node:fs',
+						'node:net',
+						'node:os',
+						'node:tls',
+						'node:url',
 						'util',
 						'vscode-regexpp',
 						'vscode-textmate',

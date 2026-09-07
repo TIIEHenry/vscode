@@ -58,7 +58,19 @@ import {
 } from '../../browser/conversationLensDockStrings.js';
 import { conversationLensDockPermissionUnavailable } from '../../browser/conversationLensComposerChrome.js';
 import { conversationLensVoiceTranscriptBarClass } from '../../browser/conversationVoiceTranscriptBar.js';
-import { conversationLensSessionBarConversationTab, conversationLensSessionBarDeleteSession, conversationLensSessionBarNewSession, conversationLensSessionBarNoTrajectory, conversationLensSessionBarRenameTitle, conversationLensSessionBarRouteLabel, conversationLensSessionBarTrajectoryTab, conversationLensPinnedUserPromptAria, conversationLensPinnedUserPromptCopyAria } from '../../browser/conversationLensSessionBarStrings.js';
+import {
+	conversationLensSessionBarConversationTab,
+	conversationLensSessionBarDeleteSession,
+	conversationLensSessionBarNewSession,
+	conversationLensSessionBarNoTrajectory,
+	conversationLensSessionBarRenameTitle,
+	conversationLensSessionBarRouteLabel,
+	conversationLensSessionBarTrajectoryTab,
+	conversationLensPinnedUserPromptAria,
+	conversationLensPinnedUserPromptCopyAria,
+	conversationLensTurnCopy,
+	conversationLensTurnDelete,
+} from '../../browser/conversationLensSessionBarStrings.js';
 import { ConversationStubService, IConversationRosterService } from '../../browser/conversationStubService.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { createConversationConnectionTestStub, createEmptyTestCapabilitySnapshot } from '../common/conversationConnectionTestStub.js';
@@ -67,7 +79,6 @@ import { TestConversationFrameSource } from './testConversationFrameSource.js';
 import { conversationIdentityStripClass } from '../../browser/conversationIdentityStrip.js';
 import { getConversationSessionStatusText } from '../../browser/conversationSessionStatus.js';
 import { shouldRenderTurnAsMarkdown } from '../../browser/conversationTurnMarkdown.js';
-import { conversationLensTurnCopy, conversationLensTurnDelete } from '../../browser/conversationLensSessionBarStrings.js';
 import { IClipboardService } from '../../../../../platform/clipboard/common/clipboardService.js';
 import { TestClipboardService } from '../../../../../platform/clipboard/test/common/testClipboardService.js';
 import { Event } from '../../../../../base/common/event.js';
@@ -83,6 +94,8 @@ import { IWebviewService } from '../../../webview/browser/webview.js';
 import { IConversationTimelineRevealService } from '../../browser/conversationTimelineRevealService.js';
 import { IConversationReviewNavService } from '../../common/conversationReviewEntry.js';
 import { flushConversationLensLayout, installConversationLensResizeObserverHarness } from './conversationLensLayoutHarness.js';
+import { getWindow } from '../../../../../base/browser/dom.js';
+import { mainWindow } from '../../../../../base/browser/window.js';
 
 suite('ConversationLens', () => {
 
@@ -102,7 +115,7 @@ suite('ConversationLens', () => {
 	}
 
 	async function flushAnimationFrames(): Promise<void> {
-		await new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+		await new Promise<void>(resolve => mainWindow.requestAnimationFrame(() => mainWindow.requestAnimationFrame(() => resolve())));
 	}
 
 	async function inflateTimelineRowHeights(lens: ConversationLens, layout: () => void, rowHeight = 400): Promise<void> {
@@ -743,7 +756,7 @@ suite('ConversationLens', () => {
 		const slots = getLensSlots(part);
 		const bottomBar = getComposerBottomBar(slots);
 
-		const bottomBarMinHeight = parseInt(getComputedStyle(bottomBar).minHeight, 10);
+		const bottomBarMinHeight = parseInt(getWindow(bottomBar).getComputedStyle(bottomBar).minHeight, 10);
 		if (bottomBarMinHeight > 0) {
 			assert.strictEqual(bottomBarMinHeight, conversationLensDockControlHeightPx);
 		}
@@ -768,7 +781,8 @@ suite('ConversationLens', () => {
 		assert.ok(filledSend.classList.contains('conversation-lens-dock-control--filled'));
 
 		for (const control of bottomBar.querySelectorAll('.conversation-lens-dock-control')) {
-			const height = parseInt(getComputedStyle(control as HTMLElement).height, 10);
+			const controlElement = control as HTMLElement;
+			const height = parseInt(getWindow(controlElement).getComputedStyle(controlElement).height, 10);
 			if (height > 0) {
 				assert.strictEqual(height, conversationLensDockControlHeightPx);
 			}
@@ -2669,10 +2683,11 @@ suite('ConversationLens', () => {
 		const nestedTools = fold.querySelectorAll('.conversation-process-fold-tool--nested');
 		assert.strictEqual(nestedTools.length, 2);
 
-		const childrenStyle = getComputedStyle(children);
-		const nestedToolStyle = getComputedStyle(nestedTools[0] as Element);
+		const childrenStyle = getWindow(children).getComputedStyle(children);
+		const firstNestedTool = nestedTools[0] as HTMLElement;
+		const nestedToolStyle = getWindow(firstNestedTool).getComputedStyle(firstNestedTool);
 		const thinkingToolsHost = fold.querySelector('.conversation-process-fold-thinking-tools') as HTMLElement;
-		const thinkingToolsStyle = getComputedStyle(thinkingToolsHost);
+		const thinkingToolsStyle = getWindow(thinkingToolsHost).getComputedStyle(thinkingToolsHost);
 		assert.ok(parseFloat(childrenStyle.paddingInlineStart) >= 12);
 		assert.ok(parseFloat(thinkingToolsStyle.paddingInlineStart) >= 12);
 		assert.ok(parseFloat(nestedToolStyle.paddingInlineStart) >= 0);

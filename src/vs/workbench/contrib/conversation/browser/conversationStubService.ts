@@ -27,17 +27,11 @@ import {
 	ConversationStubTurn,
 	getConversationStubNextTurnId,
 } from './conversationStubModel.js';
-import {
-	mergeTrajectoryFixtureExtras,
-	projectSnapshotToTrajectory,
-	shouldMergeTrajectoryFixtureExtras,
-	type TrajectoryProjectionOptions,
-} from './conversationTrajectoryModel.js';
+import { mergeTrajectoryFixtureExtras, projectSnapshotToTrajectory, shouldMergeTrajectoryFixtureExtras, type TrajectoryProjectionOptions, ConversationTrajectoryRecord } from './conversationTrajectoryModel.js';
 import {
 	entriesToLegacyTurns,
 	projectSnapshotToEntries,
 } from './conversationSessionView.js';
-import { ConversationTrajectoryRecord } from './conversationTrajectoryModel.js';
 import {
 	ConversationMessageQueueState,
 	ConversationQueueItemHoldReason,

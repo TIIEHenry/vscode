@@ -26,8 +26,6 @@ import {
 	SOURCES_REVIEW_OPEN_SELECTED_COMMAND,
 	SOURCES_REVIEW_TOGGLE_REVIEWED_SELECTED_COMMAND,
 } from '../../browser/sourcesReviewCommands.contribution.js';
-import '../../browser/sourcesReview.contribution.js';
-import '../../browser/sourcesReviewCommands.contribution.js';
 import { CommandsRegistry } from '../../../../../platform/commands/common/commands.js';
 import { SourcesTabId } from '../../common/sourcesTabs.js';
 

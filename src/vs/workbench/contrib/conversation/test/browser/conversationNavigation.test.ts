@@ -11,8 +11,7 @@ import { SyncDescriptor } from '../../../../../platform/instantiation/common/des
 import { Registry } from '../../../../../platform/registry/common/platform.js';
 import { TestConfigurationService } from '../../../../../platform/configuration/test/common/testConfigurationService.js';
 import { IConfigurationService } from '../../../../../platform/configuration/common/configuration.js';
-import { isResourceEditorInput } from '../../../../common/editor.js';
-import { EditorExtensions, IEditorFactoryRegistry } from '../../../../common/editor.js';
+import { isResourceEditorInput, EditorExtensions, IEditorFactoryRegistry } from '../../../../common/editor.js';
 import { IEditorGroupsService } from '../../../../services/editor/common/editorGroupsService.js';
 import { EditorService } from '../../../../services/editor/browser/editorService.js';
 import { IEditorService } from '../../../../services/editor/common/editorService.js';

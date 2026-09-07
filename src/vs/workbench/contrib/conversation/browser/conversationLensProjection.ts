@@ -8,10 +8,8 @@ import { IStorageService, StorageScope, StorageTarget } from '../../../../platfo
 import type { ConversationViewFrameApplied, IConversationSessionViewLease } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
 import type { SyncChrome } from '../../../../platform/universeAgent/common/sessionView/index.js';
 import { IConversationLensSlots } from '../../../browser/parts/conversation/conversationPart.js';
-import { IConversationReviewNavService } from '../common/conversationReviewEntry.js';
-import { attachReviewEntries, computeReviewNavSidecarApplied } from '../common/conversationReviewEntry.js';
-import { projectSnapshotToEntries, formatSyncChromeLabel } from './conversationSessionView.js';
-import type { ConversationTimelineEntry } from './conversationSessionView.js';
+import { IConversationReviewNavService, attachReviewEntries, computeReviewNavSidecarApplied } from '../common/conversationReviewEntry.js';
+import { projectSnapshotToEntries, formatSyncChromeLabel, type ConversationTimelineEntry } from './conversationSessionView.js';
 import {
 	collectConversationTrajectoryTurnIds,
 	collectTrajectoryTurnIdsFromSnapshot,

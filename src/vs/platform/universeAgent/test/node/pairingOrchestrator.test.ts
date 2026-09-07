@@ -7,8 +7,7 @@ import assert from 'assert';
 import { createHash, generateKeyPairSync } from 'node:crypto';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import type { ConnectionProfile } from '../../node/connectionProfileStore.js';
-import { derivePairingSasCode, DEVICE_GRANT_AUTH_PROTOCOL_VERSION } from '../../node/deviceGrant/device-grant-crypto.js';
-import { createEd25519DeviceAuthSigner, type DeviceAuthTranscriptInput } from '../../node/deviceGrant/device-grant-crypto.js';
+import { derivePairingSasCode, DEVICE_GRANT_AUTH_PROTOCOL_VERSION, createEd25519DeviceAuthSigner, type DeviceAuthTranscriptInput } from '../../node/deviceGrant/device-grant-crypto.js';
 import { deriveEngineLeafFingerprintHex } from '../../node/deviceGrant/tls-pin.js';
 import type {
 	IUniverseAgentGrpcTransport,

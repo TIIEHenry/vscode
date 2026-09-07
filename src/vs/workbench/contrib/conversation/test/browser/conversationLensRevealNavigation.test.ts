@@ -32,6 +32,8 @@ import { TestStorageService } from '../../../../test/common/workbenchTestService
 import { IExtensionService } from '../../../../services/extensions/common/extensions.js';
 import { IWebviewService } from '../../../webview/browser/webview.js';
 import { flushConversationLensLayout, installConversationLensResizeObserverHarness } from './conversationLensLayoutHarness.js';
+import { getWindow } from '../../../../../base/browser/dom.js';
+import { mainWindow } from '../../../../../base/browser/window.js';
 
 suite('ConversationLens reveal navigation (T5a)', function () {
 
@@ -49,7 +51,7 @@ suite('ConversationLens reveal navigation (T5a)', function () {
 	}
 
 	async function flushAnimationFrames(): Promise<void> {
-		await new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+		await new Promise<void>(resolve => mainWindow.requestAnimationFrame(() => mainWindow.requestAnimationFrame(() => resolve())));
 	}
 
 	teardown(async () => {
@@ -395,7 +397,7 @@ suite('ConversationLens reveal navigation (T5a)', function () {
 		assert.strictEqual(lens.isInputMaximized(), true);
 		assert.strictEqual(slots.timeline.classList.contains(conversationLensShowingTrajectoryClass), true);
 		assert.ok(!slots.timeline.querySelector('.conversation-lens-trajectory')!.hasAttribute('hidden'));
-		assert.notStrictEqual(getComputedStyle(slots.timeline).display, 'none');
+		assert.notStrictEqual(getWindow(slots.timeline).getComputedStyle(slots.timeline).display, 'none');
 		assert.ok(slots.timeline.querySelector('.conversation-lens-timeline')!.hasAttribute('hidden'));
 
 		await revealTrajectoryRow(lens, layoutReadingColumn, 'untitled-u1');

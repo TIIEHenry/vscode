@@ -8,12 +8,11 @@ import { Emitter, Event } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { emptySessionViewSnapshot } from '../../../../../platform/universeAgent/common/sessionView/empty-snapshot.js';
 import type { SessionId, ViewLeaseId } from '../../../../../platform/universeAgent/common/sessionView/types.js';
-import type { ConversationViewFrame, ConversationViewFrameApplied } from '../../../../../platform/universeAgent/common/conversationViewFrame.js';
+import { type ConversationViewFrame, type ConversationViewFrameApplied, type ConversationWriteMessage, type DetailFetchOutcome, type PostOutcome } from '../../../../../platform/universeAgent/common/conversationViewFrame.js';
 import type {
 	IUniverseAgentSessionView,
 	IUniverseAgentSessionViewFrameEvent,
 } from '../../../../../platform/universeAgent/common/universeAgentSessionView.js';
-import type { ConversationWriteMessage, DetailFetchOutcome, PostOutcome } from '../../../../../platform/universeAgent/common/conversationViewFrame.js';
 import { ConversationEngineFrameSource } from '../../browser/conversationEngineFrameSource.js';
 
 type LeaseChannel = {

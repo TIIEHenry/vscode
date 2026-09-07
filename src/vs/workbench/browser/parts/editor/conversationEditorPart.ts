@@ -12,8 +12,7 @@ import { IInstantiationService } from '../../../../platform/instantiation/common
 import { IStorageService } from '../../../../platform/storage/common/storage.js';
 import { IThemeService } from '../../../../platform/theme/common/themeService.js';
 import { EditorPart } from './editorPart.js';
-import { IEditorPartsView } from './editor.js';
-import { IEditorGroupView } from './editor.js';
+import { IEditorPartsView, IEditorGroupView } from './editor.js';
 import { GroupIdentifier } from '../../../common/editor.js';
 import { findGroup } from '../../../services/editor/common/editorGroupFinder.js';
 import { IConversationEditorPart, IEditorGroup, IEditorSideGroup } from '../../../services/editor/common/editorGroupsService.js';

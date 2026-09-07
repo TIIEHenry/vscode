@@ -22,10 +22,6 @@ import {
 import { ToggleAuxiliaryBarAction } from '../../browser/parts/auxiliarybar/auxiliaryBarActions.js';
 import { TogglePanelAction } from '../../browser/parts/panel/panelActions.js';
 
-import '../../browser/actions/layoutActions.js';
-import '../../browser/parts/panel/panelActions.js';
-import '../../browser/parts/auxiliarybar/auxiliaryBarActions.js';
-
 const PRODUCT_LAYOUT_TOGGLE_IDS = [
 	ToggleSidebarVisibilityAction.ID,
 	ToggleConversationVisibilityActionId,

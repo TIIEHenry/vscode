@@ -1,7 +1,3 @@
-/*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
- *  Licensed under the MIT License. See License.txt in the project root for license information.
- *--------------------------------------------------------------------------------------------*/
 /**
  * Cursor canvas snapshot for conversation-empty-hero.md (PRD-015).
  * Not compiled by workbench (`src/tsconfig` does not include `dev/`).

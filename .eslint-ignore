@@ -72,3 +72,9 @@ src/vs/platform/universeAgent/common/sessionView/**
 !src/vs/platform/universeAgent/common/sessionView/index.ts
 src/vs/platform/universeAgent/node/sessionCore/**
 !src/vs/platform/universeAgent/node/sessionCore/index.ts
+
+# Action-layer artifacts, not shipped code: design mockups rendered by the
+# canvas viewer, and probe scripts that only exist as fixture content inside
+# recorded evidence workspaces.
+dev/**/*.canvas.tsx
+dev/progress/**/sample-workspace/**

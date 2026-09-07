@@ -11,16 +11,14 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../../base/
 import { isIMenuItem, MenuId, MenuRegistry } from '../../../../../../platform/actions/common/actions.js';
 import { IConfigurationService } from '../../../../../../platform/configuration/common/configuration.js';
 import { TestConfigurationService } from '../../../../../../platform/configuration/test/common/testConfigurationService.js';
-import type { ContextKeyExpression, ContextKeyValue } from '../../../../../../platform/contextkey/common/contextkey.js';
-import { IContextKeyService } from '../../../../../../platform/contextkey/common/contextkey.js';
+import { type ContextKeyExpression, type ContextKeyValue, IContextKeyService } from '../../../../../../platform/contextkey/common/contextkey.js';
 import { ContextKeyService } from '../../../../../../platform/contextkey/browser/contextKeyService.js';
 import { IWorkbenchEnvironmentService } from '../../../../../services/environment/common/environmentService.js';
-import { IChatEntitlementService } from '../../../../../services/chat/common/chatEntitlementService.js';
+import { IChatEntitlementService, ChatEntitlementContext, ChatEntitlementRequests, ChatEntitlementService } from '../../../../../services/chat/common/chatEntitlementService.js';
 import { TestInstantiationService } from '../../../../../../platform/instantiation/test/common/instantiationServiceMock.js';
 import { NullLogService, ILogService } from '../../../../../../platform/log/common/log.js';
 import { IActionViewItemService } from '../../../../../../platform/actions/browser/actionViewItemService.js';
 import { IsSessionsWindowContext } from '../../../../../common/contextkeys.js';
-import { ChatEntitlementContext, ChatEntitlementRequests, ChatEntitlementService } from '../../../../../services/chat/common/chatEntitlementService.js';
 import { IWorkbenchExtensionEnablementService } from '../../../../../services/extensionManagement/common/extensionManagement.js';
 import { IExtensionService } from '../../../../../services/extensions/common/extensions.js';
 import { IExtensionsWorkbenchService } from '../../../../extensions/common/extensions.js';

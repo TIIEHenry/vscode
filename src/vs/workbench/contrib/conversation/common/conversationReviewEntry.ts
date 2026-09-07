@@ -6,9 +6,8 @@
 import { URI } from '../../../../base/common/uri.js';
 import { Event } from '../../../../base/common/event.js';
 import { createDecorator } from '../../../../platform/instantiation/common/instantiation.js';
-import type { ConversationTimelineEntry } from '../browser/conversationSessionView.js';
+import { type ConversationTimelineEntry, entriesToRenderableTurns } from '../browser/conversationSessionView.js';
 import { computeTimelineApplyPlan } from '../browser/conversationTimelineApply.js';
-import { entriesToRenderableTurns } from '../browser/conversationSessionView.js';
 import { projectProcessFoldSpans } from '../browser/conversationProcessFoldModel.js';
 import { localize } from '../../../../nls.js';
 import type { ConversationViewFrameApplied } from '../../../../platform/universeAgent/common/conversationViewFrame.js';

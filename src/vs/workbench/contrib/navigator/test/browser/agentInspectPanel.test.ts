@@ -22,7 +22,6 @@ import {
 	OPEN_NAVIGATOR_TEAM_INSPECT_COMMAND_ID,
 } from '../../browser/agentInspectIds.js';
 import { AGENT_INSPECT_VIEW_CONTAINER } from '../../browser/agentInspect.contribution.js';
-import '../../browser/agentInspect.contribution.js';
 import { AgentInspectService } from '../../browser/agentInspectService.js';
 import { AgentInspectView, IAgentInspectEntry, inspectTitleFromTarget, isInspectTargetStale } from '../../browser/agentInspectView.js';
 import { IAgentInspectService } from '../../common/agentInspect.js';

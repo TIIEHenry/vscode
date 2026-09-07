@@ -18,8 +18,6 @@ import { AgentSessionsWelcomeInput } from '../../browser/agentSessionsWelcomeInp
 import { AgentSessionsWelcomePage, AgentSessionsWelcomeInputWorkbenchSerializer } from '../../browser/agentSessionsWelcome.js';
 import { shouldRegisterAgentSessionsWelcomeEditorResolver } from '../../browser/agentSessionsWelcome.contribution.js';
 
-import '../../browser/agentSessionsWelcome.contribution.js';
-
 function evalWhen(when: ContextKeyExpression | undefined, values: Record<string, ContextKeyValue>): boolean {
 	if (!when) {
 		return true;

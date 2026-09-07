@@ -9,9 +9,8 @@ import { toDisposable } from '../../../../../base/common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { IDialogService } from '../../../../../platform/dialogs/common/dialogs.js';
 import type { ConnectionPhase } from '../../../../../platform/universeAgent/common/connectionHubTypes.js';
-import type { HubAuthStatus, HubDeviceProjection, HubDirectoryStatus } from '../../../../../platform/universeAgent/common/hub.js';
+import { type HubAuthStatus, type HubDeviceProjection, type HubDirectoryStatus, IUniverseAgentHubService } from '../../../../../platform/universeAgent/common/hub.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
-import { IUniverseAgentHubService } from '../../../../../platform/universeAgent/common/hub.js';
 import { WorkbenchList } from '../../../../../platform/list/browser/listService.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import {
@@ -67,7 +66,7 @@ import {
 	connectionPaneIdentityReservationHostClass,
 	connectionPaneIdentityReservedTopVar,
 } from '../../browser/connectionPaneIdentityStripReservation.js';
-import { Dimension } from '../../../../../base/browser/dom.js';
+import { Dimension, getWindow } from '../../../../../base/browser/dom.js';
 
 const CONNECTION_EMPTY_COPY = 'No connection profiles yet';
 const FAKE_PROFILE_LABELS = ['Local Engine', 'Home Server'];
@@ -219,10 +218,10 @@ suite('ConnectionPreferencesPane', () => {
 			activeZone.contains(dialog) || activeZone.nextElementSibling === host,
 			'SAS confirm must sit in or immediately after the active Connect zone',
 		);
-		assert.strictEqual(getComputedStyle(profiles).display, 'none');
-		assert.notStrictEqual(getComputedStyle(dialog).display, 'none');
-		assert.notStrictEqual(getComputedStyle(host).display, 'none');
-		assert.notStrictEqual(getComputedStyle(activeZone).display, 'none');
+		assert.strictEqual(getWindow(profiles).getComputedStyle(profiles).display, 'none');
+		assert.notStrictEqual(getWindow(dialog).getComputedStyle(dialog).display, 'none');
+		assert.notStrictEqual(getWindow(host).getComputedStyle(host).display, 'none');
+		assert.notStrictEqual(getWindow(activeZone).getComputedStyle(activeZone).display, 'none');
 		const buttons = getPairingConfirmButtons(container);
 		assert.strictEqual(buttons.length, 2);
 		assert.strictEqual(buttons[0].textContent, SAS_CONFIRM_BUTTON_LABEL);

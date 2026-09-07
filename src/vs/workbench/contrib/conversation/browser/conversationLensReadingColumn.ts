@@ -4,14 +4,13 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { $, append, getWindow } from '../../../../base/browser/dom.js';
-import { IDisposable } from '../../../../base/common/lifecycle.js';
-import { toDisposable } from '../../../../base/common/lifecycle.js';
+import { IDisposable, toDisposable } from '../../../../base/common/lifecycle.js';
 import { URI } from '../../../../base/common/uri.js';
 import { localize } from '../../../../nls.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
-import type { IConversationSessionViewLease } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
+import { type IConversationSessionViewLease, type ConversationQuestionRespondAnswers } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
 import type { SyncChrome } from '../../../../platform/universeAgent/common/sessionView/index.js';
 import { IConversationLensSlots } from '../../../browser/parts/conversation/conversationPart.js';
 import { SOURCES_REVIEW_SHOW_FOR_PATHS_COMMAND } from '../../sources/browser/sourcesReview.contribution.js';
@@ -19,7 +18,6 @@ import { applyConversationDensityClass, shouldShowClientToolInvocationDetails } 
 import { ConversationIdentityStrip } from './conversationIdentityStrip.js';
 import { ConversationTimelineTree } from './conversationTimelineTree.js';
 import { ConversationTrajectory } from './conversationTrajectory.js';
-import type { ConversationQuestionRespondAnswers } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
 import { conversationLensPhasePreFirstClass, conversationLensPrefirstHeroClass } from './conversationLensDockStrings.js';
 import type { ConversationLensId } from './conversationLensProjection.js';
 import { conversationLeafWidthBucket, isConversationLeafCompact, isConversationLeafNarrow } from './conversationNarrowLayout.js';

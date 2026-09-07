@@ -15,6 +15,7 @@
  */
 
 import { errorHandler } from '../../../../../base/common/errors.js';
+import { mainWindow } from '../../../../../base/browser/window.js';
 
 function isResizeObserverLoopMessage(message: unknown): boolean {
 	return typeof message === 'string' && message.includes('ResizeObserver loop');
@@ -81,26 +82,26 @@ function installCaptureListener(): void {
 	if (captureListenerInstalled) {
 		return;
 	}
-	window.addEventListener('error', ignoreConversationLensResizeObserverLoop, true);
+	mainWindow.addEventListener('error', ignoreConversationLensResizeObserverLoop, true);
 	captureListenerInstalled = true;
 }
 
 function wrapWindowOnError(): void {
-	if (window.onerror === activeOnError && activeOnError) {
+	if (mainWindow.onerror === activeOnError && activeOnError) {
 		return;
 	}
-	const previous = window.onerror;
+	const previous = mainWindow.onerror;
 	const wrapped: OnErrorEventHandler = (message, source, lineno, colno, error) => {
 		if (isResizeObserverLoop(message) || isResizeObserverLoop(error)) {
 			return true;
 		}
 		if (typeof previous === 'function') {
-			return previous.call(window, message, source, lineno, colno, error);
+			return previous.call(mainWindow, message, source, lineno, colno, error);
 		}
 		return false;
 	};
 	activeOnError = wrapped;
-	window.onerror = wrapped;
+	mainWindow.onerror = wrapped;
 }
 
 function wrapProcessListeners(): void {
@@ -155,5 +156,5 @@ export function installConversationLensResizeObserverHarness(): void {
 
 export async function flushConversationLensLayout(): Promise<void> {
 	await new Promise<void>(resolve => setTimeout(resolve, 20));
-	await new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+	await new Promise<void>(resolve => mainWindow.requestAnimationFrame(() => mainWindow.requestAnimationFrame(() => resolve())));
 }

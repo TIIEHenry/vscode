@@ -5,8 +5,7 @@
 
 import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
-import type { ContextKeyValue } from '../../../../../platform/contextkey/common/contextkey.js';
-import { ContextKeyExpr } from '../../../../../platform/contextkey/common/contextkey.js';
+import { type ContextKeyValue, ContextKeyExpr } from '../../../../../platform/contextkey/common/contextkey.js';
 import { IsSessionsWindowContext } from '../../../../common/contextkeys.js';
 import { startEntries, walkthroughs } from '../../common/gettingStartedContent.js';
 

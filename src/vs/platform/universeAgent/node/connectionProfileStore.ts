@@ -5,8 +5,7 @@
 
 import { randomUUID } from 'node:crypto';
 import { IStorageService, StorageScope, StorageTarget } from '../../storage/common/storage.js';
-import type { EngineTrustRecord } from './engineTrustStore.js';
-import { verifyEngineTrustRecord } from './engineTrustStore.js';
+import { type EngineTrustRecord, verifyEngineTrustRecord } from './engineTrustStore.js';
 
 export type ConnectionTarget =
 	| { readonly kind: 'loopback'; readonly socketOrPort: string | number }
