@@ -203,6 +203,22 @@ export function cancelToolCall(host: IConversationLensSessionBindingHost, turn: 
 
 }
 
+export function retryError(host: IConversationLensSessionBindingHost, turn: { readonly id: string; readonly turnId?: string; readonly agentId?: string }): void {
+
+	const messageId = turn.id.trim();
+	if (!messageId) {
+		return;
+	}
+	const turnId = turn.turnId?.trim();
+	const agentId = turn.agentId?.trim();
+	host.stubService.retryError(host.getBoundSessionId(), {
+		messageId,
+		...(turnId ? { turnId } : {}),
+		...(agentId ? { agentId } : {}),
+	});
+
+}
+
 export function openVisualizeOverlay(host: IConversationLensSessionBindingHost, source: string, title?: string): void {
 
 	host.engineHistoryList?.close();
