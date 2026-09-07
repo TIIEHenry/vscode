@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-07
-summary: "FileMutationJoin / createScoped / Review 委托已修。D16 仍开。D42 铺行路径已改，待 merge compile 复证 untitled-u1。A2 仍 blocked。"
+summary: "FileMutationJoin / createScoped / Review 委托已修。D16 仍开。T5a harness 补 mocha _uncaught 吞 ResizeObserver loop。A2 仍 blocked。"
 ---
 
 # Development Progress
@@ -62,6 +62,7 @@ summary: "FileMutationJoin / createScoped / Review 委托已修。D16 仍开。D
 3. **D15 / W1 笔记（工位 A，未占 工位表）**：`scripts/code-web.sh --browserType none --host 127.0.0.1 --port 18080` 已起；V1 Conversation / V2 四钮 + `UniverseAgentStudio Dev` / V3 Connection·Engine 省略桌面连接控件均 **PASS**。`IUniverseAgentConnection.getConnectionPhase()` = `disconnected`；页内点名「此环境不支持本机 Engine 连接」。证据 [d15-evidence/w1-1556dde3](d15-evidence/w1-1556dde3/)。**D15 可闭**；不升 PRD-019。未跑 compile / F4 / 引擎仓。
 4. **A 槽 `statusbar-leftover`（未关 D16 / 未改名单）**：D17 leftover Conversation Session StatusBar 簇。生产相位文案 / pairingPending 闸门未改。测夹具去掉二次 `registerAction2`（与 `conversation.contribution` 撞 `showConversationPart`）、roster 改 `Event.None`、切换测 Emitter 入 store。未缩断言。
 5. **A 槽 `visualize-leftover`（未关 D16 / 未改名单 / 未降 min_cases）**：D17 Lens visualize 两行。默认 360px 虚窗不再保证 comparison 已挂 DOM。两测在查询前 `revealVisualizeTurn(..., 'visualize-v2')`，未缩「无 Agent header」/ collapse 合同。未改生产 visualize。
+6. **A 槽 `lens-ro-uncaught`（未关 D16 / 未占 D24·D26·D22·A2·F4 / unused-import）**：T5a 全套会被 mocha Uncaught `ResizeObserver loop completed with undelivered notifications` 打断。leftover 的 capture/`window.onerror` 不够（mocha.run 把 `Runner#_uncaught` 绑到 onerror，通过后异步再来会 `abort()`）。harness 在 loadTests 时补丁 `_uncaught`，并吞 Node `uncaughtException` / `errorHandler` 同文案。未缩产品断言。
 
 子 agent 发现的既有代码问题：
 
