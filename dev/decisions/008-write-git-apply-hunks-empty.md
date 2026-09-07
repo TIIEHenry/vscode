@@ -4,7 +4,7 @@ type: decision
 status: accepted
 phase: N/A
 updated: 2026-09-07
-summary: "R8 已闭。引擎仓 GitWorkDirWriter.applyHunkPatches 空 patches 直接 success、不跑 git apply；RPC 成功路径 supported:true。选定语义 = 成功空操作。Sources Accept 本刀仍空送。D31 F4 未跑。"
+summary: "R8 已闭。引擎空 patches = 成功空操作。产品 Accept 选项见 Consequences 补记：宿主拒空送（session 与 patches 同刀）。D31 F4 未跑。"
 ---
 
 # ADR-008 WriteGitApplyHunks 空 argv / patches
@@ -60,6 +60,18 @@ summary: "R8 已闭。引擎仓 GitWorkDirWriter.applyHunkPatches 空 patches �
 - [engine-protocol-surface](../../docs/reference/universe-agent/engine-protocol-surface.md) `WriteGitApplyHunks` 行回填：传输仍原样上线；引擎空 `patches` = success no-op；Accept 仍空送。
 - [R8](../progress/research-queue.md) **closed**。[D31](../progress/deferred-gaps.md) **仍开**。
 - Sources Accept 是否改传 path：后续实施切片，本刀不做。
+
+### 产品 Accept 补记（2026-09-07 · 不改引擎语义）
+
+R8 闭合后的**产品**选项已写入 [sources-accept-empty-success](../plans/sources-accept-empty-success.md)（`draft`，待 Architecture-First，未实施）：
+
+| 选项 | 裁定 |
+|:-----|:-----|
+| A 宿主拒空 Accept（空 session **或** 空 patches 不调 RPC / 不当 accepted） | **选定。** 真 apply 须 session 与 patches 同刀；禁止只补 `sessionId`。 |
+| B 本刀改传真 path / hunks | **拒绝。** 无既有 apply 载荷；禁止发明 hunk。 |
+| C 继续空送、只记残留风险 | **拒绝。** 空白 `sessionId` 只是碰巧 `INVALID_ARGUMENT`；只补 session 即假 Accept。 |
+
+不变量：禁止发明 proto / 默认 hunk；禁止把空请求的 `supported && success` 读成用户已接受全部 hunk。[D31](../progress/deferred-gaps.md) 仍开（F4 未跑）。
 
 ## Alternatives
 
