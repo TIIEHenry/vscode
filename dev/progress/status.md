@@ -133,12 +133,12 @@ summary: "FileMutationJoin / createScoped / Review 委托已修。D16 仍开。�
 
 | 槽 | 路径 | 分支 | tip | 脏 | stash | 关仓状态 |
 |----|------|------|-----|:--|:------|:---------|
-| merge | `vscode-WorkTrees/merge` | `loop/merge` | `a21251191f6` | `__pycache__` | 0 | parked；compile 基线 unused 仍红，**不 push** |
-| A | `vscode-WorkTrees/A` | `loop/A` | `a21251191f6` | `__pycache__` | 0 | idle |
-| B | `vscode-WorkTrees/B` | `loop/B` | `a21251191f6` | `__pycache__` | 0 | idle |
-| C | `vscode-WorkTrees/C` | `loop/C` | `a21251191f6` | 未提交 `dev/loop` + `__pycache__` | 0 | idle；勿 add `dev/loop` |
-| D | `vscode-WorkTrees/D` | `loop/D` | `a21251191f6` | `__pycache__` | 0 | idle |
-| edit | `Projects/Agents/vscode` | `agent-ide` | `a40a95d1e85`+ | `dev/loop` + 过期 progress | 0 | 人类工位；请自行对齐 `a21251191f6` |
+| merge | `vscode-WorkTrees/merge` | `loop/merge` | `34214920759` | `__pycache__` | 0 | parked；compile 基线 unused 仍红，**不 push** |
+| A | `vscode-WorkTrees/A` | `loop/A` | `34214920759` | `__pycache__` | 0 | idle |
+| B | `vscode-WorkTrees/B` | `loop/B` | `34214920759` | `__pycache__` | 0 | idle |
+| C | `vscode-WorkTrees/C` | `loop/C` | `34214920759` | 未提交 `dev/loop` + `__pycache__` | 0 | idle；勿 add `dev/loop` |
+| D | `vscode-WorkTrees/D` | `loop/D` | `34214920759` | `__pycache__` | 0 | idle |
+| edit | `Projects/Agents/vscode` | `agent-ide` | `a40a95d1e85`+ | `dev/loop` + 过期 progress | 0 | 人类工位；请自行对齐 `34214920759` |
 
 ## Blockers
 
