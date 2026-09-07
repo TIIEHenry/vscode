@@ -56,7 +56,7 @@ summary: "FileMutationJoin / createScoped / Review 委托已修。D16 仍开。D
 1. **集成 tip** 以 merge 本关仓提交为准（FileMutationJoin A=`10d8dd3b143`；createScoped B=`9c49eb5b978`；Review 委托 D=`60dbf139ac1`）。`npm run compile` 仍基线 unused 红则 **不 push**。GFS >800 不拆。D22/F3 已撤回。不跑 F4 / 不实施 A2。
 2. 本波字母槽已进 merge：
    - **A**：`filemutation-join` — 无 `diff_stats` 时 omit optional `diffStats`。unit-custom XML 脚本仍在。**[D16](deferred-gaps.md) 仍开**。
-   - **B**：`create-scoped` — harness 补 `IStatusbarService.createScoped`，S1a uniqueness 已绿、未缩断言。DiffReview afterEach 已修。本刀 `sessions-openpending-harness`：SessionsView 四行 + OpenPending 无 pending 夹具对齐 untitled+visualize seed，未缩断言；**[D16](deferred-gaps.md) 仍开**。本 wake **`d42-maximize-trajectory`**：Maximize 只藏 `.conversation-lens-timeline`；铺行路径改为忽略 0 尺寸 ResizeObserver / `layout(0)` 卸行，T5a 铺行测 `revealRecord('untitled-u1')`（无 `display:block`）。[D42](deferred-gaps.md) **仍开**，待 merge compile 复证。未关 D16 / 未占 D22·D26·D43·A2。
+   - **B**：`create-scoped` — harness 补 `IStatusbarService.createScoped`，S1a uniqueness 已绿、未缩断言。DiffReview afterEach 已修。本刀 `sessions-openpending-harness`：SessionsView 四行 + OpenPending 无 pending 夹具对齐 untitled+visualize seed，未缩断言；**[D16](deferred-gaps.md) 仍开**。本 wake **`d42-maximize-trajectory`**：Maximize 只藏 `.conversation-lens-timeline`；铺行路径改为忽略 0 尺寸 ResizeObserver / `layout(0)` 卸行，T5a 铺行测 `revealRecord('untitled-u1')`（无 `display:block`）。[D42](deferred-gaps.md) **已闭**（merge compile 后 CSS+铺行 2/2）。未关 D16 / 未占 D22·D26·A2。
    - **C**：`inbox-getqueue-honesty` — catalog / connection **无** GetQueue / ListQueue，未发明 RPC。接通 / 断连缓存 Inbox 文案「Queue not listed」，stub fixture 不得冒充引擎队列；测锁 overlay / roster / stub。[D37](deferred-gaps.md) **仍闭**；缺 list-queue 记 [D24](deferred-gaps.md)。勿 add `dev/loop`。本 wake leftover：lens visualize / T5a reveal / trajectory 座名 / process fold 夹具；maximize 整槽已交 [D42](deferred-gaps.md)（B 槽已闭）。**勿 add `dev/loop`**。
    - **D**：`review-entries` — 测改 `function ()` 把 mocha host 交给 `toResource`。A2 P5 停线仍在。**[D16](deferred-gaps.md) 仍开**。本 wake leftover：**S4/S5** 首次 layout 已落；[D43](deferred-gaps.md) **已闭**（`ConversationPart.layout` 按叶 host 扇出 + resize 测）。未关 D16 / 未占 D26·D22·F4·A2。
 3. **D15 / W1 笔记（工位 A，未占 工位表）**：`scripts/code-web.sh --browserType none --host 127.0.0.1 --port 18080` 已起；V1 Conversation / V2 四钮 + `UniverseAgentStudio Dev` / V3 Connection·Engine 省略桌面连接控件均 **PASS**。`IUniverseAgentConnection.getConnectionPhase()` = `disconnected`；页内点名「此环境不支持本机 Engine 连接」。证据 [d15-evidence/w1-1556dde3](d15-evidence/w1-1556dde3/)。**D15 可闭**；不升 PRD-019。未跑 compile / F4 / 引擎仓。
@@ -86,7 +86,7 @@ summary: "FileMutationJoin / createScoped / Review 委托已修。D16 仍开。D
 | [D35](deferred-gaps.md) | B 槽 `timeline-hygiene` | **closed** 删 `getTimelineRowElement` 死第二段 query |
 | [D36](deferred-gaps.md) | B 槽 `timeline-hygiene` | **closed** standalone thinking/tool 诚实摘要行，无假 fold |
 | [D15](deferred-gaps.md) | A 槽 `d15-web-evidence` | **closed** W1 `code-web.sh` V1–V3 PASS；phase=`disconnected`；不画桌面连接控件；证据 w1-1556dde3 |
-| [D42](deferred-gaps.md) | B 槽 `d42-maximize-trajectory` | **仍开** CSS 合同已绿；铺行路径已改（忽略 0 尺寸 + reveal untitled-u1）；待 merge compile 复证 |
+| [D42](deferred-gaps.md) | B 槽 `d42-maximize-trajectory` | **closed** merge compile 后 CSS+铺行两测绿 |
 | [D43](deferred-gaps.md) | D 槽 leftover | **closed** `ConversationPart.layout` 按叶 host 尺寸再 layout 各 conversation editor part；resize 测已补 |
 
 ## 工位表（P0 盘点 · 2026-09-07 · 与 `git worktree list` 对照）
