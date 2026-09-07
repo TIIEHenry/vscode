@@ -334,6 +334,21 @@
 	color: var(--vscode-descriptionForeground);
 }
 
+.monaco-workbench .part.conversation .conversation-lens-snapshots-write-status {
+	flex-shrink: 0;
+	padding: 8px;
+	font-size: 12px;
+	font-weight: 400;
+	text-transform: none;
+	letter-spacing: normal;
+	color: var(--vscode-errorForeground, var(--vscode-descriptionForeground));
+	border-top: 1px solid var(--vscode-panel-border, var(--vscode-widget-border, transparent));
+}
+
+.monaco-workbench .part.conversation .conversation-lens-snapshots-write-status[hidden] {
+	display: none;
+}
+
 .monaco-workbench .part.conversation .conversation-lens-snapshots-list {
 	display: flex;
 	flex-direction: column;

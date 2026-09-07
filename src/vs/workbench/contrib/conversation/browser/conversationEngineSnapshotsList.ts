@@ -32,6 +32,7 @@ export const conversationLensSnapshotsOverlayClass = 'conversation-lens-snapshot
 export const conversationLensSnapshotsRowClass = 'conversation-lens-snapshots-row';
 export const conversationLensSnapshotsRestoreClass = 'conversation-lens-snapshots-restore';
 export const conversationLensSnapshotsDeleteClass = 'conversation-lens-snapshots-delete';
+export const conversationLensSnapshotsWriteStatusClass = 'conversation-lens-snapshots-write-status';
 
 export function canRequestEngineSnapshots(
 	connected: boolean,
@@ -77,15 +78,29 @@ export function formatEngineSnapshotFailedCopy(reason: string): string {
 	return localize('conversationLens.sessionBarSnapshotsFailed', "Failed to read engine snapshots — {0}", reason);
 }
 
+export function formatEngineSnapshotRestoreFailedCopy(reason: string): string {
+	return localize('conversationLens.sessionBarSnapshotsRestoreFailed', "Unable to restore: {0}", reason);
+}
+
+export function formatEngineSnapshotDeleteFailedCopy(reason: string): string {
+	return localize('conversationLens.sessionBarSnapshotsDeleteFailed', "Unable to delete: {0}", reason);
+}
+
+function snapshotWriteFailureReason(error: unknown): string {
+	return error instanceof Error && error.message ? error.message : String(error);
+}
+
 /**
  * SessionBar extra control + overlay for AgentService.ListSnapshots.
  * Distinct from SessionBar History ({@link ConversationEngineHistoryList} GetHistory).
  * Restore on rows calls {@link IUniverseAgentConnection.restoreSnapshot};
  * a successful restore refreshes via {@link IUniverseAgentConnection.listSnapshots}
- * and keeps the overlay open. Failed restore / no send does not refresh.
+ * and keeps the overlay open. Failed restore / no send does not refresh;
+ * ok:false / throw paints a sibling write-status line without unloading rows.
  * Delete on rows confirms then calls {@link IUniverseAgentConnection.deleteSnapshot};
  * a confirmed successful delete refreshes via {@link IUniverseAgentConnection.listSnapshots}
- * and keeps the overlay open. Cancel / failed delete / no send does not refresh.
+ * and keeps the overlay open. Cancel / failed delete / no send does not refresh;
+ * ok:false / throw paints the same write-status line without unloading rows.
  * no Create.
  */
 export class ConversationEngineSnapshotsList extends Disposable {
@@ -95,6 +110,7 @@ export class ConversationEngineSnapshotsList extends Disposable {
 
 	private readonly button: Button;
 	private readonly body: HTMLElement;
+	private readonly writeStatus: HTMLElement;
 	private readonly rowDisposables = this._register(new DisposableStore());
 	private open = false;
 	private renderGeneration = 0;
@@ -145,6 +161,9 @@ export class ConversationEngineSnapshotsList extends Disposable {
 		this._register(closeButton.onDidClick(() => this.close()));
 
 		this.body = append(panel, $('.conversation-lens-snapshots-body'));
+		this.writeStatus = append(panel, $(`.${conversationLensSnapshotsWriteStatusClass}`));
+		this.writeStatus.setAttribute('role', 'status');
+		this.writeStatus.hidden = true;
 
 		this._register(addDisposableListener(this.overlayElement, 'keydown', e => {
 			if (e.keyCode === KeyCode.Escape) {
@@ -262,9 +281,11 @@ export class ConversationEngineSnapshotsList extends Disposable {
 		try {
 			const result = await restore.call(this.connection, { sessionId, snapshotId });
 			if (!result.ok) {
+				this.paintWriteStatus(formatEngineSnapshotRestoreFailedCopy(result.message ?? ''));
 				return;
 			}
-		} catch {
+		} catch (error) {
+			this.paintWriteStatus(formatEngineSnapshotRestoreFailedCopy(snapshotWriteFailureReason(error)));
 			return;
 		}
 		if (!this.open) {
@@ -303,9 +324,11 @@ export class ConversationEngineSnapshotsList extends Disposable {
 		try {
 			const result = await remove.call(this.connection, { sessionId, snapshotId });
 			if (!result.ok) {
+				this.paintWriteStatus(formatEngineSnapshotDeleteFailedCopy(result.message ?? ''));
 				return;
 			}
-		} catch {
+		} catch (error) {
+			this.paintWriteStatus(formatEngineSnapshotDeleteFailedCopy(snapshotWriteFailureReason(error)));
 			return;
 		}
 		if (!this.open) {
@@ -321,7 +344,18 @@ export class ConversationEngineSnapshotsList extends Disposable {
 		return canDeleteEngineSnapshot(connected, hasHook, snapshotId, sessionId);
 	}
 
+	private paintWriteStatus(text: string | undefined): void {
+		if (!text) {
+			this.writeStatus.textContent = '';
+			this.writeStatus.hidden = true;
+			return;
+		}
+		this.writeStatus.textContent = text;
+		this.writeStatus.hidden = false;
+	}
+
 	private paintStatus(text: string): void {
+		this.paintWriteStatus(undefined);
 		this.rowDisposables.clear();
 		reset(this.body);
 		const status = append(this.body, $('.conversation-lens-snapshots-status'));
@@ -330,6 +364,7 @@ export class ConversationEngineSnapshotsList extends Disposable {
 	}
 
 	private paintSnapshots(snapshots: readonly UniverseAgentSessionSnapshotInfo[]): void {
+		this.paintWriteStatus(undefined);
 		this.rowDisposables.clear();
 		reset(this.body);
 		if (snapshots.length === 0) {

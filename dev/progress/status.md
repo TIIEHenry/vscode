@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-08
-summary: "FileMutationJoin / createScoped / Review 委托已修。D16 仍开。官方三域 glob 已绿。D44–D52 已闭。git-read / open-diff / Stage·Commit / Unstage throw 与 Stage·Commit ok:false status DOM 已挂载。A2 仍 blocked。"
+summary: "FileMutationJoin / createScoped / Review 委托已修。D16 仍开。官方三域 glob 已绿。D44–D54 已闭。Snapshots Restore/Delete ok:false / throw write-status 已挂载（不 unload 行）。A2 仍 blocked。"
 ---
 
 # Development Progress
@@ -81,6 +81,7 @@ summary: "FileMutationJoin / createScoped / Review 委托已修。D16 仍开。�
 22. **D 槽 `unstage-status-dom`（未关 D16 / 未关 D31 / 未跑 F4 / 未开 A2）**：Changes 不走 git-read（该路径无 `scmResource`，Unstage 保持 disabled）。stub `index` 组 + `scmResource`，`CommandsRegistry.registerCommand('git.unstage')`，`ICommandService.executeCommand` throw `'boom'` 后点 Unstage Selected，`.sources-changes-status` 对齐既有 localize（`Unable to unstage:`）。测后注销命令。生产未改（Unstage status DOM 本已挂载）。未发明 WriteGitUnstage。未 compile。
 23. **A 槽 `oneshot-chat-receipt`（未关 D16 / 未发明 heartbeat client_id / GetQueue / 未碰 Create·`.sessions` / proto / F4 / unused-import / `dev/loop`）**：D51 已锁 resident `write()`。one-shot `connection.chat()` 原只在 `onResponse` 标 `accepted`；`TestConnection.chat()` 空 resolve、生产 `makeBidiBytesClient` 可 `'end'` 且 0 `'data'`，无 `inputDelivery`，perm-live 座不清。no-resident `writeChat`：`mark` 至多一次；await 后未 mark → `accepted`；catch 未 mark → `failed`。未包整圈 `drainIntents`。测锁无 callback 仍 `removePendingAction`、chat throw 仍 `pendingRespondFailed`（`hostWriteFailed`）。父约束未 compile。[D52](deferred-gaps.md) **已闭**。
 24. **D 槽 `stage-commit-ok-false-dom`（未关 D16 / 未关 D31 / 未跑 F4 / 未开 A2）**：`createGitConnection` 钩子可 **返回** `{ supported:true, success:false, errorMessage:'denied' }`（不 throw）。Changes 选行后 Stage Selected / Commit 的 `.sources-changes-status` 对齐既有 localize + `denied`。未改生产（`supported && !success` status 本已挂载）。未重做 throw 测。未发明 WriteGitUnstage。未 compile。
+25. **B 槽 `snapshots-write-status`（未关 D16 / 未发明 GetQueue / 未碰 F4 / 引擎 / `dev/loop`）**：Snapshots overlay Restore/Delete `ok:false` / throw 画独立 write-status（`Unable to restore:` / `Unable to delete:`），**不**用 `paintStatus`（会 unload 行）；fail 仍不 refresh。测锁 status DOM + 行仍在。[D54](deferred-gaps.md) **已闭**。未 compile。
 
 子 agent 发现的既有代码问题：
 
@@ -116,6 +117,7 @@ summary: "FileMutationJoin / createScoped / Review 委托已修。D16 仍开。�
 | [D50](deferred-gaps.md) | B 槽 `composer-leftover-clear` | **closed** agent/model catch 重置 No agent / No model / `catalogModelIds=['']` / selectedIndex=0；成功→throw 测不留上一轮 catalog；首拉 throw 测保留；未关 D16 / 未转 listTools / 未发明 GetQueue |
 | [D51](deferred-gaps.md) | A 槽 `host-write-receipt` | **closed** host receipt 用 `accepted`/`failed` + `host-write-accepted` / `writeId` / `chatAttemptId`；permission inflight 成功清座、失败 `pendingRespondFailed`；未关 D16 |
 | [D52](deferred-gaps.md) | A 槽 `oneshot-chat-receipt` | **closed** no-resident `writeChat` mark 至多一次；chat resolve 无 callback 仍 accepted / 清座；chat throw 仍 `pendingRespondFailed` `hostWriteFailed`；未关 D16 |
+| [D54](deferred-gaps.md) | B 槽 `snapshots-write-status` | **closed** Restore/Delete `ok:false` / throw 画 overlay write-status，不 unload 行、不 refresh；未关 D16 |
 
 ## 工位表（P0 盘点 · 2026-09-07 · 与 `git worktree list` 对照）
 

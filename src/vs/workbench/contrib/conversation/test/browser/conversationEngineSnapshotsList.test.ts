@@ -20,8 +20,11 @@ import {
 	conversationLensSnapshotsOverlayClass,
 	conversationLensSnapshotsRestoreClass,
 	conversationLensSnapshotsRowClass,
+	conversationLensSnapshotsWriteStatusClass,
 	formatEngineSnapshotCreatedAt,
+	formatEngineSnapshotDeleteFailedCopy,
 	formatEngineSnapshotFailedCopy,
+	formatEngineSnapshotRestoreFailedCopy,
 } from '../../browser/conversationEngineSnapshotsList.js';
 import {
 	conversationLensSessionBarSnapshots,
@@ -120,6 +123,10 @@ suite('ConversationEngineSnapshotsList', () => {
 
 	function deleteButton(row: HTMLElement | null): HTMLElement | undefined {
 		return row?.querySelector(`.${conversationLensSnapshotsDeleteClass} .monaco-button`) as HTMLElement | undefined;
+	}
+
+	function writeStatus(overlay: HTMLElement): HTMLElement | null {
+		return overlay.querySelector(`.${conversationLensSnapshotsWriteStatusClass}`);
 	}
 
 	test('SessionBar control is Snapshots, not History, and overlay starts closed', () => {
@@ -317,6 +324,9 @@ suite('ConversationEngineSnapshotsList', () => {
 		assert.deepStrictEqual(listCalls, [{ sessionId: 'sess-1' }]);
 		assert.strictEqual(list.isOpen(), true);
 		assert.ok(snapshotRow(overlayParent, 'snap-1'));
+		const status = writeStatus(overlayParent);
+		assert.strictEqual(status?.textContent, formatEngineSnapshotRestoreFailedCopy('denied'));
+		assert.ok(!status?.hidden);
 	});
 
 	test('restore throw does not refresh list', async () => {
@@ -341,6 +351,9 @@ suite('ConversationEngineSnapshotsList', () => {
 		assert.deepStrictEqual(listCalls, [{ sessionId: 'sess-1' }]);
 		assert.strictEqual(list.isOpen(), true);
 		assert.ok(snapshotRow(overlayParent, 'snap-1'));
+		const status = writeStatus(overlayParent);
+		assert.strictEqual(status?.textContent, formatEngineSnapshotRestoreFailedCopy('transport reset'));
+		assert.ok(!status?.hidden);
 	});
 
 	test('empty snapshotId restore does not send or refresh', async () => {
@@ -548,9 +561,13 @@ suite('ConversationEngineSnapshotsList', () => {
 		deleteButton(snapshotRow(overlayParent, 'snap-1'))?.click();
 		await Promise.resolve();
 		await Promise.resolve();
+		await Promise.resolve();
 		assert.deepStrictEqual(listCalls, [{ sessionId: 'sess-1' }]);
 		assert.strictEqual(list.isOpen(), true);
 		assert.ok(snapshotRow(overlayParent, 'snap-1'));
+		const status = writeStatus(overlayParent);
+		assert.strictEqual(status?.textContent, formatEngineSnapshotDeleteFailedCopy('denied'));
+		assert.ok(!status?.hidden);
 	});
 
 	test('delete throw does not refresh list', async () => {
@@ -572,9 +589,13 @@ suite('ConversationEngineSnapshotsList', () => {
 		deleteButton(snapshotRow(overlayParent, 'snap-1'))?.click();
 		await Promise.resolve();
 		await Promise.resolve();
+		await Promise.resolve();
 		assert.deepStrictEqual(listCalls, [{ sessionId: 'sess-1' }]);
 		assert.strictEqual(list.isOpen(), true);
 		assert.ok(snapshotRow(overlayParent, 'snap-1'));
+		const status = writeStatus(overlayParent);
+		assert.strictEqual(status?.textContent, formatEngineSnapshotDeleteFailedCopy('transport reset'));
+		assert.ok(!status?.hidden);
 	});
 
 	test('empty snapshotId delete does not send or refresh', async () => {
