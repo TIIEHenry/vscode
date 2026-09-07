@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-08
-summary: "FileMutationJoin / createScoped / Review 委托已修。D16 仍开。官方三域 glob 已绿。D44–D56 已闭。Team leftover 已清。Snapshots / MCP / Skills create 写失败 write-status 已挂载（不卸行）。git-read / open-diff / Stage·Commit / Unstage throw 与 Stage·Commit ok:false status DOM 已挂载。A2 仍 blocked。"
+summary: "FileMutationJoin / createScoped / Review 委托已修。D16 仍开。官方三域 glob 已绿。D44–D57 已闭。Team leftover 已清。Snapshots / MCP / Skills create / Agents 写失败 write-status 已挂载（不卸行）。git-read / open-diff / Stage·Commit / Unstage throw 与 Stage·Commit ok:false status DOM 已挂载。A2 仍 blocked。"
 ---
 
 # Development Progress
@@ -85,6 +85,7 @@ summary: "FileMutationJoin / createScoped / Review 委托已修。D16 仍开。�
 26. **B 槽 `snapshots-write-status`（未关 D16 / 未发明 GetQueue / 未碰 F4 / 引擎 / `dev/loop`）**：Snapshots overlay Restore/Delete `ok:false` / throw 画独立 write-status（`Unable to restore:` / `Unable to delete:`），**不**用 `paintStatus`（会 unload 行）；fail 仍不 refresh。测锁 status DOM + 行仍在。[D54](deferred-gaps.md) **已闭**。未 compile。
 27. **B 槽 `mcp-write-status`（未关 D16 / 未发明 GetQueue / 未碰 F4 / 引擎 / `dev/loop`）**：MCP Add/Update/Remove `ok:false` / throw 画 catalog write-status（`showWriteFailed`），**不** `clearCatalogPresentation`（会卸行）；fail 仍不 refresh。测锁 status DOM + 行仍在。[D55](deferred-gaps.md) **已闭**。未 compile。
 28. **A 槽 `skills-create-status`（未关 D16 / 未发明 GetQueue / proto / 未碰 F4 / 引擎 / `.sessions` / `dev/loop` / MCP）**：`createSkill` `{ ok:false }` / throw 画 body/toolbar write-status（对齐 Save 的 `.engine-skill-body-status`），不造假行、不改选中、不清 catalog。测锁 status DOM + 行仍在。[D56](deferred-gaps.md) **已闭**。未 compile。
+29. **B 槽 `agents-write-status`（未关 D16 / 未发明 GetQueue / proto / 未碰 F4 / 引擎 / `.sessions` / `dev/loop` / unused-import / D26）**：Agents New/Delete/Reset / `saveSelectedProfile` `ok:false` / throw 画 `.engine-catalog-write-status`（不 refresh、不改选中、不卸行）；`saveAgentsMarkdown` 复用 `.engine-agents-editor-status`。未做 Tools enablement。[D57](deferred-gaps.md) **已闭**。未 compile。
 
 子 agent 发现的既有代码问题：
 
@@ -124,6 +125,7 @@ summary: "FileMutationJoin / createScoped / Review 委托已修。D16 仍开。�
 | [D54](deferred-gaps.md) | B 槽 `snapshots-write-status` | **closed** Restore/Delete `ok:false` / throw 画 overlay write-status，不 unload 行、不 refresh；未关 D16 |
 | [D55](deferred-gaps.md) | B 槽 `mcp-write-status` | **closed** Add/Update/Remove `ok:false` / throw 画 catalog write-status，不卸行、不 refresh；未关 D16 |
 | [D56](deferred-gaps.md) | A 槽 `skills-create-status` | **closed** `createSkill` `ok:false` / throw 画 body/toolbar write-status，无假行、不改选中、不清 catalog；未关 D16 |
+| [D57](deferred-gaps.md) | B 槽 `agents-write-status` | **closed** Agents create/delete/reset / save `ok:false` / throw 画 catalog write-status，不卸行、不 refresh、不改选中；`saveAgentsMarkdown` 复用 editor-status；未关 D16 |
 
 ## 工位表（P0 盘点 · 2026-09-07 · 与 `git worktree list` 对照）
 

@@ -630,6 +630,169 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		assertFailedCatalogHonesty(section, AGENTS_FEATURE, 'listAgentProfiles retry exploded');
 	});
 
+	function demoUserAgent() {
+		return { id: 'demo', name: 'Demo Agent', source: 'user' as const };
+	}
+
+	function demoBuiltInAgent() {
+		return { id: 'builtin', name: 'Built-in Agent', source: 'built_in' as const };
+	}
+
+	function assertAgentsWriteFailureKeepsCatalog(
+		section: EngineAgentsSection,
+		expectedReason: string,
+		expectedRows: number,
+		expectedSelectedId?: string,
+	): void {
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.strictEqual(section.getListEntryCount(), expectedRows);
+		assert.strictEqual(section.canWrite(), true);
+		if (expectedSelectedId !== undefined) {
+			assert.strictEqual(section.getSelectedProfileId(), expectedSelectedId);
+		}
+		const writeStatus = section.getDomNode().querySelector('.engine-catalog-write-status') as HTMLElement;
+		assert.ok(writeStatus);
+		assert.strictEqual(writeStatus.getAttribute('role'), 'status');
+		assert.notStrictEqual(writeStatus.style.display, 'none');
+		assert.ok(writeStatus.textContent?.includes(expectedReason));
+	}
+
+	test('Agents: create/delete/reset ok:false paints write-status and keeps catalog rows', async () => {
+		let listAgentProfilesCalls = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+			listAgentProfiles: async () => {
+				listAgentProfilesCalls++;
+				return { profiles: [demoUserAgent(), demoBuiltInAgent()] };
+			},
+			saveAgentProfile: async () => ({ profile: { id: '', name: 'should-not-appear' } }),
+			deleteAgentProfile: async () => ({ ok: false, reason: 'delete denied' }),
+			resetAgentProfile: async () => ({ ok: false, reason: 'reset denied' }),
+		});
+		const section = mountAgentsSection(connection);
+		section.setSectionActive(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.strictEqual(section.getListEntryCount(), 2);
+		const listCallsAfterLoad = listAgentProfilesCalls;
+
+		assert.strictEqual(await section.createProfile({ id: 'should-not-appear', name: 'should-not-appear', source: 'user' }), false);
+		assertAgentsWriteFailureKeepsCatalog(section, 'Unable to create:', 2);
+		assert.ok((section.getDomNode().querySelector('.engine-catalog-write-status') as HTMLElement).textContent?.includes(
+			localize('ua.engineAgentsWriteRejected', "The engine rejected the agent profile write."),
+		));
+		assert.strictEqual(listAgentProfilesCalls, listCallsAfterLoad);
+		assert.ok(!/should-not-appear/i.test(section.getDomNode().textContent ?? ''));
+
+		await section.selectProfileByIdForTest('demo');
+		assert.strictEqual(section.getSelectedProfileId(), 'demo');
+		assert.strictEqual(await section.deleteSelectedProfile(), false);
+		assertAgentsWriteFailureKeepsCatalog(section, 'delete denied', 2, 'demo');
+		assert.ok((section.getDomNode().querySelector('.engine-catalog-write-status') as HTMLElement).textContent?.includes('Unable to delete:'));
+		assert.strictEqual(listAgentProfilesCalls, listCallsAfterLoad);
+
+		await section.selectProfileByIdForTest('builtin');
+		assert.strictEqual(section.getSelectedProfileId(), 'builtin');
+		assert.strictEqual(await section.resetSelectedProfile(), false);
+		assertAgentsWriteFailureKeepsCatalog(section, 'reset denied', 2, 'builtin');
+		assert.ok((section.getDomNode().querySelector('.engine-catalog-write-status') as HTMLElement).textContent?.includes('Unable to reset:'));
+		assert.strictEqual(listAgentProfilesCalls, listCallsAfterLoad);
+	});
+
+	test('Agents: create/delete/reset throw paints write-status and keeps catalog rows', async () => {
+		let listAgentProfilesCalls = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+			listAgentProfiles: async () => {
+				listAgentProfilesCalls++;
+				return { profiles: [demoUserAgent(), demoBuiltInAgent()] };
+			},
+			saveAgentProfile: async () => {
+				throw new Error('create exploded');
+			},
+			deleteAgentProfile: async () => {
+				throw new Error('delete exploded');
+			},
+			resetAgentProfile: async () => {
+				throw new Error('reset exploded');
+			},
+		});
+		const section = mountAgentsSection(connection);
+		section.setSectionActive(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.strictEqual(section.getListEntryCount(), 2);
+		const listCallsAfterLoad = listAgentProfilesCalls;
+
+		assert.strictEqual(await section.createProfile({ id: 'should-not-appear', name: 'should-not-appear', source: 'user' }), false);
+		assertAgentsWriteFailureKeepsCatalog(section, 'create exploded', 2);
+		assert.ok((section.getDomNode().querySelector('.engine-catalog-write-status') as HTMLElement).textContent?.includes('Unable to create:'));
+		assert.strictEqual(listAgentProfilesCalls, listCallsAfterLoad);
+		assert.ok(!/should-not-appear/i.test(section.getDomNode().textContent ?? ''));
+
+		await section.selectProfileByIdForTest('demo');
+		assert.strictEqual(section.getSelectedProfileId(), 'demo');
+		assert.strictEqual(await section.deleteSelectedProfile(), false);
+		assertAgentsWriteFailureKeepsCatalog(section, 'delete exploded', 2, 'demo');
+		assert.ok((section.getDomNode().querySelector('.engine-catalog-write-status') as HTMLElement).textContent?.includes('Unable to delete:'));
+		assert.strictEqual(listAgentProfilesCalls, listCallsAfterLoad);
+
+		await section.selectProfileByIdForTest('builtin');
+		assert.strictEqual(section.getSelectedProfileId(), 'builtin');
+		assert.strictEqual(await section.resetSelectedProfile(), false);
+		assertAgentsWriteFailureKeepsCatalog(section, 'reset exploded', 2, 'builtin');
+		assert.ok((section.getDomNode().querySelector('.engine-catalog-write-status') as HTMLElement).textContent?.includes('Unable to reset:'));
+		assert.strictEqual(listAgentProfilesCalls, listCallsAfterLoad);
+	});
+
+	test('Agents: saveAgentsMarkdown throw paints editor-status and keeps catalog rows', async () => {
+		let listAgentProfilesCalls = 0;
+		let saveCalls = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+			listAgentProfiles: async () => {
+				listAgentProfilesCalls++;
+				return { profiles: [demoUserAgent()] };
+			},
+			saveAgentProfile: async (request) => {
+				saveCalls++;
+				if (saveCalls > 1) {
+					throw new Error('save exploded');
+				}
+				return { profile: request.profile };
+			},
+		});
+		const section = mountAgentsSection(connection);
+		section.setSectionActive(true);
+		await flushMicrotasks();
+
+		await section.selectProfileByIdForTest('demo');
+		assert.ok(section.isAgentsEditorVisible());
+		assert.strictEqual(section.getSelectedProfileId(), 'demo');
+		const listCallsAfterLoad = listAgentProfilesCalls;
+		section.setAgentsMarkdownValue('---\nsummary: Updated\n---\n# Agent body');
+
+		assert.strictEqual(await section.saveAgentsMarkdown(), false);
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.strictEqual(section.getListEntryCount(), 1);
+		assert.strictEqual(section.getSelectedProfileId(), 'demo');
+		assert.strictEqual(listAgentProfilesCalls, listCallsAfterLoad);
+
+		const editorStatus = section.getDomNode().querySelector('.engine-agents-editor-status') as HTMLElement;
+		assert.ok(editorStatus);
+		assert.notStrictEqual(editorStatus.style.display, 'none');
+		assert.ok(editorStatus.textContent?.includes(localize(
+			'ua.engineAgentsMdSaveFailed',
+			"Could not save AGENTS.md to the engine.",
+		)));
+		assertAgentsWriteFailureKeepsCatalog(section, 'save exploded', 1, 'demo');
+	});
+
 	test('MCP: successful load then refresh throw is failed with no leftover catalog', async () => {
 		let listMcpServersCalls = 0;
 		const connection = createConnectionStub({
