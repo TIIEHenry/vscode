@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-07
-summary: "人类工位已对齐已推送 MERGE_SHA c1b228caf74；保留本机行动层账。Chat 仍被引擎空壳 ALREADY_EXISTS 挡住。compile 基线 unused 仍红"
+summary: "集成 tip 本关仓提交（未 push）；B 的 D16 visualize 三测已进 loop/merge。Chat 仍被引擎空壳挡住。compile 基线 unused 仍红"
 ---
 
 # Development Progress
@@ -49,11 +49,11 @@ summary: "人类工位已对齐已推送 MERGE_SHA c1b228caf74；保留本机行
 
 [m7-gap-closeout](../plans/m7-gap-closeout.md) 与 [session-view-frame-fanout](../plans/session-view-frame-fanout.md) 的重复 frontmatter 已合并（生成列此前误显 `accepted`，现为 `implemented`）；按规则 3c 改口三处知识层叙述：Test Connection 已走 `probeConnectionProfile`、帧扇出 F1/F2 已落（全局 `onDidApplyFrame` 待删）、子代理 catalog 已由观察 lease 驱动。
 
-### 进行中（2026-09-07 本 wake · 以代码/工位 tip 为准，不信上文「已合入」清单）
+### 进行中（2026-09-07 本 wake · 以 merge 代码为准，不信上文「已合入」清单）
 
-人类工位已 merge `c1b228caf74`（先 commit 行动层再三路合）。Direct 接通已通。Chat 仍被引擎空壳 Create（目录在、`session_meta` 空、回 6）挡住；不要再清 `.sessions` 当主线。见 [D26](deferred-gaps.md)。**U2 未开**。**PRD-008 不升 `implemented`**。
+集成 tip **本关仓提交**（`loop/merge`；未 push）。Chat 仍被引擎空壳 Create（目录在、`session_meta` 空、回 6）挡住；不要再清 `.sessions` 当主线。见 [D26](deferred-gaps.md)。**U2 未开**。**PRD-008 不升 `implemented`**。
 
-1. **集成 tip** 以 merge 本关仓提交为准（P2 已串行 B=`088ad1ba7fd`）。`npm run compile` 仍基线 unused 红则 **不 push**。GFS >800 不拆。
+1. **集成 tip** 以 merge 本关仓提交为准（P2 已串行 B=`f74400ce760`）。`npm run compile` 仍基线 unused 红则 **不 push**。GFS >800 不拆。
 2. 本波字母槽已进 merge：
    - **A**：本波空闲。[D26](deferred-gaps.md) 引擎 Create meta 仍 open。
    - **B**：visualize 三测已收（投影两卡 + comparison header + reveal diagram expand）；全量 Lens **90/97**。**[D16](deferred-gaps.md) 仍开**。
