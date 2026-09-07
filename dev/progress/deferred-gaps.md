@@ -329,16 +329,16 @@ $REPO/scripts/code-cli.sh --extensions-dir="$EXT_DIR" \
 
 ## D17 三域基线红（切片 3 · `d2abb648c0e`）
 
-名单正文见 [test-baseline-failures.txt](test-baseline-failures.txt)（24 行）。下列为一行一场景（首次 SHA / 场景 / `baseline` / owner）。**不含** D16 三文件。
+名单正文见 [test-baseline-failures.txt](test-baseline-failures.txt)（2 行，仅 visualize）。下列为一行一场景（首次 SHA / 场景 / `baseline` / owner）。**不含** D16 三文件。
 
 | 首次 SHA | 场景 | 标记 | owner |
 |:---------|:-----|:-----|:------|
 | `d2abb648c0e` | conversation：`ConversationDiffReviewPane` 泄漏 **已修**（pane `dispose`/`clearEditors` + disposable listener；navigation/aggregation/fence 停引真实 contribution，改 stub）。afterEach 六行已从名单删除。官方 conversation 单 glob 不再被该泄漏中断 | leftover | B `diffreview-leak` |
 | `d2abb648c0e` | conversation：editor aggregation S1a scoped uniqueness **已修**（工位 B `create-scoped`）：生产 `createConversationEditorPart` 已按 part `createScoped`；测败在 mainPart 懒建缺 `IStatusbarService.createScoped`。夹具已补，未缩断言。名单该行已删 | leftover | B `create-scoped` |
-| `d2abb648c0e` | conversation：Lens visualize 两败 + reveal navigation 三败 + process fold span **已由 C 槽夹具/合同对齐收口**（`out/` visualize 测曾落后源码；T5a ResizeObserver/`this.timeout`/`lens.layout`；最大化见 [D42](#d42)） | leftover | C `lens-visualize-t5a` |
+| `d2abb648c0e` | conversation：Lens visualize **两行仍红**（merge `dee58ac54b4` compile 后 `comparison`/`header` 未铺；C 自称 out/ 绿不成立）。reveal / fold / trajectory 座名已收 | leftover | A `visualize-leftover` |
 | `d2abb648c0e` | conversation：StatusBar 引擎入口 / H4b 相位文案 **夹具已改**（工位 A `statusbar-leftover`：去二次 `registerAction2` + Emitter leak；未缩断言、未关 D16、未改名单） | leftover | A `statusbar-leftover` |
 | `d2abb648c0e` | conversation：SessionsView 四行 + OpenPendingOnFocus 无 pending **已修**（工位 B `sessions-openpending-harness`）：夹具对齐 untitled+visualize seed（空行测 `createSession()`、filter 补 rename visualize、create 落点 `sessions[2]`），未缩断言。名单五行已删 | leftover | B `sessions-openpending-harness` |
-| `d2abb648c0e` | conversation：split / side-by-side 仍基线；trajectory 角色标签 Permission≠Confirmation **已由 C 对齐为 Permission** | leftover | A `test-baseline-slice3` / C `lens-visualize-t5a` |
+| `d2abb648c0e` | conversation：split / side-by-side **首次 layout 已修**（D `createConversationEditorPart` + 夹具）；后续 chrome 扇出见 [D43](#d43) | leftover | D `s4-s5-first-layout` |
 | `d2abb648c0e` | sources：`collectSourcesReviewEntries` 委托 `toResource`/`fullTitle` 未定义 | baseline | A `test-baseline-slice3` |
 | `d2abb648c0e` | universeAgent：`FileMutationJoin` lifecycle+snapshot **已修**（B：无 `diff_stats` 时 omit optional `diffStats`，不再写出 `undefined`）。名单该一行已删 | leftover | A `filemutation-join` |
 | `d2abb648c0e` | universeAgent：11 个 node 测 Electron ESM `Failed to fetch dynamically imported module`（无 JUnit testcase，未进名单）：connectionResolver / deviceAuthHandshake / deviceGrantCrypto / hubControlPlane / hubDirectoryClient / hubSessionStore / observeCandidateLeaf / pairingOrchestrator / universeAgentChannel / universeAgentConnection / universeAgentHubService。**CI 已排除这 11 个**（[`scripts/run-unit-custom.sh`](../../scripts/run-unit-custom.sh) 只匹配 `test/node/`；`browser/universeAgentConnection` 仍跑）；可加载的 `test/node` 仍进同一 `--tfs universeAgent`，不拆多趟以免 XML 互盖 | baseline | A `test-baseline-slice3` / A `unit-custom-xml` |
