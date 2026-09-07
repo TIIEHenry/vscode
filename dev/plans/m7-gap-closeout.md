@@ -3,12 +3,8 @@ title: "M7 缺口收口：Hub 设备接线、子代理 catalog 同步、Navigato
 type: plan
 status: implemented
 phase: M7
-updated: 2026-09-04
-summary: "GC-1–GC-6 已落（merge d98d888a）：hubDevice/配对、设备动作与 probe、catalog 观察 lease、Navigator/Inspect、Overview Model；PRD-024 仍待真 Hub 冒烟；D21 已闭（connection.isAgentTreeFetchFailed）"
-status: accepted
-phase: M7
-updated: 2026-09-03
-summary: "已签收方案残留收口：GC-1 hubDevice + GC-1b 配对回路、GC-2/3 Connection、GC-4 catalog、GC-5 Navigator/Inspect、GC-6 Model（Provider 回退）；D21。规则 16 已审、2026-09-03 签收"
+updated: 2026-09-07
+summary: "规则 16 已审、2026-09-03 签收；GC-1–GC-6 已落（merge d98d888a）：hubDevice/配对、设备动作与 probe、catalog 观察 lease、Navigator/Inspect、Overview Model；PRD-024 仍待真 Hub 冒烟；D21 已闭（connection.isAgentTreeFetchFailed）"
 ---
 
 # M7 缺口收口
@@ -17,7 +13,7 @@ summary: "已签收方案残留收口：GC-1 hubDevice + GC-1b 配对回路、GC
 > **基线：** 相对 **commit HEAD**。工作树里另一工位有大量针对本稿各项的未提交改动，§1 按文件列全并标出**与本稿相反、以本稿为准时必须改掉**的在途设计；实施者以 `git diff` 对齐、**不重做也不 stash**（规则 3b），但不得因「已在途」保留 §1 点名要改的实现。  
 > **不推翻：** [ADR-003](../decisions/003-engine-adapter-boundary.md)；[page-access-schemes §5.4](page-access-schemes.md)；[connection-hub-client §3](connection-hub-client.md)（secrets 不过 ProxyChannel；无自动拨号；SAS 不可跳过）；[navigator-engine-segments §0](navigator-engine-segments.md)（三段只读、不指挥）；[m7-ui-completion-wave §2 / §6](m7-ui-completion-wave.md)（测试非阻塞；不做会话级模型策略 UI；不为 G-ENG-* 画表单）。  
 > **姊妹方案：** [session-view-frame-fanout](session-view-frame-fanout.md)（平台侧首帧丢失会放大 GC-5 的「先写成没有团队」症状；两稿独立合入，本稿不依赖它）。  
-> **审查记录：** 见文末（规则 16，待起审）。
+> **审查记录：** 见文末（规则 16：2026-09-03 第一轮只读审查 + 用户签收）。
 
 ## 0. 目标 / 非目标
 

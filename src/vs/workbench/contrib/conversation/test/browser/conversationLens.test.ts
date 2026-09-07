@@ -41,6 +41,7 @@ import {
 	conversationLensDockPermissionLabel,
 	conversationLensDockPermissionPermit,
 	conversationLensDockPlaceholder,
+	conversationLensPostFailedDisconnected,
 	conversationLensDockRestoreTimeline,
 	conversationLensDockStop,
 	conversationLensDockStopNotGenerating,
@@ -911,15 +912,96 @@ suite('ConversationLens', () => {
 		}
 	});
 
-	test('disconnected compose enables send from draft without Stub model', () => {
-		const { part } = mountLens();
+	test('disconnected compose enables send from draft without Stub model', async () => {
+		const { part, stubService } = mountLens();
 		const slots = getLensSlots(part);
+		const sessionId = stubService.createSession();
 		const sendButton = getDockSendButton(slots);
 		assert.strictEqual(sendButton.classList.contains('disabled'), true);
+		assert.strictEqual(stubService.hasEngineConnectionHistory(), false);
 		const textarea = getDockTextarea(slots);
 		textarea.value = 'hello';
 		textarea.dispatchEvent(new globalThis.Event('input', { bubbles: true }));
 		assert.strictEqual(sendButton.classList.contains('disabled'), false);
+
+		sendButton.click();
+		await Promise.resolve();
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+		const readingColumn = getReadingColumn(slots);
+		assert.strictEqual(readingColumn.classList.contains(conversationLensPhasePreFirstClass), false, 'first pending must leave PreFirst');
+		assert.ok(!/已同步|synced/i.test(slots.dock.textContent ?? ''));
+		assert.ok(!/已同步|synced/i.test(slots.sessionBar?.textContent ?? ''));
+		assert.ok(!/已同步|synced/i.test(readingColumn.textContent ?? ''));
+		assert.ok(stubService.getTurns(sessionId).some(turn => turn.kind === 'user' && turn.text === 'hello'));
+		assert.ok(stubService.getTurns(sessionId).some(turn => turn.kind === 'assistant' && /Stub echo/i.test(turn.text)));
+		assert.strictEqual(textarea.value, '');
+	});
+
+	test('engine-cache disconnect keeps Send enabled and does not pretend delivered', async () => {
+		class EngineCacheRoster extends ConversationStubService {
+			override hasEngineConnectionHistory(): boolean {
+				return true;
+			}
+		}
+		const roster = store.add(new EngineCacheRoster());
+		const { part } = mountLens({ stubService: roster });
+		const slots = getLensSlots(part);
+		const sessionId = roster.createSession();
+		const sendButton = getDockSendButton(slots);
+		const textarea = getDockTextarea(slots);
+		textarea.value = 'keep this draft';
+		textarea.dispatchEvent(new globalThis.Event('input', { bubbles: true }));
+		assert.strictEqual(sendButton.classList.contains('disabled'), false);
+
+		sendButton.click();
+		await Promise.resolve();
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+		assert.strictEqual(textarea.value, 'keep this draft');
+		assert.strictEqual(roster.getTurns(sessionId).length, 0);
+		assert.strictEqual(roster.enqueueMessageQueueItem(sessionId, 'keep this draft'), false);
+		const gateRow = (getReadingColumn(slots).querySelector('.conversation-lens-dock-gate-row')
+			?? slots.dock.querySelector('.conversation-lens-dock-gate-row')) as HTMLElement | null;
+		assert.ok(gateRow);
+		assert.strictEqual(gateRow.hidden, false);
+		assert.ok(gateRow.textContent?.includes(conversationLensPostFailedDisconnected));
+		assert.ok(!/已同步|已发送|synced|delivered/i.test(gateRow.textContent ?? ''));
+		assert.ok(!/已同步|synced/i.test(slots.sessionBar?.textContent ?? ''));
+		assert.strictEqual(getReadingColumn(slots).classList.contains(conversationLensPhasePreFirstClass), true);
+		assert.strictEqual(sendButton.classList.contains('disabled'), false);
+	});
+
+	test('engine-cache disconnect Send uses enqueue when the roster API accepts', async () => {
+		class QueuingEngineCacheRoster extends ConversationStubService {
+			readonly queued: string[] = [];
+			override hasEngineConnectionHistory(): boolean {
+				return true;
+			}
+			override enqueueMessageQueueItem(sessionId: string, text: string): boolean {
+				const trimmed = text.trim();
+				if (!trimmed) {
+					return false;
+				}
+				this.queued.push(`${sessionId}:${trimmed}`);
+				return true;
+			}
+		}
+		const roster = store.add(new QueuingEngineCacheRoster());
+		const { part } = mountLens({ stubService: roster });
+		const slots = getLensSlots(part);
+		const sessionId = roster.createSession();
+		const textarea = getDockTextarea(slots);
+		textarea.value = 'queued later';
+		textarea.dispatchEvent(new globalThis.Event('input', { bubbles: true }));
+		getDockSendButton(slots).click();
+		await Promise.resolve();
+
+		assert.deepStrictEqual(roster.queued, [`${sessionId}:queued later`]);
+		assert.strictEqual(textarea.value, '');
+		assert.strictEqual(roster.getTurns(sessionId).length, 0);
+		assert.ok(!/已同步|已发送|synced/i.test(slots.dock.textContent ?? ''));
+		assert.ok(!/已同步|已发送|synced/i.test(getReadingColumn(slots).textContent ?? ''));
 	});
 
 	test('PreFirst: centered composer cluster hides dock inbox and moves identity above composer', () => {

@@ -19,6 +19,7 @@ import {
 	conversationLensVoiceStubPhraseOne,
 	conversationLensVoiceStubPhraseThree,
 	conversationLensVoiceStubPhraseTwo,
+	type ConversationComposerPostFailureReason,
 } from './conversationLensDockStrings.js';
 import { IConversationRosterService } from './conversationStubService.js';
 import { appendVoiceTextToDraft, ConversationVoiceClip } from './conversationVoiceTranscriptModel.js';
@@ -74,7 +75,7 @@ export interface IConversationLensComposerHost {
 	updateGateRow(): void;
 	exitComposerEdit(restoreComposeDraft?: boolean, releaseQueueHold?: boolean): void;
 	getEditingQueueItem(): { id: string; content: string } | undefined;
-	showPostFailure(reason: 'mailbox_full' | 'no_such_session' | 'not_authenticated'): void;
+	showPostFailure(reason: ConversationComposerPostFailureReason): void;
 	resetInputHistoryBrowse(): void;
 	renderInboxStatus(): void;
 	renderVoiceTranscriptBar(): void;
@@ -195,12 +196,29 @@ export async function submitDraft(host: IConversationLensComposerHost): Promise<
 		if (!text) {
 			return;
 		}
-		if (!host.stubService.isEngineConnected() && host.modelSelectedIndex === 0) {
+		const sessionId = host.getBoundSessionId();
+		const connected = host.stubService.isEngineConnected();
+		if (!connected && host.stubService.hasEngineConnectionHistory()) {
+			// Engine-aware disconnect: do not stub-echo or claim delivered/synced.
+			// Try the existing queue API; disconnected cache currently rejects.
+			if (host.stubService.enqueueMessageQueueItem(sessionId, text)) {
+				writeComposerDraft(host, sessionId, '');
+				host.dockTextarea.value = '';
+				host.resetInputHistoryBrowse();
+				host.updateSendEnabled();
+				host.updateConversationPhase();
+				return;
+			}
+			writeComposerDraft(host, sessionId, host.dockTextarea.value);
+			host.updateSendEnabled();
+			host.showPostFailure('engine_disconnected');
+			return;
+		}
+		if (!connected && host.modelSelectedIndex === 0) {
 			// "No model" is the engine catalog label, not a send lock. Local stub still posts.
 			host.modelSelectedIndex = 1;
 			host.modelSelectBox.select(1);
 		}
-		const sessionId = host.getBoundSessionId();
 		host.submitInFlight = true;
 		try {
 			const outcome = await postBound(host, { kind: 'submitInput', text });

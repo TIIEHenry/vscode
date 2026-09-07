@@ -14,6 +14,10 @@ export const conversationLensDockInboxQueueLabel = localize('conversationLens.in
 export const conversationLensInboxQueuePause = localize('conversationLens.inboxQueuePause', "Pause");
 export const conversationLensInboxQueueResume = localize('conversationLens.inboxQueueResume', "Resume");
 export const conversationLensInboxQueueClear = localize('conversationLens.inboxQueueClear', "Clear");
+export const conversationLensInboxQueueEnqueue = localize('conversationLens.inboxQueueEnqueue', "Enqueue");
+export const conversationLensInboxQueueEnqueuePrompt = localize('conversationLens.inboxQueueEnqueuePrompt', "Message to enqueue");
+export const conversationLensInboxQueueEnqueuePlaceholder = localize('conversationLens.inboxQueueEnqueuePlaceholder', "Queued after the current turn");
+export const conversationLensInboxQueueEnqueueUnavailable = localize('conversationLens.inboxQueueEnqueueUnavailable', "Cannot enqueue without engine");
 export const conversationLensInboxQueueEditingTag = localize('conversationLens.inboxQueueEditingTag', "Editing");
 export const conversationLensInboxQueueUploadingTag = localize('conversationLens.inboxQueueUploadingTag', "Uploading {0}%");
 export const conversationLensInboxQueueFailedTag = localize('conversationLens.inboxQueueFailedTag', "Failed");
@@ -64,6 +68,12 @@ export const conversationLensDockStopGenerating = localize('conversationLens.doc
 export const conversationLensPostFailedMailboxFull = localize('conversationLens.postFailedMailboxFull', "Message not sent — inbox full. Try again.");
 export const conversationLensPostFailedNotAuthenticated = localize('conversationLens.postFailedNotAuthenticated', "Message not sent — not signed in.");
 export const conversationLensPostFailedNoSession = localize('conversationLens.postFailedNoSession', "Message not sent — session not found.");
+export const conversationLensPostFailedDisconnected = localize('conversationLens.postFailedDisconnected', "Message not sent — engine disconnected. Draft kept.");
+export type ConversationComposerPostFailureReason =
+	| 'mailbox_full'
+	| 'no_such_session'
+	| 'not_authenticated'
+	| 'engine_disconnected';
 export const conversationLensDockPlaceholder = localize('conversationLens.dockPlaceholder', "Message");
 export const conversationLensDockEditingMessage = localize('conversationLens.dockEditingMessage', "Editing message");
 export const conversationLensDockEditingQueued = localize('conversationLens.dockEditingQueued', "Editing queued");

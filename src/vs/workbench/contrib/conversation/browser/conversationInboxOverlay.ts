@@ -26,6 +26,10 @@ import {
 	conversationLensDockStopNotGenerating,
 	conversationLensInboxQueueClear,
 	conversationLensInboxQueueEditingTag,
+	conversationLensInboxQueueEnqueue,
+	conversationLensInboxQueueEnqueuePlaceholder,
+	conversationLensInboxQueueEnqueuePrompt,
+	conversationLensInboxQueueEnqueueUnavailable,
 	conversationLensInboxQueueFailedTag,
 	conversationLensInboxQueuePause,
 	conversationLensInboxQueueResume,
@@ -136,6 +140,7 @@ export class ConversationInboxOverlay extends Disposable {
 
 		this._register(this.stubService.onDidChangeEngineConnection(() => this.render()));
 		this._register(this.stubService.onDidChangeSession(() => this.render()));
+		this._register(toDisposable(() => this.closeListPanel()));
 
 		this.render();
 	}
@@ -392,6 +397,8 @@ export class ConversationInboxOverlay extends Disposable {
 			});
 		}
 
+		this.renderEnqueueAction(actions);
+
 		const body = append(listRoot, $('.queue-bar-body'));
 		if (state.items.length === 0) {
 			append(body, $('.conversation-lens-inbox-list-empty')).textContent = conversationLensDockInboxNoQueue;
@@ -401,6 +408,41 @@ export class ConversationInboxOverlay extends Disposable {
 		for (const item of state.items) {
 			body.appendChild(this.renderQueueItem(sessionId, item));
 		}
+	}
+
+	private renderEnqueueAction(actions: HTMLElement): void {
+		const enqueueButton = append(actions, $('button.queue-bar-action.conversation-lens-inbox-queue-enqueue')) as HTMLButtonElement;
+		enqueueButton.type = 'button';
+		enqueueButton.textContent = conversationLensInboxQueueEnqueue;
+		const connected = this.stubService.isEngineConnected();
+		enqueueButton.disabled = !connected;
+		enqueueButton.setAttribute('aria-disabled', String(!connected));
+		enqueueButton.title = connected ? conversationLensInboxQueueEnqueue : conversationLensInboxQueueEnqueueUnavailable;
+		enqueueButton.setAttribute('aria-label', enqueueButton.title);
+		addDisposableListener(enqueueButton, 'click', () => {
+			void this.onEnqueueClicked();
+		});
+	}
+
+	private async onEnqueueClicked(): Promise<void> {
+		if (!this.stubService.isEngineConnected()) {
+			return;
+		}
+		const sessionId = this.stubService.getActiveSessionId();
+		const next = await this.quickInputService.input({
+			title: conversationLensInboxQueueEnqueue,
+			prompt: conversationLensInboxQueueEnqueuePrompt,
+			placeHolder: conversationLensInboxQueueEnqueuePlaceholder,
+		});
+		if (next === undefined) {
+			return;
+		}
+		const queued = this.stubService.enqueueMessageQueueItem(sessionId, next.trim());
+		if (!queued) {
+			return;
+		}
+		this.render();
+		this.refreshOpenListPanel();
 	}
 
 	private formatQueueSummary(state: ConversationMessageQueueState): string {

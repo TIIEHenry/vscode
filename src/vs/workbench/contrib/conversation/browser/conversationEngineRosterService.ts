@@ -572,6 +572,10 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		return super.appendStubEchoAssistant(sessionId, text);
 	}
 
+	override hasEngineConnectionHistory(): boolean {
+		return this.wasEverConnected;
+	}
+
 	override acquireSessionView(sessionId: string): IConversationSessionViewLease {
 		if (this.isEngineConnected()) {
 			if (isEngineRosterPlaceholderSessionId(sessionId)) {

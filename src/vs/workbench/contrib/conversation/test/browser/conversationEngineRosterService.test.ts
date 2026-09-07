@@ -1536,12 +1536,14 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		const connection = store.add(new MockUniverseAgentConnection());
 		connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
 		const service = store.add(createService(connection, storage));
+		assert.strictEqual(service.hasEngineConnectionHistory(), false);
 		connection.setConnected(true);
 		service.setEngineConnected(true);
 		await new Promise<void>(resolve => setTimeout(resolve, 0));
 		connection.setConnected(false);
 		service.setEngineConnected(false);
 
+		assert.strictEqual(service.hasEngineConnectionHistory(), true);
 		assert.strictEqual(service.enqueueMessageQueueItem('ua-only', 'later'), false);
 		service.pauseMessageQueue('ua-only');
 		service.resumeMessageQueue('ua-only');
@@ -1612,7 +1614,7 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		await new Promise<void>(resolve => setTimeout(resolve, 0));
 
 		const outcome = await postBound(
-			{ stubService: service, sessionViewLease: undefined } as Parameters<typeof postBound>[0],
+			{ stubService: service, sessionViewLease: undefined } as unknown as Parameters<typeof postBound>[0],
 			{ kind: 'submitInput', text: 'hello' },
 		);
 		assert.strictEqual(outcome.accepted, false);
@@ -1663,7 +1665,7 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 	});
 
 	test('empty list with pending bind stays incomplete until lease resolves', async () => {
-		let resolveLease: ((value: string) => void) | undefined;
+		let resolveLease: (() => void) | undefined;
 		const connection = store.add(new MockUniverseAgentConnection());
 		connection.setListSessions([]);
 		const sessionView: IUniverseAgentSessionView = {
