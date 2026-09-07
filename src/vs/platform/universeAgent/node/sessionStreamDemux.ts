@@ -824,14 +824,14 @@ export function localFactFromQuestionArm(event: unknown): {
 
 /**
  * Convert a gRPC SessionStreamEvent payload into zero or more domain stream events.
+ * `session_id` is read inside the two arms that need it: the descriptor read is
+ * the priciest step here and every other arm (L3 deltas included) skips it.
  */
 export function demuxSessionStreamPayload(payload: unknown): readonly unknown[] {
 	if (!isRecord(payload)) {
 		return [];
 	}
 	const record = payload as Record<string, unknown>;
-	const sessionId = readField(payload, 'session_id', 'sessionId');
-
 	const hello = record.hello;
 	if (hello !== undefined) {
 		const demuxed = demuxHello(hello);
@@ -895,12 +895,12 @@ export function demuxSessionStreamPayload(payload: unknown): readonly unknown[] 
 	}
 	const question = record.ask_user_question ?? record.askUserQuestion;
 	if (question !== undefined) {
-		const demuxed = demuxAskUserQuestion(question, sessionId);
+		const demuxed = demuxAskUserQuestion(question, readField(payload, 'session_id', 'sessionId'));
 		return demuxed ? [demuxed] : [];
 	}
 	const clientTool = record.client_tool_call ?? record.clientToolCall;
 	if (clientTool !== undefined) {
-		const demuxed = demuxClientToolCall(clientTool, sessionId);
+		const demuxed = demuxClientToolCall(clientTool, readField(payload, 'session_id', 'sessionId'));
 		return demuxed ? [demuxed] : [];
 	}
 	return [];

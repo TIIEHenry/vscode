@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-07
-summary: "2026-09-07 wake：status 工位表已过期（merge 实际 bb4a7a9b395，不是 f1568462a5f）。A/B/C 占用三大 slice；D idle；一路编译留给 merge；文档「已完成」不当证据"
+summary: "人类工位已对齐已推送 MERGE_SHA c1b228caf74；保留本机行动层账。Chat 仍被引擎空壳 ALREADY_EXISTS 挡住。compile 基线 unused 仍红"
 ---
 
 # Development Progress
@@ -13,7 +13,7 @@ summary: "2026-09-07 wake：status 工位表已过期（merge 实际 bb4a7a9b395
 
 ## Current Session
 
-### 已合入（历史账 · **不要把本表当 merge tip**；集成基线现为 `bb4a7a9b395`）
+### 已合入（集成基线 `c1b228caf74`，已 push `origin/agent-ide`）
 
 | 切片 | 提交 / 落点 |
 |:-----|:------------|
@@ -39,49 +39,34 @@ summary: "2026-09-07 wake：status 工位表已过期（merge 实际 bb4a7a9b395
 | **first-send Active** | `b818fbf6bcf` 首条 pending 即离 PreFirst；未连不锁发送。相位切换后重测阅读列，PreFirst 不再 `layout(0)` monaco 树 |
 | **inbox list XOR** | 切换 Task/Queue 时先关旧 `context-view` 再设 `openPanel`，避免 `aria-pressed` 被 onHide 清掉；透镜测 20ms flush 对齐帧合并，queue hold 后重开列表看 tag |
 | **renderer IPC sync** | `UniverseAgentConnectionChannelClient` / Hub Client 缓存 phase·snapshot·profiles；状态栏按 `phase.kind` 开 Connection；Engine 节空能力矩阵不崩。未升 PRD-008（仍缺接通证据） |
-| **handshake protobuf** | `GetAuthNonce` / DeviceAuth `Connect` 改 proto3 二进制（不再 `JSON.stringify`）。钉死引擎已收合法请求并进入 pairing；SAS 确认框未弹。未升 PRD-008 |
+| **handshake protobuf** | `GetAuthNonce` / DeviceAuth `Connect` 改 proto3 二进制。pane 内 SAS / recoverTrust 后状态栏 **`Engine · Direct`** 已复证。未升 PRD-008 |
+| **session bind 波** | Create 写 `client_session_id` field 4；按 id 单飞；Channel Client 显式 `resumeSession`；roster 不再第二发 Create；ghost/bind 失败应显式占位。E2E（`bc1370cb05d`）：接通 PASS；引擎仍 0 Resume / Create `ALREADY_EXISTS`（空壳 `session_meta`）；UI 仍见 `New session`；无 Chat。见 [D26](deferred-gaps.md) |
 | **UI 缺口收口波** | Navigator Team 删六个改引擎命令（PRD-022 验收 6）；Sources Diff 占位壳换真 `DiffEditorWidget`，revert/accept 双门控；对话列顶「断连前快照」（PRD-007 验收 5）；子代理浮层补「对话 \| 轨迹」两页（PRD-012 验收 1）；Inbox 右簇诚实空环；Permission 接 `SetPermissionMode`（失败回滚 + 门禁提示）；轨迹折叠点击跨刷新不失效。Mermaid 扩展 Promise 加 disposed 闸门（释放后渲染导致列表行泄漏）；轨迹检查器首段标题错用 Preview 改回 Summary |
 | **settings chrome** | Connection/Engine 两页改用 `InputBox`/`Checkbox`/`WorkbenchList` 左栏与状态色；窄宽两栏；Test Engine 下沉页脚；「回 Client」链入 Preferences tab 条；会话栏图标改 ghost toolbar。无新 RPC / 无新节 |
-| **settings chrome follow-up** | Back-to-Client 先取出 Preferences 服务再关 pane（`await` 后 accessor 已失效）；Direct Address Connect 状态写回本区并先标 Connecting…。钉死引擎 `:50061` 已起，握手仍挂、SAS 未弹 |
+| **settings chrome follow-up** | Back-to-Client 先取出 Preferences 服务再关 pane（`await` 后 accessor 已失效）；Direct Address Connect 状态写回本区并先标 Connecting…。已随本轮合入 `loop/merge` |
 
-并行 catalog/UI 绑定波（A–D 槽）已合入 tip；逐条流水见 [归档](../archive/status-current-session-slot-catalog-2026-09-05.md)，不在本账复述。
-
-八份治理方案签收与 Wave 排期见 [看板](../parallel/active/verification-governance-plans.md)。钉死调试引擎：[debug-engine](../../docs/guides/debug-engine.md)。
+并行 catalog/UI 绑定波流水见 [归档](../archive/status-current-session-slot-catalog-2026-09-05.md)。钉死调试引擎：[debug-engine](../../docs/guides/debug-engine.md)。
 
 [m7-gap-closeout](../plans/m7-gap-closeout.md) 与 [session-view-frame-fanout](../plans/session-view-frame-fanout.md) 的重复 frontmatter 已合并（生成列此前误显 `accepted`，现为 `implemented`）；按规则 3c 改口三处知识层叙述：Test Connection 已走 `probeConnectionProfile`、帧扇出 F1/F2 已落（全局 `onDidApplyFrame` 待删）、子代理 catalog 已由观察 lease 驱动。
 
 ### 进行中（2026-09-07 本 wake · 以代码/工位 tip 为准，不信上文「已合入」清单）
 
-文档工位表停在 `f1568462a5f`，**已过期**。当前磁盘：
+人类工位已 merge `c1b228caf74`（先 commit 行动层再三路合）。Direct 接通已通。Chat 仍被引擎空壳 Create（目录在、`session_meta` 空、回 6）挡住；不要再清 `.sessions` 当主线。见 [D26](deferred-gaps.md)。**U2 未开**。**PRD-008 不升 `implemented`**。
 
-| 槽 | 实际 tip | 本 wake |
-|----|----------|---------|
-| 主工作区 `agent-ide` | 本地仍 `f85a512fdd0`（有未提交进度文档） | **请自行对齐**到 `c1b228caf74`。loop 不代 merge/pull |
-| merge `loop/merge` | `c1b228caf74` | 已并入人类 `f85a512fdd0`；已 push `origin/agent-ide` 与 `origin/loop/merge`。compile 基线 unused 仍红 |
-| A `loop/A` | `b384a1dcf9e` | 已是 merge 祖先；P6 被脏 `status.md` 挡住，未 cascade |
-| B `loop/B` | `58f44d73ce8` | 同上 |
-| C `loop/C` | `4ae77bdc6b6` | 同上（另有脏 `dev/loop`） |
-| D `loop/D` | `583b004a8b0` | 同上 |
-
-本 wake 已派（父只调度，禁用 grok CLI，决定用 Grok 4.6）：
-
-1. **MERGE_SHA** `c1b228caf74`：P2 收 C/A/B/D + 类型合成 + 人类 `agent-ide` `f85a512fdd0`。both-sides PASS。已 push `origin/agent-ide` 与 `origin/loop/merge`。
-2. P3：两条过时 stash 已 drop，list 空。P6 字母槽未 ff（脏 leftover `status.md`）。merge 已与远程同 SHA，字母槽未 `idle`。
-3. 下一波仍按冲突域（A=D23+D32，B=D24+0px，C=D30+诚实空，D=D31+R8）。GFS >800 不拆。U2 不开。
-
-**禁止本 wake**：U2、SwitchMode Plan、空转等 loop、多路编译、删 loop。
+1. **MERGE_SHA** `c1b228caf74` 已 push。下一波按冲突域：A=D23+D32，B=D33 pairing chip + D27 0px，C=D30+诚实空，D=D31+R8。GFS >800 不拆。
+2. 字母槽仍被脏 leftover `status.md` 挡住，未 cascade。
 
 子 agent 发现的既有代码问题：
 
 | ID | 来源 | 问题 |
 |:---|:-----|:-----|
 | [D23](deferred-gaps.md) | A 槽核实时 | `sessionViewHost.ts` `void sendHeartbeatAck`：resident `write` 无 catch，失败可成未处理 rejection |
-| [D24](deferred-gaps.md) | 决策核实时 | `getEngineStatusCommandId` 配对中可能把 chip 指到 Engine 页 |
-| — | 决策核实时 | ListView 0px：编辑态 1px 垫高未根治；inactive lens hidden 仍报 0px |
+| [D33](deferred-gaps.md) | 决策核实时 | `getEngineStatusCommandId` 配对中可能把 chip 指到 Engine 页（号原误写成 D24） |
+| [D27](deferred-gaps.md) | 决策核实时 | ListView 0px：编辑态整树重建；1px 垫高未根治 |
 | [D31](deferred-gaps.md) | A 槽 Sources | Review 读失败静默、Panel 无写动作、无 Unstage |
 | [R8](research-queue.md) | A 槽 Sources | `WriteGitApplyHunks` 空 patches 语义未定 |
 | [D32](deferred-gaps.md) | D 槽 error-retry | UI 直开 ContinueGeneration，不经 lease.post |
-| — | A 槽 Inbox | 接通入队成功后无 GetQueue，列表仍空；`engine-protocol-surface` Enqueue 句过时 |
+| [D26](deferred-gaps.md) | merge 账 | 引擎空壳 Create 回 6；不要再清 store |
 
 ## 工位表（P0 盘点 · 2026-09-07 · 与 `git worktree list` 对照）
 
@@ -92,7 +77,7 @@ summary: "2026-09-07 wake：status 工位表已过期（merge 实际 bb4a7a9b395
 | B | `vscode-WorkTrees/B` | `loop/B` | `58f44d73ce8` | `status.md` | 0 | 同上 |
 | C | `vscode-WorkTrees/C` | `loop/C` | `4ae77bdc6b6` | `status.md` + `dev/loop` | 0 | 同上 |
 | D | `vscode-WorkTrees/D` | `loop/D` | `583b004a8b0` | `status.md` | 0 | 同上 |
-| edit | `Projects/Agents/vscode` | `agent-ide` | `f85a512fdd0` | 进度文档等 | 0 | 请自行对齐 `c1b228caf74` |
+| edit | `Projects/Agents/vscode` | `agent-ide` | 对齐中 | `dev/loop` 子模块脏 | 0 | 已 merge `c1b228caf74`，保留行动层 |
 
 ## Blockers
 
@@ -102,6 +87,7 @@ summary: "2026-09-07 wake：status 工位表已过期（merge 实际 bb4a7a9b395
 
 | 项 | 指针 |
 |:---|:-----|
+| **引擎空壳 Create** | [D26](deferred-gaps.md) — 空 store 首次 Create 仍 `ALREADY_EXISTS` 且不写 meta；不要再清 store |
 | **test-baseline 切片 0** | [test-baseline-ci](../plans/test-baseline-ci.md) — D16 账本需先 `npm run compile` 产出 `out/` 再跑三文件单测 |
 | **U2 闸门** | [ADR-007](../decisions/007-upstream-sync.md) Decision 5 — 须 U0 `comm` 空 + U1 完成 + CI 绿 + merge 独占 + A 表冻结；**未满足前不开 U2** |
 

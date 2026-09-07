@@ -23,6 +23,7 @@ import { IInstantiationService } from '../../../../platform/instantiation/common
 import { IContextViewService } from '../../../../platform/contextview/browser/contextView.js';
 import { ConversationVisualizeOverlay } from './conversationVisualizeOverlay.js';
 import type { ConversationSessionConfigSelection } from './conversationLensComposerChrome.js';
+import { showConversationPart } from './conversationSessionStatus.js';
 
 export interface IConversationLensSessionBarHost {
 	sessionTitleButton: HTMLButtonElement;
@@ -39,6 +40,7 @@ export interface IConversationLensSessionBarHost {
 	lensTablist: HTMLElement;
 	lensTabConversation: HTMLButtonElement;
 	lensTabTrajectory: HTMLButtonElement;
+	sessionSyncBadge: HTMLElement;
 	suppressSessionSelect: boolean;
 	readingColumn: HTMLElement;
 	engineHistoryList: ConversationEngineHistoryList | undefined;

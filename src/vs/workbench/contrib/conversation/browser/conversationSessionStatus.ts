@@ -28,6 +28,11 @@ export function getEngineStatusCommandId(phase: ConnectionPhase | undefined): st
 		: OPEN_CONNECTION_PREFERENCES_COMMAND_ID;
 }
 
+/** Conversation UI live-engine gate — same truth as StatusBar / IdentityStrip (H4b). */
+export function isConversationEngineLive(phase: ConnectionPhase | undefined, pairingPending = false): boolean {
+	return isUniverseAgentPhaseConnected(phase) && !pairingPending;
+}
+
 /** Legacy boolean helper for panes that only need connected vs not-connected copy. */
 export function getConversationEngineStatusText(isConnected = false): string {
 	if (isConnected) {

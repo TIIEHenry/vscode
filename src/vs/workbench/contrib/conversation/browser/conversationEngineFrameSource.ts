@@ -23,6 +23,7 @@ import {
 	type SessionViewSnapshot,
 } from '../../../../platform/universeAgent/common/sessionView/index.js';
 import { type ConversationSessionViewProjection } from '../../../contrib/conversation/browser/conversationSessionView.js';
+import { normalizeSessionViewFrameApplied } from '../../../contrib/conversation/browser/conversationSessionViewFrameCoalescer.js';
 
 /**
  * Engine-backed frame source (stream-timeline S4): proxies lease + frames from
@@ -46,6 +47,11 @@ export class ConversationEngineFrameSource extends Disposable implements IConver
 			acquired => this.leases.set(acquired, lease),
 		);
 		return lease;
+	}
+
+	whenLeaseBindReady(lease: IConversationSessionViewLease): Promise<boolean> | undefined {
+		const candidate = lease as { whenBindReady?: () => Promise<boolean> };
+		return candidate.whenBindReady?.();
 	}
 
 	/** Last replica for a session when a lease is still held (UA disconnect cache). */
@@ -73,7 +79,7 @@ class EngineSessionViewLease extends Disposable implements IConversationSessionV
 	readonly onDidApplyFrame = this._onDidApplyFrame.event;
 	private readonly lifetime = this._register(new DisposableStore());
 	leaseId = '';
-	private readonly ready: Promise<void>;
+	private readonly ready: Promise<boolean>;
 	private disposed = false;
 
 	constructor(
@@ -86,7 +92,7 @@ class EngineSessionViewLease extends Disposable implements IConversationSessionV
 		this.ready = this.sessionView.acquireLease(sessionId).then(id => {
 			if (this.disposed) {
 				void this.sessionView.releaseLease(id);
-				return;
+				return false;
 			}
 			this.leaseId = id;
 			this.lifetime.add(this.sessionView.onDynamicDidApplyFrame(id)(event =>
@@ -96,7 +102,12 @@ class EngineSessionViewLease extends Disposable implements IConversationSessionV
 				this.onRelease(id);
 			} });
 			this.onAcquired(id);
-		}, () => { });
+			return true;
+		}, () => false);
+	}
+
+	whenBindReady(): Promise<boolean> {
+		return this.ready;
 	}
 
 	get snapshot(): SessionViewSnapshot {
@@ -112,18 +123,14 @@ class EngineSessionViewLease extends Disposable implements IConversationSessionV
 	}
 
 	async post(msg: ConversationWriteMessage): Promise<PostOutcome> {
-		try {
-			await this.ready;
-		} catch {
-			return { accepted: false, reason: 'no_such_session' };
-		}
-		if (!this.leaseId) {
+		const bound = await this.ready;
+		if (!bound || !this.leaseId) {
 			return { accepted: false, reason: 'no_such_session' };
 		}
 		try {
 			return await this.sessionView.post(this.leaseId, msg);
 		} catch {
-			return { accepted: false, reason: 'not_authenticated' };
+			return { accepted: false, reason: 'no_such_session' };
 		}
 	}
 
@@ -134,13 +141,9 @@ class EngineSessionViewLease extends Disposable implements IConversationSessionV
 	}
 
 	async requestDetail(ref: string): Promise<DetailFetchOutcome> {
-		try {
-			await this.ready;
-		} catch {
+		const bound = await this.ready;
+		if (!bound || !this.leaseId) {
 			return { ok: false, reason: 'failed', message: 'lease acquire failed' };
-		}
-		if (!this.leaseId) {
-			return { ok: false, reason: 'failed', message: 'lease not acquired' };
 		}
 		let outcome: DetailFetchOutcome;
 		try {
@@ -185,7 +188,7 @@ class EngineSessionViewLease extends Disposable implements IConversationSessionV
 				this._details.delete(patch.ref);
 			}
 		}
-		this._onDidApplyFrame.fire(applied);
+		this._onDidApplyFrame.fire(normalizeSessionViewFrameApplied(applied));
 		if (this.leaseId) {
 			void this.sessionView.acknowledge(this.leaseId, {
 				generation: this.cursor.generation,

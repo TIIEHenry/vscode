@@ -41,6 +41,7 @@ import {
 	conversationLensDockPermissionLabel,
 	conversationLensDockPermissionPermit,
 	conversationLensDockPlaceholder,
+	conversationLensPostFailedDisconnected,
 	conversationLensDockRestoreTimeline,
 	conversationLensDockStop,
 	conversationLensDockStopNotGenerating,
@@ -322,6 +323,22 @@ suite('ConversationLens', () => {
 		return select;
 	}
 
+	function getModelSelect(slots: IConversationLensSlots): HTMLSelectElement {
+		const select = getComposerBottomBar(slots).querySelector('.conversation-lens-dock-model select.monaco-select-box') as HTMLSelectElement | null;
+		assert.ok(select);
+		return select;
+	}
+
+	async function waitForModelOption(slots: IConversationLensSlots, text: string): Promise<void> {
+		for (let i = 0; i < 16; i++) {
+			if ([...getModelSelect(slots).options].some(option => option.text === text)) {
+				return;
+			}
+			await Promise.resolve();
+		}
+		assert.fail(`model option "${text}" did not load`);
+	}
+
 	function getDockSendButton(slots: IConversationLensSlots): HTMLButtonElement {
 		const button = (slots.dock.querySelector('.conversation-lens-dock-send .monaco-button')
 			?? getReadingColumn(slots).querySelector('.conversation-lens-dock-send .monaco-button')) as HTMLButtonElement | null;
@@ -364,11 +381,20 @@ suite('ConversationLens', () => {
 	}
 
 	function dispatchDockKeydown(textarea: HTMLTextAreaElement, keyCode: KeyCode): void {
-		textarea.dispatchEvent(new KeyboardEvent('keydown', { keyCode, bubbles: true, cancelable: true }));
+		const domKeyCodeByVsCode: Partial<Record<KeyCode, number>> = {
+			[KeyCode.Enter]: 13,
+			[KeyCode.Escape]: 27,
+			[KeyCode.UpArrow]: 38,
+			[KeyCode.DownArrow]: 40,
+			[KeyCode.Space]: 32,
+		};
+		const domKeyCode = domKeyCodeByVsCode[keyCode];
+		assert.ok(domKeyCode !== undefined, `missing DOM keyCode mapping for ${keyCode}`);
+		textarea.dispatchEvent(new KeyboardEvent('keydown', { keyCode: domKeyCode, bubbles: true, cancelable: true }));
 	}
 
 	function getSessionSelectLabel(slots: IConversationLensSlots): string | undefined {
-		const select = slots.sessionBar!.querySelector('select.monaco-select-box') as HTMLSelectElement | null;
+		const select = slots.sessionBar!.querySelector('.conversation-lens-session-select select.monaco-select-box') as HTMLSelectElement | null;
 		if (!select || select.options.length === 0) {
 			return undefined;
 		}
@@ -433,10 +459,20 @@ suite('ConversationLens', () => {
 				dispose() { },
 			}),
 		} as unknown as IWebviewService);
+		// Product selectors are `.monaco-workbench .part.conversation …` (descendant).
+		// Overlay host is `timeline.closest('.part.conversation')`. Same ancestor
+		// chain as conversationIdentityStrip.test.ts — do not stack both classes
+		// on one node, and do not park layoutService.getContainer on a sibling.
 		const layoutContainer = document.createElement('div');
 		layoutContainer.classList.add('monaco-workbench');
+		const parent = document.createElement('div');
+		parent.classList.add('part', 'conversation');
+		const layoutWidth = options?.layoutWidth ?? LENS_LAYOUT_WIDTH;
+		parent.style.width = `${layoutWidth}px`;
+		parent.style.height = `${LENS_LAYOUT_HEIGHT}px`;
+		layoutContainer.appendChild(parent);
 		document.body.appendChild(layoutContainer);
-		store.add({ dispose: () => layoutContainer.remove() });
+		store.add(toDisposable(() => layoutContainer.remove()));
 		// IWorkbenchLayoutService shares this decorator: Part registers itself and ConversationPart.layout
 		// asks isVisible(), so a bare { getContainer } stub is not enough.
 		const layoutService = new TestLayoutService();
@@ -456,13 +492,6 @@ suite('ConversationLens', () => {
 			getRepository: () => undefined,
 		} as unknown as ISCMService);
 		const part = store.add(instantiationService.createInstance(ConversationPart));
-		const parent = document.createElement('div');
-		parent.classList.add('monaco-workbench');
-		const layoutWidth = options?.layoutWidth ?? LENS_LAYOUT_WIDTH;
-		parent.style.width = `${layoutWidth}px`;
-		parent.style.height = `${LENS_LAYOUT_HEIGHT}px`;
-		document.body.appendChild(parent);
-		store.add(toDisposable(() => parent.remove()));
 		part.create(parent);
 		const partSlots = part.getSlots();
 		assert.ok(partSlots);
@@ -474,16 +503,13 @@ suite('ConversationLens', () => {
 			dock: document.createElement('div'),
 			sessionKey: options?.sessionKey,
 		};
-		slots.timeline.classList.add('conversation-timeline');
+		slots.timeline.classList.add('conversation-timeline', 'part', 'conversation');
 		slots.dock.classList.add('conversation-dock');
-		const partRoot = document.createElement('div');
-		partRoot.classList.add('part', 'conversation');
-		parent.appendChild(partRoot);
 		if (slots.lensTablist) {
-			partRoot.appendChild(slots.lensTablist);
+			parent.appendChild(slots.lensTablist);
 		}
-		partRoot.appendChild(slots.timeline);
-		partRoot.appendChild(slots.dock);
+		parent.appendChild(slots.timeline);
+		parent.appendChild(slots.dock);
 		part.layout(layoutWidth, LENS_LAYOUT_HEIGHT, 0, 0);
 		const layoutCallbacks: Array<() => void> = [];
 		const runLayouts = () => {
@@ -790,6 +816,86 @@ suite('ConversationLens', () => {
 		assert.ok(gateRow.textContent?.includes('engine rejected permit'));
 	});
 
+	test('model select does not call switchModel until the engine is connected', async () => {
+		const calls: { sessionId: string; modelId: string }[] = [];
+		const connection = createConversationConnectionTestStub({
+			switchModel: async request => {
+				calls.push({ sessionId: request.sessionId, modelId: request.modelId });
+				return { resolvedModelId: request.modelId, provider: '', level: 0, cost: '', speed: '' };
+			},
+		});
+		const { part } = mountLens({ connection });
+		const slots = getLensSlots(part);
+
+		selectDockModel(slots, 1);
+		await Promise.resolve();
+
+		assert.strictEqual(calls.length, 0);
+		assert.strictEqual(getModelSelect(slots).selectedIndex, 1);
+	});
+
+	test('model select writes sessionId and modelId when switchModel is available', async () => {
+		const calls: { sessionId: string; modelId: string }[] = [];
+		const capabilities = createEmptyTestCapabilitySnapshot();
+		const connection = createConversationConnectionTestStub({
+			getCapabilitySnapshot: () => ({
+				...capabilities,
+				models: { support: 'SUPPORTED' },
+			}),
+			listModels: async () => ({ models: [{ id: '1', type: 'chat', enabled: true, level: 1, provider: 'p', modelId: 'gpt-test' }] }),
+			switchModel: async request => {
+				calls.push({ sessionId: request.sessionId, modelId: request.modelId });
+				return { resolvedModelId: request.modelId, provider: 'p', level: 1, cost: '', speed: '' };
+			},
+		});
+		const { part, stubService } = mountLens({ connection });
+		const slots = getLensSlots(part);
+		stubService.setEngineConnected(true);
+		await waitForModelOption(slots, 'gpt-test');
+
+		selectDockModel(slots, 1);
+		await Promise.resolve();
+
+		assert.strictEqual(calls.length, 1);
+		assert.strictEqual(calls[0].sessionId, stubService.getActiveSessionId());
+		assert.strictEqual(calls[0].modelId, 'gpt-test');
+		assert.strictEqual(getModelSelect(slots).selectedIndex, 1);
+	});
+
+	test('model select rolls back and shows the gate when switchModel fails', async () => {
+		const calls: { sessionId: string; modelId: string }[] = [];
+		const capabilities = createEmptyTestCapabilitySnapshot();
+		const connection = createConversationConnectionTestStub({
+			getCapabilitySnapshot: () => ({
+				...capabilities,
+				models: { support: 'SUPPORTED' },
+			}),
+			listModels: async () => ({ models: [{ id: '1', type: 'chat', enabled: true, level: 1, provider: 'p', modelId: 'gpt-test' }] }),
+			switchModel: async request => {
+				calls.push({ sessionId: request.sessionId, modelId: request.modelId });
+				throw new Error('engine rejected model');
+			},
+		});
+		const { part, stubService } = mountLens({ connection });
+		const slots = getLensSlots(part);
+		stubService.setEngineConnected(true);
+		await waitForModelOption(slots, 'gpt-test');
+
+		const modelSelect = getModelSelect(slots);
+		assert.strictEqual(modelSelect.options[modelSelect.selectedIndex]?.text, conversationLensDockNoModel);
+
+		selectDockModel(slots, 1);
+		await Promise.resolve();
+
+		assert.strictEqual(calls.length, 1);
+		assert.strictEqual(calls[0].modelId, 'gpt-test');
+		assert.strictEqual(modelSelect.selectedIndex, 0);
+		assert.strictEqual(modelSelect.options[modelSelect.selectedIndex]?.text, conversationLensDockNoModel);
+		const gateRow = slots.dock.querySelector('.conversation-lens-dock-gate-row') as HTMLElement;
+		assert.strictEqual(gateRow.hidden, false);
+		assert.ok(gateRow.textContent?.includes('engine rejected model'));
+	});
+
 	test('narrow More permission radios stay disabled without setPermissionMode', () => {
 		const { part } = mountLens({ layoutWidth: LENS_MIN_WIDTH });
 		const slots = getLensSlots(part);
@@ -806,15 +912,96 @@ suite('ConversationLens', () => {
 		}
 	});
 
-	test('disconnected compose enables send from draft without Stub model', () => {
-		const { part } = mountLens();
+	test('disconnected compose enables send from draft without Stub model', async () => {
+		const { part, stubService } = mountLens();
 		const slots = getLensSlots(part);
+		const sessionId = stubService.createSession();
 		const sendButton = getDockSendButton(slots);
 		assert.strictEqual(sendButton.classList.contains('disabled'), true);
+		assert.strictEqual(stubService.hasEngineConnectionHistory(), false);
 		const textarea = getDockTextarea(slots);
 		textarea.value = 'hello';
 		textarea.dispatchEvent(new globalThis.Event('input', { bubbles: true }));
 		assert.strictEqual(sendButton.classList.contains('disabled'), false);
+
+		sendButton.click();
+		await Promise.resolve();
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+		const readingColumn = getReadingColumn(slots);
+		assert.strictEqual(readingColumn.classList.contains(conversationLensPhasePreFirstClass), false, 'first pending must leave PreFirst');
+		assert.ok(!/已同步|synced/i.test(slots.dock.textContent ?? ''));
+		assert.ok(!/已同步|synced/i.test(slots.sessionBar?.textContent ?? ''));
+		assert.ok(!/已同步|synced/i.test(readingColumn.textContent ?? ''));
+		assert.ok(stubService.getTurns(sessionId).some(turn => turn.kind === 'user' && turn.text === 'hello'));
+		assert.ok(stubService.getTurns(sessionId).some(turn => turn.kind === 'assistant' && /Stub echo/i.test(turn.text)));
+		assert.strictEqual(textarea.value, '');
+	});
+
+	test('engine-cache disconnect keeps Send enabled and does not pretend delivered', async () => {
+		class EngineCacheRoster extends ConversationStubService {
+			override hasEngineConnectionHistory(): boolean {
+				return true;
+			}
+		}
+		const roster = store.add(new EngineCacheRoster());
+		const { part } = mountLens({ stubService: roster });
+		const slots = getLensSlots(part);
+		const sessionId = roster.createSession();
+		const sendButton = getDockSendButton(slots);
+		const textarea = getDockTextarea(slots);
+		textarea.value = 'keep this draft';
+		textarea.dispatchEvent(new globalThis.Event('input', { bubbles: true }));
+		assert.strictEqual(sendButton.classList.contains('disabled'), false);
+
+		sendButton.click();
+		await Promise.resolve();
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+		assert.strictEqual(textarea.value, 'keep this draft');
+		assert.strictEqual(roster.getTurns(sessionId).length, 0);
+		assert.strictEqual(roster.enqueueMessageQueueItem(sessionId, 'keep this draft'), false);
+		const gateRow = (getReadingColumn(slots).querySelector('.conversation-lens-dock-gate-row')
+			?? slots.dock.querySelector('.conversation-lens-dock-gate-row')) as HTMLElement | null;
+		assert.ok(gateRow);
+		assert.strictEqual(gateRow.hidden, false);
+		assert.ok(gateRow.textContent?.includes(conversationLensPostFailedDisconnected));
+		assert.ok(!/已同步|已发送|synced|delivered/i.test(gateRow.textContent ?? ''));
+		assert.ok(!/已同步|synced/i.test(slots.sessionBar?.textContent ?? ''));
+		assert.strictEqual(getReadingColumn(slots).classList.contains(conversationLensPhasePreFirstClass), true);
+		assert.strictEqual(sendButton.classList.contains('disabled'), false);
+	});
+
+	test('engine-cache disconnect Send uses enqueue when the roster API accepts', async () => {
+		class QueuingEngineCacheRoster extends ConversationStubService {
+			readonly queued: string[] = [];
+			override hasEngineConnectionHistory(): boolean {
+				return true;
+			}
+			override enqueueMessageQueueItem(sessionId: string, text: string): boolean {
+				const trimmed = text.trim();
+				if (!trimmed) {
+					return false;
+				}
+				this.queued.push(`${sessionId}:${trimmed}`);
+				return true;
+			}
+		}
+		const roster = store.add(new QueuingEngineCacheRoster());
+		const { part } = mountLens({ stubService: roster });
+		const slots = getLensSlots(part);
+		const sessionId = roster.createSession();
+		const textarea = getDockTextarea(slots);
+		textarea.value = 'queued later';
+		textarea.dispatchEvent(new globalThis.Event('input', { bubbles: true }));
+		getDockSendButton(slots).click();
+		await Promise.resolve();
+
+		assert.deepStrictEqual(roster.queued, [`${sessionId}:queued later`]);
+		assert.strictEqual(textarea.value, '');
+		assert.strictEqual(roster.getTurns(sessionId).length, 0);
+		assert.ok(!/已同步|已发送|synced/i.test(slots.dock.textContent ?? ''));
+		assert.ok(!/已同步|已发送|synced/i.test(getReadingColumn(slots).textContent ?? ''));
 	});
 
 	test('PreFirst: centered composer cluster hides dock inbox and moves identity above composer', () => {
@@ -1101,6 +1288,8 @@ suite('ConversationLens', () => {
 
 		const gateRow = slots.dock.querySelector('.conversation-lens-dock-gate-row') as HTMLElement;
 		assert.strictEqual(gateRow.hidden, true);
+		assert.strictEqual(gateRow.textContent, '');
+		assert.strictEqual(gateRow.getAttribute('aria-label'), null);
 		assert.strictEqual(getPermissionSelect(slots).disabled, true);
 
 		const textarea = getDockTextarea(slots);
@@ -1118,6 +1307,48 @@ suite('ConversationLens', () => {
 		const popup = document.querySelector('.conversation-lens-dock-tune-popup');
 		assert.ok(popup?.textContent?.includes('bash'));
 		assert.ok(!popup?.textContent?.includes(conversationLensDockNoTools));
+	});
+
+	test('connected Enter submits draft through lease.post(submitInput)', async () => {
+		const { part, stubService } = mountLens();
+		const slots = getLensSlots(part);
+		const sessionId = stubService.createSession();
+		stubService.setEngineConnected(true);
+
+		const textarea = getDockTextarea(slots);
+		textarea.value = 'hello engine';
+		dispatchDockKeydown(textarea, KeyCode.Enter);
+		await Promise.resolve();
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+		assert.strictEqual(textarea.value, '');
+		const userTurn = stubService.getTurns(sessionId).find(turn => turn.kind === 'user' && turn.text === 'hello engine');
+		assert.ok(userTurn, 'submitInput must reach the session view lease when connected');
+	});
+
+	test('connected Send click submits without input event when draft is prefilled', async () => {
+		const { part, stubService } = mountLens();
+		const slots = getLensSlots(part);
+		stubService.createSession();
+		stubService.setEngineConnected(true);
+
+		const textarea = getDockTextarea(slots);
+		const sendButton = getDockSendButton(slots);
+		textarea.value = 'prefilled draft';
+		assert.strictEqual(sendButton.classList.contains('disabled'), true);
+
+		sendButton.click();
+		await Promise.resolve();
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+		assert.strictEqual(textarea.value, '');
+	});
+
+	test('dock input exposes stable automation test ids', () => {
+		const { part } = mountLens();
+		const slots = getLensSlots(part);
+		assert.strictEqual(getDockTextarea(slots).getAttribute('data-testid'), 'conversation-composer-input');
+		assert.strictEqual(getDockSendButton(slots).getAttribute('data-testid'), 'conversation-composer-send');
 	});
 
 	test('dock input placeholder is product Message copy, not Ask anything', () => {
@@ -1572,12 +1803,13 @@ suite('ConversationLens', () => {
 		assert.ok(queryTimeline(slots, '.conversation-lens-confirmation-seat'));
 	});
 
-	test('thinking and tool turns render inside a collapsed process fold by default', () => {
-		const { part, stubService } = mountLens();
+	test('thinking and tool turns render inside a collapsed process fold by default', async () => {
+		const { part, stubService, layoutReadingColumn } = mountLens();
 		const slots = getLensSlots(part);
 		const sessionId = stubService.createSession();
 		stubService.appendThinkingTurn(sessionId, 'Weighing options');
 		stubService.appendToolTurn(sessionId, 'grep src');
+		await flushProjectedTimeline(layoutReadingColumn);
 
 		const fold = queryTimeline(slots, '[data-process-fold]');
 		assert.ok(fold);
@@ -1624,7 +1856,10 @@ suite('ConversationLens', () => {
 		const { part, stubService } = mountLens();
 		const emptySlots = getLensSlots(part);
 		stubService.createSession();
-		assert.strictEqual(emptySlots.dock.querySelector('.conversation-lens-inbox-overlay'), null);
+		// PreFirst keeps the overlay mounted and hides it; it does not unmount.
+		const prefirstInbox = emptySlots.dock.querySelector('.conversation-lens-inbox-overlay') as HTMLElement | null;
+		assert.ok(prefirstInbox);
+		assert.ok(prefirstInbox.hidden);
 
 		await sendDockDraft(emptySlots, 'Activate inbox overlay');
 		const slots = getLensSlots(part);
@@ -1648,6 +1883,7 @@ suite('ConversationLens', () => {
 
 		assert.ok(allowButton);
 		allowButton.click();
+		await flushProjectedTimeline(layoutReadingColumn);
 
 		const seatAfter = queryTimeline(slots, '.conversation-lens-confirmation-seat')!;
 		const buttonsAfter = [...seatAfter.querySelectorAll('button, .monaco-button')].map(el => el.textContent?.trim());
@@ -1679,7 +1915,7 @@ suite('ConversationLens', () => {
 		const maximizeButton = slots.dock.querySelector('.conversation-lens-dock-maximize-input .monaco-button') as HTMLButtonElement;
 
 		assert.ok(maximizeButton);
-		assert.ok(maximizeButton.querySelector('.codicon-screen-full'));
+		assert.ok(maximizeButton.classList.contains('codicon-screen-full'));
 		assert.strictEqual(maximizeButton.getAttribute('aria-label'), conversationLensDockMaximizeInput);
 		assert.strictEqual(lens.isInputMaximized(), false);
 		assert.strictEqual(slots.timeline.classList.contains(conversationLensInputMaximizedClass), false);
@@ -1690,7 +1926,7 @@ suite('ConversationLens', () => {
 		maximizeButton.click();
 
 		assert.strictEqual(lens.isInputMaximized(), true);
-		assert.ok(maximizeButton.querySelector('.codicon-screen-normal'));
+		assert.ok(maximizeButton.classList.contains('codicon-screen-normal'));
 		assert.strictEqual(maximizeButton.getAttribute('aria-label'), conversationLensDockRestoreTimeline);
 		assert.strictEqual(maximizeButton.getAttribute('aria-pressed'), 'true');
 		assert.strictEqual(slots.timeline.classList.contains(conversationLensInputMaximizedClass), true);
@@ -1699,7 +1935,7 @@ suite('ConversationLens', () => {
 		maximizeButton.click();
 
 		assert.strictEqual(lens.isInputMaximized(), false);
-		assert.ok(maximizeButton.querySelector('.codicon-screen-full'));
+		assert.ok(maximizeButton.classList.contains('codicon-screen-full'));
 		assert.strictEqual(maximizeButton.getAttribute('aria-label'), conversationLensDockMaximizeInput);
 		assert.strictEqual(maximizeButton.getAttribute('aria-pressed'), 'false');
 		assert.strictEqual(slots.timeline.classList.contains(conversationLensInputMaximizedClass), false);
@@ -1820,7 +2056,7 @@ suite('ConversationLens', () => {
 		assert.ok(stubService.getActiveSession().title.includes('Untitled'));
 		assert.strictEqual(getSessionSelectLabel(slots), stubService.getActiveSession().title);
 		assert.strictEqual(titleLive.textContent, stubService.getActiveSession().title);
-		assert.strictEqual(slots.sessionBar!.querySelector('select.monaco-select-box option')?.textContent, stubService.getActiveSession().title);
+		assert.strictEqual(slots.sessionBar!.querySelector('.conversation-lens-session-select select.monaco-select-box option')?.textContent, stubService.getActiveSession().title);
 	});
 
 	test('user turns are display-only; assistant turns expose Copy and Delete action bars', async () => {

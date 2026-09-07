@@ -30,6 +30,7 @@ suite('SessionViewHost overlay delta + frameAck', () => {
 		const viewHost = store.add(new SessionViewHost(connection, new TestHost(async () => undefined), { orphanTimeoutMs: 0 }));
 		viewHost.onEngineConnectionChanged();
 		const leaseId = viewHost.acquireLease('sess-delta');
+		await viewHost.whenEngineSessionReady('sess-delta');
 
 		const frames: IUniverseAgentSessionViewFrameEvent[] = [];
 		store.add(viewHost.onDynamicDidApplyFrame(leaseId)(e => frames.push(e)));
@@ -48,6 +49,7 @@ suite('SessionViewHost overlay delta + frameAck', () => {
 		const viewHost = store.add(new SessionViewHost(connection, new TestHost(async () => undefined), { orphanTimeoutMs: 0 }));
 		viewHost.onEngineConnectionChanged();
 		const leaseId = viewHost.acquireLease('sess-snap');
+		await viewHost.whenEngineSessionReady('sess-snap');
 
 		const frames: IUniverseAgentSessionViewFrameEvent[] = [];
 		store.add(viewHost.onDynamicDidApplyFrame(leaseId)(e => frames.push(e)));

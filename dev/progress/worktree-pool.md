@@ -4,8 +4,8 @@ type: progress
 status: accepted
 phase: M7
 created: 2026-08-30
-updated: 2026-09-05
-summary: "仓外 vscode-WorkTrees；基线 agent-ide（非 origin/main）；merge + A–D @ f1568462a5f"
+updated: 2026-09-06
+summary: "仓外 vscode-WorkTrees；基线 agent-ide（非 origin/main）；merge @ bc1370cb05d"
 ---
 
 # Loop 并行工位池（本仓）
@@ -23,19 +23,19 @@ summary: "仓外 vscode-WorkTrees；基线 agent-ide（非 origin/main）；merg
 | 主仓 | `/home/clarence/Projects/Agents/vscode` |
 | 工位根 `$WT_ROOT` | `/home/clarence/Projects/Agents/vscode-WorkTrees` |
 | 集成分支（当前） | **`agent-ide`**（merge 槽对齐此分支；非上游 `main`） |
-| 集成本次 HEAD | `f1568462a5f`（`loop/merge` tip · 2026-09-05；合入 `agent-ide` PreFirst/first-send + HistoryFill；renderer IPC 修在 `agent-ide` 本提交） |
+| 集成本次 HEAD | `bc1370cb05d`（`loop/merge` tip · 2026-09-06；Direct 接通 + session bind 波；未 push；人类工位 `agent-ide` 仍停在更早 tip + CSS WIP） |
 | 工位池 compile | 上次 PASS @ `c104d0af`（2026-09-03，Node v24.18.0）；tip 前进后待复跑 |
 
-## 槽位表（2026-09-05 · 与 merge 同 tip）
+## 槽位表（2026-09-06 · merge tip `bc1370cb05d`）
 
 | 槽 | 路径 | 分支 | tip | 状态 |
 |:---|:-----|:-----|:-----|:-----|
-| merge | `vscode-WorkTrees/merge` | `loop/merge` | `f1568462a5f` | 与关仓账对齐（未 push） |
-| A | `vscode-WorkTrees/A` | `loop/A` | `f1568462a5f` | idle |
-| B | `vscode-WorkTrees/B` | `loop/B` | `f1568462a5f` | idle |
-| C | `vscode-WorkTrees/C` | `loop/C` | `f1568462a5f` | idle |
-| D | `vscode-WorkTrees/D` | `loop/D` | `f1568462a5f` | idle |
-| edit | `Projects/Agents/vscode` | `agent-ide` | `f1568462a5f`+WIP | renderer Channel Client 本提交 |
+| merge | `vscode-WorkTrees/merge` | `loop/merge` | `bc1370cb05d` | 本波已合入（未 push） |
+| A | `vscode-WorkTrees/A` | `loop/A` | 对齐 merge | idle |
+| B | `vscode-WorkTrees/B` | `loop/B` | 对齐 merge | idle |
+| C | `vscode-WorkTrees/C` | `loop/C` | 对齐 merge | idle |
+| D | `vscode-WorkTrees/D` | `loop/D` | 对齐 merge | idle |
+| edit | `Projects/Agents/vscode` | `agent-ide` | `a37916b6ab6`+CSS WIP | 请人类自行对齐 |
 
 并行归属见 [status.md](status.md)。M7 看板已归档：[m7-ui-completion](../parallel/archive/m7-ui-completion.md)。
 

@@ -9,7 +9,7 @@ import { IStorageService } from '../../../../platform/storage/common/storage.js'
 import type { ConversationWriteMessage, IConversationSessionViewLease, PostOutcome } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { ensureCapabilitySnapshot } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
-import { COMPOSER_AGENT_OPTIONS, composerAgentSelectOptions, composerModelSelectOptions, composerToolNames } from './conversationComposerCatalog.js';
+import { COMPOSER_AGENT_OPTIONS, composerAgentSelectOptions, composerModelIds, composerModelSelectOptions, composerToolNames } from './conversationComposerCatalog.js';
 import {
 	conversationLensDockMicNotAvailable,
 	conversationLensDockMicStopTitle,
@@ -19,6 +19,7 @@ import {
 	conversationLensVoiceStubPhraseOne,
 	conversationLensVoiceStubPhraseThree,
 	conversationLensVoiceStubPhraseTwo,
+	type ConversationComposerPostFailureReason,
 } from './conversationLensDockStrings.js';
 import { IConversationRosterService } from './conversationStubService.js';
 import { appendVoiceTextToDraft, ConversationVoiceClip } from './conversationVoiceTranscriptModel.js';
@@ -49,6 +50,7 @@ export interface IConversationLensComposerHost {
 	modelSelectedIndex: number;
 	composerCatalogGeneration: number;
 	catalogToolNames: readonly string[];
+	catalogModelIds: readonly string[];
 	drafts: Map<string, string>;
 	voiceClipsBySessionId: Map<string, ConversationVoiceClip[]>;
 	voicePhraseIndexBySessionId: Map<string, number>;
@@ -73,7 +75,7 @@ export interface IConversationLensComposerHost {
 	updateGateRow(): void;
 	exitComposerEdit(restoreComposeDraft?: boolean, releaseQueueHold?: boolean): void;
 	getEditingQueueItem(): { id: string; content: string } | undefined;
-	showPostFailure(reason: 'mailbox_full' | 'no_such_session' | 'not_authenticated'): void;
+	showPostFailure(reason: ConversationComposerPostFailureReason): void;
 	resetInputHistoryBrowse(): void;
 	renderInboxStatus(): void;
 	renderVoiceTranscriptBar(): void;
@@ -95,6 +97,7 @@ export function refreshComposerCatalogs(host: IConversationLensComposerHost): vo
 					{ text: localize('conversationLens.dockStubModel', "Stub model") },
 				],
 				host.modelSelectedIndex);
+			host.catalogModelIds = ['', ''];
 			host.catalogToolNames = [];
 			host.updateSendEnabled();
 			host.updateGateRow();
@@ -103,6 +106,7 @@ export function refreshComposerCatalogs(host: IConversationLensComposerHost): vo
 		host.agentSelectBox.setOptions([{ text: conversationLensDockNoAgent }], 0);
 		host.modelSelectBox.setOptions([{ text: conversationLensDockNoModel }], 0);
 		host.modelSelectedIndex = 0;
+		host.catalogModelIds = [''];
 		host.catalogToolNames = [];
 		host.updateSendEnabled();
 		host.updateGateRow();
@@ -134,6 +138,7 @@ export async function loadConnectedComposerCatalogs(host: IConversationLensCompo
 				}
 				host.modelSelectBox.setOptions(composerModelSelectOptions(result.models), 0);
 				host.modelSelectedIndex = 0;
+				host.catalogModelIds = composerModelIds(result.models);
 			} catch {
 				// Keep "No model"; send is not gated when connected.
 			}
@@ -163,6 +168,9 @@ export function postBound(host: IConversationLensComposerHost, msg: Conversation
 				? { accepted: true, correlation: { id: `clientTool:${msg.requestId}` } }
 				: { accepted: false, reason: 'no_such_session' });
 		}
+		if (host.stubService.isEngineConnected() && !host.stubService.isEngineSessionReady()) {
+			return Promise.resolve({ accepted: false, reason: 'no_such_session' });
+		}
 		const lease = host.sessionViewLease;
 		if (!lease) {
 			return Promise.resolve({ accepted: false, reason: 'no_such_session' });
@@ -188,12 +196,29 @@ export async function submitDraft(host: IConversationLensComposerHost): Promise<
 		if (!text) {
 			return;
 		}
-		if (!host.stubService.isEngineConnected() && host.modelSelectedIndex === 0) {
+		const sessionId = host.getBoundSessionId();
+		const connected = host.stubService.isEngineConnected();
+		if (!connected && host.stubService.hasEngineConnectionHistory()) {
+			// Engine-aware disconnect: do not stub-echo or claim delivered/synced.
+			// Try the existing queue API; disconnected cache currently rejects.
+			if (host.stubService.enqueueMessageQueueItem(sessionId, text)) {
+				writeComposerDraft(host, sessionId, '');
+				host.dockTextarea.value = '';
+				host.resetInputHistoryBrowse();
+				host.updateSendEnabled();
+				host.updateConversationPhase();
+				return;
+			}
+			writeComposerDraft(host, sessionId, host.dockTextarea.value);
+			host.updateSendEnabled();
+			host.showPostFailure('engine_disconnected');
+			return;
+		}
+		if (!connected && host.modelSelectedIndex === 0) {
 			// "No model" is the engine catalog label, not a send lock. Local stub still posts.
 			host.modelSelectedIndex = 1;
 			host.modelSelectBox.select(1);
 		}
-		const sessionId = host.getBoundSessionId();
 		host.submitInFlight = true;
 		try {
 			const outcome = await postBound(host, { kind: 'submitInput', text });

@@ -47,13 +47,15 @@ export function formatReviewNavLabel(fileCount: number): string {
 	return localize('conversationReviewEntry.label', "View changes ({0} files)", fileCount);
 }
 
-export function entryTurnIdFromSnapshot(
-	entry: ConversationTimelineEntry,
-	snapshot: SessionViewSnapshot,
-): string | undefined {
-	const item = snapshot.timeline.find(timelineItem => String(timelineItem.id) === entry.id);
-	const turnId = item?.turnId;
-	return turnId !== undefined ? String(turnId) : undefined;
+/** Entry id → owning turn id, indexed once so callers never rescan the timeline per entry. */
+export function entryTurnIdsFromSnapshot(snapshot: SessionViewSnapshot): Map<string, string> {
+	const turnIds = new Map<string, string>();
+	for (const item of snapshot.timeline) {
+		if (item.turnId !== undefined) {
+			turnIds.set(String(item.id), String(item.turnId));
+		}
+	}
+	return turnIds;
 }
 
 /**
@@ -63,14 +65,15 @@ export function attachReviewEntries(
 	entries: readonly ConversationTimelineEntry[],
 	snapshot: SessionViewSnapshot,
 	reviewNav: readonly IReviewNavRecord[],
-): ConversationTimelineEntry[] {
+): readonly ConversationTimelineEntry[] {
 	if (reviewNav.length === 0) {
-		return entries.slice();
+		return entries;
 	}
 
+	const turnIdByEntryId = entryTurnIdsFromSnapshot(snapshot);
 	const turnIdToLastIndex = new Map<string, number>();
 	for (let index = 0; index < entries.length; index++) {
-		const turnId = entryTurnIdFromSnapshot(entries[index]!, snapshot);
+		const turnId = turnIdByEntryId.get(entries[index]!.id);
 		if (turnId !== undefined) {
 			turnIdToLastIndex.set(turnId, index);
 		}

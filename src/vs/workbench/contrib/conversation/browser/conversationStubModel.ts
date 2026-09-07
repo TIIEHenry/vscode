@@ -209,6 +209,11 @@ function nextId(prefix: string): string {
 	return `${prefix}-${nextTurnId++}`;
 }
 
+/** Stable local session id for engine CreateSession.client_session_id (roster bind). */
+export function allocateConversationStubSessionId(): string {
+	return nextId('session');
+}
+
 /**
  * In-memory stub conversation model (no engine, no persistence).
  */

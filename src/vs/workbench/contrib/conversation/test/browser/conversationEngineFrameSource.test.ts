@@ -8,7 +8,7 @@ import { Emitter, Event } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { emptySessionViewSnapshot } from '../../../../../platform/universeAgent/common/sessionView/empty-snapshot.js';
 import type { SessionId, ViewLeaseId } from '../../../../../platform/universeAgent/common/sessionView/types.js';
-import type { ConversationViewFrameApplied } from '../../../../../platform/universeAgent/common/conversationViewFrame.js';
+import type { ConversationViewFrame, ConversationViewFrameApplied } from '../../../../../platform/universeAgent/common/conversationViewFrame.js';
 import type {
 	IUniverseAgentSessionView,
 	IUniverseAgentSessionViewFrameEvent,
@@ -34,8 +34,6 @@ class BufferedMockUniverseAgentSessionView implements IUniverseAgentSessionView 
 	onDynamicDidApplyFrame(leaseId: string) {
 		return this.getOrCreateChannel(leaseId).emitter.event;
 	}
-
-	readonly onDidApplyFrame = Event.None;
 
 	async acquireLease(sessionId: string): Promise<string> {
 		const leaseId = `lease:${sessionId}`;
@@ -138,8 +136,6 @@ class PostOutcomeMockSessionView implements IUniverseAgentSessionView {
 		return Event.None;
 	}
 
-	readonly onDidApplyFrame = Event.None;
-
 	async acquireLease(sessionId: string): Promise<string> {
 		return this.acquireLeaseFn(sessionId);
 	}
@@ -180,6 +176,20 @@ suite('ConversationEngineFrameSource post outcome', () => {
 		assert.deepStrictEqual(outcome, { accepted: false, reason: 'mailbox_full' });
 		assert.strictEqual(sessionView.lastPost?.leaseId, 'lease:sess-a');
 		assert.deepStrictEqual(sessionView.lastPost?.msg, { kind: 'submitInput', text: 'hello' });
+	});
+
+	test('post host throw maps to no_such_session not not_authenticated', async () => {
+		const sessionView = new PostOutcomeMockSessionView();
+		sessionView.postFn = async () => {
+			throw new Error('session not engine-bound');
+		};
+		const source = store.add(new ConversationEngineFrameSource(sessionView));
+		const lease = store.add(source.acquire('sess-throw'));
+
+		assert.deepStrictEqual(await lease.post({ kind: 'submitInput', text: 'x' }), {
+			accepted: false,
+			reason: 'no_such_session',
+		});
 	});
 
 	test('surfaces not_authenticated from the host', async () => {
@@ -307,5 +317,39 @@ suite('ConversationEngineFrameSource per-lease subscribe (F1)', () => {
 			frameId: 2,
 			appliedVersion: 2,
 		});
+	});
+
+	test('onHostFrame normalizes IPC-deserialized changedIds before emit', async () => {
+		const sessionView = new BufferedMockUniverseAgentSessionView();
+		const source = store.add(new ConversationEngineFrameSource(sessionView));
+		const lease = store.add(source.acquire('sess-ipc-normalize'));
+
+		const applied: ConversationViewFrameApplied[] = [];
+		store.add(lease.onDidApplyFrame(e => applied.push(e)));
+
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+		const frame: ConversationViewFrame = {
+			frame: {
+				leaseId: 'lease:sess-ipc-normalize' as ViewLeaseId,
+				generation: 1,
+				frameId: 3,
+				version: 3,
+				body: { kind: 'patches', patches: [{ op: 'setSyncChrome', sync: { kind: 'live' } }] },
+			},
+		};
+		(lease as unknown as {
+			onHostFrame(frame: ConversationViewFrame, applied: ConversationViewFrameApplied): void;
+		}).onHostFrame(frame, {
+			kind: 'patches',
+			changedIds: { 'turn-1': true } as unknown as ReadonlySet<string>,
+		});
+
+		const patchFrame = applied.at(-1);
+		assert.strictEqual(patchFrame?.kind, 'patches');
+		if (patchFrame?.kind === 'patches') {
+			assert.ok(patchFrame.changedIds instanceof Set);
+			assert.deepStrictEqual([...patchFrame.changedIds], ['turn-1']);
+		}
 	});
 });

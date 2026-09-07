@@ -238,9 +238,9 @@ summary: "已知 gRPC 服务 / RPC 名与本仓用途；§4 含 G-CORE-1；§5 �
 | `FileService` | `WriteFile` | 无 UI（catalog + node） | `writeFile?`；空 `path` / `sessionId` / `baseHash` 原样上线；空 `content` / `base_content` 原样上线 | **已进 catalog** |
 | `FileService` | `ForceWriteFile` | 无 UI（catalog + node） | `forceWriteFile?`；空 `path` / `sessionId` 原样上线；空 `content` 原样上线；响应 `WriteFileResponse` | **已进 catalog** |
 | `FileService` | `AgentMerge` | 无 UI（catalog + node） | `agentMerge?`；空 `sessionId` / `path` 原样上线；空 `base_content` / `current_content` / `user_content` 原样上线 | **已进 catalog** |
-| `GitService` | `ReadGitSummary` | 无 UI（catalog + node） | `readGitSummary?`；空 `sessionId` 原样上线；响应 `supported`/`reason`/`branch`/`change_count` | **已进 catalog** |
-| `GitService` | `ReadGitChanges` | 无 UI（catalog + node） | `readGitChanges?`；空 `sessionId` 原样上线；空 `path` / `old_path` / `kind` / `index_state` / `reason` / `branch` 原样映射 | **已进 catalog** |
-| `GitService` | `ReadGitFileDiff` | 无 UI（catalog + node） | `readGitFileDiff?`；空 `sessionId` / `path` / `indexState` 原样上线；响应 `supported`/`reason`/`path`/`unified_diff` | **已进 catalog** |
+| `GitService` | `ReadGitSummary` | Sources Changes / Review 列表（接通 + hook） | `readGitSummary?`；空 `sessionId` 与写出共用；响应 `supported`/`reason`/`branch`/`change_count` | **已进 catalog + Sources 读面** |
+| `GitService` | `ReadGitChanges` | Sources Changes / Review 列表（接通 + hook） | `readGitChanges?`；空 `sessionId` 与写出共用；空 `path` / `old_path` / `kind` / `index_state` / `reason` / `branch` 原样映射；断连 / 无 hook / `supported:false` 回 SCM | **已进 catalog + Sources 读面** |
+| `GitService` | `ReadGitFileDiff` | Sources 行打开且无本地 original | `readGitFileDiff?`；空 `sessionId` / `path` / `indexState` 原样上线；响应 `supported`/`reason`/`path`/`unified_diff` | **已进 catalog + Sources 读面** |
 | `GitService` | `WriteGitStagePaths` | 无 UI（catalog + node） | `writeGitStagePaths?`；空 `sessionId` 原样上线；空 `commands` / 空 `argv` 原样上线；响应 `supported`/`reason`/`success`/`error_message`/`exit_code`/`stdout` | **已进 catalog** |
 | `GitService` | `WriteGitCommit` | 无 UI（catalog + node） | `writeGitCommit?`；空 `sessionId` 原样上线；空 `message` 原样上线；`sign_off` / `amend` false 原样上线；响应 `supported`/`reason`/`success`/`error_message`/`exit_code`/`stdout` | **已进 catalog** |
 | `GitService` | `WriteGitApplyHunks` | 无 UI（catalog + node） | `writeGitApplyHunks?`；空 `sessionId` 原样上线；空 `argv` / 空 `patches` 原样上线；响应 `supported`/`reason`/`success`/`error_message`/`exit_code`/`stdout` | **已进 catalog** |

@@ -52,6 +52,13 @@
 	padding-right: 28px;
 	box-sizing: border-box;
 	overflow: hidden;
+	/* Host may paint over the reading-column identity strip / split-view leaf.
+	   Keep chrome clickable; let the empty box pass events through. */
+	pointer-events: none;
+}
+
+.monaco-workbench .part.conversation .conversation-session-bar > * {
+	pointer-events: auto;
 }
 
 /* Title-chrome icon buttons: ghost toolbar, not filled / outlined monaco buttons */

@@ -383,9 +383,10 @@ export interface UniverseAgentDeviceAuthConnectRequest {
 /** gRPC status codes used by capability probe and transport classification. */
 export const GrpcStatusCode = {
 	OK: 0,
+	DEADLINE_EXCEEDED: 4,
+	ALREADY_EXISTS: 6,
 	UNIMPLEMENTED: 12,
 	UNAVAILABLE: 14,
-	DEADLINE_EXCEEDED: 4,
 } as const;
 
 export class UniverseAgentTransportError extends Error {
@@ -402,6 +403,13 @@ export class UniverseAgentTransportError extends Error {
 export function isTransportFailureCode(code: number): boolean {
 	return code === GrpcStatusCode.UNAVAILABLE
 		|| code === GrpcStatusCode.DEADLINE_EXCEEDED;
+}
+
+export function isAlreadyExistsError(error: unknown): boolean {
+	if (error instanceof UniverseAgentTransportError) {
+		return error.code === GrpcStatusCode.ALREADY_EXISTS;
+	}
+	return error instanceof Error && /ALREADY_EXISTS|already exists/i.test(error.message);
 }
 
 /**

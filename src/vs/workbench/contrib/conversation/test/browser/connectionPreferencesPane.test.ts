@@ -15,6 +15,10 @@ import { WorkbenchList } from '../../../../../platform/list/browser/listService.
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import {
 	ConnectionPreferencesPane,
+	directAddressEndpointLabel,
+	findDirectAddressProfilesForEndpoint,
+	formatConnectProfileDiagnostics,
+	formatConnectProfileStatusText,
 	formatConnectionProbeStatus,
 	getConnectionEmptyCopy,
 	getConnectionTestStatusText,
@@ -47,11 +51,13 @@ import {
 	getHubDeviceRowStatusLabel,
 	getHubDirectoryBannerLabel,
 	isRecoverTrustConnectResult,
-	RECOVER_TRUST_CONFIRM_BUTTON_LABEL,
+	isForbiddenSasButtonLabel,
+	SAS_CANCEL_BUTTON_LABEL,
+	SAS_CONFIRM_BUTTON_LABEL,
 	SAS_FORBIDDEN_BUTTON_PATTERNS,
 } from '../../browser/connectionPreferencesPaneLabels.js';
-import { createConversationConnectionTestStub } from '../common/conversationConnectionTestStub.js';
-import { promptSasConfirmDialog } from '../../browser/connectionPreferencesPaneSas.js';
+import { createConversationConnectionTestStub, createEmptyTestCapabilitySnapshot } from '../common/conversationConnectionTestStub.js';
+import { promptSasConfirmDialog, promptSasConfirmInPane } from '../../browser/connectionPreferencesPaneSas.js';
 import { getConnectionPhaseStatusBarText, getConversationEngineStatusText } from '../../browser/conversationSessionStatus.js';
 import { Dimension } from '../../../../../base/browser/dom.js';
 
@@ -127,6 +133,93 @@ suite('ConnectionPreferencesPane', () => {
 		const container = pane.getDomNode();
 		document.body.appendChild(container);
 		return pane;
+	}
+
+	function getPairingConfirmButtons(container: ParentNode): readonly HTMLButtonElement[] {
+		return Array.from(container.querySelectorAll('.connection-pairing-confirm .dialog-buttons .monaco-button')) as HTMLButtonElement[];
+	}
+
+	function clickPairingConfirm(container: ParentNode): void {
+		const buttons = getPairingConfirmButtons(container);
+		assert.ok(buttons[0], 'pairing confirm button must be visible');
+		buttons[0].click();
+	}
+
+	function clickPairingCancel(container: ParentNode): void {
+		const buttons = getPairingConfirmButtons(container);
+		assert.ok(buttons[1], 'pairing cancel button must be visible');
+		buttons[1].click();
+	}
+
+	function mountPaneInPreferencesModal(
+		hubOverrides?: Partial<IUniverseAgentHubService>,
+		connectionOverrides?: Partial<IUniverseAgentConnection>,
+	): { readonly pane: ConnectionPreferencesPane; readonly modalBlock: HTMLElement } {
+		const modalBlock = document.createElement('div');
+		modalBlock.className = 'monaco-modal-editor-block';
+		modalBlock.style.overflow = 'hidden';
+		document.body.appendChild(modalBlock);
+		const pane = mountPane(hubOverrides, connectionOverrides);
+		modalBlock.appendChild(pane.getDomNode());
+		return { pane, modalBlock };
+	}
+
+	function mountPaneInWorkbench(
+		hubOverrides?: Partial<IUniverseAgentHubService>,
+		connectionOverrides?: Partial<IUniverseAgentConnection>,
+	): { readonly pane: ConnectionPreferencesPane; readonly workbench: HTMLElement } {
+		if (!document.getElementById('connection-pane-zone-css')) {
+			const style = document.createElement('style');
+			style.id = 'connection-pane-zone-css';
+			style.textContent = '.monaco-workbench .connection-preferences-pane .connection-zone:not(.is-active-zone) { display: none; }';
+			document.head.appendChild(style);
+		}
+		const workbench = document.createElement('div');
+		workbench.className = 'monaco-workbench';
+		document.body.appendChild(workbench);
+		const pane = mountPane(hubOverrides, connectionOverrides);
+		workbench.appendChild(pane.getDomNode());
+		return { pane, workbench };
+	}
+
+	async function waitForPairingDialog(container: ParentNode): Promise<HTMLElement> {
+		for (let i = 0; i < 20; i++) {
+			const dialog = container.querySelector('.connection-pairing-confirm .monaco-dialog-box') as HTMLElement | null;
+			if (dialog) {
+				return dialog;
+			}
+			await Promise.resolve();
+		}
+		assert.fail('SAS confirm dialog did not appear');
+	}
+
+	function assertSasVisibleBesideActiveZone(container: ParentNode, zoneClass: string, sasCode: string): HTMLElement {
+		const activeZone = container.querySelector(`${zoneClass}.is-active-zone`) as HTMLElement | null;
+		assert.ok(activeZone, `${zoneClass} must stay the active zone while SAS is shown`);
+		const host = container.querySelector('.connection-pairing-confirm') as HTMLElement | null;
+		const dialog = host?.querySelector('.monaco-dialog-box') as HTMLElement | null;
+		assert.ok(host && dialog, 'SAS confirm must render when pairing is pending');
+		assert.ok(dialog.textContent?.includes(sasCode), 'SAS code must be visible beside the active zone');
+		const profiles = container.querySelector('.connection-profiles') as HTMLElement | null;
+		assert.ok(profiles);
+		assert.ok(!profiles.classList.contains('is-active-zone'), 'must not switch to Connection profiles to reveal SAS');
+		assert.ok(!profiles.contains(dialog), 'SAS must not be trapped under hidden profiles');
+		for (const zone of container.querySelectorAll('.connection-zone:not(.is-active-zone)')) {
+			assert.ok(!zone.contains(dialog), 'SAS must not sit inside a hidden Connect zone');
+		}
+		assert.ok(
+			activeZone.contains(dialog) || activeZone.nextElementSibling === host,
+			'SAS confirm must sit in or immediately after the active Connect zone',
+		);
+		assert.strictEqual(getComputedStyle(profiles).display, 'none');
+		assert.notStrictEqual(getComputedStyle(dialog).display, 'none');
+		assert.notStrictEqual(getComputedStyle(host).display, 'none');
+		assert.notStrictEqual(getComputedStyle(activeZone).display, 'none');
+		const buttons = getPairingConfirmButtons(container);
+		assert.strictEqual(buttons.length, 2);
+		assert.strictEqual(buttons[0].textContent, SAS_CONFIRM_BUTTON_LABEL);
+		assert.strictEqual(buttons[1].textContent, SAS_CANCEL_BUTTON_LABEL);
+		return dialog;
 	}
 
 	test('getConnectionTestStatusText reuses StatusBar phase copy', () => {
@@ -215,8 +308,37 @@ suite('ConnectionPreferencesPane', () => {
 			for (const pattern of SAS_FORBIDDEN_BUTTON_PATTERNS) {
 				assert.ok(!pattern.test(label), `forbidden SAS button label: ${label}`);
 			}
+			assert.ok(!isForbiddenSasButtonLabel(label), `forbidden SAS button label: ${label}`);
 		}
-		assert.ok(!/skip|trust|跳过|信任/i.test(result.buttonLabels.join(' ')));
+		assert.ok(!isForbiddenSasButtonLabel(SAS_CONFIRM_BUTTON_LABEL));
+	});
+
+	test('SAS in-pane confirm exposes monaco-dialog-box with confirm and cancel only', async () => {
+		const host = document.createElement('div');
+		document.body.appendChild(host);
+		const flow = promptSasConfirmDialog({ prompt: async () => ({ result: false }) } as unknown as IDialogService, {
+			displayName: 'Home Engine',
+			sasCode: '0H4X-JVFQ',
+			engineIdentityId: 'abcdef0123456789',
+		}, host);
+		await Promise.resolve();
+		const dialogBox = host.querySelector('.monaco-dialog-box');
+		assert.ok(dialogBox);
+		const buttons = getPairingConfirmButtons(host);
+		assert.strictEqual(buttons.length, 2);
+		clickPairingCancel(host);
+		const result = await flow;
+		assert.strictEqual(result.confirmed, false);
+		host.remove();
+	});
+
+	test('SAS confirm button label rejects skip/trust primary actions only', () => {
+		assert.ok(isForbiddenSasButtonLabel('Skip'));
+		assert.ok(isForbiddenSasButtonLabel('Trust this Engine'));
+		assert.ok(isForbiddenSasButtonLabel('跳过配对'));
+		assert.ok(isForbiddenSasButtonLabel('信任并继续'));
+		assert.ok(!isForbiddenSasButtonLabel(SAS_CONFIRM_BUTTON_LABEL));
+		assert.ok(!isForbiddenSasButtonLabel('已在 Engine 上验证'));
 	});
 
 	test('Hub signedIn does not make isEngineConnected true', () => {
@@ -268,6 +390,347 @@ suite('ConnectionPreferencesPane', () => {
 		assert.strictEqual(checkbox.getAttribute('role'), 'checkbox');
 		assert.strictEqual(checkbox.getAttribute('aria-checked'), 'false');
 		container.remove();
+	});
+
+	test('findDirectAddressProfilesForEndpoint matches canonical host:port label only', () => {
+		const profiles = [
+			{
+				profileId: 'direct-1',
+				displayName: '127.0.0.1:50061',
+				state: 'active' as const,
+				hasTrust: true,
+				targetKind: 'directAddress' as const,
+			},
+			{
+				profileId: 'direct-2',
+				displayName: 'debug-engine',
+				state: 'active' as const,
+				hasTrust: true,
+				targetKind: 'directAddress' as const,
+			},
+			{
+				profileId: 'hub-1',
+				displayName: '127.0.0.1:50061',
+				state: 'active' as const,
+				hasTrust: true,
+				targetKind: 'hubDevice' as const,
+			},
+		];
+		assert.deepStrictEqual(
+			findDirectAddressProfilesForEndpoint(profiles, '127.0.0.1', 50061).map(p => p.profileId),
+			['direct-1'],
+		);
+		assert.deepStrictEqual(
+			findDirectAddressProfilesForEndpoint(profiles, '127.0.0.1', 50061, 'debug-engine').map(p => p.profileId),
+			['direct-1', 'direct-2'],
+		);
+		assert.strictEqual(directAddressEndpointLabel('127.0.0.1', 50061), '127.0.0.1:50061');
+	});
+
+	test('Direct Connect forgets existing endpoint profile and recreates with allowPrivateNetwork', async () => {
+		let addCalls = 0;
+		const forgotIds: string[] = [];
+		const pane = mountPane({
+			listConnectionProfiles: () => [{
+				profileId: 'direct-old',
+				displayName: '127.0.0.1:50061',
+				state: 'active',
+				hasTrust: true,
+				targetKind: 'directAddress',
+			}],
+			forgetConnectionProfile: async profileId => {
+				forgotIds.push(profileId);
+				return { ok: true };
+			},
+			addDirectAddressProfile: async input => {
+				addCalls++;
+				assert.strictEqual(input.host, '127.0.0.1');
+				assert.strictEqual(input.port, 50061);
+				assert.strictEqual(input.allowPrivateNetwork, true);
+				return { ok: true, profileId: 'direct-new' };
+			},
+		}, {
+			connectProfile: async profileId => {
+				assert.strictEqual(profileId, 'direct-new');
+				return { ok: true, path: 'direct', pairingPending: false };
+			},
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		pane.selectZone('direct');
+		const hostInput = (pane as unknown as { directHostInput: HTMLInputElement }).directHostInput;
+		const portInput = (pane as unknown as { directPortInput: HTMLInputElement }).directPortInput;
+		const allowPrivate = (pane as unknown as { directAllowPrivateCheckbox: HTMLInputElement }).directAllowPrivateCheckbox;
+		hostInput.value = '127.0.0.1';
+		portInput.value = '50061';
+		allowPrivate.checked = true;
+		await (pane as unknown as { handleConnectDirectAddress(): Promise<void> }).handleConnectDirectAddress();
+		assert.deepStrictEqual(forgotIds, ['direct-old']);
+		assert.strictEqual(addCalls, 1);
+		const status = container.querySelector('.connection-direct-address-status') as HTMLElement;
+		const testStatus = container.querySelector('.connection-test-status') as HTMLElement;
+		assert.strictEqual(status.textContent, formatConnectProfileStatusText({
+			ok: true,
+			path: 'direct',
+			pairingPending: false,
+		}));
+		assert.ok(!status.textContent?.includes('ok=true'), `directStatus=${status.textContent}`);
+		assert.notStrictEqual(status.textContent, 'Connected');
+		assert.strictEqual(testStatus.textContent, '');
+		container.remove();
+	});
+
+	test('formatConnectProfileStatusText is readable and never claims Connected', () => {
+		assert.strictEqual(
+			formatConnectProfileStatusText({ ok: true, path: 'direct', pairingPending: false }),
+			'Handshake succeeded — pairing not pending.',
+		);
+		assert.strictEqual(
+			formatConnectProfileStatusText({
+				ok: true,
+				path: 'direct',
+				pairingPending: true,
+				sasCode: 'ABCD-EFGH',
+			}),
+			'Pairing pending — not connected yet.',
+		);
+		assert.ok(!formatConnectProfileStatusText({
+			ok: true,
+			path: 'direct',
+			pairingPending: true,
+			sasCode: 'ABCD-EFGH',
+		}).includes('ABCD-EFGH'));
+		assert.strictEqual(
+			formatConnectProfileStatusText({
+				ok: true,
+				path: 'hubRelay',
+				pairingPending: true,
+				recoverTrust: true,
+				leafSha256Hex: 'a'.repeat(64),
+			}),
+			'Trust recovery required — not connected yet.',
+		);
+		assert.strictEqual(
+			formatConnectProfileStatusText({ ok: false, code: 'hub_session_required', reason: 'hub session required' }),
+			'hub session required',
+		);
+		assert.strictEqual(
+			formatConnectProfileStatusText(
+				{ ok: true, path: 'direct', pairingPending: true, sasCode: 'ABCD-EFGH' },
+				{ dialogError: 'dialog exploded' },
+			),
+			'Pairing dialog failed — dialog exploded',
+		);
+		assert.ok(!formatConnectProfileStatusText({
+			ok: true,
+			path: 'direct',
+			pairingPending: false,
+		}).includes('Connected'));
+	});
+
+	test('formatConnectProfileDiagnostics omits SAS secrets', () => {
+		const text = formatConnectProfileDiagnostics({
+			ok: true,
+			path: 'direct',
+			pairingPending: true,
+			sasCode: 'ABCD-EFGH',
+			engineIdentityId: '0123456789abcdef',
+		});
+		assert.ok(text.includes('hasSas=true'));
+		assert.ok(!text.includes('ABCD-EFGH'));
+		assert.ok(!text.includes('0123456789abcdef'));
+	});
+
+	test('connectProfileWithPairing writes diagnostics when pairing not pending', async () => {
+		const pane = mountPane({
+			listConnectionProfiles: () => [{
+				profileId: 'direct-profile-1',
+				displayName: '127.0.0.1:50061',
+				state: 'active',
+				hasTrust: true,
+				targetKind: 'directAddress',
+			}],
+		}, {
+			connectProfile: async () => ({
+				ok: true,
+				path: 'direct',
+				pairingPending: false,
+			}),
+		});
+		const container = pane.getDomNode();
+		document.body.appendChild(container);
+		await (pane as unknown as { connectProfileWithPairing(profileId: string): Promise<void> }).connectProfileWithPairing('direct-profile-1');
+		const hubStatus = container.querySelector('.connection-hub-connect-status') as HTMLElement;
+		const testStatus = container.querySelector('.connection-test-status') as HTMLElement;
+		assert.strictEqual(hubStatus.textContent, 'Handshake succeeded — pairing not pending.');
+		assert.ok(!hubStatus.textContent?.includes('ok=true'));
+		assert.notStrictEqual(hubStatus.textContent, 'Connected');
+		assert.strictEqual(testStatus.textContent, '');
+		container.remove();
+	});
+
+	test('connectProfileWithPairing surfaces profile pairingPending mismatch as visible failure', async () => {
+		const pane = mountPane({
+			listConnectionProfiles: () => [{
+				profileId: 'direct-profile-1',
+				displayName: 'debug-engine',
+				state: 'pairingPending',
+				hasTrust: false,
+				targetKind: 'directAddress',
+			}],
+		}, {
+			connectProfile: async () => ({
+				ok: true,
+				path: 'direct',
+				pairingPending: false,
+			}),
+		});
+		const container = pane.getDomNode();
+		document.body.appendChild(container);
+		await (pane as unknown as { connectProfileWithPairing(profileId: string): Promise<void> }).connectProfileWithPairing('direct-profile-1');
+		const hubStatus = container.querySelector('.connection-hub-connect-status') as HTMLElement;
+		const testStatus = container.querySelector('.connection-test-status') as HTMLElement;
+		assert.ok(hubStatus.textContent?.includes('still pairing pending'));
+		assert.ok(!hubStatus.textContent?.includes('ok=true'));
+		assert.ok(!hubStatus.classList.contains('is-success'));
+		assert.strictEqual(testStatus.textContent, '');
+		container.remove();
+	});
+
+	test('connectProfileWithPairing records pairing prompt throw in testStatus diagnostics', async () => {
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IUniverseAgentHubService, createHubStub({
+			listConnectionProfiles: () => [{
+				profileId: 'hub-profile-1',
+				displayName: 'Studio',
+				state: 'pairingPending',
+				hasTrust: false,
+				targetKind: 'hubDevice',
+			}],
+		}));
+		instantiationService.stub(IUniverseAgentConnection, createConnectionStub({
+			connectProfile: async () => ({
+				ok: true,
+				path: 'hubRelay',
+				pairingPending: true,
+				sasCode: 'ABCD-EFGH',
+				engineIdentityId: '0123456789abcdef',
+			}),
+			cancelPairing: async () => { },
+		}));
+		const pane = store.add(instantiationService.createInstance(ConnectionPreferencesPane));
+		const container = pane.getDomNode();
+		document.body.appendChild(container);
+		const brokenHost = document.createElement('div');
+		brokenHost.append = (() => {
+			throw new Error('dialog exploded');
+		}) as typeof brokenHost.append;
+		(pane as unknown as { pairingConfirmHost: HTMLElement }).pairingConfirmHost = brokenHost;
+		await (pane as unknown as { connectProfileWithPairing(profileId: string): Promise<void> }).connectProfileWithPairing('hub-profile-1');
+		const hubStatus = container.querySelector('.connection-hub-connect-status') as HTMLElement;
+		const testStatus = container.querySelector('.connection-test-status') as HTMLElement;
+		assert.ok(hubStatus.textContent?.includes('dialog exploded'));
+		assert.ok(hubStatus.textContent?.includes('Pairing dialog failed'));
+		assert.ok(!hubStatus.textContent?.includes('ok=true'));
+		assert.ok(!hubStatus.textContent?.includes('ABCD-EFGH'));
+		assert.strictEqual(testStatus.textContent, '');
+		container.remove();
+	});
+
+	test('promptSasConfirmInPane propagates render failures', async () => {
+		const host = document.createElement('div');
+		host.append = (() => {
+			throw new Error('dialog exploded');
+		}) as typeof host.append;
+		await assert.rejects(
+			() => promptSasConfirmInPane(host, {
+				displayName: 'Studio',
+				sasCode: 'ABCD-EFGH',
+				engineIdentityId: '0123456789abcdef',
+			}),
+			/dialog exploded/,
+		);
+	});
+
+	test('connectProfileWithPairing writes diagnostics before pairing prompt resolves', async () => {
+		let resolveConnect: ((value: { ok: true; path: 'direct'; pairingPending: true; sasCode: string; engineIdentityId: string }) => void) | undefined;
+		const connectPromise = new Promise<{ ok: true; path: 'direct'; pairingPending: true; sasCode: string; engineIdentityId: string }>(resolve => {
+			resolveConnect = resolve;
+		});
+		const pane = mountPane({
+			listConnectionProfiles: () => [{
+				profileId: 'direct-profile-1',
+				displayName: 'debug-engine',
+				state: 'pairingPending',
+				hasTrust: false,
+				targetKind: 'directAddress',
+			}],
+		}, {
+			connectProfile: async () => connectPromise,
+		});
+		const container = pane.getDomNode();
+		const flow = (pane as unknown as { connectProfileWithPairing(profileId: string): Promise<void> }).connectProfileWithPairing('direct-profile-1');
+		await Promise.resolve();
+		const hubStatus = container.querySelector('.connection-hub-connect-status') as HTMLElement;
+		const testStatus = container.querySelector('.connection-test-status') as HTMLElement;
+		assert.strictEqual(String(hubStatus.textContent), 'Connecting…');
+		assert.strictEqual(testStatus.textContent, '');
+		resolveConnect!({
+			ok: true,
+			path: 'direct',
+			pairingPending: true,
+			sasCode: 'ABCD-EFGH',
+			engineIdentityId: '0123456789abcdef',
+		});
+		await Promise.resolve();
+		await Promise.resolve();
+		const pairingStatusText = String(hubStatus.textContent);
+		assert.strictEqual(pairingStatusText, 'Pairing pending — not connected yet.');
+		assert.ok(hubStatus.classList.contains('is-warning'));
+		assert.ok(!pairingStatusText.includes('ok=true'));
+		assert.ok(!pairingStatusText.includes('ABCD-EFGH'));
+		assert.notStrictEqual(pairingStatusText, 'Connected');
+		assert.strictEqual(testStatus.textContent, '');
+		assert.ok(container.querySelector('.connection-pairing-confirm .monaco-dialog-box'));
+		clickPairingCancel(container);
+		await flow;
+		container.remove();
+	});
+
+	test('pairing confirm completes inside Preferences modal block', async () => {
+		let confirmCalls = 0;
+		const handshakeSas = 'ABCD-EFGH';
+		const { pane, modalBlock } = mountPaneInPreferencesModal({
+			listConnectionProfiles: () => [{
+				profileId: 'direct-profile-1',
+				displayName: 'debug-engine',
+				state: 'pairingPending',
+				hasTrust: false,
+				targetKind: 'directAddress',
+			}],
+		}, {
+			connectProfile: async () => ({
+				ok: true,
+				path: 'direct',
+				pairingPending: true,
+				sasCode: handshakeSas,
+				engineIdentityId: '0123456789abcdef',
+			}),
+			confirmPairing: async () => {
+				confirmCalls++;
+				return { ok: true, path: 'direct', pairingPending: false, sessionToken: 'tok' };
+			},
+		});
+		const container = pane.getDomNode();
+		const flow = (pane as unknown as { connectProfileWithPairing(profileId: string): Promise<void> }).connectProfileWithPairing('direct-profile-1');
+		await Promise.resolve();
+		const dialogBox = modalBlock.querySelector('.connection-pairing-confirm .monaco-dialog-box') as HTMLElement;
+		assert.ok(dialogBox);
+		assert.ok(dialogBox.textContent?.includes(handshakeSas));
+		clickPairingConfirm(container);
+		await flow;
+		assert.strictEqual(confirmCalls, 1);
+		modalBlock.remove();
 	});
 
 	test('pane has empty WorkbenchList without service-disconnected wording in welcome', () => {
@@ -573,7 +1036,7 @@ suite('ConnectionPreferencesPane', () => {
 		container.remove();
 	});
 
-	test('device Connect failure writes testStatus', async () => {
+	test('device Connect failure writes the visible Devices status', async () => {
 		const pane = mountPane({
 			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
 			getDirectoryStatus: () => ({ kind: 'ok', devices: [device({ id: 'dev-1', name: 'Studio' })] }),
@@ -590,8 +1053,49 @@ suite('ConnectionPreferencesPane', () => {
 		await Promise.resolve();
 		await Promise.resolve();
 
+		const devicesStatus = container.querySelector('.connection-hub-devices-status') as HTMLElement;
 		const testStatus = container.querySelector('.connection-test-status') as HTMLElement;
-		assert.strictEqual(testStatus.textContent, 'hub session required');
+		assert.strictEqual(devicesStatus.textContent, 'hub session required');
+		assert.ok(devicesStatus.classList.contains('is-error'));
+		assert.strictEqual(testStatus.textContent, '');
+		assert.notStrictEqual(devicesStatus.textContent, 'Connected');
+		container.remove();
+	});
+
+	test('device Connect Connecting and handshake failure stay in the visible Devices status', async () => {
+		let resolveConnect: ((value: { ok: false; code: 'transport_failed'; reason: string }) => void) | undefined;
+		const connectPromise = new Promise<{ ok: false; code: 'transport_failed'; reason: string }>(resolve => {
+			resolveConnect = resolve;
+		});
+		const pane = mountPane({
+			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
+			getDirectoryStatus: () => ({ kind: 'ok', devices: [device({ id: 'dev-1', name: 'Studio' })] }),
+			addHubDeviceProfile: async () => ({ ok: true, profileId: 'hub-profile-1' }),
+		}, {
+			connectProfile: async () => connectPromise,
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		pane.selectZone('devices');
+		await Promise.resolve();
+
+		const connectButton = container.querySelector('.connection-hub-device-row .monaco-button') as HTMLButtonElement | null;
+		assert.ok(connectButton);
+		connectButton.click();
+		await Promise.resolve();
+		await Promise.resolve();
+
+		const devicesStatus = container.querySelector('.connection-hub-devices-status') as HTMLElement;
+		const testStatus = container.querySelector('.connection-test-status') as HTMLElement;
+		assert.strictEqual(devicesStatus.textContent, 'Connecting…');
+		assert.strictEqual(testStatus.textContent, '');
+		resolveConnect!({ ok: false, code: 'transport_failed', reason: 'dial refused' });
+		await Promise.resolve();
+		await Promise.resolve();
+		assert.strictEqual(devicesStatus.textContent, 'dial refused');
+		assert.ok(devicesStatus.classList.contains('is-error'));
+		assert.strictEqual(testStatus.textContent, '');
+		assert.notStrictEqual(devicesStatus.textContent, 'Connected');
 		container.remove();
 	});
 
@@ -603,22 +1107,383 @@ suite('ConnectionPreferencesPane', () => {
 		pane.layout(new Dimension(800, 800));
 		pane.selectZone('direct');
 
-		const inputs = [...container.querySelectorAll('.connection-direct-address .monaco-inputbox input')] as HTMLInputElement[];
-		assert.ok(inputs[0]);
-		assert.ok(inputs[1]);
-		inputs[0].value = '127.0.0.1';
-		inputs[1].value = '50061';
-
-		const connect = [...container.querySelectorAll('.connection-direct-actions .monaco-button')]
-			.find(button => button.textContent === 'Connect') as HTMLButtonElement | undefined;
-		assert.ok(connect);
-		connect.click();
-		await Promise.resolve();
-		await Promise.resolve();
+		const hostInput = (pane as unknown as { directHostInput: { value: string } }).directHostInput;
+		const portInput = (pane as unknown as { directPortInput: { value: string } }).directPortInput;
+		hostInput.value = '127.0.0.1';
+		portInput.value = '50061';
+		await (pane as unknown as { handleConnectDirectAddress(): Promise<void> }).handleConnectDirectAddress();
 
 		const status = container.querySelector('.connection-direct-address-status') as HTMLElement;
 		assert.strictEqual(status.textContent, 'private network blocked');
 		assert.ok(status.classList.contains('is-error'));
+		container.remove();
+	});
+
+	test('direct Connect thrown handshake writes the visible Direct Address status', async () => {
+		const pane = mountPane({
+			addDirectAddressProfile: async () => ({ ok: true, profileId: 'direct-profile-1' }),
+		}, {
+			connectProfile: async () => {
+				throw new Error('Setting the TLS ServerName to an IP address is not permitted.');
+			},
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		pane.selectZone('direct');
+
+		const hostInput = (pane as unknown as { directHostInput: { value: string } }).directHostInput;
+		const portInput = (pane as unknown as { directPortInput: { value: string } }).directPortInput;
+		const allowPrivate = (pane as unknown as { directAllowPrivateCheckbox: { checked: boolean } }).directAllowPrivateCheckbox;
+		hostInput.value = '127.0.0.1';
+		portInput.value = '50061';
+		allowPrivate.checked = true;
+		await (pane as unknown as { handleConnectDirectAddress(): Promise<void> }).handleConnectDirectAddress();
+
+		const status = container.querySelector('.connection-direct-address-status') as HTMLElement;
+		assert.ok(status.textContent?.includes('TLS ServerName'));
+		assert.ok(status.classList.contains('is-error'));
+		container.remove();
+	});
+
+	test('direct Connect pairing pending writes readable Direct status, not a diagnostic dump', async () => {
+		const pane = mountPane({
+			addDirectAddressProfile: async () => ({ ok: true, profileId: 'direct-profile-1' }),
+			listConnectionProfiles: () => [{
+				profileId: 'direct-profile-1',
+				displayName: '127.0.0.1:50061',
+				state: 'pairingPending',
+				hasTrust: false,
+				targetKind: 'directAddress',
+			}],
+		}, {
+			connectProfile: async () => ({
+				ok: true,
+				path: 'direct',
+				pairingPending: true,
+				sasCode: 'ABCD-EFGH',
+				engineIdentityId: '0123456789abcdef',
+			}),
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		pane.selectZone('direct');
+
+		const hostInput = (pane as unknown as { directHostInput: { value: string } }).directHostInput;
+		const portInput = (pane as unknown as { directPortInput: { value: string } }).directPortInput;
+		const allowPrivate = (pane as unknown as { directAllowPrivateCheckbox: { checked: boolean } }).directAllowPrivateCheckbox;
+		hostInput.value = '127.0.0.1';
+		portInput.value = '50061';
+		allowPrivate.checked = true;
+		const flow = (pane as unknown as { handleConnectDirectAddress(): Promise<void> }).handleConnectDirectAddress();
+		await waitForPairingDialog(container);
+
+		const status = container.querySelector('.connection-direct-address-status') as HTMLElement;
+		const testStatus = container.querySelector('.connection-test-status') as HTMLElement;
+		assert.strictEqual(status.textContent, 'Pairing pending — not connected yet.');
+		assert.ok(status.classList.contains('is-warning'));
+		assert.ok(!status.textContent?.includes('ok=true'));
+		assert.ok(!status.textContent?.includes('ABCD-EFGH'));
+		assert.notStrictEqual(status.textContent, 'Connected');
+		assert.strictEqual(testStatus.textContent, '');
+		clickPairingCancel(container);
+		await flow;
+		container.remove();
+	});
+
+	test('direct Connect SAS confirm stays visible in Direct zone without switching to profiles', async () => {
+		let confirmCalls = 0;
+		const handshakeSas = 'R6X5-F0R1';
+		const { pane, workbench } = mountPaneInWorkbench({
+			addDirectAddressProfile: async () => ({ ok: true, profileId: 'direct-profile-1' }),
+			listConnectionProfiles: () => [{
+				profileId: 'direct-profile-1',
+				displayName: '127.0.0.1:50061',
+				state: 'pairingPending',
+				hasTrust: false,
+				targetKind: 'directAddress',
+			}],
+		}, {
+			connectProfile: async () => ({
+				ok: true,
+				path: 'direct',
+				pairingPending: true,
+				sasCode: handshakeSas,
+				engineIdentityId: '0123456789abcdef',
+			}),
+			confirmPairing: async () => {
+				confirmCalls++;
+				return { ok: true, path: 'direct', pairingPending: false, sessionToken: 'tok' };
+			},
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		pane.selectZone('direct');
+
+		const hostInput = (pane as unknown as { directHostInput: { value: string } }).directHostInput;
+		const portInput = (pane as unknown as { directPortInput: { value: string } }).directPortInput;
+		const allowPrivate = (pane as unknown as { directAllowPrivateCheckbox: { checked: boolean } }).directAllowPrivateCheckbox;
+		hostInput.value = '127.0.0.1';
+		portInput.value = '50061';
+		allowPrivate.checked = true;
+
+		const flow = (pane as unknown as { handleConnectDirectAddress(): Promise<void> }).handleConnectDirectAddress();
+		await waitForPairingDialog(container);
+		assertSasVisibleBesideActiveZone(container, '.connection-direct-address', handshakeSas);
+		clickPairingConfirm(container);
+		await flow;
+		assert.strictEqual(confirmCalls, 1);
+		workbench.remove();
+	});
+
+	test('pairing pending after Direct Connect shows SAS confirm even if host was parked under Profiles', async () => {
+		const handshakeSas = 'R6X5-F0R1';
+		const { pane, workbench } = mountPaneInWorkbench({
+			addDirectAddressProfile: async () => ({ ok: true, profileId: 'direct-profile-1' }),
+			listConnectionProfiles: () => [{
+				profileId: 'direct-profile-1',
+				displayName: '127.0.0.1:50061',
+				state: 'pairingPending',
+				hasTrust: false,
+				targetKind: 'directAddress',
+			}],
+		}, {
+			connectProfile: async () => ({
+				ok: true,
+				path: 'direct',
+				pairingPending: true,
+				sasCode: handshakeSas,
+				engineIdentityId: '0123456789abcdef',
+			}),
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		const profiles = container.querySelector('.connection-profiles') as HTMLElement;
+		const parkedHost = (pane as unknown as { pairingConfirmHost: HTMLElement }).pairingConfirmHost;
+		profiles.appendChild(parkedHost);
+		pane.selectZone('direct');
+
+		const hostInput = (pane as unknown as { directHostInput: { value: string } }).directHostInput;
+		const portInput = (pane as unknown as { directPortInput: { value: string } }).directPortInput;
+		const allowPrivate = (pane as unknown as { directAllowPrivateCheckbox: { checked: boolean } }).directAllowPrivateCheckbox;
+		hostInput.value = '127.0.0.1';
+		portInput.value = '50061';
+		allowPrivate.checked = true;
+
+		const flow = (pane as unknown as { handleConnectDirectAddress(): Promise<void> }).handleConnectDirectAddress();
+		const dialog = await waitForPairingDialog(container);
+		assertSasVisibleBesideActiveZone(container, '.connection-direct-address', handshakeSas);
+		assert.ok(!profiles.contains(dialog), 'pairing pending must lift SAS out of hidden Profiles');
+		clickPairingCancel(container);
+		await flow;
+		workbench.remove();
+	});
+
+	test('device Connect SAS confirm stays visible in Devices zone without switching to profiles', async () => {
+		const handshakeSas = 'R6X5-F0R1';
+		const studio = device({ id: 'dev-1', name: 'Studio' });
+		const { pane, workbench } = mountPaneInWorkbench({
+			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
+			getDirectoryStatus: () => ({ kind: 'ok', devices: [studio] }),
+			addHubDeviceProfile: async () => ({ ok: true, profileId: 'hub-profile-1' }),
+			listConnectionProfiles: () => [{
+				profileId: 'hub-profile-1',
+				displayName: 'Studio',
+				state: 'pairingPending',
+				hasTrust: false,
+				targetKind: 'hubDevice',
+			}],
+		}, {
+			connectProfile: async () => ({
+				ok: true,
+				path: 'hubRelay',
+				pairingPending: true,
+				sasCode: handshakeSas,
+				engineIdentityId: '0123456789abcdef',
+			}),
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		pane.selectZone('devices');
+		await Promise.resolve();
+
+		const flow = (pane as unknown as { handleConnectDevice(device: HubDeviceProjection): Promise<void> }).handleConnectDevice(studio);
+		await waitForPairingDialog(container);
+		assertSasVisibleBesideActiveZone(container, '.connection-hub-devices', handshakeSas);
+		const devicesStatus = container.querySelector('.connection-hub-devices-status') as HTMLElement;
+		const testStatus = container.querySelector('.connection-test-status') as HTMLElement;
+		assert.strictEqual(devicesStatus.textContent, 'Pairing pending — not connected yet.');
+		assert.ok(devicesStatus.classList.contains('is-warning'));
+		assert.ok(!devicesStatus.textContent?.includes('ok=true'));
+		assert.notStrictEqual(devicesStatus.textContent, 'Connected');
+		assert.strictEqual(testStatus.textContent, '');
+		clickPairingCancel(container);
+		await flow;
+		workbench.remove();
+	});
+
+	test('profile Connect Connecting and handshake failure stay in the visible Profiles status', async () => {
+		let resolveConnect: ((value: { ok: false; code: 'transport_failed'; reason: string }) => void) | undefined;
+		const connectPromise = new Promise<{ ok: false; code: 'transport_failed'; reason: string }>(resolve => {
+			resolveConnect = resolve;
+		});
+		const pane = mountPane({
+			listConnectionProfiles: () => [{
+				profileId: 'profile-1',
+				displayName: 'Studio',
+				state: 'active',
+				hasTrust: true,
+				targetKind: 'hubDevice',
+			}],
+		}, {
+			connectProfile: async () => connectPromise,
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		pane.selectZone('profiles');
+		(pane as unknown as { activeProfileId: string }).activeProfileId = 'profile-1';
+
+		const flow = (pane as unknown as { handleConnectSelectedProfile(): Promise<void> }).handleConnectSelectedProfile();
+		await Promise.resolve();
+		await Promise.resolve();
+
+		const profilesStatus = container.querySelector('.connection-profiles-status') as HTMLElement;
+		const testStatus = container.querySelector('.connection-test-status') as HTMLElement;
+		assert.strictEqual(profilesStatus.textContent, 'Connecting…');
+		assert.strictEqual(testStatus.textContent, '');
+		resolveConnect!({ ok: false, code: 'transport_failed', reason: 'dial refused' });
+		await flow;
+		assert.strictEqual(profilesStatus.textContent, 'dial refused');
+		assert.ok(profilesStatus.classList.contains('is-error'));
+		assert.ok(!profilesStatus.classList.contains('is-success'));
+		assert.strictEqual(testStatus.textContent, '');
+		assert.notStrictEqual(profilesStatus.textContent, 'Connected');
+		container.remove();
+	});
+
+	test('profile Connect pairing pending writes readable Profiles status, not Test zone', async () => {
+		const pane = mountPane({
+			listConnectionProfiles: () => [{
+				profileId: 'profile-1',
+				displayName: 'Studio',
+				state: 'pairingPending',
+				hasTrust: false,
+				targetKind: 'hubDevice',
+			}],
+		}, {
+			connectProfile: async () => ({
+				ok: true,
+				path: 'hubRelay',
+				pairingPending: true,
+				sasCode: 'ABCD-EFGH',
+				engineIdentityId: '0123456789abcdef',
+			}),
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		pane.selectZone('profiles');
+		(pane as unknown as { activeProfileId: string }).activeProfileId = 'profile-1';
+
+		const flow = (pane as unknown as { handleConnectSelectedProfile(): Promise<void> }).handleConnectSelectedProfile();
+		await waitForPairingDialog(container);
+
+		const profilesStatus = container.querySelector('.connection-profiles-status') as HTMLElement;
+		const testStatus = container.querySelector('.connection-test-status') as HTMLElement;
+		assert.strictEqual(profilesStatus.textContent, 'Pairing pending — not connected yet.');
+		assert.ok(profilesStatus.classList.contains('is-warning'));
+		assert.ok(!profilesStatus.textContent?.includes('ok=true'));
+		assert.ok(!profilesStatus.textContent?.includes('ABCD-EFGH'));
+		assert.notStrictEqual(profilesStatus.textContent, 'Connected');
+		assert.strictEqual(testStatus.textContent, '');
+		clickPairingCancel(container);
+		await flow;
+		container.remove();
+	});
+
+	test('profile Connect without a selection writes the visible Profiles warning', async () => {
+		const pane = mountPane();
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		pane.selectZone('profiles');
+		(pane as unknown as { activeProfileId?: string }).activeProfileId = undefined;
+
+		await (pane as unknown as { handleConnectSelectedProfile(): Promise<void> }).handleConnectSelectedProfile();
+
+		const profilesStatus = container.querySelector('.connection-profiles-status') as HTMLElement;
+		const testStatus = container.querySelector('.connection-test-status') as HTMLElement;
+		assert.strictEqual(profilesStatus.textContent, 'Select a connection profile first.');
+		assert.ok(profilesStatus.classList.contains('is-warning'));
+		assert.ok(!profilesStatus.classList.contains('is-success'));
+		assert.strictEqual(testStatus.textContent, '');
+		container.remove();
+	});
+
+	test('Forget failure writes the visible Profiles status', async () => {
+		const pane = mountPane({
+			listConnectionProfiles: () => [{
+				profileId: 'profile-1',
+				displayName: 'Studio',
+				state: 'active',
+				hasTrust: true,
+				targetKind: 'hubDevice',
+			}],
+			forgetConnectionProfile: async () => ({ ok: false, code: 'forget_failed', reason: 'forget blocked' }),
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		pane.selectZone('profiles');
+		(pane as unknown as { activeProfileId: string }).activeProfileId = 'profile-1';
+
+		await (pane as unknown as { handleForgetSelectedProfile(): Promise<void> }).handleForgetSelectedProfile();
+
+		const profilesStatus = container.querySelector('.connection-profiles-status') as HTMLElement;
+		const testStatus = container.querySelector('.connection-test-status') as HTMLElement;
+		assert.strictEqual(profilesStatus.textContent, 'forget blocked');
+		assert.ok(profilesStatus.classList.contains('is-error'));
+		assert.ok(!profilesStatus.classList.contains('is-success'));
+		assert.strictEqual(testStatus.textContent, '');
+		assert.notStrictEqual(profilesStatus.textContent, 'Connected');
+		container.remove();
+	});
+
+	test('Hub-zone connect Connecting and failure stay in the visible Hub status', async () => {
+		let resolveConnect: ((value: { ok: false; code: 'transport_failed'; reason: string }) => void) | undefined;
+		const connectPromise = new Promise<{ ok: false; code: 'transport_failed'; reason: string }>(resolve => {
+			resolveConnect = resolve;
+		});
+		const pane = mountPane({
+			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@hub.example' }),
+			listConnectionProfiles: () => [{
+				profileId: 'hub-profile-1',
+				displayName: 'Studio',
+				state: 'active',
+				hasTrust: true,
+				targetKind: 'hubDevice',
+			}],
+		}, {
+			connectProfile: async () => connectPromise,
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		pane.selectZone('hub');
+
+		const flow = (pane as unknown as { connectProfileWithPairing(profileId: string): Promise<void> }).connectProfileWithPairing('hub-profile-1');
+		await Promise.resolve();
+		await Promise.resolve();
+
+		const hubStatus = container.querySelector('.connection-hub-connect-status') as HTMLElement;
+		const authBadge = container.querySelector('.connection-hub-auth-badge') as HTMLElement;
+		const testStatus = container.querySelector('.connection-test-status') as HTMLElement;
+		assert.strictEqual(hubStatus.textContent, 'Connecting…');
+		assert.strictEqual(testStatus.textContent, '');
+		assert.strictEqual(authBadge.textContent, getHubAuthStatusLabel({ kind: 'signedIn', email: 'user@hub.example' }));
+		resolveConnect!({ ok: false, code: 'transport_failed', reason: 'hub relay refused' });
+		await flow;
+		assert.strictEqual(hubStatus.textContent, 'hub relay refused');
+		assert.ok(hubStatus.classList.contains('is-error'));
+		assert.ok(!hubStatus.classList.contains('is-success'));
+		assert.strictEqual(testStatus.textContent, '');
+		assert.notStrictEqual(hubStatus.textContent, 'Connected');
+		assert.strictEqual(authBadge.textContent, getHubAuthStatusLabel({ kind: 'signedIn', email: 'user@hub.example' }));
 		container.remove();
 	});
 
@@ -647,7 +1512,10 @@ suite('ConnectionPreferencesPane', () => {
 		});
 		const container = pane.getDomNode();
 		(pane as unknown as { activeProfileId: string }).activeProfileId = 'hub-profile-1';
-		await (pane as unknown as { connectProfileWithPairing(profileId: string): Promise<void> }).connectProfileWithPairing('hub-profile-1');
+		const flow = (pane as unknown as { connectProfileWithPairing(profileId: string): Promise<void> }).connectProfileWithPairing('hub-profile-1');
+		await Promise.resolve();
+		clickPairingCancel(container);
+		await flow;
 		assert.strictEqual(cancelCalls, 1);
 		container.remove();
 	});
@@ -682,10 +1550,8 @@ suite('ConnectionPreferencesPane', () => {
 		}));
 		instantiationService.stub(IDialogService, {
 			_serviceBrand: undefined,
-			prompt: async (config: { detail?: string; buttons: readonly { run: () => boolean }[] }) => {
-				assert.ok(config.detail?.includes(handshakeSas));
-				assert.ok(!config.detail?.includes('directory-engine-id'));
-				return { result: config.buttons[0].run() };
+			prompt: async () => {
+				throw new Error('dialogService must not be used for pairing inside Connection pane');
 			},
 		} as unknown as IDialogService);
 
@@ -693,8 +1559,20 @@ suite('ConnectionPreferencesPane', () => {
 		const container = pane.getDomNode();
 		document.body.appendChild(container);
 		(pane as unknown as { activeProfileId: string }).activeProfileId = 'hub-profile-1';
-		await (pane as unknown as { connectProfileWithPairing(profileId: string): Promise<void> }).connectProfileWithPairing('hub-profile-1');
+		const flow = (pane as unknown as { connectProfileWithPairing(profileId: string): Promise<void> }).connectProfileWithPairing('hub-profile-1');
+		await Promise.resolve();
+		const detail = container.querySelector('.connection-pairing-confirm .dialog-message-detail') as HTMLElement;
+		assert.ok(detail?.textContent?.includes(handshakeSas));
+		assert.ok(!detail?.textContent?.includes('directory-engine-id'));
+		clickPairingConfirm(container);
+		await flow;
 		assert.strictEqual(confirmCalls, 1);
+		const hubStatus = container.querySelector('.connection-hub-connect-status') as HTMLElement;
+		const testStatus = container.querySelector('.connection-test-status') as HTMLElement;
+		assert.strictEqual(hubStatus.textContent, 'Handshake succeeded — pairing not pending.');
+		assert.ok(!hubStatus.textContent?.includes('ok=true'));
+		assert.notStrictEqual(hubStatus.textContent, 'Connected');
+		assert.strictEqual(testStatus.textContent, '');
 		container.remove();
 	});
 
@@ -735,16 +1613,19 @@ suite('ConnectionPreferencesPane', () => {
 		}));
 		instantiationService.stub(IDialogService, {
 			_serviceBrand: undefined,
-			prompt: async (config: { detail?: string; buttons: readonly { run: () => boolean }[] }) => {
-				assert.ok(config.detail?.includes(handshakeSas));
-				return { result: config.buttons[0].run() };
+			prompt: async () => {
+				throw new Error('dialogService must not be used for pairing inside Connection pane');
 			},
 		} as unknown as IDialogService);
 
 		const pane = store.add(instantiationService.createInstance(ConnectionPreferencesPane));
 		const container = pane.getDomNode();
 		document.body.appendChild(container);
-		await (pane as unknown as { connectProfileWithPairing(profileId: string): Promise<void> }).connectProfileWithPairing('direct-profile-1');
+		const flow = (pane as unknown as { connectProfileWithPairing(profileId: string): Promise<void> }).connectProfileWithPairing('direct-profile-1');
+		await Promise.resolve();
+		assert.ok(container.querySelector('.connection-pairing-confirm .dialog-message-detail')?.textContent?.includes(handshakeSas));
+		clickPairingConfirm(container);
+		await flow;
 		assert.strictEqual(confirmCalls, 1);
 		container.remove();
 	});
@@ -782,15 +1663,8 @@ suite('ConnectionPreferencesPane', () => {
 		}));
 		instantiationService.stub(IDialogService, {
 			_serviceBrand: undefined,
-			prompt: async (config: { message?: string; detail?: string; buttons: readonly { label: string; run: () => boolean }[] }) => {
-				promptedTitle = config.message;
-				promptedDetail = config.detail;
-				assert.ok(config.detail?.includes(engineId));
-				assert.ok(config.detail?.includes(leafFp));
-				assert.ok(config.detail?.includes('does not use a pairing code'));
-				assert.ok(!config.detail?.includes('ABCD-EFGH'));
-				assert.ok(config.buttons.some(b => b.label === RECOVER_TRUST_CONFIRM_BUTTON_LABEL));
-				return { result: config.buttons[0].run() };
+			prompt: async () => {
+				throw new Error('dialogService must not be used for pairing inside Connection pane');
 			},
 		} as unknown as IDialogService);
 
@@ -798,10 +1672,91 @@ suite('ConnectionPreferencesPane', () => {
 		const container = pane.getDomNode();
 		document.body.appendChild(container);
 		(pane as unknown as { activeProfileId: string }).activeProfileId = 'hub-profile-1';
-		await (pane as unknown as { connectProfileWithPairing(profileId: string): Promise<void> }).connectProfileWithPairing('hub-profile-1');
+		const flow = (pane as unknown as { connectProfileWithPairing(profileId: string): Promise<void> }).connectProfileWithPairing('hub-profile-1');
+		await Promise.resolve();
+		const dialogBox = container.querySelector('.connection-pairing-confirm .monaco-dialog-box') as HTMLElement;
+		assert.ok(dialogBox);
+		promptedTitle = dialogBox.querySelector('.dialog-message')?.textContent ?? undefined;
+		promptedDetail = dialogBox.querySelector('.dialog-message-detail')?.textContent ?? undefined;
+		assert.ok(promptedDetail?.includes(engineId));
+		assert.ok(promptedDetail?.includes(leafFp));
+		assert.ok(promptedDetail?.includes('does not use a pairing code'));
+		assert.ok(!promptedDetail?.includes('ABCD-EFGH'));
+		clickPairingConfirm(container);
+		await flow;
 		assert.strictEqual(confirmCalls, 1);
 		assert.ok(promptedTitle?.includes('Studio'));
 		assert.ok(promptedDetail);
+		const hubStatus = container.querySelector('.connection-hub-connect-status') as HTMLElement;
+		const testStatus = container.querySelector('.connection-test-status') as HTMLElement;
+		assert.strictEqual(hubStatus.textContent, 'Handshake succeeded — pairing not pending.');
+		assert.ok(!hubStatus.textContent?.includes('ok=true'));
+		assert.notStrictEqual(hubStatus.textContent, 'Connected');
+		assert.strictEqual(testStatus.textContent, '');
+		container.remove();
+	});
+
+	test('active profile label drops pairing pending when connection phase is connected', () => {
+		const pane = mountPane({
+			listConnectionProfiles: () => [{
+				profileId: '127.0.0.1:50061',
+				displayName: '127.0.0.1:50061',
+				state: 'pairingPending',
+				hasTrust: true,
+				targetKind: 'directAddress',
+			}],
+		}, {
+			getConnectionPhase: () => ({ kind: 'connected', path: 'direct' }),
+			getConnectionSnapshot: () => ({
+				transport: 'ok',
+				pairingPending: false,
+				channelAlive: true,
+				sharedFsRootSent: false,
+				capabilities: createEmptyTestCapabilitySnapshot(),
+			}),
+		});
+		const container = pane.getDomNode();
+		(pane as unknown as { activeProfileId: string }).activeProfileId = '127.0.0.1:50061';
+		const label = (pane as unknown as { getProfileStateLabel(profile: { profileId: string; displayName: string; state: string; hasTrust: boolean; targetKind: string }): string }).getProfileStateLabel({
+			profileId: '127.0.0.1:50061',
+			displayName: '127.0.0.1:50061',
+			state: 'pairingPending',
+			hasTrust: true,
+			targetKind: 'directAddress',
+		});
+		assert.strictEqual(label, 'Paired');
+		container.remove();
+	});
+
+	test('active profile label shows Paired when connected without trust', () => {
+		const pane = mountPane({
+			listConnectionProfiles: () => [{
+				profileId: '127.0.0.1:50061',
+				displayName: '127.0.0.1:50061',
+				state: 'active',
+				hasTrust: false,
+				targetKind: 'directAddress',
+			}],
+		}, {
+			getConnectionPhase: () => ({ kind: 'connected', path: 'direct' }),
+			getConnectionSnapshot: () => ({
+				transport: 'ok',
+				pairingPending: false,
+				channelAlive: true,
+				sharedFsRootSent: false,
+				capabilities: createEmptyTestCapabilitySnapshot(),
+			}),
+		});
+		const container = pane.getDomNode();
+		(pane as unknown as { activeProfileId: string }).activeProfileId = '127.0.0.1:50061';
+		const label = (pane as unknown as { getProfileStateLabel(profile: { profileId: string; displayName: string; state: string; hasTrust: boolean; targetKind: string }): string }).getProfileStateLabel({
+			profileId: '127.0.0.1:50061',
+			displayName: '127.0.0.1:50061',
+			state: 'active',
+			hasTrust: false,
+			targetKind: 'directAddress',
+		});
+		assert.strictEqual(label, 'Paired');
 		container.remove();
 	});
 

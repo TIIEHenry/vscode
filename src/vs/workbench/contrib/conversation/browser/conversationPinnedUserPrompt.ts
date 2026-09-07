@@ -25,8 +25,10 @@ const DEFAULT_PREVIEW_MAX_CHARS = 180;
 /**
  * Flatten stub turns into the same row order as {@link ConversationTimelineTree}.
  */
-export function flattenConversationTimelineItems(turns: readonly ConversationStubTurn[]): ConversationTimelineFlatItem[] {
-	const spans = projectProcessFoldSpans(turns);
+export function flattenConversationTimelineItems(
+	turns: readonly ConversationStubTurn[],
+	spans: readonly ProcessFoldSpan[] = projectProcessFoldSpans(turns),
+): ConversationTimelineFlatItem[] {
 	const spanByStartIndex = new Map(spans.map(span => [span.startIndex, span]));
 	const coveredIndices = new Set<number>();
 	for (const span of spans) {

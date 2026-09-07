@@ -17,6 +17,8 @@ import {
 	ensureCapabilitySnapshot,
 	isUniverseAgentPhaseConnected,
 	readCapabilityEntry,
+	sanitizeDesktopCapabilitySnapshot,
+	WEB_UNSUPPORTED_LOCAL_ENGINE_REASON,
 	UniverseAgentConnectionSyncCache,
 	UniverseAgentHubSyncCache,
 } from '../../common/universeAgentRendererSync.js';
@@ -24,6 +26,40 @@ import {
 suite('universeAgentRendererSync', () => {
 
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('desktop idle snapshot never uses the Web unsupported reason', () => {
+		const idle = createIdleCapabilitySnapshot();
+		for (const entry of Object.values(idle)) {
+			assert.notStrictEqual(entry.reason, WEB_UNSUPPORTED_LOCAL_ENGINE_REASON);
+			assert.strictEqual(entry.support, 'UNKNOWN');
+		}
+	});
+
+	test('sanitizeDesktopCapabilitySnapshot strips Web stub pollution', () => {
+		const polluted = createIdleCapabilitySnapshot();
+		polluted.skills = { support: 'UNSUPPORTED', reason: WEB_UNSUPPORTED_LOCAL_ENGINE_REASON };
+		polluted.models = { support: 'UNSUPPORTED', reason: WEB_UNSUPPORTED_LOCAL_ENGINE_REASON };
+		const clean = sanitizeDesktopCapabilitySnapshot(polluted);
+		assert.strictEqual(clean.skills.support, 'UNKNOWN');
+		assert.strictEqual(clean.skills.reason, undefined);
+		assert.strictEqual(clean.models.support, 'UNKNOWN');
+		assert.strictEqual(clean.providerConfig.support, 'UNKNOWN');
+	});
+
+	test('connection cache drops Web stub capability reasons from IPC snapshots', () => {
+		const cache = new UniverseAgentConnectionSyncCache();
+		const capabilities = createIdleCapabilitySnapshot();
+		capabilities.mcp = { support: 'UNSUPPORTED', reason: WEB_UNSUPPORTED_LOCAL_ENGINE_REASON };
+		cache.applySnapshot({
+			transport: 'idle',
+			pairingPending: false,
+			channelAlive: false,
+			sharedFsRootSent: false,
+			capabilities,
+		});
+		assert.strictEqual(cache.capabilities.mcp.support, 'UNKNOWN');
+		assert.notStrictEqual(cache.capabilities.mcp.reason, WEB_UNSUPPORTED_LOCAL_ENGINE_REASON);
+	});
 
 	test('readCapabilityEntry defaults missing keys to UNKNOWN', () => {
 		assert.deepStrictEqual(readCapabilityEntry(undefined, 'providerConfig'), { support: 'UNKNOWN' });
@@ -84,6 +120,171 @@ suite('universeAgentRendererSync', () => {
 			targetKind: 'directAddress',
 		}]);
 		assert.strictEqual(cache.profiles[0]?.profileId, 'p1');
+	});
+
+	test('connection channel client finalizes connectProfile pairing fields after IPC', async () => {
+		const snapshot = {
+			transport: 'idle' as const,
+			pairingPending: false,
+			channelAlive: false,
+			sharedFsRootSent: false,
+			capabilities: createIdleCapabilitySnapshot(),
+		};
+		const channel: IChannel = {
+			call: (command: string) => {
+				switch (command) {
+					case 'getConnectionSnapshot':
+						return Promise.resolve(snapshot);
+					case 'getConnectionPhase':
+						return Promise.resolve({ kind: 'disconnected' });
+					case 'isAgentTreeFetchFailed':
+						return Promise.resolve(false);
+					case 'connectProfile':
+						return Promise.resolve({
+							ok: true,
+							path: 'direct',
+							pairingPending: true,
+							sasCode: 'ABCD-EFGH',
+							engineIdentityId: 'eng-1',
+						});
+					default:
+						return Promise.resolve(undefined);
+				}
+			},
+			listen: () => Event.None,
+		};
+		const client = store.add(new UniverseAgentConnectionChannelClient(channel));
+		const result = await client.connectProfile('profile-1');
+		assert.strictEqual(result.ok, true);
+		if (result.ok) {
+			assert.strictEqual(result.pairingPending, true);
+			assert.strictEqual(result.sasCode, 'ABCD-EFGH');
+			assert.strictEqual(result.engineIdentityId, 'eng-1');
+		}
+	});
+
+	test('connection channel client rejects pairingPending without sas or recoverTrust', async () => {
+		const snapshot = {
+			transport: 'idle' as const,
+			pairingPending: false,
+			channelAlive: false,
+			sharedFsRootSent: false,
+			capabilities: createIdleCapabilitySnapshot(),
+		};
+		const channel: IChannel = {
+			call: (command: string) => {
+				switch (command) {
+					case 'getConnectionSnapshot':
+						return Promise.resolve(snapshot);
+					case 'getConnectionPhase':
+						return Promise.resolve({ kind: 'disconnected' });
+					case 'isAgentTreeFetchFailed':
+						return Promise.resolve(false);
+					case 'connectProfile':
+						return Promise.resolve({ ok: true, path: 'direct', pairingPending: true });
+					default:
+						return Promise.resolve(undefined);
+				}
+			},
+			listen: () => Event.None,
+		};
+		const client = store.add(new UniverseAgentConnectionChannelClient(channel));
+		const result = await client.connectProfile('profile-1');
+		assert.strictEqual(result.ok, false);
+	});
+
+	test('connection channel client keeps confirmPairing grantPending without sas', async () => {
+		const snapshot = {
+			transport: 'idle' as const,
+			pairingPending: true,
+			channelAlive: false,
+			sharedFsRootSent: false,
+			capabilities: createIdleCapabilitySnapshot(),
+		};
+		const channel: IChannel = {
+			call: (command: string) => {
+				switch (command) {
+					case 'getConnectionSnapshot':
+						return Promise.resolve(snapshot);
+					case 'getConnectionPhase':
+						return Promise.resolve({ kind: 'connecting', reason: 'initial' });
+					case 'isAgentTreeFetchFailed':
+						return Promise.resolve(false);
+					case 'confirmPairing':
+						return Promise.resolve({
+							ok: true,
+							path: 'direct',
+							pairingPending: true,
+							grantPending: true,
+							engineIdentityId: 'eng-1',
+						});
+					default:
+						return Promise.resolve(undefined);
+				}
+			},
+			listen: () => Event.None,
+		};
+		const client = store.add(new UniverseAgentConnectionChannelClient(channel));
+		const result = await client.confirmPairing();
+		assert.strictEqual(result.ok, true);
+		if (result.ok) {
+			assert.strictEqual(result.pairingPending, true);
+			assert.strictEqual(result.grantPending, true);
+			assert.strictEqual(result.sasCode, undefined);
+			assert.strictEqual(result.engineIdentityId, 'eng-1');
+		}
+	});
+
+	test('forwarding proxy does not let an undefined local resumeSession shadow remote', async () => {
+		const resumeCalls: string[] = [];
+		const remote = {
+			async resumeSession(request: { sessionId: string }) {
+				resumeCalls.push(request.sessionId);
+				return { ok: true };
+			},
+		};
+		const local = {
+			resumeSession: undefined as undefined,
+			getCapabilitySnapshot: () => createIdleCapabilitySnapshot(),
+		};
+		const client = createRemoteForwardingProxy(local, remote);
+		assert.strictEqual(typeof client.resumeSession, 'function');
+		assert.deepStrictEqual(await (client as unknown as typeof remote).resumeSession({ sessionId: 'session-100' }), { ok: true });
+		assert.deepStrictEqual(resumeCalls, ['session-100']);
+	});
+
+	test('connection channel client resumeSession is a function and hits IPC', async () => {
+		const snapshot = {
+			transport: 'idle' as const,
+			pairingPending: false,
+			channelAlive: false,
+			sharedFsRootSent: false,
+			capabilities: createIdleCapabilitySnapshot(),
+		};
+		const commands: string[] = [];
+		const channel: IChannel = {
+			call: (command: string, args?: unknown[]) => {
+				commands.push(command);
+				switch (command) {
+					case 'getConnectionSnapshot':
+						return Promise.resolve(snapshot);
+					case 'getConnectionPhase':
+						return Promise.resolve({ kind: 'disconnected' });
+					case 'isAgentTreeFetchFailed':
+						return Promise.resolve(false);
+					case 'resumeSession':
+						return Promise.resolve({ ok: true, message: args?.[0] ? JSON.stringify(args[0]) : '' });
+					default:
+						return Promise.resolve(undefined);
+				}
+			},
+			listen: () => Event.None,
+		};
+		const client = store.add(new UniverseAgentConnectionChannelClient(channel));
+		assert.strictEqual(typeof client.resumeSession, 'function');
+		const result = await client.resumeSession({ sessionId: 'session-100' });
+		assert.strictEqual(result.ok, true);
+		assert.ok(commands.includes('resumeSession'));
 	});
 
 	test('forwarding proxy keeps local sync getters and forwards the rest', async () => {

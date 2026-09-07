@@ -7,9 +7,15 @@
 }
 
 .conversation-editor-part-container {
+	position: relative;
 	flex: 1;
 	min-height: 0;
 	min-width: 0;
+	overflow: hidden;
+}
+
+.monaco-workbench .part.conversation .conversation-editor-part-container > .drop-block-overlay:not(.visible) {
+	pointer-events: none;
 }
 
 .conversation-editor-part-host {

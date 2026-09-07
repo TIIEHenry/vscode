@@ -93,7 +93,7 @@ suite('SessionViewHost intent ownership (F2)', () => {
 
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('alternating sessions open streams under their own sessionId', () => {
+	test('alternating sessions open streams under their own sessionId', async () => {
 		const connection = new TrackingConnection();
 		const host = new TestHost(async () => undefined);
 		const viewHost = store.add(new SessionViewHost(connection, host, { orphanTimeoutMs: 0 }));
@@ -101,9 +101,11 @@ suite('SessionViewHost intent ownership (F2)', () => {
 		viewHost.onEngineConnectionChanged();
 
 		const leaseA = viewHost.acquireLease('sess-a');
+		await viewHost.whenEngineSessionReady('sess-a');
 		viewHost.post(leaseA, { kind: 'submitInput', text: 'hello-a' });
 
 		const leaseB = viewHost.acquireLease('sess-b');
+		await viewHost.whenEngineSessionReady('sess-b');
 		viewHost.post(leaseB, { kind: 'submitInput', text: 'hello-b' });
 
 		assert.ok(connection.streamSubscriptions.includes('sess-a'), 'sess-a stream must be subscribed');
@@ -122,6 +124,7 @@ suite('SessionViewHost intent ownership (F2)', () => {
 		const viewHost = store.add(new SessionViewHost(connection, host, { orphanTimeoutMs: 0 }));
 		viewHost.onEngineConnectionChanged();
 		const leaseId = viewHost.acquireLease('sess-write-corr');
+		await viewHost.whenEngineSessionReady('sess-write-corr');
 
 		const frames: IUniverseAgentSessionViewFrameEvent[] = [];
 		store.add(viewHost.onDynamicDidApplyFrame(leaseId)(e => frames.push(e)));
@@ -160,6 +163,7 @@ suite('SessionViewHost intent ownership (F2)', () => {
 
 		viewHost.onEngineConnectionChanged();
 		const leaseId = viewHost.acquireLease('sess-linger');
+		await viewHost.whenEngineSessionReady('sess-linger');
 		assert.strictEqual(connection.activeStreamCount, 1);
 
 		viewHost.releaseLease(leaseId);
@@ -180,13 +184,15 @@ suite('SessionViewHost intent ownership (F2)', () => {
 
 		viewHost.onEngineConnectionChanged();
 		const first = viewHost.acquireLease('sess-reacquire');
+		await viewHost.whenEngineSessionReady('sess-reacquire');
 		viewHost.releaseLease(first);
 		viewHost.acquireLease('sess-reacquire');
+		await viewHost.whenEngineSessionReady('sess-reacquire');
 		await timeout(LINGER_MS + 20);
 		assert.strictEqual(connection.activeStreamCount, 1);
 	});
 
-	test('continueGeneration counts intent.unhandled openContinuationStream when transport lacks hook', () => {
+	test('continueGeneration counts intent.unhandled openContinuationStream when transport lacks hook', async () => {
 		const connection = new TestConnection();
 		const host = new TestHost(async () => undefined);
 		const diagnostics = new CountingDiagnostics();
@@ -196,6 +202,7 @@ suite('SessionViewHost intent ownership (F2)', () => {
 		}));
 		viewHost.onEngineConnectionChanged();
 		viewHost.acquireLease('sess-cg');
+		await viewHost.whenEngineSessionReady('sess-cg');
 
 		postLocalFact(viewHost, 'sess-cg', {
 			kind: 'continueGeneration',
@@ -210,7 +217,7 @@ suite('SessionViewHost intent ownership (F2)', () => {
 		));
 	});
 
-	test('openContinuationStream hook runs without intent.unhandled when connection provides it', () => {
+	test('openContinuationStream hook runs without intent.unhandled when connection provides it', async () => {
 		const calls: { sessionId: string; agentId: string; turnId: string; messageId: string }[] = [];
 		const connection = new class extends TestConnection {
 			openContinuationStream(
@@ -229,6 +236,7 @@ suite('SessionViewHost intent ownership (F2)', () => {
 		}));
 		viewHost.onEngineConnectionChanged();
 		viewHost.acquireLease('sess-cg-hook');
+		await viewHost.whenEngineSessionReady('sess-cg-hook');
 
 		postLocalFact(viewHost, 'sess-cg-hook', {
 			kind: 'continueGeneration',
@@ -246,7 +254,7 @@ suite('SessionViewHost intent ownership (F2)', () => {
 		assert.strictEqual(diagnostics.counts.get('intent.unhandled'), undefined);
 	});
 
-	test('regenerateTurn counts intent.unhandled unaryCommand (no unary dispatcher yet)', () => {
+	test('regenerateTurn counts intent.unhandled unaryCommand (no unary dispatcher yet)', async () => {
 		const connection = new TestConnection();
 		const host = new TestHost(async () => undefined);
 		const diagnostics = new CountingDiagnostics();
@@ -256,6 +264,7 @@ suite('SessionViewHost intent ownership (F2)', () => {
 		}));
 		viewHost.onEngineConnectionChanged();
 		viewHost.acquireLease('sess-rg');
+		await viewHost.whenEngineSessionReady('sess-rg');
 
 		postLocalFact(viewHost, 'sess-rg', {
 			kind: 'regenerateTurn',
@@ -276,6 +285,7 @@ suite('SessionViewHost intent ownership (F2)', () => {
 		const viewHost = store.add(new SessionViewHost(connection, host, { orphanTimeoutMs: 0 }));
 		viewHost.onEngineConnectionChanged();
 		const leaseId = viewHost.acquireLease('sess-remote-close');
+		await viewHost.whenEngineSessionReady('sess-remote-close');
 
 		const frames: IUniverseAgentSessionViewFrameEvent[] = [];
 		store.add(viewHost.onDynamicDidApplyFrame(leaseId)(e => frames.push(e)));
@@ -294,6 +304,7 @@ suite('SessionViewHost intent ownership (F2)', () => {
 		const viewHost = store.add(new SessionViewHost(connection, host, { orphanTimeoutMs: 0 }));
 		viewHost.onEngineConnectionChanged();
 		const leaseId = viewHost.acquireLease('sess-error-close');
+		await viewHost.whenEngineSessionReady('sess-error-close');
 
 		const frames: IUniverseAgentSessionViewFrameEvent[] = [];
 		store.add(viewHost.onDynamicDidApplyFrame(leaseId)(e => frames.push(e)));
@@ -314,6 +325,7 @@ suite('SessionViewHost intent ownership (F2)', () => {
 		}));
 		viewHost.onEngineConnectionChanged();
 		const leaseId = viewHost.acquireLease('sess-local-close');
+		await viewHost.whenEngineSessionReady('sess-local-close');
 
 		const frames: IUniverseAgentSessionViewFrameEvent[] = [];
 		store.add(viewHost.onDynamicDidApplyFrame(leaseId)(e => frames.push(e)));

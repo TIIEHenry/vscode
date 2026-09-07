@@ -36,6 +36,11 @@ export function makeUnaryClient<TRequest, TResponse>(
 	});
 }
 
+/** proto3 empty is 0 payload bytes; still return a Buffer so grpc-js writes a DATA frame. */
+export function asUnaryProtoBytes(bytes: Uint8Array | undefined): Buffer {
+	return Buffer.from(bytes ?? new Uint8Array(0));
+}
+
 export function makeUnaryBytesClient<TResponse>(
 	channel: grpc.Client,
 	servicePath: string,
@@ -46,9 +51,9 @@ export function makeUnaryBytesClient<TResponse>(
 	return (requestBytes: Uint8Array) => new Promise<TResponse>((resolve, reject) => {
 		channel.makeUnaryRequest(
 			path,
-			(value: Uint8Array) => Buffer.from(value),
+			asUnaryProtoBytes,
 			(buffer: Buffer) => decode(buffer),
-			requestBytes,
+			requestBytes ?? new Uint8Array(0),
 			(error, response) => {
 				if (error) {
 					reject(new UniverseAgentTransportError(error.code, error.message));
@@ -158,6 +163,75 @@ export function makeClientStreamClient<TChunk, TResponse>(
 			},
 		};
 	};
+}
+
+export function makeResidentBidiBytesHandleClient<TResponse>(
+	channel: grpc.Client,
+	servicePath: string,
+	method: string,
+	decode: (buffer: Buffer) => TResponse,
+): (
+	onResponse: (response: TResponse) => void,
+	onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
+) => { write(chunk: Uint8Array): void; dispose(): void } {
+	const path = `/${servicePath}/${method}`;
+	return (onResponse, onClosed) => {
+		const call = channel.makeBidiStreamRequest(
+			path,
+			(value: Uint8Array) => Buffer.from(value),
+			(buffer: Buffer) => decode(buffer),
+		);
+		const gate = createStreamCloseGate(onClosed);
+		call.on('data', (data: TResponse) => onResponse(data));
+		call.on('error', (error: grpc.ServiceError) => {
+			if (gate.closed) {
+				return;
+			}
+			const message = typeof error?.message === 'string' && error.message ? error.message : 'stream error';
+			gate.finish({ kind: 'error', message });
+		});
+		call.on('end', () => {
+			gate.finish({ kind: 'remote' });
+		});
+		return {
+			write(chunk: Uint8Array): void {
+				if (gate.closed) {
+					return;
+				}
+				call.write(chunk);
+			},
+			dispose(): void {
+				if (gate.closed) {
+					call.cancel();
+					return;
+				}
+				gate.closeLocal();
+				call.end();
+				call.cancel();
+			},
+		};
+	};
+}
+
+export function makeBidiBytesClient<TResponse>(
+	channel: grpc.Client,
+	servicePath: string,
+	method: string,
+	decode: (buffer: Buffer) => TResponse,
+): (requestBytes: Uint8Array, onResponse: (response: TResponse) => void) => Promise<void> {
+	const path = `/${servicePath}/${method}`;
+	return (requestBytes: Uint8Array, onResponse: (response: TResponse) => void) => new Promise<void>((resolve, reject) => {
+		const call = channel.makeBidiStreamRequest(
+			path,
+			(value: Uint8Array) => Buffer.from(value),
+			(buffer: Buffer) => decode(buffer),
+		);
+		call.on('data', (data: TResponse) => onResponse(data));
+		call.on('error', (error: grpc.ServiceError) => reject(new UniverseAgentTransportError(error.code, error.message)));
+		call.on('end', () => resolve());
+		call.write(requestBytes);
+		call.end();
+	});
 }
 
 export function makeResidentBidiStreamClient<TResponse>(

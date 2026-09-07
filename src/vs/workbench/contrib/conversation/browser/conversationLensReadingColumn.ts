@@ -50,6 +50,7 @@ export interface IConversationLensReadingColumnHost {
 	beginTurnEdit(turnId: string): void;
 	navigateToTrajectoryFromTurn(turnId: string): void;
 	cancelToolCall(turn: { readonly id: string; readonly agentId?: string }): void;
+	retryError(turn: { readonly id: string; readonly turnId?: string; readonly agentId?: string }): void;
 	openVisualizeOverlay(source: string, title?: string): void;
 	navigateToTurnFromTrajectory(turnId: string): void;
 }
@@ -72,6 +73,7 @@ export function mountTimeline(host: IConversationLensReadingColumnHost, timeline
 		onEditUserTurn: turnId => host.beginTurnEdit(turnId),
 		onViewInTrajectory: turnId => host.navigateToTrajectoryFromTurn(turnId),
 		onCancelToolCall: turn => host.cancelToolCall(turn),
+		onRetryError: turn => host.retryError(turn),
 		onReviewNavClick: paths => {
 			void host.commandService.executeCommand(
 				SOURCES_REVIEW_SHOW_FOR_PATHS_COMMAND,
@@ -168,14 +170,21 @@ export function bindReadingColumnLayout(host: IConversationLensReadingColumnHost
 
 }
 
-/** PreFirst hero owns the reading column via CSS; do not layout(0) the monaco tree. */
+/**
+ * PreFirst hero owns the reading column via CSS; do not layout(0) the monaco tree.
+ * The inactive lens surface is `hidden`, so measuring its dynamic row heights would
+ * report 0px; it is laid out again when the lens tab makes it visible.
+ */
 export function layoutReadingSurfaces(host: IConversationLensReadingColumnHost, height: number, width: number): void {
 	refreshStaleSnapshotBanner(host);
 	if (host.readingColumn.classList.contains(conversationLensPhasePreFirstClass)) {
 		return;
 	}
-	host.timelineTree.layout(height, width);
-	host.trajectoryView.layout(height, width);
+	if (host.lensId === 'conversation') {
+		host.timelineTree.layout(height, width);
+	} else {
+		host.trajectoryView.layout(height, width);
+	}
 }
 
 export function applyConversationDensity(host: IConversationLensReadingColumnHost): void {

@@ -20,7 +20,10 @@ import { ConversationVisualizeOverlay } from './conversationVisualizeOverlay.js'
 import type { ConversationMermaidExtensionInfo } from './conversationMermaidHost.js';
 import { findFirstPendingConfirmationTurnId as findFirstPendingConfirmationTurnIdFromTurns } from './conversationPendingSeat.js';
 import { IConversationRosterService } from './conversationStubService.js';
+import type { ConversationComposerPostFailureReason } from './conversationLensDockStrings.js';
 export interface IConversationLensSessionBindingHost {
+	/** Same dispose gate Mermaid resolve uses (`this._store.isDisposed`). */
+	readonly _store: { readonly isDisposed: boolean };
 	lastAttachedEntries: ConversationTimelineEntry[];
 	sessionViewLease: IConversationSessionViewLease | undefined;
 	sessionViewLifetime: DisposableStore;
@@ -49,13 +52,22 @@ export interface IConversationLensSessionBindingHost {
 	renderVoiceTranscriptBar(): void;
 	updateVoiceMicChrome(): void;
 	postBound(msg: ConversationWriteMessage): Promise<PostOutcome>;
-	showPostFailure(reason: 'mailbox_full' | 'no_such_session' | 'not_authenticated'): void;
+	showPostFailure(reason: ConversationComposerPostFailureReason): void;
 	focusTimelineRecord(turnId: string): void;
 }
 
 export function bindSessionView(host: IConversationLensSessionBindingHost, sessionId: string): void {
 
+	if (host._store.isDisposed) {
+		return;
+	}
 	host.sessionViewLifetime.clear();
+	if (!sessionId || (host.stubService.isEngineConnected() && !host.stubService.isEngineSessionReady())) {
+		host.sessionViewLease = undefined;
+		host.lastAttachedEntries = [];
+		host.timelineTree.applyEntries([], { kind: 'baseline' });
+		return;
+	}
 	const lease = host.sessionViewLifetime.add(host.stubService.acquireSessionView(sessionId));
 	host.sessionViewLease = lease;
 	const coalescer = host.sessionViewLifetime.add(new ConversationSessionViewFrameCoalescer(applied => host.applySessionViewTimeline(applied)));
@@ -187,6 +199,22 @@ export function cancelToolCall(host: IConversationLensSessionBindingHost, turn: 
 	const agentId = turn.agentId?.trim();
 	host.stubService.cancelToolCall(host.getBoundSessionId(), {
 		toolCallId,
+		...(agentId ? { agentId } : {}),
+	});
+
+}
+
+export function retryError(host: IConversationLensSessionBindingHost, turn: { readonly id: string; readonly turnId?: string; readonly agentId?: string }): void {
+
+	const messageId = turn.id.trim();
+	if (!messageId) {
+		return;
+	}
+	const turnId = turn.turnId?.trim();
+	const agentId = turn.agentId?.trim();
+	host.stubService.retryError(host.getBoundSessionId(), {
+		messageId,
+		...(turnId ? { turnId } : {}),
 		...(agentId ? { agentId } : {}),
 	});
 

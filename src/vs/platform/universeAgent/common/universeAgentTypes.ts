@@ -59,6 +59,8 @@ export interface UniverseAgentSessionSummary {
 export interface UniverseAgentListSessionsRequest {
 	readonly limit?: number;
 	readonly offset?: number;
+	/** SessionListFilter proto enum; omit to send SESSION_LIST_FILTER_ALL. */
+	readonly filter?: number;
 }
 
 export interface UniverseAgentListSessionsResult {
@@ -69,6 +71,8 @@ export interface UniverseAgentListSessionsResult {
 export interface UniverseAgentCreateSessionRequest {
 	readonly title?: string;
 	readonly model?: string;
+	/** proto CreateSessionRequest.client_session_id (field 4). Local session id. */
+	readonly clientSessionId?: string;
 }
 
 export interface UniverseAgentCreateSessionResult {

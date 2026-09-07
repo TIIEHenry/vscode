@@ -14,6 +14,10 @@ export interface ISourcesChangeEntry {
 	readonly description: string;
 	readonly groupId: string;
 	readonly scmResource?: ISCMResource;
+	/** Engine GitChangeEntry path when the row came from ReadGitChanges. */
+	readonly gitPath?: string;
+	/** Engine `index_state` as-is when the row came from ReadGitChanges. */
+	readonly indexState?: string;
 }
 
 export interface ISourcesChangeResourceLike {
@@ -62,4 +66,8 @@ export function collectSourcesChangeEntries(repos: Iterable<ISourcesChangeReposi
 	});
 
 	return entries;
+}
+
+export function sourcesChangeEntryIdentity(entry: ISourcesChangeEntry): string {
+	return `${entry.resource.toString()}\0${entry.groupId}\0${entry.gitPath ?? ''}\0${entry.indexState ?? ''}`;
 }

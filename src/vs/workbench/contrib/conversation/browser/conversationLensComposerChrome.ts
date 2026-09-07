@@ -33,9 +33,11 @@ import {
 	conversationLensDockTemplatesTitle,
 	conversationLensDockToolsEngineHint,
 	conversationLensDockTuneTitle,
+	conversationLensPostFailedDisconnected,
 	conversationLensPostFailedMailboxFull,
 	conversationLensPostFailedNoSession,
 	conversationLensPostFailedNotAuthenticated,
+	type ConversationComposerPostFailureReason,
 	conversationLensDockNoRoute,
 	conversationLensDockRouteBalanced,
 	conversationLensDockRouteQuality,
@@ -77,6 +79,9 @@ export const conversationLensDockPermissionUnavailable = localize(
 const conversationLensDockPermissionFailed = localize(
 	'conversationLens.dockPermissionFailed',
 	"Permission mode was not applied");
+const conversationLensDockModelFailed = localize(
+	'conversationLens.dockModelFailed',
+	"Model was not applied");
 
 const COMPOSER_ROUTE_OPTIONS = [
 	conversationLensDockNoRoute,
@@ -103,7 +108,9 @@ export interface IConversationLensComposerChromeHost {
 	sendFailureTimeout: ReturnType<typeof setTimeout> | undefined;
 	lastReadingWidth: number;
 	catalogToolNames: readonly string[];
+	catalogModelIds: readonly string[];
 	modelSelectedIndex: number;
+	modelSelectBox: SelectBox;
 	inputHistoryBrowse: InputHistoryBrowseState;
 	sessionConfigBySessionId: Map<string, ConversationSessionConfigSelection>;
 	addContextView: IOpenContextView | undefined;
@@ -536,7 +543,10 @@ export function updateGateRow(host: IConversationLensComposerChromeHost): void {
 		}
 		const connected = host.stubService.isEngineConnected();
 		host.gateRow.hidden = connected;
-		if (!connected) {
+		if (connected) {
+			host.gateLabel.textContent = '';
+			host.gateRow.removeAttribute('aria-label');
+		} else {
 			host.gateLabel.textContent = conversationLensDockEngineNotConnected;
 			host.gateRow.setAttribute('aria-label', conversationLensDockEngineNotConnected);
 		}
@@ -560,13 +570,15 @@ function showGateNotice(host: IConversationLensComposerChromeHost, message: stri
 	
 }
 
-export function showPostFailure(host: IConversationLensComposerChromeHost, reason: 'mailbox_full' | 'no_such_session' | 'not_authenticated'): void {
+export function showPostFailure(host: IConversationLensComposerChromeHost, reason: ConversationComposerPostFailureReason): void {
 
 		const message = reason === 'mailbox_full'
 			? conversationLensPostFailedMailboxFull
 			: reason === 'not_authenticated'
 				? conversationLensPostFailedNotAuthenticated
-				: conversationLensPostFailedNoSession;
+				: reason === 'engine_disconnected'
+					? conversationLensPostFailedDisconnected
+					: conversationLensPostFailedNoSession;
 		showGateNotice(host, message);
 	
 }
@@ -661,6 +673,51 @@ export async function applySessionPermissionIndex(host: IConversationLensCompose
 			restoreSessionPermissionIndex(host, sessionId, previous);
 			const detail = error instanceof Error ? error.message.trim() : '';
 			showGateNotice(host, detail || conversationLensDockPermissionFailed);
+		}
+	
+}
+
+export function isSessionSwitchModelAvailable(host: IConversationLensComposerChromeHost): boolean {
+
+		return host.stubService.isEngineConnected() && typeof host.uaConnection.switchModel === 'function';
+	
+}
+
+function restoreSessionModelIndex(host: IConversationLensComposerChromeHost, modelIndex: number): void {
+
+		host.modelSelectedIndex = modelIndex;
+		host.modelSelectBox.select(modelIndex);
+		updateSendEnabled(host);
+	
+}
+
+export async function applySessionModelIndex(host: IConversationLensComposerChromeHost, sessionId: string, modelIndex: number): Promise<void> {
+
+		const previous = host.modelSelectedIndex;
+		if (modelIndex === previous) {
+			return;
+		}
+		host.modelSelectedIndex = modelIndex;
+		host.modelSelectBox.select(modelIndex);
+		updateSendEnabled(host);
+		if (!isSessionSwitchModelAvailable(host) || !host.uaConnection.switchModel) {
+			return;
+		}
+		const modelId = host.catalogModelIds[modelIndex] ?? '';
+		if (!modelId) {
+			return;
+		}
+		try {
+			await host.uaConnection.switchModel({
+				sessionId,
+				agentId: '',
+				modelType: '',
+				modelId,
+			});
+		} catch (error) {
+			restoreSessionModelIndex(host, previous);
+			const detail = error instanceof Error ? error.message.trim() : '';
+			showGateNotice(host, detail || conversationLensDockModelFailed);
 		}
 	
 }

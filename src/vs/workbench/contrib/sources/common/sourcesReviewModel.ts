@@ -7,7 +7,7 @@ import { collectSourcesChangeEntries, ISourcesChangeEntry, ISourcesChangeReposit
 
 export type ISourcesReviewEntry = ISourcesChangeEntry;
 
-/** Read-only Review tab projection — same SCM resources as Changes. */
+/** Read-only Review tab SCM fallback — same resources as Changes when Git read is closed. */
 export function collectSourcesReviewEntries(repos: Iterable<ISourcesChangeRepositoryLike>): ISourcesReviewEntry[] {
 	return collectSourcesChangeEntries(repos);
 }

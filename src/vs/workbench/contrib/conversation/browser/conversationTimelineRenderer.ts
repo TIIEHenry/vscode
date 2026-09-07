@@ -38,6 +38,7 @@ import {
 
 export const conversationLensUserBubbleShowMore = localize('conversationLens.userBubbleShowMore', "Show more");
 export const conversationLensUserBubbleShowLess = localize('conversationLens.userBubbleShowLess', "Show less");
+export const conversationLensErrorRetry = localize('conversationLens.errorRetry', "Retry");
 
 export class ConversationTimelineDelegate implements IListVirtualDelegate<ConversationTimelineItem> {
 
@@ -100,6 +101,7 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 		private readonly onEditUserTurn: ((turnId: string) => void) | undefined,
 		private readonly onViewInTrajectory: ((turnId: string) => void) | undefined,
 		private readonly onCancelToolCall: ((turn: ConversationStubTurn) => void) | undefined,
+		private readonly onRetryError: ((turn: ConversationStubTurn) => void) | undefined,
 		private readonly onReviewNavClick: ((paths: readonly string[]) => void) | undefined,
 		private readonly getEditingTurnId: () => string | undefined,
 		private readonly onOpenVisualizeFullscreen: ((source: string, title?: string) => void) | undefined,
@@ -200,7 +202,7 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 			return;
 		}
 		if (honestKind === 'error' || honestKind === 'unknown' || honestKind === 'system') {
-			renderHonestTimelineRow(templateData.container, turn, honestKind, templateData.disposables);
+			renderHonestTimelineRow(templateData.container, turn, honestKind, templateData.disposables, this.onRetryError);
 			this.scheduleHeightUpdate(item, templateData.container);
 			return;
 		}
@@ -270,6 +272,9 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 					el.classList.add('conversation-lens-turn--editing');
 					const host = append(el, $('.conversation-lens-turn-edit-host'));
 					host.setAttribute('data-turn-id', turn.id);
+					// The composer is re-parented in after this render, so keep the same non-zero
+					// floor scheduleHeightUpdate uses; a 0px row caches a collapsed edited turn.
+					host.style.minHeight = '1px';
 					templateData.container.appendChild(el);
 					this.scheduleHeightUpdate(item, templateData.container);
 					return;
@@ -477,7 +482,8 @@ export function renderHonestTimelineRow(
 	container: HTMLElement,
 	turn: ConversationStubTurn,
 	kind: 'error' | 'unknown' | 'system',
-	_disposables: DisposableStore,
+	disposables: DisposableStore,
+	onRetryError?: (turn: ConversationStubTurn) => void,
 ): void {
 	const fields = getConversationHonestFields(turn);
 	const el = append(container, $(`div.conversation-lens-turn.conversation-lens-turn--${kind}`));
@@ -500,6 +506,18 @@ export function renderHonestTimelineRow(
 		status.textContent = fields.retryable
 			? localize('conversationLens.errorRetryableBadge', "Retryable")
 			: localize('conversationLens.errorNotRetryableBadge', "Not retryable");
+		if (fields.retryable === true && onRetryError) {
+			const retryHost = append(header, $('span.conversation-lens-turn-error-retry'));
+			const retry = disposables.add(new Button(retryHost, {
+				...defaultButtonStyles,
+				small: true,
+				secondary: true,
+				title: conversationLensErrorRetry,
+				ariaLabel: conversationLensErrorRetry,
+			}));
+			retry.label = conversationLensErrorRetry;
+			disposables.add(retry.onDidClick(() => onRetryError(turn)));
+		}
 	} else if (kind === 'unknown') {
 		const status = append(header, $('span.conversation-lens-turn-honest-status'));
 		status.textContent = fields.typeName || fields.rawContent || localize('conversationLens.unknownTypeBadge', "Unknown type");

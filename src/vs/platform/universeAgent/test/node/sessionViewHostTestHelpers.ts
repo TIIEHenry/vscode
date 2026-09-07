@@ -15,6 +15,11 @@ import type {
 } from '../../common/universeAgentTypes.js';
 import { GrpcStatusCode, UniverseAgentTransportError } from '../../node/grpc/grpcTransport.js';
 import { createEmptyCapabilitySnapshot } from '../../node/grpcCapabilityProbe.js';
+import type { SessionViewHost } from '../../node/sessionViewHost.js';
+
+export async function bindEngineSession(host: SessionViewHost, sessionId: string): Promise<void> {
+	await host.whenEngineSessionReady(sessionId);
+}
 
 export class TestConnection implements IUniverseAgentConnection {
 	declare readonly _serviceBrand: undefined;
@@ -56,7 +61,23 @@ export class TestConnection implements IUniverseAgentConnection {
 	async probeConnectionProfile() { return { ok: false as const, code: 'transport_failed' as const, reason: 'test' }; }
 	async disconnect() { this.connected = false; }
 	async listSessions() { return { sessions: [] }; }
-	async createSession() { return { sessionId: 's' }; }
+	readonly createSessionCalls: { title?: string; model?: string; clientSessionId?: string }[] = [];
+	readonly createdEngineSessionIds = new Set<string>();
+	async createSession(request: { title?: string; model?: string; clientSessionId?: string } = {}) {
+		this.createSessionCalls.push(request);
+		const sessionId = request.title || 's';
+		this.createdEngineSessionIds.add(sessionId);
+		return { sessionId };
+	}
+	readonly resumeSessionCalls: { sessionId: string }[] = [];
+	resumeSessionResult: { ok: boolean; message?: string } | undefined;
+	async resumeSession(request: { sessionId: string }) {
+		this.resumeSessionCalls.push(request);
+		if (this.resumeSessionResult !== undefined) {
+			return this.resumeSessionResult;
+		}
+		return { ok: this.createdEngineSessionIds.has(request.sessionId) };
+	}
 	async deleteSession() { }
 	async renameSession() { return { ok: false, message: 'test' }; }
 	async cancelGeneration() { return { ok: false, message: 'test' }; }

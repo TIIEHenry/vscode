@@ -20,10 +20,15 @@ import { IContextMenuService } from '../../../../platform/contextview/browser/co
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { WorkbenchList } from '../../../../platform/list/browser/listService.js';
 import { defaultButtonStyles } from '../../../../platform/theme/browser/defaultStyles.js';
+import { IWorkspaceContextService } from '../../../../platform/workspace/common/workspace.js';
+import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
+import { IModelService } from '../../../../editor/common/services/model.js';
 import { ResourceLabels, IResourceLabel } from '../../../browser/labels.js';
 import { IEditorService } from '../../../services/editor/common/editorService.js';
 import { IQuickDiffService } from '../../scm/common/quickDiff.js';
 import { ISCMRepository, ISCMService } from '../../scm/common/scm.js';
+import { tryLoadSourcesGitChangeEntries, tryReadSourcesGitFileDiff } from '../common/sourcesChangesGitRead.js';
+import { sourcesChangeEntryIdentity } from '../common/sourcesChangesModel.js';
 import { collectSourcesReviewEntries, ISourcesReviewEntry } from '../common/sourcesReviewModel.js';
 import {
 	collectActiveReviewProgressKeys,
@@ -200,6 +205,8 @@ export class SourcesReviewList extends Disposable {
 	private allEntries: ISourcesReviewEntry[] = [];
 	private chipMap = new Map<string, readonly IReviewAttributionChipDisplay[]>();
 	private lastRevealMissToolCallId: string | undefined;
+	private usingGitRead = false;
+	private refreshSeq = 0;
 
 	private readonly rendererDelegate: ISourcesReviewRendererDelegate = {
 		isReviewed: (entry) => this.isEntryReviewed(entry),
@@ -223,6 +230,9 @@ export class SourcesReviewList extends Disposable {
 		@ISourcesReviewAttributionService private readonly attributionService: ISourcesReviewAttributionService,
 		@ICommandService private readonly commandService: ICommandService,
 		@IContextMenuService private readonly contextMenuService: IContextMenuService,
+		@IUniverseAgentConnection private readonly uaConnection: IUniverseAgentConnection,
+		@IWorkspaceContextService private readonly workspaceContext: IWorkspaceContextService,
+		@IModelService private readonly modelService: IModelService,
 	) {
 		super();
 
@@ -277,6 +287,7 @@ export class SourcesReviewList extends Disposable {
 		this.refreshScheduler = this._register(new RunOnceScheduler(() => void this.refresh(), 250));
 		this._register(this.reviewProgressService.onDidChange(() => this.scheduleRefresh()));
 		this._register(this.attributionService.onDidChange(() => this.scheduleRefresh()));
+		this._register(this.uaConnection.onDidChangeConnection(() => this.scheduleRefresh()));
 		this.scheduleRefresh();
 
 		this._register(this.scmService.onDidAddRepository(repo => {
@@ -454,7 +465,7 @@ export class SourcesReviewList extends Disposable {
 			delegate,
 			[renderer],
 			{
-				identityProvider: { getId: (element: ISourcesReviewEntry) => element.resource.toString() },
+				identityProvider: { getId: (element: ISourcesReviewEntry) => sourcesChangeEntryIdentity(element) },
 				accessibilityProvider: new SourcesReviewAccessibilityProvider(this.rendererDelegate),
 				openOnSingleClick: true,
 			}
@@ -474,6 +485,8 @@ export class SourcesReviewList extends Disposable {
 						configurationService: this.configurationService,
 						instantiationService: this.instantiationService,
 						sourcesDiffPanelService: this.sourcesDiffPanelService,
+						modelService: this.modelService,
+						readGitFileDiff: entry => this.readGitFileDiff(entry),
 					}, {
 						preserveFocus: e.editorOptions.preserveFocus,
 						pinned: false,
@@ -520,10 +533,59 @@ export class SourcesReviewList extends Disposable {
 		return this.list;
 	}
 
+	private getGitResourceRoot(): URI | undefined {
+		for (const repo of this.scmService.repositories) {
+			if (repo.provider.rootUri) {
+				return repo.provider.rootUri;
+			}
+		}
+		return this.workspaceContext.getWorkspace().folders[0]?.uri;
+	}
+
+	private async readGitFileDiff(entry: ISourcesReviewEntry) {
+		const hook = this.uaConnection.readGitFileDiff;
+		return tryReadSourcesGitFileDiff(
+			this.uaConnection.isEngineConnected(),
+			hook ? request => hook.call(this.uaConnection, request) : undefined,
+			entry.gitPath ?? '',
+			entry.indexState ?? '',
+		);
+	}
+
+	private async tryLoadGitEntries(): Promise<ISourcesReviewEntry[] | undefined> {
+		const changesHook = this.uaConnection.readGitChanges;
+		const summaryHook = this.uaConnection.readGitSummary;
+		const loaded = await tryLoadSourcesGitChangeEntries(
+			this.uaConnection.isEngineConnected(),
+			changesHook ? request => changesHook.call(this.uaConnection, request) : undefined,
+			summaryHook ? request => summaryHook.call(this.uaConnection, request) : undefined,
+			this.getGitResourceRoot(),
+		);
+		return loaded?.entries;
+	}
+
 	private async refresh(): Promise<void> {
-		const hasRepository = this.scmService.repositoryCount > 0;
-		this.allEntries = collectSourcesReviewEntries(this.scmService.repositories);
+		const seq = ++this.refreshSeq;
+		try {
+			const loaded = await this.tryLoadGitEntries();
+			if (seq !== this.refreshSeq) {
+				return;
+			}
+			this.usingGitRead = !!loaded;
+			this.allEntries = loaded ?? collectSourcesReviewEntries(this.scmService.repositories);
+		} catch {
+			if (seq !== this.refreshSeq) {
+				return;
+			}
+			this.usingGitRead = false;
+			this.allEntries = collectSourcesReviewEntries(this.scmService.repositories);
+		}
+
+		const hasRepository = this.usingGitRead || this.scmService.repositoryCount > 0;
 		await this.ensureEntryKeys(this.allEntries);
+		if (seq !== this.refreshSeq) {
+			return;
+		}
 
 		this.updatePathFilterBanner();
 

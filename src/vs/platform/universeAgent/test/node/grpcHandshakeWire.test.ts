@@ -101,4 +101,14 @@ suite('grpc handshake protobuf wire', () => {
 		assert.deepStrictEqual(decoded.methods, ['Connect']);
 		assert.deepStrictEqual(decoded.events, ['SessionEvent']);
 	});
+
+	test('decodeConnectResponse leaves sasCode undefined when field 8 is absent', () => {
+		const pairingNonce = Uint8Array.from([0x11, 0x22, 0x33]);
+		const encoded = Buffer.concat([
+			encodeBytesField(7, pairingNonce),
+		]);
+		const decoded = decodeConnectResponse(encoded);
+		assert.strictEqual(decoded.pairingNonce, Buffer.from(pairingNonce).toString('base64'));
+		assert.strictEqual(decoded.sasCode, undefined);
+	});
 });

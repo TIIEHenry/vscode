@@ -11,7 +11,9 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import tls from 'node:tls';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
+import { DIRECT_ADDRESS_SNI_PLACEHOLDER } from '../../node/deviceGrant/observe-candidate-leaf.js';
 import { deriveEngineLeafFingerprintHex } from '../../node/deviceGrant/tls-pin.js';
+import { createPinnedChannelOptions } from '../../node/universeAgentChannel.js';
 import { probePinnedTlsHandshake } from '../../node/pinnedTlsChannel.js';
 
 function createSelfSignedCert(): { cert: X509Certificate; certPem: string; keyPem: string } {
@@ -66,6 +68,15 @@ function startMockTlsServer(input: {
 suite('universeAgentChannel pinned TLS (S21)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('pinned channel options never use an IP as TLS SNI', () => {
+		assert.deepStrictEqual(createPinnedChannelOptions('127.0.0.1'), {
+			'grpc.ssl_target_name_override': DIRECT_ADDRESS_SNI_PLACEHOLDER,
+		});
+		assert.deepStrictEqual(createPinnedChannelOptions('relay.example.com'), {
+			'grpc.ssl_target_name_override': 'relay.example.com',
+		});
+	});
 
 	test('wrong pin fails / correct pin succeeds / random SNI does not block nonce hostname', async () => {
 		const { cert, certPem, keyPem } = createSelfSignedCert();
