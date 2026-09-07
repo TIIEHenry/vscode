@@ -3,7 +3,7 @@ title: "Conversation 轨迹透镜：DeepSeek harness 检查表移植"
 type: plan
 status: implemented
 phase: N/A
-updated: 2026-09-02
+updated: 2026-09-07
 summary: "SessionBar 对话|轨迹 tablist；T1–T3 @ `b08ca9de`–`3e2ac61f`；T5a @ `f66c36c9`；**T4** Event fold @ `5104678e`；**T5** 搜索/虚拟化 @ `94267eef`；Q3 compacted 消费 P2b attribution；Overview / DetailRef 全文仍 Deferred"
 ---
 
@@ -78,7 +78,7 @@ T1 断言：宿主宽 300px 时两枚 tab `offsetWidth > 0`；bar 计算高度�
 
 - 切到 `conversation`：`timeline` 槽渲染现有回合列表（PRD-003）。
 - 切到 `trajectory`：`timeline` 槽渲染轨迹表 + 其局部检查器。Dock **仍在**，不改发送链。
-- Input Maximize 在两页都有效：最大化时仍藏/压 `timeline` 视口，不卸 Dock。
+- Input Maximize 在两页都有效：最大化只藏 `.conversation-lens-timeline`，不把共享 `.conversation-timeline` 槽整段 `display:none`（轨迹虚列表仍须能铺行）；不卸 Dock。
 - 切会话：透镜选择 **保持**，轨迹表换成该会话投影。
 - 持久化：`IStorageService`，`StorageScope.WORKSPACE` + `StorageTarget.MACHINE`，键 `conversation.lensId`（`'conversation' | 'trajectory'`）。缺省 / 坏值 → `conversation`。**重载窗口后保持**（不只「同一次打开」）。`ConversationLens` 今天无 storage 注入，T1 在构造函数服务参数末尾加 `@IStorageService`（`workbenchInstantiationService` 已有该服务）。
 - 在轨迹页发送：Dock 发送链不变（仍 `appendUserTurn`）。新用户回合同时进入对话 turns 与轨迹 `user` 行；**不**因此切回对话。
