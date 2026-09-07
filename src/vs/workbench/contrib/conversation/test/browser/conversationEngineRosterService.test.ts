@@ -1614,7 +1614,7 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		await new Promise<void>(resolve => setTimeout(resolve, 0));
 
 		const outcome = await postBound(
-			{ stubService: service, sessionViewLease: undefined } as Parameters<typeof postBound>[0],
+			{ stubService: service, sessionViewLease: undefined } as unknown as Parameters<typeof postBound>[0],
 			{ kind: 'submitInput', text: 'hello' },
 		);
 		assert.strictEqual(outcome.accepted, false);
@@ -1665,7 +1665,7 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 	});
 
 	test('empty list with pending bind stays incomplete until lease resolves', async () => {
-		let resolveLease: ((value: string) => void) | undefined;
+		let resolveLease: (() => void) | undefined;
 		const connection = store.add(new MockUniverseAgentConnection());
 		connection.setListSessions([]);
 		const sessionView: IUniverseAgentSessionView = {

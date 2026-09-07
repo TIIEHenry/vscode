@@ -51,7 +51,6 @@ import {
 	getHubDeviceRowStatusLabel,
 	getHubDirectoryBannerLabel,
 	isRecoverTrustConnectResult,
-	RECOVER_TRUST_CONFIRM_BUTTON_LABEL,
 	isForbiddenSasButtonLabel,
 	SAS_CANCEL_BUTTON_LABEL,
 	SAS_CONFIRM_BUTTON_LABEL,
@@ -674,7 +673,7 @@ suite('ConnectionPreferencesPane', () => {
 		await Promise.resolve();
 		const hubStatus = container.querySelector('.connection-hub-connect-status') as HTMLElement;
 		const testStatus = container.querySelector('.connection-test-status') as HTMLElement;
-		assert.strictEqual(hubStatus.textContent, 'Connecting…');
+		assert.strictEqual(String(hubStatus.textContent), 'Connecting…');
 		assert.strictEqual(testStatus.textContent, '');
 		resolveConnect!({
 			ok: true,
@@ -685,11 +684,12 @@ suite('ConnectionPreferencesPane', () => {
 		});
 		await Promise.resolve();
 		await Promise.resolve();
-		assert.strictEqual(hubStatus.textContent, 'Pairing pending — not connected yet.');
+		const pairingStatusText = String(hubStatus.textContent);
+		assert.strictEqual(pairingStatusText, 'Pairing pending — not connected yet.');
 		assert.ok(hubStatus.classList.contains('is-warning'));
-		assert.ok(!hubStatus.textContent?.includes('ok=true'));
-		assert.ok(!hubStatus.textContent?.includes('ABCD-EFGH'));
-		assert.notStrictEqual(hubStatus.textContent, 'Connected');
+		assert.ok(!pairingStatusText.includes('ok=true'));
+		assert.ok(!pairingStatusText.includes('ABCD-EFGH'));
+		assert.notStrictEqual(pairingStatusText, 'Connected');
 		assert.strictEqual(testStatus.textContent, '');
 		assert.ok(container.querySelector('.connection-pairing-confirm .monaco-dialog-box'));
 		clickPairingCancel(container);

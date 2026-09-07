@@ -53,7 +53,7 @@ import {
 	cancelToolCall,
 	copyTurn,
 	deleteTurn,
-	retryError,
+	retryError as retryErrorBound,
 	findFirstPendingConfirmationTurnId,
 	focusTimelineRecord,
 	openVisualizeOverlay,
@@ -150,110 +150,110 @@ import { CONVERSATION_LENS_ID_STORAGE_KEY } from './conversationLensProjection.j
  */
 export class ConversationLens extends Disposable {
 
-	private register<T extends import('../../../../base/common/lifecycle.js').IDisposable>(disposable: T): T {
+	register<T extends import('../../../../base/common/lifecycle.js').IDisposable>(disposable: T): T {
 		return this._register(disposable);
 	}
 
-	private sessionTitleButton!: HTMLButtonElement;
-	private sessionTitleLive!: HTMLElement;
-	private sessionTitleInput!: HTMLInputElement;
-	private sessionTitleEditing = false;
-	private sessionTitleEditSnapshot = '';
-	private sessionSelectBox!: SelectBox;
-	private sessionSelectContainer!: HTMLElement;
-	private newSessionButton!: Button;
-	private deleteSessionButton!: Button;
-	private sessionBarRouteContainer!: HTMLElement;
-	private sessionBarRouteSelectBox!: SelectBox;
-	private lensTablist!: HTMLElement;
-	private lensTabConversation!: HTMLButtonElement;
-	private lensTabTrajectory!: HTMLButtonElement;
-	private lensId: ConversationLensId = 'conversation';
-	private filterAgentId: string | undefined;
-	private timelineTree!: ConversationTimelineTree;
-	private trajectoryView!: ConversationTrajectory;
-	private inboxOverlay!: ConversationInboxOverlay;
-	private engineHistoryList: ConversationEngineHistoryList | undefined;
-	private engineSnapshotsList: ConversationEngineSnapshotsList | undefined;
-	private dockTextarea!: HTMLTextAreaElement;
-	private sendButton!: Button;
-	private addButton!: Button;
-	private addContextView: IOpenContextView | undefined;
-	private tuneButton!: Button;
-	private tuneContextView: IOpenContextView | undefined;
-	private permissionSelectBox!: SelectBox;
-	private agentContainer!: HTMLElement;
-	private agentSelectBox!: SelectBox;
-	private routeContainer!: HTMLElement;
-	private routeSelectBox!: SelectBox;
-	private moreButton!: Button;
-	private moreContextView: IOpenContextView | undefined;
-	private modelSelectBox!: SelectBox;
-	private modelSelectedIndex = 0;
-	private templatesButton!: Button;
-	private templatesContextView: IOpenContextView | undefined;
-	private maximizeInputButton!: Button;
-	private micButton!: Button;
-	private composerCluster!: HTMLElement;
-	private voiceTranscriptBar!: ConversationVoiceTranscriptBar;
+	sessionTitleButton!: HTMLButtonElement;
+	sessionTitleLive!: HTMLElement;
+	sessionTitleInput!: HTMLInputElement;
+	sessionTitleEditing = false;
+	sessionTitleEditSnapshot = '';
+	sessionSelectBox!: SelectBox;
+	sessionSelectContainer!: HTMLElement;
+	newSessionButton!: Button;
+	deleteSessionButton!: Button;
+	sessionBarRouteContainer!: HTMLElement;
+	sessionBarRouteSelectBox!: SelectBox;
+	lensTablist!: HTMLElement;
+	lensTabConversation!: HTMLButtonElement;
+	lensTabTrajectory!: HTMLButtonElement;
+	lensId: ConversationLensId = 'conversation';
+	filterAgentId: string | undefined;
+	timelineTree!: ConversationTimelineTree;
+	trajectoryView!: ConversationTrajectory;
+	inboxOverlay!: ConversationInboxOverlay;
+	engineHistoryList: ConversationEngineHistoryList | undefined;
+	engineSnapshotsList: ConversationEngineSnapshotsList | undefined;
+	dockTextarea!: HTMLTextAreaElement;
+	sendButton!: Button;
+	addButton!: Button;
+	addContextView: IOpenContextView | undefined;
+	tuneButton!: Button;
+	tuneContextView: IOpenContextView | undefined;
+	permissionSelectBox!: SelectBox;
+	agentContainer!: HTMLElement;
+	agentSelectBox!: SelectBox;
+	routeContainer!: HTMLElement;
+	routeSelectBox!: SelectBox;
+	moreButton!: Button;
+	moreContextView: IOpenContextView | undefined;
+	modelSelectBox!: SelectBox;
+	modelSelectedIndex = 0;
+	templatesButton!: Button;
+	templatesContextView: IOpenContextView | undefined;
+	maximizeInputButton!: Button;
+	micButton!: Button;
+	composerCluster!: HTMLElement;
+	voiceTranscriptBar!: ConversationVoiceTranscriptBar;
 
-	private readingColumn!: HTMLElement;
-	private prefirstHero!: HTMLElement;
-	private dockRoot!: HTMLElement;
-	private gateRow!: HTMLElement;
-	private gateLabel!: HTMLElement;
-	private sessionSyncBadge!: HTMLElement;
-	private sendFailureTimeout: ReturnType<typeof setTimeout> | undefined;
-	private composer!: HTMLElement;
-	private composerEditHeader!: HTMLElement;
-	private composerEditTitle!: HTMLElement;
-	private composerExitButton!: Button;
-	private identityStrip!: ConversationIdentityStrip;
+	readingColumn!: HTMLElement;
+	prefirstHero!: HTMLElement;
+	dockRoot!: HTMLElement;
+	gateRow!: HTMLElement;
+	gateLabel!: HTMLElement;
+	sessionSyncBadge!: HTMLElement;
+	sendFailureTimeout: ReturnType<typeof setTimeout> | undefined;
+	composer!: HTMLElement;
+	composerEditHeader!: HTMLElement;
+	composerEditTitle!: HTMLElement;
+	composerExitButton!: Button;
+	identityStrip!: ConversationIdentityStrip;
 
-	private readonly slotHosts: IConversationLensSlots;
-	private inputMaximized = false;
-	private conversationPhase: 'prefirst' | 'active' | undefined;
-	private composerPolicy: ComposerPolicy = 'compose';
-	private editingTurnId: string | undefined;
-	private editingQueueItemId: string | undefined;
-	private composeDraftSnapshot = '';
+	readonly slotHosts: IConversationLensSlots;
+	inputMaximized = false;
+	conversationPhase: 'prefirst' | 'active' | undefined;
+	composerPolicy: ComposerPolicy = 'compose';
+	editingTurnId: string | undefined;
+	editingQueueItemId: string | undefined;
+	composeDraftSnapshot = '';
 
-	private readonly drafts = new Map<string, string>();
-	private readonly sessionConfigBySessionId = new Map<string, ConversationSessionConfigSelection>();
-	private readonly voiceClipsBySessionId = new Map<string, ConversationVoiceClip[]>();
-	private readonly voicePhraseIndexBySessionId = new Map<string, number>();
-	private readonly voiceTranscriptTimeouts = new Map<string, ReturnType<typeof setTimeout>>();
-	private nextVoiceClipId = 0;
-	private inputHistoryBrowse: InputHistoryBrowseState = createInputHistoryBrowseState();
-	private suppressSessionSelect = false;
-	private mermaidExtensionInfo: ConversationMermaidExtensionInfo | undefined;
-	private readonly visualizeOverlay: ConversationVisualizeOverlay;
-	private sessionViewLease: IConversationSessionViewLease | undefined;
-	private readonly sessionViewLifetime = this._register(new DisposableStore());
-	private submitInFlight = false;
-	private lastAttachedEntries: ConversationTimelineEntry[] = [];
-	private lastRevealItemId: string | undefined;
-	private lastReadingWidth = 0;
-	private lastReadingHeight = 0;
-	private postFailureVisible = false;
-	private composerCatalogGeneration = 0;
-	private catalogToolNames: readonly string[] = [];
-	private catalogModelIds: readonly string[] = [];
-	private boundSessionId: string | undefined;
+	readonly drafts = new Map<string, string>();
+	readonly sessionConfigBySessionId = new Map<string, ConversationSessionConfigSelection>();
+	readonly voiceClipsBySessionId = new Map<string, ConversationVoiceClip[]>();
+	readonly voicePhraseIndexBySessionId = new Map<string, number>();
+	readonly voiceTranscriptTimeouts = new Map<string, ReturnType<typeof setTimeout>>();
+	nextVoiceClipId = 0;
+	inputHistoryBrowse: InputHistoryBrowseState = createInputHistoryBrowseState();
+	suppressSessionSelect = false;
+	mermaidExtensionInfo: ConversationMermaidExtensionInfo | undefined;
+	readonly visualizeOverlay: ConversationVisualizeOverlay;
+	sessionViewLease: IConversationSessionViewLease | undefined;
+	readonly sessionViewLifetime = this._register(new DisposableStore());
+	submitInFlight = false;
+	lastAttachedEntries: ConversationTimelineEntry[] = [];
+	lastRevealItemId: string | undefined;
+	lastReadingWidth = 0;
+	lastReadingHeight = 0;
+	postFailureVisible = false;
+	composerCatalogGeneration = 0;
+	catalogToolNames: readonly string[] = [];
+	catalogModelIds: readonly string[] = [];
+	boundSessionId: string | undefined;
 
 	constructor(
 		slots: IConversationLensSlots,
-		@IConversationRosterService private readonly stubService: IConversationRosterService,
-		@IClipboardService private readonly clipboardService: IClipboardService,
-		@IContextViewService private readonly contextViewService: IContextViewService,
-		@IConfigurationService private readonly configurationService: IConfigurationService,
-		@IInstantiationService private readonly instantiationService: IInstantiationService,
-		@IStorageService private readonly storageService: IStorageService,
-		@IExtensionService private readonly extensionService: IExtensionService,
-		@IWebviewService private readonly webviewService: IWebviewService,
+		@IConversationRosterService readonly stubService: IConversationRosterService,
+		@IClipboardService readonly clipboardService: IClipboardService,
+		@IContextViewService readonly contextViewService: IContextViewService,
+		@IConfigurationService readonly configurationService: IConfigurationService,
+		@IInstantiationService readonly instantiationService: IInstantiationService,
+		@IStorageService readonly storageService: IStorageService,
+		@IExtensionService readonly extensionService: IExtensionService,
+		@IWebviewService readonly webviewService: IWebviewService,
 		@IConversationTimelineRevealService revealService: IConversationTimelineRevealService,
-		@IConversationReviewNavService private readonly reviewNavService: IConversationReviewNavService,
-		@ICommandService private readonly commandService: ICommandService,
+		@IConversationReviewNavService readonly reviewNavService: IConversationReviewNavService,
+		@ICommandService readonly commandService: ICommandService,
 		@IUniverseAgentConnection readonly uaConnection: IUniverseAgentConnection,
 	) {
 		super();
@@ -394,7 +394,7 @@ export class ConversationLens extends Disposable {
 		}
 	}
 
-	private trajectoryProjectionOptions(): { readonly filterAgentId?: string } | undefined {
+	trajectoryProjectionOptions(): { readonly filterAgentId?: string } | undefined {
 		return trajectoryProjectionOptions(this);
 	}
 
@@ -481,294 +481,294 @@ export class ConversationLens extends Disposable {
 		}
 	}
 
-	private toggleInputMaximized(): void {
+	toggleInputMaximized(): void {
 		toggleInputMaximized(this);
 	}
 
-	private updateMaximizeInputButton(): void {
+	updateMaximizeInputButton(): void {
 		updateMaximizeInputButton(this);
 	}
 
-	private updateSendEnabled(): void {
+	updateSendEnabled(): void {
 		updateSendEnabled(this);
 	}
 
-	private updateGateRow(): void {
+	updateGateRow(): void {
 		updateGateRow(this);
 	}
 
-	private refreshComposerCatalogs(): void {
+	refreshComposerCatalogs(): void {
 		refreshComposerCatalogs(this);
 	}
 
-	private async loadConnectedComposerCatalogs(generation: number): Promise<void> {
+	async loadConnectedComposerCatalogs(generation: number): Promise<void> {
 		return loadConnectedComposerCatalogs(this, generation);
 	}
 
-	private createComposerSelectBox(options: { text: string }[], selectedIndex: number, ariaLabel: string): SelectBox {
+	createComposerSelectBox(options: { text: string }[], selectedIndex: number, ariaLabel: string): SelectBox {
 		return createComposerSelectBox(this, options, selectedIndex, ariaLabel);
 	}
 
-	private createRouteSelectBox(selectedIndex: number, ariaLabel: string): SelectBox {
+	createRouteSelectBox(selectedIndex: number, ariaLabel: string): SelectBox {
 		return createRouteSelectBox(this, selectedIndex, ariaLabel);
 	}
 
-	private getSessionConfig(sessionId: string): ConversationSessionConfigSelection {
+	getSessionConfig(sessionId: string): ConversationSessionConfigSelection {
 		return getSessionConfig(this, sessionId);
 	}
 
-	private setSessionConfig(sessionId: string, patch: Partial<ConversationSessionConfigSelection>): void {
+	setSessionConfig(sessionId: string, patch: Partial<ConversationSessionConfigSelection>): void {
 		setSessionConfig(this, sessionId, patch);
 	}
 
-	private syncSessionConfigSelects(sessionId: string): void {
+	syncSessionConfigSelects(sessionId: string): void {
 		syncSessionConfigSelects(this, sessionId);
 	}
 
-	private updateSessionConfigVisibility(preFirst: boolean): void {
+	updateSessionConfigVisibility(preFirst: boolean): void {
 		updateSessionConfigVisibility(this, preFirst);
 	}
 
-	private mountSessionBar(host: HTMLElement): void {
+	mountSessionBar(host: HTMLElement): void {
 		mountSessionBar(this, host);
 	}
 
-	private mountLensTablist(host: HTMLElement): void {
+	mountLensTablist(host: HTMLElement): void {
 		mountLensTablist(this, host);
 	}
 
-	private createSessionSelectBox(): SelectBox {
+	createSessionSelectBox(): SelectBox {
 		return createSessionSelectBox(this);
 	}
 
-	private refreshSessionSelectOptions(): void {
+	refreshSessionSelectOptions(): void {
 		refreshSessionSelectOptions(this);
 	}
 
-	private shouldRefreshActiveSessionChrome(sessionId: string): boolean {
+	shouldRefreshActiveSessionChrome(sessionId: string): boolean {
 		return shouldRefreshActiveSessionChrome(this, sessionId);
 	}
 
-	private mountTimeline(host: HTMLElement): void {
+	mountTimeline(host: HTMLElement): void {
 		mountTimeline(this, host);
 	}
 
-	private mountDock(host: HTMLElement): void {
+	mountDock(host: HTMLElement): void {
 		mountDock(this, host);
 	}
 
-	private toggleAddContextView(): void {
+	toggleAddContextView(): void {
 		toggleAddContextView(this);
 	}
 
-	private toggleTuneContextView(): void {
+	toggleTuneContextView(): void {
 		toggleTuneContextView(this);
 	}
 
-	private toggleMoreContextView(): void {
+	toggleMoreContextView(): void {
 		toggleMoreContextView(this);
 	}
 
-	private toggleTemplatesContextView(): void {
+	toggleTemplatesContextView(): void {
 		toggleTemplatesContextView(this);
 	}
 
-	private isPreFirst(): boolean {
+	isPreFirst(): boolean {
 		return isPreFirst(this);
 	}
 
-	private updateConversationPhase(): void {
+	updateConversationPhase(): void {
 		updateConversationPhase(this);
 	}
 
-	private relayoutReadingSurfaces(): void {
+	relayoutReadingSurfaces(): void {
 		if (this.lastReadingWidth < 1) {
 			return;
 		}
 		layoutReadingSurfaces(this, this.lastReadingHeight, this.lastReadingWidth);
 	}
 
-	private beginTurnEdit(turnId: string): void {
+	beginTurnEdit(turnId: string): void {
 		beginTurnEdit(this, turnId);
 	}
 
-	private beginQueueEdit(itemId: string): void {
+	beginQueueEdit(itemId: string): void {
 		beginQueueEdit(this, itemId);
 	}
 
-	private exitComposerEdit(restoreComposeDraft = true, releaseQueueHold = true): void {
+	exitComposerEdit(restoreComposeDraft = true, releaseQueueHold = true): void {
 		exitComposerEdit(this, restoreComposeDraft, releaseQueueHold);
 	}
 
-	private getVoiceClips(sessionId: string): readonly ConversationVoiceClip[] {
+	getVoiceClips(sessionId: string): readonly ConversationVoiceClip[] {
 		return getVoiceClips(this, sessionId);
 	}
 
-	private setVoiceClips(sessionId: string, clips: readonly ConversationVoiceClip[]): void {
+	setVoiceClips(sessionId: string, clips: readonly ConversationVoiceClip[]): void {
 		setVoiceClips(this, sessionId, clips);
 	}
 
-	private renderVoiceTranscriptBar(): void {
+	renderVoiceTranscriptBar(): void {
 		renderVoiceTranscriptBar(this);
 	}
 
-	private updateVoiceMicChrome(): void {
+	updateVoiceMicChrome(): void {
 		updateVoiceMicChrome(this);
 	}
 
-	private toggleVoiceRecording(): void {
+	toggleVoiceRecording(): void {
 		toggleVoiceRecording(this);
 	}
 
-	private finishVoiceClip(sessionId: string, clipId: string): void {
+	finishVoiceClip(sessionId: string, clipId: string): void {
 		finishVoiceClip(this, sessionId, clipId);
 	}
 
-	private getEditingQueueItem() {
+	getEditingQueueItem() {
 		return getEditingQueueItem(this);
 	}
 
-	private updateComposerEditChrome(): void {
+	updateComposerEditChrome(): void {
 		updateComposerEditChrome(this);
 	}
 
-	private syncComposerPlacement(): void {
+	syncComposerPlacement(): void {
 		syncComposerPlacement(this);
 	}
 
-	private ensureComposerInCluster(): void {
+	ensureComposerInCluster(): void {
 		ensureComposerInCluster(this);
 	}
 
-	private switchToSession(sessionId: string): void {
+	switchToSession(sessionId: string): void {
 		switchToSession(this, sessionId);
 	}
 
-	private openVisualizeOverlay(source: string, title?: string): void {
+	openVisualizeOverlay(source: string, title?: string): void {
 		openVisualizeOverlay(this, source, title);
 	}
 
-	private loadLensId(): ConversationLensId {
+	loadLensId(): ConversationLensId {
 		return loadLensId(this);
 	}
 
-	private setLensId(lensId: ConversationLensId): void {
+	setLensId(lensId: ConversationLensId): void {
 		setLensId(this, lensId);
 		this.relayoutReadingSurfaces();
 	}
 
-	private updateLensTabs(): void {
+	updateLensTabs(): void {
 		updateLensTabs(this);
 	}
 
-	private handleLensTablistKeyDown(event: KeyboardEvent): void {
+	handleLensTablistKeyDown(event: KeyboardEvent): void {
 		handleLensTablistKeyDown(this, event);
 		this.relayoutReadingSurfaces();
 	}
 
-	private updateReadingColumn(): void {
+	updateReadingColumn(): void {
 		updateReadingColumn(this);
 	}
 
-	private refreshTrajectoryRecords(sessionId: string): void {
+	refreshTrajectoryRecords(sessionId: string): void {
 		refreshTrajectoryRecords(this, sessionId);
 	}
 
-	private navigateToTurnFromTrajectory(turnId: string): void {
+	navigateToTurnFromTrajectory(turnId: string): void {
 		navigateToTurnFromTrajectory(this, turnId);
 		this.relayoutReadingSurfaces();
 	}
 
-	private navigateToTrajectoryFromTurn(turnId: string): void {
+	navigateToTrajectoryFromTurn(turnId: string): void {
 		navigateToTrajectoryFromTurn(this, turnId);
 	}
 
-	private createNewSession(): void {
+	createNewSession(): void {
 		createNewSession(this);
 	}
 
-	private deleteActiveSession(): void {
+	deleteActiveSession(): void {
 		deleteActiveSession(this);
 	}
 
-	private applyActiveSession(sessionId: string): void {
+	applyActiveSession(sessionId: string): void {
 		applyActiveSession(this, sessionId);
 	}
 
-	private bindSessionView(sessionId: string): void {
+	bindSessionView(sessionId: string): void {
 		bindSessionView(this, sessionId);
 	}
 
-	private applySessionViewTimeline(applied: ConversationViewFrameApplied,
+	applySessionViewTimeline(applied: ConversationViewFrameApplied,
 		options?: { readonly sidecarOnly?: boolean },): void {
 		applySessionViewTimeline(this, applied, options);
 	}
 
-	private bindReadingColumnLayout(): void {
+	bindReadingColumnLayout(): void {
 		bindReadingColumnLayout(this);
 	}
 
-	private composerChatId(): string {
+	composerChatId(): string {
 		return composerChatId(this);
 	}
 
-	private draftMapKey(sessionId: string): string {
+	draftMapKey(sessionId: string): string {
 		return draftMapKey(this, sessionId);
 	}
 
-	private readComposerDraft(sessionId: string): string {
+	readComposerDraft(sessionId: string): string {
 		return readComposerDraft(this, sessionId);
 	}
 
-	private writeComposerDraft(sessionId: string, text: string): void {
+	writeComposerDraft(sessionId: string, text: string): void {
 		writeComposerDraft(this, sessionId, text);
 	}
 
-	private restoreComposerDraftToInput(): void {
+	restoreComposerDraftToInput(): void {
 		restoreComposerDraftToInput(this);
 	}
 
-	private deleteComposerDraftsForSession(sessionId: string): void {
+	deleteComposerDraftsForSession(sessionId: string): void {
 		deleteComposerDraftsForSession(this, sessionId);
 	}
 
-	private pruneOrphanComposerDrafts(): void {
+	pruneOrphanComposerDrafts(): void {
 		pruneOrphanComposerDrafts(this);
 	}
 
-	private applyConversationDensity(): void {
+	applyConversationDensity(): void {
 		applyConversationDensity(this);
 	}
 
-	private applyConversationWidth(width: number): void {
+	applyConversationWidth(width: number): void {
 		applyConversationWidth(this, width);
 	}
 
-	private updateSyncChrome(sync: SyncChrome): void {
+	updateSyncChrome(sync: SyncChrome): void {
 		updateSyncChrome(this, sync);
 	}
 
-	private showPostFailure(reason: ConversationComposerPostFailureReason): void {
+	showPostFailure(reason: ConversationComposerPostFailureReason): void {
 		showPostFailure(this, reason);
 	}
 
-	private updateSessionTitle(): void {
+	updateSessionTitle(): void {
 		updateSessionTitle(this);
 	}
 
-	private beginSessionTitleEdit(): void {
+	beginSessionTitleEdit(): void {
 		beginSessionTitleEdit(this);
 	}
 
-	private cancelSessionTitleEdit(): void {
+	cancelSessionTitleEdit(): void {
 		cancelSessionTitleEdit(this);
 	}
 
-	private commitSessionTitleEdit(): void {
+	commitSessionTitleEdit(): void {
 		commitSessionTitleEdit(this);
 	}
 
-	private renderInboxStatus(): void {
+	renderInboxStatus(): void {
 		renderInboxStatus(this);
 	}
 
@@ -783,67 +783,67 @@ export class ConversationLens extends Disposable {
 		});
 	}
 
-	private findFirstPendingConfirmationTurnId(): string | undefined {
+	findFirstPendingConfirmationTurnId(): string | undefined {
 		return findFirstPendingConfirmationTurnId(this);
 	}
 
-	private async resolveConfirmation(turnId: string, status: 'allowed' | 'skipped'): Promise<void> {
+	async resolveConfirmation(turnId: string, status: 'allowed' | 'skipped'): Promise<void> {
 		return resolveConfirmation(this, turnId, status);
 	}
 
-	private async resolveQuestion(turnId: string, requestId: string, answers: ConversationQuestionRespondAnswers, customText?: string): Promise<void> {
+	async resolveQuestion(turnId: string, requestId: string, answers: ConversationQuestionRespondAnswers, customText?: string): Promise<void> {
 		return resolveQuestion(this, turnId, requestId, answers, customText);
 	}
 
-	private focusTimelineRecord(turnId: string): void {
+	focusTimelineRecord(turnId: string): void {
 		focusTimelineRecord(this, turnId);
 	}
 
-	private copyTurn(text: string): void {
+	copyTurn(text: string): void {
 		copyTurn(this, text);
 	}
 
-	private deleteTurn(turnId: string): void {
+	deleteTurn(turnId: string): void {
 		deleteTurn(this, turnId);
 	}
 
-	private cancelToolCall(turn: { readonly id: string; readonly agentId?: string }): void {
+	cancelToolCall(turn: { readonly id: string; readonly agentId?: string }): void {
 		cancelToolCall(this, turn);
 	}
 
-	private retryError(turn: { readonly id: string; readonly turnId?: string; readonly agentId?: string }): void {
-		retryError(this, turn);
+	retryError(turn: { readonly id: string; readonly turnId?: string; readonly agentId?: string }): void {
+		retryErrorBound(this, turn);
 	}
 
-	private resetInputHistoryBrowse(): void {
+	resetInputHistoryBrowse(): void {
 		resetInputHistoryBrowse(this);
 	}
 
-	private getSessionInputHistory(): readonly string[] {
+	getSessionInputHistory(): readonly string[] {
 		return getSessionInputHistory(this);
 	}
 
-	private navigateInputHistory(direction: InputHistoryDirection): boolean {
+	navigateInputHistory(direction: InputHistoryDirection): boolean {
 		return navigateInputHistory(this, direction);
 	}
 
-	private exitInputHistoryBrowse(): void {
+	exitInputHistoryBrowse(): void {
 		exitInputHistoryBrowse(this);
 	}
 
-	private postBound(msg: ConversationWriteMessage): Promise<PostOutcome> {
+	postBound(msg: ConversationWriteMessage): Promise<PostOutcome> {
 		return postBound(this, msg);
 	}
 
-	private async submitDraft(): Promise<void> {
+	async submitDraft(): Promise<void> {
 		return submitDraft(this);
 	}
 
-	private saveTurnEdit(): void {
+	saveTurnEdit(): void {
 		saveTurnEdit(this);
 	}
 
-	private saveQueueEdit(): void {
+	saveQueueEdit(): void {
 		saveQueueEdit(this);
 	}
 }
