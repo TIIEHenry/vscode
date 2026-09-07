@@ -53,12 +53,12 @@ summary: "人类工位已对齐已推送 MERGE_SHA c1b228caf74；保留本机行
 
 人类工位已 merge `c1b228caf74`（先 commit 行动层再三路合）。Direct 接通已通。Chat 仍被引擎空壳 Create（目录在、`session_meta` 空、回 6）挡住；不要再清 `.sessions` 当主线。见 [D26](deferred-gaps.md)。**U2 未开**。**PRD-008 不升 `implemented`**。
 
-1. **集成 tip** 以 merge 本关仓提交为准（P2 已串行 A=`24a08245cfc` / B=`250630d0f01` / D=`5c662d80ce6`）。`npm run compile` 仍基线 unused 红，本波文件无新 TS 错，**不 push**。GFS >800 不拆。
+1. **集成 tip** 以 merge 本关仓提交为准（P2 已串行 C=`aaa6b278b4e` / D=`2ae059e42f1`）。`npm run compile` 仍基线 unused 红则 **不 push**。GFS >800 不拆。
 2. 本波字母槽已进 merge：
    - **A**：[D40](deferred-gaps.md) closed（`fetchToolDetail` throw 回 `{ok:false}`）；[D26](deferred-gaps.md) 引擎 Create meta 仍 open。
    - **B**：[D34](deferred-gaps.md)/[D35](deferred-gaps.md)/[D36](deferred-gaps.md) closed。D27 未重开。
-   - **C**：[D41](deferred-gaps.md) closed（Inbox `FAILED`→`queue-failed`，`UPLOAD_FAILED` 仍 `upload-failed`；Retry 接线未改）。D37/D30/D26 未动。
-   - **D**：[D31](deferred-gaps.md) leftover 已收；**D31 仍开**（F4）；R8 未发明。
+   - **C**：[D41](deferred-gaps.md) closed（Inbox `FAILED`→`queue-failed`，`UPLOAD_FAILED` 仍 `upload-failed`；Retry 接线未改）。
+   - **D**：Open Selected 空 catch 已收（`sourcesGitDiffOpenFailureMessage` + Review status）；**[D31](deferred-gaps.md) 仍开**（F4）；R8 未发明。
 
 子 agent 发现的既有代码问题：
 
@@ -67,7 +67,7 @@ summary: "人类工位已对齐已推送 MERGE_SHA c1b228caf74；保留本机行
 | [D23](deferred-gaps.md) | A 槽 | **closed** resident heartbeat write 已 catch |
 | [D33](deferred-gaps.md) | B 槽 | **closed** pairingPending 开 Connection/SAS |
 | [D27](deferred-gaps.md) | grok 4.6 | **closed**：`provideTurnEditComposer` 先于 `setEditingTurnId`；已删 1px 垫高 |
-| [D31](deferred-gaps.md) | D 槽 | Changes Unstage 不可用 + Review 打开失败已收；剩 F4 冒烟；命令 Open Selected 仍空 catch；不升 PRD |
+| [D31](deferred-gaps.md) | D 槽 | Changes Unstage 不可用 + Review 列表/命令打开失败已收；剩 F4 冒烟；不升 PRD |
 | [R8](research-queue.md) | A 槽 Sources | `WriteGitApplyHunks` 空 patches 语义未定 |
 | [D32](deferred-gaps.md) | A 槽 `host-write-retry` | **closed（代码+测已写；compile 待 merge）** Retry 走 `lease.post`；host 映射 Actor `continueGeneration` |
 | [D38](deferred-gaps.md) | A 槽 `host-bind-safety` | **closed** `fillHistory` bind/write 已 catch |
@@ -87,7 +87,7 @@ summary: "人类工位已对齐已推送 MERGE_SHA c1b228caf74；保留本机行
 | merge | `vscode-WorkTrees/merge` | `loop/merge` | 本关仓提交 | 0 | 0 | parked；compile 基线 unused 仍红，**不 push** |
 | A | `vscode-WorkTrees/A` | `loop/A` | 对齐 MERGE_SHA | `__pycache__` | 0 | idle（P6 后） |
 | B | `vscode-WorkTrees/B` | `loop/B` | 对齐 MERGE_SHA | 0 | 0 | idle（P6 后） |
-| C | `vscode-WorkTrees/C` | `loop/C` | 对齐 MERGE_SHA | Inbox D41 + `dev/loop` | 0 | D41 未提交；勿 add `dev/loop` |
+| C | `vscode-WorkTrees/C` | `loop/C` | 对齐 MERGE_SHA | `dev/loop` | 0 | idle（P6 后）；勿 add `dev/loop` |
 | D | `vscode-WorkTrees/D` | `loop/D` | 对齐 MERGE_SHA | 0 | 0 | idle（P6 后） |
 | edit | `Projects/Agents/vscode` | `agent-ide` | `a40a95d1e85`+ | `dev/loop` | 0 | 人类工位；请自行对齐 merge 关仓 SHA |
 
