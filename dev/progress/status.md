@@ -57,7 +57,7 @@ summary: "FileMutationJoin / createScoped / Review 委托已修。D16 仍开。A
 2. 本波字母槽已进 merge：
    - **A**：`filemutation-join` — 无 `diff_stats` 时 omit optional `diffStats`。unit-custom XML 脚本仍在。**[D16](deferred-gaps.md) 仍开**。
    - **B**：`create-scoped` — harness 补 `IStatusbarService.createScoped`，S1a uniqueness 已绿、未缩断言。DiffReview afterEach 已修。**[D16](deferred-gaps.md) 仍开**。
-   - **C**：`inbox-getqueue-honesty` — catalog / connection **无** GetQueue / ListQueue，未发明 RPC。接通 / 断连缓存 Inbox 文案「Queue not listed」，stub fixture 不得冒充引擎队列；测锁 overlay / roster / stub。[D37](deferred-gaps.md) **仍闭**；缺 list-queue 记 [D24](deferred-gaps.md)。勿 add `dev/loop`。
+   - **C**：`inbox-getqueue-honesty` — catalog / connection **无** GetQueue / ListQueue，未发明 RPC。接通 / 断连缓存 Inbox 文案「Queue not listed」，stub fixture 不得冒充引擎队列；测锁 overlay / roster / stub。[D37](deferred-gaps.md) **仍闭**；缺 list-queue 记 [D24](deferred-gaps.md)。勿 add `dev/loop`。本 wake leftover：lens visualize / T5a reveal / trajectory 座名 / process fold 夹具；maximize 整槽 `display:none` 记 [D42](deferred-gaps.md)。**勿 add `dev/loop`**。
    - **D**：`review-entries` — 测改 `function ()` 把 mocha host 交给 `toResource`。A2 P5 停线仍在。**[D16](deferred-gaps.md) 仍开**。
 3. **D15 / W1 笔记（工位 A，未占 工位表）**：`scripts/code-web.sh --browserType none --host 127.0.0.1 --port 18080` 已起；V1 Conversation / V2 四钮 + `UniverseAgentStudio Dev` / V3 Connection·Engine 省略桌面连接控件均 **PASS**。`IUniverseAgentConnection.getConnectionPhase()` = `disconnected`；页内点名「此环境不支持本机 Engine 连接」。证据 [d15-evidence/w1-1556dde3](d15-evidence/w1-1556dde3/)。**D15 可闭**；不升 PRD-019。未跑 compile / F4 / 引擎仓。
 

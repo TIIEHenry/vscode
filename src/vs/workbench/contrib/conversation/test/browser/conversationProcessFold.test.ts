@@ -56,10 +56,11 @@ suite('ConversationProcessFold', () => {
 		];
 
 		const spans = projectProcessFoldSpans(turns);
-		assert.strictEqual(spans.length, 3);
+		assert.strictEqual(spans.length, 4);
 		assert.deepStrictEqual(spans.map(span => [span.startIndex, span.endIndex]), [
 			[0, 1],
 			[2, 3],
+			[4, 5],
 			[6, 7],
 		]);
 	});

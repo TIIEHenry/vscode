@@ -10,18 +10,36 @@
  * reveal / trajectory / trajectoryUi).
  */
 
+function isResizeObserverLoopMessage(message: unknown): boolean {
+	return typeof message === 'string' && message.includes('ResizeObserver loop');
+}
+
 export function ignoreConversationLensResizeObserverLoop(event: ErrorEvent): void {
-	if (event.message.includes('ResizeObserver loop')) {
-		event.preventDefault();
+	if (!isResizeObserverLoopMessage(event.message)) {
+		return;
 	}
+	event.preventDefault();
+	event.stopImmediatePropagation();
 }
 
 export function installConversationLensResizeObserverHarness(): void {
+	let previousOnError: OnErrorEventHandler | undefined;
 	suiteSetup(() => {
-		window.addEventListener('error', ignoreConversationLensResizeObserverLoop);
+		window.addEventListener('error', ignoreConversationLensResizeObserverLoop, true);
+		previousOnError = window.onerror;
+		window.onerror = (message, source, lineno, colno, error) => {
+			if (isResizeObserverLoopMessage(message) || isResizeObserverLoopMessage(error?.message)) {
+				return true;
+			}
+			if (typeof previousOnError === 'function') {
+				return previousOnError.call(window, message, source, lineno, colno, error);
+			}
+			return false;
+		};
 	});
 	suiteTeardown(() => {
-		window.removeEventListener('error', ignoreConversationLensResizeObserverLoop);
+		window.removeEventListener('error', ignoreConversationLensResizeObserverLoop, true);
+		window.onerror = previousOnError ?? null;
 	});
 }
 

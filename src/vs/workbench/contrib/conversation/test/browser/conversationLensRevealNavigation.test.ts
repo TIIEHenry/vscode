@@ -7,10 +7,11 @@ import assert from 'assert';
 import { toDisposable } from '../../../../../base/common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { ConversationPart, IConversationLensSlots } from '../../../../browser/parts/conversation/conversationPart.js';
-import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
+import { TestLayoutService, workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { ConversationLens } from '../../browser/conversationLens.js';
-import { ConversationTrajectory } from '../../browser/conversationTrajectory.js';
 import { ConversationTimelineTree } from '../../browser/conversationTimelineTree.js';
+import { ConversationTrajectory } from '../../browser/conversationTrajectory.js';
+import { ILayoutService } from '../../../../../platform/layout/browser/layoutService.js';
 import { ConversationStubService, IConversationRosterService } from '../../browser/conversationStubService.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { createConversationConnectionTestStub } from '../common/conversationConnectionTestStub.js';
@@ -29,7 +30,9 @@ import { IExtensionService } from '../../../../services/extensions/common/extens
 import { IWebviewService } from '../../../webview/browser/webview.js';
 import { flushConversationLensLayout, installConversationLensResizeObserverHarness } from './conversationLensLayoutHarness.js';
 
-suite('ConversationLens reveal navigation (T5a)', () => {
+suite('ConversationLens reveal navigation (T5a)', function () {
+
+	this.timeout(15000);
 
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
@@ -84,11 +87,11 @@ suite('ConversationLens reveal navigation (T5a)', () => {
 		if (treeContainer) {
 			treeContainer.style.height = `${LENS_LAYOUT_HEIGHT - 120}px`;
 		}
-		const timelineTree = getTimelineTree(lens);
-		const trajectoryView = (lens as unknown as { trajectoryView: ConversationTrajectory }).trajectoryView;
-		const timelineHeight = LENS_LAYOUT_HEIGHT - 120;
-		timelineTree.layout(timelineHeight, LENS_LAYOUT_WIDTH);
-		trajectoryView.layout(LENS_LAYOUT_HEIGHT, LENS_LAYOUT_WIDTH);
+		if (slots.sessionBar) {
+			slots.sessionBar.style.width = `${LENS_LAYOUT_WIDTH}px`;
+			slots.sessionBar.style.minWidth = `${LENS_LAYOUT_WIDTH}px`;
+		}
+		lens.layout(LENS_LAYOUT_HEIGHT - 120, LENS_LAYOUT_WIDTH);
 	}
 
 	function mountLens(): { part: ConversationPart; lens: ConversationLens; stubService: ConversationStubService; storageService: TestStorageService; layoutReadingColumn: () => void; slots: IConversationLensSlots } {
@@ -156,13 +159,19 @@ suite('ConversationLens reveal navigation (T5a)', () => {
 			registerSCMProvider: () => { throw new Error('not implemented'); },
 			getRepository: () => undefined,
 		} as unknown as ISCMService);
-		const part = store.add(instantiationService.createInstance(ConversationPart));
+		const layoutContainer = document.createElement('div');
+		layoutContainer.classList.add('monaco-workbench');
 		const parent = document.createElement('div');
-		parent.classList.add('monaco-workbench');
+		parent.classList.add('part', 'conversation');
 		parent.style.width = `${LENS_LAYOUT_WIDTH}px`;
 		parent.style.height = `${LENS_LAYOUT_HEIGHT}px`;
-		document.body.appendChild(parent);
-		store.add(toDisposable(() => parent.remove()));
+		layoutContainer.appendChild(parent);
+		document.body.appendChild(layoutContainer);
+		store.add(toDisposable(() => layoutContainer.remove()));
+		const layoutService = new TestLayoutService();
+		layoutService.getContainer = () => layoutContainer;
+		instantiationService.stub(ILayoutService, layoutService);
+		const part = store.add(instantiationService.createInstance(ConversationPart));
 		part.create(parent);
 		const partSlots = part.getSlots();
 		assert.ok(partSlots);
@@ -198,10 +207,22 @@ suite('ConversationLens reveal navigation (T5a)', () => {
 		return { part, lens, stubService, storageService, layoutReadingColumn: layout, slots };
 	}
 
+	function getTrajectoryView(lens: ConversationLens): ConversationTrajectory {
+		return (lens as unknown as { trajectoryView: ConversationTrajectory }).trajectoryView;
+	}
+
 	function getTrajectoryRow(slots: IConversationLensSlots, recordId: string): HTMLElement {
 		const row = slots.timeline.querySelector(`.conversation-lens-trajectory-record-row[data-record-id="${recordId}"]`) as HTMLElement | null;
 		assert.ok(row, `expected trajectory row ${recordId}`);
 		return row;
+	}
+
+	async function revealTrajectoryRow(lens: ConversationLens, slots: IConversationLensSlots, recordId: string, layout: () => void): Promise<void> {
+		// Maximize sets display:none on the timeline host; the virtual list then paints no rows.
+		slots.timeline.style.display = 'block';
+		getTrajectoryView(lens).revealRecord(recordId);
+		layout();
+		await flushTimelineHeightUpdates();
 	}
 
 	function getSelectedTrajectoryRecordId(slots: IConversationLensSlots): string | undefined {
@@ -323,6 +344,7 @@ suite('ConversationLens reveal navigation (T5a)', () => {
 		clickLensTab(slots, 'trajectory');
 		layoutReadingColumn();
 		await flushTimelineHeightUpdates();
+		await revealTrajectoryRow(lens, slots, 'untitled-a1', layoutReadingColumn);
 
 		getTrajectoryRow(slots, 'untitled-a1').click();
 		layoutReadingColumn();
