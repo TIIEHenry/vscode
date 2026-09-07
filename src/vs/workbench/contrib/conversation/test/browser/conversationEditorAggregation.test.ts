@@ -17,8 +17,9 @@ import { SideBySideEditorInput } from '../../../../common/editor/sideBySideEdito
 import { URI } from '../../../../../base/common/uri.js';
 import { ConversationChatInput, getConversationChatResource } from '../../browser/conversationChatInput.js';
 import { ConversationDiffReviewInput } from '../../../sources/browser/conversationDiffReviewInput.js';
+import { ConversationDiffReviewInputTypeId } from '../../../sources/common/conversationDiffReviewInput.js';
+import { registerTestConversationDiffReviewEditor } from './conversationDiffReviewTestEditor.js';
 import '../../browser/conversationEditor.contribution.js';
-import '../../../sources/browser/conversationDiffReview.contribution.js';
 
 suite('Conversation editor aggregation exemption (S1a)', () => {
 
@@ -30,6 +31,10 @@ suite('Conversation editor aggregation exemption (S1a)', () => {
 
 	setup(() => {
 		store.add(registerTestEditor(TEST_EDITOR_ID, [new SyncDescriptor(TestFileEditorInput), new SyncDescriptor(SideBySideEditorInput)], TEST_EDITOR_INPUT_ID));
+		const editorFactory = Registry.as<IEditorFactoryRegistry>(EditorExtensions.EditorFactory);
+		if (!editorFactory.getEditorSerializer(ConversationDiffReviewInputTypeId)) {
+			store.add(registerTestConversationDiffReviewEditor(store));
+		}
 	});
 
 	async function createHarness() {
