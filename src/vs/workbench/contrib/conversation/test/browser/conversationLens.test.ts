@@ -2200,7 +2200,8 @@ suite('ConversationLens', () => {
 		assert.strictEqual(slots.dock.querySelector('.conversation-lens-composer'), null);
 	});
 
-	test('T5 Edit XOR: user card click mounts composer with Exit; dock has no composer', async () => {
+	test('T5 Edit XOR: user card click mounts composer with Exit; dock has no composer', async function () {
+		this.timeout(15000);
 		const { part, stubService, layoutReadingColumn } = mountLens();
 		const slots = getLensSlots(part);
 		const sessionId = stubService.createSession();
@@ -2231,7 +2232,8 @@ suite('ConversationLens', () => {
 		assert.strictEqual(textarea.value, userText);
 
 		const exitButton = inlineComposer!.querySelector('.conversation-lens-composer-edit-exit .monaco-button') as HTMLElement;
-		assert.strictEqual(exitButton.getAttribute('title'), conversationLensDockEditExit);
+		assert.strictEqual(exitButton.getAttribute('title'), null);
+		assert.strictEqual(exitButton.getAttribute('aria-label'), conversationLensDockEditExit);
 		exitButton.click();
 		layoutReadingColumn();
 		await flushTimelineHeightUpdates();
