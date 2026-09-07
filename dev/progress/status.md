@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-07
-summary: "unit-custom 已排除 11 个不可加载文件；DiffReview afterEach 已修；名单 32 行。D16 仍开。A2 仍 blocked。字母槽 idle"
+summary: "工位 D occupied：review-entries。名单删 1 行（剩 31）。D16 仍开。A2 仍 blocked。"
 ---
 
 # Development Progress
@@ -59,7 +59,8 @@ summary: "unit-custom 已排除 11 个不可加载文件；DiffReview afterEach 
    - **B**：`diffreview-leak` — ConversationDiffReviewPane 补 dispose/clearEditors；navigation/aggregation/fence 停引真实 contribution、改 stub。afterEach 六行已删（名单 32 行）。Lens 97/97 仍在。**[D16](deferred-gaps.md) 仍开**。
    - **C**：`inbox-getqueue-honesty` — catalog / connection **无** GetQueue / ListQueue，未发明 RPC。接通 / 断连缓存 Inbox 文案「Queue not listed」，stub fixture 不得冒充引擎队列；测锁 overlay / roster / stub。[D37](deferred-gaps.md) **仍闭**；缺 list-queue 记 [D24](deferred-gaps.md)。勿 add `dev/loop`。
    - **D**：`a2-patches-source` — A1 已落。P5 停线已合入：禁止再拉 `unified_diff` / Stage argv 映射 Apply；禁止只接 session。**A2 仍 blocked**（须新选定 + 新 Arch-First，不自动解锁）。未实施 A2 / 未跑 F4。[D31](deferred-gaps.md) **仍开**。未升 PRD。
-3. **D15 / W1 笔记（工位 A，未占 工位表）**：`scripts/code-web.sh --browserType none --host 127.0.0.1 --port 18080` 已起；V1 Conversation / V2 四钮 + `UniverseAgentStudio Dev` / V3 Connection·Engine 省略桌面连接控件均 **PASS**。`IUniverseAgentConnection.getConnectionPhase()` = `disconnected`；页内点名「此环境不支持本机 Engine 连接」。证据 [d15-evidence/w1-1556dde3](d15-evidence/w1-1556dde3/)。**D15 可闭**；不升 PRD-019。未跑 compile / F4 / 引擎仓。
+3. **工位 D occupied：`review-entries`** — 测改 `function ()` 以把 mocha host 交给 `toResource`（产品已委托 `collectSourcesChangeEntries`）。名单删该 1 行（31）。**[D16](deferred-gaps.md) 仍开**。未改 conversation aggregation / FileMutationJoin；未开切片 1 / 未降 `min_cases`。
+4. **D15 / W1 笔记（工位 A，未占 工位表）**：`scripts/code-web.sh --browserType none --host 127.0.0.1 --port 18080` 已起；V1 Conversation / V2 四钮 + `UniverseAgentStudio Dev` / V3 Connection·Engine 省略桌面连接控件均 **PASS**。`IUniverseAgentConnection.getConnectionPhase()` = `disconnected`；页内点名「此环境不支持本机 Engine 连接」。证据 [d15-evidence/w1-1556dde3](d15-evidence/w1-1556dde3/)。**D15 可闭**；不升 PRD-019。未跑 compile / F4 / 引擎仓。
 
 子 agent 发现的既有代码问题：
 
@@ -93,7 +94,7 @@ summary: "unit-custom 已排除 11 个不可加载文件；DiffReview afterEach 
 | A | `vscode-WorkTrees/A` | `loop/A` | 对齐本关仓提交 | `__pycache__` | 0 | idle |
 | B | `vscode-WorkTrees/B` | `loop/B` | 对齐本关仓提交 | `__pycache__` | 0 | idle |
 | C | `vscode-WorkTrees/C` | `loop/C` | 对齐本关仓提交 | 未提交 `dev/loop` + `__pycache__` | 0 | idle；勿 add `dev/loop` |
-| D | `vscode-WorkTrees/D` | `loop/D` | 对齐本关仓提交 | `__pycache__` | 0 | idle |
+| D | `vscode-WorkTrees/D` | `loop/D` | `b3e7a56d897` | `__pycache__` | 0 | occupied：review-entries |
 | edit | `Projects/Agents/vscode` | `agent-ide` | `a40a95d1e85`+ | `dev/loop` | 0 | 人类工位；请自行对齐本关仓提交 |
 
 ## Blockers
@@ -105,7 +106,7 @@ summary: "unit-custom 已排除 11 个不可加载文件；DiffReview afterEach 
 | 项 | 指针 |
 |:---|:-----|
 | **引擎空壳 Create** | [D26](deferred-gaps.md) — 空 store 首次 Create 仍 `ALREADY_EXISTS` 且不写 meta；不要再清 store |
-| **test-baseline** | 名单 32 行；unit-custom 排除 11 unloadable。**D16 仍开**；勿开切片 1「已归零」 |
+| **test-baseline** | 名单 31 行（D `review-entries` 删 1）；unit-custom 排除 11 unloadable。**D16 仍开**；勿开切片 1「已归零」 |
 | **U2 闸门** | [ADR-007](../decisions/007-upstream-sync.md) Decision 5 — 须 U0 `comm` 空 + U1 完成 + CI 绿 + merge 独占 + A 表冻结；**未满足前不开 U2** |
 
 ## 不做
