@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-07
-summary: "延期缺口 SSOT；D16 Lens 断言债；D22 F3；D15 欠 W1；D23 confirmPairing；D24 其余 JSON RPC；D25 ghost UI；D26 引擎建壳回 6；D27 Lens 编辑态整树重建；D28 Connection 旁路 UI"
+summary: "延期缺口 SSOT；D16 Lens 断言债；D22 F3；D15 欠 W1；D23 confirmPairing；D24 其余 JSON RPC；D25 ghost UI；D26 引擎建壳回 6；D27 Lens 编辑态整树重建；D28 Connection 旁路 UI；D31 Sources git 次级面"
 ---
 
 # Deferred Gaps
@@ -45,6 +45,7 @@ summary: "延期缺口 SSOT；D16 Lens 断言债；D22 F3；D15 欠 W1；D23 con
 | D19 | P2 | **L1 源码复核残留**（[a11y-rwd-l1.md](a11y-rwd-l1.md)）：(1) Engine/Connection **无动画节点**，不挂 `.ua-motion`；(2) T1 HC 已覆盖 Preferences pane 与 Visualize overlay；(3) Connection 300px 已有分区导航 + Back。**(4) Web 省略门控与点名文案已在 E2-1 收口** | 三项源码残留已收；手测/axe 仍归 D17 | 手测/axe 记 D17，不重开本行 | M7 a11y | closed |
 | D20 | P2 | **CS-6 Settings 默认窗 300px 目视**：`uaClientSettingsChrome.css` 已保证 narrow-width 下搜索框与 group title 不 `display:none` 且可省略；`settingsUaToc` 有合同测。本机隔离 launch 因 `@grpc/grpc-js` 缺失未能开窗目视 | 代码完成线不阻塞；活窗目视仍欠 | 隔离 profile 打开默认窗 Settings，缩到约 300px，确认搜索框与 Client 组标题仍可见、无 emptyCopy；失败记入 D17 | M7 verification | open |
 | D28 | P2 | **Connection pane 旁路 UI**：(1) 对话身份条被挡住。**(2)(3) 已由 loop/B 收口**：`writeConnectStatus` 写当前可见区（Devices → `.connection-hub-devices-status`）；Connect 成功/配对中用可读文案，不甩 `ok=true pairingPending=…`、不装已连接 | (1) 仍非本轮；身份条与 session bar 禁止本槽改 | 身份条不被挡 | UI / conversation | open |
+| D31 | P3 | **Sources git 次级面**：Review 读 Git 失败静默回 SCM（无 status 条）；Panel Diff 无 Stage/Accept/Revert（PRD-009 验收 3 只绑对话窗）；无 `WriteGitUnstage`（git 源 staged 行不能 unstage）；F4 隔离 profile 冒烟未跑 | 本刀只收 Changes/Review/Stage/Commit/Accept 代码级假绿；禁 F4 / 禁升 PRD | Review 读失败可见；Panel 动作与对话窗同门控；Unstage 有 hook 或明确不可用；F4 V-F1–V-F7 证据目录 | sources-git | open |
 
 ## D2 工位池 compile 基线（2026-09-02，merge 工位 / `loop/merge`）
 
