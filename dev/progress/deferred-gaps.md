@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-08
-summary: "延期缺口 SSOT；D16 仍开；D45–D61 已闭；D22 F3；D24 其余 JSON RPC；D25 引擎 List 真空；D26 引擎建壳回 6；D31 F4 / A2 blocked；Team leftover 已清；Connection listDevices/listPending throw 保留末次快照；Snapshots / MCP Add·Update·Remove·toggle / Skills create·toggle / Agents / Tools enablement 写失败 write-status 已挂载"
+summary: "延期缺口 SSOT；D16 仍开；D45–D61、D63 已闭；D22 F3；D24 其余 JSON RPC；D25 引擎 List 真空；D26 引擎建壳回 6；D31 F4 / A2 blocked；Team leftover 已清；Connection listDevices/listPending throw 保留末次快照；Snapshots / MCP Add·Update·Remove·toggle / Skills create·toggle / Agents / Tools enablement 写失败 write-status 已挂载；Agents Tools 页 listTools throw 画 failed"
 ---
 
 # Deferred Gaps
@@ -78,6 +78,7 @@ summary: "延期缺口 SSOT；D16 仍开；D45–D61 已闭；D22 F3；D24 其�
 | D59 | P3 | **Skills `toggleSkill` 失败无 write-status**：`setSkillEnabled` 在 `{ ok:false }` / throw 只 `await this.refresh()`，不画 status。失败不得清 catalog、不得改选中。refresh 回退 checkbox 可以，但须可见 write-status | A 槽 `skills-toggle-status` 已收：fail 画 `.engine-skill-write-status`（及 body status）；测锁 status DOM + 行仍在。未关 D16；未发明 GetQueue / proto；未碰 F4 / 引擎 / `.sessions` / `dev/loop` | toggle fail 可见 write-status；不清 catalog、不改选中；`engineSkillsSection.test.ts` ok:false / throw 绿 | conversation | closed |
 | D60 | P3 | **MCP `toggleServer` 失败无 write-status**：`toggleMcpServer` 在 `{ ok:false }` / throw 只 `await this.refresh()`，不画 status。失败不得清 catalog、不得卸行。refresh 回退 checkbox 可以，但须可见 write-status | B 槽 `mcp-toggle-status` 已收：fail 画 catalog write-status（`showWriteFailed`）；refresh 回退 checkbox；测锁 status DOM + 行仍在。未关 D16；未发明 GetQueue / proto；未碰 F4 / 引擎 / `.sessions` / `dev/loop`；未重做 Add/Update/Remove | toggle fail 可见 write-status；不清 catalog、不卸行；`engineCatalogSections.test.ts` ok:false / throw 绿 | conversation | closed |
 | D61 | P3 | **Connection `listDevices` / `listPending` throw 后写成空列表**：`refreshEngineDevices` / `refreshEnginePending` catch 原写 `enginePairedDevices = []` / `pendingPairs = []`。成功后再 throw 会 leftover 成静默空，不像失败 | D 槽 `connection-list-leftover` 已收：throw 保留末次快照并画失败 note（`.connection-hub-devices-status` / pending empty / `hubDirectoryBanner`）。未关 D16；未发明 GetQueue / proto；未碰 F4 / 引擎 / `.sessions` / `dev/loop` / D26 / D60 | throw 保留末次快照（或失败 note 可见）；`connectionPreferencesPane.test.ts` success→throw 绿 | conversation | closed |
+| D63 | P3 | **Agents Tools 页 `listTools` throw 后画 empty**：`ensureAgentToolsLoaded` catch 写 `agentTools = []`；`renderAgentTools` 在 connected 下把空列表画成 empty，接通后 throw 不成 failed | B 槽 `agents-tools-leftover` 已收：`agentToolsLoadFailed` 跟踪原因；`toolsStatus` `mode:'failed'` + `getCatalogFailedCopy(AGENT_TOOLS_FEATURE, reason)`；`clearCatalogPresentation` / 成功 load 清旗。测锁 tools 页 failed widget。未关 D16；未发明 GetQueue / proto；未碰 F4 / 引擎 / `.sessions` / `dev/loop` / D26 | catch 后 `.engine-agents-tools-panel .engine-catalog-status-widget[data-catalog-mode="failed"]`；`engineCatalogSections.test.ts` listTools throw 绿 | conversation | closed |
 
 ## D2 工位池 compile 基线（2026-09-02，merge 工位 / `loop/merge`）
 

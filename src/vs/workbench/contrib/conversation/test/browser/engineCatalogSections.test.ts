@@ -36,6 +36,7 @@ import { canPerformCatalogWrite, getCatalogFailedCopy, getCatalogUnsupportedCopy
 import { localize } from '../../../../../nls.js';
 
 const AGENTS_FEATURE = localize('ua.engineAgentsFeatureLabel', "agent profiles");
+const AGENT_TOOLS_FEATURE = localize('ua.engineAgentToolsFeatureLabel', "agent profile tools");
 const MCP_FEATURE = localize('ua.engineMcpFeatureLabel', "MCP server definitions");
 const TOOLS_FEATURE = localize('ua.engineToolsFeatureLabel', "engine tools");
 
@@ -888,6 +889,36 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 			"Could not save AGENTS.md to the engine.",
 		)));
 		assertAgentsWriteFailureKeepsCatalog(section, 'save exploded', 1, 'demo');
+	});
+
+	test('Agents: tools tab listTools throw paints failed toolsStatus', async () => {
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+			listAgentProfiles: async () => ({
+				profiles: [demoUserAgent()],
+			}),
+			listTools: async () => {
+				throw new Error('listTools exploded');
+			},
+		});
+		const section = mountAgentsSection(connection);
+		section.setSectionActive(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.ok(section.getListEntryCount() > 0);
+		await section.selectProfileByIdForTest('demo');
+		section.setActiveAgentDetailTabForTest('tools');
+		await flushMicrotasks();
+
+		const toolsStatus = section.getDomNode().querySelector(
+			'.engine-agents-tools-panel .engine-catalog-status-widget[data-catalog-mode="failed"]',
+		) as HTMLElement | null;
+		assert.ok(toolsStatus);
+		assert.ok(toolsStatus.textContent?.includes(getCatalogFailedCopy(AGENT_TOOLS_FEATURE, 'listTools exploded')));
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.strictEqual(section.getListEntryCount(), 1);
 	});
 
 	test('MCP: successful load then refresh throw is failed with no leftover catalog', async () => {

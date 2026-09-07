@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-08
-summary: "FileMutationJoin / createScoped / Review 委托已修。D16 仍开。官方三域 glob 已绿。D44–D61 已闭。Team leftover 已清。Connection listDevices/listPending throw 保留末次快照并画失败 note。Snapshots / MCP Add·Update·Remove·toggle / Skills create·toggle / Agents / Tools enablement 写失败 write-status 已挂载（不卸行）。git-read / open-diff / Stage·Commit / Unstage throw 与 Stage·Commit ok:false status DOM 已挂载。A2 仍 blocked。"
+summary: "FileMutationJoin / createScoped / Review 委托已修。D16 仍开。官方三域 glob 已绿。D44–D61、D63 已闭。Team leftover 已清。Connection listDevices/listPending throw 保留末次快照并画失败 note。Snapshots / MCP Add·Update·Remove·toggle / Skills create·toggle / Agents / Tools enablement 写失败 write-status 已挂载（不卸行）。Agents Tools 页 listTools throw 画 failed 而非 empty。git-read / open-diff / Stage·Commit / Unstage throw 与 Stage·Commit ok:false status DOM 已挂载。A2 仍 blocked。"
 ---
 
 # Development Progress
@@ -90,6 +90,7 @@ summary: "FileMutationJoin / createScoped / Review 委托已修。D16 仍开。�
 31. **A 槽 `skills-toggle-status`（未关 D16 / 未发明 GetQueue / proto / 未碰 F4 / 引擎 / `.sessions` / `dev/loop` / unused-import / D26）**：`toggleSkill` `setSkillEnabled` `{ ok:false }` / throw 画 `.engine-skill-write-status`（及 body status），不改选中、不清 catalog；refresh 只用来回退 checkbox。[D59](deferred-gaps.md) **已闭**。未 compile。
 32. **D 槽 `connection-list-leftover`（未关 D16 / 未发明 GetQueue / proto / 未碰 F4 / 引擎 / `.sessions` / `dev/loop` / unused-import / D26 / D60）**：`refreshEngineDevices` / `refreshEnginePending` catch 不再写成 `[]`；成功后再 throw 保留末次快照并画失败 note（`.connection-hub-devices-status` / pending empty / `hubDirectoryBanner`）。[D61](deferred-gaps.md) **已闭**。未 compile。
 33. **B 槽 `mcp-toggle-status`（未关 D16 / 未发明 GetQueue / proto / 未碰 F4 / 引擎 / `.sessions` / `dev/loop` / unused-import / D26）**：`toggleServer` `toggleMcpServer` `{ ok:false }` / throw 画 catalog write-status（`showWriteFailed`），**不** `clearCatalogPresentation`（会卸行）；refresh 只用来回退 checkbox。测锁 status DOM + 行仍在。[D60](deferred-gaps.md) **已闭**。未 compile。未重做 Add/Update/Remove。
+34. **B 槽 `agents-tools-leftover`（未关 D16 / 未发明 GetQueue / proto / 未碰 F4 / 引擎 / `.sessions` / `dev/loop` / unused-import / D26）**：`ensureAgentToolsLoaded` catch 跟踪 `agentToolsLoadFailed`；`renderAgentTools` 画 `toolsStatus` `mode:'failed'` + `getCatalogFailedCopy`，不再把 throw 画成接通 empty。`clearCatalogPresentation` / 成功 load 清旗。测锁 `.engine-agents-tools-panel .engine-catalog-status-widget[data-catalog-mode="failed"]`。[D63](deferred-gaps.md) **已闭**。未 compile。未改 `connectionPreferencesPane.ts`。
 
 子 agent 发现的既有代码问题：
 
@@ -134,6 +135,7 @@ summary: "FileMutationJoin / createScoped / Review 委托已修。D16 仍开。�
 | [D59](deferred-gaps.md) | A 槽 `skills-toggle-status` | **closed** `toggleSkill` `ok:false` / throw 画 write-status，不清 catalog、不改选中；refresh 回退 checkbox；未关 D16 |
 | [D60](deferred-gaps.md) | B 槽 `mcp-toggle-status` | **closed** `toggleServer` `ok:false` / throw 画 catalog write-status，不卸行；refresh 回退 checkbox；未关 D16 |
 | [D61](deferred-gaps.md) | D 槽 `connection-list-leftover` | **closed** `listDevices` / `listPending` throw 保留末次快照并画失败 note，不成静默空；未关 D16 / 未占 D60 |
+| [D63](deferred-gaps.md) | B 槽 `agents-tools-leftover` | **closed** Agents Tools 页 `listTools` throw 画 `toolsStatus` `failed`，不再假装 empty；未关 D16 |
 
 ## 工位表（P0 盘点 · 2026-09-07 · 与 `git worktree list` 对照）
 
