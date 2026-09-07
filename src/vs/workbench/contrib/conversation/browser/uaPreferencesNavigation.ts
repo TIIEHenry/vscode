@@ -6,6 +6,7 @@
 import { mainWindow } from '../../../../base/browser/window.js';
 import { localize2 } from '../../../../nls.js';
 import { Action2, registerAction2 } from '../../../../platform/actions/common/actions.js';
+import { CommandsRegistry } from '../../../../platform/commands/common/commands.js';
 import { ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js';
 import { GroupsOrder, IEditorGroupsService } from '../../../services/editor/common/editorGroupsService.js';
 import { IWorkbenchLayoutService, Parts } from '../../../services/layout/browser/layoutService.js';
@@ -49,31 +50,35 @@ export async function openUaPaneReplacingClientSettings(accessor: ServicesAccess
 }
 
 export function registerUaPreferencesNavigationActions(): void {
-	registerAction2(class OpenConnectionPreferencesAction extends Action2 {
-		constructor() {
-			super({
-				id: OPEN_CONNECTION_PREFERENCES_COMMAND_ID,
-				title: localize2('openConnectionPreferences', "Open Connection Preferences"),
-				f1: true,
-			});
-		}
+	if (!CommandsRegistry.getCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID)) {
+		registerAction2(class OpenConnectionPreferencesAction extends Action2 {
+			constructor() {
+				super({
+					id: OPEN_CONNECTION_PREFERENCES_COMMAND_ID,
+					title: localize2('openConnectionPreferences', "Open Connection Preferences"),
+					f1: true,
+				});
+			}
 
-		override run(accessor: ServicesAccessor): Promise<void> {
-			return openUaPaneReplacingClientSettings(accessor, UA_CONNECTION_PANE_ID);
-		}
-	});
+			override run(accessor: ServicesAccessor): Promise<void> {
+				return openUaPaneReplacingClientSettings(accessor, UA_CONNECTION_PANE_ID);
+			}
+		});
+	}
 
-	registerAction2(class OpenEnginePreferencesAction extends Action2 {
-		constructor() {
-			super({
-				id: OPEN_ENGINE_PREFERENCES_COMMAND_ID,
-				title: localize2('openEnginePreferences', "Open Engine Preferences"),
-				f1: true,
-			});
-		}
+	if (!CommandsRegistry.getCommand(OPEN_ENGINE_PREFERENCES_COMMAND_ID)) {
+		registerAction2(class OpenEnginePreferencesAction extends Action2 {
+			constructor() {
+				super({
+					id: OPEN_ENGINE_PREFERENCES_COMMAND_ID,
+					title: localize2('openEnginePreferences', "Open Engine Preferences"),
+					f1: true,
+				});
+			}
 
-		override run(accessor: ServicesAccessor): Promise<void> {
-			return openUaPaneReplacingClientSettings(accessor, UA_ENGINE_PANE_ID);
-		}
-	});
+			override run(accessor: ServicesAccessor): Promise<void> {
+				return openUaPaneReplacingClientSettings(accessor, UA_ENGINE_PANE_ID);
+			}
+		});
+	}
 }
