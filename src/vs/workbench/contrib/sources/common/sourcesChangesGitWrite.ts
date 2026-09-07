@@ -71,6 +71,21 @@ export function sourcesGitWriteFailureDetail(result: UniverseAgentWriteGitWriteR
 	return result.errorMessage;
 }
 
+/** Hook answered and GitService performed the write. `success` alone is not enough. */
+export function isSourcesGitWriteAccepted(result: UniverseAgentWriteGitWriteResult | undefined): boolean {
+	return !!result && result.supported && result.success;
+}
+
+/** Hook answered `supported: false` — treat as unavailable, not success or hard fail. */
+export function isSourcesGitWriteUnsupported(result: UniverseAgentWriteGitWriteResult | undefined): boolean {
+	return !!result && !result.supported;
+}
+
+/** Review Accept: GitService hook or local `git.stage`. Hook does not require SCM. */
+export function canShowSourcesReviewAccept(canWriteAccept: boolean, hasLocalStage: boolean): boolean {
+	return canWriteAccept || hasLocalStage;
+}
+
 export async function tryWriteSourcesGitStagePaths(
 	connected: boolean,
 	hook: ((request: UniverseAgentWriteGitStagePathsRequest) => Promise<UniverseAgentWriteGitWriteResult>) | undefined,

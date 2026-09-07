@@ -3,7 +3,7 @@ title: "Settings 接入：UA 设置项如何挂进 vscode Preferences"
 type: reference
 status: accepted
 phase: N/A
-updated: 2026-09-04
+updated: 2026-09-07
 summary: "混合宿主已落；Client 9 键与 Engine E2-1–E2-7 代码完成线已落；PRD-025/026 仍 accepted，待产品验证"
 ---
 
@@ -125,7 +125,7 @@ Client Settings **无连接也可开**（Singularity 原则）。**选定：** C
 | 设备列表 | 整节省略（未登录） |
 | Direct Address | host:port 添加入口；默认拒 RFC1918 除非勾 `allowPrivateNetwork` |
 | 连接 profiles | 「No connection profiles yet」 |
-| Test Connection | 无 active profile → 「Not connected — no engine.」。**有** active profile 时 HEAD 只回显 `getConnectionPhase()`，**不**探 `GetAuthNonce`（[m7-gap-closeout GC-3](../../../dev/plans/m7-gap-closeout.md) `review`）。不假成功 |
+| Test Connection | **有** active profile 时走 `probeConnectionProfile(profileId)` 独立探测链，只调 `GetAuthNonce`，不动现连接（[m7-gap-closeout GC-3](../../../dev/plans/m7-gap-closeout.md) `implemented`）。无 active profile → `probeEngine()` 回退，仍不可探时显示「Not connected — no engine.」。不假成功 |
 | Remote I/O | 常显一行：远程 Engine 时文件 / Shell 在本机执行 |
 
 Hub 登录态与引擎连接态 **各说各的**（PRD-007 验收 4 再叠 Hub 账号层）：Hub `signedIn` 但 `ConnectionPhase` 非 `connected` 时，StatusBar 仍为「Engine not connected」。Web 形态：`IUniverseAgentHubService` = `unavailable`，pane 显示「本形态不支持连接引擎」，不画登录表单（PRD-019 / PRD-024 验收 7）。
