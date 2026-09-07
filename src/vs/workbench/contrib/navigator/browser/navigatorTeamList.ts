@@ -52,6 +52,7 @@ const $ = dom.$;
 const TEAM_MEMBERS_EMPTY_COPY = localize('navigatorTeamMembers.emptyConnected', "No team members yet");
 const TEAM_TASKS_EMPTY_COPY = localize('navigatorTeamTasks.emptyConnected', "No tasks yet");
 const TEAM_FILTER_NO_MATCH = localize('navigatorTeam.noMatch', "No matches");
+const TEAM_FETCH_FAILED_COPY = localize('navigatorTeam.fetchFailed', "Failed to read team members and tasks");
 
 export type NavigatorTeamSubview = 'members' | 'tasks';
 
@@ -416,54 +417,60 @@ export class NavigatorTeamView extends ViewPane {
 		const members: INavigatorTeamMemberEntry[] = [];
 		const tasks: INavigatorTeamTaskEntry[] = [];
 
-		for (const manager of managers) {
-			let managerLabel = manager.name || manager.agentId;
-			if (liveTeamId !== undefined) {
-				try {
-					this.teamInfoCallCount++;
-					const info = await teamApi.teamInfo(sessionId, manager.agentId, liveTeamId);
-					if (info?.status) {
-						managerLabel = `${managerLabel} (${info.status})`;
+		try {
+			for (const manager of managers) {
+				let managerLabel = manager.name || manager.agentId;
+				if (liveTeamId !== undefined) {
+					try {
+						this.teamInfoCallCount++;
+						const info = await teamApi.teamInfo(sessionId, manager.agentId, liveTeamId);
+						if (info?.status) {
+							managerLabel = `${managerLabel} (${info.status})`;
+						}
+					} catch {
+						// keep manager name only
 					}
-				} catch {
-					// keep manager name only
+				}
+
+				const memberRows = await teamApi.memberStatus(sessionId, manager.agentId);
+				for (const row of memberRows) {
+					const prefix = managers.length > 1 ? `${managerLabel}: ` : '';
+					members.push({
+						...row,
+						id: `member:${row.memberAgentId}`,
+						label: `${prefix}${row.memberName} · ${row.status}`,
+						managerAgentId: manager.agentId,
+						managerName: manager.name || manager.agentId,
+					});
+				}
+
+				const taskRows = await teamApi.taskList(sessionId, manager.agentId);
+				for (const row of taskRows) {
+					const blocked = row.status === 'BLOCKED' && row.blockedBy ? ` · ${row.blockedBy}` : '';
+					const prefix = managers.length > 1 ? `${managerLabel}: ` : '';
+					tasks.push({
+						...row,
+						id: `task:${row.taskId}`,
+						label: `${prefix}${row.subject || row.taskId} · ${row.status}${blocked}`,
+						managerAgentId: manager.agentId,
+						managerName: manager.name || manager.agentId,
+					});
 				}
 			}
 
-			const memberRows = await teamApi.memberStatus(sessionId, manager.agentId);
-			for (const row of memberRows) {
-				const prefix = managers.length > 1 ? `${managerLabel}: ` : '';
-				members.push({
-					...row,
-					id: `member:${row.memberAgentId}`,
-					label: `${prefix}${row.memberName} · ${row.status}`,
-					managerAgentId: manager.agentId,
-					managerName: manager.name || manager.agentId,
-				});
+			this.hadTeamSnapshot = true;
+			this.setMemberEntries(members, members.length === 0 ? TEAM_MEMBERS_EMPTY_COPY : undefined);
+			this.setTaskEntries(tasks, tasks.length === 0 ? TEAM_TASKS_EMPTY_COPY : undefined);
+			if (!this.rosterService.isEngineConnected() || this.uaConnection.getConnectionPhase().kind !== 'connected') {
+				this.setTeamSnapshotNote(NAVIGATOR_STALE_SNAPSHOT_COPY);
+				return;
 			}
-
-			const taskRows = await teamApi.taskList(sessionId, manager.agentId);
-			for (const row of taskRows) {
-				const blocked = row.status === 'BLOCKED' && row.blockedBy ? ` · ${row.blockedBy}` : '';
-				const prefix = managers.length > 1 ? `${managerLabel}: ` : '';
-				tasks.push({
-					...row,
-					id: `task:${row.taskId}`,
-					label: `${prefix}${row.subject || row.taskId} · ${row.status}${blocked}`,
-					managerAgentId: manager.agentId,
-					managerName: manager.name || manager.agentId,
-				});
-			}
+			this.setTeamSnapshotNote(undefined);
+		} catch {
+			this.setMemberEntries([], TEAM_MEMBERS_EMPTY_COPY);
+			this.setTaskEntries([], TEAM_TASKS_EMPTY_COPY);
+			this.setTeamSnapshotNote(TEAM_FETCH_FAILED_COPY);
 		}
-
-		this.hadTeamSnapshot = true;
-		this.setMemberEntries(members, members.length === 0 ? TEAM_MEMBERS_EMPTY_COPY : undefined);
-		this.setTaskEntries(tasks, tasks.length === 0 ? TEAM_TASKS_EMPTY_COPY : undefined);
-		if (!this.rosterService.isEngineConnected() || this.uaConnection.getConnectionPhase().kind !== 'connected') {
-			this.setTeamSnapshotNote(NAVIGATOR_STALE_SNAPSHOT_COPY);
-			return;
-		}
-		this.setTeamSnapshotNote(undefined);
 	}
 
 	private setTeamSnapshotNote(noteMessage: string | undefined): void {
