@@ -51,7 +51,7 @@ summary: "loop/merge 已合入 agent-ide Connection/Engine chrome：Direct 接�
 
 Direct 接通已通。Chat 仍被引擎空壳 Create（目录在、`session_meta` 空、回 6）挡住；不要再清 `.sessions` 当主线。剩余：Resume 活路径复证、bind-failed 文案、catalog Model/Agent、`onDidApplyFrame` / `heartbeat_ack`。**U2 未开**。**PRD-008 不升 `implemented`**。
 
-`enqueueMessageQueueItem` 仍无 UI 入口；error 行重试按钮待引擎接线（不画假按钮）。
+`enqueueMessageQueueItem` 仍无 UI 入口；error 行重试按钮待引擎接线（不画假按钮）。工位 B `conversation-disconnect-send`：未连不锁 Send；引擎缓存断连先试 enqueue，拒收则保留 draft + 明确失败，不 stub echo / 不写已同步。队列 UI / error 重试 / ListView 0px 仍见 [deferred-gaps](deferred-gaps.md) D27 / D29 / D30。
 
 Sources Changes/Review 读面（`loop/A`）：接通 + hook 走 `readGitChanges` / `readGitSummary`，打开行再 `readGitFileDiff`；断连 / 无 hook 回 SCM。
 
@@ -61,7 +61,7 @@ Sources Changes/Review 读面（`loop/A`）：接通 + hook 走 `readGitChanges`
 |----|------|------|-----|:-----|
 | merge | `vscode-WorkTrees/merge` | `loop/merge` | `bc1370cb05d` | 本波已合入（未 push） |
 | A | `vscode-WorkTrees/A` | `loop/A` | Sources git 读面 | 本刀 |
-| B | `vscode-WorkTrees/B` | `loop/B` | 对齐 merge | idle |
+| B | `vscode-WorkTrees/B` | `loop/B` | `conversation-disconnect-send` | 本刀 |
 | C | `vscode-WorkTrees/C` | `loop/C` | 对齐 merge | idle |
 | D | `vscode-WorkTrees/D` | `loop/D` | 对齐 merge | idle |
 | edit | `Projects/Agents/vscode` | `agent-ide` | `a37916b6ab6`+CSS WIP | 请人类自行对齐；loop 不代同步 |
