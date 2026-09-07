@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-07
-summary: "延期缺口 SSOT；D16 仍开（切片 0 账本已落：42eba1e6ff4 三文件 0 failing / 0 数据行，compile/S2 leftover 不闭）；D22 F3；D24 其余 JSON RPC；D25 引擎 List 真空；D26 引擎建壳回 6；D31 F4 / A2 blocked"
+summary: "延期缺口 SSOT；D16 仍开（切片 3 名单已落 @ d2abb648c0e，三文件标题未列入；compile/S2 leftover 不闭）；D17 补三域基线红；D22 F3；D24 其余 JSON RPC；D25 引擎 List 真空；D26 引擎建壳回 6；D31 F4 / A2 blocked"
 ---
 
 # Deferred Gaps
@@ -30,8 +30,8 @@ summary: "延期缺口 SSOT；D16 仍开（切片 0 账本已落：42eba1e6ff4 �
 | D13 | P2 | **PRD-017 本地会话持久化**（`accepted` @2026-09-02） | 落点已裁定：`StorageScope.WORKSPACE` + `StorageTarget.MACHINE`；引擎接通后不迁移，本地只存 stub 会话 + UA 断连快照缓存并标 `source` | S3 合入后作为独立切片（同工位串行）：重启后会话列表 / 当前会话 / 回合 / 权限记录一致；session 窗口布局恢复；无引擎无「已同步」文案；单测 + D4 式隔离 profile 重启验收 | M6 | closed |
 | D14 | P3 | **PRD-018 第一阶段**：四钮默认键位 + F6 Part 焦点循环 | 键位选定属 M6-B 后续；本行不代表全部 chat tab / dialog / seat ARIA 已完成 | 四 toggle 命令可见且不冲突；F6 循环已落；其余可达性转 [M7 a11y/RWD](../plans/accessibility-responsive-ui.md) | M6+ | closed |
 | D15 | P3 | **PRD-019 Web 冒烟**（`accepted` @2026-09-02）：验证义务，非新功能 | P0 browser 三服务与 E2-1 Web 省略桌面控件 **代码已落**。W1 已于 2026-09-07 工位 A 跑通 | `scripts/code-web.sh` 启动 → D4 式 V1–V3 通过；`getConnectionPhase()` = `disconnected`、不画连接控件；证据 [d15-evidence/w1-1556dde3](d15-evidence/w1-1556dde3/) | M7 | closed |
-| D16 | P2 | **conversation 单测基线红（仍开）**。**切片 0 账本已落**（[d16-ledger.md](d16-ledger.md) @ `42eba1e6ff4`）：三 `--run` 均 exit 0，实测失败 **0**（账本 0 数据行）。「15」是 `0649602d` 历史观测，不是合同。Lens 夹具已补（sessionBar 实测宽 + `lens.layout` 叶宽 + ResizeObserver）。过时断言已改：删非末会话计数 −1；300px 验 `is-narrow` 不是像素；permission seat aria 走 `Permission` 合同。**identity 已绿**并改走共享 `conversationLensLayoutHarness`。**全部 Lens 夹具套已隔离**。stub `deleteTurn` 已改走 `createSession()`。**进口界空扫假绿已收**（四份测改扫 `src/` + `>=80`）。**T5 Exit `title` 债已收**。**visualize 三测已收**。**remainder 7 已分类并夹具收口**（工位 B `lens-d16-remainder-7`）。B/A 全量 Lens **97 pass / 0 fail**。**本行仍开**（compile 门禁 / S2 leftover；切片 0 不闭、不开切片 1「已归零」） | 启动级 / identity / stub / 进口界 / Lens 叶宽夹具 + 全套共享 harness + 上述过时断言已修；T5 Exit title 债已修；visualize 三测已修；remainder 7 已在 B 收口为绿；切片 0 账本已记 0 失败 | 账本退出条件（方案 §3）全满足且 compile 门禁后再闭本行；**不得**仅因切片 0 零失败行关闭 | M6 / conversation | open |
-| D17 | P2 | **M7 非阻塞验证债总账**：单测、E2E、视觉、a11y、性能与缺失 Engine/Hub/Web 证据 | 用户裁定测试不阻塞 UI 开发；若每条红测都成为 blocker，会再次冻结不冲突 UI 槽 | 每项记录首次 SHA、场景、baseline/新增、owner、关闭证据；普通失败不进 `status` Blockers，只阻止对应 PRD/plan 升 `implemented` | M7 verification | open |
+| D16 | P2 | **conversation 单测基线红（仍开）**。**切片 0 账本已落**（[d16-ledger.md](d16-ledger.md) @ `42eba1e6ff4`）：三 `--run` 均 exit 0，实测失败 **0**（账本 0 数据行）。「15」是 `0649602d` 历史观测，不是合同。切片 3 名单 @ `d2abb648c0e` **未**列本行三文件标题。Lens 夹具已补（sessionBar 实测宽 + `lens.layout` 叶宽 + ResizeObserver）。过时断言已改：删非末会话计数 −1；300px 验 `is-narrow` 不是像素；permission seat aria 走 `Permission` 合同。**identity 已绿**并改走共享 `conversationLensLayoutHarness`。**全部 Lens 夹具套已隔离**。stub `deleteTurn` 已改走 `createSession()`。**进口界空扫假绿已收**（四份测改扫 `src/` + `>=80`）。**T5 Exit `title` 债已收**。**visualize 三测已收**。**remainder 7 已分类并夹具收口**（工位 B `lens-d16-remainder-7`）。B/A 全量 Lens **97 pass / 0 fail**。**本行仍开**（compile 门禁 / S2 leftover；切片 0/3 不闭、不开切片 1「已归零」） | 启动级 / identity / stub / 进口界 / Lens 叶宽夹具 + 全套共享 harness + 上述过时断言已修；T5 Exit title 债已修；visualize 三测已修；remainder 7 已在 B 收口为绿；切片 0 账本已记 0 失败 | 账本退出条件（方案 §3）全满足且 compile 门禁后再闭本行；**不得**仅因切片 0 零失败行关闭 | M6 / conversation | open |
+| D17 | P2 | **M7 非阻塞验证债总账**：单测、E2E、视觉、a11y、性能与缺失 Engine/Hub/Web 证据。切片 3 三域非 D16 红见下节 | 用户裁定测试不阻塞 UI 开发；若每条红测都成为 blocker，会再次冻结不冲突 UI 槽 | 每项记录首次 SHA、场景、baseline/新增、owner、关闭证据；普通失败不进 `status` Blockers，只阻止对应 PRD/plan 升 `implemented` | M7 verification | open |
 | D18 | P2 | **I3b 三平台安装包未验**：hicolor 已进 deb/rpm gulp+spec，`electron.ts` 已改公司名/HelpBook；未跑 prepare-deb/rpm、snapcraft、Inno、darwin 打包 | 委派先不复杂测试；本机缺 fakeroot/rpmbuild/Inno/macOS | V 槽确认八档 hicolor 进包，Win/mac 检查 ico/bmp/icns 与 exe/plist 元数据 | product / packaging | open |
 | D19 | P2 | **L1 源码复核残留**（[a11y-rwd-l1.md](a11y-rwd-l1.md)）：(1) **已收口 @ 2026-09-04**（方案改口 Engine/Connection **无动画节点**，pane CSS 文件头钉死不挂空 `.ua-motion`）；(2) **已收口 @ GC-7 2026-09-04**（`style.ts` 引入 `ua-common.css`，T1 + `productAccessibility.css` 覆盖 `.preferences-editor`）；(3) **已收口 @ 2026-09-04**（§5/§9 改口：Connection 窄宽为**单栏滚动**，无左导航/Back——产品本无 Engine 式 nav，不造假 Back）；**(4) Web 省略门控与点名文案已在 E2-1 收口**（`shouldDrawDesktopConnectionControls` 读 phase / capability / `unsupported_environment`，不再用 `isWeb`） | L1 只做源码清单；不阻塞 CS-3 或 W1 | (1)–(4) 均已收口。手测/axe/Web 冒烟失败仍记 D17/D15，不并入本行 | M7 a11y | closed |
 | D20 | P2 | **CS-6 Settings 默认窗 300px 目视**：搜索框与 Client 七组标题在缩到约 300px 时是否仍可见；`SettingsEditor2` 在宽度低于 700px 已隐藏 TOC，源码未见 UA 专用挤占，但本轮禁止 electron / playwright | CS-6 代码完成线不阻塞；§6 产品验证另含重载 / 草稿不进 Sync / 两种 Enter / 通知语义 | 隔离 profile 打开默认窗 Settings，缩到 300px，确认搜索框与 Client 组标题仍可见、无 emptyCopy；失败记入 D17 证据，不并入本行关闭条件 | M7 verification | open |
@@ -324,6 +324,22 @@ $REPO/scripts/code-cli.sh --extensions-dir="$EXT_DIR" \
 **状态**：**open**（browser 域已绿；infra 未修）。
 
 **裁决（2026-09-02，用户委托）**：在修好之前 **`valid-layers-check` 不作集成门禁**（[health-gates](health-gates.md) 已改为 `compile` + `eslint`），D8 降 **P3**。理由：① 上表证明 `browser` / `electron-browser` 两域 **0 错**，红全部来自 node / worker 系 checker 把 browser 源码拉进图却没套 browser 补充类型——与本仓任何 `contrib/{conversation,sources}` 或 `platform/universeAgent` 变更无关；② 它本就不查 import path，M6 需要的 renderer ↔ `platform/universeAgent/node` 边界由 ESLint `local/code-layering` + boundary 测承担（ADR-003 Consequences 已更正）；③ 继续挂在 Blockers 只会让每轮 closeout 都产生一条无法闭合的红项。修复按上文「可执行修复」1 → 2B 走，任何空闲 tick 可做，做完即恢复门禁。
+
+## D17 三域基线红（切片 3 · `d2abb648c0e`）
+
+名单正文见 [test-baseline-failures.txt](test-baseline-failures.txt)（38 行）。下列为一行一场景（首次 SHA / 场景 / `baseline` / owner）。**不含** D16 三文件。
+
+| 首次 SHA | 场景 | 标记 | owner |
+|:---------|:-----|:-----|:------|
+| `d2abb648c0e` | conversation：`ConversationDiffReviewPane` 泄漏 → mocha root afterEach 红（aggregation / navigation / session chat） | baseline | A `test-baseline-slice3` |
+| `d2abb648c0e` | conversation：editor aggregation `createScoped` 未装配 | baseline | A `test-baseline-slice3` |
+| `d2abb648c0e` | conversation：Lens visualize 两败 + reveal navigation 三败 + process fold span + pending-on-focus | baseline | A `test-baseline-slice3` |
+| `d2abb648c0e` | conversation：StatusBar 引擎入口 / H4b 相位文案；SessionsView 种子行；split / side-by-side；trajectory 角色标签 Permission≠Confirmation | baseline | A `test-baseline-slice3` |
+| `d2abb648c0e` | sources：`collectSourcesReviewEntries` 委托 `toResource`/`fullTitle` 未定义 | baseline | A `test-baseline-slice3` |
+| `d2abb648c0e` | universeAgent：`FileMutationJoin` lifecycle+snapshot 一败 | baseline | A `test-baseline-slice3` |
+| `d2abb648c0e` | universeAgent：11 个 node 测 Electron ESM `Failed to fetch dynamically imported module`（无 JUnit testcase，未进名单）：connectionResolver / deviceAuthHandshake / deviceGrantCrypto / hubControlPlane / hubDirectoryClient / hubSessionStore / observeCandidateLeaf / pairingOrchestrator / universeAgentChannel / universeAgentConnection / universeAgentHubService | baseline | A `test-baseline-slice3` |
+
+官方三域单 glob：conversation 遇 DiffReview 泄漏会中断后续用例；universeAgent 会在首个 unloadable 文件处写不出 XML。名单按分批收齐后的 JUnit 差集去重。
 
 ## 维护规则
 
