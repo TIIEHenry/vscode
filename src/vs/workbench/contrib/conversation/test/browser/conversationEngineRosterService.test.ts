@@ -10,6 +10,7 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/tes
 import { StorageScope, StorageTarget } from '../../../../../platform/storage/common/storage.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { IUniverseAgentSessionView } from '../../../../../platform/universeAgent/common/universeAgentSessionView.js';
+import type { ConversationWriteMessage } from '../../../../../platform/universeAgent/common/conversationViewFrame.js';
 import type {
 	UniverseAgentConnectionSnapshot,
 	UniverseAgentSessionEvent,
@@ -285,23 +286,31 @@ class MockUniverseAgentConnection extends Disposable implements IUniverseAgentCo
 
 class MockUniverseAgentSessionView implements IUniverseAgentSessionView {
 	declare readonly _serviceBrand: undefined;
+	readonly postCalls: { readonly leaseId: string; readonly msg: ConversationWriteMessage }[] = [];
 	onDynamicDidApplyFrame(_leaseId: string) { return Event.None; }
 	async acquireLease(sessionId: string) { return `lease:${sessionId}`; }
 	async releaseLease() { }
-	async post() { return { accepted: true as const, correlation: { id: 'mock' } }; }
+	async post(leaseId: string, msg: ConversationWriteMessage) {
+		this.postCalls.push({ leaseId, msg });
+		return { accepted: true as const, correlation: { id: 'mock' } };
+	}
 	async requestResync() { }
 	async acknowledge() { }
 	async requestDetail() { return { ok: false as const, reason: 'unavailable' as const }; }
 }
 
-function createService(connection: MockUniverseAgentConnection, storage?: TestStorageService): ConversationEngineRosterService {
+function createService(
+	connection: MockUniverseAgentConnection,
+	storage?: TestStorageService,
+	sessionView: MockUniverseAgentSessionView = new MockUniverseAgentSessionView(),
+): ConversationEngineRosterService {
 	const workspaceToolsGate = {
 		_serviceBrand: undefined,
 		shouldAdvertise: () => true,
 	};
 	return new ConversationEngineRosterService(
 		connection as unknown as IUniverseAgentConnection,
-		new MockUniverseAgentSessionView() as unknown as IUniverseAgentSessionView,
+		sessionView as unknown as IUniverseAgentSessionView,
 		workspaceToolsGate,
 		storage,
 	);
@@ -1097,45 +1106,56 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		assert.strictEqual(connection.cancelToolCallCalls[0]?.toolCallId, 'tc-live');
 	});
 
-	test('connected retryError forwards AgentService.ContinueGeneration', async () => {
+	test('connected retryError posts continueGeneration on the held lease and does not open a UI stream', async () => {
 		const storage = store.add(new TestStorageService());
 		const connection = store.add(new MockUniverseAgentConnection());
+		const sessionView = new MockUniverseAgentSessionView();
 		connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
-		const service = store.add(createService(connection, storage));
+		const service = store.add(createService(connection, storage, sessionView));
 		connection.setConnected(true);
 		service.setEngineConnected(true);
-		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		await awaitEngineCatalogRefresh(service);
+		const viewLease = store.add(service.acquireSessionView('ua-only'));
+		assert.ok(await (viewLease as { whenBindReady?: () => Promise<boolean> }).whenBindReady?.());
 
 		assert.strictEqual(service.retryError('ua-only', { messageId: '  msg-1  ', turnId: '  turn-1  ', agentId: '  sub:a  ' }), true);
-		assert.deepStrictEqual(connection.continuationOpens, [{
-			sessionId: 'ua-only',
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		assert.deepStrictEqual(sessionView.postCalls.map(call => call.msg), [{
+			kind: 'continueGeneration',
 			agentId: 'sub:a',
 			turnId: 'turn-1',
 			messageId: 'msg-1',
 		}]);
+		assert.deepStrictEqual(connection.continuationOpens, []);
 		assert.strictEqual(service.retryError('ua-only', { messageId: 'msg-2' }), true);
-		assert.deepStrictEqual(connection.continuationOpens[1], {
-			sessionId: 'ua-only',
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		assert.deepStrictEqual(sessionView.postCalls[1]?.msg, {
+			kind: 'continueGeneration',
 			agentId: 'root',
 			turnId: 'msg-2',
 			messageId: 'msg-2',
 		});
 		assert.strictEqual(service.retryError('ua-only', { messageId: '   ' }), false);
 		assert.strictEqual(service.retryError('missing', { messageId: 'msg-3' }), false);
-		assert.strictEqual(connection.continuationOpens.length, 2);
+		assert.strictEqual(sessionView.postCalls.length, 2);
 		(connection as { openContinuationStream?: unknown }).openContinuationStream = undefined;
-		assert.strictEqual(service.retryError('ua-only', { messageId: 'msg-4' }), false);
-		assert.strictEqual(connection.continuationOpens.length, 2);
+		assert.strictEqual(service.retryError('ua-only', { messageId: 'msg-4' }), true);
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		assert.strictEqual(sessionView.postCalls.length, 3);
+		assert.deepStrictEqual(connection.continuationOpens, []);
 	});
 
 	test('connected retryError uses last streaming agent when omitted', async () => {
 		const storage = store.add(new TestStorageService());
 		const connection = store.add(new MockUniverseAgentConnection());
+		const sessionView = new MockUniverseAgentSessionView();
 		connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
-		const service = store.add(createService(connection, storage));
+		const service = store.add(createService(connection, storage, sessionView));
 		connection.setConnected(true);
 		service.setEngineConnected(true);
-		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		await awaitEngineCatalogRefresh(service);
+		const viewLease = store.add(service.acquireSessionView('ua-only'));
+		assert.ok(await (viewLease as { whenBindReady?: () => Promise<boolean> }).whenBindReady?.());
 
 		const originalGetTurns = service.getTurns.bind(service);
 		service.getTurns = (sessionId: string) => {
@@ -1146,24 +1166,31 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		};
 
 		assert.strictEqual(service.retryError('ua-only', { messageId: 'msg-live', turnId: 'turn-live' }), true);
-		assert.strictEqual(connection.continuationOpens[0]?.agentId, 'sub:live');
-		assert.strictEqual(connection.continuationOpens[0]?.messageId, 'msg-live');
-		assert.strictEqual(connection.continuationOpens[0]?.turnId, 'turn-live');
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		assert.deepStrictEqual(sessionView.postCalls[0]?.msg, {
+			kind: 'continueGeneration',
+			agentId: 'sub:live',
+			turnId: 'turn-live',
+			messageId: 'msg-live',
+		});
+		assert.deepStrictEqual(connection.continuationOpens, []);
 	});
 
 	test('disconnected after engine retryError skips ContinueGeneration', async () => {
 		const storage = store.add(new TestStorageService());
 		const connection = store.add(new MockUniverseAgentConnection());
+		const sessionView = new MockUniverseAgentSessionView();
 		connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
-		const service = store.add(createService(connection, storage));
+		const service = store.add(createService(connection, storage, sessionView));
 		connection.setConnected(true);
 		service.setEngineConnected(true);
-		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		await awaitEngineCatalogRefresh(service);
 		connection.setConnected(false);
 		service.setEngineConnected(false);
 
 		assert.strictEqual(service.retryError('ua-only', { messageId: 'msg-1' }), false);
 		assert.strictEqual(connection.continuationOpens.length, 0);
+		assert.deepStrictEqual(sessionView.postCalls, []);
 	});
 
 	test('connected resolveConfirmation forwards PermissionService.Respond', async () => {

@@ -166,6 +166,31 @@ suite('ConversationEngineFrameSource post outcome', () => {
 
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
+	test('postIfHeld reuses the acquired lease and skips when none is held', async () => {
+		const sessionView = new PostOutcomeMockSessionView();
+		const source = store.add(new ConversationEngineFrameSource(sessionView));
+
+		assert.strictEqual(source.postIfHeld('sess-held', { kind: 'submitInput', text: 'early' }), undefined);
+
+		const lease = store.add(source.acquire('sess-held'));
+		assert.strictEqual(await source.whenLeaseBindReady(lease), true);
+		const outcome = await source.postIfHeld('sess-held', {
+			kind: 'continueGeneration',
+			agentId: 'agent-root',
+			turnId: 'turn-1',
+			messageId: 'msg-1',
+		});
+		assert.deepStrictEqual(outcome, { accepted: true, correlation: { id: 'host-corr' } });
+		assert.strictEqual(sessionView.lastPost?.leaseId, 'lease:sess-held');
+		assert.deepStrictEqual(sessionView.lastPost?.msg, {
+			kind: 'continueGeneration',
+			agentId: 'agent-root',
+			turnId: 'turn-1',
+			messageId: 'msg-1',
+		});
+		assert.strictEqual(lease.sessionId, 'sess-held');
+	});
+
 	test('returns the host PostOutcome instead of inventing accepted', async () => {
 		const sessionView = new PostOutcomeMockSessionView();
 		sessionView.postFn = async () => ({ accepted: false, reason: 'mailbox_full' });

@@ -117,7 +117,8 @@ export class ConversationStubFrameSource extends Disposable implements IConversa
 				break;
 			case 'questionRespond':
 			case 'clientToolRespond':
-				// The stub fixture has no ask-user questions or client tools; accept as a no-op, never invent a record.
+			case 'continueGeneration':
+				// The stub fixture has no ask-user questions, client tools, or ContinueGeneration; accept as a no-op, never invent a record.
 				break;
 		}
 		return { accepted: true, correlation: { id: `stub:${sessionId}:${Date.now()}` } };

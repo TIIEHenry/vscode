@@ -7,7 +7,8 @@ import assert from 'assert';
 import { DisposableStore } from '../../../../../base/common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { applySessionViewTimeline, refreshTrajectoryRecords, type IConversationLensProjectionHost } from '../../browser/conversationLensProjection.js';
-import { bindSessionView, type IConversationLensSessionBindingHost } from '../../browser/conversationLensSessionBinding.js';
+import { bindSessionView, retryError, type IConversationLensSessionBindingHost } from '../../browser/conversationLensSessionBinding.js';
+import type { ConversationWriteMessage, PostOutcome } from '../../../../../platform/universeAgent/common/conversationViewFrame.js';
 
 suite('conversation lens dispose gate', () => {
 
@@ -103,5 +104,74 @@ suite('conversation lens dispose gate', () => {
 		assert.strictEqual(host.sessionViewLease, undefined);
 		assert.deepStrictEqual(host.lastAttachedEntries, []);
 		lifetime.dispose();
+	});
+
+	test('retryError posts continueGeneration on the bound lease and does not call roster.retryError', async () => {
+		const posted: ConversationWriteMessage[] = [];
+		let rosterRetry = 0;
+		const host = {
+			getBoundSessionId: () => 'sess-1',
+			postBound: async (msg: ConversationWriteMessage): Promise<PostOutcome> => {
+				posted.push(msg);
+				return { accepted: true, correlation: { id: 'x' } };
+			},
+			stubService: {
+				retryError: () => {
+					rosterRetry++;
+					return true;
+				},
+			},
+			showPostFailure: () => { },
+		} as unknown as IConversationLensSessionBindingHost;
+
+		retryError(host, { id: '  msg-1  ', turnId: '  turn-1  ', agentId: '  sub:a  ' });
+		await new Promise<void>(resolve => queueMicrotask(() => resolve()));
+
+		assert.deepStrictEqual(posted, [{
+			kind: 'continueGeneration',
+			agentId: 'sub:a',
+			turnId: 'turn-1',
+			messageId: 'msg-1',
+		}]);
+		assert.strictEqual(rosterRetry, 0);
+	});
+
+	test('retryError omitted turnId and agentId fall back to messageId and root', async () => {
+		const posted: ConversationWriteMessage[] = [];
+		const host = {
+			getBoundSessionId: () => 'sess-1',
+			postBound: async (msg: ConversationWriteMessage): Promise<PostOutcome> => {
+				posted.push(msg);
+				return { accepted: true, correlation: { id: 'x' } };
+			},
+			stubService: { retryError: () => true },
+			showPostFailure: () => { },
+		} as unknown as IConversationLensSessionBindingHost;
+
+		retryError(host, { id: 'msg-only' });
+		await new Promise<void>(resolve => queueMicrotask(() => resolve()));
+
+		assert.deepStrictEqual(posted, [{
+			kind: 'continueGeneration',
+			agentId: 'root',
+			turnId: 'msg-only',
+			messageId: 'msg-only',
+		}]);
+	});
+
+	test('retryError blank messageId posts nothing', async () => {
+		let postBound = 0;
+		const host = {
+			getBoundSessionId: () => 'sess-1',
+			postBound: async (): Promise<PostOutcome> => {
+				postBound++;
+				return { accepted: true, correlation: { id: 'x' } };
+			},
+			stubService: { retryError: () => true },
+			showPostFailure: () => { },
+		} as unknown as IConversationLensSessionBindingHost;
+
+		retryError(host, { id: '   ' });
+		assert.strictEqual(postBound, 0);
 	});
 });

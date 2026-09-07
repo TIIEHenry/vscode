@@ -74,7 +74,6 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	private wasEverConnected = false;
 	private testEngineConnected: boolean | undefined;
 	private readonly sessionGoals = new Map<string, string>();
-	private readonly continuationStreams = new Map<string, { dispose(): void }>();
 
 	constructor(
 		@IUniverseAgentConnection private readonly uaConnection: IUniverseAgentConnection,
@@ -89,14 +88,6 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		this._register(uaConnection.onDidChangeConnection(() => this.onUaConnectionChanged()));
 		this._register(this.onDidChangeActiveSession(() => this.bindLiveTreeObservationLease()));
 		this._register(this.onDidChangeEngineConnection(() => this.bindLiveTreeObservationLease()));
-		this._register({
-			dispose: () => {
-				for (const handle of this.continuationStreams.values()) {
-					handle.dispose();
-				}
-				this.continuationStreams.clear();
-			},
-		});
 		this.bindLiveTreeObservationLease();
 	}
 
@@ -939,22 +930,18 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 			return false;
 		}
 		if (callRemote) {
-			if (!this.uaConnection.openContinuationStream) {
-				return false;
-			}
 			const agentId = options.agentId?.trim() || this.lastStreamingAgentId(sessionId) || 'root';
-			this.continuationStreams.get(sessionId)?.dispose();
-			this.continuationStreams.delete(sessionId);
-			try {
-				const handle = this.uaConnection.openContinuationStream(
-					{ sessionId, agentId, turnId, messageId },
-					() => { },
-				);
-				this.continuationStreams.set(sessionId, handle);
-				return true;
-			} catch {
+			const pending = this.engineFrameSource.postIfHeld(sessionId, {
+				kind: 'continueGeneration',
+				agentId,
+				turnId,
+				messageId,
+			});
+			if (!pending) {
 				return false;
 			}
+			void pending;
+			return true;
 		}
 		return false;
 	}

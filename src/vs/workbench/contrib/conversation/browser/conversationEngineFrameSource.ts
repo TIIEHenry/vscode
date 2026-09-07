@@ -54,6 +54,19 @@ export class ConversationEngineFrameSource extends Disposable implements IConver
 		return candidate.whenBindReady?.();
 	}
 
+	/**
+	 * Post on an already-held lease for `sessionId`. Returns undefined when this
+	 * source does not currently hold one (caller may acquire).
+	 */
+	postIfHeld(sessionId: string, msg: ConversationWriteMessage): Promise<PostOutcome> | undefined {
+		for (const lease of this.leases.values()) {
+			if (lease.sessionId === sessionId) {
+				return lease.post(msg);
+			}
+		}
+		return undefined;
+	}
+
 	/** Last replica for a session when a lease is still held (UA disconnect cache). */
 	getCachedProjection(sessionId: string): ConversationSessionViewProjection | undefined {
 		for (const lease of this.leases.values()) {

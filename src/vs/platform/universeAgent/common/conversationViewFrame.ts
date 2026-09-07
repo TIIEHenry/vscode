@@ -199,9 +199,10 @@ export type ConversationWriteMessage =
 	| { readonly kind: 'submitInput'; readonly text: string }
 	| { readonly kind: 'permissionRespond'; readonly requestId: string; readonly decision: 'allow' | 'deny' }
 	| { readonly kind: 'questionRespond'; readonly requestId: string; readonly answers: ConversationQuestionRespondAnswers; readonly customText?: string }
-	| { readonly kind: 'clientToolRespond'; readonly requestId: string; readonly resultJson: string };
-// S1–S3 only use submitInput / permissionRespond; S5 must map every arm against the full
-// ChatRequest.payload oneof (question_response, …) and unary PermissionService.Respond.
+	| { readonly kind: 'clientToolRespond'; readonly requestId: string; readonly resultJson: string }
+	| { readonly kind: 'continueGeneration'; readonly agentId: string; readonly turnId: string; readonly messageId: string };
+// Retry maps to Actor localFact `continueGeneration` (host opens ContinueGeneration).
+// Other arms map against ChatRequest.payload oneof / unary PermissionService.Respond.
 
 /** Mirrors session-core `PostOutcome` (node layer) so the renderer never imports the Actor tree. */
 export type PostOutcome =
