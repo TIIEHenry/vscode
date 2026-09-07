@@ -665,4 +665,99 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		assertFailedCatalogHonesty(section, MCP_FEATURE, 'listMcpServers retry exploded');
 		assert.ok(!/Demo MCP/i.test(section.getDomNode().textContent ?? ''));
 	});
+
+	function demoMcpServer() {
+		return {
+			id: 'stdio-demo',
+			name: 'Demo MCP',
+			transport: 'stdio' as const,
+			origin: 'global' as const,
+			enabled: true,
+		};
+	}
+
+	function assertMcpWriteFailureKeepsRows(section: EngineMcpSection, reason: string, expectedRows: number): void {
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.strictEqual(section.getListEntryCount(), expectedRows);
+		assert.strictEqual(section.canWrite(), true);
+		const status = section.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
+		assert.ok(status);
+		assert.notStrictEqual(status.style.display, 'none');
+		assert.strictEqual(status.dataset['catalogMode'], 'failed');
+		assert.ok(status.textContent?.includes(getCatalogFailedCopy(MCP_FEATURE, reason)));
+	}
+
+	test('MCP: add/update/remove ok:false shows write-failure status and keeps catalog rows', async () => {
+		let listMcpServersCalls = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { mcp: { support: 'SUPPORTED' } },
+			listMcpServers: async () => {
+				listMcpServersCalls++;
+				return { servers: [demoMcpServer()] };
+			},
+			addMcpServer: async () => ({ ok: false, reason: 'add denied' }),
+			updateMcpServer: async () => ({ ok: false, reason: 'update denied' }),
+			removeMcpServer: async () => ({ ok: false, reason: 'remove denied' }),
+		});
+		const section = mountMcpSection(connection);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.strictEqual(section.getListEntryCount(), 1);
+		assert.strictEqual(listMcpServersCalls, 1);
+
+		assert.strictEqual(await section.addServer(), false);
+		assertMcpWriteFailureKeepsRows(section, 'add denied', 1);
+		assert.strictEqual(listMcpServersCalls, 1);
+
+		assert.strictEqual(section.selectServerByIdForTest('stdio-demo'), true);
+		assert.strictEqual(await section.updateSelectedServer({ name: 'Renamed' }), false);
+		assertMcpWriteFailureKeepsRows(section, 'update denied', 1);
+		assert.strictEqual(listMcpServersCalls, 1);
+
+		assert.strictEqual(await section.removeSelectedServer(), false);
+		assertMcpWriteFailureKeepsRows(section, 'remove denied', 1);
+		assert.strictEqual(listMcpServersCalls, 1);
+	});
+
+	test('MCP: add/update/remove throw shows write-failure status and keeps catalog rows', async () => {
+		let listMcpServersCalls = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { mcp: { support: 'SUPPORTED' } },
+			listMcpServers: async () => {
+				listMcpServersCalls++;
+				return { servers: [demoMcpServer()] };
+			},
+			addMcpServer: async () => {
+				throw new Error('add exploded');
+			},
+			updateMcpServer: async () => {
+				throw new Error('update exploded');
+			},
+			removeMcpServer: async () => {
+				throw new Error('remove exploded');
+			},
+		});
+		const section = mountMcpSection(connection);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.strictEqual(section.getListEntryCount(), 1);
+		assert.strictEqual(listMcpServersCalls, 1);
+
+		assert.strictEqual(await section.addServer(), false);
+		assertMcpWriteFailureKeepsRows(section, 'add exploded', 1);
+		assert.strictEqual(listMcpServersCalls, 1);
+
+		assert.strictEqual(section.selectServerByIdForTest('stdio-demo'), true);
+		assert.strictEqual(await section.updateSelectedServer({ name: 'Renamed' }), false);
+		assertMcpWriteFailureKeepsRows(section, 'update exploded', 1);
+		assert.strictEqual(listMcpServersCalls, 1);
+
+		assert.strictEqual(await section.removeSelectedServer(), false);
+		assertMcpWriteFailureKeepsRows(section, 'remove exploded', 1);
+		assert.strictEqual(listMcpServersCalls, 1);
+	});
 });
