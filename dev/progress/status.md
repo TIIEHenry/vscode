@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-08
-summary: "FileMutationJoin / createScoped / Review 委托已修。D16 仍开。官方三域 glob 已绿。D44/D45/D47 已闭。D46 catalog leftover 行仍开。git-read throw 已挂载。A2 仍 blocked。"
+summary: "FileMutationJoin / createScoped / Review 委托已修。D16 仍开。官方三域 glob 已绿。D44/D45/D46/D47 已闭。git-read throw 已挂载。A2 仍 blocked。"
 ---
 
 # Development Progress
@@ -68,9 +68,10 @@ summary: "FileMutationJoin / createScoped / Review 委托已修。D16 仍开。�
 9. **B 槽 `d44-preferences-nav-idempotent`（未关 D16）**：`registerUaPreferencesNavigationActions` 对已注册的 `openConnectionPreferences` / `openEnginePreferences` 跳过，二次调用不抛。生产仍只 contribution 调一次。未发明新命令。[D44](deferred-gaps.md) **已闭**。
 10. **A 槽 hang-fix leftover（未关 D16 / 未降 min_cases）**：官方 conversation glob 未列三测（delete→trajectory 铺行、pinned preview/copy）。夹具按 hang-fix 同族：layout-before-reveal、有界等待、paint pinned/trajectory 行。未缩产品断言。**merge 复证**：三测 3/3；官方 conversation glob **795/0/0**。
 11. **A 槽 `host-open-catch`（未关 D16 / 未转 listTools / 未发明 heartbeat client_id / 未碰 Create·`.sessions`）**：`openResidentChat` `open.call` 与 `openStream` `subscribeSessionEventStream` 补与 `openContinuation` 同级 catch（warn、不抛、Chat 仍 echo `chatStreamUp` 走 one-shot）。`sessionViewHostChatClose.test.ts` 断言 throw-on-open。父约束未 compile。[D45](deferred-gaps.md) **已闭**。
-12. **B 槽 `catalog-rpc-throw-honesty`（未关 D16 / 未转 listTools bytes / 未发明 GetQueue）**：Engine Tools/Agents list throw → `getMode()==='failed'` + error status + 0 行；composer 三 hook throw 仍 No agent / No model / 空 tools。生产 catch 未改。成功后再 throw 的 leftover 记 [D46](deferred-gaps.md)。未 compile。
+12. **B 槽 `catalog-rpc-throw-honesty`（未关 D16 / 未转 listTools bytes / 未发明 GetQueue）**：Engine Tools/Agents list throw → `getMode()==='failed'` + error status + 0 行；composer 三 hook throw 仍 No agent / No model / 空 tools。首拉 throw 已锁。成功后再 throw leftover 已由本 wake `d46-catalog-leftover-clear` 收口。未 compile。
 13. **D 槽 `review-git-read-throw`（未关 D16 / 未跑 F4 / 未开 A2）**：Review / Changes 挂载后 `readGitChanges` throw 的 status DOM 含 `sourcesGitReadFailureMessage('boom')` / `Unable to read git changes:`。未重做 Open Selected。未发明 WriteGitUnstage。
 14. **A 槽 `host-close-stream-dispose-catch`（未关 D16 / 未转 listTools / 未碰 D46·catalog / 未跑 F4）**：核实 `drainIntents` 无 per-intent catch 为真洞——Actor linger / connectionDown / overflow 同批 `closeStream` 后接 `closeChatStream`；生产 `dispose` 走 `call.end()`+`call.cancel()`。只给 `closeStream` 的 `dispose` 补与 open 同级 warn catch，仍 `streams.delete`。测锁 throw-on-dispose 后 Chat 仍关。不包整圈 `drainIntents`。父约束未 compile。
+15. **B 槽 `d46-catalog-leftover-clear`（未关 D16 / 未转 listTools / 未发明 GetQueue）**：`engineToolsSection.refresh` / `engineAgentsSection.refresh` catch 先 `clearCatalogPresentation` 再 `failed`。补成功→throw 测：`getMode()==='failed'` 且 `getListEntryCount()===0`。首拉 throw 三测保留。父约束未 compile。[D46](deferred-gaps.md) **已闭**。
 
 子 agent 发现的既有代码问题：
 
@@ -99,7 +100,7 @@ summary: "FileMutationJoin / createScoped / Review 委托已修。D16 仍开。�
 | [D43](deferred-gaps.md) | D 槽 leftover | **closed** `ConversationPart.layout` 按叶 host 尺寸再 layout 各 conversation editor part；resize 测已补 |
 | [D44](deferred-gaps.md) | B 槽 `d44-preferences-nav-idempotent` | **closed** 已注册 id 跳过；二次调用不抛；生产仍只 contribution 调一次 |
 | [D45](deferred-gaps.md) | A 槽 `host-open-catch` | **closed** `openResidentChat` / `openStream` throw-on-open 已 catch；Chat 仍 echo one-shot；未关 D16 |
-| [D46](deferred-gaps.md) | B 槽 `catalog-rpc-throw-honesty` | **仍开**：Tools/Agents 成功后再 throw 可能 leftover 行；首拉 throw 已锁 0 行 |
+| [D46](deferred-gaps.md) | B 槽 `d46-catalog-leftover-clear` | **closed** catch 先 `clearCatalogPresentation` 再 `failed`；成功→throw 测 `getMode()==='failed'` 且 `getListEntryCount()===0`；首拉 throw 测保留；未关 D16 / 未转 listTools / 未发明 GetQueue |
 | [D47](deferred-gaps.md) | A 槽 `host-close-stream-dispose-catch` | **closed** `closeStream` dispose throw 已 catch；同批 Chat 仍关；未关 D16 |
 
 ## 工位表（P0 盘点 · 2026-09-07 · 与 `git worktree list` 对照）
