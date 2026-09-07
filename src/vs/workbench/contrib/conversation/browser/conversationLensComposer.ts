@@ -127,7 +127,7 @@ export async function loadConnectedComposerCatalogs(host: IConversationLensCompo
 				const { agentIndex } = host.getSessionConfig(host.getBoundSessionId());
 				host.agentSelectBox.setOptions(options, Math.min(agentIndex, options.length - 1));
 			} catch {
-				// Keep honest empty agent list.
+				host.agentSelectBox.setOptions([{ text: conversationLensDockNoAgent }], 0);
 			}
 		}
 		if (caps.models.support === 'SUPPORTED') {
@@ -140,7 +140,9 @@ export async function loadConnectedComposerCatalogs(host: IConversationLensCompo
 				host.modelSelectedIndex = 0;
 				host.catalogModelIds = composerModelIds(result.models);
 			} catch {
-				// Keep "No model"; send is not gated when connected.
+				host.modelSelectBox.setOptions([{ text: conversationLensDockNoModel }], 0);
+				host.modelSelectedIndex = 0;
+				host.catalogModelIds = [''];
 			}
 		}
 		if (caps.tools.support === 'SUPPORTED') {
