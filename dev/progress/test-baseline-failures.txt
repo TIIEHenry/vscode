@@ -5,3 +5,4 @@
 # mocha-junit-reporter 本 runner：classname=test.title，name=test.fullTitle()
 # 只登记 unit-custom 三域；D16 三文件在本 SHA 仍 0 failing，未列入
 # 采集：工位 A loop/A @ d2abb648c0e；本关仓 merge `a90517cf774` 复证后 29 行 leftover 均已从名单删除（visualize 两行补 reveal 后 3/3 绿）。min_cases 未降。D16 仍开。
+# 官方 conversation 单 glob 复证：工位 A loop/A @ 793ff6e201f 后夹具收口，`linux-x64-conversation-results.xml` 795 testcase / 0 fail / 0 skip（≥ min_cases=714）。未关 D16；未开切片 1。
