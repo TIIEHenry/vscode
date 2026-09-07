@@ -156,6 +156,12 @@ export function bindReadingColumnLayout(host: IConversationLensReadingColumnHost
 		for (const entry of entries) {
 			const width = Math.floor(entry.contentRect.width);
 			const height = Math.floor(entry.contentRect.height);
+			// Maximize hides the shared slot on the Conversation page; jsdom / flex
+			// then report 0×0. Do not clobber lastReadingWidth or unpaint the
+			// Trajectory virtual list (D42).
+			if (width < 1 || height < 1) {
+				continue;
+			}
 			const restored = host.lastReadingWidth < 1 && width > 0;
 			host.lastReadingWidth = width;
 			applyConversationWidth(host, width);
@@ -178,6 +184,9 @@ export function bindReadingColumnLayout(host: IConversationLensReadingColumnHost
 export function layoutReadingSurfaces(host: IConversationLensReadingColumnHost, height: number, width: number): void {
 	refreshStaleSnapshotBanner(host);
 	if (host.readingColumn.classList.contains(conversationLensPhasePreFirstClass)) {
+		return;
+	}
+	if (height < 1 || width < 1) {
 		return;
 	}
 	if (host.lensId === 'conversation') {

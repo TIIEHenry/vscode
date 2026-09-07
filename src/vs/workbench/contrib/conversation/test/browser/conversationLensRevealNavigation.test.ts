@@ -14,6 +14,7 @@ import { TestLayoutService, workbenchInstantiationService } from '../../../../te
 import { ConversationLens } from '../../browser/conversationLens.js';
 import { conversationLensPhasePreFirstClass, conversationLensShowingTrajectoryClass } from '../../browser/conversationLensDockStrings.js';
 import { ConversationTimelineTree } from '../../browser/conversationTimelineTree.js';
+import { ConversationTrajectory } from '../../browser/conversationTrajectory.js';
 import { ILayoutService } from '../../../../../platform/layout/browser/layoutService.js';
 import { ConversationStubService, IConversationRosterService } from '../../browser/conversationStubService.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
@@ -75,6 +76,11 @@ suite('ConversationLens reveal navigation (T5a)', function () {
 		const timelineScroll = slots.timeline.querySelector('.conversation-lens-timeline-scroll') as HTMLElement | null;
 		const contentHost = slots.timeline.querySelector('.conversation-lens-timeline-content') as HTMLElement | null;
 		const treeContainer = slots.timeline.querySelector('.conversation-timeline-tree') as HTMLElement | null;
+		const trajectoryHost = slots.timeline.querySelector('.conversation-lens-trajectory') as HTMLElement | null;
+		const trajectoryScroll = slots.timeline.querySelector('.conversation-lens-trajectory-table-scroll') as HTMLElement | null;
+		slots.timeline.style.width = `${LENS_LAYOUT_WIDTH}px`;
+		slots.timeline.style.height = `${LENS_LAYOUT_HEIGHT}px`;
+		slots.timeline.style.minHeight = `${LENS_LAYOUT_HEIGHT}px`;
 		if (readingColumn) {
 			readingColumn.style.width = `${LENS_LAYOUT_WIDTH}px`;
 			readingColumn.style.height = `${LENS_LAYOUT_HEIGHT}px`;
@@ -89,6 +95,14 @@ suite('ConversationLens reveal navigation (T5a)', function () {
 		}
 		if (treeContainer) {
 			treeContainer.style.height = `${LENS_LAYOUT_HEIGHT - 120}px`;
+		}
+		if (trajectoryHost) {
+			trajectoryHost.style.height = `${LENS_LAYOUT_HEIGHT - 120}px`;
+			trajectoryHost.style.minHeight = `${LENS_LAYOUT_HEIGHT - 120}px`;
+		}
+		if (trajectoryScroll) {
+			trajectoryScroll.style.height = `${LENS_LAYOUT_HEIGHT - 200}px`;
+			trajectoryScroll.style.minHeight = `${LENS_LAYOUT_HEIGHT - 200}px`;
 		}
 		if (slots.sessionBar) {
 			slots.sessionBar.style.width = `${LENS_LAYOUT_WIDTH}px`;
@@ -210,10 +224,20 @@ suite('ConversationLens reveal navigation (T5a)', function () {
 		return { part, lens, stubService, storageService, layoutReadingColumn: layout, slots };
 	}
 
+	function getTrajectoryView(lens: ConversationLens): ConversationTrajectory {
+		return (lens as unknown as { trajectoryView: ConversationTrajectory }).trajectoryView;
+	}
+
 	function getTrajectoryRow(slots: IConversationLensSlots, recordId: string): HTMLElement {
 		const row = slots.timeline.querySelector(`.conversation-lens-trajectory-record-row[data-record-id="${recordId}"]`) as HTMLElement | null;
 		assert.ok(row, `expected trajectory row ${recordId}`);
 		return row;
+	}
+
+	async function revealTrajectoryRow(lens: ConversationLens, layout: () => void, recordId: string): Promise<void> {
+		getTrajectoryView(lens).revealRecord(recordId);
+		layout();
+		await flushTimelineHeightUpdates();
 	}
 
 	function getSelectedTrajectoryRecordId(slots: IConversationLensSlots): string | undefined {
@@ -335,6 +359,7 @@ suite('ConversationLens reveal navigation (T5a)', function () {
 		clickLensTab(slots, 'trajectory');
 		layoutReadingColumn();
 		await flushTimelineHeightUpdates();
+		await revealTrajectoryRow(lens, layoutReadingColumn, 'untitled-a1');
 
 		getTrajectoryRow(slots, 'untitled-a1').click();
 		layoutReadingColumn();
@@ -377,6 +402,8 @@ suite('ConversationLens reveal navigation (T5a)', function () {
 		assert.ok(!slots.timeline.querySelector('.conversation-lens-trajectory')!.hasAttribute('hidden'));
 		assert.notStrictEqual(getComputedStyle(slots.timeline).display, 'none');
 		assert.ok(slots.timeline.querySelector('.conversation-lens-timeline')!.hasAttribute('hidden'));
+
+		await revealTrajectoryRow(lens, layoutReadingColumn, 'untitled-u1');
 		assert.ok(getTrajectoryRow(slots, 'untitled-u1'));
 	});
 
