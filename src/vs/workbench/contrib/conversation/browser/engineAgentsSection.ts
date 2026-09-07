@@ -218,6 +218,7 @@ export class EngineAgentsSection extends Disposable {
 	private agentsMarkdownDirty = false;
 	private activeDetailTab: EngineAgentDetailTab = 'instructions';
 	private agentTools: UniverseAgentToolSummary[] = [];
+	private agentToolsLoadFailed: string | undefined;
 	private readonly agentToolPending = new Map<string, boolean>();
 	private sectionActive = false;
 
@@ -662,8 +663,12 @@ export class EngineAgentsSection extends Disposable {
 		try {
 			const result = await this.connection.listTools();
 			this.agentTools = [...result.tools];
-		} catch {
+			this.agentToolsLoadFailed = undefined;
+		} catch (error) {
 			this.agentTools = [];
+			this.agentToolsLoadFailed = error instanceof Error && error.message
+				? error.message
+				: '';
 		}
 	}
 
@@ -674,6 +679,15 @@ export class EngineAgentsSection extends Disposable {
 		this.toolsSaveButton.enabled = this.canEditAgentTools() && this.isAgentToolEnablementDirty();
 		if (!this.selectedProfile) {
 			this.toolsStatus.hide();
+			return;
+		}
+		if (this.agentToolsLoadFailed !== undefined) {
+			this.toolsStatus.render({
+				mode: 'failed',
+				featureLabel: AGENT_TOOLS_FEATURE,
+				reason: this.agentToolsLoadFailed || undefined,
+				onRetry: () => void this.ensureAgentToolsLoaded().then(() => this.renderAgentTools()),
+			});
 			return;
 		}
 		if (this.agentTools.length === 0) {
@@ -837,6 +851,7 @@ export class EngineAgentsSection extends Disposable {
 		this.list.splice(0, this.list.length, []);
 		this.selectedProfile = undefined;
 		this.agentTools = [];
+		this.agentToolsLoadFailed = undefined;
 		this.agentToolPending.clear();
 		this.status.hide();
 		this.hideCatalogWriteStatus();
