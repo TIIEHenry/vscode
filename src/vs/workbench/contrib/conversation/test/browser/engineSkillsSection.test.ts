@@ -34,6 +34,7 @@ suite('EngineSkillsSection (E1)', () => {
 		listSkills?: () => Promise<UniverseAgentListSkillsResult>;
 		getSkillInfo?: (request: { skillName: string }) => Promise<{ name: string; content: string; source: 'bundled' | 'user' | 'project' | 'unknown'; enabled: boolean }>;
 		saveSkillContent?: (request: UniverseAgentSaveSkillContentRequest) => Promise<{ ok: boolean }>;
+		setSkillEnabled?: (request: { skillName: string; enabled: boolean }) => Promise<{ ok: boolean }>;
 	} = {}): IUniverseAgentConnection & { setConnected(value: boolean): void } {
 		const capabilities: UniverseAgentCapabilitySnapshot = {
 			...createEmptyCapabilitySnapshot(),
@@ -98,7 +99,7 @@ suite('EngineSkillsSection (E1)', () => {
 			listSkills: options.listSkills ?? (async () => ({
 				skills: [{ name: 'demo-skill', source: 'bundled', enabled: true }],
 			})),
-			setSkillEnabled: async () => ({ ok: true }),
+			setSkillEnabled: options.setSkillEnabled ?? (async () => ({ ok: true })),
 			getSkillInfo: options.getSkillInfo ?? (async () => ({ name: 'demo-skill', content: '# Demo', source: 'bundled', enabled: true })),
 			saveSkillContent: options.saveSkillContent ?? (async () => ({ ok: true })),
 			listAgentProfiles: async () => ({ profiles: [] }),
@@ -332,6 +333,72 @@ suite('EngineSkillsSection (E1)', () => {
 		assert.ok(writeStatus);
 		assert.notStrictEqual(writeStatus.style.display, 'none');
 		assert.ok(writeStatus.textContent?.includes(createFailed));
+	});
+
+	test('toggleSkill ok:false paints write-status and keeps catalog', async () => {
+		const connection = createConnectionStub({
+			connected: true,
+			skillsSupport: 'SUPPORTED',
+			listSkills: async () => ({
+				skills: [{ name: 'demo-skill', source: 'bundled', enabled: true }],
+			}),
+			setSkillEnabled: async () => ({ ok: false }),
+		});
+		const section = mountSection(connection);
+		section.setSectionActive(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.strictEqual(section.getListEntryCount(), 1);
+		section.selectSkillForTest('demo-skill');
+		await flushMicrotasks();
+		assert.strictEqual(section.getSelectedSkillName(), 'demo-skill');
+
+		await section.toggleSkillForTest('demo-skill', false);
+
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.strictEqual(section.getListEntryCount(), 1);
+		assert.strictEqual(section.getSelectedSkillName(), 'demo-skill');
+
+		const toggleFailed = localize('ua.engineSkillToggleFailed', "Could not update skill enablement on the engine.");
+		const writeStatus = section.getDomNode().querySelector('.engine-skill-write-status') as HTMLElement;
+		assert.ok(writeStatus);
+		assert.notStrictEqual(writeStatus.style.display, 'none');
+		assert.ok(writeStatus.textContent?.includes(toggleFailed));
+	});
+
+	test('toggleSkill throw paints write-status and keeps catalog', async () => {
+		const connection = createConnectionStub({
+			connected: true,
+			skillsSupport: 'SUPPORTED',
+			listSkills: async () => ({
+				skills: [{ name: 'demo-skill', source: 'bundled', enabled: true }],
+			}),
+			setSkillEnabled: async () => {
+				throw new Error('setSkillEnabled exploded');
+			},
+		});
+		const section = mountSection(connection);
+		section.setSectionActive(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.strictEqual(section.getListEntryCount(), 1);
+		section.selectSkillForTest('demo-skill');
+		await flushMicrotasks();
+		assert.strictEqual(section.getSelectedSkillName(), 'demo-skill');
+
+		await section.toggleSkillForTest('demo-skill', false);
+
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.strictEqual(section.getListEntryCount(), 1);
+		assert.strictEqual(section.getSelectedSkillName(), 'demo-skill');
+
+		const toggleFailed = localize('ua.engineSkillToggleFailed', "Could not update skill enablement on the engine.");
+		const writeStatus = section.getDomNode().querySelector('.engine-skill-write-status') as HTMLElement;
+		assert.ok(writeStatus);
+		assert.notStrictEqual(writeStatus.style.display, 'none');
+		assert.ok(writeStatus.textContent?.includes(toggleFailed));
 	});
 
 	test('createSkill throw paints write-status and does not add a fake row', async () => {

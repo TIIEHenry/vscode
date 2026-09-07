@@ -309,6 +309,14 @@ export class EngineSkillsSection extends Disposable {
 		}
 	}
 
+	/** Test hook: programmatically toggle a skill by name. */
+	async toggleSkillForTest(name: string, enabled: boolean): Promise<void> {
+		const entry = this.listEntries.find(item => item.kind === 'skill' && item.skill.name === name);
+		if (entry?.kind === 'skill') {
+			await this.toggleSkill(entry.skill, enabled);
+		}
+	}
+
 	async createSkill(options?: { skillName?: string; content?: string }): Promise<boolean> {
 		if (!this.canWrite() || !this.connection.saveSkillContent) {
 			return false;
@@ -520,10 +528,20 @@ export class EngineSkillsSection extends Disposable {
 	}
 
 	private paintSkillCreateFailed(): void {
-		const message = localize(
+		this.paintSkillWriteFailed(localize(
 			'ua.engineSkillCreateFailed',
 			"Could not create skill content on the engine.",
-		);
+		));
+	}
+
+	private paintSkillToggleFailed(): void {
+		this.paintSkillWriteFailed(localize(
+			'ua.engineSkillToggleFailed',
+			"Could not update skill enablement on the engine.",
+		));
+	}
+
+	private paintSkillWriteFailed(message: string): void {
 		this.showBodyStatus(message);
 		this.writeStatus.style.display = '';
 		this.writeStatus.textContent = message;
@@ -594,12 +612,17 @@ export class EngineSkillsSection extends Disposable {
 		try {
 			const result = await this.connection.setSkillEnabled({ skillName: skill.name, enabled });
 			if (!result.ok) {
+				this.paintSkillToggleFailed();
 				await this.refresh();
+				this.paintSkillToggleFailed();
 				return;
 			}
+			this.hideWriteStatus();
 			await this.refresh();
 		} catch {
+			this.paintSkillToggleFailed();
 			await this.refresh();
+			this.paintSkillToggleFailed();
 		}
 	}
 
