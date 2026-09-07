@@ -365,15 +365,18 @@ export class SessionViewHost extends Disposable {
 				sidecar.overlayDelta.clear();
 			}
 			for (const stream of this.streams.values()) {
-				stream.dispose();
+				this.disposeQuietly(stream, 'closeStream dispose failed', {
+					sessionId: stream.sessionId,
+					attemptId: String(stream.attemptId),
+				});
 			}
 			this.streams.clear();
-			for (const stream of this.chatStreams.values()) {
-				stream.dispose();
+			for (const [sessionId, stream] of this.chatStreams) {
+				this.disposeQuietly(stream, 'closeResidentChat dispose failed', { sessionId });
 			}
 			this.chatStreams.clear();
-			for (const stream of this.continuationStreams.values()) {
-				stream.dispose();
+			for (const [sessionId, stream] of this.continuationStreams) {
+				this.disposeQuietly(stream, 'closeContinuationStream dispose failed', { sessionId });
 			}
 			this.continuationStreams.clear();
 			for (const binding of this.leases.values()) {
@@ -900,15 +903,10 @@ export class SessionViewHost extends Disposable {
 			case 'closeStream': {
 				const key = `${sessionId}:${intent.attemptId}`;
 				const active = this.streams.get(key);
-				try {
-					active?.dispose();
-				} catch (error) {
-					this.diagnostics.warn('closeStream dispose failed', {
-						sessionId,
-						attemptId: String(intent.attemptId),
-						error: error instanceof Error ? error.message : String(error),
-					});
-				}
+				this.disposeQuietly(active, 'closeStream dispose failed', {
+					sessionId,
+					attemptId: String(intent.attemptId),
+				});
 				this.streams.delete(key);
 				break;
 			}
@@ -970,7 +968,10 @@ export class SessionViewHost extends Disposable {
 			});
 			return;
 		}
-		this.continuationStreams.get(sessionId)?.dispose();
+		this.disposeQuietly(this.continuationStreams.get(sessionId), 'openContinuationStream dispose failed', {
+			sessionId,
+			correlation: String(intent.correlation),
+		});
 		this.continuationStreams.delete(sessionId);
 		const engineSessionId = this.resolveEngineSessionId(sessionId);
 		if (!engineSessionId) {
@@ -1054,7 +1055,10 @@ export class SessionViewHost extends Disposable {
 			this.postChatLifecycle(sessionId, 'chatStreamUp', chatAttemptId);
 			return;
 		}
-		existing?.dispose();
+		this.disposeQuietly(existing, 'openResidentChat dispose failed', {
+			sessionId,
+			chatAttemptId: String(chatAttemptId),
+		});
 		this.chatStreams.delete(sessionId);
 
 		const engineSessionId = this.resolveEngineSessionId(sessionId);
@@ -1113,10 +1117,31 @@ export class SessionViewHost extends Disposable {
 	private closeResidentChat(sessionId: string, chatAttemptId: AttemptId): void {
 		const stream = this.chatStreams.get(sessionId);
 		if (stream && stream.chatAttemptId === chatAttemptId) {
-			stream.dispose();
+			this.disposeQuietly(stream, 'closeResidentChat dispose failed', {
+				sessionId,
+				chatAttemptId: String(chatAttemptId),
+			});
 			this.chatStreams.delete(sessionId);
 		}
 		this.postChatLifecycle(sessionId, 'chatStreamDown', chatAttemptId);
+	}
+
+	private disposeQuietly(
+		target: { dispose(): void } | undefined,
+		message: string,
+		fields: Readonly<Record<string, unknown>>,
+	): void {
+		if (!target) {
+			return;
+		}
+		try {
+			target.dispose();
+		} catch (error) {
+			this.diagnostics.warn(message, {
+				...fields,
+				error: error instanceof Error ? error.message : String(error),
+			});
+		}
 	}
 
 	private postChatLifecycle(sessionId: string, kind: 'chatStreamUp' | 'chatStreamDown', chatAttemptId: AttemptId): void {

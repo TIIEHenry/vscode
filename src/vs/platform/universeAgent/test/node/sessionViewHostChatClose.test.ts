@@ -221,4 +221,92 @@ suite('SessionViewHost chat onClosed', () => {
 		));
 		assert.strictEqual(connection.disposeCount, 1, 'closeChatStream must still run after closeStream dispose throw');
 	});
+
+	test('throw-on-dispose Chat after linger still closes and deletes the handle', async () => {
+		const connection = new class extends ChatConnection {
+			override openChatStream(
+				sessionId: string,
+				_onResponse: (response: { payload: unknown }) => void,
+			): { write(): void; dispose(): void } {
+				this.opens.push(sessionId);
+				return {
+					write: () => { },
+					dispose: () => {
+						this.disposeCount += 1;
+						throw new Error('close chat boom');
+					},
+				};
+			}
+		}();
+		const diagnostics = new CountingDiagnostics();
+		const viewHost = store.add(new SessionViewHost(connection, new TestHost(async () => undefined), {
+			orphanTimeoutMs: 0,
+			lingerMs: 8,
+			diagnostics,
+		}));
+		viewHost.onEngineConnectionChanged();
+		const leaseId = viewHost.acquireLease('sess-chat-throw-dispose');
+		await viewHost.whenEngineSessionReady('sess-chat-throw-dispose');
+		assert.strictEqual(connection.opens.length, 1, 'lease + connection-up must open resident Chat');
+		assert.strictEqual(connection.disposeCount, 0);
+
+		viewHost.releaseLease(leaseId);
+		await timeout(28);
+		assert.ok(diagnostics.warnings.some(w =>
+			w.message === 'closeResidentChat dispose failed' && w.fields.error === 'close chat boom'
+		));
+		assert.strictEqual(connection.disposeCount, 1, 'closeResidentChat must still invoke dispose');
+		assert.strictEqual(
+			(viewHost as unknown as { chatStreams: Map<string, unknown> }).chatStreams.size,
+			0,
+			'throw-on-dispose must still delete the Chat handle',
+		);
+
+		void connection.disconnect();
+		viewHost.onEngineConnectionChanged();
+		assert.strictEqual(connection.disposeCount, 1, 'deleted Chat must not be disposed again on disconnect');
+	});
+
+	test('disconnect event-stream dispose throw still unloads Chat and posts connectionDown', async () => {
+		const connection = new class extends ChatConnection {
+			override subscribeSessionEventStream(): { dispose(): void } {
+				return {
+					dispose: () => {
+						throw new Error('close stream boom');
+					},
+				};
+			}
+		}();
+		const diagnostics = new CountingDiagnostics();
+		const viewHost = store.add(new SessionViewHost(connection, new TestHost(async () => undefined), {
+			orphanTimeoutMs: 0,
+			diagnostics,
+		}));
+		viewHost.onEngineConnectionChanged();
+		const leaseId = viewHost.acquireLease('sess-disconnect-stream-throw');
+		await viewHost.whenEngineSessionReady('sess-disconnect-stream-throw');
+		assert.strictEqual(connection.opens.length, 1, 'lease + connection-up must open resident Chat');
+		assert.strictEqual(connection.disposeCount, 0);
+
+		const frames: IUniverseAgentSessionViewFrameEvent[] = [];
+		store.add(viewHost.onDynamicDidApplyFrame(leaseId)(e => frames.push(e)));
+		await new Promise<void>(resolve => queueMicrotask(() => resolve()));
+
+		void connection.disconnect();
+		viewHost.onEngineConnectionChanged();
+
+		assert.ok(diagnostics.warnings.some(w =>
+			w.message === 'closeStream dispose failed' && w.fields.error === 'close stream boom'
+		));
+		assert.strictEqual(connection.disposeCount, 1, 'Chat must still unload after event-stream dispose throw');
+		assert.strictEqual(
+			(viewHost as unknown as { chatStreams: Map<string, unknown> }).chatStreams.size,
+			0,
+			'Chat handle must be deleted after connection-down',
+		);
+		assert.ok(
+			closedChromeFromFrames(frames).some(sync => sync.reason === 'connection_down'),
+			'connectionDown must still reach Actor and fold closed chrome',
+		);
+	});
 });
