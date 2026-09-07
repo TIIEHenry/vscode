@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-08
-summary: "FileMutationJoin / createScoped / Review 委托已修。D16 仍开。官方三域 glob 已绿。D44–D51 已闭。git-read / open-diff / Stage·Commit / Unstage throw status DOM 已挂载。A2 仍 blocked。"
+summary: "FileMutationJoin / createScoped / Review 委托已修。D16 仍开。官方三域 glob 已绿。D44–D51 已闭。git-read / open-diff / Stage·Commit / Unstage throw 与 Stage·Commit ok:false status DOM 已挂载。A2 仍 blocked。"
 ---
 
 # Development Progress
@@ -79,6 +79,7 @@ summary: "FileMutationJoin / createScoped / Review 委托已修。D16 仍开。�
 20. **B 槽 `composer-leftover-clear`（未关 D16 / 未转 listTools / 未发明 GetQueue）**：`loadConnectedComposerCatalogs` agent/model catch 成功后再 throw 不再留旧 select / `catalogModelIds`。agent 重置 No agent；model 重置 No model / `['']` / selectedIndex=0。tools catch 已清。首拉 throw 测保留。父约束未 compile。[D50](deferred-gaps.md) **已闭**。
 21. **A 槽 `host-write-receipt`（未关 D16 / 未发明 heartbeat client_id / 未碰 Create·`.sessions` / proto / F4 / unused-import / `dev/loop`）**：`handleIntent` 把 `chatStreamWrite.writeId` 传入 `writeChat`；`mark()` 只用 `'accepted' | 'failed'` 并盖 `HOST_WRITE_RECEIPT_SOURCE` / `writeId` / `chatAttemptId`。permission `perm-live` 成功出 `removePendingAction`；resident write throw 出 `pendingRespondFailed`（`hostWriteFailed`）且无未处理 rejection。未包整圈 `drainIntents`。父约束未 compile。[D51](deferred-gaps.md) **已闭**。
 22. **D 槽 `unstage-status-dom`（未关 D16 / 未关 D31 / 未跑 F4 / 未开 A2）**：Changes 不走 git-read（该路径无 `scmResource`，Unstage 保持 disabled）。stub `index` 组 + `scmResource`，`CommandsRegistry.registerCommand('git.unstage')`，`ICommandService.executeCommand` throw `'boom'` 后点 Unstage Selected，`.sources-changes-status` 对齐既有 localize（`Unable to unstage:`）。测后注销命令。生产未改（Unstage status DOM 本已挂载）。未发明 WriteGitUnstage。未 compile。
+23. **D 槽 `stage-commit-ok-false-dom`（未关 D16 / 未关 D31 / 未跑 F4 / 未开 A2）**：`createGitConnection` 钩子可 **返回** `{ supported:true, success:false, errorMessage:'denied' }`（不 throw）。Changes 选行后 Stage Selected / Commit 的 `.sources-changes-status` 对齐既有 localize + `denied`。未改生产（`supported && !success` status 本已挂载）。未重做 throw 测。未发明 WriteGitUnstage。未 compile。
 
 子 agent 发现的既有代码问题：
 
@@ -87,7 +88,7 @@ summary: "FileMutationJoin / createScoped / Review 委托已修。D16 仍开。�
 | [D23](deferred-gaps.md) | A 槽 | **closed** resident heartbeat write 已 catch |
 | [D33](deferred-gaps.md) | B 槽 | **closed** pairingPending 开 Connection/SAS |
 | [D27](deferred-gaps.md) | grok 4.6 | **closed**：`provideTurnEditComposer` 先于 `setEditingTurnId`；已删 1px 垫高 |
-| [D31](deferred-gaps.md) | D 槽 | Accept A1 已落；P5 停线；A2 须新选定 + Arch-First；git-read / open-diff / Stage Selected·Commit / Unstage Selected throw 的 status DOM 已挂载；**仍开**（剩 F4）；不升 PRD |
+| [D31](deferred-gaps.md) | D 槽 | Accept A1 已落；P5 停线；A2 须新选定 + Arch-First；git-read / open-diff / Stage Selected·Commit / Unstage Selected throw 与 Stage·Commit **ok:false** 的 status DOM 已挂载；**仍开**（剩 F4）；不升 PRD |
 | [R8](research-queue.md) | B 槽 `r8-empty-patches-close` | **closed**：[ADR-008](../decisions/008-write-git-apply-hunks-empty.md) 引擎仓 `1f07008f` `GitWorkDirWriter.kt` L77–78 空 `patches` = 成功空操作；A1 已拒空送；[D31](deferred-gaps.md) F4 未跑 |
 | [D32](deferred-gaps.md) | A 槽 `host-write-retry` | **closed（代码+测已写；compile 待 merge）** Retry 走 `lease.post`；host 映射 Actor `continueGeneration` |
 | [D38](deferred-gaps.md) | A 槽 `host-bind-safety` | **closed** `fillHistory` bind/write 已 catch |

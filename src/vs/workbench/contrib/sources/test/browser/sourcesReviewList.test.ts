@@ -41,10 +41,23 @@ suite('Sources - review list model', () => {
 		return createGitConnection({ throwOnRead: true });
 	}
 
+	function deniedWriteResult() {
+		return {
+			supported: true,
+			reason: '',
+			success: false,
+			errorMessage: 'denied',
+			exitCode: 1,
+			stdout: '',
+		};
+	}
+
 	function createGitConnection(options: {
 		throwOnRead?: boolean;
 		throwOnStage?: boolean;
 		throwOnCommit?: boolean;
+		failOnStage?: boolean;
+		failOnCommit?: boolean;
 	} = {}): IUniverseAgentConnection {
 		return {
 			isEngineConnected: () => true,
@@ -66,14 +79,20 @@ suite('Sources - review list model', () => {
 				branch: 'main',
 				changeCount: 1,
 			}),
-			...(options.throwOnStage ? {
+			...(options.throwOnStage || options.failOnStage ? {
 				writeGitStagePaths: async () => {
-					throw new Error('boom');
+					if (options.throwOnStage) {
+						throw new Error('boom');
+					}
+					return deniedWriteResult();
 				},
 			} : {}),
-			...(options.throwOnCommit ? {
+			...(options.throwOnCommit || options.failOnCommit ? {
 				writeGitCommit: async () => {
-					throw new Error('boom');
+					if (options.throwOnCommit) {
+						throw new Error('boom');
+					}
+					return deniedWriteResult();
 				},
 			} : {}),
 		} as unknown as IUniverseAgentConnection;
@@ -474,6 +493,48 @@ suite('Sources - review list model', () => {
 		assert.strictEqual(status, localize('sourcesChangesList.commitFailed', "Unable to commit: {0}", getErrorMessage(new Error('boom'))));
 		assert.ok(status.includes('Unable to commit:'));
 		assert.ok(status.includes('boom'));
+	});
+
+	test('Changes list status DOM shows Stage Selected write ok:false', async function () {
+		const host = mountListHost();
+		const instantiationService = stubSourcesGitListServices({
+			connection: createGitConnection({ failOnStage: true }),
+		});
+		const widget = store.add(instantiationService.createInstance(SourcesChangesList, host));
+		(host.querySelector('.sources-changes-list') as HTMLElement).style.height = '120px';
+
+		await selectFirstListRow(widget as unknown as { list?: WorkbenchList<unknown> });
+
+		const stageButton = await waitForEnabledButton(host, '.sources-changes-toolbar .monaco-button');
+		stageButton.click();
+
+		const status = await waitForStatusText(host, '.sources-changes-status', 'Unable to stage');
+		assert.strictEqual(status, localize('sourcesChangesList.stageFailed', "Unable to stage: {0}", 'denied'));
+		assert.ok(status.includes('Unable to stage:'));
+		assert.ok(status.includes('denied'));
+	});
+
+	test('Changes list status DOM shows Commit write ok:false', async function () {
+		const host = mountListHost();
+		const instantiationService = stubSourcesGitListServices({
+			connection: createGitConnection({ failOnCommit: true }),
+		});
+		const widget = store.add(instantiationService.createInstance(SourcesChangesList, host));
+		(host.querySelector('.sources-changes-list') as HTMLElement).style.height = '120px';
+
+		await selectFirstListRow(widget as unknown as { list?: WorkbenchList<unknown> });
+
+		const input = host.querySelector('.sources-changes-commit-input') as HTMLInputElement;
+		input.value = 'fix';
+		input.dispatchEvent(new window.Event('input', { bubbles: true }));
+
+		const commitButton = await waitForEnabledButton(host, '.sources-changes-commit .monaco-button');
+		commitButton.click();
+
+		const status = await waitForStatusText(host, '.sources-changes-status', 'Unable to commit');
+		assert.strictEqual(status, localize('sourcesChangesList.commitFailed', "Unable to commit: {0}", 'denied'));
+		assert.ok(status.includes('Unable to commit:'));
+		assert.ok(status.includes('denied'));
 	});
 
 	test('Changes list status DOM shows Unstage Selected command throw', async function () {
