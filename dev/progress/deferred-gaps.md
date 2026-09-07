@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-07
-summary: "延期缺口 SSOT；D16 仍开；D44 preferences 导航注册未幂等；D22 F3；D24 其余 JSON RPC；D25 引擎 List 真空；D26 引擎建壳回 6；D31 F4 / A2 blocked"
+summary: "延期缺口 SSOT；D16 仍开；D44 preferences 导航注册已幂等；D22 F3；D24 其余 JSON RPC；D25 引擎 List 真空；D26 引擎建壳回 6；D31 F4 / A2 blocked"
 ---
 
 # Deferred Gaps
@@ -60,7 +60,7 @@ summary: "延期缺口 SSOT；D16 仍开；D44 preferences 导航注册未幂等
 | D35 | P3 | **`getTimelineRowElement` 第二段 `querySelector([data-turn-id])` 死代码**：第一段选择器已含 `[data-turn-id]`。已删第二段 | 工位 B `timeline-hygiene` 收口 | 只留一条 `[data-turn-id], [data-fold-id]` 查询 | M6 / conversation | closed |
 | D36 | P3 | **standalone `thinking`/`tool` 分支画假 process 行**：`conversation-lens-turn-process` + summary 像 fold。已改为诚实摘要行（header+body，无 fold chrome） | 工位 B `timeline-hygiene` 收口 | 无 `.conversation-lens-turn-process` / `.conversation-process-fold`；`conversationTimelineRenderer.test.ts` D36 测绿 | M6 / conversation | closed |
 | D43 | P3 | **`ConversationPart.layout` 不把尺寸扇出到 conversation editor parts**。`createConversationEditorPart` 已做首次 layout（host 有尺寸用 host，否则 800×600），否则 `findGroup`/`splitSessionWindow` 会在 `getNeighborViews` 上抛 `Can't call getNeighborViews before first layout`。chrome 后续 resize / `ConversationPart.layout` 仍不会再 layout 各 `ConversationEditorPartImpl`，活窗拆列后改窗口大小网格可能不更新 | D 槽 S4/S5 只收首次 layout 合同；扇出属另一冲突域，本 slice 不扩 | `ConversationPart.layout`（或 session window service）按叶 host 尺寸调用各 conversation editor part.layout；补 resize 测 | M7 conversation | closed |
-| D44 | P3 | **`registerUaPreferencesNavigationActions()` 非幂等**：`conversation.contribution.ts` 进口即注册 `openConnectionPreferences` / `openEnginePreferences`；`universeAgentSettingsDeepLink.test.ts` 再调一次会撞 `Cannot register two commands with the same id`。本刀只收 `showConversationPart`，未改 preferences 导航 | 同文件冲突域外；本 slice 禁止发明新命令 | 该函数对已注册 id 直接返回；二次调用不抛；生产仍只 contribution 调一次 | conversation | open |
+| D44 | P3 | **`registerUaPreferencesNavigationActions()` 已幂等（工位 B 本刀）**：已注册的 `openConnectionPreferences` / `openEnginePreferences` 直接跳过；二次调用不抛。生产仍只 `conversation.contribution.ts` 调一次；未发明新命令 | 本刀已收 | 该函数对已注册 id 直接返回；二次调用不抛；生产仍只 contribution 调一次 | conversation | closed |
 
 ## D2 工位池 compile 基线（2026-09-02，merge 工位 / `loop/merge`）
 

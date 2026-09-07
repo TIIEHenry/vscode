@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-07
-summary: "FileMutationJoin / createScoped / Review 委托已修。D16 仍开。T5a harness 补 mocha _uncaught 吞 ResizeObserver loop。B 槽 statusbar 注册已幂等。A2 仍 blocked。"
+summary: "FileMutationJoin / createScoped / Review 委托已修。D16 仍开。官方 conversation glob 795/0/0。D44 preferences 导航注册已幂等。A2 仍 blocked。"
 ---
 
 # Development Progress
@@ -65,6 +65,7 @@ summary: "FileMutationJoin / createScoped / Review 委托已修。D16 仍开。T
 6. **A 槽 `lens-ro-uncaught`（未关 D16 / 未占 D24·D26·D22·A2·F4 / unused-import）**：T5a 全套会被 mocha Uncaught `ResizeObserver loop completed with undelivered notifications` 打断。leftover 的 capture/`window.onerror` 不够（mocha.run 把 `Runner#_uncaught` 绑到 onerror，通过后异步再来会 `abort()`）。harness 在 loadTests 时补丁 `_uncaught`，并吞 Node `uncaughtException` / `errorHandler` 同文案。未缩产品断言。
 7. **B 槽 `statusbar-register-idempotent`（未关 D16）**：`registerConversationSessionStatusBar` 见已注册的 `workbench.action.showConversationPart` 则返回，二次调用不抛。生产仍只在 `conversation.contribution` 调一次。未发明新命令。
 8. **A 槽 `d17-conversation-glob-reprove`（未关 D16 / 未改名单 / 未降 min_cases）**：名单已空后官方 conversation 单 glob 仍有未列红。夹具收口：lens harness 吞 ListView `Measured item node at 0px` warn（不缩 T5 Edit XOR 0px 断言）；untitled / two-leaves 查询前 `revealTurn`；overlay dispose 取消 rAF；S5 teardown 双 rAF。复证 `scripts/test.sh --glob '**/vs/workbench/contrib/conversation/test/**/*.test.js' --tfs conversation` **795 pass / 0 fail / 0 skip**（≥ min_cases=714）。**勿开切片 1「已归零」**。
+9. **B 槽 `d44-preferences-nav-idempotent`（未关 D16）**：`registerUaPreferencesNavigationActions` 对已注册的 `openConnectionPreferences` / `openEnginePreferences` 跳过，二次调用不抛。生产仍只 contribution 调一次。未发明新命令。[D44](deferred-gaps.md) **已闭**。
 
 子 agent 发现的既有代码问题：
 
@@ -91,7 +92,7 @@ summary: "FileMutationJoin / createScoped / Review 委托已修。D16 仍开。T
 | [D15](deferred-gaps.md) | A 槽 `d15-web-evidence` | **closed** W1 `code-web.sh` V1–V3 PASS；phase=`disconnected`；不画桌面连接控件；证据 w1-1556dde3 |
 | [D42](deferred-gaps.md) | B 槽 `d42-maximize-trajectory` | **closed** merge compile 后 CSS+铺行两测绿 |
 | [D43](deferred-gaps.md) | D 槽 leftover | **closed** `ConversationPart.layout` 按叶 host 尺寸再 layout 各 conversation editor part；resize 测已补 |
-| [D44](deferred-gaps.md) | B 本波 | **仍开** `registerUaPreferencesNavigationActions` 与 contribution 二次注册会撞 id；未改 |
+| [D44](deferred-gaps.md) | B 槽 `d44-preferences-nav-idempotent` | **closed** 已注册 id 跳过；二次调用不抛；生产仍只 contribution 调一次 |
 
 ## 工位表（P0 盘点 · 2026-09-07 · 与 `git worktree list` 对照）
 
@@ -113,8 +114,7 @@ summary: "FileMutationJoin / createScoped / Review 委托已修。D16 仍开。T
 | 项 | 指针 |
 |:---|:-----|
 | **引擎空壳 Create** | [D26](deferred-gaps.md) — 空 store 首次 Create 仍 `ALREADY_EXISTS` 且不写 meta；不要再清 store |
-| **test-baseline** | D17 名单 0 数据行。A 槽官方 conversation 单 glob 已复证 795/0/0（空名单下无未列红）。**D16 仍开**；勿开切片 1「已归零」；勿降 `min_cases` |
-| **D44** | [deferred-gaps](deferred-gaps.md) — preferences 导航二次注册撞 id；未改 |
+| **test-baseline** | D17 名单 0 数据行。官方 conversation 单 glob 795/0/0；T5a 全文件 10/10、StatusBar 15/15。**D16 仍开**；勿开切片 1「已归零」；勿降 `min_cases` |
 | **U2 闸门** | [ADR-007](../decisions/007-upstream-sync.md) Decision 5 — 须 U0 `comm` 空 + U1 完成 + CI 绿 + merge 独占 + A 表冻结；**未满足前不开 U2** |
 
 ## 不做
