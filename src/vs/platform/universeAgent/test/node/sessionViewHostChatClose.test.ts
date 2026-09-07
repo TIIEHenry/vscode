@@ -140,4 +140,54 @@ suite('SessionViewHost chat onClosed', () => {
 		assert.strictEqual(connection.disposeCount, 1);
 		assert.ok(!diagnostics.warnings.some(w => w.message === 'openChatStream closed'));
 	});
+
+	test('throw-on-open Chat warns, keeps one-shot echo, and does not reject ready', async () => {
+		const connection = new class extends TestConnection {
+			readonly chatCalls: string[] = [];
+			openChatStream(): { write(): void; dispose(): void } {
+				throw new Error('open chat boom');
+			}
+			override async chat(request: { sessionId: string }): Promise<void> {
+				this.chatCalls.push(request.sessionId);
+			}
+		}();
+		const diagnostics = new CountingDiagnostics();
+		const viewHost = store.add(new SessionViewHost(connection, new TestHost(async () => undefined), {
+			orphanTimeoutMs: 0,
+			diagnostics,
+		}));
+		viewHost.onEngineConnectionChanged();
+		const leaseId = viewHost.acquireLease('sess-chat-throw-open');
+		const engineId = await viewHost.whenEngineSessionReady('sess-chat-throw-open');
+		assert.strictEqual(engineId, 'sess-chat-throw-open');
+		assert.ok(diagnostics.warnings.some(w =>
+			w.message === 'openChatStream failed' && w.fields.error === 'open chat boom'
+		));
+		assert.ok(!diagnostics.warnings.some(w => w.message === 'openChatStream closed'));
+
+		const outcome = viewHost.post(leaseId, { kind: 'submitInput', text: 'fallback one-shot' });
+		assert.strictEqual(outcome.accepted, true);
+		await new Promise<void>(resolve => queueMicrotask(() => resolve()));
+		assert.ok(connection.chatCalls.includes('sess-chat-throw-open'), 'write must fall back to one-shot chat()');
+	});
+
+	test('throw-on-open SessionEventStream warns and still opens resident Chat', async () => {
+		const connection = new class extends ChatConnection {
+			override subscribeSessionEventStream(): { dispose(): void } {
+				throw new Error('open stream boom');
+			}
+		}();
+		const diagnostics = new CountingDiagnostics();
+		const viewHost = store.add(new SessionViewHost(connection, new TestHost(async () => undefined), {
+			orphanTimeoutMs: 0,
+			diagnostics,
+		}));
+		viewHost.onEngineConnectionChanged();
+		viewHost.acquireLease('sess-stream-throw-open');
+		await viewHost.whenEngineSessionReady('sess-stream-throw-open');
+		assert.ok(diagnostics.warnings.some(w =>
+			w.message === 'openStream failed' && w.fields.error === 'open stream boom'
+		));
+		assert.strictEqual(connection.opens.length, 1, 'ensureChatStream must still run after openStream throw');
+	});
 });

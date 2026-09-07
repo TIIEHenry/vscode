@@ -1033,9 +1033,10 @@ export class SessionViewHost extends Disposable {
 
 	/**
 	 * Resident Chat bidi: optional connection hook opens the handle; missing hook
-	 * still echoes `chatStreamUp` so Actor writes fall back to one-shot `chat()`.
-	 * Remote/error `onClosed` drops the handle and posts `chatStreamDown` (Actor
-	 * may re-ensure the same generation). Local dispose / connection-down is silent.
+	 * or throw-on-open still echoes `chatStreamUp` so Actor writes fall back to
+	 * one-shot `chat()`. Remote/error `onClosed` drops the handle and posts
+	 * `chatStreamDown` (Actor may re-ensure the same generation). Local dispose /
+	 * connection-down is silent.
 	 */
 	private openResidentChat(sessionId: string, chatAttemptId: AttemptId): void {
 		this.chatOwners.set(String(chatAttemptId), sessionId);
@@ -1060,34 +1061,44 @@ export class SessionViewHost extends Disposable {
 			return;
 		}
 
-		let disposed = false;
-		const handle: UniverseAgentChatStream = open.call(
-			this.connection,
-			engineSessionId,
-			() => { },
-			cause => {
-				if (disposed || (cause.kind !== 'remote' && cause.kind !== 'error')) {
-					return;
-				}
-				this.chatStreams.delete(sessionId);
-				this.diagnostics.warn('openChatStream closed', {
-					sessionId,
-					chatAttemptId: String(chatAttemptId),
-					kind: cause.kind,
-					...(cause.kind === 'error' ? { message: cause.message } : {}),
-				});
-				this.postChatLifecycle(sessionId, 'chatStreamDown', chatAttemptId);
-			},
-		);
-		this.chatStreams.set(sessionId, {
-			chatAttemptId,
-			write: payload => handle.write(payload),
-			dispose: () => {
-				disposed = true;
-				handle.dispose();
-			},
-		});
-		this.postChatLifecycle(sessionId, 'chatStreamUp', chatAttemptId);
+		try {
+			let disposed = false;
+			const handle: UniverseAgentChatStream = open.call(
+				this.connection,
+				engineSessionId,
+				() => { },
+				cause => {
+					if (disposed || (cause.kind !== 'remote' && cause.kind !== 'error')) {
+						return;
+					}
+					this.chatStreams.delete(sessionId);
+					this.diagnostics.warn('openChatStream closed', {
+						sessionId,
+						chatAttemptId: String(chatAttemptId),
+						kind: cause.kind,
+						...(cause.kind === 'error' ? { message: cause.message } : {}),
+					});
+					this.postChatLifecycle(sessionId, 'chatStreamDown', chatAttemptId);
+				},
+			);
+			this.chatStreams.set(sessionId, {
+				chatAttemptId,
+				write: payload => handle.write(payload),
+				dispose: () => {
+					disposed = true;
+					handle.dispose();
+				},
+			});
+			this.postChatLifecycle(sessionId, 'chatStreamUp', chatAttemptId);
+		} catch (error) {
+			this.diagnostics.warn('openChatStream failed', {
+				sessionId,
+				chatAttemptId: String(chatAttemptId),
+				error: error instanceof Error ? error.message : String(error),
+			});
+			// Same echo as a missing hook: write gate opens; writes use one-shot chat().
+			this.postChatLifecycle(sessionId, 'chatStreamUp', chatAttemptId);
+		}
 	}
 
 	private closeResidentChat(sessionId: string, chatAttemptId: AttemptId): void {
@@ -1118,54 +1129,62 @@ export class SessionViewHost extends Disposable {
 		let disposed = false;
 		const sidecar = this.ensureSessionSidecar(sessionId);
 		sidecar.overlayDelta.clear();
-		const subscription = this.connection.subscribeSessionEventStream(engineSessionId, event => {
-			if (disposed) {
-				return;
-			}
-			if (!streamOpened) {
-				streamOpened = true;
-				this.scheduleAgentTreeRefresh(sessionId, true);
-			}
-			this.handleHostStreamPayload(sessionId, event.payload);
-			const arms = [
-				...demuxSessionStreamPayload(event.payload),
-				...sidecar.overlayDelta.handlePayload(event.payload),
-			];
-			for (const arm of arms) {
-				if (arm && typeof arm === 'object' && (arm as { arm?: string }).arm === 'heartbeat') {
-					void this.sendHeartbeatAck(sessionId);
-					continue;
+		try {
+			const subscription = this.connection.subscribeSessionEventStream(engineSessionId, event => {
+				if (disposed) {
+					return;
 				}
+				if (!streamOpened) {
+					streamOpened = true;
+					this.scheduleAgentTreeRefresh(sessionId, true);
+				}
+				this.handleHostStreamPayload(sessionId, event.payload);
+				const arms = [
+					...demuxSessionStreamPayload(event.payload),
+					...sidecar.overlayDelta.handlePayload(event.payload),
+				];
+				for (const arm of arms) {
+					if (arm && typeof arm === 'object' && (arm as { arm?: string }).arm === 'heartbeat') {
+						void this.sendHeartbeatAck(sessionId);
+						continue;
+					}
+					this.postAndDrain(sessionId as SessionId, {
+						t: 'streamEvent',
+						attemptId,
+						event: arm,
+					});
+					const questionFact = localFactFromQuestionArm(arm);
+					if (questionFact) {
+						this.postAndDrain(sessionId as SessionId, { t: 'localFact', fact: questionFact });
+					}
+				}
+			}, cause => {
+				if (disposed || closedPosted || (cause.kind !== 'remote' && cause.kind !== 'error')) {
+					return;
+				}
+				closedPosted = true;
+				sidecar.overlayDelta.clear();
 				this.postAndDrain(sessionId as SessionId, {
-					t: 'streamEvent',
+					t: 'streamClosed',
 					attemptId,
-					event: arm,
+					cause,
 				});
-				const questionFact = localFactFromQuestionArm(arm);
-				if (questionFact) {
-					this.postAndDrain(sessionId as SessionId, { t: 'localFact', fact: questionFact });
-				}
-			}
-		}, cause => {
-			if (disposed || closedPosted || (cause.kind !== 'remote' && cause.kind !== 'error')) {
-				return;
-			}
-			closedPosted = true;
-			sidecar.overlayDelta.clear();
-			this.postAndDrain(sessionId as SessionId, {
-				t: 'streamClosed',
-				attemptId,
-				cause,
 			});
-		});
-		this.streams.set(key, {
-			attemptId,
-			sessionId,
-			dispose: () => {
-				disposed = true;
-				subscription.dispose();
-			},
-		});
+			this.streams.set(key, {
+				attemptId,
+				sessionId,
+				dispose: () => {
+					disposed = true;
+					subscription.dispose();
+				},
+			});
+		} catch (error) {
+			this.diagnostics.warn('openStream failed', {
+				sessionId,
+				attemptId: String(attemptId),
+				error: error instanceof Error ? error.message : String(error),
+			});
+		}
 	}
 
 	private async sendHeartbeatAck(sessionId: string): Promise<void> {
