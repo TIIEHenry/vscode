@@ -158,6 +158,17 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		return section;
 	}
 
+	function mountMcpSection(connection: IUniverseAgentConnection): EngineMcpSection {
+		const parent = document.createElement('div');
+		document.body.appendChild(parent);
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IUniverseAgentConnection, connection);
+		const section = store.add(instantiationService.createInstance(EngineMcpSection, parent));
+		section.setSectionActive(true);
+		section.layout(640, 160);
+		return section;
+	}
+
 	function mountToolsSection(connection: IUniverseAgentConnection): EngineToolsSection {
 		const parent = document.createElement('div');
 		document.body.appendChild(parent);
@@ -170,7 +181,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 	}
 
 	function assertFailedCatalogHonesty(
-		section: EngineAgentsSection | EngineToolsSection,
+		section: EngineAgentsSection | EngineToolsSection | EngineMcpSection,
 		featureLabel: string,
 		errorMessage: string,
 	): void {
@@ -548,6 +559,20 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		assertFailedCatalogHonesty(section, AGENTS_FEATURE, 'listAgentProfiles exploded');
 	});
 
+	test('MCP: listMcpServers reject is failed with error status and no fake catalog', async () => {
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { mcp: { support: 'SUPPORTED' } },
+			listMcpServers: async () => {
+				throw new Error('listMcpServers exploded');
+			},
+		});
+		const section = mountMcpSection(connection);
+		await flushMicrotasks();
+
+		assertFailedCatalogHonesty(section, MCP_FEATURE, 'listMcpServers exploded');
+	});
+
 	test('Tools: successful load then refresh throw is failed with no leftover catalog', async () => {
 		let listToolsCalls = 0;
 		const connection = createConnectionStub({
@@ -603,5 +628,41 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		assert.strictEqual(section.getMode(), 'failed');
 		assert.strictEqual(section.getListEntryCount(), 0);
 		assertFailedCatalogHonesty(section, AGENTS_FEATURE, 'listAgentProfiles retry exploded');
+	});
+
+	test('MCP: successful load then refresh throw is failed with no leftover catalog', async () => {
+		let listMcpServersCalls = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { mcp: { support: 'SUPPORTED' } },
+			listMcpServers: async () => {
+				listMcpServersCalls++;
+				if (listMcpServersCalls === 1) {
+					return {
+						servers: [{
+							id: 'stdio-demo',
+							name: 'Demo MCP',
+							transport: 'stdio' as const,
+							origin: 'global' as const,
+							enabled: true,
+						}],
+					};
+				}
+				throw new Error('listMcpServers retry exploded');
+			},
+		});
+		const section = mountMcpSection(connection);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.ok(section.getListEntryCount() > 0);
+
+		connection.setConnected(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'failed');
+		assert.strictEqual(section.getListEntryCount(), 0);
+		assertFailedCatalogHonesty(section, MCP_FEATURE, 'listMcpServers retry exploded');
+		assert.ok(!/Demo MCP/i.test(section.getDomNode().textContent ?? ''));
 	});
 });
