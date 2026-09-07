@@ -325,12 +325,17 @@ export class SessionViewHost extends Disposable {
 		} else {
 			engineSessionId = binding.sessionId;
 		}
-		const result = await this.host.fetchToolDetail({
-			sessionId: engineSessionId,
-			toolCallId: parsed.toolCallId,
-			detailKind: parsed.detailKind,
-			refId: parsed.refId,
-		});
+		let result: Awaited<ReturnType<IUniverseAgentHostConnection['fetchToolDetail']>>;
+		try {
+			result = await this.host.fetchToolDetail({
+				sessionId: engineSessionId,
+				toolCallId: parsed.toolCallId,
+				detailKind: parsed.detailKind,
+				refId: parsed.refId,
+			});
+		} catch (error) {
+			return { ok: false, reason: 'failed', message: error instanceof Error ? error.message : 'Tool detail fetch failed' };
+		}
 		if (!result.ok) {
 			return result;
 		}

@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-07
-summary: "延期缺口 SSOT；D16 Lens 断言债；D22 F3；D15 欠 W1；D23/D32/D38/D39 已由 A 槽收口；D24 其余 JSON RPC；D25 ghost UI；D26 host 已收、引擎建壳回 6 仍开；D27 编辑态 1px 垫高 closed；D28 Connection 旁路 UI；D29/D30 inbox closed；D31 Sources git 次级面；D33 pairing chip closed；D37 引擎 roster 队列 Retry unary closed"
+summary: "延期缺口 SSOT；D16 Lens 断言债；D22 F3；D15 欠 W1；D23/D32/D38/D39/D40 已由 A 槽收口；D24 其余 JSON RPC；D25 ghost UI；D26 host 已收、引擎建壳回 6 仍开；D27 编辑态 1px 垫高 closed；D28 Connection 旁路 UI；D29/D30 inbox closed；D31 Sources git 次级面；D33 pairing chip closed；D37 引擎 roster 队列 Retry unary closed"
 ---
 
 # Deferred Gaps
@@ -40,7 +40,7 @@ summary: "延期缺口 SSOT；D16 Lens 断言债；D22 F3；D15 欠 W1；D23/D32
 | D23 | P2 | **`sendHeartbeatAck` fire-and-forget 无总 catch**：`sessionViewHost.ts` `void this.sendHeartbeatAck(sessionId)`；resident `write({heartbeat_ack:{}})` 无 try/catch（`connection.chat` 一路有）。bind/write 失败会成未处理 rejection | A 槽 `host-write-retry` 已补 bind/`resident.write`/`chat` 三级 catch，并扩展 `sessionViewHostHeartbeatAck.test.ts` | `sendHeartbeatAck` 全程与 `writeChat` 同级 catch；`void` 调用点不再漏 rejection；补测 | M7 universeAgent | closed |
 | D38 | P3 | **`void fillHistory` / `ensureEngineSession` 无 catch**：`sessionViewHost.ts` ~917 / ~1232 与已修 D23 同类，bind 失败可成未处理 rejection | A 槽 `host-bind-safety` 已补 bind/write catch，`void fillHistory` 不再漏 rejection；补 HistoryFill 测 | `fillHistory` 路径 bind/write 与 `writeChat` 同级 catch；补测 | M7 universeAgent | closed |
 | D39 | P3 | **`requestDetail` await `ensureEngineSession` 无 catch**：bind 失败会成 Promise rejection 而非 `{ ok:false }` | A 槽 `host-bind-safety` 已回 `{ ok:false, reason:'failed' }`；补 bind 测 | `requestDetail` bind 与 `writeChat` 同级 catch；补测 | M7 universeAgent | closed |
-| D40 | P3 | **`requestDetail` bind 成功后 `fetchToolDetail` 仍无 catch**：生产 connection 已吞错回 `{ ok:false }`；自定义 host 抛错仍会 reject | A 本刀只收 bind | 与 writeChat 同级 catch 或明确依赖 host 合同；补测 | M7 universeAgent | open |
+| D40 | P3 | **`requestDetail` bind 成功后 `fetchToolDetail` 仍无 catch**：生产 connection 已吞错回 `{ ok:false }`；自定义 host 抛错仍会 reject | A 槽 `request-detail-fetch-catch` 已补 fetch catch；`{ ok:false }` 原样返回 | `fetchToolDetail` throw 与 writeChat 同级 catch 并回 `{ ok:false, reason:'failed' }`；补测 | M7 universeAgent | closed |
 | D24 | P2 | **其余 unary/stream 仍 `makeUnaryClient` + `JSON.stringify`**（Info/ChatSync/clipboard/mcp/memory/queue/`listTools` 等）。接通后 catalog 已 bytes：`Session.List`（默认 ALL）/ `ListModels` / `ListAgents` / `ListAgentProfiles`。Create `ALREADY_EXISTS` 已在 connection/grpc 入口 List+Resume；Create 已写 `client_session_id` field 4。`SessionEventStream` 握手未写 `client_id`、无 60s heartbeat uplink。`CreateSessionRequest` proto 无 `title`。`Agent.Chat` 响应只解 `session_id`/`agent_id`，未 demux ChatResponse oneof | Create 恢复已下沉；ChatSync 是 Gateway 专用 | 按实际打到引擎的 method 再改 bytes；`listTools` 仍 JSON | platform / universeAgent | open |
 | D25 | P2 | **roster 不再远程 Create**（空 catalog 只 pending，host lease 唯一 Create）。List 失败与 ghost 行仍可能让 UI 显示假「New session」而非 bind-failed（E2E @ `bc1370cb05d`）。引擎 store `Query does not return results` 真空未修 | 引擎仓不加功能 | ghost/空壳时 UI 必 bind-failed；引擎 List 真空闭合 | conversation / engine | open |
 | D26 | P2 | **引擎建壳回 6（host 已收）**：Tree 非 UNIMPLEMENTED 已向 `pullNow` 抛出（不再 `return undefined`）；Create recover 只留 connection service 一层（`grpcClient.createSession` 改为 raw unary）。引擎 Create 建目录后按目录存在回 6 且不写 `session_meta`（空 store 第一次 Create 即 ALREADY_EXISTS） | host 面已由 A 槽 `host-bind-safety` 收口；禁止改引擎仓 | 引擎 Create 先写 meta 再回成功 | engine | open |
