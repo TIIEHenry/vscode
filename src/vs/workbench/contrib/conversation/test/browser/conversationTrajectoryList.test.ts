@@ -15,7 +15,7 @@ suite('ConversationTrajectoryList', () => {
 	test('getConversationTurnRoleLabel maps stub turn kinds', () => {
 		assert.strictEqual(getConversationTurnRoleLabel('user'), 'You');
 		assert.strictEqual(getConversationTurnRoleLabel('assistant'), 'Agent');
-		assert.strictEqual(getConversationTurnRoleLabel('confirmation'), 'Confirmation');
+		assert.strictEqual(getConversationTurnRoleLabel('confirmation'), 'Permission');
 		assert.strictEqual(getConversationTurnRoleLabel('thinking'), 'Thinking');
 		assert.strictEqual(getConversationTurnRoleLabel('tool'), 'Tool');
 	});
