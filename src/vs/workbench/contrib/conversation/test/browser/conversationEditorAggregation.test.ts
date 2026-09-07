@@ -11,6 +11,7 @@ import { Registry } from '../../../../../platform/registry/common/platform.js';
 import { IEditorGroupsService, isExcludedFromGlobalEditorAggregation, IAuxiliaryEditorPart } from '../../../../services/editor/common/editorGroupsService.js';
 import { EditorService } from '../../../../services/editor/browser/editorService.js';
 import { IEditorService } from '../../../../services/editor/common/editorService.js';
+import { IStatusbarService } from '../../../../services/statusbar/browser/statusbar.js';
 import { EditorExtensions, IEditorFactoryRegistry } from '../../../../common/editor.js';
 import { createEditorParts, registerTestEditor, TestFileEditorInput, workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { SideBySideEditorInput } from '../../../../common/editor/sideBySideEditorInput.js';
@@ -45,6 +46,12 @@ suite('Conversation editor aggregation exemption (S1a)', () => {
 		instantiationService.stub(IEditorGroupsService, parts);
 		const editorService = store.add(instantiationService.createInstance(EditorService, undefined));
 		instantiationService.stub(IEditorService, editorService);
+		const statusbarService = {
+			createScoped() {
+				return this;
+			},
+		} as unknown as IStatusbarService;
+		instantiationService.stub(IStatusbarService, statusbarService);
 
 		const hostA = document.createElement('div');
 		const hostB = document.createElement('div');

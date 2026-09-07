@@ -4,7 +4,7 @@
 # 格式：<classname>::<name>
 # mocha-junit-reporter 本 runner：classname=test.title，name=test.fullTitle()
 # 只登记 unit-custom 三域；D16 三文件在本 SHA 仍 0 failing，未列入
-# 采集：工位 A loop/A @ d2abb648c0e；DiffReview afterEach 六行已由 B `diffreview-leak` 删（dispose + stub；单 glob 不再被该泄漏中断）
+# 采集：工位 A loop/A @ d2abb648c0e；DiffReview afterEach 六行已由 B `diffreview-leak` 删；S1a createScoped 一行已由 B `create-scoped` 删（harness 补 IStatusbarService.createScoped，未缩断言）
 CONVERSATION_SIDE_GROUP increases conversation editor part group count::Conversation session split (S4) CONVERSATION_SIDE_GROUP increases conversation editor part group count
 Part focus with no pending seats does not scroll::ConversationOpenPendingOnFocusContribution Part focus with no pending seats does not scroll
 appendUserTurn updates roster subtitle to 1 message::ConversationSessionsView appendUserTurn updates roster subtitle to 1 message
@@ -28,7 +28,6 @@ phase connecting shows "Reconnecting…"::Conversation Session StatusBar H4b Con
 phase disconnected shows "Engine not connected"::Conversation Session StatusBar H4b ConnectionPhase status copy phase disconnected shows "Engine not connected"
 phase failed shows "Pin mismatch"::Conversation Session StatusBar H4b ConnectionPhase status copy phase failed shows "Pin mismatch"
 projectProcessFoldSpans splits on user, assistant, and confirmation::ConversationProcessFold projectProcessFoldSpans splits on user, assistant, and confirmation
-scoped instantiation services are unique per conversation part::Conversation editor aggregation exemption (S1a) scoped instantiation services are unique per conversation part
 seed session row shows title and No messages subtitle::ConversationSessionsView seed session row shows title and No messages subtitle
 show split column restores hidden column rendering::Conversation session split (S4) show split column restores hidden column rendering
 splitSessionWindow adds a second group in the same conversation part::Conversation session split (S4) splitSessionWindow adds a second group in the same conversation part

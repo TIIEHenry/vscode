@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-07
-summary: "延期缺口 SSOT；D16 仍开（切片 3 名单已落，三文件标题未列入；compile/S2 leftover 不闭）；D17 DiffReview afterEach 已修、CI 已排除 11 个 unloadable node 测；D22 F3；D24 其余 JSON RPC；D25 引擎 List 真空；D26 引擎建壳回 6；D31 F4 / A2 blocked"
+summary: "延期缺口 SSOT；D16 仍开（切片 3 名单已落，三文件标题未列入；compile/S2 leftover 不闭）；D17 DiffReview afterEach 已修、S1a createScoped 已修、CI 已排除 11 个 unloadable node 测；D22 F3；D24 其余 JSON RPC；D25 引擎 List 真空；D26 引擎建壳回 6；D31 F4 / A2 blocked"
 ---
 
 # Deferred Gaps
@@ -327,12 +327,12 @@ $REPO/scripts/code-cli.sh --extensions-dir="$EXT_DIR" \
 
 ## D17 三域基线红（切片 3 · `d2abb648c0e`）
 
-名单正文见 [test-baseline-failures.txt](test-baseline-failures.txt)（32 行）。下列为一行一场景（首次 SHA / 场景 / `baseline` / owner）。**不含** D16 三文件。
+名单正文见 [test-baseline-failures.txt](test-baseline-failures.txt)（31 行）。下列为一行一场景（首次 SHA / 场景 / `baseline` / owner）。**不含** D16 三文件。
 
 | 首次 SHA | 场景 | 标记 | owner |
 |:---------|:-----|:-----|:------|
 | `d2abb648c0e` | conversation：`ConversationDiffReviewPane` 泄漏 **已修**（pane `dispose`/`clearEditors` + disposable listener；navigation/aggregation/fence 停引真实 contribution，改 stub）。afterEach 六行已从名单删除。官方 conversation 单 glob 不再被该泄漏中断 | leftover | B `diffreview-leak` |
-| `d2abb648c0e` | conversation：editor aggregation `createScoped` 未装配 | baseline | A `test-baseline-slice3` |
+| `d2abb648c0e` | conversation：editor aggregation S1a scoped uniqueness **已修**（工位 B `create-scoped`）：生产 `createConversationEditorPart` 已按 part `createScoped`；测败在 mainPart 懒建缺 `IStatusbarService.createScoped`。夹具已补，未缩断言。名单该行已删 | leftover | B `create-scoped` |
 | `d2abb648c0e` | conversation：Lens visualize 两败 + reveal navigation 三败 + process fold span + pending-on-focus | baseline | A `test-baseline-slice3` |
 | `d2abb648c0e` | conversation：StatusBar 引擎入口 / H4b 相位文案；SessionsView 种子行；split / side-by-side；trajectory 角色标签 Permission≠Confirmation | baseline | A `test-baseline-slice3` |
 | `d2abb648c0e` | sources：`collectSourcesReviewEntries` 委托 `toResource`/`fullTitle` 未定义 | baseline | A `test-baseline-slice3` |
