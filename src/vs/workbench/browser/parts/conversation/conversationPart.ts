@@ -15,6 +15,7 @@ import { createDecorator } from '../../../../platform/instantiation/common/insta
 import { IStorageService } from '../../../../platform/storage/common/storage.js';
 import { IThemeService } from '../../../../platform/theme/common/themeService.js';
 import { Part } from '../../part.js';
+import { IEditorGroupsService } from '../../../services/editor/common/editorGroupsService.js';
 import { IWorkbenchLayoutService, Parts } from '../../../services/layout/browser/layoutService.js';
 import { appendPartRegionHideControl } from './partRegionHideControl.js';
 
@@ -86,6 +87,7 @@ export class ConversationPart extends Part implements IConversationPartService {
 		@IStorageService storageService: IStorageService,
 		@IWorkbenchLayoutService layoutService: IWorkbenchLayoutService,
 		@IConfigurationService private readonly configurationService: IConfigurationService,
+		@IEditorGroupsService private readonly editorGroupsService: IEditorGroupsService,
 	) {
 		super(Parts.CONVERSATION_PART, { hasTitle: false }, themeService, storageService, layoutService);
 	}
@@ -132,6 +134,30 @@ export class ConversationPart extends Part implements IConversationPartService {
 
 		super.layout(width, height, top, left);
 		this.layoutContents(width, height);
+		this.layoutConversationEditorParts();
+	}
+
+	/**
+	 * Subsequent chrome / window resize must re-layout each conversation
+	 * editor part from its leaf host size. Creation already does a first
+	 * layout (host size or 800×600); skipping 0×0 hosts avoids clobbering
+	 * that first layout when flex has not assigned pixels yet.
+	 */
+	private layoutConversationEditorParts(): void {
+		for (const part of this.editorGroupsService.conversationParts) {
+			const host = (part as { getContainer?(): HTMLElement | undefined }).getContainer?.();
+			if (!host) {
+				continue;
+			}
+
+			const hostWidth = host.clientWidth;
+			const hostHeight = host.clientHeight;
+			if (hostWidth <= 0 || hostHeight <= 0) {
+				continue;
+			}
+
+			(part as { layout(width: number, height: number, top: number, left: number): void }).layout(hostWidth, hostHeight, 0, 0);
+		}
 	}
 
 	focus(): void {
