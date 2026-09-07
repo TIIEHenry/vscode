@@ -355,6 +355,8 @@ export class ConversationTimelineTree extends Disposable {
 		this.withPersistedAutoScroll(() => {
 			this.pruneExpandedState(removedTreeIds, turns, spans);
 			this.patchTurnItemsInPlace(turns, spans);
+			// `rerender` re-measures the row, so show the content host first.
+			this.renderEmptyState(turns.length === 0);
 			for (const treeId of rerenderIds) {
 				const item = this.turnItems.get(treeId);
 				if (!item || !this.tree.hasElement(item)) {
@@ -363,7 +365,6 @@ export class ConversationTimelineTree extends Disposable {
 				this._testRerenderCount += 1;
 				this.tree.rerender(item);
 			}
-			this.renderEmptyState(turns.length === 0);
 			this.updatePinnedUserPromptVisibility();
 			this.flushPendingReveal();
 		});
@@ -399,12 +400,15 @@ export class ConversationTimelineTree extends Disposable {
 		const items = this.buildTreeElements(turns, spans);
 		this.indexTurnItems(turns, items, spans);
 		this._testSetChildrenCount += 1;
+		// Splicing makes the ListView measure row heights, so the content host
+		// has to be shown first. Measuring inside a `display:none` subtree reads
+		// every row as 0px and the tree caches those heights.
+		this.renderEmptyState(turns.length === 0);
 		if (options?.diff) {
 			this.tree.setChildren(null, items, { diffIdentityProvider: this.timelineIdentity });
 		} else {
 			this.tree.setChildren(null, items);
 		}
-		this.renderEmptyState(turns.length === 0);
 		this.updatePinnedUserPromptVisibility();
 		this.flushPendingReveal();
 	}

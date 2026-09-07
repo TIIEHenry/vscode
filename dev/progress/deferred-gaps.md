@@ -75,7 +75,16 @@ summary: "延期缺口 SSOT；D16 仍开（切片 3 名单已落，三文件标�
 
 失败不是断言，是根 suite 的输出闸门：`ListView` 在 `display:none` 下量行高，打出 `Measured item node at 0px`，被 `renderer.js` 的「Unexpected console output」判红并中断后续文件，于是 conversation 域丢掉约 70% 用例。
 
-净新增的 5 个类型错（`IConversationEditorPart` 缺 `getContainer` / `layout` 被强转、`process.rawListeners` 的 `Function` 不匹配重载、一个死掉的 `getTimelineTree`）已在本工位随合并修掉，compile 回到 0。**未修**上面那条 ListView 输出红——它落在并行 loop 正在改的 T5a / 布局面上，两边同改必撞。
+净新增的 5 个类型错（`IConversationEditorPart` 缺 `getContainer` / `layout` 被强转、`process.rawListeners` 的 `Function` 不匹配重载、一个死掉的 `getTimelineTree`）已在本工位随合并修掉，compile 回到 0。
+
+### 已修（2026-09-07，用户裁定 `fix_now`）
+
+两个独立的真 bug，都不是测试环境的怪癖：
+
+1. `ConversationTimelineTree` 先 splice 再切显隐。`renderEmptyState` 把承载树的 `contentHost` 在空态设成 `display:none`，而 `rebuildTreeFromTurns` / `applyContentPatches` 都是**先** `setChildren` / `rerender`、**后**调 `renderEmptyState`。于是空 → 非空那一跳里，ListView 在还挂着上一轮 `display:none` 的子树里量行高，量到 0px 并把这些高度缓存下来。改成先显后改。
+2. `ConversationSubAgentOverlay.scheduleLensLayout` 的 `requestAnimationFrame` 不可取消。dispose 之后回调仍会跑 `layoutLens` → `layoutBreadcrumb` → `BreadcrumbsWidget.layout`，后者每次新建一个 `DisposableStore` 交给 `_pendingDimLayout`，而 widget 已经 dispose 过，这个 store 再没有人释放。换成 `scheduleAtNextAnimationFrame` 存进 `MutableDisposable`，dispose 时一起取消。
+
+反向验证（逐个撤掉再跑整域）：只撤第 1 个 → 4 条 `Measured item node at 0px`，域内 236 passing 后中止；只撤第 2 个 → 520 passing / 2 failing（`There are 6 undisposed disposables!`）；两个都在 → **799 passing / 0 failing**。`min_cases` 已从中止水位对应的 714 抬到 799。
 
 **教训不是「loop 又红了」，而是「关仓声明没有机器背书」**：`.github/workflows/agent-ide.yml` 的 push 触发在本工位才刚加上 `loop/**`（提交 `127c6c0f915`）。在那之前 `loop/*` 上的「已复测」全靠人写，没有一次进过 CI。
 

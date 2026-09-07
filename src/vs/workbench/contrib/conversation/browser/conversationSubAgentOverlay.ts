@@ -4,12 +4,12 @@
  *--------------------------------------------------------------------------------------------*/
 
 import './media/conversationSubAgentOverlay.css';
-import { $, addDisposableListener, append, EventHelper, EventType, getWindow, isHTMLElement } from '../../../../base/browser/dom.js';
+import { $, addDisposableListener, append, EventHelper, EventType, getWindow, isHTMLElement, scheduleAtNextAnimationFrame } from '../../../../base/browser/dom.js';
 import { handleConversationOverlayTab } from './conversationConfirmationSeat.js';
 import { Button } from '../../../../base/browser/ui/button/button.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { Emitter } from '../../../../base/common/event.js';
-import { Disposable, DisposableStore } from '../../../../base/common/lifecycle.js';
+import { Disposable, DisposableStore, MutableDisposable } from '../../../../base/common/lifecycle.js';
 import { ThemeIcon } from '../../../../base/common/themables.js';
 import { localize } from '../../../../nls.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
@@ -60,6 +60,7 @@ export class ConversationSubAgentOverlay extends Disposable {
 	private breadcrumbHost!: HTMLElement;
 	private sessionBarHost!: HTMLElement;
 	private readonly lensDisposables = this._register(new DisposableStore());
+	private readonly pendingLensLayout = this._register(new MutableDisposable());
 	private lens: ConversationLens | undefined;
 	private state: IConversationSubAgentOverlayState | undefined;
 	private maximized = false;
@@ -235,7 +236,9 @@ export class ConversationSubAgentOverlay extends Disposable {
 	}
 
 	private scheduleLensLayout(): void {
-		getWindow(this.element).requestAnimationFrame(() => this.layoutLens());
+		// Held so dispose cancels it: laying out after dispose walks into the
+		// breadcrumb widget and allocates disposables nothing owns any more.
+		this.pendingLensLayout.value = scheduleAtNextAnimationFrame(getWindow(this.element), () => this.layoutLens());
 	}
 
 	private layoutLens(): void {
