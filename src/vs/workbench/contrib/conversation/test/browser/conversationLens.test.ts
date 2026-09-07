@@ -2766,8 +2766,10 @@ suite('ConversationLens', () => {
 		assert.strictEqual(projected.length, 2);
 		assert.deepStrictEqual(projected.map(entry => entry.id), ['visualize-v1', 'visualize-v2']);
 
-		// Default 360px list window sits on the last rows; comparison is painted,
-		// diagram is virtualized out (covered when the expand test reveals it).
+		// Virtual window may leave comparison unattached at the default 360px
+		// height; reveal so the card is in the DOM (diagram stays covered by
+		// the expand test).
+		await revealVisualizeTurn(lens, layoutReadingColumn, 'visualize-v2');
 		const comparison = queryTimeline(slots, '[data-visualize-type="comparison"]');
 		assert.ok(comparison);
 		assert.strictEqual(comparison!.querySelector('.conversation-lens-turn-header'), null);
@@ -2775,9 +2777,10 @@ suite('ConversationLens', () => {
 	});
 
 	test('visualize card header collapses and expands body', async () => {
-		const { part, stubService, layoutReadingColumn } = mountLens();
+		const { part, stubService, layoutReadingColumn, lens } = mountLens();
 		const slots = getLensSlots(part);
 		await showVisualizeSeed(stubService, layoutReadingColumn);
+		await revealVisualizeTurn(lens, layoutReadingColumn, 'visualize-v2');
 
 		const header = queryTimeline(slots, '[data-visualize-type="comparison"] .conversation-visualize-header') as HTMLButtonElement;
 		const body = queryTimeline(slots, '[data-visualize-type="comparison"] .conversation-visualize-body') as HTMLElement;

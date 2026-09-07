@@ -61,6 +61,7 @@ summary: "FileMutationJoin / createScoped / Review 委托已修。D16 仍开。A
    - **D**：`review-entries` — 测改 `function ()` 把 mocha host 交给 `toResource`。A2 P5 停线仍在。**[D16](deferred-gaps.md) 仍开**。本 wake leftover：**S4/S5** conversation editor part 创建后补首次 `layout`（夹具 + `createConversationEditorPart`）；未关 D16 / 未占 D26·D22·F4·A2。chrome 尺寸扇出记 [D43](deferred-gaps.md)。
 3. **D15 / W1 笔记（工位 A，未占 工位表）**：`scripts/code-web.sh --browserType none --host 127.0.0.1 --port 18080` 已起；V1 Conversation / V2 四钮 + `UniverseAgentStudio Dev` / V3 Connection·Engine 省略桌面连接控件均 **PASS**。`IUniverseAgentConnection.getConnectionPhase()` = `disconnected`；页内点名「此环境不支持本机 Engine 连接」。证据 [d15-evidence/w1-1556dde3](d15-evidence/w1-1556dde3/)。**D15 可闭**；不升 PRD-019。未跑 compile / F4 / 引擎仓。
 4. **A 槽 `statusbar-leftover`（未关 D16 / 未改名单）**：D17 leftover Conversation Session StatusBar 簇。生产相位文案 / pairingPending 闸门未改。测夹具去掉二次 `registerAction2`（与 `conversation.contribution` 撞 `showConversationPart`）、roster 改 `Event.None`、切换测 Emitter 入 store。未缩断言。
+5. **A 槽 `visualize-leftover`（未关 D16 / 未改名单 / 未降 min_cases）**：D17 Lens visualize 两行。默认 360px 虚窗不再保证 comparison 已挂 DOM。两测在查询前 `revealVisualizeTurn(..., 'visualize-v2')`，未缩「无 Agent header」/ collapse 合同。未改生产 visualize。
 
 子 agent 发现的既有代码问题：
 
