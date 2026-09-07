@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-07
-summary: "延期缺口 SSOT；D16 仍开（切片 3 名单已落，三文件标题未列入；compile/S2 leftover 不闭）；D17 DiffReview afterEach / FileMutationJoin / S1a createScoped / StatusBar leftover / SessionsView+OpenPendingOnFocus / lens visualize 两行 reveal 夹具 / T5a·fold / S4-S5 首次 layout 已修；D42 最大化藏轨迹槽；D43 ConversationPart 尺寸不扇出；D22 F3；D24 其余 JSON RPC；D25 引擎 List 真空；D26 引擎建壳回 6；D31 F4 / A2 blocked"
+summary: "延期缺口 SSOT；D16 仍开（切片 3 名单已落，三文件标题未列入；compile/S2 leftover 不闭）；D17 DiffReview afterEach / FileMutationJoin / S1a createScoped / StatusBar leftover / SessionsView+OpenPendingOnFocus / lens visualize 两行 reveal 夹具 / T5a·fold / S4-S5 首次 layout 已修；D42 最大化藏轨迹槽；D43 ConversationPart 尺寸扇出已收；D22 F3；D24 其余 JSON RPC；D25 引擎 List 真空；D26 引擎建壳回 6；D31 F4 / A2 blocked"
 ---
 
 # Deferred Gaps
@@ -59,7 +59,7 @@ summary: "延期缺口 SSOT；D16 仍开（切片 3 名单已落，三文件标�
 | D34 | P3 | **`getVisibleTimelineIndices` 空树 / 零高 layout 读 `lastVisibleElement` 抛错**：`AbstractTree.lastVisibleElement` 无 bounds check；`ListView.lastVisibleIndex` 在 `renderHeight=0` 为 -1。已改为 `renderHeight < 1` / 空 `flatItems` 守卫，不再裸 try/catch | 工位 B `timeline-hygiene` 收口 | 空树与已铺行后 `layout(0)` 不抛；`conversationTimelineApplyTree.test.ts` D34 测绿 | M6 / conversation | closed |
 | D35 | P3 | **`getTimelineRowElement` 第二段 `querySelector([data-turn-id])` 死代码**：第一段选择器已含 `[data-turn-id]`。已删第二段 | 工位 B `timeline-hygiene` 收口 | 只留一条 `[data-turn-id], [data-fold-id]` 查询 | M6 / conversation | closed |
 | D36 | P3 | **standalone `thinking`/`tool` 分支画假 process 行**：`conversation-lens-turn-process` + summary 像 fold。已改为诚实摘要行（header+body，无 fold chrome） | 工位 B `timeline-hygiene` 收口 | 无 `.conversation-lens-turn-process` / `.conversation-process-fold`；`conversationTimelineRenderer.test.ts` D36 测绿 | M6 / conversation | closed |
-| D43 | P3 | **`ConversationPart.layout` 不把尺寸扇出到 conversation editor parts**。`createConversationEditorPart` 已做首次 layout（host 有尺寸用 host，否则 800×600），否则 `findGroup`/`splitSessionWindow` 会在 `getNeighborViews` 上抛 `Can't call getNeighborViews before first layout`。chrome 后续 resize / `ConversationPart.layout` 仍不会再 layout 各 `ConversationEditorPartImpl`，活窗拆列后改窗口大小网格可能不更新 | D 槽 S4/S5 只收首次 layout 合同；扇出属另一冲突域，本 slice 不扩 | `ConversationPart.layout`（或 session window service）按叶 host 尺寸调用各 conversation editor part.layout；补 resize 测 | M7 conversation | open |
+| D43 | P3 | **`ConversationPart.layout` 不把尺寸扇出到 conversation editor parts**。`createConversationEditorPart` 已做首次 layout（host 有尺寸用 host，否则 800×600），否则 `findGroup`/`splitSessionWindow` 会在 `getNeighborViews` 上抛 `Can't call getNeighborViews before first layout`。chrome 后续 resize / `ConversationPart.layout` 仍不会再 layout 各 `ConversationEditorPartImpl`，活窗拆列后改窗口大小网格可能不更新 | D 槽 S4/S5 只收首次 layout 合同；扇出属另一冲突域，本 slice 不扩 | `ConversationPart.layout`（或 session window service）按叶 host 尺寸调用各 conversation editor part.layout；补 resize 测 | M7 conversation | closed |
 
 ## D2 工位池 compile 基线（2026-09-02，merge 工位 / `loop/merge`）
 
@@ -338,7 +338,7 @@ $REPO/scripts/code-cli.sh --extensions-dir="$EXT_DIR" \
 | `d2abb648c0e` | conversation：Lens visualize 两行 **已修**（A `visualize-leftover`：查询前 `revealVisualizeTurn(..., 'visualize-v2')`；merge compile 后 `--grep visualize` 3/3）。名单 0 数据行 | leftover | A `visualize-leftover` |
 | `d2abb648c0e` | conversation：StatusBar 引擎入口 / H4b 相位文案 **夹具已改**（工位 A `statusbar-leftover`：去二次 `registerAction2` + Emitter leak；未缩断言、未关 D16、未改名单） | leftover | A `statusbar-leftover` |
 | `d2abb648c0e` | conversation：SessionsView 四行 + OpenPendingOnFocus 无 pending **已修**（工位 B `sessions-openpending-harness`）：夹具对齐 untitled+visualize seed（空行测 `createSession()`、filter 补 rename visualize、create 落点 `sessions[2]`），未缩断言。名单五行已删 | leftover | B `sessions-openpending-harness` |
-| `d2abb648c0e` | conversation：split / side-by-side **首次 layout 已修**（D `createConversationEditorPart` + 夹具）；后续 chrome 扇出见 [D43](#d43) | leftover | D `s4-s5-first-layout` |
+| `d2abb648c0e` | conversation：split / side-by-side **首次 layout 已修**（D `createConversationEditorPart` + 夹具）；后续 chrome 扇出 [D43](#d43) **已闭**（`ConversationPart.layout` 按叶 host 再 layout 各 editor part + resize 测） | leftover | D `s4-s5-first-layout` / D `d43-layout-fanout` |
 | `d2abb648c0e` | sources：`collectSourcesReviewEntries` 委托 `toResource`/`fullTitle` 未定义 | baseline | A `test-baseline-slice3` |
 | `d2abb648c0e` | universeAgent：`FileMutationJoin` lifecycle+snapshot **已修**（B：无 `diff_stats` 时 omit optional `diffStats`，不再写出 `undefined`）。名单该一行已删 | leftover | A `filemutation-join` |
 | `d2abb648c0e` | universeAgent：11 个 node 测 Electron ESM `Failed to fetch dynamically imported module`（无 JUnit testcase，未进名单）：connectionResolver / deviceAuthHandshake / deviceGrantCrypto / hubControlPlane / hubDirectoryClient / hubSessionStore / observeCandidateLeaf / pairingOrchestrator / universeAgentChannel / universeAgentConnection / universeAgentHubService。**CI 已排除这 11 个**（[`scripts/run-unit-custom.sh`](../../scripts/run-unit-custom.sh) 只匹配 `test/node/`；`browser/universeAgentConnection` 仍跑）；可加载的 `test/node` 仍进同一 `--tfs universeAgent`，不拆多趟以免 XML 互盖 | baseline | A `test-baseline-slice3` / A `unit-custom-xml` |

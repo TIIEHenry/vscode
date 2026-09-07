@@ -70,7 +70,7 @@ suite('Conversation session window side-by-side (S5)', () => {
 		layoutConversationEditorParts(parts);
 		trackConversationEditors(parts);
 
-		return { parts, rosterService, sessionWindowService, sessionChatService, primaryId };
+		return { parts, conversationPart, rosterService, sessionWindowService, sessionChatService, primaryId };
 	}
 
 	async function createSideBySideHarness() {
@@ -156,5 +156,30 @@ suite('Conversation session window side-by-side (S5)', () => {
 
 		assert.strictEqual(secondaryPart.groups.length, 2);
 		assert.strictEqual(primaryPart.groups.length, 1);
+	});
+
+	test('ConversationPart.layout fans leaf host size to each conversation editor part', async () => {
+		const { conversationPart, parts, sessionWindowService, primaryId, secondaryId } = await createSideBySideHarness();
+		const primaryEditor = parts.conversationParts.find(part => part.sessionKey === primaryId);
+		const secondaryEditor = parts.conversationParts.find(part => part.sessionKey === secondaryId);
+		assert.ok(primaryEditor);
+		assert.ok(secondaryEditor);
+		assert.strictEqual(primaryEditor.contentDimension.width, 800);
+		assert.strictEqual(primaryEditor.contentDimension.height, 600);
+
+		const resized = { width: 640, height: 480 };
+		for (const sessionKey of [primaryId, secondaryId]) {
+			const host = sessionWindowService.getLeafSlots(sessionKey)?.editorPartHost;
+			assert.ok(host);
+			Object.defineProperty(host, 'clientWidth', { configurable: true, get: () => resized.width });
+			Object.defineProperty(host, 'clientHeight', { configurable: true, get: () => resized.height });
+		}
+
+		conversationPart.layout(1280, 502, 0, 0);
+
+		assert.strictEqual(primaryEditor.contentDimension.width, resized.width);
+		assert.strictEqual(primaryEditor.contentDimension.height, resized.height);
+		assert.strictEqual(secondaryEditor.contentDimension.width, resized.width);
+		assert.strictEqual(secondaryEditor.contentDimension.height, resized.height);
 	});
 });
