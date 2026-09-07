@@ -21,6 +21,8 @@ import type {
 	UniverseAgentAddMcpServerRequest,
 	UniverseAgentUpdateMcpServerRequest,
 	UniverseAgentRemoveMcpServerRequest,
+	UniverseAgentToggleMcpServerRequest,
+	UniverseAgentToggleMcpServerResult,
 	UniverseAgentSessionEvent,
 	UniverseAgentSessionStreamCloseCause,
 	UniverseAgentToolInfoRequest,
@@ -53,6 +55,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		addMcpServer?: (request: UniverseAgentAddMcpServerRequest) => Promise<{ ok: boolean }>;
 		updateMcpServer?: (request: UniverseAgentUpdateMcpServerRequest) => Promise<{ ok: boolean }>;
 		removeMcpServer?: (request: UniverseAgentRemoveMcpServerRequest) => Promise<{ ok: boolean }>;
+		toggleMcpServer?: (request: UniverseAgentToggleMcpServerRequest) => Promise<UniverseAgentToggleMcpServerResult>;
 		getToolInfo?: (request: UniverseAgentToolInfoRequest) => Promise<UniverseAgentToolInfoResult>;
 	} = {}): IUniverseAgentConnection & { setConnected(value: boolean): void } {
 		const capabilities: UniverseAgentCapabilitySnapshot = {
@@ -133,7 +136,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 			reloadPlugin: async () => ({ plugin: { id: '', displayName: '', version: '', source: '', hookCount: 0, status: 'unknown' as const } }),
 			unloadPlugin: async () => ({ removedHookCount: 0 }),
 			scanNewPlugins: async () => ({ newPlugins: [], skippedCount: 0 }),
-			toggleMcpServer: async () => ({ ok: true }),
+			toggleMcpServer: options.toggleMcpServer ?? (async () => ({ ok: true })),
 			addMcpServer: options.addMcpServer ?? (async () => ({ ok: true })),
 			updateMcpServer: options.updateMcpServer ?? (async () => ({ ok: true })),
 			removeMcpServer: options.removeMcpServer ?? (async () => ({ ok: true })),
@@ -1016,5 +1019,53 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		assert.strictEqual(await section.removeSelectedServer(), false);
 		assertMcpWriteFailureKeepsRows(section, 'remove exploded', 1);
 		assert.strictEqual(listMcpServersCalls, 1);
+	});
+
+	test('MCP: toggleServer ok:false shows write-failure status and keeps catalog rows', async () => {
+		let listMcpServersCalls = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { mcp: { support: 'SUPPORTED' } },
+			listMcpServers: async () => {
+				listMcpServersCalls++;
+				return { servers: [demoMcpServer()] };
+			},
+			toggleMcpServer: async () => ({ ok: false, reason: 'toggle denied' }),
+		});
+		const section = mountMcpSection(connection);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.strictEqual(section.getListEntryCount(), 1);
+		assert.strictEqual(listMcpServersCalls, 1);
+
+		await section.toggleServerForTest('stdio-demo', false);
+		assertMcpWriteFailureKeepsRows(section, 'toggle denied', 1);
+		assert.ok(listMcpServersCalls >= 2);
+	});
+
+	test('MCP: toggleServer throw shows write-failure status and keeps catalog rows', async () => {
+		let listMcpServersCalls = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { mcp: { support: 'SUPPORTED' } },
+			listMcpServers: async () => {
+				listMcpServersCalls++;
+				return { servers: [demoMcpServer()] };
+			},
+			toggleMcpServer: async () => {
+				throw new Error('toggle exploded');
+			},
+		});
+		const section = mountMcpSection(connection);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.strictEqual(section.getListEntryCount(), 1);
+		assert.strictEqual(listMcpServersCalls, 1);
+
+		await section.toggleServerForTest('stdio-demo', false);
+		assertMcpWriteFailureKeepsRows(section, 'toggle exploded', 1);
+		assert.ok(listMcpServersCalls >= 2);
 	});
 });
