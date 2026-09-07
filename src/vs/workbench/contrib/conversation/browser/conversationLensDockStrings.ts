@@ -8,6 +8,8 @@ import { localize } from '../../../../nls.js';
 /** Honest Input Dock copy — no engine, no Copilot entitlement CTAs. */
 export const conversationLensDockEngineNotConnected = localize('conversationLens.dockEngineNotConnected', "Engine not connected");
 export const conversationLensDockInboxNoQueue = localize('conversationLens.inboxNoQueue', "No queue");
+/** Connected / disconnected-cache Inbox is not a live engine queue (no GetQueue). */
+export const conversationLensDockInboxQueueNotListed = localize('conversationLens.inboxQueueNotListed', "Queue not listed");
 export const conversationLensDockInboxNoTasks = localize('conversationLens.inboxNoTasks', "No tasks");
 export const conversationLensDockInboxTaskLabel = localize('conversationLens.inboxTaskLabel', "Task");
 export const conversationLensDockInboxQueueLabel = localize('conversationLens.inboxQueueLabel', "MessageQueue");

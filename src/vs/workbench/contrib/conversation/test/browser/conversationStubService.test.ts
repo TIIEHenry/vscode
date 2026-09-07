@@ -352,6 +352,54 @@ suite('ConversationStubService', () => {
 		assert.strictEqual(formatSyncChromeLabel(service.getSessionSync(sessionId)), 'Session not connected');
 	});
 
+	test('connected MessageQueue fixture does not pose as the engine queue', () => {
+		const service = store.add(new ConversationStubService());
+		const sessionId = service.getActiveSessionId();
+		service.setMessageQueueFixture(sessionId, {
+			isPaused: false,
+			isProcessing: false,
+			items: [{
+				id: 'q-fail',
+				content: 'fixture failed',
+				status: 'FAILED',
+				hold: undefined,
+				uploadProgress: undefined,
+				retryCount: 1,
+				lastError: 'engine rejected',
+				locked: false,
+				pinned: false,
+			}],
+		});
+		assert.strictEqual(service.getMessageQueueState(sessionId).items[0]?.status, 'FAILED');
+
+		service.setEngineConnected(true);
+		assert.deepStrictEqual(service.getMessageQueueState(sessionId), {
+			items: [],
+			isPaused: false,
+			isProcessing: false,
+		});
+		service.setMessageQueueFixture(sessionId, {
+			isPaused: true,
+			isProcessing: true,
+			items: [{
+				id: 'q-leak',
+				content: 'must not land',
+				status: 'FAILED',
+				hold: undefined,
+				uploadProgress: undefined,
+				retryCount: 0,
+				lastError: 'leak',
+				locked: false,
+				pinned: false,
+			}],
+		});
+		assert.deepStrictEqual(service.getMessageQueueState(sessionId).items, []);
+
+		service.setEngineConnected(false);
+		assert.strictEqual(service.getMessageQueueState(sessionId).items[0]?.id, 'q-fail');
+		assert.strictEqual(service.getMessageQueueState(sessionId).items.some(item => item.id === 'q-leak'), false);
+	});
+
 	test('never-connected AutoDrive still accepts fixture', () => {
 		const service = store.add(new ConversationStubService());
 		const sessionId = service.getActiveSessionId();

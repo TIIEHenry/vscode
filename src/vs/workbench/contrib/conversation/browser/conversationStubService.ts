@@ -41,6 +41,7 @@ import { ConversationTrajectoryRecord } from './conversationTrajectoryModel.js';
 import {
 	ConversationMessageQueueState,
 	ConversationQueueItemHoldReason,
+	createEmptyMessageQueueState,
 } from './conversationMessageQueueModel.js';
 
 export const IConversationRosterService = createDecorator<IConversationRosterService>('conversationStubService');
@@ -577,10 +578,16 @@ export class ConversationStubService extends Disposable implements IConversation
 	}
 
 	getMessageQueueState(sessionId: string): ConversationMessageQueueState {
+		if (this.hidesMessageQueueFixture()) {
+			return createEmptyMessageQueueState();
+		}
 		return this.model.getMessageQueueState(sessionId);
 	}
 
 	setMessageQueueFixture(sessionId: string, state: ConversationMessageQueueState): void {
+		if (this.hidesMessageQueueFixture()) {
+			return;
+		}
 		this.model.setMessageQueueFixture(sessionId, state);
 		this._onDidChangeSession.fire(sessionId);
 	}
@@ -621,6 +628,14 @@ export class ConversationStubService extends Disposable implements IConversation
 	setAutoDriveTaskFixture(sessionId: string, tasks: readonly string[]): void {
 		this.model.setAutoDriveTaskFixture(sessionId, tasks);
 		this._onDidChangeSession.fire(sessionId);
+	}
+
+	/**
+	 * Connected / disconnected-cache Inbox is not the engine queue — no
+	 * GetQueue RPC. Fixture must not pose as live items.
+	 */
+	protected hidesMessageQueueFixture(): boolean {
+		return this.isEngineConnected() || this.hasEngineConnectionHistory();
 	}
 
 	isEngineConnected(): boolean {

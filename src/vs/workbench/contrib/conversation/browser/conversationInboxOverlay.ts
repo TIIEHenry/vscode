@@ -17,6 +17,7 @@ import {
 	conversationLensDockGoalPlaceholder,
 	conversationLensDockGoalPrompt,
 	conversationLensDockInboxNoQueue,
+	conversationLensDockInboxQueueNotListed,
 	conversationLensDockInboxNoTasks,
 	conversationLensDockInboxQueueLabel,
 	conversationLensDockInboxTaskLabel,
@@ -41,6 +42,7 @@ import {
 	ConversationMessageQueueItem,
 	ConversationMessageQueueState,
 	conversationMessageQueuePendingCount,
+	createEmptyMessageQueueState,
 } from './conversationMessageQueueModel.js';
 import { IConversationRosterService } from './conversationStubService.js';
 import { formatSyncChromeLabel } from './conversationSessionView.js';
@@ -153,7 +155,7 @@ export class ConversationInboxOverlay extends Disposable {
 
 	render(): void {
 		const sessionId = this.stubService.getActiveSessionId();
-		const queueState = this.stubService.getMessageQueueState(sessionId);
+		const queueState = this.displayQueueState(sessionId);
 		const taskCount = this.stubService.getAutoDriveTaskCount(sessionId);
 		const pendingConfirmations = this.stubService.countPendingConfirmations(sessionId);
 
@@ -191,12 +193,29 @@ export class ConversationInboxOverlay extends Disposable {
 		this.taskChip.setAttribute('aria-pressed', String(this.openPanel === 'task'));
 	}
 
+	private isEngineQueueUnlisted(): boolean {
+		return this.stubService.isEngineConnected() || this.stubService.hasEngineConnectionHistory();
+	}
+
+	private displayQueueState(sessionId: string): ConversationMessageQueueState {
+		if (this.isEngineQueueUnlisted()) {
+			return createEmptyMessageQueueState();
+		}
+		return this.stubService.getMessageQueueState(sessionId);
+	}
+
+	private queueEmptyCopy(): string {
+		return this.isEngineQueueUnlisted()
+			? conversationLensDockInboxQueueNotListed
+			: conversationLensDockInboxNoQueue;
+	}
+
 	private renderQueueChip(queueState: ConversationMessageQueueState): void {
 		const pending = conversationMessageQueuePendingCount(queueState);
 		const total = queueState.items.length;
 		let label: string;
 		if (total === 0) {
-			label = conversationLensDockInboxNoQueue;
+			label = this.queueEmptyCopy();
 		} else if (queueState.isPaused) {
 			label = localize('conversationLens.inboxQueuePaused', "{0} paused", total);
 		} else if (queueState.isProcessing) {
@@ -359,7 +378,7 @@ export class ConversationInboxOverlay extends Disposable {
 
 	private renderQueueList(host: HTMLElement): void {
 		const sessionId = this.stubService.getActiveSessionId();
-		const state = this.stubService.getMessageQueueState(sessionId);
+		const state = this.displayQueueState(sessionId);
 		const listRoot = append(host, $('.conversation-lens-inbox-list.conversation-lens-message-queue-list'));
 		listRoot.setAttribute('role', 'list');
 
@@ -403,7 +422,7 @@ export class ConversationInboxOverlay extends Disposable {
 
 		const body = append(listRoot, $('.queue-bar-body'));
 		if (state.items.length === 0) {
-			append(body, $('.conversation-lens-inbox-list-empty')).textContent = conversationLensDockInboxNoQueue;
+			append(body, $('.conversation-lens-inbox-list-empty')).textContent = this.queueEmptyCopy();
 			return;
 		}
 
@@ -450,7 +469,7 @@ export class ConversationInboxOverlay extends Disposable {
 	private formatQueueSummary(state: ConversationMessageQueueState): string {
 		const count = state.items.length;
 		if (count === 0) {
-			return conversationLensDockInboxNoQueue;
+			return this.queueEmptyCopy();
 		}
 		if (state.isProcessing) {
 			return localize('conversationLens.inboxQueueSummarySending', "Sending…");
