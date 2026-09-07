@@ -53,6 +53,8 @@ import {
 	getHubAuthStatusLabel,
 	getHubDeviceRowStatusLabel,
 	getHubDirectoryBannerLabel,
+	HUB_CHANGE_PASSWORD_BUTTON_LABEL,
+	HUB_LOGIN_BUTTON_LABEL,
 	isRecoverTrustConnectResult,
 	isForbiddenSasButtonLabel,
 	SAS_CANCEL_BUTTON_LABEL,
@@ -2011,6 +2013,53 @@ suite('ConnectionPreferencesPane', () => {
 		assert.ok(banner);
 		assert.strictEqual(banner.textContent, 'boom');
 		assert.notStrictEqual(banner.style.display, 'none');
+		container.remove();
+	});
+
+	test('hub login throw paints hub auth badge', async () => {
+		const pane = mountPane({
+			login: async () => {
+				throw new Error('boom');
+			},
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		await Promise.resolve();
+
+		const signIn = [...container.querySelectorAll('.connection-hub-actions .monaco-button')]
+			.find(button => button.textContent === HUB_LOGIN_BUTTON_LABEL) as HTMLButtonElement | undefined;
+		assert.ok(signIn);
+		signIn.click();
+		await Promise.resolve();
+		await Promise.resolve();
+		const badge = container.querySelector('.connection-hub-auth-badge') as HTMLElement;
+		assert.ok(badge);
+		assert.strictEqual(badge.textContent, 'boom');
+		assert.ok(badge.classList.contains('is-error'));
+		container.remove();
+	});
+
+	test('hub changePassword throw paints hub auth badge', async () => {
+		const pane = mountPane({
+			getAuthStatus: () => ({ kind: 'mustChangePassword', email: 'user@hub.example' }),
+			changePassword: async () => {
+				throw new Error('boom');
+			},
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		await Promise.resolve();
+
+		const changePassword = [...container.querySelectorAll('.connection-hub-actions .monaco-button')]
+			.find(button => button.textContent === HUB_CHANGE_PASSWORD_BUTTON_LABEL) as HTMLButtonElement | undefined;
+		assert.ok(changePassword);
+		changePassword.click();
+		await Promise.resolve();
+		await Promise.resolve();
+		const badge = container.querySelector('.connection-hub-auth-badge') as HTMLElement;
+		assert.ok(badge);
+		assert.strictEqual(badge.textContent, 'boom');
+		assert.ok(badge.classList.contains('is-error'));
 		container.remove();
 	});
 
