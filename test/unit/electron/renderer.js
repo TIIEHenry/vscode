@@ -288,6 +288,10 @@ async function loadTests(opts) {
 
 	setup(async () => {
 		await perTestCoverage?.startTest();
+
+		// Scope the output and error gates to this test. Left sticky, the first
+		// offender fails every test after it and buries which one was at fault.
+		_testsWithUnexpectedOutput = false;
 	});
 
 	teardown(async () => {
@@ -306,6 +310,8 @@ async function loadTests(opts) {
 				console.error(`Error: Test run should not have unexpected errors:\n${error}`);
 				msg.push(String(error));
 			}
+			_unexpectedErrors.length = 0;
+			_loaderErrors.length = 0;
 			assert.ok(false, `Error: Test run should not have unexpected errors:\n${msg.join('\n')}`);
 		}
 	});

@@ -1,9 +1,10 @@
 # baseline_sha: d2abb648c0e7fdded291abe36b58d77c36e34c88
-# min_cases: conversation=714 sources=89 universeAgent=190
-# max_skipped: conversation=0 sources=0 universeAgent=0
+# min_cases: conversation=714 sources=89 universeAgent=190 universeAgentNode=418
+# max_skipped: conversation=0 sources=0 universeAgent=0 universeAgentNode=0
 # 格式：<classname>::<name>
 # mocha-junit-reporter 本 runner：classname=test.title，name=test.fullTitle()
-# 只登记 unit-custom 三域；D16 三文件在本 SHA 仍 0 failing，未列入
+# 只登记 unit-custom 三域 + universeAgentNode；D16 三文件在本 SHA 仍 0 failing，未列入
+# universeAgentNode = D17 那 11 个 Electron 不可加载文件，改由 Node runner 跑，418 条 0 failing
 # 采集：工位 A loop/A @ d2abb648c0e；DiffReview afterEach 六行已由 B `diffreview-leak` 删；S1a createScoped 一行已由 B `create-scoped` 删（harness 补 IStatusbarService.createScoped，未缩断言）
 CONVERSATION_SIDE_GROUP increases conversation editor part group count::Conversation session split (S4) CONVERSATION_SIDE_GROUP increases conversation editor part group count
 Part focus with no pending seats does not scroll::ConversationOpenPendingOnFocusContribution Part focus with no pending seats does not scroll

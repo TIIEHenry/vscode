@@ -20,11 +20,11 @@ import { fileURLToPath, pathToFileURL } from 'url';
 import semver from 'semver';
 
 /**
- * @type {{ build: boolean; run: string; runGlob: string; coverage: boolean; help: boolean; coverageFormats: string | string[]; coveragePath: string; }}
+ * @type {{ build: boolean; run: string; runGlob: string; coverage: boolean; help: boolean; coverageFormats: string | string[]; coveragePath: string; tfs: string; }}
  */
 const args = minimist(process.argv.slice(2), {
 	boolean: ['build', 'coverage', 'help'],
-	string: ['run', 'coveragePath', 'coverageFormats'],
+	string: ['run', 'coveragePath', 'coverageFormats', 'tfs'],
 	alias: {
 		h: 'help'
 	},
@@ -39,6 +39,7 @@ const args = minimist(process.argv.slice(2), {
 		coverage: 'Generate a coverage report',
 		coveragePath: 'Path to coverage report to generate',
 		coverageFormats: 'Coverage formats to generate',
+		tfs: 'Also write JUnit XML under this domain name',
 		help: 'Show help'
 	}
 });
@@ -50,6 +51,7 @@ Options:
 --build          Run from out-build
 --run <file>     Run a single file
 --coverage       Generate a coverage report
+--tfs <name>     Also write JUnit XML under this domain name
 --help           Show help`);
 	process.exit(0);
 }
@@ -147,9 +149,25 @@ function main() {
 	};
 
 
-	const runner = new Mocha({
-		ui: 'tdd'
-	});
+	/** @type {Mocha.MochaOptions} */
+	const mochaOptions = { ui: 'tdd' };
+
+	// Same JUnit layout the Electron runner writes, so both runners feed one baseline check.
+	if (args.tfs) {
+		const testResultsRoot = process.env.BUILD_ARTIFACTSTAGINGDIRECTORY || process.env.GITHUB_WORKSPACE;
+		mochaOptions.reporter = 'mocha-multi-reporters';
+		mochaOptions.reporterOptions = {
+			reporterEnabled: 'spec, mocha-junit-reporter',
+			mochaJunitReporterReporterOptions: {
+				testsuitesTitle: `${args.tfs} ${process.platform}`,
+				mochaFile: testResultsRoot
+					? path.join(testResultsRoot, `test-results/${process.platform}-${process.arch}-${args.tfs.toLowerCase().replace(/[^\w]/g, '-')}-results.xml`)
+					: undefined
+			}
+		};
+	}
+
+	const runner = new Mocha(mochaOptions);
 
 	/**
 	 * @param modules
