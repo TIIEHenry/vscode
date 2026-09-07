@@ -23,6 +23,7 @@ summary: "待研究队列 SSOT；R1–R7 全闭；R5 m6-engine-wave + ADR-003 + 
 | R5 | PRD-008 引擎接线 | 全部 blocked 项（page-access 切片 5、customizations E1、trajectory T4、PRD-002/003/004 活数据）唯一上游 | 规则 16 审查 Approve with changes 已改入；**2026-09-02 用户委托裁决签收**：三稿 `accepted`，stream-timeline §9 增量已并入 m6 / ADR-003；M6-A 拆 A1（platform，可与 S1–S3 并行）/ A2（contrib 接线，S3 + A1 后）。实施排期见 [status Next](status.md) | [m6-engine-wave](../plans/m6-engine-wave.md) + [ADR-003](../decisions/003-engine-adapter-boundary.md) + [conversation-stream-timeline](../plans/conversation-stream-timeline.md)（均 `accepted`） | closed |
 | R6 | PRD-009 Diff owner | Sources Changes 与文件级 Diff 打开位置未选；对照合同要底部面板，HEAD 落编辑器区 | 用户裁决 @2026-09-02：默认 Preview，可移对话窗口 / 底部 Panel | [ADR-005](../decisions/005-changes-diff-owner.md) · [diff-footprint](../../docs/reference/code-oss-b2/diff-footprint.md) §Diff owner | closed |
 | R7 | PRD-010 产品身份 | `proposed` 挂起；影响 `product.json`、窗口标题、图标、`urlProtocol`（page-access 已选 `universe-agent` scheme 不绑 `product.urlProtocol`） | **已裁决 @2026-09-02**：产品名 **UniverseAgentStudio**；图标复用 UniverseAgentDesktop / Singularity 现有资产；**本轮不改**，等引擎波（R5）接通后再做 | 转 [D12](deferred-gaps.md) | closed |
+| R8 | `WriteGitApplyHunks` 空 `argv` / `patches` 语义 | Accept 按合同不发明 hunk，现送空列表；引擎若当成功 no-op 仍可能假 Accept | 对照 proto 与引擎：空 = apply-all / 拒写 / 成功空操作 | 短 ADR 或回填 engine-protocol-surface；再决定 Accept 是否传 path | open |
 
 ## 维护规则
 

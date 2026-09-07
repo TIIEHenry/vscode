@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-07
-summary: "Connection/Engine 设置页对齐 workbench chrome（InputBox/List 左栏、状态色、回 Client 链入 tab 条）；握手 protobuf 后 SAS 确认框未弹；剩余 onDidApplyFrame / U2 未开；两份方案重复 frontmatter 已合并并按规则 3c 扫过知识层"
+summary: "2026-09-07 wake：status 工位表已过期（merge 实际 bb4a7a9b395，不是 f1568462a5f）。A/B/C 占用三大 slice；D idle；一路编译留给 merge；文档「已完成」不当证据"
 ---
 
 # Development Progress
@@ -13,7 +13,7 @@ summary: "Connection/Engine 设置页对齐 workbench chrome（InputBox/List 左
 
 ## Current Session
 
-### 已合入（`agent-ide` / `loop/merge` tip `f1568462a5f`）
+### 已合入（历史账 · **不要把本表当 merge tip**；集成基线现为 `bb4a7a9b395`）
 
 | 切片 | 提交 / 落点 |
 |:-----|:------------|
@@ -50,22 +50,49 @@ summary: "Connection/Engine 设置页对齐 workbench chrome（InputBox/List 左
 
 [m7-gap-closeout](../plans/m7-gap-closeout.md) 与 [session-view-frame-fanout](../plans/session-view-frame-fanout.md) 的重复 frontmatter 已合并（生成列此前误显 `accepted`，现为 `implemented`）；按规则 3c 改口三处知识层叙述：Test Connection 已走 `probeConnectionProfile`、帧扇出 F1/F2 已落（全局 `onDidApplyFrame` 待删）、子代理 catalog 已由观察 lease 驱动。
 
-### 进行中
+### 进行中（2026-09-07 本 wake · 以代码/工位 tip 为准，不信上文「已合入」清单）
 
-HistoryFill 已合入 merge。剩余：宿主全局 `onDidApplyFrame` 整刀删、断连 Send、`heartbeat_ack` 行为测。U1 已合；**U2 未开**。
+文档工位表停在 `f1568462a5f`，**已过期**。当前磁盘：
 
-`conversationLens` 套件余 1 条既有失败：VS Code 自身 ListView 在拆卸期 `onScroll → probeDynamicHeights` 量到 0px 行高，被测试框架当 console 输出判红；HEAD 同样 8 条，非本波引入。`enqueueMessageQueueItem` 仍无 UI 入口；error 行重试按钮待引擎接线（不画假按钮）。
+| 槽 | 实际 tip | 本 wake |
+|----|----------|---------|
+| 主工作区 `agent-ide` | 本地仍 `f85a512fdd0`（有未提交进度文档） | **请自行对齐**到 `c1b228caf74`。loop 不代 merge/pull |
+| merge `loop/merge` | `c1b228caf74` | 已并入人类 `f85a512fdd0`；已 push `origin/agent-ide` 与 `origin/loop/merge`。compile 基线 unused 仍红 |
+| A `loop/A` | `b384a1dcf9e` | 已是 merge 祖先；P6 被脏 `status.md` 挡住，未 cascade |
+| B `loop/B` | `58f44d73ce8` | 同上 |
+| C `loop/C` | `4ae77bdc6b6` | 同上（另有脏 `dev/loop`） |
+| D `loop/D` | `583b004a8b0` | 同上 |
 
-## 工位表（与 `git worktree list` 对照 · 2026-09-05）
+本 wake 已派（父只调度，禁用 grok CLI，决定用 Grok 4.6）：
 
-| 槽 | 路径 | 分支 | tip | 状态 |
-|----|------|------|-----|:-----|
-| merge | `vscode-WorkTrees/merge` | `loop/merge` | `f1568462a5f` | 与 agent-ide 对齐（未 push）；renderer IPC 修在 agent-ide 待合 |
-| A | `vscode-WorkTrees/A` | `loop/A` | `f1568462a5f` | idle |
-| B | `vscode-WorkTrees/B` | `loop/B` | `f1568462a5f` | idle |
-| C | `vscode-WorkTrees/C` | `loop/C` | `f1568462a5f` | idle |
-| D | `vscode-WorkTrees/D` | `loop/D` | `f1568462a5f` | idle |
-| edit | `Projects/Agents/vscode` | `agent-ide` | `f1568462a5f`+WIP | renderer Channel Client 本提交 |
+1. **MERGE_SHA** `c1b228caf74`：P2 收 C/A/B/D + 类型合成 + 人类 `agent-ide` `f85a512fdd0`。both-sides PASS。已 push `origin/agent-ide` 与 `origin/loop/merge`。
+2. P3：两条过时 stash 已 drop，list 空。P6 字母槽未 ff（脏 leftover `status.md`）。merge 已与远程同 SHA，字母槽未 `idle`。
+3. 下一波仍按冲突域（A=D23+D32，B=D24+0px，C=D30+诚实空，D=D31+R8）。GFS >800 不拆。U2 不开。
+
+**禁止本 wake**：U2、SwitchMode Plan、空转等 loop、多路编译、删 loop。
+
+子 agent 发现的既有代码问题：
+
+| ID | 来源 | 问题 |
+|:---|:-----|:-----|
+| [D23](deferred-gaps.md) | A 槽核实时 | `sessionViewHost.ts` `void sendHeartbeatAck`：resident `write` 无 catch，失败可成未处理 rejection |
+| [D24](deferred-gaps.md) | 决策核实时 | `getEngineStatusCommandId` 配对中可能把 chip 指到 Engine 页 |
+| — | 决策核实时 | ListView 0px：编辑态 1px 垫高未根治；inactive lens hidden 仍报 0px |
+| [D31](deferred-gaps.md) | A 槽 Sources | Review 读失败静默、Panel 无写动作、无 Unstage |
+| [R8](research-queue.md) | A 槽 Sources | `WriteGitApplyHunks` 空 patches 语义未定 |
+| [D32](deferred-gaps.md) | D 槽 error-retry | UI 直开 ContinueGeneration，不经 lease.post |
+| — | A 槽 Inbox | 接通入队成功后无 GetQueue，列表仍空；`engine-protocol-surface` Enqueue 句过时 |
+
+## 工位表（P0 盘点 · 2026-09-07 · 与 `git worktree list` 对照）
+
+| 槽 | 路径 | 分支 | tip | 脏 | stash | 关仓状态 |
+|----|------|------|-----|:--|:------|:---------|
+| merge | `vscode-WorkTrees/merge` | `loop/merge` | `c1b228caf74` | 0 | 0 | 已 push，与 `origin/agent-ide` 同 SHA。compile 基线 unused 仍红 |
+| A | `vscode-WorkTrees/A` | `loop/A` | `b384a1dcf9e` | `status.md` + `__pycache__` | 0 | 祖先已合入；P6 未 cascade |
+| B | `vscode-WorkTrees/B` | `loop/B` | `58f44d73ce8` | `status.md` | 0 | 同上 |
+| C | `vscode-WorkTrees/C` | `loop/C` | `4ae77bdc6b6` | `status.md` + `dev/loop` | 0 | 同上 |
+| D | `vscode-WorkTrees/D` | `loop/D` | `583b004a8b0` | `status.md` | 0 | 同上 |
+| edit | `Projects/Agents/vscode` | `agent-ide` | `f85a512fdd0` | 进度文档等 | 0 | 请自行对齐 `c1b228caf74` |
 
 ## Blockers
 
