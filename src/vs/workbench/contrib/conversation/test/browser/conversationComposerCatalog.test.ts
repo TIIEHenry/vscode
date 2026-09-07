@@ -7,6 +7,8 @@ import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { conversationLensDockNoAgent, conversationLensDockNoModel } from '../../browser/conversationLensDockStrings.js';
 import { composerAgentSelectOptions, composerModelIds, composerModelSelectOptions, composerToolNames } from '../../browser/conversationComposerCatalog.js';
+import { loadConnectedComposerCatalogs, type IConversationLensComposerHost } from '../../browser/conversationLensComposer.js';
+import { createConversationConnectionTestStub, createEmptyTestCapabilitySnapshot } from '../common/conversationConnectionTestStub.js';
 
 suite('conversationComposerCatalog', () => {
 
@@ -44,5 +46,55 @@ suite('conversationComposerCatalog', () => {
 			{ name: '  ' },
 			{ name: 'read' },
 		]), ['bash', 'read']);
+	});
+
+	test('loadConnectedComposerCatalogs keeps No agent / No model / empty tools when three hooks reject', async () => {
+		const capabilities = createEmptyTestCapabilitySnapshot();
+		const agentOptions: { text: string }[] = [{ text: conversationLensDockNoAgent }];
+		const modelOptions: { text: string }[] = [{ text: conversationLensDockNoModel }];
+		const host = {
+			composerCatalogGeneration: 1,
+			catalogToolNames: [] as string[],
+			catalogModelIds: [''] as string[],
+			modelSelectedIndex: 0,
+			agentSelectBox: {
+				setOptions(options: { text: string }[]) {
+					agentOptions.splice(0, agentOptions.length, ...options);
+				},
+			},
+			modelSelectBox: {
+				setOptions(options: { text: string }[]) {
+					modelOptions.splice(0, modelOptions.length, ...options);
+				},
+			},
+			getBoundSessionId: () => 's1',
+			getSessionConfig: () => ({ agentIndex: 0 }),
+			uaConnection: createConversationConnectionTestStub({
+				getCapabilitySnapshot: () => ({
+					...capabilities,
+					agentProfiles: { support: 'SUPPORTED' },
+					tools: { support: 'SUPPORTED' },
+					models: { support: 'SUPPORTED' },
+				}),
+				listAgentProfiles: async () => {
+					throw new Error('listAgentProfiles exploded');
+				},
+				listModels: async () => {
+					throw new Error('listModels exploded');
+				},
+				listTools: async () => {
+					throw new Error('listTools exploded');
+				},
+			}),
+		} as unknown as IConversationLensComposerHost;
+
+		await loadConnectedComposerCatalogs(host, 1);
+
+		assert.deepStrictEqual(agentOptions, [{ text: conversationLensDockNoAgent }]);
+		assert.deepStrictEqual(modelOptions, [{ text: conversationLensDockNoModel }]);
+		assert.deepStrictEqual([...host.catalogToolNames], []);
+		assert.deepStrictEqual([...host.catalogModelIds], ['']);
+		assert.ok(!agentOptions.some(option => option.text === 'Coder'));
+		assert.ok(!modelOptions.some(option => option.text === 'gpt-test'));
 	});
 });
