@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-08
-summary: "延期缺口 SSOT；D16 仍开；D45–D53 已闭；D22 F3；D24 其余 JSON RPC；D25 引擎 List 真空；D26 引擎建壳回 6；D31 F4 / A2 blocked；git-read / open-diff / Stage·Commit throw 与 Stage·Commit ok:false status DOM 已挂载"
+summary: "延期缺口 SSOT；D16 仍开；D45–D54 已闭；D22 F3；D24 其余 JSON RPC；D25 引擎 List 真空；D26 引擎建壳回 6；D31 F4 / A2 blocked；Team leftover 已清；Snapshots Restore/Delete write-status 已挂载"
 ---
 
 # Deferred Gaps
@@ -70,6 +70,7 @@ summary: "延期缺口 SSOT；D16 仍开；D45–D53 已闭；D22 F3；D24 其�
 | D51 | P3 | **host `writeChat` 丢 `writeId` 且 success 用非法 `'written'`**：`chatStreamWrite` 带 writeId；host `mark()` 用 `'written'` 被 `isInputDeliveryFact` 拒收，且缺 `source: host-write-accepted` / `writeId` / `chatAttemptId`，permission inflight cleanup 永不跑 | A 槽 `host-write-receipt` 已收：`handleIntent` 传入 `writeId`；`mark()` 只用 accepted/failed 并盖 `HOST_WRITE_RECEIPT_SOURCE` / `writeId` / `chatAttemptId`。测锁 perm-live 成功 `removePendingAction`、write throw `pendingRespondFailed`（`hostWriteFailed`）且无未处理 rejection。未关 D16；未发明 heartbeat `client_id`；未碰 Create / `.sessions` / proto / F4；未包整圈 `drainIntents` | `handleIntent` 传入 writeId；receipt 为 accepted/failed 且带 source+writeId+chatAttemptId；permission_request perm-live → post allow → resident write 成功出 `removePendingAction`；write throw 出 `pendingRespondFailed` `hostWriteFailed` 且无未处理 rejection | M7 universeAgent | closed |
 | D52 | P3 | **one-shot `connection.chat()` 只在 `onResponse` 标 accepted**：`TestConnection.chat()` 空 `async chat() {}`；生产 `makeBidiBytesClient` 可 `'end'` 且 0 `'data'`。无 `inputDelivery`，perm-live 座永不清 | A 槽 `oneshot-chat-receipt` 已收：no-resident `writeChat` `mark` 至多一次；await 后未 mark → accepted；catch 未 mark → failed。测锁无 callback 仍 `removePendingAction`、chat throw 仍 `pendingRespondFailed` `hostWriteFailed`。未关 D16；未发明 heartbeat `client_id` / GetQueue；未碰 Create / `.sessions` / proto / F4；未包整圈 `drainIntents` | no-resident `writeChat` mark 至多一次；chat resolve 无 callback 仍 accepted / 清座；chat throw 仍 failed / `hostWriteFailed` | M7 universeAgent | closed |
 | D53 | P3 | **Team `memberStatus` / `taskList` 无 catch**：`refreshTeamData` 仅 `teamInfo` 有 catch；后两 unary 裸 await。Caller 是 `void this.refreshTeamData()`。成功画出 Alice 后再 throw 会 leftover 活行（非断连、无 stale note）且可未处理 rejection | A 槽 `navigator-team-leftover` 已收：catch 后清 leftover 并写失败 note；断连 leftover + stale-note 合同未改。测锁 success→throw。未关 D16；未跑 F4；未开 A2 | catch `memberStatus` / `taskList` throw；清 leftover 行；写失败 note（非 stale-note）；断连 leftover + stale-note 不变；`navigatorTeamSubviews.test.ts` success→throw 绿 | M7 navigator | closed |
+| D54 | P3 | **Snapshots Restore/Delete 失败无 write-status**：`restoreThenRefreshList` / `deleteThenRefreshList` 吞 `ok:false` 与 throw 且不刷新（leftover 行是合同）；overlay 原无失败行，且不得用 `paintStatus`（会 reset body 卸行） | B 槽 `snapshots-write-status` 已收：panel 独立 write-status（不 unload 行）；`ok:false` / throw 画 `Unable to restore:` / `Unable to delete:`；测锁 status DOM + 行仍在。未关 D16；未发明 GetQueue / proto；未碰 F4 / 引擎 / `dev/loop` | overlay write-status 在 Restore/Delete `ok:false` / throw 可见且行仍在；`paintStatus` 不用于写失败；fail 仍不 refresh | conversation | closed |
 
 ## D2 工位池 compile 基线（2026-09-02，merge 工位 / `loop/merge`）
 
