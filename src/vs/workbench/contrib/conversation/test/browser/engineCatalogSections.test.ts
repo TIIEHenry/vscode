@@ -603,6 +603,100 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		assertFailedCatalogHonesty(section, TOOLS_FEATURE, 'listTools retry exploded');
 	});
 
+	function demoToolsUserProfile() {
+		return { id: 'demo', name: 'Demo Agent', source: 'user' as const, disabledTools: [] as string[] };
+	}
+
+	function demoBashTool() {
+		return { name: 'bash', description: 'shell tool', category: 'shell' };
+	}
+
+	function assertToolsWriteFailureKeepsCatalog(
+		section: EngineToolsSection,
+		expectedReason: string,
+		expectedRows: number,
+		expectedDirty: boolean,
+	): void {
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.strictEqual(section.getListEntryCount(), expectedRows);
+		assert.strictEqual(section.canWrite(), true);
+		assert.strictEqual(section.isToolEnablementDirty(), expectedDirty);
+		assert.strictEqual(section.getActiveProfileId(), 'demo');
+		const writeStatus = section.getDomNode().querySelector('.engine-catalog-write-status') as HTMLElement;
+		assert.ok(writeStatus);
+		assert.strictEqual(writeStatus.getAttribute('role'), 'status');
+		assert.notStrictEqual(writeStatus.style.display, 'none');
+		assert.ok(writeStatus.textContent?.includes(expectedReason));
+		assert.ok(writeStatus.textContent?.includes('Unable to save:'));
+	}
+
+	test('Tools: savePendingEnablement / toggleTool empty id paints write-status and keeps catalog rows', async () => {
+		let listToolsCalls = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { tools: { support: 'SUPPORTED' } },
+			listTools: async () => {
+				listToolsCalls++;
+				return { tools: [demoBashTool()] };
+			},
+			listAgentProfiles: async () => ({
+				profiles: [demoToolsUserProfile()],
+			}),
+			saveAgentProfile: async () => ({ profile: { id: '', name: 'should-not-appear' } }),
+		});
+		const section = mountToolsSection(connection);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.strictEqual(section.getListEntryCount(), 1);
+		const listCallsAfterLoad = listToolsCalls;
+
+		section.setPendingEnablement({ name: 'bash' }, false);
+		assert.strictEqual(section.isToolEnablementDirty(), true);
+		assert.strictEqual(await section.savePendingEnablement(), false);
+		assertToolsWriteFailureKeepsCatalog(section, localize('ua.engineToolsWriteRejected', "The engine rejected the tool enablement write."), 1, true);
+		assert.strictEqual(listToolsCalls, listCallsAfterLoad);
+		assert.ok(!/should-not-appear/i.test(section.getDomNode().textContent ?? ''));
+
+		assert.strictEqual(await section.toggleTool({ name: 'bash' }, false), false);
+		assertToolsWriteFailureKeepsCatalog(section, localize('ua.engineToolsWriteRejected', "The engine rejected the tool enablement write."), 1, true);
+		assert.strictEqual(listToolsCalls, listCallsAfterLoad);
+	});
+
+	test('Tools: savePendingEnablement / toggleTool throw paints write-status and keeps catalog rows', async () => {
+		let listToolsCalls = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { tools: { support: 'SUPPORTED' } },
+			listTools: async () => {
+				listToolsCalls++;
+				return { tools: [demoBashTool()] };
+			},
+			listAgentProfiles: async () => ({
+				profiles: [demoToolsUserProfile()],
+			}),
+			saveAgentProfile: async () => {
+				throw new Error('save exploded');
+			},
+		});
+		const section = mountToolsSection(connection);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.strictEqual(section.getListEntryCount(), 1);
+		const listCallsAfterLoad = listToolsCalls;
+
+		section.setPendingEnablement({ name: 'bash' }, false);
+		assert.strictEqual(section.isToolEnablementDirty(), true);
+		assert.strictEqual(await section.savePendingEnablement(), false);
+		assertToolsWriteFailureKeepsCatalog(section, 'save exploded', 1, true);
+		assert.strictEqual(listToolsCalls, listCallsAfterLoad);
+
+		assert.strictEqual(await section.toggleTool({ name: 'bash' }, false), false);
+		assertToolsWriteFailureKeepsCatalog(section, 'save exploded', 1, true);
+		assert.strictEqual(listToolsCalls, listCallsAfterLoad);
+	});
+
 	test('Agents: successful load then refresh throw is failed with no leftover catalog', async () => {
 		let listAgentProfilesCalls = 0;
 		const connection = createConnectionStub({
