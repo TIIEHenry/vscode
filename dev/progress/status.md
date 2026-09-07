@@ -55,6 +55,8 @@ Direct 接通已通。Chat 仍被引擎空壳 Create（目录在、`session_meta
 
 Sources Changes/Review 读面（`loop/A`）：接通 + hook 走 `readGitChanges` / `readGitSummary`，打开行再 `readGitFileDiff`；断连 / 无 hook 回 SCM。
 
+`loop/C`（`bb4a7a9b395`+WIP）：Direct Address pairing pending 时 SAS 确认框改挂在发起 Connect 的 zone **外侧**，避免被 `.connection-zone:not(.is-active-zone)` 吃掉。未 commit。
+
 ## 工位表（与 `git worktree list` 对照 · 2026-09-06）
 
 | 槽 | 路径 | 分支 | tip | 状态 |
@@ -62,7 +64,7 @@ Sources Changes/Review 读面（`loop/A`）：接通 + hook 走 `readGitChanges`
 | merge | `vscode-WorkTrees/merge` | `loop/merge` | `bc1370cb05d` | 本波已合入（未 push） |
 | A | `vscode-WorkTrees/A` | `loop/A` | Sources git 读面 | 本刀 |
 | B | `vscode-WorkTrees/B` | `loop/B` | 对齐 merge | idle |
-| C | `vscode-WorkTrees/C` | `loop/C` | 对齐 merge | idle |
+| C | `vscode-WorkTrees/C` | `loop/C` | `bb4a7a9b395`+SAS WIP | pairing 框挂可见区旁 |
 | D | `vscode-WorkTrees/D` | `loop/D` | 对齐 merge | idle |
 | edit | `Projects/Agents/vscode` | `agent-ide` | `a37916b6ab6`+CSS WIP | 请人类自行对齐；loop 不代同步 |
 
