@@ -31,6 +31,8 @@ import {
 	conversationLensInboxQueueEnqueuePrompt,
 	conversationLensInboxQueueEnqueueUnavailable,
 	conversationLensInboxQueueFailedTag,
+	conversationLensInboxQueueRetry,
+	conversationLensInboxQueueRetryUnavailable,
 	conversationLensInboxQueuePause,
 	conversationLensInboxQueueResume,
 	conversationLensInboxQueueUploadingTag,
@@ -499,6 +501,7 @@ export class ConversationInboxOverlay extends Disposable {
 			meta.classList.add('failed');
 			meta.appendChild(document.createTextNode(' · '));
 			meta.appendChild(document.createTextNode(`✗ ${item.lastError ?? conversationLensInboxQueueFailedTag}`));
+			row.appendChild(this.renderQueueRetryAction(sessionId, item));
 		}
 
 		addDisposableListener(row, 'click', () => {
@@ -511,5 +514,32 @@ export class ConversationInboxOverlay extends Disposable {
 		});
 
 		return row;
+	}
+
+	private renderQueueRetryAction(sessionId: string, item: ConversationMessageQueueItem): HTMLButtonElement {
+		const retryButton = $('button.queue-bar-action.conversation-lens-inbox-queue-retry') as HTMLButtonElement;
+		retryButton.type = 'button';
+		retryButton.textContent = conversationLensInboxQueueRetry;
+		const connected = this.stubService.isEngineConnected();
+		retryButton.disabled = !connected;
+		retryButton.setAttribute('aria-disabled', String(!connected));
+		retryButton.title = connected ? conversationLensInboxQueueRetry : conversationLensInboxQueueRetryUnavailable;
+		retryButton.setAttribute('aria-label', retryButton.title);
+		addDisposableListener(retryButton, 'click', e => {
+			e.stopPropagation();
+			void this.onQueueRetryClicked(sessionId, item);
+		});
+		return retryButton;
+	}
+
+	private onQueueRetryClicked(sessionId: string, item: ConversationMessageQueueItem): void {
+		if (!this.stubService.isEngineConnected()) {
+			return;
+		}
+		this.stubService.retryMessageQueueItem(sessionId, item.id, {
+			upload: item.status === 'UPLOAD_FAILED',
+		});
+		this.render();
+		this.refreshOpenListPanel();
 	}
 }

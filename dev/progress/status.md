@@ -55,10 +55,10 @@ summary: "人类工位已对齐已推送 MERGE_SHA c1b228caf74；保留本机行
 
 1. **集成 tip** 以人类工位 `agent-ide` 为准（含 `c1b228caf74` + 行动层）。本波 A 在改 D23+D32（未 compile）。其余：B=D33+D27，C=D30+诚实空，D=D31+R8。GFS >800 不拆。
 2. 字母槽 leftover 进度句已收进本账，再 cascade：
-   - **A**：`host-write-retry` — [D23](deferred-gaps.md) resident `heartbeat_ack` 与 `writeChat` 同级 catch；[D32](deferred-gaps.md) Retry 改 `lease.post({continueGeneration})`，roster 不再直开 ContinueGeneration。compile 待 merge。
-   - **B**：本 wake `pairing-chip-command`：`getEngineStatusCommandId(phase, pairingPending)`。D27 仍 PARTIAL（1px 垫高），未改 timeline。
-   - **C**：pairing pending 时 SAS 框挂在发起 Connect 的 zone 外侧，避免被 `.connection-zone:not(.is-active-zone)` 吃掉。
-   - **D**：Sources 次级面 [D31](deferred-gaps.md) / [R8](research-queue.md)（Retry 已交 A 槽）。
+   - **A**：`host-write-retry` — [D23](deferred-gaps.md) resident `heartbeat_ack` 与 `writeChat` 同级 catch；[D32](deferred-gaps.md) Retry 改 `lease.post({continueGeneration})`。compile 待 merge。
+   - **B**：`getEngineStatusCommandId(phase, pairingPending)`。D27 仍 PARTIAL（1px 垫高）。
+   - **C**：Inbox FAILED / UPLOAD_FAILED 行 Retry → `retryMessageQueueItem`；引擎 unary 见 [D37](deferred-gaps.md)。
+   - **D**：Sources 次级面 [D31](deferred-gaps.md) / [R8](research-queue.md)。
 
 子 agent 发现的既有代码问题：
 
@@ -71,6 +71,7 @@ summary: "人类工位已对齐已推送 MERGE_SHA c1b228caf74；保留本机行
 | [R8](research-queue.md) | A 槽 Sources | `WriteGitApplyHunks` 空 patches 语义未定 |
 | [D32](deferred-gaps.md) | A 槽 `host-write-retry` | **closed（代码+测已写；compile 待 merge）** Retry 走 `lease.post`；host 映射 Actor `continueGeneration` |
 | [D26](deferred-gaps.md) | merge 账 | 引擎空壳 Create 回 6；不要再清 store |
+| [D37](deferred-gaps.md) | C 槽 D30 | 引擎 roster 未 override `retryMessageQueueItem`（A 占该文件）；无 GetQueue |
 
 ## 工位表（P0 盘点 · 2026-09-07 · 与 `git worktree list` 对照）
 

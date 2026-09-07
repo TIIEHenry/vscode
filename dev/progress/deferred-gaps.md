@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-07
-summary: "延期缺口 SSOT；D16 Lens 断言债；D22 F3；D15 欠 W1；D23/D32 已由 A 槽 host-write-retry 收口；D24 其余 JSON RPC；D25 ghost UI；D26 引擎建壳回 6；D27 编辑态 1px 垫高（树重建已落）；D28 Connection 旁路 UI；D29 inbox closed；D31 Sources git 次级面；D33 pairing chip closed；D38 fillHistory 无 catch"
+summary: "延期缺口 SSOT；D16 Lens 断言债；D22 F3；D15 欠 W1；D23/D32 已由 A 槽 host-write-retry 收口；D24 其余 JSON RPC；D25 ghost UI；D26 引擎建壳回 6；D27 编辑态 1px 垫高（树重建已落）；D28 Connection 旁路 UI；D29 inbox closed；D30 Inbox FAILED Retry closed；D31 Sources git 次级面；D33 pairing chip closed；D37 引擎 roster 队列 Retry unary；D38 fillHistory 无 catch"
 ---
 
 # Deferred Gaps
@@ -47,7 +47,8 @@ summary: "延期缺口 SSOT；D16 Lens 断言债；D22 F3；D15 欠 W1；D23/D32
 | D20 | P2 | **CS-6 Settings 默认窗 300px 目视**：`uaClientSettingsChrome.css` 已保证 narrow-width 下搜索框与 group title 不 `display:none` 且可省略；`settingsUaToc` 有合同测。本机隔离 launch 因 `@grpc/grpc-js` 缺失未能开窗目视 | 代码完成线不阻塞；活窗目视仍欠 | 隔离 profile 打开默认窗 Settings，缩到约 300px，确认搜索框与 Client 组标题仍可见、无 emptyCopy；失败记入 D17 | M7 verification | open |
 | D28 | P2 | **Connection pane 旁路 UI**：(1) 对话身份条被挡住。**(2)(3) 已由 loop/B 收口**：`writeConnectStatus` 写当前可见区（Devices → `.connection-hub-devices-status`）；Connect 成功/配对中用可读文案，不甩 `ok=true pairingPending=…`、不装已连接 | (1) 仍非本轮；身份条与 session bar 禁止本槽改 | 身份条不被挡 | UI / conversation | open |
 | D29 | P2 | **`enqueueMessageQueueItem` 无 Inbox/Composer 入队 UI**；断连缓存拒收。`conversation-disconnect-send` 已把断连 Send 接到该 API | Inbox 队列头 Enqueue 已落地 `b384a1dcf9e` | Inbox/Composer 能看见入队项 | UI / conversation | closed |
-| D30 | P3 | **Inbox FAILED 行无重试钮**（时间线 retryable 行已接 ContinueGeneration @ `583b004a8b0`） | 时间线已收；Inbox 队列失败项未做 | Inbox FAILED 点重试真转发且失败回可操作态 | conversation | open |
+| D30 | P3 | **Inbox FAILED 行无重试钮**（时间线 retryable 行已接 ContinueGeneration @ `583b004a8b0`） | Inbox overlay `renderQueueItem` 已挂 Retry → `retryMessageQueueItem`；失败行仍可操作。引擎 roster unary 见 D37 | Inbox FAILED / UPLOAD_FAILED 行有 Retry，点击转发 roster API，失败不退化成死徽章 | conversation | closed |
+| D37 | P3 | **引擎 roster 未 override `retryMessageQueueItem`** 到 `AgentService.RetryQueueItem` / `RetryQueueItemUpload`（本 wake A 槽占 `conversationEngineRosterService.ts` / D32）。接通后无 GetQueue，失败行本就不可见 | 避免与 A 抢同一文件 hunk；overlay 面 API 已落 stub | `ConversationEngineRosterService` 接通后按 `upload` 转发对应 unary；空 item / 断连缓存 / 无 hook 不发；补 roster 测 | conversation | open |
 | D31 | P3 | **Sources git 次级面**：Review 读 Git 失败静默回 SCM（无 status 条）；Panel Diff 无 Stage/Accept/Revert（PRD-009 验收 3 只绑对话窗）；无 `WriteGitUnstage`（git 源 staged 行不能 unstage）；F4 隔离 profile 冒烟未跑 | 本刀只收 Changes/Review/Stage/Commit/Accept 代码级假绿；禁 F4 / 禁升 PRD | Review 读失败可见；Panel 动作与对话窗同门控；Unstage 有 hook 或明确不可用；F4 V-F1–V-F7 证据目录 | sources-git | open |
 | D32 | P3 | **error retry 不经 lease.post / Actor `continueGeneration`**：Write 增 `continueGeneration`；host 映射 localFact；Lens Retry 走 `lease.post`；roster 不再直开 ContinueGeneration | A 槽 `host-write-retry` | `ConversationWriteMessage` 增加 `continueGeneration` 且 host 映射到 localFact；UI 改走 `lease.post`；补 host 流句柄与 UI 打开不打架的测 | M7 conversation | closed |
 | D33 | P2 | **配对中 chip 可能误开 Engine 页**（已收口 @ 2026-09-07 工位 B）：`getEngineStatusCommandId(phase, pairingPending)` 与 `isConversationEngineLive` 同闸；StatusBar / IdentityStrip 传入 `snapshot.pairingPending` | 决策核实时发现；号原误写成 D24 | chip 在 pairingPending 时指向 Connection/SAS，不打开 Engine | M7 conversation | closed |

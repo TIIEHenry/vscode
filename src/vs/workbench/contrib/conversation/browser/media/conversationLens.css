@@ -1962,6 +1962,11 @@
 	color: var(--vscode-textLink-foreground);
 }
 
+.monaco-workbench .part.conversation .conversation-lens-message-queue-list .conversation-lens-inbox-queue-retry {
+	flex-shrink: 0;
+	align-self: center;
+}
+
 .monaco-workbench .part.conversation .conversation-lens-inbox-list-empty {
 	padding: 8px;
 	font-size: 12px;

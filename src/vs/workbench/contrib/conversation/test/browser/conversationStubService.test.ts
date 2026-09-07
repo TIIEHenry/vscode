@@ -166,6 +166,32 @@ suite('ConversationStubService', () => {
 		assert.deepStrictEqual(service.getMessageQueueState(sessionId).items, []);
 	});
 
+	test('retryMessageQueueItem fails honestly without engine and does not mutate fixture', () => {
+		const service = store.add(new ConversationStubService());
+		const sessionId = service.getActiveSessionId();
+		service.setMessageQueueFixture(sessionId, {
+			isPaused: false,
+			isProcessing: false,
+			items: [{
+				id: 'q-fail',
+				content: 'failed body',
+				status: 'FAILED',
+				hold: undefined,
+				uploadProgress: undefined,
+				retryCount: 1,
+				lastError: 'engine rejected',
+				locked: false,
+				pinned: false,
+			}],
+		});
+		const before = service.getMessageQueueState(sessionId);
+		assert.strictEqual(service.retryMessageQueueItem(sessionId, 'q-fail'), false);
+		assert.strictEqual(service.retryMessageQueueItem(sessionId, 'q-fail', { upload: true }), false);
+		assert.strictEqual(service.retryMessageQueueItem(sessionId, '   '), false);
+		assert.deepStrictEqual(service.getMessageQueueState(sessionId), before);
+		assert.strictEqual(service.getMessageQueueState(sessionId).items[0]?.status, 'FAILED');
+	});
+
 	test('deleteSession removes a non-active session without changing active', () => {
 		const service = store.add(new ConversationStubService());
 		const activeId = service.getActiveSessionId();
