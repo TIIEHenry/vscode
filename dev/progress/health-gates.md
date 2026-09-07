@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-07
-summary: "M7 UI 开发继续规则：测试债旁路；agent-ide CI 四 job 并行；valid-layers-check 继续豁免；三域挡合入待切片 5"
+summary: "M7 UI 开发继续规则：测试债旁路；agent-ide CI 四 job 并行；universeAgent 官方 glob + excludeRunGlob；valid-layers-check 继续豁免；三域挡合入待切片 5"
 ---
 
 # Loop 健康检查 Gate
@@ -40,7 +40,7 @@ HEAD 已有 [`.github/workflows/agent-ide.yml`](../../.github/workflows/agent-id
 | `compile` | `npm run compile` |
 | `eslint` | `npm run eslint` |
 | `docs-health` | `python3 scripts/check-docs-health.py`；[`generate-docs-status.py --check`](../plans/docs-burden-reduction.md) 与 `python3 -m unittest scripts/tests/test_docs_status.py`（docs-burden S1 已合入） |
-| `unit-custom` | [`scripts/run-unit-custom.sh`](../../scripts/run-unit-custom.sh)（conversation / sources 官方 glob；universeAgent 排除 D17 十一份 Electron 不可加载 `test/node` 后一次 `--tfs`）再跑 [`scripts/check-test-baseline.sh`](../../scripts/check-test-baseline.sh)，与 `dev/progress/test-baseline-failures.txt` 做 JUnit 差集比对。本地须已有 `GITHUB_WORKSPACE`（脚本未设时回落到仓根） |
+| `unit-custom` | [`scripts/run-unit-custom.sh`](../../scripts/run-unit-custom.sh)（conversation / sources 官方 glob；universeAgent 官方 glob + `--excludeRunGlob` 排除 D17 十一份 Electron 不可加载 `test/node`）再跑 [`scripts/check-test-baseline.sh`](../../scripts/check-test-baseline.sh)，与 `dev/progress/test-baseline-failures.txt` 做 JUnit 差集比对。本地须已有 `GITHUB_WORKSPACE`（脚本未设时回落到仓根） |
 
 规格见 [test-baseline-ci](../plans/test-baseline-ci.md)。
 
