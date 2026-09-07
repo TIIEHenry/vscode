@@ -226,6 +226,9 @@ export class EditorParts extends MultiWindowParts<EditorPart, IEditorPartsMement
 		));
 		disposables.add(this.registerPart(editorPart));
 		editorPart.create(host);
+		const width = host.clientWidth > 0 ? host.clientWidth : 800;
+		const height = host.clientHeight > 0 ? host.clientHeight : 600;
+		editorPart.layout(width, height, 0, 0);
 
 		const scopedInstantiationService = this.instantiationService.invokeFunction(accessor => {
 			const editorService = accessor.get(IEditorService);

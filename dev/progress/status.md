@@ -58,7 +58,7 @@ summary: "FileMutationJoin / createScoped / Review 委托已修。D16 仍开。A
    - **A**：`filemutation-join` — 无 `diff_stats` 时 omit optional `diffStats`。unit-custom XML 脚本仍在。**[D16](deferred-gaps.md) 仍开**。
    - **B**：`create-scoped` — harness 补 `IStatusbarService.createScoped`，S1a uniqueness 已绿、未缩断言。DiffReview afterEach 已修。**[D16](deferred-gaps.md) 仍开**。
    - **C**：`inbox-getqueue-honesty` — catalog / connection **无** GetQueue / ListQueue，未发明 RPC。接通 / 断连缓存 Inbox 文案「Queue not listed」，stub fixture 不得冒充引擎队列；测锁 overlay / roster / stub。[D37](deferred-gaps.md) **仍闭**；缺 list-queue 记 [D24](deferred-gaps.md)。勿 add `dev/loop`。
-   - **D**：`review-entries` — 测改 `function ()` 把 mocha host 交给 `toResource`。A2 P5 停线仍在。**[D16](deferred-gaps.md) 仍开**。
+   - **D**：`review-entries` — 测改 `function ()` 把 mocha host 交给 `toResource`。A2 P5 停线仍在。**[D16](deferred-gaps.md) 仍开**。本 wake leftover：**S4/S5** conversation editor part 创建后补首次 `layout`（夹具 + `createConversationEditorPart`）；未关 D16 / 未占 D26·D22·F4·A2。chrome 尺寸扇出记 [D43](deferred-gaps.md)。
 3. **D15 / W1 笔记（工位 A，未占 工位表）**：`scripts/code-web.sh --browserType none --host 127.0.0.1 --port 18080` 已起；V1 Conversation / V2 四钮 + `UniverseAgentStudio Dev` / V3 Connection·Engine 省略桌面连接控件均 **PASS**。`IUniverseAgentConnection.getConnectionPhase()` = `disconnected`；页内点名「此环境不支持本机 Engine 连接」。证据 [d15-evidence/w1-1556dde3](d15-evidence/w1-1556dde3/)。**D15 可闭**；不升 PRD-019。未跑 compile / F4 / 引擎仓。
 
 子 agent 发现的既有代码问题：
@@ -93,7 +93,7 @@ summary: "FileMutationJoin / createScoped / Review 委托已修。D16 仍开。A
 | A | `vscode-WorkTrees/A` | `loop/A` | 对齐本关仓提交 | `__pycache__` | 0 | idle |
 | B | `vscode-WorkTrees/B` | `loop/B` | 对齐本关仓提交 | `__pycache__` | 0 | idle |
 | C | `vscode-WorkTrees/C` | `loop/C` | 对齐本关仓提交 | 未提交 `dev/loop` + `__pycache__` | 0 | idle；勿 add `dev/loop` |
-| D | `vscode-WorkTrees/D` | `loop/D` | 对齐本关仓提交 | `__pycache__` | 0 | idle |
+| D | `vscode-WorkTrees/D` | `loop/D` | 对齐本关仓提交 | S4/S5 layout 未提交 + `__pycache__` | 0 | S4/S5 leftover 已改；未关仓 |
 | edit | `Projects/Agents/vscode` | `agent-ide` | `a40a95d1e85`+ | `dev/loop` | 0 | 人类工位；请自行对齐本关仓提交 |
 
 ## Blockers

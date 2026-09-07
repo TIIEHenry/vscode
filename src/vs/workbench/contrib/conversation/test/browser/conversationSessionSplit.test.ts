@@ -29,6 +29,10 @@ suite('Conversation session split (S4)', () => {
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
 	const disposables = store as unknown as DisposableStore;
 
+	function layoutConversationEditorPart(part: { layout?(width: number, height: number, top: number, left: number): void }): void {
+		(part as { layout(width: number, height: number, top: number, left: number): void }).layout(800, 600, 0, 0);
+	}
+
 	setup(() => {
 		store.add(registerTestEditor(TEST_EDITOR_ID, [new SyncDescriptor(TestFileEditorInput), new SyncDescriptor(SideBySideEditorInput)], TEST_EDITOR_INPUT_ID));
 	});
@@ -44,11 +48,15 @@ suite('Conversation session split (S4)', () => {
 		instantiationService.stub(IEditorGroupsService, parts);
 
 		const editorHost = document.createElement('div');
+		editorHost.style.width = '800px';
+		editorHost.style.height = '600px';
 		document.body.appendChild(editorHost);
 		store.add({ dispose: () => editorHost.remove() });
 
 		const conversationPart = parts.createConversationEditorPart(editorHost, SESSION_KEY);
 		await conversationPart.whenReady;
+		layoutConversationEditorPart(conversationPart);
+		conversationPart.activeGroup.focus();
 
 		const sessionChatService = disposables.add(instantiationService.createInstance(ConversationSessionChatService));
 		store.add(sessionChatService.registerPartListeners(conversationPart));
