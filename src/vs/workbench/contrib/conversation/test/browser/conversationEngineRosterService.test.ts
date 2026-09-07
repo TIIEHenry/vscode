@@ -634,6 +634,71 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		assert.ok(service.getActiveSession().title.includes('bind failed'));
 	});
 
+	test('listSessions throw shows bind-failed and does not mint New session', async () => {
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.listSessionsError = new Error('Query does not return results');
+		const sessionView: IUniverseAgentSessionView = {
+			_serviceBrand: undefined,
+			onDynamicDidApplyFrame: () => Event.None,
+			acquireLease: async () => { throw new Error('session not found'); },
+			releaseLease: async () => { },
+			post: async () => ({ accepted: false as const, reason: 'no_such_session' as const }),
+			requestResync: async () => { },
+			acknowledge: async () => { },
+			requestDetail: async () => ({ ok: false as const, reason: 'unavailable' as const }),
+		};
+		const workspaceToolsGate = { _serviceBrand: undefined, shouldAdvertise: () => true };
+		const service = store.add(new ConversationEngineRosterService(
+			connection as unknown as IUniverseAgentConnection,
+			sessionView,
+			workspaceToolsGate,
+		));
+		service.setEngineConnected(true);
+		await awaitEngineCatalogRefresh(service);
+
+		assert.strictEqual(connection.createCalls.length, 0);
+		assert.strictEqual(service.isEngineSessionReady(), false);
+		assert.strictEqual(service.getSessions().length, 1);
+		assert.strictEqual(service.getSessions()[0]?.id, ENGINE_BIND_FAILED_SESSION_ID);
+		assert.ok(service.getSessions()[0]?.title.includes('bind failed'));
+		assert.strictEqual(service.getActiveSessionId(), ENGINE_BIND_FAILED_SESSION_ID);
+		assert.ok(service.getActiveSession().title.includes('bind failed'));
+		assert.ok(!service.getActiveSession().title.includes('Untitled session'));
+		assert.ok(!service.getSessions().some(session => session.title === 'New session'));
+		assert.ok(!service.getSessions().some(session => session.id === 'untitled'));
+	});
+
+	test('listed ghost titled New session with lease bind failure shows bind-failed', async () => {
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setListSessions([{ sessionId: 'session-ghost', title: 'New session' }]);
+		const sessionView: IUniverseAgentSessionView = {
+			_serviceBrand: undefined,
+			onDynamicDidApplyFrame: () => Event.None,
+			acquireLease: async () => { throw new Error('session not found'); },
+			releaseLease: async () => { },
+			post: async () => ({ accepted: false as const, reason: 'no_such_session' as const }),
+			requestResync: async () => { },
+			acknowledge: async () => { },
+			requestDetail: async () => ({ ok: false as const, reason: 'unavailable' as const }),
+		};
+		const workspaceToolsGate = { _serviceBrand: undefined, shouldAdvertise: () => true };
+		const service = store.add(new ConversationEngineRosterService(
+			connection as unknown as IUniverseAgentConnection,
+			sessionView,
+			workspaceToolsGate,
+		));
+		service.setEngineConnected(true);
+		await awaitEngineCatalogRefresh(service);
+
+		assert.strictEqual(connection.createCalls.length, 0);
+		assert.strictEqual(service.getSessions().length, 1);
+		assert.strictEqual(service.getSessions()[0]?.id, ENGINE_BIND_FAILED_SESSION_ID);
+		assert.ok(service.getSessions()[0]?.title.includes('bind failed'));
+		assert.ok(service.getActiveSession().title.includes('bind failed'));
+		assert.ok(!service.getSessions().some(session => session.title === 'New session'));
+		assert.ok(!service.getSessions().some(session => session.id === 'session-ghost'));
+	});
+
 	test('connected listed session on first refresh skips create when catalog is non-empty', async () => {
 		const connection = store.add(new MockUniverseAgentConnection());
 		connection.setListSessions([{ sessionId: 'ua-existing', title: 'New session' }]);
@@ -1781,6 +1846,9 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		assert.strictEqual(service.getSessions().length, 0);
 		assert.strictEqual(service.isEngineSessionReady(), false);
 		assert.notStrictEqual(service.getActiveSessionId(), ENGINE_BIND_FAILED_SESSION_ID);
+		assert.strictEqual(service.getActiveSession().title, '');
+		assert.ok(!service.getActiveSession().title.includes('Untitled session'));
+		assert.ok(service.getActiveSession().title !== 'New session');
 		resolveLease?.();
 		await new Promise<void>(resolve => setTimeout(resolve, 0));
 		assert.strictEqual(service.isEngineSessionReady(), true);
