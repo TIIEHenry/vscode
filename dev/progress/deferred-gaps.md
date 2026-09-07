@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-07
-summary: "延期缺口 SSOT；D16 仍开（切片 3 名单已落，三文件标题未列入；compile/S2 leftover 不闭）；D17 DiffReview afterEach / FileMutationJoin / S1a createScoped 已修、CI 已排除 11 个 unloadable node 测；D22 F3；D24 其余 JSON RPC；D25 引擎 List 真空；D26 引擎建壳回 6；D31 F4 / A2 blocked"
+summary: "延期缺口 SSOT；D16 仍开（切片 3 名单已落，三文件标题未列入；compile/S2 leftover 不闭）；D17 DiffReview afterEach / FileMutationJoin / S1a createScoped 已修，11 个 unloadable node 测已改 Node runner 接回门禁（universeAgentNode 418 条）；D22 F3；D24 其余 JSON RPC；D25 引擎 List 真空；D26 引擎建壳回 6；D31 F4 / A2 blocked；D44 麦克风与 Route 假造 UI"
 ---
 
 # Deferred Gaps
@@ -58,6 +58,7 @@ summary: "延期缺口 SSOT；D16 仍开（切片 3 名单已落，三文件标�
 | D34 | P3 | **`getVisibleTimelineIndices` 空树 / 零高 layout 读 `lastVisibleElement` 抛错**：`AbstractTree.lastVisibleElement` 无 bounds check；`ListView.lastVisibleIndex` 在 `renderHeight=0` 为 -1。已改为 `renderHeight < 1` / 空 `flatItems` 守卫，不再裸 try/catch | 工位 B `timeline-hygiene` 收口 | 空树与已铺行后 `layout(0)` 不抛；`conversationTimelineApplyTree.test.ts` D34 测绿 | M6 / conversation | closed |
 | D35 | P3 | **`getTimelineRowElement` 第二段 `querySelector([data-turn-id])` 死代码**：第一段选择器已含 `[data-turn-id]`。已删第二段 | 工位 B `timeline-hygiene` 收口 | 只留一条 `[data-turn-id], [data-fold-id]` 查询 | M6 / conversation | closed |
 | D36 | P3 | **standalone `thinking`/`tool` 分支画假 process 行**：`conversation-lens-turn-process` + summary 像 fold。已改为诚实摘要行（header+body，无 fold chrome） | 工位 B `timeline-hygiene` 收口 | 无 `.conversation-lens-turn-process` / `.conversation-process-fold`；`conversationTimelineRenderer.test.ts` D36 测绿 | M6 / conversation | closed |
+| D44 | P2 | **Composer 麦克风与 Route 下拉是假造 UI，且有测试在锁定这份假造**。麦克风：`contrib/conversation` 全树 `getUserMedia` / `MediaRecorder` / `mediaDevices` **0 处命中**；按钮只要引擎连上就 `enabled = true`（`conversationLensComposer.ts` ~382）；`durationLabel` 硬编码 `'0:01'`；`finishVoiceClip` 在 30ms 后把 `STUB_VOICE_TRANSCRIPT_PHRASES` 里的预设台词写进草稿，形同用户说过话；`conversationLens.test.ts:2386` 断言点完麦克风后输入框等于 `conversationLensVoiceStubPhraseOne`——**测试在验证假造能工作**。`IUniverseAgentConnection` 无任何语音/转写方法，capability key 也没有对应项，即没有可接的真实后端。Route 下拉：`routeIndex` 只在 dock 与 sessionBar 两个 SelectBox 之间互相回显（`conversationLensDock.ts` 199–203 / `conversationLensComposerChrome.ts` 731–734），从不进引擎；选项文案本身写着 "Stub Balanced / Speed / Quality" | **用户裁定 @2026-09-07**：本刀只登记不动代码。整套横跨 7 个文件（含专用转写条 `conversationVoiceTranscriptBar.ts`），而 `contrib/conversation` 是并行 loop 最活跃的目录，删改冲突面最大 | 麦克风：**要么**删整条流水线（按钮 + 转写条 + 预设台词 + 那条锁定假造的测试），**要么**门控到真实引擎转写 capability 之后再放开；不接受「按钮可点但产出预设文案」。Route：**要么** `routeIndex` 真的进引擎请求，**要么**删控件；不接受「唯一作用是记住你点了哪一项」的控件。任一路径都须有测试断言**不存在**预设台词写入草稿 | UI / conversation | open |
 
 ## D2 工位池 compile 基线（2026-09-02，merge 工位 / `loop/merge`）
 
@@ -337,9 +338,22 @@ $REPO/scripts/code-cli.sh --extensions-dir="$EXT_DIR" \
 | `d2abb648c0e` | conversation：StatusBar 引擎入口 / H4b 相位文案；SessionsView 种子行；split / side-by-side；trajectory 角色标签 Permission≠Confirmation | baseline | A `test-baseline-slice3` |
 | `d2abb648c0e` | sources：`collectSourcesReviewEntries` 委托 `toResource`/`fullTitle` 未定义 | baseline | A `test-baseline-slice3` |
 | `d2abb648c0e` | universeAgent：`FileMutationJoin` lifecycle+snapshot **已修**（B：无 `diff_stats` 时 omit optional `diffStats`，不再写出 `undefined`）。名单该一行已删 | leftover | A `filemutation-join` |
-| `d2abb648c0e` | universeAgent：11 个 node 测 Electron ESM `Failed to fetch dynamically imported module`（无 JUnit testcase，未进名单）：connectionResolver / deviceAuthHandshake / deviceGrantCrypto / hubControlPlane / hubDirectoryClient / hubSessionStore / observeCandidateLeaf / pairingOrchestrator / universeAgentChannel / universeAgentConnection / universeAgentHubService。**CI 已排除这 11 个**（[`scripts/run-unit-custom.sh`](../../scripts/run-unit-custom.sh) 只匹配 `test/node/`；`browser/universeAgentConnection` 仍跑）；可加载的 `test/node` 仍进同一 `--tfs universeAgent`，不拆多趟以免 XML 互盖 | baseline | A `test-baseline-slice3` / A `unit-custom-xml` |
+| `d2abb648c0e` | universeAgent：11 个 node 测 Electron ESM `Failed to fetch dynamically imported module`（无 JUnit testcase，未进名单）：connectionResolver / deviceAuthHandshake / deviceGrantCrypto / hubControlPlane / hubDirectoryClient / hubSessionStore / observeCandidateLeaf / pairingOrchestrator / universeAgentChannel / universeAgentConnection / universeAgentHubService。**CI 已排除这 11 个**（[`scripts/run-unit-custom.sh`](../../scripts/run-unit-custom.sh) 只匹配 `test/node/`；`browser/universeAgentConnection` 仍跑）；可加载的 `test/node` 仍进同一 `--tfs universeAgent`，不拆多趟以免 XML 互盖。**这 11 个已改由 Node runner 跑并接回门禁**（见下节） | baseline | A `test-baseline-slice3` / A `unit-custom-xml` |
 
 官方 conversation 单 glob：DiffReview afterEach 泄漏已修，不再中断后续用例。universeAgent 官方单 glob 仍会在首个 unloadable 文件处写不出 XML；**unit-custom 现经 `scripts/run-unit-custom.sh`**：conversation / sources 仍单 glob；universeAgent 排除上表 11 个 node 文件后一次跑完，保证三份 JUnit 落盘。名单按分批收齐后的 JUnit 差集去重。
+
+### 那 11 个文件已接回门禁（2026-09-07，工位 E / `fix/gate-recovery`）
+
+「Electron 不可加载」只说明加载器不对，不说明测试不该跑。实测这 11 个文件在 **Node runner 下 418 条全过、0 skipped、0 failing**，此前被 `run-unit-custom.sh` 整体跳过，等于 418 条真测试完全不在门禁内。
+
+| 项 | 内容 |
+|:---|:-----|
+| runner 改动 | `test/unit/node/index.js` 加 `--tfs <域名>`，用 `mocha-multi-reporters` 同时保留 spec 输出与 JUnit XML，文件命名沿用 Electron runner 同一套布局 |
+| 新域 | `universeAgentNode` → `test-results/linux-x64-universeagentnode-results.xml` |
+| 门禁 | `check-test-baseline.sh` 域列表从三域改为四域；`test-baseline-failures.txt` 头部加 `universeAgentNode=418` / `max_skipped=0` |
+| 反向验证 | XML 缺失 → 报 missing 并退 1；用例数降到 417 → 报 `below min_cases=418` 并退 1 |
+
+**未做**：这 11 个在 Electron 下为何 `Failed to fetch dynamically imported module` 仍未查（Node runner 能跑不代表 Electron 侧的加载问题消失）。该问题只影响 Electron 采集路径，不再影响这批测试是否被执行。
 
 ## 维护规则
 
