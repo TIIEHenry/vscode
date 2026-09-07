@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-07
-summary: "FileMutationJoin / createScoped / Review 委托已修。D16 仍开。T5a harness 补 mocha _uncaught 吞 ResizeObserver loop。A2 仍 blocked。"
+summary: "FileMutationJoin / createScoped / Review 委托已修。D16 仍开。T5a harness 补 mocha _uncaught 吞 ResizeObserver loop。B 槽 statusbar 注册已幂等。A2 仍 blocked。"
 ---
 
 # Development Progress
@@ -63,6 +63,7 @@ summary: "FileMutationJoin / createScoped / Review 委托已修。D16 仍开。T
 4. **A 槽 `statusbar-leftover`（未关 D16 / 未改名单）**：D17 leftover Conversation Session StatusBar 簇。生产相位文案 / pairingPending 闸门未改。测夹具去掉二次 `registerAction2`（与 `conversation.contribution` 撞 `showConversationPart`）、roster 改 `Event.None`、切换测 Emitter 入 store。未缩断言。
 5. **A 槽 `visualize-leftover`（未关 D16 / 未改名单 / 未降 min_cases）**：D17 Lens visualize 两行。默认 360px 虚窗不再保证 comparison 已挂 DOM。两测在查询前 `revealVisualizeTurn(..., 'visualize-v2')`，未缩「无 Agent header」/ collapse 合同。未改生产 visualize。
 6. **A 槽 `lens-ro-uncaught`（未关 D16 / 未占 D24·D26·D22·A2·F4 / unused-import）**：T5a 全套会被 mocha Uncaught `ResizeObserver loop completed with undelivered notifications` 打断。leftover 的 capture/`window.onerror` 不够（mocha.run 把 `Runner#_uncaught` 绑到 onerror，通过后异步再来会 `abort()`）。harness 在 loadTests 时补丁 `_uncaught`，并吞 Node `uncaughtException` / `errorHandler` 同文案。未缩产品断言。
+7. **B 槽 `statusbar-register-idempotent`（未关 D16）**：`registerConversationSessionStatusBar` 见已注册的 `workbench.action.showConversationPart` 则返回，二次调用不抛。生产仍只在 `conversation.contribution` 调一次。未发明新命令。
 
 子 agent 发现的既有代码问题：
 
@@ -89,6 +90,7 @@ summary: "FileMutationJoin / createScoped / Review 委托已修。D16 仍开。T
 | [D15](deferred-gaps.md) | A 槽 `d15-web-evidence` | **closed** W1 `code-web.sh` V1–V3 PASS；phase=`disconnected`；不画桌面连接控件；证据 w1-1556dde3 |
 | [D42](deferred-gaps.md) | B 槽 `d42-maximize-trajectory` | **closed** merge compile 后 CSS+铺行两测绿 |
 | [D43](deferred-gaps.md) | D 槽 leftover | **closed** `ConversationPart.layout` 按叶 host 尺寸再 layout 各 conversation editor part；resize 测已补 |
+| [D44](deferred-gaps.md) | B 本波 | **仍开** `registerUaPreferencesNavigationActions` 与 contribution 二次注册会撞 id；未改 |
 
 ## 工位表（P0 盘点 · 2026-09-07 · 与 `git worktree list` 对照）
 
