@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-07
-summary: "延期缺口 SSOT；D16 Lens 断言债；D22 F3；D15 欠 W1；D23/D32/D38/D39 已由 A 槽收口；D24 其余 JSON RPC；D25 ghost UI；D26 host 已收、引擎建壳回 6 仍开；D27 编辑态 1px 垫高 closed；D28 Connection 旁路 UI；D29/D30 inbox closed；D31 Sources git 次级面；D33 pairing chip closed；D37 引擎 roster 队列 Retry unary closed"
+summary: "延期缺口 SSOT；D16 Lens 断言债；D22 F3；D15 欠 W1；D23/D32/D38/D39 已由 A 槽收口；D24 其余 JSON RPC；D25 ghost UI；D26 host 已收、引擎建壳回 6 仍开；D27 编辑态 1px 垫高 closed；D28 Connection 旁路 UI；D29/D30 inbox closed；D31 Sources git 次级面；D33 pairing chip closed；D34–D36 timeline hygiene closed；D37 引擎 roster 队列 Retry unary closed"
 ---
 
 # Deferred Gaps
@@ -54,6 +54,9 @@ summary: "延期缺口 SSOT；D16 Lens 断言债；D22 F3；D15 欠 W1；D23/D32
 | D31 | P3 | **Sources git 次级面**：Review 读失败 / Panel 写门控 / Unstage 不可用态 **代码已收**（工位 D；未发明 `WriteGitUnstage` / 未改空 patches）；**F4 隔离 profile 冒烟未跑**；不升 PRD-009/023 | 禁 F4 / 禁升 PRD；R8 空 patches 不本刀发明 | F4 V-F1–V-F7 证据目录；R8 定稿后再决定 Accept 是否传 path | sources-git | open |
 | D32 | P3 | **error retry 不经 lease.post / Actor `continueGeneration`**：Write 增 `continueGeneration`；host 映射 localFact；Lens Retry 走 `lease.post`；roster 不再直开 ContinueGeneration | A 槽 `host-write-retry` | `ConversationWriteMessage` 增加 `continueGeneration` 且 host 映射到 localFact；UI 改走 `lease.post`；补 host 流句柄与 UI 打开不打架的测 | M7 conversation | closed |
 | D33 | P2 | **配对中 chip 可能误开 Engine 页**（已收口 @ 2026-09-07 工位 B）：`getEngineStatusCommandId(phase, pairingPending)` 与 `isConversationEngineLive` 同闸；StatusBar / IdentityStrip 传入 `snapshot.pairingPending` | 决策核实时发现；号原误写成 D24 | chip 在 pairingPending 时指向 Connection/SAS，不打开 Engine | M7 conversation | closed |
+| D34 | P3 | **`getVisibleTimelineIndices` 空树 / 零高 layout 读 `lastVisibleElement` 抛错**：`AbstractTree.lastVisibleElement` 无 bounds check；`ListView.lastVisibleIndex` 在 `renderHeight=0` 为 -1。已改为 `renderHeight < 1` / 空 `flatItems` 守卫，不再裸 try/catch | 工位 B `timeline-hygiene` 收口 | 空树与已铺行后 `layout(0)` 不抛；`conversationTimelineApplyTree.test.ts` D34 测绿 | M6 / conversation | closed |
+| D35 | P3 | **`getTimelineRowElement` 第二段 `querySelector([data-turn-id])` 死代码**：第一段选择器已含 `[data-turn-id]`。已删第二段 | 工位 B `timeline-hygiene` 收口 | 只留一条 `[data-turn-id], [data-fold-id]` 查询 | M6 / conversation | closed |
+| D36 | P3 | **standalone `thinking`/`tool` 分支画假 process 行**：`conversation-lens-turn-process` + summary 像 fold。已改为诚实摘要行（header+body，无 fold chrome） | 工位 B `timeline-hygiene` 收口 | 无 `.conversation-lens-turn-process` / `.conversation-process-fold`；`conversationTimelineRenderer.test.ts` D36 测绿 | M6 / conversation | closed |
 
 ## D2 工位池 compile 基线（2026-09-02，merge 工位 / `loop/merge`）
 

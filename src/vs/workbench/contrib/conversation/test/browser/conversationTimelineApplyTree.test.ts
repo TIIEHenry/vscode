@@ -286,4 +286,15 @@ suite('ConversationTimelineTree applyEntries (plan §3.4)', () => {
 		assert.deepStrictEqual(tree.getTestApplyMetrics(), { setChildrenCount: 1, rerenderCount: 0 });
 		assert.ok(tree.getTimelineRowElement('a2'));
 	});
+
+	test('empty and zero-height tree does not throw when reading visible indices (D34)', () => {
+		const empty = createTree();
+		assert.doesNotThrow(() => empty.layout(0, TREE_WIDTH));
+		assert.doesNotThrow(() => empty.refreshScrollChrome());
+
+		const seeded = seed([user('u1', 'hello'), assistant('a1', 'one')]);
+		assert.doesNotThrow(() => seeded.layout(0, TREE_WIDTH));
+		assert.doesNotThrow(() => seeded.refreshScrollChrome());
+		assert.doesNotThrow(() => seeded.layout(TREE_HEIGHT, TREE_WIDTH));
+	});
 });
