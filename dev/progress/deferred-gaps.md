@@ -4,8 +4,8 @@ type: progress
 status: accepted
 phase: N/A
 created: 2026-08-30
-updated: 2026-09-07
-summary: "延期缺口 SSOT；D16 仍开；D44 preferences 导航注册已幂等；D22 F3；D24 其余 JSON RPC；D25 引擎 List 真空；D26 引擎建壳回 6；D31 F4 / A2 blocked"
+updated: 2026-09-08
+summary: "延期缺口 SSOT；D16 仍开；D45 Tools/Agents 失败不清 leftover 行；D22 F3；D24 其余 JSON RPC；D25 引擎 List 真空；D26 引擎建壳回 6；D31 F4 / A2 blocked"
 ---
 
 # Deferred Gaps
@@ -61,6 +61,7 @@ summary: "延期缺口 SSOT；D16 仍开；D44 preferences 导航注册已幂等
 | D36 | P3 | **standalone `thinking`/`tool` 分支画假 process 行**：`conversation-lens-turn-process` + summary 像 fold。已改为诚实摘要行（header+body，无 fold chrome） | 工位 B `timeline-hygiene` 收口 | 无 `.conversation-lens-turn-process` / `.conversation-process-fold`；`conversationTimelineRenderer.test.ts` D36 测绿 | M6 / conversation | closed |
 | D43 | P3 | **`ConversationPart.layout` 不把尺寸扇出到 conversation editor parts**。`createConversationEditorPart` 已做首次 layout（host 有尺寸用 host，否则 800×600），否则 `findGroup`/`splitSessionWindow` 会在 `getNeighborViews` 上抛 `Can't call getNeighborViews before first layout`。chrome 后续 resize / `ConversationPart.layout` 仍不会再 layout 各 `ConversationEditorPartImpl`，活窗拆列后改窗口大小网格可能不更新 | D 槽 S4/S5 只收首次 layout 合同；扇出属另一冲突域，本 slice 不扩 | `ConversationPart.layout`（或 session window service）按叶 host 尺寸调用各 conversation editor part.layout；补 resize 测 | M7 conversation | closed |
 | D44 | P3 | **`registerUaPreferencesNavigationActions()` 已幂等（工位 B 本刀）**：已注册的 `openConnectionPreferences` / `openEnginePreferences` 直接跳过；二次调用不抛。生产仍只 `conversation.contribution.ts` 调一次；未发明新命令 | 本刀已收 | 该函数对已注册 id 直接返回；二次调用不抛；生产仍只 contribution 调一次 | conversation | closed |
+| D45 | P3 | **Tools/Agents list RPC throw 后不 `clearCatalogPresentation`**：`engineToolsSection.refresh` / `engineAgentsSection.refresh` catch 只改 `mode=failed` 并画 error status，不卸已成功行。首拉 throw 仍 0 行（本刀已锁）；成功后再 Retry 失败可能 leftover 假 catalog | 本刀只锁首拉诚实空；不扩改生产 catch | catch 先清行再 `failed`；补「成功 → throw」测：`getMode()==='failed'` 且 `getListEntryCount()===0` | conversation | open |
 
 ## D2 工位池 compile 基线（2026-09-02，merge 工位 / `loop/merge`）
 

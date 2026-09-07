@@ -30,7 +30,7 @@ import { workbenchInstantiationService } from '../../../../test/browser/workbenc
 import { EngineAgentsSection } from '../../browser/engineAgentsSection.js';
 import { EngineMcpSection } from '../../browser/engineMcpSection.js';
 import { EngineToolsSection } from '../../browser/engineToolsSection.js';
-import { canPerformCatalogWrite, getCatalogUnsupportedCopy } from '../../browser/engineCatalog.js';
+import { canPerformCatalogWrite, getCatalogFailedCopy, getCatalogUnsupportedCopy } from '../../browser/engineCatalog.js';
 import { localize } from '../../../../../nls.js';
 
 const AGENTS_FEATURE = localize('ua.engineAgentsFeatureLabel', "agent profiles");
@@ -156,6 +156,37 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		const section = store.add(instantiationService.createInstance(EngineAgentsSection, parent));
 		section.layout(640, 120);
 		return section;
+	}
+
+	function mountToolsSection(connection: IUniverseAgentConnection): EngineToolsSection {
+		const parent = document.createElement('div');
+		document.body.appendChild(parent);
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IUniverseAgentConnection, connection);
+		const section = store.add(instantiationService.createInstance(EngineToolsSection, parent));
+		section.setSectionActive(true);
+		section.layout(640, 160);
+		return section;
+	}
+
+	function assertFailedCatalogHonesty(
+		section: EngineAgentsSection | EngineToolsSection,
+		featureLabel: string,
+		errorMessage: string,
+	): void {
+		assert.strictEqual(section.getMode(), 'failed');
+		assert.strictEqual(section.getListEntryCount(), 0);
+		assert.strictEqual(section.canWrite(), false);
+		section.setSectionActive(true);
+		const status = section.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
+		assert.ok(status);
+		assert.strictEqual(status.dataset['catalogMode'], 'failed');
+		assert.ok(status.textContent?.includes(getCatalogFailedCopy(featureLabel, errorMessage)));
+		const combined = (section.getDomNode().parentElement?.textContent ?? '') + (status.textContent ?? '');
+		assert.ok(!/Demo Agent/i.test(combined));
+		assert.ok(!/\bbash\b/i.test(combined));
+		assert.ok(!/copilot/i.test(combined));
+		assert.ok(!/\.vscode\/mcp\.json/i.test(combined));
 	}
 
 	async function flushMicrotasks(): Promise<void> {
@@ -469,5 +500,51 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		await flushMicrotasks();
 		assert.strictEqual(section.isToolInfoVisible(), true);
 		assert.ok((section.getToolInfoDetailText() ?? '').includes('does not expose'));
+	});
+
+	test('Tools: listTools reject is failed with error status and no fake catalog', async () => {
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { tools: { support: 'SUPPORTED' } },
+			listTools: async () => {
+				throw new Error('listTools exploded');
+			},
+			listAgentProfiles: async () => ({
+				profiles: [{ id: 'demo', name: 'Demo Agent', source: 'user' as const }],
+			}),
+		});
+		const section = mountToolsSection(connection);
+		await flushMicrotasks();
+
+		assertFailedCatalogHonesty(section, TOOLS_FEATURE, 'listTools exploded');
+	});
+
+	test('Tools: listAgentProfiles reject is failed with error status and no fake catalog', async () => {
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { tools: { support: 'SUPPORTED' } },
+			listTools: async () => ({ tools: [{ name: 'bash', description: 'should not paint' }] }),
+			listAgentProfiles: async () => {
+				throw new Error('listAgentProfiles exploded');
+			},
+		});
+		const section = mountToolsSection(connection);
+		await flushMicrotasks();
+
+		assertFailedCatalogHonesty(section, TOOLS_FEATURE, 'listAgentProfiles exploded');
+	});
+
+	test('Agents: listAgentProfiles reject is failed with error status and no fake catalog', async () => {
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+			listAgentProfiles: async () => {
+				throw new Error('listAgentProfiles exploded');
+			},
+		});
+		const section = mountAgentsSection(connection);
+		await flushMicrotasks();
+
+		assertFailedCatalogHonesty(section, AGENTS_FEATURE, 'listAgentProfiles exploded');
 	});
 });

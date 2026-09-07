@@ -35,6 +35,7 @@ import {
 	conversationLensDockNoModel,
 	conversationLensDockNoRoute,
 	conversationLensDockNoTools,
+	conversationLensDockNoEngineTools,
 	conversationLensDockNoAgent,
 	conversationLensDockStubAgent,
 	conversationLensDockRouteBalanced,
@@ -1453,6 +1454,47 @@ suite('ConversationLens', () => {
 		const popup = document.querySelector('.conversation-lens-dock-tune-popup');
 		assert.ok(popup?.textContent?.includes('bash'));
 		assert.ok(!popup?.textContent?.includes(conversationLensDockNoTools));
+	});
+
+	test('connected catalog RPC throws keep No agent / No model / empty tools', async () => {
+		const capabilities = createEmptyTestCapabilitySnapshot();
+		const connection = createConversationConnectionTestStub({
+			getCapabilitySnapshot: () => ({
+				...capabilities,
+				agentProfiles: { support: 'SUPPORTED' },
+				tools: { support: 'SUPPORTED' },
+				models: { support: 'SUPPORTED' },
+			}),
+			listAgentProfiles: async () => {
+				throw new Error('listAgentProfiles exploded');
+			},
+			listTools: async () => {
+				throw new Error('listTools exploded');
+			},
+			listModels: async () => {
+				throw new Error('listModels exploded');
+			},
+		});
+		const { part, stubService } = mountLens({ connection });
+		const slots = getLensSlots(part);
+		stubService.setEngineConnected(true);
+		for (let i = 0; i < 8; i++) {
+			await Promise.resolve();
+		}
+
+		const agentSelect = getComposerBottomBar(slots).querySelector('.conversation-lens-dock-agent select.monaco-select-box') as HTMLSelectElement;
+		assert.strictEqual(agentSelect.options[agentSelect.selectedIndex]?.text, conversationLensDockNoAgent);
+		assert.ok(![...agentSelect.options].some(option => option.text === 'Coder'));
+		assert.ok(![...agentSelect.options].some(option => option.text === conversationLensDockStubAgent));
+
+		assert.strictEqual(getModelSelect(slots).options[getModelSelect(slots).selectedIndex]?.text, conversationLensDockNoModel);
+		assert.ok(![...getModelSelect(slots).options].some(option => option.text === 'gpt-test'));
+
+		const tuneButton = getComposerBottomBar(slots).querySelector('.conversation-lens-dock-tune .monaco-button') as HTMLButtonElement;
+		tuneButton.click();
+		const popup = document.querySelector('.conversation-lens-dock-tune-popup');
+		assert.strictEqual(popup?.textContent, conversationLensDockNoEngineTools);
+		assert.ok(!popup?.textContent?.includes('bash'));
 	});
 
 	test('connected Enter submits draft through lease.post(submitInput)', async () => {
