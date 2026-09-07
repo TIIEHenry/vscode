@@ -53,7 +53,7 @@ summary: "集成 tip 本关仓提交（未 push）；A 的 probeRpc empty proto 
 
 集成 tip **本关仓提交**（`loop/merge`；未 push）。Chat 仍被引擎空壳 Create（目录在、`session_meta` 空、回 6）挡住；不要再清 `.sessions` 当主线。见 [D26](deferred-gaps.md)。**U2 未开**。**PRD-008 不升 `implemented`**。
 
-1. **集成 tip** 以 merge 本关仓提交为准（P2 已串行 A=`60500d3aa4a`、C=`846af178276`）。`npm run compile` 仍基线 unused 红则 **不 push**。GFS >800 不拆。
+1. **集成 tip** 以 merge 本关仓提交为准（P2 已串行 A=`9db20a48aed`、C=`7226ab17445`）。`npm run compile` 仍基线 unused 红则 **不 push**。GFS >800 不拆。
 2. 本波字母槽已进 merge：
    - **A**：`live-rpc-bytes` — [D24](deferred-gaps.md) leftover 盘点：接通后 catalog/attach 已 bytes；`probeRpc` 改 empty proto（capability probe 不再打 JSON `{}`）；`listTools` 仍 JSON（composer/Engine 有调用，本仓无 ListTools 响应字段号）。活 roster/queue/git/team/ContinueGeneration/`fetchToolDetail` 仍 JSON，未发明 proto。**D24 仍开**。D25 host leftover 已收、引擎 List 真空仍开；D26 引擎 Create meta 仍开。
    - **B**：visualize 三测已收；remainder 7 已按夹具诚实收口（虚拟列表 reveal / flush 预算 / `scrollToEnd` 后不立刻 layout 冲掉）。全量 Lens **97/97** @ `loop/B` 2026-09-07。**[D16](deferred-gaps.md) 仍开**（本 slice 不闭；S2「Lens 全绿」仍以本行闭合为前提）。
@@ -88,9 +88,9 @@ summary: "集成 tip 本关仓提交（未 push）；A 的 probeRpc empty proto 
 | 槽 | 路径 | 分支 | tip | 脏 | stash | 关仓状态 |
 |----|------|------|-----|:--|:------|:---------|
 | merge | `vscode-WorkTrees/merge` | `loop/merge` | 本关仓提交 | 0 | 0 | parked；compile 基线 unused 仍红，**不 push** |
-| A | `vscode-WorkTrees/A` | `loop/A` | `75e075846e9`+ D24 leftover | D24/`probeRpc` 未提交；勿 add `__pycache__` | 0 | 本 slice 未 commit |
+| A | `vscode-WorkTrees/A` | `loop/A` | 对齐本关仓提交 | `__pycache__` | 0 | idle |
 | B | `vscode-WorkTrees/B` | `loop/B` | 对齐本关仓提交 | 0 | 0 | idle |
-| C | `vscode-WorkTrees/C` | `loop/C` | `75e075846e9` | 未提交本 slice + `dev/loop` | 0 | occupied：inbox-getqueue-honesty；勿 add `dev/loop` |
+| C | `vscode-WorkTrees/C` | `loop/C` | 对齐本关仓提交 | 未提交 `dev/loop` + `__pycache__` | 0 | idle；勿 add `dev/loop` |
 | D | `vscode-WorkTrees/D` | `loop/D` | 对齐本关仓提交 | 0 | 0 | idle |
 | edit | `Projects/Agents/vscode` | `agent-ide` | `a40a95d1e85`+ | `dev/loop` | 0 | 人类工位；请自行对齐本关仓提交 |
 
