@@ -1932,6 +1932,14 @@
 	background: var(--vscode-list-activeSelectionBackground);
 }
 
+.monaco-workbench .part.conversation .conversation-lens-message-queue-list .queue-item.queue-failed {
+	box-shadow: inset 2px 0 0 var(--vscode-errorForeground);
+}
+
+.monaco-workbench .part.conversation .conversation-lens-message-queue-list .queue-item.upload-failed {
+	box-shadow: inset 2px 0 0 var(--vscode-charts-orange, var(--vscode-editorWarning-foreground));
+}
+
 .monaco-workbench .part.conversation .conversation-lens-message-queue-list .queue-item-main {
 	flex: 1;
 	min-width: 0;

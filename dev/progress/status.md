@@ -57,7 +57,7 @@ summary: "人类工位已对齐已推送 MERGE_SHA c1b228caf74；保留本机行
 2. 本波字母槽已进 merge：
    - **A**：[D40](deferred-gaps.md) closed（`fetchToolDetail` throw 回 `{ok:false}`）；[D26](deferred-gaps.md) 引擎 Create meta 仍 open。
    - **B**：[D34](deferred-gaps.md)/[D35](deferred-gaps.md)/[D36](deferred-gaps.md) closed。D27 未重开。
-   - **C**：本波空闲。上波 D37 已在 merge。
+   - **C**：[D41](deferred-gaps.md) closed（Inbox `FAILED`→`queue-failed`，`UPLOAD_FAILED` 仍 `upload-failed`；Retry 接线未改）。D37/D30/D26 未动。
    - **D**：[D31](deferred-gaps.md) leftover 已收；**D31 仍开**（F4）；R8 未发明。
 
 子 agent 发现的既有代码问题：
@@ -75,6 +75,7 @@ summary: "人类工位已对齐已推送 MERGE_SHA c1b228caf74；保留本机行
 | [D40](deferred-gaps.md) | A 槽 `request-detail-fetch-catch` | **closed** `fetchToolDetail` throw 已 catch 回 `{ok:false}`；host `{ok:false}` 原样返回 |
 | [D26](deferred-gaps.md) | A 槽 host / 引擎仓 | host Tree+recover 已收；引擎空壳 Create 回 6 仍开；不要再清 store |
 | [D37](deferred-gaps.md) | C 槽 `roster-queue-retry` | **closed** roster 按 `upload` 转 RetryQueueItem / RetryQueueItemUpload；无 GetQueue 活引擎失败行仍不可见 |
+| [D41](deferred-gaps.md) | C 槽 `inbox-fail-class` | **closed** Inbox `FAILED` 行 class 为 `queue-failed`，`UPLOAD_FAILED` 仍 `upload-failed`；Retry 接线未改 |
 | [D34](deferred-gaps.md) | B 槽 `timeline-hygiene` | **closed** 空/零高树不再读 `lastVisibleElement` |
 | [D35](deferred-gaps.md) | B 槽 `timeline-hygiene` | **closed** 删 `getTimelineRowElement` 死第二段 query |
 | [D36](deferred-gaps.md) | B 槽 `timeline-hygiene` | **closed** standalone thinking/tool 诚实摘要行，无假 fold |
@@ -86,7 +87,7 @@ summary: "人类工位已对齐已推送 MERGE_SHA c1b228caf74；保留本机行
 | merge | `vscode-WorkTrees/merge` | `loop/merge` | 本关仓提交 | 0 | 0 | parked；compile 基线 unused 仍红，**不 push** |
 | A | `vscode-WorkTrees/A` | `loop/A` | 对齐 MERGE_SHA | `__pycache__` | 0 | idle（P6 后） |
 | B | `vscode-WorkTrees/B` | `loop/B` | 对齐 MERGE_SHA | 0 | 0 | idle（P6 后） |
-| C | `vscode-WorkTrees/C` | `loop/C` | 对齐 MERGE_SHA | `dev/loop` | 0 | idle；勿 add `dev/loop` |
+| C | `vscode-WorkTrees/C` | `loop/C` | 对齐 MERGE_SHA | Inbox D41 + `dev/loop` | 0 | D41 未提交；勿 add `dev/loop` |
 | D | `vscode-WorkTrees/D` | `loop/D` | 对齐 MERGE_SHA | 0 | 0 | idle（P6 后） |
 | edit | `Projects/Agents/vscode` | `agent-ide` | `a40a95d1e85`+ | `dev/loop` | 0 | 人类工位；请自行对齐 merge 关仓 SHA |
 

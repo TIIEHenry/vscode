@@ -514,6 +514,29 @@ suite('ConversationInboxOverlay Retry', () => {
 		assert.strictEqual(getRetryButton(panel, 'q-pending'), null);
 	});
 
+	test('FAILED and UPLOAD_FAILED rows use distinct DOM classes', () => {
+		const roster = store.add(new ConversationStubService());
+		const sessionId = roster.getActiveSessionId();
+		roster.setMessageQueueFixture(sessionId, {
+			isPaused: false,
+			isProcessing: false,
+			items: [
+				failedItem('q-fail', 'FAILED', 'send rejected'),
+				failedItem('q-upload', 'UPLOAD_FAILED', 'upload rejected'),
+			],
+		});
+		const panel = openQueuePanel(createOverlay(roster));
+		const failedRow = panel.querySelector('.queue-item[data-item-id="q-fail"]') as HTMLElement | null;
+		const uploadRow = panel.querySelector('.queue-item[data-item-id="q-upload"]') as HTMLElement | null;
+		assert.ok(failedRow);
+		assert.ok(uploadRow);
+		assert.ok(failedRow.classList.contains('queue-failed'));
+		assert.ok(!failedRow.classList.contains('upload-failed'));
+		assert.ok(uploadRow.classList.contains('upload-failed'));
+		assert.ok(!uploadRow.classList.contains('queue-failed'));
+		assert.notStrictEqual(failedRow.className, uploadRow.className);
+	});
+
 	test('stub Retry stays disabled and does not call retryMessageQueueItem', () => {
 		const roster = store.add(new RecordingStubRoster());
 		const sessionId = roster.getActiveSessionId();
@@ -579,7 +602,8 @@ suite('ConversationInboxOverlay Retry', () => {
 		getRetryButton(panel, 'q-fail')!.click();
 		assert.deepStrictEqual(roster.retryCalls, [{ sessionId, itemId: 'q-fail', upload: false }]);
 		assert.strictEqual(roster.getMessageQueueState(sessionId).items[0]?.status, 'FAILED');
-		assert.ok(panel.querySelector('.queue-item[data-item-id="q-fail"]')?.classList.contains('upload-failed'));
+		assert.ok(panel.querySelector('.queue-item[data-item-id="q-fail"]')?.classList.contains('queue-failed'));
+		assert.ok(!panel.querySelector('.queue-item[data-item-id="q-fail"]')?.classList.contains('upload-failed'));
 		assert.ok(panel.querySelector('.queue-item[data-item-id="q-fail"]')?.textContent?.includes('still failed'));
 		const retryAfter = getRetryButton(panel, 'q-fail');
 		assert.ok(retryAfter);

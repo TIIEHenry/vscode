@@ -468,7 +468,9 @@ export class ConversationInboxOverlay extends Disposable {
 		if (item.hold === 'EDITING') {
 			row.classList.add('hold-editing');
 		}
-		if (item.status === 'FAILED' || item.status === 'UPLOAD_FAILED') {
+		if (item.status === 'FAILED') {
+			row.classList.add('queue-failed');
+		} else if (item.status === 'UPLOAD_FAILED') {
 			row.classList.add('upload-failed');
 		}
 		if (item.status === 'UPLOADING') {
