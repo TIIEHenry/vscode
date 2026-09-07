@@ -18,7 +18,11 @@ import type {
 } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { EngineSkillsSection } from '../../browser/engineSkillsSection.js';
+import { getCatalogFailedCopy } from '../../browser/engineCatalog.js';
 import { getSkillsUnsupportedCopy } from '../../browser/engineSkillCatalog.js';
+import { localize } from '../../../../../nls.js';
+
+const SKILLS_FEATURE = localize('ua.engineSkillsFeatureLabel', "a skills API");
 
 suite('EngineSkillsSection (E1)', () => {
 
@@ -175,6 +179,59 @@ suite('EngineSkillsSection (E1)', () => {
 		assert.strictEqual(section.getMode(), 'disconnected');
 		assert.strictEqual(section.getListEntryCount(), 0);
 		assert.strictEqual(section.getDomNode().style.display, 'none');
+	});
+
+	test('listSkills reject is failed with error status and no leftover catalog', async () => {
+		const connection = createConnectionStub({
+			connected: true,
+			skillsSupport: 'SUPPORTED',
+			listSkills: async () => {
+				throw new Error('listSkills exploded');
+			},
+		});
+		const section = mountSection(connection);
+		section.setSectionActive(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'failed');
+		assert.strictEqual(section.getListEntryCount(), 0);
+		const status = section.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
+		assert.ok(status);
+		assert.strictEqual(status.dataset['catalogMode'], 'failed');
+		assert.ok(status.textContent?.includes(getCatalogFailedCopy(SKILLS_FEATURE, 'listSkills exploded')));
+		assert.ok(!/demo-skill/i.test(section.getDomNode().textContent ?? ''));
+	});
+
+	test('successful load then refresh throw is failed with no leftover catalog', async () => {
+		let listSkillsCalls = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			skillsSupport: 'SUPPORTED',
+			listSkills: async () => {
+				listSkillsCalls++;
+				if (listSkillsCalls === 1) {
+					return { skills: [{ name: 'demo-skill', source: 'bundled', enabled: true }] };
+				}
+				throw new Error('listSkills retry exploded');
+			},
+		});
+		const section = mountSection(connection);
+		section.setSectionActive(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.ok(section.getListEntryCount() > 0);
+
+		connection.setConnected(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'failed');
+		assert.strictEqual(section.getListEntryCount(), 0);
+		const status = section.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
+		assert.ok(status);
+		assert.strictEqual(status.dataset['catalogMode'], 'failed');
+		assert.ok(status.textContent?.includes(getCatalogFailedCopy(SKILLS_FEATURE, 'listSkills retry exploded')));
+		assert.ok(!/demo-skill/i.test(section.getDomNode().textContent ?? ''));
 	});
 
 	test('SUPPORTED connected shows New toolbar and createSkill calls saveSkillContent RPC', async () => {

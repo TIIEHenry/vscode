@@ -408,11 +408,12 @@ export class EngineSkillsSection extends Disposable {
 			this.bodyEditor.style.display = canShowCatalogRows(this.mode) ? '' : 'none';
 			this.renderStatus();
 		} catch (error) {
-			this.writeToolbar.style.display = 'none';
+			this.clearCatalogPresentation();
 			this.mode = resolveEngineSkillsPaneMode(true, support, {
 				kind: 'failed',
 				error: error instanceof Error ? error.message : undefined,
 			});
+			this.writeToolbar.style.display = 'none';
 			this.renderStatus({
 				reason: error instanceof Error ? error.message : undefined,
 				onRetry: () => void this.refresh(),

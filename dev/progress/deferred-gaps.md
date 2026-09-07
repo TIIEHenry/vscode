@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-08
-summary: "延期缺口 SSOT；D16 仍开；D45 host open throw-on-open 已 catch；D46 Tools/Agents leftover 行已清；D47 closeStream dispose throw 已 catch；D22 F3；D24 其余 JSON RPC；D25 引擎 List 真空；D26 引擎建壳回 6；D31 F4 / A2 blocked；git-read throw 与列表 open-diff status DOM 已挂载"
+summary: "延期缺口 SSOT；D16 仍开；D45 host open throw-on-open 已 catch；D46 Tools/Agents leftover 行已清；D47 closeStream dispose throw 已 catch；D49 MCP/Skills leftover 行已清；D22 F3；D24 其余 JSON RPC；D25 引擎 List 真空；D26 引擎建壳回 6；D31 F4 / A2 blocked；git-read throw 与列表 open-diff status DOM 已挂载"
 ---
 
 # Deferred Gaps
@@ -64,6 +64,7 @@ summary: "延期缺口 SSOT；D16 仍开；D45 host open throw-on-open 已 catch
 | D45 | P3 | **`openResidentChat` `open.call` / `openStream` `subscribeSessionEventStream` 无总 catch**（与已修 `openContinuation` 同类）：bind 后 throw-on-open 会从 `drainIntents` 抛出，`whenEngineSessionReady` 拒收，后续 `ensureChatStream` 被打断 | A 槽 `host-open-catch` 已补同级 warn catch；Chat 仍 echo `chatStreamUp` 走 one-shot；测锁 throw-on-open。未关 D16；未转 listTools；未发明 heartbeat `client_id`；未碰 Create / `.sessions` | `open.call` / `subscribeSessionEventStream` 抛错只 warn、不拒 ready；Chat 仍 echo Up；`sessionViewHostChatClose.test.ts` throw-on-open 绿 | M7 universeAgent | closed |
 | D46 | P3 | **Tools/Agents list RPC throw 后不 `clearCatalogPresentation`**：`engineToolsSection.refresh` / `engineAgentsSection.refresh` catch 只改 `mode=failed` 并画 error status，不卸已成功行。首拉 throw 仍 0 行（本刀已锁）；成功后再 Retry 失败可能 leftover 假 catalog | 本刀已收：catch 先清行再 `failed`；补成功→throw 测 | catch 先清行再 `failed`；补「成功 → throw」测：`getMode()==='failed'` 且 `getListEntryCount()===0` | conversation | closed |
 | D47 | P3 | **`drainIntents` / `closeStream` `dispose` 无总 catch**：linger / connectionDown / overflow 同批先 `closeStream` 再 `closeChatStream`；`subscription.dispose()` → gRPC `call.end()`/`cancel()` 抛错会中断后续 intent，Chat 句柄泄漏。不拒 `whenEngineSessionReady`（close 不在 ready 路径）。未包整圈 `drainIntents` | A 槽 `host-close-stream-dispose-catch` 已补与 open 同级 warn catch，仍 `streams.delete`；测锁 throw-on-dispose。未关 D16；未转 listTools；未碰 D46/catalog；未跑 F4 | `closeStream` dispose 抛错只 warn、不跳过同批 `closeChatStream`；`sessionViewHostChatClose.test.ts` throw-on-dispose 绿 | M7 universeAgent | closed |
+| D49 | P3 | **MCP/Skills list RPC throw 后不 `clearCatalogPresentation`**：`engineMcpSection.refresh` / `engineSkillsSection.refresh` catch 只改 `mode=failed` 并画 error status，不卸已成功行。首拉 throw 仍 0 行（本刀已锁）；成功后再 Retry 失败可能 leftover 假 catalog | 本刀已收：catch 先清行再 `failed`；补成功→throw 测。未关 D16；未转 listTools；未发明 GetQueue | catch 先清行再 `failed`；补「成功 → throw」测：`getMode()==='failed'` 且 `getListEntryCount()===0` | conversation | closed |
 
 ## D2 工位池 compile 基线（2026-09-02，merge 工位 / `loop/merge`）
 
