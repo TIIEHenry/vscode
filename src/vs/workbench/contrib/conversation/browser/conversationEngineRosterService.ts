@@ -414,6 +414,16 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		return super.enqueueMessageQueueItem(sessionId, text, options);
 	}
 
+	override retryMessageQueueItem(sessionId: string, itemId: string, options?: { upload?: boolean }): boolean {
+		if (this.isEngineConnected()) {
+			return this.retryEngineQueueItem(sessionId, itemId, options, true);
+		}
+		if (this.wasEverConnected) {
+			return this.retryEngineQueueItem(sessionId, itemId, options, false);
+		}
+		return super.retryMessageQueueItem(sessionId, itemId, options);
+	}
+
 	override getMessageQueueState(sessionId: string): ConversationMessageQueueState {
 		if (this.isEngineConnected() || this.wasEverConnected) {
 			return createEmptyMessageQueueState();
@@ -1003,6 +1013,43 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 			itemId: id,
 			text: trimmed,
 		}));
+	}
+
+	private retryEngineQueueItem(
+		sessionId: string,
+		itemId: string,
+		options: { upload?: boolean } | undefined,
+		callRemote: boolean,
+	): boolean {
+		const trimmedId = itemId.trim();
+		if (!trimmedId) {
+			return false;
+		}
+		if (!this.engineSessions.some(session => session.id === sessionId)) {
+			return false;
+		}
+		if (callRemote) {
+			if (options?.upload === true) {
+				if (!this.uaConnection.retryQueueItemUpload) {
+					return false;
+				}
+				void this.uaConnection.retryQueueItemUpload({
+					sessionId,
+					itemId: trimmedId,
+				});
+			} else {
+				if (!this.uaConnection.retryQueueItem) {
+					return false;
+				}
+				void this.uaConnection.retryQueueItem({
+					sessionId,
+					itemId: trimmedId,
+				});
+			}
+			this._onDidChangeSession.fire(sessionId);
+			return true;
+		}
+		return false;
 	}
 
 	private editEngineMessage(sessionId: string, turnId: string, text: string, callRemote: boolean): boolean {

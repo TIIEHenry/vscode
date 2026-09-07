@@ -170,10 +170,12 @@ export interface IConversationRosterService {
 	enqueueMessageQueueItem(sessionId: string, text: string, options?: { priority?: 'NORMAL' | 'HIGH' | 'LOW'; opId?: string }): boolean;
 	/**
 	 * AgentService.RetryQueueItem / RetryQueueItemUpload (Inbox FAILED CTA).
-	 * Overlay FAILED → RetryQueueItem; UPLOAD_FAILED → `{ upload: true }` →
-	 * RetryQueueItemUpload. Empty `itemId` / stub / never-connected /
-	 * disconnected cache returns false and does not mutate the fixture queue.
-	 * ≠ `retryError` (ContinueGeneration).
+	 * Engine-connected forwards unary (`upload` omitted / false →
+	 * RetryQueueItem; `{ upload: true }` → RetryQueueItemUpload). Overlay
+	 * FAILED → RetryQueueItem; UPLOAD_FAILED → `{ upload: true }`. Empty
+	 * `itemId` / unknown session / stub / never-connected / disconnected
+	 * cache / missing hook returns false and does not mutate the fixture
+	 * queue. ≠ `retryError` (ContinueGeneration).
 	 */
 	retryMessageQueueItem(sessionId: string, itemId: string, options?: { upload?: boolean }): boolean;
 	/**

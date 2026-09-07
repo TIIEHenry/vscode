@@ -57,7 +57,7 @@ summary: "人类工位已对齐已推送 MERGE_SHA c1b228caf74；保留本机行
 2. 字母槽 leftover 进度句已收进本账，再 cascade：
    - **A**：`host-write-retry` — [D23](deferred-gaps.md) / [D32](deferred-gaps.md) 已合入 merge。compile 待本槽一路跑。
    - **B**：`getEngineStatusCommandId(phase, pairingPending)`。D27 仍 PARTIAL（1px 垫高）。
-   - **C**：Inbox FAILED Retry → `retryMessageQueueItem`；引擎 unary 见 [D37](deferred-gaps.md)。
+   - **C**：[D37](deferred-gaps.md) **closed（代码+测已写；compile 待 merge）** Inbox FAILED Retry 走 roster `retryMessageQueueItem` → `RetryQueueItem` / `RetryQueueItemUpload`。
    - **D**：Review 读失败上 status；Panel 与对话窗同门控；Unstage 明确不可用。**未跑 F4、不升 PRD、R8 仍 open**。
 
 子 agent 发现的既有代码问题：
@@ -71,7 +71,7 @@ summary: "人类工位已对齐已推送 MERGE_SHA c1b228caf74；保留本机行
 | [R8](research-queue.md) | A 槽 Sources | `WriteGitApplyHunks` 空 patches 语义未定 |
 | [D32](deferred-gaps.md) | A 槽 `host-write-retry` | **closed（代码+测已写；compile 待 merge）** Retry 走 `lease.post`；host 映射 Actor `continueGeneration` |
 | [D26](deferred-gaps.md) | merge 账 | 引擎空壳 Create 回 6；不要再清 store |
-| [D37](deferred-gaps.md) | C 槽 D30 | 引擎 roster 未 override `retryMessageQueueItem`（A 占该文件）；无 GetQueue |
+| [D37](deferred-gaps.md) | C 槽 `roster-queue-retry` | **closed（代码+测已写；compile 待 merge）** roster 按 `upload` 转 RetryQueueItem / RetryQueueItemUpload；空 item / 断连 / 无 hook 不发 |
 
 ## 工位表（P0 盘点 · 2026-09-07 · 与 `git worktree list` 对照）
 

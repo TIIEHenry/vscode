@@ -252,6 +252,16 @@ class MockUniverseAgentConnection extends Disposable implements IUniverseAgentCo
 		this.editQueueCalls.push({ sessionId: request.sessionId, itemId: request.itemId, text: request.text });
 		return { ok: true };
 	}
+	readonly retryQueueItemCalls: { sessionId: string; itemId: string }[] = [];
+	async retryQueueItem(request: { sessionId: string; itemId: string }) {
+		this.retryQueueItemCalls.push({ sessionId: request.sessionId, itemId: request.itemId });
+		return { ok: true };
+	}
+	readonly retryQueueItemUploadCalls: { sessionId: string; itemId: string }[] = [];
+	async retryQueueItemUpload(request: { sessionId: string; itemId: string }) {
+		this.retryQueueItemUploadCalls.push({ sessionId: request.sessionId, itemId: request.itemId });
+		return { ok: true };
+	}
 	async getHistory() { return { envelopes: [] }; }
 	subscribeSessionEventStream(
 		_sessionId: string,
@@ -1578,6 +1588,8 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		service.holdMessageQueueItem('ua-only', 'q1', 'EDITING');
 		service.releaseMessageQueueItemHold('ua-only', 'q1');
 		assert.strictEqual(service.updateMessageQueueItemContent('ua-only', 'q1', 'later'), false);
+		assert.strictEqual(service.retryMessageQueueItem('ua-only', 'q1'), false);
+		assert.strictEqual(service.retryMessageQueueItem('ua-only', 'q1', { upload: true }), false);
 		assert.deepStrictEqual(service.getMessageQueueState('ua-only').items, []);
 		assert.strictEqual(connection.enqueueCalls.length, 0);
 		assert.strictEqual(connection.pauseQueueCalls.length, 0);
@@ -1586,6 +1598,56 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		assert.strictEqual(connection.holdQueueCalls.length, 0);
 		assert.strictEqual(connection.releaseQueueCalls.length, 0);
 		assert.strictEqual(connection.editQueueCalls.length, 0);
+		assert.strictEqual(connection.retryQueueItemCalls.length, 0);
+		assert.strictEqual(connection.retryQueueItemUploadCalls.length, 0);
+		assert.strictEqual(connection.continuationOpens.length, 0);
+	});
+
+	test('connected retryMessageQueueItem forwards RetryQueueItem / RetryQueueItemUpload', async () => {
+		const storage = store.add(new TestStorageService());
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
+		const service = store.add(createService(connection, storage));
+		connection.setConnected(true);
+		service.setEngineConnected(true);
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+		assert.strictEqual(service.retryMessageQueueItem('ua-only', '  q-fail  '), true);
+		assert.strictEqual(service.retryMessageQueueItem('ua-only', '  q-upload  ', { upload: false }), true);
+		assert.strictEqual(service.retryMessageQueueItem('ua-only', '  q-up  ', { upload: true }), true);
+		assert.deepStrictEqual(connection.retryQueueItemCalls, [
+			{ sessionId: 'ua-only', itemId: 'q-fail' },
+			{ sessionId: 'ua-only', itemId: 'q-upload' },
+		]);
+		assert.deepStrictEqual(connection.retryQueueItemUploadCalls, [
+			{ sessionId: 'ua-only', itemId: 'q-up' },
+		]);
+		assert.strictEqual(connection.continuationOpens.length, 0);
+
+		assert.strictEqual(service.retryMessageQueueItem('ua-only', '   '), false);
+		assert.strictEqual(service.retryMessageQueueItem('missing', 'q-fail'), false);
+		assert.strictEqual(connection.retryQueueItemCalls.length, 2);
+		assert.strictEqual(connection.retryQueueItemUploadCalls.length, 1);
+
+		(connection as { retryQueueItem?: unknown }).retryQueueItem = undefined;
+		(connection as { retryQueueItemUpload?: unknown }).retryQueueItemUpload = undefined;
+		assert.strictEqual(service.retryMessageQueueItem('ua-only', 'q-fail'), false);
+		assert.strictEqual(service.retryMessageQueueItem('ua-only', 'q-up', { upload: true }), false);
+		assert.strictEqual(connection.retryQueueItemCalls.length, 2);
+		assert.strictEqual(connection.retryQueueItemUploadCalls.length, 1);
+		assert.strictEqual(connection.continuationOpens.length, 0);
+	});
+
+	test('never-connected retryMessageQueueItem fails honestly and does not send', () => {
+		const connection = store.add(new MockUniverseAgentConnection());
+		const service = store.add(createService(connection));
+		const sessionId = service.getActiveSessionId();
+
+		assert.strictEqual(service.retryMessageQueueItem(sessionId, 'q-fail'), false);
+		assert.strictEqual(service.retryMessageQueueItem(sessionId, 'q-fail', { upload: true }), false);
+		assert.strictEqual(connection.retryQueueItemCalls.length, 0);
+		assert.strictEqual(connection.retryQueueItemUploadCalls.length, 0);
+		assert.strictEqual(connection.continuationOpens.length, 0);
 	});
 
 	test('connected AutoDrive ignores fixture and stays empty', async () => {
