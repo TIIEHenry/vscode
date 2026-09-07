@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-08
-summary: "FileMutationJoin / createScoped / Review 委托已修。D16 仍开。官方三域 glob 已绿。D44/D45/D46/D47 已闭。git-read throw 与列表 open-diff status DOM 已挂载。A2 仍 blocked。"
+summary: "FileMutationJoin / createScoped / Review 委托已修。D16 仍开。官方三域 glob 已绿。D44/D45/D46/D47/D48 已闭。git-read throw 与列表 open-diff status DOM 已挂载。A2 仍 blocked。"
 ---
 
 # Development Progress
@@ -73,6 +73,7 @@ summary: "FileMutationJoin / createScoped / Review 委托已修。D16 仍开。�
 14. **A 槽 `host-close-stream-dispose-catch`（未关 D16 / 未转 listTools / 未碰 D46·catalog / 未跑 F4）**：核实 `drainIntents` 无 per-intent catch 为真洞——Actor linger / connectionDown / overflow 同批 `closeStream` 后接 `closeChatStream`；生产 `dispose` 走 `call.end()`+`call.cancel()`。只给 `closeStream` 的 `dispose` 补与 open 同级 warn catch，仍 `streams.delete`。测锁 throw-on-dispose 后 Chat 仍关。不包整圈 `drainIntents`。父约束未 compile。
 15. **B 槽 `d46-catalog-leftover-clear`（未关 D16 / 未转 listTools / 未发明 GetQueue）**：`engineToolsSection.refresh` / `engineAgentsSection.refresh` catch 先 `clearCatalogPresentation` 再 `failed`。补成功→throw 测：`getMode()==='failed'` 且 `getListEntryCount()===0`。首拉 throw 三测保留。父约束未 compile。[D46](deferred-gaps.md) **已闭**。
 16. **D 槽 `review-list-open-diff-dom`（未关 D16 / 未跑 F4 / 未开 A2）**：Review / Changes 列表 `onDidOpen` 在 `getQuickDiffs` throw 后断言 status DOM 为 `sourcesGitDiffOpenFailureMessage('boom')` / `Unable to open diff:`；Review 不标已审。未重做 Open Selected。未重做 git-read throw。未发明 WriteGitUnstage。
+17. **A 槽 `host-remaining-dispose-catch`（未关 D16 / 未转 listTools / 未发明 heartbeat client_id / 未碰 Create·`.sessions` / 未跑 F4）**：D47 只包 `closeStream.dispose`。本刀给 `closeResidentChat` / `onEngineConnectionChanged` 三圈 dispose、以及同文件 `openResidentChat` existing / `openContinuation` 旧句柄补与 D47 同级 warn catch，仍 delete / unload / 仍 post `chatStreamDown`·`connectionDown`。不包整圈 `drainIntents`。测锁 linger Chat throw-on-dispose 仍删句柄、断连 event-stream throw 仍卸 Chat 且 post `connectionDown`。父约束未 compile。[D48](deferred-gaps.md) **已闭**。
 
 子 agent 发现的既有代码问题：
 
@@ -103,6 +104,7 @@ summary: "FileMutationJoin / createScoped / Review 委托已修。D16 仍开。�
 | [D45](deferred-gaps.md) | A 槽 `host-open-catch` | **closed** `openResidentChat` / `openStream` throw-on-open 已 catch；Chat 仍 echo one-shot；未关 D16 |
 | [D46](deferred-gaps.md) | B 槽 `d46-catalog-leftover-clear` | **closed** catch 先 `clearCatalogPresentation` 再 `failed`；成功→throw 测 `getMode()==='failed'` 且 `getListEntryCount()===0`；首拉 throw 测保留；未关 D16 / 未转 listTools / 未发明 GetQueue |
 | [D47](deferred-gaps.md) | A 槽 `host-close-stream-dispose-catch` | **closed** `closeStream` dispose throw 已 catch；同批 Chat 仍关；未关 D16 |
+| [D48](deferred-gaps.md) | A 槽 `host-remaining-dispose-catch` | **closed** `closeResidentChat` / 断连三圈 / open 旧句柄 dispose throw 已 catch；Chat 仍删、`connectionDown` 仍 post；未关 D16 |
 
 ## 工位表（P0 盘点 · 2026-09-07 · 与 `git worktree list` 对照）
 
