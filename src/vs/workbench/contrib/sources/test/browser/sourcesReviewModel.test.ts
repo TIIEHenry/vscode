@@ -30,7 +30,7 @@ suite('Sources - Review list projection', () => {
 		assert.deepStrictEqual(entries, []);
 	});
 
-	test('collectSourcesReviewEntries delegates to collectSourcesChangeEntries', () => {
+	test('collectSourcesReviewEntries delegates to collectSourcesChangeEntries', function () {
 		const staged = toResource.call(this, '/project/src/a.ts');
 		const unstaged = toResource.call(this, '/project/readme.md');
 		const repos = [

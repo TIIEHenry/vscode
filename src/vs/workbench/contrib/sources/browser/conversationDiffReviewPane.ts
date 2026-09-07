@@ -105,17 +105,17 @@ export class ConversationDiffReviewPane extends EditorPane {
 		this.revertButton.type = 'button';
 		this.revertButton.textContent = localize('conversationDiffReviewPane.revert', "Revert");
 		this.revertButton.style.display = 'none';
-		this.revertButton.addEventListener('click', () => {
+		this._register(dom.addDisposableListener(this.revertButton, 'click', () => {
 			void this.runGitAction(SOURCES_GIT_CLEAN_COMMAND);
-		});
+		}));
 
 		this.unstageButton = dom.append(this.toolbar, $('button.conversation-diff-review-unstage')) as HTMLButtonElement;
 		this.unstageButton.type = 'button';
 		this.unstageButton.textContent = localize('conversationDiffReviewPane.unstage', "Unstage");
 		this.unstageButton.style.display = 'none';
-		this.unstageButton.addEventListener('click', () => {
+		this._register(dom.addDisposableListener(this.unstageButton, 'click', () => {
 			void this.runGitAction(SOURCES_GIT_UNSTAGE_COMMAND);
-		});
+		}));
 
 		this.unstageUnavailable = dom.append(this.toolbar, $('span.conversation-diff-review-unstage-unavailable'));
 		this.unstageUnavailable.textContent = sourcesGitUnstageUnavailableMessage();
@@ -125,16 +125,16 @@ export class ConversationDiffReviewPane extends EditorPane {
 		this.acceptButton.type = 'button';
 		this.acceptButton.textContent = localize('conversationDiffReviewPane.accept', "Accept");
 		this.acceptButton.style.display = 'none';
-		this.acceptButton.addEventListener('click', () => {
+		this._register(dom.addDisposableListener(this.acceptButton, 'click', () => {
 			void this.runAccept();
-		});
+		}));
 
 		const previewButton = dom.append(this.toolbar, $('button.conversation-diff-review-open-preview')) as HTMLButtonElement;
 		previewButton.type = 'button';
 		previewButton.textContent = localize('conversationDiffReviewPane.openPreview', "Open Diff in Preview");
-		previewButton.addEventListener('click', () => {
+		this._register(dom.addDisposableListener(previewButton, 'click', () => {
 			void this.commandService.executeCommand('sources.diff.moveToPreview');
-		});
+		}));
 
 		this.noticeElement = dom.append(this.container, $('.conversation-diff-review-notice'));
 		this.noticeElement.style.display = 'none';
@@ -143,7 +143,7 @@ export class ConversationDiffReviewPane extends EditorPane {
 
 	override async setInput(input: ConversationDiffReviewInput, options: IEditorOptions | undefined, context: IEditorOpenContext, token: CancellationToken): Promise<void> {
 		await super.setInput(input, options, context, token);
-		if (token.isCancellationRequested) {
+		if (this._store.isDisposed || token.isCancellationRequested) {
 			return;
 		}
 
@@ -158,12 +158,17 @@ export class ConversationDiffReviewPane extends EditorPane {
 			await this.renderDiff(input, token);
 		}
 
-		if (this.input !== input || token.isCancellationRequested) {
+		if (this._store.isDisposed || this.input !== input || token.isCancellationRequested) {
 			return;
 		}
 
 		this.layoutEditors();
 		this._onDidChangeControl.fire();
+	}
+
+	override dispose(): void {
+		this.clearEditors();
+		super.dispose();
 	}
 
 	override clearInput(): void {
@@ -335,7 +340,7 @@ export class ConversationDiffReviewPane extends EditorPane {
 			return;
 		}
 
-		if (this.input !== input || token.isCancellationRequested) {
+		if (this._store.isDisposed || this.input !== input || token.isCancellationRequested) {
 			originalRef.dispose();
 			modifiedRef.dispose();
 			return;
@@ -369,7 +374,7 @@ export class ConversationDiffReviewPane extends EditorPane {
 			return;
 		}
 
-		if (this.input !== input || token.isCancellationRequested) {
+		if (this._store.isDisposed || this.input !== input || token.isCancellationRequested) {
 			modifiedRef.dispose();
 			return;
 		}

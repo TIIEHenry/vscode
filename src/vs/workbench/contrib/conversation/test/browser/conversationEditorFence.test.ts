@@ -19,7 +19,6 @@ import { ChatEditorInput } from '../../../chat/browser/widgetHosts/editor/chatEd
 import { ConversationChatInput, getDefaultConversationChatResource } from '../../browser/conversationChatInput.js';
 import { ConversationDiffReviewInput } from '../../../sources/browser/conversationDiffReviewInput.js';
 import '../../browser/conversationEditor.contribution.js';
-import '../../../sources/browser/conversationDiffReview.contribution.js';
 
 suite('Conversation editor fence', () => {
 

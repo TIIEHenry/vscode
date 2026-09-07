@@ -251,10 +251,4 @@ jobs:
         env:
           DISPLAY: ":10"
           VSCODE_SKIP_PRELAUNCH: "1"
-        run: |
-          set +e
-          ./scripts/test.sh --glob '**/vs/workbench/contrib/conversation/test/**/*.test.js' --tfs conversation
-          ./scripts/test.sh --glob '**/vs/workbench/contrib/sources/test/**/*.test.js' --tfs sources
-          ./scripts/test.sh --glob '**/vs/platform/universeAgent/test/**/*.test.js' --tfs universeAgent
-          set -e
-          ./scripts/check-test-baseline.sh
+        run: ./scripts/run-unit-custom.sh

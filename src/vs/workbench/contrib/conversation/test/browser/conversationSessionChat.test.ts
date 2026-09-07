@@ -43,6 +43,7 @@ import { ConversationStubService, IConversationRosterService, type ILiveAgentTre
 import type { LiveAgentTreeNodeView } from '../../../../../platform/universeAgent/common/sessionView/index.js';
 import { ConversationDiffReviewInput } from '../../../sources/browser/conversationDiffReviewInput.js';
 import { ConversationDiffReviewInputTypeId } from '../../../sources/common/conversationDiffReviewInput.js';
+import { registerTestConversationDiffReviewEditor } from './conversationDiffReviewTestEditor.js';
 import { ForkConversationAction } from '../../../chat/browser/actions/chatForkActions.js';
 import { isDefaultCodeWindow } from '../../../chat/browser/chatShellRouting.js';
 import { IChatSessionsService } from '../../../chat/common/chatSessionsService.js';
@@ -108,65 +109,6 @@ function registerTestConversationChatEditor(disposables: Pick<DisposableStore, '
 	});
 }
 
-const TEST_CONVERSATION_DIFF_REVIEW_EDITOR_ID = 'workbench.editor.conversationDiffReview.test';
-
-function registerTestConversationDiffReviewEditor(disposables: Pick<DisposableStore, 'add'>): IDisposable {
-	class TestConversationDiffReviewEditorPane extends EditorPane {
-		constructor(group: IEditorGroup) {
-			super(TEST_CONVERSATION_DIFF_REVIEW_EDITOR_ID, group, NullTelemetryService, new TestThemeService(), disposables.add(new TestStorageService()));
-		}
-
-		layout(): void { }
-
-		protected createEditor(): void { }
-
-		override async setInput(input: EditorInput, options: IEditorOptions | undefined, context: IEditorOpenContext, token: CancellationToken): Promise<void> {
-			await super.setInput(input, options, context, token);
-		}
-	}
-
-	class ConversationDiffReviewInputSerializer implements IEditorSerializer {
-		canSerialize(input: EditorInput): input is ConversationDiffReviewInput {
-			return input instanceof ConversationDiffReviewInput;
-		}
-
-		serialize(input: ConversationDiffReviewInput): string | undefined {
-			return JSON.stringify({
-				modified: input.modified.toString(),
-				original: input.original?.toString(),
-			});
-		}
-
-		deserialize(instantiationService: IInstantiationService, serialized: string): ConversationDiffReviewInput | undefined {
-			try {
-				const parsed = JSON.parse(serialized) as { modified: string; original?: string };
-				return instantiationService.createInstance(ConversationDiffReviewInput, URI.parse(parsed.modified), parsed.original ? URI.parse(parsed.original) : undefined);
-			} catch {
-				return undefined;
-			}
-		}
-	}
-
-	const paneRegistration = disposables.add(Registry.as<IEditorPaneRegistry>(EditorExtensions.EditorPane).registerEditorPane(
-		EditorPaneDescriptor.create(
-			TestConversationDiffReviewEditorPane,
-			TEST_CONVERSATION_DIFF_REVIEW_EDITOR_ID,
-			'Conversation Diff Review Test',
-		),
-		[new SyncDescriptor(ConversationDiffReviewInput)],
-	));
-
-	const serializerRegistration = disposables.add(Registry.as<IEditorFactoryRegistry>(EditorExtensions.EditorFactory).registerEditorSerializer(
-		ConversationDiffReviewInputTypeId,
-		ConversationDiffReviewInputSerializer,
-	));
-
-	return toDisposable(() => {
-		paneRegistration.dispose();
-		serializerRegistration.dispose();
-	});
-}
-
 suite('Conversation session chat (S3)', () => {
 
 	const TEST_EDITOR_ID = 'MyFileEditorForConversationSessionChat';
@@ -176,7 +118,6 @@ suite('Conversation session chat (S3)', () => {
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
 	const disposables = store as unknown as DisposableStore;
 	let conversationChatEditorRegistered: IDisposable | undefined;
-	let conversationDiffReviewEditorRegistered: IDisposable | undefined;
 
 	class TestRosterWithLiveTree extends ConversationStubService {
 		private readonly _onDidChangeLiveAgentTree = this._register(new Emitter<ILiveAgentTreeChangeEvent>());
@@ -346,9 +287,8 @@ suite('Conversation session chat (S3)', () => {
 			conversationChatEditorRegistered = registerTestConversationChatEditor(store);
 			store.add(conversationChatEditorRegistered);
 		}
-		if (!conversationDiffReviewEditorRegistered && !editorFactory.getEditorSerializer(ConversationDiffReviewInputTypeId)) {
-			conversationDiffReviewEditorRegistered = registerTestConversationDiffReviewEditor(store);
-			store.add(conversationDiffReviewEditorRegistered);
+		if (!editorFactory.getEditorSerializer(ConversationDiffReviewInputTypeId)) {
+			store.add(registerTestConversationDiffReviewEditor(store));
 		}
 	});
 
