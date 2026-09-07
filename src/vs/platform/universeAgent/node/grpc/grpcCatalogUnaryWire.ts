@@ -45,6 +45,14 @@ export function encodeEmptyProtoMessage(): Uint8Array {
 	return EMPTY_PROTO_MESSAGE;
 }
 
+/**
+ * Connect-time capability probe. Status-only; empty proto3, never JSON `{}`.
+ * MemberStatus / ListTools / ListSkills still accept default-empty proto3.
+ */
+export function encodeProbeRpcRequest(): Uint8Array {
+	return encodeEmptyProtoMessage();
+}
+
 /** proto SessionListFilter.SESSION_LIST_FILTER_ALL — default so List is not RECENT-only. */
 export const SESSION_LIST_FILTER_ALL = 4;
 
