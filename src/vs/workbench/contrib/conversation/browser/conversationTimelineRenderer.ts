@@ -40,6 +40,17 @@ export const conversationLensUserBubbleShowMore = localize('conversationLens.use
 export const conversationLensUserBubbleShowLess = localize('conversationLens.userBubbleShowLess', "Show less");
 export const conversationLensErrorRetry = localize('conversationLens.errorRetry', "Retry");
 
+/**
+ * Composer to mount into the next edit-host during `renderElement`, before ListView
+ * measures the row. Chrome must call this before `setEditingTurnId` so the host is
+ * never measured empty (D27). Cleared when leaving turn-edit.
+ */
+let pendingTurnEditComposer: HTMLElement | undefined;
+
+export function provideTurnEditComposer(composer: HTMLElement | undefined): void {
+	pendingTurnEditComposer = composer;
+}
+
 export class ConversationTimelineDelegate implements IListVirtualDelegate<ConversationTimelineItem> {
 
 	private readonly heights = new Map<string, number>();
@@ -272,9 +283,9 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 					el.classList.add('conversation-lens-turn--editing');
 					const host = append(el, $('.conversation-lens-turn-edit-host'));
 					host.setAttribute('data-turn-id', turn.id);
-					// The composer is re-parented in after this render, so keep the same non-zero
-					// floor scheduleHeightUpdate uses; a 0px row caches a collapsed edited turn.
-					host.style.minHeight = '1px';
+					if (pendingTurnEditComposer) {
+						host.appendChild(pendingTurnEditComposer);
+					}
 					templateData.container.appendChild(el);
 					this.scheduleHeightUpdate(item, templateData.container);
 					return;

@@ -56,7 +56,7 @@ summary: "人类工位已对齐已推送 MERGE_SHA c1b228caf74；保留本机行
 1. **集成 tip** 以 merge `647d24a8f3f` 为准。本波 A=`host-bind-safety`（未 compile）。GFS >800 不拆。
 2. 字母槽 leftover 进度句已收进本账，再 cascade：
    - **A**：`host-bind-safety` — [D38](deferred-gaps.md)/[D39](deferred-gaps.md) 已 closed；[D26](deferred-gaps.md) host（Tree 可观察 + recover 单层）已写，引擎 Create meta 仍 open。
-   - **B**：`getEngineStatusCommandId(phase, pairingPending)`。D27 仍 PARTIAL（1px 垫高）。
+   - **B**：D27 已 closed（composer 先入 edit-host，已删 1px 垫高）。上波 pairing chip 已在 merge。
    - **C**：Inbox FAILED Retry → `retryMessageQueueItem`；引擎 unary 见 [D37](deferred-gaps.md)。
    - **D**：Review 读失败上 status；Panel 与对话窗同门控；Unstage 明确不可用。**未跑 F4、不升 PRD、R8 仍 open**。
 
@@ -66,12 +66,13 @@ summary: "人类工位已对齐已推送 MERGE_SHA c1b228caf74；保留本机行
 |:---|:-----|:-----|
 | [D23](deferred-gaps.md) | A 槽 | **closed** resident heartbeat write 已 catch |
 | [D33](deferred-gaps.md) | B 槽 | **closed** pairingPending 开 Connection/SAS |
-| [D27](deferred-gaps.md) | grok 4.6 | **PARTIAL**：剩 1px 垫高 + composer 后置 |
+| [D27](deferred-gaps.md) | grok 4.6 | **closed**：`provideTurnEditComposer` 先于 `setEditingTurnId`；已删 1px 垫高 |
 | [D31](deferred-gaps.md) | D 槽 | 代码洞已收；剩 F4 冒烟 |
 | [R8](research-queue.md) | A 槽 Sources | `WriteGitApplyHunks` 空 patches 语义未定 |
 | [D32](deferred-gaps.md) | A 槽 `host-write-retry` | **closed（代码+测已写；compile 待 merge）** Retry 走 `lease.post`；host 映射 Actor `continueGeneration` |
 | [D38](deferred-gaps.md) | A 槽 `host-bind-safety` | **closed** `fillHistory` bind/write 已 catch |
 | [D39](deferred-gaps.md) | A 槽 `host-bind-safety` | **closed** `requestDetail` bind 已 catch |
+| [D40](deferred-gaps.md) | A 槽发现 | `requestDetail` bind 成功后 `fetchToolDetail` 仍无 catch（生产 connection 已吞错） |
 | [D26](deferred-gaps.md) | A 槽 host / 引擎仓 | host Tree+recover 已收；引擎空壳 Create 回 6 仍开；不要再清 store |
 | [D37](deferred-gaps.md) | C 槽 D30 | 引擎 roster 未 override `retryMessageQueueItem`（A 占该文件）；无 GetQueue |
 

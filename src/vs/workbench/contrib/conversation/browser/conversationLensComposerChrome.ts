@@ -54,6 +54,7 @@ import {
 import { ConversationInboxOverlay } from './conversationInboxOverlay.js';
 import { isConversationLeafNarrow } from './conversationNarrowLayout.js';
 import { ConversationTimelineTree } from './conversationTimelineTree.js';
+import { provideTurnEditComposer } from './conversationTimelineRenderer.js';
 import { ConversationVoiceTranscriptBar } from './conversationVoiceTranscriptBar.js';
 import { IConversationRosterService } from './conversationStubService.js';
 import { IConversationLensSlots } from '../../../browser/parts/conversation/conversationPart.js';
@@ -366,6 +367,7 @@ export function beginTurnEdit(host: IConversationLensComposerChromeHost, turnId:
 		host.editingTurnId = turnId;
 		host.editingQueueItemId = undefined;
 		host.dockTextarea.value = turn.text;
+		provideTurnEditComposer(host.composer);
 		host.timelineTree.setEditingTurnId(turnId);
 		syncComposerPlacement(host);
 		updateComposerEditChrome(host);
@@ -389,6 +391,7 @@ export function beginQueueEdit(host: IConversationLensComposerChromeHost, itemId
 		host.composerPolicy = 'queueEdit';
 		host.editingQueueItemId = itemId;
 		host.editingTurnId = undefined;
+		provideTurnEditComposer(undefined);
 		host.timelineTree.setEditingTurnId(undefined);
 		host.dockTextarea.value = item.content;
 		syncComposerPlacement(host);
@@ -413,6 +416,7 @@ export function exitComposerEdit(host: IConversationLensComposerChromeHost, rest
 		host.composerPolicy = 'compose';
 		host.editingTurnId = undefined;
 		host.editingQueueItemId = undefined;
+		provideTurnEditComposer(undefined);
 		host.timelineTree.setEditingTurnId(undefined);
 		host.dockTextarea.value = restoreComposeDraft
 			? (host.composeDraftSnapshot || host.readComposerDraft(sessionId) || '')
