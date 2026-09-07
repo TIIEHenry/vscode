@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import re
 import shutil
 import subprocess
 import sys
@@ -124,11 +125,15 @@ class DocsStatusTests(unittest.TestCase):
 
         index_path = self.root / "dev/plans/INDEX.md"
         index_text = index_path.read_text(encoding="utf-8")
-        index_text = index_text.replace(
-            "docs-burden-reduction.md) | `accepted` | INDEX/traceability",
-            f"docs-burden-reduction.md) | `accepted` | {unique_summary.decode()} INDEX/traceability",
-            1,
+        # Anchor on the row, not on its status value: the status is generated
+        # and legitimately changes as the plan progresses.
+        index_text, substitutions = re.subn(
+            r"(docs-burden-reduction\.md\) \| `\w+` \| )",
+            lambda match: match.group(1) + unique_summary.decode() + " ",
+            index_text,
+            count=1,
         )
+        self.assertEqual(substitutions, 1, "docs-burden-reduction row not found in dev/plans/INDEX.md")
         index_path.write_text(index_text, encoding="utf-8")
 
         before_trace = trace_path.read_bytes()

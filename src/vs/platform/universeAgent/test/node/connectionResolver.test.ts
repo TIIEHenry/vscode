@@ -157,7 +157,7 @@ function createResolverHarness(input: {
 	const hubSessionStore = new InMemoryHubSessionStore();
 	awaitableApplyAuthSession(hubSessionStore);
 
-	let issueRelayTicketCalls: Array<{ hubDeviceId: string; nowMs: number }> = [];
+	const issueRelayTicketCalls: Array<{ hubDeviceId: string; nowMs: number }> = [];
 	let ticketCounter = 0;
 
 	const resolver = createConnectionResolver({

@@ -2551,6 +2551,8 @@ suite('ConnectionPreferencesPane', () => {
 });
 
 suite('Conversation Session StatusBar H4a negative', () => {
+
+	ensureNoDisposablesAreLeakedInTestSuite();
 	test('engine status copy stays not connected before H4b phase wiring', () => {
 		assert.strictEqual(getConversationEngineStatusText(), 'Engine not connected');
 	});

@@ -96,7 +96,7 @@ suite('Sources - review showForPaths', () => {
 				}
 				throw new Error(`unexpected service ${String(id)}`);
 			},
-			// eslint-disable-next-line local/code-no-any-casts
+			 
 		} as any, [resource]);
 
 		assert.deepStrictEqual(setPartHiddenCalls, [{ hidden: false, part: Parts.SOURCES_PART }]);
@@ -156,7 +156,7 @@ suite('Sources - review showForPaths', () => {
 				}
 				throw new Error(`unexpected service ${String(id)}`);
 			},
-			// eslint-disable-next-line local/code-no-any-casts
+			 
 		} as any;
 
 		await CommandsRegistry.getCommand(SOURCES_REVIEW_TOGGLE_REVIEWED_SELECTED_COMMAND)?.handler?.(accessor);
@@ -237,7 +237,7 @@ suite('Sources - review showForPaths', () => {
 				}
 				throw new Error(`unexpected service ${String(id)}`);
 			},
-			// eslint-disable-next-line local/code-no-any-casts
+			 
 		} as any;
 
 		await CommandsRegistry.getCommand(SOURCES_REVIEW_OPEN_SELECTED_COMMAND)?.handler?.(accessor);
