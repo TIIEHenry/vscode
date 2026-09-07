@@ -22,7 +22,10 @@ import {
 	conversationLensDockStopNotGenerating,
 	conversationLensInboxQueueEnqueue,
 	conversationLensInboxQueueEnqueueUnavailable,
+	conversationLensInboxQueueRetry,
+	conversationLensInboxQueueRetryUnavailable,
 } from '../../browser/conversationLensDockStrings.js';
+import { ConversationMessageQueueItem } from '../../browser/conversationMessageQueueModel.js';
 import { ConversationStubTurn } from '../../browser/conversationStubModel.js';
 import { ConversationStubService, IConversationRosterService } from '../../browser/conversationStubService.js';
 
@@ -66,12 +69,38 @@ class EnqueueRoster extends ConversationStubService {
 	}
 }
 
+class RetryRoster extends ConversationStubService {
+	readonly retryCalls: { sessionId: string; itemId: string; upload?: boolean }[] = [];
+	readonly holdCalls: { sessionId: string; itemId: string }[] = [];
+	retryResult = true;
+
+	override isEngineConnected(): boolean {
+		return true;
+	}
+
+	override retryMessageQueueItem(sessionId: string, itemId: string, options?: { upload?: boolean }): boolean {
+		this.retryCalls.push({ sessionId, itemId, upload: options?.upload });
+		return this.retryResult;
+	}
+
+	override holdMessageQueueItem(sessionId: string, itemId: string, hold: 'EDITING'): void {
+		this.holdCalls.push({ sessionId, itemId });
+		super.holdMessageQueueItem(sessionId, itemId, hold);
+	}
+}
+
 class RecordingStubRoster extends ConversationStubService {
 	readonly enqueueCalls: { sessionId: string; text: string }[] = [];
+	readonly retryCalls: { sessionId: string; itemId: string; upload?: boolean }[] = [];
 
 	override enqueueMessageQueueItem(sessionId: string, text: string, options?: { priority?: 'NORMAL' | 'HIGH' | 'LOW'; opId?: string }): boolean {
 		this.enqueueCalls.push({ sessionId, text });
 		return super.enqueueMessageQueueItem(sessionId, text, options);
+	}
+
+	override retryMessageQueueItem(sessionId: string, itemId: string, options?: { upload?: boolean }): boolean {
+		this.retryCalls.push({ sessionId, itemId, upload: options?.upload });
+		return super.retryMessageQueueItem(sessionId, itemId, options);
 	}
 }
 
@@ -403,5 +432,158 @@ suite('ConversationInboxOverlay Enqueue', () => {
 		assert.deepStrictEqual(roster.enqueueCalls, [{ sessionId: roster.getActiveSessionId(), text: 'Nope' }]);
 		assert.deepStrictEqual(roster.getMessageQueueState(roster.getActiveSessionId()).items, []);
 		assert.ok(panel.querySelector('.conversation-lens-inbox-list-empty')?.textContent?.includes(conversationLensDockInboxNoQueue));
+	});
+});
+
+suite('ConversationInboxOverlay Retry', () => {
+
+	const store = ensureNoDisposablesAreLeakedInTestSuite();
+
+	function failedItem(id: string, status: 'FAILED' | 'UPLOAD_FAILED', lastError: string): ConversationMessageQueueItem {
+		return {
+			id,
+			content: `body-${id}`,
+			status,
+			hold: undefined,
+			uploadProgress: undefined,
+			retryCount: 1,
+			lastError,
+			locked: false,
+			pinned: false,
+		};
+	}
+
+	function createOverlay(roster: ConversationStubService): ConversationInboxOverlay {
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IConversationRosterService, roster);
+		const parent = document.createElement('div');
+		document.body.appendChild(parent);
+		store.add({ dispose: () => parent.remove() });
+		return store.add(instantiationService.createInstance(ConversationInboxOverlay, parent, {
+			onQueueItemHold() { },
+			onScrollToPendingConfirmation() { },
+		}));
+	}
+
+	function openQueuePanel(overlay: ConversationInboxOverlay): HTMLElement {
+		const queueChip = overlay.element.querySelector('.conversation-lens-inbox-queue') as HTMLButtonElement;
+		queueChip.click();
+		const panels = [...document.querySelectorAll('.conversation-lens-inbox-list-panel')]
+			.filter(host => host.querySelector('.conversation-lens-message-queue-list'));
+		const panel = panels.at(-1) as HTMLElement | undefined;
+		assert.ok(panel);
+		return panel;
+	}
+
+	function getRetryButton(panel: HTMLElement, itemId: string): HTMLButtonElement | null {
+		const row = panel.querySelector(`.queue-item[data-item-id="${itemId}"]`);
+		return row?.querySelector('.conversation-lens-inbox-queue-retry') as HTMLButtonElement | null;
+	}
+
+	test('FAILED and UPLOAD_FAILED rows expose Retry; PENDING does not', () => {
+		const roster = store.add(new ConversationStubService());
+		const sessionId = roster.getActiveSessionId();
+		roster.setMessageQueueFixture(sessionId, {
+			isPaused: false,
+			isProcessing: false,
+			items: [
+				failedItem('q-fail', 'FAILED', 'send rejected'),
+				failedItem('q-upload', 'UPLOAD_FAILED', 'upload rejected'),
+				{
+					id: 'q-pending',
+					content: 'later',
+					status: 'PENDING',
+					hold: undefined,
+					uploadProgress: undefined,
+					retryCount: 0,
+					lastError: undefined,
+					locked: false,
+					pinned: false,
+				},
+			],
+		});
+		const panel = openQueuePanel(createOverlay(roster));
+		const failedRetry = getRetryButton(panel, 'q-fail');
+		const uploadRetry = getRetryButton(panel, 'q-upload');
+		assert.ok(failedRetry);
+		assert.ok(uploadRetry);
+		assert.strictEqual(failedRetry.textContent, conversationLensInboxQueueRetry);
+		assert.strictEqual(uploadRetry.textContent, conversationLensInboxQueueRetry);
+		assert.ok(panel.querySelector('.queue-item[data-item-id="q-fail"]')?.textContent?.includes('send rejected'));
+		assert.ok(panel.querySelector('.queue-item[data-item-id="q-upload"]')?.textContent?.includes('upload rejected'));
+		assert.strictEqual(getRetryButton(panel, 'q-pending'), null);
+	});
+
+	test('stub Retry stays disabled and does not call retryMessageQueueItem', () => {
+		const roster = store.add(new RecordingStubRoster());
+		const sessionId = roster.getActiveSessionId();
+		roster.setMessageQueueFixture(sessionId, {
+			isPaused: false,
+			isProcessing: false,
+			items: [failedItem('q-fail', 'FAILED', 'send rejected')],
+		});
+		const panel = openQueuePanel(createOverlay(roster));
+		const button = getRetryButton(panel, 'q-fail');
+		assert.ok(button);
+		assert.strictEqual(button.disabled, true);
+		assert.strictEqual(button.getAttribute('aria-disabled'), 'true');
+		assert.strictEqual(button.title, conversationLensInboxQueueRetryUnavailable);
+		button.click();
+		assert.deepStrictEqual(roster.retryCalls, []);
+		assert.strictEqual(roster.retryMessageQueueItem(sessionId, 'q-fail'), false);
+		assert.strictEqual(roster.getMessageQueueState(sessionId).items[0]?.status, 'FAILED');
+		assert.ok(getRetryButton(panel, 'q-fail'));
+	});
+
+	test('connected FAILED Retry forwards retryMessageQueueItem', () => {
+		const roster = store.add(new RetryRoster());
+		const sessionId = roster.getActiveSessionId();
+		roster.setMessageQueueFixture(sessionId, {
+			isPaused: false,
+			isProcessing: false,
+			items: [failedItem('q-fail', 'FAILED', 'send rejected')],
+		});
+		const panel = openQueuePanel(createOverlay(roster));
+		const button = getRetryButton(panel, 'q-fail');
+		assert.ok(button);
+		assert.strictEqual(button.disabled, false);
+		assert.strictEqual(button.getAttribute('aria-disabled'), 'false');
+		button.click();
+		assert.deepStrictEqual(roster.retryCalls, [{ sessionId, itemId: 'q-fail', upload: false }]);
+		assert.deepStrictEqual(roster.holdCalls, []);
+	});
+
+	test('connected UPLOAD_FAILED Retry forwards upload retry', () => {
+		const roster = store.add(new RetryRoster());
+		const sessionId = roster.getActiveSessionId();
+		roster.setMessageQueueFixture(sessionId, {
+			isPaused: false,
+			isProcessing: false,
+			items: [failedItem('q-upload', 'UPLOAD_FAILED', 'upload rejected')],
+		});
+		getRetryButton(openQueuePanel(createOverlay(roster)), 'q-upload')!.click();
+		assert.deepStrictEqual(roster.retryCalls, [{ sessionId, itemId: 'q-upload', upload: true }]);
+	});
+
+	test('connected Retry false leaves the FAILED row operable', () => {
+		const roster = store.add(new RetryRoster());
+		roster.retryResult = false;
+		const sessionId = roster.getActiveSessionId();
+		roster.setMessageQueueFixture(sessionId, {
+			isPaused: false,
+			isProcessing: false,
+			items: [failedItem('q-fail', 'FAILED', 'still failed')],
+		});
+		const overlay = createOverlay(roster);
+		const panel = openQueuePanel(overlay);
+		getRetryButton(panel, 'q-fail')!.click();
+		assert.deepStrictEqual(roster.retryCalls, [{ sessionId, itemId: 'q-fail', upload: false }]);
+		assert.strictEqual(roster.getMessageQueueState(sessionId).items[0]?.status, 'FAILED');
+		assert.ok(panel.querySelector('.queue-item[data-item-id="q-fail"]')?.classList.contains('upload-failed'));
+		assert.ok(panel.querySelector('.queue-item[data-item-id="q-fail"]')?.textContent?.includes('still failed'));
+		const retryAfter = getRetryButton(panel, 'q-fail');
+		assert.ok(retryAfter);
+		assert.strictEqual(retryAfter.disabled, false);
+		assert.strictEqual(retryAfter.getAttribute('aria-disabled'), 'false');
 	});
 });

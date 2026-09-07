@@ -57,7 +57,7 @@ summary: "人类工位已对齐已推送 MERGE_SHA c1b228caf74；保留本机行
 2. 字母槽 leftover 进度句已收进本账，再 cascade：
    - **A**：Sources 写面 `supported && success` 才算 Stage/Commit/Accept；`supported: false` 回落本地 git；Accept 不绑死 SCM。次级面 [D31](deferred-gaps.md)。
    - **B**：`conversation-disconnect-send` 未连不锁 Send；引擎缓存断连先试 enqueue，拒收则留 draft + 明确失败，不 stub echo。
-   - **C**：pairing pending 时 SAS 框挂在发起 Connect 的 zone 外侧，避免被 `.connection-zone:not(.is-active-zone)` 吃掉。
+   - **C**：pairing pending 时 SAS 框挂在发起 Connect 的 zone 外侧，避免被 `.connection-zone:not(.is-active-zone)` 吃掉。本 wake D30：Inbox FAILED / UPLOAD_FAILED 行 Retry → `retryMessageQueueItem`（overlay 面；引擎 unary 见 [D37](deferred-gaps.md)）。
    - **D**：retryable error 行 Retry → roster `openContinuationStream`；不经 `lease.post`（[D32](deferred-gaps.md)）。
 
 子 agent 发现的既有代码问题：
@@ -71,6 +71,7 @@ summary: "人类工位已对齐已推送 MERGE_SHA c1b228caf74；保留本机行
 | [R8](research-queue.md) | A 槽 Sources | `WriteGitApplyHunks` 空 patches 语义未定 |
 | [D32](deferred-gaps.md) | D 槽 error-retry | UI 直开 ContinueGeneration，不经 lease.post |
 | [D26](deferred-gaps.md) | merge 账 | 引擎空壳 Create 回 6；不要再清 store |
+| [D37](deferred-gaps.md) | C 槽 D30 | 引擎 roster 未 override `retryMessageQueueItem`（A 占该文件）；无 GetQueue |
 
 ## 工位表（P0 盘点 · 2026-09-07 · 与 `git worktree list` 对照）
 

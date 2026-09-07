@@ -169,6 +169,14 @@ export interface IConversationRosterService {
 	 */
 	enqueueMessageQueueItem(sessionId: string, text: string, options?: { priority?: 'NORMAL' | 'HIGH' | 'LOW'; opId?: string }): boolean;
 	/**
+	 * AgentService.RetryQueueItem / RetryQueueItemUpload (Inbox FAILED CTA).
+	 * Overlay FAILED → RetryQueueItem; UPLOAD_FAILED → `{ upload: true }` →
+	 * RetryQueueItemUpload. Empty `itemId` / stub / never-connected /
+	 * disconnected cache returns false and does not mutate the fixture queue.
+	 * ≠ `retryError` (ContinueGeneration).
+	 */
+	retryMessageQueueItem(sessionId: string, itemId: string, options?: { upload?: boolean }): boolean;
+	/**
 	 * AgentService.EditQueueItem. Engine-connected forwards unary (empty /
 	 * unknown id / disconnected cache false). Stub / never-connected stays local.
 	 */
@@ -369,6 +377,14 @@ export class ConversationStubService extends Disposable implements IConversation
 			return false;
 		}
 		// Never-connected: no engine queue. Do not append fixture items.
+		return false;
+	}
+
+	retryMessageQueueItem(_sessionId: string, itemId: string, _options?: { upload?: boolean }): boolean {
+		if (!itemId.trim()) {
+			return false;
+		}
+		// Never-connected: no engine queue. Do not mutate fixture items.
 		return false;
 	}
 
