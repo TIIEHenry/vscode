@@ -10,7 +10,13 @@ import type {
 	IFileMutationRecord,
 	ITurnSettleSignal,
 	UniverseAgentAgentTreeNode,
+	UniverseAgentChatRequest,
+	UniverseAgentChatResponse,
 	UniverseAgentConnectionSnapshot,
+	UniverseAgentCreateSessionRequest,
+	UniverseAgentCreateSessionResult,
+	UniverseAgentGetHistoryResult,
+	UniverseAgentListSessionsResult,
 	UniverseAgentSessionStreamCloseCause,
 } from '../../common/universeAgentTypes.js';
 import { GrpcStatusCode, UniverseAgentTransportError } from '../../node/grpc/grpcTransport.js';
@@ -60,10 +66,10 @@ export class TestConnection implements IUniverseAgentConnection {
 	async cancelPairing() { }
 	async probeConnectionProfile() { return { ok: false as const, code: 'transport_failed' as const, reason: 'test' }; }
 	async disconnect() { this.connected = false; }
-	async listSessions() { return { sessions: [] }; }
-	readonly createSessionCalls: { title?: string; model?: string; clientSessionId?: string }[] = [];
+	async listSessions(): Promise<UniverseAgentListSessionsResult> { return { sessions: [] }; }
+	readonly createSessionCalls: UniverseAgentCreateSessionRequest[] = [];
 	readonly createdEngineSessionIds = new Set<string>();
-	async createSession(request: { title?: string; model?: string; clientSessionId?: string } = {}) {
+	async createSession(request: UniverseAgentCreateSessionRequest = {}): Promise<UniverseAgentCreateSessionResult> {
 		this.createSessionCalls.push(request);
 		const sessionId = request.title || 's';
 		this.createdEngineSessionIds.add(sessionId);
@@ -88,7 +94,7 @@ export class TestConnection implements IUniverseAgentConnection {
 	async holdQueueItem() { return { ok: false, error: 'test' }; }
 	async releaseQueueItemHold() { return { ok: false, error: 'test' }; }
 	async editQueueItem() { return { ok: false, error: 'test' }; }
-	async getHistory() { return { envelopes: [] }; }
+	async getHistory(): Promise<UniverseAgentGetHistoryResult> { return { envelopes: [] }; }
 	subscribeSessionEventStream(
 		sessionId: string,
 		listener: (event: { payload: unknown }) => void,
@@ -123,7 +129,7 @@ export class TestConnection implements IUniverseAgentConnection {
 			listener(cause);
 		}
 	}
-	async chat() { }
+	async chat(_request: UniverseAgentChatRequest, _onResponse?: (response: UniverseAgentChatResponse) => void): Promise<void> { }
 	async listSkills() { return { skills: [] }; }
 	async setSkillEnabled() { return { ok: true }; }
 	async getSkillInfo() { return { name: '', content: '', source: 'unknown' as const, enabled: false }; }
