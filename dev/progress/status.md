@@ -58,7 +58,7 @@ summary: "wave-10 已本地合入 MERGE_SHA 9d543eaf055（未 push）。D15 W1 �
    - **A**：`live-rpc-bytes` — [D24](deferred-gaps.md) leftover 盘点：接通后 catalog/attach 已 bytes；`probeRpc` 改 empty proto（capability probe 不再打 JSON `{}`）；`listTools` 仍 JSON（composer/Engine 有调用，本仓无 ListTools 响应字段号）。活 roster/queue/git/team/ContinueGeneration/`fetchToolDetail` 仍 JSON，未发明 proto。**D24 仍开**。D25 host leftover 已收、引擎 List 真空仍开；D26 引擎 Create meta 仍开。
    - **B**：visualize 三测已收；remainder 7 已按夹具诚实收口（虚拟列表 reveal / flush 预算 / `scrollToEnd` 后不立刻 layout 冲掉）。全量 Lens **97/97** @ `loop/B` 2026-09-07。**[D16](deferred-gaps.md) 仍开**（本 slice 不闭；S2「Lens 全绿」仍以本行闭合为前提）。
    - **C**：`inbox-getqueue-honesty` — catalog / connection **无** GetQueue / ListQueue，未发明 RPC。接通 / 断连缓存 Inbox 文案「Queue not listed」，stub fixture 不得冒充引擎队列；测锁 overlay / roster / stub。[D37](deferred-gaps.md) **仍闭**；缺 list-queue 记 [D24](deferred-gaps.md)。勿 add `dev/loop`。
-   - **D**：本波空闲。[D31](deferred-gaps.md) 仍开（F4）。
+   - **D**：本波空闲。[D31](deferred-gaps.md) 仍开（F4）。本 wake 工位 B 写了 [ADR-008](../decisions/008-write-git-apply-hunks-empty.md)（空 `argv`/`patches` 引擎语义本仓不能裁定）；[R8](research-queue.md) **仍开**；未跑 F4、未改 Accept 载荷。
 3. **D15 / W1 笔记（工位 A，未占 工位表）**：`scripts/code-web.sh --browserType none --host 127.0.0.1 --port 18080` 已起；V1 Conversation / V2 四钮 + `UniverseAgentStudio Dev` / V3 Connection·Engine 省略桌面连接控件均 **PASS**。`IUniverseAgentConnection.getConnectionPhase()` = `disconnected`；页内点名「此环境不支持本机 Engine 连接」。证据 [d15-evidence/w1-1556dde3](d15-evidence/w1-1556dde3/)。**D15 可闭**；不升 PRD-019。未跑 compile / F4 / 引擎仓。
 
 子 agent 发现的既有代码问题：
@@ -69,7 +69,7 @@ summary: "wave-10 已本地合入 MERGE_SHA 9d543eaf055（未 push）。D15 W1 �
 | [D33](deferred-gaps.md) | B 槽 | **closed** pairingPending 开 Connection/SAS |
 | [D27](deferred-gaps.md) | grok 4.6 | **closed**：`provideTurnEditComposer` 先于 `setEditingTurnId`；已删 1px 垫高 |
 | [D31](deferred-gaps.md) | D 槽 | Changes Unstage 不可用 + Review 列表/命令打开失败已收；剩 F4 冒烟；不升 PRD |
-| [R8](research-queue.md) | A 槽 Sources | `WriteGitApplyHunks` 空 patches 语义未定 |
+| [R8](research-queue.md) | A 槽 Sources | **仍开**：[ADR-008](../decisions/008-write-git-apply-hunks-empty.md) 已写本仓无 `git_service.proto`、不能裁定空 `argv`/`patches` 引擎语义；D31 F4 未跑 |
 | [D32](deferred-gaps.md) | A 槽 `host-write-retry` | **closed（代码+测已写；compile 待 merge）** Retry 走 `lease.post`；host 映射 Actor `continueGeneration` |
 | [D38](deferred-gaps.md) | A 槽 `host-bind-safety` | **closed** `fillHistory` bind/write 已 catch |
 | [D39](deferred-gaps.md) | A 槽 `host-bind-safety` | **closed** `requestDetail` bind 已 catch |
