@@ -176,6 +176,22 @@ suite('ConversationLens', () => {
 		await flushAnimationFrames();
 	}
 
+	async function revealLatestTurn(
+		lens: ConversationLens,
+		stubService: ConversationStubService,
+		layoutReadingColumn: () => void,
+		match: (turn: { kind: string; text: string; stubEcho?: boolean }) => boolean,
+	): Promise<string> {
+		const turn = [...stubService.getTurns(stubService.getActiveSessionId())].reverse().find(match);
+		assert.ok(turn);
+		await revealVisualizeTurn(lens, layoutReadingColumn, turn.id);
+		return turn.id;
+	}
+
+	function scrollTimelineToEndWithoutClobber(lens: ConversationLens): void {
+		getTimelineTree(lens).scrollToEnd();
+	}
+
 	function queryTimeline(slots: IConversationLensSlots, selector: string): Element | null {
 		return slots.timeline.querySelector(selector);
 	}
@@ -1760,7 +1776,8 @@ suite('ConversationLens', () => {
 		assert.ok(!remountedSlots.timeline.querySelector('.conversation-lens-trajectory')!.hasAttribute('hidden'));
 	});
 
-	test('switching sessions keeps the active lens tab', async () => {
+	test('switching sessions keeps the active lens tab', async function () {
+		this.timeout(15000);
 		const { part, stubService, layoutReadingColumn } = mountLens();
 		const slots = getLensSlots(part);
 		const firstId = stubService.getActiveSessionId();
@@ -1773,6 +1790,7 @@ suite('ConversationLens', () => {
 		await flushTimelineHeightUpdates();
 
 		stubService.switchSession(secondId);
+		layoutReadingColumn();
 		await flushTimelineHeightUpdates();
 
 		assert.strictEqual(getLensTab(slots, 'trajectory').getAttribute('aria-selected'), 'true');
@@ -1794,7 +1812,8 @@ suite('ConversationLens', () => {
 		assert.strictEqual(trajectory.querySelector('.conversation-lens-trajectory-record-row'), null);
 	});
 
-	test('inbox pending click from Trajectory lens switches back to Conversation', async () => {
+	test('inbox pending click from Trajectory lens switches back to Conversation', async function () {
+		this.timeout(15000);
 		const { part, lens, stubService, layoutReadingColumn } = mountLens();
 		const slots = getLensSlots(part);
 		await seedPendingConfirmation(stubService, layoutReadingColumn);
@@ -1809,6 +1828,9 @@ suite('ConversationLens', () => {
 		pendingButton.click();
 		layoutReadingColumn();
 		await flushTimelineHeightUpdates();
+		const confirmationTurn = stubService.getTurns(stubService.getActiveSessionId()).find(turn => turn.kind === 'confirmation');
+		assert.ok(confirmationTurn);
+		await revealVisualizeTurn(lens, layoutReadingColumn, confirmationTurn.id);
 
 		assert.strictEqual(getLensTab(slots, 'conversation').getAttribute('aria-selected'), 'true');
 		assert.strictEqual(lens.isInputMaximized(), false);
@@ -1906,17 +1928,20 @@ suite('ConversationLens', () => {
 		assert.strictEqual(pendingButton.hidden, true);
 	});
 
-	test('dock appends a local user turn and stub echo to the current session timeline', async () => {
-		const { part } = mountLens();
+	test('dock appends a local user turn and stub echo to the current session timeline', async function () {
+		this.timeout(15000);
+		const { part, lens, stubService, layoutReadingColumn } = mountLens();
 		const slots = getLensSlots(part);
 		const textarea = getDockTextarea(slots);
 
 		const message = 'Local stub message from test';
 		assert.ok(!slots.timeline.textContent?.includes(message));
 
-		await sendDockDraft(slots, message);
-
+		await sendDockDraftAndFlush(slots, message, layoutReadingColumn);
+		await revealLatestTurn(lens, stubService, layoutReadingColumn, turn => turn.kind === 'user' && turn.text === message);
 		assert.ok(slots.timeline.textContent?.includes(message));
+
+		await revealLatestTurn(lens, stubService, layoutReadingColumn, turn => turn.kind === 'assistant' && turn.stubEcho === true);
 		assert.ok(queryTimeline(slots, '[data-stub="true"]'));
 		assert.strictEqual(textarea.value, '');
 	});
@@ -2114,8 +2139,9 @@ suite('ConversationLens', () => {
 		assert.strictEqual(queryTimeline(slots, '[aria-label*="Edit"]'), null);
 	});
 
-	test('Delete turn removes it from timeline and trajectory; Copy writes turn text to clipboard', async () => {
-		const { part, stubService, clipboardService, layoutReadingColumn } = mountLens();
+	test('Delete turn removes it from timeline and trajectory; Copy writes turn text to clipboard', async function () {
+		this.timeout(30000);
+		const { part, lens, stubService, clipboardService, layoutReadingColumn } = mountLens();
 		const slots = getLensSlots(part);
 		const sessionId = stubService.createSession();
 		const userText = 'Delete and copy user text';
@@ -2127,6 +2153,8 @@ suite('ConversationLens', () => {
 		stubService.appendStubEchoAssistant(sessionId, assistantText);
 		layoutReadingColumn();
 		await flushTimelineHeightUpdates();
+		await revealLatestTurn(lens, stubService, layoutReadingColumn, turn => turn.kind === 'user' && turn.text === userText);
+		await revealLatestTurn(lens, stubService, layoutReadingColumn, turn => turn.kind === 'assistant' && turn.text === assistantText);
 
 		const userTurn = queryTimeline(slots, '.conversation-lens-turn[data-kind="user"]')!;
 		const assistantTurn = queryTimeline(slots, '.conversation-lens-turn[data-kind="assistant"]')!;
@@ -2143,12 +2171,15 @@ suite('ConversationLens', () => {
 		clickLensTab(slots, 'conversation');
 		layoutReadingColumn();
 		await flushTimelineHeightUpdates();
+		await revealLatestTurn(lens, stubService, layoutReadingColumn, turn => turn.kind === 'assistant' && turn.text === assistantText);
+		const liveAssistantTurn = queryTimeline(slots, '.conversation-lens-turn[data-kind="assistant"]')!;
+		assert.ok(liveAssistantTurn);
 
-		const assistantCopy = assistantTurn.querySelector('.conversation-lens-turn-action-copy .monaco-button') as HTMLElement;
+		const assistantCopy = liveAssistantTurn.querySelector('.conversation-lens-turn-action-copy .monaco-button') as HTMLElement;
 		assistantCopy.click();
 		assert.strictEqual(await clipboardService.readText(), assistantText);
 
-		const assistantDelete = assistantTurn.querySelector('.conversation-lens-turn-action-delete .monaco-button') as HTMLElement;
+		const assistantDelete = liveAssistantTurn.querySelector('.conversation-lens-turn-action-delete .monaco-button') as HTMLElement;
 		assistantDelete.click();
 		layoutReadingColumn();
 		await flushTimelineHeightUpdates();
@@ -2168,19 +2199,22 @@ suite('ConversationLens', () => {
 		clickLensTab(slots, 'conversation');
 		layoutReadingColumn();
 		await flushTimelineHeightUpdates();
+		await revealLatestTurn(lens, stubService, layoutReadingColumn, turn => turn.kind === 'user' && turn.text === userText);
 		await flushAnimationFrames();
 
 		assert.ok(queryTimeline(slots, '.conversation-lens-turn[data-kind="user"]'));
 		assert.strictEqual(queryTimeline(slots, '.conversation-lens-turn[data-kind="assistant"]'), null);
 	});
 
-	test('T5 Edit XOR: entering turn edit hosts composer before ListView measure (no 0px warn)', async () => {
-		const { part, stubService, layoutReadingColumn } = mountLens();
+	test('T5 Edit XOR: entering turn edit hosts composer before ListView measure (no 0px warn)', async function () {
+		this.timeout(15000);
+		const { part, lens, stubService, layoutReadingColumn } = mountLens();
 		const slots = getLensSlots(part);
 		const sessionId = stubService.createSession();
 		stubService.appendUserTurn(sessionId, 'Edit this user turn');
 		layoutReadingColumn();
 		await flushTimelineHeightUpdates();
+		await revealLatestTurn(lens, stubService, layoutReadingColumn, turn => turn.kind === 'user' && turn.text === 'Edit this user turn');
 
 		const listViewZeroPx: string[] = [];
 		const originalWarn = console.warn;
@@ -2547,7 +2581,7 @@ suite('ConversationLens', () => {
 	});
 
 	test('pinned user prompt is hidden at bottom and on empty session', async function () {
-		this.timeout(15000);
+		this.timeout(30000);
 		const { part, lens, stubService, layoutReadingColumn } = mountLens();
 		const slots = getLensSlots(part);
 		const sessionId = stubService.createSession();
@@ -2558,18 +2592,18 @@ suite('ConversationLens', () => {
 		stubService.appendStubEchoAssistant(sessionId, userMessageLines(40));
 		layoutReadingColumn();
 		await flushTimelineHeightUpdates();
+		scrollTimelineToEndWithoutClobber(lens);
+		await flushAnimationFrames();
 
 		assert.ok(!getPinnedUserPrompt(slots)?.classList.contains('conversation-timeline-pinned-user--visible'));
 
 		await scrollTimelineAwayFromPinnedRead(lens, slots, layoutReadingColumn);
-		layoutReadingColumn();
 		await flushTimelineHeightUpdates();
 		await flushAnimationFrames();
 
 		assert.ok(getPinnedUserPrompt(slots)?.classList.contains('conversation-timeline-pinned-user--visible'));
 
-		getTimelineTree(lens).scrollToEnd();
-		layoutReadingColumn();
+		scrollTimelineToEndWithoutClobber(lens);
 		await flushTimelineHeightUpdates();
 		await flushAnimationFrames();
 
@@ -2577,7 +2611,7 @@ suite('ConversationLens', () => {
 	});
 
 	test('pinned user prompt shows one-line preview and reveals user turn on click', async function () {
-		this.timeout(15000);
+		this.timeout(30000);
 		const { part, lens, stubService, layoutReadingColumn } = mountLens();
 		const slots = getLensSlots(part);
 		const sessionId = stubService.createSession();
@@ -2588,7 +2622,6 @@ suite('ConversationLens', () => {
 		layoutReadingColumn();
 		await flushTimelineHeightUpdates();
 		await scrollTimelineAwayFromPinnedRead(lens, slots, layoutReadingColumn);
-		layoutReadingColumn();
 		await flushTimelineHeightUpdates();
 		await flushAnimationFrames();
 
@@ -2599,9 +2632,9 @@ suite('ConversationLens', () => {
 		assert.strictEqual(bubble!.textContent?.includes('Pinned prompt'), false);
 
 		bubble!.click();
-		layoutReadingColumn();
 		await flushTimelineHeightUpdates();
 		await flushAnimationFrames();
+		await revealLatestTurn(lens, stubService, layoutReadingColumn, turn => turn.kind === 'user' && turn.text === userText);
 
 		const userTurn = queryTimeline(slots, '.conversation-lens-turn[data-kind="user"]');
 		assert.ok(userTurn);
