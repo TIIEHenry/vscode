@@ -8,9 +8,11 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
 import { timeout } from '../../../../../base/common/async.js';
+import { getErrorMessage } from '../../../../../base/common/errors.js';
 import { Event } from '../../../../../base/common/event.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { ensureNoDisposablesAreLeakedInTestSuite, toResource } from '../../../../../base/test/common/utils.js';
+import { localize } from '../../../../../nls.js';
 import { ICommandService } from '../../../../../platform/commands/common/commands.js';
 import { getSelectionKeyboardEvent, WorkbenchList } from '../../../../../platform/list/browser/listService.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
@@ -39,7 +41,11 @@ suite('Sources - review list model', () => {
 		return createGitConnection({ throwOnRead: true });
 	}
 
-	function createGitConnection(options: { throwOnRead?: boolean } = {}): IUniverseAgentConnection {
+	function createGitConnection(options: {
+		throwOnRead?: boolean;
+		throwOnStage?: boolean;
+		throwOnCommit?: boolean;
+	} = {}): IUniverseAgentConnection {
 		return {
 			isEngineConnected: () => true,
 			onDidChangeConnection: Event.None,
@@ -60,6 +66,16 @@ suite('Sources - review list model', () => {
 				branch: 'main',
 				changeCount: 1,
 			}),
+			...(options.throwOnStage ? {
+				writeGitStagePaths: async () => {
+					throw new Error('boom');
+				},
+			} : {}),
+			...(options.throwOnCommit ? {
+				writeGitCommit: async () => {
+					throw new Error('boom');
+				},
+			} : {}),
 		} as unknown as IUniverseAgentConnection;
 	}
 
@@ -138,18 +154,41 @@ suite('Sources - review list model', () => {
 		return host;
 	}
 
-	async function openFirstListRow(owner: { list?: WorkbenchList<unknown> }): Promise<void> {
+	async function waitForList(owner: { list?: WorkbenchList<unknown> }): Promise<WorkbenchList<unknown>> {
 		const deadline = Date.now() + 2000;
 		while (Date.now() < deadline) {
 			if (owner.list && owner.list.length > 0) {
 				owner.list.layout(120, 400);
-				owner.list.setFocus([0]);
-				owner.list.setSelection([0], getSelectionKeyboardEvent('keydown', false, false));
-				return;
+				return owner.list;
 			}
 			await timeout(20);
 		}
 		throw new Error('list stayed empty');
+	}
+
+	async function openFirstListRow(owner: { list?: WorkbenchList<unknown> }): Promise<void> {
+		const list = await waitForList(owner);
+		list.setFocus([0]);
+		list.setSelection([0], getSelectionKeyboardEvent('keydown', false, false));
+	}
+
+	async function selectFirstListRow(owner: { list?: WorkbenchList<unknown> }): Promise<void> {
+		const list = await waitForList(owner);
+		list.setFocus([0]);
+		list.setSelection([0]);
+	}
+
+	async function waitForEnabledButton(host: HTMLElement, selector: string): Promise<HTMLElement> {
+		const deadline = Date.now() + 2000;
+		while (Date.now() < deadline) {
+			for (const button of host.querySelectorAll(selector)) {
+				if (!button.classList.contains('disabled')) {
+					return button as HTMLElement;
+				}
+			}
+			await timeout(20);
+		}
+		throw new Error(`enabled button ${selector} not found`);
 	}
 
 	function entry(resource: URI): ISourcesChangeEntry {
@@ -340,6 +379,48 @@ suite('Sources - review list model', () => {
 
 		const status = await waitForStatusText(host, '.sources-changes-status', 'Unable to open diff');
 		assert.strictEqual(status, sourcesGitDiffOpenFailureMessage(new Error('boom')));
+		assert.ok(status.includes('boom'));
+	});
+
+	test('Changes list status DOM shows Stage Selected write throw', async function () {
+		const host = mountListHost();
+		const instantiationService = stubSourcesGitListServices({
+			connection: createGitConnection({ throwOnStage: true }),
+		});
+		const widget = store.add(instantiationService.createInstance(SourcesChangesList, host));
+		(host.querySelector('.sources-changes-list') as HTMLElement).style.height = '120px';
+
+		await selectFirstListRow(widget as unknown as { list?: WorkbenchList<unknown> });
+
+		const stageButton = await waitForEnabledButton(host, '.sources-changes-toolbar .monaco-button');
+		stageButton.click();
+
+		const status = await waitForStatusText(host, '.sources-changes-status', 'Unable to stage');
+		assert.strictEqual(status, localize('sourcesChangesList.stageFailed', "Unable to stage: {0}", getErrorMessage(new Error('boom'))));
+		assert.ok(status.includes('Unable to stage:'));
+		assert.ok(status.includes('boom'));
+	});
+
+	test('Changes list status DOM shows Commit write throw', async function () {
+		const host = mountListHost();
+		const instantiationService = stubSourcesGitListServices({
+			connection: createGitConnection({ throwOnCommit: true }),
+		});
+		const widget = store.add(instantiationService.createInstance(SourcesChangesList, host));
+		(host.querySelector('.sources-changes-list') as HTMLElement).style.height = '120px';
+
+		await selectFirstListRow(widget as unknown as { list?: WorkbenchList<unknown> });
+
+		const input = host.querySelector('.sources-changes-commit-input') as HTMLInputElement;
+		input.value = 'fix';
+		input.dispatchEvent(new window.Event('input', { bubbles: true }));
+
+		const commitButton = await waitForEnabledButton(host, '.sources-changes-commit .monaco-button');
+		commitButton.click();
+
+		const status = await waitForStatusText(host, '.sources-changes-status', 'Unable to commit');
+		assert.strictEqual(status, localize('sourcesChangesList.commitFailed', "Unable to commit: {0}", getErrorMessage(new Error('boom'))));
+		assert.ok(status.includes('Unable to commit:'));
 		assert.ok(status.includes('boom'));
 	});
 

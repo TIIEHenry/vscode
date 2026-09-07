@@ -73,6 +73,7 @@ summary: "FileMutationJoin / createScoped / Review 委托已修。D16 仍开。�
 14. **A 槽 `host-close-stream-dispose-catch`（未关 D16 / 未转 listTools / 未碰 D46·catalog / 未跑 F4）**：核实 `drainIntents` 无 per-intent catch 为真洞——Actor linger / connectionDown / overflow 同批 `closeStream` 后接 `closeChatStream`；生产 `dispose` 走 `call.end()`+`call.cancel()`。只给 `closeStream` 的 `dispose` 补与 open 同级 warn catch，仍 `streams.delete`。测锁 throw-on-dispose 后 Chat 仍关。不包整圈 `drainIntents`。父约束未 compile。
 15. **B 槽 `d46-catalog-leftover-clear`（未关 D16 / 未转 listTools / 未发明 GetQueue）**：`engineToolsSection.refresh` / `engineAgentsSection.refresh` catch 先 `clearCatalogPresentation` 再 `failed`。补成功→throw 测：`getMode()==='failed'` 且 `getListEntryCount()===0`。首拉 throw 三测保留。父约束未 compile。[D46](deferred-gaps.md) **已闭**。
 16. **D 槽 `review-list-open-diff-dom`（未关 D16 / 未跑 F4 / 未开 A2）**：Review / Changes 列表 `onDidOpen` 在 `getQuickDiffs` throw 后断言 status DOM 为 `sourcesGitDiffOpenFailureMessage('boom')` / `Unable to open diff:`；Review 不标已审。未重做 Open Selected。未重做 git-read throw。未发明 WriteGitUnstage。
+17. **D 槽 `changes-stage-commit-dom`（未关 D16 / 未关 D31 / 未跑 F4 / 未开 A2）**：Changes 挂载后选行，Stage Selected / Commit 在 `writeGitStagePaths` / `writeGitCommit` throw 时 `.sources-changes-status` 对齐既有 localize（`Unable to stage:` / `Unable to commit:`）。未改生产。未重做 git-read / open-diff。未发明 WriteGitUnstage。未 compile。
 
 子 agent 发现的既有代码问题：
 
@@ -81,7 +82,7 @@ summary: "FileMutationJoin / createScoped / Review 委托已修。D16 仍开。�
 | [D23](deferred-gaps.md) | A 槽 | **closed** resident heartbeat write 已 catch |
 | [D33](deferred-gaps.md) | B 槽 | **closed** pairingPending 开 Connection/SAS |
 | [D27](deferred-gaps.md) | grok 4.6 | **closed**：`provideTurnEditComposer` 先于 `setEditingTurnId`；已删 1px 垫高 |
-| [D31](deferred-gaps.md) | D 槽 | Accept A1 已落；P5 停线；A2 须新选定 + Arch-First；git-read throw 与列表 open-diff status DOM 已挂载；剩 F4；不升 PRD |
+| [D31](deferred-gaps.md) | D 槽 | Accept A1 已落；P5 停线；A2 须新选定 + Arch-First；git-read / open-diff / Stage Selected·Commit throw 的 status DOM 已挂载；**仍开**（剩 F4）；不升 PRD |
 | [R8](research-queue.md) | B 槽 `r8-empty-patches-close` | **closed**：[ADR-008](../decisions/008-write-git-apply-hunks-empty.md) 引擎仓 `1f07008f` `GitWorkDirWriter.kt` L77–78 空 `patches` = 成功空操作；A1 已拒空送；[D31](deferred-gaps.md) F4 未跑 |
 | [D32](deferred-gaps.md) | A 槽 `host-write-retry` | **closed（代码+测已写；compile 待 merge）** Retry 走 `lease.post`；host 映射 Actor `continueGeneration` |
 | [D38](deferred-gaps.md) | A 槽 `host-bind-safety` | **closed** `fillHistory` bind/write 已 catch |
