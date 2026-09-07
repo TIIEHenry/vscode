@@ -1162,13 +1162,23 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		writeStatus(this.getVisibleConnectStatusTarget(), text, tone);
 	}
 
-	/** Keep SAS / recoverTrust in the zone that started Connect (Direct, Devices, Profiles, …). */
+	/**
+	 * Park SAS / recoverTrust as a sibling of the Connect-initiating zone.
+	 * Putting the host *inside* a `.connection-zone` lets
+	 * `.connection-zone:not(.is-active-zone) { display: none }` swallow the box
+	 * (Direct Connect historically parked it under hidden Profiles).
+	 */
 	private attachPairingConfirmHostToVisibleZone(): HTMLElement {
-		const parent = this.isZoneAvailable(this.activeZoneId)
+		this.selectZone(this.activeZoneId);
+		const zone = this.isZoneAvailable(this.activeZoneId)
 			? this.getZoneElement(this.activeZoneId)
-			: this.scrollBody;
-		if (this.pairingConfirmHost.parentElement !== parent) {
-			parent.appendChild(this.pairingConfirmHost);
+			: undefined;
+		if (zone) {
+			if (this.pairingConfirmHost.previousElementSibling !== zone) {
+				zone.after(this.pairingConfirmHost);
+			}
+		} else if (this.pairingConfirmHost.parentElement !== this.scrollBody) {
+			this.scrollBody.appendChild(this.pairingConfirmHost);
 		}
 		return this.pairingConfirmHost;
 	}

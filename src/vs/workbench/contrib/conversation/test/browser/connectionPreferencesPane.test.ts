@@ -169,6 +169,12 @@ suite('ConnectionPreferencesPane', () => {
 		hubOverrides?: Partial<IUniverseAgentHubService>,
 		connectionOverrides?: Partial<IUniverseAgentConnection>,
 	): { readonly pane: ConnectionPreferencesPane; readonly workbench: HTMLElement } {
+		if (!document.getElementById('connection-pane-zone-css')) {
+			const style = document.createElement('style');
+			style.id = 'connection-pane-zone-css';
+			style.textContent = '.monaco-workbench .connection-preferences-pane .connection-zone:not(.is-active-zone) { display: none; }';
+			document.head.appendChild(style);
+		}
 		const workbench = document.createElement('div');
 		workbench.className = 'monaco-workbench';
 		document.body.appendChild(workbench);
@@ -188,20 +194,29 @@ suite('ConnectionPreferencesPane', () => {
 		assert.fail('SAS confirm dialog did not appear');
 	}
 
-	function assertSasVisibleInActiveZone(container: ParentNode, zoneClass: string, sasCode: string): HTMLElement {
+	function assertSasVisibleBesideActiveZone(container: ParentNode, zoneClass: string, sasCode: string): HTMLElement {
 		const activeZone = container.querySelector(`${zoneClass}.is-active-zone`) as HTMLElement | null;
 		assert.ok(activeZone, `${zoneClass} must stay the active zone while SAS is shown`);
-		const dialog = activeZone.querySelector('.connection-pairing-confirm .monaco-dialog-box') as HTMLElement | null;
-		assert.ok(dialog, 'SAS confirm must render inside the active Connect zone');
-		assert.ok(dialog.textContent?.includes(sasCode), 'SAS code must be visible in the active zone');
+		const host = container.querySelector('.connection-pairing-confirm') as HTMLElement | null;
+		const dialog = host?.querySelector('.monaco-dialog-box') as HTMLElement | null;
+		assert.ok(host && dialog, 'SAS confirm must render when pairing is pending');
+		assert.ok(dialog.textContent?.includes(sasCode), 'SAS code must be visible beside the active zone');
 		const profiles = container.querySelector('.connection-profiles') as HTMLElement | null;
 		assert.ok(profiles);
 		assert.ok(!profiles.classList.contains('is-active-zone'), 'must not switch to Connection profiles to reveal SAS');
 		assert.ok(!profiles.contains(dialog), 'SAS must not be trapped under hidden profiles');
+		for (const zone of container.querySelectorAll('.connection-zone:not(.is-active-zone)')) {
+			assert.ok(!zone.contains(dialog), 'SAS must not sit inside a hidden Connect zone');
+		}
+		assert.ok(
+			activeZone.contains(dialog) || activeZone.nextElementSibling === host,
+			'SAS confirm must sit in or immediately after the active Connect zone',
+		);
 		assert.strictEqual(getComputedStyle(profiles).display, 'none');
 		assert.notStrictEqual(getComputedStyle(dialog).display, 'none');
+		assert.notStrictEqual(getComputedStyle(host).display, 'none');
 		assert.notStrictEqual(getComputedStyle(activeZone).display, 'none');
-		const buttons = getPairingConfirmButtons(activeZone);
+		const buttons = getPairingConfirmButtons(container);
 		assert.strictEqual(buttons.length, 2);
 		assert.strictEqual(buttons[0].textContent, SAS_CONFIRM_BUTTON_LABEL);
 		assert.strictEqual(buttons[1].textContent, SAS_CANCEL_BUTTON_LABEL);
@@ -1213,10 +1228,53 @@ suite('ConnectionPreferencesPane', () => {
 
 		const flow = (pane as unknown as { handleConnectDirectAddress(): Promise<void> }).handleConnectDirectAddress();
 		await waitForPairingDialog(container);
-		assertSasVisibleInActiveZone(container, '.connection-direct-address', handshakeSas);
+		assertSasVisibleBesideActiveZone(container, '.connection-direct-address', handshakeSas);
 		clickPairingConfirm(container);
 		await flow;
 		assert.strictEqual(confirmCalls, 1);
+		workbench.remove();
+	});
+
+	test('pairing pending after Direct Connect shows SAS confirm even if host was parked under Profiles', async () => {
+		const handshakeSas = 'R6X5-F0R1';
+		const { pane, workbench } = mountPaneInWorkbench({
+			addDirectAddressProfile: async () => ({ ok: true, profileId: 'direct-profile-1' }),
+			listConnectionProfiles: () => [{
+				profileId: 'direct-profile-1',
+				displayName: '127.0.0.1:50061',
+				state: 'pairingPending',
+				hasTrust: false,
+				targetKind: 'directAddress',
+			}],
+		}, {
+			connectProfile: async () => ({
+				ok: true,
+				path: 'direct',
+				pairingPending: true,
+				sasCode: handshakeSas,
+				engineIdentityId: '0123456789abcdef',
+			}),
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		const profiles = container.querySelector('.connection-profiles') as HTMLElement;
+		const parkedHost = (pane as unknown as { pairingConfirmHost: HTMLElement }).pairingConfirmHost;
+		profiles.appendChild(parkedHost);
+		pane.selectZone('direct');
+
+		const hostInput = (pane as unknown as { directHostInput: { value: string } }).directHostInput;
+		const portInput = (pane as unknown as { directPortInput: { value: string } }).directPortInput;
+		const allowPrivate = (pane as unknown as { directAllowPrivateCheckbox: { checked: boolean } }).directAllowPrivateCheckbox;
+		hostInput.value = '127.0.0.1';
+		portInput.value = '50061';
+		allowPrivate.checked = true;
+
+		const flow = (pane as unknown as { handleConnectDirectAddress(): Promise<void> }).handleConnectDirectAddress();
+		const dialog = await waitForPairingDialog(container);
+		assertSasVisibleBesideActiveZone(container, '.connection-direct-address', handshakeSas);
+		assert.ok(!profiles.contains(dialog), 'pairing pending must lift SAS out of hidden Profiles');
+		clickPairingCancel(container);
+		await flow;
 		workbench.remove();
 	});
 
@@ -1250,7 +1308,7 @@ suite('ConnectionPreferencesPane', () => {
 
 		const flow = (pane as unknown as { handleConnectDevice(device: HubDeviceProjection): Promise<void> }).handleConnectDevice(studio);
 		await waitForPairingDialog(container);
-		assertSasVisibleInActiveZone(container, '.connection-hub-devices', handshakeSas);
+		assertSasVisibleBesideActiveZone(container, '.connection-hub-devices', handshakeSas);
 		const devicesStatus = container.querySelector('.connection-hub-devices-status') as HTMLElement;
 		const testStatus = container.querySelector('.connection-test-status') as HTMLElement;
 		assert.strictEqual(devicesStatus.textContent, 'Pairing pending — not connected yet.');
