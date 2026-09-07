@@ -23,6 +23,41 @@ suite('connectProfileResult', () => {
 		}
 	});
 
+	test('pairingPending grantPending without sasCode stays waiting', () => {
+		const result = finalizeConnectProfileResult({
+			ok: true,
+			path: 'direct',
+			pairingPending: true,
+			grantPending: true,
+			engineIdentityId: 'eng-1',
+		});
+		assert.strictEqual(result.ok, true);
+		if (result.ok) {
+			assert.strictEqual(result.pairingPending, true);
+			assert.strictEqual(result.grantPending, true);
+			assert.strictEqual(result.sasCode, undefined);
+			assert.strictEqual(result.engineIdentityId, 'eng-1');
+		}
+	});
+
+	test('pairingPending prefers new sasCode over grantPending', () => {
+		const result = finalizeConnectProfileResult({
+			ok: true,
+			path: 'direct',
+			pairingPending: true,
+			grantPending: true,
+			sasCode: 'ABCD-EFGH',
+			engineIdentityId: 'eng-1',
+		});
+		assert.strictEqual(result.ok, true);
+		if (result.ok) {
+			assert.strictEqual(result.pairingPending, true);
+			assert.strictEqual(result.sasCode, 'ABCD-EFGH');
+			assert.strictEqual(result.grantPending, undefined);
+			assert.strictEqual(result.engineIdentityId, 'eng-1');
+		}
+	});
+
 	test('pairingPending keeps concrete sasCode for IPC', () => {
 		const result = finalizeConnectProfileResult({
 			ok: true,

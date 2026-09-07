@@ -54,6 +54,11 @@ export type UniverseAgentConnectProfileResult =
 		readonly sasCode?: string;
 		readonly engineIdentityId?: string;
 		/**
+		 * Formal handshake still waiting for Engine grant after SAS confirm.
+		 * `pairingPending` without a new `sasCode` — not `pairing_required`.
+		 */
+		readonly grantPending?: boolean;
+		/**
 		 * S4 unexpected session_token → recoverTrust (Desktop ADR-031).
 		 * When true: no sasCode; confirm via identity + leaf fingerprint dialog.
 		 */
