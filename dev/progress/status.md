@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-07
-summary: "loop/merge 已合入 agent-ide Connection/Engine chrome：Direct 接通已复证；Create 单飞+Resume 门面已合；Chat 仍被引擎空壳 ALREADY_EXISTS 挡住"
+summary: "loop/merge 已合入 agent-ide Connection/Engine chrome：Direct 接通已复证；Create 单飞+Resume 门面已合；Chat 仍被引擎空壳 ALREADY_EXISTS 挡住；两份方案重复 frontmatter 已合并并按规则 3c 扫过知识层"
 ---
 
 # Development Progress
@@ -46,6 +46,8 @@ summary: "loop/merge 已合入 agent-ide Connection/Engine chrome：Direct 接�
 | **settings chrome follow-up** | Back-to-Client 先取出 Preferences 服务再关 pane（`await` 后 accessor 已失效）；Direct Address Connect 状态写回本区并先标 Connecting…。已随本轮合入 `loop/merge` |
 
 并行 catalog/UI 绑定波流水见 [归档](../archive/status-current-session-slot-catalog-2026-09-05.md)。钉死调试引擎：[debug-engine](../../docs/guides/debug-engine.md)。
+
+[m7-gap-closeout](../plans/m7-gap-closeout.md) 与 [session-view-frame-fanout](../plans/session-view-frame-fanout.md) 的重复 frontmatter 已合并（生成列此前误显 `accepted`，现为 `implemented`）；按规则 3c 改口三处知识层叙述：Test Connection 已走 `probeConnectionProfile`、帧扇出 F1/F2 已落（全局 `onDidApplyFrame` 待删）、子代理 catalog 已由观察 lease 驱动。
 
 ### 进行中
 
