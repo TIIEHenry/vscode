@@ -76,12 +76,12 @@ summary: "人类工位已对齐已推送 MERGE_SHA c1b228caf74；保留本机行
 
 | 槽 | 路径 | 分支 | tip | 脏 | stash | 关仓状态 |
 |----|------|------|-----|:--|:------|:---------|
-| merge | `vscode-WorkTrees/merge` | `loop/merge` | 同步中 | 0 | 0 | 跟 `agent-ide` |
-| A | `vscode-WorkTrees/A` | `loop/A` | 同步中 | `__pycache__` | 0 | leftover `status.md` 先 commit 再 merge |
-| B | `vscode-WorkTrees/B` | `loop/B` | 同步中 | 0 | 0 | 同上 |
-| C | `vscode-WorkTrees/C` | `loop/C` | 同步中 | `dev/loop` | 0 | 同上；不 add `dev/loop` |
-| D | `vscode-WorkTrees/D` | `loop/D` | 同步中 | 0 | 0 | 同上 |
-| edit | `Projects/Agents/vscode` | `agent-ide` | `c44f54240f8`+ | `dev/loop` | 0 | 本机最新；推远程 |
+| merge | `vscode-WorkTrees/merge` | `loop/merge` | `7f5b34929ac` | 0 | 0 | 与 `agent-ide` 同 SHA；待 push |
+| A | `vscode-WorkTrees/A` | `loop/A` | `92522b202df` | `__pycache__` | 0 | 已 merge 集成线；leftover 已 commit |
+| B | `vscode-WorkTrees/B` | `loop/B` | `621c2c58de9` | 0 | 0 | 同上 |
+| C | `vscode-WorkTrees/C` | `loop/C` | `5f3d8092b60` | `dev/loop` | 0 | 同上；未 add `dev/loop` |
+| D | `vscode-WorkTrees/D` | `loop/D` | `eb4fb68ef35` | 0 | 0 | 同上 |
+| edit | `Projects/Agents/vscode` | `agent-ide` | `7f5b34929ac`+ | `dev/loop` | 0 | 本机最新；推 `origin/agent-ide` |
 
 ## Blockers
 
