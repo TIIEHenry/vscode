@@ -186,6 +186,7 @@ export class EngineMcpSection extends Disposable {
 	private mode: EngineCatalogPaneMode = 'disconnected';
 	private listEntries: EngineMcpListEntry[] = [];
 	private selectedServer: UniverseAgentMcpServerSummary | undefined;
+	private writeFailedReason: string | undefined;
 	private sectionActive = false;
 
 	constructor(
@@ -304,10 +305,25 @@ export class EngineMcpSection extends Disposable {
 		return this.writeToolbar.style.display !== 'none';
 	}
 
+	selectServerByIdForTest(id: string): boolean {
+		const index = this.listEntries.findIndex(entry => entry.kind === 'server' && entry.server.id === id);
+		if (index < 0 || !this.list) {
+			this.selectedServer = undefined;
+			return false;
+		}
+		const entry = this.listEntries[index];
+		if (entry.kind === 'server') {
+			this.selectedServer = entry.server;
+		}
+		this.list.setSelection([index]);
+		return true;
+	}
+
 	async addServer(config?: UniverseAgentMcpServerConfig): Promise<boolean> {
 		if (!this.canWrite()) {
 			return false;
 		}
+		this.writeFailedReason = undefined;
 		const payload: UniverseAgentMcpServerConfig = config ?? {
 			name: localize('ua.engineMcpNewDefaultName', "New MCP Server"),
 			transport: 'stdio',
@@ -319,11 +335,13 @@ export class EngineMcpSection extends Disposable {
 		try {
 			const result = await this.connection.addMcpServer({ config: payload, scope });
 			if (!result.ok) {
+				this.showWriteFailed(result.reason);
 				return false;
 			}
 			await this.refresh();
 			return true;
-		} catch {
+		} catch (error) {
+			this.showWriteFailed(error);
 			return false;
 		}
 	}
@@ -332,6 +350,7 @@ export class EngineMcpSection extends Disposable {
 		if (!this.canWrite() || !this.selectedServer) {
 			return false;
 		}
+		this.writeFailedReason = undefined;
 		const scope = this.selectedServer.origin === 'project' ? 'project' : 'global';
 		const merged: UniverseAgentMcpServerConfig = {
 			id: this.selectedServer.id,
@@ -347,11 +366,13 @@ export class EngineMcpSection extends Disposable {
 				scope,
 			});
 			if (!result.ok) {
+				this.showWriteFailed(result.reason);
 				return false;
 			}
 			await this.refresh();
 			return true;
-		} catch {
+		} catch (error) {
+			this.showWriteFailed(error);
 			return false;
 		}
 	}
@@ -360,6 +381,7 @@ export class EngineMcpSection extends Disposable {
 		if (!this.canWrite() || !this.selectedServer) {
 			return false;
 		}
+		this.writeFailedReason = undefined;
 		const scope = this.selectedServer.origin === 'project' ? 'project' : 'global';
 		try {
 			const result = await this.connection.removeMcpServer({
@@ -367,14 +389,31 @@ export class EngineMcpSection extends Disposable {
 				scope,
 			});
 			if (!result.ok) {
+				this.showWriteFailed(result.reason);
 				return false;
 			}
 			this.selectedServer = undefined;
 			await this.refresh();
 			return true;
-		} catch {
+		} catch (error) {
+			this.showWriteFailed(error);
 			return false;
 		}
+	}
+
+	private showWriteFailed(error: unknown): void {
+		const reason = (typeof error === 'string' && error)
+			? error
+			: (error instanceof Error && error.message
+				? error.message
+				: localize('ua.engineMcpWriteFailed', "The engine rejected the MCP write."));
+		this.writeFailedReason = reason;
+		this.status.render({
+			mode: 'failed',
+			featureLabel: MCP_FEATURE,
+			reason,
+			onRetry: () => void this.refresh(),
+		});
 	}
 
 	private ensureList(): WorkbenchList<EngineMcpListEntry> {
@@ -409,6 +448,7 @@ export class EngineMcpSection extends Disposable {
 		const capabilities = ensureCapabilitySnapshot(this.connection.getCapabilitySnapshot());
 		const connected = this.connection.isEngineConnected();
 		const support = capabilities.mcp.support;
+		this.writeFailedReason = undefined;
 
 		if (!connected) {
 			this.clearCatalogPresentation();
@@ -466,6 +506,15 @@ export class EngineMcpSection extends Disposable {
 	}
 
 	private renderStatus(options?: { reason?: string; loadingKind?: 'capability' | 'list'; onRetry?: () => void }): void {
+		if (this.writeFailedReason && (this.mode === 'ready' || this.mode === 'empty')) {
+			this.status.render({
+				mode: 'failed',
+				featureLabel: MCP_FEATURE,
+				reason: this.writeFailedReason,
+				onRetry: () => void this.refresh(),
+			});
+			return;
+		}
 		this.status.render({
 			mode: this.mode,
 			featureLabel: MCP_FEATURE,
@@ -483,6 +532,7 @@ export class EngineMcpSection extends Disposable {
 		this.listEntries = [];
 		this.list?.splice(0, this.list?.length ?? 0, []);
 		this.selectedServer = undefined;
+		this.writeFailedReason = undefined;
 		this.status.hide();
 		this.listContainer.style.display = 'none';
 		this.writeToolbar.style.display = 'none';
