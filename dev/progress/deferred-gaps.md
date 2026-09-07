@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-08
-summary: "延期缺口 SSOT；D16 仍开；D45–D51 已闭；D22 F3；D24 其余 JSON RPC；D25 引擎 List 真空；D26 引擎建壳回 6；D31 F4 / A2 blocked；git-read / open-diff / Stage·Commit throw status DOM 已挂载"
+summary: "延期缺口 SSOT；D16 仍开；D45–D52 已闭；D22 F3；D24 其余 JSON RPC；D25 引擎 List 真空；D26 引擎建壳回 6；D31 F4 / A2 blocked；git-read / open-diff / Stage·Commit throw status DOM 已挂载"
 ---
 
 # Deferred Gaps
@@ -68,6 +68,7 @@ summary: "延期缺口 SSOT；D16 仍开；D45–D51 已闭；D22 F3；D24 其�
 | D49 | P3 | **MCP/Skills list RPC throw 后不 `clearCatalogPresentation`**：`engineMcpSection.refresh` / `engineSkillsSection.refresh` catch 只改 `mode=failed` 并画 error status，不卸已成功行。首拉 throw 仍 0 行（本刀已锁）；成功后再 Retry 失败可能 leftover 假 catalog | 本刀已收：catch 先清行再 `failed`；补成功→throw 测。未关 D16；未转 listTools；未发明 GetQueue | catch 先清行再 `failed`；补「成功 → throw」测：`getMode()==='failed'` 且 `getListEntryCount()===0` | conversation | closed |
 | D50 | P3 | **composer catalog 成功后再 throw leftover**：`loadConnectedComposerCatalogs` agent/model catch 原是空注释；成功 load 后再 throw 会留下旧 select / `catalogModelIds`。tools catch 已清 `catalogToolNames`。首拉 throw 仍 No agent / No model（本刀已锁） | 本刀已收：agent throw 重置 No agent；model throw 重置 No model / `catalogModelIds=['']` / selectedIndex=0。补成功→throw 测。未关 D16；未转 listTools；未发明 GetQueue | agent/model throw 回到首拉诚实空；补「成功 → throw」测：options 不得保留上一轮 catalog | conversation | closed |
 | D51 | P3 | **host `writeChat` 丢 `writeId` 且 success 用非法 `'written'`**：`chatStreamWrite` 带 writeId；host `mark()` 用 `'written'` 被 `isInputDeliveryFact` 拒收，且缺 `source: host-write-accepted` / `writeId` / `chatAttemptId`，permission inflight cleanup 永不跑 | A 槽 `host-write-receipt` 已收：`handleIntent` 传入 `writeId`；`mark()` 只用 accepted/failed 并盖 `HOST_WRITE_RECEIPT_SOURCE` / `writeId` / `chatAttemptId`。测锁 perm-live 成功 `removePendingAction`、write throw `pendingRespondFailed`（`hostWriteFailed`）且无未处理 rejection。未关 D16；未发明 heartbeat `client_id`；未碰 Create / `.sessions` / proto / F4；未包整圈 `drainIntents` | `handleIntent` 传入 writeId；receipt 为 accepted/failed 且带 source+writeId+chatAttemptId；permission_request perm-live → post allow → resident write 成功出 `removePendingAction`；write throw 出 `pendingRespondFailed` `hostWriteFailed` 且无未处理 rejection | M7 universeAgent | closed |
+| D52 | P3 | **one-shot `connection.chat()` 只在 `onResponse` 标 accepted**：`TestConnection.chat()` 空 `async chat() {}`；生产 `makeBidiBytesClient` 可 `'end'` 且 0 `'data'`。无 `inputDelivery`，perm-live 座永不清 | A 槽 `oneshot-chat-receipt` 已收：no-resident `writeChat` `mark` 至多一次；await 后未 mark → accepted；catch 未 mark → failed。测锁无 callback 仍 `removePendingAction`、chat throw 仍 `pendingRespondFailed` `hostWriteFailed`。未关 D16；未发明 heartbeat `client_id` / GetQueue；未碰 Create / `.sessions` / proto / F4；未包整圈 `drainIntents` | no-resident `writeChat` mark 至多一次；chat resolve 无 callback 仍 accepted / 清座；chat throw 仍 failed / `hostWriteFailed` | M7 universeAgent | closed |
 
 ## D2 工位池 compile 基线（2026-09-02，merge 工位 / `loop/merge`）
 

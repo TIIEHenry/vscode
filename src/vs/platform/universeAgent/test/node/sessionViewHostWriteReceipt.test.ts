@@ -39,7 +39,7 @@ suite('SessionViewHost host write receipt', () => {
 
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
-	async function connectWithPermissionSeat(sessionId: string, connection: ResidentWriteConnection): Promise<{
+	async function connectWithPermissionSeat(sessionId: string, connection: TestConnection): Promise<{
 		readonly viewHost: SessionViewHost;
 		readonly leaseId: string;
 		readonly frames: IUniverseAgentSessionViewFrameEvent[];
@@ -80,6 +80,47 @@ suite('SessionViewHost host write receipt', () => {
 			throw new Error('resident write failed');
 		};
 		const { viewHost, leaseId, frames } = await connectWithPermissionSeat('sess-write-fail', connection);
+
+		const rejections: unknown[] = [];
+		const onUnhandled = (reason: unknown) => { rejections.push(reason); };
+		process.on('unhandledRejection', onUnhandled);
+		try {
+			const outcome = viewHost.post(leaseId, { kind: 'permissionRespond', requestId: 'perm-live', decision: 'allow' });
+			assert.strictEqual(outcome.accepted, true);
+			await new Promise<void>(resolve => queueMicrotask(() => resolve()));
+			await new Promise<void>(resolve => setImmediate(() => resolve()));
+
+			const failed = patchesOf(frames).filter((patch): patch is Extract<ViewPatch, { op: 'pendingRespondFailed' }> => patch.op === 'pendingRespondFailed');
+			assert.ok(failed.some(patch => String(patch.requestId) === 'perm-live' && patch.cause === 'hostWriteFailed'));
+			assert.ok(!patchesOf(frames).some(patch => patch.op === 'removePendingAction' && String(patch.requestId) === 'perm-live'));
+			assert.deepStrictEqual(rejections, []);
+		} finally {
+			process.off('unhandledRejection', onUnhandled);
+		}
+	});
+
+	test('one-shot chat resolve with no callback still folds removePendingAction for perm-live', async () => {
+		const connection = new TestConnection();
+		assert.strictEqual(typeof connection.openChatStream, 'undefined');
+		const { viewHost, leaseId, frames } = await connectWithPermissionSeat('sess-oneshot-ok', connection);
+
+		const outcome = viewHost.post(leaseId, { kind: 'permissionRespond', requestId: 'perm-live', decision: 'allow' });
+		assert.strictEqual(outcome.accepted, true);
+		await new Promise<void>(resolve => queueMicrotask(() => resolve()));
+		await new Promise<void>(resolve => setImmediate(() => resolve()));
+
+		const removed = patchesOf(frames).filter((patch): patch is Extract<ViewPatch, { op: 'removePendingAction' }> => patch.op === 'removePendingAction');
+		assert.ok(removed.some(patch => String(patch.requestId) === 'perm-live'));
+	});
+
+	test('one-shot chat throw folds pendingRespondFailed hostWriteFailed without unhandled rejection', async () => {
+		const connection = new class extends TestConnection {
+			override async chat(): Promise<void> {
+				throw new Error('oneshot chat failed');
+			}
+		}();
+		assert.strictEqual(typeof connection.openChatStream, 'undefined');
+		const { viewHost, leaseId, frames } = await connectWithPermissionSeat('sess-oneshot-fail', connection);
 
 		const rejections: unknown[] = [];
 		const onUnhandled = (reason: unknown) => { rejections.push(reason); };
