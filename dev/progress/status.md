@@ -53,7 +53,7 @@ Direct 接通已通。Chat 仍被引擎空壳 Create（目录在、`session_meta
 
 `enqueueMessageQueueItem` 仍无 UI 入口；error 行重试按钮待引擎接线（不画假按钮）。
 
-Sources Changes/Review 读面（`loop/A`）：接通 + hook 走 `readGitChanges` / `readGitSummary`，打开行再 `readGitFileDiff`；断连 / 无 hook 回 SCM。
+Sources Changes/Review 读面（`loop/A`）：接通 + hook 走 `readGitChanges` / `readGitSummary`，打开行再 `readGitFileDiff`；断连 / 无 hook 回 SCM。写面：`supported && success` 才算 Stage/Commit/Accept 成功；`supported: false` 当不可用并回落本地 git；Accept 不再绑死 SCM 匹配。次级面见 [D29](deferred-gaps.md)。
 
 ## 工位表（与 `git worktree list` 对照 · 2026-09-06）
 
