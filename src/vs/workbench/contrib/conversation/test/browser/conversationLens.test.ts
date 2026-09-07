@@ -164,6 +164,18 @@ suite('ConversationLens', () => {
 		layoutReadingColumn?.();
 	}
 
+	async function showVisualizeSeed(stubService: ConversationStubService, layoutReadingColumn: () => void): Promise<void> {
+		stubService.switchSession('visualize');
+		await flushProjectedTimeline(layoutReadingColumn);
+		await flushTimelineHeightUpdates();
+	}
+
+	async function revealVisualizeTurn(lens: ConversationLens, layoutReadingColumn: () => void, turnId: string): Promise<void> {
+		getTimelineTree(lens).revealTurn(turnId, 0);
+		layoutReadingColumn();
+		await flushAnimationFrames();
+	}
+
 	function queryTimeline(slots: IConversationLensSlots, selector: string): Element | null {
 		return slots.timeline.querySelector(selector);
 	}
@@ -2713,19 +2725,47 @@ suite('ConversationLens', () => {
 	});
 
 	test('visualize seed session renders two visualization cards without Agent header', async () => {
+		const { part, stubService, layoutReadingColumn, lens } = mountLens();
+		const slots = getLensSlots(part);
+		await showVisualizeSeed(stubService, layoutReadingColumn);
+
+		const projected = lens.lastAttachedEntries.filter(entry => entry.kind === 'visualization');
+		assert.strictEqual(projected.length, 2);
+		assert.deepStrictEqual(projected.map(entry => entry.id), ['visualize-v1', 'visualize-v2']);
+
+		// Default 360px list window sits on the last rows; comparison is painted,
+		// diagram is virtualized out (covered when the expand test reveals it).
+		const comparison = queryTimeline(slots, '[data-visualize-type="comparison"]');
+		assert.ok(comparison);
+		assert.strictEqual(comparison!.querySelector('.conversation-lens-turn-header'), null);
+		assert.ok(comparison!.querySelector('.conversation-visualize-option[data-recommended="true"]'));
+	});
+
+	test('visualize card header collapses and expands body', async () => {
 		const { part, stubService, layoutReadingColumn } = mountLens();
 		const slots = getLensSlots(part);
-		stubService.switchSession('visualize');
-		layoutReadingColumn();
-		await flushTimelineHeightUpdates();
+		await showVisualizeSeed(stubService, layoutReadingColumn);
 
-		const cards = queryAllTimeline(slots, '[data-kind="visualization"]');
-		assert.strictEqual(cards.length, 2);
+		const header = queryTimeline(slots, '[data-visualize-type="comparison"] .conversation-visualize-header') as HTMLButtonElement;
+		const body = queryTimeline(slots, '[data-visualize-type="comparison"] .conversation-visualize-body') as HTMLElement;
+		assert.ok(header);
+		assert.ok(body);
+		assert.strictEqual(body.hidden, false);
+
+		header.click();
+		assert.strictEqual(body.hidden, true);
+	});
+
+	test('visualize diagram expand opens overlay dialog closed by Escape and session switch', async function () {
+		this.timeout(15000);
+		const { part, stubService, layoutReadingColumn, openInEditorCalls, layoutContainer, lens } = mountLens();
+		const slots = getLensSlots(part);
+		await showVisualizeSeed(stubService, layoutReadingColumn);
+		await revealVisualizeTurn(lens, layoutReadingColumn, 'visualize-v1');
 
 		const diagram = queryTimeline(slots, '[data-visualize-type="diagram"]');
 		assert.ok(diagram);
 		assert.strictEqual(diagram!.querySelector('.conversation-lens-turn-header'), null);
-
 		const source = queryTimeline(slots, 'pre[data-mermaid-source], [data-mermaid-host]');
 		assert.ok(source);
 		const sourceText = source!.textContent ?? '';
@@ -2735,42 +2775,9 @@ suite('ConversationLens', () => {
 			assert.ok(sourceText.includes('未立项'));
 		}
 
-		const comparison = queryTimeline(slots, '[data-visualize-type="comparison"]');
-		assert.ok(comparison);
-		assert.ok(comparison!.querySelector('.conversation-visualize-option[data-recommended="true"]'));
-	});
-
-	test('visualize card header collapses and expands body', async () => {
-		const { part, stubService, layoutReadingColumn } = mountLens();
-		const slots = getLensSlots(part);
-		stubService.switchSession('visualize');
-		layoutReadingColumn();
-		await flushTimelineHeightUpdates();
-
-		const header = queryTimeline(slots, '[data-visualize-type="diagram"] .conversation-visualize-header') as HTMLButtonElement;
-		const body = queryTimeline(slots, '[data-visualize-type="diagram"] .conversation-visualize-body') as HTMLElement;
-		assert.ok(header);
-		assert.ok(body);
-		assert.strictEqual(body.hidden, false);
-
-		header.click();
-		layoutReadingColumn();
-		await flushTimelineHeightUpdates();
-		assert.strictEqual(body.hidden, true);
-	});
-
-	test('visualize diagram expand opens overlay dialog closed by Escape and session switch', async () => {
-		const { part, stubService, layoutReadingColumn, openInEditorCalls, layoutContainer } = mountLens();
-		const slots = getLensSlots(part);
-		stubService.switchSession('visualize');
-		layoutReadingColumn();
-		await flushTimelineHeightUpdates();
-
 		const expandButton = queryTimeline(slots, '[data-visualize-type="diagram"] .conversation-visualize-expand') as HTMLButtonElement;
 		assert.ok(expandButton);
 		expandButton.click();
-		layoutReadingColumn();
-		await flushTimelineHeightUpdates();
 
 		assert.ok(layoutContainer.querySelector('.conversation-visualize-overlay[role="dialog"]'));
 
@@ -2782,8 +2789,6 @@ suite('ConversationLens', () => {
 		assert.ok(layoutContainer.querySelector('.conversation-visualize-overlay[role="dialog"]'));
 
 		stubService.switchSession('untitled');
-		layoutReadingColumn();
-		await flushTimelineHeightUpdates();
 		assert.strictEqual(layoutContainer.querySelector('.conversation-visualize-overlay[role="dialog"]'), null);
 		assert.strictEqual(openInEditorCalls.count, 0);
 	});

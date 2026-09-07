@@ -56,7 +56,7 @@ summary: "人类工位已对齐已推送 MERGE_SHA c1b228caf74；保留本机行
 1. **集成 tip** 以 merge 本关仓提交为准（P2 已串行 B=`088ad1ba7fd`）。`npm run compile` 仍基线 unused 红则 **不 push**。GFS >800 不拆。
 2. 本波字母槽已进 merge：
    - **A**：本波空闲。[D26](deferred-gaps.md) 引擎 Create meta 仍 open。
-   - **B**：T5 Exit 改验 `aria-label`；全量 Lens **87/97**。**[D16](deferred-gaps.md) 仍开**。
+   - **B**：visualize 三测已收（投影两卡 + comparison header + reveal diagram expand）；全量 Lens **90/97**。**[D16](deferred-gaps.md) 仍开**。
    - **C**：本波空闲。上波 D41 已在 merge。
    - **D**：本波空闲。[D31](deferred-gaps.md) 仍开（F4）。
 
