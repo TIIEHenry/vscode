@@ -68,14 +68,20 @@ export function bindSessionView(host: IConversationLensSessionBindingHost, sessi
 		host.timelineTree.applyEntries([], { kind: 'baseline' });
 		return;
 	}
-	const lease = host.sessionViewLifetime.add(host.stubService.acquireSessionView(sessionId));
-	host.sessionViewLease = lease;
-	const coalescer = host.sessionViewLifetime.add(new ConversationSessionViewFrameCoalescer(applied => host.applySessionViewTimeline(applied)));
-	host.sessionViewLifetime.add(lease.onDidApplyFrame(applied => coalescer.push(applied)));
-	// Stub leases fire baseline during construction. Engine leases start as an
-	// empty `pending` replica — applying that as baseline flashes an empty tree.
-	if (lease.snapshot.sessionId !== 'pending') {
-		host.applySessionViewTimeline({ kind: 'baseline' });
+	try {
+		const lease = host.sessionViewLifetime.add(host.stubService.acquireSessionView(sessionId));
+		host.sessionViewLease = lease;
+		const coalescer = host.sessionViewLifetime.add(new ConversationSessionViewFrameCoalescer(applied => host.applySessionViewTimeline(applied)));
+		host.sessionViewLifetime.add(lease.onDidApplyFrame(applied => coalescer.push(applied)));
+		// Stub leases fire baseline during construction. Engine leases start as an
+		// empty `pending` replica — applying that as baseline flashes an empty tree.
+		if (lease.snapshot.sessionId !== 'pending') {
+			host.applySessionViewTimeline({ kind: 'baseline' });
+		}
+	} catch {
+		host.sessionViewLease = undefined;
+		host.showPostFailure('failed');
+		return;
 	}
 
 }
