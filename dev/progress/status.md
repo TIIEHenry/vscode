@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-08
-summary: "FileMutationJoin / createScoped / Review 委托已修。D16 / D31 F4 仍开。官方三域 glob 已绿。D44–D82 已闭。Team leftover 已清。Connection list leftover / write throw / Refresh devices directory throw 已挂。switchModel 空 resolvedModelId 回滚+gate 已挂。Snapshots / MCP / Skills / Agents / Tools 写失败 write-status 已挂。Agents Tools 页 listTools throw 画 failed；重连后再 throw 清 leftover。Tools 成功 refresh 后 getToolInfo throw 重画详情。Skills 成功 refresh 后 getSkillInfo throw 重画正文。Agents Instructions 成功 refresh 后重载 AGENTS.md。Tools/Agents 成功 refresh 清 pending enablement。MCP runtime leftover 已清。git-read / open-diff / Stage·Commit / Unstage throw 与 ok:false status 已挂。Review runGitAction throw 已 showNotice。Lens lease-only sync 刷新 stale banner 已挂。Sessions 接通刷新已挂。openStream throw-on-open 已折 streamClosed。retryError postBound throw 已 showPostFailure('failed')。Channel Client hydrate/refreshPhase IPC reject 已吞。Navigator Reveal openSubAgent throw 已 notification error。A2 仍 blocked。"
+summary: "FileMutationJoin / createScoped / Review 委托已修。D16 / D31 F4 仍开。官方三域 glob 已绿。D44–D85 已闭。Team leftover 已清。Connection list leftover / write throw / Refresh devices directory throw 已挂。switchModel 空 resolvedModelId 回滚+gate 已挂。Snapshots / MCP / Skills / Agents / Tools 写失败 write-status 已挂。Agents Tools 页 listTools throw 画 failed；重连后再 throw 清 leftover。Tools 成功 refresh 后 getToolInfo throw 重画详情。Skills 成功 refresh 后 getSkillInfo throw 重画正文。Agents Instructions 成功 refresh 后重载 AGENTS.md。Tools/Agents 成功 refresh 清 pending enablement。MCP runtime leftover 已清。git-read / open-diff / Stage·Commit / Unstage throw 与 ok:false status 已挂。Review runGitAction throw 已 showNotice。Lens lease-only sync 刷新 stale banner 已挂。Sessions 接通刷新已挂。openStream throw-on-open 已折 streamClosed。retryError postBound throw 已 showPostFailure('failed')。Channel Client hydrate/refreshPhase IPC reject 已吞。Navigator Reveal / Promote throw 已 notification error。A2 仍 blocked。"
 ---
 
 # Development Progress
@@ -46,9 +46,7 @@ summary: "FileMutationJoin / createScoped / Review 委托已修。D16 / D31 F4 �
 | **settings chrome follow-up** | Back-to-Client 先取出 Preferences 服务再关 pane（`await` 后 accessor 已失效）；Direct Address Connect 状态写回本区并先标 Connecting…。已随本轮合入 `loop/merge` |
 
 并行 catalog/UI 绑定波流水见 [归档](../archive/status-current-session-slot-catalog-2026-09-05.md)。钉死调试引擎：[debug-engine](../../docs/guides/debug-engine.md)。
-
 [m7-gap-closeout](../plans/m7-gap-closeout.md) 与 [session-view-frame-fanout](../plans/session-view-frame-fanout.md) 的重复 frontmatter 已合并（生成列此前误显 `accepted`，现为 `implemented`）；按规则 3c 改口三处知识层叙述：Test Connection 已走 `probeConnectionProfile`、帧扇出 F1/F2 已落（全局 `onDidApplyFrame` 待删）、子代理 catalog 已由观察 lease 驱动。
-
 ### 进行中（2026-09-07 本 wake · 以 merge 代码为准，不信上文「已合入」清单）
 
 集成 tip **本关仓提交**（`loop/merge`；未 push）。Chat 仍被引擎空壳 Create（目录在、`session_meta` 空、回 6）挡住；不要再清 `.sessions` 当主线。见 [D26](deferred-gaps.md)。**U2 未开**。**PRD-008 / PRD-019 不升 `implemented`**。[R8](research-queue.md) **已闭**（[ADR-008](../decisions/008-write-git-apply-hunks-empty.md) 引擎空 `patches` = 成功空操作）。Accept 产品选项 A 见 [sources-accept-empty-success](../plans/sources-accept-empty-success.md)（`draft`；**A1 已落**；**P5 停线**——只批准停线，不批准 A2；A2 须新选定 + 新 Arch-First）。
@@ -109,6 +107,7 @@ summary: "FileMutationJoin / createScoped / Review 委托已修。D16 / D31 F4 �
 50. **A 槽 `lens-retry-error-postbound-catch`（未关 D16）**：`retryError` `postBound` reject → `showPostFailure('failed')`；第五 reason，不映射四因。[D80](deferred-gaps.md) **已闭**。
 51. **B 槽 `channel-client-hydrate-catch`（未关 D16）**：Channel Client `hydrate` / `refreshPhaseAndNotify` try/catch；IPC reject 保留末次好缓存、不 fire 半应用 phase。[D81](deferred-gaps.md) **已闭**。
 52. **D 槽 `navigator-reveal-throw-notice`（未关 D16 / D21）**：Reveal await 路径 try/catch；`openSubAgent` throw → `INotificationService.error`；void 调用点未改。[D82](deferred-gaps.md) **已闭**。
+53. **D 槽 `promote-subagent-throw-notice`（未关 D16）**：`promoteSubAgentDialog` await 路径 try/catch；`openExtensionTab` throw → `INotificationService.error`；void 调用点未改。[D85](deferred-gaps.md) **已闭**。
 子 agent 发现的既有代码问题：
 
 | ID | 来源 | 问题 |
@@ -173,6 +172,7 @@ summary: "FileMutationJoin / createScoped / Review 委托已修。D16 / D31 F4 �
 | [D80](deferred-gaps.md) | A 槽 `lens-retry-error-postbound-catch` | **closed** `retryError` `postBound` throw 已 `showPostFailure('failed')`；未关 D16 |
 | [D81](deferred-gaps.md) | B 槽 `channel-client-hydrate-catch` | **closed** hydrate / refreshPhase IPC reject 已吞；保留已写缓存；不 fire 半应用 phase；未关 D16 |
 | [D82](deferred-gaps.md) | D 槽 `navigator-reveal-throw-notice` | **closed** `openSubAgent` throw 已 `INotificationService.error`；void 调用点未改；未关 D16 / D21 |
+| [D85](deferred-gaps.md) | D 槽 `promote-subagent-throw-notice` | **closed** `openExtensionTab` throw 已 `INotificationService.error`；void 调用点未改；未关 D16 |
 
 ## 工位表（P0 盘点 · 2026-09-07 · 与 `git worktree list` 对照）
 

@@ -5,6 +5,7 @@
 
 import assert from 'assert';
 import { timeout } from '../../../../../base/common/async.js';
+import { getErrorMessage } from '../../../../../base/common/errors.js';
 import { Emitter } from '../../../../../base/common/event.js';
 import { CancellationToken } from '../../../../../base/common/cancellation.js';
 import { DisposableStore, IDisposable, toDisposable } from '../../../../../base/common/lifecycle.js';
@@ -15,6 +16,7 @@ import { TestConfigurationService } from '../../../../../platform/configuration/
 import { IEditorOptions } from '../../../../../platform/editor/common/editor.js';
 import { IInstantiationService } from '../../../../../platform/instantiation/common/instantiation.js';
 import { SyncDescriptor } from '../../../../../platform/instantiation/common/descriptors.js';
+import { INotificationService } from '../../../../../platform/notification/common/notification.js';
 import { TestInstantiationService } from '../../../../../platform/instantiation/test/common/instantiationServiceMock.js';
 import { NullTelemetryService } from '../../../../../platform/telemetry/common/telemetryUtils.js';
 import { Registry } from '../../../../../platform/registry/common/platform.js';
@@ -292,13 +294,16 @@ suite('Conversation session chat (S3)', () => {
 		}
 	});
 
-	async function createHarness(rosterService: IConversationRosterService = new ConversationStubService()) {
+	async function createHarness(rosterService: IConversationRosterService = new ConversationStubService(), notificationService?: INotificationService) {
 		const instantiationService = workbenchInstantiationService({
 			configurationService: () => new TestConfigurationService({
 				workbench: { editor: { enablePreview: false } },
 			}),
 		}, store);
 		instantiationService.stub(IConversationRosterService, rosterService);
+		if (notificationService) {
+			instantiationService.stub(INotificationService, notificationService);
+		}
 		instantiationService.invokeFunction(accessor => Registry.as<IEditorFactoryRegistry>(EditorExtensions.EditorFactory).start(accessor));
 
 		const parts = await createEditorParts(instantiationService, disposables);
@@ -626,6 +631,32 @@ suite('Conversation session chat (S3)', () => {
 		assert.strictEqual(sessionChatService.isSubAgentDialogOpen(), false);
 		assert.strictEqual(conversationPart.activeGroup.count, 2);
 		assert.ok(sessionChatService.findOpenTabForChat(SESSION_KEY, 'sub-1'));
+	});
+
+	test('promote openExtensionTab throw notifies error without unhandled rejection', async () => {
+		const boom = new Error(`Conversation editor part for session ${SESSION_KEY} is not available`);
+		const errors: string[] = [];
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		const { sessionChatService } = await createHarness(undefined, {
+			error: (message: string | Error) => {
+				errors.push(typeof message === 'string' ? message : getErrorMessage(message));
+			},
+		} as INotificationService);
+		sessionChatService.registerSubAgentChat(SESSION_KEY, 'sub-1', 'Research sub-agent');
+		await sessionChatService.openSubAgent(SESSION_KEY, 'sub-1');
+		sessionChatService.getConversationPart = () => undefined;
+
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			void sessionChatService.promoteSubAgentDialog();
+			await timeout(0);
+			assert.deepStrictEqual(errors, [getErrorMessage(boom)]);
+			assert.deepStrictEqual(unhandledRejections, []);
+			assert.strictEqual(sessionChatService.isSubAgentDialogOpen(), false);
+		} finally {
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
 	});
 
 	test('leaf maximize keeps the sub-agent dialog open without adding a tab', async () => {
