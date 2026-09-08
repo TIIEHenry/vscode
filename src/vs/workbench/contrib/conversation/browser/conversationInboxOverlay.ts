@@ -481,6 +481,11 @@ export class ConversationInboxOverlay extends Disposable {
 		}
 		const queued = this.stubService.enqueueMessageQueueItem(sessionId, next.trim());
 		if (!queued) {
+			this.delegate.showPostFailure(
+				!this.stubService.isEngineConnected() && this.stubService.hasEngineConnectionHistory()
+					? 'engine_disconnected'
+					: 'failed'
+			);
 			return;
 		}
 		this.render();

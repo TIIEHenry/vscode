@@ -74,9 +74,15 @@ class GoalRoster extends ConversationStubService {
 class EnqueueRoster extends ConversationStubService {
 	readonly enqueueCalls: { sessionId: string; text: string }[] = [];
 	enqueueResult = true;
+	connected = true;
+	history = false;
 
 	override isEngineConnected(): boolean {
-		return true;
+		return this.connected;
+	}
+
+	override hasEngineConnectionHistory(): boolean {
+		return this.history;
 	}
 
 	override enqueueMessageQueueItem(sessionId: string, text: string, _options?: { priority?: 'NORMAL' | 'HIGH' | 'LOW'; opId?: string }): boolean {
@@ -455,11 +461,19 @@ suite('ConversationInboxOverlay Enqueue', () => {
 
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
-	function createOverlay(roster: ConversationStubService, inputResult?: string): ConversationInboxOverlay {
+	function createOverlay(
+		roster: ConversationStubService,
+		inputResult?: string,
+		failures: ConversationComposerPostFailureReason[] = [],
+		beforeResolve?: () => void,
+	): ConversationInboxOverlay {
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		instantiationService.stub(IConversationRosterService, roster);
 		instantiationService.stub(IQuickInputService, {
-			input: async () => inputResult,
+			input: async () => {
+				beforeResolve?.();
+				return inputResult;
+			},
 		} as IQuickInputService);
 		const parent = document.createElement('div');
 		document.body.appendChild(parent);
@@ -467,7 +481,7 @@ suite('ConversationInboxOverlay Enqueue', () => {
 		return store.add(instantiationService.createInstance(ConversationInboxOverlay, parent, {
 			onQueueItemHold() { },
 			onScrollToPendingConfirmation() { },
-			showPostFailure() { },
+			showPostFailure(reason) { failures.push(reason); },
 		}));
 	}
 
@@ -542,9 +556,10 @@ suite('ConversationInboxOverlay Enqueue', () => {
 	});
 
 	test('connected Enqueue false does not pretend the item landed in the list', async () => {
+		const failures: ConversationComposerPostFailureReason[] = [];
 		const roster = store.add(new EnqueueRoster());
 		roster.enqueueResult = false;
-		const overlay = createOverlay(roster, 'Nope');
+		const overlay = createOverlay(roster, 'Nope', failures);
 		const panel = openQueuePanel(overlay);
 		getEnqueueButton(panel).click();
 		await new Promise<void>(resolve => setTimeout(resolve, 0));
@@ -552,6 +567,24 @@ suite('ConversationInboxOverlay Enqueue', () => {
 		assert.deepStrictEqual(roster.getMessageQueueState(roster.getActiveSessionId()).items, []);
 		assert.ok(panel.querySelector('.conversation-lens-inbox-list-empty')?.textContent?.includes(conversationLensDockInboxQueueNotListed));
 		assert.ok(!panel.querySelector('.conversation-lens-inbox-list-empty')?.textContent?.includes(conversationLensDockInboxNoQueue));
+		assert.deepStrictEqual(failures, ['failed']);
+	});
+
+	test('Enqueue false after disconnect during prompt shows engine_disconnected', async () => {
+		const failures: ConversationComposerPostFailureReason[] = [];
+		const roster = store.add(new EnqueueRoster());
+		roster.enqueueResult = false;
+		const overlay = createOverlay(roster, 'Nope', failures, () => {
+			roster.connected = false;
+			roster.history = true;
+		});
+		const panel = openQueuePanel(overlay);
+		getEnqueueButton(panel).click();
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		assert.deepStrictEqual(roster.enqueueCalls, [{ sessionId: roster.getActiveSessionId(), text: 'Nope' }]);
+		assert.deepStrictEqual(roster.getMessageQueueState(roster.getActiveSessionId()).items, []);
+		assert.ok(panel.querySelector('.conversation-lens-inbox-list-empty')?.textContent?.includes(conversationLensDockInboxQueueNotListed));
+		assert.deepStrictEqual(failures, ['engine_disconnected']);
 	});
 
 	test('connected Inbox does not pose fixture as the engine queue', () => {
