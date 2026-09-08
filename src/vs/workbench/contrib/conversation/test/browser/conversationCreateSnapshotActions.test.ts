@@ -8,6 +8,9 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/tes
 import {
 	canCreateEngineSnapshot,
 	CONVERSATION_CREATE_SNAPSHOT_DEFAULT_TITLE,
+	conversationCreateSnapshotDisconnectedCopy,
+	conversationCreateSnapshotFailedCopy,
+	notifyCreateSnapshotRejected,
 	resolveCreateSnapshotTitle,
 } from '../../browser/conversationCreateSnapshotActions.contribution.js';
 
@@ -28,5 +31,29 @@ suite('ConversationCreateSnapshotActions', () => {
 		assert.strictEqual(resolveCreateSnapshotTitle(undefined), CONVERSATION_CREATE_SNAPSHOT_DEFAULT_TITLE);
 		assert.strictEqual(resolveCreateSnapshotTitle(''), '');
 		assert.strictEqual(resolveCreateSnapshotTitle('Before refactor'), 'Before refactor');
+	});
+
+	test('notifyCreateSnapshotRejected stays silent when created', () => {
+		const errors: string[] = [];
+		assert.strictEqual(notifyCreateSnapshotRejected(true, true, false, {
+			error: message => { errors.push(String(message)); },
+		}), true);
+		assert.deepStrictEqual(errors, []);
+	});
+
+	test('notifyCreateSnapshotRejected connected false uses failed copy', () => {
+		const errors: string[] = [];
+		assert.strictEqual(notifyCreateSnapshotRejected(false, true, false, {
+			error: message => { errors.push(String(message)); },
+		}), false);
+		assert.deepStrictEqual(errors, [conversationCreateSnapshotFailedCopy]);
+	});
+
+	test('notifyCreateSnapshotRejected disconnected with history uses disconnected copy', () => {
+		const errors: string[] = [];
+		assert.strictEqual(notifyCreateSnapshotRejected(false, false, true, {
+			error: message => { errors.push(String(message)); },
+		}), false);
+		assert.deepStrictEqual(errors, [conversationCreateSnapshotDisconnectedCopy]);
 	});
 });
