@@ -254,6 +254,7 @@ suite('Conversation session window side-by-side (S5)', () => {
 			await timeout(0);
 
 			assert.deepStrictEqual(unhandledRejections, []);
+			assert.deepStrictEqual(harness.errors, ['primary bootstrap boom']);
 			assert.strictEqual(harness.sessionWindowService.getPrimarySessionKey(), undefined);
 			assert.strictEqual(harness.sessionWindowService.getAllLeafSessionKeys().length, 0);
 			assert.strictEqual(harness.sessionWindowService.getLeafSlots(harness.primaryId), undefined);
@@ -263,6 +264,7 @@ suite('Conversation session window side-by-side (S5)', () => {
 			await harness.sessionWindowService.ensurePrimaryWindow(harness.primaryId);
 
 			assert.deepStrictEqual(unhandledRejections, []);
+			assert.deepStrictEqual(harness.errors, ['primary bootstrap boom']);
 			assert.strictEqual(harness.sessionWindowService.getPrimarySessionKey(), harness.primaryId);
 			assert.ok(harness.sessionWindowService.getLeafSlots(harness.primaryId));
 			assert.strictEqual(harness.sessionWindowService.getVisibleWindowCount(), 1);
@@ -288,7 +290,7 @@ suite('Conversation session window side-by-side (S5)', () => {
 			await timeout(0);
 
 			assert.deepStrictEqual(unhandledRejections, []);
-			assert.deepStrictEqual(harness.errors, ['primary bootstrap boom']);
+			assert.deepStrictEqual(harness.errors, ['primary bootstrap boom', 'primary bootstrap boom']);
 			assert.strictEqual(harness.sessionWindowService.getPrimarySessionKey(), harness.primaryId);
 			assert.ok(harness.sessionWindowService.getLeafSlots(harness.primaryId));
 			assert.strictEqual(harness.sessionWindowService.getLeafSlots(secondaryId), undefined);
@@ -301,7 +303,7 @@ suite('Conversation session window side-by-side (S5)', () => {
 			await harness.sessionWindowService.openSessionBeside(secondaryId);
 
 			assert.deepStrictEqual(unhandledRejections, []);
-			assert.deepStrictEqual(harness.errors, ['primary bootstrap boom']);
+			assert.deepStrictEqual(harness.errors, ['primary bootstrap boom', 'primary bootstrap boom']);
 			assert.strictEqual(harness.sessionWindowService.getPrimarySessionKey(), harness.primaryId);
 			assert.ok(harness.sessionWindowService.getLeafSlots(harness.primaryId));
 			assert.ok(harness.sessionWindowService.getLeafSlots(secondaryId));
@@ -337,7 +339,7 @@ suite('Conversation session window side-by-side (S5)', () => {
 			await timeout(0);
 
 			assert.deepStrictEqual(unhandledRejections, []);
-			assert.deepStrictEqual(harness.errors, ['primary bootstrap boom']);
+			assert.deepStrictEqual(harness.errors, ['primary bootstrap boom', 'primary bootstrap boom']);
 			assert.strictEqual(harness.sessionWindowService.getPrimarySessionKey(), harness.primaryId);
 			assert.ok(harness.sessionWindowService.getLeafSlots(harness.primaryId));
 			assert.ok(harness.sessionWindowService.getLeafSlots(secondaryId));

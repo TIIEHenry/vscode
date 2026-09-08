@@ -324,6 +324,7 @@ export class ConversationSessionWindowService extends Disposable implements ICon
 			this.primarySessionKey = undefined;
 			this.rollbackHalfAppliedLeaf(sessionKey);
 			this.logService.warn(`[ConversationSessionWindowService] ensurePrimaryWindow failed: ${getErrorMessage(error)}`);
+			this.notificationService.error(getErrorMessage(error));
 		}
 	}
 

@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-08
-summary: "D16 / D31 F4 仍开。官方三域 glob 已绿。D44–D90 / D92–D109 已闭。delete/cancel、open-beside 与 Inbox Stop notice 已挂。A2 仍 blocked。"
+summary: "D16 / D31 F4 仍开。官方三域 glob 已绿。D44–D90 / D92–D111 已闭。primary bootstrap / open-beside notice 已挂。A2 仍 blocked。"
 ---
 
 # Development Progress
@@ -99,6 +99,7 @@ summary: "D16 / D31 F4 仍开。官方三域 glob 已绿。D44–D90 / D92–D10
 59. **A 槽 `connection-profile-crud-throw`（未关 D16）**：Add Direct / Disconnect / Forget / ConnectDevice throw 画 status。[D89](deferred-gaps.md) **已闭**。
 60. **B 槽 `session-window-primary-bootstrap-catch`（未关 D16）**：先 `ensureLeaf` 再提交 key；in-flight 串行 + 真实 stub；throw 回滚半应用 leaf。[D90](deferred-gaps.md) **已闭**。
 61. **D100–D109**（未关 D16）：peek / closeEditors / opener 回滚 / stale / save·delete·cancel·Stop false 先 notice / reveal acquire / open-beside catch error notice。
+62. **D 槽 `primary-bootstrap-failure-notice`（未关 D16 / 未重做 D90 rollback / 未重做 D108 beside catch / 未改 void）**：`tryBootstrapPrimaryWindow` catch 补 `notificationService.error`；保留 warn + D90 回滚。primary-throw 测锁 `harness.errors` 含 boom。[D111](deferred-gaps.md) **已闭**。
 子 agent 发现的既有代码问题：
 | ID | 来源 | 问题 |
 |:---|:-----|:-----|
@@ -171,6 +172,7 @@ summary: "D16 / D31 F4 仍开。官方三域 glob 已绿。D44–D90 / D92–D10
 | [D89](deferred-gaps.md) | A 槽 `connection-profile-crud-throw` | **closed** Add Direct / Disconnect / Forget / ConnectDevice throw 已画 status；未关 D16 |
 | [D90](deferred-gaps.md) | B 槽 `session-window-primary-bootstrap-catch` | **closed** throw 回滚 + in-flight 串行；merge 复测 9/9；未关 D16 |
 | [D92](deferred-gaps.md)–[D109](deferred-gaps.md) | B roster+close / D nav / A beside+mru / A·B composer / D reveal / A delete·cancel / D beside notice / B inbox Stop | **closed** throw 回滚/notice；peek；closeEditors；opener 回滚；stale；save/delete/cancel/Stop false 先 notice；reveal acquire；open-beside catch error notice；未关 D16 |
+| [D111](deferred-gaps.md) | D 槽 `primary-bootstrap-failure-notice` | **closed** `tryBootstrapPrimaryWindow` catch 已 `INotificationService.error`；保留 warn + D90 回滚；primary-throw 测锁 `harness.errors`；未关 D16 |
 
 ## 工位表（P0 盘点 · 2026-09-08 · 与 `git worktree list` 对照）
 | 槽 | 路径 | 分支 | tip | 脏 | stash | 关仓状态 |
