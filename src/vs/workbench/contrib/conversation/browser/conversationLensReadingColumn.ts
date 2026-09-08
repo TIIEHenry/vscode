@@ -115,7 +115,10 @@ export function mountTimeline(host: IConversationLensReadingColumnHost, timeline
 
 }
 
-function resolveReadingColumnSessionId(host: IConversationLensReadingColumnHost): string {
+function resolveReadingColumnSessionId(host: {
+	readonly stubService: IConversationRosterService;
+	readonly sessionViewLease?: IConversationSessionViewLease;
+}): string {
 	return host.sessionViewLease?.sessionId ?? host.stubService.getActiveSessionId();
 }
 
@@ -129,12 +132,20 @@ function formatStaleSnapshotLabel(sync: SyncChrome): string | undefined {
 		: localize('conversationLens.staleSnapshot', "Showing snapshot from before disconnect");
 }
 
-function refreshStaleSnapshotBanner(host: IConversationLensReadingColumnHost): void {
+export function refreshStaleSnapshotBanner(
+	host: {
+		readonly readingColumn?: HTMLElement;
+		readonly stubService: IConversationRosterService;
+		readonly sessionViewLease?: IConversationSessionViewLease;
+	},
+	sync?: SyncChrome,
+): void {
 	const banner = host.readingColumn?.querySelector<HTMLElement>(`.${conversationLensStaleSnapshotClass}`);
 	if (!banner) {
 		return;
 	}
-	const label = formatStaleSnapshotLabel(host.stubService.getSessionSync(resolveReadingColumnSessionId(host)));
+	const chrome = sync ?? host.stubService.getSessionSync(resolveReadingColumnSessionId(host));
+	const label = formatStaleSnapshotLabel(chrome);
 	if (label) {
 		banner.hidden = false;
 		banner.textContent = label;

@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-08
-summary: "FileMutationJoin / createScoped / Review 委托已修。D16 / D31 F4 仍开。官方三域 glob 已绿。D44–D76 已闭。Team leftover 已清。Connection list leftover / write throw / Refresh devices directory throw 已挂。switchModel 空 resolvedModelId 回滚+gate 已挂。Snapshots / MCP / Skills / Agents / Tools 写失败 write-status 已挂。Agents Tools 页 listTools throw 画 failed；重连后再 throw 清 leftover。Tools 成功 refresh 后 getToolInfo throw 重画详情。Skills 成功 refresh 后 getSkillInfo throw 重画正文。Agents Instructions 成功 refresh 后重载 AGENTS.md。Tools/Agents 成功 refresh 清 pending enablement。MCP runtime leftover 已清。git-read / open-diff / Stage·Commit / Unstage throw 与 ok:false status 已挂。Review runGitAction throw 已 showNotice。A2 仍 blocked。"
+summary: "FileMutationJoin / createScoped / Review 委托已修。D16 / D31 F4 仍开。官方三域 glob 已绿。D44–D77 已闭。Team leftover 已清。Connection list leftover / write throw / Refresh devices directory throw 已挂。switchModel 空 resolvedModelId 回滚+gate 已挂。Snapshots / MCP / Skills / Agents / Tools 写失败 write-status 已挂。Agents Tools 页 listTools throw 画 failed；重连后再 throw 清 leftover。Tools 成功 refresh 后 getToolInfo throw 重画详情。Skills 成功 refresh 后 getSkillInfo throw 重画正文。Agents Instructions 成功 refresh 后重载 AGENTS.md。Tools/Agents 成功 refresh 清 pending enablement。MCP runtime leftover 已清。git-read / open-diff / Stage·Commit / Unstage throw 与 ok:false status 已挂。Review runGitAction throw 已 showNotice。Lens lease-only sync 刷新 stale banner 已挂。A2 仍 blocked。"
 ---
 
 # Development Progress
@@ -103,6 +103,7 @@ summary: "FileMutationJoin / createScoped / Review 委托已修。D16 / D31 F4 �
 44. **A 槽 `connection-hub-refresh-throw`（未关 D16 / 未发明 GetQueue / proto / 未碰 F4 / 引擎 / `.sessions` / `dev/loop` / unused-import / D26 / 未重做 D61 list leftover / D62 rename / D64 login / D65 remaining writes）**：`refreshHubDirectory` 只包 `refreshDirectory` catch，throw 画 `hubDirectoryBanner`（`writeStatus` error）后 return，不调 `refreshEngineDeviceLists`。测锁 Refresh devices throw 画 `.connection-hub-directory-banner`。[D74](deferred-gaps.md) **已闭**。未 compile。
 45. **B 槽 `composer-switch-model-empty-rollback`（未关 D16 / 未碰 F4·A2·D26 / proto / `dev/loop`）**：`applySessionModelIndex` await 后 `!result.resolvedModelId.trim()` 走 restore + `showGateNotice`（`conversationLensDockModelFailed`）；未发明 `UniverseAgentSwitchModelResult.ok`。throw 测保留；补 empty resolve 回滚+gate。[D76](deferred-gaps.md) **已闭**。
 46. **D 槽 `review-pane-git-action-catch`（未关 D16 / 未关 D31 / 未跑 F4 / 未开 A2）**：Review `runGitAction` catch 后 `showNotice(getErrorMessage(error))`，finally 仍 `updateReviewActions`。未改 `runAccept`。未发明 WriteGitUnstage。源扫锁 catch + showNotice。[D75](deferred-gaps.md) **已闭**。
+47. **A 槽 `lens-stale-banner-lease-sync`（未关 D16 / 未碰 D76·composer / sessions / sessionViewHost / proto / F4 / A2 / `dev/loop`）**：`updateSyncChrome` 徽章后用同一 `sync` 刷新 `.conversation-lens-stale-snapshot`。lease 置 `closed` 且不发 `onDidChangeSession` 时横幅可见。PRD-007 `onSessionChanged` 测未改。[D77](deferred-gaps.md) **已闭**。
 
 子 agent 发现的既有代码问题：
 
@@ -162,6 +163,7 @@ summary: "FileMutationJoin / createScoped / Review 委托已修。D16 / D31 F4 �
 | [D73](deferred-gaps.md) | A 槽 `catalog-refresh-clear-pending` | **closed** Agents 成功 refresh 清 `agentToolPending`；重连后 dirty false、catalog/tools ready；未关 D16 |
 | [D74](deferred-gaps.md) | A 槽 `connection-hub-refresh-throw` | **closed** `refreshDirectory` throw 画 `hubDirectoryBanner`；未调 `refreshEngineDeviceLists`；未关 D16 |
 | [D76](deferred-gaps.md) | B 槽 `composer-switch-model-empty-rollback` | **closed** `switchModel` 空/空白 `resolvedModelId` 回滚 select + gate；throw 测保留；未关 D16 |
+| [D77](deferred-gaps.md) | A 槽 `lens-stale-banner-lease-sync` | **closed** lease-only sync `closed` 刷新阅读列 stale banner；未关 D16 |
 
 ## 工位表（P0 盘点 · 2026-09-07 · 与 `git worktree list` 对照）
 

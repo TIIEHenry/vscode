@@ -2672,6 +2672,35 @@ suite('ConversationLens', () => {
 		assert.ok(queryTimeline(slots, '.conversation-lens-turn[data-kind="user"]')?.textContent?.includes('Keep this turn after disconnect'));
 	});
 
+	test('PRD-007: lease apply closed sync shows stale snapshot without onDidChangeSession', async () => {
+		const { part, lens, stubService, layoutReadingColumn } = mountLens();
+		const slots = getLensSlots(part);
+		const sessionId = stubService.createSession();
+		stubService.appendUserTurn(sessionId, 'Keep this turn after lease-only sync');
+		stubService.appendStubEchoAssistant(sessionId, 'Echo before lease-only sync');
+		await flushProjectedTimeline(layoutReadingColumn);
+
+		const banner = getReadingColumn(slots).querySelector(`.${conversationLensStaleSnapshotClass}`) as HTMLElement | null;
+		assert.ok(banner);
+		assert.strictEqual(banner.hidden, true);
+
+		const { model, onSessionChanged } = stubService.createTestFrameSourceCallback();
+		const testSource = store.add(new TestConversationFrameSource(model, onSessionChanged));
+		stubService.wireTestFrameSource(testSource);
+		lens.bindSessionView(sessionId);
+
+		let sessionChangedAfterBind = 0;
+		store.add(stubService.onDidChangeSession(() => { sessionChangedAfterBind++; }));
+
+		testSource.setSessionSync(sessionId, { kind: 'closed', reason: 'Subscription ended' });
+		await new Promise<void>(resolve => setTimeout(resolve, 20));
+
+		assert.strictEqual(sessionChangedAfterBind, 0);
+		assert.strictEqual(stubService.getSessionSync(sessionId).kind, 'closed');
+		assert.strictEqual(banner.hidden, false);
+		assert.strictEqual(banner.textContent, 'Showing snapshot from before disconnect: Subscription ended');
+	});
+
 	test('S3 shim: getTurns matches lease projection after fixture writes', () => {
 		const service = store.add(new ConversationStubService());
 		const sessionId = service.createSession();

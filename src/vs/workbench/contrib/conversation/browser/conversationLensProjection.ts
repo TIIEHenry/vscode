@@ -27,6 +27,7 @@ import { ConversationTrajectory } from './conversationTrajectory.js';
 import { IConversationRosterService } from './conversationStubService.js';
 import { ConversationIdentityStrip } from './conversationIdentityStrip.js';
 import { ConversationInboxOverlay } from './conversationInboxOverlay.js';
+import { refreshStaleSnapshotBanner } from './conversationLensReadingColumn.js';
 
 export const CONVERSATION_LENS_ID_STORAGE_KEY = 'conversation.lensId';
 
@@ -144,6 +145,7 @@ export function updateSyncChrome(host: IConversationLensProjectionHost, sync: Sy
 			}
 		}
 		host.renderInboxStatus();
+		refreshStaleSnapshotBanner(host, sync);
 	
 }
 
