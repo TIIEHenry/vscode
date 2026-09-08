@@ -15,6 +15,7 @@ import { ThemeIcon } from '../../../../base/common/themables.js';
 import { localize } from '../../../../nls.js';
 import { createDecorator } from '../../../../platform/instantiation/common/instantiation.js';
 import { ILogService } from '../../../../platform/log/common/log.js';
+import { INotificationService } from '../../../../platform/notification/common/notification.js';
 import { registerIcon } from '../../../../platform/theme/common/iconRegistry.js';
 import { IConversationPartService } from '../../../browser/parts/conversation/conversationPart.js';
 import { IEditorGroupsService } from '../../../services/editor/common/editorGroupsService.js';
@@ -82,6 +83,7 @@ export class ConversationSessionWindowService extends Disposable implements ICon
 		@IEditorGroupsService private readonly editorGroupsService: IEditorGroupsService,
 		@IConversationRosterService private readonly rosterService: IConversationRosterService,
 		@ILogService private readonly logService: ILogService,
+		@INotificationService private readonly notificationService: INotificationService,
 	) {
 		super();
 
@@ -190,6 +192,7 @@ export class ConversationSessionWindowService extends Disposable implements ICon
 				this.restoreSessionWindow(evictedSecondaryKey);
 			}
 			this.logService.warn(`[ConversationSessionWindowService] openSessionBeside failed: ${getErrorMessage(error)}`);
+			this.notificationService.error(getErrorMessage(error));
 		}
 	}
 

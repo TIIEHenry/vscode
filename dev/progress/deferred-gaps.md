@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-08
-summary: "延期缺口 SSOT；D16 仍开；D45–D90 / D92–D106 已闭；D22 F3；D24 其余 JSON RPC；D25 引擎 List 真空；D26 引擎建壳回 6；D31 F4 / A2 blocked；stale peek、saveTurnEdit/saveQueueEdit 拒绝 notice 与 reveal acquire catch 已挂"
+summary: "延期缺口 SSOT；D16 仍开；D45–D90 / D92–D106 / D108 已闭；D22 F3；D24 其余 JSON RPC；D25 引擎 List 真空；D26 引擎建壳回 6；D31 F4 / A2 blocked；open-beside catch 已 error notice"
 ---
 
 # Deferred Gaps
@@ -122,6 +122,7 @@ summary: "延期缺口 SSOT；D16 仍开；D45–D90 / D92–D106 已闭；D22 F
 | D104 | P3 | **`saveTurnEdit` 忽略 `updateUserTurnText` 并先 `exitComposerEdit`**：引擎断连后 `editEngineMessage` `callRemote:false` 回 `false`，时间线仍旧、无 `showPostFailure` | B 槽 `composer-turn-edit-save-rejected-notice` 已收：先看 boolean；false 画 `engine_disconnected`（`!isEngineConnected() && hasEngineConnectionHistory()`）或 `failed`、不退出编辑；true 仍 `exitComposerEdit`。测锁 false → notice + 仍 editing。未关 D16；未改 roster `editEngineMessage`；未改 `submitDraft`（D86） | `saveTurnEdit` 先看 `updateUserTurnText`；false 不 `exitComposerEdit` 并 `showPostFailure`；`conversationLensDisposeGate.test.ts` 绿 | conversation | closed |
 | D105 | P3 | **`conversation.revealItem` 的 `acquireSessionView` 在 try 外**：`conversationRevealItem.contribution.ts` 先 acquire 再 try；引擎 roster 对非 engine-bound session throw（`conversationEngineRosterService.ts` ~601–610）。`navigatorAgentsView.ts` activity `void executeCommand` 成未处理 rejection。Sources Review 已 catch。不得改 `acquireSessionView` throw 合同 / navigator void 调用点 | D 槽 `reveal-item-acquire-throw-notice` 已收：acquire + reveal 包 try/catch → `INotificationService.error(getErrorMessage)`；`finally` 仅 dispose 已拿到的 lease；accessor.get 在 await 前 hoist。测锁 roster throw → error notice、无未处理 rejection。未关 D16；未改 navigator void / roster throw 合同 | catch 后 notification error 且未取得 lease 时不 dispose；`navigatorAgentsSubviews.test.ts` acquireSessionView throw 绿 | M7 navigator / conversation | closed |
 | D106 | P3 | **`saveQueueEdit` 忽略 `updateMessageQueueItemContent` 并先 `exitComposerEdit`**：引擎断连后 `editEngineQueueItem` `wasEverConnected` 回 `false`，队列文仍旧、edit chrome 已卸、无 `showPostFailure` | A 槽 `composer-queue-edit-save-rejected-notice` 已收：先看 boolean；false 画 `engine_disconnected`（`!isEngineConnected() && hasEngineConnectionHistory()`）或 `failed`、不退出编辑、不 release hold；true 仍 exit + release + `renderInboxStatus`。测锁 false → notice + 仍 editing。未关 D16；未改 `saveTurnEdit`（D104）；未改 roster `updateMessageQueueItemContent` / `editEngineQueueItem` | `saveQueueEdit` 先看 `updateMessageQueueItemContent`；false 不 `exitComposerEdit` / 不 release 并 `showPostFailure`；`conversationLensDisposeGate.test.ts` 绿 | conversation | closed |
+| D108 | P3 | **`openSessionBeside` catch 已回滚但无用户 notice**：D96–D98 已 `rollbackHalfAppliedLeaf` + restore evicted secondary + `logService.warn`；`void` 调用点未改。throw 后窗数不变、用户无提示 | D 槽 `open-beside-failure-notice` 已收：既有 catch 补 `INotificationService.error(getErrorMessage(error))`（紧挨 `ILogService` 注入）；保留 warn；未重做 D96–D98 rollback；未改 `conversationSessionsView.ts` void。测锁 throw-on-create 仍回滚且记录 error notice。未关 D16 | catch 后 error notice + 仍回滚 / 无未处理 rejection；`conversationSessionWindowSideBySide.test.ts` 绿 | conversation | closed |
 
 ## D2 工位池 compile 基线（2026-09-02，merge 工位 / `loop/merge`）
 

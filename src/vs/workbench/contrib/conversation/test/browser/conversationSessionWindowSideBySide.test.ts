@@ -5,11 +5,13 @@
 
 import assert from 'assert';
 import { timeout } from '../../../../../base/common/async.js';
+import { getErrorMessage } from '../../../../../base/common/errors.js';
 import { Event } from '../../../../../base/common/event.js';
 import { DisposableStore } from '../../../../../base/common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { SyncDescriptor } from '../../../../../platform/instantiation/common/descriptors.js';
 import { NullLogService } from '../../../../../platform/log/common/log.js';
+import { INotificationService } from '../../../../../platform/notification/common/notification.js';
 import { Registry } from '../../../../../platform/registry/common/platform.js';
 import { ConversationPart, IConversationPartService } from '../../../../browser/parts/conversation/conversationPart.js';
 import { IConversationEditorPart, IEditorGroupsService } from '../../../../services/editor/common/editorGroupsService.js';
@@ -114,6 +116,7 @@ suite('Conversation session window side-by-side (S5)', () => {
 			},
 		} as IEditorGroupsService;
 
+		const errors: string[] = [];
 		const sessionWindowService = store.add(new ConversationSessionWindowService(
 			{
 				onDidCreateSlots: Event.None,
@@ -124,12 +127,18 @@ suite('Conversation session window side-by-side (S5)', () => {
 			editorGroupsService,
 			rosterService,
 			new NullLogService(),
+			{
+				error: (message: string | Error) => {
+					errors.push(typeof message === 'string' ? message : getErrorMessage(message));
+				},
+			} as INotificationService,
 		));
 
 		return {
 			sessionWindowService,
 			rosterService,
 			gridHost,
+			errors,
 			primaryId: rosterService.getActiveSessionId(),
 			setThrowOnCreate(value: boolean) {
 				throwOnCreate = value;
@@ -279,6 +288,7 @@ suite('Conversation session window side-by-side (S5)', () => {
 			await timeout(0);
 
 			assert.deepStrictEqual(unhandledRejections, []);
+			assert.deepStrictEqual(harness.errors, ['primary bootstrap boom']);
 			assert.strictEqual(harness.sessionWindowService.getPrimarySessionKey(), harness.primaryId);
 			assert.ok(harness.sessionWindowService.getLeafSlots(harness.primaryId));
 			assert.strictEqual(harness.sessionWindowService.getLeafSlots(secondaryId), undefined);
@@ -291,6 +301,7 @@ suite('Conversation session window side-by-side (S5)', () => {
 			await harness.sessionWindowService.openSessionBeside(secondaryId);
 
 			assert.deepStrictEqual(unhandledRejections, []);
+			assert.deepStrictEqual(harness.errors, ['primary bootstrap boom']);
 			assert.strictEqual(harness.sessionWindowService.getPrimarySessionKey(), harness.primaryId);
 			assert.ok(harness.sessionWindowService.getLeafSlots(harness.primaryId));
 			assert.ok(harness.sessionWindowService.getLeafSlots(secondaryId));
@@ -326,6 +337,7 @@ suite('Conversation session window side-by-side (S5)', () => {
 			await timeout(0);
 
 			assert.deepStrictEqual(unhandledRejections, []);
+			assert.deepStrictEqual(harness.errors, ['primary bootstrap boom']);
 			assert.strictEqual(harness.sessionWindowService.getPrimarySessionKey(), harness.primaryId);
 			assert.ok(harness.sessionWindowService.getLeafSlots(harness.primaryId));
 			assert.ok(harness.sessionWindowService.getLeafSlots(secondaryId));
