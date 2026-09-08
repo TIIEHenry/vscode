@@ -156,7 +156,10 @@ export class SessionsNavigation extends Disposable {
 			// User is on new-session view — go back to the last real session
 			this._beyondHistory.set(false, undefined);
 			const idx = this._indexOfCurrent();
-			await this._navigateTo(idx < 0 ? 0 : idx);
+			const ok = await this._navigateTo(idx < 0 ? 0 : idx);
+			if (!ok) {
+				this._beyondHistory.set(true, undefined);
+			}
 			return;
 		}
 		const idx = this._indexOfCurrent();
@@ -190,14 +193,15 @@ export class SessionsNavigation extends Disposable {
 		return this._recency.entries.findIndex(e => entryKey(e.sessionResource, e.chatResource) === key);
 	}
 
-	private async _navigateTo(targetIdx: number): Promise<void> {
+	private async _navigateTo(targetIdx: number): Promise<boolean> {
 		const entry: IRecencyEntry | undefined = this._recency.entries[targetIdx];
 		if (!entry) {
-			return;
+			return false;
 		}
 
 		this._logService.trace(`[SessionNavigation] navigating to idx=${targetIdx} session=${entry.sessionResource.toString()} chat=${entry.chatResource?.toString()}`);
 
+		const previousKey = this._currentKey.get();
 		this._navigating = true;
 		try {
 			this._currentKey.set(entryKey(entry.sessionResource, entry.chatResource), undefined);
@@ -219,6 +223,11 @@ export class SessionsNavigation extends Disposable {
 				const sessionUri = entry.sessionResource.toString();
 				this._recency.remove(e => e.sessionResource.toString() === sessionUri);
 			}
+			return true;
+		} catch (error) {
+			this._currentKey.set(previousKey, undefined);
+			this._logService.warn(`[SessionNavigation] opener rejected; restored cursor`, error);
+			return false;
 		} finally {
 			this._navigating = false;
 		}
