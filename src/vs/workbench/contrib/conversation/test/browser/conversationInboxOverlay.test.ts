@@ -35,19 +35,33 @@ class GoalRoster extends ConversationStubService {
 	readonly setGoalCalls: { sessionId: string; goal: string }[] = [];
 	readonly cancelGoalCalls: string[] = [];
 	private goal: string | undefined;
+	setGoalResult = true;
+	cancelGoalResult = true;
+	connected = true;
+	history = false;
 
 	override isEngineConnected(): boolean {
-		return true;
+		return this.connected;
+	}
+
+	override hasEngineConnectionHistory(): boolean {
+		return this.history;
 	}
 
 	override setSessionGoal(sessionId: string, goal: string): boolean {
 		this.setGoalCalls.push({ sessionId, goal });
+		if (!this.setGoalResult) {
+			return false;
+		}
 		this.goal = goal;
 		return true;
 	}
 
 	override cancelSessionGoal(sessionId: string): boolean {
 		this.cancelGoalCalls.push(sessionId);
+		if (!this.cancelGoalResult) {
+			return false;
+		}
 		this.goal = undefined;
 		return true;
 	}
@@ -201,17 +215,25 @@ suite('ConversationInboxOverlay Goal', () => {
 
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
-	function createOverlay(roster: ConversationStubService, inputResult?: string): ConversationInboxOverlay {
+	function createOverlay(
+		roster: ConversationStubService,
+		inputResult?: string,
+		failures: ConversationComposerPostFailureReason[] = [],
+		beforeResolve?: () => void,
+	): ConversationInboxOverlay {
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		instantiationService.stub(IConversationRosterService, roster);
 		instantiationService.stub(IQuickInputService, {
-			input: async () => inputResult,
+			input: async () => {
+				beforeResolve?.();
+				return inputResult;
+			},
 		} as IQuickInputService);
 		const parent = document.createElement('div');
 		return store.add(instantiationService.createInstance(ConversationInboxOverlay, parent, {
 			onQueueItemHold() { },
 			onScrollToPendingConfirmation() { },
-			showPostFailure() { },
+			showPostFailure(reason) { failures.push(reason); },
 		}));
 	}
 
@@ -262,6 +284,49 @@ suite('ConversationInboxOverlay Goal', () => {
 		await new Promise<void>(resolve => setTimeout(resolve, 0));
 		assert.deepStrictEqual(roster.cancelGoalCalls, [roster.getActiveSessionId()]);
 		assert.strictEqual(roster.getSessionGoal(roster.getActiveSessionId()), undefined);
+	});
+
+	test('connected Goal setSessionGoal false shows failed and does not change goal', async () => {
+		const failures: ConversationComposerPostFailureReason[] = [];
+		const roster = store.add(new GoalRoster());
+		roster.setGoalResult = false;
+		const overlay = createOverlay(roster, 'Ship the slice', failures);
+		getGoalButton(overlay).click();
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		assert.deepStrictEqual(roster.setGoalCalls, [{ sessionId: roster.getActiveSessionId(), goal: 'Ship the slice' }]);
+		assert.strictEqual(roster.getSessionGoal(roster.getActiveSessionId()), undefined);
+		assert.strictEqual(getGoalButton(overlay).getAttribute('aria-label'), `${conversationLensDockGoal}, ${conversationLensDockNoGoal}`);
+		assert.deepStrictEqual(failures, ['failed']);
+	});
+
+	test('connected Goal cancelSessionGoal false shows failed and keeps existing goal', async () => {
+		const failures: ConversationComposerPostFailureReason[] = [];
+		const roster = store.add(new GoalRoster());
+		roster.setSessionGoal(roster.getActiveSessionId(), 'Existing');
+		roster.cancelGoalResult = false;
+		const overlay = createOverlay(roster, '   ', failures);
+		getGoalButton(overlay).click();
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		assert.deepStrictEqual(roster.cancelGoalCalls, [roster.getActiveSessionId()]);
+		assert.strictEqual(roster.getSessionGoal(roster.getActiveSessionId()), 'Existing');
+		assert.strictEqual(getGoalButton(overlay).getAttribute('aria-label'), `${conversationLensDockGoal}, Existing`);
+		assert.deepStrictEqual(failures, ['failed']);
+	});
+
+	test('Goal setSessionGoal false after disconnect during prompt shows engine_disconnected', async () => {
+		const failures: ConversationComposerPostFailureReason[] = [];
+		const roster = store.add(new GoalRoster());
+		roster.setGoalResult = false;
+		const overlay = createOverlay(roster, 'Ship the slice', failures, () => {
+			roster.connected = false;
+			roster.history = true;
+		});
+		assert.strictEqual(getGoalButton(overlay).getAttribute('aria-disabled'), 'false');
+		getGoalButton(overlay).click();
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		assert.deepStrictEqual(roster.setGoalCalls, [{ sessionId: roster.getActiveSessionId(), goal: 'Ship the slice' }]);
+		assert.strictEqual(roster.getSessionGoal(roster.getActiveSessionId()), undefined);
+		assert.deepStrictEqual(failures, ['engine_disconnected']);
 	});
 });
 
