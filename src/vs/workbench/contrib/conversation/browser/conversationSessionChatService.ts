@@ -123,11 +123,16 @@ export class ConversationSessionChatService extends Disposable implements IConve
 			return;
 		}
 		const sessionId = this.rosterService.getActiveSessionId();
-		const lease = this.rosterService.acquireSessionView(sessionId);
-		this.liveTreeLease = lease;
-		this.liveTreeLeaseStore.add(lease);
-		this.liveTreeLeaseStore.add(lease.onDidApplyFrame(() => this.applyLiveTreeFromLease()));
-		this.applyLiveTreeFromLease();
+		try {
+			const lease = this.rosterService.acquireSessionView(sessionId);
+			this.liveTreeLease = lease;
+			this.liveTreeLeaseStore.add(lease);
+			this.liveTreeLeaseStore.add(lease.onDidApplyFrame(() => this.applyLiveTreeFromLease()));
+			this.applyLiveTreeFromLease();
+		} catch (error) {
+			this.notificationService.error(getErrorMessage(error));
+			this.liveTreeLease = undefined;
+		}
 	}
 
 	private applyLiveTreeFromLease(): void {

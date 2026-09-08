@@ -510,6 +510,46 @@ suite('Conversation session chat (S3)', () => {
 		};
 	}
 
+	test('bindLiveTreeLease acquireSessionView throw notifies error without unhandled rejection', async () => {
+		const boom = new Error('acquireSessionView: session untitled is not engine-bound');
+		class ConnectedReadyAcquireThrowsRoster extends ConversationStubService {
+			override isEngineConnected(): boolean {
+				return true;
+			}
+			override isEngineSessionReady(): boolean {
+				return true;
+			}
+			override getActiveSessionId(): string {
+				return 'untitled';
+			}
+			override acquireSessionView(_sessionId: string) {
+				throw boom;
+			}
+		}
+		const errors: string[] = [];
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		const roster = store.add(new ConnectedReadyAcquireThrowsRoster());
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			const { sessionChatService, sessionWindow } = await createHarness(roster, {
+				error: (message: string | Error) => {
+					errors.push(typeof message === 'string' ? message : getErrorMessage(message));
+				},
+			} as INotificationService);
+			assert.ok(errors.length >= 1);
+			assert.ok(errors.every(message => message === getErrorMessage(boom)));
+			roster.setEngineConnected(true);
+			await timeout(0);
+			assert.ok(errors.every(message => message === getErrorMessage(boom)));
+			assert.deepStrictEqual(sessionChatService.getAgentHierarchyBreadcrumb(SESSION_KEY, 'web'), []);
+			assert.ok(sessionWindow.querySelector(`.${conversationSubAgentOverlayClass}`));
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
+
 	test('live agent tree syncs non-root nodes into the catalog once', async () => {
 		const { sessionChatService } = await createHarness();
 		const tree = makeLiveAgentTree([makeSubAgent('research', 'Research')]);
