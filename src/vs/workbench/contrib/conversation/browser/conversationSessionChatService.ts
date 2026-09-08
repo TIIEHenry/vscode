@@ -180,61 +180,65 @@ export class ConversationSessionChatService extends Disposable implements IConve
 	}
 
 	async navigateAgentBreadcrumb(sessionKey: string, targetChatId: string): Promise<void> {
-		const overlay = this.subAgentOverlays.get(sessionKey);
-		if (overlay?.isOpen()) {
-			await this.navigateOverlayBreadcrumb(sessionKey, targetChatId);
-			return;
-		}
-
-		const part = this.getConversationPart(sessionKey);
-		if (!part) {
-			return;
-		}
-
-		const activeEditor = part.activeGroup.activeEditor;
-		if (!(activeEditor instanceof ConversationChatInput) || activeEditor.isDefaultRoot) {
-			return;
-		}
-
-		const activeChatId = parseConversationChatResource(activeEditor.resource)?.chatId;
-		const activeEntry = activeChatId ? this.catalog.get(sessionKey)?.get(activeChatId) : undefined;
-		if (!activeEntry || activeEntry.originKind !== 'tool') {
-			return;
-		}
-
-		if (targetChatId === activeChatId) {
-			return;
-		}
-
-		const editorService = this.getScopedEditorService(part);
-		const group = part.activeGroup;
-
-		if (targetChatId === 'default') {
-			const rootEditor = group.getEditorByIndex(0);
-			if (rootEditor instanceof ConversationChatInput && rootEditor.isDefaultRoot) {
-				await editorService.closeEditor({ editor: activeEditor, groupId: group.id });
-				await group.openEditor(rootEditor);
+		try {
+			const overlay = this.subAgentOverlays.get(sessionKey);
+			if (overlay?.isOpen()) {
+				await this.navigateOverlayBreadcrumb(sessionKey, targetChatId);
+				return;
 			}
+
+			const part = this.getConversationPart(sessionKey);
+			if (!part) {
+				return;
+			}
+
+			const activeEditor = part.activeGroup.activeEditor;
+			if (!(activeEditor instanceof ConversationChatInput) || activeEditor.isDefaultRoot) {
+				return;
+			}
+
+			const activeChatId = parseConversationChatResource(activeEditor.resource)?.chatId;
+			const activeEntry = activeChatId ? this.catalog.get(sessionKey)?.get(activeChatId) : undefined;
+			if (!activeEntry || activeEntry.originKind !== 'tool') {
+				return;
+			}
+
+			if (targetChatId === activeChatId) {
+				return;
+			}
+
+			const editorService = this.getScopedEditorService(part);
+			const group = part.activeGroup;
+
+			if (targetChatId === 'default') {
+				const rootEditor = group.getEditorByIndex(0);
+				if (rootEditor instanceof ConversationChatInput && rootEditor.isDefaultRoot) {
+					await editorService.closeEditor({ editor: activeEditor, groupId: group.id });
+					await group.openEditor(rootEditor);
+				}
+				this.fireCloseNonRootStateChange();
+				return;
+			}
+
+			const targetEntry = this.catalog.get(sessionKey)?.get(targetChatId);
+			if (!targetEntry) {
+				return;
+			}
+
+			const replacement = this.instantiationService.createInstance(
+				ConversationChatInput,
+				getConversationChatResource(sessionKey, targetChatId),
+				{ isDefaultRoot: false, title: targetEntry.title },
+			);
+
+			await editorService.replaceEditors([{
+				editor: activeEditor,
+				replacement,
+			}], group);
 			this.fireCloseNonRootStateChange();
-			return;
+		} catch (error) {
+			this.notificationService.error(getErrorMessage(error));
 		}
-
-		const targetEntry = this.catalog.get(sessionKey)?.get(targetChatId);
-		if (!targetEntry) {
-			return;
-		}
-
-		const replacement = this.instantiationService.createInstance(
-			ConversationChatInput,
-			getConversationChatResource(sessionKey, targetChatId),
-			{ isDefaultRoot: false, title: targetEntry.title },
-		);
-
-		await editorService.replaceEditors([{
-			editor: activeEditor,
-			replacement,
-		}], group);
-		this.fireCloseNonRootStateChange();
 	}
 
 	private async navigateOverlayBreadcrumb(sessionKey: string, targetChatId: string): Promise<void> {
