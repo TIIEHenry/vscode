@@ -40,6 +40,15 @@ const STUB_SEED_IDS = new Set(['untitled', 'visualize']);
 /** Placeholder roster row when connected but no engine session could be bound. */
 export const ENGINE_BIND_FAILED_SESSION_ID = '__engine_bind_failed__';
 
+interface EngineSessionDeleteSnapshot {
+	readonly session: ConversationStubSession;
+	readonly index: number;
+	readonly previousGoal: string | undefined;
+	readonly previousActiveId: string | undefined;
+	readonly previousListCompleted: boolean;
+	readonly previousBindFailed: boolean;
+}
+
 export function isEngineRosterPlaceholderSessionId(sessionId: string | undefined): boolean {
 	return !!sessionId && (sessionId === ENGINE_BIND_FAILED_SESSION_ID || STUB_SEED_IDS.has(sessionId));
 }
@@ -1133,13 +1142,34 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		if (!session || session.title === trimmed) {
 			return false;
 		}
+		const previousTitle = session.title;
 		session.title = trimmed;
-		if (callRemote) {
-			void this.uaConnection.renameSession({ sessionId, title: trimmed });
-		}
 		this._onDidChangeSession.fire(sessionId);
 		this.persistEngineAwareRoster();
+		if (callRemote) {
+			this.followRemoteRenameSession(this.uaConnection.renameSession({ sessionId, title: trimmed }), sessionId, previousTitle);
+		}
 		return true;
+	}
+
+	private followRemoteRenameSession(remote: Promise<{ readonly ok: boolean }>, sessionId: string, previousTitle: string): void {
+		void remote.then(result => {
+			if (!result.ok) {
+				this.rollbackEngineSessionTitle(sessionId, previousTitle);
+			}
+		}, () => {
+			this.rollbackEngineSessionTitle(sessionId, previousTitle);
+		});
+	}
+
+	private rollbackEngineSessionTitle(sessionId: string, previousTitle: string): void {
+		const session = this.engineSessions.find(s => s.id === sessionId);
+		if (!session || session.title === previousTitle) {
+			return;
+		}
+		session.title = previousTitle;
+		this._onDidChangeSession.fire(sessionId);
+		this.persistEngineAwareRoster();
 	}
 
 	private deleteEngineSession(sessionId: string, callRemote: boolean): boolean {
@@ -1147,12 +1177,18 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		if (index < 0) {
 			return false;
 		}
+		const removed = this.engineSessions[index]!;
+		const snapshot: EngineSessionDeleteSnapshot = {
+			session: { id: removed.id, title: removed.title, turns: removed.turns, source: removed.source },
+			index,
+			previousGoal: this.sessionGoals.get(sessionId),
+			previousActiveId: this.activeEngineSessionId,
+			previousListCompleted: this.listCompleted,
+			previousBindFailed: this.engineSessionBindFailed,
+		};
 		const wasActive = this.getActiveSessionId() === sessionId;
 		this.engineSessions = this.engineSessions.filter(s => s.id !== sessionId);
 		this.sessionGoals.delete(sessionId);
-		if (callRemote) {
-			void this.uaConnection.deleteSession({ sessionId });
-		}
 		if (this.engineSessions.length === 0) {
 			// Honest empty — no stub seed refill (m6 §6 / M6-A2).
 			this.listCompleted = true;
@@ -1169,7 +1205,39 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		}
 		this._onDidChangeSession.fire(sessionId);
 		this.persistEngineAwareRoster();
+		if (callRemote) {
+			this.followRemoteDeleteSession(this.uaConnection.deleteSession({ sessionId }), snapshot);
+		}
 		return true;
+	}
+
+	private followRemoteDeleteSession(remote: Promise<void>, snapshot: EngineSessionDeleteSnapshot): void {
+		void remote.then(() => { }, () => {
+			this.rollbackEngineSessionDelete(snapshot);
+		});
+	}
+
+	private rollbackEngineSessionDelete(snapshot: EngineSessionDeleteSnapshot): void {
+		this.engineSessionBindFailed = snapshot.previousBindFailed;
+		this.listCompleted = snapshot.previousListCompleted;
+		if (!this.engineSessions.some(session => session.id === snapshot.session.id)) {
+			const next = this.engineSessions.slice();
+			const insertAt = Math.min(Math.max(snapshot.index, 0), next.length);
+			next.splice(insertAt, 0, snapshot.session);
+			this.engineSessions = next;
+		}
+		if (snapshot.previousGoal === undefined) {
+			this.sessionGoals.delete(snapshot.session.id);
+		} else {
+			this.sessionGoals.set(snapshot.session.id, snapshot.previousGoal);
+		}
+		const currentActiveId = this.activeEngineSessionId;
+		this.activeEngineSessionId = snapshot.previousActiveId;
+		if (currentActiveId !== snapshot.previousActiveId && snapshot.previousActiveId !== undefined) {
+			this._onDidChangeActiveSession.fire(snapshot.previousActiveId);
+		}
+		this._onDidChangeSession.fire(snapshot.session.id);
+		this.persistEngineAwareRoster();
 	}
 
 	private onUaConnectionChanged(): void {
