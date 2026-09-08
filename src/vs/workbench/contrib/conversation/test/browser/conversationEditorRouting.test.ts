@@ -11,7 +11,7 @@ import { isBlockedFromConversationGroup, isConversationExtensionTab } from '../.
 import { registerTestEditor, TestFileEditorInput, workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { SideBySideEditorInput } from '../../../../common/editor/sideBySideEditorInput.js';
 import { ChatEditorInput } from '../../../chat/browser/widgetHosts/editor/chatEditorInput.js';
-import { ConversationChatInput, getConversationChatResource, getDefaultConversationChatResource } from '../../browser/conversationChatInput.js';
+import { ConversationChatInput, getConversationChatResource, getDefaultConversationChatResource } from '../../common/conversationChatInput.js';
 import { ConversationDiffReviewInput } from '../../../sources/browser/conversationDiffReviewInput.js';
 
 suite('Conversation editor routing (F1)', () => {

@@ -25,7 +25,7 @@ import { ConversationStubService, IConversationRosterService } from '../../brows
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { createConversationConnectionTestStub } from '../common/conversationConnectionTestStub.js';
 import { IConversationTimelineRevealService } from '../../browser/conversationTimelineRevealService.js';
-import { IConversationReviewNavService } from '../../common/conversationReviewEntry.js';
+import { IConversationReviewNavService } from '../../browser/conversationReviewEntry.js';
 import { getConversationSessionStatusText } from '../../browser/conversationSessionStatus.js';
 
 suite('Page access schemes slice 5 (UI contract)', () => {

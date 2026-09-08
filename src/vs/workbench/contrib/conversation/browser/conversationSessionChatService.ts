@@ -22,7 +22,7 @@ import {
 	deriveConversationChatIdFromForkResource,
 	getConversationChatResource,
 	parseConversationChatResource,
-} from './conversationChatInput.js';
+} from '../common/conversationChatInput.js';
 import { ConversationSubAgentOverlay } from './conversationSubAgentOverlay.js';
 import { IConversationRosterService } from './conversationStubService.js';
 

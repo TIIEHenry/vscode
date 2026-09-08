@@ -6,9 +6,8 @@
 import { URI } from '../../../../base/common/uri.js';
 import { isEditorInput, IUntypedEditorInput, isResourceEditorInput } from '../../../common/editor.js';
 import { EditorInput } from '../../../common/editor/editorInput.js';
-import { ChatEditorInput } from '../../chat/browser/widgetHosts/editor/chatEditorInput.js';
 import { isConversationDiffReviewInput } from '../../sources/common/conversationDiffReviewInput.js';
-import { ConversationChatInput, ConversationChatInputScheme } from '../browser/conversationChatInput.js';
+import { ConversationChatInput, ConversationChatInputScheme } from './conversationChatInput.js';
 
 export function isConversationChatInput(input: EditorInput | IUntypedEditorInput): boolean {
 	if (input instanceof ConversationChatInput) {
@@ -35,10 +34,6 @@ export function isConversationExtensionTab(input: EditorInput): boolean {
 }
 
 export function isBlockedFromConversationGroup(input: EditorInput | IUntypedEditorInput): boolean {
-	if (input instanceof ChatEditorInput) {
-		return true;
-	}
-
 	if (isEditorInput(input)) {
 		return !(input instanceof ConversationChatInput) && !isConversationDiffReviewInput(input);
 	}

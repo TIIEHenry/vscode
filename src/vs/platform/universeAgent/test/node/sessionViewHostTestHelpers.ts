@@ -20,7 +20,7 @@ import type {
 	UniverseAgentSessionStreamCloseCause,
 } from '../../common/universeAgentTypes.js';
 import { GrpcStatusCode, UniverseAgentTransportError } from '../../node/grpc/grpcTransport.js';
-import { createEmptyCapabilitySnapshot } from '../../node/grpcCapabilityProbe.js';
+import { createEmptyCapabilitySnapshot } from '../../common/universeAgentCapabilities.js';
 import type { SessionViewHost } from '../../node/sessionViewHost.js';
 
 export async function bindEngineSession(host: SessionViewHost, sessionId: string): Promise<void> {

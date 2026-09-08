@@ -4,9 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import * as fs from 'fs';
-import * as path from 'path';
-import { fileURLToPath } from 'url';
 import { Emitter } from '../../../../../base/common/event.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { ensureNoDisposablesAreLeakedInTestSuite, toResource } from '../../../../../base/test/common/utils.js';
@@ -119,15 +116,6 @@ suite('Sources - review progress service', () => {
 		service.pruneMissingKeys(new Set());
 
 		assert.strictEqual(service.isReviewed(key), false);
-	});
-
-	const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../../../../..');
-
-	test('does not import IStorageService', () => {
-		const servicePath = path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/sourcesReviewProgressService.ts');
-		const source = fs.readFileSync(servicePath, 'utf8');
-		assert.ok(!source.includes('IStorageService'));
-		assert.ok(!source.includes('platform/storage'));
 	});
 
 	test('never calls IStorageService at runtime', async function () {

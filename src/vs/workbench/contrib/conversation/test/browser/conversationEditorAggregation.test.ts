@@ -16,7 +16,7 @@ import { EditorExtensions, IEditorFactoryRegistry } from '../../../../common/edi
 import { createEditorParts, registerTestEditor, TestFileEditorInput, workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { SideBySideEditorInput } from '../../../../common/editor/sideBySideEditorInput.js';
 import { URI } from '../../../../../base/common/uri.js';
-import { ConversationChatInput, getConversationChatResource } from '../../browser/conversationChatInput.js';
+import { ConversationChatInput, getConversationChatResource } from '../../common/conversationChatInput.js';
 import { ConversationDiffReviewInput } from '../../../sources/browser/conversationDiffReviewInput.js';
 import { ConversationDiffReviewInputTypeId } from '../../../sources/common/conversationDiffReviewInput.js';
 import { registerTestConversationDiffReviewEditor } from './conversationDiffReviewTestEditor.js';

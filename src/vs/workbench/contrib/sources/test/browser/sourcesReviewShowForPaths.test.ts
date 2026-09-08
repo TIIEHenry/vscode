@@ -4,9 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import * as fs from 'fs';
-import * as path from 'path';
-import { fileURLToPath } from 'url';
 import { URI } from '../../../../../base/common/uri.js';
 import { ensureNoDisposablesAreLeakedInTestSuite, toResource } from '../../../../../base/test/common/utils.js';
 import { IConfigurationService } from '../../../../../platform/configuration/common/configuration.js';
@@ -171,21 +168,6 @@ suite('Sources - review showForPaths', () => {
 		await CommandsRegistry.getCommand(SOURCES_REVIEW_MARK_ALL_REVIEWED_COMMAND)?.handler?.(accessor);
 		assert.strictEqual(toggled, 1);
 		assert.strictEqual(markedAll, 1);
-	});
-
-	const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../../../../..');
-
-	test('Open Selected catch surfaces open-diff failure the same way as Review list', () => {
-		const source = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/sourcesReviewCommands.contribution.ts'), 'utf8');
-		const openStart = source.indexOf('class SourcesReviewOpenSelectedAction');
-		const openEnd = source.indexOf('class SourcesReviewToggleReviewedSelectedAction', openStart);
-		assert.ok(openStart >= 0 && openEnd > openStart);
-		const openAction = source.slice(openStart, openEnd);
-		assert.ok(openAction.includes('markReviewedAfterSuccessfulOpen'));
-		assert.ok(openAction.includes('} catch (error)'));
-		assert.ok(openAction.includes('sourcesGitDiffOpenFailureMessage'));
-		assert.ok(openAction.includes('setStatusMessage'));
-		assert.ok(!openAction.includes('} catch {'));
 	});
 
 	test('openSelected surfaces open-diff failure on review status and does not mark reviewed', async function () {

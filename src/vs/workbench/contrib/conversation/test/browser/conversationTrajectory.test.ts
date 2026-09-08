@@ -38,7 +38,7 @@ import { IExplorerService } from '../../../files/browser/files.js';
 import { ISCMService } from '../../../scm/common/scm.js';
 import { IStorageService } from '../../../../../platform/storage/common/storage.js';
 import { TestStorageService } from '../../../../test/common/workbenchTestServices.js';
-import { IConversationReviewNavService } from '../../common/conversationReviewEntry.js';
+import { IConversationReviewNavService } from '../../browser/conversationReviewEntry.js';
 import { flushConversationLensLayout, installConversationLensResizeObserverHarness } from './conversationLensLayoutHarness.js';
 
 function turn(id: string, kind: ConversationStubTurn['kind'], text = id, status?: ConversationStubTurn['status']): ConversationStubTurn {

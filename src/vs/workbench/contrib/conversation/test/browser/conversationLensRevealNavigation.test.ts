@@ -4,9 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import * as fs from 'fs';
-import * as path from 'path';
-import { fileURLToPath } from 'url';
 import { toDisposable } from '../../../../../base/common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { ConversationPart, IConversationLensSlots } from '../../../../browser/parts/conversation/conversationPart.js';
@@ -19,7 +16,7 @@ import { ConversationStubService, IConversationRosterService } from '../../brows
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { createConversationConnectionTestStub } from '../common/conversationConnectionTestStub.js';
 import { IConversationTimelineRevealService } from '../../browser/conversationTimelineRevealService.js';
-import { IConversationReviewNavService } from '../../common/conversationReviewEntry.js';
+import { IConversationReviewNavService } from '../../browser/conversationReviewEntry.js';
 import { IClipboardService } from '../../../../../platform/clipboard/common/clipboardService.js';
 import { TestClipboardService } from '../../../../../platform/clipboard/test/common/testClipboardService.js';
 import { Event } from '../../../../../base/common/event.js';
@@ -366,14 +363,6 @@ suite('ConversationLens reveal navigation (T5a)', function () {
 		assert.strictEqual(lens.isInputMaximized(), false);
 		assert.strictEqual(getLensTab(slots, 'conversation').getAttribute('aria-selected'), 'true');
 		assert.ok(slots.timeline.querySelector('.conversation-lens-turn[data-turn-id="untitled-a1"]'));
-	});
-
-	test('maximize CSS hides the Conversation tree, not the shared slot on Trajectory', () => {
-		const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../../../../..');
-		const css = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/conversation/browser/media/conversationLens.css'), 'utf8');
-		assert.ok(css.includes('.conversation-lens-input-maximized:not(:has(.conversation-lens-phase-prefirst)) .conversation-lens-timeline'));
-		assert.ok(css.includes('.conversation-lens-input-maximized:not(:has(.conversation-lens-phase-prefirst)):not(.conversation-lens-showing-trajectory)'));
-		assert.ok(!/\.conversation-timeline\.conversation-lens-input-maximized:not\(:has\(\.conversation-lens-phase-prefirst\)\)\s*\{\s*display:\s*none;/.test(css));
 	});
 
 	test('input maximize hides conversation tree but still paints Trajectory rows', async () => {

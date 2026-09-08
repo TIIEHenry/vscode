@@ -17,7 +17,7 @@ import type {
 } from '../../common/universeAgentTypes.js';
 import { AgentTreeCoordinator, flushAgentTreeCoordinator } from '../../node/agentTreeCoordinator.js';
 import { GrpcStatusCode, UniverseAgentTransportError } from '../../node/grpc/grpcTransport.js';
-import { createEmptyCapabilitySnapshot } from '../../node/grpcCapabilityProbe.js';
+import { createEmptyCapabilitySnapshot } from '../../common/universeAgentCapabilities.js';
 import { SessionViewHost } from '../../node/sessionViewHost.js';
 
 const ROOT_TREE: UniverseAgentAgentTreeNode = {

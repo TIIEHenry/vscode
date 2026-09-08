@@ -24,7 +24,7 @@ import { ConversationStubService, IConversationRosterService } from '../../brows
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { createConversationConnectionTestStub } from '../common/conversationConnectionTestStub.js';
 import { IConversationTimelineRevealService } from '../../browser/conversationTimelineRevealService.js';
-import { IConversationReviewNavService } from '../../common/conversationReviewEntry.js';
+import { IConversationReviewNavService } from '../../browser/conversationReviewEntry.js';
 import {
 	CONVERSATION_TRAJECTORY_RECORD_LIMIT,
 	CONVERSATION_TRAJECTORY_STUB_CONTEXT_TEXT,

@@ -8,32 +8,13 @@ import type {
 	UniverseAgentCapabilityKey,
 	UniverseAgentCapabilitySnapshot,
 } from '../common/universeAgentTypes.js';
+import {
+	PROVIDER_CONFIG_UNSUPPORTED_REASON,
+	SUPPORTED_CAPABILITY,
+	UNSUPPORTED_CAPABILITY,
+	createEmptyCapabilitySnapshot,
+} from '../common/universeAgentCapabilities.js';
 import { GrpcStatusCode, IUniverseAgentGrpcTransport, UniverseAgentGrpcServices } from './grpc/grpcTransport.js';
-
-const UNKNOWN: UniverseAgentCapabilityEntry = { support: 'UNKNOWN', reason: 'not probed' };
-const UNSUPPORTED: UniverseAgentCapabilityEntry = { support: 'UNSUPPORTED' };
-const SUPPORTED: UniverseAgentCapabilityEntry = { support: 'SUPPORTED' };
-
-/** G-ENG-1: Provider config keys are not a closed contract yet. */
-const PROVIDER_CONFIG_UNSUPPORTED_REASON = 'Provider 配置键合同未定';
-
-function emptySnapshot(): UniverseAgentCapabilitySnapshot {
-	return {
-		skills: { ...UNKNOWN },
-		mcp: { ...UNKNOWN },
-		mcpRuntime: { ...UNKNOWN },
-		plugins: { ...UNKNOWN },
-		models: { ...UNKNOWN },
-		providerConfig: { support: 'UNSUPPORTED', reason: PROVIDER_CONFIG_UNSUPPORTED_REASON },
-		globalRules: { ...UNKNOWN },
-		agentProfiles: { ...UNKNOWN },
-		projectRules: { ...UNKNOWN },
-		tools: { ...UNKNOWN },
-		hooksMetadata: { ...UNKNOWN },
-		agentTree: { ...UNKNOWN },
-		team: { ...UNKNOWN },
-	};
-}
 
 /** Maps Connect-advertised methods to probe targets (Singularity GrpcCapabilityProbe equivalent). */
 const PROBE_TARGETS: Partial<Record<UniverseAgentCapabilityKey, { service: string; method: string; methodKey: string }>> = {
@@ -94,7 +75,7 @@ export interface GrpcCapabilityProbeInput {
  * a runtime probe must not return UNIMPLEMENTED (m6 §5).
  */
 export async function probeEngineCapabilities(input: GrpcCapabilityProbeInput): Promise<UniverseAgentCapabilitySnapshot> {
-	const snapshot: Record<UniverseAgentCapabilityKey, UniverseAgentCapabilityEntry> = emptySnapshot();
+	const snapshot: Record<UniverseAgentCapabilityKey, UniverseAgentCapabilityEntry> = createEmptyCapabilitySnapshot();
 	const methodSet = new Set(input.methods);
 
 	for (const key of Object.keys(PROBE_TARGETS) as UniverseAgentCapabilityKey[]) {
@@ -112,7 +93,7 @@ export async function probeEngineCapabilities(input: GrpcCapabilityProbeInput): 
 			continue;
 		}
 		if (status === GrpcStatusCode.OK) {
-			snapshot[key] = { ...SUPPORTED };
+			snapshot[key] = { ...SUPPORTED_CAPABILITY };
 			continue;
 		}
 		snapshot[key] = { support: 'UNKNOWN', reason: `probe status ${status}` };
@@ -121,7 +102,7 @@ export async function probeEngineCapabilities(input: GrpcCapabilityProbeInput): 
 	// Remaining IDE-local derived keys without dedicated probes in this slice.
 	for (const key of ['projectRules', 'hooksMetadata', 'globalRules'] as const) {
 		if (snapshot[key].support === 'UNKNOWN' && snapshot[key].reason === 'not probed') {
-			snapshot[key] = { ...UNSUPPORTED, reason: 'probe not implemented in M6-A1' };
+			snapshot[key] = { ...UNSUPPORTED_CAPABILITY, reason: 'probe not implemented in M6-A1' };
 		}
 	}
 
@@ -130,5 +111,3 @@ export async function probeEngineCapabilities(input: GrpcCapabilityProbeInput): 
 
 	return snapshot;
 }
-
-export { emptySnapshot as createEmptyCapabilitySnapshot };

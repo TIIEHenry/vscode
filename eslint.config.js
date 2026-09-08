@@ -1753,6 +1753,25 @@ export default defineConfig(
 					]
 				},
 				{
+					'target': 'src/vs/platform/universeAgent/~',
+					'restrictions': [
+						'vs/base/~',
+						'vs/base/parts/*/~',
+						'vs/platform/*/~',
+						'tas-client', // node module allowed even in /common/
+						'@microsoft/1ds-core-js', // node module allowed even in /common/
+						'@microsoft/1ds-post-js', // node module allowed even in /common/
+						'@xterm/headless', // node module allowed even in /common/
+						'@vscode/tree-sitter-wasm', // used by agentHost for command auto-approval
+						{
+							// gRPC transport to the engine. Node layers only: the browser
+							// and common layers reach the engine through the channel.
+							'when': 'hasNode',
+							'pattern': '@grpc/grpc-js'
+						}
+					]
+				},
+				{
 					'target': 'src/vs/platform/*/~',
 					'restrictions': [
 						'vs/base/~',

@@ -20,7 +20,7 @@ import {
 	IReviewNavRecord,
 	ITurnSettleSignal,
 	materializeReviewNavRecords,
-} from '../common/conversationReviewEntry.js';
+} from './conversationReviewEntry.js';
 
 interface IMutableFileMutationRecord extends IFileMutationRecord {
 	turnId: string;

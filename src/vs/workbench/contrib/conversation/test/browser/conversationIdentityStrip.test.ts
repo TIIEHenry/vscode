@@ -20,7 +20,7 @@ import { IExplorerService } from '../../../files/browser/files.js';
 import { ISCMRepository, ISCMService } from '../../../scm/common/scm.js';
 import { TestContextService, TestStorageService } from '../../../../test/common/workbenchTestServices.js';
 import { IConversationTimelineRevealService } from '../../browser/conversationTimelineRevealService.js';
-import { IConversationReviewNavService } from '../../common/conversationReviewEntry.js';
+import { IConversationReviewNavService } from '../../browser/conversationReviewEntry.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { ConversationLens } from '../../browser/conversationLens.js';
 import { ConversationTimelineTree } from '../../browser/conversationTimelineTree.js';

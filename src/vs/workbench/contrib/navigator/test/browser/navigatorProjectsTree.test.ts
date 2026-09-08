@@ -10,7 +10,7 @@ import { ConversationStubSession } from '../../../conversation/browser/conversat
 import {
 	buildNavigatorProjectsTree,
 	countLocalFolders,
-} from '../../common/navigatorProjectsTree.js';
+} from '../../browser/navigatorProjectsTree.js';
 
 suite('NavigatorProjectsTree (N1)', () => {
 

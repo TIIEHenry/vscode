@@ -21,7 +21,7 @@ import { ConversationInboxOverlay } from './conversationInboxOverlay.js';
 import { ConversationTimelineTree } from './conversationTimelineTree.js';
 import { ConversationTrajectory } from './conversationTrajectory.js';
 import type { ConversationTimelineEntry } from './conversationSessionView.js';
-import { IConversationReviewNavService } from '../common/conversationReviewEntry.js';
+import { IConversationReviewNavService } from './conversationReviewEntry.js';
 import type { ConversationQuestionRespondAnswers, ConversationViewFrameApplied, ConversationWriteMessage, IConversationSessionViewLease, PostOutcome } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
 import type { SyncChrome } from '../../../../platform/universeAgent/common/sessionView/index.js';
 import { conversationLensInputMaximizedClass, type ConversationComposerPostFailureReason } from './conversationLensDockStrings.js';

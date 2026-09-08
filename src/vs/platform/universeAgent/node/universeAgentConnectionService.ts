@@ -366,7 +366,8 @@ import type {
 	IFileMutationRecord,
 	ITurnSettleSignal,
 } from '../common/universeAgentTypes.js';
-import { createEmptyCapabilitySnapshot, probeEngineCapabilities } from './grpcCapabilityProbe.js';
+import { createEmptyCapabilitySnapshot } from '../common/universeAgentCapabilities.js';
+import { probeEngineCapabilities } from './grpcCapabilityProbe.js';
 import { createGrpcUniverseAgentClient, createPinnedGrpcUniverseAgentClient } from './grpc/grpcClient.js';
 import { loadGrpcModule } from './universeAgentChannel.js';
 import { GrpcStatusCode, IUniverseAgentGrpcTransport, isTransportFailureCode, UniverseAgentFetchToolDetailMethodKey, UniverseAgentGrpcServices, UniverseAgentSaveSkillContentMethodKey, UniverseAgentTransportError } from './grpc/grpcTransport.js';

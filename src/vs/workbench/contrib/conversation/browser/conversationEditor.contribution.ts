@@ -10,7 +10,7 @@ import { EditorInput } from '../../../common/editor/editorInput.js';
 import { SyncDescriptor } from '../../../../platform/instantiation/common/descriptors.js';
 import { Registry } from '../../../../platform/registry/common/platform.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
-import { ConversationChatInput, ConversationChatInputTypeId } from './conversationChatInput.js';
+import { ConversationChatInput, ConversationChatInputTypeId } from '../common/conversationChatInput.js';
 import { ConversationEditorPane } from './conversationEditorPane.js';
 
 class ConversationChatInputSerializer implements IEditorSerializer {

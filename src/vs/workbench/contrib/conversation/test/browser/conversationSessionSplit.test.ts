@@ -15,7 +15,7 @@ import { CONVERSATION_SIDE_GROUP, SIDE_GROUP } from '../../../../services/editor
 import { EditorExtensions, IEditorFactoryRegistry } from '../../../../common/editor.js';
 import { createEditorParts, registerTestEditor, TestFileEditorInput, workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { SideBySideEditorInput } from '../../../../common/editor/sideBySideEditorInput.js';
-import { getDefaultConversationChatResource } from '../../browser/conversationChatInput.js';
+import { getDefaultConversationChatResource } from '../../common/conversationChatInput.js';
 import '../../browser/conversationEditor.contribution.js';
 import { ConversationSessionChatService } from '../../browser/conversationSessionChatService.js';
 import { ConversationStubService, IConversationRosterService } from '../../browser/conversationStubService.js';

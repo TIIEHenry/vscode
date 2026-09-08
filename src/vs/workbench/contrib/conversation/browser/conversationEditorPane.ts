@@ -18,7 +18,7 @@ import { IEditorOpenContext } from '../../../common/editor.js';
 import { IEditorGroup } from '../../../services/editor/common/editorGroupsService.js';
 import { ConversationAgentBreadcrumbBox } from './conversationAgentBreadcrumb.js';
 import { ConversationLens } from './conversationLens.js';
-import { ConversationChatInput, parseConversationChatResource } from './conversationChatInput.js';
+import { ConversationChatInput, parseConversationChatResource } from '../common/conversationChatInput.js';
 import { CONVERSATION_LEAF_COMPACT_WIDTH, CONVERSATION_LEAF_NARROW_WIDTH } from './conversationNarrowLayout.js';
 import { IConversationSessionChatService } from './conversationSessionChatService.js';
 import { IConversationPartService } from '../../../browser/parts/conversation/conversationPart.js';

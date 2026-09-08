@@ -33,7 +33,7 @@ import {
 	ConversationChatInputTypeId,
 	getConversationChatResource,
 	parseConversationChatResource,
-} from '../../browser/conversationChatInput.js';
+} from '../../common/conversationChatInput.js';
 import { ConversationSessionChatService, IConversationSessionChatService } from '../../browser/conversationSessionChatService.js';
 import { isConversationExtensionTab } from '../../common/conversationEditorRouting.js';
 import { conversationSubAgentOverlayClass, conversationSubAgentOverlayBackdropClass, conversationSubAgentOverlayCardClass, conversationSubAgentOverlayMaximizeClass, conversationSubAgentOverlayMaximizedAttribute, conversationSubAgentOverlayPopoutClass, conversationSubAgentOverlaySessionBarClass, conversationSubAgentOverlayTitleId } from '../../browser/conversationSubAgentOverlay.js';

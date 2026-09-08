@@ -22,7 +22,7 @@ import {
 	materializeReviewNavRecords,
 	reviewNavEntryId,
 	reviewNavIndicesOutsideProcessFold,
-} from '../../common/conversationReviewEntry.js';
+} from '../../browser/conversationReviewEntry.js';
 import {
 	entriesToLegacyTurns,
 	projectSnapshotToEntries,
@@ -216,7 +216,7 @@ suite('conversationReviewEntry (R4b)', () => {
 		const root = WORKSPACE_ROOT;
 		const mutationEmitter = store.add(new Emitter<IFileMutationRecord>());
 		const connectionChangeEmitter = store.add(new Emitter<import('../../../../../platform/universeAgent/common/universeAgentTypes.js').UniverseAgentConnectionSnapshot>());
-		const settleEmitter = store.add(new Emitter<import('../../common/conversationReviewEntry.js').ITurnSettleSignal>());
+		const settleEmitter = store.add(new Emitter<import('../../browser/conversationReviewEntry.js').ITurnSettleSignal>());
 
 		const connection = {
 			isEngineConnected: () => false,

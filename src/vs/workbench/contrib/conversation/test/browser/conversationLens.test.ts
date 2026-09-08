@@ -11,7 +11,7 @@ import { ConversationPart, IConversationLensSlots } from '../../../../browser/pa
 import { Parts } from '../../../../services/layout/browser/layoutService.js';
 import { ChatEditorInput } from '../../../chat/browser/widgetHosts/editor/chatEditorInput.js';
 import { TestLayoutService, workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
-import { ConversationChatInput } from '../../browser/conversationChatInput.js';
+import { ConversationChatInput } from '../../common/conversationChatInput.js';
 import { ConversationEditorPane } from '../../browser/conversationEditorPane.js';
 import { ConversationLens } from '../../browser/conversationLens.js';
 import { conversationLensStaleSnapshotClass } from '../../browser/conversationLensReadingColumn.js';
@@ -92,7 +92,7 @@ import { IExtensionService } from '../../../../services/extensions/common/extens
 import { ILayoutService } from '../../../../../platform/layout/browser/layoutService.js';
 import { IWebviewService } from '../../../webview/browser/webview.js';
 import { IConversationTimelineRevealService } from '../../browser/conversationTimelineRevealService.js';
-import { IConversationReviewNavService } from '../../common/conversationReviewEntry.js';
+import { IConversationReviewNavService } from '../../browser/conversationReviewEntry.js';
 import { flushConversationLensLayout, installConversationLensResizeObserverHarness } from './conversationLensLayoutHarness.js';
 import { getWindow } from '../../../../../base/browser/dom.js';
 import { mainWindow } from '../../../../../base/browser/window.js';

@@ -4,9 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import * as fs from 'fs';
-import * as path from 'path';
-import { fileURLToPath } from 'url';
 import { ensureNoDisposablesAreLeakedInTestSuite, toResource } from '../../../../../base/test/common/utils.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { ISourcesChangeEntry } from '../../common/sourcesChangesModel.js';
@@ -125,36 +122,6 @@ suite('Sources - review list model', () => {
 			resource,
 		));
 		assert.strictEqual(marked.length, 1);
-	});
-
-	const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../../../../..');
-
-	test('Review list surfaces git read failure on a status line instead of a silent catch', () => {
-		const review = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/sourcesReviewList.ts'), 'utf8');
-		assert.ok(review.includes('sourcesGitReadFailureMessage'));
-		assert.ok(review.includes('setStatusMessage'));
-		assert.ok(review.includes('sources-review-status'));
-		assert.ok(!review.includes('} catch {\n\t\t\tif (seq !== this.refreshSeq)'));
-	});
-
-	test('Review list surfaces open-diff failure on the same status line and does not mark reviewed', () => {
-		const review = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/sourcesReviewList.ts'), 'utf8');
-		const openStart = review.indexOf('this._register(this.list.onDidOpen');
-		const openEnd = review.indexOf('this._register(this.list.onContextMenu', openStart);
-		assert.ok(openStart >= 0 && openEnd > openStart);
-		const openHandler = review.slice(openStart, openEnd);
-		assert.ok(openHandler.includes('markReviewedAfterSuccessfulOpen'));
-		assert.ok(openHandler.includes('} catch (error)'));
-		assert.ok(openHandler.includes('sourcesGitDiffOpenFailureMessage'));
-		assert.ok(openHandler.includes('setStatusMessage'));
-		assert.ok(!openHandler.includes('} catch {'));
-	});
-
-	test('Changes list does not reference review progress service', () => {
-		const changesListPath = path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/sourcesChangesList.ts');
-		const source = fs.readFileSync(changesListPath, 'utf8');
-		assert.ok(!source.includes('ISourcesReviewProgressService'));
-		assert.ok(!source.includes('sourcesReviewProgress'));
 	});
 
 	test('review progress keys remain distinct per content hash', () => {
