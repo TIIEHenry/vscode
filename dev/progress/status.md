@@ -106,7 +106,7 @@ summary: "FileMutationJoin / createScoped / Review 委托已修。D16 / D31 F4 �
 57. **D 槽 `breadcrumb-navigate-throw-notice`（未关 D16）**：`navigateAgentBreadcrumb` try/catch → notice；void 未改。[D87](deferred-gaps.md) **已闭**。
 58. **D 槽 `fork-open-tab-throw-notice`（未关 D16）**：`openForkTab` try/catch → notice；首个 await 前 hoist。[D88](deferred-gaps.md) **已闭**。
 59. **A 槽 `connection-profile-crud-throw`（未关 D16）**：Add Direct / Disconnect / Forget / ConnectDevice throw 画 status。[D89](deferred-gaps.md) **已闭**。
-60. **B 槽 `session-window-primary-bootstrap-catch`（未关 D16）**：`ensurePrimaryWindow` 先 `ensureLeaf` 再提交 key；throw 回滚半应用 leaf。[D90](deferred-gaps.md) **已闭**。
+60. **B 槽 `session-window-primary-bootstrap-catch`（未关 D16）**：先 `ensureLeaf` 再提交 key；in-flight 串行 + 真实 stub；throw 回滚半应用 leaf。[D90](deferred-gaps.md) **已闭**。
 子 agent 发现的既有代码问题：
 | ID | 来源 | 问题 |
 |:---|:-----|:-----|
@@ -177,17 +177,17 @@ summary: "FileMutationJoin / createScoped / Review 委托已修。D16 / D31 F4 �
 | [D87](deferred-gaps.md) | D 槽 `breadcrumb-navigate-throw-notice` | **closed** `navigateAgentBreadcrumb` throw 已 notice；未关 D16 |
 | [D88](deferred-gaps.md) | D 槽 `fork-open-tab-throw-notice` | **closed** Fork `openForkTab` throw 已 notice；未关 D16 |
 | [D89](deferred-gaps.md) | A 槽 `connection-profile-crud-throw` | **closed** Add Direct / Disconnect / Forget / ConnectDevice throw 已画 status；未关 D16 |
-| [D90](deferred-gaps.md) | B 槽 `session-window-primary-bootstrap-catch` | **closed** `ensurePrimaryWindow` throw 已回滚半应用 primary；未关 D16 |
+| [D90](deferred-gaps.md) | B 槽 `session-window-primary-bootstrap-catch` | **closed** throw 回滚 + in-flight 串行；merge 复测 9/9；未关 D16 |
 
 ## 工位表（P0 盘点 · 2026-09-07 · 与 `git worktree list` 对照）
 | 槽 | 路径 | 分支 | tip | 脏 | stash | 关仓状态 |
 |----|------|------|-----|:--|:------|:---------|
-| merge | `vscode-WorkTrees/merge` | `loop/merge` | P2 中 | `__pycache__` | 0 | 合入 A/B；compile unused 仍红，**不 push** |
-| A | `vscode-WorkTrees/A` | `loop/A` | `2c01992c318` | `__pycache__` | 0 | merge-queued：D89 |
-| B | `vscode-WorkTrees/B` | `loop/B` | `4e54c37ed72` | `__pycache__` | 0 | merge-queued：D90 |
-| C | `vscode-WorkTrees/C` | `loop/C` | `c6c9a8c7d37` | 未提交 `dev/loop` + `__pycache__` | 0 | idle；勿 add `dev/loop` |
-| D | `vscode-WorkTrees/D` | `loop/D` | `46821c7fadd` | `__pycache__` | 0 | merge-queued：D88 |
-| edit | `Projects/Agents/vscode` | `agent-ide` | `a40a95d1e85`+ | `dev/loop` + 过期 progress | 0 | 人类工位；请自行对齐 `c6c9a8c7d37` |
+| merge | `vscode-WorkTrees/merge` | `loop/merge` | `f8d995484f6` | `__pycache__` | 0 | parked；compile unused 仍红，**不 push** |
+| A | `vscode-WorkTrees/A` | `loop/A` | `f8d995484f6` | `__pycache__` | 0 | idle |
+| B | `vscode-WorkTrees/B` | `loop/B` | `f8d995484f6` | `__pycache__` | 0 | idle |
+| C | `vscode-WorkTrees/C` | `loop/C` | `f8d995484f6` | 未提交 `dev/loop` + `__pycache__` | 0 | idle；勿 add `dev/loop` |
+| D | `vscode-WorkTrees/D` | `loop/D` | `f8d995484f6` | `__pycache__` | 0 | idle |
+| edit | `Projects/Agents/vscode` | `agent-ide` | `a40a95d1e85`+ | `dev/loop` + 过期 progress | 0 | 人类工位；请自行对齐 `f8d995484f6` |
 ## Blockers：无。
 ## Next
 | 项 | 指针 |
