@@ -418,6 +418,9 @@ export class EngineSkillsSection extends Disposable {
 			this.listContainer.style.display = canShowCatalogRows(this.mode) ? '' : 'none';
 			this.bodyEditor.style.display = canShowCatalogRows(this.mode) ? '' : 'none';
 			this.renderStatus();
+			if (this.selectedSkill && !this.bodyDirty) {
+				void this.loadSkillBody(this.selectedSkill);
+			}
 		} catch (error) {
 			this.clearCatalogPresentation();
 			this.mode = resolveEngineSkillsPaneMode(true, support, {
