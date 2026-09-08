@@ -1471,7 +1471,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 			this.hubDirectoryBanner.style.display = result.message ? '' : 'none';
 		} catch (error) {
 			const reason = error instanceof Error && error.message ? error.message : String(error);
-			this.hubDirectoryBanner.textContent = reason;
+			writeStatus(this.hubDirectoryBanner, reason, 'error');
 			this.hubDirectoryBanner.style.display = '';
 		}
 	}
@@ -1509,7 +1509,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 				this.renderProfiles();
 			} catch (error) {
 				const reason = error instanceof Error && error.message ? error.message : String(error);
-				this.hubDirectoryBanner.textContent = reason;
+				writeStatus(this.hubDirectoryBanner, reason, 'error');
 				this.hubDirectoryBanner.style.display = '';
 			}
 			return;
