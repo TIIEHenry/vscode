@@ -444,6 +444,100 @@ suite('EngineSkillsSection (E1)', () => {
 		assert.ok(writeStatus.textContent?.includes(createFailed));
 	});
 
+	test('saveSelectedSkillBody ok:false paints write-status and keeps catalog', async () => {
+		let listSkillsCalls = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			skillsSupport: 'SUPPORTED',
+			listSkills: async () => {
+				listSkillsCalls++;
+				return { skills: [{ name: 'user-skill', source: 'user', enabled: true }] };
+			},
+			getSkillInfo: async (request) => ({
+				name: request.skillName,
+				content: '# Original',
+				source: 'user',
+				enabled: true,
+			}),
+			saveSkillContent: async () => ({ ok: false }),
+		});
+		const section = mountSection(connection);
+		section.setSectionActive(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.strictEqual(section.getListEntryCount(), 1);
+		section.selectSkillForTest('user-skill');
+		await flushMicrotasks();
+		assert.strictEqual(section.getSelectedSkillName(), 'user-skill');
+		const listCallsAfterLoad = listSkillsCalls;
+
+		const ok = await section.saveSelectedSkillBody('# should-not-persist');
+		assert.strictEqual(ok, false);
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.strictEqual(section.getListEntryCount(), 1);
+		assert.strictEqual(section.getSelectedSkillName(), 'user-skill');
+		assert.strictEqual(listSkillsCalls, listCallsAfterLoad);
+
+		const saveFailed = localize('ua.engineSkillBodySaveFailed', "Could not save skill content to the engine.");
+		const bodyStatus = section.getDomNode().querySelector('.engine-skill-body-status') as HTMLElement;
+		const writeStatus = section.getDomNode().querySelector('.engine-skill-write-status') as HTMLElement;
+		assert.ok(bodyStatus);
+		assert.notStrictEqual(bodyStatus.style.display, 'none');
+		assert.ok(bodyStatus.textContent?.includes(saveFailed));
+		assert.ok(writeStatus);
+		assert.notStrictEqual(writeStatus.style.display, 'none');
+		assert.ok(writeStatus.textContent?.includes(saveFailed));
+	});
+
+	test('saveSelectedSkillBody throw paints write-status and keeps catalog', async () => {
+		let listSkillsCalls = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			skillsSupport: 'SUPPORTED',
+			listSkills: async () => {
+				listSkillsCalls++;
+				return { skills: [{ name: 'user-skill', source: 'user', enabled: true }] };
+			},
+			getSkillInfo: async (request) => ({
+				name: request.skillName,
+				content: '# Original',
+				source: 'user',
+				enabled: true,
+			}),
+			saveSkillContent: async () => {
+				throw new Error('saveSkillContent exploded');
+			},
+		});
+		const section = mountSection(connection);
+		section.setSectionActive(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.strictEqual(section.getListEntryCount(), 1);
+		section.selectSkillForTest('user-skill');
+		await flushMicrotasks();
+		assert.strictEqual(section.getSelectedSkillName(), 'user-skill');
+		const listCallsAfterLoad = listSkillsCalls;
+
+		const ok = await section.saveSelectedSkillBody('# should-not-persist');
+		assert.strictEqual(ok, false);
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.strictEqual(section.getListEntryCount(), 1);
+		assert.strictEqual(section.getSelectedSkillName(), 'user-skill');
+		assert.strictEqual(listSkillsCalls, listCallsAfterLoad);
+
+		const saveFailed = localize('ua.engineSkillBodySaveFailed', "Could not save skill content to the engine.");
+		const bodyStatus = section.getDomNode().querySelector('.engine-skill-body-status') as HTMLElement;
+		const writeStatus = section.getDomNode().querySelector('.engine-skill-write-status') as HTMLElement;
+		assert.ok(bodyStatus);
+		assert.notStrictEqual(bodyStatus.style.display, 'none');
+		assert.ok(bodyStatus.textContent?.includes(saveFailed));
+		assert.ok(writeStatus);
+		assert.notStrictEqual(writeStatus.style.display, 'none');
+		assert.ok(writeStatus.textContent?.includes(saveFailed));
+	});
+
 	test('SUPPORTED connected saveSelectedSkillBody calls saveSkillContent RPC', async () => {
 		let saveCalled = false;
 		let savedContent = '';

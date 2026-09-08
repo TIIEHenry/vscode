@@ -356,10 +356,7 @@ export class EngineSkillsSection extends Disposable {
 				content: payload,
 			});
 			if (!result.ok) {
-				this.showBodyStatus(localize(
-					'ua.engineSkillBodySaveFailed',
-					"Could not save skill content to the engine.",
-				));
+				this.paintSkillSaveFailed();
 				return false;
 			}
 			this.hideBodyStatus();
@@ -368,10 +365,7 @@ export class EngineSkillsSection extends Disposable {
 			await this.loadSkillBody(this.selectedSkill);
 			return true;
 		} catch {
-			this.showBodyStatus(localize(
-				'ua.engineSkillBodySaveFailed',
-				"Could not save skill content to the engine.",
-			));
+			this.paintSkillSaveFailed();
 			return false;
 		}
 	}
@@ -538,6 +532,13 @@ export class EngineSkillsSection extends Disposable {
 		this.paintSkillWriteFailed(localize(
 			'ua.engineSkillToggleFailed',
 			"Could not update skill enablement on the engine.",
+		));
+	}
+
+	private paintSkillSaveFailed(): void {
+		this.paintSkillWriteFailed(localize(
+			'ua.engineSkillBodySaveFailed',
+			"Could not save skill content to the engine.",
 		));
 	}
 
