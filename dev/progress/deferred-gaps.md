@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-08
-summary: "延期缺口 SSOT；D16 仍开；D45–D90 / D92–D99 已闭；D22 F3；D24 其余 JSON RPC；D25 引擎 List 真空；D26 引擎建壳回 6；D31 F4 / A2 blocked；beside max-leaves / primary 闸门与 goBack/goForward throw 回栈已挂"
+summary: "延期缺口 SSOT；D16 仍开；D45–D90 / D92–D99 / D101 已闭；D22 F3；D24 其余 JSON RPC；D25 引擎 List 真空；D26 引擎建壳回 6；D31 F4 / A2 blocked；closeNonRootTabs closeEditors throw 已 notice + finally 刷新"
 ---
 
 # Deferred Gaps
@@ -115,6 +115,7 @@ summary: "延期缺口 SSOT；D16 仍开；D45–D90 / D92–D99 已闭；D22 F3
 | D97 | P3 | **`openSessionBeside` max-leaves 先 hide secondary 再 `ensureLeaf`**：`visibleKeys.length >= CONVERSATION_SESSION_WINDOW_MAX_LEAVES`（2）时先 `hideSessionWindow(secondaryKey)`；D96 catch 只 `rollbackHalfAppliedLeaf(newKey)`，被驱逐的 secondary 留 hidden，2 窗变 1 | A 槽 `open-beside-max-leaves-and-require-primary` 已收：记住驱逐 key，catch 里 `restoreSessionWindow`（仍走既有 D96 rollback）；未重做 D90 bootstrap / D96 helper；未加 `INotificationService`；void 调用点未改。未关 D16 | throw 后 visible 回到 2、被 hide 的 secondary restore、无第三 leaf、无未处理 rejection；随后第三 beside 成功且 2-visible max 仍诚实；`conversationSessionWindowSideBySide.test.ts` 绿 | conversation | closed |
 | D98 | P3 | **`openSessionBeside` 在 D90 吞掉的 primary 失败后仍 `ensureLeaf` secondary**：`await ensurePrimaryWindow` 后 `primarySessionKey` 空且无 primary leaf 时仍造 orphan `.conversation-session-leaf-secondary` | A 槽本刀已收：ensurePrimaryWindow 后 `getPrimarySessionKey()` 空或 primary leaf 缺失则 return；未加 `INotificationService`；未改 void 调用点；未重做 D90/D96。未关 D16 | primary 失败后无 primary/secondary leaf/DOM、无未处理 rejection；`conversationSessionWindowSideBySide.test.ts` 绿 | conversation | closed |
 | D99 | P3 | **`goBack` / `goForward` throw 后栈已前进且 `void` 成未处理 rejection**：`conversationNavigationService.ts` 先 `moveBack`/`moveForward` 再 `openEditor`/`closeEditor`；`conversationNavigation.contribution.ts` 调用点为 `void`。throw 后栈与 `canGoBack`/`canGoForward` 不同步 | D 槽 `navigation-go-throw-notice` 已收：方法体 catch（保留 `navigating` finally）；throw 后反向 `moveForward`/`moveBack` + `INotificationService.error(getErrorMessage)`；void 调用点未改。测锁 closeEditor/openEditor reject → notice、栈恢复、无未处理 rejection。未关 D16；未改 session-window / roster / session-chat / split / fork | catch 后栈/`canGoBack`/`canGoForward` 恢复且 error notice；`conversationNavigation.test.ts` goBack/goForward throw 绿 | conversation | closed |
+| D101 | P3 | **`closeNonRootTabs` 裸 await `closeEditors` 无 catch**：先 `closeSubAgentDialog` 再 `await editorService.closeEditors(toClose)`（`conversationSessionChatService.ts`）；`conversationNavigation.contribution.ts` 调用点为 `void`。throw 成未处理 rejection；dialog 已关；`fireCloseNonRootStateChange` 被跳过 | B 槽 `close-nonroot-tabs-throw-notice` 已收：`closeEditors` try/catch → `INotificationService.error(getErrorMessage)`；`finally` 仍 `fireCloseNonRootStateChange`；void 调用点未改。测锁 closeEditors reject → error notice、无未处理 rejection、close-non-root state 仍刷新。未关 D16；未改 split / fork / breadcrumb / promote / `openExtensionTab` / `openForkTab` throw 合同 | catch 后 notification error 且 finally 刷新 close-non-root state；`conversationSessionChat.test.ts` closeEditors throw 绿 | M7 conversation | closed |
 
 ## D2 工位池 compile 基线（2026-09-02，merge 工位 / `loop/merge`）
 

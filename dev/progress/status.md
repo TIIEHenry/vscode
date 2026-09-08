@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-08
-summary: "FileMutationJoin / createScoped / Review 委托已修。D16 / D31 F4 仍开。官方三域 glob 已绿。D44–D90 / D92–D99 已闭。beside max-leaves / primary 闸门与 goBack/goForward throw 回栈已挂。A2 仍 blocked。"
+summary: "FileMutationJoin / createScoped / Review 委托已修。D16 / D31 F4 仍开。官方三域 glob 已绿。D44–D90 / D92–D99 / D101 已闭。closeNonRootTabs closeEditors throw 已 notice + finally 刷新。A2 仍 blocked。"
 ---
 
 # Development Progress
@@ -107,7 +107,7 @@ summary: "FileMutationJoin / createScoped / Review 委托已修。D16 / D31 F4 �
 58. **D 槽 `fork-open-tab-throw-notice`（未关 D16）**：`openForkTab` try/catch → notice；首个 await 前 hoist。[D88](deferred-gaps.md) **已闭**。
 59. **A 槽 `connection-profile-crud-throw`（未关 D16）**：Add Direct / Disconnect / Forget / ConnectDevice throw 画 status。[D89](deferred-gaps.md) **已闭**。
 60. **B 槽 `session-window-primary-bootstrap-catch`（未关 D16）**：先 `ensureLeaf` 再提交 key；in-flight 串行 + 真实 stub；throw 回滚半应用 leaf。[D90](deferred-gaps.md) **已闭**。
-61. **B D92–D95 / D D93 / A D96–D98 / D D99**（未关 D16）：roster 回滚；split notice；beside throw / max-leaves restore / primary 闸门；goBack/goForward throw 回栈 + notice。
+61. **B D92–D95 / D D93 / A D96–D98 / D D99 / B D101**（未关 D16）：roster 回滚；split notice；beside / nav throw；`closeNonRootTabs` `closeEditors` throw notice + finally 刷新。
 子 agent 发现的既有代码问题：
 | ID | 来源 | 问题 |
 |:---|:-----|:-----|
@@ -179,7 +179,7 @@ summary: "FileMutationJoin / createScoped / Review 委托已修。D16 / D31 F4 �
 | [D88](deferred-gaps.md) | D 槽 `fork-open-tab-throw-notice` | **closed** Fork `openForkTab` throw 已 notice；未关 D16 |
 | [D89](deferred-gaps.md) | A 槽 `connection-profile-crud-throw` | **closed** Add Direct / Disconnect / Forget / ConnectDevice throw 已画 status；未关 D16 |
 | [D90](deferred-gaps.md) | B 槽 `session-window-primary-bootstrap-catch` | **closed** throw 回滚 + in-flight 串行；merge 复测 9/9；未关 D16 |
-| [D92](deferred-gaps.md)–[D99](deferred-gaps.md) | B roster / D split+nav / A beside | **closed** remote fail 回滚；split notice；beside restore/闸门；goBack/goForward 回栈 + notice；未关 D16 |
+| [D92](deferred-gaps.md)–[D99](deferred-gaps.md) / [D101](deferred-gaps.md) | B roster / D split+nav / A beside / B close-non-root | **closed** remote fail 回滚；split notice；beside restore/闸门；goBack/goForward 回栈 + notice；`closeNonRootTabs` `closeEditors` throw notice + finally 刷新；未关 D16 |
 
 ## 工位表（P0 盘点 · 2026-09-07 · 与 `git worktree list` 对照）
 | 槽 | 路径 | 分支 | tip | 脏 | stash | 关仓状态 |

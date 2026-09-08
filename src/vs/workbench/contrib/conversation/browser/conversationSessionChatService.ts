@@ -292,21 +292,25 @@ export class ConversationSessionChatService extends Disposable implements IConve
 
 		this.closeSubAgentDialog(key);
 
-		const editorService = this.getScopedEditorService(part);
-		const toClose: IEditorIdentifier[] = [];
-		for (const group of part.groups) {
-			for (const editor of group.editors) {
-				if (isConversationExtensionTab(editor)) {
-					toClose.push({ editor, groupId: group.id });
+		try {
+			const editorService = this.getScopedEditorService(part);
+			const toClose: IEditorIdentifier[] = [];
+			for (const group of part.groups) {
+				for (const editor of group.editors) {
+					if (isConversationExtensionTab(editor)) {
+						toClose.push({ editor, groupId: group.id });
+					}
 				}
 			}
-		}
 
-		if (toClose.length > 0) {
-			await editorService.closeEditors(toClose);
+			if (toClose.length > 0) {
+				await editorService.closeEditors(toClose);
+			}
+		} catch (error) {
+			this.notificationService.error(getErrorMessage(error));
+		} finally {
+			this.fireCloseNonRootStateChange();
 		}
-
-		this.fireCloseNonRootStateChange();
 	}
 
 	getCatalog(sessionKey: string): readonly IConversationSessionChatEntry[] {

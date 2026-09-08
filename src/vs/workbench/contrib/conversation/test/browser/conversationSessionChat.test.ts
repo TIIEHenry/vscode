@@ -25,6 +25,7 @@ import { IEditorOpenContext, IEditorSerializer, EditorExtensions, IEditorFactory
 import { EditorInput } from '../../../../common/editor/editorInput.js';
 import { EditorPane } from '../../../../browser/parts/editor/editorPane.js';
 import { IEditorGroupsService, IEditorGroup } from '../../../../services/editor/common/editorGroupsService.js';
+import { IEditorService } from '../../../../services/editor/common/editorService.js';
 import { IWorkbenchEnvironmentService } from '../../../../services/environment/common/environmentService.js';
 import { TestThemeService } from '../../../../../platform/theme/test/common/testThemeService.js';
 import { TestStorageService } from '../../../../test/common/workbenchTestServices.js';
@@ -868,6 +869,41 @@ suite('Conversation session chat (S3)', () => {
 			await timeout(0);
 			assert.deepStrictEqual(errors, [getErrorMessage(boom)]);
 			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
+
+	test('closeNonRootTabs closeEditors throw notifies error without unhandled rejection', async () => {
+		const boom = new Error('boom');
+		const errors: string[] = [];
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		const { conversationPart, parts, sessionChatService } = await createHarness(undefined, {
+			error: (message: string | Error) => {
+				errors.push(typeof message === 'string' ? message : getErrorMessage(message));
+			},
+		} as INotificationService);
+		sessionChatService.registerSubAgentChat(SESSION_KEY, 'sub-1', 'Parent agent', 'default');
+		await sessionChatService.openExtensionTab(SESSION_KEY, 'sub-1', { title: 'Parent agent' });
+
+		const scopedEditorService = parts.getScopedInstantiationService(conversationPart).invokeFunction(accessor => accessor.get(IEditorService));
+		scopedEditorService.closeEditors = async () => {
+			throw boom;
+		};
+
+		let closeStateFires = 0;
+		store.add(sessionChatService.onDidChangeCloseNonRootState(() => {
+			closeStateFires++;
+		}));
+
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			void ConversationSessionChatService.prototype.closeNonRootTabs.call(sessionChatService);
+			await timeout(0);
+			assert.deepStrictEqual(errors, [getErrorMessage(boom)]);
+			assert.deepStrictEqual(unhandledRejections, []);
+			assert.ok(closeStateFires >= 1);
 		} finally {
 			process.off('unhandledRejection', onUnhandledRejection);
 		}
