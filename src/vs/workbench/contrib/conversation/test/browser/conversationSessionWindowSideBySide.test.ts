@@ -4,12 +4,14 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { timeout } from '../../../../../base/common/async.js';
+import { Emitter, Event } from '../../../../../base/common/event.js';
 import { DisposableStore } from '../../../../../base/common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { SyncDescriptor } from '../../../../../platform/instantiation/common/descriptors.js';
 import { Registry } from '../../../../../platform/registry/common/platform.js';
 import { ConversationPart, IConversationPartService } from '../../../../browser/parts/conversation/conversationPart.js';
-import { IEditorGroupsService } from '../../../../services/editor/common/editorGroupsService.js';
+import { IConversationEditorPart, IEditorGroupsService } from '../../../../services/editor/common/editorGroupsService.js';
 import { EditorExtensions, IEditorFactoryRegistry } from '../../../../common/editor.js';
 import { createEditorParts, registerTestEditor, TestFileEditorInput, workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { SideBySideEditorInput } from '../../../../common/editor/sideBySideEditorInput.js';
@@ -87,6 +89,51 @@ suite('Conversation session window side-by-side (S5)', () => {
 		trackConversationEditors(harness.parts);
 
 		return { ...harness, secondaryId };
+	}
+
+	function createPrimaryBootstrapHarness() {
+		const rosterService = new ConversationStubService();
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IConversationRosterService, rosterService);
+
+		const gridHost = document.createElement('div');
+		document.body.appendChild(gridHost);
+		store.add({ dispose: () => gridHost.remove() });
+
+		const onDidCreateSlots = store.add(new Emitter<{ sessionBar: HTMLElement; sessionWindowGrid: HTMLElement; editorPartHost: HTMLElement | undefined }>());
+		instantiationService.stub(IConversationPartService, {
+			onDidCreateSlots: onDidCreateSlots.event,
+			onDidFocus: Event.None,
+			getSlots: () => undefined,
+			focus: () => { },
+		} as IConversationPartService);
+
+		instantiationService.stub(IEditorGroupsService, 'createConversationEditorPart', () => {
+			throw new Error('primary bootstrap boom');
+		});
+
+		const sessionWindowService = disposables.add(instantiationService.createInstance(ConversationSessionWindowService));
+		store.add(rosterService);
+
+		return {
+			instantiationService,
+			rosterService,
+			sessionWindowService,
+			gridHost,
+			primaryId: rosterService.getActiveSessionId(),
+			attachGrid() {
+				onDidCreateSlots.fire({
+					sessionBar: document.createElement('div'),
+					sessionWindowGrid: gridHost,
+					editorPartHost: undefined,
+				});
+			},
+			allowCreate() {
+				instantiationService.stub(IEditorGroupsService, 'createConversationEditorPart', (_parent: unknown, sessionKey: string) => {
+					return { sessionKey, whenReady: Promise.resolve() } as IConversationEditorPart;
+				});
+			},
+		};
 	}
 
 	test('openSessionBeside creates two conversation editor parts in two leaves', async () => {
@@ -185,5 +232,34 @@ suite('Conversation session window side-by-side (S5)', () => {
 		assert.strictEqual(primaryEditor.contentDimension.height, resized.height);
 		assert.strictEqual(secondaryEditor.contentDimension.width, resized.width);
 		assert.strictEqual(secondaryEditor.contentDimension.height, resized.height);
+	});
+
+	test('ensurePrimaryWindow createConversationEditorPart throw does not stick a half primary', async () => {
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			const harness = createPrimaryBootstrapHarness();
+			harness.attachGrid();
+
+			void harness.sessionWindowService.ensurePrimaryWindow(harness.primaryId);
+			await timeout(0);
+
+			assert.deepStrictEqual(unhandledRejections, []);
+			assert.strictEqual(harness.sessionWindowService.getPrimarySessionKey(), undefined);
+			assert.strictEqual(harness.sessionWindowService.getAllLeafSessionKeys().length, 0);
+			assert.strictEqual(harness.sessionWindowService.getLeafSlots(harness.primaryId), undefined);
+			assert.strictEqual(harness.gridHost.querySelector('.conversation-session-leaf'), null);
+
+			harness.allowCreate();
+			await harness.sessionWindowService.ensurePrimaryWindow(harness.primaryId);
+
+			assert.deepStrictEqual(unhandledRejections, []);
+			assert.strictEqual(harness.sessionWindowService.getPrimarySessionKey(), harness.primaryId);
+			assert.ok(harness.sessionWindowService.getLeafSlots(harness.primaryId));
+			assert.strictEqual(harness.sessionWindowService.getVisibleWindowCount(), 1);
+		} finally {
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
 	});
 });
