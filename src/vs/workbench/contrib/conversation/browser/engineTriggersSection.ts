@@ -65,6 +65,7 @@ export class EngineTriggersSection extends Disposable {
 	private renderGeneration = 0;
 	private triggers: UniverseAgentTrigger[] = [];
 	private selectedTrigger: UniverseAgentTrigger | undefined;
+	private renderedRows: { readonly element: HTMLElement; readonly model: UniverseAgentTrigger }[] = [];
 
 	constructor(
 		parent: HTMLElement,
@@ -167,6 +168,7 @@ export class EngineTriggersSection extends Disposable {
 		this.upsertStatus.style.display = 'none';
 		this.upsertStatus.textContent = '';
 		DOM.clearNode(this.listHost);
+		this.renderedRows = [];
 		this.updateFireAction();
 		this.updateSetEnabledAction();
 		this.updateDeleteAction();
@@ -233,6 +235,7 @@ export class EngineTriggersSection extends Disposable {
 		this.listHost.style.display = '';
 		for (const trigger of this.triggers) {
 			const row = DOM.append(this.listHost, $('.engine-triggers-row'));
+			this.renderedRows.push({ element: row, model: trigger });
 			row.setAttribute('role', 'listitem');
 			row.textContent = formatEngineTriggerListLabel(trigger);
 			row.addEventListener('click', () => {
@@ -243,10 +246,9 @@ export class EngineTriggersSection extends Disposable {
 	}
 
 	private paintSelection(): void {
-		const rows = this.listHost.querySelectorAll('.engine-triggers-row');
-		rows.forEach((row, index) => {
-			row.classList.toggle('selected', this.triggers[index] === this.selectedTrigger);
-		});
+		for (const rendered of this.renderedRows) {
+			rendered.element.classList.toggle('selected', rendered.model === this.selectedTrigger);
+		}
 	}
 
 	private updateFireAction(): void {

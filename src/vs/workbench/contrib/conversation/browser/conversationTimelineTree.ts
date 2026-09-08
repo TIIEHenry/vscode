@@ -329,6 +329,7 @@ export class ConversationTimelineTree extends Disposable {
 
 	/** @internal Returns the live DOM node for a tree row identity (type B DOM reuse tests). */
 	getTimelineRowElement(treeId: string): HTMLElement | undefined {
+		// eslint-disable-next-line no-restricted-syntax -- rows are virtualized by the list view, so no stable reference exists
 		return this.treeContainer.querySelector(`[data-turn-id="${treeId}"], [data-fold-id="${treeId}"]`) as HTMLElement | undefined;
 	}
 
@@ -487,6 +488,7 @@ export class ConversationTimelineTree extends Disposable {
 	}
 
 	getTurnEditHost(turnId: string): HTMLElement | undefined {
+		// eslint-disable-next-line no-restricted-syntax -- rows are virtualized by the list view, so no stable reference exists
 		return this.treeContainer.querySelector(`.conversation-lens-turn-edit-host[data-turn-id="${turnId}"]`) as HTMLElement | undefined;
 	}
 

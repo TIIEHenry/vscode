@@ -8,6 +8,7 @@ import { decodeKeybinding } from '../../../base/common/keybindings.js';
 import { KeyCode, KeyMod } from '../../../base/common/keyCodes.js';
 import { OperatingSystem, OS } from '../../../base/common/platform.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../base/test/common/utils.js';
+import { isICommandActionToggleInfo } from '../../../platform/action/common/action.js';
 import { isIMenuItem, MenuId, MenuRegistry } from '../../../platform/actions/common/actions.js';
 import { ThemeIcon } from '../../../base/common/themables.js';
 import { ILocalizedString } from '../../../nls.js';
@@ -105,7 +106,7 @@ suite('LayoutControlMenu - product four-button cluster', () => {
 				continue;
 			}
 			assert.strictEqual(item.command.icon.id, pair.off, `${item.command.id} hidden icon`);
-			const toggledIcon = item.command.toggled && typeof item.command.toggled === 'object' && 'icon' in item.command.toggled
+			const toggledIcon = isICommandActionToggleInfo(item.command.toggled)
 				? item.command.toggled.icon
 				: undefined;
 			assert.ok(ThemeIcon.isThemeIcon(toggledIcon), `${item.command.id} visible icon`);

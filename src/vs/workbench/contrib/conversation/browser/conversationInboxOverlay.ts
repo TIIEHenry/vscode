@@ -8,6 +8,7 @@ import { Button } from '../../../../base/browser/ui/button/button.js';
 import { AnchorAlignment } from '../../../../base/browser/ui/contextview/contextview.js';
 import { AnchorPosition } from '../../../../base/common/layout.js';
 import { Disposable, toDisposable } from '../../../../base/common/lifecycle.js';
+import { format } from '../../../../base/common/strings.js';
 import { localize } from '../../../../nls.js';
 import { IContextViewService, IOpenContextView } from '../../../../platform/contextview/browser/contextView.js';
 import { IQuickInputService } from '../../../../platform/quickinput/common/quickInput.js';
@@ -516,7 +517,7 @@ export class ConversationInboxOverlay extends Disposable {
 			meta.appendChild(document.createTextNode(' · '));
 			const tag = append(meta, $('span.tag.upload'));
 			const pct = item.uploadProgress !== undefined ? Math.round(item.uploadProgress * 100) : 0;
-			tag.textContent = localize('conversationLens.inboxQueueUploading', conversationLensInboxQueueUploadingTag, pct);
+			tag.textContent = format(conversationLensInboxQueueUploadingTag, pct);
 		}
 		if (item.status === 'FAILED' || item.status === 'UPLOAD_FAILED') {
 			meta.classList.add('failed');

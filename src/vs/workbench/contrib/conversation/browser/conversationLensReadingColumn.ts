@@ -100,6 +100,7 @@ export function mountTimeline(host: IConversationLensReadingColumnHost, timeline
 	host.timelineTree.domNode.id = 'conversation-lens-panel-conversation';
 	host.timelineTree.domNode.setAttribute('role', 'tabpanel');
 	host.timelineTree.domNode.setAttribute('aria-labelledby', 'conversation-lens-tab-conversation');
+	// eslint-disable-next-line no-restricted-syntax -- the trajectory host is built by the lens, not by this column
 	const trajectoryHost = host.readingColumn.querySelector('.conversation-lens-trajectory') as HTMLElement;
 	trajectoryHost.id = 'conversation-lens-panel-trajectory';
 	trajectoryHost.setAttribute('role', 'tabpanel');
@@ -128,6 +129,7 @@ function formatStaleSnapshotLabel(sync: SyncChrome): string | undefined {
 }
 
 function refreshStaleSnapshotBanner(host: IConversationLensReadingColumnHost): void {
+	// eslint-disable-next-line no-restricted-syntax -- the banner is appended by the lens, not by this column
 	const banner = host.readingColumn?.querySelector<HTMLElement>(`.${conversationLensStaleSnapshotClass}`);
 	if (!banner) {
 		return;
@@ -203,6 +205,7 @@ export function applyConversationDensity(host: IConversationLensReadingColumnHos
 	if (host.timelineTree?.domNode) {
 		applyConversationDensityClass(host.timelineTree.domNode, host.configurationService);
 	}
+	// eslint-disable-next-line no-restricted-syntax -- process folds are rendered by the timeline tree
 	for (const root of host.slotHosts.timeline.querySelectorAll<HTMLElement>('[data-process-fold]')) {
 		applyConversationDensityClass(root, host.configurationService);
 	}

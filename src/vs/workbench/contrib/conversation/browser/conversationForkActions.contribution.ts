@@ -34,10 +34,11 @@ export class ConversationForkConversationAction extends ForkConversationAction {
 				return false;
 			}
 
+			const sessionChatService = accessor.get(IConversationSessionChatService);
 			const cts = new CancellationTokenSource();
 			try {
 				const forkedItem = await chatSessionsService.forkChatSession(sourceSessionResource, request, cts.token);
-				await accessor.get(IConversationSessionChatService).openForkTab(forkedItem.resource, forkedItem.label);
+				await sessionChatService.openForkTab(forkedItem.resource, forkedItem.label);
 				return true;
 			} finally {
 				cts.dispose();

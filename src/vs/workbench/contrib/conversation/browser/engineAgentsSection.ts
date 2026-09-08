@@ -400,6 +400,7 @@ export class EngineAgentsSection extends Disposable {
 	}
 
 	hasModelTabEditableControls(): boolean {
+		// eslint-disable-next-line no-restricted-syntax -- a focusable-descendant probe is what a selector is for
 		return !!this.modelPanel.querySelector('textarea, input, select, [contenteditable="true"], button, .monaco-button, .monaco-custom-toggle');
 	}
 

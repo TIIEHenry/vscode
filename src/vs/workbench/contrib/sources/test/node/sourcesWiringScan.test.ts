@@ -55,7 +55,7 @@ suite('Sources - Changes git write - 源码接线扫描', () => {
 		assert.ok(source.includes('SOURCES_GIT_UNSTAGE_COMMAND'));
 		assert.ok(source.includes('resolveSourcesChangesRowAction'));
 		assert.ok(source.includes('sourcesGitUnstageUnavailableMessage'));
-		assert.ok(source.includes("rowAction === 'unstageUnavailable'"));
+		assert.ok(source.includes('rowAction === \'unstageUnavailable\''));
 		assert.ok(!source.includes('tryWriteSourcesGitApplyHunks'));
 		assert.ok(!source.includes('writeGitUnstage'));
 	});

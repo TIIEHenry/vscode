@@ -2140,9 +2140,9 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 	}
 
 	private _clearSaveSkillContentBinding(): void {
-		if ('saveSkillContent' in this) {
-			delete (this as Partial<IUniverseAgentConnection>).saveSkillContent;
-		}
+		// The binding is only ever installed as an own property, and deleting a
+		// missing one is a no-op, so no presence check is needed.
+		delete (this as Partial<IUniverseAgentConnection>).saveSkillContent;
 	}
 
 	private async _invokeSaveSkillContent(request: UniverseAgentSaveSkillContentRequest): Promise<UniverseAgentSaveSkillContentResult> {

@@ -161,6 +161,7 @@ export class ConversationPart extends Part implements IConversationPartService {
 	}
 
 	focus(): void {
+		// eslint-disable-next-line no-restricted-syntax -- the dock input belongs to the lens, which this part only hosts
 		const dockInput = this.getContainer()?.querySelector('textarea.conversation-lens-dock-input') as HTMLTextAreaElement | null;
 		if (dockInput) {
 			if (this.configurationService.getValue<boolean>('ua.client.chatInput.autoFocus') !== false) {

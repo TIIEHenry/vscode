@@ -58,6 +58,7 @@ export class EngineClipboardSection extends Disposable {
 	private renderGeneration = 0;
 	private entries: UniverseAgentClipboardEntrySummary[] = [];
 	private selectedEntry: UniverseAgentClipboardEntrySummary | undefined;
+	private renderedRows: { readonly element: HTMLElement; readonly model: UniverseAgentClipboardEntrySummary }[] = [];
 
 	constructor(
 		parent: HTMLElement,
@@ -143,6 +144,7 @@ export class EngineClipboardSection extends Disposable {
 		this.clearStatus.style.display = 'none';
 		this.clearStatus.textContent = '';
 		DOM.clearNode(this.listHost);
+		this.renderedRows = [];
 		this.updateWriteAction();
 		this.updateReadAction();
 		this.updateClearAction();
@@ -208,6 +210,7 @@ export class EngineClipboardSection extends Disposable {
 		this.listHost.style.display = '';
 		for (const entry of this.entries) {
 			const row = DOM.append(this.listHost, $('.engine-clipboard-row'));
+			this.renderedRows.push({ element: row, model: entry });
 			row.setAttribute('role', 'listitem');
 			row.textContent = formatEngineClipboardListLabel(entry);
 			row.addEventListener('click', () => {
@@ -218,10 +221,9 @@ export class EngineClipboardSection extends Disposable {
 	}
 
 	private paintSelection(): void {
-		const rows = this.listHost.querySelectorAll('.engine-clipboard-row');
-		rows.forEach((row, index) => {
-			row.classList.toggle('selected', this.entries[index] === this.selectedEntry);
-		});
+		for (const rendered of this.renderedRows) {
+			rendered.element.classList.toggle('selected', rendered.model === this.selectedEntry);
+		}
 	}
 
 	private updateWriteAction(): void {

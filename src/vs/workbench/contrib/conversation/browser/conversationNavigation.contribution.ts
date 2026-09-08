@@ -66,6 +66,7 @@ class ConversationNavigationContribution extends Disposable implements IWorkbenc
 	}
 
 	private mountWindowNav(sessionBarHost: HTMLElement): void {
+		// eslint-disable-next-line no-restricted-syntax -- presence probe on the session bar built elsewhere
 		if (sessionBarHost.querySelector('.conversation-window-nav')) {
 			return;
 		}

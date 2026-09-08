@@ -239,6 +239,7 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 					}
 				},
 			}, templateData.disposables);
+			// eslint-disable-next-line no-restricted-syntax -- the visualize card is rendered by the visualize component
 			const visualizeRoot = templateData.container.querySelector('.conversation-visualize-card') as HTMLElement | null;
 			visualizeRoot?.setAttribute('aria-label', getConversationEntryAriaLabel(turn));
 			this.scheduleHeightUpdate(item, templateData.container);

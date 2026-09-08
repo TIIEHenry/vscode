@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { isHTMLElement } from '../../../../base/browser/dom.js';
 import { conversationIdentityStripClass } from './conversationIdentityStrip.js';
 
 /** Written on the Connection modal host so CSS/layout can reserve the identity strip. */
@@ -35,8 +36,9 @@ function isUsableIdentityStrip(element: HTMLElement): boolean {
 }
 
 export function findConversationIdentityStrip(root: ParentNode): HTMLElement | undefined {
+	// eslint-disable-next-line no-restricted-syntax -- the identity strip lives in another part
 	const strip = root.querySelector(`.part.conversation .${conversationIdentityStripClass}`);
-	if (!(strip instanceof HTMLElement) || !isUsableIdentityStrip(strip)) {
+	if (!isHTMLElement(strip) || !isUsableIdentityStrip(strip)) {
 		return undefined;
 	}
 	return strip;
@@ -44,7 +46,7 @@ export function findConversationIdentityStrip(root: ParentNode): HTMLElement | u
 
 export function findConnectionPaneOverlayHost(pane: HTMLElement): HTMLElement | undefined {
 	const host = pane.closest('.monaco-modal-editor-block');
-	return host instanceof HTMLElement ? host : undefined;
+	return isHTMLElement(host) ? host : undefined;
 }
 
 /**

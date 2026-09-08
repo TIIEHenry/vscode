@@ -146,6 +146,7 @@ function cycleSameConversationChatTablist(editorGroupsService: IEditorGroupsServ
 
 function focusActiveConversationChatTab(from: HTMLElement): void {
 	const tablist = from.closest(conversationChatTablistSelector);
+	// eslint-disable-next-line no-restricted-syntax -- the tab list belongs to the editor part
 	const activeTab = tablist?.querySelector('.tab.active') as HTMLElement | null;
 	activeTab?.focus();
 }

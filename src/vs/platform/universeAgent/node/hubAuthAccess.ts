@@ -18,6 +18,12 @@ export type HubAccessRetryOutcome<T, E extends { readonly ok: false; readonly co
 	| E
 	| { readonly ok: false; readonly authExpired: true };
 
+export function isHubAccessAuthExpired<T, E extends { readonly ok: false; readonly code: string; readonly reason: string }>(
+	result: HubAccessRetryOutcome<T, E>,
+): result is { readonly ok: false; readonly authExpired: true } {
+	return !result.ok && (result as { readonly authExpired?: true }).authExpired === true;
+}
+
 export type HubAccessRetryDeps = {
 	readonly store: IHubSessionStore;
 	readonly hubBaseUrl: string;

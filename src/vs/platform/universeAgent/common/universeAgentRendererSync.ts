@@ -118,7 +118,7 @@ export function createRemoteForwardingProxy<T extends object>(local: T, remote: 
 			if (prop === 'then') {
 				return undefined;
 			}
-			if (prop in target) {
+			if (Reflect.has(target, prop)) {
 				const value = Reflect.get(target, prop, receiver);
 				if (typeof value === 'function') {
 					return value.bind(target);
@@ -131,7 +131,7 @@ export function createRemoteForwardingProxy<T extends object>(local: T, remote: 
 			if (typeof remoteValue === 'function') {
 				return remoteValue.bind(remote);
 			}
-			if (prop in target) {
+			if (Reflect.has(target, prop)) {
 				return Reflect.get(target, prop, receiver);
 			}
 			return remoteValue;

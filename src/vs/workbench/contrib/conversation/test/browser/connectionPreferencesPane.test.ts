@@ -1711,8 +1711,6 @@ suite('ConnectionPreferencesPane', () => {
 
 	test('recoverTrust confirm shows identity+fingerprint dialog then confirmPairing', async () => {
 		let confirmCalls = 0;
-		let promptedTitle: string | undefined;
-		let promptedDetail: string | undefined;
 		const leafFp = 'a'.repeat(64);
 		const engineId = 'eng-recover-identity-01';
 		const instantiationService = workbenchInstantiationService(undefined, store);
@@ -1755,8 +1753,8 @@ suite('ConnectionPreferencesPane', () => {
 		await Promise.resolve();
 		const dialogBox = container.querySelector('.connection-pairing-confirm .monaco-dialog-box') as HTMLElement;
 		assert.ok(dialogBox);
-		promptedTitle = dialogBox.querySelector('.dialog-message')?.textContent ?? undefined;
-		promptedDetail = dialogBox.querySelector('.dialog-message-detail')?.textContent ?? undefined;
+		const promptedTitle = dialogBox.querySelector('.dialog-message')?.textContent ?? undefined;
+		const promptedDetail = dialogBox.querySelector('.dialog-message-detail')?.textContent ?? undefined;
 		assert.ok(promptedDetail?.includes(engineId));
 		assert.ok(promptedDetail?.includes(leafFp));
 		assert.ok(promptedDetail?.includes('does not use a pairing code'));

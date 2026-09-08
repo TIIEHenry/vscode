@@ -7,7 +7,7 @@ import assert from 'assert';
 import { URI } from '../../../../../base/common/uri.js';
 import { ensureNoDisposablesAreLeakedInTestSuite, toResource } from '../../../../../base/test/common/utils.js';
 import { IConfigurationService } from '../../../../../platform/configuration/common/configuration.js';
-import { IInstantiationService } from '../../../../../platform/instantiation/common/instantiation.js';
+import { IInstantiationService, ServiceIdentifier, ServicesAccessor } from '../../../../../platform/instantiation/common/instantiation.js';
 import { IEditorService } from '../../../../services/editor/common/editorService.js';
 import { IWorkbenchLayoutService, Parts } from '../../../../services/layout/browser/layoutService.js';
 import { IQuickDiffService } from '../../../scm/common/quickDiff.js';
@@ -29,6 +29,10 @@ import { SourcesTabId } from '../../common/sourcesTabs.js';
 suite('Sources - review showForPaths', () => {
 
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
+
+	function stubAccessor(get: (id: unknown) => unknown): ServicesAccessor {
+		return { get: <T,>(id: ServiceIdentifier<T>) => get(id) as T };
+	}
 
 	function stubReviewListHost(overrides: Partial<ISourcesReviewListHost> = {}): ISourcesReviewListHost {
 		return {
@@ -81,18 +85,15 @@ suite('Sources - review showForPaths', () => {
 		instantiationService.stub(IWorkbenchLayoutService, layoutService);
 		instantiationService.stub(ISourcesReviewHostService, hostService);
 
-		await CommandsRegistry.getCommand(SOURCES_REVIEW_SHOW_FOR_PATHS_COMMAND)?.handler?.({
-			get: (id: unknown) => {
-				if (id === IWorkbenchLayoutService) {
-					return layoutService;
-				}
-				if (id === ISourcesReviewHostService) {
-					return hostService;
-				}
-				throw new Error(`unexpected service ${String(id)}`);
-			},
-			 
-		} as any, [resource]);
+		await CommandsRegistry.getCommand(SOURCES_REVIEW_SHOW_FOR_PATHS_COMMAND)?.handler?.(stubAccessor((id: unknown) => {
+			if (id === IWorkbenchLayoutService) {
+				return layoutService;
+			}
+			if (id === ISourcesReviewHostService) {
+				return hostService;
+			}
+			throw new Error(`unexpected service ${String(id)}`);
+		}), [resource]);
 
 		assert.deepStrictEqual(setPartHiddenCalls, [{ hidden: false, part: Parts.SOURCES_PART }]);
 		assert.strictEqual(pathFilter?.length, 1);
@@ -144,15 +145,12 @@ suite('Sources - review showForPaths', () => {
 		const hostService = store.add(new SourcesReviewHostService());
 		let toggled = 0;
 		let markedAll = 0;
-		const accessor = {
-			get: (id: unknown) => {
-				if (id === ISourcesReviewHostService) {
-					return hostService;
-				}
-				throw new Error(`unexpected service ${String(id)}`);
-			},
-			 
-		} as any;
+		const accessor = stubAccessor((id: unknown) => {
+			if (id === ISourcesReviewHostService) {
+				return hostService;
+			}
+			throw new Error(`unexpected service ${String(id)}`);
+		});
 
 		await CommandsRegistry.getCommand(SOURCES_REVIEW_TOGGLE_REVIEWED_SELECTED_COMMAND)?.handler?.(accessor);
 		await CommandsRegistry.getCommand(SOURCES_REVIEW_MARK_ALL_REVIEWED_COMMAND)?.handler?.(accessor);
@@ -187,38 +185,35 @@ suite('Sources - review showForPaths', () => {
 			setStatusMessage: message => { status = message; },
 		}));
 
-		const accessor = {
-			get: (id: unknown) => {
-				if (id === ISourcesReviewHostService) {
-					return hostService;
-				}
-				if (id === ISourcesReviewProgressService) {
-					return {
-						resolveKey: async () => ({ scopeKeyId: 'root', path: resource.toString(), contentHash: 'etag' }),
-						markReviewed: () => { marked += 1; },
-					};
-				}
-				if (id === IEditorService) {
-					return {};
-				}
-				if (id === IQuickDiffService) {
-					return {
-						getQuickDiffs: async () => { throw new Error('boom'); },
-					};
-				}
-				if (id === IConfigurationService) {
-					return { getValue: () => 'preview' };
-				}
-				if (id === IInstantiationService) {
-					return {};
-				}
-				if (id === ISourcesDiffPanelService) {
-					return {};
-				}
-				throw new Error(`unexpected service ${String(id)}`);
-			},
-			 
-		} as any;
+		const accessor = stubAccessor((id: unknown) => {
+			if (id === ISourcesReviewHostService) {
+				return hostService;
+			}
+			if (id === ISourcesReviewProgressService) {
+				return {
+					resolveKey: async () => ({ scopeKeyId: 'root', path: resource.toString(), contentHash: 'etag' }),
+					markReviewed: () => { marked += 1; },
+				};
+			}
+			if (id === IEditorService) {
+				return {};
+			}
+			if (id === IQuickDiffService) {
+				return {
+					getQuickDiffs: async () => { throw new Error('boom'); },
+				};
+			}
+			if (id === IConfigurationService) {
+				return { getValue: () => 'preview' };
+			}
+			if (id === IInstantiationService) {
+				return {};
+			}
+			if (id === ISourcesDiffPanelService) {
+				return {};
+			}
+			throw new Error(`unexpected service ${String(id)}`);
+		});
 
 		await CommandsRegistry.getCommand(SOURCES_REVIEW_OPEN_SELECTED_COMMAND)?.handler?.(accessor);
 

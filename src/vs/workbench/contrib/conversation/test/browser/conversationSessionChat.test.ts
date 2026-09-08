@@ -247,7 +247,7 @@ suite('Conversation session chat (S3)', () => {
 
 				const roster = accessor.get(IConversationRosterService);
 				if (roster.isEngineConnected()) {
-					return { handled: roster.forkSubAgent(roster.getActiveSessionId()) };
+					return { kind: 'handled' as const, handled: roster.forkSubAgent(roster.getActiveSessionId()) };
 				}
 
 				const chatSessionsService = accessor.get(IChatSessionsService);
@@ -256,6 +256,7 @@ suite('Conversation session chat (S3)', () => {
 				}
 
 				return {
+					kind: 'fork' as const,
 					chatSessionsService,
 					sessionChatService: accessor.get(IConversationSessionChatService),
 				};
@@ -264,7 +265,7 @@ suite('Conversation session chat (S3)', () => {
 			if (!context) {
 				return false;
 			}
-			if ('handled' in context) {
+			if (context.kind === 'handled') {
 				return context.handled === true;
 			}
 

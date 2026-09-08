@@ -233,7 +233,7 @@ export class NavigatorProjectsView extends ViewPane {
 			return;
 		}
 		if (node.kind === 'local-folder' && node.openable) {
-			const mouseEvent = browserEvent instanceof MouseEvent ? browserEvent : undefined;
+			const mouseEvent = dom.isMouseEvent(browserEvent) ? browserEvent : undefined;
 			void this.hostService.openWindow([node.openable], {
 				forceNewWindow: !!(mouseEvent && (mouseEvent.ctrlKey || mouseEvent.metaKey)),
 				forceReuseWindow: !!(mouseEvent && mouseEvent.altKey),

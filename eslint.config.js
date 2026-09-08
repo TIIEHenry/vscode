@@ -54,7 +54,10 @@ export default defineConfig(
 			'prefer-const': [
 				'warn',
 				{
-					'destructuring': 'all'
+					'destructuring': 'all',
+					// A variable read by a closure that is defined before the assignment
+					// cannot be a const at all, so reporting it has no actionable fix.
+					'ignoreReadBeforeAssign': true
 				}
 			],
 			'no-buffer-constructor': 'warn',
