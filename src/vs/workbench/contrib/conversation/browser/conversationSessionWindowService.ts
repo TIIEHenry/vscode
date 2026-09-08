@@ -8,11 +8,13 @@ import { $, append } from '../../../../base/browser/dom.js';
 import { ActionBar } from '../../../../base/browser/ui/actionbar/actionbar.js';
 import { Action } from '../../../../base/common/actions.js';
 import { Codicon } from '../../../../base/common/codicons.js';
+import { getErrorMessage } from '../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { ThemeIcon } from '../../../../base/common/themables.js';
 import { localize } from '../../../../nls.js';
 import { createDecorator } from '../../../../platform/instantiation/common/instantiation.js';
+import { ILogService } from '../../../../platform/log/common/log.js';
 import { registerIcon } from '../../../../platform/theme/common/iconRegistry.js';
 import { IConversationPartService } from '../../../browser/parts/conversation/conversationPart.js';
 import { IEditorGroupsService } from '../../../services/editor/common/editorGroupsService.js';
@@ -78,6 +80,7 @@ export class ConversationSessionWindowService extends Disposable implements ICon
 		@IConversationPartService private readonly conversationPartService: IConversationPartService,
 		@IEditorGroupsService private readonly editorGroupsService: IEditorGroupsService,
 		@IConversationRosterService private readonly rosterService: IConversationRosterService,
+		@ILogService private readonly logService: ILogService,
 	) {
 		super();
 
@@ -131,9 +134,15 @@ export class ConversationSessionWindowService extends Disposable implements ICon
 			return;
 		}
 
-		this.primarySessionKey = sessionKey;
-		await this.ensureLeaf(sessionKey, { primary: true });
-		this.fireVisibleWindowsChange();
+		try {
+			await this.ensureLeaf(sessionKey, { primary: true });
+			this.primarySessionKey = sessionKey;
+			this.fireVisibleWindowsChange();
+		} catch (error) {
+			this.primarySessionKey = undefined;
+			this.rollbackHalfAppliedLeaf(sessionKey);
+			this.logService.warn(`[ConversationSessionWindowService] ensurePrimaryWindow failed: ${getErrorMessage(error)}`);
+		}
 	}
 
 	async openSessionBeside(sessionKey: string): Promise<void> {
@@ -280,6 +289,16 @@ export class ConversationSessionWindowService extends Disposable implements ICon
 		this._register(hideAction);
 		actionBar.push(hideAction, { icon: true, label: false });
 		actionBar.setFocusable(false);
+	}
+
+	private rollbackHalfAppliedLeaf(sessionKey: string): void {
+		const leaf = this.leaves.get(sessionKey);
+		this.leaves.delete(sessionKey);
+		const orderIndex = this.leafOrder.indexOf(sessionKey);
+		if (orderIndex !== -1) {
+			this.leafOrder.splice(orderIndex, 1);
+		}
+		leaf?.container.remove();
 	}
 
 	private fireVisibleWindowsChange(): void {

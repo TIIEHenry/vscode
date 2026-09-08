@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-08
-summary: "FileMutationJoin / createScoped / Review 委托已修。D16 / D31 F4 仍开。官方三域 glob 已绿。D44–D87 / D89 已闭。Team leftover 已清。Connection list leftover / write throw / profile CRUD throw / Refresh devices directory throw 已挂。switchModel 空 resolvedModelId 回滚+gate 已挂。Snapshots / MCP / Skills / Agents / Tools 写失败 write-status 已挂。Agents Tools 页 listTools throw 画 failed；重连后再 throw 清 leftover。Tools 成功 refresh 后 getToolInfo throw 重画详情。Skills 成功 refresh 后 getSkillInfo throw 重画正文。Agents Instructions 成功 refresh 后重载 AGENTS.md。Tools/Agents 成功 refresh 清 pending enablement。MCP runtime leftover 已清。git-read / open-diff / Stage·Commit / Unstage throw 与 ok:false status 已挂。Review runGitAction throw 已 showNotice。Lens lease-only sync 刷新 stale banner 已挂。Sessions 接通刷新已挂。openStream throw-on-open 已折 streamClosed。Lens retryError / permission / question / submitDraft postBound throw 已 showPostFailure('failed')。Connection/Hub Channel Client hydrate IPC reject 已吞。Navigator Reveal / Promote / breadcrumb navigate throw 已 notification error。A2 仍 blocked。"
+summary: "FileMutationJoin / createScoped / Review 委托已修。D16 / D31 F4 仍开。官方三域 glob 已绿。D44–D87 / D89 / D90 已闭。Connection profile CRUD throw 已挂。ensurePrimaryWindow throw 已回滚半应用 primary。A2 仍 blocked。"
 ---
 
 # Development Progress
@@ -47,7 +47,6 @@ summary: "FileMutationJoin / createScoped / Review 委托已修。D16 / D31 F4 �
 并行 catalog/UI 绑定波流水见 [归档](../archive/status-current-session-slot-catalog-2026-09-05.md)。钉死调试引擎：[debug-engine](../../docs/guides/debug-engine.md)。
 [m7-gap-closeout](../plans/m7-gap-closeout.md) 与 [session-view-frame-fanout](../plans/session-view-frame-fanout.md) 的重复 frontmatter 已合并（生成列此前误显 `accepted`，现为 `implemented`）；按规则 3c 改口三处知识层叙述：Test Connection 已走 `probeConnectionProfile`、帧扇出 F1/F2 已落（全局 `onDidApplyFrame` 待删）、子代理 catalog 已由观察 lease 驱动。
 ### 进行中（2026-09-07 本 wake · 以 merge 代码为准，不信上文「已合入」清单）
-
 集成 tip **本关仓提交**（`loop/merge`；未 push）。Chat 仍被引擎空壳 Create（目录在、`session_meta` 空、回 6）挡住；不要再清 `.sessions` 当主线。见 [D26](deferred-gaps.md)。**U2 未开**。**PRD-008 / PRD-019 不升 `implemented`**。[R8](research-queue.md) **已闭**（[ADR-008](../decisions/008-write-git-apply-hunks-empty.md) 引擎空 `patches` = 成功空操作）。Accept 产品选项 A 见 [sources-accept-empty-success](../plans/sources-accept-empty-success.md)（`draft`；**A1 已落**；**P5 停线**——只批准停线，不批准 A2；A2 须新选定 + 新 Arch-First）。
 
 1. **集成 tip** 以 merge 本关仓提交为准（FileMutationJoin A=`10d8dd3b143`；createScoped B=`9c49eb5b978`；Review 委托 D=`60dbf139ac1`）。`npm run compile` 仍基线 unused 红则 **不 push**。GFS >800 不拆。D22/F3 已撤回。不跑 F4 / 不实施 A2。
@@ -108,6 +107,7 @@ summary: "FileMutationJoin / createScoped / Review 委托已修。D16 / D31 F4 �
 56. **A 槽 `composer-submit-postbound-catch`（未关 D16）**：`submitDraft` `postBound` reject → `showPostFailure('failed')`。[D86](deferred-gaps.md) **已闭**。
 57. **D 槽 `breadcrumb-navigate-throw-notice`（未关 D16）**：`navigateAgentBreadcrumb` try/catch → notice；void 未改。[D87](deferred-gaps.md) **已闭**。
 58. **A 槽 `connection-profile-crud-throw`（未关 D16 / 未关 D88）**：Add Direct / Disconnect / Forget / ConnectDevice 补 try/catch；throw 画 Direct / 可见 Profiles·Devices status。[D89](deferred-gaps.md) **已闭**。未 compile。
+59. **B 槽 `session-window-primary-bootstrap-catch`（未关 D16 / D88）**：`ensurePrimaryWindow` 先 `ensureLeaf` 再提交 `primarySessionKey`；throw 回滚半应用 leaf，void 未改。[D90](deferred-gaps.md) **已闭**。
 子 agent 发现的既有代码问题：
 | ID | 来源 | 问题 |
 |:---|:-----|:-----|
@@ -177,16 +177,17 @@ summary: "FileMutationJoin / createScoped / Review 委托已修。D16 / D31 F4 �
 | [D86](deferred-gaps.md) | A 槽 `composer-submit-postbound-catch` | **closed** `submitDraft` `postBound` throw 已 `showPostFailure('failed')`；未关 D16 |
 | [D87](deferred-gaps.md) | D 槽 `breadcrumb-navigate-throw-notice` | **closed** `navigateAgentBreadcrumb` throw 已 notice；未关 D16 |
 | [D89](deferred-gaps.md) | A 槽 `connection-profile-crud-throw` | **closed** Add Direct / Disconnect / Forget / ConnectDevice throw 已画 status；未关 D16 |
+| [D90](deferred-gaps.md) | B 槽 `session-window-primary-bootstrap-catch` | **closed** `ensurePrimaryWindow` throw 已回滚半应用 primary；未关 D16 / D88 |
 
 ## 工位表（P0 盘点 · 2026-09-07 · 与 `git worktree list` 对照）
 | 槽 | 路径 | 分支 | tip | 脏 | stash | 关仓状态 |
 |----|------|------|-----|:--|:------|:---------|
-| merge | `vscode-WorkTrees/merge` | `loop/merge` | `96ea266241f` | `__pycache__` | 0 | parked；compile 基线 unused 仍红，**不 push** |
-| A | `vscode-WorkTrees/A` | `loop/A` | `c6c9a8c7d37` | D89 未提交 | 0 | `connection-profile-crud-throw` |
-| B | `vscode-WorkTrees/B` | `loop/B` | `96ea266241f` | `__pycache__` | 0 | idle |
-| C | `vscode-WorkTrees/C` | `loop/C` | `96ea266241f` | 未提交 `dev/loop` + `__pycache__` | 0 | idle；勿 add `dev/loop` |
-| D | `vscode-WorkTrees/D` | `loop/D` | `96ea266241f` | `__pycache__` | 0 | idle |
-| edit | `Projects/Agents/vscode` | `agent-ide` | `a40a95d1e85`+ | `dev/loop` + 过期 progress | 0 | 人类工位；请自行对齐 `96ea266241f` |
+| merge | `vscode-WorkTrees/merge` | `loop/merge` | P2 中 | `__pycache__` | 0 | 合入 A/B；compile unused 仍红，**不 push** |
+| A | `vscode-WorkTrees/A` | `loop/A` | `2c01992c318` | `__pycache__` | 0 | merge-queued：D89 |
+| B | `vscode-WorkTrees/B` | `loop/B` | `4e54c37ed72` | `__pycache__` | 0 | merge-queued：D90 |
+| C | `vscode-WorkTrees/C` | `loop/C` | `c6c9a8c7d37` | 未提交 `dev/loop` + `__pycache__` | 0 | idle；勿 add `dev/loop` |
+| D | `vscode-WorkTrees/D` | `loop/D` | `46821c7fadd` | `__pycache__` | 0 | merge-queued：D88 |
+| edit | `Projects/Agents/vscode` | `agent-ide` | `a40a95d1e85`+ | `dev/loop` + 过期 progress | 0 | 人类工位；请自行对齐 `c6c9a8c7d37` |
 ## Blockers：无。
 ## Next
 | 项 | 指针 |
