@@ -109,7 +109,6 @@ summary: "FileMutationJoin / createScoped / Review 委托已修。D16 / D31 F4 �
 50. **A 槽 `lens-retry-error-postbound-catch`（未关 D16）**：`retryError` `postBound` reject → `showPostFailure('failed')`；第五 reason，不映射四因。[D80](deferred-gaps.md) **已闭**。
 51. **B 槽 `channel-client-hydrate-catch`（未关 D16）**：Channel Client `hydrate` / `refreshPhaseAndNotify` try/catch；IPC reject 保留末次好缓存、不 fire 半应用 phase。[D81](deferred-gaps.md) **已闭**。
 52. **D 槽 `navigator-reveal-throw-notice`（未关 D16 / D21）**：Reveal await 路径 try/catch；`openSubAgent` throw → `INotificationService.error`；void 调用点未改。[D82](deferred-gaps.md) **已闭**。
-
 子 agent 发现的既有代码问题：
 
 | ID | 来源 | 问题 |
@@ -179,15 +178,14 @@ summary: "FileMutationJoin / createScoped / Review 委托已修。D16 / D31 F4 �
 
 | 槽 | 路径 | 分支 | tip | 脏 | stash | 关仓状态 |
 |----|------|------|-----|:--|:------|:---------|
-| merge | `vscode-WorkTrees/merge` | `loop/merge` | `5c5c8abda95` | `__pycache__` | 0 | parked；compile 基线 unused 仍红，**不 push** |
-| A | `vscode-WorkTrees/A` | `loop/A` | `5c5c8abda95` | `__pycache__` | 0 | idle |
-| B | `vscode-WorkTrees/B` | `loop/B` | `5c5c8abda95` | `__pycache__` | 0 | idle |
-| C | `vscode-WorkTrees/C` | `loop/C` | `5c5c8abda95` | 未提交 `dev/loop` + `__pycache__` | 0 | idle；勿 add `dev/loop` |
-| D | `vscode-WorkTrees/D` | `loop/D` | `5c5c8abda95` | `__pycache__` | 0 | idle |
-| edit | `Projects/Agents/vscode` | `agent-ide` | `a40a95d1e85`+ | `dev/loop` + 过期 progress | 0 | 人类工位；请自行对齐 `5c5c8abda95` |
+| merge | `vscode-WorkTrees/merge` | `loop/merge` | `2b106085ba2` | `__pycache__` | 0 | parked；compile 基线 unused 仍红，**不 push** |
+| A | `vscode-WorkTrees/A` | `loop/A` | `2b106085ba2` | `__pycache__` | 0 | idle |
+| B | `vscode-WorkTrees/B` | `loop/B` | `2b106085ba2` | `__pycache__` | 0 | idle |
+| C | `vscode-WorkTrees/C` | `loop/C` | `2b106085ba2` | 未提交 `dev/loop` + `__pycache__` | 0 | idle；勿 add `dev/loop` |
+| D | `vscode-WorkTrees/D` | `loop/D` | `2b106085ba2` | `__pycache__` | 0 | idle |
+| edit | `Projects/Agents/vscode` | `agent-ide` | `a40a95d1e85`+ | `dev/loop` + 过期 progress | 0 | 人类工位；请自行对齐 `2b106085ba2` |
 
 ## Blockers
-
 无。
 
 ## Next
@@ -199,5 +197,4 @@ summary: "FileMutationJoin / createScoped / Review 委托已修。D16 / D31 F4 �
 | **U2 闸门** | [ADR-007](../decisions/007-upstream-sync.md) Decision 5 — 须 U0 `comm` 空 + U1 完成 + CI 绿 + merge 独占 + A 表冻结；**未满足前不开 U2** |
 
 ## 不做
-
 **ADR-007 U2**（第一次上游 tag 合入）、H6、完整插件市场、fixture 冒充 Engine、为全绿冻结 UI、引擎仓新增 RPC、会话级模型策略 UI、F3 同窗共享 lease（[D22](deferred-gaps.md)）。
