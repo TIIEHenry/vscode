@@ -184,12 +184,20 @@ suite('SessionViewHost chat onClosed', () => {
 			diagnostics,
 		}));
 		viewHost.onEngineConnectionChanged();
-		viewHost.acquireLease('sess-stream-throw-open');
+		const leaseId = viewHost.acquireLease('sess-stream-throw-open');
 		await viewHost.whenEngineSessionReady('sess-stream-throw-open');
 		assert.ok(diagnostics.warnings.some(w =>
 			w.message === 'openStream failed' && w.fields.error === 'open stream boom'
 		));
 		assert.strictEqual(connection.opens.length, 1, 'ensureChatStream must still run after openStream throw');
+
+		const frames: IUniverseAgentSessionViewFrameEvent[] = [];
+		store.add(viewHost.onDynamicDidApplyFrame(leaseId)(e => frames.push(e)));
+		await new Promise<void>(resolve => queueMicrotask(() => resolve()));
+		assert.ok(
+			closedChromeFromFrames(frames).some(sync => sync.reason === 'open stream boom'),
+			'throw-on-open must post streamClosed and fold closed chrome; sync must not stay fake-live',
+		);
 	});
 
 	test('throw-on-dispose closeStream warns and still closes resident Chat', async () => {

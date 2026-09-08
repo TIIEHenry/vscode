@@ -1214,10 +1214,16 @@ export class SessionViewHost extends Disposable {
 				},
 			});
 		} catch (error) {
+			const message = error instanceof Error ? error.message : String(error);
 			this.diagnostics.warn('openStream failed', {
 				sessionId,
 				attemptId: String(attemptId),
-				error: error instanceof Error ? error.message : String(error),
+				error: message,
+			});
+			this.postAndDrain(sessionId as SessionId, {
+				t: 'streamClosed',
+				attemptId,
+				cause: { kind: 'error', message },
 			});
 		}
 	}
