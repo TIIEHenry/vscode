@@ -235,10 +235,9 @@ export class ConversationInboxOverlay extends Disposable {
 	}
 
 	private renderGoal(sessionId: string): void {
-		const connected = this.stubService.isEngineConnected();
 		const goal = this.stubService.getSessionGoal(sessionId)?.trim();
 		const label = goal || conversationLensDockNoGoal;
-		this.goalButton.enabled = connected;
+		this.goalButton.enabled = this.stubService.isEngineConnected() || this.stubService.hasEngineConnectionHistory();
 		this.goalButton.label = label;
 		this.goalButton.setTitle(label);
 		this.goalButton.setAriaLabel(`${conversationLensDockGoal}, ${label}`);
@@ -246,6 +245,9 @@ export class ConversationInboxOverlay extends Disposable {
 
 	private async onGoalClicked(): Promise<void> {
 		if (!this.stubService.isEngineConnected()) {
+			if (this.stubService.hasEngineConnectionHistory()) {
+				this.delegate.showPostFailure('engine_disconnected');
+			}
 			return;
 		}
 		const sessionId = this.stubService.getActiveSessionId();

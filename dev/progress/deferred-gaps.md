@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-08
-summary: "延期缺口 SSOT；D16 仍开；D45–D90 / D92–D111 已闭；D22 F3；D24 其余 JSON RPC；D25 引擎 List 真空；D26 引擎建壳回 6；D31 F4 / A2 blocked；Inbox Goal 与 primary bootstrap notice 已挂"
+summary: "延期缺口 SSOT；D16 仍开；D45–D90 / D92–D112 已闭；D22 F3；D24 其余 JSON RPC；D25 引擎 List 真空；D26 引擎建壳回 6；D31 F4 / A2 blocked；Inbox Goal 断连+history 可点出 engine_disconnected"
 ---
 
 # Deferred Gaps
@@ -127,6 +127,7 @@ summary: "延期缺口 SSOT；D16 仍开；D45–D90 / D92–D111 已闭；D22 F
 | D109 | P3 | **Inbox Stop 忽略 `cancelGeneration` boolean**：`onStopClicked` 只转发；断连后 `cancelEngineGeneration(..., false)` 回 `false`，无 dock `showPostFailure` | B 槽 `inbox-stop-cancel-rejected-notice` 已收：先看 boolean；false 画 `engine_disconnected`（`!isEngineConnected() && hasEngineConnectionHistory()`）或 `failed`。true 仍只 cancel。测锁 false+history / false 无 history / true 无 chrome。未关 D16；未改 roster `cancelGeneration`；未收 Goal `setSessionGoal` / `cancelSessionGoal` | `onStopClicked` 先看 `cancelGeneration`；false 经 delegate 调 dock `showPostFailure`；`conversationInboxOverlay.test.ts` 绿 | conversation | closed |
 | D110 | P3 | **Inbox Goal 忽略 `setSessionGoal` / `cancelSessionGoal` boolean**：`onGoalClicked` 只转发后 `render()`；接通后 empty / missing session / same goal / missing RPC 回 `false`，无 dock `showPostFailure` | B 槽 `inbox-goal-rejected-notice` 已收：先看 boolean；false 画 `failed`（接通路径）；若 `!isEngineConnected() && hasEngineConnectionHistory()` 画 `engine_disconnected`。未抬断连 early-return / `goalButton.enabled = connected`。true 仍 `render()`。测锁 connected set/cancel false → failed、无假 goal。未关 D16；未改 `onStopClicked`（D109）；未改 roster `setSessionGoal` / `cancelSessionGoal` / `void uaConnection.*` | `onGoalClicked` 先看 set/cancel boolean；false 经 delegate 调 dock `showPostFailure`；`conversationInboxOverlay.test.ts` 绿 | conversation | closed |
 | D111 | P3 | **`tryBootstrapPrimaryWindow` catch 已回滚但无用户 notice**：D90 已清 `primarySessionKey` + `rollbackHalfAppliedLeaf` + `logService.warn`；`INotificationService` 已注入（D108）。throw 后无半应用 primary，用户无提示。既有 primary-throw 测未断言 notice | D 槽 `primary-bootstrap-failure-notice` 已收：既有 catch 补 `INotificationService.error(getErrorMessage(error))`；保留 warn + D90 rollback；未重做 D90 / D108 `openSessionBeside` catch；未改 void 调用点。测锁 throw 后 `harness.errors` 含 boom。未关 D16 | catch 后 error notice + 仍回滚 / 无未处理 rejection；`conversationSessionWindowSideBySide.test.ts` 绿 | conversation | closed |
+| D112 | P3 | **Inbox Goal 断连且有连接史时按钮禁用且点击静默返回**：`renderGoal` 仅 `goalButton.enabled = connected`；`onGoalClicked` 断连 early-return 不 `showPostFailure`。从未接通 stub 仍须 disabled。不得改 D109 Stop / Enqueue / Retry / D110 接通 boolean 映射 | B 槽 `inbox-goal-disconnected-notice` 已收：enable = connected \|\| history；断连+history 点击经 delegate `showPostFailure('engine_disconnected')`，return 在 prompt / set / cancel 前。stub 从未接通仍 disabled。测锁 failures `['engine_disconnected']` 且无 set/cancel。未关 D16；未改 Enqueue/Retry/Stop/Queue；未改 session-binding / session window | 断连+history Goal enabled；点击 `engine_disconnected` 且不 set/cancel；stub 从未接通仍 disabled；`conversationInboxOverlay.test.ts` 绿 | conversation | closed |
 
 ## D2 工位池 compile 基线（2026-09-02，merge 工位 / `loop/merge`）
 

@@ -328,6 +328,22 @@ suite('ConversationInboxOverlay Goal', () => {
 		assert.strictEqual(roster.getSessionGoal(roster.getActiveSessionId()), undefined);
 		assert.deepStrictEqual(failures, ['engine_disconnected']);
 	});
+
+	test('disconnected Goal with history is enabled and shows engine_disconnected without set or cancel', async () => {
+		const failures: ConversationComposerPostFailureReason[] = [];
+		const roster = store.add(new GoalRoster());
+		roster.connected = false;
+		roster.history = true;
+		const overlay = createOverlay(roster, 'Should not apply', failures);
+		const goal = getGoalButton(overlay);
+		assert.strictEqual(goal.getAttribute('aria-disabled'), 'false');
+		goal.click();
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		assert.deepStrictEqual(failures, ['engine_disconnected']);
+		assert.deepStrictEqual(roster.setGoalCalls, []);
+		assert.deepStrictEqual(roster.cancelGoalCalls, []);
+		assert.strictEqual(roster.getSessionGoal(roster.getActiveSessionId()), undefined);
+	});
 });
 
 suite('ConversationInboxOverlay context ring', () => {
