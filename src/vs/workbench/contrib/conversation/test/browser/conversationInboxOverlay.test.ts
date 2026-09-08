@@ -25,6 +25,7 @@ import {
 	conversationLensInboxQueueEnqueueUnavailable,
 	conversationLensInboxQueueRetry,
 	conversationLensInboxQueueRetryUnavailable,
+	type ConversationComposerPostFailureReason,
 } from '../../browser/conversationLensDockStrings.js';
 import { ConversationMessageQueueItem } from '../../browser/conversationMessageQueueModel.js';
 import { ConversationStubTurn } from '../../browser/conversationStubModel.js';
@@ -107,9 +108,16 @@ class RecordingStubRoster extends ConversationStubService {
 
 class GeneratingRoster extends ConversationStubService {
 	readonly cancelCalls: { sessionId: string; agentId?: string }[] = [];
+	cancelResult = true;
+	connected = true;
+	history = false;
 
 	override isEngineConnected(): boolean {
-		return true;
+		return this.connected;
+	}
+
+	override hasEngineConnectionHistory(): boolean {
+		return this.history;
 	}
 
 	override getTurns(): readonly ConversationStubTurn[] {
@@ -118,7 +126,7 @@ class GeneratingRoster extends ConversationStubService {
 
 	override cancelGeneration(sessionId: string, agentId?: string): boolean {
 		this.cancelCalls.push({ sessionId, agentId });
-		return true;
+		return this.cancelResult;
 	}
 }
 
@@ -126,13 +134,14 @@ suite('ConversationInboxOverlay Stop', () => {
 
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
-	function createOverlay(roster: ConversationStubService): ConversationInboxOverlay {
+	function createOverlay(roster: ConversationStubService, failures: ConversationComposerPostFailureReason[] = []): ConversationInboxOverlay {
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		instantiationService.stub(IConversationRosterService, roster);
 		const parent = document.createElement('div');
 		return store.add(instantiationService.createInstance(ConversationInboxOverlay, parent, {
 			onQueueItemHold() { },
 			onScrollToPendingConfirmation() { },
+			showPostFailure(reason) { failures.push(reason); },
 		}));
 	}
 
@@ -154,13 +163,37 @@ suite('ConversationInboxOverlay Stop', () => {
 	});
 
 	test('connected streaming Stop forwards cancelGeneration', () => {
+		const failures: ConversationComposerPostFailureReason[] = [];
 		const roster = store.add(new GeneratingRoster());
-		const overlay = createOverlay(roster);
+		const overlay = createOverlay(roster, failures);
 		const stop = getStopButton(overlay);
 		assert.strictEqual(stop.getAttribute('aria-disabled'), 'false');
 		assert.strictEqual(stop.getAttribute('aria-label'), `${conversationLensDockStop}, ${conversationLensDockStopGenerating}`);
 		stop.click();
 		assert.deepStrictEqual(roster.cancelCalls, [{ sessionId: roster.getActiveSessionId(), agentId: undefined }]);
+		assert.deepStrictEqual(failures, []);
+	});
+
+	test('Stop cancelGeneration false with history shows engine_disconnected', () => {
+		const failures: ConversationComposerPostFailureReason[] = [];
+		const roster = store.add(new GeneratingRoster());
+		roster.cancelResult = false;
+		roster.history = true;
+		const overlay = createOverlay(roster, failures);
+		roster.connected = false;
+		getStopButton(overlay).click();
+		assert.deepStrictEqual(roster.cancelCalls, [{ sessionId: roster.getActiveSessionId(), agentId: undefined }]);
+		assert.deepStrictEqual(failures, ['engine_disconnected']);
+	});
+
+	test('Stop cancelGeneration false without history shows failed', () => {
+		const failures: ConversationComposerPostFailureReason[] = [];
+		const roster = store.add(new GeneratingRoster());
+		roster.cancelResult = false;
+		const overlay = createOverlay(roster, failures);
+		getStopButton(overlay).click();
+		assert.deepStrictEqual(roster.cancelCalls, [{ sessionId: roster.getActiveSessionId(), agentId: undefined }]);
+		assert.deepStrictEqual(failures, ['failed']);
 	});
 });
 
@@ -178,6 +211,7 @@ suite('ConversationInboxOverlay Goal', () => {
 		return store.add(instantiationService.createInstance(ConversationInboxOverlay, parent, {
 			onQueueItemHold() { },
 			onScrollToPendingConfirmation() { },
+			showPostFailure() { },
 		}));
 	}
 
@@ -242,6 +276,7 @@ suite('ConversationInboxOverlay context ring', () => {
 		return store.add(instantiationService.createInstance(ConversationInboxOverlay, parent, {
 			onQueueItemHold() { },
 			onScrollToPendingConfirmation() { },
+			showPostFailure() { },
 		}));
 	}
 
@@ -274,6 +309,7 @@ suite('ConversationInboxOverlay list panel host', () => {
 		return store.add(instantiationService.createInstance(ConversationInboxOverlay, parent, {
 			onQueueItemHold() { },
 			onScrollToPendingConfirmation() { },
+			showPostFailure() { },
 		}));
 	}
 
@@ -350,6 +386,7 @@ suite('ConversationInboxOverlay Enqueue', () => {
 		return store.add(instantiationService.createInstance(ConversationInboxOverlay, parent, {
 			onQueueItemHold() { },
 			onScrollToPendingConfirmation() { },
+			showPostFailure() { },
 		}));
 	}
 
@@ -498,6 +535,7 @@ suite('ConversationInboxOverlay Retry', () => {
 		return store.add(instantiationService.createInstance(ConversationInboxOverlay, parent, {
 			onQueueItemHold() { },
 			onScrollToPendingConfirmation() { },
+			showPostFailure() { },
 		}));
 	}
 
