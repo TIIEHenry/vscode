@@ -550,6 +550,53 @@ suite('ConversationSessionsView', () => {
 		assert.strictEqual(stubService.getActiveSessionId(), secondId);
 	});
 
+	test('createNewSession after engine-cache disconnect shows disconnected notice and does not create', () => {
+		class EngineCacheDisconnectCreateRoster extends ConversationStubService {
+			createSessionCalls = 0;
+			override hasEngineConnectionHistory(): boolean {
+				return true;
+			}
+			override createSession(): string {
+				this.createSessionCalls++;
+				return super.createSession();
+			}
+		}
+		const stubService = store.add(new EngineCacheDisconnectCreateRoster());
+		const { view, errors } = mountView({ stubService });
+		const activeId = stubService.getActiveSessionId();
+		const titlesBefore = stubService.getSessions().map(session => session.title);
+
+		view.createNewSession();
+
+		assert.deepStrictEqual(errors, ['Could not create session — engine disconnected.']);
+		assert.strictEqual(stubService.createSessionCalls, 0);
+		assert.strictEqual(stubService.getActiveSessionId(), activeId);
+		assert.deepStrictEqual(stubService.getSessions().map(session => session.title), titlesBefore);
+		assert.ok(getVisibleSessionTitles(view).includes(stubService.getActiveSession().title));
+	});
+
+	test('createNewSession when engine connected still calls createSession', () => {
+		class ConnectedCreateRoster extends ConversationStubService {
+			createSessionCalls = 0;
+			override isEngineConnected(): boolean {
+				return true;
+			}
+			override createSession(): string {
+				this.createSessionCalls++;
+				return super.createSession();
+			}
+		}
+		const stubService = store.add(new ConnectedCreateRoster());
+		const { view, errors } = mountView({ stubService });
+		const countBefore = stubService.getSessions().length;
+
+		view.createNewSession();
+
+		assert.deepStrictEqual(errors, []);
+		assert.strictEqual(stubService.createSessionCalls, 1);
+		assert.strictEqual(stubService.getSessions().length, countBefore + 1);
+	});
+
 	test('deleteActiveSession false shows failed notice and keeps the session', () => {
 		class RejectingDeleteRoster extends ConversationStubService {
 			override deleteSession(_sessionId: string): boolean {

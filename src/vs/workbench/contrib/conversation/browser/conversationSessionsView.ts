@@ -164,6 +164,12 @@ export class ConversationSessionsView extends ViewPane {
 	}
 
 	createNewSession(): void {
+		if (!this.stubService.isEngineConnected() && this.stubService.hasEngineConnectionHistory()) {
+			this.notificationService.error(
+				localize('conversationSessionsView.createSessionDisconnected', "Could not create session — engine disconnected."),
+			);
+			return;
+		}
 		this.stubService.createSession();
 	}
 
