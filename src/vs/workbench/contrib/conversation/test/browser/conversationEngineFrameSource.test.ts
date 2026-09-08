@@ -55,7 +55,13 @@ class BufferedMockUniverseAgentSessionView implements IUniverseAgentSessionView 
 		return { accepted: true, correlation: { id: 'mock' } };
 	}
 
-	async requestResync(_leaseId: string): Promise<void> { }
+	readonly requestResyncCalls: string[] = [];
+	requestResyncFn: (leaseId: string) => Promise<void> = async () => { };
+
+	async requestResync(leaseId: string): Promise<void> {
+		this.requestResyncCalls.push(leaseId);
+		return this.requestResyncFn(leaseId);
+	}
 
 	async acknowledge(leaseId: string, ack: { readonly generation: number; readonly frameId: number; readonly appliedVersion: number }): Promise<void> {
 		this.acknowledgeCalls.push({ leaseId, ...ack });
@@ -342,6 +348,51 @@ suite('ConversationEngineFrameSource per-lease subscribe (F1)', () => {
 			frameId: 2,
 			appliedVersion: 2,
 		});
+	});
+
+	test('requestResync reject does not leave an unhandled rejection or apply a bad frame', async () => {
+		const sessionView = new BufferedMockUniverseAgentSessionView();
+		sessionView.requestResyncFn = () => Promise.reject('boom');
+		const source = store.add(new ConversationEngineFrameSource(sessionView));
+		const lease = store.add(source.acquire('sess-resync-reject'));
+
+		const applied: ConversationViewFrameApplied[] = [];
+		store.add(lease.onDidApplyFrame(e => applied.push(e)));
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+		const appliedBefore = applied.length;
+		const ackBefore = sessionView.acknowledgeCalls.length;
+		const snapshotBefore = lease.snapshot;
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			const frame: ConversationViewFrame = {
+				frame: {
+					leaseId: 'lease:sess-resync-reject' as ViewLeaseId,
+					generation: 1,
+					frameId: 99,
+					version: 99,
+					body: { kind: 'patches', patches: [{ op: 'setSyncChrome', sync: { kind: 'closed', reason: 'bad' } }] },
+				},
+			};
+			(lease as unknown as {
+				onHostFrame(frame: ConversationViewFrame, applied: ConversationViewFrameApplied): void;
+			}).onHostFrame(frame, {
+				kind: 'patches',
+				changedIds: new Set(['should-not-apply']),
+			});
+			await new Promise<void>(resolve => queueMicrotask(() => resolve()));
+			await new Promise<void>(resolve => setImmediate(() => resolve()));
+			assert.deepStrictEqual(sessionView.requestResyncCalls, ['lease:sess-resync-reject']);
+			assert.deepStrictEqual(unhandledRejections, []);
+			assert.strictEqual(applied.length, appliedBefore);
+			assert.strictEqual(sessionView.acknowledgeCalls.length, ackBefore);
+			assert.strictEqual(lease.snapshot, snapshotBefore);
+			assert.deepStrictEqual(lease.snapshot.sync, { kind: 'live' });
+		} finally {
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
 	});
 
 	test('onHostFrame normalizes IPC-deserialized changedIds before emit', async () => {
