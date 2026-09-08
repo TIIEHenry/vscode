@@ -14,8 +14,9 @@ import { InMemoryStorageService } from '../../../../../platform/storage/common/s
 import { MockContextKeyService } from '../../../../../platform/keybinding/test/common/mockKeybindingService.js';
 import { IActiveSession, ICreateNewSessionOptions, IProviderSessionType, IRecentlyOpenedSessions, ISessionsManagementService } from '../../common/sessionsManagement.js';
 import { ChatInteractivity, IChat, ISession, ISessionType, ISessionWorkspace, ISideChatSelection, SessionStatus } from '../../common/session.js';
-import { SessionsNavigation } from '../../browser/sessionNavigation.js';
+import { ISessionOpener, SessionsNavigation } from '../../browser/sessionNavigation.js';
 import { SessionsRecencyHistory } from '../../browser/sessionsRecencyHistory.js';
+import { timeout } from '../../../../../base/common/async.js';
 import { Event } from '../../../../../base/common/event.js';
 import { ISendRequestOptions } from '../../common/sessionsProvider.js';
 
@@ -247,6 +248,26 @@ class MockSessionStore implements ISessionsManagementService {
 	deleteChat(_session: ISession, _chatUri: URI): Promise<void> { throw new Error('not implemented'); }
 	renameChat(_session: ISession, _chatUri: URI, _title: string): Promise<void> { throw new Error('not implemented'); }
 	renameSession(_session: ISession, _title: string): Promise<void> { throw new Error('not implemented'); }
+}
+
+class ThrowingSessionOpener implements ISessionOpener {
+	throwNext = false;
+
+	constructor(private readonly _inner: ISessionOpener) { }
+
+	async openSession(sessionResource: URI, options?: { preserveFocus?: boolean; source?: 'navigation' }): Promise<void> {
+		if (this.throwNext) {
+			throw new Error('opener boom');
+		}
+		return this._inner.openSession(sessionResource, options);
+	}
+
+	async openChat(session: ISession, chatResource: URI): Promise<void> {
+		if (this.throwNext) {
+			throw new Error('opener boom');
+		}
+		return this._inner.openChat(session, chatResource);
+	}
 }
 
 suite('SessionsNavigation', () => {
@@ -578,5 +599,63 @@ suite('SessionsNavigation', () => {
 		await nav.goBack();
 		assert.strictEqual(store.lastOpenedResource?.toString(), s1.resource.toString());
 		assert.strictEqual(store.lastOpenedChatResource, undefined, 'should not open a stale chat');
+	});
+
+	test('goBack/goForward opener reject restores cursor and canGoBack/canGoForward without unhandled rejection', async () => {
+		const disposables = ds.add(new DisposableStore());
+		const localStore = new MockSessionStore();
+		const localCtx = disposables.add(new MockContextKeyService());
+		const storageService = disposables.add(new InMemoryStorageService());
+		const recency = disposables.add(new SessionsRecencyHistory(storageService, new NullLogService()));
+		const opener = new ThrowingSessionOpener(localStore);
+		const localNav = disposables.add(new SessionsNavigation(
+			opener,
+			localStore.activeSession,
+			localStore,
+			recency,
+			localCtx,
+			new NullLogService(),
+		));
+
+		const s1 = stubSession('s1');
+		const s2 = stubSession('s2');
+		localStore.addSession(s1);
+		localStore.addSession(s2);
+		localStore.setActiveSession(s1);
+		localStore.setActiveSession(s2);
+
+		const localCanGoBack = () => localCtx.getContextKeyValue('sessionsCanGoBack') ?? false;
+		const localCanGoForward = () => localCtx.getContextKeyValue('sessionsCanGoForward') ?? false;
+		assert.strictEqual(localCanGoBack(), true);
+		assert.strictEqual(localCanGoForward(), false);
+
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			opener.throwNext = true;
+			void localNav.goBack();
+			await timeout(0);
+			assert.deepStrictEqual(unhandledRejections, []);
+			assert.strictEqual(localCanGoBack(), true);
+			assert.strictEqual(localCanGoForward(), false);
+			assert.strictEqual(localStore.lastOpenedResource, undefined);
+
+			opener.throwNext = false;
+			await localNav.goBack();
+			assert.strictEqual(localStore.lastOpenedResource?.toString(), s1.resource.toString());
+			assert.strictEqual(localCanGoBack(), false);
+			assert.strictEqual(localCanGoForward(), true);
+
+			opener.throwNext = true;
+			void localNav.goForward();
+			await timeout(0);
+			assert.deepStrictEqual(unhandledRejections, []);
+			assert.strictEqual(localCanGoBack(), false);
+			assert.strictEqual(localCanGoForward(), true);
+			assert.strictEqual(localStore.lastOpenedResource?.toString(), s1.resource.toString());
+		} finally {
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
 	});
 });
