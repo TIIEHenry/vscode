@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-08
-summary: "延期缺口 SSOT；D16 仍开；D45–D90 / D92–D96 已闭；D22 F3；D24 其余 JSON RPC；D25 引擎 List 真空；D26 引擎建壳回 6；D31 F4 / A2 blocked；roster rename/delete 与 beside throw 回滚已挂"
+summary: "延期缺口 SSOT；D16 仍开；D45–D90 / D92–D98 已闭；D22 F3；D24 其余 JSON RPC；D25 引擎 List 真空；D26 引擎建壳回 6；D31 F4 / A2 blocked；beside max-leaves restore 与 primary 失败不造 secondary 已挂"
 ---
 
 # Deferred Gaps
@@ -112,6 +112,8 @@ summary: "延期缺口 SSOT；D16 仍开；D45–D90 / D92–D96 已闭；D22 F3
 | D94 | P3 | **roster `renameSession` remote `void` 无回滚**：`renameEngineSession` 乐观写 `session.title` 后 `void` unary；throw / `{ ok:false }` leftover 假标题。公开 API 保持同步 boolean | B 槽 `roster-rename-delete-remote-rollback` 已收：乐观本地写保留；remote throw / `{ ok:false }` 回滚标题并再 fire/persist。测锁 rollback + 无未处理 rejection。未关 D16；未扫其它 `void uaConnection.*` | remote throw / `{ ok:false }` 后标题回滚；无未处理 rejection；既有 forwards / disconnected skip 测保留 | conversation | closed |
 | D95 | P3 | **roster `deleteSession` remote `void` 无回滚**：`deleteEngineSession` 先卸行+goal 后 `void` unary；throw leftover 假空/错位。公开 API 保持同步 boolean。delete 只处理 throw，不发明 `{ ok }` | B 槽 `roster-rename-delete-remote-rollback` 已收：乐观卸行保留；remote throw 恢复行/index/`sessionGoals`/active/`listCompleted`/bind-failed 空态并再 fire/persist。测锁 last-entry + mid-list rollback。未关 D16 | remote throw 后行/标题/active/goal/bind-failed 空态回滚；无未处理 rejection；既有 last-delete 诚实空 / disconnected skip 测保留 | conversation | closed |
 | D96 | P3 | **`openSessionBeside` 裸 await `ensureLeaf`**：`conversationSessionWindowService.ts` 先 `leaves.set` 再 `createConversationEditorPart` / `whenReady`；throw 后半应用 secondary leaf + Sessions Alt+click / Open beside 的 `void` 成未处理 rejection。D90 只收 primary bootstrap | A 槽 `open-beside-leaf-throw-rollback` 已收：try/catch + `rollbackHalfAppliedLeaf`；不 fire 成功；`logService.warn` + `getErrorMessage`；未加 `INotificationService`；void 调用点未改。测锁 throw 后 primary 仍在、无 secondary DOM、无未处理 rejection，再成功 beside。未关 D16；未重做 D90 | throw 后无 secondary leaf/DOM、primary 仍在、无未处理 rejection；随后 beside 成功；`conversationSessionWindowSideBySide.test.ts` 绿 | conversation | closed |
+| D97 | P3 | **`openSessionBeside` max-leaves 先 hide secondary 再 `ensureLeaf`**：`visibleKeys.length >= CONVERSATION_SESSION_WINDOW_MAX_LEAVES`（2）时先 `hideSessionWindow(secondaryKey)`；D96 catch 只 `rollbackHalfAppliedLeaf(newKey)`，被驱逐的 secondary 留 hidden，2 窗变 1 | A 槽 `open-beside-max-leaves-and-require-primary` 已收：记住驱逐 key，catch 里 `restoreSessionWindow`（仍走既有 D96 rollback）；未重做 D90 bootstrap / D96 helper；未加 `INotificationService`；void 调用点未改。未关 D16 | throw 后 visible 回到 2、被 hide 的 secondary restore、无第三 leaf、无未处理 rejection；随后第三 beside 成功且 2-visible max 仍诚实；`conversationSessionWindowSideBySide.test.ts` 绿 | conversation | closed |
+| D98 | P3 | **`openSessionBeside` 在 D90 吞掉的 primary 失败后仍 `ensureLeaf` secondary**：`await ensurePrimaryWindow` 后 `primarySessionKey` 空且无 primary leaf 时仍造 orphan `.conversation-session-leaf-secondary` | A 槽本刀已收：ensurePrimaryWindow 后 `getPrimarySessionKey()` 空或 primary leaf 缺失则 return；未加 `INotificationService`；未改 void 调用点；未重做 D90/D96。未关 D16 | primary 失败后无 primary/secondary leaf/DOM、无未处理 rejection；`conversationSessionWindowSideBySide.test.ts` 绿 | conversation | closed |
 
 ## D2 工位池 compile 基线（2026-09-02，merge 工位 / `loop/merge`）
 

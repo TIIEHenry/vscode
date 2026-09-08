@@ -300,4 +300,85 @@ suite('Conversation session window side-by-side (S5)', () => {
 			process.off('unhandledRejection', onUnhandledRejection);
 		}
 	});
+
+	test('openSessionBeside max-leaves throw restores the evicted secondary', async () => {
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			const harness = createPrimaryBootstrapHarness();
+			await timeout(0);
+			harness.setThrowOnCreate(false);
+			await harness.sessionWindowService.ensurePrimaryWindow(harness.primaryId);
+
+			const secondaryId = harness.rosterService.createSession();
+			harness.rosterService.switchSession(harness.primaryId);
+			await harness.sessionWindowService.openSessionBeside(secondaryId);
+
+			assert.strictEqual(harness.sessionWindowService.getVisibleWindowCount(), 2);
+			assert.ok(harness.sessionWindowService.getLeafSlots(secondaryId));
+			assert.strictEqual(harness.sessionWindowService.isSessionWindowVisible(secondaryId), true);
+
+			const thirdId = harness.rosterService.createSession();
+			harness.rosterService.switchSession(harness.primaryId);
+			harness.setThrowOnCreate(true);
+			void harness.sessionWindowService.openSessionBeside(thirdId);
+			await timeout(0);
+
+			assert.deepStrictEqual(unhandledRejections, []);
+			assert.strictEqual(harness.sessionWindowService.getPrimarySessionKey(), harness.primaryId);
+			assert.ok(harness.sessionWindowService.getLeafSlots(harness.primaryId));
+			assert.ok(harness.sessionWindowService.getLeafSlots(secondaryId));
+			assert.strictEqual(harness.sessionWindowService.getLeafSlots(thirdId), undefined);
+			assert.deepStrictEqual(harness.sessionWindowService.getAllLeafSessionKeys(), [harness.primaryId, secondaryId]);
+			assert.strictEqual(harness.sessionWindowService.getVisibleWindowCount(), 2);
+			assert.strictEqual(harness.sessionWindowService.isSessionWindowVisible(secondaryId), true);
+			assert.strictEqual(harness.sessionWindowService.isSessionWindowHidden(secondaryId), false);
+			assert.strictEqual(harness.gridHost.querySelectorAll('.conversation-session-leaf').length, 2);
+			assert.strictEqual(harness.gridHost.querySelectorAll('.conversation-session-leaf-secondary').length, 1);
+			assert.ok(!harness.sessionWindowService.getLeafSlots(secondaryId)?.container.classList.contains(conversationSessionLeafHiddenClass));
+
+			harness.setThrowOnCreate(false);
+			await harness.sessionWindowService.openSessionBeside(thirdId);
+
+			assert.deepStrictEqual(unhandledRejections, []);
+			assert.ok(harness.sessionWindowService.getLeafSlots(thirdId));
+			assert.strictEqual(harness.sessionWindowService.getVisibleWindowCount(), 2);
+			assert.strictEqual(harness.sessionWindowService.isSessionWindowVisible(harness.primaryId), true);
+			assert.strictEqual(harness.sessionWindowService.isSessionWindowVisible(thirdId), true);
+			assert.strictEqual(harness.sessionWindowService.isSessionWindowHidden(secondaryId), true);
+			assert.ok(harness.gridHost.querySelector(`[data-session-key="${thirdId}"]`));
+		} finally {
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
+
+	test('openSessionBeside after swallowed primary failure does not create a secondary', async () => {
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			const harness = createPrimaryBootstrapHarness();
+			await timeout(0);
+			assert.strictEqual(harness.sessionWindowService.getPrimarySessionKey(), undefined);
+
+			const otherId = harness.rosterService.createSession();
+			harness.rosterService.switchSession(harness.primaryId);
+			harness.setThrowOnCreate(true);
+			void harness.sessionWindowService.openSessionBeside(otherId);
+			await timeout(0);
+
+			assert.deepStrictEqual(unhandledRejections, []);
+			assert.strictEqual(harness.sessionWindowService.getPrimarySessionKey(), undefined);
+			assert.strictEqual(harness.sessionWindowService.getLeafSlots(harness.primaryId), undefined);
+			assert.strictEqual(harness.sessionWindowService.getLeafSlots(otherId), undefined);
+			assert.deepStrictEqual(harness.sessionWindowService.getAllLeafSessionKeys(), []);
+			assert.strictEqual(harness.sessionWindowService.getVisibleWindowCount(), 0);
+			assert.strictEqual(harness.gridHost.querySelector('.conversation-session-leaf'), null);
+			assert.strictEqual(harness.gridHost.querySelector('.conversation-session-leaf-primary'), null);
+			assert.strictEqual(harness.gridHost.querySelector('.conversation-session-leaf-secondary'), null);
+		} finally {
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
 });

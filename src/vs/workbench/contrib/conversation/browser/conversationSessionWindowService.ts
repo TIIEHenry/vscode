@@ -158,6 +158,11 @@ export class ConversationSessionWindowService extends Disposable implements ICon
 
 		await this.ensurePrimaryWindow(this.primarySessionKey ?? this.rosterService.getActiveSessionId());
 
+		const primaryKey = this.getPrimarySessionKey();
+		if (!primaryKey || !this.getLeafSlots(primaryKey)) {
+			return;
+		}
+
 		const existing = this.leaves.get(sessionKey);
 		if (existing) {
 			if (existing.hidden) {
@@ -166,11 +171,13 @@ export class ConversationSessionWindowService extends Disposable implements ICon
 			return;
 		}
 
+		let evictedSecondaryKey: string | undefined;
 		const visibleKeys = this.getVisibleSessionKeys();
 		if (visibleKeys.length >= CONVERSATION_SESSION_WINDOW_MAX_LEAVES) {
 			const secondaryKey = visibleKeys.find(key => key !== this.primarySessionKey);
 			if (secondaryKey) {
 				this.hideSessionWindow(secondaryKey);
+				evictedSecondaryKey = secondaryKey;
 			}
 		}
 
@@ -179,6 +186,9 @@ export class ConversationSessionWindowService extends Disposable implements ICon
 			this.fireVisibleWindowsChange();
 		} catch (error) {
 			this.rollbackHalfAppliedLeaf(sessionKey);
+			if (evictedSecondaryKey) {
+				this.restoreSessionWindow(evictedSecondaryKey);
+			}
 			this.logService.warn(`[ConversationSessionWindowService] openSessionBeside failed: ${getErrorMessage(error)}`);
 		}
 	}
