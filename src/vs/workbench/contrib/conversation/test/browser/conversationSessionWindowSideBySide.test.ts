@@ -383,6 +383,7 @@ suite('Conversation session window side-by-side (S5)', () => {
 			await timeout(0);
 
 			assert.deepStrictEqual(unhandledRejections, []);
+			assert.ok(harness.errors.includes('primary bootstrap boom'));
 			assert.strictEqual(harness.sessionWindowService.getPrimarySessionKey(), undefined);
 			assert.strictEqual(harness.sessionWindowService.getLeafSlots(harness.primaryId), undefined);
 			assert.strictEqual(harness.sessionWindowService.getLeafSlots(otherId), undefined);
