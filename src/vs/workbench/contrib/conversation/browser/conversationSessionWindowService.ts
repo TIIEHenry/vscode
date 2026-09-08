@@ -174,8 +174,13 @@ export class ConversationSessionWindowService extends Disposable implements ICon
 			}
 		}
 
-		await this.ensureLeaf(sessionKey, { primary: false });
-		this.fireVisibleWindowsChange();
+		try {
+			await this.ensureLeaf(sessionKey, { primary: false });
+			this.fireVisibleWindowsChange();
+		} catch (error) {
+			this.rollbackHalfAppliedLeaf(sessionKey);
+			this.logService.warn(`[ConversationSessionWindowService] openSessionBeside failed: ${getErrorMessage(error)}`);
+		}
 	}
 
 	hideSessionWindow(sessionKey: string): void {
