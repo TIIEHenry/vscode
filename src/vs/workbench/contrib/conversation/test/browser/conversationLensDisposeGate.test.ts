@@ -7,7 +7,7 @@ import assert from 'assert';
 import { DisposableStore } from '../../../../../base/common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { applySessionViewTimeline, refreshTrajectoryRecords, type IConversationLensProjectionHost } from '../../browser/conversationLensProjection.js';
-import { submitDraft, type IConversationLensComposerHost } from '../../browser/conversationLensComposer.js';
+import { saveTurnEdit, submitDraft, type IConversationLensComposerHost } from '../../browser/conversationLensComposer.js';
 import { showPostFailure, type IConversationLensComposerChromeHost } from '../../browser/conversationLensComposerChrome.js';
 import {
 	conversationLensPostFailed,
@@ -305,6 +305,86 @@ suite('conversation lens dispose gate', () => {
 		} finally {
 			process.off('unhandledRejection', onUnhandled);
 		}
+	});
+
+	test('saveTurnEdit roster false after disconnect stays in edit and shows engine_disconnected', () => {
+		const failures: ConversationComposerPostFailureReason[] = [];
+		let exited = 0;
+		const host = {
+			composerPolicy: 'turnEdit',
+			editingTurnId: 'turn-1',
+			dockTextarea: { value: 'revised later' },
+			getBoundSessionId: () => 'sess-1',
+			stubService: {
+				updateUserTurnText: () => false,
+				isEngineConnected: () => false,
+				hasEngineConnectionHistory: () => true,
+			},
+			exitComposerEdit: () => { exited++; },
+			showPostFailure: (reason: ConversationComposerPostFailureReason) => {
+				failures.push(reason);
+			},
+		} as unknown as IConversationLensComposerHost;
+
+		saveTurnEdit(host);
+
+		assert.deepStrictEqual(failures, ['engine_disconnected']);
+		assert.strictEqual(exited, 0);
+		assert.strictEqual(host.editingTurnId, 'turn-1');
+		assert.strictEqual(host.composerPolicy, 'turnEdit');
+		assert.strictEqual(host.dockTextarea.value, 'revised later');
+	});
+
+	test('saveTurnEdit roster false without connection history stays in edit and shows failed', () => {
+		const failures: ConversationComposerPostFailureReason[] = [];
+		let exited = 0;
+		const host = {
+			composerPolicy: 'turnEdit',
+			editingTurnId: 'turn-1',
+			dockTextarea: { value: 'revised later' },
+			getBoundSessionId: () => 'sess-1',
+			stubService: {
+				updateUserTurnText: () => false,
+				isEngineConnected: () => false,
+				hasEngineConnectionHistory: () => false,
+			},
+			exitComposerEdit: () => { exited++; },
+			showPostFailure: (reason: ConversationComposerPostFailureReason) => {
+				failures.push(reason);
+			},
+		} as unknown as IConversationLensComposerHost;
+
+		saveTurnEdit(host);
+
+		assert.deepStrictEqual(failures, ['failed']);
+		assert.strictEqual(exited, 0);
+		assert.strictEqual(host.editingTurnId, 'turn-1');
+		assert.strictEqual(host.composerPolicy, 'turnEdit');
+	});
+
+	test('saveTurnEdit roster true exits edit and does not show post failure', () => {
+		const failures: ConversationComposerPostFailureReason[] = [];
+		let exited = 0;
+		const host = {
+			composerPolicy: 'turnEdit',
+			editingTurnId: 'turn-1',
+			dockTextarea: { value: 'revised later' },
+			getBoundSessionId: () => 'sess-1',
+			stubService: {
+				updateUserTurnText: () => true,
+				isEngineConnected: () => false,
+				hasEngineConnectionHistory: () => false,
+			},
+			exitComposerEdit: () => { exited++; },
+			showPostFailure: (reason: ConversationComposerPostFailureReason) => {
+				failures.push(reason);
+			},
+		} as unknown as IConversationLensComposerHost;
+
+		saveTurnEdit(host);
+
+		assert.deepStrictEqual(failures, []);
+		assert.strictEqual(exited, 1);
 	});
 
 	test('showPostFailure failed uses retry copy not disconnected', () => {
