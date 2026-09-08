@@ -261,6 +261,7 @@ suite('Conversation session chat (S3)', () => {
 				return {
 					chatSessionsService,
 					sessionChatService: accessor.get(IConversationSessionChatService),
+					notificationService: accessor.get(INotificationService),
 				};
 			});
 
@@ -274,7 +275,11 @@ suite('Conversation session chat (S3)', () => {
 			const cts = new CancellationTokenSource();
 			try {
 				const forkedItem = await context.chatSessionsService.forkChatSession(sourceSessionResource, request, cts.token);
-				await context.sessionChatService.openForkTab(forkedItem.resource, forkedItem.label);
+				try {
+					await context.sessionChatService.openForkTab(forkedItem.resource, forkedItem.label);
+				} catch (error) {
+					context.notificationService.error(getErrorMessage(error));
+				}
 				return true;
 			} finally {
 				cts.dispose();
@@ -437,6 +442,45 @@ suite('Conversation session chat (S3)', () => {
 		assert.strictEqual(forkCalls, 0);
 		assert.strictEqual(conversationPart.activeGroup.count, 1);
 		assert.strictEqual(sessionChatService.getCatalog(SESSION_KEY).length, 0);
+	});
+
+	test('fork openForkTab throw notifies error without unhandled rejection', async () => {
+		const boom = new Error(`Conversation editor part for session ${SESSION_KEY} is not available`);
+		const errors: string[] = [];
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		const { instantiationService, conversationPart, sessionChatService } = await createHarness(undefined, {
+			error: (message: string | Error) => {
+				errors.push(typeof message === 'string' ? message : getErrorMessage(message));
+			},
+		} as INotificationService);
+		instantiationService.stub(IWorkbenchEnvironmentService, upcastPartial<IWorkbenchEnvironmentService>({ isSessionsWindow: false }));
+		instantiationService.stub(IConversationSessionChatService, sessionChatService);
+		const sourceSessionResource = URI.parse('agent-host-copilot:/fork-source');
+		const forkedResource = URI.parse('agent-host-copilot:/fork-source#peer-1');
+		instantiationService.stub(IChatSessionsService, upcastPartial<IChatSessionsService>({
+			getContentProviderSchemes: () => ['agent-host-copilot'],
+			forkChatSession: async () => ({
+				resource: forkedResource,
+				label: 'Forked peer',
+				iconPath: undefined,
+				timing: { created: 0, lastRequestStarted: 0, lastRequestEnded: 0 },
+			}),
+		}));
+		sessionChatService.getConversationPart = () => undefined;
+
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			const handled = await new TestConversationForkAction().tryForkAsChat(instantiationService, sourceSessionResource);
+			await timeout(0);
+			assert.strictEqual(handled, true);
+			assert.deepStrictEqual(errors, [getErrorMessage(boom)]);
+			assert.deepStrictEqual(unhandledRejections, []);
+			assert.strictEqual(conversationPart.activeGroup.count, 1);
+			assert.ok(!sessionChatService.findOpenTabForChat(SESSION_KEY, 'peer-1'));
+		} finally {
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
 	});
 
 	function makeLiveAgentTree(children: LiveAgentTreeNodeView[] = []): LiveAgentTreeNodeView {

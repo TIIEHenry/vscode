@@ -4,11 +4,10 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-08
-summary: "FileMutationJoin / createScoped / Review 委托已修。D16 / D31 F4 仍开。官方三域 glob 已绿。D44–D87 已闭。Team leftover 已清。Connection list leftover / write throw / Refresh devices directory throw 已挂。switchModel 空 resolvedModelId 回滚+gate 已挂。Snapshots / MCP / Skills / Agents / Tools 写失败 write-status 已挂。Agents Tools 页 listTools throw 画 failed；重连后再 throw 清 leftover。Tools 成功 refresh 后 getToolInfo throw 重画详情。Skills 成功 refresh 后 getSkillInfo throw 重画正文。Agents Instructions 成功 refresh 后重载 AGENTS.md。Tools/Agents 成功 refresh 清 pending enablement。MCP runtime leftover 已清。git-read / open-diff / Stage·Commit / Unstage throw 与 ok:false status 已挂。Review runGitAction throw 已 showNotice。Lens lease-only sync 刷新 stale banner 已挂。Sessions 接通刷新已挂。openStream throw-on-open 已折 streamClosed。Lens retryError / permission / question / submitDraft postBound throw 已 showPostFailure('failed')。Connection/Hub Channel Client hydrate IPC reject 已吞。Navigator Reveal / Promote / breadcrumb navigate throw 已 notification error。A2 仍 blocked。"
+summary: "FileMutationJoin / createScoped / Review 委托已修。D16 / D31 F4 仍开。官方三域 glob 已绿。D44–D88 已闭。Team leftover 已清。Connection list leftover / write throw / Refresh devices directory throw 已挂。switchModel 空 resolvedModelId 回滚+gate 已挂。Snapshots / MCP / Skills / Agents / Tools 写失败 write-status 已挂。Agents Tools 页 listTools throw 画 failed；重连后再 throw 清 leftover。Tools 成功 refresh 后 getToolInfo throw 重画详情。Skills 成功 refresh 后 getSkillInfo throw 重画正文。Agents Instructions 成功 refresh 后重载 AGENTS.md。Tools/Agents 成功 refresh 清 pending enablement。MCP runtime leftover 已清。git-read / open-diff / Stage·Commit / Unstage throw 与 ok:false status 已挂。Review runGitAction throw 已 showNotice。Lens lease-only sync 刷新 stale banner 已挂。Sessions 接通刷新已挂。openStream throw-on-open 已折 streamClosed。Lens retryError / permission / question / submitDraft postBound throw 已 showPostFailure('failed')。Connection/Hub Channel Client hydrate IPC reject 已吞。Navigator Reveal / Promote / breadcrumb / Fork openForkTab throw 已 notification error。A2 仍 blocked。"
 ---
 
 # Development Progress
-
 > **当前迭代账**（规则 3a）。产品状态 → [traceability](../../docs/product/traceability.md)（生成列）；方案状态 → [plans INDEX](../plans/INDEX.md)（生成列）；延期 → [deferred-gaps](deferred-gaps.md)。历史槽位 catalog 流水 → [归档](../archive/status-current-session-slot-catalog-2026-09-05.md)。
 ## Current Session
 
@@ -107,6 +106,7 @@ summary: "FileMutationJoin / createScoped / Review 委托已修。D16 / D31 F4 �
 55. **D 槽 `promote-subagent-throw-notice`（未关 D16）**：Promote `openExtensionTab` throw → `INotificationService.error`。[D85](deferred-gaps.md) **已闭**。
 56. **A 槽 `composer-submit-postbound-catch`（未关 D16）**：`submitDraft` `postBound` reject → `showPostFailure('failed')`。[D86](deferred-gaps.md) **已闭**。
 57. **D 槽 `breadcrumb-navigate-throw-notice`（未关 D16）**：`navigateAgentBreadcrumb` try/catch → notice；void 未改。[D87](deferred-gaps.md) **已闭**。
+58. **D 槽 `fork-open-tab-throw-notice`（未关 D16）**：`_tryForkAsChat` / `_openForkedSession` 的 `openForkTab` try/catch → notice；accessor 在首个 await 前 hoist。[D88](deferred-gaps.md) **已闭**。
 子 agent 发现的既有代码问题：
 | ID | 来源 | 问题 |
 |:---|:-----|:-----|
@@ -175,6 +175,7 @@ summary: "FileMutationJoin / createScoped / Review 委托已修。D16 / D31 F4 �
 | [D85](deferred-gaps.md) | D 槽 `promote-subagent-throw-notice` | **closed** Promote `openExtensionTab` throw 已 notice；未关 D16 |
 | [D86](deferred-gaps.md) | A 槽 `composer-submit-postbound-catch` | **closed** `submitDraft` `postBound` throw 已 `showPostFailure('failed')`；未关 D16 |
 | [D87](deferred-gaps.md) | D 槽 `breadcrumb-navigate-throw-notice` | **closed** `navigateAgentBreadcrumb` throw 已 notice；未关 D16 |
+| [D88](deferred-gaps.md) | D 槽 `fork-open-tab-throw-notice` | **closed** Fork `openForkTab` throw 已 notice；未关 D16 |
 
 ## 工位表（P0 盘点 · 2026-09-07 · 与 `git worktree list` 对照）
 | 槽 | 路径 | 分支 | tip | 脏 | stash | 关仓状态 |
