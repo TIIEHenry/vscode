@@ -1015,6 +1015,63 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		assert.strictEqual(listToolsCalls, 2);
 	});
 
+	test('Agents: instructions tab refresh reloads editor and paints load-failed without leftover markdown', async () => {
+		let listAgentProfilesCalls = 0;
+		let saveCalls = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+			listAgentProfiles: async () => {
+				listAgentProfilesCalls++;
+				return { profiles: [demoUserAgent()] };
+			},
+			saveAgentProfile: async () => {
+				saveCalls++;
+				if (listAgentProfilesCalls > 1) {
+					throw new Error('save exploded');
+				}
+				return {
+					profile: {
+						id: 'demo',
+						name: 'Demo Agent',
+						source: 'user' as const,
+						systemPrompt: 'Stale agents md',
+					},
+				};
+			},
+		});
+		const section = mountAgentsSection(connection);
+		section.setSectionActive(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'ready');
+		await section.selectProfileByIdForTest('demo');
+		assert.strictEqual(section.getActiveAgentDetailTab(), 'instructions');
+		assert.ok(section.isAgentsEditorVisible());
+		assert.ok(section.getAgentsMarkdownValue().includes('Stale agents md'));
+		assert.strictEqual(section.isAgentsMarkdownDirty(), false);
+		assert.ok(saveCalls >= 1);
+		assert.strictEqual(listAgentProfilesCalls, 1);
+
+		connection.setConnected(true);
+		await flushMicrotasks();
+
+		const editorStatus = section.getDomNode().querySelector('.engine-agents-editor-status') as HTMLElement;
+		assert.ok(editorStatus);
+		assert.notStrictEqual(editorStatus.style.display, 'none');
+		assert.ok(editorStatus.textContent?.includes(localize(
+			'ua.engineAgentsMdLoadFailed',
+			"Could not load AGENTS.md from the engine.",
+		)));
+		assert.ok(!section.getAgentsMarkdownValue().includes('Stale agents md'));
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.strictEqual(section.getListEntryCount(), 1);
+		assert.ok((section.getDomNode().textContent ?? '').includes('Demo Agent'));
+		assert.strictEqual(section.getSelectedProfileId(), 'demo');
+		assert.strictEqual(listAgentProfilesCalls, 2);
+		assert.ok(saveCalls >= 2);
+	});
+
 	test('MCP: successful load then refresh throw is failed with no leftover catalog', async () => {
 		let listMcpServersCalls = 0;
 		const connection = createConnectionStub({

@@ -818,6 +818,9 @@ export class EngineAgentsSection extends Disposable {
 			this.writeToolbar.style.display = canPerformCatalogWrite(this.mode) ? '' : 'none';
 			this.updateWriteActions();
 			this.syncDetailHost();
+			if (this.selectedProfile && !this.agentsMarkdownDirty && this.activeDetailTab === 'instructions') {
+				void this.loadAgentsEditorForSelection();
+			}
 			this.renderStatus();
 		} catch (error) {
 			this.clearCatalogPresentation();
