@@ -58,7 +58,7 @@ import {
 	conversationLensVoiceStubPhraseOne,
 	conversationLensVoiceTranscriptLabel,
 } from '../../browser/conversationLensDockStrings.js';
-import { conversationLensDockPermissionUnavailable } from '../../browser/conversationLensComposerChrome.js';
+import { conversationLensDockModelFailed, conversationLensDockPermissionUnavailable } from '../../browser/conversationLensComposerChrome.js';
 import { conversationLensVoiceTranscriptBarClass } from '../../browser/conversationVoiceTranscriptBar.js';
 import { conversationLensSessionBarConversationTab, conversationLensSessionBarDeleteSession, conversationLensSessionBarNewSession, conversationLensSessionBarNoTrajectory, conversationLensSessionBarRenameTitle, conversationLensSessionBarRouteLabel, conversationLensSessionBarTrajectoryTab, conversationLensPinnedUserPromptAria, conversationLensPinnedUserPromptCopyAria } from '../../browser/conversationLensSessionBarStrings.js';
 import { ConversationStubService, IConversationRosterService } from '../../browser/conversationStubService.js';
@@ -1041,6 +1041,40 @@ suite('ConversationLens', () => {
 		const gateRow = slots.dock.querySelector('.conversation-lens-dock-gate-row') as HTMLElement;
 		assert.strictEqual(gateRow.hidden, false);
 		assert.ok(gateRow.textContent?.includes('engine rejected model'));
+	});
+
+	test('model select rolls back and shows the gate when switchModel resolves with an empty resolvedModelId', async () => {
+		const calls: { sessionId: string; modelId: string }[] = [];
+		const capabilities = createEmptyTestCapabilitySnapshot();
+		const connection = createConversationConnectionTestStub({
+			getCapabilitySnapshot: () => ({
+				...capabilities,
+				models: { support: 'SUPPORTED' },
+			}),
+			listModels: async () => ({ models: [{ id: '1', type: 'chat', enabled: true, level: 1, provider: 'p', modelId: 'gpt-test' }] }),
+			switchModel: async request => {
+				calls.push({ sessionId: request.sessionId, modelId: request.modelId });
+				return { resolvedModelId: '', provider: '', level: 0, cost: '', speed: '' };
+			},
+		});
+		const { part, stubService } = mountLens({ connection });
+		const slots = getLensSlots(part);
+		stubService.setEngineConnected(true);
+		await waitForModelOption(slots, 'gpt-test');
+
+		const modelSelect = getModelSelect(slots);
+		assert.strictEqual(modelSelect.options[modelSelect.selectedIndex]?.text, conversationLensDockNoModel);
+
+		selectDockModel(slots, 1);
+		await Promise.resolve();
+
+		assert.strictEqual(calls.length, 1);
+		assert.strictEqual(calls[0].modelId, 'gpt-test');
+		assert.strictEqual(modelSelect.selectedIndex, 0);
+		assert.strictEqual(modelSelect.options[modelSelect.selectedIndex]?.text, conversationLensDockNoModel);
+		const gateRow = slots.dock.querySelector('.conversation-lens-dock-gate-row') as HTMLElement;
+		assert.strictEqual(gateRow.hidden, false);
+		assert.ok(gateRow.textContent?.includes(conversationLensDockModelFailed));
 	});
 
 	test('narrow More permission radios stay disabled without setPermissionMode', () => {
