@@ -998,10 +998,15 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 	}
 
 	private async handleLogout(): Promise<void> {
-		await this.hubService.logout();
-		this.hubPasswordInput.value = '';
-		this.hubNewPasswordInput.value = '';
-		this.renderHubAccount();
+		try {
+			await this.hubService.logout();
+			this.hubPasswordInput.value = '';
+			this.hubNewPasswordInput.value = '';
+			this.renderHubAccount();
+		} catch (error) {
+			const reason = error instanceof Error && error.message ? error.message : String(error);
+			writeStatus(this.hubAuthBadge, reason, 'error');
+		}
 	}
 
 	private async refreshHubDirectory(): Promise<void> {
@@ -1381,8 +1386,13 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 			return;
 		}
 		writeStatus(this.testStatus, testingCopy);
-		const result = await this.connectionService.probeConnectionProfile(this.activeProfileId);
-		writeStatus(this.testStatus, formatConnectionProbeStatus(result), result.ok ? 'success' : 'error');
+		try {
+			const result = await this.connectionService.probeConnectionProfile(this.activeProfileId);
+			writeStatus(this.testStatus, formatConnectionProbeStatus(result), result.ok ? 'success' : 'error');
+		} catch (error) {
+			const reason = error instanceof Error && error.message ? error.message : String(error);
+			writeStatus(this.testStatus, reason, 'error');
+		}
 	}
 
 	private async handleRenameSelectedDevice(): Promise<void> {
@@ -1467,14 +1477,20 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 			}
 			return;
 		}
-		const result = await this.hubService.revokeDevice(device.id);
-		if (!result.ok) {
-			this.hubDirectoryBanner.textContent = result.reason;
+		try {
+			const result = await this.hubService.revokeDevice(device.id);
+			if (!result.ok) {
+				this.hubDirectoryBanner.textContent = result.reason;
+				this.hubDirectoryBanner.style.display = '';
+				return;
+			}
+			await this.hubService.refreshDirectory();
+			this.renderProfiles();
+		} catch (error) {
+			const reason = error instanceof Error && error.message ? error.message : String(error);
+			this.hubDirectoryBanner.textContent = reason;
 			this.hubDirectoryBanner.style.display = '';
-			return;
 		}
-		await this.hubService.refreshDirectory();
-		this.renderProfiles();
 	}
 
 	private async handleConfirmDeviceCode(): Promise<void> {
@@ -1499,15 +1515,20 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 			writeStatus(this.hubDeviceCodeStatus, localize('ua.connectionConfirmDeviceCodeEmpty', "Enter a device code first."), 'warning');
 			return;
 		}
-		const result = await this.hubService.confirmDeviceCode(code);
-		writeStatus(
-			this.hubDeviceCodeStatus,
-			result.ok ? localize('ua.connectionConfirmDeviceCodeOk', "Device code confirmed") : result.reason,
-			result.ok ? 'success' : 'error',
-		);
-		if (result.ok) {
-			this.confirmDeviceCodeInput.value = '';
-			await this.hubService.refreshDirectory();
+		try {
+			const result = await this.hubService.confirmDeviceCode(code);
+			writeStatus(
+				this.hubDeviceCodeStatus,
+				result.ok ? localize('ua.connectionConfirmDeviceCodeOk', "Device code confirmed") : result.reason,
+				result.ok ? 'success' : 'error',
+			);
+			if (result.ok) {
+				this.confirmDeviceCodeInput.value = '';
+				await this.hubService.refreshDirectory();
+			}
+		} catch (error) {
+			const reason = error instanceof Error && error.message ? error.message : String(error);
+			writeStatus(this.hubDeviceCodeStatus, reason, 'error');
 		}
 	}
 

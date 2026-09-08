@@ -2063,6 +2063,119 @@ suite('ConnectionPreferencesPane', () => {
 		container.remove();
 	});
 
+	test('Test active profile probeConnectionProfile throw paints test status', async () => {
+		const pane = mountPane({
+			listConnectionProfiles: () => [{
+				profileId: 'profile-1',
+				displayName: 'Studio',
+				state: 'active',
+				hasTrust: true,
+				targetKind: 'hubDevice',
+			}],
+		}, {
+			probeConnectionProfile: async () => {
+				throw new Error('boom');
+			},
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		await Promise.resolve();
+		(pane as unknown as { activeProfileId: string }).activeProfileId = 'profile-1';
+
+		const testButton = container.querySelector('.connection-test-row .monaco-button') as HTMLButtonElement | null;
+		assert.ok(testButton);
+		testButton.click();
+		await Promise.resolve();
+		await Promise.resolve();
+		const status = container.querySelector('.connection-test-status') as HTMLElement;
+		assert.ok(status);
+		assert.strictEqual(status.textContent, 'boom');
+		assert.ok(status.classList.contains('is-error'));
+		container.remove();
+	});
+
+	test('hub logout throw paints hub auth badge', async () => {
+		const pane = mountPane({
+			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
+			logout: async () => {
+				throw new Error('boom');
+			},
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		await Promise.resolve();
+
+		const signOut = [...container.querySelectorAll('.connection-hub-actions .monaco-button')]
+			.find(button => button.textContent === 'Sign out') as HTMLButtonElement | undefined;
+		assert.ok(signOut);
+		signOut.click();
+		await Promise.resolve();
+		await Promise.resolve();
+		const badge = container.querySelector('.connection-hub-auth-badge') as HTMLElement;
+		assert.ok(badge);
+		assert.strictEqual(badge.textContent, 'boom');
+		assert.ok(badge.classList.contains('is-error'));
+		container.remove();
+	});
+
+	test('hub fallback revokeDevice throw paints hub directory banner', async () => {
+		const pane = mountPane({
+			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
+			getDirectoryStatus: () => ({ kind: 'ok', devices: [device({ id: 'dev-1', name: 'Studio' })] }),
+			revokeDevice: async () => {
+				throw new Error('boom');
+			},
+		}, {
+			isEngineConnected: () => false,
+			revoke: async () => ({ success: true, message: '' }),
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		await Promise.resolve();
+
+		const revoke = [...container.querySelectorAll('.connection-hub-device-actions .monaco-button')]
+			.find(button => button.textContent === 'Revoke') as HTMLButtonElement | undefined;
+		assert.ok(revoke);
+		revoke.click();
+		await Promise.resolve();
+		await Promise.resolve();
+		const banner = container.querySelector('.connection-hub-directory-banner') as HTMLElement;
+		assert.ok(banner);
+		assert.strictEqual(banner.textContent, 'boom');
+		assert.notStrictEqual(banner.style.display, 'none');
+		container.remove();
+	});
+
+	test('hub fallback confirmDeviceCode throw paints device code status', async () => {
+		const pane = mountPane({
+			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
+			confirmDeviceCode: async () => {
+				throw new Error('boom');
+			},
+		}, {
+			isEngineConnected: () => false,
+			pairApprove: async () => ({ success: true, deviceId: '', message: '' }),
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		await Promise.resolve();
+
+		const confirm = [...container.querySelectorAll('.connection-hub-device-code .monaco-button')]
+			.find(button => button.textContent === 'Confirm') as HTMLButtonElement | undefined;
+		const codeInput = container.querySelector('.connection-hub-device-code input') as HTMLInputElement | null;
+		assert.ok(confirm);
+		assert.ok(codeInput);
+		codeInput.value = 'ABCD-1234';
+		confirm.click();
+		await Promise.resolve();
+		await Promise.resolve();
+		const status = container.querySelector('.connection-hub-device-code-status') as HTMLElement;
+		assert.ok(status);
+		assert.strictEqual(status.textContent, 'boom');
+		assert.ok(status.classList.contains('is-error'));
+		container.remove();
+	});
+
 	test('device Rename / Revoke / Confirm call hub methods', async () => {
 		let renamed: { id: string; name: string } | undefined;
 		let revoked: string | undefined;
