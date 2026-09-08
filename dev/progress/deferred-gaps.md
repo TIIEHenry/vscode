@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-08
-summary: "延期缺口 SSOT；D16 仍开；D45–D90 / D92–D102 已闭；D22 F3；D24 其余 JSON RPC；D25 引擎 List 真空；D26 引擎建壳回 6；D31 F4 / A2 blocked；peek-before-advance、closeNonRootTabs notice 与 sessions MRU opener 回滚已挂"
+summary: "延期缺口 SSOT；D16 仍开；D45–D90 / D92–D102 / D105 已闭；D22 F3；D24 其余 JSON RPC；D25 引擎 List 真空；D26 引擎建壳回 6；D31 F4 / A2 blocked；peek-before-advance、closeNonRootTabs notice 与 sessions MRU opener 回滚已挂"
 ---
 
 # Deferred Gaps
@@ -118,6 +118,7 @@ summary: "延期缺口 SSOT；D16 仍开；D45–D90 / D92–D102 已闭；D22 F
 | D100 | P3 | **`goBack` / `goForward` 在 `!destination` 时栈已前进且不回滚**：`conversationNavigationService.ts` 先 `moveBack`/`moveForward` 再 `if (!stack.current) return`；D99 只在 throw 回栈。空 destination 时 `canGoBack`/`canGoForward` 与栈不同步 | D 槽 `navigation-peek-before-advance` 已收：先 `peekPrevious`/`peekNext`，无 destination 不改 index；D99 throw catch + notice + `navigating` finally 未改；void 调用点未改。测锁空 destination 不改 enablement/栈。未关 D16 | 空 destination 后栈/`canGoBack`/`canGoForward` 不变；`conversationNavigation.test.ts` 绿 | conversation | closed |
 | D101 | P3 | **`closeNonRootTabs` 裸 await `closeEditors` 无 catch**：先 `closeSubAgentDialog` 再 `await editorService.closeEditors(toClose)`（`conversationSessionChatService.ts`）；`conversationNavigation.contribution.ts` 调用点为 `void`。throw 成未处理 rejection；dialog 已关；`fireCloseNonRootStateChange` 被跳过 | B 槽 `close-nonroot-tabs-throw-notice` 已收：`closeEditors` try/catch → `INotificationService.error(getErrorMessage)`；`finally` 仍 `fireCloseNonRootStateChange`；void 调用点未改。测锁 closeEditors reject → error notice、无未处理 rejection、close-non-root state 仍刷新。未关 D16；未改 split / fork / breadcrumb / promote / `openExtensionTab` / `openForkTab` throw 合同 | catch 后 notification error 且 finally 刷新 close-non-root state；`conversationSessionChat.test.ts` closeEditors throw 绿 | M7 conversation | closed |
 | D102 | P3 | **`SessionsNavigation._navigateTo` 先 `_currentKey.set` 再 `await opener.openChat/openSession`**：opener reject 后 MRU cursor 已前进，`CanGoBackContext`/`CanGoForwardContext` 与仍可见会话不同步。`finally` 只清 `_navigating` | A 槽 `sessions-mru-opener-rollback` 已收：捕获 previous key；opener reject 后 restore + `logService.warn`；beyond-history 失败仍 `_beyondHistory`。未加 `INotificationService`。测锁 goBack/goForward throw → cursor + enablement 恢复、无未处理 rejection。未关 D16；未改 conversation navigation / session-chat / session-window | catch 后 cursor/`canGoBack`/`canGoForward` 恢复；`sessionNavigation.test.ts` opener reject 绿 | sessions-navigation | closed |
+| D105 | P3 | **`conversation.revealItem` 的 `acquireSessionView` 在 try 外**：`conversationRevealItem.contribution.ts` 先 acquire 再 try；引擎 roster 对非 engine-bound session throw（`conversationEngineRosterService.ts` ~601–610）。`navigatorAgentsView.ts` activity `void executeCommand` 成未处理 rejection。Sources Review 已 catch。不得改 `acquireSessionView` throw 合同 / navigator void 调用点 | D 槽 `reveal-item-acquire-throw-notice` 已收：acquire + reveal 包 try/catch → `INotificationService.error(getErrorMessage)`；`finally` 仅 dispose 已拿到的 lease；accessor.get 在 await 前 hoist。测锁 roster throw → error notice、无未处理 rejection。未关 D16；未改 navigator void / roster throw 合同 | catch 后 notification error 且未取得 lease 时不 dispose；`navigatorAgentsSubviews.test.ts` acquireSessionView throw 绿 | M7 navigator / conversation | closed |
 
 ## D2 工位池 compile 基线（2026-09-02，merge 工位 / `loop/merge`）
 
