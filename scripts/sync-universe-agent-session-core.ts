@@ -73,8 +73,8 @@ function convertIndentation(content: string): string {
 
 function rewriteViewImports(content: string): string {
 	return content
-		.replace(/from '\.\/view\/([^']+\.js)'/g, "from '../../common/sessionView/$1'")
-		.replace(/import\('\.\/view\/([^']+\.js)'\)/g, "import('../../common/sessionView/$1')");
+		.replace(/from '\.\/view\/([^']+\.js)'/g, 'from \'../../common/sessionView/$1\'')
+		.replace(/import\('\.\/view\/([^']+\.js)'\)/g, 'import(\'../../common/sessionView/$1\')');
 }
 
 function stripComments(content: string): string {

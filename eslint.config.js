@@ -1863,6 +1863,14 @@ export default defineConfig(
 						'vs/editor/contrib/*/~',
 						'vs/workbench/~',
 						'vs/workbench/services/*/~',
+						// This fork puts the conversation part at the centre of the shell:
+						// the editor parts open a conversation input as the default editor,
+						// and group routing asks the conversation/sources contribs where an
+						// editor is allowed to land. That inverts the usual «core knows
+						// nothing about contrib» rule on purpose, so the specific modules
+						// involved are named here rather than left as a silent violation.
+						'vs/workbench/contrib/conversation/common/conversationChatInput.js',
+						'vs/workbench/contrib/conversation/common/conversationEditorRouting.js',
 						'assert',
 						{
 							'when': 'test',
@@ -1896,6 +1904,14 @@ export default defineConfig(
 						'vs/editor/contrib/*/~',
 						'vs/workbench/~',
 						'vs/workbench/services/*/~',
+						// This fork puts the conversation part at the centre of the shell:
+						// the editor parts open a conversation input as the default editor,
+						// and group routing asks the conversation/sources contribs where an
+						// editor is allowed to land. That inverts the usual «core knows
+						// nothing about contrib» rule on purpose, so the specific modules
+						// involved are named here rather than left as a silent violation.
+						'vs/workbench/contrib/conversation/common/conversationEditorRouting.js',
+						'vs/workbench/contrib/sources/common/conversationDiffReviewInput.js',
 						{
 							'when': 'test',
 							'pattern': 'vs/workbench/contrib/*/~'

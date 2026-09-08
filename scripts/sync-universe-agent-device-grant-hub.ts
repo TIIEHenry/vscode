@@ -54,7 +54,7 @@ function convertIndentation(content: string): string {
 }
 
 function rewriteHubTypesImport(content: string): string {
-	return content.replace("from './types.js'", "from './hubTypes.js'");
+	return content.replace('from \'./types.js\'', 'from \'./hubTypes.js\'');
 }
 
 function processFile(relativePath: string, destDir: string): void {
