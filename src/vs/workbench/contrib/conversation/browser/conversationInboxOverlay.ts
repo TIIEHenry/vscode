@@ -37,6 +37,7 @@ import {
 	conversationLensInboxQueuePause,
 	conversationLensInboxQueueResume,
 	conversationLensInboxQueueUploadingTag,
+	type ConversationComposerPostFailureReason,
 } from './conversationLensDockStrings.js';
 import {
 	ConversationMessageQueueItem,
@@ -54,6 +55,7 @@ type InboxListPanel = 'task' | 'queue';
 export interface IConversationInboxOverlayDelegate {
 	onQueueItemHold(itemId: string): void;
 	onScrollToPendingConfirmation(): void;
+	showPostFailure(reason: ConversationComposerPostFailureReason): void;
 }
 
 /**
@@ -280,8 +282,16 @@ export class ConversationInboxOverlay extends Disposable {
 
 	private onStopClicked(): void {
 		const sessionId = this.stubService.getActiveSessionId();
-		if (this.isGenerating(sessionId)) {
-			this.stubService.cancelGeneration(sessionId);
+		if (!this.isGenerating(sessionId) && !this.stopButton.enabled) {
+			return;
+		}
+		const cancelled = this.stubService.cancelGeneration(sessionId);
+		if (!cancelled) {
+			this.delegate.showPostFailure(
+				!this.stubService.isEngineConnected() && this.stubService.hasEngineConnectionHistory()
+					? 'engine_disconnected'
+					: 'failed'
+			);
 		}
 	}
 
