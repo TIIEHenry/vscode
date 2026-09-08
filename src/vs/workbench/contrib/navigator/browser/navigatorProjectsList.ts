@@ -238,7 +238,7 @@ export class NavigatorProjectsView extends ViewPane {
 				forceNewWindow: !!(mouseEvent && (mouseEvent.ctrlKey || mouseEvent.metaKey)),
 				forceReuseWindow: !!(mouseEvent && mouseEvent.altKey),
 				remoteAuthority: node.remoteAuthority ?? null,
-			});
+			}).catch(() => undefined);
 		}
 	}
 
@@ -247,30 +247,34 @@ export class NavigatorProjectsView extends ViewPane {
 	}
 
 	private async rebuildTree(): Promise<void> {
-		this.localFolderEntries = [
-			...this.getCurrentFolderEntries(),
-			...(await this.getRecentFolderEntries()),
-		];
+		try {
+			this.localFolderEntries = [
+				...this.getCurrentFolderEntries(),
+				...(await this.getRecentFolderEntries()),
+			];
 
-		const engineConnected = this.rosterService.isEngineConnected();
-		if (engineConnected) {
-			this.wasEverConnected = true;
+			const engineConnected = this.rosterService.isEngineConnected();
+			if (engineConnected) {
+				this.wasEverConnected = true;
+			}
+
+			const snapshot = this.uaConnection.getConnectionSnapshot();
+			this.treeNodes = buildNavigatorProjectsTree({
+				engineConnected,
+				wasEverConnected: this.wasEverConnected,
+				transportFailed: snapshot.transport === 'failed',
+				sessionListCapability: getNavigatorCapability(this.uaConnection, 'sessionList'),
+				workDir: snapshot.workDir,
+				sessions: this.rosterService.getSessions(),
+				localFolders: this.localFolderEntries,
+			});
+
+			this.filterBox?.setVisible(this.treeNodes.length > 0);
+			this.applyFilterToTree();
+			this._onDidChangeViewWelcomeState.fire();
+		} catch {
+			// Keep last-good localFolderEntries / treeNodes.
 		}
-
-		const snapshot = this.uaConnection.getConnectionSnapshot();
-		this.treeNodes = buildNavigatorProjectsTree({
-			engineConnected,
-			wasEverConnected: this.wasEverConnected,
-			transportFailed: snapshot.transport === 'failed',
-			sessionListCapability: getNavigatorCapability(this.uaConnection, 'sessionList'),
-			workDir: snapshot.workDir,
-			sessions: this.rosterService.getSessions(),
-			localFolders: this.localFolderEntries,
-		});
-
-		this.filterBox?.setVisible(this.treeNodes.length > 0);
-		this.applyFilterToTree();
-		this._onDidChangeViewWelcomeState.fire();
 	}
 
 	private applyFilterToTree(): void {
