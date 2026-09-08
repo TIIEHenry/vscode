@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-08
-summary: "D16 / D31 F4 仍开。官方三域 glob 已绿。D44–D90 / D92–D129 / D131 / D133–D137 已闭。Hub fallback revoke 已 error tone。Triggers upsert 与 Clipboard 写入成功已 refresh。A2 仍 blocked。"
+summary: "D16 / D31 F4 仍开。官方三域 glob 已绿。D44–D90 / D92–D129 / D131 / D133–D137 / D139 已闭。Hub fallback revoke 已 error tone。Triggers upsert 与 Clipboard 写入成功已 refresh。A2 仍 blocked。"
 ---
 
 # Development Progress
@@ -100,6 +100,7 @@ summary: "D16 / D31 F4 仍开。官方三域 glob 已绿。D44–D90 / D92–D12
 60. **B 槽 `session-window-primary-bootstrap-catch`（未关 D16）**：先 `ensureLeaf` 再提交 key；in-flight 串行 + 真实 stub；throw 回滚半应用 leaf。[D90](deferred-gaps.md) **已闭**。
 61. **D100–D129 / D131 / D133–D137**（未关 D16；D130/D132 未占用）：peek / close / opener / stale / save·delete·cancel·Stop·Goal·Enqueue false notice；RotateToken / Revoke success false banner；Triggers 删/upsert 成功 refresh；Rename 与 Hub fallback revoke error tone；Clipboard 清空/写入成功 refresh。
 62. **A/B/D 本波（未关 D16 / D31）**：A Hub fallback `revokeDevice` `!ok`/throw `writeStatus` error。[D135](deferred-gaps.md) **已闭**。B `handleUpsert` 成功 refresh 再回写 status。[D136](deferred-gaps.md) **已闭**。D `handleWrite` 成功 refresh 再回写 clipId。[D137](deferred-gaps.md) **已闭**。未 compile。
+63. **B 槽 `open-beside-swallowed-primary-notice-lock`（未关 D16 / D31）**：swallowed primary 后 `openSessionBeside` 锁 `harness.errors` 含 `primary bootstrap boom`；未在 empty-primary early-return 二次 notice。[D139](deferred-gaps.md) **已闭**。未 compile。
 子 agent 发现的既有代码问题：
 | ID | 来源 | 问题 |
 |:---|:-----|:-----|
@@ -171,7 +172,7 @@ summary: "D16 / D31 F4 仍开。官方三域 glob 已绿。D44–D90 / D92–D12
 | [D88](deferred-gaps.md) | D 槽 `fork-open-tab-throw-notice` | **closed** Fork `openForkTab` throw 已 notice；未关 D16 |
 | [D89](deferred-gaps.md) | A 槽 `connection-profile-crud-throw` | **closed** Add Direct / Disconnect / Forget / ConnectDevice throw 已画 status；未关 D16 |
 | [D90](deferred-gaps.md) | B 槽 `session-window-primary-bootstrap-catch` | **closed** throw 回滚 + in-flight 串行；merge 复测 9/9；未关 D16 |
-| [D92](deferred-gaps.md)–[D129](deferred-gaps.md) / [D131](deferred-gaps.md) / [D133](deferred-gaps.md)–[D137](deferred-gaps.md) | B roster+inbox+sessions / D nav / A beside+mru+sessionbar / A·B composer / A notifications / B sessionChat / D bind / A navigator lease / B reveal / A attribution / A rotate / A revoke / B triggers / A rename error tone / B clipboard clear / A Hub fallback revoke / B upsert refresh / D clipboard write | **closed** throw 回滚/notice；RotateToken / Revoke success false banner；Triggers 删/upsert 与 Clipboard 清空/写入成功 refresh；Rename 与 Hub fallback revoke `!ok`/throw 已 error tone；未关 D16 |
+| [D92](deferred-gaps.md)–[D129](deferred-gaps.md) / [D131](deferred-gaps.md) / [D133](deferred-gaps.md)–[D137](deferred-gaps.md) / [D139](deferred-gaps.md) | B roster+inbox+sessions / D nav / A beside+mru+sessionbar / A·B composer / A notifications / B sessionChat / D bind / A navigator lease / B reveal / A attribution / A rotate / A revoke / B triggers / A rename error tone / B clipboard clear / A Hub fallback revoke / B upsert refresh / D clipboard write / B swallowed-primary notice lock | **closed** throw 回滚/notice；RotateToken / Revoke success false banner；Triggers 删/upsert 与 Clipboard 清空/写入成功 refresh；Rename 与 Hub fallback revoke `!ok`/throw 已 error tone；swallowed primary 后 beside 已锁 bootstrap notice；未关 D16 |
 ## 工位表（P0 盘点 · 2026-09-08 · 与 `git worktree list` 对照）
 | 槽 | 路径 | 分支 | tip | 脏 | stash | 关仓状态 |
 |----|------|------|-----|:--|:------|:---------|
