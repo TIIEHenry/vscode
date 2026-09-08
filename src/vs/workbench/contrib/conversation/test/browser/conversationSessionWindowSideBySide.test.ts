@@ -5,10 +5,11 @@
 
 import assert from 'assert';
 import { timeout } from '../../../../../base/common/async.js';
-import { Emitter, Event } from '../../../../../base/common/event.js';
+import { Event } from '../../../../../base/common/event.js';
 import { DisposableStore } from '../../../../../base/common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { SyncDescriptor } from '../../../../../platform/instantiation/common/descriptors.js';
+import { NullLogService } from '../../../../../platform/log/common/log.js';
 import { Registry } from '../../../../../platform/registry/common/platform.js';
 import { ConversationPart, IConversationPartService } from '../../../../browser/parts/conversation/conversationPart.js';
 import { IConversationEditorPart, IEditorGroupsService } from '../../../../services/editor/common/editorGroupsService.js';
@@ -92,46 +93,45 @@ suite('Conversation session window side-by-side (S5)', () => {
 	}
 
 	function createPrimaryBootstrapHarness() {
-		const rosterService = new ConversationStubService();
-		const instantiationService = workbenchInstantiationService(undefined, store);
-		instantiationService.stub(IConversationRosterService, rosterService);
-
+		const rosterService = store.add(new ConversationStubService());
 		const gridHost = document.createElement('div');
 		document.body.appendChild(gridHost);
 		store.add({ dispose: () => gridHost.remove() });
 
-		const onDidCreateSlots = store.add(new Emitter<{ sessionBar: HTMLElement; sessionWindowGrid: HTMLElement; editorPartHost: HTMLElement | undefined }>());
-		instantiationService.stub(IConversationPartService, {
-			onDidCreateSlots: onDidCreateSlots.event,
-			onDidFocus: Event.None,
-			getSlots: () => undefined,
-			focus: () => { },
-		} as IConversationPartService);
+		let throwOnCreate = true;
+		const conversationParts: IConversationEditorPart[] = [];
+		const editorGroupsService = {
+			createConversationEditorPart: (_parent: unknown, sessionKey: string) => {
+				if (throwOnCreate) {
+					throw new Error('primary bootstrap boom');
+				}
+				const part = { sessionKey, whenReady: Promise.resolve() } as IConversationEditorPart;
+				conversationParts.push(part);
+				return part;
+			},
+			get conversationParts() {
+				return conversationParts;
+			},
+		} as IEditorGroupsService;
 
-		instantiationService.stub(IEditorGroupsService, 'createConversationEditorPart', () => {
-			throw new Error('primary bootstrap boom');
-		});
-
-		const sessionWindowService = disposables.add(instantiationService.createInstance(ConversationSessionWindowService));
-		store.add(rosterService);
+		const sessionWindowService = store.add(new ConversationSessionWindowService(
+			{
+				onDidCreateSlots: Event.None,
+				onDidFocus: Event.None,
+				getSlots: () => ({ sessionBar: document.createElement('div'), sessionWindowGrid: gridHost, editorPartHost: undefined }),
+				focus: () => { },
+			} as IConversationPartService,
+			editorGroupsService,
+			rosterService,
+			new NullLogService(),
+		));
 
 		return {
-			instantiationService,
-			rosterService,
 			sessionWindowService,
 			gridHost,
 			primaryId: rosterService.getActiveSessionId(),
-			attachGrid() {
-				onDidCreateSlots.fire({
-					sessionBar: document.createElement('div'),
-					sessionWindowGrid: gridHost,
-					editorPartHost: undefined,
-				});
-			},
-			allowCreate() {
-				instantiationService.stub(IEditorGroupsService, 'createConversationEditorPart', (_parent: unknown, sessionKey: string) => {
-					return { sessionKey, whenReady: Promise.resolve() } as IConversationEditorPart;
-				});
+			setThrowOnCreate(value: boolean) {
+				throwOnCreate = value;
 			},
 		};
 	}
@@ -240,8 +240,6 @@ suite('Conversation session window side-by-side (S5)', () => {
 		process.on('unhandledRejection', onUnhandledRejection);
 		try {
 			const harness = createPrimaryBootstrapHarness();
-			harness.attachGrid();
-
 			void harness.sessionWindowService.ensurePrimaryWindow(harness.primaryId);
 			await timeout(0);
 
@@ -251,7 +249,7 @@ suite('Conversation session window side-by-side (S5)', () => {
 			assert.strictEqual(harness.sessionWindowService.getLeafSlots(harness.primaryId), undefined);
 			assert.strictEqual(harness.gridHost.querySelector('.conversation-session-leaf'), null);
 
-			harness.allowCreate();
+			harness.setThrowOnCreate(false);
 			await harness.sessionWindowService.ensurePrimaryWindow(harness.primaryId);
 
 			assert.deepStrictEqual(unhandledRejections, []);

@@ -70,6 +70,7 @@ export class ConversationSessionWindowService extends Disposable implements ICon
 
 	private gridHost: HTMLElement | undefined;
 	private primarySessionKey: string | undefined;
+	private primaryBootstrapInFlight: Promise<void> | undefined;
 	private readonly leaves = new Map<string, IConversationSessionLeaf>();
 	private readonly leafOrder: string[] = [];
 
@@ -134,14 +135,19 @@ export class ConversationSessionWindowService extends Disposable implements ICon
 			return;
 		}
 
+		if (this.primaryBootstrapInFlight) {
+			await this.primaryBootstrapInFlight;
+			return;
+		}
+
+		const bootstrap = this.tryBootstrapPrimaryWindow(sessionKey);
+		this.primaryBootstrapInFlight = bootstrap;
 		try {
-			await this.ensureLeaf(sessionKey, { primary: true });
-			this.primarySessionKey = sessionKey;
-			this.fireVisibleWindowsChange();
-		} catch (error) {
-			this.primarySessionKey = undefined;
-			this.rollbackHalfAppliedLeaf(sessionKey);
-			this.logService.warn(`[ConversationSessionWindowService] ensurePrimaryWindow failed: ${getErrorMessage(error)}`);
+			await bootstrap;
+		} finally {
+			if (this.primaryBootstrapInFlight === bootstrap) {
+				this.primaryBootstrapInFlight = undefined;
+			}
 		}
 	}
 
@@ -289,6 +295,18 @@ export class ConversationSessionWindowService extends Disposable implements ICon
 		this._register(hideAction);
 		actionBar.push(hideAction, { icon: true, label: false });
 		actionBar.setFocusable(false);
+	}
+
+	private async tryBootstrapPrimaryWindow(sessionKey: string): Promise<void> {
+		try {
+			await this.ensureLeaf(sessionKey, { primary: true });
+			this.primarySessionKey = sessionKey;
+			this.fireVisibleWindowsChange();
+		} catch (error) {
+			this.primarySessionKey = undefined;
+			this.rollbackHalfAppliedLeaf(sessionKey);
+			this.logService.warn(`[ConversationSessionWindowService] ensurePrimaryWindow failed: ${getErrorMessage(error)}`);
+		}
 	}
 
 	private rollbackHalfAppliedLeaf(sessionKey: string): void {
