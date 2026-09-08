@@ -221,6 +221,8 @@ export function retryError(host: IConversationLensSessionBindingHost, turn: { re
 		if (!outcome.accepted) {
 			host.showPostFailure(outcome.reason);
 		}
+	}).catch(() => {
+		host.showPostFailure('failed');
 	});
 
 }

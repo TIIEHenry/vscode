@@ -73,11 +73,14 @@ export const conversationLensPostFailedMailboxFull = localize('conversationLens.
 export const conversationLensPostFailedNotAuthenticated = localize('conversationLens.postFailedNotAuthenticated', "Message not sent — not signed in.");
 export const conversationLensPostFailedNoSession = localize('conversationLens.postFailedNoSession', "Message not sent — session not found.");
 export const conversationLensPostFailedDisconnected = localize('conversationLens.postFailedDisconnected', "Message not sent — engine disconnected. Draft kept.");
+/** Honest fallback when postBound throws — not one of the four Actor reject reasons. */
+export const conversationLensPostFailed = localize('conversationLens.postFailed', "Retry failed — could not post. Try again.");
 export type ConversationComposerPostFailureReason =
 	| 'mailbox_full'
 	| 'no_such_session'
 	| 'not_authenticated'
-	| 'engine_disconnected';
+	| 'engine_disconnected'
+	| 'failed';
 export const conversationLensDockPlaceholder = localize('conversationLens.dockPlaceholder', "Message");
 export const conversationLensDockEditingMessage = localize('conversationLens.dockEditingMessage', "Editing message");
 export const conversationLensDockEditingQueued = localize('conversationLens.dockEditingQueued', "Editing queued");

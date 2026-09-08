@@ -7,6 +7,13 @@ import assert from 'assert';
 import { DisposableStore } from '../../../../../base/common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { applySessionViewTimeline, refreshTrajectoryRecords, type IConversationLensProjectionHost } from '../../browser/conversationLensProjection.js';
+import { showPostFailure, type IConversationLensComposerChromeHost } from '../../browser/conversationLensComposerChrome.js';
+import {
+	conversationLensPostFailed,
+	conversationLensPostFailedDisconnected,
+	conversationLensPostFailedNoSession,
+	type ConversationComposerPostFailureReason,
+} from '../../browser/conversationLensDockStrings.js';
 import { bindSessionView, retryError, type IConversationLensSessionBindingHost } from '../../browser/conversationLensSessionBinding.js';
 import type { ConversationWriteMessage, PostOutcome } from '../../../../../platform/universeAgent/common/conversationViewFrame.js';
 
@@ -173,5 +180,60 @@ suite('conversation lens dispose gate', () => {
 
 		retryError(host, { id: '   ' });
 		assert.strictEqual(postBound, 0);
+	});
+
+	test('retryError postBound reject shows failed and does not leave an unhandled rejection', async () => {
+		const failures: ConversationComposerPostFailureReason[] = [];
+		const rejections: unknown[] = [];
+		const onUnhandled = (reason: unknown) => { rejections.push(reason); };
+		const host = {
+			getBoundSessionId: () => 'sess-1',
+			postBound: async (): Promise<PostOutcome> => {
+				throw new Error('postBound boom');
+			},
+			stubService: { retryError: () => true },
+			showPostFailure: (reason: ConversationComposerPostFailureReason) => {
+				failures.push(reason);
+			},
+		} as unknown as IConversationLensSessionBindingHost;
+
+		process.on('unhandledRejection', onUnhandled);
+		try {
+			retryError(host, { id: 'msg-1' });
+			await new Promise<void>(resolve => queueMicrotask(() => resolve()));
+			await new Promise<void>(resolve => setImmediate(() => resolve()));
+			assert.deepStrictEqual(failures, ['failed']);
+			assert.deepStrictEqual(rejections, []);
+		} finally {
+			process.off('unhandledRejection', onUnhandled);
+		}
+	});
+
+	test('showPostFailure failed uses retry copy not disconnected', () => {
+		const gateRow = {
+			hidden: true,
+			setAttribute: () => { },
+			removeAttribute: () => { },
+		};
+		const gateLabel = { textContent: '' };
+		const host = {
+			postFailureVisible: false,
+			sendFailureTimeout: undefined as ReturnType<typeof setTimeout> | undefined,
+			gateRow,
+			gateLabel,
+		} as unknown as IConversationLensComposerChromeHost;
+
+		showPostFailure(host, 'failed');
+
+		assert.strictEqual(host.postFailureVisible, true);
+		assert.strictEqual(gateRow.hidden, false);
+		assert.strictEqual(gateLabel.textContent, conversationLensPostFailed);
+		assert.notStrictEqual(gateLabel.textContent, conversationLensPostFailedDisconnected);
+		assert.notStrictEqual(gateLabel.textContent, conversationLensPostFailedNoSession);
+		assert.ok(!/disconnected/i.test(gateLabel.textContent ?? ''));
+		if (host.sendFailureTimeout) {
+			clearTimeout(host.sendFailureTimeout);
+			host.sendFailureTimeout = undefined;
+		}
 	});
 });
