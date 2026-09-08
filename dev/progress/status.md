@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-08
-summary: "FileMutationJoin / createScoped / Review 委托已修。D16 / D31 F4 仍开。官方三域 glob 已绿。D44–D85 已闭。Team leftover 已清。Connection list leftover / write throw / Refresh devices directory throw 已挂。switchModel 空 resolvedModelId 回滚+gate 已挂。Snapshots / MCP / Skills / Agents / Tools 写失败 write-status 已挂。Agents Tools 页 listTools throw 画 failed；重连后再 throw 清 leftover。Tools 成功 refresh 后 getToolInfo throw 重画详情。Skills 成功 refresh 后 getSkillInfo throw 重画正文。Agents Instructions 成功 refresh 后重载 AGENTS.md。Tools/Agents 成功 refresh 清 pending enablement。MCP runtime leftover 已清。git-read / open-diff / Stage·Commit / Unstage throw 与 ok:false status 已挂。Review runGitAction throw 已 showNotice。Lens lease-only sync 刷新 stale banner 已挂。Sessions 接通刷新已挂。openStream throw-on-open 已折 streamClosed。Lens retryError / permission / question postBound throw 已 showPostFailure('failed')。Connection/Hub Channel Client hydrate IPC reject 已吞。Navigator Reveal / Promote throw 已 notification error。A2 仍 blocked。"
+summary: "FileMutationJoin / createScoped / Review 委托已修。D16 / D31 F4 仍开。官方三域 glob 已绿。D44–D86 已闭。Team leftover 已清。Connection list leftover / write throw / Refresh devices directory throw 已挂。switchModel 空 resolvedModelId 回滚+gate 已挂。Snapshots / MCP / Skills / Agents / Tools 写失败 write-status 已挂。Agents Tools 页 listTools throw 画 failed；重连后再 throw 清 leftover。Tools 成功 refresh 后 getToolInfo throw 重画详情。Skills 成功 refresh 后 getSkillInfo throw 重画正文。Agents Instructions 成功 refresh 后重载 AGENTS.md。Tools/Agents 成功 refresh 清 pending enablement。MCP runtime leftover 已清。git-read / open-diff / Stage·Commit / Unstage throw 与 ok:false status 已挂。Review runGitAction throw 已 showNotice。Lens lease-only sync 刷新 stale banner 已挂。Sessions 接通刷新已挂。openStream throw-on-open 已折 streamClosed。Lens retryError / permission / question / submitDraft postBound throw 已 showPostFailure('failed')。Connection/Hub Channel Client hydrate IPC reject 已吞。Navigator Reveal / Promote throw 已 notification error。A2 仍 blocked。"
 ---
 
 # Development Progress
@@ -51,11 +51,7 @@ summary: "FileMutationJoin / createScoped / Review 委托已修。D16 / D31 F4 �
 集成 tip **本关仓提交**（`loop/merge`；未 push）。Chat 仍被引擎空壳 Create（目录在、`session_meta` 空、回 6）挡住；不要再清 `.sessions` 当主线。见 [D26](deferred-gaps.md)。**U2 未开**。**PRD-008 / PRD-019 不升 `implemented`**。[R8](research-queue.md) **已闭**（[ADR-008](../decisions/008-write-git-apply-hunks-empty.md) 引擎空 `patches` = 成功空操作）。Accept 产品选项 A 见 [sources-accept-empty-success](../plans/sources-accept-empty-success.md)（`draft`；**A1 已落**；**P5 停线**——只批准停线，不批准 A2；A2 须新选定 + 新 Arch-First）。
 
 1. **集成 tip** 以 merge 本关仓提交为准（FileMutationJoin A=`10d8dd3b143`；createScoped B=`9c49eb5b978`；Review 委托 D=`60dbf139ac1`）。`npm run compile` 仍基线 unused 红则 **不 push**。GFS >800 不拆。D22/F3 已撤回。不跑 F4 / 不实施 A2。
-2. 本波字母槽已进 merge：
-   - **A**：`filemutation-join` — 无 `diff_stats` 时 omit optional `diffStats`。unit-custom XML 脚本仍在。**[D16](deferred-gaps.md) 仍开**。
-   - **B**：`create-scoped` — harness 补 `IStatusbarService.createScoped`，S1a uniqueness 已绿、未缩断言。DiffReview afterEach 已修。本刀 `sessions-openpending-harness`：SessionsView 四行 + OpenPending 无 pending 夹具对齐 untitled+visualize seed，未缩断言；**[D16](deferred-gaps.md) 仍开**。本 wake **`d42-maximize-trajectory`**：Maximize 只藏 `.conversation-lens-timeline`；铺行路径改为忽略 0 尺寸 ResizeObserver / `layout(0)` 卸行，T5a 铺行测 `revealRecord('untitled-u1')`（无 `display:block`）。[D42](deferred-gaps.md) **已闭**（merge compile 后 CSS+铺行 2/2）。未关 D16 / 未占 D22·D26·A2。
-   - **C**：`inbox-getqueue-honesty` — catalog / connection **无** GetQueue / ListQueue，未发明 RPC。接通 / 断连缓存 Inbox 文案「Queue not listed」，stub fixture 不得冒充引擎队列；测锁 overlay / roster / stub。[D37](deferred-gaps.md) **仍闭**；缺 list-queue 记 [D24](deferred-gaps.md)。勿 add `dev/loop`。本 wake leftover：lens visualize / T5a reveal / trajectory 座名 / process fold 夹具；maximize 整槽已交 [D42](deferred-gaps.md)（B 槽已闭）。**勿 add `dev/loop`**。
-   - **D**：`review-entries` — 测改 `function ()` 把 mocha host 交给 `toResource`。A2 P5 停线仍在。**[D16](deferred-gaps.md) 仍开**。本 wake leftover：**S4/S5** 首次 layout 已落；[D43](deferred-gaps.md) **已闭**（`ConversationPart.layout` 按叶 host 扇出 + resize 测）。本 wake **`ua-official-glob`**：官方 universeAgent glob 原在 `connectionResolver.test.js` 动态 import 处写不出 XML。runner **只**对 D17 十一份 `test/node` basename 跳过 `Failed to fetch`（与 `run-unit-custom.sh` 同名单；其它 `*.test` 仍 abort / `_loaderErrors`）。unit-custom 仍官方 glob + `--excludeRunGlob`（不降 `min_cases=190`、不删源）。未关 D16 / 未占 D26·D22·F4·A2。
+2. 本波字母槽已进 merge：**A** `filemutation-join`（无 `diff_stats` 时 omit）；**B** createScoped + SessionsView 夹具 + [D42](deferred-gaps.md) Maximize 已闭；**C** inbox-getqueue-honesty（无 GetQueue）；**D** review-entries + [D43](deferred-gaps.md) layout 扇出已闭。**[D16](deferred-gaps.md) 仍开**。
 3. **D15 / W1 笔记（工位 A，未占 工位表）**：`scripts/code-web.sh --browserType none --host 127.0.0.1 --port 18080` 已起；V1 Conversation / V2 四钮 + `UniverseAgentStudio Dev` / V3 Connection·Engine 省略桌面连接控件均 **PASS**。`IUniverseAgentConnection.getConnectionPhase()` = `disconnected`；页内点名「此环境不支持本机 Engine 连接」。证据 [d15-evidence/w1-1556dde3](d15-evidence/w1-1556dde3/)。**D15 可闭**；不升 PRD-019。未跑 compile / F4 / 引擎仓。
 4. **A 槽 `statusbar-leftover`（未关 D16 / 未改名单）**：D17 leftover Conversation Session StatusBar 簇。生产相位文案 / pairingPending 闸门未改。测夹具去掉二次 `registerAction2`（与 `conversation.contribution` 撞 `showConversationPart`）、roster 改 `Event.None`、切换测 Emitter 入 store。未缩断言。
 5. **A 槽 `visualize-leftover`（未关 D16 / 未改名单 / 未降 min_cases）**：D17 Lens visualize 两行。默认 360px 虚窗不再保证 comparison 已挂 DOM。两测在查询前 `revealVisualizeTurn(..., 'visualize-v2')`，未缩「无 Agent header」/ collapse 合同。未改生产 visualize。
@@ -109,6 +105,7 @@ summary: "FileMutationJoin / createScoped / Review 委托已修。D16 / D31 F4 �
 53. **A 槽 `lens-permission-question-postbound-catch`（未关 D16）**：permission/question `postBound` reject → `showPostFailure('failed')`。[D83](deferred-gaps.md) **已闭**。
 54. **B 槽 `hub-client-hydrate-catch`（未关 D16）**：Hub `hydrate` reject 保留预 hydrate 默认、不 fire。[D84](deferred-gaps.md) **已闭**。
 55. **D 槽 `promote-subagent-throw-notice`（未关 D16）**：Promote `openExtensionTab` throw → `INotificationService.error`。[D85](deferred-gaps.md) **已闭**。
+56. **A 槽 `composer-submit-postbound-catch`（未关 D16）**：`submitDraft` `postBound` reject → `showPostFailure('failed')`；第五 reason，不映射四因；dock void 未改。[D86](deferred-gaps.md) **已闭**。
 子 agent 发现的既有代码问题：
 | ID | 来源 | 问题 |
 |:---|:-----|:-----|
@@ -175,6 +172,7 @@ summary: "FileMutationJoin / createScoped / Review 委托已修。D16 / D31 F4 �
 | [D83](deferred-gaps.md) | A 槽 `lens-permission-question-postbound-catch` | **closed** permission/question `postBound` throw 已 `showPostFailure('failed')`；未关 D16 |
 | [D84](deferred-gaps.md) | B 槽 `hub-client-hydrate-catch` | **closed** Hub hydrate IPC reject 已吞；未关 D16 |
 | [D85](deferred-gaps.md) | D 槽 `promote-subagent-throw-notice` | **closed** Promote `openExtensionTab` throw 已 notice；未关 D16 |
+| [D86](deferred-gaps.md) | A 槽 `composer-submit-postbound-catch` | **closed** `submitDraft` `postBound` throw 已 `showPostFailure('failed')`；未关 D16 |
 
 ## 工位表（P0 盘点 · 2026-09-07 · 与 `git worktree list` 对照）
 

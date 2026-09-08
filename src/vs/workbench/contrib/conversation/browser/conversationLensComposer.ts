@@ -232,6 +232,8 @@ export async function submitDraft(host: IConversationLensComposerHost): Promise<
 			host.dockTextarea.value = '';
 			host.resetInputHistoryBrowse();
 			host.updateConversationPhase();
+		} catch {
+			host.showPostFailure('failed');
 		} finally {
 			host.submitInFlight = false;
 		}

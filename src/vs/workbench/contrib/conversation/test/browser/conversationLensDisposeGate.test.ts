@@ -7,6 +7,7 @@ import assert from 'assert';
 import { DisposableStore } from '../../../../../base/common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { applySessionViewTimeline, refreshTrajectoryRecords, type IConversationLensProjectionHost } from '../../browser/conversationLensProjection.js';
+import { submitDraft, type IConversationLensComposerHost } from '../../browser/conversationLensComposer.js';
 import { showPostFailure, type IConversationLensComposerChromeHost } from '../../browser/conversationLensComposerChrome.js';
 import {
 	conversationLensPostFailed,
@@ -264,6 +265,43 @@ suite('conversation lens dispose gate', () => {
 			assert.deepStrictEqual(failures, ['failed']);
 			assert.deepStrictEqual(rejections, []);
 			assert.strictEqual(focused, 0);
+		} finally {
+			process.off('unhandledRejection', onUnhandled);
+		}
+	});
+
+	test('submitDraft postBound reject shows failed and does not leave an unhandled rejection', async () => {
+		const failures: ConversationComposerPostFailureReason[] = [];
+		const rejections: unknown[] = [];
+		const onUnhandled = (reason: unknown) => { rejections.push(reason); };
+		const host = {
+			composerPolicy: 'compose',
+			submitInFlight: false,
+			modelSelectedIndex: 1,
+			dockTextarea: { value: 'hello' },
+			getBoundSessionId: () => 'sess-1',
+			stubService: {
+				isEngineConnected: () => false,
+				hasEngineConnectionHistory: () => false,
+			},
+			sessionViewLease: {
+				post: async () => {
+					throw new Error('postBound boom');
+				},
+			},
+			showPostFailure: (reason: ConversationComposerPostFailureReason) => {
+				failures.push(reason);
+			},
+		} as unknown as IConversationLensComposerHost;
+
+		process.on('unhandledRejection', onUnhandled);
+		try {
+			void submitDraft(host);
+			await new Promise<void>(resolve => queueMicrotask(() => resolve()));
+			await new Promise<void>(resolve => setImmediate(() => resolve()));
+			assert.deepStrictEqual(failures, ['failed']);
+			assert.deepStrictEqual(rejections, []);
+			assert.strictEqual(host.submitInFlight, false);
 		} finally {
 			process.off('unhandledRejection', onUnhandled);
 		}
