@@ -456,10 +456,10 @@ export class ConversationInboxOverlay extends Disposable {
 		const enqueueButton = append(actions, $('button.queue-bar-action.conversation-lens-inbox-queue-enqueue')) as HTMLButtonElement;
 		enqueueButton.type = 'button';
 		enqueueButton.textContent = conversationLensInboxQueueEnqueue;
-		const connected = this.stubService.isEngineConnected();
-		enqueueButton.disabled = !connected;
-		enqueueButton.setAttribute('aria-disabled', String(!connected));
-		enqueueButton.title = connected ? conversationLensInboxQueueEnqueue : conversationLensInboxQueueEnqueueUnavailable;
+		const enabled = this.stubService.isEngineConnected() || this.stubService.hasEngineConnectionHistory();
+		enqueueButton.disabled = !enabled;
+		enqueueButton.setAttribute('aria-disabled', String(!enabled));
+		enqueueButton.title = enabled ? conversationLensInboxQueueEnqueue : conversationLensInboxQueueEnqueueUnavailable;
 		enqueueButton.setAttribute('aria-label', enqueueButton.title);
 		addDisposableListener(enqueueButton, 'click', () => {
 			void this.onEnqueueClicked();
@@ -468,6 +468,9 @@ export class ConversationInboxOverlay extends Disposable {
 
 	private async onEnqueueClicked(): Promise<void> {
 		if (!this.stubService.isEngineConnected()) {
+			if (this.stubService.hasEngineConnectionHistory()) {
+				this.delegate.showPostFailure('engine_disconnected');
+			}
 			return;
 		}
 		const sessionId = this.stubService.getActiveSessionId();
