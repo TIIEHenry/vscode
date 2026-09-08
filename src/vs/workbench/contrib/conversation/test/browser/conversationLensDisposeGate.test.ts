@@ -14,7 +14,7 @@ import {
 	conversationLensPostFailedNoSession,
 	type ConversationComposerPostFailureReason,
 } from '../../browser/conversationLensDockStrings.js';
-import { bindSessionView, retryError, type IConversationLensSessionBindingHost } from '../../browser/conversationLensSessionBinding.js';
+import { bindSessionView, resolveConfirmation, resolveQuestion, retryError, type IConversationLensSessionBindingHost } from '../../browser/conversationLensSessionBinding.js';
 import type { ConversationWriteMessage, PostOutcome } from '../../../../../platform/universeAgent/common/conversationViewFrame.js';
 
 suite('conversation lens dispose gate', () => {
@@ -204,6 +204,66 @@ suite('conversation lens dispose gate', () => {
 			await new Promise<void>(resolve => setImmediate(() => resolve()));
 			assert.deepStrictEqual(failures, ['failed']);
 			assert.deepStrictEqual(rejections, []);
+		} finally {
+			process.off('unhandledRejection', onUnhandled);
+		}
+	});
+
+	test('resolveConfirmation postBound reject shows failed and does not leave an unhandled rejection', async () => {
+		const failures: ConversationComposerPostFailureReason[] = [];
+		const rejections: unknown[] = [];
+		const onUnhandled = (reason: unknown) => { rejections.push(reason); };
+		let focused = 0;
+		const host = {
+			getBoundSessionId: () => 'sess-1',
+			postBound: async (): Promise<PostOutcome> => {
+				throw new Error('postBound boom');
+			},
+			stubService: { isEngineConnected: () => false },
+			showPostFailure: (reason: ConversationComposerPostFailureReason) => {
+				failures.push(reason);
+			},
+			focusTimelineRecord: () => { focused++; },
+		} as unknown as IConversationLensSessionBindingHost;
+
+		process.on('unhandledRejection', onUnhandled);
+		try {
+			void resolveConfirmation(host, 'turn-1', 'allowed');
+			await new Promise<void>(resolve => queueMicrotask(() => resolve()));
+			await new Promise<void>(resolve => setImmediate(() => resolve()));
+			assert.deepStrictEqual(failures, ['failed']);
+			assert.deepStrictEqual(rejections, []);
+			assert.strictEqual(focused, 0);
+		} finally {
+			process.off('unhandledRejection', onUnhandled);
+		}
+	});
+
+	test('resolveQuestion postBound reject shows failed and does not leave an unhandled rejection', async () => {
+		const failures: ConversationComposerPostFailureReason[] = [];
+		const rejections: unknown[] = [];
+		const onUnhandled = (reason: unknown) => { rejections.push(reason); };
+		let focused = 0;
+		const host = {
+			getBoundSessionId: () => 'sess-1',
+			postBound: async (): Promise<PostOutcome> => {
+				throw new Error('postBound boom');
+			},
+			stubService: { isEngineConnected: () => false },
+			showPostFailure: (reason: ConversationComposerPostFailureReason) => {
+				failures.push(reason);
+			},
+			focusTimelineRecord: () => { focused++; },
+		} as unknown as IConversationLensSessionBindingHost;
+
+		process.on('unhandledRejection', onUnhandled);
+		try {
+			void resolveQuestion(host, 'turn-1', 'req-1', { q1: { selectedLabels: ['a'] } });
+			await new Promise<void>(resolve => queueMicrotask(() => resolve()));
+			await new Promise<void>(resolve => setImmediate(() => resolve()));
+			assert.deepStrictEqual(failures, ['failed']);
+			assert.deepStrictEqual(rejections, []);
+			assert.strictEqual(focused, 0);
 		} finally {
 			process.off('unhandledRejection', onUnhandled);
 		}
