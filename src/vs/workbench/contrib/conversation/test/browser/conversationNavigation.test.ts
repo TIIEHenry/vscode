@@ -4,10 +4,13 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { timeout } from '../../../../../base/common/async.js';
+import { getErrorMessage } from '../../../../../base/common/errors.js';
 import { DisposableStore } from '../../../../../base/common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { SyncDescriptor } from '../../../../../platform/instantiation/common/descriptors.js';
+import { INotificationService } from '../../../../../platform/notification/common/notification.js';
 import { Registry } from '../../../../../platform/registry/common/platform.js';
 import { TestConfigurationService } from '../../../../../platform/configuration/test/common/testConfigurationService.js';
 import { IConfigurationService } from '../../../../../platform/configuration/common/configuration.js';
@@ -44,13 +47,16 @@ suite('Conversation navigation (S2)', () => {
 		}
 	});
 
-	async function createHarness(options?: { closeChildOnBack?: boolean }) {
+	async function createHarness(options?: { closeChildOnBack?: boolean; notificationService?: INotificationService }) {
 		const configurationService = new TestConfigurationService({
 			[CONVERSATION_CLOSE_CHILD_ON_BACK_SETTING]: options?.closeChildOnBack ?? true,
 		});
 
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		instantiationService.stub(IConfigurationService, configurationService);
+		if (options?.notificationService) {
+			instantiationService.stub(INotificationService, options.notificationService);
+		}
 		instantiationService.invokeFunction(accessor => Registry.as<IEditorFactoryRegistry>(EditorExtensions.EditorFactory).start(accessor));
 
 		const parts = await createEditorParts(instantiationService, disposables);
@@ -100,6 +106,18 @@ suite('Conversation navigation (S2)', () => {
 		return store.add(new ConversationChatInput(
 			getConversationChatResource(sessionKey, suffix),
 		));
+	}
+
+	function createNotificationCapture(): { errors: string[]; notificationService: INotificationService } {
+		const errors: string[] = [];
+		return {
+			errors,
+			notificationService: {
+				error: (message: string | Error) => {
+					errors.push(typeof message === 'string' ? message : getErrorMessage(message));
+				},
+			} as INotificationService,
+		};
 	}
 
 	test('conversation stacks are isolated per session window', async () => {
@@ -163,6 +181,67 @@ suite('Conversation navigation (S2)', () => {
 
 		assert.strictEqual(conversationA.activeGroup.count, 1);
 		assert.strictEqual((conversationA.activeGroup.activeEditor as ConversationChatInput).isDefaultRoot, true);
+	});
+
+	test('goBack closeEditor throw notifies error and restores stack without unhandled rejection', async () => {
+		const boom = new Error('boom');
+		const { errors, notificationService } = createNotificationCapture();
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		const { navigationService, conversationA, parts } = await createHarness({ closeChildOnBack: true, notificationService });
+
+		const tabA = createExtensionTab('session-a', 'back-throw');
+		await conversationA.activeGroup.openEditor(tabA);
+		assert.strictEqual(navigationService.canGoBack(conversationA), true);
+		assert.strictEqual(navigationService.canGoForward(conversationA), false);
+
+		const scopedEditorService = parts.getScopedInstantiationService(conversationA).invokeFunction(accessor => accessor.get(IEditorService));
+		scopedEditorService.closeEditor = async () => {
+			throw boom;
+		};
+
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			void navigationService.goBack(conversationA);
+			await timeout(0);
+			assert.deepStrictEqual(errors, [getErrorMessage(boom)]);
+			assert.deepStrictEqual(unhandledRejections, []);
+			assert.strictEqual(navigationService.canGoBack(conversationA), true);
+			assert.strictEqual(navigationService.canGoForward(conversationA), false);
+			assert.strictEqual(conversationA.activeGroup.activeEditor, tabA);
+		} finally {
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
+
+	test('goForward openEditor throw notifies error and restores stack without unhandled rejection', async () => {
+		const boom = new Error('boom');
+		const { errors, notificationService } = createNotificationCapture();
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		const { navigationService, conversationA } = await createHarness({ closeChildOnBack: false, notificationService });
+
+		const tabA = createExtensionTab('session-a', 'fwd-throw');
+		await conversationA.activeGroup.openEditor(tabA);
+		await navigationService.goBack(conversationA);
+		assert.strictEqual(navigationService.canGoForward(conversationA), true);
+		assert.strictEqual(navigationService.canGoBack(conversationA), false);
+
+		conversationA.activeGroup.openEditor = async () => {
+			throw boom;
+		};
+
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			void navigationService.goForward(conversationA);
+			await timeout(0);
+			assert.deepStrictEqual(errors, [getErrorMessage(boom)]);
+			assert.deepStrictEqual(unhandledRejections, []);
+			assert.strictEqual(navigationService.canGoForward(conversationA), true);
+			assert.strictEqual(navigationService.canGoBack(conversationA), false);
+		} finally {
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
 	});
 
 	test('conversation tab open does not write IHistoryService', async () => {
