@@ -114,6 +114,46 @@ suite('conversation lens dispose gate', () => {
 		lifetime.dispose();
 	});
 
+	test('bindSessionView acquireSessionView throw shows failed and does not leave an unhandled rejection', async () => {
+		const lifetime = new DisposableStore();
+		const failures: ConversationComposerPostFailureReason[] = [];
+		const rejections: unknown[] = [];
+		const onUnhandled = (reason: unknown) => { rejections.push(reason); };
+		let applyEntries = 0;
+		const host = {
+			_store: { isDisposed: false },
+			sessionViewLifetime: lifetime,
+			sessionViewLease: { sessionId: 'prior' },
+			lastAttachedEntries: [],
+			stubService: {
+				isEngineConnected: () => true,
+				isEngineSessionReady: () => true,
+				acquireSessionView: () => {
+					throw new Error('acquire boom');
+				},
+			},
+			timelineTree: { applyEntries: () => { applyEntries++; } },
+			showPostFailure: (reason: ConversationComposerPostFailureReason) => {
+				failures.push(reason);
+			},
+			applySessionViewTimeline: () => { },
+		} as unknown as IConversationLensSessionBindingHost;
+
+		process.on('unhandledRejection', onUnhandled);
+		try {
+			bindSessionView(host, 'sess-leftover');
+			await new Promise<void>(resolve => queueMicrotask(() => resolve()));
+			await new Promise<void>(resolve => setImmediate(() => resolve()));
+			assert.deepStrictEqual(failures, ['failed']);
+			assert.strictEqual(host.sessionViewLease, undefined);
+			assert.strictEqual(applyEntries, 0);
+			assert.deepStrictEqual(rejections, []);
+		} finally {
+			process.off('unhandledRejection', onUnhandled);
+			lifetime.dispose();
+		}
+	});
+
 	test('retryError posts continueGeneration on the bound lease and does not call roster.retryError', async () => {
 		const posted: ConversationWriteMessage[] = [];
 		let rosterRetry = 0;
