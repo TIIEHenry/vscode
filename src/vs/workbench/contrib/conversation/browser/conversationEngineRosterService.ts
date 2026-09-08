@@ -705,9 +705,10 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 			if (!this.uaConnection.setSessionGoal) {
 				return false;
 			}
-			void this.uaConnection.setSessionGoal({ sessionId, goal: trimmed });
+			const previous = this.sessionGoals.get(sessionId);
 			this.sessionGoals.set(sessionId, trimmed);
 			this._onDidChangeSession.fire(sessionId);
+			this.followRemoteSessionGoal(this.uaConnection.setSessionGoal({ sessionId, goal: trimmed }), sessionId, previous);
 			return true;
 		}
 		return false;
@@ -721,12 +722,32 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 			if (!this.uaConnection.cancelSessionGoal) {
 				return false;
 			}
-			void this.uaConnection.cancelSessionGoal({ sessionId });
+			const previous = this.sessionGoals.get(sessionId);
 			this.sessionGoals.delete(sessionId);
 			this._onDidChangeSession.fire(sessionId);
+			this.followRemoteSessionGoal(this.uaConnection.cancelSessionGoal({ sessionId }), sessionId, previous);
 			return true;
 		}
 		return false;
+	}
+
+	private followRemoteSessionGoal(remote: Promise<{ readonly ok: boolean } | void>, sessionId: string, previous: string | undefined): void {
+		void remote.then(result => {
+			if (result && !result.ok) {
+				this.rollbackSessionGoal(sessionId, previous);
+			}
+		}, () => {
+			this.rollbackSessionGoal(sessionId, previous);
+		});
+	}
+
+	private rollbackSessionGoal(sessionId: string, previous: string | undefined): void {
+		if (previous === undefined) {
+			this.sessionGoals.delete(sessionId);
+		} else {
+			this.sessionGoals.set(sessionId, previous);
+		}
+		this._onDidChangeSession.fire(sessionId);
 	}
 
 	private forkEngineSubAgent(
