@@ -124,6 +124,11 @@ export async function resolveConfirmation(host: IConversationLensSessionBindingH
 			status,
 		);
 		if (!forwarded) {
+			host.showPostFailure(
+				!host.stubService.isEngineConnected() && host.stubService.hasEngineConnectionHistory()
+					? 'engine_disconnected'
+					: 'failed'
+			);
 			return;
 		}
 		host.focusTimelineRecord(turnId);
@@ -156,6 +161,11 @@ export async function resolveQuestion(host: IConversationLensSessionBindingHost,
 			customText,
 		);
 		if (!forwarded) {
+			host.showPostFailure(
+				!host.stubService.isEngineConnected() && host.stubService.hasEngineConnectionHistory()
+					? 'engine_disconnected'
+					: 'failed'
+			);
 			return;
 		}
 		host.focusTimelineRecord(turnId);

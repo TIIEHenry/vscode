@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-08
-summary: "D16 / D31 F4 仍开。官方三域 glob 已绿。D44–D90 / D92–D111 已闭。Inbox Goal 与 primary bootstrap notice 已挂。A2 仍 blocked。"
+summary: "D16 / D31 F4 仍开。官方三域 glob 已绿。D44–D90 / D92–D111 / D113 已闭。接通 permission/question roster false 已挂 dock notice。A2 仍 blocked。"
 ---
 
 # Development Progress
@@ -99,6 +99,7 @@ summary: "D16 / D31 F4 仍开。官方三域 glob 已绿。D44–D90 / D92–D11
 59. **A 槽 `connection-profile-crud-throw`（未关 D16）**：Add Direct / Disconnect / Forget / ConnectDevice throw 画 status。[D89](deferred-gaps.md) **已闭**。
 60. **B 槽 `session-window-primary-bootstrap-catch`（未关 D16）**：先 `ensureLeaf` 再提交 key；in-flight 串行 + 真实 stub；throw 回滚半应用 leaf。[D90](deferred-gaps.md) **已闭**。
 61. **D100–D111**（未关 D16）：peek / close / opener / stale / save·delete·cancel·Stop·Goal false notice / reveal / open-beside / primary bootstrap notice。
+62. **A 槽 `permission-question-rejected-notice`（未关 D16）**：接通 `resolveConfirmation` / `respondQuestion` false → dock `showPostFailure`（D110 映射）。未改 D83 catch / Inbox / session window。[D113](deferred-gaps.md) **已闭**。
 子 agent 发现的既有代码问题：
 | ID | 来源 | 问题 |
 |:---|:-----|:-----|
@@ -171,6 +172,7 @@ summary: "D16 / D31 F4 仍开。官方三域 glob 已绿。D44–D90 / D92–D11
 | [D89](deferred-gaps.md) | A 槽 `connection-profile-crud-throw` | **closed** Add Direct / Disconnect / Forget / ConnectDevice throw 已画 status；未关 D16 |
 | [D90](deferred-gaps.md) | B 槽 `session-window-primary-bootstrap-catch` | **closed** throw 回滚 + in-flight 串行；merge 复测 9/9；未关 D16 |
 | [D92](deferred-gaps.md)–[D111](deferred-gaps.md) | B roster+close / D nav / A beside+mru / A·B composer / D reveal / A delete·cancel / D beside+primary notice / B inbox Stop·Goal | **closed** throw 回滚/notice；peek；closeEditors；opener 回滚；stale；save/delete/cancel/Stop/Goal false 先 notice；reveal acquire；open-beside / primary bootstrap catch error notice；未关 D16 |
+| [D113](deferred-gaps.md) | A 槽 `permission-question-rejected-notice` | **closed** 接通 permission/question roster false 已 `showPostFailure`；未关 D16 |
 
 ## 工位表（P0 盘点 · 2026-09-08 · 与 `git worktree list` 对照）
 | 槽 | 路径 | 分支 | tip | 脏 | stash | 关仓状态 |

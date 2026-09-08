@@ -270,6 +270,148 @@ suite('conversation lens dispose gate', () => {
 		}
 	});
 
+	test('resolveConfirmation connected roster false shows failed and does not leave an unhandled rejection', async () => {
+		const failures: ConversationComposerPostFailureReason[] = [];
+		const rejections: unknown[] = [];
+		const onUnhandled = (reason: unknown) => { rejections.push(reason); };
+		let focused = 0;
+		let forwarded = 0;
+		let postBound = 0;
+		const host = {
+			getBoundSessionId: () => 'sess-1',
+			postBound: async (): Promise<PostOutcome> => {
+				postBound++;
+				return { accepted: true, correlation: { id: 'x' } };
+			},
+			stubService: {
+				isEngineConnected: () => true,
+				hasEngineConnectionHistory: () => false,
+				resolveConfirmation: () => {
+					forwarded++;
+					return false;
+				},
+			},
+			showPostFailure: (reason: ConversationComposerPostFailureReason) => {
+				failures.push(reason);
+			},
+			focusTimelineRecord: () => { focused++; },
+		} as unknown as IConversationLensSessionBindingHost;
+
+		process.on('unhandledRejection', onUnhandled);
+		try {
+			void resolveConfirmation(host, 'turn-1', 'allowed');
+			await new Promise<void>(resolve => queueMicrotask(() => resolve()));
+			await new Promise<void>(resolve => setImmediate(() => resolve()));
+			assert.strictEqual(forwarded, 1);
+			assert.strictEqual(postBound, 0);
+			assert.deepStrictEqual(failures, ['failed']);
+			assert.deepStrictEqual(rejections, []);
+			assert.strictEqual(focused, 0);
+		} finally {
+			process.off('unhandledRejection', onUnhandled);
+		}
+	});
+
+	test('resolveConfirmation connected roster false then disconnect shows engine_disconnected', async () => {
+		const failures: ConversationComposerPostFailureReason[] = [];
+		let connected = true;
+		let focused = 0;
+		const host = {
+			getBoundSessionId: () => 'sess-1',
+			postBound: async (): Promise<PostOutcome> => {
+				return { accepted: true, correlation: { id: 'x' } };
+			},
+			stubService: {
+				isEngineConnected: () => connected,
+				hasEngineConnectionHistory: () => true,
+				resolveConfirmation: () => {
+					connected = false;
+					return false;
+				},
+			},
+			showPostFailure: (reason: ConversationComposerPostFailureReason) => {
+				failures.push(reason);
+			},
+			focusTimelineRecord: () => { focused++; },
+		} as unknown as IConversationLensSessionBindingHost;
+
+		await resolveConfirmation(host, 'turn-1', 'skipped');
+
+		assert.deepStrictEqual(failures, ['engine_disconnected']);
+		assert.strictEqual(focused, 0);
+	});
+
+	test('resolveQuestion connected roster false shows failed and does not leave an unhandled rejection', async () => {
+		const failures: ConversationComposerPostFailureReason[] = [];
+		const rejections: unknown[] = [];
+		const onUnhandled = (reason: unknown) => { rejections.push(reason); };
+		let focused = 0;
+		let forwarded = 0;
+		let postBound = 0;
+		const host = {
+			getBoundSessionId: () => 'sess-1',
+			postBound: async (): Promise<PostOutcome> => {
+				postBound++;
+				return { accepted: true, correlation: { id: 'x' } };
+			},
+			stubService: {
+				isEngineConnected: () => true,
+				hasEngineConnectionHistory: () => false,
+				respondQuestion: () => {
+					forwarded++;
+					return false;
+				},
+			},
+			showPostFailure: (reason: ConversationComposerPostFailureReason) => {
+				failures.push(reason);
+			},
+			focusTimelineRecord: () => { focused++; },
+		} as unknown as IConversationLensSessionBindingHost;
+
+		process.on('unhandledRejection', onUnhandled);
+		try {
+			void resolveQuestion(host, 'turn-1', 'req-1', { q1: { selectedLabels: ['a'] } });
+			await new Promise<void>(resolve => queueMicrotask(() => resolve()));
+			await new Promise<void>(resolve => setImmediate(() => resolve()));
+			assert.strictEqual(forwarded, 1);
+			assert.strictEqual(postBound, 0);
+			assert.deepStrictEqual(failures, ['failed']);
+			assert.deepStrictEqual(rejections, []);
+			assert.strictEqual(focused, 0);
+		} finally {
+			process.off('unhandledRejection', onUnhandled);
+		}
+	});
+
+	test('resolveQuestion connected roster false then disconnect shows engine_disconnected', async () => {
+		const failures: ConversationComposerPostFailureReason[] = [];
+		let connected = true;
+		let focused = 0;
+		const host = {
+			getBoundSessionId: () => 'sess-1',
+			postBound: async (): Promise<PostOutcome> => {
+				return { accepted: true, correlation: { id: 'x' } };
+			},
+			stubService: {
+				isEngineConnected: () => connected,
+				hasEngineConnectionHistory: () => true,
+				respondQuestion: () => {
+					connected = false;
+					return false;
+				},
+			},
+			showPostFailure: (reason: ConversationComposerPostFailureReason) => {
+				failures.push(reason);
+			},
+			focusTimelineRecord: () => { focused++; },
+		} as unknown as IConversationLensSessionBindingHost;
+
+		await resolveQuestion(host, 'turn-1', 'req-1', { q1: { selectedLabels: ['a'] } });
+
+		assert.deepStrictEqual(failures, ['engine_disconnected']);
+		assert.strictEqual(focused, 0);
+	});
+
 	test('submitDraft postBound reject shows failed and does not leave an unhandled rejection', async () => {
 		const failures: ConversationComposerPostFailureReason[] = [];
 		const rejections: unknown[] = [];
