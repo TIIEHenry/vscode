@@ -351,6 +351,14 @@ suite('Sources - Changes git write', () => {
 		assert.ok(source.includes('sourcesGitUnstageUnavailableMessage'));
 		assert.ok(source.includes('runGitAction(SOURCES_GIT_STAGE_COMMAND)'));
 		assert.ok(!source.includes('writeGitUnstage'));
+		const runGitActionStart = source.indexOf('private async runGitAction(');
+		assert.ok(runGitActionStart >= 0);
+		const runGitActionEnd = source.indexOf('\n\tprivate ', runGitActionStart + 1);
+		const runGitAction = source.slice(runGitActionStart, runGitActionEnd > runGitActionStart ? runGitActionEnd : undefined);
+		assert.ok(runGitAction.includes('catch'));
+		assert.ok(runGitAction.includes('this.showNotice(getErrorMessage(error))'));
+		assert.ok(runGitAction.includes('finally'));
+		assert.ok(runGitAction.includes('this.updateReviewActions()'));
 	});
 
 	test('Panel Diff write actions share the Review write gate', () => {

@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-08
-summary: "FileMutationJoin / createScoped / Review 委托已修。D16 仍开。官方三域 glob 已绿。D44–D74 / D76 已闭。Team leftover 已清。Connection list leftover / write throw / Refresh devices directory throw 已挂。switchModel 空 resolvedModelId 回滚+gate 已挂。Snapshots / MCP / Skills / Agents / Tools 写失败 write-status 已挂。Agents Tools 页 listTools throw 画 failed；重连后再 throw 清 leftover。Tools 成功 refresh 后 getToolInfo throw 重画详情。Skills 成功 refresh 后 getSkillInfo throw 重画正文。Agents Instructions 成功 refresh 后重载 AGENTS.md。Tools/Agents 成功 refresh 清 pending enablement。MCP runtime leftover 已清。git-read / open-diff / Stage·Commit / Unstage throw 与 ok:false status 已挂。A2 仍 blocked。"
+summary: "FileMutationJoin / createScoped / Review 委托已修。D16 / D31 F4 仍开。官方三域 glob 已绿。D44–D76 已闭。Team leftover 已清。Connection list leftover / write throw / Refresh devices directory throw 已挂。switchModel 空 resolvedModelId 回滚+gate 已挂。Snapshots / MCP / Skills / Agents / Tools 写失败 write-status 已挂。Agents Tools 页 listTools throw 画 failed；重连后再 throw 清 leftover。Tools 成功 refresh 后 getToolInfo throw 重画详情。Skills 成功 refresh 后 getSkillInfo throw 重画正文。Agents Instructions 成功 refresh 后重载 AGENTS.md。Tools/Agents 成功 refresh 清 pending enablement。MCP runtime leftover 已清。git-read / open-diff / Stage·Commit / Unstage throw 与 ok:false status 已挂。Review runGitAction throw 已 showNotice。A2 仍 blocked。"
 ---
 
 # Development Progress
@@ -102,6 +102,7 @@ summary: "FileMutationJoin / createScoped / Review 委托已修。D16 仍开。�
 43. **A 槽 `catalog-refresh-clear-pending`（未关 D16 / 未发明 GetQueue / proto / 未碰 F4 / 引擎 / `.sessions` / `dev/loop` / D26 / D46 leftover / D68 invalidate / D69 / D71）**：Tools 成功 `refresh` 清 `pendingEnablement` 再 `updateSaveChrome`；Agents 成功 `refresh` 在 D68 invalidate 旁清 `agentToolPending`。测锁重连后 dirty false、catalog/tools 仍 ready。未 compile。[D72](deferred-gaps.md)/[D73](deferred-gaps.md) **已闭**。
 44. **A 槽 `connection-hub-refresh-throw`（未关 D16 / 未发明 GetQueue / proto / 未碰 F4 / 引擎 / `.sessions` / `dev/loop` / unused-import / D26 / 未重做 D61 list leftover / D62 rename / D64 login / D65 remaining writes）**：`refreshHubDirectory` 只包 `refreshDirectory` catch，throw 画 `hubDirectoryBanner`（`writeStatus` error）后 return，不调 `refreshEngineDeviceLists`。测锁 Refresh devices throw 画 `.connection-hub-directory-banner`。[D74](deferred-gaps.md) **已闭**。未 compile。
 45. **B 槽 `composer-switch-model-empty-rollback`（未关 D16 / 未碰 F4·A2·D26 / proto / `dev/loop`）**：`applySessionModelIndex` await 后 `!result.resolvedModelId.trim()` 走 restore + `showGateNotice`（`conversationLensDockModelFailed`）；未发明 `UniverseAgentSwitchModelResult.ok`。throw 测保留；补 empty resolve 回滚+gate。[D76](deferred-gaps.md) **已闭**。
+46. **D 槽 `review-pane-git-action-catch`（未关 D16 / 未关 D31 / 未跑 F4 / 未开 A2）**：Review `runGitAction` catch 后 `showNotice(getErrorMessage(error))`，finally 仍 `updateReviewActions`。未改 `runAccept`。未发明 WriteGitUnstage。源扫锁 catch + showNotice。[D75](deferred-gaps.md) **已闭**。
 
 子 agent 发现的既有代码问题：
 
@@ -110,7 +111,8 @@ summary: "FileMutationJoin / createScoped / Review 委托已修。D16 仍开。�
 | [D23](deferred-gaps.md) | A 槽 | **closed** resident heartbeat write 已 catch |
 | [D33](deferred-gaps.md) | B 槽 | **closed** pairingPending 开 Connection/SAS |
 | [D27](deferred-gaps.md) | grok 4.6 | **closed**：`provideTurnEditComposer` 先于 `setEditingTurnId`；已删 1px 垫高 |
-| [D31](deferred-gaps.md) | D 槽 | Accept A1 已落；P5 停线；A2 须新选定 + Arch-First；git-read / open-diff / Stage Selected·Commit / Unstage Selected throw 与 Stage·Commit **ok:false** 的 status DOM 已挂载；**仍开**（剩 F4）；不升 PRD |
+| [D31](deferred-gaps.md) | D 槽 | Accept A1 已落；P5 停线；A2 须新选定 + Arch-First；git-read / open-diff / Stage·Commit / Unstage throw 与 Stage·Commit **ok:false** status 已挂；Review `runGitAction` catch 见 [D75](deferred-gaps.md)；**仍开**（剩 F4）；不升 PRD |
+| [D75](deferred-gaps.md) | D 槽 `review-pane-git-action-catch` | **closed** Review `runGitAction` throw 已 `showNotice`；未关 D16 / D31 F4 |
 | [R8](research-queue.md) | B 槽 `r8-empty-patches-close` | **closed**：[ADR-008](../decisions/008-write-git-apply-hunks-empty.md) 引擎仓 `1f07008f` `GitWorkDirWriter.kt` L77–78 空 `patches` = 成功空操作；A1 已拒空送；[D31](deferred-gaps.md) F4 未跑 |
 | [D32](deferred-gaps.md) | A 槽 `host-write-retry` | **closed（代码+测已写；compile 待 merge）** Retry 走 `lease.post`；host 映射 Actor `continueGeneration` |
 | [D38](deferred-gaps.md) | A 槽 `host-bind-safety` | **closed** `fillHistory` bind/write 已 catch |
