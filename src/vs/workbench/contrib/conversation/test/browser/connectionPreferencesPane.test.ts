@@ -2201,6 +2201,40 @@ suite('ConnectionPreferencesPane', () => {
 		assert.ok(banner);
 		assert.strictEqual(banner.textContent, 'boom');
 		assert.notStrictEqual(banner.style.display, 'none');
+		assert.ok(banner.classList.contains('is-error'));
+		container.remove();
+	});
+
+	test('hub fallback revokeDevice ok false paints hub directory banner error', async () => {
+		let refreshed = 0;
+		const pane = mountPane({
+			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
+			getDirectoryStatus: () => ({ kind: 'ok', devices: [device({ id: 'dev-1', name: 'Studio' })] }),
+			revokeDevice: async () => ({ ok: false, code: 'denied', reason: 'denied' }),
+			refreshDirectory: async () => {
+				refreshed++;
+				return { kind: 'ok', devices: [device({ id: 'dev-1', name: 'Studio' })] };
+			},
+		}, {
+			isEngineConnected: () => false,
+			revoke: async () => ({ success: true, message: '' }),
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		await Promise.resolve();
+
+		const revoke = [...container.querySelectorAll('.connection-hub-device-actions .monaco-button')]
+			.find(button => button.textContent === 'Revoke') as HTMLButtonElement | undefined;
+		assert.ok(revoke);
+		revoke.click();
+		await Promise.resolve();
+		await Promise.resolve();
+		const banner = container.querySelector('.connection-hub-directory-banner') as HTMLElement;
+		assert.ok(banner);
+		assert.ok(banner.textContent?.includes('denied'));
+		assert.notStrictEqual(banner.style.display, 'none');
+		assert.ok(banner.classList.contains('is-error'));
+		assert.strictEqual(refreshed, 0);
 		container.remove();
 	});
 
