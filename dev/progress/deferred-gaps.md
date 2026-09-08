@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-09
-summary: "延期缺口 SSOT；D16 仍开；D45–D90 / D92–D129 / D131 / D133–D146 已闭；D22 F3；D24 其余 JSON RPC；D25 引擎 List 真空；D26 引擎建壳回 6；D31 F4 / A2 blocked；RotateToken / 引擎 hook Revoke catch 已 error tone；Hub fallback revoke / Rename `!ok`/throw 已 error tone；Triggers upsert 与 Clipboard 清空/写入成功已 refresh；swallowed primary 后 beside 已锁 bootstrap notice；SessionBar / Sessions 侧栏断连+history New session 已画 notice；mermaid getExtension reject 已回 undefined；copyTurn writeText reject 已 showPostFailure('failed')；requestResync / acknowledge / releaseLease reject 已吞；Projects rebuildTree/openWindow 已吞"
+summary: "延期缺口 SSOT；D8 / D16 仍开；D147 worker step 1 已做（tsc 48→2）仍开；D45–D90 / D92–D129 / D131 / D133–D146 已闭；D22 F3；D24 其余 JSON RPC；D25 引擎 List 真空；D26 引擎建壳回 6；D31 F4 / A2 blocked；valid-layers-check 仍豁免"
 ---
 
 # Deferred Gaps
@@ -22,7 +22,7 @@ summary: "延期缺口 SSOT；D16 仍开；D45–D90 / D92–D129 / D131 / D133�
 | D5 | P2 | **EH 探针冒烟**（LSP + layout 类扩展） | — | 三探针行 **已实测 @2026-09-02**（[wave3](d5-evidence/smoke-wave3-0001/)）；panel/terminal 记入矩阵 **待实测**，不阻塞本行 | M4 | closed |
 | D6 | P3 | **Diff footprint 刷新** | slot C 已于 `b283fe19` 重测 `b5631393` | 页已更新 | docs | closed |
 | D7 | P3 | titlebar LayoutControlMenu 产品四钮与原生 Panel/Aux 共存 | `2dcd5a0a` 已从 LayoutControlMenu 去掉 Panel/Aux；留 submenu | 默认窗只见四钮 | M0 | closed |
-| D8 | **P3**（2026-09-02 由 P2 降） | **`valid-layers-check` 环境红**（`EditContext`/`GPUBufferUsage`/`FileSystemHandle` TS lib 报错） | D8 深挖 @2026-09-02 **`c0dfee3d`**：Node **24.18.0** + PATH 钉死仍 **FAIL**（166× TS）；**browser/electron-browser 单跑 0 错**，红在 node / worker 系 checker 拉入 browser 源码却未套补充类型（见 D8 节），**不是业务分层违规**。**裁决 @2026-09-02：豁免为集成门禁**（[health-gates](health-gates.md) 改 `compile` + `eslint`）；分层由 ESLint `code-layering` + stream-timeline S1 boundary 测承担 | `npm run valid-layers-check` 六域全绿（按 D8 节「可执行修复」1 → 2B），再恢复为门禁；任一实施波不得以「D8 红」为 blocked 理由 | infra | open |
+| D8 | **P3**（2026-09-02 由 P2 降） | **`valid-layers-check` 环境红**（`EditContext`/`GPUBufferUsage`/`FileSystemHandle` TS lib 报错）。**D147 已做 step 1**（worker 补充类型对齐；`fbc1bc47cba` worker native tsc **48→2**），step 2B 未开 | D8 深挖 @2026-09-02 **`c0dfee3d`**：Node **24.18.0** + PATH 钉死仍 **FAIL**（166× TS）；**browser/electron-browser 单跑 0 错**，红在 node / worker 系 checker 拉入 browser 源码却未套补充类型（见 D8 节），**不是业务分层违规**。**裁决 @2026-09-02：豁免为集成门禁**（[health-gates](health-gates.md) 改 `compile` + `eslint`）；分层由 ESLint `code-layering` + stream-timeline S1 boundary 测承担 | `npm run valid-layers-check` 六域全绿（按 D8 节「可执行修复」1 → 2B），再恢复为门禁；任一实施波不得以「D8 红」为 blocked 理由 | infra | open |
 | D9 | **P3**（2026-09-02 由 P2 降） | **EH 矩阵次级探针**：`viewsContainers.panel` / `views`(panel) / `terminal` profiles·`onStartup` / 命令 + `editor/decoration` | panel + decoration **已实测 @2026-09-02**（[d9](d5-evidence/smoke-d9-0001/)）；仅 `terminal` 行 xterm 自动化 blocked。**裁决 @2026-09-02：不再列 status Blockers**——矩阵 terminal 行标「待人工」即为诚实状态，无产品功能依赖它 | 人工跑一次 `Terminals: Run` 并截图记入 [smoke-d9-0001](d5-evidence/smoke-d9-0001/)；或某切片首次依赖 terminal EH 面时顺带补 | docs | open |
 | D10 | P3 | **PRD-012 T5** 轨迹搜索 / 虚拟化 / Overview 瀑布条 | fixture 三位数以下普通 DOM 够用。PRD-020 已 `accepted` 并写死上限（对话 1,000 / 轨迹 5,000）| 触发 = **M6-D 轨迹 T4 合入后**（引擎真数据前虚拟化无意义）；另在 stream-timeline S2 落地后用 1,000 回合 fixture 测 PRD-020 验收 1（≤ 200 ms）并记本行；实施后 [conversation-trajectory-lens](../plans/conversation-trajectory-lens.md) T5 行转 implemented | M6+ | closed |
 | D12 | P2 | **PRD-010 产品身份落地**：`product.json` 名称/目录/协议族 + 三平台图标与发行文案 | M7 已建立 [product-identity](../plans/product-identity.md)；**I1 审计已完成（2026-09-02）**：UniverseAgentDesktop 无打包图标；**用户同日裁定**以 `Singular/logo/singularity.svg`（Singularity 标识）为唯一品牌源，I3 拆为 I3a（源入仓 + 生成脚本，含 ≤48px 粗线派生）/ I3b（三平台接线），不再阻塞。Darwin 发布域仍待发布方 | 按 I1–I5 落地；窗口标题、About、桌面入口、`universe-agent://` 与数据目录可识别为 UniverseAgentStudio | M7 product | open |
@@ -160,6 +160,7 @@ summary: "延期缺口 SSOT；D16 仍开；D45–D90 / D92–D129 / D131 / D133�
 | D144 | P3 | **`requestResync` 无 catch**：`conversationEngineFrameSource.ts` `void this.sessionView.requestResync(this.leaseId)`；`applyViewFrame` 失败已调 `requestResync()`；reject 成未处理 rejection | B 槽 `engine-frame-resync-catch` 已收：`.catch(() => undefined)`；测锁 reject `'boom'` 无未处理 rejection 且坏帧不落地。未关 D16 / D31；未加 ILogService；未改 acknowledge / releaseLease / post | `requestResync` reject 无未处理 rejection；坏帧不 apply；`conversationEngineFrameSource.test.ts` 绿 | conversation | closed |
 | D145 | P3 | **`acknowledge` / `releaseLease` 无 catch**：`conversationEngineFrameSource.ts` `void this.sessionView.acknowledge(...)` 与 `void this.sessionView.releaseLease(id)`；reject 成未处理 rejection | A 槽 `engine-frame-ack-release-catch` 已收：同 D144 `.catch(() => undefined)`；测锁 acknowledge reject 仍 apply、releaseLease reject 仍 onRelease/cache、无未处理 rejection。未关 D16 / D31；未加 ILogService；未改 requestResync / post / applyViewFrame | acknowledge reject 仍 apply 且无未处理 rejection；releaseLease reject 仍 onRelease/cache；既有 requestResync reject 测绿；`conversationEngineFrameSource.test.ts` 绿 | conversation | closed |
 | D146 | P3 | **Projects `rebuildTree` / `openWindow` 无 catch**：`navigatorProjectsList.ts` `void this.rebuildTree()` 与 `void this.hostService.openWindow(...)` 无 catch。`getRecentlyOpened` throw 成未处理 rejection（赋值在 await 后，末次树仍在但未吞）。本地文件夹点击 `openWindow` reject 同漏。不得扩 ctor；优先静默吞 + 保留 last-good | B 槽 `navigator-projects-rebuild-open-catch` 已收：`rebuildTree` try/catch 保留末次 `localFolderEntries` / `treeNodes`；`openWindow` `.catch(() => undefined)`。测锁成功后再 throw 末次行与叶数不变、无未处理 rejection；`openWindow` reject 点本地文件夹无未处理 rejection；session 行仍只 `switchSession`。未关 D16；未加 ctor 参数；未发明 notice | `getRecentlyOpened` throw 无未处理 rejection 且 last-good 不变；`openWindow` reject 无未处理 rejection；session 行只 `switchSession`；`navigatorProjectsList.test.ts` 绿 | navigator | closed |
+| D147 | P3 | **D8 可执行修复 step 1**：`build/checker/tsconfig.worker.json` 已对齐 browser 补充类型（include 加 `@webgpu/types`；exclude 去掉 `editContext.d.ts`）。工位 A `fbc1bc47cba` native tsc **48 → 2**（exit 1）。剩 2：`universeAgentConnectionChannelClient.ts` TS2345 `sessionList` ⊈ `UniverseAgentCapabilityKey`；`conversationPart.ts` TS2352 `IConversationEditorPart` 无 `layout`。未开 step 2B；未改 `src/vs/**`；**未恢复 valid-layers-check 门禁** | step 1 已做；剩 2 条非 WebGPU/EditContext，属业务类型债，本 slice 禁改源码 | worker-project `tsc` exit 0（0× `error TS`）后闭本行；**不**因此闭 D8 | infra | open |
 
 ## D2 工位池 compile 基线（2026-09-02，merge 工位 / `loop/merge`）
 
@@ -415,7 +416,7 @@ $REPO/scripts/code-cli.sh --extensions-dir="$EXT_DIR" \
 
 ### 可执行修复（优先级）
 
-1. **对齐 worker checker 与 browser 的补充类型**（低风险、应优先试）：在 `tsconfig.worker.json` 增加与 browser 相同的 `@webgpu/types` include；**移除**对 `src/typings/editContext.d.ts` 的 exclude（browser 未 exclude）。复跑 worker 计数应下降。
+1. **对齐 worker checker 与 browser 的补充类型**（低风险、应优先试）：在 `tsconfig.worker.json` 增加与 browser 相同的 `@webgpu/types` include；**移除**对 `src/typings/editContext.d.ts` 的 exclude（browser 未 exclude）。复跑 worker 计数应下降。**已做 @ D147**（见下节）：本 SHA worker **48 → 2**，未归零。
 2. **node / electron-main / utility**：`include` 含根 `src/*.ts` 引导文件会拉入整棵 workbench/browser 依赖图。可选路径：
    - **A（upstream 对齐）**：对照当前 `microsoft/vscode` main 的 `build/checker/tsconfig.node.json` 是否仍含 `src/*.ts`；若 upstream 已删或改 include，cherry-pick；
    - **B（checker-only）**：在 node 系 tsconfig 为 layer typecheck 增加与 browser 相同的 `lib` + 补充 `include`（仅影响 `valid-layers-check`，不改变 emit）；或
@@ -423,9 +424,36 @@ $REPO/scripts/code-cli.sh --extensions-dir="$EXT_DIR" \
 3. **PATH**：CI/脚本须 `PATH=$NVM_DIR/versions/node/v24.18.0/bin:$PATH`（或 `hash -r`）；仅 `nvm use` 不足。
 4. **验收**：`PATH=…/v24.18.0/bin:… npm run valid-layers-check` exit 0；六项目单独 `tsc` 均为 0 错。
 
-**状态**：**open**（browser 域已绿；infra 未修）。
+**状态**：**open**（browser 域已绿；step 1 见 [D147](#d147)；step 2B 未开；**不**恢复门禁）。
 
 **裁决（2026-09-02，用户委托）**：在修好之前 **`valid-layers-check` 不作集成门禁**（[health-gates](health-gates.md) 已改为 `compile` + `eslint`），D8 降 **P3**。理由：① 上表证明 `browser` / `electron-browser` 两域 **0 错**，红全部来自 node / worker 系 checker 把 browser 源码拉进图却没套 browser 补充类型——与本仓任何 `contrib/{conversation,sources}` 或 `platform/universeAgent` 变更无关；② 它本就不查 import path，M6 需要的 renderer ↔ `platform/universeAgent/node` 边界由 ESLint `local/code-layering` + boundary 测承担（ADR-003 Consequences 已更正）；③ 继续挂在 Blockers 只会让每轮 closeout 都产生一条无法闭合的红项。修复按上文「可执行修复」1 → 2B 走，任何空闲 tick 可做，做完即恢复门禁。
+
+## D147 worker checker step 1（2026-09-09，工位 A / `loop/A`）
+
+**路径**：`/home/clarence/Projects/Agents/vscode-WorkTrees/A` · **SHA**：`fbc1bc47cbad116b1f4d8865aaf12df7a6d4c8bb`
+
+**改动（仅）**：`build/checker/tsconfig.worker.json` — include 加 `../../node_modules/@webgpu/types/dist/index.d.ts`（与 `tsconfig.browser.json` 同路径）；exclude 去掉 `../../src/typings/editContext.d.ts`。
+
+**命令**（与 `layersTypeCheck.ts` 相同：Node 24.18.0 + `@typescript/native` `bin/tsc`）：
+
+```bash
+PATH="$NVM_DIR/versions/node/v24.18.0/bin:$PATH" \
+  node node_modules/@typescript/native/bin/tsc --project build/checker/tsconfig.worker.json --pretty false
+```
+
+| 时机 | exit | `error TS` 条数 |
+|:-----|:-----|:----------------|
+| 改前 | 1 | **48**（D8 @ `c0dfee3d` 记 46；本 SHA 复测 48） |
+| 改后 | 1 | **2** |
+
+改后剩余（样本即全量）：
+
+1. `src/vs/platform/universeAgent/common/universeAgentConnectionChannelClient.ts(81,41)` `TS2345`：`UniverseAgentNavigatorCapabilityKey`（含 `"sessionList"`）不可赋给 `UniverseAgentCapabilityKey`。
+2. `src/vs/workbench/browser/parts/conversation/conversationPart.ts(159,5)` `TS2352`：`IConversationEditorPart` 转为带 `layout(...)` 的类型可能有误（缺 `layout`）。
+
+**未做**：step 2B；`src/vs/**`；`tsconfig.node.json` / electron-main / electron-utility / `tsconfig.browser.json`；`npm run compile`；恢复 `valid-layers-check` 门禁。
+
+**状态**：D147 **open**（worker tsc 未 exit 0）。D8 **open**。
 
 ## D17 三域基线红（切片 3 · `d2abb648c0e`）
 
