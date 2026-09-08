@@ -149,7 +149,7 @@ class EngineSessionViewLease extends Disposable implements IConversationSessionV
 
 	requestResync(): void {
 		if (this.leaseId) {
-			void this.sessionView.requestResync(this.leaseId);
+			void this.sessionView.requestResync(this.leaseId).catch(() => undefined);
 		}
 	}
 
