@@ -16,6 +16,7 @@ import { TestConfigurationService } from '../../../../../platform/configuration/
 import { IEditorOptions } from '../../../../../platform/editor/common/editor.js';
 import { IInstantiationService } from '../../../../../platform/instantiation/common/instantiation.js';
 import { SyncDescriptor } from '../../../../../platform/instantiation/common/descriptors.js';
+import { localize } from '../../../../../nls.js';
 import { INotificationService } from '../../../../../platform/notification/common/notification.js';
 import { TestInstantiationService } from '../../../../../platform/instantiation/test/common/instantiationServiceMock.js';
 import { NullTelemetryService } from '../../../../../platform/telemetry/common/telemetryUtils.js';
@@ -144,6 +145,13 @@ suite('Conversation session chat (S3)', () => {
 		}
 	}
 
+	class ConnectedForkFalseRoster extends ConnectedForkRoster {
+		override forkSubAgent(sessionId: string): boolean {
+			this.forkCalls.push({ sessionId });
+			return false;
+		}
+	}
+
 	class TestConversationSessionChatService extends ConversationSessionChatService {
 		override async openExtensionTab(sessionKey: string, chatId: string, options?: { title?: string }): Promise<void> {
 			const part = this.getConversationPart(sessionKey);
@@ -250,8 +258,13 @@ suite('Conversation session chat (S3)', () => {
 				}
 
 				const roster = accessor.get(IConversationRosterService);
+				const notificationService = accessor.get(INotificationService);
 				if (roster.isEngineConnected()) {
-					return { handled: roster.forkSubAgent(roster.getActiveSessionId()) };
+					if (roster.forkSubAgent(roster.getActiveSessionId())) {
+						return { handled: true };
+					}
+					notificationService.error(localize('conversationFork.forkSubAgentFailed', "Could not fork conversation."));
+					return { handled: true };
 				}
 
 				const chatSessionsService = accessor.get(IChatSessionsService);
@@ -262,7 +275,7 @@ suite('Conversation session chat (S3)', () => {
 				return {
 					chatSessionsService,
 					sessionChatService: accessor.get(IConversationSessionChatService),
-					notificationService: accessor.get(INotificationService),
+					notificationService,
 				};
 			});
 
@@ -439,6 +452,44 @@ suite('Conversation session chat (S3)', () => {
 			URI.parse('agent-host-copilot:/fork-source'),
 		);
 		assert.strictEqual(handled, true);
+		assert.deepStrictEqual(roster.forkCalls, [{ sessionId: roster.getActiveSessionId() }]);
+		assert.strictEqual(forkCalls, 0);
+		assert.strictEqual(conversationPart.activeGroup.count, 1);
+		assert.strictEqual(sessionChatService.getCatalog(SESSION_KEY).length, 0);
+	});
+
+	test('connected forkSubAgent false notifies error and does not fall through to local fork', async () => {
+		const roster = store.add(new ConnectedForkFalseRoster());
+		const errors: string[] = [];
+		const { instantiationService, conversationPart, sessionChatService } = await createHarness(roster, {
+			error: (message: string | Error) => {
+				errors.push(typeof message === 'string' ? message : getErrorMessage(message));
+			},
+		} as INotificationService);
+		instantiationService.stub(IWorkbenchEnvironmentService, upcastPartial<IWorkbenchEnvironmentService>({ isSessionsWindow: false }));
+		instantiationService.stub(IConversationSessionChatService, sessionChatService);
+		instantiationService.stub(IConversationRosterService, roster);
+
+		let forkCalls = 0;
+		instantiationService.stub(IChatSessionsService, upcastPartial<IChatSessionsService>({
+			getContentProviderSchemes: () => ['agent-host-copilot'],
+			forkChatSession: async () => {
+				forkCalls++;
+				return {
+					resource: URI.parse('agent-host-copilot:/fork-source#peer-1'),
+					label: 'Forked peer',
+					iconPath: undefined,
+					timing: { created: 0, lastRequestStarted: 0, lastRequestEnded: 0 },
+				};
+			},
+		}));
+
+		const handled = await new TestConversationForkAction().tryForkAsChat(
+			instantiationService,
+			URI.parse('agent-host-copilot:/fork-source'),
+		);
+		assert.strictEqual(handled, true);
+		assert.deepStrictEqual(errors, ['Could not fork conversation.']);
 		assert.deepStrictEqual(roster.forkCalls, [{ sessionId: roster.getActiveSessionId() }]);
 		assert.strictEqual(forkCalls, 0);
 		assert.strictEqual(conversationPart.activeGroup.count, 1);
