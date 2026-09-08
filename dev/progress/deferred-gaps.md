@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-08
-summary: "延期缺口 SSOT；D16 仍开；D45–D92 已闭；D22 F3；D24 其余 JSON RPC；D25 引擎 List 真空；D26 引擎建壳回 6；D31 F4 / A2 blocked；roster set/cancel goal remote 回滚已挂"
+summary: "延期缺口 SSOT；D16 仍开；D45–D90 / D92 / D93 已闭；D22 F3；D24 其余 JSON RPC；D25 引擎 List 真空；D26 引擎建壳回 6；D31 F4 / A2 blocked；roster goal 回滚与 split throw notice 已挂"
 ---
 
 # Deferred Gaps
@@ -108,6 +108,7 @@ summary: "延期缺口 SSOT；D16 仍开；D45–D92 已闭；D22 F3；D24 其�
 | D89 | P3 | **Connection profile CRUD write throw 无 catch**：`handleAddDirectAddress` / `handleDisconnect` / `handleForgetSelectedProfile` / `handleConnectDevice` 裸 await（D65 明确留下）。throw 成未处理 rejection；`!result.ok` 已画 status | A 槽 `connection-profile-crud-throw` 已收：catch throw 画 `directAddressStatus` / 可见 `writeConnectStatus`。`!result.ok` 与 Forget 失败测未改。测锁四条 throw。未关 D16；未重做 D62–D65 / Connect Direct / `connectProfileWithPairing` | 四条 throw 画对应 status 且无未处理 rejection；`connectionPreferencesPane.test.ts` 四条 throw 绿 | conversation | closed |
 | D90 | P3 | **`ensurePrimaryWindow` 在 `ensureLeaf` 成功前写入 `primarySessionKey`**：throw 后半应用 primary 且 `void` 成未处理 rejection | B 槽已收：先 leaf 再 key；catch 回滚；`primaryBootstrapInFlight` 串行并发 void；直接 stub throw harness。merge 复测 9/9。未关 D16 | throw 后 key 空、leaf 回滚、后续 bootstrap 成功；`conversationSessionWindowSideBySide.test.ts` 绿 | conversation | closed |
 | D92 | P3 | **roster `setSessionGoal` / `cancelSessionGoal` remote `void` 无回滚**：`setEngineSessionGoal` / `cancelEngineSessionGoal` 乐观写 `sessionGoals` 后 `void` unary；throw / `{ ok:false }` leftover 假 goal。公开 API 保持同步 boolean | B 槽 `roster-goal-remote-rollback` 已收：乐观本地写保留；remote throw / `!ok` 回滚并再 fire。测锁 rollback + 无未处理 rejection。未关 D16；未扫其它 `void uaConnection.*` | remote throw / `{ ok:false }` 后 `getSessionGoal` 回滚；无未处理 rejection；既有 forwards / disconnected skip 测保留 | conversation | closed |
+| D93 | P3 | **`splitSessionWindow` throw 无通知**：缺 conversation part 时 throw（`conversationSessionChatService.ts`）；`conversationSplitActions` `run` 返回该 Promise。未处理 rejection | D 槽 `split-session-throw-notice` 已收：方法体 try/catch；throw 画 `INotificationService.error(getErrorMessage)`；Action2 `run` 未改。测锁 missing part → error notice、无未处理 rejection。未关 D16；未改 `openExtensionTab` / `openForkTab` throw 合同 | catch 后 notification error；`conversationSessionChat.test.ts` splitSessionWindow missing part 绿 | M7 conversation | closed |
 
 ## D2 工位池 compile 基线（2026-09-02，merge 工位 / `loop/merge`）
 

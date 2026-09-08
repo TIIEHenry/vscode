@@ -499,19 +499,23 @@ export class ConversationSessionChatService extends Disposable implements IConve
 	}
 
 	async splitSessionWindow(sessionKey?: string): Promise<void> {
-		const key = this.resolveSessionKey(sessionKey);
-		const part = this.getConversationPart(key);
-		if (!part) {
-			throw new Error(`Conversation editor part for session ${key} is not available`);
-		}
+		try {
+			const key = this.resolveSessionKey(sessionKey);
+			const part = this.getConversationPart(key);
+			if (!part) {
+				throw new Error(`Conversation editor part for session ${key} is not available`);
+			}
 
-		const direction = preferredSideBySideGroupDirection(this.configurationService);
-		let sideGroup = part.findGroup({ direction }, part.activeGroup, false);
-		if (!sideGroup) {
-			sideGroup = part.addGroup(part.activeGroup, direction);
-		}
+			const direction = preferredSideBySideGroupDirection(this.configurationService);
+			let sideGroup = part.findGroup({ direction }, part.activeGroup, false);
+			if (!sideGroup) {
+				sideGroup = part.addGroup(part.activeGroup, direction);
+			}
 
-		await sideGroup.focus();
+			await sideGroup.focus();
+		} catch (error) {
+			this.notificationService.error(getErrorMessage(error));
+		}
 	}
 
 	hideSplitColumn(sessionKey?: string, groupId?: GroupIdentifier): void {

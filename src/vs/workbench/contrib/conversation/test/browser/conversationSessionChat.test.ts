@@ -820,6 +820,30 @@ suite('Conversation session chat (S3)', () => {
 		assert.strictEqual(sessionChatService.findOpenTabForChat(SESSION_KEY, 'sub-2'), undefined);
 	});
 
+	test('splitSessionWindow missing conversation part notifies error without unhandled rejection', async () => {
+		const boom = new Error(`Conversation editor part for session ${SESSION_KEY} is not available`);
+		const errors: string[] = [];
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		const { conversationPart, sessionChatService } = await createHarness(undefined, {
+			error: (message: string | Error) => {
+				errors.push(typeof message === 'string' ? message : getErrorMessage(message));
+			},
+		} as INotificationService);
+		sessionChatService.getConversationPart = () => undefined;
+
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			void sessionChatService.splitSessionWindow();
+			await timeout(0);
+			assert.deepStrictEqual(errors, [getErrorMessage(boom)]);
+			assert.deepStrictEqual(unhandledRejections, []);
+			assert.strictEqual(conversationPart.groups.length, 1);
+		} finally {
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
+
 	test('breadcrumb navigate throw notifies error without unhandled rejection', async () => {
 		const boom = new Error('boom');
 		const errors: string[] = [];
