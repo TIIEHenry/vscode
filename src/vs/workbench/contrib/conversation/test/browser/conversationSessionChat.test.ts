@@ -776,6 +776,35 @@ suite('Conversation session chat (S3)', () => {
 		assert.strictEqual(sessionChatService.findOpenTabForChat(SESSION_KEY, 'sub-2'), undefined);
 	});
 
+	test('breadcrumb navigate throw notifies error without unhandled rejection', async () => {
+		const boom = new Error('boom');
+		const errors: string[] = [];
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		const { conversationPart, sessionChatService } = await createHarness(undefined, {
+			error: (message: string | Error) => {
+				errors.push(typeof message === 'string' ? message : getErrorMessage(message));
+			},
+		} as INotificationService);
+		sessionChatService.registerSubAgentChat(SESSION_KEY, 'sub-1', 'Parent agent', 'default');
+		sessionChatService.registerSubAgentChat(SESSION_KEY, 'sub-2', 'Child agent', 'sub-1');
+		await sessionChatService.openExtensionTab(SESSION_KEY, 'sub-1', { title: 'Parent agent' });
+		await sessionChatService.openSubAgent(SESSION_KEY, 'sub-2');
+		conversationPart.activeGroup.openEditor = async () => {
+			throw boom;
+		};
+
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			void sessionChatService.navigateAgentBreadcrumb(SESSION_KEY, 'sub-1');
+			await timeout(0);
+			assert.deepStrictEqual(errors, [getErrorMessage(boom)]);
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
+
 	test('close non-root closes extension tabs but keeps root group', async () => {
 		const { conversationPart, sessionChatService } = await createHarness();
 		sessionChatService.registerSubAgentChat(SESSION_KEY, 'sub-1', 'Sub agent one', 'default');
