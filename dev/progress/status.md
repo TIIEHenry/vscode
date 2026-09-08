@@ -98,7 +98,7 @@ summary: "D16 / D31 F4 仍开。官方三域 glob 已绿。D44–D90 / D92–D12
 58. **D 槽 `fork-open-tab-throw-notice`（未关 D16）**：`openForkTab` try/catch → notice；首个 await 前 hoist。[D88](deferred-gaps.md) **已闭**。
 59. **A 槽 `connection-profile-crud-throw`（未关 D16）**：Add Direct / Disconnect / Forget / ConnectDevice throw 画 status。[D89](deferred-gaps.md) **已闭**。
 60. **B 槽 `session-window-primary-bootstrap-catch`（未关 D16）**：先 `ensureLeaf` 再提交 key；in-flight 串行 + 真实 stub；throw 回滚半应用 leaf。[D90](deferred-gaps.md) **已闭**。
-61. **D100–D129 / D131 / D133–D137**（未关 D16；D130/D132 未占用）：peek / close / opener / stale / save·delete·cancel·Stop·Goal·Enqueue false notice；RotateToken / Revoke success false banner；Triggers 删/upsert 成功 refresh；Rename 与 Hub fallback revoke error tone；Clipboard 清空/写入成功 refresh。
+61. **D100–D129 / D131 / D133–D139**（未关 D16；D130/D132 未占用）：peek / close / opener / stale / save·delete·cancel·Stop·Goal·Enqueue false notice；RotateToken / Revoke `!success` 与 catch 已 error tone；Triggers 删/upsert 成功 refresh；Clipboard 清空/写入成功 refresh；swallowed primary 后 beside 已锁 notice。
 62. **A/B/D 本波（未关 D16 / D31）**：A Hub fallback `revokeDevice` `!ok`/throw `writeStatus` error。[D135](deferred-gaps.md) **已闭**。B `handleUpsert` 成功 refresh 再回写 status。[D136](deferred-gaps.md) **已闭**。D `handleWrite` 成功 refresh 再回写 clipId。[D137](deferred-gaps.md) **已闭**。未 compile。
 63. **A/B 本波（未关 D16 / D31）**：A RotateToken / 引擎 hook Revoke catch 走 `writeStatus` error。[D138](deferred-gaps.md) **已闭**。B swallowed primary 后 `openSessionBeside` 锁 `harness.errors` 含 `primary bootstrap boom`；未二次 notice。[D139](deferred-gaps.md) **已闭**。未 compile。
 子 agent 发现的既有代码问题：
@@ -176,12 +176,12 @@ summary: "D16 / D31 F4 仍开。官方三域 glob 已绿。D44–D90 / D92–D12
 ## 工位表（P0 盘点 · 2026-09-08 · 与 `git worktree list` 对照）
 | 槽 | 路径 | 分支 | tip | 脏 | stash | 关仓状态 |
 |----|------|------|-----|:--|:------|:---------|
-| merge | `vscode-WorkTrees/merge` | `loop/merge` | `411b634e248` | `__pycache__` | 0 | parked；compile unused 仍红，**不 push** |
-| A | `vscode-WorkTrees/A` | `loop/A` | `411b634e248` | `__pycache__` | 0 | idle |
-| B | `vscode-WorkTrees/B` | `loop/B` | `411b634e248` | `__pycache__` | 0 | idle |
-| C | `vscode-WorkTrees/C` | `loop/C` | `411b634e248` | 未提交 `dev/loop` + `__pycache__` | 0 | idle；勿 add `dev/loop` |
-| D | `vscode-WorkTrees/D` | `loop/D` | `411b634e248` | `__pycache__` | 0 | idle |
-| edit | `Projects/Agents/vscode` | `agent-ide` | `a40a95d1e85`+ | `dev/loop` + 过期 progress | 0 | 人类工位；请自行对齐 `411b634e248` |
+| merge | `vscode-WorkTrees/merge` | `loop/merge` | `3af2216d66f` | `__pycache__` | 0 | parked；compile unused 仍红，**不 push** |
+| A | `vscode-WorkTrees/A` | `loop/A` | `3af2216d66f` | `__pycache__` | 0 | idle |
+| B | `vscode-WorkTrees/B` | `loop/B` | `3af2216d66f` | `__pycache__` | 0 | idle |
+| C | `vscode-WorkTrees/C` | `loop/C` | `3af2216d66f` | 未提交 `dev/loop` + `__pycache__` | 0 | idle；勿 add `dev/loop` |
+| D | `vscode-WorkTrees/D` | `loop/D` | `3af2216d66f` | `__pycache__` | 0 | idle |
+| edit | `Projects/Agents/vscode` | `agent-ide` | `a40a95d1e85`+ | `dev/loop` + 过期 progress | 0 | 人类工位；请自行对齐 `3af2216d66f` |
 ## Next（Blockers：无）
 | 项 | 指针 |
 |:---|:-----|
