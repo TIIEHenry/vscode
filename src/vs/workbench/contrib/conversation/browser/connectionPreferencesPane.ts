@@ -1517,7 +1517,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		try {
 			const result = await this.hubService.revokeDevice(device.id);
 			if (!result.ok) {
-				this.hubDirectoryBanner.textContent = result.reason;
+				writeStatus(this.hubDirectoryBanner, result.reason, 'error');
 				this.hubDirectoryBanner.style.display = '';
 				return;
 			}
@@ -1525,7 +1525,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 			this.renderProfiles();
 		} catch (error) {
 			const reason = error instanceof Error && error.message ? error.message : String(error);
-			this.hubDirectoryBanner.textContent = reason;
+			writeStatus(this.hubDirectoryBanner, reason, 'error');
 			this.hubDirectoryBanner.style.display = '';
 		}
 	}
