@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-08
-summary: "D16 / D31 F4 仍开。官方三域 glob 已绿。D44–D90 / D92–D124 已闭。Create Snapshot false 已 notice；live-tree / bind / navigator lease / timeline reveal throw 已吞。A2 仍 blocked。"
+summary: "D16 / D31 F4 仍开。官方三域 glob 已绿。D44–D90 / D92–D125 已闭。Create Snapshot false 已 notice；live-tree / bind / navigator lease / timeline reveal / Review attribution acquire throw 已吞。A2 仍 blocked。"
 ---
 
 # Development Progress
@@ -99,6 +99,7 @@ summary: "D16 / D31 F4 仍开。官方三域 glob 已绿。D44–D90 / D92–D12
 59. **A 槽 `connection-profile-crud-throw`（未关 D16）**：Add Direct / Disconnect / Forget / ConnectDevice throw 画 status。[D89](deferred-gaps.md) **已闭**。
 60. **B 槽 `session-window-primary-bootstrap-catch`（未关 D16）**：先 `ensureLeaf` 再提交 key；in-flight 串行 + 真实 stub；throw 回滚半应用 leaf。[D90](deferred-gaps.md) **已闭**。
 61. **D100–D124**（未关 D16）：peek / close / opener / stale / save·delete·cancel·Stop·Goal·Enqueue false notice / reveal / open-beside / primary bootstrap notice；Goal / Enqueue 断连+history 可点；permission/question roster false；SessionBar rename/delete 与 Sessions 侧栏 delete false notice；notifications / live-tree / bind / navigator lease acquire throw → notice；Create Snapshot false notice；timeline reveal lens throw → notice。
+62. **A 槽 `sources-attribution-acquire-throw-catch`（未关 D16 / 未关 D31 / 未跑 F4 / 未开 A2）**：`resolveRevealItemId` / `buildChipMapForEntries` acquire throw → notice + undefined / 空 map；`finally` 仅 dispose 已拿 lease。未发明 WriteGitUnstage。未 compile。[D125](deferred-gaps.md) **已闭**。
 子 agent 发现的既有代码问题：
 | ID | 来源 | 问题 |
 |:---|:-----|:-----|
@@ -171,6 +172,7 @@ summary: "D16 / D31 F4 仍开。官方三域 glob 已绿。D44–D90 / D92–D12
 | [D89](deferred-gaps.md) | A 槽 `connection-profile-crud-throw` | **closed** Add Direct / Disconnect / Forget / ConnectDevice throw 已画 status；未关 D16 |
 | [D90](deferred-gaps.md) | B 槽 `session-window-primary-bootstrap-catch` | **closed** throw 回滚 + in-flight 串行；merge 复测 9/9；未关 D16 |
 | [D92](deferred-gaps.md)–[D124](deferred-gaps.md) | B roster+inbox+sessions / D nav / A beside+mru+sessionbar / A·B composer / A notifications / B sessionChat / D bind / A navigator lease / B reveal | **closed** throw 回滚/notice；peek；closeEditors；opener 回滚；stale；save/delete/cancel/Stop/Goal/Enqueue false 先 notice；reveal acquire；open-beside / primary bootstrap catch error notice；Goal / Enqueue 断连+history 可点；permission/question roster false；SessionBar rename/delete 与 Sessions 侧栏 delete false notice；notifications / live-tree / bind / navigator lease acquire throw → notice；Create Snapshot false notice；timeline reveal lens throw → notice；未关 D16 |
+| [D125](deferred-gaps.md) | A 槽 `sources-attribution-acquire-throw-catch` | **closed** Review attribution acquire throw 已 notice；resolve 回 undefined、chip map 空；未关 D16 / D31 F4 |
 
 ## 工位表（P0 盘点 · 2026-09-08 · 与 `git worktree list` 对照）
 | 槽 | 路径 | 分支 | tip | 脏 | stash | 关仓状态 |
