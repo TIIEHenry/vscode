@@ -3,12 +3,14 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { getErrorMessage } from '../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { Disposable, DisposableStore, IDisposable } from '../../../../base/common/lifecycle.js';
 import { URI } from '../../../../base/common/uri.js';
 import { createDecorator } from '../../../../platform/instantiation/common/instantiation.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
+import { INotificationService } from '../../../../platform/notification/common/notification.js';
 import { GroupIdentifier, IEditorIdentifier } from '../../../common/editor.js';
 import { IEditorGroupsService, IConversationEditorPart, preferredSideBySideGroupDirection } from '../../../services/editor/common/editorGroupsService.js';
 import { CONVERSATION_GROUP, IEditorService } from '../../../services/editor/common/editorService.js';
@@ -103,6 +105,7 @@ export class ConversationSessionChatService extends Disposable implements IConve
 		@IInstantiationService private readonly instantiationService: IInstantiationService,
 		@IConversationRosterService private readonly rosterService: IConversationRosterService,
 		@IConfigurationService private readonly configurationService: IConfigurationService,
+		@INotificationService private readonly notificationService: INotificationService,
 	) {
 		super();
 		this._register(this.rosterService.onDidChangeLiveAgentTree(event => {
@@ -423,7 +426,11 @@ export class ConversationSessionChatService extends Disposable implements IConve
 		}
 
 		this.closeSubAgentDialog(key);
-		await this.openExtensionTab(state.sessionKey, state.chatId, { title: state.title });
+		try {
+			await this.openExtensionTab(state.sessionKey, state.chatId, { title: state.title });
+		} catch (error) {
+			this.notificationService.error(getErrorMessage(error));
+		}
 	}
 
 	toggleSubAgentDialogMaximized(sessionKey?: string): void {
