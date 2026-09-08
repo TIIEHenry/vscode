@@ -184,12 +184,12 @@ summary: "FileMutationJoin / createScoped / Review 委托已修。D16 / D31 F4 �
 ## 工位表（P0 盘点 · 2026-09-07 · 与 `git worktree list` 对照）
 | 槽 | 路径 | 分支 | tip | 脏 | stash | 关仓状态 |
 |----|------|------|-----|:--|:------|:---------|
-| merge | `vscode-WorkTrees/merge` | `loop/merge` | `f8d995484f6` | `__pycache__` | 0 | parked；compile unused 仍红，**不 push** |
-| A | `vscode-WorkTrees/A` | `loop/A` | `f8d995484f6` | `__pycache__` | 0 | idle |
-| B | `vscode-WorkTrees/B` | `loop/B` | `f8d995484f6` | `__pycache__` | 0 | idle |
-| C | `vscode-WorkTrees/C` | `loop/C` | `f8d995484f6` | 未提交 `dev/loop` + `__pycache__` | 0 | idle；勿 add `dev/loop` |
-| D | `vscode-WorkTrees/D` | `loop/D` | `f8d995484f6` | `__pycache__` | 0 | idle |
-| edit | `Projects/Agents/vscode` | `agent-ide` | `a40a95d1e85`+ | `dev/loop` + 过期 progress | 0 | 人类工位；请自行对齐 `f8d995484f6` |
+| merge | `vscode-WorkTrees/merge` | `loop/merge` | `f53352de14d` | `__pycache__` | 0 | parked；compile unused 仍红，**不 push** |
+| A | `vscode-WorkTrees/A` | `loop/A` | `f53352de14d` | `__pycache__` | 0 | idle |
+| B | `vscode-WorkTrees/B` | `loop/B` | `f53352de14d` | `__pycache__` | 0 | idle |
+| C | `vscode-WorkTrees/C` | `loop/C` | `f53352de14d` | 未提交 `dev/loop` + `__pycache__` | 0 | idle；勿 add `dev/loop` |
+| D | `vscode-WorkTrees/D` | `loop/D` | `f53352de14d` | `__pycache__` | 0 | idle |
+| edit | `Projects/Agents/vscode` | `agent-ide` | `a40a95d1e85`+ | `dev/loop` + 过期 progress | 0 | 人类工位；请自行对齐 `f53352de14d` |
 ## Next（Blockers：无）
 | 项 | 指针 |
 |:---|:-----|
