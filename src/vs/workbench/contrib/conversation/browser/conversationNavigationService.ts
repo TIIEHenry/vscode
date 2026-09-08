@@ -208,12 +208,13 @@ export class ConversationNavigationService extends Disposable implements IConver
 			return;
 		}
 
-		const leaving = stack.current;
-		stack.moveBack();
-		const destination = stack.current;
+		const destination = stack.peekPrevious();
 		if (!destination) {
 			return;
 		}
+
+		const leaving = stack.current;
+		stack.moveBack();
 
 		stack.navigating = true;
 		try {
@@ -244,11 +245,12 @@ export class ConversationNavigationService extends Disposable implements IConver
 			return;
 		}
 
-		stack.moveForward();
-		const destination = stack.current;
+		const destination = stack.peekNext();
 		if (!destination) {
 			return;
 		}
+
+		stack.moveForward();
 
 		stack.navigating = true;
 		try {

@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-08
-summary: "FileMutationJoin / createScoped / Review 委托已修。D16 / D31 F4 仍开。官方三域 glob 已绿。D44–D90 / D92–D99 / D101 / D102 已闭。closeNonRootTabs notice 与 sessions MRU opener 回滚已挂。A2 仍 blocked。"
+summary: "FileMutationJoin / createScoped / Review 委托已修。D16 / D31 F4 仍开。官方三域 glob 已绿。D44–D90 / D92–D102 已闭。peek-before-advance、closeNonRootTabs notice 与 sessions MRU opener 回滚已挂。A2 仍 blocked。"
 ---
 
 # Development Progress
@@ -107,7 +107,7 @@ summary: "FileMutationJoin / createScoped / Review 委托已修。D16 / D31 F4 �
 58. **D 槽 `fork-open-tab-throw-notice`（未关 D16）**：`openForkTab` try/catch → notice；首个 await 前 hoist。[D88](deferred-gaps.md) **已闭**。
 59. **A 槽 `connection-profile-crud-throw`（未关 D16）**：Add Direct / Disconnect / Forget / ConnectDevice throw 画 status。[D89](deferred-gaps.md) **已闭**。
 60. **B 槽 `session-window-primary-bootstrap-catch`（未关 D16）**：先 `ensureLeaf` 再提交 key；in-flight 串行 + 真实 stub；throw 回滚半应用 leaf。[D90](deferred-gaps.md) **已闭**。
-61. **B D92–D99 / B D101 / A D102**（未关 D16）：roster/split/beside/nav；`closeNonRootTabs` closeEditors notice + finally；sessions MRU opener reject 回滚 cursor。
+61. **D D100 / B D101 / A D102**（未关 D16）：peek-before-advance；closeEditors notice + finally；sessions MRU opener reject 回滚 cursor。
 子 agent 发现的既有代码问题：
 | ID | 来源 | 问题 |
 |:---|:-----|:-----|
@@ -179,7 +179,7 @@ summary: "FileMutationJoin / createScoped / Review 委托已修。D16 / D31 F4 �
 | [D88](deferred-gaps.md) | D 槽 `fork-open-tab-throw-notice` | **closed** Fork `openForkTab` throw 已 notice；未关 D16 |
 | [D89](deferred-gaps.md) | A 槽 `connection-profile-crud-throw` | **closed** Add Direct / Disconnect / Forget / ConnectDevice throw 已画 status；未关 D16 |
 | [D90](deferred-gaps.md) | B 槽 `session-window-primary-bootstrap-catch` | **closed** throw 回滚 + in-flight 串行；merge 复测 9/9；未关 D16 |
-| [D92](deferred-gaps.md)–[D99](deferred-gaps.md)/[D101](deferred-gaps.md)/[D102](deferred-gaps.md) | B roster+close / D nav / A beside+mru | **closed** throw 回滚/notice；closeEditors notice；sessions opener 回滚 cursor；未关 D16 |
+| [D92](deferred-gaps.md)–[D102](deferred-gaps.md) | B roster+close / D nav / A beside+mru | **closed** throw 回滚/notice；peek-before-advance；closeEditors notice；sessions opener 回滚 cursor；未关 D16 |
 
 ## 工位表（P0 盘点 · 2026-09-07 · 与 `git worktree list` 对照）
 | 槽 | 路径 | 分支 | tip | 脏 | stash | 关仓状态 |

@@ -16,7 +16,7 @@ import { TestConfigurationService } from '../../../../../platform/configuration/
 import { IConfigurationService } from '../../../../../platform/configuration/common/configuration.js';
 import { isResourceEditorInput } from '../../../../common/editor.js';
 import { EditorExtensions, IEditorFactoryRegistry } from '../../../../common/editor.js';
-import { IEditorGroupsService } from '../../../../services/editor/common/editorGroupsService.js';
+import { IConversationEditorPart, IEditorGroupsService } from '../../../../services/editor/common/editorGroupsService.js';
 import { EditorService } from '../../../../services/editor/browser/editorService.js';
 import { IEditorService } from '../../../../services/editor/common/editorService.js';
 import { HistoryService } from '../../../../services/history/browser/historyService.js';
@@ -106,6 +106,18 @@ suite('Conversation navigation (S2)', () => {
 		return store.add(new ConversationChatInput(
 			getConversationChatResource(sessionKey, suffix),
 		));
+	}
+
+	function getConversationNavStack(service: ConversationNavigationService, part: IConversationEditorPart): {
+		readonly stack: Array<{ readonly groupId: number; readonly editor: unknown } | undefined>;
+		index: number;
+	} {
+		const stacks = (service as unknown as {
+			stacks: Map<IConversationEditorPart, { stack: Array<{ groupId: number; editor: unknown } | undefined>; index: number }>;
+		}).stacks;
+		const navStack = stacks.get(part);
+		assert.ok(navStack);
+		return navStack;
 	}
 
 	function createNotificationCapture(): { errors: string[]; notificationService: INotificationService } {
@@ -242,6 +254,58 @@ suite('Conversation navigation (S2)', () => {
 		} finally {
 			process.off('unhandledRejection', onUnhandledRejection);
 		}
+	});
+
+	test('goBack empty destination does not mutate stack or enablement', async () => {
+		const { navigationService, conversationA } = await createHarness({ closeChildOnBack: false });
+
+		const tabA = createExtensionTab('session-a', 'back-empty');
+		await conversationA.activeGroup.openEditor(tabA);
+		assert.strictEqual(navigationService.canGoBack(conversationA), true);
+		assert.strictEqual(navigationService.canGoForward(conversationA), false);
+
+		const navStack = getConversationNavStack(navigationService, conversationA);
+		const indexBefore = navStack.index;
+		const lengthBefore = navStack.stack.length;
+		const snapshot = navStack.stack.slice();
+		navStack.stack[navStack.index - 1] = undefined;
+
+		await navigationService.goBack(conversationA);
+
+		assert.strictEqual(navigationService.canGoBack(conversationA), true);
+		assert.strictEqual(navigationService.canGoForward(conversationA), false);
+		assert.strictEqual(navStack.index, indexBefore);
+		assert.strictEqual(navStack.stack.length, lengthBefore);
+		assert.strictEqual(conversationA.activeGroup.activeEditor, tabA);
+		assert.strictEqual(navStack.stack[indexBefore - 1], undefined);
+		assert.strictEqual(navStack.stack[indexBefore], snapshot[indexBefore]);
+	});
+
+	test('goForward empty destination does not mutate stack or enablement', async () => {
+		const { navigationService, conversationA } = await createHarness({ closeChildOnBack: false });
+
+		const tabA = createExtensionTab('session-a', 'fwd-empty');
+		await conversationA.activeGroup.openEditor(tabA);
+		await navigationService.goBack(conversationA);
+		assert.strictEqual(navigationService.canGoForward(conversationA), true);
+		assert.strictEqual(navigationService.canGoBack(conversationA), false);
+
+		const navStack = getConversationNavStack(navigationService, conversationA);
+		const indexBefore = navStack.index;
+		const lengthBefore = navStack.stack.length;
+		const snapshot = navStack.stack.slice();
+		navStack.stack[navStack.index + 1] = undefined;
+		const editorBefore = conversationA.activeGroup.activeEditor;
+
+		await navigationService.goForward(conversationA);
+
+		assert.strictEqual(navigationService.canGoForward(conversationA), true);
+		assert.strictEqual(navigationService.canGoBack(conversationA), false);
+		assert.strictEqual(navStack.index, indexBefore);
+		assert.strictEqual(navStack.stack.length, lengthBefore);
+		assert.strictEqual(conversationA.activeGroup.activeEditor, editorBefore);
+		assert.strictEqual(navStack.stack[indexBefore + 1], undefined);
+		assert.strictEqual(navStack.stack[indexBefore], snapshot[indexBefore]);
 	});
 
 	test('conversation tab open does not write IHistoryService', async () => {
