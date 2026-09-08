@@ -4,13 +4,12 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-08
-summary: "FileMutationJoin / createScoped / Review 委托已修。D16 / D31 F4 仍开。官方三域 glob 已绿。D44–D83 已闭。Team leftover 已清。Connection list leftover / write throw / Refresh devices directory throw 已挂。switchModel 空 resolvedModelId 回滚+gate 已挂。Snapshots / MCP / Skills / Agents / Tools 写失败 write-status 已挂。Agents Tools 页 listTools throw 画 failed；重连后再 throw 清 leftover。Tools 成功 refresh 后 getToolInfo throw 重画详情。Skills 成功 refresh 后 getSkillInfo throw 重画正文。Agents Instructions 成功 refresh 后重载 AGENTS.md。Tools/Agents 成功 refresh 清 pending enablement。MCP runtime leftover 已清。git-read / open-diff / Stage·Commit / Unstage throw 与 ok:false status 已挂。Review runGitAction throw 已 showNotice。Lens lease-only sync 刷新 stale banner 已挂。Sessions 接通刷新已挂。openStream throw-on-open 已折 streamClosed。Lens retryError / permission / question postBound throw 已 showPostFailure('failed')。Channel Client hydrate/refreshPhase IPC reject 已吞。Navigator Reveal openSubAgent throw 已 notification error。A2 仍 blocked。"
+summary: "FileMutationJoin / createScoped / Review 委托已修。D16 / D31 F4 仍开。官方三域 glob 已绿。D44–D84 已闭。Team leftover 已清。Connection list leftover / write throw / Refresh devices directory throw 已挂。switchModel 空 resolvedModelId 回滚+gate 已挂。Snapshots / MCP / Skills / Agents / Tools 写失败 write-status 已挂。Agents Tools 页 listTools throw 画 failed；重连后再 throw 清 leftover。Tools 成功 refresh 后 getToolInfo throw 重画详情。Skills 成功 refresh 后 getSkillInfo throw 重画正文。Agents Instructions 成功 refresh 后重载 AGENTS.md。Tools/Agents 成功 refresh 清 pending enablement。MCP runtime leftover 已清。git-read / open-diff / Stage·Commit / Unstage throw 与 ok:false status 已挂。Review runGitAction throw 已 showNotice。Lens lease-only sync 刷新 stale banner 已挂。Sessions 接通刷新已挂。openStream throw-on-open 已折 streamClosed。Lens retryError / permission / question postBound throw 已 showPostFailure('failed')。Connection/Hub Channel Client hydrate IPC reject 已吞。Navigator Reveal openSubAgent throw 已 notification error。A2 仍 blocked。"
 ---
 
 # Development Progress
 
 > **当前迭代账**（规则 3a）。产品状态 → [traceability](../../docs/product/traceability.md)（生成列）；方案状态 → [plans INDEX](../plans/INDEX.md)（生成列）；延期 → [deferred-gaps](deferred-gaps.md)。历史槽位 catalog 流水 → [归档](../archive/status-current-session-slot-catalog-2026-09-05.md)。
-
 ## Current Session
 
 ### 已合入（集成基线 `c1b228caf74`，已 push `origin/agent-ide`）
@@ -110,6 +109,7 @@ summary: "FileMutationJoin / createScoped / Review 委托已修。D16 / D31 F4 �
 51. **B 槽 `channel-client-hydrate-catch`（未关 D16）**：Channel Client `hydrate` / `refreshPhaseAndNotify` try/catch；IPC reject 保留末次好缓存、不 fire 半应用 phase。[D81](deferred-gaps.md) **已闭**。
 52. **D 槽 `navigator-reveal-throw-notice`（未关 D16 / D21）**：Reveal await 路径 try/catch；`openSubAgent` throw → `INotificationService.error`；void 调用点未改。[D82](deferred-gaps.md) **已闭**。
 53. **A 槽 `lens-permission-question-postbound-catch`（未关 D16）**：`resolveConfirmation` / `resolveQuestion` `postBound` reject → `showPostFailure('failed')`；void 调用点未改。[D83](deferred-gaps.md) **已闭**。
+54. **B 槽 `hub-client-hydrate-catch`（未关 D16）**：Hub `hydrate` try/catch；IPC reject 保留预 hydrate 默认、不 fire 半应用 cache。[D84](deferred-gaps.md) **已闭**。
 子 agent 发现的既有代码问题：
 | ID | 来源 | 问题 |
 |:---|:-----|:-----|
@@ -173,7 +173,8 @@ summary: "FileMutationJoin / createScoped / Review 委托已修。D16 / D31 F4 �
 | [D80](deferred-gaps.md) | A 槽 `lens-retry-error-postbound-catch` | **closed** `retryError` `postBound` throw 已 `showPostFailure('failed')`；未关 D16 |
 | [D81](deferred-gaps.md) | B 槽 `channel-client-hydrate-catch` | **closed** hydrate / refreshPhase IPC reject 已吞；保留已写缓存；不 fire 半应用 phase；未关 D16 |
 | [D82](deferred-gaps.md) | D 槽 `navigator-reveal-throw-notice` | **closed** `openSubAgent` throw 已 `INotificationService.error`；void 调用点未改；未关 D16 / D21 |
-| [D83](deferred-gaps.md) | A 槽 `lens-permission-question-postbound-catch` | **closed** `resolveConfirmation` / `resolveQuestion` `postBound` throw 已 `showPostFailure('failed')`；void 调用点未改；未关 D16 |
+| [D83](deferred-gaps.md) | A 槽 `lens-permission-question-postbound-catch` | **closed** permission/question `postBound` throw 已 `showPostFailure('failed')`；未关 D16 |
+| [D84](deferred-gaps.md) | B 槽 `hub-client-hydrate-catch` | **closed** Hub hydrate IPC reject 已吞；保留预 hydrate 默认；未关 D16 |
 
 ## 工位表（P0 盘点 · 2026-09-07 · 与 `git worktree list` 对照）
 
@@ -185,7 +186,6 @@ summary: "FileMutationJoin / createScoped / Review 委托已修。D16 / D31 F4 �
 | C | `vscode-WorkTrees/C` | `loop/C` | `2b106085ba2` | 未提交 `dev/loop` + `__pycache__` | 0 | idle；勿 add `dev/loop` |
 | D | `vscode-WorkTrees/D` | `loop/D` | `2b106085ba2` | `__pycache__` | 0 | idle |
 | edit | `Projects/Agents/vscode` | `agent-ide` | `a40a95d1e85`+ | `dev/loop` + 过期 progress | 0 | 人类工位；请自行对齐 `2b106085ba2` |
-
 ## Blockers
 无。
 ## Next
