@@ -4,16 +4,14 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-08
-summary: "FileMutationJoin / createScoped / Review 委托已修。D16 / D31 F4 仍开。官方三域 glob 已绿。D44–D87 / D89 / D90 已闭。Connection profile CRUD throw 已挂。ensurePrimaryWindow throw 已回滚半应用 primary。A2 仍 blocked。"
+summary: "FileMutationJoin / createScoped / Review 委托已修。D16 / D31 F4 仍开。官方三域 glob 已绿。D44–D90 已闭。Connection CRUD / Fork openForkTab / ensurePrimaryWindow throw 已挂。A2 仍 blocked。"
 ---
 
 # Development Progress
-
 > **当前迭代账**（规则 3a）。产品状态 → [traceability](../../docs/product/traceability.md)（生成列）；方案状态 → [plans INDEX](../plans/INDEX.md)（生成列）；延期 → [deferred-gaps](deferred-gaps.md)。历史槽位 catalog 流水 → [归档](../archive/status-current-session-slot-catalog-2026-09-05.md)。
 ## Current Session
 
 ### 已合入（集成基线 `c1b228caf74`，已 push `origin/agent-ide`）
-
 | 切片 | 提交 / 落点 |
 |:-----|:------------|
 | **GFS-1** | `32f71812` / `32198d0b` — [giant-file-split](../plans/giant-file-split.md)：`grpcClient` mapper 特征测 + facade / mappers / calls 拆分 |
@@ -106,8 +104,9 @@ summary: "FileMutationJoin / createScoped / Review 委托已修。D16 / D31 F4 �
 55. **D 槽 `promote-subagent-throw-notice`（未关 D16）**：Promote `openExtensionTab` throw → `INotificationService.error`。[D85](deferred-gaps.md) **已闭**。
 56. **A 槽 `composer-submit-postbound-catch`（未关 D16）**：`submitDraft` `postBound` reject → `showPostFailure('failed')`。[D86](deferred-gaps.md) **已闭**。
 57. **D 槽 `breadcrumb-navigate-throw-notice`（未关 D16）**：`navigateAgentBreadcrumb` try/catch → notice；void 未改。[D87](deferred-gaps.md) **已闭**。
-58. **A 槽 `connection-profile-crud-throw`（未关 D16 / 未关 D88）**：Add Direct / Disconnect / Forget / ConnectDevice 补 try/catch；throw 画 Direct / 可见 Profiles·Devices status。[D89](deferred-gaps.md) **已闭**。未 compile。
-59. **B 槽 `session-window-primary-bootstrap-catch`（未关 D16 / D88）**：`ensurePrimaryWindow` 先 `ensureLeaf` 再提交 `primarySessionKey`；throw 回滚半应用 leaf，void 未改。[D90](deferred-gaps.md) **已闭**。
+58. **D 槽 `fork-open-tab-throw-notice`（未关 D16）**：`openForkTab` try/catch → notice；首个 await 前 hoist。[D88](deferred-gaps.md) **已闭**。
+59. **A 槽 `connection-profile-crud-throw`（未关 D16）**：Add Direct / Disconnect / Forget / ConnectDevice throw 画 status。[D89](deferred-gaps.md) **已闭**。
+60. **B 槽 `session-window-primary-bootstrap-catch`（未关 D16）**：`ensurePrimaryWindow` 先 `ensureLeaf` 再提交 key；throw 回滚半应用 leaf。[D90](deferred-gaps.md) **已闭**。
 子 agent 发现的既有代码问题：
 | ID | 来源 | 问题 |
 |:---|:-----|:-----|
@@ -176,8 +175,9 @@ summary: "FileMutationJoin / createScoped / Review 委托已修。D16 / D31 F4 �
 | [D85](deferred-gaps.md) | D 槽 `promote-subagent-throw-notice` | **closed** Promote `openExtensionTab` throw 已 notice；未关 D16 |
 | [D86](deferred-gaps.md) | A 槽 `composer-submit-postbound-catch` | **closed** `submitDraft` `postBound` throw 已 `showPostFailure('failed')`；未关 D16 |
 | [D87](deferred-gaps.md) | D 槽 `breadcrumb-navigate-throw-notice` | **closed** `navigateAgentBreadcrumb` throw 已 notice；未关 D16 |
+| [D88](deferred-gaps.md) | D 槽 `fork-open-tab-throw-notice` | **closed** Fork `openForkTab` throw 已 notice；未关 D16 |
 | [D89](deferred-gaps.md) | A 槽 `connection-profile-crud-throw` | **closed** Add Direct / Disconnect / Forget / ConnectDevice throw 已画 status；未关 D16 |
-| [D90](deferred-gaps.md) | B 槽 `session-window-primary-bootstrap-catch` | **closed** `ensurePrimaryWindow` throw 已回滚半应用 primary；未关 D16 / D88 |
+| [D90](deferred-gaps.md) | B 槽 `session-window-primary-bootstrap-catch` | **closed** `ensurePrimaryWindow` throw 已回滚半应用 primary；未关 D16 |
 
 ## 工位表（P0 盘点 · 2026-09-07 · 与 `git worktree list` 对照）
 | 槽 | 路径 | 分支 | tip | 脏 | stash | 关仓状态 |
