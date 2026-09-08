@@ -33,6 +33,7 @@ import {
 	conversationLensDockTemplatesTitle,
 	conversationLensDockToolsEngineHint,
 	conversationLensDockTuneTitle,
+	conversationLensPostFailed,
 	conversationLensPostFailedDisconnected,
 	conversationLensPostFailedMailboxFull,
 	conversationLensPostFailedNoSession,
@@ -582,7 +583,9 @@ export function showPostFailure(host: IConversationLensComposerChromeHost, reaso
 				? conversationLensPostFailedNotAuthenticated
 				: reason === 'engine_disconnected'
 					? conversationLensPostFailedDisconnected
-					: conversationLensPostFailedNoSession;
+					: reason === 'failed'
+						? conversationLensPostFailed
+						: conversationLensPostFailedNoSession;
 		showGateNotice(host, message);
 	
 }
