@@ -436,6 +436,14 @@ export class EngineAgentsSection extends Disposable {
 		return false;
 	}
 
+	setAgentToolPendingForTest(tool: UniverseAgentToolSummary, enabled: boolean): void {
+		if (!this.selectedProfile || !this.canEditAgentTools()) {
+			return;
+		}
+		this.agentToolPending.set(toolEnablementPendingKey(this.selectedProfile.id, tool.name), enabled);
+		this.toolsSaveButton.enabled = this.isAgentToolEnablementDirty();
+	}
+
 	isDeleteActionVisible(): boolean {
 		return this.deleteButton.element.style.display !== 'none';
 	}
@@ -808,6 +816,7 @@ export class EngineAgentsSection extends Disposable {
 			}
 			this.agentTools = [];
 			this.agentToolsLoadFailed = undefined;
+			this.agentToolPending.clear();
 			this.setProfiles(result.profiles);
 			this.hideCatalogWriteStatus();
 			this.mode = resolveEngineCatalogPaneMode(true, support, {
