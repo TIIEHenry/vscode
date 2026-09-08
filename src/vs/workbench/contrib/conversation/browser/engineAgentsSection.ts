@@ -806,6 +806,8 @@ export class EngineAgentsSection extends Disposable {
 				this.renderStatus();
 				return;
 			}
+			this.agentTools = [];
+			this.agentToolsLoadFailed = undefined;
 			this.setProfiles(result.profiles);
 			this.hideCatalogWriteStatus();
 			this.mode = resolveEngineCatalogPaneMode(true, support, {

@@ -553,6 +553,7 @@ export class EngineToolsSection extends Disposable {
 			}
 			this.profiles = profilesResult.profiles.filter(profile => profile.source !== 'built_in');
 			this.populateProfileSelect();
+			const selectedToolName = this.selectedToolName;
 			this.setTools(toolsResult.tools);
 			this.hideCatalogWriteStatus();
 			this.mode = resolveEngineCatalogPaneMode(true, support, {
@@ -562,6 +563,11 @@ export class EngineToolsSection extends Disposable {
 			this.listContainer.style.display = canShowCatalogRows(this.mode) ? '' : 'none';
 			this.updateSaveChrome();
 			this.renderStatus();
+			if (selectedToolName) {
+				this.selectedToolName = selectedToolName;
+				this.clearToolInfo();
+				void this.loadToolInfo(selectedToolName);
+			}
 		} catch (error) {
 			this.clearCatalogPresentation();
 			this.mode = resolveEngineCatalogPaneMode(true, support, {

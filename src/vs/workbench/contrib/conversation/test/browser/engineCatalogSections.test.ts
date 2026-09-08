@@ -496,6 +496,53 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		assert.strictEqual(parent.querySelector('textarea'), null);
 	});
 
+	test('Tools: successful refresh reloads selected tool info and drops stale detail', async () => {
+		let getToolInfoCalls = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { tools: { support: 'SUPPORTED' } },
+			listTools: async () => ({ tools: [{ name: 'bash', description: 'list desc', category: 'shell' }] }),
+			listAgentProfiles: async () => ({
+				profiles: [{ id: 'demo', name: 'Demo Agent', source: 'user' as const }],
+			}),
+			getToolInfo: async (request) => {
+				getToolInfoCalls++;
+				if (getToolInfoCalls === 1) {
+					return {
+						name: request.toolName,
+						description: 'Run a command',
+						category: 'shell',
+						destructive: false,
+						requiresPermission: false,
+						aliases: [],
+					};
+				}
+				throw new Error('getToolInfo exploded');
+			},
+		});
+		const section = mountToolsSection(connection);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.strictEqual(section.selectTool('bash'), true);
+		await flushMicrotasks();
+		assert.ok((section.getToolInfoDetailText() ?? '').includes('Run a command'));
+
+		connection.setConnected(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.ok(section.getListEntryCount() > 0);
+		const infoHost = section.getDomNode().querySelector('.engine-tools-info') as HTMLElement | null;
+		assert.ok(infoHost);
+		const detail = (section.getToolInfoDetailText() ?? infoHost.textContent ?? '');
+		assert.ok(detail.includes(localize(
+			'ua.engineToolsInfoFailed',
+			"Could not load tool details from the engine.",
+		)));
+		assert.ok(!detail.includes('Run a command'));
+	});
+
 	test('Tools: missing getToolInfo hook explains the detail API is unavailable', async () => {
 		const connection = createConnectionStub({
 			connected: true,
@@ -919,6 +966,53 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		assert.ok(toolsStatus.textContent?.includes(getCatalogFailedCopy(AGENT_TOOLS_FEATURE, 'listTools exploded')));
 		assert.strictEqual(section.getMode(), 'ready');
 		assert.strictEqual(section.getListEntryCount(), 1);
+	});
+
+	test('Agents: tools tab reconnect listTools throw drops leftover rows and keeps catalog', async () => {
+		let listToolsCalls = 0;
+		let listAgentProfilesCalls = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+			listAgentProfiles: async () => {
+				listAgentProfilesCalls++;
+				return { profiles: [demoUserAgent()] };
+			},
+			listTools: async () => {
+				listToolsCalls++;
+				if (listToolsCalls === 1) {
+					return { tools: [{ name: 'leftover-agent-tool' }] };
+				}
+				throw new Error('listTools exploded');
+			},
+		});
+		const section = mountAgentsSection(connection);
+		section.setSectionActive(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.ok(section.getListEntryCount() > 0);
+		await section.selectProfileByIdForTest('demo');
+		section.setActiveAgentDetailTabForTest('tools');
+		await flushMicrotasks();
+
+		assert.ok((section.getDomNode().textContent ?? '').includes('leftover-agent-tool'));
+		assert.strictEqual(listAgentProfilesCalls, 1);
+
+		connection.setConnected(true);
+		await flushMicrotasks();
+
+		const toolsStatus = section.getDomNode().querySelector(
+			'.engine-agents-tools-panel .engine-catalog-status-widget[data-catalog-mode="failed"]',
+		) as HTMLElement | null;
+		assert.ok(toolsStatus);
+		assert.ok(toolsStatus.textContent?.includes(getCatalogFailedCopy(AGENT_TOOLS_FEATURE, 'listTools exploded')));
+		assert.ok(!(section.getDomNode().textContent ?? '').includes('leftover-agent-tool'));
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.strictEqual(section.getListEntryCount(), 1);
+		assert.ok((section.getDomNode().textContent ?? '').includes('Demo Agent'));
+		assert.strictEqual(listAgentProfilesCalls, 2);
+		assert.strictEqual(listToolsCalls, 2);
 	});
 
 	test('MCP: successful load then refresh throw is failed with no leftover catalog', async () => {

@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-08
-summary: "FileMutationJoin / createScoped / Review 委托已修。D16 仍开。官方三域 glob 已绿。D44–D67 已闭。Team leftover 已清。Connection listDevices/listPending throw 保留末次快照并画失败 note。renameDevice / 成功后 refreshDirectory throw 画 hubDirectoryBanner。login / changePassword throw 画 hubAuthBadge。probeConnectionProfile / logout / Hub fallback revokeDevice / confirmDeviceCode throw 画对应 hook。Snapshots / MCP Add·Update·Remove·toggle / Skills create·toggle·save / Agents / Tools enablement 写失败 write-status 已挂载（不卸行）。Agents Tools 页 listTools throw 画 failed 而非 empty。MCP runtime getMcpServerTools throw 清 leftover 并画 failed。git-read / open-diff / Stage·Commit / Unstage throw 与 Stage·Commit ok:false status DOM 已挂载。A2 仍 blocked。"
+summary: "FileMutationJoin / createScoped / Review 委托已修。D16 仍开。官方三域 glob 已绿。D44–D69 已闭。Team leftover 已清。Connection list leftover / write throw 已挂。Snapshots / MCP / Skills / Agents / Tools 写失败 write-status 已挂。Agents Tools 页 listTools throw 画 failed；重连后再 throw 清 leftover。Tools 成功 refresh 后 getToolInfo throw 重画详情。MCP runtime leftover 已清。git-read / open-diff / Stage·Commit / Unstage throw 与 ok:false status 已挂。A2 仍 blocked。"
 ---
 
 # Development Progress
@@ -96,6 +96,7 @@ summary: "FileMutationJoin / createScoped / Review 委托已修。D16 仍开。�
 37. **A 槽 `hub-remaining-write-throw`（未关 D16 / 未发明 GetQueue / proto / 未碰 F4 / 引擎 / `.sessions` / `dev/loop` / unused-import / D26 / 未重做 D61 list leftover / D62 rename / D64 login·changePassword）**：`handleTestConnection`（active profile `probeConnectionProfile`）/ `handleLogout` / Hub fallback `revokeDevice` / `confirmDeviceCode` 补与同目标 catch，throw 画 `testStatus` / `hubAuthBadge` / `hubDirectoryBanner` / `hubDeviceCodeStatus`。`!result.ok` 原路径未改。测锁四条 throw。[D65](deferred-gaps.md) **已闭**。未 compile。未改 `handleForget` / `addDirectAddress` / `addHubDeviceProfile` / `handleDisconnect`。
 38. **A 槽 `skills-save-write-status`（未关 D16 / 未发明 GetQueue / proto / 未碰 F4 / 引擎 / `.sessions` / `dev/loop` / unused-import / D26 / 未改 create·toggle / leftover refresh）**：`saveSelectedSkillBody` `{ ok:false }` / throw 走 `paintSkillWriteFailed`（既有 `ua.engineSkillBodySaveFailed`），同时画 `.engine-skill-write-status` 与 body-status；不造假行、不改选中、不清 catalog。测锁 status DOM + 行仍在。[D66](deferred-gaps.md) **已闭**。未 compile。
 39. **B 槽 `mcp-runtime-tools-leftover`（未关 D16 / 未发明 GetQueue / proto / 未碰 F4 / 引擎 / `.sessions` / `dev/loop` / unused-import / D26 / 未改 `engineMcpSection.ts`）**：`loadTools` catch 在 `tools=[]` 后 `DOM.clearNode(this.toolsList)` 再 hide，仍画 `toolsStatus` `failed`；不调 `clearToolsPresentation()`。测锁成功→throw leftover 工具名消失；首拉 throw 仍 failed。[D67](deferred-gaps.md) **已闭**。未 compile。
+40. **A 槽 `catalog-reconnect-stale`（未关 D16 / 未发明 GetQueue / proto / heartbeat `client_id` / 未碰 F4 / 引擎 / `.sessions` / `dev/loop` / D26 / D22 / A2 / unused-import）**：Agents connected+SUPPORTED `refresh` 成功在 `setProfiles`/`syncDetailHost` 前 invalidate `agentTools` / `agentToolsLoadFailed`（不消 catalog、不改 UNKNOWN）。Tools 成功 `refresh` 若有选中则清 info 再 `loadToolInfo`（`listTools` throw 仍清 catalog）。测锁 leftover 工具名消失 + toolsStatus failed + catalog ready；详情 failed 无 `Run a command`。[D68](deferred-gaps.md)/[D69](deferred-gaps.md) **已闭**。未 compile。
 
 子 agent 发现的既有代码问题：
 
@@ -146,6 +147,8 @@ summary: "FileMutationJoin / createScoped / Review 委托已修。D16 仍开。�
 | [D65](deferred-gaps.md) | A 槽 `hub-remaining-write-throw` | **closed** `probeConnectionProfile` / `logout` / Hub fallback `revokeDevice` / `confirmDeviceCode` throw 画对应 hook；未关 D16；未重做 D61/D62/D64 |
 | [D66](deferred-gaps.md) | A 槽 `skills-save-write-status` | **closed** `saveSelectedSkillBody` `ok:false` / throw 走 `paintSkillWriteFailed`；write-status + body-status 可见；不清 catalog、不改选中；未关 D16 |
 | [D67](deferred-gaps.md) | B 槽 `mcp-runtime-tools-leftover` | **closed** `getMcpServerTools` throw 清 leftover 工具名并画 `toolsStatus` `failed`；首拉 throw 仍 failed；未关 D16 |
+| [D68](deferred-gaps.md) | A 槽 `catalog-reconnect-stale` | **closed** Agents Tools 页重连后第二次 `listTools` throw 清 leftover 并画 failed；catalog 仍 ready；UNKNOWN 未改；未关 D16 |
+| [D69](deferred-gaps.md) | A 槽 `catalog-reconnect-stale` | **closed** Tools 成功 refresh 后 `getToolInfo` throw 重画详情 failed；catalog 仍 ready（非 D46）；未关 D16 |
 
 ## 工位表（P0 盘点 · 2026-09-07 · 与 `git worktree list` 对照）
 
