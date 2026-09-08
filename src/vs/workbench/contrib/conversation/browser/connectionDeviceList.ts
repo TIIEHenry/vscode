@@ -34,6 +34,11 @@ export function connectionDeviceRotateTokenFailureMessage(message: string): stri
 	return message || localize('ua.connectionDeviceRotateTokenFailed', "Unable to rotate token.");
 }
 
+/** Honest revoke success=false copy — empty engine message still needs a banner. */
+export function connectionDeviceRevokeFailureMessage(message: string): string {
+	return message || localize('ua.connectionDeviceRevokeFailed', "Unable to revoke device.");
+}
+
 /** Honest listDevices throw copy — last snapshot stays; this is not an empty list. */
 export function connectionDeviceListFailureMessage(reason: string): string {
 	return localize('ua.connectionDeviceListFailed', "Unable to list devices: {0}", reason);

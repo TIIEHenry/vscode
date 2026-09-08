@@ -29,6 +29,7 @@ import {
 	canSendConnectionDeviceRotateToken,
 	CONNECTION_DEVICE_ROTATE_TOKEN_LABEL,
 	connectionDeviceListFailureMessage,
+	connectionDeviceRevokeFailureMessage,
 	connectionDeviceRotateTokenFailureMessage,
 	connectionDeviceRotateTokenIds,
 	toConnectionPairedDevice,
@@ -1497,12 +1498,15 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 			const request = connectionDeviceRevokeIds(device.id);
 			try {
 				const result = await revokeHook.call(this.connectionService, request);
+				if (!result.success) {
+					writeStatus(this.hubDirectoryBanner, connectionDeviceRevokeFailureMessage(result.message), 'error');
+					this.hubDirectoryBanner.style.display = '';
+					return;
+				}
 				this.hubDirectoryBanner.textContent = result.message;
 				this.hubDirectoryBanner.style.display = '';
-				if (result.success) {
-					await this.hubService.refreshDirectory();
-					this.renderProfiles();
-				}
+				await this.hubService.refreshDirectory();
+				this.renderProfiles();
 			} catch (error) {
 				const reason = error instanceof Error && error.message ? error.message : String(error);
 				this.hubDirectoryBanner.textContent = reason;
