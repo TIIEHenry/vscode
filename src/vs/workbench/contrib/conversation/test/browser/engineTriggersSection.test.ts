@@ -383,6 +383,86 @@ suite('EngineTriggersSection', () => {
 		pane.getDomNode().parentElement?.remove();
 	});
 
+	test('DeleteTrigger success refreshes so the deleted row is gone', async () => {
+		const triggerId = '  trig  ';
+		let deleted = false;
+		let listTriggersCalls = 0;
+		const pane = mountSection(createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			listTriggers: async (): Promise<UniverseAgentListTriggersResult> => {
+				listTriggersCalls++;
+				if (deleted) {
+					return { triggers: [] };
+				}
+				return {
+					triggers: [emptyTrigger({
+						triggerId,
+						name: '  Nightly  ',
+						type: 'cron',
+						target: { kind: 'self' },
+					})],
+				};
+			},
+			deleteTrigger: async () => {
+				deleted = true;
+				return {};
+			},
+		}));
+		await flushMicrotasks();
+		assert.strictEqual(listTriggersCalls, 1);
+		const row = pane.getDomNode().querySelector('.engine-triggers-row') as HTMLElement | null;
+		assert.ok(row);
+		row.click();
+		const del = findActionButton(pane.getDomNode(), ENGINE_TRIGGER_DELETE_LABEL);
+		assert.ok(del);
+		del.click();
+		await flushMicrotasks();
+		assert.ok(listTriggersCalls >= 2);
+		assert.strictEqual(pane.getDomNode().querySelector('.engine-triggers-row'), null);
+		assert.ok((pane.getDomNode().textContent ?? '').includes('No triggers.'));
+		pane.getDomNode().parentElement?.remove();
+	});
+
+	test('DeleteTrigger throw paints delete-status and leaves the row', async () => {
+		let listTriggersCalls = 0;
+		const pane = mountSection(createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			listTriggers: async (): Promise<UniverseAgentListTriggersResult> => {
+				listTriggersCalls++;
+				return {
+					triggers: [emptyTrigger({
+						triggerId: '  trig  ',
+						name: '  Nightly  ',
+						type: 'cron',
+						target: { kind: 'self' },
+					})],
+				};
+			},
+			deleteTrigger: async () => {
+				throw new Error('boom');
+			},
+		}));
+		await flushMicrotasks();
+		assert.strictEqual(listTriggersCalls, 1);
+		const row = pane.getDomNode().querySelector('.engine-triggers-row') as HTMLElement | null;
+		assert.ok(row);
+		row.click();
+		const del = findActionButton(pane.getDomNode(), ENGINE_TRIGGER_DELETE_LABEL);
+		assert.ok(del);
+		del.click();
+		await flushMicrotasks();
+		assert.strictEqual(listTriggersCalls, 1);
+		const leftover = pane.getDomNode().querySelector('.engine-triggers-row');
+		assert.ok(leftover);
+		const deleteStatus = pane.getDomNode().querySelector('.engine-triggers-delete-status') as HTMLElement | null;
+		assert.ok(deleteStatus);
+		assert.strictEqual(deleteStatus.textContent, 'boom');
+		assert.notStrictEqual(deleteStatus.style.display, 'none');
+		pane.getDomNode().parentElement?.remove();
+	});
+
 	test('UpsertTrigger does not send when disconnected or hook missing', async () => {
 		const upsertCalls: UniverseAgentUpsertTriggerRequest[] = [];
 		const disconnected = mountSection(createConversationConnectionTestStub({

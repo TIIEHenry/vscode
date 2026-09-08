@@ -325,6 +325,7 @@ export class EngineTriggersSection extends Disposable {
 			await hook.call(this.connection, request);
 			this.deleteStatus.textContent = '';
 			this.deleteStatus.style.display = '';
+			await this.refresh();
 		} catch (error) {
 			const reason = error instanceof Error && error.message ? error.message : String(error);
 			this.deleteStatus.textContent = reason;
