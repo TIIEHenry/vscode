@@ -158,6 +158,7 @@ export class ConversationSessionsView extends ViewPane {
 
 		this._register(this.stubService.onDidChangeActiveSession(() => this.refreshList()));
 		this._register(this.stubService.onDidChangeSession(() => this.refreshList()));
+		this._register(this.stubService.onDidChangeEngineConnection(() => this.refreshList()));
 	}
 
 	createNewSession(): void {
