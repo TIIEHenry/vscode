@@ -15,7 +15,7 @@ import {
 	conversationLensPostFailedNoSession,
 	type ConversationComposerPostFailureReason,
 } from '../../browser/conversationLensDockStrings.js';
-import { bindSessionView, cancelToolCall, deleteTurn, resolveConfirmation, resolveQuestion, retryError, type IConversationLensSessionBindingHost } from '../../browser/conversationLensSessionBinding.js';
+import { bindSessionView, cancelToolCall, copyTurn, deleteTurn, resolveConfirmation, resolveQuestion, retryError, type IConversationLensSessionBindingHost } from '../../browser/conversationLensSessionBinding.js';
 import type { ConversationWriteMessage, PostOutcome } from '../../../../../platform/universeAgent/common/conversationViewFrame.js';
 
 suite('conversation lens dispose gate', () => {
@@ -666,6 +666,55 @@ suite('conversation lens dispose gate', () => {
 		assert.strictEqual(exited, 1);
 		assert.strictEqual(released, 1);
 		assert.strictEqual(renderedInbox, 1);
+	});
+
+	test('copyTurn writeText reject shows failed and does not leave an unhandled rejection', async () => {
+		const failures: ConversationComposerPostFailureReason[] = [];
+		const rejections: unknown[] = [];
+		const onUnhandled = (reason: unknown) => { rejections.push(reason); };
+		const host = {
+			clipboardService: {
+				writeText: async () => {
+					throw new Error('writeText boom');
+				},
+			},
+			showPostFailure: (reason: ConversationComposerPostFailureReason) => {
+				failures.push(reason);
+			},
+		} as unknown as IConversationLensSessionBindingHost;
+
+		process.on('unhandledRejection', onUnhandled);
+		try {
+			copyTurn(host, 'copied');
+			await new Promise<void>(resolve => queueMicrotask(() => resolve()));
+			await new Promise<void>(resolve => setImmediate(() => resolve()));
+			assert.deepStrictEqual(failures, ['failed']);
+			assert.deepStrictEqual(rejections, []);
+		} finally {
+			process.off('unhandledRejection', onUnhandled);
+		}
+	});
+
+	test('copyTurn writeText resolve stays silent', async () => {
+		const failures: ConversationComposerPostFailureReason[] = [];
+		const written: string[] = [];
+		const host = {
+			clipboardService: {
+				writeText: async (text: string) => {
+					written.push(text);
+				},
+			},
+			showPostFailure: (reason: ConversationComposerPostFailureReason) => {
+				failures.push(reason);
+			},
+		} as unknown as IConversationLensSessionBindingHost;
+
+		copyTurn(host, 'copied');
+		await new Promise<void>(resolve => queueMicrotask(() => resolve()));
+		await new Promise<void>(resolve => setImmediate(() => resolve()));
+
+		assert.deepStrictEqual(written, ['copied']);
+		assert.deepStrictEqual(failures, []);
 	});
 
 	test('deleteTurn roster false after disconnect shows engine_disconnected', () => {
