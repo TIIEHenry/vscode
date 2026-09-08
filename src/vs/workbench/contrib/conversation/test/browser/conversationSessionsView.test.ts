@@ -260,6 +260,7 @@ suite('ConversationSessionsView', () => {
 		const stubService = new class extends mock<IConversationRosterService>() {
 			override onDidChangeActiveSession = Event.None;
 			override onDidChangeSession = Event.None;
+			override onDidChangeEngineConnection = Event.None;
 			override getSessions() { return []; }
 			override getActiveSessionId() { return ''; }
 			override createSession() { return 'new'; }
@@ -425,6 +426,7 @@ suite('ConversationSessionsView', () => {
 		const stubService = new class extends mock<IConversationRosterService>() {
 			override onDidChangeActiveSession = Event.None;
 			override onDidChangeSession = Event.None;
+			override onDidChangeEngineConnection = Event.None;
 			override getSessions() { return []; }
 			override getActiveSessionId() { return ''; }
 			override createSession() { return 'new'; }
@@ -497,6 +499,28 @@ suite('ConversationSessionsView', () => {
 		await setFilterQuery(view, 'session');
 
 		assert.deepStrictEqual(getVisibleSessionTitles(view), rosterOrder);
+	});
+
+	test('engine connect empties sidebar roster immediately when getSessions is empty', () => {
+		const stubService = store.add(new class extends ConversationStubService {
+			override getSessions(): readonly ConversationStubSession[] {
+				if (this.isEngineConnected()) {
+					return [];
+				}
+				return super.getSessions();
+			}
+		}());
+		const { view } = mountView({ stubService });
+		const stubRowCount = view.element.querySelectorAll('.conversation-sessions-item-label').length;
+		assert.ok(stubRowCount > 0);
+		assert.strictEqual(view.element.querySelector('.conversation-sessions-empty')?.getAttribute('style'), 'display: none;');
+
+		stubService.setEngineConnected(true);
+
+		assert.strictEqual(stubService.getSessions().length, 0);
+		assert.strictEqual(view.element.querySelector('.conversation-sessions-empty')?.getAttribute('style'), 'display: block;');
+		assert.strictEqual(view.element.querySelector('.conversation-sessions-list')?.getAttribute('style'), 'display: none;');
+		assert.ok(!isFilterVisible(view));
 	});
 
 	test('click still switches session for a visible filtered row', async () => {
