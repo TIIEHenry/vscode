@@ -270,8 +270,16 @@ export function saveQueueEdit(host: IConversationLensComposerHost): void {
 		}
 		const sessionId = host.getBoundSessionId();
 		const itemId = item.id;
+		const saved = host.stubService.updateMessageQueueItemContent(sessionId, itemId, text);
+		if (!saved) {
+			host.showPostFailure(
+				!host.stubService.isEngineConnected() && host.stubService.hasEngineConnectionHistory()
+					? 'engine_disconnected'
+					: 'failed'
+			);
+			return;
+		}
 		host.exitComposerEdit(true, false);
-		host.stubService.updateMessageQueueItemContent(sessionId, itemId, text);
 		host.stubService.releaseMessageQueueItemHold(sessionId, itemId);
 		host.renderInboxStatus();
 	
