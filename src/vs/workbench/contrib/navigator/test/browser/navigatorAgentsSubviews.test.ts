@@ -4,9 +4,11 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { getErrorMessage } from '../../../../../base/common/errors.js';
 import { Event } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { isIMenuItem, MenuId, MenuRegistry } from '../../../../../platform/actions/common/actions.js';
+import { INotificationService } from '../../../../../platform/notification/common/notification.js';
 import { WorkbenchList, WorkbenchObjectTree } from '../../../../../platform/list/browser/listService.js';
 import { Registry } from '../../../../../platform/registry/common/platform.js';
 import { Extensions as ViewExtensions, IViewContainerModel, IViewDescriptorService, IViewsRegistry, ViewContainer, ViewContainerLocation } from '../../../../common/views.js';
@@ -619,5 +621,76 @@ suite('Navigator Agents subviews', () => {
 		view.revealHierarchyNode(hierarchyNode('sub:alpha', 'Alpha'));
 		await new Promise<void>(resolve => setTimeout(resolve, 0));
 		assert.deepStrictEqual(opened, [{ sessionKey: roster.getActiveSessionId(), chatId: 'sub:alpha', title: 'Alpha' }]);
+	});
+
+	test('openSubAgent throw notifies error without unhandled rejection', async () => {
+		const boom = new Error('Sub-agent overlay for session untitled is not mounted');
+		const errors: string[] = [];
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		const roster = store.add(new ConversationStubService());
+		instantiationService.stub(IConversationRosterService, roster);
+		instantiationService.stub(IAgentInspectService, store.add(instantiationService.createInstance(AgentInspectService)) as IAgentInspectService);
+		instantiationService.stub(ICommandService, { executeCommand: async () => undefined });
+		instantiationService.stub(IUniverseAgentConnection, createNavigatorConnectionTestStub());
+		instantiationService.stub(IConversationPartService, { focus: () => { } } as IConversationPartService);
+		instantiationService.stub(IConversationSessionChatService, {
+			findOpenTabForChat: () => undefined,
+			isSubAgentDialogOpen: () => false,
+			closeSubAgentDialog: () => { },
+			navigateAgentBreadcrumb: async () => { },
+			openSubAgent: async () => {
+				throw boom;
+			},
+		} as unknown as IConversationSessionChatService);
+		instantiationService.stub(INotificationService, {
+			error: (message: string | Error) => {
+				errors.push(typeof message === 'string' ? message : getErrorMessage(message));
+			},
+		} as INotificationService);
+		const stubViewContainer = {
+			id: 'navigator-agents-test-container',
+			title: { value: 'Agents', original: 'Agents' },
+		} as ViewContainer;
+		instantiationService.stub(IViewDescriptorService, {
+			onDidChangeLocation: Event.None,
+			getViewLocationById(_id: string): ViewContainerLocation {
+				return ViewContainerLocation.Sidebar;
+			},
+			getViewDescriptorById(_id: string): null {
+				return null;
+			},
+			getViewContainerByViewId(_id: string): ViewContainer | null {
+				return stubViewContainer;
+			},
+			getViewContainerModel(_viewContainer: ViewContainer): IViewContainerModel {
+				return {
+					title: stubViewContainer.title.value,
+					onDidChangeContainerInfo: Event.None,
+				} as IViewContainerModel;
+			},
+			getDefaultContainerById(_id: string): ViewContainer | null {
+				return stubViewContainer;
+			},
+		});
+		const view = store.add(instantiationService.createInstance(NavigatorAgentsView, {
+			id: NAVIGATOR_AGENTS_VIEW_ID,
+			title: 'Agents',
+		}));
+		view.render();
+		document.createElement('div').appendChild(view.element);
+		view.setExpanded(true);
+		view.setVisible(true);
+
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			view.revealHierarchyNode(hierarchyNode('sub:alpha', 'Alpha'));
+			await new Promise<void>(resolve => setTimeout(resolve, 0));
+			assert.deepStrictEqual(errors, [getErrorMessage(boom)]);
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
 	});
 });
