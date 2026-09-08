@@ -194,7 +194,14 @@ export function copyTurn(host: IConversationLensSessionBindingHost, text: string
 
 export function deleteTurn(host: IConversationLensSessionBindingHost, turnId: string): void {
 
-	host.stubService.deleteTurn(host.getBoundSessionId(), turnId);
+	const deleted = host.stubService.deleteTurn(host.getBoundSessionId(), turnId);
+	if (!deleted) {
+		host.showPostFailure(
+			!host.stubService.isEngineConnected() && host.stubService.hasEngineConnectionHistory()
+				? 'engine_disconnected'
+				: 'failed'
+		);
+	}
 
 }
 
@@ -205,10 +212,17 @@ export function cancelToolCall(host: IConversationLensSessionBindingHost, turn: 
 		return;
 	}
 	const agentId = turn.agentId?.trim();
-	host.stubService.cancelToolCall(host.getBoundSessionId(), {
+	const cancelled = host.stubService.cancelToolCall(host.getBoundSessionId(), {
 		toolCallId,
 		...(agentId ? { agentId } : {}),
 	});
+	if (!cancelled) {
+		host.showPostFailure(
+			!host.stubService.isEngineConnected() && host.stubService.hasEngineConnectionHistory()
+				? 'engine_disconnected'
+				: 'failed'
+		);
+	}
 
 }
 

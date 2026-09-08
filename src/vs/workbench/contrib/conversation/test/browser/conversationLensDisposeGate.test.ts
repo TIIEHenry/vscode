@@ -15,7 +15,7 @@ import {
 	conversationLensPostFailedNoSession,
 	type ConversationComposerPostFailureReason,
 } from '../../browser/conversationLensDockStrings.js';
-import { bindSessionView, resolveConfirmation, resolveQuestion, retryError, type IConversationLensSessionBindingHost } from '../../browser/conversationLensSessionBinding.js';
+import { bindSessionView, cancelToolCall, deleteTurn, resolveConfirmation, resolveQuestion, retryError, type IConversationLensSessionBindingHost } from '../../browser/conversationLensSessionBinding.js';
 import type { ConversationWriteMessage, PostOutcome } from '../../../../../platform/universeAgent/common/conversationViewFrame.js';
 
 suite('conversation lens dispose gate', () => {
@@ -484,6 +484,130 @@ suite('conversation lens dispose gate', () => {
 		assert.strictEqual(exited, 1);
 		assert.strictEqual(released, 1);
 		assert.strictEqual(renderedInbox, 1);
+	});
+
+	test('deleteTurn roster false after disconnect shows engine_disconnected', () => {
+		const failures: ConversationComposerPostFailureReason[] = [];
+		let deleteCalls = 0;
+		const host = {
+			getBoundSessionId: () => 'sess-1',
+			stubService: {
+				deleteTurn: () => {
+					deleteCalls++;
+					return false;
+				},
+				isEngineConnected: () => false,
+				hasEngineConnectionHistory: () => true,
+			},
+			showPostFailure: (reason: ConversationComposerPostFailureReason) => {
+				failures.push(reason);
+			},
+		} as unknown as IConversationLensSessionBindingHost;
+
+		deleteTurn(host, 'turn-1');
+
+		assert.strictEqual(deleteCalls, 1);
+		assert.deepStrictEqual(failures, ['engine_disconnected']);
+	});
+
+	test('deleteTurn roster false without connection history shows failed', () => {
+		const failures: ConversationComposerPostFailureReason[] = [];
+		const host = {
+			getBoundSessionId: () => 'sess-1',
+			stubService: {
+				deleteTurn: () => false,
+				isEngineConnected: () => false,
+				hasEngineConnectionHistory: () => false,
+			},
+			showPostFailure: (reason: ConversationComposerPostFailureReason) => {
+				failures.push(reason);
+			},
+		} as unknown as IConversationLensSessionBindingHost;
+
+		deleteTurn(host, 'turn-1');
+
+		assert.deepStrictEqual(failures, ['failed']);
+	});
+
+	test('deleteTurn roster true stays silent', () => {
+		const failures: ConversationComposerPostFailureReason[] = [];
+		const host = {
+			getBoundSessionId: () => 'sess-1',
+			stubService: {
+				deleteTurn: () => true,
+				isEngineConnected: () => false,
+				hasEngineConnectionHistory: () => false,
+			},
+			showPostFailure: (reason: ConversationComposerPostFailureReason) => {
+				failures.push(reason);
+			},
+		} as unknown as IConversationLensSessionBindingHost;
+
+		deleteTurn(host, 'turn-1');
+
+		assert.deepStrictEqual(failures, []);
+	});
+
+	test('cancelToolCall roster false after disconnect shows engine_disconnected', () => {
+		const failures: ConversationComposerPostFailureReason[] = [];
+		let cancelCalls = 0;
+		const host = {
+			getBoundSessionId: () => 'sess-1',
+			stubService: {
+				cancelToolCall: () => {
+					cancelCalls++;
+					return false;
+				},
+				isEngineConnected: () => false,
+				hasEngineConnectionHistory: () => true,
+			},
+			showPostFailure: (reason: ConversationComposerPostFailureReason) => {
+				failures.push(reason);
+			},
+		} as unknown as IConversationLensSessionBindingHost;
+
+		cancelToolCall(host, { id: 'tc-1', agentId: 'sub:a' });
+
+		assert.strictEqual(cancelCalls, 1);
+		assert.deepStrictEqual(failures, ['engine_disconnected']);
+	});
+
+	test('cancelToolCall roster false without connection history shows failed', () => {
+		const failures: ConversationComposerPostFailureReason[] = [];
+		const host = {
+			getBoundSessionId: () => 'sess-1',
+			stubService: {
+				cancelToolCall: () => false,
+				isEngineConnected: () => false,
+				hasEngineConnectionHistory: () => false,
+			},
+			showPostFailure: (reason: ConversationComposerPostFailureReason) => {
+				failures.push(reason);
+			},
+		} as unknown as IConversationLensSessionBindingHost;
+
+		cancelToolCall(host, { id: 'tc-1' });
+
+		assert.deepStrictEqual(failures, ['failed']);
+	});
+
+	test('cancelToolCall roster true stays silent', () => {
+		const failures: ConversationComposerPostFailureReason[] = [];
+		const host = {
+			getBoundSessionId: () => 'sess-1',
+			stubService: {
+				cancelToolCall: () => true,
+				isEngineConnected: () => false,
+				hasEngineConnectionHistory: () => false,
+			},
+			showPostFailure: (reason: ConversationComposerPostFailureReason) => {
+				failures.push(reason);
+			},
+		} as unknown as IConversationLensSessionBindingHost;
+
+		cancelToolCall(host, { id: 'tc-1' });
+
+		assert.deepStrictEqual(failures, []);
 	});
 
 	test('showPostFailure failed uses retry copy not disconnected', () => {
