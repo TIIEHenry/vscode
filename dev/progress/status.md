@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-08
-summary: "D16 / D31 F4 仍开。官方三域 glob 已绿。D44–D90 / D92–D129 / D131 已闭。Triggers 删除成功已 refresh 卸行。RotateToken / Revoke success false 已 banner。A2 仍 blocked。"
+summary: "D16 / D31 F4 仍开。官方三域 glob 已绿。D44–D90 / D92–D129 / D131 / D134 已闭。Clipboard 清空成功已 refresh 卸行。Triggers 删除成功已 refresh 卸行。A2 仍 blocked。"
 ---
 
 # Development Progress
@@ -99,6 +99,7 @@ summary: "D16 / D31 F4 仍开。官方三域 glob 已绿。D44–D90 / D92–D12
 59. **A 槽 `connection-profile-crud-throw`（未关 D16）**：Add Direct / Disconnect / Forget / ConnectDevice throw 画 status。[D89](deferred-gaps.md) **已闭**。
 60. **B 槽 `session-window-primary-bootstrap-catch`（未关 D16）**：先 `ensureLeaf` 再提交 key；in-flight 串行 + 真实 stub；throw 回滚半应用 leaf。[D90](deferred-gaps.md) **已闭**。
 61. **D100–D129 / D131**（未关 D16）：peek / close / opener / stale / save·delete·cancel·Stop·Goal·Enqueue false notice / reveal / open-beside / primary bootstrap notice；Goal / Enqueue 断连+history 可点；permission/question roster false；SessionBar rename/delete 与 Sessions 侧栏 delete false notice；notifications / live-tree / bind / navigator lease / Review attribution acquire throw → notice；Create Snapshot false notice；timeline reveal / accessible content lens throw → notice；接通 `forkSubAgent` false notice+handled；RotateToken / Revoke success false banner；Triggers 删除成功 refresh 卸行。
+62. **B 槽 `engine-clipboard-clear-refresh`（未关 D16 / D31）**：`handleClear` 成功画 `formatEngineClipboardClearLabel` 后 `await refresh()` 再回写 status，`.engine-clipboard-row` 卸行；throw 仍画 `.engine-clipboard-clear-status` 且行仍在。未改 handleWrite / handleRead；未发明 `ok`。[D134](deferred-gaps.md) **已闭**。未 compile。
 子 agent 发现的既有代码问题：
 | ID | 来源 | 问题 |
 |:---|:-----|:-----|
@@ -171,6 +172,7 @@ summary: "D16 / D31 F4 仍开。官方三域 glob 已绿。D44–D90 / D92–D12
 | [D89](deferred-gaps.md) | A 槽 `connection-profile-crud-throw` | **closed** Add Direct / Disconnect / Forget / ConnectDevice throw 已画 status；未关 D16 |
 | [D90](deferred-gaps.md) | B 槽 `session-window-primary-bootstrap-catch` | **closed** throw 回滚 + in-flight 串行；merge 复测 9/9；未关 D16 |
 | [D92](deferred-gaps.md)–[D129](deferred-gaps.md) / [D131](deferred-gaps.md) | B roster+inbox+sessions / D nav / A beside+mru+sessionbar / A·B composer / A notifications / B sessionChat / D bind / A navigator lease / B reveal / A attribution / A rotate / A revoke / B triggers | **closed** throw 回滚/notice；peek；closeEditors；opener 回滚；stale；save/delete/cancel/Stop/Goal/Enqueue false 先 notice；reveal acquire；open-beside / primary bootstrap catch error notice；Goal / Enqueue 断连+history 可点；permission/question roster false；SessionBar rename/delete 与 Sessions 侧栏 delete false notice；notifications / live-tree / bind / navigator lease / Review attribution acquire throw → notice；Create Snapshot false notice；timeline reveal / accessible content lens throw → notice；接通 `forkSubAgent` false notice+handled；RotateToken / Revoke success false banner；Triggers 删除成功 refresh 卸行；未关 D16 |
+| [D134](deferred-gaps.md) | B 槽 `engine-clipboard-clear-refresh` | **closed** Clipboard `handleClear` 成功画 `formatEngineClipboardClearLabel` 后 `await refresh()` 卸行；throw 仍画 clear-status 且行仍在；未关 D16 / D31 |
 
 ## 工位表（P0 盘点 · 2026-09-08 · 与 `git worktree list` 对照）
 | 槽 | 路径 | 分支 | tip | 脏 | stash | 关仓状态 |

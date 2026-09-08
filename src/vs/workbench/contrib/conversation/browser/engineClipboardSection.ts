@@ -289,6 +289,9 @@ export class EngineClipboardSection extends Disposable {
 			const result = await hook.call(this.connection, request);
 			this.clearStatus.textContent = formatEngineClipboardClearLabel(result.removedCount);
 			this.clearStatus.style.display = '';
+			await this.refresh();
+			this.clearStatus.textContent = formatEngineClipboardClearLabel(result.removedCount);
+			this.clearStatus.style.display = '';
 		} catch (error) {
 			const reason = error instanceof Error && error.message ? error.message : String(error);
 			this.clearStatus.textContent = reason;
