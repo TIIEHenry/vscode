@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-08
-summary: "D16 / D31 F4 仍开。官方三域 glob 已绿。D44–D90 / D92–D129 / D131 / D133–D135 已闭。Hub fallback revoke `!ok`/throw 已 error tone。A2 仍 blocked。"
+summary: "D16 / D31 F4 仍开。官方三域 glob 已绿。D44–D90 / D92–D129 / D131 / D133–D136 已闭。Hub fallback revoke 已 error tone。Triggers upsert 成功已 refresh。A2 仍 blocked。"
 ---
 
 # Development Progress
@@ -98,8 +98,8 @@ summary: "D16 / D31 F4 仍开。官方三域 glob 已绿。D44–D90 / D92–D12
 58. **D 槽 `fork-open-tab-throw-notice`（未关 D16）**：`openForkTab` try/catch → notice；首个 await 前 hoist。[D88](deferred-gaps.md) **已闭**。
 59. **A 槽 `connection-profile-crud-throw`（未关 D16）**：Add Direct / Disconnect / Forget / ConnectDevice throw 画 status。[D89](deferred-gaps.md) **已闭**。
 60. **B 槽 `session-window-primary-bootstrap-catch`（未关 D16）**：先 `ensureLeaf` 再提交 key；in-flight 串行 + 真实 stub；throw 回滚半应用 leaf。[D90](deferred-gaps.md) **已闭**。
-61. **D100–D129 / D131 / D133–D134**（未关 D16；D130/D132 未占用）：peek / close / opener / stale / save·delete·cancel·Stop·Goal·Enqueue false notice；RotateToken / Revoke success false banner；Triggers 删成功 refresh；Rename error tone；Clipboard 清空成功 refresh。
-62. **A 本波（未关 D16 / D31）**：`connection-revoke-hub-fallback-error-tone` — Hub fallback `revokeDevice` `!ok` / throw 走 `writeStatus` error + 显示 banner；`!ok` 不 refresh；成功仍 `refreshDirectory` + `renderProfiles()`；未改引擎 hook catch / rotate / rename / login。[D135](deferred-gaps.md) **已闭**。未 compile。
+61. **D100–D129 / D131 / D133–D136**（未关 D16；D130/D132 未占用）：peek / close / opener / stale / save·delete·cancel·Stop·Goal·Enqueue false notice；RotateToken / Revoke success false banner；Triggers 删/upsert 成功 refresh；Rename 与 Hub fallback revoke error tone；Clipboard 清空成功 refresh。
+62. **A/B 本波（未关 D16 / D31）**：A `connection-revoke-hub-fallback-error-tone` — Hub fallback `revokeDevice` `!ok` / throw 走 `writeStatus` error；`!ok` 不 refresh；成功仍 `refreshDirectory`；未改引擎 hook catch / rotate / rename / login。[D135](deferred-gaps.md) **已闭**。B `engine-triggers-upsert-refresh` — `handleUpsert` 成功画 label 后 `await refresh()` 再回写 status；throw 仍画 status 且行仍在；未改 delete / setEnabled / fire。[D136](deferred-gaps.md) **已闭**。未 compile。
 子 agent 发现的既有代码问题：
 | ID | 来源 | 问题 |
 |:---|:-----|:-----|
@@ -171,8 +171,7 @@ summary: "D16 / D31 F4 仍开。官方三域 glob 已绿。D44–D90 / D92–D12
 | [D88](deferred-gaps.md) | D 槽 `fork-open-tab-throw-notice` | **closed** Fork `openForkTab` throw 已 notice；未关 D16 |
 | [D89](deferred-gaps.md) | A 槽 `connection-profile-crud-throw` | **closed** Add Direct / Disconnect / Forget / ConnectDevice throw 已画 status；未关 D16 |
 | [D90](deferred-gaps.md) | B 槽 `session-window-primary-bootstrap-catch` | **closed** throw 回滚 + in-flight 串行；merge 复测 9/9；未关 D16 |
-| [D92](deferred-gaps.md)–[D129](deferred-gaps.md) / [D131](deferred-gaps.md) / [D133](deferred-gaps.md)–[D135](deferred-gaps.md) | B roster+inbox+sessions / D nav / A beside+mru+sessionbar / A·B composer / A notifications / B sessionChat / D bind / A navigator lease / B reveal / A attribution / A rotate / A revoke / B triggers / A rename error tone / B clipboard clear / A Hub fallback revoke error tone | **closed** throw 回滚/notice；RotateToken / Revoke success false banner；Triggers / Clipboard 成功 refresh 卸行；Rename 与 Hub fallback revoke `!ok`/throw 已 error tone；未关 D16 |
-
+| [D92](deferred-gaps.md)–[D129](deferred-gaps.md) / [D131](deferred-gaps.md) / [D133](deferred-gaps.md)–[D136](deferred-gaps.md) | B roster+inbox+sessions / D nav / A beside+mru+sessionbar / A·B composer / A notifications / B sessionChat / D bind / A navigator lease / B reveal / A attribution / A rotate / A revoke / B triggers / A rename error tone / B clipboard clear / A Hub fallback revoke / B upsert refresh | **closed** throw 回滚/notice；RotateToken / Revoke success false banner；Triggers 删/upsert 与 Clipboard 清空成功 refresh；Rename 与 Hub fallback revoke `!ok`/throw 已 error tone；未关 D16 |
 ## 工位表（P0 盘点 · 2026-09-08 · 与 `git worktree list` 对照）
 | 槽 | 路径 | 分支 | tip | 脏 | stash | 关仓状态 |
 |----|------|------|-----|:--|:------|:---------|
