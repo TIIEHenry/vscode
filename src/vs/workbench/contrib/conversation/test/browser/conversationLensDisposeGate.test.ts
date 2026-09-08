@@ -7,7 +7,7 @@ import assert from 'assert';
 import { DisposableStore } from '../../../../../base/common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { applySessionViewTimeline, refreshTrajectoryRecords, type IConversationLensProjectionHost } from '../../browser/conversationLensProjection.js';
-import { saveTurnEdit, submitDraft, type IConversationLensComposerHost } from '../../browser/conversationLensComposer.js';
+import { saveQueueEdit, saveTurnEdit, submitDraft, type IConversationLensComposerHost } from '../../browser/conversationLensComposer.js';
 import { showPostFailure, type IConversationLensComposerChromeHost } from '../../browser/conversationLensComposerChrome.js';
 import {
 	conversationLensPostFailed,
@@ -385,6 +385,105 @@ suite('conversation lens dispose gate', () => {
 
 		assert.deepStrictEqual(failures, []);
 		assert.strictEqual(exited, 1);
+	});
+
+	test('saveQueueEdit roster false after disconnect stays in edit and shows engine_disconnected', () => {
+		const failures: ConversationComposerPostFailureReason[] = [];
+		let exited = 0;
+		let released = 0;
+		let renderedInbox = 0;
+		const host = {
+			composerPolicy: 'queueEdit',
+			editingQueueItemId: 'q1',
+			dockTextarea: { value: 'revised later' },
+			getBoundSessionId: () => 'sess-1',
+			getEditingQueueItem: () => ({ id: 'q1', content: 'queued' }),
+			stubService: {
+				updateMessageQueueItemContent: () => false,
+				releaseMessageQueueItemHold: () => { released++; },
+				isEngineConnected: () => false,
+				hasEngineConnectionHistory: () => true,
+			},
+			exitComposerEdit: () => { exited++; },
+			renderInboxStatus: () => { renderedInbox++; },
+			showPostFailure: (reason: ConversationComposerPostFailureReason) => {
+				failures.push(reason);
+			},
+		} as unknown as IConversationLensComposerHost;
+
+		saveQueueEdit(host);
+
+		assert.deepStrictEqual(failures, ['engine_disconnected']);
+		assert.strictEqual(exited, 0);
+		assert.strictEqual(released, 0);
+		assert.strictEqual(renderedInbox, 0);
+		assert.strictEqual(host.editingQueueItemId, 'q1');
+		assert.strictEqual(host.composerPolicy, 'queueEdit');
+		assert.strictEqual(host.dockTextarea.value, 'revised later');
+	});
+
+	test('saveQueueEdit roster false without connection history stays in edit and shows failed', () => {
+		const failures: ConversationComposerPostFailureReason[] = [];
+		let exited = 0;
+		let released = 0;
+		const host = {
+			composerPolicy: 'queueEdit',
+			editingQueueItemId: 'q1',
+			dockTextarea: { value: 'revised later' },
+			getBoundSessionId: () => 'sess-1',
+			getEditingQueueItem: () => ({ id: 'q1', content: 'queued' }),
+			stubService: {
+				updateMessageQueueItemContent: () => false,
+				releaseMessageQueueItemHold: () => { released++; },
+				isEngineConnected: () => false,
+				hasEngineConnectionHistory: () => false,
+			},
+			exitComposerEdit: () => { exited++; },
+			renderInboxStatus: () => { },
+			showPostFailure: (reason: ConversationComposerPostFailureReason) => {
+				failures.push(reason);
+			},
+		} as unknown as IConversationLensComposerHost;
+
+		saveQueueEdit(host);
+
+		assert.deepStrictEqual(failures, ['failed']);
+		assert.strictEqual(exited, 0);
+		assert.strictEqual(released, 0);
+		assert.strictEqual(host.editingQueueItemId, 'q1');
+		assert.strictEqual(host.composerPolicy, 'queueEdit');
+	});
+
+	test('saveQueueEdit roster true exits edit and does not show post failure', () => {
+		const failures: ConversationComposerPostFailureReason[] = [];
+		let exited = 0;
+		let released = 0;
+		let renderedInbox = 0;
+		const host = {
+			composerPolicy: 'queueEdit',
+			editingQueueItemId: 'q1',
+			dockTextarea: { value: 'revised later' },
+			getBoundSessionId: () => 'sess-1',
+			getEditingQueueItem: () => ({ id: 'q1', content: 'queued' }),
+			stubService: {
+				updateMessageQueueItemContent: () => true,
+				releaseMessageQueueItemHold: () => { released++; },
+				isEngineConnected: () => false,
+				hasEngineConnectionHistory: () => false,
+			},
+			exitComposerEdit: () => { exited++; },
+			renderInboxStatus: () => { renderedInbox++; },
+			showPostFailure: (reason: ConversationComposerPostFailureReason) => {
+				failures.push(reason);
+			},
+		} as unknown as IConversationLensComposerHost;
+
+		saveQueueEdit(host);
+
+		assert.deepStrictEqual(failures, []);
+		assert.strictEqual(exited, 1);
+		assert.strictEqual(released, 1);
+		assert.strictEqual(renderedInbox, 1);
 	});
 
 	test('showPostFailure failed uses retry copy not disconnected', () => {
