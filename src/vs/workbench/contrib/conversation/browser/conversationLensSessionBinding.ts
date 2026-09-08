@@ -129,16 +129,20 @@ export async function resolveConfirmation(host: IConversationLensSessionBindingH
 		host.focusTimelineRecord(turnId);
 		return;
 	}
-	const outcome = await host.postBound({
-		kind: 'permissionRespond',
-		requestId: turnId,
-		decision: status === 'allowed' ? 'allow' : 'deny',
-	});
-	if (!outcome.accepted) {
-		host.showPostFailure(outcome.reason);
-		return;
+	try {
+		const outcome = await host.postBound({
+			kind: 'permissionRespond',
+			requestId: turnId,
+			decision: status === 'allowed' ? 'allow' : 'deny',
+		});
+		if (!outcome.accepted) {
+			host.showPostFailure(outcome.reason);
+			return;
+		}
+		host.focusTimelineRecord(turnId);
+	} catch {
+		host.showPostFailure('failed');
 	}
-	host.focusTimelineRecord(turnId);
 
 }
 
@@ -157,17 +161,21 @@ export async function resolveQuestion(host: IConversationLensSessionBindingHost,
 		host.focusTimelineRecord(turnId);
 		return;
 	}
-	const outcome = await host.postBound({
-		kind: 'questionRespond',
-		requestId,
-		answers,
-		...(customText !== undefined ? { customText } : {}),
-	});
-	if (!outcome.accepted) {
-		host.showPostFailure(outcome.reason);
-		return;
+	try {
+		const outcome = await host.postBound({
+			kind: 'questionRespond',
+			requestId,
+			answers,
+			...(customText !== undefined ? { customText } : {}),
+		});
+		if (!outcome.accepted) {
+			host.showPostFailure(outcome.reason);
+			return;
+		}
+		host.focusTimelineRecord(turnId);
+	} catch {
+		host.showPostFailure('failed');
 	}
-	host.focusTimelineRecord(turnId);
 
 }
 
