@@ -11,6 +11,7 @@ import { RenderIndentGuides } from '../../../../base/browser/ui/tree/abstractTre
 import { ITreeNode, ITreeRenderer } from '../../../../base/browser/ui/tree/tree.js';
 import { Action } from '../../../../base/common/actions.js';
 import { Codicon } from '../../../../base/common/codicons.js';
+import { getErrorMessage } from '../../../../base/common/errors.js';
 import { ThemeIcon } from '../../../../base/common/themables.js';
 import { localize, localize2 } from '../../../../nls.js';
 import { Action2, MenuId, registerAction2 } from '../../../../platform/actions/common/actions.js';
@@ -23,6 +24,7 @@ import { IHoverService } from '../../../../platform/hover/browser/hover.js';
 import { IInstantiationService, ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js';
 import { IKeybindingService } from '../../../../platform/keybinding/common/keybinding.js';
 import { WorkbenchList, WorkbenchObjectTree } from '../../../../platform/list/browser/listService.js';
+import { INotificationService } from '../../../../platform/notification/common/notification.js';
 import { IOpenerService } from '../../../../platform/opener/common/opener.js';
 import { IThemeService } from '../../../../platform/theme/common/themeService.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
@@ -259,13 +261,18 @@ export class NavigatorAgentsView extends ViewPane {
 		@IUniverseAgentConnection private readonly uaConnection: IUniverseAgentConnection,
 		@IAgentInspectService private readonly inspectService: IAgentInspectService,
 		@ICommandService private readonly commandService: ICommandService,
+		@INotificationService private readonly notificationService: INotificationService,
 	) {
 		super(options, keybindingService, contextMenuService, configurationService, contextKeyService, viewDescriptorService, instantiationService, openerService, themeService, hoverService);
 
 		this.hierarchyContextKey = NAVIGATOR_AGENTS_SUBVIEW_HIERARCHY_KEY.bindTo(this.scopedContextKeyService);
 		this.activityContextKey = NAVIGATOR_AGENTS_SUBVIEW_ACTIVITY_KEY.bindTo(this.scopedContextKeyService);
 		this.engineConnectedContextKey = UA_ENGINE_CONNECTED_KEY.bindTo(this.scopedContextKeyService);
-		this.leaseHolder = this._register(new NavigatorSessionLeaseHolder(this.rosterService, () => this.refreshFromLease()));
+		this.leaseHolder = this._register(new NavigatorSessionLeaseHolder(
+			this.rosterService,
+			() => this.refreshFromLease(),
+			error => this.notificationService.error(getErrorMessage(error)),
+		));
 		this._register(this.rosterService.onDidChangeEngineConnection(() => {
 			this.updateEngineConnectedContextKey();
 			this.refreshFromLease();

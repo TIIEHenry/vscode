@@ -4,10 +4,12 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { getErrorMessage } from '../../../../../base/common/errors.js';
 import { Event } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { isIMenuItem, MenuId, MenuRegistry } from '../../../../../platform/actions/common/actions.js';
 import { WorkbenchList } from '../../../../../platform/list/browser/listService.js';
+import { INotificationService } from '../../../../../platform/notification/common/notification.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import type { IConversationSessionViewLease } from '../../../../../platform/universeAgent/common/conversationViewFrame.js';
 import type { LiveAgentTreeNodeView } from '../../../../../platform/universeAgent/common/sessionView/index.js';
@@ -22,6 +24,7 @@ import { NAVIGATOR_STALE_SNAPSHOT_COPY } from '../../common/navigatorAgentTreeEm
 import { createNavigatorConnectionTestStub } from '../common/navigatorConnectionTestStub.js';
 import '../../browser/navigator.contribution.js';
 import { NAVIGATOR_TEAM_VIEW_ID } from '../../browser/navigatorStubView.js';
+import { NavigatorSessionLeaseHolder } from '../../browser/navigatorSessionLeaseHolder.js';
 import {
 	INavigatorTeamMember,
 	NAVIGATOR_TEAM_SHOW_MEMBERS_COMMAND_ID,
@@ -81,11 +84,15 @@ suite('Navigator Team subviews', () => {
 	function mountTeamView(
 		roster: ConversationStubService = store.add(new ConversationStubService()),
 		connection: IUniverseAgentConnection = createNavigatorConnectionTestStub(),
+		notification?: INotificationService,
 	): NavigatorTeamView {
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		instantiationService.stub(IConversationRosterService, roster);
 		instantiationService.stub(IAgentInspectService, store.add(instantiationService.createInstance(AgentInspectService)) as IAgentInspectService);
 		instantiationService.stub(IUniverseAgentConnection, connection);
+		if (notification) {
+			instantiationService.stub(INotificationService, notification);
+		}
 		const stubViewContainer = {
 			id: 'navigator-team-test-container',
 			title: { value: 'Team', original: 'Team' },
@@ -462,5 +469,39 @@ suite('Navigator Team subviews', () => {
 		assert.strictEqual(note.style.display, 'block');
 		assert.strictEqual(note.textContent, 'Failed to read team members and tasks');
 		assert.notStrictEqual(note.textContent, NAVIGATOR_STALE_SNAPSHOT_COPY);
+	});
+
+	test('acquireSessionView throw notifies error without hanging a lease or unhandled rejection', async () => {
+		const boom = new Error('acquireSessionView: session untitled is not engine-bound');
+		class RosterAcquireThrows extends ConversationStubService {
+			override acquireSessionView(_sessionId: string): IConversationSessionViewLease {
+				throw boom;
+			}
+		}
+		const errors: string[] = [];
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		const roster = store.add(new RosterAcquireThrows());
+		const notification = {
+			error: (message: string | Error) => {
+				errors.push(typeof message === 'string' ? message : getErrorMessage(message));
+			},
+		} as INotificationService;
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			let view: NavigatorTeamView | undefined;
+			assert.doesNotThrow(() => {
+				view = mountTeamView(roster, createNavigatorConnectionTestStub(), notification);
+			});
+			assert.ok(view);
+			const holder = (view as unknown as { leaseHolder: NavigatorSessionLeaseHolder }).leaseHolder;
+			assert.strictEqual(holder.getLease(), undefined);
+			assert.deepStrictEqual(errors, [getErrorMessage(boom)]);
+			assert.strictEqual(view.getActiveSubview(), 'members');
+			await new Promise<void>(resolve => setTimeout(resolve, 0));
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
 	});
 });
