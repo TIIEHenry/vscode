@@ -587,6 +587,21 @@ suite('ConversationInboxOverlay Enqueue', () => {
 		assert.deepStrictEqual(failures, ['engine_disconnected']);
 	});
 
+	test('disconnected Enqueue with history is enabled and shows engine_disconnected without enqueue', async () => {
+		const failures: ConversationComposerPostFailureReason[] = [];
+		const roster = store.add(new EnqueueRoster());
+		roster.connected = false;
+		roster.history = true;
+		const overlay = createOverlay(roster, 'Should not enqueue', failures);
+		const button = getEnqueueButton(openQueuePanel(overlay));
+		assert.strictEqual(button.disabled, false);
+		assert.strictEqual(button.getAttribute('aria-disabled'), 'false');
+		button.click();
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		assert.deepStrictEqual(failures, ['engine_disconnected']);
+		assert.deepStrictEqual(roster.enqueueCalls, []);
+	});
+
 	test('connected Inbox does not pose fixture as the engine queue', () => {
 		const roster = store.add(new EnqueueRoster());
 		const sessionId = roster.getActiveSessionId();
