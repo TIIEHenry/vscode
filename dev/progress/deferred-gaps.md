@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-08
-summary: "延期缺口 SSOT；D16 仍开；D45–D90 / D92–D109 已闭；D22 F3；D24 其余 JSON RPC；D25 引擎 List 真空；D26 引擎建壳回 6；D31 F4 / A2 blocked；delete/cancel、open-beside 与 Inbox Stop notice 已挂"
+summary: "延期缺口 SSOT；D16 仍开；D45–D90 / D92–D110 已闭；D22 F3；D24 其余 JSON RPC；D25 引擎 List 真空；D26 引擎建壳回 6；D31 F4 / A2 blocked；delete/cancel、open-beside 与 Inbox Stop/Goal notice 已挂"
 ---
 
 # Deferred Gaps
@@ -125,6 +125,7 @@ summary: "延期缺口 SSOT；D16 仍开；D45–D90 / D92–D109 已闭；D22 F
 | D107 | P3 | **`deleteTurn` / `cancelToolCall` 忽略 roster boolean**：引擎断连后 `deleteEngineMessage` / `cancelEngineToolCall` `callRemote:false` 回 `false`，时间线行不变、无 `showPostFailure` | A 槽 `lens-delete-cancel-rejected-notice` 已收：先看 boolean；false 画 `engine_disconnected`（`!isEngineConnected() && hasEngineConnectionHistory()`）或 `failed`；本无本地 mutation 可回滚；true 仍静默成功。测锁 false+history → engine_disconnected、false 无 history → failed。未关 D16；未改 roster `deleteEngineMessage` / `cancelEngineToolCall` / `void uaConnection.*`；未改 `saveTurnEdit` / `saveQueueEdit` | `deleteTurn` / `cancelToolCall` 先看 roster boolean；false 调 `showPostFailure`；`conversationLensDisposeGate.test.ts` 绿 | conversation | closed |
 | D108 | P3 | **`openSessionBeside` catch 已回滚但无用户 notice**：D96–D98 已 `rollbackHalfAppliedLeaf` + restore evicted secondary + `logService.warn`；`void` 调用点未改。throw 后窗数不变、用户无提示 | D 槽 `open-beside-failure-notice` 已收：既有 catch 补 `INotificationService.error(getErrorMessage(error))`（紧挨 `ILogService` 注入）；保留 warn；未重做 D96–D98 rollback；未改 `conversationSessionsView.ts` void。测锁 throw-on-create 仍回滚且记录 error notice。未关 D16 | catch 后 error notice + 仍回滚 / 无未处理 rejection；`conversationSessionWindowSideBySide.test.ts` 绿 | conversation | closed |
 | D109 | P3 | **Inbox Stop 忽略 `cancelGeneration` boolean**：`onStopClicked` 只转发；断连后 `cancelEngineGeneration(..., false)` 回 `false`，无 dock `showPostFailure` | B 槽 `inbox-stop-cancel-rejected-notice` 已收：先看 boolean；false 画 `engine_disconnected`（`!isEngineConnected() && hasEngineConnectionHistory()`）或 `failed`。true 仍只 cancel。测锁 false+history / false 无 history / true 无 chrome。未关 D16；未改 roster `cancelGeneration`；未收 Goal `setSessionGoal` / `cancelSessionGoal` | `onStopClicked` 先看 `cancelGeneration`；false 经 delegate 调 dock `showPostFailure`；`conversationInboxOverlay.test.ts` 绿 | conversation | closed |
+| D110 | P3 | **Inbox Goal 忽略 `setSessionGoal` / `cancelSessionGoal` boolean**：`onGoalClicked` 只转发后 `render()`；接通后 empty / missing session / same goal / missing RPC 回 `false`，无 dock `showPostFailure` | B 槽 `inbox-goal-rejected-notice` 已收：先看 boolean；false 画 `failed`（接通路径）；若 `!isEngineConnected() && hasEngineConnectionHistory()` 画 `engine_disconnected`。未抬断连 early-return / `goalButton.enabled = connected`。true 仍 `render()`。测锁 connected set/cancel false → failed、无假 goal。未关 D16；未改 `onStopClicked`（D109）；未改 roster `setSessionGoal` / `cancelSessionGoal` / `void uaConnection.*` | `onGoalClicked` 先看 set/cancel boolean；false 经 delegate 调 dock `showPostFailure`；`conversationInboxOverlay.test.ts` 绿 | conversation | closed |
 
 ## D2 工位池 compile 基线（2026-09-02，merge 工位 / `loop/merge`）
 

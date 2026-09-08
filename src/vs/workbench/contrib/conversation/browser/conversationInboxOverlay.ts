@@ -260,10 +260,19 @@ export class ConversationInboxOverlay extends Disposable {
 			return;
 		}
 		const trimmed = next.trim();
+		let applied = true;
 		if (trimmed) {
-			this.stubService.setSessionGoal(sessionId, trimmed);
+			applied = this.stubService.setSessionGoal(sessionId, trimmed);
 		} else if (current) {
-			this.stubService.cancelSessionGoal(sessionId);
+			applied = this.stubService.cancelSessionGoal(sessionId);
+		}
+		if (!applied) {
+			this.delegate.showPostFailure(
+				!this.stubService.isEngineConnected() && this.stubService.hasEngineConnectionHistory()
+					? 'engine_disconnected'
+					: 'failed'
+			);
+			return;
 		}
 		this.render();
 	}
