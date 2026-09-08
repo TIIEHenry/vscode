@@ -43,6 +43,7 @@ import {
 	conversationLensDockPermissionLabel,
 	conversationLensDockPermissionPermit,
 	conversationLensDockPlaceholder,
+	conversationLensPostFailed,
 	conversationLensPostFailedDisconnected,
 	conversationLensDockRestoreTimeline,
 	conversationLensDockStop,
@@ -2271,6 +2272,71 @@ suite('ConversationLens', () => {
 		assert.strictEqual(titleLive.textContent, 'Renamed for select sync');
 		assert.strictEqual(getSessionSelectLabel(slots), 'Renamed for select sync');
 		assert.strictEqual(stubService.getSessions().find(s => s.id === sessionId)?.title, 'Renamed for select sync');
+	});
+
+	test('SessionBar renameSession false shows failed notice and keeps previous title', () => {
+		class RejectingRenameRoster extends ConversationStubService {
+			override renameSession(_sessionId: string, _title: string): boolean {
+				return false;
+			}
+		}
+		const roster = store.add(new RejectingRenameRoster());
+		const { part } = mountLens({ stubService: roster });
+		const slots = getLensSlots(part);
+		const titleButton = slots.sessionBar!.querySelector('button.conversation-lens-session-title') as HTMLButtonElement;
+		const titleInput = slots.sessionBar!.querySelector('input.conversation-lens-session-title-input') as HTMLInputElement;
+		const titleLive = slots.sessionBar!.querySelector('.conversation-lens-session-title-live') as HTMLElement;
+		const sessionId = roster.getActiveSessionId();
+		const previousTitle = roster.getActiveSession().title;
+
+		titleButton.click();
+		titleInput.value = 'Rejected rename';
+		titleInput.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', keyCode: KeyCode.Enter, bubbles: true }));
+
+		assert.strictEqual(roster.getActiveSession().title, previousTitle);
+		assert.strictEqual(roster.getSessions().find(s => s.id === sessionId)?.title, previousTitle);
+		assert.strictEqual(titleButton.textContent, previousTitle);
+		assert.strictEqual(titleLive.textContent, previousTitle);
+		assert.strictEqual(getSessionSelectLabel(slots), previousTitle);
+		assert.ok(!titleButton.hidden);
+		assert.ok(titleInput.hidden);
+		const gateRow = (getReadingColumn(slots).querySelector('.conversation-lens-dock-gate-row')
+			?? slots.dock.querySelector('.conversation-lens-dock-gate-row')) as HTMLElement | null;
+		assert.ok(gateRow);
+		assert.strictEqual(gateRow.hidden, false);
+		assert.ok(gateRow.textContent?.includes(conversationLensPostFailed));
+	});
+
+	test('SessionBar renameSession false after engine-cache disconnect shows disconnected notice', () => {
+		class EngineCacheRejectingRenameRoster extends ConversationStubService {
+			override hasEngineConnectionHistory(): boolean {
+				return true;
+			}
+			override renameSession(_sessionId: string, _title: string): boolean {
+				return false;
+			}
+		}
+		const roster = store.add(new EngineCacheRejectingRenameRoster());
+		const { part } = mountLens({ stubService: roster });
+		const slots = getLensSlots(part);
+		const titleButton = slots.sessionBar!.querySelector('button.conversation-lens-session-title') as HTMLButtonElement;
+		const titleInput = slots.sessionBar!.querySelector('input.conversation-lens-session-title-input') as HTMLInputElement;
+		const sessionId = roster.getActiveSessionId();
+		const previousTitle = roster.getActiveSession().title;
+
+		titleButton.click();
+		titleInput.value = 'Rejected while disconnected';
+		titleInput.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', keyCode: KeyCode.Enter, bubbles: true }));
+
+		assert.strictEqual(roster.getActiveSession().title, previousTitle);
+		assert.strictEqual(roster.getSessions().find(s => s.id === sessionId)?.title, previousTitle);
+		assert.strictEqual(titleButton.textContent, previousTitle);
+		assert.strictEqual(getSessionSelectLabel(slots), previousTitle);
+		const gateRow = (getReadingColumn(slots).querySelector('.conversation-lens-dock-gate-row')
+			?? slots.dock.querySelector('.conversation-lens-dock-gate-row')) as HTMLElement | null;
+		assert.ok(gateRow);
+		assert.strictEqual(gateRow.hidden, false);
+		assert.ok(gateRow.textContent?.includes(conversationLensPostFailedDisconnected));
 	});
 
 	test('SessionBar select refreshes after deleting the last stub session', () => {
