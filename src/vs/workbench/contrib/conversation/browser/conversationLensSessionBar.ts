@@ -329,8 +329,16 @@ export function createNewSession(host: IConversationLensSessionBarHost): void {
 export function deleteActiveSession(host: IConversationLensSessionBarHost): void {
 
 		const sessionId = host.stubService.getActiveSessionId();
+		const deleted = host.stubService.deleteSession(sessionId);
+		if (!deleted) {
+			host.showPostFailure(
+				!host.stubService.isEngineConnected() && host.stubService.hasEngineConnectionHistory()
+					? 'engine_disconnected'
+					: 'failed'
+			);
+			return;
+		}
 		host.deleteComposerDraftsForSession(sessionId);
-		host.stubService.deleteSession(sessionId);
 	
 }
 

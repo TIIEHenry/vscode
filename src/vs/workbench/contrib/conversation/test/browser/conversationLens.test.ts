@@ -2339,6 +2339,61 @@ suite('ConversationLens', () => {
 		assert.ok(gateRow.textContent?.includes(conversationLensPostFailedDisconnected));
 	});
 
+	test('SessionBar deleteSession false shows failed notice and keeps the session', () => {
+		class RejectingDeleteRoster extends ConversationStubService {
+			override deleteSession(_sessionId: string): boolean {
+				return false;
+			}
+		}
+		const roster = store.add(new RejectingDeleteRoster());
+		const { part } = mountLens({ stubService: roster });
+		const slots = getLensSlots(part);
+		const deleteButton = slots.sessionBar!.querySelector('.conversation-lens-session-delete .monaco-button') as HTMLButtonElement;
+		const sessionId = roster.getActiveSessionId();
+		const initialCount = roster.getSessions().length;
+
+		assert.ok(deleteButton);
+		deleteButton.click();
+
+		assert.strictEqual(roster.getSessions().length, initialCount);
+		assert.strictEqual(roster.getActiveSessionId(), sessionId);
+		assert.strictEqual(roster.getSessions().some(s => s.id === sessionId), true);
+		const gateRow = (getReadingColumn(slots).querySelector('.conversation-lens-dock-gate-row')
+			?? slots.dock.querySelector('.conversation-lens-dock-gate-row')) as HTMLElement | null;
+		assert.ok(gateRow);
+		assert.strictEqual(gateRow.hidden, false);
+		assert.ok(gateRow.textContent?.includes(conversationLensPostFailed));
+	});
+
+	test('SessionBar deleteSession false after engine-cache disconnect shows disconnected notice', () => {
+		class EngineCacheRejectingDeleteRoster extends ConversationStubService {
+			override hasEngineConnectionHistory(): boolean {
+				return true;
+			}
+			override deleteSession(_sessionId: string): boolean {
+				return false;
+			}
+		}
+		const roster = store.add(new EngineCacheRejectingDeleteRoster());
+		const { part } = mountLens({ stubService: roster });
+		const slots = getLensSlots(part);
+		const deleteButton = slots.sessionBar!.querySelector('.conversation-lens-session-delete .monaco-button') as HTMLButtonElement;
+		const sessionId = roster.getActiveSessionId();
+		const initialCount = roster.getSessions().length;
+
+		assert.ok(deleteButton);
+		deleteButton.click();
+
+		assert.strictEqual(roster.getSessions().length, initialCount);
+		assert.strictEqual(roster.getActiveSessionId(), sessionId);
+		assert.strictEqual(roster.getSessions().some(s => s.id === sessionId), true);
+		const gateRow = (getReadingColumn(slots).querySelector('.conversation-lens-dock-gate-row')
+			?? slots.dock.querySelector('.conversation-lens-dock-gate-row')) as HTMLElement | null;
+		assert.ok(gateRow);
+		assert.strictEqual(gateRow.hidden, false);
+		assert.ok(gateRow.textContent?.includes(conversationLensPostFailedDisconnected));
+	});
+
 	test('SessionBar select refreshes after deleting the last stub session', () => {
 		const { part, stubService } = mountLens();
 		const slots = getLensSlots(part);
