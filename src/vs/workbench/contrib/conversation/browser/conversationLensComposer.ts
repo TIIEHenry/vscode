@@ -248,8 +248,16 @@ export function saveTurnEdit(host: IConversationLensComposerHost): void {
 		}
 		const sessionId = host.getBoundSessionId();
 		const turnId = host.editingTurnId;
+		const saved = host.stubService.updateUserTurnText(sessionId, turnId, text);
+		if (!saved) {
+			host.showPostFailure(
+				!host.stubService.isEngineConnected() && host.stubService.hasEngineConnectionHistory()
+					? 'engine_disconnected'
+					: 'failed'
+			);
+			return;
+		}
 		host.exitComposerEdit();
-		host.stubService.updateUserTurnText(sessionId, turnId, text);
 	
 }
 

@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-08
-summary: "FileMutationJoin / createScoped / Review 委托已修。D16 / D31 F4 仍开。官方三域 glob 已绿。D44–D90 / D92–D103 已闭。sessions MRU stale target 已 peek-before-set。A2 仍 blocked。"
+summary: "D16 / D31 F4 仍开。官方三域 glob 已绿。D44–D90 / D92–D104 已闭。sessions MRU stale peek 与 saveTurnEdit 拒绝 notice 已挂。A2 仍 blocked。"
 ---
 
 # Development Progress
@@ -25,10 +25,7 @@ summary: "FileMutationJoin / createScoped / Review 委托已修。D16 / D31 F4 �
 | **cross-repo D1** | `fb31d650` — [cross-repo-protocol](../plans/cross-repo-protocol.md) 登记处与 [deferred-gaps](deferred-gaps.md) D1 对齐 |
 | **ADR-007 U0** | `1f5ce19a` — [upstream-min-patch.md](upstream-min-patch.md)（371 文件 A/B 清单、`comm` 完备性闸门） |
 | **ADR-007 U1** | `1975a1b8ce1` — 只读 fetch + 祖先可用；候选 tag `1.136.0` @ `520fb30b`；详情见 [upstream-min-patch.md](upstream-min-patch.md) 文件头 |
-| **docs-burden S1** | `f363f033` — [docs-burden-reduction](../plans/docs-burden-reduction.md)：`generate-docs-status.py` + plans/traceability 生成列 + `docs-health` 钩子 |
-| **docs-burden S3** | `4cd542bc` — [docs-burden-reduction](../plans/docs-burden-reduction.md) §3：glossary 对外可读闭集与维护规则指针 |
-| **docs-burden S4** | `623de9cf` — 本文件重写为当前迭代账（catalog 流水归档，见 [归档](../archive/status-current-session-slot-catalog-2026-09-05.md)） |
-| **docs-burden S5** | `222dd61c` — [docs-burden-reduction](../plans/docs-burden-reduction.md) §5：DOCUMENTATION 规则 7 归档候选标准 |
+| **docs-burden S1/S3–S5** | `f363f033` / `4cd542bc` / `623de9cf` / `222dd61c` — generate-docs-status、glossary、本文件重写、DOCUMENTATION 规则 7 |
 | **agent-ide.yml** | `cc6bfd25` — [test-baseline-ci](../plans/test-baseline-ci.md) 切片 4：compile / eslint / docs-health / unit-custom 四 job |
 | **gRPC catalog** | `123625c245b` — `UniverseAgentGrpcServices` 对齐 UA proto `package agentservice`（原 `universeagent.*.v1` 导致 Connect/`GetAuthNonce` UNIMPLEMENTED） |
 | **workbench chrome** | `48dc0c5c95e` — Conversation 阅读列 layout / pre-first SessionBar；Navigator connecting 诚实空；Sources 空文案去实现注；Client enum 中文 labels |
@@ -107,7 +104,7 @@ summary: "FileMutationJoin / createScoped / Review 委托已修。D16 / D31 F4 �
 58. **D 槽 `fork-open-tab-throw-notice`（未关 D16）**：`openForkTab` try/catch → notice；首个 await 前 hoist。[D88](deferred-gaps.md) **已闭**。
 59. **A 槽 `connection-profile-crud-throw`（未关 D16）**：Add Direct / Disconnect / Forget / ConnectDevice throw 画 status。[D89](deferred-gaps.md) **已闭**。
 60. **B 槽 `session-window-primary-bootstrap-catch`（未关 D16）**：先 `ensureLeaf` 再提交 key；in-flight 串行 + 真实 stub；throw 回滚半应用 leaf。[D90](deferred-gaps.md) **已闭**。
-61. **D D100 / B D101 / A D102–D103**（未关 D16）：peek-before-advance；closeEditors notice；sessions MRU opener 回滚；stale target 不前进 cursor。
+61. **D D100 / B D101 / A D102–D103 / B D104**（未关 D16）：peek-before-advance；closeEditors notice；sessions opener 回滚；stale target 不前进；saveTurnEdit false 先 notice。
 子 agent 发现的既有代码问题：
 | ID | 来源 | 问题 |
 |:---|:-----|:-----|
@@ -179,7 +176,7 @@ summary: "FileMutationJoin / createScoped / Review 委托已修。D16 / D31 F4 �
 | [D88](deferred-gaps.md) | D 槽 `fork-open-tab-throw-notice` | **closed** Fork `openForkTab` throw 已 notice；未关 D16 |
 | [D89](deferred-gaps.md) | A 槽 `connection-profile-crud-throw` | **closed** Add Direct / Disconnect / Forget / ConnectDevice throw 已画 status；未关 D16 |
 | [D90](deferred-gaps.md) | B 槽 `session-window-primary-bootstrap-catch` | **closed** throw 回滚 + in-flight 串行；merge 复测 9/9；未关 D16 |
-| [D92](deferred-gaps.md)–[D103](deferred-gaps.md) | B roster+close / D nav / A beside+mru | **closed** throw 回滚/notice；peek-before-advance；closeEditors notice；sessions opener 回滚；stale target 不前进 cursor；未关 D16 |
+| [D92](deferred-gaps.md)–[D104](deferred-gaps.md) | B roster+close / D nav / A beside+mru / B composer | **closed** throw 回滚/notice；peek-before-advance；closeEditors notice；sessions opener 回滚；stale target 不前进；saveTurnEdit false 先 notice；未关 D16 |
 
 ## 工位表（P0 盘点 · 2026-09-07 · 与 `git worktree list` 对照）
 | 槽 | 路径 | 分支 | tip | 脏 | stash | 关仓状态 |
