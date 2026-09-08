@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-09
-summary: "D16 / D31 F4 仍开。官方三域 glob 已绿。D44–D90 / D92–D129 / D131 / D133–D146 已闭。Rotate / 引擎 hook Revoke catch 已 error tone。swallowed primary 后 beside 已锁 notice。mermaid getExtension reject 已回 undefined。copyTurn writeText reject 已 failed。requestResync / acknowledge / releaseLease reject 已吞。Projects rebuildTree/openWindow 已吞。A2 仍 blocked。"
+summary: "D8 / D16 / D31 F4 仍开。D147 worker tsc 48→2 仍开（未恢复 valid-layers-check）。D44–D146 已闭。A2 仍 blocked。"
 ---
 
 # Development Progress
@@ -104,6 +104,7 @@ summary: "D16 / D31 F4 仍开。官方三域 glob 已绿。D44–D90 / D92–D12
 64. **A/B/D 本波（未关 D16 / D31）**：A SessionBar 断连+history New session 画 `engine_disconnected` 且不调 `createSession`。[D140](deferred-gaps.md) **已闭**。B Sessions 侧栏同条件画 notification error 且不调 `createSession`。[D141](deferred-gaps.md) **已闭**。D `resolveConversationMermaidExtension` 在 `getExtension` reject 时回 `undefined`。[D142](deferred-gaps.md) **已闭**。未读 `createSession` 返回值；接通路径未改；未改 lens / mount fallback。未 compile。
 65. **A/B 本波（未关 D16 / D31）**：A `copyTurn` `writeText` reject → `showPostFailure('failed')`。[D143](deferred-gaps.md) **已闭**。B `requestResync` reject 已 `.catch`；坏帧不落地。[D144](deferred-gaps.md) **已闭**。未 compile。
 66. **A/B 本波（未关 D16 / D31）**：A `acknowledge` / `releaseLease` reject 已 `.catch`；帧仍落地。[D145](deferred-gaps.md) **已闭**。B `rebuildTree` throw 保留末次树；`openWindow` reject 已吞。[D146](deferred-gaps.md) **已闭**。未 compile。
+67. **A 槽 `d147-worker-checker-step1`（未关 D8 / D16；未开 step 2B；未改 `src/vs/**`）**：`tsconfig.worker.json` 对齐 browser 补充类型。native tsc **48→2**（exit 1）。[D147](deferred-gaps.md) **仍开**。未恢复 valid-layers-check。
 子 agent 发现的既有代码问题：
 | ID | 来源 | 问题 |
 |:---|:-----|:-----|
@@ -177,6 +178,7 @@ summary: "D16 / D31 F4 仍开。官方三域 glob 已绿。D44–D90 / D92–D12
 | [D90](deferred-gaps.md) | B 槽 `session-window-primary-bootstrap-catch` | **closed** throw 回滚 + in-flight 串行；merge 复测 9/9；未关 D16 |
 | [D92](deferred-gaps.md)–[D129](deferred-gaps.md) / [D131](deferred-gaps.md) / [D133](deferred-gaps.md)–[D139](deferred-gaps.md) | B roster+inbox+sessions / D nav / A beside+mru+sessionbar / A·B composer / A notifications / B sessionChat / D bind / A navigator lease / B reveal / A attribution / A rotate / A revoke / B triggers / A rename error tone / B clipboard clear / A Hub fallback revoke / B upsert refresh / D clipboard write / A catch error tone / B swallowed-primary notice lock | **closed** throw 回滚/notice；RotateToken / Revoke `!success` 与 catch 已 error tone；Triggers 删/upsert 与 Clipboard 清空/写入成功 refresh；swallowed primary 后 beside 已锁 bootstrap notice；未关 D16 |
 | [D140](deferred-gaps.md)–[D146](deferred-gaps.md) | A SessionBar / B Sessions 侧栏断连 New session / D mermaid getExtension reject / A copyTurn writeText reject / B requestResync reject / A acknowledge·releaseLease reject / B Projects rebuildTree·openWindow | **closed** 断连+history New session 画 notice 且不调 `createSession`；mermaid reject 回 `undefined`；copyTurn reject 画 `failed`；requestResync / acknowledge / releaseLease reject 已吞；Projects last-good + openWindow 已吞；未关 D16 |
+| [D147](deferred-gaps.md) | A `d147-worker-checker-step1` | **仍开** worker native tsc 48→2（exit 1）；剩 `sessionList` TS2345 + `IConversationEditorPart` TS2352；未关 D8；未开 step 2B |
 ## 工位表（P0 盘点 · 2026-09-09 · 与 `git worktree list` 对照）
 | 槽 | 路径 | 分支 | tip | 脏 | stash | 关仓状态 |
 |----|------|------|-----|:--|:------|:---------|
