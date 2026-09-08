@@ -54,7 +54,12 @@ export class ConversationTimelineRevealService extends Disposable implements ICo
 	}
 
 	getAccessibleTurnContent(): string | undefined {
-		return this.primaryLens?.getAccessibleTurnContent();
+		try {
+			return this.primaryLens?.getAccessibleTurnContent();
+		} catch (error) {
+			this.notificationService.error(getErrorMessage(error));
+			return undefined;
+		}
 	}
 
 	focusAccessibleTurn(): void {

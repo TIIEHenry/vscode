@@ -113,7 +113,10 @@ suite('ConversationTimelineRevealService', () => {
 				calls.push('scroll');
 				throw new Error('boom');
 			},
-			getAccessibleTurnContent: () => undefined,
+			getAccessibleTurnContent: () => {
+				calls.push('accessible');
+				throw new Error('boom');
+			},
 		} as ConversationLens;
 	}
 
@@ -159,6 +162,24 @@ suite('ConversationTimelineRevealService', () => {
 			service.scrollToFirstPendingConfirmation();
 			await timeout(0);
 			assert.deepStrictEqual(calls, ['focus', 'scroll']);
+			assert.deepStrictEqual(errors, ['boom', 'boom']);
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
+
+	test('getAccessibleTurnContent lens throw notifies error, returns undefined, and second call still runs', () => {
+		const { service, errors } = createService();
+		const calls: string[] = [];
+		store.add(service.registerLens(createThrowingLens(calls)));
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			assert.strictEqual(service.getAccessibleTurnContent(), undefined);
+			assert.strictEqual(service.getAccessibleTurnContent(), undefined);
+			assert.deepStrictEqual(calls, ['accessible', 'accessible']);
 			assert.deepStrictEqual(errors, ['boom', 'boom']);
 			assert.deepStrictEqual(unhandledRejections, []);
 		} finally {
