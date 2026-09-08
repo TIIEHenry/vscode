@@ -204,7 +204,9 @@ export function focusTimelineRecord(host: IConversationLensSessionBindingHost, t
 
 export function copyTurn(host: IConversationLensSessionBindingHost, text: string): void {
 
-	host.clipboardService.writeText(text);
+	void host.clipboardService.writeText(text).catch(() => {
+		host.showPostFailure('failed');
+	});
 
 }
 
