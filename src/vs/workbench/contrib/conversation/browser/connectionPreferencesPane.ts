@@ -1109,14 +1109,19 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		const port = Number(this.directPortInput.value);
 		const displayName = this.directNameInput.value.trim() || undefined;
 		const allowPrivateNetwork = this.directAllowPrivateCheckbox.checked;
-		const result = await this.hubService.addDirectAddressProfile({ host, port, displayName, allowPrivateNetwork });
-		if (!result.ok) {
-			writeStatus(this.directAddressStatus, result.reason, 'error');
-			return;
+		try {
+			const result = await this.hubService.addDirectAddressProfile({ host, port, displayName, allowPrivateNetwork });
+			if (!result.ok) {
+				writeStatus(this.directAddressStatus, result.reason, 'error');
+				return;
+			}
+			this.activeProfileId = result.profileId;
+			writeStatus(this.directAddressStatus, localize('ua.connectionDirectAdded', "Direct address profile added."), 'success');
+			this.renderProfiles();
+		} catch (error) {
+			const reason = error instanceof Error && error.message ? error.message : String(error);
+			writeStatus(this.directAddressStatus, reason, 'error');
 		}
-		this.activeProfileId = result.profileId;
-		writeStatus(this.directAddressStatus, localize('ua.connectionDirectAdded', "Direct address profile added."), 'success');
-		this.renderProfiles();
 	}
 
 	private async handleConnectDirectAddress(): Promise<void> {
@@ -1169,8 +1174,13 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 	}
 
 	private async handleDisconnect(): Promise<void> {
-		await this.connectionService.disconnect();
-		this.renderConnectionPhase();
+		try {
+			await this.connectionService.disconnect();
+			this.renderConnectionPhase();
+		} catch (error) {
+			const reason = error instanceof Error && error.message ? error.message : String(error);
+			this.writeConnectStatus(reason, 'error');
+		}
 	}
 
 	private async handleForgetSelectedProfile(): Promise<void> {
@@ -1178,14 +1188,19 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 			return;
 		}
 		await this.connectionService.disconnect().catch(() => undefined);
-		const result = await this.hubService.forgetConnectionProfile(this.activeProfileId);
-		if (!result.ok) {
-			this.writeConnectStatus(result.reason, 'error');
-			return;
+		try {
+			const result = await this.hubService.forgetConnectionProfile(this.activeProfileId);
+			if (!result.ok) {
+				this.writeConnectStatus(result.reason, 'error');
+				return;
+			}
+			this.activeProfileId = undefined;
+			this.renderProfiles();
+			this.renderConnectionPhase();
+		} catch (error) {
+			const reason = error instanceof Error && error.message ? error.message : String(error);
+			this.writeConnectStatus(reason, 'error');
 		}
-		this.activeProfileId = undefined;
-		this.renderProfiles();
-		this.renderConnectionPhase();
 	}
 
 	private getVisibleConnectStatusTarget(): HTMLElement {
@@ -1342,17 +1357,22 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 	}
 
 	private async handleConnectDevice(device: HubDeviceProjection): Promise<void> {
-		const result = await this.hubService.addHubDeviceProfile({
-			hubDeviceId: device.id,
-			displayName: device.name,
-		});
-		if (!result.ok) {
-			this.writeConnectStatus(result.reason, 'error');
-			return;
-		}
+		try {
+			const result = await this.hubService.addHubDeviceProfile({
+				hubDeviceId: device.id,
+				displayName: device.name,
+			});
+			if (!result.ok) {
+				this.writeConnectStatus(result.reason, 'error');
+				return;
+			}
 
-		await this.connectProfileWithPairing(result.profileId);
-		this.renderProfiles();
+			await this.connectProfileWithPairing(result.profileId);
+			this.renderProfiles();
+		} catch (error) {
+			const reason = error instanceof Error && error.message ? error.message : String(error);
+			this.writeConnectStatus(reason, 'error');
+		}
 	}
 
 	private getSelectedDevice(): HubDeviceProjection | undefined {

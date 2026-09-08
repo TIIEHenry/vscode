@@ -2201,6 +2201,101 @@ suite('ConnectionPreferencesPane', () => {
 		container.remove();
 	});
 
+	test('Add Direct throw paints direct address status', async () => {
+		const pane = mountPane({
+			addDirectAddressProfile: async () => {
+				throw new Error('boom');
+			},
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		pane.selectZone('direct');
+
+		const add = [...container.querySelectorAll('.connection-direct-actions .monaco-button')]
+			.find(button => button.textContent === 'Add') as HTMLButtonElement | undefined;
+		assert.ok(add);
+		add.click();
+		await Promise.resolve();
+		await Promise.resolve();
+		const status = container.querySelector('.connection-direct-address-status') as HTMLElement;
+		assert.ok(status);
+		assert.strictEqual(status.textContent, 'boom');
+		assert.ok(status.classList.contains('is-error'));
+		container.remove();
+	});
+
+	test('Disconnect throw paints visible Profiles status', async () => {
+		const pane = mountPane({}, {
+			disconnect: async () => {
+				throw new Error('boom');
+			},
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		pane.selectZone('profiles');
+
+		const disconnect = [...container.querySelectorAll('.connection-profile-actions .monaco-button')]
+			.find(button => button.textContent === 'Disconnect') as HTMLButtonElement | undefined;
+		assert.ok(disconnect);
+		disconnect.click();
+		await Promise.resolve();
+		await Promise.resolve();
+		const profilesStatus = container.querySelector('.connection-profiles-status') as HTMLElement;
+		assert.ok(profilesStatus);
+		assert.strictEqual(profilesStatus.textContent, 'boom');
+		assert.ok(profilesStatus.classList.contains('is-error'));
+		container.remove();
+	});
+
+	test('Forget throw paints visible Profiles status', async () => {
+		const pane = mountPane({
+			listConnectionProfiles: () => [{
+				profileId: 'profile-1',
+				displayName: 'Studio',
+				state: 'active',
+				hasTrust: true,
+				targetKind: 'hubDevice',
+			}],
+			forgetConnectionProfile: async () => {
+				throw new Error('boom');
+			},
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		pane.selectZone('profiles');
+		(pane as unknown as { activeProfileId: string }).activeProfileId = 'profile-1';
+
+		await (pane as unknown as { handleForgetSelectedProfile(): Promise<void> }).handleForgetSelectedProfile();
+
+		const profilesStatus = container.querySelector('.connection-profiles-status') as HTMLElement;
+		assert.strictEqual(profilesStatus.textContent, 'boom');
+		assert.ok(profilesStatus.classList.contains('is-error'));
+		container.remove();
+	});
+
+	test('addHubDeviceProfile throw paints visible Devices connect status', async () => {
+		const studio = device({ id: 'dev-1', name: 'Studio' });
+		const pane = mountPane({
+			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
+			getDirectoryStatus: () => ({ kind: 'ok', devices: [studio] }),
+			addHubDeviceProfile: async () => {
+				throw new Error('boom');
+			},
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		pane.selectZone('devices');
+		await Promise.resolve();
+
+		await (pane as unknown as { handleConnectDevice(device: HubDeviceProjection): Promise<void> }).handleConnectDevice(studio);
+
+		const devicesStatus = container.querySelector('.connection-hub-devices-status') as HTMLElement;
+		assert.ok(devicesStatus);
+		assert.strictEqual(devicesStatus.textContent, 'boom');
+		assert.ok(devicesStatus.classList.contains('is-error'));
+		container.remove();
+	});
+
 	test('device Rename / Revoke / Confirm call hub methods', async () => {
 		let renamed: { id: string; name: string } | undefined;
 		let revoked: string | undefined;

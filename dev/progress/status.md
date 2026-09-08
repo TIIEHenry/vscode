@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-08
-summary: "FileMutationJoin / createScoped / Review 委托已修。D16 / D31 F4 仍开。官方三域 glob 已绿。D44–D87 已闭。Team leftover 已清。Connection list leftover / write throw / Refresh devices directory throw 已挂。switchModel 空 resolvedModelId 回滚+gate 已挂。Snapshots / MCP / Skills / Agents / Tools 写失败 write-status 已挂。Agents Tools 页 listTools throw 画 failed；重连后再 throw 清 leftover。Tools 成功 refresh 后 getToolInfo throw 重画详情。Skills 成功 refresh 后 getSkillInfo throw 重画正文。Agents Instructions 成功 refresh 后重载 AGENTS.md。Tools/Agents 成功 refresh 清 pending enablement。MCP runtime leftover 已清。git-read / open-diff / Stage·Commit / Unstage throw 与 ok:false status 已挂。Review runGitAction throw 已 showNotice。Lens lease-only sync 刷新 stale banner 已挂。Sessions 接通刷新已挂。openStream throw-on-open 已折 streamClosed。Lens retryError / permission / question / submitDraft postBound throw 已 showPostFailure('failed')。Connection/Hub Channel Client hydrate IPC reject 已吞。Navigator Reveal / Promote / breadcrumb navigate throw 已 notification error。A2 仍 blocked。"
+summary: "FileMutationJoin / createScoped / Review 委托已修。D16 / D31 F4 仍开。官方三域 glob 已绿。D44–D87 / D89 已闭。Team leftover 已清。Connection list leftover / write throw / profile CRUD throw / Refresh devices directory throw 已挂。switchModel 空 resolvedModelId 回滚+gate 已挂。Snapshots / MCP / Skills / Agents / Tools 写失败 write-status 已挂。Agents Tools 页 listTools throw 画 failed；重连后再 throw 清 leftover。Tools 成功 refresh 后 getToolInfo throw 重画详情。Skills 成功 refresh 后 getSkillInfo throw 重画正文。Agents Instructions 成功 refresh 后重载 AGENTS.md。Tools/Agents 成功 refresh 清 pending enablement。MCP runtime leftover 已清。git-read / open-diff / Stage·Commit / Unstage throw 与 ok:false status 已挂。Review runGitAction throw 已 showNotice。Lens lease-only sync 刷新 stale banner 已挂。Sessions 接通刷新已挂。openStream throw-on-open 已折 streamClosed。Lens retryError / permission / question / submitDraft postBound throw 已 showPostFailure('failed')。Connection/Hub Channel Client hydrate IPC reject 已吞。Navigator Reveal / Promote / breadcrumb navigate throw 已 notification error。A2 仍 blocked。"
 ---
 
 # Development Progress
@@ -107,6 +107,7 @@ summary: "FileMutationJoin / createScoped / Review 委托已修。D16 / D31 F4 �
 55. **D 槽 `promote-subagent-throw-notice`（未关 D16）**：Promote `openExtensionTab` throw → `INotificationService.error`。[D85](deferred-gaps.md) **已闭**。
 56. **A 槽 `composer-submit-postbound-catch`（未关 D16）**：`submitDraft` `postBound` reject → `showPostFailure('failed')`。[D86](deferred-gaps.md) **已闭**。
 57. **D 槽 `breadcrumb-navigate-throw-notice`（未关 D16）**：`navigateAgentBreadcrumb` try/catch → notice；void 未改。[D87](deferred-gaps.md) **已闭**。
+58. **A 槽 `connection-profile-crud-throw`（未关 D16 / 未关 D88）**：Add Direct / Disconnect / Forget / ConnectDevice 补 try/catch；throw 画 Direct / 可见 Profiles·Devices status。[D89](deferred-gaps.md) **已闭**。未 compile。
 子 agent 发现的既有代码问题：
 | ID | 来源 | 问题 |
 |:---|:-----|:-----|
@@ -175,20 +176,19 @@ summary: "FileMutationJoin / createScoped / Review 委托已修。D16 / D31 F4 �
 | [D85](deferred-gaps.md) | D 槽 `promote-subagent-throw-notice` | **closed** Promote `openExtensionTab` throw 已 notice；未关 D16 |
 | [D86](deferred-gaps.md) | A 槽 `composer-submit-postbound-catch` | **closed** `submitDraft` `postBound` throw 已 `showPostFailure('failed')`；未关 D16 |
 | [D87](deferred-gaps.md) | D 槽 `breadcrumb-navigate-throw-notice` | **closed** `navigateAgentBreadcrumb` throw 已 notice；未关 D16 |
+| [D89](deferred-gaps.md) | A 槽 `connection-profile-crud-throw` | **closed** Add Direct / Disconnect / Forget / ConnectDevice throw 已画 status；未关 D16 |
 
 ## 工位表（P0 盘点 · 2026-09-07 · 与 `git worktree list` 对照）
 | 槽 | 路径 | 分支 | tip | 脏 | stash | 关仓状态 |
 |----|------|------|-----|:--|:------|:---------|
 | merge | `vscode-WorkTrees/merge` | `loop/merge` | `96ea266241f` | `__pycache__` | 0 | parked；compile 基线 unused 仍红，**不 push** |
-| A | `vscode-WorkTrees/A` | `loop/A` | `96ea266241f` | `__pycache__` | 0 | idle |
+| A | `vscode-WorkTrees/A` | `loop/A` | `c6c9a8c7d37` | D89 未提交 | 0 | `connection-profile-crud-throw` |
 | B | `vscode-WorkTrees/B` | `loop/B` | `96ea266241f` | `__pycache__` | 0 | idle |
 | C | `vscode-WorkTrees/C` | `loop/C` | `96ea266241f` | 未提交 `dev/loop` + `__pycache__` | 0 | idle；勿 add `dev/loop` |
 | D | `vscode-WorkTrees/D` | `loop/D` | `96ea266241f` | `__pycache__` | 0 | idle |
 | edit | `Projects/Agents/vscode` | `agent-ide` | `a40a95d1e85`+ | `dev/loop` + 过期 progress | 0 | 人类工位；请自行对齐 `96ea266241f` |
-## Blockers
-无。
+## Blockers：无。
 ## Next
-
 | 项 | 指针 |
 |:---|:-----|
 | **引擎空壳 Create** | [D26](deferred-gaps.md) — 空 store 首次 Create 仍 `ALREADY_EXISTS` 且不写 meta；不要再清 store |
