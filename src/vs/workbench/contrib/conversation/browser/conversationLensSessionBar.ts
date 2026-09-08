@@ -322,6 +322,10 @@ export function commitSessionTitleEdit(host: IConversationLensSessionBarHost): v
 export function createNewSession(host: IConversationLensSessionBarHost): void {
 
 		host.writeComposerDraft(host.getBoundSessionId(), host.dockTextarea.value);
+		if (!host.stubService.isEngineConnected() && host.stubService.hasEngineConnectionHistory()) {
+			host.showPostFailure('engine_disconnected');
+			return;
+		}
 		host.stubService.createSession();
 	
 }

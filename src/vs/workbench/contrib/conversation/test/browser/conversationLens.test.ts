@@ -2394,6 +2394,70 @@ suite('ConversationLens', () => {
 		assert.ok(gateRow.textContent?.includes(conversationLensPostFailedDisconnected));
 	});
 
+	test('SessionBar createNewSession after engine-cache disconnect shows disconnected notice and does not create', () => {
+		class EngineCacheCreateRoster extends ConversationStubService {
+			createSessionCalls = 0;
+			override hasEngineConnectionHistory(): boolean {
+				return true;
+			}
+			override isEngineConnected(): boolean {
+				return false;
+			}
+			override createSession(): string {
+				this.createSessionCalls += 1;
+				return super.createSession();
+			}
+		}
+		const roster = store.add(new EngineCacheCreateRoster());
+		const { part } = mountLens({ stubService: roster });
+		const slots = getLensSlots(part);
+		const newButton = slots.sessionBar!.querySelector('.conversation-lens-session-new .monaco-button') as HTMLButtonElement;
+		const sessionId = roster.getActiveSessionId();
+		const initialCount = roster.getSessions().length;
+
+		assert.ok(newButton);
+		newButton.click();
+
+		assert.strictEqual(roster.createSessionCalls, 0);
+		assert.strictEqual(roster.getSessions().length, initialCount);
+		assert.strictEqual(roster.getActiveSessionId(), sessionId);
+		const gateRow = (getReadingColumn(slots).querySelector('.conversation-lens-dock-gate-row')
+			?? slots.dock.querySelector('.conversation-lens-dock-gate-row')) as HTMLElement | null;
+		assert.ok(gateRow);
+		assert.strictEqual(gateRow.hidden, false);
+		assert.ok(gateRow.textContent?.includes(conversationLensPostFailedDisconnected));
+	});
+
+	test('SessionBar createNewSession while engine connected still calls createSession', () => {
+		class ConnectedCreateRoster extends ConversationStubService {
+			createSessionCalls = 0;
+			override hasEngineConnectionHistory(): boolean {
+				return true;
+			}
+			override isEngineConnected(): boolean {
+				return true;
+			}
+			override createSession(): string {
+				this.createSessionCalls += 1;
+				return super.createSession();
+			}
+		}
+		const roster = store.add(new ConnectedCreateRoster());
+		const { part } = mountLens({ stubService: roster });
+		const slots = getLensSlots(part);
+		const newButton = slots.sessionBar!.querySelector('.conversation-lens-session-new .monaco-button') as HTMLButtonElement;
+		const initialCount = roster.getSessions().length;
+
+		assert.ok(newButton);
+		newButton.click();
+
+		assert.strictEqual(roster.createSessionCalls, 1);
+		assert.strictEqual(roster.getSessions().length, initialCount + 1);
+		const gateRow = (getReadingColumn(slots).querySelector('.conversation-lens-dock-gate-row')
+			?? slots.dock.querySelector('.conversation-lens-dock-gate-row')) as HTMLElement | null;
+		assert.ok(!gateRow || gateRow.hidden);
+	});
+
 	test('SessionBar select refreshes after deleting the last stub session', () => {
 		const { part, stubService } = mountLens();
 		const slots = getLensSlots(part);
