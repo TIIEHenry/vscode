@@ -62,18 +62,27 @@ export class SessionsNavigation extends Disposable {
 	private readonly _canGoBackCtx: IContextKey<boolean>;
 	private readonly _canGoForwardCtx: IContextKey<boolean>;
 
+	/** Bumped on session-list changes so enablement re-reads {@link ISessionsManagementService.getSession}. */
+	private readonly _sessionsEpoch = observableValue<number>(this, 0);
+
 	private readonly _canGoBack: IObservable<boolean> = derived(this, reader => {
+		this._sessionsEpoch.read(reader);
 		const idx = this._indexOfCurrent(reader);
 		const entries = this._recency.entries;
 		const beyond = this._beyondHistory.read(reader);
-		return (idx >= 0 && idx < entries.length - 1) || (beyond && entries.length > 0);
+		if (beyond) {
+			return entries.length > 0;
+		}
+		return idx >= 0 && this._hasResolvableInDirection(idx, 1);
 	});
 
 	private readonly _canGoForward: IObservable<boolean> = derived(this, reader => {
+		this._sessionsEpoch.read(reader);
 		if (this._beyondHistory.read(reader)) {
 			return false;
 		}
-		return this._indexOfCurrent(reader) > 0;
+		const idx = this._indexOfCurrent(reader);
+		return idx > 0 && this._hasResolvableInDirection(idx, -1);
 	});
 
 	constructor(
@@ -88,6 +97,10 @@ export class SessionsNavigation extends Disposable {
 
 		this._canGoBackCtx = CanGoBackContext.bindTo(contextKeyService);
 		this._canGoForwardCtx = CanGoForwardContext.bindTo(contextKeyService);
+
+		this._register(this._sessionsManagementService.onDidChangeSessions(() => {
+			this._sessionsEpoch.set(this._sessionsEpoch.get() + 1, undefined);
+		}));
 
 		// Track active session/chat changes to record recency entries.
 		// Skip undefined (new-session view) and Untitled sessions — only record
@@ -163,10 +176,14 @@ export class SessionsNavigation extends Disposable {
 			return;
 		}
 		const idx = this._indexOfCurrent();
-		if (idx < 0 || idx >= this._recency.entries.length - 1) {
+		if (idx < 0) {
 			return;
 		}
-		await this._navigateTo(idx + 1);
+		const targetIdx = this._findResolvableIndex(idx + 1, 1);
+		if (targetIdx < 0) {
+			return;
+		}
+		await this._navigateTo(targetIdx);
 	}
 
 	async goForward(): Promise<void> {
@@ -174,7 +191,11 @@ export class SessionsNavigation extends Disposable {
 		if (idx <= 0) {
 			return;
 		}
-		await this._navigateTo(idx - 1);
+		const targetIdx = this._findResolvableIndex(idx - 1, -1);
+		if (targetIdx < 0) {
+			return;
+		}
+		await this._navigateTo(targetIdx);
 	}
 
 	/** Index of the current cursor entry in the recency history, or -1. */
@@ -193,6 +214,29 @@ export class SessionsNavigation extends Disposable {
 		return this._recency.entries.findIndex(e => entryKey(e.sessionResource, e.chatResource) === key);
 	}
 
+	private _isResolvable(entry: IRecencyEntry): boolean {
+		return !!this._sessionsManagementService.getSession(entry.sessionResource);
+	}
+
+	private _hasResolvableInDirection(idx: number, step: 1 | -1): boolean {
+		return this._findResolvableIndex(idx + step, step) >= 0;
+	}
+
+	private _findResolvableIndex(start: number, step: 1 | -1): number {
+		const entries = this._recency.entries;
+		for (let i = start; step === 1 ? i < entries.length : i >= 0; i += step) {
+			if (this._isResolvable(entries[i])) {
+				return i;
+			}
+		}
+		return -1;
+	}
+
+	private _pruneMissingSession(entry: IRecencyEntry): void {
+		const sessionUri = entry.sessionResource.toString();
+		this._recency.remove(e => e.sessionResource.toString() === sessionUri);
+	}
+
 	private async _navigateTo(targetIdx: number): Promise<boolean> {
 		const entry: IRecencyEntry | undefined = this._recency.entries[targetIdx];
 		if (!entry) {
@@ -201,27 +245,26 @@ export class SessionsNavigation extends Disposable {
 
 		this._logService.trace(`[SessionNavigation] navigating to idx=${targetIdx} session=${entry.sessionResource.toString()} chat=${entry.chatResource?.toString()}`);
 
+		const session = this._sessionsManagementService.getSession(entry.sessionResource);
+		if (!session) {
+			this._pruneMissingSession(entry);
+			return false;
+		}
+
 		const previousKey = this._currentKey.get();
 		this._navigating = true;
 		try {
 			this._currentKey.set(entryKey(entry.sessionResource, entry.chatResource), undefined);
 
-			const session = this._sessionsManagementService.getSession(entry.sessionResource);
-			if (session) {
-				if (entry.chatResource) {
-					const chatExists = session.chats.get().some(c => c.resource.toString() === entry.chatResource!.toString());
-					if (chatExists) {
-						await this._opener.openChat(session, entry.chatResource);
-					} else {
-						await this._opener.openSession(entry.sessionResource, { source: 'navigation' });
-					}
+			if (entry.chatResource) {
+				const chatExists = session.chats.get().some(c => c.resource.toString() === entry.chatResource!.toString());
+				if (chatExists) {
+					await this._opener.openChat(session, entry.chatResource);
 				} else {
 					await this._opener.openSession(entry.sessionResource, { source: 'navigation' });
 				}
 			} else {
-				// Session no longer exists, remove its entries from history
-				const sessionUri = entry.sessionResource.toString();
-				this._recency.remove(e => e.sessionResource.toString() === sessionUri);
+				await this._opener.openSession(entry.sessionResource, { source: 'navigation' });
 			}
 			return true;
 		} catch (error) {

@@ -12,12 +12,12 @@ import { Codicon } from '../../../../../base/common/codicons.js';
 import { NullLogService } from '../../../../../platform/log/common/log.js';
 import { InMemoryStorageService } from '../../../../../platform/storage/common/storage.js';
 import { MockContextKeyService } from '../../../../../platform/keybinding/test/common/mockKeybindingService.js';
-import { IActiveSession, ICreateNewSessionOptions, IProviderSessionType, IRecentlyOpenedSessions, ISessionsManagementService } from '../../common/sessionsManagement.js';
+import { IActiveSession, ICreateNewSessionOptions, IProviderSessionType, IRecentlyOpenedSessions, ISessionsChangeEvent, ISessionsManagementService } from '../../common/sessionsManagement.js';
 import { ChatInteractivity, IChat, ISession, ISessionType, ISessionWorkspace, ISideChatSelection, SessionStatus } from '../../common/session.js';
 import { ISessionOpener, SessionsNavigation } from '../../browser/sessionNavigation.js';
 import { SessionsRecencyHistory } from '../../browser/sessionsRecencyHistory.js';
 import { timeout } from '../../../../../base/common/async.js';
-import { Event } from '../../../../../base/common/event.js';
+import { Emitter, Event } from '../../../../../base/common/event.js';
 import { ISendRequestOptions } from '../../common/sessionsProvider.js';
 
 const stubChat = {
@@ -92,7 +92,8 @@ class MockSessionStore implements ISessionsManagementService {
 
 	readonly activeSession = observableValue<IActiveSession | undefined>('test.activeSession', undefined);
 	readonly visibleSessions = observableValue<readonly IActiveSession[]>('test.visibleSessions', []);
-	readonly onDidChangeSessions = Event.None;
+	private readonly _onDidChangeSessions = new Emitter<ISessionsChangeEvent>();
+	readonly onDidChangeSessions = this._onDidChangeSessions.event;
 	readonly onDidStartSession = Event.None;
 	readonly onDidChangeSessionTypes = Event.None;
 	readonly onWillSendRequest = Event.None;
@@ -153,6 +154,16 @@ class MockSessionStore implements ISessionsManagementService {
 
 	addSession(session: ISession): void {
 		this._sessions.set(session.resource.toString(), session);
+	}
+
+	/** Drop from the store without going through {@link SessionsNavigation.onDidRemoveSessions}. */
+	removeSession(session: ISession): void {
+		this._sessions.delete(session.resource.toString());
+		this._onDidChangeSessions.fire({ added: [], removed: [session], changed: [] });
+	}
+
+	dispose(): void {
+		this._onDidChangeSessions.dispose();
 	}
 
 	getSessions(): ISession[] { return [...this._sessions.values()]; }
@@ -280,6 +291,7 @@ suite('SessionsNavigation', () => {
 	setup(() => {
 		const disposables = ds.add(new DisposableStore());
 		store = new MockSessionStore();
+		disposables.add(store);
 
 		contextKeyService = disposables.add(new MockContextKeyService());
 
@@ -601,9 +613,77 @@ suite('SessionsNavigation', () => {
 		assert.strictEqual(store.lastOpenedChatResource, undefined, 'should not open a stale chat');
 	});
 
+	test('removed session does not leave canGoBack true or silently advance cursor', async () => {
+		const s1 = stubSession('s1');
+		const s2 = stubSession('s2');
+		store.addSession(s1);
+		store.addSession(s2);
+		store.setActiveSession(s1);
+		store.setActiveSession(s2);
+		assert.strictEqual(canGoBack(), true);
+		assert.strictEqual(canGoForward(), false);
+
+		store.removeSession(s1);
+
+		assert.strictEqual(canGoBack(), false, 'stale next session must not keep back enabled');
+		assert.strictEqual(canGoForward(), false);
+
+		await nav.goBack();
+		assert.strictEqual(store.lastOpenedResource, undefined, 'must not open a missing session');
+		assert.strictEqual(canGoBack(), false);
+		assert.strictEqual(canGoForward(), false, 'cursor must stay on the live session');
+	});
+
+	test('missing chat-target session does not leave canGoForward true or silently advance cursor', async () => {
+		const chatA = stubChatWithId('a');
+		const chatB = stubChatWithId('b');
+		const s1 = stubSession('s1', SessionStatus.Completed, [chatA, chatB]);
+		const s2 = stubSession('s2');
+		store.addSession(s1);
+		store.addSession(s2);
+
+		store.setActiveSession(s1, chatA);
+		store.setActiveChat(chatB);
+		store.setActiveSession(s2);
+
+		await nav.goBack();
+		assert.strictEqual(store.lastOpenedChatResource?.toString(), chatB.resource.toString());
+		assert.strictEqual(canGoForward(), true);
+
+		store.removeSession(s2);
+
+		assert.strictEqual(canGoForward(), false, 'stale forward chat/session target must not keep forward enabled');
+		assert.strictEqual(canGoBack(), true, 'older live chat target remains reachable');
+
+		await nav.goForward();
+		assert.strictEqual(store.lastOpenedResource?.toString(), s1.resource.toString());
+		assert.strictEqual(store.lastOpenedChatResource?.toString(), chatB.resource.toString(), 'must not silently advance onto the missing session');
+		assert.strictEqual(canGoForward(), false);
+		assert.strictEqual(canGoBack(), true);
+	});
+
+	test('canGoBack stays true when a resolvable session sits behind a stale neighbor', async () => {
+		const s1 = stubSession('s1');
+		const s2 = stubSession('s2');
+		const s3 = stubSession('s3');
+		store.addSession(s1);
+		store.addSession(s2);
+		store.addSession(s3);
+		store.setActiveSession(s1);
+		store.setActiveSession(s2);
+		store.setActiveSession(s3);
+
+		store.removeSession(s2);
+
+		assert.strictEqual(canGoBack(), true, 'live s1 beyond stale s2 must keep back enabled');
+		await nav.goBack();
+		assert.strictEqual(store.lastOpenedResource?.toString(), s1.resource.toString());
+		assert.strictEqual(canGoForward(), true);
+	});
+
 	test('goBack/goForward opener reject restores cursor and canGoBack/canGoForward without unhandled rejection', async () => {
 		const disposables = ds.add(new DisposableStore());
-		const localStore = new MockSessionStore();
+		const localStore = disposables.add(new MockSessionStore());
 		const localCtx = disposables.add(new MockContextKeyService());
 		const storageService = disposables.add(new InMemoryStorageService());
 		const recency = disposables.add(new SessionsRecencyHistory(storageService, new NullLogService()));
