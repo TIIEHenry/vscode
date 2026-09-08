@@ -1010,7 +1010,14 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 	}
 
 	private async refreshHubDirectory(): Promise<void> {
-		await this.hubService.refreshDirectory();
+		try {
+			await this.hubService.refreshDirectory();
+		} catch (error) {
+			const reason = error instanceof Error && error.message ? error.message : String(error);
+			writeStatus(this.hubDirectoryBanner, reason, 'error');
+			this.hubDirectoryBanner.style.display = '';
+			return;
+		}
 		await this.refreshEngineDeviceLists();
 	}
 
