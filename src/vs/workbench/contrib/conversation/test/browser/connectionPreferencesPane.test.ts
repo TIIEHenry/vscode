@@ -2016,6 +2016,31 @@ suite('ConnectionPreferencesPane', () => {
 		container.remove();
 	});
 
+	test('Refresh devices throw paints hub directory banner', async () => {
+		const pane = mountPane({
+			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
+			refreshDirectory: async () => {
+				throw new Error('boom');
+			},
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		await Promise.resolve();
+
+		const refresh = [...container.querySelectorAll('.connection-hub-actions .monaco-button')]
+			.find(button => button.textContent === 'Refresh devices') as HTMLButtonElement | undefined;
+		assert.ok(refresh);
+		refresh.click();
+		await Promise.resolve();
+		await Promise.resolve();
+		const banner = container.querySelector('.connection-hub-directory-banner') as HTMLElement;
+		assert.ok(banner);
+		assert.strictEqual(banner.textContent, 'boom');
+		assert.notStrictEqual(banner.style.display, 'none');
+		assert.ok(banner.classList.contains('is-error'));
+		container.remove();
+	});
+
 	test('hub login throw paints hub auth badge', async () => {
 		const pane = mountPane({
 			login: async () => {
