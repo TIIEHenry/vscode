@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-09-08
-summary: "延期缺口 SSOT；D16 仍开；D45–D90 / D92–D116 已闭；D22 F3；D24 其余 JSON RPC；D25 引擎 List 真空；D26 引擎建壳回 6；D31 F4 / A2 blocked；SessionBar delete false notice 已挂"
+summary: "延期缺口 SSOT；D16 仍开；D45–D90 / D92–D117 已闭；D22 F3；D24 其余 JSON RPC；D25 引擎 List 真空；D26 引擎建壳回 6；D31 F4 / A2 blocked；SessionBar 与 Sessions 侧栏 delete false notice 已挂"
 ---
 
 # Deferred Gaps
@@ -132,6 +132,7 @@ summary: "延期缺口 SSOT；D16 仍开；D45–D90 / D92–D116 已闭；D22 F
 | D114 | P3 | **接通路径 `enqueueMessageQueueItem` 回 false 时 Inbox 静默**：`onEnqueueClicked` `if (!queued) { return; }`，无 dock `showPostFailure`。既有测已锁 false 不假装入列。不得改 Retry/Stop/Goal/`isEngineQueueUnlisted` | B 槽 `inbox-enqueue-rejected-notice` 已收：先看 boolean；false 画 `failed`（接通路径）；若调用后 `!isEngineConnected() && hasEngineConnectionHistory()` 画 `engine_disconnected`。未抬断连 early-return。true 仍 `render()`。测锁 connected false → failed、无假行；断连+history → engine_disconnected。未关 D16；未改 Retry/Stop/Goal/Queue honesty | `onEnqueueClicked` 先看 enqueue boolean；false 经 delegate 调 dock `showPostFailure`；`conversationInboxOverlay.test.ts` 绿 | conversation | closed |
 | D115 | P3 | **SessionBar `commitSessionTitleEdit` 忽略 `renameSession` boolean**：拒绝后仍 `updateSessionTitle` + `refreshSessionSelectOptions`，把拒绝标题当成功。`IConversationLensSessionBarHost` 原无 `showPostFailure`。 | A 槽 `sessionbar-rename-rejected-notice` 已收：读 boolean；false 按 D110 画既有 `showPostFailure`（`failed` / `engine_disconnected`），标题回滚、不 refresh select。未改 empty-trim / Escape / create·delete·switch。未关 D16。 | `renameSession` false 调 `showPostFailure`；标题/roster 仍旧；既有 Enter/empty/Escape 测仍绿；`conversationLens.test.ts` 绿 | conversation | closed |
 | D116 | P3 | **SessionBar `deleteActiveSession` 忽略 `deleteSession` boolean**：先 `deleteComposerDraftsForSession` 再裸 `deleteSession`；roster 回 `false` 仍删草稿、无 `showPostFailure`、UI 当成功。 | A 槽 `sessionbar-delete-rejected-notice` 已收：先读 boolean；false 按 D110 画既有 `showPostFailure`（`failed` / `engine_disconnected`），不删草稿、不当删成功。true 仍删草稿。未改 create·switch·rename / Inbox / Sessions view。未关 D16。 | `deleteSession` false 调 `showPostFailure`；会话仍在、计数不变；既有 delete 成功测仍绿；`conversationLens.test.ts` 绿 | conversation | closed |
+| D117 | P3 | **Sessions 侧栏 `deleteActiveSession` 忽略 `deleteSession` boolean**：`conversationSessionsView.ts` 调用后不读返回值，false 时无 `INotificationService.error`，列表可假装已删。无 dock `showPostFailure`。不得改 createNewSession / openSessionBeside / SessionBar / Inbox | B 槽 `sessions-view-delete-rejected-notice` 已收：读 boolean；false 画 `INotificationService.error`（诚实 failed 文案；`!isEngineConnected() && hasEngineConnectionHistory()` 映射 disconnected）；true 仍静默。测锁 false → error + 会话仍在 `getSessions()`。未关 D16 | `deleteSession` false → notification error 且列表仍在；`conversationSessionsView.test.ts` 绿 | conversation | closed |
 
 ## D2 工位池 compile 基线（2026-09-02，merge 工位 / `loop/merge`）
 
