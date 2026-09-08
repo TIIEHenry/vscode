@@ -57,7 +57,7 @@ export function resolveConversationMermaidExtension(
 			extensionLocation: extension.extensionLocation,
 			extensionId: extension.identifier,
 		};
-	});
+	}).catch(() => undefined);
 }
 
 export function mountConversationMermaidHost(
