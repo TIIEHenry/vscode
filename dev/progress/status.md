@@ -176,15 +176,15 @@ summary: "D16 / D31 F4 仍开。官方三域 glob 已绿。D44–D90 / D92–D12
 | [D90](deferred-gaps.md) | B 槽 `session-window-primary-bootstrap-catch` | **closed** throw 回滚 + in-flight 串行；merge 复测 9/9；未关 D16 |
 | [D92](deferred-gaps.md)–[D129](deferred-gaps.md) / [D131](deferred-gaps.md) / [D133](deferred-gaps.md)–[D139](deferred-gaps.md) | B roster+inbox+sessions / D nav / A beside+mru+sessionbar / A·B composer / A notifications / B sessionChat / D bind / A navigator lease / B reveal / A attribution / A rotate / A revoke / B triggers / A rename error tone / B clipboard clear / A Hub fallback revoke / B upsert refresh / D clipboard write / A catch error tone / B swallowed-primary notice lock | **closed** throw 回滚/notice；RotateToken / Revoke `!success` 与 catch 已 error tone；Triggers 删/upsert 与 Clipboard 清空/写入成功 refresh；swallowed primary 后 beside 已锁 bootstrap notice；未关 D16 |
 | [D140](deferred-gaps.md)–[D144](deferred-gaps.md) | A SessionBar / B Sessions 侧栏断连 New session / D mermaid getExtension reject / A copyTurn writeText reject / B requestResync reject | **closed** 断连+history New session 画 notice 且不调 `createSession`；mermaid reject 回 `undefined`；copyTurn reject 画 `failed`；requestResync reject 已吞；未关 D16 |
-## 工位表（P0 盘点 · 2026-09-08 · 与 `git worktree list` 对照）
+## 工位表（P0 盘点 · 2026-09-09 · 与 `git worktree list` 对照）
 | 槽 | 路径 | 分支 | tip | 脏 | stash | 关仓状态 |
 |----|------|------|-----|:--|:------|:---------|
-| merge | `vscode-WorkTrees/merge` | `loop/merge` | `134f5c34451` | `__pycache__` | 0 | parked；compile unused 仍红，**不 push** |
-| A | `vscode-WorkTrees/A` | `loop/A` | `134f5c34451` | `__pycache__` | 0 | idle |
-| B | `vscode-WorkTrees/B` | `loop/B` | `134f5c34451` | `__pycache__` | 0 | idle |
-| C | `vscode-WorkTrees/C` | `loop/C` | `134f5c34451` | 未提交 `dev/loop` + `__pycache__` | 0 | idle；勿 add `dev/loop` |
-| D | `vscode-WorkTrees/D` | `loop/D` | `134f5c34451` | `__pycache__` | 0 | idle |
-| edit | `Projects/Agents/vscode` | `agent-ide` | `a40a95d1e85`+ | `dev/loop` + 过期 progress | 0 | 人类工位；请自行对齐 `134f5c34451` |
+| merge | `vscode-WorkTrees/merge` | `loop/merge` | `26b5d2a864f` | `__pycache__` | 0 | parked；compile unused 仍红，**不 push** |
+| A | `vscode-WorkTrees/A` | `loop/A` | `26b5d2a864f` | `__pycache__` | 0 | idle |
+| B | `vscode-WorkTrees/B` | `loop/B` | `26b5d2a864f` | `__pycache__` | 0 | idle |
+| C | `vscode-WorkTrees/C` | `loop/C` | `26b5d2a864f` | 未提交 `dev/loop` + `__pycache__` | 0 | idle；勿 add `dev/loop` |
+| D | `vscode-WorkTrees/D` | `loop/D` | `26b5d2a864f` | `__pycache__` | 0 | idle |
+| edit | `Projects/Agents/vscode` | `agent-ide` | `a40a95d1e85`+ | `dev/loop` + 过期 progress | 0 | 人类工位；请自行对齐 `26b5d2a864f` |
 ## Next（Blockers：无）
 | 项 | 指针 |
 |:---|:-----|
