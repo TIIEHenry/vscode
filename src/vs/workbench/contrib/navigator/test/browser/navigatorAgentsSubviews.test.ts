@@ -20,7 +20,7 @@ import { IConversationSessionChatService } from '../../../conversation/browser/c
 import { IConversationPartService } from '../../../../browser/parts/conversation/conversationPart.js';
 import { IAgentInspectService } from '../../common/agentInspect.js';
 import { AgentInspectService } from '../../browser/agentInspectService.js';
-import { ICommandService } from '../../../../../platform/commands/common/commands.js';
+import { CommandsRegistry, ICommandService } from '../../../../../platform/commands/common/commands.js';
 import type { INavigatorAgentsHierarchyNode } from '../../common/navigatorAgentHierarchy.js';
 import type { INavigatorAgentsActivityItem } from '../../common/navigatorAgentsActivity.js';
 import { NAVIGATOR_STALE_SNAPSHOT_COPY } from '../../common/navigatorAgentTreeEmptyState.js';
@@ -28,6 +28,8 @@ import { createNavigatorConnectionTestStub } from '../common/navigatorConnection
 import { workbenchInstantiationService, TestViewsService } from '../../../../test/browser/workbenchTestServices.js';
 import { IViewsService } from '../../../../services/views/common/viewsService.js';
 import { AGENT_INSPECT_VIEW_ID, OPEN_NAVIGATOR_AGENTS_INSPECT_COMMAND_ID } from '../../browser/agentInspectIds.js';
+import { CONVERSATION_REVEAL_ITEM_COMMAND_ID } from '../../../conversation/browser/conversationRevealItem.contribution.js';
+import { IConversationTimelineRevealService } from '../../../conversation/browser/conversationTimelineRevealService.js';
 import '../../browser/navigator.contribution.js';
 import {
 	NAVIGATOR_AGENTS_SHOW_ACTIVITY_COMMAND_ID,
@@ -686,6 +688,46 @@ suite('Navigator Agents subviews', () => {
 		process.on('unhandledRejection', onUnhandledRejection);
 		try {
 			view.revealHierarchyNode(hierarchyNode('sub:alpha', 'Alpha'));
+			await new Promise<void>(resolve => setTimeout(resolve, 0));
+			assert.deepStrictEqual(errors, [getErrorMessage(boom)]);
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
+
+	test('conversation.revealItem acquireSessionView throw notifies error without unhandled rejection', async () => {
+		const boom = new Error('acquireSessionView: session untitled is not engine-bound');
+		const errors: string[] = [];
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		class RosterAcquireThrows extends ConversationStubService {
+			override acquireSessionView(_sessionId: string): IConversationSessionViewLease {
+				throw boom;
+			}
+		}
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IConversationRosterService, store.add(new RosterAcquireThrows()));
+		instantiationService.stub(IConversationPartService, { focus: () => { } } as IConversationPartService);
+		instantiationService.stub(IConversationTimelineRevealService, {
+			revealItem: () => { },
+			registerLens: () => ({ dispose: () => { } }),
+			getAccessibleTurnContent: () => undefined,
+			focusAccessibleTurn: () => { },
+			scrollToFirstPendingConfirmation: () => { },
+		} as IConversationTimelineRevealService);
+		instantiationService.stub(INotificationService, {
+			error: (message: string | Error) => {
+				errors.push(typeof message === 'string' ? message : getErrorMessage(message));
+			},
+		} as INotificationService);
+
+		const command = CommandsRegistry.getCommand(CONVERSATION_REVEAL_ITEM_COMMAND_ID);
+		assert.ok(command, 'conversation.revealItem must be registered');
+
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			void instantiationService.invokeFunction(accessor => command.handler(accessor, { itemId: 'item-1' }));
 			await new Promise<void>(resolve => setTimeout(resolve, 0));
 			assert.deepStrictEqual(errors, [getErrorMessage(boom)]);
 			assert.deepStrictEqual(unhandledRejections, []);

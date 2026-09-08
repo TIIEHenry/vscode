@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-08
-summary: "D16 / D31 F4 仍开。官方三域 glob 已绿。D44–D90 / D92–D104 已闭。sessions MRU stale peek 与 saveTurnEdit 拒绝 notice 已挂。A2 仍 blocked。"
+summary: "D16 / D31 F4 仍开。官方三域 glob 已绿。D44–D90 / D92–D105 已闭。stale peek、saveTurnEdit 拒绝 notice 与 reveal acquire catch 已挂。A2 仍 blocked。"
 ---
 
 # Development Progress
@@ -47,13 +47,7 @@ summary: "D16 / D31 F4 仍开。官方三域 glob 已绿。D44–D90 / D92–D10
 1. **集成 tip** 以 merge 本关仓提交为准（FileMutationJoin A=`10d8dd3b143`；createScoped B=`9c49eb5b978`；Review 委托 D=`60dbf139ac1`）。`npm run compile` 仍基线 unused 红则 **不 push**。GFS >800 不拆。D22/F3 已撤回。不跑 F4 / 不实施 A2。
 2. 本波字母槽已进 merge：**A** `filemutation-join`（无 `diff_stats` 时 omit）；**B** createScoped + SessionsView 夹具 + [D42](deferred-gaps.md) Maximize 已闭；**C** inbox-getqueue-honesty（无 GetQueue）；**D** review-entries + [D43](deferred-gaps.md) layout 扇出已闭。**[D16](deferred-gaps.md) 仍开**。
 3. **D15 / W1 笔记（工位 A，未占 工位表）**：`scripts/code-web.sh --browserType none --host 127.0.0.1 --port 18080` 已起；V1 Conversation / V2 四钮 + `UniverseAgentStudio Dev` / V3 Connection·Engine 省略桌面连接控件均 **PASS**。`IUniverseAgentConnection.getConnectionPhase()` = `disconnected`；页内点名「此环境不支持本机 Engine 连接」。证据 [d15-evidence/w1-1556dde3](d15-evidence/w1-1556dde3/)。**D15 可闭**；不升 PRD-019。未跑 compile / F4 / 引擎仓。
-4. **A 槽 `statusbar-leftover`（未关 D16 / 未改名单）**：D17 leftover Conversation Session StatusBar 簇。生产相位文案 / pairingPending 闸门未改。测夹具去掉二次 `registerAction2`（与 `conversation.contribution` 撞 `showConversationPart`）、roster 改 `Event.None`、切换测 Emitter 入 store。未缩断言。
-5. **A 槽 `visualize-leftover`（未关 D16 / 未改名单 / 未降 min_cases）**：D17 Lens visualize 两行。默认 360px 虚窗不再保证 comparison 已挂 DOM。两测在查询前 `revealVisualizeTurn(..., 'visualize-v2')`，未缩「无 Agent header」/ collapse 合同。未改生产 visualize。
-6. **A 槽 `lens-ro-uncaught`（未关 D16 / 未占 D24·D26·D22·A2·F4 / unused-import）**：T5a 全套会被 mocha Uncaught `ResizeObserver loop completed with undelivered notifications` 打断。leftover 的 capture/`window.onerror` 不够（mocha.run 把 `Runner#_uncaught` 绑到 onerror，通过后异步再来会 `abort()`）。harness 在 loadTests 时补丁 `_uncaught`，并吞 Node `uncaughtException` / `errorHandler` 同文案。未缩产品断言。
-7. **B 槽 `statusbar-register-idempotent`（未关 D16）**：`registerConversationSessionStatusBar` 见已注册的 `workbench.action.showConversationPart` 则返回，二次调用不抛。生产仍只在 `conversation.contribution` 调一次。未发明新命令。
-8. **A 槽 `d17-conversation-glob-reprove`（未关 D16 / 未改名单 / 未降 min_cases）**：名单已空后官方 conversation 单 glob 仍有未列红。夹具收口：lens harness 吞 ListView `Measured item node at 0px` warn（不缩 T5 Edit XOR 0px 断言）；untitled / two-leaves 查询前 `revealTurn`；overlay dispose 取消 rAF；S5 teardown 双 rAF。复证 `scripts/test.sh --glob '**/vs/workbench/contrib/conversation/test/**/*.test.js' --tfs conversation` **795 pass / 0 fail / 0 skip**（≥ min_cases=714）。**勿开切片 1「已归零」**。
-9. **B 槽 `d44-preferences-nav-idempotent`（未关 D16）**：`registerUaPreferencesNavigationActions` 对已注册的 `openConnectionPreferences` / `openEnginePreferences` 跳过，二次调用不抛。生产仍只 contribution 调一次。未发明新命令。[D44](deferred-gaps.md) **已闭**。
-10. **A 槽 hang-fix leftover（未关 D16 / 未降 min_cases）**：官方 conversation glob 未列三测（delete→trajectory 铺行、pinned preview/copy）。夹具按 hang-fix 同族：layout-before-reveal、有界等待、paint pinned/trajectory 行。未缩产品断言。**merge 复证**：三测 3/3；官方 conversation glob **795/0/0**。
+4. **A/B leftover 夹具波（未关 D16 / 未降 min_cases）**：statusbar / visualize / lens-ro-uncaught / register-idempotent / conversation glob 795 / hang-fix / [D44](deferred-gaps.md)。勿开切片 1「已归零」。
 11. **A 槽 `host-open-catch`（未关 D16 / 未转 listTools / 未发明 heartbeat client_id / 未碰 Create·`.sessions`）**：`openResidentChat` `open.call` 与 `openStream` `subscribeSessionEventStream` 补与 `openContinuation` 同级 catch（warn、不抛、Chat 仍 echo `chatStreamUp` 走 one-shot）。`sessionViewHostChatClose.test.ts` 断言 throw-on-open。父约束未 compile。[D45](deferred-gaps.md) **已闭**。
 12. **B 槽 `catalog-rpc-throw-honesty`（未关 D16 / 未转 listTools bytes / 未发明 GetQueue）**：Engine Tools/Agents list throw → `getMode()==='failed'` + error status + 0 行；composer 三 hook throw 仍 No agent / No model / 空 tools。首拉 throw 已锁。成功后再 throw leftover 已由本 wake `d46-catalog-leftover-clear` 收口。未 compile。
 13. **D 槽 `review-git-read-throw`（未关 D16 / 未跑 F4 / 未开 A2）**：Review / Changes 挂载后 `readGitChanges` throw 的 status DOM 含 `sourcesGitReadFailureMessage('boom')` / `Unable to read git changes:`。未重做 Open Selected。未发明 WriteGitUnstage。
@@ -104,7 +98,7 @@ summary: "D16 / D31 F4 仍开。官方三域 glob 已绿。D44–D90 / D92–D10
 58. **D 槽 `fork-open-tab-throw-notice`（未关 D16）**：`openForkTab` try/catch → notice；首个 await 前 hoist。[D88](deferred-gaps.md) **已闭**。
 59. **A 槽 `connection-profile-crud-throw`（未关 D16）**：Add Direct / Disconnect / Forget / ConnectDevice throw 画 status。[D89](deferred-gaps.md) **已闭**。
 60. **B 槽 `session-window-primary-bootstrap-catch`（未关 D16）**：先 `ensureLeaf` 再提交 key；in-flight 串行 + 真实 stub；throw 回滚半应用 leaf。[D90](deferred-gaps.md) **已闭**。
-61. **D D100 / B D101 / A D102–D103 / B D104**（未关 D16）：peek-before-advance；closeEditors notice；sessions opener 回滚；stale target 不前进；saveTurnEdit false 先 notice。
+61. **D D100 / B D101 / A D102–D103 / B D104 / D D105**（未关 D16）：peek-before-advance；closeEditors notice；sessions opener 回滚；stale target 不前进；saveTurnEdit false 先 notice；reveal acquire throw 已 notice。
 子 agent 发现的既有代码问题：
 | ID | 来源 | 问题 |
 |:---|:-----|:-----|
@@ -176,7 +170,7 @@ summary: "D16 / D31 F4 仍开。官方三域 glob 已绿。D44–D90 / D92–D10
 | [D88](deferred-gaps.md) | D 槽 `fork-open-tab-throw-notice` | **closed** Fork `openForkTab` throw 已 notice；未关 D16 |
 | [D89](deferred-gaps.md) | A 槽 `connection-profile-crud-throw` | **closed** Add Direct / Disconnect / Forget / ConnectDevice throw 已画 status；未关 D16 |
 | [D90](deferred-gaps.md) | B 槽 `session-window-primary-bootstrap-catch` | **closed** throw 回滚 + in-flight 串行；merge 复测 9/9；未关 D16 |
-| [D92](deferred-gaps.md)–[D104](deferred-gaps.md) | B roster+close / D nav / A beside+mru / B composer | **closed** throw 回滚/notice；peek-before-advance；closeEditors notice；sessions opener 回滚；stale target 不前进；saveTurnEdit false 先 notice；未关 D16 |
+| [D92](deferred-gaps.md)–[D105](deferred-gaps.md) | B roster+close / D nav / A beside+mru / B composer / D reveal | **closed** throw 回滚/notice；peek-before-advance；closeEditors notice；sessions opener 回滚；stale target 不前进；saveTurnEdit false 先 notice；reveal acquire throw 已 notice；未关 D16 |
 
 ## 工位表（P0 盘点 · 2026-09-07 · 与 `git worktree list` 对照）
 | 槽 | 路径 | 分支 | tip | 脏 | stash | 关仓状态 |
