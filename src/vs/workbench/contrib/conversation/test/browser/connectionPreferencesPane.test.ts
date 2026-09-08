@@ -2015,6 +2015,37 @@ suite('ConnectionPreferencesPane', () => {
 		assert.ok(banner);
 		assert.strictEqual(banner.textContent, 'boom');
 		assert.notStrictEqual(banner.style.display, 'none');
+		assert.ok(banner.classList.contains('is-error'));
+		container.remove();
+	});
+
+	test('device Rename ok false paints hub directory banner error', async () => {
+		let refreshed = 0;
+		const pane = mountPane({
+			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
+			getDirectoryStatus: () => ({ kind: 'ok', devices: [device({ id: 'dev-1', name: 'Studio' })] }),
+			renameDevice: async () => ({ ok: false, code: 'denied', reason: 'denied' }),
+			refreshDirectory: async () => {
+				refreshed++;
+				return { kind: 'ok', devices: [device({ id: 'dev-1', name: 'Studio' })] };
+			},
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		await Promise.resolve();
+
+		const rename = [...container.querySelectorAll('.connection-hub-device-actions .monaco-button')]
+			.find(button => button.textContent === 'Rename') as HTMLButtonElement | undefined;
+		assert.ok(rename);
+		rename.click();
+		await Promise.resolve();
+		await Promise.resolve();
+		const banner = container.querySelector('.connection-hub-directory-banner') as HTMLElement;
+		assert.ok(banner);
+		assert.ok(banner.textContent?.includes('denied'));
+		assert.notStrictEqual(banner.style.display, 'none');
+		assert.ok(banner.classList.contains('is-error'));
+		assert.strictEqual(refreshed, 0);
 		container.remove();
 	});
 
