@@ -467,4 +467,54 @@ suite('universeAgentRendererSync', () => {
 		assert.strictEqual(client.listConnectionProfiles()[0]?.profileId, 'p1');
 		assert.ok(Array.isArray(client.listConnectionProfiles()));
 	});
+
+	test('hub channel client hydrate IPC reject keeps pre-hydrate defaults without unhandled rejection', async () => {
+		const profiles = [{
+			profileId: 'p-rejected',
+			displayName: 'hub.example',
+			state: 'active' as const,
+			hasTrust: true,
+			targetKind: 'hubDevice' as const,
+		}];
+		const channel: IChannel = {
+			call: (command: string) => {
+				switch (command) {
+					case 'listConnectionProfiles':
+						return Promise.resolve(profiles);
+					case 'getAuthStatus':
+						return Promise.reject(new Error('ipc hydrate auth'));
+					case 'getDirectoryStatus':
+						return Promise.resolve({ kind: 'ok', devices: [] });
+					case 'getActiveHubBaseUrl':
+						return Promise.resolve('https://hub.example');
+					default:
+						return Promise.resolve(undefined);
+				}
+			},
+			listen: () => Event.None,
+		};
+		const rejections: unknown[] = [];
+		const onUnhandled = (reason: unknown) => { rejections.push(reason); };
+		process.on('unhandledRejection', onUnhandled);
+		try {
+			const client = store.add(new UniverseAgentHubChannelClient(channel));
+			let authFires = 0;
+			let directoryFires = 0;
+			let profileFires = 0;
+			store.add(client.onDidChangeAuthStatus(() => { authFires++; }));
+			store.add(client.onDidChangeDirectory(() => { directoryFires++; }));
+			store.add(client.onDidChangeProfiles(() => { profileFires++; }));
+			await timeout(0);
+			assert.deepStrictEqual(rejections, []);
+			assert.strictEqual(authFires, 0);
+			assert.strictEqual(directoryFires, 0);
+			assert.strictEqual(profileFires, 0);
+			assert.strictEqual(client.getAuthStatus().kind, 'signedOut');
+			assert.strictEqual(client.getDirectoryStatus().kind, 'idle');
+			assert.deepStrictEqual(client.listConnectionProfiles(), []);
+			assert.strictEqual(client.getActiveHubBaseUrl(), undefined);
+		} finally {
+			process.off('unhandledRejection', onUnhandled);
+		}
+	});
 });
