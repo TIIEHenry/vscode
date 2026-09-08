@@ -29,6 +29,7 @@ import {
 	canSendConnectionDeviceRotateToken,
 	CONNECTION_DEVICE_ROTATE_TOKEN_LABEL,
 	connectionDeviceListFailureMessage,
+	connectionDeviceRotateTokenFailureMessage,
 	connectionDeviceRotateTokenIds,
 	toConnectionPairedDevice,
 } from './connectionDeviceList.js';
@@ -1460,6 +1461,11 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		const request = connectionDeviceRotateTokenIds(this.hubDevicesList.getSelectedElements()[0]);
 		try {
 			const result = await hook.call(this.connectionService, request);
+			if (!result.success) {
+				writeStatus(this.hubDirectoryBanner, connectionDeviceRotateTokenFailureMessage(result.message), 'error');
+				this.hubDirectoryBanner.style.display = '';
+				return;
+			}
 			this.hubDirectoryBanner.textContent = result.message;
 			this.hubDirectoryBanner.style.display = result.message ? '' : 'none';
 		} catch (error) {

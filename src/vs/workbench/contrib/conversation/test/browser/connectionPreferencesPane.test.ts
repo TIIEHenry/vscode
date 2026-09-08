@@ -42,6 +42,7 @@ import type {
 import {
 	CONNECTION_DEVICE_ROTATE_TOKEN_LABEL,
 	connectionDeviceListFailureMessage,
+	connectionDeviceRotateTokenFailureMessage,
 } from '../../browser/connectionDeviceList.js';
 import {
 	CONNECTION_DEVICE_PAIR_REJECT_LABEL,
@@ -2951,6 +2952,58 @@ suite('ConnectionPreferencesPane', () => {
 		await Promise.resolve();
 		await Promise.resolve();
 		assert.deepStrictEqual(rotateCalls, [{ deviceId: '  dev  ' }]);
+		container.remove();
+	});
+
+	test('RotateToken success false with message paints hub directory banner error', async () => {
+		const pane = mountPane({
+			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
+			getDirectoryStatus: () => ({ kind: 'ok', devices: [device({ id: 'hub-1', name: 'Hub Studio' })] }),
+		}, {
+			isEngineConnected: () => true,
+			rotateToken: async () => ({ success: false, message: 'denied' }),
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		await Promise.resolve();
+		await Promise.resolve();
+		const rotate = [...container.querySelectorAll('.connection-hub-device-actions .monaco-button')]
+			.find(button => button.textContent === CONNECTION_DEVICE_ROTATE_TOKEN_LABEL) as HTMLButtonElement | undefined;
+		assert.ok(rotate);
+		rotate.click();
+		await Promise.resolve();
+		await Promise.resolve();
+		const banner = container.querySelector('.connection-hub-directory-banner') as HTMLElement;
+		assert.ok(banner);
+		assert.ok(banner.textContent?.includes('denied'));
+		assert.ok(banner.classList.contains('is-error'));
+		assert.notStrictEqual(banner.style.display, 'none');
+		container.remove();
+	});
+
+	test('RotateToken success false with empty message still paints hub directory banner fallback', async () => {
+		const pane = mountPane({
+			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
+			getDirectoryStatus: () => ({ kind: 'ok', devices: [device({ id: 'hub-1', name: 'Hub Studio' })] }),
+		}, {
+			isEngineConnected: () => true,
+			rotateToken: async () => ({ success: false, message: '' }),
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		await Promise.resolve();
+		await Promise.resolve();
+		const rotate = [...container.querySelectorAll('.connection-hub-device-actions .monaco-button')]
+			.find(button => button.textContent === CONNECTION_DEVICE_ROTATE_TOKEN_LABEL) as HTMLButtonElement | undefined;
+		assert.ok(rotate);
+		rotate.click();
+		await Promise.resolve();
+		await Promise.resolve();
+		const banner = container.querySelector('.connection-hub-directory-banner') as HTMLElement;
+		assert.ok(banner);
+		assert.strictEqual(banner.textContent, connectionDeviceRotateTokenFailureMessage(''));
+		assert.ok(banner.classList.contains('is-error'));
+		assert.notStrictEqual(banner.style.display, 'none');
 		container.remove();
 	});
 });
