@@ -17,6 +17,7 @@ export class NavigatorSessionLeaseHolder extends Disposable {
 	constructor(
 		private readonly rosterService: IConversationRosterService,
 		private readonly onLeaseChanged: () => void,
+		private readonly onAcquireError?: (error: unknown) => void,
 	) {
 		super();
 		this._register(rosterService.onDidChangeActiveSession(() => this.refreshLease()));
@@ -49,11 +50,16 @@ export class NavigatorSessionLeaseHolder extends Disposable {
 		}
 		this.clearLease();
 		this.sessionId = sessionId;
-		const lease = this.rosterService.acquireSessionView(sessionId);
-		this.lease = lease;
-		this.leaseStore.add(lease);
-		this.leaseStore.add(lease.onDidApplyFrame(() => this.onLeaseChanged()));
-		this.onLeaseChanged();
+		try {
+			const lease = this.rosterService.acquireSessionView(sessionId);
+			this.lease = lease;
+			this.leaseStore.add(lease);
+			this.leaseStore.add(lease.onDidApplyFrame(() => this.onLeaseChanged()));
+			this.onLeaseChanged();
+		} catch (error) {
+			this.lease = undefined;
+			this.onAcquireError?.(error);
+		}
 	}
 
 	private clearLease(): void {
