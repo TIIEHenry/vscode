@@ -4,12 +4,14 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { getErrorMessage } from '../../../../../base/common/errors.js';
 import { Emitter } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { TestConfigurationService } from '../../../../../platform/configuration/test/common/testConfigurationService.js';
 import { IConfigurationService } from '../../../../../platform/configuration/common/configuration.js';
 import { INotification, INotificationHandle, INotificationService, NoOpNotification } from '../../../../../platform/notification/common/notification.js';
 import { TestNotificationService } from '../../../../../platform/notification/test/common/testNotificationService.js';
+import type { IConversationSessionViewLease } from '../../../../../platform/universeAgent/common/conversationViewFrame.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import type { ITurnSettleSignal } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { IConversationPartService } from '../../../../browser/parts/conversation/conversationPart.js';
@@ -30,9 +32,15 @@ import {
 
 class RecordingNotificationService extends TestNotificationService {
 	readonly notifications: INotification[] = [];
+	readonly errors: string[] = [];
 
 	override notify(notification: INotification): INotificationHandle {
 		this.notifications.push(notification);
+		return new NoOpNotification();
+	}
+
+	override error(error: string | Error): INotificationHandle {
+		this.errors.push(typeof error === 'string' ? error : getErrorMessage(error));
 		return new NoOpNotification();
 	}
 }
@@ -44,6 +52,7 @@ suite('ConversationNotificationsContribution', () => {
 		readonly conversationVisible?: boolean;
 		readonly configuration?: Record<string, unknown>;
 		readonly settleEmitter?: Emitter<ITurnSettleSignal>;
+		readonly createRoster?: () => ConversationStubService;
 	}): {
 		readonly roster: ConversationStubService;
 		readonly notifications: RecordingNotificationService;
@@ -52,7 +61,7 @@ suite('ConversationNotificationsContribution', () => {
 		readonly layout: { conversationVisible: boolean };
 	} {
 		const instantiationService = workbenchInstantiationService(undefined, store);
-		const roster = store.add(new ConversationStubService());
+		const roster = store.add(options?.createRoster?.() ?? new ConversationStubService());
 		const notifications = new RecordingNotificationService();
 		const revealCalls: string[] = [];
 		const switched: string[] = [];
@@ -190,5 +199,40 @@ suite('ConversationNotificationsContribution', () => {
 		notifications.notifications.length = 0;
 		settleEmitter.fire({ sessionId: firstId, runtimeTurnId: 'r1', assistantTurnId: 'a1' });
 		assert.strictEqual(notifications.notifications.length, 0);
+	});
+
+	test('acquireSessionView throw notifies error without unhandled rejection and still settles turns', async () => {
+		const boom = new Error('acquireSessionView: session untitled is not engine-bound');
+		class RosterAcquireThrows extends ConversationStubService {
+			override acquireSessionView(_sessionId: string): IConversationSessionViewLease {
+				throw boom;
+			}
+		}
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		const settleEmitter = store.add(new Emitter<ITurnSettleSignal>());
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			const { roster, notifications } = mount({
+				createRoster: () => new RosterAcquireThrows(),
+				configuration: { [UA_CLIENT_NOTIFICATIONS_TURN_COMPLETED]: true },
+				settleEmitter,
+			});
+			assert.ok(notifications.errors.length >= 1);
+			assert.ok(notifications.errors.every(message => message === getErrorMessage(boom)));
+
+			const firstId = roster.getActiveSessionId();
+			const secondId = roster.createSession();
+			roster.switchSession(secondId);
+			notifications.notifications.length = 0;
+			settleEmitter.fire({ sessionId: firstId, runtimeTurnId: 'r1', assistantTurnId: 'a1' });
+			assert.strictEqual(notifications.notifications.length, 1);
+			assert.ok(String(notifications.notifications[0]!.message).includes('finished a turn'));
+
+			await new Promise<void>(resolve => setTimeout(resolve, 0));
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
 	});
 });

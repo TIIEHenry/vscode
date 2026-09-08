@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { toAction } from '../../../../base/common/actions.js';
+import { getErrorMessage } from '../../../../base/common/errors.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
@@ -130,11 +131,15 @@ export class ConversationNotificationsContribution extends Disposable implements
 	}
 
 	private readPendingAttentionIds(sessionId: string): readonly string[] {
-		const lease = this.rosterService.acquireSessionView(sessionId);
+		let lease: ReturnType<IConversationRosterService['acquireSessionView']> | undefined;
 		try {
+			lease = this.rosterService.acquireSessionView(sessionId);
 			return collectPendingAttentionRequestIds(lease.snapshot.pendingActions);
+		} catch (error) {
+			this.notificationService.error(getErrorMessage(error));
+			return [];
 		} finally {
-			lease.dispose();
+			lease?.dispose();
 		}
 	}
 
