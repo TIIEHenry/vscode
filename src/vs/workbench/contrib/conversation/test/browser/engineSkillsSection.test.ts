@@ -606,6 +606,56 @@ suite('EngineSkillsSection (E1)', () => {
 		assert.strictEqual(ok, false);
 	});
 
+	test('successful refresh reloads selected skill body and drops stale content', async () => {
+		let getSkillInfoCalls = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			skillsSupport: 'SUPPORTED',
+			listSkills: async () => ({
+				skills: [{ name: 'demo-skill', source: 'bundled', enabled: true }],
+			}),
+			getSkillInfo: async (request) => {
+				getSkillInfoCalls++;
+				if (getSkillInfoCalls === 1) {
+					return {
+						name: request.skillName,
+						content: '# Stale skill body',
+						source: 'bundled',
+						enabled: true,
+					};
+				}
+				throw new Error('getSkillInfo exploded');
+			},
+		});
+		const section = mountSection(connection);
+		section.setSectionActive(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.strictEqual(section.getListEntryCount(), 1);
+		section.selectSkillForTest('demo-skill');
+		await flushMicrotasks();
+		assert.ok(section.getSelectedSkillBody().includes('# Stale skill body'));
+
+		connection.setConnected(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.strictEqual(section.getListEntryCount(), 1);
+		assert.strictEqual(section.getSelectedSkillName(), 'demo-skill');
+		const bodyStatus = section.getDomNode().querySelector('.engine-skill-body-status') as HTMLElement;
+		assert.ok(bodyStatus);
+		assert.ok(bodyStatus.textContent?.includes(localize(
+			'ua.engineSkillBodyLoadFailed',
+			"Could not load skill content from the engine.",
+		)));
+		const textarea = section.getDomNode().querySelector('.engine-skill-body-input textarea') as HTMLTextAreaElement | null;
+		assert.ok(textarea);
+		assert.ok(!textarea.value.includes('# Stale skill body'));
+		assert.ok(!section.getSelectedSkillBody().includes('# Stale skill body'));
+		assert.ok(!(section.getDomNode().textContent ?? '').includes('# Stale skill body'));
+	});
+
 	test('disconnected saveSelectedSkillBody does not call saveSkillContent RPC', async () => {
 		let saveCalled = false;
 		const connection = createConnectionStub({
