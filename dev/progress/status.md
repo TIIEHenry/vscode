@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-08
-summary: "FileMutationJoin / createScoped / Review 委托已修。D16 仍开。官方三域 glob 已绿。D44–D71 已闭。Team leftover 已清。Connection list leftover / write throw 已挂。Snapshots / MCP / Skills / Agents / Tools 写失败 write-status 已挂。Agents Tools 页 listTools throw 画 failed；重连后再 throw 清 leftover。Tools 成功 refresh 后 getToolInfo throw 重画详情。Skills 成功 refresh 后 getSkillInfo throw 重画正文。Agents Instructions 成功 refresh 后重载 AGENTS.md。MCP runtime leftover 已清。git-read / open-diff / Stage·Commit / Unstage throw 与 ok:false status 已挂。A2 仍 blocked。"
+summary: "FileMutationJoin / createScoped / Review 委托已修。D16 仍开。官方三域 glob 已绿。D44–D73 已闭。Team leftover 已清。Connection list leftover / write throw 已挂。Snapshots / MCP / Skills / Agents / Tools 写失败 write-status 已挂。Agents Tools 页 listTools throw 画 failed；重连后再 throw 清 leftover。Tools 成功 refresh 后 getToolInfo throw 重画详情。Skills 成功 refresh 后 getSkillInfo throw 重画正文。Agents Instructions 成功 refresh 后重载 AGENTS.md。Tools/Agents 成功 refresh 清 pending enablement。MCP runtime leftover 已清。git-read / open-diff / Stage·Commit / Unstage throw 与 ok:false status 已挂。A2 仍 blocked。"
 ---
 
 # Development Progress
@@ -99,6 +99,7 @@ summary: "FileMutationJoin / createScoped / Review 委托已修。D16 仍开。�
 40. **A 槽 `catalog-reconnect-stale`（未关 D16 / 未发明 GetQueue / proto / heartbeat `client_id` / 未碰 F4 / 引擎 / `.sessions` / `dev/loop` / D26 / D22 / A2 / unused-import）**：Agents connected+SUPPORTED `refresh` 成功在 `setProfiles`/`syncDetailHost` 前 invalidate `agentTools` / `agentToolsLoadFailed`（不消 catalog、不改 UNKNOWN）。Tools 成功 `refresh` 若有选中则清 info 再 `loadToolInfo`（`listTools` throw 仍清 catalog）。测锁 leftover 工具名消失 + toolsStatus failed + catalog ready；详情 failed 无 `Run a command`。[D68](deferred-gaps.md)/[D69](deferred-gaps.md) **已闭**。未 compile。
 41. **A 槽 `skills-refresh-reload-body`（未关 D16 / 未发明 GetQueue / proto / 未碰 F4 / 引擎 / `.sessions` / `dev/loop` / D26 / unused-import / 未改 create·toggle·save / D49 leftover）**：成功 `listSkills` refresh 后若有选中且 `!bodyDirty` 则 `loadSkillBody`。测锁重连后第二次 `getSkillInfo` throw 画 `ua.engineSkillBodyLoadFailed`、无 `# Stale skill body`、catalog 仍 ready。[D70](deferred-gaps.md) **已闭**。未 compile。
 42. **B 槽 `agents-refresh-reload-editor`（未关 D16 / 未发明 GetQueue / proto / 未碰 F4 / 引擎 / `.sessions` / `dev/loop` / D26 / D68 invalidate / UNKNOWN）**：Agents connected+SUPPORTED `refresh` 成功后若 Instructions 页有选中且 `!agentsMarkdownDirty` 则 `void loadAgentsEditorForSelection()`（既有 `saveAgentProfile`）；dirty 不覆盖；Tools 页不重入以免多打 `listTools`。测锁 leftover `Stale agents md` 消失 + editor-status `ua.engineAgentsMdLoadFailed` + catalog ready。[D71](deferred-gaps.md) **已闭**。未 compile。
+43. **A 槽 `catalog-refresh-clear-pending`（未关 D16 / 未发明 GetQueue / proto / 未碰 F4 / 引擎 / `.sessions` / `dev/loop` / D26 / D46 leftover / D68 invalidate / D69 / D71）**：Tools 成功 `refresh` 清 `pendingEnablement` 再 `updateSaveChrome`；Agents 成功 `refresh` 在 D68 invalidate 旁清 `agentToolPending`。测锁重连后 dirty false、catalog/tools 仍 ready。未 compile。[D72](deferred-gaps.md)/[D73](deferred-gaps.md) **已闭**。
 
 子 agent 发现的既有代码问题：
 
@@ -153,6 +154,8 @@ summary: "FileMutationJoin / createScoped / Review 委托已修。D16 仍开。�
 | [D69](deferred-gaps.md) | A 槽 `catalog-reconnect-stale` | **closed** Tools 成功 refresh 后 `getToolInfo` throw 重画详情 failed；catalog 仍 ready（非 D46）；未关 D16 |
 | [D70](deferred-gaps.md) | A 槽 `skills-refresh-reload-body` | **closed** Skills 成功 refresh 后 `getSkillInfo` throw 重画 body failed；catalog 仍 ready；dirty 不覆盖；未关 D16 |
 | [D71](deferred-gaps.md) | B 槽 `agents-refresh-reload-editor` | **closed** Agents Instructions 成功 refresh 后重载 AGENTS.md；dirty 不覆盖；第二次 `saveAgentProfile` throw 画 `ua.engineAgentsMdLoadFailed`；未关 D16 |
+| [D72](deferred-gaps.md) | A 槽 `catalog-refresh-clear-pending` | **closed** Tools 成功 refresh 清 `pendingEnablement`；重连后 dirty false、catalog ready；未关 D16 |
+| [D73](deferred-gaps.md) | A 槽 `catalog-refresh-clear-pending` | **closed** Agents 成功 refresh 清 `agentToolPending`；重连后 dirty false、catalog/tools ready；未关 D16 |
 
 ## 工位表（P0 盘点 · 2026-09-07 · 与 `git worktree list` 对照）
 

@@ -748,6 +748,31 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		assert.strictEqual(listToolsCalls, listCallsAfterLoad);
 	});
 
+	test('Tools: successful reconnect refresh clears pending enablement and keeps catalog ready', async () => {
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { tools: { support: 'SUPPORTED' } },
+			listTools: async () => ({ tools: [demoBashTool()] }),
+			listAgentProfiles: async () => ({
+				profiles: [demoToolsUserProfile()],
+			}),
+		});
+		const section = mountToolsSection(connection);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.ok(section.getListEntryCount() > 0);
+		section.setPendingEnablement({ name: 'bash' }, false);
+		assert.strictEqual(section.isToolEnablementDirty(), true);
+
+		connection.setConnected(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.isToolEnablementDirty(), false);
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.ok(section.getListEntryCount() > 0);
+	});
+
 	test('Agents: successful load then refresh throw is failed with no leftover catalog', async () => {
 		let listAgentProfilesCalls = 0;
 		const connection = createConnectionStub({
@@ -1013,6 +1038,43 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		assert.ok((section.getDomNode().textContent ?? '').includes('Demo Agent'));
 		assert.strictEqual(listAgentProfilesCalls, 2);
 		assert.strictEqual(listToolsCalls, 2);
+	});
+
+	test('Agents: successful reconnect refresh clears agent tool pending and keeps catalog ready', async () => {
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+			listAgentProfiles: async () => ({
+				profiles: [demoUserAgent()],
+			}),
+			listTools: async () => ({
+				tools: [{ name: 'bash' }],
+			}),
+		});
+		const section = mountAgentsSection(connection);
+		section.setSectionActive(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.ok(section.getListEntryCount() > 0);
+		await section.selectProfileByIdForTest('demo');
+		section.setActiveAgentDetailTabForTest('tools');
+		await flushMicrotasks();
+
+		section.setAgentToolPendingForTest({ name: 'bash' }, false);
+		assert.strictEqual(section.isAgentToolEnablementDirty(), true);
+
+		connection.setConnected(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.isAgentToolEnablementDirty(), false);
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.strictEqual(section.getListEntryCount(), 1);
+		const toolsFailed = section.getDomNode().querySelector(
+			'.engine-agents-tools-panel .engine-catalog-status-widget[data-catalog-mode="failed"]',
+		);
+		assert.strictEqual(toolsFailed, null);
+		assert.ok((section.getDomNode().textContent ?? '').includes('bash'));
 	});
 
 	test('Agents: instructions tab refresh reloads editor and paints load-failed without leftover markdown', async () => {

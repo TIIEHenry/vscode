@@ -556,6 +556,7 @@ export class EngineToolsSection extends Disposable {
 			const selectedToolName = this.selectedToolName;
 			this.setTools(toolsResult.tools);
 			this.hideCatalogWriteStatus();
+			this.pendingEnablement.clear();
 			this.mode = resolveEngineCatalogPaneMode(true, support, {
 				kind: 'success',
 				itemCount: toolsResult.tools.length,
