@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-08
-summary: "D16 / D31 F4 仍开。官方三域 glob 已绿。D44–D90 / D92–D129 / D131 / D133–D140 已闭。Rotate / 引擎 hook Revoke catch 已 error tone。swallowed primary 后 beside 已锁 notice。A2 仍 blocked。"
+summary: "D16 / D31 F4 仍开。官方三域 glob 已绿。D44–D90 / D92–D129 / D131 / D133–D141 已闭。Rotate / 引擎 hook Revoke catch 已 error tone。swallowed primary 后 beside 已锁 notice。A2 仍 blocked。"
 ---
 
 # Development Progress
@@ -101,6 +101,7 @@ summary: "D16 / D31 F4 仍开。官方三域 glob 已绿。D44–D90 / D92–D12
 61. **D100–D129 / D131 / D133–D139**（未关 D16；D130/D132 未占用）：peek / close / opener / stale / save·delete·cancel·Stop·Goal·Enqueue false notice；RotateToken / Revoke `!success` 与 catch 已 error tone；Triggers 删/upsert 成功 refresh；Clipboard 清空/写入成功 refresh；swallowed primary 后 beside 已锁 notice。
 62. **A/B/D 本波（未关 D16 / D31）**：A Hub fallback `revokeDevice` `!ok`/throw `writeStatus` error。[D135](deferred-gaps.md) **已闭**。B `handleUpsert` 成功 refresh 再回写 status。[D136](deferred-gaps.md) **已闭**。D `handleWrite` 成功 refresh 再回写 clipId。[D137](deferred-gaps.md) **已闭**。未 compile。
 63. **A/B 本波（未关 D16 / D31）**：A RotateToken / 引擎 hook Revoke catch 走 `writeStatus` error。[D138](deferred-gaps.md) **已闭**。B swallowed primary 后 `openSessionBeside` 锁 `harness.errors` 含 `primary bootstrap boom`；未二次 notice。[D139](deferred-gaps.md) **已闭**。未 compile。
+64. **A/B 本波（未关 D16 / D31）**：A SessionBar 断连+history New session 画 `engine_disconnected` 且不调 `createSession`。[D140](deferred-gaps.md) **已闭**。B Sessions 侧栏同条件画 notification error 且不调 `createSession`。[D141](deferred-gaps.md) **已闭**。未读返回值；接通路径未改。未 compile。
 子 agent 发现的既有代码问题：
 | ID | 来源 | 问题 |
 |:---|:-----|:-----|
@@ -172,7 +173,9 @@ summary: "D16 / D31 F4 仍开。官方三域 glob 已绿。D44–D90 / D92–D12
 | [D88](deferred-gaps.md) | D 槽 `fork-open-tab-throw-notice` | **closed** Fork `openForkTab` throw 已 notice；未关 D16 |
 | [D89](deferred-gaps.md) | A 槽 `connection-profile-crud-throw` | **closed** Add Direct / Disconnect / Forget / ConnectDevice throw 已画 status；未关 D16 |
 | [D90](deferred-gaps.md) | B 槽 `session-window-primary-bootstrap-catch` | **closed** throw 回滚 + in-flight 串行；merge 复测 9/9；未关 D16 |
-| [D92](deferred-gaps.md)–[D129](deferred-gaps.md) / [D131](deferred-gaps.md) / [D133](deferred-gaps.md)–[D140](deferred-gaps.md) | B roster+inbox+sessions / D nav / A beside+mru+sessionbar / A·B composer / A notifications / B sessionChat / D bind / A navigator lease / B reveal / A attribution / A rotate / A revoke / B triggers / A rename error tone / B clipboard clear / A Hub fallback revoke / B upsert refresh / D clipboard write / A catch error tone / B swallowed-primary notice lock / D SessionBar New session 断连 notice | **closed** throw 回滚/notice；RotateToken / Revoke `!success` 与 catch 已 error tone；Triggers 删/upsert 与 Clipboard 清空/写入成功 refresh；swallowed primary 后 beside 已锁 bootstrap notice；SessionBar 断连+history New session 画 `engine_disconnected` 且不调 `createSession`；未关 D16 |
+| [D92](deferred-gaps.md)–[D129](deferred-gaps.md) / [D131](deferred-gaps.md) / [D133](deferred-gaps.md)–[D139](deferred-gaps.md) | B roster+inbox+sessions / D nav / A beside+mru+sessionbar / A·B composer / A notifications / B sessionChat / D bind / A navigator lease / B reveal / A attribution / A rotate / A revoke / B triggers / A rename error tone / B clipboard clear / A Hub fallback revoke / B upsert refresh / D clipboard write / A catch error tone / B swallowed-primary notice lock | **closed** throw 回滚/notice；RotateToken / Revoke `!success` 与 catch 已 error tone；Triggers 删/upsert 与 Clipboard 清空/写入成功 refresh；swallowed primary 后 beside 已锁 bootstrap notice；未关 D16 |
+| [D140](deferred-gaps.md) | A 槽 `sessionbar-create-disconnected-notice` | **closed** SessionBar 断连+history New session 画 `engine_disconnected` 且不调 `createSession`；未读返回值；接通路径未改；未关 D16 |
+| [D141](deferred-gaps.md) | B 槽 `sessions-view-create-disconnected-notice` | **closed** Sessions 侧栏断连+history New session 画 notification error，不调 `createSession`；未读返回值；接通路径未改；未关 D16 |
 ## 工位表（P0 盘点 · 2026-09-08 · 与 `git worktree list` 对照）
 | 槽 | 路径 | 分支 | tip | 脏 | stash | 关仓状态 |
 |----|------|------|-----|:--|:------|:---------|
