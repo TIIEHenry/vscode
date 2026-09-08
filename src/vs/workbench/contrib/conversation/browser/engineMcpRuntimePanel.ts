@@ -204,6 +204,18 @@ export class EngineMcpRuntimePanel extends Disposable {
 		return this.tools.length;
 	}
 
+	/** Test hook: select a listed runtime server so `loadTools` can run. */
+	selectServerForTest(id: string): boolean {
+		const index = this.listEntries.findIndex(entry => entry.status.serverId === id);
+		if (index < 0 || !this.list) {
+			this.selectedServerId = undefined;
+			return false;
+		}
+		this.selectedServerId = id;
+		this.list.setSelection([index]);
+		return true;
+	}
+
 	setVisible(visible: boolean): void {
 		this.container.style.display = visible ? '' : 'none';
 	}
@@ -348,6 +360,7 @@ export class EngineMcpRuntimePanel extends Disposable {
 			this.tools = [];
 			this.toolsTotal = undefined;
 			this.toolsCachedAt = undefined;
+			DOM.clearNode(this.toolsList);
 			this.toolsMeta.style.display = 'none';
 			this.toolsList.style.display = 'none';
 			this.toolsStatus.render({
