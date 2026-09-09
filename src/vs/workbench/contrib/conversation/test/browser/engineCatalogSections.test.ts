@@ -30,7 +30,7 @@ import type {
 } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { EngineAgentsSection } from '../../browser/engineAgentsSection.js';
-import { EngineMcpSection } from '../../browser/engineMcpSection.js';
+import { ENGINE_MCP_ADD_SUCCESS_COPY, EngineMcpSection } from '../../browser/engineMcpSection.js';
 import { EngineToolsSection } from '../../browser/engineToolsSection.js';
 import { canPerformCatalogWrite, getCatalogFailedCopy, getCatalogUnsupportedCopy } from '../../browser/engineCatalog.js';
 import { localize } from '../../../../../nls.js';
@@ -1263,6 +1263,47 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		assert.strictEqual(await section.removeSelectedServer(), false);
 		assertMcpWriteFailureKeepsRows(section, 'remove exploded', 1);
 		assert.strictEqual(listMcpServersCalls, 1);
+	});
+
+	test('MCP: addMcpServer ok still shows add-success when subsequent listMcpServers fails', async () => {
+		let listMcpServersCalls = 0;
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			const connection = createConnectionStub({
+				connected: true,
+				capabilities: { mcp: { support: 'SUPPORTED' } },
+				listMcpServers: async () => {
+					listMcpServersCalls++;
+					if (listMcpServersCalls > 1) {
+						throw new Error('list boom');
+					}
+					return { servers: [demoMcpServer()] };
+				},
+				addMcpServer: async () => ({ ok: true }),
+			});
+			const section = mountMcpSection(connection);
+			await flushMicrotasks();
+			assert.strictEqual(listMcpServersCalls, 1);
+			assert.strictEqual(section.getMode(), 'ready');
+
+			assert.strictEqual(await section.addServer(), true);
+			assert.ok(listMcpServersCalls >= 2);
+
+			const writeStatus = section.getDomNode().querySelector('.engine-catalog-write-status') as HTMLElement;
+			assert.ok(writeStatus);
+			assert.strictEqual(writeStatus.textContent, ENGINE_MCP_ADD_SUCCESS_COPY);
+			assert.notStrictEqual(writeStatus.style.display, 'none');
+
+			const catalog = section.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
+			assert.ok(catalog);
+			assert.strictEqual(catalog.dataset['catalogMode'], 'failed');
+			assert.ok((catalog.textContent ?? '').includes(getCatalogFailedCopy(MCP_FEATURE, 'list boom')));
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
 	});
 
 	test('MCP: toggleServer ok:false shows write-failure status and keeps catalog rows', async () => {
